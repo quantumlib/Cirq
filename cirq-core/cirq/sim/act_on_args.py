@@ -232,7 +232,7 @@ class ActOnArgs(OperationTarget[TSelf]):
     def classical_data(self) -> 'cirq.ClassicalDataStoreReader':
         return self._classical_data
 
-    @property
+    @property  # type: ignore
     @deprecated(deadline='v0.16', fix='Remove this call, it always returns False.')
     def ignore_measurement_results(self) -> bool:
         return False

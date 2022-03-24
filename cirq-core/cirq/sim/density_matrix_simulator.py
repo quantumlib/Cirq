@@ -17,7 +17,7 @@ from typing import Any, Dict, TYPE_CHECKING, Tuple, Union, Sequence, Optional, L
 import numpy as np
 
 from cirq import ops, protocols, study, value
-from cirq._compat import deprecated, proper_repr
+from cirq._compat import deprecated_parameter, proper_repr
 from cirq.sim import (
     simulator,
     act_on_density_matrix_args,
@@ -193,7 +193,6 @@ class DensityMatrixSimulator(
     ):
         return DensityMatrixStepResult(
             sim_state=sim_state,
-            simulator=self,
             dtype=self._dtype,
         )
 
@@ -252,6 +251,12 @@ class DensityMatrixStepResult(
             results, ordered by the qubits that the measurement operates on.
     """
 
+    @deprecated_parameter(
+        deadline='v0.16',
+        fix='Remove parameter `simulator` as it is no longer used.',
+        parameter_desc='simulator',
+        match=lambda args, kwargs: 'simulator' in kwargs or len(args) > 2,
+    )
     def __init__(
         self,
         sim_state: 'cirq.OperationTarget[cirq.ActOnDensityMatrixArgs]',
@@ -269,31 +274,9 @@ class DensityMatrixStepResult(
         super().__init__(sim_state)
         self._dtype = dtype
         self._density_matrix: Optional[np.ndarray] = None
-        self._simulator = simulator
 
     def _simulator_state(self) -> 'cirq.DensityMatrixSimulatorState':
         return DensityMatrixSimulatorState(self.density_matrix(copy=False), self._qubit_mapping)
-
-    # TODO: When removing, also remove `simulator` from the constructor, and the line
-    # `sim_state = step_result._sim_state` from `SimulatorBase._core_iterator()`.
-    @deprecated(
-        deadline="v0.15", fix='Use `initial_state` to prepare a new simulation on the suffix.'
-    )
-    def set_density_matrix(self, density_matrix_repr: Union[int, np.ndarray]):
-        """Set the density matrix to a new density matrix.
-
-        Args:
-            density_matrix_repr: If this is an int, the density matrix is set to
-            the computational basis state corresponding to this state. Otherwise
-            if this is a np.ndarray it is the full state, either a pure state
-            or the full density matrix.  If it is the pure state it must be the
-            correct size, be normalized (an L2 norm of 1), and be safely
-            castable to an appropriate dtype for the simulator.  If it is a
-            mixed state it must be correctly sized and positive semidefinite
-            with trace one.
-        """
-        if self._simulator:
-            self._sim_state = self._simulator._create_act_on_args(density_matrix_repr, self._qubits)
 
     def density_matrix(self, copy=True):
         """Returns the density matrix at this step in the simulation.

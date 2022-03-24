@@ -214,9 +214,7 @@ class SimulatorBase(
                 except TypeError:
                     raise TypeError(f"{self.__class__.__name__} doesn't support {op!r}")
 
-            step_result = self._create_step_result(sim_state)
-            yield step_result
-            sim_state = step_result._sim_state
+            yield self._create_step_result(sim_state)
 
     def _run(
         self,

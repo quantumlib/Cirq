@@ -781,20 +781,6 @@ def test_simulate_moment_steps_empty_circuit(dtype: Type[np.number], split: bool
 
 
 @pytest.mark.parametrize('dtype', [np.complex64, np.complex128])
-def test_simulate_moment_steps_set_state_deprecated(dtype: Type[np.number]):
-    q0, q1 = cirq.LineQubit.range(2)
-    circuit = cirq.Circuit(cirq.H(q0), cirq.H(q1), cirq.H(q0), cirq.H(q1))
-    simulator = cirq.DensityMatrixSimulator(dtype=dtype)
-    for i, step in enumerate(simulator.simulate_moment_steps(circuit)):
-        np.testing.assert_almost_equal(step.density_matrix(), np.ones((4, 4)) * 0.25)
-        if i == 0:
-            zero_zero = np.zeros((4, 4), dtype=dtype)
-            zero_zero[0, 0] = 1
-            with cirq.testing.assert_deprecated('initial_state', deadline='v0.15'):
-                step.set_density_matrix(zero_zero)
-
-
-@pytest.mark.parametrize('dtype', [np.complex64, np.complex128])
 @pytest.mark.parametrize('split', [True, False])
 def test_simulate_moment_steps_sample(dtype: Type[np.number], split: bool):
     q0, q1 = cirq.LineQubit.range(2)
@@ -1083,7 +1069,7 @@ def test_density_matrix_trial_result_repr():
         initial_state=np.ones((2, 2), dtype=dtype) * 0.5,
         dtype=dtype,
     )
-    final_step_result = cirq.DensityMatrixStepResult(args, cirq.DensityMatrixSimulator())
+    final_step_result = cirq.DensityMatrixStepResult(args)
     trial_result = cirq.DensityMatrixTrialResult(
         params=cirq.ParamResolver({'s': 1}),
         measurements={'m': np.array([[1]], dtype=np.int32)},
@@ -1176,7 +1162,7 @@ def test_density_matrix_trial_result_str():
         initial_state=np.ones((2, 2), dtype=dtype) * 0.5,
         dtype=dtype,
     )
-    final_step_result = cirq.DensityMatrixStepResult(args, cirq.DensityMatrixSimulator())
+    final_step_result = cirq.DensityMatrixStepResult(args)
     result = cirq.DensityMatrixTrialResult(
         params=cirq.ParamResolver({}), measurements={}, final_step_result=final_step_result
     )
@@ -1202,7 +1188,7 @@ def test_density_matrix_trial_result_repr_pretty():
         initial_state=np.ones((2, 2), dtype=dtype) * 0.5,
         dtype=dtype,
     )
-    final_step_result = cirq.DensityMatrixStepResult(args, cirq.DensityMatrixSimulator())
+    final_step_result = cirq.DensityMatrixStepResult(args)
     final_step_result._simulator_state = cirq.DensityMatrixSimulatorState(
         density_matrix=np.ones((2, 2)) * 0.5, qubit_map={q0: 0}
     )
