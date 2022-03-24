@@ -99,3 +99,5 @@ def test_field_getters():
     args = DummyArgs()
     assert args.prng is np.random
     assert args.qubit_map == {q: i for i, q in enumerate(cirq.LineQubit.range(2))}
+    with cirq.testing.assert_deprecated('always returns False', deadline='v0.16'):
+        assert not args.ignore_measurement_results
