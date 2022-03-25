@@ -100,6 +100,7 @@ def test_job_results_qpu_endianness():
     results = job.results()
     assert results == ionq.QPUResult({0: 600, 2: 400}, 2, measurement_dict={})
 
+
 def test_job_results_qpu_target_endianness():
     job_dict = {
         'id': 'my_id',
