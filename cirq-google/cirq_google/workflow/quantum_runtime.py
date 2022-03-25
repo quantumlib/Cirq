@@ -203,7 +203,7 @@ class QuantumRuntimeConfiguration:
 
 
 @contextlib.contextmanager
-def _time_into_runtime_info(runtime_info: RuntimeInfo, name: str) -> None:
+def _time_into_runtime_info(runtime_info: RuntimeInfo, name: str):
     """A context manager that appends timing information into a cg.RuntimeInfo.
 
     Timings are reported in fractional seconds as reported by `time.monotonic()`.
