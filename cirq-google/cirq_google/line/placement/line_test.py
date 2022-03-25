@@ -19,7 +19,7 @@ from cirq_google import line_on_device
 from cirq_google.line.placement import GridQubitLineTuple
 
 
-class TestDevice(cirq.Device):
+class FakeDevice(cirq.Device):
     def __init__(self, qubits):
         self.qubits = qubits
 
@@ -28,7 +28,7 @@ def test_anneal_method_calls_anneal_search():
     q00 = cirq.GridQubit(0, 0)
     q01 = cirq.GridQubit(0, 1)
     q03 = cirq.GridQubit(0, 3)
-    device = TestDevice(qubits=[q00, q01, q03])
+    device = FakeDevice(qubits=[q00, q01, q03])
     length = 2
     method = cg.AnnealSequenceSearchStrategy()
 

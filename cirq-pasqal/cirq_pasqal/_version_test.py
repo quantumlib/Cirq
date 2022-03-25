@@ -3,4 +3,4 @@ import cirq_pasqal
 
 
 def test_version():
-    assert cirq_pasqal.__version__ == "0.14.0.dev"
+    assert cirq_pasqal.__version__ == "0.15.0.dev"
