@@ -610,18 +610,18 @@ class CommonCliffordGateMetaClass(value.ABCMetaImplementAnyOneOf):
     @property
     def X(cls):
         if getattr(cls, '_X', None) is None:
-            cls._Z = cls._generate_clifford_from_known_gate(1, pauli_gates.X)
-        return cls._Z
+            cls._X = cls._generate_clifford_from_known_gate(1, pauli_gates.X)
+        return cls._X
 
     @property
     def Y(cls):
-        if getattr(cls, '_X', None) is None:
-            cls._Z = cls._generate_clifford_from_known_gate(1, pauli_gates.Y)
-        return cls._Z
+        if getattr(cls, '_Y', None) is None:
+            cls._Y = cls._generate_clifford_from_known_gate(1, pauli_gates.Y)
+        return cls._Y
 
     @property
     def Z(cls):
-        if getattr(cls, '_X', None) is None:
+        if getattr(cls, '_Z', None) is None:
             cls._Z = cls._generate_clifford_from_known_gate(1, pauli_gates.Z)
         return cls._Z
 
