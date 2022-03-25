@@ -33,7 +33,3 @@ from cirq_google.workflow.processor_record import (
     SimulatedProcessorRecord,
     SimulatedProcessorWithLocalDeviceRecord,
 )
-
-from cirq_google.workflow.timing import (
-    TimeIntoRuntimeInfo,
-)
