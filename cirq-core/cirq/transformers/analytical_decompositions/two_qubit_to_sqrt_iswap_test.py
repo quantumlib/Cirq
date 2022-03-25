@@ -294,8 +294,8 @@ def test_fsim_gate_with_symbols():
     c_new_sqrt_iswap_inv = cirq.Circuit(
         cirq.parameterized_2q_op_to_sqrt_iswap_operations(op, use_sqrt_iswap_inv=True)
     )
-    for theta_val in np.linspace(0, 2 * np.pi, 12):
-        for phi_val in np.linspace(0, 2 * np.pi, 12):
+    for theta_val in np.linspace(0, 2 * np.pi, 4):
+        for phi_val in np.linspace(0, 2 * np.pi, 6):
             cirq.testing.assert_allclose_up_to_global_phase(
                 cirq.unitary(cirq.resolve_parameters(op, {'theta': theta_val, 'phi': phi_val})),
                 cirq.unitary(

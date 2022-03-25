@@ -529,18 +529,26 @@ def test_text_diagram_info(gate, sym, exp):
     )
 
 
-def test_from_unitary():
-    def _test(clifford_gate):
-        u = cirq.unitary(clifford_gate)
-        result_gate = cirq.SingleQubitCliffordGate.from_unitary(u)
-        assert result_gate == clifford_gate
-
-    _test(cirq.SingleQubitCliffordGate.I)
-    _test(cirq.SingleQubitCliffordGate.H)
-    _test(cirq.SingleQubitCliffordGate.X)
-    _test(cirq.SingleQubitCliffordGate.Y)
-    _test(cirq.SingleQubitCliffordGate.Z)
-    _test(cirq.SingleQubitCliffordGate.X_nsqrt)
+@pytest.mark.parametrize(
+    "clifford_gate",
+    (
+        cirq.SingleQubitCliffordGate.I,
+        cirq.SingleQubitCliffordGate.H,
+        cirq.SingleQubitCliffordGate.X,
+        cirq.SingleQubitCliffordGate.Y,
+        cirq.SingleQubitCliffordGate.Z,
+        cirq.SingleQubitCliffordGate.X_sqrt,
+        cirq.SingleQubitCliffordGate.Y_sqrt,
+        cirq.SingleQubitCliffordGate.Z_sqrt,
+        cirq.SingleQubitCliffordGate.X_nsqrt,
+        cirq.SingleQubitCliffordGate.Y_nsqrt,
+        cirq.SingleQubitCliffordGate.Z_nsqrt,
+    ),
+)
+def test_from_unitary(clifford_gate):
+    u = cirq.unitary(clifford_gate)
+    result_gate = cirq.SingleQubitCliffordGate.from_unitary(u)
+    assert result_gate == clifford_gate
 
 
 def test_from_unitary_with_phase_shift():
@@ -610,6 +618,15 @@ def test_common_clifford_gate(clifford_gate, standard_gate):
     u_c = cirq.unitary(clifford_gate)
     u_s = cirq.unitary(standard_gate)
     cirq.testing.assert_allclose_up_to_global_phase(u_c, u_s, atol=1e-8)
+
+
+@pytest.mark.parametrize('clifford_gate_name', ("I", "X", "Y", "Z", "H", "S", "CNOT", "CZ", "SWAP"))
+def test_common_clifford_gate_caching(clifford_gate_name):
+    cache_name = f"_{clifford_gate_name}"
+    delattr(cirq.CliffordGate, cache_name)
+    assert not hasattr(cirq.CliffordGate, cache_name)
+    _ = getattr(cirq.CliffordGate, clifford_gate_name)
+    assert hasattr(cirq.CliffordGate, cache_name)
 
 
 def test_multi_qubit_clifford_pow():
