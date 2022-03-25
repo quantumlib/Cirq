@@ -43,7 +43,7 @@ def _is_swaplike(gate: 'cirq.Gate'):
     return False
 
 
-@transformer_api.transformer
+@transformer_api.transformer(add_deep_support=True)
 def eject_z(
     circuit: 'cirq.AbstractCircuit',
     *,
@@ -96,7 +96,7 @@ def eject_z(
         gate = op.gate
         # Return if circuit operation.
         if gate is None:
-            return op
+            return [dump_tracked_phase(op.qubits), op]
 
         # Swap phases if `op` is a swap operation.
         if _is_swaplike(gate):
