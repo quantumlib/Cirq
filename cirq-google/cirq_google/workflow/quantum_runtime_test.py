@@ -43,7 +43,7 @@ def test_shared_runtime_info():
 
 def test_runtime_info():
     rtinfo = cg.RuntimeInfo(execution_index=5)
-    with cg.workflow.TimeIntoRuntimeInfo(rtinfo, 'test'):
+    with _time_into_runtime_info(rtinfo, 'test'):
         pass
     cg_assert_equivalent_repr(rtinfo)
 
