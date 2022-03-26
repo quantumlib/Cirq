@@ -13,6 +13,7 @@
 # limitations under the License.
 """An implementation of AbstractJob that uses in-memory constructs
 and a provided sampler to execute circuits."""
+import datetime
 from typing import cast, List, Optional, Sequence, Tuple
 
 import concurrent.futures
@@ -22,10 +23,23 @@ from cirq_google.engine.client import quantum
 from cirq_google.engine.calibration_result import CalibrationResult
 from cirq_google.engine.abstract_local_job import AbstractLocalJob
 from cirq_google.engine.local_simulation_type import LocalSimulationType
+from cirq_google.engine.engine_result import EngineResult
 
 
-def _flatten_results(batch_results: Sequence[Sequence[cirq.Result]]):
+def _flatten_results(batch_results: Sequence[Sequence[EngineResult]]):
     return [result for batch in batch_results for result in batch]
+
+
+def _to_engine_results(
+    batch_results: Sequence[Sequence['cirq.Result']],
+) -> List[List[EngineResult]]:
+    return [
+        [
+            EngineResult.from_result(result, job_id=None, job_finished_time=datetime.datetime.now())
+            for result in batch
+        ]
+        for batch in batch_results
+    ]
 
 
 class SimulatedLocalJob(AbstractLocalJob):
@@ -89,7 +103,7 @@ class SimulatedLocalJob(AbstractLocalJob):
         self.program().delete_job(self.id())
         self._state = quantum.enums.ExecutionStatus.State.STATE_UNSPECIFIED
 
-    def batched_results(self) -> Sequence[Sequence[cirq.Result]]:
+    def batched_results(self) -> Sequence[Sequence[EngineResult]]:
         """Returns the job results, blocking until the job is complete.
 
         This method is intended for batched jobs.  Instead of flattening
@@ -103,7 +117,7 @@ class SimulatedLocalJob(AbstractLocalJob):
         else:
             raise ValueError('Unsupported simulation type {self._type}')
 
-    def _execute_results(self) -> Sequence[Sequence[cirq.Result]]:
+    def _execute_results(self) -> Sequence[Sequence[EngineResult]]:
         """Executes the circuit and sweeps on the sampler.
 
         For synchronous execution, this is called when the results()
@@ -124,15 +138,16 @@ class SimulatedLocalJob(AbstractLocalJob):
                 params_list=cast(List[cirq.Sweepable], sweeps),
                 repetitions=reps,
             )
+            batch_engineresults = _to_engine_results(batch_results)
             self._state = quantum.enums.ExecutionStatus.State.SUCCESS
-            return batch_results
+            return batch_engineresults
         except Exception as e:
             self._failure_code = '500'
             self._failure_message = str(e)
             self._state = quantum.enums.ExecutionStatus.State.FAILURE
             raise e
 
-    def results(self) -> Sequence[cirq.Result]:
+    def results(self) -> Sequence[EngineResult]:
         """Returns the job results, blocking until the job is complete."""
         if self._type == LocalSimulationType.SYNCHRONOUS:
             return _flatten_results(self._execute_results())

@@ -22,6 +22,7 @@ from cirq_google.engine import abstract_job, calibration, engine_client
 from cirq_google.engine.calibration_result import CalibrationResult
 from cirq_google.engine.client import quantum
 from cirq_google.engine.result_type import ResultType
+from cirq_google.engine.engine_result import EngineResult
 from cirq_google.api import v1, v2
 
 if TYPE_CHECKING:
@@ -29,6 +30,7 @@ if TYPE_CHECKING:
     import cirq_google.engine.engine as engine_base
     from cirq_google.engine.engine import engine_program
     from cirq_google.engine.engine import engine_processor
+    import cirq_google as cg
 
 TERMINAL_STATES = [
     quantum.enums.ExecutionStatus.State.SUCCESS,
@@ -79,9 +81,9 @@ class EngineJob(abstract_job.AbstractJob):
         self.job_id = job_id
         self.context = context
         self._job = _job
-        self._results: Optional[Sequence[cirq.Result]] = None
+        self._results: Optional[Sequence[EngineResult]] = None
         self._calibration_results: Optional[Sequence[CalibrationResult]] = None
-        self._batched_results: Optional[Sequence[Sequence[cirq.Result]]] = None
+        self._batched_results: Optional[Sequence[Sequence[EngineResult]]] = None
         self.result_type = result_type
 
     def id(self) -> str:
@@ -258,7 +260,7 @@ class EngineJob(abstract_job.AbstractJob):
         """Deletes the job and result, if any."""
         self.context.client.delete_job(self.project_id, self.program_id, self.job_id)
 
-    def batched_results(self) -> Sequence[Sequence[cirq.Result]]:
+    def batched_results(self) -> Sequence[Sequence[EngineResult]]:
         """Returns the job results, blocking until the job is complete.
 
         This method is intended for batched jobs.  Instead of flattening
@@ -288,7 +290,7 @@ class EngineJob(abstract_job.AbstractJob):
         )
         return response.result
 
-    def results(self) -> Sequence[cirq.Result]:
+    def results(self) -> Sequence[EngineResult]:
         """Returns the job results, blocking until the job is complete."""
         import cirq_google.engine.engine as engine_base
 
@@ -306,7 +308,7 @@ class EngineJob(abstract_job.AbstractJob):
                 or result_type == 'cirq.api.google.v2.Result'
             ):
                 v2_parsed_result = v2.result_pb2.Result.FromString(result.value)
-                self._results = _get_job_results_v2(v2_parsed_result)
+                self._results = _get_job_results_v2(v2_parsed_result, job=self)
             elif result.Is(v2.batch_pb2.BatchResult.DESCRIPTOR):
                 v2_parsed_result = v2.batch_pb2.BatchResult.FromString(result.value)
                 self._batched_results = self._get_batch_results_v2(v2_parsed_result)
@@ -341,14 +343,14 @@ class EngineJob(abstract_job.AbstractJob):
             self._calibration_results = cal_results
         return self._calibration_results
 
-    @classmethod
     def _get_batch_results_v2(
-        cls, results: v2.batch_pb2.BatchResult
-    ) -> Sequence[Sequence[cirq.Result]]:
+        self,
+        results: v2.batch_pb2.BatchResult,
+    ) -> Sequence[Sequence[EngineResult]]:
         trial_results = []
         for result in results.results:
             # Add a new list for the result
-            trial_results.append(_get_job_results_v2(result))
+            trial_results.append(_get_job_results_v2(result, job=self))
         return trial_results
 
     @classmethod
@@ -422,8 +424,10 @@ def _get_job_results_v1(result: v1.program_pb2.Result) -> Sequence[cirq.Result]:
     return trial_results
 
 
-def _get_job_results_v2(result: v2.result_pb2.Result) -> Sequence[cirq.Result]:
-    sweep_results = v2.results_from_proto(result)
+def _get_job_results_v2(
+    result: v2.result_pb2.Result, job: 'cg.engine.AbstractJob'
+) -> Sequence[EngineResult]:
+    sweep_results = v2.results_from_proto(result, job=job)
     # Flatten to single list to match to sampler api.
     return [trial_result for sweep_result in sweep_results for trial_result in sweep_result]
 

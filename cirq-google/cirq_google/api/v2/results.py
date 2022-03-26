@@ -21,6 +21,7 @@ from typing import (
     Optional,
     Sequence,
     Set,
+    TYPE_CHECKING,
 )
 from collections import OrderedDict
 import dataclasses
@@ -29,6 +30,10 @@ import numpy as np
 import cirq
 from cirq_google.api import v2
 from cirq_google.api.v2 import result_pb2
+from cirq_google.engine.engine_result import EngineResult
+
+if TYPE_CHECKING:
+    import cirq_google as cg
 
 
 @dataclasses.dataclass
@@ -163,7 +168,8 @@ def results_to_proto(
 def results_from_proto(
     msg: result_pb2.Result,
     measurements: List[MeasureInfo] = None,
-) -> Sequence[Sequence[cirq.Result]]:
+    job: 'cg.engine.AbstractJob' = None,
+) -> Sequence[Sequence[EngineResult]]:
     """Converts a v2 result proto into List of list of trial results.
 
     Args:
@@ -179,14 +185,16 @@ def results_from_proto(
 
     measure_map = {m.key: m for m in measurements} if measurements else None
     return [
-        _trial_sweep_from_proto(sweep_result, measure_map) for sweep_result in msg.sweep_results
+        _trial_sweep_from_proto(sweep_result, job, measure_map)
+        for sweep_result in msg.sweep_results
     ]
 
 
 def _trial_sweep_from_proto(
     msg: result_pb2.SweepResult,
+    job: 'cg.engine.AbstractJob',
     measure_map: Dict[str, MeasureInfo] = None,
-) -> Sequence[cirq.Result]:
+) -> Sequence[EngineResult]:
     """Converts a SweepResult proto into List of list of trial results.
 
     Args:
@@ -202,8 +210,14 @@ def _trial_sweep_from_proto(
     Raises:
         ValueError: If a qubit already exists in the measurement results.
     """
+    if job is None:
+        job_id = None
+        job_finished = None
+    else:
+        job_id = job.id()
+        job_finished = job.update_time()
 
-    trial_sweep: List[cirq.Result] = []
+    trial_sweep: List[EngineResult] = []
     for pr in msg.parameterized_results:
         m_data: Dict[str, np.ndarray] = {}
         for mr in pr.measurement_results:
@@ -219,9 +233,11 @@ def _trial_sweep_from_proto(
                 ordered_results = list(qubit_results.values())
             m_data[mr.key] = np.array(ordered_results).transpose()
         trial_sweep.append(
-            cirq.ResultDict(
+            EngineResult(
                 params=cirq.ParamResolver(dict(pr.params.assignments)),
                 measurements=m_data,
+                job_id=job_id,
+                job_finished_time=job_finished,
             )
         )
     return trial_sweep
