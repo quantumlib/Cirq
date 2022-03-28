@@ -1311,7 +1311,7 @@ def test_pauli_string_expectation_from_density_matrix_pure_state_with_coef():
     z0z2 = cirq.Z(qs[0]) * cirq.Z(qs[2]) * -1
     z1x2 = -cirq.Z(qs[1]) * cirq.X(qs[2])
 
-    for state in [rho, rho.reshape(2, 2, 2, 2, 2, 2, 2, 2)]:
+    for state in [rho, rho.reshape((2, 2, 2, 2, 2, 2, 2, 2))]:
         np.testing.assert_allclose(z0z1.expectation_from_density_matrix(state, q_map), -0.123)
         np.testing.assert_allclose(z0z2.expectation_from_density_matrix(state, q_map), 0)
         np.testing.assert_allclose(z1x2.expectation_from_density_matrix(state, q_map), 1)

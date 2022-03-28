@@ -177,7 +177,7 @@ class Moment:
         """Returns a new moment with the given contents added.
 
         Args:
-            contents: New operations to add to this moment.
+            *contents: New operations to add to this moment.
 
         Returns:
             The new moment.

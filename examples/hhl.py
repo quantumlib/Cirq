@@ -200,7 +200,7 @@ def hhl_circuit(A, C, t, register_size, *input_prep_gates):
         C: Algorithm parameter, see above.
         t: Algorithm parameter, see above.
         register_size: The size of the eigenvalue register.
-        input_prep_gates: A list of gates to be applied to |0> to generate the desired input
+        *input_prep_gates: A list of gates to be applied to |0> to generate the desired input
             state |b>.
 
     Returns:
