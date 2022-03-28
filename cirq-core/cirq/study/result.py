@@ -142,7 +142,7 @@ class Result(abc.ABC):
         """
         # Convert to a DataFrame with columns as measurement keys, rows as
         # repetitions and a big endian integer for individual measurements.
-        converted_dict = dict()
+        converted_dict = {}
         for key, bitstrings in measurements.items():
             _, n = bitstrings.shape
             i_type = object if n > 63 else np.int64
