@@ -178,7 +178,7 @@ def test_df_large():
     )
 
     assert np.all(result.data['a'] == 0)
-    assert np.all(result.data['d'] == 0xfff_ffffffff_ffffffff)
+    assert np.all(result.data['d'] == 0xFFF_FFFFFFFF_FFFFFFFF)
     assert result.data['a'].dtype == object
     assert result.data['d'].dtype == object
 

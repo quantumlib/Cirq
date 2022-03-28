@@ -146,12 +146,12 @@ class Result(abc.ABC):
         for key, bitstrings in measurements.items():
             _, n = bitstrings.shape
             dtype = object if n > 63 else np.int64
-            basis = 2 ** np.arange(n, dtype=i_type)[::-1]
+            basis = 2 ** np.arange(n, dtype=dtype)[::-1]
             converted_dict[key] = np.sum(basis * bitstrings, axis=1)
 
         # Use objects to accomodate more than 64 qubits if needed.
         dtype = object if any(bs.shape[1] > 63 for _, bs in measurements.items()) else np.int64
-        return pd.DataFrame(converted_dict, dtype=ret_type)
+        return pd.DataFrame(converted_dict, dtype=dtype)
 
     @staticmethod
     @deprecated(
