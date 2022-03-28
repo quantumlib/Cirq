@@ -114,7 +114,7 @@ class RandomizedBenchMarkResult:
 
     @property
     def data(self) -> Sequence[Tuple[int, float]]:
-        """Returns a sequence of tuple pairs for the expeimrent.
+        """Returns a sequence of tuple pairs for the experiment.
 
         These tuples are a tuple of number of Cliffords and average ground state probability.
         """
@@ -155,8 +155,7 @@ class TomographyResult:
 
     @property
     def data(self) -> np.ndarray:
-        """Returns an n^2 by n^2 complex matrix representing the density matrix of the n-qubit
-        system."""
+        """Returns an n^2 by n^2 complex matrix representing the n-qubit density matrix."""
         return self._density_matrix
 
     def plot(self, axes: Optional[List[plt.Axes]] = None, **plot_kwargs: Any) -> List[plt.Axes]:

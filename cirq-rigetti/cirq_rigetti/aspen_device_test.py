@@ -244,8 +244,7 @@ def test_rigetti_qcs_aspen_device_invalid_operation(
 def test_rigetti_qcs_aspen_device_valid_operation(
     operation: cirq.Operation, qcs_aspen8_isa: InstructionSetArchitecture
 ):
-    """Test RigettiQCSAspenDevice throws no error when validating 2Q operations on adjacent
-    qubits."""
+    """Test RigettiQCSAspenDevice throws no error when validating adjacent 2Q operations."""
     device = RigettiQCSAspenDevice(isa=qcs_aspen8_isa)
     device.validate_operation(operation)
 

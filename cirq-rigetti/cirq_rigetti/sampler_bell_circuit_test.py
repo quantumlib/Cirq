@@ -9,8 +9,7 @@ from cirq_rigetti import RigettiQCSSampler
 
 @pytest.mark.rigetti_integration
 def test_bell_circuit_through_sampler(bell_circuit: cirq.Circuit) -> None:
-    """Tests that RigettiQCSSampler runs a Bell circuit on the QVM and returns an accurate
-    result."""
+    """Tests that RigettiQCSSampler accurately runs a Bell circuit on the QVM."""
     qc = get_qc('9q-square', as_qvm=True)
     sampler = RigettiQCSSampler(quantum_computer=qc)
 

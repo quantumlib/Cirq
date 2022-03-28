@@ -236,7 +236,9 @@ def test_empty():
 
 
 def test_greedy_merging():
-    """Tests a tricky situation where the algorithm of "Merge single-qubit gates, greedily align
+    """Tests a tricky situation in greedy merging.
+
+    This situation occurs where the algorithm of "Merge single-qubit gates, greedily align
     single-qubit then 2-qubit operations" doesn't work.
 
     Our algorithm succeeds because we also run it in reverse order.

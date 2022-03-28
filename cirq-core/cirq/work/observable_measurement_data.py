@@ -63,8 +63,7 @@ def _stats_from_measurements(
     observable: 'cirq.PauliString',
     atol: float,
 ) -> Tuple[float, float]:
-    """Returns the mean and squared standard error of the mean for given results and an
-    observable."""
+    """Returns the mean and squared standard error of the mean for results and an observable."""
     obs_vals = _obs_vals_from_measurements(bitstrings, qubit_to_index, observable, atol=atol)
     obs_mean = np.mean(obs_vals)
 

@@ -30,9 +30,9 @@ CZ = np.diag([1, 1, 1, -1])
 
 
 def time_kak_decomposition(target):
-    """Benchmark kak_decomposition.
+    """Benchmark `cirq.kak_decomposition`.
 
-    The kak_decomposition is benchmarked because it was historically slow.
+    `cirq.kak_decomposition` is benchmarked because it was historically slow.
 
     See https://github.com/quantumlib/Cirq/issues/3840 for status of other benchmarks.
     """

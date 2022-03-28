@@ -150,8 +150,7 @@ class _NoProgress:
 
 @dataclass(frozen=True)
 class _ZippedCircuit:
-    """A fully-wide circuit made by zipping together a two-qubit circuits and their provenance
-    data.
+    """A fully-wide circuit made by zipping together two-qubit circuits and their provenance data.
 
     Args:
         wide_circuit: The zipped circuit on all pairs

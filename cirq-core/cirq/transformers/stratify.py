@@ -111,8 +111,10 @@ def _stratify_circuit(
     context: 'cirq.TransformerContext',
     classifiers: Sequence[Classifier],
 ) -> 'cirq.Circuit':
-    """Performs the stratification by iterating through the operations in the circuit and using the
-    given classifiers to align them.
+    """Performs the stratification.
+
+    Stratification is done by iterating through the operations in the circuit and using the given
+    classifiers to align them.
 
     Tagged Operations marked with any of `context.tags_to_ignore` are treated as separate
     categories and left in their original moments without stratification.

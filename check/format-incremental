@@ -6,6 +6,8 @@
 # Usage:
 #     check/format-incremental [BASE_REVISION] [--apply] [--all]
 #
+# The formatting is done by the programs black, flynt, and docformatter.
+#
 # By default, the script runs flynt to convert old string literal formatting to
 # f-strings and uses black for general formatting of Python.  Both analyze
 # python files that have changed relative to the base revision and

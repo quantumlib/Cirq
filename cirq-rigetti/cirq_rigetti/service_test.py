@@ -9,8 +9,10 @@ from cirq_rigetti import get_rigetti_qcs_service, RigettiQCSService
 
 @pytest.mark.rigetti_integration
 def test_get_rigetti_qcs_service():
-    """Test that get_rigetti_qcs_service can initialize a `RigettiQCSService` via
-    `pyquil.get_qc`."""
+    """Test that get_rigetti_qcs_service correctly initialize a `RigettiQCSService`s.
+
+    This tests that this is done via `pyquil.get_qc`.
+    """
     service = get_rigetti_qcs_service('9q-square', as_qvm=True, noisy=False)
     assert service._quantum_computer.name == '9q-square-qvm'
 

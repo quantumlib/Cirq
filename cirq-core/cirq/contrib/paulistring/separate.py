@@ -49,7 +49,7 @@ def convert_and_separate_circuit(
 
 
 def regular_half(circuit: circuits.Circuit) -> circuits.Circuit:
-    """Return only the Clifford part of a circuit.  See convert_and_separate_circuit().
+    """Return only the Clifford part of a circuit.  See `convert_and_separate_circuit`.
 
     Args:
         circuit: A Circuit with the gate set {SingleQubitCliffordGate,
@@ -67,7 +67,7 @@ def regular_half(circuit: circuits.Circuit) -> circuits.Circuit:
 
 
 def pauli_string_half(circuit: circuits.Circuit) -> circuits.Circuit:
-    """Return only the non-Clifford part of a circuit.  See convert_and_separate_circuit().
+    """Return only the non-Clifford part of a circuit.  See `convert_and_separate_circuit`.
 
     Args:
         circuit: A Circuit with the gate set {SingleQubitCliffordGate,

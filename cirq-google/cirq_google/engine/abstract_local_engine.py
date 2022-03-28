@@ -141,7 +141,7 @@ class AbstractLocalEngine(AbstractEngine):
         return valid_jobs
 
     def list_processors(self) -> Sequence[AbstractLocalProcessor]:
-        """Returns a list of Processors that the user has visibility to..
+        """Returns a list of Processors that the user has visibility to.
 
         This returns processors that are visible in the current Engine project. The names of
         these processors are used to identify devices when scheduling jobs and gathering

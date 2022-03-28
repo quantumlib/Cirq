@@ -83,8 +83,10 @@ class EngineProcessorRecord(ProcessorRecord):
 
 @dataclasses.dataclass(frozen=True)
 class SimulatedProcessorRecord(ProcessorRecord):
-    """A serializable record mapping a processor_id and optional noise spec to a simulator-backed
-    mock of `cg.AbstractProcessor`.
+    """A serializable record of a simulator-backed mock of `cg.AbstractProcessor`.
+
+    This record maps a `processor_id` and optional noise spec to a simulator-backed mock
+    of `cg.AbstractProcessor`
 
     Args:
         processor_id: The processor id we are emulating
@@ -158,8 +160,10 @@ class SimulatedProcessorRecord(ProcessorRecord):
 
 
 class SimulatedProcessorWithLocalDeviceRecord(SimulatedProcessorRecord):
-    """A serializable record mapping a processor_id and optional noise spec to a completely local
-    cg.AbstractProcessor.
+    """A serializable record of a completely local `cg.AbstractProcessor`.
+
+    This record is a mapping a `processor_id` and optional noise spec to completely local
+    `cg.AbstractProcessor`.
 
     Args:
         processor_id: The processor id we are emulating

@@ -27,8 +27,7 @@ from cirq_google import ops
 def _decompose_arbitrary_into_syc_tabulation(
     op: cirq.Operation, tabulation: cirq.TwoQubitGateTabulation
 ) -> cirq.OP_TREE:
-    """Synthesize an arbitrary 2 qubit operation to a Sycamore operation using the given
-    Tabulation.
+    """Synthesize an arbitrary 2 qubit operation to a Sycamore operation using the given Tabulation.
 
     Args:
         op: Operation to decompose.
