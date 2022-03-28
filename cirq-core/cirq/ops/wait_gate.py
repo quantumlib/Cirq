@@ -16,6 +16,7 @@ from typing import AbstractSet, Any, Dict, Optional, Tuple, TYPE_CHECKING, Union
 import sympy
 
 from cirq import value, protocols
+from cirq._compat import deprecated
 from cirq.ops import raw_types
 
 if TYPE_CHECKING:
@@ -50,7 +51,7 @@ class WaitGate(raw_types.Gate):
             ValueError: If the `qid_shape` provided is empty or `num_qubits` contradicts
                 `qid_shape`.
         """
-        self.duration = value.Duration(duration)
+        self._duration = value.Duration(duration)
         if not protocols.is_parameterized(self.duration) and self.duration < 0:
             raise ValueError('duration < 0')
         if qid_shape is None:
@@ -66,6 +67,18 @@ class WaitGate(raw_types.Gate):
         if num_qubits != len(qid_shape):
             raise ValueError('len(qid_shape) != num_qubits')
         self._qid_shape = qid_shape
+
+    @property
+    def duration(self) -> 'cirq.Duration':
+        return self._duration
+
+    @duration.setter  # type: ignore
+    @deprecated(
+        deadline="v0.15",
+        fix="The mutators of this class are deprecated, instantiate a new object instead.",
+    )
+    def duration(self, duration: 'cirq.Duration'):
+        self._duration = duration
 
     def _is_parameterized_(self) -> bool:
         return protocols.is_parameterized(self.duration)

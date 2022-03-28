@@ -42,8 +42,8 @@ from cirq.transformers.analytical_decompositions.three_qubit_decomposition impor
 )
 
 from cirq.transformers.analytical_decompositions.two_qubit_to_cz import (
-    two_qubit_matrix_to_operations,
-    two_qubit_matrix_to_diagonal_and_operations,
+    two_qubit_matrix_to_cz_operations,
+    two_qubit_matrix_to_diagonal_and_cz_operations,
 )
 
 from cirq.transformers.analytical_decompositions.two_qubit_to_fsim import (
@@ -51,6 +51,7 @@ from cirq.transformers.analytical_decompositions.two_qubit_to_fsim import (
 )
 
 from cirq.transformers.analytical_decompositions.two_qubit_to_sqrt_iswap import (
+    parameterized_2q_op_to_sqrt_iswap_operations,
     two_qubit_matrix_to_sqrt_iswap_operations,
 )
 

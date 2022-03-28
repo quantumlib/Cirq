@@ -44,7 +44,6 @@ def find_terminal_measurements(
         moment = circuit[i]
         for q in open_qubits:
             op = moment.operation_at(q)
-            seen_control_keys |= protocols.control_keys(op)
             if (
                 op is not None
                 and open_qubits.issuperset(op.qubits)
@@ -53,12 +52,13 @@ def find_terminal_measurements(
             ):
                 terminal_measurements.append((i, op))
         open_qubits -= moment.qubits
+        seen_control_keys |= protocols.control_keys(moment)
         if not open_qubits:
             break
     return terminal_measurements
 
 
-@transformer_api.transformer
+@transformer_api.transformer(add_deep_support=True)
 def synchronize_terminal_measurements(
     circuit: 'cirq.AbstractCircuit',
     *,

@@ -183,17 +183,19 @@ def _two_qubit_multiplexor_to_ops(
     if diagonal is not None:
         v = diagonal @ v
 
-    d_v, circuit_u1u2_r = opt.two_qubit_matrix_to_diagonal_and_operations(q1, q2, v, atol=atol)
+    d_v, circuit_u1u2_r = opt.two_qubit_matrix_to_diagonal_and_cz_operations(q1, q2, v, atol=atol)
 
     w = d_v @ w
 
     # if it's interesting to extract the diagonal then let's do it
     if shift_left:
-        d_w, circuit_u1u2_l = opt.two_qubit_matrix_to_diagonal_and_operations(q1, q2, w, atol=atol)
+        d_w, circuit_u1u2_l = opt.two_qubit_matrix_to_diagonal_and_cz_operations(
+            q1, q2, w, atol=atol
+        )
     # if we are at the end of the circuit, then just fall back to KAK
     else:
         d_w = None
-        circuit_u1u2_l = opt.two_qubit_matrix_to_operations(
+        circuit_u1u2_l = opt.two_qubit_matrix_to_cz_operations(
             q1, q2, w, allow_partial_czs=False, atol=atol
         )
 

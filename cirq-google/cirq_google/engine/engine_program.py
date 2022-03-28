@@ -16,7 +16,7 @@ import datetime
 from typing import Dict, List, Optional, Sequence, Set, TYPE_CHECKING, Union
 
 import cirq
-from cirq_google.engine import abstract_program, engine_client
+from cirq_google.engine import abstract_program, engine_client, util
 from cirq_google.engine.client import quantum
 from cirq_google.engine.client.quantum import types as qtypes
 from cirq_google.engine.result_type import ResultType
@@ -102,8 +102,7 @@ class EngineProgram(abstract_program.AbstractProgram):
             raise ValueError('Please use run_batch() for batch mode.')
         if not job_id:
             job_id = engine_base._make_random_id('job-')
-        sweeps = cirq.to_sweeps(params or cirq.ParamResolver({}))
-        run_context = self._serialize_run_context(sweeps, repetitions)
+        run_context = self.context._serialize_run_context(params, repetitions)
 
         created_job_id, job = self.context.client.create_job(
             project_id=self.project_id,
@@ -175,23 +174,16 @@ class EngineProgram(abstract_program.AbstractProgram):
             raise ValueError('No processors specified')
 
         # Pack the run contexts into batches
-        batch = v2.batch_pb2.BatchRunContext()
-        for param in params_list:
-            sweeps = cirq.to_sweeps(param)
-            current_context = batch.run_contexts.add()
-            for sweep in sweeps:
-                sweep_proto = current_context.parameter_sweeps.add()
-                sweep_proto.repetitions = repetitions
-                v2.sweep_to_proto(sweep, out=sweep_proto.sweep)
-        batch_context = qtypes.any_pb2.Any()
-        batch_context.Pack(batch)
+        batch_context = v2.batch_run_context_to_proto(
+            (params, repetitions) for params in params_list
+        )
 
         created_job_id, job = self.context.client.create_job(
             project_id=self.project_id,
             program_id=self.program_id,
             job_id=job_id,
             processor_ids=processor_ids,
-            run_context=batch_context,
+            run_context=util.pack_any(batch_context),
             description=description,
             labels=labels,
         )
@@ -246,15 +238,14 @@ class EngineProgram(abstract_program.AbstractProgram):
         # Default run context
         # Note that Quantum Engine currently requires a valid type url
         # on a run context in order to succeed validation.
-        any_context = qtypes.any_pb2.Any()
-        any_context.Pack(v2.run_context_pb2.RunContext())
+        run_context = v2.run_context_pb2.RunContext()
 
         created_job_id, job = self.context.client.create_job(
             project_id=self.project_id,
             program_id=self.program_id,
             job_id=job_id,
             processor_ids=processor_ids,
-            run_context=any_context,
+            run_context=util.pack_any(run_context),
             description=description,
             labels=labels,
         )
@@ -304,27 +295,6 @@ class EngineProgram(abstract_program.AbstractProgram):
                 labels=labels,
             )
         )[0]
-
-    def _serialize_run_context(
-        self,
-        sweeps: List[cirq.Sweep],
-        repetitions: int,
-    ) -> qtypes.any_pb2.Any:
-        import cirq_google.engine.engine as engine_base
-
-        context = qtypes.any_pb2.Any()
-        proto_version = self.context.proto_version
-        if proto_version == engine_base.ProtoVersion.V2:
-            run_context = v2.run_context_pb2.RunContext()
-            for sweep in sweeps:
-                sweep_proto = run_context.parameter_sweeps.add()
-                sweep_proto.repetitions = repetitions
-                v2.sweep_to_proto(sweep, out=sweep_proto.sweep)
-
-            context.Pack(run_context)
-        else:
-            raise ValueError(f'invalid run context proto version: {proto_version}')
-        return context
 
     def engine(self) -> 'engine_base.Engine':
         """Returns the parent Engine object.

@@ -20,7 +20,9 @@ import enum
 import functools
 import textwrap
 from typing import (
+    cast,
     Any,
+    Callable,
     Tuple,
     Hashable,
     List,
@@ -29,8 +31,11 @@ from typing import (
     Type,
     TYPE_CHECKING,
     TypeVar,
+    Union,
 )
 from typing_extensions import Protocol
+
+from cirq import circuits
 
 if TYPE_CHECKING:
     import cirq
@@ -214,10 +219,13 @@ class TransformerContext:
                 circuit. Transformers should not transform any operation marked with a tag that
                 belongs to this tuple. Note that any instance of a Hashable type (like `str`,
                 `cirq.VirtualTag` etc.) is a valid tag.
+        deep: If true, the transformer should be recursively applied to all sub-circuits wrapped
+                inside circuit operations.
     """
 
     logger: TransformerLogger = NoOpTransformerLogger()
     tags_to_ignore: Tuple[Hashable, ...] = ()
+    deep: bool = False
 
 
 class TRANSFORMER(Protocol):
@@ -229,19 +237,31 @@ class TRANSFORMER(Protocol):
 
 _TRANSFORMER_T = TypeVar('_TRANSFORMER_T', bound=TRANSFORMER)
 _TRANSFORMER_CLS_T = TypeVar('_TRANSFORMER_CLS_T', bound=Type[TRANSFORMER])
+_TRANSFORMER_OR_CLS_T = TypeVar(
+    '_TRANSFORMER_OR_CLS_T', bound=Union[TRANSFORMER, Type[TRANSFORMER]]
+)
 
 
 @overload
-def transformer(cls_or_func: _TRANSFORMER_T) -> _TRANSFORMER_T:
+def transformer(
+    *, add_deep_support: bool = False
+) -> Callable[[_TRANSFORMER_OR_CLS_T], _TRANSFORMER_OR_CLS_T]:
     pass
 
 
 @overload
-def transformer(cls_or_func: _TRANSFORMER_CLS_T) -> _TRANSFORMER_CLS_T:
+def transformer(cls_or_func: _TRANSFORMER_T, *, add_deep_support: bool = False) -> _TRANSFORMER_T:
     pass
 
 
-def transformer(cls_or_func: Any) -> Any:
+@overload
+def transformer(
+    cls_or_func: _TRANSFORMER_CLS_T, *, add_deep_support: bool = False
+) -> _TRANSFORMER_CLS_T:
+    pass
+
+
+def transformer(cls_or_func: Any = None, *, add_deep_support: bool = False) -> Any:
     """Decorator to verify API and append logging functionality to transformer functions & classes.
 
     A transformer is a callable that takes as inputs a `cirq.AbstractCircuit` and
@@ -284,10 +304,22 @@ def transformer(cls_or_func: Any) -> Any:
 
     Args:
         cls_or_func: The callable class or function to be decorated.
+        add_deep_support: If True, the decorator adds the logic to first apply the
+            decorated transformer on subcircuits wrapped inside `cirq.CircuitOperation`s
+            before applying it on the top-level circuit, if context.deep is True.
 
     Returns:
         Decorated class / function which includes additional logging boilerplate.
     """
+
+    # If keyword arguments were specified, python invokes the decorator method
+    # without a `cls` argument, then passes `cls` into the result.
+    if cls_or_func is None:
+        return lambda deferred_cls_or_func: transformer(
+            deferred_cls_or_func,
+            add_deep_support=add_deep_support,
+        )
+
     if isinstance(cls_or_func, type):
         cls = cls_or_func
         method = cls.__call__
@@ -298,6 +330,7 @@ def transformer(cls_or_func: Any) -> Any:
             self, circuit: 'cirq.AbstractCircuit', **kwargs
         ) -> 'cirq.AbstractCircuit':
             return _transform_and_log(
+                add_deep_support,
                 lambda circuit, **kwargs: method(self, circuit, **kwargs),
                 cls.__name__,
                 circuit,
@@ -315,6 +348,7 @@ def transformer(cls_or_func: Any) -> Any:
         @functools.wraps(func)
         def func_with_logging(circuit: 'cirq.AbstractCircuit', **kwargs) -> 'cirq.AbstractCircuit':
             return _transform_and_log(
+                add_deep_support,
                 func,
                 func.__name__,
                 circuit,
@@ -325,7 +359,7 @@ def transformer(cls_or_func: Any) -> Any:
         return func_with_logging
 
 
-def _get_default_context(func: TRANSFORMER):
+def _get_default_context(func: TRANSFORMER) -> TransformerContext:
     sig = inspect.signature(func)
     default_context = sig.parameters["context"].default
     assert (
@@ -334,7 +368,35 @@ def _get_default_context(func: TRANSFORMER):
     return default_context
 
 
+def _run_transformer_on_circuit(
+    add_deep_support: bool,
+    func: TRANSFORMER,
+    circuit: 'cirq.AbstractCircuit',
+    extracted_context: Optional[TransformerContext],
+    **kwargs,
+) -> 'cirq.AbstractCircuit':
+    mutable_circuit = None
+    if extracted_context and extracted_context.deep and add_deep_support:
+        batch_replace = []
+        for i, op in circuit.findall_operations(
+            lambda o: isinstance(o.untagged, circuits.CircuitOperation)
+        ):
+            op_untagged = cast(circuits.CircuitOperation, op.untagged)
+            if not set(op.tags).isdisjoint(extracted_context.tags_to_ignore):
+                continue
+            op_untagged = op_untagged.replace(
+                circuit=_run_transformer_on_circuit(
+                    add_deep_support, func, op_untagged.circuit, extracted_context, **kwargs
+                ).freeze()
+            )
+            batch_replace.append((i, op, op_untagged.with_tags(*op.tags)))
+        mutable_circuit = circuit.unfreeze(copy=True)
+        mutable_circuit.batch_replace(batch_replace)
+    return func(mutable_circuit if mutable_circuit else circuit, **kwargs)
+
+
 def _transform_and_log(
+    add_deep_support: bool,
     func: TRANSFORMER,
     transformer_name: str,
     circuit: 'cirq.AbstractCircuit',
@@ -344,7 +406,9 @@ def _transform_and_log(
     """Helper to log initial and final circuits before and after calling the transformer."""
     if extracted_context:
         extracted_context.logger.register_initial(circuit, transformer_name)
-    transformed_circuit = func(circuit, **kwargs)
+    transformed_circuit = _run_transformer_on_circuit(
+        add_deep_support, func, circuit, extracted_context, **kwargs
+    )
     if extracted_context:
         extracted_context.logger.register_final(transformed_circuit, transformer_name)
     return transformed_circuit

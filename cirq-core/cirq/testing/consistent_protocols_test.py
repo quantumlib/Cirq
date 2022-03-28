@@ -65,9 +65,6 @@ class GoodGate(cirq.SingleQubitGate):
         q = qubits[0]
         z = cirq.Z(q) ** self.phase_exponent
         x = cirq.X(q) ** self.exponent
-        if cirq.is_parameterized(z):
-            # coverage: ignore
-            return NotImplemented
         return z ** -1, x, z
 
     def _pauli_expansion_(self) -> cirq.LinearDict[str]:
@@ -260,12 +257,16 @@ def test_assert_implements_consistent_protocols():
 
 def test_assert_eigengate_implements_consistent_protocols():
     cirq.testing.assert_eigengate_implements_consistent_protocols(
-        GoodEigenGate, global_vals={'GoodEigenGate': GoodEigenGate}
+        GoodEigenGate,
+        global_vals={'GoodEigenGate': GoodEigenGate},
+        ignore_decompose_to_default_gateset=True,
     )
 
     with pytest.raises(AssertionError):
         cirq.testing.assert_eigengate_implements_consistent_protocols(
-            BadEigenGate, global_vals={'BadEigenGate': BadEigenGate}
+            BadEigenGate,
+            global_vals={'BadEigenGate': BadEigenGate},
+            ignore_decompose_to_default_gateset=True,
         )
 
 

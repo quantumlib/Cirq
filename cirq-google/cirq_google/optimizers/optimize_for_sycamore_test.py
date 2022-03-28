@@ -19,7 +19,7 @@ import cirq
 import cirq_google as cg
 
 
-class TestDevice(cirq.Device):
+class FakeDevice(cirq.Device):
     def __init__(self):
         pass
 
@@ -132,5 +132,32 @@ def test_assert_new_device_deprecated():
         cirq.circuits.circuit._DEVICE_DEP_MESSAGE, deadline='v0.15'
     ):
         _ = cg.optimized_for_sycamore(
-            circuit0, optimizer_type='sqrt_iswap', new_device=TestDevice()
+            circuit0, optimizer_type='sqrt_iswap', new_device=FakeDevice()
         )
+
+
+@pytest.mark.parametrize(
+    'optimizer_type, two_qubit_gate_type',
+    [('sycamore', cg.SycamoreGate), ('sqrt_iswap', cirq.ISwapPowGate), ('xmon', cirq.CZPowGate)],
+)
+def test_circuit_operation_conversion(optimizer_type, two_qubit_gate_type):
+    q0, q1 = cirq.LineQubit.range(2)
+    subcircuit = cirq.FrozenCircuit(cirq.X(q0), cirq.SWAP(q0, q1))
+    circuit = cirq.Circuit(cirq.CircuitOperation(subcircuit))
+    converted_circuit = cg.optimized_for_sycamore(circuit, optimizer_type=optimizer_type)
+    # Verify that the CircuitOperation was preserved.
+    ops = list(converted_circuit.all_operations())
+    assert isinstance(ops[0], cirq.CircuitOperation)
+    # Verify that the contents of the CircuitOperation were optimized.
+    converted_subcircuit = cg.optimized_for_sycamore(
+        subcircuit.unfreeze(), optimizer_type=optimizer_type
+    )
+    assert len(
+        [*converted_subcircuit.findall_operations_with_gate_type(two_qubit_gate_type)]
+    ) == len([*ops[0].circuit.findall_operations_with_gate_type(two_qubit_gate_type)])
+    cirq.testing.assert_circuits_with_terminal_measurements_are_equivalent(
+        ops[0].circuit, converted_subcircuit, atol=1e-8
+    )
+    cirq.testing.assert_circuits_with_terminal_measurements_are_equivalent(
+        circuit, converted_circuit, atol=1e-8
+    )

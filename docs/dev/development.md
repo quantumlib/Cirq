@@ -305,21 +305,6 @@ def some_method(a: int, b: str) -> float:
     """
 ```
 
-Documentation appears on Cirq's documentation [site](https://quantumai.google/cirq).  This
-site contains the documentation for the latest release of Cirq, so changes to tutorial
-and guides will not appear until the next release.  Documentation is also automatically 
-generated from docstrings and used to populate the [references](https://quantumai.google/reference/python/cirq/all_symbols)
-section of the documentation.  This does have a version which shows nightly updates to 
-the head of the master branch in Cirq.  You can preview changes to the api docs by running
-
-```bash
-python dev_tools/docs/build_api_docs.py --output_dir=docs/api_docs
-```
-
-There is currently no way to preview changes to documentation on the documentation site
-for external contributors to Cirq (outside of Google). If you want to check changes before
-submitting please ask a Googler for help.
-
 ## Dependencies 
 
 ### Production dependencies 

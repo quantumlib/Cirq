@@ -17,7 +17,7 @@ from typing import Any, Dict, TYPE_CHECKING, Tuple, Union, Sequence, Optional, L
 import numpy as np
 
 from cirq import ops, protocols, study, value
-from cirq._compat import deprecated, proper_repr
+from cirq._compat import deprecated, deprecated_parameter, proper_repr
 from cirq.sim import (
     simulator,
     act_on_density_matrix_args,
@@ -117,6 +117,12 @@ class DensityMatrixSimulator(
            # step_result.density_matrix()
     """
 
+    @deprecated_parameter(
+        deadline='v0.15',
+        fix='Use cirq.dephase_measurements to transform the circuit before simulating.',
+        parameter_desc='ignore_measurement_results',
+        match=lambda _, kwargs: 'ignore_measurement_results' in kwargs,
+    )
     def __init__(
         self,
         *,
@@ -162,13 +168,21 @@ class DensityMatrixSimulator(
            when `ignore_measurement_results` has been set to True
            (for more see https://github.com/quantumlib/Cirq/issues/2777).
         """
-        super().__init__(
-            dtype=dtype,
-            noise=noise,
-            seed=seed,
-            ignore_measurement_results=ignore_measurement_results,
-            split_untangled_states=split_untangled_states,
-        )
+        if ignore_measurement_results:
+            super().__init__(
+                dtype=dtype,
+                noise=noise,
+                seed=seed,
+                ignore_measurement_results=ignore_measurement_results,
+                split_untangled_states=split_untangled_states,
+            )
+        else:
+            super().__init__(
+                dtype=dtype,
+                noise=noise,
+                seed=seed,
+                split_untangled_states=split_untangled_states,
+            )
         if dtype not in {np.complex64, np.complex128}:
             raise ValueError(f'dtype must be complex64 or complex128, was {dtype}')
 
@@ -195,11 +209,19 @@ class DensityMatrixSimulator(
         if isinstance(initial_state, act_on_density_matrix_args.ActOnDensityMatrixArgs):
             return initial_state
 
+        if self._ignore_measurement_results:
+            return act_on_density_matrix_args.ActOnDensityMatrixArgs(
+                qubits=qubits,
+                prng=self._prng,
+                classical_data=classical_data,
+                ignore_measurement_results=self._ignore_measurement_results,
+                initial_state=initial_state,
+                dtype=self._dtype,
+            )
         return act_on_density_matrix_args.ActOnDensityMatrixArgs(
             qubits=qubits,
             prng=self._prng,
             classical_data=classical_data,
-            ignore_measurement_results=self._ignore_measurement_results,
             initial_state=initial_state,
             dtype=self._dtype,
         )

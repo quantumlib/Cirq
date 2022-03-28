@@ -27,7 +27,7 @@ from cirq_google.engine import (
     calibration_layer,
     engine_sampler,
 )
-from cirq_google.serialization import circuit_serializer, serializable_gate_set, serializer
+from cirq_google.serialization import serializable_gate_set, serializer
 from cirq_google.serialization import gate_sets as gs
 
 if TYPE_CHECKING:
@@ -85,6 +85,12 @@ class EngineProcessor(abstract_processor.AbstractProcessor):
         self.context = context
         self._processor = _processor
 
+    def __repr__(self) -> str:
+        return (
+            f'<EngineProcessor: processor_id={self.processor_id!r}, '
+            f'project_id={self.project_id!r}>'
+        )
+
     def engine(self) -> 'engine_base.Engine':
         """Returns the parent Engine object.
 
@@ -113,7 +119,7 @@ class EngineProcessor(abstract_processor.AbstractProcessor):
         return engine_sampler.QuantumEngineSampler(
             engine=self.engine(),
             processor_id=self.processor_id,
-            gate_set=gate_set or circuit_serializer.CIRCUIT_SERIALIZER,
+            gate_set=gate_set,
         )
 
     def run_batch(

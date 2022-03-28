@@ -52,6 +52,7 @@ def test_device_metadata():
         cirq.XPowGate,
         cirq.YPowGate,
         cirq.PhasedXPowGate,
+        cirq.PhasedXZGate,
         cirq.MeasurementGate,
         cirq.ZPowGate,
     )

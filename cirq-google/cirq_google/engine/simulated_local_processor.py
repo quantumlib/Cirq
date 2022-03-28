@@ -75,6 +75,8 @@ class SimulatedLocalProcessor(AbstractLocalProcessor):
             beyond the device, such as serialization, repetition limits, etc.
         gate_set_validator:  A callable that can validate a circuit and sweeps
             based on the given serializer.
+        simulation_type:  Whether sampler execution should be
+            synchronous or asynchronous.
         calibrations: A dictionary of calibration metrics keyed by epoch seconds
             that can be returned by the processor.
         processor_id: Unique string id of the processor.

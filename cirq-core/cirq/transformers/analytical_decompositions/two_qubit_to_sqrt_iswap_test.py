@@ -17,6 +17,7 @@ import numpy as np
 import pytest
 
 import cirq
+import sympy
 
 ALLOW_DEPRECATION_IN_TEST = 'ALLOW_DEPRECATION_IN_TEST'
 
@@ -260,6 +261,61 @@ def assert_specific_sqrt_iswap_count(operations, count):
     assert actual == count, f'Incorrect sqrt-iSWAP count.  Expected {count} but got {actual}.'
 
 
+@pytest.mark.parametrize(
+    'gate',
+    [
+        cirq.ISwapPowGate(exponent=sympy.Symbol('t')),
+        cirq.SwapPowGate(exponent=sympy.Symbol('t')),
+        cirq.CZPowGate(exponent=sympy.Symbol('t')),
+    ],
+)
+def test_two_qubit_gates_with_symbols(gate: cirq.Gate):
+    op = gate(*cirq.LineQubit.range(2))
+    c_new_sqrt_iswap = cirq.Circuit(cirq.parameterized_2q_op_to_sqrt_iswap_operations(op))
+    c_new_sqrt_iswap_inv = cirq.Circuit(
+        cirq.parameterized_2q_op_to_sqrt_iswap_operations(op, use_sqrt_iswap_inv=True)
+    )
+    # Check if unitaries are the same
+    for val in np.linspace(0, 2 * np.pi, 12):
+        cirq.testing.assert_allclose_up_to_global_phase(
+            cirq.unitary(cirq.resolve_parameters(op, {'t': val})),
+            cirq.unitary(cirq.resolve_parameters(c_new_sqrt_iswap, {'t': val})),
+            atol=1e-6,
+        )
+        cirq.testing.assert_allclose_up_to_global_phase(
+            cirq.unitary(cirq.resolve_parameters(op, {'t': val})),
+            cirq.unitary(cirq.resolve_parameters(c_new_sqrt_iswap_inv, {'t': val})),
+            atol=1e-6,
+        )
+
+
+def test_fsim_gate_with_symbols():
+    theta, phi = sympy.symbols(['theta', 'phi'])
+    op = cirq.FSimGate(theta=theta, phi=phi).on(*cirq.LineQubit.range(2))
+    c_new_sqrt_iswap = cirq.Circuit(cirq.parameterized_2q_op_to_sqrt_iswap_operations(op))
+    c_new_sqrt_iswap_inv = cirq.Circuit(
+        cirq.parameterized_2q_op_to_sqrt_iswap_operations(op, use_sqrt_iswap_inv=True)
+    )
+    for theta_val in np.linspace(0, 2 * np.pi, 12):
+        for phi_val in np.linspace(0, 2 * np.pi, 12):
+            cirq.testing.assert_allclose_up_to_global_phase(
+                cirq.unitary(cirq.resolve_parameters(op, {'theta': theta_val, 'phi': phi_val})),
+                cirq.unitary(
+                    cirq.resolve_parameters(c_new_sqrt_iswap, {'theta': theta_val, 'phi': phi_val})
+                ),
+                atol=1e-6,
+            )
+            cirq.testing.assert_allclose_up_to_global_phase(
+                cirq.unitary(cirq.resolve_parameters(op, {'theta': theta_val, 'phi': phi_val})),
+                cirq.unitary(
+                    cirq.resolve_parameters(
+                        c_new_sqrt_iswap_inv, {'theta': theta_val, 'phi': phi_val}
+                    )
+                ),
+                atol=1e-6,
+            )
+
+
 @pytest.mark.parametrize('cnt', [-1, 4, 10])
 def test_invalid_required_sqrt_iswap_count(cnt):
     u = TWO_SQRT_ISWAP_UNITARIES[0]
@@ -384,6 +440,8 @@ def test_decomp_optimal3(u):
 @pytest.mark.parametrize('u', ALL_REGION_UNITARIES)
 def test_all_weyl_regions(u):
     q0, q1 = cirq.LineQubit.range(2)
+    ops = cirq.two_qubit_matrix_to_sqrt_iswap_operations(q0, q1, u, clean_operations=True)
+    assert_valid_decomp(u, ops, single_qubit_gate_types=(cirq.PhasedXZGate,))
     ops = cirq.two_qubit_matrix_to_sqrt_iswap_operations(q0, q1, u)
     assert_valid_decomp(u, ops)
 

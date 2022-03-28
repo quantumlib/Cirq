@@ -47,6 +47,11 @@ def test_init(observable, key):
     assert cirq.qid_shape(g) == (2,) * len(observable)
 
 
+def test_measurement_has_unitary_returns_false():
+    gate = cirq.PauliMeasurementGate([cirq.X], 'a')
+    assert not cirq.has_unitary(gate)
+
+
 def test_measurement_eq():
     eq = cirq.testing.EqualsTester()
     eq.make_equality_group(
@@ -190,3 +195,19 @@ def test_pauli_measurement_gate_samples(rot, obs, out):
     q = cirq.NamedQubit("q")
     c = cirq.Circuit(rot(q), cirq.PauliMeasurementGate(obs, key='out').on(q))
     assert cirq.Simulator().sample(c)['out'][0] == out
+
+
+def test_setters_deprecated():
+    gate = cirq.PauliMeasurementGate(cirq.DensePauliString("Z", coefficient=+1), key='m')
+    with cirq.testing.assert_deprecated('mutators', deadline='v0.15'):
+        gate.key = 'n'
+    assert gate.key == 'n'
+    assert gate.mkey == cirq.MeasurementKey('n')
+    with cirq.testing.assert_deprecated('mutators', deadline='v0.15'):
+        gate.key = cirq.MeasurementKey('o')
+    assert gate.key == 'o'
+    assert gate.mkey == cirq.MeasurementKey('o')
+    with cirq.testing.assert_deprecated('mutators', deadline='v0.15'):
+        gate.mkey = cirq.MeasurementKey('p')
+    assert gate.key == 'p'
+    assert gate.mkey == cirq.MeasurementKey('p')

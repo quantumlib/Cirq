@@ -14,7 +14,7 @@
 
 import numpy as np
 
-from cirq import ops, protocols, optimizers, circuits, transformers
+from cirq import ops, protocols, circuits, transformers
 from cirq.ion import ms, two_qubit_matrix_to_ion_operations, ion_device
 
 
@@ -86,6 +86,4 @@ class ConvertToIonGates:
         for moment in circuit:
             for op in moment.operations:
                 new_circuit.append(self.convert_one(op))
-        optimizers.merge_single_qubit_gates_into_phased_x_z(new_circuit)
-
-        return new_circuit
+        return transformers.merge_single_qubit_gates_to_phased_x_and_z(new_circuit)
