@@ -28,9 +28,6 @@ class DummyActOnArgs(cirq.ActOnArgs):
         self.measurements = measurements
         self.fallback_result = fallback_result
 
-    def _perform_measurement(self, qubits):
-        return self.measurements  # coverage: ignore
-
     def _act_on_fallback_(
         self,
         action: Any,
@@ -64,10 +61,10 @@ def test_act_on_errors():
     class Op(cirq.Operation):
         @property
         def qubits(self) -> Tuple['cirq.Qid', ...]:
-            pass
+            return ()
 
         def with_qubits(self: TSelf, *new_qubits: 'cirq.Qid') -> TSelf:
-            pass
+            return self
 
         def _act_on_(self, args):
             return False
@@ -81,10 +78,10 @@ def test_qubits_not_allowed_for_operations():
     class Op(cirq.Operation):
         @property
         def qubits(self) -> Tuple['cirq.Qid', ...]:
-            pass
+            return ()
 
         def with_qubits(self: TSelf, *new_qubits: 'cirq.Qid') -> TSelf:
-            pass
+            return self
 
     args = DummyActOnArgs()
     with pytest.raises(

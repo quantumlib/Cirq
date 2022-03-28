@@ -20,12 +20,23 @@ import cirq
 from cirq.sim import act_on_args
 
 
+class DummyQuantumState(cirq.QuantumStateRepresentation):
+    def copy(self, deep_copy_buffers=True):
+        return self
+
+    def measure(self, axes, seed=None):
+        return [5, 3]
+
+    def reindex(self, axes):
+        return self
+
+
 class DummyArgs(cirq.ActOnArgs):
     def __init__(self):
-        super().__init__(qubits=cirq.LineQubit.range(2))
-
-    def _perform_measurement(self, qubits):
-        return [5, 3]
+        super().__init__(
+            state=DummyQuantumState(),
+            qubits=cirq.LineQubit.range(2)
+        )
 
     def _act_on_fallback_(
         self,
