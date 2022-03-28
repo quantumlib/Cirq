@@ -14,6 +14,7 @@
 
 from collections import abc
 from typing import (
+    Any,
     Dict,
     Generic,
     Iterator,
@@ -23,7 +24,6 @@ from typing import (
     Sequence,
     Tuple,
     TYPE_CHECKING,
-    Union,
 )
 
 import numpy as np
@@ -102,16 +102,26 @@ class ActOnArgsContainer(
 
     def _act_on_fallback_(
         self,
-        action: Union['cirq.Operation', 'cirq.Gate'],
+        action: Any,
         qubits: Sequence['cirq.Qid'],
         allow_decompose: bool = True,
     ) -> bool:
-        gate = action.gate if isinstance(action, ops.Operation) else action
+        gate_opt = (
+            action
+            if isinstance(action, ops.Gate)
+            else action.gate
+            if isinstance(action, ops.Operation)
+            else None
+        )
 
-        if isinstance(gate, ops.IdentityGate):
+        if isinstance(gate_opt, ops.IdentityGate):
             return True
 
-        if isinstance(gate, ops.SwapPowGate) and gate.exponent % 2 == 1 and gate.global_shift == 0:
+        if (
+            isinstance(gate_opt, ops.SwapPowGate)
+            and gate_opt.exponent % 2 == 1
+            and gate_opt.global_shift == 0
+        ):
             q0, q1 = qubits
             args0 = self.args[q0]
             args1 = self.args[q1]
