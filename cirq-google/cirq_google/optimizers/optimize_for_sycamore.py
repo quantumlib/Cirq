@@ -105,6 +105,7 @@ def optimized_for_sycamore(
         copy = cirq.optimize_for_target_gateset(
             circuit,
             gateset=_TARGET_GATESETS[optimizer_type](tolerance, tabulation),
+            context=cirq.TransformerContext(deep=True),
         )
     copy = cirq.merge_single_qubit_gates_to_phxz(copy, atol=tolerance)
     copy = cirq.eject_phased_paulis(copy, atol=tolerance)

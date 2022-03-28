@@ -27,7 +27,7 @@ if TYPE_CHECKING:
     from numpy.typing import DTypeLike
 
 
-class _BufferedDensityMatrix:
+class _BufferedDensityMatrix(qis.QuantumStateRepresentation):
     """Contains the density matrix and buffers for efficient state evolution."""
 
     def __init__(self, density_matrix: np.ndarray, buffer: Optional[List[np.ndarray]] = None):
@@ -223,6 +223,14 @@ class _BufferedDensityMatrix:
             seed=seed,
         )
 
+    @property
+    def supports_factor(self) -> bool:
+        return True
+
+    @property
+    def can_represent_mixed_states(self) -> bool:
+        return True
+
 
 class ActOnDensityMatrixArgs(ActOnArgs):
     """State and context for an operation acting on a density matrix.
@@ -296,8 +304,15 @@ class ActOnDensityMatrixArgs(ActOnArgs):
             ValueError: The dimension of `target_tensor` is not divisible by 2
                 and `qid_shape` is not provided.
         """
+        state = _BufferedDensityMatrix.create(
+            initial_state=target_tensor if target_tensor is not None else initial_state,
+            qid_shape=tuple(q.dimension for q in qubits) if qubits is not None else None,
+            dtype=dtype,
+            buffer=available_buffer,
+        )
         if ignore_measurement_results:
             super().__init__(
+                state=state,
                 prng=prng,
                 qubits=qubits,
                 log_of_measurement_results=log_of_measurement_results,
@@ -306,17 +321,13 @@ class ActOnDensityMatrixArgs(ActOnArgs):
             )
         else:
             super().__init__(
+                state=state,
                 prng=prng,
                 qubits=qubits,
                 log_of_measurement_results=log_of_measurement_results,
                 classical_data=classical_data,
             )
-        self._state = _BufferedDensityMatrix.create(
-            initial_state=target_tensor if target_tensor is not None else initial_state,
-            qid_shape=tuple(q.dimension for q in qubits) if qubits is not None else None,
-            dtype=dtype,
-            buffer=available_buffer,
-        )
+        self._state: _BufferedDensityMatrix = state
 
     def _act_on_fallback_(
         self,
@@ -343,50 +354,6 @@ class ActOnDensityMatrixArgs(ActOnArgs):
             "SupportsUnitary, SupportsConsistentApplyUnitary, "
             "SupportsMixture or SupportsKraus or is a measurement: {!r}".format(action)
         )
-
-    def _perform_measurement(self, qubits: Sequence['cirq.Qid']) -> List[int]:
-        """Delegates the call to measure the density matrix."""
-        return self._state.measure(self.get_axes(qubits), self.prng)
-
-    def _on_copy(self, target: 'cirq.ActOnDensityMatrixArgs', deep_copy_buffers: bool = True):
-        target._state = self._state.copy(deep_copy_buffers)
-
-    def _on_kronecker_product(
-        self, other: 'cirq.ActOnDensityMatrixArgs', target: 'cirq.ActOnDensityMatrixArgs'
-    ):
-        target._state = self._state.kron(other._state)
-
-    def _on_factor(
-        self,
-        qubits: Sequence['cirq.Qid'],
-        extracted: 'cirq.ActOnDensityMatrixArgs',
-        remainder: 'cirq.ActOnDensityMatrixArgs',
-        validate=True,
-        atol=1e-07,
-    ):
-        axes = self.get_axes(qubits)
-        extracted._state, remainder._state = self._state.factor(axes, validate=validate, atol=atol)
-
-    @property
-    def allows_factoring(self):
-        return True
-
-    def _on_transpose_to_qubit_order(
-        self, qubits: Sequence['cirq.Qid'], target: 'cirq.ActOnDensityMatrixArgs'
-    ):
-        target._state = self._state.reindex(self.get_axes(qubits))
-
-    def sample(
-        self,
-        qubits: Sequence['cirq.Qid'],
-        repetitions: int = 1,
-        seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None,
-    ) -> np.ndarray:
-        return self._state.sample(self.get_axes(qubits), repetitions, seed)
-
-    @property
-    def can_represent_mixed_states(self) -> bool:
-        return True
 
     def __repr__(self) -> str:
         return (
