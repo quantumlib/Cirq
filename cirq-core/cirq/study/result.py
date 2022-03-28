@@ -150,7 +150,7 @@ class Result(abc.ABC):
             converted_dict[key] = np.sum(basis * bitstrings, axis=1)
 
         # Use objects to accomodate more than 64 qubits if needed.
-        ret_type = object if any(bs.shape[1] > 63 for _, bs in measurements.items()) else np.int64
+        dtype = object if any(bs.shape[1] > 63 for _, bs in measurements.items()) else np.int64
         return pd.DataFrame(converted_dict, dtype=ret_type)
 
     @staticmethod
