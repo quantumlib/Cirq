@@ -145,7 +145,7 @@ class Result(abc.ABC):
         converted_dict = {}
         for key, bitstrings in measurements.items():
             _, n = bitstrings.shape
-            i_type = object if n > 63 else np.int64
+            dtype = object if n > 63 else np.int64
             basis = 2 ** np.arange(n, dtype=i_type)[::-1]
             converted_dict[key] = np.sum(basis * bitstrings, axis=1)
 
