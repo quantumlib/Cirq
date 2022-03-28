@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Any, overload, TYPE_CHECKING, TypeVar, Union
+from typing import Any, cast, overload, TYPE_CHECKING, TypeVar, Union, Callable
 
 if TYPE_CHECKING:
     import cirq
@@ -81,7 +81,7 @@ def pow(val: Any, exponent: Any, default: Any = RaiseTypeErrorIfNotProvided) -> 
         TypeError: `val` doesn't have a __pow__ method (or that method returned
             NotImplemented) and no `default` value was specified.
     """
-    raiser = getattr(val, '__pow__', None)
+    raiser = cast(Union[None, Callable], getattr(val, '__pow__', None))
     result = NotImplemented if raiser is None else raiser(exponent)
     if result is not NotImplemented:
         return result
