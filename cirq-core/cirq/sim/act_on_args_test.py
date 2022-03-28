@@ -24,9 +24,6 @@ class DummyArgs(cirq.ActOnArgs):
     def __init__(self):
         super().__init__(qubits=cirq.LineQubit.range(2))
 
-    def sample(self, qubits, repetitions=1, seed=None):
-        pass
-
     def _perform_measurement(self, qubits):
         return [5, 3]
 
@@ -37,9 +34,6 @@ class DummyArgs(cirq.ActOnArgs):
         allow_decompose: bool = True,
     ) -> bool:
         return True
-
-    def _on_copy(self, args):
-        return super()._on_copy(args)
 
 
 def test_measurements():

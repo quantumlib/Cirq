@@ -26,13 +26,6 @@ class EmptyActOnArgs(cirq.ActOnArgs):
     def _perform_measurement(self, qubits: Sequence[cirq.Qid]) -> List[int]:
         return [0] * len(qubits)
 
-    def copy(self) -> 'EmptyActOnArgs':  # type: ignore
-        """The deep_copy_buffers parameter is omitted to trigger a deprecation warning test."""
-        return EmptyActOnArgs(
-            qubits=self.qubits,
-            classical_data=self.classical_data.copy(),
-        )
-
     def _act_on_fallback_(
         self,
         action: Union['cirq.Operation', 'cirq.Gate'],
