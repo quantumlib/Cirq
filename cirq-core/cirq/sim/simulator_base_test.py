@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import math
-from typing import Any, Dict, List, Sequence, Union
+from typing import Any, Dict, List, Sequence, Tuple, Union
 
 import numpy as np
 import pytest
@@ -21,30 +21,50 @@ import sympy
 import cirq
 
 
-class CountingActOnArgs(cirq.ActOnArgs):
-    gate_count = 0
-    measurement_count = 0
-
-    def __init__(self, state, qubits, classical_data):
-        super().__init__(
-            qubits=qubits,
-            classical_data=classical_data,
-        )
+class CountingState(cirq.qis.QuantumStateRepresentation):
+    def __init__(self, state, gate_count=0, measurement_count=0):
         self.state = state
+        self.gate_count = gate_count
+        self.measurement_count = measurement_count
 
-    def _perform_measurement(self, qubits: Sequence['cirq.Qid']) -> List[int]:
+    def measure(
+        self, axes: Sequence[int], seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None
+    ) -> List[int]:
         self.measurement_count += 1
         return [self.gate_count]
 
-    def copy(self, deep_copy_buffers: bool = True) -> 'CountingActOnArgs':
-        args = CountingActOnArgs(
-            qubits=self.qubits,
-            classical_data=self.classical_data.copy(),
-            state=self.state,
+    def kron(self: 'CountingState', other: 'CountingState') -> 'CountingState':
+        return CountingState(
+            self.state,
+            self.gate_count + other.gate_count,
+            self.measurement_count + other.measurement_count,
         )
-        args.gate_count = self.gate_count
-        args.measurement_count = self.measurement_count
-        return args
+
+    def factor(
+        self: 'CountingState', axes: Sequence[int], *, validate=True, atol=1e-07
+    ) -> Tuple['CountingState', 'CountingState']:
+        return CountingState(self.state, self.gate_count, self.measurement_count), CountingState(
+            self.state
+        )
+
+    def reindex(self: 'CountingState', axes: Sequence[int]) -> 'CountingState':
+        return self.copy()
+
+    def copy(self, deep_copy_buffers: bool = True) -> 'CountingState':
+        return CountingState(
+            state=self.state, gate_count=self.gate_count, measurement_count=self.measurement_count
+        )
+
+
+class CountingActOnArgs(cirq.ActOnArgs):
+    def __init__(self, state, qubits, classical_data):
+        state_obj = CountingState(state)
+        super().__init__(
+            state=state_obj,
+            qubits=qubits,
+            classical_data=classical_data,
+        )
+        self._state: CountingState = state_obj
 
     def _act_on_fallback_(
         self,
@@ -52,32 +72,26 @@ class CountingActOnArgs(cirq.ActOnArgs):
         qubits: Sequence['cirq.Qid'],
         allow_decompose: bool = True,
     ) -> bool:
-        self.gate_count += 1
+        self._state.gate_count += 1
         return True
 
-    def sample(self, qubits, repetitions=1, seed=None):
-        pass
+    @property
+    def state(self):
+        return self._state.state
+
+    @property
+    def gate_count(self):
+        return self._state.gate_count
+
+    @property
+    def measurement_count(self):
+        return self._state.measurement_count
 
 
 class SplittableCountingActOnArgs(CountingActOnArgs):
-    def _on_kronecker_product(
-        self, other: 'SplittableCountingActOnArgs', target: 'SplittableCountingActOnArgs'
-    ):
-        target.gate_count = self.gate_count + other.gate_count
-        target.measurement_count = self.measurement_count + other.measurement_count
-
-    def _on_factor(self, qubits, extracted, remainder, validate=True, atol=1e-07):
-        remainder.gate_count = 0
-        remainder.measurement_count = 0
-
     @property
     def allows_factoring(self):
         return True
-
-    def _on_transpose_to_qubit_order(
-        self, qubits: Sequence['cirq.Qid'], target: 'SplittableCountingActOnArgs'
-    ):
-        pass
 
 
 class CountingStepResult(cirq.StepResultBase[CountingActOnArgs, CountingActOnArgs]):

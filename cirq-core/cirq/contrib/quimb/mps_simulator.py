@@ -24,7 +24,7 @@ from typing import Any, Dict, List, Optional, Sequence, Set, Tuple, TYPE_CHECKIN
 import numpy as np
 import quimb.tensor as qtn
 
-from cirq import devices, protocols, value
+from cirq import devices, protocols, qis, value
 from cirq._compat import deprecated
 from cirq.sim import simulator_base
 from cirq.sim.act_on_args import ActOnArgs
@@ -220,7 +220,7 @@ class MPSSimulatorStepResult(simulator_base.StepResultBase['MPSState', 'MPSState
 
 
 @value.value_equality
-class _MPSHandler:
+class _MPSHandler(qis.QuantumStateRepresentation):
     """Quantum state of the MPS simulation."""
 
     def __init__(
@@ -604,21 +604,24 @@ class MPSState(ActOnArgs):
         Raises:
             ValueError: If the grouping does not cover the qubits.
         """
+        qubit_map = {q: i for i, q in enumerate(qubits)}
+        final_grouping = qubit_map if grouping is None else grouping
+        if final_grouping.keys() != qubit_map.keys():
+            raise ValueError('Grouping must cover exactly the qubits.')
+        state = _MPSHandler.create(
+            initial_state=initial_state,
+            qid_shape=tuple(q.dimension for q in qubits),
+            simulation_options=simulation_options,
+            grouping={qubit_map[k]: v for k, v in final_grouping.items()},
+        )
         super().__init__(
+            state=state,
             prng=prng,
             qubits=qubits,
             log_of_measurement_results=log_of_measurement_results,
             classical_data=classical_data,
         )
-        final_grouping = self.qubit_map if grouping is None else grouping
-        if final_grouping.keys() != self.qubit_map.keys():
-            raise ValueError('Grouping must cover exactly the qubits.')
-        self._state = _MPSHandler.create(
-            initial_state=initial_state,
-            qid_shape=tuple(q.dimension for q in qubits),
-            simulation_options=simulation_options,
-            grouping={self.qubit_map[k]: v for k, v in final_grouping.items()},
-        )
+        self._state: _MPSHandler = state
 
     def i_str(self, i: int) -> str:
         # Returns the index name for the i'th qid.
@@ -635,9 +638,6 @@ class MPSState(ActOnArgs):
 
     def _value_equality_values_(self) -> Any:
         return self.qubits, self._state
-
-    def _on_copy(self, target: 'MPSState', deep_copy_buffers: bool = True):
-        target._state = self._state.copy(deep_copy_buffers)
 
     def state_vector(self) -> np.ndarray:
         """Returns the full state vector.
@@ -709,15 +709,3 @@ class MPSState(ActOnArgs):
                 tolerance specified in simulation options.
         """
         return self._state._measure(self.get_axes(qubits), prng, collapse_state_vector)
-
-    def _perform_measurement(self, qubits: Sequence['cirq.Qid']) -> List[int]:
-        """Measures the axes specified by the simulator."""
-        return self._state.measure(self.get_axes(qubits), self.prng)
-
-    def sample(
-        self,
-        qubits: Sequence['cirq.Qid'],
-        repetitions: int = 1,
-        seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None,
-    ) -> np.ndarray:
-        return self._state.sample(self.get_axes(qubits), repetitions, seed)
