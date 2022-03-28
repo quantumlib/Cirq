@@ -41,24 +41,9 @@ class EmptyActOnArgs(cirq.ActOnArgs):
     ) -> bool:
         return True
 
-    def _on_copy(self, args):
-        pass
-
-    def _on_kronecker_product(self, other, target):
-        pass
-
-    def _on_transpose_to_qubit_order(self, qubits, target):
-        pass
-
-    def _on_factor(self, qubits, extracted, remainder, validate=True, atol=1e-07):
-        pass
-
     @property
     def allows_factoring(self):
         return True
-
-    def sample(self, qubits, repetitions=1, seed=None):
-        pass
 
 
 q0, q1, q2 = qs3 = cirq.LineQubit.range(3)

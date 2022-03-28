@@ -27,7 +27,7 @@ if TYPE_CHECKING:
     from numpy.typing import DTypeLike
 
 
-class _BufferedStateVector:
+class _BufferedStateVector(qis.QuantumStateRepresentation):
     """Contains the state vector and buffer for efficient state evolution."""
 
     def __init__(self, state_vector: np.ndarray, buffer: Optional[np.ndarray] = None):
@@ -321,6 +321,10 @@ class _BufferedStateVector:
             self._buffer = self._state_vector
         self._state_vector = new_target_tensor
 
+    @property
+    def supports_factor(self) -> bool:
+        return True
+
 
 class ActOnStateVectorArgs(ActOnArgs):
     """State and context for an operation acting on a state vector.
@@ -382,18 +386,20 @@ class ActOnStateVectorArgs(ActOnArgs):
             classical_data: The shared classical data container for this
                 simulation.
         """
-        super().__init__(
-            prng=prng,
-            qubits=qubits,
-            log_of_measurement_results=log_of_measurement_results,
-            classical_data=classical_data,
-        )
-        self._state = _BufferedStateVector.create(
+        state = _BufferedStateVector.create(
             initial_state=target_tensor if target_tensor is not None else initial_state,
             qid_shape=tuple(q.dimension for q in qubits) if qubits is not None else None,
             dtype=dtype,
             buffer=available_buffer,
         )
+        super().__init__(
+            state=state,
+            prng=prng,
+            qubits=qubits,
+            log_of_measurement_results=log_of_measurement_results,
+            classical_data=classical_data,
+        )
+        self._state: _BufferedStateVector = state
 
     @_compat.deprecated(
         deadline='v0.16',
@@ -480,7 +486,7 @@ class ActOnStateVectorArgs(ActOnArgs):
             _strat_act_on_state_vector_from_channel,
         ]
         if allow_decompose:
-            strats.append(strat_act_on_from_apply_decompose)
+            strats.append(strat_act_on_from_apply_decompose)  # type: ignore
 
         # Try each strategy, stopping if one works.
         for strat in strats:
@@ -495,46 +501,6 @@ class ActOnStateVectorArgs(ActOnArgs):
             "SupportsUnitary, SupportsConsistentApplyUnitary, "
             "SupportsMixture or is a measurement: {!r}".format(action)
         )
-
-    def _perform_measurement(self, qubits: Sequence['cirq.Qid']) -> List[int]:
-        """Delegates the call to measure the state vector."""
-        return self._state.measure(self.get_axes(qubits), self.prng)
-
-    def _on_copy(self, target: 'cirq.ActOnStateVectorArgs', deep_copy_buffers: bool = True):
-        target._state = self._state.copy(deep_copy_buffers)
-
-    def _on_kronecker_product(
-        self, other: 'cirq.ActOnStateVectorArgs', target: 'cirq.ActOnStateVectorArgs'
-    ):
-        target._state = self._state.kron(other._state)
-
-    def _on_factor(
-        self,
-        qubits: Sequence['cirq.Qid'],
-        extracted: 'cirq.ActOnStateVectorArgs',
-        remainder: 'cirq.ActOnStateVectorArgs',
-        validate=True,
-        atol=1e-07,
-    ):
-        axes = self.get_axes(qubits)
-        extracted._state, remainder._state = self._state.factor(axes, validate=validate, atol=atol)
-
-    @property
-    def allows_factoring(self):
-        return True
-
-    def _on_transpose_to_qubit_order(
-        self, qubits: Sequence['cirq.Qid'], target: 'cirq.ActOnStateVectorArgs'
-    ):
-        target._state = self._state.reindex(self.get_axes(qubits))
-
-    def sample(
-        self,
-        qubits: Sequence['cirq.Qid'],
-        repetitions: int = 1,
-        seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None,
-    ) -> np.ndarray:
-        return self._state.sample(self.get_axes(qubits), repetitions, seed)
 
     def __repr__(self) -> str:
         return (

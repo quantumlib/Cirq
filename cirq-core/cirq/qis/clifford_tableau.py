@@ -13,17 +13,97 @@
 # limitations under the License.
 
 import abc
-from typing import Any, Dict, List, TYPE_CHECKING
+from typing import Any, Dict, List, Sequence, Tuple, TYPE_CHECKING, TypeVar
 import numpy as np
 
-from cirq import protocols
+from cirq import protocols, value
 from cirq.value import big_endian_int_to_digits, linear_dict
 
 if TYPE_CHECKING:
     import cirq
 
+TSelf = TypeVar('TSelf', bound='QuantumStateRepresentation')
 
-class StabilizerState(metaclass=abc.ABCMeta):
+
+class QuantumStateRepresentation(metaclass=abc.ABCMeta):
+    @abc.abstractmethod
+    def copy(self: TSelf, deep_copy_buffers: bool = True) -> TSelf:
+        """Creates a copy of the object.
+        Args:
+            deep_copy_buffers: If True, buffers will also be deep-copied.
+            Otherwise the copy will share a reference to the original object's
+            buffers.
+        Returns:
+            A copied instance.
+        """
+
+    @abc.abstractmethod
+    def measure(
+        self, axes: Sequence[int], seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None
+    ) -> List[int]:
+        """Measures the state.
+
+        Args:
+            axes: The axes to measure.
+            seed: The random number seed to use.
+        Returns:
+            The measurements in order.
+        """
+
+    def sample(
+        self,
+        axes: Sequence[int],
+        repetitions: int = 1,
+        seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None,
+    ) -> np.ndarray:
+        """Samples the state. Subclasses can override with more performant method.
+
+        Args:
+            axes: The axes to sample.
+            repetitions: The number of samples to make.
+            seed: The random number seed to use.
+        Returns:
+            The samples in order.
+        """
+        prng = value.parse_random_state(seed)
+        measurements = []
+        for _ in range(repetitions):
+            state = self.copy()
+            measurements.append(state.measure(axes, prng))
+        return np.array(measurements, dtype=bool)
+
+    def kron(self: TSelf, other: TSelf) -> TSelf:
+        """Joins two state spaces together."""
+        raise NotImplementedError()
+
+    def factor(
+        self: TSelf, axes: Sequence[int], *, validate=True, atol=1e-07
+    ) -> Tuple[TSelf, TSelf]:
+        """Splits two state spaces after a measurement or reset."""
+        raise NotImplementedError()
+
+    def reindex(self: TSelf, axes: Sequence[int]) -> TSelf:
+        """Physically reindexes the state by the new basis.
+        Args:
+            axes: The desired axis order.
+        Returns:
+            The state with qubit order transposed and underlying representation
+            updated.
+        """
+        raise NotImplementedError()
+
+    @property
+    def supports_factor(self) -> bool:
+        """Subclasses that allow factorization should override this."""
+        return False
+
+    @property
+    def can_represent_mixed_states(self) -> bool:
+        """Subclasses that can represent mixed states should override this."""
+        return False
+
+
+class StabilizerState(QuantumStateRepresentation, metaclass=abc.ABCMeta):
     """Interface for quantum stabilizer state representations.
 
     This interface is used for CliffordTableau and StabilizerChForm quantum
@@ -222,7 +302,7 @@ class CliffordTableau(StabilizerState):
     def __copy__(self) -> 'CliffordTableau':
         return self.copy()
 
-    def copy(self) -> 'CliffordTableau':
+    def copy(self, deep_copy_buffers: bool = True) -> 'CliffordTableau':
         state = CliffordTableau(self.n)
         state.rs = self.rs.copy()
         state.xs = self.xs.copy()
@@ -578,3 +658,8 @@ class CliffordTableau(StabilizerState):
 
     def apply_global_phase(self, coefficient: linear_dict.Scalar):
         pass
+
+    def measure(
+        self, axes: Sequence[int], seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None
+    ) -> List[int]:
+        return [self._measure(axis, seed) for axis in axes]
