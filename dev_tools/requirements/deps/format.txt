@@ -1,2 +1,3 @@
 -r flynt.txt
 black==21.12b0
+click<=8.0.4
