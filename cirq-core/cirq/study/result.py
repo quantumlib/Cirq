@@ -146,7 +146,7 @@ class Result(abc.ABC):
         for key, bitstrings in measurements.items():
             _, n = bitstrings.shape
             i_type = object if n > 63 else np.int64
-            basis = 2 ** np.arange(bitstrings.shape[1], dtype=i_type)[::-1]
+            basis = 2 ** np.arange(n, dtype=i_type)[::-1]
             converted_dict[key] = np.sum(basis * bitstrings, axis=1)
 
         # Use objects to accomodate more than 64 qubits if needed.
