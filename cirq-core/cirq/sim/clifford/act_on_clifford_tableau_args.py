@@ -18,6 +18,7 @@ from typing import Dict, List, Optional, Sequence, TYPE_CHECKING
 
 import numpy as np
 
+from cirq._compat import deprecated_parameter
 from cirq.qis import clifford_tableau
 from cirq.sim.clifford.act_on_stabilizer_args import ActOnStabilizerArgs
 
@@ -28,6 +29,12 @@ if TYPE_CHECKING:
 class ActOnCliffordTableauArgs(ActOnStabilizerArgs[clifford_tableau.CliffordTableau]):
     """State and context for an operation acting on a clifford tableau."""
 
+    @deprecated_parameter(
+        deadline='v0.15',
+        fix='Use classical_data.',
+        parameter_desc='log_of_measurement_results and positional arguments',
+        match=lambda args, kwargs: 'log_of_measurement_results' in kwargs or len(args) > 3,
+    )
     def __init__(
         self,
         tableau: 'cirq.CliffordTableau',
@@ -62,19 +69,3 @@ class ActOnCliffordTableauArgs(ActOnStabilizerArgs[clifford_tableau.CliffordTabl
     @property
     def tableau(self) -> 'cirq.CliffordTableau':
         return self.state
-
-    def _perform_measurement(self, qubits: Sequence['cirq.Qid']) -> List[int]:
-        """Returns the measurement from the tableau."""
-        return [self.state._measure(self.qubit_map[q], self.prng) for q in qubits]
-
-    def _on_copy(self, target: 'ActOnCliffordTableauArgs', deep_copy_buffers: bool = True):
-        target._state = self.state.copy()
-
-    def sample(
-        self,
-        qubits: Sequence['cirq.Qid'],
-        repetitions: int = 1,
-        seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None,
-    ) -> np.ndarray:
-        # Unnecessary for now but can be added later if there is a use case.
-        raise NotImplementedError()

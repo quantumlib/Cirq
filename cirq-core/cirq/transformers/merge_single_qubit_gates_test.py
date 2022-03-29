@@ -54,14 +54,38 @@ def test_merge_single_qubit_gates_into_phased_x_z():
     )
 
 
-def test_merge_single_qubit_gates_into_phxz():
-    def phxz(a, x, z):
-        return cirq.PhasedXZGate(
-            axis_phase_exponent=a,
-            x_exponent=x,
-            z_exponent=z,
-        )
+def test_merge_single_qubit_gates_into_phased_x_z_deep():
+    a = cirq.NamedQubit("a")
+    c_nested = cirq.FrozenCircuit(cirq.H(a), cirq.Z(a), cirq.H(a).with_tags("ignore"))
+    c_nested_merged = cirq.FrozenCircuit(
+        cirq.PhasedXPowGate(phase_exponent=-0.5, exponent=0.5).on(a), cirq.H(a).with_tags("ignore")
+    )
+    c_orig = cirq.Circuit(
+        c_nested,
+        cirq.CircuitOperation(c_nested).repeat(4).with_tags("ignore"),
+        c_nested,
+        cirq.CircuitOperation(c_nested).repeat(5).with_tags("preserve_tags"),
+        c_nested,
+        cirq.CircuitOperation(c_nested).repeat(6),
+    )
+    c_expected = cirq.Circuit(
+        c_nested_merged,
+        cirq.CircuitOperation(c_nested).repeat(4).with_tags("ignore"),
+        c_nested_merged,
+        cirq.CircuitOperation(c_nested_merged).repeat(5).with_tags("preserve_tags"),
+        c_nested_merged,
+        cirq.CircuitOperation(c_nested_merged).repeat(6),
+    )
+    context = cirq.TransformerContext(tags_to_ignore=["ignore"], deep=True)
+    c_new = cirq.merge_single_qubit_gates_to_phased_x_and_z(c_orig, context=context)
+    cirq.testing.assert_same_circuits(c_new, c_expected)
 
+
+def _phxz(a: float, x: float, z: float):
+    return cirq.PhasedXZGate(axis_phase_exponent=a, x_exponent=x, z_exponent=z)
+
+
+def test_merge_single_qubit_gates_into_phxz():
     a, b = cirq.LineQubit.range(2)
     c = cirq.Circuit(
         cirq.X(a),
@@ -75,14 +99,39 @@ def test_merge_single_qubit_gates_into_phxz():
     assert_optimizes(
         optimized=cirq.merge_single_qubit_gates_to_phxz(c),
         expected=cirq.Circuit(
-            phxz(-1, 1, 0).on(a),
-            phxz(0.5, 0.5, 0).on(b),
+            _phxz(-1, 1, 0).on(a),
+            _phxz(0.5, 0.5, 0).on(b),
             cirq.CZ(a, b),
-            phxz(-0.5, 0.5, 0).on(a),
+            _phxz(-0.5, 0.5, 0).on(a),
             cirq.measure(b, key="m"),
             cirq.H(a).with_classical_controls("m"),
         ),
     )
+
+
+def test_merge_single_qubit_gates_into_phxz_deep():
+    a = cirq.NamedQubit("a")
+    c_nested = cirq.FrozenCircuit(cirq.H(a), cirq.Z(a), cirq.H(a).with_tags("ignore"))
+    c_nested_merged = cirq.FrozenCircuit(_phxz(-0.5, 0.5, 0).on(a), cirq.H(a).with_tags("ignore"))
+    c_orig = cirq.Circuit(
+        c_nested,
+        cirq.CircuitOperation(c_nested).repeat(4).with_tags("ignore"),
+        c_nested,
+        cirq.CircuitOperation(c_nested).repeat(5).with_tags("preserve_tags"),
+        c_nested,
+        cirq.CircuitOperation(c_nested).repeat(6),
+    )
+    c_expected = cirq.Circuit(
+        c_nested_merged,
+        cirq.CircuitOperation(c_nested).repeat(4).with_tags("ignore"),
+        c_nested_merged,
+        cirq.CircuitOperation(c_nested_merged).repeat(5).with_tags("preserve_tags"),
+        c_nested_merged,
+        cirq.CircuitOperation(c_nested_merged).repeat(6),
+    )
+    context = cirq.TransformerContext(tags_to_ignore=["ignore"], deep=True)
+    c_new = cirq.merge_single_qubit_gates_to_phxz(c_orig, context=context)
+    cirq.testing.assert_same_circuits(c_new, c_expected)
 
 
 def test_merge_single_qubit_moments_to_phxz():
@@ -127,3 +176,44 @@ a: ═════════════════════════�
 a: ══════════════════════════════════════════════════════════════════════════════════@═══^═══════
 ''',
     )
+
+
+def test_merge_single_qubit_moments_to_phxz_deep():
+    q = cirq.LineQubit.range(3)
+    x_t_y = cirq.FrozenCircuit(
+        cirq.Moment(cirq.X.on_each(*q[:2])),
+        cirq.Moment(cirq.T.on_each(*q[1:])),
+        cirq.Moment(cirq.Y.on_each(*q[:2])),
+    )
+    c_nested = cirq.FrozenCircuit(
+        x_t_y,
+        cirq.Moment(cirq.CZ(*q[:2]), cirq.Y(q[2])),
+        x_t_y,
+        cirq.Moment(cirq.Y(q[0]).with_tags("ignore"), cirq.Z.on_each(*q[1:])),
+    )
+
+    c_nested_merged = cirq.FrozenCircuit(
+        [_phxz(-0.25, 0.0, 0.75)(q[1]), _phxz(0.25, 0.0, 0.25)(q[2]), _phxz(-0.5, 0.0, -1.0)(q[0])],
+        [cirq.CZ(q[0], q[1]), cirq.Y(q[2])],
+        [_phxz(-0.25, 0.0, 0.75)(q[1]), _phxz(0.25, 0.0, 0.25)(q[2]), _phxz(-0.5, 0.0, -1.0)(q[0])],
+        cirq.Moment(cirq.Y(q[0]).with_tags("ignore"), cirq.Z.on_each(*q[1:])),
+    )
+    c_orig = cirq.Circuit(
+        c_nested,
+        cirq.CircuitOperation(c_nested).repeat(4).with_tags("ignore"),
+        c_nested,
+        cirq.CircuitOperation(c_nested).repeat(5).with_tags("preserve_tags"),
+        c_nested,
+        cirq.CircuitOperation(c_nested).repeat(6),
+    )
+    c_expected = cirq.Circuit(
+        c_nested_merged,
+        cirq.CircuitOperation(c_nested).repeat(4).with_tags("ignore"),
+        c_nested_merged,
+        cirq.CircuitOperation(c_nested_merged).repeat(5).with_tags("preserve_tags"),
+        c_nested_merged,
+        cirq.CircuitOperation(c_nested_merged).repeat(6),
+    )
+    context = cirq.TransformerContext(tags_to_ignore=["ignore"], deep=True)
+    c_new = cirq.merge_single_qubit_moments_to_phxz(c_orig, context=context)
+    cirq.testing.assert_same_circuits(c_new, c_expected)

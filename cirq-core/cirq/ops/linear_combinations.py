@@ -179,7 +179,7 @@ class LinearCombinationOfGates(value.LinearDict[raw_types.Gate]):
         num_qubits = self.num_qubits()
         if num_qubits is None:
             raise ValueError('Unknown number of qubits')
-        num_dim = 2 ** num_qubits
+        num_dim = 2**num_qubits
         result = np.zeros((num_dim, num_dim), dtype=np.complex128)
         for gate, coefficient in self.items():
             result += protocols.unitary(gate) * coefficient
@@ -292,7 +292,7 @@ class LinearCombinationOfOperations(value.LinearDict[raw_types.Operation]):
         if self._is_parameterized_():
             return NotImplemented
         num_qubits = len(self.qubits)
-        num_dim = 2 ** num_qubits
+        num_dim = 2**num_qubits
         qubit_to_axis = {q: i for i, q in enumerate(self.qubits)}
         result = np.zeros((2,) * (2 * num_qubits), dtype=np.complex128)
         for op, coefficient in self.items():
@@ -487,7 +487,7 @@ class PauliSum:
 
         qubits = self.qubits if qubits is None else tuple(qubits)
         num_qubits = len(qubits)
-        num_dim = 2 ** num_qubits
+        num_dim = 2**num_qubits
         result = np.zeros((num_dim, num_dim), dtype=np.complex128)
         for vec, coeff in self._linear_dict.items():
             op = _pauli_string_from_unit(vec)

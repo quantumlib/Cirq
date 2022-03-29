@@ -142,8 +142,8 @@ def test_serialize_sqrt_y_pow_gate():
 @pytest.mark.parametrize(
     ('gate', 'axis_half_turns', 'half_turns'),
     [
-        (cirq.X ** 0.25, 0.0, 0.25),
-        (cirq.Y ** 0.25, 0.5, 0.25),
+        (cirq.X**0.25, 0.0, 0.25),
+        (cirq.Y**0.25, 0.5, 0.25),
         (cirq.XPowGate(exponent=0.125), 0.0, 0.125),
         (cirq.YPowGate(exponent=0.125), 0.5, 0.125),
         (cirq.PhasedXPowGate(exponent=0.125, phase_exponent=0.25), 0.25, 0.125),
@@ -255,9 +255,9 @@ def test_serialize_deserialize_meas(qubits, qubit_ids, key, invert_mask):
     ('gate', 'axis_half_turns', 'half_turns'),
     [
         (cirq.X, 0.0, 1.0),
-        (cirq.X ** 0.25, 0.0, 0.25),
+        (cirq.X**0.25, 0.0, 0.25),
         (cirq.Y, 0.5, 1.0),
-        (cirq.Y ** 0.25, 0.5, 0.25),
+        (cirq.Y**0.25, 0.5, 0.25),
         (cirq.PhasedXPowGate(exponent=0.125, phase_exponent=0.25), 0.25, 0.125),
         (cirq.rx(0.125 * np.pi), 0.0, 0.125),
         (cirq.ry(0.25 * np.pi), 0.5, 0.25),
@@ -324,7 +324,7 @@ def test_serialize_xy_parameterized_axis_half_turns():
     ('gate', 'half_turns'),
     [
         (cirq.Z, 1.0),
-        (cirq.Z ** 0.125, 0.125),
+        (cirq.Z**0.125, 0.125),
         (cirq.rz(0.125 * np.pi), 0.125),
     ],
 )
@@ -443,8 +443,8 @@ def assert_phys_z_tag(phys_z, op):
     ('gate', 'exponent'),
     [
         (cirq.CZ, 1.0),
-        (cirq.CZ ** 3.0, 3.0),
-        (cirq.CZ ** -1.0, -1.0),
+        (cirq.CZ**3.0, 3.0),
+        (cirq.CZ**-1.0, -1.0),
     ],
 )
 @pytest.mark.parametrize('phys_z', [False, True])
@@ -548,13 +548,13 @@ def test_wait_gate_multi_qubit():
 @pytest.mark.parametrize(
     ('gate', 'theta', 'phi'),
     [
-        (cirq.ISWAP ** 0.5, -np.pi / 4, 0),
-        (cirq.ISWAP ** -0.5, np.pi / 4, 0),
-        (cirq.ISWAP ** 1.0, -np.pi / 2, 0),
-        (cirq.ISWAP ** -1.0, np.pi / 2, 0),
-        (cirq.ISWAP ** 0.0, 0, 0),
+        (cirq.ISWAP**0.5, -np.pi / 4, 0),
+        (cirq.ISWAP**-0.5, np.pi / 4, 0),
+        (cirq.ISWAP**1.0, -np.pi / 2, 0),
+        (cirq.ISWAP**-1.0, np.pi / 2, 0),
+        (cirq.ISWAP**0.0, 0, 0),
         (cirq.CZ, 0, np.pi),
-        (cirq.CZ ** -1.0, 0, np.pi),
+        (cirq.CZ**-1.0, 0, np.pi),
         (cirq.FSimGate(theta=0, phi=0), 0, 0),
         (cirq.FSimGate(theta=0, phi=np.pi), 0, -np.pi),
         (cirq.FSimGate(theta=0, phi=-np.pi), 0, -np.pi),
@@ -665,8 +665,8 @@ def test_serialize_deserialize_iswap_symbols(phys_z):
 @pytest.mark.parametrize(
     'gate',
     [
-        cirq.ISWAP ** 0.25,
-        cirq.ISWAP ** 0.75,
+        cirq.ISWAP**0.25,
+        cirq.ISWAP**0.75,
         cirq.FSimGate(theta=0.1, phi=0),
         cirq.FSimGate(theta=0, phi=0.1),
         cirq.FSimGate(theta=sympy.Symbol('t'), phi=0.1),

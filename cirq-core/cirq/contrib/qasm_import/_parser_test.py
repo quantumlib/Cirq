@@ -434,8 +434,8 @@ single_qubit_gates = [
     ('h', cirq.H),
     ('s', cirq.S),
     ('t', cirq.T),
-    ('sdg', cirq.S ** -1),
-    ('tdg', cirq.T ** -1),
+    ('sdg', cirq.S**-1),
+    ('tdg', cirq.T**-1),
     ('sx', cirq.XPowGate(exponent=0.5)),
 ]
 

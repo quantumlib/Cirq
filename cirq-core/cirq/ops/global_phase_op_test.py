@@ -44,7 +44,7 @@ def test_protocols():
 @pytest.mark.parametrize('phase', [1, 1j, -1])
 def test_act_on_tableau(phase):
     original_tableau = cirq.CliffordTableau(0)
-    args = cirq.ActOnCliffordTableauArgs(original_tableau.copy(), np.random.RandomState(), {})
+    args = cirq.ActOnCliffordTableauArgs(original_tableau.copy(), np.random.RandomState())
     cirq.act_on(cirq.global_phase_operation(phase), args, allow_decompose=False)
     assert args.tableau == original_tableau
 
@@ -55,7 +55,6 @@ def test_act_on_ch_form(phase):
     args = cirq.ActOnStabilizerCHFormArgs(
         qubits=[],
         prng=np.random.RandomState(),
-        log_of_measurement_results={},
         initial_state=state,
     )
     cirq.act_on(cirq.global_phase_operation(phase), args, allow_decompose=False)
@@ -310,7 +309,7 @@ def test_gate_protocols():
 @pytest.mark.parametrize('phase', [1, 1j, -1])
 def test_gate_act_on_tableau(phase):
     original_tableau = cirq.CliffordTableau(0)
-    args = cirq.ActOnCliffordTableauArgs(original_tableau.copy(), np.random.RandomState(), {})
+    args = cirq.ActOnCliffordTableauArgs(original_tableau.copy(), np.random.RandomState())
     cirq.act_on(cirq.GlobalPhaseGate(phase), args, qubits=(), allow_decompose=False)
     assert args.tableau == original_tableau
 
@@ -321,7 +320,6 @@ def test_gate_act_on_ch_form(phase):
     args = cirq.ActOnStabilizerCHFormArgs(
         qubits=[],
         prng=np.random.RandomState(),
-        log_of_measurement_results={},
         initial_state=state,
     )
     cirq.act_on(cirq.GlobalPhaseGate(phase), args, qubits=(), allow_decompose=False)

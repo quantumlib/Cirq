@@ -40,8 +40,10 @@ class NonNativeGate(cirq.SingleQubitGate):
 def test_avoids_infinite_cycle_when_matrix_available():
     q = cirq.GridQubit(0, 0)
     c = cirq.Circuit(OtherX().on(q), OtherOtherX().on(q))
-    cirq_google.ConvertToXmonGates().optimize_circuit(c)
+    with cirq.testing.assert_deprecated("Use cirq.optimize_for_target_gateset", deadline='v1.0'):
+        cirq_google.ConvertToXmonGates().optimize_circuit(c)
     cirq.testing.assert_has_diagram(c, '(0, 0): ───PhX(1)───PhX(1)───')
+
     cirq.protocols.decompose(c)
 
 
@@ -52,7 +54,10 @@ matrix_gate = cirq.MatrixGate(cirq.testing.random_unitary(2))
 def test_bad_operation():
     c = cirq.Circuit(NonNativeGate().on(q[0]))
     with pytest.raises(TypeError):
-        cirq_google.ConvertToXmonGates().optimize_circuit(c)
+        with cirq.testing.assert_deprecated(
+            "Use cirq.optimize_for_target_gateset", deadline='v1.0'
+        ):
+            cirq_google.ConvertToXmonGates().optimize_circuit(c)
 
 
 @pytest.mark.parametrize(
@@ -68,4 +73,5 @@ def test_bad_operation():
 )
 def test_supported_operation(op, is_valid):
     c = cirq.Circuit(op)
-    assert (cirq_google.ConvertToXmonGates().optimization_at(c, 0, op) is not None) == is_valid
+    with cirq.testing.assert_deprecated("Use cirq.optimize_for_target_gateset", deadline='v1.0'):
+        assert (cirq_google.ConvertToXmonGates().optimization_at(c, 0, op) is not None) == is_valid

@@ -706,7 +706,7 @@ class PauliString(raw_types.Operation, Generic[TKey]):
     def __array_ufunc__(self, ufunc, method, *inputs, **kwargs):
         """Override behavior of numpy's exp method."""
         if ufunc == np.exp and len(inputs) == 1 and inputs[0] is self:
-            return math.e ** self
+            return math.e**self
         return NotImplemented
 
     def __pow__(self, power):
@@ -714,7 +714,7 @@ class PauliString(raw_types.Operation, Generic[TKey]):
             return self
         if power == -1:
             return PauliString(
-                qubit_pauli_map=self._qubit_pauli_map, coefficient=self.coefficient ** -1
+                qubit_pauli_map=self._qubit_pauli_map, coefficient=self.coefficient**-1
             )
         if self._is_parameterized_():
             raise ValueError('Cannot raise to power when parameterized.')

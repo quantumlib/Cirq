@@ -54,7 +54,7 @@ def _gen_gray_code(n: int) -> Iterator[Tuple[int, int]]:
     gray code.
     """
     gray_code = 0
-    for i in range(1, 2 ** n):
+    for i in range(1, 2**n):
         next_gray = i ^ (i >> 1)
         bit_flip = int(np.log2(gray_code ^ next_gray))
         yield gray_code, bit_flip
@@ -177,7 +177,7 @@ class DiagonalGate(raw_types.Gate):
             https://iopscience.iop.org/article/10.1088/1367-2630/16/3/033040/meta
         """
         n = self._num_qubits_()
-        hat_angles = _fast_walsh_hadamard_transform(self._diag_angles_radians) / (2 ** n)
+        hat_angles = _fast_walsh_hadamard_transform(self._diag_angles_radians) / (2**n)
 
         # There is one global phase shift between unitary matrix of the diagonal gate and the
         # decomposed gates. On its own it is not physically observable. However, if using this
