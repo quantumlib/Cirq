@@ -112,7 +112,7 @@ class SwapPowGate(gate_features.InterchangeableQubitsGate, eigen_gate.EigenGate)
         if protocols.is_parameterized(self):
             return NotImplemented
         global_phase = 1j ** (2 * self._exponent * self._global_shift)
-        swap_phase = 1j ** self._exponent
+        swap_phase = 1j**self._exponent
         c = -1j * swap_phase * np.sin(np.pi * self._exponent / 2) / 2
         return value.LinearDict(
             {

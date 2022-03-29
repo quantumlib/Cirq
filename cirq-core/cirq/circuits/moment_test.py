@@ -409,10 +409,10 @@ def test_json_dict():
 def test_inverse():
     a, b, c = cirq.LineQubit.range(3)
     m = cirq.Moment([cirq.S(a), cirq.CNOT(b, c)])
-    assert m ** 1 is m
-    assert m ** -1 == cirq.Moment([cirq.S(a) ** -1, cirq.CNOT(b, c)])
-    assert m ** 0.5 == cirq.Moment([cirq.T(a), cirq.CNOT(b, c) ** 0.5])
-    assert cirq.inverse(m) == m ** -1
+    assert m**1 is m
+    assert m**-1 == cirq.Moment([cirq.S(a) ** -1, cirq.CNOT(b, c)])
+    assert m**0.5 == cirq.Moment([cirq.T(a), cirq.CNOT(b, c) ** 0.5])
+    assert cirq.inverse(m) == m**-1
     assert cirq.inverse(cirq.inverse(m)) == m
     assert cirq.inverse(cirq.Moment([cirq.measure(a)]), default=None) is None
 

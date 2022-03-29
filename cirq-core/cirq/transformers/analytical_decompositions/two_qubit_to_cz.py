@@ -251,8 +251,8 @@ def _non_local_part(
 
     if allow_partial_czs or all(_is_trivial_angle(e, atol) for e in [x, y, z]):
         return [
-            _parity_interaction(q0, q1, x, atol, ops.Y ** -0.5),
-            _parity_interaction(q0, q1, y, atol, ops.X ** 0.5),
+            _parity_interaction(q0, q1, x, atol, ops.Y**-0.5),
+            _parity_interaction(q0, q1, y, atol, ops.X**0.5),
             _parity_interaction(q0, q1, z, atol),
         ]
 

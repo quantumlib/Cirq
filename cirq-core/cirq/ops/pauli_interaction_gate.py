@@ -151,8 +151,8 @@ class PauliInteractionGate(gate_features.InterchangeableQubitsGate, eigen_gate.E
         right_gate0 = SingleQubitCliffordGate.from_single_map(z_to=(self.pauli0, self.invert0))
         right_gate1 = SingleQubitCliffordGate.from_single_map(z_to=(self.pauli1, self.invert1))
 
-        left_gate0 = right_gate0 ** -1
-        left_gate1 = right_gate1 ** -1
+        left_gate0 = right_gate0**-1
+        left_gate1 = right_gate1**-1
         yield left_gate0(q0)
         yield left_gate1(q1)
         yield common_gates.CZ(q0, q1) ** self._exponent

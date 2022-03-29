@@ -328,7 +328,7 @@ def test_unitary():
     'gate, should_decompose_to_target',
     [
         (cirq.X, True),
-        (cirq.X ** 0.5, True),
+        (cirq.X**0.5, True),
         (cirq.rx(np.pi), True),
         (cirq.rx(np.pi / 2), True),
         (cirq.Z, True),
@@ -366,45 +366,45 @@ def test_controlled_gate_is_consistent(gate: cirq.Gate, should_decompose_to_targ
 def test_pow_inverse():
     assert cirq.inverse(CRestricted, None) is None
     assert cirq.pow(CRestricted, 1.5, None) is None
-    assert cirq.pow(CY, 1.5) == cirq.ControlledGate(cirq.Y ** 1.5)
-    assert cirq.inverse(CY) == CY ** -1 == CY
+    assert cirq.pow(CY, 1.5) == cirq.ControlledGate(cirq.Y**1.5)
+    assert cirq.inverse(CY) == CY**-1 == CY
 
     assert cirq.inverse(C0Restricted, None) is None
     assert cirq.pow(C0Restricted, 1.5, None) is None
-    assert cirq.pow(C0Y, 1.5) == cirq.ControlledGate(cirq.Y ** 1.5, control_values=[0])
-    assert cirq.inverse(C0Y) == C0Y ** -1 == C0Y
+    assert cirq.pow(C0Y, 1.5) == cirq.ControlledGate(cirq.Y**1.5, control_values=[0])
+    assert cirq.inverse(C0Y) == C0Y**-1 == C0Y
 
     assert cirq.inverse(C2Restricted, None) is None
     assert cirq.pow(C2Restricted, 1.5, None) is None
     assert cirq.pow(C2Y, 1.5) == cirq.ControlledGate(
-        cirq.Y ** 1.5, control_values=[2], control_qid_shape=(3,)
+        cirq.Y**1.5, control_values=[2], control_qid_shape=(3,)
     )
-    assert cirq.inverse(C2Y) == C2Y ** -1 == C2Y
+    assert cirq.inverse(C2Y) == C2Y**-1 == C2Y
 
 
 def test_extrapolatable_effect():
     a = cirq.NamedQubit('a')
     b = cirq.NamedQubit('b')
 
-    assert cirq.ControlledGate(cirq.Z) ** 0.5 == cirq.ControlledGate(cirq.Z ** 0.5)
+    assert cirq.ControlledGate(cirq.Z) ** 0.5 == cirq.ControlledGate(cirq.Z**0.5)
 
-    assert cirq.ControlledGate(cirq.Z).on(a, b) ** 0.5 == cirq.ControlledGate(cirq.Z ** 0.5).on(
+    assert cirq.ControlledGate(cirq.Z).on(a, b) ** 0.5 == cirq.ControlledGate(cirq.Z**0.5).on(
         a, b
     )
 
-    assert cirq.ControlledGate(cirq.Z) ** 0.5 == cirq.ControlledGate(cirq.Z ** 0.5)
+    assert cirq.ControlledGate(cirq.Z) ** 0.5 == cirq.ControlledGate(cirq.Z**0.5)
 
 
 def test_reversible():
-    assert cirq.inverse(cirq.ControlledGate(cirq.S)) == cirq.ControlledGate(cirq.S ** -1)
+    assert cirq.inverse(cirq.ControlledGate(cirq.S)) == cirq.ControlledGate(cirq.S**-1)
     assert cirq.inverse(cirq.ControlledGate(cirq.S, num_controls=4)) == cirq.ControlledGate(
-        cirq.S ** -1, num_controls=4
+        cirq.S**-1, num_controls=4
     )
     assert cirq.inverse(cirq.ControlledGate(cirq.S, control_values=[1])) == cirq.ControlledGate(
-        cirq.S ** -1, control_values=[1]
+        cirq.S**-1, control_values=[1]
     )
     assert cirq.inverse(cirq.ControlledGate(cirq.S, control_qid_shape=(3,))) == cirq.ControlledGate(
-        cirq.S ** -1, control_qid_shape=(3,)
+        cirq.S**-1, control_qid_shape=(3,)
     )
 
 
@@ -435,7 +435,7 @@ def test_circuit_diagram_info():
         wire_symbols=('(2)', 'Y'), exponent=1
     )
 
-    assert cirq.circuit_diagram_info(cirq.ControlledGate(cirq.Y ** 0.5)) == cirq.CircuitDiagramInfo(
+    assert cirq.circuit_diagram_info(cirq.ControlledGate(cirq.Y**0.5)) == cirq.CircuitDiagramInfo(
         wire_symbols=('@', 'Y'), exponent=0.5
     )
 
@@ -525,11 +525,11 @@ def test_uninformed_circuit_diagram_info():
 
 
 def test_bounded_effect():
-    assert cirq.trace_distance_bound(CY ** 0.001) < 0.01
+    assert cirq.trace_distance_bound(CY**0.001) < 0.01
     assert cirq.approx_eq(cirq.trace_distance_bound(CCH), 1.0)
     assert cirq.approx_eq(cirq.trace_distance_bound(CRestricted), 1.0)
     foo = sympy.Symbol('foo')
-    assert cirq.trace_distance_bound(cirq.ControlledGate(cirq.X ** foo)) == 1
+    assert cirq.trace_distance_bound(cirq.ControlledGate(cirq.X**foo)) == 1
 
 
 def test_repr():
@@ -544,7 +544,7 @@ def test_str():
     assert str(cirq.ControlledGate(cirq.X)) == 'CX'
     assert str(cirq.ControlledGate(cirq.Z)) == 'CZ'
     assert str(cirq.ControlledGate(cirq.S)) == 'CS'
-    assert str(cirq.ControlledGate(cirq.Z ** 0.125)) == 'CZ**0.125'
+    assert str(cirq.ControlledGate(cirq.Z**0.125)) == 'CZ**0.125'
     assert str(cirq.ControlledGate(cirq.ControlledGate(cirq.S))) == 'CCS'
     assert str(C0Y) == 'C0Y'
     assert str(C0C1H) == 'C0C1H'

@@ -69,7 +69,7 @@ class CCZPowGate(gate_features.InterchangeableQubitsGate, eigen_gate.EigenGate):
         if protocols.is_parameterized(self):
             return NotImplemented
         global_phase = 1j ** (2 * self._exponent * self._global_shift)
-        z_phase = 1j ** self._exponent
+        z_phase = 1j**self._exponent
         c = -1j * z_phase * np.sin(np.pi * self._exponent / 2) / 4
         return value.LinearDict(
             {
@@ -104,7 +104,7 @@ class CCZPowGate(gate_features.InterchangeableQubitsGate, eigen_gate.EigenGate):
             elif not b.is_adjacent(c):
                 a, b = b, a
 
-        p = common_gates.T ** self._exponent
+        p = common_gates.T**self._exponent
         sweep_abc = [common_gates.CNOT(a, b), common_gates.CNOT(b, c)]
 
         return [
@@ -389,7 +389,7 @@ class CCXPowGate(gate_features.InterchangeableQubitsGate, eigen_gate.EigenGate):
         if protocols.is_parameterized(self):
             return NotImplemented
         global_phase = 1j ** (2 * self._exponent * self._global_shift)
-        z_phase = 1j ** self._exponent
+        z_phase = 1j**self._exponent
         c = -1j * z_phase * np.sin(np.pi * self._exponent / 2) / 4
         return value.LinearDict(
             {
@@ -415,7 +415,7 @@ class CCXPowGate(gate_features.InterchangeableQubitsGate, eigen_gate.EigenGate):
             args.target_tensor *= p
         return protocols.apply_unitary(
             controlled_gate.ControlledGate(
-                controlled_gate.ControlledGate(pauli_gates.X ** self.exponent)
+                controlled_gate.ControlledGate(pauli_gates.X**self.exponent)
             ),
             protocols.ApplyUnitaryArgs(args.target_tensor, args.available_buffer, args.axes),
             default=NotImplemented,

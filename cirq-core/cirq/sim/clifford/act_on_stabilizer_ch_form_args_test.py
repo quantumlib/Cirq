@@ -95,7 +95,7 @@ def test_unitary_fallback_h():
             return 1
 
         def _unitary_(self):
-            return np.array([[1, 1], [1, -1]]) / (2 ** 0.5)
+            return np.array([[1, 1], [1, -1]]) / (2**0.5)
 
     args = cirq.ActOnStabilizerCHFormArgs(
         qubits=cirq.LineQubit.range(3),
