@@ -18,7 +18,7 @@ def test_estimate_parallel_two_qubit_xeb_fidelity_on_grid_no_noise(tmpdir):
     # No noise, fidelities should be close to 1
     base_dir = os.path.abspath(tmpdir)
     qubits = cirq.GridQubit.square(2)
-    two_qubit_gate = cirq.ISWAP ** 0.5
+    two_qubit_gate = cirq.ISWAP**0.5
     cycles = [5, 10, 15]
     data_collection_id = collect_grid_parallel_two_qubit_xeb_data(
         sampler=cirq.Simulator(seed=34310, split_untangled_states=False),
@@ -50,7 +50,7 @@ def test_estimate_parallel_two_qubit_xeb_fidelity_on_grid_depolarizing(tmpdir):
     # With depolarizing probability e
     base_dir = os.path.abspath(tmpdir)
     qubits = cirq.GridQubit.square(2)
-    two_qubit_gate = cirq.ISWAP ** 0.5
+    two_qubit_gate = cirq.ISWAP**0.5
     cycles = [5, 10, 15]
     e = 0.01
     data_collection_id = collect_grid_parallel_two_qubit_xeb_data(
@@ -85,7 +85,7 @@ def test_estimate_parallel_two_qubit_xeb_fidelity_on_grid_concurrent(tmpdir):
     # Use multiple threads during data collection
     base_dir = os.path.abspath(tmpdir)
     qubits = cirq.GridQubit.square(2)
-    two_qubit_gate = cirq.ISWAP ** 0.5
+    two_qubit_gate = cirq.ISWAP**0.5
     cycles = [5, 10, 15]
     data_collection_id = collect_grid_parallel_two_qubit_xeb_data(
         sampler=cirq.Simulator(seed=34310),

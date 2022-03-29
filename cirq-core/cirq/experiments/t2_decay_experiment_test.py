@@ -155,7 +155,7 @@ def test_spin_echo_cancels_out_constant_rate_phase(experiment_type):
                 default=cirq.Duration(nanos=1),
             )
             phase = duration.total_nanos() / 100.0
-            yield (cirq.Y ** phase).on_each(system_qubits)
+            yield (cirq.Y**phase).on_each(system_qubits)
             yield moment
 
     pulses = [1] if experiment_type == t2.ExperimentType.CPMG else None

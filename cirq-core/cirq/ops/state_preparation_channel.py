@@ -43,7 +43,7 @@ class StatePreparationChannel(raw_types.Gate):
             raise ValueError('`target_state` must be a 1d numpy array.')
 
         n = int(np.round(np.log2(target_state.shape[0] or 1)))
-        if 2 ** n != target_state.shape[0]:
+        if 2**n != target_state.shape[0]:
             raise ValueError(f'Matrix width ({target_state.shape[0]}) is not a power of 2')
 
         self._state = target_state.astype(np.complex128) / np.linalg.norm(target_state)
@@ -104,7 +104,7 @@ class StatePreparationChannel(raw_types.Gate):
         This allows is to take any input state to the target state.
         The operator satisfies the completeness relation Sum(E^ E) = I.
         """
-        operator = np.zeros(shape=(2 ** self._num_qubits,) * 3, dtype=np.complex128)
+        operator = np.zeros(shape=(2**self._num_qubits,) * 3, dtype=np.complex128)
         for i in range(len(operator)):
             operator[i, :, i] = self._state
         return operator
