@@ -110,7 +110,8 @@ def test_on_methods_deprecated():
         def _act_on_fallback_(self, action, qubits, allow_decompose=True):
             return True  # coverage: ignore
 
-    args = OldStyleArgs()
+    with cirq.testing.assert_deprecated('state', deadline='v0.16'):
+        args = OldStyleArgs()
     with cirq.testing.assert_deprecated('_on_', deadline='v0.16', count=2):
         _ = args.copy()
     with cirq.testing.assert_deprecated('_on_', deadline='v0.16', count=2):
@@ -138,7 +139,8 @@ def test_on_methods_deprecated_if_implemented():
         def _on_transpose_to_qubit_order(self, qubits, target):
             pass
 
-    args = OldStyleArgs()
+    with cirq.testing.assert_deprecated('state', deadline='v0.16'):
+        args = OldStyleArgs()
     with cirq.testing.assert_deprecated('_on_', deadline='v0.16'):
         _ = args.copy()
     with cirq.testing.assert_deprecated('_on_', deadline='v0.16'):

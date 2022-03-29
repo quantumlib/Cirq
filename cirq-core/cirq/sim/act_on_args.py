@@ -78,6 +78,8 @@ class ActOnArgs(OperationTarget[TSelf]):
             }
         )
         self._state = state
+        if state is None:
+            _warn_or_error('This function will require a valid `state` input in cirq v0.16.')
 
     @property
     def prng(self) -> np.random.RandomState:
