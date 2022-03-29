@@ -19,6 +19,7 @@ import sympy
 
 from cirq import value, protocols
 from cirq._compat import deprecated_class
+from cirq.type_workarounds import NotImplementedType
 from cirq.ops import gate_operation, raw_types
 
 if TYPE_CHECKING:
@@ -81,10 +82,16 @@ class GlobalPhaseGate(raw_types.Gate):
             return GlobalPhaseGate(self.coefficient**power)
         return NotImplemented
 
-    def _unitary_(self) -> np.ndarray:
+    def _unitary_(self) -> Union[np.ndarray, NotImplementedType]:
+        if not self._has_unitary_():
+            return NotImplemented
         return np.array([[self.coefficient]])
 
-    def _apply_unitary_(self, args) -> np.ndarray:
+    def _apply_unitary_(
+        self, args: 'cirq.ApplyUnitaryArgs'
+    ) -> Union[np.ndarray, NotImplementedType]:
+        if not self._has_unitary_():
+            return NotImplemented
         args.target_tensor *= self.coefficient
         return args.target_tensor
 
