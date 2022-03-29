@@ -100,8 +100,8 @@ def test_quadratic_sum_cost_calculates_quadratic_cost():
 
     assert np.isclose(calculate_cost([[q00]]), -1.0)
     assert np.isclose(calculate_cost([[q00, q01]]), -1.0)
-    assert np.isclose(calculate_cost([[q00], [q01]]), -(0.5 ** 2 + 0.5 ** 2))
-    assert np.isclose(calculate_cost([[q00], [q01, q02, q03]]), -(0.25 ** 2 + 0.75 ** 2))
+    assert np.isclose(calculate_cost([[q00], [q01]]), -(0.5**2 + 0.5**2))
+    assert np.isclose(calculate_cost([[q00], [q01, q02, q03]]), -(0.25**2 + 0.75**2))
 
 
 def test_force_edges_active_move_does_not_change_input():
