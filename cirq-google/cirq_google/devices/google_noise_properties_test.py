@@ -18,7 +18,6 @@ import numpy as np
 import pytest
 import cirq, cirq_google
 
-# from cirq.testing import assert_equivalent_op_tree
 from cirq_google.devices.google_noise_properties import (
     SYMMETRIC_TWO_QUBIT_GATES,
     SINGLE_QUBIT_GATES,
