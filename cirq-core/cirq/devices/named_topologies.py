@@ -75,7 +75,7 @@ def draw_gridlike(
         ax: Optional matplotlib axis to use for drawing.
         tilted: If True, directly position as (row, column); otherwise,
             rotate 45 degrees to accommodate google-style diagonal grids.
-        kwargs: Additional arguments to pass to `nx.draw_networkx`.
+        **kwargs: Additional arguments to pass to `nx.draw_networkx`.
 
     Returns:
         A positions dictionary mapping nodes to (x, y) coordinates suitable for future calls
@@ -126,7 +126,7 @@ class LineTopology(NamedTopology):
         Args:
             ax: Optional matplotlib axis to use for drawing.
             tilted: If True, draw as a horizontal line. Otherwise, draw on a diagonal.
-            kwargs: Additional arguments to pass to `nx.draw_networkx`.
+            **kwargs: Additional arguments to pass to `nx.draw_networkx`.
         """
         g2 = nx.relabel_nodes(self.graph, {n: (n, 1) for n in self.graph.nodes})
         return draw_gridlike(g2, ax=ax, tilted=tilted, **kwargs)
@@ -217,7 +217,7 @@ class TiltedSquareLattice(NamedTopology):
             ax: Optional matplotlib axis to use for drawing.
             tilted: If True, directly position as (row, column); otherwise,
                 rotate 45 degrees to accommodate the diagonal nature of this topology.
-            kwargs: Additional arguments to pass to `nx.draw_networkx`.
+            **kwargs: Additional arguments to pass to `nx.draw_networkx`.
         """
         return draw_gridlike(self.graph, ax=ax, tilted=tilted, **kwargs)
 

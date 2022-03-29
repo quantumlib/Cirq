@@ -616,7 +616,7 @@ class CircuitOperation(ops.Operation):
         """Returns a copy of this operation with an updated qubit mapping.
 
         Args:
-            new_qubits: A list of qubits to target. Qubits in this list are
+            *new_qubits: A list of qubits to target. Qubits in this list are
                 matched to qubits in the circuit following default qubit order,
                 ignoring any existing qubit map.
 

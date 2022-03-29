@@ -198,7 +198,7 @@ def qft(
     equivalently `cirq.inverse(cirq.qft(*qubits))`.
 
     Args:
-        qubits: The qubits to apply the qft to.
+        *qubits: The qubits to apply the qft to.
         without_reverse: When set, swap gates at the end of the qft are omitted.
             This reverses the qubit order relative to the standard qft effect,
             but makes the gate cheaper to apply.
