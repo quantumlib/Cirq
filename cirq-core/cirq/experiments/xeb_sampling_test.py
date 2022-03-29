@@ -105,7 +105,7 @@ def _assert_frame_approx_equal(df, df2, *, atol):
 
 def test_sample_2q_parallel_xeb_circuits(tmpdir):
     circuits = rqcg.generate_library_of_2q_circuits(
-        n_library_circuits=5, two_qubit_gate=cirq.ISWAP ** 0.5, max_cycle_depth=10
+        n_library_circuits=5, two_qubit_gate=cirq.ISWAP**0.5, max_cycle_depth=10
     )
     cycle_depths = [5, 10]
     graph = _gridqubits_to_graph_device(cirq.GridQubit.rect(3, 2))
@@ -149,7 +149,7 @@ def test_sample_2q_parallel_xeb_circuits(tmpdir):
 
 def test_sample_2q_parallel_xeb_circuits_bad_circuit_library():
     circuits = rqcg.generate_library_of_2q_circuits(
-        n_library_circuits=5, two_qubit_gate=cirq.ISWAP ** 0.5, max_cycle_depth=10
+        n_library_circuits=5, two_qubit_gate=cirq.ISWAP**0.5, max_cycle_depth=10
     )
     cycle_depths = [10]
     graph = _gridqubits_to_graph_device(cirq.GridQubit.rect(3, 2))
@@ -172,7 +172,7 @@ def test_sample_2q_parallel_xeb_circuits_bad_circuit_library():
 def test_sample_2q_parallel_xeb_circuits_error_bad_qubits():
     circuits = rqcg.generate_library_of_2q_circuits(
         n_library_circuits=5,
-        two_qubit_gate=cirq.ISWAP ** 0.5,
+        two_qubit_gate=cirq.ISWAP**0.5,
         max_cycle_depth=10,
         q0=cirq.GridQubit(0, 0),
         q1=cirq.GridQubit(1, 1),

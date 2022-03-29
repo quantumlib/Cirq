@@ -334,7 +334,7 @@ class PauliStringPhasorGate(raw_types.Gate):
     def _trace_distance_bound_(self) -> float:
         if len(self.dense_pauli_string) == 0:
             return 0.0
-        return protocols.trace_distance_bound(pauli_gates.Z ** self.exponent_relative)
+        return protocols.trace_distance_bound(pauli_gates.Z**self.exponent_relative)
 
     def _is_parameterized_(self) -> bool:
         return protocols.is_parameterized(self.exponent_neg) or protocols.is_parameterized(

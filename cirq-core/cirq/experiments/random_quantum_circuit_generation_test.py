@@ -92,7 +92,7 @@ def test_generate_library_of_2q_circuits():
 def test_generate_library_of_2q_circuits_custom_qubits():
     circuits = generate_library_of_2q_circuits(
         n_library_circuits=5,
-        two_qubit_gate=cirq.ISWAP ** 0.5,
+        two_qubit_gate=cirq.ISWAP**0.5,
         max_cycle_depth=13,
         q0=cirq.GridQubit(9, 9),
         q1=cirq.NamedQubit('hi mom'),
@@ -104,7 +104,7 @@ def test_generate_library_of_2q_circuits_custom_qubits():
         for m1, m2 in zip(circuit.moments[::2], circuit.moments[1::2]):
             assert len(m1.operations) == 2  # single qubit layer
             assert len(m2.operations) == 1
-            assert m2.operations[0].gate == cirq.ISWAP ** 0.5
+            assert m2.operations[0].gate == cirq.ISWAP**0.5
 
 
 def _gridqubits_to_graph_device(qubits: Iterable[cirq.GridQubit]):
@@ -208,7 +208,7 @@ def test_get_grid_interaction_layer_circuit():
     graph = _gridqubits_to_graph_device(cirq.GridQubit.rect(3, 3))
     layer_circuit = get_grid_interaction_layer_circuit(graph)
 
-    sqrtisw = cirq.ISWAP ** 0.5
+    sqrtisw = cirq.ISWAP**0.5
     gq = cirq.GridQubit
     should_be = cirq.Circuit(
         # Vertical
@@ -273,7 +273,7 @@ class FakeSycamoreGate(cirq.FSimGate):
             20,
             lambda a, b, _: cirq.CZ(a, b),
             cirq.experiments.GRID_STAGGERED_PATTERN,
-            (cirq.X ** 0.5, cirq.Y ** 0.5, cirq.Z ** 0.5),
+            (cirq.X**0.5, cirq.Y**0.5, cirq.Z**0.5),
             True,
             1234,
             41,
@@ -285,7 +285,7 @@ class FakeSycamoreGate(cirq.FSimGate):
             20,
             lambda a, b, _: FakeSycamoreGate()(a, b),
             cirq.experiments.HALF_GRID_STAGGERED_PATTERN,
-            (cirq.X ** 0.5, cirq.Y ** 0.5, cirq.Z ** 0.5),
+            (cirq.X**0.5, cirq.Y**0.5, cirq.Z**0.5),
             True,
             1234,
             41,
@@ -297,7 +297,7 @@ class FakeSycamoreGate(cirq.FSimGate):
             21,
             lambda a, b, _: cirq.CZ(a, b),
             cirq.experiments.GRID_ALIGNED_PATTERN,
-            (cirq.X ** 0.5, cirq.Y ** 0.5, cirq.Z ** 0.5),
+            (cirq.X**0.5, cirq.Y**0.5, cirq.Z**0.5),
             True,
             1234,
             43,
@@ -309,7 +309,7 @@ class FakeSycamoreGate(cirq.FSimGate):
             22,
             _cz_with_adjacent_z_rotations,
             cirq.experiments.GRID_STAGGERED_PATTERN,
-            (cirq.X ** 0.5, cirq.Y ** 0.5, cirq.Z ** 0.5),
+            (cirq.X**0.5, cirq.Y**0.5, cirq.Z**0.5),
             True,
             1234,
             89,
@@ -321,7 +321,7 @@ class FakeSycamoreGate(cirq.FSimGate):
             23,
             lambda a, b, _: cirq.CZ(a, b),
             cirq.experiments.GRID_ALIGNED_PATTERN,
-            (cirq.X ** 0.5, cirq.Y ** 0.5, cirq.Z ** 0.5),
+            (cirq.X**0.5, cirq.Y**0.5, cirq.Z**0.5),
             False,
             1234,
             46,
@@ -333,7 +333,7 @@ class FakeSycamoreGate(cirq.FSimGate):
             24,
             lambda a, b, _: cirq.CZ(a, b),
             cirq.experiments.GRID_ALIGNED_PATTERN,
-            (cirq.X ** 0.5, cirq.X ** 0.5),
+            (cirq.X**0.5, cirq.X**0.5),
             True,
             1234,
             49,

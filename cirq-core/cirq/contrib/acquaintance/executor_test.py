@@ -89,7 +89,7 @@ def random_diagonal_gates(
 ) -> Dict[Tuple[cirq.Qid, ...], cirq.Gate]:
 
     return {
-        Q: cirq.DiagonalGate(np.random.random(2 ** acquaintance_size))
+        Q: cirq.DiagonalGate(np.random.random(2**acquaintance_size))
         for Q in combinations(cirq.LineQubit.range(num_qubits), acquaintance_size)
     }
 

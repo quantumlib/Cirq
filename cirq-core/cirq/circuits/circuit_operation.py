@@ -300,7 +300,7 @@ class CircuitOperation(ops.Operation):
             if self.qubit_map:
                 circuit = circuit.transform_qubits(lambda q: self.qubit_map.get(q, q))
             if isinstance(self.repetitions, INT_CLASSES) and self.repetitions < 0:
-                circuit = circuit ** -1
+                circuit = circuit**-1
             if self.measurement_key_map:
                 circuit = protocols.with_measurement_key_mapping(circuit, self.measurement_key_map)
             if self.param_resolver:

@@ -1035,7 +1035,7 @@ class AbstractCircuit(abc.ABC):
         if n > 10:
             raise ValueError(f"{n} > 10 qubits is too many to compute superoperator")
 
-        circuit_superoperator = np.eye(4 ** n)
+        circuit_superoperator = np.eye(4**n)
         for moment in self:
             full_moment = moment.expand_to(all_qubits)
             moment_superoperator = full_moment._superoperator_()

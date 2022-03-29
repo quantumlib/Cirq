@@ -100,7 +100,7 @@ def benchmark_2q_xeb_fidelities(
     D = 4  # two qubits
     pure_probs = np.array(df['pure_probs'].to_list())
     sampled_probs = np.array(df['sampled_probs'].to_list())
-    df['e_u'] = np.sum(pure_probs ** 2, axis=1)
+    df['e_u'] = np.sum(pure_probs**2, axis=1)
     df['u_u'] = np.sum(pure_probs, axis=1) / D
     df['m_u'] = np.sum(pure_probs * sampled_probs, axis=1)
     df['y'] = df['m_u'] - df['u_u']
@@ -539,7 +539,7 @@ def exponential_decay(cycle_depths: np.ndarray, a: float, layer_fid: float) -> n
         a: A scale parameter in the exponential function.
         layer_fid: The base of the exponent in the exponential function.
     """
-    return a * layer_fid ** cycle_depths
+    return a * layer_fid**cycle_depths
 
 
 def _fit_exponential_decay(
