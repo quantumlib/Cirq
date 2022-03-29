@@ -41,7 +41,7 @@ def test_consistent_protocols(gate):
 
 @pytest.mark.parametrize('n', [1, 2, 3, 4, 5, 6, 7, 8, 9])
 def test_decomposition_unitary(n):
-    diagonal_angles = np.random.randn(2 ** n)
+    diagonal_angles = np.random.randn(2**n)
     diagonal_gate = cirq.DiagonalGate(diagonal_angles)
     decomposed_circ = cirq.Circuit(cirq.decompose(diagonal_gate(*cirq.LineQubit.range(n))))
 
@@ -53,10 +53,10 @@ def test_decomposition_unitary(n):
 
 @pytest.mark.parametrize('n', [1, 2, 3, 4])
 def test_diagonal_exponent(n):
-    diagonal_angles = _candidate_angles[: 2 ** n]
+    diagonal_angles = _candidate_angles[: 2**n]
     diagonal_gate = cirq.DiagonalGate(diagonal_angles)
 
-    sqrt_diagonal_gate = diagonal_gate ** 0.5
+    sqrt_diagonal_gate = diagonal_gate**0.5
 
     expected_angles = [prime / 2 for prime in diagonal_angles]
     np.testing.assert_allclose(expected_angles, sqrt_diagonal_gate._diag_angles_radians, atol=1e-8)
@@ -66,9 +66,9 @@ def test_diagonal_exponent(n):
 
 @pytest.mark.parametrize('n', [1, 2, 3, 4])
 def test_decomposition_diagonal_exponent(n):
-    diagonal_angles = np.random.randn(2 ** n)
+    diagonal_angles = np.random.randn(2**n)
     diagonal_gate = cirq.DiagonalGate(diagonal_angles)
-    sqrt_diagonal_gate = diagonal_gate ** 0.5
+    sqrt_diagonal_gate = diagonal_gate**0.5
     decomposed_circ = cirq.Circuit(cirq.decompose(sqrt_diagonal_gate(*cirq.LineQubit.range(n))))
 
     expected_f = [np.exp(1j * angle / 2) for angle in diagonal_angles]
@@ -79,16 +79,16 @@ def test_decomposition_diagonal_exponent(n):
 
 @pytest.mark.parametrize('n', [1, 2, 3, 4])
 def test_decomposition_with_parameterization(n):
-    angles = sympy.symbols([f'x_{i}' for i in range(2 ** n)])
+    angles = sympy.symbols([f'x_{i}' for i in range(2**n)])
     exponent = sympy.Symbol('e')
     diagonal_gate = cirq.DiagonalGate(angles) ** exponent
     parameterized_op = diagonal_gate(*cirq.LineQubit.range(n))
     decomposed_circuit = cirq.Circuit(cirq.decompose(parameterized_op))
     for exponent_value in [-0.5, 0.5, 1]:
-        for i in range(len(_candidate_angles) - 2 ** n + 1):
+        for i in range(len(_candidate_angles) - 2**n + 1):
             resolver = {exponent: exponent_value}
             resolver.update(
-                {angles[j]: x_j for j, x_j in enumerate(_candidate_angles[i : i + 2 ** n])}
+                {angles[j]: x_j for j, x_j in enumerate(_candidate_angles[i : i + 2**n])}
             )
             resolved_op = cirq.resolve_parameters(parameterized_op, resolver)
             resolved_circuit = cirq.resolve_parameters(decomposed_circuit, resolver)
@@ -139,7 +139,7 @@ def test_diagram():
 
 @pytest.mark.parametrize('n', [1, 2, 3, 4])
 def test_unitary(n):
-    diagonal_angles = _candidate_angles[: 2 ** n]
+    diagonal_angles = _candidate_angles[: 2**n]
     assert cirq.has_unitary(cirq.DiagonalGate(diagonal_angles))
     np.testing.assert_allclose(
         cirq.unitary(cirq.DiagonalGate(diagonal_angles)).diagonal(),

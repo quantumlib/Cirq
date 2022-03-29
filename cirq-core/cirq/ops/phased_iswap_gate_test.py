@@ -31,7 +31,7 @@ def test_phased_iswap_init():
 
 
 def test_phased_iswap_equality():
-    assert cirq.PhasedISwapPowGate(phase_exponent=0, exponent=0.4) == cirq.ISWAP ** 0.4
+    assert cirq.PhasedISwapPowGate(phase_exponent=0, exponent=0.4) == cirq.ISWAP**0.4
 
 
 def test_repr():
@@ -82,7 +82,7 @@ def test_phased_iswap_str():
 def test_phased_iswap_pow():
     gate1 = cirq.PhasedISwapPowGate(phase_exponent=0.1, exponent=0.25)
     gate2 = cirq.PhasedISwapPowGate(phase_exponent=0.1, exponent=0.5)
-    assert gate1 ** 2 == gate2
+    assert gate1**2 == gate2
 
     u1 = cirq.unitary(gate1)
     u2 = cirq.unitary(gate2)

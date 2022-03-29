@@ -24,7 +24,7 @@ Q0, Q1, Q2, Q3 = cirq.LineQubit.range(4)
 def test_state_tomography_diagonal():
     n = 2
     qubits = cirq.LineQubit.range(n)
-    for state in range(2 ** n):
+    for state in range(2**n):
         circuit = cirq.Circuit()
         for i, q in enumerate(qubits):
             bit = state & (1 << (n - i - 1))
@@ -37,7 +37,7 @@ def test_state_tomography_diagonal():
             repetitions=1000,
             prerotations=[(0, 0), (0, 0.5), (0.5, 0.5)],
         )
-        should_be = np.zeros((2 ** n, 2 ** n))
+        should_be = np.zeros((2**n, 2**n))
         should_be[state, state] = 1
         assert np.allclose(res.data, should_be, atol=0.05)
 

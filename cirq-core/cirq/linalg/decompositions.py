@@ -726,7 +726,7 @@ def kak_canonicalize_vector(x: float, y: float, z: float, atol: float = 1e-9) ->
     # Shifting strength by ½π is equivalent to local ops (e.g. exp(i½π XX)∝XX).
     def shift(k, step):
         v[k] += step * np.pi / 2
-        phase[0] *= 1j ** step
+        phase[0] *= 1j**step
         right[0] = combinators.dot(flippers[k] ** (step % 4), right[0])
         right[1] = combinators.dot(flippers[k] ** (step % 4), right[1])
 

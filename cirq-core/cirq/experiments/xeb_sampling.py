@@ -90,7 +90,7 @@ class _SampleInBatches:
                 pair_measurement_key = str(pair_i)
                 pair = self.combinations_by_layer[task.layer_i].pairs[pair_i]
                 sampled_inds = result.data[pair_measurement_key].values
-                sampled_probs = np.bincount(sampled_inds, minlength=2 ** 2) / len(sampled_inds)
+                sampled_probs = np.bincount(sampled_inds, minlength=2**2) / len(sampled_inds)
 
                 records.append(
                     {

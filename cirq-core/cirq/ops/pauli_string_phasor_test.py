@@ -110,10 +110,10 @@ def test_pow():
     a = cirq.LineQubit(0)
     s = cirq.PauliString({a: cirq.X})
     p = cirq.PauliStringPhasor(s, exponent_neg=0.25, exponent_pos=0.5)
-    assert p ** 0.5 == cirq.PauliStringPhasor(s, exponent_neg=0.125, exponent_pos=0.25)
+    assert p**0.5 == cirq.PauliStringPhasor(s, exponent_neg=0.125, exponent_pos=0.25)
     with pytest.raises(TypeError, match='unsupported operand'):
         _ = p ** object()
-    assert p ** 1 == p
+    assert p**1 == p
 
 
 def test_consistent():
@@ -139,8 +139,8 @@ def test_extrapolate_effect():
     op1 = cirq.PauliStringPhasor(cirq.PauliString({}), exponent_neg=0.5)
     op2 = cirq.PauliStringPhasor(cirq.PauliString({}), exponent_neg=1.5)
     op3 = cirq.PauliStringPhasor(cirq.PauliString({}), exponent_neg=0.125)
-    assert op1 ** 3 == op2
-    assert op1 ** 0.25 == op3
+    assert op1**3 == op2
+    assert op1**0.25 == op3
 
 
 def test_extrapolate_effect_with_symbol():
@@ -225,7 +225,7 @@ def test_merge_with():
 def test_is_parameterized():
     op = cirq.PauliStringPhasor(cirq.PauliString({}))
     assert not cirq.is_parameterized(op)
-    assert not cirq.is_parameterized(op ** 0.1)
+    assert not cirq.is_parameterized(op**0.1)
     assert cirq.is_parameterized(op ** sympy.Symbol('a'))
 
 
@@ -322,8 +322,8 @@ def test_default_decompose(paulis, phase_exponent_negative: float, sign: int):
 
     # Calculate expected matrix
     to_z_mats = {
-        cirq.X: cirq.unitary(cirq.Y ** -0.5),
-        cirq.Y: cirq.unitary(cirq.X ** 0.5),
+        cirq.X: cirq.unitary(cirq.Y**-0.5),
+        cirq.Y: cirq.unitary(cirq.X**0.5),
         cirq.Z: np.eye(2),
     }
     expected_convert = np.eye(1)
@@ -503,18 +503,18 @@ def test_gate_equal_up_to_global_phase():
 def test_gate_pow():
     s = dps_x
     p = cirq.PauliStringPhasorGate(s, exponent_neg=0.25, exponent_pos=0.5)
-    assert p ** 0.5 == cirq.PauliStringPhasorGate(s, exponent_neg=0.125, exponent_pos=0.25)
+    assert p**0.5 == cirq.PauliStringPhasorGate(s, exponent_neg=0.125, exponent_pos=0.25)
     with pytest.raises(TypeError, match='unsupported operand'):
         _ = p ** object()
-    assert p ** 1 == p
+    assert p**1 == p
 
 
 def test_gate_extrapolate_effect():
     gate1 = cirq.PauliStringPhasorGate(dps_empty, exponent_neg=0.5)
     gate2 = cirq.PauliStringPhasorGate(dps_empty, exponent_neg=1.5)
     gate3 = cirq.PauliStringPhasorGate(dps_empty, exponent_neg=0.125)
-    assert gate1 ** 3 == gate2
-    assert gate1 ** 0.25 == gate3
+    assert gate1**3 == gate2
+    assert gate1**0.25 == gate3
 
 
 def test_gate_extrapolate_effect_with_symbol():
@@ -548,7 +548,7 @@ def test_gate_inverse():
 def test_gate_is_parameterized():
     gate = cirq.PauliStringPhasorGate(dps_empty)
     assert not cirq.is_parameterized(gate)
-    assert not cirq.is_parameterized(gate ** 0.1)
+    assert not cirq.is_parameterized(gate**0.1)
     assert cirq.is_parameterized(gate ** sympy.Symbol('a'))
 
 
