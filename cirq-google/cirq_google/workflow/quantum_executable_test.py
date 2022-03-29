@@ -31,15 +31,12 @@ def test_bitstrings_measurement():
 
 
 def _get_random_circuit(qubits, *, n_moments=10, random_state=52):
-    return (
-        cirq.experiments.random_rotations_between_grid_interaction_layers_circuit(
-            qubits=qubits,
-            depth=n_moments,
-            seed=random_state,
-            two_qubit_op_factory=lambda a, b, _: cirq.SQRT_ISWAP(a, b),
-        )
-        + cirq.measure(*qubits, key='z')
-    )
+    return cirq.experiments.random_rotations_between_grid_interaction_layers_circuit(
+        qubits=qubits,
+        depth=n_moments,
+        seed=random_state,
+        two_qubit_op_factory=lambda a, b, _: cirq.SQRT_ISWAP(a, b),
+    ) + cirq.measure(*qubits, key='z')
 
 
 def _get_example_spec(name='example-program'):
@@ -61,6 +58,18 @@ def test_kv_executable_spec():
 
     with pytest.raises(TypeError, match='unhashable.*'):
         hash(KeyValueExecutableSpec(executable_family='', key_value_pairs=[('name', 'test')]))
+
+
+def test_dict_round_trip():
+    input_dict = dict(name='test', idx=5)
+
+    kv = KeyValueExecutableSpec.from_dict(
+        input_dict, executable_family='cirq_google.algo_benchmarks.example'
+    )
+
+    actual_dict = kv.to_dict()
+
+    assert input_dict == actual_dict
 
 
 def test_kv_repr():
@@ -187,3 +196,30 @@ def test_quantum_executable_group_serialization(tmpdir):
     cirq.to_json(eg, f'{tmpdir}/eg.json')
     eg_reconstructed = cirq.read_json(f'{tmpdir}/eg.json')
     assert eg == eg_reconstructed
+
+
+def test_equality():
+    k1 = KeyValueExecutableSpec(
+        executable_family='test',
+        key_value_pairs=(
+            ('a', 1),
+            ('b', 2),
+        ),
+    )
+    k2 = KeyValueExecutableSpec(
+        executable_family='test',
+        key_value_pairs=(
+            ('b', 2),
+            ('a', 1),
+        ),
+    )
+    assert k1 == k2
+
+
+def test_equality_from_dictionaries():
+    d1 = {'a': 1, 'b': 2}
+    d2 = {'b': 2, 'a': 1}
+    assert d1 == d2
+    k1 = KeyValueExecutableSpec.from_dict(d1, executable_family='test')
+    k2 = KeyValueExecutableSpec.from_dict(d2, executable_family='test')
+    assert k1 == k2

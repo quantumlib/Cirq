@@ -38,6 +38,7 @@ import numpy as np
 import sympy
 
 from cirq import protocols, value
+from cirq._compat import deprecated
 from cirq._import import LazyLoader
 from cirq.type_workarounds import NotImplementedType
 
@@ -597,7 +598,7 @@ class Operation(metaclass=abc.ABCMeta):
 
         # Don't create gigantic matrices.
         shape = protocols.qid_shape_protocol.qid_shape(circuit12)
-        if np.prod(shape, dtype=np.int64) > 2 ** 10:
+        if np.prod(shape, dtype=np.int64) > 2**10:
             return NotImplemented  # coverage: ignore
 
         m12 = protocols.unitary_protocol.unitary(circuit12, default=None)
@@ -675,8 +676,20 @@ class TaggedOperation(Operation):
     """
 
     def __init__(self, sub_operation: 'cirq.Operation', *tags: Hashable):
-        self.sub_operation = sub_operation
+        self._sub_operation = sub_operation
         self._tags = tuple(tags)
+
+    @property
+    def sub_operation(self) -> 'cirq.Operation':
+        return self._sub_operation
+
+    @sub_operation.setter  # type: ignore
+    @deprecated(
+        deadline="v0.15",
+        fix="The mutators of this class are deprecated, instantiate a new object instead.",
+    )
+    def sub_operation(self, sub_operation: 'cirq.Operation'):
+        self._sub_operation = sub_operation
 
     @property
     def qubits(self) -> Tuple['cirq.Qid', ...]:
@@ -741,7 +754,7 @@ class TaggedOperation(Operation):
         return protocols.obj_to_dict_helper(self, ['sub_operation', 'tags'])
 
     def _decompose_(self) -> 'cirq.OP_TREE':
-        return protocols.decompose(self.sub_operation)
+        return protocols.decompose_once(self.sub_operation, default=None)
 
     def _pauli_expansion_(self) -> value.LinearDict[str]:
         return protocols.pauli_expansion(self.sub_operation)
@@ -828,7 +841,7 @@ class TaggedOperation(Operation):
         return protocols.phase_by(self.sub_operation, phase_turns, qubit_index)
 
     def __pow__(self, exponent: Any) -> 'cirq.Operation':
-        return self.sub_operation ** exponent
+        return self.sub_operation**exponent
 
     def __mul__(self, other: Any) -> Any:
         return self.sub_operation * other

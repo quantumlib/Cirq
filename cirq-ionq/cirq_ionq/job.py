@@ -206,7 +206,7 @@ class Job:
                 f'Job was not completed successfully. Instead had status: {self.status()}'
             )
         # IonQ returns results in little endian, Cirq prefers to use big endian, so we convert.
-        if self.target() == 'qpu':
+        if self.target().startswith('qpu'):
             repetitions = self.repetitions()
             counts = {
                 _little_endian_to_big(int(k), self.num_qubits()): int(repetitions * float(v))

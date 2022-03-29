@@ -23,7 +23,7 @@ from cirq import value
 from cirq.transformers.analytical_decompositions.two_qubit_to_cz import (
     _parity_interaction,
     _is_trivial_angle,
-    two_qubit_matrix_to_diagonal_and_operations,
+    two_qubit_matrix_to_diagonal_and_cz_operations,
 )
 from cirq.testing import random_two_qubit_circuit_with_czs
 
@@ -34,7 +34,7 @@ def test_deprecated_submodule():
     with cirq.testing.assert_deprecated(
         "Use cirq.transformers.analytical_decompositions.two_qubit_to_cz instead", deadline="v0.16"
     ):
-        _ = cirq.optimizers.two_qubit_decompositions.two_qubit_matrix_to_operations
+        _ = cirq.optimizers.two_qubit_decompositions.two_qubit_matrix_to_cz_operations
 
 
 @pytest.mark.parametrize(
@@ -137,8 +137,8 @@ def assert_ops_implement_unitary(q0, q1, operations, intended_effect, atol=0.01)
                 ]
             ),
         ),
-        (0, 0, cirq.unitary(cirq.CZ ** 0.00000001)),
-        (0.5, 2, cirq.unitary(cirq.CZ ** 0.5)),
+        (0, 0, cirq.unitary(cirq.CZ**0.00000001)),
+        (0.5, 2, cirq.unitary(cirq.CZ**0.5)),
         (1, 1, cirq.unitary(cirq.CZ)),
         (1, 1, cirq.unitary(cirq.CNOT)),
         (
@@ -180,7 +180,7 @@ def assert_ops_implement_unitary(q0, q1, operations, intended_effect, atol=0.01)
             )
             * np.sqrt(0.5),
         ),
-        (1.5, 3, cirq.map_eigenvalues(cirq.unitary(cirq.SWAP), lambda e: e ** 0.5)),
+        (1.5, 3, cirq.map_eigenvalues(cirq.unitary(cirq.SWAP), lambda e: e**0.5)),
         (2, 2, cirq.unitary(cirq.SWAP).dot(cirq.unitary(cirq.CZ))),
         (3, 3, cirq.unitary(cirq.SWAP)),
         (
@@ -207,8 +207,8 @@ def test_two_to_ops_equivalent_and_bounded_for_known_and_random(
     q0 = cirq.NamedQubit('q0')
     q1 = cirq.NamedQubit('q1')
 
-    operations_with_partial = cirq.two_qubit_matrix_to_operations(q0, q1, effect, True)
-    operations_with_full = cirq.two_qubit_matrix_to_operations(q0, q1, effect, False)
+    operations_with_partial = cirq.two_qubit_matrix_to_cz_operations(q0, q1, effect, True)
+    operations_with_full = cirq.two_qubit_matrix_to_cz_operations(q0, q1, effect, False)
 
     assert_ops_implement_unitary(q0, q1, operations_with_partial, effect)
     assert_ops_implement_unitary(q0, q1, operations_with_full, effect)
@@ -231,34 +231,34 @@ def test_kak_decomposition_depth_full_cz():
 
     # Random.
     u = cirq.testing.random_unitary(4)
-    operations_with_full = cirq.two_qubit_matrix_to_operations(a, b, u, False)
+    operations_with_full = cirq.two_qubit_matrix_to_cz_operations(a, b, u, False)
     c = cirq.Circuit(operations_with_full)
     # 3 CZ, 3+1 PhasedX, 1 Z
     assert len(c) <= 8
 
     # Double-axis interaction.
     u = cirq.unitary(cirq.Circuit(cirq.CNOT(a, b), cirq.CNOT(b, a)))
-    operations_with_part = cirq.two_qubit_matrix_to_operations(a, b, u, False)
+    operations_with_part = cirq.two_qubit_matrix_to_cz_operations(a, b, u, False)
     c = cirq.Circuit(operations_with_part)
     # 2 CZ, 2+1 PhasedX, 1 Z
     assert len(c) <= 6
 
     # Test unoptimized/un-cleaned length of Double-axis interaction.
     u = cirq.unitary(cirq.Circuit(cirq.CNOT(a, b), cirq.CNOT(b, a)))
-    operations_with_part = cirq.two_qubit_matrix_to_operations(a, b, u, False, 1e-8, False)
+    operations_with_part = cirq.two_qubit_matrix_to_cz_operations(a, b, u, False, 1e-8, False)
     c = cirq.Circuit(operations_with_part)
     assert len(c) > 6  # Length should be 13 with extra Pauli gates
 
     # Partial single-axis interaction.
-    u = cirq.unitary(cirq.CNOT ** 0.1)
-    operations_with_part = cirq.two_qubit_matrix_to_operations(a, b, u, False)
+    u = cirq.unitary(cirq.CNOT**0.1)
+    operations_with_part = cirq.two_qubit_matrix_to_cz_operations(a, b, u, False)
     c = cirq.Circuit(operations_with_part)
     # 2 CZ, 2+1 PhasedX, 1 Z
     assert len(c) <= 6
 
     # Full single-axis interaction.
     u = cirq.unitary(cirq.ControlledGate(cirq.Y))
-    operations_with_part = cirq.two_qubit_matrix_to_operations(a, b, u, False)
+    operations_with_part = cirq.two_qubit_matrix_to_cz_operations(a, b, u, False)
     c = cirq.Circuit(operations_with_part)
     # 1 CZ, 1+1 PhasedX, 1 Z
     assert len(c) <= 4
@@ -269,28 +269,28 @@ def test_kak_decomposition_depth_partial_cz():
 
     # Random.
     u = cirq.testing.random_unitary(4)
-    operations_with_full = cirq.two_qubit_matrix_to_operations(a, b, u, True)
+    operations_with_full = cirq.two_qubit_matrix_to_cz_operations(a, b, u, True)
     c = cirq.Circuit(operations_with_full)
     # 3 CP, 3+1 PhasedX, 1 Z
     assert len(c) <= 8
 
     # Double-axis interaction.
     u = cirq.unitary(cirq.Circuit(cirq.CNOT(a, b), cirq.CNOT(b, a)))
-    operations_with_part = cirq.two_qubit_matrix_to_operations(a, b, u, True)
+    operations_with_part = cirq.two_qubit_matrix_to_cz_operations(a, b, u, True)
     c = cirq.Circuit(operations_with_part)
     # 2 CP, 2+1 PhasedX, 1 Z
     assert len(c) <= 6
 
     # Partial single-axis interaction.
-    u = cirq.unitary(cirq.CNOT ** 0.1)
-    operations_with_part = cirq.two_qubit_matrix_to_operations(a, b, u, True)
+    u = cirq.unitary(cirq.CNOT**0.1)
+    operations_with_part = cirq.two_qubit_matrix_to_cz_operations(a, b, u, True)
     c = cirq.Circuit(operations_with_part)
     # 1 CP, 1+1 PhasedX, 1 Z
     assert len(c) <= 4
 
     # Full single-axis interaction.
     u = cirq.unitary(cirq.ControlledGate(cirq.Y))
-    operations_with_part = cirq.two_qubit_matrix_to_operations(a, b, u, True)
+    operations_with_part = cirq.two_qubit_matrix_to_cz_operations(a, b, u, True)
     c = cirq.Circuit(operations_with_part)
     # 1 CP, 1+1 PhasedX, 1 Z
     assert len(c) <= 4
@@ -306,7 +306,7 @@ def test_kak_decomposition_depth_partial_cz():
 )
 def test_decompose_to_diagonal_and_circuit(v):
     b, c = cirq.LineQubit.range(2)
-    diagonal, ops = two_qubit_matrix_to_diagonal_and_operations(b, c, v)
+    diagonal, ops = two_qubit_matrix_to_diagonal_and_cz_operations(b, c, v)
     assert cirq.is_diagonal(diagonal)
     combined_circuit = cirq.Circuit(cirq.MatrixGate(diagonal)(b, c), ops)
     circuit_unitary = combined_circuit.unitary(qubits_that_should_be_present=[b, c])

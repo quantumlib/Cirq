@@ -213,27 +213,18 @@ def test_get_schedule():
         slot_type=qenums.QuantumTimeSlot.TimeSlotType.OPEN_SWIM,
     )
     p = NothingProcessor(processor_id='test', schedule=[unbounded_start, unbounded_end])
-    assert (
-        p.get_schedule(
-            from_time=_time(500000),
-            to_time=_time(2500000),
-        )
-        == [unbounded_start, unbounded_end]
-    )
-    assert (
-        p.get_schedule(
-            from_time=_time(1500000),
-            to_time=_time(2500000),
-        )
-        == [unbounded_end]
-    )
-    assert (
-        p.get_schedule(
-            from_time=_time(500000),
-            to_time=_time(1500000),
-        )
-        == [unbounded_start]
-    )
+    assert p.get_schedule(
+        from_time=_time(500000),
+        to_time=_time(2500000),
+    ) == [unbounded_start, unbounded_end]
+    assert p.get_schedule(
+        from_time=_time(1500000),
+        to_time=_time(2500000),
+    ) == [unbounded_end]
+    assert p.get_schedule(
+        from_time=_time(500000),
+        to_time=_time(1500000),
+    ) == [unbounded_start]
     assert (
         p.get_schedule(
             from_time=_time(1200000),

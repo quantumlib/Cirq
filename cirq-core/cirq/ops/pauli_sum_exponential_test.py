@@ -129,7 +129,7 @@ def test_pauli_sum_exponential_has_correct_unitary(psum_exp, expected_unitary):
     ),
 )
 def test_pauli_sum_exponential_pow(psum_exp, power, expected_psum):
-    assert psum_exp ** power == expected_psum
+    assert psum_exp**power == expected_psum
 
 
 @pytest.mark.parametrize(

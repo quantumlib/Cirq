@@ -3,6 +3,9 @@
 # for python 3.6 and below dataclasses needs to be installed
 dataclasses; python_version < '3.7'
 
+# functools.cached_property was introduced in python 3.8
+backports.cached_property~=1.0.1; python_version < '3.8'
+
 duet~=0.2.0
 matplotlib~=3.0
 networkx~=2.4
@@ -10,6 +13,7 @@ numpy~=1.16
 pandas
 sortedcontainers~=2.0
 scipy
-sympy
+# TODO: unpin once #5058 is resolved
+sympy<1.10
 typing_extensions
 tqdm

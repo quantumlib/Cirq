@@ -24,7 +24,7 @@ def assert_equivalent_to_deferred(circuit: cirq.Circuit):
     qubits = list(circuit.all_qubits())
     sim = cirq.Simulator()
     num_qubits = len(qubits)
-    for i in range(2 ** num_qubits):
+    for i in range(2**num_qubits):
         bits = cirq.big_endian_int_to_bits(i, bit_count=num_qubits)
         modified = cirq.Circuit()
         for j in range(num_qubits):
@@ -39,7 +39,7 @@ def assert_equivalent_to_deferred(circuit: cirq.Circuit):
 
 def assert_equivalent_to_dephased(circuit: cirq.Circuit):
     qubits = list(circuit.all_qubits())
-    with cirq.testing.assert_deprecated('ignore_measurement_results', deadline='v0.15', count=14):
+    with cirq.testing.assert_deprecated('ignore_measurement_results', deadline='v0.15', count=None):
         sim = cirq.DensityMatrixSimulator(ignore_measurement_results=True)
         num_qubits = len(qubits)
         backwards = list(circuit.all_operations())[::-1]

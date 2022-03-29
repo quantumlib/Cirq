@@ -40,7 +40,7 @@ def test_deprecated_submodule():
 
 UNITARY_OBJS = [
     cirq.IdentityGate(2),
-    cirq.XX ** 0.25,
+    cirq.XX**0.25,
     cirq.CNOT,
     cirq.CNOT(*cirq.LineQubit.range(2)),
     cirq.CNOT(*cirq.LineQubit.range(2)[::-1]),
