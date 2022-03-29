@@ -592,7 +592,7 @@ def scatter_plot_normalized_kak_interaction_coefficients(
             wireframe. Defaults to `True`.
         ax: A matplotlib 3d axes object to plot into. If not specified, a new
             figure is created, plotted, and shown.
-        kwargs: Arguments forwarded into the call to `scatter` that plots the
+        **kwargs: Arguments forwarded into the call to `scatter` that plots the
             points. Working arguments include color `c='blue'`, scale `s=2`,
             labelling `label="theta=pi/4"`, etc. For reference see the
             `matplotlib.pyplot.scatter` documentation:
