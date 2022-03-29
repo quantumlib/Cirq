@@ -142,7 +142,7 @@ class PhaseKickback(cirq.Gate):
         qubits = list(qubits)
         memory = qubits.pop()
         for i, qubit in enumerate(qubits):
-            yield cirq.ControlledGate(self.U ** (2 ** i))(qubit, memory)
+            yield cirq.ControlledGate(self.U ** (2**i))(qubit, memory)
 
 
 class EigenRotation(cirq.Gate):
@@ -286,7 +286,7 @@ def main():
 
     # Set C to be the smallest eigenvalue that can be represented by the
     # circuit.
-    C = 2 * math.pi / (2 ** register_size * t)
+    C = 2 * math.pi / (2**register_size * t)
 
     # Simulate circuit.
     print("Expected observable outputs:")
