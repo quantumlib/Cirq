@@ -22,7 +22,7 @@ from cirq.sim import act_on_args
 
 class DummyQuantumState(cirq.QuantumStateRepresentation):
     def copy(self, deep_copy_buffers=True):
-        return self  # coverage: ignore
+        pass
 
     def measure(self, axes, seed=None):
         return [5, 3]
@@ -108,7 +108,7 @@ def test_field_getters():
 def test_on_methods_deprecated():
     class OldStyleArgs(cirq.ActOnArgs):
         def _act_on_fallback_(self, action, qubits, allow_decompose=True):
-            return True  # coverage: ignore
+            pass
 
     with cirq.testing.assert_deprecated('state', deadline='v0.16'):
         args = OldStyleArgs()
@@ -125,7 +125,7 @@ def test_on_methods_deprecated():
 def test_on_methods_deprecated_if_implemented():
     class OldStyleArgs(cirq.ActOnArgs):
         def _act_on_fallback_(self, action, qubits, allow_decompose=True):
-            return True  # coverage: ignore
+            pass
 
         def _on_copy(self, args, deep_copy_buffers=True):
             pass

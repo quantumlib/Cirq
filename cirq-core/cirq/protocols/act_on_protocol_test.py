@@ -20,12 +20,17 @@ import cirq
 from cirq.ops.raw_types import TSelf
 
 
+class DummyQuantumState(cirq.QuantumStateRepresentation):
+    def copy(self, deep_copy_buffers=True):
+        pass
+
+    def measure(self, axes, seed=None):
+        pass
+
+
 class DummyActOnArgs(cirq.ActOnArgs):
-    def __init__(self, fallback_result: Any = NotImplemented, measurements=None):
-        super().__init__(np.random.RandomState())
-        if measurements is None:
-            measurements = []
-        self.measurements = measurements
+    def __init__(self, fallback_result: Any = NotImplemented):
+        super().__init__(np.random.RandomState(), state=DummyQuantumState())
         self.fallback_result = fallback_result
 
     def _act_on_fallback_(
@@ -61,10 +66,10 @@ def test_act_on_errors():
     class Op(cirq.Operation):
         @property
         def qubits(self) -> Tuple['cirq.Qid', ...]:
-            return ()
+            pass
 
         def with_qubits(self: TSelf, *new_qubits: 'cirq.Qid') -> TSelf:
-            return self
+            pass
 
         def _act_on_(self, args):
             return False
@@ -78,10 +83,10 @@ def test_qubits_not_allowed_for_operations():
     class Op(cirq.Operation):
         @property
         def qubits(self) -> Tuple['cirq.Qid', ...]:
-            return ()
+            pass
 
         def with_qubits(self: TSelf, *new_qubits: 'cirq.Qid') -> TSelf:
-            return self
+            pass
 
     args = DummyActOnArgs()
     with pytest.raises(
