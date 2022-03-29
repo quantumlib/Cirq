@@ -29,7 +29,7 @@ def assert_optimizes(before: cirq.Circuit, expected: cirq.Circuit, **kwargs):
     Args:
         before: The input circuit to optimize.
         expected: The expected result of optimization to compare against.
-        kwargs: Any extra arguments to pass to the
+        **kwargs: Any extra arguments to pass to the
             ``MergeInteractionsToSqrtIswap`` constructor.
     """
     actual = before.copy()
