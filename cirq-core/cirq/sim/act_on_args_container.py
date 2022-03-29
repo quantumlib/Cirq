@@ -49,7 +49,7 @@ class ActOnArgsContainer(
     @deprecated_parameter(
         deadline='v0.15',
         fix='Use classical_data.',
-        parameter_desc='log_of_measurement_results and positional arguments',
+        parameter_desc='log_of_measurement_results',
         match=lambda args, kwargs: 'log_of_measurement_results' in kwargs or len(args) > 4,
     )
     def __init__(
