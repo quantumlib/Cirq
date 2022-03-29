@@ -11,16 +11,16 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from typing import Any, Dict, List, Optional, Sequence, Union
+from typing import Any, Dict, List, Optional, Sequence
 
 import cirq
 
 
 class EmptyActOnArgs(cirq.ActOnArgs):
-    def __init__(self, qubits, logs):
+    def __init__(self, qubits, classical_data):
         super().__init__(
             qubits=qubits,
-            log_of_measurement_results=logs,
+            classical_data=classical_data,
         )
 
     def _perform_measurement(self, qubits: Sequence[cirq.Qid]) -> List[int]:
@@ -30,35 +30,20 @@ class EmptyActOnArgs(cirq.ActOnArgs):
         """The deep_copy_buffers parameter is omitted to trigger a deprecation warning test."""
         return EmptyActOnArgs(
             qubits=self.qubits,
-            logs=self.log_of_measurement_results.copy(),
+            classical_data=self.classical_data.copy(),
         )
 
     def _act_on_fallback_(
         self,
-        action: Union['cirq.Operation', 'cirq.Gate'],
+        action: Any,
         qubits: Sequence['cirq.Qid'],
         allow_decompose: bool = True,
     ) -> bool:
         return True
 
-    def _on_copy(self, args):
-        pass
-
-    def _on_kronecker_product(self, other, target):
-        pass
-
-    def _on_transpose_to_qubit_order(self, qubits, target):
-        pass
-
-    def _on_factor(self, qubits, extracted, remainder, validate=True, atol=1e-07):
-        pass
-
     @property
     def allows_factoring(self):
         return True
-
-    def sample(self, qubits, repetitions=1, seed=None):
-        pass
 
 
 q0, q1, q2 = qs3 = cirq.LineQubit.range(3)
@@ -70,7 +55,7 @@ def create_container(
     split_untangled_states=True,
 ) -> cirq.ActOnArgsContainer[EmptyActOnArgs]:
     args_map: Dict[Optional['cirq.Qid'], EmptyActOnArgs] = {}
-    log: Dict[str, Any] = {}
+    log = cirq.ClassicalDataDictionaryStore()
     if split_untangled_states:
         for q in reversed(qubits):
             args_map[q] = EmptyActOnArgs([q], log)
@@ -80,7 +65,7 @@ def create_container(
         for q in qubits:
             args_map[q] = args
         args_map[None] = args if not split_untangled_states else EmptyActOnArgs((), log)
-    return cirq.ActOnArgsContainer(args_map, qubits, split_untangled_states, log)
+    return cirq.ActOnArgsContainer(args_map, qubits, split_untangled_states, classical_data=log)
 
 
 def test_entanglement_causes_join():
@@ -282,3 +267,17 @@ def test_act_on_gate_does_not_join():
     assert len(set(args.values())) == 3
     assert args[q0] is not args[q1]
     assert args[q0] is not args[None]
+
+
+def test_field_getters():
+    args = create_container(qs2)
+    assert args.args.keys() == set(qs2) | {None}
+    assert args.split_untangled_states
+
+
+def test_field_setters_deprecated():
+    args = create_container(qs2)
+    with cirq.testing.assert_deprecated(deadline='v0.15'):
+        args.args = {}
+    with cirq.testing.assert_deprecated(deadline='v0.15'):
+        args.split_untangled_states = False

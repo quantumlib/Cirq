@@ -13,6 +13,8 @@
 # limitations under the License.
 
 import abc
+from typing import NoReturn, Optional
+
 import pytest
 
 from cirq import ABCMetaImplementAnyOneOf, alternative
@@ -21,7 +23,7 @@ from cirq import ABCMetaImplementAnyOneOf, alternative
 def test_regular_abstract():
     class RegularAbc(metaclass=ABCMetaImplementAnyOneOf):
         @abc.abstractmethod
-        def my_method(self):
+        def my_method(self) -> str:
             """Docstring."""
 
     with pytest.raises(TypeError, match='abstract'):
@@ -38,11 +40,11 @@ def test_single_alternative():
             """my_method doc."""
 
         @abc.abstractmethod
-        def alt(self):
+        def alt(self) -> str:
             pass
 
     class SingleAlternativeChild(SingleAlternative):
-        def alt(self):
+        def alt(self) -> str:
             return 'alt'
 
     class SingleAlternativeOverride(SingleAlternative):
@@ -80,22 +82,22 @@ def test_doc_string():
             """Default implementation."""
 
         @alternative(requires='alt', implementation=_default_impl)
-        def my_method(self, arg, kw=99):
+        def my_method(self, arg, kw=99) -> None:
             """my_method doc."""
 
         @abc.abstractmethod
-        def alt(self):
+        def alt(self) -> None:
             pass
 
     class SingleAlternativeChild(SingleAlternative):
-        def alt(self):
+        def alt(self) -> None:
             """Alternative method."""
 
     class SingleAlternativeOverride(SingleAlternative):
-        def my_method(self, arg, kw=99):
+        def my_method(self, arg, kw=99) -> None:
             """my_method override."""
 
-        def alt(self):
+        def alt(self) -> None:
             """Unneeded alternative method."""
 
     assert SingleAlternative.my_method.__doc__ == 'my_method doc.'
@@ -151,32 +153,32 @@ def test_two_alternatives():
 
         @alternative(requires='alt1', implementation=_default_impl1)
         @alternative(requires='alt2', implementation=_default_impl2)
-        def my_method(self, arg, kw=99):
+        def my_method(self, arg, kw=99) -> str:
             """Docstring."""
 
         @abc.abstractmethod
-        def alt1(self):
+        def alt1(self) -> Optional[str]:
             pass
 
         @abc.abstractmethod
-        def alt2(self):
+        def alt2(self) -> Optional[str]:
             pass
 
     class TwoAlternativesChild(TwoAlternatives):
-        def alt1(self):
+        def alt1(self) -> str:
             return 'alt1'
 
-        def alt2(self):
+        def alt2(self) -> NoReturn:
             raise RuntimeError  # coverage: ignore
 
     class TwoAlternativesOverride(TwoAlternatives):
-        def my_method(self, arg, kw=99):
+        def my_method(self, arg, kw=99) -> str:
             return 'override'
 
-        def alt1(self):
+        def alt1(self) -> NoReturn:
             raise RuntimeError  # coverage: ignore
 
-        def alt2(self):
+        def alt2(self) -> NoReturn:
             raise RuntimeError  # coverage: ignore
 
     class TwoAlternativesForceSecond(TwoAlternatives):

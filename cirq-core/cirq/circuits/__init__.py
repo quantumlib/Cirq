@@ -45,6 +45,10 @@ from cirq.circuits.insert_strategy import (
     InsertStrategy,
 )
 
+from cirq.circuits.moment import (
+    Moment,
+)
+
 from cirq.circuits.optimization_pass import (
     PointOptimizer,
     PointOptimizationSummary,

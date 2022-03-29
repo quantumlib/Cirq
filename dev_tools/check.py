@@ -64,7 +64,7 @@ class Check(metaclass=abc.ABCMeta):
             A tuple containing a pass/fail boolean and then a details message.
         """
 
-    def needs_python2_env(self):
+    def needs_python2_env(self) -> bool:
         return False
 
     def run(

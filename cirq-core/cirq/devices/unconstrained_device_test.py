@@ -25,5 +25,6 @@ def test_infinitely_fast():
     )
 
 
-def test_qubit_set():
-    assert cirq.UNCONSTRAINED_DEVICE.qubit_set() is None
+def test_qubit_set_deprecated():
+    with cirq.testing.assert_deprecated('None', deadline='v0.15'):
+        assert cirq.UNCONSTRAINED_DEVICE.qubit_set() is None

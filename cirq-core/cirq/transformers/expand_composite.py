@@ -16,7 +16,7 @@
 
 from typing import Callable, Optional, TYPE_CHECKING
 
-from cirq import ops, protocols
+from cirq import circuits, ops, protocols
 from cirq.transformers import transformer_api, transformer_primitives
 
 if TYPE_CHECKING:
@@ -49,8 +49,17 @@ def expand_composite(
     """
 
     def map_func(op: 'cirq.Operation', _) -> 'cirq.OP_TREE':
-        return protocols.decompose(op, keep=no_decomp, on_stuck_raise=None)
+        if context and context.deep and isinstance(op.untagged, circuits.CircuitOperation):
+            return op
+        return protocols.decompose(
+            op,
+            keep=no_decomp,
+            on_stuck_raise=None,
+        )
 
     return transformer_primitives.map_operations_and_unroll(
-        circuit, map_func, tags_to_ignore=context.tags_to_ignore if context else ()
+        circuit,
+        map_func,
+        tags_to_ignore=context.tags_to_ignore if context else (),
+        deep=context.deep if context else False,
     ).unfreeze(copy=False)

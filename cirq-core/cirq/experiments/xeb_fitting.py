@@ -27,8 +27,7 @@ from typing import (
 import numpy as np
 import pandas as pd
 import sympy
-from cirq import ops, protocols, _import
-from cirq.circuits import Circuit
+from cirq import circuits, ops, protocols, _import
 from cirq.experiments.xeb_simulation import simulate_2q_xeb_circuits
 
 if TYPE_CHECKING:
@@ -101,7 +100,7 @@ def benchmark_2q_xeb_fidelities(
     D = 4  # two qubits
     pure_probs = np.array(df['pure_probs'].to_list())
     sampled_probs = np.array(df['sampled_probs'].to_list())
-    df['e_u'] = np.sum(pure_probs ** 2, axis=1)
+    df['e_u'] = np.sum(pure_probs**2, axis=1)
     df['u_u'] = np.sum(pure_probs, axis=1) / D
     df['m_u'] = np.sum(pure_probs * sampled_probs, axis=1)
     df['y'] = df['m_u'] - df['u_u']
@@ -335,8 +334,8 @@ def parameterize_circuit(
     `phased_fsim_options`.
     """
     gate = options.get_parameterized_gate()
-    return Circuit(
-        ops.Moment(
+    return circuits.Circuit(
+        circuits.Moment(
             gate.on(*op.qubits) if options.should_parameterize(op) else op
             for op in moment.operations
         )
@@ -540,7 +539,7 @@ def exponential_decay(cycle_depths: np.ndarray, a: float, layer_fid: float) -> n
         a: A scale parameter in the exponential function.
         layer_fid: The base of the exponent in the exponential function.
     """
-    return a * layer_fid ** cycle_depths
+    return a * layer_fid**cycle_depths
 
 
 def _fit_exponential_decay(

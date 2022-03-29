@@ -14,6 +14,7 @@
 
 """Transformer passes which align operations to the left or right of the circuit."""
 
+import dataclasses
 from typing import Optional, TYPE_CHECKING
 from cirq import circuits, ops
 from cirq.transformers import transformer_api
@@ -22,7 +23,7 @@ if TYPE_CHECKING:
     import cirq
 
 
-@transformer_api.transformer
+@transformer_api.transformer(add_deep_support=True)
 def align_left(
     circuit: 'cirq.AbstractCircuit', *, context: Optional['cirq.TransformerContext'] = None
 ) -> 'cirq.Circuit':
@@ -47,14 +48,14 @@ def align_left(
             if isinstance(op, ops.TaggedOperation) and set(op.tags).intersection(
                 context.tags_to_ignore
             ):
-                ret.append([ops.Moment()] * (i + 1 - len(ret)))
+                ret.append([circuits.Moment()] * (i + 1 - len(ret)))
                 ret[i] = ret[i].with_operation(op)
             else:
                 ret.append(op)
     return ret
 
 
-@transformer_api.transformer
+@transformer_api.transformer(add_deep_support=True)
 def align_right(
     circuit: 'cirq.AbstractCircuit', *, context: Optional['cirq.TransformerContext'] = None
 ) -> 'cirq.Circuit':
@@ -70,4 +71,6 @@ def align_right(
     Returns:
           Copy of the transformed input circuit.
     """
+    if context is not None and context.deep is True:
+        context = dataclasses.replace(context, deep=False)
     return align_left(circuit[::-1], context=context)[::-1]

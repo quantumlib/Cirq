@@ -175,11 +175,12 @@ def test_graph_device_copy_and_add():
     assert device_copy == device_sum
 
 
-def test_qubit_set():
+def test_qubit_set_deprecated():
     a, b, c, d = cirq.LineQubit.range(4)
     device_graph = ccgd.UndirectedHypergraph(labelled_edges={(a, b): None, (c, d): None})
     device = ccgd.UndirectedGraphDevice(device_graph=device_graph)
-    assert device.qubit_set() == {a, b, c, d}
+    with cirq.testing.assert_deprecated('qubit_set', deadline='v0.15'):
+        assert device.qubit_set() == {a, b, c, d}
 
 
 def test_qid_pairs_deprecated():

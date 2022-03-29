@@ -35,29 +35,35 @@ def test_key_condition_with_keys():
 
 def test_key_condition_str():
     assert str(init_key_condition) == '0:a'
+    assert str(cirq.KeyCondition(key_a, index=-2)) == '0:a[-2]'
 
 
 def test_key_condition_repr():
     cirq.testing.assert_equivalent_repr(init_key_condition)
+    cirq.testing.assert_equivalent_repr(cirq.KeyCondition(key_a, index=-2))
 
 
 def test_key_condition_resolve():
-    assert init_key_condition.resolve({'0:a': [1]})
-    assert init_key_condition.resolve({'0:a': [2]})
-    assert init_key_condition.resolve({'0:a': [0, 1]})
-    assert init_key_condition.resolve({'0:a': [1, 0]})
-    assert not init_key_condition.resolve({'0:a': [0]})
-    assert not init_key_condition.resolve({'0:a': [0, 0]})
-    assert not init_key_condition.resolve({'0:a': []})
-    assert not init_key_condition.resolve({'0:a': [0], 'b': [1]})
+    def resolve(records):
+        classical_data = cirq.ClassicalDataDictionaryStore(_records=records)
+        return init_key_condition.resolve(classical_data)
+
+    assert resolve({'0:a': [[1]]})
+    assert resolve({'0:a': [[2]]})
+    assert resolve({'0:a': [[0, 1]]})
+    assert resolve({'0:a': [[1, 0]]})
+    assert not resolve({'0:a': [[0]]})
+    assert not resolve({'0:a': [[0, 0]]})
+    assert not resolve({'0:a': [[]]})
+    assert not resolve({'0:a': [[0]], 'b': [[1]]})
     with pytest.raises(
         ValueError, match='Measurement key 0:a missing when testing classical control'
     ):
-        _ = init_key_condition.resolve({})
+        _ = resolve({})
     with pytest.raises(
         ValueError, match='Measurement key 0:a missing when testing classical control'
     ):
-        _ = init_key_condition.resolve({'0:b': [1]})
+        _ = resolve({'0:b': [[1]]})
 
 
 def test_key_condition_qasm():
@@ -80,24 +86,28 @@ def test_sympy_condition_repr():
 
 
 def test_sympy_condition_resolve():
-    assert init_sympy_condition.resolve({'0:a': [1]})
-    assert init_sympy_condition.resolve({'0:a': [2]})
-    assert init_sympy_condition.resolve({'0:a': [0, 1]})
-    assert init_sympy_condition.resolve({'0:a': [1, 0]})
-    assert not init_sympy_condition.resolve({'0:a': [0]})
-    assert not init_sympy_condition.resolve({'0:a': [0, 0]})
-    assert not init_sympy_condition.resolve({'0:a': []})
-    assert not init_sympy_condition.resolve({'0:a': [0], 'b': [1]})
+    def resolve(records):
+        classical_data = cirq.ClassicalDataDictionaryStore(_records=records)
+        return init_sympy_condition.resolve(classical_data)
+
+    assert resolve({'0:a': [[1]]})
+    assert resolve({'0:a': [[2]]})
+    assert resolve({'0:a': [[0, 1]]})
+    assert resolve({'0:a': [[1, 0]]})
+    assert not resolve({'0:a': [[0]]})
+    assert not resolve({'0:a': [[0, 0]]})
+    assert not resolve({'0:a': [[]]})
+    assert not resolve({'0:a': [[0]], 'b': [[1]]})
     with pytest.raises(
         ValueError,
         match=re.escape("Measurement keys ['0:a'] missing when testing classical control"),
     ):
-        _ = init_sympy_condition.resolve({})
+        _ = resolve({})
     with pytest.raises(
         ValueError,
         match=re.escape("Measurement keys ['0:a'] missing when testing classical control"),
     ):
-        _ = init_sympy_condition.resolve({'0:b': [1]})
+        _ = resolve({'0:b': [[1]]})
 
 
 def test_sympy_condition_qasm():

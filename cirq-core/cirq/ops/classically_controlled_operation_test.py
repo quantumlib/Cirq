@@ -11,6 +11,8 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
+import numpy as np
 import pytest
 import sympy
 from sympy.parsing import sympy_parser
@@ -213,7 +215,7 @@ def test_qasm():
     qasm = cirq.qasm(circuit)
     assert (
         qasm
-        == """// Generated from Cirq v0.14.0.dev
+        == """// Generated from Cirq v0.15.0.dev
 
 OPENQASM 2.0;
 include "qelib1.inc";
@@ -255,6 +257,45 @@ def test_key_set(sim):
     result = sim.run(circuit)
     assert result.measurements['a'] == 1
     assert result.measurements['b'] == 1
+
+
+@pytest.mark.parametrize('sim', ALL_SIMULATORS)
+def test_repeated_measurement_unset(sim):
+    q0, q1 = cirq.LineQubit.range(2)
+    circuit = cirq.Circuit(
+        cirq.measure(q0, key='a'),
+        cirq.X(q0),
+        cirq.measure(q0, key='a'),
+        cirq.X(q1).with_classical_controls(cirq.KeyCondition(cirq.MeasurementKey('a'), index=-2)),
+        cirq.measure(q1, key='b'),
+        cirq.X(q1).with_classical_controls(cirq.KeyCondition(cirq.MeasurementKey('a'), index=-1)),
+        cirq.measure(q1, key='c'),
+    )
+    result = sim.run(circuit)
+    assert result.records['a'][0][0][0] == 0
+    assert result.records['a'][0][1][0] == 1
+    assert result.records['b'][0][0][0] == 0
+    assert result.records['c'][0][0][0] == 1
+
+
+@pytest.mark.parametrize('sim', ALL_SIMULATORS)
+def test_repeated_measurement_set(sim):
+    q0, q1 = cirq.LineQubit.range(2)
+    circuit = cirq.Circuit(
+        cirq.X(q0),
+        cirq.measure(q0, key='a'),
+        cirq.X(q0),
+        cirq.measure(q0, key='a'),
+        cirq.X(q1).with_classical_controls(cirq.KeyCondition(cirq.MeasurementKey('a'), index=-2)),
+        cirq.measure(q1, key='b'),
+        cirq.X(q1).with_classical_controls(cirq.KeyCondition(cirq.MeasurementKey('a'), index=-1)),
+        cirq.measure(q1, key='c'),
+    )
+    result = sim.run(circuit)
+    assert result.records['a'][0][0][0] == 1
+    assert result.records['a'][0][1][0] == 0
+    assert result.records['b'][0][0][0] == 1
+    assert result.records['c'][0][0][0] == 1
 
 
 @pytest.mark.parametrize('sim', ALL_SIMULATORS)
@@ -439,6 +480,123 @@ def test_scope_local():
         use_unicode_characters=True,
     )
     assert circuit == cirq.Circuit(cirq.decompose(outer_subcircuit))
+
+
+def test_scope_flatten_both():
+    q = cirq.LineQubit(0)
+    inner = cirq.Circuit(
+        cirq.measure(q, key='a'),
+        cirq.X(q).with_classical_controls('a'),
+    )
+    middle = cirq.Circuit(
+        cirq.CircuitOperation(inner.freeze(), repetitions=2, use_repetition_ids=False)
+    )
+    outer_subcircuit = cirq.CircuitOperation(
+        middle.freeze(), repetitions=2, use_repetition_ids=False
+    )
+    circuit = outer_subcircuit.mapped_circuit(deep=True)
+    internal_control_keys = [
+        str(condition) for op in circuit.all_operations() for condition in cirq.control_keys(op)
+    ]
+    assert internal_control_keys == ['a', 'a', 'a', 'a']
+    assert not cirq.control_keys(outer_subcircuit)
+    assert not cirq.control_keys(circuit)
+    cirq.testing.assert_has_diagram(
+        cirq.Circuit(outer_subcircuit),
+        """
+      [       [ 0: ───M───X─── ]                         ]
+0: ───[ 0: ───[       ║   ║    ]──────────────────────── ]────────────────────────
+      [       [ a: ═══@═══^═══ ](loops=2, no_rep_ids)    ](loops=2, no_rep_ids)
+""",
+        use_unicode_characters=True,
+    )
+    cirq.testing.assert_has_diagram(
+        circuit,
+        """
+0: ───M───X───M───X───M───X───M───X───
+      ║   ║   ║   ║   ║   ║   ║   ║
+a: ═══@═══^═══@═══^═══@═══^═══@═══^═══
+""",
+        use_unicode_characters=True,
+    )
+
+
+def test_scope_flatten_inner():
+    q = cirq.LineQubit(0)
+    inner = cirq.Circuit(
+        cirq.measure(q, key='a'),
+        cirq.X(q).with_classical_controls('a'),
+    )
+    middle = cirq.Circuit(
+        cirq.CircuitOperation(inner.freeze(), repetitions=2, use_repetition_ids=False)
+    )
+    outer_subcircuit = cirq.CircuitOperation(middle.freeze(), repetitions=2)
+    circuit = outer_subcircuit.mapped_circuit(deep=True)
+    internal_control_keys = [
+        str(condition) for op in circuit.all_operations() for condition in cirq.control_keys(op)
+    ]
+    assert internal_control_keys == ['0:a', '0:a', '1:a', '1:a']
+    assert not cirq.control_keys(outer_subcircuit)
+    assert not cirq.control_keys(circuit)
+    cirq.testing.assert_has_diagram(
+        cirq.Circuit(outer_subcircuit),
+        """
+      [       [ 0: ───M───X─── ]                         ]
+0: ───[ 0: ───[       ║   ║    ]──────────────────────── ]────────────
+      [       [ a: ═══@═══^═══ ](loops=2, no_rep_ids)    ](loops=2)
+""",
+        use_unicode_characters=True,
+    )
+    cirq.testing.assert_has_diagram(
+        circuit,
+        """
+0: ─────M───X───M───X───M───X───M───X───
+        ║   ║   ║   ║   ║   ║   ║   ║
+0:a: ═══@═══^═══@═══^═══╬═══╬═══╬═══╬═══
+                        ║   ║   ║   ║
+1:a: ═══════════════════@═══^═══@═══^═══
+""",
+        use_unicode_characters=True,
+    )
+
+
+def test_scope_flatten_outer():
+    q = cirq.LineQubit(0)
+    inner = cirq.Circuit(
+        cirq.measure(q, key='a'),
+        cirq.X(q).with_classical_controls('a'),
+    )
+    middle = cirq.Circuit(cirq.CircuitOperation(inner.freeze(), repetitions=2))
+    outer_subcircuit = cirq.CircuitOperation(
+        middle.freeze(), repetitions=2, use_repetition_ids=False
+    )
+    circuit = outer_subcircuit.mapped_circuit(deep=True)
+    internal_control_keys = [
+        str(condition) for op in circuit.all_operations() for condition in cirq.control_keys(op)
+    ]
+    assert internal_control_keys == ['0:a', '1:a', '0:a', '1:a']
+    assert not cirq.control_keys(outer_subcircuit)
+    assert not cirq.control_keys(circuit)
+    cirq.testing.assert_has_diagram(
+        cirq.Circuit(outer_subcircuit),
+        """
+      [       [ 0: ───M───X─── ]             ]
+0: ───[ 0: ───[       ║   ║    ]──────────── ]────────────────────────
+      [       [ a: ═══@═══^═══ ](loops=2)    ](loops=2, no_rep_ids)
+""",
+        use_unicode_characters=True,
+    )
+    cirq.testing.assert_has_diagram(
+        circuit,
+        """
+0: ─────M───X───M───X───M───X───M───X───
+        ║   ║   ║   ║   ║   ║   ║   ║
+0:a: ═══@═══^═══╬═══╬═══@═══^═══╬═══╬═══
+                ║   ║           ║   ║
+1:a: ═══════════@═══^═══════════@═══^═══
+""",
+        use_unicode_characters=True,
+    )
 
 
 def test_scope_extern():
@@ -700,6 +858,40 @@ def test_sympy():
             # m_result should now be set iff j > i.
             result = cirq.Simulator().run(circuit)
             assert result.measurements['m_result'][0][0] == (j > i)
+
+
+def test_sympy_qudits():
+    q0 = cirq.LineQid(0, 3)
+    q1 = cirq.LineQid(1, 5)
+    q_result = cirq.LineQubit(2)
+
+    class PlusGate(cirq.Gate):
+        def __init__(self, dimension, increment=1):
+            self.dimension = dimension
+            self.increment = increment % dimension
+
+        def _qid_shape_(self):
+            return (self.dimension,)
+
+        def _unitary_(self):
+            inc = (self.increment - 1) % self.dimension + 1
+            u = np.empty((self.dimension, self.dimension))
+            u[inc:] = np.eye(self.dimension)[:-inc]
+            u[:inc] = np.eye(self.dimension)[-inc:]
+            return u
+
+    for i in range(15):
+        digits = cirq.big_endian_int_to_digits(i, digit_count=2, base=(3, 5))
+        circuit = cirq.Circuit(
+            PlusGate(3, digits[0]).on(q0),
+            PlusGate(5, digits[1]).on(q1),
+            cirq.measure(q0, q1, key='m'),
+            cirq.X(q_result).with_classical_controls(sympy_parser.parse_expr('m % 4 <= 1')),
+            cirq.measure(q_result, key='m_result'),
+        )
+
+        result = cirq.Simulator().run(circuit)
+        assert result.measurements['m_result'][0][0] == (i % 4 <= 1)
 
 
 def test_sympy_path_prefix():

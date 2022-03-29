@@ -77,6 +77,16 @@ class MeasurementKey:
             object.__setattr__(self, '_hash', hash(str(self)))
         return self._hash
 
+    def __lt__(self, other):
+        if isinstance(other, MeasurementKey):
+            if self.path != other.path:
+                return self.path < other.path
+            return self.name < other.name
+        return NotImplemented
+
+    def __le__(self, other):
+        return self == other or self < other
+
     def _json_dict_(self):
         return {
             'name': self.name,
@@ -120,10 +130,7 @@ class MeasurementKey:
         path: Tuple[str, ...],
         bindable_keys: FrozenSet['MeasurementKey'],
     ):
-        new_key = self.replace(path=path + self.path)
-        if new_key in bindable_keys:
-            raise ValueError(f'Conflicting measurement keys found: {new_key}')
-        return new_key
+        return self.replace(path=path + self.path)
 
     def _with_measurement_key_mapping_(self, key_map: Dict[str, str]):
         if self.name not in key_map:

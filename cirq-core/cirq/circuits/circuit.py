@@ -58,6 +58,7 @@ from cirq.circuits.insert_strategy import InsertStrategy
 from cirq.circuits.qasm_output import QasmOutput
 from cirq.circuits.quil_output import QuilOutput
 from cirq.circuits.text_diagram_drawer import TextDiagramDrawer
+from cirq.circuits.moment import Moment
 from cirq.protocols import circuit_diagram_info_protocol
 from cirq.type_workarounds import NotImplementedType
 
@@ -225,7 +226,7 @@ class AbstractCircuit(abc.ABC):
             moment_idx, qubit_idx = key
             # moment_idx - int or slice; qubit_idx - Qid or Iterable[Qid].
             selected_moments = self.moments[moment_idx]
-            if isinstance(selected_moments, ops.Moment):
+            if isinstance(selected_moments, Moment):
                 return selected_moments[qubit_idx]
             if isinstance(qubit_idx, ops.Qid):
                 qubit_idx = [qubit_idx]
@@ -1034,7 +1035,7 @@ class AbstractCircuit(abc.ABC):
         if n > 10:
             raise ValueError(f"{n} > 10 qubits is too many to compute superoperator")
 
-        circuit_superoperator = np.eye(4 ** n)
+        circuit_superoperator = np.eye(4**n)
         for moment in self:
             full_moment = moment.expand_to(all_qubits)
             moment_superoperator = full_moment._superoperator_()
@@ -1606,7 +1607,7 @@ def _tetris_concat_helper(
     shift = _overlap_collision_time(buf[c1_offset : c1_offset + n1], c2, align)
     c2_offset = c1_offset + n1 - shift
     for k in range(n2):
-        buf[k + c2_offset] = (buf[k + c2_offset] or ops.Moment()) + c2[k]
+        buf[k + c2_offset] = (buf[k + c2_offset] or Moment()) + c2[k]
     return min(c1_offset, c2_offset), max(n1, n2, n1 + n2 - shift)
 
 
@@ -1617,6 +1618,7 @@ class Circuit(AbstractCircuit):
     AbstractCircuit):
 
     *   next_moment_operating_on
+    *   earliest_available_moment
     *   prev_moment_operating_on
     *   next_moments_operating_on
     *   operation_at
@@ -1768,13 +1770,13 @@ class Circuit(AbstractCircuit):
 
     def __setitem__(self, key, value):
         if isinstance(key, int):
-            if not isinstance(value, ops.Moment):
+            if not isinstance(value, Moment):
                 raise TypeError('Can only assign Moments into Circuits.')
             self._device.validate_moment(value)
 
         if isinstance(key, slice):
             value = list(value)
-            if any(not isinstance(v, ops.Moment) for v in value):
+            if any(not isinstance(v, Moment) for v in value):
                 raise TypeError('Can only assign Moments into Circuits.')
             for moment in value:
                 self._device.validate_moment(moment)
@@ -1881,7 +1883,7 @@ class Circuit(AbstractCircuit):
         with _compat.block_overlapping_deprecation(re.escape(_DEVICE_DEP_MESSAGE)):
             return Circuit(
                 [
-                    ops.Moment(
+                    Moment(
                         operation.transform_qubits(qubit_mapping) for operation in moment.operations
                     )
                     for moment in self._moments
@@ -1939,7 +1941,7 @@ class Circuit(AbstractCircuit):
             raise TypeError('qubit_map must be a function or dict mapping qubits to qubits.')
 
         op_list = [
-            ops.Moment(operation.transform_qubits(transform) for operation in moment.operations)
+            Moment(operation.transform_qubits(transform) for operation in moment.operations)
             for moment in self._moments
         ]
 
@@ -1949,7 +1951,27 @@ class Circuit(AbstractCircuit):
         with _compat.block_overlapping_deprecation(re.escape(_DEVICE_DEP_MESSAGE)):
             return Circuit(op_list, device=self._device if new_device is None else new_device)
 
-    def _prev_moment_available(self, op: 'cirq.Operation', end_moment_index: int) -> Optional[int]:
+    def earliest_available_moment(
+        self, op: 'cirq.Operation', *, end_moment_index: Optional[int] = None
+    ) -> int:
+        """Finds the index of the earliest (i.e. left most) moment which can accommodate `op`.
+
+        Note that, unlike `circuit.prev_moment_operating_on`, this method also takes care of
+        implicit dependencies between measurements and classically controlled operations (CCO)
+        that depend on the results of those measurements. Therefore, using this method, a CCO
+        `op` would not be allowed to move left past a measurement it depends upon.
+
+        Args:
+            op: Operation for which the earliest moment that can accommodate it needs to be found.
+            end_moment_index: The moment index just after the starting point of the reverse search.
+                Defaults to the length of the list of moments.
+
+        Returns:
+            Index of the earliest matching moment. Returns `end_moment_index` if no moment on left
+            is available.
+        """
+        if end_moment_index is None:
+            end_moment_index = len(self.moments)
         last_available = end_moment_index
         k = end_moment_index
         op_control_keys = protocols.control_keys(op)
@@ -1958,15 +1980,17 @@ class Circuit(AbstractCircuit):
         while k > 0:
             k -= 1
             moment = self._moments[k]
-            # This should also validate that measurement keys are disjoint once we allow repeated
-            # measurements. Search for same message in raw_types.py.
+            moment_measurement_keys = protocols.measurement_key_objs(moment)
             if (
                 moment.operates_on(op_qubits)
-                or not op_control_keys.isdisjoint(protocols.measurement_key_objs(moment))
+                or not op_measurement_keys.isdisjoint(moment_measurement_keys)
+                or not op_control_keys.isdisjoint(moment_measurement_keys)
                 or not protocols.control_keys(moment).isdisjoint(op_measurement_keys)
             ):
                 return last_available
             if self._can_add_op_at(k, op):
+                # Note: Remove the if condition after `self._device` is gone and move the method to
+                # `cirq.AbstractDevice`.
                 last_available = k
         return last_available
 
@@ -1989,7 +2013,7 @@ class Circuit(AbstractCircuit):
         """
 
         if strategy is InsertStrategy.NEW or strategy is InsertStrategy.NEW_THEN_INLINE:
-            self._moments.insert(splitter_index, ops.Moment())
+            self._moments.insert(splitter_index, Moment())
             return splitter_index
 
         if strategy is InsertStrategy.INLINE:
@@ -2004,8 +2028,7 @@ class Circuit(AbstractCircuit):
 
         if strategy is InsertStrategy.EARLIEST:
             if self._can_add_op_at(splitter_index, op):
-                p = self._prev_moment_available(op, splitter_index)
-                return p or 0
+                return self.earliest_available_moment(op, end_moment_index=splitter_index)
 
             return self._pick_or_create_inserted_op_moment_index(
                 splitter_index, op, InsertStrategy.INLINE
@@ -2074,22 +2097,22 @@ class Circuit(AbstractCircuit):
                 )
 
         for moment_or_op in moments_and_operations:
-            if isinstance(moment_or_op, ops.Moment):
-                self._device.validate_moment(cast(ops.Moment, moment_or_op))
+            if isinstance(moment_or_op, Moment):
+                self._device.validate_moment(cast(Moment, moment_or_op))
             else:
                 self._device.validate_operation(cast(ops.Operation, moment_or_op))
 
         # limit index to 0..len(self._moments), also deal with indices smaller 0
         k = max(min(index if index >= 0 else len(self._moments) + index, len(self._moments)), 0)
         for moment_or_op in moments_and_operations:
-            if isinstance(moment_or_op, ops.Moment):
+            if isinstance(moment_or_op, Moment):
                 self._moments.insert(k, moment_or_op)
                 k += 1
             else:
                 op = cast(ops.Operation, moment_or_op)
                 p = self._pick_or_create_inserted_op_moment_index(k, op, strategy)
                 while p >= len(self._moments):
-                    self._moments.append(ops.Moment())
+                    self._moments.append(Moment())
                 self._moments[p] = self._moments[p].with_operation(op)
                 self._device.validate_moment(self._moments[p])
                 k = max(k, p + 1)
@@ -2186,7 +2209,7 @@ class Circuit(AbstractCircuit):
         )
         if n_new_moments > 0:
             insert_index = min(late_frontier.values())
-            self._moments[insert_index:insert_index] = [ops.Moment()] * n_new_moments
+            self._moments[insert_index:insert_index] = [Moment()] * n_new_moments
             for q in update_qubits:
                 if early_frontier.get(q, 0) > insert_index:
                     early_frontier[q] += n_new_moments
@@ -2212,12 +2235,12 @@ class Circuit(AbstractCircuit):
         """
         if len(operations) != len(insertion_indices):
             raise ValueError('operations and insertion_indices must have the same length.')
-        self._moments += [ops.Moment() for _ in range(1 + max(insertion_indices) - len(self))]
+        self._moments += [Moment() for _ in range(1 + max(insertion_indices) - len(self))]
         moment_to_ops: Dict[int, List['cirq.Operation']] = defaultdict(list)
         for op_index, moment_index in enumerate(insertion_indices):
             moment_to_ops[moment_index].append(operations[op_index])
         for moment_index, new_ops in moment_to_ops.items():
-            self._moments[moment_index] = ops.Moment(
+            self._moments[moment_index] = Moment(
                 self._moments[moment_index].operations + tuple(new_ops)
             )
 
@@ -2274,7 +2297,7 @@ class Circuit(AbstractCircuit):
         for i, op in removals:
             if op not in copy._moments[i].operations:
                 raise ValueError(f"Can't remove {op} @ {i} because it doesn't exist.")
-            copy._moments[i] = ops.Moment(
+            copy._moments[i] = Moment(
                 old_op for old_op in copy._moments[i].operations if op != old_op
             )
         self._device.validate_circuit(copy)
@@ -2299,7 +2322,7 @@ class Circuit(AbstractCircuit):
         for i, op, new_op in replacements:
             if op not in copy._moments[i].operations:
                 raise ValueError(f"Can't replace {op} @ {i} because it doesn't exist.")
-            copy._moments[i] = ops.Moment(
+            copy._moments[i] = Moment(
                 old_op if old_op != op else new_op for old_op in copy._moments[i].operations
             )
         self._device.validate_circuit(copy)
@@ -2397,7 +2420,7 @@ class Circuit(AbstractCircuit):
         resolved_moments = []
         for moment in self:
             resolved_operations = _resolve_operations(moment.operations, resolver, recursive)
-            new_moment = ops.Moment(resolved_operations)
+            new_moment = Moment(resolved_operations)
             resolved_moments.append(new_moment)
         if self._device == devices.UNCONSTRAINED_DEVICE:
             return Circuit(resolved_moments)

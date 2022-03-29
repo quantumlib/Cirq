@@ -30,6 +30,14 @@ import pandas as pd
 import sympy
 import sympy.printing.repr
 
+ALLOW_DEPRECATION_IN_TEST = 'ALLOW_DEPRECATION_IN_TEST'
+
+
+try:
+    from functools import cached_property  # pylint: disable=unused-import
+except ImportError:
+    from backports.cached_property import cached_property  # type: ignore[no-redef]
+
 
 def proper_repr(value: Any) -> str:
     """Overrides sympy and numpy returning repr strings that don't parse."""
@@ -138,8 +146,6 @@ def proper_eq(a: Any, b: Any) -> bool:
 
 
 def _warn_or_error(msg):
-    from cirq.testing.deprecation import ALLOW_DEPRECATION_IN_TEST
-
     deprecation_allowed = ALLOW_DEPRECATION_IN_TEST in os.environ
     if _called_from_test() and not deprecation_allowed:
         for filename, line_number, function_name, text in reversed(traceback.extract_stack()):

@@ -23,12 +23,209 @@ References:
 from typing import Optional, Sequence, Tuple, TYPE_CHECKING
 
 import numpy as np
+import sympy
 
-from cirq import ops, linalg, protocols
+from cirq import circuits, ops, linalg, protocols
 from cirq.transformers.analytical_decompositions import single_qubit_decompositions
+from cirq.transformers.merge_single_qubit_gates import merge_single_qubit_gates_to_phxz
 
 if TYPE_CHECKING:
     import cirq
+
+
+def parameterized_2q_op_to_sqrt_iswap_operations(
+    op: 'cirq.Operation', *, use_sqrt_iswap_inv: bool = False
+) -> protocols.decompose_protocol.DecomposeResult:
+    """Tries to decompose a parameterized 2q operation into √iSWAP's + parameterized 1q rotations.
+
+    Currently only supports decomposing the following gates:
+        a) `cirq.CZPowGate`
+        b) `cirq.SwapPowGate`
+        c) `cirq.ISwapPowGate`
+        d) `cirq.FSimGate`
+
+    Args:
+        op: Parameterized two qubit operation to be decomposed into sqrt-iswaps.
+        use_sqrt_iswap_inv: If True, `cirq.SQRT_ISWAP_INV` is used as the target 2q gate, instead
+            of `cirq.SQRT_ISWAP`.
+
+    Returns:
+        A parameterized `cirq.OP_TREE` implementing `op` using only `cirq.SQRT_ISWAP`
+        (or `cirq.SQRT_ISWAP_INV`) and parameterized single qubit rotations OR
+        None or NotImplemented if decomposition of `op` is not known.
+    """
+    gate = op.gate
+    q0, q1 = op.qubits
+
+    if isinstance(gate, ops.CZPowGate):
+        return _cphase_symbols_to_sqrt_iswap(q0, q1, gate.exponent, use_sqrt_iswap_inv)
+    if isinstance(gate, ops.SwapPowGate):
+        return _swap_symbols_to_sqrt_iswap(q0, q1, gate.exponent, use_sqrt_iswap_inv)
+    if isinstance(gate, ops.ISwapPowGate):
+        return _iswap_symbols_to_sqrt_iswap(q0, q1, gate.exponent, use_sqrt_iswap_inv)
+    if isinstance(gate, ops.FSimGate):
+        return _fsim_symbols_to_sqrt_iswap(q0, q1, gate.theta, gate.phi, use_sqrt_iswap_inv)
+    return NotImplemented
+
+
+def _sqrt_iswap_inv(
+    a: 'cirq.Qid', b: 'cirq.Qid', use_sqrt_iswap_inv: bool = True
+) -> 'cirq.OP_TREE':
+    """Optree implementing `cirq.SQRT_ISWAP_INV(a, b)` using √iSWAPs.
+
+    Args:
+        a: The first qubit.
+        b: The second qubit.
+        use_sqrt_iswap_inv: If True, `cirq.SQRT_ISWAP_INV` is used instead of `cirq.SQRT_ISWAP`.
+
+    Returns:
+        `cirq.SQRT_ISWAP_INV(a, b)` or equivalent unitary implemented using `cirq.SQRT_ISWAP`.
+    """
+    return (
+        ops.SQRT_ISWAP_INV(a, b)
+        if use_sqrt_iswap_inv
+        else [ops.Z(a), ops.SQRT_ISWAP(a, b), ops.Z(a)]
+    )
+
+
+def _cphase_symbols_to_sqrt_iswap(
+    a: 'cirq.Qid', b: 'cirq.Qid', turns: 'cirq.TParamVal', use_sqrt_iswap_inv: bool = True
+):
+    """Implements `cirq.CZ(a, b) ** turns` using two √iSWAPs and single qubit rotations.
+
+    Output unitary:
+        [[1, 0, 0, 0],
+         [0, 1, 0, 0],
+         [0, 0, 1, 0],
+         [0, 0, 0, g]]
+    where:
+        g = exp(i·π·t).
+
+    Args:
+        a: The first qubit.
+        b: The second qubit.
+        turns: The rotational angle (t) that specifies the gate, where
+            g = exp(i·π·t/2).
+        use_sqrt_iswap_inv: If True, `cirq.SQRT_ISWAP_INV` is used instead of `cirq.SQRT_ISWAP`.
+
+    Yields:
+        A `cirq.OP_TREE` representing the decomposition.
+    """
+    theta = sympy.Mod(turns, 2.0) * sympy.pi
+
+    # -1 if theta > pi.  Adds a hacky fudge factor so theta=pi is not 0
+    sign = sympy.sign(sympy.pi - theta + 1e-9)
+
+    # For sign = 1: theta. For sign = -1, 2pi-theta
+    theta_prime = (sympy.pi - sign * sympy.pi) + sign * theta
+
+    phi = sympy.asin(np.sqrt(2) * sympy.sin(theta_prime / 4))
+    xi = sympy.atan(sympy.tan(phi) / np.sqrt(2))
+
+    yield ops.rz(sign * 0.5 * theta_prime).on(a)
+    yield ops.rz(sign * 0.5 * theta_prime).on(b)
+    yield ops.rx(xi).on(a)
+    yield ops.X(b) ** (-sign * 0.5)
+    yield _sqrt_iswap_inv(a, b, use_sqrt_iswap_inv)
+    yield ops.rx(-2 * phi).on(a)
+    yield ops.Z(a)
+    yield _sqrt_iswap_inv(a, b, use_sqrt_iswap_inv)
+    yield ops.Z(a)
+    yield ops.rx(xi).on(a)
+    yield ops.X(b) ** (sign * 0.5)
+
+
+def _swap_symbols_to_sqrt_iswap(
+    a: 'cirq.Qid', b: 'cirq.Qid', turns: 'cirq.TParamVal', use_sqrt_iswap_inv: bool = True
+):
+    """Implements `cirq.SWAP(a, b) ** turns` using two √iSWAPs and single qubit rotations.
+
+    Output unitary:
+        [[1, 0,        0,     0],
+         [0, g·c,    -i·g·s,  0],
+         [0, -i·g·s,  g·c,    0],
+         [0,   0,      0,     1]]
+    where:
+        c = cos(π·t/2), s = sin(π·t/2), g = exp(i·π·t/2).
+
+    Args:
+        a: The first qubit.
+        b: The second qubit.
+        turns: The rotational angle (t) that specifies the gate, where
+            c = cos(π·t/2), s = sin(π·t/2), g = exp(i·π·t/2).
+        use_sqrt_iswap_inv: If True, `cirq.SQRT_ISWAP_INV` is used instead of `cirq.SQRT_ISWAP`.
+
+    Yields:
+        A `cirq.OP_TREE` representing the decomposition.
+    """
+    yield ops.Z(a) ** 1.25
+    yield ops.Z(b) ** -0.25
+    yield _sqrt_iswap_inv(a, b, use_sqrt_iswap_inv)
+    yield ops.Z(a) ** (-turns / 2 + 1)
+    yield ops.Z(b) ** (turns / 2)
+    yield _sqrt_iswap_inv(a, b, use_sqrt_iswap_inv)
+    yield ops.Z(a) ** (turns / 2 - 0.25)
+    yield ops.Z(b) ** (turns / 2 + 0.25)
+    yield _cphase_symbols_to_sqrt_iswap(a, b, -turns, use_sqrt_iswap_inv)
+
+
+def _iswap_symbols_to_sqrt_iswap(
+    a: 'cirq.Qid', b: 'cirq.Qid', turns: 'cirq.TParamVal', use_sqrt_iswap_inv: bool = True
+):
+    """Implements `cirq.ISWAP(a, b) ** turns` using two √iSWAPs and single qubit rotations.
+
+    Output unitary:
+       [[1   0   0   0],
+        [0   c  is   0],
+        [0  is   c   0],
+        [0   0   0   1]]
+    where c = cos(π·t/2), s = sin(π·t/2).
+
+    Args:
+        a: The first qubit.
+        b: The second qubit.
+        turns: The rotational angle (t) that specifies the gate, where
+            c = cos(π·t/2), s = sin(π·t/2).
+        use_sqrt_iswap_inv: If True, `cirq.SQRT_ISWAP_INV` is used instead of `cirq.SQRT_ISWAP`.
+
+    Yields:
+        A `cirq.OP_TREE` representing the decomposition.
+    """
+    yield ops.Z(a) ** 0.75
+    yield ops.Z(b) ** 0.25
+    yield _sqrt_iswap_inv(a, b, use_sqrt_iswap_inv)
+    yield ops.Z(a) ** (-turns / 2 + 1)
+    yield ops.Z(b) ** (turns / 2)
+    yield _sqrt_iswap_inv(a, b, use_sqrt_iswap_inv)
+    yield ops.Z(a) ** 0.25
+    yield ops.Z(b) ** -0.25
+
+
+def _fsim_symbols_to_sqrt_iswap(
+    a: 'cirq.Qid',
+    b: 'cirq.Qid',
+    theta: 'cirq.TParamVal',
+    phi: 'cirq.TParamVal',
+    use_sqrt_iswap_inv: bool = True,
+):
+    """Implements `cirq.FSimGate(theta, phi)(a, b)` using two √iSWAPs and single qubit rotations.
+
+    FSimGate(θ, φ) = ISWAP**(-2θ/π) CZPowGate(exponent=-φ/π)
+
+    Args:
+        a: The first qubit.
+        b: The second qubit.
+        theta: Swap angle on the ``|01⟩`` ``|10⟩`` subspace, in radians.
+        phi: Controlled phase angle, in radians.
+        use_sqrt_iswap_inv: If True, `cirq.SQRT_ISWAP_INV` is used instead of `cirq.SQRT_ISWAP`.
+
+    Yields:
+        A `cirq.OP_TREE` representing the decomposition.
+    """
+    if theta != 0.0:
+        yield _iswap_symbols_to_sqrt_iswap(a, b, -2 * theta / np.pi, use_sqrt_iswap_inv)
+    if phi != 0.0:
+        yield _cphase_symbols_to_sqrt_iswap(a, b, -phi / np.pi, use_sqrt_iswap_inv)
 
 
 def two_qubit_matrix_to_sqrt_iswap_operations(
@@ -40,6 +237,7 @@ def two_qubit_matrix_to_sqrt_iswap_operations(
     use_sqrt_iswap_inv: bool = False,
     atol: float = 1e-8,
     check_preconditions: bool = True,
+    clean_operations: bool = False,
 ) -> Sequence['cirq.Operation']:
     """Decomposes a two-qubit operation into ZPow/XPow/YPow/sqrt-iSWAP gates.
 
@@ -69,6 +267,8 @@ def two_qubit_matrix_to_sqrt_iswap_operations(
             construction.
         check_preconditions: If set, verifies that the input corresponds to a
             4x4 unitary before decomposing.
+        clean_operations: Merges runs of single qubit gates to a single `cirq.PhasedXZGate` in
+            the resulting operations list.
 
     Returns:
         A list of operations implementing the matrix including at most three
@@ -92,7 +292,11 @@ def two_qubit_matrix_to_sqrt_iswap_operations(
     operations = _kak_decomposition_to_sqrt_iswap_operations(
         q0, q1, kak, required_sqrt_iswap_count, use_sqrt_iswap_inv, atol=atol
     )
-    return operations
+    return (
+        [*merge_single_qubit_gates_to_phxz(circuits.Circuit(operations)).all_operations()]
+        if clean_operations
+        else operations
+    )
 
 
 def _kak_decomposition_to_sqrt_iswap_operations(
@@ -166,13 +370,13 @@ def _decomp_to_operations(
             # Commute rightmost Z(q0)**b, Z(q1)**b through next sqrt-iSWAP
             if len(rots1) > 0 and rots1[-1][0] == ops.Z:
                 _, prev_z = rots1.pop()
-                z_unitary = protocols.unitary(ops.Z ** prev_z)
+                z_unitary = protocols.unitary(ops.Z**prev_z)
                 new_commute = new_commute @ z_unitary
                 matrix0 = z_unitary.T.conj() @ matrix0
             # Commute rightmost whole X(q0), X(q0) or Y, Y through next sqrt-iSWAP
             if len(rots1) > 0 and linalg.tolerance.near_zero_mod(rots1[-1][1], 1, atol=atol):
                 pauli, half_turns = rots1.pop()
-                p_unitary = protocols.unitary(pauli ** half_turns)
+                p_unitary = protocols.unitary(pauli**half_turns)
                 new_commute = new_commute @ p_unitary
                 matrix0 = p_unitary.T.conj() @ matrix0
         rots0 = list(
@@ -181,8 +385,8 @@ def _decomp_to_operations(
             )
         )
         # Append single qubit ops
-        operations.extend((pauli ** half_turns).on(q0) for pauli, half_turns in rots0)
-        operations.extend((pauli ** half_turns).on(q1) for pauli, half_turns in rots1)
+        operations.extend((pauli**half_turns).on(q0) for pauli, half_turns in rots0)
+        operations.extend((pauli**half_turns).on(q1) for pauli, half_turns in rots1)
         prev_commute = new_commute
 
     single_ops = list(single_qubit_operations)

@@ -34,6 +34,7 @@ if TYPE_CHECKING:
 class Device(metaclass=abc.ABCMeta):
     """Hardware constraints for validating circuits."""
 
+    @_compat.deprecated(fix='Use metadata.qubit_set if applicable.', deadline='v0.15')
     def qubit_set(self) -> Optional[AbstractSet['cirq.Qid']]:
         """Returns a set or frozenset of qubits on the device, if possible.
 
@@ -77,7 +78,7 @@ class Device(metaclass=abc.ABCMeta):
             `cirq.UnconstrainedDevice` has this property), then `None` is
             returned.
         """
-        with _compat.block_overlapping_deprecation('device\\.metadata'):
+        with _compat.block_overlapping_deprecation('(device\\.metadata|qubit_set)'):
             qs = self.qubit_set()
             if qs is None:
                 return None
@@ -222,13 +223,13 @@ class DeviceMetadata:
     def __init__(
         self,
         qubits: Iterable['cirq.Qid'],
-        nx_graph: 'nx.graph',
+        nx_graph: 'nx.Graph',
     ):
         """Construct a DeviceMetadata object.
 
         Args:
-            qubits: Optional iterable of `cirq.Qid`s that exist on the device.
-            nx_graph: Optional `nx.Graph` describing qubit connectivity
+            qubits: Iterable of `cirq.Qid`s that exist on the device.
+            nx_graph: `nx.Graph` describing qubit connectivity
                 on a device. Nodes represent qubits, directed edges indicate
                 directional coupling, undirected edges indicate bi-directional
                 coupling.
@@ -238,10 +239,10 @@ class DeviceMetadata:
 
     @property
     def qubit_set(self) -> FrozenSet['cirq.Qid']:
-        """Returns a set of qubits on the device, if possible.
+        """Returns the set of qubits on the device.
 
         Returns:
-            Frozenset of qubits on device if specified, otherwise None.
+            Frozenset of qubits on device.
         """
         return self._qubits_set
 
@@ -250,7 +251,7 @@ class DeviceMetadata:
         """Returns a nx.Graph where nodes are qubits and edges are couple-able qubits.
 
         Returns:
-            `nx.Graph` of device connectivity if specified, otherwise None.
+            `nx.Graph` of device connectivity.
         """
         return self._nx_graph
 
@@ -269,6 +270,6 @@ class DeviceMetadata:
         return {'qubits': qubits_payload, 'nx_graph': graph_payload}
 
     @classmethod
-    def _from_json_dict_(cls, qubits, nx_graph, **kwargs):
+    def _from_json_dict_(cls, qubits: Iterable['cirq.Qid'], nx_graph: 'nx.Graph', **kwargs):
         graph_obj = nx.readwrite.json_graph.node_link_graph(nx_graph)
         return cls(qubits, graph_obj)

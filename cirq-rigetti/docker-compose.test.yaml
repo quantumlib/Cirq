@@ -2,7 +2,7 @@ version: '3'
 
 services:
   quilc:
-    image: rigetti/quilc
+    image: rigetti/quilc:1.23.0
     command: -S
     expose:
       - "5555"
@@ -12,7 +12,7 @@ services:
       - test
 
   qvm:
-    image: rigetti/qvm
+    image: rigetti/qvm:1.17.1
     command: -S
     expose:
       - "5000"

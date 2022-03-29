@@ -21,7 +21,7 @@ from cirq.transformers.transformer_api import LogLevel
 import pytest
 
 
-@cirq.transformer
+@cirq.transformer()
 class MockTransformerClass:
     def __init__(self):
         self.mock = mock.Mock()
@@ -59,6 +59,11 @@ class MockTransformerClassWithDefaults:
         return circuit[::-1]
 
 
+@cirq.transformer(add_deep_support=True)
+class MockTransformerClassSupportsDeep(MockTransformerClass):
+    pass
+
+
 def make_transformer_func_with_defaults() -> cirq.TRANSFORMER:
     my_mock = mock.Mock()
 
@@ -77,10 +82,10 @@ def make_transformer_func_with_defaults() -> cirq.TRANSFORMER:
     return func
 
 
-def make_transformer_func() -> cirq.TRANSFORMER:
+def make_transformer_func(add_deep_support: bool = False) -> cirq.TRANSFORMER:
     my_mock = mock.Mock()
 
-    @cirq.transformer
+    @cirq.transformer(add_deep_support=add_deep_support)
     def mock_tranformer_func(
         circuit: cirq.AbstractCircuit, *, context: Optional[cirq.TransformerContext] = None
     ) -> cirq.Circuit:
@@ -132,6 +137,48 @@ def test_transformer_decorator_with_defaults(transformer):
     transformer.mock.assert_called_with(circuit, context, 1e-4, CustomArg(10))
     transformer(circuit, context=context, atol=1e-2, custom_arg=CustomArg(12))
     transformer.mock.assert_called_with(circuit, context, 1e-2, CustomArg(12))
+
+
+@pytest.mark.parametrize(
+    'transformer, supports_deep',
+    [
+        (MockTransformerClass(), False),
+        (make_transformer_func(), False),
+        (MockTransformerClassSupportsDeep(), True),
+        (make_transformer_func(add_deep_support=True), True),
+    ],
+)
+def test_transformer_decorator_adds_support_for_deep(transformer, supports_deep):
+    q = cirq.NamedQubit("q")
+    c_nested_x = cirq.FrozenCircuit(cirq.X(q))
+    c_nested_y = cirq.FrozenCircuit(cirq.Y(q))
+    c_nested_xy = cirq.FrozenCircuit(
+        cirq.CircuitOperation(c_nested_x).repeat(5).with_tags("ignore"),
+        cirq.CircuitOperation(c_nested_y).repeat(7).with_tags("preserve_tag"),
+    )
+    c_nested_yx = cirq.FrozenCircuit(
+        cirq.CircuitOperation(c_nested_y).repeat(7).with_tags("ignore"),
+        cirq.CircuitOperation(c_nested_x).repeat(5).with_tags("preserve_tag"),
+    )
+    c_orig = cirq.Circuit(
+        cirq.CircuitOperation(c_nested_xy).repeat(4),
+        cirq.CircuitOperation(c_nested_x).repeat(5).with_tags("ignore"),
+        cirq.CircuitOperation(c_nested_y).repeat(6),
+        cirq.CircuitOperation(c_nested_yx).repeat(7),
+    )
+    context = cirq.TransformerContext(tags_to_ignore=["ignore"], deep=True)
+    transformer(c_orig, context=context)
+    expected_calls = [mock.call(c_orig, context)]
+    if supports_deep:
+        expected_calls = [
+            mock.call(c_nested_y, context),  # c_orig --> xy --> y
+            mock.call(c_nested_xy, context),  # c_orig --> xy
+            mock.call(c_nested_y, context),  # c_orig --> y
+            mock.call(c_nested_x, context),  # c_orig --> yx --> x
+            mock.call(c_nested_yx, context),  # c_orig --> yx
+            mock.call(c_orig, context),  # c_orig
+        ]
+    transformer.mock.assert_has_calls(expected_calls)
 
 
 @cirq.transformer

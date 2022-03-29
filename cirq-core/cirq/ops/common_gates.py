@@ -908,7 +908,7 @@ class CZPowGate(gate_features.InterchangeableQubitsGate, eigen_gate.EigenGate):
         if protocols.is_parameterized(self):
             return NotImplemented
         global_phase = 1j ** (2 * self._exponent * self._global_shift)
-        z_phase = 1j ** self._exponent
+        z_phase = 1j**self._exponent
         c = -1j * z_phase * np.sin(np.pi * self._exponent / 2) / 2
         return value.LinearDict(
             {
@@ -1090,7 +1090,7 @@ class CXPowGate(eigen_gate.EigenGate):
         if protocols.is_parameterized(self):
             return NotImplemented
         global_phase = 1j ** (2 * self._exponent * self._global_shift)
-        cnot_phase = 1j ** self._exponent
+        cnot_phase = 1j**self._exponent
         c = -1j * cnot_phase * np.sin(np.pi * self._exponent / 2) / 2
         return value.LinearDict(
             {

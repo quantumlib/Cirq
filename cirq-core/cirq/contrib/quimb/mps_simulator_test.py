@@ -550,17 +550,18 @@ def test_state_act_on_args_initializer():
     s = ccq.mps_simulator.MPSState(
         qubits=(cirq.LineQubit(0),),
         prng=np.random.RandomState(0),
-        log_of_measurement_results={'test': 4},
+        classical_data=cirq.ClassicalDataDictionaryStore(
+            _records={cirq.MeasurementKey('test'): [(4,)]}
+        ),
     )
     assert s.qubits == (cirq.LineQubit(0),)
-    assert s.log_of_measurement_results == {'test': 4}
+    assert s.log_of_measurement_results == {'test': [4]}
 
 
 def test_act_on_gate():
     args = ccq.mps_simulator.MPSState(
         qubits=cirq.LineQubit.range(3),
         prng=np.random.RandomState(0),
-        log_of_measurement_results={},
     )
 
     cirq.act_on(cirq.X, args, [cirq.LineQubit(1)])
@@ -568,3 +569,17 @@ def test_act_on_gate():
         args.state_vector().reshape((2, 2, 2)),
         cirq.one_hot(index=(0, 1, 0), shape=(2, 2, 2), dtype=np.complex64),
     )
+
+
+def test_deprectated():
+    q0 = cirq.LineQubit(0)
+    prng = np.random.RandomState(0)
+    args = ccq.mps_simulator.MPSState(
+        qubits=cirq.LineQubit.range(3),
+        prng=prng,
+        log_of_measurement_results={},
+    )
+    with cirq.testing.assert_deprecated(deadline='0.15'):
+        args.perform_measurement([q0], prng)
+    with cirq.testing.assert_deprecated(deadline='0.15'):
+        args.apply_op(cirq.X(q0), prng)

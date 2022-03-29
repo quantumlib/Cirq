@@ -60,13 +60,11 @@ from cirq.optimizers.merge_single_qubit_gates import (
     MergeSingleQubitGates,
 )
 
-from cirq.optimizers.stratify import (
-    stratified_circuit,
-)
-
 from cirq.optimizers.synchronize_terminal_measurements import (
     SynchronizeTerminalMeasurements,
 )
+
+from cirq.transformers.stratify import stratified_circuit
 
 from cirq.transformers.analytical_decompositions import (
     compute_cphase_exponents_for_fsim_decomposition,
@@ -84,8 +82,8 @@ from cirq.transformers.analytical_decompositions import (
     single_qubit_matrix_to_phxz,
     single_qubit_op_to_framed_phase_form,
     three_qubit_matrix_to_operations,
-    two_qubit_matrix_to_diagonal_and_operations,
-    two_qubit_matrix_to_operations,
+    two_qubit_matrix_to_cz_operations,
+    two_qubit_matrix_to_diagonal_and_cz_operations,
     two_qubit_matrix_to_sqrt_iswap_operations,
 )
 
@@ -153,6 +151,14 @@ _compat.deprecated_submodule(
     new_module_name="cirq.transformers.analytical_decompositions.two_qubit_to_sqrt_iswap",
     old_parent="cirq.optimizers",
     old_child="two_qubit_to_sqrt_iswap",
+    deadline="v0.16",
+    create_attribute=True,
+)
+
+_compat.deprecated_submodule(
+    new_module_name="cirq.transformers.stratify",
+    old_parent="cirq.optimizers",
+    old_child="stratify",
     deadline="v0.16",
     create_attribute=True,
 )

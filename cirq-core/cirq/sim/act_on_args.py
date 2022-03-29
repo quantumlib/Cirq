@@ -12,26 +12,27 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """Objects and methods for acting efficiently on a state tensor."""
-import abc
 import copy
 import inspect
+import warnings
 from typing import (
     Any,
+    cast,
     Dict,
+    Iterator,
     List,
+    Mapping,
+    Optional,
+    Sequence,
     TypeVar,
     TYPE_CHECKING,
-    Sequence,
     Tuple,
-    cast,
-    Optional,
-    Iterator,
 )
-import warnings
 
 import numpy as np
 
-from cirq import protocols, ops
+from cirq import ops, protocols, value
+from cirq._compat import deprecated, deprecated_parameter
 from cirq.protocols.decompose_protocol import _try_decompose_into_operations_and_qubits
 from cirq.sim.operation_target import OperationTarget
 
@@ -44,12 +45,20 @@ if TYPE_CHECKING:
 class ActOnArgs(OperationTarget[TSelf]):
     """State and context for an operation acting on a state tensor."""
 
+    @deprecated_parameter(
+        deadline='v0.15',
+        fix='Use cirq.dephase_measurements to transform the circuit before simulating.',
+        parameter_desc='ignore_measurement_results',
+        match=lambda args, kwargs: 'ignore_measurement_results' in kwargs or len(args) > 4,
+    )
     def __init__(
         self,
         prng: Optional[np.random.RandomState] = None,
         qubits: Optional[Sequence['cirq.Qid']] = None,
         log_of_measurement_results: Optional[Dict[str, List[int]]] = None,
         ignore_measurement_results: bool = False,
+        classical_data: Optional['cirq.ClassicalDataStore'] = None,
+        state: Optional['cirq.QuantumStateRepresentation'] = None,
     ):
         """Inits ActOnArgs.
 
@@ -65,21 +74,52 @@ class ActOnArgs(OperationTarget[TSelf]):
                 will treat measurement as dephasing instead of collapsing
                 process, and not log the result. This is only applicable to
                 simulators that can represent mixed states.
+            classical_data: The shared classical data container for this
+                simulation.
+            state: The underlying quantum state of the simulation.
         """
         if prng is None:
             prng = cast(np.random.RandomState, np.random)
         if qubits is None:
             qubits = ()
-        if log_of_measurement_results is None:
-            log_of_measurement_results = {}
         self._set_qubits(qubits)
-        self.prng = prng
-        self._log_of_measurement_results = log_of_measurement_results
+        self._prng = prng
+        self._classical_data = classical_data or value.ClassicalDataDictionaryStore(
+            _records={
+                value.MeasurementKey.parse_serialized(k): [tuple(v)]
+                for k, v in (log_of_measurement_results or {}).items()
+            }
+        )
         self._ignore_measurement_results = ignore_measurement_results
+        self._state = state
+
+    @property
+    def prng(self) -> np.random.RandomState:
+        return self._prng
+
+    @property
+    def qubit_map(self) -> Mapping['cirq.Qid', int]:
+        return self._qubit_map
+
+    @prng.setter  # type: ignore
+    @deprecated(
+        deadline="v0.15",
+        fix="The mutators of this class are deprecated, instantiate a new object instead.",
+    )
+    def prng(self, prng):
+        self._prng = prng
+
+    @qubit_map.setter  # type: ignore
+    @deprecated(
+        deadline="v0.15",
+        fix="The mutators of this class are deprecated, instantiate a new object instead.",
+    )
+    def qubit_map(self, qubit_map):
+        self._qubit_map = qubit_map
 
     def _set_qubits(self, qubits: Sequence['cirq.Qid']):
         self._qubits = tuple(qubits)
-        self.qubit_map = {q: i for i, q in enumerate(self.qubits)}
+        self._qubit_map = {q: i for i, q in enumerate(self.qubits)}
 
     def measure(self, qubits: Sequence['cirq.Qid'], key: str, invert_mask: Sequence[bool]):
         """Measures the qubits and records to `log_of_measurement_results`.
@@ -103,17 +143,28 @@ class ActOnArgs(OperationTarget[TSelf]):
             return
         bits = self._perform_measurement(qubits)
         corrected = [bit ^ (bit < 2 and mask) for bit, mask in zip(bits, invert_mask)]
-        if key in self._log_of_measurement_results:
-            raise ValueError(f"Measurement already logged to key {key!r}")
-        self._log_of_measurement_results[key] = corrected
+        self._classical_data.record_measurement(
+            value.MeasurementKey.parse_serialized(key), corrected, qubits
+        )
 
     def get_axes(self, qubits: Sequence['cirq.Qid']) -> List[int]:
         return [self.qubit_map[q] for q in qubits]
 
-    @abc.abstractmethod
     def _perform_measurement(self, qubits: Sequence['cirq.Qid']) -> List[int]:
-        """Child classes that perform measurements should implement this with
-        the implementation."""
+        """Delegates the call to measure the density matrix."""
+        if self._state is not None:
+            return self._state.measure(self.get_axes(qubits), self.prng)
+        raise NotImplementedError()
+
+    def sample(
+        self,
+        qubits: Sequence['cirq.Qid'],
+        repetitions: int = 1,
+        seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None,
+    ) -> np.ndarray:
+        if self._state is not None:
+            return self._state.sample(self.get_axes(qubits), repetitions, seed)
+        raise NotImplementedError()
 
     def copy(self: TSelf, deep_copy_buffers: bool = True) -> TSelf:
         """Creates a copy of the object.
@@ -127,6 +178,10 @@ class ActOnArgs(OperationTarget[TSelf]):
             A copied instance.
         """
         args = copy.copy(self)
+        args._classical_data = self._classical_data.copy()
+        if self._state is not None:
+            args._state = self._state.copy(deep_copy_buffers=deep_copy_buffers)
+            return args
         if 'deep_copy_buffers' in inspect.signature(self._on_copy).parameters:
             self._on_copy(args, deep_copy_buffers)
         else:
@@ -138,7 +193,6 @@ class ActOnArgs(OperationTarget[TSelf]):
                 DeprecationWarning,
             )
             self._on_copy(args)
-        args._log_of_measurement_results = self.log_of_measurement_results.copy()
         return args
 
     def _on_copy(self: TSelf, args: TSelf, deep_copy_buffers: bool = True):
@@ -152,7 +206,10 @@ class ActOnArgs(OperationTarget[TSelf]):
     def kronecker_product(self: TSelf, other: TSelf, *, inplace=False) -> TSelf:
         """Joins two state spaces together."""
         args = self if inplace else copy.copy(self)
-        self._on_kronecker_product(other, args)
+        if self._state is not None and other._state is not None:
+            args._state = self._state.kron(other._state)
+        else:
+            self._on_kronecker_product(other, args)
         args._set_qubits(self.qubits + other.qubits)
         return args
 
@@ -187,7 +244,12 @@ class ActOnArgs(OperationTarget[TSelf]):
         """Splits two state spaces after a measurement or reset."""
         extracted = copy.copy(self)
         remainder = self if inplace else copy.copy(self)
-        self._on_factor(qubits, extracted, remainder, validate, atol)
+        if self._state is not None:
+            e, r = self._state.factor(self.get_axes(qubits), validate=validate, atol=atol)
+            extracted._state = e
+            remainder._state = r
+        else:
+            self._on_factor(qubits, extracted, remainder, validate, atol)
         extracted._set_qubits(qubits)
         remainder._set_qubits([q for q in self.qubits if q not in qubits])
         return extracted, remainder
@@ -195,7 +257,7 @@ class ActOnArgs(OperationTarget[TSelf]):
     @property
     def allows_factoring(self):
         """Subclasses that allow factorization should override this."""
-        return False
+        return self._state.supports_factor if self._state is not None else False
 
     def _on_factor(
         self: TSelf,
@@ -227,7 +289,10 @@ class ActOnArgs(OperationTarget[TSelf]):
         if len(self.qubits) != len(qubits) or set(qubits) != set(self.qubits):
             raise ValueError(f'Qubits do not match. Existing: {self.qubits}, provided: {qubits}')
         args = self if inplace else copy.copy(self)
-        self._on_transpose_to_qubit_order(qubits, args)
+        if self._state is not None:
+            args._state = self._state.reindex(self.get_axes(qubits))
+        else:
+            self._on_transpose_to_qubit_order(qubits, args)
         args._set_qubits(qubits)
         return args
 
@@ -236,8 +301,8 @@ class ActOnArgs(OperationTarget[TSelf]):
         functionality, if supported."""
 
     @property
-    def log_of_measurement_results(self) -> Dict[str, List[int]]:
-        return self._log_of_measurement_results
+    def classical_data(self) -> 'cirq.ClassicalDataStoreReader':
+        return self._classical_data
 
     @property
     def ignore_measurement_results(self) -> bool:
@@ -275,8 +340,7 @@ class ActOnArgs(OperationTarget[TSelf]):
         i2 = self.qubits.index(q2)
         qubits = list(args.qubits)
         qubits[i1], qubits[i2] = qubits[i2], qubits[i1]
-        args._qubits = tuple(qubits)
-        args.qubit_map = {q: i for i, q in enumerate(qubits)}
+        args._set_qubits(qubits)
         return args
 
     def rename(self, q1: 'cirq.Qid', q2: 'cirq.Qid', *, inplace=False):
@@ -303,8 +367,7 @@ class ActOnArgs(OperationTarget[TSelf]):
         i1 = self.qubits.index(q1)
         qubits = list(args.qubits)
         qubits[i1] = q2
-        args._qubits = tuple(qubits)
-        args.qubit_map = {q: i for i, q in enumerate(qubits)}
+        args._set_qubits(qubits)
         return args
 
     def __getitem__(self: TSelf, item: Optional['cirq.Qid']) -> TSelf:
@@ -320,7 +383,7 @@ class ActOnArgs(OperationTarget[TSelf]):
 
     @property
     def can_represent_mixed_states(self) -> bool:
-        return False
+        return self._state.can_represent_mixed_states if self._state is not None else False
 
 
 def strat_act_on_from_apply_decompose(

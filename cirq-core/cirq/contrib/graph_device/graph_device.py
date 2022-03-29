@@ -155,6 +155,7 @@ class UndirectedGraphDevice(devices.Device):
     def qubits(self) -> Tuple['cirq.Qid', ...]:
         return cast(Tuple['cirq.Qid', ...], tuple(sorted(self.device_graph.vertices)))
 
+    @_compat.deprecated(fix='Please use UndirectedGraphDevice.qubits', deadline='v0.15')
     def qubit_set(self) -> FrozenSet['cirq.Qid']:
         return frozenset(self.qubits)
 
@@ -211,7 +212,7 @@ class UndirectedGraphDevice(devices.Device):
             ):
                 validator(operation, *crosstalk_operations)
 
-    def validate_moment(self, moment: ops.Moment):
+    def validate_moment(self, moment: 'cirq.Moment'):
         super().validate_moment(moment)
         ops = moment.operations
         for i, op in enumerate(ops):

@@ -18,6 +18,7 @@ from unittest import mock
 
 import pytest
 
+import numpy as np
 import pandas as pd
 import sympy
 
@@ -58,7 +59,7 @@ def test_service_run(target, expected_results):
         param_resolver=params,
         seed=2,
     )
-    assert result == cirq.ResultDict(params=params, measurements={'a': expected_results})
+    assert result == cirq.ResultDict(params=params, measurements={'a': np.array(expected_results)})
 
     create_job_kwargs = mock_client.create_job.call_args[1]
     # Serialization induces a float, so we don't validate full circuit.

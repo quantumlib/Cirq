@@ -203,7 +203,7 @@ def test_linear_combination_of_gates_has_correct_pauli_expansion(terms, expected
             },
             10,
             {
-                cirq.I: 2 ** -10,
+                cirq.I: 2**-10,
             },
         ),
         (
@@ -212,7 +212,7 @@ def test_linear_combination_of_gates_has_correct_pauli_expansion(terms, expected
             },
             11,
             {
-                cirq.Y: 2 ** -11,
+                cirq.Y: 2**-11,
             },
         ),
         (
@@ -252,7 +252,7 @@ def test_linear_combination_of_gates_has_correct_pauli_expansion(terms, expected
 )
 def test_linear_combinations_of_gates_valid_powers(terms, exponent, expected_terms):
     combination = cirq.LinearCombinationOfGates(terms)
-    actual_result = combination ** exponent
+    actual_result = combination**exponent
     expected_result = cirq.LinearCombinationOfGates(expected_terms)
     assert cirq.approx_eq(actual_result, expected_result)
     assert len(actual_result) == len(expected_terms)
@@ -298,7 +298,7 @@ def test_linear_combinations_of_gates_valid_powers(terms, exponent, expected_ter
 def test_linear_combinations_of_gates_invalid_powers(terms, exponent):
     combination = cirq.LinearCombinationOfGates(terms)
     with pytest.raises(TypeError):
-        _ = combination ** exponent
+        _ = combination**exponent
 
 
 @pytest.mark.parametrize(
@@ -792,7 +792,7 @@ def test_linear_combination_of_operations_has_correct_pauli_expansion(terms, exp
             },
             10,
             {
-                cirq.I(q0): 2 ** -10,
+                cirq.I(q0): 2**-10,
             },
         ),
         (
@@ -801,7 +801,7 @@ def test_linear_combination_of_operations_has_correct_pauli_expansion(terms, exp
             },
             11,
             {
-                cirq.Y(q0): 2 ** -11,
+                cirq.Y(q0): 2**-11,
             },
         ),
         (
@@ -841,7 +841,7 @@ def test_linear_combination_of_operations_has_correct_pauli_expansion(terms, exp
 )
 def test_linear_combinations_of_operations_valid_powers(terms, exponent, expected_terms):
     combination = cirq.LinearCombinationOfOperations(terms)
-    actual_result = combination ** exponent
+    actual_result = combination**exponent
     expected_result = cirq.LinearCombinationOfOperations(expected_terms)
     assert cirq.approx_eq(actual_result, expected_result)
     assert len(actual_result) == len(expected_terms)
@@ -894,7 +894,7 @@ def test_linear_combinations_of_operations_valid_powers(terms, exponent, expecte
 def test_linear_combinations_of_operations_invalid_powers(terms, exponent):
     combination = cirq.LinearCombinationOfOperations(terms)
     with pytest.raises(TypeError):
-        _ = combination ** exponent
+        _ = combination**exponent
 
 
 @pytest.mark.parametrize(
@@ -1262,10 +1262,10 @@ def test_bad_arithmetic():
         _ = psum / [1, 2, 3]
 
     with pytest.raises(TypeError):
-        _ = psum ** 1.2
+        _ = psum**1.2
 
     with pytest.raises(TypeError):
-        _ = psum ** -2
+        _ = psum**-2
 
     with pytest.raises(TypeError):
         _ = psum ** "string"
@@ -1333,24 +1333,24 @@ def test_paulisum_mul_paulisum():
 def test_pauli_sum_pow():
     identity = cirq.PauliSum.from_pauli_strings([cirq.PauliString(coefficient=1)])
     psum1 = cirq.X(q0) + cirq.Y(q0)
-    assert psum1 ** 2 == psum1 * psum1
-    assert psum1 ** 2 == 2 * identity
+    assert psum1**2 == psum1 * psum1
+    assert psum1**2 == 2 * identity
 
     psum2 = cirq.X(q0) + cirq.Y(q1)
-    assert psum2 ** 2 == cirq.PauliString(cirq.I(q0)) + 2 * cirq.X(q0) * cirq.Y(
+    assert psum2**2 == cirq.PauliString(cirq.I(q0)) + 2 * cirq.X(q0) * cirq.Y(
         q1
     ) + cirq.PauliString(cirq.I(q1))
 
     psum3 = cirq.X(q0) * cirq.Z(q1) + 1.3 * cirq.Z(q0)
     sqd = cirq.PauliSum.from_pauli_strings([2.69 * cirq.PauliString(cirq.I(q0))])
-    assert cirq.approx_eq(psum3 ** 2, sqd, atol=1e-8)
+    assert cirq.approx_eq(psum3**2, sqd, atol=1e-8)
 
     psum4 = cirq.X(q0) * cirq.Z(q1) + 1.3 * cirq.Z(q1)
     sqd2 = cirq.PauliSum.from_pauli_strings([2.69 * cirq.PauliString(cirq.I(q0)), 2.6 * cirq.X(q0)])
-    assert cirq.approx_eq(psum4 ** 2, sqd2, atol=1e-8)
+    assert cirq.approx_eq(psum4**2, sqd2, atol=1e-8)
 
     for psum in [psum1, psum2, psum3, psum4]:
-        assert cirq.approx_eq(psum ** 0, identity)
+        assert cirq.approx_eq(psum**0, identity)
 
 
 # Using the entries of table 1 of https://arxiv.org/abs/1804.09130 as golden values.

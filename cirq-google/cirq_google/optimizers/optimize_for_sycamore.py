@@ -13,86 +13,25 @@
 # limitations under the License.
 """A combination of several optimizations targeting XmonDevice."""
 from functools import lru_cache
-from typing import Callable, cast, List, Optional, TYPE_CHECKING
+from typing import Callable, cast, Optional, TYPE_CHECKING
 
 import numpy as np
 
 import cirq
 from cirq_google import ops as cg_ops
-from cirq_google.optimizers import (
-    convert_to_xmon_gates,
-    ConvertToSycamoreGates,
-    ConvertToSqrtIswapGates,
-)
+from cirq_google.transformers.target_gatesets import sycamore_gateset
 
 if TYPE_CHECKING:
     import cirq_google
 
 
-def _get_common_cleanup_optimizers(tolerance: float) -> List[Callable[[cirq.Circuit], None]]:
-    return [
-        cirq.EjectPhasedPaulis(tolerance=tolerance).optimize_circuit,
-        cirq.EjectZ(tolerance=tolerance).optimize_circuit,
-    ]
-
-
-def _get_xmon_optimizers(
-    tolerance: float, tabulation: Optional[cirq.TwoQubitGateTabulation]
-) -> List[Callable[[cirq.Circuit], None]]:
-    if tabulation is not None:
-        # coverage: ignore
-        raise ValueError("Gate tabulation not supported for xmon")
-
-    return [
-        convert_to_xmon_gates.ConvertToXmonGates().optimize_circuit,
-        cirq.MergeInteractions(tolerance=tolerance, allow_partial_czs=False).optimize_circuit,
-        lambda c: cirq.merge_single_qubit_gates_into_phxz(c, tolerance),
-        *_get_common_cleanup_optimizers(tolerance=tolerance),
-    ]
-
-
-def _get_xmon_optimizers_part_cz(
-    tolerance: float, tabulation: Optional[cirq.TwoQubitGateTabulation]
-) -> List[Callable[[cirq.Circuit], None]]:
-    if tabulation is not None:
-        # coverage: ignore
-        raise ValueError("Gate tabulation not supported for xmon")
-    return [
-        convert_to_xmon_gates.ConvertToXmonGates().optimize_circuit,
-        cirq.MergeInteractions(tolerance=tolerance, allow_partial_czs=True).optimize_circuit,
-        lambda c: cirq.merge_single_qubit_gates_into_phxz(c, tolerance),
-        *_get_common_cleanup_optimizers(tolerance=tolerance),
-    ]
-
-
-def _get_sycamore_optimizers(
-    tolerance: float, tabulation: Optional[cirq.TwoQubitGateTabulation]
-) -> List[Callable[[cirq.Circuit], None]]:
-    return [
-        ConvertToSycamoreGates(tabulation=tabulation).optimize_circuit,
-        lambda c: cirq.merge_single_qubit_gates_into_phxz(c, tolerance),
-        *_get_common_cleanup_optimizers(tolerance=tolerance),
-    ]
-
-
-def _get_sqrt_iswap_optimizers(
-    tolerance: float, tabulation: Optional[cirq.TwoQubitGateTabulation]
-) -> List[Callable[[cirq.Circuit], None]]:
-    if tabulation is not None:
-        # coverage: ignore
-        raise ValueError("Gate tabulation not supported for sqrt_iswap")
-    return [
-        ConvertToSqrtIswapGates().optimize_circuit,
-        lambda c: cirq.merge_single_qubit_gates_into_phxz(c, tolerance),
-        *_get_common_cleanup_optimizers(tolerance=tolerance),
-    ]
-
-
-_OPTIMIZER_TYPES = {
-    'xmon': _get_xmon_optimizers,
-    'xmon_partial_cz': _get_xmon_optimizers_part_cz,
-    'sqrt_iswap': _get_sqrt_iswap_optimizers,
-    'sycamore': _get_sycamore_optimizers,
+_TARGET_GATESETS = {
+    'sqrt_iswap': lambda atol, _: cirq.SqrtIswapTargetGateset(atol=atol),
+    'sycamore': lambda atol, tabulation: sycamore_gateset.SycamoreTargetGateset(
+        atol=atol, tabulation=tabulation
+    ),
+    'xmon': lambda atol, _: cirq.CZTargetGateset(atol=atol),
+    'xmon_partial_cz': lambda atol, _: cirq.CZTargetGateset(atol=atol, allow_partial_czs=True),
 }
 
 
@@ -152,20 +91,25 @@ def optimized_for_sycamore(
         ValueError: If the `optimizer_type` is not a supported type.
     """
     copy = circuit.copy()
-    if optimizer_type not in _OPTIMIZER_TYPES:
+    if optimizer_type not in _TARGET_GATESETS:
         raise ValueError(
             f'{optimizer_type} is not an allowed type.  Allowed '
-            f'types are: {_OPTIMIZER_TYPES.keys()}'
+            f'types are: {_TARGET_GATESETS.keys()}'
         )
 
     tabulation: Optional[cirq.TwoQubitGateTabulation] = None
     if tabulation_resolution is not None:
         tabulation = _gate_product_tabulation_cached(optimizer_type, tabulation_resolution)
 
-    opts = _OPTIMIZER_TYPES[optimizer_type](tolerance=tolerance, tabulation=tabulation)
-    for optimizer in opts:
-        optimizer(copy)
-
+    if optimizer_type in _TARGET_GATESETS:
+        copy = cirq.optimize_for_target_gateset(
+            circuit,
+            gateset=_TARGET_GATESETS[optimizer_type](tolerance, tabulation),
+            context=cirq.TransformerContext(deep=True),
+        )
+    copy = cirq.merge_single_qubit_gates_to_phxz(copy, atol=tolerance)
+    copy = cirq.eject_phased_paulis(copy, atol=tolerance)
+    copy = cirq.eject_z(copy, atol=tolerance)
     copy = cirq.drop_negligible_operations(copy, atol=tolerance)
 
     ret = cirq.Circuit(

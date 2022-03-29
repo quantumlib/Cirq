@@ -104,7 +104,7 @@ def _strat_distance_from_unitary(val: Any) -> Optional[float]:
         squared = 1 - (0.5 * abs(u[0][0] + u[1][1])) ** 2
         if squared <= 0:
             return 0.0
-        return squared ** 0.5
+        return squared**0.5
 
     return trace_distance_from_angle_list(np.angle(np.linalg.eigvals(u)))
 
