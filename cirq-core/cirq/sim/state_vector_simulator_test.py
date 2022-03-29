@@ -176,7 +176,7 @@ def test_str_big():
     args = cirq.ActOnStateVectorArgs(
         prng=np.random.RandomState(0),
         qubits=qs,
-        initial_state=np.array([1] * 2 ** 10, dtype=np.complex64) * 0.03125,
+        initial_state=np.array([1] * 2**10, dtype=np.complex64) * 0.03125,
         dtype=np.complex64,
     )
     final_step_result = cirq.SparseSimulatorStep(args, cirq.Simulator())

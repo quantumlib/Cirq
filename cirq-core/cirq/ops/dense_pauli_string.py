@@ -211,7 +211,7 @@ class BaseDensePauliString(raw_types.Gate, metaclass=abc.ABCMeta):
             if self.coefficient in i_group:
                 coef = i_group[i_group.index(self.coefficient) * power % 4]
             else:
-                coef = self.coefficient ** power
+                coef = self.coefficient**power
             if power % 2 == 0:
                 return coef * DensePauliString.eye(len(self))
             return DensePauliString(coefficient=coef, pauli_mask=self.pauli_mask)
@@ -585,4 +585,4 @@ def _vectorized_pauli_mul_phase(
 
     # Result is i raised to the sum of the per-term phase exponents.
     s = int(np.sum(t, dtype=np.uint8).item() & 3)
-    return 1j ** s
+    return 1j**s

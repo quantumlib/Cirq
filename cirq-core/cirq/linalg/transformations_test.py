@@ -547,7 +547,7 @@ def test_partial_trace_of_state_vector_as_mixture_pure_result():
     )
 
     # Shapes of states in the output mixture conform to the input's shape.
-    state = state.reshape(2 ** 9)
+    state = state.reshape(2**9)
     assert mixtures_equal(
         cirq.partial_trace_of_state_vector_as_mixture(state, [0, 1], atol=1e-8), ((1.0, a),)
     )

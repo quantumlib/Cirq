@@ -50,10 +50,10 @@ def test_consistent_protocols(gate, ignoring_global_phase):
 
 
 def test_init():
-    assert (cirq.CCZ ** 0.5).exponent == 0.5
-    assert (cirq.CCZ ** 0.25).exponent == 0.25
-    assert (cirq.CCX ** 0.5).exponent == 0.5
-    assert (cirq.CCX ** 0.25).exponent == 0.25
+    assert (cirq.CCZ**0.5).exponent == 0.5
+    assert (cirq.CCZ**0.25).exponent == 0.25
+    assert (cirq.CCX**0.5).exponent == 0.5
+    assert (cirq.CCX**0.25).exponent == 0.25
 
 
 def test_unitary():
@@ -75,9 +75,9 @@ def test_unitary():
         atol=1e-8,
     )
 
-    assert cirq.has_unitary(cirq.CCX ** 0.5)
+    assert cirq.has_unitary(cirq.CCX**0.5)
     np.testing.assert_allclose(
-        cirq.unitary(cirq.CCX ** 0.5),
+        cirq.unitary(cirq.CCX**0.5),
         np.array(
             [
                 [1, 0, 0, 0, 0, 0, 0, 0],
@@ -98,9 +98,9 @@ def test_unitary():
         cirq.unitary(cirq.CCZ), np.diag([1, 1, 1, 1, 1, 1, 1, -1]), atol=1e-8
     )
 
-    assert cirq.has_unitary(cirq.CCZ ** 0.5)
+    assert cirq.has_unitary(cirq.CCZ**0.5)
     np.testing.assert_allclose(
-        cirq.unitary(cirq.CCZ ** 0.5), np.diag([1, 1, 1, 1, 1, 1, 1, 1j]), atol=1e-8
+        cirq.unitary(cirq.CCZ**0.5), np.diag([1, 1, 1, 1, 1, 1, 1, 1j]), atol=1e-8
     )
 
     assert cirq.has_unitary(cirq.CSWAP)
@@ -137,8 +137,8 @@ def test_str():
     assert str(cirq.FREDKIN) == 'FREDKIN'
     assert str(cirq.CCZ) == 'CCZ'
 
-    assert str(cirq.CCX ** 0.5) == 'TOFFOLI**0.5'
-    assert str(cirq.CCZ ** 0.5) == 'CCZ**0.5'
+    assert str(cirq.CCX**0.5) == 'TOFFOLI**0.5'
+    assert str(cirq.CCZ**0.5) == 'CCZ**0.5'
 
 
 def test_repr():
@@ -148,8 +148,8 @@ def test_repr():
     assert repr(cirq.FREDKIN) == 'cirq.FREDKIN'
     assert repr(cirq.CCZ) == 'cirq.CCZ'
 
-    assert repr(cirq.CCX ** 0.5) == '(cirq.TOFFOLI**0.5)'
-    assert repr(cirq.CCZ ** 0.5) == '(cirq.CCZ**0.5)'
+    assert repr(cirq.CCX**0.5) == '(cirq.TOFFOLI**0.5)'
+    assert repr(cirq.CCZ**0.5) == '(cirq.CCZ**0.5)'
 
 
 def test_eq():
@@ -300,7 +300,7 @@ def test_diagonal_exponent():
     diagonal_angles = [2, 3, 5, 7, 11, 13, 17, 19]
     diagonal_gate = cirq.ThreeQubitDiagonalGate(diagonal_angles)
 
-    sqrt_diagonal_gate = diagonal_gate ** 0.5
+    sqrt_diagonal_gate = diagonal_gate**0.5
 
     expected_angles = [prime / 2 for prime in diagonal_angles]
     np.testing.assert_allclose(expected_angles, sqrt_diagonal_gate._diag_angles_radians, atol=1e-8)

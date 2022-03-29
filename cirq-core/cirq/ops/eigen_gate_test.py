@@ -356,19 +356,19 @@ class WeightedZPowGate(cirq.EigenGate, cirq.SingleQubitGate):
 @pytest.mark.parametrize(
     'gate1,gate2,eq_up_to_global_phase',
     [
-        (cirq.rz(0.3 * np.pi), cirq.Z ** 0.3, True),
+        (cirq.rz(0.3 * np.pi), cirq.Z**0.3, True),
         (cirq.Z, cirq.Gate, False),
-        (cirq.rz(0.3), cirq.Z ** 0.3, False),
+        (cirq.rz(0.3), cirq.Z**0.3, False),
         (cirq.ZZPowGate(global_shift=0.5), cirq.ZZ, True),
         (cirq.ZPowGate(global_shift=0.5) ** sympy.Symbol('e'), cirq.Z, False),
         (cirq.Z ** sympy.Symbol('e'), cirq.Z ** sympy.Symbol('f'), False),
-        (cirq.ZZ ** 1.9, cirq.ZZ ** -0.1, True),
+        (cirq.ZZ**1.9, cirq.ZZ**-0.1, True),
         (WeightedZPowGate(0), WeightedZPowGate(0.1), False),
         (WeightedZPowGate(0.3), WeightedZPowGate(0.3, global_shift=0.1), True),
         (cirq.X, cirq.Z, False),
         (cirq.X, cirq.Y, False),
         (cirq.rz(np.pi), cirq.Z, True),
-        (cirq.X ** 0.3, cirq.Z ** 0.3, False),
+        (cirq.X**0.3, cirq.Z**0.3, False),
     ],
 )
 def test_equal_up_to_global_phase(gate1, gate2, eq_up_to_global_phase):

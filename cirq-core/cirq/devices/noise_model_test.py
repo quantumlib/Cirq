@@ -121,7 +121,7 @@ def test_constant_qubit_noise():
     cirq.testing.assert_equivalent_repr(damp_all)
 
     with pytest.raises(ValueError, match='num_qubits'):
-        _ = cirq.ConstantQubitNoiseModel(cirq.CNOT ** 0.01)
+        _ = cirq.ConstantQubitNoiseModel(cirq.CNOT**0.01)
 
 
 def test_noise_composition():
@@ -129,7 +129,7 @@ def test_noise_composition():
     # long as the noise operators commute with one another.
     a, b, c = cirq.LineQubit.range(3)
     noise_z = cirq.ConstantQubitNoiseModel(cirq.Z)
-    noise_inv_s = cirq.ConstantQubitNoiseModel(cirq.S ** -1)
+    noise_inv_s = cirq.ConstantQubitNoiseModel(cirq.S**-1)
     base_moments = [cirq.Moment([cirq.X(a)]), cirq.Moment([cirq.Y(b)]), cirq.Moment([cirq.H(c)])]
     circuit_z = cirq.Circuit(noise_z.noisy_moments(base_moments, [a, b, c]))
     circuit_s = cirq.Circuit(noise_inv_s.noisy_moments(base_moments, [a, b, c]))
@@ -154,7 +154,7 @@ def test_noise_composition():
 
 
 def test_constant_qubit_noise_repr():
-    cirq.testing.assert_equivalent_repr(cirq.ConstantQubitNoiseModel(cirq.X ** 0.01))
+    cirq.testing.assert_equivalent_repr(cirq.ConstantQubitNoiseModel(cirq.X**0.01))
 
 
 def test_wrap():
@@ -168,8 +168,8 @@ def test_wrap():
     assert cirq.NoiseModel.from_noise_model_like(
         cirq.depolarize(0.1)
     ) == cirq.ConstantQubitNoiseModel(cirq.depolarize(0.1))
-    assert cirq.NoiseModel.from_noise_model_like(cirq.Z ** 0.01) == cirq.ConstantQubitNoiseModel(
-        cirq.Z ** 0.01
+    assert cirq.NoiseModel.from_noise_model_like(cirq.Z**0.01) == cirq.ConstantQubitNoiseModel(
+        cirq.Z**0.01
     )
     assert cirq.NoiseModel.from_noise_model_like(forget) is forget
 
@@ -177,7 +177,7 @@ def test_wrap():
         _ = cirq.NoiseModel.from_noise_model_like('test')
 
     with pytest.raises(ValueError, match='Multi-qubit gate'):
-        _ = cirq.NoiseModel.from_noise_model_like(cirq.CZ ** 0.01)
+        _ = cirq.NoiseModel.from_noise_model_like(cirq.CZ**0.01)
 
 
 def test_gate_substitution_noise_model():

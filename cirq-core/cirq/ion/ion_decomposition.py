@@ -118,6 +118,6 @@ def _non_local_part(
 
     return [
         _parity_interaction(q0, q1, x, atol),
-        _parity_interaction(q0, q1, y, atol, ops.Z ** -0.5),
-        _parity_interaction(q0, q1, z, atol, ops.Y ** 0.5),
+        _parity_interaction(q0, q1, y, atol, ops.Z**-0.5),
+        _parity_interaction(q0, q1, z, atol, ops.Y**0.5),
     ]
