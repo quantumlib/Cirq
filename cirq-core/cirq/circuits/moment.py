@@ -414,7 +414,7 @@ class Moment:
         transpose = input_subscripts + '->' + output_subscripts
 
         r = []
-        d = 2 ** n
+        d = 2**n
         kss = [kraus_tensors(op) for op in self.operations]
         for ks in itertools.product(*kss):
             k = np.einsum(transpose, *ks)

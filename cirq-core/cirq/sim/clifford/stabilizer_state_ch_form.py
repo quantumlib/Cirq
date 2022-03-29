@@ -117,15 +117,15 @@ class StabilizerStateChForm(qis.StabilizerState):
         return (
             self.omega
             * 2 ** (-sum(self.v) / 2)
-            * 1j ** mu
+            * 1j**mu
             * (-1) ** sum(self.v & u & self.s)
             * np.all(self.v | (u == self.s))
         )
 
     def state_vector(self) -> np.ndarray:
-        wf = np.zeros(2 ** self.n, dtype=complex)
+        wf = np.zeros(2**self.n, dtype=complex)
 
-        for x in range(2 ** self.n):
+        for x in range(2**self.n):
             wf[x] = self.inner_product_of_state_and_x(x)
 
         return wf
@@ -154,7 +154,7 @@ class StabilizerStateChForm(qis.StabilizerState):
         """
         if np.all(t == u):
             self.s = t
-            self.omega *= 1 / np.sqrt(2) * (-1) ** alpha * (1 + 1j ** delta)
+            self.omega *= 1 / np.sqrt(2) * (-1) ** alpha * (1 + 1j**delta)
             return
         set0 = np.where((~self.v) & (t ^ u))[0]
         set1 = np.where(self.v & (t ^ u))[0]
@@ -221,7 +221,7 @@ class StabilizerStateChForm(qis.StabilizerState):
                 c = bool(delta >> 1)
                 omega = (-1) ** (c & y)
             else:
-                omega = 1 / np.sqrt(2) * (1 + 1j ** delta)
+                omega = 1 / np.sqrt(2) * (1 + 1j**delta)
                 b = True
                 a = True
                 c = not ((delta >> 1) ^ y)
@@ -229,7 +229,7 @@ class StabilizerStateChForm(qis.StabilizerState):
         return omega, a, b, c
 
     def to_state_vector(self) -> np.ndarray:
-        arr = np.zeros(2 ** self.n, dtype=complex)
+        arr = np.zeros(2**self.n, dtype=complex)
 
         for x in range(len(arr)):
             arr[x] = self.inner_product_of_state_and_x(x)
@@ -310,7 +310,7 @@ class StabilizerStateChForm(qis.StabilizerState):
         elif exponent % 2 == 0.5:
             self.apply_z(axis)
             self.apply_h(axis)
-            self.omega *= shift * (1 + 1j) / (2 ** 0.5)
+            self.omega *= shift * (1 + 1j) / (2**0.5)
         elif exponent % 2 == 1:
             self.apply_z(axis)
             self.apply_h(axis)
@@ -320,7 +320,7 @@ class StabilizerStateChForm(qis.StabilizerState):
         elif exponent % 2 == 1.5:
             self.apply_h(axis)
             self.apply_z(axis)
-            self.omega *= shift * (1 - 1j) / (2 ** 0.5)
+            self.omega *= shift * (1 - 1j) / (2**0.5)
 
     def apply_z(self, axis: int, exponent: float = 1, global_shift: float = 0):
         if exponent % 2 != 0:

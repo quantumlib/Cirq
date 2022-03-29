@@ -122,7 +122,7 @@ class PhaseGradientGate(raw_types.Gate):
 
     def _decompose_(self, qubits):
         for i, q in enumerate(qubits):
-            yield cirq.Z(q) ** (self.exponent / 2 ** i)
+            yield cirq.Z(q) ** (self.exponent / 2**i)
 
     def _apply_unitary_(self, args: 'cirq.ApplyUnitaryArgs'):
         if isinstance(self.exponent, sympy.Basic):

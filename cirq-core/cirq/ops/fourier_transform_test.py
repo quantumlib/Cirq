@@ -59,7 +59,7 @@ def test_quantum_fourier_transform_gate_repr():
 
 def test_pow():
     a = cirq.PhaseGradientGate(num_qubits=2, exponent=0.5)
-    assert a ** 0.5 == cirq.PhaseGradientGate(num_qubits=2, exponent=0.25)
+    assert a**0.5 == cirq.PhaseGradientGate(num_qubits=2, exponent=0.25)
     assert a ** sympy.Symbol('t') == cirq.PhaseGradientGate(
         num_qubits=2, exponent=0.5 * sympy.Symbol('t')
     )

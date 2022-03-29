@@ -75,7 +75,7 @@ def assert_implements_consistent_protocols(
         p = protocols.pow(val, exponent, None)
         if p is not None:
             _assert_meets_standards_helper(
-                val ** exponent,
+                val**exponent,
                 ignoring_global_phase=ignoring_global_phase,
                 setup_code=setup_code,
                 global_vals=global_vals,
