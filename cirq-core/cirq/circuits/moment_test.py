@@ -18,6 +18,24 @@ import pytest
 import cirq
 import cirq.testing
 
+ALLOW_DEPRECATION_IN_TEST = 'ALLOW_DEPRECATION_IN_TEST'
+
+
+def test_deprecated_submodule():
+    with cirq.testing.assert_deprecated(
+        "Use cirq.circuits.moment instead",
+        deadline="v0.16",
+    ):
+        _ = cirq.ops.moment.Moment
+
+
+def test_deprecated_attribute_in_cirq_ops():
+    with cirq.testing.assert_deprecated(
+        "Use cirq.circuits.Moment instead",
+        deadline="v0.16",
+    ):
+        _ = cirq.ops.Moment
+
 
 def test_validation():
     a = cirq.NamedQubit('a')
@@ -305,6 +323,16 @@ def test_with_key_path():
     )
 
 
+def test_with_key_path_prefix():
+    a, b, c = cirq.LineQubit.range(3)
+    m = cirq.Moment(cirq.measure(a, key='m1'), cirq.measure(b, key='m2'), cirq.X(c))
+    mb = cirq.with_key_path_prefix(m, ('b',))
+    mab = cirq.with_key_path_prefix(mb, ('a',))
+    assert mab.operations[0] == cirq.measure(a, key=cirq.MeasurementKey.parse_serialized('a:b:m1'))
+    assert mab.operations[1] == cirq.measure(b, key=cirq.MeasurementKey.parse_serialized('a:b:m2'))
+    assert mab.operations[2] is m.operations[2]
+
+
 def test_copy():
     a = cirq.NamedQubit('a')
     b = cirq.NamedQubit('b')
@@ -381,10 +409,10 @@ def test_json_dict():
 def test_inverse():
     a, b, c = cirq.LineQubit.range(3)
     m = cirq.Moment([cirq.S(a), cirq.CNOT(b, c)])
-    assert m ** 1 is m
-    assert m ** -1 == cirq.Moment([cirq.S(a) ** -1, cirq.CNOT(b, c)])
-    assert m ** 0.5 == cirq.Moment([cirq.T(a), cirq.CNOT(b, c) ** 0.5])
-    assert cirq.inverse(m) == m ** -1
+    assert m**1 is m
+    assert m**-1 == cirq.Moment([cirq.S(a) ** -1, cirq.CNOT(b, c)])
+    assert m**0.5 == cirq.Moment([cirq.T(a), cirq.CNOT(b, c) ** 0.5])
+    assert cirq.inverse(m) == m**-1
     assert cirq.inverse(cirq.inverse(m)) == m
     assert cirq.inverse(cirq.Moment([cirq.measure(a)]), default=None) is None
 

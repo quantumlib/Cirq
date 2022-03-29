@@ -95,7 +95,7 @@ class SpecklePurityDepolarizingModel(CrossEntropyDepolarizingModel):
     @property
     def purity(self) -> float:
         """The purity. Equal to p**2, where p is the cycle depolarization."""
-        return self.cycle_depolarization ** 2
+        return self.cycle_depolarization**2
 
 
 @protocols.json_serializable_dataclass(frozen=True)
@@ -235,7 +235,7 @@ def _fit_exponential_decay(x: Sequence[int], y: Sequence[float]) -> Tuple[np.nda
 
     # Perform nonlinear least squares
     def f(a, S, p):
-        return S * p ** a
+        return S * p**a
 
     return optimize.curve_fit(f, x, y, p0=p0)
 
@@ -279,7 +279,7 @@ def cross_entropy_benchmarking(
     sampler: work.Sampler,
     qubits: Sequence[ops.Qid],
     *,
-    benchmark_ops: Sequence[ops.Moment] = None,
+    benchmark_ops: Sequence[circuits.Moment] = None,
     num_circuits: int = 20,
     repetitions: int = 1000,
     cycles: Union[int, Iterable[int]] = range(2, 103, 10),
@@ -341,10 +341,10 @@ def cross_entropy_benchmarking(
     Args:
         sampler: The quantum engine or simulator to run the circuits.
         qubits: The qubits included in the XEB experiment.
-        benchmark_ops: A sequence of ops.Moment containing gate operations
+        benchmark_ops: A sequence of circuits.Moment containing gate operations
             between specific qubits which are to be benchmarked for fidelity.
-            If more than one ops.Moment is specified, the random circuits
-            will rotate between the ops.Moment's. As an example,
+            If more than one circuits.Moment is specified, the random circuits
+            will rotate between the circuits.Moment's. As an example,
             if benchmark_ops = [Moment([ops.CZ(q0, q1), ops.CZ(q2, q3)]),
             Moment([ops.CZ(q1, q2)]) where q0, q1, q2 and q3 are instances of
             Qid (such as GridQubits), each random circuit will apply CZ gate
@@ -382,8 +382,8 @@ def cross_entropy_benchmarking(
     # all trials in two dictionaries. The keys of the dictionaries are the
     # numbers of cycles. The values are 2D arrays with each row being the
     # probabilities obtained from a single trial.
-    probs_meas = {n: np.zeros((num_circuits, 2 ** num_qubits)) for n in cycle_range}
-    probs_th = {n: np.zeros((num_circuits, 2 ** num_qubits)) for n in cycle_range}
+    probs_meas = {n: np.zeros((num_circuits, 2**num_qubits)) for n in cycle_range}
+    probs_th = {n: np.zeros((num_circuits, 2**num_qubits)) for n in cycle_range}
 
     for k in range(num_circuits):
 
@@ -419,7 +419,7 @@ def cross_entropy_benchmarking(
 
 def build_entangling_layers(
     qubits: Sequence[devices.GridQubit], two_qubit_gate: ops.Gate
-) -> List[ops.Moment]:
+) -> List[circuits.Moment]:
     """Builds a sequence of gates that entangle all pairs of qubits on a grid.
 
     The qubits are restricted to be physically on a square grid with distinct
@@ -463,7 +463,7 @@ def build_entangling_layers(
             neighboring pairs of qubits.
 
     Returns:
-        A list of ops.Moment, with a maximum length of 4. Each ops.Moment
+        A list of circuits.Moment, with a maximum length of 4. Each circuits.Moment
         includes two-qubit gates which can be performed at the same time.
 
     Raises:
@@ -473,7 +473,7 @@ def build_entangling_layers(
         raise ValueError('Input must be a two-qubit gate')
     interaction_sequence = _default_interaction_sequence(qubits)
     return [
-        ops.Moment([two_qubit_gate(q_a, q_b) for (q_a, q_b) in pairs])
+        circuits.Moment([two_qubit_gate(q_a, q_b) for (q_a, q_b) in pairs])
         for pairs in interaction_sequence
     ]
 
@@ -482,7 +482,7 @@ def _build_xeb_circuits(
     qubits: Sequence[ops.Qid],
     cycles: Sequence[int],
     single_qubit_gates: List[List[ops.SingleQubitGate]] = None,
-    benchmark_ops: Sequence[ops.Moment] = None,
+    benchmark_ops: Sequence[circuits.Moment] = None,
 ) -> List[circuits.Circuit]:
     if benchmark_ops is not None:
         num_d = len(benchmark_ops)
@@ -552,14 +552,14 @@ def _compute_fidelity(probs_th: np.ndarray, probs_meas: np.ndarray) -> float:
     """
     _, num_states = probs_th.shape
     pp_cross = probs_th * probs_meas
-    pp_th = probs_th ** 2
+    pp_th = probs_th**2
     f_meas = np.mean(num_states * np.sum(pp_cross, axis=1) - 1.0)
     f_th = np.mean(num_states * np.sum(pp_th, axis=1) - 1.0)
     return float(f_meas / f_th)
 
 
 def _random_half_rotations(qubits: Sequence[ops.Qid], num_layers: int) -> List[List[ops.OP_TREE]]:
-    rot_ops = [ops.X ** 0.5, ops.Y ** 0.5, ops.PhasedXPowGate(phase_exponent=0.25, exponent=0.5)]
+    rot_ops = [ops.X**0.5, ops.Y**0.5, ops.PhasedXPowGate(phase_exponent=0.25, exponent=0.5)]
     num_qubits = len(qubits)
     rand_nums = np.random.choice(3, (num_qubits, num_layers))
     single_q_layers: List[List[ops.OP_TREE]] = []

@@ -425,13 +425,13 @@ def test_axis_angle_decomposition_str():
     assert str(cirq.axis_angle(cirq.unitary(cirq.Y))) == '1*π around Y'
     assert str(cirq.axis_angle(cirq.unitary(cirq.Z))) == '1*π around Z'
     assert str(cirq.axis_angle(cirq.unitary(cirq.H))) == '1*π around 0.707*X+0.707*Z'
-    assert str(cirq.axis_angle(cirq.unitary(cirq.H ** 0.5))) == '0.5*π around 0.707*X+0.707*Z'
+    assert str(cirq.axis_angle(cirq.unitary(cirq.H**0.5))) == '0.5*π around 0.707*X+0.707*Z'
     assert (
         str(
             cirq.axis_angle(
-                cirq.unitary(cirq.X ** 0.25)
-                @ cirq.unitary(cirq.Y ** 0.25)
-                @ cirq.unitary(cirq.Z ** 0.25)
+                cirq.unitary(cirq.X**0.25)
+                @ cirq.unitary(cirq.Y**0.25)
+                @ cirq.unitary(cirq.Z**0.25)
             )
         )
         == '0.477*π around 0.679*X+0.281*Y+0.679*Z'
@@ -462,14 +462,14 @@ def test_axis_angle():
         atol=1e-8,
     )
     assert cirq.approx_eq(
-        cirq.axis_angle(cirq.unitary(cirq.X ** 0.5)),
+        cirq.axis_angle(cirq.unitary(cirq.X**0.5)),
         cirq.AxisAngleDecomposition(
             angle=np.pi / 2, axis=(1, 0, 0), global_phase=np.exp(1j * np.pi / 4)
         ),
         atol=1e-8,
     )
     assert cirq.approx_eq(
-        cirq.axis_angle(cirq.unitary(cirq.X ** -0.5)),
+        cirq.axis_angle(cirq.unitary(cirq.X**-0.5)),
         cirq.AxisAngleDecomposition(
             angle=-np.pi / 2, axis=(1, 0, 0), global_phase=np.exp(-1j * np.pi / 4)
         ),
@@ -496,7 +496,7 @@ def test_axis_angle():
     )
 
     assert cirq.approx_eq(
-        cirq.axis_angle(cirq.unitary(cirq.H ** 0.5)),
+        cirq.axis_angle(cirq.unitary(cirq.H**0.5)),
         cirq.AxisAngleDecomposition(
             angle=np.pi / 2,
             axis=(np.sqrt(0.5), 0, np.sqrt(0.5)),
@@ -736,9 +736,9 @@ def test_kak_vector_input_not_unitary():
         cirq.testing.random_unitary(4),
         cirq.unitary(cirq.IdentityGate(2)),
         cirq.unitary(cirq.SWAP),
-        cirq.unitary(cirq.SWAP ** 0.25),
+        cirq.unitary(cirq.SWAP**0.25),
         cirq.unitary(cirq.ISWAP),
-        cirq.unitary(cirq.CZ ** 0.5),
+        cirq.unitary(cirq.CZ**0.5),
         cirq.unitary(cirq.CZ),
     ],
 )

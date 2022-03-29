@@ -31,7 +31,7 @@ from cirq.testing.devices import ValidatingTestDevice
 
 class _Foxy(ValidatingTestDevice):
     def can_add_operation_into_moment(
-        self, operation: 'ops.Operation', moment: 'ops.Moment'
+        self, operation: 'cirq.Operation', moment: 'cirq.Moment'
     ) -> bool:
         if not super().can_add_operation_into_moment(operation, moment):
             return False
@@ -107,10 +107,12 @@ def test_insert_moment_types_deprecated():
         circuit = cirq.Circuit(device=moment_and_op_type_validating_device)
 
     moment_or_operation_tree = [cirq.X(x), cirq.Moment([cirq.Y(x)])]
-    circuit.insert(0, moment_or_operation_tree)
+    with cirq.testing.assert_deprecated('insert', deadline='v0.15'):
+        circuit.insert(0, moment_or_operation_tree)
 
     moment_or_operation_tree = [[cirq.Moment([cirq.X(x)])]]
-    circuit.insert(0, moment_or_operation_tree)
+    with cirq.testing.assert_deprecated('insert', deadline='v0.15'):
+        circuit.insert(0, moment_or_operation_tree)
 
 
 def test_setitem():
@@ -206,7 +208,7 @@ def test_approx_eq(circuit_cls):
 
 @pytest.mark.parametrize('circuit_cls', [cirq.Circuit, cirq.FrozenCircuit])
 def test_approx_eq_device_deprecated(circuit_cls):
-    class TestDevice(cirq.Device):
+    class FakeDevice(cirq.Device):
         def validate_operation(self, operation: cirq.Operation) -> None:
             pass
 
@@ -214,7 +216,7 @@ def test_approx_eq_device_deprecated(circuit_cls):
     with cirq.testing.assert_deprecated(
         cirq.circuits.circuit._DEVICE_DEP_MESSAGE, deadline='v0.15'
     ):
-        other_device = circuit_cls([cirq.Moment([cirq.X(a)])], device=TestDevice())
+        other_device = circuit_cls([cirq.Moment([cirq.X(a)])], device=FakeDevice())
     assert not cirq.approx_eq(
         circuit_cls([cirq.Moment([cirq.X(a)])]),
         other_device,
@@ -1305,7 +1307,7 @@ def test_next_moment_operating_on_distance(circuit_cls):
     assert c.next_moment_operating_on([a], 1, max_distance=500) == 4
 
     # Huge max distances should be handled quickly due to capping.
-    assert c.next_moment_operating_on([a], 5, max_distance=10 ** 100) is None
+    assert c.next_moment_operating_on([a], 5, max_distance=10**100) is None
 
     with pytest.raises(ValueError, match='Negative max_distance'):
         c.next_moment_operating_on([a], 0, max_distance=-1)
@@ -1394,10 +1396,32 @@ def test_prev_moment_operating_on_distance(circuit_cls):
     assert c.prev_moment_operating_on([a], 13, max_distance=500) == 1
 
     # Huge max distances should be handled quickly due to capping.
-    assert c.prev_moment_operating_on([a], 1, max_distance=10 ** 100) is None
+    assert c.prev_moment_operating_on([a], 1, max_distance=10**100) is None
 
     with pytest.raises(ValueError, match='Negative max_distance'):
         c.prev_moment_operating_on([a], 6, max_distance=-1)
+
+
+def test_earliest_available_moment():
+    q = cirq.LineQubit.range(3)
+    c = cirq.Circuit(
+        cirq.Moment(cirq.measure(q[0], key="m")),
+        cirq.Moment(cirq.X(q[1]).with_classical_controls("m")),
+    )
+    assert c.earliest_available_moment(cirq.Y(q[0])) == 1
+    assert c.earliest_available_moment(cirq.Y(q[1])) == 2
+    assert c.earliest_available_moment(cirq.Y(q[2])) == 0
+    assert c.earliest_available_moment(cirq.Y(q[2]).with_classical_controls("m")) == 1
+    assert (
+        c.earliest_available_moment(cirq.Y(q[2]).with_classical_controls("m"), end_moment_index=1)
+        == 1
+    )
+
+    # Returns `end_moment_index` by default without verifying if an operation already exists there.
+    assert (
+        c.earliest_available_moment(cirq.Y(q[1]).with_classical_controls("m"), end_moment_index=1)
+        == 1
+    )
 
 
 @pytest.mark.parametrize('circuit_cls', [cirq.Circuit, cirq.FrozenCircuit])
@@ -1679,7 +1703,7 @@ def test_findall_operations_until_blocked(circuit_cls):
     )
 
 
-@pytest.mark.parametrize('seed', [randint(0, 2 ** 31)])
+@pytest.mark.parametrize('seed', [randint(0, 2**31)])
 @pytest.mark.parametrize('circuit_cls', [cirq.Circuit, cirq.FrozenCircuit])
 def test_findall_operations_until_blocked_docstring_examples(seed, circuit_cls):
     prng = np.random.RandomState(seed)
@@ -2837,7 +2861,7 @@ def test_circuit_superoperator_depolarizing_channel_compositions(rs, n_qubits):
         makes it simple to compute the serial composition of depolarizing channels. It
         is multiplicative under channel composition.
         """
-        d2 = 4 ** n_qubits
+        d2 = 4**n_qubits
         return (1 - r) * (d2 - 1) / d2
 
     def depolarize(r: float, n_qubits: int) -> cirq.DepolarizingChannel:
@@ -4038,9 +4062,9 @@ def test_submoments(circuit_cls):
         cirq.H.on(d),
         cirq.CZ.on(a, d),
         cirq.CZ.on(b, c),
-        (cirq.CNOT ** 0.5).on(a, d),
-        (cirq.CNOT ** 0.5).on(b, e),
-        (cirq.CNOT ** 0.5).on(c, f),
+        (cirq.CNOT**0.5).on(a, d),
+        (cirq.CNOT**0.5).on(b, e),
+        (cirq.CNOT**0.5).on(c, f),
         cirq.H.on(c),
         cirq.H.on(e),
     )
@@ -4167,15 +4191,12 @@ def test_measurement_key_mapping(circuit_cls):
     assert simulator.run(c).measurements == {'m1': 1, 'm2': 0}
     assert simulator.run(c_swapped).measurements == {'m1': 0, 'm2': 1}
 
-    assert (
-        cirq.with_measurement_key_mapping(
-            c,
-            {
-                'x': 'z',
-            },
-        ).all_measurement_key_names()
-        == {'m1', 'm2'}
-    )
+    assert cirq.with_measurement_key_mapping(
+        c,
+        {
+            'x': 'z',
+        },
+    ).all_measurement_key_names() == {'m1', 'm2'}
 
 
 @pytest.mark.parametrize('circuit_cls', [cirq.Circuit, cirq.FrozenCircuit])
@@ -4198,7 +4219,7 @@ def test_measurement_key_mapping_preserves_moments(circuit_cls):
 @pytest.mark.parametrize('circuit_cls', [cirq.Circuit, cirq.FrozenCircuit])
 def test_inverse(circuit_cls):
     a, b = cirq.LineQubit.range(2)
-    forward = circuit_cls((cirq.X ** 0.5)(a), (cirq.Y ** -0.2)(b), cirq.CZ(a, b))
+    forward = circuit_cls((cirq.X**0.5)(a), (cirq.Y**-0.2)(b), cirq.CZ(a, b))
     backward = circuit_cls((cirq.CZ ** (-1.0))(a, b), (cirq.X ** (-0.5))(a), (cirq.Y ** (0.2))(b))
     cirq.testing.assert_same_circuits(cirq.inverse(forward), backward)
 
@@ -4209,7 +4230,7 @@ def test_inverse(circuit_cls):
         cirq.inverse(no_inverse)
 
     # Default when there is no inverse for an op.
-    default = circuit_cls((cirq.X ** 0.5)(a), (cirq.Y ** -0.2)(b))
+    default = circuit_cls((cirq.X**0.5)(a), (cirq.Y**-0.2)(b))
     cirq.testing.assert_same_circuits(cirq.inverse(no_inverse, default), default)
     assert cirq.inverse(no_inverse, None) is None
 
@@ -4217,7 +4238,7 @@ def test_inverse(circuit_cls):
 @pytest.mark.parametrize('circuit_cls', [cirq.Circuit, cirq.FrozenCircuit])
 def test_pow_valid_only_for_minus_1(circuit_cls):
     a, b = cirq.LineQubit.range(2)
-    forward = circuit_cls((cirq.X ** 0.5)(a), (cirq.Y ** -0.2)(b), cirq.CZ(a, b))
+    forward = circuit_cls((cirq.X**0.5)(a), (cirq.Y**-0.2)(b), cirq.CZ(a, b))
 
     backward = circuit_cls((cirq.CZ ** (-1.0))(a, b), (cirq.X ** (-0.5))(a), (cirq.Y ** (0.2))(b))
     cirq.testing.assert_same_circuits(cirq.pow(forward, -1), backward)
@@ -4618,28 +4639,22 @@ def test_all_measurement_key_names(circuit_cls):
     assert circuit_cls().all_measurement_key_names() == set()
 
     # Order does not matter.
-    assert (
-        circuit_cls(
-            cirq.Moment(
-                [
-                    cirq.measure(a, key='x'),
-                    cirq.measure(b, key='y'),
-                ]
-            )
-        ).all_measurement_key_names()
-        == {'x', 'y'}
-    )
-    assert (
-        circuit_cls(
-            cirq.Moment(
-                [
-                    cirq.measure(b, key='y'),
-                    cirq.measure(a, key='x'),
-                ]
-            )
-        ).all_measurement_key_names()
-        == {'x', 'y'}
-    )
+    assert circuit_cls(
+        cirq.Moment(
+            [
+                cirq.measure(a, key='x'),
+                cirq.measure(b, key='y'),
+            ]
+        )
+    ).all_measurement_key_names() == {'x', 'y'}
+    assert circuit_cls(
+        cirq.Moment(
+            [
+                cirq.measure(b, key='y'),
+                cirq.measure(a, key='x'),
+            ]
+        )
+    ).all_measurement_key_names() == {'x', 'y'}
 
 
 def test_zip():

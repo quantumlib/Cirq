@@ -13,11 +13,11 @@
 # limitations under the License.
 
 import abc
-from typing import Dict, List, TYPE_CHECKING
+from typing import List, TYPE_CHECKING
 
 import numpy as np
 
-from cirq import devices, work, study, protocols
+from cirq import devices, work, study
 
 if TYPE_CHECKING:
     import cirq
@@ -53,17 +53,19 @@ class ZerosSampler(work.Sampler, metaclass=abc.ABCMeta):
             resolver.
 
         Raises:
-            ValueError if this sampler has a device and the circuit is not
-            valid for the device.
+            ValueError: circuit is not valid for the sampler, due to invalid
+            repeated keys or incompatibility with the sampler's device.
         """
         if self.device:
             self.device.validate_circuit(program)
-        measurements: Dict[str, np.ndarray] = {}
-        for op in program.all_operations():
-            key = protocols.measurement_key_name(op, default=None)
-            if key is not None:
-                measurements[key] = np.zeros((repetitions, len(op.qubits)), dtype=int)
+        shapes = self._get_measurement_shapes(program)
         return [
-            study.ResultDict(params=param_resolver, measurements=measurements)
+            study.ResultDict(
+                params=param_resolver,
+                records={
+                    k: np.zeros((repetitions, num_instances, len(qid_shape)), dtype=int)
+                    for k, (num_instances, qid_shape) in shapes.items()
+                },
+            )
             for param_resolver in study.to_resolvers(params)
         ]

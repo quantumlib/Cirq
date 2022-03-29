@@ -135,7 +135,7 @@ def test_point_optimizer_post_clean_up():
 
     def clean_up(operations):
         for op in operations:
-            yield op ** 0.5
+            yield op**0.5
 
     ReplaceWithXGates(post_clean_up=clean_up)(c)
 

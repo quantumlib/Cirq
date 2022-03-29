@@ -15,7 +15,10 @@
 from typing import Any, Dict, Sequence, TYPE_CHECKING, Union, Callable
 
 from cirq import ops, protocols, value
+from cirq._import import LazyLoader
 from cirq._doc import document
+
+moment_module = LazyLoader("moment_module", globals(), "cirq.circuits.moment")
 
 if TYPE_CHECKING:
     from typing import Iterable
@@ -150,10 +153,10 @@ class NoiseModel(metaclass=value.ABCMetaImplementAnyOneOf):
         """
 
     def _noisy_operation_impl_moments(self, operation: 'cirq.Operation') -> 'cirq.OP_TREE':
-        return self.noisy_moments([ops.Moment([operation])], operation.qubits)
+        return self.noisy_moments([moment_module.Moment([operation])], operation.qubits)
 
     def _noisy_operation_impl_moment(self, operation: 'cirq.Operation') -> 'cirq.OP_TREE':
-        return self.noisy_moment(ops.Moment([operation]), operation.qubits)
+        return self.noisy_moment(moment_module.Moment([operation]), operation.qubits)
 
     @value.alternative(requires='noisy_moments', implementation=_noisy_operation_impl_moments)
     @value.alternative(requires='noisy_moment', implementation=_noisy_operation_impl_moment)
@@ -226,7 +229,7 @@ class ConstantQubitNoiseModel(NoiseModel):
             return moment
         return [
             moment,
-            ops.Moment(
+            moment_module.Moment(
                 [self.qubit_noise_gate(q).with_tags(ops.VirtualTag()) for q in system_qubits]
             ),
         ]
@@ -248,7 +251,7 @@ class GateSubstitutionNoiseModel(NoiseModel):
     def noisy_moment(
         self, moment: 'cirq.Moment', system_qubits: Sequence['cirq.Qid']
     ) -> 'cirq.OP_TREE':
-        return ops.Moment([self.substitution_func(op) for op in moment.operations])
+        return moment_module.Moment([self.substitution_func(op) for op in moment.operations])
 
 
 NO_NOISE: 'cirq.NoiseModel' = _NoNoiseModel()

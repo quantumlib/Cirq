@@ -13,6 +13,7 @@
 # limitations under the License.
 
 from typing import Any, FrozenSet, Iterable, Optional, Set, TYPE_CHECKING
+import networkx as nx
 from cirq import _compat, circuits, value, devices, ops, protocols
 from cirq.ion import convert_to_ion_gates
 
@@ -70,6 +71,18 @@ class IonDevice(devices.Device):
         self.qubits = frozenset(qubits)
         self.gateset = get_ion_gateset()
 
+        graph = nx.Graph()
+        graph.add_edges_from([(a, b) for a in qubits for b in qubits if a != b], directed=False)
+        self._metadata = devices.DeviceMetadata(self.qubits, graph)
+
+    @property
+    def metadata(self) -> devices.DeviceMetadata:
+        return self._metadata
+
+    @_compat.deprecated(
+        fix='Use metadata.qubit_set if applicable.',
+        deadline='v0.15',
+    )
     def qubit_set(self) -> FrozenSet['cirq.LineQubit']:
         return self.qubits
 
@@ -87,6 +100,9 @@ class IonDevice(devices.Device):
             qs = self.qubits
             return frozenset([devices.SymmetricalQidPair(q, q2) for q in qs for q2 in qs if q < q2])
 
+    @_compat.deprecated(
+        fix='Use cirq.ConvertToIonGates() instead to decompose operations.', deadline='v0.15'
+    )
     def decompose_operation(self, operation: ops.Operation) -> ops.OP_TREE:
         return convert_to_ion_gates.ConvertToIonGates().convert_one(operation)
 

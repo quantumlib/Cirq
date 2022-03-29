@@ -36,7 +36,7 @@ import numpy as np
 
 from cirq import protocols, ops, qis
 from cirq._import import LazyLoader
-from cirq.ops import raw_types
+from cirq.ops import raw_types, op_tree
 from cirq.protocols import circuit_diagram_info_protocol
 from cirq.type_workarounds import NotImplementedType
 
@@ -414,7 +414,7 @@ class Moment:
         transpose = input_subscripts + '->' + output_subscripts
 
         r = []
-        d = 2 ** n
+        d = 2**n
         kss = [kraus_tensors(op) for op in self.operations]
         for ks in itertools.product(*kss):
             k = np.einsum(transpose, *ks)

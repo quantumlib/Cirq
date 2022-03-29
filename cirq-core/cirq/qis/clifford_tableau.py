@@ -12,17 +12,198 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Any, Dict, List, TYPE_CHECKING
+import abc
+from typing import Any, Dict, List, Sequence, Tuple, TYPE_CHECKING, TypeVar
 import numpy as np
 
-from cirq import protocols
-from cirq.value import big_endian_int_to_digits
+from cirq import protocols, value
+from cirq.value import big_endian_int_to_digits, linear_dict
 
 if TYPE_CHECKING:
     import cirq
 
+TSelf = TypeVar('TSelf', bound='QuantumStateRepresentation')
 
-class CliffordTableau:
+
+class QuantumStateRepresentation(metaclass=abc.ABCMeta):
+    @abc.abstractmethod
+    def copy(self: TSelf, deep_copy_buffers: bool = True) -> TSelf:
+        """Creates a copy of the object.
+        Args:
+            deep_copy_buffers: If True, buffers will also be deep-copied.
+            Otherwise the copy will share a reference to the original object's
+            buffers.
+        Returns:
+            A copied instance.
+        """
+
+    @abc.abstractmethod
+    def measure(
+        self, axes: Sequence[int], seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None
+    ) -> List[int]:
+        """Measures the state.
+
+        Args:
+            axes: The axes to measure.
+            seed: The random number seed to use.
+        Returns:
+            The measurements in order.
+        """
+
+    def sample(
+        self,
+        axes: Sequence[int],
+        repetitions: int = 1,
+        seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None,
+    ) -> np.ndarray:
+        """Samples the state. Subclasses can override with more performant method.
+
+        Args:
+            axes: The axes to sample.
+            repetitions: The number of samples to make.
+            seed: The random number seed to use.
+        Returns:
+            The samples in order.
+        """
+        prng = value.parse_random_state(seed)
+        measurements = []
+        for _ in range(repetitions):
+            state = self.copy()
+            measurements.append(state.measure(axes, prng))
+        return np.array(measurements, dtype=bool)
+
+    def kron(self: TSelf, other: TSelf) -> TSelf:
+        """Joins two state spaces together."""
+        raise NotImplementedError()
+
+    def factor(
+        self: TSelf, axes: Sequence[int], *, validate=True, atol=1e-07
+    ) -> Tuple[TSelf, TSelf]:
+        """Splits two state spaces after a measurement or reset."""
+        raise NotImplementedError()
+
+    def reindex(self: TSelf, axes: Sequence[int]) -> TSelf:
+        """Physically reindexes the state by the new basis.
+        Args:
+            axes: The desired axis order.
+        Returns:
+            The state with qubit order transposed and underlying representation
+            updated.
+        """
+        raise NotImplementedError()
+
+    @property
+    def supports_factor(self) -> bool:
+        """Subclasses that allow factorization should override this."""
+        return False
+
+    @property
+    def can_represent_mixed_states(self) -> bool:
+        """Subclasses that can represent mixed states should override this."""
+        return False
+
+
+class StabilizerState(QuantumStateRepresentation, metaclass=abc.ABCMeta):
+    """Interface for quantum stabilizer state representations.
+
+    This interface is used for CliffordTableau and StabilizerChForm quantum
+    state representations, allowing simulators to act on them abstractly.
+    """
+
+    @abc.abstractmethod
+    def apply_x(self, axis: int, exponent: float = 1, global_shift: float = 0):
+        """Apply an X operation to the state.
+
+        Args:
+            axis: The axis to which the operation should be applied.
+            exponent: The exponent of the X operation, must be a half-integer.
+            global_shift: The global phase shift of the raw operation, prior to
+                exponentiation. Typically the value in `gate.global_shift`.
+        Raises:
+            ValueError: If the exponent is not half-integer.
+        """
+
+    @abc.abstractmethod
+    def apply_y(self, axis: int, exponent: float = 1, global_shift: float = 0):
+        """Apply an Y operation to the state.
+
+        Args:
+            axis: The axis to which the operation should be applied.
+            exponent: The exponent of the Y operation, must be a half-integer.
+            global_shift: The global phase shift of the raw operation, prior to
+                exponentiation. Typically the value in `gate.global_shift`.
+        Raises:
+            ValueError: If the exponent is not half-integer.
+        """
+
+    @abc.abstractmethod
+    def apply_z(self, axis: int, exponent: float = 1, global_shift: float = 0):
+        """Apply a Z operation to the state.
+
+        Args:
+            axis: The axis to which the operation should be applied.
+            exponent: The exponent of the Z operation, must be a half-integer.
+            global_shift: The global phase shift of the raw operation, prior to
+                exponentiation. Typically the value in `gate.global_shift`.
+        Raises:
+            ValueError: If the exponent is not half-integer.
+        """
+
+    @abc.abstractmethod
+    def apply_h(self, axis: int, exponent: float = 1, global_shift: float = 0):
+        """Apply an H operation to the state.
+
+        Args:
+            axis: The axis to which the operation should be applied.
+            exponent: The exponent of the H operation, must be an integer.
+            global_shift: The global phase shift of the raw operation, prior to
+                exponentiation. Typically the value in `gate.global_shift`.
+        Raises:
+            ValueError: If the exponent is not an integer.
+        """
+
+    @abc.abstractmethod
+    def apply_cz(
+        self, control_axis: int, target_axis: int, exponent: float = 1, global_shift: float = 0
+    ):
+        """Apply a CZ operation to the state.
+
+        Args:
+            control_axis: The control axis of the operation.
+            target_axis: The axis to which the operation should be applied.
+            exponent: The exponent of the CZ operation, must be an integer.
+            global_shift: The global phase shift of the raw operation, prior to
+                exponentiation. Typically the value in `gate.global_shift`.
+        Raises:
+            ValueError: If the exponent is not an integer.
+        """
+
+    @abc.abstractmethod
+    def apply_cx(
+        self, control_axis: int, target_axis: int, exponent: float = 1, global_shift: float = 0
+    ):
+        """Apply a CX operation to the state.
+
+        Args:
+            control_axis: The control axis of the operation.
+            target_axis: The axis to which the operation should be applied.
+            exponent: The exponent of the CX operation, must be an integer.
+            global_shift: The global phase shift of the raw operation, prior to
+                exponentiation. Typically the value in `gate.global_shift`.
+        Raises:
+            ValueError: If the exponent is not an integer.
+        """
+
+    @abc.abstractmethod
+    def apply_global_phase(self, coefficient: linear_dict.Scalar):
+        """Apply a global phase to the state.
+
+        Args:
+            coefficient: The global phase to apply.
+        """
+
+
+class CliffordTableau(StabilizerState):
     """Tableau representation of a stabilizer state
     (based on Aaronson and Gottesman 2006).
 
@@ -121,7 +302,7 @@ class CliffordTableau:
     def __copy__(self) -> 'CliffordTableau':
         return self.copy()
 
-    def copy(self) -> 'CliffordTableau':
+    def copy(self, deep_copy_buffers: bool = True) -> 'CliffordTableau':
         state = CliffordTableau(self.n)
         state.rs = self.rs.copy()
         state.xs = self.xs.copy()
@@ -375,3 +556,110 @@ class CliffordTableau:
         self.rs[p] = bool(prng.randint(2))
 
         return int(self.rs[p])
+
+    def apply_x(self, axis: int, exponent: float = 1, global_shift: float = 0):
+        if exponent % 2 == 0:
+            return
+        if exponent % 0.5 != 0.0:
+            raise ValueError('X exponent must be half integer')  # coverage: ignore
+        effective_exponent = exponent % 2
+        if effective_exponent == 0.5:
+            self.xs[:, axis] ^= self.zs[:, axis]
+            self.rs[:] ^= self.xs[:, axis] & self.zs[:, axis]
+        elif effective_exponent == 1:
+            self.rs[:] ^= self.zs[:, axis]
+        elif effective_exponent == 1.5:
+            self.rs[:] ^= self.xs[:, axis] & self.zs[:, axis]
+            self.xs[:, axis] ^= self.zs[:, axis]
+
+    def apply_y(self, axis: int, exponent: float = 1, global_shift: float = 0):
+        if exponent % 2 == 0:
+            return
+        if exponent % 0.5 != 0.0:
+            raise ValueError('Y exponent must be half integer')  # coverage: ignore
+        effective_exponent = exponent % 2
+        if effective_exponent == 0.5:
+            self.rs[:] ^= self.xs[:, axis] & (~self.zs[:, axis])
+            (self.xs[:, axis], self.zs[:, axis]) = (
+                self.zs[:, axis].copy(),
+                self.xs[:, axis].copy(),
+            )
+        elif effective_exponent == 1:
+            self.rs[:] ^= self.xs[:, axis] ^ self.zs[:, axis]
+        elif effective_exponent == 1.5:
+            self.rs[:] ^= ~(self.xs[:, axis]) & self.zs[:, axis]
+            (self.xs[:, axis], self.zs[:, axis]) = (
+                self.zs[:, axis].copy(),
+                self.xs[:, axis].copy(),
+            )
+
+    def apply_z(self, axis: int, exponent: float = 1, global_shift: float = 0):
+        if exponent % 2 == 0:
+            return
+        if exponent % 0.5 != 0.0:
+            raise ValueError('Z exponent must be half integer')  # coverage: ignore
+        effective_exponent = exponent % 2
+        if effective_exponent == 0.5:
+            self.rs[:] ^= self.xs[:, axis] & self.zs[:, axis]
+            self.zs[:, axis] ^= self.xs[:, axis]
+        elif effective_exponent == 1:
+            self.rs[:] ^= self.xs[:, axis]
+        elif effective_exponent == 1.5:
+            self.rs[:] ^= self.xs[:, axis] & (~self.zs[:, axis])
+            self.zs[:, axis] ^= self.xs[:, axis]
+
+    def apply_h(self, axis: int, exponent: float = 1, global_shift: float = 0):
+        if exponent % 2 == 0:
+            return
+        if exponent % 1 != 0:
+            raise ValueError('H exponent must be integer')  # coverage: ignore
+        self.apply_y(axis, 0.5)
+        self.apply_x(axis)
+
+    def apply_cz(
+        self, control_axis: int, target_axis: int, exponent: float = 1, global_shift: float = 0
+    ):
+        if exponent % 2 == 0:
+            return
+        if exponent % 1 != 0:
+            raise ValueError('CZ exponent must be integer')  # coverage: ignore
+        (self.xs[:, target_axis], self.zs[:, target_axis]) = (
+            self.zs[:, target_axis].copy(),
+            self.xs[:, target_axis].copy(),
+        )
+        self.rs[:] ^= self.xs[:, target_axis] & self.zs[:, target_axis]
+        self.rs[:] ^= (
+            self.xs[:, control_axis]
+            & self.zs[:, target_axis]
+            & (~(self.xs[:, target_axis] ^ self.zs[:, control_axis]))
+        )
+        self.xs[:, target_axis] ^= self.xs[:, control_axis]
+        self.zs[:, control_axis] ^= self.zs[:, target_axis]
+        (self.xs[:, target_axis], self.zs[:, target_axis]) = (
+            self.zs[:, target_axis].copy(),
+            self.xs[:, target_axis].copy(),
+        )
+        self.rs[:] ^= self.xs[:, target_axis] & self.zs[:, target_axis]
+
+    def apply_cx(
+        self, control_axis: int, target_axis: int, exponent: float = 1, global_shift: float = 0
+    ):
+        if exponent % 2 == 0:
+            return
+        if exponent % 1 != 0:
+            raise ValueError('CX exponent must be integer')  # coverage: ignore
+        self.rs[:] ^= (
+            self.xs[:, control_axis]
+            & self.zs[:, target_axis]
+            & (~(self.xs[:, target_axis] ^ self.zs[:, control_axis]))
+        )
+        self.xs[:, target_axis] ^= self.xs[:, control_axis]
+        self.zs[:, control_axis] ^= self.zs[:, target_axis]
+
+    def apply_global_phase(self, coefficient: linear_dict.Scalar):
+        pass
+
+    def measure(
+        self, axes: Sequence[int], seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None
+    ) -> List[int]:
+        return [self._measure(axis, seed) for axis in axes]

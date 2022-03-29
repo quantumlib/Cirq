@@ -43,12 +43,14 @@ def drop_negligible_operations(
     Returns:
           Copy of the transformed input circuit.
     """
+    if context is None:
+        context = transformer_api.TransformerContext()
 
     def map_func(op: 'cirq.Operation', _: int) -> 'cirq.OP_TREE':
-        if protocols.is_measurement(op) or (
-            context and not set(op.tags).isdisjoint(context.ignore_tags)
-        ):
-            return op
-        return [] if protocols.trace_distance_bound(op) <= atol else op
+        return (
+            op if protocols.is_measurement(op) or protocols.trace_distance_bound(op) > atol else []
+        )
 
-    return transformer_primitives.map_operations(circuit, map_func).unfreeze(copy=False)
+    return transformer_primitives.map_operations(
+        circuit, map_func, tags_to_ignore=context.tags_to_ignore, deep=context.deep
+    ).unfreeze(copy=False)

@@ -280,7 +280,7 @@ class DepolarizingChannel(raw_types.Gate):
 
         error_probabilities = {}
 
-        p_depol = p / (4 ** n_qubits - 1)
+        p_depol = p / (4**n_qubits - 1)
         p_identity = 1.0 - p
         for pauli_tuple in itertools.product(['I', 'X', 'Y', 'Z'], repeat=n_qubits):
             pauli_string = ''.join(pauli_tuple)

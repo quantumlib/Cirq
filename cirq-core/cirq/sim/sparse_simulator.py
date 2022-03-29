@@ -16,7 +16,6 @@
 
 from typing import (
     Any,
-    Dict,
     Iterator,
     List,
     Type,
@@ -28,7 +27,7 @@ from typing import (
 
 import numpy as np
 
-from cirq import ops, protocols, qis
+from cirq import ops
 from cirq._compat import deprecated
 from cirq.sim import (
     simulator,
@@ -175,7 +174,7 @@ class Simulator(
         self,
         initial_state: Union['cirq.STATE_VECTOR_LIKE', 'cirq.ActOnStateVectorArgs'],
         qubits: Sequence['cirq.Qid'],
-        logs: Dict[str, Any],
+        classical_data: 'cirq.ClassicalDataStore',
     ):
         """Creates the ActOnStateVectorArgs for a circuit.
 
@@ -185,7 +184,8 @@ class Simulator(
             qubits: Determines the canonical ordering of the qubits. This
                 is often used in specifying the initial state, i.e. the
                 ordering of the computational basis states.
-            logs: Log of the measurement results.
+            classical_data: The shared classical data container for this
+                simulation.
 
         Returns:
             ActOnStateVectorArgs for the circuit.
@@ -193,17 +193,12 @@ class Simulator(
         if isinstance(initial_state, act_on_state_vector_args.ActOnStateVectorArgs):
             return initial_state
 
-        qid_shape = protocols.qid_shape(qubits)
-        state = qis.to_valid_state_vector(
-            initial_state, len(qubits), qid_shape=qid_shape, dtype=self._dtype
-        )
-
         return act_on_state_vector_args.ActOnStateVectorArgs(
-            target_tensor=np.reshape(state, qid_shape),
-            available_buffer=np.empty(qid_shape, dtype=self._dtype),
             qubits=qubits,
             prng=self._prng,
-            log_of_measurement_results=logs,
+            classical_data=classical_data,
+            initial_state=initial_state,
+            dtype=self._dtype,
         )
 
     def _create_step_result(

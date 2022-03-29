@@ -52,6 +52,7 @@ def test_device_metadata():
         cirq.XPowGate,
         cirq.YPowGate,
         cirq.PhasedXPowGate,
+        cirq.PhasedXZGate,
         cirq.MeasurementGate,
         cirq.ZPowGate,
     )
@@ -71,6 +72,13 @@ def test_device_metadata():
             (cirq.GridQubit(1, 2), cirq.GridQubit(2, 2)),
         }
     )
+
+
+@mock.patch.dict(os.environ, clear='CIRQ_TESTING')
+def test_qubit_set_deprecated():
+    d = square_device(2, 2)
+    with cirq.testing.assert_deprecated('qubit_set', deadline='v0.15'):
+        _ = d.qubit_set()
 
 
 @mock.patch.dict(os.environ, clear='CIRQ_TESTING')
@@ -179,6 +187,14 @@ def test_validate_measurement_non_adjacent_qubits_ok():
             cirq.MeasurementGate(2, 'a'), (cirq.GridQubit(0, 0), cirq.GridQubit(2, 0))
         )
     )
+
+
+@mock.patch.dict(os.environ, clear='CIRQ_TESTING')
+def test_decompose_operation_deprecated():
+    d = square_device(3, 3)
+
+    with cirq.testing.assert_deprecated('decompose', deadline='v0.15'):
+        _ = d.decompose_operation(cirq.H(cirq.GridQubit(1, 1)))
 
 
 @mock.patch.dict(os.environ, clear='CIRQ_TESTING')

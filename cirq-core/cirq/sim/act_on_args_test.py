@@ -11,8 +11,9 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from typing import Sequence, Union
+from typing import Any, Sequence
 
+import numpy as np
 import pytest
 
 import cirq
@@ -31,7 +32,7 @@ class DummyArgs(cirq.ActOnArgs):
 
     def _act_on_fallback_(
         self,
-        action: Union['cirq.Operation', 'cirq.Gate'],
+        action: Any,
         qubits: Sequence['cirq.Qid'],
         allow_decompose: bool = True,
     ) -> bool:
@@ -98,3 +99,17 @@ def test_on_copy_has_no_param():
     args = DummyArgs()
     with cirq.testing.assert_deprecated('deep_copy_buffers', deadline='0.15'):
         args.copy(False)
+
+
+def test_field_getters():
+    args = DummyArgs()
+    assert args.prng is np.random
+    assert args.qubit_map == {q: i for i, q in enumerate(cirq.LineQubit.range(2))}
+
+
+def test_field_setters_deprecated():
+    args = DummyArgs()
+    with cirq.testing.assert_deprecated(deadline='v0.15'):
+        args.prng = 0
+    with cirq.testing.assert_deprecated(deadline='v0.15'):
+        args.qubit_map = {}
