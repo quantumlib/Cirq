@@ -24,7 +24,7 @@ def assert_equivalent_to_deferred(circuit: cirq.Circuit):
     qubits = list(circuit.all_qubits())
     sim = cirq.Simulator()
     num_qubits = len(qubits)
-    for i in range(2 ** num_qubits):
+    for i in range(2**num_qubits):
         bits = cirq.big_endian_int_to_bits(i, bit_count=num_qubits)
         modified = cirq.Circuit()
         for j in range(num_qubits):
