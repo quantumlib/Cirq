@@ -765,7 +765,7 @@ def test_simulate_measure_multiple_qudits(dtype: Type[np.number], split: bool):
     for b0 in [0, 1]:
         for b1 in [0, 1, 2]:
             circuit = cirq.Circuit(
-                (cirq.X**b0)(q0), cirq.XPowGate(dimension=3)(q1)**b1, cirq.measure(q0, q1)
+                (cirq.X**b0)(q0), cirq.XPowGate(dimension=3)(q1) ** b1, cirq.measure(q0, q1)
             )
             result = simulator.simulate(circuit)
             np.testing.assert_equal(result.measurements, {'0 (d=2),1 (d=3)': [b0, b1]})

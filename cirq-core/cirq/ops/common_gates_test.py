@@ -1197,7 +1197,7 @@ def test_xpow_dim_4():
 
 def test_zpow_dim_3():
     L = np.exp(2 * np.pi * 1j / 3)
-    L2 = L ** 2
+    L2 = L**2
     z = cirq.ZPowGate(dimension=3)
     expected = [
         [1, 0, 0],
@@ -1214,11 +1214,11 @@ def test_zpow_dim_3():
 
     svs = [step.state_vector() for step in sim.simulate_moment_steps(circuit, initial_state=1)]
     expected = [
-        [0, L ** 0.5, 0],
-        [0, L ** 1.0, 0],
-        [0, L ** 1.5, 0],
-        [0, L ** 2.0, 0],
-        [0, L ** 2.5, 0],
+        [0, L**0.5, 0],
+        [0, L**1.0, 0],
+        [0, L**1.5, 0],
+        [0, L**2.0, 0],
+        [0, L**2.5, 0],
         [0, 1, 0],
     ]
     assert np.allclose((svs), expected)
@@ -1253,13 +1253,13 @@ def test_zpow_dim_4():
 
     svs = [step.state_vector() for step in sim.simulate_moment_steps(circuit, initial_state=1)]
     expected = [
-        [0, 1j ** 0.5, 0, 0],
-        [0, 1j ** 1.0, 0, 0],
-        [0, 1j ** 1.5, 0, 0],
-        [0, 1j ** 2.0, 0, 0],
-        [0, 1j ** 2.5, 0, 0],
-        [0, 1j ** 3.0, 0, 0],
-        [0, 1j ** 3.5, 0, 0],
+        [0, 1j**0.5, 0, 0],
+        [0, 1j**1.0, 0, 0],
+        [0, 1j**1.5, 0, 0],
+        [0, 1j**2.0, 0, 0],
+        [0, 1j**2.5, 0, 0],
+        [0, 1j**3.0, 0, 0],
+        [0, 1j**3.5, 0, 0],
         [0, 1, 0, 0],
     ]
     assert np.allclose(svs, expected)
@@ -1279,13 +1279,13 @@ def test_zpow_dim_4():
 
     svs = [step.state_vector() for step in sim.simulate_moment_steps(circuit, initial_state=3)]
     expected = [
-        [0, 0, 0, 1j ** 1.5],
-        [0, 0, 0, 1j ** 3],
-        [0, 0, 0, 1j ** 0.5],
-        [0, 0, 0, 1j ** 2],
-        [0, 0, 0, 1j ** 3.5],
-        [0, 0, 0, 1j ** 1],
-        [0, 0, 0, 1j ** 2.5],
+        [0, 0, 0, 1j**1.5],
+        [0, 0, 0, 1j**3],
+        [0, 0, 0, 1j**0.5],
+        [0, 0, 0, 1j**2],
+        [0, 0, 0, 1j**3.5],
+        [0, 0, 0, 1j**1],
+        [0, 0, 0, 1j**2.5],
         [0, 0, 0, 1],
     ]
     assert np.allclose(svs, expected)
