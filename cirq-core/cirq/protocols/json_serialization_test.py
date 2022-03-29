@@ -412,7 +412,7 @@ def test_sympy():
     assert_json_roundtrip_works(t * s)
     assert_json_roundtrip_works(t / s)
     assert_json_roundtrip_works(t - s)
-    assert_json_roundtrip_works(t ** s)
+    assert_json_roundtrip_works(t**s)
 
     # Linear combinations.
     assert_json_roundtrip_works(t * 2)

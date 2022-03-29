@@ -95,9 +95,9 @@ def test_identity_on_each_two_qubits():
 @pytest.mark.parametrize('num_qubits', [1, 2, 4])
 def test_identity_unitary(num_qubits):
     i = cirq.IdentityGate(num_qubits)
-    assert np.allclose(cirq.unitary(i), np.identity(2 ** num_qubits))
+    assert np.allclose(cirq.unitary(i), np.identity(2**num_qubits))
     i3 = cirq.IdentityGate(num_qubits, (3,) * num_qubits)
-    assert np.allclose(cirq.unitary(i3), np.identity(3 ** num_qubits))
+    assert np.allclose(cirq.unitary(i3), np.identity(3**num_qubits))
 
 
 def test_identity_str():
@@ -153,7 +153,7 @@ def test_identity_pow():
     assert I(q) ** (1 + 1j) == I(q)
     assert I(q) ** sympy.Symbol('x') == I(q)
     with pytest.raises(TypeError):
-        _ = (I ** q)(q)
+        _ = (I**q)(q)
     with pytest.raises(TypeError):
         _ = I(q) ** q
 

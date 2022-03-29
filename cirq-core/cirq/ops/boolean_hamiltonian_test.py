@@ -150,7 +150,7 @@ def test_gate_consistent():
 )
 def test_gray_code_sorting(n_bits, expected_hs):
     hs_template = []
-    for x in range(2 ** n_bits):
+    for x in range(2**n_bits):
         h = []
         for i in range(n_bits):
             if x % 2 == 1:
