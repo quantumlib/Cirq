@@ -353,7 +353,7 @@ def test_parameterization():
     assert cirq.parameter_names(gpt) == {'t'}
     assert not cirq.has_unitary(gpt)
     assert gpt.coefficient == t
-    assert (gpt ** 2).coefficient == t ** 2
+    assert (gpt**2).coefficient == t**2
 
 
 @pytest.mark.parametrize('resolve_fn', [cirq.resolve_parameters, cirq.resolve_parameters_once])

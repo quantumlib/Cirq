@@ -1949,16 +1949,16 @@ def test_parameterization():
         pst.expectation_from_state_vector(np.array([]), {})
     with pytest.raises(ValueError, match='parameterized'):
         pst.expectation_from_density_matrix(np.array([]), {})
-    assert pst ** 1 == pst
-    assert pst ** -1 == pst.with_coefficient(1.0 / t)
+    assert pst**1 == pst
+    assert pst**-1 == pst.with_coefficient(1.0 / t)
     assert (-pst) ** 1 == -pst
     assert (-pst) ** -1 == -pst.with_coefficient(1.0 / t)
     assert (1j * pst) ** 1 == 1j * pst
     assert (1j * pst) ** -1 == -1j * pst.with_coefficient(1.0 / t)
     with pytest.raises(ValueError, match='parameterized'):
-        _ = pst ** 2
+        _ = pst**2
     with pytest.raises(ValueError, match='parameterized'):
-        _ = 1 ** pst
+        _ = 1**pst
     cirq.testing.assert_has_diagram(cirq.Circuit(pst), '0: ───PauliString((1.0*t)*X)───')
 
 
