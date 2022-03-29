@@ -77,8 +77,8 @@ b: ---Swap---iSwap^-1---
 
 def test_swap_has_stabilizer_effect():
     assert cirq.has_stabilizer_effect(cirq.SWAP)
-    assert cirq.has_stabilizer_effect(cirq.SWAP ** 2)
-    assert not cirq.has_stabilizer_effect(cirq.SWAP ** 0.5)
+    assert cirq.has_stabilizer_effect(cirq.SWAP**2)
+    assert not cirq.has_stabilizer_effect(cirq.SWAP**0.5)
     assert not cirq.has_stabilizer_effect(cirq.SWAP ** sympy.Symbol('foo'))
 
 
@@ -139,18 +139,18 @@ def test_sqrt_iswap_inv_unitary():
 
 def test_repr():
     assert repr(cirq.SWAP) == 'cirq.SWAP'
-    assert repr(cirq.SWAP ** 0.5) == '(cirq.SWAP**0.5)'
+    assert repr(cirq.SWAP**0.5) == '(cirq.SWAP**0.5)'
 
     assert repr(cirq.ISWAP) == 'cirq.ISWAP'
-    assert repr(cirq.ISWAP ** 0.5) == '(cirq.ISWAP**0.5)'
+    assert repr(cirq.ISWAP**0.5) == '(cirq.ISWAP**0.5)'
 
 
 def test_str():
     assert str(cirq.SWAP) == 'SWAP'
-    assert str(cirq.SWAP ** 0.5) == 'SWAP**0.5'
+    assert str(cirq.SWAP**0.5) == 'SWAP**0.5'
 
     assert str(cirq.ISWAP) == 'ISWAP'
-    assert str(cirq.ISWAP ** 0.5) == 'ISWAP**0.5'
+    assert str(cirq.ISWAP**0.5) == 'ISWAP**0.5'
 
 
 def test_iswap_decompose_diagram():
@@ -170,20 +170,20 @@ b: ───X───────@───────@───────�
 
 def test_trace_distance():
     foo = sympy.Symbol('foo')
-    sswap = cirq.SWAP ** foo
-    siswap = cirq.ISWAP ** foo
+    sswap = cirq.SWAP**foo
+    siswap = cirq.ISWAP**foo
     # These values should have 1.0 or 0.0 directly returned
     assert cirq.trace_distance_bound(sswap) == 1.0
     assert cirq.trace_distance_bound(siswap) == 1.0
     # These values are calculated, so we use approx_eq
-    assert cirq.approx_eq(cirq.trace_distance_bound(cirq.SWAP ** 0.3), np.sin(0.3 * np.pi / 2))
-    assert cirq.approx_eq(cirq.trace_distance_bound(cirq.ISWAP ** 0), 0.0)
+    assert cirq.approx_eq(cirq.trace_distance_bound(cirq.SWAP**0.3), np.sin(0.3 * np.pi / 2))
+    assert cirq.approx_eq(cirq.trace_distance_bound(cirq.ISWAP**0), 0.0)
 
 
 def test_trace_distance_over_range_of_exponents():
     for exp in np.linspace(0, 4, 20):
-        cirq.testing.assert_has_consistent_trace_distance_bound(cirq.SWAP ** exp)
-        cirq.testing.assert_has_consistent_trace_distance_bound(cirq.ISWAP ** exp)
+        cirq.testing.assert_has_consistent_trace_distance_bound(cirq.SWAP**exp)
+        cirq.testing.assert_has_consistent_trace_distance_bound(cirq.ISWAP**exp)
 
 
 @pytest.mark.parametrize('angle_rads', (-np.pi, -np.pi / 3, -0.1, np.pi / 5))

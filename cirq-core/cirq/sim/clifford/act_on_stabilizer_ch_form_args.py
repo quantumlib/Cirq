@@ -16,7 +16,7 @@ from typing import Dict, List, Optional, Sequence, TYPE_CHECKING, Union
 
 import numpy as np
 
-from cirq import _compat, value
+from cirq import _compat
 from cirq.sim.clifford import stabilizer_state_ch_form
 from cirq.sim.clifford.act_on_stabilizer_args import ActOnStabilizerArgs
 
@@ -88,35 +88,3 @@ class ActOnStabilizerCHFormArgs(
             log_of_measurement_results=log_of_measurement_results,
             classical_data=classical_data,
         )
-
-    def _perform_measurement(self, qubits: Sequence['cirq.Qid']) -> List[int]:
-        """Returns the measurement from the stabilizer state form."""
-        return [self.state._measure(self.qubit_map[q], self.prng) for q in qubits]
-
-    def _on_copy(self, target: 'ActOnStabilizerCHFormArgs', deep_copy_buffers: bool = True):
-        target._state = self.state.copy()
-
-    def _on_kronecker_product(
-        self, other: 'cirq.ActOnStabilizerCHFormArgs', target: 'cirq.ActOnStabilizerCHFormArgs'
-    ):
-        target._state = self.state.kron(other.state)
-
-    def _on_transpose_to_qubit_order(
-        self, qubits: Sequence['cirq.Qid'], target: 'cirq.ActOnStabilizerCHFormArgs'
-    ):
-        axes = [self.qubit_map[q] for q in qubits]
-        target._state = self.state.reindex(axes)
-
-    def sample(
-        self,
-        qubits: Sequence['cirq.Qid'],
-        repetitions: int = 1,
-        seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None,
-    ) -> np.ndarray:
-        prng = value.parse_random_state(seed)
-        axes = self.get_axes(qubits)
-        measurements = []
-        for _ in range(repetitions):
-            state = self.state.copy()
-            measurements.append([state._measure(i, prng) for i in axes])
-        return np.array(measurements, dtype=bool)

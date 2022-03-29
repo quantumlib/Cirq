@@ -127,12 +127,12 @@ THREE_SQRT_ISWAP_UNITARIES = [
 ]
 TWO_SQRT_ISWAP_UNITARIES = [
     # Typical gates and nearby Weyl coordinates to simulate numerical noise
-    *perturbations_gate(cirq.XX ** 0.25),
-    *perturbations_gate(cirq.YY ** 0.07),
-    *perturbations_gate(cirq.ZZ ** 0.15),
+    *perturbations_gate(cirq.XX**0.25),
+    *perturbations_gate(cirq.YY**0.07),
+    *perturbations_gate(cirq.ZZ**0.15),
     *perturbations_gate(cirq.CNOT),
     *perturbations_gate(cirq.ISWAP),
-    *perturbations_gate(cirq.ISWAP ** 0.1),
+    *perturbations_gate(cirq.ISWAP**0.1),
     # Critical points in the Weyl chamber and nearby coordinates to simulate numerical noise
     *perturbations_weyl(np.pi / 4, 0, 0),
     *perturbations_weyl(np.pi / 4, np.pi / 4, 0),
@@ -294,8 +294,8 @@ def test_fsim_gate_with_symbols():
     c_new_sqrt_iswap_inv = cirq.Circuit(
         cirq.parameterized_2q_op_to_sqrt_iswap_operations(op, use_sqrt_iswap_inv=True)
     )
-    for theta_val in np.linspace(0, 2 * np.pi, 12):
-        for phi_val in np.linspace(0, 2 * np.pi, 12):
+    for theta_val in np.linspace(0, 2 * np.pi, 4):
+        for phi_val in np.linspace(0, 2 * np.pi, 6):
             cirq.testing.assert_allclose_up_to_global_phase(
                 cirq.unitary(cirq.resolve_parameters(op, {'theta': theta_val, 'phi': phi_val})),
                 cirq.unitary(
@@ -389,7 +389,7 @@ def test_decomp3(u):
 
 def test_decomp3_invalid():
     # All two-qubit gates can be synthesized with three SQRT_ISWAP gates
-    u = cirq.unitary(cirq.X ** 0.2)  # Pass an invalid size unitary
+    u = cirq.unitary(cirq.X**0.2)  # Pass an invalid size unitary
     q0, q1 = cirq.LineQubit.range(2)
     with pytest.raises(ValueError, match='Input must correspond to a 4x4 unitary matrix'):
         cirq.two_qubit_matrix_to_sqrt_iswap_operations(q0, q1, u, required_sqrt_iswap_count=3)

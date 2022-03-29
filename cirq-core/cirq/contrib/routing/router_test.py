@@ -24,7 +24,7 @@ import cirq.contrib.routing as ccr
 
 
 def random_seed():
-    return random.randint(0, 2 ** 32)
+    return random.randint(0, 2**32)
 
 
 @pytest.mark.parametrize(

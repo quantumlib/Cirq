@@ -19,7 +19,7 @@ import cirq_google as cg
 import numpy as np
 
 
-class TestDevice(cirq.Device):
+class FakeDevice(cirq.Device):
     def __init__(self):
         self.qubits = cirq.GridQubit.rect(2, 8)
         neighbors = [(a, b) for a in self.qubits for b in self.qubits if a.is_adjacent(b)]
@@ -123,7 +123,7 @@ def test_random_device_placer_small_device():
         qp.place_circuit(
             circuit,
             problem_topology=topo,
-            shared_rt_info=cg.SharedRuntimeInfo(run_id='1', device=TestDevice()),
+            shared_rt_info=cg.SharedRuntimeInfo(run_id='1', device=FakeDevice()),
             rs=np.random.RandomState(1),
         )
 
