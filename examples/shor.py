@@ -169,7 +169,7 @@ class ModularExp(cirq.ArithmeticGate):
         target, exponent, base, modulus = register_values
         if target >= modulus:
             return target
-        return (target * base ** exponent) % modulus
+        return (target * base**exponent) % modulus
 
     def _circuit_diagram_info_(
         self,
@@ -245,7 +245,7 @@ def read_eigenphase(result: cirq.Result) -> float:
     """
     exponent_as_integer = result.data['exponent'][0]
     exponent_num_bits = result.measurements['exponent'].shape[1]
-    return float(exponent_as_integer / 2 ** exponent_num_bits)
+    return float(exponent_as_integer / 2**exponent_num_bits)
 
 
 def quantum_order_finder(x: int, n: int) -> Optional[int]:
@@ -276,7 +276,7 @@ def quantum_order_finder(x: int, n: int) -> Optional[int]:
     if f.numerator == 0:
         return None  # coverage: ignore
     r = f.denominator
-    if x ** r % n != 1:
+    if x**r % n != 1:
         return None  # coverage: ignore
     return r
 
@@ -286,10 +286,10 @@ def find_factor_of_prime_power(n: int) -> Optional[int]:
     for k in range(2, math.floor(math.log2(n)) + 1):
         c = math.pow(n, 1 / k)
         c1 = math.floor(c)
-        if c1 ** k == n:
+        if c1**k == n:
             return c1
         c2 = math.ceil(c)
-        if c2 ** k == n:
+        if c2**k == n:
             return c2
     return None
 
