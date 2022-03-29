@@ -145,6 +145,7 @@ def _class_resolver_dictionary() -> Dict[str, ObjectFactory]:
         'QasmUGate': cirq.circuits.qasm_output.QasmUGate,
         '_QubitAsQid': raw_types._QubitAsQid,
         'QuantumFourierTransformGate': cirq.QuantumFourierTransformGate,
+        'QubitPermutationGate': cirq.QubitPermutationGate,
         'RandomGateChannel': cirq.RandomGateChannel,
         'TensoredConfusionMatrices': cirq.TensoredConfusionMatrices,
         'RepetitionsStoppingCriteria': cirq.work.RepetitionsStoppingCriteria,

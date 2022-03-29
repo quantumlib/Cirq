@@ -276,16 +276,19 @@ def test_str_executes():
     assert '0' in str(cirq.MatrixGate(np.eye(4)))
 
 
-def test_one_qubit_consistent():
-    u = cirq.testing.random_unitary(2)
-    g = cirq.MatrixGate(u)
-    cirq.testing.assert_implements_consistent_protocols(g)
+@pytest.mark.parametrize('n', [1, 2, 3, 4, 5])
+def test_implements_consistent_protocols(n):
+    u = cirq.testing.random_unitary(2 ** n)
+    g1 = cirq.MatrixGate(u)
+    cirq.testing.assert_implements_consistent_protocols(g1, ignoring_global_phase=True)
+    cirq.testing.assert_decompose_ends_at_default_gateset(g1)
 
+    if n == 1:
+        return
 
-def test_two_qubit_consistent():
-    u = cirq.testing.random_unitary(4)
-    g = cirq.MatrixGate(u)
-    cirq.testing.assert_implements_consistent_protocols(g)
+    g2 = cirq.MatrixGate(u, qid_shape=(4,) + (2,) * (n - 2))
+    cirq.testing.assert_implements_consistent_protocols(g2, ignoring_global_phase=True)
+    cirq.testing.assert_decompose_ends_at_default_gateset(g2)
 
 
 def test_repr():

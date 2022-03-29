@@ -11,6 +11,9 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
+import dataclasses
+
 import pytest
 import numpy as np
 import sympy
@@ -38,6 +41,33 @@ def assert_optimizes(
     # And it should be idempotent.
     circuit = cirq.eject_z(before, eject_parameterized=eject_parameterized, context=context)
     cirq.testing.assert_same_circuits(circuit, expected)
+
+    # Nested sub-circuits should also get optimized.
+    q = before.all_qubits()
+    c_nested = cirq.Circuit(
+        [(cirq.Z ** 0.5).on_each(*q), (cirq.Y ** 0.25).on_each(*q)],
+        cirq.Moment(cirq.CircuitOperation(before.freeze()).repeat(2).with_tags("ignore")),
+        [(cirq.Z ** 0.5).on_each(*q), (cirq.Y ** 0.25).on_each(*q)],
+        cirq.Moment(cirq.CircuitOperation(before.freeze()).repeat(3).with_tags("preserve_tag")),
+    )
+    c_expected = cirq.Circuit(
+        cirq.PhasedXPowGate(phase_exponent=0, exponent=0.25).on_each(*q),
+        (cirq.Z ** 0.5).on_each(*q),
+        cirq.Moment(cirq.CircuitOperation(before.freeze()).repeat(2).with_tags("ignore")),
+        cirq.PhasedXPowGate(phase_exponent=0, exponent=0.25).on_each(*q),
+        (cirq.Z ** 0.5).on_each(*q),
+        cirq.Moment(cirq.CircuitOperation(expected.freeze()).repeat(3).with_tags("preserve_tag")),
+    )
+    if context is None:
+        context = cirq.TransformerContext(tags_to_ignore=("ignore",), deep=True)
+    else:
+        context = dataclasses.replace(
+            context, tags_to_ignore=context.tags_to_ignore + ("ignore",), deep=True
+        )
+    c_nested = cirq.eject_z(c_nested, context=context, eject_parameterized=eject_parameterized)
+    cirq.testing.assert_same_circuits(c_nested, c_expected)
+    c_nested = cirq.eject_z(c_nested, context=context, eject_parameterized=eject_parameterized)
+    cirq.testing.assert_same_circuits(c_nested, c_expected)
 
 
 def assert_removes_all_z_gates(circuit: cirq.Circuit, eject_parameterized: bool = True):

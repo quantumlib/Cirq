@@ -14,6 +14,7 @@
 """An interface for quantum states as targets for operations."""
 import abc
 from typing import (
+    Any,
     Dict,
     Generic,
     Iterator,
@@ -49,14 +50,14 @@ class OperationTarget(Generic[TActOnArgs], metaclass=abc.ABCMeta):
     @abc.abstractmethod
     def _act_on_fallback_(
         self,
-        action: Union['cirq.Operation', 'cirq.Gate'],
+        action: Any,
         qubits: Sequence['cirq.Qid'],
         allow_decompose: bool = True,
     ) -> Union[bool, NotImplementedType]:
         """Handles the act_on protocol fallback implementation.
 
         Args:
-            action: Either a gate or an operation to act on.
+            action: A gate, operation, or other to act on.
             qubits: The applicable qubits if a gate is passed as the action.
             allow_decompose: Flag to allow decomposition.
 

@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Any, Dict, Sequence, Union
+from typing import Any, Dict, List, Sequence, Union
 import numpy as np
 
 import cirq
@@ -80,7 +80,7 @@ class StabilizerStateChForm(qis.StabilizerState):
     def _value_equality_values_(self) -> Any:
         return (self.n, self.G, self.F, self.M, self.gamma, self.v, self.s, self.omega)
 
-    def copy(self) -> 'cirq.StabilizerStateChForm':
+    def copy(self, deep_copy_buffers: bool = True) -> 'cirq.StabilizerStateChForm':
         copy = StabilizerStateChForm(self.n)
 
         copy.G = self.G.copy()
@@ -384,6 +384,11 @@ class StabilizerStateChForm(qis.StabilizerState):
 
     def apply_global_phase(self, coefficient: value.Scalar):
         self.omega *= coefficient
+
+    def measure(
+        self, axes: Sequence[int], seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None
+    ) -> List[int]:
+        return [self._measure(axis, seed) for axis in axes]
 
 
 def _phase(exponent, global_shift):
