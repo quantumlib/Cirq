@@ -284,7 +284,7 @@ def test_from_moment():
     )
     request = FloquetPhasedFSimCalibrationRequest.from_moment(m, options)
     assert request == FloquetPhasedFSimCalibrationRequest(
-        gate=cirq.ISWAP ** 0.5, pairs=((q_00, q_01), (q_02, q_03)), options=options
+        gate=cirq.ISWAP**0.5, pairs=((q_00, q_01), (q_02, q_03)), options=options
     )
 
     non_identical = cirq.Moment(cirq.ISWAP(q_00, q_01) ** 0.5, cirq.ISWAP(q_02, q_03))

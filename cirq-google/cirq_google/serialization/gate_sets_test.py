@@ -35,9 +35,9 @@ def op_proto(json_dict: Dict) -> v2.program_pb2.Operation:
     ('gate', 'axis_half_turns', 'half_turns'),
     [
         (cirq.X, 0.0, 1.0),
-        (cirq.X ** 0.25, 0.0, 0.25),
+        (cirq.X**0.25, 0.0, 0.25),
         (cirq.Y, 0.5, 1.0),
-        (cirq.Y ** 0.25, 0.5, 0.25),
+        (cirq.Y**0.25, 0.5, 0.25),
         (cirq.PhasedXPowGate(exponent=0.125, phase_exponent=0.25), 0.25, 0.125),
         (cirq.rx(0.125 * np.pi), 0.0, 0.125),
         (cirq.ry(0.25 * np.pi), 0.5, 0.25),
@@ -104,7 +104,7 @@ def test_serialize_exp_w_parameterized_axis_half_turns():
     ('gate', 'half_turns'),
     [
         (cirq.Z, 1.0),
-        (cirq.Z ** 0.125, 0.125),
+        (cirq.Z**0.125, 0.125),
         (cirq.rz(0.125 * np.pi), 0.125),
     ],
 )
@@ -141,7 +141,7 @@ def test_serialize_exp_z_parameterized():
     ('gate', 'half_turns'),
     [
         (cirq.CZ, 1.0),
-        (cirq.CZ ** 0.125, 0.125),
+        (cirq.CZ**0.125, 0.125),
     ],
 )
 def test_serialize_exp_11(gate, half_turns):
@@ -478,8 +478,8 @@ def test_serialize_deserialize_inv_sqrt_iswap():
 @pytest.mark.parametrize(
     ('gate', 'axis_half_turns', 'half_turns'),
     [
-        (cirq.X ** 0.25, 0.0, 0.25),
-        (cirq.Y ** 0.25, 0.5, 0.25),
+        (cirq.X**0.25, 0.0, 0.25),
+        (cirq.Y**0.25, 0.5, 0.25),
         (cirq.XPowGate(exponent=0.125), 0.0, 0.125),
         (cirq.YPowGate(exponent=0.125), 0.5, 0.125),
         (cirq.PhasedXPowGate(exponent=0.125, phase_exponent=0.25), 0.25, 0.125),
