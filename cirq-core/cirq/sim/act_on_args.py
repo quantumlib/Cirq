@@ -154,6 +154,10 @@ class ActOnArgs(OperationTarget[TSelf]):
             self._on_copy(args, deep_copy_buffers)
         return args
 
+    @deprecated(
+        deadline='v0.16',
+        fix='Pass a `QuantumStateRepresentation` into the `ActOnArgs` constructor.',
+    )
     def _on_copy(self: TSelf, args: TSelf, deep_copy_buffers: bool = True):
         """Subclasses should implement this with any additional state copy
         functionality."""
@@ -176,6 +180,10 @@ class ActOnArgs(OperationTarget[TSelf]):
         args._set_qubits(self.qubits + other.qubits)
         return args
 
+    @deprecated(
+        deadline='v0.16',
+        fix='Pass a `QuantumStateRepresentation` into the `ActOnArgs` constructor.',
+    )
     def _on_kronecker_product(self: TSelf, other: TSelf, target: TSelf):
         """Subclasses should implement this with any additional state product
         functionality, if supported."""
@@ -226,6 +234,10 @@ class ActOnArgs(OperationTarget[TSelf]):
         """Subclasses that allow factorization should override this."""
         return self._state.supports_factor if self._state is not None else False
 
+    @deprecated(
+        deadline='v0.16',
+        fix='Pass a `QuantumStateRepresentation` into the `ActOnArgs` constructor.',
+    )
     def _on_factor(
         self: TSelf,
         qubits: Sequence['cirq.Qid'],
@@ -267,6 +279,10 @@ class ActOnArgs(OperationTarget[TSelf]):
         args._set_qubits(qubits)
         return args
 
+    @deprecated(
+        deadline='v0.16',
+        fix='Pass a `QuantumStateRepresentation` into the `ActOnArgs` constructor.',
+    )
     def _on_transpose_to_qubit_order(self: TSelf, qubits: Sequence['cirq.Qid'], target: TSelf):
         """Subclasses should implement this with any additional state transpose
         functionality, if supported."""

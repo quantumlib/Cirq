@@ -22,7 +22,7 @@ from cirq.sim import act_on_args
 
 class DummyQuantumState(cirq.QuantumStateRepresentation):
     def copy(self, deep_copy_buffers=True):
-        return self
+        return self  # coverage: ignore
 
     def measure(self, axes, seed=None):
         return [5, 3]
@@ -33,10 +33,7 @@ class DummyQuantumState(cirq.QuantumStateRepresentation):
 
 class DummyArgs(cirq.ActOnArgs):
     def __init__(self):
-        super().__init__(
-            state=DummyQuantumState(),
-            qubits=cirq.LineQubit.range(2)
-        )
+        super().__init__(state=DummyQuantumState(), qubits=cirq.LineQubit.range(2))
 
     def _act_on_fallback_(
         self,
@@ -106,3 +103,47 @@ def test_field_getters():
     assert args.qubit_map == {q: i for i, q in enumerate(cirq.LineQubit.range(2))}
     with cirq.testing.assert_deprecated('always returns False', deadline='v0.16'):
         assert not args.ignore_measurement_results
+
+
+def test_on_methods_deprecated():
+    class OldStyleArgs(cirq.ActOnArgs):
+        def _act_on_fallback_(self, action, qubits, allow_decompose=True):
+            return True  # coverage: ignore
+
+    args = OldStyleArgs()
+    with cirq.testing.assert_deprecated('_on_', deadline='v0.16', count=2):
+        _ = args.copy()
+    with cirq.testing.assert_deprecated('_on_', deadline='v0.16', count=2):
+        _ = args.kronecker_product(args)
+    with cirq.testing.assert_deprecated('_on_', deadline='v0.16', count=2):
+        _ = args.factor([])
+    with cirq.testing.assert_deprecated('_on_', deadline='v0.16', count=2):
+        _ = args.transpose_to_qubit_order([])
+
+
+def test_on_methods_deprecated_if_implemented():
+    class OldStyleArgs(cirq.ActOnArgs):
+        def _act_on_fallback_(self, action, qubits, allow_decompose=True):
+            return True  # coverage: ignore
+
+        def _on_copy(self, args, deep_copy_buffers=True):
+            pass
+
+        def _on_kronecker_product(self, other, target):
+            pass
+
+        def _on_factor(self, qubits, extracted, remainder, validate=True, atol=1e-07):
+            pass
+
+        def _on_transpose_to_qubit_order(self, qubits, target):
+            pass
+
+    args = OldStyleArgs()
+    with cirq.testing.assert_deprecated('_on_', deadline='v0.16'):
+        _ = args.copy()
+    with cirq.testing.assert_deprecated('_on_', deadline='v0.16'):
+        _ = args.kronecker_product(args)
+    with cirq.testing.assert_deprecated('_on_', deadline='v0.16'):
+        _ = args.factor([])
+    with cirq.testing.assert_deprecated('_on_', deadline='v0.16'):
+        _ = args.transpose_to_qubit_order([])
