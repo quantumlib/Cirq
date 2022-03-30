@@ -125,6 +125,12 @@ def test_single_qubit_gates(op):
         ],
     )
 
+    # Pauli error for depol_op + thermal_op == total (0.001)
+    depol_pauli_err = 1 - cirq.qis.measures.entanglement_fidelity(depol_op)
+    thermal_pauli_err = 1 - cirq.qis.measures.entanglement_fidelity(thermal_op)
+    total_err = depol_pauli_err + thermal_pauli_err
+    assert np.isclose(total_err, 0.001)
+
 
 @pytest.mark.parametrize(
     'op',
@@ -177,6 +183,14 @@ def test_two_qubit_gates(op):
     assert np.allclose(thermal_choi_0, expected_thermal_choi)
     assert np.allclose(thermal_choi_1, expected_thermal_choi)
 
+    # Pauli error for depol_op + fsim_op + thermal_op_(0|1) == total (0.01)
+    depol_pauli_err = 1 - cirq.qis.measures.entanglement_fidelity(depol_op)
+    fsim_pauli_err = 1 - cirq.qis.measures.entanglement_fidelity(fsim_op)
+    thermal0_pauli_err = 1 - cirq.qis.measures.entanglement_fidelity(thermal_op_0)
+    thermal1_pauli_err = 1 - cirq.qis.measures.entanglement_fidelity(thermal_op_1)
+    total_err = depol_pauli_err + thermal0_pauli_err + thermal1_pauli_err + fsim_pauli_err
+    assert np.isclose(total_err, 0.01)
+
 
 def test_supertype_match():
     # Verifies that ops in gate_pauli_errors which only appear as their
@@ -214,7 +228,7 @@ def test_measure_gates():
     op = cirq.measure(*qubits, key='m')
     circuit = cirq.Circuit(cirq.measure(*qubits, key='m'))
     noisy_circuit = circuit.with_noise(model)
-    print(noisy_circuit.moments)
+    # Measurement gates are prepended by amplitude damping, and nothing else.
     assert len(noisy_circuit.moments) == 2
 
     # Amplitude damping before measurement

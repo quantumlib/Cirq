@@ -52,7 +52,7 @@ class GoogleNoiseProperties(devices.SuperconductingQubitsNoiseProperties):
         tphi_ns: Dict[cirq.Qid, float] of qubits to their T_phi time, in ns.
         readout_errors: Dict[cirq.Qid, np.ndarray] of qubits to their readout
             errors in matrix form: [P(read |1> from |0>), P(read |0> from |1>)].
-        gate_pauli_errors: dict of noise_utils.noise_utils.OpIdentifiers (a gate and the qubits it
+        gate_pauli_errors: dict of noise_utils.OpIdentifiers (a gate and the qubits it
             targets) to the Pauli error for that operation. Keys in this dict
             must have defined qubits.
         validate: If True, verifies that t1 and tphi qubits sets match, and
