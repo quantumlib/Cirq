@@ -32,6 +32,12 @@ def _class_resolver_dictionary() -> Dict[str, ObjectFactory]:
     from cirq.devices.noise_model import _NoNoiseModel
     from cirq.experiments import CrossEntropyResult, CrossEntropyResultDict, GridInteractionLayer
     from cirq.experiments.grid_parallel_two_qubit_xeb import GridParallelXEBMetadata
+    from cirq.ops.boolean_hamiltonian import BooleanHamiltonianGate
+
+    def _boolean_hamiltonian_gate_op(qubit_map, boolean_strs, theta):
+        return cirq.BooleanHamiltonianGate(
+            parameter_names=list(qubit_map.keys()), boolean_strs=boolean_strs, theta=theta
+        )
 
     def _identity_operation_from_dict(qubits, **kwargs):
         return cirq.identity_each(*qubits)
@@ -185,6 +191,7 @@ def _class_resolver_dictionary() -> Dict[str, ObjectFactory]:
         'ZPowGate': cirq.ZPowGate,
         'ZZPowGate': cirq.ZZPowGate,
         # Old types, only supported for backwards-compatibility
+        'BooleanHamiltonian': _boolean_hamiltonian_gate_op,  # Removed in v0.15
         'IdentityOperation': _identity_operation_from_dict,
         'ParallelGateOperation': _parallel_gate_op,  # Removed in v0.14
         'SingleQubitMatrixGate': single_qubit_matrix_gate,
