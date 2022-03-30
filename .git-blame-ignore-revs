@@ -3,3 +3,9 @@ a61e51b53612735e93b3bb8a7605030c499cd6c7
 
 # adding flynt formatting for strings
 7a335e3ef297057b4a12f7c21d4e8dd426b44ca0
+
+# Format cirq-core with latest version of black (#5159)
+cb6940a40141dba95cba84f5acc27acbeb65b17c
+
+# Format cirq-google with latest version of black (#5160)
+77fb93af5ebbb5bcf7f8a4dc3fd2fba0e827488c

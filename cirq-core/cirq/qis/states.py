@@ -375,7 +375,7 @@ def infer_qid_shape(*states: 'cirq.QUANTUM_STATE_LIKE') -> Tuple[int, ...]:
     an error is raised.
 
     Args:
-        states: The states for which to infer the qid shape.
+        *states: The states for which to infer the qid shape.
 
     Returns:
         The inferred qid shape.

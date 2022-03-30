@@ -120,7 +120,7 @@ def fidelity(
         for q, s1 in state1:
             s2 = state2[q]
             prod *= np.abs(np.vdot(s1.state_vector(), s2.state_vector()))
-        return prod ** 2
+        return prod**2
 
     # Two numpy arrays that are either state vector, state tensor, or
     # density matrix
@@ -244,7 +244,7 @@ def _fidelity_state_vectors_or_density_matrices(state1: np.ndarray, state2: np.n
         state1_sqrt = _sqrt_positive_semidefinite_matrix(state1)
         eigs = linalg.eigvalsh(state1_sqrt @ state2 @ state1_sqrt)
         trace = np.sum(np.sqrt(np.abs(eigs)))
-        return trace ** 2
+        return trace**2
     raise ValueError(
         'The given arrays must be one- or two-dimensional. '
         f'Got shapes {state1.shape} and {state2.shape}.'
@@ -310,4 +310,4 @@ def entanglement_fidelity(operation: 'cirq.SupportsKraus') -> float:
     for k in protocols.kraus(operation):
         f += np.abs(np.trace(k)) ** 2
     n_qubits = protocols.num_qubits(operation)
-    return float(f / 4 ** n_qubits)
+    return float(f / 4**n_qubits)

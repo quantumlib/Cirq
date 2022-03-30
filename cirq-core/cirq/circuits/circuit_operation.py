@@ -300,7 +300,7 @@ class CircuitOperation(ops.Operation):
             if self.qubit_map:
                 circuit = circuit.transform_qubits(lambda q: self.qubit_map.get(q, q))
             if isinstance(self.repetitions, INT_CLASSES) and self.repetitions < 0:
-                circuit = circuit ** -1
+                circuit = circuit**-1
             if self.measurement_key_map:
                 circuit = protocols.with_measurement_key_mapping(circuit, self.measurement_key_map)
             if self.param_resolver:
@@ -616,7 +616,7 @@ class CircuitOperation(ops.Operation):
         """Returns a copy of this operation with an updated qubit mapping.
 
         Args:
-            new_qubits: A list of qubits to target. Qubits in this list are
+            *new_qubits: A list of qubits to target. Qubits in this list are
                 matched to qubits in the circuit following default qubit order,
                 ignoring any existing qubit map.
 
