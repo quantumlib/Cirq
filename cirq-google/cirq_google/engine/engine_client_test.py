@@ -177,9 +177,6 @@ def test_list_program_filters(
         created_after=created_after,
         has_labels=labels,
     )
-    print(grpc_client.list_quantum_programs.call_args)
-    print(grpc_client.list_quantum_programs.call_args[0])
-    print(grpc_client.list_quantum_programs.call_args[0][0])
     assert grpc_client.list_quantum_programs.call_args[0][0].filter == expected_filter
 
 
@@ -861,9 +858,6 @@ def test_list_jobs_filters(
         executed_processor_ids=executed_processor_ids,
         scheduled_processor_ids=scheduled_processor_ids,
     )
-    print(grpc_client.list_quantum_jobs.call_args)
-    print(grpc_client.list_quantum_jobs.call_args[0])
-    print(grpc_client.list_quantum_jobs.call_args[0][0])
     assert grpc_client.list_quantum_jobs.call_args[0][0].filter == expected_filter
 
 
