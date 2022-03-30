@@ -18,12 +18,14 @@ import time
 from typing import Callable, Dict, List, Optional, Sequence, Set, TypeVar, Tuple, Union
 import warnings
 
+import proto
 from google.api_core.exceptions import GoogleAPICallError, NotFound
 from google.protobuf import any_pb2, field_mask_pb2
 from google.protobuf.timestamp_pb2 import Timestamp
 
 from cirq_google.cloud import quantum
 
+_M = TypeVar('_M', bound=proto.Message)
 _R = TypeVar('_R')
 
 
@@ -72,14 +74,14 @@ class EngineClient:
             warnings.simplefilter('ignore')
             self.grpc_client = quantum.QuantumEngineServiceClient(**service_args)
 
-    def _make_request(self, request: Callable[[], _R]) -> _R:
+    def _make_request(self, message: _M, request: Callable[[_M], _R]) -> _R:
         # Start with a 100ms retry delay with exponential backoff to
         # max_retry_delay_seconds
         current_delay = 0.1
 
         while True:
             try:
-                return request()
+                return request(message)
             except GoogleAPICallError as err:
                 message = err.message
                 # Raise RuntimeError for exceptions that are not retryable.
@@ -125,13 +127,12 @@ class EngineClient:
             request.labels.update(labels)
 
         program = self._make_request(
-            lambda: self.grpc_client.create_quantum_program(
-                quantum.CreateQuantumProgramRequest(
-                    parent=parent_name,
-                    quantum_program=request,
-                    overwrite_existing_source_code=False,
-                )
-            )
+            quantum.CreateQuantumProgramRequest(
+                parent=parent_name,
+                quantum_program=request,
+                overwrite_existing_source_code=False,
+            ),
+            self.grpc_client.create_quantum_program,
         )
         return _ids_from_program_name(program.name)[1], program
 
@@ -146,11 +147,10 @@ class EngineClient:
             return_code: If True returns the serialized program code.
         """
         return self._make_request(
-            lambda: self.grpc_client.get_quantum_program(
-                quantum.GetQuantumProgramRequest(
-                    name=_program_name_from_ids(project_id, program_id), return_code=return_code
-                )
-            )
+            quantum.GetQuantumProgramRequest(
+                name=_program_name_from_ids(project_id, program_id), return_code=return_code
+            ),
+            self.grpc_client.get_quantum_program,
         )
 
     def list_programs(
@@ -188,11 +188,10 @@ class EngineClient:
             for (k, v) in has_labels.items():
                 filters.append(f"labels.{k}:{v}")
         return self._make_request(
-            lambda: self.grpc_client.list_quantum_programs(
-                quantum.ListQuantumProgramsRequest(
-                    parent=_project_name(project_id), filter=" AND ".join(filters)
-                )
-            )
+            quantum.ListQuantumProgramsRequest(
+                parent=_project_name(project_id), filter=" AND ".join(filters)
+            ),
+            self.grpc_client.list_quantum_programs,
         )
 
     def set_program_description(
@@ -210,15 +209,14 @@ class EngineClient:
         """
         program_resource_name = _program_name_from_ids(project_id, program_id)
         return self._make_request(
-            lambda: self.grpc_client.update_quantum_program(
-                quantum.UpdateQuantumProgramRequest(
-                    name=program_resource_name,
-                    quantum_program=quantum.QuantumProgram(
-                        name=program_resource_name, description=description
-                    ),
-                    update_mask=field_mask_pb2.FieldMask(paths=['description']),
-                )
-            )
+            quantum.UpdateQuantumProgramRequest(
+                name=program_resource_name,
+                quantum_program=quantum.QuantumProgram(
+                    name=program_resource_name, description=description
+                ),
+                update_mask=field_mask_pb2.FieldMask(paths=['description']),
+            ),
+            self.grpc_client.update_quantum_program,
         )
 
     def _set_program_labels(
@@ -226,15 +224,14 @@ class EngineClient:
     ) -> quantum.QuantumProgram:
         program_resource_name = _program_name_from_ids(project_id, program_id)
         return self._make_request(
-            lambda: self.grpc_client.update_quantum_program(
-                quantum.UpdateQuantumProgramRequest(
-                    name=program_resource_name,
-                    quantum_program=quantum.QuantumProgram(
-                        name=program_resource_name, labels=labels, label_fingerprint=fingerprint
-                    ),
-                    update_mask=field_mask_pb2.FieldMask(paths=['labels']),
-                )
-            )
+            quantum.UpdateQuantumProgramRequest(
+                name=program_resource_name,
+                quantum_program=quantum.QuantumProgram(
+                    name=program_resource_name, labels=labels, label_fingerprint=fingerprint
+                ),
+                update_mask=field_mask_pb2.FieldMask(paths=['labels']),
+            ),
+            self.grpc_client.update_quantum_program,
         )
 
     def set_program_labels(
@@ -310,11 +307,10 @@ class EngineClient:
                 will fail if the program contains any jobs.
         """
         self._make_request(
-            lambda: self.grpc_client.delete_quantum_program(
-                quantum.DeleteQuantumProgramRequest(
-                    name=_program_name_from_ids(project_id, program_id), delete_jobs=delete_jobs
-                )
-            )
+            quantum.DeleteQuantumProgramRequest(
+                name=_program_name_from_ids(project_id, program_id), delete_jobs=delete_jobs
+            ),
+            self.grpc_client.delete_quantum_program,
         )
 
     def create_job(
@@ -371,13 +367,12 @@ class EngineClient:
         if labels:
             request.labels.update(labels)
         job = self._make_request(
-            lambda: self.grpc_client.create_quantum_job(
-                quantum.CreateQuantumJobRequest(
-                    parent=_program_name_from_ids(project_id, program_id),
-                    quantum_job=request,
-                    overwrite_existing_run_context=False,
-                )
-            )
+            quantum.CreateQuantumJobRequest(
+                parent=_program_name_from_ids(project_id, program_id),
+                quantum_job=request,
+                overwrite_existing_run_context=False,
+            ),
+            self.grpc_client.create_quantum_job,
         )
         return _ids_from_job_name(job.name)[2], job
 
@@ -451,9 +446,8 @@ class EngineClient:
             program_id = "-"
         parent = _program_name_from_ids(project_id, program_id)
         return self._make_request(
-            lambda: self.grpc_client.list_quantum_jobs(
-                quantum.ListQuantumJobsRequest(parent=parent, filter=" AND ".join(filters))
-            )
+            quantum.ListQuantumJobsRequest(parent=parent, filter=" AND ".join(filters)),
+            self.grpc_client.list_quantum_jobs,
         )
 
     def get_job(
@@ -470,12 +464,11 @@ class EngineClient:
                 QuantumJob.
         """
         return self._make_request(
-            lambda: self.grpc_client.get_quantum_job(
-                quantum.GetQuantumJobRequest(
-                    name=_job_name_from_ids(project_id, program_id, job_id),
-                    return_run_context=return_run_context,
-                )
-            )
+            quantum.GetQuantumJobRequest(
+                name=_job_name_from_ids(project_id, program_id, job_id),
+                return_run_context=return_run_context,
+            ),
+            self.grpc_client.get_quantum_job,
         )
 
     def set_job_description(
@@ -494,13 +487,12 @@ class EngineClient:
         """
         job_resource_name = _job_name_from_ids(project_id, program_id, job_id)
         return self._make_request(
-            lambda: self.grpc_client.update_quantum_job(
-                quantum.UpdateQuantumJobRequest(
-                    name=job_resource_name,
-                    quantum_job=quantum.QuantumJob(name=job_resource_name, description=description),
-                    update_mask=field_mask_pb2.FieldMask(paths=['description']),
-                )
-            )
+            quantum.UpdateQuantumJobRequest(
+                name=job_resource_name,
+                quantum_job=quantum.QuantumJob(name=job_resource_name, description=description),
+                update_mask=field_mask_pb2.FieldMask(paths=['description']),
+            ),
+            self.grpc_client.update_quantum_job,
         )
 
     def _set_job_labels(
@@ -513,15 +505,14 @@ class EngineClient:
     ) -> quantum.QuantumJob:
         job_resource_name = _job_name_from_ids(project_id, program_id, job_id)
         return self._make_request(
-            lambda: self.grpc_client.update_quantum_job(
-                quantum.UpdateQuantumJobRequest(
-                    name=job_resource_name,
-                    quantum_job=quantum.QuantumJob(
-                        name=job_resource_name, labels=labels, label_fingerprint=fingerprint
-                    ),
-                    update_mask=field_mask_pb2.FieldMask(paths=['labels']),
-                )
-            )
+            quantum.UpdateQuantumJobRequest(
+                name=job_resource_name,
+                quantum_job=quantum.QuantumJob(
+                    name=job_resource_name, labels=labels, label_fingerprint=fingerprint
+                ),
+                update_mask=field_mask_pb2.FieldMask(paths=['labels']),
+            ),
+            self.grpc_client.update_quantum_job,
         )
 
     def set_job_labels(
@@ -598,11 +589,10 @@ class EngineClient:
             job_id: Unique ID of the job within the parent program.
         """
         self._make_request(
-            lambda: self.grpc_client.delete_quantum_job(
-                quantum.DeleteQuantumJobRequest(
-                    name=_job_name_from_ids(project_id, program_id, job_id)
-                )
-            )
+            quantum.DeleteQuantumJobRequest(
+                name=_job_name_from_ids(project_id, program_id, job_id)
+            ),
+            self.grpc_client.delete_quantum_job,
         )
 
     def cancel_job(self, project_id: str, program_id: str, job_id: str) -> None:
@@ -614,11 +604,10 @@ class EngineClient:
             job_id: Unique ID of the job within the parent program.
         """
         self._make_request(
-            lambda: self.grpc_client.cancel_quantum_job(
-                quantum.CancelQuantumJobRequest(
-                    name=_job_name_from_ids(project_id, program_id, job_id)
-                )
-            )
+            quantum.CancelQuantumJobRequest(
+                name=_job_name_from_ids(project_id, program_id, job_id)
+            ),
+            self.grpc_client.cancel_quantum_job,
         )
 
     def get_job_results(
@@ -635,11 +624,10 @@ class EngineClient:
             The quantum result.
         """
         return self._make_request(
-            lambda: self.grpc_client.get_quantum_result(
-                quantum.GetQuantumResultRequest(
-                    parent=_job_name_from_ids(project_id, program_id, job_id)
-                )
-            )
+            quantum.GetQuantumResultRequest(
+                parent=_job_name_from_ids(project_id, program_id, job_id)
+            ),
+            self.grpc_client.get_quantum_result,
         )
 
     def list_processors(self, project_id: str) -> List[quantum.QuantumProcessor]:
@@ -654,9 +642,8 @@ class EngineClient:
             A list of metadata of each processor.
         """
         response = self._make_request(
-            lambda: self.grpc_client.list_quantum_processors(
-                quantum.ListQuantumProcessorsRequest(parent=_project_name(project_id), filter='')
-            )
+            quantum.ListQuantumProcessorsRequest(parent=_project_name(project_id), filter=''),
+            self.grpc_client.list_quantum_processors,
         )
         return list(response)
 
@@ -671,11 +658,10 @@ class EngineClient:
             The quantum processor.
         """
         return self._make_request(
-            lambda: self.grpc_client.get_quantum_processor(
-                quantum.GetQuantumProcessorRequest(
-                    name=_processor_name_from_ids(project_id, processor_id)
-                )
-            )
+            quantum.GetQuantumProcessorRequest(
+                name=_processor_name_from_ids(project_id, processor_id)
+            ),
+            self.grpc_client.get_quantum_processor,
         )
 
     def list_calibrations(
@@ -695,11 +681,10 @@ class EngineClient:
             A list of calibrations.
         """
         response = self._make_request(
-            lambda: self.grpc_client.list_quantum_calibrations(
-                quantum.ListQuantumCalibrationsRequest(
-                    parent=_processor_name_from_ids(project_id, processor_id), filter=filter_str
-                )
-            )
+            quantum.ListQuantumCalibrationsRequest(
+                parent=_processor_name_from_ids(project_id, processor_id), filter=filter_str
+            ),
+            self.grpc_client.list_quantum_calibrations,
         )
         return list(response)
 
@@ -718,13 +703,12 @@ class EngineClient:
             The quantum calibration.
         """
         return self._make_request(
-            lambda: self.grpc_client.get_quantum_calibration(
-                quantum.GetQuantumCalibrationRequest(
-                    name=_calibration_name_from_ids(
-                        project_id, processor_id, calibration_timestamp_seconds
-                    )
+            quantum.GetQuantumCalibrationRequest(
+                name=_calibration_name_from_ids(
+                    project_id, processor_id, calibration_timestamp_seconds
                 )
-            )
+            ),
+            self.grpc_client.get_quantum_calibration,
         )
 
     def get_current_calibration(
@@ -744,12 +728,11 @@ class EngineClient:
         """
         try:
             return self._make_request(
-                lambda: self.grpc_client.get_quantum_calibration(
-                    quantum.GetQuantumCalibrationRequest(
-                        name=_processor_name_from_ids(project_id, processor_id)
-                        + '/calibrations/current'
-                    )
-                )
+                quantum.GetQuantumCalibrationRequest(
+                    name=_processor_name_from_ids(project_id, processor_id)
+                    + '/calibrations/current'
+                ),
+                self.grpc_client.get_quantum_calibration,
             )
         except EngineException as err:
             if isinstance(err.__cause__, NotFound):
@@ -784,11 +767,8 @@ class EngineClient:
         if whitelisted_users:
             reservation.whitelisted_users.extend(whitelisted_users)
         return self._make_request(
-            lambda: self.grpc_client.create_quantum_reservation(
-                quantum.CreateQuantumReservationRequest(
-                    parent=parent, quantum_reservation=reservation
-                )
-            )
+            quantum.CreateQuantumReservationRequest(parent=parent, quantum_reservation=reservation),
+            self.grpc_client.create_quantum_reservation,
         )
 
     def cancel_reservation(self, project_id: str, processor_id: str, reservation_id: str):
@@ -812,9 +792,8 @@ class EngineClient:
         """
         name = _reservation_name_from_ids(project_id, processor_id, reservation_id)
         return self._make_request(
-            lambda: self.grpc_client.cancel_quantum_reservation(
-                quantum.CancelQuantumReservationRequest(name=name)
-            )
+            quantum.CancelQuantumReservationRequest(name=name),
+            self.grpc_client.cancel_quantum_reservation,
         )
 
     def delete_reservation(self, project_id: str, processor_id: str, reservation_id: str):
@@ -834,9 +813,8 @@ class EngineClient:
         """
         name = _reservation_name_from_ids(project_id, processor_id, reservation_id)
         return self._make_request(
-            lambda: self.grpc_client.delete_quantum_reservation(
-                quantum.DeleteQuantumReservationRequest(name=name)
-            )
+            quantum.DeleteQuantumReservationRequest(name=name),
+            self.grpc_client.delete_quantum_reservation,
         )
 
     def get_reservation(
@@ -855,9 +833,8 @@ class EngineClient:
         try:
             name = _reservation_name_from_ids(project_id, processor_id, reservation_id)
             return self._make_request(
-                lambda: self.grpc_client.get_quantum_reservation(
-                    quantum.GetQuantumReservationRequest(name=name)
-                )
+                quantum.GetQuantumReservationRequest(name=name),
+                self.grpc_client.get_quantum_reservation,
             )
         except EngineException as err:
             if isinstance(err.__cause__, NotFound):
@@ -886,11 +863,10 @@ class EngineClient:
             A list of QuantumReservation objects.
         """
         response = self._make_request(
-            lambda: self.grpc_client.list_quantum_reservations(
-                quantum.ListQuantumReservationsRequest(
-                    parent=_processor_name_from_ids(project_id, processor_id), filter=filter_str
-                )
-            )
+            quantum.ListQuantumReservationsRequest(
+                parent=_processor_name_from_ids(project_id, processor_id), filter=filter_str
+            ),
+            self.grpc_client.list_quantum_reservations,
         )
 
         return list(response)
@@ -941,13 +917,12 @@ class EngineClient:
             paths.append('whitelisted_users')
 
         return self._make_request(
-            lambda: self.grpc_client.update_quantum_reservation(
-                quantum.UpdateQuantumReservationRequest(
-                    name=name,
-                    quantum_reservation=reservation,
-                    update_mask=field_mask_pb2.FieldMask(paths=paths),
-                )
-            )
+            quantum.UpdateQuantumReservationRequest(
+                name=name,
+                quantum_reservation=reservation,
+                update_mask=field_mask_pb2.FieldMask(paths=paths),
+            ),
+            self.grpc_client.update_quantum_reservation,
         )
 
     def list_time_slots(
@@ -966,11 +941,10 @@ class EngineClient:
             A list of QuantumTimeSlot objects.
         """
         response = self._make_request(
-            lambda: self.grpc_client.list_quantum_time_slots(
-                quantum.ListQuantumTimeSlotsRequest(
-                    parent=_processor_name_from_ids(project_id, processor_id), filter=filter_str
-                )
-            )
+            quantum.ListQuantumTimeSlotsRequest(
+                parent=_processor_name_from_ids(project_id, processor_id), filter=filter_str
+            ),
+            self.grpc_client.list_quantum_time_slots,
         )
         return list(response)
 
