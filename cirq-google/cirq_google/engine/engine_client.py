@@ -91,7 +91,7 @@ class EngineClient:
                 raise TimeoutError(f'Reached max retry attempts for error: {message}')
             if self.verbose:
                 print(message, file=sys.stderr)
-                print('Waiting ', current_delay, 'seconds before retrying.', file=sys.stderr)
+                print(f'Waiting {current_delay} seconds before retrying.', file=sys.stderr)
             time.sleep(current_delay)
             current_delay *= 2
 

@@ -177,8 +177,10 @@ def test_list_program_filters(
         created_after=created_after,
         has_labels=labels,
     )
-    print(grpc_client.list_quantum_program.call_args)
-    assert grpc_client.list_quantum_programs.call_args.args[0].filter == expected_filter
+    print(grpc_client.list_quantum_programs.call_args)
+    print(grpc_client.list_quantum_programs.call_args[0])
+    print(grpc_client.list_quantum_programs.call_args[0][0])
+    assert grpc_client.list_quantum_programs.call_args[0][0].filter == expected_filter
 
 
 @mock.patch.object(quantum, 'QuantumEngineServiceClient', autospec=True)
@@ -860,7 +862,9 @@ def test_list_jobs_filters(
         scheduled_processor_ids=scheduled_processor_ids,
     )
     print(grpc_client.list_quantum_jobs.call_args)
-    assert grpc_client.list_quantum_jobs.call_args.args[0].filter == expected_filter
+    print(grpc_client.list_quantum_jobs.call_args[0])
+    print(grpc_client.list_quantum_jobs.call_args[0][0])
+    assert grpc_client.list_quantum_jobs.call_args[0][0].filter == expected_filter
 
 
 @mock.patch.object(quantum, 'QuantumEngineServiceClient', autospec=True)
