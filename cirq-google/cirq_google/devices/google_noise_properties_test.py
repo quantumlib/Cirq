@@ -48,6 +48,10 @@ DEFAULT_GATE_NS: Dict[type, float] = {
     # cirq.WaitGate is a special case.
 }
 
+# Mock pauli error rates for 1- and 2-qubit gates.
+SINGLE_QUBIT_ERROR = 0.001
+TWO_QUBIT_ERROR = 0.01
+
 
 # These properties are for testing purposes only - they are not representative
 # of device behavior for any existing hardware.
@@ -59,7 +63,7 @@ def sample_noise_properties(
         gate_times_ns=DEFAULT_GATE_NS,
         t1_ns={q: 1e5 for q in system_qubits},
         tphi_ns={q: 2e5 for q in system_qubits},
-        readout_errors={q: np.array([0.001, 0.01]) for q in system_qubits},
+        readout_errors={q: np.array([SINGLE_QUBIT_ERROR, TWO_QUBIT_ERROR]) for q in system_qubits},
         gate_pauli_errors={
             **{OpIdentifier(g, q): 0.001 for g in SINGLE_QUBIT_GATES for q in system_qubits},
             **{
@@ -129,7 +133,7 @@ def test_single_qubit_gates(op):
     depol_pauli_err = 1 - cirq.qis.measures.entanglement_fidelity(depol_op)
     thermal_pauli_err = 1 - cirq.qis.measures.entanglement_fidelity(thermal_op)
     total_err = depol_pauli_err + thermal_pauli_err
-    assert np.isclose(total_err, 0.001)
+    assert np.isclose(total_err, SINGLE_QUBIT_ERROR)
 
 
 @pytest.mark.parametrize(
@@ -189,7 +193,7 @@ def test_two_qubit_gates(op):
     thermal0_pauli_err = 1 - cirq.qis.measures.entanglement_fidelity(thermal_op_0)
     thermal1_pauli_err = 1 - cirq.qis.measures.entanglement_fidelity(thermal_op_1)
     total_err = depol_pauli_err + thermal0_pauli_err + thermal1_pauli_err + fsim_pauli_err
-    assert np.isclose(total_err, 0.01)
+    assert np.isclose(total_err, TWO_QUBIT_ERROR)
 
 
 def test_supertype_match():
