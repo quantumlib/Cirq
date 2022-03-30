@@ -131,7 +131,7 @@ class GoogleNoiseProperties(devices.SuperconductingQubitsNoiseProperties):
 class NoiseModelFromGoogleNoiseProperties(devices.NoiseModelFromNoiseProperties):
     """A noise model defined from noise properties of a Google device."""
 
-    def virtual_predicate(self, op: cirq.Operation) -> bool:
+    def is_virtual(self, op: cirq.Operation) -> bool:
         return isinstance(op.gate, cirq.ZPowGate) and cirq_google.PhysicalZTag not in op.tags
 
     # noisy_moments is implemented by the superclass.
