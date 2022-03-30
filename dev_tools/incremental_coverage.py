@@ -25,8 +25,8 @@ IGNORED_FILE_PATTERNS = [
     r'^.+_pb2(_grpc)?\.py$',  # Auto-generated protobuf code.
     r'^(.+/)?setup\.py$',  # Installation code.
     r'^(.+/)?_version\.py$',  # Installation code.
-    r'^cirq-google/cirq_google/cloud/quantum/.+.py$',  # Generated gRPC client code.
-    r'^cirq-google/cirq_google/api/v1/.+.py$',  # deprecated API code
+    r'^cirq-google/cirq_google/cloud/.+\.py$',  # Generated gRPC client code.
+    r'^cirq-google/cirq_google/api/v1/.+\.py$',  # deprecated API code
     r'^benchmarks/',
 ]
 IGNORED_BLOCK_PATTERNS = [
