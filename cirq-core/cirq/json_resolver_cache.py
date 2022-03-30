@@ -32,7 +32,6 @@ def _class_resolver_dictionary() -> Dict[str, ObjectFactory]:
     from cirq.devices.noise_model import _NoNoiseModel
     from cirq.experiments import CrossEntropyResult, CrossEntropyResultDict, GridInteractionLayer
     from cirq.experiments.grid_parallel_two_qubit_xeb import GridParallelXEBMetadata
-    from cirq.ops.boolean_hamiltonian import BooleanHamiltonianGate
 
     def _boolean_hamiltonian_gate_op(qubit_map, boolean_strs, theta):
         return cirq.BooleanHamiltonianGate(
