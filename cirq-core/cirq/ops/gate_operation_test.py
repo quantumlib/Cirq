@@ -11,11 +11,14 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import collections.abc
+
 import numpy as np
 import pytest
 import sympy
 
 import cirq
+import cirq.testing
 
 
 def test_gate_operation_init():
@@ -444,3 +447,29 @@ def test_is_parameterized():
     assert not cirq.is_parameterized(No1().on(q))
     assert not cirq.is_parameterized(No2().on(q))
     assert cirq.is_parameterized(Yes().on(q))
+
+
+def test_gate_on_gate():
+    def all_subclasses(cls):
+        return set(cls.__subclasses__()).union(
+            [s for c in cls.__subclasses__() for s in all_subclasses(c)]
+        )
+
+    gate_subclasses = all_subclasses(cirq.Gate)
+
+    test_module_spec = cirq.testing.json.spec_for("cirq.protocols")
+
+    for gate_cls in gate_subclasses:
+        filename = test_module_spec.test_data_path.joinpath(f"{gate_cls.__name__}.json")
+        try:
+            gates = cirq.read_json(filename)
+        except:
+            print(gate_cls)
+            continue
+        if not isinstance(gates, collections.abc.Iterable):
+            gates = [gates]
+        for gate in gates:
+            if gate.num_qubits():
+                qudits = [cirq.LineQid(i, d) for i, d in enumerate(cirq.qid_shape(gate))]
+                assert gate.on(*qudits).gate == gate
+    assert False
