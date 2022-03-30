@@ -101,6 +101,20 @@ def test_job_results_qpu_endianness():
     assert results == ionq.QPUResult({0: 600, 2: 400}, 2, measurement_dict={})
 
 
+def test_job_results_qpu_target_endianness():
+    job_dict = {
+        'id': 'my_id',
+        'status': 'completed',
+        'qubits': '2',
+        'target': 'qpu.target',
+        'metadata': {'shots': 1000},
+        'data': {'histogram': {'0': '0.6', '1': '0.4'}},
+    }
+    job = ionq.Job(None, job_dict)
+    results = job.results()
+    assert results == ionq.QPUResult({0: 600, 2: 400}, 2, measurement_dict={})
+
+
 @mock.patch('time.sleep', return_value=None)
 def test_job_results_poll(mock_sleep):
     ready_job = {

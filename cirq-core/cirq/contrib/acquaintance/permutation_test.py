@@ -184,7 +184,7 @@ def test_linear_permutation_gate_pow_not_implemented():
 def test_linear_permutation_gate_pow_identity(num_qubits, permutation):
     permutation_gate = cca.LinearPermutationGate(num_qubits, permutation)
 
-    assert permutation_gate ** 1 == permutation_gate
+    assert permutation_gate**1 == permutation_gate
 
 
 @pytest.mark.parametrize(
@@ -201,7 +201,7 @@ def test_linear_permutation_gate_pow_inverse(num_qubits, permutation, inverse):
     permutation_gate = cca.LinearPermutationGate(num_qubits, permutation)
     inverse_gate = cca.LinearPermutationGate(num_qubits, inverse)
 
-    assert permutation_gate ** -1 == inverse_gate
+    assert permutation_gate**-1 == inverse_gate
     assert cirq.inverse(permutation_gate) == inverse_gate
 
 

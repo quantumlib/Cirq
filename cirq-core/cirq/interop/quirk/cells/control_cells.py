@@ -121,14 +121,14 @@ def generate_all_control_cell_makers() -> Iterator[CellMaker]:
     # Controls.
     yield _reg_control("•", basis_change=None)
     yield _reg_control("◦", basis_change=ops.X)
-    yield _reg_control("⊕", basis_change=ops.Y ** 0.5)
-    yield _reg_control("⊖", basis_change=ops.Y ** -0.5)
-    yield _reg_control("⊗", basis_change=ops.X ** -0.5)
-    yield _reg_control("(/)", basis_change=ops.X ** 0.5)
+    yield _reg_control("⊕", basis_change=ops.Y**0.5)
+    yield _reg_control("⊖", basis_change=ops.Y**-0.5)
+    yield _reg_control("⊗", basis_change=ops.X**-0.5)
+    yield _reg_control("(/)", basis_change=ops.X**0.5)
 
     # Parity controls.
-    yield _reg_parity_control("xpar", basis_change=ops.Y ** 0.5)
-    yield _reg_parity_control("ypar", basis_change=ops.X ** -0.5)
+    yield _reg_parity_control("xpar", basis_change=ops.Y**0.5)
+    yield _reg_parity_control("ypar", basis_change=ops.X**-0.5)
     yield _reg_parity_control("zpar", basis_change=None)
 
 

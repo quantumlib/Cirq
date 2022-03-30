@@ -110,7 +110,9 @@ class Service:
             return result.to_cirq_result(params=cirq.ParamResolver(param_resolver))
         else:
             sim_result = cast(results.SimulatorResult, result)
+            # pylint: disable=unexpected-keyword-arg
             return sim_result.to_cirq_result(params=cirq.ParamResolver(param_resolver), seed=seed)
+            # pylint: enable=unexpected-keyword-arg
 
     def sampler(self, target: Optional[str] = None, seed: cirq.RANDOM_STATE_OR_SEED_LIKE = None):
         """Returns a `cirq.Sampler` object for accessing the sampler interface.

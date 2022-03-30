@@ -51,7 +51,7 @@ def _Sdg(
     qubits: List['cirq.Qid'],
 ):
     # Apply the tableau with S^\{dagger}
-    protocols.act_on(ops.S ** -1, args, qubits=[qubits[q]], allow_decompose=False)
+    protocols.act_on(ops.S**-1, args, qubits=[qubits[q]], allow_decompose=False)
     operations.append(ops.S(qubits[q]))
 
 
