@@ -174,7 +174,7 @@ def test_optimizes_single_iswap():
 
 def test_optimizes_tagged_partial_cz():
     a, b = cirq.LineQubit.range(2)
-    c = cirq.Circuit((cirq.CZ ** 0.5)(a, b).with_tags('mytag'))
+    c = cirq.Circuit((cirq.CZ**0.5)(a, b).with_tags('mytag'))
     assert_optimization_not_broken(c)
     c = cirq.optimize_for_target_gateset(c, gateset=cirq.CZTargetGateset())
     assert (

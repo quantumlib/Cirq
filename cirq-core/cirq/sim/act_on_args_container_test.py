@@ -11,7 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from typing import Dict, List, Optional, Sequence, Union
+from typing import Any, Dict, List, Optional, Sequence
 
 import cirq
 
@@ -35,30 +35,15 @@ class EmptyActOnArgs(cirq.ActOnArgs):
 
     def _act_on_fallback_(
         self,
-        action: Union['cirq.Operation', 'cirq.Gate'],
+        action: Any,
         qubits: Sequence['cirq.Qid'],
         allow_decompose: bool = True,
     ) -> bool:
         return True
 
-    def _on_copy(self, args):
-        pass
-
-    def _on_kronecker_product(self, other, target):
-        pass
-
-    def _on_transpose_to_qubit_order(self, qubits, target):
-        pass
-
-    def _on_factor(self, qubits, extracted, remainder, validate=True, atol=1e-07):
-        pass
-
     @property
     def allows_factoring(self):
         return True
-
-    def sample(self, qubits, repetitions=1, seed=None):
-        pass
 
 
 q0, q1, q2 = qs3 = cirq.LineQubit.range(3)

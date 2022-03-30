@@ -433,6 +433,7 @@ from cirq.qis import (
     operation_to_superoperator,
     QUANTUM_STATE_LIKE,
     QuantumState,
+    QuantumStateRepresentation,
     quantum_state,
     STATE_VECTOR_LIKE,
     StabilizerState,

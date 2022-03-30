@@ -108,10 +108,10 @@ def test_gate_family_json(gate, name, description):
 def test_gate_family_eq():
     eq = cirq.testing.EqualsTester()
     eq.add_equality_group(cirq.GateFamily(CustomX))
-    eq.add_equality_group(cirq.GateFamily(CustomX ** 3))
+    eq.add_equality_group(cirq.GateFamily(CustomX**3))
     eq.add_equality_group(
         cirq.GateFamily(CustomX, name='custom_name', description='custom_description'),
-        cirq.GateFamily(CustomX ** 3, name='custom_name', description='custom_description'),
+        cirq.GateFamily(CustomX**3, name='custom_name', description='custom_description'),
     )
     eq.add_equality_group(cirq.GateFamily(CustomXPowGate))
     eq.add_equality_group(
@@ -126,11 +126,11 @@ def test_gate_family_eq():
             cirq.GateFamily(CustomXPowGate),
             [
                 (CustomX, True),
-                (CustomX ** 0.5, True),
+                (CustomX**0.5, True),
                 (CustomX ** sympy.Symbol('theta'), True),
                 (CustomXPowGate(exponent=0.25, global_shift=0.15), True),
                 (cirq.SingleQubitGate(), False),
-                (cirq.X ** 0.5, False),
+                (cirq.X**0.5, False),
                 (None, False),
                 (cirq.global_phase_operation(1j), False),
             ],
@@ -140,8 +140,8 @@ def test_gate_family_eq():
             [
                 (CustomX, True),
                 (CustomXPowGate(exponent=1, global_shift=0.15), True),
-                (CustomX ** 2, False),
-                (CustomX ** 3, True),
+                (CustomX**2, False),
+                (CustomX**3, True),
                 (CustomX ** sympy.Symbol('theta'), False),
                 (None, False),
                 (cirq.global_phase_operation(1j), False),
@@ -188,7 +188,7 @@ class CustomXGateFamily(cirq.GateFamily):
 
 
 gateset = cirq.Gateset(
-    CustomX ** 0.5, cirq.testing.TwoQubitGate, CustomXGateFamily(), name='custom gateset'
+    CustomX**0.5, cirq.testing.TwoQubitGate, CustomXGateFamily(), name='custom gateset'
 )
 
 
@@ -196,7 +196,7 @@ def test_gateset_init():
     assert gateset.name == 'custom gateset'
     assert gateset.gates == frozenset(
         [
-            cirq.GateFamily(CustomX ** 0.5),
+            cirq.GateFamily(CustomX**0.5),
             cirq.GateFamily(cirq.testing.TwoQubitGate),
             CustomXGateFamily(),
         ]
@@ -214,11 +214,11 @@ def test_gateset_repr_and_str():
     'gate, result',
     [
         (CustomX, True),
-        (CustomX ** 2, True),
+        (CustomX**2, True),
         (CustomXPowGate(exponent=3, global_shift=0.5), True),
-        (CustomX ** 0.5, True),
+        (CustomX**0.5, True),
         (CustomXPowGate(exponent=0.5, global_shift=0.5), True),
-        (CustomX ** 0.25, False),
+        (CustomX**0.25, False),
         (CustomX ** sympy.Symbol('theta'), False),
         (cirq.testing.TwoQubitGate(), True),
     ],
@@ -286,7 +286,7 @@ def test_gateset_validate_circuit_op_negative_reps():
     gate = CustomXPowGate(exponent=0.5)
     op = cirq.CircuitOperation(cirq.FrozenCircuit(gate.on(cirq.LineQubit(0))), repetitions=-1)
     assert op not in cirq.Gateset(gate)
-    assert op ** -1 in cirq.Gateset(gate)
+    assert op**-1 in cirq.Gateset(gate)
 
 
 def test_with_params():
@@ -310,7 +310,7 @@ def test_with_params():
 def test_gateset_eq():
     eq = cirq.testing.EqualsTester()
     eq.add_equality_group(cirq.Gateset(CustomX))
-    eq.add_equality_group(cirq.Gateset(CustomX ** 3))
+    eq.add_equality_group(cirq.Gateset(CustomX**3))
     eq.add_equality_group(cirq.Gateset(CustomX, name='Custom Gateset'))
     eq.add_equality_group(cirq.Gateset(CustomX, name='Custom Gateset', unroll_circuit_op=False))
     eq.add_equality_group(
@@ -322,7 +322,7 @@ def test_gateset_eq():
             cirq.GateFamily(CustomX, name='custom_name', description='custom_description'),
         ),
         cirq.Gateset(
-            cirq.GateFamily(CustomX ** 3, name='custom_name', description='custom_description'),
+            cirq.GateFamily(CustomX**3, name='custom_name', description='custom_description'),
             cirq.GateFamily(CustomX, name='custom_name', description='custom_description'),
         ),
     )

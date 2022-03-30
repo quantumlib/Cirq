@@ -87,7 +87,7 @@ def test_diagonal_exponent():
     diagonal_angles = [2, 3, 5, 7]
     diagonal_gate = cirq.TwoQubitDiagonalGate(diagonal_angles)
 
-    sqrt_diagonal_gate = diagonal_gate ** 0.5
+    sqrt_diagonal_gate = diagonal_gate**0.5
 
     expected_angles = [prime / 2 for prime in diagonal_angles]
     assert cirq.approx_eq(sqrt_diagonal_gate, cirq.TwoQubitDiagonalGate(expected_angles))

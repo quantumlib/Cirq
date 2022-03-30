@@ -65,7 +65,7 @@ def assert_optimizes(
     # Nested sub-circuits should also get optimized.
     q = before.all_qubits()
     c_nested = cirq.Circuit(
-        [cirq.PhasedXPowGate(phase_exponent=0.5).on_each(*q), (cirq.Z ** 0.5).on_each(*q)],
+        [cirq.PhasedXPowGate(phase_exponent=0.5).on_each(*q), (cirq.Z**0.5).on_each(*q)],
         cirq.CircuitOperation(before.freeze()).repeat(2).with_tags("ignore"),
         [cirq.Y.on_each(*q), cirq.X.on_each(*q)],
         cirq.CircuitOperation(before.freeze()).repeat(3).with_tags("preserve_tag"),

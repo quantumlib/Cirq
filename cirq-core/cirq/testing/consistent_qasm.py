@@ -139,5 +139,5 @@ def _reorder_indices_of_matrix(matrix: np.ndarray, new_order: List[int]):
     new_input_indices = new_order
     new_output_indices = [i + num_qubits for i in new_input_indices]
     matrix = np.moveaxis(matrix, all_indices, new_input_indices + new_output_indices)
-    matrix = np.reshape(matrix, (2 ** num_qubits, 2 ** num_qubits))
+    matrix = np.reshape(matrix, (2**num_qubits, 2**num_qubits))
     return matrix

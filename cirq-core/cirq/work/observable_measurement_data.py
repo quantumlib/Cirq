@@ -485,7 +485,7 @@ class BitstringAccumulator:
 
             # https://en.wikipedia.org/wiki/Propagation_of_uncertainty#Example_formulae
             # assume cov(a,b) = 0, otherwise there would be another term.
-            var = f ** 2 * (var_a / (a ** 2) + var_b / (b ** 2))
+            var = f**2 * (var_a / (a**2) + var_b / (b**2))
 
         return var
 
