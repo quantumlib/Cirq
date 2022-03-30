@@ -36,7 +36,7 @@ def _class_resolver_dictionary() -> Dict[str, ObjectFactory]:
     def _boolean_hamiltonian_gate_op(qubit_map, boolean_strs, theta):
         return cirq.BooleanHamiltonianGate(
             parameter_names=list(qubit_map.keys()), boolean_strs=boolean_strs, theta=theta
-        )
+        ).on(*qubit_map.values())
 
     def _identity_operation_from_dict(qubits, **kwargs):
         return cirq.identity_each(*qubits)
