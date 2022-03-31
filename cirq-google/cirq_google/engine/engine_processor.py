@@ -103,8 +103,7 @@ class EngineProcessor(abstract_processor.AbstractProcessor):
         return engine_base.Engine(self.project_id, context=self.context)
 
     def get_sampler(
-        self,
-        gate_set: Optional[serializer.Serializer] = None,
+        self, gate_set: Optional[serializer.Serializer] = None
     ) -> engine_sampler.QuantumEngineSampler:
         """Returns a sampler backed by the engine.
 
@@ -118,9 +117,7 @@ class EngineProcessor(abstract_processor.AbstractProcessor):
             when sampled.1
         """
         return engine_sampler.QuantumEngineSampler(
-            engine=self.engine(),
-            processor_id=self.processor_id,
-            gate_set=gate_set,
+            engine=self.engine(), processor_id=self.processor_id, gate_set=gate_set
         )
 
     def run_batch(
@@ -337,10 +334,7 @@ class EngineProcessor(abstract_processor.AbstractProcessor):
         else:
             return None
 
-    def get_device(
-        self,
-        gate_sets: Iterable[serializer.Serializer] = (),
-    ) -> cirq.Device:
+    def get_device(self, gate_sets: Iterable[serializer.Serializer] = ()) -> cirq.Device:
         """Returns a `Device` created from the processor's device specification.
 
         This method queries the processor to retrieve the device specification,
@@ -426,9 +420,7 @@ class EngineProcessor(abstract_processor.AbstractProcessor):
         )
         return _to_calibration(response.data)
 
-    def get_current_calibration(
-        self,
-    ) -> Optional[calibration.Calibration]:
+    def get_current_calibration(self) -> Optional[calibration.Calibration]:
         """Returns metadata about the current calibration for a processor.
 
         Returns:

@@ -354,10 +354,7 @@ def test_run_circuit(client):
 
     engine = cg.Engine(project_id='proj', service_args={'client_info': 1})
     result = engine.run(
-        program=_CIRCUIT,
-        program_id='prog',
-        job_id='job-id',
-        processor_ids=['mysim'],
+        program=_CIRCUIT, program_id='prog', job_id='job-id', processor_ids=['mysim']
     )
 
     assert result.repetitions == 1
@@ -469,16 +466,12 @@ def test_run_circuit_cancelled(client):
         ),
     )
     client().get_job.return_value = quantum.QuantumJob(
-        name='projects/proj/programs/prog/jobs/job-id',
-        execution_status={
-            'state': 'CANCELLED',
-        },
+        name='projects/proj/programs/prog/jobs/job-id', execution_status={'state': 'CANCELLED'}
     )
 
     engine = cg.Engine(project_id='proj')
     with pytest.raises(
-        RuntimeError,
-        match='Job projects/proj/programs/prog/jobs/job-id failed in state CANCELLED.',
+        RuntimeError, match='Job projects/proj/programs/prog/jobs/job-id failed in state CANCELLED.'
     ):
         engine.run(program=_CIRCUIT)
 
@@ -497,10 +490,7 @@ def test_run_circuit_timeout(patched_time_sleep, client):
         ),
     )
     client().get_job.return_value = quantum.QuantumJob(
-        name='projects/proj/programs/prog/jobs/job-id',
-        execution_status={
-            'state': 'RUNNING',
-        },
+        name='projects/proj/programs/prog/jobs/job-id', execution_status={'state': 'RUNNING'}
     )
 
     engine = cg.Engine(project_id='project-id', timeout=600)
@@ -514,8 +504,7 @@ def test_run_sweep_params(client):
 
     engine = cg.Engine(project_id='proj')
     job = engine.run_sweep(
-        program=_CIRCUIT,
-        params=[cirq.ParamResolver({'a': 1}), cirq.ParamResolver({'a': 2})],
+        program=_CIRCUIT, params=[cirq.ParamResolver({'a': 1}), cirq.ParamResolver({'a': 2})]
     )
     results = job.results()
     assert len(results) == 2
@@ -573,10 +562,7 @@ def test_run_multiple_times(client):
 def test_run_sweep_v2(client):
     setup_run_circuit_with_result_(client, _RESULTS_V2)
 
-    engine = cg.Engine(
-        project_id='proj',
-        proto_version=cg.engine.engine.ProtoVersion.V2,
-    )
+    engine = cg.Engine(project_id='proj', proto_version=cg.engine.engine.ProtoVersion.V2)
     job = engine.run_sweep(program=_CIRCUIT, job_id='job-id', params=cirq.Points('a', [1, 2]))
     results = job.results()
     assert len(results) == 2
@@ -600,10 +586,7 @@ def test_run_sweep_v2(client):
 def test_run_batch(client):
     setup_run_circuit_with_result_(client, _BATCH_RESULTS_V2)
 
-    engine = cg.Engine(
-        project_id='proj',
-        proto_version=cg.engine.engine.ProtoVersion.V2,
-    )
+    engine = cg.Engine(project_id='proj', proto_version=cg.engine.engine.ProtoVersion.V2)
     job = engine.run_batch(
         programs=[_CIRCUIT, _CIRCUIT2],
         job_id='job-id',
@@ -638,10 +621,7 @@ def test_run_batch_no_params(client):
     # OK to run with no params, it should use empty sweeps for each
     # circuit.
     setup_run_circuit_with_result_(client, _BATCH_RESULTS_V2)
-    engine = cg.Engine(
-        project_id='proj',
-        proto_version=cg.engine.engine.ProtoVersion.V2,
-    )
+    engine = cg.Engine(project_id='proj', proto_version=cg.engine.engine.ProtoVersion.V2)
     engine.run_batch(programs=[_CIRCUIT, _CIRCUIT2], job_id='job-id', processor_ids=['mysim'])
     # Validate correct number of params have been created and that they
     # are empty sweeps.
@@ -656,10 +636,7 @@ def test_run_batch_no_params(client):
 
 
 def test_batch_size_validation_fails():
-    engine = cg.Engine(
-        project_id='proj',
-        proto_version=cg.engine.engine.ProtoVersion.V2,
-    )
+    engine = cg.Engine(project_id='proj', proto_version=cg.engine.engine.ProtoVersion.V2)
 
     with pytest.raises(ValueError, match='Number of circuits and sweeps'):
         _ = engine.run_batch(
@@ -692,10 +669,7 @@ def test_bad_sweep_proto():
 def test_run_calibration(client):
     setup_run_circuit_with_result_(client, _CALIBRATION_RESULTS_V2)
 
-    engine = cg.Engine(
-        project_id='proj',
-        proto_version=cg.engine.engine.ProtoVersion.V2,
-    )
+    engine = cg.Engine(project_id='proj', proto_version=cg.engine.engine.ProtoVersion.V2)
     q1 = cirq.GridQubit(2, 3)
     q2 = cirq.GridQubit(2, 4)
     layer1 = cg.CalibrationLayer('xeb', cirq.Circuit(cirq.CZ(q1, q2)), {'num_layers': 42})
@@ -727,10 +701,7 @@ def test_run_calibration(client):
 
 
 def test_run_calibration_validation_fails():
-    engine = cg.Engine(
-        project_id='proj',
-        proto_version=cg.engine.engine.ProtoVersion.V2,
-    )
+    engine = cg.Engine(project_id='proj', proto_version=cg.engine.engine.ProtoVersion.V2)
     q1 = cirq.GridQubit(2, 3)
     q2 = cirq.GridQubit(2, 4)
     layer1 = cg.CalibrationLayer('xeb', cirq.Circuit(cirq.CZ(q1, q2)), {'num_layers': 42})
@@ -743,10 +714,7 @@ def test_run_calibration_validation_fails():
 
     with pytest.raises(ValueError, match='processor_id and processor_ids'):
         _ = engine.run_calibration(
-            layers=[layer1, layer2],
-            processor_ids=['mysim'],
-            processor_id='mysim',
-            job_id='job-id',
+            layers=[layer1, layer2], processor_ids=['mysim'], processor_id='mysim', job_id='job-id'
         )
 
 

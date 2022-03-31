@@ -149,12 +149,7 @@ def test_list_program(client_constructor):
             datetime.datetime(2020, 9, 1, 0, 0, 10, tzinfo=datetime.timezone.utc),
             None,
         ),
-        (
-            'labels.color:red AND labels.shape:*',
-            None,
-            None,
-            {'color': 'red', 'shape': '*'},
-        ),
+        ('labels.color:red AND labels.shape:*', None, None, {'color': 'red', 'shape': '*'}),
         (
             'create_time >= 2020-08-01 AND '
             'create_time <= 1598918400 AND '
@@ -199,8 +194,7 @@ def test_set_program_description(client_constructor):
         quantum.UpdateQuantumProgramRequest(
             name='projects/proj/programs/prog',
             quantum_program=quantum.QuantumProgram(
-                name='projects/proj/programs/prog',
-                description='A program',
+                name='projects/proj/programs/prog', description='A program'
             ),
             update_mask=FieldMask(paths=['description']),
         )
@@ -233,9 +227,7 @@ def test_set_program_labels(client_constructor):
         quantum.UpdateQuantumProgramRequest(
             name='projects/proj/programs/prog',
             quantum_program=quantum.QuantumProgram(
-                name='projects/proj/programs/prog',
-                labels=labels,
-                label_fingerprint='hash',
+                name='projects/proj/programs/prog', labels=labels, label_fingerprint='hash'
             ),
             update_mask=FieldMask(paths=['labels']),
         )
@@ -246,8 +238,7 @@ def test_set_program_labels(client_constructor):
         quantum.UpdateQuantumProgramRequest(
             name='projects/proj/programs/prog',
             quantum_program=quantum.QuantumProgram(
-                name='projects/proj/programs/prog',
-                label_fingerprint='hash',
+                name='projects/proj/programs/prog', label_fingerprint='hash'
             ),
             update_mask=FieldMask(paths=['labels']),
         )
@@ -275,12 +266,7 @@ def test_add_program_labels(client_constructor):
             name='projects/proj/programs/prog',
             quantum_program=quantum.QuantumProgram(
                 name='projects/proj/programs/prog',
-                labels={
-                    'color': 'red',
-                    'weather': 'sun',
-                    'run': '1',
-                    'hello': 'world',
-                },
+                labels={'color': 'red', 'weather': 'sun', 'run': '1', 'hello': 'world'},
                 label_fingerprint='hash',
             ),
             update_mask=FieldMask(paths=['labels']),
@@ -293,12 +279,7 @@ def test_add_program_labels(client_constructor):
             name='projects/proj/programs/prog',
             quantum_program=quantum.QuantumProgram(
                 name='projects/proj/programs/prog',
-                labels={
-                    'color': 'blue',
-                    'weather': 'sun',
-                    'run': '1',
-                    'hello': 'world',
-                },
+                labels={'color': 'blue', 'weather': 'sun', 'run': '1', 'hello': 'world'},
                 label_fingerprint='hash',
             ),
             update_mask=FieldMask(paths=['labels']),
@@ -327,10 +308,7 @@ def test_remove_program_labels(client_constructor):
             name='projects/proj/programs/prog',
             quantum_program=quantum.QuantumProgram(
                 name='projects/proj/programs/prog',
-                labels={
-                    'color': 'red',
-                    'run': '1',
-                },
+                labels={'color': 'red', 'run': '1'},
                 label_fingerprint='hash',
             ),
             update_mask=FieldMask(paths=['labels']),
@@ -342,8 +320,7 @@ def test_remove_program_labels(client_constructor):
         quantum.UpdateQuantumProgramRequest(
             name='projects/proj/programs/prog',
             quantum_program=quantum.QuantumProgram(
-                name='projects/proj/programs/prog',
-                label_fingerprint='hash',
+                name='projects/proj/programs/prog', label_fingerprint='hash'
             ),
             update_mask=FieldMask(paths=['labels']),
         )
@@ -398,15 +375,10 @@ def test_create_job(client_constructor):
         )
     )
 
-    assert client.create_job(
-        'proj',
-        'prog',
+    assert client.create_job('proj', 'prog', 'job0', ['processor0'], run_context, 10, 'A job') == (
         'job0',
-        ['processor0'],
-        run_context,
-        10,
-        'A job',
-    ) == ('job0', result)
+        result,
+    )
     grpc_client.create_quantum_job.assert_called_with(
         quantum.CreateQuantumJobRequest(
             parent='projects/proj/programs/prog',
@@ -513,16 +485,14 @@ def test_get_job(client_constructor):
     assert client.get_job('proj', 'prog', 'job0', False) == result
     grpc_client.get_quantum_job.assert_called_with(
         quantum.GetQuantumJobRequest(
-            name='projects/proj/programs/prog/jobs/job0',
-            return_run_context=False,
+            name='projects/proj/programs/prog/jobs/job0', return_run_context=False
         )
     )
 
     assert client.get_job('proj', 'prog', 'job0', True) == result
     grpc_client.get_quantum_job.assert_called_with(
         quantum.GetQuantumJobRequest(
-            name='projects/proj/programs/prog/jobs/job0',
-            return_run_context=True,
+            name='projects/proj/programs/prog/jobs/job0', return_run_context=True
         )
     )
 
@@ -540,8 +510,7 @@ def test_set_job_description(client_constructor):
         quantum.UpdateQuantumJobRequest(
             name='projects/proj/programs/prog/jobs/job0',
             quantum_job=quantum.QuantumJob(
-                name='projects/proj/programs/prog/jobs/job0',
-                description='A job',
+                name='projects/proj/programs/prog/jobs/job0', description='A job'
             ),
             update_mask=FieldMask(paths=['description']),
         )
@@ -587,8 +556,7 @@ def test_set_job_labels(client_constructor):
         quantum.UpdateQuantumJobRequest(
             name='projects/proj/programs/prog/jobs/job0',
             quantum_job=quantum.QuantumJob(
-                name='projects/proj/programs/prog/jobs/job0',
-                label_fingerprint='hash',
+                name='projects/proj/programs/prog/jobs/job0', label_fingerprint='hash'
             ),
             update_mask=FieldMask(paths=['labels']),
         )
@@ -616,12 +584,7 @@ def test_add_job_labels(client_constructor):
             name='projects/proj/programs/prog/jobs/job0',
             quantum_job=quantum.QuantumJob(
                 name='projects/proj/programs/prog/jobs/job0',
-                labels={
-                    'color': 'red',
-                    'weather': 'sun',
-                    'run': '1',
-                    'hello': 'world',
-                },
+                labels={'color': 'red', 'weather': 'sun', 'run': '1', 'hello': 'world'},
                 label_fingerprint='hash',
             ),
             update_mask=FieldMask(paths=['labels']),
@@ -636,12 +599,7 @@ def test_add_job_labels(client_constructor):
             name='projects/proj/programs/prog/jobs/job0',
             quantum_job=quantum.QuantumJob(
                 name='projects/proj/programs/prog/jobs/job0',
-                labels={
-                    'color': 'blue',
-                    'weather': 'sun',
-                    'run': '1',
-                    'hello': 'world',
-                },
+                labels={'color': 'blue', 'weather': 'sun', 'run': '1', 'hello': 'world'},
                 label_fingerprint='hash',
             ),
             update_mask=FieldMask(paths=['labels']),
@@ -682,8 +640,7 @@ def test_remove_job_labels(client_constructor):
         quantum.UpdateQuantumJobRequest(
             name='projects/proj/programs/prog/jobs/job0',
             quantum_job=quantum.QuantumJob(
-                name='projects/proj/programs/prog/jobs/job0',
-                label_fingerprint='hash',
+                name='projects/proj/programs/prog/jobs/job0', label_fingerprint='hash'
             ),
             update_mask=FieldMask(paths=['labels']),
         )
@@ -792,10 +749,7 @@ def test_list_jobs(client_constructor):
             None,
             None,
             None,
-            [
-                quantum.ExecutionStatus.State.FAILURE,
-                quantum.ExecutionStatus.State.CANCELLED,
-            ],
+            [quantum.ExecutionStatus.State.FAILURE, quantum.ExecutionStatus.State.CANCELLED],
             None,
             None,
         ),
@@ -807,9 +761,7 @@ def test_list_jobs(client_constructor):
             datetime.date(2020, 8, 1),
             datetime.datetime(2020, 9, 1, tzinfo=datetime.timezone.utc),
             {'color': 'red', 'shape': '*'},
-            [
-                quantum.ExecutionStatus.State.SUCCESS,
-            ],
+            [quantum.ExecutionStatus.State.SUCCESS],
             None,
             None,
         ),
@@ -1029,8 +981,7 @@ def test_create_reservation(client_constructor):
     result.name = ''
     grpc_client.create_quantum_reservation.assert_called_with(
         quantum.CreateQuantumReservationRequest(
-            parent='projects/proj/processors/processor0',
-            quantum_reservation=result,
+            parent='projects/proj/processors/processor0', quantum_reservation=result
         )
     )
 
@@ -1176,20 +1127,12 @@ def test_update_reservation(client_constructor):
 def test_update_reservation_remove_all_users(client_constructor):
     grpc_client = setup_mock_(client_constructor)
     name = 'projects/proj/processors/processor0/reservations/papar-party-44'
-    result = quantum.QuantumReservation(
-        name=name,
-        whitelisted_users=[],
-    )
+    result = quantum.QuantumReservation(name=name, whitelisted_users=[])
     grpc_client.update_quantum_reservation.return_value = result
 
     client = EngineClient()
     assert (
-        client.update_reservation(
-            'proj',
-            'processor0',
-            'papar-party-44',
-            whitelisted_users=[],
-        )
+        client.update_reservation('proj', 'processor0', 'papar-party-44', whitelisted_users=[])
         == result
     )
     grpc_client.update_quantum_reservation.assert_called_with(
@@ -1211,8 +1154,7 @@ def test_list_time_slots(client_constructor):
             end_time=Timestamp(seconds=1000040000),
             time_slot_type=quantum.QuantumTimeSlot.TimeSlotType.MAINTENANCE,
             maintenance_config=quantum.QuantumTimeSlot.MaintenanceConfig(
-                title='Testing',
-                description='Testing some new configuration.',
+                title='Testing', description='Testing some new configuration.'
             ),
         ),
         quantum.QuantumTimeSlot(

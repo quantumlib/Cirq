@@ -138,11 +138,7 @@ class EngineContext:
             raise ValueError(f'invalid program proto version: {self.proto_version}')
         return util.pack_any(serializer.serialize(program))
 
-    def _serialize_run_context(
-        self,
-        sweeps: 'cirq.Sweepable',
-        repetitions: int,
-    ) -> any_pb2.Any:
+    def _serialize_run_context(self, sweeps: 'cirq.Sweepable', repetitions: int) -> any_pb2.Any:
         if self.proto_version != ProtoVersion.V2:
             raise ValueError(f'invalid run context proto version: {self.proto_version}')
         return util.pack_any(v2.run_context_to_proto(sweeps, repetitions))
@@ -760,10 +756,7 @@ class Engine(abstract_engine.AbstractEngine):
         response = self.context.client.list_processors(self.project_id)
         return [
             engine_processor.EngineProcessor(
-                self.project_id,
-                engine_client._ids_from_processor_name(p.name)[1],
-                self.context,
-                p,
+                self.project_id, engine_client._ids_from_processor_name(p.name)[1], self.context, p
             )
             for p in response
         ]
@@ -869,8 +862,7 @@ def get_engine_device(
 
 
 def get_engine_calibration(
-    processor_id: str,
-    project_id: Optional[str] = None,
+    processor_id: str, project_id: Optional[str] = None
 ) -> Optional['cirq_google.Calibration']:
     """Returns calibration metrics for a given processor.
 

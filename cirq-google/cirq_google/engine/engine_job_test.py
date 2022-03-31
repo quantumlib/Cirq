@@ -129,11 +129,7 @@ def test_add_labels(add_job_labels):
     job = cg.EngineJob('a', 'b', 'steve', EngineContext(), _job=quantum.QuantumJob(labels={}))
     assert job.labels() == {}
 
-    add_job_labels.return_value = quantum.QuantumJob(
-        labels={
-            'a': '1',
-        }
-    )
+    add_job_labels.return_value = quantum.QuantumJob(labels={'a': '1'})
     assert job.add_labels({'a': '1'}).labels() == {'a': '1'}
     add_job_labels.assert_called_with('a', 'b', 'steve', {'a': '1'})
 
@@ -149,11 +145,7 @@ def test_remove_labels(remove_job_labels):
     )
     assert job.labels() == {'a': '1', 'b': '1'}
 
-    remove_job_labels.return_value = quantum.QuantumJob(
-        labels={
-            'b': '1',
-        }
-    )
+    remove_job_labels.return_value = quantum.QuantumJob(labels={'b': '1'})
     assert job.remove_labels(['a']).labels() == {'b': '1'}
     remove_job_labels.assert_called_with('a', 'b', 'steve', ['a'])
 
@@ -218,9 +210,7 @@ def test_failure_with_no_error():
         'steve',
         EngineContext(),
         _job=quantum.QuantumJob(
-            execution_status=quantum.ExecutionStatus(
-                state=quantum.ExecutionStatus.State.SUCCESS,
-            )
+            execution_status=quantum.ExecutionStatus(state=quantum.ExecutionStatus.State.SUCCESS)
         ),
     )
     assert not job.failure()

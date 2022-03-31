@@ -211,10 +211,7 @@ class EngineJob(abstract_job.AbstractJob):
         """Return failure code and message of the job if present."""
         if self._inner_job().execution_status.failure:
             failure = self._inner_job().execution_status.failure
-            return (
-                failure.error_code.name,
-                failure.error_message,
-            )
+            return (failure.error_code.name, failure.error_message)
         return None
 
     def get_repetitions_and_sweeps(self) -> Tuple[int, List[cirq.Sweep]]:
@@ -384,9 +381,7 @@ class EngineJob(abstract_job.AbstractJob):
         )
 
 
-def _deserialize_run_context(
-    run_context: any_pb2.Any,
-) -> Tuple[int, List[cirq.Sweep]]:
+def _deserialize_run_context(run_context: any_pb2.Any) -> Tuple[int, List[cirq.Sweep]]:
     import cirq_google.engine.engine as engine_base
 
     run_context_type = run_context.type_url[len(engine_base.TYPE_PREFIX) :]
@@ -417,8 +412,7 @@ def _get_job_results_v1(result: v1.program_pb2.Result) -> Sequence[cirq.Result]:
 
             trial_results.append(
                 cirq.ResultDict(
-                    params=cirq.ParamResolver(result.params.assignments),
-                    measurements=measurements,
+                    params=cirq.ParamResolver(result.params.assignments), measurements=measurements
                 )
             )
     return trial_results

@@ -55,26 +55,19 @@ _CALIBRATION = quantum.QuantumCalibration(
                     values=[v2.metrics_pb2.Value(double_val=0.9998)],
                 ),
                 v2.metrics_pb2.Metric(
-                    name='t1',
-                    targets=['0_0'],
-                    values=[v2.metrics_pb2.Value(double_val=321)],
+                    name='t1', targets=['0_0'], values=[v2.metrics_pb2.Value(double_val=321)]
                 ),
                 v2.metrics_pb2.Metric(
-                    name='t1',
-                    targets=['0_1'],
-                    values=[v2.metrics_pb2.Value(double_val=911)],
+                    name='t1', targets=['0_1'], values=[v2.metrics_pb2.Value(double_val=911)]
                 ),
                 v2.metrics_pb2.Metric(
-                    name='t1',
-                    targets=['0_1'],
-                    values=[v2.metrics_pb2.Value(double_val=505)],
+                    name='t1', targets=['0_1'], values=[v2.metrics_pb2.Value(double_val=505)]
                 ),
                 v2.metrics_pb2.Metric(
-                    name='globalMetric',
-                    values=[v2.metrics_pb2.Value(int32_val=12300)],
+                    name='globalMetric', values=[v2.metrics_pb2.Value(int32_val=12300)]
                 ),
             ],
-        ),
+        )
     ),
 )
 
@@ -192,9 +185,7 @@ _RESULTS2_V2 = v2.result_pb2.Result(
 )
 
 
-_BATCH_RESULTS_V2 = util.pack_any(
-    v2.batch_pb2.BatchResult(results=[_RESULTS_V2, _RESULTS2_V2]),
-)
+_BATCH_RESULTS_V2 = util.pack_any(v2.batch_pb2.BatchResult(results=[_RESULTS_V2, _RESULTS2_V2]))
 
 
 _CALIBRATION_RESULTS_V2 = util.pack_any(
@@ -658,8 +649,7 @@ def test_get_schedule(list_time_slots):
             end_time=Timestamp(seconds=1000040000),
             time_slot_type=quantum.QuantumTimeSlot.TimeSlotType.MAINTENANCE,
             maintenance_config=quantum.QuantumTimeSlot.MaintenanceConfig(
-                title='Testing',
-                description='Testing some new configuration.',
+                title='Testing', description='Testing some new configuration.'
             ),
         ),
         quantum.QuantumTimeSlot(
@@ -694,8 +684,7 @@ def test_get_schedule_filter_by_time_slot(list_time_slots):
             end_time=Timestamp(seconds=1000040000),
             time_slot_type=quantum.QuantumTimeSlot.TimeSlotType.MAINTENANCE,
             maintenance_config=quantum.QuantumTimeSlot.MaintenanceConfig(
-                title='Testing',
-                description='Testing some new configuration.',
+                title='Testing', description='Testing some new configuration.'
             ),
         )
     ]

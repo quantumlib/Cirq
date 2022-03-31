@@ -399,11 +399,7 @@ def test_add_labels(add_program_labels):
     )
     assert program.labels() == {}
 
-    add_program_labels.return_value = quantum.QuantumProgram(
-        labels={
-            'a': '1',
-        }
-    )
+    add_program_labels.return_value = quantum.QuantumProgram(labels={'a': '1'})
     assert program.add_labels({'a': '1'}).labels() == {'a': '1'}
     add_program_labels.assert_called_with('a', 'b', {'a': '1'})
 

@@ -28,11 +28,7 @@ def test_run_circuit(circuit):
     params = [cirq.ParamResolver({'a': 1})]
     sampler.run_sweep(circuit, params, 5)
     engine.run_sweep.assert_called_with(
-        gate_set=cg.XMON,
-        params=params,
-        processor_ids=['tmp'],
-        program=circuit,
-        repetitions=5,
+        gate_set=cg.XMON, params=params, processor_ids=['tmp'], program=circuit, repetitions=5
     )
 
 

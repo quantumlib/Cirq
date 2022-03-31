@@ -120,9 +120,7 @@ class SimulatedLocalJob(AbstractLocalJob):
             self._state = quantum.ExecutionStatus.State.RUNNING
             programs = [parent.get_circuit(n) for n in range(batch_size)]
             batch_results = self._sampler.run_batch(
-                programs=programs,
-                params_list=cast(List[cirq.Sweepable], sweeps),
-                repetitions=reps,
+                programs=programs, params_list=cast(List[cirq.Sweepable], sweeps), repetitions=reps
             )
             self._state = quantum.ExecutionStatus.State.SUCCESS
             return batch_results
