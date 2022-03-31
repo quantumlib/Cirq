@@ -379,7 +379,7 @@ def test_tensor_index_names():
     qubits = cirq.LineQubit.range(12)
     qubit_map = {qubit: i for i, qubit in enumerate(qubits)}
     state = ccq.mps_simulator.MPSState(
-        qubit_map,
+        qubits=qubit_map,
         prng=value.parse_random_state(0),
     )
 
@@ -572,14 +572,15 @@ def test_act_on_gate():
 
 
 def test_deprectated():
-    q0 = cirq.LineQubit(0)
     prng = np.random.RandomState(0)
-    args = ccq.mps_simulator.MPSState(
-        qubits=cirq.LineQubit.range(3),
-        prng=prng,
-        log_of_measurement_results={},
-    )
-    with cirq.testing.assert_deprecated(deadline='0.15'):
-        args.perform_measurement([q0], prng)
-    with cirq.testing.assert_deprecated(deadline='0.15'):
-        args.apply_op(cirq.X(q0), prng)
+    with cirq.testing.assert_deprecated(deadline='0.16', count=2):
+        _ = ccq.mps_simulator.MPSState(
+            qubits=cirq.LineQubit.range(3),
+            prng=prng,
+            log_of_measurement_results={},
+        )
+    with cirq.testing.assert_deprecated(deadline='0.16'):
+        _ = ccq.mps_simulator.MPSState(
+            cirq.LineQubit.range(3),
+            prng=prng,
+        )

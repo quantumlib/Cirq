@@ -29,7 +29,6 @@ from typing import (
 import numpy as np
 
 from cirq import ops, protocols, value
-from cirq._compat import deprecated_parameter
 from cirq.sim.operation_target import OperationTarget
 from cirq.sim.simulator import (
     TActOnArgs,
@@ -46,18 +45,11 @@ class ActOnArgsContainer(
 ):
     """A container for a `Qid`-to-`ActOnArgs` dictionary."""
 
-    @deprecated_parameter(
-        deadline='v0.15',
-        fix='Use classical_data.',
-        parameter_desc='log_of_measurement_results',
-        match=lambda args, kwargs: 'log_of_measurement_results' in kwargs or len(args) > 4,
-    )
     def __init__(
         self,
         args: Dict[Optional['cirq.Qid'], TActOnArgs],
         qubits: Sequence['cirq.Qid'],
         split_untangled_states: bool,
-        log_of_measurement_results: Optional[Dict[str, List[int]]] = None,
         classical_data: Optional['cirq.ClassicalDataStore'] = None,
     ):
         """Initializes the class.
@@ -69,20 +61,13 @@ class ActOnArgsContainer(
             split_untangled_states: If True, optimizes operations by running
                 unentangled qubit sets independently and merging those states
                 at the end.
-            log_of_measurement_results: A mutable object that measurements are
-                being recorded into.
             classical_data: The shared classical data container for this
                 simulation.
         """
         self._args = args
         self._qubits = tuple(qubits)
         self._split_untangled_states = split_untangled_states
-        self._classical_data = classical_data or value.ClassicalDataDictionaryStore(
-            _records={
-                value.MeasurementKey.parse_serialized(k): [tuple(v)]
-                for k, v in (log_of_measurement_results or {}).items()
-            }
-        )
+        self._classical_data = classical_data or value.ClassicalDataDictionaryStore()
 
     @property
     def args(self) -> Mapping[Optional['cirq.Qid'], TActOnArgs]:

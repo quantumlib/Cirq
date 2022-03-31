@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """Objects and methods for acting efficiently on a state tensor."""
+import abc
 import copy
 from typing import (
     Any,
@@ -30,7 +31,7 @@ from typing import (
 import numpy as np
 
 from cirq import protocols, value
-from cirq._compat import _warn_or_error, deprecated
+from cirq._compat import _warn_or_error, deprecated, deprecated_parameter
 from cirq.protocols.decompose_protocol import _try_decompose_into_operations_and_qubits
 from cirq.sim.operation_target import OperationTarget
 
@@ -40,9 +41,15 @@ if TYPE_CHECKING:
     import cirq
 
 
-class ActOnArgs(OperationTarget[TSelf]):
+class ActOnArgs(OperationTarget[TSelf], metaclass=abc.ABCMeta):
     """State and context for an operation acting on a state tensor."""
 
+    @deprecated_parameter(
+        deadline='v0.16',
+        fix='Use classical_data and keyword args.',
+        parameter_desc='log_of_measurement_results',
+        match=lambda args, kwargs: 'log_of_measurement_results' in kwargs or len(args) > 1,
+    )
     def __init__(
         self,
         prng: Optional[np.random.RandomState] = None,

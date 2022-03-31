@@ -1078,12 +1078,11 @@ def test_density_matrix_trial_result_repr():
         "initial_state=np.array([[(0.5+0j), (0.5+0j)], [(0.5+0j), (0.5+0j)]], dtype=np.complex64), "
         "qid_shape=(2,), "
         "qubits=(cirq.LineQubit(0),), "
-        "log_of_measurement_results={}), "
+        "classical_data=cirq.ClassicalDataDictionaryStore()), "
         "dtype=np.complex64))"
     )
     assert repr(trial_result) == expected_repr
-    with cirq.testing.assert_deprecated('log_of_measurement_results', deadline='v0.15'):
-        assert eval(expected_repr) == trial_result
+    assert eval(expected_repr) == trial_result
 
 
 class XAsOp(cirq.Operation):

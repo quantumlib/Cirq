@@ -13,14 +13,14 @@
 # limitations under the License.
 """Objects and methods for acting efficiently on a state vector."""
 
-from typing import Any, Callable, Dict, List, Optional, Sequence, Tuple, TYPE_CHECKING, Type, Union
+from typing import Any, Callable, List, Optional, Sequence, Tuple, TYPE_CHECKING, Type, Union
 
 import numpy as np
 
 from cirq import _compat, linalg, protocols, qis, sim
 from cirq._compat import proper_repr
-from cirq.sim.act_on_args import ActOnArgs, strat_act_on_from_apply_decompose
 from cirq.linalg import transformations
+from cirq.sim.act_on_args import ActOnArgs, strat_act_on_from_apply_decompose
 
 if TYPE_CHECKING:
     import cirq
@@ -337,18 +337,11 @@ class ActOnStateVectorArgs(ActOnArgs):
         then pass `available_buffer` into `swap_target_tensor_for`.
     """
 
-    @_compat.deprecated_parameter(
-        deadline='v0.15',
-        fix='Use classical_data.',
-        parameter_desc='log_of_measurement_results',
-        match=lambda args, kwargs: 'log_of_measurement_results' in kwargs or len(args) > 4,
-    )
     def __init__(
         self,
         *,
         available_buffer: Optional[np.ndarray] = None,
         prng: Optional[np.random.RandomState] = None,
-        log_of_measurement_results: Optional[Dict[str, List[int]]] = None,
         qubits: Optional[Sequence['cirq.Qid']] = None,
         initial_state: Union[np.ndarray, 'cirq.STATE_VECTOR_LIKE'] = 0,
         dtype: Type[np.number] = np.complex64,
@@ -367,8 +360,6 @@ class ActOnStateVectorArgs(ActOnArgs):
                 ordering of the computational basis states.
             prng: The pseudo random number generator to use for probabilistic
                 effects.
-            log_of_measurement_results: A mutable object that measurements are
-                being recorded into.
             initial_state: The initial state for the simulation in the
                 computational basis.
             dtype: The `numpy.dtype` of the inferred state vector. One of
@@ -387,7 +378,6 @@ class ActOnStateVectorArgs(ActOnArgs):
             state=state,
             prng=prng,
             qubits=qubits,
-            log_of_measurement_results=log_of_measurement_results,
             classical_data=classical_data,
         )
         self._state: _BufferedStateVector = state
@@ -498,7 +488,7 @@ class ActOnStateVectorArgs(ActOnArgs):
             'cirq.ActOnStateVectorArgs('
             f'initial_state={proper_repr(self.target_tensor)},'
             f' qubits={self.qubits!r},'
-            f' log_of_measurement_results={proper_repr(self.log_of_measurement_results)})'
+            f' classical_data={self.classical_data!r})'
         )
 
     @property
