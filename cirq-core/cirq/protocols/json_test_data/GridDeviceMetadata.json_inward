@@ -115,76 +115,12 @@
         "ignore_global_phase": true,
         "tags_to_accept": [],
         "tags_to_ignore": []
-      },
-      {
-        "cirq_type": "GateFamily",
-        "gate": {
-          "cirq_type": "CZPowGate",
-          "exponent": 1.0,
-          "global_shift": 0.0
-        },
-        "name": "Instance GateFamily: CZ",
-        "description": "Accepts `cirq.Gate` instances `g` s.t. `g == CZ`",
-        "ignore_global_phase": true,
-        "tags_to_accept": [],
-        "tags_to_ignore": []
-      },
-      {
-        "cirq_type": "GateFamily",
-        "gate": {
-          "cirq_type": "ISwapPowGate",
-          "exponent": 0.5,
-          "global_shift": 0.0
-        },
-        "name": "Instance GateFamily: ISWAP**0.5",
-        "description": "Accepts `cirq.Gate` instances `g` s.t. `g == ISWAP**0.5`",
-        "ignore_global_phase": true,
-        "tags_to_accept": [],
-        "tags_to_ignore": []
       }
     ],
     "name": null,
     "unroll_circuit_op": true
   },
   "gate_durations": [
-    [
-      {
-        "cirq_type": "GateFamily",
-        "gate": {
-          "cirq_type": "ISwapPowGate",
-          "exponent": 0.5,
-          "global_shift": 0.0
-        },
-        "name": "Instance GateFamily: ISWAP**0.5",
-        "description": "Accepts `cirq.Gate` instances `g` s.t. `g == ISWAP**0.5`",
-        "ignore_global_phase": true,
-        "tags_to_accept": [],
-        "tags_to_ignore": []
-      },
-      {
-        "cirq_type": "Duration",
-        "picos": 600
-      }
-    ],
-    [
-      {
-        "cirq_type": "GateFamily",
-        "gate": {
-          "cirq_type": "CZPowGate",
-          "exponent": 1.0,
-          "global_shift": 0.0
-        },
-        "name": "Instance GateFamily: CZ",
-        "description": "Accepts `cirq.Gate` instances `g` s.t. `g == CZ`",
-        "ignore_global_phase": true,
-        "tags_to_accept": [],
-        "tags_to_ignore": []
-      },
-      {
-        "cirq_type": "Duration",
-        "picos": 500
-      }
-    ],
     [
       {
         "cirq_type": "GateFamily",
@@ -271,19 +207,6 @@
       "cirq_type": "GridQubit",
       "row": 10,
       "col": 10
-    }
-  ],
-  "compilation_target_gatesets": [
-    {
-      "cirq_type": "CZTargetGateset",
-      "atol": 1e-08,
-      "allow_partial_czs": false
-    },
-    {
-      "cirq_type": "SqrtIswapTargetGateset",
-      "atol": 1e-08,
-      "required_sqrt_iswap_count": null,
-      "use_sqrt_iswap_inv": false
     }
   ]
 }
