@@ -487,7 +487,7 @@ class SingleQubitCliffordGate(gate_features.SingleQubitGate):
         """Returns a SingleQubitCliffordGate such that the circuits
             --output--self-- and --self--gate--
         are equivalent up to global phase."""
-        return self.merged_with(after).merged_with(self ** -1)
+        return self.merged_with(after).merged_with(self**-1)
 
     def __repr__(self) -> str:
         x = self.transform(pauli_gates.X)

@@ -58,5 +58,5 @@ def purity_from_probabilities(
         implementation of a quantum circuit.
     """
     D = hilbert_space_dimension
-    porter_thomas_variance = (D - 1) / (D + 1) / D ** 2
+    porter_thomas_variance = (D - 1) / (D + 1) / D**2
     return np.var(probabilities) / porter_thomas_variance

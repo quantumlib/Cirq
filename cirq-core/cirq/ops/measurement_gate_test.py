@@ -173,19 +173,16 @@ def test_measurement_gate_diagram():
     ) == cirq.CircuitDiagramInfo(("M('test')",))
 
     # Uses known qubit count.
-    assert (
-        cirq.circuit_diagram_info(
-            cirq.MeasurementGate(3, 'a'),
-            cirq.CircuitDiagramInfoArgs(
-                known_qubits=None,
-                known_qubit_count=3,
-                use_unicode_characters=True,
-                precision=None,
-                label_map=None,
-            ),
-        )
-        == cirq.CircuitDiagramInfo(("M('a')", 'M', 'M'))
-    )
+    assert cirq.circuit_diagram_info(
+        cirq.MeasurementGate(3, 'a'),
+        cirq.CircuitDiagramInfoArgs(
+            known_qubits=None,
+            known_qubit_count=3,
+            use_unicode_characters=True,
+            precision=None,
+            label_map=None,
+        ),
+    ) == cirq.CircuitDiagramInfo(("M('a')", 'M', 'M'))
 
     # Shows invert mask.
     assert cirq.circuit_diagram_info(

@@ -122,7 +122,7 @@ class PhaseGradientGate(raw_types.Gate):
 
     def _decompose_(self, qubits):
         for i, q in enumerate(qubits):
-            yield cirq.Z(q) ** (self.exponent / 2 ** i)
+            yield cirq.Z(q) ** (self.exponent / 2**i)
 
     def _apply_unitary_(self, args: 'cirq.ApplyUnitaryArgs'):
         if isinstance(self.exponent, sympy.Basic):
@@ -198,7 +198,7 @@ def qft(
     equivalently `cirq.inverse(cirq.qft(*qubits))`.
 
     Args:
-        qubits: The qubits to apply the qft to.
+        *qubits: The qubits to apply the qft to.
         without_reverse: When set, swap gates at the end of the qft are omitted.
             This reverses the qubit order relative to the standard qft effect,
             but makes the gate cheaper to apply.

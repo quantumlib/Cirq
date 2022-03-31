@@ -85,7 +85,7 @@ def test_parse_complex():
     assert parse_complex('+i') == 1j
     assert parse_complex('1 + i - i') == 1
     assert parse_complex('1 + 2i - 3 i') == 1 - 1j
-    np.testing.assert_allclose(parse_complex('exp 2'), np.e ** 2, atol=1e-8)
+    np.testing.assert_allclose(parse_complex('exp 2'), np.e**2, atol=1e-8)
 
 
 def test_parse_complex_raw_cases_from_quirk():

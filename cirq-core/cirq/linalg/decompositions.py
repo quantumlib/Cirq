@@ -592,7 +592,7 @@ def scatter_plot_normalized_kak_interaction_coefficients(
             wireframe. Defaults to `True`.
         ax: A matplotlib 3d axes object to plot into. If not specified, a new
             figure is created, plotted, and shown.
-        kwargs: Arguments forwarded into the call to `scatter` that plots the
+        **kwargs: Arguments forwarded into the call to `scatter` that plots the
             points. Working arguments include color `c='blue'`, scale `s=2`,
             labelling `label="theta=pi/4"`, etc. For reference see the
             `matplotlib.pyplot.scatter` documentation:
@@ -726,7 +726,7 @@ def kak_canonicalize_vector(x: float, y: float, z: float, atol: float = 1e-9) ->
     # Shifting strength by ½π is equivalent to local ops (e.g. exp(i½π XX)∝XX).
     def shift(k, step):
         v[k] += step * np.pi / 2
-        phase[0] *= 1j ** step
+        phase[0] *= 1j**step
         right[0] = combinators.dot(flippers[k] ** (step % 4), right[0])
         right[1] = combinators.dot(flippers[k] ** (step % 4), right[1])
 
