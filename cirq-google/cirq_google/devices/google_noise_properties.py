@@ -96,24 +96,25 @@ class GoogleNoiseProperties(devices.SuperconductingQubitsNoiseProperties):
             fid = gate_tabulation_math_utils.unitary_entanglement_fidelity(unitary_err, np.eye(4))
             return 1 - fid
 
+        # Subtract entangling angle error.
         for op_id in depol_errors:
             if op_id.gate_type not in self.two_qubit_gates():
                 continue
-            # Subtract entangling angle error.
             if op_id in self.fsim_errors:
                 depol_errors[op_id] -= extract_entangling_error(op_id)
-            else:
-                match_id = None
-                candidate_parents = [
-                    parent_id
-                    for parent_id in self.fsim_errors
-                    if op_id.is_proper_subtype_of(parent_id)
-                ]
-                for parent_id in candidate_parents:
-                    if match_id is None or parent_id.is_proper_subtype_of(match_id):
-                        match_id = parent_id
-                if match_id is not None:
-                    depol_errors[op_id] -= extract_entangling_error(match_id)
+                continue
+            # Find the closest matching supertype, if one is provided.
+            # Gateset has similar behavior, but cannot be used here
+            # because depol_errors is a dict, not a set.
+            match_id = None
+            candidate_parents = [
+                parent_id for parent_id in self.fsim_errors if op_id.is_proper_subtype_of(parent_id)
+            ]
+            for parent_id in candidate_parents:
+                if match_id is None or parent_id.is_proper_subtype_of(match_id):
+                    match_id = parent_id
+            if match_id is not None:
+                depol_errors[op_id] -= extract_entangling_error(match_id)
 
         return depol_errors
 
