@@ -22,6 +22,6 @@ def test_q() -> None:
     assert cirq.q(1, 2) == cirq.GridQubit(1, 2)
     assert cirq.q("foo") == cirq.NamedQubit("foo")
     with pytest.raises(ValueError):
-        cirq.q([1, 2, 3])
+        cirq.q([1, 2, 3])  # type: ignore
     with pytest.raises(ValueError):
-        cirq.q(1, "foo")
+        cirq.q(1, "foo")  # type: ignore
