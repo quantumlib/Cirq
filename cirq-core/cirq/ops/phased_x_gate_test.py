@@ -75,16 +75,16 @@ def test_no_symbolic_qasm_but_fails_gracefully(sym):
 
 def test_extrapolate():
     g = cirq.PhasedXPowGate(phase_exponent=0.25)
-    assert g ** 0.25 == (g ** 0.5) ** 0.5
+    assert g**0.25 == (g**0.5) ** 0.5
 
     # The gate is self-inverse, but there are hidden variables tracking the
     # exponent's sign and scale.
-    assert g ** -1 == g
+    assert g**-1 == g
     assert g.exponent == 1
-    assert (g ** -1).exponent == -1
-    assert g ** -0.5 == (g ** -1) ** 0.5 != g ** 0.5
-    assert g == g ** 3
-    assert g ** 0.5 != (g ** 3) ** 0.5 == g ** -0.5
+    assert (g**-1).exponent == -1
+    assert g**-0.5 == (g**-1) ** 0.5 != g**0.5
+    assert g == g**3
+    assert g**0.5 != (g**3) ** 0.5 == g**-0.5
 
 
 def test_eq():
@@ -104,7 +104,7 @@ def test_eq():
         cirq.PhasedXPowGate(phase_exponent=2.5, exponent=3),
         cirq.Y,
     )
-    eq.add_equality_group(cirq.PhasedXPowGate(phase_exponent=0.5, exponent=0.25), cirq.Y ** 0.25)
+    eq.add_equality_group(cirq.PhasedXPowGate(phase_exponent=0.5, exponent=0.25), cirq.Y**0.25)
 
     eq.add_equality_group(cirq.PhasedXPowGate(phase_exponent=0.25, exponent=0.25, global_shift=0.1))
     eq.add_equality_group(cirq.PhasedXPowGate(phase_exponent=2.25, exponent=0.25, global_shift=0.2))

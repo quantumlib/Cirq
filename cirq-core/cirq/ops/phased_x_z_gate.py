@@ -145,8 +145,8 @@ class PhasedXZGate(gate_features.SingleQubitGate):
         """See `cirq.SupportsUnitary`."""
         if self._is_parameterized_():
             return None
-        z_pre = protocols.unitary(ops.Z ** -self._axis_phase_exponent)
-        x = protocols.unitary(ops.X ** self._x_exponent)
+        z_pre = protocols.unitary(ops.Z**-self._axis_phase_exponent)
+        x = protocols.unitary(ops.X**self._x_exponent)
         z_post = protocols.unitary(ops.Z ** (self._axis_phase_exponent + self._z_exponent))
         return z_post @ x @ z_pre
 
