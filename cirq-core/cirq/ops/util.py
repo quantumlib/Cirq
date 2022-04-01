@@ -17,19 +17,25 @@ from typing import Optional, overload, TYPE_CHECKING, Union
 if TYPE_CHECKING:
     import cirq
 
+
 @overload
 def q(x: int) -> 'cirq.LineQubit':
     ...
+
 
 @overload
 def q(x: int, y: int) -> 'cirq.GridQubit':
     ...
 
+
 @overload
 def q(x: str) -> 'cirq.NamedQubit':
     ...
 
-def q(x: Union[int, str], y: Optional[int] = None) -> Union['cirq.LineQubit', 'cirq.GridQubit', 'cirq.NamedQubit']:
+
+def q(
+    x: Union[int, str], y: Optional[int] = None
+) -> Union['cirq.LineQubit', 'cirq.GridQubit', 'cirq.NamedQubit']:
     """Constructs a qubit id of the appropriate type based on args.
 
     This is shorthand for constructing qubit ids of common types:
