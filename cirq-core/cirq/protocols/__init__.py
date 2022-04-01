@@ -154,7 +154,6 @@ from cirq.protocols.resolve_parameters import (
 )
 from cirq.protocols.phase_protocol import (
     phase_by,
-    SupportsPhase,
 )
 from cirq.protocols.qid_shape_protocol import (
     num_qubits,

@@ -643,7 +643,6 @@ from cirq.protocols import (
     SupportsMixture,
     SupportsParameterization,
     SupportsPauliExpansion,
-    SupportsPhase,
     SupportsQasm,
     SupportsQasmWithArgs,
     SupportsQasmWithArgsAndQubits,

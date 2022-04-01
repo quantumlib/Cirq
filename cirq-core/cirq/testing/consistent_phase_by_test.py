@@ -24,7 +24,7 @@ class GoodPhaser:
         self.e = e
 
     def _unitary_(self):
-        return np.array([[0, 1j**-self.e], [1j**self.e, 0]])
+        return np.array([[0, 1j ** -self.e], [1j ** self.e, 0]])
 
     def _phase_by_(self, phase_turns: float, qubit_index: int):
         return GoodPhaser(self.e + phase_turns * 4)
@@ -43,8 +43,8 @@ class GoodQuditPhaser:
     def _unitary_(self):
         return np.array(
             [
-                [0, 1j**-self.e, 0],
-                [0, 0, 1j**self.e],
+                [0, 1j ** -self.e, 0],
+                [0, 0, 1j ** self.e],
                 [1, 0, 0],
             ]
         )
@@ -61,7 +61,7 @@ class BadPhaser:
         self.e = e
 
     def _unitary_(self):
-        return np.array([[0, 1j ** -(self.e * 2)], [1j**self.e, 0]])
+        return np.array([[0, 1j ** -(self.e * 2)], [1j ** self.e, 0]])
 
     def _phase_by_(self, phase_turns: float, qubit_index: int):
         return BadPhaser(self.e + phase_turns * 4)
@@ -97,15 +97,16 @@ class SemiBadPhaser:
 
 
 def test_assert_phase_by_is_consistent_with_unitary():
-    cirq.testing.assert_phase_by_is_consistent_with_unitary(GoodPhaser(0.5))
+    with cirq.testing.assert_deprecated('phase_by', deadline='v1.0', count=23):
+        cirq.testing.assert_phase_by_is_consistent_with_unitary(GoodPhaser(0.5))
 
-    cirq.testing.assert_phase_by_is_consistent_with_unitary(GoodQuditPhaser(0.5))
+        cirq.testing.assert_phase_by_is_consistent_with_unitary(GoodQuditPhaser(0.5))
 
-    with pytest.raises(AssertionError, match='Phased unitary was incorrect for index #0'):
-        cirq.testing.assert_phase_by_is_consistent_with_unitary(BadPhaser(0.5))
+        with pytest.raises(AssertionError, match='Phased unitary was incorrect for index #0'):
+            cirq.testing.assert_phase_by_is_consistent_with_unitary(BadPhaser(0.5))
 
-    with pytest.raises(AssertionError, match='Phased unitary was incorrect for index #1'):
-        cirq.testing.assert_phase_by_is_consistent_with_unitary(SemiBadPhaser([0.5, 0.25]))
+        with pytest.raises(AssertionError, match='Phased unitary was incorrect for index #1'):
+            cirq.testing.assert_phase_by_is_consistent_with_unitary(SemiBadPhaser([0.5, 0.25]))
 
-    # Vacuous success.
-    cirq.testing.assert_phase_by_is_consistent_with_unitary(NotPhaser())
+        # Vacuous success.
+        cirq.testing.assert_phase_by_is_consistent_with_unitary(NotPhaser())

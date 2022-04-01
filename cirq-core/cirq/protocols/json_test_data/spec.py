@@ -154,7 +154,6 @@ TestSpec = ModuleJsonTestSpec(
         'SupportsMixture',
         'SupportsParameterization',
         'SupportsPauliExpansion',
-        'SupportsPhase',
         'SupportsQasm',
         'SupportsQasmWithArgs',
         'SupportsQasmWithArgsAndQubits',

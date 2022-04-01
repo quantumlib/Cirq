@@ -75,16 +75,16 @@ def test_no_symbolic_qasm_but_fails_gracefully(sym):
 
 def test_extrapolate():
     g = cirq.PhasedXPowGate(phase_exponent=0.25)
-    assert g**0.25 == (g**0.5) ** 0.5
+    assert g ** 0.25 == (g ** 0.5) ** 0.5
 
     # The gate is self-inverse, but there are hidden variables tracking the
     # exponent's sign and scale.
-    assert g**-1 == g
+    assert g ** -1 == g
     assert g.exponent == 1
-    assert (g**-1).exponent == -1
-    assert g**-0.5 == (g**-1) ** 0.5 != g**0.5
-    assert g == g**3
-    assert g**0.5 != (g**3) ** 0.5 == g**-0.5
+    assert (g ** -1).exponent == -1
+    assert g ** -0.5 == (g ** -1) ** 0.5 != g ** 0.5
+    assert g == g ** 3
+    assert g ** 0.5 != (g ** 3) ** 0.5 == g ** -0.5
 
 
 def test_eq():
@@ -104,7 +104,7 @@ def test_eq():
         cirq.PhasedXPowGate(phase_exponent=2.5, exponent=3),
         cirq.Y,
     )
-    eq.add_equality_group(cirq.PhasedXPowGate(phase_exponent=0.5, exponent=0.25), cirq.Y**0.25)
+    eq.add_equality_group(cirq.PhasedXPowGate(phase_exponent=0.5, exponent=0.25), cirq.Y ** 0.25)
 
     eq.add_equality_group(cirq.PhasedXPowGate(phase_exponent=0.25, exponent=0.25, global_shift=0.1))
     eq.add_equality_group(cirq.PhasedXPowGate(phase_exponent=2.25, exponent=0.25, global_shift=0.2))
@@ -234,21 +234,22 @@ q: ───PhX(a)^b───PhX(2*a)^(b + 1)───PhX(0.25)───PhX(1)�
 
 
 def test_phase_by():
-    g = cirq.PhasedXPowGate(phase_exponent=0.25)
-    g2 = cirq.phase_by(g, 0.25, 0)
-    assert g2 == cirq.PhasedXPowGate(phase_exponent=0.75)
+    with cirq.testing.assert_deprecated('phase_by', deadline='v1.0', count=8):
+        g = cirq.PhasedXPowGate(phase_exponent=0.25)
+        g2 = cirq.phase_by(g, 0.25, 0)
+        assert g2 == cirq.PhasedXPowGate(phase_exponent=0.75)
 
-    g = cirq.PhasedXPowGate(phase_exponent=0)
-    g2 = cirq.phase_by(g, 0.125, 0)
-    assert g2 == cirq.PhasedXPowGate(phase_exponent=0.25)
+        g = cirq.PhasedXPowGate(phase_exponent=0)
+        g2 = cirq.phase_by(g, 0.125, 0)
+        assert g2 == cirq.PhasedXPowGate(phase_exponent=0.25)
 
-    g = cirq.PhasedXPowGate(phase_exponent=0.5)
-    g2 = cirq.phase_by(g, 0.125, 0)
-    assert g2 == cirq.PhasedXPowGate(phase_exponent=0.75)
+        g = cirq.PhasedXPowGate(phase_exponent=0.5)
+        g2 = cirq.phase_by(g, 0.125, 0)
+        assert g2 == cirq.PhasedXPowGate(phase_exponent=0.75)
 
-    g = cirq.PhasedXPowGate(phase_exponent=0.5)
-    g2 = cirq.phase_by(g, sympy.Symbol('b') + 1, 0)
-    assert g2 == cirq.PhasedXPowGate(phase_exponent=2 * sympy.Symbol('b') + 2.5)
+        g = cirq.PhasedXPowGate(phase_exponent=0.5)
+        g2 = cirq.phase_by(g, sympy.Symbol('b') + 1, 0)
+        assert g2 == cirq.PhasedXPowGate(phase_exponent=2 * sympy.Symbol('b') + 2.5)
 
 
 @pytest.mark.parametrize(

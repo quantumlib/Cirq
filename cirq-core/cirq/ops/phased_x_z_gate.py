@@ -7,7 +7,7 @@ import sympy
 
 from cirq import value, ops, protocols, linalg
 from cirq.ops import gate_features
-from cirq._compat import proper_repr
+from cirq._compat import proper_repr, deprecated
 
 if TYPE_CHECKING:
     import cirq
@@ -145,8 +145,8 @@ class PhasedXZGate(gate_features.SingleQubitGate):
         """See `cirq.SupportsUnitary`."""
         if self._is_parameterized_():
             return None
-        z_pre = protocols.unitary(ops.Z**-self._axis_phase_exponent)
-        x = protocols.unitary(ops.X**self._x_exponent)
+        z_pre = protocols.unitary(ops.Z ** -self._axis_phase_exponent)
+        x = protocols.unitary(ops.X ** self._x_exponent)
         z_post = protocols.unitary(ops.Z ** (self._axis_phase_exponent + self._z_exponent))
         return z_post @ x @ z_pre
 
@@ -193,8 +193,11 @@ class PhasedXZGate(gate_features.SingleQubitGate):
             axis_phase_exponent=resolver.value_of(self._axis_phase_exponent, recursive),
         )
 
+    @deprecated(
+        fix='Create a new PhasedXZGate with axis_phase_exponent+=phase_turns * 2.',
+        deadline='v1.0',
+    )
     def _phase_by_(self, phase_turns, qubit_index) -> 'cirq.PhasedXZGate':
-        """See `cirq.SupportsPhase`."""
         assert qubit_index == 0
         return PhasedXZGate(
             x_exponent=self._x_exponent,

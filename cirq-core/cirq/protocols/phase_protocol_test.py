@@ -40,23 +40,23 @@ def test_phase_by():
     rin = ReturnsNotImplemented()
 
     # Without default
+    with cirq.testing.assert_deprecated('phase_by', deadline='v1.0', count=8):
+        with pytest.raises(TypeError, match='no _phase_by_ method'):
+            _ = cirq.phase_by(n, 1, 0)
+        with pytest.raises(TypeError, match='returned NotImplemented'):
+            _ = cirq.phase_by(rin, 1, 0)
 
-    with pytest.raises(TypeError, match='no _phase_by_ method'):
-        _ = cirq.phase_by(n, 1, 0)
-    with pytest.raises(TypeError, match='returned NotImplemented'):
-        _ = cirq.phase_by(rin, 1, 0)
+        # With default
+        assert cirq.phase_by(n, 1, 0, default=None) is None
+        assert cirq.phase_by(rin, 1, 0, default=None) is None
 
-    # With default
-    assert cirq.phase_by(n, 1, 0, default=None) is None
-    assert cirq.phase_by(rin, 1, 0, default=None) is None
-
-    test = PhaseIsAddition(3)
-    assert test.phase == [0, 0, 0]
-    test = cirq.phase_by(test, 0.25, 0)
-    assert test.phase == [0.25, 0, 0]
-    test = cirq.phase_by(test, 0.25, 0)
-    assert test.phase == [0.50, 0, 0]
-    test = cirq.phase_by(test, 0.40, 1)
-    assert test.phase == [0.50, 0.40, 0]
-    test = cirq.phase_by(test, 0.40, 4)
-    assert test.phase == [0.50, 0.40, 0]
+        test = PhaseIsAddition(3)
+        assert test.phase == [0, 0, 0]
+        test = cirq.phase_by(test, 0.25, 0)
+        assert test.phase == [0.25, 0, 0]
+        test = cirq.phase_by(test, 0.25, 0)
+        assert test.phase == [0.50, 0, 0]
+        test = cirq.phase_by(test, 0.40, 1)
+        assert test.phase == [0.50, 0.40, 0]
+        test = cirq.phase_by(test, 0.40, 4)
+        assert test.phase == [0.50, 0.40, 0]

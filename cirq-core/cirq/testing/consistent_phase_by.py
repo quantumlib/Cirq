@@ -18,9 +18,11 @@ import numpy as np
 import sympy
 
 from cirq import protocols, linalg
+from cirq._compat import deprecated
 from cirq.testing import lin_alg_utils
 
 
+@deprecated(fix='phase_by no longer needs to be tested', deadline='v1.0')
 def assert_phase_by_is_consistent_with_unitary(val: Any):
     """Uses `val._unitary_` to check `val._phase_by_`'s behavior."""
 

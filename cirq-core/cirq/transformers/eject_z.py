@@ -111,31 +111,47 @@ def eject_z(
             return op
 
         # Move Z gates into tracked qubit phases.
-        if isinstance(gate, ops.ZPowGate) and (
-            eject_parameterized or not protocols.is_parameterized(gate)
-        ):
-            qubit_phase[op.qubits[0]] += gate.exponent / 2
-            return []
+        if isinstance(gate, ops.ZPowGate):
+            if eject_parameterized or not protocols.is_parameterized(gate):
+                qubit_phase[op.qubits[0]] += gate.exponent / 2
+                return []
+            else:
+                return op
 
-        # Try to move the tracked phases over the operation via protocols.phase_by(op)
-        phased_op = op
-        for i, p in enumerate([qubit_phase[q] for q in op.qubits]):
-            if not single_qubit_decompositions.is_negligible_turn(p, atol):
-                phased_op = protocols.phase_by(phased_op, -p, i, default=None)
-        if phased_op is None:
-            return [dump_tracked_phase(op.qubits), op]
+        if isinstance(gate, ops.XPowGate):
 
-        gate = phased_op.gate
-        if isinstance(gate, ops.PhasedXZGate) and (
-            eject_parameterized or not protocols.is_parameterized(gate.z_exponent)
-        ):
-            qubit = phased_op.qubits[0]
-            qubit_phase[qubit] += gate.z_exponent / 2
-            gate = gate.with_z_exponent(0)
-            phased_op = gate.on(qubit)
-            phased_xz_replacements[moment_index, phased_op] = gate
-            last_phased_xz_op[qubit] = (moment_index, phased_op)
-        return phased_op
+            return ops.PhasedXPowGate(
+                exponent=gate.exponent, phase_exponent=-qubit_phase[op.qubits[0]] * 2
+            )(op.qubits[0])
+        if isinstance(gate, ops.YPowGate):
+            return ops.PhasedXPowGate(
+                exponent=gate.exponent, phase_exponent=0.5 - qubit_phase[op.qubits[0]] * 2
+            )(op.qubits[0])
+        if isinstance(gate, ops.PhasedXPowGate):
+            return ops.PhasedXPowGate(
+                exponent=gate.exponent,
+                phase_exponent=gate.phase_exponent - qubit_phase[op.qubits[0]] * 2,
+                global_shift=gate.global_shift,
+            )(op.qubits[0])
+        if isinstance(gate, ops.CZPowGate):
+            return op
+
+        if isinstance(gate, ops.PhasedXZGate):
+            phased_op = ops.PhasedXZGate(
+                x_exponent=gate.x_exponent,
+                z_exponent=gate.z_exponent,
+                axis_phase_exponent=gate.axis_phase_exponent - qubit_phase[op.qubits[0]] * 2,
+            )(op.qubits[0])
+
+            if eject_parameterized or not protocols.is_parameterized(gate.z_exponent):
+                qubit = phased_op.qubits[0]
+                qubit_phase[qubit] += gate.z_exponent / 2
+                gate = gate.with_z_exponent(0)
+                phased_op = gate.on(qubit)
+                phased_xz_replacements[moment_index, phased_op] = gate
+                last_phased_xz_op[qubit] = (moment_index, phased_op)
+            return phased_op
+        return [dump_tracked_phase(op.qubits), op]
 
     circuit = transformer_primitives.map_operations(circuit, map_func).unfreeze(copy=False)
     circuit.append(dump_tracked_phase(qubit_phase.keys()))

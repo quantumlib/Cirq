@@ -42,7 +42,7 @@ import sympy
 
 import cirq
 from cirq import protocols, value
-from cirq._compat import proper_repr
+from cirq._compat import deprecated, proper_repr
 from cirq._doc import document
 from cirq.ops import controlled_gate, eigen_gate, gate_features, raw_types
 
@@ -221,8 +221,11 @@ class XPowGate(eigen_gate.EigenGate, gate_features.SingleQubitGate):
     def phase_exponent(self):
         return 0.0
 
+    @deprecated(
+        fix='Create a new PhasedXPowGate with axis_phase_exponent=phase_turns * 2.',
+        deadline='v1.0',
+    )
     def _phase_by_(self, phase_turns, qubit_index):
-        """See `cirq.SupportsPhase`."""
         return cirq.ops.phased_x_gate.PhasedXPowGate(
             exponent=self._exponent, phase_exponent=phase_turns * 2
         )
@@ -396,8 +399,11 @@ class YPowGate(eigen_gate.EigenGate, gate_features.SingleQubitGate):
     def phase_exponent(self):
         return 0.5
 
+    @deprecated(
+        fix='Create a new PhasedXPowGate with phase_exponent=0.5+phase_turns * 2.',
+        deadline='v1.0',
+    )
     def _phase_by_(self, phase_turns, qubit_index):
-        """See `cirq.SupportsPhase`."""
         return cirq.ops.phased_x_gate.PhasedXPowGate(
             exponent=self._exponent, phase_exponent=0.5 + phase_turns * 2
         )
@@ -908,7 +914,7 @@ class CZPowGate(gate_features.InterchangeableQubitsGate, eigen_gate.EigenGate):
         if protocols.is_parameterized(self):
             return NotImplemented
         global_phase = 1j ** (2 * self._exponent * self._global_shift)
-        z_phase = 1j**self._exponent
+        z_phase = 1j ** self._exponent
         c = -1j * z_phase * np.sin(np.pi * self._exponent / 2) / 2
         return value.LinearDict(
             {
@@ -1090,7 +1096,7 @@ class CXPowGate(eigen_gate.EigenGate):
         if protocols.is_parameterized(self):
             return NotImplemented
         global_phase = 1j ** (2 * self._exponent * self._global_shift)
-        cnot_phase = 1j**self._exponent
+        cnot_phase = 1j ** self._exponent
         c = -1j * cnot_phase * np.sin(np.pi * self._exponent / 2) / 2
         return value.LinearDict(
             {

@@ -71,7 +71,7 @@ class MatrixGate(raw_types.Gate):
 
         if qid_shape is None:
             n = int(np.round(np.log2(matrix.shape[0] or 1)))
-            if 2**n != matrix.shape[0]:
+            if 2 ** n != matrix.shape[0]:
                 raise ValueError(
                     f'Matrix width ({matrix.shape[0]}) is not a power of 2 and '
                     f'qid_shape is not specified.'
@@ -109,7 +109,7 @@ class MatrixGate(raw_types.Gate):
         if not isinstance(exponent, (int, float)):
             return NotImplemented
         e = cast(float, exponent)
-        new_mat = linalg.map_eigenvalues(self._matrix, lambda b: b**e)
+        new_mat = linalg.map_eigenvalues(self._matrix, lambda b: b ** e)
         return MatrixGate(new_mat, qid_shape=self._qid_shape)
 
     def _phase_by_(self, phase_turns: float, qubit_index: int) -> 'MatrixGate':
@@ -125,6 +125,9 @@ class MatrixGate(raw_types.Gate):
         result[linalg.slice_for_qubits_equal_to([i], 1)] *= p
         result[linalg.slice_for_qubits_equal_to([j], 1)] *= np.conj(p)
         return MatrixGate(matrix=result.reshape(self._matrix.shape), qid_shape=self._qid_shape)
+
+    def phase_by(self, phase_turns: float, qubit_index: int) -> 'MatrixGate':
+        return self._phase_by_(phase_turns, qubit_index)
 
     def _decompose_(self, qubits: Tuple['cirq.Qid', ...]) -> 'cirq.OP_TREE':
         if self._qid_shape == (2,):

@@ -28,9 +28,6 @@ from cirq.testing.consistent_decomposition import (
     assert_decompose_is_consistent_with_unitary,
     assert_decompose_ends_at_default_gateset,
 )
-from cirq.testing.consistent_phase_by import (
-    assert_phase_by_is_consistent_with_unitary,
-)
 from cirq.testing.consistent_qasm import (
     assert_qasm_is_consistent_with_unitary,
 )
@@ -75,7 +72,7 @@ def assert_implements_consistent_protocols(
         p = protocols.pow(val, exponent, None)
         if p is not None:
             _assert_meets_standards_helper(
-                val**exponent,
+                val ** exponent,
                 ignoring_global_phase=ignoring_global_phase,
                 setup_code=setup_code,
                 global_vals=global_vals,
@@ -163,7 +160,6 @@ def _assert_meets_standards_helper(
     assert_decompose_is_consistent_with_unitary(val, ignoring_global_phase=ignoring_global_phase)
     if not ignore_decompose_to_default_gateset:
         assert_decompose_ends_at_default_gateset(val)
-    assert_phase_by_is_consistent_with_unitary(val)
     assert_pauli_expansion_is_consistent_with_unitary(val)
     assert_equivalent_repr(
         val, setup_code=setup_code, global_vals=global_vals, local_vals=local_vals

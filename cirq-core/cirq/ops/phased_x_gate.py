@@ -20,7 +20,7 @@ import sympy
 
 import cirq
 from cirq import value, protocols
-from cirq._compat import proper_repr
+from cirq._compat import deprecated, proper_repr
 from cirq.ops import gate_features, common_gates
 from cirq.type_workarounds import NotImplementedType
 
@@ -56,7 +56,7 @@ class PhasedXPowGate(gate_features.SingleQubitGate):
 
         e = cast(float, value.canonicalize_half_turns(self._exponent))
         p = cast(float, self.phase_exponent)
-        epsilon = 10**-args.precision
+        epsilon = 10 ** -args.precision
 
         if abs(e + 0.5) <= epsilon:
             return args.format(
@@ -81,7 +81,7 @@ class PhasedXPowGate(gate_features.SingleQubitGate):
         q = qubits[0]
         z = cirq.Z(q) ** self._phase_exponent
         x = cirq.XPowGate(exponent=self._exponent, global_shift=self.global_shift).on(q)
-        return z**-1, x, z
+        return z ** -1, x, z
 
     @property
     def exponent(self) -> Union[float, sympy.Symbol]:
@@ -119,8 +119,8 @@ class PhasedXPowGate(gate_features.SingleQubitGate):
         """See `cirq.SupportsUnitary`."""
         if self._is_parameterized_():
             return None
-        z = protocols.unitary(cirq.Z**self._phase_exponent)
-        x = protocols.unitary(cirq.X**self._exponent)
+        z = protocols.unitary(cirq.Z ** self._phase_exponent)
+        x = protocols.unitary(cirq.X ** self._exponent)
         p = np.exp(1j * np.pi * self._global_shift * self._exponent)
         return np.dot(np.dot(z, x), np.conj(z)) * p
 
@@ -160,8 +160,11 @@ class PhasedXPowGate(gate_features.SingleQubitGate):
             global_shift=self._global_shift,
         )
 
+    @deprecated(
+        fix='Create a new PhasedXPowGate with phase_exponent+=phase_turns * 2.',
+        deadline='v1.0',
+    )
     def _phase_by_(self, phase_turns, qubit_index):
-        """See `cirq.SupportsPhase`."""
         assert qubit_index == 0
         return PhasedXPowGate(
             exponent=self._exponent,

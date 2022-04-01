@@ -231,6 +231,11 @@ def test_protocols():
     g = cirq.PhasedXZGate(x_exponent=a, z_exponent=b, axis_phase_exponent=t)
     cirq.testing.assert_implements_consistent_protocols(g)
 
+    with cirq.testing.assert_deprecated('phase_by', deadline='v1.0', count=2):
+      gate = cirq.PhasedXZGate(x_exponent=0, z_exponent=0, axis_phase_exponent=0)
+      expected = cirq.PhasedXZGate(x_exponent=0, z_exponent=0, axis_phase_exponent=1.0)
+      assert cirq.phase_by(gate, 0.5, 0) == expected
+
 
 def test_inverse():
     a = random.random()
