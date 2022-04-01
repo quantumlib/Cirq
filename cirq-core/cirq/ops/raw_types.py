@@ -458,7 +458,7 @@ class Operation(metaclass=abc.ABCMeta):
         """Returns the same operation, but applied to different qubits.
 
         Args:
-            new_qubits: The new qubits to apply the operation to. The order must
+            *new_qubits: The new qubits to apply the operation to. The order must
                 exactly match the order of qubits returned from the operation's
                 `qubits` property.
         """
@@ -489,7 +489,7 @@ class Operation(metaclass=abc.ABCMeta):
         also restrict the operation to be JSON serializable.
 
         Args:
-            new_tags: The tags to wrap this operation in.
+            *new_tags: The tags to wrap this operation in.
         """
         if not new_tags:
             return self
@@ -529,7 +529,7 @@ class Operation(metaclass=abc.ABCMeta):
            are specified, returns self.
 
         Args:
-            control_qubits: Qubits to control the operation by. Required.
+            *control_qubits: Qubits to control the operation by. Required.
             control_values: For which control qubit values to apply the
                 operation.  A sequence of the same length as `control_qubits`
                 where each entry is an integer (or set of integers)
@@ -627,7 +627,7 @@ class Operation(metaclass=abc.ABCMeta):
         since tags are considered a local attribute.
 
         Args:
-            conditions: A list of measurement keys, strings that can be parsed
+            *conditions: A list of measurement keys, strings that can be parsed
                 into measurement keys, or sympy expressions where the free
                 symbols are measurement key strings.
 

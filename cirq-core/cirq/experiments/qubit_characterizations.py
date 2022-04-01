@@ -171,7 +171,7 @@ class TomographyResult:
             axes: A list of 2 `plt.Axes` instances. Note that they must be in
                 3d projections. If not given, a new figure is created with 2
                 axes and the plotted figure is shown.
-            plot_kwargs: The optional kwargs passed to bar3d.
+            **plot_kwargs: The optional kwargs passed to bar3d.
 
         Returns:
             the list of `plt.Axes` being plotted on.
