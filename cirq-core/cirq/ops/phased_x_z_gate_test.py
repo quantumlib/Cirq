@@ -124,32 +124,32 @@ def test_canonicalization():
 def test_from_matrix():
     # Axis rotations.
     assert cirq.approx_eq(
-        cirq.PhasedXZGate.from_matrix(cirq.unitary(cirq.X**0.1)),
+        cirq.PhasedXZGate.from_matrix(cirq.unitary(cirq.X ** 0.1)),
         cirq.PhasedXZGate(x_exponent=0.1, z_exponent=0, axis_phase_exponent=0),
         atol=1e-8,
     )
     assert cirq.approx_eq(
-        cirq.PhasedXZGate.from_matrix(cirq.unitary(cirq.X**-0.1)),
+        cirq.PhasedXZGate.from_matrix(cirq.unitary(cirq.X ** -0.1)),
         cirq.PhasedXZGate(x_exponent=-0.1, z_exponent=0, axis_phase_exponent=0),
         atol=1e-8,
     )
     assert cirq.approx_eq(
-        cirq.PhasedXZGate.from_matrix(cirq.unitary(cirq.Y**0.1)),
+        cirq.PhasedXZGate.from_matrix(cirq.unitary(cirq.Y ** 0.1)),
         cirq.PhasedXZGate(x_exponent=0.1, z_exponent=0, axis_phase_exponent=0.5),
         atol=1e-8,
     )
     assert cirq.approx_eq(
-        cirq.PhasedXZGate.from_matrix(cirq.unitary(cirq.Y**-0.1)),
+        cirq.PhasedXZGate.from_matrix(cirq.unitary(cirq.Y ** -0.1)),
         cirq.PhasedXZGate(x_exponent=-0.1, z_exponent=0, axis_phase_exponent=0.5),
         atol=1e-8,
     )
     assert cirq.approx_eq(
-        cirq.PhasedXZGate.from_matrix(cirq.unitary(cirq.Z**-0.1)),
+        cirq.PhasedXZGate.from_matrix(cirq.unitary(cirq.Z ** -0.1)),
         cirq.PhasedXZGate(x_exponent=0, z_exponent=-0.1, axis_phase_exponent=0),
         atol=1e-8,
     )
     assert cirq.approx_eq(
-        cirq.PhasedXZGate.from_matrix(cirq.unitary(cirq.Z**0.1)),
+        cirq.PhasedXZGate.from_matrix(cirq.unitary(cirq.Z ** 0.1)),
         cirq.PhasedXZGate(x_exponent=0, z_exponent=0.1, axis_phase_exponent=0),
         atol=1e-8,
     )
@@ -232,9 +232,9 @@ def test_protocols():
     cirq.testing.assert_implements_consistent_protocols(g)
 
     with cirq.testing.assert_deprecated('phase_by', deadline='v1.0', count=2):
-      gate = cirq.PhasedXZGate(x_exponent=0, z_exponent=0, axis_phase_exponent=0)
-      expected = cirq.PhasedXZGate(x_exponent=0, z_exponent=0, axis_phase_exponent=1.0)
-      assert cirq.phase_by(gate, 0.5, 0) == expected
+        gate = cirq.PhasedXZGate(x_exponent=0, z_exponent=0, axis_phase_exponent=0)
+        expected = cirq.PhasedXZGate(x_exponent=0, z_exponent=0, axis_phase_exponent=1.0)
+        assert cirq.phase_by(gate, 0.5, 0) == expected
 
 
 def test_inverse():
@@ -245,7 +245,7 @@ def test_inverse():
     g = cirq.PhasedXZGate(x_exponent=a, z_exponent=b, axis_phase_exponent=c).on(q)
 
     cirq.testing.assert_allclose_up_to_global_phase(
-        cirq.unitary(g**-1), np.transpose(np.conjugate(cirq.unitary(g))), atol=1e-8
+        cirq.unitary(g ** -1), np.transpose(np.conjugate(cirq.unitary(g))), atol=1e-8
     )
 
 
