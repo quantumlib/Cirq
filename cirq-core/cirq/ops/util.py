@@ -53,7 +53,7 @@ def q(
         cirq.NamedQubit if called with one string arg.
 
     Raises:
-        ValueError if called with invalid arguments.
+        ValueError: if called with invalid arguments.
     """
     import cirq  # avoid circular import
 
