@@ -21,7 +21,11 @@ def test_q() -> None:
     assert cirq.q(0) == cirq.LineQubit(0)
     assert cirq.q(1, 2) == cirq.GridQubit(1, 2)
     assert cirq.q("foo") == cirq.NamedQubit("foo")
+
+
+def test_q_invalid() -> None:
+    # Ignore static type errors so we can test runtime typechecks.
     with pytest.raises(ValueError):
-        cirq.q([1, 2, 3])  # type: ignore
+        cirq.q([1, 2, 3])  # type: ignore[call-overload]
     with pytest.raises(ValueError):
-        cirq.q(1, "foo")  # type: ignore
+        cirq.q(1, "foo")  # type: ignore[call-overload]
