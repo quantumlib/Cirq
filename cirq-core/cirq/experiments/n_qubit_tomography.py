@@ -98,7 +98,7 @@ class StateTomographyExperiment:
             rotation sequence and bit string outcome for that rotation sequence.
         """
         num_rots = len(self.rot_sweep)
-        num_states = 2 ** self.num_qubits
+        num_states = 2**self.num_qubits
 
         # Unitary matrices of each rotation circuit.
         unitaries = np.array(
@@ -128,7 +128,7 @@ class StateTomographyExperiment:
         probs = counts / np.sum(counts, axis=1)[:, np.newaxis]
         # use least squares to get solution.
         c, _, _, _ = np.linalg.lstsq(self.mat, np.asarray(probs).flat, rcond=-1)
-        rho = c.reshape((2 ** self.num_qubits, 2 ** self.num_qubits))
+        rho = c.reshape((2**self.num_qubits, 2**self.num_qubits))
         return TomographyResult(rho)
 
 

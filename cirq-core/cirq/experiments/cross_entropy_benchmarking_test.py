@@ -36,18 +36,18 @@ def test_cross_entropy_benchmarking():
 
     # Sanity check single-qubit-gate causes error
     with pytest.raises(ValueError):
-        build_entangling_layers(qubits, cirq.Z ** 0.91)
+        build_entangling_layers(qubits, cirq.Z**0.91)
 
     # Build a sequence of CZ gates.
-    interleaved_ops = build_entangling_layers(qubits, cirq.CZ ** 0.91)
+    interleaved_ops = build_entangling_layers(qubits, cirq.CZ**0.91)
 
     # Specify a set of single-qubit rotations. Pick prime numbers for the
     # exponent to avoid evolving the system into a basis state.
     single_qubit_rots = [
-        [cirq.X ** 0.37],
-        [cirq.Y ** 0.73, cirq.X ** 0.53],
-        [cirq.Z ** 0.61, cirq.X ** 0.43],
-        [cirq.Y ** 0.19],
+        [cirq.X**0.37],
+        [cirq.Y**0.73, cirq.X**0.53],
+        [cirq.Z**0.61, cirq.X**0.43],
+        [cirq.Y**0.19],
     ]
 
     # Simulate XEB using the default single-qubit gate set without two-qubit
@@ -104,7 +104,7 @@ def test_cross_entropy_result_depolarizing_models():
     S = 0.8
     p = 0.99
     data = [
-        CrossEntropyPair(num_cycle=d, xeb_fidelity=S * p ** d + prng.normal(scale=0.01))
+        CrossEntropyPair(num_cycle=d, xeb_fidelity=S * p**d + prng.normal(scale=0.01))
         for d in range(10, 211, 20)
     ]
     purity_data = [
@@ -116,7 +116,7 @@ def test_cross_entropy_result_depolarizing_models():
     purity_model = result.purity_depolarizing_model()
     np.testing.assert_allclose(model.spam_depolarization, S, atol=1e-2)
     np.testing.assert_allclose(model.cycle_depolarization, p, atol=1e-2)
-    np.testing.assert_allclose(purity_model.purity, p ** 2, atol=1e-2)
+    np.testing.assert_allclose(purity_model.purity, p**2, atol=1e-2)
 
 
 def test_cross_entropy_result_repr():

@@ -368,7 +368,7 @@ def partial_trace_of_state_vector_as_mixture(
 
     if state_vector.ndim == 1:
         dims = int(np.log2(state_vector.size))
-        if 2 ** dims != state_vector.size:
+        if 2**dims != state_vector.size:
             raise ValueError(f'Cannot infer underlying shape of {state_vector.shape}.')
         state_vector = state_vector.reshape((2,) * dims)
         ret_shape: Tuple[int, ...] = (2 ** len(keep_indices),)

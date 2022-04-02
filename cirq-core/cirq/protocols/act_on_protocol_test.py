@@ -11,7 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from typing import Any, Tuple, Union, Sequence
+from typing import Any, Sequence, Tuple
 
 import numpy as np
 import pytest
@@ -36,7 +36,7 @@ class DummyActOnArgs(cirq.ActOnArgs):
 
     def _act_on_fallback_(
         self,
-        action: Union['cirq.Operation', 'cirq.Gate'],
+        action: Any,
         qubits: Sequence['cirq.Qid'],
         allow_decompose: bool = True,
     ):

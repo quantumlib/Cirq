@@ -137,8 +137,8 @@ def assert_ops_implement_unitary(q0, q1, operations, intended_effect, atol=0.01)
                 ]
             ),
         ),
-        (0, 0, cirq.unitary(cirq.CZ ** 0.00000001)),
-        (0.5, 2, cirq.unitary(cirq.CZ ** 0.5)),
+        (0, 0, cirq.unitary(cirq.CZ**0.00000001)),
+        (0.5, 2, cirq.unitary(cirq.CZ**0.5)),
         (1, 1, cirq.unitary(cirq.CZ)),
         (1, 1, cirq.unitary(cirq.CNOT)),
         (
@@ -180,7 +180,7 @@ def assert_ops_implement_unitary(q0, q1, operations, intended_effect, atol=0.01)
             )
             * np.sqrt(0.5),
         ),
-        (1.5, 3, cirq.map_eigenvalues(cirq.unitary(cirq.SWAP), lambda e: e ** 0.5)),
+        (1.5, 3, cirq.map_eigenvalues(cirq.unitary(cirq.SWAP), lambda e: e**0.5)),
         (2, 2, cirq.unitary(cirq.SWAP).dot(cirq.unitary(cirq.CZ))),
         (3, 3, cirq.unitary(cirq.SWAP)),
         (
@@ -250,7 +250,7 @@ def test_kak_decomposition_depth_full_cz():
     assert len(c) > 6  # Length should be 13 with extra Pauli gates
 
     # Partial single-axis interaction.
-    u = cirq.unitary(cirq.CNOT ** 0.1)
+    u = cirq.unitary(cirq.CNOT**0.1)
     operations_with_part = cirq.two_qubit_matrix_to_cz_operations(a, b, u, False)
     c = cirq.Circuit(operations_with_part)
     # 2 CZ, 2+1 PhasedX, 1 Z
@@ -282,7 +282,7 @@ def test_kak_decomposition_depth_partial_cz():
     assert len(c) <= 6
 
     # Partial single-axis interaction.
-    u = cirq.unitary(cirq.CNOT ** 0.1)
+    u = cirq.unitary(cirq.CNOT**0.1)
     operations_with_part = cirq.two_qubit_matrix_to_cz_operations(a, b, u, True)
     c = cirq.Circuit(operations_with_part)
     # 1 CP, 1+1 PhasedX, 1 Z

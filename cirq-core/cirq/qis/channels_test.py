@@ -252,7 +252,7 @@ def test_operation_to_choi(channel):
     n_qubits = cirq.num_qubits(channel)
     actual = cirq.operation_to_choi(channel)
     expected = compute_choi(channel)
-    assert np.isclose(np.trace(actual), 2 ** n_qubits)
+    assert np.isclose(np.trace(actual), 2**n_qubits)
     assert np.all(actual == expected)
 
 

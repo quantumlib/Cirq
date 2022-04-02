@@ -1035,7 +1035,7 @@ class AbstractCircuit(abc.ABC):
         if n > 10:
             raise ValueError(f"{n} > 10 qubits is too many to compute superoperator")
 
-        circuit_superoperator = np.eye(4 ** n)
+        circuit_superoperator = np.eye(4**n)
         for moment in self:
             full_moment = moment.expand_to(all_qubits)
             moment_superoperator = full_moment._superoperator_()
@@ -1359,7 +1359,7 @@ class AbstractCircuit(abc.ABC):
         same moment index.
 
         Args:
-            circuits: The circuits to merge together.
+            *circuits: The circuits to merge together.
             align: The alignment for the zip, see `cirq.Alignment`.
 
         Returns:
@@ -1441,7 +1441,7 @@ class AbstractCircuit(abc.ABC):
             False
 
         Args:
-            circuits: The circuits to concatenate.
+            *circuits: The circuits to concatenate.
             align: When to stop when sliding the circuits together.
                 'left': Stop when the starts of the circuits align.
                 'right': Stop when the ends of the circuits align.

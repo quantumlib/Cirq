@@ -40,7 +40,7 @@ def assert_logs(
     can be done beyond these simple asserts.
 
     Args:
-        matches: Each of these is checked to see if they match, as a substring,
+        *matches: Each of these is checked to see if they match, as a substring,
             any of the captures log messages.
         count: The expected number of messages in logs. Defaults to 1. If None is passed in counts
             are not checked.
