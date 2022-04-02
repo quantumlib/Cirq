@@ -91,12 +91,6 @@ landing_page:
         path: https://github.com/quantumlib/Cirq/blob/master/examples/noisy_simulation_example.py
         icon:
           name: code
-
-      - heading: Qubit placement
-        description: How to find a line of adjacent qubits on a device.
-        path: https://github.com/quantumlib/Cirq/blob/master/examples/place_on_bristlecone.py
-        icon:
-          name: code
       - heading: Quantum teleportation
         description: A demonstration of using 2 classical bits to transport a quantum state from one
           qubit to another.
