@@ -48,11 +48,19 @@ def noise_properties_from_calibration(
     calibration: cirq_google.Calibration,
 ) -> google_noise_properties.GoogleNoiseProperties:
     """Translates between a Calibration object and a NoiseProperties object.
+
     The NoiseProperties object can then be used as input to the NoiseModelFromNoiseProperties
     class (cirq.devices.noise_properties) to create a NoiseModel that can be used with a simulator.
 
+    To manually override noise properties, call `override` on the output:
+
+        # Set all gate durations to 37ns.
+        noise_properties_from_calibration(cal).override(gate_times_ns=37)
+
+    See GoogleNoiseProperties for details.
+
     Args:
-        calibration: a Calibration object with hardware metrics
+        calibration: a Calibration object with hardware metrics.
     """
 
     # TODO: acquire this based on the target device.
@@ -99,19 +107,23 @@ def noise_properties_from_calibration(
     }
 
     # 3b. Extract Pauli error for two-qubit gates.
-    tq_iswap_pauli_error = _unpack_2q_from_calibration(
-        'two_qubit_parallel_sqrt_iswap_gate_xeb_pauli_error_per_cycle', calibration
-    )
-    gate_pauli_errors.update(
-        {
-            k: v
-            for qs, pauli_err in tq_iswap_pauli_error.items()
-            for k, v in {
-                noise_utils.OpIdentifier(cirq.ISwapPowGate, *qs): pauli_err,
-                noise_utils.OpIdentifier(cirq.ISwapPowGate, *qs[::-1]): pauli_err,
-            }.items()
-        }
-    )
+    for gate, prefix in [
+        (cirq_google.SycamoreGate, 'two_qubit_parallel_sycamore_gate'),
+        (cirq.ISwapPowGate, 'two_qubit_parallel_sqrt_iswap_gate'),
+    ]:
+        pauli_error = _unpack_2q_from_calibration(
+            prefix + '_xeb_pauli_error_per_cycle', calibration
+        )
+        gate_pauli_errors.update(
+            {
+                k: v
+                for qs, pauli_err in pauli_error.items()
+                for k, v in {
+                    noise_utils.OpIdentifier(gate, *qs): pauli_err,
+                    noise_utils.OpIdentifier(gate, *qs[::-1]): pauli_err,
+                }.items()
+            }
+        )
 
     # 4. Extract readout fidelity for all qubits.
     p00 = _unpack_1q_from_calibration('single_qubit_p00_error', calibration)
@@ -120,8 +132,28 @@ def noise_properties_from_calibration(
         q: np.array([p00.get(q, 0), p11.get(q, 0)]) for q in set(p00.keys()) | set(p11.keys())
     }
 
-    # TODO: include entangling errors once provided by QCS.
-    # These must also be accounted for in Pauli error.
+    # 5. Extract entangling angle errors.
+    fsim_errors = {}
+    for gate, prefix in [
+        (cirq_google.SycamoreGate, 'two_qubit_parallel_sycamore_gate'),
+        (cirq.ISwapPowGate, 'two_qubit_parallel_sqrt_iswap_gate'),
+    ]:
+        theta_errors = _unpack_2q_from_calibration(
+            prefix + '_xeb_entangler_theta_error_per_cycle',
+            calibration,
+        )
+        phi_errors = _unpack_2q_from_calibration(
+            prefix + '_xeb_entangler_phi_error_per_cycle',
+            calibration,
+        )
+        angle_keys = set(theta_errors.keys()) | set(phi_errors.keys())
+        for qubits in angle_keys:
+            theta = theta_errors.get(qubits, 0)
+            phi = phi_errors.get(qubits, 0)
+            op_id = noise_utils.OpIdentifier(gate, *qubits)
+            fsim_errors[op_id] = cirq.PhasedFSimGate(theta=theta, phi=phi)
+            op_id_reverse = noise_utils.OpIdentifier(gate, *qubits[::-1])
+            fsim_errors[op_id_reverse] = cirq.PhasedFSimGate(theta=theta, phi=phi)
 
     return google_noise_properties.GoogleNoiseProperties(
         gate_times_ns=DEFAULT_GATE_NS,
@@ -129,4 +161,5 @@ def noise_properties_from_calibration(
         tphi_ns=tphi_ns,
         readout_errors=readout_errors,
         gate_pauli_errors=gate_pauli_errors,
+        fsim_errors=fsim_errors,
     )
