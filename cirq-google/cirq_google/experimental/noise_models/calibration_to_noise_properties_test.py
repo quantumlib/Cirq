@@ -223,7 +223,6 @@ def test_noise_properties_from_calibration():
         )
         assert np.allclose(prop.readout_errors[q], np.array([p00_error[i], p11_error[i]]))
         assert np.isclose(prop.t1_ns[q], t1_micros[i] * 1000)
-        # TODO: test Tphi
         microwave_time_ns = 25.0
         tphi_err = incoherent_error[i] - microwave_time_ns / (3 * prop.t1_ns[q])
         if tphi_err > 0:
