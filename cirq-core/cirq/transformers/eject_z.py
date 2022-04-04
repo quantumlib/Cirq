@@ -137,16 +137,17 @@ def eject_z(
             return op
 
         if isinstance(gate, ops.PhasedXZGate):
-            phased_op = ops.PhasedXZGate(
+            phased_gate = ops.PhasedXZGate(
                 x_exponent=gate.x_exponent,
                 z_exponent=gate.z_exponent,
                 axis_phase_exponent=gate.axis_phase_exponent - qubit_phase[op.qubits[0]] * 2,
-            )(op.qubits[0])
+            )
+            phased_op = phased_gate(op.qubits[0])
 
             if eject_parameterized or not protocols.is_parameterized(gate.z_exponent):
                 qubit = phased_op.qubits[0]
                 qubit_phase[qubit] += gate.z_exponent / 2
-                gate = phased_op.gate.with_z_exponent(0)
+                gate = phased_gate.with_z_exponent(0)
                 phased_op = gate.on(qubit)
                 phased_xz_replacements[moment_index, phased_op] = gate
                 last_phased_xz_op[qubit] = (moment_index, phased_op)
