@@ -15,7 +15,6 @@
 
 """Class for representing noise on a Google device."""
 
-from dataclasses import dataclass, field, replace
 import dataclasses
 from typing import Any, Dict, List, Sequence, Set, Type, TypeVar, Union
 import numpy as np
@@ -46,16 +45,19 @@ T = TypeVar('T')
 V = TypeVar('V')
 
 
-def _override(
-    original: Dict[T, V],
-    val: Union[V, Dict[T, V]],
-):
+def _override(original: Dict, val: Any) -> Dict:
+    """Returns a copy of `original` using values from `val`.
+    
+    If val is a single value, all keys are mapped to that value. If val is a
+    dict, the union of original and val is returned, using values from val for
+    any conflicting keys.
+    """
     if isinstance(val, dict):
         return {**original, **val}
     return {k: val for k in original}
 
 
-@dataclass
+@dataclasses.dataclass
 class GoogleNoiseProperties(devices.SuperconductingQubitsNoiseProperties):
     """Noise-defining properties for a Google device.
 
@@ -81,7 +83,9 @@ class GoogleNoiseProperties(devices.SuperconductingQubitsNoiseProperties):
             for that gate. Defaults to no-op for all gates.
     """
 
-    fsim_errors: Dict[noise_utils.OpIdentifier, cirq.PhasedFSimGate] = field(default_factory=dict)
+    fsim_errors: Dict[noise_utils.OpIdentifier, cirq.PhasedFSimGate] = dataclasses.field(
+        default_factory=dict
+    )
 
     def __post_init__(self):
         super().__post_init__()
@@ -93,9 +97,9 @@ class GoogleNoiseProperties(devices.SuperconductingQubitsNoiseProperties):
         self,
         *,
         gate_times_ns: Union[None, float, Dict[Type['cirq.Gate'], float]] = None,
-        t1_ns: Union[None, float, Dict[Type['cirq.Qid'], float]] = None,
-        tphi_ns: Union[None, float, Dict[Type['cirq.Qid'], float]] = None,
-        readout_errors: Union[None, Sequence, Dict[Type['cirq.Qid'], Sequence]] = None,
+        t1_ns: Union[None, float, Dict['cirq.Qid', float]] = None,
+        tphi_ns: Union[None, float, Dict['cirq.Qid', float]] = None,
+        readout_errors: Union[None, Sequence[float], Dict['cirq.Qid', Sequence[float]]] = None,
         gate_pauli_errors: Union[
             None,
             float,
@@ -145,30 +149,28 @@ class GoogleNoiseProperties(devices.SuperconductingQubitsNoiseProperties):
             replace_args['readout_errors'] = _override(self.readout_errors, readout_errors)
         if gate_pauli_errors is not None:
             if isinstance(gate_pauli_errors, dict):
-                combined_errors = {}
-                for op_id, err in self.gate_pauli_errors.items():
+                combined_pauli_errors: Dict[Union[Type['cirq.Gate'], noise_utils.OpIdentifier], float] = {}
+                for op_id in self.gate_pauli_errors:
                     if op_id in gate_pauli_errors:
-                        combined_errors[op_id] = gate_pauli_errors[op_id]
+                        combined_pauli_errors[op_id] = gate_pauli_errors[op_id]
                     elif op_id.gate_type in gate_pauli_errors:
-                        combined_errors[op_id] = gate_pauli_errors[op_id.gate_type]
-                    else:
-                        combined_errors[op_id] = err
-                gate_pauli_errors = combined_errors
+                        combined_pauli_errors[op_id] = gate_pauli_errors[op_id.gate_type]
+                gate_pauli_errors = combined_pauli_errors
             replace_args['gate_pauli_errors'] = _override(self.gate_pauli_errors, gate_pauli_errors)
         if fsim_errors is not None:
             if isinstance(fsim_errors, dict):
-                combined_errors = {}
-                for op_id, err in self.fsim_errors.items():
+                combined_fsim_errors: Dict[Union[Type['cirq.Gate'], noise_utils.OpIdentifier], 'cirq.PhasedFSimGate'] = {}
+                for op_id in self.fsim_errors:
                     op_id_swapped = noise_utils.OpIdentifier(op_id.gate_type, *op_id.qubits[::-1])
                     if op_id in fsim_errors:
-                        combined_errors[op_id] = fsim_errors[op_id]
-                        combined_errors[op_id_swapped] = fsim_errors[op_id]
+                        combined_fsim_errors[op_id] = fsim_errors[op_id]
+                        combined_fsim_errors[op_id_swapped] = fsim_errors[op_id]
                     elif op_id_swapped in fsim_errors:
-                        combined_errors[op_id] = fsim_errors[op_id_swapped]
-                        combined_errors[op_id_swapped] = fsim_errors[op_id_swapped]
+                        combined_fsim_errors[op_id] = fsim_errors[op_id_swapped]
+                        combined_fsim_errors[op_id_swapped] = fsim_errors[op_id_swapped]
                     elif op_id.gate_type in fsim_errors:
-                        combined_errors[op_id] = fsim_errors[op_id.gate_type]
-                fsim_errors = combined_errors
+                        combined_fsim_errors[op_id] = fsim_errors[op_id.gate_type]
+                fsim_errors = combined_fsim_errors
             replace_args['fsim_errors'] = _override(self.fsim_errors, fsim_errors)
         return dataclasses.replace(self, **replace_args)
 
