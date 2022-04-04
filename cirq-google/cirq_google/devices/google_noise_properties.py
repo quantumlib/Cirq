@@ -45,9 +45,9 @@ T = TypeVar('T')
 V = TypeVar('V')
 
 
-def _override(original: Dict, val: Any) -> Dict:
+def _override(original: Dict[T, V], val: Union[V, Dict[T, V]]) -> Dict[T, V]:
     """Returns a copy of `original` using values from `val`.
-    
+
     If val is a single value, all keys are mapped to that value. If val is a
     dict, the union of original and val is returned, using values from val for
     any conflicting keys.
@@ -134,7 +134,7 @@ class GoogleNoiseProperties(devices.SuperconductingQubitsNoiseProperties):
             appear in the original object.
 
         """
-        replace_args = {}
+        replace_args: Dict[str, Dict[Any, Any]] = {}
         if gate_times_ns is not None:
             replace_args['gate_times_ns'] = _override(self.gate_times_ns, gate_times_ns)
         if t1_ns is not None:
@@ -149,7 +149,9 @@ class GoogleNoiseProperties(devices.SuperconductingQubitsNoiseProperties):
             replace_args['readout_errors'] = _override(self.readout_errors, readout_errors)
         if gate_pauli_errors is not None:
             if isinstance(gate_pauli_errors, dict):
-                combined_pauli_errors: Dict[Union[Type['cirq.Gate'], noise_utils.OpIdentifier], float] = {}
+                combined_pauli_errors: Dict[
+                    Union[Type['cirq.Gate'], noise_utils.OpIdentifier], float
+                ] = {}
                 for op_id in self.gate_pauli_errors:
                     if op_id in gate_pauli_errors:
                         combined_pauli_errors[op_id] = gate_pauli_errors[op_id]
@@ -159,7 +161,9 @@ class GoogleNoiseProperties(devices.SuperconductingQubitsNoiseProperties):
             replace_args['gate_pauli_errors'] = _override(self.gate_pauli_errors, gate_pauli_errors)
         if fsim_errors is not None:
             if isinstance(fsim_errors, dict):
-                combined_fsim_errors: Dict[Union[Type['cirq.Gate'], noise_utils.OpIdentifier], 'cirq.PhasedFSimGate'] = {}
+                combined_fsim_errors: Dict[
+                    Union[Type['cirq.Gate'], noise_utils.OpIdentifier], 'cirq.PhasedFSimGate'
+                ] = {}
                 for op_id in self.fsim_errors:
                     op_id_swapped = noise_utils.OpIdentifier(op_id.gate_type, *op_id.qubits[::-1])
                     if op_id in fsim_errors:
