@@ -154,7 +154,7 @@ def noise_properties_from_calibration(
             fsim_errors[op_id_reverse] = cirq.PhasedFSimGate(theta=theta, phi=phi)
 
     # Known false positive: https://github.com/PyCQA/pylint/issues/5857
-    return google_noise_properties.GoogleNoiseProperties( # pylint: disable=unexpected-keyword-arg
+    return google_noise_properties.GoogleNoiseProperties(  # pylint: disable=unexpected-keyword-arg
         gate_times_ns=DEFAULT_GATE_NS,
         t1_ns=t1_ns,
         tphi_ns=tphi_ns,
