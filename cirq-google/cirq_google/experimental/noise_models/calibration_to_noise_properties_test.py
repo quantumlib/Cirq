@@ -34,6 +34,14 @@ def test_noise_properties_from_calibration():
     t1_micros = [10, 20, 30]
     syc_pauli = [0.01, 0.02]
     iswap_pauli = [0.03, 0.04]
+    syc_angles = [
+        cirq.PhasedFSimGate(theta=0.011, phi=-0.021),
+        cirq.PhasedFSimGate(theta=-0.012, phi=0.022),
+    ]
+    iswap_angles = [
+        cirq.PhasedFSimGate(theta=-0.013, phi=0.023),
+        cirq.PhasedFSimGate(theta=0.014, phi=-0.024),
+    ]
 
     _CALIBRATION_DATA = Merge(
         f"""
@@ -152,6 +160,54 @@ def test_noise_properties_from_calibration():
         values: [{{
             double_val: {iswap_pauli[1]}
         }}]
+    }}, {{
+        name: 'two_qubit_parallel_sycamore_gate_xeb_entangler_theta_error_per_cycle',
+        targets: ['0_0', '0_1'],
+        values: [{{
+            double_val: {syc_angles[0].theta}
+        }}]
+    }}, {{
+        name: 'two_qubit_parallel_sycamore_gate_xeb_entangler_theta_error_per_cycle',
+        targets: ['0_0', '1_0'],
+        values: [{{
+            double_val: {syc_angles[1].theta}
+        }}]
+    }}, {{
+        name: 'two_qubit_parallel_sqrt_iswap_gate_xeb_entangler_theta_error_per_cycle',
+        targets: ['0_0', '0_1'],
+        values: [{{
+            double_val: {iswap_angles[0].theta}
+        }}]
+    }}, {{
+        name: 'two_qubit_parallel_sqrt_iswap_gate_xeb_entangler_theta_error_per_cycle',
+        targets: ['0_0', '1_0'],
+        values: [{{
+            double_val: {iswap_angles[1].theta}
+        }}]
+    }}, {{
+        name: 'two_qubit_parallel_sycamore_gate_xeb_entangler_phi_error_per_cycle',
+        targets: ['0_0', '0_1'],
+        values: [{{
+            double_val: {syc_angles[0].phi}
+        }}]
+    }}, {{
+        name: 'two_qubit_parallel_sycamore_gate_xeb_entangler_phi_error_per_cycle',
+        targets: ['0_0', '1_0'],
+        values: [{{
+            double_val: {syc_angles[1].phi}
+        }}]
+    }}, {{
+        name: 'two_qubit_parallel_sqrt_iswap_gate_xeb_entangler_phi_error_per_cycle',
+        targets: ['0_0', '0_1'],
+        values: [{{
+            double_val: {iswap_angles[0].phi}
+        }}]
+    }}, {{
+        name: 'two_qubit_parallel_sqrt_iswap_gate_xeb_entangler_phi_error_per_cycle',
+        targets: ['0_0', '1_0'],
+        values: [{{
+            double_val: {iswap_angles[1].phi}
+        }}]
     }}]
 """,
         v2.metrics_pb2.MetricsSnapshot(),
@@ -178,12 +234,23 @@ def test_noise_properties_from_calibration():
 
     qubit_pairs = [(qubits[0], qubits[1]), (qubits[0], qubits[2])]
     for i, qs in enumerate(qubit_pairs):
-        assert np.isclose(
-            prop.gate_pauli_errors[OpIdentifier(cirq.ISwapPowGate, *qs)], iswap_pauli[i]
-        )
-        assert np.isclose(
-            prop.gate_pauli_errors[OpIdentifier(cirq.ISwapPowGate, *qs[::-1])], iswap_pauli[i]
-        )
+        for gate, values in [
+            (cirq_google.SycamoreGate, syc_pauli),
+            (cirq.ISwapPowGate, iswap_pauli),
+        ]:
+            assert np.isclose(prop.gate_pauli_errors[OpIdentifier(gate, *qs)], values[i])
+            assert np.isclose(prop.gate_pauli_errors[OpIdentifier(gate, *qs[::-1])], values[i])
+            assert np.isclose(prop.gate_pauli_errors[OpIdentifier(gate, *qs)], values[i])
+            assert np.isclose(prop.gate_pauli_errors[OpIdentifier(gate, *qs[::-1])], values[i])
+
+        for gate, values in [
+            (cirq_google.SycamoreGate, syc_angles),
+            (cirq.ISwapPowGate, iswap_angles),
+        ]:
+            assert prop.fsim_errors[OpIdentifier(gate, *qs)] == values[i]
+            assert prop.fsim_errors[OpIdentifier(gate, *qs[::-1])] == values[i]
+            assert prop.fsim_errors[OpIdentifier(gate, *qs)] == values[i]
+            assert prop.fsim_errors[OpIdentifier(gate, *qs[::-1])] == values[i]
 
 
 def test_incomplete_calibration():
