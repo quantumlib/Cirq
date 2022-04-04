@@ -107,10 +107,11 @@ def noise_properties_from_calibration(
     }
 
     # 3b. Extract Pauli error for two-qubit gates.
-    for gate, prefix in [
-        (cirq_google.SycamoreGate, 'two_qubit_parallel_sycamore_gate'),
-        (cirq.ISwapPowGate, 'two_qubit_parallel_sqrt_iswap_gate'),
-    ]:
+    gate_prefix_pairs: Dict[Type[cirq.Gate], str] = {
+        cirq_google.SycamoreGate: 'two_qubit_parallel_sycamore_gate',
+        cirq.ISwapPowGate: 'two_qubit_parallel_sqrt_iswap_gate',
+    }
+    for gate, prefix in gate_prefix_pairs.items():
         pauli_error = _unpack_2q_from_calibration(
             prefix + '_xeb_pauli_error_per_cycle', calibration
         )
@@ -134,10 +135,7 @@ def noise_properties_from_calibration(
 
     # 5. Extract entangling angle errors.
     fsim_errors = {}
-    for gate, prefix in [
-        (cirq_google.SycamoreGate, 'two_qubit_parallel_sycamore_gate'),
-        (cirq.ISwapPowGate, 'two_qubit_parallel_sqrt_iswap_gate'),
-    ]:
+    for gate, prefix in gate_prefix_pairs.items():
         theta_errors = _unpack_2q_from_calibration(
             prefix + '_xeb_entangler_theta_error_per_cycle',
             calibration,
@@ -155,7 +153,8 @@ def noise_properties_from_calibration(
             op_id_reverse = noise_utils.OpIdentifier(gate, *qubits[::-1])
             fsim_errors[op_id_reverse] = cirq.PhasedFSimGate(theta=theta, phi=phi)
 
-    return google_noise_properties.GoogleNoiseProperties(
+    # Known false positive: https://github.com/PyCQA/pylint/issues/5857
+    return google_noise_properties.GoogleNoiseProperties( # pylint: disable=unexpected-keyword-arg
         gate_times_ns=DEFAULT_GATE_NS,
         t1_ns=t1_ns,
         tphi_ns=tphi_ns,
