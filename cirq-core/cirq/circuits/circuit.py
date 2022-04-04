@@ -24,7 +24,6 @@ import enum
 import html
 import itertools
 import math
-import re
 from collections import defaultdict
 from typing import (
     AbstractSet,
@@ -156,9 +155,7 @@ class AbstractCircuit(abc.ABC):
         """See `cirq.protocols.SupportsApproximateEquality`."""
         if not isinstance(other, AbstractCircuit):
             return NotImplemented
-        return (
-            cirq.protocols.approx_eq(tuple(self.moments), tuple(other.moments), atol=atol)
-        )
+        return cirq.protocols.approx_eq(tuple(self.moments), tuple(other.moments), atol=atol)
 
     def __ne__(self, other) -> bool:
         return not self == other
@@ -1017,7 +1014,7 @@ class AbstractCircuit(abc.ABC):
         if n > 10:
             raise ValueError(f"{n} > 10 qubits is too many to compute superoperator")
 
-        circuit_superoperator = np.eye(4**n)
+        circuit_superoperator = np.eye(4 ** n)
         for moment in self:
             full_moment = moment.expand_to(all_qubits)
             moment_superoperator = full_moment._superoperator_()
@@ -1668,6 +1665,7 @@ class Circuit(AbstractCircuit):
     *   `circuit.factorize()` returns a sequence of Circuits which represent
             independent 'factors' of the original Circuit.
     """
+
     def __init__(
         self,
         *contents: 'cirq.OP_TREE',
@@ -2266,7 +2264,7 @@ class Circuit(AbstractCircuit):
             resolved_operations = _resolve_operations(moment.operations, resolver, recursive)
             new_moment = Moment(resolved_operations)
             resolved_moments.append(new_moment)
-        
+
         return Circuit(resolved_moments)
 
     @property

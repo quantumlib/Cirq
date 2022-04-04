@@ -11,13 +11,12 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-import re
 from typing import Any, Callable, Dict, Generic, Iterator, TypeVar, cast, TYPE_CHECKING
 
 import functools
 import networkx
 
-from cirq import _compat, ops
+from cirq import ops
 from cirq.circuits import circuit
 
 if TYPE_CHECKING:
@@ -69,6 +68,7 @@ class CircuitDag(networkx.DiGraph):
     """
 
     disjoint_qubits = staticmethod(_disjoint_qubits)
+
     def __init__(
         self,
         can_reorder: Callable[['cirq.Operation', 'cirq.Operation'], bool] = _disjoint_qubits,

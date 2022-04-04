@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """A combination of several optimizations targeting XmonDevice."""
-from typing import Callable, cast, Optional, TYPE_CHECKING
+from typing import Callable, cast, TYPE_CHECKING
 
 import cirq
 from cirq_google.optimizers import optimized_for_sycamore

@@ -881,7 +881,10 @@
               }
             ]
           }
-        ]
+        ],
+        "device": {
+          "cirq_type": "_UnconstrainedDevice"
+        }
       }
     },
     {
@@ -1766,7 +1769,10 @@
               }
             ]
           }
-        ]
+        ],
+        "device": {
+          "cirq_type": "_UnconstrainedDevice"
+        }
       }
     },
     {
@@ -2561,7 +2567,10 @@
               }
             ]
           }
-        ]
+        ],
+        "device": {
+          "cirq_type": "_UnconstrainedDevice"
+        }
       }
     },
     {

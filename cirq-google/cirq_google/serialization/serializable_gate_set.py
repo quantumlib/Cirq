@@ -273,9 +273,7 @@ class SerializableGateSet(serializer.Serializer):
                 return proto_msg
         raise ValueError(f'Cannot serialize CircuitOperation {op!r}')
 
-    def deserialize(
-        self, proto: v2.program_pb2.Program
-    ) -> cirq.Circuit:
+    def deserialize(self, proto: v2.program_pb2.Program) -> cirq.Circuit:
         """Deserialize a Circuit from a cirq_google.api.v2.Program.
 
         Args:

@@ -15,7 +15,6 @@
 from typing import (
     TYPE_CHECKING,
     AbstractSet,
-    Callable,
     FrozenSet,
     Iterable,
     Iterator,
@@ -24,7 +23,6 @@ from typing import (
     Tuple,
     Union,
 )
-import re
 
 from cirq.circuits import AbstractCircuit, Alignment, Circuit
 from cirq.circuits.insert_strategy import InsertStrategy
@@ -32,7 +30,7 @@ from cirq.type_workarounds import NotImplementedType
 
 import numpy as np
 
-from cirq import _compat, devices, ops, protocols
+from cirq import ops, protocols
 
 
 if TYPE_CHECKING:

@@ -16,7 +16,6 @@ import pytest
 import sympy
 
 import cirq
-import cirq_google as cg
 import cirq_google.api.v1.programs as programs
 from cirq_google.api.v1 import operations_pb2
 
