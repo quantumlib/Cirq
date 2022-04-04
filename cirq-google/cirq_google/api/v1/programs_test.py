@@ -234,7 +234,7 @@ def test_z_proto_convert():
     )
 
     assert_proto_dict_convert(gate, proto, cirq.GridQubit(2, 3))
-    gate = cirq.Z ** 0.5
+    gate = cirq.Z**0.5
     proto = operations_pb2.Operation(
         exp_z=operations_pb2.ExpZ(
             target=operations_pb2.Qubit(row=2, col=3),
@@ -255,7 +255,7 @@ def test_cz_proto_convert():
     )
     assert_proto_dict_convert(gate, proto, cirq.GridQubit(2, 3), cirq.GridQubit(3, 4))
 
-    gate = cirq.CZ ** 0.5
+    gate = cirq.CZ**0.5
     proto = operations_pb2.Operation(
         exp_11=operations_pb2.Exp11(
             target1=operations_pb2.Qubit(row=2, col=3),
@@ -287,7 +287,7 @@ def test_w_to_proto():
     )
     assert_proto_dict_convert(gate, proto, cirq.GridQubit(2, 3))
 
-    gate = cirq.X ** 0.25
+    gate = cirq.X**0.25
     proto = operations_pb2.Operation(
         exp_w=operations_pb2.ExpW(
             target=operations_pb2.Qubit(row=2, col=3),
@@ -297,7 +297,7 @@ def test_w_to_proto():
     )
     assert_proto_dict_convert(gate, proto, cirq.GridQubit(2, 3))
 
-    gate = cirq.Y ** 0.25
+    gate = cirq.Y**0.25
     proto = operations_pb2.Operation(
         exp_w=operations_pb2.ExpW(
             target=operations_pb2.Qubit(row=2, col=3),
@@ -329,9 +329,9 @@ def test_unsupported_op():
 
 def test_invalid_to_proto_dict_qubit_number():
     with pytest.raises(ValueError, match='Wrong number of qubits'):
-        _ = programs.gate_to_proto(cirq.CZ ** 0.5, (cirq.GridQubit(2, 3),), delay=0)
+        _ = programs.gate_to_proto(cirq.CZ**0.5, (cirq.GridQubit(2, 3),), delay=0)
     with pytest.raises(ValueError, match='Wrong number of qubits'):
-        programs.gate_to_proto(cirq.Z ** 0.5, (cirq.GridQubit(2, 3), cirq.GridQubit(3, 4)), delay=0)
+        programs.gate_to_proto(cirq.Z**0.5, (cirq.GridQubit(2, 3), cirq.GridQubit(3, 4)), delay=0)
     with pytest.raises(ValueError, match='Wrong number of qubits'):
         programs.gate_to_proto(
             cirq.PhasedXPowGate(exponent=0.5, phase_exponent=0),
@@ -380,10 +380,10 @@ def test_is_supported():
 
 def test_is_native_xmon_gate():
     assert programs.is_native_xmon_gate(cirq.CZ)
-    assert programs.is_native_xmon_gate(cirq.X ** 0.5)
-    assert programs.is_native_xmon_gate(cirq.Y ** 0.5)
-    assert programs.is_native_xmon_gate(cirq.Z ** 0.5)
+    assert programs.is_native_xmon_gate(cirq.X**0.5)
+    assert programs.is_native_xmon_gate(cirq.Y**0.5)
+    assert programs.is_native_xmon_gate(cirq.Z**0.5)
     assert programs.is_native_xmon_gate(cirq.PhasedXPowGate(phase_exponent=0.2) ** 0.5)
-    assert programs.is_native_xmon_gate(cirq.Z ** 1)
+    assert programs.is_native_xmon_gate(cirq.Z**1)
     assert not programs.is_native_xmon_gate(cirq.CCZ)
     assert not programs.is_native_xmon_gate(cirq.SWAP)

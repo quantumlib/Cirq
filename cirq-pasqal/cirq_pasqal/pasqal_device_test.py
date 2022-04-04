@@ -106,7 +106,7 @@ def test_is_pasqal_device_op():
 def test_decompose_operation_deprecated():
     d = generic_device(3)
     with cirq.testing.assert_deprecated('decompose', deadline='v0.15'):
-        for op in d.decompose_operation((cirq.CCZ ** 1.5).on(*(d.qubit_list()))):
+        for op in d.decompose_operation((cirq.CCZ**1.5).on(*(d.qubit_list()))):
             d.validate_operation(op)
 
     p_qubits = [cirq.LineQubit(3), cirq.LineQubit(4)]
@@ -148,7 +148,7 @@ def test_validate_operation_errors():
         d.validate_operation(cirq.NamedQubit('q0'))
 
     with pytest.raises(ValueError, match="is not a supported gate"):
-        d.validate_operation((cirq.ops.H ** 0.2).on(cirq.NamedQubit('q0')))
+        d.validate_operation((cirq.ops.H**0.2).on(cirq.NamedQubit('q0')))
 
     with pytest.raises(ValueError, match="is not a valid qubit for gate cirq.X"):
         d.validate_operation(cirq.X.on(cirq.LineQubit(0)))

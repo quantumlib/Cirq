@@ -71,7 +71,7 @@ def test_run_sweep(mock_post, mock_get):
     par = sympy.Symbol('par')
     sweep = cirq.Linspace(key='par', start=0.0, stop=1.0, length=2)
 
-    num = np.random.randint(0, 2 ** 9)
+    num = np.random.randint(0, 2**9)
     binary = bin(num)[2:].zfill(9)
 
     device = cirq_pasqal.PasqalVirtualDevice(control_radius=1, qubits=qs)
