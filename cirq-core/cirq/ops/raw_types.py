@@ -683,14 +683,6 @@ class TaggedOperation(Operation):
     def sub_operation(self) -> 'cirq.Operation':
         return self._sub_operation
 
-    @sub_operation.setter  # type: ignore
-    @deprecated(
-        deadline="v0.15",
-        fix="The mutators of this class are deprecated, instantiate a new object instead.",
-    )
-    def sub_operation(self, sub_operation: 'cirq.Operation'):
-        self._sub_operation = sub_operation
-
     @property
     def qubits(self) -> Tuple['cirq.Qid', ...]:
         return self.sub_operation.qubits

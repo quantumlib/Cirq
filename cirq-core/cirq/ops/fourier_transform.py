@@ -100,14 +100,6 @@ class PhaseGradientGate(raw_types.Gate):
     def exponent(self) -> Union[float, sympy.Basic]:
         return self._exponent
 
-    @exponent.setter  # type: ignore
-    @deprecated(
-        deadline="v0.15",
-        fix="The mutators of this class are deprecated, instantiate a new object instead.",
-    )
-    def exponent(self, exponent: Union[float, sympy.Basic]):
-        self._exponent = exponent
-
     def _json_dict_(self) -> Dict[str, Any]:
         return {
             'num_qubits': self._num_qubits,

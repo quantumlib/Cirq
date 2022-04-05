@@ -72,14 +72,6 @@ class WaitGate(raw_types.Gate):
     def duration(self) -> 'cirq.Duration':
         return self._duration
 
-    @duration.setter  # type: ignore
-    @deprecated(
-        deadline="v0.15",
-        fix="The mutators of this class are deprecated, instantiate a new object instead.",
-    )
-    def duration(self, duration: 'cirq.Duration'):
-        self._duration = duration
-
     def _is_parameterized_(self) -> bool:
         return protocols.is_parameterized(self.duration)
 

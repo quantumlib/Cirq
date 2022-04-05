@@ -57,14 +57,6 @@ class QubitPermutationGate(raw_types.Gate):
     def permutation(self) -> Tuple[int, ...]:
         return self._permutation
 
-    @permutation.setter  # type: ignore
-    @deprecated(
-        deadline="v0.15",
-        fix="The mutators of this class are deprecated, instantiate a new object instead.",
-    )
-    def permutation(self, permutation: Tuple[int, ...]):
-        self._permutation = permutation
-
     def _value_equality_values_(self):
         return self.permutation
 

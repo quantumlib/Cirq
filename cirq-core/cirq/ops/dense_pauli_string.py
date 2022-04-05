@@ -107,25 +107,9 @@ class BaseDensePauliString(raw_types.Gate, metaclass=abc.ABCMeta):
     def pauli_mask(self) -> np.ndarray:
         return self._pauli_mask
 
-    @pauli_mask.setter  # type: ignore
-    @deprecated(
-        deadline="v0.15",
-        fix="The mutators of this class are deprecated, instantiate a new object instead.",
-    )
-    def pauli_mask(self, pauli_mask: np.ndarray):
-        self._pauli_mask = pauli_mask
-
     @property
     def coefficient(self) -> complex:
         return self._coefficient
-
-    @coefficient.setter  # type: ignore
-    @deprecated(
-        deadline="v0.15",
-        fix="The mutators of this class are deprecated, instantiate a new object instead.",
-    )
-    def coefficient(self, coefficient: complex):
-        self._coefficient = coefficient
 
     def _json_dict_(self) -> Dict[str, Any]:
         return protocols.obj_to_dict_helper(self, ['pauli_mask', 'coefficient'])

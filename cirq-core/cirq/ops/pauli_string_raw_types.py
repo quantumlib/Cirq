@@ -36,14 +36,6 @@ class PauliStringGateOperation(raw_types.Operation, metaclass=abc.ABCMeta):
     def pauli_string(self) -> 'cirq.PauliString':
         return self._pauli_string
 
-    @pauli_string.setter  # type: ignore
-    @deprecated(
-        deadline="v0.15",
-        fix="The mutators of this class are deprecated, instantiate a new object instead.",
-    )
-    def pauli_string(self, pauli_string: 'cirq.PauliString'):
-        self._pauli_string = pauli_string
-
     def validate_args(self, qubits: Sequence[raw_types.Qid]) -> None:
         if len(qubits) != len(self.pauli_string):
             raise ValueError('Incorrect number of qubits for gate')

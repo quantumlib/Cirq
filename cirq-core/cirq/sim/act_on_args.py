@@ -101,22 +101,6 @@ class ActOnArgs(OperationTarget[TSelf]):
     def qubit_map(self) -> Mapping['cirq.Qid', int]:
         return self._qubit_map
 
-    @prng.setter  # type: ignore
-    @deprecated(
-        deadline="v0.15",
-        fix="The mutators of this class are deprecated, instantiate a new object instead.",
-    )
-    def prng(self, prng):
-        self._prng = prng
-
-    @qubit_map.setter  # type: ignore
-    @deprecated(
-        deadline="v0.15",
-        fix="The mutators of this class are deprecated, instantiate a new object instead.",
-    )
-    def qubit_map(self, qubit_map):
-        self._qubit_map = qubit_map
-
     def _set_qubits(self, qubits: Sequence['cirq.Qid']):
         self._qubits = tuple(qubits)
         self._qubit_map = {q: i for i, q in enumerate(self.qubits)}

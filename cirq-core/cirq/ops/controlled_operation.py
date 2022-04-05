@@ -77,37 +77,13 @@ class ControlledOperation(raw_types.Operation):
     def controls(self) -> Tuple['cirq.Qid', ...]:
         return self._controls
 
-    @controls.setter  # type: ignore
-    @deprecated(
-        deadline="v0.15",
-        fix="The mutators of this class are deprecated, instantiate a new object instead.",
-    )
-    def controls(self, controls: Tuple['cirq.Qid', ...]):
-        self._controls = controls
-
     @property
     def control_values(self) -> Tuple[Tuple[int, ...], ...]:
         return self._control_values
 
-    @control_values.setter  # type: ignore
-    @deprecated(
-        deadline="v0.15",
-        fix="The mutators of this class are deprecated, instantiate a new object instead.",
-    )
-    def control_values(self, control_values: Tuple[Tuple[int, ...], ...]):
-        self._control_values = control_values
-
     @property
     def sub_operation(self) -> 'cirq.Operation':
         return self._sub_operation
-
-    @sub_operation.setter  # type: ignore
-    @deprecated(
-        deadline="v0.15",
-        fix="The mutators of this class are deprecated, instantiate a new object instead.",
-    )
-    def sub_operation(self, sub_operation: 'cirq.Operation'):
-        self._sub_operation = sub_operation
 
     @property
     def gate(self) -> Optional['cirq.ControlledGate']:

@@ -77,40 +77,13 @@ class MeasurementGate(raw_types.Gate):
     def key(self) -> str:
         return str(self.mkey)
 
-    @key.setter  # type: ignore
-    @deprecated(
-        deadline="v0.15",
-        fix="The mutators of this class are deprecated, instantiate a new object instead.",
-    )
-    def key(self, key: Union[str, 'cirq.MeasurementKey']):
-        if isinstance(key, value.MeasurementKey):
-            self._mkey = key
-        else:
-            self._mkey = value.MeasurementKey(name=key)
-
     @property
     def mkey(self) -> 'cirq.MeasurementKey':
         return self._mkey
 
-    @mkey.setter  # type: ignore
-    @deprecated(
-        deadline="v0.15",
-        fix="The mutators of this class are deprecated, instantiate a new object instead.",
-    )
-    def mkey(self, mkey: 'cirq.MeasurementKey'):
-        self._mkey = mkey
-
     @property
     def invert_mask(self) -> Tuple[bool, ...]:
         return self._invert_mask
-
-    @invert_mask.setter  # type: ignore
-    @deprecated(
-        deadline="v0.15",
-        fix="The mutators of this class are deprecated, instantiate a new object instead.",
-    )
-    def invert_mask(self, invert_mask: Tuple[bool, ...]):
-        self._invert_mask = invert_mask
 
     def _qid_shape_(self) -> Tuple[int, ...]:
         return self._qid_shape
