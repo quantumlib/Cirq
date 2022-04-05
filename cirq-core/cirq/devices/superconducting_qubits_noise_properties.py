@@ -35,14 +35,15 @@ class SuperconductingQubitsNoiseProperties(devices.NoiseProperties, abc.ABC):
 
     Args:
         gate_times_ns: Dict[type, float] of gate types to their duration on
-            quantum hardware.
+            quantum hardware. Used with t(1|phi)_ns to specify thermal noise.
         t1_ns: Dict[cirq.Qid, float] of qubits to their T_1 time, in ns.
         tphi_ns: Dict[cirq.Qid, float] of qubits to their T_phi time, in ns.
         readout_errors: Dict[cirq.Qid, np.ndarray] of qubits to their readout
             errors in matrix form: [P(read |1> from |0>), P(read |0> from |1>)].
+            Used to prepend amplitude damping errors to measurements.
         gate_pauli_errors: dict of noise_utils.OpIdentifiers (a gate and the qubits it
-            targets) to the Pauli error for that operation. Keys in this dict
-            must have defined qubits.
+            targets) to the Pauli error for that operation. Used to construct
+            depolarizing error. Keys in this dict must have defined qubits.
         validate: If True, verifies that t1 and tphi qubits sets match, and
             that all symmetric two-qubit gates have errors which are
             symmetric over the qubits they affect. Defaults to True.
