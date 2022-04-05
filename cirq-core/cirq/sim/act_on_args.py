@@ -32,7 +32,7 @@ from typing import (
 import numpy as np
 
 from cirq import ops, protocols, value
-from cirq._compat import deprecated, deprecated_parameter
+from cirq._compat import deprecated_parameter
 from cirq.protocols.decompose_protocol import _try_decompose_into_operations_and_qubits
 from cirq.sim.operation_target import OperationTarget
 

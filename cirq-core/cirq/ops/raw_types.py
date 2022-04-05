@@ -38,7 +38,6 @@ import numpy as np
 import sympy
 
 from cirq import protocols, value
-from cirq._compat import deprecated
 from cirq._import import LazyLoader
 from cirq.type_workarounds import NotImplementedType
 

@@ -19,7 +19,6 @@ import sympy
 
 import cirq
 from cirq import value, _compat
-from cirq._compat import deprecated
 from cirq.ops import raw_types
 
 

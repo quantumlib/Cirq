@@ -17,7 +17,7 @@ from typing import AbstractSet, cast, Dict, Iterable, Union, TYPE_CHECKING, Sequ
 import sympy
 
 from cirq import value, protocols
-from cirq._compat import proper_repr, deprecated
+from cirq._compat import proper_repr
 from cirq.ops import (
     raw_types,
     common_gates,

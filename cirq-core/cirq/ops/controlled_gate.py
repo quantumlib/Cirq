@@ -29,7 +29,6 @@ from typing import (
 import numpy as np
 
 from cirq import protocols, value, _import
-from cirq._compat import deprecated
 from cirq.ops import raw_types, controlled_operation as cop, matrix_gates
 from cirq.type_workarounds import NotImplementedType
 

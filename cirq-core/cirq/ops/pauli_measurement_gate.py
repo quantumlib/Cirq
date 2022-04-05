@@ -15,7 +15,6 @@
 from typing import Any, Dict, FrozenSet, Iterable, Tuple, Sequence, TYPE_CHECKING, Union, cast
 
 from cirq import protocols, value
-from cirq._compat import deprecated
 from cirq.ops import (
     raw_types,
     measurement_gate,

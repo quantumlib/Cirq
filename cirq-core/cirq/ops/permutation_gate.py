@@ -15,7 +15,6 @@
 from typing import Any, Dict, Iterable, Sequence, Tuple, TYPE_CHECKING
 
 from cirq import protocols, value
-from cirq._compat import deprecated
 from cirq.ops import raw_types, swap_gates
 
 if TYPE_CHECKING:

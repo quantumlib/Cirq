@@ -11,6 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import abc
 import numbers
 from typing import (
     AbstractSet,
@@ -29,13 +30,12 @@ from typing import (
     TypeVar,
     Union,
 )
-import abc
 
 import numpy as np
 import sympy
 
 from cirq import protocols, linalg, value
-from cirq._compat import deprecated, proper_repr
+from cirq._compat import proper_repr
 from cirq.ops import raw_types, identity, pauli_gates, global_phase_op, pauli_string
 from cirq.type_workarounds import NotImplementedType
 

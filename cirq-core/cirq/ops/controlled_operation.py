@@ -11,6 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import itertools
 from typing import (
     AbstractSet,
     Any,
@@ -25,11 +26,9 @@ from typing import (
     TYPE_CHECKING,
 )
 
-import itertools
 import numpy as np
 
 from cirq import protocols, qis, value
-from cirq._compat import deprecated
 from cirq.ops import raw_types, gate_operation, controlled_gate, matrix_gates
 from cirq.type_workarounds import NotImplementedType
 

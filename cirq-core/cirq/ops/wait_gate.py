@@ -16,7 +16,6 @@ from typing import AbstractSet, Any, Dict, Optional, Tuple, TYPE_CHECKING, Union
 import sympy
 
 from cirq import value, protocols
-from cirq._compat import deprecated
 from cirq.ops import raw_types
 
 if TYPE_CHECKING:

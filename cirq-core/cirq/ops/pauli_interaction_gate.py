@@ -17,7 +17,7 @@ from typing import List, Sequence, Tuple, cast, Dict, TYPE_CHECKING
 import numpy as np
 
 from cirq import value, protocols
-from cirq._compat import deprecated, proper_repr
+from cirq._compat import proper_repr
 from cirq.ops import gate_features, common_gates, eigen_gate, pauli_gates
 from cirq.ops.clifford_gate import SingleQubitCliffordGate
 

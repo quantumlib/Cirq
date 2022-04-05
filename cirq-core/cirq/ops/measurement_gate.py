@@ -17,7 +17,6 @@ from typing import Any, Dict, FrozenSet, Iterable, Optional, Tuple, Sequence, TY
 import numpy as np
 
 from cirq import protocols, value
-from cirq._compat import deprecated
 from cirq.ops import raw_types
 
 if TYPE_CHECKING:
