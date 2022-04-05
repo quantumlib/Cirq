@@ -22,7 +22,7 @@ noise models to produce a single noise model which replicates device noise.
 import abc
 from typing import Iterable, Sequence, TYPE_CHECKING, List
 
-from cirq import _import, ops, protocols, devices
+from cirq import _compat, _import, ops, protocols, devices
 from cirq.devices.noise_utils import (
     PHYSICAL_GATE_TAG,
 )
@@ -54,7 +54,7 @@ class NoiseModelFromNoiseProperties(devices.NoiseModel):
         self._noise_properties = noise_properties
         self.noise_models = self._noise_properties.build_noise_models()
 
-    def virtual_predicate(self, op: 'cirq.Operation') -> bool:
+    def is_virtual(self, op: 'cirq.Operation') -> bool:
         """Returns True if an operation is virtual.
 
         Device-specific subclasses should implement this method to mark any
@@ -67,6 +67,10 @@ class NoiseModelFromNoiseProperties(devices.NoiseModel):
             True if `op` is virtual.
         """
         return False
+
+    @_compat.deprecated(deadline='v0.16', fix='Use is_virtual instead.')
+    def virtual_predicate(self, op: 'cirq.Operation') -> bool:
+        return self.is_virtual(op)
 
     def noisy_moments(
         self, moments: Iterable['cirq.Moment'], system_qubits: Sequence['cirq.Qid']
@@ -91,7 +95,7 @@ class NoiseModelFromNoiseProperties(devices.NoiseModel):
         # using `self.virtual_predicate` to determine virtuality.
         new_moments = []
         for moment in split_measure_moments:
-            virtual_ops = {op for op in moment if self.virtual_predicate(op)}
+            virtual_ops = {op for op in moment if self.is_virtual(op)}
             physical_ops = [
                 op.with_tags(PHYSICAL_GATE_TAG) for op in moment if op not in virtual_ops
             ]
