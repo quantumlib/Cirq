@@ -60,3 +60,11 @@ def test_sample_model():
         cirq.Moment(cirq.H(q0), cirq.H(q1)),
     )
     assert noisy_circuit == expected_circuit
+
+
+def test_deprecated_virtual_predicate():
+    q0, q1 = cirq.LineQubit.range(2)
+    props = SampleNoiseProperties([q0, q1], [(q0, q1), (q1, q0)])
+    model = NoiseModelFromNoiseProperties(props)
+    with cirq.testing.assert_deprecated("Use is_virtual", deadline="v0.16"):
+        _ = model.virtual_predicate(cirq.X(q0))
