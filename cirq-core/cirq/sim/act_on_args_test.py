@@ -105,11 +105,3 @@ def test_field_getters():
     args = DummyArgs()
     assert args.prng is np.random
     assert args.qubit_map == {q: i for i, q in enumerate(cirq.LineQubit.range(2))}
-
-
-def test_field_setters_deprecated():
-    args = DummyArgs()
-    with cirq.testing.assert_deprecated(deadline='v0.15'):
-        args.prng = 0
-    with cirq.testing.assert_deprecated(deadline='v0.15'):
-        args.qubit_map = {}

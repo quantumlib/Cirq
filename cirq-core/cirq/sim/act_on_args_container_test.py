@@ -273,11 +273,3 @@ def test_field_getters():
     args = create_container(qs2)
     assert args.args.keys() == set(qs2) | {None}
     assert args.split_untangled_states
-
-
-def test_field_setters_deprecated():
-    args = create_container(qs2)
-    with cirq.testing.assert_deprecated(deadline='v0.15'):
-        args.args = {}
-    with cirq.testing.assert_deprecated(deadline='v0.15'):
-        args.split_untangled_states = False
