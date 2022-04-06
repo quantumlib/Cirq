@@ -74,6 +74,8 @@ class SimulatedLocalJob(AbstractLocalJob):
 
     def execution_status(self) -> quantum.ExecutionStatus.State:
         """Return the execution status of the job."""
+        # Ignore type errors since mypy doesn't handle proto.Enum (a subclass of enum.IntEnum).
+        # See https://github.com/python/mypy/issues/6037.
         return self._state  # type: ignore[return-value]
 
     def failure(self) -> Optional[Tuple[str, str]]:

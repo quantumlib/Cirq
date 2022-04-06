@@ -220,7 +220,7 @@ class EngineJob(abstract_job.AbstractJob):
         Returns:
             A tuple of the repetition count and list of sweeps.
         """
-        if self._job is None or self._job.run_context is not None:
+        if self._job is None or self._job.run_context is None:
             self._job = self.context.client.get_job(
                 self.project_id, self.program_id, self.job_id, True
             )

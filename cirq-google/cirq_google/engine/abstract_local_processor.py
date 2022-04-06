@@ -11,12 +11,10 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from abc import abstractmethod
-import copy
+import abc
 import datetime
-from typing import overload
+from typing import Dict, List, Optional, overload, TYPE_CHECKING, Union
 
-from typing import Dict, List, Optional, TYPE_CHECKING, Union
 from google.protobuf.timestamp_pb2 import Timestamp
 
 from cirq_google.engine import calibration
@@ -93,8 +91,9 @@ class AbstractLocalProcessor(AbstractProcessor):
                 )
             ]
         else:
-            self._schedule = copy.copy(schedule)
-            self._schedule.sort(key=lambda t: t.start_time.timestamp() if t.start_time else -1)
+            self._schedule = sorted(
+                schedule, key=lambda t: t.start_time.timestamp() if t.start_time else -1
+            )
 
         for idx in range(len(self._schedule) - 1):
             if self._schedule[idx].end_time > self._schedule[idx + 1].start_time:
@@ -390,11 +389,11 @@ class AbstractLocalProcessor(AbstractProcessor):
             time_slots.append(slot)
         return time_slots
 
-    @abstractmethod
+    @abc.abstractmethod
     def get_latest_calibration(self, timestamp: int) -> Optional[calibration.Calibration]:
         """Returns the latest calibration with the provided timestamp or earlier."""
 
-    @abstractmethod
+    @abc.abstractmethod
     def get_program(self, program_id: str) -> AbstractProgram:
         """Returns an AbstractProgram for an existing Quantum Engine program.
 
@@ -405,7 +404,7 @@ class AbstractLocalProcessor(AbstractProcessor):
             An AbstractProgram for the program.
         """
 
-    @abstractmethod
+    @abc.abstractmethod
     def list_programs(
         self,
         created_before: Optional[Union[datetime.datetime, datetime.date]] = None,
