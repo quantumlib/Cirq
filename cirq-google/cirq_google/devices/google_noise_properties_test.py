@@ -77,6 +77,22 @@ def sample_noise_properties(
     )
 
 
+def test_consistent_repr():
+    q0, q1 = cirq.LineQubit.range(2)
+    test_props = sample_noise_properties([q0, q1], [(q0, q1), (q1, q0)])
+    cirq.testing.assert_equivalent_repr(
+        test_props, setup_code="import cirq, cirq_google\nimport numpy as np"
+    )
+
+
+def test_equals():
+    q0, q1, q2 = cirq.LineQubit.range(3)
+    test_props = sample_noise_properties([q0, q1], [(q0, q1), (q1, q0)])
+    assert test_props != "mismatched_type"
+    test_props_v2 = test_props.override(readout_errors={q2: [0.01, 0.02]})
+    assert test_props != test_props_v2
+
+
 def test_zphase_gates():
     q0 = cirq.LineQubit(0)
     props = sample_noise_properties([q0], [])
@@ -106,6 +122,7 @@ def test_with_params_fill():
         gate_pauli_errors=expected_vals['gate_pauli_errors'],
         fsim_errors=expected_vals['fsim_errors'],
     )
+    assert props_v2 != props
     for key in props.gate_times_ns:
         assert key in props_v2.gate_times_ns
         assert props_v2.gate_times_ns[key] == expected_vals['gate_times_ns']
@@ -150,6 +167,7 @@ def test_with_params_target():
         gate_pauli_errors=expected_vals['gate_pauli_errors'],
         fsim_errors=expected_vals['fsim_errors'],
     )
+    assert props_v2 != props
     for field_name, expected in expected_vals.items():
         target_dict = getattr(props_v2, field_name)
         for key, val in expected.items():
@@ -171,6 +189,7 @@ def test_with_params_opid_with_gate():
         gate_pauli_errors={cirq.PhasedXZGate: expected_vals['gate_pauli_errors']},
         fsim_errors={cirq.CZPowGate: expected_vals['fsim_errors']},
     )
+    assert props_v2 != props
     gpe_op_id_0 = cirq.OpIdentifier(cirq.PhasedXZGate, q0)
     gpe_op_id_1 = cirq.OpIdentifier(cirq.PhasedXZGate, q1)
     assert props_v2.gate_pauli_errors[gpe_op_id_0] == expected_vals['gate_pauli_errors']
