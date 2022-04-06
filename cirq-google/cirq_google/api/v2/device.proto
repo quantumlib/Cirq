@@ -11,10 +11,13 @@ option java_multiple_files = true;
 // This message specifies information that is needed when sending a
 // Program message to the device.
 message DeviceSpecification {
-
   // A list of allowed gatesets for programs submitted to this processor
   // Language.gate_set should be one of these values to be valid.
-  repeated GateSet valid_gate_sets = 1;
+  repeated GateSet valid_gate_sets = 1 [deprecated = true];
+
+  // The device gateset.
+  // Contains the list of gates allowed in programs submitted to this processor.
+  repeated GateSpecification valid_gates = 5;
 
   // A list of allowed ids for qubits within the Program.
   // Any programs with ids not in this list will be rejected.
@@ -30,12 +33,56 @@ message DeviceSpecification {
   string developer_recommendations = 4;
 }
 
-message GateSet {
-   // The name of the gate set corresponding to Language.gate_set
-   string name = 1;
+// This contains information about a single device gate.
+// Replaces `GateDefinition`.
+message GateSpecification {
+  // This defines the approximate duration to run the gate on the device,
+  // specified as an integer number of picoseconds.
+  int64 gate_duration_picos = 1;
 
-   // A list of valid gates permitted by this gate set
-   repeated GateDefinition valid_gates = 2;
+  // Valid targets that this gate can use.
+  // Values in this list correspond to the name of the TargetSet
+  // If unset, all combinations of `DeviceSpecification.valid_qubits` are
+  // allowed.
+  repeated string valid_targets = 2;
+
+  // This specifies the gate type and gate parameter constraints for this
+  // device gate.
+  oneof gate {
+    Sycamore syc = 3;
+    SqrtISwap sqrt_iswap = 4;
+    SqrtISwapInv sqrt_iswap_inv = 5;
+    CZ cz = 6;
+    PhasedXZ phased_xz = 7;
+    VirtualZPow virtual_zpow = 8;
+    PhysicalZPow physical_zpow = 9;
+    CouplerPulse coupler_pulse = 10;
+    Measurement meas = 11;
+    Wait wait = 12;
+  }
+
+  // Gate types available to Google devices.
+  // Future gates may have parameter constraints that are frequently updated.
+  // In such cases, the gate message will contain additional fields to specify
+  // those constraints.
+  message Sycamore {}
+  message SqrtISwap {}
+  message SqrtISwapInv {}
+  message CZ {}
+  message PhasedXZ {}
+  message VirtualZPow {}
+  message PhysicalZPow {}
+  message CouplerPulse {}
+  message Measurement {}
+  message Wait {}
+}
+
+message GateSet {
+  // The name of the gate set corresponding to Language.gate_set
+  string name = 1;
+
+  // A list of valid gates permitted by this gate set
+  repeated GateDefinition valid_gates = 2;
 }
 
 message GateDefinition {
@@ -61,13 +108,12 @@ message GateDefinition {
 
 // A description of an argument to an operation.
 message ArgDefinition {
-
   // Note: This should be kept in sync with the ArgValue proto
   enum ArgType {
-     UNSPECIFIED = 0;
-     FLOAT = 1;
-     REPEATED_BOOLEAN = 2;
-     STRING = 3;
+    UNSPECIFIED = 0;
+    FLOAT = 1;
+    REPEATED_BOOLEAN = 2;
+    STRING = 3;
   }
 
   // The name of the argument
@@ -82,7 +128,7 @@ message ArgDefinition {
 
   // This should only be populated for type FLOAT.
   // If not set, all float values are allowed.
-  repeated ArgumentRange allowed_ranges =3;
+  repeated ArgumentRange allowed_ranges = 3;
 }
 
 // Minimum value is inclusive and maximum value is exclusive.

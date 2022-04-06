@@ -506,7 +506,7 @@ _LIMITED_FSIM_GATE_FAMILY = fsim_gate_family.FSimGateFamily(
         cirq.SQRT_ISWAP_INV,
         cirq.SQRT_ISWAP,
         cirq.ISWAP,
-        cirq.ISWAP ** -1,  # type: ignore
+        cirq.ISWAP**-1,  # type: ignore
         SYC,
         cirq.CZ,
     ],
@@ -519,7 +519,7 @@ _LIMITED_ISWAP_GATE_FAMILY = fsim_gate_family.FSimGateFamily(
         cirq.SQRT_ISWAP_INV,
         cirq.SQRT_ISWAP,
         cirq.ISWAP,
-        cirq.ISWAP ** -1,  # type: ignore
+        cirq.ISWAP**-1,  # type: ignore
     ],
     gate_types_to_check=[cirq.ISwapPowGate],
     allow_symbols=True,

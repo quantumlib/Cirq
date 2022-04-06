@@ -13,8 +13,9 @@
 # limitations under the License.
 
 """Runtime information dataclasses and execution of executables."""
-
+import contextlib
 import dataclasses
+import time
 import uuid
 from typing import Any, Dict, Optional, List, TYPE_CHECKING
 
@@ -80,10 +81,14 @@ class RuntimeInfo:
             `cg.QuantumExecutable` was executed.
         qubit_placement: If a QubitPlacer was used, a record of the mapping
             from problem-qubits to device-qubits.
+        timings_s: The durations of measured subroutines. Each entry in this
+            dictionary maps subroutine name to the amount of time the subroutine
+            took in units of seconds.
     """
 
     execution_index: int
     qubit_placement: Optional[Dict[Any, cirq.Qid]] = None
+    timings_s: Dict[str, float] = dataclasses.field(default_factory=dict)
 
     @classmethod
     def _json_namespace_(cls) -> str:
@@ -93,6 +98,7 @@ class RuntimeInfo:
         d = dataclass_json_dict(self)
         if d['qubit_placement']:
             d['qubit_placement'] = list(d['qubit_placement'].items())
+        d['timings_s'] = list(d['timings_s'].items())
         return d
 
     @classmethod
@@ -100,6 +106,8 @@ class RuntimeInfo:
         kwargs.pop('cirq_type')
         if kwargs.get('qubit_placement', None):
             kwargs['qubit_placement'] = {_try_tuple(k): v for k, v in kwargs['qubit_placement']}
+        if 'timings_s' in kwargs:
+            kwargs['timings_s'] = {k: v for k, v in kwargs['timings_s']}
         return cls(**kwargs)
 
     def __repr__(self) -> str:
@@ -175,6 +183,7 @@ class QuantumRuntimeConfiguration:
             seed will be used.
         qubit_placer: A `cg.QubitPlacer` implementation to map executable qubits to device qubits.
             The placer is only called if a given `cg.QuantumExecutable` has a `problem_topology`.
+            This subroutine's runtime is keyed by "placement" in `RuntimeInfo.timings_s`.
     """
 
     processor_record: 'cg.ProcessorRecord'
@@ -191,6 +200,21 @@ class QuantumRuntimeConfiguration:
 
     def __repr__(self) -> str:
         return _compat.dataclass_repr(self, namespace='cirq_google')
+
+
+@contextlib.contextmanager
+def _time_into_runtime_info(runtime_info: RuntimeInfo, name: str):
+    """A context manager that appends timing information into a cg.RuntimeInfo.
+
+    Timings are reported in fractional seconds as reported by `time.monotonic()`.
+
+    Args:
+        runtime_info: The runtime information object whose `.timings_s` dictionary will be updated.
+        name: A string key name to use in the dictionary.
+    """
+    start = time.monotonic()
+    yield
+    runtime_info.timings_s[name] = time.monotonic() - start
 
 
 def execute(
@@ -261,12 +285,17 @@ def execute(
 
         circuit = exe.circuit
         if exe.problem_topology is not None:
-            circuit, mapping = rt_config.qubit_placer.place_circuit(
-                circuit, problem_topology=exe.problem_topology, shared_rt_info=shared_rt_info, rs=rs
-            )
-            runtime_info.qubit_placement = mapping
+            with _time_into_runtime_info(runtime_info, 'placement'):
+                circuit, mapping = rt_config.qubit_placer.place_circuit(
+                    circuit,
+                    problem_topology=exe.problem_topology,
+                    shared_rt_info=shared_rt_info,
+                    rs=rs,
+                )
+                runtime_info.qubit_placement = mapping
 
-        sampler_run_result = sampler.run(circuit, repetitions=exe.measurement.n_repetitions)
+        with _time_into_runtime_info(runtime_info, 'run'):
+            sampler_run_result = sampler.run(circuit, repetitions=exe.measurement.n_repetitions)
 
         exe_result = ExecutableResult(
             spec=exe.spec,

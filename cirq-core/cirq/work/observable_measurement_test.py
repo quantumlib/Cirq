@@ -549,7 +549,7 @@ def test_XYZ_point8(circuit, observable):
         circuit,
         [observable],
         cirq.Simulator(seed=52),
-        stopping_criteria=VarianceStoppingCriteria(1e-3 ** 2),
+        stopping_criteria=VarianceStoppingCriteria(1e-3**2),
     )
     assert len(df) == 1, 'one observable'
     mean = df.loc[0]['mean']

@@ -248,7 +248,7 @@ def test_measure_density_matrix_collapse():
 
 def test_measure_density_matrix_seed():
     n = 5
-    matrix = np.eye(2 ** n) / 2 ** n
+    matrix = np.eye(2**n) / 2**n
 
     bits, out_matrix1 = cirq.measure_density_matrix(matrix, range(n), seed=1234)
     assert bits == [False, False, True, True, False]

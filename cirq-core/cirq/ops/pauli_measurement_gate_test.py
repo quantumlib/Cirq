@@ -185,13 +185,29 @@ def test_with_observable():
     [
         (cirq.I, cirq.DensePauliString("Z", coefficient=+1), 0),
         (cirq.I, cirq.DensePauliString("Z", coefficient=-1), 1),
-        (cirq.Y ** 0.5, cirq.DensePauliString("X", coefficient=+1), 0),
-        (cirq.Y ** 0.5, cirq.DensePauliString("X", coefficient=-1), 1),
-        (cirq.X ** -0.5, cirq.DensePauliString("Y", coefficient=+1), 0),
-        (cirq.X ** -0.5, cirq.DensePauliString("Y", coefficient=-1), 1),
+        (cirq.Y**0.5, cirq.DensePauliString("X", coefficient=+1), 0),
+        (cirq.Y**0.5, cirq.DensePauliString("X", coefficient=-1), 1),
+        (cirq.X**-0.5, cirq.DensePauliString("Y", coefficient=+1), 0),
+        (cirq.X**-0.5, cirq.DensePauliString("Y", coefficient=-1), 1),
     ],
 )
 def test_pauli_measurement_gate_samples(rot, obs, out):
     q = cirq.NamedQubit("q")
     c = cirq.Circuit(rot(q), cirq.PauliMeasurementGate(obs, key='out').on(q))
     assert cirq.Simulator().sample(c)['out'][0] == out
+
+
+def test_setters_deprecated():
+    gate = cirq.PauliMeasurementGate(cirq.DensePauliString("Z", coefficient=+1), key='m')
+    with cirq.testing.assert_deprecated('mutators', deadline='v0.15'):
+        gate.key = 'n'
+    assert gate.key == 'n'
+    assert gate.mkey == cirq.MeasurementKey('n')
+    with cirq.testing.assert_deprecated('mutators', deadline='v0.15'):
+        gate.key = cirq.MeasurementKey('o')
+    assert gate.key == 'o'
+    assert gate.mkey == cirq.MeasurementKey('o')
+    with cirq.testing.assert_deprecated('mutators', deadline='v0.15'):
+        gate.mkey = cirq.MeasurementKey('p')
+    assert gate.key == 'p'
+    assert gate.mkey == cirq.MeasurementKey('p')

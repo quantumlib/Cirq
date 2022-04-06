@@ -304,3 +304,19 @@ def test_decompose_preserving_structure_forwards_args(decompose_mode):
         cirq.measure(a, b, key='m'),
     )
     assert actual == expected
+
+
+def test_decompose_tagged_operation():
+    op = cirq.TaggedOperation(
+        cirq.CircuitOperation(
+            circuit=cirq.FrozenCircuit(
+                [
+                    cirq.Moment(
+                        cirq.SWAP(cirq.LineQubit(0), cirq.LineQubit(1)),
+                    ),
+                ]
+            ),
+        ),
+        'tag',
+    )
+    assert cirq.decompose_once(op) == cirq.decompose_once(op.untagged)

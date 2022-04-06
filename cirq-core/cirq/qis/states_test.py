@@ -198,37 +198,28 @@ def test_infer_qid_shape():
     q0, q1 = cirq.LineQubit.range(2)
     product_state_1 = cirq.KET_PLUS(q0) * cirq.KET_PLUS(q1)
 
-    assert (
-        cirq.qis.infer_qid_shape(
-            computational_basis_state_1,
-            state_vector_1,
-            state_tensor_1,
-            density_matrix_1,
-            product_state_1,
-        )
-        == (2, 2)
-    )
+    assert cirq.qis.infer_qid_shape(
+        computational_basis_state_1,
+        state_vector_1,
+        state_tensor_1,
+        density_matrix_1,
+        product_state_1,
+    ) == (2, 2)
 
-    assert (
-        cirq.qis.infer_qid_shape(
-            product_state_1,
-            density_matrix_1,
-            state_tensor_1,
-            state_vector_1,
-            computational_basis_state_1,
-        )
-        == (2, 2)
-    )
+    assert cirq.qis.infer_qid_shape(
+        product_state_1,
+        density_matrix_1,
+        state_tensor_1,
+        state_vector_1,
+        computational_basis_state_1,
+    ) == (2, 2)
 
-    assert (
-        cirq.qis.infer_qid_shape(
-            computational_basis_state_1,
-            computational_basis_state_2,
-            computational_basis_state_4,
-            state_tensor_2,
-        )
-        == (1, 2, 3, 4)
-    )
+    assert cirq.qis.infer_qid_shape(
+        computational_basis_state_1,
+        computational_basis_state_2,
+        computational_basis_state_4,
+        state_tensor_2,
+    ) == (1, 2, 3, 4)
 
     assert cirq.qis.infer_qid_shape(
         state_vector_2, density_matrix_2, computational_basis_state_4
@@ -499,7 +490,7 @@ def test_to_valid_state_vector():
     np.testing.assert_almost_equal(cirq.to_valid_state_vector(1, 2), np.array([0.0, 1.0, 0.0, 0.0]))
 
     v = cirq.to_valid_state_vector([0, 1, 2, 0], qid_shape=(3, 3, 3, 3))
-    assert v.shape == (3 ** 4,)
+    assert v.shape == (3**4,)
     assert v[6 + 9] == 1
 
     v = cirq.to_valid_state_vector([False, True, False, False], num_qubits=4)
