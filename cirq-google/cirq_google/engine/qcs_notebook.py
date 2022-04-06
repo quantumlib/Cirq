@@ -58,12 +58,6 @@ def get_qcs_objects_for_notebook(
         An instance of DeviceSamplerInfo.
     """
 
-    # Convert empty strings to None for form field inputs.
-    if project_id == "":
-        project_id = None
-    if processor_id == "":
-        processor_id = None
-
     # Check for Google Application Default Credentials and run
     # interactive login if the notebook is executed in Colab. In
     # case the notebook is executed in Jupyter notebook or other
@@ -73,15 +67,10 @@ def get_qcs_objects_for_notebook(
     # already. For more information on using Application Default Credentials
     # see https://cloud.google.com/docs/authentication/production
     try:
-        from IPython import get_ipython
-
-        in_colab = 'google.colab' in str(get_ipython())
-    except ImportError:
-        in_colab = False
-
-    if in_colab:
         from google.colab import auth
-
+    except ImportError:
+        print("Not running in a colab kernel. Will use Application Default Credentials.")
+    else:
         print("Getting OAuth2 credentials.")
         print("Press enter after entering the verification code.")
         try:
@@ -89,22 +78,20 @@ def get_qcs_objects_for_notebook(
             print("Authentication complete.")
         except Exception as exc:
             print(f"Authentication failed: {exc}")
-    else:
-        print("Not running in a colab kernel. Will use Application Default Credentials.")
 
     # Attempt to connect to the Quantum Engine API, and use a simulator if unable to connect.
     sampler: Union[PhasedFSimEngineSimulator, QuantumEngineSampler]
     try:
         engine = get_engine(project_id)
-        if processor_id is None:
+        if processor_id:
+            processor = engine.get_processor(processor_id)
+        else:
             processors = engine.list_processors()
             if not processors:
                 raise ValueError("No processors available.")
             processor = processors[0]
             print(f"Available processors: {[p.processor_id for p in processors]}")
             print(f"Using processor: {processor.processor_id}")
-        else:
-            processor = engine.get_processor(processor_id)
         device = processor.get_device()
         sampler = processor.get_sampler()
         signed_in = True
