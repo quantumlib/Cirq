@@ -226,7 +226,8 @@ class ControlledGate(raw_types.Gate):
         return (
             self.sub_gate,
             self.num_controls(),
-            frozenset(zip(self.control_values, self.control_qid_shape)),
+            self.control_values,
+            self.control_qid_shape,
         )
 
     def _apply_unitary_(self, args: 'protocols.ApplyUnitaryArgs') -> np.ndarray:

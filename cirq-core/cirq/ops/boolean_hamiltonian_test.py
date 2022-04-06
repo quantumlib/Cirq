@@ -53,8 +53,7 @@ import cirq.ops.boolean_hamiltonian as bh
         '(x2 | x1) ^ x0',
     ],
 )
-@pytest.mark.parametrize('transform', [lambda op: op, lambda op: op.gate.on(*op.qubits)])
-def test_circuit(boolean_str, transform):
+def test_circuit(boolean_str):
     boolean_expr = sympy_parser.parse_expr(boolean_str)
     var_names = cirq.parameter_names(boolean_expr)
     qubits = [cirq.NamedQubit(name) for name in var_names]
@@ -73,42 +72,19 @@ def test_circuit(boolean_str, transform):
     circuit = cirq.Circuit()
     circuit.append(cirq.H.on_each(*qubits))
 
-    with cirq.testing.assert_deprecated('Use cirq.BooleanHamiltonianGate', deadline='v0.15'):
-        hamiltonian_gate = cirq.BooleanHamiltonian(
-            {q.name: q for q in qubits}, [boolean_str], 0.1 * math.pi
-        )
+    hamiltonian_gate = cirq.BooleanHamiltonianGate(
+        {q.name: q for q in qubits}, [boolean_str], 0.1 * math.pi
+    )
 
     assert hamiltonian_gate.num_qubits() == n
 
-    circuit.append(transform(hamiltonian_gate))
+    circuit.append(hamiltonian_gate.on(*qubits))
 
     phi = cirq.Simulator().simulate(circuit, qubit_order=qubits, initial_state=0).state_vector()
     actual = np.arctan2(phi.real, phi.imag) - math.pi / 2.0 > 0.0
 
     # Compare the two:
     np.testing.assert_array_equal(actual, expected)
-
-
-def test_with_custom_names():
-    q0, q1, q2, q3 = cirq.LineQubit.range(4)
-    with cirq.testing.assert_deprecated(
-        'Use cirq.BooleanHamiltonianGate', deadline='v0.15', count=3
-    ):
-        original_op = cirq.BooleanHamiltonian(
-            {'a': q0, 'b': q1},
-            ['a'],
-            0.1,
-        )
-        assert cirq.decompose(original_op) == [cirq.Rz(rads=-0.05).on(q0)]
-
-        renamed_op = original_op.with_qubits(q2, q3)
-        assert cirq.decompose(renamed_op) == [cirq.Rz(rads=-0.05).on(q2)]
-
-        with pytest.raises(ValueError, match='Length of replacement qubits must be the same'):
-            original_op.with_qubits(q2)
-
-        with pytest.raises(ValueError, match='All qubits must be 2-dimensional'):
-            original_op.with_qubits(q0, cirq.LineQid(1, 3))
 
 
 def test_gate_with_custom_names():
