@@ -106,7 +106,7 @@ class OrderTester:
         Adds the objects as a group.
 
         Args:
-            group_items: items making the equivalence group
+            *group_items: items making the equivalence group
 
         Raises:
             AssertionError: The group elements aren't equal to each other,
