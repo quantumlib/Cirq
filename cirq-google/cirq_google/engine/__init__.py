@@ -15,33 +15,67 @@
 """Client for running on Google's Quantum Engine.
 """
 
-from cirq_google.engine.abstract_engine import AbstractEngine
+from cirq_google.engine.abstract_engine import (
+    AbstractEngine,
+)
 
-from cirq_google.engine.abstract_job import AbstractJob
+from cirq_google.engine.abstract_job import (
+    AbstractJob,
+)
 
-from cirq_google.engine.abstract_processor import AbstractProcessor
+from cirq_google.engine.abstract_processor import (
+    AbstractProcessor,
+)
 
-from cirq_google.engine.abstract_program import AbstractProgram
+from cirq_google.engine.abstract_program import (
+    AbstractProgram,
+)
 
-from cirq_google.engine.abstract_local_engine import AbstractLocalEngine
+from cirq_google.engine.abstract_local_engine import (
+    AbstractLocalEngine,
+)
 
-from cirq_google.engine.abstract_local_job import AbstractLocalJob
+from cirq_google.engine.abstract_local_job import (
+    AbstractLocalJob,
+)
 
-from cirq_google.engine.abstract_local_processor import AbstractLocalProcessor
+from cirq_google.engine.abstract_local_processor import (
+    AbstractLocalProcessor,
+)
 
-from cirq_google.engine.abstract_local_program import AbstractLocalProgram
+from cirq_google.engine.abstract_local_program import (
+    AbstractLocalProgram,
+)
 
-from cirq_google.engine.simulated_local_engine import SimulatedLocalEngine
+from cirq_google.engine.simulated_local_engine import (
+    SimulatedLocalEngine,
+)
 
-from cirq_google.engine.simulated_local_job import SimulatedLocalJob
+from cirq_google.engine.simulated_local_job import (
+    SimulatedLocalJob,
+)
 
-from cirq_google.engine.simulated_local_processor import SimulatedLocalProcessor
+from cirq_google.engine.simulated_local_processor import (
+    SimulatedLocalProcessor,
+)
 
-from cirq_google.engine.simulated_local_program import SimulatedLocalProgram
-from cirq_google.engine.calibration import Calibration
+from cirq_google.engine.simulated_local_program import (
+    SimulatedLocalProgram,
+)
+from cirq_google.engine.calibration import (
+    Calibration,
+)
 
-from cirq_google.engine.calibration_layer import CalibrationLayer
-from cirq_google.engine.calibration_result import CalibrationResult
+from cirq_google.engine.calibration_layer import (
+    CalibrationLayer,
+)
+from cirq_google.engine.calibration_result import (
+    CalibrationResult,
+)
+from cirq_google.engine.calibration_to_noise_properties import (
+    noise_properties_from_calibration,
+)
+
 from cirq_google.engine.engine import (
     Engine,
     get_engine,
@@ -50,13 +84,21 @@ from cirq_google.engine.engine import (
     ProtoVersion,
 )
 
-from cirq_google.engine.engine_client import EngineException
+from cirq_google.engine.engine_client import (
+    EngineException,
+)
 
-from cirq_google.engine.engine_job import EngineJob
+from cirq_google.engine.engine_job import (
+    EngineJob,
+)
 
-from cirq_google.engine.engine_processor import EngineProcessor
+from cirq_google.engine.engine_processor import (
+    EngineProcessor,
+)
 
-from cirq_google.engine.engine_program import EngineProgram
+from cirq_google.engine.engine_program import (
+    EngineProgram,
+)
 
 from cirq_google.engine.runtime_estimator import (
     estimate_run_time,
@@ -64,9 +106,14 @@ from cirq_google.engine.runtime_estimator import (
     estimate_run_sweep_time,
 )
 
-from cirq_google.engine.engine_sampler import get_engine_sampler, QuantumEngineSampler
+from cirq_google.engine.engine_sampler import (
+    get_engine_sampler,
+    QuantumEngineSampler,
+)
 
-from cirq_google.engine.validating_sampler import ValidatingSampler
+from cirq_google.engine.validating_sampler import (
+    ValidatingSampler,
+)
 
 from cirq_google.engine.virtual_engine_factory import (
     create_noiseless_virtual_engine_from_device,
