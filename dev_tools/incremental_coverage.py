@@ -25,13 +25,11 @@ IGNORED_FILE_PATTERNS = [
     r'^.+_pb2(_grpc)?\.py$',  # Auto-generated protobuf code.
     r'^(.+/)?setup\.py$',  # Installation code.
     r'^(.+/)?_version\.py$',  # Installation code.
-    r'^cirq-google/cirq_google/engine/client/.+.py$',  # Generated gRPC client code.
-    r'^cirq-google/cirq_google/api/v1/.+.py$',  # deprecated API code
+    r'^cirq-google/cirq_google/cloud/.+\.py$',  # Generated gRPC client code.
+    r'^cirq-google/cirq_google/api/v1/.+\.py$',  # deprecated API code
     r'^benchmarks/',
 ]
-IGNORED_BLOCK_PATTERNS = [
-    r'^\s*if TYPE_CHECKING:$',  # imports needed only while type-checking.
-]
+IGNORED_BLOCK_PATTERNS = [r'^\s*if TYPE_CHECKING:$']  # imports needed only while type-checking.
 IGNORED_LINE_PATTERNS = [
     # Imports often uncovered due to version checks and type checking blocks.
     r'^import .+$',
@@ -321,8 +319,7 @@ def check_for_uncovered_lines(env: env_tools.PreparedEnv) -> int:
     if uncovered_count:
         print(
             shell_tools.highlight(
-                f'Found {uncovered_count} uncovered touched lines.',
-                color_code=shell_tools.RED,
+                f'Found {uncovered_count} uncovered touched lines.', color_code=shell_tools.RED
             )
         )
     else:

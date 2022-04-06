@@ -27,7 +27,7 @@ import cirq
 
 from cirq_google.api import v2
 from cirq_google.engine import calibration
-from cirq_google.engine.client import quantum
+from cirq_google.cloud import quantum
 
 if TYPE_CHECKING:
     import cirq_google
@@ -236,10 +236,7 @@ class AbstractProcessor(abc.ABC):
         """
 
     @abc.abstractmethod
-    def get_sampler(
-        self,
-        gate_set: Optional['serializer.Serializer'] = None,
-    ) -> cirq.Sampler:
+    def get_sampler(self, gate_set: Optional['serializer.Serializer'] = None) -> cirq.Sampler:
         """Returns a sampler backed by the processor.
 
         Args:
@@ -281,10 +278,7 @@ class AbstractProcessor(abc.ABC):
         """
 
     @abc.abstractmethod
-    def get_device(
-        self,
-        gate_sets: Iterable['serializer.Serializer'] = (),
-    ) -> cirq.Device:
+    def get_device(self, gate_sets: Iterable['serializer.Serializer'] = ()) -> cirq.Device:
         """Returns a `Device` created from the processor's device specification.
 
         This method queries the processor to retrieve the device specification,
@@ -329,9 +323,7 @@ class AbstractProcessor(abc.ABC):
         """
 
     @abc.abstractmethod
-    def get_current_calibration(
-        self,
-    ) -> Optional[calibration.Calibration]:
+    def get_current_calibration(self) -> Optional[calibration.Calibration]:
         """Returns metadata about the current calibration for a processor.
 
         Returns:
@@ -344,7 +336,7 @@ class AbstractProcessor(abc.ABC):
         start_time: datetime.datetime,
         end_time: datetime.datetime,
         whitelisted_users: Optional[List[str]] = None,
-    ) -> quantum.types.QuantumReservation:
+    ) -> quantum.QuantumReservation:
         """Creates a reservation on this processor.
 
         Args:
@@ -360,7 +352,7 @@ class AbstractProcessor(abc.ABC):
         """Removes a reservation on this processor."""
 
     @abc.abstractmethod
-    def get_reservation(self, reservation_id: str) -> quantum.types.QuantumReservation:
+    def get_reservation(self, reservation_id: str) -> Optional[quantum.QuantumReservation]:
         """Retrieve a reservation given its id."""
 
     @abc.abstractmethod
@@ -383,7 +375,7 @@ class AbstractProcessor(abc.ABC):
         self,
         from_time: Union[None, datetime.datetime, datetime.timedelta],
         to_time: Union[None, datetime.datetime, datetime.timedelta],
-    ) -> List[quantum.types.QuantumReservation]:
+    ) -> List[quantum.QuantumReservation]:
         """Retrieves the reservations from a processor.
 
         Only reservations from this processor and project will be
@@ -410,8 +402,8 @@ class AbstractProcessor(abc.ABC):
         self,
         from_time: Union[None, datetime.datetime, datetime.timedelta] = datetime.timedelta(),
         to_time: Union[None, datetime.datetime, datetime.timedelta] = datetime.timedelta(weeks=2),
-        time_slot_type: Optional[quantum.enums.QuantumTimeSlot.TimeSlotType] = None,
-    ) -> List[quantum.enums.QuantumTimeSlot]:
+        time_slot_type: Optional[quantum.QuantumTimeSlot.TimeSlotType] = None,
+    ) -> List[quantum.QuantumTimeSlot]:
         """Retrieves the schedule for a processor.
 
         The schedule may be filtered by time.
