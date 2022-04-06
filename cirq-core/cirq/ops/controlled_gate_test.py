@@ -223,16 +223,29 @@ def test_eq():
     eq.add_equality_group(cirq.X)
     eq.add_equality_group(
         cirq.ControlledGate(cirq.H, control_values=[1, (0, 2)], control_qid_shape=[2, 3]),
+        cirq.ControlledGate(cirq.H, control_values=(1, [0, 2]), control_qid_shape=(2, 3)),
+    )
+    eq.add_equality_group(
         cirq.ControlledGate(cirq.H, control_values=[(2, 0), 1], control_qid_shape=[3, 2]),
     )
     eq.add_equality_group(
         cirq.ControlledGate(cirq.H, control_values=[1, 0], control_qid_shape=[2, 3]),
+        cirq.ControlledGate(cirq.H, control_values=(1, 0), control_qid_shape=(2, 3)),
+    )
+    eq.add_equality_group(
         cirq.ControlledGate(cirq.H, control_values=[0, 1], control_qid_shape=[3, 2]),
     )
     eq.add_equality_group(
         cirq.ControlledGate(cirq.H, control_values=[1, 0]),
+        cirq.ControlledGate(cirq.H, control_values=(1, 0)),
+    )
+    eq.add_equality_group(
         cirq.ControlledGate(cirq.H, control_values=[0, 1]),
     )
+    for group in eq._groups:
+        if isinstance(group[0], cirq.Gate):
+            for item in group:
+                np.testing.assert_allclose(cirq.unitary(item), cirq.unitary(group[0]))
 
 
 def test_control():
@@ -266,11 +279,17 @@ def test_control():
     eq.add_equality_group(
         cirq.ControlledGate(g, control_values=[0, 1]),
         g.controlled(control_values=[0, 1]),
+        g.controlled(control_values=[1]).controlled(control_values=[0]),
+    )
+    eq.add_equality_group(
         g.controlled(control_values=[0]).controlled(control_values=[1]),
     )
     eq.add_equality_group(
         cirq.ControlledGate(g, control_qid_shape=[4, 3]),
         g.controlled(control_qid_shape=[4, 3]),
+        g.controlled(control_qid_shape=[3]).controlled(control_qid_shape=[4]),
+    )
+    eq.add_equality_group(
         g.controlled(control_qid_shape=[4]).controlled(control_qid_shape=[3]),
     )
 
