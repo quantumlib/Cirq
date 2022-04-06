@@ -13,13 +13,9 @@
 # limitations under the License.
 
 import cirq, cirq_google
-from cirq_google.api import v2
-from cirq_google.experimental.noise_models.calibration_to_noise_properties import (
-    noise_properties_from_calibration,
-)
-from cirq.devices.noise_utils import (
-    OpIdentifier,
-)
+from cirq.devices.noise_utils import OpIdentifier
+from cirq_google.engine.calibration_to_noise_properties import noise_properties_from_calibration
+
 from google.protobuf.text_format import Merge
 import numpy as np
 import pytest
@@ -210,7 +206,7 @@ def test_noise_properties_from_calibration():
         }}]
     }}]
 """,
-        v2.metrics_pb2.MetricsSnapshot(),
+        cirq_google.api.v2.metrics_pb2.MetricsSnapshot(),
     )
 
     # Create NoiseProperties object from Calibration
@@ -335,7 +331,7 @@ def test_incomplete_calibration():
         }}]
     }}]
 """,
-        v2.metrics_pb2.MetricsSnapshot(),
+        cirq_google.api.v2.metrics_pb2.MetricsSnapshot(),
     )
 
     # Create NoiseProperties object from Calibration
