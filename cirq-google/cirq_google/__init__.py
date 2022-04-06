@@ -57,6 +57,7 @@ from cirq_google.calibration import (
 from cirq_google.devices import (
     Bristlecone,
     Foxtail,
+    GoogleDevice,
     GoogleNoiseProperties,
     NoiseModelFromGoogleNoiseProperties,
     SerializableDevice,

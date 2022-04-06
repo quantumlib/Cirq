@@ -165,4 +165,9 @@ class GridDeviceMetadata(device.DeviceMetadata):
 
     @classmethod
     def _from_json_dict_(cls, qubit_pairs, gateset, gate_durations, all_qubits, **kwargs):
-        return cls(qubit_pairs, gateset, dict(gate_durations), all_qubits)
+        return cls(
+            qubit_pairs,
+            gateset,
+            None if gate_durations is None else dict(gate_durations),
+            all_qubits,
+        )
