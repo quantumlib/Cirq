@@ -19,6 +19,10 @@ from cirq_google.devices.known_devices import (
     Sycamore23,
 )
 
+from cirq_google.devices.google_device import (
+    GoogleDevice,
+)
+
 from cirq_google.devices.serializable_device import (
     SerializableDevice,
 )

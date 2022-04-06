@@ -32,6 +32,7 @@ def _class_resolver_dictionary() -> Dict[str, ObjectFactory]:
         'CouplerPulse': cirq_google.experimental.CouplerPulse,
         'SycamoreGate': cirq_google.SycamoreGate,
         'GateTabulation': cirq_google.GateTabulation,
+        'GoogleDevice': cirq_google.GoogleDevice,
         'PhysicalZTag': cirq_google.PhysicalZTag,
         'FSimGateFamily': cirq_google.FSimGateFamily,
         'FloquetPhasedFSimCalibrationOptions': cirq_google.FloquetPhasedFSimCalibrationOptions,
