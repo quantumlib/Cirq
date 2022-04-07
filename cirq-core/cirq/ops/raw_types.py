@@ -399,11 +399,13 @@ class Gate(metaclass=value.ABCMetaImplementAnyOneOf):
         """
 
     def _commutes_on_qids_(
-        self, qids: 'Sequence[cirq.Qid]', other: Any, *, atol: float
+        self, qids: 'Sequence[cirq.Qid]', other: Any, *, atol: float = 1e-8
     ) -> Union[bool, NotImplementedType, None]:
         return NotImplemented
 
-    def _commutes_(self, other: Any, *, atol: float) -> Union[None, NotImplementedType, bool]:
+    def _commutes_(
+        self, other: Any, *, atol: float = 1e-8
+    ) -> Union[None, NotImplementedType, bool]:
         if not isinstance(other, Gate):
             return NotImplemented
         if protocols.qid_shape(self) != protocols.qid_shape(other):
