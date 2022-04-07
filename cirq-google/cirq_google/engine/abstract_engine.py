@@ -22,8 +22,8 @@ import datetime
 from typing import Dict, List, Optional, Sequence, Set, Union
 
 import cirq
+from cirq_google.cloud import quantum
 from cirq_google.engine import abstract_job, abstract_program, abstract_processor
-from cirq_google.engine.client import quantum
 from cirq_google.serialization import Serializer
 
 VALID_DATE_TYPE = Union[datetime.datetime, datetime.date]
@@ -81,7 +81,7 @@ class AbstractEngine(abc.ABC):
         created_before: Optional[VALID_DATE_TYPE] = None,
         created_after: Optional[VALID_DATE_TYPE] = None,
         has_labels: Optional[Dict[str, str]] = None,
-        execution_states: Optional[Set[quantum.enums.ExecutionStatus.State]] = None,
+        execution_states: Optional[Set[quantum.ExecutionStatus.State]] = None,
     ) -> List[abstract_job.AbstractJob]:
         """Returns the list of jobs that match the specified criteria.
 
@@ -106,7 +106,7 @@ class AbstractEngine(abc.ABC):
 
             execution_states: retrieve jobs that have an execution state  that
                  is contained in `execution_states`. See
-                 `quantum.enums.ExecutionStatus.State` enum for accepted values.
+                 `quantum.ExecutionStatus.State` enum for accepted values.
         """
 
     @abc.abstractmethod

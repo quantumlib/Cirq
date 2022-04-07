@@ -18,7 +18,7 @@ import pytest
 
 import cirq
 import cirq_google as cg
-import cirq_google.engine.client.quantum
+import cirq_google.cloud.quantum
 
 
 @pytest.mark.parametrize('circuit', [cirq.Circuit(), cirq.FrozenCircuit()])
@@ -28,11 +28,7 @@ def test_run_circuit(circuit):
     params = [cirq.ParamResolver({'a': 1})]
     sampler.run_sweep(circuit, params, 5)
     engine.run_sweep.assert_called_with(
-        gate_set=cg.XMON,
-        params=params,
-        processor_ids=['tmp'],
-        program=circuit,
-        repetitions=5,
+        gate_set=cg.XMON, params=params, processor_ids=['tmp'], program=circuit, repetitions=5
     )
 
 
@@ -128,9 +124,7 @@ def test_engine_sampler_engine_property():
 
 
 def test_get_engine_sampler_explicit_project_id():
-    with mock.patch.object(
-        cirq_google.engine.client.quantum, 'QuantumEngineServiceClient', autospec=True
-    ):
+    with mock.patch.object(cirq_google.cloud.quantum, 'QuantumEngineServiceClient', autospec=True):
         sampler = cg.get_engine_sampler(
             processor_id='hi mom', gate_set_name='sqrt_iswap', project_id='myproj'
         )
@@ -141,9 +135,7 @@ def test_get_engine_sampler_explicit_project_id():
 
 
 def test_get_engine_sampler():
-    with mock.patch.object(
-        cirq_google.engine.client.quantum, 'QuantumEngineServiceClient', autospec=True
-    ):
+    with mock.patch.object(cirq_google.cloud.quantum, 'QuantumEngineServiceClient', autospec=True):
         with mock.patch('google.auth.default', lambda: (None, 'myproj')):
             sampler = cg.get_engine_sampler(processor_id='hi mom', gate_set_name='sqrt_iswap')
     assert hasattr(sampler, 'run_sweep')

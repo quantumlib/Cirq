@@ -1,0 +1,1 @@
+[cirq.BooleanHamiltonianGate(parameter_names=['q0'], boolean_strs=['q0'], theta=0.20160913).on(cirq.NamedQubit('q0'))]
