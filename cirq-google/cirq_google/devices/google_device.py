@@ -14,7 +14,7 @@
 
 """Device object representing Google devices."""
 
-from typing import Any, Set, Tuple, cast
+from typing import Any, Collection, Dict, Optional, Set, Tuple, cast
 import cirq
 from cirq_google.api import v2
 
@@ -130,6 +130,15 @@ class GoogleDevice(cirq.Device):
 
         return GoogleDevice(metadata)
 
+    # Alternative 2
+    def to_proto(
+        self, out: Optional[v2.device_pb2.DeviceSpecification] = None
+    ) -> v2.device_pb2.DeviceSpecification:
+        """Serializes device.metadata into a DeviceSpecification proto.
+
+        Same constraints as Alternative 1.
+        """
+
     @property
     def metadata(self):
         """Get metadata information for the device."""
@@ -224,3 +233,49 @@ def _qid_from_str(id_str: str) -> cirq.Qid:
         return v2.grid_qubit_from_proto_id(id_str)
     except ValueError:
         return v2.named_qubit_from_proto_id(id_str)
+
+
+# Preferred
+def to_proto(
+    qubits: Collection[cirq.Qid],
+    pairs: Collection[Tuple[cirq.Qid, cirq.Qid]],
+    gateset: cirq.Gateset,
+    gate_durations: Optional[Dict['cirq.GateFamily', 'cirq.Duration']] = None,
+    out: Optional[v2.device_pb2.DeviceSpecification] = None,
+) -> v2.device_pb2.DeviceSpecification:
+    """Serializes the given device information into a DeviceSpecification proto.
+
+    This function takes as input only the information necessary to construct the DeviceSpecification
+    message. As a result, the gateset here does not contain equivalence GateFamilies like
+    `FSimGateFamily`, which are generated inside the Cirq client.
+
+    `gate_duration` can have fewer gates than `gateset`.
+
+    Args:
+        out: If set, device information will be serialized into this DeviceSpecification.
+
+    Raises:
+        ValueError: If `pairs` contains qubit self-loops.
+        ValueError: If `pairs` contains qubits not in `qubits`.
+        ValueError: If `gate_durations` contains keys not in `gateset`.
+        ValueError: If existing field values in `out` conflicts with values generated in this
+            function.
+    """
+
+
+# Alternative 1
+def to_proto_with_grid_device_metadata(
+    metadata: cirq.GridDeviceMetadata,
+    out: Optional[v2.device_pb2.DeviceSpecification] = None,
+) -> v2.device_pb2.DeviceSpecification:
+    """Serializes the given GridDeviceMetadata into a DeviceSpecification proto.
+
+    Only a subset of metadata fields need to be serialized:
+        * metadata.qubit_set
+        * metadata.qubit_pairs
+        * metadata.gateset
+        * metadata.gate_durations
+
+    Specifically, metadata.compilation_target_gatesets (PR #5195) doesn't need to be set, and
+    equivalence GateFamilies such as FSimGateFamily doesn't need to be included in metadata.gateset.
+    """
