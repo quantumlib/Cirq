@@ -181,8 +181,8 @@ upper_tabs:
         path: /cirq/tutorials/rabi_oscillations
       - title: "Cross entropy benchmarking (XEB) theory"
         path: /cirq/qcvv/xeb_theory
-      - title: "XEB and coherent error"
-        path: /cirq/qcvv/xeb_coherent_noise
+      - title: "Coherent vs Incoherent Error with XEB"
+        path: /cirq/qcvv/coherent_vs_incoherent_xeb
       - title: "Parallel XEB"
         path: /cirq/qcvv/parallel_xeb
       - title: "Isolated XEB"

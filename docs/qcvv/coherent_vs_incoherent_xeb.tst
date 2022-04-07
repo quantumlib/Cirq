@@ -1,4 +1,4 @@
-# Copyright 2021 The Cirq Developers
+# Copyright 2022 The Cirq Developers
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -14,8 +14,9 @@
 
 # Replacements to apply during testing. See devtools/notebook_test.py for syntax.
 
-n_circuits = 10->n_circuits = 2
+n_library_circuits=20->n_library_circuits=1
 max_depth = 100->max_depth = 12
-repetitions=10_000->repetitions=100
-xatol=1e-3->xatol=10
-fatol=1e-3->fatol=10
+n_combinations=10->n_combinations=1
+repetitions=10_000->repetitions=10
+fatol=1e-2->fatol=10
+xatol=1e-2->xatol=10
