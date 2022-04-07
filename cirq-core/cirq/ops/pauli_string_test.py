@@ -1873,6 +1873,22 @@ def test_mutable_pauli_string_dict_functionality():
     assert b not in p
 
 
+@pytest.mark.parametrize(
+    'pauli', (cirq.X, cirq.Y, cirq.Z, cirq.I, "I", "X", "Y", "Z", "i", "x", "y", "z", 0, 1, 2, 3)
+)
+def test_mutable_pauli_string_dict_pauli_like(pauli):
+    p = cirq.MutablePauliString()
+    # Check that is successfully converts.
+    p[0] = pauli
+
+
+def test_mutable_pauli_string_dict_pauli_like_not_pauli_like():
+    p = cirq.MutablePauliString()
+    # Check error string includes terms like "X" in error message.
+    with pytest.raises(TypeError, match="PAULI_GATE_LIKE.*X"):
+        p[0] = 1.2
+
+
 def test_mutable_pauli_string_text():
     p = cirq.MutablePauliString(cirq.X(cirq.LineQubit(0)) * cirq.Y(cirq.LineQubit(1)))
     assert str(cirq.MutablePauliString()) == "mutable I"
