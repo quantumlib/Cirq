@@ -116,25 +116,6 @@ def test_run_simulator_sweeps():
     )
 
 
-def test_run_simulator_sweeps_with_deprecated_run():
-    expected_measurements = {'a': np.array([[1]])}
-    simulator = FakeSimulatesSamples(expected_measurements)
-    circuit = cirq.Circuit(cirq.measure(cirq.LineQubit(0), key='k'))
-    param_resolvers = [cirq.ParamResolver({}), cirq.ParamResolver({})]
-    expected_records = {'a': np.array([[[1]]])}
-    expected_results = [
-        cirq.ResultDict(records=expected_records, params=param_resolvers[0]),
-        cirq.ResultDict(records=expected_records, params=param_resolvers[1]),
-    ]
-    with cirq.testing.assert_deprecated(
-        'values in the output of simulator._run must be 3D',
-        deadline='v0.15',
-    ):
-        assert expected_results == simulator.run_sweep(
-            program=circuit, repetitions=10, params=param_resolvers
-        )
-
-
 @mock.patch.multiple(
     SimulatesIntermediateStateImpl, __abstractmethods__=set(), simulate_moment_steps=mock.Mock()
 )
