@@ -39,7 +39,7 @@ import pandas as pd
 import sympy
 from typing_extensions import Protocol
 
-from cirq._compat import deprecated_parameter
+from cirq._compat import deprecated, deprecated_parameter
 from cirq._doc import doc_private
 from cirq.type_workarounds import NotImplementedType
 
@@ -190,6 +190,7 @@ def obj_to_dict_helper(
 
 # Copying the Python API, whose usage of `repr` annoys pylint.
 # pylint: disable=redefined-builtin
+@deprecated(deadline='v0.15', fix='Implement _json_dict_ using cirq.dataclass_json_dict()')
 def json_serializable_dataclass(
     _cls: Optional[Type] = None,
     *,
