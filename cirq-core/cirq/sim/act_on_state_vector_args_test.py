@@ -39,13 +39,6 @@ def test_default_parameter():
     assert args.available_buffer.dtype == tensor.dtype
 
 
-def test_positional_argument():
-    with cirq.testing.assert_deprecated(
-        'specify all the arguments with keywords', deadline='v0.15'
-    ):
-        cirq.ActOnStateVectorArgs(np.array([1.0, 0.0, 0.0, 0.0], dtype=np.complex64))
-
-
 def test_deprecated_target_tensor():
     with cirq.testing.assert_deprecated('Use initial_state instead', deadline='v0.15'):
         cirq.ActOnStateVectorArgs(target_tensor=np.array([1.0, 0.0, 0.0, 0.0], dtype=np.complex64))

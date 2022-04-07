@@ -855,10 +855,14 @@ def test_pathlib_paths(tmpdir):
 
 
 def test_json_serializable_dataclass():
-    @cirq.json_serializable_dataclass
-    class MyDC:
-        q: cirq.LineQubit
-        desc: str
+    with cirq.testing.assert_deprecated(
+        "Implement _json_dict_ using cirq.dataclass_json_dict()", deadline="v0.15"
+    ):
+
+        @cirq.json_serializable_dataclass
+        class MyDC:
+            q: cirq.LineQubit
+            desc: str
 
     my_dc = MyDC(cirq.LineQubit(4), 'hi mom')
 
@@ -885,10 +889,14 @@ def test_json_serializable_dataclass():
 
 
 def test_json_serializable_dataclass_parenthesis():
-    @cirq.json_serializable_dataclass()
-    class MyDC:
-        q: cirq.LineQubit
-        desc: str
+    with cirq.testing.assert_deprecated(
+        "Implement _json_dict_ using cirq.dataclass_json_dict()", deadline="v0.15"
+    ):
+
+        @cirq.json_serializable_dataclass()
+        class MyDC:
+            q: cirq.LineQubit
+            desc: str
 
     def custom_resolver(name):
         if name == 'MyDC':
@@ -918,11 +926,15 @@ def test_dataclass_json_dict():
 
 
 def test_json_serializable_dataclass_namespace():
-    @cirq.json_serializable_dataclass(namespace='cirq.experiments')
-    class QuantumVolumeParams:
-        width: int
-        depth: int
-        circuit_i: int
+    with cirq.testing.assert_deprecated(
+        "Implement _json_dict_ using cirq.dataclass_json_dict()", deadline="v0.15"
+    ):
+
+        @cirq.json_serializable_dataclass(namespace='cirq.experiments')
+        class QuantumVolumeParams:
+            width: int
+            depth: int
+            circuit_i: int
 
     qvp = QuantumVolumeParams(width=5, depth=5, circuit_i=0)
 

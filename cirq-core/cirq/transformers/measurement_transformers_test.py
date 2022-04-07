@@ -37,23 +37,6 @@ def assert_equivalent_to_deferred(circuit: cirq.Circuit):
         np.testing.assert_equal(result.measurements, result1.measurements)
 
 
-def assert_equivalent_to_dephased(circuit: cirq.Circuit):
-    qubits = list(circuit.all_qubits())
-    with cirq.testing.assert_deprecated('ignore_measurement_results', deadline='v0.15', count=None):
-        sim = cirq.DensityMatrixSimulator(ignore_measurement_results=True)
-        num_qubits = len(qubits)
-        backwards = list(circuit.all_operations())[::-1]
-        for j in range(num_qubits):
-            backwards.append(cirq.H(qubits[j]) ** np.random.rand())
-        modified = cirq.Circuit(backwards[::-1])
-        for j in range(num_qubits):
-            modified.append(cirq.H(qubits[j]) ** np.random.rand())
-        dephased = cirq.dephase_measurements(modified)
-        result = sim.simulate(modified)
-        result1 = sim.simulate(dephased)
-        np.testing.assert_almost_equal(result.final_density_matrix, result1.final_density_matrix)
-
-
 def test_basic():
     q0, q1 = cirq.LineQubit.range(2)
     circuit = cirq.Circuit(
@@ -319,7 +302,6 @@ def test_dephase():
             )
         )
     )
-    assert_equivalent_to_dephased(circuit)
     dephased = cirq.dephase_measurements(circuit)
     cirq.testing.assert_same_circuits(
         dephased,
