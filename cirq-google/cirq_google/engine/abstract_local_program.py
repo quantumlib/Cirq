@@ -15,7 +15,7 @@ import copy
 import datetime
 from typing import Dict, List, Optional, Sequence, Set, TYPE_CHECKING, Union
 import cirq
-from cirq_google.engine.client import quantum
+from cirq_google.cloud import quantum
 from cirq_google.engine.abstract_program import AbstractProgram
 
 if TYPE_CHECKING:
@@ -77,7 +77,7 @@ class AbstractLocalProgram(AbstractProgram):
         created_before: Optional[Union[datetime.datetime, datetime.date]] = None,
         created_after: Optional[Union[datetime.datetime, datetime.date]] = None,
         has_labels: Optional[Dict[str, str]] = None,
-        execution_states: Optional[Set[quantum.enums.ExecutionStatus.State]] = None,
+        execution_states: Optional[Set[quantum.ExecutionStatus.State]] = None,
     ) -> Sequence['AbstractLocalJob']:
         """Returns the list of jobs for this program.
 
@@ -96,7 +96,7 @@ class AbstractLocalProgram(AbstractProgram):
 
             execution_states: retrieve jobs that have an execution state  that
                 is contained in `execution_states`. See
-                `quantum.enums.ExecutionStatus.State` enum for accepted values.
+                `quantum.ExecutionStatus.State` enum for accepted values.
         """
         job_list = []
         for job in self._jobs.values():

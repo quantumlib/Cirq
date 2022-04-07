@@ -19,7 +19,7 @@ from cirq_google.engine.abstract_job import AbstractJob
 from cirq_google.engine.abstract_program import AbstractProgram
 from cirq_google.engine.abstract_local_processor import AbstractLocalProcessor
 from cirq_google.engine.abstract_engine import AbstractEngine
-from cirq_google.engine.client import quantum
+from cirq_google.cloud import quantum
 from cirq_google.serialization import Serializer
 
 
@@ -99,7 +99,7 @@ class AbstractLocalEngine(AbstractEngine):
         created_before: Optional[Union[datetime.datetime, datetime.date]] = None,
         created_after: Optional[Union[datetime.datetime, datetime.date]] = None,
         has_labels: Optional[Dict[str, str]] = None,
-        execution_states: Optional[Set[quantum.enums.ExecutionStatus.State]] = None,
+        execution_states: Optional[Set[quantum.ExecutionStatus.State]] = None,
     ) -> List[AbstractJob]:
         """Returns the list of jobs in the project.
 
@@ -124,7 +124,7 @@ class AbstractLocalEngine(AbstractEngine):
 
             execution_states: retrieve jobs that have an execution state  that
                  is contained in `execution_states`. See
-                 `quantum.enums.ExecutionStatus.State` enum for accepted values.
+                 `quantum.ExecutionStatus.State` enum for accepted values.
         """
         valid_jobs: List[AbstractJob] = []
         for processor in self._processors.values():
