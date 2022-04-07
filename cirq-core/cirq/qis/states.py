@@ -26,6 +26,7 @@ from typing import (
     Union,
 )
 import itertools
+import math
 
 import numpy as np
 
@@ -968,9 +969,13 @@ def to_valid_density_matrix(
         ValueError if the density_matrix_rep is not valid.
     """
     qid_shape = _qid_shape_from_args(num_qubits, qid_shape)
-    if isinstance(density_matrix_rep, np.ndarray) and density_matrix_rep.ndim == 2:
-        validate_density_matrix(density_matrix_rep, qid_shape=qid_shape, dtype=dtype, atol=atol)
-        return density_matrix_rep
+    if isinstance(density_matrix_rep, np.ndarray):
+        N = math.prod(qid_shape)
+        if len(qid_shape) > 1 and density_matrix_rep.shape == qid_shape * 2:
+            density_matrix_rep = density_matrix_rep.reshape((N, N))
+        if density_matrix_rep.shape == (N, N):
+            validate_density_matrix(density_matrix_rep, qid_shape=qid_shape, dtype=dtype, atol=atol)
+            return density_matrix_rep
 
     state_vector = to_valid_state_vector(
         density_matrix_rep, len(qid_shape), qid_shape=qid_shape, dtype=dtype
