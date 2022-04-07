@@ -24,9 +24,6 @@ class DummyArgs(cirq.ActOnArgs):
     def __init__(self):
         super().__init__(qubits=cirq.LineQubit.range(2))
 
-    def sample(self, qubits, repetitions=1, seed=None):
-        pass
-
     def _perform_measurement(self, qubits):
         return [5, 3]
 
@@ -37,9 +34,6 @@ class DummyArgs(cirq.ActOnArgs):
         allow_decompose: bool = True,
     ) -> bool:
         return True
-
-    def _on_copy(self, args):
-        return super()._on_copy(args)
 
 
 def test_measurements():
@@ -95,21 +89,9 @@ def test_transpose_qubits():
         args.transpose_to_qubit_order((q0, q1, q1))
 
 
-def test_on_copy_has_no_param():
-    args = DummyArgs()
-    with cirq.testing.assert_deprecated('deep_copy_buffers', deadline='0.15'):
-        args.copy(False)
-
-
 def test_field_getters():
     args = DummyArgs()
     assert args.prng is np.random
     assert args.qubit_map == {q: i for i, q in enumerate(cirq.LineQubit.range(2))}
-
-
-def test_field_setters_deprecated():
-    args = DummyArgs()
-    with cirq.testing.assert_deprecated(deadline='v0.15'):
-        args.prng = 0
-    with cirq.testing.assert_deprecated(deadline='v0.15'):
-        args.qubit_map = {}
+    with cirq.testing.assert_deprecated('always returns False', deadline='v0.16'):
+        assert not args.ignore_measurement_results
