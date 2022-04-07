@@ -1546,6 +1546,6 @@ def _pauli_like_to_pauli_int(key: Any, pauli_gate_like: PAULI_GATE_LIKE):
             f'Expected {key!r}: {pauli_gate_like!r} to have a '
             f'cirq.PAULI_GATE_LIKE value. '
             f"But the value isn't in "
-            f"{list(PAULI_GATE_LIKE_TO_INDEX_MAP.values())!r}"
+            f"{set(PAULI_GATE_LIKE_TO_INDEX_MAP.keys())!r}"
         )
     return cast(int, pauli_int)

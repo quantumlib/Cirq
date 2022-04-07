@@ -22,7 +22,7 @@ import sympy
 import cirq
 import cirq_google
 from cirq_google.api import v2
-from cirq_google.engine.client import quantum
+from cirq_google.cloud import quantum
 from cirq_google.engine.simulated_local_processor import SimulatedLocalProcessor, VALID_LANGUAGES
 
 
@@ -140,7 +140,7 @@ def test_run_sweep():
     job = proc.run_sweep(circuit, params=sweep, repetitions=100, program_id='abc', job_id='def')
     assert proc.get_program('abc') == job.program()
     assert proc.get_program('abc').get_job('def') == job
-    assert job.execution_status() == quantum.enums.ExecutionStatus.State.READY
+    assert job.execution_status() == quantum.ExecutionStatus.State.READY
     assert len(job) == 2
     assert np.all(job[0].measurements['m'] == 1)
     assert np.all(job[1].measurements['m'] == 0)
@@ -149,15 +149,15 @@ def test_run_sweep():
     for idx, result in enumerate(job):
         assert np.all(result.measurements['m'] == 1 - idx)
 
-    assert job.execution_status() == quantum.enums.ExecutionStatus.State.SUCCESS
+    assert job.execution_status() == quantum.ExecutionStatus.State.SUCCESS
 
     # with default program_id and job_id
     job = proc.run_sweep(circuit, params=sweep, repetitions=100)
-    assert job.execution_status() == quantum.enums.ExecutionStatus.State.READY
+    assert job.execution_status() == quantum.ExecutionStatus.State.READY
     results = job.results()
     assert np.all(results[0].measurements['m'] == 1)
     assert np.all(results[1].measurements['m'] == 0)
-    assert job.execution_status() == quantum.enums.ExecutionStatus.State.SUCCESS
+    assert job.execution_status() == quantum.ExecutionStatus.State.SUCCESS
 
 
 def test_run_batch():
@@ -169,13 +169,13 @@ def test_run_batch():
     ]
     sweeps = [cirq.Points(key='t', points=[1, 0]), cirq.Points(key='x', points=[0, 1])]
     job = proc.run_batch(circuits, params_list=sweeps, repetitions=100)
-    assert job.execution_status() == quantum.enums.ExecutionStatus.State.READY
+    assert job.execution_status() == quantum.ExecutionStatus.State.READY
     results = job.batched_results()
     assert np.all(results[0][0].measurements['m'] == 1)
     assert np.all(results[0][1].measurements['m'] == 0)
     assert np.all(results[1][0].measurements['m2'] == 0)
     assert np.all(results[1][1].measurements['m2'] == 1)
-    assert job.execution_status() == quantum.enums.ExecutionStatus.State.SUCCESS
+    assert job.execution_status() == quantum.ExecutionStatus.State.SUCCESS
 
 
 def _no_y_gates(circuits: List[cirq.Circuit], sweeps: List[cirq.Sweepable], repetitions: int):
