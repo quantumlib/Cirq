@@ -14,11 +14,11 @@
 """Samplers to access the AQT ion trap devices via the provided API. For
 more information on these devices see the AQT homepage:
 
-https://www.aqt.eu
+[https://www.aqt.eu](https://www.aqt.eu){:.external}
 
 API keys for classical simulators and quantum devices can be obtained at:
 
-https://gateway-portal.aqt.eu/
+[https://gateway-portal.aqt.eu/](https://gateway-portal.aqt.eu/){:.external}
 
 """
 
