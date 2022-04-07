@@ -842,7 +842,6 @@ def test_run_sweep_params(client):
     job = processor.run_sweep(
         program=_CIRCUIT,
         params=[cirq.ParamResolver({'a': 1}), cirq.ParamResolver({'a': 2})],
-        gate_set=cg.XMON,
     )
     results = job.results()
     assert len(results) == 2
@@ -882,7 +881,6 @@ def test_run_batch(client):
 
     processor = cg.EngineProcessor('a', 'p', EngineContext())
     job = processor.run_batch(
-        gate_set=cg.XMON,
         programs=[_CIRCUIT, _CIRCUIT],
         job_id='job-id',
         params_list=[cirq.Points('a', [1, 2]), cirq.Points('a', [3, 4])],
@@ -932,9 +930,7 @@ def test_run_calibration(client):
         'readout', cirq.Circuit(cirq.measure(q1, q2)), {'num_samples': 4242}
     )
     processor = cg.EngineProcessor('proj', 'mysim', EngineContext())
-    job = processor.run_calibration(
-        gate_set=cg.FSIM_GATESET, layers=[layer1, layer2], job_id='job-id'
-    )
+    job = processor.run_calibration(layers=[layer1, layer2], job_id='job-id')
     results = job.calibration_results()
     assert len(results) == 2
     assert results[0].code == v2.calibration_pb2.SUCCESS
@@ -973,7 +969,7 @@ def test_sampler(client):
     client().get_job.return_value = quantum.QuantumJob(execution_status={'state': 'SUCCESS'})
     client().get_job_results.return_value = quantum.QuantumResult(result=util.pack_any(_RESULTS_V2))
     processor = cg.EngineProcessor('proj', 'mysim', EngineContext())
-    sampler = processor.get_sampler(gate_set=cg.XMON)
+    sampler = processor.get_sampler()
     results = sampler.run_sweep(
         program=_CIRCUIT, params=[cirq.ParamResolver({'a': 1}), cirq.ParamResolver({'a': 2})]
     )

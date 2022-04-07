@@ -15,6 +15,7 @@ import datetime
 from typing import Dict, List, Optional, Sequence, Set, Union, TYPE_CHECKING
 
 import cirq
+from cirq_google.engine import util
 from cirq_google.engine.abstract_job import AbstractJob
 from cirq_google.engine.abstract_program import AbstractProgram
 from cirq_google.engine.abstract_local_processor import AbstractLocalProcessor
@@ -164,6 +165,7 @@ class AbstractLocalEngine(AbstractEngine):
         """
         return self._processors[processor_id]
 
+    @util.deprecated_gate_set_parameter
     def get_sampler(
         self, processor_id: Union[str, List[str]], gate_set: Optional[Serializer] = None
     ) -> cirq.Sampler:
@@ -180,4 +182,4 @@ class AbstractLocalEngine(AbstractEngine):
         """
         if not isinstance(processor_id, str):
             raise ValueError(f'Invalid processor {processor_id}')
-        return self._processors[processor_id].get_sampler(gate_set=gate_set)
+        return self._processors[processor_id].get_sampler()

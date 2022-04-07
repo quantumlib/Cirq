@@ -26,8 +26,8 @@ from typing import Dict, Iterable, List, Optional, Sequence, TYPE_CHECKING, Unio
 import cirq
 
 from cirq_google.api import v2
-from cirq_google.engine import calibration
 from cirq_google.cloud import quantum
+from cirq_google.engine import calibration, util
 
 if TYPE_CHECKING:
     import cirq_google
@@ -53,6 +53,7 @@ class AbstractProcessor(abc.ABC):
     This is an abstract class.  Inheritors should implement abstract methods.
     """
 
+    @util.deprecated_gate_set_parameter
     def run(
         self,
         program: cirq.Circuit,
@@ -93,6 +94,7 @@ class AbstractProcessor(abc.ABC):
         """
 
     @abc.abstractmethod
+    @util.deprecated_gate_set_parameter
     def run_sweep(
         self,
         program: cirq.Circuit,
@@ -136,6 +138,7 @@ class AbstractProcessor(abc.ABC):
         """
 
     @abc.abstractmethod
+    @util.deprecated_gate_set_parameter
     def run_batch(
         self,
         programs: Sequence[cirq.AbstractCircuit],
@@ -190,6 +193,7 @@ class AbstractProcessor(abc.ABC):
         """
 
     @abc.abstractmethod
+    @util.deprecated_gate_set_parameter
     def run_calibration(
         self,
         layers: List['cirq_google.CalibrationLayer'],
@@ -236,6 +240,7 @@ class AbstractProcessor(abc.ABC):
         """
 
     @abc.abstractmethod
+    @util.deprecated_gate_set_parameter
     def get_sampler(self, gate_set: Optional['serializer.Serializer'] = None) -> cirq.Sampler:
         """Returns a sampler backed by the processor.
 
