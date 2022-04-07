@@ -37,7 +37,7 @@ def test_input_rotation_cells():
       │
 2: ───A1──────────
         """,
-        unitary=np.diag([1, 1, 1, 1, 1j ** 0, 1j ** 0.5, 1j ** 1, 1j ** 1.5]),
+        unitary=np.diag([1, 1, 1, 1, 1j**0, 1j**0.5, 1j**1, 1j**1.5]),
     )
     assert_url_to_circuit_returns(
         '{"cols":[["Z^(-A/2^n)","inputA1"]]}', unitary=np.diag([1, 1, 1, -1j])
@@ -45,20 +45,20 @@ def test_input_rotation_cells():
 
     assert_url_to_circuit_returns(
         '{"cols":[["H"],["X^(A/2^n)","inputA2"],["H"]]}',
-        unitary=np.diag([1, 1, 1, 1, 1j ** 0, 1j ** 0.5, 1j ** 1, 1j ** 1.5]),
+        unitary=np.diag([1, 1, 1, 1, 1j**0, 1j**0.5, 1j**1, 1j**1.5]),
     )
     assert_url_to_circuit_returns(
         '{"cols":[["H"],["X^(-A/2^n)","inputA2"],["H"]]}',
-        unitary=np.diag([1, 1, 1, 1, 1j ** 0, 1j ** -0.5, 1j ** -1, 1j ** -1.5]),
+        unitary=np.diag([1, 1, 1, 1, 1j**0, 1j**-0.5, 1j**-1, 1j**-1.5]),
     )
 
     assert_url_to_circuit_returns(
         '{"cols":[["X^-½"],["Y^(A/2^n)","inputA2"],["X^½"]]}',
-        unitary=np.diag([1, 1, 1, 1, 1j ** 0, 1j ** 0.5, 1j ** 1, 1j ** 1.5]),
+        unitary=np.diag([1, 1, 1, 1, 1j**0, 1j**0.5, 1j**1, 1j**1.5]),
     )
     assert_url_to_circuit_returns(
         '{"cols":[["X^-½"],["Y^(-A/2^n)","inputA2"],["X^½"]]}',
-        unitary=np.diag([1, 1, 1, 1, 1j ** 0, 1j ** -0.5, 1j ** -1, 1j ** -1.5]),
+        unitary=np.diag([1, 1, 1, 1, 1j**0, 1j**-0.5, 1j**-1, 1j**-1.5]),
     )
 
     assert_url_to_circuit_returns(
@@ -72,7 +72,7 @@ def test_input_rotation_cells():
       │
 3: ───A1──────────
         """,
-        unitary=np.diag([1 + 0j] * 13 + [1j ** 0.5, 1j, 1j ** 1.5]),
+        unitary=np.diag([1 + 0j] * 13 + [1j**0.5, 1j, 1j**1.5]),
     )
 
     assert_url_to_circuit_returns(

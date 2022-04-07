@@ -177,7 +177,7 @@ class Moment:
         """Returns a new moment with the given contents added.
 
         Args:
-            contents: New operations to add to this moment.
+            *contents: New operations to add to this moment.
 
         Returns:
             The new moment.
@@ -414,7 +414,7 @@ class Moment:
         transpose = input_subscripts + '->' + output_subscripts
 
         r = []
-        d = 2 ** n
+        d = 2**n
         kss = [kraus_tensors(op) for op in self.operations]
         for ks in itertools.product(*kss):
             k = np.einsum(transpose, *ks)

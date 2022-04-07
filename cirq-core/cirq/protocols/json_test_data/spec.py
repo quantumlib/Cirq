@@ -190,7 +190,6 @@ TestSpec = ModuleJsonTestSpec(
     ],
     deprecated={
         'GlobalPhaseOperation': 'v0.16',
-        'BooleanHamiltonian': 'v0.15',
         'SymmetricalQidPair': 'v0.15',
     },
     tested_elsewhere=[

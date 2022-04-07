@@ -307,12 +307,12 @@ def test_repeat(add_measurements, use_default_ids_for_initial_rep):
     if use_default_ids_for_initial_rep:
         op_with_reps = op_base.repeat(initial_repetitions)
         rep_ids = ['0', '1', '2']
-        assert op_base ** initial_repetitions == op_with_reps
+        assert op_base**initial_repetitions == op_with_reps
     else:
         rep_ids = ['a', 'b', 'c']
         op_with_reps = op_base.repeat(initial_repetitions, rep_ids)
-        assert op_base ** initial_repetitions != op_with_reps
-        assert (op_base ** initial_repetitions).replace(repetition_ids=rep_ids) == op_with_reps
+        assert op_base**initial_repetitions != op_with_reps
+        assert (op_base**initial_repetitions).replace(repetition_ids=rep_ids) == op_with_reps
     assert op_with_reps.repetitions == initial_repetitions
     assert op_with_reps.repetition_ids == rep_ids
     assert op_with_reps.repeat(1) is op_with_reps
@@ -322,7 +322,7 @@ def test_repeat(add_measurements, use_default_ids_for_initial_rep):
     op_with_consecutive_reps = op_with_reps.repeat(2)
     assert op_with_consecutive_reps.repetitions == final_repetitions
     assert op_with_consecutive_reps.repetition_ids == _full_join_string_lists(['0', '1'], rep_ids)
-    assert op_base ** final_repetitions != op_with_consecutive_reps
+    assert op_base**final_repetitions != op_with_consecutive_reps
 
     op_with_consecutive_reps = op_with_reps.repeat(2, ['a', 'b'])
     assert op_with_reps.repeat(repetition_ids=['a', 'b']) == op_with_consecutive_reps
@@ -357,7 +357,7 @@ def test_repeat_zero_times(add_measurements, use_repetition_ids, initial_reps):
     )
     result = cirq.Simulator().simulate(cirq.Circuit(op))
     assert np.allclose(result.state_vector(), [0, 1] if initial_reps % 2 else [1, 0])
-    result = cirq.Simulator().simulate(cirq.Circuit(op ** 0))
+    result = cirq.Simulator().simulate(cirq.Circuit(op**0))
     assert np.allclose(result.state_vector(), [1, 0])
 
 
@@ -378,7 +378,7 @@ def test_parameterized_repeat():
         cirq.Simulator().simulate(cirq.Circuit(op), param_resolver={'a': 1.5})
     with pytest.raises(ValueError, match='Circuit contains ops whose symbols were not specified'):
         cirq.Simulator().simulate(cirq.Circuit(op))
-    op = op ** -1
+    op = op**-1
     assert cirq.parameter_names(op) == {'a'}
     assert not cirq.has_unitary(op)
     result = cirq.Simulator().simulate(cirq.Circuit(op), param_resolver={'a': 0})
@@ -406,7 +406,7 @@ def test_parameterized_repeat():
         cirq.Simulator().simulate(cirq.Circuit(op), param_resolver={'a': 1.5, 'b': 1})
     with pytest.raises(ValueError, match='Circuit contains ops whose symbols were not specified'):
         cirq.Simulator().simulate(cirq.Circuit(op))
-    op = op ** 2.0
+    op = op**2.0
     assert cirq.parameter_names(op) == {'a', 'b'}
     assert not cirq.has_unitary(op)
     result = cirq.Simulator().simulate(cirq.Circuit(op), param_resolver={'a': 1, 'b': 1})

@@ -25,7 +25,7 @@ if TYPE_CHECKING:
 
 
 def _unitary_power(matrix: np.ndarray, power: float) -> np.ndarray:
-    return map_eigenvalues(matrix, lambda e: e ** power)
+    return map_eigenvalues(matrix, lambda e: e**power)
 
 
 def _is_identity(matrix):

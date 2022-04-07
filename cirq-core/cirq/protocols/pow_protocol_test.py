@@ -65,5 +65,5 @@ def test_pow_error():
 )
 def test_pow_with_result(val, exponent, out):
     assert (
-        cirq.pow(val, exponent) == cirq.pow(val, exponent, default=None) == val ** exponent == out
+        cirq.pow(val, exponent) == cirq.pow(val, exponent, default=None) == val**exponent == out
     )

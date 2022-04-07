@@ -166,7 +166,7 @@ def test_infer_language():
     packed = cirq_google.XMON.serialize(c_empty)
     assert packed.language.arg_function_language == ''
 
-    c_exp = cirq.Circuit(cirq.X(q) ** (b ** a))
+    c_exp = cirq.Circuit(cirq.X(q) ** (b**a))
     packed = cirq_google.XMON.serialize(c_exp)
     assert packed.language.arg_function_language == 'exp'
 

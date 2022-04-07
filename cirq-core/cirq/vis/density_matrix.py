@@ -105,12 +105,12 @@ def plot_density_matrix(
 
     matrix = matrix.astype(np.complex128)
     num_qubits = int(np.log2(matrix.shape[0]))
-    validate_density_matrix(matrix, qid_shape=(2 ** num_qubits,))
+    validate_density_matrix(matrix, qid_shape=(2**num_qubits,))
 
     if ax is None:
         _, ax = plt.subplots(figsize=(10, 10))
-    ax.set_xlim(0 - _padding_around_plot, 2 ** num_qubits + _padding_around_plot)
-    ax.set_ylim(0 - _padding_around_plot, 2 ** num_qubits + _padding_around_plot)
+    ax.set_xlim(0 - _padding_around_plot, 2**num_qubits + _padding_around_plot)
+    ax.set_ylim(0 - _padding_around_plot, 2**num_qubits + _padding_around_plot)
 
     for i in range(matrix.shape[0]):
         for j in range(matrix.shape[1]):

@@ -44,7 +44,7 @@ def test_merge_1q_unitaries():
     assert len(op_list) == 1
     assert isinstance(op_list[0].gate, cirq.MatrixGate)
     cirq.testing.assert_allclose_up_to_global_phase(
-        cirq.unitary(c), cirq.unitary(cirq.Y ** 0.5), atol=1e-7
+        cirq.unitary(c), cirq.unitary(cirq.Y**0.5), atol=1e-7
     )
 
     # 2. Gets blocked at a 2q operation.
