@@ -28,7 +28,7 @@ from typing import (
 import numpy as np
 
 from cirq import ops
-from cirq._compat import deprecated
+from cirq._compat import deprecated_parameter
 from cirq.sim import (
     simulator,
     state_vector,
@@ -207,7 +207,6 @@ class Simulator(
     ):
         return SparseSimulatorStep(
             sim_state=sim_state,
-            simulator=self,
             dtype=self._dtype,
         )
 
@@ -245,6 +244,12 @@ class SparseSimulatorStep(
 ):
     """A `StepResult` that includes `StateVectorMixin` methods."""
 
+    @deprecated_parameter(
+        deadline='v0.16',
+        fix='Remove parameter `simulator` as it is no longer used.',
+        parameter_desc='simulator',
+        match=lambda args, kwargs: 'simulator' in kwargs or len(args) > 2,
+    )
     def __init__(
         self,
         sim_state: 'cirq.OperationTarget[cirq.ActOnStateVectorArgs]',
@@ -263,7 +268,6 @@ class SparseSimulatorStep(
         super().__init__(sim_state=sim_state, qubit_map=qubit_map)
         self._dtype = dtype
         self._state_vector: Optional[np.ndarray] = None
-        self._simulator = simulator
 
     def _simulator_state(self) -> 'cirq.StateVectorSimulatorState':
         return state_vector_simulator.StateVectorSimulatorState(
@@ -311,27 +315,6 @@ class SparseSimulatorStep(
                 size = np.prod(vector.shape, dtype=np.int64)
                 self._state_vector = np.reshape(vector, size)
         return self._state_vector.copy() if copy else self._state_vector
-
-    # TODO: When removing, also remove `simulator` from the constructor, and the line
-    # `sim_state = step_result._sim_state` from `SimulatorBase._core_iterator()`.
-    @deprecated(
-        deadline="v0.15", fix='Use `initial_state` to prepare a new simulation on the suffix.'
-    )
-    def set_state_vector(self, state: 'cirq.STATE_VECTOR_LIKE'):
-        """Set the state vector.
-
-        One can pass a valid full state to this method by passing a numpy
-        array. Or, alternatively, one can pass an integer, and then the state
-        will be set to lie entirely in the computation basis state for the
-        binary expansion of the passed integer.
-
-        Args:
-            state: If an int, the state vector set is the state vector
-                corresponding to a computational basis state. If a numpy
-                array this is the full state vector.
-        """
-        if self._simulator:
-            self._sim_state = self._simulator._create_act_on_args(state, self._qubits)
 
     def __repr__(self) -> str:
         return (

@@ -44,17 +44,6 @@ def test_shallow_copy_buffers():
     assert copy.available_buffer is args.available_buffer
 
 
-def test_positional_argument():
-    qid_shape = (2,)
-    tensor = cirq.to_valid_density_matrix(
-        0, len(qid_shape), qid_shape=qid_shape, dtype=np.complex64
-    )
-    with cirq.testing.assert_deprecated(
-        'specify all the arguments with keywords', deadline='v0.15'
-    ):
-        cirq.ActOnDensityMatrixArgs(tensor)
-
-
 def test_deprecated_warning_and_default_parameter_error():
     tensor = np.ndarray(shape=(2,))
     with cirq.testing.assert_deprecated('Use initial_state instead', deadline='v0.15'):

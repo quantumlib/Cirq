@@ -16,8 +16,6 @@
 
 import abc
 import collections
-import inspect
-import warnings
 from typing import (
     Any,
     cast,
@@ -36,7 +34,6 @@ from typing import (
 import numpy as np
 
 from cirq import ops, protocols, study, value, devices
-from cirq._compat import deprecated_parameter
 from cirq.sim import ActOnArgsContainer
 from cirq.sim.operation_target import OperationTarget
 from cirq.sim.simulator import (
@@ -93,19 +90,12 @@ class SimulatorBase(
     `_core_iterator` and `_run` methods.
     """
 
-    @deprecated_parameter(
-        deadline='v0.15',
-        fix='Use cirq.dephase_measurements to transform the circuit before simulating.',
-        parameter_desc='ignore_measurement_results',
-        match=lambda _, kwargs: 'ignore_measurement_results' in kwargs,
-    )
     def __init__(
         self,
         *,
         dtype: Type[np.number] = np.complex64,
         noise: 'cirq.NOISE_MODEL_LIKE' = None,
         seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None,
-        ignore_measurement_results: bool = False,
         split_untangled_states: bool = False,
     ):
         """Initializes the simulator.
@@ -114,10 +104,6 @@ class SimulatorBase(
             dtype: The `numpy.dtype` used by the simulation.
             noise: A noise model to apply while simulating.
             seed: The random seed to use for this simulator.
-            ignore_measurement_results: If True, then the simulation
-                will treat measurement as dephasing instead of collapsing
-                process. This is only applicable to simulators that can
-                model dephasing.
             split_untangled_states: If True, optimizes simulation by running
                 unentangled qubit sets independently and merging those states
                 at the end.
@@ -125,7 +111,6 @@ class SimulatorBase(
         self._dtype = dtype
         self._prng = value.parse_random_state(seed)
         self.noise = devices.NoiseModel.from_noise_model_like(noise)
-        self._ignore_measurement_results = ignore_measurement_results
         self._split_untangled_states = split_untangled_states
 
     @abc.abstractmethod
@@ -229,9 +214,7 @@ class SimulatorBase(
                 except TypeError:
                     raise TypeError(f"{self.__class__.__name__} doesn't support {op!r}")
 
-            step_result = self._create_step_result(sim_state)
-            yield step_result
-            sim_state = step_result._sim_state
+            yield self._create_step_result(sim_state)
 
     def _run(
         self,
@@ -240,9 +223,6 @@ class SimulatorBase(
         repetitions: int,
     ) -> Dict[str, np.ndarray]:
         """See definition in `cirq.SimulatesSamples`."""
-        if self._ignore_measurement_results:
-            raise ValueError("run() is not supported when ignore_measurement_results = True")
-
         param_resolver = param_resolver or study.ParamResolver({})
         resolved_circuit = protocols.resolve_parameters(circuit, param_resolver)
         check_all_resolved(resolved_circuit)
@@ -277,26 +257,12 @@ class SimulatorBase(
 
         records: Dict['cirq.MeasurementKey', List[np.ndarray]] = {}
         for i in range(repetitions):
-            if 'deep_copy_buffers' in inspect.signature(act_on_args.copy).parameters:
-                all_step_results = self._core_iterator(
-                    general_suffix,
-                    sim_state=act_on_args.copy(deep_copy_buffers=False)
-                    if i < repetitions - 1
-                    else act_on_args,
-                )
-            else:
-                warnings.warn(
-                    (
-                        'A new parameter deep_copy_buffers has been added to ActOnArgs.copy(). The '
-                        'classes that inherit from ActOnArgs should support it before Cirq 0.15.'
-                    ),
-                    DeprecationWarning,
-                )
-                all_step_results = self._core_iterator(
-                    general_suffix,
-                    sim_state=act_on_args.copy() if i < repetitions - 1 else act_on_args,
-                )
-            for step_result in all_step_results:
+            for step_result in self._core_iterator(
+                general_suffix,
+                sim_state=act_on_args.copy(deep_copy_buffers=False)
+                if i < repetitions - 1
+                else act_on_args,
+            ):
                 pass
             for k, r in step_result._classical_data.records.items():
                 if k not in records:
