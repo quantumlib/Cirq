@@ -1224,7 +1224,7 @@ document(
         [[s, s],
          [s, -s]]
     ```
-        where s = sqrt(0.5).
+    where s = sqrt(0.5).
     """,
 )
 
