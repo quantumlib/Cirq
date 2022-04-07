@@ -662,7 +662,7 @@ class ZPowGate(eigen_gate.EigenGate, gate_features.SingleQubitGate):
         )
 
     def _commutes_on_qids_(
-        self, qids: 'Sequence[cirq.Qid]', other: Any, atol: float
+        self, qids: 'Sequence[cirq.Qid]', other: Any, *, atol: float
     ) -> Union[bool, NotImplementedType, None]:
         from cirq.ops.parity_gates import ZZPowGate
 

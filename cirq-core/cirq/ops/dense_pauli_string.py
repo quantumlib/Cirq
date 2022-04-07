@@ -358,7 +358,9 @@ class BaseDensePauliString(raw_types.Gate, metaclass=abc.ABCMeta):
             f'coefficient={proper_repr(self.coefficient)})'
         )
 
-    def _commutes_(self, other: Any, atol: float) -> Union[bool, NotImplementedType, None]:
+    def _commutes_(
+        self, other: Any, *, atol: float = 1e-8
+    ) -> Union[bool, NotImplementedType, None]:
         if isinstance(other, BaseDensePauliString):
             n = min(len(self.pauli_mask), len(other.pauli_mask))
             phase = _vectorized_pauli_mul_phase(self.pauli_mask[:n], other.pauli_mask[:n])
