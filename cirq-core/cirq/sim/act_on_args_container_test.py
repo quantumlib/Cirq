@@ -26,13 +26,6 @@ class EmptyActOnArgs(cirq.ActOnArgs):
     def _perform_measurement(self, qubits: Sequence[cirq.Qid]) -> List[int]:
         return [0] * len(qubits)
 
-    def copy(self) -> 'EmptyActOnArgs':  # type: ignore
-        """The deep_copy_buffers parameter is omitted to trigger a deprecation warning test."""
-        return EmptyActOnArgs(
-            qubits=self.qubits,
-            classical_data=self.classical_data.copy(),
-        )
-
     def _act_on_fallback_(
         self,
         action: Any,
@@ -216,12 +209,6 @@ def test_copy_succeeds():
     assert copied.qubits == (q0, q1)
 
 
-def test_copy_deprecation_warning():
-    args = create_container(qs2, False)
-    with cirq.testing.assert_deprecated('deep_copy_buffers', deadline='0.15'):
-        args.copy(False)
-
-
 def test_merge_succeeds():
     args = create_container(qs2, False)
     merged = args.create_merged_state()
@@ -273,11 +260,3 @@ def test_field_getters():
     args = create_container(qs2)
     assert args.args.keys() == set(qs2) | {None}
     assert args.split_untangled_states
-
-
-def test_field_setters_deprecated():
-    args = create_container(qs2)
-    with cirq.testing.assert_deprecated(deadline='v0.15'):
-        args.args = {}
-    with cirq.testing.assert_deprecated(deadline='v0.15'):
-        args.split_untangled_states = False
