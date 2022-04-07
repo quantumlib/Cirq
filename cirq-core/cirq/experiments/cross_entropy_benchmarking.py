@@ -98,7 +98,7 @@ class SpecklePurityDepolarizingModel(CrossEntropyDepolarizingModel):
         return self.cycle_depolarization**2
 
 
-@protocols.json_serializable_dataclass(frozen=True)
+@dataclasses.dataclass(frozen=True)
 class CrossEntropyResult:
     """Results from a cross-entropy benchmarking (XEB) experiment.
 
@@ -207,6 +207,9 @@ class CrossEntropyResult:
             repetitions=repetitions,
             purity_data=purity_data,
         )
+
+    def _json_dict_(self):
+        return protocols.dataclass_json_dict(self)
 
     def __repr__(self) -> str:
         args = f'data={[tuple(p) for p in self.data]!r}, repetitions={self.repetitions!r}'

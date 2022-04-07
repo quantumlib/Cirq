@@ -39,7 +39,7 @@ def _set_get_processor_return(get_processor):
 
     from cirq_google.api import v2
     from cirq_google.engine import util
-    from cirq_google.engine.client.quantum_v1alpha1 import types as qtypes
+    from cirq_google.cloud import quantum
 
     device_spec = util.pack_any(
         Merge(
@@ -66,11 +66,11 @@ valid_targets: [{
         )
     )
 
-    get_processor.return_value = qtypes.QuantumProcessor(device_spec=device_spec)
+    get_processor.return_value = quantum.QuantumProcessor(device_spec=device_spec)
     return get_processor
 
 
-@mock.patch('cirq_google.engine.client.quantum.QuantumEngineServiceClient')
+@mock.patch('cirq_google.cloud.quantum.QuantumEngineServiceClient')
 @mock.patch('cirq_google.engine.engine_client.EngineClient.get_processor')
 def test_engine_backend(get_processor, _):
     _set_get_processor_return(get_processor)
@@ -85,7 +85,7 @@ def test_engine_backend(get_processor, _):
     assert str(proc_rec) == 'rainbow'
 
 
-@mock.patch('cirq_google.engine.client.quantum.QuantumEngineServiceClient')
+@mock.patch('cirq_google.cloud.quantum.QuantumEngineServiceClient')
 @mock.patch('cirq_google.engine.engine_client.EngineClient.get_processor')
 def test_simulated_backend(get_processor, _):
     _set_get_processor_return(get_processor)
