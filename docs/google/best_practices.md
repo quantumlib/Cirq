@@ -66,16 +66,16 @@ qubits = cirq.GridQubit.rect(2, 5)
 for i in range(100):
     my_circuit.append(cirq.H.on_each(*qubits))
     for q in qubits:
-        my_circuit.append(cirq.measure(q, key=f'm{q}'))
+        my_circuit.append(cirq.measure(q, key=cirq.MeasurementKey.parse_serialized(f'{i}:m{q}')))
 
 # The same circuit, but defined using CircuitOperations.
 # This is ~1000x smaller when serialized!
-sub_circuit = cirq.Circuit(cirq.H(qubits[0]), cirq.measure(qubits[0], key='m'))
-circuit_op = cirq.CircuitOperation(sub_circuit.freeze())
-circuit_op = circuit_op.with_qubits([q])
-circuit_op = circuit_op.with_measurement_key_mapping({'m': f'm{q}'})
-circuit_op = circuit_op.repeat(100)
-short_circuit = cirq.Circuit(circuit_op for q in qubits)
+q = cirq.NamedQubit("q")
+sub_circuit = cirq.FrozenCircuit(cirq.H(q), cirq.measure(q, key='m'))
+circuit_op = cirq.CircuitOperation(sub_circuit).repeat(100)
+short_circuit = cirq.Circuit(
+    circuit_op.with_qubits(q).with_measurement_key_mapping({'m': f'm{q}'}) for q in qubits
+)
 ```
 
 When compiling circuits with `CircuitOperation`s, providing a context
@@ -85,9 +85,9 @@ device-compatible circuit.
 
 ```python
 ctx = cirq.TransformerContext(deep=True)
-cz_circuit = cirq.optimized_for_target_gateset(
+syc_circuit = cirq.optimize_for_target_gateset(
     short_circuit,
-    cirq.CZTargetGateset,
+    gateset=cg.SycamoreTargetGateset(),
     context=ctx
 )
 ```
