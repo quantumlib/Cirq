@@ -20,19 +20,18 @@ import cirq
 from cirq.ops.raw_types import TSelf
 
 
+class DummyQuantumState(cirq.QuantumStateRepresentation):
+    def copy(self, deep_copy_buffers=True):
+        pass
+
+    def measure(self, axes, seed=None):
+        pass
+
+
 class DummyActOnArgs(cirq.ActOnArgs):
-    def __init__(self, fallback_result: Any = NotImplemented, measurements=None):
-        super().__init__(np.random.RandomState())
-        if measurements is None:
-            measurements = []
-        self.measurements = measurements
+    def __init__(self, fallback_result: Any = NotImplemented):
+        super().__init__(np.random.RandomState(), state=DummyQuantumState())
         self.fallback_result = fallback_result
-
-    def _perform_measurement(self, qubits):
-        return self.measurements  # coverage: ignore
-
-    def copy(self, deep_copy_buffers: bool = True):
-        return DummyActOnArgs(self.fallback_result, self.measurements.copy())  # coverage: ignore
 
     def _act_on_fallback_(
         self,
@@ -41,9 +40,6 @@ class DummyActOnArgs(cirq.ActOnArgs):
         allow_decompose: bool = True,
     ):
         return self.fallback_result
-
-    def sample(self, qubits, repetitions=1, seed=None):
-        pass
 
 
 op = cirq.X(cirq.LineQubit(0))
