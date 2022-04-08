@@ -30,7 +30,7 @@ from typing import (
 import numpy as np
 
 from cirq import protocols, value
-from cirq._compat import deprecated
+from cirq._compat import _warn_or_error, deprecated
 from cirq.protocols.decompose_protocol import _try_decompose_into_operations_and_qubits
 from cirq.sim.operation_target import OperationTarget
 
@@ -78,6 +78,8 @@ class ActOnArgs(OperationTarget[TSelf]):
             }
         )
         self._state = state
+        if state is None:
+            _warn_or_error('This function will require a valid `state` input in cirq v0.16.')
 
     @property
     def prng(self) -> np.random.RandomState:
@@ -147,9 +149,17 @@ class ActOnArgs(OperationTarget[TSelf]):
         if self._state is not None:
             args._state = self._state.copy(deep_copy_buffers=deep_copy_buffers)
         else:
+            _warn_or_error(
+                'Pass a `QuantumStateRepresentation` into the `ActOnArgs` constructor. The `_on_`'
+                ' overrides will be removed in cirq v0.16.'
+            )
             self._on_copy(args, deep_copy_buffers)
         return args
 
+    @deprecated(
+        deadline='v0.16',
+        fix='Pass a `QuantumStateRepresentation` into the `ActOnArgs` constructor.',
+    )
     def _on_copy(self: TSelf, args: TSelf, deep_copy_buffers: bool = True):
         """Subclasses should implement this with any additional state copy
         functionality."""
@@ -164,10 +174,18 @@ class ActOnArgs(OperationTarget[TSelf]):
         if self._state is not None and other._state is not None:
             args._state = self._state.kron(other._state)
         else:
+            _warn_or_error(
+                'Pass a `QuantumStateRepresentation` into the `ActOnArgs` constructor. The `_on_`'
+                ' overrides will be removed in cirq v0.16.'
+            )
             self._on_kronecker_product(other, args)
         args._set_qubits(self.qubits + other.qubits)
         return args
 
+    @deprecated(
+        deadline='v0.16',
+        fix='Pass a `QuantumStateRepresentation` into the `ActOnArgs` constructor.',
+    )
     def _on_kronecker_product(self: TSelf, other: TSelf, target: TSelf):
         """Subclasses should implement this with any additional state product
         functionality, if supported."""
@@ -204,6 +222,10 @@ class ActOnArgs(OperationTarget[TSelf]):
             extracted._state = e
             remainder._state = r
         else:
+            _warn_or_error(
+                'Pass a `QuantumStateRepresentation` into the `ActOnArgs` constructor. The `_on_`'
+                ' overrides will be removed in cirq v0.16.'
+            )
             self._on_factor(qubits, extracted, remainder, validate, atol)
         extracted._set_qubits(qubits)
         remainder._set_qubits([q for q in self.qubits if q not in qubits])
@@ -214,6 +236,10 @@ class ActOnArgs(OperationTarget[TSelf]):
         """Subclasses that allow factorization should override this."""
         return self._state.supports_factor if self._state is not None else False
 
+    @deprecated(
+        deadline='v0.16',
+        fix='Pass a `QuantumStateRepresentation` into the `ActOnArgs` constructor.',
+    )
     def _on_factor(
         self: TSelf,
         qubits: Sequence['cirq.Qid'],
@@ -247,10 +273,18 @@ class ActOnArgs(OperationTarget[TSelf]):
         if self._state is not None:
             args._state = self._state.reindex(self.get_axes(qubits))
         else:
+            _warn_or_error(
+                'Pass a `QuantumStateRepresentation` into the `ActOnArgs` constructor. The `_on_`'
+                ' overrides will be removed in cirq v0.16.'
+            )
             self._on_transpose_to_qubit_order(qubits, args)
         args._set_qubits(qubits)
         return args
 
+    @deprecated(
+        deadline='v0.16',
+        fix='Pass a `QuantumStateRepresentation` into the `ActOnArgs` constructor.',
+    )
     def _on_transpose_to_qubit_order(self: TSelf, qubits: Sequence['cirq.Qid'], target: TSelf):
         """Subclasses should implement this with any additional state transpose
         functionality, if supported."""
