@@ -15,7 +15,7 @@ import datetime
 import pytest
 
 import cirq
-from cirq_google.engine.client import quantum
+from cirq_google.cloud import quantum
 from cirq_google.engine.abstract_local_job_test import NothingJob
 from cirq_google.engine.abstract_local_program import AbstractLocalProgram
 
@@ -56,8 +56,8 @@ def test_jobs():
     job1._create_time = datetime.datetime.fromtimestamp(1000)
     job2._create_time = datetime.datetime.fromtimestamp(2000)
     job3._create_time = datetime.datetime.fromtimestamp(3000)
-    failure = quantum.enums.ExecutionStatus.State.FAILURE
-    success = quantum.enums.ExecutionStatus.State.SUCCESS
+    failure = quantum.ExecutionStatus.State.FAILURE
+    success = quantum.ExecutionStatus.State.SUCCESS
     job1._status = failure
     job2._status = failure
     job3._status = success
@@ -103,7 +103,7 @@ def test_jobs():
     assert set(program.list_jobs(execution_states={failure, success})) == {job1, job2, job3}
     assert program.list_jobs(execution_states={success}) == [job3]
     assert set(program.list_jobs(execution_states={failure})) == {job1, job2}
-    ready = quantum.enums.ExecutionStatus.State.READY
+    ready = quantum.ExecutionStatus.State.READY
     assert program.list_jobs(execution_states={ready}) == []
     assert set(program.list_jobs(execution_states={})) == {job1, job2, job3}
 

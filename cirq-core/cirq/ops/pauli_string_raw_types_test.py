@@ -91,16 +91,3 @@ q1: ───[Y]───[Y]───
 q2: ───[Z]───[Z]───
 """,
     )
-
-
-def test_setters_deprecated():
-    q0 = cirq.LineQubit(0)
-
-    class DummyGate(cirq.PauliStringGateOperation):
-        def map_qubits(self, qubit_map):
-            pass
-
-    gate = DummyGate(cirq.PauliString({q0: cirq.X}))
-    with cirq.testing.assert_deprecated('mutators', deadline='v0.15'):
-        gate.pauli_string = cirq.PauliString({q0: cirq.Z})
-    assert gate.pauli_string == cirq.PauliString({q0: cirq.Z})

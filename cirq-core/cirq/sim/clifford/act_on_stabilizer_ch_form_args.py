@@ -32,18 +32,12 @@ class ActOnStabilizerCHFormArgs(
     @_compat.deprecated_parameter(
         deadline='v0.15',
         fix='Use classical_data.',
-        parameter_desc='log_of_measurement_results and positional arguments',
-        match=lambda args, kwargs: 'log_of_measurement_results' in kwargs or len(args) > 3,
-    )
-    @_compat.deprecated_parameter(
-        deadline='v0.15',
-        fix='Specify all the arguments with keywords, use initial_state instead of state.',
-        parameter_desc='positional arguments',
-        match=lambda args, kwargs: len(args) != 1 or 'state' in kwargs,
+        parameter_desc='log_of_measurement_results',
+        match=lambda args, kwargs: 'log_of_measurement_results' in kwargs,
     )
     def __init__(
         self,
-        state: Optional['cirq.StabilizerStateChForm'] = None,
+        *,
         prng: Optional[np.random.RandomState] = None,
         log_of_measurement_results: Optional[Dict[str, List[int]]] = None,
         qubits: Optional[Sequence['cirq.Qid']] = None,
@@ -74,7 +68,6 @@ class ActOnStabilizerCHFormArgs(
             ValueError: If initial state is an integer but qubits are not
                 provided.
         """
-        initial_state = state or initial_state
         if isinstance(initial_state, int):
             if qubits is None:
                 raise ValueError('Must specify qubits if initial state is integer')
