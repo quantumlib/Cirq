@@ -222,7 +222,7 @@ def _probs(
 
 
 def _validate_density_matrix_qid_shape(
-    density_matrix: np.array, qid_shape: Tuple[int, ...]
+    density_matrix: np.ndarray, qid_shape: Tuple[int, ...]
 ) -> Tuple[int, ...]:
     """Validates that a tensor's shape is a valid shape for qids and returns the
     qid shape.
