@@ -25,20 +25,22 @@ import cirq_ionq
 from cirq_ionq import ionq_exceptions
 
 RETRIABLE_STATUS_CODES = {
-     requests.codes.internal_server_error,
-     requests.codes.service_unavailable,
+    requests.codes.internal_server_error,
+    requests.codes.service_unavailable,
 }
+
+
 def _is_retriable(code):
-  # Handle 52x responses from cloudflare.
-  # See https://support.cloudflare.com/hc/en-us/articles/115003011431/
-  return code in RETRIABLE_STATUS_CODES or (code >= 520 and code <= 530)
+    # Handle 52x responses from cloudflare.
+    # See https://support.cloudflare.com/hc/en-us/articles/115003011431/
+    return code in RETRIABLE_STATUS_CODES or (code >= 520 and code <= 530)
+
 
 class _IonQClient:
     """Handles calls to IonQ's API.
 
     Users should not instantiate this themselves, but instead should use `cirq_ionq.Service`.
     """
-
 
     SUPPORTED_TARGETS = {'qpu', 'simulator'}
     SUPPORTED_VERSIONS = {

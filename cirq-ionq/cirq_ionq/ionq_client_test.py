@@ -743,6 +743,7 @@ def test_ionq_client_list_calibrations_not_retriable(mock_get):
     with pytest.raises(ionq.IonQException, match='Status: 501'):
         _ = client.list_calibrations()
 
+
 @mock.patch('requests.get')
 def test_ionq_client_list_calibrations_retry(mock_get):
     response1 = mock.MagicMock()
@@ -756,6 +757,7 @@ def test_ionq_client_list_calibrations_retry(mock_get):
     )
     client.list_calibrations()
     assert mock_get.call_count == 2
+
 
 @mock.patch('requests.get')
 def test_ionq_client_list_calibrations_retry_nonstandard_error(mock_get):
