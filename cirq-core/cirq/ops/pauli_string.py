@@ -678,7 +678,7 @@ class PauliString(raw_types.Operation, Generic[TKey]):
         return (paulis for qubit, paulis in self.zip_items(other))
 
     def _commutes_(
-        self, other: Any, *, atol: Union[int, float] = 1e-8
+        self, other: Any, *, atol: float = 1e-8
     ) -> Union[bool, NotImplementedType, None]:
         if not isinstance(other, PauliString):
             return NotImplemented
@@ -1546,6 +1546,6 @@ def _pauli_like_to_pauli_int(key: Any, pauli_gate_like: PAULI_GATE_LIKE):
             f'Expected {key!r}: {pauli_gate_like!r} to have a '
             f'cirq.PAULI_GATE_LIKE value. '
             f"But the value isn't in "
-            f"{list(PAULI_GATE_LIKE_TO_INDEX_MAP.values())!r}"
+            f"{set(PAULI_GATE_LIKE_TO_INDEX_MAP.keys())!r}"
         )
     return cast(int, pauli_int)

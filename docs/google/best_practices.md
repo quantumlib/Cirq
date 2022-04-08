@@ -56,9 +56,6 @@ sent to Quantum Engine due to an upper limit on request size. If the circuits
 in question have a repetitive structure, `cirq.CircuitOperation`s can be used
 to reduce the request size and avoid this limit.
 
-`optimized_for_sycamore` will preserve `CircuitOperation`s while optimizing
-their contents.
-
 ```python
 import cirq
 import cirq_google as cg
@@ -79,6 +76,20 @@ circuit_op = circuit_op.with_qubits([q])
 circuit_op = circuit_op.with_measurement_key_mapping({'m': f'm{q}'})
 circuit_op = circuit_op.repeat(100)
 short_circuit = cirq.Circuit(circuit_op for q in qubits)
+```
+
+When compiling circuits with `CircuitOperation`s, providing a context
+with `deep=True` will preserve the `CircuitOperation`s while
+optimizing their contents. This is useful for producing a concise,
+device-compatible circuit.
+
+```python
+ctx = cirq.TransformerContext(deep=True)
+cz_circuit = cirq.optimized_for_target_gateset(
+    short_circuit,
+    cirq.CZTargetGateset,
+    context=ctx
+)
 ```
 
 
