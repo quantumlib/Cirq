@@ -84,11 +84,12 @@ class Pauli(raw_types.Gate, metaclass=abc.ABCMeta):
             return NotImplemented
         return (other._index - self._index) % 3 == 1
 
-    def on(self, *qubits: 'cirq.Qid') -> 'SingleQubitPauliStringGateOperation':
+    def on(self, *qubits: 'cirq.Qid', **kwargs) -> 'SingleQubitPauliStringGateOperation':
         """Returns an application of this gate to the given qubits.
 
         Args:
             *qubits: The collection of qubits to potentially apply the gate to.
+            **kwargs: Unused.
 
         Raises:
             ValueError: If more than one qubit is acted upon.

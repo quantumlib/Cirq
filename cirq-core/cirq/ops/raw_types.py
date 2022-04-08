@@ -211,11 +211,13 @@ class Gate(metaclass=value.ABCMetaImplementAnyOneOf):
         """
         _validate_qid_shape(self, qubits)
 
-    def on(self, *qubits: Qid) -> 'Operation':
+    def on(self, *qubits: Qid, **kwargs) -> 'Operation':
         """Returns an application of this gate to the given qubits.
 
         Args:
             *qubits: The collection of qubits to potentially apply the gate to.
+            **kwargs: Extra kwargs, can be used to explicitly labeled qubits like
+                control or target in controlled gates.
         """
         return ops.gate_operation.GateOperation(self, list(qubits))
 
