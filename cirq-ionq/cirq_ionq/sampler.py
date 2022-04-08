@@ -13,11 +13,10 @@
 # limitations under the License.
 """A `cirq.Sampler` implementation for the IonQ API."""
 
-from typing import List, Optional, Sequence, Union, TYPE_CHECKING
+from typing import List, Optional, Sequence, Union
 
-from cirq_ionq import results
+from cirq_ionq import results, Job
 import cirq
-import cirq_ionq
 
 
 class Sampler(cirq.Sampler):
@@ -121,7 +120,7 @@ class Sampler(cirq.Sampler):
         program: cirq.AbstractCircuit,
         resolvers: Sequence[cirq.ParamResolver],
         repetitions: int = 1,
-    ) -> Sequence[cirq_ionq.Job]:
+    ) -> Sequence[Job]:
         jobs = [
             self._service.create_job(
                 circuit=cirq.resolve_parameters(program, resolver),
@@ -134,7 +133,7 @@ class Sampler(cirq.Sampler):
 
     def _resolve_sweep(
         self,
-        jobs: Sequence[cirq_ionq.Job],
+        jobs: Sequence[Job],
         resolvers: Sequence[cirq.ParamResolver],
     ):
         kwargs = {}
