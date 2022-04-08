@@ -320,7 +320,7 @@ class Gate(metaclass=value.ABCMetaImplementAnyOneOf):
         return NotImplemented
 
     def __call__(self, *qubits: Qid, **kwargs):
-        return self.on(*qubits)
+        return self.on(*qubits, **kwargs)
 
     def with_probability(self, probability: 'cirq.TParamVal') -> 'cirq.Gate':
 
