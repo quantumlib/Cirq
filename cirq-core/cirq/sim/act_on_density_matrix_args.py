@@ -79,7 +79,11 @@ class _BufferedDensityMatrix(qis.QuantumStateRepresentation):
             ).reshape(qid_shape * 2)
         else:
             if qid_shape is not None:
-                density_matrix = initial_state.reshape(qid_shape * 2)
+                if dtype and initial_state.dtype != dtype:
+                    initial_state = initial_state.astype(dtype)
+                density_matrix = qis.to_valid_density_matrix(
+                    initial_state, len(qid_shape), qid_shape=qid_shape, dtype=dtype
+                ).reshape(qid_shape * 2)
             else:
                 density_matrix = initial_state
             if np.may_share_memory(density_matrix, initial_state):
