@@ -15,10 +15,11 @@
 import datetime
 from typing import Dict, List, Optional, Sequence, Set, TYPE_CHECKING, Union
 
+from google.protobuf import any_pb2
+
 import cirq
 from cirq_google.engine import abstract_program, engine_client, util
-from cirq_google.engine.client import quantum
-from cirq_google.engine.client.quantum import types as qtypes
+from cirq_google.cloud import quantum
 from cirq_google.engine.result_type import ResultType
 from cirq_google.api import v2
 from cirq_google.engine import engine_job
@@ -44,7 +45,7 @@ class EngineProgram(abstract_program.AbstractProgram):
         project_id: str,
         program_id: str,
         context: 'engine_base.EngineContext',
-        _program: Optional[qtypes.QuantumProgram] = None,
+        _program: Optional[quantum.QuantumProgram] = None,
         result_type: ResultType = ResultType.Program,
     ) -> None:
         """A job submitted to the engine.
@@ -322,7 +323,7 @@ class EngineProgram(abstract_program.AbstractProgram):
         created_before: Optional[Union[datetime.datetime, datetime.date]] = None,
         created_after: Optional[Union[datetime.datetime, datetime.date]] = None,
         has_labels: Optional[Dict[str, str]] = None,
-        execution_states: Optional[Set[quantum.enums.ExecutionStatus.State]] = None,
+        execution_states: Optional[Set[quantum.ExecutionStatus.State]] = None,
     ):
         """Returns the list of jobs for this program.
 
@@ -343,7 +344,7 @@ class EngineProgram(abstract_program.AbstractProgram):
 
             execution_states: retrieve jobs that have an execution state  that
                 is contained in `execution_states`. See
-                `quantum.enums.ExecutionStatus.State` enum for accepted values.
+                `quantum.ExecutionStatus.State` enum for accepted values.
         """
         client = self.context.client
         response = client.list_jobs(
@@ -365,19 +366,19 @@ class EngineProgram(abstract_program.AbstractProgram):
             for j in response
         ]
 
-    def _inner_program(self) -> qtypes.QuantumProgram:
-        if not self._program:
+    def _inner_program(self) -> quantum.QuantumProgram:
+        if self._program is None:
             self._program = self.context.client.get_program(self.project_id, self.program_id, False)
         return self._program
 
     def create_time(self) -> 'datetime.datetime':
         """Returns when the program was created."""
-        return self._inner_program().create_time.ToDatetime()
+        return self._inner_program().create_time
 
     def update_time(self) -> 'datetime.datetime':
         """Returns when the program was last updated."""
         self._program = self.context.client.get_program(self.project_id, self.program_id, False)
-        return self._program.update_time.ToDatetime()
+        return self._program.update_time
 
     def description(self) -> str:
         """Returns the description of the program."""
@@ -457,7 +458,7 @@ class EngineProgram(abstract_program.AbstractProgram):
         Returns:
             The program's cirq Circuit.
         """
-        if not self._program or not self._program.HasField('code'):
+        if self._program is None or self._program.code is None:
             self._program = self.context.client.get_program(self.project_id, self.program_id, True)
         return _deserialize_program(self._program.code, program_num)
 
@@ -473,7 +474,7 @@ class EngineProgram(abstract_program.AbstractProgram):
             )
         import cirq_google.engine.engine as engine_base
 
-        if not self._program or not self._program.HasField('code'):
+        if self._program is None or self._program.code is None:
             self._program = self.context.client.get_program(self.project_id, self.program_id, True)
         code = self._program.code
         code_type = code.type_url[len(engine_base.TYPE_PREFIX) :]
@@ -501,9 +502,7 @@ class EngineProgram(abstract_program.AbstractProgram):
         return f'EngineProgram(project_id=\'{self.project_id}\', program_id=\'{self.program_id}\')'
 
 
-def _deserialize_program(
-    code: qtypes.any_pb2.Any, program_num: Optional[int] = None
-) -> cirq.Circuit:
+def _deserialize_program(code: any_pb2.Any, program_num: Optional[int] = None) -> cirq.Circuit:
     import cirq_google.engine.engine as engine_base
 
     code_type = code.type_url[len(engine_base.TYPE_PREFIX) :]
@@ -524,7 +523,7 @@ def _deserialize_program(
             )
 
         program = batch.programs[program_num]
-    if program:
+    if program is not None:
         gate_set_map = {g.name: g for g in gate_sets.GOOGLE_GATESETS}
         if program.language.gate_set not in gate_set_map:
             raise ValueError(

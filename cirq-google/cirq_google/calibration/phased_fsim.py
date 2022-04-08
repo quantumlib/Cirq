@@ -47,11 +47,6 @@ from cirq_google.ops import FSimGateFamily
 if TYPE_CHECKING:
     import cirq_google
 
-    # Workaround for mypy custom dataclasses (python/mypy#5406)
-    from dataclasses import dataclass as json_serializable_dataclass
-else:
-    from cirq.protocols import json_serializable_dataclass
-
 
 _FLOQUET_PHASED_FSIM_HANDLER_NAME = 'floquet_phased_fsim_characterization'
 _XEB_PHASED_FSIM_HANDLER_NAME = 'xeb_phased_fsim_characterization'
@@ -94,7 +89,7 @@ def _create_pairs_from_moment(
     return tuple(pairs), gate
 
 
-@json_serializable_dataclass(frozen=True)
+@dataclasses.dataclass(frozen=True)
 class PhasedFSimCharacterization:
     """Holder for the unitary angles of the cirq.PhasedFSimGate.
 
@@ -201,6 +196,9 @@ class PhasedFSimCharacterization:
             other that are not None). Otherwise the current values are used.
         """
         return other.merge_with(self)
+
+    def _json_dict_(self):
+        return cirq.dataclass_json_dict(self)
 
 
 SQRT_ISWAP_INV_PARAMETERS = PhasedFSimCharacterization(
@@ -429,7 +427,7 @@ class PhasedFSimCalibrationRequest(abc.ABC):
         """Decodes the characterization result issued for this request."""
 
 
-@json_serializable_dataclass(frozen=True)
+@dataclasses.dataclass(frozen=True)
 class XEBPhasedFSimCalibrationOptions(PhasedFSimCalibrationOptions):
     """Options for configuring a PhasedFSim calibration using XEB.
 
@@ -496,8 +494,11 @@ class XEBPhasedFSimCalibrationOptions(PhasedFSimCalibrationOptions):
         kwargs['cycle_depths'] = tuple(kwargs['cycle_depths'])
         return cls(**kwargs)
 
+    def _json_dict_(self):
+        return cirq.dataclass_json_dict(self)
 
-@json_serializable_dataclass(frozen=True)
+
+@dataclasses.dataclass(frozen=True)
 class LocalXEBPhasedFSimCalibrationOptions(XEBPhasedFSimCalibrationOptions):
     """Options for configuring a PhasedFSim calibration using a local version of XEB.
 
@@ -542,8 +543,11 @@ class LocalXEBPhasedFSimCalibrationOptions(XEBPhasedFSimCalibrationOptions):
     ):
         return LocalXEBPhasedFSimCalibrationRequest(pairs=pairs, gate=gate, options=self)
 
+    def _json_dict_(self):
+        return cirq.dataclass_json_dict(self)
 
-@json_serializable_dataclass(frozen=True)
+
+@dataclasses.dataclass(frozen=True)
 class FloquetPhasedFSimCalibrationOptions(PhasedFSimCalibrationOptions):
     """Options specific to Floquet PhasedFSimCalibration.
 
@@ -589,6 +593,9 @@ class FloquetPhasedFSimCalibrationOptions(PhasedFSimCalibrationOptions):
         gate: cirq.Gate,
     ) -> 'FloquetPhasedFSimCalibrationRequest':
         return FloquetPhasedFSimCalibrationRequest(pairs=pairs, gate=gate, options=self)
+
+    def _json_dict_(self):
+        return cirq.dataclass_json_dict(self)
 
 
 """Floquet PhasedFSimCalibrationOptions options with all angles characterization requests set to
@@ -821,7 +828,7 @@ def _parse_characterized_angles(
     return dict(records)
 
 
-@json_serializable_dataclass(frozen=True)
+@dataclasses.dataclass(frozen=True)
 class LocalXEBPhasedFSimCalibrationRequest(PhasedFSimCalibrationRequest):
     """PhasedFSim characterization request for local cross entropy benchmarking (XEB) calibration.
 
@@ -856,8 +863,11 @@ class LocalXEBPhasedFSimCalibrationRequest(PhasedFSimCalibrationRequest):
         instantiation_pairs = tuple((q_a, q_b) for q_a, q_b in pairs)
         return cls(instantiation_pairs, gate, options)
 
+    def _json_dict_(self):
+        return cirq.dataclass_json_dict(self)
 
-@json_serializable_dataclass(frozen=True)
+
+@dataclasses.dataclass(frozen=True)
 class XEBPhasedFSimCalibrationRequest(PhasedFSimCalibrationRequest):
     """PhasedFSim characterization request for cross entropy benchmarking (XEB) calibration.
 
@@ -914,6 +924,9 @@ class XEBPhasedFSimCalibrationRequest(PhasedFSimCalibrationRequest):
         # List -> Tuple
         instantiation_pairs = tuple((q_a, q_b) for q_a, q_b in pairs)
         return cls(instantiation_pairs, gate, options)
+
+    def _json_dict_(self):
+        return cirq.dataclass_json_dict(self)
 
 
 class IncompatibleMomentError(Exception):
