@@ -343,11 +343,7 @@ def test_key_unset_in_subcircuit_outer_scope():
     q0, q1 = cirq.LineQubit.range(2)
     circuit = cirq.Circuit(
         cirq.measure(q0, key='a'),
-    )
-    # TODO (daxfohl): This will not need an InsertStrategy after scope PR.
-    circuit.append(
         cirq.CircuitOperation(cirq.FrozenCircuit(cirq.X(q1).with_classical_controls('a'))),
-        strategy=cirq.InsertStrategy.NEW,
     )
     circuit.append(cirq.measure(q1, key='b'))
     result = cirq.Simulator().run(circuit)
@@ -360,11 +356,7 @@ def test_key_set_in_subcircuit_outer_scope():
     circuit = cirq.Circuit(
         cirq.X(q0),
         cirq.measure(q0, key='a'),
-    )
-    # TODO (daxfohl): This will not need an InsertStrategy after scope PR.
-    circuit.append(
         cirq.CircuitOperation(cirq.FrozenCircuit(cirq.X(q1).with_classical_controls('a'))),
-        strategy=cirq.InsertStrategy.NEW,
     )
     circuit.append(cirq.measure(q1, key='b'))
     result = cirq.Simulator().run(circuit)
