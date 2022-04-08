@@ -151,7 +151,7 @@ class ActOnArgs(OperationTarget[TSelf]):
         else:
             _warn_or_error(
                 'Pass a `QuantumStateRepresentation` into the `ActOnArgs` constructor. The `_on_\n'
-                'overrides will be removed in cirq v0.16.\n'
+                'overrides will be removed in cirq v0.16.'
             )
             self._on_copy(args, deep_copy_buffers)
         return args
@@ -176,7 +176,7 @@ class ActOnArgs(OperationTarget[TSelf]):
         else:
             _warn_or_error(
                 'Pass a `QuantumStateRepresentation` into the `ActOnArgs` constructor. The `_on_\n'
-                'overrides will be removed in cirq v0.16.\n'
+                'overrides will be removed in cirq v0.16.'
             )
             self._on_kronecker_product(other, args)
         args._set_qubits(self.qubits + other.qubits)
@@ -224,7 +224,7 @@ class ActOnArgs(OperationTarget[TSelf]):
         else:
             _warn_or_error(
                 'Pass a `QuantumStateRepresentation` into the `ActOnArgs` constructor. The `_on_\n'
-                'overrides will be removed in cirq v0.16.\n'
+                'overrides will be removed in cirq v0.16.'
             )
             self._on_factor(qubits, extracted, remainder, validate, atol)
         extracted._set_qubits(qubits)
@@ -275,7 +275,7 @@ class ActOnArgs(OperationTarget[TSelf]):
         else:
             _warn_or_error(
                 'Pass a `QuantumStateRepresentation` into the `ActOnArgs` constructor. The `_on_\n'
-                'overrides will be removed in cirq v0.16.\n'
+                'overrides will be removed in cirq v0.16.'
             )
             self._on_transpose_to_qubit_order(qubits, args)
         args._set_qubits(qubits)
