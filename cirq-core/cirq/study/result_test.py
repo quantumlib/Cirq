@@ -156,7 +156,9 @@ def test_df():
             'c': np.array([[0], [0], [1], [0], [1]], dtype=bool),
         },
     )
-    remove_end_measurements = pd.DataFrame(data={'ab': [1, 1, 2], 'c': [0, 1, 0]}, index=[1, 2, 3])
+    remove_end_measurements = pd.DataFrame(
+        data={'ab': [1, 1, 2], 'c': [0, 1, 0]}, index=[1, 2, 3], dtype=np.int64
+    )
 
     pd.testing.assert_frame_equal(result.data.iloc[1:-1], remove_end_measurements)
 
@@ -164,6 +166,21 @@ def test_df():
     df = result.data
     assert len(df[df['ab'] == 1]) == 4
     assert df.c.value_counts().to_dict() == {0: 3, 1: 2}
+
+
+def test_df_large():
+    result = cirq.ResultDict(
+        params=cirq.ParamResolver({}),
+        measurements={
+            'a': np.array([[0 for _ in range(76)]] * 10_000, dtype=bool),
+            'd': np.array([[1 for _ in range(76)]] * 10_000, dtype=bool),
+        },
+    )
+
+    assert np.all(result.data['a'] == 0)
+    assert np.all(result.data['d'] == 0xFFF_FFFFFFFF_FFFFFFFF)
+    assert result.data['a'].dtype == object
+    assert result.data['d'].dtype == object
 
 
 def test_histogram():

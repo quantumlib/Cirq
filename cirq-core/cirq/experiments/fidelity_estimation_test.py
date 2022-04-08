@@ -36,7 +36,7 @@ def sample_noisy_bitstrings(
 
 
 def make_random_quantum_circuit(qubits: Sequence[cirq.Qid], depth: int) -> cirq.Circuit:
-    SQ_GATES = [cirq.X ** 0.5, cirq.Y ** 0.5, cirq.T]
+    SQ_GATES = [cirq.X**0.5, cirq.Y**0.5, cirq.T]
     circuit = cirq.Circuit()
     cz_start = 0
     for q in qubits:
@@ -152,7 +152,7 @@ def test_least_squares_xeb_fidelity_from_expectations():
     depolarization = 0.5
 
     n_qubits = 5
-    dim = 2 ** n_qubits
+    dim = 2**n_qubits
     n_circuits = 10
     qubits = cirq.LineQubit.range(n_qubits)
 
@@ -170,7 +170,7 @@ def test_least_squares_xeb_fidelity_from_expectations():
         probabilities = cirq.state_vector_to_probabilities(amplitudes)
 
         measured_expectations_lin.append(dim * np.mean(probabilities[bitstrings]))
-        exact_expectations_lin.append(dim * np.sum(probabilities ** 2))
+        exact_expectations_lin.append(dim * np.sum(probabilities**2))
 
         measured_expectations_log.append(np.mean(np.log(dim * probabilities[bitstrings])))
         exact_expectations_log.append(np.sum(probabilities * np.log(dim * probabilities)))
@@ -204,7 +204,7 @@ def test_least_squares_xeb_fidelity_from_probabilities():
     depolarization = 0.5
 
     n_qubits = 5
-    dim = 2 ** n_qubits
+    dim = 2**n_qubits
     n_circuits = 10
     qubits = cirq.LineQubit.range(n_qubits)
 

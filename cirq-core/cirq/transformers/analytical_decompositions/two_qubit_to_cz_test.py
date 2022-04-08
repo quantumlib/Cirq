@@ -121,26 +121,6 @@ def assert_ops_implement_unitary(q0, q1, operations, intended_effect, atol=0.01)
     assert cirq.allclose_up_to_global_phase(actual_effect, intended_effect, atol=atol)
 
 
-def test_two_qubit_matrix_to_operations_deprecated():
-    q0 = cirq.NamedQubit('q0')
-    q1 = cirq.NamedQubit('q1')
-    effect = np.array(
-        [
-            [0, 0, 0, 1],
-            [0, 0, 1, 0],
-            [0, 1, 0, 0],
-            [1, 0, 0, 0j],
-        ]
-    )
-
-    with cirq.testing.assert_deprecated('two_qubit_matrix_to_cz_operations', deadline='v0.15'):
-        _ = cirq.two_qubit_matrix_to_operations(q0, q1, effect, True)
-    with cirq.testing.assert_deprecated(
-        'two_qubit_matrix_to_diagonal_and_cz_operations', deadline='v0.15'
-    ):
-        _ = cirq.two_qubit_matrix_to_diagonal_and_operations(q0, q1, effect, True)
-
-
 @pytest.mark.parametrize(
     'max_partial_cz_depth,max_full_cz_depth,effect',
     [
@@ -157,8 +137,8 @@ def test_two_qubit_matrix_to_operations_deprecated():
                 ]
             ),
         ),
-        (0, 0, cirq.unitary(cirq.CZ ** 0.00000001)),
-        (0.5, 2, cirq.unitary(cirq.CZ ** 0.5)),
+        (0, 0, cirq.unitary(cirq.CZ**0.00000001)),
+        (0.5, 2, cirq.unitary(cirq.CZ**0.5)),
         (1, 1, cirq.unitary(cirq.CZ)),
         (1, 1, cirq.unitary(cirq.CNOT)),
         (
@@ -200,7 +180,7 @@ def test_two_qubit_matrix_to_operations_deprecated():
             )
             * np.sqrt(0.5),
         ),
-        (1.5, 3, cirq.map_eigenvalues(cirq.unitary(cirq.SWAP), lambda e: e ** 0.5)),
+        (1.5, 3, cirq.map_eigenvalues(cirq.unitary(cirq.SWAP), lambda e: e**0.5)),
         (2, 2, cirq.unitary(cirq.SWAP).dot(cirq.unitary(cirq.CZ))),
         (3, 3, cirq.unitary(cirq.SWAP)),
         (
@@ -270,7 +250,7 @@ def test_kak_decomposition_depth_full_cz():
     assert len(c) > 6  # Length should be 13 with extra Pauli gates
 
     # Partial single-axis interaction.
-    u = cirq.unitary(cirq.CNOT ** 0.1)
+    u = cirq.unitary(cirq.CNOT**0.1)
     operations_with_part = cirq.two_qubit_matrix_to_cz_operations(a, b, u, False)
     c = cirq.Circuit(operations_with_part)
     # 2 CZ, 2+1 PhasedX, 1 Z
@@ -302,7 +282,7 @@ def test_kak_decomposition_depth_partial_cz():
     assert len(c) <= 6
 
     # Partial single-axis interaction.
-    u = cirq.unitary(cirq.CNOT ** 0.1)
+    u = cirq.unitary(cirq.CNOT**0.1)
     operations_with_part = cirq.two_qubit_matrix_to_cz_operations(a, b, u, True)
     c = cirq.Circuit(operations_with_part)
     # 1 CP, 1+1 PhasedX, 1 Z

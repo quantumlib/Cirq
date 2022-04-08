@@ -370,13 +370,13 @@ def _decomp_to_operations(
             # Commute rightmost Z(q0)**b, Z(q1)**b through next sqrt-iSWAP
             if len(rots1) > 0 and rots1[-1][0] == ops.Z:
                 _, prev_z = rots1.pop()
-                z_unitary = protocols.unitary(ops.Z ** prev_z)
+                z_unitary = protocols.unitary(ops.Z**prev_z)
                 new_commute = new_commute @ z_unitary
                 matrix0 = z_unitary.T.conj() @ matrix0
             # Commute rightmost whole X(q0), X(q0) or Y, Y through next sqrt-iSWAP
             if len(rots1) > 0 and linalg.tolerance.near_zero_mod(rots1[-1][1], 1, atol=atol):
                 pauli, half_turns = rots1.pop()
-                p_unitary = protocols.unitary(pauli ** half_turns)
+                p_unitary = protocols.unitary(pauli**half_turns)
                 new_commute = new_commute @ p_unitary
                 matrix0 = p_unitary.T.conj() @ matrix0
         rots0 = list(
@@ -385,8 +385,8 @@ def _decomp_to_operations(
             )
         )
         # Append single qubit ops
-        operations.extend((pauli ** half_turns).on(q0) for pauli, half_turns in rots0)
-        operations.extend((pauli ** half_turns).on(q1) for pauli, half_turns in rots1)
+        operations.extend((pauli**half_turns).on(q0) for pauli, half_turns in rots0)
+        operations.extend((pauli**half_turns).on(q1) for pauli, half_turns in rots1)
         prev_commute = new_commute
 
     single_ops = list(single_qubit_operations)

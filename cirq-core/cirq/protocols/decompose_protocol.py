@@ -279,10 +279,10 @@ def decompose_once(val: Any, default=RaiseTypeErrorIfNotProvided, *args, **kwarg
             `_decompose_` method or that method returns `NotImplemented` or
             `None`. If not specified, non-decomposable values cause a
             `TypeError`.
-        args: Positional arguments to forward into the `_decompose_` method of
+        *args: Positional arguments to forward into the `_decompose_` method of
             `val`.  For example, this is used to tell gates what qubits they are
             being applied to.
-        kwargs: Keyword arguments to forward into the `_decompose_` method of
+        **kwargs: Keyword arguments to forward into the `_decompose_` method of
             `val`.
 
     Returns:

@@ -202,15 +202,15 @@ def _decompose_phased_iswap_into_syc_precomputed(
 
     yield cirq.PhasedXPowGate(phase_exponent=0.41175161497166024, exponent=0.5653807577895922).on(a)
     yield cirq.PhasedXPowGate(phase_exponent=1.0, exponent=0.5).on(b),
-    yield (cirq.Z ** 0.7099892314883478).on(b),
-    yield (cirq.Z ** 0.6746023442550453).on(a),
+    yield (cirq.Z**0.7099892314883478).on(b),
+    yield (cirq.Z**0.6746023442550453).on(a),
     yield ops.SYC(a, b)
     yield cirq.PhasedXPowGate(phase_exponent=-0.5154334589432878, exponent=0.5228733015013345).on(b)
     yield cirq.PhasedXPowGate(phase_exponent=0.06774925307475355).on(a)
     yield ops.SYC(a, b),
     yield cirq.PhasedXPowGate(phase_exponent=-0.5987667922766213, exponent=0.4136540654256824).on(a)
-    yield (cirq.Z ** -0.9255092746611595).on(b)
-    yield (cirq.Z ** -1.333333333333333).on(a)
+    yield (cirq.Z**-0.9255092746611595).on(b)
+    yield (cirq.Z**-1.333333333333333).on(a)
     yield cirq.rx(-theta).on(a)
     yield cirq.rx(-theta).on(b)
 
@@ -222,8 +222,8 @@ def _decompose_phased_iswap_into_syc_precomputed(
     yield ops.SYC(a, b)
     yield cirq.PhasedXPowGate(phase_exponent=-0.8151665352515929, exponent=0.8906746535691492).on(a)
     yield cirq.PhasedXPowGate(phase_exponent=-0.07449072533884049, exponent=0.5).on(b)
-    yield (cirq.Z ** -0.9255092746611595).on(b)
-    yield (cirq.Z ** -0.9777346353961884).on(a)
+    yield (cirq.Z**-0.9255092746611595).on(b)
+    yield (cirq.Z**-0.9777346353961884).on(a)
 
 
 def _decompose_cz_into_syc(a: cirq.Qid, b: cirq.Qid):
@@ -248,8 +248,8 @@ def _decompose_cz_into_syc(a: cirq.Qid, b: cirq.Qid):
     yield cirq.PhasedXPowGate(phase_exponent=-0.5987667922766213, exponent=0.4136540654256824).on(
         a
     ),
-    yield (cirq.Z ** -0.9255092746611595).on(b),
-    yield (cirq.Z ** -1.333333333333333).on(a),
+    yield (cirq.Z**-0.9255092746611595).on(b),
+    yield (cirq.Z**-1.333333333333333).on(a),
 
 
 def _decompose_cphase_into_syc(theta: float, q0: cirq.Qid, q1: cirq.Qid) -> cirq.OP_TREE:
@@ -297,8 +297,8 @@ def _decompose_iswap_into_syc(a: cirq.Qid, b: cirq.Qid):
         b
     ),
     yield cirq.PhasedXPowGate(phase_exponent=0.9408341606787907).on(a),
-    yield (cirq.Z ** -1.1551880579397293).on(b),
-    yield (cirq.Z ** 0.31848343246696365).on(a),
+    yield (cirq.Z**-1.1551880579397293).on(b),
+    yield (cirq.Z**0.31848343246696365).on(a),
 
 
 def _decompose_swap_into_syc(a: cirq.Qid, b: cirq.Qid):
@@ -326,8 +326,8 @@ def _decompose_swap_into_syc(a: cirq.Qid, b: cirq.Qid):
     yield cirq.PhasedXPowGate(phase_exponent=-0.8150261316932077, exponent=0.11820787859471782).on(
         b
     )
-    yield (cirq.Z ** -0.7384700844660306).on(b)
-    yield (cirq.Z ** -0.7034535141382525).on(a)
+    yield (cirq.Z**-0.7384700844660306).on(b)
+    yield (cirq.Z**-0.7034535141382525).on(a)
 
 
 def _find_local_equivalents(target_unitary: np.ndarray, source_unitary: np.ndarray):

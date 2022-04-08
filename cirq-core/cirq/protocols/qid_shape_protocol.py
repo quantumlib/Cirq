@@ -27,7 +27,7 @@ from cirq.type_workarounds import NotImplementedType
 # user provides a different (0,) value.
 RaiseTypeErrorIfNotProvided: Any = (0,)
 # Equal integers outside the range [-5, 256] aren't identically equal with `is`.
-RaiseTypeErrorIfNotProvidedInt: Any = -(2 ** 512)
+RaiseTypeErrorIfNotProvidedInt: Any = -(2**512)
 
 TDefault = TypeVar('TDefault')
 

@@ -383,7 +383,7 @@ class SingleQubitCliffordGate(gate_features.SingleQubitGate):
 
         return SingleQubitCliffordGate.from_clifford_tableau(self.clifford_tableau.inverse())
 
-    def _commutes_(self, other: Any, atol: float) -> Union[bool, NotImplementedType]:
+    def _commutes_(self, other: Any, *, atol: float = 1e-8) -> Union[bool, NotImplementedType]:
         if isinstance(other, SingleQubitCliffordGate):
             return self.commutes_with_single_qubit_gate(other)
         if isinstance(other, Pauli):
@@ -487,7 +487,7 @@ class SingleQubitCliffordGate(gate_features.SingleQubitGate):
         """Returns a SingleQubitCliffordGate such that the circuits
             --output--self-- and --self--gate--
         are equivalent up to global phase."""
-        return self.merged_with(after).merged_with(self ** -1)
+        return self.merged_with(after).merged_with(self**-1)
 
     def __repr__(self) -> str:
         x = self.transform(pauli_gates.X)
@@ -610,18 +610,18 @@ class CommonCliffordGateMetaClass(value.ABCMetaImplementAnyOneOf):
     @property
     def X(cls):
         if getattr(cls, '_X', None) is None:
-            cls._Z = cls._generate_clifford_from_known_gate(1, pauli_gates.X)
-        return cls._Z
+            cls._X = cls._generate_clifford_from_known_gate(1, pauli_gates.X)
+        return cls._X
 
     @property
     def Y(cls):
-        if getattr(cls, '_X', None) is None:
-            cls._Z = cls._generate_clifford_from_known_gate(1, pauli_gates.Y)
-        return cls._Z
+        if getattr(cls, '_Y', None) is None:
+            cls._Y = cls._generate_clifford_from_known_gate(1, pauli_gates.Y)
+        return cls._Y
 
     @property
     def Z(cls):
-        if getattr(cls, '_X', None) is None:
+        if getattr(cls, '_Z', None) is None:
             cls._Z = cls._generate_clifford_from_known_gate(1, pauli_gates.Z)
         return cls._Z
 
@@ -838,7 +838,9 @@ class CliffordGate(raw_types.Gate, CommonCliffordGates):
     def __repr__(self) -> str:
         return f"Clifford Gate with Tableau:\n {self.clifford_tableau._str_full_()}"
 
-    def _commutes_(self, other: Any, atol: float) -> Union[bool, NotImplementedType, None]:
+    def _commutes_(
+        self, other: Any, *, atol: float = 1e-8
+    ) -> Union[bool, NotImplementedType, None]:
         # Note even if we assume two gates define the tabluea based on the same qubit order,
         # the following approach cannot judge it:
         # self.clifford_tableau.then(other.clifford_tableau) == other.clifford_tableau.then(

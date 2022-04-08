@@ -77,7 +77,7 @@ def test_stats_from_measurements():
     # 10 [each obs val deviates by 10]. The variance is 10**2 and the
     # squared-standard-error-of-the-mean can be found by dividing by the
     # number of samples minus 1.
-    assert err == 10 ** 2 / (4 - 1)
+    assert err == 10**2 / (4 - 1)
 
 
 def test_observable_measured_result():
@@ -89,7 +89,7 @@ def test_observable_measured_result():
             observable=cirq.Y(a) * cirq.Y(b),
         ),
         mean=0,
-        variance=5 ** 2,
+        variance=5**2,
         repetitions=4,
         circuit_params={'phi': 52},
     )
@@ -381,16 +381,16 @@ def test_bitstring_accumulator_stats():
     # so the total contribution is zero, and the matrix is diagonal
     should_be = np.array(
         [
-            [4 * 7 ** 2, 0, 0],
-            [0, 4 * 5 ** 2, 0],
-            [0, 0, 4 * 3 ** 2],
+            [4 * 7**2, 0, 0],
+            [0, 4 * 5**2, 0],
+            [0, 0, 4 * 3**2],
         ]
     )
     should_be = should_be / (4 - 1)  # covariance formula
     should_be = should_be / 4  # cov of the distribution of sample mean
     np.testing.assert_allclose(should_be, bsa.covariance())
 
-    for setting, var in zip(settings, [4 * 7 ** 2, 4 * 5 ** 2, 4 * 3 ** 2]):
+    for setting, var in zip(settings, [4 * 7**2, 4 * 5**2, 4 * 3**2]):
         np.testing.assert_allclose(0, bsa.mean(setting))
         np.testing.assert_allclose(var / 4 / (4 - 1), bsa.variance(setting))
         np.testing.assert_allclose(np.sqrt(var / 4 / (4 - 1)), bsa.stderr(setting))
@@ -447,7 +447,7 @@ def test_bitstring_accumulator_stats_2():
     should_be = should_be / 4  # cov of the distribution of sample mean
     np.testing.assert_allclose(should_be, bsa.covariance())
 
-    for setting, var in zip(settings, [4 * 5 ** 2, 4 * 3 ** 2]):
+    for setting, var in zip(settings, [4 * 5**2, 4 * 3**2]):
         np.testing.assert_allclose(0, bsa.mean(setting))
         np.testing.assert_allclose(var / 4 / (4 - 1), bsa.variance(setting))
         np.testing.assert_allclose(np.sqrt(var / 4 / (4 - 1)), bsa.stderr(setting))

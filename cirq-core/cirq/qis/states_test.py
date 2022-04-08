@@ -198,37 +198,28 @@ def test_infer_qid_shape():
     q0, q1 = cirq.LineQubit.range(2)
     product_state_1 = cirq.KET_PLUS(q0) * cirq.KET_PLUS(q1)
 
-    assert (
-        cirq.qis.infer_qid_shape(
-            computational_basis_state_1,
-            state_vector_1,
-            state_tensor_1,
-            density_matrix_1,
-            product_state_1,
-        )
-        == (2, 2)
-    )
+    assert cirq.qis.infer_qid_shape(
+        computational_basis_state_1,
+        state_vector_1,
+        state_tensor_1,
+        density_matrix_1,
+        product_state_1,
+    ) == (2, 2)
 
-    assert (
-        cirq.qis.infer_qid_shape(
-            product_state_1,
-            density_matrix_1,
-            state_tensor_1,
-            state_vector_1,
-            computational_basis_state_1,
-        )
-        == (2, 2)
-    )
+    assert cirq.qis.infer_qid_shape(
+        product_state_1,
+        density_matrix_1,
+        state_tensor_1,
+        state_vector_1,
+        computational_basis_state_1,
+    ) == (2, 2)
 
-    assert (
-        cirq.qis.infer_qid_shape(
-            computational_basis_state_1,
-            computational_basis_state_2,
-            computational_basis_state_4,
-            state_tensor_2,
-        )
-        == (1, 2, 3, 4)
-    )
+    assert cirq.qis.infer_qid_shape(
+        computational_basis_state_1,
+        computational_basis_state_2,
+        computational_basis_state_4,
+        state_tensor_2,
+    ) == (1, 2, 3, 4)
 
     assert cirq.qis.infer_qid_shape(
         state_vector_2, density_matrix_2, computational_basis_state_4
@@ -499,7 +490,7 @@ def test_to_valid_state_vector():
     np.testing.assert_almost_equal(cirq.to_valid_state_vector(1, 2), np.array([0.0, 1.0, 0.0, 0.0]))
 
     v = cirq.to_valid_state_vector([0, 1, 2, 0], qid_shape=(3, 3, 3, 3))
-    assert v.shape == (3 ** 4,)
+    assert v.shape == (3**4,)
     assert v[6 + 9] == 1
 
     v = cirq.to_valid_state_vector([False, True, False, False], num_qubits=4)
@@ -616,6 +607,21 @@ def test_to_valid_density_matrix_from_density_matrix():
     assert_valid_density_matrix(np.diag([0.2, 0.8, 0, 0]), qid_shape=(4,))
 
 
+def test_to_valid_density_matrix_from_density_matrix_tensor():
+    np.testing.assert_almost_equal(
+        cirq.to_valid_density_matrix(
+            cirq.one_hot(shape=(2, 2, 2, 2, 2, 2), dtype=np.complex64), num_qubits=3
+        ),
+        cirq.one_hot(shape=(8, 8), dtype=np.complex64),
+    )
+    np.testing.assert_almost_equal(
+        cirq.to_valid_density_matrix(
+            cirq.one_hot(shape=(2, 3, 4, 2, 3, 4), dtype=np.complex64), qid_shape=(2, 3, 4)
+        ),
+        cirq.one_hot(shape=(24, 24), dtype=np.complex64),
+    )
+
+
 def test_to_valid_density_matrix_not_square():
     with pytest.raises(ValueError, match='shape'):
         cirq.to_valid_density_matrix(np.array([[1], [0]]), num_qubits=1)
@@ -623,7 +629,7 @@ def test_to_valid_density_matrix_not_square():
 
 def test_to_valid_density_matrix_size_mismatch_num_qubits():
     with pytest.raises(ValueError, match='shape'):
-        cirq.to_valid_density_matrix(np.array([[1, 0], [0, 0]]), num_qubits=2)
+        cirq.to_valid_density_matrix(np.array([[[1, 0], [0, 0]], [[0, 0], [0, 0]]]), num_qubits=2)
     with pytest.raises(ValueError, match='shape'):
         cirq.to_valid_density_matrix(np.eye(4) / 4.0, num_qubits=1)
 
@@ -694,6 +700,16 @@ def test_to_valid_density_matrix_from_state_vector():
     np.testing.assert_almost_equal(
         cirq.to_valid_density_matrix(
             density_matrix_rep=np.array([0.5] * 4, dtype=np.complex64), num_qubits=2
+        ),
+        0.25 * np.ones((4, 4)),
+    )
+
+
+def test_to_valid_density_matrix_from_state_vector_tensor():
+    np.testing.assert_almost_equal(
+        cirq.to_valid_density_matrix(
+            density_matrix_rep=np.array(np.full((2, 2), 0.5), dtype=np.complex64),
+            num_qubits=2,
         ),
         0.25 * np.ones((4, 4)),
     )

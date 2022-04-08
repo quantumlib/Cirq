@@ -142,14 +142,16 @@ class Result(abc.ABC):
         """
         # Convert to a DataFrame with columns as measurement keys, rows as
         # repetitions and a big endian integer for individual measurements.
-        converted_dict = {
-            key: [value.big_endian_bits_to_int(m_vals) for m_vals in val]
-            for key, val in measurements.items()
-        }
-        # Note that when a numpy array is produced from this data frame,
-        # Pandas will try to use np.int64 as dtype, but will upgrade to
-        # object if any value is too large to fit.
-        return pd.DataFrame(converted_dict, dtype=np.int64)
+        converted_dict = {}
+        for key, bitstrings in measurements.items():
+            _, n = bitstrings.shape
+            dtype = object if n > 63 else np.int64
+            basis = 2 ** np.arange(n, dtype=dtype)[::-1]
+            converted_dict[key] = np.sum(basis * bitstrings, axis=1)
+
+        # Use objects to accomodate more than 64 qubits if needed.
+        dtype = object if any(bs.shape[1] > 63 for _, bs in measurements.items()) else np.int64
+        return pd.DataFrame(converted_dict, dtype=dtype)
 
     @staticmethod
     @deprecated(
