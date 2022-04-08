@@ -305,7 +305,7 @@ class CircuitLibraryCombination:
     """
 
     layer: Optional[Any]
-    combinations: np.array
+    combinations: np.ndarray
     pairs: List[QidPairT]
 
 
