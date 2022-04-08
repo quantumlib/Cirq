@@ -580,18 +580,6 @@ def test_simulate_moment_steps_empty_circuit(dtype: Type[np.number], split: bool
 
 
 @pytest.mark.parametrize('dtype', [np.complex64, np.complex128])
-def test_simulate_moment_steps_set_state_deprecated(dtype):
-    q0, q1 = cirq.LineQubit.range(2)
-    circuit = cirq.Circuit(cirq.H(q0), cirq.H(q1), cirq.H(q0), cirq.H(q1))
-    simulator = cirq.Simulator(dtype=dtype)
-    for i, step in enumerate(simulator.simulate_moment_steps(circuit)):
-        np.testing.assert_almost_equal(step.state_vector(), np.array([0.5] * 4))
-        if i == 0:
-            with cirq.testing.assert_deprecated('initial_state', deadline='v0.15'):
-                step.set_state_vector(np.array([1, 0, 0, 0], dtype=dtype))
-
-
-@pytest.mark.parametrize('dtype', [np.complex64, np.complex128])
 @pytest.mark.parametrize('split', [True, False])
 def test_simulate_moment_steps_sample(dtype: Type[np.number], split: bool):
     q0, q1 = cirq.LineQubit.range(2)
@@ -775,7 +763,6 @@ def test_simulator_step_state_mixin():
     result = cirq.SparseSimulatorStep(
         sim_state=args,
         dtype=np.complex64,
-        simulator=None,  # type: ignore
     )
     rho = np.array([[0, 0, 0, 0], [0, 1, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]])
     np.testing.assert_array_almost_equal(rho, result.density_matrix_of(qubits))
