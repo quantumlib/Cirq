@@ -2775,8 +2775,7 @@ _TKey = TypeVar('_TKey')
 
 @overload
 def _group_until_different(
-    items: Iterable[_TIn],
-    key: Callable[[_TIn], _TKey]
+    items: Iterable[_TIn], key: Callable[[_TIn], _TKey]
 ) -> Iterable[Tuple[_TKey, List[_TIn]]]:
     pass
 
