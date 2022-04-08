@@ -373,7 +373,7 @@ class PhasedFSimEngineSimulator(cirq.SimulatesIntermediateStateVector[cirq.Spars
             ideal_when_missing_parameter=ideal_when_missing_parameter,
         )
 
-    def final_state_vector(self, program: cirq.Circuit) -> np.array:
+    def final_state_vector(self, program: cirq.Circuit) -> np.ndarray:
         result = self.simulate(program)
         return result.state_vector()
 
