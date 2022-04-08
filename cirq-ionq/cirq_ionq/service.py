@@ -114,7 +114,12 @@ class Service:
             return sim_result.to_cirq_result(params=cirq.ParamResolver(param_resolver), seed=seed)
             # pylint: enable=unexpected-keyword-arg
 
-    def sampler(self, target: Optional[str] = None, seed: cirq.RANDOM_STATE_OR_SEED_LIKE = None):
+    def sampler(
+        self,
+        target: Optional[str] = None,
+        seed: cirq.RANDOM_STATE_OR_SEED_LIKE = None,
+        timeout_seconds: Optional[int] = None,
+    ):
         """Returns a `cirq.Sampler` object for accessing the sampler interface.
 
         Args:
@@ -124,10 +129,13 @@ class Service:
             seed: If the target is `simulation` the seed for generating results. If None, this
                 will be `np.random`, if an int, will be `np.random.RandomState(int)`, otherwise
                 must be a modulate similar to `np.random`.
+            timeout_seconds: Length of time to wait for results. Default is specified in the job.
         Returns:
             A `cirq.Sampler` for the IonQ API.
         """
-        return sampler.Sampler(service=self, target=target, seed=seed)
+        return sampler.Sampler(
+            service=self, target=target, seed=seed, timeout_seconds=timeout_seconds
+        )
 
     def create_job(
         self,

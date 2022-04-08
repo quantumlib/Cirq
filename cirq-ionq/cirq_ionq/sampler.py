@@ -13,13 +13,11 @@
 # limitations under the License.
 """A `cirq.Sampler` implementation for the IonQ API."""
 
-from typing import Optional, Sequence, TYPE_CHECKING
+from typing import List, Optional, Sequence, Union, TYPE_CHECKING
 
 from cirq_ionq import results
 import cirq
-
-if TYPE_CHECKING:
-    import cirq_ionq
+import cirq_ionq
 
 
 class Sampler(cirq.Sampler):
@@ -65,6 +63,37 @@ class Sampler(cirq.Sampler):
         self._seed = seed
         self._timeout_seconds = timeout_seconds
 
+    def run_batch(
+        self,
+        programs: Sequence[cirq.AbstractCircuit],
+        params_list: Optional[List[cirq.Sweepable]] = None,
+        repetitions: Union[int, List[int]] = 1,
+    ) -> Sequence[Sequence[cirq.Result]]:
+        """Runs the supplied circuits.
+
+        Note that this creates jobs for all given programs and then
+        blocks until all of the jobs are complete.
+
+        See `cirq.Sampler` for documentation on args.
+        """
+        if params_list is None:
+            params_list = [None] * len(programs)
+        if len(programs) != len(params_list):
+            raise ValueError(
+                'len(programs) and len(params_list) must match. '
+                f'Got {len(programs)} and {len(params_list)}.'
+            )
+        if isinstance(repetitions, int):
+            repetitions = [repetitions] * len(programs)
+
+        resolvers = [r for r in cirq.to_resolvers(params_list)]
+
+        sweeps = [
+            self._start_sweep(program, params, repetitions)
+            for circuit, params, repetitions in zip(programs, resolvers, repetitions)
+        ]
+        return [self._resolve_sweep(jobs, params) for jobs, params in zip(sweeps, resolvers)]
+
     def run_sweep(
         self,
         program: cirq.AbstractCircuit,
@@ -81,6 +110,15 @@ class Sampler(cirq.Sampler):
         For use of the `sample` method, see the documentation of `cirq.Sampler`.
         """
         resolvers = [r for r in cirq.to_resolvers(params)]
+        jobs = self._start_sweep(program, resolvers, repetitions)
+        return self._resolve_sweep(jobs, resolvers)
+
+    def _start_sweep(
+        self,
+        program: cirq.AbstractCircuit,
+        resolvers: Sequence[cirq.ParamResolver],
+        repetitions: int = 1,
+    ) -> Sequence[cirq_ionq.Job]:
         jobs = [
             self._service.create_job(
                 circuit=cirq.resolve_parameters(program, resolver),
@@ -89,6 +127,13 @@ class Sampler(cirq.Sampler):
             )
             for resolver in resolvers
         ]
+        return jobs
+
+    def _resolve_sweep(
+        self,
+        jobs: Sequence[cirq_ionq.Job],
+        resolvers: Sequence[cirq.ParamResolver],
+    ):
         kwargs = {}
         if self._timeout_seconds is not None:
             kwargs = {"timeout_seconds": self._timeout_seconds}
