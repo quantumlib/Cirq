@@ -53,6 +53,7 @@ def document(value: Any, doc_string: str = ''):
         # print(f"WARNING: {e}")
         # print(traceback.format_stack(limit=2)[0])
         pass
+
     return value
 
 
