@@ -52,6 +52,7 @@ import numpy as np
 
 import cirq._version
 from cirq import _compat, devices, ops, protocols, qis
+from cirq._doc import document
 from cirq.circuits._bucket_priority_queue import BucketPriorityQueue
 from cirq.circuits.circuit_operation import CircuitOperation
 from cirq.circuits.insert_strategy import InsertStrategy
@@ -69,21 +70,24 @@ if TYPE_CHECKING:
 _TGate = TypeVar('_TGate', bound='cirq.Gate')
 
 CIRCUIT_TYPE = TypeVar('CIRCUIT_TYPE', bound='AbstractCircuit')
-"""Type variable for an AbstractCircuit.
+document(
+    CIRCUIT_TYPE,
+    """Type variable for an AbstractCircuit.
 
-This can be used when writing generic functions that operate on circuits.
-For example, suppose we define the following function:
+    This can be used when writing generic functions that operate on circuits.
+    For example, suppose we define the following function:
 
-    def foo(circuit: CIRCUIT_TYPE) -> CIRCUIT_TYPE:
-        ...
+        def foo(circuit: CIRCUIT_TYPE) -> CIRCUIT_TYPE:
+            ...
 
-This lets the typechecker know that this function takes any kind of circuit
-and returns the same type, that is, if passed a `cirq.Circuit` it will return
-`cirq.Circuit`, and similarly if passed `cirq.FrozenCircuit` it will return
-`cirq.FrozenCircuit`. This is particularly useful for things like the
-transformer API, since it can preserve more type information than if we typed
-the function as taking and returning `cirq.AbstractCircuit`.
-"""
+    This lets the typechecker know that this function takes any kind of circuit
+    and returns the same type, that is, if passed a `cirq.Circuit` it will return
+    `cirq.Circuit`, and similarly if passed `cirq.FrozenCircuit` it will return
+    `cirq.FrozenCircuit`. This is particularly useful for things like the
+    transformer API, since it can preserve more type information than if we typed
+    the function as taking and returning `cirq.AbstractCircuit`.
+    """,
+)
 
 _INT_TYPE = Union[int, np.integer]
 
