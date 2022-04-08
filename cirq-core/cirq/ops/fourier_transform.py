@@ -19,7 +19,6 @@ import sympy
 
 import cirq
 from cirq import value, _compat
-from cirq._compat import deprecated
 from cirq.ops import raw_types
 
 
@@ -99,14 +98,6 @@ class PhaseGradientGate(raw_types.Gate):
     @property
     def exponent(self) -> Union[float, sympy.Basic]:
         return self._exponent
-
-    @exponent.setter  # type: ignore
-    @deprecated(
-        deadline="v0.15",
-        fix="The mutators of this class are deprecated, instantiate a new object instead.",
-    )
-    def exponent(self, exponent: Union[float, sympy.Basic]):
-        self._exponent = exponent
 
     def _json_dict_(self) -> Dict[str, Any]:
         return {
