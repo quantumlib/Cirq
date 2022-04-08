@@ -660,14 +660,3 @@ def test_symbolic():
     assert p == cirq.MutableDensePauliString('XYZ', coefficient=t * r)
     p /= r
     assert p == cirq.MutableDensePauliString('XYZ', coefficient=t)
-
-
-def test_setters_deprecated():
-    gate = cirq.DensePauliString('X')
-    mask = np.array([0, 3, 1, 2], dtype=np.uint8)
-    with cirq.testing.assert_deprecated('mutators', deadline='v0.15'):
-        gate.pauli_mask = mask
-    assert gate.pauli_mask is mask
-    with cirq.testing.assert_deprecated('mutators', deadline='v0.15'):
-        gate.coefficient = -1
-    assert gate.coefficient == -1
