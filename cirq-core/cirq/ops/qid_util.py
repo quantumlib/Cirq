@@ -19,22 +19,22 @@ if TYPE_CHECKING:
 
 
 @overload
-def q(x: int) -> 'cirq.LineQubit':
+def q(_x: int) -> 'cirq.LineQubit':
     ...
 
 
 @overload
-def q(x: int, y: int) -> 'cirq.GridQubit':
+def q(_x: int, _y: int) -> 'cirq.GridQubit':
     ...
 
 
 @overload
-def q(x: str) -> 'cirq.NamedQubit':
+def q(_x: str) -> 'cirq.NamedQubit':
     ...
 
 
 def q(
-    x: Union[int, str], y: Optional[int] = None
+    _x: Union[int, str], _y: Optional[int] = None
 ) -> Union['cirq.LineQubit', 'cirq.GridQubit', 'cirq.NamedQubit']:
     """Constructs a qubit id of the appropriate type based on args.
 
@@ -43,9 +43,12 @@ def q(
     >>> cirq.q(1, 2) == cirq.GridQubit(1, 2)
     >>> cirq.q("foo") == cirq.NamedQubit("foo")
 
+    Note that arguments should be treated as positional only, even
+    though this is only enforceable in python 3.8 or later.
+
     Args:
-        x: First arg.
-        y: Second arg.
+        _x: First arg.
+        _y: Second arg.
 
     Returns:
         cirq.LineQubit if called with one integer arg.
@@ -57,12 +60,12 @@ def q(
     """
     import cirq  # avoid circular import
 
-    if y is None:
-        if isinstance(x, int):
-            return cirq.LineQubit(x)
-        elif isinstance(x, str):
-            return cirq.NamedQubit(x)
+    if _y is None:
+        if isinstance(_x, int):
+            return cirq.LineQubit(_x)
+        elif isinstance(_x, str):
+            return cirq.NamedQubit(_x)
     else:
-        if isinstance(x, int) and isinstance(y, int):
-            return cirq.GridQubit(x, y)
-    raise ValueError(f"Could not construct qubit: args={(x, y)}")
+        if isinstance(_x, int) and isinstance(_y, int):
+            return cirq.GridQubit(_x, _y)
+    raise ValueError(f"Could not construct qubit: args={(_x, _y)}")

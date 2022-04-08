@@ -259,6 +259,8 @@ from cirq.ops.phased_x_z_gate import (
     PhasedXZGate,
 )
 
+from cirq.ops.qid_util import q
+
 from cirq.ops.random_gate_channel import (
     RandomGateChannel,
 )
@@ -308,5 +310,3 @@ from cirq.ops.wait_gate import (
 )
 
 from cirq.ops.state_preparation_channel import StatePreparationChannel
-
-from cirq.ops.util import q
