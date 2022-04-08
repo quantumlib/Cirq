@@ -89,10 +89,13 @@ class Sampler(cirq.Sampler):
         resolvers = [r for r in cirq.to_resolvers(params_list)]
 
         sweeps = [
-            self._start_sweep(program, params, repetitions)
+            self._start_sweep(program, [params], repetitions)
             for program, params, repetitions in zip(programs, resolvers, repetitions)
         ]
-        return [self._resolve_sweep(jobs, params) for jobs, params in zip(sweeps, resolvers)]
+        return [
+            self._resolve_sweep(jobs, [params] * len(jobs))
+            for jobs, params in zip(sweeps, resolvers)
+        ]
 
     def run_sweep(
         self,
