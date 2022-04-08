@@ -187,7 +187,7 @@ class ControlledGate(raw_types.Gate):
             )
         return decomposed
 
-    def on(self, *qubits: 'cirq.Qid', **kwargs) -> cop.ControlledOperation:
+    def on(self, *qubits: 'cirq.Qid') -> cop.ControlledOperation:
         if len(qubits) == 0:
             raise ValueError(f"Applied a gate to an empty set of qubits. Gate: {self!r}")
         self.validate_args(qubits)

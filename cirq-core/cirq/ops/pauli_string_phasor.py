@@ -341,7 +341,7 @@ class PauliStringPhasorGate(raw_types.Gate):
         """The number of qubits for the gate."""
         return len(self.dense_pauli_string)
 
-    def on(self, *qubits: 'cirq.Qid', **kwargs) -> 'cirq.PauliStringPhasor':
+    def on(self, *qubits: 'cirq.Qid') -> 'cirq.PauliStringPhasor':
         """Creates a PauliStringPhasor on the qubits."""
         return PauliStringPhasor(
             self.dense_pauli_string.on(*qubits),

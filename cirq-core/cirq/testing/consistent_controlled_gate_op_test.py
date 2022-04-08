@@ -47,7 +47,7 @@ class BadGate(cirq.EigenGate, cirq.SingleQubitGate):
             (1, np.diag([0, 1])),
         ]
 
-    def on(self, *qubits: 'cirq.Qid', **kwargs) -> 'cirq.Operation':
+    def on(self, *qubits: 'cirq.Qid') -> 'cirq.Operation':
         return BadGateOperation(self, list(qubits))
 
     def controlled(
