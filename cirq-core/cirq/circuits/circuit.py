@@ -82,7 +82,7 @@ and returns the same type, that is, if passed a `cirq.Circuit` it will return
 `cirq.Circuit`, and similarly if passed `cirq.FrozenCircuit` it will return
 `cirq.FrozenCircuit`. This is particularly useful for things like the
 transformer API, since it can preserve more type information than if we typed
-the function as taking and returning `cirq.AbstractCircuit`. 
+the function as taking and returning `cirq.AbstractCircuit`.
 """
 
 _INT_TYPE = Union[int, np.integer]
