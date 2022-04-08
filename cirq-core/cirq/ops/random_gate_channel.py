@@ -27,8 +27,8 @@ from typing import (
 import numpy as np
 
 from cirq import protocols, value
+from cirq._compat import proper_repr
 from cirq.ops import raw_types
-from cirq._compat import deprecated, proper_repr
 
 if TYPE_CHECKING:
     import cirq
@@ -57,25 +57,9 @@ class RandomGateChannel(raw_types.Gate):
     def sub_gate(self) -> 'cirq.Gate':
         return self._sub_gate
 
-    @sub_gate.setter  # type: ignore
-    @deprecated(
-        deadline="v0.15",
-        fix="The mutators of this class are deprecated, instantiate a new object instead.",
-    )
-    def sub_gate(self, sub_gate: 'cirq.Gate'):
-        self._sub_gate = sub_gate
-
     @property
     def probability(self) -> 'cirq.TParamVal':
         return self._probability
-
-    @probability.setter  # type: ignore
-    @deprecated(
-        deadline="v0.15",
-        fix="The mutators of this class are deprecated, instantiate a new object instead.",
-    )
-    def probability(self, probability: 'cirq.TParamVal'):
-        self._probability = probability
 
     def _qid_shape_(self) -> Tuple[int, ...]:
         return protocols.qid_shape(self.sub_gate)

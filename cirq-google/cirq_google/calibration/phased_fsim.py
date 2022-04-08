@@ -1033,7 +1033,7 @@ class PhaseCalibratedFSimGate:
             (cirq.rz(0.5 * gamma - beta).on(a), cirq.rz(0.5 * gamma + beta).on(b)),
         )
 
-    def _unitary_(self) -> np.array:
+    def _unitary_(self) -> np.ndarray:
         """Implements Cirq's `unitary` protocol for this object."""
         p = np.exp(-np.pi * 1j * self.phase_exponent)
         return (

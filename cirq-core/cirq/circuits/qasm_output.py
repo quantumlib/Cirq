@@ -43,7 +43,7 @@ class QasmUGate(ops.SingleQubitGate):
         self.phi = phi % 2
 
     @staticmethod
-    def from_matrix(mat: np.array) -> 'QasmUGate':
+    def from_matrix(mat: np.ndarray) -> 'QasmUGate':
         pre_phase, rotation, post_phase = linalg.deconstruct_single_qubit_matrix_into_angles(mat)
         return QasmUGate(
             rotation / np.pi,
@@ -115,7 +115,7 @@ class QasmTwoQubitGate(ops.Gate):
         return self.kak
 
     @staticmethod
-    def from_matrix(mat: np.array, atol=1e-8) -> 'QasmTwoQubitGate':
+    def from_matrix(mat: np.ndarray, atol=1e-8) -> 'QasmTwoQubitGate':
         """Creates a QasmTwoQubitGate from the given matrix.
 
         Args:
