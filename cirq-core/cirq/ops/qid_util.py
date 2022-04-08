@@ -19,23 +19,21 @@ if TYPE_CHECKING:
 
 
 @overload
-def q(_x: int) -> 'cirq.LineQubit':
+def q(__x: int) -> 'cirq.LineQubit':
     ...
 
 
 @overload
-def q(_x: int, _y: int) -> 'cirq.GridQubit':
+def q(__row: int, __col: int) -> 'cirq.GridQubit':
     ...
 
 
 @overload
-def q(_x: str) -> 'cirq.NamedQubit':
+def q(__name: str) -> 'cirq.NamedQubit':
     ...
 
 
-def q(
-    _x: Union[int, str], _y: Optional[int] = None
-) -> Union['cirq.LineQubit', 'cirq.GridQubit', 'cirq.NamedQubit']:
+def q(*args: Union[int, str]) -> Union['cirq.LineQubit', 'cirq.GridQubit', 'cirq.NamedQubit']:
     """Constructs a qubit id of the appropriate type based on args.
 
     This is shorthand for constructing qubit ids of common types:
@@ -47,8 +45,7 @@ def q(
     though this is only enforceable in python 3.8 or later.
 
     Args:
-        _x: First arg.
-        _y: Second arg.
+        *args: One or two ints, or a single str, as described above.
 
     Returns:
         cirq.LineQubit if called with one integer arg.
@@ -60,12 +57,12 @@ def q(
     """
     import cirq  # avoid circular import
 
-    if _y is None:
-        if isinstance(_x, int):
-            return cirq.LineQubit(_x)
-        elif isinstance(_x, str):
-            return cirq.NamedQubit(_x)
-    else:
-        if isinstance(_x, int) and isinstance(_y, int):
-            return cirq.GridQubit(_x, _y)
-    raise ValueError(f"Could not construct qubit: args={(_x, _y)}")
+    if len(args) == 1:
+        if isinstance(args[0], int):
+            return cirq.LineQubit(args[0])
+        elif isinstance(args[0], str):
+            return cirq.NamedQubit(args[0])
+    elif len(args) == 2:
+        if isinstance(args[0], int) and isinstance(args[1], int):
+            return cirq.GridQubit(args[0], args[1])
+    raise ValueError(f"Could not construct qubit: args={args}")
