@@ -44,13 +44,6 @@ def test_shallow_copy_buffers():
     assert copy.available_buffer is args.available_buffer
 
 
-def test_deprecated_warning_and_default_parameter_error():
-    tensor = np.ndarray(shape=(2,))
-    with cirq.testing.assert_deprecated('Use initial_state instead', deadline='v0.15'):
-        with pytest.raises(ValueError, match='dimension of target_tensor is not divisible by 2'):
-            cirq.ActOnDensityMatrixArgs(target_tensor=tensor)
-
-
 def test_decomposed_fallback():
     class Composite(cirq.Gate):
         def num_qubits(self) -> int:

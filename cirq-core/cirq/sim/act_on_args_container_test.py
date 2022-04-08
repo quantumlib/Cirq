@@ -11,20 +11,39 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from typing import Any, Dict, List, Optional, Sequence
+from typing import Any, Dict, Optional, Sequence
 
 import cirq
+
+
+class EmptyQuantumState(cirq.QuantumStateRepresentation):
+    def copy(self, deep_copy_buffers=True):
+        return self
+
+    def measure(self, axes, seed=None):
+        return [0] * len(axes)
+
+    @property
+    def supports_factor(self):
+        return True
+
+    def kron(self, other):
+        return self
+
+    def factor(self, axes, *, validate=True, atol=1e-07):
+        return self, self
+
+    def reindex(self, axes):
+        return self
 
 
 class EmptyActOnArgs(cirq.ActOnArgs):
     def __init__(self, qubits, classical_data):
         super().__init__(
+            state=EmptyQuantumState(),
             qubits=qubits,
             classical_data=classical_data,
         )
-
-    def _perform_measurement(self, qubits: Sequence[cirq.Qid]) -> List[int]:
-        return [0] * len(qubits)
 
     def _act_on_fallback_(
         self,
@@ -32,10 +51,6 @@ class EmptyActOnArgs(cirq.ActOnArgs):
         qubits: Sequence['cirq.Qid'],
         allow_decompose: bool = True,
     ) -> bool:
-        return True
-
-    @property
-    def allows_factoring(self):
         return True
 
 
