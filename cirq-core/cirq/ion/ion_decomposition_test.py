@@ -117,7 +117,7 @@ def assert_ms_depth_below(operations, threshold):
     (2, _random_double_MS_effect()) for _ in range(10)
 ])
 # yapf: enable
-def test_two_to_ops(max_ms_depth: int, effect: np.array):
+def test_two_to_ops(max_ms_depth: int, effect: np.ndarray):
     q0 = cirq.NamedQubit('q0')
     q1 = cirq.NamedQubit('q1')
 
