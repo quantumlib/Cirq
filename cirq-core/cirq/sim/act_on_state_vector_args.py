@@ -343,16 +343,9 @@ class ActOnStateVectorArgs(ActOnArgs):
         parameter_desc='log_of_measurement_results',
         match=lambda args, kwargs: 'log_of_measurement_results' in kwargs or len(args) > 4,
     )
-    @_compat.deprecated_parameter(
-        deadline='v0.15',
-        fix='Use initial_state instead.',
-        parameter_desc='target_tensor',
-        match=lambda args, kwargs: 'target_tensor' in kwargs,
-    )
     def __init__(
         self,
         *,
-        target_tensor: Optional[np.ndarray] = None,
         available_buffer: Optional[np.ndarray] = None,
         prng: Optional[np.random.RandomState] = None,
         log_of_measurement_results: Optional[Dict[str, List[int]]] = None,
@@ -364,9 +357,6 @@ class ActOnStateVectorArgs(ActOnArgs):
         """Inits ActOnStateVectorArgs.
 
         Args:
-            target_tensor: The state vector to act on, stored as a numpy array
-                with one dimension for each qubit in the system. Operations are
-                expected to perform inplace edits of this object.
             available_buffer: A workspace with the same shape and dtype as
                 `target_tensor`. Used by operations that cannot be applied to
                 `target_tensor` inline, in order to avoid unnecessary
@@ -388,7 +378,7 @@ class ActOnStateVectorArgs(ActOnArgs):
                 simulation.
         """
         state = _BufferedStateVector.create(
-            initial_state=target_tensor if target_tensor is not None else initial_state,
+            initial_state=initial_state,
             qid_shape=tuple(q.dimension for q in qubits) if qubits is not None else None,
             dtype=dtype,
             buffer=available_buffer,
@@ -506,8 +496,7 @@ class ActOnStateVectorArgs(ActOnArgs):
     def __repr__(self) -> str:
         return (
             'cirq.ActOnStateVectorArgs('
-            f'target_tensor={proper_repr(self.target_tensor)},'
-            f' available_buffer={proper_repr(self.available_buffer)},'
+            f'initial_state={proper_repr(self.target_tensor)},'
             f' qubits={self.qubits!r},'
             f' log_of_measurement_results={proper_repr(self.log_of_measurement_results)})'
         )
