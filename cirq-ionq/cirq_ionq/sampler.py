@@ -90,7 +90,7 @@ class Sampler(cirq.Sampler):
 
         sweeps = [
             self._start_sweep(program, params, repetitions)
-            for circuit, params, repetitions in zip(programs, resolvers, repetitions)
+            for program, params, repetitions in zip(programs, resolvers, repetitions)
         ]
         return [self._resolve_sweep(jobs, params) for jobs, params in zip(sweeps, resolvers)]
 
