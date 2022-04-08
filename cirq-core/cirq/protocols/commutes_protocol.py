@@ -35,7 +35,7 @@ class SupportsCommutes(Protocol):
     """An object that can determine commutation relationships vs others."""
 
     @doc_private
-    def _commutes_(self, other: Any, atol: float) -> Union[None, bool, NotImplementedType]:
+    def _commutes_(self, other: Any, *, atol: float) -> Union[None, bool, NotImplementedType]:
         r"""Determines if this object commutes with the other object.
 
         Can return None to indicate the commutation relationship is

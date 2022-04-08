@@ -383,7 +383,7 @@ class SingleQubitCliffordGate(gate_features.SingleQubitGate):
 
         return SingleQubitCliffordGate.from_clifford_tableau(self.clifford_tableau.inverse())
 
-    def _commutes_(self, other: Any, atol: float) -> Union[bool, NotImplementedType]:
+    def _commutes_(self, other: Any, *, atol: float = 1e-8) -> Union[bool, NotImplementedType]:
         if isinstance(other, SingleQubitCliffordGate):
             return self.commutes_with_single_qubit_gate(other)
         if isinstance(other, Pauli):
@@ -838,7 +838,9 @@ class CliffordGate(raw_types.Gate, CommonCliffordGates):
     def __repr__(self) -> str:
         return f"Clifford Gate with Tableau:\n {self.clifford_tableau._str_full_()}"
 
-    def _commutes_(self, other: Any, atol: float) -> Union[bool, NotImplementedType, None]:
+    def _commutes_(
+        self, other: Any, *, atol: float = 1e-8
+    ) -> Union[bool, NotImplementedType, None]:
         # Note even if we assume two gates define the tabluea based on the same qubit order,
         # the following approach cannot judge it:
         # self.clifford_tableau.then(other.clifford_tableau) == other.clifford_tableau.then(

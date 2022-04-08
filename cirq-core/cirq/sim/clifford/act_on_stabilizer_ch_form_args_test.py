@@ -28,13 +28,6 @@ def test_init_state():
         _ = cirq.ActOnStabilizerCHFormArgs(initial_state=1)
 
 
-def test_deprecated_warning():
-    with cirq.testing.assert_deprecated(
-        'Specify all the arguments with keywords', deadline='v0.15'
-    ):
-        cirq.ActOnStabilizerCHFormArgs(cirq.StabilizerStateChForm(num_qubits=3))
-
-
 def test_cannot_act():
     class NoDetails(cirq.SingleQubitGate):
         pass

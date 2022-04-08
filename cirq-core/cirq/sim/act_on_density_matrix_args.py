@@ -79,7 +79,11 @@ class _BufferedDensityMatrix(qis.QuantumStateRepresentation):
             ).reshape(qid_shape * 2)
         else:
             if qid_shape is not None:
-                density_matrix = initial_state.reshape(qid_shape * 2)
+                if dtype and initial_state.dtype != dtype:
+                    initial_state = initial_state.astype(dtype)
+                density_matrix = qis.to_valid_density_matrix(
+                    initial_state, len(qid_shape), qid_shape=qid_shape, dtype=dtype
+                ).reshape(qid_shape * 2)
             else:
                 density_matrix = initial_state
             if np.may_share_memory(density_matrix, initial_state):
@@ -242,30 +246,17 @@ class ActOnDensityMatrixArgs(ActOnArgs):
     @_compat.deprecated_parameter(
         deadline='v0.15',
         fix='Use classical_data.',
-        parameter_desc='log_of_measurement_results and positional arguments',
+        parameter_desc='log_of_measurement_results',
         match=lambda args, kwargs: 'log_of_measurement_results' in kwargs or len(args) > 5,
-    )
-    @_compat.deprecated_parameter(
-        deadline='v0.15',
-        fix='Use cirq.dephase_measurements to transform the circuit before simulating.',
-        parameter_desc='ignore_measurement_results',
-        match=lambda args, kwargs: 'ignore_measurement_results' in kwargs or len(args) > 7,
-    )
-    @_compat.deprecated_parameter(
-        deadline='v0.15',
-        fix='Use initial_state instead and specify all the arguments with keywords.',
-        parameter_desc='target_tensor and positional arguments',
-        match=lambda args, kwargs: 'target_tensor' in kwargs or len(args) != 1,
     )
     def __init__(
         self,
-        target_tensor: Optional[np.ndarray] = None,
+        *,
         available_buffer: Optional[List[np.ndarray]] = None,
         qid_shape: Optional[Tuple[int, ...]] = None,
         prng: Optional[np.random.RandomState] = None,
         log_of_measurement_results: Optional[Dict[str, List[int]]] = None,
         qubits: Optional[Sequence['cirq.Qid']] = None,
-        ignore_measurement_results: bool = False,
         initial_state: Union[np.ndarray, 'cirq.STATE_VECTOR_LIKE'] = 0,
         dtype: Type[np.number] = np.complex64,
         classical_data: Optional['cirq.ClassicalDataStore'] = None,
@@ -273,9 +264,6 @@ class ActOnDensityMatrixArgs(ActOnArgs):
         """Inits ActOnDensityMatrixArgs.
 
         Args:
-            target_tensor: The state vector to act on, stored as a numpy array
-                with one dimension for each qubit in the system. Operations are
-                expected to perform inplace edits of this object.
             available_buffer: A workspace with the same shape and dtype as
                 `target_tensor`. Used by operations that cannot be applied to
                 `target_tensor` inline, in order to avoid unnecessary
@@ -288,10 +276,6 @@ class ActOnDensityMatrixArgs(ActOnArgs):
                 effects.
             log_of_measurement_results: A mutable object that measurements are
                 being recorded into.
-            ignore_measurement_results: If True, then the simulation
-                will treat measurement as dephasing instead of collapsing
-                process. This is only applicable to simulators that can
-                model dephasing.
             initial_state: The initial state for the simulation in the
                 computational basis.
             dtype: The `numpy.dtype` of the inferred state vector. One of
@@ -305,28 +289,18 @@ class ActOnDensityMatrixArgs(ActOnArgs):
                 and `qid_shape` is not provided.
         """
         state = _BufferedDensityMatrix.create(
-            initial_state=target_tensor if target_tensor is not None else initial_state,
+            initial_state=initial_state,
             qid_shape=tuple(q.dimension for q in qubits) if qubits is not None else None,
             dtype=dtype,
             buffer=available_buffer,
         )
-        if ignore_measurement_results:
-            super().__init__(
-                state=state,
-                prng=prng,
-                qubits=qubits,
-                log_of_measurement_results=log_of_measurement_results,
-                ignore_measurement_results=ignore_measurement_results,
-                classical_data=classical_data,
-            )
-        else:
-            super().__init__(
-                state=state,
-                prng=prng,
-                qubits=qubits,
-                log_of_measurement_results=log_of_measurement_results,
-                classical_data=classical_data,
-            )
+        super().__init__(
+            state=state,
+            prng=prng,
+            qubits=qubits,
+            log_of_measurement_results=log_of_measurement_results,
+            classical_data=classical_data,
+        )
         self._state: _BufferedDensityMatrix = state
 
     def _act_on_fallback_(
@@ -358,8 +332,7 @@ class ActOnDensityMatrixArgs(ActOnArgs):
     def __repr__(self) -> str:
         return (
             'cirq.ActOnDensityMatrixArgs('
-            f'target_tensor={proper_repr(self.target_tensor)},'
-            f' available_buffer={proper_repr(self.available_buffer)},'
+            f'initial_state={proper_repr(self.target_tensor)},'
             f' qid_shape={self.qid_shape!r},'
             f' qubits={self.qubits!r},'
             f' log_of_measurement_results={proper_repr(self.log_of_measurement_results)})'

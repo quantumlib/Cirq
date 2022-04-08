@@ -16,7 +16,6 @@ from typing import AbstractSet, Any, Dict, Optional, Tuple, TYPE_CHECKING, Union
 import sympy
 
 from cirq import value, protocols
-from cirq._compat import deprecated
 from cirq.ops import raw_types
 
 if TYPE_CHECKING:
@@ -71,14 +70,6 @@ class WaitGate(raw_types.Gate):
     @property
     def duration(self) -> 'cirq.Duration':
         return self._duration
-
-    @duration.setter  # type: ignore
-    @deprecated(
-        deadline="v0.15",
-        fix="The mutators of this class are deprecated, instantiate a new object instead.",
-    )
-    def duration(self, duration: 'cirq.Duration'):
-        self._duration = duration
 
     def _is_parameterized_(self) -> bool:
         return protocols.is_parameterized(self.duration)
