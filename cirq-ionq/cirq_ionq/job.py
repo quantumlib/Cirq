@@ -14,6 +14,7 @@
 """Represents a job created via the IonQ API."""
 
 import time
+import warnings
 from typing import Dict, Sequence, Union, TYPE_CHECKING
 
 from cirq_ionq import ionq_exceptions, results
@@ -196,6 +197,10 @@ class Job:
                 break
             time.sleep(polling_seconds)
             time_waited_seconds += polling_seconds
+        if 'warning' in self._job and 'messages' in self._job['warning']:
+            for warning in self._job['warning']['messages']:
+                warnings.warn(warning)
+
         if self.status() != 'completed':
             if 'failure' in self._job and 'error' in self._job['failure']:
                 error = self._job['failure']['error']
