@@ -11,7 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-# pylint: disable=line-too-long
 """Utility functions to estimate runtime using Engine to execute circuits.
 
 Users can call estimate_run_time, estimate_run_sweep_time, or
@@ -30,7 +29,6 @@ the rep rate calculator, see:
 Model was then fitted by hand, correcting for anomalies and outliers
 when possible.
 """
-# pylint: enable=line-too-long
 
 from typing import List, Optional, Sequence
 import cirq

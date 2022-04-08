@@ -11,7 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-# pylint: disable=line-too-long
 """Current device parameters for the AQT/UIBK ion trap device
 
 The device is based on a linear calcium ion string with
@@ -22,9 +21,7 @@ arbitrary connectivity. For more information see:
 [https://iopscience.iop.org/article/10.1088/1367-2630/15/12/123012/meta](https://iopscience.iop.org/article/10.1088/1367-2630/15/12/123012/meta){:.external}
 
 The native gate set consists of the local gates: X,Y, and XX entangling gates
-
 """
-# pylint: enable=line-too-long
 
 import json
 from typing import Any, cast, Dict, Optional, Sequence, List, Tuple, Union
