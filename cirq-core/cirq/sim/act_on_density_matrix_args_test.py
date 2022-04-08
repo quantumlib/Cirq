@@ -98,3 +98,50 @@ def test_with_qubits():
 def test_qid_shape_error():
     with pytest.raises(ValueError, match="qid_shape must be provided"):
         cirq.sim.act_on_density_matrix_args._BufferedDensityMatrix.create(initial_state=0)
+
+
+def test_initial_state_vector():
+    qubits = cirq.LineQubit.range(3)
+    args = cirq.ActOnDensityMatrixArgs(
+        qubits=qubits, initial_state=np.full((8,), 1 / np.sqrt(8)), dtype=np.complex64
+    )
+    assert args.target_tensor.shape == (2, 2, 2, 2, 2, 2)
+
+    args2 = cirq.ActOnDensityMatrixArgs(
+        qubits=qubits, initial_state=np.full((2, 2, 2), 1 / np.sqrt(8)), dtype=np.complex64
+    )
+    assert args2.target_tensor.shape == (2, 2, 2, 2, 2, 2)
+
+
+def test_initial_state_matrix():
+    qubits = cirq.LineQubit.range(3)
+    args = cirq.ActOnDensityMatrixArgs(
+        qubits=qubits, initial_state=np.full((8, 8), 1 / 8), dtype=np.complex64
+    )
+    assert args.target_tensor.shape == (2, 2, 2, 2, 2, 2)
+
+    args2 = cirq.ActOnDensityMatrixArgs(
+        qubits=qubits, initial_state=np.full((2, 2, 2, 2, 2, 2), 1 / 8), dtype=np.complex64
+    )
+    assert args2.target_tensor.shape == (2, 2, 2, 2, 2, 2)
+
+
+def test_initial_state_bad_shape():
+    qubits = cirq.LineQubit.range(3)
+    with pytest.raises(ValueError, match="Invalid quantum state"):
+        cirq.ActOnDensityMatrixArgs(
+            qubits=qubits, initial_state=np.full((4,), 1 / 2), dtype=np.complex64
+        )
+    with pytest.raises(ValueError, match="Invalid quantum state"):
+        cirq.ActOnDensityMatrixArgs(
+            qubits=qubits, initial_state=np.full((2, 2), 1 / 2), dtype=np.complex64
+        )
+
+    with pytest.raises(ValueError, match="Invalid quantum state"):
+        cirq.ActOnDensityMatrixArgs(
+            qubits=qubits, initial_state=np.full((4, 4), 1 / 4), dtype=np.complex64
+        )
+    with pytest.raises(ValueError, match="Invalid quantum state"):
+        cirq.ActOnDensityMatrixArgs(
+            qubits=qubits, initial_state=np.full((2, 2, 2, 2), 1 / 4), dtype=np.complex64
+        )
