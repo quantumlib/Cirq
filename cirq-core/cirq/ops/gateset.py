@@ -204,7 +204,7 @@ class Gateset:
     @_compat.deprecated_parameter(
         deadline='v0.16',
         fix='Add a global phase gate to the Gateset',
-        parameter_desc='ignore_global_phase',
+        parameter_desc='accept_global_phase_op',
         match=lambda args, kwargs: 'accept_global_phase_op' in kwargs,
     )
     def __init__(
@@ -267,7 +267,7 @@ class Gateset:
     @_compat.deprecated_parameter(
         deadline='v0.16',
         fix='Add a global phase gate to the Gateset',
-        parameter_desc='ignore_global_phase',
+        parameter_desc='accept_global_phase_op',
         match=lambda args, kwargs: 'accept_global_phase_op' in kwargs,
     )
     def with_params(
