@@ -92,7 +92,7 @@ class GridDeviceMetadata(device.DeviceMetadata):
         connectivity.add_edges_from(sorted(edge_set), directed=False)
         super().__init__(all_qubits, connectivity)
 
-        self._qubit_pairs = frozenset(edge_set)
+        self._qubit_pairs = frozenset({frozenset(pair) for pair in edge_set})
         self._gateset = gateset
         self._isolated_qubits = all_qubits.difference(node_set)
 
@@ -110,8 +110,12 @@ class GridDeviceMetadata(device.DeviceMetadata):
         self._gate_durations = gate_durations
 
     @property
-    def qubit_pairs(self) -> FrozenSet[Tuple['cirq.Qid', 'cirq.Qid']]:
-        """Returns the set of all couple-able qubits on the device."""
+    def qubit_pairs(self) -> FrozenSet[FrozenSet['cirq.Qid']]:
+        """Returns the set of all couple-able qubits on the device.
+
+        Each element in the outer frozenset is a 2-element frozenset representing a bidirectional
+        pair.
+        """
         return self._qubit_pairs
 
     @property
@@ -135,15 +139,16 @@ class GridDeviceMetadata(device.DeviceMetadata):
             duration_equality = sorted(self._gate_durations.items(), key=lambda x: repr(x[0]))
 
         return (
-            tuple(sorted(self._qubit_pairs)),
+            self._qubit_pairs,
             self._gateset,
             tuple(duration_equality),
             tuple(sorted(self.qubit_set)),
         )
 
     def __repr__(self) -> str:
+        qubit_pair_tuples = frozenset({tuple(sorted(p)) for p in self._qubit_pairs})
         return (
-            f'cirq.GridDeviceMetadata({repr(self._qubit_pairs)},'
+            f'cirq.GridDeviceMetadata({repr(qubit_pair_tuples)},'
             f' {repr(self._gateset)}, {repr(self._gate_durations)},'
             f' {repr(self.qubit_set)})'
         )
@@ -154,7 +159,7 @@ class GridDeviceMetadata(device.DeviceMetadata):
             duration_payload = sorted(self._gate_durations.items(), key=lambda x: repr(x[0]))
 
         return {
-            'qubit_pairs': sorted(list(self._qubit_pairs)),
+            'qubit_pairs': sorted([sorted(pair) for pair in self._qubit_pairs]),
             'gateset': self._gateset,
             'gate_durations': duration_payload,
             'all_qubits': sorted(list(self.qubit_set)),
