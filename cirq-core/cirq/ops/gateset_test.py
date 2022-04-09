@@ -346,3 +346,10 @@ def test_gateset_eq():
             )
         )
     )
+
+
+def test_from_json_allow_global_phase_deprecated():
+    with cirq.testing.assert_deprecated('global phase', deadline='v0.16'):
+        _ = cirq.Gateset._from_json_dict_([], '', True, accept_global_phase_op=True)
+    with cirq.testing.assert_deprecated('global phase', deadline='v0.16'):
+        _ = cirq.Gateset._from_json_dict_([], '', True, accept_global_phase_op=False)

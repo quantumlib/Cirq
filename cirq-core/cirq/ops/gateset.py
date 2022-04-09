@@ -444,8 +444,13 @@ class Gateset:
 
     @classmethod
     def _from_json_dict_(cls, gates, name, unroll_circuit_op, **kwargs) -> 'Gateset':
-        if 'accept_global_phase_op' in kwargs and kwargs['accept_global_phase_op']:
-            gates = gates + (global_phase_op.GlobalPhaseGate,)
+        if 'accept_global_phase_op' in kwargs:
+            return cls(
+                *gates,
+                name=name,
+                unroll_circuit_op=unroll_circuit_op,
+                accept_global_phase_op=kwargs['accept_global_phase_op'],
+            )
         return cls(
             *gates,
             name=name,
