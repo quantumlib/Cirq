@@ -15,7 +15,6 @@
 
 from typing import List, Optional, Sequence, Union
 
-from cirq_ionq import results, Job
 import cirq
 
 
@@ -39,7 +38,7 @@ class Sampler(cirq.Sampler):
 
     def __init__(
         self,
-        service: 'cirq_ionq.Service',
+        service: Service,
         target: Optional[str],
         timeout_seconds: Optional[int] = None,
         seed: cirq.RANDOM_STATE_OR_SEED_LIKE = None,
