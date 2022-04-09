@@ -231,11 +231,11 @@ class Gateset:
             name: (Optional) Name for the Gateset. Useful for description.
             unroll_circuit_op: If True, `cirq.CircuitOperation` is recursively
                 validated by validating the underlying `cirq.Circuit`.
-            accept_global_phase_op: If True, `cirq.GlobalPhaseGate` is accepted.
-                If False, `cirq.GlobalPhaseGate` will still be accepted if it
-                appears in the `gates` parameter. This parameter defaults to
-                False (a breaking change from v0.14) and will be removed in
-                v0.16.
+            accept_global_phase_op: If True, a `GateFamily` accepting
+                `cirq.GlobalPhaseGate` will be included. If False,
+                `cirq.GlobalPhaseGate` will still be accepted if it appears in
+                the `gates` parameter. This parameter defaults to False (a
+                breaking change from v0.14) and will be removed in v0.16.
         """
         self._name = name
         self._unroll_circuit_op = unroll_circuit_op
@@ -285,9 +285,9 @@ class Gateset:
             name: New name for the Gateset.
             unroll_circuit_op: If True, new Gateset will recursively validate
                 `cirq.CircuitOperation` by validating the underlying `cirq.Circuit`.
-            accept_global_phase_op: If True, new Gateset will accept `cirq.GlobalPhaseGate`.
-                False or None have no effect. This parameter is deprecated and will be
-                removed in v0.16.
+            accept_global_phase_op: If True, new Gateset will include a `GateFamily` that accepts
+                `cirq.GlobalPhaseGate`. False or None have no effect. This parameter is deprecated
+                and will be removed in v0.16.
 
         Returns:
             `self` if all new values are None or identical to the values of current Gateset.
