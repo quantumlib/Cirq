@@ -263,9 +263,7 @@ def test_gateset_validate(use_circuit_op, use_global_phase):
             assert gateset.validate(item) is result
 
     op_tree = [*get_ops(use_circuit_op, use_global_phase)]
-    with cirq.testing.assert_deprecated(
-        'global phase', deadline='v0.16', count=2 if use_global_phase else 1
-    ):
+    with cirq.testing.assert_deprecated('global phase', deadline='v0.16'):
         assert_validate_and_contains_consistent(
             gateset.with_params(
                 unroll_circuit_op=use_circuit_op,
@@ -300,7 +298,7 @@ def test_with_params():
             gateset.with_params(
                 name=gateset.name,
                 unroll_circuit_op=gateset._unroll_circuit_op,
-                accept_global_phase_op=gateset._accept_global_phase_op,
+                accept_global_phase_op=None,
             )
             is gateset
         )
@@ -310,7 +308,6 @@ def test_with_params():
         )
     assert gateset_with_params.name == 'new name'
     assert gateset_with_params._unroll_circuit_op is False
-    assert gateset_with_params._accept_global_phase_op is False
 
 
 def test_gateset_eq():

@@ -191,7 +191,6 @@ TestSpec = ModuleJsonTestSpec(
     deprecated={
         'GlobalPhaseOperation': 'v0.16',
         'SymmetricalQidPair': 'v0.15',
-        'Gateset': 'v0.16',
     },
     tested_elsewhere=[
         # SerializableByKey does not follow common serialization rules.

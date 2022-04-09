@@ -234,12 +234,13 @@ class Gateset:
             accept_global_phase_op: If True, `cirq.GlobalPhaseGate` is accepted.
                 If False, `cirq.GlobalPhaseGate` will still be accepted if it
                 appears in the `gates` parameter. This parameter defaults to
-                False (a breaking change from v0.15) and is currently being
-                deprecated.
+                False (a breaking change from v0.14) and will be removed in
+                v0.16.
         """
         self._name = name
         self._unroll_circuit_op = unroll_circuit_op
-        self._accept_global_phase_op = accept_global_phase_op
+        if accept_global_phase_op:
+            gates = gates + (global_phase_op.GlobalPhaseGate,)
         self._instance_gate_families: Dict[raw_types.Gate, GateFamily] = {}
         self._type_gate_families: Dict[Type[raw_types.Gate], GateFamily] = {}
         self._gates_repr_str = ", ".join([_gate_str(g, repr) for g in gates])
@@ -284,7 +285,9 @@ class Gateset:
             name: New name for the Gateset.
             unroll_circuit_op: If True, new Gateset will recursively validate
                 `cirq.CircuitOperation` by validating the underlying `cirq.Circuit`.
-            accept_global_phase_op: If True, new Gateset will accept `cirq.GlobalPhaseOperation`.
+            accept_global_phase_op: If True, new Gateset will accept `cirq.GlobalPhaseGate`.
+                False or None have no effect. This parameter is deprecated and will be
+                removed in v0.16.
 
         Returns:
             `self` if all new values are None or identical to the values of current Gateset.
@@ -296,23 +299,17 @@ class Gateset:
 
         name = val_if_none(name, self._name)
         unroll_circuit_op = val_if_none(unroll_circuit_op, self._unroll_circuit_op)
-        accept_global_phase_op = val_if_none(accept_global_phase_op, self._accept_global_phase_op)
         if (
             name == self._name
             and unroll_circuit_op == self._unroll_circuit_op
-            and accept_global_phase_op == self._accept_global_phase_op
+            and (global_phase_op.GlobalPhaseGate in self.gates or not accept_global_phase_op)
         ):
             return self
-        accept_global_phase = cast(bool, accept_global_phase_op)
-        if accept_global_phase:
-            return Gateset(
-                *self.gates,
-                name=name,
-                unroll_circuit_op=cast(bool, unroll_circuit_op),
-                accept_global_phase_op=True,
-            )
+        gates = self.gates
+        if accept_global_phase_op:
+            gates = gates.union({GateFamily(gate=global_phase_op.GlobalPhaseGate)})
         return Gateset(
-            *self.gates,
+            *gates,
             name=name,
             unroll_circuit_op=cast(bool, unroll_circuit_op),
         )
@@ -348,9 +345,6 @@ class Gateset:
 
         g = item if isinstance(item, raw_types.Gate) else item.gate
         assert g is not None, f'`item`: {item} must be a gate or have a valid `item.gate`'
-
-        if isinstance(g, global_phase_op.GlobalPhaseGate) and self._accept_global_phase_op:
-            return True
 
         if g in self._instance_gate_families:
             assert item in self._instance_gate_families[g], (
@@ -424,21 +418,16 @@ class Gateset:
             self.gates,
             self.name,
             self._unroll_circuit_op,
-            self._accept_global_phase_op,
         )
 
     def __repr__(self) -> str:
         name_str = f'name = "{self.name}", ' if self.name is not None else ''
-        data = (
+        return (
             f'cirq.Gateset('
             f'{self._gates_repr_str}, '
             f'{name_str}'
-            f'unroll_circuit_op = {self._unroll_circuit_op}'
+            f'unroll_circuit_op = {self._unroll_circuit_op})'
         )
-        if self._accept_global_phase_op:
-            data += 'accept_global_phase_op = True'
-        data += ')'
-        return data
 
     def __str__(self) -> str:
         header = 'Gateset: '
@@ -447,24 +436,16 @@ class Gateset:
         return f'{header}\n' + "\n\n".join([str(g) for g in self._unique_gate_list])
 
     def _json_dict_(self) -> Dict[str, Any]:
-        data = {
+        return {
             'gates': self._unique_gate_list,
             'name': self.name,
             'unroll_circuit_op': self._unroll_circuit_op,
         }
-        if self._accept_global_phase_op:
-            data['accept_global_phase_op'] = True
-        return data
 
     @classmethod
     def _from_json_dict_(cls, gates, name, unroll_circuit_op, **kwargs) -> 'Gateset':
         if 'accept_global_phase_op' in kwargs and kwargs['accept_global_phase_op']:
-            return cls(
-                *gates,
-                name=name,
-                unroll_circuit_op=unroll_circuit_op,
-                accept_global_phase_op=True,
-            )
+            gates = gates + (global_phase_op.GlobalPhaseGate,)
         return cls(
             *gates,
             name=name,
