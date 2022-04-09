@@ -265,7 +265,7 @@ def test_gateset_validate(use_circuit_op, use_global_phase):
 
     op_tree = [*get_ops(use_circuit_op, use_global_phase)]
     with cirq.testing.assert_deprecated(
-        'global phase', deadline='v0.16', count=1 if use_global_phase else 2
+        'global phase', deadline='v0.16', count=2 if use_global_phase else 1
     ):
         assert_validate_and_contains_consistent(
             gateset.with_params(
@@ -276,7 +276,7 @@ def test_gateset_validate(use_circuit_op, use_global_phase):
             True,
         )
     if use_circuit_op or use_global_phase:
-        with cirq.testing.assert_deprecated('global phase', deadline='v0.16', count=2):
+        with cirq.testing.assert_deprecated('global phase', deadline='v0.16'):
             assert_validate_and_contains_consistent(
                 gateset.with_params(
                     unroll_circuit_op=False,
@@ -296,7 +296,7 @@ def test_gateset_validate_circuit_op_negative_reps():
 
 def test_with_params():
     assert gateset.with_params() is gateset
-    with cirq.testing.assert_deprecated('global phase', deadline='v0.16', count=1):
+    with cirq.testing.assert_deprecated('global phase', deadline='v0.16'):
         assert (
             gateset.with_params(
                 name=gateset.name,
@@ -305,7 +305,7 @@ def test_with_params():
             )
             is gateset
         )
-    with cirq.testing.assert_deprecated('global phase', deadline='v0.16', count=2):
+    with cirq.testing.assert_deprecated('global phase', deadline='v0.16'):
         gateset_with_params = gateset.with_params(
             name='new name', unroll_circuit_op=False, accept_global_phase_op=False
         )
@@ -320,9 +320,9 @@ def test_gateset_eq():
     eq.add_equality_group(cirq.Gateset(CustomX**3))
     eq.add_equality_group(cirq.Gateset(CustomX, name='Custom Gateset'))
     eq.add_equality_group(cirq.Gateset(CustomX, name='Custom Gateset', unroll_circuit_op=False))
-    with cirq.testing.assert_deprecated('global phase', deadline='v0.16', count=1):
+    with cirq.testing.assert_deprecated('global phase', deadline='v0.16'):
         eq.add_equality_group(
-            cirq.Gateset(CustomX, name='Custom Gateset', accept_global_phase_op=False)
+            cirq.Gateset(CustomX, name='Custom Gateset', accept_global_phase_op=True)
         )
     eq.add_equality_group(
         cirq.Gateset(

@@ -212,7 +212,7 @@ class Gateset:
         *gates: Union[Type[raw_types.Gate], raw_types.Gate, GateFamily],
         name: Optional[str] = None,
         unroll_circuit_op: bool = True,
-        accept_global_phase_op: bool = True,
+        accept_global_phase_op: bool = False,
     ) -> None:
         """Init Gateset.
 
@@ -300,12 +300,12 @@ class Gateset:
         ):
             return self
         accept_global_phase = cast(bool, accept_global_phase_op)
-        if not accept_global_phase:
+        if accept_global_phase:
             return Gateset(
                 *self.gates,
                 name=name,
                 unroll_circuit_op=cast(bool, unroll_circuit_op),
-                accept_global_phase_op=False,
+                accept_global_phase_op=True,
             )
         return Gateset(
             *self.gates,
