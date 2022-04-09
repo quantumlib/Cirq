@@ -16,7 +16,7 @@
 
 from typing import Any, Callable, cast, Dict, FrozenSet, List, Optional, Type, TYPE_CHECKING, Union
 from cirq.ops import global_phase_op, op_tree, raw_types
-from cirq import protocols, value
+from cirq import _compat, protocols, value
 
 if TYPE_CHECKING:
     import cirq
@@ -201,6 +201,12 @@ class Gateset:
     validation purposes.
     """
 
+    @_compat.deprecated_parameter(
+        deadline='v0.16',
+        fix='Add a global phase gate to the Gateset',
+        parameter_desc='ignore_global_phase',
+        match=lambda args, kwargs: 'accept_global_phase_op' in kwargs,
+    )
     def __init__(
         self,
         *gates: Union[Type[raw_types.Gate], raw_types.Gate, GateFamily],
@@ -225,7 +231,7 @@ class Gateset:
             name: (Optional) Name for the Gateset. Useful for description.
             unroll_circuit_op: If True, `cirq.CircuitOperation` is recursively
                 validated by validating the underlying `cirq.Circuit`.
-            accept_global_phase_op: If True, `cirq.GlobalPhaseOperation` is accepted.
+            accept_global_phase_op: If True, `cirq.GlobalPhaseGate` is accepted.
         """
         self._name = name
         self._unroll_circuit_op = unroll_circuit_op
@@ -253,6 +259,12 @@ class Gateset:
     def gates(self) -> FrozenSet[GateFamily]:
         return self._gates
 
+    @_compat.deprecated_parameter(
+        deadline='v0.16',
+        fix='Add a global phase gate to the Gateset',
+        parameter_desc='ignore_global_phase',
+        match=lambda args, kwargs: 'accept_global_phase_op' in kwargs,
+    )
     def with_params(
         self,
         *,
@@ -287,11 +299,18 @@ class Gateset:
             and accept_global_phase_op == self._accept_global_phase_op
         ):
             return self
+        accept_global_phase = cast(bool, accept_global_phase_op)
+        if not accept_global_phase:
+            return Gateset(
+                *self.gates,
+                name=name,
+                unroll_circuit_op=cast(bool, unroll_circuit_op),
+                accept_global_phase_op=False,
+            )
         return Gateset(
             *self.gates,
             name=name,
             unroll_circuit_op=cast(bool, unroll_circuit_op),
-            accept_global_phase_op=cast(bool, accept_global_phase_op),
         )
 
     def __contains__(self, item: Union[raw_types.Gate, raw_types.Operation]) -> bool:
