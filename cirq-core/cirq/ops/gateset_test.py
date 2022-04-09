@@ -204,8 +204,7 @@ def test_gateset_init():
 
 
 def test_gateset_repr_and_str():
-    with cirq.testing.assert_deprecated('global phase', deadline='v0.16', count=3):
-        cirq.testing.assert_equivalent_repr(gateset)
+    cirq.testing.assert_equivalent_repr(gateset)
     assert gateset.name in str(gateset)
     for gate_family in gateset.gates:
         assert str(gate_family) in str(gateset)

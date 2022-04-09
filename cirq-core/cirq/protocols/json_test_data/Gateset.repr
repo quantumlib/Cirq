@@ -12,6 +12,5 @@
         cirq.AnyUnitaryGateFamily(num_qubits=2),
         name="Custom Name",
         unroll_circuit_op=False,
-        accept_global_phase_op=False,
     ),
 ]

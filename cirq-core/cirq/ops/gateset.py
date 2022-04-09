@@ -232,6 +232,10 @@ class Gateset:
             unroll_circuit_op: If True, `cirq.CircuitOperation` is recursively
                 validated by validating the underlying `cirq.Circuit`.
             accept_global_phase_op: If True, `cirq.GlobalPhaseGate` is accepted.
+                If False, `cirq.GlobalPhaseGate` will still be accepted if it
+                appears in the `gates` parameter. This parameter defaults to
+                False (a breaking change from v0.15) and is currently being
+                deprecated.
         """
         self._name = name
         self._unroll_circuit_op = unroll_circuit_op
@@ -425,13 +429,16 @@ class Gateset:
 
     def __repr__(self) -> str:
         name_str = f'name = "{self.name}", ' if self.name is not None else ''
-        return (
+        data = (
             f'cirq.Gateset('
             f'{self._gates_repr_str}, '
             f'{name_str}'
-            f'unroll_circuit_op = {self._unroll_circuit_op},'
-            f'accept_global_phase_op = {self._accept_global_phase_op})'
+            f'unroll_circuit_op = {self._unroll_circuit_op}'
         )
+        if self._accept_global_phase_op:
+            data += 'accept_global_phase_op = True'
+        data += ')'
+        return data
 
     def __str__(self) -> str:
         header = 'Gateset: '
@@ -440,20 +447,28 @@ class Gateset:
         return f'{header}\n' + "\n\n".join([str(g) for g in self._unique_gate_list])
 
     def _json_dict_(self) -> Dict[str, Any]:
-        return {
+        data = {
             'gates': self._unique_gate_list,
             'name': self.name,
             'unroll_circuit_op': self._unroll_circuit_op,
-            'accept_global_phase_op': self._accept_global_phase_op,
         }
+        if self._accept_global_phase_op:
+            data['accept_global_phase_op'] = True
+        return data
 
     @classmethod
     def _from_json_dict_(
-        cls, gates, name, unroll_circuit_op, accept_global_phase_op, **kwargs
+        cls, gates, name, unroll_circuit_op, **kwargs
     ) -> 'Gateset':
+        if 'accept_global_phase_op' in kwargs and kwargs['accept_global_phase_op']:
+            return cls(
+                *gates,
+                name=name,
+                unroll_circuit_op=unroll_circuit_op,
+                accept_global_phase_op=True,
+            )
         return cls(
             *gates,
             name=name,
             unroll_circuit_op=unroll_circuit_op,
-            accept_global_phase_op=accept_global_phase_op,
         )

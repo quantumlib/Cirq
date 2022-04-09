@@ -56,7 +56,6 @@
       }
     ],
     "name": "Custom Name",
-    "unroll_circuit_op": false,
-    "accept_global_phase_op": false
+    "unroll_circuit_op": false
   }
 ]
