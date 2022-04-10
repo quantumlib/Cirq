@@ -299,15 +299,16 @@ class Gateset:
 
         name = val_if_none(name, self._name)
         unroll_circuit_op = val_if_none(unroll_circuit_op, self._unroll_circuit_op)
+        global_phase_family = GateFamily(gate=global_phase_op.GlobalPhaseGate)
         if (
             name == self._name
             and unroll_circuit_op == self._unroll_circuit_op
-            and (global_phase_op.GlobalPhaseGate in self.gates or not accept_global_phase_op)
+            and (not accept_global_phase_op or global_phase_family in self.gates)
         ):
             return self
         gates = self.gates
         if accept_global_phase_op:
-            gates = gates.union({GateFamily(gate=global_phase_op.GlobalPhaseGate)})
+            gates = gates.union({global_phase_family})
         return Gateset(
             *gates,
             name=name,
