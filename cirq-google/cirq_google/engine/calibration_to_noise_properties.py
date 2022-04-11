@@ -18,10 +18,11 @@
 Given a Calibration "cal", a user can simulate noise approximating that
 calibration using the following pipeline:
 
-    noise_props = cg.noise_properties_from_calibration(cal)
-    noise_model = cg.NoiseModelFromGoogleNoiseProperties(noise_props)
-    simulator = cirq.Simulator(noise=noise_model)
-    simulator.simulate(circuit)
+    >>> noise_props = cg.noise_properties_from_calibration(cal)
+    >>> noise_model = cg.NoiseModelFromGoogleNoiseProperties(noise_props)
+    >>> simulator = cirq.Simulator(noise=noise_model)
+    >>> result = simulator.simulate(circuit)
+    # 'result' contains the simulation results
 """
 
 from typing import Dict, Tuple, Type, TYPE_CHECKING
@@ -64,20 +65,25 @@ def _unpack_2q_from_calibration(
 def noise_properties_from_calibration(
     calibration: engine.Calibration,
 ) -> google_noise_properties.GoogleNoiseProperties:
-    """Translates between a Calibration object and a NoiseProperties object.
+    """Translates between `cirq_google.Calibration` and NoiseProperties.
 
-    The NoiseProperties object can then be used as input to the NoiseModelFromNoiseProperties
-    class (cirq.devices.noise_properties) to create a NoiseModel that can be used with a simulator.
+    The NoiseProperties object can then be used as input to the
+    `cirq.devices.noise_propertiesNoiseModelFromNoiseProperties` class to
+    create a `cirq.NoiseModel` that can be used with a simulator.
 
     To manually override noise properties, call `override` on the output:
 
         # Set all gate durations to 37ns.
-        noise_properties_from_calibration(cal).override(gate_times_ns=37)
+        >>> noise_properties_from_calibration(cal).override(gate_times_ns=37)
 
-    See GoogleNoiseProperties for details.
+    See `cirq_google.GoogleNoiseProperties` for details.
 
     Args:
         calibration: a Calibration object with hardware metrics.
+
+    Returns:
+        A `cirq_google.GoogleNoiseProperties` which represents the error
+        present in the given Calibration object.
     """
 
     # TODO: acquire this based on the target device.
