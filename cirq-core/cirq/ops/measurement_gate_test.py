@@ -447,22 +447,3 @@ def test_act_on_qutrit():
     )
     cirq.act_on(m, args)
     assert args.log_of_measurement_results == {'out': [0, 2]}
-
-
-def test_setters_deprecated():
-    gate = cirq.MeasurementGate(1, key='m', invert_mask=(False,))
-    with cirq.testing.assert_deprecated('mutators', deadline='v0.15'):
-        gate.key = 'n'
-    assert gate.key == 'n'
-    assert gate.mkey == cirq.MeasurementKey('n')
-    with cirq.testing.assert_deprecated('mutators', deadline='v0.15'):
-        gate.key = cirq.MeasurementKey('o')
-    assert gate.key == 'o'
-    assert gate.mkey == cirq.MeasurementKey('o')
-    with cirq.testing.assert_deprecated('mutators', deadline='v0.15'):
-        gate.mkey = cirq.MeasurementKey('p')
-    assert gate.key == 'p'
-    assert gate.mkey == cirq.MeasurementKey('p')
-    with cirq.testing.assert_deprecated('mutators', deadline='v0.15'):
-        gate.invert_mask = (True,)
-    assert gate.invert_mask == (True,)

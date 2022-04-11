@@ -262,13 +262,3 @@ def test_unsupported_stabilizer_safety():
     c = cirq.Circuit((cirq.X(q) ** 0.25).with_probability(0.5), cirq.measure(q, key='m'))
     with pytest.raises(TypeError, match='Failed to act'):
         cirq.StabilizerSampler().sample(c, repetitions=100)
-
-
-def test_setters_deprecated():
-    gate = cirq.RandomGateChannel(sub_gate=cirq.X, probability=0.1)
-    with cirq.testing.assert_deprecated('mutators', deadline='v0.15'):
-        gate.sub_gate = cirq.Y
-        assert gate.sub_gate == cirq.Y
-    with cirq.testing.assert_deprecated('mutators', deadline='v0.15'):
-        gate.probability = 0.2
-        assert gate.probability == 0.2
