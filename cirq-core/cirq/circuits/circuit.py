@@ -1999,11 +1999,9 @@ class Circuit(AbstractCircuit):
 
         i = start
         op_index = 0
-        cannot_add_lambda = lambda a, b: b.operates_on(a.qubits)
-
         while op_index < len(flat_ops):
             op = flat_ops[op_index]
-            while i < end and cannot_add_lambda(op, self._moments[i]):
+            while i < end and self._moments[i].operates_on(op.qubits):
                 i += 1
             if i >= end:
                 break
