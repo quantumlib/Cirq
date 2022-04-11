@@ -41,7 +41,6 @@ class ArithmeticOperation(Operation, metaclass=abc.ABCMeta):
     boilerplate of implementing the `qubits` and `with_qubits` methods.
 
     Examples:
-    ```
 
         >>> class Add(cirq.ArithmeticOperation):
         ...     def __init__(self, target_register, input_register):
@@ -56,32 +55,33 @@ class ArithmeticOperation(Operation, metaclass=abc.ABCMeta):
         ...
         ...     def apply(self, target_value, input_value):
         ...         return target_value + input_value
+
         >>> cirq.unitary(
-        ...     Add(target_register=cirq.LineQubit.range(2),
-        ...         input_register=1)
+        ...     Add(target_register=cirq.LineQubit.range(2), input_register=1)
         ... ).astype(np.int32)
         array([[0, 0, 0, 1],
                [1, 0, 0, 0],
                [0, 1, 0, 0],
                [0, 0, 1, 0]], dtype=int32)
+
         >>> c = cirq.Circuit(
-        ...    cirq.X(cirq.LineQubit(3)),
-        ...    cirq.X(cirq.LineQubit(2)),
-        ...    cirq.X(cirq.LineQubit(6)),
-        ...    cirq.measure(*cirq.LineQubit.range(4, 8), key='before:in'),
-        ...    cirq.measure(*cirq.LineQubit.range(4), key='before:out'),
+        ...     cirq.X(cirq.LineQubit(3)),
+        ...     cirq.X(cirq.LineQubit(2)),
+        ...     cirq.X(cirq.LineQubit(6)),
+        ...     cirq.measure(*cirq.LineQubit.range(4, 8), key='before:in'),
+        ...     cirq.measure(*cirq.LineQubit.range(4), key='before:out'),
         ...
-        ...    Add(target_register=cirq.LineQubit.range(4),
-        ...        input_register=cirq.LineQubit.range(4, 8)),
+        ...     Add(target_register=cirq.LineQubit.range(4),
+        ...         input_register=cirq.LineQubit.range(4, 8)),
         ...
-        ...    cirq.measure(*cirq.LineQubit.range(4, 8), key='after:in'),
-        ...    cirq.measure(*cirq.LineQubit.range(4), key='after:out'),
+        ...     cirq.measure(*cirq.LineQubit.range(4, 8), key='after:in'),
+        ...     cirq.measure(*cirq.LineQubit.range(4), key='after:out'),
         ... )
+
         >>> cirq.sample(c).data
            before:in  before:out  after:in  after:out
         0          2           3         2          5
 
-    ```
     """
 
     @abc.abstractmethod

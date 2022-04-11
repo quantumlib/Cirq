@@ -38,7 +38,6 @@ import numpy as np
 import sympy
 
 from cirq import protocols, value
-from cirq._compat import deprecated
 from cirq._import import LazyLoader
 from cirq.type_workarounds import NotImplementedType
 
@@ -399,11 +398,13 @@ class Gate(metaclass=value.ABCMetaImplementAnyOneOf):
         """
 
     def _commutes_on_qids_(
-        self, qids: 'Sequence[cirq.Qid]', other: Any, atol: float
+        self, qids: 'Sequence[cirq.Qid]', other: Any, *, atol: float = 1e-8
     ) -> Union[bool, NotImplementedType, None]:
         return NotImplemented
 
-    def _commutes_(self, other: Any, atol: float) -> Union[None, NotImplementedType, bool]:
+    def _commutes_(
+        self, other: Any, *, atol: float = 1e-8
+    ) -> Union[None, NotImplementedType, bool]:
         if not isinstance(other, Gate):
             return NotImplemented
         if protocols.qid_shape(self) != protocols.qid_shape(other):
@@ -567,7 +568,7 @@ class Operation(metaclass=abc.ABCMeta):
         _validate_qid_shape(self, qubits)
 
     def _commutes_(
-        self, other: Any, *, atol: Union[int, float] = 1e-8
+        self, other: Any, *, atol: float = 1e-8
     ) -> Union[bool, NotImplementedType, None]:
         """Determine if this Operation commutes with the object"""
         if not isinstance(other, Operation):
@@ -683,14 +684,6 @@ class TaggedOperation(Operation):
     def sub_operation(self) -> 'cirq.Operation':
         return self._sub_operation
 
-    @sub_operation.setter  # type: ignore
-    @deprecated(
-        deadline="v0.15",
-        fix="The mutators of this class are deprecated, instantiate a new object instead.",
-    )
-    def sub_operation(self, sub_operation: 'cirq.Operation'):
-        self._sub_operation = sub_operation
-
     @property
     def qubits(self) -> Tuple['cirq.Qid', ...]:
         return self.sub_operation.qubits
@@ -771,7 +764,7 @@ class TaggedOperation(Operation):
         return protocols.unitary(self.sub_operation, NotImplemented)
 
     def _commutes_(
-        self, other: Any, *, atol: Union[int, float] = 1e-8
+        self, other: Any, *, atol: float = 1e-8
     ) -> Union[bool, NotImplementedType, None]:
         return protocols.commutes(self.sub_operation, other, atol=atol)
 

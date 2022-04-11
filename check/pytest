@@ -19,13 +19,21 @@ cd "$(git rev-parse --show-toplevel)"
 
 PYTEST_ARGS=()
 ACTUALLY_QUIET=""
+PARALLEL=""
 for arg in "$@"; do
     if [[ "${arg}" == "--actually-quiet" ]]; then
         ACTUALLY_QUIET=1
     else
+        if [[ "${arg}" == "-n" ]]; then
+            PARALLEL=1
+        fi
         PYTEST_ARGS+=("${arg}")
     fi
 done
+
+if [ -z "${PARALLEL}" ]; then
+    PYTEST_ARGS+=("-n=auto")
+fi
 
 source dev_tools/pypath
 PYTHON_VERSION=$(python -V 2>&1 | sed 's/.* \([0-9]\).\([0-9]\).*/\1\2/')

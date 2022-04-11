@@ -17,7 +17,7 @@ from typing import AbstractSet, cast, Dict, Iterable, Union, TYPE_CHECKING, Sequ
 import sympy
 
 from cirq import value, protocols
-from cirq._compat import proper_repr, deprecated
+from cirq._compat import proper_repr
 from cirq.ops import (
     raw_types,
     common_gates,
@@ -79,47 +79,15 @@ class PauliStringPhasor(gate_operation.GateOperation):
         """The negative exponent."""
         return self.gate.exponent_neg
 
-    @exponent_neg.setter  # type: ignore
-    @deprecated(
-        deadline="v0.15",
-        fix="The mutators of this class are deprecated, instantiate a new object instead.",
-    )
-    def exponent_neg(self, exponent_neg):
-        """Sets the negative exponent."""
-        # coverage: ignore
-        self.gate._exponent_neg = value.canonicalize_half_turns(exponent_neg)
-
     @property
     def exponent_pos(self):
         """The positive exponent."""
         return self.gate.exponent_pos
 
-    @exponent_pos.setter  # type: ignore
-    @deprecated(
-        deadline="v0.15",
-        fix="The mutators of this class are deprecated, instantiate a new object instead.",
-    )
-    def exponent_pos(self, exponent_pos):
-        """Sets the positive exponent."""
-        # coverage: ignore
-        self.gate._exponent_pos = value.canonicalize_half_turns(exponent_pos)
-
     @property
     def pauli_string(self):
         """The underlying pauli string."""
         return self._pauli_string
-
-    @pauli_string.setter  # type: ignore
-    @deprecated(
-        deadline="v0.15",
-        fix="The mutators of this class are deprecated, instantiate a new object instead.",
-    )
-    def pauli_string(self, pauli_string):
-        """Sets the underlying pauli string."""
-        # coverage: ignore
-        self._pauli_string = pauli_string
-        self.gate._dense_pauli_string = pauli_string.dense(pauli_string.qubits)
-        super()._qubits = pauli_string.qubits
 
     @property
     def exponent_relative(self) -> Union[int, float, sympy.Basic]:
