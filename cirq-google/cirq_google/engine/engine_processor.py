@@ -14,11 +14,11 @@
 import datetime
 
 from typing import cast, Dict, Iterable, List, Optional, Sequence, TYPE_CHECKING, Union
-from pytz import utc
+
+from google.protobuf import any_pb2
 
 import cirq
-from cirq_google.engine.client.quantum import types as qtypes
-from cirq_google.engine.client.quantum import enums as qenums
+from cirq_google.cloud import quantum
 from cirq_google.api import v2
 from cirq_google.devices import serializable_device
 from cirq_google.engine import (
@@ -26,6 +26,7 @@ from cirq_google.engine import (
     calibration,
     calibration_layer,
     engine_sampler,
+    util,
 )
 from cirq_google.serialization import serializable_gate_set, serializer
 from cirq_google.serialization import gate_sets as gs
@@ -70,7 +71,7 @@ class EngineProcessor(abstract_processor.AbstractProcessor):
         project_id: str,
         processor_id: str,
         context: 'engine_base.EngineContext',
-        _processor: Optional[qtypes.QuantumProcessor] = None,
+        _processor: Optional[quantum.QuantumProcessor] = None,
     ) -> None:
         """A processor available via the engine.
 
@@ -102,8 +103,7 @@ class EngineProcessor(abstract_processor.AbstractProcessor):
         return engine_base.Engine(self.project_id, context=self.context)
 
     def get_sampler(
-        self,
-        gate_set: Optional[serializer.Serializer] = None,
+        self, gate_set: Optional[serializer.Serializer] = None
     ) -> engine_sampler.QuantumEngineSampler:
         """Returns a sampler backed by the engine.
 
@@ -117,9 +117,7 @@ class EngineProcessor(abstract_processor.AbstractProcessor):
             when sampled.1
         """
         return engine_sampler.QuantumEngineSampler(
-            engine=self.engine(),
-            processor_id=self.processor_id,
-            gate_set=gate_set,
+            engine=self.engine(), processor_id=self.processor_id, gate_set=gate_set
         )
 
     def run_batch(
@@ -300,30 +298,24 @@ class EngineProcessor(abstract_processor.AbstractProcessor):
             job_labels=job_labels,
         )
 
-    def _inner_processor(self) -> qtypes.QuantumProcessor:
-        if not self._processor:
+    def _inner_processor(self) -> quantum.QuantumProcessor:
+        if self._processor is None:
             self._processor = self.context.client.get_processor(self.project_id, self.processor_id)
         return self._processor
 
     def health(self) -> str:
         """Returns the current health of processor."""
         self._processor = self.context.client.get_processor(self.project_id, self.processor_id)
-        return qtypes.QuantumProcessor.Health.Name(self._processor.health)
+        return self._processor.health.name
 
     def expected_down_time(self) -> 'Optional[datetime.datetime]':
         """Returns the start of the next expected down time of the processor, if
         set."""
-        if self._inner_processor().HasField('expected_down_time'):
-            return self._inner_processor().expected_down_time.ToDatetime()
-        else:
-            return None
+        return self._inner_processor().expected_down_time
 
     def expected_recovery_time(self) -> 'Optional[datetime.datetime]':
         """Returns the expected the processor should be available, if set."""
-        if self._inner_processor().HasField('expected_recovery_time'):
-            return self._inner_processor().expected_recovery_time.ToDatetime()
-        else:
-            return None
+        return self._inner_processor().expected_recovery_time
 
     def supported_languages(self) -> List[str]:
         """Returns the list of processor supported program languages."""
@@ -336,17 +328,13 @@ class EngineProcessor(abstract_processor.AbstractProcessor):
         Returns:
             Device specification proto if present.
         """
-        if self._inner_processor().HasField('device_spec'):
-            return v2.device_pb2.DeviceSpecification.FromString(
-                self._inner_processor().device_spec.value
-            )
+        device_spec = self._inner_processor().device_spec
+        if device_spec and device_spec.type_url:
+            return util.unpack_any(device_spec, v2.device_pb2.DeviceSpecification())
         else:
             return None
 
-    def get_device(
-        self,
-        gate_sets: Iterable[serializer.Serializer] = (),
-    ) -> cirq.Device:
+    def get_device(self, gate_sets: Iterable[serializer.Serializer] = ()) -> cirq.Device:
         """Returns a `Device` created from the processor's device specification.
 
         This method queries the processor to retrieve the device specification,
@@ -432,16 +420,14 @@ class EngineProcessor(abstract_processor.AbstractProcessor):
         )
         return _to_calibration(response.data)
 
-    def get_current_calibration(
-        self,
-    ) -> Optional[calibration.Calibration]:
+    def get_current_calibration(self) -> Optional[calibration.Calibration]:
         """Returns metadata about the current calibration for a processor.
 
         Returns:
             The calibration data or None if there is no current calibration.
         """
         response = self.context.client.get_current_calibration(self.project_id, self.processor_id)
-        if response:
+        if response is not None:
             return _to_calibration(response.data)
         else:
             return None
@@ -493,8 +479,8 @@ class EngineProcessor(abstract_processor.AbstractProcessor):
         if reservation is None:
             raise ValueError(f'Reservation id {reservation_id} not found.')
         proc = self._inner_processor()
-        if proc:
-            freeze = proc.schedule_frozen_period.seconds
+        if proc is not None:
+            freeze = proc.schedule_frozen_period
         else:
             freeze = None
         if not freeze:
@@ -502,13 +488,13 @@ class EngineProcessor(abstract_processor.AbstractProcessor):
                 'Cannot determine freeze_schedule from processor.'
                 'Call _cancel_reservation or _delete_reservation.'
             )
-        secs_until = reservation.start_time.seconds - int(datetime.datetime.now(tz=utc).timestamp())
-        if secs_until > freeze:
+        secs_until = reservation.start_time.timestamp() - datetime.datetime.now().timestamp()
+        if secs_until > freeze.total_seconds():
             return self._delete_reservation(reservation_id)
         else:
             return self._cancel_reservation(reservation_id)
 
-    def get_reservation(self, reservation_id: str):
+    def get_reservation(self, reservation_id: str) -> Optional[quantum.QuantumReservation]:
         """Retrieve a reservation given its id."""
         return self.context.client.get_reservation(
             self.project_id, self.processor_id, reservation_id
@@ -540,7 +526,7 @@ class EngineProcessor(abstract_processor.AbstractProcessor):
         self,
         from_time: Union[None, datetime.datetime, datetime.timedelta] = datetime.timedelta(),
         to_time: Union[None, datetime.datetime, datetime.timedelta] = datetime.timedelta(weeks=2),
-    ) -> List[qenums.QuantumTimeSlot]:
+    ) -> List[quantum.QuantumTimeSlot]:
         """Retrieves the reservations from a processor.
 
         Only reservations from this processor and project will be
@@ -569,8 +555,8 @@ class EngineProcessor(abstract_processor.AbstractProcessor):
         self,
         from_time: Union[None, datetime.datetime, datetime.timedelta] = datetime.timedelta(),
         to_time: Union[None, datetime.datetime, datetime.timedelta] = datetime.timedelta(weeks=2),
-        time_slot_type: Optional[qenums.QuantumTimeSlot.TimeSlotType] = None,
-    ) -> List[qenums.QuantumTimeSlot]:
+        time_slot_type: Optional[quantum.QuantumTimeSlot.TimeSlotType] = None,
+    ) -> List[quantum.QuantumTimeSlot]:
         """Retrieves the schedule for a processor.
 
         The schedule may be filtered by time.
@@ -608,7 +594,7 @@ class EngineProcessor(abstract_processor.AbstractProcessor):
         )
 
 
-def _to_calibration(calibration_any: qtypes.any_pb2.Any) -> calibration.Calibration:
+def _to_calibration(calibration_any: any_pb2.Any) -> calibration.Calibration:
     metrics = v2.metrics_pb2.MetricsSnapshot.FromString(calibration_any.value)
     return calibration.Calibration(metrics)
 

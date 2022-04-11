@@ -11,8 +11,12 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+from typing import TypeVar
+
 from google.protobuf import any_pb2
 from google.protobuf.message import Message
+
+M = TypeVar('M', bound=Message)
 
 
 def pack_any(message: Message) -> any_pb2.Any:
@@ -23,3 +27,8 @@ def pack_any(message: Message) -> any_pb2.Any:
     packed = any_pb2.Any()
     packed.Pack(message)
     return packed
+
+
+def unpack_any(message: any_pb2.Any, out: M) -> M:
+    message.Unpack(out)
+    return out
