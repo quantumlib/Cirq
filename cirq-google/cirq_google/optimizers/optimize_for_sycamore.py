@@ -48,16 +48,9 @@ def _gate_product_tabulation_cached(
         raise NotImplementedError(f"Two qubit gate tabulation not supported for {optimizer_type}")
 
 
-@cirq._compat.deprecated_parameter(
-    deadline='v0.15',
-    fix=cirq.circuits.circuit._DEVICE_DEP_MESSAGE,
-    parameter_desc='new_device',
-    match=lambda args, kwargs: 'new_device' in kwargs,
-)
 def optimized_for_sycamore(
     circuit: cirq.Circuit,
     *,
-    new_device: Optional['cirq_google.XmonDevice'] = None,
     qubit_map: Callable[[cirq.Qid], cirq.GridQubit] = lambda e: cast(cirq.GridQubit, e),
     optimizer_type: str = 'sqrt_iswap',
     tolerance: float = 1e-5,
@@ -72,8 +65,6 @@ def optimized_for_sycamore(
 
     Args:
         circuit: The circuit to optimize.
-        new_device: The device the optimized circuit should be targeted at. If
-            set to None, the circuit's current device is used.
         qubit_map: Transforms the qubits (e.g. so that they are GridQubits).
         optimizer_type: A string defining the optimizations to apply.
             Possible values are  'xmon', 'xmon_partial_cz', 'sqrt_iswap',
@@ -116,5 +107,4 @@ def optimized_for_sycamore(
         (op.transform_qubits(qubit_map) for op in copy.all_operations()),
         strategy=cirq.InsertStrategy.EARLIEST,
     )
-    ret._device = new_device or copy._device
     return ret

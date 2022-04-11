@@ -15,7 +15,6 @@
 from typing import (
     TYPE_CHECKING,
     AbstractSet,
-    Callable,
     FrozenSet,
     Iterable,
     Iterator,
@@ -24,7 +23,6 @@ from typing import (
     Tuple,
     Union,
 )
-import re
 
 from cirq.circuits import AbstractCircuit, Alignment, Circuit
 from cirq.circuits.insert_strategy import InsertStrategy
@@ -32,14 +30,11 @@ from cirq.type_workarounds import NotImplementedType
 
 import numpy as np
 
-from cirq import _compat, devices, ops, protocols
+from cirq import ops, protocols
 
 
 if TYPE_CHECKING:
     import cirq
-
-
-_DEVICE_DEP_MESSAGE = 'Attaching devices to circuits will no longer be supported.'
 
 
 class FrozenCircuit(AbstractCircuit, protocols.SerializableByKey):
@@ -50,17 +45,10 @@ class FrozenCircuit(AbstractCircuit, protocols.SerializableByKey):
     the `freeze` and `unfreeze` methods from AbstractCircuit.
     """
 
-    @_compat.deprecated_parameter(
-        deadline='v0.15',
-        fix=_DEVICE_DEP_MESSAGE,
-        parameter_desc='device',
-        match=lambda args, kwargs: 'device' in kwargs,
-    )
     def __init__(
         self,
         *contents: 'cirq.OP_TREE',
         strategy: 'cirq.InsertStrategy' = InsertStrategy.EARLIEST,
-        device: 'cirq.Device' = devices.UNCONSTRAINED_DEVICE,
     ) -> None:
         """Initializes a frozen circuit.
 
@@ -73,16 +61,9 @@ class FrozenCircuit(AbstractCircuit, protocols.SerializableByKey):
             strategy: When initializing the circuit with operations and moments
                 from `contents`, this determines how the operations are packed
                 together.
-            device: Hardware that the circuit should be able to run on.
         """
-        if device == devices.UNCONSTRAINED_DEVICE:
-            base = Circuit(contents, strategy=strategy)
-        else:
-            with _compat.block_overlapping_deprecation(re.escape(_DEVICE_DEP_MESSAGE)):
-                base = Circuit(contents, strategy=strategy, device=device)
-
+        base = Circuit(contents, strategy=strategy)
         self._moments = tuple(base.moments)
-        self._device = base._device
 
         # These variables are memoized when first requested.
         self._num_qubits: Optional[int] = None
@@ -99,16 +80,8 @@ class FrozenCircuit(AbstractCircuit, protocols.SerializableByKey):
     def moments(self) -> Sequence['cirq.Moment']:
         return self._moments
 
-    @property  # type: ignore
-    @_compat.deprecated(
-        deadline='v0.15',
-        fix=_DEVICE_DEP_MESSAGE,
-    )
-    def device(self) -> devices.Device:
-        return self._device
-
     def __hash__(self):
-        return hash((self.moments, self._device))
+        return hash((self.moments,))
 
     # Memoized methods for commonly-retrieved properties.
 
@@ -196,24 +169,9 @@ class FrozenCircuit(AbstractCircuit, protocols.SerializableByKey):
             return NotImplemented
 
     def _with_sliced_moments(self, moments: Iterable['cirq.Moment']) -> 'FrozenCircuit':
-        if self._device == devices.UNCONSTRAINED_DEVICE:
-            new_circuit = FrozenCircuit()
-        else:
-            new_circuit = FrozenCircuit(device=self._device)
+        new_circuit = FrozenCircuit()
         new_circuit._moments = tuple(moments)
         return new_circuit
-
-    @_compat.deprecated(
-        deadline='v0.15',
-        fix=_DEVICE_DEP_MESSAGE,
-    )
-    def with_device(
-        self,
-        new_device: 'cirq.Device',
-        qubit_mapping: Callable[['cirq.Qid'], 'cirq.Qid'] = lambda e: e,
-    ) -> 'FrozenCircuit':
-        with _compat.block_overlapping_deprecation(re.escape(_DEVICE_DEP_MESSAGE)):
-            return self.unfreeze().with_device(new_device, qubit_mapping).freeze()
 
     def _resolve_parameters_(
         self, resolver: 'cirq.ParamResolver', recursive: bool
