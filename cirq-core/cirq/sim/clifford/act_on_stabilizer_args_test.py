@@ -110,7 +110,7 @@ def test_decompose():
             return [cirq.X(*qs)]
 
         def _qid_shape_(self):
-            return (2,)
+            pass
 
     q0 = cirq.LineQubit(0)
     state = Mock()
