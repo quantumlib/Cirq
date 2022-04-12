@@ -573,13 +573,13 @@ def test_act_on_gate():
 
 def test_deprecated():
     prng = np.random.RandomState(0)
-    with cirq.testing.assert_deprecated(deadline='0.16', count=2):
+    with cirq.testing.assert_deprecated('log_of_measurement_results', deadline='0.16', count=2):
         _ = ccq.mps_simulator.MPSState(
             qubits=cirq.LineQubit.range(3),
             prng=prng,
             log_of_measurement_results={},
         )
-    with cirq.testing.assert_deprecated(deadline='0.16'):
+    with cirq.testing.assert_deprecated('positional', deadline='0.16'):
         _ = ccq.mps_simulator.MPSState(
             cirq.LineQubit.range(3),
             prng=prng,
