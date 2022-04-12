@@ -117,12 +117,3 @@ def test_copy():
     assert args.prng is args1.prng
     assert args.log_of_measurement_results is not args1.log_of_measurement_results
     assert args.log_of_measurement_results == args1.log_of_measurement_results
-
-
-def test_deprecated():
-    class DeprecatedStabilizerArgs(cirq.ActOnStabilizerArgs):
-        def __init__(self):
-            super().__init__(state=0, log_of_measurement_results={})
-
-    with cirq.testing.assert_deprecated('log_of_measurement_results', deadline='v0.16', count=2):
-        _ = DeprecatedStabilizerArgs()
