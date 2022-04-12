@@ -236,7 +236,7 @@ class _BufferedDensityMatrix(qis.QuantumStateRepresentation):
         return True
 
 
-class ActOnDensityMatrixArgs(ActOnArgs):
+class ActOnDensityMatrixArgs(ActOnArgs[_BufferedDensityMatrix]):
     """State and context for an operation acting on a density matrix.
 
     To act on this object, directly edit the `target_tensor` property, which is
@@ -301,7 +301,6 @@ class ActOnDensityMatrixArgs(ActOnArgs):
             log_of_measurement_results=log_of_measurement_results,
             classical_data=classical_data,
         )
-        self._state: _BufferedDensityMatrix = state
 
     def _act_on_fallback_(
         self,

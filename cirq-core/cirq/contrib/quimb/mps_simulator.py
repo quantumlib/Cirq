@@ -573,7 +573,7 @@ class _MPSHandler(qis.QuantumStateRepresentation):
 
 
 @value.value_equality
-class MPSState(ActOnArgs):
+class MPSState(ActOnArgs[_MPSHandler]):
     """A state of the MPS simulation."""
 
     def __init__(
@@ -621,7 +621,6 @@ class MPSState(ActOnArgs):
             log_of_measurement_results=log_of_measurement_results,
             classical_data=classical_data,
         )
-        self._state: _MPSHandler = state
 
     def i_str(self, i: int) -> str:
         # Returns the index name for the i'th qid.

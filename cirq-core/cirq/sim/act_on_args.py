@@ -12,11 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """Objects and methods for acting efficiently on a state tensor."""
+import abc
 import copy
 from typing import (
     Any,
     cast,
     Dict,
+    Generic,
     Iterator,
     List,
     Mapping,
@@ -35,12 +37,13 @@ from cirq.protocols.decompose_protocol import _try_decompose_into_operations_and
 from cirq.sim.operation_target import OperationTarget
 
 TSelf = TypeVar('TSelf', bound='ActOnArgs')
+TState = TypeVar('TState', bound='cirq.QuantumStateRepresentation')
 
 if TYPE_CHECKING:
     import cirq
 
 
-class ActOnArgs(OperationTarget[TSelf]):
+class ActOnArgs(OperationTarget, Generic[TState], metaclass=abc.ABCMeta):
     """State and context for an operation acting on a state tensor."""
 
     def __init__(
@@ -77,7 +80,7 @@ class ActOnArgs(OperationTarget[TSelf]):
                 for k, v in (log_of_measurement_results or {}).items()
             }
         )
-        self._state = state
+        self._state = cast(TState, state)
         if state is None:
             _warn_or_error('This function will require a valid `state` input in cirq v0.16.')
 

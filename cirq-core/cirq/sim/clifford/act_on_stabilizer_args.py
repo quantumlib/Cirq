@@ -31,7 +31,9 @@ if TYPE_CHECKING:
 TStabilizerState = TypeVar('TStabilizerState', bound='cirq.StabilizerState')
 
 
-class ActOnStabilizerArgs(ActOnArgs, Generic[TStabilizerState], metaclass=abc.ABCMeta):
+class ActOnStabilizerArgs(
+    ActOnArgs[TStabilizerState], Generic[TStabilizerState], metaclass=abc.ABCMeta
+):
     """Abstract wrapper around a stabilizer state for the act_on protocol."""
 
     def __init__(
@@ -64,7 +66,6 @@ class ActOnStabilizerArgs(ActOnArgs, Generic[TStabilizerState], metaclass=abc.AB
             log_of_measurement_results=log_of_measurement_results,
             classical_data=classical_data,
         )
-        self._state: TStabilizerState = state
 
     @property
     def state(self) -> TStabilizerState:

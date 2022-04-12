@@ -56,7 +56,7 @@ class CountingState(cirq.qis.QuantumStateRepresentation):
         )
 
 
-class CountingActOnArgs(cirq.ActOnArgs):
+class CountingActOnArgs(cirq.ActOnArgs[CountingState]):
     def __init__(self, state, qubits, classical_data):
         state_obj = CountingState(state)
         super().__init__(
@@ -64,7 +64,6 @@ class CountingActOnArgs(cirq.ActOnArgs):
             qubits=qubits,
             classical_data=classical_data,
         )
-        self._state: CountingState = state_obj
 
     def _act_on_fallback_(
         self,

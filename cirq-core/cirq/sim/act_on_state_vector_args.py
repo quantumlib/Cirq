@@ -326,7 +326,7 @@ class _BufferedStateVector(qis.QuantumStateRepresentation):
         return True
 
 
-class ActOnStateVectorArgs(ActOnArgs):
+class ActOnStateVectorArgs(ActOnArgs[_BufferedStateVector]):
     """State and context for an operation acting on a state vector.
 
     There are two common ways to act on this object:
@@ -390,7 +390,6 @@ class ActOnStateVectorArgs(ActOnArgs):
             log_of_measurement_results=log_of_measurement_results,
             classical_data=classical_data,
         )
-        self._state: _BufferedStateVector = state
 
     @_compat.deprecated(
         deadline='v0.16',
