@@ -9,6 +9,7 @@ def test_kraus_channel_from_channel():
     dp = cirq.depolarize(0.1)
     kc = cirq.KrausChannel.from_channel(dp, key='dp')
     assert cirq.measurement_key_name(kc) == 'dp'
+    cirq.testing.assert_consistent_channel(kc)
 
     circuit = cirq.Circuit(kc.on(q0))
     sim = cirq.Simulator(seed=0)

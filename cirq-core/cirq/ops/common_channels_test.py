@@ -62,7 +62,7 @@ def test_asymmetric_depolarizing_channel():
         cirq.kraus(d),
         (np.sqrt(0.4) * np.eye(2), np.sqrt(0.1) * X, np.sqrt(0.2) * Y, np.sqrt(0.3) * Z),
     )
-    assert cirq.has_kraus(d)
+    cirq.testing.assert_consistent_channel(d)
 
     assert cirq.AsymmetricDepolarizingChannel(p_x=0, p_y=0.1, p_z=0).num_qubits() == 1
 
@@ -145,7 +145,7 @@ def test_depolarizing_channel():
             np.sqrt(0.1) * Z,
         ),
     )
-    assert cirq.has_kraus(d)
+    cirq.testing.assert_consistent_channel(d)
 
 
 def test_depolarizing_channel_two_qubits():
@@ -171,7 +171,7 @@ def test_depolarizing_channel_two_qubits():
             np.sqrt(0.01) * np.kron(Z, Z),
         ),
     )
-    assert cirq.has_kraus(d)
+    cirq.testing.assert_consistent_channel(d)
 
     assert d.num_qubits() == 2
     cirq.testing.assert_has_diagram(
@@ -332,7 +332,7 @@ def test_generalized_amplitude_damping_channel():
             np.sqrt(0.9) * np.array([[0.0, 0.0], [np.sqrt(0.3), 0.0]]),
         ),
     )
-    assert cirq.has_kraus(d)
+    cirq.testing.assert_consistent_channel(d)
     assert not cirq.has_mixture(d)
 
 
@@ -396,7 +396,7 @@ def test_amplitude_damping_channel():
             np.array([[0.0, np.sqrt(0.3)], [0.0, 0.0]]),
         ),
     )
-    assert cirq.has_kraus(d)
+    cirq.testing.assert_consistent_channel(d)
     assert not cirq.has_mixture(d)
 
 
@@ -448,7 +448,7 @@ def test_reset_channel():
     np.testing.assert_almost_equal(
         cirq.kraus(r), (np.array([[1.0, 0.0], [0.0, 0]]), np.array([[0.0, 1.0], [0.0, 0.0]]))
     )
-    assert cirq.has_kraus(r)
+    cirq.testing.assert_consistent_channel(r)
     assert not cirq.has_mixture(r)
     assert cirq.qid_shape(r) == (2,)
 
@@ -461,7 +461,7 @@ def test_reset_channel():
             np.array([[0, 0, 1], [0, 0, 0], [0, 0, 0]]),
         ),
     )  # yapf: disable
-    assert cirq.has_kraus(r)
+    cirq.testing.assert_consistent_channel(r)
     assert not cirq.has_mixture(r)
     assert cirq.qid_shape(r) == (3,)
 
@@ -538,7 +538,7 @@ def test_phase_damping_channel():
             np.array([[0.0, 0.0], [0.0, np.sqrt(0.3)]]),
         ),
     )
-    assert cirq.has_kraus(d)
+    cirq.testing.assert_consistent_channel(d)
     assert not cirq.has_mixture(d)
 
 
@@ -590,7 +590,7 @@ def test_phase_flip_channel():
     np.testing.assert_almost_equal(
         cirq.kraus(d), (np.sqrt(1.0 - 0.3) * np.eye(2), np.sqrt(0.3) * Z)
     )
-    assert cirq.has_kraus(d)
+    cirq.testing.assert_consistent_channel(d)
 
 
 def test_phase_flip_mixture():
@@ -654,7 +654,7 @@ def test_bit_flip_channel():
     np.testing.assert_almost_equal(
         cirq.kraus(d), (np.sqrt(1.0 - 0.3) * np.eye(2), np.sqrt(0.3) * X)
     )
-    assert cirq.has_kraus(d)
+    cirq.testing.assert_consistent_channel(d)
 
 
 def test_bit_flip_mixture():
@@ -760,7 +760,7 @@ def test_multi_asymmetric_depolarizing_channel():
     np.testing.assert_almost_equal(
         cirq.kraus(d), (np.sqrt(0.8) * np.eye(4), np.sqrt(0.2) * np.kron(X, X))
     )
-    assert cirq.has_kraus(d)
+    cirq.testing.assert_consistent_channel(d)
     np.testing.assert_equal(d._num_qubits_(), 2)
 
     with pytest.raises(ValueError, match="num_qubits should be 1"):

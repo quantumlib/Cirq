@@ -38,6 +38,7 @@ import pytest
 def test_state_prep_channel_kraus(state):
     qubits = cirq.LineQubit.range(2)
     gate = cirq.StatePreparationChannel(state)(qubits[0], qubits[1])
+    cirq.testing.assert_consistent_channel(gate)
     state = state / np.linalg.norm(state)
     np.testing.assert_almost_equal(
         cirq.kraus(gate),

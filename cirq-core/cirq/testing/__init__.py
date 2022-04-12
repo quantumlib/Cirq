@@ -28,6 +28,10 @@ from cirq.testing.consistent_act_on import (
     assert_all_implemented_act_on_effects_match_unitary,
 )
 
+from cirq.testing.consistent_channel import (
+    assert_consistent_channel,
+)
+
 from cirq.testing.consistent_controlled_gate_op import (
     assert_controlled_and_controlled_by_identical,
 )
