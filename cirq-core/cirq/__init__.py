@@ -290,6 +290,7 @@ from cirq.ops import (
     ProjectorString,
     ProjectorSum,
     RandomGateChannel,
+    q,
     qft,
     Qid,
     QuantumFourierTransformGate,
