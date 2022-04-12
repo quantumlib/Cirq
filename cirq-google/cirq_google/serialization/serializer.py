@@ -48,17 +48,12 @@ class Serializer(metaclass=abc.ABCMeta):
                 `Program.Language`.
         """
 
-    def deserialize(
-        self, proto: v2.program_pb2.Program, device: Optional[cirq.Device] = None
-    ) -> cirq.Circuit:
+    def deserialize(self, proto: v2.program_pb2.Program) -> cirq.Circuit:
         """Deserialize a Circuit from a cirq_google.api.v2.Program.
 
         Args:
             proto: A dictionary representing a cirq_google.api.v2.Program proto.
-            device: If the proto is for a schedule, a device is required
-                Otherwise optional.
 
         Returns:
-            The deserialized Circuit, with a device if device was
-            not None.
+            The deserialized Circuit.
         """

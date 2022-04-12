@@ -574,9 +574,7 @@ class Moment:
 
         return diagram.render()
 
-    def _commutes_(
-        self, other: Any, *, atol: Union[int, float] = 1e-8
-    ) -> Union[bool, NotImplementedType]:
+    def _commutes_(self, other: Any, *, atol: float = 1e-8) -> Union[bool, NotImplementedType]:
         """Determines whether Moment commutes with the Operation.
 
         Args:

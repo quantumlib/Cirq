@@ -597,16 +597,3 @@ def test_controlled_mixture():
             (0.25, cirq.unitary(cirq.CZ)),
         ],
     )
-
-
-def test_setters_deprecated():
-    gate = cirq.ControlledGate(cirq.Z)
-    with cirq.testing.assert_deprecated('mutators', deadline='v0.15'):
-        gate.sub_gate = cirq.X
-    assert gate.sub_gate == cirq.X
-    with cirq.testing.assert_deprecated('mutators', deadline='v0.15'):
-        gate.control_qid_shape = (3, 3)
-    assert gate.control_qid_shape == (3, 3)
-    with cirq.testing.assert_deprecated('mutators', deadline='v0.15'):
-        gate.control_values = ((3,), (3,))
-    assert gate.control_values == ((3,), (3,))

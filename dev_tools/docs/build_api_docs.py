@@ -95,11 +95,6 @@ def generate_cirq():
         site_path=FLAGS.site_path,
         callbacks=[public_api.local_definitions_filter, filter_unwanted_inherited_methods],
         extra_docs=_doc.RECORDED_CONST_DOCS,
-        private_map={
-            # Opt to not build docs for these paths for now since they error.
-            "cirq.experiments": ["CrossEntropyResultDict", "GridInteractionLayer"],
-            "cirq.experiments.random_quantum_circuit_generation": ["GridInteractionLayer"],
-        },
     )
     doc_controls.decorate_all_class_attributes(
         doc_controls.do_not_doc_inheritable, networkx.DiGraph, skip=[]
@@ -190,8 +185,8 @@ def generate_cirq_google():
         callbacks=[public_api.local_definitions_filter, filter_unwanted_inherited_methods],
         private_map={
             # Opt to not build docs for these paths for now since they error.
-            "cirq_google.engine.client.quantum.QuantumEngineServiceClient": ["enums"],
-            "cirq_google.engine.client.quantum_v1alpha1.QuantumEngineServiceClient": ["enums"],
+            "cirq_google.cloud.quantum.QuantumEngineServiceClient": ["enums"],
+            "cirq_google.cloud.quantum_v1alpha1.QuantumEngineServiceClient": ["enums"],
             "cirq_google.api": ["v1"],
         },
         extra_docs=_doc.RECORDED_CONST_DOCS,

@@ -170,11 +170,3 @@ def test_circuit_diagram():
 3: ───#4────#4───────
         """,
     )
-
-
-def test_setters_deprecated():
-    gate = cirq.PhaseGradientGate(num_qubits=1, exponent=0.1)
-    assert gate.exponent == 0.1
-    with cirq.testing.assert_deprecated('mutators', deadline='v0.15'):
-        gate.exponent = 0.2
-        assert gate.exponent == 0.2
