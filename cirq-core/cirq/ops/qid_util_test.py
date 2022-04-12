@@ -1,4 +1,4 @@
-# Copyright 2018 The Cirq Developers
+# Copyright 2022 The Cirq Developers
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -12,13 +12,20 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import pytest
+
 import cirq
 
 
-def test_nonoptimal_toffoli_circuit():
-    q0, q1, q2 = cirq.LineQubit.range(3)
-    cirq.testing.assert_allclose_up_to_global_phase(
-        cirq.testing.nonoptimal_toffoli_circuit(q0, q1, q2).unitary(),
-        cirq.unitary(cirq.TOFFOLI(q0, q1, q2)),
-        atol=1e-7,
-    )
+def test_q() -> None:
+    assert cirq.q(0) == cirq.LineQubit(0)
+    assert cirq.q(1, 2) == cirq.GridQubit(1, 2)
+    assert cirq.q("foo") == cirq.NamedQubit("foo")
+
+
+def test_q_invalid() -> None:
+    # Ignore static type errors so we can test runtime typechecks.
+    with pytest.raises(ValueError):
+        cirq.q([1, 2, 3])  # type: ignore[call-overload]
+    with pytest.raises(ValueError):
+        cirq.q(1, "foo")  # type: ignore[call-overload]

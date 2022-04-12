@@ -680,7 +680,7 @@ def test_deserialize_schedule_not_supported():
         ),
     )
     with pytest.raises(ValueError, match='no longer supported'):
-        serializer.deserialize(proto, FakeDevice())
+        serializer.deserialize(proto)
 
 
 def test_deserialize_fsim_missing_parameters():
