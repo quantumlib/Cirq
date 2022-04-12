@@ -29,7 +29,6 @@ from typing import (
 import numpy as np
 
 from cirq import protocols, value, _import
-from cirq._compat import deprecated
 from cirq.ops import raw_types, controlled_operation as cop, matrix_gates
 from cirq.type_workarounds import NotImplementedType
 
@@ -121,37 +120,13 @@ class ControlledGate(raw_types.Gate):
     def control_qid_shape(self) -> Tuple[int, ...]:
         return self._control_qid_shape
 
-    @control_qid_shape.setter  # type: ignore
-    @deprecated(
-        deadline="v0.15",
-        fix="The mutators of this class are deprecated, instantiate a new object instead.",
-    )
-    def control_qid_shape(self, control_qid_shape: Tuple[int, ...]):
-        self._control_qid_shape = control_qid_shape
-
     @property
     def control_values(self) -> Tuple[Tuple[int, ...], ...]:
         return self._control_values
 
-    @control_values.setter  # type: ignore
-    @deprecated(
-        deadline="v0.15",
-        fix="The mutators of this class are deprecated, instantiate a new object instead.",
-    )
-    def control_values(self, control_values: Tuple[Tuple[int, ...], ...]):
-        self._control_values = control_values
-
     @property
     def sub_gate(self) -> 'cirq.Gate':
         return self._sub_gate
-
-    @sub_gate.setter  # type: ignore
-    @deprecated(
-        deadline="v0.15",
-        fix="The mutators of this class are deprecated, instantiate a new object instead.",
-    )
-    def sub_gate(self, sub_gate: 'cirq.Gate'):
-        self._sub_gate = sub_gate
 
     def num_controls(self) -> int:
         return len(self.control_qid_shape)

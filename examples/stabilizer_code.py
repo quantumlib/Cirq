@@ -114,8 +114,8 @@ def _gaussian_elimination(
 
 
 def _transfer_to_standard_form(
-    M: np.array, n: int, k: int
-) -> Tuple[np.array, np.array, np.array, int]:
+    M: np.ndarray, n: int, k: int
+) -> Tuple[np.ndarray, np.ndarray, np.ndarray, int]:
     """Puts the stabilizer matrix in its standardized form, as in section 4.1 of the thesis.
 
     Args:

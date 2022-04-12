@@ -18,7 +18,7 @@ import time
 import numpy as np
 import pytest
 
-from google.protobuf import any_pb2
+from google.protobuf import any_pb2, timestamp_pb2
 from google.protobuf.text_format import Merge
 
 import cirq
@@ -26,7 +26,7 @@ import cirq_google
 import cirq_google as cg
 from cirq_google.api import v1, v2
 from cirq_google.engine import util
-from cirq_google.engine.client.quantum_v1alpha1 import types as qtypes
+from cirq_google.cloud import quantum
 from cirq_google.engine.engine import EngineContext
 
 
@@ -41,7 +41,7 @@ _CIRCUIT2 = cirq.FrozenCircuit(
 
 
 def _to_timestamp(json_string):
-    timestamp_proto = qtypes.timestamp_pb2.Timestamp()
+    timestamp_proto = timestamp_pb2.Timestamp()
     timestamp_proto.FromJsonString(json_string)
     return timestamp_proto
 
@@ -336,16 +336,16 @@ def test_engine_str():
 def setup_run_circuit_with_result_(client, result):
     client().create_program.return_value = (
         'prog',
-        qtypes.QuantumProgram(name='projects/proj/programs/prog'),
+        quantum.QuantumProgram(name='projects/proj/programs/prog'),
     )
     client().create_job.return_value = (
         'job-id',
-        qtypes.QuantumJob(
+        quantum.QuantumJob(
             name='projects/proj/programs/prog/jobs/job-id', execution_status={'state': 'READY'}
         ),
     )
-    client().get_job.return_value = qtypes.QuantumJob(execution_status={'state': 'SUCCESS'})
-    client().get_job_results.return_value = qtypes.QuantumResult(result=result)
+    client().get_job.return_value = quantum.QuantumJob(execution_status={'state': 'SUCCESS'})
+    client().get_job_results.return_value = quantum.QuantumResult(result=result)
 
 
 @mock.patch('cirq_google.engine.engine_client.EngineClient')
@@ -354,10 +354,7 @@ def test_run_circuit(client):
 
     engine = cg.Engine(project_id='proj', service_args={'client_info': 1})
     result = engine.run(
-        program=_CIRCUIT,
-        program_id='prog',
-        job_id='job-id',
-        processor_ids=['mysim'],
+        program=_CIRCUIT, program_id='prog', job_id='job-id', processor_ids=['mysim']
     )
 
     assert result.repetitions == 1
@@ -367,7 +364,7 @@ def test_run_circuit(client):
     client.create_program.called_once_with()
     client.create_job.called_once_with(
         'projects/project-id/programs/test',
-        qtypes.QuantumJob(
+        quantum.QuantumJob(
             name='projects/project-id/programs/test/jobs/job-id',
             scheduling_config={
                 'priority': 50,
@@ -401,15 +398,15 @@ def test_unsupported_program_type():
 def test_run_circuit_failed(client):
     client().create_program.return_value = (
         'prog',
-        qtypes.QuantumProgram(name='projects/proj/programs/prog'),
+        quantum.QuantumProgram(name='projects/proj/programs/prog'),
     )
     client().create_job.return_value = (
         'job-id',
-        qtypes.QuantumJob(
+        quantum.QuantumJob(
             name='projects/proj/programs/prog/jobs/job-id', execution_status={'state': 'READY'}
         ),
     )
-    client().get_job.return_value = qtypes.QuantumJob(
+    client().get_job.return_value = quantum.QuantumJob(
         name='projects/proj/programs/prog/jobs/job-id',
         execution_status={
             'state': 'FAILURE',
@@ -431,15 +428,15 @@ def test_run_circuit_failed(client):
 def test_run_circuit_failed_missing_processor_name(client):
     client().create_program.return_value = (
         'prog',
-        qtypes.QuantumProgram(name='projects/proj/programs/prog'),
+        quantum.QuantumProgram(name='projects/proj/programs/prog'),
     )
     client().create_job.return_value = (
         'job-id',
-        qtypes.QuantumJob(
+        quantum.QuantumJob(
             name='projects/proj/programs/prog/jobs/job-id', execution_status={'state': 'READY'}
         ),
     )
-    client().get_job.return_value = qtypes.QuantumJob(
+    client().get_job.return_value = quantum.QuantumJob(
         name='projects/proj/programs/prog/jobs/job-id',
         execution_status={
             'state': 'FAILURE',
@@ -460,25 +457,21 @@ def test_run_circuit_failed_missing_processor_name(client):
 def test_run_circuit_cancelled(client):
     client().create_program.return_value = (
         'prog',
-        qtypes.QuantumProgram(name='projects/proj/programs/prog'),
+        quantum.QuantumProgram(name='projects/proj/programs/prog'),
     )
     client().create_job.return_value = (
         'job-id',
-        qtypes.QuantumJob(
+        quantum.QuantumJob(
             name='projects/proj/programs/prog/jobs/job-id', execution_status={'state': 'READY'}
         ),
     )
-    client().get_job.return_value = qtypes.QuantumJob(
-        name='projects/proj/programs/prog/jobs/job-id',
-        execution_status={
-            'state': 'CANCELLED',
-        },
+    client().get_job.return_value = quantum.QuantumJob(
+        name='projects/proj/programs/prog/jobs/job-id', execution_status={'state': 'CANCELLED'}
     )
 
     engine = cg.Engine(project_id='proj')
     with pytest.raises(
-        RuntimeError,
-        match='Job projects/proj/programs/prog/jobs/job-id failed in state CANCELLED.',
+        RuntimeError, match='Job projects/proj/programs/prog/jobs/job-id failed in state CANCELLED.'
     ):
         engine.run(program=_CIRCUIT)
 
@@ -488,19 +481,16 @@ def test_run_circuit_cancelled(client):
 def test_run_circuit_timeout(patched_time_sleep, client):
     client().create_program.return_value = (
         'prog',
-        qtypes.QuantumProgram(name='projects/proj/programs/prog'),
+        quantum.QuantumProgram(name='projects/proj/programs/prog'),
     )
     client().create_job.return_value = (
         'job-id',
-        qtypes.QuantumJob(
+        quantum.QuantumJob(
             name='projects/proj/programs/prog/jobs/job-id', execution_status={'state': 'READY'}
         ),
     )
-    client().get_job.return_value = qtypes.QuantumJob(
-        name='projects/proj/programs/prog/jobs/job-id',
-        execution_status={
-            'state': 'RUNNING',
-        },
+    client().get_job.return_value = quantum.QuantumJob(
+        name='projects/proj/programs/prog/jobs/job-id', execution_status={'state': 'RUNNING'}
     )
 
     engine = cg.Engine(project_id='project-id', timeout=600)
@@ -514,8 +504,7 @@ def test_run_sweep_params(client):
 
     engine = cg.Engine(project_id='proj')
     job = engine.run_sweep(
-        program=_CIRCUIT,
-        params=[cirq.ParamResolver({'a': 1}), cirq.ParamResolver({'a': 2})],
+        program=_CIRCUIT, params=[cirq.ParamResolver({'a': 1}), cirq.ParamResolver({'a': 2})]
     )
     results = job.results()
     assert len(results) == 2
@@ -573,10 +562,7 @@ def test_run_multiple_times(client):
 def test_run_sweep_v2(client):
     setup_run_circuit_with_result_(client, _RESULTS_V2)
 
-    engine = cg.Engine(
-        project_id='proj',
-        proto_version=cg.engine.engine.ProtoVersion.V2,
-    )
+    engine = cg.Engine(project_id='proj', proto_version=cg.engine.engine.ProtoVersion.V2)
     job = engine.run_sweep(program=_CIRCUIT, job_id='job-id', params=cirq.Points('a', [1, 2]))
     results = job.results()
     assert len(results) == 2
@@ -600,10 +586,7 @@ def test_run_sweep_v2(client):
 def test_run_batch(client):
     setup_run_circuit_with_result_(client, _BATCH_RESULTS_V2)
 
-    engine = cg.Engine(
-        project_id='proj',
-        proto_version=cg.engine.engine.ProtoVersion.V2,
-    )
+    engine = cg.Engine(project_id='proj', proto_version=cg.engine.engine.ProtoVersion.V2)
     job = engine.run_batch(
         programs=[_CIRCUIT, _CIRCUIT2],
         job_id='job-id',
@@ -638,10 +621,7 @@ def test_run_batch_no_params(client):
     # OK to run with no params, it should use empty sweeps for each
     # circuit.
     setup_run_circuit_with_result_(client, _BATCH_RESULTS_V2)
-    engine = cg.Engine(
-        project_id='proj',
-        proto_version=cg.engine.engine.ProtoVersion.V2,
-    )
+    engine = cg.Engine(project_id='proj', proto_version=cg.engine.engine.ProtoVersion.V2)
     engine.run_batch(programs=[_CIRCUIT, _CIRCUIT2], job_id='job-id', processor_ids=['mysim'])
     # Validate correct number of params have been created and that they
     # are empty sweeps.
@@ -656,10 +636,7 @@ def test_run_batch_no_params(client):
 
 
 def test_batch_size_validation_fails():
-    engine = cg.Engine(
-        project_id='proj',
-        proto_version=cg.engine.engine.ProtoVersion.V2,
-    )
+    engine = cg.Engine(project_id='proj', proto_version=cg.engine.engine.ProtoVersion.V2)
 
     with pytest.raises(ValueError, match='Number of circuits and sweeps'):
         _ = engine.run_batch(
@@ -692,10 +669,7 @@ def test_bad_sweep_proto():
 def test_run_calibration(client):
     setup_run_circuit_with_result_(client, _CALIBRATION_RESULTS_V2)
 
-    engine = cg.Engine(
-        project_id='proj',
-        proto_version=cg.engine.engine.ProtoVersion.V2,
-    )
+    engine = cg.Engine(project_id='proj', proto_version=cg.engine.engine.ProtoVersion.V2)
     q1 = cirq.GridQubit(2, 3)
     q2 = cirq.GridQubit(2, 4)
     layer1 = cg.CalibrationLayer('xeb', cirq.Circuit(cirq.CZ(q1, q2)), {'num_layers': 42})
@@ -727,10 +701,7 @@ def test_run_calibration(client):
 
 
 def test_run_calibration_validation_fails():
-    engine = cg.Engine(
-        project_id='proj',
-        proto_version=cg.engine.engine.ProtoVersion.V2,
-    )
+    engine = cg.Engine(project_id='proj', proto_version=cg.engine.engine.ProtoVersion.V2)
     q1 = cirq.GridQubit(2, 3)
     q2 = cirq.GridQubit(2, 4)
     layer1 = cg.CalibrationLayer('xeb', cirq.Circuit(cirq.CZ(q1, q2)), {'num_layers': 42})
@@ -743,10 +714,7 @@ def test_run_calibration_validation_fails():
 
     with pytest.raises(ValueError, match='processor_id and processor_ids'):
         _ = engine.run_calibration(
-            layers=[layer1, layer2],
-            processor_ids=['mysim'],
-            processor_id='mysim',
-            job_id='job-id',
+            layers=[layer1, layer2], processor_ids=['mysim'], processor_id='mysim', job_id='job-id'
         )
 
 
@@ -779,8 +747,8 @@ def test_get_program():
 
 @mock.patch('cirq_google.engine.engine_client.EngineClient.list_programs')
 def test_list_programs(list_programs):
-    prog1 = qtypes.QuantumProgram(name='projects/proj/programs/prog-YBGR48THF3JHERZW200804')
-    prog2 = qtypes.QuantumProgram(name='projects/otherproj/programs/prog-V3ZRTV6TTAFNTYJV200804')
+    prog1 = quantum.QuantumProgram(name='projects/proj/programs/prog-YBGR48THF3JHERZW200804')
+    prog2 = quantum.QuantumProgram(name='projects/otherproj/programs/prog-V3ZRTV6TTAFNTYJV200804')
     list_programs.return_value = [prog1, prog2]
 
     result = cg.Engine(project_id='proj').list_programs()
@@ -795,7 +763,7 @@ def test_list_programs(list_programs):
 
 @mock.patch('cirq_google.engine.engine_client.EngineClient')
 def test_create_program(client):
-    client().create_program.return_value = ('prog', qtypes.QuantumProgram())
+    client().create_program.return_value = ('prog', quantum.QuantumProgram())
     result = cg.Engine(project_id='proj').create_program(_CIRCUIT, 'prog')
     client().create_program.assert_called_once()
     assert result.program_id == 'prog'
@@ -803,8 +771,8 @@ def test_create_program(client):
 
 @mock.patch('cirq_google.engine.engine_client.EngineClient.list_jobs')
 def test_list_jobs(list_jobs):
-    job1 = qtypes.QuantumJob(name='projects/proj/programs/prog1/jobs/job1')
-    job2 = qtypes.QuantumJob(name='projects/proj/programs/prog2/jobs/job2')
+    job1 = quantum.QuantumJob(name='projects/proj/programs/prog1/jobs/job1')
+    job2 = quantum.QuantumJob(name='projects/proj/programs/prog2/jobs/job2')
     list_jobs.return_value = [job1, job2]
 
     ctx = EngineContext()
@@ -825,8 +793,8 @@ def test_list_jobs(list_jobs):
 
 @mock.patch('cirq_google.engine.engine_client.EngineClient.list_processors')
 def test_list_processors(list_processors):
-    processor1 = qtypes.QuantumProcessor(name='projects/proj/processors/xmonsim')
-    processor2 = qtypes.QuantumProcessor(name='projects/proj/processors/gmonsim')
+    processor1 = quantum.QuantumProcessor(name='projects/proj/processors/xmonsim')
+    processor2 = quantum.QuantumProcessor(name='projects/proj/processors/gmonsim')
     list_processors.return_value = [processor1, processor2]
 
     result = cg.Engine(project_id='proj').list_processors()
@@ -858,7 +826,7 @@ def test_sampler(client):
         _ = engine.sampler(processor_id='tmp')
 
 
-@mock.patch('cirq_google.engine.client.quantum.QuantumEngineServiceClient')
+@mock.patch('cirq_google.cloud.quantum.QuantumEngineServiceClient')
 def test_get_engine(build):
     # Default project id present.
     with mock.patch('google.auth.default', lambda: (None, 'project!')):
@@ -907,7 +875,7 @@ valid_targets: [{
         ],
     )
 
-    get_processor.return_value = qtypes.QuantumProcessor(device_spec=device_spec)
+    get_processor.return_value = quantum.QuantumProcessor(device_spec=device_spec)
     device = cirq_google.get_engine_device('rainbow', 'project', gatesets=[gate_set])
     assert set(device.qubits) == {cirq.GridQubit(0, 0), cirq.GridQubit(1, 1)}
     device.validate_operation(cirq.X(cirq.GridQubit(0, 0)))
@@ -917,7 +885,7 @@ valid_targets: [{
         device.validate_operation(cirq.Y(cirq.GridQubit(0, 0)))
 
 
-_CALIBRATION = qtypes.QuantumCalibration(
+_CALIBRATION = quantum.QuantumCalibration(
     name='projects/a/processors/p/calibrations/1562715599',
     timestamp=_to_timestamp('2019-07-09T23:39:59Z'),
     data=util.pack_any(

@@ -55,7 +55,7 @@ fi
 
 typeset -a changed
 IFS=$'\n' read -r -d '' -a changed < \
-    <(git diff --name-only ${rev} -- \
+    <(git diff --name-only ${rev} -- '*.py' ':(exclude)cirq-google/cirq_google/cloud/*' ':(exclude)*_pb2.py' \
     | grep -E "^(cirq|dev_tools|examples).*.py$"
 )
 

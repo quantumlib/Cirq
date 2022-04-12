@@ -273,30 +273,18 @@ class SerializableGateSet(serializer.Serializer):
                 return proto_msg
         raise ValueError(f'Cannot serialize CircuitOperation {op!r}')
 
-    @cirq._compat.deprecated_parameter(
-        deadline='v0.15',
-        fix=cirq.circuits.circuit._DEVICE_DEP_MESSAGE,
-        parameter_desc='device',
-        match=lambda args, kwargs: 'device' in kwargs or len(args) > 2,
-    )
-    def deserialize(
-        self, proto: v2.program_pb2.Program, device: Optional[cirq.Device] = None
-    ) -> cirq.Circuit:
+    def deserialize(self, proto: v2.program_pb2.Program) -> cirq.Circuit:
         """Deserialize a Circuit from a cirq_google.api.v2.Program.
 
         Args:
             proto: A dictionary representing a cirq_google.api.v2.Program proto.
-            device: If the proto is for a schedule, a device is required
-                Otherwise optional.
 
         Returns:
-            The deserialized Circuit, with a device if device was
-            not None.
+            The deserialized Circuit.
 
         Raises:
             ValueError: If the given proto has no language specified or it mismatched the
-                name specified for this serializable gate set. In addition if the program
-                is a schedule and no device was specified.
+                name specified for this serializable gate set.
             NotImplementedError: If the program does not contain a circuit or schedule.
         """
         if not proto.HasField('language') or not proto.language.gate_set:
@@ -328,12 +316,10 @@ class SerializableGateSet(serializer.Serializer):
                 constants=proto.constants,
                 deserialized_constants=deserialized_constants,
             )
-            if device is not None:
-                circuit._device = device  # coverage: ignore
             return circuit
         if which == 'schedule':
             return self._deserialize_schedule(
-                proto.schedule, device, arg_function_language=proto.language.arg_function_language
+                proto.schedule, arg_function_language=proto.language.arg_function_language
             )
 
         raise NotImplementedError('Program proto does not contain a circuit.')
@@ -503,7 +489,6 @@ class SerializableGateSet(serializer.Serializer):
     def _deserialize_schedule(
         self,
         schedule_proto: v2.program_pb2.Schedule,
-        device: Optional[cirq.Device],
         *,
         arg_function_language: str,
     ) -> cirq.Circuit:
@@ -517,7 +502,4 @@ class SerializableGateSet(serializer.Serializer):
                 )
             )
         ret = cirq.Circuit(result)
-        if device is None:
-            device = cirq.UNCONSTRAINED_DEVICE
-        ret._device = device
         return ret

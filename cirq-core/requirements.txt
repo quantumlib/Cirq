@@ -13,7 +13,6 @@ numpy~=1.16
 pandas
 sortedcontainers~=2.0
 scipy
-# TODO: unpin once #5058 is resolved
-sympy<1.10
+sympy
 typing_extensions
 tqdm

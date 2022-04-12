@@ -2,7 +2,8 @@
 load-plugins=pylint.extensions.docstyle,pylint.extensions.docparams,pylint_copyright_checker
 max-line-length=100
 disable=all
-ignore-patterns=.*_pb2\.py,quantum_engine_service_client.py,engine_pb2_grpc.py,quantum_pb2_grpc.py
+ignore-paths=cirq-google/cirq_google/cloud/.*
+ignore-patterns=.*_pb2\.py
 output-format=colorized
 score=no
 reports=no
