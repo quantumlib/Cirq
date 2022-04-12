@@ -46,9 +46,16 @@ class ActOnArgs(OperationTarget[TSelf], metaclass=abc.ABCMeta):
 
     @deprecated_parameter(
         deadline='v0.16',
-        fix='Use classical_data and keyword args.',
+        fix='Use kwargs instead of positional args',
+        parameter_desc='args',
+        match=lambda args, kwargs: len(args) > 1,
+    )
+    @deprecated_parameter(
+        deadline='v0.16',
+        fix='Replace log_of_measurement_results with'
+        ' classical_data=cirq.ClassicalDataDictionaryStore(_records=logs).',
         parameter_desc='log_of_measurement_results',
-        match=lambda args, kwargs: 'log_of_measurement_results' in kwargs or len(args) > 1,
+        match=lambda args, kwargs: 'log_of_measurement_results' in kwargs,
     )
     def __init__(
         self,

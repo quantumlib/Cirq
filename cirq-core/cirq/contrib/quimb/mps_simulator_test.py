@@ -571,7 +571,7 @@ def test_act_on_gate():
     )
 
 
-def test_deprectated():
+def test_deprecated():
     prng = np.random.RandomState(0)
     with cirq.testing.assert_deprecated(deadline='0.16', count=2):
         _ = ccq.mps_simulator.MPSState(

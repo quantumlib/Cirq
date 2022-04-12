@@ -11,14 +11,14 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from typing import Any, Sequence, Union
+
+from typing import Any, Sequence
 
 import numpy as np
 import pytest
 
 import cirq
 from cirq.sim import act_on_args
-from cirq.type_workarounds import NotImplementedType
 
 
 class DummyQuantumState(cirq.QuantumStateRepresentation):
@@ -157,8 +157,8 @@ def test_deprecated():
         def _act_on_fallback_(self, action, qubits, allow_decompose=True):
             pass
 
-        def __init__(self):
-            super().__init__(state=0, log_of_measurement_results={})
-
     with cirq.testing.assert_deprecated('log_of_measurement_results', deadline='v0.16'):
-        _ = DeprecatedArgs()
+        _ = DeprecatedArgs(state=0, log_of_measurement_results={})
+
+    with cirq.testing.assert_deprecated('positional', deadline='v0.16'):
+        _ = DeprecatedArgs(np.random.RandomState(), state=0)
