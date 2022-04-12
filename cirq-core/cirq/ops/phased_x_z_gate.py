@@ -21,7 +21,7 @@ class PhasedXZGate(gate_features.SingleQubitGate):
     $$
         \begin{bmatrix}
             e^{i \pi x / 2} \cos(\pi x /2) & -i e^{i \pi (x/2 - a)} \sin(\pi x / 2) \\
-             -i e^{i \pi (x/2 + z + a)} \sin(\pi x / 2) &&  e^{i \pi (x / 2 + z)} \cos(\pi x /2)
+             -i e^{i \pi (x/2 + z + a)} \sin(\pi x / 2) &  e^{i \pi (x / 2 + z)} \cos(\pi x /2)
         \end{bmatrix}
     $$
 
