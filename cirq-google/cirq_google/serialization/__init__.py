@@ -14,15 +14,10 @@
 
 """Classes for serializing circuits into protocol buffers."""
 
-from cirq_google.serialization.arg_func_langs import (
-    arg_from_proto,
-)
+from cirq_google.serialization.arg_func_langs import arg_from_proto
 
 
-from cirq_google.serialization.circuit_serializer import (
-    CircuitSerializer,
-    CIRCUIT_SERIALIZER,
-)
+from cirq_google.serialization.circuit_serializer import CircuitSerializer, CIRCUIT_SERIALIZER
 
 from cirq_google.serialization.gate_sets import (
     XMON,
@@ -44,10 +39,6 @@ from cirq_google.serialization.op_serializer import (
     SerializingArg,
 )
 
-from cirq_google.serialization.serializer import (
-    Serializer,
-)
+from cirq_google.serialization.serializer import Serializer
 
-from cirq_google.serialization.serializable_gate_set import (
-    SerializableGateSet,
-)
+from cirq_google.serialization.serializable_gate_set import SerializableGateSet
