@@ -1,4 +1,4 @@
-# Copyright 2020 The Cirq Developers
+# Copyright 2022 The Cirq Developers
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -12,15 +12,20 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from __future__ import absolute_import
+import pytest
 
-from cirq_google.engine.client.quantum_v1alpha1 import QuantumEngineServiceClient
-from cirq_google.engine.client.quantum_v1alpha1 import enums
-from cirq_google.engine.client.quantum_v1alpha1 import types
+import cirq
 
 
-__all__ = (
-    'enums',
-    'types',
-    'QuantumEngineServiceClient',
-)
+def test_q() -> None:
+    assert cirq.q(0) == cirq.LineQubit(0)
+    assert cirq.q(1, 2) == cirq.GridQubit(1, 2)
+    assert cirq.q("foo") == cirq.NamedQubit("foo")
+
+
+def test_q_invalid() -> None:
+    # Ignore static type errors so we can test runtime typechecks.
+    with pytest.raises(ValueError):
+        cirq.q([1, 2, 3])  # type: ignore[call-overload]
+    with pytest.raises(ValueError):
+        cirq.q(1, "foo")  # type: ignore[call-overload]

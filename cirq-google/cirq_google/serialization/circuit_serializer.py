@@ -313,18 +313,14 @@ class CircuitSerializer(serializer.Serializer):
             raw_constants=raw_constants,
         )
 
-    def deserialize(
-        self, proto: v2.program_pb2.Program, device: Optional[cirq.Device] = None
-    ) -> cirq.Circuit:
+    def deserialize(self, proto: v2.program_pb2.Program) -> cirq.Circuit:
         """Deserialize a Circuit from a cirq_google.api.v2.Program.
 
         Args:
             proto: A dictionary representing a cirq_google.api.v2.Program proto.
-            device: If the proto is for a schedule, a device is required
-                Otherwise optional.
 
         Returns:
-            The deserialized Circuit, with a device if device was not None.
+            The deserialized Circuit
 
         Raises:
             ValueError: If the given proto has no language or the langauge gate set mismatches
@@ -367,7 +363,7 @@ class CircuitSerializer(serializer.Serializer):
                 constants=proto.constants,
                 deserialized_constants=deserialized_constants,
             )
-            return circuit if device is None else circuit.with_device(device)
+            return circuit
         if which == 'schedule':
             raise ValueError('Deserializing a schedule is no longer supported.')
 
