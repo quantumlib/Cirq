@@ -128,6 +128,7 @@ class SycamoreTargetGateset(cirq.TwoQubitCompilationTargetGateset):
             cirq.XPowGate,
             cirq.YPowGate,
             cirq.ZPowGate,
+            cirq.GlobalPhaseGate,
             name='SycamoreTargetGateset',
         )
         self.atol = atol

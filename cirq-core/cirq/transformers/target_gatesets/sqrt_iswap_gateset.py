@@ -55,6 +55,7 @@ class SqrtIswapTargetGateset(compilation_target_gateset.TwoQubitCompilationTarge
             ops.SQRT_ISWAP_INV if use_sqrt_iswap_inv else ops.SQRT_ISWAP,
             ops.MeasurementGate,
             ops.AnyUnitaryGateFamily(1),
+            ops.GlobalPhaseGate,
             name='SqrtIswapInvTargetGateset' if use_sqrt_iswap_inv else 'SqrtIswapTargetGateset',
         )
         self.atol = atol
