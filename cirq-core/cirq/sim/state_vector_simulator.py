@@ -158,7 +158,9 @@ class StateVectorTrialResult(
         if self._final_state_vector is None:
             state = self._final_simulator_state
             tensor = state.create_merged_state().target_tensor
-            self._final_state_vector = tensor.reshape(np.prod(tensor.shape))
+            if tensor.ndim > 1:
+                tensor = tensor.reshape(np.prod(tensor.shape))
+            self._final_state_vector = tensor
         return self._final_state_vector
 
     def state_vector(self):
