@@ -38,7 +38,6 @@ from cirq.sim import ActOnArgsContainer
 from cirq.sim.operation_target import OperationTarget
 from cirq.sim.simulator import (
     TSimulationTrialResult,
-    TSimulatorState,
     TActOnArgs,
     SimulatesIntermediateState,
     SimulatesSamples,
@@ -56,9 +55,9 @@ TStepResultBase = TypeVar('TStepResultBase', bound='StepResultBase')
 
 
 class SimulatorBase(
-    Generic[TStepResultBase, TSimulationTrialResult, TSimulatorState, TActOnArgs],
+    Generic[TStepResultBase, TSimulationTrialResult, TActOnArgs],
     SimulatesIntermediateState[
-        TStepResultBase, TSimulationTrialResult, TSimulatorState, TActOnArgs
+        TStepResultBase, TSimulationTrialResult, TActOnArgs
     ],
     SimulatesSamples,
     metaclass=abc.ABCMeta,
@@ -362,7 +361,7 @@ class SimulatorBase(
             )
 
 
-class StepResultBase(Generic[TSimulatorState, TActOnArgs], StepResult[TSimulatorState], abc.ABC):
+class StepResultBase(Generic[TActOnArgs], StepResult[OperationTarget[TActOnArgs]], abc.ABC):
     """A base class for step results."""
 
     def __init__(
@@ -401,7 +400,7 @@ class StepResultBase(Generic[TSimulatorState, TActOnArgs], StepResult[TSimulator
 
 
 class SimulationTrialResultBase(
-    Generic[TSimulatorState, TActOnArgs], SimulationTrialResult, abc.ABC
+    SimulationTrialResult[OperationTarget[TActOnArgs]], Generic[TActOnArgs], abc.ABC
 ):
     """A base class for trial results."""
 
@@ -409,7 +408,7 @@ class SimulationTrialResultBase(
         self,
         params: study.ParamResolver,
         measurements: Dict[str, np.ndarray],
-        final_step_result: StepResultBase[TSimulatorState, TActOnArgs],
+        final_step_result: StepResultBase[TActOnArgs],
     ) -> None:
         """Initializes the `SimulationTrialResultBase` class.
 

@@ -54,7 +54,7 @@ class MPSOptions:
 
 class MPSSimulator(
     simulator_base.SimulatorBase[
-        'MPSSimulatorStepResult', 'MPSTrialResult', 'MPSState', 'MPSState'
+        'MPSSimulatorStepResult', 'MPSTrialResult', 'MPSState'
     ],
 ):
     """An efficient simulator for MPS circuits."""
@@ -148,7 +148,7 @@ class MPSSimulator(
         )
 
 
-class MPSTrialResult(simulator_base.SimulationTrialResultBase['MPSState', 'MPSState']):
+class MPSTrialResult(simulator_base.SimulationTrialResultBase['MPSState']):
     """A single trial reult"""
 
     def __init__(
@@ -162,8 +162,8 @@ class MPSTrialResult(simulator_base.SimulationTrialResultBase['MPSState', 'MPSSt
         )
 
     @property
-    def final_state(self):
-        return self._final_simulator_state
+    def final_state(self) -> 'MPSState':
+        return self._final_simulator_state.create_merged_state()
 
     def __str__(self) -> str:
         samples = super().__str__()
@@ -179,7 +179,7 @@ class MPSTrialResult(simulator_base.SimulationTrialResultBase['MPSState', 'MPSSt
             p.text(str(self))
 
 
-class MPSSimulatorStepResult(simulator_base.StepResultBase['MPSState', 'MPSState']):
+class MPSSimulatorStepResult(simulator_base.StepResultBase['MPSState']):
     """A `StepResult` that can perform measurements."""
 
     def __init__(

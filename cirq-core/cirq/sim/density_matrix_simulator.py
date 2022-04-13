@@ -33,7 +33,6 @@ class DensityMatrixSimulator(
     simulator_base.SimulatorBase[
         'cirq.DensityMatrixStepResult',
         'cirq.DensityMatrixTrialResult',
-        'cirq.DensityMatrixSimulatorState',
         'cirq.ActOnDensityMatrixArgs',
     ],
     simulator.SimulatesExpectationValues,
@@ -242,7 +241,7 @@ class DensityMatrixSimulator(
 
 
 class DensityMatrixStepResult(
-    simulator_base.StepResultBase['cirq.DensityMatrixSimulatorState', 'cirq.ActOnDensityMatrixArgs']
+    simulator_base.StepResultBase['cirq.ActOnDensityMatrixArgs']
 ):
     """A single step in the simulation of the DensityMatrixSimulator.
 
@@ -275,8 +274,8 @@ class DensityMatrixStepResult(
         self._dtype = dtype
         self._density_matrix: Optional[np.ndarray] = None
 
-    def _simulator_state(self) -> 'cirq.DensityMatrixSimulatorState':
-        return DensityMatrixSimulatorState(self.density_matrix(copy=False), self._qubit_mapping)
+    def _simulator_state(self) -> 'cirq.OperationTarget[cirq.ActOnDensityMatrixArgs]':
+        return self._sim_state
 
     def density_matrix(self, copy=True):
         """Returns the density matrix at this step in the simulation.
@@ -361,7 +360,7 @@ class DensityMatrixSimulatorState:
 @value.value_equality(unhashable=True)
 class DensityMatrixTrialResult(
     simulator_base.SimulationTrialResultBase[
-        'DensityMatrixSimulatorState', act_on_density_matrix_args.ActOnDensityMatrixArgs
+        act_on_density_matrix_args.ActOnDensityMatrixArgs
     ]
 ):
     """A `SimulationTrialResult` for `DensityMatrixSimulator` runs.
@@ -416,8 +415,10 @@ class DensityMatrixTrialResult(
     def final_density_matrix(self):
         if self._final_density_matrix is None:
             size = np.prod(protocols.qid_shape(self), dtype=np.int64)
+            state = self._final_simulator_state
+            tensor = state.create_merged_state().target_tensor
             self._final_density_matrix = np.reshape(
-                self._final_simulator_state.density_matrix.copy(), (size, size)
+                tensor.copy(), (size, size)
             )
         return self._final_density_matrix
 

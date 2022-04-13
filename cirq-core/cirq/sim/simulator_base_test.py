@@ -94,7 +94,7 @@ class SplittableCountingActOnArgs(CountingActOnArgs):
         return True
 
 
-class CountingStepResult(cirq.StepResultBase[CountingActOnArgs, CountingActOnArgs]):
+class CountingStepResult(cirq.StepResultBase[CountingActOnArgs]):
     def sample(
         self,
         qubits: List[cirq.Qid],
@@ -110,13 +110,13 @@ class CountingStepResult(cirq.StepResultBase[CountingActOnArgs, CountingActOnArg
         return self._merged_sim_state
 
 
-class CountingTrialResult(cirq.SimulationTrialResultBase[CountingActOnArgs, CountingActOnArgs]):
+class CountingTrialResult(cirq.SimulationTrialResultBase[CountingActOnArgs]):
     pass
 
 
 class CountingSimulator(
     cirq.SimulatorBase[
-        CountingStepResult, CountingTrialResult, CountingActOnArgs, CountingActOnArgs
+        CountingStepResult, CountingTrialResult, CountingActOnArgs
     ]
 ):
     def __init__(self, noise=None, split_untangled_states=False):

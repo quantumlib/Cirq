@@ -560,7 +560,7 @@ class SimulatesFinalState(
 
 
 class SimulatesIntermediateState(
-    Generic[TStepResult, TSimulationTrialResult, TSimulatorState, TActOnArgs],
+    Generic[TStepResult, TSimulationTrialResult, TActOnArgs],
     SimulatesFinalState[TSimulationTrialResult],
     metaclass=abc.ABCMeta,
 ):
@@ -891,7 +891,7 @@ class StepResult(Generic[TSimulatorState], metaclass=abc.ABCMeta):
 
 
 @value.value_equality(unhashable=True)
-class SimulationTrialResult:
+class SimulationTrialResult(Generic[TSimulatorState]):
     """Results of a simulation by a SimulatesFinalState.
 
     Unlike Result these results contain the final simulator_state of the
@@ -912,7 +912,7 @@ class SimulationTrialResult:
         params: 'cirq.ParamResolver',
         measurements: Dict[str, np.ndarray],
         final_simulator_state: Any = None,
-        final_step_result: 'cirq.StepResult' = None,
+        final_step_result: 'cirq.StepResult[TSimulatorState]' = None,
     ) -> None:
         """Initializes the `SimulationTrialResult` class.
 
@@ -943,7 +943,7 @@ class SimulationTrialResult:
         self._final_simulator_state_cache = final_simulator_state
 
     @property
-    def _final_simulator_state(self):
+    def _final_simulator_state(self) -> 'TSimulatorState':
         if self._final_simulator_state_cache is None:
             self._final_simulator_state_cache = self._final_step_result._simulator_state()
         return self._final_simulator_state_cache
@@ -982,7 +982,7 @@ class SimulationTrialResult:
         """A map from Qid to index used to define the ordering of the basis in
         the result.
         """
-        return self._final_simulator_state.qubit_map
+        return self._final_simulator_state.create_merged_state().qubit_map
 
     def _qid_shape_(self) -> Tuple[int, ...]:
         return _qubit_map_to_shape(self.qubit_map)

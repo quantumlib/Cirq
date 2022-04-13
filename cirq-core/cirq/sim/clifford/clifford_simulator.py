@@ -43,7 +43,6 @@ class CliffordSimulator(
     simulator_base.SimulatorBase[
         'cirq.CliffordSimulatorStepResult',
         'cirq.CliffordTrialResult',
-        'cirq.CliffordState',
         'cirq.ActOnStabilizerCHFormArgs',
     ],
 ):
@@ -124,7 +123,7 @@ class CliffordSimulator(
 
 class CliffordTrialResult(
     simulator_base.SimulationTrialResultBase[
-        'clifford.CliffordState', 'clifford.ActOnStabilizerCHFormArgs'
+        'clifford.ActOnStabilizerCHFormArgs'
     ]
 ):
     def __init__(
@@ -138,8 +137,8 @@ class CliffordTrialResult(
         )
 
     @property
-    def final_state(self):
-        return self._final_simulator_state
+    def final_state(self) -> 'cirq.ActOnStabilizerCHFormArgs':
+        return self._final_simulator_state.create_merged_state()
 
     def __str__(self) -> str:
         samples = super().__str__()
@@ -152,7 +151,7 @@ class CliffordTrialResult(
 
 
 class CliffordSimulatorStepResult(
-    simulator_base.StepResultBase['cirq.CliffordState', 'cirq.ActOnStabilizerCHFormArgs']
+    simulator_base.StepResultBase['cirq.ActOnStabilizerCHFormArgs']
 ):
     """A `StepResult` that includes `StateVectorMixin` methods."""
 
