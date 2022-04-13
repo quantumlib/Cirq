@@ -34,10 +34,7 @@ class DummyActOnArgs(cirq.ActOnArgs):
         self.fallback_result = fallback_result
 
     def _act_on_fallback_(
-        self,
-        action: Any,
-        qubits: Sequence['cirq.Qid'],
-        allow_decompose: bool = True,
+        self, action: Any, qubits: Sequence['cirq.Qid'], allow_decompose: bool = True
     ):
         return self.fallback_result
 

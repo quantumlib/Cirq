@@ -30,19 +30,13 @@ import numpy as np
 
 from cirq import ops, protocols, value
 from cirq.sim.operation_target import OperationTarget
-from cirq.sim.simulator import (
-    TActOnArgs,
-)
+from cirq.sim.simulator import TActOnArgs
 
 if TYPE_CHECKING:
     import cirq
 
 
-class ActOnArgsContainer(
-    Generic[TActOnArgs],
-    OperationTarget[TActOnArgs],
-    abc.Mapping,
-):
+class ActOnArgsContainer(Generic[TActOnArgs], OperationTarget[TActOnArgs], abc.Mapping):
     """A container for a `Qid`-to-`ActOnArgs` dictionary."""
 
     def __init__(
@@ -86,10 +80,7 @@ class ActOnArgsContainer(
         return final_args.transpose_to_qubit_order(self.qubits)
 
     def _act_on_fallback_(
-        self,
-        action: Any,
-        qubits: Sequence['cirq.Qid'],
-        allow_decompose: bool = True,
+        self, action: Any, qubits: Sequence['cirq.Qid'], allow_decompose: bool = True
     ) -> bool:
         gate_opt = (
             action

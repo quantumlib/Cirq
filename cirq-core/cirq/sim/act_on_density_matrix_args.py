@@ -285,22 +285,14 @@ class ActOnDensityMatrixArgs(ActOnArgs):
             dtype=dtype,
             buffer=available_buffer,
         )
-        super().__init__(
-            state=state,
-            prng=prng,
-            qubits=qubits,
-            classical_data=classical_data,
-        )
+        super().__init__(state=state, prng=prng, qubits=qubits, classical_data=classical_data)
         self._state: _BufferedDensityMatrix = state
 
     def _act_on_fallback_(
-        self,
-        action: Any,
-        qubits: Sequence['cirq.Qid'],
-        allow_decompose: bool = True,
+        self, action: Any, qubits: Sequence['cirq.Qid'], allow_decompose: bool = True
     ) -> bool:
         strats: List[Callable[[Any, Any, Sequence['cirq.Qid']], bool]] = [
-            _strat_apply_channel_to_state,
+            _strat_apply_channel_to_state
         ]
         if allow_decompose:
             strats.append(strat_act_on_from_apply_decompose)

@@ -66,14 +66,10 @@ def test_state_vector_trial_result_equality():
     )
     eq.add_equality_group(
         cirq.StateVectorTrialResult(
-            params=cirq.ParamResolver({}),
-            measurements={},
-            final_step_result=final_step_result,
+            params=cirq.ParamResolver({}), measurements={}, final_step_result=final_step_result
         ),
         cirq.StateVectorTrialResult(
-            params=cirq.ParamResolver({}),
-            measurements={},
-            final_step_result=final_step_result,
+            params=cirq.ParamResolver({}), measurements={}, final_step_result=final_step_result
         ),
     )
     eq.add_equality_group(
@@ -178,11 +174,7 @@ def test_str_big():
         dtype=np.complex64,
     )
     final_step_result = cirq.SparseSimulatorStep(args)
-    result = cirq.StateVectorTrialResult(
-        cirq.ParamResolver(),
-        {},
-        final_step_result,
-    )
+    result = cirq.StateVectorTrialResult(cirq.ParamResolver(), {}, final_step_result)
     assert 'output vector: [0.03125+0.j 0.03125+0.j 0.03125+0.j ..' in str(result)
 
 

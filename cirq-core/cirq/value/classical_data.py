@@ -229,8 +229,7 @@ class ClassicalDataDictionaryStore(ClassicalDataStore):
         if key not in self._measured_qubits:
             return digits.big_endian_bits_to_int(self._records[key][index])
         return digits.big_endian_digits_to_int(
-            self._records[key][index],
-            base=[q.dimension for q in self._measured_qubits[key][index]],
+            self._records[key][index], base=[q.dimension for q in self._measured_qubits[key][index]]
         )
 
     def copy(self):

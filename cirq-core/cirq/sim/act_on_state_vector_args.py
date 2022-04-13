@@ -110,10 +110,7 @@ class _BufferedStateVector(qis.QuantumStateRepresentation):
         target_tensor = transformations.state_vector_kronecker_product(
             self._state_vector, other._state_vector
         )
-        return _BufferedStateVector(
-            state_vector=target_tensor,
-            buffer=np.empty_like(target_tensor),
-        )
+        return _BufferedStateVector(state_vector=target_tensor, buffer=np.empty_like(target_tensor))
 
     def factor(
         self, axes: Sequence[int], *, validate=True, atol=1e-07
@@ -140,12 +137,10 @@ class _BufferedStateVector(qis.QuantumStateRepresentation):
             self._state_vector, axes, validate=validate, atol=atol
         )
         extracted = _BufferedStateVector(
-            state_vector=extracted_tensor,
-            buffer=np.empty_like(extracted_tensor),
+            state_vector=extracted_tensor, buffer=np.empty_like(extracted_tensor)
         )
         remainder = _BufferedStateVector(
-            state_vector=remainder_tensor,
-            buffer=np.empty_like(remainder_tensor),
+            state_vector=remainder_tensor, buffer=np.empty_like(remainder_tensor)
         )
         return extracted, remainder
 
@@ -158,10 +153,7 @@ class _BufferedStateVector(qis.QuantumStateRepresentation):
             The transposed state vector.
         """
         new_tensor = transformations.transpose_state_vector_to_axis_order(self._state_vector, axes)
-        return _BufferedStateVector(
-            state_vector=new_tensor,
-            buffer=np.empty_like(new_tensor),
-        )
+        return _BufferedStateVector(state_vector=new_tensor, buffer=np.empty_like(new_tensor))
 
     def apply_unitary(self, action: Any, axes: Sequence[int]) -> bool:
         """Apply unitary to state.
@@ -175,9 +167,7 @@ class _BufferedStateVector(qis.QuantumStateRepresentation):
         new_target_tensor = protocols.apply_unitary(
             action,
             protocols.ApplyUnitaryArgs(
-                target_tensor=self._state_vector,
-                available_buffer=self._buffer,
-                axes=axes,
+                target_tensor=self._state_vector, available_buffer=self._buffer, axes=axes
             ),
             allow_decompose=False,
             default=NotImplemented,
@@ -276,11 +266,7 @@ class _BufferedStateVector(qis.QuantumStateRepresentation):
             The measurements in order.
         """
         bits, _ = sim.measure_state_vector(
-            self._state_vector,
-            axes,
-            out=self._state_vector,
-            qid_shape=self._qid_shape,
-            seed=seed,
+            self._state_vector, axes, out=self._state_vector, qid_shape=self._qid_shape, seed=seed
         )
         return bits
 
@@ -300,11 +286,7 @@ class _BufferedStateVector(qis.QuantumStateRepresentation):
             The samples in order.
         """
         return sim.sample_state_vector(
-            self._state_vector,
-            axes,
-            qid_shape=self._qid_shape,
-            repetitions=repetitions,
-            seed=seed,
+            self._state_vector, axes, qid_shape=self._qid_shape, repetitions=repetitions, seed=seed
         )
 
     def _swap_target_tensor_for(self, new_target_tensor: np.ndarray):
@@ -374,17 +356,11 @@ class ActOnStateVectorArgs(ActOnArgs):
             dtype=dtype,
             buffer=available_buffer,
         )
-        super().__init__(
-            state=state,
-            prng=prng,
-            qubits=qubits,
-            classical_data=classical_data,
-        )
+        super().__init__(state=state, prng=prng, qubits=qubits, classical_data=classical_data)
         self._state: _BufferedStateVector = state
 
     @_compat.deprecated(
-        deadline='v0.16',
-        fix='None, this function was unintentionally made public.',
+        deadline='v0.16', fix='None, this function was unintentionally made public.'
     )
     def swap_target_tensor_for(self, new_target_tensor: np.ndarray):
         """Gives a new state vector for the system.
@@ -399,8 +375,7 @@ class ActOnStateVectorArgs(ActOnArgs):
         self._state._swap_target_tensor_for(new_target_tensor)
 
     @_compat.deprecated(
-        deadline='v0.16',
-        fix='None, this function was unintentionally made public.',
+        deadline='v0.16', fix='None, this function was unintentionally made public.'
     )
     def subspace_index(
         self, axes: Sequence[int], little_endian_bits_int: int = 0, *, big_endian_bits_int: int = 0
@@ -456,10 +431,7 @@ class ActOnStateVectorArgs(ActOnArgs):
         )
 
     def _act_on_fallback_(
-        self,
-        action: Any,
-        qubits: Sequence['cirq.Qid'],
-        allow_decompose: bool = True,
+        self, action: Any, qubits: Sequence['cirq.Qid'], allow_decompose: bool = True
     ) -> bool:
         strats: List[Callable[[Any, Any, Sequence['cirq.Qid']], bool]] = [
             _strat_act_on_state_vector_from_apply_unitary,

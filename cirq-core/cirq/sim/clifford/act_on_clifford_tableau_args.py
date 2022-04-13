@@ -48,12 +48,7 @@ class ActOnCliffordTableauArgs(ActOnStabilizerArgs[clifford_tableau.CliffordTabl
             classical_data: The shared classical data container for this
                 simulation.
         """
-        super().__init__(
-            state=tableau,
-            prng=prng,
-            qubits=qubits,
-            classical_data=classical_data,
-        )
+        super().__init__(state=tableau, prng=prng, qubits=qubits, classical_data=classical_data)
 
     @property
     def tableau(self) -> 'cirq.CliffordTableau':

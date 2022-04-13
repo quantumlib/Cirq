@@ -221,12 +221,7 @@ class ActOnArgs(OperationTarget[TSelf], metaclass=abc.ABCMeta):
         return self.kronecker_product(new_space)
 
     def factor(
-        self: TSelf,
-        qubits: Sequence['cirq.Qid'],
-        *,
-        validate=True,
-        atol=1e-07,
-        inplace=False,
+        self: TSelf, qubits: Sequence['cirq.Qid'], *, validate=True, atol=1e-07, inplace=False
     ) -> Tuple[TSelf, TSelf]:
         """Splits two state spaces after a measurement or reset."""
         extracted = copy.copy(self)
@@ -391,9 +386,7 @@ class ActOnArgs(OperationTarget[TSelf], metaclass=abc.ABCMeta):
 
 
 def strat_act_on_from_apply_decompose(
-    val: Any,
-    args: 'cirq.ActOnArgs',
-    qubits: Sequence['cirq.Qid'],
+    val: Any, args: 'cirq.ActOnArgs', qubits: Sequence['cirq.Qid']
 ) -> bool:
     operations, qubits1, _ = _try_decompose_into_operations_and_qubits(val)
     assert len(qubits1) == len(qubits)

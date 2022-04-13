@@ -37,10 +37,7 @@ class DummyArgs(cirq.ActOnArgs):
         super().__init__(state=DummyQuantumState(), qubits=cirq.LineQubit.range(2))
 
     def _act_on_fallback_(
-        self,
-        action: Any,
-        qubits: Sequence['cirq.Qid'],
-        allow_decompose: bool = True,
+        self, action: Any, qubits: Sequence['cirq.Qid'], allow_decompose: bool = True
     ) -> bool:
         return True
 

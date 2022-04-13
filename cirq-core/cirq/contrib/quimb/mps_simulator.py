@@ -53,9 +53,7 @@ class MPSOptions:
 
 
 class MPSSimulator(
-    simulator_base.SimulatorBase[
-        'MPSSimulatorStepResult', 'MPSTrialResult', 'MPSState', 'MPSState'
-    ],
+    simulator_base.SimulatorBase['MPSSimulatorStepResult', 'MPSTrialResult', 'MPSState', 'MPSState']
 ):
     """An efficient simulator for MPS circuits."""
 
@@ -83,10 +81,7 @@ class MPSSimulator(
             raise ValueError(f'noise must be unitary or mixture but was {noise_model}')
         self.simulation_options = simulation_options
         self.grouping = grouping
-        super().__init__(
-            noise=noise,
-            seed=seed,
-        )
+        super().__init__(noise=noise, seed=seed)
 
     def _create_partial_act_on_args(
         self,
@@ -120,10 +115,7 @@ class MPSSimulator(
             classical_data=classical_data,
         )
 
-    def _create_step_result(
-        self,
-        sim_state: 'cirq.OperationTarget[MPSState]',
-    ):
+    def _create_step_result(self, sim_state: 'cirq.OperationTarget[MPSState]'):
         return MPSSimulatorStepResult(sim_state)
 
     def _create_simulator_trial_result(
@@ -182,10 +174,7 @@ class MPSTrialResult(simulator_base.SimulationTrialResultBase['MPSState', 'MPSSt
 class MPSSimulatorStepResult(simulator_base.StepResultBase['MPSState', 'MPSState']):
     """A `StepResult` that can perform measurements."""
 
-    def __init__(
-        self,
-        sim_state: 'cirq.OperationTarget[MPSState]',
-    ):
+    def __init__(self, sim_state: 'cirq.OperationTarget[MPSState]'):
         """Results of a step of the simulator.
         Attributes:
             sim_state: The qubit:ActOnArgs lookup for this step.
@@ -636,12 +625,7 @@ class MPSState(ActOnArgs):
                 classical_data=classical_data,
             )
         else:
-            super().__init__(
-                state=state,
-                prng=prng,
-                qubits=qubits,
-                classical_data=classical_data,
-            )
+            super().__init__(state=state, prng=prng, qubits=qubits, classical_data=classical_data)
         self._state: _MPSHandler = state
 
     def i_str(self, i: int) -> str:
@@ -687,10 +671,7 @@ class MPSState(ActOnArgs):
         return self._state.to_numpy()
 
     def _act_on_fallback_(
-        self,
-        action: Any,
-        qubits: Sequence['cirq.Qid'],
-        allow_decompose: bool = True,
+        self, action: Any, qubits: Sequence['cirq.Qid'], allow_decompose: bool = True
     ) -> bool:
         """Delegates the action to self.apply_op"""
         return self._state.apply_op(action, self.get_axes(qubits), self.prng)

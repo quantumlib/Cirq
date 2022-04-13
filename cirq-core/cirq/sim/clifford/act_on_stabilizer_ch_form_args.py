@@ -63,8 +63,5 @@ class ActOnStabilizerCHFormArgs(
                 len(qubits), initial_state
             )
         super().__init__(
-            state=initial_state,
-            prng=prng,
-            qubits=qubits,
-            classical_data=classical_data,
+            state=initial_state, prng=prng, qubits=qubits, classical_data=classical_data
         )
