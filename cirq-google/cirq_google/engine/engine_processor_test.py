@@ -840,8 +840,7 @@ def test_run_sweep_params(client):
 
     processor = cg.EngineProcessor('a', 'p', EngineContext())
     job = processor.run_sweep(
-        program=_CIRCUIT,
-        params=[cirq.ParamResolver({'a': 1}), cirq.ParamResolver({'a': 2})],
+        program=_CIRCUIT, params=[cirq.ParamResolver({'a': 1}), cirq.ParamResolver({'a': 2})]
     )
     results = job.results()
     assert len(results) == 2
