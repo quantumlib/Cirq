@@ -185,15 +185,7 @@ def test_recursive_evaluation():
     c = sympy.Symbol('c')
     d = sympy.Symbol('d')
     e = sympy.Symbol('e')
-    r = cirq.ParamResolver(
-        {
-            a: a,
-            b: e + 2,
-            c: b + d,
-            d: a + 3,
-            e: 0,
-        }
-    )
+    r = cirq.ParamResolver({a: a, b: e + 2, c: b + d, d: a + 3, e: 0})
 
     # sympy.Basic.subs evaluates in alphabetical order.
     assert c.subs(r.param_dict) == b + a + 3

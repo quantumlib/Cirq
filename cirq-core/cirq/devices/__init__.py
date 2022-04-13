@@ -14,36 +14,17 @@
 
 """Device classes, qubits, and topologies, as well as noise models."""
 
-from cirq.devices.device import (
-    Device,
-    DeviceMetadata,
-    SymmetricalQidPair,
-)
+from cirq.devices.device import Device, DeviceMetadata, SymmetricalQidPair
 
-from cirq.devices.grid_device_metadata import (
-    GridDeviceMetadata,
-)
+from cirq.devices.grid_device_metadata import GridDeviceMetadata
 
-from cirq.devices.grid_qubit import (
-    GridQid,
-    GridQubit,
-)
+from cirq.devices.grid_qubit import GridQid, GridQubit
 
-from cirq.devices.line_qubit import (
-    LineQubit,
-    LineQid,
-)
+from cirq.devices.line_qubit import LineQubit, LineQid
 
-from cirq.devices.unconstrained_device import (
-    UNCONSTRAINED_DEVICE,
-)
+from cirq.devices.unconstrained_device import UNCONSTRAINED_DEVICE
 
-from cirq.devices.noise_model import (
-    NO_NOISE,
-    NOISE_MODEL_LIKE,
-    NoiseModel,
-    ConstantQubitNoiseModel,
-)
+from cirq.devices.noise_model import NO_NOISE, NOISE_MODEL_LIKE, NoiseModel, ConstantQubitNoiseModel
 
 from cirq.devices.named_topologies import (
     NamedTopology,
@@ -54,18 +35,11 @@ from cirq.devices.named_topologies import (
     draw_placements,
 )
 
-from cirq.devices.insertion_noise_model import (
-    InsertionNoiseModel,
-)
+from cirq.devices.insertion_noise_model import InsertionNoiseModel
 
-from cirq.devices.thermal_noise_model import (
-    ThermalNoiseModel,
-)
+from cirq.devices.thermal_noise_model import ThermalNoiseModel
 
-from cirq.devices.noise_properties import (
-    NoiseModelFromNoiseProperties,
-    NoiseProperties,
-)
+from cirq.devices.noise_properties import NoiseModelFromNoiseProperties, NoiseProperties
 
 from cirq.devices.superconducting_qubits_noise_properties import (
     SuperconductingQubitsNoiseProperties,

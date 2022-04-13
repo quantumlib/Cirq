@@ -59,16 +59,10 @@ def _build_service_results(
         expected_results
     )
     service = RigettiQCSService(
-        quantum_computer=quantum_computer,
-        executor=executor,
-        transformer=transformer,
+        quantum_computer=quantum_computer, executor=executor, transformer=transformer
     )
 
-    result = service.run(
-        circuit=circuit,
-        param_resolver=param_resolver,
-        repetitions=repetitions,
-    )
+    result = service.run(circuit=circuit, param_resolver=param_resolver, repetitions=repetitions)
     return [result], quantum_computer, expected_results, [param_resolver]
 
 
@@ -96,18 +90,12 @@ def _build_sampler_results(
         expected_results
     )
     service = RigettiQCSService(
-        quantum_computer=quantum_computer,
-        executor=executor,
-        transformer=transformer,
+        quantum_computer=quantum_computer, executor=executor, transformer=transformer
     )
 
     sampler = service.sampler()
 
-    results = sampler.run_sweep(
-        program=circuit,
-        params=param_resolvers,
-        repetitions=repetitions,
-    )
+    results = sampler.run_sweep(program=circuit, params=param_resolvers, repetitions=repetitions)
     return results, quantum_computer, expected_results, param_resolvers
 
 
@@ -135,8 +123,7 @@ def test_parametric_circuit(
         result = results[i]
         assert param_resolver == result.params
         assert np.allclose(
-            result.measurements["m"],
-            expected_results[i],
+            result.measurements["m"], expected_results[i]
         ), "should return an ordered list of results with correct set of measurements"
 
     def test_executable(i: int, program: Program) -> None:
@@ -178,9 +165,7 @@ def test_parametric_circuit(
 
 @pytest.mark.parametrize("result_builder", [_build_service_results, _build_sampler_results])
 def test_bell_circuit(
-    mock_qpu_implementer: Any,
-    bell_circuit: cirq.Circuit,
-    result_builder: _ResultBuilder,
+    mock_qpu_implementer: Any, bell_circuit: cirq.Circuit, result_builder: _ResultBuilder
 ) -> None:
     """test that RigettiQCSService and RigettiQCSSampler can run a basic Bell circuit
     with two read out bits and return expected cirq.Results.
@@ -199,8 +184,7 @@ def test_bell_circuit(
         result = results[i]
         assert param_resolver == result.params
         assert np.allclose(
-            result.measurements["m"],
-            expected_results[i],
+            result.measurements["m"], expected_results[i]
         ), "should return an ordered list of results with correct set of measurements"
 
     def test_executable(program: Program) -> None:
@@ -248,18 +232,13 @@ def test_explicit_qubit_id_map(
     """
     bell_circuit, qubits = bell_circuit_with_qids
 
-    qubit_id_map = {
-        qubits[1]: "11",
-        qubits[0]: "13",
-    }
+    qubit_id_map = {qubits[1]: "11", qubits[0]: "13"}
     param_resolvers = [cirq.ParamResolver({})]
     results, quantum_computer, expected_results, param_resolvers = result_builder(
         mock_qpu_implementer,
         bell_circuit,
         param_resolvers,
-        transformer=transformers.build(
-            qubit_id_map=qubit_id_map,  # type: ignore
-        ),
+        transformer=transformers.build(qubit_id_map=qubit_id_map),  # type: ignore
     )
 
     assert len(param_resolvers) == len(
@@ -270,8 +249,7 @@ def test_explicit_qubit_id_map(
         result = results[i]
         assert param_resolver == result.params
         assert np.allclose(
-            result.measurements["m"],
-            expected_results[i],
+            result.measurements["m"], expected_results[i]
         ), "should return an ordered list of results with correct set of measurements"
 
     def test_executable(program: Program) -> None:
@@ -310,9 +288,7 @@ def test_explicit_qubit_id_map(
 
 @pytest.mark.parametrize("result_builder", [_build_service_results, _build_sampler_results])
 def test_run_without_quilc_compilation(
-    mock_qpu_implementer: Any,
-    bell_circuit: cirq.Circuit,
-    result_builder: _ResultBuilder,
+    mock_qpu_implementer: Any, bell_circuit: cirq.Circuit, result_builder: _ResultBuilder
 ) -> None:
     """test that RigettiQCSService and RigettiQCSSampler allow users to execute
     without using quilc to compile to native Quil.
@@ -333,8 +309,7 @@ def test_run_without_quilc_compilation(
         result = results[i]
         assert param_resolver == result.params
         assert np.allclose(
-            result.measurements["m"],
-            expected_results[i],
+            result.measurements["m"], expected_results[i]
         ), "should return an ordered list of results with correct set of measurements"
 
     def test_executable(program: Program) -> None:

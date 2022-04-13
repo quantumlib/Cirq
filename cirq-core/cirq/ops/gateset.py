@@ -346,10 +346,7 @@ class Gateset:
 
         return any(item in gate_family for gate_family in self._gates)
 
-    def validate(
-        self,
-        circuit_or_optree: Union['cirq.AbstractCircuit', op_tree.OP_TREE],
-    ) -> bool:
+    def validate(self, circuit_or_optree: Union['cirq.AbstractCircuit', op_tree.OP_TREE]) -> bool:
         """Validates gates forming `circuit_or_optree` should be contained in Gateset.
 
         Args:
@@ -397,12 +394,7 @@ class Gateset:
             return False
 
     def _value_equality_values_(self) -> Any:
-        return (
-            self.gates,
-            self.name,
-            self._unroll_circuit_op,
-            self._accept_global_phase_op,
-        )
+        return (self.gates, self.name, self._unroll_circuit_op, self._accept_global_phase_op)
 
     def __repr__(self) -> str:
         name_str = f'name = "{self.name}", ' if self.name is not None else ''

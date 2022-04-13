@@ -433,10 +433,7 @@ class ResultDict(Result):
                 'dtype': digits.dtype.name,
                 'shape': digits.shape,
             }
-        return {
-            'params': self.params,
-            'records': packed_records,
-        }
+        return {'params': self.params, 'records': packed_records}
 
     @classmethod
     def _from_json_dict_(cls, params, **kwargs):
@@ -448,8 +445,7 @@ class ResultDict(Result):
             )
         records = kwargs['records']
         return cls(
-            params=params,
-            records={key: _unpack_digits(**val) for key, val in records.items()},
+            params=params, records={key: _unpack_digits(**val) for key, val in records.items()}
         )
 
 

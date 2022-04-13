@@ -32,8 +32,7 @@ if TYPE_CHECKING:
 
 
 def operations_to_part_lens(
-    qubit_order: Sequence['cirq.Qid'],
-    op_tree: 'cirq.OP_TREE',
+    qubit_order: Sequence['cirq.Qid'], op_tree: 'cirq.OP_TREE'
 ) -> Tuple[int, ...]:
     qubit_sort_key = functools.partial(operator.indexOf, qubit_order)
     op_parts = [tuple(sorted(op.qubits, key=qubit_sort_key)) for op in ops.flatten_op_tree(op_tree)]

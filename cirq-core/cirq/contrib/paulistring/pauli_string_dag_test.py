@@ -16,10 +16,7 @@ import pytest
 
 import cirq
 
-from cirq.contrib.paulistring import (
-    convert_and_separate_circuit,
-    pauli_string_dag_from_circuit,
-)
+from cirq.contrib.paulistring import convert_and_separate_circuit, pauli_string_dag_from_circuit
 
 
 @pytest.mark.parametrize('repetition', range(6))

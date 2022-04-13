@@ -279,9 +279,7 @@ def final_density_matrix(
     else:
         # noisy case: use DensityMatrixSimulator with dephasing
         density_result = density_matrix_simulator.DensityMatrixSimulator(
-            dtype=dtype,
-            noise=noise,
-            seed=seed,
+            dtype=dtype, noise=noise, seed=seed
         ).simulate(
             program=measurement_transformers.dephase_measurements(circuit_like)
             if ignore_measurement_results

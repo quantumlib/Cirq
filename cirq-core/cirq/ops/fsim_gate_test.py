@@ -68,8 +68,7 @@ def test_fsim_consistent(theta, phi):
 def test_fsim_circuit():
     a, b = cirq.LineQubit.range(2)
     c = cirq.Circuit(
-        cirq.FSimGate(np.pi / 2, np.pi).on(a, b),
-        cirq.FSimGate(-np.pi, np.pi / 2).on(a, b),
+        cirq.FSimGate(np.pi / 2, np.pi).on(a, b), cirq.FSimGate(-np.pi, np.pi / 2).on(a, b)
     )
     cirq.testing.assert_has_diagram(
         c,
@@ -126,52 +125,24 @@ def test_fsim_resolve(resolve_fn):
 def test_fsim_unitary():
     np.testing.assert_allclose(
         cirq.unitary(cirq.FSimGate(theta=0, phi=0)),
-        np.array(
-            [
-                [1, 0, 0, 0],
-                [0, 1, 0, 0],
-                [0, 0, 1, 0],
-                [0, 0, 0, 1],
-            ]
-        ),
+        np.array([[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1]]),
         atol=1e-8,
     )
 
     # Theta
     np.testing.assert_allclose(
         cirq.unitary(cirq.FSimGate(theta=np.pi / 2, phi=0)),
-        np.array(
-            [
-                [1, 0, 0, 0],
-                [0, 0, -1j, 0],
-                [0, -1j, 0, 0],
-                [0, 0, 0, 1],
-            ]
-        ),
+        np.array([[1, 0, 0, 0], [0, 0, -1j, 0], [0, -1j, 0, 0], [0, 0, 0, 1]]),
         atol=1e-8,
     )
     np.testing.assert_allclose(
         cirq.unitary(cirq.FSimGate(theta=-np.pi / 2, phi=0)),
-        np.array(
-            [
-                [1, 0, 0, 0],
-                [0, 0, 1j, 0],
-                [0, 1j, 0, 0],
-                [0, 0, 0, 1],
-            ]
-        ),
+        np.array([[1, 0, 0, 0], [0, 0, 1j, 0], [0, 1j, 0, 0], [0, 0, 0, 1]]),
         atol=1e-8,
     )
     np.testing.assert_allclose(
         cirq.unitary(cirq.FSimGate(theta=np.pi, phi=0)),
-        np.array(
-            [
-                [1, 0, 0, 0],
-                [0, -1, 0, 0],
-                [0, 0, -1, 0],
-                [0, 0, 0, 1],
-            ]
-        ),
+        np.array([[1, 0, 0, 0], [0, -1, 0, 0], [0, 0, -1, 0], [0, 0, 0, 1]]),
         atol=1e-8,
     )
     np.testing.assert_allclose(
@@ -188,38 +159,17 @@ def test_fsim_unitary():
     # Phi
     np.testing.assert_allclose(
         cirq.unitary(cirq.FSimGate(theta=0, phi=np.pi / 2)),
-        np.array(
-            [
-                [1, 0, 0, 0],
-                [0, 1, 0, 0],
-                [0, 0, 1, 0],
-                [0, 0, 0, -1j],
-            ]
-        ),
+        np.array([[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, -1j]]),
         atol=1e-8,
     )
     np.testing.assert_allclose(
         cirq.unitary(cirq.FSimGate(theta=0, phi=-np.pi / 2)),
-        np.array(
-            [
-                [1, 0, 0, 0],
-                [0, 1, 0, 0],
-                [0, 0, 1, 0],
-                [0, 0, 0, 1j],
-            ]
-        ),
+        np.array([[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1j]]),
         atol=1e-8,
     )
     np.testing.assert_allclose(
         cirq.unitary(cirq.FSimGate(theta=0, phi=np.pi)),
-        np.array(
-            [
-                [1, 0, 0, 0],
-                [0, 1, 0, 0],
-                [0, 0, 1, 0],
-                [0, 0, 0, -1],
-            ]
-        ),
+        np.array([[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, -1]]),
         atol=1e-8,
     )
     np.testing.assert_allclose(
@@ -277,10 +227,7 @@ def test_fsim_repr():
 
 
 def test_fsim_json_dict():
-    assert cirq.FSimGate(theta=0.123, phi=0.456)._json_dict_() == {
-        'theta': 0.123,
-        'phi': 0.456,
-    }
+    assert cirq.FSimGate(theta=0.123, phi=0.456)._json_dict_() == {'theta': 0.123, 'phi': 0.456}
 
 
 def test_phased_fsim_init():
@@ -565,52 +512,24 @@ def test_phased_fsim_resolve(resolve_fn):
 def test_phased_fsim_unitary():
     np.testing.assert_allclose(
         cirq.unitary(cirq.PhasedFSimGate(theta=0, phi=0)),
-        np.array(
-            [
-                [1, 0, 0, 0],
-                [0, 1, 0, 0],
-                [0, 0, 1, 0],
-                [0, 0, 0, 1],
-            ]
-        ),
+        np.array([[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1]]),
         atol=1e-8,
     )
 
     # Theta
     np.testing.assert_allclose(
         cirq.unitary(cirq.PhasedFSimGate(theta=np.pi / 2, phi=0)),
-        np.array(
-            [
-                [1, 0, 0, 0],
-                [0, 0, -1j, 0],
-                [0, -1j, 0, 0],
-                [0, 0, 0, 1],
-            ]
-        ),
+        np.array([[1, 0, 0, 0], [0, 0, -1j, 0], [0, -1j, 0, 0], [0, 0, 0, 1]]),
         atol=1e-8,
     )
     np.testing.assert_allclose(
         cirq.unitary(cirq.PhasedFSimGate(theta=-np.pi / 2, phi=0)),
-        np.array(
-            [
-                [1, 0, 0, 0],
-                [0, 0, 1j, 0],
-                [0, 1j, 0, 0],
-                [0, 0, 0, 1],
-            ]
-        ),
+        np.array([[1, 0, 0, 0], [0, 0, 1j, 0], [0, 1j, 0, 0], [0, 0, 0, 1]]),
         atol=1e-8,
     )
     np.testing.assert_allclose(
         cirq.unitary(cirq.PhasedFSimGate(theta=np.pi, phi=0)),
-        np.array(
-            [
-                [1, 0, 0, 0],
-                [0, -1, 0, 0],
-                [0, 0, -1, 0],
-                [0, 0, 0, 1],
-            ]
-        ),
+        np.array([[1, 0, 0, 0], [0, -1, 0, 0], [0, 0, -1, 0], [0, 0, 0, 1]]),
         atol=1e-8,
     )
     np.testing.assert_allclose(
@@ -627,38 +546,17 @@ def test_phased_fsim_unitary():
     # Phi
     np.testing.assert_allclose(
         cirq.unitary(cirq.PhasedFSimGate(theta=0, phi=np.pi / 2)),
-        np.array(
-            [
-                [1, 0, 0, 0],
-                [0, 1, 0, 0],
-                [0, 0, 1, 0],
-                [0, 0, 0, -1j],
-            ]
-        ),
+        np.array([[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, -1j]]),
         atol=1e-8,
     )
     np.testing.assert_allclose(
         cirq.unitary(cirq.PhasedFSimGate(theta=0, phi=-np.pi / 2)),
-        np.array(
-            [
-                [1, 0, 0, 0],
-                [0, 1, 0, 0],
-                [0, 0, 1, 0],
-                [0, 0, 0, 1j],
-            ]
-        ),
+        np.array([[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1j]]),
         atol=1e-8,
     )
     np.testing.assert_allclose(
         cirq.unitary(cirq.PhasedFSimGate(theta=0, phi=np.pi)),
-        np.array(
-            [
-                [1, 0, 0, 0],
-                [0, 1, 0, 0],
-                [0, 0, 1, 0],
-                [0, 0, 0, -1],
-            ]
-        ),
+        np.array([[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, -1]]),
         atol=1e-8,
     )
     np.testing.assert_allclose(
@@ -691,14 +589,7 @@ def test_phased_fsim_unitary():
     w6 = np.exp(-1j * np.pi / 6)
     np.testing.assert_allclose(
         cirq.unitary(cirq.PhasedFSimGate(theta=0, gamma=np.pi / 2, zeta=np.pi / 3)),
-        np.array(
-            [
-                [1, 0, 0, 0],
-                [0, -w6.conjugate(), 0, 0],
-                [0, 0, w6, 0],
-                [0, 0, 0, -1],
-            ]
-        ),
+        np.array([[1, 0, 0, 0], [0, -w6.conjugate(), 0, 0], [0, 0, w6, 0], [0, 0, 0, -1]]),
         atol=1e-8,
     )
     np.testing.assert_allclose(
@@ -714,12 +605,7 @@ def test_phased_fsim_unitary():
     np.testing.assert_allclose(
         cirq.unitary(cirq.PhasedFSimGate(theta=-np.pi / 2, gamma=np.pi / 2, chi=np.pi / 3)),
         np.array(
-            [
-                [1, 0, 0, 0],
-                [0, 0, 1j * w6, 0],
-                [0, 1j * -w6.conjugate(), 0, 0],
-                [0, 0, 0, -1],
-            ]
+            [[1, 0, 0, 0], [0, 0, 1j * w6, 0], [0, 1j * -w6.conjugate(), 0, 0], [0, 0, 0, -1]]
         ),
         atol=1e-8,
     )
@@ -797,10 +683,4 @@ def test_phased_fsim_repr():
 def test_phased_fsim_json_dict():
     assert cirq.PhasedFSimGate(
         theta=0.12, zeta=0.34, chi=0.56, gamma=0.78, phi=0.9
-    )._json_dict_() == {
-        'theta': 0.12,
-        'zeta': 0.34,
-        'chi': 0.56,
-        'gamma': 0.78,
-        'phi': 0.9,
-    }
+    )._json_dict_() == {'theta': 0.12, 'zeta': 0.34, 'chi': 0.56, 'gamma': 0.78, 'phi': 0.9}

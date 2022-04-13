@@ -113,9 +113,7 @@ class ProductState:
         return hash(tuple(self.states.items()))
 
     def _json_dict_(self):
-        return {
-            'states': list(self.states.items()),
-        }
+        return {'states': list(self.states.items())}
 
     @classmethod
     def _from_json_dict_(cls, states, **kwargs):
@@ -323,12 +321,5 @@ document(
     """,
 )
 
-PAULI_STATES = [
-    KET_PLUS,
-    KET_MINUS,
-    KET_IMAG,
-    KET_MINUS_IMAG,
-    KET_ZERO,
-    KET_ONE,
-]
+PAULI_STATES = [KET_PLUS, KET_MINUS, KET_IMAG, KET_MINUS_IMAG, KET_ZERO, KET_ONE]
 document(PAULI_STATES, """All one-qubit states stabalized by the pauli operators.""")

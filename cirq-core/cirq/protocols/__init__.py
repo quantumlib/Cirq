@@ -14,11 +14,7 @@
 
 """Protocols (structural subtyping) supported in Cirq."""
 
-from cirq.protocols.act_on_protocol import (
-    act_on,
-    SupportsActOn,
-    SupportsActOnQubits,
-)
+from cirq.protocols.act_on_protocol import act_on, SupportsActOn, SupportsActOnQubits
 from cirq.protocols.apply_unitary_protocol import (
     apply_unitaries,
     apply_unitary,
@@ -35,20 +31,9 @@ from cirq.protocols.apply_mixture_protocol import (
     ApplyMixtureArgs,
     SupportsApplyMixture,
 )
-from cirq.protocols.approximate_equality_protocol import (
-    approx_eq,
-    SupportsApproximateEquality,
-)
-from cirq.protocols.kraus_protocol import (
-    kraus,
-    has_kraus,
-    SupportsKraus,
-)
-from cirq.protocols.commutes_protocol import (
-    commutes,
-    definitely_commutes,
-    SupportsCommutes,
-)
+from cirq.protocols.approximate_equality_protocol import approx_eq, SupportsApproximateEquality
+from cirq.protocols.kraus_protocol import kraus, has_kraus, SupportsKraus
+from cirq.protocols.commutes_protocol import commutes, definitely_commutes, SupportsCommutes
 from cirq.protocols.control_key_protocol import (
     control_keys,
     measurement_keys_touched,
@@ -72,16 +57,9 @@ from cirq.protocols.equal_up_to_global_phase_protocol import (
     equal_up_to_global_phase,
     SupportsEqualUpToGlobalPhase,
 )
-from cirq.protocols.has_stabilizer_effect_protocol import (
-    has_stabilizer_effect,
-)
-from cirq.protocols.has_unitary_protocol import (
-    has_unitary,
-    SupportsExplicitHasUnitary,
-)
-from cirq.protocols.inverse_protocol import (
-    inverse,
-)
+from cirq.protocols.has_stabilizer_effect_protocol import has_stabilizer_effect
+from cirq.protocols.has_unitary_protocol import has_unitary, SupportsExplicitHasUnitary
+from cirq.protocols.inverse_protocol import inverse
 from cirq.protocols.json_serialization import (
     cirq_type_from_json,
     DEFAULT_RESOLVERS,
@@ -111,24 +89,12 @@ from cirq.protocols.measurement_key_protocol import (
     with_rescoped_keys,
     SupportsMeasurementKey,
 )
-from cirq.protocols.mixture_protocol import (
-    has_mixture,
-    mixture,
-    SupportsMixture,
-    validate_mixture,
-)
-from cirq.protocols.mul_protocol import (
-    mul,
-)
-from cirq.protocols.pauli_expansion_protocol import (
-    pauli_expansion,
-    SupportsPauliExpansion,
-)
+from cirq.protocols.mixture_protocol import has_mixture, mixture, SupportsMixture, validate_mixture
+from cirq.protocols.mul_protocol import mul
+from cirq.protocols.pauli_expansion_protocol import pauli_expansion, SupportsPauliExpansion
 
 # pylint: disable=redefined-builtin
-from cirq.protocols.pow_protocol import (
-    pow,
-)
+from cirq.protocols.pow_protocol import pow
 
 # pylint: enable=redefined-builtin
 from cirq.protocols.qasm import (
@@ -152,17 +118,11 @@ from cirq.protocols.resolve_parameters import (
     resolve_parameters_once,
     SupportsParameterization,
 )
-from cirq.protocols.phase_protocol import (
-    phase_by,
-    SupportsPhase,
-)
+from cirq.protocols.phase_protocol import phase_by, SupportsPhase
 from cirq.protocols.qid_shape_protocol import (
     num_qubits,
     qid_shape,
     SupportsExplicitQidShape,
     SupportsExplicitNumQubits,
 )
-from cirq.protocols.unitary_protocol import (
-    SupportsUnitary,
-    unitary,
-)
+from cirq.protocols.unitary_protocol import SupportsUnitary, unitary

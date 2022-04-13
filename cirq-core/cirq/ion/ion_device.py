@@ -79,16 +79,12 @@ class IonDevice(devices.Device):
     def metadata(self) -> devices.DeviceMetadata:
         return self._metadata
 
-    @_compat.deprecated(
-        fix='Use metadata.qubit_set if applicable.',
-        deadline='v0.15',
-    )
+    @_compat.deprecated(fix='Use metadata.qubit_set if applicable.', deadline='v0.15')
     def qubit_set(self) -> FrozenSet['cirq.LineQubit']:
         return self.qubits
 
     @_compat.deprecated(
-        deadline='v0.15',
-        fix='qubit coupling data can now be found in device.metadata if provided.',
+        deadline='v0.15', fix='qubit coupling data can now be found in device.metadata if provided.'
     )
     def qid_pairs(self) -> FrozenSet['cirq.SymmetricalQidPair']:
         """Qubits have all-to-all connectivity, so returns all pairs.
@@ -147,10 +143,7 @@ class IonDevice(devices.Device):
 
     def neighbors_of(self, qubit: devices.LineQubit) -> Iterable[devices.LineQubit]:
         """Returns the qubits that the given qubit can interact with."""
-        possibles = [
-            devices.LineQubit(qubit.x + 1),
-            devices.LineQubit(qubit.x - 1),
-        ]
+        possibles = [devices.LineQubit(qubit.x + 1), devices.LineQubit(qubit.x - 1)]
         return [e for e in possibles if e in self.qubits]
 
     def __repr__(self) -> str:

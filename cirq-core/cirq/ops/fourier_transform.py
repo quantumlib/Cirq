@@ -41,10 +41,7 @@ class QuantumFourierTransformGate(raw_types.Gate):
         self._without_reverse = without_reverse
 
     def _json_dict_(self) -> Dict[str, Any]:
-        return {
-            'num_qubits': self._num_qubits,
-            'without_reverse': self._without_reverse,
-        }
+        return {'num_qubits': self._num_qubits, 'without_reverse': self._without_reverse}
 
     def _value_equality_values_(self):
         return self._num_qubits, self._without_reverse
@@ -100,10 +97,7 @@ class PhaseGradientGate(raw_types.Gate):
         return self._exponent
 
     def _json_dict_(self) -> Dict[str, Any]:
-        return {
-            'num_qubits': self._num_qubits,
-            'exponent': self.exponent,
-        }
+        return {'num_qubits': self._num_qubits, 'exponent': self.exponent}
 
     def _value_equality_values_(self):
         return self._num_qubits, self.exponent

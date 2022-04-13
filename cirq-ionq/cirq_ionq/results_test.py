@@ -159,10 +159,7 @@ def test_ordered_results_invalid_key():
 
 def test_simulator_result_fields():
     result = ionq.SimulatorResult(
-        {0: 0.4, 1: 0.6},
-        num_qubits=1,
-        measurement_dict={'a': [0]},
-        repetitions=100,
+        {0: 0.4, 1: 0.6}, num_qubits=1, measurement_dict={'a': [0]}, repetitions=100
     )
     assert result.probabilities() == {0: 0.4, 1: 0.6}
     assert result.num_qubits() == 1

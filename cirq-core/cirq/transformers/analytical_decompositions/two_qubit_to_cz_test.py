@@ -125,18 +125,7 @@ def assert_ops_implement_unitary(q0, q1, operations, intended_effect, atol=0.01)
     'max_partial_cz_depth,max_full_cz_depth,effect',
     [
         (0, 0, np.eye(4)),
-        (
-            0,
-            0,
-            np.array(
-                [
-                    [0, 0, 0, 1],
-                    [0, 0, 1, 0],
-                    [0, 1, 0, 0],
-                    [1, 0, 0, 0j],
-                ]
-            ),
-        ),
+        (0, 0, np.array([[0, 0, 0, 1], [0, 0, 1, 0], [0, 1, 0, 0], [1, 0, 0, 0j]])),
         (0, 0, cirq.unitary(cirq.CZ**0.00000001)),
         (0.5, 2, cirq.unitary(cirq.CZ**0.5)),
         (1, 1, cirq.unitary(cirq.CZ)),
@@ -144,57 +133,23 @@ def assert_ops_implement_unitary(q0, q1, operations, intended_effect, atol=0.01)
         (
             1,
             1,
-            np.array(
-                [
-                    [1, 0, 0, 1j],
-                    [0, 1, 1j, 0],
-                    [0, 1j, 1, 0],
-                    [1j, 0, 0, 1],
-                ]
-            )
+            np.array([[1, 0, 0, 1j], [0, 1, 1j, 0], [0, 1j, 1, 0], [1j, 0, 0, 1]]) * np.sqrt(0.5),
+        ),
+        (
+            1,
+            1,
+            np.array([[1, 0, 0, -1j], [0, 1, -1j, 0], [0, -1j, 1, 0], [-1j, 0, 0, 1]])
             * np.sqrt(0.5),
         ),
         (
             1,
             1,
-            np.array(
-                [
-                    [1, 0, 0, -1j],
-                    [0, 1, -1j, 0],
-                    [0, -1j, 1, 0],
-                    [-1j, 0, 0, 1],
-                ]
-            )
-            * np.sqrt(0.5),
-        ),
-        (
-            1,
-            1,
-            np.array(
-                [
-                    [1, 0, 0, 1j],
-                    [0, 1, -1j, 0],
-                    [0, -1j, 1, 0],
-                    [1j, 0, 0, 1],
-                ]
-            )
-            * np.sqrt(0.5),
+            np.array([[1, 0, 0, 1j], [0, 1, -1j, 0], [0, -1j, 1, 0], [1j, 0, 0, 1]]) * np.sqrt(0.5),
         ),
         (1.5, 3, cirq.map_eigenvalues(cirq.unitary(cirq.SWAP), lambda e: e**0.5)),
         (2, 2, cirq.unitary(cirq.SWAP).dot(cirq.unitary(cirq.CZ))),
         (3, 3, cirq.unitary(cirq.SWAP)),
-        (
-            3,
-            3,
-            np.array(
-                [
-                    [0, 0, 0, 1],
-                    [0, 1, 0, 0],
-                    [0, 0, 1, 0],
-                    [1, 0, 0, 0j],
-                ]
-            ),
-        ),
+        (3, 3, np.array([[0, 0, 0, 1], [0, 1, 0, 0], [0, 0, 1, 0], [1, 0, 0, 0j]])),
     ]
     + [(1, 2, _random_single_partial_cz_effect()) for _ in range(10)]
     + [(2, 2, _random_double_full_cz_effect()) for _ in range(10)]

@@ -26,9 +26,7 @@ def clifford_optimized_circuit(circuit: circuits.Circuit, atol: float = 1e-8) ->
     all_ops = list(c_cliff.all_operations())
 
     def find_merge_point(
-        start_i: int,
-        string_op: ops.PauliStringPhasor,
-        stop_at_cz: bool,
+        start_i: int, string_op: ops.PauliStringPhasor, stop_at_cz: bool
     ) -> Tuple[int, ops.PauliStringPhasor, int]:
         STOP = 0
         CONTINUE = 1
