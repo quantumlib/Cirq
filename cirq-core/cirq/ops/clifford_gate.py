@@ -745,7 +745,7 @@ class SingleQubitCliffordGate(CliffordGate):
         args: 'cirq.OperationTarget',  # pylint: disable=unused-argument
         qubits: Sequence['cirq.Qid'],  # pylint: disable=unused-argument
     ):
-        # TODO(PR number) will create a PR if we agree on adding this.
+        # TODO(#5256) Add the implementation of _act_on_ with ActOnCliffordTableauArgs.
         return NotImplemented
 
     # Single Clifford Gate decomposition is more efficient than the general Tableau decomposition.
