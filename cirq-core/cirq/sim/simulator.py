@@ -68,18 +68,12 @@ class SimulatesSamples(work.Sampler, metaclass=abc.ABCMeta):
     """
 
     def run_sweep(
-        self,
-        program: 'cirq.AbstractCircuit',
-        params: 'cirq.Sweepable',
-        repetitions: int = 1,
+        self, program: 'cirq.AbstractCircuit', params: 'cirq.Sweepable', repetitions: int = 1
     ) -> Sequence['cirq.Result']:
         return list(self.run_sweep_iter(program, params, repetitions))
 
     def run_sweep_iter(
-        self,
-        program: 'cirq.AbstractCircuit',
-        params: 'cirq.Sweepable',
-        repetitions: int = 1,
+        self, program: 'cirq.AbstractCircuit', params: 'cirq.Sweepable', repetitions: int = 1
     ) -> Iterator['cirq.Result']:
         """Runs the supplied Circuit, mimicking quantum hardware.
 
@@ -406,12 +400,7 @@ class SimulatesExpectationValues(metaclass=value.ABCMetaImplementAnyOneOf):
                 "simulate_expectation_values_sweep_iter."
             )
         yield from self.simulate_expectation_values_sweep(
-            program,
-            observables,
-            params,
-            qubit_order,
-            initial_state,
-            permit_terminal_measurements,
+            program, observables, params, qubit_order, initial_state, permit_terminal_measurements
         )
 
     @value.alternative(
@@ -620,9 +609,7 @@ class SimulatesIntermediateState(
                 for k, v in step_result.measurements.items():
                     measurements[k] = np.array(v, dtype=np.uint8)
             yield self._create_simulator_trial_result(
-                params=param_resolver,
-                measurements=measurements,
-                final_step_result=step_result,
+                params=param_resolver, measurements=measurements, final_step_result=step_result
             )
 
     def simulate_moment_steps(
@@ -690,9 +677,7 @@ class SimulatesIntermediateState(
 
     @abc.abstractmethod
     def _create_act_on_args(
-        self,
-        initial_state: Any,
-        qubits: Sequence['cirq.Qid'],
+        self, initial_state: Any, qubits: Sequence['cirq.Qid']
     ) -> 'cirq.OperationTarget[TActOnArgs]':
         """Creates the OperationTarget state for a simulator.
 
@@ -1011,8 +996,7 @@ def check_all_resolved(circuit):
 
 
 def split_into_matching_protocol_then_general(
-    circuit: 'cirq.AbstractCircuit',
-    predicate: Callable[['cirq.Operation'], bool],
+    circuit: 'cirq.AbstractCircuit', predicate: Callable[['cirq.Operation'], bool]
 ) -> Tuple['cirq.AbstractCircuit', 'cirq.AbstractCircuit']:
     """Splits the circuit into a matching prefix and non-matching suffix.
 

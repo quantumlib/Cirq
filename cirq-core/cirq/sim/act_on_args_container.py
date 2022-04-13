@@ -13,17 +13,7 @@
 # limitations under the License.
 
 from collections import abc
-from typing import (
-    Any,
-    Dict,
-    Generic,
-    Iterator,
-    List,
-    Mapping,
-    Optional,
-    Sequence,
-    TYPE_CHECKING,
-)
+from typing import Any, Dict, Generic, Iterator, List, Mapping, Optional, Sequence, TYPE_CHECKING
 
 import numpy as np
 

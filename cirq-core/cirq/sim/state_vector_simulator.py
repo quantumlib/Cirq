@@ -43,9 +43,7 @@ TStateVectorStepResult = TypeVar('TStateVectorStepResult', bound='StateVectorSte
 class SimulatesIntermediateStateVector(
     Generic[TStateVectorStepResult],
     simulator_base.SimulatorBase[
-        TStateVectorStepResult,
-        'cirq.StateVectorTrialResult',
-        'cirq.ActOnStateVectorArgs',
+        TStateVectorStepResult, 'cirq.StateVectorTrialResult', 'cirq.ActOnStateVectorArgs',
     ],
     simulator.SimulatesAmplitudes,
     metaclass=abc.ABCMeta,
@@ -64,10 +62,7 @@ class SimulatesIntermediateStateVector(
         split_untangled_states: bool = False,
     ):
         super().__init__(
-            dtype=dtype,
-            noise=noise,
-            seed=seed,
-            split_untangled_states=split_untangled_states,
+            dtype=dtype, noise=noise, seed=seed, split_untangled_states=split_untangled_states
         )
 
     def _create_simulator_trial_result(
@@ -107,8 +102,7 @@ class SimulatesIntermediateStateVector(
 
 
 class StateVectorStepResult(
-    simulator_base.StepResultBase['cirq.ActOnStateVectorArgs'],
-    metaclass=abc.ABCMeta,
+    simulator_base.StepResultBase['cirq.ActOnStateVectorArgs'], metaclass=abc.ABCMeta
 ):
     pass
 
