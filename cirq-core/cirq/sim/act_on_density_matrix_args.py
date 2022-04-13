@@ -13,14 +13,14 @@
 # limitations under the License.
 """Objects and methods for acting efficiently on a density matrix."""
 
-from typing import Any, Callable, Dict, List, Optional, Sequence, Tuple, TYPE_CHECKING, Type, Union
+from typing import Any, Callable, List, Optional, Sequence, Tuple, TYPE_CHECKING, Type, Union
 
 import numpy as np
 
-from cirq import _compat, protocols, qis, sim
+from cirq import protocols, qis, sim
 from cirq._compat import proper_repr
-from cirq.sim.act_on_args import ActOnArgs, strat_act_on_from_apply_decompose
 from cirq.linalg import transformations
+from cirq.sim.act_on_args import ActOnArgs, strat_act_on_from_apply_decompose
 
 if TYPE_CHECKING:
     import cirq
@@ -243,19 +243,12 @@ class ActOnDensityMatrixArgs(ActOnArgs):
     storing the density matrix of the quantum system with one axis per qubit.
     """
 
-    @_compat.deprecated_parameter(
-        deadline='v0.15',
-        fix='Use classical_data.',
-        parameter_desc='log_of_measurement_results',
-        match=lambda args, kwargs: 'log_of_measurement_results' in kwargs or len(args) > 5,
-    )
     def __init__(
         self,
         *,
         available_buffer: Optional[List[np.ndarray]] = None,
         qid_shape: Optional[Tuple[int, ...]] = None,
         prng: Optional[np.random.RandomState] = None,
-        log_of_measurement_results: Optional[Dict[str, List[int]]] = None,
         qubits: Optional[Sequence['cirq.Qid']] = None,
         initial_state: Union[np.ndarray, 'cirq.STATE_VECTOR_LIKE'] = 0,
         dtype: Type[np.number] = np.complex64,
@@ -274,8 +267,6 @@ class ActOnDensityMatrixArgs(ActOnArgs):
             qid_shape: The shape of the target tensor.
             prng: The pseudo random number generator to use for probabilistic
                 effects.
-            log_of_measurement_results: A mutable object that measurements are
-                being recorded into.
             initial_state: The initial state for the simulation in the
                 computational basis.
             dtype: The `numpy.dtype` of the inferred state vector. One of
@@ -294,23 +285,14 @@ class ActOnDensityMatrixArgs(ActOnArgs):
             dtype=dtype,
             buffer=available_buffer,
         )
-        super().__init__(
-            state=state,
-            prng=prng,
-            qubits=qubits,
-            log_of_measurement_results=log_of_measurement_results,
-            classical_data=classical_data,
-        )
+        super().__init__(state=state, prng=prng, qubits=qubits, classical_data=classical_data)
         self._state: _BufferedDensityMatrix = state
 
     def _act_on_fallback_(
-        self,
-        action: Any,
-        qubits: Sequence['cirq.Qid'],
-        allow_decompose: bool = True,
+        self, action: Any, qubits: Sequence['cirq.Qid'], allow_decompose: bool = True
     ) -> bool:
         strats: List[Callable[[Any, Any, Sequence['cirq.Qid']], bool]] = [
-            _strat_apply_channel_to_state,
+            _strat_apply_channel_to_state
         ]
         if allow_decompose:
             strats.append(strat_act_on_from_apply_decompose)
@@ -335,7 +317,7 @@ class ActOnDensityMatrixArgs(ActOnArgs):
             f'initial_state={proper_repr(self.target_tensor)},'
             f' qid_shape={self.qid_shape!r},'
             f' qubits={self.qubits!r},'
-            f' log_of_measurement_results={proper_repr(self.log_of_measurement_results)})'
+            f' classical_data={self.classical_data!r})'
         )
 
     @property

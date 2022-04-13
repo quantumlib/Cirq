@@ -18,6 +18,7 @@ from typing import Any, Dict, Generic, List, Optional, Sequence, TYPE_CHECKING, 
 import numpy as np
 
 from cirq import linalg, ops, protocols
+from cirq._compat import deprecated_parameter
 from cirq.ops import common_gates, global_phase_op, matrix_gates, swap_gates
 from cirq.ops.clifford_gate import SingleQubitCliffordGate
 from cirq.protocols import has_unitary, num_qubits, unitary
@@ -34,6 +35,19 @@ TStabilizerState = TypeVar('TStabilizerState', bound='cirq.StabilizerState')
 class ActOnStabilizerArgs(ActOnArgs, Generic[TStabilizerState], metaclass=abc.ABCMeta):
     """Abstract wrapper around a stabilizer state for the act_on protocol."""
 
+    @deprecated_parameter(
+        deadline='v0.16',
+        fix='Use kwargs instead of positional args',
+        parameter_desc='args',
+        match=lambda args, kwargs: len(args) > 1,
+    )
+    @deprecated_parameter(
+        deadline='v0.16',
+        fix='Replace log_of_measurement_results with'
+        ' classical_data=cirq.ClassicalDataDictionaryStore(_records=logs).',
+        parameter_desc='log_of_measurement_results',
+        match=lambda args, kwargs: 'log_of_measurement_results' in kwargs,
+    )
     def __init__(
         self,
         state: TStabilizerState,
@@ -57,13 +71,16 @@ class ActOnStabilizerArgs(ActOnArgs, Generic[TStabilizerState], metaclass=abc.AB
             classical_data: The shared classical data container for this
                 simulation.
         """
-        super().__init__(
-            state=state,
-            prng=prng,
-            qubits=qubits,
-            log_of_measurement_results=log_of_measurement_results,
-            classical_data=classical_data,
-        )
+        if log_of_measurement_results is not None:
+            super().__init__(
+                state=state,
+                prng=prng,
+                qubits=qubits,
+                log_of_measurement_results=log_of_measurement_results,
+                classical_data=classical_data,
+            )
+        else:
+            super().__init__(state=state, prng=prng, qubits=qubits, classical_data=classical_data)
         self._state: TStabilizerState = state
 
     @property
@@ -71,15 +88,9 @@ class ActOnStabilizerArgs(ActOnArgs, Generic[TStabilizerState], metaclass=abc.AB
         return self._state
 
     def _act_on_fallback_(
-        self,
-        action: Any,
-        qubits: Sequence['cirq.Qid'],
-        allow_decompose: bool = True,
+        self, action: Any, qubits: Sequence['cirq.Qid'], allow_decompose: bool = True
     ) -> Union[bool, NotImplementedType]:
-        strats = [
-            self._strat_apply_gate,
-            self._strat_apply_mixture,
-        ]
+        strats = [self._strat_apply_gate, self._strat_apply_mixture]
         if allow_decompose:
             strats.append(self._strat_decompose)
             strats.append(self._strat_act_from_single_qubit_decompose)
