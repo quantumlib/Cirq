@@ -31,7 +31,6 @@ from typing import (
 import numpy as np
 
 from cirq import protocols, value
-from cirq._compat import deprecated_parameter
 from cirq.type_workarounds import NotImplementedType
 
 if TYPE_CHECKING:
