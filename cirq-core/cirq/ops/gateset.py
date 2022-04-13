@@ -212,7 +212,7 @@ class Gateset:
         *gates: Union[Type[raw_types.Gate], raw_types.Gate, GateFamily],
         name: Optional[str] = None,
         unroll_circuit_op: bool = True,
-        accept_global_phase_op: bool = False,
+        accept_global_phase_op: Optional[bool] = None,
     ) -> None:
         """Init Gateset.
 
@@ -232,9 +232,10 @@ class Gateset:
             unroll_circuit_op: If True, `cirq.CircuitOperation` is recursively
                 validated by validating the underlying `cirq.Circuit`.
             accept_global_phase_op: If True, a `GateFamily` accepting
-                `cirq.GlobalPhaseGate` will be included. If False,
+                `cirq.GlobalPhaseGate` will be included. If None,
                 `cirq.GlobalPhaseGate` will still be accepted if it appears in
-                the `gates` parameter. This parameter defaults to False (a
+                the `gates` parameter. If False, `cirq.GlobalPhaseGate` will be
+                removed from the gates. This parameter defaults to False (a
                 breaking change from v0.14) and will be removed in v0.16.
         """
         self._name = name
@@ -247,6 +248,10 @@ class Gateset:
         unique_gate_list: List[GateFamily] = list(
             dict.fromkeys(g if isinstance(g, GateFamily) else GateFamily(gate=g) for g in gates)
         )
+        if accept_global_phase_op is False:
+            unique_gate_list = [
+                g for g in unique_gate_list if g.gate != global_phase_op.GlobalPhaseGate
+            ]
         for g in unique_gate_list:
             if type(g) == GateFamily:
                 if isinstance(g.gate, raw_types.Gate):
@@ -303,7 +308,13 @@ class Gateset:
         if (
             name == self._name
             and unroll_circuit_op == self._unroll_circuit_op
-            and (not accept_global_phase_op or global_phase_family in self.gates)
+            and (
+                accept_global_phase_op is True
+                and global_phase_family in self.gates
+                or accept_global_phase_op is False
+                and global_phase_family not in self.gates
+                or accept_global_phase_op is None
+            )
         ):
             return self
         gates = self.gates
