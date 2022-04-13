@@ -24,7 +24,6 @@ import cirq
 from cirq import study
 from cirq.sim.simulator import (
     TStepResult,
-    TSimulatorState,
     SimulatesAmplitudes,
     SimulatesExpectationValues,
     SimulatesFinalState,

@@ -982,7 +982,7 @@ class SimulationTrialResult(Generic[TSimulatorState]):
         """A map from Qid to index used to define the ordering of the basis in
         the result.
         """
-        return self._final_simulator_state.create_merged_state().qubit_map
+        return self._final_simulator_state.qubit_map
 
     def _qid_shape_(self) -> Tuple[int, ...]:
         return _qubit_map_to_shape(self.qubit_map)

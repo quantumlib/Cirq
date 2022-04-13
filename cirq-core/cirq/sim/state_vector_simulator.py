@@ -110,15 +110,7 @@ class StateVectorStepResult(
     simulator_base.StepResultBase['cirq.ActOnStateVectorArgs'],
     metaclass=abc.ABCMeta,
 ):
-    @abc.abstractmethod
-    def _simulator_state(self) -> 'cirq.OperationTarget[cirq.ActOnStateVectorArgs]':
-        """Returns the simulator_state of the simulator after this step.
-
-        The form of the simulator_state depends on the implementation of the
-        simulation,see documentation for the implementing class for the form of
-        details.
-        """
-        raise NotImplementedError()
+    pass
 
 
 @value.value_equality(unhashable=True)
@@ -145,9 +137,7 @@ class StateVectorSimulatorState:
 @value.value_equality(unhashable=True)
 class StateVectorTrialResult(
     state_vector.StateVectorMixin,
-    simulator_base.SimulationTrialResultBase[
-        'cirq.ActOnStateVectorArgs'
-    ],
+    simulator_base.SimulationTrialResultBase['cirq.ActOnStateVectorArgs'],
 ):
     """A `SimulationTrialResult` that includes the `StateVectorMixin` methods.
 
@@ -174,7 +164,7 @@ class StateVectorTrialResult(
         if self._final_state_vector is None:
             state = self._final_simulator_state
             tensor = state.create_merged_state().target_tensor
-            self._final_state_vector = tensor
+            self._final_state_vector = tensor.reshape(np.prod(tensor.shape))
         return self._final_state_vector
 
     def state_vector(self):

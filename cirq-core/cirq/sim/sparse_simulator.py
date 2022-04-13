@@ -269,9 +269,6 @@ class SparseSimulatorStep(
         self._dtype = dtype
         self._state_vector: Optional[np.ndarray] = None
 
-    def _simulator_state(self) -> 'cirq.OperationTarget[cirq.ActOnStateVectorArgs]':
-        return self._sim_state
-
     def state_vector(self, copy: bool = True):
         """Return the state vector at this point in the computation.
 

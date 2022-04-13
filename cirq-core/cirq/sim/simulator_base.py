@@ -56,9 +56,7 @@ TStepResultBase = TypeVar('TStepResultBase', bound='StepResultBase')
 
 class SimulatorBase(
     Generic[TStepResultBase, TSimulationTrialResult, TActOnArgs],
-    SimulatesIntermediateState[
-        TStepResultBase, TSimulationTrialResult, TActOnArgs
-    ],
+    SimulatesIntermediateState[TStepResultBase, TSimulationTrialResult, TActOnArgs],
     SimulatesSamples,
     metaclass=abc.ABCMeta,
 ):
@@ -397,6 +395,9 @@ class StepResultBase(Generic[TActOnArgs], StepResult[OperationTarget[TActOnArgs]
         seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None,
     ) -> np.ndarray:
         return self._sim_state.sample(qubits, repetitions, seed)
+
+    def _simulator_state(self) -> 'cirq.OperationTarget[TActOnArgs]':
+        return self._sim_state
 
 
 class SimulationTrialResultBase(

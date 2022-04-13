@@ -240,9 +240,7 @@ class DensityMatrixSimulator(
         return swept_evs
 
 
-class DensityMatrixStepResult(
-    simulator_base.StepResultBase['cirq.ActOnDensityMatrixArgs']
-):
+class DensityMatrixStepResult(simulator_base.StepResultBase['cirq.ActOnDensityMatrixArgs']):
     """A single step in the simulation of the DensityMatrixSimulator.
 
     Attributes:
@@ -273,9 +271,6 @@ class DensityMatrixStepResult(
         super().__init__(sim_state)
         self._dtype = dtype
         self._density_matrix: Optional[np.ndarray] = None
-
-    def _simulator_state(self) -> 'cirq.OperationTarget[cirq.ActOnDensityMatrixArgs]':
-        return self._sim_state
 
     def density_matrix(self, copy=True):
         """Returns the density matrix at this step in the simulation.
@@ -359,9 +354,7 @@ class DensityMatrixSimulatorState:
 
 @value.value_equality(unhashable=True)
 class DensityMatrixTrialResult(
-    simulator_base.SimulationTrialResultBase[
-        act_on_density_matrix_args.ActOnDensityMatrixArgs
-    ]
+    simulator_base.SimulationTrialResultBase[act_on_density_matrix_args.ActOnDensityMatrixArgs]
 ):
     """A `SimulationTrialResult` for `DensityMatrixSimulator` runs.
 
@@ -417,9 +410,7 @@ class DensityMatrixTrialResult(
             size = np.prod(protocols.qid_shape(self), dtype=np.int64)
             state = self._final_simulator_state
             tensor = state.create_merged_state().target_tensor
-            self._final_density_matrix = np.reshape(
-                tensor.copy(), (size, size)
-            )
+            self._final_density_matrix = np.reshape(tensor.copy(), (size, size))
         return self._final_density_matrix
 
     def _value_equality_values_(self) -> Any:

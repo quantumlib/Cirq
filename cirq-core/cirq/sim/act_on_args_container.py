@@ -22,14 +22,12 @@ from typing import (
     Mapping,
     Optional,
     Sequence,
-    Tuple,
     TYPE_CHECKING,
 )
 
 import numpy as np
 
-from cirq import ops, protocols, value
-from cirq._compat import deprecated_parameter
+from cirq import ops, protocols
 from cirq.sim.operation_target import OperationTarget
 from cirq.sim.simulator import (
     TActOnArgs,
@@ -46,12 +44,6 @@ class ActOnArgsContainer(
 ):
     """A container for a `Qid`-to-`ActOnArgs` dictionary."""
 
-    @deprecated_parameter(
-        deadline='v0.15',
-        fix='Use classical_data.',
-        parameter_desc='log_of_measurement_results',
-        match=lambda args, kwargs: 'log_of_measurement_results' in kwargs or len(args) > 4,
-    )
     def __init__(
         self,
         args: Dict[Optional['cirq.Qid'], TActOnArgs],
@@ -74,15 +66,16 @@ class ActOnArgsContainer(
             classical_data: The shared classical data container for this
                 simulation.
         """
+        if log_of_measurement_results is None:
+            super().__init__(qubits=qubits, classical_data=classical_data)
+        else:
+            super().__init__(
+                qubits=qubits,
+                log_of_measurement_results=log_of_measurement_results,
+                classical_data=classical_data,
+            )
         self._args = args
-        self._qubits = tuple(qubits)
         self._split_untangled_states = split_untangled_states
-        self._classical_data = classical_data or value.ClassicalDataDictionaryStore(
-            _records={
-                value.MeasurementKey.parse_serialized(k): [tuple(v)]
-                for k, v in (log_of_measurement_results or {}).items()
-            }
-        )
 
     @property
     def args(self) -> Mapping[Optional['cirq.Qid'], TActOnArgs]:
@@ -175,14 +168,6 @@ class ActOnArgsContainer(
         return ActOnArgsContainer(
             args, self.qubits, self.split_untangled_states, classical_data=classical_data
         )
-
-    @property
-    def qubits(self) -> Tuple['cirq.Qid', ...]:
-        return self._qubits
-
-    @property
-    def classical_data(self) -> 'cirq.ClassicalDataStoreReader':
-        return self._classical_data
 
     def sample(
         self,

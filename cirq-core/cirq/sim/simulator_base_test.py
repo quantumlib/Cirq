@@ -115,9 +115,7 @@ class CountingTrialResult(cirq.SimulationTrialResultBase[CountingActOnArgs]):
 
 
 class CountingSimulator(
-    cirq.SimulatorBase[
-        CountingStepResult, CountingTrialResult, CountingActOnArgs
-    ]
+    cirq.SimulatorBase[CountingStepResult, CountingTrialResult, CountingActOnArgs]
 ):
     def __init__(self, noise=None, split_untangled_states=False):
         super().__init__(

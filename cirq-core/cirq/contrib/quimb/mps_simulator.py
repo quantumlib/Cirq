@@ -53,9 +53,7 @@ class MPSOptions:
 
 
 class MPSSimulator(
-    simulator_base.SimulatorBase[
-        'MPSSimulatorStepResult', 'MPSTrialResult', 'MPSState'
-    ],
+    simulator_base.SimulatorBase['MPSSimulatorStepResult', 'MPSTrialResult', 'MPSState'],
 ):
     """An efficient simulator for MPS circuits."""
 
@@ -214,9 +212,6 @@ class MPSSimulatorStepResult(simulator_base.StepResultBase['MPSState']):
     def _repr_pretty_(self, p: Any, cycle: bool):
         """iPython (Jupyter) pretty print."""
         p.text("cirq.MPSSimulatorStepResult(...)" if cycle else self.__str__())
-
-    def _simulator_state(self):
-        return self.state
 
 
 @value.value_equality
