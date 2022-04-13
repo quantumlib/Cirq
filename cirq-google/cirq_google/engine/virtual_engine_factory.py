@@ -20,11 +20,7 @@ import time
 import google.protobuf.text_format as text_format
 import cirq
 from cirq_google.api import v2
-from cirq_google.engine import (
-    calibration,
-    engine_validator,
-    simulated_local_processor,
-)
+from cirq_google.engine import calibration, engine_validator, simulated_local_processor
 from cirq_google.devices import serializable_device
 from cirq_google.serialization.gate_sets import FSIM_GATESET
 from cirq_google.serialization import serializable_gate_set
@@ -199,9 +195,7 @@ def create_noiseless_virtual_engine_from_proto(
     )
 
 
-def _create_device_spec_from_template(
-    template_name: str,
-) -> v2.device_pb2.DeviceSpecification:
+def _create_device_spec_from_template(template_name: str) -> v2.device_pb2.DeviceSpecification:
     """Load a template proto into a `v2.device_pb2.DeviceSpecification`."""
 
     path = pathlib.Path(__file__).parent.parent.resolve()

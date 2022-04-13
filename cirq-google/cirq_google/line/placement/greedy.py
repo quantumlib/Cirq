@@ -307,16 +307,9 @@ class GreedySequenceSearchStrategy(place_strategy.LinePlacementStrategy):
         start: GridQubit = min(device.qubits)
         sequences: List[LineSequence] = []
         greedy_search: Dict[str, List[GreedySequenceSearch]] = {
-            'minimal_connectivity': [
-                _PickFewestNeighbors(device, start),
-            ],
-            'largest_area': [
-                _PickLargestArea(device, start),
-            ],
-            'best': [
-                _PickFewestNeighbors(device, start),
-                _PickLargestArea(device, start),
-            ],
+            'minimal_connectivity': [_PickFewestNeighbors(device, start)],
+            'largest_area': [_PickLargestArea(device, start)],
+            'best': [_PickFewestNeighbors(device, start), _PickLargestArea(device, start)],
         }
 
         algos = greedy_search.get(self.algorithm)
