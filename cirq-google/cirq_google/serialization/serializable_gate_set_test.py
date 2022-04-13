@@ -754,4 +754,4 @@ def test_deserialize_no_operation():
         ),
     )
     with pytest.raises(ValueError, match='operation'):
-        MY_GATE_SET.deserialize(proto, cg.Bristlecone)
+        MY_GATE_SET.deserialize(proto)

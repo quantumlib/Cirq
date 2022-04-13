@@ -11,9 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-import os
 from typing import Dict
-from unittest import mock
 import numpy as np
 import pytest
 import sympy
@@ -35,9 +33,9 @@ def op_proto(json_dict: Dict) -> v2.program_pb2.Operation:
     ('gate', 'axis_half_turns', 'half_turns'),
     [
         (cirq.X, 0.0, 1.0),
-        (cirq.X ** 0.25, 0.0, 0.25),
+        (cirq.X**0.25, 0.0, 0.25),
         (cirq.Y, 0.5, 1.0),
-        (cirq.Y ** 0.25, 0.5, 0.25),
+        (cirq.Y**0.25, 0.5, 0.25),
         (cirq.PhasedXPowGate(exponent=0.125, phase_exponent=0.25), 0.25, 0.125),
         (cirq.rx(0.125 * np.pi), 0.0, 0.125),
         (cirq.ry(0.25 * np.pi), 0.5, 0.25),
@@ -104,7 +102,7 @@ def test_serialize_exp_w_parameterized_axis_half_turns():
     ('gate', 'half_turns'),
     [
         (cirq.Z, 1.0),
-        (cirq.Z ** 0.125, 0.125),
+        (cirq.Z**0.125, 0.125),
         (cirq.rz(0.125 * np.pi), 0.125),
     ],
 )
@@ -141,7 +139,7 @@ def test_serialize_exp_z_parameterized():
     ('gate', 'half_turns'),
     [
         (cirq.CZ, 1.0),
-        (cirq.CZ ** 0.125, 0.125),
+        (cirq.CZ**0.125, 0.125),
     ],
 )
 def test_serialize_exp_11(gate, half_turns):
@@ -356,36 +354,6 @@ def test_deserialize_circuit():
     assert cg.XMON.deserialize(serialized) == circuit
 
 
-@mock.patch.dict(os.environ, clear='CIRQ_TESTING')
-def test_deserialize_schedule_device_deprecated():
-    q0 = cirq.GridQubit(4, 4)
-    q1 = cirq.GridQubit(4, 5)
-    circuit = cirq.Circuit(
-        cirq.CZ(q0, q1), cirq.X(q0), cirq.Z(q1), cirq.measure(q0, key='a'), device=cg.Bristlecone
-    )
-    serialized = v2.program_pb2.Program(
-        language=v2.program_pb2.Language(gate_set='xmon'),
-        schedule=v2.program_pb2.Schedule(
-            scheduled_operations=[
-                v2.program_pb2.ScheduledOperation(
-                    operation=cg.XMON.serialize_op(cirq.CZ(q0, q1)), start_time_picos=0
-                ),
-                v2.program_pb2.ScheduledOperation(
-                    operation=cg.XMON.serialize_op(cirq.X(q0)), start_time_picos=200000
-                ),
-                v2.program_pb2.ScheduledOperation(
-                    operation=cg.XMON.serialize_op(cirq.Z(q1)), start_time_picos=200000
-                ),
-                v2.program_pb2.ScheduledOperation(
-                    operation=cg.XMON.serialize_op(cirq.measure(q0, key='a')),
-                    start_time_picos=400000,
-                ),
-            ]
-        ),
-    )
-    assert cg.XMON.deserialize(serialized, cg.Bristlecone) == circuit
-
-
 def test_deserialize_schedule():
     q0 = cirq.GridQubit(4, 4)
     q1 = cirq.GridQubit(4, 5)
@@ -478,8 +446,8 @@ def test_serialize_deserialize_inv_sqrt_iswap():
 @pytest.mark.parametrize(
     ('gate', 'axis_half_turns', 'half_turns'),
     [
-        (cirq.X ** 0.25, 0.0, 0.25),
-        (cirq.Y ** 0.25, 0.5, 0.25),
+        (cirq.X**0.25, 0.0, 0.25),
+        (cirq.Y**0.25, 0.5, 0.25),
         (cirq.XPowGate(exponent=0.125), 0.0, 0.125),
         (cirq.YPowGate(exponent=0.125), 0.5, 0.125),
         (cirq.PhasedXPowGate(exponent=0.125, phase_exponent=0.25), 0.25, 0.125),

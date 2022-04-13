@@ -399,7 +399,7 @@ def test_parameterizable(resolve_fn):
 def test_bounded_effect():
     qubits = cirq.LineQubit.range(3)
     cy = cirq.ControlledOperation(qubits[:1], cirq.Y(qubits[1]))
-    assert cirq.trace_distance_bound(cy ** 0.001) < 0.01
+    assert cirq.trace_distance_bound(cy**0.001) < 0.01
     foo = sympy.Symbol('foo')
     scy = cirq.ControlledOperation(qubits[:1], cirq.Y(qubits[1]) ** foo)
     assert cirq.trace_distance_bound(scy) == 1.0
@@ -455,17 +455,3 @@ def test_controlled_mixture():
             (0.25, cirq.unitary(cirq.CZ)),
         ],
     )
-
-
-def test_setters_deprecated():
-    q0, q1, q2 = cirq.LineQubit.range(3)
-    op = cirq.ControlledOperation([q1], cirq.Z(q0))
-    with cirq.testing.assert_deprecated('mutators', deadline='v0.15'):
-        op.sub_operation = cirq.X(q0)
-    assert op.sub_operation == cirq.X(q0)
-    with cirq.testing.assert_deprecated('mutators', deadline='v0.15'):
-        op.controls = (q2,)
-    assert op.controls == (q2,)
-    with cirq.testing.assert_deprecated('mutators', deadline='v0.15'):
-        op.control_values = ((3,), (3,))
-    assert op.control_values == ((3,), (3,))

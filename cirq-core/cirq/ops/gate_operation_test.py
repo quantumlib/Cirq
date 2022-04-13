@@ -138,7 +138,7 @@ def test_gate_operation_num_qubits():
 def test_gate_operation_pow():
     Y = cirq.Y
     q = cirq.NamedQubit('q')
-    assert (Y ** 0.5)(q) == Y(q) ** 0.5
+    assert (Y**0.5)(q) == Y(q) ** 0.5
 
 
 def test_with_qubits_and_transform_qubits():
@@ -159,11 +159,11 @@ def test_extrapolate():
     # If the gate isn't extrapolatable, you get a type error.
     op0 = cirq.GateOperation(cirq.SingleQubitGate(), [q])
     with pytest.raises(TypeError):
-        _ = op0 ** 0.5
+        _ = op0**0.5
 
     op1 = cirq.GateOperation(cirq.Y, [q])
-    assert op1 ** 0.5 == cirq.GateOperation(cirq.Y ** 0.5, [q])
-    assert (cirq.Y ** 0.5).on(q) == cirq.Y(q) ** 0.5
+    assert op1**0.5 == cirq.GateOperation(cirq.Y**0.5, [q])
+    assert (cirq.Y**0.5).on(q) == cirq.Y(q) ** 0.5
 
 
 def test_inverse():
@@ -174,7 +174,7 @@ def test_inverse():
     assert cirq.inverse(op0, None) is None
 
     op1 = cirq.GateOperation(cirq.S, [q])
-    assert cirq.inverse(op1) == op1 ** -1 == cirq.GateOperation(cirq.S ** -1, [q])
+    assert cirq.inverse(op1) == op1**-1 == cirq.GateOperation(cirq.S**-1, [q])
     assert cirq.inverse(cirq.S).on(q) == cirq.inverse(cirq.S.on(q))
 
 
@@ -198,9 +198,9 @@ def test_bounded_effect():
     # If the gate isn't bounded, you get a type error.
     op0 = cirq.GateOperation(cirq.SingleQubitGate(), [q])
     assert cirq.trace_distance_bound(op0) >= 1
-    op1 = cirq.GateOperation(cirq.Z ** 0.000001, [q])
+    op1 = cirq.GateOperation(cirq.Z**0.000001, [q])
     op1_bound = cirq.trace_distance_bound(op1)
-    assert op1_bound == cirq.trace_distance_bound(cirq.Z ** 0.000001)
+    assert op1_bound == cirq.trace_distance_bound(cirq.Z**0.000001)
 
 
 @pytest.mark.parametrize('resolve_fn', [cirq.resolve_parameters, cirq.resolve_parameters_once])
@@ -304,8 +304,8 @@ def test_repr():
 @pytest.mark.parametrize(
     'gate1,gate2,eq_up_to_global_phase',
     [
-        (cirq.rz(0.3 * np.pi), cirq.Z ** 0.3, True),
-        (cirq.rz(0.3), cirq.Z ** 0.3, False),
+        (cirq.rz(0.3 * np.pi), cirq.Z**0.3, True),
+        (cirq.rz(0.3), cirq.Z**0.3, False),
         (cirq.ZZPowGate(global_shift=0.5), cirq.ZZ, True),
         (cirq.ZPowGate(global_shift=0.5) ** sympy.Symbol('e'), cirq.Z, False),
         (cirq.Z ** sympy.Symbol('e'), cirq.Z ** sympy.Symbol('f'), False),

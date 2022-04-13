@@ -662,7 +662,7 @@ class ZPowGate(eigen_gate.EigenGate, gate_features.SingleQubitGate):
         )
 
     def _commutes_on_qids_(
-        self, qids: 'Sequence[cirq.Qid]', other: Any, atol: float
+        self, qids: 'Sequence[cirq.Qid]', other: Any, *, atol: float = 1e-8
     ) -> Union[bool, NotImplementedType, None]:
         from cirq.ops.parity_gates import ZZPowGate
 
@@ -908,7 +908,7 @@ class CZPowGate(gate_features.InterchangeableQubitsGate, eigen_gate.EigenGate):
         if protocols.is_parameterized(self):
             return NotImplemented
         global_phase = 1j ** (2 * self._exponent * self._global_shift)
-        z_phase = 1j ** self._exponent
+        z_phase = 1j**self._exponent
         c = -1j * z_phase * np.sin(np.pi * self._exponent / 2) / 2
         return value.LinearDict(
             {
@@ -1090,7 +1090,7 @@ class CXPowGate(eigen_gate.EigenGate):
         if protocols.is_parameterized(self):
             return NotImplemented
         global_phase = 1j ** (2 * self._exponent * self._global_shift)
-        cnot_phase = 1j ** self._exponent
+        cnot_phase = 1j**self._exponent
         c = -1j * cnot_phase * np.sin(np.pi * self._exponent / 2) / 2
         return value.LinearDict(
             {

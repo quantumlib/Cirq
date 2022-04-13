@@ -423,7 +423,7 @@ class T2DecayResult:
 
         # Estimate length of Bloch vector (projected to xy plane)
         # by squaring <X> and <Y> expectation values
-        bloch_vector = self._expectation_pauli_x ** 2 + self._expectation_pauli_y ** 2
+        bloch_vector = self._expectation_pauli_x**2 + self._expectation_pauli_y**2
 
         ax.plot(self._expectation_pauli_x['delay_ns'], bloch_vector['value'], 'r+-', **plot_kwargs)
         ax.set_xlabel(r"Delay between initialization and measurement (nanoseconds)")

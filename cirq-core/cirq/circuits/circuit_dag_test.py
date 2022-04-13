@@ -70,21 +70,6 @@ def test_init():
     assert list(dag.edges()) == []
 
 
-def test_init_device_deprecated():
-    with cirq.testing.assert_deprecated(
-        cirq.circuits.circuit._DEVICE_DEP_MESSAGE, deadline='v0.15'
-    ):
-        _ = cirq.CircuitDag(device=cirq.UNCONSTRAINED_DEVICE)
-
-
-def test_device_deprecated():
-    dag = cirq.CircuitDag()
-    with cirq.testing.assert_deprecated(
-        cirq.circuits.circuit._DEVICE_DEP_MESSAGE, deadline='v0.15'
-    ):
-        _ = dag.device
-
-
 def test_append():
     q0 = cirq.LineQubit(0)
     dag = cirq.CircuitDag()
@@ -118,14 +103,6 @@ def test_from_ops():
     assert [(n1.val, n2.val) for n1, n2 in dag.edges()] == [(cirq.X(q0), cirq.Y(q0))]
 
 
-def test_from_ops_device_deprecated():
-    with cirq.testing.assert_deprecated(
-        cirq.circuits.circuit._DEVICE_DEP_MESSAGE, deadline='v0.15'
-    ):
-        q0 = cirq.LineQubit(0)
-        _ = cirq.CircuitDag.from_ops(cirq.X(q0), cirq.Y(q0), device=FakeDevice())
-
-
 def test_from_circuit():
     q0 = cirq.LineQubit(0)
     circuit = cirq.Circuit(cirq.X(q0), cirq.Y(q0))
@@ -134,16 +111,6 @@ def test_from_circuit():
     assert len(dag.nodes()) == 2
     assert [(n1.val, n2.val) for n1, n2 in dag.edges()] == [(cirq.X(q0), cirq.Y(q0))]
     assert sorted(circuit.all_qubits()) == sorted(dag.all_qubits())
-
-
-def test_from_circuit_deprecated():
-    q0 = cirq.LineQubit(0)
-    circuit = cirq.Circuit(cirq.X(q0), cirq.Y(q0))
-    circuit._device = FakeDevice()
-    with cirq.testing.assert_deprecated(
-        cirq.circuits.circuit._DEVICE_DEP_MESSAGE, deadline='v0.15'
-    ):
-        _ = cirq.CircuitDag.from_circuit(circuit)
 
 
 def test_to_empty_circuit():
@@ -165,18 +132,6 @@ def test_to_circuit():
     cirq.testing.assert_allclose_up_to_global_phase(
         circuit.unitary(), dag.to_circuit().unitary(), atol=1e-7
     )
-
-
-def test_to_circuit_device_deprecated():
-    q0 = cirq.LineQubit(0)
-    circuit = cirq.Circuit(cirq.X(q0), cirq.Y(q0))
-    dag = cirq.CircuitDag.from_circuit(circuit)
-    dag._device = FakeDevice()
-
-    with cirq.testing.assert_deprecated(
-        cirq.circuits.circuit._DEVICE_DEP_MESSAGE, deadline='v0.15'
-    ):
-        _ = dag.to_circuit()
 
 
 def test_equality():

@@ -13,7 +13,7 @@
 # limitations under the License.
 
 from astroid import parse
-from pylint.testutils import CheckerTestCase, Message
+from pylint.testutils import CheckerTestCase, MessageTest
 
 from dev_tools.pylint_copyright_checker import CopyrightChecker
 
@@ -27,42 +27,49 @@ class TestCopyrightChecker(CheckerTestCase):
         r"""Report message when no copyright notice at the beginning of a file."""
         node = parse("import os")
         with self.assertAddsMessages(
-            Message(
+            MessageTest(
                 msg_id='wrong-or-nonexistent-copyright-notice',
                 line=1,
+                col_offset=0,
             ),
         ):
             self.checker.process_module(node)
 
     def test_wrong_copyright(self) -> None:
         r"""Report message when the copyright notice is incorrect."""
-        node = parse("# Copyright 2021 Someone else")
+        comment = "# Copyright 2021 Someone else"
+        node = parse(comment)
         with self.assertAddsMessages(
-            Message(
+            MessageTest(
                 msg_id='wrong-or-nonexistent-copyright-notice',
                 line=1,
+                col_offset=comment.index("Someone"),
             ),
         ):
             self.checker.process_module(node)
 
     def test_shorter_copyright(self) -> None:
         r"""Report message when the copyright notice is incorrect."""
-        node = parse("# Copyright 2021 The")
+        comment = "# Copyright 2021 The"
+        node = parse(comment)
         with self.assertAddsMessages(
-            Message(
+            MessageTest(
                 msg_id='wrong-or-nonexistent-copyright-notice',
                 line=1,
+                col_offset=len(comment),
             ),
         ):
             self.checker.process_module(node)
 
     def test_longer_copyright(self) -> None:
         r"""Report message when the copyright notice is incorrect."""
-        node = parse("# Copyright 2021 The Cirq Developers and extra")
+        comment = "# Copyright 2021 The Cirq Developers and extra"
+        node = parse(comment)
         with self.assertAddsMessages(
-            Message(
+            MessageTest(
                 msg_id='wrong-or-nonexistent-copyright-notice',
                 line=1,
+                col_offset=comment.index(" and extra"),
             ),
         ):
             self.checker.process_module(node)

@@ -12,10 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import inspect
-import warnings
 from collections import abc
 from typing import (
+    Any,
     Dict,
     Generic,
     Iterator,
@@ -25,13 +24,12 @@ from typing import (
     Sequence,
     Tuple,
     TYPE_CHECKING,
-    Union,
 )
 
 import numpy as np
 
 from cirq import ops, protocols, value
-from cirq._compat import deprecated, deprecated_parameter
+from cirq._compat import deprecated_parameter
 from cirq.sim.operation_target import OperationTarget
 from cirq.sim.simulator import (
     TActOnArgs,
@@ -51,7 +49,7 @@ class ActOnArgsContainer(
     @deprecated_parameter(
         deadline='v0.15',
         fix='Use classical_data.',
-        parameter_desc='log_of_measurement_results and positional arguments',
+        parameter_desc='log_of_measurement_results',
         match=lambda args, kwargs: 'log_of_measurement_results' in kwargs or len(args) > 4,
     )
     def __init__(
@@ -94,22 +92,6 @@ class ActOnArgsContainer(
     def split_untangled_states(self) -> bool:
         return self._split_untangled_states
 
-    @args.setter  # type: ignore
-    @deprecated(
-        deadline="v0.15",
-        fix="The mutators of this class are deprecated, instantiate a new object instead.",
-    )
-    def args(self, args):
-        self._args = args
-
-    @split_untangled_states.setter  # type: ignore
-    @deprecated(
-        deadline="v0.15",
-        fix="The mutators of this class are deprecated, instantiate a new object instead.",
-    )
-    def split_untangled_states(self, split_untangled_states):
-        self._split_untangled_states = split_untangled_states
-
     def create_merged_state(self) -> TActOnArgs:
         if not self.split_untangled_states:
             return self.args[None]
@@ -120,16 +102,26 @@ class ActOnArgsContainer(
 
     def _act_on_fallback_(
         self,
-        action: Union['cirq.Operation', 'cirq.Gate'],
+        action: Any,
         qubits: Sequence['cirq.Qid'],
         allow_decompose: bool = True,
     ) -> bool:
-        gate = action.gate if isinstance(action, ops.Operation) else action
+        gate_opt = (
+            action
+            if isinstance(action, ops.Gate)
+            else action.gate
+            if isinstance(action, ops.Operation)
+            else None
+        )
 
-        if isinstance(gate, ops.IdentityGate):
+        if isinstance(gate_opt, ops.IdentityGate):
             return True
 
-        if isinstance(gate, ops.SwapPowGate) and gate.exponent % 2 == 1 and gate.global_shift == 0:
+        if (
+            isinstance(gate_opt, ops.SwapPowGate)
+            and gate_opt.exponent % 2 == 1
+            and gate_opt.global_shift == 0
+        ):
             q0, q1 = qubits
             args0 = self.args[q0]
             args1 = self.args[q1]
@@ -159,9 +151,8 @@ class ActOnArgsContainer(
         protocols.act_on(action, op_args, act_on_qubits, allow_decompose=allow_decompose)
 
         # Decouple any measurements or resets
-        if self.split_untangled_states and (
-            isinstance(gate, ops.ResetChannel)
-            or (isinstance(gate, ops.MeasurementGate) and not op_args.ignore_measurement_results)
+        if self.split_untangled_states and isinstance(
+            gate_opt, (ops.ResetChannel, ops.MeasurementGate)
         ):
             for q in qubits:
                 if op_args.allows_factoring:
@@ -177,17 +168,7 @@ class ActOnArgsContainer(
         classical_data = self._classical_data.copy()
         copies = {}
         for act_on_args in set(self.args.values()):
-            if 'deep_copy_buffers' in inspect.signature(act_on_args.copy).parameters:
-                copies[act_on_args] = act_on_args.copy(deep_copy_buffers)
-            else:
-                warnings.warn(
-                    (
-                        'A new parameter deep_copy_buffers has been added to ActOnArgs.copy(). The '
-                        'classes that inherit from ActOnArgs should support it before Cirq 0.15.'
-                    ),
-                    DeprecationWarning,
-                )
-                copies[act_on_args] = act_on_args.copy()
+            copies[act_on_args] = act_on_args.copy(deep_copy_buffers)
         for copy in copies.values():
             copy._classical_data = classical_data
         args = {q: copies[a] for q, a in self.args.items()}
