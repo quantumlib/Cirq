@@ -12,11 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Dict, List, Optional, Sequence, TYPE_CHECKING, Union
+from typing import Optional, Sequence, TYPE_CHECKING, Union
 
 import numpy as np
 
-from cirq import _compat
 from cirq.sim.clifford import stabilizer_state_ch_form
 from cirq.sim.clifford.act_on_stabilizer_args import ActOnStabilizerArgs
 
@@ -29,17 +28,10 @@ class ActOnStabilizerCHFormArgs(
 ):
     """Wrapper around a stabilizer state in CH form for the act_on protocol."""
 
-    @_compat.deprecated_parameter(
-        deadline='v0.15',
-        fix='Use classical_data.',
-        parameter_desc='log_of_measurement_results',
-        match=lambda args, kwargs: 'log_of_measurement_results' in kwargs,
-    )
     def __init__(
         self,
         *,
         prng: Optional[np.random.RandomState] = None,
-        log_of_measurement_results: Optional[Dict[str, List[int]]] = None,
         qubits: Optional[Sequence['cirq.Qid']] = None,
         initial_state: Union[int, 'cirq.StabilizerStateChForm'] = 0,
         classical_data: Optional['cirq.ClassicalDataStore'] = None,
@@ -47,15 +39,11 @@ class ActOnStabilizerCHFormArgs(
         """Initializes with the given state and the axes for the operation.
 
         Args:
-            state: The StabilizerStateChForm to act on. Operations are expected
-                to perform inplace edits of this object.
             qubits: Determines the canonical ordering of the qubits. This
                 is often used in specifying the initial state, i.e. the
                 ordering of the computational basis states.
             prng: The pseudo random number generator to use for probabilistic
                 effects.
-            log_of_measurement_results: A mutable object that measurements are
-                being recorded into.
             initial_state: The initial state for the simulation. This can be a
                 full CH form passed by reference which will be modified inplace,
                 or a big-endian int in the computational basis. If the state is
@@ -75,9 +63,5 @@ class ActOnStabilizerCHFormArgs(
                 len(qubits), initial_state
             )
         super().__init__(
-            state=initial_state,
-            prng=prng,
-            qubits=qubits,
-            log_of_measurement_results=log_of_measurement_results,
-            classical_data=classical_data,
+            state=initial_state, prng=prng, qubits=qubits, classical_data=classical_data
         )
