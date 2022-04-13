@@ -45,7 +45,6 @@ class SimulatesIntermediateStateVector(
     simulator_base.SimulatorBase[
         TStateVectorStepResult,
         'cirq.StateVectorTrialResult',
-        'cirq.StateVectorSimulatorState',
         'cirq.ActOnStateVectorArgs',
     ],
     simulator.SimulatesAmplitudes,
@@ -108,18 +107,10 @@ class SimulatesIntermediateStateVector(
 
 
 class StateVectorStepResult(
-    simulator_base.StepResultBase['StateVectorSimulatorState', 'cirq.ActOnStateVectorArgs'],
+    simulator_base.StepResultBase['cirq.ActOnStateVectorArgs'],
     metaclass=abc.ABCMeta,
 ):
-    @abc.abstractmethod
-    def _simulator_state(self) -> 'StateVectorSimulatorState':
-        """Returns the simulator_state of the simulator after this step.
-
-        The form of the simulator_state depends on the implementation of the
-        simulation,see documentation for the implementing class for the form of
-        details.
-        """
-        raise NotImplementedError()
+    pass
 
 
 @value.value_equality(unhashable=True)
@@ -146,9 +137,7 @@ class StateVectorSimulatorState:
 @value.value_equality(unhashable=True)
 class StateVectorTrialResult(
     state_vector.StateVectorMixin,
-    simulator_base.SimulationTrialResultBase[
-        StateVectorSimulatorState, 'cirq.ActOnStateVectorArgs'
-    ],
+    simulator_base.SimulationTrialResultBase['cirq.ActOnStateVectorArgs'],
 ):
     """A `SimulationTrialResult` that includes the `StateVectorMixin` methods.
 
@@ -173,7 +162,9 @@ class StateVectorTrialResult(
     @property
     def final_state_vector(self):
         if self._final_state_vector is None:
-            self._final_state_vector = self._final_simulator_state.state_vector
+            state = self._final_simulator_state
+            tensor = state.create_merged_state().target_tensor
+            self._final_state_vector = tensor.reshape(np.prod(tensor.shape))
         return self._final_state_vector
 
     def state_vector(self):
@@ -202,7 +193,7 @@ class StateVectorTrialResult(
                 |  6  |   1    |   1    |   0    |
                 |  7  |   1    |   1    |   1    |
         """
-        return self._final_simulator_state.state_vector.copy()
+        return self.final_state_vector.copy()
 
     def _value_equality_values_(self):
         measurements = {k: v.tolist() for k, v in sorted(self.measurements.items())}

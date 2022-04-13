@@ -21,7 +21,6 @@ from typing import (
     Generic,
     Iterator,
     List,
-    Mapping,
     Optional,
     Sequence,
     TypeVar,
@@ -81,18 +80,18 @@ class ActOnArgs(OperationTarget, Generic[TState], metaclass=abc.ABCMeta):
                 simulation.
             state: The underlying quantum state of the simulation.
         """
-        if prng is None:
-            prng = cast(np.random.RandomState, np.random)
         if qubits is None:
             qubits = ()
-        self._set_qubits(qubits)
-        self._prng = prng
-        self._classical_data = classical_data or value.ClassicalDataDictionaryStore(
+        classical_data = classical_data or value.ClassicalDataDictionaryStore(
             _records={
                 value.MeasurementKey.parse_serialized(k): [tuple(v)]
                 for k, v in (log_of_measurement_results or {}).items()
             }
         )
+        super().__init__(qubits=qubits, classical_data=classical_data)
+        if prng is None:
+            prng = cast(np.random.RandomState, np.random)
+        self._prng = prng
         self._state = cast(TState, state)
         if state is None:
             _warn_or_error('This function will require a valid `state` input in cirq v0.16.')
@@ -100,14 +99,6 @@ class ActOnArgs(OperationTarget, Generic[TState], metaclass=abc.ABCMeta):
     @property
     def prng(self) -> np.random.RandomState:
         return self._prng
-
-    @property
-    def qubit_map(self) -> Mapping['cirq.Qid', int]:
-        return self._qubit_map
-
-    def _set_qubits(self, qubits: Sequence['cirq.Qid']):
-        self._qubits = tuple(qubits)
-        self._qubit_map = {q: i for i, q in enumerate(self.qubits)}
 
     def measure(self, qubits: Sequence['cirq.Qid'], key: str, invert_mask: Sequence[bool]):
         """Measures the qubits and records to `log_of_measurement_results`.
@@ -299,10 +290,6 @@ class ActOnArgs(OperationTarget, Generic[TState], metaclass=abc.ABCMeta):
     def _on_transpose_to_qubit_order(self: TSelf, qubits: Sequence['cirq.Qid'], target: TSelf):
         """Subclasses should implement this with any additional state transpose
         functionality, if supported."""
-
-    @property
-    def classical_data(self) -> 'cirq.ClassicalDataStoreReader':
-        return self._classical_data
 
     @property  # type: ignore
     @deprecated(deadline='v0.16', fix='Remove this call, it always returns False.')

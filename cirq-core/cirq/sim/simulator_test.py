@@ -24,7 +24,6 @@ import cirq
 from cirq import study
 from cirq.sim.simulator import (
     TStepResult,
-    TSimulatorState,
     SimulatesAmplitudes,
     SimulatesExpectationValues,
     SimulatesFinalState,
@@ -64,8 +63,8 @@ class FakeStepResult(cirq.StepResult):
 
 
 class SimulatesIntermediateStateImpl(
-    Generic[TStepResult, TSimulatorState, TActOnArgs],
-    SimulatesIntermediateState[TStepResult, 'SimulationTrialResult', TSimulatorState, TActOnArgs],
+    Generic[TStepResult, TActOnArgs],
+    SimulatesIntermediateState[TStepResult, 'SimulationTrialResult', TActOnArgs],
     metaclass=abc.ABCMeta,
 ):
     """A SimulatesIntermediateState that uses the default SimulationTrialResult type."""
