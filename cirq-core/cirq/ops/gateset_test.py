@@ -23,10 +23,7 @@ import numpy as np
 
 class CustomXPowGate(cirq.EigenGate):
     def _eigen_components(self) -> List[Tuple[float, np.ndarray]]:
-        return [
-            (0, np.array([[0.5, 0.5], [0.5, 0.5]])),
-            (1, np.array([[0.5, -0.5], [-0.5, 0.5]])),
-        ]
+        return [(0, np.array([[0.5, 0.5], [0.5, 0.5]])), (1, np.array([[0.5, -0.5], [-0.5, 0.5]]))]
 
     def __str__(self) -> str:
         if self._global_shift == 0:
@@ -149,10 +146,7 @@ def test_gate_family_eq():
         ),
         (
             cirq.GateFamily(CustomX, ignore_global_phase=False),
-            [
-                (CustomX, True),
-                (CustomXPowGate(exponent=1, global_shift=0.15), False),
-            ],
+            [(CustomX, True), (CustomXPowGate(exponent=1, global_shift=0.15), False)],
         ),
     ],
 )
@@ -265,18 +259,14 @@ def test_gateset_validate(use_circuit_op, use_global_phase):
     op_tree = [*get_ops(use_circuit_op, use_global_phase)]
     assert_validate_and_contains_consistent(
         gateset.with_params(
-            unroll_circuit_op=use_circuit_op,
-            accept_global_phase_op=use_global_phase,
+            unroll_circuit_op=use_circuit_op, accept_global_phase_op=use_global_phase
         ),
         op_tree,
         True,
     )
     if use_circuit_op or use_global_phase:
         assert_validate_and_contains_consistent(
-            gateset.with_params(
-                unroll_circuit_op=False,
-                accept_global_phase_op=False,
-            ),
+            gateset.with_params(unroll_circuit_op=False, accept_global_phase_op=False),
             op_tree,
             False,
         )

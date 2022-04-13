@@ -15,26 +15,15 @@
 """Classes for circuit simulators and base implementations of these classes."""
 from typing import Tuple, Dict
 
-from cirq.sim.act_on_args import (
-    ActOnArgs,
-)
+from cirq.sim.act_on_args import ActOnArgs
 
-from cirq.sim.act_on_args_container import (
-    ActOnArgsContainer,
-)
+from cirq.sim.act_on_args_container import ActOnArgsContainer
 
-from cirq.sim.act_on_density_matrix_args import (
-    ActOnDensityMatrixArgs,
-)
+from cirq.sim.act_on_density_matrix_args import ActOnDensityMatrixArgs
 
-from cirq.sim.act_on_state_vector_args import (
-    ActOnStateVectorArgs,
-)
+from cirq.sim.act_on_state_vector_args import ActOnStateVectorArgs
 
-from cirq.sim.density_matrix_utils import (
-    measure_density_matrix,
-    sample_density_matrix,
-)
+from cirq.sim.density_matrix_utils import measure_density_matrix, sample_density_matrix
 
 from cirq.sim.density_matrix_simulator import (
     DensityMatrixSimulator,
@@ -63,16 +52,9 @@ from cirq.sim.simulator import (
     StepResult,
 )
 
-from cirq.sim.simulator_base import (
-    SimulationTrialResultBase,
-    SimulatorBase,
-    StepResultBase,
-)
+from cirq.sim.simulator_base import SimulationTrialResultBase, SimulatorBase, StepResultBase
 
-from cirq.sim.sparse_simulator import (
-    Simulator,
-    SparseSimulatorStep,
-)
+from cirq.sim.sparse_simulator import Simulator, SparseSimulatorStep
 
 from cirq.sim.state_vector_simulator import (
     SimulatesIntermediateStateVector,
@@ -81,11 +63,7 @@ from cirq.sim.state_vector_simulator import (
     StateVectorTrialResult,
 )
 
-from cirq.sim.state_vector import (
-    measure_state_vector,
-    sample_state_vector,
-    StateVectorMixin,
-)
+from cirq.sim.state_vector import measure_state_vector, sample_state_vector, StateVectorMixin
 
 from cirq.sim.clifford import (
     ActOnCliffordTableauArgs,

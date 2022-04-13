@@ -16,9 +16,7 @@ import numpy as np
 import pytest
 
 import cirq
-from cirq.protocols.apply_unitary_protocol import (
-    _incorporate_result_into_target,
-)
+from cirq.protocols.apply_unitary_protocol import _incorporate_result_into_target
 
 
 def test_apply_unitary_presence_absence():
@@ -56,10 +54,7 @@ def test_apply_unitary_presence_absence():
             args.target_tensor[one] *= -1
             return args.target_tensor
 
-    fails = [
-        NoUnitaryEffect(),
-        HasApplyReturnsNotImplemented(),
-    ]
+    fails = [NoUnitaryEffect(), HasApplyReturnsNotImplemented()]
     passes = [
         HasUnitary(),
         HasApplyReturnsNotImplementedButHasUnitary(),
@@ -283,18 +278,7 @@ def test_apply_unitaries():
         unitary_values=[cirq.H(a), cirq.CNOT(a, b), cirq.H(c).controlled_by(b)], qubits=[a, b, c]
     )
     np.testing.assert_allclose(
-        result.reshape(8),
-        [
-            np.sqrt(0.5),
-            0,
-            0,
-            0,
-            0,
-            0,
-            0.5,
-            0.5,
-        ],
-        atol=1e-8,
+        result.reshape(8), [np.sqrt(0.5), 0, 0, 0, 0, 0, 0.5, 0.5], atol=1e-8
     )
 
     # Different order.
@@ -302,18 +286,7 @@ def test_apply_unitaries():
         unitary_values=[cirq.H(a), cirq.CNOT(a, b), cirq.H(c).controlled_by(b)], qubits=[a, c, b]
     )
     np.testing.assert_allclose(
-        result.reshape(8),
-        [
-            np.sqrt(0.5),
-            0,
-            0,
-            0,
-            0,
-            0.5,
-            0,
-            0.5,
-        ],
-        atol=1e-8,
+        result.reshape(8), [np.sqrt(0.5), 0, 0, 0, 0, 0.5, 0, 0.5], atol=1e-8
     )
 
     # Explicit arguments.
@@ -323,18 +296,7 @@ def test_apply_unitaries():
         args=cirq.ApplyUnitaryArgs.default(num_qubits=3),
     )
     np.testing.assert_allclose(
-        result.reshape(8),
-        [
-            np.sqrt(0.5),
-            0,
-            0,
-            0,
-            0,
-            0,
-            0.5,
-            0.5,
-        ],
-        atol=1e-8,
+        result.reshape(8), [np.sqrt(0.5), 0, 0, 0, 0, 0, 0.5, 0.5], atol=1e-8
     )
 
     # Empty.

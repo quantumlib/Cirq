@@ -98,13 +98,7 @@ def make_bernstein_vazirani_circuit(input_qubits, output_qubit, oracle):
     c = cirq.Circuit()
 
     # Initialize qubits.
-    c.append(
-        [
-            cirq.X(output_qubit),
-            cirq.H(output_qubit),
-            cirq.H.on_each(*input_qubits),
-        ]
-    )
+    c.append([cirq.X(output_qubit), cirq.H(output_qubit), cirq.H.on_each(*input_qubits)])
 
     # Query oracle.
     c.append(oracle)

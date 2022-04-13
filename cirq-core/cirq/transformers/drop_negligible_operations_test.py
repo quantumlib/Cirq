@@ -92,6 +92,5 @@ def test_recursively_runs_inside_circuit_ops_deep():
     )
     context = cirq.TransformerContext(tags_to_ignore=[NO_COMPILE_TAG], deep=True)
     cirq.testing.assert_same_circuits(
-        cirq.drop_negligible_operations(c_orig, context=context, atol=0.001),
-        c_expected,
+        cirq.drop_negligible_operations(c_orig, context=context, atol=0.001), c_expected
     )

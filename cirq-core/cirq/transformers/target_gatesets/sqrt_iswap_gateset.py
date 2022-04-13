@@ -89,11 +89,7 @@ class SqrtIswapTargetGateset(compilation_target_gateset.TwoQubitCompilationTarge
         )
 
     def _value_equality_values_(self) -> Any:
-        return (
-            self.atol,
-            self.required_sqrt_iswap_count,
-            self.use_sqrt_iswap_inv,
-        )
+        return (self.atol, self.required_sqrt_iswap_count, self.use_sqrt_iswap_inv)
 
     def _json_dict_(self) -> Dict[str, Any]:
         return {

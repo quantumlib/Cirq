@@ -343,14 +343,7 @@ def test_builtins():
     assert_json_roundtrip_works(True)
     assert_json_roundtrip_works(1)
     assert_json_roundtrip_works(1 + 2j)
-    assert_json_roundtrip_works(
-        {
-            'test': [123, 5.5],
-            'key2': 'asdf',
-            '3': None,
-            '0.0': [],
-        }
-    )
+    assert_json_roundtrip_works({'test': [123, 5.5], 'key2': 'asdf', '3': None, '0.0': []})
 
 
 def test_numpy():
@@ -548,10 +541,7 @@ def _list_public_classes_for_tested_modules():
         )
 
 
-@pytest.mark.parametrize(
-    'mod_spec,cirq_obj_name,cls',
-    _list_public_classes_for_tested_modules(),
-)
+@pytest.mark.parametrize('mod_spec,cirq_obj_name,cls', _list_public_classes_for_tested_modules())
 def test_json_test_data_coverage(mod_spec: ModuleJsonTestSpec, cirq_obj_name: str, cls):
     if cirq_obj_name in mod_spec.tested_elsewhere:
         pytest.skip("Tested elsewhere.")
@@ -631,19 +621,14 @@ class SerializableTypeObject:
     test_type: Type
 
     def _json_dict_(self):
-        return {
-            'test_type': json_serialization.json_cirq_type(self.test_type),
-        }
+        return {'test_type': json_serialization.json_cirq_type(self.test_type)}
 
     @classmethod
     def _from_json_dict_(cls, test_type, **kwargs):
         return cls(json_serialization.cirq_type_from_json(test_type))
 
 
-@pytest.mark.parametrize(
-    'mod_spec,cirq_obj_name,cls',
-    _list_public_classes_for_tested_modules(),
-)
+@pytest.mark.parametrize('mod_spec,cirq_obj_name,cls', _list_public_classes_for_tested_modules())
 def test_type_serialization(mod_spec: ModuleJsonTestSpec, cirq_obj_name: str, cls):
     if cirq_obj_name in mod_spec.tested_elsewhere:
         pytest.skip("Tested elsewhere.")
@@ -738,11 +723,7 @@ def _eval_repr_data_file(path: pathlib.Path, deprecation_deadline: Optional[str]
     with contextlib.ExitStack() as stack:
         for ctx_manager in ctx_managers:
             stack.enter_context(ctx_manager)
-        obj = eval(
-            content,
-            imports,
-            {},
-        )
+        obj = eval(content, imports, {})
         return obj
 
 

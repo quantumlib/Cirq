@@ -44,7 +44,7 @@ def run_estimate(unknown_gate, qnum, repetitions):
     qubits = cirq.LineQubit.range(qnum)
 
     oracle_raised_to_power = [
-        unknown_gate.on(ancilla).controlled_by(qubits[i]) ** (2 ** i) for i in range(qnum)
+        unknown_gate.on(ancilla).controlled_by(qubits[i]) ** (2**i) for i in range(qnum)
     ]
     circuit = cirq.Circuit(
         cirq.H.on_each(*qubits),
@@ -74,7 +74,7 @@ def experiment(qnum, repetitions=100):
     for target in np.arange(0, 1, 0.1):
         result = run_estimate(example_gate(target), qnum, repetitions)
         mode = result.data['phase'].mode()[0]
-        guess = mode / 2 ** qnum
+        guess = mode / 2**qnum
         print(f'target={target:0.4f}, estimate={guess:0.4f}={mode}/{2**qnum}')
         errors.append((target - guess) ** 2)
     rms = np.sqrt(sum(errors) / len(errors))

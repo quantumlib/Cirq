@@ -27,13 +27,7 @@ def test_parametric_circuit_through_sampler(
     results = sampler.run_sweep(program=circuit, params=sweepable, repetitions=repetitions)
     assert len(sweepable) == len(results)
 
-    expected_results = [
-        (10, 0),
-        (4, 6),
-        (0, 10),
-        (4, 6),
-        (10, 0),
-    ]
+    expected_results = [(10, 0), (4, 6), (0, 10), (4, 6), (10, 0)]
     for i, result in enumerate(results):
         assert isinstance(result, cirq.study.Result)
         assert sweepable[i] == result.params
@@ -57,8 +51,7 @@ def test_parametric_circuit_through_sampler_with_parametric_compilation(
 
     qc = get_qc('9q-square', as_qvm=True)
     sampler = RigettiQCSSampler(
-        quantum_computer=qc,
-        executor=circuit_sweep_executors.with_quilc_parametric_compilation,
+        quantum_computer=qc, executor=circuit_sweep_executors.with_quilc_parametric_compilation
     )
 
     # set the seed so we get a deterministic set of results.
@@ -69,13 +62,7 @@ def test_parametric_circuit_through_sampler_with_parametric_compilation(
     results = sampler.run_sweep(program=circuit, params=sweepable, repetitions=repetitions)
     assert len(sweepable) == len(results)
 
-    expected_results = [
-        (10, 0),
-        (8, 2),
-        (0, 10),
-        (8, 2),
-        (10, 0),
-    ]
+    expected_results = [(10, 0), (8, 2), (0, 10), (8, 2), (10, 0)]
     for i, result in enumerate(results):
         assert isinstance(result, cirq.study.Result)
         assert sweepable[i] == result.params

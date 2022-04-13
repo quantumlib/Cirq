@@ -153,12 +153,7 @@ def pswap(phi: float) -> MatrixGate:
         A MatrixGate equivalent to a PSWAP gate of given angle.
     """
     pswap_matrix = np.array(
-        [
-            [1, 0, 0, 0],
-            [0, 0, np.exp(1j * phi), 0],
-            [0, np.exp(1j * phi), 0, 0],
-            [0, 0, 0, 1],
-        ],
+        [[1, 0, 0, 0], [0, 0, np.exp(1j * phi), 0], [0, np.exp(1j * phi), 0, 0], [0, 0, 0, 1]],
         dtype=complex,
     )
     return MatrixGate(pswap_matrix)

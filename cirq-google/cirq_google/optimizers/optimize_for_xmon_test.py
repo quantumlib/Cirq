@@ -16,21 +16,10 @@ import pytest
 import cirq
 import cirq_google as cg
 
-from cirq.testing import (
-    assert_circuits_with_terminal_measurements_are_equivalent,
-)
+from cirq.testing import assert_circuits_with_terminal_measurements_are_equivalent
 
 
-@pytest.mark.parametrize(
-    'n,d',
-    [
-        (3, 2),
-        (4, 3),
-        (4, 4),
-        (5, 4),
-        (7, 4),
-    ],
-)
+@pytest.mark.parametrize('n,d', [(3, 2), (4, 3), (4, 4), (5, 4), (7, 4)])
 def test_swap_field(n: int, d: int):
     before = cirq.Circuit(
         cirq.ISWAP(cirq.LineQubit(j), cirq.LineQubit(j + 1))

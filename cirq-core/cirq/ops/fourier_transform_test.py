@@ -68,29 +68,13 @@ def test_pow():
 def test_qft():
     np.testing.assert_allclose(
         cirq.unitary(cirq.qft(*cirq.LineQubit.range(2))),
-        np.array(
-            [
-                [1, 1, 1, 1],
-                [1, 1j, -1, -1j],
-                [1, -1, 1, -1],
-                [1, -1j, -1, 1j],
-            ]
-        )
-        / 2,
+        np.array([[1, 1, 1, 1], [1, 1j, -1, -1j], [1, -1, 1, -1], [1, -1j, -1, 1j]]) / 2,
         atol=1e-8,
     )
 
     np.testing.assert_allclose(
         cirq.unitary(cirq.qft(*cirq.LineQubit.range(2), without_reverse=True)),
-        np.array(
-            [
-                [1, 1, 1, 1],
-                [1, -1, 1, -1],
-                [1, 1j, -1, -1j],
-                [1, -1j, -1, 1j],
-            ]
-        )
-        / 2,
+        np.array([[1, 1, 1, 1], [1, -1, 1, -1], [1, 1j, -1, -1j], [1, -1j, -1, 1j]]) / 2,
         atol=1e-8,
     )
 
@@ -102,15 +86,7 @@ def test_qft():
 
     np.testing.assert_allclose(
         cirq.unitary(cirq.qft(*cirq.LineQubit.range(2)) ** -1),
-        np.array(
-            [
-                [1, 1, 1, 1],
-                [1, -1j, -1, 1j],
-                [1, -1, 1, -1],
-                [1, 1j, -1, -1j],
-            ]
-        )
-        / 2,
+        np.array([[1, 1, 1, 1], [1, -1j, -1, 1j], [1, -1, 1, -1], [1, 1j, -1, -1j]]) / 2,
         atol=1e-8,
     )
 

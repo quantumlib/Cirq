@@ -59,9 +59,7 @@ class SupportsActOnQubits(Protocol):
 
     @doc_private
     def _act_on_(
-        self,
-        args: 'cirq.OperationTarget',
-        qubits: Sequence['cirq.Qid'],
+        self, args: 'cirq.OperationTarget', qubits: Sequence['cirq.Qid']
     ) -> Union[NotImplementedType, bool]:
         """Applies an action to the given argument, if it is a supported type.
 

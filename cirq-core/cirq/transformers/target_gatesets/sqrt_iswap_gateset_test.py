@@ -177,11 +177,7 @@ def test_simplifies_sqrt_iswap():
                 cirq.Moment([cirq.SQRT_ISWAP(a, b)]),
             ]
         ),
-        expected=cirq.Circuit(
-            [
-                cirq.Moment([cirq.SQRT_ISWAP(a, b)]),
-            ]
-        ),
+        expected=cirq.Circuit([cirq.Moment([cirq.SQRT_ISWAP(a, b)])]),
     )
 
 
@@ -203,11 +199,7 @@ def test_simplifies_sqrt_iswap_inv():
                 cirq.Moment([cirq.SQRT_ISWAP(a, b)]),
             ]
         ),
-        expected=cirq.Circuit(
-            [
-                cirq.Moment([cirq.SQRT_ISWAP_INV(a, b)]),
-            ]
-        ),
+        expected=cirq.Circuit([cirq.Moment([cirq.SQRT_ISWAP_INV(a, b)])]),
     )
 
 
@@ -221,11 +213,7 @@ def test_works_with_tags():
                 cirq.Moment([cirq.SQRT_ISWAP_INV(a, b).with_tags('mytag3')]),
             ]
         ),
-        expected=cirq.Circuit(
-            [
-                cirq.Moment([cirq.SQRT_ISWAP(a, b)]),
-            ]
-        ),
+        expected=cirq.Circuit([cirq.Moment([cirq.SQRT_ISWAP(a, b)])]),
     )
 
 
@@ -235,7 +223,7 @@ def test_no_touch_single_sqrt_iswap():
         [
             cirq.Moment(
                 [cirq.ISwapPowGate(exponent=0.5, global_shift=-0.5).on(a, b).with_tags('mytag')]
-            ),
+            )
         ]
     )
     assert_optimizes(before=circuit, expected=circuit)
@@ -247,7 +235,7 @@ def test_no_touch_single_sqrt_iswap_inv():
         [
             cirq.Moment(
                 [cirq.ISwapPowGate(exponent=-0.5, global_shift=-0.5).on(a, b).with_tags('mytag')]
-            ),
+            )
         ]
     )
     assert_optimizes(before=circuit, expected=circuit, use_sqrt_iswap_inv=True)
@@ -255,25 +243,13 @@ def test_no_touch_single_sqrt_iswap_inv():
 
 def test_cnots_separated_by_single_gates_correct():
     a, b = cirq.LineQubit.range(2)
-    assert_optimization_not_broken(
-        cirq.Circuit(
-            cirq.CNOT(a, b),
-            cirq.H(b),
-            cirq.CNOT(a, b),
-        )
-    )
+    assert_optimization_not_broken(cirq.Circuit(cirq.CNOT(a, b), cirq.H(b), cirq.CNOT(a, b)))
 
 
 def test_czs_separated_by_single_gates_correct():
     a, b = cirq.LineQubit.range(2)
     assert_optimization_not_broken(
-        cirq.Circuit(
-            cirq.CZ(a, b),
-            cirq.X(b),
-            cirq.X(b),
-            cirq.X(b),
-            cirq.CZ(a, b),
-        )
+        cirq.Circuit(cirq.CZ(a, b), cirq.X(b), cirq.X(b), cirq.X(b), cirq.CZ(a, b))
     )
 
 

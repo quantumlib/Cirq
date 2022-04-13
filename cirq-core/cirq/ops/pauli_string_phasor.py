@@ -95,11 +95,7 @@ class PauliStringPhasor(gate_operation.GateOperation):
         return self.gate.exponent_relative
 
     def _value_equality_values_(self):
-        return (
-            self.pauli_string,
-            self.exponent_neg,
-            self.exponent_pos,
-        )
+        return (self.pauli_string, self.exponent_neg, self.exponent_pos)
 
     def equal_up_to_global_phase(self, other):
         """Checks equality of two PauliStringPhasors, up to global phase."""
@@ -252,11 +248,7 @@ class PauliStringPhasorGate(raw_types.Gate):
         return self._dense_pauli_string
 
     def _value_equality_values_(self):
-        return (
-            self.dense_pauli_string,
-            self.exponent_neg,
-            self.exponent_pos,
-        )
+        return (self.dense_pauli_string, self.exponent_neg, self.exponent_pos)
 
     def equal_up_to_global_phase(self, other):
         """Checks equality of two PauliStringPhasors, up to global phase."""

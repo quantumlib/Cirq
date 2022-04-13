@@ -229,10 +229,7 @@ def test_single_qubit_matrix_to_phased_x_z_known():
 
 @pytest.mark.parametrize(
     'intended_effect',
-    [
-        np.array([[0, 1j], [1, 0]]),
-    ]
-    + [cirq.testing.random_unitary(2) for _ in range(10)],
+    [np.array([[0, 1j], [1, 0]])] + [cirq.testing.random_unitary(2) for _ in range(10)],
 )
 def test_single_qubit_matrix_to_phased_x_z_cases(intended_effect):
     gates = cirq.single_qubit_matrix_to_phased_x_z(intended_effect, atol=1e-6)

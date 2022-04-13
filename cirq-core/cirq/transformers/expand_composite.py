@@ -51,11 +51,7 @@ def expand_composite(
     def map_func(op: 'cirq.Operation', _) -> 'cirq.OP_TREE':
         if context and context.deep and isinstance(op.untagged, circuits.CircuitOperation):
             return op
-        return protocols.decompose(
-            op,
-            keep=no_decomp,
-            on_stuck_raise=None,
-        )
+        return protocols.decompose(op, keep=no_decomp, on_stuck_raise=None)
 
     return transformer_primitives.map_operations_and_unroll(
         circuit,

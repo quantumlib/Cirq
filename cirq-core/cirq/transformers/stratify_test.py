@@ -24,130 +24,43 @@ def test_deprecated_submodule():
 def test_stratified_circuit_classifier_types():
     a, b, c, d = cirq.LineQubit.range(4)
 
-    circuit = cirq.Circuit(
-        cirq.Moment(
-            [
-                cirq.X(a),
-                cirq.Y(b),
-                cirq.X(c) ** 0.5,
-                cirq.X(d),
-            ]
-        ),
-    )
+    circuit = cirq.Circuit(cirq.Moment([cirq.X(a), cirq.Y(b), cirq.X(c) ** 0.5, cirq.X(d)]))
 
-    gate_result = cirq.stratified_circuit(
-        circuit,
-        categories=[
-            cirq.X,
-        ],
-    )
+    gate_result = cirq.stratified_circuit(circuit, categories=[cirq.X])
     cirq.testing.assert_same_circuits(
         gate_result,
         cirq.Circuit(
-            cirq.Moment(
-                [
-                    cirq.X(a),
-                    cirq.X(d),
-                ]
-            ),
-            cirq.Moment(
-                [
-                    cirq.Y(b),
-                    cirq.X(c) ** 0.5,
-                ]
-            ),
+            cirq.Moment([cirq.X(a), cirq.X(d)]), cirq.Moment([cirq.Y(b), cirq.X(c) ** 0.5])
         ),
     )
 
-    gate_type_result = cirq.stratified_circuit(
-        circuit,
-        categories=[
-            cirq.XPowGate,
-        ],
-    )
+    gate_type_result = cirq.stratified_circuit(circuit, categories=[cirq.XPowGate])
     cirq.testing.assert_same_circuits(
         gate_type_result,
         cirq.Circuit(
-            cirq.Moment(
-                [
-                    cirq.X(a),
-                    cirq.X(c) ** 0.5,
-                    cirq.X(d),
-                ]
-            ),
-            cirq.Moment(
-                [
-                    cirq.Y(b),
-                ]
-            ),
+            cirq.Moment([cirq.X(a), cirq.X(c) ** 0.5, cirq.X(d)]), cirq.Moment([cirq.Y(b)])
         ),
     )
 
-    operation_result = cirq.stratified_circuit(
-        circuit,
-        categories=[
-            cirq.X(a),
-        ],
-    )
+    operation_result = cirq.stratified_circuit(circuit, categories=[cirq.X(a)])
     cirq.testing.assert_same_circuits(
         operation_result,
         cirq.Circuit(
-            cirq.Moment(
-                [
-                    cirq.X(a),
-                ]
-            ),
-            cirq.Moment(
-                [
-                    cirq.Y(b),
-                    cirq.X(c) ** 0.5,
-                    cirq.X(d),
-                ]
-            ),
+            cirq.Moment([cirq.X(a)]), cirq.Moment([cirq.Y(b), cirq.X(c) ** 0.5, cirq.X(d)])
         ),
     )
 
-    operation_type_result = cirq.stratified_circuit(
-        circuit,
-        categories=[
-            cirq.GateOperation,
-        ],
-    )
+    operation_type_result = cirq.stratified_circuit(circuit, categories=[cirq.GateOperation])
     cirq.testing.assert_same_circuits(
         operation_type_result,
-        cirq.Circuit(
-            cirq.Moment(
-                [
-                    cirq.X(a),
-                    cirq.Y(b),
-                    cirq.X(c) ** 0.5,
-                    cirq.X(d),
-                ]
-            )
-        ),
+        cirq.Circuit(cirq.Moment([cirq.X(a), cirq.Y(b), cirq.X(c) ** 0.5, cirq.X(d)])),
     )
 
-    predicate_result = cirq.stratified_circuit(
-        circuit,
-        categories=[
-            lambda op: op.qubits == (b,),
-        ],
-    )
+    predicate_result = cirq.stratified_circuit(circuit, categories=[lambda op: op.qubits == (b,)])
     cirq.testing.assert_same_circuits(
         predicate_result,
         cirq.Circuit(
-            cirq.Moment(
-                [
-                    cirq.Y(b),
-                ]
-            ),
-            cirq.Moment(
-                [
-                    cirq.X(a),
-                    cirq.X(d),
-                    cirq.X(c) ** 0.5,
-                ]
-            ),
+            cirq.Moment([cirq.Y(b)]), cirq.Moment([cirq.X(a), cirq.X(d), cirq.X(c) ** 0.5])
         ),
     )
 
@@ -160,30 +73,10 @@ def test_overlapping_categories():
 
     result = cirq.stratified_circuit(
         cirq.Circuit(
-            cirq.Moment(
-                [
-                    cirq.X(a),
-                    cirq.Y(b),
-                    cirq.Z(c),
-                ]
-            ),
-            cirq.Moment(
-                [
-                    cirq.CNOT(a, b),
-                ]
-            ),
-            cirq.Moment(
-                [
-                    cirq.CNOT(c, d),
-                ]
-            ),
-            cirq.Moment(
-                [
-                    cirq.X(a),
-                    cirq.Y(b),
-                    cirq.Z(c),
-                ]
-            ),
+            cirq.Moment([cirq.X(a), cirq.Y(b), cirq.Z(c)]),
+            cirq.Moment([cirq.CNOT(a, b)]),
+            cirq.Moment([cirq.CNOT(c, d)]),
+            cirq.Moment([cirq.X(a), cirq.Y(b), cirq.Z(c)]),
         ),
         categories=[
             lambda op: len(op.qubits) == 1 and not isinstance(op.gate, cirq.XPowGate),
@@ -194,34 +87,11 @@ def test_overlapping_categories():
     cirq.testing.assert_same_circuits(
         result,
         cirq.Circuit(
-            cirq.Moment(
-                [
-                    cirq.Y(b),
-                    cirq.Z(c),
-                ]
-            ),
-            cirq.Moment(
-                [
-                    cirq.X(a),
-                ]
-            ),
-            cirq.Moment(
-                [
-                    cirq.CNOT(a, b),
-                    cirq.CNOT(c, d),
-                ]
-            ),
-            cirq.Moment(
-                [
-                    cirq.Y(b),
-                    cirq.Z(c),
-                ]
-            ),
-            cirq.Moment(
-                [
-                    cirq.X(a),
-                ]
-            ),
+            cirq.Moment([cirq.Y(b), cirq.Z(c)]),
+            cirq.Moment([cirq.X(a)]),
+            cirq.Moment([cirq.CNOT(a, b), cirq.CNOT(c, d)]),
+            cirq.Moment([cirq.Y(b), cirq.Z(c)]),
+            cirq.Moment([cirq.X(a)]),
         ),
     )
 
@@ -363,19 +233,13 @@ def test_stratify_respects_no_compile_operations():
                 cirq.TaggedOperation(cirq.X(cirq.LineQubit(0)), 'nocompile'),
                 cirq.TaggedOperation(cirq.ISWAP(cirq.LineQubit(1), cirq.LineQubit(2)), 'nocompile'),
             ),
-            cirq.Moment(
-                cirq.X(cirq.LineQubit(0)),
-            ),
-            cirq.Moment(
-                cirq.Z(cirq.LineQubit(4)),
-            ),
+            cirq.Moment(cirq.X(cirq.LineQubit(0))),
+            cirq.Moment(cirq.Z(cirq.LineQubit(4))),
             cirq.Moment(
                 cirq.ISWAP(cirq.LineQubit(3), cirq.LineQubit(4)),
                 cirq.ISWAP(cirq.LineQubit(0), cirq.LineQubit(1)),
             ),
-            cirq.Moment(
-                cirq.X(cirq.LineQubit(3)),
-            ),
+            cirq.Moment(cirq.X(cirq.LineQubit(3))),
         ]
     )
     cirq.testing.assert_has_diagram(
@@ -465,20 +329,9 @@ def test_heterogeneous_circuit():
     expected = cirq.Circuit(
         cirq.Moment([cirq.ISWAP(q3, q4), cirq.ISWAP(q5, q6)]),
         cirq.Moment([cirq.X(q1), cirq.X(q2), cirq.X(q5), cirq.X(q6)]),
-        cirq.Moment(
-            [
-                cirq.ISWAP(q1, q2),
-                cirq.ISWAP(q3, q4),
-            ]
-        ),
+        cirq.Moment([cirq.ISWAP(q1, q2), cirq.ISWAP(q3, q4)]),
         cirq.Moment([cirq.Z(q2), cirq.Z(q4), cirq.Z(q6)]),
-        cirq.Moment(
-            [
-                cirq.X(q1),
-                cirq.X(q3),
-                cirq.X(q5),
-            ]
-        ),
+        cirq.Moment([cirq.X(q1), cirq.X(q3), cirq.X(q5)]),
     )
 
     cirq.testing.assert_same_circuits(
