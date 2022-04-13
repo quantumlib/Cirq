@@ -32,7 +32,9 @@ if TYPE_CHECKING:
 TStabilizerState = TypeVar('TStabilizerState', bound='cirq.StabilizerState')
 
 
-class ActOnStabilizerArgs(ActOnArgs, Generic[TStabilizerState], metaclass=abc.ABCMeta):
+class ActOnStabilizerArgs(
+    ActOnArgs[TStabilizerState], Generic[TStabilizerState], metaclass=abc.ABCMeta
+):
     """Abstract wrapper around a stabilizer state for the act_on protocol."""
 
     @deprecated_parameter(
@@ -81,7 +83,6 @@ class ActOnStabilizerArgs(ActOnArgs, Generic[TStabilizerState], metaclass=abc.AB
             )
         else:
             super().__init__(state=state, prng=prng, qubits=qubits, classical_data=classical_data)
-        self._state: TStabilizerState = state
 
     @property
     def state(self) -> TStabilizerState:

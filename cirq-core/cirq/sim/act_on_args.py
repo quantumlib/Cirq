@@ -18,6 +18,7 @@ from typing import (
     Any,
     cast,
     Dict,
+    Generic,
     Iterator,
     List,
     Mapping,
@@ -36,12 +37,13 @@ from cirq.protocols.decompose_protocol import _try_decompose_into_operations_and
 from cirq.sim.operation_target import OperationTarget
 
 TSelf = TypeVar('TSelf', bound='ActOnArgs')
+TState = TypeVar('TState', bound='cirq.QuantumStateRepresentation')
 
 if TYPE_CHECKING:
     import cirq
 
 
-class ActOnArgs(OperationTarget[TSelf], metaclass=abc.ABCMeta):
+class ActOnArgs(OperationTarget, Generic[TState], metaclass=abc.ABCMeta):
     """State and context for an operation acting on a state tensor."""
 
     @deprecated_parameter(
@@ -63,7 +65,7 @@ class ActOnArgs(OperationTarget[TSelf], metaclass=abc.ABCMeta):
         qubits: Optional[Sequence['cirq.Qid']] = None,
         log_of_measurement_results: Optional[Dict[str, List[int]]] = None,
         classical_data: Optional['cirq.ClassicalDataStore'] = None,
-        state: Optional['cirq.QuantumStateRepresentation'] = None,
+        state: Optional[TState] = None,
     ):
         """Inits ActOnArgs.
 
@@ -91,7 +93,7 @@ class ActOnArgs(OperationTarget[TSelf], metaclass=abc.ABCMeta):
                 for k, v in (log_of_measurement_results or {}).items()
             }
         )
-        self._state = state
+        self._state = cast(TState, state)
         if state is None:
             _warn_or_error('This function will require a valid `state` input in cirq v0.16.')
 
