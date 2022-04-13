@@ -2326,7 +2326,13 @@ def test_circuit_to_unitary_matrix(circuit_cls):
     # Single qubit gates.
     cirq.testing.assert_allclose_up_to_global_phase(
         circuit_cls(cirq.X(a) ** 0.5).unitary(),
-        np.array([[1j, 1], [1, 1j]]) * np.sqrt(0.5),
+        # fmt: off
+        np.array(
+            [
+                [1j, 1],
+                [1, 1j],
+            ]) * np.sqrt(0.5),
+        # fmt: on
         atol=1e-8,
     )
     cirq.testing.assert_allclose_up_to_global_phase(
@@ -2334,22 +2340,44 @@ def test_circuit_to_unitary_matrix(circuit_cls):
     )
     cirq.testing.assert_allclose_up_to_global_phase(
         circuit_cls(cirq.Z(a), cirq.X(b)).unitary(),
-        np.array([[0, 1, 0, 0], [1, 0, 0, 0], [0, 0, 0, -1], [0, 0, -1, 0]]),
+        # fmt: off
+        np.array(
+            [
+                [0, 1, 0, 0],
+                [1, 0, 0, 0], 
+                [0, 0, 0, -1],
+                [0, 0, -1, 0],
+            ]),
+        # fmt: on
         atol=1e-8,
     )
 
     # Single qubit gates and two qubit gate.
+    # fmt: off
     cirq.testing.assert_allclose_up_to_global_phase(
         circuit_cls(cirq.Z(a), cirq.X(b), cirq.CNOT(a, b)).unitary(),
-        np.array([[0, 1, 0, 0], [1, 0, 0, 0], [0, 0, -1, 0], [0, 0, 0, -1]]),
+        np.array(
+            [
+                [0, 1, 0, 0],
+                [1, 0, 0, 0],
+                [0, 0, -1, 0],
+                [0, 0, 0, -1]
+            ]),
         atol=1e-8,
     )
     cirq.testing.assert_allclose_up_to_global_phase(
         circuit_cls(cirq.H(b), cirq.CNOT(b, a) ** 0.5, cirq.Y(a) ** 0.5).unitary(),
-        np.array([[1, 1, -1, -1], [1j, -1j, -1j, 1j], [1, 1, 1, 1], [1, -1, 1, -1]])
+        np.array(
+            [
+                [1, 1, -1, -1],
+                [1j, -1j, -1j, 1j],
+                [1, 1, 1, 1],
+                [1, -1, 1, -1]
+            ])
         * np.sqrt(0.25),
         atol=1e-8,
     )
+    # fmt: on
 
     # Measurement gate has no corresponding matrix.
     c = circuit_cls(cirq.measure(a))
@@ -2362,9 +2390,17 @@ def test_circuit_to_unitary_matrix(circuit_cls):
 
     # Ignoring terminal measurements with further cirq.
     c = circuit_cls(cirq.Z(a), cirq.measure(a), cirq.Z(b))
+    # fmt: off
     cirq.testing.assert_allclose_up_to_global_phase(
-        c.unitary(), np.array([[1, 0, 0, 0], [0, -1, 0, 0], [0, 0, -1, 0], [0, 0, 0, 1]]), atol=1e-8
+        c.unitary(), np.array(
+            [
+                [1, 0, 0, 0],
+                [0, -1, 0, 0],
+                [0, 0, -1, 0],
+                [0, 0, 0, 1],
+            ]), atol=1e-8
     )
+    # fmt: on
 
     # Optionally don't ignoring terminal measurements.
     c = circuit_cls(cirq.measure(a))
