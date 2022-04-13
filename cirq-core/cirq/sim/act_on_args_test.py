@@ -11,6 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
 from typing import Any, Sequence
 
 import numpy as np
@@ -36,10 +37,7 @@ class DummyArgs(cirq.ActOnArgs):
         super().__init__(state=DummyQuantumState(), qubits=cirq.LineQubit.range(2))
 
     def _act_on_fallback_(
-        self,
-        action: Any,
-        qubits: Sequence['cirq.Qid'],
-        allow_decompose: bool = True,
+        self, action: Any, qubits: Sequence['cirq.Qid'], allow_decompose: bool = True
     ) -> bool:
         return True
 
@@ -149,3 +147,15 @@ def test_on_methods_deprecated_if_implemented():
         _ = args.factor([])
     with cirq.testing.assert_deprecated('_on_', deadline='v0.16'):
         _ = args.transpose_to_qubit_order([])
+
+
+def test_deprecated():
+    class DeprecatedArgs(cirq.ActOnArgs):
+        def _act_on_fallback_(self, action, qubits, allow_decompose=True):
+            pass
+
+    with cirq.testing.assert_deprecated('log_of_measurement_results', deadline='v0.16'):
+        _ = DeprecatedArgs(state=0, log_of_measurement_results={})
+
+    with cirq.testing.assert_deprecated('positional', deadline='v0.16'):
+        _ = DeprecatedArgs(np.random.RandomState(), state=0)
