@@ -756,7 +756,7 @@ class SingleQubitCliffordGate(CliffordGate):
         rotations = self.decompose_rotation()
         return tuple(r.on(qubit) ** (qt / 2) for r, qt in rotations)
 
-    def _commutes_(self, other: Any, atol: float) -> Union[bool, NotImplementedType]:
+    def _commutes_(self, other: Any, atol: float) -> Union[bool, NotImplementedType, None]:
         if isinstance(other, SingleQubitCliffordGate):
             return self.commutes_with_single_qubit_gate(other)
         if isinstance(other, Pauli):
@@ -853,7 +853,7 @@ class SingleQubitCliffordGate(CliffordGate):
         """Returns a SingleQubitCliffordGate such that the circuits
             --output--self-- and --self--gate--
         are equivalent up to global phase."""
-        return self.merged_with(after).merged_with(self ** -1)
+        return self.merged_with(after).merged_with(self**-1)
 
     def __repr__(self) -> str:
         x = self.transform(pauli_gates.X)
