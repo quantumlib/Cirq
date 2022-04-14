@@ -267,11 +267,7 @@ def test_decompose_preserving_structure_forwards_args(decompose_mode):
 
     def x_to_hzh(op: 'cirq.Operation'):
         if isinstance(op.gate, cirq.XPowGate) and op.gate.exponent == 1:
-            return [
-                cirq.H(*op.qubits),
-                cirq.Z(*op.qubits),
-                cirq.H(*op.qubits),
-            ]
+            return [cirq.H(*op.qubits), cirq.Z(*op.qubits), cirq.H(*op.qubits)]
 
     actual = cirq.Circuit(
         cirq.decompose(
@@ -280,16 +276,12 @@ def test_decompose_preserving_structure_forwards_args(decompose_mode):
             intercepting_decomposer=x_to_hzh if decompose_mode == 'intercept' else None,
             fallback_decomposer=x_to_hzh if decompose_mode == 'fallback' else None,
             preserve_structure=True,
-        ),
+        )
     )
 
     # This should keep the CircuitOperations but decompose their SWAPs.
     fc1_decomp = cirq.FrozenCircuit(
-        cirq.decompose(
-            fc1,
-            keep=keep_func,
-            fallback_decomposer=x_to_hzh,
-        )
+        cirq.decompose(fc1, keep=keep_func, fallback_decomposer=x_to_hzh)
     )
     expected = cirq.Circuit(
         cirq.CircuitOperation(
@@ -310,12 +302,8 @@ def test_decompose_tagged_operation():
     op = cirq.TaggedOperation(
         cirq.CircuitOperation(
             circuit=cirq.FrozenCircuit(
-                [
-                    cirq.Moment(
-                        cirq.SWAP(cirq.LineQubit(0), cirq.LineQubit(1)),
-                    ),
-                ]
-            ),
+                [cirq.Moment(cirq.SWAP(cirq.LineQubit(0), cirq.LineQubit(1)))]
+            )
         ),
         'tag',
     )

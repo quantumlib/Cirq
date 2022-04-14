@@ -32,12 +32,7 @@ def test_readout_on_reassigned_qubits(
     qc = get_qc('9q-square', as_qvm=True)
     circuit, qubits, sweepable = circuit_data
 
-    transformer = circuit_transformers.build(
-        qubit_id_map={
-            qubits[0]: '100',
-            qubits[1]: '101',
-        }
-    )
+    transformer = circuit_transformers.build(qubit_id_map={qubits[0]: '100', qubits[1]: '101'})
     sampler = RigettiQCSSampler(quantum_computer=qc, transformer=transformer)
 
     # set the seed so we get a deterministic set of results.

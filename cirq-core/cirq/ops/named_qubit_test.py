@@ -105,11 +105,7 @@ def test_named_qubit_range():
     assert qubits == [cirq.NamedQubit('a0'), cirq.NamedQubit('a1')]
 
     qubits = cirq.NamedQubit.range(-1, 4, 2, prefix='a')
-    assert qubits == [
-        cirq.NamedQubit('a-1'),
-        cirq.NamedQubit('a1'),
-        cirq.NamedQubit('a3'),
-    ]
+    assert qubits == [cirq.NamedQubit('a-1'), cirq.NamedQubit('a1'), cirq.NamedQubit('a3')]
 
 
 def test_named_qid_range():
@@ -135,11 +131,6 @@ def test_named_qid_range():
 
 
 def test_to_json():
-    assert cirq.NamedQubit('c')._json_dict_() == {
-        'name': 'c',
-    }
+    assert cirq.NamedQubit('c')._json_dict_() == {'name': 'c'}
 
-    assert cirq.NamedQid('c', dimension=3)._json_dict_() == {
-        'name': 'c',
-        'dimension': 3,
-    }
+    assert cirq.NamedQid('c', dimension=3)._json_dict_() == {'name': 'c', 'dimension': 3}

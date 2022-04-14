@@ -25,7 +25,4 @@ from cirq.interop.quirk.cells import (
     QuirkQubitPermutationGate,
 )
 
-from cirq.interop.quirk.url_to_circuit import (
-    quirk_json_to_circuit,
-    quirk_url_to_circuit,
-)
+from cirq.interop.quirk.url_to_circuit import quirk_json_to_circuit, quirk_url_to_circuit

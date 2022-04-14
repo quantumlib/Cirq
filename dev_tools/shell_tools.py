@@ -15,26 +15,12 @@
 import asyncio
 import subprocess
 import sys
-from typing import (
-    List,
-    Optional,
-    Tuple,
-    Union,
-    IO,
-    Any,
-    cast,
-    NamedTuple,
-)
+from typing import List, Optional, Tuple, Union, IO, Any, cast, NamedTuple
 
 from collections.abc import AsyncIterable
 
 CommandOutput = NamedTuple(
-    "CommandOutput",
-    [
-        ('out', Optional[str]),
-        ('err', Optional[str]),
-        ('exit_code', int),
-    ],
+    "CommandOutput", [('out', Optional[str]), ('err', Optional[str]), ('exit_code', int)]
 )
 
 
@@ -56,11 +42,7 @@ def highlight(text: str, color_code: int, bold: bool = False) -> str:
     Returns:
         The highlighted string.
     """
-    return '{}\033[{}m{}\033[0m'.format(
-        '\033[1m' if bold else '',
-        color_code,
-        text,
-    )
+    return '{}\033[{}m{}\033[0m'.format('\033[1m' if bold else '', color_code, text)
 
 
 class TeeCapture:

@@ -9,3 +9,9 @@ cb6940a40141dba95cba84f5acc27acbeb65b17c
 
 # Format cirq-google with latest version of black (#5160)
 77fb93af5ebbb5bcf7f8a4dc3fd2fba0e827488c
+
+# Format cirq-google with skip-magic-trailing-comma (#5171)
+01a7cb94a90482557ac26b705adbb379e139a7b2
+
+# Format according to new black rules (#5259)
+27152c63cc74d526e3adca721ac12e8842ac6fa5

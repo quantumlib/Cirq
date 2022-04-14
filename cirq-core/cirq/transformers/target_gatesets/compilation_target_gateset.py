@@ -19,10 +19,7 @@ import abc
 
 from cirq import circuits, ops, protocols, _import
 from cirq.protocols.decompose_protocol import DecomposeResult
-from cirq.transformers import (
-    merge_k_qubit_gates,
-    merge_single_qubit_gates,
-)
+from cirq.transformers import merge_k_qubit_gates, merge_single_qubit_gates
 
 drop_empty_moments = _import.LazyLoader('drop_empty_moments', globals(), 'cirq.transformers')
 drop_negligible = _import.LazyLoader('drop_negligible_operations', globals(), 'cirq.transformers')
