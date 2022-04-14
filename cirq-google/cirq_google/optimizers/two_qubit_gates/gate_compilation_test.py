@@ -11,18 +11,12 @@ import cirq_google.optimizers.two_qubit_gates as cgot
 
 
 def test_deprecated_gate_product_tabulation():
-    with cirq.testing.assert_deprecated(
-        deadline='v0.16',
-        count=None,
-    ):
+    with cirq.testing.assert_deprecated(deadline='v0.16', count=None):
         _ = gate_product_tabulation(np.eye(4), 0.25)
 
 
 def test_deprecated_gate_tabulation_repr():
-    with cirq.testing.assert_deprecated(
-        deadline='v0.16',
-        count=None,
-    ):
+    with cirq.testing.assert_deprecated(deadline='v0.16', count=None):
         GateTabulation(
             np.array([[(1 + 0j), 0j, 0j, 0j]], dtype=np.complex128),
             np.array([[(1 + 0j), 0j, 0j, 0j]], dtype=np.complex128),

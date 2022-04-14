@@ -59,10 +59,7 @@ class ValidatingSampler(cirq.Sampler):
             self._validator(circuits, sweeps, repetitions)
 
     def run_sweep(
-        self,
-        program: cirq.AbstractCircuit,
-        params: cirq.Sweepable,
-        repetitions: int = 1,
+        self, program: cirq.AbstractCircuit, params: cirq.Sweepable, repetitions: int = 1
     ) -> Sequence[cirq.Result]:
         self._validate_circuit([program], [params], repetitions)
         return self._sampler.run_sweep(program, params, repetitions)

@@ -52,23 +52,41 @@ Of course, if this import style fundamentally cannot be used, do not let this
 block submitting a pull request for the code as we will definitely grant
 exceptions.
 
-## Typing based import cycles
+## Type annotations
 
-An import cycle is where modules need to import each other (perhaps indirectly).
-Sometimes in order to add a type annotation you have to add an import which
-causes a cycle. To avoid this we use the `TYPE_CHECKING` constant provided 
-by `typing`:
+Cirq makes extensive use of type annotations as defined by
+[PEP 484](https://peps.python.org/pep-0484/). All new code should use type
+annotations where possible, especially on public classes and functions to serve
+as documentation, but also on internal code so that the mypy typechecker can
+help catch coding errors.
+
+For documentation purposes in particular, type annotations should match the way
+classes and functions are accessed by cirq users, which is typically on the
+top-level `cirq` namespace (for example, users use `cirq.Sampler` even though
+the sampler class is defined in `cirq.work.sampler.Sampler`). Code in cirq-core
+typically cannot import and use `cirq.Sampler` directly because this could
+create an import cycle where modules import each other (perhaps indirectly).
+Instead, the import of the top-level `cirq` library can be guarded by the
+`TYPE_CHECKING` constant provided by `typing`, and the type annotation can be
+quoted so that it is not evaluated when the module is imported but rather during
+type-checking:
+
 ```python
 from typing import TYPE_CHECKING
+
 if TYPE_CHECKING:
-    # pylint: disable=unused-import
-    import module.that.causes.cycle
+    import cirq
+
+def accepts_sampler(sampler: 'cirq.Sampler') -> None:
+    ...
 ```
-Note that if you do this you will need to use the string version of the type,
-```python
-def my_func() -> 'module.that.causes.cycle.MyClass':
-    pass
-```
+
+Use top-level `cirq.*` annotations like this when annotating new public types
+and classes. Older code may not adhere to this style and should be updated.
+
+Note that type annotations may need to be quoted like this in other situations
+as well, such as when an annotation is a "forward reference" to a class defined
+later in the same file.
 
 ## Nomenclature
 

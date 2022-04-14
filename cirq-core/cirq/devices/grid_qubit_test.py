@@ -64,10 +64,7 @@ def test_repr():
 
 def test_cmp():
     order = cirq.testing.OrderTester()
-    order.add_ascending_equivalence_group(
-        cirq.GridQubit(0, 0),
-        cirq.GridQid(0, 0, dimension=2),
-    )
+    order.add_ascending_equivalence_group(cirq.GridQubit(0, 0), cirq.GridQid(0, 0, dimension=2))
     order.add_ascending(
         cirq.GridQid(0, 0, dimension=3),
         cirq.GridQid(0, 1, dimension=1),
@@ -320,16 +317,9 @@ def test_neg():
 
 
 def test_to_json():
-    assert cirq.GridQubit(5, 6)._json_dict_() == {
-        'row': 5,
-        'col': 6,
-    }
+    assert cirq.GridQubit(5, 6)._json_dict_() == {'row': 5, 'col': 6}
 
-    assert cirq.GridQid(5, 6, dimension=3)._json_dict_() == {
-        'row': 5,
-        'col': 6,
-        'dimension': 3,
-    }
+    assert cirq.GridQid(5, 6, dimension=3)._json_dict_() == {'row': 5, 'col': 6, 'dimension': 3}
 
 
 def test_immutable():

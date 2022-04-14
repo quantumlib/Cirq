@@ -73,11 +73,7 @@ class UndirectedHypergraph:
         for vertex in vertices:
             self.remove_vertex(vertex)
 
-    def add_edge(
-        self,
-        vertices: Iterable[Hashable],
-        label: Any = None,
-    ) -> None:
+    def add_edge(self, vertices: Iterable[Hashable], label: Any = None) -> None:
         vertices = frozenset(vertices)
         self.add_vertices(vertices)
         for vertex in vertices:

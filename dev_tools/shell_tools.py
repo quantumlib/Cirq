@@ -15,26 +15,12 @@
 import asyncio
 import subprocess
 import sys
-from typing import (
-    List,
-    Optional,
-    Tuple,
-    Union,
-    IO,
-    Any,
-    cast,
-    NamedTuple,
-)
+from typing import List, Optional, Tuple, Union, IO, Any, cast, NamedTuple
 
 from collections.abc import AsyncIterable
 
 CommandOutput = NamedTuple(
-    "CommandOutput",
-    [
-        ('out', Optional[str]),
-        ('err', Optional[str]),
-        ('exit_code', int),
-    ],
+    "CommandOutput", [('out', Optional[str]), ('err', Optional[str]), ('exit_code', int)]
 )
 
 
@@ -56,11 +42,7 @@ def highlight(text: str, color_code: int, bold: bool = False) -> str:
     Returns:
         The highlighted string.
     """
-    return '{}\033[{}m{}\033[0m'.format(
-        '\033[1m' if bold else '',
-        color_code,
-        text,
-    )
+    return '{}\033[{}m{}\033[0m'.format('\033[1m' if bold else '', color_code, text)
 
 
 class TeeCapture:
@@ -148,7 +130,7 @@ def run_cmd(
     """Invokes a subprocess and waits for it to finish.
 
     Args:
-        cmd: Components of the command to execute, e.g. ["echo", "dog"].
+        *cmd: Components of the command to execute, e.g. ["echo", "dog"].
         out: Where to write the process' stdout. Defaults to sys.stdout. Can be
             anything accepted by print's 'file' parameter, or None if the
             output should be dropped, or a TeeCapture instance. If a TeeCapture
@@ -168,7 +150,6 @@ def run_cmd(
         abbreviate_non_option_arguments: When logging to stderr, this cuts off
             the potentially-huge tail of the command listing off e.g. hundreds
             of file paths. No effect if log_run_to_stderr is not set.
-
         **kwargs: Extra arguments for asyncio.create_subprocess_shell, such as
             a cwd (current working directory) argument.
 
@@ -261,7 +242,7 @@ def output_of(*cmd: Optional[str], **kwargs) -> str:
     """Invokes a subprocess and returns its output as a string.
 
     Args:
-        cmd: Components of the command to execute, e.g. ["echo", "dog"].
+        *cmd: Components of the command to execute, e.g. ["echo", "dog"].
         **kwargs: Extra arguments for asyncio.create_subprocess_shell, such as
             a cwd (current working directory) argument.
 

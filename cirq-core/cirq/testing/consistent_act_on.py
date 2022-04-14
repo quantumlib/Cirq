@@ -160,9 +160,7 @@ def _final_clifford_tableau(
 
     tableau = clifford_tableau.CliffordTableau(len(qubit_map))
     args = act_on_clifford_tableau_args.ActOnCliffordTableauArgs(
-        tableau=tableau,
-        qubits=list(qubit_map.keys()),
-        prng=np.random.RandomState(),
+        tableau=tableau, qubits=list(qubit_map.keys()), prng=np.random.RandomState()
     )
     for op in circuit.all_operations():
         try:

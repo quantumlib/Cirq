@@ -20,9 +20,7 @@ import scipy.linalg
 
 from cirq import devices, ops, protocols, qis
 from cirq._import import LazyLoader
-from cirq.devices.noise_utils import (
-    PHYSICAL_GATE_TAG,
-)
+from cirq.devices.noise_utils import PHYSICAL_GATE_TAG
 
 if TYPE_CHECKING:
     import cirq
@@ -129,8 +127,7 @@ def _decoherence_matrix(
 
 
 def _as_rate_dict(
-    rate_or_dict: Optional[Union[float, Dict['cirq.Qid', float]]],
-    qubits: Set['cirq.Qid'],
+    rate_or_dict: Optional[Union[float, Dict['cirq.Qid', float]]], qubits: Set['cirq.Qid']
 ) -> Dict['cirq.Qid', float]:
     """Convert float or None input into dictionary form.
 

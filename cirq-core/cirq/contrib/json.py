@@ -12,10 +12,7 @@ def contrib_class_resolver(cirq_type: str):
     from cirq.contrib.quantum_volume import QuantumVolumeResult
     from cirq.contrib.acquaintance import SwapPermutationGate
 
-    classes = [
-        QuantumVolumeResult,
-        SwapPermutationGate,
-    ]
+    classes = [QuantumVolumeResult, SwapPermutationGate]
     d = {cls.__name__: cls for cls in classes}
     return d.get(cirq_type, None)
 

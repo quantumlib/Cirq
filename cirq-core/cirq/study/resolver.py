@@ -234,7 +234,7 @@ class ParamResolver:
     def _json_dict_(self) -> Dict[str, Any]:
         return {
             # JSON requires mappings to have keys of basic types.
-            'param_dict': list(self.param_dict.items()),
+            'param_dict': list(self.param_dict.items())
         }
 
     @classmethod

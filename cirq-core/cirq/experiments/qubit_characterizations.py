@@ -171,7 +171,7 @@ class TomographyResult:
             axes: A list of 2 `plt.Axes` instances. Note that they must be in
                 3d projections. If not given, a new figure is created with 2
                 axes and the plotted figure is shown.
-            plot_kwargs: The optional kwargs passed to bar3d.
+            **plot_kwargs: The optional kwargs passed to bar3d.
 
         Returns:
             the list of `plt.Axes` being plotted on.
@@ -790,38 +790,16 @@ def _single_qubit_cliffords() -> Cliffords:
     c1_in_xy.append([Y, X])
     c1_in_xz.append([Z, X])
 
-    phi_xy = [
-        [-0.5, 0.5, 0.5],
-        [-0.5, -0.5, 0.5],
-        [0.5, 0.5, 0.5],
-        [-0.5, 0.5, -0.5],
-    ]
+    phi_xy = [[-0.5, 0.5, 0.5], [-0.5, -0.5, 0.5], [0.5, 0.5, 0.5], [-0.5, 0.5, -0.5]]
     for y0, x, y1 in phi_xy:
         c1_in_xy.append([Y**y0, X**x, Y**y1])
 
-    phi_xz = [
-        [0.5, 0.5, -0.5],
-        [0.5, -0.5, -0.5],
-        [-0.5, -0.5, -0.5],
-        [-0.5, 0.5, -0.5],
-    ]
+    phi_xz = [[0.5, 0.5, -0.5], [0.5, -0.5, -0.5], [-0.5, -0.5, -0.5], [-0.5, 0.5, -0.5]]
     for z0, x, z1 in phi_xz:
         c1_in_xz.append([Z**z0, X**x, Z**z1])
 
-    s1: List[List['cirq.Gate']] = [
-        [X**0.0],
-        [Y**0.5, X**0.5],
-        [X**-0.5, Y**-0.5],
-    ]
-    s1_x: List[List['cirq.Gate']] = [
-        [X**0.5],
-        [X**0.5, Y**0.5, X**0.5],
-        [Y**-0.5],
-    ]
-    s1_y: List[List['cirq.Gate']] = [
-        [Y**0.5],
-        [X**-0.5, Y**-0.5, X**0.5],
-        [Y, X**0.5],
-    ]
+    s1: List[List['cirq.Gate']] = [[X**0.0], [Y**0.5, X**0.5], [X**-0.5, Y**-0.5]]
+    s1_x: List[List['cirq.Gate']] = [[X**0.5], [X**0.5, Y**0.5, X**0.5], [Y**-0.5]]
+    s1_y: List[List['cirq.Gate']] = [[Y**0.5], [X**-0.5, Y**-0.5, X**0.5], [Y, X**0.5]]
 
     return Cliffords(c1_in_xy, c1_in_xz, s1, s1_x, s1_y)

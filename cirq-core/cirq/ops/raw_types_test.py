@@ -621,10 +621,7 @@ def test_tagged_operation_forwards_protocols():
     assert 3 * tagged_y == (3 * y)
     assert cirq.phase_by(y, 0.125, 0) == cirq.phase_by(tagged_y, 0.125, 0)
     controlled_y = tagged_y.controlled_by(q2)
-    assert controlled_y.qubits == (
-        q2,
-        q1,
-    )
+    assert controlled_y.qubits == (q2, q1)
     assert isinstance(controlled_y, cirq.Operation)
     assert not isinstance(controlled_y, cirq.TaggedOperation)
 
@@ -932,14 +929,3 @@ def test_on_each_iterable_qid():
             raise NotImplementedError()
 
     assert cirq.H.on_each(QidIter())[0] == cirq.H.on(QidIter())
-
-
-def test_setters_deprecated():
-    q = cirq.LineQubit(0)
-    subop = cirq.X(q)
-    op = cirq.TaggedOperation(subop, 'tag')
-    assert op.sub_operation == subop
-    with cirq.testing.assert_deprecated('mutators', deadline='v0.15'):
-        new_subop = cirq.Y(q)
-        op.sub_operation = new_subop
-        assert op.sub_operation == new_subop

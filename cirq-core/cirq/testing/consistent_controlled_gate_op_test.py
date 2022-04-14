@@ -24,10 +24,7 @@ import cirq
 class GoodGate(cirq.EigenGate, cirq.SingleQubitGate):
     def _eigen_components(self) -> List[Tuple[float, np.ndarray]]:
         # coverage: ignore
-        return [
-            (0, np.diag([1, 0])),
-            (1, np.diag([0, 1])),
-        ]
+        return [(0, np.diag([1, 0])), (1, np.diag([0, 1]))]
 
 
 class BadGateOperation(cirq.GateOperation):
@@ -42,10 +39,7 @@ class BadGateOperation(cirq.GateOperation):
 class BadGate(cirq.EigenGate, cirq.SingleQubitGate):
     def _eigen_components(self) -> List[Tuple[float, np.ndarray]]:
         # coverage: ignore
-        return [
-            (0, np.diag([1, 0])),
-            (1, np.diag([0, 1])),
-        ]
+        return [(0, np.diag([1, 0])), (1, np.diag([0, 1]))]
 
     def on(self, *qubits: 'cirq.Qid') -> 'cirq.Operation':
         return BadGateOperation(self, list(qubits))
@@ -75,14 +69,5 @@ def test_assert_controlled_and_controlled_by_identical():
 
     with pytest.raises(ValueError, match=r'len\(control_values\[1\]\) != num_controls\[1\]'):
         cirq.testing.assert_controlled_and_controlled_by_identical(
-            GoodGate(),
-            num_controls=[1, 2],
-            control_values=[
-                (1,),
-                (
-                    1,
-                    1,
-                    1,
-                ),
-            ],
+            GoodGate(), num_controls=[1, 2], control_values=[(1,), (1, 1, 1)]
         )

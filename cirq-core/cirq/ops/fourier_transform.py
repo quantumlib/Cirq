@@ -19,7 +19,6 @@ import sympy
 
 import cirq
 from cirq import value, _compat
-from cirq._compat import deprecated
 from cirq.ops import raw_types
 
 
@@ -42,10 +41,7 @@ class QuantumFourierTransformGate(raw_types.Gate):
         self._without_reverse = without_reverse
 
     def _json_dict_(self) -> Dict[str, Any]:
-        return {
-            'num_qubits': self._num_qubits,
-            'without_reverse': self._without_reverse,
-        }
+        return {'num_qubits': self._num_qubits, 'without_reverse': self._without_reverse}
 
     def _value_equality_values_(self):
         return self._num_qubits, self._without_reverse
@@ -100,19 +96,8 @@ class PhaseGradientGate(raw_types.Gate):
     def exponent(self) -> Union[float, sympy.Basic]:
         return self._exponent
 
-    @exponent.setter  # type: ignore
-    @deprecated(
-        deadline="v0.15",
-        fix="The mutators of this class are deprecated, instantiate a new object instead.",
-    )
-    def exponent(self, exponent: Union[float, sympy.Basic]):
-        self._exponent = exponent
-
     def _json_dict_(self) -> Dict[str, Any]:
-        return {
-            'num_qubits': self._num_qubits,
-            'exponent': self.exponent,
-        }
+        return {'num_qubits': self._num_qubits, 'exponent': self.exponent}
 
     def _value_equality_values_(self):
         return self._num_qubits, self.exponent
@@ -198,7 +183,7 @@ def qft(
     equivalently `cirq.inverse(cirq.qft(*qubits))`.
 
     Args:
-        qubits: The qubits to apply the qft to.
+        *qubits: The qubits to apply the qft to.
         without_reverse: When set, swap gates at the end of the qft are omitted.
             This reverses the qubit order relative to the standard qft effect,
             but makes the gate cheaper to apply.

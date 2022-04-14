@@ -45,19 +45,13 @@ VALID_CZPOW_GATES = [
     (cirq.FSimGate(theta=2 * np.pi, phi=PHI), {PHI: -0.4}),
     (
         cirq.PhasedFSimGate.from_fsim_rz(
-            theta=THETA,
-            phi=10,
-            rz_angles_before=(THETA, THETA),
-            rz_angles_after=(PHI, PHI),
+            theta=THETA, phi=10, rz_angles_before=(THETA, THETA), rz_angles_after=(PHI, PHI)
         ),
         {THETA: 0, PHI: 2 * np.pi},
     ),
     (
         cirq.PhasedFSimGate.from_fsim_rz(
-            theta=THETA,
-            phi=PHI,
-            rz_angles_before=(2 * np.pi, 2 * np.pi),
-            rz_angles_after=(0, 0),
+            theta=THETA, phi=PHI, rz_angles_before=(2 * np.pi, 2 * np.pi), rz_angles_after=(0, 0)
         ),
         {THETA: 2 * np.pi, PHI: -0.01},
     ),
@@ -72,19 +66,13 @@ VALID_ISWAP_GATES = [
     (cirq.FSimGate(theta=-0.4, phi=PHI), {PHI: 2 * np.pi}),
     (
         cirq.PhasedFSimGate.from_fsim_rz(
-            theta=10,
-            phi=PHI,
-            rz_angles_before=(PHI, PHI),
-            rz_angles_after=(THETA, THETA),
+            theta=10, phi=PHI, rz_angles_before=(PHI, PHI), rz_angles_after=(THETA, THETA)
         ),
         {THETA: 2 * np.pi, PHI: 0},
     ),
     (
         cirq.PhasedFSimGate.from_fsim_rz(
-            theta=THETA,
-            phi=PHI,
-            rz_angles_before=(PHI, PHI),
-            rz_angles_after=(0, 0),
+            theta=THETA, phi=PHI, rz_angles_before=(PHI, PHI), rz_angles_after=(0, 0)
         ),
         {THETA: -0.01, PHI: 2 * np.pi},
     ),

@@ -150,9 +150,7 @@ def _dump_into_measurement(
 
 
 def _potential_cross_whole_w(
-    op: ops.Operation,
-    atol: float,
-    held_w_phases: Dict[ops.Qid, value.TParamVal],
+    op: ops.Operation, atol: float, held_w_phases: Dict[ops.Qid, value.TParamVal]
 ) -> 'cirq.OP_TREE':
     """Grabs or cancels a held W gate against an existing W gate.
 
@@ -185,8 +183,7 @@ def _potential_cross_whole_w(
 
 
 def _potential_cross_partial_w(
-    op: ops.Operation,
-    held_w_phases: Dict[ops.Qid, value.TParamVal],
+    op: ops.Operation, held_w_phases: Dict[ops.Qid, value.TParamVal]
 ) -> 'cirq.OP_TREE':
     """Cross the held W over a partial W gate.
 

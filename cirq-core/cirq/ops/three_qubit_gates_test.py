@@ -20,13 +20,7 @@ import sympy
 import cirq
 
 
-@pytest.mark.parametrize(
-    'eigen_gate_type',
-    [
-        cirq.CCXPowGate,
-        cirq.CCZPowGate,
-    ],
-)
+@pytest.mark.parametrize('eigen_gate_type', [cirq.CCXPowGate, cirq.CCZPowGate])
 def test_eigen_gates_consistent_protocols(eigen_gate_type):
     cirq.testing.assert_eigengate_implements_consistent_protocols(
         eigen_gate_type, ignoring_global_phase=True
@@ -214,12 +208,7 @@ def test_decomposition_cost(op: cirq.Operation, max_two_cost: int):
 
 @pytest.mark.parametrize(
     'gate',
-    [
-        cirq.CCX,
-        cirq.CSWAP,
-        cirq.CCZ,
-        cirq.ThreeQubitDiagonalGate([2, 3, 5, 7, 11, 13, 17, 19]),
-    ],
+    [cirq.CCX, cirq.CSWAP, cirq.CCZ, cirq.ThreeQubitDiagonalGate([2, 3, 5, 7, 11, 13, 17, 19])],
 )
 def test_decomposition_respects_locality(gate):
     a = cirq.GridQubit(0, 0)

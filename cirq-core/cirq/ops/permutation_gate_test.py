@@ -75,9 +75,7 @@ def test_permutation_gate_diagram():
 
 
 def test_permutation_gate_json_dict():
-    assert cirq.QubitPermutationGate([0, 1, 2])._json_dict_() == {
-        'permutation': (0, 1, 2),
-    }
+    assert cirq.QubitPermutationGate([0, 1, 2])._json_dict_() == {'permutation': (0, 1, 2)}
 
 
 @pytest.mark.parametrize(
@@ -105,11 +103,3 @@ def test_permutation_gate_maps(maps, permutation):
     cirq.testing.assert_equivalent_computational_basis_map(maps, circuit)
     circuit = cirq.Circuit(cirq.I.on_each(*qs), cirq.decompose(permutationOp))
     cirq.testing.assert_equivalent_computational_basis_map(maps, circuit)
-
-
-def test_setters_deprecated():
-    gate = cirq.QubitPermutationGate((1, 2, 0))
-    assert gate.permutation == (1, 2, 0)
-    with cirq.testing.assert_deprecated('mutators', deadline='v0.15'):
-        gate.permutation = (2, 1, 0)
-        assert gate.permutation == (2, 1, 0)
