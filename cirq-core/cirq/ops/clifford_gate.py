@@ -756,7 +756,9 @@ class SingleQubitCliffordGate(CliffordGate):
         rotations = self.decompose_rotation()
         return tuple(r.on(qubit) ** (qt / 2) for r, qt in rotations)
 
-    def _commutes_(self, other: Any, atol: float) -> Union[bool, NotImplementedType, None]:
+    def _commutes_(
+        self, other: Any, *, atol: float = 1e-8
+    ) -> Union[bool, NotImplementedType, None]:
         if isinstance(other, SingleQubitCliffordGate):
             return self.commutes_with_single_qubit_gate(other)
         if isinstance(other, Pauli):
