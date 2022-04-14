@@ -317,7 +317,7 @@ def test_qid_pairs_deprecated():
             ThreeDQubit(1, 1, 1),
         ],
     )
-    with cirq.testing.assert_deprecated('device.metadata', deadline='v0.15', count=2):
+    with cirq.testing.assert_deprecated('device.metadata', deadline='v0.15', count=3):
         assert len(dev.qid_pairs()) == 5
         dev1 = PasqalVirtualDevice(
             5,
