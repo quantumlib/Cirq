@@ -327,7 +327,7 @@ class ArithmeticGate(Gate, metaclass=abc.ABCMeta):
         """Returns the same fate targeting different registers.
 
         Args:
-            new_registers: The new values that should be returned by the
+            *new_registers: The new values that should be returned by the
                 `registers` method.
 
         Returns:
