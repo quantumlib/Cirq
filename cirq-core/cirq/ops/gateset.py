@@ -14,9 +14,11 @@
 
 """Functionality for grouping and validating Cirq Gates"""
 
+import warnings
 from typing import Any, Callable, cast, Dict, FrozenSet, List, Optional, Type, TYPE_CHECKING, Union
-from cirq.ops import global_phase_op, op_tree, raw_types
+
 from cirq import _compat, protocols, value
+from cirq.ops import global_phase_op, op_tree, raw_types
 
 if TYPE_CHECKING:
     import cirq
@@ -252,6 +254,12 @@ class Gateset:
             unique_gate_list = [
                 g for g in unique_gate_list if g.gate != global_phase_op.GlobalPhaseGate
             ]
+        elif accept_global_phase_op is None:
+            if not any(g.gate is global_phase_op.GlobalPhaseGate for g in unique_gate_list):
+                warnings.warn(
+                    'v0.14.1 is the last release `cirq.GlobalPhaseGate` is included by default.'
+                )
+
         for g in unique_gate_list:
             if type(g) == GateFamily:
                 if isinstance(g.gate, raw_types.Gate):
