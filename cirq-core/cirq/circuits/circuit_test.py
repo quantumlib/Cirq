@@ -2377,7 +2377,7 @@ def test_circuit_to_unitary_matrix(circuit_cls):
                 [1j, -1j, -1j, 1j],
                 [1, 1, 1, 1],
                 [1, -1, 1, -1],
-           ]
+            ]
         )
         * np.sqrt(0.25),
         atol=1e-8,
@@ -2468,15 +2468,16 @@ def test_simple_circuits_to_unitary_matrix(circuit_cls):
     m = c.unitary()
     # fmt: off
     cirq.testing.assert_allclose_up_to_global_phase(
-        m, np.array(
+        m,
+        np.array(
             [
                 [1, 0, 0, 0],
                 [0, -1, 0, 0],
                 [0, 0, -1, 0],
-                [0, 0, 0, 1]
+                [0, 0, 0, 1],
             ]
         ), 
-        atol=1e-8
+        atol=1e-8,
     )
     # fmt: on
 
@@ -3726,8 +3727,7 @@ def test_submoments(circuit_cls):
 3: ---H----@|----|---------X^0.5-----
             |    |
 4: ---------X^0.5|---------H---------
-
-|
+                 |
 5: --------------X^0.5---------------
           \-----------/   \------/
 """,
