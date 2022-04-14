@@ -2359,7 +2359,14 @@ def test_circuit_to_unitary_matrix(circuit_cls):
     # fmt: off
     cirq.testing.assert_allclose_up_to_global_phase(
         circuit_cls(cirq.Z(a), cirq.X(b), cirq.CNOT(a, b)).unitary(),
-        np.array([[0, 1, 0, 0], [1, 0, 0, 0], [0, 0, -1, 0], [0, 0, 0, -1]]),
+        np.array(
+            [
+                [0, 1, 0, 0],
+                [1, 0, 0, 0],
+                [0, 0, -1, 0],
+                [0, 0, 0, -1],
+            ]
+        ),
         atol=1e-8,
     )
     cirq.testing.assert_allclose_up_to_global_phase(
@@ -2454,7 +2461,15 @@ def test_simple_circuits_to_unitary_matrix(circuit_cls):
     m = c.unitary()
     # fmt: off
     cirq.testing.assert_allclose_up_to_global_phase(
-        m, np.array([[1, 0, 0, 0], [0, -1, 0, 0], [0, 0, -1, 0], [0, 0, 0, 1]]), atol=1e-8
+        m, np.array(
+            [
+                [1, 0, 0, 0],
+                [0, -1, 0, 0],
+                [0, 0, -1, 0],
+                [0, 0, 0, 1]
+            ]
+        ), 
+        atol=1e-8
     )
     # fmt: on
 
