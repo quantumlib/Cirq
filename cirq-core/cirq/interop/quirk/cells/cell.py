@@ -215,13 +215,7 @@ class ExplicitOperationsCell(Cell):
 CELL_SIZES = range(1, 17)
 
 CellMakerArgs = NamedTuple(
-    'CellMakerArgs',
-    [
-        ('qubits', Sequence['cirq.Qid']),
-        ('value', Any),
-        ('row', int),
-        ('col', int),
-    ],
+    'CellMakerArgs', [('qubits', Sequence['cirq.Qid']), ('value', Any), ('row', int), ('col', int)]
 )
 
 CellMaker = NamedTuple(

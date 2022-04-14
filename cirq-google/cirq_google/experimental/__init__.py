@@ -19,6 +19,4 @@ from cirq_google.experimental.noise_models import (
     simple_noise_from_calibration_metrics,
 )
 
-from cirq_google.experimental.ops import (
-    CouplerPulse,
-)
+from cirq_google.experimental.ops import CouplerPulse

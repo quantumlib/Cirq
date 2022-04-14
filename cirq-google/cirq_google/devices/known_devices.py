@@ -210,9 +210,7 @@ class _NamedConstantXmonDevice(_XmonDeviceBase):
         raise ValueError(f'Unrecognized xmon device name: {constant!r}')
 
     def _json_dict_(self) -> Dict[str, Any]:
-        return {
-            'constant': self._repr,
-        }
+        return {'constant': self._repr}
 
 
 Foxtail = _NamedConstantXmonDevice(
@@ -308,9 +306,7 @@ _SYCAMORE_DURATIONS_PICOS = {
 }
 
 SYCAMORE_PROTO = create_device_proto_from_diagram(
-    _SYCAMORE_GRID,
-    [gate_sets.SQRT_ISWAP_GATESET, gate_sets.SYC_GATESET],
-    _SYCAMORE_DURATIONS_PICOS,
+    _SYCAMORE_GRID, [gate_sets.SQRT_ISWAP_GATESET, gate_sets.SYC_GATESET], _SYCAMORE_DURATIONS_PICOS
 )
 
 Sycamore = SerializableDevice.from_proto(

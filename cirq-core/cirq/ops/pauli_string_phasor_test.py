@@ -80,15 +80,9 @@ def test_equal_up_to_global_phase():
                 cirq.PauliString({a: cirq.X}), exponent_pos=-0.125, exponent_neg=0.125
             ),
         ],
-        [
-            cirq.PauliStringPhasor(cirq.PauliString({a: cirq.X})),
-        ],
-        [
-            cirq.PauliStringPhasor(cirq.PauliString({a: cirq.Y}), exponent_neg=0.25),
-        ],
-        [
-            cirq.PauliStringPhasor(cirq.PauliString({a: cirq.X, b: cirq.Y}), exponent_neg=0.25),
-        ],
+        [cirq.PauliStringPhasor(cirq.PauliString({a: cirq.X}))],
+        [cirq.PauliStringPhasor(cirq.PauliString({a: cirq.Y}), exponent_neg=0.25)],
+        [cirq.PauliStringPhasor(cirq.PauliString({a: cirq.X, b: cirq.Y}), exponent_neg=0.25)],
     ]
     for g1 in groups:
         for e1 in g1:
@@ -259,14 +253,12 @@ def test_manual_default_decompose():
     q0, q1, q2 = _make_qubits(3)
 
     mat = cirq.Circuit(
-        cirq.PauliStringPhasor(cirq.PauliString({q0: cirq.Z})) ** 0.25,
-        cirq.Z(q0) ** -0.25,
+        cirq.PauliStringPhasor(cirq.PauliString({q0: cirq.Z})) ** 0.25, cirq.Z(q0) ** -0.25
     ).unitary()
     cirq.testing.assert_allclose_up_to_global_phase(mat, np.eye(2), rtol=1e-7, atol=1e-7)
 
     mat = cirq.Circuit(
-        cirq.PauliStringPhasor(cirq.PauliString({q0: cirq.Y})) ** 0.25,
-        cirq.Y(q0) ** -0.25,
+        cirq.PauliStringPhasor(cirq.PauliString({q0: cirq.Y})) ** 0.25, cirq.Y(q0) ** -0.25
     ).unitary()
     cirq.testing.assert_allclose_up_to_global_phase(mat, np.eye(2), rtol=1e-7, atol=1e-7)
 
@@ -563,11 +555,7 @@ def test_gate_with_parameters_resolved_by(resolve_fn):
 
 def test_gate_repr():
     cirq.testing.assert_equivalent_repr(
-        cirq.PauliStringPhasorGate(
-            dps_zyx,
-            exponent_neg=0.5,
-            exponent_pos=0.25,
-        )
+        cirq.PauliStringPhasorGate(dps_zyx, exponent_neg=0.5, exponent_pos=0.25)
     )
     cirq.testing.assert_equivalent_repr(
         cirq.PauliStringPhasorGate(-dps_yx, exponent_neg=-0.5, exponent_pos=0.25)

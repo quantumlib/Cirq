@@ -12,15 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import math
-from typing import (
-    List,
-    Union,
-    Optional,
-    Iterator,
-    Iterable,
-    Dict,
-    FrozenSet,
-)
+from typing import List, Union, Optional, Iterator, Iterable, Dict, FrozenSet
 
 import numpy as np
 import sympy
@@ -48,11 +40,7 @@ FLOAT_TYPES = (float, int, sympy.Integer, sympy.Float, sympy.Rational, sympy.Num
 # Supported function languages in order from least to most flexible.
 # Clients should use the least flexible language they can, to make it easier
 # to gradually roll out new capabilities to clients and servers.
-LANGUAGE_ORDER = [
-    '',
-    'linear',
-    'exp',
-]
+LANGUAGE_ORDER = ['', 'linear', 'exp']
 
 
 def _max_lang(langs: Iterable[str]) -> str:

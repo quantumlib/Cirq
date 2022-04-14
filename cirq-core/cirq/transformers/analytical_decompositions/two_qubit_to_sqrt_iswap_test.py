@@ -73,12 +73,7 @@ def perturbations_gate(gate, amount=1e-10):
 
 
 def perturbations_weyl(x, y, z, amount=1e-10):
-    return perturbations_gate(
-        cirq.KakDecomposition(
-            interaction_coefficients=(x, y, z),
-        ),
-        amount,
-    )
+    return perturbations_gate(cirq.KakDecomposition(interaction_coefficients=(x, y, z)), amount)
 
 
 THREE_SQRT_ISWAP_UNITARIES = [
@@ -466,24 +461,12 @@ def test_decomp_sqrt_iswap_inv(u):
 def test_valid_check_raises():
     q0 = cirq.LineQubit(0)
     with pytest.raises(AssertionError, match='Unitaries are completely different'):
-        assert_valid_decomp(
-            np.eye(4),
-            [cirq.X(q0)],
-            single_qubit_gate_types=(cirq.XPowGate,),
-        )
+        assert_valid_decomp(np.eye(4), [cirq.X(q0)], single_qubit_gate_types=(cirq.XPowGate,))
     with pytest.raises(AssertionError, match='Unitaries do not match closely enough'):
-        assert_valid_decomp(
-            np.eye(4),
-            [cirq.rx(0.01)(q0)],
-            single_qubit_gate_types=(cirq.Rx,),
-        )
+        assert_valid_decomp(np.eye(4), [cirq.rx(0.01)(q0)], single_qubit_gate_types=(cirq.Rx,))
     with pytest.raises(
         AssertionError, match='Global phase operation was output when it should not'
     ):
         assert_valid_decomp(np.eye(4), [cirq.global_phase_operation(np.exp(1j * 0.01))])
     with pytest.raises(AssertionError, match='Disallowed operation was output'):
-        assert_valid_decomp(
-            np.eye(4),
-            [cirq.X(q0)],
-            single_qubit_gate_types=(cirq.IdentityGate,),
-        )
+        assert_valid_decomp(np.eye(4), [cirq.X(q0)], single_qubit_gate_types=(cirq.IdentityGate,))

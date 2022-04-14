@@ -83,9 +83,7 @@ def _too_many_reps(circuits: List[cirq.Circuit], sweeps: List[cirq.Sweepable], r
 
 def test_sweeps_validation():
     sampler = cg.ValidatingSampler(
-        device=cirq.UNCONSTRAINED_DEVICE,
-        validator=_too_many_reps,
-        sampler=cirq.Simulator(),
+        device=cirq.UNCONSTRAINED_DEVICE, validator=_too_many_reps, sampler=cirq.Simulator()
     )
     q = cirq.GridQubit(2, 2)
     circuit = cirq.Circuit(cirq.X(q) ** sympy.Symbol('t'), cirq.measure(q, key='m'))

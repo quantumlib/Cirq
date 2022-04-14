@@ -29,19 +29,13 @@ def test_simulate_2q_xeb_circuits():
     q0, q1 = cirq.LineQubit.range(2)
     circuits = [
         rqcg.random_rotations_between_two_qubit_circuit(
-            q0,
-            q1,
-            depth=50,
-            two_qubit_op_factory=lambda a, b, _: cirq.SQRT_ISWAP(a, b),
+            q0, q1, depth=50, two_qubit_op_factory=lambda a, b, _: cirq.SQRT_ISWAP(a, b)
         )
         for _ in range(2)
     ]
     cycle_depths = np.arange(3, 50, 9)
 
-    df = simulate_2q_xeb_circuits(
-        circuits=circuits,
-        cycle_depths=cycle_depths,
-    )
+    df = simulate_2q_xeb_circuits(circuits=circuits, cycle_depths=cycle_depths)
     assert len(df) == len(cycle_depths) * len(circuits)
     for (circuit_i, cycle_depth), row in df.iterrows():
         assert 0 <= circuit_i < len(circuits)
@@ -68,10 +62,7 @@ def test_simulate_circuit_length_validation():
     ]
     cycle_depths = np.arange(3, 50, 9)
     with pytest.raises(ValueError, match='.*not long enough.*'):
-        _ = simulate_2q_xeb_circuits(
-            circuits=circuits,
-            cycle_depths=cycle_depths,
-        )
+        _ = simulate_2q_xeb_circuits(circuits=circuits, cycle_depths=cycle_depths)
 
 
 def _ref_simulate_2q_xeb_circuit(task: Dict[str, Any]):
@@ -91,11 +82,7 @@ def _ref_simulate_2q_xeb_circuit(task: Dict[str, Any]):
     psi = psi.final_state_vector
     pure_probs = cirq.state_vector_to_probabilities(psi)
 
-    return {
-        'circuit_i': circuit_i,
-        'cycle_depth': cycle_depth,
-        'pure_probs': pure_probs,
-    }
+    return {'circuit_i': circuit_i, 'cycle_depth': cycle_depth, 'pure_probs': pure_probs}
 
 
 def _ref_simulate_2q_xeb_circuits(
@@ -137,10 +124,7 @@ def test_incremental_simulate(multiprocess):
     q0, q1 = cirq.LineQubit.range(2)
     circuits = [
         rqcg.random_rotations_between_two_qubit_circuit(
-            q0,
-            q1,
-            depth=100,
-            two_qubit_op_factory=lambda a, b, _: cirq.SQRT_ISWAP(a, b),
+            q0, q1, depth=100, two_qubit_op_factory=lambda a, b, _: cirq.SQRT_ISWAP(a, b)
         )
         for _ in range(20)
     ]
@@ -152,11 +136,7 @@ def test_incremental_simulate(multiprocess):
         pool = None
 
     start = time.perf_counter()
-    df_ref = _ref_simulate_2q_xeb_circuits(
-        circuits=circuits,
-        cycle_depths=cycle_depths,
-        pool=pool,
-    )
+    df_ref = _ref_simulate_2q_xeb_circuits(circuits=circuits, cycle_depths=cycle_depths, pool=pool)
     end1 = time.perf_counter()
 
     df = simulate_2q_xeb_circuits(circuits=circuits, cycle_depths=cycle_depths, pool=pool)

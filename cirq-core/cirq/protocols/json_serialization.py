@@ -343,11 +343,7 @@ class CirqEncoder(json.JSONEncoder):
             return {'cirq_type': 'sympy.Float', 'approx': float(o)}
 
         if isinstance(o, sympy.Rational):
-            return {
-                'cirq_type': 'sympy.Rational',
-                'p': o.p,
-                'q': o.q,
-            }
+            return {'cirq_type': 'sympy.Rational', 'p': o.p, 'q': o.q}
 
         if isinstance(o, sympy.NumberSymbol):
             # check if `o` is a numeric symbol,
@@ -367,11 +363,7 @@ class CirqEncoder(json.JSONEncoder):
         if isinstance(o, numbers.Real):
             return float(o)
         if isinstance(o, numbers.Complex):
-            return {
-                'cirq_type': 'complex',
-                'real': o.real,
-                'imag': o.imag,
-            }
+            return {'cirq_type': 'complex', 'real': o.real, 'imag': o.imag}
 
         # Numpy object?
         if isinstance(o, np.bool_):
@@ -381,17 +373,9 @@ class CirqEncoder(json.JSONEncoder):
 
         # Pandas object?
         if isinstance(o, pd.MultiIndex):
-            return {
-                'cirq_type': 'pandas.MultiIndex',
-                'tuples': list(o),
-                'names': list(o.names),
-            }
+            return {'cirq_type': 'pandas.MultiIndex', 'tuples': list(o), 'names': list(o.names)}
         if isinstance(o, pd.Index):
-            return {
-                'cirq_type': 'pandas.Index',
-                'data': list(o),
-                'name': o.name,
-            }
+            return {'cirq_type': 'pandas.Index', 'data': list(o), 'name': o.name}
         if isinstance(o, pd.DataFrame):
             cols = [o[col].tolist() for col in o.columns]
             rows = list(zip(*cols))

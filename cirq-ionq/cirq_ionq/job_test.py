@@ -65,9 +65,7 @@ def test_job_results_qpu():
         'target': 'qpu',
         'metadata': {'shots': 1000, 'measurement0': f'a{chr(31)}0,1'},
         'data': {'histogram': {'0': '0.6', '2': '0.4'}},
-        'warning': {
-            'messages': ['foo', 'bar'],
-        },
+        'warning': {'messages': ['foo', 'bar']},
     }
     job = ionq.Job(None, job_dict)
     with warnings.catch_warnings(record=True) as w:
@@ -125,10 +123,7 @@ def test_job_results_qpu_target_endianness():
 
 @mock.patch('time.sleep', return_value=None)
 def test_job_results_poll(mock_sleep):
-    ready_job = {
-        'id': 'my_id',
-        'status': 'ready',
-    }
+    ready_job = {'id': 'my_id', 'status': 'ready'}
     completed_job = {
         'id': 'my_id',
         'status': 'completed',
@@ -147,10 +142,7 @@ def test_job_results_poll(mock_sleep):
 
 @mock.patch('time.sleep', return_value=None)
 def test_job_results_poll_timeout(mock_sleep):
-    ready_job = {
-        'id': 'my_id',
-        'status': 'ready',
-    }
+    ready_job = {'id': 'my_id', 'status': 'ready'}
     mock_client = mock.MagicMock()
     mock_client.get_job.return_value = ready_job
     job = ionq.Job(mock_client, ready_job)
@@ -199,10 +191,7 @@ def test_job_results_simulator_endianness():
 
 
 def test_job_cancel():
-    ready_job = {
-        'id': 'my_id',
-        'status': 'ready',
-    }
+    ready_job = {'id': 'my_id', 'status': 'ready'}
     canceled_job = {'id': 'my_id', 'status': 'canceled'}
     mock_client = mock.MagicMock()
     mock_client.cancel_job.return_value = canceled_job
@@ -213,10 +202,7 @@ def test_job_cancel():
 
 
 def test_job_delete():
-    ready_job = {
-        'id': 'my_id',
-        'status': 'ready',
-    }
+    ready_job = {'id': 'my_id', 'status': 'ready'}
     deleted_job = {'id': 'my_id', 'status': 'deleted'}
     mock_client = mock.MagicMock()
     mock_client.delete_job.return_value = deleted_job

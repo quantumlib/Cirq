@@ -13,19 +13,7 @@
 # limitations under the License.
 """Device object for converting from device specification protos"""
 
-from typing import (
-    Any,
-    Callable,
-    cast,
-    Dict,
-    Iterable,
-    Optional,
-    List,
-    Set,
-    Tuple,
-    Type,
-    FrozenSet,
-)
+from typing import Any, Callable, cast, Dict, Iterable, Optional, List, Set, Tuple, Type, FrozenSet
 import cirq
 from cirq import _compat
 from cirq_google.serialization import serializable_gate_set
@@ -92,9 +80,7 @@ class SerializableDevice(cirq.Device):
     """
 
     def __init__(
-        self,
-        qubits: List[cirq.Qid],
-        gate_definitions: Dict[Type[cirq.Gate], List[_GateDefinition]],
+        self, qubits: List[cirq.Qid], gate_definitions: Dict[Type[cirq.Gate], List[_GateDefinition]]
     ):
         """Constructor for SerializableDevice using python objects.
 
@@ -128,10 +114,7 @@ class SerializableDevice(cirq.Device):
         """Get metadata information for device."""
         return self._metadata
 
-    @_compat.deprecated(
-        fix='Please use metadata.qubit_set if applicable.',
-        deadline='v0.15',
-    )
+    @_compat.deprecated(fix='Please use metadata.qubit_set if applicable.', deadline='v0.15')
     def qubit_set(self) -> FrozenSet[cirq.Qid]:
         return frozenset(self.qubits)
 
@@ -209,8 +192,7 @@ class SerializableDevice(cirq.Device):
                     gates_by_type[internal_type].append(gate_def)
 
         return SerializableDevice(
-            qubits=[_qid_from_str(q) for q in proto.valid_qubits],
-            gate_definitions=gates_by_type,
+            qubits=[_qid_from_str(q) for q in proto.valid_qubits], gate_definitions=gates_by_type
         )
 
     @classmethod
@@ -264,8 +246,7 @@ class SerializableDevice(cirq.Device):
         return super().__str__()
 
     @_compat.deprecated(
-        deadline='v0.15',
-        fix='qubit coupling data can now be found in device.metadata if provided.',
+        deadline='v0.15', fix='qubit coupling data can now be found in device.metadata if provided.'
     )
     def qid_pairs(self) -> FrozenSet['cirq.SymmetricalQidPair']:
         """Returns a list of qubit edges on the device, defined by the gate

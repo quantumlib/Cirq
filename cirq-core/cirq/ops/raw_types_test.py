@@ -621,10 +621,7 @@ def test_tagged_operation_forwards_protocols():
     assert 3 * tagged_y == (3 * y)
     assert cirq.phase_by(y, 0.125, 0) == cirq.phase_by(tagged_y, 0.125, 0)
     controlled_y = tagged_y.controlled_by(q2)
-    assert controlled_y.qubits == (
-        q2,
-        q1,
-    )
+    assert controlled_y.qubits == (q2, q1)
     assert isinstance(controlled_y, cirq.Operation)
     assert not isinstance(controlled_y, cirq.TaggedOperation)
 

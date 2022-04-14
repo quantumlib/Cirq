@@ -20,10 +20,7 @@ from typing_extensions import Protocol
 
 from cirq import linalg
 from cirq._doc import doc_private
-from cirq.protocols.apply_unitary_protocol import (
-    apply_unitary,
-    ApplyUnitaryArgs,
-)
+from cirq.protocols.apply_unitary_protocol import apply_unitary, ApplyUnitaryArgs
 from cirq.protocols.kraus_protocol import kraus
 from cirq.protocols import qid_shape_protocol
 from cirq.type_workarounds import NotImplementedType

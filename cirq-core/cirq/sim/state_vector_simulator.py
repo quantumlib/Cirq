@@ -65,10 +65,7 @@ class SimulatesIntermediateStateVector(
         split_untangled_states: bool = False,
     ):
         super().__init__(
-            dtype=dtype,
-            noise=noise,
-            seed=seed,
-            split_untangled_states=split_untangled_states,
+            dtype=dtype, noise=noise, seed=seed, split_untangled_states=split_untangled_states
         )
 
     def _create_simulator_trial_result(

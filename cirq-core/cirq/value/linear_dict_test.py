@@ -42,10 +42,7 @@ def test_fromkeys(keys, coefficient, terms_expected):
 
 @pytest.mark.parametrize(
     'terms, valid_vectors, invalid_vectors',
-    (
-        ({'X': 2}, ('X'), ('A', 'B')),
-        ({'X': 2, 'Y': -2}, ('X', 'Y', 'Z'), ('A', 'B')),
-    ),
+    (({'X': 2}, ('X'), ('A', 'B')), ({'X': 2, 'Y': -2}, ('X', 'Y', 'Z'), ('A', 'B'))),
 )
 def test_invalid_vectors_are_rejected(terms, valid_vectors, invalid_vectors):
     linear_dict = cirq.LinearDict(terms, validator=lambda v: v in valid_vectors)
@@ -65,11 +62,7 @@ def test_invalid_vectors_are_rejected(terms, valid_vectors, invalid_vectors):
 
 
 @pytest.mark.parametrize(
-    'terms, valid_vectors',
-    (
-        ({'X': 2}, ('X')),
-        ({'X': 2, 'Y': -2}, ('X', 'Y', 'Z')),
-    ),
+    'terms, valid_vectors', (({'X': 2}, ('X')), ({'X': 2, 'Y': -2}, ('X', 'Y', 'Z')))
 )
 def test_valid_vectors_are_accepted(terms, valid_vectors):
     linear_dict = cirq.LinearDict(terms, validator=lambda v: v in valid_vectors)
@@ -105,14 +98,7 @@ def test_clean(terms, atol, terms_expected):
     assert expected == linear_dict
 
 
-@pytest.mark.parametrize(
-    'terms',
-    (
-        {'X': 1j / 2},
-        {'X': 1, 'Y': 2, 'Z': 3},
-        {},
-    ),
-)
+@pytest.mark.parametrize('terms', ({'X': 1j / 2}, {'X': 1, 'Y': 2, 'Z': 3}, {}))
 def test_copy(terms):
     original = cirq.LinearDict(terms)
     copy = original.copy()
@@ -128,12 +114,7 @@ def test_copy(terms):
 
 @pytest.mark.parametrize(
     'terms, expected_keys',
-    (
-        ({}, ()),
-        ({'X': 0}, ()),
-        ({'X': 0.1}, ('X',)),
-        ({'X': -1, 'Y': 0, 'Z': 1}, ('X', 'Z')),
-    ),
+    (({}, ()), ({'X': 0}, ()), ({'X': 0.1}, ('X',)), ({'X': -1, 'Y': 0, 'Z': 1}, ('X', 'Z'))),
 )
 def test_keys(terms, expected_keys):
     linear_dict = cirq.LinearDict(terms)
@@ -142,12 +123,7 @@ def test_keys(terms, expected_keys):
 
 @pytest.mark.parametrize(
     'terms, expected_values',
-    (
-        ({}, ()),
-        ({'X': 0}, ()),
-        ({'X': 0.1}, (0.1,)),
-        ({'X': -1, 'Y': 0, 'Z': 1}, (-1, 1)),
-    ),
+    (({}, ()), ({'X': 0}, ()), ({'X': 0.1}, (0.1,)), ({'X': -1, 'Y': 0, 'Z': 1}, (-1, 1))),
 )
 def test_values(terms, expected_values):
     linear_dict = cirq.LinearDict(terms)
@@ -189,13 +165,7 @@ def test_update(terms_1, terms_2, terms_expected):
 
 @pytest.mark.parametrize(
     'terms, vector, expected_coefficient',
-    (
-        ({}, '', 0),
-        ({}, 'X', 0),
-        ({'X': 0}, 'X', 0),
-        ({'X': -1j}, 'X', -1j),
-        ({'X': 1j}, 'Y', 0),
-    ),
+    (({}, '', 0), ({}, 'X', 0), ({'X': 0}, 'X', 0), ({'X': -1j}, 'X', -1j), ({'X': 1j}, 'Y', 0)),
 )
 def test_get(terms, vector, expected_coefficient):
     linear_dict = cirq.LinearDict(terms)
@@ -343,11 +313,7 @@ def test_vector_subtraction(terms_1, terms_2, terms_expected):
 
 @pytest.mark.parametrize(
     'terms, terms_expected',
-    (
-        ({}, {}),
-        ({'key': 1}, {'key': -1}),
-        ({'1': 10, '2': -20}, {'1': -10, '2': 20}),
-    ),
+    (({}, {}), ({'key': 1}, {'key': -1}), ({'1': 10, '2': -20}, {'1': -10, '2': 20})),
 )
 def test_vector_negation(terms, terms_expected):
     linear_dict = cirq.LinearDict(terms)
@@ -412,13 +378,7 @@ def test_expressions(expression, expected):
 
 
 @pytest.mark.parametrize(
-    'terms, bool_value',
-    (
-        ({}, False),
-        ({'X': 0}, False),
-        ({'Z': 1e-12}, True),
-        ({'Y': 1}, True),
-    ),
+    'terms, bool_value', (({}, False), ({'X': 0}, False), ({'Z': 1e-12}, True), ({'Y': 1}, True))
 )
 def test_bool(terms, bool_value):
     linear_dict = cirq.LinearDict(terms)
@@ -427,12 +387,7 @@ def test_bool(terms, bool_value):
 
 @pytest.mark.parametrize(
     'terms_1, terms_2',
-    (
-        ({}, {}),
-        ({}, {'X': 0}),
-        ({'X': 0.0}, {'Y': 0.0}),
-        ({'a': 1}, {'a': 1, 'b': 0}),
-    ),
+    (({}, {}), ({}, {'X': 0}), ({'X': 0.0}, {'Y': 0.0}), ({'a': 1}, {'a': 1, 'b': 0})),
 )
 def test_equal(terms_1, terms_2):
     linear_dict_1 = cirq.LinearDict(terms_1)
