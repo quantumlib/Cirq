@@ -166,9 +166,7 @@ def test_serialize_deserialize_arbitrary_xy(gate, axis_half_turns, half_turns):
     assert SINGLE_QUBIT_GATE_SET.serialize_op(op) == expected
     deserialized_op = SINGLE_QUBIT_GATE_SET.deserialize_op(expected)
     cirq.testing.assert_allclose_up_to_global_phase(
-        cirq.unitary(deserialized_op),
-        cirq.unitary(op),
-        atol=1e-7,
+        cirq.unitary(deserialized_op), cirq.unitary(op), atol=1e-7
     )
 
 
@@ -191,18 +189,13 @@ def test_half_pi_does_not_serialize_arbitrary_xy():
         (0, 1, 0),
         (0.5, 0, 0.5),
         (0.5, 0.5, 0.5),
+        (0.1, 0.2, 0.3),
         (0.25, 0.375, 0.125),
     ],
 )
-def test_serialize_deserialize_arbitrary_xyz(
-    x_exponent,
-    z_exponent,
-    axis_phase_exponent,
-):
+def test_serialize_deserialize_arbitrary_xyz(x_exponent, z_exponent, axis_phase_exponent):
     gate = cirq.PhasedXZGate(
-        x_exponent=x_exponent,
-        z_exponent=z_exponent,
-        axis_phase_exponent=axis_phase_exponent,
+        x_exponent=x_exponent, z_exponent=z_exponent, axis_phase_exponent=axis_phase_exponent
     )
     op = gate.on(cirq.GridQubit(1, 2))
     expected = op_proto(
@@ -219,9 +212,7 @@ def test_serialize_deserialize_arbitrary_xyz(
     assert SINGLE_QUBIT_GATE_SET.serialize_op(op) == expected
     deserialized_op = SINGLE_QUBIT_GATE_SET.deserialize_op(expected)
     cirq.testing.assert_allclose_up_to_global_phase(
-        cirq.unitary(deserialized_op),
-        cirq.unitary(op),
-        atol=1e-7,
+        cirq.unitary(deserialized_op), cirq.unitary(op), atol=1e-7
     )
 
 
@@ -322,11 +313,7 @@ def test_serialize_xy_parameterized_axis_half_turns():
 
 @pytest.mark.parametrize(
     ('gate', 'half_turns'),
-    [
-        (cirq.Z, 1.0),
-        (cirq.Z**0.125, 0.125),
-        (cirq.rz(0.125 * np.pi), 0.125),
-    ],
+    [(cirq.Z, 1.0), (cirq.Z**0.125, 0.125), (cirq.rz(0.125 * np.pi), 0.125)],
 )
 def test_serialize_z(gate, half_turns):
     q = cirq.GridQubit(1, 2)
@@ -353,14 +340,7 @@ def test_serialize_z(gate, half_turns):
     )
 
 
-@pytest.mark.parametrize(
-    ('axis_half_turns', 'half_turns'),
-    [
-        (0.25, 0.25),
-        (0, 0.25),
-        (0.5, 0.25),
-    ],
-)
+@pytest.mark.parametrize(('axis_half_turns', 'half_turns'), [(0.25, 0.25), (0, 0.25), (0.5, 0.25)])
 def test_deserialize_xy(axis_half_turns, half_turns):
     serialized_op = op_proto(
         {
@@ -440,12 +420,7 @@ def assert_phys_z_tag(phys_z, op):
 
 
 @pytest.mark.parametrize(
-    ('gate', 'exponent'),
-    [
-        (cirq.CZ, 1.0),
-        (cirq.CZ**3.0, 3.0),
-        (cirq.CZ**-1.0, -1.0),
-    ],
+    ('gate', 'exponent'), [(cirq.CZ, 1.0), (cirq.CZ**3.0, 3.0), (cirq.CZ**-1.0, -1.0)]
 )
 @pytest.mark.parametrize('phys_z', [False, True])
 def test_serialize_deserialize_cz_gate(gate, exponent, phys_z):
@@ -469,9 +444,7 @@ def test_serialize_deserialize_cz_gate(gate, exponent, phys_z):
     deserialized_op = gate_set.deserialize_op(proto)
     expected_gate = cirq.CZPowGate(exponent=exponent)
     cirq.testing.assert_allclose_up_to_global_phase(
-        cirq.unitary(deserialized_op),
-        cirq.unitary(expected_gate),
-        atol=1e-7,
+        cirq.unitary(deserialized_op), cirq.unitary(expected_gate), atol=1e-7
     )
     assert_phys_z_tag(phys_z, deserialized_op)
 
@@ -598,9 +571,7 @@ def test_serialize_deserialize_fsim_gate(gate, theta, phi, phys_z):
     assert gate_set.serialize_op(op) == proto
     deserialized_op = gate_set.deserialize_op(proto)
     cirq.testing.assert_allclose_up_to_global_phase(
-        cirq.unitary(deserialized_op),
-        cirq.unitary(expected_gate),
-        atol=1e-7,
+        cirq.unitary(deserialized_op), cirq.unitary(expected_gate), atol=1e-7
     )
     assert_phys_z_tag(phys_z, deserialized_op)
 

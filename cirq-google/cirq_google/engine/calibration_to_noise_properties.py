@@ -157,12 +157,10 @@ def noise_properties_from_calibration(
     fsim_errors = {}
     for gate, prefix in gate_prefix_pairs.items():
         theta_errors = _unpack_2q_from_calibration(
-            prefix + '_xeb_entangler_theta_error_per_cycle',
-            calibration,
+            prefix + '_xeb_entangler_theta_error_per_cycle', calibration
         )
         phi_errors = _unpack_2q_from_calibration(
-            prefix + '_xeb_entangler_phi_error_per_cycle',
-            calibration,
+            prefix + '_xeb_entangler_phi_error_per_cycle', calibration
         )
         angle_keys = set(theta_errors.keys()) | set(phi_errors.keys())
         for qubits in angle_keys:

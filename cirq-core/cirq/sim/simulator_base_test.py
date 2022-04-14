@@ -56,21 +56,13 @@ class CountingState(cirq.qis.QuantumStateRepresentation):
         )
 
 
-class CountingActOnArgs(cirq.ActOnArgs):
+class CountingActOnArgs(cirq.ActOnArgs[CountingState]):
     def __init__(self, state, qubits, classical_data):
         state_obj = CountingState(state)
-        super().__init__(
-            state=state_obj,
-            qubits=qubits,
-            classical_data=classical_data,
-        )
-        self._state: CountingState = state_obj
+        super().__init__(state=state_obj, qubits=qubits, classical_data=classical_data)
 
     def _act_on_fallback_(
-        self,
-        action: Any,
-        qubits: Sequence['cirq.Qid'],
-        allow_decompose: bool = True,
+        self, action: Any, qubits: Sequence['cirq.Qid'], allow_decompose: bool = True
     ) -> bool:
         self._state.gate_count += 1
         return True
@@ -120,10 +112,7 @@ class CountingSimulator(
     ]
 ):
     def __init__(self, noise=None, split_untangled_states=False):
-        super().__init__(
-            noise=noise,
-            split_untangled_states=split_untangled_states,
-        )
+        super().__init__(noise=noise, split_untangled_states=split_untangled_states)
 
     def _create_partial_act_on_args(
         self,
@@ -142,18 +131,14 @@ class CountingSimulator(
         return CountingTrialResult(params, measurements, final_step_result=final_step_result)
 
     def _create_step_result(
-        self,
-        sim_state: cirq.OperationTarget[CountingActOnArgs],
+        self, sim_state: cirq.OperationTarget[CountingActOnArgs]
     ) -> CountingStepResult:
         return CountingStepResult(sim_state)
 
 
 class SplittableCountingSimulator(CountingSimulator):
     def __init__(self, noise=None, split_untangled_states=True):
-        super().__init__(
-            noise=noise,
-            split_untangled_states=split_untangled_states,
-        )
+        super().__init__(noise=noise, split_untangled_states=split_untangled_states)
 
     def _create_partial_act_on_args(
         self,
@@ -390,10 +375,7 @@ def test_sweep_unparameterized_prefix_not_repeated_iff_unitary():
             return self.has_unitary
 
     simulator = CountingSimulator()
-    params = [
-        cirq.ParamResolver({'a': 0}),
-        cirq.ParamResolver({'a': 1}),
-    ]
+    params = [cirq.ParamResolver({'a': 0}), cirq.ParamResolver({'a': 1})]
 
     op1 = TestOp(has_unitary=True)
     op2 = TestOp(has_unitary=True)

@@ -14,11 +14,10 @@
 """A protocol for implementing high performance clifford tableau evolutions
  for Clifford Simulator."""
 
-from typing import Dict, List, Optional, Sequence, TYPE_CHECKING
+from typing import Optional, Sequence, TYPE_CHECKING
 
 import numpy as np
 
-from cirq._compat import deprecated_parameter
 from cirq.qis import clifford_tableau
 from cirq.sim.clifford.act_on_stabilizer_args import ActOnStabilizerArgs
 
@@ -29,17 +28,10 @@ if TYPE_CHECKING:
 class ActOnCliffordTableauArgs(ActOnStabilizerArgs[clifford_tableau.CliffordTableau]):
     """State and context for an operation acting on a clifford tableau."""
 
-    @deprecated_parameter(
-        deadline='v0.15',
-        fix='Use classical_data.',
-        parameter_desc='log_of_measurement_results',
-        match=lambda args, kwargs: 'log_of_measurement_results' in kwargs or len(args) > 3,
-    )
     def __init__(
         self,
         tableau: 'cirq.CliffordTableau',
         prng: Optional[np.random.RandomState] = None,
-        log_of_measurement_results: Optional[Dict[str, List[int]]] = None,
         qubits: Optional[Sequence['cirq.Qid']] = None,
         classical_data: Optional['cirq.ClassicalDataStore'] = None,
     ):
@@ -53,18 +45,10 @@ class ActOnCliffordTableauArgs(ActOnStabilizerArgs[clifford_tableau.CliffordTabl
                 ordering of the computational basis states.
             prng: The pseudo random number generator to use for probabilistic
                 effects.
-            log_of_measurement_results: A mutable object that measurements are
-                being recorded into.
             classical_data: The shared classical data container for this
                 simulation.
         """
-        super().__init__(
-            state=tableau,
-            prng=prng,
-            qubits=qubits,
-            log_of_measurement_results=log_of_measurement_results,
-            classical_data=classical_data,
-        )
+        super().__init__(state=tableau, prng=prng, qubits=qubits, classical_data=classical_data)
 
     @property
     def tableau(self) -> 'cirq.CliffordTableau':
