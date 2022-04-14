@@ -14,12 +14,8 @@
 # limitations under the License.
 #
 
-from cirq_google.cloud.quantum_v1alpha1.services.quantum_engine_service.client import (
-    QuantumEngineServiceClient,
-)
-from cirq_google.cloud.quantum_v1alpha1.services.quantum_engine_service.async_client import (
-    QuantumEngineServiceAsyncClient,
-)
+from cirq_google.cloud.quantum_v1alpha1.services.quantum_engine_service.client import QuantumEngineServiceClient
+from cirq_google.cloud.quantum_v1alpha1.services.quantum_engine_service.async_client import QuantumEngineServiceAsyncClient
 
 from cirq_google.cloud.quantum_v1alpha1.types.engine import CancelQuantumJobRequest
 from cirq_google.cloud.quantum_v1alpha1.types.engine import CancelQuantumReservationRequest
@@ -77,8 +73,7 @@ from cirq_google.cloud.quantum_v1alpha1.types.quantum import QuantumResult
 from cirq_google.cloud.quantum_v1alpha1.types.quantum import QuantumTimeSlot
 from cirq_google.cloud.quantum_v1alpha1.types.quantum import SchedulingConfig
 
-__all__ = (
-    'QuantumEngineServiceClient',
+__all__ = ('QuantumEngineServiceClient',
     'QuantumEngineServiceAsyncClient',
     'CancelQuantumJobRequest',
     'CancelQuantumReservationRequest',

@@ -79,9 +79,19 @@ class CreateQuantumJobRequest(proto.Message):
             -
     """
 
-    parent = proto.Field(proto.STRING, number=1)
-    quantum_job = proto.Field(proto.MESSAGE, number=2, message=quantum.QuantumJob)
-    overwrite_existing_run_context = proto.Field(proto.BOOL, number=3)
+    parent = proto.Field(
+        proto.STRING,
+        number=1,
+    )
+    quantum_job = proto.Field(
+        proto.MESSAGE,
+        number=2,
+        message=quantum.QuantumJob,
+    )
+    overwrite_existing_run_context = proto.Field(
+        proto.BOOL,
+        number=3,
+    )
 
 
 class GetQuantumJobRequest(proto.Message):
@@ -94,8 +104,14 @@ class GetQuantumJobRequest(proto.Message):
             -
     """
 
-    name = proto.Field(proto.STRING, number=1)
-    return_run_context = proto.Field(proto.BOOL, number=2)
+    name = proto.Field(
+        proto.STRING,
+        number=1,
+    )
+    return_run_context = proto.Field(
+        proto.BOOL,
+        number=2,
+    )
 
 
 class ListQuantumJobsRequest(proto.Message):
@@ -112,10 +128,22 @@ class ListQuantumJobsRequest(proto.Message):
             -
     """
 
-    parent = proto.Field(proto.STRING, number=1)
-    page_size = proto.Field(proto.INT32, number=2)
-    page_token = proto.Field(proto.STRING, number=3)
-    filter = proto.Field(proto.STRING, number=4)
+    parent = proto.Field(
+        proto.STRING,
+        number=1,
+    )
+    page_size = proto.Field(
+        proto.INT32,
+        number=2,
+    )
+    page_token = proto.Field(
+        proto.STRING,
+        number=3,
+    )
+    filter = proto.Field(
+        proto.STRING,
+        number=4,
+    )
 
 
 class ListQuantumJobsResponse(proto.Message):
@@ -132,8 +160,15 @@ class ListQuantumJobsResponse(proto.Message):
     def raw_page(self):
         return self
 
-    jobs = proto.RepeatedField(proto.MESSAGE, number=1, message=quantum.QuantumJob)
-    next_page_token = proto.Field(proto.STRING, number=2)
+    jobs = proto.RepeatedField(
+        proto.MESSAGE,
+        number=1,
+        message=quantum.QuantumJob,
+    )
+    next_page_token = proto.Field(
+        proto.STRING,
+        number=2,
+    )
 
 
 class DeleteQuantumJobRequest(proto.Message):
@@ -144,7 +179,10 @@ class DeleteQuantumJobRequest(proto.Message):
             -
     """
 
-    name = proto.Field(proto.STRING, number=1)
+    name = proto.Field(
+        proto.STRING,
+        number=1,
+    )
 
 
 class UpdateQuantumJobRequest(proto.Message):
@@ -159,9 +197,20 @@ class UpdateQuantumJobRequest(proto.Message):
             -
     """
 
-    name = proto.Field(proto.STRING, number=1)
-    quantum_job = proto.Field(proto.MESSAGE, number=2, message=quantum.QuantumJob)
-    update_mask = proto.Field(proto.MESSAGE, number=3, message=field_mask_pb2.FieldMask)
+    name = proto.Field(
+        proto.STRING,
+        number=1,
+    )
+    quantum_job = proto.Field(
+        proto.MESSAGE,
+        number=2,
+        message=quantum.QuantumJob,
+    )
+    update_mask = proto.Field(
+        proto.MESSAGE,
+        number=3,
+        message=field_mask_pb2.FieldMask,
+    )
 
 
 class CancelQuantumJobRequest(proto.Message):
@@ -172,7 +221,10 @@ class CancelQuantumJobRequest(proto.Message):
             -
     """
 
-    name = proto.Field(proto.STRING, number=1)
+    name = proto.Field(
+        proto.STRING,
+        number=1,
+    )
 
 
 class ListQuantumJobEventsRequest(proto.Message):
@@ -187,9 +239,18 @@ class ListQuantumJobEventsRequest(proto.Message):
             -
     """
 
-    parent = proto.Field(proto.STRING, number=1)
-    page_size = proto.Field(proto.INT32, number=2)
-    page_token = proto.Field(proto.STRING, number=3)
+    parent = proto.Field(
+        proto.STRING,
+        number=1,
+    )
+    page_size = proto.Field(
+        proto.INT32,
+        number=2,
+    )
+    page_token = proto.Field(
+        proto.STRING,
+        number=3,
+    )
 
 
 class ListQuantumJobEventsResponse(proto.Message):
@@ -206,8 +267,15 @@ class ListQuantumJobEventsResponse(proto.Message):
     def raw_page(self):
         return self
 
-    events = proto.RepeatedField(proto.MESSAGE, number=1, message=quantum.QuantumJobEvent)
-    next_page_token = proto.Field(proto.STRING, number=2)
+    events = proto.RepeatedField(
+        proto.MESSAGE,
+        number=1,
+        message=quantum.QuantumJobEvent,
+    )
+    next_page_token = proto.Field(
+        proto.STRING,
+        number=2,
+    )
 
 
 class GetQuantumResultRequest(proto.Message):
@@ -218,7 +286,10 @@ class GetQuantumResultRequest(proto.Message):
             -
     """
 
-    parent = proto.Field(proto.STRING, number=1)
+    parent = proto.Field(
+        proto.STRING,
+        number=1,
+    )
 
 
 class CreateQuantumProgramRequest(proto.Message):
@@ -233,9 +304,19 @@ class CreateQuantumProgramRequest(proto.Message):
             -
     """
 
-    parent = proto.Field(proto.STRING, number=1)
-    quantum_program = proto.Field(proto.MESSAGE, number=2, message=quantum.QuantumProgram)
-    overwrite_existing_source_code = proto.Field(proto.BOOL, number=3)
+    parent = proto.Field(
+        proto.STRING,
+        number=1,
+    )
+    quantum_program = proto.Field(
+        proto.MESSAGE,
+        number=2,
+        message=quantum.QuantumProgram,
+    )
+    overwrite_existing_source_code = proto.Field(
+        proto.BOOL,
+        number=3,
+    )
 
 
 class GetQuantumProgramRequest(proto.Message):
@@ -248,8 +329,14 @@ class GetQuantumProgramRequest(proto.Message):
             -
     """
 
-    name = proto.Field(proto.STRING, number=1)
-    return_code = proto.Field(proto.BOOL, number=2)
+    name = proto.Field(
+        proto.STRING,
+        number=1,
+    )
+    return_code = proto.Field(
+        proto.BOOL,
+        number=2,
+    )
 
 
 class ListQuantumProgramsRequest(proto.Message):
@@ -266,10 +353,22 @@ class ListQuantumProgramsRequest(proto.Message):
             -
     """
 
-    parent = proto.Field(proto.STRING, number=1)
-    page_size = proto.Field(proto.INT32, number=2)
-    page_token = proto.Field(proto.STRING, number=3)
-    filter = proto.Field(proto.STRING, number=4)
+    parent = proto.Field(
+        proto.STRING,
+        number=1,
+    )
+    page_size = proto.Field(
+        proto.INT32,
+        number=2,
+    )
+    page_token = proto.Field(
+        proto.STRING,
+        number=3,
+    )
+    filter = proto.Field(
+        proto.STRING,
+        number=4,
+    )
 
 
 class ListQuantumProgramsResponse(proto.Message):
@@ -286,8 +385,15 @@ class ListQuantumProgramsResponse(proto.Message):
     def raw_page(self):
         return self
 
-    programs = proto.RepeatedField(proto.MESSAGE, number=1, message=quantum.QuantumProgram)
-    next_page_token = proto.Field(proto.STRING, number=2)
+    programs = proto.RepeatedField(
+        proto.MESSAGE,
+        number=1,
+        message=quantum.QuantumProgram,
+    )
+    next_page_token = proto.Field(
+        proto.STRING,
+        number=2,
+    )
 
 
 class DeleteQuantumProgramRequest(proto.Message):
@@ -300,8 +406,14 @@ class DeleteQuantumProgramRequest(proto.Message):
             -
     """
 
-    name = proto.Field(proto.STRING, number=1)
-    delete_jobs = proto.Field(proto.BOOL, number=2)
+    name = proto.Field(
+        proto.STRING,
+        number=1,
+    )
+    delete_jobs = proto.Field(
+        proto.BOOL,
+        number=2,
+    )
 
 
 class UpdateQuantumProgramRequest(proto.Message):
@@ -316,9 +428,20 @@ class UpdateQuantumProgramRequest(proto.Message):
             -
     """
 
-    name = proto.Field(proto.STRING, number=1)
-    quantum_program = proto.Field(proto.MESSAGE, number=2, message=quantum.QuantumProgram)
-    update_mask = proto.Field(proto.MESSAGE, number=3, message=field_mask_pb2.FieldMask)
+    name = proto.Field(
+        proto.STRING,
+        number=1,
+    )
+    quantum_program = proto.Field(
+        proto.MESSAGE,
+        number=2,
+        message=quantum.QuantumProgram,
+    )
+    update_mask = proto.Field(
+        proto.MESSAGE,
+        number=3,
+        message=field_mask_pb2.FieldMask,
+    )
 
 
 class ListQuantumProcessorsRequest(proto.Message):
@@ -335,10 +458,22 @@ class ListQuantumProcessorsRequest(proto.Message):
             -
     """
 
-    parent = proto.Field(proto.STRING, number=1)
-    page_size = proto.Field(proto.INT32, number=2)
-    page_token = proto.Field(proto.STRING, number=3)
-    filter = proto.Field(proto.STRING, number=4)
+    parent = proto.Field(
+        proto.STRING,
+        number=1,
+    )
+    page_size = proto.Field(
+        proto.INT32,
+        number=2,
+    )
+    page_token = proto.Field(
+        proto.STRING,
+        number=3,
+    )
+    filter = proto.Field(
+        proto.STRING,
+        number=4,
+    )
 
 
 class ListQuantumProcessorsResponse(proto.Message):
@@ -355,8 +490,15 @@ class ListQuantumProcessorsResponse(proto.Message):
     def raw_page(self):
         return self
 
-    processors = proto.RepeatedField(proto.MESSAGE, number=1, message=quantum.QuantumProcessor)
-    next_page_token = proto.Field(proto.STRING, number=2)
+    processors = proto.RepeatedField(
+        proto.MESSAGE,
+        number=1,
+        message=quantum.QuantumProcessor,
+    )
+    next_page_token = proto.Field(
+        proto.STRING,
+        number=2,
+    )
 
 
 class GetQuantumProcessorRequest(proto.Message):
@@ -367,7 +509,10 @@ class GetQuantumProcessorRequest(proto.Message):
             -
     """
 
-    name = proto.Field(proto.STRING, number=1)
+    name = proto.Field(
+        proto.STRING,
+        number=1,
+    )
 
 
 class ListQuantumCalibrationsRequest(proto.Message):
@@ -385,18 +530,33 @@ class ListQuantumCalibrationsRequest(proto.Message):
         filter (str):
             -
     """
-
     class QuantumCalibrationView(proto.Enum):
         r"""-"""
         QUANTUM_CALIBRATION_VIEW_UNSPECIFIED = 0
         BASIC = 1
         FULL = 2
 
-    parent = proto.Field(proto.STRING, number=1)
-    view = proto.Field(proto.ENUM, number=5, enum=QuantumCalibrationView)
-    page_size = proto.Field(proto.INT32, number=2)
-    page_token = proto.Field(proto.STRING, number=3)
-    filter = proto.Field(proto.STRING, number=4)
+    parent = proto.Field(
+        proto.STRING,
+        number=1,
+    )
+    view = proto.Field(
+        proto.ENUM,
+        number=5,
+        enum=QuantumCalibrationView,
+    )
+    page_size = proto.Field(
+        proto.INT32,
+        number=2,
+    )
+    page_token = proto.Field(
+        proto.STRING,
+        number=3,
+    )
+    filter = proto.Field(
+        proto.STRING,
+        number=4,
+    )
 
 
 class ListQuantumCalibrationsResponse(proto.Message):
@@ -413,8 +573,15 @@ class ListQuantumCalibrationsResponse(proto.Message):
     def raw_page(self):
         return self
 
-    calibrations = proto.RepeatedField(proto.MESSAGE, number=1, message=quantum.QuantumCalibration)
-    next_page_token = proto.Field(proto.STRING, number=2)
+    calibrations = proto.RepeatedField(
+        proto.MESSAGE,
+        number=1,
+        message=quantum.QuantumCalibration,
+    )
+    next_page_token = proto.Field(
+        proto.STRING,
+        number=2,
+    )
 
 
 class GetQuantumCalibrationRequest(proto.Message):
@@ -425,7 +592,10 @@ class GetQuantumCalibrationRequest(proto.Message):
             -
     """
 
-    name = proto.Field(proto.STRING, number=1)
+    name = proto.Field(
+        proto.STRING,
+        number=1,
+    )
 
 
 class CreateQuantumReservationRequest(proto.Message):
@@ -438,8 +608,15 @@ class CreateQuantumReservationRequest(proto.Message):
             -
     """
 
-    parent = proto.Field(proto.STRING, number=1)
-    quantum_reservation = proto.Field(proto.MESSAGE, number=2, message=quantum.QuantumReservation)
+    parent = proto.Field(
+        proto.STRING,
+        number=1,
+    )
+    quantum_reservation = proto.Field(
+        proto.MESSAGE,
+        number=2,
+        message=quantum.QuantumReservation,
+    )
 
 
 class CancelQuantumReservationRequest(proto.Message):
@@ -450,7 +627,10 @@ class CancelQuantumReservationRequest(proto.Message):
             -
     """
 
-    name = proto.Field(proto.STRING, number=1)
+    name = proto.Field(
+        proto.STRING,
+        number=1,
+    )
 
 
 class DeleteQuantumReservationRequest(proto.Message):
@@ -461,7 +641,10 @@ class DeleteQuantumReservationRequest(proto.Message):
             -
     """
 
-    name = proto.Field(proto.STRING, number=1)
+    name = proto.Field(
+        proto.STRING,
+        number=1,
+    )
 
 
 class GetQuantumReservationRequest(proto.Message):
@@ -472,7 +655,10 @@ class GetQuantumReservationRequest(proto.Message):
             -
     """
 
-    name = proto.Field(proto.STRING, number=1)
+    name = proto.Field(
+        proto.STRING,
+        number=1,
+    )
 
 
 class ListQuantumReservationsRequest(proto.Message):
@@ -489,10 +675,22 @@ class ListQuantumReservationsRequest(proto.Message):
             -
     """
 
-    parent = proto.Field(proto.STRING, number=1)
-    page_size = proto.Field(proto.INT32, number=2)
-    page_token = proto.Field(proto.STRING, number=3)
-    filter = proto.Field(proto.STRING, number=4)
+    parent = proto.Field(
+        proto.STRING,
+        number=1,
+    )
+    page_size = proto.Field(
+        proto.INT32,
+        number=2,
+    )
+    page_token = proto.Field(
+        proto.STRING,
+        number=3,
+    )
+    filter = proto.Field(
+        proto.STRING,
+        number=4,
+    )
 
 
 class ListQuantumReservationsResponse(proto.Message):
@@ -509,8 +707,15 @@ class ListQuantumReservationsResponse(proto.Message):
     def raw_page(self):
         return self
 
-    reservations = proto.RepeatedField(proto.MESSAGE, number=1, message=quantum.QuantumReservation)
-    next_page_token = proto.Field(proto.STRING, number=2)
+    reservations = proto.RepeatedField(
+        proto.MESSAGE,
+        number=1,
+        message=quantum.QuantumReservation,
+    )
+    next_page_token = proto.Field(
+        proto.STRING,
+        number=2,
+    )
 
 
 class UpdateQuantumReservationRequest(proto.Message):
@@ -525,9 +730,20 @@ class UpdateQuantumReservationRequest(proto.Message):
             -
     """
 
-    name = proto.Field(proto.STRING, number=1)
-    quantum_reservation = proto.Field(proto.MESSAGE, number=2, message=quantum.QuantumReservation)
-    update_mask = proto.Field(proto.MESSAGE, number=3, message=field_mask_pb2.FieldMask)
+    name = proto.Field(
+        proto.STRING,
+        number=1,
+    )
+    quantum_reservation = proto.Field(
+        proto.MESSAGE,
+        number=2,
+        message=quantum.QuantumReservation,
+    )
+    update_mask = proto.Field(
+        proto.MESSAGE,
+        number=3,
+        message=field_mask_pb2.FieldMask,
+    )
 
 
 class QuantumRunStreamRequest(proto.Message):
@@ -559,16 +775,31 @@ class QuantumRunStreamRequest(proto.Message):
             This field is a member of `oneof`_ ``request``.
     """
 
-    message_id = proto.Field(proto.STRING, number=1)
-    parent = proto.Field(proto.STRING, number=2)
+    message_id = proto.Field(
+        proto.STRING,
+        number=1,
+    )
+    parent = proto.Field(
+        proto.STRING,
+        number=2,
+    )
     create_quantum_program_and_job = proto.Field(
-        proto.MESSAGE, number=3, oneof='request', message='CreateQuantumProgramAndJobRequest'
+        proto.MESSAGE,
+        number=3,
+        oneof='request',
+        message='CreateQuantumProgramAndJobRequest',
     )
     create_quantum_job = proto.Field(
-        proto.MESSAGE, number=4, oneof='request', message='CreateQuantumJobRequest'
+        proto.MESSAGE,
+        number=4,
+        oneof='request',
+        message='CreateQuantumJobRequest',
     )
     get_quantum_result = proto.Field(
-        proto.MESSAGE, number=5, oneof='request', message='GetQuantumResultRequest'
+        proto.MESSAGE,
+        number=5,
+        oneof='request',
+        message='GetQuantumResultRequest',
     )
 
 
@@ -584,9 +815,20 @@ class CreateQuantumProgramAndJobRequest(proto.Message):
             -
     """
 
-    parent = proto.Field(proto.STRING, number=1)
-    quantum_program = proto.Field(proto.MESSAGE, number=2, message=quantum.QuantumProgram)
-    quantum_job = proto.Field(proto.MESSAGE, number=3, message=quantum.QuantumJob)
+    parent = proto.Field(
+        proto.STRING,
+        number=1,
+    )
+    quantum_program = proto.Field(
+        proto.MESSAGE,
+        number=2,
+        message=quantum.QuantumProgram,
+    )
+    quantum_job = proto.Field(
+        proto.MESSAGE,
+        number=3,
+        message=quantum.QuantumJob,
+    )
 
 
 class QuantumRunStreamResponse(proto.Message):
@@ -616,10 +858,28 @@ class QuantumRunStreamResponse(proto.Message):
             This field is a member of `oneof`_ ``response``.
     """
 
-    message_id = proto.Field(proto.STRING, number=1)
-    error = proto.Field(proto.MESSAGE, number=2, oneof='response', message='StreamError')
-    job = proto.Field(proto.MESSAGE, number=3, oneof='response', message=quantum.QuantumJob)
-    result = proto.Field(proto.MESSAGE, number=4, oneof='response', message=quantum.QuantumResult)
+    message_id = proto.Field(
+        proto.STRING,
+        number=1,
+    )
+    error = proto.Field(
+        proto.MESSAGE,
+        number=2,
+        oneof='response',
+        message='StreamError',
+    )
+    job = proto.Field(
+        proto.MESSAGE,
+        number=3,
+        oneof='response',
+        message=quantum.QuantumJob,
+    )
+    result = proto.Field(
+        proto.MESSAGE,
+        number=4,
+        oneof='response',
+        message=quantum.QuantumResult,
+    )
 
 
 class StreamError(proto.Message):
@@ -631,7 +891,6 @@ class StreamError(proto.Message):
         message (str):
             -
     """
-
     class Code(proto.Enum):
         r"""-"""
         CODE_UNSPECIFIED = 0
@@ -645,8 +904,15 @@ class StreamError(proto.Message):
         PROCESSOR_DOES_NOT_EXIST = 8
         INVALID_PROCESSOR_FOR_JOB = 9
 
-    code = proto.Field(proto.ENUM, number=1, enum=Code)
-    message = proto.Field(proto.STRING, number=2)
+    code = proto.Field(
+        proto.ENUM,
+        number=1,
+        enum=Code,
+    )
+    message = proto.Field(
+        proto.STRING,
+        number=2,
+    )
 
 
 class ListQuantumReservationGrantsRequest(proto.Message):
@@ -663,10 +929,22 @@ class ListQuantumReservationGrantsRequest(proto.Message):
             -
     """
 
-    parent = proto.Field(proto.STRING, number=1)
-    page_size = proto.Field(proto.INT32, number=2)
-    page_token = proto.Field(proto.STRING, number=3)
-    filter = proto.Field(proto.STRING, number=4)
+    parent = proto.Field(
+        proto.STRING,
+        number=1,
+    )
+    page_size = proto.Field(
+        proto.INT32,
+        number=2,
+    )
+    page_token = proto.Field(
+        proto.STRING,
+        number=3,
+    )
+    filter = proto.Field(
+        proto.STRING,
+        number=4,
+    )
 
 
 class ListQuantumReservationGrantsResponse(proto.Message):
@@ -684,9 +962,14 @@ class ListQuantumReservationGrantsResponse(proto.Message):
         return self
 
     reservation_grants = proto.RepeatedField(
-        proto.MESSAGE, number=1, message=quantum.QuantumReservationGrant
+        proto.MESSAGE,
+        number=1,
+        message=quantum.QuantumReservationGrant,
     )
-    next_page_token = proto.Field(proto.STRING, number=2)
+    next_page_token = proto.Field(
+        proto.STRING,
+        number=2,
+    )
 
 
 class ReallocateQuantumReservationGrantRequest(proto.Message):
@@ -703,10 +986,23 @@ class ReallocateQuantumReservationGrantRequest(proto.Message):
             -
     """
 
-    name = proto.Field(proto.STRING, number=1)
-    source_project_id = proto.Field(proto.STRING, number=2)
-    target_project_id = proto.Field(proto.STRING, number=3)
-    duration = proto.Field(proto.MESSAGE, number=4, message=duration_pb2.Duration)
+    name = proto.Field(
+        proto.STRING,
+        number=1,
+    )
+    source_project_id = proto.Field(
+        proto.STRING,
+        number=2,
+    )
+    target_project_id = proto.Field(
+        proto.STRING,
+        number=3,
+    )
+    duration = proto.Field(
+        proto.MESSAGE,
+        number=4,
+        message=duration_pb2.Duration,
+    )
 
 
 class ListQuantumReservationBudgetsRequest(proto.Message):
@@ -723,10 +1019,22 @@ class ListQuantumReservationBudgetsRequest(proto.Message):
             -
     """
 
-    parent = proto.Field(proto.STRING, number=1)
-    page_size = proto.Field(proto.INT32, number=2)
-    page_token = proto.Field(proto.STRING, number=3)
-    filter = proto.Field(proto.STRING, number=4)
+    parent = proto.Field(
+        proto.STRING,
+        number=1,
+    )
+    page_size = proto.Field(
+        proto.INT32,
+        number=2,
+    )
+    page_token = proto.Field(
+        proto.STRING,
+        number=3,
+    )
+    filter = proto.Field(
+        proto.STRING,
+        number=4,
+    )
 
 
 class ListQuantumReservationBudgetsResponse(proto.Message):
@@ -744,9 +1052,14 @@ class ListQuantumReservationBudgetsResponse(proto.Message):
         return self
 
     reservation_budgets = proto.RepeatedField(
-        proto.MESSAGE, number=1, message=quantum.QuantumReservationBudget
+        proto.MESSAGE,
+        number=1,
+        message=quantum.QuantumReservationBudget,
     )
-    next_page_token = proto.Field(proto.STRING, number=2)
+    next_page_token = proto.Field(
+        proto.STRING,
+        number=2,
+    )
 
 
 class ListQuantumTimeSlotsRequest(proto.Message):
@@ -763,10 +1076,22 @@ class ListQuantumTimeSlotsRequest(proto.Message):
             -
     """
 
-    parent = proto.Field(proto.STRING, number=1)
-    page_size = proto.Field(proto.INT32, number=2)
-    page_token = proto.Field(proto.STRING, number=3)
-    filter = proto.Field(proto.STRING, number=4)
+    parent = proto.Field(
+        proto.STRING,
+        number=1,
+    )
+    page_size = proto.Field(
+        proto.INT32,
+        number=2,
+    )
+    page_token = proto.Field(
+        proto.STRING,
+        number=3,
+    )
+    filter = proto.Field(
+        proto.STRING,
+        number=4,
+    )
 
 
 class ListQuantumTimeSlotsResponse(proto.Message):
@@ -783,8 +1108,15 @@ class ListQuantumTimeSlotsResponse(proto.Message):
     def raw_page(self):
         return self
 
-    time_slots = proto.RepeatedField(proto.MESSAGE, number=1, message=quantum.QuantumTimeSlot)
-    next_page_token = proto.Field(proto.STRING, number=2)
+    time_slots = proto.RepeatedField(
+        proto.MESSAGE,
+        number=1,
+        message=quantum.QuantumTimeSlot,
+    )
+    next_page_token = proto.Field(
+        proto.STRING,
+        number=2,
+    )
 
 
 __all__ = tuple(sorted(__protobuf__.manifest))

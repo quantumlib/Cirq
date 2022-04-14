@@ -16,25 +16,15 @@
 from collections import OrderedDict
 import functools
 import re
-from typing import (
-    Dict,
-    Optional,
-    AsyncIterable,
-    Awaitable,
-    AsyncIterator,
-    Sequence,
-    Tuple,
-    Type,
-    Union,
-)
+from typing import Dict, Optional, AsyncIterable, Awaitable, AsyncIterator, Sequence, Tuple, Type, Union
 import pkg_resources
 
 from google.api_core.client_options import ClientOptions
 from google.api_core import exceptions as core_exceptions
 from google.api_core import gapic_v1
 from google.api_core import retry as retries
-from google.auth import credentials as ga_credentials  # type: ignore
-from google.oauth2 import service_account  # type: ignore
+from google.auth import credentials as ga_credentials   # type: ignore
+from google.oauth2 import service_account              # type: ignore
 
 try:
     OptionalRetry = Union[retries.Retry, gapic_v1.method._MethodDefault]
@@ -63,27 +53,17 @@ class QuantumEngineServiceAsyncClient:
     quantum_job_path = staticmethod(QuantumEngineServiceClient.quantum_job_path)
     parse_quantum_job_path = staticmethod(QuantumEngineServiceClient.parse_quantum_job_path)
     quantum_processor_path = staticmethod(QuantumEngineServiceClient.quantum_processor_path)
-    parse_quantum_processor_path = staticmethod(
-        QuantumEngineServiceClient.parse_quantum_processor_path
-    )
+    parse_quantum_processor_path = staticmethod(QuantumEngineServiceClient.parse_quantum_processor_path)
     quantum_program_path = staticmethod(QuantumEngineServiceClient.quantum_program_path)
     parse_quantum_program_path = staticmethod(QuantumEngineServiceClient.parse_quantum_program_path)
     quantum_reservation_path = staticmethod(QuantumEngineServiceClient.quantum_reservation_path)
-    parse_quantum_reservation_path = staticmethod(
-        QuantumEngineServiceClient.parse_quantum_reservation_path
-    )
-    common_billing_account_path = staticmethod(
-        QuantumEngineServiceClient.common_billing_account_path
-    )
-    parse_common_billing_account_path = staticmethod(
-        QuantumEngineServiceClient.parse_common_billing_account_path
-    )
+    parse_quantum_reservation_path = staticmethod(QuantumEngineServiceClient.parse_quantum_reservation_path)
+    common_billing_account_path = staticmethod(QuantumEngineServiceClient.common_billing_account_path)
+    parse_common_billing_account_path = staticmethod(QuantumEngineServiceClient.parse_common_billing_account_path)
     common_folder_path = staticmethod(QuantumEngineServiceClient.common_folder_path)
     parse_common_folder_path = staticmethod(QuantumEngineServiceClient.parse_common_folder_path)
     common_organization_path = staticmethod(QuantumEngineServiceClient.common_organization_path)
-    parse_common_organization_path = staticmethod(
-        QuantumEngineServiceClient.parse_common_organization_path
-    )
+    parse_common_organization_path = staticmethod(QuantumEngineServiceClient.parse_common_organization_path)
     common_project_path = staticmethod(QuantumEngineServiceClient.common_project_path)
     parse_common_project_path = staticmethod(QuantumEngineServiceClient.parse_common_project_path)
     common_location_path = staticmethod(QuantumEngineServiceClient.common_location_path)
@@ -165,18 +145,14 @@ class QuantumEngineServiceAsyncClient:
         """
         return self._client.transport
 
-    get_transport_class = functools.partial(
-        type(QuantumEngineServiceClient).get_transport_class, type(QuantumEngineServiceClient)
-    )
+    get_transport_class = functools.partial(type(QuantumEngineServiceClient).get_transport_class, type(QuantumEngineServiceClient))
 
-    def __init__(
-        self,
-        *,
-        credentials: ga_credentials.Credentials = None,
-        transport: Union[str, QuantumEngineServiceTransport] = "grpc_asyncio",
-        client_options: ClientOptions = None,
-        client_info: gapic_v1.client_info.ClientInfo = DEFAULT_CLIENT_INFO,
-    ) -> None:
+    def __init__(self, *,
+            credentials: ga_credentials.Credentials = None,
+            transport: Union[str, QuantumEngineServiceTransport] = "grpc_asyncio",
+            client_options: ClientOptions = None,
+            client_info: gapic_v1.client_info.ClientInfo = DEFAULT_CLIENT_INFO,
+            ) -> None:
         """Instantiates the quantum engine service client.
 
         Args:
@@ -214,16 +190,16 @@ class QuantumEngineServiceAsyncClient:
             transport=transport,
             client_options=client_options,
             client_info=client_info,
+
         )
 
-    async def create_quantum_program(
-        self,
-        request: Union[engine.CreateQuantumProgramRequest, dict] = None,
-        *,
-        retry: OptionalRetry = gapic_v1.method.DEFAULT,
-        timeout: float = None,
-        metadata: Sequence[Tuple[str, str]] = (),
-    ) -> quantum.QuantumProgram:
+    async def create_quantum_program(self,
+            request: Union[engine.CreateQuantumProgramRequest, dict] = None,
+            *,
+            retry: OptionalRetry = gapic_v1.method.DEFAULT,
+            timeout: float = None,
+            metadata: Sequence[Tuple[str, str]] = (),
+            ) -> quantum.QuantumProgram:
         r"""-
 
         .. code-block:: python
@@ -271,23 +247,29 @@ class QuantumEngineServiceAsyncClient:
         # Certain fields should be provided within the metadata header;
         # add these here.
         metadata = tuple(metadata) + (
-            gapic_v1.routing_header.to_grpc_metadata((("parent", request.parent),)),
+            gapic_v1.routing_header.to_grpc_metadata((
+                ("parent", request.parent),
+            )),
         )
 
         # Send the request.
-        response = await rpc(request, retry=retry, timeout=timeout, metadata=metadata)
+        response = await rpc(
+            request,
+            retry=retry,
+            timeout=timeout,
+            metadata=metadata,
+        )
 
         # Done; return the response.
         return response
 
-    async def get_quantum_program(
-        self,
-        request: Union[engine.GetQuantumProgramRequest, dict] = None,
-        *,
-        retry: OptionalRetry = gapic_v1.method.DEFAULT,
-        timeout: float = None,
-        metadata: Sequence[Tuple[str, str]] = (),
-    ) -> quantum.QuantumProgram:
+    async def get_quantum_program(self,
+            request: Union[engine.GetQuantumProgramRequest, dict] = None,
+            *,
+            retry: OptionalRetry = gapic_v1.method.DEFAULT,
+            timeout: float = None,
+            metadata: Sequence[Tuple[str, str]] = (),
+            ) -> quantum.QuantumProgram:
         r"""-
 
         .. code-block:: python
@@ -335,23 +317,29 @@ class QuantumEngineServiceAsyncClient:
         # Certain fields should be provided within the metadata header;
         # add these here.
         metadata = tuple(metadata) + (
-            gapic_v1.routing_header.to_grpc_metadata((("name", request.name),)),
+            gapic_v1.routing_header.to_grpc_metadata((
+                ("name", request.name),
+            )),
         )
 
         # Send the request.
-        response = await rpc(request, retry=retry, timeout=timeout, metadata=metadata)
+        response = await rpc(
+            request,
+            retry=retry,
+            timeout=timeout,
+            metadata=metadata,
+        )
 
         # Done; return the response.
         return response
 
-    async def list_quantum_programs(
-        self,
-        request: Union[engine.ListQuantumProgramsRequest, dict] = None,
-        *,
-        retry: OptionalRetry = gapic_v1.method.DEFAULT,
-        timeout: float = None,
-        metadata: Sequence[Tuple[str, str]] = (),
-    ) -> pagers.ListQuantumProgramsAsyncPager:
+    async def list_quantum_programs(self,
+            request: Union[engine.ListQuantumProgramsRequest, dict] = None,
+            *,
+            retry: OptionalRetry = gapic_v1.method.DEFAULT,
+            timeout: float = None,
+            metadata: Sequence[Tuple[str, str]] = (),
+            ) -> pagers.ListQuantumProgramsAsyncPager:
         r"""-
 
         .. code-block:: python
@@ -404,29 +392,38 @@ class QuantumEngineServiceAsyncClient:
         # Certain fields should be provided within the metadata header;
         # add these here.
         metadata = tuple(metadata) + (
-            gapic_v1.routing_header.to_grpc_metadata((("parent", request.parent),)),
+            gapic_v1.routing_header.to_grpc_metadata((
+                ("parent", request.parent),
+            )),
         )
 
         # Send the request.
-        response = await rpc(request, retry=retry, timeout=timeout, metadata=metadata)
+        response = await rpc(
+            request,
+            retry=retry,
+            timeout=timeout,
+            metadata=metadata,
+        )
 
         # This method is paged; wrap the response in a pager, which provides
         # an `__aiter__` convenience method.
         response = pagers.ListQuantumProgramsAsyncPager(
-            method=rpc, request=request, response=response, metadata=metadata
+            method=rpc,
+            request=request,
+            response=response,
+            metadata=metadata,
         )
 
         # Done; return the response.
         return response
 
-    async def delete_quantum_program(
-        self,
-        request: Union[engine.DeleteQuantumProgramRequest, dict] = None,
-        *,
-        retry: OptionalRetry = gapic_v1.method.DEFAULT,
-        timeout: float = None,
-        metadata: Sequence[Tuple[str, str]] = (),
-    ) -> None:
+    async def delete_quantum_program(self,
+            request: Union[engine.DeleteQuantumProgramRequest, dict] = None,
+            *,
+            retry: OptionalRetry = gapic_v1.method.DEFAULT,
+            timeout: float = None,
+            metadata: Sequence[Tuple[str, str]] = (),
+            ) -> None:
         r"""-
 
         .. code-block:: python
@@ -467,20 +464,26 @@ class QuantumEngineServiceAsyncClient:
         # Certain fields should be provided within the metadata header;
         # add these here.
         metadata = tuple(metadata) + (
-            gapic_v1.routing_header.to_grpc_metadata((("name", request.name),)),
+            gapic_v1.routing_header.to_grpc_metadata((
+                ("name", request.name),
+            )),
         )
 
         # Send the request.
-        await rpc(request, retry=retry, timeout=timeout, metadata=metadata)
+        await rpc(
+            request,
+            retry=retry,
+            timeout=timeout,
+            metadata=metadata,
+        )
 
-    async def update_quantum_program(
-        self,
-        request: Union[engine.UpdateQuantumProgramRequest, dict] = None,
-        *,
-        retry: OptionalRetry = gapic_v1.method.DEFAULT,
-        timeout: float = None,
-        metadata: Sequence[Tuple[str, str]] = (),
-    ) -> quantum.QuantumProgram:
+    async def update_quantum_program(self,
+            request: Union[engine.UpdateQuantumProgramRequest, dict] = None,
+            *,
+            retry: OptionalRetry = gapic_v1.method.DEFAULT,
+            timeout: float = None,
+            metadata: Sequence[Tuple[str, str]] = (),
+            ) -> quantum.QuantumProgram:
         r"""-
 
         .. code-block:: python
@@ -528,23 +531,29 @@ class QuantumEngineServiceAsyncClient:
         # Certain fields should be provided within the metadata header;
         # add these here.
         metadata = tuple(metadata) + (
-            gapic_v1.routing_header.to_grpc_metadata((("name", request.name),)),
+            gapic_v1.routing_header.to_grpc_metadata((
+                ("name", request.name),
+            )),
         )
 
         # Send the request.
-        response = await rpc(request, retry=retry, timeout=timeout, metadata=metadata)
+        response = await rpc(
+            request,
+            retry=retry,
+            timeout=timeout,
+            metadata=metadata,
+        )
 
         # Done; return the response.
         return response
 
-    async def create_quantum_job(
-        self,
-        request: Union[engine.CreateQuantumJobRequest, dict] = None,
-        *,
-        retry: OptionalRetry = gapic_v1.method.DEFAULT,
-        timeout: float = None,
-        metadata: Sequence[Tuple[str, str]] = (),
-    ) -> quantum.QuantumJob:
+    async def create_quantum_job(self,
+            request: Union[engine.CreateQuantumJobRequest, dict] = None,
+            *,
+            retry: OptionalRetry = gapic_v1.method.DEFAULT,
+            timeout: float = None,
+            metadata: Sequence[Tuple[str, str]] = (),
+            ) -> quantum.QuantumJob:
         r"""-
 
         .. code-block:: python
@@ -592,23 +601,29 @@ class QuantumEngineServiceAsyncClient:
         # Certain fields should be provided within the metadata header;
         # add these here.
         metadata = tuple(metadata) + (
-            gapic_v1.routing_header.to_grpc_metadata((("parent", request.parent),)),
+            gapic_v1.routing_header.to_grpc_metadata((
+                ("parent", request.parent),
+            )),
         )
 
         # Send the request.
-        response = await rpc(request, retry=retry, timeout=timeout, metadata=metadata)
+        response = await rpc(
+            request,
+            retry=retry,
+            timeout=timeout,
+            metadata=metadata,
+        )
 
         # Done; return the response.
         return response
 
-    async def get_quantum_job(
-        self,
-        request: Union[engine.GetQuantumJobRequest, dict] = None,
-        *,
-        retry: OptionalRetry = gapic_v1.method.DEFAULT,
-        timeout: float = None,
-        metadata: Sequence[Tuple[str, str]] = (),
-    ) -> quantum.QuantumJob:
+    async def get_quantum_job(self,
+            request: Union[engine.GetQuantumJobRequest, dict] = None,
+            *,
+            retry: OptionalRetry = gapic_v1.method.DEFAULT,
+            timeout: float = None,
+            metadata: Sequence[Tuple[str, str]] = (),
+            ) -> quantum.QuantumJob:
         r"""-
 
         .. code-block:: python
@@ -656,23 +671,29 @@ class QuantumEngineServiceAsyncClient:
         # Certain fields should be provided within the metadata header;
         # add these here.
         metadata = tuple(metadata) + (
-            gapic_v1.routing_header.to_grpc_metadata((("name", request.name),)),
+            gapic_v1.routing_header.to_grpc_metadata((
+                ("name", request.name),
+            )),
         )
 
         # Send the request.
-        response = await rpc(request, retry=retry, timeout=timeout, metadata=metadata)
+        response = await rpc(
+            request,
+            retry=retry,
+            timeout=timeout,
+            metadata=metadata,
+        )
 
         # Done; return the response.
         return response
 
-    async def list_quantum_jobs(
-        self,
-        request: Union[engine.ListQuantumJobsRequest, dict] = None,
-        *,
-        retry: OptionalRetry = gapic_v1.method.DEFAULT,
-        timeout: float = None,
-        metadata: Sequence[Tuple[str, str]] = (),
-    ) -> pagers.ListQuantumJobsAsyncPager:
+    async def list_quantum_jobs(self,
+            request: Union[engine.ListQuantumJobsRequest, dict] = None,
+            *,
+            retry: OptionalRetry = gapic_v1.method.DEFAULT,
+            timeout: float = None,
+            metadata: Sequence[Tuple[str, str]] = (),
+            ) -> pagers.ListQuantumJobsAsyncPager:
         r"""-
 
         .. code-block:: python
@@ -725,29 +746,38 @@ class QuantumEngineServiceAsyncClient:
         # Certain fields should be provided within the metadata header;
         # add these here.
         metadata = tuple(metadata) + (
-            gapic_v1.routing_header.to_grpc_metadata((("parent", request.parent),)),
+            gapic_v1.routing_header.to_grpc_metadata((
+                ("parent", request.parent),
+            )),
         )
 
         # Send the request.
-        response = await rpc(request, retry=retry, timeout=timeout, metadata=metadata)
+        response = await rpc(
+            request,
+            retry=retry,
+            timeout=timeout,
+            metadata=metadata,
+        )
 
         # This method is paged; wrap the response in a pager, which provides
         # an `__aiter__` convenience method.
         response = pagers.ListQuantumJobsAsyncPager(
-            method=rpc, request=request, response=response, metadata=metadata
+            method=rpc,
+            request=request,
+            response=response,
+            metadata=metadata,
         )
 
         # Done; return the response.
         return response
 
-    async def delete_quantum_job(
-        self,
-        request: Union[engine.DeleteQuantumJobRequest, dict] = None,
-        *,
-        retry: OptionalRetry = gapic_v1.method.DEFAULT,
-        timeout: float = None,
-        metadata: Sequence[Tuple[str, str]] = (),
-    ) -> None:
+    async def delete_quantum_job(self,
+            request: Union[engine.DeleteQuantumJobRequest, dict] = None,
+            *,
+            retry: OptionalRetry = gapic_v1.method.DEFAULT,
+            timeout: float = None,
+            metadata: Sequence[Tuple[str, str]] = (),
+            ) -> None:
         r"""-
 
         .. code-block:: python
@@ -788,20 +818,26 @@ class QuantumEngineServiceAsyncClient:
         # Certain fields should be provided within the metadata header;
         # add these here.
         metadata = tuple(metadata) + (
-            gapic_v1.routing_header.to_grpc_metadata((("name", request.name),)),
+            gapic_v1.routing_header.to_grpc_metadata((
+                ("name", request.name),
+            )),
         )
 
         # Send the request.
-        await rpc(request, retry=retry, timeout=timeout, metadata=metadata)
+        await rpc(
+            request,
+            retry=retry,
+            timeout=timeout,
+            metadata=metadata,
+        )
 
-    async def update_quantum_job(
-        self,
-        request: Union[engine.UpdateQuantumJobRequest, dict] = None,
-        *,
-        retry: OptionalRetry = gapic_v1.method.DEFAULT,
-        timeout: float = None,
-        metadata: Sequence[Tuple[str, str]] = (),
-    ) -> quantum.QuantumJob:
+    async def update_quantum_job(self,
+            request: Union[engine.UpdateQuantumJobRequest, dict] = None,
+            *,
+            retry: OptionalRetry = gapic_v1.method.DEFAULT,
+            timeout: float = None,
+            metadata: Sequence[Tuple[str, str]] = (),
+            ) -> quantum.QuantumJob:
         r"""-
 
         .. code-block:: python
@@ -849,23 +885,29 @@ class QuantumEngineServiceAsyncClient:
         # Certain fields should be provided within the metadata header;
         # add these here.
         metadata = tuple(metadata) + (
-            gapic_v1.routing_header.to_grpc_metadata((("name", request.name),)),
+            gapic_v1.routing_header.to_grpc_metadata((
+                ("name", request.name),
+            )),
         )
 
         # Send the request.
-        response = await rpc(request, retry=retry, timeout=timeout, metadata=metadata)
+        response = await rpc(
+            request,
+            retry=retry,
+            timeout=timeout,
+            metadata=metadata,
+        )
 
         # Done; return the response.
         return response
 
-    async def cancel_quantum_job(
-        self,
-        request: Union[engine.CancelQuantumJobRequest, dict] = None,
-        *,
-        retry: OptionalRetry = gapic_v1.method.DEFAULT,
-        timeout: float = None,
-        metadata: Sequence[Tuple[str, str]] = (),
-    ) -> None:
+    async def cancel_quantum_job(self,
+            request: Union[engine.CancelQuantumJobRequest, dict] = None,
+            *,
+            retry: OptionalRetry = gapic_v1.method.DEFAULT,
+            timeout: float = None,
+            metadata: Sequence[Tuple[str, str]] = (),
+            ) -> None:
         r"""-
 
         .. code-block:: python
@@ -906,20 +948,26 @@ class QuantumEngineServiceAsyncClient:
         # Certain fields should be provided within the metadata header;
         # add these here.
         metadata = tuple(metadata) + (
-            gapic_v1.routing_header.to_grpc_metadata((("name", request.name),)),
+            gapic_v1.routing_header.to_grpc_metadata((
+                ("name", request.name),
+            )),
         )
 
         # Send the request.
-        await rpc(request, retry=retry, timeout=timeout, metadata=metadata)
+        await rpc(
+            request,
+            retry=retry,
+            timeout=timeout,
+            metadata=metadata,
+        )
 
-    async def list_quantum_job_events(
-        self,
-        request: Union[engine.ListQuantumJobEventsRequest, dict] = None,
-        *,
-        retry: OptionalRetry = gapic_v1.method.DEFAULT,
-        timeout: float = None,
-        metadata: Sequence[Tuple[str, str]] = (),
-    ) -> pagers.ListQuantumJobEventsAsyncPager:
+    async def list_quantum_job_events(self,
+            request: Union[engine.ListQuantumJobEventsRequest, dict] = None,
+            *,
+            retry: OptionalRetry = gapic_v1.method.DEFAULT,
+            timeout: float = None,
+            metadata: Sequence[Tuple[str, str]] = (),
+            ) -> pagers.ListQuantumJobEventsAsyncPager:
         r"""-
 
         .. code-block:: python
@@ -972,29 +1020,38 @@ class QuantumEngineServiceAsyncClient:
         # Certain fields should be provided within the metadata header;
         # add these here.
         metadata = tuple(metadata) + (
-            gapic_v1.routing_header.to_grpc_metadata((("parent", request.parent),)),
+            gapic_v1.routing_header.to_grpc_metadata((
+                ("parent", request.parent),
+            )),
         )
 
         # Send the request.
-        response = await rpc(request, retry=retry, timeout=timeout, metadata=metadata)
+        response = await rpc(
+            request,
+            retry=retry,
+            timeout=timeout,
+            metadata=metadata,
+        )
 
         # This method is paged; wrap the response in a pager, which provides
         # an `__aiter__` convenience method.
         response = pagers.ListQuantumJobEventsAsyncPager(
-            method=rpc, request=request, response=response, metadata=metadata
+            method=rpc,
+            request=request,
+            response=response,
+            metadata=metadata,
         )
 
         # Done; return the response.
         return response
 
-    async def get_quantum_result(
-        self,
-        request: Union[engine.GetQuantumResultRequest, dict] = None,
-        *,
-        retry: OptionalRetry = gapic_v1.method.DEFAULT,
-        timeout: float = None,
-        metadata: Sequence[Tuple[str, str]] = (),
-    ) -> quantum.QuantumResult:
+    async def get_quantum_result(self,
+            request: Union[engine.GetQuantumResultRequest, dict] = None,
+            *,
+            retry: OptionalRetry = gapic_v1.method.DEFAULT,
+            timeout: float = None,
+            metadata: Sequence[Tuple[str, str]] = (),
+            ) -> quantum.QuantumResult:
         r"""-
 
         .. code-block:: python
@@ -1042,23 +1099,29 @@ class QuantumEngineServiceAsyncClient:
         # Certain fields should be provided within the metadata header;
         # add these here.
         metadata = tuple(metadata) + (
-            gapic_v1.routing_header.to_grpc_metadata((("parent", request.parent),)),
+            gapic_v1.routing_header.to_grpc_metadata((
+                ("parent", request.parent),
+            )),
         )
 
         # Send the request.
-        response = await rpc(request, retry=retry, timeout=timeout, metadata=metadata)
+        response = await rpc(
+            request,
+            retry=retry,
+            timeout=timeout,
+            metadata=metadata,
+        )
 
         # Done; return the response.
         return response
 
-    async def list_quantum_processors(
-        self,
-        request: Union[engine.ListQuantumProcessorsRequest, dict] = None,
-        *,
-        retry: OptionalRetry = gapic_v1.method.DEFAULT,
-        timeout: float = None,
-        metadata: Sequence[Tuple[str, str]] = (),
-    ) -> pagers.ListQuantumProcessorsAsyncPager:
+    async def list_quantum_processors(self,
+            request: Union[engine.ListQuantumProcessorsRequest, dict] = None,
+            *,
+            retry: OptionalRetry = gapic_v1.method.DEFAULT,
+            timeout: float = None,
+            metadata: Sequence[Tuple[str, str]] = (),
+            ) -> pagers.ListQuantumProcessorsAsyncPager:
         r"""-
 
         .. code-block:: python
@@ -1111,29 +1174,38 @@ class QuantumEngineServiceAsyncClient:
         # Certain fields should be provided within the metadata header;
         # add these here.
         metadata = tuple(metadata) + (
-            gapic_v1.routing_header.to_grpc_metadata((("parent", request.parent),)),
+            gapic_v1.routing_header.to_grpc_metadata((
+                ("parent", request.parent),
+            )),
         )
 
         # Send the request.
-        response = await rpc(request, retry=retry, timeout=timeout, metadata=metadata)
+        response = await rpc(
+            request,
+            retry=retry,
+            timeout=timeout,
+            metadata=metadata,
+        )
 
         # This method is paged; wrap the response in a pager, which provides
         # an `__aiter__` convenience method.
         response = pagers.ListQuantumProcessorsAsyncPager(
-            method=rpc, request=request, response=response, metadata=metadata
+            method=rpc,
+            request=request,
+            response=response,
+            metadata=metadata,
         )
 
         # Done; return the response.
         return response
 
-    async def get_quantum_processor(
-        self,
-        request: Union[engine.GetQuantumProcessorRequest, dict] = None,
-        *,
-        retry: OptionalRetry = gapic_v1.method.DEFAULT,
-        timeout: float = None,
-        metadata: Sequence[Tuple[str, str]] = (),
-    ) -> quantum.QuantumProcessor:
+    async def get_quantum_processor(self,
+            request: Union[engine.GetQuantumProcessorRequest, dict] = None,
+            *,
+            retry: OptionalRetry = gapic_v1.method.DEFAULT,
+            timeout: float = None,
+            metadata: Sequence[Tuple[str, str]] = (),
+            ) -> quantum.QuantumProcessor:
         r"""-
 
         .. code-block:: python
@@ -1181,23 +1253,29 @@ class QuantumEngineServiceAsyncClient:
         # Certain fields should be provided within the metadata header;
         # add these here.
         metadata = tuple(metadata) + (
-            gapic_v1.routing_header.to_grpc_metadata((("name", request.name),)),
+            gapic_v1.routing_header.to_grpc_metadata((
+                ("name", request.name),
+            )),
         )
 
         # Send the request.
-        response = await rpc(request, retry=retry, timeout=timeout, metadata=metadata)
+        response = await rpc(
+            request,
+            retry=retry,
+            timeout=timeout,
+            metadata=metadata,
+        )
 
         # Done; return the response.
         return response
 
-    async def list_quantum_calibrations(
-        self,
-        request: Union[engine.ListQuantumCalibrationsRequest, dict] = None,
-        *,
-        retry: OptionalRetry = gapic_v1.method.DEFAULT,
-        timeout: float = None,
-        metadata: Sequence[Tuple[str, str]] = (),
-    ) -> pagers.ListQuantumCalibrationsAsyncPager:
+    async def list_quantum_calibrations(self,
+            request: Union[engine.ListQuantumCalibrationsRequest, dict] = None,
+            *,
+            retry: OptionalRetry = gapic_v1.method.DEFAULT,
+            timeout: float = None,
+            metadata: Sequence[Tuple[str, str]] = (),
+            ) -> pagers.ListQuantumCalibrationsAsyncPager:
         r"""-
 
         .. code-block:: python
@@ -1250,29 +1328,38 @@ class QuantumEngineServiceAsyncClient:
         # Certain fields should be provided within the metadata header;
         # add these here.
         metadata = tuple(metadata) + (
-            gapic_v1.routing_header.to_grpc_metadata((("parent", request.parent),)),
+            gapic_v1.routing_header.to_grpc_metadata((
+                ("parent", request.parent),
+            )),
         )
 
         # Send the request.
-        response = await rpc(request, retry=retry, timeout=timeout, metadata=metadata)
+        response = await rpc(
+            request,
+            retry=retry,
+            timeout=timeout,
+            metadata=metadata,
+        )
 
         # This method is paged; wrap the response in a pager, which provides
         # an `__aiter__` convenience method.
         response = pagers.ListQuantumCalibrationsAsyncPager(
-            method=rpc, request=request, response=response, metadata=metadata
+            method=rpc,
+            request=request,
+            response=response,
+            metadata=metadata,
         )
 
         # Done; return the response.
         return response
 
-    async def get_quantum_calibration(
-        self,
-        request: Union[engine.GetQuantumCalibrationRequest, dict] = None,
-        *,
-        retry: OptionalRetry = gapic_v1.method.DEFAULT,
-        timeout: float = None,
-        metadata: Sequence[Tuple[str, str]] = (),
-    ) -> quantum.QuantumCalibration:
+    async def get_quantum_calibration(self,
+            request: Union[engine.GetQuantumCalibrationRequest, dict] = None,
+            *,
+            retry: OptionalRetry = gapic_v1.method.DEFAULT,
+            timeout: float = None,
+            metadata: Sequence[Tuple[str, str]] = (),
+            ) -> quantum.QuantumCalibration:
         r"""-
 
         .. code-block:: python
@@ -1320,23 +1407,29 @@ class QuantumEngineServiceAsyncClient:
         # Certain fields should be provided within the metadata header;
         # add these here.
         metadata = tuple(metadata) + (
-            gapic_v1.routing_header.to_grpc_metadata((("name", request.name),)),
+            gapic_v1.routing_header.to_grpc_metadata((
+                ("name", request.name),
+            )),
         )
 
         # Send the request.
-        response = await rpc(request, retry=retry, timeout=timeout, metadata=metadata)
+        response = await rpc(
+            request,
+            retry=retry,
+            timeout=timeout,
+            metadata=metadata,
+        )
 
         # Done; return the response.
         return response
 
-    async def create_quantum_reservation(
-        self,
-        request: Union[engine.CreateQuantumReservationRequest, dict] = None,
-        *,
-        retry: OptionalRetry = gapic_v1.method.DEFAULT,
-        timeout: float = None,
-        metadata: Sequence[Tuple[str, str]] = (),
-    ) -> quantum.QuantumReservation:
+    async def create_quantum_reservation(self,
+            request: Union[engine.CreateQuantumReservationRequest, dict] = None,
+            *,
+            retry: OptionalRetry = gapic_v1.method.DEFAULT,
+            timeout: float = None,
+            metadata: Sequence[Tuple[str, str]] = (),
+            ) -> quantum.QuantumReservation:
         r"""-
 
         .. code-block:: python
@@ -1384,23 +1477,29 @@ class QuantumEngineServiceAsyncClient:
         # Certain fields should be provided within the metadata header;
         # add these here.
         metadata = tuple(metadata) + (
-            gapic_v1.routing_header.to_grpc_metadata((("parent", request.parent),)),
+            gapic_v1.routing_header.to_grpc_metadata((
+                ("parent", request.parent),
+            )),
         )
 
         # Send the request.
-        response = await rpc(request, retry=retry, timeout=timeout, metadata=metadata)
+        response = await rpc(
+            request,
+            retry=retry,
+            timeout=timeout,
+            metadata=metadata,
+        )
 
         # Done; return the response.
         return response
 
-    async def cancel_quantum_reservation(
-        self,
-        request: Union[engine.CancelQuantumReservationRequest, dict] = None,
-        *,
-        retry: OptionalRetry = gapic_v1.method.DEFAULT,
-        timeout: float = None,
-        metadata: Sequence[Tuple[str, str]] = (),
-    ) -> quantum.QuantumReservation:
+    async def cancel_quantum_reservation(self,
+            request: Union[engine.CancelQuantumReservationRequest, dict] = None,
+            *,
+            retry: OptionalRetry = gapic_v1.method.DEFAULT,
+            timeout: float = None,
+            metadata: Sequence[Tuple[str, str]] = (),
+            ) -> quantum.QuantumReservation:
         r"""-
 
         .. code-block:: python
@@ -1448,23 +1547,29 @@ class QuantumEngineServiceAsyncClient:
         # Certain fields should be provided within the metadata header;
         # add these here.
         metadata = tuple(metadata) + (
-            gapic_v1.routing_header.to_grpc_metadata((("name", request.name),)),
+            gapic_v1.routing_header.to_grpc_metadata((
+                ("name", request.name),
+            )),
         )
 
         # Send the request.
-        response = await rpc(request, retry=retry, timeout=timeout, metadata=metadata)
+        response = await rpc(
+            request,
+            retry=retry,
+            timeout=timeout,
+            metadata=metadata,
+        )
 
         # Done; return the response.
         return response
 
-    async def delete_quantum_reservation(
-        self,
-        request: Union[engine.DeleteQuantumReservationRequest, dict] = None,
-        *,
-        retry: OptionalRetry = gapic_v1.method.DEFAULT,
-        timeout: float = None,
-        metadata: Sequence[Tuple[str, str]] = (),
-    ) -> None:
+    async def delete_quantum_reservation(self,
+            request: Union[engine.DeleteQuantumReservationRequest, dict] = None,
+            *,
+            retry: OptionalRetry = gapic_v1.method.DEFAULT,
+            timeout: float = None,
+            metadata: Sequence[Tuple[str, str]] = (),
+            ) -> None:
         r"""-
 
         .. code-block:: python
@@ -1505,20 +1610,26 @@ class QuantumEngineServiceAsyncClient:
         # Certain fields should be provided within the metadata header;
         # add these here.
         metadata = tuple(metadata) + (
-            gapic_v1.routing_header.to_grpc_metadata((("name", request.name),)),
+            gapic_v1.routing_header.to_grpc_metadata((
+                ("name", request.name),
+            )),
         )
 
         # Send the request.
-        await rpc(request, retry=retry, timeout=timeout, metadata=metadata)
+        await rpc(
+            request,
+            retry=retry,
+            timeout=timeout,
+            metadata=metadata,
+        )
 
-    async def get_quantum_reservation(
-        self,
-        request: Union[engine.GetQuantumReservationRequest, dict] = None,
-        *,
-        retry: OptionalRetry = gapic_v1.method.DEFAULT,
-        timeout: float = None,
-        metadata: Sequence[Tuple[str, str]] = (),
-    ) -> quantum.QuantumReservation:
+    async def get_quantum_reservation(self,
+            request: Union[engine.GetQuantumReservationRequest, dict] = None,
+            *,
+            retry: OptionalRetry = gapic_v1.method.DEFAULT,
+            timeout: float = None,
+            metadata: Sequence[Tuple[str, str]] = (),
+            ) -> quantum.QuantumReservation:
         r"""-
 
         .. code-block:: python
@@ -1566,23 +1677,29 @@ class QuantumEngineServiceAsyncClient:
         # Certain fields should be provided within the metadata header;
         # add these here.
         metadata = tuple(metadata) + (
-            gapic_v1.routing_header.to_grpc_metadata((("name", request.name),)),
+            gapic_v1.routing_header.to_grpc_metadata((
+                ("name", request.name),
+            )),
         )
 
         # Send the request.
-        response = await rpc(request, retry=retry, timeout=timeout, metadata=metadata)
+        response = await rpc(
+            request,
+            retry=retry,
+            timeout=timeout,
+            metadata=metadata,
+        )
 
         # Done; return the response.
         return response
 
-    async def list_quantum_reservations(
-        self,
-        request: Union[engine.ListQuantumReservationsRequest, dict] = None,
-        *,
-        retry: OptionalRetry = gapic_v1.method.DEFAULT,
-        timeout: float = None,
-        metadata: Sequence[Tuple[str, str]] = (),
-    ) -> pagers.ListQuantumReservationsAsyncPager:
+    async def list_quantum_reservations(self,
+            request: Union[engine.ListQuantumReservationsRequest, dict] = None,
+            *,
+            retry: OptionalRetry = gapic_v1.method.DEFAULT,
+            timeout: float = None,
+            metadata: Sequence[Tuple[str, str]] = (),
+            ) -> pagers.ListQuantumReservationsAsyncPager:
         r"""-
 
         .. code-block:: python
@@ -1635,29 +1752,38 @@ class QuantumEngineServiceAsyncClient:
         # Certain fields should be provided within the metadata header;
         # add these here.
         metadata = tuple(metadata) + (
-            gapic_v1.routing_header.to_grpc_metadata((("parent", request.parent),)),
+            gapic_v1.routing_header.to_grpc_metadata((
+                ("parent", request.parent),
+            )),
         )
 
         # Send the request.
-        response = await rpc(request, retry=retry, timeout=timeout, metadata=metadata)
+        response = await rpc(
+            request,
+            retry=retry,
+            timeout=timeout,
+            metadata=metadata,
+        )
 
         # This method is paged; wrap the response in a pager, which provides
         # an `__aiter__` convenience method.
         response = pagers.ListQuantumReservationsAsyncPager(
-            method=rpc, request=request, response=response, metadata=metadata
+            method=rpc,
+            request=request,
+            response=response,
+            metadata=metadata,
         )
 
         # Done; return the response.
         return response
 
-    async def update_quantum_reservation(
-        self,
-        request: Union[engine.UpdateQuantumReservationRequest, dict] = None,
-        *,
-        retry: OptionalRetry = gapic_v1.method.DEFAULT,
-        timeout: float = None,
-        metadata: Sequence[Tuple[str, str]] = (),
-    ) -> quantum.QuantumReservation:
+    async def update_quantum_reservation(self,
+            request: Union[engine.UpdateQuantumReservationRequest, dict] = None,
+            *,
+            retry: OptionalRetry = gapic_v1.method.DEFAULT,
+            timeout: float = None,
+            metadata: Sequence[Tuple[str, str]] = (),
+            ) -> quantum.QuantumReservation:
         r"""-
 
         .. code-block:: python
@@ -1705,23 +1831,29 @@ class QuantumEngineServiceAsyncClient:
         # Certain fields should be provided within the metadata header;
         # add these here.
         metadata = tuple(metadata) + (
-            gapic_v1.routing_header.to_grpc_metadata((("name", request.name),)),
+            gapic_v1.routing_header.to_grpc_metadata((
+                ("name", request.name),
+            )),
         )
 
         # Send the request.
-        response = await rpc(request, retry=retry, timeout=timeout, metadata=metadata)
+        response = await rpc(
+            request,
+            retry=retry,
+            timeout=timeout,
+            metadata=metadata,
+        )
 
         # Done; return the response.
         return response
 
-    def quantum_run_stream(
-        self,
-        requests: AsyncIterator[engine.QuantumRunStreamRequest] = None,
-        *,
-        retry: OptionalRetry = gapic_v1.method.DEFAULT,
-        timeout: float = None,
-        metadata: Sequence[Tuple[str, str]] = (),
-    ) -> Awaitable[AsyncIterable[engine.QuantumRunStreamResponse]]:
+    def quantum_run_stream(self,
+            requests: AsyncIterator[engine.QuantumRunStreamRequest] = None,
+            *,
+            retry: OptionalRetry = gapic_v1.method.DEFAULT,
+            timeout: float = None,
+            metadata: Sequence[Tuple[str, str]] = (),
+            ) -> Awaitable[AsyncIterable[engine.QuantumRunStreamResponse]]:
         r"""-
 
         .. code-block:: python
@@ -1776,19 +1908,23 @@ class QuantumEngineServiceAsyncClient:
         )
 
         # Send the request.
-        response = rpc(requests, retry=retry, timeout=timeout, metadata=metadata)
+        response = rpc(
+            requests,
+            retry=retry,
+            timeout=timeout,
+            metadata=metadata,
+        )
 
         # Done; return the response.
         return response
 
-    async def list_quantum_reservation_grants(
-        self,
-        request: Union[engine.ListQuantumReservationGrantsRequest, dict] = None,
-        *,
-        retry: OptionalRetry = gapic_v1.method.DEFAULT,
-        timeout: float = None,
-        metadata: Sequence[Tuple[str, str]] = (),
-    ) -> pagers.ListQuantumReservationGrantsAsyncPager:
+    async def list_quantum_reservation_grants(self,
+            request: Union[engine.ListQuantumReservationGrantsRequest, dict] = None,
+            *,
+            retry: OptionalRetry = gapic_v1.method.DEFAULT,
+            timeout: float = None,
+            metadata: Sequence[Tuple[str, str]] = (),
+            ) -> pagers.ListQuantumReservationGrantsAsyncPager:
         r"""-
 
         .. code-block:: python
@@ -1841,29 +1977,38 @@ class QuantumEngineServiceAsyncClient:
         # Certain fields should be provided within the metadata header;
         # add these here.
         metadata = tuple(metadata) + (
-            gapic_v1.routing_header.to_grpc_metadata((("parent", request.parent),)),
+            gapic_v1.routing_header.to_grpc_metadata((
+                ("parent", request.parent),
+            )),
         )
 
         # Send the request.
-        response = await rpc(request, retry=retry, timeout=timeout, metadata=metadata)
+        response = await rpc(
+            request,
+            retry=retry,
+            timeout=timeout,
+            metadata=metadata,
+        )
 
         # This method is paged; wrap the response in a pager, which provides
         # an `__aiter__` convenience method.
         response = pagers.ListQuantumReservationGrantsAsyncPager(
-            method=rpc, request=request, response=response, metadata=metadata
+            method=rpc,
+            request=request,
+            response=response,
+            metadata=metadata,
         )
 
         # Done; return the response.
         return response
 
-    async def reallocate_quantum_reservation_grant(
-        self,
-        request: Union[engine.ReallocateQuantumReservationGrantRequest, dict] = None,
-        *,
-        retry: OptionalRetry = gapic_v1.method.DEFAULT,
-        timeout: float = None,
-        metadata: Sequence[Tuple[str, str]] = (),
-    ) -> quantum.QuantumReservationGrant:
+    async def reallocate_quantum_reservation_grant(self,
+            request: Union[engine.ReallocateQuantumReservationGrantRequest, dict] = None,
+            *,
+            retry: OptionalRetry = gapic_v1.method.DEFAULT,
+            timeout: float = None,
+            metadata: Sequence[Tuple[str, str]] = (),
+            ) -> quantum.QuantumReservationGrant:
         r"""-
 
         .. code-block:: python
@@ -1911,23 +2056,29 @@ class QuantumEngineServiceAsyncClient:
         # Certain fields should be provided within the metadata header;
         # add these here.
         metadata = tuple(metadata) + (
-            gapic_v1.routing_header.to_grpc_metadata((("name", request.name),)),
+            gapic_v1.routing_header.to_grpc_metadata((
+                ("name", request.name),
+            )),
         )
 
         # Send the request.
-        response = await rpc(request, retry=retry, timeout=timeout, metadata=metadata)
+        response = await rpc(
+            request,
+            retry=retry,
+            timeout=timeout,
+            metadata=metadata,
+        )
 
         # Done; return the response.
         return response
 
-    async def list_quantum_reservation_budgets(
-        self,
-        request: Union[engine.ListQuantumReservationBudgetsRequest, dict] = None,
-        *,
-        retry: OptionalRetry = gapic_v1.method.DEFAULT,
-        timeout: float = None,
-        metadata: Sequence[Tuple[str, str]] = (),
-    ) -> pagers.ListQuantumReservationBudgetsAsyncPager:
+    async def list_quantum_reservation_budgets(self,
+            request: Union[engine.ListQuantumReservationBudgetsRequest, dict] = None,
+            *,
+            retry: OptionalRetry = gapic_v1.method.DEFAULT,
+            timeout: float = None,
+            metadata: Sequence[Tuple[str, str]] = (),
+            ) -> pagers.ListQuantumReservationBudgetsAsyncPager:
         r"""-
 
         .. code-block:: python
@@ -1980,29 +2131,38 @@ class QuantumEngineServiceAsyncClient:
         # Certain fields should be provided within the metadata header;
         # add these here.
         metadata = tuple(metadata) + (
-            gapic_v1.routing_header.to_grpc_metadata((("parent", request.parent),)),
+            gapic_v1.routing_header.to_grpc_metadata((
+                ("parent", request.parent),
+            )),
         )
 
         # Send the request.
-        response = await rpc(request, retry=retry, timeout=timeout, metadata=metadata)
+        response = await rpc(
+            request,
+            retry=retry,
+            timeout=timeout,
+            metadata=metadata,
+        )
 
         # This method is paged; wrap the response in a pager, which provides
         # an `__aiter__` convenience method.
         response = pagers.ListQuantumReservationBudgetsAsyncPager(
-            method=rpc, request=request, response=response, metadata=metadata
+            method=rpc,
+            request=request,
+            response=response,
+            metadata=metadata,
         )
 
         # Done; return the response.
         return response
 
-    async def list_quantum_time_slots(
-        self,
-        request: Union[engine.ListQuantumTimeSlotsRequest, dict] = None,
-        *,
-        retry: OptionalRetry = gapic_v1.method.DEFAULT,
-        timeout: float = None,
-        metadata: Sequence[Tuple[str, str]] = (),
-    ) -> pagers.ListQuantumTimeSlotsAsyncPager:
+    async def list_quantum_time_slots(self,
+            request: Union[engine.ListQuantumTimeSlotsRequest, dict] = None,
+            *,
+            retry: OptionalRetry = gapic_v1.method.DEFAULT,
+            timeout: float = None,
+            metadata: Sequence[Tuple[str, str]] = (),
+            ) -> pagers.ListQuantumTimeSlotsAsyncPager:
         r"""-
 
         .. code-block:: python
@@ -2055,16 +2215,26 @@ class QuantumEngineServiceAsyncClient:
         # Certain fields should be provided within the metadata header;
         # add these here.
         metadata = tuple(metadata) + (
-            gapic_v1.routing_header.to_grpc_metadata((("parent", request.parent),)),
+            gapic_v1.routing_header.to_grpc_metadata((
+                ("parent", request.parent),
+            )),
         )
 
         # Send the request.
-        response = await rpc(request, retry=retry, timeout=timeout, metadata=metadata)
+        response = await rpc(
+            request,
+            retry=retry,
+            timeout=timeout,
+            metadata=metadata,
+        )
 
         # This method is paged; wrap the response in a pager, which provides
         # an `__aiter__` convenience method.
         response = pagers.ListQuantumTimeSlotsAsyncPager(
-            method=rpc, request=request, response=response, metadata=metadata
+            method=rpc,
+            request=request,
+            response=response,
+            metadata=metadata,
         )
 
         # Done; return the response.
@@ -2076,13 +2246,16 @@ class QuantumEngineServiceAsyncClient:
     async def __aexit__(self, exc_type, exc, tb):
         await self.transport.close()
 
-
 try:
     DEFAULT_CLIENT_INFO = gapic_v1.client_info.ClientInfo(
-        gapic_version=pkg_resources.get_distribution("google-cloud-quantum").version
+        gapic_version=pkg_resources.get_distribution(
+            "google-cloud-quantum",
+        ).version,
     )
 except pkg_resources.DistributionNotFound:
     DEFAULT_CLIENT_INFO = gapic_v1.client_info.ClientInfo()
 
 
-__all__ = ("QuantumEngineServiceAsyncClient",)
+__all__ = (
+    "QuantumEngineServiceAsyncClient",
+)
