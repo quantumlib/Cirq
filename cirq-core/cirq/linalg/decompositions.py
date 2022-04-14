@@ -184,9 +184,7 @@ def map_eigenvalues(
     return total
 
 
-def kron_factor_4x4_to_2x2s(
-    matrix: np.ndarray,
-) -> Tuple[complex, np.ndarray, np.ndarray]:
+def kron_factor_4x4_to_2x2s(matrix: np.ndarray) -> Tuple[complex, np.ndarray, np.ndarray]:
     """Splits a 4x4 matrix U = kron(A, B) into A, B, and a global factor.
 
     Requires the matrix to be the kronecker product of two 2x2 unitaries.

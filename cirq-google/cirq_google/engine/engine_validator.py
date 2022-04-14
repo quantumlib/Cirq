@@ -24,14 +24,12 @@ MAX_MOMENTS = 10000
 MAX_TOTAL_REPETITIONS = 5_000_000
 
 GATE_SET_VALIDATOR_TYPE = Callable[
-    [Sequence[cirq.AbstractCircuit], Sequence[cirq.Sweepable], int, 'Serializer'],
-    None,
+    [Sequence[cirq.AbstractCircuit], Sequence[cirq.Sweepable], int, 'Serializer'], None,
 ]
 
 
 def _validate_depth(
-    circuits: Sequence[cirq.AbstractCircuit],
-    max_moments: int = MAX_MOMENTS,
+    circuits: Sequence[cirq.AbstractCircuit], max_moments: int = MAX_MOMENTS
 ) -> None:
     """Validate that the depth of the circuit is not too long (too many moments)."""
     for circuit in circuits:

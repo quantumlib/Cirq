@@ -302,8 +302,7 @@ def xmon_op_from_proto(proto: operations_pb2.Operation) -> cirq.Operation:
     if proto.HasField('exp_w'):
         exp_w = proto.exp_w
         return cirq.PhasedXPowGate(
-            exponent=param(exp_w.half_turns),
-            phase_exponent=param(exp_w.axis_half_turns),
+            exponent=param(exp_w.half_turns), phase_exponent=param(exp_w.axis_half_turns)
         ).on(qubit(exp_w.target))
     if proto.HasField('exp_z'):
         exp_z = proto.exp_z

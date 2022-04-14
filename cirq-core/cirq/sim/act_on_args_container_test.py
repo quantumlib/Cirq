@@ -39,17 +39,10 @@ class EmptyQuantumState(cirq.QuantumStateRepresentation):
 
 class EmptyActOnArgs(cirq.ActOnArgs):
     def __init__(self, qubits, classical_data):
-        super().__init__(
-            state=EmptyQuantumState(),
-            qubits=qubits,
-            classical_data=classical_data,
-        )
+        super().__init__(state=EmptyQuantumState(), qubits=qubits, classical_data=classical_data)
 
     def _act_on_fallback_(
-        self,
-        action: Any,
-        qubits: Sequence['cirq.Qid'],
-        allow_decompose: bool = True,
+        self, action: Any, qubits: Sequence['cirq.Qid'], allow_decompose: bool = True
     ) -> bool:
         return True
 
@@ -59,8 +52,7 @@ qs2 = cirq.LineQubit.range(2)
 
 
 def create_container(
-    qubits: Sequence['cirq.Qid'],
-    split_untangled_states=True,
+    qubits: Sequence['cirq.Qid'], split_untangled_states=True
 ) -> cirq.ActOnArgsContainer[EmptyActOnArgs]:
     args_map: Dict[Optional['cirq.Qid'], EmptyActOnArgs] = {}
     log = cirq.ClassicalDataDictionaryStore()

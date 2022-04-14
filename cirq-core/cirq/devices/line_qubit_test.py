@@ -46,10 +46,7 @@ def test_repr():
 
 def test_cmp():
     order = cirq.testing.OrderTester()
-    order.add_ascending_equivalence_group(
-        cirq.LineQubit(0),
-        cirq.LineQid(0, 2),
-    )
+    order.add_ascending_equivalence_group(cirq.LineQubit(0), cirq.LineQid(0, 2))
     order.add_ascending(
         cirq.LineQid(0, dimension=3),
         cirq.LineQid(1, dimension=1),
@@ -111,10 +108,7 @@ def test_range():
 def test_qid_range():
     assert cirq.LineQid.range(0, dimension=3) == []
     assert cirq.LineQid.range(1, dimension=3) == [cirq.LineQid(0, 3)]
-    assert cirq.LineQid.range(2, dimension=3) == [
-        cirq.LineQid(0, 3),
-        cirq.LineQid(1, 3),
-    ]
+    assert cirq.LineQid.range(2, dimension=3) == [cirq.LineQid(0, 3), cirq.LineQid(1, 3)]
     assert cirq.LineQid.range(5, dimension=3) == [
         cirq.LineQid(0, 3),
         cirq.LineQid(1, 3),
@@ -131,15 +125,9 @@ def test_qid_range():
         cirq.LineQid(3, 4),
     ]
 
-    assert cirq.LineQid.range(3, 1, -1, dimension=1) == [
-        cirq.LineQid(3, 1),
-        cirq.LineQid(2, 1),
-    ]
+    assert cirq.LineQid.range(3, 1, -1, dimension=1) == [cirq.LineQid(3, 1), cirq.LineQid(2, 1)]
     assert cirq.LineQid.range(3, 5, -1, dimension=2) == []
-    assert cirq.LineQid.range(1, 5, 2, dimension=2) == [
-        cirq.LineQid(1, 2),
-        cirq.LineQid(3, 2),
-    ]
+    assert cirq.LineQid.range(1, 5, 2, dimension=2) == [cirq.LineQid(1, 2), cirq.LineQid(3, 2)]
 
 
 def test_for_qid_shape():
@@ -213,13 +201,8 @@ def test_neg():
 
 
 def test_json_dict():
-    assert cirq.LineQubit(5)._json_dict_() == {
-        'x': 5,
-    }
-    assert cirq.LineQid(5, 3)._json_dict_() == {
-        'x': 5,
-        'dimension': 3,
-    }
+    assert cirq.LineQubit(5)._json_dict_() == {'x': 5}
+    assert cirq.LineQid(5, 3)._json_dict_() == {'x': 5, 'dimension': 3}
 
 
 def test_for_gate():

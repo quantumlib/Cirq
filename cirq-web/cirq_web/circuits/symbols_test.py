@@ -77,13 +77,7 @@ def test_resolve_operation_x_pow():
     assert symbol_info.colors == expected_colors
 
 
-@pytest.mark.parametrize(
-    'custom_gate',
-    [
-        MockGateNoDiagramInfo,
-        MockGateUnimplementedDiagramInfo,
-    ],
-)
+@pytest.mark.parametrize('custom_gate', [MockGateNoDiagramInfo, MockGateUnimplementedDiagramInfo])
 def test_resolve_operation_invalid_diagram_info(custom_gate):
     mock_qubit = cirq.NamedQubit('mock')
     gate = custom_gate()

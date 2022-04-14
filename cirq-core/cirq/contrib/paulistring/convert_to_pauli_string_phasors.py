@@ -18,10 +18,7 @@ import numpy as np
 
 from cirq import ops, protocols, linalg, transformers
 from cirq.circuits.circuit import Circuit
-from cirq.circuits.optimization_pass import (
-    PointOptimizationSummary,
-    PointOptimizer,
-)
+from cirq.circuits.optimization_pass import PointOptimizationSummary, PointOptimizer
 
 if TYPE_CHECKING:
     import cirq
