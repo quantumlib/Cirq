@@ -3345,7 +3345,7 @@ def test_next_moments_operating_on(circuit_cls):
         circuit = cirq.testing.random_circuit(randint(1, 20), n_moments, random())
         circuit_qubits = circuit.all_qubits()
         n_key_qubits = randint(int(bool(circuit_qubits)), len(circuit_qubits))
-        key_qubits = sample(circuit_qubits, n_key_qubits)
+        key_qubits = sample(sorted(circuit_qubits), n_key_qubits)
         start = randrange(len(circuit))
         next_moments = circuit.next_moments_operating_on(key_qubits, start)
         for q, m in next_moments.items():
@@ -3396,7 +3396,7 @@ def test_push_frontier_random_circuit():
     for _ in range(20):
         n_moments = randint(1, 10)
         circuit = cirq.testing.random_circuit(randint(1, 20), n_moments, random())
-        qubits = circuit.all_qubits()
+        qubits = sorted(circuit.all_qubits())
         early_frontier = {q: randint(0, n_moments) for q in sample(qubits, randint(0, len(qubits)))}
         late_frontier = {q: randint(0, n_moments) for q in sample(qubits, randint(0, len(qubits)))}
         update_qubits = sample(qubits, randint(0, len(qubits)))
