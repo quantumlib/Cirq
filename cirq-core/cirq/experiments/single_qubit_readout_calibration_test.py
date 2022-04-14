@@ -44,10 +44,7 @@ class NoisySingleQubitReadoutSampler(cirq.Sampler):
         self.simulator = cirq.Simulator(seed=self.prng, split_untangled_states=False)
 
     def run_sweep(
-        self,
-        program: 'cirq.AbstractCircuit',
-        params: cirq.Sweepable,
-        repetitions: int = 1,
+        self, program: 'cirq.AbstractCircuit', params: cirq.Sweepable, repetitions: int = 1
     ) -> Sequence[cirq.Result]:
         results = self.simulator.run_sweep(program, params, repetitions)
         for result in results:
@@ -140,11 +137,7 @@ def test_estimate_parallel_readout_errors_zero_reps():
     qubits = cirq.LineQubit.range(10)
     with pytest.raises(ValueError, match='non-zero repetition'):
         _ = cirq.estimate_parallel_single_qubit_readout_errors(
-            cirq.ZerosSampler(),
-            qubits=qubits,
-            repetitions=0,
-            trials=35,
-            trials_per_batch=10,
+            cirq.ZerosSampler(), qubits=qubits, repetitions=0, trials=35, trials_per_batch=10
         )
 
 
@@ -152,11 +145,7 @@ def test_estimate_parallel_readout_errors_zero_trials():
     qubits = cirq.LineQubit.range(10)
     with pytest.raises(ValueError, match='non-zero trials'):
         _ = cirq.estimate_parallel_single_qubit_readout_errors(
-            cirq.ZerosSampler(),
-            qubits=qubits,
-            repetitions=1000,
-            trials=0,
-            trials_per_batch=10,
+            cirq.ZerosSampler(), qubits=qubits, repetitions=1000, trials=0, trials_per_batch=10
         )
 
 
@@ -164,11 +153,7 @@ def test_estimate_parallel_readout_errors_zero_batch():
     qubits = cirq.LineQubit.range(10)
     with pytest.raises(ValueError, match='non-zero trials_per_batch'):
         _ = cirq.estimate_parallel_single_qubit_readout_errors(
-            cirq.ZerosSampler(),
-            qubits=qubits,
-            repetitions=1000,
-            trials=10,
-            trials_per_batch=0,
+            cirq.ZerosSampler(), qubits=qubits, repetitions=1000, trials=10, trials_per_batch=0
         )
 
 

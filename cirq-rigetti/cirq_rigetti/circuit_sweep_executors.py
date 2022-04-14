@@ -275,11 +275,7 @@ def with_quilc_parametric_compilation(
         memory_map = _get_param_dict(resolver)
         logger.debug(f"running pre-compiled parametric circuit with parameters {memory_map}")
         result = _execute_and_read_result(
-            quantum_computer,
-            executable.copy(),
-            measurement_id_map,
-            resolver,
-            memory_map=memory_map,
+            quantum_computer, executable.copy(), measurement_id_map, resolver, memory_map=memory_map
         )
         cirq_results.append(result)
 

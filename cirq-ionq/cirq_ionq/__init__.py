@@ -12,18 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from cirq_ionq._version import (
-    __version__,
-)
+from cirq_ionq._version import __version__
 
-from cirq_ionq.calibration import (
-    Calibration,
-)
+from cirq_ionq.calibration import Calibration
 
-from cirq_ionq.ionq_devices import (
-    IonQAPIDevice,
-    decompose_to_device,
-)
+from cirq_ionq.ionq_devices import IonQAPIDevice, decompose_to_device
 
 from cirq_ionq.ionq_exceptions import (
     IonQException,
@@ -31,24 +24,12 @@ from cirq_ionq.ionq_exceptions import (
     IonQUnsuccessfulJobException,
 )
 
-from cirq_ionq.job import (
-    Job,
-)
+from cirq_ionq.job import Job
 
-from cirq_ionq.results import (
-    QPUResult,
-    SimulatorResult,
-)
+from cirq_ionq.results import QPUResult, SimulatorResult
 
-from cirq_ionq.sampler import (
-    Sampler,
-)
+from cirq_ionq.sampler import Sampler
 
-from cirq_ionq.serializer import (
-    Serializer,
-    SerializedProgram,
-)
+from cirq_ionq.serializer import Serializer, SerializedProgram
 
-from cirq_ionq.service import (
-    Service,
-)
+from cirq_ionq.service import Service

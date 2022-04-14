@@ -74,16 +74,9 @@ def test_composite_gates_without_matrix():
             yield CompositeDummy()(qubits[1])
 
     q0, q1 = cirq.LineQubit.range(2)
-    circuit = cirq.Circuit(
-        CompositeDummy()(q0),
-        CompositeDummy2()(q0, q1),
-    )
+    circuit = cirq.Circuit(CompositeDummy()(q0), CompositeDummy2()(q0, q1))
     expected = cirq.Circuit(
-        cirq.X(q0),
-        cirq.Y(q0) ** 0.5,
-        cirq.CZ(q0, q1),
-        cirq.X(q1),
-        cirq.Y(q1) ** 0.5,
+        cirq.X(q0), cirq.Y(q0) ** 0.5, cirq.CZ(q0, q1), cirq.X(q1), cirq.Y(q1) ** 0.5
     )
     c_orig = cirq.Circuit(circuit)
     with cirq.testing.assert_deprecated("Use cirq.optimize_for_target_gateset", deadline='v1.0'):
@@ -100,9 +93,7 @@ def test_ignore_unsupported_gate():
         pass
 
     q0, q1 = cirq.LineQubit.range(2)
-    circuit = cirq.Circuit(
-        UnsupportedDummy()(q0, q1),
-    )
+    circuit = cirq.Circuit(UnsupportedDummy()(q0, q1))
     c_orig = cirq.Circuit(circuit)
     with cirq.testing.assert_deprecated("Use cirq.optimize_for_target_gateset", deadline='v1.0'):
         cirq.ConvertToCzAndSingleGates(ignore_failures=True).optimize_circuit(circuit)
@@ -115,9 +106,7 @@ def test_fail_unsupported_gate():
         pass
 
     q0, q1 = cirq.LineQubit.range(2)
-    circuit = cirq.Circuit(
-        UnsupportedDummy()(q0, q1),
-    )
+    circuit = cirq.Circuit(UnsupportedDummy()(q0, q1))
     with pytest.raises(TypeError):
         with cirq.testing.assert_deprecated(
             "Use cirq.optimize_for_target_gateset", deadline='v1.0'
@@ -128,8 +117,7 @@ def test_fail_unsupported_gate():
 def test_passes_through_measurements():
     q0, q1, q2 = cirq.LineQubit.range(3)
     circuit = cirq.Circuit(
-        cirq.measure(q0, key='m0'),
-        cirq.measure(q1, q2, key='m1', invert_mask=(True, False)),
+        cirq.measure(q0, key='m0'), cirq.measure(q1, q2, key='m1', invert_mask=(True, False))
     )
     c_orig = cirq.Circuit(circuit)
     with cirq.testing.assert_deprecated("Use cirq.optimize_for_target_gateset", deadline='v1.0'):
@@ -140,8 +128,7 @@ def test_passes_through_measurements():
 def test_allow_partial_czs():
     q0, q1 = cirq.LineQubit.range(2)
     circuit = cirq.Circuit(
-        cirq.CZ(q0, q1) ** 0.5,
-        cirq.CZPowGate(exponent=0.5, global_shift=-0.5).on(q0, q1),
+        cirq.CZ(q0, q1) ** 0.5, cirq.CZPowGate(exponent=0.5, global_shift=-0.5).on(q0, q1)
     )
     c_orig = cirq.Circuit(circuit)
     with cirq.testing.assert_deprecated("Use cirq.optimize_for_target_gateset", deadline='v1.0'):
@@ -167,17 +154,14 @@ def test_allow_partial_czs():
 def test_dont_allow_partial_czs():
     q0, q1 = cirq.LineQubit.range(2)
     circuit = cirq.Circuit(
-        cirq.CZ(q0, q1),
-        cirq.CZPowGate(exponent=1, global_shift=-0.5).on(q0, q1),
+        cirq.CZ(q0, q1), cirq.CZPowGate(exponent=1, global_shift=-0.5).on(q0, q1)
     )
     c_orig = cirq.Circuit(circuit)
     with cirq.testing.assert_deprecated("Use cirq.optimize_for_target_gateset", deadline='v1.0'):
         cirq.ConvertToCzAndSingleGates().optimize_circuit(circuit)
     assert circuit == c_orig
 
-    circuit = cirq.Circuit(
-        cirq.CZ(q0, q1) ** 0.5,
-    )
+    circuit = cirq.Circuit(cirq.CZ(q0, q1) ** 0.5)
     c_orig = cirq.Circuit(circuit)
     with cirq.testing.assert_deprecated("Use cirq.optimize_for_target_gateset", deadline='v1.0'):
         cirq.ConvertToCzAndSingleGates(ignore_failures=True).optimize_circuit(circuit)

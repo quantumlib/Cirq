@@ -95,13 +95,7 @@ def integrated_histogram(
     else:
         bin_values = np.linspace(0, 1, n)
         parameter_values = sorted(data)
-    plot_options = {
-        "where": 'post',
-        "color": 'b',
-        "linestyle": '-',
-        "lw": 1.0,
-        "ms": 0.0,
-    }
+    plot_options = {"where": 'post', "color": 'b', "linestyle": '-', "lw": 1.0, "ms": 0.0}
     plot_options.update(kwargs)
 
     if cdf_on_x:

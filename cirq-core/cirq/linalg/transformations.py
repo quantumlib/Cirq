@@ -510,10 +510,7 @@ def to_special(u: np.ndarray) -> np.ndarray:
     return u * (np.linalg.det(u) ** (-1 / len(u)))
 
 
-def state_vector_kronecker_product(
-    t1: np.ndarray,
-    t2: np.ndarray,
-) -> np.ndarray:
+def state_vector_kronecker_product(t1: np.ndarray, t2: np.ndarray) -> np.ndarray:
     """Merges two state vectors into a single unified state vector.
 
     The resulting vector's shape will be `t1.shape + t2.shape`.
@@ -527,10 +524,7 @@ def state_vector_kronecker_product(
     return np.outer(t1, t2).reshape(t1.shape + t2.shape)
 
 
-def density_matrix_kronecker_product(
-    t1: np.ndarray,
-    t2: np.ndarray,
-) -> np.ndarray:
+def density_matrix_kronecker_product(t1: np.ndarray, t2: np.ndarray) -> np.ndarray:
     """Merges two density matrices into a single unified density matrix.
 
     The resulting matrix's shape will be `(t1.shape/2 + t2.shape/2) * 2`. In
@@ -555,11 +549,7 @@ def density_matrix_kronecker_product(
 
 
 def factor_state_vector(
-    t: np.ndarray,
-    axes: Sequence[int],
-    *,
-    validate=True,
-    atol=1e-07,
+    t: np.ndarray, axes: Sequence[int], *, validate=True, atol=1e-07
 ) -> Tuple[np.ndarray, np.ndarray]:
     """Factors a state vector into two independent state vectors.
 
@@ -605,11 +595,7 @@ def factor_state_vector(
 
 
 def factor_density_matrix(
-    t: np.ndarray,
-    axes: Sequence[int],
-    *,
-    validate=True,
-    atol=1e-07,
+    t: np.ndarray, axes: Sequence[int], *, validate=True, atol=1e-07
 ) -> Tuple[np.ndarray, np.ndarray]:
     """Factors a density matrix into two independent density matrices.
 

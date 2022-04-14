@@ -127,10 +127,7 @@ def test_aqt_sampler_empty_circuit():
 
 
 def test_aqt_sampler():
-    put_call_args0 = {
-        'access_token': 'testkey',
-        'id': '2131da',
-    }
+    put_call_args0 = {'access_token': 'testkey', 'id': '2131da'}
 
     e_return = EngineReturn()
     with mock.patch(

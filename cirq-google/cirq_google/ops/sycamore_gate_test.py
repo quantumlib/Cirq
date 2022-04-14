@@ -59,6 +59,7 @@ def test_syc_is_specific_fsim():
 def test_syc_unitary():
     cirq.testing.assert_allclose_up_to_global_phase(
         cirq.unitary(cg.SYC),
+        # fmt: off
         np.array(
             [
                 [1.0, 0.0, 0.0, 0.0],
@@ -67,5 +68,6 @@ def test_syc_unitary():
                 [0.0, 0.0, 0.0, np.exp(-1j * np.pi / 6)],
             ]
         ),
+        # fmt: on
         atol=1e-6,
     )

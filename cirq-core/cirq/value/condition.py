@@ -39,10 +39,7 @@ class Condition(abc.ABC):
         """Replaces the control keys."""
 
     @abc.abstractmethod
-    def resolve(
-        self,
-        classical_data: 'cirq.ClassicalDataStoreReader',
-    ) -> bool:
+    def resolve(self, classical_data: 'cirq.ClassicalDataStoreReader') -> bool:
         """Resolves the condition based on the measurements."""
 
     @property
@@ -63,9 +60,7 @@ class Condition(abc.ABC):
         return condition
 
     def _with_rescoped_keys_(
-        self,
-        path: Tuple[str, ...],
-        bindable_keys: FrozenSet['cirq.MeasurementKey'],
+        self, path: Tuple[str, ...], bindable_keys: FrozenSet['cirq.MeasurementKey']
     ) -> 'cirq.Condition':
         condition = self
         for key in self.keys:
@@ -104,10 +99,7 @@ class KeyCondition(Condition):
             return f'cirq.KeyCondition({self.key!r}, {self.index})'
         return f'cirq.KeyCondition({self.key!r})'
 
-    def resolve(
-        self,
-        classical_data: 'cirq.ClassicalDataStoreReader',
-    ) -> bool:
+    def resolve(self, classical_data: 'cirq.ClassicalDataStoreReader') -> bool:
         if self.key not in classical_data.keys():
             raise ValueError(f'Measurement key {self.key} missing when testing classical control')
         return classical_data.get_int(self.key, self.index) != 0
@@ -153,10 +145,7 @@ class SympyCondition(Condition):
     def __repr__(self):
         return f'cirq.SympyCondition({proper_repr(self.expr)})'
 
-    def resolve(
-        self,
-        classical_data: 'cirq.ClassicalDataStoreReader',
-    ) -> bool:
+    def resolve(self, classical_data: 'cirq.ClassicalDataStoreReader') -> bool:
         missing = [str(k) for k in self.keys if k not in classical_data.keys()]
         if missing:
             raise ValueError(f'Measurement keys {missing} missing when testing classical control')

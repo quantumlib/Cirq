@@ -13,9 +13,7 @@ def test_bell_circuit_through_service(bell_circuit: cirq.Circuit) -> None:
     ``cirq.study.Result``.
     """
     qc = get_qc('9q-square', as_qvm=True)
-    service = RigettiQCSService(
-        quantum_computer=qc,
-    )
+    service = RigettiQCSService(quantum_computer=qc)
 
     # set the seed so we get a deterministic set of results.
     qvm = cast(QVM, qc.qam)

@@ -17,10 +17,7 @@
 from typing import Callable, Optional, TYPE_CHECKING
 
 from cirq import ops, protocols
-from cirq.circuits.optimization_pass import (
-    PointOptimizer,
-    PointOptimizationSummary,
-)
+from cirq.circuits.optimization_pass import PointOptimizer, PointOptimizationSummary
 from cirq._compat import deprecated_class
 
 if TYPE_CHECKING:

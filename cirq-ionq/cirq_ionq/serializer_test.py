@@ -80,7 +80,7 @@ def test_serialize_pow_gates():
     serializer = ionq.Serializer()
     for name, gate in (('rx', cirq.X), ('ry', cirq.Y), ('rz', cirq.Z)):
         for exponent in (1.1, 0.6):
-            circuit = cirq.Circuit((gate ** exponent)(q0))
+            circuit = cirq.Circuit((gate**exponent)(q0))
             result = serializer.serialize(circuit)
             assert result == ionq.SerializedProgram(
                 body={
@@ -221,8 +221,7 @@ def test_serialize_measurement_gate_target_order():
     serializer = ionq.Serializer()
     result = serializer.serialize(circuit)
     assert result == ionq.SerializedProgram(
-        body={'qubits': 3, 'circuit': []},
-        metadata={'measurement0': f'tomyheart{chr(31)}2,0'},
+        body={'qubits': 3, 'circuit': []}, metadata={'measurement0': f'tomyheart{chr(31)}2,0'}
     )
 
 

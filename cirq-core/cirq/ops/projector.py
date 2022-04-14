@@ -1,14 +1,6 @@
 # pylint: disable=wrong-or-nonexistent-copyright-notice
 import itertools
-from typing import (
-    Any,
-    Dict,
-    Iterable,
-    List,
-    Mapping,
-    Optional,
-    Union,
-)
+from typing import Any, Dict, Iterable, List, Mapping, Optional, Union
 
 import numpy as np
 from scipy.sparse import csr_matrix
@@ -27,9 +19,7 @@ def _check_qids_dimension(qids):
 @value.value_equality(approximate=True)
 class ProjectorString:
     def __init__(
-        self,
-        projector_dict: Dict[raw_types.Qid, int],
-        coefficient: Union[int, float, complex] = 1,
+        self, projector_dict: Dict[raw_types.Qid, int], coefficient: Union[int, float, complex] = 1
     ):
         """Contructor for ProjectorString
 
@@ -92,9 +82,7 @@ class ProjectorString:
         return tuple(idx_to_keep)
 
     def expectation_from_state_vector(
-        self,
-        state_vector: np.ndarray,
-        qid_map: Mapping[raw_types.Qid, int],
+        self, state_vector: np.ndarray, qid_map: Mapping[raw_types.Qid, int]
     ) -> complex:
         """Expectation of the projection from a state vector.
 
@@ -116,9 +104,7 @@ class ProjectorString:
         )
 
     def expectation_from_density_matrix(
-        self,
-        state: np.ndarray,
-        qid_map: Mapping[raw_types.Qid, int],
+        self, state: np.ndarray, qid_map: Mapping[raw_types.Qid, int]
     ) -> complex:
         """Expectation of the projection from a density matrix.
 
