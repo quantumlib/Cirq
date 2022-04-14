@@ -22,15 +22,3 @@ def test_nonoptimal_toffoli_circuit():
         cirq.unitary(cirq.TOFFOLI(q0, q1, q2)),
         atol=1e-7,
     )
-
-
-def test_nonoptimal_toffoli_circuit_device_deprecated():
-    q0, q1, q2 = cirq.LineQubit.range(3)
-    with cirq.testing.assert_deprecated('no longer include a device', deadline='v0.15'):
-        cirq.testing.assert_allclose_up_to_global_phase(
-            cirq.testing.nonoptimal_toffoli_circuit(
-                q0, q1, q2, cirq.UNCONSTRAINED_DEVICE
-            ).unitary(),
-            cirq.unitary(cirq.TOFFOLI(q0, q1, q2)),
-            atol=1e-7,
-        )

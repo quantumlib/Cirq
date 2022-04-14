@@ -175,13 +175,7 @@ def test_givens_rotation_equivalent_circuit():
     gate = cirq.givens(angle_rads)
     q0, q1 = cirq.LineQubit.range(2)
     equivalent_circuit = cirq.Circuit(
-        [
-            cirq.T(q0),
-            cirq.T(q1) ** -1,
-            cirq.ISWAP(q0, q1) ** t,
-            cirq.T(q0) ** -1,
-            cirq.T(q1),
-        ]
+        [cirq.T(q0), cirq.T(q1) ** -1, cirq.ISWAP(q0, q1) ** t, cirq.T(q0) ** -1, cirq.T(q1)]
     )
     assert np.allclose(cirq.unitary(gate), cirq.unitary(equivalent_circuit))
 

@@ -33,23 +33,13 @@ def test_sample():
     assert results.histogram(key=q) == collections.Counter({1: 1})
 
     # Intermediate measurements.
-    results = cirq.sample(
-        cirq.Circuit(
-            cirq.measure(q, key='drop'),
-            cirq.X(q),
-            cirq.measure(q),
-        )
-    )
+    results = cirq.sample(cirq.Circuit(cirq.measure(q, key='drop'), cirq.X(q), cirq.measure(q)))
     assert results.histogram(key='drop') == collections.Counter({0: 1})
     assert results.histogram(key=q) == collections.Counter({1: 1})
 
     # Overdamped everywhere.
     results = cirq.sample(
-        cirq.Circuit(
-            cirq.measure(q, key='drop'),
-            cirq.X(q),
-            cirq.measure(q),
-        ),
+        cirq.Circuit(cirq.measure(q, key='drop'), cirq.X(q), cirq.measure(q)),
         noise=cirq.ConstantQubitNoiseModel(cirq.amplitude_damp(1)),
     )
     assert results.histogram(key='drop') == collections.Counter({0: 1})
@@ -160,12 +150,7 @@ def test_final_state_vector_initial_state():
 
 
 def test_final_state_vector_dtype_insensitive_to_initial_state():
-    assert (
-        cirq.final_state_vector(
-            cirq.X,
-        ).dtype
-        == np.complex64
-    )
+    assert cirq.final_state_vector(cirq.X).dtype == np.complex64
 
     assert cirq.final_state_vector(cirq.X, initial_state=0).dtype == np.complex64
 
@@ -273,12 +258,7 @@ def test_final_density_matrix_initial_state():
 
 
 def test_final_density_matrix_dtype_insensitive_to_initial_state():
-    assert (
-        cirq.final_density_matrix(
-            cirq.X,
-        ).dtype
-        == np.complex64
-    )
+    assert cirq.final_density_matrix(cirq.X).dtype == np.complex64
 
     assert cirq.final_density_matrix(cirq.X, initial_state=0).dtype == np.complex64
 

@@ -12,9 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from cirq_google.calibration.engine_simulator import (
-    PhasedFSimEngineSimulator,
-)
+from cirq_google.calibration.engine_simulator import PhasedFSimEngineSimulator
 
 from cirq_google.calibration.phased_fsim import (
     ALL_ANGLES_FLOQUET_PHASED_FSIM_CHARACTERIZATION,

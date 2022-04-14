@@ -148,11 +148,7 @@ class SingleQubitCliffordGate(gate_features.SingleQubitGate):
     Y_nsqrt = _pretend_initialized()
     Z_nsqrt = _pretend_initialized()
 
-    def __init__(
-        self,
-        *,
-        _clifford_tableau: qis.CliffordTableau,
-    ) -> None:
+    def __init__(self, *, _clifford_tableau: qis.CliffordTableau) -> None:
         self._clifford_tableau = _clifford_tableau
 
     @property
@@ -503,12 +499,7 @@ class SingleQubitCliffordGate(gate_features.SingleQubitGate):
 
     @classmethod
     def _from_json_dict_(cls, n, rs, xs, zs, **kwargs):
-        _clifford_tableau = qis.CliffordTableau._from_json_dict_(
-            n,
-            rs,
-            xs,
-            zs,
-        )
+        _clifford_tableau = qis.CliffordTableau._from_json_dict_(n, rs, xs, zs)
         return cls(_clifford_tableau=_clifford_tableau)
 
     def _json_dict_(self) -> Dict[str, Any]:
@@ -727,9 +718,7 @@ class CommonCliffordGates(metaclass=CommonCliffordGateMetaClass):
 
         base_tableau = qis.CliffordTableau(len(qubit_order))
         args = sim.clifford.ActOnCliffordTableauArgs(
-            tableau=base_tableau,
-            qubits=qubit_order,
-            prng=np.random.RandomState(0),  # unused
+            tableau=base_tableau, qubits=qubit_order, prng=np.random.RandomState(0)  # unused
         )
         for op in operations:
             protocols.act_on(op, args, allow_decompose=True)
@@ -738,12 +727,7 @@ class CommonCliffordGates(metaclass=CommonCliffordGateMetaClass):
 
     @classmethod
     def _from_json_dict_(cls, n, rs, xs, zs, **kwargs):
-        _clifford_tableau = qis.CliffordTableau._from_json_dict_(
-            n,
-            rs,
-            xs,
-            zs,
-        )
+        _clifford_tableau = qis.CliffordTableau._from_json_dict_(n, rs, xs, zs)
         return cls(_clifford_tableau=_clifford_tableau)
 
 
@@ -775,11 +759,7 @@ def _pad_tableau(
 class CliffordGate(raw_types.Gate, CommonCliffordGates):
     """Clifford rotation for N-qubit."""
 
-    def __init__(
-        self,
-        *,
-        _clifford_tableau: qis.CliffordTableau,
-    ) -> None:
+    def __init__(self, *, _clifford_tableau: qis.CliffordTableau) -> None:
         # We use the Clifford tableau to represent a Clifford gate.
         # It is crucial to note that the meaning of tableau here is different
         # from the one used to represent a Clifford state (Of course, they are related).

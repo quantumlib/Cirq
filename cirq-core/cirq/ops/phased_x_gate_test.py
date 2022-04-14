@@ -22,24 +22,14 @@ import cirq
 
 
 @pytest.mark.parametrize(
-    'phase_exponent',
-    [
-        -0.5,
-        0,
-        0.1,
-        0.25,
-        0.5,
-        1,
-        sympy.Symbol('p'),
-        sympy.Symbol('p') + 1,
-    ],
+    'phase_exponent', [-0.5, 0, 0.1, 0.25, 0.5, 1, sympy.Symbol('p'), sympy.Symbol('p') + 1]
 )
 def test_phased_x_consistent_protocols(phase_exponent):
     cirq.testing.assert_implements_consistent_protocols(
-        cirq.PhasedXPowGate(phase_exponent=phase_exponent, exponent=1.0),
+        cirq.PhasedXPowGate(phase_exponent=phase_exponent, exponent=1.0)
     )
     cirq.testing.assert_implements_consistent_protocols(
-        cirq.PhasedXPowGate(phase_exponent=phase_exponent, exponent=1.0, global_shift=0.1),
+        cirq.PhasedXPowGate(phase_exponent=phase_exponent, exponent=1.0, global_shift=0.1)
     )
 
 
@@ -60,13 +50,7 @@ def test_init():
     assert y._global_shift == 0.2
 
 
-@pytest.mark.parametrize(
-    'sym',
-    [
-        sympy.Symbol('a'),
-        sympy.Symbol('a') + 1,
-    ],
-)
+@pytest.mark.parametrize('sym', [sympy.Symbol('a'), sympy.Symbol('a') + 1])
 def test_no_symbolic_qasm_but_fails_gracefully(sym):
     q = cirq.NamedQubit('q')
     v = cirq.PhasedXPowGate(phase_exponent=sym).on(q)
@@ -252,8 +236,7 @@ def test_phase_by():
 
 
 @pytest.mark.parametrize(
-    'exponent,phase_exponent',
-    itertools.product(np.arange(-2.5, 2.75, 0.25), repeat=2),
+    'exponent,phase_exponent', itertools.product(np.arange(-2.5, 2.75, 0.25), repeat=2)
 )
 def test_exponent_consistency(exponent, phase_exponent):
     """Verifies that instances of PhasedX gate expose consistent exponents."""

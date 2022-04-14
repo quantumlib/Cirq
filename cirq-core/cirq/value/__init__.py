@@ -13,11 +13,7 @@
 # limitations under the License.
 
 """Value conversion utilities and classes for time and quantum states."""
-from cirq.value.abc_alt import (
-    ABCMetaImplementAnyOneOf,
-    alternative,
-    GenericMetaImplementAnyOneOf,
-)
+from cirq.value.abc_alt import ABCMetaImplementAnyOneOf, alternative, GenericMetaImplementAnyOneOf
 
 from cirq.value.angle import (
     canonicalize_half_turns,
@@ -32,11 +28,7 @@ from cirq.value.classical_data import (
     MeasurementType,
 )
 
-from cirq.value.condition import (
-    Condition,
-    KeyCondition,
-    SympyCondition,
-)
+from cirq.value.condition import Condition, KeyCondition, SympyCondition
 
 from cirq.value.digits import (
     big_endian_bits_to_int,
@@ -45,20 +37,11 @@ from cirq.value.digits import (
     big_endian_int_to_digits,
 )
 
-from cirq.value.duration import (
-    Duration,
-    DURATION_LIKE,
-)
+from cirq.value.duration import Duration, DURATION_LIKE
 
-from cirq.value.linear_dict import (
-    LinearDict,
-    Scalar,
-)
+from cirq.value.linear_dict import LinearDict, Scalar
 
-from cirq.value.measurement_key import (
-    MEASUREMENT_KEY_SEPARATOR,
-    MeasurementKey,
-)
+from cirq.value.measurement_key import MEASUREMENT_KEY_SEPARATOR, MeasurementKey
 
 from cirq.value.probability import state_vector_to_probabilities, validate_probability
 
@@ -73,24 +56,12 @@ from cirq.value.product_state import (
     PAULI_STATES,
 )
 
-from cirq.value.periodic_value import (
-    PeriodicValue,
-)
+from cirq.value.periodic_value import PeriodicValue
 
-from cirq.value.random_state import (
-    parse_random_state,
-    RANDOM_STATE_OR_SEED_LIKE,
-)
+from cirq.value.random_state import parse_random_state, RANDOM_STATE_OR_SEED_LIKE
 
-from cirq.value.timestamp import (
-    Timestamp,
-)
+from cirq.value.timestamp import Timestamp
 
-from cirq.value.type_alias import (
-    TParamKey,
-    TParamVal,
-)
+from cirq.value.type_alias import TParamKey, TParamVal
 
-from cirq.value.value_equality_attr import (
-    value_equality,
-)
+from cirq.value.value_equality_attr import value_equality

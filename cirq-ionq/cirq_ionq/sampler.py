@@ -66,10 +66,7 @@ class Sampler(cirq.Sampler):
         self._timeout_seconds = timeout_seconds
 
     def run_sweep(
-        self,
-        program: cirq.AbstractCircuit,
-        params: cirq.Sweepable,
-        repetitions: int = 1,
+        self, program: cirq.AbstractCircuit, params: cirq.Sweepable, repetitions: int = 1
     ) -> Sequence[cirq.Result]:
         """Runs a sweep for the given Circuit.
 

@@ -74,10 +74,7 @@ X^0.5         PhX(0.25)^0.5
 
 def test_generate_library_of_2q_circuits():
     circuits = generate_library_of_2q_circuits(
-        n_library_circuits=5,
-        two_qubit_gate=cirq.CNOT,
-        max_cycle_depth=13,
-        random_state=9,
+        n_library_circuits=5, two_qubit_gate=cirq.CNOT, max_cycle_depth=13, random_state=9
     )
     assert len(circuits) == 5
     for circuit in circuits:
@@ -121,10 +118,7 @@ def test_get_random_combinations_for_device():
     graph = _gridqubits_to_graph_device(cirq.GridQubit.rect(3, 3))
     n_combinations = 4
     combinations = get_random_combinations_for_device(
-        n_library_circuits=3,
-        n_combinations=n_combinations,
-        device_graph=graph,
-        random_state=99,
+        n_library_circuits=3, n_combinations=n_combinations, device_graph=graph, random_state=99
     )
     assert len(combinations) == 4  # degree-four graph
     for i, comb in enumerate(combinations):
@@ -143,10 +137,7 @@ def test_get_random_combinations_for_small_device():
     graph = _gridqubits_to_graph_device(cirq.GridQubit.rect(3, 1))
     n_combinations = 4
     combinations = get_random_combinations_for_device(
-        n_library_circuits=3,
-        n_combinations=n_combinations,
-        device_graph=graph,
-        random_state=99,
+        n_library_circuits=3, n_combinations=n_combinations, device_graph=graph, random_state=99
     )
     assert len(combinations) == 2  # 3x1 device only fits two layers
 

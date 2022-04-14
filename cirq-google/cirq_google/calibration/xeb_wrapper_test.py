@@ -107,12 +107,7 @@ def test_run_calibration(monkeypatch, fsim_options, x0_should_be):
     monkeypatch.setattr(
         'cirq_google.calibration.xeb_wrapper.xebf.benchmark_2q_xeb_fidelities', _benchmark_patch
     )
-    qubit_indices = [
-        (0, 5),
-        (0, 6),
-        (1, 6),
-        (2, 6),
-    ]
+    qubit_indices = [(0, 5), (0, 6), (1, 6), (2, 6)]
     qubits = [cirq.GridQubit(*idx) for idx in qubit_indices]
     sampler = cirq.ZerosSampler()
 
@@ -127,10 +122,7 @@ def test_run_calibration(monkeypatch, fsim_options, x0_should_be):
         for depth in [5, 10]
     ]
 
-    options = LocalXEBPhasedFSimCalibrationOptions(
-        fsim_options=fsim_options,
-        n_processes=1,
-    )
+    options = LocalXEBPhasedFSimCalibrationOptions(fsim_options=fsim_options, n_processes=1)
 
     characterization_requests = []
     for circuit in circuits:

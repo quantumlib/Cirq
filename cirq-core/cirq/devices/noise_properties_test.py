@@ -16,14 +16,8 @@ from typing import List, Tuple
 import cirq
 
 from cirq.devices.insertion_noise_model import InsertionNoiseModel
-from cirq.devices.noise_properties import (
-    NoiseProperties,
-    NoiseModelFromNoiseProperties,
-)
-from cirq.devices.noise_utils import (
-    OpIdentifier,
-    PHYSICAL_GATE_TAG,
-)
+from cirq.devices.noise_properties import NoiseProperties, NoiseModelFromNoiseProperties
+from cirq.devices.noise_utils import OpIdentifier, PHYSICAL_GATE_TAG
 
 
 # These properties are for testing purposes only - they are not representative
