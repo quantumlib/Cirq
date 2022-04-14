@@ -46,8 +46,4 @@ def test_main_loop():
 def test_parse_args():
     args = ('--num_gates 5 --nesting_depth 8 --num_repetitions 2').split()
     kwargs = benchmark_serializers.parse_arguments(args)
-    assert kwargs == {
-        'num_gates': 5,
-        'nesting_depth': 8,
-        'num_repetitions': 2,
-    }
+    assert kwargs == {'num_gates': 5, 'nesting_depth': 8, 'num_repetitions': 2}

@@ -20,9 +20,7 @@ import networkx as nx
 import cirq
 from pyquil.quantum_processor import QCSQuantumProcessor
 from qcs_api_client.models import InstructionSetArchitecture
-from qcs_api_client.operations.sync import (
-    get_instruction_set_architecture,
-)
+from qcs_api_client.operations.sync import get_instruction_set_architecture
 from cirq_rigetti._qcs_api_client_decorator import _provide_default_client
 
 
@@ -70,7 +68,7 @@ class RigettiQCSAspenDevice(cirq.devices.Device):
         if self.isa.architecture.family.lower() != 'aspen':
             raise UnsupportedRigettiQCSQuantumProcessor(
                 'this integration currently only supports Aspen devices, '
-                f'but client provided a {self.isa.architecture.family} device',
+                f'but client provided a {self.isa.architecture.family} device'
             )
         self.quantum_processor = QCSQuantumProcessor(
             quantum_processor_id=self.isa.name, isa=self.isa
@@ -218,7 +216,7 @@ class RigettiQCSAspenDevice(cirq.devices.Device):
             j = self._aspen_qubit_index(qubits[1])
             if j not in self.qubit_topology[i]:
                 raise UnsupportedRigettiQCSOperation(
-                    f'qubits {qubits[0]} and {qubits[1]} do not share an edge',
+                    f'qubits {qubits[0]} and {qubits[1]} do not share an edge'
                 )
 
     def _value_equality_values_(self):
@@ -228,21 +226,16 @@ class RigettiQCSAspenDevice(cirq.devices.Device):
         return f'cirq_rigetti.RigettiQCSAspenDevice(isa={self.isa!r})'
 
     def _json_dict_(self):
-        return {
-            'isa': self.isa.to_dict(),
-        }
+        return {'isa': self.isa.to_dict()}
 
     @classmethod
     def _from_json_dict_(cls, isa, **kwargs):
-        return cls(
-            isa=InstructionSetArchitecture.from_dict(isa),
-        )
+        return cls(isa=InstructionSetArchitecture.from_dict(isa))
 
 
 @_provide_default_client
 def get_rigetti_qcs_aspen_device(
-    quantum_processor_id: str,
-    client: Optional[httpx.Client],
+    quantum_processor_id: str, client: Optional[httpx.Client]
 ) -> RigettiQCSAspenDevice:
     """Retrieves a `qcs_api_client.models.InstructionSetArchitecture` from the Rigetti
     QCS API and uses it to initialize a RigettiQCSAspenDevice.
@@ -382,9 +375,7 @@ class OctagonalQubit(cirq.ops.Qid):
         return f'cirq_rigetti.OctagonalQubit(octagon_position={self.octagon_position})'
 
     def _json_dict_(self):
-        return {
-            'octagon_position': self.octagon_position,
-        }
+        return {'octagon_position': self.octagon_position}
 
 
 class AspenQubit(OctagonalQubit):
@@ -521,7 +512,4 @@ class AspenQubit(OctagonalQubit):
         return f'({self.octagon}, {self.octagon_position})'
 
     def _json_dict_(self):
-        return {
-            'octagon': self.octagon,
-            'octagon_position': self.octagon_position,
-        }
+        return {'octagon': self.octagon, 'octagon_position': self.octagon_position}

@@ -89,11 +89,7 @@ def test_circuit(boolean_str):
 
 def test_gate_with_custom_names():
     q0, q1, q2, q3 = cirq.LineQubit.range(4)
-    gate = cirq.BooleanHamiltonianGate(
-        ['a', 'b'],
-        ['a'],
-        0.1,
-    )
+    gate = cirq.BooleanHamiltonianGate(['a', 'b'], ['a'], 0.1)
     assert cirq.decompose(gate.on(q0, q1)) == [cirq.Rz(rads=-0.05).on(q0)]
     assert cirq.decompose_once_with_qubits(gate, (q0, q1)) == [cirq.Rz(rads=-0.05).on(q0)]
     assert cirq.decompose(gate.on(q2, q3)) == [cirq.Rz(rads=-0.05).on(q2)]
@@ -106,11 +102,7 @@ def test_gate_with_custom_names():
 
 
 def test_gate_consistent():
-    gate = cirq.BooleanHamiltonianGate(
-        ['a', 'b'],
-        ['a'],
-        0.1,
-    )
+    gate = cirq.BooleanHamiltonianGate(['a', 'b'], ['a'], 0.1)
     op = gate.on(*cirq.LineQubit.range(2))
     cirq.testing.assert_implements_consistent_protocols(gate)
     cirq.testing.assert_implements_consistent_protocols(op)
@@ -147,13 +139,7 @@ def test_gray_code_sorting(n_bits, expected_hs):
 
 
 @pytest.mark.parametrize(
-    'seq_a,seq_b,expected',
-    [
-        ((), (), 0),
-        ((), (0,), -1),
-        ((0,), (), 1),
-        ((0,), (0,), 0),
-    ],
+    'seq_a,seq_b,expected', [((), (), 0), ((), (0,), -1), ((0,), (), 1), ((0,), (0,), 0)]
 )
 def test_gray_code_comparison(seq_a, seq_b, expected):
     assert bh._gray_code_comparator(seq_a, seq_b) == expected

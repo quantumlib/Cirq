@@ -17,13 +17,7 @@ from unittest.mock import MagicMock
 import cirq
 import networkx as nx
 import pytest
-from cirq import (
-    draw_gridlike,
-    LineTopology,
-    TiltedSquareLattice,
-    get_placements,
-    draw_placements,
-)
+from cirq import draw_gridlike, LineTopology, TiltedSquareLattice, get_placements, draw_placements
 
 
 @pytest.mark.parametrize('width, height', list(itertools.product([1, 2, 3, 24], repeat=2)))

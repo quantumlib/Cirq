@@ -44,16 +44,11 @@ def test_eq():
     # `with_probability(1)` doesn't wrap
     eq.add_equality_group(cirq.X, cirq.X.with_probability(1))
     eq.add_equality_group(
-        cirq.X.with_probability(1).on(q),
-        cirq.X.on(q).with_probability(1),
-        cirq.X(q),
+        cirq.X.with_probability(1).on(q), cirq.X.on(q).with_probability(1), cirq.X(q)
     )
 
     # `with_probability` with `on`.
-    eq.add_equality_group(
-        cirq.X.with_probability(0.5).on(q),
-        cirq.X.on(q).with_probability(0.5),
-    )
+    eq.add_equality_group(cirq.X.with_probability(0.5).on(q), cirq.X.on(q).with_probability(0.5))
 
     # Flattening.
     eq.add_equality_group(
@@ -66,15 +61,9 @@ def test_eq():
     )
 
     # Supports approximate equality.
-    assert cirq.approx_eq(
-        cirq.X.with_probability(0.5),
-        cirq.X.with_probability(0.50001),
-        atol=1e-2,
-    )
+    assert cirq.approx_eq(cirq.X.with_probability(0.5), cirq.X.with_probability(0.50001), atol=1e-2)
     assert not cirq.approx_eq(
-        cirq.X.with_probability(0.5),
-        cirq.X.with_probability(0.50001),
-        atol=1e-8,
+        cirq.X.with_probability(0.5), cirq.X.with_probability(0.50001), atol=1e-8
     )
 
 
@@ -181,52 +170,28 @@ def test_channel():
 
     m = cirq.kraus(cirq.X.with_probability(0.25))
     assert len(m) == 2
-    np.testing.assert_allclose(
-        m[0],
-        cirq.unitary(cirq.X) * np.sqrt(0.25),
-        atol=1e-8,
-    )
-    np.testing.assert_allclose(
-        m[1],
-        cirq.unitary(cirq.I) * np.sqrt(0.75),
-        atol=1e-8,
-    )
+    np.testing.assert_allclose(m[0], cirq.unitary(cirq.X) * np.sqrt(0.25), atol=1e-8)
+    np.testing.assert_allclose(m[1], cirq.unitary(cirq.I) * np.sqrt(0.75), atol=1e-8)
 
     m = cirq.kraus(cirq.bit_flip(0.75).with_probability(0.25))
     assert len(m) == 3
     np.testing.assert_allclose(
-        m[0],
-        cirq.unitary(cirq.I) * np.sqrt(0.25) * np.sqrt(0.25),
-        atol=1e-8,
+        m[0], cirq.unitary(cirq.I) * np.sqrt(0.25) * np.sqrt(0.25), atol=1e-8
     )
     np.testing.assert_allclose(
-        m[1],
-        cirq.unitary(cirq.X) * np.sqrt(0.25) * np.sqrt(0.75),
-        atol=1e-8,
+        m[1], cirq.unitary(cirq.X) * np.sqrt(0.25) * np.sqrt(0.75), atol=1e-8
     )
-    np.testing.assert_allclose(
-        m[2],
-        cirq.unitary(cirq.I) * np.sqrt(0.75),
-        atol=1e-8,
-    )
+    np.testing.assert_allclose(m[2], cirq.unitary(cirq.I) * np.sqrt(0.75), atol=1e-8)
 
     m = cirq.kraus(cirq.amplitude_damp(0.75).with_probability(0.25))
     assert len(m) == 3
     np.testing.assert_allclose(
-        m[0],
-        np.array([[1, 0], [0, np.sqrt(1 - 0.75)]]) * np.sqrt(0.25),
-        atol=1e-8,
+        m[0], np.array([[1, 0], [0, np.sqrt(1 - 0.75)]]) * np.sqrt(0.25), atol=1e-8
     )
     np.testing.assert_allclose(
-        m[1],
-        np.array([[0, np.sqrt(0.75)], [0, 0]]) * np.sqrt(0.25),
-        atol=1e-8,
+        m[1], np.array([[0, np.sqrt(0.75)], [0, 0]]) * np.sqrt(0.25), atol=1e-8
     )
-    np.testing.assert_allclose(
-        m[2],
-        cirq.unitary(cirq.I) * np.sqrt(0.75),
-        atol=1e-8,
-    )
+    np.testing.assert_allclose(m[2], cirq.unitary(cirq.I) * np.sqrt(0.75), atol=1e-8)
 
 
 def test_trace_distance():

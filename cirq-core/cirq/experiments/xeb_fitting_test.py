@@ -108,10 +108,7 @@ def test_benchmark_2q_xeb_fidelities_parallel():
     cycle_depths = [2, 3, 4]
     graph = _gridqubits_to_graph_device(cirq.GridQubit.rect(2, 2))
     combs = rqcg.get_random_combinations_for_device(
-        n_library_circuits=len(circuits),
-        n_combinations=2,
-        device_graph=graph,
-        random_state=10,
+        n_library_circuits=len(circuits), n_combinations=2, device_graph=graph, random_state=10
     )
 
     sampled_df = sample_2q_xeb_circuits(
@@ -211,11 +208,7 @@ def test_characterize_phased_fsim_parameters_with_xeb():
     rs = np.random.RandomState(52)
     circuits = [
         rqcg.random_rotations_between_two_qubit_circuit(
-            q0,
-            q1,
-            depth=20,
-            two_qubit_op_factory=lambda a, b, _: cirq.SQRT_ISWAP(a, b),
-            seed=rs,
+            q0, q1, depth=20, two_qubit_op_factory=lambda a, b, _: cirq.SQRT_ISWAP(a, b), seed=rs
         )
         for _ in range(2)
     ]
@@ -265,10 +258,7 @@ def test_parallel_full_workflow(use_pool):
     cycle_depths = [2, 3, 4]
     graph = _gridqubits_to_graph_device(cirq.GridQubit.rect(2, 2))
     combs = rqcg.get_random_combinations_for_device(
-        n_library_circuits=len(circuits),
-        n_combinations=2,
-        device_graph=graph,
-        random_state=10,
+        n_library_circuits=len(circuits), n_combinations=2, device_graph=graph, random_state=10
     )
 
     sampled_df = sample_2q_xeb_circuits(
@@ -284,10 +274,7 @@ def test_parallel_full_workflow(use_pool):
         pool = None
 
     fids_df_0 = benchmark_2q_xeb_fidelities(
-        sampled_df=sampled_df,
-        circuits=circuits,
-        cycle_depths=cycle_depths,
-        pool=pool,
+        sampled_df=sampled_df, circuits=circuits, cycle_depths=cycle_depths, pool=pool
     )
 
     options = SqrtISwapXEBOptions(

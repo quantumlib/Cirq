@@ -52,12 +52,10 @@ def build_circuit() -> Tuple[cirq.Circuit, List[cirq.Qid]]:
 
 
 def compute_characteristic_function(
-    pauli_string: cirq.PauliString,
-    qubits: List[cirq.Qid],
-    density_matrix: np.ndarray,
+    pauli_string: cirq.PauliString, qubits: List[cirq.Qid], density_matrix: np.ndarray
 ):
     n_qubits = len(qubits)
-    d = 2 ** n_qubits
+    d = 2**n_qubits
 
     qubit_map = dict(zip(qubits, range(n_qubits)))
     # rho_i or sigma_i in https://arxiv.org/abs/1104.3835
@@ -194,7 +192,7 @@ def _estimate_pauli_traces_clifford(
     # Pauli states more efficiently as described on page 4 of:
     # https://arxiv.org/abs/1104.4695
 
-    d = 2 ** n_qubits
+    d = 2**n_qubits
 
     if n_measured_operators is not None:
         dense_pauli_strings = _randomly_sample_from_stabilizer_bases(
@@ -203,7 +201,7 @@ def _estimate_pauli_traces_clifford(
         assert len(dense_pauli_strings) == n_measured_operators
     else:
         dense_pauli_strings = _enumerate_all_from_stabilizer_bases(stabilizer_basis, n_qubits)
-        assert len(dense_pauli_strings) == 2 ** n_qubits
+        assert len(dense_pauli_strings) == 2**n_qubits
 
     pauli_traces: List[PauliTrace] = []
     for dense_pauli_string in dense_pauli_strings:

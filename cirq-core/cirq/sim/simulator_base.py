@@ -134,10 +134,7 @@ class SimulatorBase(
         """
 
     @abc.abstractmethod
-    def _create_step_result(
-        self,
-        sim_state: OperationTarget[TActOnArgs],
-    ) -> TStepResultBase:
+    def _create_step_result(self, sim_state: OperationTarget[TActOnArgs]) -> TStepResultBase:
         """This method should be implemented to create a step result.
 
         Args:
@@ -235,18 +232,13 @@ class SimulatorBase(
             else (resolved_circuit[0:0], resolved_circuit)
         )
         step_result = None
-        for step_result in self._core_iterator(
-            circuit=prefix,
-            sim_state=act_on_args,
-        ):
+        for step_result in self._core_iterator(circuit=prefix, sim_state=act_on_args):
             pass
 
         general_ops = list(general_suffix.all_operations())
         if all(isinstance(op.gate, ops.MeasurementGate) for op in general_ops):
             for step_result in self._core_iterator(
-                circuit=general_suffix,
-                sim_state=act_on_args,
-                all_measurements_are_terminal=True,
+                circuit=general_suffix, sim_state=act_on_args, all_measurements_are_terminal=True
             ):
                 pass
             assert step_result is not None
@@ -315,18 +307,13 @@ class SimulatorBase(
             else (program[0:0], program)
         )
         step_result = None
-        for step_result in self._core_iterator(
-            circuit=prefix,
-            sim_state=sim_state,
-        ):
+        for step_result in self._core_iterator(circuit=prefix, sim_state=sim_state):
             pass
         sim_state = step_result._sim_state
         yield from super().simulate_sweep_iter(suffix, params, qubit_order, sim_state)
 
     def _create_act_on_args(
-        self,
-        initial_state: Any,
-        qubits: Sequence['cirq.Qid'],
+        self, initial_state: Any, qubits: Sequence['cirq.Qid']
     ) -> OperationTarget[TActOnArgs]:
         if isinstance(initial_state, OperationTarget):
             return initial_state
@@ -344,9 +331,7 @@ class SimulatorBase(
                     initial_state = int(initial_state / q.dimension)
             else:
                 args = self._create_partial_act_on_args(
-                    initial_state=initial_state,
-                    qubits=qubits,
-                    classical_data=classical_data,
+                    initial_state=initial_state, qubits=qubits, classical_data=classical_data
                 )
                 for q in qubits:
                     args_map[q] = args
@@ -356,19 +341,14 @@ class SimulatorBase(
             )
         else:
             return self._create_partial_act_on_args(
-                initial_state=initial_state,
-                qubits=qubits,
-                classical_data=classical_data,
+                initial_state=initial_state, qubits=qubits, classical_data=classical_data
             )
 
 
 class StepResultBase(Generic[TSimulatorState, TActOnArgs], StepResult[TSimulatorState], abc.ABC):
     """A base class for step results."""
 
-    def __init__(
-        self,
-        sim_state: OperationTarget[TActOnArgs],
-    ):
+    def __init__(self, sim_state: OperationTarget[TActOnArgs]):
         """Initializes the step result.
 
         Args:

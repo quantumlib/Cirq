@@ -205,14 +205,7 @@ def test_moment_is_measurements():
 
 def test_moment_is_measurements_mixed1():
     q = cirq.LineQubit.range(2)
-    circ = cirq.Circuit(
-        [
-            cirq.X(q[0]),
-            cirq.X(q[1]),
-            cirq.measure(q[0], key='z'),
-            cirq.Z(q[1]),
-        ]
-    )
+    circ = cirq.Circuit([cirq.X(q[0]), cirq.X(q[1]), cirq.measure(q[0], key='z'), cirq.Z(q[1])])
     assert not validate_all_measurements(circ[0])
     with pytest.raises(ValueError) as e:
         validate_all_measurements(circ[1])
@@ -221,14 +214,7 @@ def test_moment_is_measurements_mixed1():
 
 def test_moment_is_measurements_mixed2():
     q = cirq.LineQubit.range(2)
-    circ = cirq.Circuit(
-        [
-            cirq.X(q[0]),
-            cirq.X(q[1]),
-            cirq.Z(q[0]),
-            cirq.measure(q[1], key='z'),
-        ]
-    )
+    circ = cirq.Circuit([cirq.X(q[0]), cirq.X(q[1]), cirq.Z(q[0]), cirq.measure(q[1], key='z')])
     assert not validate_all_measurements(circ[0])
     with pytest.raises(ValueError) as e:
         validate_all_measurements(circ[1])
