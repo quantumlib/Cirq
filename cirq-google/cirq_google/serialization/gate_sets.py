@@ -141,19 +141,10 @@ XMON = serializable_gate_set.SerializableGateSet(
 )
 document(XMON, """Gate set for XMON devices.""")
 
-NAMED_GATESETS = {
-    'sqrt_iswap': SQRT_ISWAP_GATESET,
-    'sycamore': SYC_GATESET,
-    'fsim': FSIM_GATESET,
-}
+NAMED_GATESETS = {'sqrt_iswap': SQRT_ISWAP_GATESET, 'sycamore': SYC_GATESET, 'fsim': FSIM_GATESET}
 
 document(NAMED_GATESETS, """A convenience mapping from gateset names to gatesets""")
 
-GOOGLE_GATESETS = [
-    SYC_GATESET,
-    SQRT_ISWAP_GATESET,
-    FSIM_GATESET,
-    XMON,
-]
+GOOGLE_GATESETS = [SYC_GATESET, SQRT_ISWAP_GATESET, FSIM_GATESET, XMON]
 
 document(GOOGLE_GATESETS, """All Google gatesets""")
