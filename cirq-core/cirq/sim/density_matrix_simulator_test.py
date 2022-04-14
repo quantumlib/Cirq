@@ -71,20 +71,6 @@ def test_invalid_dtype():
 
 @pytest.mark.parametrize('dtype', [np.complex64, np.complex128])
 @pytest.mark.parametrize('split', [True, False])
-def test_run_with_ignore_measurement_results(dtype: Type[np.number], split: bool):
-    q0, q1 = cirq.LineQubit.range(2)
-    with cirq.testing.assert_deprecated('ignore_measurement_results', deadline='v0.15', count=2):
-        simulator = cirq.DensityMatrixSimulator(
-            dtype=dtype, ignore_measurement_results=True, split_untangled_states=split
-        )
-
-    circuit = cirq.Circuit(cirq.X(q0), cirq.X(q1), cirq.measure(q0))
-    with pytest.raises(ValueError, match="ignore_measurement_results = True"):
-        simulator.run(circuit)
-
-
-@pytest.mark.parametrize('dtype', [np.complex64, np.complex128])
-@pytest.mark.parametrize('split', [True, False])
 def test_run_no_measurements(dtype: Type[np.number], split: bool):
     q0, q1 = cirq.LineQubit.range(2)
     simulator = cirq.DensityMatrixSimulator(dtype=dtype, split_untangled_states=split)
@@ -233,12 +219,7 @@ def test_run_decomposable_channel(dtype: Type[np.number], split: bool):
 
     circuit = cirq.Circuit(
         cirq.X(q0),
-        _TestDecomposingChannel(
-            [
-                cirq.amplitude_damp(0.5),
-                cirq.amplitude_damp(0),
-            ]
-        ).on(q0, q1),
+        _TestDecomposingChannel([cirq.amplitude_damp(0.5), cirq.amplitude_damp(0)]).on(q0, q1),
         cirq.measure(q0),
         cirq.measure(q1),
     )
@@ -268,11 +249,7 @@ def test_run_qudit_channel(dtype: Type[np.number], split: bool):
 
     q0, q1 = cirq.LineQid.for_qid_shape((3, 4))
     circuit = cirq.Circuit(
-        PlusGate(3, 2)(q0),
-        TestChannel()(q0),
-        TestChannel()(q0),
-        cirq.measure(q0),
-        cirq.measure(q1),
+        PlusGate(3, 2)(q0), TestChannel()(q0), TestChannel()(q0), cirq.measure(q0), cirq.measure(q1)
     )
 
     simulator = cirq.DensityMatrixSimulator(dtype=dtype, split_untangled_states=split)
@@ -515,35 +492,6 @@ def test_simulate(dtype: Type[np.number], split: bool):
     assert len(result.measurements) == 0
 
 
-@pytest.mark.parametrize('split', [True, False])
-def test_simulate_ignore_measurements(split: bool):
-    q0 = cirq.LineQubit(0)
-    with cirq.testing.assert_deprecated(
-        'ignore_measurement_results', deadline='v0.15', count=6 if split else 4
-    ):
-        simulator = cirq.DensityMatrixSimulator(
-            split_untangled_states=split, ignore_measurement_results=True
-        )
-        circuit = cirq.Circuit(cirq.H(q0), cirq.measure(q0))
-        result = simulator.simulate(circuit)
-        np.testing.assert_almost_equal(result.final_density_matrix, np.eye(2) * 0.5)
-        assert len(result.measurements) == 0
-
-
-@pytest.mark.parametrize('split', [True, False])
-def test_simulate_ignore_measurements_subcircuits(split: bool):
-    q0 = cirq.LineQubit(0)
-    with cirq.testing.assert_deprecated('ignore_measurement_results', deadline='v0.15', count=None):
-        simulator = cirq.DensityMatrixSimulator(
-            split_untangled_states=split, ignore_measurement_results=True
-        )
-        circuit = cirq.Circuit(cirq.H(q0), cirq.measure(q0))
-        circuit = cirq.Circuit(cirq.CircuitOperation(circuit.freeze()))
-        result = simulator.simulate(circuit)
-        np.testing.assert_almost_equal(result.final_density_matrix, np.eye(2) * 0.5)
-        assert len(result.measurements) == 0
-
-
 @pytest.mark.parametrize('dtype', [np.complex64, np.complex128])
 @pytest.mark.parametrize('split', [True, False])
 def test_simulate_qudits(dtype: Type[np.number], split: bool):
@@ -564,39 +512,12 @@ def test_reset_one_qubit_does_not_affect_partial_trace_of_other_qubits(
 ):
     q0, q1 = cirq.LineQubit.range(2)
     simulator = cirq.DensityMatrixSimulator(dtype=dtype, split_untangled_states=split)
-    circuit = cirq.Circuit(
-        cirq.H(q0),
-        cirq.CX(q0, q1),
-        cirq.reset(q0),
-    )
+    circuit = cirq.Circuit(cirq.H(q0), cirq.CX(q0, q1), cirq.reset(q0))
     result = simulator.simulate(circuit)
     expected = np.zeros((4, 4), dtype=dtype)
     expected[0, 0] = 0.5
     expected[1, 1] = 0.5
     np.testing.assert_almost_equal(result.final_density_matrix, expected)
-
-
-def test_ignore_measurements_remains_entangled():
-    q0, q1 = cirq.LineQubit.range(2)
-    with cirq.testing.assert_deprecated('ignore_measurement_results', deadline='v0.15', count=12):
-        simulator1 = cirq.DensityMatrixSimulator(
-            ignore_measurement_results=True, split_untangled_states=False
-        )
-        simulator2 = cirq.DensityMatrixSimulator(
-            ignore_measurement_results=True, split_untangled_states=True
-        )
-        circuit = cirq.Circuit(
-            cirq.H(q0),
-            cirq.CX(q0, q1),
-            cirq.measure(q0),
-        )
-        result1 = simulator1.simulate(circuit)
-        result2 = simulator2.simulate(circuit)
-        np.testing.assert_almost_equal(result2.final_density_matrix, result1.final_density_matrix)
-        expected = np.zeros((4, 4))
-        expected[0, 0] = 0.5
-        expected[3, 3] = 0.5
-        np.testing.assert_almost_equal(result2.final_density_matrix, expected)
 
 
 @pytest.mark.parametrize(
@@ -702,10 +623,7 @@ def test_simulate_initial_qudit_state(dtype: Type[np.number], split: bool):
     simulator = cirq.DensityMatrixSimulator(dtype=dtype, split_untangled_states=split)
     for b0 in [0, 1, 2]:
         for b1 in [0, 1, 2, 3]:
-            circuit = cirq.Circuit(
-                PlusGate(3, b0)(q0),
-                PlusGate(4, b1)(q1),
-            )
+            circuit = cirq.Circuit(PlusGate(3, b0)(q0), PlusGate(4, b1)(q1))
             result = simulator.simulate(circuit, initial_state=6)
             expected_density_matrix = np.zeros(shape=(12, 12))
             expected_density_matrix[
@@ -817,10 +735,7 @@ def test_simulate_moment_steps(dtype: Type[np.number], split: bool):
 def test_simulate_moment_steps_qudits(dtype: Type[np.number], split: bool):
     q0, q1 = cirq.LineQid.for_qid_shape((2, 3))
     circuit = cirq.Circuit(
-        PlusGate(2, 1)(q0),
-        PlusGate(3, 1)(q1),
-        cirq.reset(q1),
-        PlusGate(3, 1)(q1),
+        PlusGate(2, 1)(q0), PlusGate(3, 1)(q1), cirq.reset(q1), PlusGate(3, 1)(q1)
     )
     simulator = cirq.DensityMatrixSimulator(dtype=dtype, split_untangled_states=split)
     for i, step in enumerate(simulator.simulate_moment_steps(circuit)):
@@ -844,20 +759,6 @@ def test_simulate_moment_steps_empty_circuit(dtype: Type[np.number], split: bool
     assert step._simulator_state() == cirq.DensityMatrixSimulatorState(
         density_matrix=np.array([[1]]), qubit_map={}
     )
-
-
-@pytest.mark.parametrize('dtype', [np.complex64, np.complex128])
-def test_simulate_moment_steps_set_state_deprecated(dtype: Type[np.number]):
-    q0, q1 = cirq.LineQubit.range(2)
-    circuit = cirq.Circuit(cirq.H(q0), cirq.H(q1), cirq.H(q0), cirq.H(q1))
-    simulator = cirq.DensityMatrixSimulator(dtype=dtype)
-    for i, step in enumerate(simulator.simulate_moment_steps(circuit)):
-        np.testing.assert_almost_equal(step.density_matrix(), np.ones((4, 4)) * 0.25)
-        if i == 0:
-            zero_zero = np.zeros((4, 4), dtype=dtype)
-            zero_zero[0, 0] = 1
-            with cirq.testing.assert_deprecated('initial_state', deadline='v0.15'):
-                step.set_density_matrix(zero_zero)
 
 
 @pytest.mark.parametrize('dtype', [np.complex64, np.complex128])
@@ -955,20 +856,14 @@ def test_simulate_expectation_values(dtype):
 def test_simulate_noisy_expectation_values(dtype):
     q0 = cirq.LineQubit(0)
     psums = [cirq.Z(q0), cirq.X(q0)]
-    c1 = cirq.Circuit(
-        cirq.X(q0),
-        cirq.amplitude_damp(gamma=0.1).on(q0),
-    )
+    c1 = cirq.Circuit(cirq.X(q0), cirq.amplitude_damp(gamma=0.1).on(q0))
     simulator = cirq.DensityMatrixSimulator(dtype=dtype)
     result = simulator.simulate_expectation_values(c1, psums)
     # <Z> = (gamma - 1) + gamma = -0.8
     assert cirq.approx_eq(result[0], -0.8, atol=1e-6)
     assert cirq.approx_eq(result[1], 0, atol=1e-6)
 
-    c2 = cirq.Circuit(
-        cirq.H(q0),
-        cirq.depolarize(p=0.3).on(q0),
-    )
+    c2 = cirq.Circuit(cirq.H(q0), cirq.depolarize(p=0.3).on(q0))
     result = simulator.simulate_expectation_values(c2, psums)
     assert cirq.approx_eq(result[0], 0, atol=1e-6)
     # <X> = (1 - p) + (-p / 3) = 0.6
@@ -1080,14 +975,10 @@ def test_density_matrix_trial_result_eq():
     eq = cirq.testing.EqualsTester()
     eq.add_equality_group(
         cirq.DensityMatrixTrialResult(
-            params=cirq.ParamResolver({}),
-            measurements={},
-            final_step_result=final_step_result,
+            params=cirq.ParamResolver({}), measurements={}, final_step_result=final_step_result
         ),
         cirq.DensityMatrixTrialResult(
-            params=cirq.ParamResolver({}),
-            measurements={},
-            final_step_result=final_step_result,
+            params=cirq.ParamResolver({}), measurements={}, final_step_result=final_step_result
         ),
     )
     eq.add_equality_group(
@@ -1114,10 +1005,8 @@ def test_density_matrix_trial_result_qid_shape():
     )
     assert cirq.qid_shape(
         cirq.DensityMatrixTrialResult(
-            params=cirq.ParamResolver({}),
-            measurements={},
-            final_step_result=final_step_result,
-        ),
+            params=cirq.ParamResolver({}), measurements={}, final_step_result=final_step_result
+        )
     ) == (2, 2)
     q0, q1 = cirq.LineQid.for_qid_shape((3, 4))
     final_step_result._simulator_state.return_value = cirq.DensityMatrixSimulatorState(
@@ -1125,10 +1014,8 @@ def test_density_matrix_trial_result_qid_shape():
     )
     assert cirq.qid_shape(
         cirq.DensityMatrixTrialResult(
-            params=cirq.ParamResolver({}),
-            measurements={},
-            final_step_result=final_step_result,
-        ),
+            params=cirq.ParamResolver({}), measurements={}, final_step_result=final_step_result
+        )
     ) == (3, 4)
 
 
@@ -1143,7 +1030,7 @@ def test_density_matrix_trial_result_repr():
         initial_state=np.ones((2, 2), dtype=dtype) * 0.5,
         dtype=dtype,
     )
-    final_step_result = cirq.DensityMatrixStepResult(args, cirq.DensityMatrixSimulator())
+    final_step_result = cirq.DensityMatrixStepResult(args)
     trial_result = cirq.DensityMatrixTrialResult(
         params=cirq.ParamResolver({'s': 1}),
         measurements={'m': np.array([[1]], dtype=np.int32)},
@@ -1155,16 +1042,14 @@ def test_density_matrix_trial_result_repr():
         "measurements={'m': np.array([[1]], dtype=np.int32)}, "
         "final_step_result=cirq.DensityMatrixStepResult("
         "sim_state=cirq.ActOnDensityMatrixArgs("
-        "target_tensor=np.array([[(0.5+0j), (0.5+0j)], [(0.5+0j), (0.5+0j)]], dtype=np.complex64), "
-        "available_buffer=[], "
+        "initial_state=np.array([[(0.5+0j), (0.5+0j)], [(0.5+0j), (0.5+0j)]], dtype=np.complex64), "
         "qid_shape=(2,), "
         "qubits=(cirq.LineQubit(0),), "
-        "log_of_measurement_results={}), "
+        "classical_data=cirq.ClassicalDataDictionaryStore()), "
         "dtype=np.complex64))"
     )
     assert repr(trial_result) == expected_repr
-    with cirq.testing.assert_deprecated('Use initial_state instead', deadline='v0.15', count=2):
-        assert eval(expected_repr) == trial_result
+    assert eval(expected_repr) == trial_result
 
 
 class XAsOp(cirq.Operation):
@@ -1209,31 +1094,6 @@ def test_works_on_operation():
     np.testing.assert_allclose(s.simulate(c).final_density_matrix, np.diag([0, 1]), atol=1e-8)
 
 
-def test_works_on_operation_dephased():
-    class HAsOp(cirq.Operation):
-        def __init__(self, q):
-            self.q = q
-
-        @property
-        def qubits(self):
-            return (self.q,)
-
-        def with_qubits(self, *new_qubits):
-            raise NotImplementedError()
-
-        def _kraus_(self):
-            return cirq.kraus(cirq.H)
-
-    with cirq.testing.assert_deprecated('ignore_measurement_results', deadline='v0.15', count=6):
-        s = cirq.DensityMatrixSimulator(ignore_measurement_results=True)
-        c = cirq.Circuit(HAsOp(cirq.LineQubit(0)))
-        np.testing.assert_allclose(
-            s.simulate(c).final_density_matrix,
-            [[0.5 + 0.0j, 0.5 + 0.0j], [0.5 + 0.0j, 0.5 + 0.0j]],
-            atol=1e-8,
-        )
-
-
 def test_works_on_pauli_string_phasor():
     a, b = cirq.LineQubit.range(2)
     c = cirq.Circuit(np.exp(0.5j * np.pi * cirq.X(a) * cirq.X(b)))
@@ -1261,7 +1121,7 @@ def test_density_matrix_trial_result_str():
         initial_state=np.ones((2, 2), dtype=dtype) * 0.5,
         dtype=dtype,
     )
-    final_step_result = cirq.DensityMatrixStepResult(args, cirq.DensityMatrixSimulator())
+    final_step_result = cirq.DensityMatrixStepResult(args)
     result = cirq.DensityMatrixTrialResult(
         params=cirq.ParamResolver({}), measurements={}, final_step_result=final_step_result
     )
@@ -1287,7 +1147,7 @@ def test_density_matrix_trial_result_repr_pretty():
         initial_state=np.ones((2, 2), dtype=dtype) * 0.5,
         dtype=dtype,
     )
-    final_step_result = cirq.DensityMatrixStepResult(args, cirq.DensityMatrixSimulator())
+    final_step_result = cirq.DensityMatrixStepResult(args)
     final_step_result._simulator_state = cirq.DensityMatrixSimulatorState(
         density_matrix=np.ones((2, 2)) * 0.5, qubit_map={q0: 0}
     )
@@ -1589,8 +1449,7 @@ def test_simulate_noise_with_subcircuit_measurements():
 def test_nonmeasuring_subcircuits_do_not_cause_sweep_repeat():
     q = cirq.LineQubit(0)
     circuit = cirq.Circuit(
-        cirq.CircuitOperation(cirq.Circuit(cirq.H(q)).freeze()),
-        cirq.measure(q, key='x'),
+        cirq.CircuitOperation(cirq.Circuit(cirq.H(q)).freeze()), cirq.measure(q, key='x')
     )
     simulator = cirq.DensityMatrixSimulator()
     with mock.patch.object(simulator, '_core_iterator', wraps=simulator._core_iterator) as mock_sim:
@@ -1601,8 +1460,7 @@ def test_nonmeasuring_subcircuits_do_not_cause_sweep_repeat():
 def test_measuring_subcircuits_cause_sweep_repeat():
     q = cirq.LineQubit(0)
     circuit = cirq.Circuit(
-        cirq.CircuitOperation(cirq.Circuit(cirq.measure(q)).freeze()),
-        cirq.measure(q, key='x'),
+        cirq.CircuitOperation(cirq.Circuit(cirq.measure(q)).freeze()), cirq.measure(q, key='x')
     )
     simulator = cirq.DensityMatrixSimulator()
     with mock.patch.object(simulator, '_core_iterator', wraps=simulator._core_iterator) as mock_sim:
@@ -1682,11 +1540,7 @@ def test_large_untangled_okay():
 
 def test_separated_states_str_does_not_merge():
     q0, q1 = cirq.LineQubit.range(2)
-    circuit = cirq.Circuit(
-        cirq.measure(q0),
-        cirq.measure(q1),
-        cirq.X(q0),
-    )
+    circuit = cirq.Circuit(cirq.measure(q0), cirq.measure(q1), cirq.X(q0))
 
     result = cirq.DensityMatrixSimulator().simulate(circuit)
     assert (
@@ -1711,11 +1565,7 @@ final density matrix:
 
 def test_unseparated_states_str():
     q0, q1 = cirq.LineQubit.range(2)
-    circuit = cirq.Circuit(
-        cirq.measure(q0),
-        cirq.measure(q1),
-        cirq.X(q0),
-    )
+    circuit = cirq.Circuit(cirq.measure(q0), cirq.measure(q1), cirq.X(q0))
 
     result = cirq.DensityMatrixSimulator(split_untangled_states=False).simulate(circuit)
     assert (
@@ -1749,10 +1599,7 @@ def test_sweep_unparameterized_prefix_not_repeated_even_non_unitaries():
             return (q,)
 
     simulator = cirq.DensityMatrixSimulator()
-    params = [
-        cirq.ParamResolver({'a': 0}),
-        cirq.ParamResolver({'a': 1}),
-    ]
+    params = [cirq.ParamResolver({'a': 0}), cirq.ParamResolver({'a': 1})]
 
     op1 = NonUnitaryOp()
     op2 = NonUnitaryOp()

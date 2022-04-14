@@ -123,7 +123,7 @@ class EqualsTester:
         Adds the objects as a group.
 
         Args:
-            factories: Methods for producing independent copies of an item.
+            *factories: Methods for producing independent copies of an item.
 
         Raises:
             AssertionError: The factories produce items not equal to the others,

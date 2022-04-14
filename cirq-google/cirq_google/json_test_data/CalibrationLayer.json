@@ -22,10 +22,7 @@
           }
         ]
       }
-    ],
-    "device": {
-      "cirq_type": "_UnconstrainedDevice"
-    }
+    ]
   },
   "args": {
     "type": "full",

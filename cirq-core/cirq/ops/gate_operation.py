@@ -109,9 +109,7 @@ class GateOperation(raw_types.Operation):
         return new_gate.on(*self.qubits)
 
     def _with_rescoped_keys_(
-        self,
-        path: Tuple[str, ...],
-        bindable_keys: FrozenSet['cirq.MeasurementKey'],
+        self, path: Tuple[str, ...], bindable_keys: FrozenSet['cirq.MeasurementKey']
     ):
         new_gate = protocols.with_rescoped_keys(self.gate, path, bindable_keys)
         if new_gate is self.gate:
@@ -199,7 +197,7 @@ class GateOperation(raw_types.Operation):
         return NotImplemented
 
     def _commutes_(
-        self, other: Any, atol: Union[int, float] = 1e-8
+        self, other: Any, *, atol: float = 1e-8
     ) -> Union[bool, NotImplementedType, None]:
         commutes = self.gate._commutes_on_qids_(self.qubits, other, atol=atol)
         if commutes is not NotImplemented:

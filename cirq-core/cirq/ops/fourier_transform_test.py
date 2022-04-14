@@ -66,6 +66,7 @@ def test_pow():
 
 
 def test_qft():
+    # fmt: off
     np.testing.assert_allclose(
         cirq.unitary(cirq.qft(*cirq.LineQubit.range(2))),
         np.array(
@@ -93,6 +94,7 @@ def test_qft():
         / 2,
         atol=1e-8,
     )
+    # fmt: on
 
     np.testing.assert_allclose(
         cirq.unitary(cirq.qft(*cirq.LineQubit.range(4))),
@@ -102,15 +104,7 @@ def test_qft():
 
     np.testing.assert_allclose(
         cirq.unitary(cirq.qft(*cirq.LineQubit.range(2)) ** -1),
-        np.array(
-            [
-                [1, 1, 1, 1],
-                [1, -1j, -1, 1j],
-                [1, -1, 1, -1],
-                [1, 1j, -1, -1j],
-            ]
-        )
-        / 2,
+        np.array([[1, 1, 1, 1], [1, -1j, -1, 1j], [1, -1, 1, -1], [1, 1j, -1, -1j]]) / 2,
         atol=1e-8,
     )
 
@@ -170,11 +164,3 @@ def test_circuit_diagram():
 3: ───#4────#4───────
         """,
     )
-
-
-def test_setters_deprecated():
-    gate = cirq.PhaseGradientGate(num_qubits=1, exponent=0.1)
-    assert gate.exponent == 0.1
-    with cirq.testing.assert_deprecated('mutators', deadline='v0.15'):
-        gate.exponent = 0.2
-        assert gate.exponent == 0.2

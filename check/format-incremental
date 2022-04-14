@@ -82,7 +82,7 @@ if (( only_changed == 1 )); then
 
     # Get the modified, added and moved python files.
     IFS=$'\n' read -r -d '' -a format_files < \
-        <(git diff --name-only --diff-filter=MAR ${rev} -- '*.py' ':(exclude)*_pb2.py')
+        <(git diff --name-only --diff-filter=MAR ${rev} -- '*.py' ':(exclude)cirq-google/cirq_google/cloud/*' ':(exclude)*_pb2.py')
 else
     echo -e "Formatting all python files." >&2
     IFS=$'\n' read -r -d '' -a format_files < \

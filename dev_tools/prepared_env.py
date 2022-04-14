@@ -94,11 +94,7 @@ class PreparedEnv:
 
         print(repr(('report_status', context, state, description, target_url)), file=sys.stderr)
 
-        payload = {
-            'state': state,
-            'description': description,
-            'context': context,
-        }
+        payload = {'state': state, 'description': description, 'context': context}
         if target_url is not None:
             payload['target_url'] = target_url
 

@@ -23,22 +23,14 @@ from cirq_google.workflow.io import _FilesystemSaver
 
 def cg_assert_equivalent_repr(value):
     """cirq.testing.assert_equivalent_repr with cirq_google.workflow imported."""
-    return cirq.testing.assert_equivalent_repr(
-        value,
-        global_vals={
-            'cirq_google': cg,
-        },
-    )
+    return cirq.testing.assert_equivalent_repr(value, global_vals={'cirq_google': cg})
 
 
 def test_egr_filesystem_record_repr():
     egr_fs_record = cg.ExecutableGroupResultFilesystemRecord(
         runtime_configuration_path='RuntimeConfiguration.json.gz',
         shared_runtime_info_path='SharedRuntimeInfo.jzon.gz',
-        executable_result_paths=[
-            'ExecutableResult.1.json.gz',
-            'ExecutableResult.2.json.gz',
-        ],
+        executable_result_paths=['ExecutableResult.1.json.gz', 'ExecutableResult.2.json.gz'],
         run_id='my-run-id',
     )
     cg_assert_equivalent_repr(egr_fs_record)
@@ -49,10 +41,7 @@ def test_egr_filesystem_record_from_json(tmpdir):
     egr_fs_record = cg.ExecutableGroupResultFilesystemRecord(
         runtime_configuration_path='RuntimeConfiguration.json.gz',
         shared_runtime_info_path='SharedRuntimeInfo.jzon.gz',
-        executable_result_paths=[
-            'ExecutableResult.1.json.gz',
-            'ExecutableResult.2.json.gz',
-        ],
+        executable_result_paths=['ExecutableResult.1.json.gz', 'ExecutableResult.2.json.gz'],
         run_id=run_id,
     )
 

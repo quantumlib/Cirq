@@ -38,12 +38,7 @@ class InputRotationCell(Cell):
         self.exponent_sign = exponent_sign
 
     def _value_equality_values_(self) -> Any:
-        return (
-            self.identifier,
-            self.register,
-            self.base_operation,
-            self.exponent_sign,
-        )
+        return (self.identifier, self.register, self.base_operation, self.exponent_sign)
 
     def __repr__(self) -> str:
         return (
@@ -115,12 +110,7 @@ class QuirkInputRotationOperation(ops.Operation):
         self.exponent_sign = exponent_sign
 
     def _value_equality_values_(self) -> Any:
-        return (
-            self.identifier,
-            self.register,
-            self.base_operation,
-            self.exponent_sign,
-        )
+        return (self.identifier, self.register, self.base_operation, self.exponent_sign)
 
     @property
     def qubits(self) -> Tuple['cirq.Qid', ...]:

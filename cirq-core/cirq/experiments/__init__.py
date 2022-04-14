@@ -53,9 +53,7 @@ from cirq.experiments.grid_parallel_two_qubit_xeb import (
     compute_grid_parallel_two_qubit_xeb_results,
 )
 
-from cirq.experiments.purity_estimation import (
-    purity_from_probabilities,
-)
+from cirq.experiments.purity_estimation import purity_from_probabilities
 
 from cirq.experiments.random_quantum_circuit_generation import (
     GRID_ALIGNED_PATTERN,
@@ -82,14 +80,8 @@ from cirq.experiments.single_qubit_readout_calibration import (
     SingleQubitReadoutCalibrationResult,
 )
 
-from cirq.experiments.t1_decay_experiment import (
-    t1_decay,
-    T1DecayResult,
-)
+from cirq.experiments.t1_decay_experiment import t1_decay, T1DecayResult
 
-from cirq.experiments.t2_decay_experiment import (
-    t2_decay,
-    T2DecayResult,
-)
+from cirq.experiments.t2_decay_experiment import t2_decay, T2DecayResult
 
 from cirq.experiments.xeb_fitting import XEBPhasedFSimCharacterizationOptions

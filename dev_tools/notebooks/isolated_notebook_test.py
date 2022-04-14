@@ -47,16 +47,11 @@ NOTEBOOKS_DEPENDING_ON_UNRELEASED_FEATURES: List[str] = [
     'docs/tutorials/google/identifying_hardware_changes.ipynb',
     'docs/tutorials/google/echoes.ipynb',
     'docs/tutorials/google/floquet_calibration_example.ipynb',
-    'docs/tutorials/google/reservations.ipynb',
     'docs/tutorials/google/spin_echoes.ipynb',
     'docs/tutorials/google/start.ipynb',
     'docs/tutorials/google/visualizing_calibration_metrics.ipynb',
     'docs/tutorials/google/xeb_calibration_example.ipynb',
     'docs/named_topologies.ipynb',
-    # New Transformers.
-    'docs/tutorials/basics.ipynb',
-    'cirq-core/cirq/contrib/quimb/Contract-a-Grid-Circuit.ipynb',
-    'cirq-core/cirq/contrib/quimb/Cirq-to-Tensor-Networks.ipynb',
 ]
 
 # By default all notebooks should be tested, however, this list contains exceptions to the rule

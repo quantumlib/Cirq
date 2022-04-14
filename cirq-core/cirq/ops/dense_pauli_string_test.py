@@ -553,43 +553,17 @@ def test_gaussian_elimination():
     f(t)
     assert t == table('+X')
 
-    t = table(
-        "+.X.X",
-        "+Z.Z.",
-        "+X.XX",
-        "+ZZ.Z",
-    )
+    t = table("+.X.X", "+Z.Z.", "+X.XX", "+ZZ.Z")
     f(t)
-    assert t == table(
-        "+X.XX",
-        "+Z.Z.",
-        "+.X.X",
-        "+.ZZZ",
-    )
+    assert t == table("+X.XX", "+Z.Z.", "+.X.X", "+.ZZZ")
 
-    t = table(
-        "+XXX",
-        "+YYY",
-    )
+    t = table("+XXX", "+YYY")
     f(t)
-    assert t == table(
-        "+XXX",
-        "iZZZ",
-    )
+    assert t == table("+XXX", "iZZZ")
 
-    t = table(
-        "+XXXX",
-        "+X...",
-        "+..ZZ",
-        "+.ZZ.",
-    )
+    t = table("+XXXX", "+X...", "+..ZZ", "+.ZZ.")
     f(t)
-    assert t == table(
-        "+X...",
-        "+.XXX",
-        "+.Z.Z",
-        "+..ZZ",
-    )
+    assert t == table("+X...", "+.XXX", "+.Z.Z", "+..ZZ")
 
     t = table(
         '+ZZZ.........',
@@ -660,14 +634,3 @@ def test_symbolic():
     assert p == cirq.MutableDensePauliString('XYZ', coefficient=t * r)
     p /= r
     assert p == cirq.MutableDensePauliString('XYZ', coefficient=t)
-
-
-def test_setters_deprecated():
-    gate = cirq.DensePauliString('X')
-    mask = np.array([0, 3, 1, 2], dtype=np.uint8)
-    with cirq.testing.assert_deprecated('mutators', deadline='v0.15'):
-        gate.pauli_mask = mask
-    assert gate.pauli_mask is mask
-    with cirq.testing.assert_deprecated('mutators', deadline='v0.15'):
-        gate.coefficient = -1
-    assert gate.coefficient == -1

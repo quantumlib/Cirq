@@ -137,8 +137,7 @@ class SycamoreTargetGateset(cirq.TwoQubitCompilationTargetGateset):
     def preprocess_transformers(self) -> List[cirq.TRANSFORMER]:
         return [
             _create_transformer_with_kwargs(
-                cirq.expand_composite,
-                no_decomp=lambda op: cirq.num_qubits(op) <= self.num_qubits,
+                cirq.expand_composite, no_decomp=lambda op: cirq.num_qubits(op) <= self.num_qubits
             ),
             _create_transformer_with_kwargs(
                 merge_swap_rzz_and_2q_unitaries,

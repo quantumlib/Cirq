@@ -49,47 +49,27 @@ def test_arithmetic_comparison_gates():
 
     assert_url_to_circuit_returns(
         '{"cols":[["^A>B","inputA2",1,"inputB2"]]}',
-        maps={
-            0b_0_11_10: 0b_1_11_10,
-            0b_0_10_10: 0b_0_10_10,
-            0b_0_01_10: 0b_0_01_10,
-        },
+        maps={0b_0_11_10: 0b_1_11_10, 0b_0_10_10: 0b_0_10_10, 0b_0_01_10: 0b_0_01_10},
     )
 
     assert_url_to_circuit_returns(
         '{"cols":[["^A>=B","inputA2",1,"inputB2"]]}',
-        maps={
-            0b_0_11_10: 0b_1_11_10,
-            0b_0_10_10: 0b_1_10_10,
-            0b_0_01_10: 0b_0_01_10,
-        },
+        maps={0b_0_11_10: 0b_1_11_10, 0b_0_10_10: 0b_1_10_10, 0b_0_01_10: 0b_0_01_10},
     )
 
     assert_url_to_circuit_returns(
         '{"cols":[["^A<=B","inputA2",1,"inputB2"]]}',
-        maps={
-            0b_0_11_10: 0b_0_11_10,
-            0b_0_10_10: 0b_1_10_10,
-            0b_0_01_10: 0b_1_01_10,
-        },
+        maps={0b_0_11_10: 0b_0_11_10, 0b_0_10_10: 0b_1_10_10, 0b_0_01_10: 0b_1_01_10},
     )
 
     assert_url_to_circuit_returns(
         '{"cols":[["^A=B","inputA2",1,"inputB2"]]}',
-        maps={
-            0b_0_11_10: 0b_0_11_10,
-            0b_0_10_10: 0b_1_10_10,
-            0b_0_01_10: 0b_0_01_10,
-        },
+        maps={0b_0_11_10: 0b_0_11_10, 0b_0_10_10: 0b_1_10_10, 0b_0_01_10: 0b_0_01_10},
     )
 
     assert_url_to_circuit_returns(
         '{"cols":[["^A!=B","inputA2",1,"inputB2"]]}',
-        maps={
-            0b_0_11_10: 0b_1_11_10,
-            0b_0_10_10: 0b_0_10_10,
-            0b_0_01_10: 0b_1_01_10,
-        },
+        maps={0b_0_11_10: 0b_1_11_10, 0b_0_10_10: 0b_0_10_10, 0b_0_01_10: 0b_1_01_10},
     )
 
 
@@ -116,36 +96,20 @@ def test_arithmetic_unlisted_misc_gates():
     )
 
     assert_url_to_circuit_returns(
-        '{"cols":[[{"id":"setA","arg":5}],["^=A4"]]}',
-        maps={
-            0b_0000: 0b_0101,
-            0b_1111: 0b_1010,
-        },
+        '{"cols":[[{"id":"setA","arg":5}],["^=A4"]]}', maps={0b_0000: 0b_0101, 0b_1111: 0b_1010}
     )
 
     assert_url_to_circuit_returns(
         '{"cols":[[{"id":"setA","arg":11}],["+cntA4"]]}',
-        maps={
-            0b_0000: 0b_0011,
-            0b_0001: 0b_0100,
-            0b_1111: 0b_0010,
-        },
+        maps={0b_0000: 0b_0011, 0b_0001: 0b_0100, 0b_1111: 0b_0010},
     )
     assert_url_to_circuit_returns(
         '{"cols":[[{"id":"setA","arg":5}],["+cntA4"]]}',
-        maps={
-            0b_0000: 0b_0010,
-            0b_0001: 0b_0011,
-            0b_1111: 0b_0001,
-        },
+        maps={0b_0000: 0b_0010, 0b_0001: 0b_0011, 0b_1111: 0b_0001},
     )
     assert_url_to_circuit_returns(
         '{"cols":[[{"id":"setA","arg":7}],["-cntA4"]]}',
-        maps={
-            0b_0000: 0b_1101,
-            0b_0001: 0b_1110,
-            0b_1111: 0b_1100,
-        },
+        maps={0b_0000: 0b_1101, 0b_0001: 0b_1110, 0b_1111: 0b_1100},
     )
 
     assert_url_to_circuit_returns(
@@ -187,73 +151,38 @@ def test_arithmetic_addition_gates():
       │
 2: ───#3────────────
             """,
-        maps={
-            0: 1,
-            3: 4,
-            7: 0,
-        },
+        maps={0: 1, 3: 4, 7: 0},
     )
-    assert_url_to_circuit_returns(
-        '{"cols":[["dec3"]]}',
-        maps={
-            0: 7,
-            3: 2,
-            7: 6,
-        },
-    )
+    assert_url_to_circuit_returns('{"cols":[["dec3"]]}', maps={0: 7, 3: 2, 7: 6})
     assert_url_to_circuit_returns(
         '{"cols":[["+=A2",1,"inputA2"]]}',
-        maps={
-            0b_00_00: 0b_00_00,
-            0b_01_10: 0b_11_10,
-            0b_10_11: 0b_01_11,
-        },
+        maps={0b_00_00: 0b_00_00, 0b_01_10: 0b_11_10, 0b_10_11: 0b_01_11},
     )
     assert_url_to_circuit_returns(
         '{"cols":[["-=A2",1,"inputA2"]]}',
-        maps={
-            0b_00_00: 0b_00_00,
-            0b_01_10: 0b_11_10,
-            0b_10_11: 0b_11_11,
-        },
+        maps={0b_00_00: 0b_00_00, 0b_01_10: 0b_11_10, 0b_10_11: 0b_11_11},
     )
 
 
 def test_arithmetic_multiply_accumulate_gates():
     assert_url_to_circuit_returns(
         '{"cols":[["+=AA4",1,1,1,"inputA2"]]}',
-        maps={
-            0b_0000_00: 0b_0000_00,
-            0b_0100_10: 0b_1000_10,
-            0b_1000_11: 0b_0001_11,
-        },
+        maps={0b_0000_00: 0b_0000_00, 0b_0100_10: 0b_1000_10, 0b_1000_11: 0b_0001_11},
     )
 
     assert_url_to_circuit_returns(
         '{"cols":[["-=AA4",1,1,1,"inputA2"]]}',
-        maps={
-            0b_0000_00: 0b_0000_00,
-            0b_0100_10: 0b_0000_10,
-            0b_1000_11: 0b_1111_11,
-        },
+        maps={0b_0000_00: 0b_0000_00, 0b_0100_10: 0b_0000_10, 0b_1000_11: 0b_1111_11},
     )
 
     assert_url_to_circuit_returns(
         '{"cols":[["+=AB3",1,1,"inputA2",1,"inputB2"]]}',
-        maps={
-            0b_000_00_00: 0b_000_00_00,
-            0b_000_11_10: 0b_110_11_10,
-            0b_100_11_11: 0b_101_11_11,
-        },
+        maps={0b_000_00_00: 0b_000_00_00, 0b_000_11_10: 0b_110_11_10, 0b_100_11_11: 0b_101_11_11},
     )
 
     assert_url_to_circuit_returns(
         '{"cols":[["-=AB3",1,1,"inputA2",1,"inputB2"]]}',
-        maps={
-            0b_000_00_00: 0b_000_00_00,
-            0b_000_11_10: 0b_010_11_10,
-            0b_100_11_11: 0b_011_11_11,
-        },
+        maps={0b_000_00_00: 0b_000_00_00, 0b_000_11_10: 0b_010_11_10, 0b_100_11_11: 0b_011_11_11},
     )
 
 
@@ -291,65 +220,25 @@ def test_arithmetic_modular_addition_gates():
       │
 3: ───#4─────────────────────
         """,
-        maps={
-            0: 1,
-            1: 2,
-            2: 3,
-            3: 4,
-            4: 5,
-            5: 6,
-            15: 0,
-        },
+        maps={0: 1, 1: 2, 2: 3, 3: 4, 4: 5, 5: 6, 15: 0},
     )
     assert_url_to_circuit_returns(
         '{"cols":[[{"id":"setR","arg":5}],["incmodR4"]]}',
-        maps={
-            0: 1,
-            1: 2,
-            2: 3,
-            3: 4,
-            4: 0,
-            5: 5,
-            15: 15,
-        },
+        maps={0: 1, 1: 2, 2: 3, 3: 4, 4: 0, 5: 5, 15: 15},
     )
     assert_url_to_circuit_returns(
         '{"cols":[[{"id":"setR","arg":5}],["decmodR4"]]}',
-        maps={
-            0: 4,
-            1: 0,
-            2: 1,
-            3: 2,
-            4: 3,
-            5: 5,
-            15: 15,
-        },
+        maps={0: 4, 1: 0, 2: 1, 3: 2, 4: 3, 5: 5, 15: 15},
     )
 
     assert_url_to_circuit_returns(
         '{"cols":[[{"id":"setR","arg":5},{"id":"setA","arg":3}],["+AmodR4"]]}',
-        maps={
-            0: 3,
-            1: 4,
-            2: 0,
-            3: 1,
-            4: 2,
-            5: 5,
-            15: 15,
-        },
+        maps={0: 3, 1: 4, 2: 0, 3: 1, 4: 2, 5: 5, 15: 15},
     )
 
     assert_url_to_circuit_returns(
         '{"cols":[[{"id":"setR","arg":5},{"id":"setA","arg":3}],["-AmodR4"]]}',
-        maps={
-            0: 2,
-            1: 3,
-            2: 4,
-            3: 0,
-            4: 1,
-            5: 5,
-            15: 15,
-        },
+        maps={0: 2, 1: 3, 2: 4, 3: 0, 4: 1, 5: 5, 15: 15},
     )
 
 
@@ -357,121 +246,51 @@ def test_arithmetic_modular_multiply_accumulate_gates():
     assert_url_to_circuit_returns(
         '{"cols":[[{"id":"setR","arg":5},{"id":"setA","arg":3},'
         '{"id":"setB","arg":4}],["+ABmodR4"]]}',
-        maps={
-            0: 2,
-            1: 3,
-            2: 4,
-            3: 0,
-            4: 1,
-            5: 5,
-            15: 15,
-        },
+        maps={0: 2, 1: 3, 2: 4, 3: 0, 4: 1, 5: 5, 15: 15},
     )
 
     assert_url_to_circuit_returns(
         '{"cols":[[{"id":"setR","arg":27},{"id":"setA","arg":3},'
         '{"id":"setB","arg":5}],["-ABmodR6"]]}',
-        maps={
-            0: 27 - 15,
-            1: 27 - 14,
-            15: 0,
-            16: 1,
-            26: 26 - 15,
-            27: 27,
-            63: 63,
-        },
+        maps={0: 27 - 15, 1: 27 - 14, 15: 0, 16: 1, 26: 26 - 15, 27: 27, 63: 63},
     )
 
 
 def test_arithmetic_multiply_gates():
     assert_url_to_circuit_returns(
-        '{"cols":[[{"id":"setA","arg":3}],["*A4"]]}',
-        maps={
-            0: 0,
-            1: 3,
-            3: 9,
-            9: 11,
-            11: 1,
-        },
+        '{"cols":[[{"id":"setA","arg":3}],["*A4"]]}', maps={0: 0, 1: 3, 3: 9, 9: 11, 11: 1}
     )
     assert_url_to_circuit_returns(
-        '{"cols":[[{"id":"setA","arg":3}],["/A4"]]}',
-        maps={
-            0: 0,
-            1: 11,
-            3: 1,
-            9: 3,
-            11: 9,
-        },
+        '{"cols":[[{"id":"setA","arg":3}],["/A4"]]}', maps={0: 0, 1: 11, 3: 1, 9: 3, 11: 9}
     )
 
     # Irreversible multipliers have no effect.
     assert_url_to_circuit_returns(
-        '{"cols":[[{"id":"setA","arg":4}],["*A4"]]}',
-        maps={
-            0: 0,
-            1: 1,
-            3: 3,
-        },
+        '{"cols":[[{"id":"setA","arg":4}],["*A4"]]}', maps={0: 0, 1: 1, 3: 3}
     )
     assert_url_to_circuit_returns(
-        '{"cols":[[{"id":"setA","arg":4}],["/A4"]]}',
-        maps={
-            0: 0,
-            1: 1,
-            3: 3,
-        },
+        '{"cols":[[{"id":"setA","arg":4}],["/A4"]]}', maps={0: 0, 1: 1, 3: 3}
     )
 
 
 def test_arithmetic_modular_multiply_gates():
     assert_url_to_circuit_returns(
         '{"cols":[[{"id":"setA","arg":3},{"id":"setR","arg":7}],["*AmodR4"]]}',
-        maps={
-            0: 0,
-            1: 3,
-            3: 2,
-            2: 6,
-            6: 4,
-            4: 5,
-            5: 1,
-            7: 7,
-            15: 15,
-        },
+        maps={0: 0, 1: 3, 3: 2, 2: 6, 6: 4, 4: 5, 5: 1, 7: 7, 15: 15},
     )
     assert_url_to_circuit_returns(
         '{"cols":[[{"id":"setA","arg":3},{"id":"setR","arg":7}],["/AmodR4"]]}',
-        maps={
-            0: 0,
-            1: 5,
-            2: 3,
-            3: 1,
-            4: 6,
-            5: 4,
-            6: 2,
-            7: 7,
-            15: 15,
-        },
+        maps={0: 0, 1: 5, 2: 3, 3: 1, 4: 6, 5: 4, 6: 2, 7: 7, 15: 15},
     )
 
     # Irreversible multipliers have no effect.
     assert_url_to_circuit_returns(
         '{"cols":[[{"id":"setA","arg":5},{"id":"setR","arg":15}],["*AmodR4"]]}',
-        maps={
-            0: 0,
-            1: 1,
-            3: 3,
-            15: 15,
-        },
+        maps={0: 0, 1: 1, 3: 3, 15: 15},
     )
     assert_url_to_circuit_returns(
         '{"cols":[[{"id":"setA","arg":5},{"id":"setR","arg":15}],["/AmodR4"]]}',
-        maps={
-            0: 0,
-            1: 1,
-            3: 3,
-            15: 15,
-        },
+        maps={0: 0, 1: 1, 3: 3, 15: 15},
     )
 
 
@@ -479,43 +298,23 @@ def test_arithmetic_modular_exponentiation_gates():
     assert_url_to_circuit_returns(
         '{"cols":[[{"id":"setA","arg":5},{"id":"setB","arg":3},'
         '{"id":"setR","arg":7}],["*BToAmodR4"]]}',
-        maps={
-            0: 0,
-            1: 5,
-            2: 3,
-            15: 15,
-        },
+        maps={0: 0, 1: 5, 2: 3, 15: 15},
     )
     assert_url_to_circuit_returns(
         '{"cols":[[{"id":"setA","arg":6},{"id":"setB","arg":3},'
         '{"id":"setR","arg":7}],["*BToAmodR4"]]}',
-        maps={
-            0: 0,
-            1: 1,
-            2: 2,
-            15: 15,
-        },
+        maps={0: 0, 1: 1, 2: 2, 15: 15},
     )
 
     assert_url_to_circuit_returns(
         '{"cols":[[{"id":"setA","arg":5},{"id":"setB","arg":3},'
         '{"id":"setR","arg":7}],["/BToAmodR4"]]}',
-        maps={
-            0: 0,
-            1: 3,
-            2: 6,
-            15: 15,
-        },
+        maps={0: 0, 1: 3, 2: 6, 15: 15},
     )
     assert_url_to_circuit_returns(
         '{"cols":[[{"id":"setA","arg":6},{"id":"setB","arg":3},'
         '{"id":"setR","arg":7}],["/BToAmodR4"]]}',
-        maps={
-            0: 0,
-            1: 1,
-            2: 2,
-            15: 15,
-        },
+        maps={0: 0, 1: 1, 2: 2, 15: 15},
     )
 
 

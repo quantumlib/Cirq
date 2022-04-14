@@ -65,15 +65,10 @@ setup(
     author_email='cirq-dev@googlegroups.com',
     python_requires=('>=3.6.0'),
     install_requires=requirements,
-    extras_require={
-        'contrib': contrib_requirements,
-    },
+    extras_require={'contrib': contrib_requirements},
     license='Apache 2',
     description=description,
     long_description=long_description,
     packages=cirq_packages,
-    package_data={
-        'cirq': ['py.typed'],
-        'cirq.protocols.json_test_data': ['*'],
-    },
+    package_data={'cirq': ['py.typed'], 'cirq.protocols.json_test_data': ['*']},
 )

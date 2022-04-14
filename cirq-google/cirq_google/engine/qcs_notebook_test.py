@@ -19,8 +19,8 @@ from cirq_google.engine.qcs_notebook import get_qcs_objects_for_notebook
 def test_get_device_sampler():
     result = get_qcs_objects_for_notebook()
     assert result.device is cg.Sycamore
-    assert result.signed_in is False
-    assert type(result.sampler) is cg.PhasedFSimEngineSimulator
+    assert not result.signed_in
+    assert isinstance(result.sampler, cg.PhasedFSimEngineSimulator)
     assert result.is_simulator
 
     result = get_qcs_objects_for_notebook("", "")

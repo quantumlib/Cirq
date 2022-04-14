@@ -128,11 +128,7 @@ class ModularExp(cirq.ArithmeticGate):
     """
 
     def __init__(
-        self,
-        target: Sequence[int],
-        exponent: Union[int, Sequence[int]],
-        base: int,
-        modulus: int,
+        self, target: Sequence[int], exponent: Union[int, Sequence[int]], base: int, modulus: int
     ) -> None:
         if len(target) < modulus.bit_length():
             raise ValueError(
@@ -146,10 +142,7 @@ class ModularExp(cirq.ArithmeticGate):
     def registers(self) -> Sequence[Union[int, Sequence[int]]]:
         return self.target, self.exponent, self.base, self.modulus
 
-    def with_registers(
-        self,
-        *new_registers: Union[int, Sequence[int]],
-    ) -> 'ModularExp':
+    def with_registers(self, *new_registers: Union[int, Sequence[int]]) -> 'ModularExp':
         if len(new_registers) != 4:
             raise ValueError(
                 f'Expected 4 registers (target, exponent, base, '
@@ -171,10 +164,7 @@ class ModularExp(cirq.ArithmeticGate):
             return target
         return (target * base**exponent) % modulus
 
-    def _circuit_diagram_info_(
-        self,
-        args: cirq.CircuitDiagramInfoArgs,
-    ) -> cirq.CircuitDiagramInfo:
+    def _circuit_diagram_info_(self, args: cirq.CircuitDiagramInfoArgs) -> cirq.CircuitDiagramInfo:
         assert args.known_qubits is not None
         wire_symbols = [f't{i}' for i in range(len(self.target))]
         e_str = str(self.exponent)
@@ -335,10 +325,7 @@ def find_factor(
     return None  # coverage: ignore
 
 
-def main(
-    n: int,
-    order_finder: Callable[[int, int], Optional[int]] = naive_order_finder,
-):
+def main(n: int, order_finder: Callable[[int, int], Optional[int]] = naive_order_finder):
     if n < 2:
         raise ValueError(f'Invalid input {n}, expected positive integer greater than one.')
 
@@ -355,9 +342,6 @@ def main(
 
 if __name__ == '__main__':
     # coverage: ignore
-    ORDER_FINDERS = {
-        'naive': naive_order_finder,
-        'quantum': quantum_order_finder,
-    }
+    ORDER_FINDERS = {'naive': naive_order_finder, 'quantum': quantum_order_finder}
     args = parser.parse_args()
     main(n=args.n, order_finder=ORDER_FINDERS[args.order_finder])

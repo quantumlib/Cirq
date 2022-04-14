@@ -165,10 +165,7 @@ def t2_decay(
         # Evolve the state for a given amount of delay time
         # Then measure the state in both X and Y bases.
 
-        circuit = circuits.Circuit(
-            ops.Y(qubit) ** 0.5,
-            ops.wait(qubit, nanos=delay_var),
-        )
+        circuit = circuits.Circuit(ops.Y(qubit) ** 0.5, ops.wait(qubit, nanos=delay_var))
     else:
         if experiment_type == ExperimentType.HAHN_ECHO:
             # Hahn / Spin Echo T2 experiment
@@ -196,8 +193,7 @@ def t2_decay(
     circuit.append(ops.Y(qubit) ** inv_y_var)
     circuit.append(ops.measure(qubit, key='output'))
     tomography_sweep = study.Zip(
-        study.Points('inv_x', [0.0, 0.5]),
-        study.Points('inv_y', [-0.5, 0.0]),
+        study.Points('inv_x', [0.0, 0.5]), study.Points('inv_y', [-0.5, 0.0])
     )
 
     if num_pulses and max_pulses > 0:

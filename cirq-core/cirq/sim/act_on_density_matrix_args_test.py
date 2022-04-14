@@ -23,10 +23,7 @@ def test_default_parameter():
     tensor = cirq.to_valid_density_matrix(
         0, len(qid_shape), qid_shape=qid_shape, dtype=np.complex64
     )
-    args = cirq.ActOnDensityMatrixArgs(
-        qubits=cirq.LineQubit.range(1),
-        initial_state=0,
-    )
+    args = cirq.ActOnDensityMatrixArgs(qubits=cirq.LineQubit.range(1), initial_state=0)
     np.testing.assert_almost_equal(args.target_tensor, tensor)
     assert len(args.available_buffer) == 3
     for buffer in args.available_buffer:
@@ -36,30 +33,9 @@ def test_default_parameter():
 
 
 def test_shallow_copy_buffers():
-    args = cirq.ActOnDensityMatrixArgs(
-        qubits=cirq.LineQubit.range(1),
-        initial_state=0,
-    )
+    args = cirq.ActOnDensityMatrixArgs(qubits=cirq.LineQubit.range(1), initial_state=0)
     copy = args.copy(deep_copy_buffers=False)
     assert copy.available_buffer is args.available_buffer
-
-
-def test_positional_argument():
-    qid_shape = (2,)
-    tensor = cirq.to_valid_density_matrix(
-        0, len(qid_shape), qid_shape=qid_shape, dtype=np.complex64
-    )
-    with cirq.testing.assert_deprecated(
-        'specify all the arguments with keywords', deadline='v0.15'
-    ):
-        cirq.ActOnDensityMatrixArgs(tensor)
-
-
-def test_deprecated_warning_and_default_parameter_error():
-    tensor = np.ndarray(shape=(2,))
-    with cirq.testing.assert_deprecated('Use initial_state instead', deadline='v0.15'):
-        with pytest.raises(ValueError, match='dimension of target_tensor is not divisible by 2'):
-            cirq.ActOnDensityMatrixArgs(target_tensor=tensor)
 
 
 def test_decomposed_fallback():
@@ -99,9 +75,7 @@ def test_cannot_act():
 
 def test_with_qubits():
     original = cirq.ActOnDensityMatrixArgs(
-        qubits=cirq.LineQubit.range(1),
-        initial_state=1,
-        dtype=np.complex64,
+        qubits=cirq.LineQubit.range(1), initial_state=1, dtype=np.complex64
     )
     extened = original.with_qubits(cirq.LineQubit.range(1, 2))
     np.testing.assert_almost_equal(
@@ -116,3 +90,50 @@ def test_with_qubits():
 def test_qid_shape_error():
     with pytest.raises(ValueError, match="qid_shape must be provided"):
         cirq.sim.act_on_density_matrix_args._BufferedDensityMatrix.create(initial_state=0)
+
+
+def test_initial_state_vector():
+    qubits = cirq.LineQubit.range(3)
+    args = cirq.ActOnDensityMatrixArgs(
+        qubits=qubits, initial_state=np.full((8,), 1 / np.sqrt(8)), dtype=np.complex64
+    )
+    assert args.target_tensor.shape == (2, 2, 2, 2, 2, 2)
+
+    args2 = cirq.ActOnDensityMatrixArgs(
+        qubits=qubits, initial_state=np.full((2, 2, 2), 1 / np.sqrt(8)), dtype=np.complex64
+    )
+    assert args2.target_tensor.shape == (2, 2, 2, 2, 2, 2)
+
+
+def test_initial_state_matrix():
+    qubits = cirq.LineQubit.range(3)
+    args = cirq.ActOnDensityMatrixArgs(
+        qubits=qubits, initial_state=np.full((8, 8), 1 / 8), dtype=np.complex64
+    )
+    assert args.target_tensor.shape == (2, 2, 2, 2, 2, 2)
+
+    args2 = cirq.ActOnDensityMatrixArgs(
+        qubits=qubits, initial_state=np.full((2, 2, 2, 2, 2, 2), 1 / 8), dtype=np.complex64
+    )
+    assert args2.target_tensor.shape == (2, 2, 2, 2, 2, 2)
+
+
+def test_initial_state_bad_shape():
+    qubits = cirq.LineQubit.range(3)
+    with pytest.raises(ValueError, match="Invalid quantum state"):
+        cirq.ActOnDensityMatrixArgs(
+            qubits=qubits, initial_state=np.full((4,), 1 / 2), dtype=np.complex64
+        )
+    with pytest.raises(ValueError, match="Invalid quantum state"):
+        cirq.ActOnDensityMatrixArgs(
+            qubits=qubits, initial_state=np.full((2, 2), 1 / 2), dtype=np.complex64
+        )
+
+    with pytest.raises(ValueError, match="Invalid quantum state"):
+        cirq.ActOnDensityMatrixArgs(
+            qubits=qubits, initial_state=np.full((4, 4), 1 / 4), dtype=np.complex64
+        )
+    with pytest.raises(ValueError, match="Invalid quantum state"):
+        cirq.ActOnDensityMatrixArgs(
+            qubits=qubits, initial_state=np.full((2, 2, 2, 2), 1 / 4), dtype=np.complex64
+        )

@@ -18,9 +18,7 @@ from cirq.contrib.paulistring.convert_to_pauli_string_phasors import ConvertToPa
 
 
 def converted_gate_set(
-    circuit: circuits.Circuit,
-    no_clifford_gates: bool = False,
-    atol: float = 1e-8,
+    circuit: circuits.Circuit, no_clifford_gates: bool = False, atol: float = 1e-8
 ) -> circuits.Circuit:
     """Returns a new, equivalent circuit using the gate set
     {SingleQubitCliffordGate,
@@ -31,8 +29,6 @@ def converted_gate_set(
     )
     conv_circuit = transformers.merge_k_qubit_unitaries(conv_circuit, k=1)
     ConvertToPauliStringPhasors(
-        ignore_failures=True,
-        keep_clifford=not no_clifford_gates,
-        atol=atol,
+        ignore_failures=True, keep_clifford=not no_clifford_gates, atol=atol
     ).optimize_circuit(conv_circuit)
     return transformers.drop_empty_moments(conv_circuit)

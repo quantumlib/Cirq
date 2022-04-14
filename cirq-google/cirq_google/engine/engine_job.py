@@ -17,10 +17,12 @@ import time
 
 from typing import Dict, Iterator, List, Optional, overload, Sequence, Tuple, TYPE_CHECKING
 
+from google.protobuf import any_pb2
+
 import cirq
 from cirq_google.engine import abstract_job, calibration, engine_client
 from cirq_google.engine.calibration_result import CalibrationResult
-from cirq_google.engine.client import quantum
+from cirq_google.cloud import quantum
 from cirq_google.engine.result_type import ResultType
 from cirq_google.api import v1, v2
 
@@ -31,9 +33,9 @@ if TYPE_CHECKING:
     from cirq_google.engine.engine import engine_processor
 
 TERMINAL_STATES = [
-    quantum.enums.ExecutionStatus.State.SUCCESS,
-    quantum.enums.ExecutionStatus.State.FAILURE,
-    quantum.enums.ExecutionStatus.State.CANCELLED,
+    quantum.ExecutionStatus.State.SUCCESS,
+    quantum.ExecutionStatus.State.FAILURE,
+    quantum.ExecutionStatus.State.CANCELLED,
 ]
 
 
@@ -60,7 +62,7 @@ class EngineJob(abstract_job.AbstractJob):
         program_id: str,
         job_id: str,
         context: 'engine_base.EngineContext',
-        _job: Optional[quantum.types.QuantumJob] = None,
+        _job: Optional[quantum.QuantumJob] = None,
         result_type: ResultType = ResultType.Program,
     ) -> None:
         """A job submitted to the engine.
@@ -100,15 +102,15 @@ class EngineJob(abstract_job.AbstractJob):
 
         return engine_program.EngineProgram(self.project_id, self.program_id, self.context)
 
-    def _inner_job(self) -> quantum.types.QuantumJob:
-        if not self._job:
+    def _inner_job(self) -> quantum.QuantumJob:
+        if self._job is None:
             self._job = self.context.client.get_job(
                 self.project_id, self.program_id, self.job_id, False
             )
         return self._job
 
-    def _refresh_job(self) -> quantum.types.QuantumJob:
-        if not self._job or self._job.execution_status.state not in TERMINAL_STATES:
+    def _refresh_job(self) -> quantum.QuantumJob:
+        if self._job is None or self._job.execution_status.state not in TERMINAL_STATES:
             self._job = self.context.client.get_job(
                 self.project_id, self.program_id, self.job_id, False
             )
@@ -116,14 +118,14 @@ class EngineJob(abstract_job.AbstractJob):
 
     def create_time(self) -> 'datetime.datetime':
         """Returns when the job was created."""
-        return self._inner_job().create_time.ToDatetime()
+        return self._inner_job().create_time
 
     def update_time(self) -> 'datetime.datetime':
         """Returns when the job was last updated."""
         self._job = self.context.client.get_job(
             self.project_id, self.program_id, self.job_id, False
         )
-        return self._job.update_time.ToDatetime()
+        return self._job.update_time
 
     def description(self) -> str:
         """Returns the description of the job."""
@@ -197,22 +199,19 @@ class EngineJob(abstract_job.AbstractJob):
             for p in self._inner_job().scheduling_config.processor_selector.processor_names
         ]
 
-    def execution_status(self) -> quantum.enums.ExecutionStatus.State:
+    def execution_status(self) -> quantum.ExecutionStatus.State:
         """Return the execution status of the job."""
         return self._refresh_job().execution_status.state
 
     def status(self) -> str:
         """Return the execution status of the job."""
-        return quantum.types.ExecutionStatus.State.Name(self._refresh_job().execution_status.state)
+        return self._refresh_job().execution_status.state.name
 
     def failure(self) -> Optional[Tuple[str, str]]:
         """Return failure code and message of the job if present."""
-        if self._inner_job().execution_status.HasField('failure'):
+        if self._inner_job().execution_status.failure:
             failure = self._inner_job().execution_status.failure
-            return (
-                quantum.types.ExecutionStatus.Failure.Code.Name(failure.error_code),
-                failure.error_message,
-            )
+            return (failure.error_code.name, failure.error_message)
         return None
 
     def get_repetitions_and_sweeps(self) -> Tuple[int, List[cirq.Sweep]]:
@@ -221,7 +220,7 @@ class EngineJob(abstract_job.AbstractJob):
         Returns:
             A tuple of the repetition count and list of sweeps.
         """
-        if not self._job or not self._job.HasField('run_context'):
+        if self._job is None or self._job.run_context is None:
             self._job = self.context.client.get_job(
                 self.project_id, self.program_id, self.job_id, True
             )
@@ -266,7 +265,7 @@ class EngineJob(abstract_job.AbstractJob):
         for each circuit in the batch.
         """
         self.results()
-        if not self._batched_results:
+        if self._batched_results is None:
             raise ValueError('batched_results called for a non-batch result.')
         return self._batched_results
 
@@ -292,7 +291,7 @@ class EngineJob(abstract_job.AbstractJob):
         """Returns the job results, blocking until the job is complete."""
         import cirq_google.engine.engine as engine_base
 
-        if not self._results:
+        if self._results is None:
             result = self._wait_for_result()
             result_type = result.type_url[len(engine_base.TYPE_PREFIX) :]
             if (
@@ -323,7 +322,7 @@ class EngineJob(abstract_job.AbstractJob):
         """
         import cirq_google.engine.engine as engine_base
 
-        if not self._calibration_results:
+        if self._calibration_results is None:
             result = self._wait_for_result()
             result_type = result.type_url[len(engine_base.TYPE_PREFIX) :]
             if result_type != 'cirq.google.api.v2.FocusedCalibrationResult':
@@ -382,9 +381,7 @@ class EngineJob(abstract_job.AbstractJob):
         )
 
 
-def _deserialize_run_context(
-    run_context: quantum.types.any_pb2.Any,
-) -> Tuple[int, List[cirq.Sweep]]:
+def _deserialize_run_context(run_context: any_pb2.Any) -> Tuple[int, List[cirq.Sweep]]:
     import cirq_google.engine.engine as engine_base
 
     run_context_type = run_context.type_url[len(engine_base.TYPE_PREFIX) :]
@@ -415,8 +412,7 @@ def _get_job_results_v1(result: v1.program_pb2.Result) -> Sequence[cirq.Result]:
 
             trial_results.append(
                 cirq.ResultDict(
-                    params=cirq.ParamResolver(result.params.assignments),
-                    measurements=measurements,
+                    params=cirq.ParamResolver(result.params.assignments), measurements=measurements
                 )
             )
     return trial_results
@@ -428,33 +424,21 @@ def _get_job_results_v2(result: v2.result_pb2.Result) -> Sequence[cirq.Result]:
     return [trial_result for sweep_result in sweep_results for trial_result in sweep_result]
 
 
-def _raise_on_failure(job: quantum.types.QuantumJob) -> None:
+def _raise_on_failure(job: quantum.QuantumJob) -> None:
     execution_status = job.execution_status
     state = execution_status.state
     name = job.name
-    if state != quantum.enums.ExecutionStatus.State.SUCCESS:
-        if state == quantum.enums.ExecutionStatus.State.FAILURE:
+    if state != quantum.ExecutionStatus.State.SUCCESS:
+        if state == quantum.ExecutionStatus.State.FAILURE:
             processor = execution_status.processor_name or 'UNKNOWN'
             error_code = execution_status.failure.error_code
             error_message = execution_status.failure.error_message
             raise RuntimeError(
-                "Job {} on processor {} failed. {}: {}".format(
-                    name,
-                    processor,
-                    quantum.types.ExecutionStatus.Failure.Code.Name(error_code),
-                    error_message,
-                )
+                f"Job {name} on processor {processor} failed. {error_code.name}: {error_message}"
             )
         elif state in TERMINAL_STATES:
-            raise RuntimeError(
-                'Job {} failed in state {}.'.format(
-                    name,
-                    quantum.types.ExecutionStatus.State.Name(state),
-                )
-            )
+            raise RuntimeError(f'Job {name} failed in state {state.name}.')
         else:
             raise RuntimeError(
-                'Timed out waiting for results. Job {} is in state {}'.format(
-                    name, quantum.types.ExecutionStatus.State.Name(state)
-                )
+                f'Timed out waiting for results. Job {name} is in state {state.name}'
             )

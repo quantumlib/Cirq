@@ -52,10 +52,7 @@ class RigettiQCSSampler(cirq.Sampler):
         self.transformer = transformer
 
     def run_sweep(
-        self,
-        program: cirq.AbstractCircuit,
-        params: cirq.Sweepable,
-        repetitions: int = 1,
+        self, program: cirq.AbstractCircuit, params: cirq.Sweepable, repetitions: int = 1
     ) -> Sequence[cirq.Result]:
         """This will evaluate results on the circuit for every set of parameters in `params`.
 
@@ -115,13 +112,5 @@ def get_rigetti_qcs_sampler(
         A `RigettiQCSSampler` with the specified quantum processor, executor, and transformer.
 
     """
-    qc = get_qc(
-        quantum_processor_id,
-        as_qvm=as_qvm,
-        noisy=noisy,
-    )
-    return RigettiQCSSampler(
-        quantum_computer=qc,
-        executor=executor,
-        transformer=transformer,
-    )
+    qc = get_qc(quantum_processor_id, as_qvm=as_qvm, noisy=noisy)
+    return RigettiQCSSampler(quantum_computer=qc, executor=executor, transformer=transformer)
