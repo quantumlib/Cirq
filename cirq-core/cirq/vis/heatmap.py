@@ -295,7 +295,7 @@ class Heatmap:
         Args:
             ax: the Axes to plot on. If not given, a new figure is created,
                 plotted on, and shown.
-            kwargs: The optional keyword arguments are used to temporarily
+            **kwargs: The optional keyword arguments are used to temporarily
                 override the values present in the heatmap config. See
                 __init__ for more details on the allowed arguments.
         Returns:
@@ -384,7 +384,7 @@ class TwoQubitInteractionHeatmap(Heatmap):
         Args:
             ax: the Axes to plot on. If not given, a new figure is created,
                 plotted on, and shown.
-            kwargs: The optional keyword arguments are used to temporarily
+            **kwargs: The optional keyword arguments are used to temporarily
                 override the values present in the heatmap config. See
                 __init__ for more details on the allowed arguments.
         Returns:

@@ -45,7 +45,7 @@ Category = Union[
 ]
 
 
-@transformer_api.transformer
+@transformer_api.transformer(add_deep_support=True)
 def stratified_circuit(
     circuit: 'cirq.AbstractCircuit',
     *,

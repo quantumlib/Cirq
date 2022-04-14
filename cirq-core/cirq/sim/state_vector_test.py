@@ -244,7 +244,7 @@ def test_measure_state_collapse():
 
 def test_measure_state_seed():
     n = 10
-    initial_state = np.ones(2 ** n) / 2 ** (n / 2)
+    initial_state = np.ones(2**n) / 2 ** (n / 2)
 
     bits, state1 = cirq.measure_state_vector(initial_state, range(n), seed=1234)
     np.testing.assert_equal(
@@ -385,7 +385,7 @@ def test_factor_validation():
     cirq.linalg.transformations.factor_state_vector(t, [1])
     args.apply_operation(cirq.CNOT(cirq.LineQubit(0), cirq.LineQubit(1)))
     t = args.create_merged_state().target_tensor
-    with pytest.raises(ValueError, match='factor'):
+    with pytest.raises(cirq.linalg.transformations.EntangledStateError):
         cirq.linalg.transformations.factor_state_vector(t, [0])
-    with pytest.raises(ValueError, match='factor'):
+    with pytest.raises(cirq.linalg.transformations.EntangledStateError):
         cirq.linalg.transformations.factor_state_vector(t, [1])

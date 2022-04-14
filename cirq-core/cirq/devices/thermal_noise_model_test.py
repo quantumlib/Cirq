@@ -277,7 +277,7 @@ def test_noisy_moment_two_qubit():
         dephase_rate_GHz={q0: 3e-4, q1: 4e-4},
         require_physical_tag=False,
     )
-    gate = cirq.CZ ** 0.5
+    gate = cirq.CZ**0.5
     moment = cirq.Moment(gate.on(q0, q1))
     noisy_moment = model.noisy_moment(moment, system_qubits=[q0, q1])
     assert noisy_moment[0] == moment

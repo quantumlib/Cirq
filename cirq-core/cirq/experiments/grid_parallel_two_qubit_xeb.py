@@ -20,7 +20,7 @@ to connected pairs of grid qubits. The qubit pairs are benchmarked in parallel
 by executing circuits that act on many pairs simultaneously.
 """
 
-from typing import Any, Iterable, List, Optional, Sequence, TYPE_CHECKING, Tuple, cast
+from typing import Any, Dict, Iterable, List, Optional, Sequence, TYPE_CHECKING, Tuple, cast
 import collections
 from concurrent.futures import ThreadPoolExecutor
 import dataclasses
@@ -46,7 +46,6 @@ from cirq.experiments.random_quantum_circuit_generation import (
 )
 
 if TYPE_CHECKING:
-    from typing import Dict
     import cirq
 
 DEFAULT_BASE_DIR = os.path.expanduser(
@@ -101,7 +100,7 @@ def load(params: Any, base_dir: str) -> Any:
     return protocols.read_json(filename)
 
 
-@protocols.json_serializable_dataclass
+@dataclasses.dataclass
 class GridParallelXEBMetadata:
     """Metadata for a grid parallel XEB experiment.
 
@@ -109,13 +108,16 @@ class GridParallelXEBMetadata:
         data_collection_id: The data collection ID of the experiment.
     """
 
-    qubits: List['cirq.Qid']
+    qubits: Sequence['cirq.Qid']
     two_qubit_gate: 'cirq.Gate'
     num_circuits: int
     repetitions: int
-    cycles: List[int]
-    layers: List[GridInteractionLayer]
+    cycles: Sequence[int]
+    layers: Sequence[GridInteractionLayer]
     seed: Optional[int]
+
+    def _json_dict_(self):
+        return protocols.dataclass_json_dict(self)
 
     def __repr__(self) -> str:
         return (

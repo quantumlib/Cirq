@@ -11,6 +11,8 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
+import itertools
 from typing import (
     AbstractSet,
     Any,
@@ -25,12 +27,10 @@ from typing import (
     TYPE_CHECKING,
 )
 
-import itertools
 import numpy as np
 
 from cirq import protocols, qis, value
-from cirq._compat import deprecated
-from cirq.ops import raw_types, gate_operation, controlled_gate
+from cirq.ops import raw_types, gate_operation, controlled_gate, matrix_gates
 from cirq.type_workarounds import NotImplementedType
 
 if TYPE_CHECKING:
@@ -77,37 +77,13 @@ class ControlledOperation(raw_types.Operation):
     def controls(self) -> Tuple['cirq.Qid', ...]:
         return self._controls
 
-    @controls.setter  # type: ignore
-    @deprecated(
-        deadline="v0.15",
-        fix="The mutators of this class are deprecated, instantiate a new object instead.",
-    )
-    def controls(self, controls: Tuple['cirq.Qid', ...]):
-        self._controls = controls
-
     @property
     def control_values(self) -> Tuple[Tuple[int, ...], ...]:
         return self._control_values
 
-    @control_values.setter  # type: ignore
-    @deprecated(
-        deadline="v0.15",
-        fix="The mutators of this class are deprecated, instantiate a new object instead.",
-    )
-    def control_values(self, control_values: Tuple[Tuple[int, ...], ...]):
-        self._control_values = control_values
-
     @property
     def sub_operation(self) -> 'cirq.Operation':
         return self._sub_operation
-
-    @sub_operation.setter  # type: ignore
-    @deprecated(
-        deadline="v0.15",
-        fix="The mutators of this class are deprecated, instantiate a new object instead.",
-    )
-    def sub_operation(self, sub_operation: 'cirq.Operation'):
-        self._sub_operation = sub_operation
 
     @property
     def gate(self) -> Optional['cirq.ControlledGate']:
@@ -130,11 +106,22 @@ class ControlledOperation(raw_types.Operation):
         )
 
     def _decompose_(self):
+        result = protocols.decompose_once_with_qubits(self.gate, self.qubits, NotImplemented)
+        if result is not NotImplemented:
+            return result
+
+        if isinstance(self.sub_operation.gate, matrix_gates.MatrixGate):
+            # Default decompositions of 2/3 qubit `cirq.MatrixGate` ignores global phase, which is
+            # local phase in the controlled variant and hence cannot be ignored.
+            return NotImplemented
+
         result = protocols.decompose_once(self.sub_operation, NotImplemented)
         if result is NotImplemented:
             return NotImplemented
 
-        return [ControlledOperation(self.controls, op, self.control_values) for op in result]
+        return [
+            op.controlled_by(*self.controls, control_values=self.control_values) for op in result
+        ]
 
     def _value_equality_values_(self):
         return (frozenset(zip(self.controls, self.control_values)), self.sub_operation)

@@ -47,6 +47,15 @@ RaiseTypeErrorIfNotProvided: Any = ([],)
 DecomposeResult = Union[None, NotImplementedType, 'cirq.OP_TREE']
 OpDecomposer = Callable[['cirq.Operation'], DecomposeResult]
 
+DECOMPOSE_TARGET_GATESET = ops.Gateset(
+    ops.XPowGate,
+    ops.YPowGate,
+    ops.ZPowGate,
+    ops.CZPowGate,
+    ops.MeasurementGate,
+    ops.GlobalPhaseGate,
+)
+
 
 def _value_error_describing_bad_operation(op: 'cirq.Operation') -> ValueError:
     return ValueError(f"Operation doesn't satisfy the given `keep` but can't be decomposed: {op!r}")
@@ -270,10 +279,10 @@ def decompose_once(val: Any, default=RaiseTypeErrorIfNotProvided, *args, **kwarg
             `_decompose_` method or that method returns `NotImplemented` or
             `None`. If not specified, non-decomposable values cause a
             `TypeError`.
-        args: Positional arguments to forward into the `_decompose_` method of
+        *args: Positional arguments to forward into the `_decompose_` method of
             `val`.  For example, this is used to tell gates what qubits they are
             being applied to.
-        kwargs: Keyword arguments to forward into the `_decompose_` method of
+        **kwargs: Keyword arguments to forward into the `_decompose_` method of
             `val`.
 
     Returns:

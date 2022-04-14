@@ -1,0 +1,231 @@
+{
+  "cirq_type": "_ContextualSerialization",
+  "object_dag": [
+    {
+      "cirq_type": "_SerializedContext",
+      "key": 1,
+      "obj": {
+        "cirq_type": "FrozenCircuit",
+        "moments": [          {            "cirq_type": "Moment",
+            "operations": [
+              {
+                "cirq_type": "GateOperation",
+                "gate": {                  "cirq_type": "HPowGate",
+                  "exponent": 1.0,
+                  "global_shift": 0.0
+                },
+                "qubits": [
+                  {
+                    "cirq_type": "LineQubit",
+                    "x": 0
+                  }
+                ]
+              },
+              {
+                "cirq_type": "GateOperation",
+                "gate": {
+                  "cirq_type": "HPowGate",
+                  "exponent": 1.0,
+                  "global_shift": 0.0
+                },
+                "qubits": [
+                  {
+                    "cirq_type": "LineQubit",
+                    "x": 1
+                  }
+                ]
+              },
+              {
+                "cirq_type": "GateOperation",
+                "gate": {
+                  "cirq_type": "HPowGate",
+                  "exponent": 1.0,
+                  "global_shift": 0.0
+                },
+                "qubits": [
+                  {
+                    "cirq_type": "LineQubit",
+                    "x": 2
+                  }
+                ]
+              },
+              {
+                "cirq_type": "GateOperation",
+                "gate": {
+                  "cirq_type": "HPowGate",
+                  "exponent": 1.0,
+                  "global_shift": 0.0
+                },
+                "qubits": [
+                  {
+                    "cirq_type": "LineQubit",
+                    "x": 3
+                  }
+                ]
+              },
+              {
+                "cirq_type": "GateOperation",
+                "gate": {
+                  "cirq_type": "HPowGate",
+                  "exponent": 1.0,
+                  "global_shift": 0.0
+                },
+                "qubits": [
+                  {
+                    "cirq_type": "LineQubit",
+                    "x": 4
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "cirq_type": "Moment",
+            "operations": [
+              {
+                "cirq_type": "GateOperation",
+                "gate": {
+                  "cirq_type": "MeasurementGate",
+                  "num_qubits": 5,
+                  "key": "0,1,2,3,4",
+                  "invert_mask": []
+                },
+                "qubits": [
+                  {
+                    "cirq_type": "LineQubit",
+                    "x": 0
+                  },
+                  {
+                    "cirq_type": "LineQubit",
+                    "x": 1
+                  },
+                  {
+                    "cirq_type": "LineQubit",
+                    "x": 2
+                  },
+                  {
+                    "cirq_type": "LineQubit",
+                    "x": 3
+                  },
+                  {
+                    "cirq_type": "LineQubit",
+                    "x": 4
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "device": {
+          "cirq_type": "_UnconstrainedDevice"
+        }
+      }
+    },
+    {
+      "cirq_type": "_SerializedContext",
+      "key": 2,
+      "obj": {
+        "cirq_type": "FrozenCircuit",
+        "moments": [
+          {
+            "cirq_type": "Moment",
+            "operations": [
+              {
+                "cirq_type": "GateOperation",
+                "gate": {
+                  "cirq_type": "CCXPowGate",
+                  "exponent": 1.0,
+                  "global_shift": 0.0
+                },
+                "qubits": [
+                  {
+                    "cirq_type": "LineQubit",
+                    "x": 0
+                  },
+                  {
+                    "cirq_type": "LineQubit",
+                    "x": 1
+                  },
+                  {
+                    "cirq_type": "LineQubit",
+                    "x": 2
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "cirq_type": "Moment",
+            "operations": [
+              {
+                "cirq_type": "GateOperation",
+                "gate": {
+                  "cirq_type": "XPowGate",
+                  "exponent": 0.123,
+                  "global_shift": 0.0
+                },
+                "qubits": [
+                  {
+                    "cirq_type": "LineQubit",
+                    "x": 0
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "device": {
+          "cirq_type": "_UnconstrainedDevice"
+        }
+      }
+    },
+    {
+      "cirq_type": "_SerializedContext",
+      "key": 3,
+      "obj": {
+        "cirq_type": "FrozenCircuit",
+        "moments": [
+          {
+            "cirq_type": "Moment",
+            "operations": [
+              {
+                "cirq_type": "GateOperation",
+                "gate": {
+                  "cirq_type": "XPowGate",
+                  "exponent": {
+                    "cirq_type": "sympy.Symbol",
+                    "name": "theta"
+                  },
+                  "global_shift": 0.0
+                },
+                "qubits": [
+                  {
+                    "cirq_type": "LineQubit",
+                    "x": 0
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "device": {
+          "cirq_type": "_UnconstrainedDevice"
+        }
+      }
+    },
+    [
+      {
+        "cirq_type": "_SerializedKey",
+        "key": 1
+      },
+      {
+        "cirq_type": "_SerializedKey",
+        "key": 2
+      },
+      {
+        "cirq_type": "_SerializedKey",
+        "key": 3
+      }
+    ]
+  ]
+}

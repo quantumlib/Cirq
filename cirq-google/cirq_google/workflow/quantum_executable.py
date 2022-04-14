@@ -47,11 +47,15 @@ class KeyValueExecutableSpec(ExecutableSpec):
     Args:
         executable_family: A unique name to group executables.
         key_value_pairs: A tuple of key-value pairs. The keys should be strings but the values
-            can be any immutable object.
+            can be any immutable object. Note that the order of the key-value pairs does NOT matter
+            when comparing two objects.
     """
 
     executable_family: str
     key_value_pairs: Tuple[Tuple[str, Any], ...] = ()
+
+    def to_dict(self) -> Dict[str, Any]:
+        return dict(self.key_value_pairs)
 
     @classmethod
     def _json_namespace_(cls) -> str:
@@ -63,8 +67,7 @@ class KeyValueExecutableSpec(ExecutableSpec):
     @classmethod
     def from_dict(cls, d: Dict[str, Any], *, executable_family: str) -> 'KeyValueExecutableSpec':
         return cls(
-            executable_family=executable_family,
-            key_value_pairs=tuple((k, v) for k, v in d.items()),
+            executable_family=executable_family, key_value_pairs=tuple((k, v) for k, v in d.items())
         )
 
     @classmethod
@@ -78,6 +81,12 @@ class KeyValueExecutableSpec(ExecutableSpec):
 
     def __repr__(self) -> str:
         return cirq._compat.dataclass_repr(self, namespace='cirq_google')
+
+    def __eq__(self, other):
+        # The conversion to a dict object is required so that the order of the keys doesn't matter.
+        return (self.executable_family == other.executable_family) and (
+            dict(self.key_value_pairs) == dict(other.key_value_pairs)
+        )
 
 
 @dataclass(frozen=True)
@@ -224,10 +233,7 @@ class QuantumExecutableGroup:
 
     executables: Tuple[QuantumExecutable, ...]
 
-    def __init__(
-        self,
-        executables: Sequence[QuantumExecutable],
-    ):
+    def __init__(self, executables: Sequence[QuantumExecutable]):
         """Initialize and normalize the quantum executable group.
 
         Args:

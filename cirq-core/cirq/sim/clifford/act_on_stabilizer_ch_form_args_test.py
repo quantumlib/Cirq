@@ -28,13 +28,6 @@ def test_init_state():
         _ = cirq.ActOnStabilizerCHFormArgs(initial_state=1)
 
 
-def test_deprecated_warning():
-    with cirq.testing.assert_deprecated(
-        'Specify all the arguments with keywords', deadline='v0.15'
-    ):
-        cirq.ActOnStabilizerCHFormArgs(cirq.StabilizerStateChForm(num_qubits=3))
-
-
 def test_cannot_act():
     class NoDetails(cirq.SingleQubitGate):
         pass
@@ -42,7 +35,6 @@ def test_cannot_act():
     args = cirq.ActOnStabilizerCHFormArgs(
         qubits=[],
         prng=np.random.RandomState(),
-        log_of_measurement_results={},
     )
 
     with pytest.raises(TypeError, match="Failed to act"):
@@ -61,7 +53,6 @@ def test_gate_with_act_on():
     args = cirq.ActOnStabilizerCHFormArgs(
         qubits=cirq.LineQubit.range(3),
         prng=np.random.RandomState(),
-        log_of_measurement_results={},
         initial_state=state,
     )
 
@@ -81,13 +72,11 @@ def test_unitary_fallback_y():
     args = cirq.ActOnStabilizerCHFormArgs(
         qubits=cirq.LineQubit.range(3),
         prng=np.random.RandomState(),
-        log_of_measurement_results={},
     )
     cirq.act_on(UnitaryYGate(), args, [cirq.LineQubit(1)])
     expected_args = cirq.ActOnStabilizerCHFormArgs(
         qubits=cirq.LineQubit.range(3),
         prng=np.random.RandomState(),
-        log_of_measurement_results={},
     )
     cirq.act_on(cirq.Y, expected_args, [cirq.LineQubit(1)])
     np.testing.assert_allclose(args.state.state_vector(), expected_args.state.state_vector())
@@ -99,18 +88,16 @@ def test_unitary_fallback_h():
             return 1
 
         def _unitary_(self):
-            return np.array([[1, 1], [1, -1]]) / (2 ** 0.5)
+            return np.array([[1, 1], [1, -1]]) / (2**0.5)
 
     args = cirq.ActOnStabilizerCHFormArgs(
         qubits=cirq.LineQubit.range(3),
         prng=np.random.RandomState(),
-        log_of_measurement_results={},
     )
     cirq.act_on(UnitaryHGate(), args, [cirq.LineQubit(1)])
     expected_args = cirq.ActOnStabilizerCHFormArgs(
         qubits=cirq.LineQubit.range(3),
         prng=np.random.RandomState(),
-        log_of_measurement_results={},
     )
     cirq.act_on(cirq.H, expected_args, [cirq.LineQubit(1)])
     np.testing.assert_allclose(args.state.state_vector(), expected_args.state.state_vector())
@@ -120,7 +107,6 @@ def test_copy():
     args = cirq.ActOnStabilizerCHFormArgs(
         qubits=cirq.LineQubit.range(3),
         prng=np.random.RandomState(),
-        log_of_measurement_results={},
     )
     args1 = args.copy()
     assert isinstance(args1, cirq.ActOnStabilizerCHFormArgs)

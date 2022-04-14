@@ -45,10 +45,7 @@ def test_various_gates_1d():
 def test_various_gates_1d_flip():
     q0, q1 = cirq.LineQubit.range(2)
 
-    circuit = cirq.Circuit(
-        cirq.H(q1),
-        cirq.CNOT(q1, q0),
-    )
+    circuit = cirq.Circuit(cirq.H(q1), cirq.CNOT(q1, q0))
 
     assert_same_output_as_dense(circuit=circuit, qubit_order=[q0, q1])
     assert_same_output_as_dense(circuit=circuit, qubit_order=[q1, q0])
@@ -378,10 +375,7 @@ def test_supremacy_equal_more_cols():
 def test_tensor_index_names():
     qubits = cirq.LineQubit.range(12)
     qubit_map = {qubit: i for i, qubit in enumerate(qubits)}
-    state = ccq.mps_simulator.MPSState(
-        qubit_map,
-        prng=value.parse_random_state(0),
-    )
+    state = ccq.mps_simulator.MPSState(qubits=qubit_map, prng=value.parse_random_state(0))
 
     assert state.i_str(0) == "i_00"
     assert state.i_str(11) == "i_11"
@@ -550,21 +544,29 @@ def test_state_act_on_args_initializer():
     s = ccq.mps_simulator.MPSState(
         qubits=(cirq.LineQubit(0),),
         prng=np.random.RandomState(0),
-        log_of_measurement_results={'test': [4]},
+        classical_data=cirq.ClassicalDataDictionaryStore(
+            _records={cirq.MeasurementKey('test'): [(4,)]}
+        ),
     )
     assert s.qubits == (cirq.LineQubit(0),)
     assert s.log_of_measurement_results == {'test': [4]}
 
 
 def test_act_on_gate():
-    args = ccq.mps_simulator.MPSState(
-        qubits=cirq.LineQubit.range(3),
-        prng=np.random.RandomState(0),
-        log_of_measurement_results={},
-    )
+    args = ccq.mps_simulator.MPSState(qubits=cirq.LineQubit.range(3), prng=np.random.RandomState(0))
 
     cirq.act_on(cirq.X, args, [cirq.LineQubit(1)])
     np.testing.assert_allclose(
         args.state_vector().reshape((2, 2, 2)),
         cirq.one_hot(index=(0, 1, 0), shape=(2, 2, 2), dtype=np.complex64),
     )
+
+
+def test_deprecated():
+    prng = np.random.RandomState(0)
+    with cirq.testing.assert_deprecated('log_of_measurement_results', deadline='0.16', count=2):
+        _ = ccq.mps_simulator.MPSState(
+            qubits=cirq.LineQubit.range(3), prng=prng, log_of_measurement_results={}
+        )
+    with cirq.testing.assert_deprecated('positional', deadline='0.16'):
+        _ = ccq.mps_simulator.MPSState(cirq.LineQubit.range(3), prng=prng)

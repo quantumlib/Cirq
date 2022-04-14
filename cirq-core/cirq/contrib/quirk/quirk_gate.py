@@ -176,11 +176,11 @@ def z_to_quirk_op(gate: ops.ZPowGate) -> QuirkOp:
 
 
 def cz_to_quirk_op(gate: ops.CZPowGate) -> Optional[QuirkOp]:
-    return z_to_quirk_op(ops.Z ** gate.exponent).controlled()
+    return z_to_quirk_op(ops.Z**gate.exponent).controlled()
 
 
 def cnot_to_quirk_op(gate: ops.CXPowGate) -> Optional[QuirkOp]:
-    return x_to_quirk_op(ops.X ** gate.exponent).controlled()
+    return x_to_quirk_op(ops.X**gate.exponent).controlled()
 
 
 def h_to_quirk_op(gate: ops.HPowGate) -> Optional[QuirkOp]:
