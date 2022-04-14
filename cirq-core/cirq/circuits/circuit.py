@@ -24,7 +24,6 @@ import enum
 import html
 import itertools
 import math
-import re
 from collections import defaultdict
 from typing import (
     AbstractSet,
@@ -52,6 +51,7 @@ import numpy as np
 
 import cirq._version
 from cirq import _compat, devices, ops, protocols, qis
+from cirq._doc import document
 from cirq.circuits._bucket_priority_queue import BucketPriorityQueue
 from cirq.circuits.circuit_operation import CircuitOperation
 from cirq.circuits.insert_strategy import InsertStrategy
@@ -65,11 +65,30 @@ from cirq.type_workarounds import NotImplementedType
 if TYPE_CHECKING:
     import cirq
 
-T_DESIRED_GATE_TYPE = TypeVar('T_DESIRED_GATE_TYPE', bound='ops.Gate')
-CIRCUIT_TYPE = TypeVar('CIRCUIT_TYPE', bound='AbstractCircuit')
-INT_TYPE = Union[int, np.integer]
 
-_DEVICE_DEP_MESSAGE = 'Attaching devices to circuits will no longer be supported.'
+_TGate = TypeVar('_TGate', bound='cirq.Gate')
+
+CIRCUIT_TYPE = TypeVar('CIRCUIT_TYPE', bound='AbstractCircuit')
+document(
+    CIRCUIT_TYPE,
+    """Type variable for an AbstractCircuit.
+
+    This can be used when writing generic functions that operate on circuits.
+    For example, suppose we define the following function:
+
+        def foo(circuit: CIRCUIT_TYPE) -> CIRCUIT_TYPE:
+            ...
+
+    This lets the typechecker know that this function takes any kind of circuit
+    and returns the same type, that is, if passed a `cirq.Circuit` it will return
+    `cirq.Circuit`, and similarly if passed `cirq.FrozenCircuit` it will return
+    `cirq.FrozenCircuit`. This is particularly useful for things like the
+    transformer API, since it can preserve more type information than if we typed
+    the function as taking and returning `cirq.AbstractCircuit`.
+    """,
+)
+
+_INT_TYPE = Union[int, np.integer]
 
 
 class Alignment(enum.Enum):
@@ -87,8 +106,7 @@ class Alignment(enum.Enum):
 class AbstractCircuit(abc.ABC):
     """The base class for Circuit-like objects.
 
-    A circuit-like object must have a list of moments (which can be empty) and
-    a device (which may be `devices.UNCONSTRAINED_DEVICE`).
+    A circuit-like object must have a list of moments (which can be empty).
 
     These methods return information about the circuit, and can be called on
     either Circuit or FrozenCircuit objects:
@@ -124,14 +142,6 @@ class AbstractCircuit(abc.ABC):
     def moments(self) -> Sequence['cirq.Moment']:
         pass
 
-    @property
-    @abc.abstractmethod
-    def device(self) -> 'cirq.Device':
-        pass
-
-    # This is going away once device deprecation is finished.
-    _device = None  # type: devices.Device
-
     def freeze(self) -> 'cirq.FrozenCircuit':
         """Creates a FrozenCircuit from this circuit.
 
@@ -142,9 +152,7 @@ class AbstractCircuit(abc.ABC):
         if isinstance(self, FrozenCircuit):
             return self
 
-        if self._device == cirq.UNCONSTRAINED_DEVICE:
-            return FrozenCircuit(self, strategy=InsertStrategy.EARLIEST)
-        return FrozenCircuit(self, strategy=InsertStrategy.EARLIEST, device=self._device)
+        return FrozenCircuit(self, strategy=InsertStrategy.EARLIEST)
 
     def unfreeze(self, copy: bool = True) -> 'cirq.Circuit':
         """Creates a Circuit from this circuit.
@@ -155,9 +163,7 @@ class AbstractCircuit(abc.ABC):
         if isinstance(self, Circuit):
             return Circuit.copy(self) if copy else self
 
-        if self._device == cirq.UNCONSTRAINED_DEVICE:
-            return Circuit(self, strategy=InsertStrategy.EARLIEST)
-        return Circuit(self, strategy=InsertStrategy.EARLIEST, device=self._device)
+        return Circuit(self, strategy=InsertStrategy.EARLIEST)
 
     def __bool__(self):
         return bool(self.moments)
@@ -165,16 +171,13 @@ class AbstractCircuit(abc.ABC):
     def __eq__(self, other):
         if not isinstance(other, AbstractCircuit):
             return NotImplemented
-        return tuple(self.moments) == tuple(other.moments) and self._device == other._device
+        return tuple(self.moments) == tuple(other.moments)
 
     def _approx_eq_(self, other: Any, atol: Union[int, float]) -> bool:
         """See `cirq.protocols.SupportsApproximateEquality`."""
         if not isinstance(other, AbstractCircuit):
             return NotImplemented
-        return (
-            cirq.protocols.approx_eq(tuple(self.moments), tuple(other.moments), atol=atol)
-            and self._device == other._device
-        )
+        return cirq.protocols.approx_eq(tuple(self.moments), tuple(other.moments), atol=atol)
 
     def __ne__(self, other) -> bool:
         return not self == other
@@ -249,8 +252,6 @@ class AbstractCircuit(abc.ABC):
         args = []
         if self.moments:
             args.append(_list_repr_with_indented_item_lines(self.moments))
-        if self._device != devices.UNCONSTRAINED_DEVICE:
-            args.append(f'device={self.device!r}')
         return f'cirq.{cls_name}({", ".join(args)})'
 
     def _repr_pretty_(self, p: Any, cycle: bool) -> None:
@@ -752,8 +753,8 @@ class AbstractCircuit(abc.ABC):
                     yield index, op
 
     def findall_operations_with_gate_type(
-        self, gate_type: Type[T_DESIRED_GATE_TYPE]
-    ) -> Iterable[Tuple[int, 'cirq.GateOperation', T_DESIRED_GATE_TYPE]]:
+        self, gate_type: Type[_TGate]
+    ) -> Iterable[Tuple[int, 'cirq.GateOperation', _TGate]]:
         """Find the locations of all gate operations of a given type.
 
         Args:
@@ -767,7 +768,7 @@ class AbstractCircuit(abc.ABC):
         result = self.findall_operations(lambda operation: isinstance(operation.gate, gate_type))
         for index, op in result:
             gate_op = cast(ops.GateOperation, op)
-            yield index, gate_op, cast(T_DESIRED_GATE_TYPE, gate_op.gate)
+            yield index, gate_op, cast(_TGate, gate_op.gate)
 
     def has_measurements(self):
         return protocols.is_measurement(self)
@@ -927,9 +928,7 @@ class AbstractCircuit(abc.ABC):
         )
 
     def _with_rescoped_keys_(
-        self,
-        path: Tuple[str, ...],
-        bindable_keys: FrozenSet['cirq.MeasurementKey'],
+        self, path: Tuple[str, ...], bindable_keys: FrozenSet['cirq.MeasurementKey']
     ):
         moments = []
         for moment in self.moments:
@@ -1331,16 +1330,12 @@ class AbstractCircuit(abc.ABC):
         self._to_qasm_output(header, precision, qubit_order).save(file_path)
 
     def _json_dict_(self):
-        ret = protocols.obj_to_dict_helper(self, ['moments', '_device'])
-        ret['device'] = ret['_device']
-        del ret['_device']
+        ret = protocols.obj_to_dict_helper(self, ['moments'])
         return ret
 
     @classmethod
-    def _from_json_dict_(cls, moments, device, **kwargs):
-        if device == cirq.UNCONSTRAINED_DEVICE:
-            return cls(moments, strategy=InsertStrategy.EARLIEST)
-        return cls(moments, device=device, strategy=InsertStrategy.EARLIEST)
+    def _from_json_dict_(cls, moments, **kwargs):
+        return cls(moments, strategy=InsertStrategy.EARLIEST)
 
     def zip(
         *circuits: 'cirq.AbstractCircuit', align: Union['cirq.Alignment', str] = Alignment.LEFT
@@ -1359,7 +1354,7 @@ class AbstractCircuit(abc.ABC):
         same moment index.
 
         Args:
-            circuits: The circuits to merge together.
+            *circuits: The circuits to merge together.
             align: The alignment for the zip, see `cirq.Alignment`.
 
         Returns:
@@ -1441,7 +1436,7 @@ class AbstractCircuit(abc.ABC):
             False
 
         Args:
-            circuits: The circuits to concatenate.
+            *circuits: The circuits to concatenate.
             align: When to stop when sliding the circuits together.
                 'left': Stop when the starts of the circuits align.
                 'right': Stop when the ends of the circuits align.
@@ -1691,17 +1686,8 @@ class Circuit(AbstractCircuit):
             independent 'factors' of the original Circuit.
     """
 
-    @_compat.deprecated_parameter(
-        deadline='v0.15',
-        fix=_DEVICE_DEP_MESSAGE,
-        parameter_desc='device',
-        match=lambda args, kwargs: 'device' in kwargs,
-    )
     def __init__(
-        self,
-        *contents: 'cirq.OP_TREE',
-        strategy: 'cirq.InsertStrategy' = InsertStrategy.EARLIEST,
-        device: 'cirq.Device' = devices.UNCONSTRAINED_DEVICE,
+        self, *contents: 'cirq.OP_TREE', strategy: 'cirq.InsertStrategy' = InsertStrategy.EARLIEST
     ) -> None:
         """Initializes a circuit.
 
@@ -1715,47 +1701,21 @@ class Circuit(AbstractCircuit):
                 from `contents`, this determines how the operations are packed
                 together. This option does not affect later insertions into the
                 circuit.
-            device: Hardware that the circuit should be able to run on.
         """
         self._moments: List['cirq.Moment'] = []
-        self._device = device
         with _compat.block_overlapping_deprecation('.*'):
             self.append(contents, strategy=strategy)
-
-    @property  # type: ignore
-    @_compat.deprecated(
-        deadline='v0.15',
-        fix=_DEVICE_DEP_MESSAGE,
-    )
-    def device(self) -> devices.Device:
-        return self._device
-
-    @device.setter  # type: ignore
-    @_compat.deprecated(
-        deadline='v0.15',
-        fix=_DEVICE_DEP_MESSAGE,
-    )
-    def device(self, new_device: 'cirq.Device') -> None:
-        new_device.validate_circuit(self)
-        self._device = new_device
 
     def __copy__(self) -> 'cirq.Circuit':
         return self.copy()
 
     def copy(self) -> 'Circuit':
-        if self._device == cirq.UNCONSTRAINED_DEVICE:
-            copied_circuit = Circuit()
-        else:
-            copied_circuit = Circuit(device=self._device)
+        copied_circuit = Circuit()
         copied_circuit._moments = self._moments[:]
         return copied_circuit
 
     def _with_sliced_moments(self, moments: Iterable['cirq.Moment']) -> 'Circuit':
-        if self._device == cirq.UNCONSTRAINED_DEVICE:
-            new_circuit = Circuit()
-        else:
-            new_circuit = Circuit(device=self._device)
-
+        new_circuit = Circuit()
         new_circuit._moments = list(moments)
         return new_circuit
 
@@ -1772,14 +1732,11 @@ class Circuit(AbstractCircuit):
         if isinstance(key, int):
             if not isinstance(value, Moment):
                 raise TypeError('Can only assign Moments into Circuits.')
-            self._device.validate_moment(value)
 
         if isinstance(key, slice):
             value = list(value)
             if any(not isinstance(v, Moment) for v in value):
                 raise TypeError('Can only assign Moments into Circuits.')
-            for moment in value:
-                self._device.validate_moment(moment)
 
         self._moments[key] = value
 
@@ -1793,13 +1750,7 @@ class Circuit(AbstractCircuit):
         return self
 
     def __add__(self, other):
-        if isinstance(other, type(self)):
-            if (
-                devices.UNCONSTRAINED_DEVICE not in [self._device, other._device]
-                and self._device != other._device
-            ):
-                raise ValueError("Can't add circuits with incompatible devices.")
-        elif not isinstance(other, (ops.Operation, Iterable)):
+        if not isinstance(other, (ops.Operation, Iterable)):
             return NotImplemented
 
         result = self.copy()
@@ -1812,26 +1763,23 @@ class Circuit(AbstractCircuit):
         # Auto wrap OP_TREE inputs into a circuit.
         result = self.copy()
         result._moments[:0] = Circuit(other)._moments
-        result._device.validate_circuit(result)
         return result
 
     # Needed for numpy to handle multiplication by np.int64 correctly.
     __array_priority__ = 10000
 
-    def __imul__(self, repetitions: INT_TYPE):
+    def __imul__(self, repetitions: _INT_TYPE):
         if not isinstance(repetitions, (int, np.integer)):
             return NotImplemented
         self._moments *= int(repetitions)
         return self
 
-    def __mul__(self, repetitions: INT_TYPE):
+    def __mul__(self, repetitions: _INT_TYPE):
         if not isinstance(repetitions, (int, np.integer)):
             return NotImplemented
-        if self._device == cirq.UNCONSTRAINED_DEVICE:
-            return Circuit(self._moments * int(repetitions))
-        return Circuit(self._moments * int(repetitions), device=self._device)
+        return Circuit(self._moments * int(repetitions))
 
-    def __rmul__(self, repetitions: INT_TYPE):
+    def __rmul__(self, repetitions: _INT_TYPE):
         if not isinstance(repetitions, (int, np.integer)):
             return NotImplemented
         return self * int(repetitions)
@@ -1855,41 +1803,9 @@ class Circuit(AbstractCircuit):
                 return NotImplemented
             inv_moments.append(inv_moment)
 
-        if self._device == cirq.UNCONSTRAINED_DEVICE:
-            return cirq.Circuit(inv_moments)
-        return cirq.Circuit(inv_moments, device=self._device)
+        return cirq.Circuit(inv_moments)
 
     __hash__ = None  # type: ignore
-
-    @_compat.deprecated(
-        deadline='v0.15',
-        fix=_DEVICE_DEP_MESSAGE,
-    )
-    def with_device(
-        self,
-        new_device: 'cirq.Device',
-        qubit_mapping: Callable[['cirq.Qid'], 'cirq.Qid'] = lambda e: e,
-    ) -> 'cirq.Circuit':
-        """Maps the current circuit onto a new device, and validates.
-
-        Args:
-            new_device: The new device that the circuit should be on.
-            qubit_mapping: How to translate qubits from the old device into
-                qubits on the new device.
-
-        Returns:
-            The translated circuit.
-        """
-        with _compat.block_overlapping_deprecation(re.escape(_DEVICE_DEP_MESSAGE)):
-            return Circuit(
-                [
-                    Moment(
-                        operation.transform_qubits(qubit_mapping) for operation in moment.operations
-                    )
-                    for moment in self._moments
-                ],
-                device=new_device,
-            )
 
     def tetris_concat(
         *circuits: 'cirq.AbstractCircuit', align: Union['cirq.Alignment', str] = Alignment.LEFT
@@ -1905,30 +1821,18 @@ class Circuit(AbstractCircuit):
 
     zip.__doc__ = AbstractCircuit.zip.__doc__
 
-    @_compat.deprecated_parameter(
-        deadline='v0.15',
-        fix=_DEVICE_DEP_MESSAGE,
-        parameter_desc='new_device',
-        match=lambda args, kwargs: 'new_device' in kwargs,
-    )
     def transform_qubits(
-        self,
-        qubit_map: Union[Dict['cirq.Qid', 'cirq.Qid'], Callable[['cirq.Qid'], 'cirq.Qid']],
-        *,
-        new_device: 'cirq.Device' = None,
+        self, qubit_map: Union[Dict['cirq.Qid', 'cirq.Qid'], Callable[['cirq.Qid'], 'cirq.Qid']]
     ) -> 'cirq.Circuit':
         """Returns the same circuit, but with different qubits.
 
         Args:
             qubit_map: A function or a dict mapping each current qubit into a desired
                 new qubit.
-            new_device: The device to use for the new circuit, if different.
-                If this is not set, the new device defaults to the current
-                device.
 
         Returns:
             The receiving circuit but with qubits transformed by the given
-                function, and with an updated device (if specified).
+                function.
 
         Raises:
             TypeError: If `qubit_function` is not a function or a dict.
@@ -1945,11 +1849,7 @@ class Circuit(AbstractCircuit):
             for moment in self._moments
         ]
 
-        if new_device is None and self._device == devices.UNCONSTRAINED_DEVICE:
-            return Circuit(op_list)
-
-        with _compat.block_overlapping_deprecation(re.escape(_DEVICE_DEP_MESSAGE)):
-            return Circuit(op_list, device=self._device if new_device is None else new_device)
+        return Circuit(op_list)
 
     def earliest_available_moment(
         self, op: 'cirq.Operation', *, end_moment_index: Optional[int] = None
@@ -2040,10 +1940,7 @@ class Circuit(AbstractCircuit):
         if not 0 <= moment_index < len(self._moments):
             return True
 
-        if self._device == cirq.UNCONSTRAINED_DEVICE:
-            return not self._moments[moment_index].operates_on(operation.qubits)
-
-        return self._device.can_add_operation_into_moment(operation, self._moments[moment_index])
+        return not self._moments[moment_index].operates_on(operation.qubits)
 
     def insert(
         self,
@@ -2069,39 +1966,11 @@ class Circuit(AbstractCircuit):
         Raises:
             ValueError: Bad insertion strategy.
         """
-        if self._device == devices.UNCONSTRAINED_DEVICE:
-            moments_and_operations = list(
-                ops.flatten_to_ops_or_moments(
-                    ops.transform_op_tree(
-                        moment_or_operation_tree,
-                        preserve_moments=True,
-                    ),
-                )
+        moments_and_operations = list(
+            ops.flatten_to_ops_or_moments(
+                ops.transform_op_tree(moment_or_operation_tree, preserve_moments=True)
             )
-        else:
-            _compat._warn_or_error(
-                'circuit.insert behavior relies on circuit.device.\n'
-                'The ability to construct a circuit with a device\n'
-                'will be removed in cirq v0.15. please update this use of\n'
-                'insert.'
-            )
-            with _compat.block_overlapping_deprecation('decompose'):
-                moments_and_operations = list(
-                    ops.flatten_to_ops_or_moments(
-                        ops.transform_op_tree(
-                            moment_or_operation_tree,
-                            self._device.decompose_operation,
-                            preserve_moments=True,
-                        ),
-                    )
-                )
-
-        for moment_or_op in moments_and_operations:
-            if isinstance(moment_or_op, Moment):
-                self._device.validate_moment(cast(Moment, moment_or_op))
-            else:
-                self._device.validate_operation(cast(ops.Operation, moment_or_op))
-
+        )
         # limit index to 0..len(self._moments), also deal with indices smaller 0
         k = max(min(index if index >= 0 else len(self._moments) + index, len(self._moments)), 0)
         for moment_or_op in moments_and_operations:
@@ -2114,7 +1983,6 @@ class Circuit(AbstractCircuit):
                 while p >= len(self._moments):
                     self._moments.append(Moment())
                 self._moments[p] = self._moments[p].with_operation(op)
-                self._device.validate_moment(self._moments[p])
                 k = max(k, p + 1)
                 if strategy is InsertStrategy.NEW_THEN_INLINE:
                     strategy = InsertStrategy.INLINE
@@ -2142,34 +2010,23 @@ class Circuit(AbstractCircuit):
             raise IndexError(f'Bad insert indices: [{start}, {end})')
 
         flat_ops = list(ops.flatten_to_ops(operations))
-        for op in flat_ops:
-            self._device.validate_operation(op)
 
         i = start
         op_index = 0
-        cannot_add_lambda = lambda a, b: b.operates_on(a.qubits)
-        if self._device != cirq.UNCONSTRAINED_DEVICE:
-            _compat._warn_or_error(
-                "In Cirq v0.15 device specific validation in "
-                "insert_into_range will no longer enforced."
-            )
-            cannot_add_lambda = lambda a, b: not self._device.can_add_operation_into_moment(a, b)
+        while op_index < len(flat_ops):
+            op = flat_ops[op_index]
+            while i < end and self._moments[i].operates_on(op.qubits):
+                i += 1
+            if i >= end:
+                break
 
-        with _compat.block_overlapping_deprecation('(can_add_operation_into_moment|insert)'):
-            while op_index < len(flat_ops):
-                op = flat_ops[op_index]
-                while i < end and cannot_add_lambda(op, self._moments[i]):
-                    i += 1
-                if i >= end:
-                    break
+            self._moments[i] = self._moments[i].with_operation(op)
+            op_index += 1
 
-                self._moments[i] = self._moments[i].with_operation(op)
-                op_index += 1
+        if op_index >= len(flat_ops):
+            return end
 
-            if op_index >= len(flat_ops):
-                return end
-
-            return self.insert(end, flat_ops[op_index:])
+        return self.insert(end, flat_ops[op_index:])
 
     def _push_frontier(
         self,
@@ -2300,7 +2157,6 @@ class Circuit(AbstractCircuit):
             copy._moments[i] = Moment(
                 old_op for old_op in copy._moments[i].operations if op != old_op
             )
-        self._device.validate_circuit(copy)
         self._moments = copy._moments
 
     def batch_replace(
@@ -2325,7 +2181,6 @@ class Circuit(AbstractCircuit):
             copy._moments[i] = Moment(
                 old_op if old_op != op else new_op for old_op in copy._moments[i].operations
             )
-        self._device.validate_circuit(copy)
         self._moments = copy._moments
 
     def batch_insert_into(self, insert_intos: Iterable[Tuple[int, 'cirq.OP_TREE']]) -> None:
@@ -2347,7 +2202,6 @@ class Circuit(AbstractCircuit):
         copy = self.copy()
         for i, insertions in insert_intos:
             copy._moments[i] = copy._moments[i].with_operations(insertions)
-        self._device.validate_circuit(copy)
         self._moments = copy._moments
 
     def batch_insert(self, insertions: Iterable[Tuple[int, 'cirq.OP_TREE']]) -> None:
@@ -2422,10 +2276,8 @@ class Circuit(AbstractCircuit):
             resolved_operations = _resolve_operations(moment.operations, resolver, recursive)
             new_moment = Moment(resolved_operations)
             resolved_moments.append(new_moment)
-        if self._device == devices.UNCONSTRAINED_DEVICE:
-            return Circuit(resolved_moments)
-        with _compat.block_overlapping_deprecation(re.escape(_DEVICE_DEP_MESSAGE)):
-            return Circuit(resolved_moments, device=self._device)
+
+        return Circuit(resolved_moments)
 
     @property
     def moments(self):
@@ -2453,9 +2305,7 @@ class Circuit(AbstractCircuit):
 
 
 def _pick_inserted_ops_moment_indices(
-    operations: Sequence['cirq.Operation'],
-    start: int = 0,
-    frontier: Dict['cirq.Qid', int] = None,
+    operations: Sequence['cirq.Operation'], start: int = 0, frontier: Dict['cirq.Qid', int] = None
 ) -> Tuple[Sequence[int], Dict['cirq.Qid', int]]:
     """Greedily assigns operations to moments.
 
@@ -2491,9 +2341,7 @@ def _resolve_operations(
     return resolved_operations
 
 
-def _get_moment_annotations(
-    moment: 'cirq.Moment',
-) -> Iterator['cirq.Operation']:
+def _get_moment_annotations(moment: 'cirq.Moment') -> Iterator['cirq.Operation']:
     for op in moment.operations:
         if op.qubits:
             continue
@@ -2750,27 +2598,26 @@ def _list_repr_with_indented_item_lines(items: Sequence[Any]) -> str:
     return f'[\n{indented}\n]'
 
 
-TIn = TypeVar('TIn')
-TOut = TypeVar('TOut')
-TKey = TypeVar('TKey')
+_TIn = TypeVar('_TIn')
+_TOut = TypeVar('_TOut')
+_TKey = TypeVar('_TKey')
 
 
 @overload
 def _group_until_different(
-    items: Iterable[TIn],
-    key: Callable[[TIn], TKey],
-) -> Iterable[Tuple[TKey, List[TIn]]]:
+    items: Iterable[_TIn], key: Callable[[_TIn], _TKey]
+) -> Iterable[Tuple[_TKey, List[_TIn]]]:
     pass
 
 
 @overload
 def _group_until_different(
-    items: Iterable[TIn], key: Callable[[TIn], TKey], val: Callable[[TIn], TOut]
-) -> Iterable[Tuple[TKey, List[TOut]]]:
+    items: Iterable[_TIn], key: Callable[[_TIn], _TKey], val: Callable[[_TIn], _TOut]
+) -> Iterable[Tuple[_TKey, List[_TOut]]]:
     pass
 
 
-def _group_until_different(items: Iterable[TIn], key: Callable[[TIn], TKey], val=lambda e: e):
+def _group_until_different(items: Iterable[_TIn], key: Callable[[_TIn], _TKey], val=lambda e: e):
     """Groups runs of items that are identical according to a keying function.
 
     Args:

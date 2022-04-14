@@ -17,13 +17,7 @@ Focuses on methods useful for analyzing and optimizing quantum circuits.
 Avoids duplicating functionality present in numpy.
 """
 
-from cirq.linalg.combinators import (
-    block_diag,
-    CONTROL_TAG,
-    dot,
-    kron,
-    kron_with_controls,
-)
+from cirq.linalg.combinators import block_diag, CONTROL_TAG, dot, kron, kron_with_controls
 
 from cirq.linalg.decompositions import (
     axis_angle,
@@ -73,10 +67,7 @@ from cirq.linalg.predicates import (
     slice_for_qubits_equal_to,
 )
 
-from cirq.linalg.tolerance import (
-    all_near_zero,
-    all_near_zero_mod,
-)
+from cirq.linalg.tolerance import all_near_zero, all_near_zero_mod
 
 from cirq.linalg.transformations import (
     apply_matrix_to_slices,

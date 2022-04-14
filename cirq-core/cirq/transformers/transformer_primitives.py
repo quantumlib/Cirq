@@ -15,17 +15,7 @@
 """Defines primitives for common transformer patterns."""
 
 from collections import defaultdict
-from typing import (
-    cast,
-    Callable,
-    Dict,
-    Hashable,
-    List,
-    Optional,
-    Sequence,
-    Union,
-    TYPE_CHECKING,
-)
+from typing import cast, Callable, Dict, Hashable, List, Optional, Sequence, Union, TYPE_CHECKING
 
 from cirq import circuits, ops, protocols
 from cirq.circuits.circuit import CIRCUIT_TYPE

@@ -40,9 +40,7 @@ def test_clifford_decompose_one_qubit():
     """Two random instance for one qubit decomposition."""
     qubits = cirq.LineQubit.range(1)
     args = cirq.ActOnCliffordTableauArgs(
-        tableau=cirq.CliffordTableau(num_qubits=1),
-        qubits=qubits,
-        prng=np.random.RandomState(),
+        tableau=cirq.CliffordTableau(num_qubits=1), qubits=qubits, prng=np.random.RandomState()
     )
     cirq.act_on(cirq.X, args, qubits=[qubits[0]], allow_decompose=False)
     cirq.act_on(cirq.H, args, qubits=[qubits[0]], allow_decompose=False)
@@ -54,9 +52,7 @@ def test_clifford_decompose_one_qubit():
 
     qubits = cirq.LineQubit.range(1)
     args = cirq.ActOnCliffordTableauArgs(
-        tableau=cirq.CliffordTableau(num_qubits=1),
-        qubits=qubits,
-        prng=np.random.RandomState(),
+        tableau=cirq.CliffordTableau(num_qubits=1), qubits=qubits, prng=np.random.RandomState()
     )
     cirq.act_on(cirq.Z, args, qubits=[qubits[0]], allow_decompose=False)
     cirq.act_on(cirq.H, args, qubits=[qubits[0]], allow_decompose=False)
@@ -79,9 +75,7 @@ def test_clifford_decompose_two_qubits():
     """Two random instance for two qubits decomposition."""
     qubits = cirq.LineQubit.range(2)
     args = cirq.ActOnCliffordTableauArgs(
-        tableau=cirq.CliffordTableau(num_qubits=2),
-        qubits=qubits,
-        prng=np.random.RandomState(),
+        tableau=cirq.CliffordTableau(num_qubits=2), qubits=qubits, prng=np.random.RandomState()
     )
     cirq.act_on(cirq.H, args, qubits=[qubits[0]], allow_decompose=False)
     cirq.act_on(cirq.CNOT, args, qubits=[qubits[0], qubits[1]], allow_decompose=False)
@@ -92,9 +86,7 @@ def test_clifford_decompose_two_qubits():
 
     qubits = cirq.LineQubit.range(2)
     args = cirq.ActOnCliffordTableauArgs(
-        tableau=cirq.CliffordTableau(num_qubits=2),
-        qubits=qubits,
-        prng=np.random.RandomState(),
+        tableau=cirq.CliffordTableau(num_qubits=2), qubits=qubits, prng=np.random.RandomState()
     )
     cirq.act_on(cirq.H, args, qubits=[qubits[0]], allow_decompose=False)
     cirq.act_on(cirq.CNOT, args, qubits=[qubits[0], qubits[1]], allow_decompose=False)

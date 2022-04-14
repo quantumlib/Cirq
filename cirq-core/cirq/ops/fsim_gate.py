@@ -30,7 +30,7 @@ import sympy
 
 import cirq
 from cirq import protocols, value
-from cirq._compat import deprecated, proper_repr
+from cirq._compat import proper_repr
 from cirq.ops import gate_features, raw_types
 
 
@@ -97,25 +97,9 @@ class FSimGate(gate_features.InterchangeableQubitsGate, raw_types.Gate):
     def theta(self) -> 'cirq.TParamVal':
         return self._theta
 
-    @theta.setter  # type: ignore
-    @deprecated(
-        deadline="v0.15",
-        fix="The mutators of this class are deprecated, instantiate a new object instead.",
-    )
-    def theta(self, theta: 'cirq.TParamVal'):
-        self._theta = theta
-
     @property
     def phi(self) -> 'cirq.TParamVal':
         return self._phi
-
-    @phi.setter  # type: ignore
-    @deprecated(
-        deadline="v0.15",
-        fix="The mutators of this class are deprecated, instantiate a new object instead.",
-    )
-    def phi(self, phi: 'cirq.TParamVal'):
-        self._phi = phi
 
     def _num_qubits_(self) -> int:
         return 2
@@ -138,6 +122,7 @@ class FSimGate(gate_features.InterchangeableQubitsGate, raw_types.Gate):
         a = math.cos(self.theta)
         b = -1j * math.sin(self.theta)
         c = cmath.exp(-1j * self.phi)
+        # fmt: off
         return np.array(
             [
                 [1, 0, 0, 0],
@@ -146,6 +131,7 @@ class FSimGate(gate_features.InterchangeableQubitsGate, raw_types.Gate):
                 [0, 0, 0, c],
             ]
         )
+        # fmt: on
 
     def _pauli_expansion_(self) -> value.LinearDict[str]:
         if protocols.is_parameterized(self):
@@ -303,61 +289,21 @@ class PhasedFSimGate(gate_features.InterchangeableQubitsGate, raw_types.Gate):
     def theta(self) -> 'cirq.TParamVal':
         return self._theta
 
-    @theta.setter  # type: ignore
-    @deprecated(
-        deadline="v0.15",
-        fix="The mutators of this class are deprecated, instantiate a new object instead.",
-    )
-    def theta(self, theta: 'cirq.TParamVal'):
-        self._theta = theta
-
     @property
     def zeta(self) -> 'cirq.TParamVal':
         return self._zeta
-
-    @zeta.setter  # type: ignore
-    @deprecated(
-        deadline="v0.15",
-        fix="The mutators of this class are deprecated, instantiate a new object instead.",
-    )
-    def zeta(self, zeta: 'cirq.TParamVal'):
-        self._zeta = zeta
 
     @property
     def chi(self) -> 'cirq.TParamVal':
         return self._chi
 
-    @chi.setter  # type: ignore
-    @deprecated(
-        deadline="v0.15",
-        fix="The mutators of this class are deprecated, instantiate a new object instead.",
-    )
-    def chi(self, chi: 'cirq.TParamVal'):
-        self._chi = chi
-
     @property
     def gamma(self) -> 'cirq.TParamVal':
         return self._gamma
 
-    @gamma.setter  # type: ignore
-    @deprecated(
-        deadline="v0.15",
-        fix="The mutators of this class are deprecated, instantiate a new object instead.",
-    )
-    def gamma(self, gamma: 'cirq.TParamVal'):
-        self._gamma = gamma
-
     @property
     def phi(self) -> 'cirq.TParamVal':
         return self._phi
-
-    @phi.setter  # type: ignore
-    @deprecated(
-        deadline="v0.15",
-        fix="The mutators of this class are deprecated, instantiate a new object instead.",
-    )
-    def phi(self, phi: 'cirq.TParamVal'):
-        self._phi = phi
 
     @staticmethod
     def from_fsim_rz(
@@ -443,6 +389,7 @@ class PhasedFSimGate(gate_features.InterchangeableQubitsGate, raw_types.Gate):
         f3 = cmath.exp(-1j * self.gamma - 1j * self.chi)
         f4 = cmath.exp(-1j * self.gamma + 1j * self.zeta)
         f5 = cmath.exp(-2j * self.gamma)
+        # fmt: off
         return np.array(
             [
                 [1, 0, 0, 0],
@@ -451,6 +398,7 @@ class PhasedFSimGate(gate_features.InterchangeableQubitsGate, raw_types.Gate):
                 [0, 0, 0, f5 * c],
             ]
         )
+        # fmt: on
 
     def _resolve_parameters_(
         self, resolver: 'cirq.ParamResolver', recursive: bool

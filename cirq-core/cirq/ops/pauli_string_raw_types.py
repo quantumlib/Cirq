@@ -12,12 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import abc
 from typing import Any, Dict, Sequence, Tuple, TypeVar, TYPE_CHECKING
 
-import abc
-
 from cirq import protocols
-from cirq._compat import deprecated
 from cirq.ops import pauli_string as ps, raw_types
 
 if TYPE_CHECKING:
@@ -35,14 +33,6 @@ class PauliStringGateOperation(raw_types.Operation, metaclass=abc.ABCMeta):
     @property
     def pauli_string(self) -> 'cirq.PauliString':
         return self._pauli_string
-
-    @pauli_string.setter  # type: ignore
-    @deprecated(
-        deadline="v0.15",
-        fix="The mutators of this class are deprecated, instantiate a new object instead.",
-    )
-    def pauli_string(self, pauli_string: 'cirq.PauliString'):
-        self._pauli_string = pauli_string
 
     def validate_args(self, qubits: Sequence[raw_types.Qid]) -> None:
         if len(qubits) != len(self.pauli_string):
@@ -69,9 +59,7 @@ class PauliStringGateOperation(raw_types.Operation, metaclass=abc.ABCMeta):
         return tuple(self.pauli_string)
 
     def _pauli_string_diagram_info(
-        self,
-        args: 'protocols.CircuitDiagramInfoArgs',
-        exponent: Any = 1,
+        self, args: 'protocols.CircuitDiagramInfoArgs', exponent: Any = 1
     ) -> 'cirq.CircuitDiagramInfo':
         qubits = self.qubits if args.known_qubits is None else args.known_qubits
         syms = tuple(f'[{self.pauli_string[qubit]}]' for qubit in qubits)

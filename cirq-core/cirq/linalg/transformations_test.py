@@ -160,26 +160,7 @@ def test_targeted_left_multiply_matches_kron_then_dot():
 
 def test_targeted_left_multiply_reorders_matrices():
     t = np.eye(4).reshape((2, 2, 2, 2))
-    m = np.array(
-        [
-            1,
-            0,
-            0,
-            0,
-            0,
-            1,
-            0,
-            0,
-            0,
-            0,
-            0,
-            1,
-            0,
-            0,
-            1,
-            0,
-        ]
-    ).reshape((2, 2, 2, 2))
+    m = np.array([1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0]).reshape((2, 2, 2, 2))
 
     np.testing.assert_allclose(
         cirq.targeted_left_multiply(left_matrix=m, right_target=t, target_axes=[0, 1]), m, atol=1e-8
@@ -187,26 +168,7 @@ def test_targeted_left_multiply_reorders_matrices():
 
     np.testing.assert_allclose(
         cirq.targeted_left_multiply(left_matrix=m, right_target=t, target_axes=[1, 0]),
-        np.array(
-            [
-                1,
-                0,
-                0,
-                0,
-                0,
-                0,
-                0,
-                1,
-                0,
-                0,
-                1,
-                0,
-                0,
-                1,
-                0,
-                0,
-            ]
-        ).reshape((2, 2, 2, 2)),
+        np.array([1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0]).reshape((2, 2, 2, 2)),
         atol=1e-8,
     )
 
@@ -576,16 +538,13 @@ def test_partial_trace_of_state_vector_as_mixture_pure_result_qudits():
     state = np.kron(np.kron(a, b), c).reshape((2, 3, 4))
 
     assert mixtures_equal(
-        cirq.partial_trace_of_state_vector_as_mixture(state, [0], atol=1e-8),
-        ((1.0, a),),
+        cirq.partial_trace_of_state_vector_as_mixture(state, [0], atol=1e-8), ((1.0, a),)
     )
     assert mixtures_equal(
-        cirq.partial_trace_of_state_vector_as_mixture(state, [1], atol=1e-8),
-        ((1.0, b),),
+        cirq.partial_trace_of_state_vector_as_mixture(state, [1], atol=1e-8), ((1.0, b),)
     )
     assert mixtures_equal(
-        cirq.partial_trace_of_state_vector_as_mixture(state, [2], atol=1e-8),
-        ((1.0, c),),
+        cirq.partial_trace_of_state_vector_as_mixture(state, [2], atol=1e-8), ((1.0, c),)
     )
     assert mixtures_equal(
         cirq.partial_trace_of_state_vector_as_mixture(state, [0, 1], atol=1e-8),
@@ -648,14 +607,7 @@ def test_default_tolerance():
     a, b = cirq.LineQubit.range(2)
     final_state_vector = (
         cirq.Simulator()
-        .simulate(
-            cirq.Circuit(
-                cirq.H(a),
-                cirq.H(b),
-                cirq.CZ(a, b),
-                cirq.measure(a),
-            )
-        )
+        .simulate(cirq.Circuit(cirq.H(a), cirq.H(b), cirq.CZ(a, b), cirq.measure(a)))
         .final_state_vector.reshape((2, 2))
     )
     # Here, we do NOT specify the default tolerance. It is merely to check that the default value

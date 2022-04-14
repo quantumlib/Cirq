@@ -14,10 +14,7 @@
 
 import cirq
 from cirq.devices.insertion_noise_model import InsertionNoiseModel
-from cirq.devices.noise_utils import (
-    PHYSICAL_GATE_TAG,
-    OpIdentifier,
-)
+from cirq.devices.noise_utils import PHYSICAL_GATE_TAG, OpIdentifier
 
 
 def test_insertion_noise():
@@ -105,13 +102,7 @@ def test_supertype_matching():
     )
 
     moment_0 = cirq.Moment(cirq.Rx(rads=1).on(q0))
-    assert model.noisy_moment(moment_0, system_qubits=[q0]) == [
-        moment_0,
-        cirq.Moment(cirq.S(q0)),
-    ]
+    assert model.noisy_moment(moment_0, system_qubits=[q0]) == [moment_0, cirq.Moment(cirq.S(q0))]
 
     moment_1 = cirq.Moment(cirq.Y(q0))
-    assert model.noisy_moment(moment_1, system_qubits=[q0]) == [
-        moment_1,
-        cirq.Moment(cirq.T(q0)),
-    ]
+    assert model.noisy_moment(moment_1, system_qubits=[q0]) == [moment_1, cirq.Moment(cirq.T(q0))]

@@ -19,11 +19,7 @@ import cirq
 
 @pytest.mark.parametrize(
     'key',
-    [
-        'q0_1_0',
-        cirq.MeasurementKey(name='q0_1_0'),
-        cirq.MeasurementKey(path=('a', 'b'), name='c'),
-    ],
+    ['q0_1_0', cirq.MeasurementKey(name='q0_1_0'), cirq.MeasurementKey(path=('a', 'b'), name='c')],
 )
 def test_eval_repr(key):
     # Basic safeguard against repr-inequality.
@@ -128,11 +124,7 @@ b: ───M(Y)───────────
 @pytest.mark.parametrize('observable', [[cirq.X], [cirq.X, cirq.Y, cirq.Z]])
 @pytest.mark.parametrize(
     'key',
-    [
-        'q0_1_0',
-        cirq.MeasurementKey(name='q0_1_0'),
-        cirq.MeasurementKey(path=('a', 'b'), name='c'),
-    ],
+    ['q0_1_0', cirq.MeasurementKey(name='q0_1_0'), cirq.MeasurementKey(path=('a', 'b'), name='c')],
 )
 def test_consistent_protocols(observable, key):
     gate = cirq.PauliMeasurementGate(observable, key=key)
@@ -195,19 +187,3 @@ def test_pauli_measurement_gate_samples(rot, obs, out):
     q = cirq.NamedQubit("q")
     c = cirq.Circuit(rot(q), cirq.PauliMeasurementGate(obs, key='out').on(q))
     assert cirq.Simulator().sample(c)['out'][0] == out
-
-
-def test_setters_deprecated():
-    gate = cirq.PauliMeasurementGate(cirq.DensePauliString("Z", coefficient=+1), key='m')
-    with cirq.testing.assert_deprecated('mutators', deadline='v0.15'):
-        gate.key = 'n'
-    assert gate.key == 'n'
-    assert gate.mkey == cirq.MeasurementKey('n')
-    with cirq.testing.assert_deprecated('mutators', deadline='v0.15'):
-        gate.key = cirq.MeasurementKey('o')
-    assert gate.key == 'o'
-    assert gate.mkey == cirq.MeasurementKey('o')
-    with cirq.testing.assert_deprecated('mutators', deadline='v0.15'):
-        gate.mkey = cirq.MeasurementKey('p')
-    assert gate.key == 'p'
-    assert gate.mkey == cirq.MeasurementKey('p')

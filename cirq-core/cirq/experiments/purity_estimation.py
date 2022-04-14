@@ -18,8 +18,7 @@ import numpy as np
 
 
 def purity_from_probabilities(
-    hilbert_space_dimension: int,
-    probabilities: Sequence[float],
+    hilbert_space_dimension: int, probabilities: Sequence[float]
 ) -> float:
     """Purity estimator from speckle purity benchmarking.
 

@@ -21,18 +21,11 @@ import cirq
 
 @pytest.mark.parametrize(
     'key',
-    [
-        'q0_1_0',
-        cirq.MeasurementKey(name='q0_1_0'),
-        cirq.MeasurementKey(path=('a', 'b'), name='c'),
-    ],
+    ['q0_1_0', cirq.MeasurementKey(name='q0_1_0'), cirq.MeasurementKey(path=('a', 'b'), name='c')],
 )
 def test_eval_repr(key):
     # Basic safeguard against repr-inequality.
-    op = cirq.GateOperation(
-        gate=cirq.MeasurementGate(1, key),
-        qubits=[cirq.GridQubit(0, 1)],
-    )
+    op = cirq.GateOperation(gate=cirq.MeasurementGate(1, key), qubits=[cirq.GridQubit(0, 1)])
     cirq.testing.assert_equivalent_repr(op)
 
 
@@ -377,26 +370,20 @@ def test_act_on_stabilizer_ch_form():
     cirq.testing.assert_all_implemented_act_on_effects_match_unitary(m)
 
     args = cirq.ActOnStabilizerCHFormArgs(
-        qubits=cirq.LineQubit.range(5),
-        prng=np.random.RandomState(),
-        initial_state=0,
+        qubits=cirq.LineQubit.range(5), prng=np.random.RandomState(), initial_state=0
     )
     cirq.act_on(m, args)
     assert args.log_of_measurement_results == {'out': [1, 0]}
 
     args = cirq.ActOnStabilizerCHFormArgs(
-        qubits=cirq.LineQubit.range(5),
-        prng=np.random.RandomState(),
-        initial_state=8,
+        qubits=cirq.LineQubit.range(5), prng=np.random.RandomState(), initial_state=8
     )
 
     cirq.act_on(m, args)
     assert args.log_of_measurement_results == {'out': [1, 1]}
 
     args = cirq.ActOnStabilizerCHFormArgs(
-        qubits=cirq.LineQubit.range(5),
-        prng=np.random.RandomState(),
-        initial_state=10,
+        qubits=cirq.LineQubit.range(5), prng=np.random.RandomState(), initial_state=10
     )
     cirq.act_on(m, args)
     datastore = cast(cirq.ClassicalDataDictionaryStore, args.classical_data)
@@ -447,22 +434,3 @@ def test_act_on_qutrit():
     )
     cirq.act_on(m, args)
     assert args.log_of_measurement_results == {'out': [0, 2]}
-
-
-def test_setters_deprecated():
-    gate = cirq.MeasurementGate(1, key='m', invert_mask=(False,))
-    with cirq.testing.assert_deprecated('mutators', deadline='v0.15'):
-        gate.key = 'n'
-    assert gate.key == 'n'
-    assert gate.mkey == cirq.MeasurementKey('n')
-    with cirq.testing.assert_deprecated('mutators', deadline='v0.15'):
-        gate.key = cirq.MeasurementKey('o')
-    assert gate.key == 'o'
-    assert gate.mkey == cirq.MeasurementKey('o')
-    with cirq.testing.assert_deprecated('mutators', deadline='v0.15'):
-        gate.mkey = cirq.MeasurementKey('p')
-    assert gate.key == 'p'
-    assert gate.mkey == cirq.MeasurementKey('p')
-    with cirq.testing.assert_deprecated('mutators', deadline='v0.15'):
-        gate.invert_mask = (True,)
-    assert gate.invert_mask == (True,)

@@ -14,30 +14,16 @@
 
 """Trapped ion devices, gates, and compiling utilties."""
 
-from cirq.ion.ion_gates import (
-    ms,
-)
+from cirq.ion.ion_gates import ms
 
-from cirq.ion.ion_decomposition import (
-    two_qubit_matrix_to_ion_operations,
-)
+from cirq.ion.ion_decomposition import two_qubit_matrix_to_ion_operations
 
-from cirq.ion.ion_device import (
-    IonDevice,
-)
+from cirq.ion.ion_device import IonDevice
 
-from cirq.ion.convert_to_ion_gates import (
-    ConvertToIonGates,
-)
+from cirq.ion.convert_to_ion_gates import ConvertToIonGates
 
-from cirq.ion.ion_decomposition import (
-    two_qubit_matrix_to_ion_operations,
-)
+from cirq.ion.ion_decomposition import two_qubit_matrix_to_ion_operations
 
-from cirq.ion.ion_device import (
-    IonDevice,
-)
+from cirq.ion.ion_device import IonDevice
 
-from cirq.ion.convert_to_ion_gates import (
-    ConvertToIonGates,
-)
+from cirq.ion.convert_to_ion_gates import ConvertToIonGates

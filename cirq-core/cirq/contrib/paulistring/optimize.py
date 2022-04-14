@@ -27,8 +27,7 @@ class _CZTargetGateSet(transformers.CZTargetGateset):
     """
 
     def __init__(
-        self,
-        post_clean_up: Callable[[ops.OP_TREE], ops.OP_TREE] = lambda op_tree: op_tree,
+        self, post_clean_up: Callable[[ops.OP_TREE], ops.OP_TREE] = lambda op_tree: op_tree
     ):
         super().__init__()
         self.post_clean_up = post_clean_up

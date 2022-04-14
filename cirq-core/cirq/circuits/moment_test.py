@@ -22,18 +22,12 @@ ALLOW_DEPRECATION_IN_TEST = 'ALLOW_DEPRECATION_IN_TEST'
 
 
 def test_deprecated_submodule():
-    with cirq.testing.assert_deprecated(
-        "Use cirq.circuits.moment instead",
-        deadline="v0.16",
-    ):
+    with cirq.testing.assert_deprecated("Use cirq.circuits.moment instead", deadline="v0.16"):
         _ = cirq.ops.moment.Moment
 
 
 def test_deprecated_attribute_in_cirq_ops():
-    with cirq.testing.assert_deprecated(
-        "Use cirq.circuits.Moment instead",
-        deadline="v0.16",
-    ):
+    with cirq.testing.assert_deprecated("Use cirq.circuits.Moment instead", deadline="v0.16"):
         _ = cirq.ops.Moment
 
 
@@ -296,14 +290,7 @@ def test_with_measurement_keys():
     a, b = cirq.LineQubit.range(2)
     m = cirq.Moment(cirq.measure(a, key='m1'), cirq.measure(b, key='m2'))
 
-    new_moment = cirq.with_measurement_key_mapping(
-        m,
-        {
-            'm1': 'p1',
-            'm2': 'p2',
-            'x': 'z',
-        },
-    )
+    new_moment = cirq.with_measurement_key_mapping(m, {'m1': 'p1', 'm2': 'p2', 'x': 'z'})
 
     assert new_moment.operations[0] == cirq.measure(a, key='p1')
     assert new_moment.operations[1] == cirq.measure(b, key='p2')
@@ -472,22 +459,13 @@ def test_op_tree():
     eq = cirq.testing.EqualsTester()
     a, b = cirq.LineQubit.range(2)
 
-    eq.add_equality_group(
-        cirq.Moment(),
-        cirq.Moment([]),
-        cirq.Moment([[], [[[]]]]),
-    )
+    eq.add_equality_group(cirq.Moment(), cirq.Moment([]), cirq.Moment([[], [[[]]]]))
 
     eq.add_equality_group(
-        cirq.Moment(cirq.X(a)),
-        cirq.Moment([cirq.X(a)]),
-        cirq.Moment({cirq.X(a)}),
+        cirq.Moment(cirq.X(a)), cirq.Moment([cirq.X(a)]), cirq.Moment({cirq.X(a)})
     )
 
-    eq.add_equality_group(
-        cirq.Moment(cirq.X(a), cirq.Y(b)),
-        cirq.Moment([cirq.X(a), cirq.Y(b)]),
-    )
+    eq.add_equality_group(cirq.Moment(cirq.X(a), cirq.Y(b)), cirq.Moment([cirq.X(a), cirq.Y(b)]))
 
 
 def test_indexes_by_qubit():

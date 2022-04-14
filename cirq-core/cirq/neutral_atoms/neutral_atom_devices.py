@@ -216,17 +216,8 @@ class NeutralAtomDevice(devices.Device):
 
         CATEGORIES = {
             'Z': (ops.ZPowGate,),
-            'XY': (
-                ops.XPowGate,
-                ops.YPowGate,
-                ops.PhasedXPowGate,
-            ),
-            'controlled': (
-                ops.CNotPowGate,
-                ops.CZPowGate,
-                ops.CCXPowGate,
-                ops.CCZPowGate,
-            ),
+            'XY': (ops.XPowGate, ops.YPowGate, ops.PhasedXPowGate),
+            'controlled': (ops.CNotPowGate, ops.CZPowGate, ops.CCXPowGate, ops.CCZPowGate),
             'measure': (ops.MeasurementGate,),
         }
 

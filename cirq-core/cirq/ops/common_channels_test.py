@@ -138,12 +138,7 @@ def test_depolarizing_channel():
     d = cirq.depolarize(0.3)
     np.testing.assert_almost_equal(
         cirq.kraus(d),
-        (
-            np.sqrt(0.7) * np.eye(2),
-            np.sqrt(0.1) * X,
-            np.sqrt(0.1) * Y,
-            np.sqrt(0.1) * Z,
-        ),
+        (np.sqrt(0.7) * np.eye(2), np.sqrt(0.1) * X, np.sqrt(0.1) * Y, np.sqrt(0.1) * Z),
     )
     assert cirq.has_kraus(d)
 

@@ -73,8 +73,7 @@ def convert_text_diagram_info_to_qcircuit_diagram_info(
 
 
 def multigate_qcircuit_diagram_info(
-    op: ops.Operation,
-    args: protocols.CircuitDiagramInfoArgs,
+    op: ops.Operation, args: protocols.CircuitDiagramInfoArgs
 ) -> Optional[protocols.CircuitDiagramInfo]:
     if not (
         isinstance(op, ops.GateOperation) and isinstance(op.gate, ops.InterchangeableQubitsGate)

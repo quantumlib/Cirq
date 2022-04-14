@@ -35,10 +35,7 @@ def test_rigetti_qcs_service_api_call():
         ):
             return 200, [('Content-Type', 'application/json')], Response(), {}
 
-    client = httpx.Client(
-        base_url="https://mock.api.qcs.rigetti.com",
-        transport=Transport(),
-    )
+    client = httpx.Client(base_url="https://mock.api.qcs.rigetti.com", transport=Transport())
 
     response = RigettiQCSService.list_quantum_processors(client=client)
     assert 1 == len(response.quantum_processors)

@@ -17,7 +17,7 @@ import numpy as np
 import sympy
 
 import cirq
-from cirq_google.engine.client import quantum
+from cirq_google.cloud import quantum
 from cirq_google.engine.abstract_local_program import AbstractLocalProgram
 from cirq_google.engine.simulated_local_job import SimulatedLocalJob
 from cirq_google.engine.local_simulation_type import LocalSimulationType
@@ -43,10 +43,10 @@ def test_run():
         sweeps=[{}],
     )
     assert job.id() == 'test_job'
-    assert job.execution_status() == quantum.enums.ExecutionStatus.State.READY
+    assert job.execution_status() == quantum.ExecutionStatus.State.READY
     results = job.results()
     assert np.all(results[0].measurements['m'] == 1)
-    assert job.execution_status() == quantum.enums.ExecutionStatus.State.SUCCESS
+    assert job.execution_status() == quantum.ExecutionStatus.State.SUCCESS
 
 
 def test_run_sweep():
@@ -60,11 +60,11 @@ def test_run_sweep():
         repetitions=100,
         sweeps=[cirq.Points(key='t', points=[1, 0])],
     )
-    assert job.execution_status() == quantum.enums.ExecutionStatus.State.READY
+    assert job.execution_status() == quantum.ExecutionStatus.State.READY
     results = job.results()
     assert np.all(results[0].measurements['m'] == 1)
     assert np.all(results[1].measurements['m'] == 0)
-    assert job.execution_status() == quantum.enums.ExecutionStatus.State.SUCCESS
+    assert job.execution_status() == quantum.ExecutionStatus.State.SUCCESS
 
 
 @pytest.mark.parametrize(
@@ -89,17 +89,17 @@ def test_run_batch(simulation_type):
     if simulation_type == LocalSimulationType.ASYNCHRONOUS:
         # Note: The simulation could have finished already
         assert (
-            job.execution_status() == quantum.enums.ExecutionStatus.State.RUNNING
-            or job.execution_status() == quantum.enums.ExecutionStatus.State.SUCCESS
+            job.execution_status() == quantum.ExecutionStatus.State.RUNNING
+            or job.execution_status() == quantum.ExecutionStatus.State.SUCCESS
         )
     else:
-        assert job.execution_status() == quantum.enums.ExecutionStatus.State.READY
+        assert job.execution_status() == quantum.ExecutionStatus.State.READY
     results = job.batched_results()
     assert np.all(results[0][0].measurements['m'] == 1)
     assert np.all(results[0][1].measurements['m'] == 0)
     assert np.all(results[1][0].measurements['m2'] == 0)
     assert np.all(results[1][1].measurements['m2'] == 1)
-    assert job.execution_status() == quantum.enums.ExecutionStatus.State.SUCCESS
+    assert job.execution_status() == quantum.ExecutionStatus.State.SUCCESS
     # Using flattened results
     results = job.results()
     assert np.all(results[0].measurements['m'] == 1)
@@ -114,7 +114,7 @@ def test_cancel():
         job_id='test_job', processor_id='test1', parent_program=program, repetitions=100, sweeps=[]
     )
     job.cancel()
-    assert job.execution_status() == quantum.enums.ExecutionStatus.State.CANCELLED
+    assert job.execution_status() == quantum.ExecutionStatus.State.CANCELLED
 
 
 def test_unsupported_types():
@@ -172,9 +172,9 @@ def test_run_async():
         sweeps=[{}],
         simulation_type=LocalSimulationType.ASYNCHRONOUS,
     )
-    assert job.execution_status() == quantum.enums.ExecutionStatus.State.RUNNING
+    assert job.execution_status() == quantum.ExecutionStatus.State.RUNNING
     _ = job.results()
-    assert job.execution_status() == quantum.enums.ExecutionStatus.State.SUCCESS
+    assert job.execution_status() == quantum.ExecutionStatus.State.SUCCESS
 
 
 def test_run_calibration_unsupported():
