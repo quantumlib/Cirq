@@ -35,11 +35,20 @@ def adder_matrix(target_width: int, source_width: int) -> np.ndarray:
 
 
 def test_the_tests():
+    # fmt: off
     np.testing.assert_allclose(
         shift_matrix(4, 1),
-        np.array([[0, 0, 0, 1], [1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0]]),
+        np.array(
+            [
+                [0, 0, 0, 1],
+                [1, 0, 0, 0],
+                [0, 1, 0, 0],
+                [0, 0, 1, 0],
+            ]
+        ),
         atol=1e-8,
     )
+    # fmt: on
     np.testing.assert_allclose(
         shift_matrix(8, -1),
         np.array(

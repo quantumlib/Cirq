@@ -2331,7 +2331,9 @@ def test_circuit_to_unitary_matrix(circuit_cls):
             [
                 [1j, 1],
                 [1, 1j],
-            ]) * np.sqrt(0.5),
+            ]
+        )
+        * np.sqrt(0.5),
         # fmt: on
         atol=1e-8,
     )
@@ -2344,10 +2346,11 @@ def test_circuit_to_unitary_matrix(circuit_cls):
         np.array(
             [
                 [0, 1, 0, 0],
-                [1, 0, 0, 0], 
+                [1, 0, 0, 0],
                 [0, 0, 0, -1],
                 [0, 0, -1, 0],
-            ]),
+            ]
+        ),
         # fmt: on
         atol=1e-8,
     )
@@ -2361,8 +2364,9 @@ def test_circuit_to_unitary_matrix(circuit_cls):
                 [0, 1, 0, 0],
                 [1, 0, 0, 0],
                 [0, 0, -1, 0],
-                [0, 0, 0, -1]
-            ]),
+                [0, 0, 0, -1],
+            ]
+        ),
         atol=1e-8,
     )
     cirq.testing.assert_allclose_up_to_global_phase(
@@ -2372,8 +2376,9 @@ def test_circuit_to_unitary_matrix(circuit_cls):
                 [1, 1, -1, -1],
                 [1j, -1j, -1j, 1j],
                 [1, 1, 1, 1],
-                [1, -1, 1, -1]
-            ])
+                [1, -1, 1, -1],
+            ]
+        )
         * np.sqrt(0.25),
         atol=1e-8,
     )
@@ -2461,9 +2466,20 @@ def test_simple_circuits_to_unitary_matrix(circuit_cls):
     c = circuit_cls(cirq.CNOT(a, b), cirq.Z(b), cirq.CNOT(a, b))
     assert cirq.has_unitary(c)
     m = c.unitary()
+    # fmt: off
     cirq.testing.assert_allclose_up_to_global_phase(
-        m, np.array([[1, 0, 0, 0], [0, -1, 0, 0], [0, 0, -1, 0], [0, 0, 0, 1]]), atol=1e-8
+        m,
+        np.array(
+            [
+                [1, 0, 0, 0],
+                [0, -1, 0, 0],
+                [0, 0, -1, 0],
+                [0, 0, 0, 1],
+            ]
+        ),
+        atol=1e-8,
     )
+    # fmt: on
 
     # 2-qubit matrix matches when qubits in order.
     for expected in [np.diag([1, 1j, -1, -1j]), cirq.unitary(cirq.CNOT)]:
@@ -2511,7 +2527,16 @@ def test_circuit_superoperator_too_many_qubits():
         (cirq.Circuit(cirq.IdentityGate(2).on(q0, q1)), np.eye(16)),
         (
             cirq.Circuit(cirq.H(q0)),
-            np.array([[1, 1, 1, 1], [1, -1, 1, -1], [1, 1, -1, -1], [1, -1, -1, 1]]) / 2,
+            # fmt: off
+            np.array(
+                [
+                    [1, 1, 1, 1],
+                    [1, -1, 1, -1],
+                    [1, 1, -1, -1],
+                    [1, -1, -1, 1]
+                ]
+            ) / 2,
+            # fmt: on
         ),
         (cirq.Circuit(cirq.S(q0)), np.diag([1, -1j, 1j, 1])),
         (cirq.Circuit(cirq.depolarize(0.75).on(q0)), np.outer([1, 0, 0, 1], [1, 0, 0, 1]) / 2),

@@ -295,16 +295,32 @@ def test_unitary():
 
     assert cirq.has_unitary(CY)
     assert cirq.has_unitary(CCH)
+    # fmt: off
     np.testing.assert_allclose(
         cirq.unitary(CY),
-        np.array([[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 0, -1j], [0, 0, 1j, 0]]),
+        np.array(
+            [
+                [1, 0, 0, 0],
+                [0, 1, 0, 0],
+                [0, 0, 0, -1j],
+                [0, 0, 1j, 0],
+            ]
+        ),
         atol=1e-8,
     )
     np.testing.assert_allclose(
         cirq.unitary(C0Y),
-        np.array([[0, -1j, 0, 0], [1j, 0, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1]]),
+        np.array(
+            [
+                [0, -1j, 0, 0],
+                [1j, 0, 0, 0],
+                [0, 0, 1, 0],
+                [0, 0, 0, 1],
+            ]
+        ),
         atol=1e-8,
     )
+    # fmt: on
     np.testing.assert_allclose(
         cirq.unitary(CCH),
         np.array(

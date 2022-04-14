@@ -371,11 +371,27 @@ def test_linear_combination_of_operations_has_correct_qubits(terms, expected_qub
         ({}, np.array([0])),
         (
             {cirq.I(q0): 2, cirq.X(q0): 3, cirq.Y(q0): 4, cirq.Z(q0): 5j},
-            np.array([[2 + 5j, 3 - 4j], [3 + 4j, 2 - 5j]]),
+            # fmt: off
+            np.array(
+                [
+                    [2 + 5j, 3 - 4j],
+                    [3 + 4j, 2 - 5j],
+                ]
+            ),
+            # fmt: on
         ),
         (
             {cirq.X(q0): 2, cirq.Y(q1): 3},
-            np.array([[0, -3j, 2, 0], [3j, 0, 0, 2], [2, 0, 0, -3j], [0, 2, 3j, 0]]),
+            # fmt: off
+            np.array(
+                [
+                    [0, -3j, 2, 0],
+                    [3j, 0, 0, 2],
+                    [2, 0, 0, -3j],
+                    [0, 2, 3j, 0],
+                ]
+            ),
+            # fmt: on
         ),
         ({cirq.XX(q0, q1): 0.5, cirq.YY(q0, q1): -0.5}, np.rot90(np.diag([1, 0, 0, 1]))),
         ({cirq.CCZ(q0, q1, q2): 3j}, np.diag([3j, 3j, 3j, 3j, 3j, 3j, 3j, -3j])),
