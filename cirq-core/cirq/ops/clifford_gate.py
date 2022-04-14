@@ -30,14 +30,7 @@ import numpy as np
 from cirq import protocols, value, linalg, qis
 from cirq._doc import document
 from cirq._import import LazyLoader
-from cirq.ops import (
-    common_gates,
-    identity,
-    named_qubit,
-    raw_types,
-    pauli_gates,
-    phased_x_z_gate,
-)
+from cirq.ops import common_gates, identity, named_qubit, raw_types, pauli_gates, phased_x_z_gate
 from cirq.ops.pauli_gates import Pauli
 from cirq.type_workarounds import NotImplementedType
 
@@ -285,11 +278,7 @@ class CommonCliffordGates(metaclass=CommonCliffordGateMetaClass):
     ) -> Union['SingleQubitCliffordGate', 'CliffordGate']:
         qubits = devices.LineQubit.range(num_qubits)
         t = qis.CliffordTableau(num_qubits=num_qubits)
-        args = sim.ActOnCliffordTableauArgs(
-            tableau=t,
-            qubits=qubits,
-            prng=np.random.RandomState(),
-        )
+        args = sim.ActOnCliffordTableauArgs(tableau=t, qubits=qubits, prng=np.random.RandomState())
 
         protocols.act_on(gate, args, qubits, allow_decompose=False)
         if num_qubits == 1:
@@ -352,9 +341,7 @@ class CommonCliffordGates(metaclass=CommonCliffordGateMetaClass):
 
         base_tableau = qis.CliffordTableau(len(qubit_order))
         args = sim.clifford.ActOnCliffordTableauArgs(
-            tableau=base_tableau,
-            qubits=qubit_order,
-            prng=np.random.RandomState(0),  # unused
+            tableau=base_tableau, qubits=qubit_order, prng=np.random.RandomState(0)  # unused
         )
         for op in operations:
             protocols.act_on(op, args, allow_decompose=True)
@@ -363,12 +350,7 @@ class CommonCliffordGates(metaclass=CommonCliffordGateMetaClass):
 
     @classmethod
     def _from_json_dict_(cls, n, rs, xs, zs, **kwargs):
-        _clifford_tableau = qis.CliffordTableau._from_json_dict_(
-            n,
-            rs,
-            xs,
-            zs,
-        )
+        _clifford_tableau = qis.CliffordTableau._from_json_dict_(n, rs, xs, zs)
         return cls(_clifford_tableau=_clifford_tableau)
 
     @classmethod
@@ -377,16 +359,8 @@ class CommonCliffordGates(metaclass=CommonCliffordGateMetaClass):
     ) -> Dict[float, Dict['SingleQubitCliffordGate', 'SingleQubitCliffordGate']]:
         """Returns a map containing two keys 0.5 and -0.5 for the sqrt mapping of Pauli gates."""
         return {
-            0.5: {
-                cls.X: cls.X_sqrt,
-                cls.Y: cls.Y_sqrt,
-                cls.Z: cls.Z_sqrt,
-            },
-            -0.5: {
-                cls.X: cls.X_nsqrt,
-                cls.Y: cls.Y_nsqrt,
-                cls.Z: cls.Z_nsqrt,
-            },
+            0.5: {cls.X: cls.X_sqrt, cls.Y: cls.Y_sqrt, cls.Z: cls.Z_sqrt},
+            -0.5: {cls.X: cls.X_nsqrt, cls.Y: cls.Y_nsqrt, cls.Z: cls.Z_nsqrt},
         }
 
 
@@ -394,11 +368,7 @@ class CommonCliffordGates(metaclass=CommonCliffordGateMetaClass):
 class CliffordGate(raw_types.Gate, CommonCliffordGates):
     """Clifford rotation for N-qubit."""
 
-    def __init__(
-        self,
-        *,
-        _clifford_tableau: qis.CliffordTableau,
-    ) -> None:
+    def __init__(self, *, _clifford_tableau: qis.CliffordTableau) -> None:
         # We use the Clifford tableau to represent a Clifford gate.
         # It is crucial to note that the meaning of tableau here is different
         # from the one used to represent a Clifford state (Of course, they are related).
@@ -504,11 +474,7 @@ class CliffordGate(raw_types.Gate, CommonCliffordGates):
 class SingleQubitCliffordGate(CliffordGate):
     """Any single qubit Clifford rotation."""
 
-    def __init__(
-        self,
-        *,
-        _clifford_tableau: qis.CliffordTableau,
-    ) -> None:
+    def __init__(self, *, _clifford_tableau: qis.CliffordTableau) -> None:
         super().__init__(_clifford_tableau=_clifford_tableau)
 
     def _num_qubits_(self):
