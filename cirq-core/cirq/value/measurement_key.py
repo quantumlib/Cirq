@@ -88,18 +88,10 @@ class MeasurementKey:
         return self == other or self < other
 
     def _json_dict_(self):
-        return {
-            'name': self.name,
-            'path': self.path,
-        }
+        return {'name': self.name, 'path': self.path}
 
     @classmethod
-    def _from_json_dict_(
-        cls,
-        name,
-        path,
-        **kwargs,
-    ):
+    def _from_json_dict_(cls, name, path, **kwargs):
         return cls(name=name, path=tuple(path))
 
     @classmethod
@@ -126,9 +118,7 @@ class MeasurementKey:
         return self.replace(path=path_component + self.path)
 
     def _with_rescoped_keys_(
-        self,
-        path: Tuple[str, ...],
-        bindable_keys: FrozenSet['MeasurementKey'],
+        self, path: Tuple[str, ...], bindable_keys: FrozenSet['MeasurementKey']
     ):
         return self.replace(path=path + self.path)
 

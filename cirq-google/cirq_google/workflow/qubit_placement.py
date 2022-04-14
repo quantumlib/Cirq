@@ -138,8 +138,7 @@ def _get_random_placement(
 
 class RandomDevicePlacer(QubitPlacer):
     def __init__(
-        self,
-        topo_node_to_qubit_func: Callable[[Any], cirq.Qid] = default_topo_node_to_qubit,
+        self, topo_node_to_qubit_func: Callable[[Any], cirq.Qid] = default_topo_node_to_qubit
     ):
         """A placement strategy that randomly places circuits onto devices.
 

@@ -226,22 +226,20 @@ def test_eq():
         cirq.ControlledGate(cirq.H, control_values=(1, [0, 2]), control_qid_shape=(2, 3)),
     )
     eq.add_equality_group(
-        cirq.ControlledGate(cirq.H, control_values=[(2, 0), 1], control_qid_shape=[3, 2]),
+        cirq.ControlledGate(cirq.H, control_values=[(2, 0), 1], control_qid_shape=[3, 2])
     )
     eq.add_equality_group(
         cirq.ControlledGate(cirq.H, control_values=[1, 0], control_qid_shape=[2, 3]),
         cirq.ControlledGate(cirq.H, control_values=(1, 0), control_qid_shape=(2, 3)),
     )
     eq.add_equality_group(
-        cirq.ControlledGate(cirq.H, control_values=[0, 1], control_qid_shape=[3, 2]),
+        cirq.ControlledGate(cirq.H, control_values=[0, 1], control_qid_shape=[3, 2])
     )
     eq.add_equality_group(
         cirq.ControlledGate(cirq.H, control_values=[1, 0]),
         cirq.ControlledGate(cirq.H, control_values=(1, 0)),
     )
-    eq.add_equality_group(
-        cirq.ControlledGate(cirq.H, control_values=[0, 1]),
-    )
+    eq.add_equality_group(cirq.ControlledGate(cirq.H, control_values=[0, 1]))
     for group in eq._groups:
         if isinstance(group[0], cirq.Gate):
             for item in group:
@@ -281,17 +279,13 @@ def test_control():
         g.controlled(control_values=[0, 1]),
         g.controlled(control_values=[1]).controlled(control_values=[0]),
     )
-    eq.add_equality_group(
-        g.controlled(control_values=[0]).controlled(control_values=[1]),
-    )
+    eq.add_equality_group(g.controlled(control_values=[0]).controlled(control_values=[1]))
     eq.add_equality_group(
         cirq.ControlledGate(g, control_qid_shape=[4, 3]),
         g.controlled(control_qid_shape=[4, 3]),
         g.controlled(control_qid_shape=[3]).controlled(control_qid_shape=[4]),
     )
-    eq.add_equality_group(
-        g.controlled(control_qid_shape=[4]).controlled(control_qid_shape=[3]),
-    )
+    eq.add_equality_group(g.controlled(control_qid_shape=[4]).controlled(control_qid_shape=[3]))
 
 
 def test_unitary():
@@ -301,6 +295,7 @@ def test_unitary():
 
     assert cirq.has_unitary(CY)
     assert cirq.has_unitary(CCH)
+    # fmt: off
     np.testing.assert_allclose(
         cirq.unitary(CY),
         np.array(
@@ -325,6 +320,7 @@ def test_unitary():
         ),
         atol=1e-8,
     )
+    # fmt: on
     np.testing.assert_allclose(
         cirq.unitary(CCH),
         np.array(
@@ -578,22 +574,10 @@ def test_controlled_mixture():
         def num_qubits(self) -> int:
             return 1
 
-    c_no = cirq.ControlledGate(
-        num_controls=1,
-        sub_gate=NoDetails(),
-    )
+    c_no = cirq.ControlledGate(num_controls=1, sub_gate=NoDetails())
     assert not cirq.has_mixture(c_no)
     assert cirq.mixture(c_no, None) is None
 
-    c_yes = cirq.ControlledGate(
-        sub_gate=cirq.phase_flip(0.25),
-        num_controls=1,
-    )
+    c_yes = cirq.ControlledGate(sub_gate=cirq.phase_flip(0.25), num_controls=1)
     assert cirq.has_mixture(c_yes)
-    assert cirq.approx_eq(
-        cirq.mixture(c_yes),
-        [
-            (0.75, np.eye(4)),
-            (0.25, cirq.unitary(cirq.CZ)),
-        ],
-    )
+    assert cirq.approx_eq(cirq.mixture(c_yes), [(0.75, np.eye(4)), (0.25, cirq.unitary(cirq.CZ))])

@@ -122,10 +122,7 @@ def merge_single_qubit_gates_into_phased_x_z(circuit: circuits.Circuit, atol: fl
 
 
 @_compat.deprecated(deadline='v1.0', fix='Use cirq.merge_single_qubit_gates_to_phxz instead.')
-def merge_single_qubit_gates_into_phxz(
-    circuit: circuits.Circuit,
-    atol: float = 1e-8,
-) -> None:
+def merge_single_qubit_gates_into_phxz(circuit: circuits.Circuit, atol: float = 1e-8) -> None:
     """Canonicalizes runs of single-qubit rotations in a circuit.
 
     Specifically, any run of non-parameterized single-qubit gates will be

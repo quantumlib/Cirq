@@ -14,45 +14,25 @@
 
 """Classes and methods that optimize quantum circuits."""
 
-from cirq.optimizers.align_left import (
-    AlignLeft,
-)
+from cirq.optimizers.align_left import AlignLeft
 
-from cirq.optimizers.align_right import (
-    AlignRight,
-)
+from cirq.optimizers.align_right import AlignRight
 
-from cirq.optimizers.drop_empty_moments import (
-    DropEmptyMoments,
-)
+from cirq.optimizers.drop_empty_moments import DropEmptyMoments
 
-from cirq.optimizers.drop_negligible import (
-    DropNegligible,
-)
+from cirq.optimizers.drop_negligible import DropNegligible
 
-from cirq.optimizers.convert_to_cz_and_single_gates import (
-    ConvertToCzAndSingleGates,
-)
+from cirq.optimizers.convert_to_cz_and_single_gates import ConvertToCzAndSingleGates
 
-from cirq.optimizers.eject_phased_paulis import (
-    EjectPhasedPaulis,
-)
+from cirq.optimizers.eject_phased_paulis import EjectPhasedPaulis
 
-from cirq.optimizers.eject_z import (
-    EjectZ,
-)
+from cirq.optimizers.eject_z import EjectZ
 
-from cirq.optimizers.expand_composite import (
-    ExpandComposite,
-)
+from cirq.optimizers.expand_composite import ExpandComposite
 
-from cirq.optimizers.merge_interactions import (
-    MergeInteractions,
-)
+from cirq.optimizers.merge_interactions import MergeInteractions
 
-from cirq.optimizers.merge_interactions_to_sqrt_iswap import (
-    MergeInteractionsToSqrtIswap,
-)
+from cirq.optimizers.merge_interactions_to_sqrt_iswap import MergeInteractionsToSqrtIswap
 
 from cirq.optimizers.merge_single_qubit_gates import (
     merge_single_qubit_gates_into_phased_x_z,
@@ -60,9 +40,7 @@ from cirq.optimizers.merge_single_qubit_gates import (
     MergeSingleQubitGates,
 )
 
-from cirq.optimizers.synchronize_terminal_measurements import (
-    SynchronizeTerminalMeasurements,
-)
+from cirq.optimizers.synchronize_terminal_measurements import SynchronizeTerminalMeasurements
 
 from cirq.transformers.stratify import stratified_circuit
 

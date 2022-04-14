@@ -122,10 +122,7 @@ def commutes(
     """
     atol = float(atol)
 
-    strats = [
-        _strat_commutes_from_commutes,
-        _strat_commutes_from_matrix,
-    ]
+    strats = [_strat_commutes_from_commutes, _strat_commutes_from_matrix]
     for strat in strats:
         result = strat(v1, v2, atol=atol)
         if result is None:
@@ -172,10 +169,7 @@ def _strat_commutes_from_commutes(
 
 
 def _strat_commutes_from_matrix(
-    v1: Any,
-    v2: Any,
-    *,
-    atol: float,
+    v1: Any, v2: Any, *, atol: float
 ) -> Union[bool, NotImplementedType, None]:
     """Attempts to determine commutativity of matrices."""
     if not isinstance(v1, np.ndarray) or not isinstance(v2, np.ndarray):

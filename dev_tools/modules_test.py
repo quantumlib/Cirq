@@ -68,20 +68,14 @@ def test_modules():
     assert parent.top_level_packages == []
     assert modules.list_modules(
         search_dir=Path("dev_tools/modules_test_data"), include_parent=True
-    ) == [
-        mod1,
-        mod2,
-        parent,
-    ]
+    ) == [mod1, mod2, parent]
 
 
 def test_cli():
     env = os.environ.copy()
     env["PYTHONPATH"] = "../.."
     output = subprocess.check_output(
-        [sys.executable, "../modules.py", "list"],
-        cwd="dev_tools/modules_test_data",
-        env=env,
+        [sys.executable, "../modules.py", "list"], cwd="dev_tools/modules_test_data", env=env
     )
     assert output.decode("utf-8") == "mod1 mod2 "
 
