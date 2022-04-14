@@ -392,7 +392,7 @@ class DensityMatrixTrialResult(
         self._final_density_matrix: Optional[np.ndarray] = None
 
     @property
-    def final_density_matrix(self):
+    def final_density_matrix(self) -> np.ndarray:
         if self._final_density_matrix is None:
             size = np.prod(protocols.qid_shape(self), dtype=np.int64)
             state = self._final_simulator_state

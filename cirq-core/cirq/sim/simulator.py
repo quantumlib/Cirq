@@ -57,7 +57,7 @@ if TYPE_CHECKING:
 
 TStepResult = TypeVar('TStepResult', bound='StepResult')
 TSimulationTrialResult = TypeVar('TSimulationTrialResult', bound='SimulationTrialResult')
-TSimulatorState = TypeVar('TSimulatorState')
+TSimulatorState = TypeVar('TSimulatorState', bound=Any)
 TActOnArgs = TypeVar('TActOnArgs', bound=ActOnArgs)
 
 
@@ -930,7 +930,9 @@ class SimulationTrialResult(Generic[TSimulatorState]):
     @property
     def _final_simulator_state(self) -> 'TSimulatorState':
         if self._final_simulator_state_cache is None:
-            self._final_simulator_state_cache = self._final_step_result._simulator_state()
+            # We are guaranteed that _final_step_result is not None here due to the check in init.
+            final_step_result = cast('cirq.StepResult[TSimulatorState]', self._final_step_result)
+            self._final_simulator_state_cache = final_step_result._simulator_state()
         return self._final_simulator_state_cache
 
     def __repr__(self) -> str:

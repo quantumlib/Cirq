@@ -154,7 +154,7 @@ class StateVectorTrialResult(
         self._final_state_vector: Optional[np.ndarray] = None
 
     @property
-    def final_state_vector(self):
+    def final_state_vector(self) -> np.ndarray:
         if self._final_state_vector is None:
             state = self._final_simulator_state
             tensor = state.create_merged_state().target_tensor
@@ -163,7 +163,7 @@ class StateVectorTrialResult(
             self._final_state_vector = tensor
         return self._final_state_vector
 
-    def state_vector(self):
+    def state_vector(self) -> np.ndarray:
         """Return the state vector at the end of the computation.
 
         The state is returned in the computational basis with these basis
