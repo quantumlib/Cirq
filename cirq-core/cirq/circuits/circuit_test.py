@@ -2476,7 +2476,7 @@ def test_simple_circuits_to_unitary_matrix(circuit_cls):
                 [0, 0, -1, 0],
                 [0, 0, 0, 1],
             ]
-        ), 
+        ),
         atol=1e-8,
     )
     # fmt: on
