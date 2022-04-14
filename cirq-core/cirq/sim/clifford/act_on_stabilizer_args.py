@@ -184,3 +184,14 @@ class ActOnStabilizerArgs(
         for op in operations:
             protocols.act_on(op, self)
         return True
+
+    def __eq__(self, other) -> bool:
+        return (
+            isinstance(other, self.__class__)
+            and self.qubits == other.qubits
+            and self.classical_data == other.classical_data
+            and self.state == other.state
+        )
+
+    def __hash__(self):
+        return super().__hash__()

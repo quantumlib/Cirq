@@ -470,6 +470,17 @@ class ActOnStateVectorArgs(ActOnArgs[_BufferedStateVector]):
     def available_buffer(self):
         return self._state._buffer
 
+    def __eq__(self, other) -> bool:
+        return (
+            isinstance(other, self.__class__)
+            and self.qubits == other.qubits
+            and self.classical_data == other.classical_data
+            and np.allclose(self.target_tensor, other.target_tensor)
+        )
+
+    def __hash__(self):
+        return super().__hash__()
+
 
 def _strat_act_on_state_vector_from_apply_unitary(
     action: Any, args: 'cirq.ActOnStateVectorArgs', qubits: Sequence['cirq.Qid']
