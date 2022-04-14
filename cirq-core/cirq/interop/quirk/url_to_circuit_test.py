@@ -232,31 +232,13 @@ def test_custom_matrix_gate():
     # Without name.
     assert_url_to_circuit_returns(
         '{"cols":[["~cv0d"]],"gates":[{"id":"~cv0d","matrix":"{{0,1},{1,0}}"}]}',
-        cirq.Circuit(
-            cirq.MatrixGate(
-                np.array(
-                    [
-                        [0, 1],
-                        [1, 0],
-                    ]
-                )
-            ).on(a),
-        ),
+        cirq.Circuit(cirq.MatrixGate(np.array([[0, 1], [1, 0]])).on(a)),
     )
 
     # With name.
     assert_url_to_circuit_returns(
         '{"cols":[["~cv0d"]],"gates":[{"id":"~cv0d","name":"test","matrix":"{{0,i},{1,0}}"}]}',
-        cirq.Circuit(
-            cirq.MatrixGate(
-                np.array(
-                    [
-                        [0, 1j],
-                        [1, 0],
-                    ]
-                )
-            ).on(a),
-        ),
+        cirq.Circuit(cirq.MatrixGate(np.array([[0, 1j], [1, 0]])).on(a)),
     )
 
     # Multi-qubit. Reversed qubit order to account for endian-ness difference.
@@ -264,10 +246,7 @@ def test_custom_matrix_gate():
         '{"cols":[["X"],["~2hj0"]],'
         '"gates":[{"id":"~2hj0",'
         '"matrix":"{{-1,0,0,0},{0,i,0,0},{0,0,1,0},{0,0,0,-i}}"}]}',
-        cirq.Circuit(
-            cirq.X(a),
-            cirq.MatrixGate(np.diag([-1, 1j, 1, -1j])).on(b, a),
-        ),
+        cirq.Circuit(cirq.X(a), cirq.MatrixGate(np.diag([-1, 1j, 1, -1j])).on(b, a)),
         output_amplitudes_from_quirk=[
             {"r": 0, "i": 0},
             {"r": 0, "i": 1},

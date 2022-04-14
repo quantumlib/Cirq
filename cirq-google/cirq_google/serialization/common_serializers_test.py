@@ -183,15 +183,7 @@ def test_half_pi_does_not_serialize_arbitrary_xy():
 
 @pytest.mark.parametrize(
     ('x_exponent', 'z_exponent', 'axis_phase_exponent'),
-    [
-        (0, 0, 0),
-        (1, 0, 0),
-        (0, 1, 0),
-        (0.5, 0, 0.5),
-        (0.5, 0.5, 0.5),
-        (0.1, 0.2, 0.3),
-        (0.25, 0.375, 0.125),
-    ],
+    [(0, 0, 0), (1, 0, 0), (0, 1, 0), (0.5, 0, 0.5), (0.5, 0.5, 0.5), (0.25, 0.375, 0.125)],
 )
 def test_serialize_deserialize_arbitrary_xyz(x_exponent, z_exponent, axis_phase_exponent):
     gate = cirq.PhasedXZGate(

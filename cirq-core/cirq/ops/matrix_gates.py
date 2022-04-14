@@ -93,10 +93,7 @@ class MatrixGate(raw_types.Gate):
             raise ValueError(f'Not a unitary matrix: {self._matrix}')
 
     def _json_dict_(self) -> Dict[str, Any]:
-        return {
-            'matrix': self._matrix.tolist(),
-            'qid_shape': self._qid_shape,
-        }
+        return {'matrix': self._matrix.tolist(), 'qid_shape': self._qid_shape}
 
     @classmethod
     def _from_json_dict_(cls, matrix, qid_shape, **kwargs):

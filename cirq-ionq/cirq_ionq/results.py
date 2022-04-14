@@ -107,10 +107,7 @@ class QPUResult:
         """Returns a map from measurement keys to target qubit indices for this measurement."""
         return self._measurement_dict
 
-    def to_cirq_result(
-        self,
-        params: Optional[cirq.ParamResolver] = None,
-    ) -> cirq.Result:
+    def to_cirq_result(self, params: Optional[cirq.ParamResolver] = None) -> cirq.Result:
         """Returns a `cirq.Result` for these results.
 
         `cirq.Result` contains a less dense representation of results than that returned by

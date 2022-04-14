@@ -38,12 +38,7 @@ from cirq.ops.linear_combinations import PauliSum, PauliString
 class BooleanHamiltonianGate(raw_types.Gate):
     """A gate that represents a Hamiltonian from a set of Boolean functions."""
 
-    def __init__(
-        self,
-        parameter_names: Sequence[str],
-        boolean_strs: Sequence[str],
-        theta: float,
-    ):
+    def __init__(self, parameter_names: Sequence[str], boolean_strs: Sequence[str], theta: float):
         """Builds a BooleanHamiltonianGate.
 
         For each element of a sequence of Boolean expressions, the code first transforms it into a

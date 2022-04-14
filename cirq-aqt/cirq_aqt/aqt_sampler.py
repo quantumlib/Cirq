@@ -51,9 +51,7 @@ class AQTSampler(cirq.Sampler):
         self.access_token = access_token
 
     def _generate_json(
-        self,
-        circuit: cirq.AbstractCircuit,
-        param_resolver: cirq.ParamResolverOrSimilarType,
+        self, circuit: cirq.AbstractCircuit, param_resolver: cirq.ParamResolverOrSimilarType
     ) -> str:
         """Generates the JSON string from a Circuit.
 

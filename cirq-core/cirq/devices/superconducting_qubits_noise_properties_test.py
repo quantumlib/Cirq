@@ -17,16 +17,11 @@ import numpy as np
 import cirq
 import pytest
 
-from cirq.devices.noise_properties import (
-    NoiseModelFromNoiseProperties,
-)
+from cirq.devices.noise_properties import NoiseModelFromNoiseProperties
 from cirq.devices.superconducting_qubits_noise_properties import (
     SuperconductingQubitsNoiseProperties,
 )
-from cirq.devices.noise_utils import (
-    OpIdentifier,
-    PHYSICAL_GATE_TAG,
-)
+from cirq.devices.noise_utils import OpIdentifier, PHYSICAL_GATE_TAG
 
 
 DEFAULT_GATE_NS: Dict[type, float] = {
@@ -69,21 +64,11 @@ class TestNoiseProperties(SuperconductingQubitsNoiseProperties):
 
     @classmethod
     def single_qubit_gates(cls) -> Set[type]:
-        return {
-            cirq.ZPowGate,
-            cirq.PhasedXZGate,
-            cirq.MeasurementGate,
-            cirq.ResetChannel,
-        }
+        return {cirq.ZPowGate, cirq.PhasedXZGate, cirq.MeasurementGate, cirq.ResetChannel}
 
     @classmethod
     def symmetric_two_qubit_gates(cls) -> Set[type]:
-        return {
-            cirq.FSimGate,
-            cirq.PhasedFSimGate,
-            cirq.ISwapPowGate,
-            cirq.CZPowGate,
-        }
+        return {cirq.FSimGate, cirq.PhasedFSimGate, cirq.ISwapPowGate, cirq.CZPowGate}
 
     @classmethod
     def asymmetric_two_qubit_gates(cls) -> Set[type]:
@@ -260,11 +245,7 @@ def test_single_qubit_gates(op):
 
 
 @pytest.mark.parametrize(
-    'op',
-    [
-        cirq.ISWAP(*cirq.LineQubit.range(2)) ** 0.6,
-        cirq.CZ(*cirq.LineQubit.range(2)) ** 0.3,
-    ],
+    'op', [cirq.ISWAP(*cirq.LineQubit.range(2)) ** 0.6, cirq.CZ(*cirq.LineQubit.range(2)) ** 0.3]
 )
 def test_two_qubit_gates(op):
     q0, q1 = cirq.LineQubit.range(2)

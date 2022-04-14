@@ -25,25 +25,13 @@ QFT2 = np.array([[1, 1, 1, 1], [1, 1j, -1, -1j], [1, -1, 1, -1], [1, -1j, -1, 1j
 
 
 @pytest.mark.parametrize(
-    'eigen_gate_type',
-    [
-        cirq.CZPowGate,
-        cirq.XPowGate,
-        cirq.YPowGate,
-        cirq.ZPowGate,
-    ],
+    'eigen_gate_type', [cirq.CZPowGate, cirq.XPowGate, cirq.YPowGate, cirq.ZPowGate]
 )
 def test_phase_insensitive_eigen_gates_consistent_protocols(eigen_gate_type):
     cirq.testing.assert_eigengate_implements_consistent_protocols(eigen_gate_type)
 
 
-@pytest.mark.parametrize(
-    'eigen_gate_type',
-    [
-        cirq.CNotPowGate,
-        cirq.HPowGate,
-    ],
-)
+@pytest.mark.parametrize('eigen_gate_type', [cirq.CNotPowGate, cirq.HPowGate])
 def test_phase_sensitive_eigen_gates_consistent_protocols(eigen_gate_type):
     cirq.testing.assert_eigengate_implements_consistent_protocols(
         eigen_gate_type, ignoring_global_phase=True
@@ -926,11 +914,7 @@ def test_rz_unitary():
 
 @pytest.mark.parametrize(
     'angle_rads, expected_unitary',
-    [
-        (0, np.eye(4)),
-        (1, np.diag([1, 1, 1, np.exp(1j)])),
-        (np.pi / 2, np.diag([1, 1, 1, 1j])),
-    ],
+    [(0, np.eye(4)), (1, np.diag([1, 1, 1, np.exp(1j)])), (np.pi / 2, np.diag([1, 1, 1, 1j]))],
 )
 def test_cphase_unitary(angle_rads, expected_unitary):
     np.testing.assert_allclose(cirq.unitary(cirq.cphase(angle_rads)), expected_unitary)
@@ -1005,26 +989,14 @@ q: ───X───X───X───X───X───X^0.5───X^0.
     )
 
     cirq.testing.assert_has_diagram(
-        cirq.Circuit(
-            iy(q),
-            iy(q) ** -1,
-            iy(q) ** 3,
-            iy(q) ** 4.5,
-            iy(q) ** 4.500001,
-        ),
+        cirq.Circuit(iy(q), iy(q) ** -1, iy(q) ** 3, iy(q) ** 4.5, iy(q) ** 4.500001),
         """
 q: ───Y───Y───Y───Y^0.5───Y^0.5───
     """,
     )
 
     cirq.testing.assert_has_diagram(
-        cirq.Circuit(
-            iz(q),
-            iz(q) ** -1,
-            iz(q) ** 3,
-            iz(q) ** 4.5,
-            iz(q) ** 4.500001,
-        ),
+        cirq.Circuit(iz(q), iz(q) ** -1, iz(q) ** 3, iz(q) ** 4.5, iz(q) ** 4.500001),
         """
 q: ───Z───Z───Z───S───S───
     """,

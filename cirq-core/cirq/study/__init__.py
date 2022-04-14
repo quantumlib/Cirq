@@ -21,18 +21,9 @@ from cirq.study.flatten_expressions import (
     flatten_with_sweep,
 )
 
-from cirq.study.resolver import (
-    ParamDictType,
-    ParamResolver,
-    ParamResolverOrSimilarType,
-)
+from cirq.study.resolver import ParamDictType, ParamResolver, ParamResolverOrSimilarType
 
-from cirq.study.sweepable import (
-    Sweepable,
-    to_resolvers,
-    to_sweep,
-    to_sweeps,
-)
+from cirq.study.sweepable import Sweepable, to_resolvers, to_sweep, to_sweeps
 
 from cirq.study.sweeps import (
     Linspace,
@@ -46,7 +37,4 @@ from cirq.study.sweeps import (
     dict_to_zip_sweep,
 )
 
-from cirq.study.result import (
-    ResultDict,
-    Result,
-)
+from cirq.study.result import ResultDict, Result

@@ -19,11 +19,7 @@ from sympy.parsing import sympy_parser
 
 import cirq
 
-ALL_SIMULATORS = (
-    cirq.Simulator(),
-    cirq.DensityMatrixSimulator(),
-    cirq.CliffordSimulator(),
-)
+ALL_SIMULATORS = (cirq.Simulator(), cirq.DensityMatrixSimulator(), cirq.CliffordSimulator())
 
 
 def test_diagram():
@@ -86,10 +82,7 @@ a: ═══@═══^════════
 
 def test_diagram_extra_controlled_bits():
     q0, q1 = cirq.LineQubit.range(2)
-    circuit = cirq.Circuit(
-        cirq.measure(q0, key='a'),
-        cirq.CX(q0, q1).with_classical_controls('a'),
-    )
+    circuit = cirq.Circuit(cirq.measure(q0, key='a'), cirq.CX(q0, q1).with_classical_controls('a'))
 
     cirq.testing.assert_has_diagram(
         circuit,
@@ -157,10 +150,7 @@ def test_diagram_subcircuit():
     q0, q1 = cirq.LineQubit.range(2)
     circuit = cirq.Circuit(
         cirq.CircuitOperation(
-            cirq.FrozenCircuit(
-                cirq.measure(q0, key='a'),
-                cirq.X(q1).with_classical_controls('a'),
-            )
+            cirq.FrozenCircuit(cirq.measure(q0, key='a'), cirq.X(q1).with_classical_controls('a'))
         )
     )
 
@@ -184,10 +174,7 @@ def test_diagram_subcircuit_layered():
     circuit = cirq.Circuit(
         cirq.measure(q0, key='a'),
         cirq.CircuitOperation(
-            cirq.FrozenCircuit(
-                cirq.measure(q0, key='a'),
-                cirq.X(q1).with_classical_controls('a'),
-            ),
+            cirq.FrozenCircuit(cirq.measure(q0, key='a'), cirq.X(q1).with_classical_controls('a'))
         ),
         cirq.X(q1).with_classical_controls('a'),
     )
@@ -341,9 +328,7 @@ def test_subcircuit_key_set(sim):
 
 def test_key_unset_in_subcircuit_outer_scope():
     q0, q1 = cirq.LineQubit.range(2)
-    circuit = cirq.Circuit(
-        cirq.measure(q0, key='a'),
-    )
+    circuit = cirq.Circuit(cirq.measure(q0, key='a'))
     # TODO (daxfohl): This will not need an InsertStrategy after scope PR.
     circuit.append(
         cirq.CircuitOperation(cirq.FrozenCircuit(cirq.X(q1).with_classical_controls('a'))),
@@ -357,10 +342,7 @@ def test_key_unset_in_subcircuit_outer_scope():
 
 def test_key_set_in_subcircuit_outer_scope():
     q0, q1 = cirq.LineQubit.range(2)
-    circuit = cirq.Circuit(
-        cirq.X(q0),
-        cirq.measure(q0, key='a'),
-    )
+    circuit = cirq.Circuit(cirq.X(q0), cirq.measure(q0, key='a'))
     # TODO (daxfohl): This will not need an InsertStrategy after scope PR.
     circuit.append(
         cirq.CircuitOperation(cirq.FrozenCircuit(cirq.X(q1).with_classical_controls('a'))),
@@ -442,10 +424,7 @@ def test_str():
 
 def test_scope_local():
     q = cirq.LineQubit(0)
-    inner = cirq.Circuit(
-        cirq.measure(q, key='a'),
-        cirq.X(q).with_classical_controls('a'),
-    )
+    inner = cirq.Circuit(cirq.measure(q, key='a'), cirq.X(q).with_classical_controls('a'))
     middle = cirq.Circuit(cirq.CircuitOperation(inner.freeze(), repetitions=2))
     outer_subcircuit = cirq.CircuitOperation(middle.freeze(), repetitions=2)
     circuit = outer_subcircuit.mapped_circuit(deep=True)
@@ -484,10 +463,7 @@ def test_scope_local():
 
 def test_scope_flatten_both():
     q = cirq.LineQubit(0)
-    inner = cirq.Circuit(
-        cirq.measure(q, key='a'),
-        cirq.X(q).with_classical_controls('a'),
-    )
+    inner = cirq.Circuit(cirq.measure(q, key='a'), cirq.X(q).with_classical_controls('a'))
     middle = cirq.Circuit(
         cirq.CircuitOperation(inner.freeze(), repetitions=2, use_repetition_ids=False)
     )
@@ -523,10 +499,7 @@ a: ═══@═══^═══@═══^═══@═══^═══@══�
 
 def test_scope_flatten_inner():
     q = cirq.LineQubit(0)
-    inner = cirq.Circuit(
-        cirq.measure(q, key='a'),
-        cirq.X(q).with_classical_controls('a'),
-    )
+    inner = cirq.Circuit(cirq.measure(q, key='a'), cirq.X(q).with_classical_controls('a'))
     middle = cirq.Circuit(
         cirq.CircuitOperation(inner.freeze(), repetitions=2, use_repetition_ids=False)
     )
@@ -562,10 +535,7 @@ def test_scope_flatten_inner():
 
 def test_scope_flatten_outer():
     q = cirq.LineQubit(0)
-    inner = cirq.Circuit(
-        cirq.measure(q, key='a'),
-        cirq.X(q).with_classical_controls('a'),
-    )
+    inner = cirq.Circuit(cirq.measure(q, key='a'), cirq.X(q).with_classical_controls('a'))
     middle = cirq.Circuit(cirq.CircuitOperation(inner.freeze(), repetitions=2))
     outer_subcircuit = cirq.CircuitOperation(
         middle.freeze(), repetitions=2, use_repetition_ids=False
@@ -601,10 +571,7 @@ def test_scope_flatten_outer():
 
 def test_scope_extern():
     q = cirq.LineQubit(0)
-    inner = cirq.Circuit(
-        cirq.measure(q, key='a'),
-        cirq.X(q).with_classical_controls('b'),
-    )
+    inner = cirq.Circuit(cirq.measure(q, key='a'), cirq.X(q).with_classical_controls('b'))
     middle = cirq.Circuit(
         cirq.measure(q, key=cirq.MeasurementKey('b')),
         cirq.CircuitOperation(inner.freeze(), repetitions=2),
@@ -651,8 +618,7 @@ def test_scope_extern_wrapping_with_non_repeating_subcircuits():
 
     q = cirq.LineQubit(0)
     inner = wrap_frozen(
-        wrap(cirq.measure(q, key='a')),
-        wrap(cirq.X(q).with_classical_controls('b')),
+        wrap(cirq.measure(q, key='a')), wrap(cirq.X(q).with_classical_controls('b'))
     )
     middle = wrap_frozen(
         wrap(cirq.measure(q, key=cirq.MeasurementKey('b'))),
@@ -682,10 +648,7 @@ def test_scope_extern_wrapping_with_non_repeating_subcircuits():
 
 def test_scope_root():
     q = cirq.LineQubit(0)
-    inner = cirq.Circuit(
-        cirq.measure(q, key='a'),
-        cirq.X(q).with_classical_controls('b'),
-    )
+    inner = cirq.Circuit(cirq.measure(q, key='a'), cirq.X(q).with_classical_controls('b'))
     middle = cirq.Circuit(
         cirq.measure(q, key=cirq.MeasurementKey('c')),
         cirq.CircuitOperation(inner.freeze(), repetitions=2),
@@ -725,10 +688,7 @@ b: ═════════════════════════�
 
 def test_scope_extern_mismatch():
     q = cirq.LineQubit(0)
-    inner = cirq.Circuit(
-        cirq.measure(q, key='a'),
-        cirq.X(q).with_classical_controls('b'),
-    )
+    inner = cirq.Circuit(cirq.measure(q, key='a'), cirq.X(q).with_classical_controls('b'))
     middle = cirq.Circuit(
         cirq.measure(q, key=cirq.MeasurementKey('b', ('0',))),
         cirq.CircuitOperation(inner.freeze(), repetitions=2),
@@ -795,12 +755,9 @@ def test_layered_circuit_operations_with_controls_in_between():
     q = cirq.LineQubit(0)
     outer_subcircuit = cirq.CircuitOperation(
         cirq.Circuit(
-            cirq.CircuitOperation(
-                cirq.FrozenCircuit(
-                    cirq.X(q),
-                    cirq.Y(q),
-                )
-            ).with_classical_controls('m')
+            cirq.CircuitOperation(cirq.FrozenCircuit(cirq.X(q), cirq.Y(q))).with_classical_controls(
+                'm'
+            )
         ).freeze()
     )
     circuit = outer_subcircuit.mapped_circuit(deep=True)

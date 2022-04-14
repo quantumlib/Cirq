@@ -20,9 +20,7 @@ from cirq_google.api.v2 import run_context_pb2
 
 
 def sweep_to_proto(
-    sweep: cirq.Sweep,
-    *,
-    out: Optional[run_context_pb2.Sweep] = None,
+    sweep: cirq.Sweep, *, out: Optional[run_context_pb2.Sweep] = None
 ) -> run_context_pb2.Sweep:
     """Converts a Sweep to v2 protobuf message.
 

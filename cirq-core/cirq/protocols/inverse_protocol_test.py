@@ -48,14 +48,7 @@ class IsIterable:
 
 
 @pytest.mark.parametrize(
-    'val',
-    (
-        NoMethod(),
-        'text',
-        object(),
-        ReturnsNotImplemented(),
-        [NoMethod(), 5],
-    ),
+    'val', (NoMethod(), 'text', object(), ReturnsNotImplemented(), [NoMethod(), 5])
 )
 def test_objects_with_no_inverse(val):
     with pytest.raises(TypeError, match="isn't invertible"):

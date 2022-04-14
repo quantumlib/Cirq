@@ -105,9 +105,7 @@ class MeasurementGate(raw_types.Gate):
         return self.with_key(self.mkey._with_key_path_prefix_(prefix))
 
     def _with_rescoped_keys_(
-        self,
-        path: Tuple[str, ...],
-        bindable_keys: FrozenSet['cirq.MeasurementKey'],
+        self, path: Tuple[str, ...], bindable_keys: FrozenSet['cirq.MeasurementKey']
     ):
         return self.with_key(protocols.with_rescoped_keys(self.mkey, path, bindable_keys))
 

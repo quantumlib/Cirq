@@ -17,9 +17,7 @@ def test_parametric_circuit_through_service(
     circuit, sweepable = parametric_circuit_with_params
 
     qc = get_qc('9q-square', as_qvm=True)
-    service = RigettiQCSService(
-        quantum_computer=qc,
-    )
+    service = RigettiQCSService(quantum_computer=qc)
 
     # set the seed so we get a deterministic set of results.
     qvm = cast(QVM, qc.qam)
@@ -28,9 +26,7 @@ def test_parametric_circuit_through_service(
     repetitions = 10
     param_resolvers = [r for r in cirq.study.to_resolvers(sweepable)]
     result = service.run(
-        circuit=circuit,
-        repetitions=repetitions,
-        param_resolver=param_resolvers[1],
+        circuit=circuit, repetitions=repetitions, param_resolver=param_resolvers[1]
     )
     assert isinstance(result, cirq.study.Result)
     assert sweepable[1] == result.params

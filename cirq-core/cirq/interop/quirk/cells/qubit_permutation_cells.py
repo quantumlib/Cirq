@@ -15,10 +15,7 @@
 from typing import Callable, Iterator, Sequence, Tuple, TYPE_CHECKING
 
 from cirq import ops, value
-from cirq.interop.quirk.cells.cell import (
-    CELL_SIZES,
-    CellMaker,
-)
+from cirq.interop.quirk.cells.cell import CELL_SIZES, CellMaker
 
 if TYPE_CHECKING:
     import cirq
@@ -75,11 +72,7 @@ def _permutation_family(
         yield _permutation(identifier_prefix + str(n), name, permutation)
 
 
-def _permutation(
-    identifier: str,
-    name: str,
-    permutation: Tuple[int, ...],
-) -> CellMaker:
+def _permutation(identifier: str, name: str, permutation: Tuple[int, ...]) -> CellMaker:
     return CellMaker(
         identifier,
         size=len(permutation),
