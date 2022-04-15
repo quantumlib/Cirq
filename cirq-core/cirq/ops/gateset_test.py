@@ -304,7 +304,13 @@ def test_gateset_eq():
     eq = cirq.testing.EqualsTester()
     eq.add_equality_group(cirq.Gateset(CustomX))
     eq.add_equality_group(cirq.Gateset(CustomX**3))
-    eq.add_equality_group(cirq.Gateset(CustomX, name='Custom Gateset'))
+    with cirq.testing.assert_deprecated('global phase', deadline='v0.16'):
+        eq.add_equality_group(
+            cirq.Gateset(CustomX, name='Custom Gateset'),
+            cirq.Gateset(
+                CustomX, cirq.GlobalPhaseGate, name='Custom Gateset', accept_global_phase_op=False
+            ),
+        )
     eq.add_equality_group(cirq.Gateset(CustomX, name='Custom Gateset', unroll_circuit_op=False))
     with cirq.testing.assert_deprecated('global phase', deadline='v0.16'):
         eq.add_equality_group(

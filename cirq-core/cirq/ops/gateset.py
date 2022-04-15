@@ -252,7 +252,7 @@ class Gateset:
         )
         if accept_global_phase_op is False:
             unique_gate_list = [
-                g for g in unique_gate_list if g.gate != global_phase_op.GlobalPhaseGate
+                g for g in unique_gate_list if g.gate is not global_phase_op.GlobalPhaseGate
             ]
         elif accept_global_phase_op is None:
             if not any(g.gate is global_phase_op.GlobalPhaseGate for g in unique_gate_list):
