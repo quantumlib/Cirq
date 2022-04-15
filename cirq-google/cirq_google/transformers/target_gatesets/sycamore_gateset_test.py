@@ -36,11 +36,7 @@ def test_merge_swap_rzz_and_2q_unitaries():
         cirq.Moment(cirq.H.on_each(*q)),
         cirq.CNOT(q[0], q[2]),
         cirq.CircuitOperation(
-            cirq.FrozenCircuit(
-                cirq.CNOT(*q[0:2]),
-                cirq.H(q[0]),
-                cirq.CZ(*q[:2]),
-            )
+            cirq.FrozenCircuit(cirq.CNOT(*q[0:2]), cirq.H(q[0]), cirq.CZ(*q[:2]))
         ),
         cirq.CNOT(*q[1:3]),
         cirq.X(q[0]),
@@ -282,7 +278,7 @@ def test_zztheta_zzpow_unsorted_qubits():
     qubits = cirq.LineQubit(1), cirq.LineQubit(0)
     exponent = 0.06366197723675814
     circuit = cirq.Circuit(
-        cirq.ZZPowGate(exponent=exponent, global_shift=-0.5).on(qubits[0], qubits[1]),
+        cirq.ZZPowGate(exponent=exponent, global_shift=-0.5).on(qubits[0], qubits[1])
     )
     converted_circuit = cirq.optimize_for_target_gateset(
         circuit, gateset=cirq_google.SycamoreTargetGateset()

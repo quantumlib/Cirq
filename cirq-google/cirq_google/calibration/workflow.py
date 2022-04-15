@@ -13,18 +13,7 @@
 # limitations under the License.
 import dataclasses
 import itertools
-from typing import (
-    Callable,
-    Dict,
-    Iterable,
-    List,
-    Optional,
-    Sequence,
-    Set,
-    Tuple,
-    Union,
-    cast,
-)
+from typing import Callable, Dict, Iterable, List, Optional, Sequence, Set, Tuple, Union, cast
 
 import cirq
 from cirq.experiments import HALF_GRID_STAGGERED_PATTERN
@@ -729,8 +718,7 @@ def _merge_into_calibrations(
                 )
             ):
                 calibrations[index] = options.create_phased_fsim_request(
-                    gate=calibration.gate,
-                    pairs=tuple(sorted(new_pairs.union(existing_pairs))),
+                    gate=calibration.gate, pairs=tuple(sorted(new_pairs.union(existing_pairs)))
                 )
                 return index
 
@@ -774,8 +762,7 @@ def _run_calibrations_via_engine(
 
 
 def _run_local_calibrations_via_sampler(
-    calibration_requests: Sequence[PhasedFSimCalibrationRequest],
-    sampler: cirq.Sampler,
+    calibration_requests: Sequence[PhasedFSimCalibrationRequest], sampler: cirq.Sampler
 ):
     """Helper function used by `run_calibrations` to run Local calibrations with a Sampler."""
     return [
@@ -854,11 +841,7 @@ def run_calibrations(
             return _run_local_calibrations_via_sampler(calibrations, engine_sampler)
 
         return _run_calibrations_via_engine(
-            calibrations,
-            engine,
-            processor_id,
-            max_layers_per_request,
-            progress_func,
+            calibrations, engine, processor_id, max_layers_per_request, progress_func
         )
 
     if calibration_request_type == LocalXEBPhasedFSimCalibrationRequest:
@@ -1122,10 +1105,7 @@ def _find_moment_zeta_chi_gamma_corrections(
         pair_parameters = pair_parameters.merge_with(default_phases)
 
         corrections = FSimPhaseCorrections.from_characterization(
-            (a, b),
-            translated,
-            pair_parameters,
-            characterization_index,
+            (a, b), translated, pair_parameters, characterization_index
         )
 
         if decompositions_moment_to_calibration is None:

@@ -18,11 +18,7 @@ import numpy as np
 
 from cirq import ops, protocols, study, value
 from cirq._compat import deprecated_parameter, proper_repr
-from cirq.sim import (
-    simulator,
-    act_on_density_matrix_args,
-    simulator_base,
-)
+from cirq.sim import simulator, act_on_density_matrix_args, simulator_base
 
 if TYPE_CHECKING:
     import cirq
@@ -145,10 +141,7 @@ class DensityMatrixSimulator(
            >>> circuit = cirq.Circuit(cirq.H(q0), cirq.measure(q0))
         """
         super().__init__(
-            dtype=dtype,
-            noise=noise,
-            seed=seed,
-            split_untangled_states=split_untangled_states,
+            dtype=dtype, noise=noise, seed=seed, split_untangled_states=split_untangled_states
         )
         if dtype not in {np.complex64, np.complex128}:
             raise ValueError(f'dtype must be complex64 or complex128, was {dtype}')
@@ -187,14 +180,8 @@ class DensityMatrixSimulator(
     def _can_be_in_run_prefix(self, val: Any):
         return not protocols.measurement_keys_touched(val)
 
-    def _create_step_result(
-        self,
-        sim_state: 'cirq.OperationTarget[cirq.ActOnDensityMatrixArgs]',
-    ):
-        return DensityMatrixStepResult(
-            sim_state=sim_state,
-            dtype=self._dtype,
-        )
+    def _create_step_result(self, sim_state: 'cirq.OperationTarget[cirq.ActOnDensityMatrixArgs]'):
+        return DensityMatrixStepResult(sim_state=sim_state, dtype=self._dtype)
 
     def _create_simulator_trial_result(
         self,

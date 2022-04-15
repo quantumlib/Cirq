@@ -81,13 +81,11 @@ def t1_decay(
         var,
         start=min_delay_nanos,
         stop=max_delay_nanos,
-        length=num_points,
+        length=num_points
     )
 
     circuit = circuits.Circuit(
-        ops.X(qubit),
-        ops.wait(qubit, nanos=var),
-        ops.measure(qubit, key='output'),
+        ops.X(qubit), ops.wait(qubit, nanos=var), ops.measure(qubit, key='output')
     )
 
     results = sampler.sample(circuit, params=sweep, repetitions=repetitions)

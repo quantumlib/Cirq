@@ -240,33 +240,33 @@ class CliffordTableau(StabilizerState):
             self._zs[self.n + i, i] = True
 
     @property
-    def xs(self) -> np.array:
+    def xs(self) -> np.ndarray:
         return self._xs[:-1, :]
 
     @xs.setter
-    def xs(self, new_xs: np.array) -> None:
+    def xs(self, new_xs: np.ndarray) -> None:
         assert np.shape(new_xs) == (2 * self.n, self.n)
         self._xs[:-1, :] = np.array(new_xs).astype(bool)
 
     @property
-    def zs(self) -> np.array:
+    def zs(self) -> np.ndarray:
         return self._zs[:-1, :]
 
     @zs.setter
-    def zs(self, new_zs: np.array) -> None:
+    def zs(self, new_zs: np.ndarray) -> None:
         assert np.shape(new_zs) == (2 * self.n, self.n)
         self._zs[:-1, :] = np.array(new_zs).astype(bool)
 
     @property
-    def rs(self) -> np.array:
+    def rs(self) -> np.ndarray:
         return self._rs[:-1]
 
     @rs.setter
-    def rs(self, new_rs: np.array) -> None:
+    def rs(self, new_rs: np.ndarray) -> None:
         assert np.shape(new_rs) == (2 * self.n,)
         self._rs[:-1] = np.array(new_rs).astype(bool)
 
-    def matrix(self) -> np.array:
+    def matrix(self) -> np.ndarray:
         """Returns the 2n * 2n matrix representation of the Clifford tableau."""
         return np.concatenate([self.xs, self.zs], axis=1)
 

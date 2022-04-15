@@ -14,10 +14,7 @@
 from typing import List, Optional, TYPE_CHECKING
 
 from cirq import ops, protocols
-from cirq.circuits.optimization_pass import (
-    PointOptimizationSummary,
-    PointOptimizer,
-)
+from cirq.circuits.optimization_pass import PointOptimizationSummary, PointOptimizer
 from cirq.neutral_atoms import neutral_atom_devices
 from cirq import transformers
 

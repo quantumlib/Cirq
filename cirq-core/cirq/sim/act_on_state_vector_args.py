@@ -13,14 +13,14 @@
 # limitations under the License.
 """Objects and methods for acting efficiently on a state vector."""
 
-from typing import Any, Callable, Dict, List, Optional, Sequence, Tuple, TYPE_CHECKING, Type, Union
+from typing import Any, Callable, List, Optional, Sequence, Tuple, TYPE_CHECKING, Type, Union
 
 import numpy as np
 
 from cirq import _compat, linalg, protocols, qis, sim
 from cirq._compat import proper_repr
-from cirq.sim.act_on_args import ActOnArgs, strat_act_on_from_apply_decompose
 from cirq.linalg import transformations
+from cirq.sim.act_on_args import ActOnArgs, strat_act_on_from_apply_decompose
 
 if TYPE_CHECKING:
     import cirq
@@ -110,10 +110,7 @@ class _BufferedStateVector(qis.QuantumStateRepresentation):
         target_tensor = transformations.state_vector_kronecker_product(
             self._state_vector, other._state_vector
         )
-        return _BufferedStateVector(
-            state_vector=target_tensor,
-            buffer=np.empty_like(target_tensor),
-        )
+        return _BufferedStateVector(state_vector=target_tensor, buffer=np.empty_like(target_tensor))
 
     def factor(
         self, axes: Sequence[int], *, validate=True, atol=1e-07
@@ -140,12 +137,10 @@ class _BufferedStateVector(qis.QuantumStateRepresentation):
             self._state_vector, axes, validate=validate, atol=atol
         )
         extracted = _BufferedStateVector(
-            state_vector=extracted_tensor,
-            buffer=np.empty_like(extracted_tensor),
+            state_vector=extracted_tensor, buffer=np.empty_like(extracted_tensor)
         )
         remainder = _BufferedStateVector(
-            state_vector=remainder_tensor,
-            buffer=np.empty_like(remainder_tensor),
+            state_vector=remainder_tensor, buffer=np.empty_like(remainder_tensor)
         )
         return extracted, remainder
 
@@ -158,10 +153,7 @@ class _BufferedStateVector(qis.QuantumStateRepresentation):
             The transposed state vector.
         """
         new_tensor = transformations.transpose_state_vector_to_axis_order(self._state_vector, axes)
-        return _BufferedStateVector(
-            state_vector=new_tensor,
-            buffer=np.empty_like(new_tensor),
-        )
+        return _BufferedStateVector(state_vector=new_tensor, buffer=np.empty_like(new_tensor))
 
     def apply_unitary(self, action: Any, axes: Sequence[int]) -> bool:
         """Apply unitary to state.
@@ -175,9 +167,7 @@ class _BufferedStateVector(qis.QuantumStateRepresentation):
         new_target_tensor = protocols.apply_unitary(
             action,
             protocols.ApplyUnitaryArgs(
-                target_tensor=self._state_vector,
-                available_buffer=self._buffer,
-                axes=axes,
+                target_tensor=self._state_vector, available_buffer=self._buffer, axes=axes
             ),
             allow_decompose=False,
             default=NotImplemented,
@@ -276,11 +266,7 @@ class _BufferedStateVector(qis.QuantumStateRepresentation):
             The measurements in order.
         """
         bits, _ = sim.measure_state_vector(
-            self._state_vector,
-            axes,
-            out=self._state_vector,
-            qid_shape=self._qid_shape,
-            seed=seed,
+            self._state_vector, axes, out=self._state_vector, qid_shape=self._qid_shape, seed=seed
         )
         return bits
 
@@ -300,11 +286,7 @@ class _BufferedStateVector(qis.QuantumStateRepresentation):
             The samples in order.
         """
         return sim.sample_state_vector(
-            self._state_vector,
-            axes,
-            qid_shape=self._qid_shape,
-            repetitions=repetitions,
-            seed=seed,
+            self._state_vector, axes, qid_shape=self._qid_shape, repetitions=repetitions, seed=seed
         )
 
     def _swap_target_tensor_for(self, new_target_tensor: np.ndarray):
@@ -326,7 +308,7 @@ class _BufferedStateVector(qis.QuantumStateRepresentation):
         return True
 
 
-class ActOnStateVectorArgs(ActOnArgs):
+class ActOnStateVectorArgs(ActOnArgs[_BufferedStateVector]):
     """State and context for an operation acting on a state vector.
 
     There are two common ways to act on this object:
@@ -337,25 +319,11 @@ class ActOnStateVectorArgs(ActOnArgs):
         then pass `available_buffer` into `swap_target_tensor_for`.
     """
 
-    @_compat.deprecated_parameter(
-        deadline='v0.15',
-        fix='Use classical_data.',
-        parameter_desc='log_of_measurement_results',
-        match=lambda args, kwargs: 'log_of_measurement_results' in kwargs or len(args) > 4,
-    )
-    @_compat.deprecated_parameter(
-        deadline='v0.15',
-        fix='Use initial_state instead.',
-        parameter_desc='target_tensor',
-        match=lambda args, kwargs: 'target_tensor' in kwargs,
-    )
     def __init__(
         self,
         *,
-        target_tensor: Optional[np.ndarray] = None,
         available_buffer: Optional[np.ndarray] = None,
         prng: Optional[np.random.RandomState] = None,
-        log_of_measurement_results: Optional[Dict[str, List[int]]] = None,
         qubits: Optional[Sequence['cirq.Qid']] = None,
         initial_state: Union[np.ndarray, 'cirq.STATE_VECTOR_LIKE'] = 0,
         dtype: Type[np.number] = np.complex64,
@@ -364,9 +332,6 @@ class ActOnStateVectorArgs(ActOnArgs):
         """Inits ActOnStateVectorArgs.
 
         Args:
-            target_tensor: The state vector to act on, stored as a numpy array
-                with one dimension for each qubit in the system. Operations are
-                expected to perform inplace edits of this object.
             available_buffer: A workspace with the same shape and dtype as
                 `target_tensor`. Used by operations that cannot be applied to
                 `target_tensor` inline, in order to avoid unnecessary
@@ -377,8 +342,6 @@ class ActOnStateVectorArgs(ActOnArgs):
                 ordering of the computational basis states.
             prng: The pseudo random number generator to use for probabilistic
                 effects.
-            log_of_measurement_results: A mutable object that measurements are
-                being recorded into.
             initial_state: The initial state for the simulation in the
                 computational basis.
             dtype: The `numpy.dtype` of the inferred state vector. One of
@@ -388,23 +351,15 @@ class ActOnStateVectorArgs(ActOnArgs):
                 simulation.
         """
         state = _BufferedStateVector.create(
-            initial_state=target_tensor if target_tensor is not None else initial_state,
+            initial_state=initial_state,
             qid_shape=tuple(q.dimension for q in qubits) if qubits is not None else None,
             dtype=dtype,
             buffer=available_buffer,
         )
-        super().__init__(
-            state=state,
-            prng=prng,
-            qubits=qubits,
-            log_of_measurement_results=log_of_measurement_results,
-            classical_data=classical_data,
-        )
-        self._state: _BufferedStateVector = state
+        super().__init__(state=state, prng=prng, qubits=qubits, classical_data=classical_data)
 
     @_compat.deprecated(
-        deadline='v0.16',
-        fix='None, this function was unintentionally made public.',
+        deadline='v0.16', fix='None, this function was unintentionally made public.'
     )
     def swap_target_tensor_for(self, new_target_tensor: np.ndarray):
         """Gives a new state vector for the system.
@@ -419,8 +374,7 @@ class ActOnStateVectorArgs(ActOnArgs):
         self._state._swap_target_tensor_for(new_target_tensor)
 
     @_compat.deprecated(
-        deadline='v0.16',
-        fix='None, this function was unintentionally made public.',
+        deadline='v0.16', fix='None, this function was unintentionally made public.'
     )
     def subspace_index(
         self, axes: Sequence[int], little_endian_bits_int: int = 0, *, big_endian_bits_int: int = 0
@@ -476,10 +430,7 @@ class ActOnStateVectorArgs(ActOnArgs):
         )
 
     def _act_on_fallback_(
-        self,
-        action: Any,
-        qubits: Sequence['cirq.Qid'],
-        allow_decompose: bool = True,
+        self, action: Any, qubits: Sequence['cirq.Qid'], allow_decompose: bool = True
     ) -> bool:
         strats: List[Callable[[Any, Any, Sequence['cirq.Qid']], bool]] = [
             _strat_act_on_state_vector_from_apply_unitary,
@@ -506,10 +457,9 @@ class ActOnStateVectorArgs(ActOnArgs):
     def __repr__(self) -> str:
         return (
             'cirq.ActOnStateVectorArgs('
-            f'target_tensor={proper_repr(self.target_tensor)},'
-            f' available_buffer={proper_repr(self.available_buffer)},'
+            f'initial_state={proper_repr(self.target_tensor)},'
             f' qubits={self.qubits!r},'
-            f' log_of_measurement_results={proper_repr(self.log_of_measurement_results)})'
+            f' classical_data={self.classical_data!r})'
         )
 
     @property

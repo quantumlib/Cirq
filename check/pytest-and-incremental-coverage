@@ -79,7 +79,7 @@ check/pytest --actually-quiet \
 pytest_result=$?
 
 
-# assume succesful cover_result in case coverage is not run
+# assume successful cover_result in case coverage is not run
 cover_result=0
 if (( $ANALYZE_COV )); then
     # Convert to .py,cover files.

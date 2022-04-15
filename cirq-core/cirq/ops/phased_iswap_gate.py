@@ -75,10 +75,7 @@ class PhasedISwapPowGate(eigen_gate.EigenGate):
         return 2
 
     def _json_dict_(self) -> Dict[str, Any]:
-        return {
-            'phase_exponent': self._phase_exponent,
-            'exponent': self._exponent,
-        }
+        return {'phase_exponent': self._phase_exponent, 'exponent': self._exponent}
 
     def _value_equality_values_cls_(self):
         if self.phase_exponent == 0:

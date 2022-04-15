@@ -436,36 +436,10 @@ def test_controlled_mixture():
         def with_qubits(self, *new_qubits):
             raise NotImplementedError()
 
-    c_no = cirq.ControlledOperation(
-        controls=[b],
-        sub_operation=NoDetails(),
-    )
+    c_no = cirq.ControlledOperation(controls=[b], sub_operation=NoDetails())
     assert not cirq.has_mixture(c_no)
     assert cirq.mixture(c_no, None) is None
 
-    c_yes = cirq.ControlledOperation(
-        controls=[b],
-        sub_operation=cirq.phase_flip(0.25).on(a),
-    )
+    c_yes = cirq.ControlledOperation(controls=[b], sub_operation=cirq.phase_flip(0.25).on(a))
     assert cirq.has_mixture(c_yes)
-    assert cirq.approx_eq(
-        cirq.mixture(c_yes),
-        [
-            (0.75, np.eye(4)),
-            (0.25, cirq.unitary(cirq.CZ)),
-        ],
-    )
-
-
-def test_setters_deprecated():
-    q0, q1, q2 = cirq.LineQubit.range(3)
-    op = cirq.ControlledOperation([q1], cirq.Z(q0))
-    with cirq.testing.assert_deprecated('mutators', deadline='v0.15'):
-        op.sub_operation = cirq.X(q0)
-    assert op.sub_operation == cirq.X(q0)
-    with cirq.testing.assert_deprecated('mutators', deadline='v0.15'):
-        op.controls = (q2,)
-    assert op.controls == (q2,)
-    with cirq.testing.assert_deprecated('mutators', deadline='v0.15'):
-        op.control_values = ((3,), (3,))
-    assert op.control_values == ((3,), (3,))
+    assert cirq.approx_eq(cirq.mixture(c_yes), [(0.75, np.eye(4)), (0.25, cirq.unitary(cirq.CZ))])

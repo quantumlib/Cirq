@@ -63,10 +63,7 @@ class _XmonDeviceBase(cirq.Device):
         """Return the metadata for this device"""
         return self._metadata
 
-    @_compat.deprecated(
-        fix='Use metadata.qubit_set if applicable.',
-        deadline='v0.15',
-    )
+    @_compat.deprecated(fix='Use metadata.qubit_set if applicable.', deadline='v0.15')
     def qubit_set(self) -> FrozenSet[cirq.GridQubit]:
         return self.qubits
 

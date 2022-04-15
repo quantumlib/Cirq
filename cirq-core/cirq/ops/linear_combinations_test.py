@@ -70,17 +70,7 @@ def test_linear_combination_of_gates_rejects_inconsistent_gates(terms):
             combination[gate] += coefficient
 
 
-@pytest.mark.parametrize(
-    'gate',
-    (
-        cirq.X,
-        cirq.Y,
-        cirq.XX,
-        cirq.CZ,
-        cirq.CSWAP,
-        cirq.FREDKIN,
-    ),
-)
+@pytest.mark.parametrize('gate', (cirq.X, cirq.Y, cirq.XX, cirq.CZ, cirq.CSWAP, cirq.FREDKIN))
 def test_empty_linear_combination_of_gates_accepts_all_gates(gate):
     combination = cirq.LinearCombinationOfGates({})
     combination[gate] = -0.5j
@@ -132,10 +122,7 @@ def test_linear_combination_of_gates_has_correct_matrix(terms, expected_matrix):
             np.array([[0, np.sqrt(-1j)], [np.sqrt(1j), 0]]),
         ),
         (
-            {
-                cirq.IdentityGate(2): np.sqrt(0.5),
-                cirq.YY: -1j * np.sqrt(0.5),
-            },
+            {cirq.IdentityGate(2): np.sqrt(0.5), cirq.YY: -1j * np.sqrt(0.5)},
             np.sqrt(0.5) * np.array([[1, 0, 0, 1j], [0, 1, -1j, 0], [0, -1j, 1, 0], [1j, 0, 0, 1]]),
         ),
     ),
@@ -179,75 +166,17 @@ def test_linear_combination_of_gates_has_correct_pauli_expansion(terms, expected
 @pytest.mark.parametrize(
     'terms, exponent, expected_terms',
     (
+        ({cirq.X: 1}, 2, {cirq.I: 1}),
+        ({cirq.X: 1}, 3, {cirq.X: 1}),
+        ({cirq.Y: 0.5}, 10, {cirq.I: 2**-10}),
+        ({cirq.Y: 0.5}, 11, {cirq.Y: 2**-11}),
         (
-            {
-                cirq.X: 1,
-            },
+            {cirq.I: 1, cirq.X: 2, cirq.Y: 3, cirq.Z: 4},
             2,
-            {
-                cirq.I: 1,
-            },
+            {cirq.I: 30, cirq.X: 4, cirq.Y: 6, cirq.Z: 8},
         ),
-        (
-            {
-                cirq.X: 1,
-            },
-            3,
-            {
-                cirq.X: 1,
-            },
-        ),
-        (
-            {
-                cirq.Y: 0.5,
-            },
-            10,
-            {
-                cirq.I: 2**-10,
-            },
-        ),
-        (
-            {
-                cirq.Y: 0.5,
-            },
-            11,
-            {
-                cirq.Y: 2**-11,
-            },
-        ),
-        (
-            {
-                cirq.I: 1,
-                cirq.X: 2,
-                cirq.Y: 3,
-                cirq.Z: 4,
-            },
-            2,
-            {
-                cirq.I: 30,
-                cirq.X: 4,
-                cirq.Y: 6,
-                cirq.Z: 8,
-            },
-        ),
-        (
-            {
-                cirq.X: 1,
-                cirq.Y: 1j,
-            },
-            2,
-            {},
-        ),
-        (
-            {
-                cirq.X: 0.4,
-                cirq.Y: 0.4,
-            },
-            0,
-            {
-                cirq.I: 1,
-            },
-        ),
+        ({cirq.X: 1, cirq.Y: 1j}, 2, {}),
+        ({cirq.X: 0.4, cirq.Y: 0.4}, 0, {cirq.I: 1}),
     ),
 )
 def test_linear_combinations_of_gates_valid_powers(terms, exponent, expected_terms):
@@ -262,37 +191,11 @@ def test_linear_combinations_of_gates_valid_powers(terms, exponent, expected_ter
     'terms, exponent',
     (
         ({}, 2),
-        (
-            {
-                cirq.H: 1,
-            },
-            2,
-        ),
-        (
-            {
-                cirq.CNOT: 2,
-            },
-            2,
-        ),
-        (
-            {
-                cirq.X: 1,
-                cirq.S: -1,
-            },
-            2,
-        ),
-        (
-            {
-                cirq.X: 1,
-            },
-            -1,
-        ),
-        (
-            {
-                cirq.Y: 1,
-            },
-            sympy.Symbol('k'),
-        ),
+        ({cirq.H: 1}, 2),
+        ({cirq.CNOT: 2}, 2),
+        ({cirq.X: 1, cirq.S: -1}, 2),
+        ({cirq.X: 1}, -1),
+        ({cirq.Y: 1}, sympy.Symbol('k')),
     ),
 )
 def test_linear_combinations_of_gates_invalid_powers(terms, exponent):
@@ -303,10 +206,7 @@ def test_linear_combinations_of_gates_invalid_powers(terms, exponent):
 
 @pytest.mark.parametrize(
     'terms, is_parameterized, parameter_names',
-    [
-        ({cirq.H: 1}, False, set()),
-        ({cirq.X ** sympy.Symbol('t'): 1}, True, {'t'}),
-    ],
+    [({cirq.H: 1}, False, set()), ({cirq.X ** sympy.Symbol('t'): 1}, True, {'t'})],
 )
 @pytest.mark.parametrize('resolve_fn', [cirq.resolve_parameters, cirq.resolve_parameters_once])
 def test_parameterized_linear_combination_of_gates(
@@ -471,15 +371,18 @@ def test_linear_combination_of_operations_has_correct_qubits(terms, expected_qub
         ({}, np.array([0])),
         (
             {cirq.I(q0): 2, cirq.X(q0): 3, cirq.Y(q0): 4, cirq.Z(q0): 5j},
+            # fmt: off
             np.array(
                 [
                     [2 + 5j, 3 - 4j],
                     [3 + 4j, 2 - 5j],
                 ]
             ),
+            # fmt: on
         ),
         (
             {cirq.X(q0): 2, cirq.Y(q1): 3},
+            # fmt: off
             np.array(
                 [
                     [0, -3j, 2, 0],
@@ -488,6 +391,7 @@ def test_linear_combination_of_operations_has_correct_qubits(terms, expected_qub
                     [0, 2, 3j, 0],
                 ]
             ),
+            # fmt: on
         ),
         ({cirq.XX(q0, q1): 0.5, cirq.YY(q0, q1): -0.5}, np.rot90(np.diag([1, 0, 0, 1]))),
         ({cirq.CCZ(q0, q1, q2): 3j}, np.diag([3j, 3j, 3j, 3j, 3j, 3j, 3j, -3j])),
@@ -768,75 +672,17 @@ def test_linear_combination_of_operations_has_correct_pauli_expansion(terms, exp
 @pytest.mark.parametrize(
     'terms, exponent, expected_terms',
     (
+        ({cirq.X(q0): 1}, 2, {cirq.I(q0): 1}),
+        ({cirq.X(q0): 1}, 3, {cirq.X(q0): 1}),
+        ({cirq.Y(q0): 0.5}, 10, {cirq.I(q0): 2**-10}),
+        ({cirq.Y(q0): 0.5}, 11, {cirq.Y(q0): 2**-11}),
         (
-            {
-                cirq.X(q0): 1,
-            },
+            {cirq.I(q0): 1, cirq.X(q0): 2, cirq.Y(q0): 3, cirq.Z(q0): 4},
             2,
-            {
-                cirq.I(q0): 1,
-            },
+            {cirq.I(q0): 30, cirq.X(q0): 4, cirq.Y(q0): 6, cirq.Z(q0): 8},
         ),
-        (
-            {
-                cirq.X(q0): 1,
-            },
-            3,
-            {
-                cirq.X(q0): 1,
-            },
-        ),
-        (
-            {
-                cirq.Y(q0): 0.5,
-            },
-            10,
-            {
-                cirq.I(q0): 2**-10,
-            },
-        ),
-        (
-            {
-                cirq.Y(q0): 0.5,
-            },
-            11,
-            {
-                cirq.Y(q0): 2**-11,
-            },
-        ),
-        (
-            {
-                cirq.I(q0): 1,
-                cirq.X(q0): 2,
-                cirq.Y(q0): 3,
-                cirq.Z(q0): 4,
-            },
-            2,
-            {
-                cirq.I(q0): 30,
-                cirq.X(q0): 4,
-                cirq.Y(q0): 6,
-                cirq.Z(q0): 8,
-            },
-        ),
-        (
-            {
-                cirq.X(q0): 1,
-                cirq.Y(q0): 1j,
-            },
-            2,
-            {},
-        ),
-        (
-            {
-                cirq.Y(q1): 2,
-                cirq.Z(q1): 3,
-            },
-            0,
-            {
-                cirq.I(q1): 1,
-            },
-        ),
+        ({cirq.X(q0): 1, cirq.Y(q0): 1j}, 2, {}),
+        ({cirq.Y(q1): 2, cirq.Z(q1): 3}, 0, {cirq.I(q1): 1}),
     ),
 )
 def test_linear_combinations_of_operations_valid_powers(terms, exponent, expected_terms):
@@ -851,44 +697,12 @@ def test_linear_combinations_of_operations_valid_powers(terms, exponent, expecte
     'terms, exponent',
     (
         ({}, 2),
-        (
-            {
-                cirq.H(q0): 1,
-            },
-            2,
-        ),
-        (
-            {
-                cirq.CNOT(q0, q1): 2,
-            },
-            2,
-        ),
-        (
-            {
-                cirq.X(q0): 1,
-                cirq.S(q0): -1,
-            },
-            2,
-        ),
-        (
-            {
-                cirq.X(q0): 1,
-                cirq.Y(q1): 1,
-            },
-            2,
-        ),
-        (
-            {
-                cirq.Z(q0): 1,
-            },
-            -1,
-        ),
-        (
-            {
-                cirq.X(q0): 1,
-            },
-            sympy.Symbol('k'),
-        ),
+        ({cirq.H(q0): 1}, 2),
+        ({cirq.CNOT(q0, q1): 2}, 2),
+        ({cirq.X(q0): 1, cirq.S(q0): -1}, 2),
+        ({cirq.X(q0): 1, cirq.Y(q1): 1}, 2),
+        ({cirq.Z(q0): 1}, -1),
+        ({cirq.X(q0): 1}, sympy.Symbol('k')),
     ),
 )
 def test_linear_combinations_of_operations_invalid_powers(terms, exponent):
@@ -929,12 +743,7 @@ def test_parameterized_linear_combination_of_ops(
                     cirq.IdentityGate(2).on(q0, q1): 1,
                     cirq.PauliString({q1: cirq.X}): 1,
                     cirq.PauliString({q0: cirq.Z}): 1,
-                    cirq.PauliString(
-                        {
-                            q0: cirq.Z,
-                            q1: cirq.X,
-                        }
-                    ): -1,
+                    cirq.PauliString({q0: cirq.Z, q1: cirq.X}): -1,
                 }
             ),
         ),
@@ -1168,12 +977,7 @@ def test_add_number_paulistring():
     assert (
         cirq.X(a) + 2
         == 2 + cirq.X(a)
-        == cirq.PauliSum.from_pauli_strings(
-            [
-                cirq.PauliString() * 2,
-                cirq.PauliString({a: cirq.X}),
-            ]
-        )
+        == cirq.PauliSum.from_pauli_strings([cirq.PauliString() * 2, cirq.PauliString({a: cirq.X})])
     )
 
 
@@ -1628,8 +1432,7 @@ def test_expectation_from_density_matrix_basis_states():
         psum.expectation_from_density_matrix(np.array([[1, 0], [0, 0]], dtype=complex), q_map), 3
     )
     np.testing.assert_allclose(
-        psum.expectation_from_density_matrix(np.array([[0, 0], [0, 1]], dtype=complex), q_map),
-        -3,
+        psum.expectation_from_density_matrix(np.array([[0, 0], [0, 1]], dtype=complex), q_map), -3
     )
 
 

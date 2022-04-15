@@ -186,10 +186,7 @@ class BadGateRepr(GoodGate):
 
 class GoodEigenGate(cirq.EigenGate, cirq.SingleQubitGate):
     def _eigen_components(self) -> List[Tuple[float, np.ndarray]]:
-        return [
-            (0, np.diag([1, 0])),
-            (1, np.diag([0, 1])),
-        ]
+        return [(0, np.diag([1, 0])), (1, np.diag([0, 1]))]
 
     def __repr__(self):
         return 'GoodEigenGate(exponent={}, global_shift={!r})'.format(

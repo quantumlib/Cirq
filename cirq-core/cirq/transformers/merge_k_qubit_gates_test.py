@@ -228,10 +228,7 @@ def test_merge_k_qubit_unitaries_deep():
 
     context = cirq.TransformerContext(tags_to_ignore=("ignore",), deep=True)
     c_new = cirq.merge_k_qubit_unitaries(
-        c_orig,
-        k=2,
-        context=context,
-        rewriter=rewriter_merge_to_circuit_op,
+        c_orig, k=2, context=context, rewriter=rewriter_merge_to_circuit_op
     )
     cirq.testing.assert_same_circuits(c_new, c_expected)
 

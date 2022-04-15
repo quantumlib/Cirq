@@ -11,19 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from typing import (
-    Any,
-    Callable,
-    cast,
-    Dict,
-    Iterable,
-    Iterator,
-    List,
-    Optional,
-    Sequence,
-    Tuple,
-    Union,
-)
+from typing import Any, Callable, cast, Dict, Iterable, Iterator, List, Optional, Sequence, Tuple, Union
 
 import numpy as np
 
@@ -88,9 +76,7 @@ class PhasedFSimEngineSimulator(cirq.SimulatesIntermediateStateVector[cirq.Spars
 
     @classmethod
     def create_with_ideal_sqrt_iswap(
-        cls,
-        *,
-        simulator: Optional[cirq.Simulator] = None,
+        cls, *, simulator: Optional[cirq.Simulator] = None
     ) -> 'PhasedFSimEngineSimulator':
         """Creates a PhasedFSimEngineSimulator that simulates ideal FSimGate(theta=π/4, phi=0).
 
@@ -386,7 +372,7 @@ class PhasedFSimEngineSimulator(cirq.SimulatesIntermediateStateVector[cirq.Spars
             ideal_when_missing_parameter=ideal_when_missing_parameter,
         )
 
-    def final_state_vector(self, program: cirq.Circuit) -> np.array:
+    def final_state_vector(self, program: cirq.Circuit) -> np.ndarray:
         result = self.simulate(program)
         return result.state_vector()
 
@@ -465,10 +451,7 @@ class PhasedFSimEngineSimulator(cirq.SimulatesIntermediateStateVector[cirq.Spars
         return gate_calibration.as_characterized_phased_fsim_gate(parameters)
 
     def run_sweep_iter(
-        self,
-        program: cirq.AbstractCircuit,
-        params: cirq.Sweepable,
-        repetitions: int = 1,
+        self, program: cirq.AbstractCircuit, params: cirq.Sweepable, repetitions: int = 1
     ) -> Iterator[cirq.Result]:
         converted = _convert_to_circuit_with_drift(self, program)
         yield from self._simulator.run_sweep_iter(converted, params, repetitions)
@@ -492,10 +475,7 @@ class PhasedFSimEngineSimulator(cirq.SimulatesIntermediateStateVector[cirq.Spars
         # Needs an implementation since it's abstract but will never actually be called.
         raise NotImplementedError()
 
-    def _create_step_result(
-        self,
-        sim_state: cirq.OperationTarget,
-    ) -> cirq.SparseSimulatorStep:
+    def _create_step_result(self, sim_state: cirq.OperationTarget) -> cirq.SparseSimulatorStep:
         # Needs an implementation since it's abstract but will never actually be called.
         raise NotImplementedError()
 

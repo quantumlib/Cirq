@@ -66,9 +66,7 @@ setup(
     author_email='cirq-dev@googlegroups.com',
     python_requires='>=3.6.0',
     install_requires=requirements,
-    extras_require={
-        'dev_env': dev_requirements,
-    },
+    extras_require={'dev_env': dev_requirements},
     license='Apache 2',
     description=description,
     long_description=long_description,

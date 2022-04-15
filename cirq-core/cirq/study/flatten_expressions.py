@@ -195,12 +195,7 @@ class _ParamFlattener(resolver.ParamResolver):
         self,
         param_dict: Optional[resolver.ParamResolverOrSimilarType] = None,
         *,  # Force keyword args
-        get_param_name: Callable[
-            [
-                sympy.Expr,
-            ],
-            str,
-        ] = None,
+        get_param_name: Callable[[sympy.Expr], str,] = None,
     ):
         """Initializes a new _ParamFlattener.
 

@@ -162,10 +162,7 @@ class Sampler(metaclass=abc.ABCMeta):
 
     @abc.abstractmethod
     def run_sweep(
-        self,
-        program: 'cirq.AbstractCircuit',
-        params: 'cirq.Sweepable',
-        repetitions: int = 1,
+        self, program: 'cirq.AbstractCircuit', params: 'cirq.Sweepable', repetitions: int = 1
     ) -> Sequence['cirq.Result']:
         """Samples from the given Circuit.
 
@@ -182,10 +179,7 @@ class Sampler(metaclass=abc.ABCMeta):
         """
 
     async def run_sweep_async(
-        self,
-        program: 'cirq.AbstractCircuit',
-        params: 'cirq.Sweepable',
-        repetitions: int = 1,
+        self, program: 'cirq.AbstractCircuit', params: 'cirq.Sweepable', repetitions: int = 1
     ) -> Sequence['cirq.Result']:
         """Asynchronously samples from the given Circuit.
 

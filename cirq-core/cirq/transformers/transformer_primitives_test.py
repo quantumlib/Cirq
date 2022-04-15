@@ -62,11 +62,7 @@ z: ───────────X───────X───X───
 
 def test_map_operations_does_not_insert_too_many_moments():
     q = cirq.LineQubit.range(5)
-    c_orig = cirq.Circuit(
-        cirq.CX(q[0], q[1]),
-        cirq.CX(q[3], q[2]),
-        cirq.CX(q[3], q[4]),
-    )
+    c_orig = cirq.Circuit(cirq.CX(q[0], q[1]), cirq.CX(q[3], q[2]), cirq.CX(q[3], q[4]))
 
     def map_func(op: cirq.Operation, _: int) -> cirq.OP_TREE:
         yield cirq.Z.on_each(*op.qubits)
@@ -120,11 +116,7 @@ def test_map_operations_does_not_insert_too_many_moments():
 # pylint: disable=line-too-long
 def test_map_operations_deep_subcircuits():
     q = cirq.LineQubit.range(5)
-    c_orig = cirq.Circuit(
-        cirq.CX(q[0], q[1]),
-        cirq.CX(q[3], q[2]),
-        cirq.CX(q[3], q[4]),
-    )
+    c_orig = cirq.Circuit(cirq.CX(q[0], q[1]), cirq.CX(q[3], q[2]), cirq.CX(q[3], q[4]))
     c_orig_with_circuit_ops = cirq.Circuit(
         cirq.CircuitOperation(
             cirq.FrozenCircuit(
@@ -402,10 +394,7 @@ def test_unroll_circuit_op_no_tags():
             unroller(c, tags_to_check=("custom tag",)), cirq.Circuit([op1, op_list, op3])
         )
         cirq.testing.assert_same_circuits(
-            unroller(
-                c,
-                tags_to_check=("custom tag", MAPPED_CIRCUIT_OP_TAG),
-            ),
+            unroller(c, tags_to_check=("custom tag", MAPPED_CIRCUIT_OP_TAG)),
             cirq.Circuit([op1, op_list, op_list]),
         )
 
