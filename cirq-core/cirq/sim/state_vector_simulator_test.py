@@ -47,10 +47,7 @@ def test_state_vector_trial_result_repr():
         "dtype=np.complex64))"
     )
     assert repr(trial_result) == expected_repr
-    deserialized: cirq.StateVectorTrialResult = eval(expected_repr)
-    assert deserialized.params == trial_result.params
-    assert deserialized.measurements == trial_result.measurements
-    assert np.allclose(deserialized.final_state_vector, trial_result.final_state_vector)
+    assert eval(expected_repr) == trial_result
 
 
 def test_state_vector_simulator_state_repr():
@@ -64,8 +61,8 @@ def test_state_vector_trial_result_equality():
     eq = cirq.testing.EqualsTester()
     final_step_result = mock.Mock(cirq.StateVectorStepResult)
     final_step_result._qubit_mapping = {}
-    final_step_result._simulator_state.return_value = cirq.StateVectorSimulatorState(
-        np.array([]), {}
+    final_step_result._simulator_state.return_value = cirq.ActOnStateVectorArgs(
+        initial_state=np.array([])
     )
     eq.add_equality_group(
         cirq.StateVectorTrialResult(
@@ -91,8 +88,8 @@ def test_state_vector_trial_result_equality():
     )
     final_step_result = mock.Mock(cirq.StateVectorStepResult)
     final_step_result._qubit_mapping = {}
-    final_step_result._simulator_state.return_value = cirq.StateVectorSimulatorState(
-        np.array([1]), {}
+    final_step_result._simulator_state.return_value = cirq.ActOnStateVectorArgs(
+        initial_state=np.array([1])
     )
     eq.add_equality_group(
         cirq.StateVectorTrialResult(

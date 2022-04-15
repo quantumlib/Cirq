@@ -968,8 +968,8 @@ def test_density_matrix_simulator_state_repr():
 def test_density_matrix_trial_result_eq():
     q0 = cirq.LineQubit(0)
     final_step_result = mock.Mock(cirq.StepResult)
-    final_step_result._simulator_state.return_value = cirq.DensityMatrixSimulatorState(
-        density_matrix=np.ones((2, 2)) * 0.5, qubit_map={q0: 0}
+    final_step_result._simulator_state.return_value = cirq.ActOnDensityMatrixArgs(
+        initial_state=np.ones((2, 2)) * 0.5, qubits=[q0]
     )
     eq = cirq.testing.EqualsTester()
     eq.add_equality_group(
@@ -1048,10 +1048,7 @@ def test_density_matrix_trial_result_repr():
         "dtype=np.complex64))"
     )
     assert repr(trial_result) == expected_repr
-    deserialized: cirq.DensityMatrixTrialResult = eval(expected_repr)
-    assert deserialized.params == trial_result.params
-    assert deserialized.measurements == trial_result.measurements
-    assert np.allclose(deserialized.final_density_matrix, trial_result.final_density_matrix)
+    assert eval(expected_repr) == trial_result
 
 
 class XAsOp(cirq.Operation):

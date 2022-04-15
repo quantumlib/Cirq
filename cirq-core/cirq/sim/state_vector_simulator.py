@@ -193,7 +193,7 @@ class StateVectorTrialResult(
 
     def _value_equality_values_(self):
         measurements = {k: v.tolist() for k, v in sorted(self.measurements.items())}
-        return self.params, measurements, self._final_simulator_state
+        return self.params, measurements, self.qubit_map, self.final_state_vector.tolist()
 
     def __str__(self) -> str:
         samples = super().__str__()
