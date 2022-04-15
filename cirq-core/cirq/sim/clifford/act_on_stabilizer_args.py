@@ -120,6 +120,9 @@ class ActOnStabilizerArgs(
         gate = val.gate if isinstance(val, ops.Operation) else val
         axes = self.get_axes(qubits)
         exponent = getattr(gate, 'exponent', None)
+        if isinstance(gate, global_phase_op.GlobalPhaseGate):
+            self._state.apply_global_phase(gate.coefficient)
+            return True
         if exponent is None or isinstance(exponent, sympy.Expr):
             return NotImplemented
         if isinstance(gate, common_gates.XPowGate):
@@ -133,15 +136,9 @@ class ActOnStabilizerArgs(
         elif isinstance(gate, common_gates.CXPowGate):
             self._state.apply_cx(axes[0], axes[1], exponent, gate.global_shift)
         elif isinstance(gate, common_gates.CZPowGate):
-            self._state.apply_cz(  # coverage: ignore
-                axes[0], axes[1], exponent, gate.global_shift  # coverage: ignore
-            )  # coverage: ignore
-        elif isinstance(gate, global_phase_op.GlobalPhaseGate):
-            self._state.apply_global_phase(gate.coefficient)
+            self._state.apply_cz(axes[0], axes[1], exponent, gate.global_shift)
         elif isinstance(gate, swap_gates.SwapPowGate):
-            self._swap(  # coverage: ignore
-                axes[0], axes[1], exponent, gate.global_shift  # coverage: ignore
-            )  # coverage: ignore
+            self._swap(axes[0], axes[1], exponent, gate.global_shift)
         else:
             return NotImplemented
         return True
