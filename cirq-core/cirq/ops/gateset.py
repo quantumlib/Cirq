@@ -320,7 +320,7 @@ class Gateset:
                 accept_global_phase_op is True
                 and global_phase_family in self.gates
                 or accept_global_phase_op is False
-                and global_phase_family not in self.gates
+                and not any(g.gate is global_phase_op.GlobalPhaseGate for g in self.gates)
                 or accept_global_phase_op is None
             )
         ):
@@ -454,10 +454,12 @@ class Gateset:
     @classmethod
     def _from_json_dict_(cls, gates, name, unroll_circuit_op, **kwargs) -> 'Gateset':
         if 'accept_global_phase_op' in kwargs:
-            return cls(
-                *gates,
-                name=name,
-                unroll_circuit_op=unroll_circuit_op,
-                accept_global_phase_op=kwargs['accept_global_phase_op'],
-            )
+            accept_global_phase_op = kwargs['accept_global_phase_op']
+            global_phase_family = GateFamily(gate=global_phase_op.GlobalPhaseGate)
+            if accept_global_phase_op is True:
+                gates.append(global_phase_family)
+            elif accept_global_phase_op is False:
+                gates = [
+                    family for family in gates if family.gate is not global_phase_op.GlobalPhaseGate
+                ]
         return cls(*gates, name=name, unroll_circuit_op=unroll_circuit_op)
