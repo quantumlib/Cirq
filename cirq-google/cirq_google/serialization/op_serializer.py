@@ -117,7 +117,7 @@ class SerializingArg:
 
     serialized_name: str
     serialized_type: Type[ARG_LIKE]
-    op_getter: Union[str, Callable[[cirq.Operation], ARG_LIKE]]
+    op_getter: Union[str, Callable[[cirq.Operation], Optional[ARG_LIKE]]]
     required: bool = True
     default: Any = None
 

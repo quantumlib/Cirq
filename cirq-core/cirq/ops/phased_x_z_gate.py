@@ -1,5 +1,16 @@
-# pylint: disable=wrong-or-nonexistent-copyright-notice
-import numbers
+# Copyright 2022 The Cirq Developers
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     https://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
 from typing import AbstractSet, Any, Dict, Optional, Sequence, Tuple, TYPE_CHECKING, Union
 
 import numpy as np
@@ -30,9 +41,9 @@ class PhasedXZGate(gate_features.SingleQubitGate):
     def __init__(
         self,
         *,
-        x_exponent: Union[numbers.Real, sympy.Basic],
-        z_exponent: Union[numbers.Real, sympy.Basic],
-        axis_phase_exponent: Union[numbers.Real, sympy.Basic],
+        x_exponent: Union[float, sympy.Expr],
+        z_exponent: Union[float, sympy.Expr],
+        axis_phase_exponent: Union[float, sympy.Expr],
     ) -> None:
         """Inits PhasedXZGate.
 
@@ -54,29 +65,29 @@ class PhasedXZGate(gate_features.SingleQubitGate):
         a = self.axis_phase_exponent
 
         # Canonicalize X exponent into (-1, +1].
-        if isinstance(x, numbers.Real):
+        if not isinstance(x, sympy.Expr):
             x %= 2
-            if x > 1:
+            if x > 1.0:
                 x -= 2
 
         # Axis phase exponent is irrelevant if there is no X exponent.
         if x == 0:
-            a = 0
+            a = 0.0
         # For 180 degree X rotations, the axis phase and z exponent overlap.
         if x == 1 and z != 0:
             a += z / 2
-            z = 0
+            z = 0.0
 
         # Canonicalize Z exponent into (-1, +1].
-        if isinstance(z, numbers.Real):
+        if not isinstance(z, sympy.Expr):
             z %= 2
-            if z > 1:
+            if z > 1.0:
                 z -= 2
 
         # Canonicalize axis phase exponent into (-0.5, +0.5].
-        if isinstance(a, numbers.Real):
+        if not isinstance(a, sympy.Expr):
             a %= 2
-            if a > 1:
+            if a > 1.0:
                 a -= 2
             if a <= -0.5:
                 a += 1
@@ -90,15 +101,15 @@ class PhasedXZGate(gate_features.SingleQubitGate):
         return PhasedXZGate(x_exponent=x, z_exponent=z, axis_phase_exponent=a)
 
     @property
-    def x_exponent(self) -> Union[numbers.Real, sympy.Basic]:
+    def x_exponent(self) -> Union[float, sympy.Expr]:
         return self._x_exponent
 
     @property
-    def z_exponent(self) -> Union[numbers.Real, sympy.Basic]:
+    def z_exponent(self) -> Union[float, sympy.Expr]:
         return self._z_exponent
 
     @property
-    def axis_phase_exponent(self) -> Union[numbers.Real, sympy.Basic]:
+    def axis_phase_exponent(self) -> Union[float, sympy.Expr]:
         return self._axis_phase_exponent
 
     def _value_equality_values_(self):
@@ -121,7 +132,7 @@ class PhasedXZGate(gate_features.SingleQubitGate):
             x_exponent=rotation, axis_phase_exponent=-pre_phase, z_exponent=post_phase + pre_phase
         )._canonical()
 
-    def with_z_exponent(self, z_exponent: Union[numbers.Real, sympy.Basic]) -> 'cirq.PhasedXZGate':
+    def with_z_exponent(self, z_exponent: Union[float, sympy.Expr]) -> 'cirq.PhasedXZGate':
         return PhasedXZGate(
             axis_phase_exponent=self._axis_phase_exponent,
             x_exponent=self._x_exponent,

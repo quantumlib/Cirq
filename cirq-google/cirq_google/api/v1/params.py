@@ -13,6 +13,8 @@
 # limitations under the License.
 from typing import cast
 
+import sympy
+
 import cirq
 from cirq.study import sweeps
 from cirq_google.api.v1 import params_pb2
@@ -50,14 +52,14 @@ def _sweep_zip_to_proto(sweep: cirq.Zip) -> params_pb2.ZipSweep:
 
 
 def _single_param_sweep_to_proto(sweep: sweeps.SingleSweep) -> params_pb2.SingleSweep:
-    if isinstance(sweep, cirq.Linspace):
+    if isinstance(sweep, cirq.Linspace) and not isinstance(sweep.key, sympy.Expr):
         return params_pb2.SingleSweep(
             parameter_key=sweep.key,
             linspace=params_pb2.Linspace(
                 first_point=sweep.start, last_point=sweep.stop, num_points=sweep.length
             ),
         )
-    elif isinstance(sweep, cirq.Points):
+    elif isinstance(sweep, cirq.Points) and not isinstance(sweep.key, sympy.Expr):
         return params_pb2.SingleSweep(
             parameter_key=sweep.key, points=params_pb2.Points(points=sweep.points)
         )

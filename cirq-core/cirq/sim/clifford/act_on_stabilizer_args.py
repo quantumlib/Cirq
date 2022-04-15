@@ -16,6 +16,7 @@ import abc
 from typing import Any, Dict, Generic, List, Optional, Sequence, TYPE_CHECKING, TypeVar, Union
 
 import numpy as np
+import sympy
 
 from cirq import linalg, ops, protocols
 from cirq.ops import common_gates, global_phase_op, matrix_gates, swap_gates
@@ -106,22 +107,29 @@ class ActOnStabilizerArgs(ActOnArgs, Generic[TStabilizerState], metaclass=abc.AB
             return NotImplemented
         gate = val.gate if isinstance(val, ops.Operation) else val
         axes = self.get_axes(qubits)
+        exponent = getattr(gate, 'exponent', None)
+        if exponent is None or isinstance(exponent, sympy.Expr):
+            return NotImplemented
         if isinstance(gate, common_gates.XPowGate):
-            self._state.apply_x(axes[0], gate.exponent, gate.global_shift)
+            self._state.apply_x(axes[0], exponent, gate.global_shift)
         elif isinstance(gate, common_gates.YPowGate):
-            self._state.apply_y(axes[0], gate.exponent, gate.global_shift)
+            self._state.apply_y(axes[0], exponent, gate.global_shift)
         elif isinstance(gate, common_gates.ZPowGate):
-            self._state.apply_z(axes[0], gate.exponent, gate.global_shift)
+            self._state.apply_z(axes[0], exponent, gate.global_shift)
         elif isinstance(gate, common_gates.HPowGate):
-            self._state.apply_h(axes[0], gate.exponent, gate.global_shift)
+            self._state.apply_h(axes[0], exponent, gate.global_shift)
         elif isinstance(gate, common_gates.CXPowGate):
-            self._state.apply_cx(axes[0], axes[1], gate.exponent, gate.global_shift)
+            self._state.apply_cx(axes[0], axes[1], exponent, gate.global_shift)
         elif isinstance(gate, common_gates.CZPowGate):
-            self._state.apply_cz(axes[0], axes[1], gate.exponent, gate.global_shift)
+            self._state.apply_cz(  # coverage: ignore
+                axes[0], axes[1], exponent, gate.global_shift  # coverage: ignore
+            )  # coverage: ignore
         elif isinstance(gate, global_phase_op.GlobalPhaseGate):
             self._state.apply_global_phase(gate.coefficient)
         elif isinstance(gate, swap_gates.SwapPowGate):
-            self._swap(axes[0], axes[1], gate.exponent, gate.global_shift)
+            self._swap(  # coverage: ignore
+                axes[0], axes[1], exponent, gate.global_shift  # coverage: ignore
+            )  # coverage: ignore
         else:
             return NotImplemented
         return True

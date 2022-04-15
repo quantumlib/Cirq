@@ -13,7 +13,7 @@
 # limitations under the License.
 """Resolves symbolic expressions to unique symbols."""
 
-from typing import overload, Any, Callable, List, Optional, Tuple, Union
+from typing import overload, Any, Callable, Dict, List, Optional, Tuple, Union
 
 import sympy
 
@@ -197,7 +197,7 @@ class _ParamFlattener(resolver.ParamResolver):
         *,  # Force keyword args
         get_param_name: Callable[
             [
-                sympy.Basic,
+                sympy.Expr,
             ],
             str,
         ] = None,
@@ -223,7 +223,7 @@ class _ParamFlattener(resolver.ParamResolver):
             params = param_dict.param_dict
         else:
             params = param_dict if param_dict else {}
-        symbol_params = {
+        symbol_params: Dict[Union[str, sympy.Expr], Union[float, sympy.Expr]] = {
             _ensure_not_str(param): _ensure_not_str(val) for param, val in params.items()
         }
         super().__init__(symbol_params)
@@ -233,12 +233,12 @@ class _ParamFlattener(resolver.ParamResolver):
         self._taken_symbols = set(self.param_dict.values())
 
     @staticmethod
-    def default_get_param_name(val: sympy.Basic) -> str:
+    def default_get_param_name(val: sympy.Expr) -> str:
         if isinstance(val, sympy.Symbol):
             return val.name
         return f'<{val!s}>'
 
-    def _next_symbol(self, val: sympy.Basic) -> sympy.Symbol:
+    def _next_symbol(self, val: sympy.Expr) -> sympy.Symbol:
         name = self.get_param_name(val)
         symbol = sympy.Symbol(name)
         # Ensure the symbol hasn't already been used
@@ -249,8 +249,8 @@ class _ParamFlattener(resolver.ParamResolver):
         return symbol
 
     def value_of(
-        self, value: Union[sympy.Basic, float, str], recursive: bool = False
-    ) -> Union[sympy.Basic, float]:
+        self, value: Union[sympy.Expr, float, str], recursive: bool = False
+    ) -> Union[sympy.Expr, float]:
         """Resolves a symbol or expression to a new symbol unique to that value.
 
         - If value is a float, returns it.
@@ -321,7 +321,7 @@ class ExpressionMap(dict):
         """Initializes the `ExpressionMap`.
 
         Takes the same arguments as the builtin `dict`.  Keys must be sympy
-        expressions or symbols (instances of `sympy.Basic`).
+        expressions or symbols (instances of `sympy.Expr`).
         """
         super().__init__(*args, **kwargs)
 
@@ -342,9 +342,9 @@ class ExpressionMap(dict):
             sweep: The sweep to transform.
         """
         sweep = sweepable.to_sweep(sweep)
-        param_list = []
+        param_list: List[Dict[Union[str, sympy.Expr], Union[float, sympy.Expr]]] = []
         for r in sweep:
-            param_dict = {}
+            param_dict: Dict[Union[str, sympy.Expr], Union[float, sympy.Expr]] = {}
             for formula, sym in self.items():
                 if isinstance(sym, (sympy.Symbol, str)):
                     param_dict[str(sym)] = protocols.resolve_parameters(formula, r)
@@ -366,10 +366,10 @@ class ExpressionMap(dict):
         Args:
             params: The params to transform.
         """
-        param_dict = {
+        param_dict: Dict[Union[str, sympy.Expr], Union[float, sympy.Expr]] = {
             sym: protocols.resolve_parameters(formula, params)
             for formula, sym in self.items()
-            if isinstance(sym, sympy.Basic)
+            if isinstance(sym, sympy.Expr)
         }
         return param_dict
 
@@ -379,7 +379,7 @@ class ExpressionMap(dict):
 
 
 @overload
-def _ensure_not_str(param: Union[sympy.Basic, str]) -> sympy.Basic:
+def _ensure_not_str(param: Union[sympy.Expr, str]) -> sympy.Expr:
     pass
 
 

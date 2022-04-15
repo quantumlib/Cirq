@@ -32,8 +32,8 @@ class PhasedXPowGate(gate_features.SingleQubitGate):
     def __init__(
         self,
         *,
-        phase_exponent: Union[float, sympy.Symbol],
-        exponent: Union[float, sympy.Symbol] = 1.0,
+        phase_exponent: Union[float, sympy.Expr],
+        exponent: Union[float, sympy.Expr] = 1.0,
         global_shift: float = 0.0,
     ) -> None:
         """Inits PhasedXPowGate.
@@ -84,12 +84,12 @@ class PhasedXPowGate(gate_features.SingleQubitGate):
         return z**-1, x, z
 
     @property
-    def exponent(self) -> Union[float, sympy.Symbol]:
+    def exponent(self) -> Union[float, sympy.Expr]:
         """The exponent on the central X gate conjugated by the Z gates."""
         return self._exponent
 
     @property
-    def phase_exponent(self) -> Union[float, sympy.Symbol]:
+    def phase_exponent(self) -> Union[float, sympy.Expr]:
         """The exponent on the Z gates conjugating the X gate."""
         return self._phase_exponent
 
@@ -97,7 +97,7 @@ class PhasedXPowGate(gate_features.SingleQubitGate):
     def global_shift(self) -> float:
         return self._global_shift
 
-    def __pow__(self, exponent: Union[float, sympy.Symbol]) -> 'PhasedXPowGate':
+    def __pow__(self, exponent: Union[float, sympy.Expr]) -> 'PhasedXPowGate':
         new_exponent = protocols.mul(self._exponent, exponent, NotImplemented)
         if new_exponent is NotImplemented:
             return NotImplemented

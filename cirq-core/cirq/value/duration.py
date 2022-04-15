@@ -48,10 +48,10 @@ class Duration:
         self,
         value: DURATION_LIKE = None,
         *,  # Force keyword args.
-        picos: Union[int, float, sympy.Basic] = 0,
-        nanos: Union[int, float, sympy.Basic] = 0,
-        micros: Union[int, float, sympy.Basic] = 0,
-        millis: Union[int, float, sympy.Basic] = 0,
+        picos: Union[int, float, sympy.Expr] = 0,
+        nanos: Union[int, float, sympy.Expr] = 0,
+        micros: Union[int, float, sympy.Expr] = 0,
+        millis: Union[int, float, sympy.Expr] = 0,
     ) -> None:
         """Initializes a Duration with a time specified in some unit.
 
@@ -83,7 +83,7 @@ class Duration:
             else:
                 raise TypeError(f'Not a `cirq.DURATION_LIKE`: {repr(value)}.')
 
-        self._picos: Union[float, int, sympy.Basic] = (
+        self._picos: Union[float, int, sympy.Expr] = (
             picos + nanos * 1000 + micros * 1000_000 + millis * 1000_000_000
         )
 
@@ -96,19 +96,19 @@ class Duration:
     def _resolve_parameters_(self, resolver: 'cirq.ParamResolver', recursive: bool) -> 'Duration':
         return Duration(picos=protocols.resolve_parameters(self._picos, resolver, recursive))
 
-    def total_picos(self) -> Union[sympy.Basic, float]:
+    def total_picos(self) -> Union[sympy.Expr, float]:
         """Returns the number of picoseconds that the duration spans."""
         return self._picos
 
-    def total_nanos(self) -> Union[sympy.Basic, float]:
+    def total_nanos(self) -> Union[sympy.Expr, float]:
         """Returns the number of nanoseconds that the duration spans."""
         return self._picos / 1000
 
-    def total_micros(self) -> Union[sympy.Basic, float]:
+    def total_micros(self) -> Union[sympy.Expr, float]:
         """Returns the number of microseconds that the duration spans."""
         return self._picos / 1000_000
 
-    def total_millis(self) -> Union[sympy.Basic, float]:
+    def total_millis(self) -> Union[sympy.Expr, float]:
         """Returns the number of milliseconds that the duration spans."""
         return self._picos / 1000_000_000
 
@@ -134,7 +134,7 @@ class Duration:
         return Duration(picos=other._picos - self._picos)
 
     def __mul__(self, other) -> 'Duration':
-        if not isinstance(other, (int, float, sympy.Basic)):
+        if not isinstance(other, (int, float, sympy.Expr)):
             return NotImplemented
         return Duration(picos=self._picos * other)
 
@@ -142,7 +142,7 @@ class Duration:
         return self.__mul__(other)
 
     def __truediv__(self, other) -> Union['Duration', float]:
-        if isinstance(other, (int, float, sympy.Basic)):
+        if isinstance(other, (int, float, sympy.Expr)):
             return Duration(picos=self._picos / other)
 
         other_duration = _attempt_duration_like_to_duration(other)

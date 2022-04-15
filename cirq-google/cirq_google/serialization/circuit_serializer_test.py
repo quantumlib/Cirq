@@ -694,7 +694,7 @@ def test_deserialize_fsim_missing_parameters():
         },
         ['1_1', '1_2'],
     )
-    with pytest.raises(ValueError, match='theta and phi must be specified'):
+    with pytest.raises(ValueError, match='phi is missing'):
         serializer.deserialize(proto)
 
 

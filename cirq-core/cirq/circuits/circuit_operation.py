@@ -45,7 +45,7 @@ if TYPE_CHECKING:
 
 INT_CLASSES = (int, np.integer)
 INT_TYPE = Union[int, np.integer]
-IntParam = Union[INT_TYPE, sympy.Basic]
+IntParam = Union[INT_TYPE, sympy.Expr]
 REPETITION_ID_SEPARATOR = '-'
 
 
@@ -156,7 +156,7 @@ class CircuitOperation(ops.Operation):
                     f'Expected repetition_ids to be a list of length {loop_size}, '
                     f'got: {self.repetition_ids}'
                 )
-        elif isinstance(self.repetitions, sympy.Basic):
+        elif isinstance(self.repetitions, sympy.Expr):
             if self.repetition_ids is not None:
                 raise ValueError('Cannot use repetition ids with parameterized repetitions')
         else:
@@ -240,7 +240,7 @@ class CircuitOperation(ops.Operation):
         return NotImplemented
 
     def _ensure_deterministic_loop_count(self):
-        if self.repeat_until or isinstance(self.repetitions, sympy.Basic):
+        if self.repeat_until or isinstance(self.repetitions, sympy.Expr):
             raise ValueError('Cannot unroll circuit due to nondeterministic repetitions')
 
     def _measurement_key_objs_(self) -> AbstractSet['cirq.MeasurementKey']:

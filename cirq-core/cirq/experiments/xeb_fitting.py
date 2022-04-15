@@ -14,15 +14,7 @@
 """Estimation of fidelity associated with experimental circuit executions."""
 import dataclasses
 from abc import abstractmethod, ABC
-from typing import (
-    List,
-    Optional,
-    Sequence,
-    Tuple,
-    TYPE_CHECKING,
-    Dict,
-    Iterable,
-)
+from typing import Dict, Iterable, List, Optional, Sequence, Tuple, TYPE_CHECKING, Union
 
 import numpy as np
 import pandas as pd
@@ -155,10 +147,10 @@ class XEBCharacterizationOptions(ABC):
         """Return an initial Nelder-Mead simplex and the names for each parameter."""
 
 
-def phased_fsim_angles_from_gate(gate: 'cirq.Gate') -> Dict[str, float]:
+def phased_fsim_angles_from_gate(gate: 'cirq.Gate') -> Dict[str, Union[float, sympy.Expr]]:
     """For a given gate, return a dictionary mapping '{angle}_default' to its noiseless value
     for the five PhasedFSim angles."""
-    defaults = {
+    defaults: Dict[str, Union[float, sympy.Expr]] = {
         'theta_default': 0.0,
         'zeta_default': 0.0,
         'chi_default': 0.0,
@@ -426,13 +418,15 @@ def characterize_phased_fsim_parameters_with_xeb(
         method='nelder-mead',
     )
 
-    final_params = dict(zip(names, optimization_result.x))
+    final_params: Dict[Union[str, sympy.Expr], Union[float, sympy.Expr]] = dict(
+        zip(names, optimization_result.x)
+    )
     fidelities_df = benchmark_2q_xeb_fidelities(
         sampled_df, parameterized_circuits, cycle_depths, param_resolver=final_params
     )
     return XEBCharacterizationResult(
         optimization_results={pair: optimization_result},
-        final_params={pair: final_params},
+        final_params={pair: final_params},  # type: ignore
         fidelities_df=fidelities_df,
     )
 

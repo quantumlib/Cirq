@@ -45,8 +45,8 @@ class PauliStringPhasor(gate_operation.GateOperation):
         self,
         pauli_string: ps.PauliString,
         *,
-        exponent_neg: Union[int, float, sympy.Basic] = 1,
-        exponent_pos: Union[int, float, sympy.Basic] = 0,
+        exponent_neg: Union[int, float, sympy.Expr] = 1,
+        exponent_pos: Union[int, float, sympy.Expr] = 0,
     ) -> None:
         """Initializes the operation.
 
@@ -122,7 +122,7 @@ class PauliStringPhasor(gate_operation.GateOperation):
         super()._qubits = pauli_string.qubits
 
     @property
-    def exponent_relative(self) -> Union[int, float, sympy.Basic]:
+    def exponent_relative(self) -> Union[int, float, sympy.Expr]:
         """The relative exponent between negative and positive exponents."""
         return self.gate.exponent_relative
 
@@ -233,8 +233,8 @@ class PauliStringPhasorGate(raw_types.Gate):
         self,
         dense_pauli_string: dps.DensePauliString,
         *,
-        exponent_neg: Union[int, float, sympy.Basic] = 1,
-        exponent_pos: Union[int, float, sympy.Basic] = 0,
+        exponent_neg: Union[int, float, sympy.Expr] = 1,
+        exponent_pos: Union[int, float, sympy.Expr] = 0,
     ) -> None:
         """Initializes the PauliStringPhasorGate.
 
@@ -264,7 +264,7 @@ class PauliStringPhasorGate(raw_types.Gate):
         self._exponent_pos = value.canonicalize_half_turns(exponent_pos)
 
     @property
-    def exponent_relative(self) -> Union[int, float, sympy.Basic]:
+    def exponent_relative(self) -> Union[int, float, sympy.Expr]:
         """The relative exponent between negative and positive exponents."""
         return value.canonicalize_half_turns(self.exponent_neg - self.exponent_pos)
 

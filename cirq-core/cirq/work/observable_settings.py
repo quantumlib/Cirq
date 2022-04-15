@@ -14,6 +14,7 @@
 
 import dataclasses
 from typing import Union, Iterable, Dict, TYPE_CHECKING, ItemsView, Tuple, FrozenSet
+import sympy
 
 from cirq import ops, value, protocols
 
@@ -125,24 +126,28 @@ def observables_to_settings(
         yield InitObsSetting(init_state=zeros_state(qubits), observable=observable)
 
 
-def _fix_precision(val: float, precision) -> int:
+def _fix_precision(val: Union[float, sympy.Expr], precision) -> int:
     """Convert floating point numbers to (implicitly) fixed point integers.
 
     Circuit parameters can be floats but we also need to use them as
     dictionary keys. We secretly use these fixed-precision integers.
     """
+    if isinstance(val, sympy.Expr):
+        raise ValueError(f'Cannot convert {val} to fixed precision in observable settings')
     return int(val * precision)
 
 
 def _hashable_param(
-    param_tuples: ItemsView[str, float], precision=1e7
+    param_tuples: ItemsView[Union[str, sympy.Expr], Union[float, sympy.Expr]], precision=1e7
 ) -> FrozenSet[Tuple[str, float]]:
     """Hash circuit parameters using fixed precision.
 
     Circuit parameters can be floats but we also need to use them as
     dictionary keys. We secretly use these fixed-precision integers.
     """
-    return frozenset((k, _fix_precision(v, precision)) for k, v in param_tuples)
+    return frozenset(
+        (k, _fix_precision(v, precision)) for k, v in param_tuples if isinstance(k, str)
+    )
 
 
 @dataclasses.dataclass(frozen=True)
@@ -156,7 +161,7 @@ class _MeasurementSpec:
     """
 
     max_setting: InitObsSetting
-    circuit_params: Dict[str, float]
+    circuit_params: Dict[Union[str, 'sympy.Expr'], Union[float, 'sympy.Expr']]
 
     def __hash__(self):
         return hash((self.max_setting, _hashable_param(self.circuit_params.items())))

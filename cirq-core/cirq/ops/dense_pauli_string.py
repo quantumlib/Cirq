@@ -68,7 +68,7 @@ class BaseDensePauliString(raw_types.Gate, metaclass=abc.ABCMeta):
         self,
         pauli_mask: Union[Iterable['cirq.PAULI_GATE_LIKE'], np.ndarray],
         *,
-        coefficient: Union[sympy.Basic, int, float, complex] = 1,
+        coefficient: Union[sympy.Expr, int, float, complex] = 1,
     ):
         """Initializes a new dense pauli string.
 
@@ -96,8 +96,8 @@ class BaseDensePauliString(raw_types.Gate, metaclass=abc.ABCMeta):
             t*IXYZ
         """
         self._pauli_mask = _as_pauli_mask(pauli_mask)
-        self._coefficient = (
-            coefficient if isinstance(coefficient, sympy.Basic) else complex(coefficient)
+        self._coefficient: Union[complex, sympy.Expr] = (
+            coefficient if isinstance(coefficient, sympy.Expr) else complex(coefficient)
         )
         if type(self) != MutableDensePauliString:
             self._pauli_mask = np.copy(self.pauli_mask)
@@ -116,7 +116,7 @@ class BaseDensePauliString(raw_types.Gate, metaclass=abc.ABCMeta):
         self._pauli_mask = pauli_mask
 
     @property
-    def coefficient(self) -> complex:
+    def coefficient(self) -> Union[sympy.Expr, complex]:
         return self._coefficient
 
     @coefficient.setter  # type: ignore
@@ -199,7 +199,9 @@ class BaseDensePauliString(raw_types.Gate, metaclass=abc.ABCMeta):
 
     def _resolve_parameters_(self: TCls, resolver: 'cirq.ParamResolver', recursive: bool) -> TCls:
         return self.copy(
-            coefficient=protocols.resolve_parameters(self.coefficient, resolver, recursive)
+            coefficient=cast(
+                complex, protocols.resolve_parameters(self.coefficient, resolver, recursive)
+            )
         )
 
     def __pos__(self):
@@ -335,7 +337,7 @@ class BaseDensePauliString(raw_types.Gate, metaclass=abc.ABCMeta):
             raise ValueError('Wrong number of qubits.')
 
         return pauli_string.PauliString(
-            coefficient=self.coefficient,
+            coefficient=cast(complex, self.coefficient),
             qubit_pauli_map={q: PAULI_GATES[p] for q, p in zip(qubits, self.pauli_mask) if p},
         )
 

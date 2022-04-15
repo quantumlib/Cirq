@@ -14,7 +14,7 @@
 
 import dataclasses
 import datetime
-from typing import Dict, List, Tuple, TYPE_CHECKING, Iterable, Any
+from typing import Any, Dict, Iterable, List, Tuple, TYPE_CHECKING, Union
 
 import numpy as np
 from cirq import ops, protocols
@@ -29,6 +29,7 @@ from cirq.work.observable_settings import (
 
 if TYPE_CHECKING:
     import cirq
+    import sympy
 
 
 def _check_and_get_real_coef(observable: 'cirq.PauliString', atol: float):
@@ -105,7 +106,7 @@ class ObservableMeasuredResult:
     mean: float
     variance: float
     repetitions: int
-    circuit_params: Dict[str, float]
+    circuit_params: Dict[Union[str, 'sympy.Expr'], Union[float, 'sympy.Expr']]
 
     def __repr__(self):
         # I wish we could use the default dataclass __repr__ but

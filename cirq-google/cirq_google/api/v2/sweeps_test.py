@@ -72,6 +72,12 @@ def test_sweep_to_proto_linspace():
     assert proto.single_sweep.linspace.num_points == 20
 
 
+def test_list_sweep_bad_expression():
+    sweep = cirq.ListSweep([cirq.ParamResolver({sympy.Symbol('a') + sympy.Symbol('b'): 4.0})])
+    with pytest.raises(ValueError, match='cannot convert'):
+        v2.sweep_to_proto(sweep)
+
+
 def test_sweep_to_proto_points():
     proto = v2.sweep_to_proto(cirq.Points('foo', [-1, 0, 1, 1.5]))
     assert isinstance(proto, v2.run_context_pb2.Sweep)
