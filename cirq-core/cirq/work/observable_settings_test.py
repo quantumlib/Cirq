@@ -94,11 +94,6 @@ def test_measurement_spec_no_symbols():
     setting = InitObsSetting(
         init_state=cirq.KET_ZERO(q0) * cirq.KET_ZERO(q1), observable=cirq.X(q0) * cirq.Y(q1)
     )
-    meas_spec = _MeasurementSpec(
-        max_setting=setting,
-        circuit_params={
-            'beta': sympy.Symbol('t'),
-        },
-    )
+    meas_spec = _MeasurementSpec(max_setting=setting, circuit_params={'beta': sympy.Symbol('t')})
     with pytest.raises(ValueError, match='Cannot convert'):
         _ = hash(meas_spec)

@@ -155,10 +155,7 @@ def t2_decay(
 
     if not delay_sweep:
         delay_sweep = study.Linspace(
-            delay_var,
-            start=min_delay_nanos,
-            stop=max_delay_nanos,
-            length=num_points,
+            delay_var, start=min_delay_nanos, stop=max_delay_nanos, length=num_points
         )
     if delay_sweep.keys != ['delay_ns']:
         raise ValueError('delay_sweep must be a SingleSweep with delay_ns parameter')

@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import math
+import numbers
 from typing import cast, Dict, FrozenSet, Iterable, Iterator, List, Optional, Sequence, Union
 
 import numpy as np

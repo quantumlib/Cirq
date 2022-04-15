@@ -77,12 +77,7 @@ def t1_decay(
 
     var = sympy.Symbol('delay_ns')
 
-    sweep = study.Linspace(
-        var,
-        start=min_delay_nanos,
-        stop=max_delay_nanos,
-        length=num_points
-    )
+    sweep = study.Linspace(var, start=min_delay_nanos, stop=max_delay_nanos, length=num_points)
 
     circuit = circuits.Circuit(
         ops.X(qubit), ops.wait(qubit, nanos=var), ops.measure(qubit, key='output')
