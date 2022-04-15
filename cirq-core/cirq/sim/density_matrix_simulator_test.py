@@ -1048,7 +1048,11 @@ def test_density_matrix_trial_result_repr():
         "dtype=np.complex64))"
     )
     assert repr(trial_result) == expected_repr
-    assert eval(expected_repr) == trial_result
+    deserialized: cirq.DensityMatrixTrialResult = eval(expected_repr)
+    assert deserialized.params == trial_result.params
+    assert deserialized.measurements == trial_result.measurements
+    assert np.allclose(deserialized.final_density_matrix, trial_result.final_density_matrix)
+
 
 
 class XAsOp(cirq.Operation):

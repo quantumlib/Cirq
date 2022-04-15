@@ -331,17 +331,6 @@ class ActOnDensityMatrixArgs(ActOnArgs[_BufferedDensityMatrix]):
     def qid_shape(self):
         return self._state._qid_shape
 
-    def __eq__(self, other) -> bool:
-        return (
-            isinstance(other, self.__class__)
-            and self.qubits == other.qubits
-            and self.classical_data == other.classical_data
-            and np.allclose(self.target_tensor, other.target_tensor)
-        )
-
-    def __hash__(self):
-        return super().__hash__()
-
 
 def _strat_apply_channel_to_state(
     action: Any, args: 'cirq.ActOnDensityMatrixArgs', qubits: Sequence['cirq.Qid']

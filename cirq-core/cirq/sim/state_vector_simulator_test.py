@@ -47,7 +47,10 @@ def test_state_vector_trial_result_repr():
         "dtype=np.complex64))"
     )
     assert repr(trial_result) == expected_repr
-    assert eval(expected_repr) == trial_result
+    deserialized: cirq.StateVectorTrialResult = eval(expected_repr)
+    assert deserialized.params == trial_result.params
+    assert deserialized.measurements == trial_result.measurements
+    assert np.allclose(deserialized.final_state_vector, trial_result.final_state_vector)
 
 
 def test_state_vector_simulator_state_repr():
