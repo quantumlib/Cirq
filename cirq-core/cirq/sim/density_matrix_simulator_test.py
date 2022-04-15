@@ -1054,7 +1054,6 @@ def test_density_matrix_trial_result_repr():
     assert np.allclose(deserialized.final_density_matrix, trial_result.final_density_matrix)
 
 
-
 class XAsOp(cirq.Operation):
     def __init__(self, q):
         # coverage: ignore
