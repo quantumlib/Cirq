@@ -103,7 +103,7 @@ def parameter_names(val: Any) -> AbstractSet[str]:
         does not implement the _parameter_names_ magic method or that method
         returns NotImplemented, returns an empty set.
     """
-    if isinstance(val, sympy.Expr):
+    if isinstance(val, sympy.Basic):
         return {cast(sympy.Symbol, symbol).name for symbol in val.free_symbols}
     if isinstance(val, numbers.Number):
         return set()
