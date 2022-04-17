@@ -274,8 +274,8 @@ def von_neumann_entropy(
     Raises:
         ValueError: Invalid quantum state.
     """
-    if isinstance(state, QuantumState) and state._is_density_matrix():
-        state = state.data
+    if isinstance(state, QuantumState) and state.can_represent_mixed_states:
+        state = state.density_matrix()
     if isinstance(state, np.ndarray) and state.ndim == 2 and state.shape[0] == state.shape[1]:
         if validate:
             if qid_shape is None:

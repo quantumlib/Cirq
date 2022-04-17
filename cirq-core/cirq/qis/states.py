@@ -115,7 +115,7 @@ def quantum_state_array(
     *,  # Force keyword arguments
     copy: bool = False,
     dtype: Optional['DTypeLike'] = None,
-) -> np.ndarray:
+) -> Tuple[np.ndarray, Tuple[int, ...]]:
     """Create a QuantumState object from a state-like object.
 
     Args:
@@ -188,7 +188,7 @@ def quantum_state_array(
                 data = data.astype(dtype, casting='unsafe', copy=True)
             else:
                 data = data.copy()
-    return data
+    return data, qid_shape
 
 
 class _StateVector(QuantumState):
@@ -246,7 +246,9 @@ def quantum_state(
     dtype: Optional['DTypeLike'] = None,
     atol: float = 1e-7,
 ) -> QuantumState:
-    data = quantum_state_array(state, qid_shape, copy=copy, dtype=dtype)
+    if isinstance(state, QuantumState):
+        return state
+    data, qid_shape = quantum_state_array(state, qid_shape, copy=copy, dtype=dtype)
     dim = np.prod(qid_shape, dtype=np.int64).item()
     if data.shape == (dim, dim):
         return _DensityMatrix(data)
