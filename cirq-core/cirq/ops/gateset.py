@@ -205,7 +205,9 @@ class Gateset:
 
     @_compat.deprecated_parameter(
         deadline='v0.16',
-        fix='Add a global phase gate to the Gateset',
+        fix='To accept global phase gates, add cirq.GlobalPhaseGate to the list of *gates passed '
+            'to the constructor. By default, global phase gates will not be accepted by the '
+            'gateset',
         parameter_desc='accept_global_phase_op',
         match=lambda args, kwargs: 'accept_global_phase_op' in kwargs,
     )
@@ -235,10 +237,10 @@ class Gateset:
                 validated by validating the underlying `cirq.Circuit`.
             accept_global_phase_op: If True, a `GateFamily` accepting
                 `cirq.GlobalPhaseGate` will be included. If None,
-                `cirq.GlobalPhaseGate` will still be accepted if it appears in
-                the `gates` parameter. If False, `cirq.GlobalPhaseGate` will be
-                removed from the gates. This parameter defaults to False (a
-                breaking change from v0.14) and will be removed in v0.16.
+                `cirq.GlobalPhaseGate` will not modify the input `*gates`.
+                If False, `cirq.GlobalPhaseGate` will be removed from the
+                gates. This parameter defaults to None (a breaking change from
+                v0.14.1) and will be removed in v0.16.
         """
         self._name = name
         self._unroll_circuit_op = unroll_circuit_op
@@ -257,7 +259,10 @@ class Gateset:
         elif accept_global_phase_op is None:
             if not any(g.gate is global_phase_op.GlobalPhaseGate for g in unique_gate_list):
                 warnings.warn(
-                    'v0.14.1 is the last release `cirq.GlobalPhaseGate` is included by default.'
+                    'v0.14.1 is the last release `cirq.GlobalPhaseGate` is included by default. If'
+                    ' you were relying on this behavior, you can include a `cirq.GlobalPhaseGate`'
+                    ' in your `*gates`. If not, then you can ignore this warning. It will be'
+                    ' removed in v0.16'
                 )
 
         for g in unique_gate_list:
@@ -298,9 +303,12 @@ class Gateset:
             name: New name for the Gateset.
             unroll_circuit_op: If True, new Gateset will recursively validate
                 `cirq.CircuitOperation` by validating the underlying `cirq.Circuit`.
-            accept_global_phase_op: If True, new Gateset will include a `GateFamily` that accepts
-                `cirq.GlobalPhaseGate`. False or None have no effect. This parameter is deprecated
-                and will be removed in v0.16.
+            accept_global_phase_op: If True, a `GateFamily` accepting
+                `cirq.GlobalPhaseGate` will be included. If None,
+                `cirq.GlobalPhaseGate` will not modify the input `*gates`.
+                If False, `cirq.GlobalPhaseGate` will be removed from the
+                gates. This parameter defaults to None (a breaking change from
+                v0.14.1) and will be removed in v0.16.
 
         Returns:
             `self` if all new values are None or identical to the values of current Gateset.
