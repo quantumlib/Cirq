@@ -206,8 +206,8 @@ class Gateset:
     @_compat.deprecated_parameter(
         deadline='v0.16',
         fix='To accept global phase gates, add cirq.GlobalPhaseGate to the list of *gates passed '
-            'to the constructor. By default, global phase gates will not be accepted by the '
-            'gateset',
+        'to the constructor. By default, global phase gates will not be accepted by the '
+        'gateset',
         parameter_desc='accept_global_phase_op',
         match=lambda args, kwargs: 'accept_global_phase_op' in kwargs,
     )
