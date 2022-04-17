@@ -138,7 +138,6 @@ def _pad_tableau(
             "The number of qubits in the input tableau should not be larger than "
             "num_qubits_after_padding."
         )
-
     padded_tableau = qis.CliffordTableau(num_qubits_after_padding)
     v_index = np.concatenate((np.asarray(axes), num_qubits_after_padding + np.asarray(axes)))
 
@@ -691,7 +690,6 @@ class SingleQubitCliffordGate(CliffordGate):
             a = 0.0
             x = -0.5 if x_to_flip ^ z_to_flip else 0.5
             z = -0.5 if x_to_flip else 0.5
-
         return phased_x_z_gate.PhasedXZGate(x_exponent=x, z_exponent=z, axis_phase_exponent=a)
 
     def __pow__(self, exponent) -> 'SingleQubitCliffordGate':

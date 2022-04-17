@@ -90,12 +90,7 @@ document(
     """,
 )
 
-PAULI_GATE_LIKE = Union[
-    'cirq.Pauli',
-    'cirq.IdentityGate',
-    str,
-    int,
-]
+PAULI_GATE_LIKE = Union['cirq.Pauli', 'cirq.IdentityGate', str, int,]
 document(
     PAULI_GATE_LIKE,  # type: ignore
     """An object that can be interpreted as a Pauli gate.
@@ -1112,8 +1107,7 @@ class MutablePauliString(Generic[TKey]):
     def mutable_copy(self) -> 'cirq.MutablePauliString':
         """Returns a new cirq.MutablePauliString with the same contents."""
         return MutablePauliString(
-            coefficient=self.coefficient,
-            pauli_int_dict=dict(self.pauli_int_dict),
+            coefficient=self.coefficient, pauli_int_dict=dict(self.pauli_int_dict)
         )
 
     def items(self) -> Iterator[Tuple[TKey, Union['cirq.Pauli', 'cirq.IdentityGate']]]:
@@ -1354,10 +1348,7 @@ class MutablePauliString(Generic[TKey]):
         """
         new_dict = {func(q): p for q, p in self.pauli_int_dict.items()}
         if not inplace:
-            return MutablePauliString(
-                coefficient=self.coefficient,
-                pauli_int_dict=new_dict,
-            )
+            return MutablePauliString(coefficient=self.coefficient, pauli_int_dict=new_dict)
         result = cast('cirq.MutablePauliString[TKeyNew]', self)
         result.pauli_int_dict = new_dict
         return result
@@ -1429,9 +1420,7 @@ def _decompose_into_cliffords(op: 'cirq.Operation') -> List['cirq.Operation']:
 
 
 def _pass_operation_over(
-    pauli_map: Dict[TKey, pauli_gates.Pauli],
-    op: 'cirq.Operation',
-    after_to_before: bool = False,
+    pauli_map: Dict[TKey, pauli_gates.Pauli], op: 'cirq.Operation', after_to_before: bool = False
 ) -> bool:
     if isinstance(op, gate_operation.GateOperation):
         gate = op.gate

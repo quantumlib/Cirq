@@ -62,10 +62,7 @@ class CZTargetGateset(compilation_target_gateset.TwoQubitCompilationTargetGatese
         return self.atol, self.allow_partial_czs
 
     def _json_dict_(self) -> Dict[str, Any]:
-        return {
-            'atol': self.atol,
-            'allow_partial_czs': self.allow_partial_czs,
-        }
+        return {'atol': self.atol, 'allow_partial_czs': self.allow_partial_czs}
 
     @classmethod
     def _from_json_dict_(cls, atol, allow_partial_czs, **kwargs):

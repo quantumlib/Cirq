@@ -39,13 +39,7 @@ from cirq.work.observable_measurement import (
 
 def test_with_parameterized_layers():
     qs = cirq.LineQubit.range(3)
-    circuit = cirq.Circuit(
-        [
-            cirq.H.on_each(*qs),
-            cirq.CZ(qs[0], qs[1]),
-            cirq.CZ(qs[1], qs[2]),
-        ]
-    )
+    circuit = cirq.Circuit([cirq.H.on_each(*qs), cirq.CZ(qs[0], qs[1]), cirq.CZ(qs[1], qs[2])])
     circuit2 = _with_parameterized_layers(circuit, qubits=qs, needs_init_layer=False)
     assert circuit != circuit2
     assert len(circuit2) == 3 + 3  # 3 original, then X, Y, measure layer
@@ -88,16 +82,10 @@ def test_get_params_for_setting():
     needs_init_layer = True
     with pytest.raises(ValueError):
         _get_params_for_setting(
-            padded_setting,
-            flips=[0, 0],
-            qubits=qubits,
-            needs_init_layer=needs_init_layer,
+            padded_setting, flips=[0, 0], qubits=qubits, needs_init_layer=needs_init_layer
         )
     params = _get_params_for_setting(
-        padded_setting,
-        flips=[0, 0, 1],
-        qubits=qubits,
-        needs_init_layer=needs_init_layer,
+        padded_setting, flips=[0, 0, 1], qubits=qubits, needs_init_layer=needs_init_layer
     )
     assert all(
         x in params
@@ -118,11 +106,7 @@ def test_get_params_for_setting():
     )
 
     circuit = cirq.Circuit(cirq.I.on_each(*qubits))
-    circuit = _with_parameterized_layers(
-        circuit,
-        qubits=qubits,
-        needs_init_layer=needs_init_layer,
-    )
+    circuit = _with_parameterized_layers(circuit, qubits=qubits, needs_init_layer=needs_init_layer)
     circuit = circuit[:-1]  # remove measurement so we can compute <Z>
     psi = cirq.Simulator().simulate(circuit, param_resolver=params)
     ma = cirq.Z(a).expectation_from_state_vector(psi.final_state_vector, qubit_map=psi.qubit_map)
@@ -146,10 +130,7 @@ def test_params_and_settings():
     ]
 
     for init, obs, coef in tests:
-        setting = cw.InitObsSetting(
-            init_state=init(q),
-            observable=obs(q),
-        )
+        setting = cw.InitObsSetting(init_state=init(q), observable=obs(q))
         circuit = cirq.Circuit(cirq.I.on_each(*qubits))
         circuit = _with_parameterized_layers(circuit, qubits=qubits, needs_init_layer=True)
         params = _get_params_for_setting(
@@ -169,11 +150,7 @@ def test_subdivide_meas_specs():
         init_state=cirq.KET_ZERO(q0) * cirq.KET_ZERO(q1), observable=cirq.X(q0) * cirq.Y(q1)
     )
     meas_spec = cw._MeasurementSpec(
-        max_setting=setting,
-        circuit_params={
-            'beta': 0.123,
-            'gamma': 0.456,
-        },
+        max_setting=setting, circuit_params={'beta': 0.123, 'gamma': 0.456}
     )
 
     flippy_mspecs, repetitions = _subdivide_meas_specs(
@@ -283,11 +260,7 @@ def _set_up_meas_specs_for_testing():
         init_state=cirq.KET_ZERO(q0) * cirq.KET_ZERO(q1), observable=cirq.X(q0) * cirq.Y(q1)
     )
     meas_spec = _MeasurementSpec(
-        max_setting=setting,
-        circuit_params={
-            'beta': 0.123,
-            'gamma': 0.456,
-        },
+        max_setting=setting, circuit_params={'beta': 0.123, 'gamma': 0.456}
     )
     bsa = cw.BitstringAccumulator(
         meas_spec, [], {q: i for i, q in enumerate(cirq.LineQubit.range(3))}
@@ -301,9 +274,7 @@ def test_meas_specs_still_todo():
 
     # 1. before taking any data
     still_todo, reps = _check_meas_specs_still_todo(
-        meas_specs=[meas_spec],
-        accumulators={meas_spec: bsa},
-        stopping_criteria=stop,
+        meas_specs=[meas_spec], accumulators={meas_spec: bsa}, stopping_criteria=stop
     )
     assert still_todo == [meas_spec]
     assert reps == 1_000
@@ -311,9 +282,7 @@ def test_meas_specs_still_todo():
     # 2. After taking a mocked-out 997 shots.
     bsa.consume_results(np.zeros((997, 3), dtype=np.uint8))
     still_todo, reps = _check_meas_specs_still_todo(
-        meas_specs=[meas_spec],
-        accumulators={meas_spec: bsa},
-        stopping_criteria=stop,
+        meas_specs=[meas_spec], accumulators={meas_spec: bsa}, stopping_criteria=stop
     )
     assert still_todo == [meas_spec]
     assert reps == 3
@@ -321,9 +290,7 @@ def test_meas_specs_still_todo():
     # 3. After taking the final 3 shots
     bsa.consume_results(np.zeros((reps, 3), dtype=np.uint8))
     still_todo, reps = _check_meas_specs_still_todo(
-        meas_specs=[meas_spec],
-        accumulators={meas_spec: bsa},
-        stopping_criteria=stop,
+        meas_specs=[meas_spec], accumulators={meas_spec: bsa}, stopping_criteria=stop
     )
     assert still_todo == []
     assert reps == 0
@@ -339,9 +306,7 @@ def test_meas_spec_still_todo_bad_spec():
     bad_stop = BadStopping()
     with pytest.raises(ValueError, match='positive'):
         _, _ = _check_meas_specs_still_todo(
-            meas_specs=[meas_spec],
-            accumulators={meas_spec: bsa},
-            stopping_criteria=bad_stop,
+            meas_specs=[meas_spec], accumulators={meas_spec: bsa}, stopping_criteria=bad_stop
         )
 
 
@@ -352,9 +317,7 @@ def test_meas_spec_still_todo_too_many_params(monkeypatch):
     stop = cw.RepetitionsStoppingCriteria(10_000)
     with pytest.raises(ValueError, match='too many parameter settings'):
         _, _ = _check_meas_specs_still_todo(
-            meas_specs=lots_of_meas_spec,
-            accumulators={meas_spec: bsa},
-            stopping_criteria=stop,
+            meas_specs=lots_of_meas_spec, accumulators={meas_spec: bsa}, stopping_criteria=stop
         )
 
 
@@ -365,9 +328,7 @@ def test_meas_spec_still_todo_lots_of_params(monkeypatch):
     stop = cw.RepetitionsStoppingCriteria(10_000)
     with pytest.warns(UserWarning, match='will be throttled from 10000 to 7500'):
         _, _ = _check_meas_specs_still_todo(
-            meas_specs=lots_of_meas_spec,
-            accumulators={meas_spec: bsa},
-            stopping_criteria=stop,
+            meas_specs=lots_of_meas_spec, accumulators={meas_spec: bsa}, stopping_criteria=stop
         )
 
 
@@ -442,10 +403,7 @@ def test_measure_grouped_settings(with_circuit_sweep, checkpoint, tmpdir):
         checkpoint_fn = None
 
     for init, obs, coef in tests:
-        setting = cw.InitObsSetting(
-            init_state=init(q),
-            observable=obs(q),
-        )
+        setting = cw.InitObsSetting(init_state=init(q), observable=obs(q))
         grouped_settings = {setting: [setting]}
         circuit = cirq.Circuit(cirq.I.on_each(*qubits))
         results = cw.measure_grouped_settings(
@@ -467,10 +425,7 @@ def test_measure_grouped_settings(with_circuit_sweep, checkpoint, tmpdir):
 def _get_some_grouped_settings():
     qubits = cirq.LineQubit.range(2)
     q0, q1 = qubits
-    terms = [
-        cirq.X(q0),
-        cirq.Y(q1),
-    ]
+    terms = [cirq.X(q0), cirq.Y(q1)]
     settings = list(cirq.work.observables_to_settings(terms, qubits))
     grouped_settings = cirq.work.group_settings_greedy(settings)
     return grouped_settings, qubits
@@ -497,10 +452,7 @@ def test_measure_grouped_settings_read_checkpoint(tmpdir):
     qubits = cirq.LineQubit.range(1)
     (q,) = qubits
 
-    setting = cw.InitObsSetting(
-        init_state=cirq.KET_ZERO(q),
-        observable=cirq.Z(q),
-    )
+    setting = cw.InitObsSetting(init_state=cirq.KET_ZERO(q), observable=cirq.Z(q))
     grouped_settings = {setting: [setting]}
     circuit = cirq.Circuit(cirq.I.on_each(*qubits))
     with pytest.raises(ValueError, match=r'same filename.*'):
@@ -567,10 +519,7 @@ def _each_in_its_own_group_grouper(
 )
 def test_measure_observable_grouper(grouper):
     circuit = cirq.Circuit(cirq.X(Q) ** 0.2)
-    observables = [
-        cirq.Z(Q),
-        cirq.Z(cirq.NamedQubit('q2')),
-    ]
+    observables = [cirq.Z(Q), cirq.Z(cirq.NamedQubit('q2'))]
     results = measure_observables(
         circuit,
         observables,
@@ -585,10 +534,7 @@ def test_measure_observable_grouper(grouper):
 
 def test_measure_observable_bad_grouper():
     circuit = cirq.Circuit(cirq.X(Q) ** 0.2)
-    observables = [
-        cirq.Z(Q),
-        cirq.Z(cirq.NamedQubit('q2')),
-    ]
+    observables = [cirq.Z(Q), cirq.Z(cirq.NamedQubit('q2'))]
     with pytest.raises(ValueError, match=r'Unknown grouping function'):
         _ = measure_observables(
             circuit,

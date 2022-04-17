@@ -45,12 +45,7 @@ def test_init():
     assert d.metadata.qubit_set == {TwoDQubit(0, 0)}
     assert d.qubit_list() == [TwoDQubit(0, 0)]
     assert d.control_radius == 1.0
-    assert d.supported_qubit_type == (
-        ThreeDQubit,
-        TwoDQubit,
-        cirq.GridQubit,
-        cirq.LineQubit,
-    )
+    assert d.supported_qubit_type == (ThreeDQubit, TwoDQubit, cirq.GridQubit, cirq.LineQubit)
 
 
 def test_init_errors():
@@ -170,11 +165,7 @@ def test_qubit_set_deprecated():
 def test_metadata():
     d = generic_device(3)
     assert d.metadata.qubit_set == frozenset(
-        [
-            cirq.NamedQubit('q0'),
-            cirq.NamedQubit('q1'),
-            cirq.NamedQubit('q2'),
-        ]
+        [cirq.NamedQubit('q0'), cirq.NamedQubit('q1'), cirq.NamedQubit('q2')]
     )
     assert len(d.metadata.nx_graph.edges()) == 3
 
@@ -266,10 +257,7 @@ def test_to_json():
     assert d == {"qubits": [cirq.NamedQubit('q4')]}
     vdev = PasqalVirtualDevice(control_radius=2, qubits=[TwoDQubit(0, 0)])
     d = vdev._json_dict_()
-    assert d == {
-        "control_radius": 2,
-        "qubits": [cirq_pasqal.TwoDQubit(0, 0)],
-    }
+    assert d == {"control_radius": 2, "qubits": [cirq_pasqal.TwoDQubit(0, 0)]}
 
 
 def test_qid_pairs_deprecated():
@@ -286,12 +274,6 @@ def test_qid_pairs_deprecated():
     with cirq.testing.assert_deprecated('device.metadata', deadline='v0.15', count=2):
         assert len(dev.qid_pairs()) == 5
         dev1 = PasqalVirtualDevice(
-            5,
-            qubits=[
-                TwoDQubit(0, 0),
-                TwoDQubit(3, 2),
-                TwoDQubit(3, 4),
-                TwoDQubit(3, 6),
-            ],
+            5, qubits=[TwoDQubit(0, 0), TwoDQubit(3, 2), TwoDQubit(3, 4), TwoDQubit(3, 6)]
         )
         assert len(dev1.qid_pairs()) == 5

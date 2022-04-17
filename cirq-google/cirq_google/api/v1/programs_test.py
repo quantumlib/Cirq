@@ -73,32 +73,9 @@ def test_pack_results():
     measurements = [
         (
             'a',
-            np.array(
-                [
-                    [0, 0, 0],
-                    [0, 0, 1],
-                    [0, 1, 0],
-                    [0, 1, 1],
-                    [1, 0, 0],
-                    [1, 0, 1],
-                    [1, 1, 0],
-                ]
-            ),
+            np.array([[0, 0, 0], [0, 0, 1], [0, 1, 0], [0, 1, 1], [1, 0, 0], [1, 0, 1], [1, 1, 0]]),
         ),
-        (
-            'b',
-            np.array(
-                [
-                    [0, 0],
-                    [0, 1],
-                    [1, 0],
-                    [1, 1],
-                    [0, 0],
-                    [0, 1],
-                    [1, 0],
-                ]
-            ),
-        ),
+        ('b', np.array([[0, 0], [0, 1], [1, 0], [1, 1], [0, 0], [0, 1], [1, 0]])),
     ]
     data = programs.pack_results(measurements)
     expected = make_bytes(
@@ -150,32 +127,14 @@ def test_unpack_results():
     assert results['a'].shape == (7, 3)
     assert results['a'].dtype == bool
     np.testing.assert_array_equal(
-        results['a'],
-        [
-            [0, 0, 0],
-            [0, 0, 1],
-            [0, 1, 0],
-            [0, 1, 1],
-            [1, 0, 0],
-            [1, 0, 1],
-            [1, 1, 0],
-        ],
+        results['a'], [[0, 0, 0], [0, 0, 1], [0, 1, 0], [0, 1, 1], [1, 0, 0], [1, 0, 1], [1, 1, 0]]
     )
 
     assert 'b' in results
     assert results['b'].shape == (7, 2)
     assert results['b'].dtype == bool
     np.testing.assert_array_equal(
-        results['b'],
-        [
-            [0, 0],
-            [0, 1],
-            [1, 0],
-            [1, 1],
-            [0, 0],
-            [0, 1],
-            [1, 0],
-        ],
+        results['b'], [[0, 0], [0, 1], [1, 0], [1, 1], [0, 0], [0, 1], [1, 0]]
     )
 
 

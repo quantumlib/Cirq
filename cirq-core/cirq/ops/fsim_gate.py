@@ -122,6 +122,7 @@ class FSimGate(gate_features.InterchangeableQubitsGate, raw_types.Gate):
         a = math.cos(self.theta)
         b = -1j * math.sin(self.theta)
         c = cmath.exp(-1j * self.phi)
+        # fmt: off
         return np.array(
             [
                 [1, 0, 0, 0],
@@ -130,6 +131,7 @@ class FSimGate(gate_features.InterchangeableQubitsGate, raw_types.Gate):
                 [0, 0, 0, c],
             ]
         )
+        # fmt: on
 
     def _pauli_expansion_(self) -> value.LinearDict[str]:
         if protocols.is_parameterized(self):
@@ -387,6 +389,7 @@ class PhasedFSimGate(gate_features.InterchangeableQubitsGate, raw_types.Gate):
         f3 = cmath.exp(-1j * self.gamma - 1j * self.chi)
         f4 = cmath.exp(-1j * self.gamma + 1j * self.zeta)
         f5 = cmath.exp(-2j * self.gamma)
+        # fmt: off
         return np.array(
             [
                 [1, 0, 0, 0],
@@ -395,6 +398,7 @@ class PhasedFSimGate(gate_features.InterchangeableQubitsGate, raw_types.Gate):
                 [0, 0, 0, f5 * c],
             ]
         )
+        # fmt: on
 
     def _resolve_parameters_(
         self, resolver: 'cirq.ParamResolver', recursive: bool

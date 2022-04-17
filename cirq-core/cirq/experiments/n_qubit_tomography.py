@@ -82,10 +82,7 @@ class StateTomographyExperiment:
         self.rot_sweep = study.Product(*sweeps)
         self.mat = self._make_state_tomography_matrix(qubits)
 
-    def _make_state_tomography_matrix(
-        self,
-        qubits: Sequence['cirq.Qid'],
-    ) -> np.ndarray:
+    def _make_state_tomography_matrix(self, qubits: Sequence['cirq.Qid']) -> np.ndarray:
         """Gets the matrix used for solving the linear system of the tomography.
 
         Args:

@@ -15,17 +15,7 @@
 """Transformer pass to repack circuits avoiding simultaneous operations with different classes."""
 
 import itertools
-from typing import (
-    TYPE_CHECKING,
-    Type,
-    Callable,
-    Optional,
-    Union,
-    Iterable,
-    Sequence,
-    List,
-    Tuple,
-)
+from typing import TYPE_CHECKING, Type, Callable, Optional, Union, Iterable, Sequence, List, Tuple
 
 from cirq import ops, circuits, _import
 from cirq.transformers import transformer_api, transformer_primitives

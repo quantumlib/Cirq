@@ -13,16 +13,7 @@
 # limitations under the License.
 """Support for serializing gates supported by IonQ's API."""
 import dataclasses
-from typing import (
-    Callable,
-    cast,
-    Collection,
-    Dict,
-    Iterator,
-    Optional,
-    Sequence,
-    Type,
-)
+from typing import Callable, cast, Collection, Dict, Iterator, Optional, Sequence, Type
 
 import numpy as np
 
@@ -149,32 +140,20 @@ class Serializer:
 
     def _serialize_y_pow_gate(self, gate: cirq.YPowGate, targets: Sequence[int]) -> dict:
         if self._near_mod_n(gate.exponent, 1, 2):
-            return {
-                'gate': 'y',
-                'targets': targets,
-            }
+            return {'gate': 'y', 'targets': targets}
         return {'gate': 'ry', 'targets': targets, 'rotation': gate.exponent * np.pi}
 
     def _serialize_z_pow_gate(self, gate: cirq.ZPowGate, targets: Sequence[int]) -> dict:
         if self._near_mod_n(gate.exponent, 1, 2):
-            return {
-                'gate': 'z',
-                'targets': targets,
-            }
+            return {'gate': 'z', 'targets': targets}
         elif self._near_mod_n(gate.exponent, 0.5, 2):
             return {'gate': 's', 'targets': targets}
         elif self._near_mod_n(gate.exponent, -0.5, 2):
             return {'gate': 'si', 'targets': targets}
         elif self._near_mod_n(gate.exponent, 0.25, 2):
-            return {
-                'gate': 't',
-                'targets': targets,
-            }
+            return {'gate': 't', 'targets': targets}
         elif self._near_mod_n(gate.exponent, -0.25, 2):
-            return {
-                'gate': 'ti',
-                'targets': targets,
-            }
+            return {'gate': 'ti', 'targets': targets}
         return {'gate': 'rz', 'targets': targets, 'rotation': gate.exponent * np.pi}
 
     def _serialize_xx_pow_gate(self, gate: cirq.XXPowGate, targets: Sequence[int]) -> dict:
@@ -195,18 +174,12 @@ class Serializer:
         self, gate: cirq.SwapPowGate, targets: Sequence[int]
     ) -> Optional[dict]:
         if self._near_mod_n(gate.exponent, 1, 2):
-            return {
-                'gate': 'swap',
-                'targets': targets,
-            }
+            return {'gate': 'swap', 'targets': targets}
         return None
 
     def _serialize_h_pow_gate(self, gate: cirq.HPowGate, targets: Sequence[int]) -> Optional[dict]:
         if self._near_mod_n(gate.exponent, 1, 2):
-            return {
-                'gate': 'h',
-                'targets': targets,
-            }
+            return {'gate': 'h', 'targets': targets}
         return None
 
     def _serialize_cnot_pow_gate(

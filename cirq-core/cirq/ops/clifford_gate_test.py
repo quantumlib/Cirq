@@ -758,20 +758,24 @@ def test_pad_tableau():
     padded_tableau = cirq.ops.clifford_gate._pad_tableau(
         tableau, num_qubits_after_padding=2, axes=[0]
     )
+    # fmt: off
     np.testing.assert_equal(
         padded_tableau.matrix().astype(np.int64),
         np.array([[0, 0, 1, 0], [0, 1, 0, 0], [1, 0, 0, 0], [0, 0, 0, 1]]),
     )
+    # fmt: on
     np.testing.assert_equal(padded_tableau.rs.astype(np.int64), np.zeros(4))
     # The tableau of H again but pad for another ax
     tableau = cirq.CliffordGate.H.clifford_tableau
     padded_tableau = cirq.ops.clifford_gate._pad_tableau(
         tableau, num_qubits_after_padding=2, axes=[1]
     )
+    # fmt: off
     np.testing.assert_equal(
         padded_tableau.matrix().astype(np.int64),
         np.array([[1, 0, 0, 0], [0, 0, 0, 1], [0, 0, 1, 0], [0, 1, 0, 0]]),
     )
+    # fmt: on
     np.testing.assert_equal(padded_tableau.rs.astype(np.int64), np.zeros(4))
 
 
