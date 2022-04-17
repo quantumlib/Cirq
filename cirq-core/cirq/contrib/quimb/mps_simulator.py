@@ -231,7 +231,7 @@ class _MPSHandler(qis.QuantumStateRepresentation):
             estimated_gate_error_list: The error estimations.
             simulation_options: Numerical options for the simulation.
         """
-        self._qid_shape = qid_shape
+        super().__init__(qid_shape)
         self._grouping = grouping
         self._M = M
         self._format_i = format_i

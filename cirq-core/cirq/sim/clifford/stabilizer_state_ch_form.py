@@ -38,6 +38,7 @@ class StabilizerStateChForm(qis.StabilizerState):
             initial_state: The computational basis representation of the
                 state as a big endian int.
         """
+        super().__init__((2,) * num_qubits)
         self.n = num_qubits
 
         # The state is represented by a set of binary matrices and vectors.

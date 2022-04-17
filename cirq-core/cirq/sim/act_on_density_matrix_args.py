@@ -49,7 +49,7 @@ class _BufferedDensityMatrix(qis.QuantumStateRepresentation):
         self._buffer = buffer
         if len(density_matrix.shape) % 2 != 0:
             raise ValueError('The dimension of target_tensor is not divisible by 2.')
-        self._qid_shape = density_matrix.shape[: len(density_matrix.shape) // 2]
+        super().__init__(density_matrix.shape[: len(density_matrix.shape) // 2])
 
     @classmethod
     def create(
@@ -234,6 +234,9 @@ class _BufferedDensityMatrix(qis.QuantumStateRepresentation):
     @property
     def can_represent_mixed_states(self) -> bool:
         return True
+
+    def density_matrix(self) -> np.ndarray:
+        return self._density_matrix
 
 
 class ActOnDensityMatrixArgs(ActOnArgs[_BufferedDensityMatrix]):

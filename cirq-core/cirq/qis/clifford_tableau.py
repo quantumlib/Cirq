@@ -14,9 +14,11 @@
 
 import abc
 from typing import Any, Dict, List, Sequence, Tuple, TYPE_CHECKING, TypeVar
+
 import numpy as np
 
 from cirq import protocols, value
+from cirq.qis import states
 from cirq.value import big_endian_int_to_digits, linear_dict
 
 if TYPE_CHECKING:
@@ -25,7 +27,7 @@ if TYPE_CHECKING:
 TSelf = TypeVar('TSelf', bound='QuantumStateRepresentation')
 
 
-class QuantumStateRepresentation(metaclass=abc.ABCMeta):
+class QuantumStateRepresentation(states.QuantumState, metaclass=abc.ABCMeta):
     @abc.abstractmethod
     def copy(self: TSelf, deep_copy_buffers: bool = True) -> TSelf:
         """Creates a copy of the object.
@@ -95,11 +97,6 @@ class QuantumStateRepresentation(metaclass=abc.ABCMeta):
     @property
     def supports_factor(self) -> bool:
         """Subclasses that allow factorization should override this."""
-        return False
-
-    @property
-    def can_represent_mixed_states(self) -> bool:
-        """Subclasses that can represent mixed states should override this."""
         return False
 
 
@@ -214,13 +211,14 @@ class CliffordTableau(StabilizerState):
     an eigenoperator of the state vector with eigenvalue one: P|psi> = |psi>.
     """
 
-    def __init__(self, num_qubits, initial_state: int = 0):
+    def __init__(self, num_qubits: int, initial_state: int = 0):
         """Initializes CliffordTableau
         Args:
             num_qubits: The number of qubits in the system.
             initial_state: The computational basis representation of the
                 state as a big endian int.
         """
+        super().__init__((2,) * num_qubits)
         self.n = num_qubits
 
         # The last row (`2n+1`-th row) is the scratch row used in _measurement
@@ -663,3 +661,6 @@ class CliffordTableau(StabilizerState):
         self, axes: Sequence[int], seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None
     ) -> List[int]:
         return [self._measure(axis, seed) for axis in axes]
+
+    def state_vector(self):
+        raise NotImplementedError()

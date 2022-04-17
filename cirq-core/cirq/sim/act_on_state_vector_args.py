@@ -45,7 +45,7 @@ class _BufferedStateVector(qis.QuantumStateRepresentation):
         if buffer is None:
             buffer = np.empty_like(state_vector)
         self._buffer = buffer
-        self._qid_shape = state_vector.shape
+        super().__init__(state_vector.shape)
 
     @classmethod
     def create(
@@ -306,6 +306,9 @@ class _BufferedStateVector(qis.QuantumStateRepresentation):
     @property
     def supports_factor(self) -> bool:
         return True
+
+    def state_vector(self) -> np.ndarray:
+        return self._state_vector
 
 
 class ActOnStateVectorArgs(ActOnArgs[_BufferedStateVector]):

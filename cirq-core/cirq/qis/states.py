@@ -13,8 +13,9 @@
 # limitations under the License.
 """Classes and methods for quantum states."""
 
-from typing import Any, cast, Iterable, List, Optional, Sequence, Set, TYPE_CHECKING, Tuple, Union
+import abc
 import itertools
+from typing import Any, cast, Iterable, List, Optional, Sequence, Set, TYPE_CHECKING, Tuple, Union
 
 import numpy as np
 
@@ -51,58 +52,15 @@ QUANTUM_STATE_LIKE = Union[
 document(QUANTUM_STATE_LIKE, """An object representing a quantum state.""")  # type: ignore
 
 
-class QuantumState:
-    """A quantum state.
-
-    Can be a state vector, a state tensor, or a density matrix.
-    """
-
-    def __init__(
-        self,
-        data: np.ndarray,
-        qid_shape: Optional[Tuple[int, ...]] = None,
-        *,  # Force keyword arguments
-        dtype: Optional['DTypeLike'] = None,
-        validate: bool = True,
-        atol: float = 1e-7,
-    ) -> None:
-        """Initialize a quantum state object.
-
-        Args:
-            data: The data representing the quantum state.
-            qid_shape: The qid shape.
-            validate: Whether to check if the given data and qid shape
-                represent a valid quantum state with the given dtype.
-            dtype: The expected data type of the quantum state.
-            atol: Absolute numerical tolerance to use for validation.
-
-        Raises:
-            ValueError: The qid shape was not specified and could not be
-                inferred.
-            ValueError: Invalid quantum state.
-        """
-        if qid_shape is None:
-            qid_shape = infer_qid_shape(data)
-        self._data = data
+class QuantumState(abc.ABC):
+    def __init__(self, qid_shape: Tuple[int, ...] = ()):
         self._qid_shape = qid_shape
         self._dim = np.prod(self.qid_shape, dtype=np.int64).item()
-        if validate:
-            self.validate(dtype=dtype, atol=atol)
-
-    @property
-    def data(self) -> np.ndarray:
-        """The data underlying the quantum state."""
-        return self._data
 
     @property
     def qid_shape(self) -> Tuple[int, ...]:
         """The qid shape of the quantum state."""
         return self._qid_shape
-
-    @property
-    def dtype(self) -> np.dtype:
-        """The data type of the quantum state."""
-        return self._data.dtype
 
     def state_vector(self) -> Optional[np.ndarray]:
         """Return the state vector of this state.
@@ -111,9 +69,7 @@ class QuantumState:
         one-dimensional array.
         If the state is a density matrix, this method returns None.
         """
-        if self._is_density_matrix():
-            return None
-        return np.reshape(self.data, (self._dim,))
+        return None
 
     def state_tensor(self) -> Optional[np.ndarray]:
         """Return the state tensor of this state.
@@ -122,9 +78,10 @@ class QuantumState:
         shape equal to the qid shape of the state.
         If the state is a density matrix, this method returns None.
         """
-        if self._is_density_matrix():
+        state_vector = self.state_vector()
+        if state_vector is None:
             return None
-        return np.reshape(self.data, self.qid_shape)
+        return np.reshape(state_vector, self.qid_shape)
 
     def density_matrix(self) -> np.ndarray:
         """Return the density matrix of this state.
@@ -132,11 +89,8 @@ class QuantumState:
         A density matrix stores the entries of a density matrix as a matrix
         (a two-dimensional array).
         """
-        if not self._is_density_matrix():
-            state_vector = self.state_vector()
-            assert state_vector is not None, 'only None if _is_density_matrix'
-            return np.outer(state_vector, np.conj(state_vector))
-        return self.data
+        state_vector = self.state_vector()
+        return np.outer(state_vector, np.conj(state_vector))
 
     def state_vector_or_density_matrix(self) -> np.ndarray:
         """Return the state vector or density matrix of this state.
@@ -147,53 +101,21 @@ class QuantumState:
         state_vector = self.state_vector()
         if state_vector is not None:
             return state_vector
-        return self.data
+        return self.density_matrix()
 
-    def _is_density_matrix(self) -> bool:
+    @property
+    def can_represent_mixed_states(self) -> bool:
         """Whether this quantum state is a density matrix."""
-        return self.data.shape == (self._dim, self._dim)
-
-    def validate(
-        self, *, dtype: Optional['DTypeLike'] = None, atol=1e-7  # Force keyword arguments
-    ) -> None:
-        """Check if this quantum state is valid.
-
-        Args:
-            dtype: The expected data type of the quantum state.
-            atol: Absolute numerical tolerance to use for validation.
-
-        Raises:
-            ValueError: Invalid quantum state.
-        """
-        is_state_vector = self.data.shape == (self._dim,)
-        is_state_tensor = self.data.shape == self.qid_shape
-        if is_state_vector or is_state_tensor:
-            state_vector = self.state_vector()
-            assert state_vector is not None
-            validate_normalized_state_vector(
-                state_vector, qid_shape=self.qid_shape, dtype=dtype, atol=atol
-            )
-        elif self._is_density_matrix():
-            validate_density_matrix(
-                self.density_matrix(), qid_shape=self.qid_shape, dtype=dtype, atol=atol
-            )
-        else:
-            raise ValueError(
-                'Invalid quantum state: '
-                f'Data shape of {self.data.shape} is not '
-                f'compatible with qid shape of {self.qid_shape}.'
-            )
+        return False
 
 
-def quantum_state(
+def quantum_state_array(
     state: 'cirq.QUANTUM_STATE_LIKE',
     qid_shape: Optional[Tuple[int, ...]] = None,
     *,  # Force keyword arguments
     copy: bool = False,
-    validate: bool = True,
     dtype: Optional['DTypeLike'] = None,
-    atol: float = 1e-7,
-) -> QuantumState:
+) -> np.ndarray:
     """Create a QuantumState object from a state-like object.
 
     Args:
@@ -209,26 +131,6 @@ def quantum_state(
         ValueError: Invalid quantum state.
         ValueError: The qid shape was not specified and could not be inferred.
     """
-    if isinstance(state, QuantumState):
-        if qid_shape is not None and state.qid_shape != qid_shape:
-            raise ValueError(
-                'The specified qid shape must be the same as the '
-                'qid shape of the given state.\n'
-                f'Specified shape: {qid_shape}\n'
-                f'Shape of state: {state.qid_shape}.'
-            )
-        if copy or dtype and dtype != state.dtype:
-            if dtype and dtype != state.dtype:
-                data = state.data.astype(dtype, casting='unsafe', copy=True)
-            else:
-                data = state.data.copy()
-            new_state = QuantumState(data, state.qid_shape)
-        else:
-            new_state = state
-        if validate:
-            new_state.validate(dtype=dtype, atol=atol)
-        return new_state
-
     if isinstance(state, value.ProductState):
         actual_qid_shape = (2,) * len(state)
         if qid_shape is not None and qid_shape != actual_qid_shape:
@@ -286,7 +188,69 @@ def quantum_state(
                 data = data.astype(dtype, casting='unsafe', copy=True)
             else:
                 data = data.copy()
-    return QuantumState(data=data, qid_shape=qid_shape, validate=validate, dtype=dtype, atol=atol)
+    return data
+
+
+class _StateVector(QuantumState):
+    """Contains the state vector and buffer for efficient state evolution."""
+
+    def __init__(self, state_vector: np.ndarray):
+        """Initializes the object with the inputs.
+
+        This initializer creates the buffer if necessary.
+
+        Args:
+            state_vector: The state vector, must be correctly formatted. The data is not checked
+                for validity here due to performance concerns.
+            buffer: Optional, must be same shape as the state vector. If not provided, a buffer
+                will be created automatically.
+        """
+        self._state_vector = state_vector
+        super().__init__(state_vector.shape)
+
+    def state_vector(self) -> np.ndarray:
+        return self._state_vector
+
+
+class _DensityMatrix(QuantumState):
+    """Contains the density matrix and buffers for efficient state evolution."""
+
+    def __init__(self, density_matrix: np.ndarray):
+        """Initializes the object with the inputs.
+
+        This initializer creates the buffer if necessary.
+
+        Args:
+            density_matrix: The density matrix, must be correctly formatted. The data is not
+                checked for validity here due to performance concerns.
+            buffer: Optional, must be length 3 and same shape as the density matrix. If not
+                provided, a buffer will be created automatically.
+        Raises:
+            ValueError: If the array is not the shape of a density matrix.
+        """
+        self._density_matrix = density_matrix
+        if len(density_matrix.shape) % 2 != 0:
+            raise ValueError('The dimension of target_tensor is not divisible by 2.')
+        super().__init__(density_matrix.shape[: len(density_matrix.shape) // 2])
+
+    def density_matrix(self) -> np.ndarray:
+        return self._density_matrix
+
+
+def quantum_state(
+    state: 'cirq.QUANTUM_STATE_LIKE',
+    qid_shape: Optional[Tuple[int, ...]] = None,
+    *,  # Force keyword arguments
+    copy: bool = False,
+    validate: bool = True,
+    dtype: Optional['DTypeLike'] = None,
+    atol: float = 1e-7,
+) -> QuantumState:
+    data = quantum_state_array(state, qid_shape, copy=copy, dtype=dtype)
+    dim = np.prod(qid_shape, dtype=np.int64).item()
+    if data.shape == (dim, dim):
+        return _DensityMatrix(data)
+    return _StateVector(data)
 
 
 def density_matrix(
@@ -317,13 +281,7 @@ def density_matrix(
     dim, _ = state.shape
     if qid_shape is None:
         qid_shape = _infer_qid_shape_from_dimension(dim)
-    return QuantumState(
-        data=state.copy() if copy else state,
-        qid_shape=qid_shape,
-        dtype=dtype,
-        validate=validate,
-        atol=atol,
-    )
+    return _DensityMatrix(state.copy() if copy else state)
 
 
 def _infer_qid_shape_from_dimension(dim: int) -> Tuple[int, ...]:
