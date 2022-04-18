@@ -175,3 +175,40 @@ def dephase_measurements(
     return transformer_primitives.map_operations(
         circuit, dephase, deep=True, tags_to_ignore=ignored
     ).unfreeze()
+
+
+@transformer_api.transformer
+def drop_terminal_measurements(
+    circuit: 'cirq.AbstractCircuit', *, context: Optional['cirq.TransformerContext'] = None
+) -> 'cirq.Circuit':
+    """Removes terminal measurements from a circuit.
+
+    This transformer is helpful when trying to capture the final state vector
+    of a circuit with many terminal measurements, as simulating the circuit
+    with those measurements in place would otherwise collapse the final state.
+
+    Args:
+        circuit: The circuit to transform. It will not be modified.
+        context: `cirq.TransformerContext` storing common configurable options
+            for transformers.
+    Returns:
+        A copy of the circuit, with identity or X gates in place of terminal
+        measurements.
+    Raises:
+        ValueError: if the circuit contains non-terminal measurements.
+    """
+
+    def flip_inversion(op: 'cirq.Operation', _) -> 'cirq.OP_TREE':
+        if isinstance(op.gate, ops.MeasurementGate):
+            return [
+                ops.X(q) if b else ops.I(q) for q, b in zip(op.qubits, op.gate.full_invert_mask())
+            ]
+        return op
+
+    if not circuit.are_all_measurements_terminal():
+        raise ValueError('Circuit contains a non-terminal measurement.')
+
+    ignored = () if context is None else context.tags_to_ignore
+    return transformer_primitives.map_operations(
+        circuit, flip_inversion, deep=True, tags_to_ignore=ignored
+    ).unfreeze()

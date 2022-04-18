@@ -1139,7 +1139,7 @@ def test_next_moment_operating_on_distance(circuit_cls):
     assert c.next_moment_operating_on([a], 1, max_distance=500) == 4
 
     # Huge max distances should be handled quickly due to capping.
-    assert c.next_moment_operating_on([a], 5, max_distance=10**100) is None
+    assert c.next_moment_operating_on([a], 5, max_distance=10 ** 100) is None
 
     with pytest.raises(ValueError, match='Negative max_distance'):
         c.next_moment_operating_on([a], 0, max_distance=-1)
@@ -1228,7 +1228,7 @@ def test_prev_moment_operating_on_distance(circuit_cls):
     assert c.prev_moment_operating_on([a], 13, max_distance=500) == 1
 
     # Huge max distances should be handled quickly due to capping.
-    assert c.prev_moment_operating_on([a], 1, max_distance=10**100) is None
+    assert c.prev_moment_operating_on([a], 1, max_distance=10 ** 100) is None
 
     with pytest.raises(ValueError, match='Negative max_distance'):
         c.prev_moment_operating_on([a], 6, max_distance=-1)
@@ -1535,7 +1535,7 @@ def test_findall_operations_until_blocked(circuit_cls):
     )
 
 
-@pytest.mark.parametrize('seed', [randint(0, 2**31)])
+@pytest.mark.parametrize('seed', [randint(0, 2 ** 31)])
 @pytest.mark.parametrize('circuit_cls', [cirq.Circuit, cirq.FrozenCircuit])
 def test_findall_operations_until_blocked_docstring_examples(seed, circuit_cls):
     prng = np.random.RandomState(seed)
@@ -2693,7 +2693,7 @@ def test_circuit_superoperator_depolarizing_channel_compositions(rs, n_qubits):
         makes it simple to compute the serial composition of depolarizing channels. It
         is multiplicative under channel composition.
         """
-        d2 = 4**n_qubits
+        d2 = 4 ** n_qubits
         return (1 - r) * (d2 - 1) / d2
 
     def depolarize(r: float, n_qubits: int) -> cirq.DepolarizingChannel:
@@ -2879,7 +2879,7 @@ def test_insert_moments():
 
 
 @pytest.mark.parametrize('circuit_cls', [cirq.Circuit, cirq.FrozenCircuit])
-def test_apply_unitary_effect_to_state(circuit_cls):
+def test_final_state_vector(circuit_cls):
     a = cirq.NamedQubit('a')
     b = cirq.NamedQubit('b')
 
@@ -2962,12 +2962,24 @@ def test_apply_unitary_effect_to_state(circuit_cls):
     )
 
     # Measurements.
-    cirq.testing.assert_allclose_up_to_global_phase(
-        circuit_cls(cirq.measure(a)).final_state_vector(), np.array([1, 0]), atol=1e-8
-    )
-    cirq.testing.assert_allclose_up_to_global_phase(
-        circuit_cls(cirq.X(a), cirq.measure(a)).final_state_vector(), np.array([0, 1]), atol=1e-8
-    )
+    # TODO: remove deprecation assertions after v0.16, but keep tests.
+    # Warnings are unavoidable due to how they are triggered.
+    with cirq.testing.assert_deprecated("To drop terminal measurements", deadline="v0.16"):
+        cirq.testing.assert_allclose_up_to_global_phase(
+            circuit_cls(cirq.measure(a)).final_state_vector(
+                ignore_terminal_measurements=True
+            ),
+            np.array([1, 0]),
+            atol=1e-8
+        )
+    with cirq.testing.assert_deprecated("To drop terminal measurements", deadline="v0.16"):
+        cirq.testing.assert_allclose_up_to_global_phase(
+            circuit_cls(cirq.X(a), cirq.measure(a)).final_state_vector(
+                ignore_terminal_measurements=True
+            ),
+            np.array([0, 1]),
+            atol=1e-8
+        )
     with pytest.raises(ValueError):
         cirq.testing.assert_allclose_up_to_global_phase(
             circuit_cls(cirq.measure(a), cirq.X(a)).final_state_vector(),
@@ -2980,21 +2992,6 @@ def test_apply_unitary_effect_to_state(circuit_cls):
             np.array([1, 0]),
             atol=1e-8,
         )
-
-    # Extra qubits.
-    cirq.testing.assert_allclose_up_to_global_phase(
-        circuit_cls().final_state_vector(), np.array([1]), atol=1e-8
-    )
-    cirq.testing.assert_allclose_up_to_global_phase(
-        circuit_cls().final_state_vector(qubits_that_should_be_present=[a]),
-        np.array([1, 0]),
-        atol=1e-8,
-    )
-    cirq.testing.assert_allclose_up_to_global_phase(
-        circuit_cls(cirq.X(b)).final_state_vector(qubits_that_should_be_present=[a]),
-        np.array([0, 1, 0, 0]),
-        atol=1e-8,
-    )
 
     # Qubit order.
     cirq.testing.assert_allclose_up_to_global_phase(
@@ -3018,6 +3015,43 @@ def test_apply_unitary_effect_to_state(circuit_cls):
                 initial_state=np.array([1j, 1]) * np.sqrt(0.5), dtype=dt
             ),
             np.array([0, 1]),
+            atol=1e-8,
+        )
+
+
+@pytest.mark.parametrize('circuit_cls', [cirq.Circuit, cirq.FrozenCircuit])
+def test_final_state_vector_deprecated_params(circuit_cls):
+    a = cirq.NamedQubit('a')
+    b = cirq.NamedQubit('b')
+    # Extra qubits.
+    cirq.testing.assert_allclose_up_to_global_phase(
+        circuit_cls().final_state_vector(), np.array([1]), atol=1e-8
+    )
+    with cirq.testing.assert_deprecated("Inject identity operators", deadline="v0.16"):
+        cirq.testing.assert_allclose_up_to_global_phase(
+            circuit_cls().final_state_vector(qubits_that_should_be_present=[a]),
+            np.array([1, 0]),
+            atol=1e-8,
+        )
+    with cirq.testing.assert_deprecated("Inject identity operators", deadline="v0.16"):
+        cirq.testing.assert_allclose_up_to_global_phase(
+            circuit_cls(cirq.X(b)).final_state_vector(qubits_that_should_be_present=[a]),
+            np.array([0, 1, 0, 0]),
+            atol=1e-8,
+        )
+
+    with cirq.testing.assert_deprecated("To drop terminal measurements", deadline="v0.16"):
+        cirq.testing.assert_allclose_up_to_global_phase(
+            circuit_cls(cirq.X(a), cirq.measure(a)).final_state_vector(),
+            np.array([0, 1]),
+            atol=1e-8
+        )
+
+    # Non-keyword args.
+    with cirq.testing.assert_deprecated("Only use keyword arguments", deadline="v0.16"):
+        cirq.testing.assert_allclose_up_to_global_phase(
+            circuit_cls(cirq.X(a) ** 0.5).final_state_vector(1),
+            np.array([1, 1j]) * np.sqrt(0.5),
             atol=1e-8,
         )
 
@@ -3817,9 +3851,9 @@ def test_submoments(circuit_cls):
         cirq.H.on(d),
         cirq.CZ.on(a, d),
         cirq.CZ.on(b, c),
-        (cirq.CNOT**0.5).on(a, d),
-        (cirq.CNOT**0.5).on(b, e),
-        (cirq.CNOT**0.5).on(c, f),
+        (cirq.CNOT ** 0.5).on(a, d),
+        (cirq.CNOT ** 0.5).on(b, e),
+        (cirq.CNOT ** 0.5).on(c, f),
         cirq.H.on(c),
         cirq.H.on(e),
     )
@@ -3946,12 +3980,15 @@ def test_measurement_key_mapping(circuit_cls):
     assert simulator.run(c).measurements == {'m1': 1, 'm2': 0}
     assert simulator.run(c_swapped).measurements == {'m1': 0, 'm2': 1}
 
-    assert cirq.with_measurement_key_mapping(
-        c,
-        {
-            'x': 'z',
-        },
-    ).all_measurement_key_names() == {'m1', 'm2'}
+    assert (
+        cirq.with_measurement_key_mapping(
+            c,
+            {
+                'x': 'z',
+            },
+        ).all_measurement_key_names()
+        == {'m1', 'm2'}
+    )
 
 
 @pytest.mark.parametrize('circuit_cls', [cirq.Circuit, cirq.FrozenCircuit])
@@ -3974,7 +4011,7 @@ def test_measurement_key_mapping_preserves_moments(circuit_cls):
 @pytest.mark.parametrize('circuit_cls', [cirq.Circuit, cirq.FrozenCircuit])
 def test_inverse(circuit_cls):
     a, b = cirq.LineQubit.range(2)
-    forward = circuit_cls((cirq.X**0.5)(a), (cirq.Y**-0.2)(b), cirq.CZ(a, b))
+    forward = circuit_cls((cirq.X ** 0.5)(a), (cirq.Y ** -0.2)(b), cirq.CZ(a, b))
     backward = circuit_cls((cirq.CZ ** (-1.0))(a, b), (cirq.X ** (-0.5))(a), (cirq.Y ** (0.2))(b))
     cirq.testing.assert_same_circuits(cirq.inverse(forward), backward)
 
@@ -3985,7 +4022,7 @@ def test_inverse(circuit_cls):
         cirq.inverse(no_inverse)
 
     # Default when there is no inverse for an op.
-    default = circuit_cls((cirq.X**0.5)(a), (cirq.Y**-0.2)(b))
+    default = circuit_cls((cirq.X ** 0.5)(a), (cirq.Y ** -0.2)(b))
     cirq.testing.assert_same_circuits(cirq.inverse(no_inverse, default), default)
     assert cirq.inverse(no_inverse, None) is None
 
@@ -3993,7 +4030,7 @@ def test_inverse(circuit_cls):
 @pytest.mark.parametrize('circuit_cls', [cirq.Circuit, cirq.FrozenCircuit])
 def test_pow_valid_only_for_minus_1(circuit_cls):
     a, b = cirq.LineQubit.range(2)
-    forward = circuit_cls((cirq.X**0.5)(a), (cirq.Y**-0.2)(b), cirq.CZ(a, b))
+    forward = circuit_cls((cirq.X ** 0.5)(a), (cirq.Y ** -0.2)(b), cirq.CZ(a, b))
 
     backward = circuit_cls((cirq.CZ ** (-1.0))(a, b), (cirq.X ** (-0.5))(a), (cirq.Y ** (0.2))(b))
     cirq.testing.assert_same_circuits(cirq.pow(forward, -1), backward)
@@ -4334,22 +4371,28 @@ def test_all_measurement_key_names(circuit_cls):
     assert circuit_cls().all_measurement_key_names() == set()
 
     # Order does not matter.
-    assert circuit_cls(
-        cirq.Moment(
-            [
-                cirq.measure(a, key='x'),
-                cirq.measure(b, key='y'),
-            ]
-        )
-    ).all_measurement_key_names() == {'x', 'y'}
-    assert circuit_cls(
-        cirq.Moment(
-            [
-                cirq.measure(b, key='y'),
-                cirq.measure(a, key='x'),
-            ]
-        )
-    ).all_measurement_key_names() == {'x', 'y'}
+    assert (
+        circuit_cls(
+            cirq.Moment(
+                [
+                    cirq.measure(a, key='x'),
+                    cirq.measure(b, key='y'),
+                ]
+            )
+        ).all_measurement_key_names()
+        == {'x', 'y'}
+    )
+    assert (
+        circuit_cls(
+            cirq.Moment(
+                [
+                    cirq.measure(b, key='y'),
+                    cirq.measure(a, key='x'),
+                ]
+            )
+        ).all_measurement_key_names()
+        == {'x', 'y'}
+    )
 
 
 def test_zip():

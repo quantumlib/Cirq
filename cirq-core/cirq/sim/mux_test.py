@@ -218,6 +218,20 @@ def test_final_state_vector_qubit_order():
     )
 
 
+def test_final_state_vector_ignore_terminal_measurement():
+    a, b = cirq.LineQubit.range(2)
+
+    np.testing.assert_allclose(
+        cirq.final_state_vector(
+            [cirq.X(a), cirq.X(b) ** 0.5, cirq.measure(a, b, key='m')],
+            ignore_terminal_measurements=True,
+        ),
+        [0, 0, 0.5 + 0.5j, 0.5 - 0.5j],
+    )
+    with pytest.raises(ValueError, match='is not unitary'):
+        cirq.final_state_vector([cirq.X(a), cirq.X(b), cirq.measure(a, b, key='m')]),
+
+
 def test_final_state_vector_seed():
     a = cirq.LineQubit(0)
     np.testing.assert_allclose(
