@@ -66,7 +66,7 @@ class ProductState(HasQuantumState):
 
         n = len(states)
         object.__setattr__(self, '_qid_shape', (2,) * n)
-        object.__setattr__(self, '_dim', 2 ** n)
+        object.__setattr__(self, '_dim', 2**n)
         object.__setattr__(self, 'states', states)
 
     @property
