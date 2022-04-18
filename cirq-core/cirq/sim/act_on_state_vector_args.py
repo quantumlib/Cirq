@@ -83,7 +83,8 @@ class _BufferedStateVector(qis.QuantumStateRepresentation):
                 state_vector = initial_state
             if np.may_share_memory(state_vector, initial_state):
                 state_vector = state_vector.copy()
-        state_vector = state_vector.astype(dtype, copy=False)
+        if dtype:
+            state_vector = state_vector.astype(dtype, copy=False)
         return cls(state_vector, buffer)
 
     def copy(self, deep_copy_buffers: bool = True) -> '_BufferedStateVector':

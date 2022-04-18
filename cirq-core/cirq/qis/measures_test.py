@@ -164,6 +164,21 @@ def test_fidelity_product_states():
         )
 
 
+def test_fidelity_symmetric_sim_types():
+    from cirq.sim.act_on_state_vector_args import _BufferedStateVector
+    from cirq.sim.act_on_density_matrix_args import _BufferedDensityMatrix
+    sv1 = _BufferedStateVector.create(initial_state=VEC1)
+    sv2 = _BufferedStateVector.create(initial_state=VEC2)
+    dm1 = _BufferedDensityMatrix.create(initial_state=MAT1)
+    dm2 = _BufferedDensityMatrix.create(initial_state=MAT2)
+    np.testing.assert_allclose(cirq.fidelity(sv1, sv2), cirq.fidelity(sv2, sv1))
+    np.testing.assert_allclose(cirq.fidelity(sv1, dm1), cirq.fidelity(dm1, sv1))
+    np.testing.assert_allclose(
+        cirq.fidelity(cirq.density_matrix(dm1.density_matrix()), dm2),
+        cirq.fidelity(cirq.density_matrix(dm2.density_matrix()), dm1),
+    )
+
+
 def test_fidelity_fail_inference():
     state_vector = cirq.one_hot(shape=(4,), dtype=np.complex128)
     state_tensor = np.reshape(state_vector, (2, 2))

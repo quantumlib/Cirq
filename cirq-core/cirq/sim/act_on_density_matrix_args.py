@@ -88,7 +88,8 @@ class _BufferedDensityMatrix(qis.QuantumStateRepresentation):
                 density_matrix = initial_state
             if np.may_share_memory(density_matrix, initial_state):
                 density_matrix = density_matrix.copy()
-        density_matrix = density_matrix.astype(dtype, copy=False)
+        if dtype:
+            density_matrix = density_matrix.astype(dtype, copy=False)
         return cls(density_matrix, buffer)
 
     def copy(self, deep_copy_buffers: bool = True) -> '_BufferedDensityMatrix':

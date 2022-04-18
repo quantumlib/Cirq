@@ -124,6 +124,7 @@ class QuantumState(HasQuantumState):
         atol: float = 1e-7,
     ) -> None:
         """Initialize a quantum state object.
+
         Args:
             data: The data representing the quantum state.
             qid_shape: The qid shape.
@@ -131,6 +132,7 @@ class QuantumState(HasQuantumState):
                 represent a valid quantum state with the given dtype.
             dtype: The expected data type of the quantum state.
             atol: Absolute numerical tolerance to use for validation.
+
         Raises:
             ValueError: The qid shape was not specified and could not be
                 inferred.
@@ -164,17 +166,6 @@ class QuantumState(HasQuantumState):
             return None
         return np.reshape(self.data, (self._dim,))
 
-    def state_tensor(self) -> Optional[np.ndarray]:
-        """Return the state tensor of this state.
-
-        A state tensor stores the amplitudes of a pure state as an array with
-        shape equal to the qid shape of the state.
-        If the state is a density matrix, this method returns None.
-        """
-        if self._is_density_matrix():
-            return None
-        return np.reshape(self.data, self.qid_shape)
-
     def density_matrix(self) -> np.ndarray:
         """Return the density matrix of this state.
 
@@ -182,9 +173,7 @@ class QuantumState(HasQuantumState):
         (a two-dimensional array).
         """
         if not self._is_density_matrix():
-            state_vector = self.state_vector()
-            assert state_vector is not None, 'only None if _is_density_matrix'
-            return np.outer(state_vector, np.conj(state_vector))
+            return super().density_matrix()
         return self.data
 
     def _is_density_matrix(self) -> bool:
@@ -306,6 +295,8 @@ def quantum_state(
             dtype = DEFAULT_COMPLEX_DTYPE
         data = one_hot(index=state, shape=(dim,), dtype=dtype)
     else:
+        if isinstance(state, HasQuantumState):
+            state = state.state_vector_or_density_matrix()
         data = np.array(state, copy=False)
         if qid_shape is None:
             qid_shape = infer_qid_shape(state)
