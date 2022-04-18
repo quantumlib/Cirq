@@ -101,6 +101,7 @@ def test_metadata_correct():
         cirq.PhasedXZGate,
         cirq.MeasurementGate,
         cirq.WaitGate,
+        cirq.GlobalPhaseGate,
     )
 
 

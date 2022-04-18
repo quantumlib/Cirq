@@ -3,6 +3,7 @@
         cirq.ops.common_gates.YPowGate,
         cirq.AnyUnitaryGateFamily(num_qubits=2),
         cirq.X,
+        cirq.GlobalPhaseGate,
         unroll_circuit_op=True,
     ),
     cirq.Gateset(
