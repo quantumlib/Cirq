@@ -172,7 +172,7 @@ class ParamResolver:
             elif sympy.im(v):
                 # Technically, this should not return complex, but changing
                 # type signature to complex would cause many cascading issues
-                return complex(v)  # type: ignore
+                return complex(v)  # type: ignore[return-value]
             else:
                 return float(v)
 

@@ -154,7 +154,7 @@ def _parse_formula_using_token_map(
         a = vals.pop()
         # Note: vals seems to be _HangingToken
         # func operates on _ResolvedTokens. Ignoring type issues for now.
-        vals.append(cast(_HangingNode, op).func(a, b))  # type: ignore
+        vals.append(cast(_HangingNode, op).func(a, b))  # type: ignore[arg-type]
 
     def close_paren() -> None:
         while True:

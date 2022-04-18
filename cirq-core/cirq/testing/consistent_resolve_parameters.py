@@ -15,6 +15,7 @@
 from typing import Any
 
 import cirq
+import sympy
 
 
 def assert_consistent_resolve_parameters(val: Any):
@@ -40,8 +41,8 @@ def assert_consistent_resolve_parameters(val: Any):
 
         # Try single-step resolution of parameters to names that map to zero.
         # All names should be preserved.
-        param_dict = {name: name + '_CONSISTENCY_TEST' for name in names}  # type: ignore
-        param_dict.update({name + '_CONSISTENCY_TEST': 0 for name in names})  # type: ignore
+        param_dict:cirq.ParamDictType = {name: sympy.Symbol(name + '_CONSISTENCY_TEST') for name in names}
+        param_dict.update({sympy.Symbol(name + '_CONSISTENCY_TEST'): 0 for name in names})
         resolver = cirq.ParamResolver(param_dict)  # type:ignore
         resolved = cirq.resolve_parameters_once(val, resolver)
         assert cirq.parameter_names(resolved) == set(name + '_CONSISTENCY_TEST' for name in names)
