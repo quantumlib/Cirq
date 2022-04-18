@@ -166,7 +166,7 @@ def test_validate_operation_supported_gate():
 
 
 def test_can_add_operation_into_moment_device_deprecated():
-    with cirq.testing.assert_deprecated('can_add_operation_into_moment', deadline='v0.15', count=5):
+    with cirq.testing.assert_deprecated('can_add_operation_into_moment', deadline='v0.15', count=6):
         d = ion_device(3)
         q0 = cirq.LineQubit(0)
         q1 = cirq.LineQubit(1)
@@ -218,10 +218,10 @@ def test_at():
 
 
 def test_qubit_set_deprecated():
-    with cirq.testing.assert_deprecated('qubit_set', deadline='v0.15'):
+    with cirq.testing.assert_deprecated('qubit_set', deadline='v0.15', count=2):
         assert ion_device(3).qubit_set() == frozenset(cirq.LineQubit.range(3))
 
 
 def test_qid_pairs_deprecated():
-    with cirq.testing.assert_deprecated('device.metadata', deadline='v0.15', count=1):
+    with cirq.testing.assert_deprecated('device.metadata', deadline='v0.15', count=2):
         assert len(ion_device(10).qid_pairs()) == 45

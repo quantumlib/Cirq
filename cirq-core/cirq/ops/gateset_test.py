@@ -257,19 +257,21 @@ def test_gateset_validate(use_circuit_op, use_global_phase):
             assert gateset.validate(item) is result
 
     op_tree = [*get_ops(use_circuit_op, use_global_phase)]
-    assert_validate_and_contains_consistent(
-        gateset.with_params(
-            unroll_circuit_op=use_circuit_op, accept_global_phase_op=use_global_phase
-        ),
-        op_tree,
-        True,
-    )
-    if use_circuit_op or use_global_phase:
+    with cirq.testing.assert_deprecated('global phase', deadline='v0.16', count=None):
         assert_validate_and_contains_consistent(
-            gateset.with_params(unroll_circuit_op=False, accept_global_phase_op=False),
+            gateset.with_params(
+                unroll_circuit_op=use_circuit_op, accept_global_phase_op=use_global_phase
+            ),
             op_tree,
-            False,
+            True,
         )
+    if use_circuit_op or use_global_phase:
+        with cirq.testing.assert_deprecated('global phase', deadline='v0.16', count=2):
+            assert_validate_and_contains_consistent(
+                gateset.with_params(unroll_circuit_op=False, accept_global_phase_op=False),
+                op_tree,
+                False,
+            )
 
 
 def test_gateset_validate_circuit_op_negative_reps():
@@ -281,31 +283,39 @@ def test_gateset_validate_circuit_op_negative_reps():
 
 def test_with_params():
     assert gateset.with_params() is gateset
-    assert (
-        gateset.with_params(
-            name=gateset.name,
-            unroll_circuit_op=gateset._unroll_circuit_op,
-            accept_global_phase_op=gateset._accept_global_phase_op,
+    with cirq.testing.assert_deprecated('global phase', deadline='v0.16'):
+        assert (
+            gateset.with_params(
+                name=gateset.name,
+                unroll_circuit_op=gateset._unroll_circuit_op,
+                accept_global_phase_op=None,
+            )
+            is gateset
         )
-        is gateset
-    )
-    gateset_with_params = gateset.with_params(
-        name='new name', unroll_circuit_op=False, accept_global_phase_op=False
-    )
+    with cirq.testing.assert_deprecated('global phase', deadline='v0.16', count=2):
+        gateset_with_params = gateset.with_params(
+            name='new name', unroll_circuit_op=False, accept_global_phase_op=False
+        )
     assert gateset_with_params.name == 'new name'
     assert gateset_with_params._unroll_circuit_op is False
-    assert gateset_with_params._accept_global_phase_op is False
 
 
 def test_gateset_eq():
     eq = cirq.testing.EqualsTester()
     eq.add_equality_group(cirq.Gateset(CustomX))
     eq.add_equality_group(cirq.Gateset(CustomX**3))
-    eq.add_equality_group(cirq.Gateset(CustomX, name='Custom Gateset'))
+    with cirq.testing.assert_deprecated('global phase', deadline='v0.16'):
+        eq.add_equality_group(
+            cirq.Gateset(CustomX, name='Custom Gateset'),
+            cirq.Gateset(
+                CustomX, cirq.GlobalPhaseGate, name='Custom Gateset', accept_global_phase_op=False
+            ),
+        )
     eq.add_equality_group(cirq.Gateset(CustomX, name='Custom Gateset', unroll_circuit_op=False))
-    eq.add_equality_group(
-        cirq.Gateset(CustomX, name='Custom Gateset', accept_global_phase_op=False)
-    )
+    with cirq.testing.assert_deprecated('global phase', deadline='v0.16'):
+        eq.add_equality_group(
+            cirq.Gateset(CustomX, name='Custom Gateset', accept_global_phase_op=True)
+        )
     eq.add_equality_group(
         cirq.Gateset(
             cirq.GateFamily(CustomX, name='custom_name', description='custom_description'),

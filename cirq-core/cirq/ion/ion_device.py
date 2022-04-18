@@ -30,7 +30,6 @@ def get_ion_gateset() -> ops.Gateset:
         ops.ZPowGate,
         ops.PhasedXPowGate,
         unroll_circuit_op=False,
-        accept_global_phase_op=False,
     )
 
 
