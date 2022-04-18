@@ -20,7 +20,7 @@ import numpy as np
 
 from cirq import protocols, value, _import
 from cirq.qis.states import (
-    QuantumState,
+    HasQuantumState,
     infer_qid_shape,
     quantum_state,
     validate_density_matrix,
@@ -274,7 +274,7 @@ def von_neumann_entropy(
     Raises:
         ValueError: Invalid quantum state.
     """
-    if isinstance(state, QuantumState) and state.can_represent_mixed_states:
+    if isinstance(state, HasQuantumState) and state.can_represent_mixed_states:
         state = state.density_matrix()
     if isinstance(state, np.ndarray) and state.ndim == 2 and state.shape[0] == state.shape[1]:
         if validate:

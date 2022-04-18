@@ -27,7 +27,7 @@ if TYPE_CHECKING:
 TSelf = TypeVar('TSelf', bound='QuantumStateRepresentation')
 
 
-class QuantumStateRepresentation(states.QuantumState, metaclass=abc.ABCMeta):
+class QuantumStateRepresentation(states.HasQuantumState, metaclass=abc.ABCMeta):
     @abc.abstractmethod
     def copy(self: TSelf, deep_copy_buffers: bool = True) -> TSelf:
         """Creates a copy of the object.
