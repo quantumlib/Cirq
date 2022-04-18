@@ -185,9 +185,9 @@ def test_fidelity_different_simulator_outputs_compatible():
         for _ in range(2)
     ]
 
-    def final_state(sim: cirq.Simulator):
+    def final_state(sim: cirq.SimulatorBase):
         return [
-            sim.simulate(c)._final_step_result._sim_state.create_merged_state()._state
+            sim.simulate(c)._final_step_result_typed._sim_state.create_merged_state()._state
             for c in circuits
         ]
 
