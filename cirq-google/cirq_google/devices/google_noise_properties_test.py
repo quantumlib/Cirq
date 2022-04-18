@@ -86,8 +86,8 @@ def test_zphase_gates():
     assert noisy_circuit == circuit
 
 
-def test_override_fill():
-    # Test single-value override.
+def test_with_params_fill():
+    # Test single-value with_params.
     q0, q1 = cirq.LineQubit.range(2)
     props = sample_noise_properties([q0, q1], [(q0, q1), (q1, q0)])
     expected_vals = {
@@ -98,7 +98,7 @@ def test_override_fill():
         'gate_pauli_errors': 0.096,
         'fsim_errors': cirq.PhasedFSimGate(0.0971, 0.0972, 0.0973, 0.0974, 0.0975),
     }
-    props_v2 = props.override(
+    props_v2 = props.with_params(
         gate_times_ns=expected_vals['gate_times_ns'],
         t1_ns=expected_vals['t1_ns'],
         tphi_ns=expected_vals['tphi_ns'],
@@ -126,8 +126,8 @@ def test_override_fill():
         assert props_v2.fsim_errors[key] == expected_vals['fsim_errors']
 
 
-def test_override_target():
-    # Test targeted-value override.
+def test_with_params_target():
+    # Test targeted-value with_params.
     q0, q1 = cirq.LineQubit.range(2)
     props = sample_noise_properties([q0, q1], [(q0, q1), (q1, q0)])
     expected_vals = {
@@ -142,7 +142,7 @@ def test_override_target():
             )
         },
     }
-    props_v2 = props.override(
+    props_v2 = props.with_params(
         gate_times_ns=expected_vals['gate_times_ns'],
         t1_ns=expected_vals['t1_ns'],
         tphi_ns=expected_vals['tphi_ns'],
@@ -159,15 +159,15 @@ def test_override_target():
                 assert target_dict[key] == val
 
 
-def test_override_opid_with_gate():
-    # Test gate-based opid override.
+def test_with_params_opid_with_gate():
+    # Test gate-based opid with_params.
     q0, q1 = cirq.LineQubit.range(2)
     props = sample_noise_properties([q0, q1], [(q0, q1), (q1, q0)])
     expected_vals = {
         'gate_pauli_errors': 0.096,
         'fsim_errors': cirq.PhasedFSimGate(0.0971, 0.0972, 0.0973, 0.0974, 0.0975),
     }
-    props_v2 = props.override(
+    props_v2 = props.with_params(
         gate_pauli_errors={cirq.PhasedXZGate: expected_vals['gate_pauli_errors']},
         fsim_errors={cirq.CZPowGate: expected_vals['fsim_errors']},
     )
