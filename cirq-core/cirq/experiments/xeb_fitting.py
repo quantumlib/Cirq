@@ -419,7 +419,7 @@ def characterize_phased_fsim_parameters_with_xeb(
     )
     return XEBCharacterizationResult(
         optimization_results={pair: optimization_result},
-        final_params={pair: final_params},  # type: ignore
+        final_params={pair: final_params},  # type: ignore[dict-item]
         fidelities_df=fidelities_df,
     )
 
