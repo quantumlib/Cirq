@@ -167,6 +167,7 @@ def test_fidelity_product_states():
 def test_fidelity_symmetric_sim_types():
     from cirq.sim.act_on_state_vector_args import _BufferedStateVector
     from cirq.sim.act_on_density_matrix_args import _BufferedDensityMatrix
+
     sv1 = _BufferedStateVector.create(initial_state=VEC1)
     sv2 = _BufferedStateVector.create(initial_state=VEC2)
     dm1 = _BufferedDensityMatrix.create(initial_state=MAT1)
