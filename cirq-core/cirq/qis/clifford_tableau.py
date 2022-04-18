@@ -663,4 +663,5 @@ class CliffordTableau(StabilizerState):
         return [self._measure(axis, seed) for axis in axes]
 
     def state_vector(self):
+        # This function should exist.
         raise NotImplementedError()

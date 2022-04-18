@@ -446,8 +446,6 @@ def _potential_qid_shapes(state: _NON_INT_STATE_LIKE) -> '_QidShapeSet':
     """Return a set of qid shapes compatible with a given state."""
     if isinstance(state, HasQuantumState):
         return _QidShapeSet(explicit_qid_shapes={state.qid_shape})
-    if isinstance(state, value.ProductState):
-        return _QidShapeSet(explicit_qid_shapes={(2,) * len(state)})
 
     if isinstance(state, Sequence):
         state = np.array(state)

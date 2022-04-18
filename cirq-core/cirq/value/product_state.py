@@ -19,6 +19,7 @@ import numpy as np
 
 from cirq import protocols
 from cirq._doc import document
+from cirq.qis.states import HasQuantumState
 
 if TYPE_CHECKING:
     import cirq
@@ -48,7 +49,7 @@ class _NamedOneQubitState(metaclass=abc.ABCMeta):
 
 
 @dataclass(frozen=True)
-class ProductState:
+class ProductState(HasQuantumState):
     """A quantum state that is a tensor product of one qubit states.
 
     For example, the |00⟩ state is `cirq.KET_ZERO(q0) * cirq.KET_ZERO(q1)`.
@@ -63,6 +64,9 @@ class ProductState:
             # coverage: ignore
             states = dict()
 
+        n = len(states)
+        object.__setattr__(self, '_qid_shape', (2,) * n)
+        object.__setattr__(self, '_dim', 2 ** n)
         object.__setattr__(self, 'states', states)
 
     @property
