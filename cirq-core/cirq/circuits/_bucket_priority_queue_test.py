@@ -55,18 +55,10 @@ def test_eq():
         BucketPriorityQueue(entries=[(0, 'a')], drop_duplicate_entries=True),
         BucketPriorityQueue(entries=[(0, 'a'), (0, 'a')], drop_duplicate_entries=True),
     )
-    eq.add_equality_group(
-        BucketPriorityQueue(entries=[(0, 'a')]),
-    )
-    eq.add_equality_group(
-        BucketPriorityQueue(entries=[(0, 'a'), (0, 'a')]),
-    )
-    eq.add_equality_group(
-        BucketPriorityQueue(entries=[(1, 'a')]),
-    )
-    eq.add_equality_group(
-        BucketPriorityQueue(entries=[(0, 'b')]),
-    )
+    eq.add_equality_group(BucketPriorityQueue(entries=[(0, 'a')]))
+    eq.add_equality_group(BucketPriorityQueue(entries=[(0, 'a'), (0, 'a')]))
+    eq.add_equality_group(BucketPriorityQueue(entries=[(1, 'a')]))
+    eq.add_equality_group(BucketPriorityQueue(entries=[(0, 'b')]))
     eq.add_equality_group(
         BucketPriorityQueue(entries=[(0, 'a'), (1, 'b')]),
         BucketPriorityQueue(entries=[(1, 'b'), (0, 'a')]),

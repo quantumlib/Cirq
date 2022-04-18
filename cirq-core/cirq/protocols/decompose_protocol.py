@@ -318,9 +318,7 @@ def decompose_once_with_qubits(val: Any, qubits: Iterable['cirq.Qid']) -> List['
 
 @overload
 def decompose_once_with_qubits(
-    val: Any,
-    qubits: Iterable['cirq.Qid'],
-    default: Optional[TDefault],
+    val: Any, qubits: Iterable['cirq.Qid'], default: Optional[TDefault]
 ) -> Union[TDefault, List['cirq.Operation']]:
     pass
 

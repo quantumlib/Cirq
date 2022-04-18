@@ -79,7 +79,7 @@ def test_identity_on_each_two_qubits():
         cirq.IdentityGate(2)(q2, q3),
     ]
     assert cirq.IdentityGate(2, (3, 3)).on_each([(q0_3, q1_3)]) == [
-        cirq.IdentityGate(2, (3, 3))(q0_3, q1_3),
+        cirq.IdentityGate(2, (3, 3))(q0_3, q1_3)
     ]
     assert cirq.IdentityGate(2).on_each((q0, q1)) == [cirq.IdentityGate(2)(q0, q1)]
     with pytest.raises(ValueError, match='Inputs to multi-qubit gates must be Sequence'):
@@ -129,9 +129,7 @@ def test_identity_apply_unitary():
 def test_identity_eq():
     equals_tester = cirq.testing.EqualsTester()
     equals_tester.make_equality_group(
-        lambda: cirq.I,
-        lambda: cirq.IdentityGate(1),
-        lambda: cirq.IdentityGate(1, (2,)),
+        lambda: cirq.I, lambda: cirq.IdentityGate(1), lambda: cirq.IdentityGate(1, (2,))
     )
     equals_tester.add_equality_group(cirq.IdentityGate(2), cirq.IdentityGate(2, (2, 2)))
     equals_tester.add_equality_group(cirq.IdentityGate(4))

@@ -30,14 +30,11 @@ class DummyQuantumState(cirq.QuantumStateRepresentation):
 
 class DummyActOnArgs(cirq.ActOnArgs):
     def __init__(self, fallback_result: Any = NotImplemented):
-        super().__init__(np.random.RandomState(), state=DummyQuantumState())
+        super().__init__(prng=np.random.RandomState(), state=DummyQuantumState())
         self.fallback_result = fallback_result
 
     def _act_on_fallback_(
-        self,
-        action: Any,
-        qubits: Sequence['cirq.Qid'],
-        allow_decompose: bool = True,
+        self, action: Any, qubits: Sequence['cirq.Qid'], allow_decompose: bool = True
     ):
         return self.fallback_result
 

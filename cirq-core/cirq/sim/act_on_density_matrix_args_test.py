@@ -23,10 +23,7 @@ def test_default_parameter():
     tensor = cirq.to_valid_density_matrix(
         0, len(qid_shape), qid_shape=qid_shape, dtype=np.complex64
     )
-    args = cirq.ActOnDensityMatrixArgs(
-        qubits=cirq.LineQubit.range(1),
-        initial_state=0,
-    )
+    args = cirq.ActOnDensityMatrixArgs(qubits=cirq.LineQubit.range(1), initial_state=0)
     np.testing.assert_almost_equal(args.target_tensor, tensor)
     assert len(args.available_buffer) == 3
     for buffer in args.available_buffer:
@@ -36,10 +33,7 @@ def test_default_parameter():
 
 
 def test_shallow_copy_buffers():
-    args = cirq.ActOnDensityMatrixArgs(
-        qubits=cirq.LineQubit.range(1),
-        initial_state=0,
-    )
+    args = cirq.ActOnDensityMatrixArgs(qubits=cirq.LineQubit.range(1), initial_state=0)
     copy = args.copy(deep_copy_buffers=False)
     assert copy.available_buffer is args.available_buffer
 
@@ -81,9 +75,7 @@ def test_cannot_act():
 
 def test_with_qubits():
     original = cirq.ActOnDensityMatrixArgs(
-        qubits=cirq.LineQubit.range(1),
-        initial_state=1,
-        dtype=np.complex64,
+        qubits=cirq.LineQubit.range(1), initial_state=1, dtype=np.complex64
     )
     extened = original.with_qubits(cirq.LineQubit.range(1, 2))
     np.testing.assert_almost_equal(

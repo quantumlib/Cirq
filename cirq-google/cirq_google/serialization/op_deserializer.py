@@ -12,14 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import (
-    Any,
-    Callable,
-    Dict,
-    List,
-    Optional,
-    Sequence,
-)
+from typing import Any, Callable, Dict, List, Optional, Sequence
 from dataclasses import dataclass
 
 import abc
@@ -317,10 +310,5 @@ class CircuitOpDeserializer(OpDeserializer):
                 )
 
         return cirq.CircuitOperation(
-            circuit,
-            repetitions,
-            qubit_map,
-            measurement_key_map,
-            arg_map,  # type: ignore
-            rep_ids,
+            circuit, repetitions, qubit_map, measurement_key_map, arg_map, rep_ids  # type: ignore
         )

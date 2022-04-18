@@ -20,20 +20,11 @@ import cirq_ionq as ionq
 
 def test_calibration_fields():
     calibration_dict = {
-        'connectivity': [
-            [0, 1],
-            [0, 2],
-            [1, 2],
-        ],
+        'connectivity': [[0, 1], [0, 2], [1, 2]],
         'target': 'ionq.qpu',
         'qubits': 3,
         'fidelity': {'1q': {'mean': 0.999}, '2q': {'mean': 0.999}},
-        'timing': {
-            '1q': 1.1e-05,
-            '2q': 0.00021,
-            'readout': 0.000175,
-            'reset': 3.5e-05,
-        },
+        'timing': {'1q': 1.1e-05, '2q': 0.00021, 'readout': 0.000175, 'reset': 3.5e-05},
         'date': '2020-08-07T12:47:22.337Z',
     }
     cal = ionq.Calibration(calibration_dict=calibration_dict)

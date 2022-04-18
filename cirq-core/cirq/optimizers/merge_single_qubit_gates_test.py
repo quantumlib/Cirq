@@ -121,11 +121,7 @@ def test_ignores_2qubit_target():
         m = cirq.MergeSingleQubitGates()
     q = cirq.NamedQubit('q')
     q2 = cirq.NamedQubit('q2')
-    c = cirq.Circuit(
-        [
-            cirq.Moment([cirq.CZ(q, q2)]),
-        ]
-    )
+    c = cirq.Circuit([cirq.Moment([cirq.CZ(q, q2)])])
 
     m.optimization_at(c, 0, c.operation_at(q, 0))
 
@@ -137,9 +133,7 @@ def test_ignore_unsupported_gate():
         pass
 
     q0 = cirq.LineQubit(0)
-    circuit = cirq.Circuit(
-        UnsupportedDummy()(q0),
-    )
+    circuit = cirq.Circuit(UnsupportedDummy()(q0))
     c_orig = cirq.Circuit(circuit)
     with cirq.testing.assert_deprecated("Use cirq.merge_k_qubit_unitaries", deadline='v1.0'):
         cirq.MergeSingleQubitGates().optimize_circuit(circuit)
@@ -150,13 +144,7 @@ def test_ignore_unsupported_gate():
 def test_rewrite():
     q0 = cirq.LineQubit(0)
     q1 = cirq.LineQubit(1)
-    circuit = cirq.Circuit(
-        cirq.X(q0),
-        cirq.X(q1),
-        cirq.Y(q0),
-        cirq.CZ(q0, q1),
-        cirq.Y(q1),
-    )
+    circuit = cirq.Circuit(cirq.X(q0), cirq.X(q1), cirq.Y(q0), cirq.CZ(q0, q1), cirq.Y(q1))
     with cirq.testing.assert_deprecated("Use cirq.merge_k_qubit_unitaries", deadline='v1.0'):
         cirq.MergeSingleQubitGates(rewriter=lambda ops: cirq.H(ops[0].qubits[0])).optimize_circuit(
             circuit
@@ -164,26 +152,14 @@ def test_rewrite():
     circuit = cirq.drop_empty_moments(circuit)
 
     cirq.testing.assert_same_circuits(
-        circuit,
-        cirq.Circuit(
-            cirq.H(q0),
-            cirq.H(q1),
-            cirq.CZ(q0, q1),
-            cirq.H(q1),
-        ),
+        circuit, cirq.Circuit(cirq.H(q0), cirq.H(q1), cirq.CZ(q0, q1), cirq.H(q1))
     )
 
 
 def test_merge_single_qubit_gates_into_phased_x_z():
     a, b = cirq.LineQubit.range(2)
     assert_optimizes(
-        before=cirq.Circuit(
-            cirq.X(a),
-            cirq.Y(b) ** 0.5,
-            cirq.CZ(a, b),
-            cirq.H(a),
-            cirq.Z(a),
-        ),
+        before=cirq.Circuit(cirq.X(a), cirq.Y(b) ** 0.5, cirq.CZ(a, b), cirq.H(a), cirq.Z(a)),
         expected=cirq.Circuit(
             cirq.PhasedXPowGate(phase_exponent=1)(a),
             cirq.Y(b) ** 0.5,
@@ -197,26 +173,13 @@ def test_merge_single_qubit_gates_into_phased_x_z():
 
 def test_merge_single_qubit_gates_into_phxz():
     def phxz(a, x, z):
-        return cirq.PhasedXZGate(
-            axis_phase_exponent=a,
-            x_exponent=x,
-            z_exponent=z,
-        )
+        return cirq.PhasedXZGate(axis_phase_exponent=a, x_exponent=x, z_exponent=z)
 
     a, b = cirq.LineQubit.range(2)
     assert_optimizes(
-        before=cirq.Circuit(
-            cirq.X(a),
-            cirq.Y(b) ** 0.5,
-            cirq.CZ(a, b),
-            cirq.H(a),
-            cirq.Z(a),
-        ),
+        before=cirq.Circuit(cirq.X(a), cirq.Y(b) ** 0.5, cirq.CZ(a, b), cirq.H(a), cirq.Z(a)),
         expected=cirq.Circuit(
-            phxz(-1, 1, 0).on(a),
-            phxz(0.5, 0.5, 0).on(b),
-            cirq.CZ(a, b),
-            phxz(-0.5, 0.5, 0).on(a),
+            phxz(-1, 1, 0).on(a), phxz(0.5, 0.5, 0).on(b), cirq.CZ(a, b), phxz(-0.5, 0.5, 0).on(a)
         ),
         optimizer=cirq.merge_single_qubit_gates_into_phxz,
         deprecated_msg="Use cirq.merge_single_qubit_gates_to_phxz",

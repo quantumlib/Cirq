@@ -175,11 +175,7 @@ def _warn_or_error(msg):
         if "_compat.py" in filename:
             stack_level += 1
 
-    warnings.warn(
-        msg,
-        DeprecationWarning,
-        stacklevel=stack_level,
-    )
+    warnings.warn(msg, DeprecationWarning, stacklevel=stack_level)
 
 
 def _validate_deadline(deadline: str):
@@ -324,7 +320,7 @@ def deprecated_parameter(
                     f'The {parameter_desc} parameter of {qualname} was '
                     f'used but is deprecated.\n'
                     f'It will be removed in cirq {deadline}.\n'
-                    f'{fix}\n',
+                    f'{fix}\n'
                 )
 
             return func(*args, **kwargs)
@@ -500,7 +496,7 @@ def _deduped_module_warn_or_error(old_module_name: str, new_module_name: str, de
     _warn_or_error(
         f"{old_module_name} was used but is deprecated.\n "
         f"it will be removed in cirq {deadline}.\n "
-        f"Use {new_module_name} instead.\n",
+        f"Use {new_module_name} instead.\n"
     )
 
 
@@ -700,8 +696,6 @@ def block_overlapping_deprecation(match_regex: str):
     """
     with warnings.catch_warnings():
         warnings.filterwarnings(
-            action='ignore',
-            category=DeprecationWarning,
-            message=f'(.|\n)*{match_regex}(.|\n)*',
+            action='ignore', category=DeprecationWarning, message=f'(.|\n)*{match_regex}(.|\n)*'
         )
         yield

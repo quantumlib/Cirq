@@ -33,10 +33,7 @@ def test_matrix_mixture_equality():
     assert mm_a1 != mm_b1
     assert mm_a2 != mm_b1
 
-    mix = [
-        (0.5, np.array([[1, 0], [0, 1]])),
-        (0.5, np.array([[0, 1], [1, 0]])),
-    ]
+    mix = [(0.5, np.array([[1, 0], [0, 1]])), (0.5, np.array([[0, 1], [1, 0]]))]
     half_flip = cirq.MixedUnitaryChannel(mix)
     mix_inv = list(reversed(mix))
     half_flip_inv = cirq.MixedUnitaryChannel(mix_inv)
@@ -64,10 +61,7 @@ def test_matrix_mixture_remap_keys():
 
 def test_matrix_mixture_from_unitaries():
     q0 = cirq.LineQubit(0)
-    mix = [
-        (0.5, np.array([[1, 0], [0, 1]])),
-        (0.5, np.array([[0, 1], [1, 0]])),
-    ]
+    mix = [(0.5, np.array([[1, 0], [0, 1]])), (0.5, np.array([[0, 1], [1, 0]]))]
     half_flip = cirq.MixedUnitaryChannel(mix, key='flip')
     assert cirq.measurement_key_name(half_flip) == 'flip'
 
@@ -80,10 +74,7 @@ def test_matrix_mixture_from_unitaries():
 
 
 def test_matrix_mixture_str():
-    mix = [
-        (0.5, np.array([[1, 0], [0, 1]])),
-        (0.5, np.array([[0, 1], [1, 0]])),
-    ]
+    mix = [(0.5, np.array([[1, 0], [0, 1]])), (0.5, np.array([[0, 1], [1, 0]]))]
     half_flip = cirq.MixedUnitaryChannel(mix)
     assert (
         str(half_flip)
@@ -131,29 +122,20 @@ def test_mix_bad_prob_fails():
 def test_mix_mismatch_fails():
     op2 = np.zeros((4, 4))
     op2[1][1] = 1
-    mix = [
-        (0.5, np.array([[1, 0], [0, 0]])),
-        (0.5, op2),
-    ]
+    mix = [(0.5, np.array([[1, 0], [0, 0]])), (0.5, op2)]
 
     with pytest.raises(ValueError, match='Inconsistent unitary shapes'):
         _ = cirq.MixedUnitaryChannel(mixture=mix, key='m')
 
 
 def test_nonqubit_mixture_fails():
-    mix = [
-        (0.5, np.array([[1, 0, 0], [0, 1, 0]])),
-        (0.5, np.array([[0, 1, 0], [1, 0, 0]])),
-    ]
+    mix = [(0.5, np.array([[1, 0, 0], [0, 1, 0]])), (0.5, np.array([[0, 1, 0], [1, 0, 0]]))]
 
     with pytest.raises(ValueError, match='Input mixture'):
         _ = cirq.MixedUnitaryChannel(mixture=mix, key='m')
 
 
 def test_validate():
-    mix = [
-        (0.5, np.array([[1, 0], [0, 0]])),
-        (0.5, np.array([[0, 0], [0, 1]])),
-    ]
+    mix = [(0.5, np.array([[1, 0], [0, 0]])), (0.5, np.array([[0, 0], [0, 1]]))]
     with pytest.raises(ValueError, match='non-unitary'):
         _ = cirq.MixedUnitaryChannel(mixture=mix, key='m', validate=True)

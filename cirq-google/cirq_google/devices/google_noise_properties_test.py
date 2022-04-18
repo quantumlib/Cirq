@@ -22,10 +22,7 @@ from cirq_google.devices.google_noise_properties import (
     SYMMETRIC_TWO_QUBIT_GATES,
     SINGLE_QUBIT_GATES,
 )
-from cirq.devices.noise_utils import (
-    OpIdentifier,
-    PHYSICAL_GATE_TAG,
-)
+from cirq.devices.noise_utils import OpIdentifier, PHYSICAL_GATE_TAG
 
 from cirq_google.devices.google_noise_properties import (
     GoogleNoiseProperties,

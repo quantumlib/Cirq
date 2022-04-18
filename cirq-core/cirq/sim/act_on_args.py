@@ -12,11 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """Objects and methods for acting efficiently on a state tensor."""
+import abc
 import copy
 from typing import (
     Any,
     cast,
     Dict,
+    Generic,
     Iterator,
     List,
     Mapping,
@@ -30,26 +32,40 @@ from typing import (
 import numpy as np
 
 from cirq import protocols, value
-from cirq._compat import _warn_or_error, deprecated
+from cirq._compat import _warn_or_error, deprecated, deprecated_parameter
 from cirq.protocols.decompose_protocol import _try_decompose_into_operations_and_qubits
 from cirq.sim.operation_target import OperationTarget
 
 TSelf = TypeVar('TSelf', bound='ActOnArgs')
+TState = TypeVar('TState', bound='cirq.QuantumStateRepresentation')
 
 if TYPE_CHECKING:
     import cirq
 
 
-class ActOnArgs(OperationTarget[TSelf]):
+class ActOnArgs(OperationTarget, Generic[TState], metaclass=abc.ABCMeta):
     """State and context for an operation acting on a state tensor."""
 
+    @deprecated_parameter(
+        deadline='v0.16',
+        fix='Use kwargs instead of positional args',
+        parameter_desc='args',
+        match=lambda args, kwargs: len(args) > 1,
+    )
+    @deprecated_parameter(
+        deadline='v0.16',
+        fix='Replace log_of_measurement_results with'
+        ' classical_data=cirq.ClassicalDataDictionaryStore(_records=logs).',
+        parameter_desc='log_of_measurement_results',
+        match=lambda args, kwargs: 'log_of_measurement_results' in kwargs,
+    )
     def __init__(
         self,
         prng: Optional[np.random.RandomState] = None,
         qubits: Optional[Sequence['cirq.Qid']] = None,
         log_of_measurement_results: Optional[Dict[str, List[int]]] = None,
         classical_data: Optional['cirq.ClassicalDataStore'] = None,
-        state: Optional['cirq.QuantumStateRepresentation'] = None,
+        state: Optional[TState] = None,
     ):
         """Inits ActOnArgs.
 
@@ -77,7 +93,7 @@ class ActOnArgs(OperationTarget[TSelf]):
                 for k, v in (log_of_measurement_results or {}).items()
             }
         )
-        self._state = state
+        self._state = cast(TState, state)
         if state is None:
             _warn_or_error('This function will require a valid `state` input in cirq v0.16.')
 
@@ -207,12 +223,7 @@ class ActOnArgs(OperationTarget[TSelf]):
         return self.kronecker_product(new_space)
 
     def factor(
-        self: TSelf,
-        qubits: Sequence['cirq.Qid'],
-        *,
-        validate=True,
-        atol=1e-07,
-        inplace=False,
+        self: TSelf, qubits: Sequence['cirq.Qid'], *, validate=True, atol=1e-07, inplace=False
     ) -> Tuple[TSelf, TSelf]:
         """Splits two state spaces after a measurement or reset."""
         extracted = copy.copy(self)
@@ -377,9 +388,7 @@ class ActOnArgs(OperationTarget[TSelf]):
 
 
 def strat_act_on_from_apply_decompose(
-    val: Any,
-    args: 'cirq.ActOnArgs',
-    qubits: Sequence['cirq.Qid'],
+    val: Any, args: 'cirq.ActOnArgs', qubits: Sequence['cirq.Qid']
 ) -> bool:
     operations, qubits1, _ = _try_decompose_into_operations_and_qubits(val)
     assert len(qubits1) == len(qubits)

@@ -56,11 +56,7 @@ def test_flatten_to_ops_or_moments():
     operations = [
         cirq.GateOperation(cirq.SingleQubitGate(), [cirq.NamedQubit(str(i))]) for i in range(10)
     ]
-    op_tree = [
-        operations[0],
-        cirq.Moment(operations[1:5]),
-        operations[5:],
-    ]
+    op_tree = [operations[0], cirq.Moment(operations[1:5]), operations[5:]]
     output = [operations[0], cirq.Moment(operations[1:5])] + operations[5:]
     assert list(cirq.flatten_to_ops_or_moments(op_tree)) == output
     assert list(cirq.flatten_op_tree(op_tree, preserve_moments=True)) == output

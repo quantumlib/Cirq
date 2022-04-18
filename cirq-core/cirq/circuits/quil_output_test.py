@@ -146,13 +146,7 @@ def test_two_quil_one_qubit_gate_output():
     (q0,) = _make_qubits(1)
     gate = QuilOneQubitGate(np.array([[1, 0], [0, 1]]))
     gate1 = QuilOneQubitGate(np.array([[2, 0], [0, 3]]))
-    output = cirq.QuilOutput(
-        (
-            gate.on(q0),
-            gate1.on(q0),
-        ),
-        (q0,),
-    )
+    output = cirq.QuilOutput((gate.on(q0), gate1.on(q0)), (q0,))
     assert (
         str(output)
         == """# Created using Cirq.
@@ -170,18 +164,9 @@ USERGATE2 0
 
 
 def test_quil_two_qubit_gate_output():
-    (
-        q0,
-        q1,
-    ) = _make_qubits(2)
+    (q0, q1) = _make_qubits(2)
     gate = QuilTwoQubitGate(np.array([[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1]]))
-    output = cirq.QuilOutput(
-        (gate.on(q0, q1),),
-        (
-            q0,
-            q1,
-        ),
-    )
+    output = cirq.QuilOutput((gate.on(q0, q1),), (q0, q1))
     assert (
         str(output)
         == """# Created using Cirq.
@@ -211,13 +196,7 @@ def test_unsupported_operation():
 def test_i_swap_with_power():
     q0, q1 = _make_qubits(2)
 
-    output = cirq.QuilOutput(
-        (cirq.ISWAP(q0, q1) ** 0.25,),
-        (
-            q0,
-            q1,
-        ),
-    )
+    output = cirq.QuilOutput((cirq.ISWAP(q0, q1) ** 0.25,), (q0, q1))
     assert (
         str(output)
         == f"""# Created using Cirq.
@@ -382,17 +361,8 @@ def test_fails_on_big_unknowns():
 
 
 def test_pauli_interaction_gate():
-    (
-        q0,
-        q1,
-    ) = _make_qubits(2)
-    output = cirq.QuilOutput(
-        PauliInteractionGate.CZ.on(q0, q1),
-        (
-            q0,
-            q1,
-        ),
-    )
+    (q0, q1) = _make_qubits(2)
+    output = cirq.QuilOutput(PauliInteractionGate.CZ.on(q0, q1), (q0, q1))
     assert (
         str(output)
         == """# Created using Cirq.
@@ -465,9 +435,7 @@ def test_two_qubit_diagonal_gate_quil_output():
     cirq_unitary = cirq.Circuit(cirq.SWAP(q0, q1), operations, cirq.SWAP(q0, q1)).unitary()
     assert np.allclose(pyquil_unitary, cirq_unitary)
     # Also test non-CPHASE case, which decomposes into X/RZ/CPhase
-    operations = [
-        cirq.TwoQubitDiagonalGate([0, 0, 0, 0])(q0, q1),
-    ]
+    operations = [cirq.TwoQubitDiagonalGate([0, 0, 0, 0])(q0, q1)]
     output = cirq.QuilOutput(operations, (q0, q1))
     program = pyquil.Program(str(output))
     assert f"\n{program.out()}" == QUIL_DIAGONAL_DECOMPOSE_PROGRAM

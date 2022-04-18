@@ -27,11 +27,7 @@ class TestCopyrightChecker(CheckerTestCase):
         r"""Report message when no copyright notice at the beginning of a file."""
         node = parse("import os")
         with self.assertAddsMessages(
-            MessageTest(
-                msg_id='wrong-or-nonexistent-copyright-notice',
-                line=1,
-                col_offset=0,
-            ),
+            MessageTest(msg_id='wrong-or-nonexistent-copyright-notice', line=1, col_offset=0)
         ):
             self.checker.process_module(node)
 
@@ -44,7 +40,7 @@ class TestCopyrightChecker(CheckerTestCase):
                 msg_id='wrong-or-nonexistent-copyright-notice',
                 line=1,
                 col_offset=comment.index("Someone"),
-            ),
+            )
         ):
             self.checker.process_module(node)
 
@@ -54,10 +50,8 @@ class TestCopyrightChecker(CheckerTestCase):
         node = parse(comment)
         with self.assertAddsMessages(
             MessageTest(
-                msg_id='wrong-or-nonexistent-copyright-notice',
-                line=1,
-                col_offset=len(comment),
-            ),
+                msg_id='wrong-or-nonexistent-copyright-notice', line=1, col_offset=len(comment)
+            )
         ):
             self.checker.process_module(node)
 
@@ -70,7 +64,7 @@ class TestCopyrightChecker(CheckerTestCase):
                 msg_id='wrong-or-nonexistent-copyright-notice',
                 line=1,
                 col_offset=comment.index(" and extra"),
-            ),
+            )
         ):
             self.checker.process_module(node)
 

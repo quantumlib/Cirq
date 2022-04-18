@@ -261,10 +261,7 @@ def execute(
     sampler = rt_config.processor_record.get_sampler()
     device = rt_config.processor_record.get_device()
 
-    shared_rt_info = SharedRuntimeInfo(
-        run_id=run_id,
-        device=device,
-    )
+    shared_rt_info = SharedRuntimeInfo(run_id=run_id, device=device)
     executable_results = []
 
     saver = _FilesystemSaver(base_data_dir=base_data_dir, run_id=run_id)
@@ -298,9 +295,7 @@ def execute(
             sampler_run_result = sampler.run(circuit, repetitions=exe.measurement.n_repetitions)
 
         exe_result = ExecutableResult(
-            spec=exe.spec,
-            runtime_info=runtime_info,
-            raw_data=sampler_run_result,
+            spec=exe.spec, runtime_info=runtime_info, raw_data=sampler_run_result
         )
         # Do bookkeeping for finished ExecutableResult
         executable_results.append(exe_result)

@@ -202,9 +202,7 @@ class EigenGate(raw_types.Gate):
         return result
 
     def _format_exponent_as_angle(
-        self,
-        args: 'protocols.CircuitDiagramInfoArgs',
-        order: int = 2,
+        self, args: 'protocols.CircuitDiagramInfoArgs', order: int = 2
     ) -> str:
         """Returns string with exponent expressed as angle in radians.
 
