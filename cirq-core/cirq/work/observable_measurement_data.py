@@ -14,7 +14,7 @@
 
 import dataclasses
 import datetime
-from typing import Any, Dict, Iterable, List, Tuple, TYPE_CHECKING, Union
+from typing import Any, Dict, Iterable, List, Tuple, TYPE_CHECKING
 
 import numpy as np
 from cirq import ops, protocols
@@ -106,7 +106,7 @@ class ObservableMeasuredResult:
     mean: float
     variance: float
     repetitions: int
-    circuit_params: Dict[Union[str, 'sympy.Expr'], Union[float, 'sympy.Expr']]
+    circuit_params: 'cirq.ParamDictType'
 
     def __repr__(self):
         # I wish we could use the default dataclass __repr__ but

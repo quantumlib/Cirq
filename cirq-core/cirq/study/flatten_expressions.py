@@ -13,7 +13,7 @@
 # limitations under the License.
 """Resolves symbolic expressions to unique symbols."""
 
-from typing import overload, Any, Callable, Dict, List, Optional, Tuple, Union
+from typing import overload, Any, Callable, List, Optional, Tuple, Union
 
 import sympy
 
@@ -218,7 +218,7 @@ class _ParamFlattener(resolver.ParamResolver):
             params = param_dict.param_dict
         else:
             params = param_dict if param_dict else {}
-        symbol_params: Dict[Union[str, sympy.Expr], Union[float, sympy.Expr]] = {
+        symbol_params: resolver.ParamDictType = {
             _ensure_not_str(param): _ensure_not_str(val) for param, val in params.items()
         }
         super().__init__(symbol_params)
@@ -337,9 +337,9 @@ class ExpressionMap(dict):
             sweep: The sweep to transform.
         """
         sweep = sweepable.to_sweep(sweep)
-        param_list: List[Dict[Union[str, sympy.Expr], Union[float, sympy.Expr]]] = []
+        param_list: List[resolver.ParamDictType] = []
         for r in sweep:
-            param_dict: Dict[Union[str, sympy.Expr], Union[float, sympy.Expr]] = {}
+            param_dict: resolver.ParamDictType = {}
             for formula, sym in self.items():
                 if isinstance(sym, (sympy.Symbol, str)):
                     param_dict[str(sym)] = protocols.resolve_parameters(formula, r)
@@ -361,7 +361,7 @@ class ExpressionMap(dict):
         Args:
             params: The params to transform.
         """
-        param_dict: Dict[Union[str, sympy.Expr], Union[float, sympy.Expr]] = {
+        param_dict: resolver.ParamDictType = {
             sym: protocols.resolve_parameters(formula, params)
             for formula, sym in self.items()
             if isinstance(sym, sympy.Expr)

@@ -11,7 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from typing import cast, Dict, Iterable, Union
+from typing import cast, Iterable
 
 import numpy as np
 import pytest
@@ -37,11 +37,7 @@ def assert_optimizes(
     if compare_unitaries:
         if cirq.is_parameterized(circuit):
             for a in (0, 0.1, 0.5, -1.0, np.pi, np.pi / 2):
-                params: Dict[Union[str, sympy.Expr], Union[float, sympy.Expr]] = {
-                    'x': a,
-                    'y': a / 2,
-                    'z': -2 * a,
-                }
+                params: cirq.ParamDictType = {'x': a, 'y': a / 2, 'z': -2 * a}
                 (
                     cirq.testing.assert_circuits_with_terminal_measurements_are_equivalent(
                         cirq.resolve_parameters(circuit, params),

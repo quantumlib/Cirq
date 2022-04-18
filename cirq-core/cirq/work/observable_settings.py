@@ -161,7 +161,7 @@ class _MeasurementSpec:
     """
 
     max_setting: InitObsSetting
-    circuit_params: Dict[Union[str, 'sympy.Expr'], Union[float, 'sympy.Expr']]
+    circuit_params: 'cirq.ParamDictType'
 
     def __hash__(self):
         return hash((self.max_setting, _hashable_param(self.circuit_params.items())))

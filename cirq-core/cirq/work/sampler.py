@@ -330,7 +330,7 @@ class Sampler(metaclass=abc.ABCMeta):
 
         # Flatten Circuit Sweep into one big list of Params.
         # Keep track of their indices so we can map back.
-        flat_params: List[Dict[Union[str, 'sympy.Expr'], Union[float, 'sympy.Expr']]] = [
+        flat_params: List['cirq.ParamDictType'] = [
             pr.param_dict for pr in study.to_resolvers(params)
         ]
         circuit_param_to_sweep_i: Dict[FrozenSet[Tuple[str, float]], int] = {

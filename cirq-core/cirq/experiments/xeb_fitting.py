@@ -413,9 +413,7 @@ def characterize_phased_fsim_parameters_with_xeb(
         method='nelder-mead',
     )
 
-    final_params: Dict[Union[str, sympy.Expr], Union[float, sympy.Expr]] = dict(
-        zip(names, optimization_result.x)
-    )
+    final_params: 'cirq.ParamDictType' = dict(zip(names, optimization_result.x))
     fidelities_df = benchmark_2q_xeb_fidelities(
         sampled_df, parameterized_circuits, cycle_depths, param_resolver=final_params
     )
