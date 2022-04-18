@@ -337,7 +337,7 @@ class ExpressionMap(dict):
             sweep: The sweep to transform.
         """
         sweep = sweepable.to_sweep(sweep)
-        param_list: List[Dict[Union[str, sympy.Expr], Union[float, sympy.Expr]]] = []
+        param_list: List['cirq.ParamDictType'] = []
         for r in sweep:
             param_dict: Dict[Union[str, sympy.Expr], Union[float, sympy.Expr]] = {}
             for formula, sym in self.items():
