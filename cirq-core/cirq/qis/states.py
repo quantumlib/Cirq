@@ -155,6 +155,7 @@ class QuantumState(HasQuantumState):
 
     def state_vector(self) -> Optional[np.ndarray]:
         """Return the state vector of this state.
+
         A state vector stores the amplitudes of a pure state as a
         one-dimensional array.
         If the state is a density matrix, this method returns None.
@@ -165,6 +166,7 @@ class QuantumState(HasQuantumState):
 
     def state_tensor(self) -> Optional[np.ndarray]:
         """Return the state tensor of this state.
+
         A state tensor stores the amplitudes of a pure state as an array with
         shape equal to the qid shape of the state.
         If the state is a density matrix, this method returns None.
@@ -175,6 +177,7 @@ class QuantumState(HasQuantumState):
 
     def density_matrix(self) -> np.ndarray:
         """Return the density matrix of this state.
+
         A density matrix stores the entries of a density matrix as a matrix
         (a two-dimensional array).
         """
@@ -192,9 +195,11 @@ class QuantumState(HasQuantumState):
         self, *, dtype: Optional['DTypeLike'] = None, atol=1e-7  # Force keyword arguments
     ) -> None:
         """Check if this quantum state is valid.
+
         Args:
             dtype: The expected data type of the quantum state.
             atol: Absolute numerical tolerance to use for validation.
+
         Raises:
             ValueError: Invalid quantum state.
         """
@@ -233,6 +238,7 @@ def quantum_state(
     atol: float = 1e-7,
 ) -> QuantumState:
     """Create a QuantumState object from a state-like object.
+
     Args:
         state: The state-like object.
         qid_shape: The qid shape.
@@ -241,6 +247,7 @@ def quantum_state(
             represent a valid quantum state with the given dtype.
         dtype: The desired data type.
         atol: Absolute numerical tolerance to use for validation.
+
     Raises:
         ValueError: Invalid quantum state.
         ValueError: The qid shape was not specified and could not be inferred.
