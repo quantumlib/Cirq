@@ -72,7 +72,7 @@ class ParamResolver:
 
     def value_of(
         self, value: Union['cirq.TParamKey', float], recursive: bool = True
-    ) -> Union['cirq.TParamVal']:
+    ) -> 'cirq.TParamVal':
         """Attempt to resolve a parameter to its assigned value.
 
         Floats are returned without modification.  Strings are resolved via

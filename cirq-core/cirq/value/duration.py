@@ -17,6 +17,7 @@ from typing import AbstractSet, Any, Dict, Optional, Tuple, TYPE_CHECKING, Union
 import datetime
 
 import sympy
+import numpy as np
 
 from cirq import protocols
 from cirq._compat import proper_repr
@@ -41,6 +42,10 @@ document(
 )
 
 
+_NUMERIC_INPUT_TYPE = Union[int, float, sympy.Expr, np.number]
+_NUMERIC_OUTPUT_TYPE = Union[int, float, sympy.Expr]
+
+
 class Duration:
     """A time delta that supports symbols and picosecond accuracy."""
 
@@ -48,10 +53,10 @@ class Duration:
         self,
         value: DURATION_LIKE = None,
         *,  # Force keyword args.
-        picos: Union[int, float, sympy.Expr] = 0,
-        nanos: Union[int, float, sympy.Expr] = 0,
-        micros: Union[int, float, sympy.Expr] = 0,
-        millis: Union[int, float, sympy.Expr] = 0,
+        picos: _NUMERIC_INPUT_TYPE = 0,
+        nanos: _NUMERIC_INPUT_TYPE = 0,
+        micros: _NUMERIC_INPUT_TYPE = 0,
+        millis: _NUMERIC_INPUT_TYPE = 0,
     ) -> None:
         """Initializes a Duration with a time specified in some unit.
 
@@ -86,6 +91,8 @@ class Duration:
         self._picos: Union[float, int, sympy.Expr] = (
             picos + nanos * 1000 + micros * 1000_000 + millis * 1000_000_000
         )
+        if isinstance(self._picos, np.number):
+            self._picos = float(self._picos)
 
     def _is_parameterized_(self) -> bool:
         return protocols.is_parameterized(self._picos)
@@ -96,19 +103,19 @@ class Duration:
     def _resolve_parameters_(self, resolver: 'cirq.ParamResolver', recursive: bool) -> 'Duration':
         return Duration(picos=protocols.resolve_parameters(self._picos, resolver, recursive))
 
-    def total_picos(self) -> Union[sympy.Expr, float]:
+    def total_picos(self) -> _NUMERIC_OUTPUT_TYPE:
         """Returns the number of picoseconds that the duration spans."""
         return self._picos
 
-    def total_nanos(self) -> Union[sympy.Expr, float]:
+    def total_nanos(self) -> _NUMERIC_OUTPUT_TYPE:
         """Returns the number of nanoseconds that the duration spans."""
         return self._picos / 1000
 
-    def total_micros(self) -> Union[sympy.Expr, float]:
+    def total_micros(self) -> _NUMERIC_OUTPUT_TYPE:
         """Returns the number of microseconds that the duration spans."""
         return self._picos / 1000_000
 
-    def total_millis(self) -> Union[sympy.Expr, float]:
+    def total_millis(self) -> _NUMERIC_OUTPUT_TYPE:
         """Returns the number of milliseconds that the duration spans."""
         return self._picos / 1000_000_000
 
