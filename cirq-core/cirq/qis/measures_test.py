@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """Tests for measures."""
+from typing import Sequence
+
 import numpy as np
 import pytest
 
@@ -164,20 +166,75 @@ def test_fidelity_product_states():
         )
 
 
-def test_fidelity_symmetric_sim_types():
+def test_fidelity_different_simulator_outputs_compatible():
     from cirq.sim.act_on_state_vector_args import _BufferedStateVector
     from cirq.sim.act_on_density_matrix_args import _BufferedDensityMatrix
 
-    sv1 = _BufferedStateVector.create(initial_state=VEC1)
-    sv2 = _BufferedStateVector.create(initial_state=VEC2)
-    dm1 = _BufferedDensityMatrix.create(initial_state=MAT1)
-    dm2 = _BufferedDensityMatrix.create(initial_state=MAT2)
-    np.testing.assert_allclose(cirq.fidelity(sv1, sv2), cirq.fidelity(sv2, sv1))
-    np.testing.assert_allclose(cirq.fidelity(sv1, dm1), cirq.fidelity(dm1, sv1))
-    np.testing.assert_allclose(
-        cirq.fidelity(cirq.density_matrix(dm1.density_matrix()), dm2),
-        cirq.fidelity(cirq.density_matrix(dm2.density_matrix()), dm1),
-    )
+    gate_domain = {
+        cirq.CNOT: 2,
+        cirq.CZ: 2,
+        cirq.H: 1,
+        cirq.S: 1,
+        cirq.SWAP: 2,
+        cirq.X: 1,
+        cirq.Y: 1,
+        cirq.Z: 1,
+    }
+    circuits = [
+        cirq.testing.random_circuit(qubits=5, n_moments=30, op_density=1, gate_domain=gate_domain)
+        for _ in range(2)
+    ]
+
+    def final_state(sim: cirq.Simulator):
+        return [
+            sim.simulate(c)._final_step_result._sim_state.create_merged_state()._state
+            for c in circuits
+        ]
+
+    density_matrices: Sequence[_BufferedDensityMatrix] = final_state(cirq.DensityMatrixSimulator())
+    state_vectors: Sequence[_BufferedStateVector] = final_state(cirq.Simulator())
+    ch_forms: Sequence[cirq.StabilizerStateChForm] = final_state(cirq.CliffordSimulator())
+    density_matrix = density_matrices[0]
+    state_vector = state_vectors[0]
+    ch_form = ch_forms[0]
+
+    assert isinstance(density_matrix, _BufferedDensityMatrix)
+    assert isinstance(state_vector, _BufferedStateVector)
+    assert isinstance(ch_form, cirq.StabilizerStateChForm)
+
+    def assert_fidelity_one(x, y):
+        np.testing.assert_allclose(cirq.fidelity(x, y), 1, atol=1e-2)
+
+    assert_fidelity_one(density_matrix, density_matrix)
+    assert_fidelity_one(density_matrix, state_vector)
+    assert_fidelity_one(density_matrix, ch_form)
+    assert_fidelity_one(state_vector, density_matrix)
+    assert_fidelity_one(state_vector, state_vector)
+    assert_fidelity_one(state_vector, ch_form)
+    assert_fidelity_one(ch_form, density_matrix)
+    assert_fidelity_one(ch_form, state_vector)
+    assert_fidelity_one(ch_form, ch_form)
+
+    def assert_fidelity_equivalent(xs, ys):
+        atol = 1e-2
+        baseline = cirq.fidelity(xs[0], xs[1])
+        np.testing.assert_allclose(baseline, cirq.fidelity(ys[0], ys[1]), atol=atol)
+        np.testing.assert_allclose(baseline, cirq.fidelity(xs[0], ys[1]), atol=atol)
+        np.testing.assert_allclose(baseline, cirq.fidelity(ys[0], xs[1]), atol=atol)
+        np.testing.assert_allclose(baseline, cirq.fidelity(xs[1], xs[0]), atol=atol)
+        np.testing.assert_allclose(baseline, cirq.fidelity(ys[1], ys[0]), atol=atol)
+        np.testing.assert_allclose(baseline, cirq.fidelity(xs[1], ys[0]), atol=atol)
+        np.testing.assert_allclose(baseline, cirq.fidelity(ys[1], xs[0]), atol=atol)
+
+    assert_fidelity_equivalent(density_matrices, density_matrices)
+    assert_fidelity_equivalent(density_matrices, state_vectors)
+    assert_fidelity_equivalent(density_matrices, ch_forms)
+    assert_fidelity_equivalent(state_vectors, density_matrices)
+    assert_fidelity_equivalent(state_vectors, state_vectors)
+    assert_fidelity_equivalent(state_vectors, ch_forms)
+    assert_fidelity_equivalent(ch_forms, density_matrices)
+    assert_fidelity_equivalent(ch_forms, state_vectors)
+    assert_fidelity_equivalent(ch_forms, ch_forms)
 
 
 def test_fidelity_fail_inference():
@@ -237,6 +294,24 @@ def test_von_neumann_entropy():
             cirq.quantum_state(np.array([[0.5, 0.5], [0.5, 0.5]]), qid_shape=(2, 2))
         )
         == 0
+    )
+
+
+@pytest.mark.parametrize(
+    'sim', (cirq.Simulator(), cirq.DensityMatrixSimulator(), cirq.CliffordSimulator())
+)
+def test_von_neumann_entropy_different_simulator_outputs(sim):
+    q0, q1 = cirq.LineQubit.range(2)
+    bell_circuit = cirq.Circuit(cirq.H(q0), cirq.CX(q0, q1))
+    bitflip_circuit = cirq.Circuit(cirq.H(q0), cirq.bit_flip(0.5)(q1))
+
+    def final_state(circuit):
+        return sim.simulate(circuit)._final_step_result._sim_state.create_merged_state()._state
+
+    assert cirq.von_neumann_entropy(final_state(bell_circuit), qid_shape=(2, 2)) == 0
+    np.testing.assert_allclose(
+        cirq.von_neumann_entropy(final_state(bitflip_circuit), qid_shape=(2, 2)),
+        1 if isinstance(sim, cirq.DensityMatrixSimulator) else 0,
     )
 
 

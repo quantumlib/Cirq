@@ -237,7 +237,7 @@ class _BufferedDensityMatrix(qis.QuantumStateRepresentation):
         return True
 
     def density_matrix(self) -> np.ndarray:
-        return self._density_matrix
+        return self._density_matrix.reshape((self._dim, self._dim))
 
 
 class ActOnDensityMatrixArgs(ActOnArgs[_BufferedDensityMatrix]):
