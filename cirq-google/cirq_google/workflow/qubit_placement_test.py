@@ -11,6 +11,8 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import itertools
+
 import pytest
 
 import cirq
@@ -145,3 +147,41 @@ def test_device_missing_metadata():
             shared_rt_info=cg.SharedRuntimeInfo(run_id='1', device=BadDevice()),
             rs=np.random.RandomState(1),
         )
+
+
+def _all_offset_placements(device_graph, offset=(4, 2), min_sidelength=2, max_sidelength=5):
+    # Generate candidate tilted square lattice topologies
+    sidelens = list(itertools.product(range(min_sidelength, max_sidelength + 1), repeat=2))
+    topos = [cirq.TiltedSquareLattice(width, height) for width, height in sidelens]
+
+    # Make placements using TiltedSquareLattice.nodes_to_gridqubits offset parameter
+    placements = {topo: topo.nodes_to_gridqubits(offset=offset) for topo in topos}
+
+    # Only allow placements that are valid on the device graph
+    placements = {
+        topo: mapping
+        for topo, mapping in placements.items()
+        if cirq.is_valid_placement(device_graph, topo.graph, mapping)
+    }
+    return placements
+
+
+def test_hardcoded_qubit_placer():
+
+    rainbow_record = cg.SimulatedProcessorWithLocalDeviceRecord('rainbow')
+    rainbow_device = rainbow_record.get_device()
+    rainbow_graph = rainbow_device.metadata.nx_graph
+    hardcoded = cg.HardcodedQubitPlacer(_all_offset_placements(rainbow_graph))
+
+    topo = cirq.TiltedSquareLattice(3, 2)
+    circuit = cirq.experiments.random_rotations_between_grid_interaction_layers_circuit(
+        qubits=sorted(topo.nodes_as_gridqubits()), depth=4
+    )
+    shared_rt_info = cg.SharedRuntimeInfo(run_id='example', device=rainbow_device)
+
+    rs = np.random.RandomState(10)
+    placed_c, placement = hardcoded.place_circuit(
+        circuit, problem_topology=topo, shared_rt_info=shared_rt_info, rs=rs
+    )
+    cirq.is_valid_placement(rainbow_graph, topo.graph, placement)
+    assert isinstance(placed_c, cirq.FrozenCircuit)
