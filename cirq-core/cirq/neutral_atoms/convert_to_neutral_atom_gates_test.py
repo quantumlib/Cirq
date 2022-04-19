@@ -50,11 +50,15 @@ def test_coverage():
 
 
 def test_avoids_decompose_fallback_when_matrix_available_single_qubit():
-    class OtherX(cirq.SingleQubitGate):
+    class OtherX(cirq.Gate):
+        def _num_qubits_(self) -> int:
+            return 1
         def _unitary_(self) -> np.ndarray:
             return np.array([[0, 1], [1, 0]])
 
-    class OtherOtherX(cirq.SingleQubitGate):
+    class OtherOtherX(cirq.Gate):
+        def _num_qubits_(self) -> int:
+            return 1
         def _decompose_(self, qubits):
             return OtherX().on(*qubits)
 

@@ -133,7 +133,7 @@ def _validate_map_input(
 
 
 @value.value_equality
-class SingleQubitCliffordGate(gate_features.SingleQubitGate):
+class SingleQubitCliffordGate(raw_types.Gate):
     """Any single qubit Clifford rotation."""
 
     I = _pretend_initialized()
@@ -151,6 +151,8 @@ class SingleQubitCliffordGate(gate_features.SingleQubitGate):
     def __init__(self, *, _clifford_tableau: qis.CliffordTableau) -> None:
         self._clifford_tableau = _clifford_tableau
 
+    def _num_qubits_(self) -> int:
+        return 1
     @property
     def clifford_tableau(self):
         return self._clifford_tableau
