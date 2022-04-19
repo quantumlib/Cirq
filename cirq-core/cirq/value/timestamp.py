@@ -49,7 +49,7 @@ class Timestamp:
 
     def __add__(self, other) -> 'Timestamp':
         if isinstance(other, timedelta):
-            return Timestamp(picos=self._picos + other.total_seconds() * 10 ** 12)
+            return Timestamp(picos=self._picos + other.total_seconds() * 10**12)
         if not isinstance(other, Duration):
             return NotImplemented
         return Timestamp(picos=self._picos + other.total_picos())
@@ -70,7 +70,7 @@ class Timestamp:
         if isinstance(other, Duration):
             return Timestamp(picos=self._picos - other.total_picos())
         if isinstance(other, timedelta):
-            return Timestamp(picos=self._picos - other.total_seconds() * 10 ** 12)
+            return Timestamp(picos=self._picos - other.total_seconds() * 10**12)
         if isinstance(other, type(self)):
             return Duration(picos=self._picos - other._picos)
         return NotImplemented

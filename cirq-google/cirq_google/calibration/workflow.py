@@ -13,18 +13,7 @@
 # limitations under the License.
 import dataclasses
 import itertools
-from typing import (
-    Callable,
-    Dict,
-    Iterable,
-    List,
-    Optional,
-    Sequence,
-    Set,
-    Tuple,
-    Union,
-    cast,
-)
+from typing import Callable, Dict, Iterable, List, Optional, Sequence, Set, Tuple, Union, cast
 
 import cirq
 from cirq.experiments import HALF_GRID_STAGGERED_PATTERN
@@ -47,7 +36,7 @@ from cirq_google.calibration.phased_fsim import (
     LocalXEBPhasedFSimCalibrationRequest,
 )
 from cirq_google.calibration.xeb_wrapper import run_local_xeb_calibration
-from cirq_google.engine import Engine, QuantumEngineSampler
+from cirq_google.engine import Engine, QuantumEngineSampler, util
 from cirq_google.serialization.serializer import Serializer
 
 _CALIBRATION_IRRELEVANT_GATES = cirq.MeasurementGate, cirq.SingleQubitGate, cirq.WaitGate
@@ -729,8 +718,7 @@ def _merge_into_calibrations(
                 )
             ):
                 calibrations[index] = options.create_phased_fsim_request(
-                    gate=calibration.gate,
-                    pairs=tuple(sorted(new_pairs.union(existing_pairs))),
+                    gate=calibration.gate, pairs=tuple(sorted(new_pairs.union(existing_pairs)))
                 )
                 return index
 
@@ -744,7 +732,6 @@ def _run_calibrations_via_engine(
     calibration_requests: Sequence[PhasedFSimCalibrationRequest],
     engine: Engine,
     processor_id: str,
-    gate_set: Serializer,
     max_layers_per_request: int = 1,
     progress_func: Optional[Callable[[int, int], None]] = None,
 ):
@@ -763,7 +750,7 @@ def _run_calibrations_via_engine(
     ]
 
     for cal_layers in nested_calibration_layers:
-        job = engine.run_calibration(cal_layers, processor_id=processor_id, gate_set=gate_set)
+        job = engine.run_calibration(cal_layers, processor_id=processor_id)
         request_results = job.calibration_results()
         results += [
             calibration.parse_result(result, job)
@@ -775,8 +762,7 @@ def _run_calibrations_via_engine(
 
 
 def _run_local_calibrations_via_sampler(
-    calibration_requests: Sequence[PhasedFSimCalibrationRequest],
-    sampler: cirq.Sampler,
+    calibration_requests: Sequence[PhasedFSimCalibrationRequest], sampler: cirq.Sampler
 ):
     """Helper function used by `run_calibrations` to run Local calibrations with a Sampler."""
     return [
@@ -787,6 +773,7 @@ def _run_local_calibrations_via_sampler(
     ]
 
 
+@util.deprecated_gate_set_parameter
 def run_calibrations(
     calibrations: Sequence[PhasedFSimCalibrationRequest],
     sampler: Union[Engine, cirq.Sampler],
@@ -842,27 +829,19 @@ def run_calibrations(
     elif isinstance(sampler, QuantumEngineSampler):
         engine = sampler.engine
         (processor_id,) = sampler._processor_ids
-        gate_set = sampler._gate_set
     else:
         engine = None
 
     if engine is not None:
         if processor_id is None:
-            raise ValueError('processor_id must be provided.')
-        if gate_set is None:
-            raise ValueError('gate_set must be provided.')
+            raise ValueError('processor_id must be provided.')  # coverage: ignore
 
         if calibration_request_type == LocalXEBPhasedFSimCalibrationRequest:
-            sampler = engine.get_sampler(processor_id=processor_id, gate_set=gate_set)
-            return _run_local_calibrations_via_sampler(calibrations, sampler)
+            engine_sampler = engine.get_sampler(processor_id=processor_id)
+            return _run_local_calibrations_via_sampler(calibrations, engine_sampler)
 
         return _run_calibrations_via_engine(
-            calibrations,
-            engine,
-            processor_id,
-            gate_set,
-            max_layers_per_request,
-            progress_func,
+            calibrations, engine, processor_id, max_layers_per_request, progress_func
         )
 
     if calibration_request_type == LocalXEBPhasedFSimCalibrationRequest:
@@ -1126,10 +1105,7 @@ def _find_moment_zeta_chi_gamma_corrections(
         pair_parameters = pair_parameters.merge_with(default_phases)
 
         corrections = FSimPhaseCorrections.from_characterization(
-            (a, b),
-            translated,
-            pair_parameters,
-            characterization_index,
+            (a, b), translated, pair_parameters, characterization_index
         )
 
         if decompositions_moment_to_calibration is None:
@@ -1186,6 +1162,7 @@ class FSimPhaseCorrections:
         return cirq.Circuit(self.operations)
 
 
+@util.deprecated_gate_set_parameter
 def run_floquet_characterization_for_moments(
     circuit: cirq.Circuit,
     sampler: Union[Engine, cirq.Sampler],
@@ -1250,13 +1227,13 @@ def run_floquet_characterization_for_moments(
         requests,
         sampler,
         processor_id,
-        gate_set,
         max_layers_per_request=max_layers_per_request,
         progress_func=progress_func,
     )
     return circuit_calibration, results
 
 
+@util.deprecated_gate_set_parameter
 def run_zeta_chi_gamma_compensation_for_moments(
     circuit: cirq.Circuit,
     sampler: Union[Engine, cirq.Sampler],
@@ -1325,7 +1302,6 @@ def run_zeta_chi_gamma_compensation_for_moments(
         calibrations=requests,
         sampler=sampler,
         processor_id=processor_id,
-        gate_set=gate_set,
         max_layers_per_request=max_layers_per_request,
         progress_func=progress_func,
     )

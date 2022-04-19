@@ -105,20 +105,10 @@ def make_bell_test_circuit():
     circuit = cirq.Circuit()
 
     # Prepare shared entangled state.
-    circuit.append(
-        [
-            cirq.H(alice),
-            cirq.CNOT(alice, bob),
-        ]
-    )
+    circuit.append([cirq.H(alice), cirq.CNOT(alice, bob)])
 
     # Referees flip coins.
-    circuit.append(
-        [
-            cirq.H(alice_referee),
-            cirq.H(bob_referee),
-        ]
-    )
+    circuit.append([cirq.H(alice_referee), cirq.H(bob_referee)])
 
     # Players do a sqrt(X) based on their referee's coin.
     circuit.append(

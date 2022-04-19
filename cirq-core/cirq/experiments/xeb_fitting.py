@@ -14,15 +14,7 @@
 """Estimation of fidelity associated with experimental circuit executions."""
 import dataclasses
 from abc import abstractmethod, ABC
-from typing import (
-    List,
-    Optional,
-    Sequence,
-    Tuple,
-    TYPE_CHECKING,
-    Dict,
-    Iterable,
-)
+from typing import List, Optional, Sequence, Tuple, TYPE_CHECKING, Dict, Iterable
 
 import numpy as np
 import pandas as pd
@@ -100,7 +92,7 @@ def benchmark_2q_xeb_fidelities(
     D = 4  # two qubits
     pure_probs = np.array(df['pure_probs'].to_list())
     sampled_probs = np.array(df['sampled_probs'].to_list())
-    df['e_u'] = np.sum(pure_probs ** 2, axis=1)
+    df['e_u'] = np.sum(pure_probs**2, axis=1)
     df['u_u'] = np.sum(pure_probs, axis=1) / D
     df['m_u'] = np.sum(pure_probs * sampled_probs, axis=1)
     df['y'] = df['m_u'] - df['u_u']
@@ -327,8 +319,7 @@ def SqrtISwapXEBOptions(*args, **kwargs):
 
 
 def parameterize_circuit(
-    circuit: 'cirq.Circuit',
-    options: XEBCharacterizationOptions,
+    circuit: 'cirq.Circuit', options: XEBCharacterizationOptions
 ) -> 'cirq.Circuit':
     """Parameterize PhasedFSim-like gates in a given circuit according to
     `phased_fsim_options`.
@@ -418,11 +409,7 @@ def characterize_phased_fsim_parameters_with_xeb(
     optimization_result = optimize.minimize(
         _mean_infidelity,
         x0=x0,
-        options={
-            'initial_simplex': initial_simplex,
-            'xatol': xatol,
-            'fatol': fatol,
-        },
+        options={'initial_simplex': initial_simplex, 'xatol': xatol, 'fatol': fatol},
         method='nelder-mead',
     )
 
@@ -539,7 +526,7 @@ def exponential_decay(cycle_depths: np.ndarray, a: float, layer_fid: float) -> n
         a: A scale parameter in the exponential function.
         layer_fid: The base of the exponent in the exponential function.
     """
-    return a * layer_fid ** cycle_depths
+    return a * layer_fid**cycle_depths
 
 
 def _fit_exponential_decay(

@@ -13,15 +13,7 @@
 # limitations under the License.
 
 
-from typing import (
-    Any,
-    Callable,
-    Iterable,
-    Optional,
-    Tuple,
-    TypeVar,
-    TYPE_CHECKING,
-)
+from typing import Any, Callable, Iterable, Optional, Tuple, TypeVar, TYPE_CHECKING
 
 from cirq.ops import raw_types
 

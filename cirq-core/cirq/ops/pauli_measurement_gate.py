@@ -15,7 +15,6 @@
 from typing import Any, Dict, FrozenSet, Iterable, Tuple, Sequence, TYPE_CHECKING, Union, cast
 
 from cirq import protocols, value
-from cirq._compat import deprecated
 from cirq.ops import (
     raw_types,
     measurement_gate,
@@ -77,27 +76,9 @@ class PauliMeasurementGate(raw_types.Gate):
     def key(self) -> str:
         return str(self.mkey)
 
-    @key.setter  # type: ignore
-    @deprecated(
-        deadline="v0.15",
-        fix="The mutators of this class are deprecated, instantiate a new object instead.",
-    )
-    def key(self, key: Union[str, 'cirq.MeasurementKey']):
-        if isinstance(key, str):
-            key = value.MeasurementKey(name=key)
-        self._mkey = key
-
     @property
     def mkey(self) -> 'cirq.MeasurementKey':
         return self._mkey
-
-    @mkey.setter  # type: ignore
-    @deprecated(
-        deadline="v0.15",
-        fix="The mutators of this class are deprecated, instantiate a new object instead.",
-    )
-    def mkey(self, mkey: 'cirq.MeasurementKey'):
-        self._mkey = mkey
 
     def _qid_shape_(self) -> Tuple[int, ...]:
         return (2,) * len(self._observable)
@@ -118,9 +99,7 @@ class PauliMeasurementGate(raw_types.Gate):
         return self.with_key(self.mkey._with_key_path_prefix_(prefix))
 
     def _with_rescoped_keys_(
-        self,
-        path: Tuple[str, ...],
-        bindable_keys: FrozenSet['cirq.MeasurementKey'],
+        self, path: Tuple[str, ...], bindable_keys: FrozenSet['cirq.MeasurementKey']
     ) -> 'PauliMeasurementGate':
         return self.with_key(protocols.with_rescoped_keys(self.mkey, path, bindable_keys))
 
@@ -199,17 +178,11 @@ class PauliMeasurementGate(raw_types.Gate):
         return self.key, self._observable
 
     def _json_dict_(self) -> Dict[str, Any]:
-        return {
-            'observable': self._observable,
-            'key': self.key,
-        }
+        return {'observable': self._observable, 'key': self.key}
 
     @classmethod
     def _from_json_dict_(cls, observable, key, **kwargs) -> 'PauliMeasurementGate':
-        return cls(
-            observable=observable,
-            key=value.MeasurementKey.parse_serialized(key),
-        )
+        return cls(observable=observable, key=value.MeasurementKey.parse_serialized(key))
 
 
 def _default_measurement_key(qubits: Iterable[raw_types.Qid]) -> str:

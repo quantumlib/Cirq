@@ -28,21 +28,13 @@ from cirq.testing.consistent_decomposition import (
     assert_decompose_is_consistent_with_unitary,
     assert_decompose_ends_at_default_gateset,
 )
-from cirq.testing.consistent_phase_by import (
-    assert_phase_by_is_consistent_with_unitary,
-)
-from cirq.testing.consistent_qasm import (
-    assert_qasm_is_consistent_with_unitary,
-)
+from cirq.testing.consistent_phase_by import assert_phase_by_is_consistent_with_unitary
+from cirq.testing.consistent_qasm import assert_qasm_is_consistent_with_unitary
 from cirq.testing.consistent_pauli_expansion import (
     assert_pauli_expansion_is_consistent_with_unitary,
 )
-from cirq.testing.consistent_resolve_parameters import (
-    assert_consistent_resolve_parameters,
-)
-from cirq.testing.consistent_specified_has_unitary import (
-    assert_specifies_has_unitary_if_unitary,
-)
+from cirq.testing.consistent_resolve_parameters import assert_consistent_resolve_parameters
+from cirq.testing.consistent_specified_has_unitary import assert_specifies_has_unitary_if_unitary
 from cirq.testing.equivalent_repr_eval import assert_equivalent_repr
 from cirq.testing.consistent_controlled_gate_op import assert_controlled_and_controlled_by_identical
 
@@ -75,7 +67,7 @@ def assert_implements_consistent_protocols(
         p = protocols.pow(val, exponent, None)
         if p is not None:
             _assert_meets_standards_helper(
-                val ** exponent,
+                val**exponent,
                 ignoring_global_phase=ignoring_global_phase,
                 setup_code=setup_code,
                 global_vals=global_vals,

@@ -24,8 +24,8 @@ from typing import Any, Dict, List, Optional, Sequence, Set, Tuple, TYPE_CHECKIN
 import numpy as np
 import quimb.tensor as qtn
 
-from cirq import devices, protocols, value
-from cirq._compat import deprecated
+from cirq import devices, protocols, qis, value
+from cirq._compat import deprecated_parameter
 from cirq.sim import simulator_base
 from cirq.sim.act_on_args import ActOnArgs
 
@@ -53,9 +53,7 @@ class MPSOptions:
 
 
 class MPSSimulator(
-    simulator_base.SimulatorBase[
-        'MPSSimulatorStepResult', 'MPSTrialResult', 'MPSState', 'MPSState'
-    ],
+    simulator_base.SimulatorBase['MPSSimulatorStepResult', 'MPSTrialResult', 'MPSState', 'MPSState']
 ):
     """An efficient simulator for MPS circuits."""
 
@@ -83,10 +81,7 @@ class MPSSimulator(
             raise ValueError(f'noise must be unitary or mixture but was {noise_model}')
         self.simulation_options = simulation_options
         self.grouping = grouping
-        super().__init__(
-            noise=noise,
-            seed=seed,
-        )
+        super().__init__(noise=noise, seed=seed)
 
     def _create_partial_act_on_args(
         self,
@@ -120,10 +115,7 @@ class MPSSimulator(
             classical_data=classical_data,
         )
 
-    def _create_step_result(
-        self,
-        sim_state: 'cirq.OperationTarget[MPSState]',
-    ):
+    def _create_step_result(self, sim_state: 'cirq.OperationTarget[MPSState]'):
         return MPSSimulatorStepResult(sim_state)
 
     def _create_simulator_trial_result(
@@ -182,10 +174,7 @@ class MPSTrialResult(simulator_base.SimulationTrialResultBase['MPSState', 'MPSSt
 class MPSSimulatorStepResult(simulator_base.StepResultBase['MPSState', 'MPSState']):
     """A `StepResult` that can perform measurements."""
 
-    def __init__(
-        self,
-        sim_state: 'cirq.OperationTarget[MPSState]',
-    ):
+    def __init__(self, sim_state: 'cirq.OperationTarget[MPSState]'):
         """Results of a step of the simulator.
         Attributes:
             sim_state: The qubit:ActOnArgs lookup for this step.
@@ -220,7 +209,7 @@ class MPSSimulatorStepResult(simulator_base.StepResultBase['MPSState', 'MPSState
 
 
 @value.value_equality
-class _MPSHandler:
+class _MPSHandler(qis.QuantumStateRepresentation):
     """Quantum state of the MPS simulation."""
 
     def __init__(
@@ -573,9 +562,22 @@ class _MPSHandler:
 
 
 @value.value_equality
-class MPSState(ActOnArgs):
+class MPSState(ActOnArgs[_MPSHandler]):
     """A state of the MPS simulation."""
 
+    @deprecated_parameter(
+        deadline='v0.16',
+        fix='Use kwargs instead of positional args',
+        parameter_desc='args',
+        match=lambda args, kwargs: len(args) > 1,
+    )
+    @deprecated_parameter(
+        deadline='v0.16',
+        fix='Replace log_of_measurement_results with'
+        ' classical_data=cirq.ClassicalDataDictionaryStore(_records=logs).',
+        parameter_desc='log_of_measurement_results',
+        match=lambda args, kwargs: 'log_of_measurement_results' in kwargs,
+    )
     def __init__(
         self,
         qubits: Sequence['cirq.Qid'],
@@ -604,21 +606,26 @@ class MPSState(ActOnArgs):
         Raises:
             ValueError: If the grouping does not cover the qubits.
         """
-        super().__init__(
-            prng=prng,
-            qubits=qubits,
-            log_of_measurement_results=log_of_measurement_results,
-            classical_data=classical_data,
-        )
-        final_grouping = self.qubit_map if grouping is None else grouping
-        if final_grouping.keys() != self.qubit_map.keys():
+        qubit_map = {q: i for i, q in enumerate(qubits)}
+        final_grouping = qubit_map if grouping is None else grouping
+        if final_grouping.keys() != qubit_map.keys():
             raise ValueError('Grouping must cover exactly the qubits.')
-        self._state = _MPSHandler.create(
+        state = _MPSHandler.create(
             initial_state=initial_state,
             qid_shape=tuple(q.dimension for q in qubits),
             simulation_options=simulation_options,
-            grouping={self.qubit_map[k]: v for k, v in final_grouping.items()},
+            grouping={qubit_map[k]: v for k, v in final_grouping.items()},
         )
+        if log_of_measurement_results is not None:
+            super().__init__(
+                state=state,
+                prng=prng,
+                qubits=qubits,
+                log_of_measurement_results=log_of_measurement_results,
+                classical_data=classical_data,
+            )
+        else:
+            super().__init__(state=state, prng=prng, qubits=qubits, classical_data=classical_data)
 
     def i_str(self, i: int) -> str:
         # Returns the index name for the i'th qid.
@@ -635,9 +642,6 @@ class MPSState(ActOnArgs):
 
     def _value_equality_values_(self) -> Any:
         return self.qubits, self._state
-
-    def _on_copy(self, target: 'MPSState', deep_copy_buffers: bool = True):
-        target._state = self._state.copy(deep_copy_buffers)
 
     def state_vector(self) -> np.ndarray:
         """Returns the full state vector.
@@ -665,21 +669,8 @@ class MPSState(ActOnArgs):
         """An alias for the state vector."""
         return self._state.to_numpy()
 
-    @deprecated(deadline="v0.15", fix="Use cirq.act_on(op, mps_state)")
-    def apply_op(self, op: 'cirq.Operation', prng: np.random.RandomState):
-        """Applies a unitary operation, mutating the object to represent the new state.
-
-        op:
-            The operation that mutates the object. Note that currently, only 1-
-            and 2- qubit operations are currently supported.
-        """
-        return self._state.apply_op(op, self.get_axes(op.qubits), prng)
-
     def _act_on_fallback_(
-        self,
-        action: Union['cirq.Operation', 'cirq.Gate'],
-        qubits: Sequence['cirq.Qid'],
-        allow_decompose: bool = True,
+        self, action: Any, qubits: Sequence['cirq.Qid'], allow_decompose: bool = True
     ) -> bool:
         """Delegates the action to self.apply_op"""
         return self._state.apply_op(action, self.get_axes(qubits), self.prng)
@@ -691,33 +682,3 @@ class MPSState(ActOnArgs):
     @property
     def M(self):
         return self._state._M
-
-    @deprecated(deadline="v0.15", fix="Use cirq.act_on(measurement, mps_state)")
-    def perform_measurement(
-        self, qubits: Sequence['cirq.Qid'], prng: np.random.RandomState, collapse_state_vector=True
-    ) -> List[int]:
-        """Performs a measurement over one or more qubits.
-
-        Args:
-            qubits: The sequence of qids to measure, in that order.
-            prng: A random number generator, used to simulate measurements.
-            collapse_state_vector: A Boolean specifying whether we should mutate
-                the state after the measurement.
-
-        Raises:
-            ValueError: If the probabilities for the measurements differ too much from one for the
-                tolerance specified in simulation options.
-        """
-        return self._state._measure(self.get_axes(qubits), prng, collapse_state_vector)
-
-    def _perform_measurement(self, qubits: Sequence['cirq.Qid']) -> List[int]:
-        """Measures the axes specified by the simulator."""
-        return self._state.measure(self.get_axes(qubits), self.prng)
-
-    def sample(
-        self,
-        qubits: Sequence['cirq.Qid'],
-        repetitions: int = 1,
-        seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None,
-    ) -> np.ndarray:
-        return self._state.sample(self.get_axes(qubits), repetitions, seed)

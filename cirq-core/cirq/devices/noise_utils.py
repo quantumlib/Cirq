@@ -87,10 +87,7 @@ class OpIdentifier:
 
     def _json_dict_(self) -> Dict[str, Any]:
         gate_json = protocols.json_cirq_type(self._gate_type)
-        return {
-            'gate_type': gate_json,
-            'qubits': self._qubits,
-        }
+        return {'gate_type': gate_json, 'qubits': self._qubits}
 
     @classmethod
     def _from_json_dict_(cls, gate_type, qubits, **kwargs) -> 'OpIdentifier':
@@ -109,7 +106,7 @@ def decay_constant_to_xeb_fidelity(decay_constant: float, num_qubits: int = 2) -
     Returns:
         Calculated XEB fidelity.
     """
-    N = 2 ** num_qubits
+    N = 2**num_qubits
     return 1 - ((1 - decay_constant) * (1 - 1 / N))
 
 
@@ -123,7 +120,7 @@ def decay_constant_to_pauli_error(decay_constant: float, num_qubits: int = 1) ->
     Returns:
         Calculated Pauli error.
     """
-    N = 2 ** num_qubits
+    N = 2**num_qubits
     return (1 - decay_constant) * (1 - 1 / N / N)
 
 
@@ -137,7 +134,7 @@ def pauli_error_to_decay_constant(pauli_error: float, num_qubits: int = 1) -> fl
     Returns:
         Calculated depolarization decay constant.
     """
-    N = 2 ** num_qubits
+    N = 2**num_qubits
     return 1 - (pauli_error / (1 - 1 / N / N))
 
 
@@ -151,7 +148,7 @@ def xeb_fidelity_to_decay_constant(xeb_fidelity: float, num_qubits: int = 2) -> 
     Returns:
         Calculated depolarization decay constant.
     """
-    N = 2 ** num_qubits
+    N = 2**num_qubits
     return 1 - (1 - xeb_fidelity) / (1 - 1 / N)
 
 
@@ -181,7 +178,7 @@ def average_error(decay_constant: float, num_qubits: int = 1) -> float:
     Returns:
         Calculated average error.
     """
-    N = 2 ** num_qubits
+    N = 2**num_qubits
     return (1 - decay_constant) * (1 - 1 / N)
 
 

@@ -111,10 +111,7 @@ class XPowGate(eigen_gate.EigenGate, gate_features.SingleQubitGate):
         return XPowGate(exponent=self._exponent)
 
     def _eigen_components(self) -> List[Tuple[float, np.ndarray]]:
-        return [
-            (0, np.array([[0.5, 0.5], [0.5, 0.5]])),
-            (1, np.array([[0.5, -0.5], [-0.5, 0.5]])),
-        ]
+        return [(0, np.array([[0.5, 0.5], [0.5, 0.5]])), (1, np.array([[0.5, -0.5], [-0.5, 0.5]]))]
 
     def _decompose_into_clifford_with_qubits_(self, qubits):
         from cirq.ops.clifford_gate import SingleQubitCliffordGate
@@ -186,12 +183,7 @@ class XPowGate(eigen_gate.EigenGate, gate_features.SingleQubitGate):
             return NotImplemented
         phase = 1j ** (2 * self._exponent * (self._global_shift + 0.5))
         angle = np.pi * self._exponent / 2
-        return value.LinearDict(
-            {
-                'I': phase * np.cos(angle),
-                'X': -1j * phase * np.sin(angle),
-            }
-        )
+        return value.LinearDict({'I': phase * np.cos(angle), 'X': -1j * phase * np.sin(angle)})
 
     def _circuit_diagram_info_(
         self, args: 'cirq.CircuitDiagramInfoArgs'
@@ -282,9 +274,7 @@ class Rx(XPowGate):
         return f'cirq.Rx(rads={proper_repr(self._rads)})'
 
     def _json_dict_(self) -> Dict[str, Any]:
-        return {
-            'rads': self._rads,
-        }
+        return {'rads': self._rads}
 
     @classmethod
     def _from_json_dict_(cls, rads, **kwargs) -> 'Rx':
@@ -364,12 +354,7 @@ class YPowGate(eigen_gate.EigenGate, gate_features.SingleQubitGate):
             return NotImplemented
         phase = 1j ** (2 * self._exponent * (self._global_shift + 0.5))
         angle = np.pi * self._exponent / 2
-        return value.LinearDict(
-            {
-                'I': phase * np.cos(angle),
-                'Y': -1j * phase * np.sin(angle),
-            }
-        )
+        return value.LinearDict({'I': phase * np.cos(angle), 'Y': -1j * phase * np.sin(angle)})
 
     def _circuit_diagram_info_(
         self, args: 'cirq.CircuitDiagramInfoArgs'
@@ -457,9 +442,7 @@ class Ry(YPowGate):
         return f'cirq.Ry(rads={proper_repr(self._rads)})'
 
     def _json_dict_(self) -> Dict[str, Any]:
-        return {
-            'rads': self._rads,
-        }
+        return {'rads': self._rads}
 
     @classmethod
     def _from_json_dict_(cls, rads, **kwargs) -> 'Ry':
@@ -569,10 +552,7 @@ class ZPowGate(eigen_gate.EigenGate, gate_features.SingleQubitGate):
         return result
 
     def _eigen_components(self) -> List[Tuple[float, np.ndarray]]:
-        return [
-            (0, np.diag([1, 0])),
-            (1, np.diag([0, 1])),
-        ]
+        return [(0, np.diag([1, 0])), (1, np.diag([0, 1]))]
 
     def _trace_distance_bound_(self) -> Optional[float]:
         if self._is_parameterized_():
@@ -584,12 +564,7 @@ class ZPowGate(eigen_gate.EigenGate, gate_features.SingleQubitGate):
             return NotImplemented
         phase = 1j ** (2 * self._exponent * (self._global_shift + 0.5))
         angle = np.pi * self._exponent / 2
-        return value.LinearDict(
-            {
-                'I': phase * np.cos(angle),
-                'Z': -1j * phase * np.sin(angle),
-            }
-        )
+        return value.LinearDict({'I': phase * np.cos(angle), 'Z': -1j * phase * np.sin(angle)})
 
     def _phase_by_(self, phase_turns: float, qubit_index: int):
         return self
@@ -662,7 +637,7 @@ class ZPowGate(eigen_gate.EigenGate, gate_features.SingleQubitGate):
         )
 
     def _commutes_on_qids_(
-        self, qids: 'Sequence[cirq.Qid]', other: Any, atol: float
+        self, qids: 'Sequence[cirq.Qid]', other: Any, *, atol: float = 1e-8
     ) -> Union[bool, NotImplementedType, None]:
         from cirq.ops.parity_gates import ZZPowGate
 
@@ -706,9 +681,7 @@ class Rz(ZPowGate):
         return f'cirq.Rz(rads={proper_repr(self._rads)})'
 
     def _json_dict_(self) -> Dict[str, Any]:
-        return {
-            'rads': self._rads,
-        }
+        return {'rads': self._rads}
 
     @classmethod
     def _from_json_dict_(cls, rads, **kwargs) -> 'Rz':
@@ -880,10 +853,7 @@ class CZPowGate(gate_features.InterchangeableQubitsGate, eigen_gate.EigenGate):
         return NotImplemented
 
     def _eigen_components(self) -> List[Tuple[float, np.ndarray]]:
-        return [
-            (0, np.diag([1, 1, 1, 0])),
-            (1, np.diag([0, 0, 0, 1])),
-        ]
+        return [(0, np.diag([1, 1, 1, 0])), (1, np.diag([0, 0, 0, 1]))]
 
     def _trace_distance_bound_(self) -> Optional[float]:
         if self._is_parameterized_():
@@ -908,7 +878,7 @@ class CZPowGate(gate_features.InterchangeableQubitsGate, eigen_gate.EigenGate):
         if protocols.is_parameterized(self):
             return NotImplemented
         global_phase = 1j ** (2 * self._exponent * self._global_shift)
-        z_phase = 1j ** self._exponent
+        z_phase = 1j**self._exponent
         c = -1j * z_phase * np.sin(np.pi * self._exponent / 2) / 2
         return value.LinearDict(
             {
@@ -1090,7 +1060,7 @@ class CXPowGate(eigen_gate.EigenGate):
         if protocols.is_parameterized(self):
             return NotImplemented
         global_phase = 1j ** (2 * self._exponent * self._global_shift)
-        cnot_phase = 1j ** self._exponent
+        cnot_phase = 1j**self._exponent
         c = -1j * cnot_phase * np.sin(np.pi * self._exponent / 2) / 2
         return value.LinearDict(
             {

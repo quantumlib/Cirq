@@ -46,12 +46,7 @@ def base_deserializer():
     return cg.GateOpDeserializer(
         serialized_gate_id='my_gate',
         gate_constructor=GateWithAttribute,
-        args=[
-            cg.DeserializingArg(
-                serialized_name='my_val',
-                constructor_arg_name='val',
-            )
-        ],
+        args=[cg.DeserializingArg(serialized_name='my_val', constructor_arg_name='val')],
     )
 
 
@@ -115,10 +110,7 @@ def test_from_proto_unknown_function():
                 'my_val': {
                     'func': {
                         'type': 'UNKNOWN_OPERATION',
-                        'args': [
-                            {'symbol': 'x'},
-                            {'arg_value': {'float_value': -1.0}},
-                        ],
+                        'args': [{'symbol': 'x'}, {'arg_value': {'float_value': -1.0}}],
                     }
                 }
             },
@@ -134,11 +126,7 @@ def test_from_proto_value_type_not_recognized():
     serialized = op_proto(
         {
             'gate': {'id': 'my_gate'},
-            'args': {
-                'my_val': {
-                    'arg_value': {},
-                }
-            },
+            'args': {'my_val': {'arg_value': {}}},
             'qubits': [{'id': '1_2'}],
         }
     )
@@ -151,17 +139,7 @@ def test_from_proto_function_argument_not_set():
     serialized = op_proto(
         {
             'gate': {'id': 'my_gate'},
-            'args': {
-                'my_val': {
-                    'func': {
-                        'type': 'mul',
-                        'args': [
-                            {'symbol': 'x'},
-                            {},
-                        ],
-                    }
-                }
-            },
+            'args': {'my_val': {'func': {'type': 'mul', 'args': [{'symbol': 'x'}, {}]}}},
             'qubits': [{'id': '1_2'}],
         }
     )
@@ -196,10 +174,7 @@ def test_from_proto_not_required_ok():
         serialized_gate_id='my_gate',
         gate_constructor=GateWithAttribute,
         args=[
-            cg.DeserializingArg(
-                serialized_name='my_val',
-                constructor_arg_name='val',
-            ),
+            cg.DeserializingArg(serialized_name='my_val', constructor_arg_name='val'),
             cg.DeserializingArg(
                 serialized_name='not_req', constructor_arg_name='not_req', required=False
             ),
@@ -222,10 +197,7 @@ def test_from_proto_missing_required_arg():
         serialized_gate_id='my_gate',
         gate_constructor=GateWithAttribute,
         args=[
-            cg.DeserializingArg(
-                serialized_name='my_val',
-                constructor_arg_name='val',
-            ),
+            cg.DeserializingArg(serialized_name='my_val', constructor_arg_name='val'),
             cg.DeserializingArg(
                 serialized_name='not_req', constructor_arg_name='not_req', required=False
             ),
@@ -247,10 +219,7 @@ def test_from_proto_required_arg_not_assigned():
         serialized_gate_id='my_gate',
         gate_constructor=GateWithAttribute,
         args=[
-            cg.DeserializingArg(
-                serialized_name='my_val',
-                constructor_arg_name='val',
-            ),
+            cg.DeserializingArg(serialized_name='my_val', constructor_arg_name='val'),
             cg.DeserializingArg(
                 serialized_name='not_req', constructor_arg_name='not_req', required=False
             ),
@@ -337,11 +306,7 @@ def default_circuit_proto():
 
     return v2.program_pb2.Circuit(
         scheduling_strategy=v2.program_pb2.Circuit.MOMENT_BY_MOMENT,
-        moments=[
-            v2.program_pb2.Moment(
-                operations=[op1, op2],
-            ),
-        ],
+        moments=[v2.program_pb2.Moment(operations=[op1, op2])],
     )
 
 

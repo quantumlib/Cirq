@@ -19,7 +19,7 @@ import cirq
 
 def test_empty_init():
     with pytest.raises(TypeError, match='required positional argument'):
-        _ = cirq.MeasurementKey()
+        _ = cirq.MeasurementKey()  # pylint: disable=no-value-for-parameter
     with pytest.raises(ValueError, match='valid string'):
         _ = cirq.MeasurementKey(None)
     with pytest.raises(ValueError, match='valid string'):

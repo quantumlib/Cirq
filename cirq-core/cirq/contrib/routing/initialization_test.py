@@ -29,7 +29,7 @@ def get_seeded_initial_mapping(graph_seed, init_seed):
     return ccr.initialization.get_initial_mapping(logical_graph, device_graph, init_seed)
 
 
-@pytest.mark.parametrize('seed', [random.randint(0, 2 ** 32) for _ in range(10)])
+@pytest.mark.parametrize('seed', [random.randint(0, 2**32) for _ in range(10)])
 def test_initialization_reproducible_with_seed(seed):
     wrappers = (lambda s: s, np.random.RandomState)
     mappings = [
@@ -39,7 +39,7 @@ def test_initialization_reproducible_with_seed(seed):
     eq.add_equality_group(*mappings)
 
 
-@pytest.mark.parametrize('graph_seed,state', [(random.randint(0, 2 ** 32), np.random.get_state())])
+@pytest.mark.parametrize('graph_seed,state', [(random.randint(0, 2**32), np.random.get_state())])
 def test_initialization_with_no_seed(graph_seed, state):
     mappings = []
     for _ in range(3):

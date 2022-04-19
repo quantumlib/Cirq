@@ -11,18 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from typing import (
-    cast,
-    Dict,
-    Hashable,
-    Iterable,
-    Iterator,
-    List,
-    Optional,
-    Sequence,
-    Set,
-    TYPE_CHECKING,
-)
+from typing import cast, Dict, Hashable, Iterable, Iterator, List, Optional, Sequence, Set, TYPE_CHECKING
 from collections import OrderedDict
 import dataclasses
 import numpy as np

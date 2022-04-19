@@ -53,7 +53,9 @@ class Pauli(raw_types.Gate, metaclass=abc.ABCMeta):
     def num_qubits(self):
         return 1
 
-    def _commutes_(self, other: Any, atol: float) -> Union[bool, NotImplementedType, None]:
+    def _commutes_(
+        self, other: Any, *, atol: float = 1e-8
+    ) -> Union[bool, NotImplementedType, None]:
         if not isinstance(other, Pauli):
             return NotImplemented
         return self is other
@@ -126,10 +128,7 @@ class _PauliX(Pauli, common_gates.XPowGate):
     def basis(self: '_PauliX') -> Dict[int, '_XEigenState']:
         from cirq.value.product_state import _XEigenState
 
-        return {
-            +1: _XEigenState(+1),
-            -1: _XEigenState(-1),
-        }
+        return {+1: _XEigenState(+1), -1: _XEigenState(-1)}
 
 
 class _PauliY(Pauli, common_gates.YPowGate):
@@ -153,10 +152,7 @@ class _PauliY(Pauli, common_gates.YPowGate):
     def basis(self: '_PauliY') -> Dict[int, '_YEigenState']:
         from cirq.value.product_state import _YEigenState
 
-        return {
-            +1: _YEigenState(+1),
-            -1: _YEigenState(-1),
-        }
+        return {+1: _YEigenState(+1), -1: _YEigenState(-1)}
 
 
 class _PauliZ(Pauli, common_gates.ZPowGate):
@@ -180,10 +176,7 @@ class _PauliZ(Pauli, common_gates.ZPowGate):
     def basis(self: '_PauliZ') -> Dict[int, '_ZEigenState']:
         from cirq.value.product_state import _ZEigenState
 
-        return {
-            +1: _ZEigenState(+1),
-            -1: _ZEigenState(-1),
-        }
+        return {+1: _ZEigenState(+1), -1: _ZEigenState(-1)}
 
 
 X = _PauliX()

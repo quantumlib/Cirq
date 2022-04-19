@@ -29,7 +29,7 @@ def test_state_vector_trial_result_repr():
         initial_state=np.array([0, 1], dtype=np.complex64),
         dtype=np.complex64,
     )
-    final_step_result = cirq.SparseSimulatorStep(args, cirq.Simulator())
+    final_step_result = cirq.SparseSimulatorStep(args)
     trial_result = cirq.StateVectorTrialResult(
         params=cirq.ParamResolver({'s': 1}),
         measurements={'m': np.array([[1]], dtype=np.int32)},
@@ -41,15 +41,13 @@ def test_state_vector_trial_result_repr():
         "measurements={'m': np.array([[1]], dtype=np.int32)}, "
         "final_step_result=cirq.SparseSimulatorStep("
         "sim_state=cirq.ActOnStateVectorArgs("
-        "target_tensor=np.array([0j, (1+0j)], dtype=np.complex64), "
-        "available_buffer=np.array([0j, (1+0j)], dtype=np.complex64), "
+        "initial_state=np.array([0j, (1+0j)], dtype=np.complex64), "
         "qubits=(cirq.NamedQubit('a'),), "
-        "log_of_measurement_results={}), "
+        "classical_data=cirq.ClassicalDataDictionaryStore()), "
         "dtype=np.complex64))"
     )
     assert repr(trial_result) == expected_repr
-    with cirq.testing.assert_deprecated('Use initial_state instead', deadline='v0.15', count=2):
-        assert eval(expected_repr) == trial_result
+    assert eval(expected_repr) == trial_result
 
 
 def test_state_vector_simulator_state_repr():
@@ -68,14 +66,10 @@ def test_state_vector_trial_result_equality():
     )
     eq.add_equality_group(
         cirq.StateVectorTrialResult(
-            params=cirq.ParamResolver({}),
-            measurements={},
-            final_step_result=final_step_result,
+            params=cirq.ParamResolver({}), measurements={}, final_step_result=final_step_result
         ),
         cirq.StateVectorTrialResult(
-            params=cirq.ParamResolver({}),
-            measurements={},
-            final_step_result=final_step_result,
+            params=cirq.ParamResolver({}), measurements={}, final_step_result=final_step_result
         ),
     )
     eq.add_equality_group(
@@ -176,15 +170,11 @@ def test_str_big():
     args = cirq.ActOnStateVectorArgs(
         prng=np.random.RandomState(0),
         qubits=qs,
-        initial_state=np.array([1] * 2 ** 10, dtype=np.complex64) * 0.03125,
+        initial_state=np.array([1] * 2**10, dtype=np.complex64) * 0.03125,
         dtype=np.complex64,
     )
-    final_step_result = cirq.SparseSimulatorStep(args, cirq.Simulator())
-    result = cirq.StateVectorTrialResult(
-        cirq.ParamResolver(),
-        {},
-        final_step_result,
-    )
+    final_step_result = cirq.SparseSimulatorStep(args)
+    result = cirq.StateVectorTrialResult(cirq.ParamResolver(), {}, final_step_result)
     assert 'output vector: [0.03125+0.j 0.03125+0.j 0.03125+0.j ..' in str(result)
 
 
@@ -196,7 +186,7 @@ def test_pretty_print():
         initial_state=np.array([1], dtype=np.complex64),
         dtype=np.complex64,
     )
-    final_step_result = cirq.SparseSimulatorStep(args, cirq.Simulator())
+    final_step_result = cirq.SparseSimulatorStep(args)
     result = cirq.StateVectorTrialResult(cirq.ParamResolver(), {}, final_step_result)
 
     # Test Jupyter console output from

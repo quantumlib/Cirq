@@ -17,14 +17,7 @@ import cirq
 import cirq_google as cg
 import cirq_google.engine.engine_validator as engine_validator
 
-SERIALIZABLE_GATE_DOMAIN = {
-    cirq.X: 1,
-    cirq.Y: 1,
-    cirq.Z: 1,
-    cirq.S: 1,
-    cirq.T: 1,
-    cirq.CZ: 2,
-}
+SERIALIZABLE_GATE_DOMAIN = {cirq.X: 1, cirq.Y: 1, cirq.Z: 1, cirq.S: 1, cirq.T: 1, cirq.CZ: 2}
 
 
 def _big_circuit(num_cycles: int) -> cirq.Circuit:

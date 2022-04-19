@@ -44,7 +44,7 @@ def test_merge_1q_unitaries():
     assert len(op_list) == 1
     assert isinstance(op_list[0].gate, cirq.MatrixGate)
     cirq.testing.assert_allclose_up_to_global_phase(
-        cirq.unitary(c), cirq.unitary(cirq.Y ** 0.5), atol=1e-7
+        cirq.unitary(c), cirq.unitary(cirq.Y**0.5), atol=1e-7
     )
 
     # 2. Gets blocked at a 2q operation.
@@ -228,10 +228,7 @@ def test_merge_k_qubit_unitaries_deep():
 
     context = cirq.TransformerContext(tags_to_ignore=("ignore",), deep=True)
     c_new = cirq.merge_k_qubit_unitaries(
-        c_orig,
-        k=2,
-        context=context,
-        rewriter=rewriter_merge_to_circuit_op,
+        c_orig, k=2, context=context, rewriter=rewriter_merge_to_circuit_op
     )
     cirq.testing.assert_same_circuits(c_new, c_expected)
 

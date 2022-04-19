@@ -148,11 +148,7 @@ class SingleQubitCliffordGate(gate_features.SingleQubitGate):
     Y_nsqrt = _pretend_initialized()
     Z_nsqrt = _pretend_initialized()
 
-    def __init__(
-        self,
-        *,
-        _clifford_tableau: qis.CliffordTableau,
-    ) -> None:
+    def __init__(self, *, _clifford_tableau: qis.CliffordTableau) -> None:
         self._clifford_tableau = _clifford_tableau
 
     @property
@@ -383,7 +379,7 @@ class SingleQubitCliffordGate(gate_features.SingleQubitGate):
 
         return SingleQubitCliffordGate.from_clifford_tableau(self.clifford_tableau.inverse())
 
-    def _commutes_(self, other: Any, atol: float) -> Union[bool, NotImplementedType]:
+    def _commutes_(self, other: Any, *, atol: float = 1e-8) -> Union[bool, NotImplementedType]:
         if isinstance(other, SingleQubitCliffordGate):
             return self.commutes_with_single_qubit_gate(other)
         if isinstance(other, Pauli):
@@ -487,7 +483,7 @@ class SingleQubitCliffordGate(gate_features.SingleQubitGate):
         """Returns a SingleQubitCliffordGate such that the circuits
             --output--self-- and --self--gate--
         are equivalent up to global phase."""
-        return self.merged_with(after).merged_with(self ** -1)
+        return self.merged_with(after).merged_with(self**-1)
 
     def __repr__(self) -> str:
         x = self.transform(pauli_gates.X)
@@ -503,12 +499,7 @@ class SingleQubitCliffordGate(gate_features.SingleQubitGate):
 
     @classmethod
     def _from_json_dict_(cls, n, rs, xs, zs, **kwargs):
-        _clifford_tableau = qis.CliffordTableau._from_json_dict_(
-            n,
-            rs,
-            xs,
-            zs,
-        )
+        _clifford_tableau = qis.CliffordTableau._from_json_dict_(n, rs, xs, zs)
         return cls(_clifford_tableau=_clifford_tableau)
 
     def _json_dict_(self) -> Dict[str, Any]:
@@ -727,9 +718,7 @@ class CommonCliffordGates(metaclass=CommonCliffordGateMetaClass):
 
         base_tableau = qis.CliffordTableau(len(qubit_order))
         args = sim.clifford.ActOnCliffordTableauArgs(
-            tableau=base_tableau,
-            qubits=qubit_order,
-            prng=np.random.RandomState(0),  # unused
+            tableau=base_tableau, qubits=qubit_order, prng=np.random.RandomState(0)  # unused
         )
         for op in operations:
             protocols.act_on(op, args, allow_decompose=True)
@@ -738,12 +727,7 @@ class CommonCliffordGates(metaclass=CommonCliffordGateMetaClass):
 
     @classmethod
     def _from_json_dict_(cls, n, rs, xs, zs, **kwargs):
-        _clifford_tableau = qis.CliffordTableau._from_json_dict_(
-            n,
-            rs,
-            xs,
-            zs,
-        )
+        _clifford_tableau = qis.CliffordTableau._from_json_dict_(n, rs, xs, zs)
         return cls(_clifford_tableau=_clifford_tableau)
 
 
@@ -775,11 +759,7 @@ def _pad_tableau(
 class CliffordGate(raw_types.Gate, CommonCliffordGates):
     """Clifford rotation for N-qubit."""
 
-    def __init__(
-        self,
-        *,
-        _clifford_tableau: qis.CliffordTableau,
-    ) -> None:
+    def __init__(self, *, _clifford_tableau: qis.CliffordTableau) -> None:
         # We use the Clifford tableau to represent a Clifford gate.
         # It is crucial to note that the meaning of tableau here is different
         # from the one used to represent a Clifford state (Of course, they are related).
@@ -838,7 +818,9 @@ class CliffordGate(raw_types.Gate, CommonCliffordGates):
     def __repr__(self) -> str:
         return f"Clifford Gate with Tableau:\n {self.clifford_tableau._str_full_()}"
 
-    def _commutes_(self, other: Any, atol: float) -> Union[bool, NotImplementedType, None]:
+    def _commutes_(
+        self, other: Any, *, atol: float = 1e-8
+    ) -> Union[bool, NotImplementedType, None]:
         # Note even if we assume two gates define the tabluea based on the same qubit order,
         # the following approach cannot judge it:
         # self.clifford_tableau.then(other.clifford_tableau) == other.clifford_tableau.then(

@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import TYPE_CHECKING, Union, Sequence
+from typing import Any, Sequence, TYPE_CHECKING, Union
 
 from typing_extensions import Protocol
 
@@ -59,9 +59,7 @@ class SupportsActOnQubits(Protocol):
 
     @doc_private
     def _act_on_(
-        self,
-        args: 'cirq.OperationTarget',
-        qubits: Sequence['cirq.Qid'],
+        self, args: 'cirq.OperationTarget', qubits: Sequence['cirq.Qid']
     ) -> Union[NotImplementedType, bool]:
         """Applies an action to the given argument, if it is a supported type.
 
@@ -89,7 +87,7 @@ class SupportsActOnQubits(Protocol):
 
 
 def act_on(
-    action: Union['cirq.Operation', 'cirq.Gate'],
+    action: Any,
     args: 'cirq.OperationTarget',
     qubits: Sequence['cirq.Qid'] = None,
     *,

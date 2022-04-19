@@ -17,7 +17,7 @@ import abc
 from typing import Dict, Iterator, List, Optional, overload, Sequence, Tuple, TYPE_CHECKING
 
 import cirq
-from cirq_google.engine.client import quantum
+from cirq_google.cloud import quantum
 from cirq_google.engine.engine_result import EngineResult
 
 if TYPE_CHECKING:
@@ -128,7 +128,7 @@ class AbstractJob(abc.ABC):
         """Returns the processor ids provided when the job was created."""
 
     @abc.abstractmethod
-    def execution_status(self) -> quantum.enums.ExecutionStatus.State:
+    def execution_status(self) -> quantum.ExecutionStatus.State:
         """Return the execution status of the job."""
 
     @abc.abstractmethod

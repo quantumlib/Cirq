@@ -83,9 +83,7 @@ def test_equality():
 def test_coupler_pulse_validation():
     with pytest.raises(ValueError, match='Total time of coupler pulse'):
         _ = coupler_pulse.CouplerPulse(
-            hold_time=cirq.Duration(nanos=210),
-            coupling_mhz=25.0,
-            rise_time=cirq.Duration(nanos=10),
+            hold_time=cirq.Duration(nanos=210), coupling_mhz=25.0, rise_time=cirq.Duration(nanos=10)
         )
     with pytest.raises(ValueError, match='hold_time must be greater'):
         _ = coupler_pulse.CouplerPulse(
@@ -107,15 +105,11 @@ def test_coupler_pulse_validation():
         )
     with pytest.raises(ValueError, match='rise_time must be greater'):
         _ = coupler_pulse.CouplerPulse(
-            hold_time=cirq.Duration(nanos=10),
-            coupling_mhz=25.0,
-            rise_time=cirq.Duration(nanos=-1),
+            hold_time=cirq.Duration(nanos=10), coupling_mhz=25.0, rise_time=cirq.Duration(nanos=-1)
         )
     with pytest.raises(ValueError, match='Total time of coupler pulse'):
         _ = coupler_pulse.CouplerPulse(
-            hold_time=cirq.Duration(nanos=10),
-            coupling_mhz=25.0,
-            rise_time=cirq.Duration(nanos=302),
+            hold_time=cirq.Duration(nanos=10), coupling_mhz=25.0, rise_time=cirq.Duration(nanos=302)
         )
 
 

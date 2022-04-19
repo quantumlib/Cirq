@@ -8,8 +8,7 @@ from cirq_rigetti import circuit_sweep_executors as executors, circuit_transform
 
 
 def test_with_quilc_compilation_and_cirq_parameter_resolution(
-    mock_qpu_implementer: Any,
-    parametric_circuit_with_params: Tuple[cirq.Circuit, cirq.Sweepable],
+    mock_qpu_implementer: Any, parametric_circuit_with_params: Tuple[cirq.Circuit, cirq.Sweepable]
 ) -> None:
     """test that execution with quilc compilation and cirq parameter resolution calls
     ``quil_to_native_quil`` and ``native_quil_to_executable`` for each parameter
@@ -41,8 +40,7 @@ def test_with_quilc_compilation_and_cirq_parameter_resolution(
         result = results[i]
         assert param_resolvers[i] == result.params
         assert np.allclose(
-            result.measurements["m"],
-            expected_results[i],
+            result.measurements["m"], expected_results[i]
         ), "should return an ordered list of results with correct set of measurements"
 
 
@@ -85,14 +83,12 @@ def test_with_quilc_parametric_compilation(
         result = results[i]
         assert param_resolvers[i] == result.params
         assert np.allclose(
-            result.measurements["m"],
-            expected_results[i],
+            result.measurements["m"], expected_results[i]
         ), "should return an ordered list of results with correct set of measurements"
 
 
 def test_without_quilc_compilation(
-    mock_qpu_implementer: Any,
-    parametric_circuit_with_params: Tuple[cirq.Circuit, cirq.Sweepable],
+    mock_qpu_implementer: Any, parametric_circuit_with_params: Tuple[cirq.Circuit, cirq.Sweepable]
 ) -> None:
     """test execution without quilc compilation treats the transformed cirq
     Circuit as native quil and does not pass it through quilc.
@@ -124,14 +120,12 @@ def test_without_quilc_compilation(
         result = results[i]
         assert param_resolvers[i] == result.params
         assert np.allclose(
-            result.measurements["m"],
-            expected_results[i],
+            result.measurements["m"], expected_results[i]
         ), "should return an ordered list of results with correct set of measurements"
 
 
 def test_invalid_pyquil_region_measurement(
-    mock_qpu_implementer: Any,
-    parametric_circuit_with_params: Tuple[cirq.Circuit, cirq.Sweepable],
+    mock_qpu_implementer: Any, parametric_circuit_with_params: Tuple[cirq.Circuit, cirq.Sweepable]
 ) -> None:
     """test that executors raise `ValueError` if the measurement_id_map
     does not exist.
@@ -155,7 +149,7 @@ def test_invalid_pyquil_region_measurement(
         return program, {cirq_key: f'{cirq_key}-doesnt-exist' for cirq_key in measurement_id_map}
 
     transformer = circuit_transformers.build(
-        post_transformation_hooks=[broken_hook],  # type: ignore
+        post_transformation_hooks=[broken_hook]  # type: ignore
     )
 
     with pytest.raises(ValueError):

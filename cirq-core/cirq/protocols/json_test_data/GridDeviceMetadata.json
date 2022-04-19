@@ -112,8 +112,7 @@
       }
     ],
     "name": null,
-    "unroll_circuit_op": true,
-    "accept_global_phase_op": true
+    "unroll_circuit_op": true
   },
   "gate_durations": [
     [

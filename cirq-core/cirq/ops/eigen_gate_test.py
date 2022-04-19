@@ -56,10 +56,7 @@ class ZGateDef(cirq.EigenGate, cirq.testing.TwoQubitGate):
         return self._exponent
 
     def _eigen_components(self) -> List[Tuple[float, np.ndarray]]:
-        return [
-            (0, np.diag([1, 0])),
-            (1, np.diag([0, 1])),
-        ]
+        return [(0, np.diag([1, 0])), (1, np.diag([0, 1]))]
 
 
 def test_approximate_common_period():
@@ -209,10 +206,7 @@ def test_trace_distance_bound():
             return 1
 
         def _eigen_components(self) -> List[Tuple[float, np.ndarray]]:
-            return [
-                (0, np.array([[1, 0], [0, 0]])),
-                (12, np.array([[0, 0], [0, 1]])),
-            ]
+            return [(0, np.array([[1, 0], [0, 0]])), (12, np.array([[0, 0], [0, 1]]))]
 
     for numerator in range(13):
         assert_has_consistent_trace_distance_bound(E() ** (numerator / 12))
@@ -344,10 +338,7 @@ class WeightedZPowGate(cirq.EigenGate, cirq.SingleQubitGate):
     _value_equality_approximate_values_ = _value_equality_values_
 
     def _eigen_components(self) -> List[Tuple[float, np.ndarray]]:
-        return [
-            (0, np.diag([1, 0])),
-            (self.weight, np.diag([0, 1])),
-        ]
+        return [(0, np.diag([1, 0])), (self.weight, np.diag([0, 1]))]
 
     def _with_exponent(self, exponent):
         return type(self)(self.weight, exponent=exponent, global_shift=self._global_shift)
@@ -356,19 +347,19 @@ class WeightedZPowGate(cirq.EigenGate, cirq.SingleQubitGate):
 @pytest.mark.parametrize(
     'gate1,gate2,eq_up_to_global_phase',
     [
-        (cirq.rz(0.3 * np.pi), cirq.Z ** 0.3, True),
+        (cirq.rz(0.3 * np.pi), cirq.Z**0.3, True),
         (cirq.Z, cirq.Gate, False),
-        (cirq.rz(0.3), cirq.Z ** 0.3, False),
+        (cirq.rz(0.3), cirq.Z**0.3, False),
         (cirq.ZZPowGate(global_shift=0.5), cirq.ZZ, True),
         (cirq.ZPowGate(global_shift=0.5) ** sympy.Symbol('e'), cirq.Z, False),
         (cirq.Z ** sympy.Symbol('e'), cirq.Z ** sympy.Symbol('f'), False),
-        (cirq.ZZ ** 1.9, cirq.ZZ ** -0.1, True),
+        (cirq.ZZ**1.9, cirq.ZZ**-0.1, True),
         (WeightedZPowGate(0), WeightedZPowGate(0.1), False),
         (WeightedZPowGate(0.3), WeightedZPowGate(0.3, global_shift=0.1), True),
         (cirq.X, cirq.Z, False),
         (cirq.X, cirq.Y, False),
         (cirq.rz(np.pi), cirq.Z, True),
-        (cirq.X ** 0.3, cirq.Z ** 0.3, False),
+        (cirq.X**0.3, cirq.Z**0.3, False),
     ],
 )
 def test_equal_up_to_global_phase(gate1, gate2, eq_up_to_global_phase):

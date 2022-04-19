@@ -34,11 +34,7 @@ TestSpec = ModuleJsonTestSpec(
         "Job",
         "SimulatorResult",
     ],
-    should_not_be_serialized=[
-        "Sampler",
-        "Service",
-        "Serializer",
-    ],
+    should_not_be_serialized=["Sampler", "Service", "Serializer"],
     resolver_cache=_class_resolver_dictionary(),
     deprecated={},
 )
