@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """Methods for resolving JSON types during serialization."""
-
+import datetime
 import functools
 from typing import Dict, TYPE_CHECKING
 
@@ -216,4 +216,5 @@ def _class_resolver_dictionary() -> Dict[str, ObjectFactory]:
         'sympy.E': lambda: sympy.E,
         'sympy.EulerGamma': lambda: sympy.EulerGamma,
         'complex': complex,
+        'datetime.datetime': datetime.datetime,
     }

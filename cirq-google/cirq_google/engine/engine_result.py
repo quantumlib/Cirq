@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import datetime
-from typing import Optional, Mapping, TYPE_CHECKING
+from typing import Optional, Mapping, TYPE_CHECKING, Any, Dict
 
 import numpy as np
 
@@ -77,3 +77,37 @@ class EngineResult(study.ResultDict):
                 job_id=job_id,
                 job_finished_time=job_finished_time,
             )
+
+    def __eq__(self, other):
+        if not isinstance(other, EngineResult):
+            return NotImplemented
+
+        return (
+            super().__eq__(other)
+            and self.job_id == other.job_id
+            and self.job_finished_time == other.job_finished_time
+        )
+
+    def __repr__(self) -> str:
+        return (
+            f'cirq_google.EngineResult(params={self.params!r}, '
+            f'records={self._record_dict_repr()}, '
+            f'job_id={self.job_id!r}, '
+            f'job_finished_time={self.job_finished_time!r})'
+        )
+
+    @classmethod
+    def _json_namespace_(cls) -> str:
+        return 'cirq.google'
+
+    def _json_dict_(self) -> Dict[str, Any]:
+        d = super()._json_dict_()
+        d['job_id'] = self.job_id
+        d['job_finished_time'] = self.job_finished_time
+        return d
+
+    @classmethod
+    def _from_json_dict_(cls, params, records, job_id, job_finished_time, **kwargs):
+        return cls._from_packed_records(
+            params=params, records=records, job_id=job_id, job_finished_time=job_finished_time
+        )

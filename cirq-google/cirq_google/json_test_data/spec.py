@@ -74,6 +74,7 @@ TestSpec = ModuleJsonTestSpec(
             'EngineProcessorRecord',
             'SimulatedProcessorRecord',
             'SimulatedProcessorWithLocalDeviceRecord',
+            'EngineResult',
         ]
     },
     resolver_cache=_class_resolver_dictionary(),

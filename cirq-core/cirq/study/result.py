@@ -406,11 +406,12 @@ class ResultDict(Result):
             self._data = self.dataframe_from_measurements(self.measurements)
         return self._data
 
+    def _record_dict_repr(self):
+        """Helper function for use in __repr__ to display the records field."""
+        return '{' + ', '.join(f'{k!r}: {proper_repr(v)}' for k, v in self.records.items()) + '}'
+
     def __repr__(self) -> str:
-        record_dict_repr = (
-            '{' + ', '.join(f'{k!r}: {proper_repr(v)}' for k, v in self.records.items()) + '}'
-        )
-        return f'cirq.ResultDict(params={self.params!r}, records={record_dict_repr})'
+        return f'cirq.ResultDict(params={self.params!r}, records={self._record_dict_repr()})'
 
     def _repr_pretty_(self, p: Any, cycle: bool) -> None:
         """Output to show in ipython and Jupyter notebooks."""
@@ -436,6 +437,11 @@ class ResultDict(Result):
         return {'params': self.params, 'records': packed_records}
 
     @classmethod
+    def _from_packed_records(cls, records, **kwargs):
+        """Helper function for `_from_json_dict_` to construct from packed records."""
+        return cls(records={key: _unpack_digits(**val) for key, val in records.items()}, **kwargs)
+
+    @classmethod
     def _from_json_dict_(cls, params, **kwargs):
         if 'measurements' in kwargs:
             measurements = kwargs['measurements']
@@ -443,10 +449,7 @@ class ResultDict(Result):
                 params=params,
                 measurements={key: _unpack_digits(**val) for key, val in measurements.items()},
             )
-        records = kwargs['records']
-        return cls(
-            params=params, records={key: _unpack_digits(**val) for key, val in records.items()}
-        )
+        return cls._from_packed_records(params=params, records=kwargs['records'])
 
 
 def _pack_digits(digits: np.ndarray, pack_bits: str = 'auto') -> Tuple[str, bool]:

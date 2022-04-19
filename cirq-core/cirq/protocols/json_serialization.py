@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import dataclasses
+import datetime
 import gzip
 import json
 import numbers
@@ -384,6 +385,22 @@ class CirqEncoder(json.JSONEncoder):
                 'data': rows,
                 'columns': o.columns,
                 'index': o.index,
+            }
+
+        # datetime
+        if isinstance(o, datetime.datetime):
+            if o.tzinfo is not None:
+                raise TypeError("datetime tzinfo is not serializable")
+            return {
+                'cirq_type': 'datetime.datetime',
+                'year': o.year,
+                'month': o.month,
+                'day': o.day,
+                'hour': o.hour,
+                'minute': o.minute,
+                'second': o.second,
+                'microsecond': o.microsecond,
+                'fold': o.fold,
             }
 
         return super().default(o)  # coverage: ignore
