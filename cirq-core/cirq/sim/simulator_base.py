@@ -403,7 +403,7 @@ class SimulationTrialResultBase(
                 can be used to get the final simulator state.
         """
         super().__init__(params, measurements, final_step_result=final_step_result)
-        self._final_step_result_typed = final_step_result
+        self._merged_sim_state_cache: Optional[TActOnArgs] = None
 
     def get_state_containing_qubit(self, qubit: 'cirq.Qid') -> TActOnArgs:
         """Returns the independent state space containing the qubit.
@@ -413,10 +413,10 @@ class SimulationTrialResultBase(
 
         Returns:
             The state space containing the qubit."""
-        return self._final_step_result_typed._sim_state[qubit]
+        return self._final_simulator_state[qubit]
 
     def _get_substates(self) -> Sequence[TActOnArgs]:
-        state = self._final_step_result_typed._sim_state
+        state = self._final_simulator_state
         if isinstance(state, ActOnArgsContainer):
             substates: Dict[TActOnArgs, int] = {}
             for q in state.qubits:
@@ -426,4 +426,6 @@ class SimulationTrialResultBase(
         return [state.create_merged_state()]
 
     def _get_merged_sim_state(self) -> TActOnArgs:
-        return self._final_step_result_typed._merged_sim_state
+        if self._merged_sim_state_cache is None:
+            self._merged_sim_state_cache = self._final_simulator_state.create_merged_state()
+        return self._merged_sim_state_cache

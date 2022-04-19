@@ -897,7 +897,7 @@ class SimulationTrialResult(Generic[TSimulatorState]):
         self,
         params: 'cirq.ParamResolver',
         measurements: Dict[str, np.ndarray],
-        final_simulator_state: Any = None,
+        final_simulator_state: Optional[TSimulatorState] = None,
         final_step_result: Optional['cirq.StepResult[TSimulatorState]'] = None,
     ) -> None:
         """Initializes the `SimulationTrialResult` class.
@@ -926,9 +926,10 @@ class SimulationTrialResult(Generic[TSimulatorState]):
         self.params = params
         self.measurements = measurements
         self._final_step_result = final_step_result
-        self._final_simulator_state = (
+        self._final_simulator_state: TSimulatorState = (
             final_simulator_state
-            or cast('cirq.StepResult[TSimulatorState]', final_step_result)._simulator_state()
+            if final_simulator_state is not None
+            else cast('cirq.StepResult[TSimulatorState]', final_step_result)._simulator_state()
         )
 
     def __repr__(self) -> str:
