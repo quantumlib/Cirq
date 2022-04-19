@@ -68,12 +68,7 @@ def test_sampler_sample_multiple_params():
     results = sampler.sample(
         circuit,
         repetitions=3,
-        params=[
-            {'s': 0, 't': 0},
-            {'s': 0, 't': 1},
-            {'s': 1, 't': 0},
-            {'s': 1, 't': 1},
-        ],
+        params=[{'s': 0, 't': 0}, {'s': 0, 't': 1}, {'s': 1, 't': 0}, {'s': 1, 't': 1}],
     )
     pd.testing.assert_frame_equal(
         results,
@@ -130,16 +125,7 @@ def test_sampler_sample_no_params():
     circuit = cirq.Circuit(cirq.X(a), cirq.measure(a, b, key='out'))
     results = sampler.sample(circuit, repetitions=3)
     pd.testing.assert_frame_equal(
-        results,
-        pd.DataFrame(
-            columns=['out'],
-            index=[0, 1, 2],
-            data=[
-                [2],
-                [2],
-                [2],
-            ],
-        ),
+        results, pd.DataFrame(columns=['out'], index=[0, 1, 2], data=[[2], [2], [2]])
     )
 
 
@@ -148,13 +134,7 @@ def test_sampler_sample_inconsistent_keys():
     sampler = cirq.Simulator()
     circuit = cirq.Circuit(cirq.measure(q, key='out'))
     with pytest.raises(ValueError, match='Inconsistent sweep parameters'):
-        _ = sampler.sample(
-            circuit,
-            params=[
-                {'a': 1},
-                {'a': 1, 'b': 2},
-            ],
-        )
+        _ = sampler.sample(circuit, params=[{'a': 1}, {'a': 1, 'b': 2}])
 
 
 @duet.sync
@@ -243,10 +223,7 @@ def test_sampler_sample_expectation_values_calculation():
         """
 
         def run_sweep(
-            self,
-            program: 'cirq.AbstractCircuit',
-            params: 'cirq.Sweepable',
-            repetitions: int = 1,
+            self, program: 'cirq.AbstractCircuit', params: 'cirq.Sweepable', repetitions: int = 1
         ) -> Sequence['cirq.Result']:
             results = np.zeros((repetitions, 1), dtype=bool)
             for idx in range(repetitions // 4):
@@ -297,21 +274,12 @@ def test_sampler_sample_expectation_values_composite():
     t = [sympy.Symbol(f't{x}') for x in range(3)]
 
     sampler = cirq.Simulator(seed=1)
-    circuit = cirq.Circuit(
-        cirq.X(q[0]) ** t[0],
-        cirq.X(q[1]) ** t[1],
-        cirq.X(q[2]) ** t[2],
-    )
+    circuit = cirq.Circuit(cirq.X(q[0]) ** t[0], cirq.X(q[1]) ** t[1], cirq.X(q[2]) ** t[2])
 
     obs = [cirq.Z(q[x]) for x in range(3)]
     # t0 is in the inner loop to make bit-ordering easier below.
     params = ([{'t0': t0, 't1': t1, 't2': t2} for t2 in [0, 1] for t1 in [0, 1] for t0 in [0, 1]],)
-    results = sampler.sample_expectation_values(
-        circuit,
-        obs,
-        num_samples=5,
-        params=params,
-    )
+    results = sampler.sample_expectation_values(circuit, obs, num_samples=5, params=params)
 
     assert len(results) == 8
     assert np.allclose(

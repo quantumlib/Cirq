@@ -386,10 +386,7 @@ class _TestMixture(cirq.Gate):
 def test_simulate_qudits(dtype: Type[np.number], split: bool):
     q0, q1 = cirq.LineQid.for_qid_shape((3, 4))
     simulator = cirq.Simulator(dtype=dtype, split_untangled_states=split)
-    circuit = cirq.Circuit(
-        PlusGate(3)(q0),
-        PlusGate(4, increment=3)(q1),
-    )
+    circuit = cirq.Circuit(PlusGate(3)(q0), PlusGate(4, increment=3)(q1))
     result = simulator.simulate(circuit, qubit_order=[q0, q1])
     expected = np.zeros(12)
     expected[4 * 1 + 3] = 1
@@ -760,10 +757,7 @@ def test_simulator_step_state_mixin():
         initial_state=np.array([0, 1, 0, 0], dtype=np.complex64).reshape((2, 2)),
         dtype=np.complex64,
     )
-    result = cirq.SparseSimulatorStep(
-        sim_state=args,
-        dtype=np.complex64,
-    )
+    result = cirq.SparseSimulatorStep(sim_state=args, dtype=np.complex64)
     rho = np.array([[0, 0, 0, 0], [0, 1, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]])
     np.testing.assert_array_almost_equal(rho, result.density_matrix_of(qubits))
     bloch = np.array([0, 0, -1])
@@ -876,11 +870,7 @@ def test_compute_amplitudes_bad_input():
 
 def test_sample_from_amplitudes():
     q0, q1 = cirq.LineQubit.range(2)
-    circuit = cirq.Circuit(
-        cirq.H(q0),
-        cirq.CNOT(q0, q1),
-        cirq.X(q1),
-    )
+    circuit = cirq.Circuit(cirq.H(q0), cirq.CNOT(q0, q1), cirq.X(q1))
     sim = cirq.Simulator(seed=1)
     result = sim.sample_from_amplitudes(circuit, {}, sim._prng, repetitions=100)
     assert 40 < result[1] < 60
@@ -929,10 +919,7 @@ def test_sample_from_amplitudes_nonunitary_fails():
         _ = sim.sample_from_amplitudes(circuit1, {}, sim._prng)
 
     circuit2 = cirq.Circuit(
-        cirq.H(q0),
-        cirq.CNOT(q0, q1),
-        cirq.amplitude_damp(0.01)(q0),
-        cirq.amplitude_damp(0.01)(q1),
+        cirq.H(q0), cirq.CNOT(q0, q1), cirq.amplitude_damp(0.01)(q0), cirq.amplitude_damp(0.01)(q1)
     )
     with pytest.raises(ValueError, match='does not support non-unitary'):
         _ = sim.sample_from_amplitudes(circuit2, {}, sim._prng)
@@ -1387,10 +1374,7 @@ def test_noise_model():
 def test_separated_states_str_does_not_merge():
     q0, q1 = cirq.LineQubit.range(2)
     circuit = cirq.Circuit(
-        cirq.measure(q0),
-        cirq.measure(q1),
-        cirq.H(q0),
-        cirq.global_phase_operation(0 + 1j),
+        cirq.measure(q0), cirq.measure(q1), cirq.H(q0), cirq.global_phase_operation(0 + 1j)
     )
 
     result = cirq.Simulator().simulate(circuit)
@@ -1422,10 +1406,7 @@ def test_separable_non_dirac_str():
 def test_unseparated_states_str():
     q0, q1 = cirq.LineQubit.range(2)
     circuit = cirq.Circuit(
-        cirq.measure(q0),
-        cirq.measure(q1),
-        cirq.H(q0),
-        cirq.global_phase_operation(0 + 1j),
+        cirq.measure(q0), cirq.measure(q1), cirq.H(q0), cirq.global_phase_operation(0 + 1j)
     )
 
     result = cirq.Simulator(split_untangled_states=False).simulate(circuit)

@@ -48,10 +48,7 @@ def test_invalid_parallel_gate_operation(gate, num_copies, qubits, error_msg):
 
 @pytest.mark.parametrize(
     'gate, num_copies, qubits',
-    [
-        (cirq.X, 2, cirq.LineQubit.range(2)),
-        (cirq.H**0.5, 4, cirq.LineQubit.range(4)),
-    ],
+    [(cirq.X, 2, cirq.LineQubit.range(2)), (cirq.H**0.5, 4, cirq.LineQubit.range(4))],
 )
 def test_decompose(gate, num_copies, qubits):
     g = cirq.ParallelGate(gate, num_copies)
@@ -112,9 +109,7 @@ def test_unitary(gate, num_copies, qubits):
     step = gate.num_qubits()
     qubit_lists = [qubits[i * step : (i + 1) * step] for i in range(num_copies)]
     np.testing.assert_allclose(
-        cirq.unitary(g),
-        cirq.unitary(cirq.Circuit(gate.on_each(qubit_lists))),
-        atol=1e-8,
+        cirq.unitary(g), cirq.unitary(cirq.Circuit(gate.on_each(qubit_lists))), atol=1e-8
     )
 
 
@@ -147,15 +142,7 @@ def test_equivalent_circuit():
     cirq.testing.assert_circuits_with_terminal_measurements_are_equivalent(oldc, newc, atol=1e-6)
 
 
-@pytest.mark.parametrize(
-    'gate, num_copies',
-    [
-        (cirq.X, 1),
-        (cirq.Y, 2),
-        (cirq.Z, 3),
-        (cirq.H, 4),
-    ],
-)
+@pytest.mark.parametrize('gate, num_copies', [(cirq.X, 1), (cirq.Y, 2), (cirq.Z, 3), (cirq.H, 4)])
 def test_parallel_gate_operation_is_consistent(gate, num_copies):
     cirq.testing.assert_implements_consistent_protocols(cirq.ParallelGate(gate, num_copies))
 
@@ -172,15 +159,7 @@ def test_trace_distance():
     assert cirq.approx_eq(cirq.trace_distance_bound(spg), 1.0)
 
 
-@pytest.mark.parametrize(
-    'gate, num_copies',
-    [
-        (cirq.X, 1),
-        (cirq.Y, 2),
-        (cirq.Z, 3),
-        (cirq.H, 4),
-    ],
-)
+@pytest.mark.parametrize('gate, num_copies', [(cirq.X, 1), (cirq.Y, 2), (cirq.Z, 3), (cirq.H, 4)])
 def test_parallel_gate_op(gate, num_copies):
     qubits = cirq.LineQubit.range(num_copies * gate.num_qubits())
     assert cirq.parallel_gate_op(gate, *qubits) == cirq.ParallelGate(gate, num_copies).on(*qubits)

@@ -68,7 +68,7 @@ if a moment has gates of duration 12ns, 25ns, and 32ns, the entire moment
 will take 32ns.  Qubits executing the shorter gtes will idle during the rest
 of the time.  To minimize the duration of the circuit, it is best to align
 gates of the same duration together when possible.  See the
-[best practices](./best_practices.md) for more details.
+[best practices](./best_practices.ipynb) for more details.
 
 ## Gates supported
 

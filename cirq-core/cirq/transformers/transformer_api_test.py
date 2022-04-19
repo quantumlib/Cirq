@@ -103,10 +103,7 @@ def make_transformer_func(add_deep_support: bool = False) -> cirq.TRANSFORMER:
         cirq.TransformerContext(logger=mock.Mock(), tags_to_ignore=('tag',)),
     ],
 )
-@pytest.mark.parametrize(
-    'transformer',
-    [MockTransformerClass(), make_transformer_func()],
-)
+@pytest.mark.parametrize('transformer', [MockTransformerClass(), make_transformer_func()])
 def test_transformer_decorator(context, transformer):
     circuit = cirq.Circuit(cirq.X(cirq.NamedQubit("a")))
     transformer(circuit, context=context)
@@ -120,11 +117,7 @@ def test_transformer_decorator(context, transformer):
 
 
 @pytest.mark.parametrize(
-    'transformer',
-    [
-        MockTransformerClassWithDefaults(),
-        make_transformer_func_with_defaults(),
-    ],
+    'transformer', [MockTransformerClassWithDefaults(), make_transformer_func_with_defaults()]
 )
 def test_transformer_decorator_with_defaults(transformer):
     circuit = cirq.Circuit(cirq.X(cirq.NamedQubit("a")))

@@ -17,8 +17,7 @@ import cirq
 
 
 @cirq._compat.deprecated_class(
-    deadline='v1.0',
-    fix='Use cirq.optimize_for_target_gateset and cirq.CZTargetGateset instead.',
+    deadline='v1.0', fix='Use cirq.optimize_for_target_gateset and cirq.CZTargetGateset instead.'
 )
 class ConvertToXmonGates(cirq.PointOptimizer):
     """Attempts to convert strange gates into XmonGates.

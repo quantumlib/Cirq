@@ -255,9 +255,7 @@ class CrossEntropyResultDict(Mapping[Tuple['cirq.Qid', ...], CrossEntropyResult]
     results: Dict[Tuple['cirq.Qid', ...], CrossEntropyResult]
 
     def _json_dict_(self) -> Dict[str, Any]:
-        return {
-            'results': list(self.results.items()),
-        }
+        return {'results': list(self.results.items())}
 
     @classmethod
     def _from_json_dict_(

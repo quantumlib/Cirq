@@ -18,10 +18,7 @@ import pytest
 
 import cirq
 from cirq_google.line.placement import greedy
-from cirq_google.line.placement.sequence import (
-    GridQubitLineTuple,
-    NotFoundError,
-)
+from cirq_google.line.placement.sequence import GridQubitLineTuple, NotFoundError
 
 
 class FakeDevice(cirq.Device):

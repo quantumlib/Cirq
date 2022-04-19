@@ -80,14 +80,10 @@ SINGLE_QUBIT_SERIALIZERS = [
         serialized_gate_id='xy',
         args=[
             op_serializer.SerializingArg(
-                serialized_name='axis_half_turns',
-                serialized_type=float,
-                op_getter='phase_exponent',
+                serialized_name='axis_half_turns', serialized_type=float, op_getter='phase_exponent'
             ),
             op_serializer.SerializingArg(
-                serialized_name='half_turns',
-                serialized_type=float,
-                op_getter='exponent',
+                serialized_name='half_turns', serialized_type=float, op_getter='exponent'
             ),
         ],
     ),
@@ -96,14 +92,10 @@ SINGLE_QUBIT_SERIALIZERS = [
         serialized_gate_id='xy',
         args=[
             op_serializer.SerializingArg(
-                serialized_name='axis_half_turns',
-                serialized_type=float,
-                op_getter=lambda op: 0.0,
+                serialized_name='axis_half_turns', serialized_type=float, op_getter=lambda op: 0.0
             ),
             op_serializer.SerializingArg(
-                serialized_name='half_turns',
-                serialized_type=float,
-                op_getter='exponent',
+                serialized_name='half_turns', serialized_type=float, op_getter='exponent'
             ),
         ],
     ),
@@ -112,14 +104,10 @@ SINGLE_QUBIT_SERIALIZERS = [
         serialized_gate_id='xy',
         args=[
             op_serializer.SerializingArg(
-                serialized_name='axis_half_turns',
-                serialized_type=float,
-                op_getter=lambda op: 0.5,
+                serialized_name='axis_half_turns', serialized_type=float, op_getter=lambda op: 0.5
             ),
             op_serializer.SerializingArg(
-                serialized_name='half_turns',
-                serialized_type=float,
-                op_getter='exponent',
+                serialized_name='half_turns', serialized_type=float, op_getter='exponent'
             ),
         ],
     ),
@@ -128,9 +116,7 @@ SINGLE_QUBIT_SERIALIZERS = [
         serialized_gate_id='z',
         args=[
             op_serializer.SerializingArg(
-                serialized_name='half_turns',
-                serialized_type=float,
-                op_getter='exponent',
+                serialized_name='half_turns', serialized_type=float, op_getter='exponent'
             ),
             op_serializer.SerializingArg(
                 serialized_name='type',
@@ -144,14 +130,10 @@ SINGLE_QUBIT_SERIALIZERS = [
         serialized_gate_id='xyz',
         args=[
             op_serializer.SerializingArg(
-                serialized_name='x_exponent',
-                serialized_type=float,
-                op_getter='x_exponent',
+                serialized_name='x_exponent', serialized_type=float, op_getter='x_exponent'
             ),
             op_serializer.SerializingArg(
-                serialized_name='z_exponent',
-                serialized_type=float,
-                op_getter='z_exponent',
+                serialized_name='z_exponent', serialized_type=float, op_getter='z_exponent'
             ),
             op_serializer.SerializingArg(
                 serialized_name='axis_phase_exponent',
@@ -176,9 +158,7 @@ SINGLE_QUBIT_DESERIALIZERS = [
                 default=0.0,
             ),
             op_deserializer.DeserializingArg(
-                serialized_name='half_turns',
-                constructor_arg_name='exponent',
-                default=1.0,
+                serialized_name='half_turns', constructor_arg_name='exponent', default=1.0
             ),
         ],
     ),
@@ -187,10 +167,8 @@ SINGLE_QUBIT_DESERIALIZERS = [
         gate_constructor=cirq.ZPowGate,
         args=[
             op_deserializer.DeserializingArg(
-                serialized_name='half_turns',
-                constructor_arg_name='exponent',
-                default=1.0,
-            ),
+                serialized_name='half_turns', constructor_arg_name='exponent', default=1.0
+            )
         ],
         op_wrapper=lambda op, proto: _convert_physical_z(op, proto),
     ),
@@ -199,14 +177,10 @@ SINGLE_QUBIT_DESERIALIZERS = [
         gate_constructor=cirq.PhasedXZGate,
         args=[
             op_deserializer.DeserializingArg(
-                serialized_name='x_exponent',
-                constructor_arg_name='x_exponent',
-                default=0.0,
+                serialized_name='x_exponent', constructor_arg_name='x_exponent', default=0.0
             ),
             op_deserializer.DeserializingArg(
-                serialized_name='z_exponent',
-                constructor_arg_name='z_exponent',
-                default=0.0,
+                serialized_name='z_exponent', constructor_arg_name='z_exponent', default=0.0
             ),
             op_deserializer.DeserializingArg(
                 serialized_name='axis_phase_exponent',
@@ -258,7 +232,7 @@ SINGLE_QUBIT_HALF_PI_SERIALIZERS = [
         args=[
             op_serializer.SerializingArg(
                 serialized_name='axis_half_turns', serialized_type=float, op_getter='phase_exponent'
-            ),
+            )
         ],
         can_serialize_predicate=lambda op: _near_mod_2(
             cast(cirq.PhasedXPowGate, op.gate).exponent, 1
@@ -318,7 +292,7 @@ SINGLE_QUBIT_HALF_PI_SERIALIZERS = [
         args=[
             op_serializer.SerializingArg(
                 serialized_name='axis_half_turns', serialized_type=float, op_getter='phase_exponent'
-            ),
+            )
         ],
         can_serialize_predicate=lambda op: _near_mod_2(
             cast(cirq.PhasedXPowGate, op.gate).exponent, 0.5
@@ -335,8 +309,7 @@ SINGLE_QUBIT_HALF_PI_DESERIALIZERS = [
         gate_constructor=cirq.PhasedXPowGate,
         args=[
             op_deserializer.DeserializingArg(
-                serialized_name='axis_half_turns',
-                constructor_arg_name='phase_exponent',
+                serialized_name='axis_half_turns', constructor_arg_name='phase_exponent'
             ),
             op_deserializer.DeserializingArg(
                 serialized_name='axis_half_turns',
@@ -416,10 +389,8 @@ CZ_POW_DESERIALIZER = op_deserializer.GateOpDeserializer(
     gate_constructor=cirq.CZPowGate,
     args=[
         op_deserializer.DeserializingArg(
-            serialized_name='half_turns',
-            constructor_arg_name='exponent',
-            default=1.0,
-        ),
+            serialized_name='half_turns', constructor_arg_name='exponent', default=1.0
+        )
     ],
     op_wrapper=lambda op, proto: _add_phase_match(op, proto),
 )
@@ -578,14 +549,10 @@ LIMITED_FSIM_DESERIALIZER = op_deserializer.GateOpDeserializer(
     gate_constructor=cirq.FSimGate,
     args=[
         op_deserializer.DeserializingArg(
-            serialized_name='theta',
-            constructor_arg_name='theta',
-            default=0.0,
+            serialized_name='theta', constructor_arg_name='theta', default=0.0
         ),
         op_deserializer.DeserializingArg(
-            serialized_name='phi',
-            constructor_arg_name='phi',
-            default=0.0,
+            serialized_name='phi', constructor_arg_name='phi', default=0.0
         ),
     ],
     op_wrapper=lambda op, proto: _add_phase_match(op, proto),
@@ -630,8 +597,7 @@ COUPLER_PULSE_DESERIALIZER = op_deserializer.GateOpDeserializer(
     gate_constructor=CouplerPulse,
     args=[
         op_deserializer.DeserializingArg(
-            serialized_name='coupling_mhz',
-            constructor_arg_name='coupling_mhz',
+            serialized_name='coupling_mhz', constructor_arg_name='coupling_mhz'
         ),
         op_deserializer.DeserializingArg(
             serialized_name='hold_time_ns',
@@ -668,7 +634,7 @@ WAIT_GATE_SERIALIZER = op_serializer.GateOpSerializer(
             serialized_name='nanos',
             serialized_type=float,
             op_getter=lambda op: cast(cirq.WaitGate, op.gate).duration.total_nanos(),
-        ),
+        )
     ],
 )
 WAIT_GATE_DESERIALIZER = op_deserializer.GateOpDeserializer(
