@@ -86,6 +86,102 @@ def test_zphase_gates():
     assert noisy_circuit == circuit
 
 
+def test_with_params_fill():
+    # Test single-value with_params.
+    q0, q1 = cirq.LineQubit.range(2)
+    props = sample_noise_properties([q0, q1], [(q0, q1), (q1, q0)])
+    expected_vals = {
+        'gate_times_ns': 91,
+        't1_ns': 92,
+        'tphi_ns': 93,
+        'readout_errors': [0.094, 0.095],
+        'gate_pauli_errors': 0.096,
+        'fsim_errors': cirq.PhasedFSimGate(0.0971, 0.0972, 0.0973, 0.0974, 0.0975),
+    }
+    props_v2 = props.with_params(
+        gate_times_ns=expected_vals['gate_times_ns'],
+        t1_ns=expected_vals['t1_ns'],
+        tphi_ns=expected_vals['tphi_ns'],
+        readout_errors=expected_vals['readout_errors'],
+        gate_pauli_errors=expected_vals['gate_pauli_errors'],
+        fsim_errors=expected_vals['fsim_errors'],
+    )
+    for key in props.gate_times_ns:
+        assert key in props_v2.gate_times_ns
+        assert props_v2.gate_times_ns[key] == expected_vals['gate_times_ns']
+    for key in props.t1_ns:
+        assert key in props_v2.t1_ns
+        assert props_v2.t1_ns[key] == expected_vals['t1_ns']
+    for key in props.tphi_ns:
+        assert key in props_v2.tphi_ns
+        assert props_v2.tphi_ns[key] == expected_vals['tphi_ns']
+    for key in props.readout_errors:
+        assert key in props_v2.readout_errors
+        assert np.allclose(props_v2.readout_errors[key], expected_vals['readout_errors'])
+    for key in props.gate_pauli_errors:
+        assert key in props_v2.gate_pauli_errors
+        assert props_v2.gate_pauli_errors[key] == expected_vals['gate_pauli_errors']
+    for key in props.fsim_errors:
+        assert key in props_v2.fsim_errors
+        assert props_v2.fsim_errors[key] == expected_vals['fsim_errors']
+
+
+def test_with_params_target():
+    # Test targeted-value with_params.
+    q0, q1 = cirq.LineQubit.range(2)
+    props = sample_noise_properties([q0, q1], [(q0, q1), (q1, q0)])
+    expected_vals = {
+        'gate_times_ns': {cirq.ZPowGate: 91},
+        't1_ns': {q0: 92},
+        'tphi_ns': {q1: 93},
+        'readout_errors': {q0: [0.094, 0.095]},
+        'gate_pauli_errors': {cirq.OpIdentifier(cirq.PhasedXZGate, q1): 0.096},
+        'fsim_errors': {
+            cirq.OpIdentifier(cirq.CZPowGate, q0, q1): cirq.PhasedFSimGate(
+                0.0971, 0.0972, 0.0973, 0.0974, 0.0975
+            )
+        },
+    }
+    props_v2 = props.with_params(
+        gate_times_ns=expected_vals['gate_times_ns'],
+        t1_ns=expected_vals['t1_ns'],
+        tphi_ns=expected_vals['tphi_ns'],
+        readout_errors=expected_vals['readout_errors'],
+        gate_pauli_errors=expected_vals['gate_pauli_errors'],
+        fsim_errors=expected_vals['fsim_errors'],
+    )
+    for field_name, expected in expected_vals.items():
+        target_dict = getattr(props_v2, field_name)
+        for key, val in expected.items():
+            if isinstance(target_dict[key], np.ndarray):
+                assert np.allclose(target_dict[key], val)
+            else:
+                assert target_dict[key] == val
+
+
+def test_with_params_opid_with_gate():
+    # Test gate-based opid with_params.
+    q0, q1 = cirq.LineQubit.range(2)
+    props = sample_noise_properties([q0, q1], [(q0, q1), (q1, q0)])
+    expected_vals = {
+        'gate_pauli_errors': 0.096,
+        'fsim_errors': cirq.PhasedFSimGate(0.0971, 0.0972, 0.0973, 0.0974, 0.0975),
+    }
+    props_v2 = props.with_params(
+        gate_pauli_errors={cirq.PhasedXZGate: expected_vals['gate_pauli_errors']},
+        fsim_errors={cirq.CZPowGate: expected_vals['fsim_errors']},
+    )
+    gpe_op_id_0 = cirq.OpIdentifier(cirq.PhasedXZGate, q0)
+    gpe_op_id_1 = cirq.OpIdentifier(cirq.PhasedXZGate, q1)
+    assert props_v2.gate_pauli_errors[gpe_op_id_0] == expected_vals['gate_pauli_errors']
+    assert props_v2.gate_pauli_errors[gpe_op_id_1] == expected_vals['gate_pauli_errors']
+
+    fsim_op_id_0 = cirq.OpIdentifier(cirq.CZPowGate, q0, q1)
+    fsim_op_id_1 = cirq.OpIdentifier(cirq.CZPowGate, q1, q0)
+    assert props_v2.fsim_errors[fsim_op_id_0] == expected_vals['fsim_errors']
+    assert props_v2.fsim_errors[fsim_op_id_1] == expected_vals['fsim_errors']
+
+
 @pytest.mark.parametrize(
     'op',
     [
