@@ -87,10 +87,7 @@ def test_convert_to_cz_preserving_moment_structure():
 def test_clears_paired_cnot():
     a, b = cirq.LineQubit.range(2)
     assert_optimizes(
-        before=cirq.Circuit(
-            cirq.Moment(cirq.CNOT(a, b)),
-            cirq.Moment(cirq.CNOT(a, b)),
-        ),
+        before=cirq.Circuit(cirq.Moment(cirq.CNOT(a, b)), cirq.Moment(cirq.CNOT(a, b))),
         expected=cirq.Circuit(),
     )
 
@@ -117,25 +114,13 @@ def test_ignores_czs_separated_by_parameterized():
 
 def test_cnots_separated_by_single_gates_correct():
     a, b = cirq.LineQubit.range(2)
-    assert_optimization_not_broken(
-        cirq.Circuit(
-            cirq.CNOT(a, b),
-            cirq.H(b),
-            cirq.CNOT(a, b),
-        )
-    )
+    assert_optimization_not_broken(cirq.Circuit(cirq.CNOT(a, b), cirq.H(b), cirq.CNOT(a, b)))
 
 
 def test_czs_separated_by_single_gates_correct():
     a, b = cirq.LineQubit.range(2)
     assert_optimization_not_broken(
-        cirq.Circuit(
-            cirq.CZ(a, b),
-            cirq.X(b),
-            cirq.X(b),
-            cirq.X(b),
-            cirq.CZ(a, b),
-        )
+        cirq.Circuit(cirq.CZ(a, b), cirq.X(b), cirq.X(b), cirq.X(b), cirq.CZ(a, b))
     )
 
 
@@ -192,9 +177,7 @@ def test_not_decompose_czs():
 @pytest.mark.parametrize(
     'circuit',
     (
-        cirq.Circuit(
-            cirq.CZPowGate(exponent=0.1)(*cirq.LineQubit.range(2)),
-        ),
+        cirq.Circuit(cirq.CZPowGate(exponent=0.1)(*cirq.LineQubit.range(2))),
         cirq.Circuit(
             cirq.CZPowGate(exponent=0.2)(*cirq.LineQubit.range(2)),
             cirq.CZPowGate(exponent=0.3, global_shift=-0.5)(*cirq.LineQubit.range(2)),
@@ -216,7 +199,7 @@ def test_decompose_partial_czs(circuit):
 
 def test_not_decompose_partial_czs():
     circuit = cirq.Circuit(
-        cirq.CZPowGate(exponent=0.1, global_shift=-0.5)(*cirq.LineQubit.range(2)),
+        cirq.CZPowGate(exponent=0.1, global_shift=-0.5)(*cirq.LineQubit.range(2))
     )
     cirq.optimize_for_target_gateset(circuit, gateset=cirq.CZTargetGateset())
     cz_gates = [
@@ -273,16 +256,9 @@ def test_composite_gates_without_matrix():
             yield CompositeDummy()(qubits[1])
 
     q0, q1 = cirq.LineQubit.range(2)
-    circuit = cirq.Circuit(
-        CompositeDummy()(q0),
-        CompositeDummy2()(q0, q1),
-    )
+    circuit = cirq.Circuit(CompositeDummy()(q0), CompositeDummy2()(q0, q1))
     expected = cirq.Circuit(
-        cirq.X(q0),
-        cirq.Y(q0) ** 0.5,
-        cirq.CZ(q0, q1),
-        cirq.X(q1),
-        cirq.Y(q1) ** 0.5,
+        cirq.X(q0), cirq.Y(q0) ** 0.5, cirq.CZ(q0, q1), cirq.X(q1), cirq.Y(q1) ** 0.5
     )
     c_new = cirq.optimize_for_target_gateset(circuit, gateset=cirq.CZTargetGateset())
 

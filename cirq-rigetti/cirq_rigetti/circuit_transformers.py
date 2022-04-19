@@ -60,11 +60,7 @@ def _transform_cirq_circuit_to_pyquil_program(
 class CircuitTransformer(Protocol):
     """A type definition for `cirq.Circuit` to `pyquil.Program` transformer functions."""
 
-    def __call__(
-        self,
-        *,
-        circuit: cirq.Circuit,
-    ) -> Tuple[Program, Dict[str, str]]:
+    def __call__(self, *, circuit: cirq.Circuit) -> Tuple[Program, Dict[str, str]]:
         """Transforms a `cirq.Circuit` to a pyquil.Program`.
 
         Args:

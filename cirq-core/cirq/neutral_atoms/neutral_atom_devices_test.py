@@ -237,7 +237,7 @@ def test_validate_moment_errors():
 
 
 def test_can_add_operation_into_moment_coverage_deprecated():
-    with cirq.testing.assert_deprecated('can_add_operation_into_moment', deadline='v0.15', count=3):
+    with cirq.testing.assert_deprecated('can_add_operation_into_moment', deadline='v0.15', count=4):
         d = square_device(2, 2)
         q00 = cirq.GridQubit(0, 0)
         q01 = cirq.GridQubit(0, 1)
@@ -298,5 +298,5 @@ def test_repr_pretty():
 
 
 def test_qubit_set_deprecated():
-    with cirq.testing.assert_deprecated('qubit_set', deadline='v0.15'):
+    with cirq.testing.assert_deprecated('qubit_set', deadline='v0.15', count=2):
         assert square_device(2, 2).qubit_set() == frozenset(cirq.GridQubit.square(2, 0, 0))

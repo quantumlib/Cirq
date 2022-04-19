@@ -155,12 +155,6 @@ def wait(
         millis: Milliseconds to wait (see Duration).
     """
     return WaitGate(
-        duration=value.Duration(
-            duration,
-            picos=picos,
-            nanos=nanos,
-            micros=micros,
-            millis=millis,
-        ),
+        duration=value.Duration(duration, picos=picos, nanos=nanos, micros=micros, millis=millis),
         qid_shape=protocols.qid_shape(target),
     ).on(*target)

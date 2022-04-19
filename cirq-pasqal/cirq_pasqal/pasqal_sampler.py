@@ -63,11 +63,7 @@ class PasqalSampler(cirq.work.Sampler):
 
         url = f'{self.remote_host}/get-result/{task_id}'
         while True:
-            response = requests.get(
-                url,
-                headers=self._authorization_header,
-                verify=False,
-            )
+            response = requests.get(url, headers=self._authorization_header, verify=False)
             response.raise_for_status()
 
             result = response.text
@@ -90,10 +86,7 @@ class PasqalSampler(cirq.work.Sampler):
         submit_response = requests.post(
             simulate_url,
             verify=False,
-            headers={
-                "Repetitions": str(repetitions),
-                **self._authorization_header,
-            },
+            headers={"Repetitions": str(repetitions), **self._authorization_header},
             data=serialization_str,
         )
         submit_response.raise_for_status()

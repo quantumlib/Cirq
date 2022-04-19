@@ -35,14 +35,9 @@ class QasmLexer:
         '!=': 'NE',
     }
 
-    tokens = [
-        'FORMAT_SPEC',
-        'NUMBER',
-        'NATURAL_NUMBER',
-        'QELIBINC',
-        'ID',
-        'PI',
-    ] + list(reserved.values())
+    tokens = ['FORMAT_SPEC', 'NUMBER', 'NATURAL_NUMBER', 'QELIBINC', 'ID', 'PI'] + list(
+        reserved.values()
+    )
 
     def t_newline(self, t):
         r"""\n+"""

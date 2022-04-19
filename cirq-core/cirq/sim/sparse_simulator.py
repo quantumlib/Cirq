@@ -14,27 +14,13 @@
 
 """A simulator that uses numpy's einsum for sparse matrix operations."""
 
-from typing import (
-    Any,
-    Iterator,
-    List,
-    Type,
-    TYPE_CHECKING,
-    Union,
-    Sequence,
-    Optional,
-)
+from typing import Any, Iterator, List, Type, TYPE_CHECKING, Union, Sequence, Optional
 
 import numpy as np
 
 from cirq import ops
 from cirq._compat import deprecated_parameter
-from cirq.sim import (
-    simulator,
-    state_vector,
-    state_vector_simulator,
-    act_on_state_vector_args,
-)
+from cirq.sim import simulator, state_vector, state_vector_simulator, act_on_state_vector_args
 
 if TYPE_CHECKING:
     import cirq
@@ -164,10 +150,7 @@ class Simulator(
         if np.dtype(dtype).kind != 'c':
             raise ValueError(f'dtype must be a complex type but was {dtype}')
         super().__init__(
-            dtype=dtype,
-            noise=noise,
-            seed=seed,
-            split_untangled_states=split_untangled_states,
+            dtype=dtype, noise=noise, seed=seed, split_untangled_states=split_untangled_states
         )
 
     def _create_partial_act_on_args(
@@ -201,14 +184,8 @@ class Simulator(
             dtype=self._dtype,
         )
 
-    def _create_step_result(
-        self,
-        sim_state: 'cirq.OperationTarget[cirq.ActOnStateVectorArgs]',
-    ):
-        return SparseSimulatorStep(
-            sim_state=sim_state,
-            dtype=self._dtype,
-        )
+    def _create_step_result(self, sim_state: 'cirq.OperationTarget[cirq.ActOnStateVectorArgs]'):
+        return SparseSimulatorStep(sim_state=sim_state, dtype=self._dtype)
 
     def simulate_expectation_values_sweep_iter(
         self,
@@ -239,8 +216,7 @@ class Simulator(
 
 
 class SparseSimulatorStep(
-    state_vector.StateVectorMixin,
-    state_vector_simulator.StateVectorStepResult,
+    state_vector.StateVectorMixin, state_vector_simulator.StateVectorStepResult
 ):
     """A `StepResult` that includes `StateVectorMixin` methods."""
 

@@ -37,10 +37,7 @@ class CircuitSerializer(serializer.Serializer):
     at the cost of some extendability.
     """
 
-    def __init__(
-        self,
-        gate_set_name: str,
-    ):
+    def __init__(self, gate_set_name: str):
         """Construct the circuit serializer object.
 
         Args:
@@ -207,20 +204,14 @@ class CircuitSerializer(serializer.Serializer):
             )
         elif isinstance(gate, cirq.FSimGate):
             arg_func_langs.float_arg_to_proto(
-                gate.theta,
-                out=msg.fsimgate.theta,
-                arg_function_language=arg_function_language,
+                gate.theta, out=msg.fsimgate.theta, arg_function_language=arg_function_language
             )
             arg_func_langs.float_arg_to_proto(
-                gate.phi,
-                out=msg.fsimgate.phi,
-                arg_function_language=arg_function_language,
+                gate.phi, out=msg.fsimgate.phi, arg_function_language=arg_function_language
             )
         elif isinstance(gate, cirq.MeasurementGate):
             arg_func_langs.arg_to_proto(
-                gate.key,
-                out=msg.measurementgate.key,
-                arg_function_language=arg_function_language,
+                gate.key, out=msg.measurementgate.key, arg_function_language=arg_function_language
             )
             arg_func_langs.arg_to_proto(
                 gate.invert_mask,

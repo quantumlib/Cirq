@@ -114,10 +114,7 @@ class IdentityGate(raw_types.Gate):
         other = {}
         if not all(d == 2 for d in self._qid_shape):
             other['qid_shape'] = self._qid_shape
-        return {
-            'num_qubits': len(self._qid_shape),
-            **other,
-        }
+        return {'num_qubits': len(self._qid_shape), **other}
 
     def _mul_with_qubits(self, qubits: Tuple['cirq.Qid', ...], other):
         if isinstance(other, raw_types.Operation):

@@ -928,9 +928,7 @@ class AbstractCircuit(abc.ABC):
         )
 
     def _with_rescoped_keys_(
-        self,
-        path: Tuple[str, ...],
-        bindable_keys: FrozenSet['cirq.MeasurementKey'],
+        self, path: Tuple[str, ...], bindable_keys: FrozenSet['cirq.MeasurementKey']
     ):
         moments = []
         for moment in self.moments:
@@ -1686,9 +1684,7 @@ class Circuit(AbstractCircuit):
     """
 
     def __init__(
-        self,
-        *contents: 'cirq.OP_TREE',
-        strategy: 'cirq.InsertStrategy' = InsertStrategy.EARLIEST,
+        self, *contents: 'cirq.OP_TREE', strategy: 'cirq.InsertStrategy' = InsertStrategy.EARLIEST
     ) -> None:
         """Initializes a circuit.
 
@@ -1823,8 +1819,7 @@ class Circuit(AbstractCircuit):
     zip.__doc__ = AbstractCircuit.zip.__doc__
 
     def transform_qubits(
-        self,
-        qubit_map: Union[Dict['cirq.Qid', 'cirq.Qid'], Callable[['cirq.Qid'], 'cirq.Qid']],
+        self, qubit_map: Union[Dict['cirq.Qid', 'cirq.Qid'], Callable[['cirq.Qid'], 'cirq.Qid']]
     ) -> 'cirq.Circuit':
         """Returns the same circuit, but with different qubits.
 
@@ -1970,10 +1965,7 @@ class Circuit(AbstractCircuit):
         """
         moments_and_operations = list(
             ops.flatten_to_ops_or_moments(
-                ops.transform_op_tree(
-                    moment_or_operation_tree,
-                    preserve_moments=True,
-                ),
+                ops.transform_op_tree(moment_or_operation_tree, preserve_moments=True)
             )
         )
         # limit index to 0..len(self._moments), also deal with indices smaller 0
@@ -2310,9 +2302,7 @@ class Circuit(AbstractCircuit):
 
 
 def _pick_inserted_ops_moment_indices(
-    operations: Sequence['cirq.Operation'],
-    start: int = 0,
-    frontier: Dict['cirq.Qid', int] = None,
+    operations: Sequence['cirq.Operation'], start: int = 0, frontier: Dict['cirq.Qid', int] = None
 ) -> Tuple[Sequence[int], Dict['cirq.Qid', int]]:
     """Greedily assigns operations to moments.
 
@@ -2348,9 +2338,7 @@ def _resolve_operations(
     return resolved_operations
 
 
-def _get_moment_annotations(
-    moment: 'cirq.Moment',
-) -> Iterator['cirq.Operation']:
+def _get_moment_annotations(moment: 'cirq.Moment') -> Iterator['cirq.Operation']:
     for op in moment.operations:
         if op.qubits:
             continue

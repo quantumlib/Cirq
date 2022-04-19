@@ -55,6 +55,7 @@ def test_device_metadata():
         cirq.PhasedXZGate,
         cirq.MeasurementGate,
         cirq.ZPowGate,
+        cirq.GlobalPhaseGate,
     )
     assert d.metadata.qubit_pairs == frozenset(
         {

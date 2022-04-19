@@ -25,46 +25,28 @@ X_SERIALIZER = cg.GateOpSerializer(
     gate_type=cirq.XPowGate,
     serialized_gate_id='x_pow',
     args=[
-        cg.SerializingArg(
-            serialized_name='half_turns',
-            serialized_type=float,
-            op_getter='exponent',
-        )
+        cg.SerializingArg(serialized_name='half_turns', serialized_type=float, op_getter='exponent')
     ],
 )
 
 X_DESERIALIZER = cg.GateOpDeserializer(
     serialized_gate_id='x_pow',
     gate_constructor=cirq.XPowGate,
-    args=[
-        cg.DeserializingArg(
-            serialized_name='half_turns',
-            constructor_arg_name='exponent',
-        )
-    ],
+    args=[cg.DeserializingArg(serialized_name='half_turns', constructor_arg_name='exponent')],
 )
 
 Y_SERIALIZER = cg.GateOpSerializer(
     gate_type=cirq.YPowGate,
     serialized_gate_id='y_pow',
     args=[
-        cg.SerializingArg(
-            serialized_name='half_turns',
-            serialized_type=float,
-            op_getter='exponent',
-        )
+        cg.SerializingArg(serialized_name='half_turns', serialized_type=float, op_getter='exponent')
     ],
 )
 
 Y_DESERIALIZER = cg.GateOpDeserializer(
     serialized_gate_id='y_pow',
     gate_constructor=cirq.YPowGate,
-    args=[
-        cg.DeserializingArg(
-            serialized_name='half_turns',
-            constructor_arg_name='exponent',
-        )
-    ],
+    args=[cg.DeserializingArg(serialized_name='half_turns', constructor_arg_name='exponent')],
 )
 
 CIRCUIT_OP_SERIALIZER = cg.CircuitOpSerializer()
@@ -137,9 +119,7 @@ def test_is_supported_operation_can_serialize_predicate():
         serialized_gate_id='x_pow',
         args=[
             cg.SerializingArg(
-                serialized_name='half_turns',
-                serialized_type=float,
-                op_getter='exponent',
+                serialized_name='half_turns', serialized_type=float, op_getter='exponent'
             )
         ],
         can_serialize_predicate=lambda x: x.gate.exponent == 1.0,
@@ -165,11 +145,9 @@ def test_serialize_deserialize_circuit():
                     operations=[
                         X_SERIALIZER.to_proto(cirq.X(q0)),
                         X_SERIALIZER.to_proto(cirq.X(q1)),
-                    ],
+                    ]
                 ),
-                v2.program_pb2.Moment(
-                    operations=[X_SERIALIZER.to_proto(cirq.X(q0))],
-                ),
+                v2.program_pb2.Moment(operations=[X_SERIALIZER.to_proto(cirq.X(q0))]),
             ],
         ),
     )
@@ -202,12 +180,8 @@ def test_serialize_deserialize_circuit_with_tokens():
         circuit=v2.program_pb2.Circuit(
             scheduling_strategy=v2.program_pb2.Circuit.MOMENT_BY_MOMENT,
             moments=[
-                v2.program_pb2.Moment(
-                    operations=[op1, op2],
-                ),
-                v2.program_pb2.Moment(
-                    operations=[X_SERIALIZER.to_proto(cirq.X(q0))],
-                ),
+                v2.program_pb2.Moment(operations=[op1, op2]),
+                v2.program_pb2.Moment(operations=[X_SERIALIZER.to_proto(cirq.X(q0))]),
             ],
         ),
         constants=[
@@ -255,13 +229,9 @@ def test_serialize_deserialize_circuit_with_subcircuit():
         circuit=v2.program_pb2.Circuit(
             scheduling_strategy=v2.program_pb2.Circuit.MOMENT_BY_MOMENT,
             moments=[
+                v2.program_pb2.Moment(operations=[op1], circuit_operations=[c_op1]),
                 v2.program_pb2.Moment(
-                    operations=[op1],
-                    circuit_operations=[c_op1],
-                ),
-                v2.program_pb2.Moment(
-                    operations=[X_SERIALIZER.to_proto(cirq.X(q0))],
-                    circuit_operations=[c_op2],
+                    operations=[X_SERIALIZER.to_proto(cirq.X(q0))], circuit_operations=[c_op2]
                 ),
             ],
         ),
@@ -270,11 +240,7 @@ def test_serialize_deserialize_circuit_with_subcircuit():
             v2.program_pb2.Constant(
                 circuit_value=v2.program_pb2.Circuit(
                     scheduling_strategy=v2.program_pb2.Circuit.MOMENT_BY_MOMENT,
-                    moments=[
-                        v2.program_pb2.Moment(
-                            operations=[X_SERIALIZER.to_proto(cirq.X(q0))],
-                        )
-                    ],
+                    moments=[v2.program_pb2.Moment(operations=[X_SERIALIZER.to_proto(cirq.X(q0))])],
                 )
             ),
         ],
@@ -302,23 +268,15 @@ def test_deserialize_infinite_recursion_fails():
         language=v2.program_pb2.Language(arg_function_language='', gate_set='my_gate_set'),
         circuit=v2.program_pb2.Circuit(
             scheduling_strategy=v2.program_pb2.Circuit.MOMENT_BY_MOMENT,
-            moments=[
-                v2.program_pb2.Moment(
-                    circuit_operations=[c_op1],
-                ),
-            ],
+            moments=[v2.program_pb2.Moment(circuit_operations=[c_op1])],
         ),
         constants=[
             v2.program_pb2.Constant(
                 circuit_value=v2.program_pb2.Circuit(
                     scheduling_strategy=v2.program_pb2.Circuit.MOMENT_BY_MOMENT,
-                    moments=[
-                        v2.program_pb2.Moment(
-                            circuit_operations=[c_op1],
-                        ),
-                    ],
+                    moments=[v2.program_pb2.Moment(circuit_operations=[c_op1])],
                 )
-            ),
+            )
         ],
     )
     with pytest.raises(ValueError, match="Failed to deserialize circuit"):
@@ -374,9 +332,7 @@ def test_deserialize_empty_moment():
         language=v2.program_pb2.Language(arg_function_language='', gate_set='my_gate_set'),
         circuit=v2.program_pb2.Circuit(
             scheduling_strategy=v2.program_pb2.Circuit.MOMENT_BY_MOMENT,
-            moments=[
-                v2.program_pb2.Moment(),
-            ],
+            moments=[v2.program_pb2.Moment()],
         ),
     )
     assert MY_GATE_SET.deserialize(proto) == circuit
@@ -392,9 +348,7 @@ def test_serialize_deserialize_op():
     proto = op_proto(
         {
             'gate': {'id': 'x_pow'},
-            'args': {
-                'half_turns': {'arg_value': {'float_value': 0.125}},
-            },
+            'args': {'half_turns': {'arg_value': {'float_value': 0.125}}},
             'qubits': [{'id': '1_1'}],
         }
     )
@@ -407,9 +361,7 @@ def test_serialize_deserialize_op_with_token():
     proto = op_proto(
         {
             'gate': {'id': 'x_pow'},
-            'args': {
-                'half_turns': {'arg_value': {'float_value': 0.125}},
-            },
+            'args': {'half_turns': {'arg_value': {'float_value': 0.125}}},
             'qubits': [{'id': '1_1'}],
             'token_value': 'abc123',
         }
@@ -424,9 +376,7 @@ def test_serialize_deserialize_op_with_constants():
     proto = op_proto(
         {
             'gate': {'id': 'x_pow'},
-            'args': {
-                'half_turns': {'arg_value': {'float_value': 0.125}},
-            },
+            'args': {'half_turns': {'arg_value': {'float_value': 0.125}}},
             'qubits': [{'id': '1_1'}],
             'token_constant_index': 0,
         }
@@ -443,9 +393,7 @@ def test_serialize_deserialize_op_subclass():
     proto = op_proto(
         {
             'gate': {'id': 'x_pow'},
-            'args': {
-                'half_turns': {'arg_value': {'float_value': 1.0}},
-            },
+            'args': {'half_turns': {'arg_value': {'float_value': 1.0}}},
             'qubits': [{'id': '1_1'}],
         }
     )
@@ -462,11 +410,7 @@ def default_circuit_proto():
 
     return v2.program_pb2.Circuit(
         scheduling_strategy=v2.program_pb2.Circuit.MOMENT_BY_MOMENT,
-        moments=[
-            v2.program_pb2.Moment(
-                operations=[op1],
-            ),
-        ],
+        moments=[v2.program_pb2.Moment(operations=[op1])],
     )
 
 
@@ -519,9 +463,7 @@ def test_deserialize_circuit_op_errors():
         )
 
     BAD_CIRCUIT_DESERIALIZER = cg.GateOpDeserializer(
-        serialized_gate_id='circuit',
-        gate_constructor=cirq.ZPowGate,
-        args=[],
+        serialized_gate_id='circuit', gate_constructor=cirq.ZPowGate, args=[]
     )
     BAD_CIRCUIT_DESERIALIZER_GATE_SET = cg.SerializableGateSet(
         gate_set_name='bad_circuit_gateset',
@@ -585,14 +527,10 @@ def test_multiple_serializers():
 def test_gateset_with_added_types():
     q = cirq.GridQubit(1, 1)
     x_gateset = cg.SerializableGateSet(
-        gate_set_name='x',
-        serializers=[X_SERIALIZER],
-        deserializers=[X_DESERIALIZER],
+        gate_set_name='x', serializers=[X_SERIALIZER], deserializers=[X_DESERIALIZER]
     )
     xy_gateset = x_gateset.with_added_types(
-        gate_set_name='xy',
-        serializers=[Y_SERIALIZER],
-        deserializers=[Y_DESERIALIZER],
+        gate_set_name='xy', serializers=[Y_SERIALIZER], deserializers=[Y_DESERIALIZER]
     )
     assert x_gateset.name == 'x'
     assert x_gateset.is_supported_operation(cirq.X(q))
@@ -605,9 +543,7 @@ def test_gateset_with_added_types():
     proto = op_proto(
         {
             'gate': {'id': 'y_pow'},
-            'args': {
-                'half_turns': {'arg_value': {'float_value': 0.125}},
-            },
+            'args': {'half_turns': {'arg_value': {'float_value': 0.125}}},
             'qubits': [{'id': '1_1'}],
         }
     )
@@ -621,14 +557,10 @@ def test_gateset_with_added_types_again():
     """Verify that adding a serializer twice doesn't mess anything up."""
     q = cirq.GridQubit(2, 2)
     x_gateset = cg.SerializableGateSet(
-        gate_set_name='x',
-        serializers=[X_SERIALIZER],
-        deserializers=[X_DESERIALIZER],
+        gate_set_name='x', serializers=[X_SERIALIZER], deserializers=[X_DESERIALIZER]
     )
     xx_gateset = x_gateset.with_added_types(
-        gate_set_name='xx',
-        serializers=[X_SERIALIZER],
-        deserializers=[X_DESERIALIZER],
+        gate_set_name='xx', serializers=[X_SERIALIZER], deserializers=[X_DESERIALIZER]
     )
 
     assert xx_gateset.name == 'xx'
@@ -639,9 +571,7 @@ def test_gateset_with_added_types_again():
     proto = op_proto(
         {
             'gate': {'id': 'x_pow'},
-            'args': {
-                'half_turns': {'arg_value': {'float_value': 0.125}},
-            },
+            'args': {'half_turns': {'arg_value': {'float_value': 0.125}}},
             'qubits': [{'id': '1_1'}],
         }
     )
@@ -655,9 +585,7 @@ def test_deserialize_op_invalid_gate():
     proto = op_proto(
         {
             'gate': {},
-            'args': {
-                'half_turns': {'arg_value': {'float_value': 0.125}},
-            },
+            'args': {'half_turns': {'arg_value': {'float_value': 0.125}}},
             'qubits': [{'id': '1_1'}],
         }
     )
@@ -665,12 +593,7 @@ def test_deserialize_op_invalid_gate():
         MY_GATE_SET.deserialize_op(proto)
 
     proto = op_proto(
-        {
-            'args': {
-                'half_turns': {'arg_value': {'float_value': 0.125}},
-            },
-            'qubits': [{'id': '1_1'}],
-        }
+        {'args': {'half_turns': {'arg_value': {'float_value': 0.125}}}, 'qubits': [{'id': '1_1'}]}
     )
     with pytest.raises(ValueError, match='does not have a gate'):
         MY_GATE_SET.deserialize_op(proto)
@@ -686,9 +609,7 @@ def test_deserialize_unsupported_gate_type():
     proto = op_proto(
         {
             'gate': {'id': 'no_pow'},
-            'args': {
-                'half_turns': {'arg_value': {'float_value': 0.125}},
-            },
+            'args': {'half_turns': {'arg_value': {'float_value': 0.125}}},
             'qubits': [{'id': '1_1'}],
         }
     )

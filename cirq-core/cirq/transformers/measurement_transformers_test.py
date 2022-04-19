@@ -272,10 +272,7 @@ def test_repr():
 
 def test_multi_qubit_control():
     q0, q1 = cirq.LineQubit.range(2)
-    circuit = cirq.Circuit(
-        cirq.measure(q0, q1, key='a'),
-        cirq.X(q1).with_classical_controls('a'),
-    )
+    circuit = cirq.Circuit(cirq.measure(q0, q1, key='a'), cirq.X(q1).with_classical_controls('a'))
     with pytest.raises(ValueError, match='Only single qubit conditions are allowed'):
         _ = cirq.defer_measurements(circuit)
 
@@ -283,8 +280,7 @@ def test_multi_qubit_control():
 def test_sympy_control():
     q0, q1 = cirq.LineQubit.range(2)
     circuit = cirq.Circuit(
-        cirq.measure(q0, q1, key='a'),
-        cirq.X(q1).with_classical_controls(sympy.Symbol('a')),
+        cirq.measure(q0, q1, key='a'), cirq.X(q1).with_classical_controls(sympy.Symbol('a'))
     )
     with pytest.raises(ValueError, match='Only KeyConditions are allowed'):
         _ = cirq.defer_measurements(circuit)

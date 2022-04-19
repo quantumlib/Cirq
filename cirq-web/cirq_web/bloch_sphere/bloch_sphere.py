@@ -19,11 +19,7 @@ from cirq.qis.states import STATE_VECTOR_LIKE
 
 
 class BlochSphere(widget.Widget):
-    def __init__(
-        self,
-        sphere_radius: int = 5,
-        state_vector: STATE_VECTOR_LIKE = None,
-    ):
+    def __init__(self, sphere_radius: int = 5, state_vector: STATE_VECTOR_LIKE = None):
         """Initializes a BlochSphere.
 
         Also initializes it's parent class Widget with the bundle file provided.

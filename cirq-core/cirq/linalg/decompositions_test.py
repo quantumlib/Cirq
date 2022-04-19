@@ -259,14 +259,7 @@ def test_kak_plot_empty():
 
 @pytest.mark.parametrize(
     'target',
-    [
-        np.eye(4),
-        SWAP,
-        SWAP * 1j,
-        CZ,
-        CNOT,
-        SWAP @ CZ,
-    ]
+    [np.eye(4), SWAP, SWAP * 1j, CZ, CNOT, SWAP @ CZ]
     + [cirq.testing.random_unitary(4) for _ in range(10)],
 )
 def test_kak_decomposition(target):

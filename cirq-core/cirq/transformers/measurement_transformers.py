@@ -15,10 +15,7 @@
 from typing import Any, Dict, List, Optional, TYPE_CHECKING, Union
 
 from cirq import ops, protocols, value
-from cirq.transformers import (
-    transformer_api,
-    transformer_primitives,
-)
+from cirq.transformers import transformer_api, transformer_primitives
 from cirq.transformers.synchronize_terminal_measurements import find_terminal_measurements
 
 if TYPE_CHECKING:

@@ -55,10 +55,7 @@ class CCZPowGate(gate_features.InterchangeableQubitsGate, eigen_gate.EigenGate):
     """
 
     def _eigen_components(self) -> List[Tuple[float, np.ndarray]]:
-        return [
-            (0, np.diag([1, 1, 1, 1, 1, 1, 1, 0])),
-            (1, np.diag([0, 0, 0, 0, 0, 0, 0, 1])),
-        ]
+        return [(0, np.diag([1, 1, 1, 1, 1, 1, 1, 0])), (1, np.diag([0, 0, 0, 0, 0, 0, 0, 1]))]
 
     def _trace_distance_bound_(self) -> Optional[float]:
         if self._is_parameterized_():

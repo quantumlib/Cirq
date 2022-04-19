@@ -120,16 +120,12 @@ class RigettiQCSService:
             A qcs_api_client.models.ListQuantumProcessorsResponse containing the identifiers
             of the available quantum processors..
         """
-        return cast(
-            ListQuantumProcessorsResponse,
-            list_quantum_processors(client=client).parsed,
-        )
+        return cast(ListQuantumProcessorsResponse, list_quantum_processors(client=client).parsed)
 
     @staticmethod
     @_provide_default_client
     def get_quilt_calibrations(
-        quantum_processor_id: str,
-        client: Optional[httpx.Client],
+        quantum_processor_id: str, client: Optional[httpx.Client]
     ) -> GetQuiltCalibrationsResponse:
         """Retrieve the calibration data used for client-side Quil-T generation.
 
@@ -153,8 +149,7 @@ class RigettiQCSService:
     @staticmethod
     @_provide_default_client
     def get_instruction_set_architecture(
-        quantum_processor_id: str,
-        client: Optional[httpx.Client],
+        quantum_processor_id: str, client: Optional[httpx.Client]
     ) -> InstructionSetArchitecture:  # coverage: ignore
         """Retrieve the Instruction Set Architecture of a QuantumProcessor by ID. This
         includes site specific operations and native gate capabilities.
@@ -213,13 +208,5 @@ def get_rigetti_qcs_service(
         A `RigettiQCSService` with the specified quantum processor, executor, and transformer.
 
     """
-    qc = get_qc(
-        quantum_processor_id,
-        as_qvm=as_qvm,
-        noisy=noisy,
-    )
-    return RigettiQCSService(
-        quantum_computer=qc,
-        executor=executor,
-        transformer=transformer,
-    )
+    qc = get_qc(quantum_processor_id, as_qvm=as_qvm, noisy=noisy)
+    return RigettiQCSService(quantum_computer=qc, executor=executor, transformer=transformer)
