@@ -37,6 +37,7 @@ from typing import (
     Generic,
     Iterator,
     List,
+    Optional,
     Sequence,
     Set,
     Tuple,
@@ -897,7 +898,7 @@ class SimulationTrialResult(Generic[TSimulatorState]):
         params: 'cirq.ParamResolver',
         measurements: Dict[str, np.ndarray],
         final_simulator_state: Any = None,
-        final_step_result: 'cirq.StepResult[TSimulatorState]' = None,
+        final_step_result: Optional['cirq.StepResult[TSimulatorState]'] = None,
     ) -> None:
         """Initializes the `SimulationTrialResult` class.
 
@@ -925,15 +926,10 @@ class SimulationTrialResult(Generic[TSimulatorState]):
         self.params = params
         self.measurements = measurements
         self._final_step_result = final_step_result
-        self._final_simulator_state_cache = final_simulator_state
-
-    @property
-    def _final_simulator_state(self) -> 'TSimulatorState':
-        if self._final_simulator_state_cache is None:
-            # We are guaranteed that _final_step_result is not None here due to the check in init.
-            final_step_result = cast('cirq.StepResult[TSimulatorState]', self._final_step_result)
-            self._final_simulator_state_cache = final_step_result._simulator_state()
-        return self._final_simulator_state_cache
+        self._final_simulator_state = (
+            final_simulator_state
+            or cast('cirq.StepResult[TSimulatorState]', final_step_result)._simulator_state()
+        )
 
     def __repr__(self) -> str:
         return (

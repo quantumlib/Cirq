@@ -363,7 +363,7 @@ class StepResultBase(Generic[TActOnArgs], StepResult[OperationTarget[TActOnArgs]
         return self._qubit_shape
 
     @property
-    def _merged_sim_state(self):
+    def _merged_sim_state(self) -> TActOnArgs:
         if self._merged_sim_state_cache is None:
             self._merged_sim_state_cache = self._sim_state.create_merged_state()
         return self._merged_sim_state_cache
@@ -424,3 +424,6 @@ class SimulationTrialResultBase(
             substates[state[None]] = 0
             return tuple(substates.keys())
         return [state.create_merged_state()]
+
+    def _get_merged_sim_state(self) -> TActOnArgs:
+        return self._final_step_result_typed._merged_sim_state

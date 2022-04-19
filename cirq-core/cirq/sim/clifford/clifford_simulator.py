@@ -130,7 +130,7 @@ class CliffordTrialResult(
 
     @property
     def final_state(self) -> 'cirq.CliffordState':
-        state = self._final_simulator_state.create_merged_state()
+        state = self._get_merged_sim_state()
         clifford_state = CliffordState(state.qubit_map)
         clifford_state.ch_form = state.state.copy()
         return clifford_state

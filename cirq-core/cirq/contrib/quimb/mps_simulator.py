@@ -155,7 +155,7 @@ class MPSTrialResult(simulator_base.SimulationTrialResultBase['MPSState']):
 
     @property
     def final_state(self) -> 'MPSState':
-        return self._final_simulator_state.create_merged_state()
+        return self._get_merged_sim_state()
 
     def __str__(self) -> str:
         samples = super().__str__()

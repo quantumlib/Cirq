@@ -967,9 +967,8 @@ def test_density_matrix_simulator_state_repr():
 
 def test_density_matrix_trial_result_eq():
     q0 = cirq.LineQubit(0)
-    final_step_result = mock.Mock(cirq.StepResult)
-    final_step_result._simulator_state.return_value = cirq.ActOnDensityMatrixArgs(
-        initial_state=np.ones((2, 2)) * 0.5, qubits=[q0]
+    final_step_result = cirq.DensityMatrixStepResult(
+        cirq.ActOnDensityMatrixArgs(initial_state=np.ones((2, 2)) * 0.5, qubits=[q0])
     )
     eq = cirq.testing.EqualsTester()
     eq.add_equality_group(
@@ -1147,9 +1146,6 @@ def test_density_matrix_trial_result_repr_pretty():
         dtype=dtype,
     )
     final_step_result = cirq.DensityMatrixStepResult(args)
-    final_step_result._simulator_state = cirq.DensityMatrixSimulatorState(
-        density_matrix=np.ones((2, 2)) * 0.5, qubit_map={q0: 0}
-    )
     result = cirq.DensityMatrixTrialResult(
         params=cirq.ParamResolver({}), measurements={}, final_step_result=final_step_result
     )

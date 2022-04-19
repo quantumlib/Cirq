@@ -395,8 +395,7 @@ class DensityMatrixTrialResult(
     def final_density_matrix(self) -> np.ndarray:
         if self._final_density_matrix is None:
             size = np.prod(protocols.qid_shape(self), dtype=np.int64)
-            state = self._final_simulator_state
-            tensor = state.create_merged_state().target_tensor
+            tensor = self._get_merged_sim_state().target_tensor
             self._final_density_matrix = np.reshape(tensor.copy(), (size, size))
         return self._final_density_matrix
 

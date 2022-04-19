@@ -156,8 +156,7 @@ class StateVectorTrialResult(
     @property
     def final_state_vector(self) -> np.ndarray:
         if self._final_state_vector is None:
-            state = self._final_simulator_state
-            tensor = state.create_merged_state().target_tensor
+            tensor = self._get_merged_sim_state().target_tensor
             if tensor.ndim > 1:
                 tensor = tensor.reshape(np.prod(tensor.shape))
             self._final_state_vector = tensor
