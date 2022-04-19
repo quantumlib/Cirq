@@ -11,7 +11,18 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from typing import cast, Dict, Hashable, Iterable, Iterator, List, Optional, Sequence, Set, TYPE_CHECKING
+from typing import (
+    cast,
+    Dict,
+    Hashable,
+    Iterable,
+    Iterator,
+    List,
+    Optional,
+    Sequence,
+    Set,
+    TYPE_CHECKING,
+)
 from collections import OrderedDict
 import dataclasses
 import numpy as np
@@ -155,14 +166,13 @@ def results_to_proto(
 
 
 def results_from_proto(
-    msg: result_pb2.Result,
-    measurements: List[MeasureInfo] = None,
-    job: 'cg.engine.AbstractJob' = None,
+    msg: result_pb2.Result, *, job: 'cg.engine.AbstractJob', measurements: List[MeasureInfo] = None
 ) -> Sequence[Sequence[EngineResult]]:
     """Converts a v2 result proto into List of list of trial results.
 
     Args:
         msg: v2 Result message to convert.
+        job: The Job associated with this result.
         measurements: List of info about expected measurements in the program.
             This may be used for custom ordering of the result. If no
             measurement config is provided, then all results will be returned
@@ -182,12 +192,13 @@ def results_from_proto(
 def _trial_sweep_from_proto(
     msg: result_pb2.SweepResult,
     job: 'cg.engine.AbstractJob',
-    measure_map: Dict[str, MeasureInfo] = None,
+    measure_map: Optional[Dict[str, MeasureInfo]] = None,
 ) -> Sequence[EngineResult]:
     """Converts a SweepResult proto into List of list of trial results.
 
     Args:
         msg: v2 Result message to convert.
+        job: The Job associated with this result.
         measure_map: A mapping of measurement keys to a measurement
             configuration containing qubit ordering. If no measurement config is
             provided, then all results will be returned in the order specified
@@ -199,12 +210,8 @@ def _trial_sweep_from_proto(
     Raises:
         ValueError: If a qubit already exists in the measurement results.
     """
-    if job is None:
-        job_id = None
-        job_finished = None
-    else:
-        job_id = job.id()
-        job_finished = job.update_time()
+    job_id = job.id()
+    job_finished = job.update_time()
 
     trial_sweep: List[EngineResult] = []
     for pr in msg.parameterized_results:

@@ -32,10 +32,18 @@ def _flatten_results(batch_results: Sequence[Sequence[EngineResult]]):
 
 def _to_engine_results(
     batch_results: Sequence[Sequence['cirq.Result']],
+    *,
+    job_id: str,
+    job_finished_time: datetime.datetime = None,
 ) -> List[List[EngineResult]]:
+    """Convert cirq.Result from simulators into (simulated) EngineResults."""
+
+    if job_finished_time is None:
+        job_finished_time = datetime.datetime.now()
+
     return [
         [
-            EngineResult.from_result(result, job_id=None, job_finished_time=datetime.datetime.now())
+            EngineResult.from_result(result, job_id=job_id, job_finished_time=job_finished_time)
             for result in batch
         ]
         for batch in batch_results
@@ -138,9 +146,9 @@ class SimulatedLocalJob(AbstractLocalJob):
             batch_results = self._sampler.run_batch(
                 programs=programs, params_list=cast(List[cirq.Sweepable], sweeps), repetitions=reps
             )
-            batch_engineresults = _to_engine_results(batch_results)
-            self._state = quantum.enums.ExecutionStatus.State.SUCCESS
-            return batch_engineresults
+            batch_engine_results = _to_engine_results(batch_results, job_id=self.id())
+            self._state = quantum.ExecutionStatus.State.SUCCESS
+            return batch_engine_results
         except Exception as e:
             self._failure_code = '500'
             self._failure_message = str(e)

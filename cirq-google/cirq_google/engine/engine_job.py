@@ -32,7 +32,6 @@ if TYPE_CHECKING:
     import cirq_google.engine.engine as engine_base
     from cirq_google.engine.engine import engine_program
     from cirq_google.engine.engine import engine_processor
-    import cirq_google as cg
 
 TERMINAL_STATES = [
     quantum.ExecutionStatus.State.SUCCESS,
@@ -124,9 +123,7 @@ class EngineJob(abstract_job.AbstractJob):
 
     def update_time(self) -> 'datetime.datetime':
         """Returns when the job was last updated."""
-        self._job = self.context.client.get_job(
-            self.project_id, self.program_id, self.job_id, False
-        )
+        self._refresh_job()
         return self._job.update_time
 
     def description(self) -> str:
@@ -301,13 +298,13 @@ class EngineJob(abstract_job.AbstractJob):
                 or result_type == 'cirq.api.google.v1.Result'
             ):
                 v1_parsed_result = v1.program_pb2.Result.FromString(result.value)
-                self._results = _get_job_results_v1(v1_parsed_result)
+                self._results = self._get_job_results_v1(v1_parsed_result)
             elif (
                 result_type == 'cirq.google.api.v2.Result'
                 or result_type == 'cirq.api.google.v2.Result'
             ):
                 v2_parsed_result = v2.result_pb2.Result.FromString(result.value)
-                self._results = _get_job_results_v2(v2_parsed_result, job=self)
+                self._results = self._get_job_results_v2(v2_parsed_result)
             elif result.Is(v2.batch_pb2.BatchResult.DESCRIPTOR):
                 v2_parsed_result = v2.batch_pb2.BatchResult.FromString(result.value)
                 self._batched_results = self._get_batch_results_v2(v2_parsed_result)
@@ -342,18 +339,40 @@ class EngineJob(abstract_job.AbstractJob):
             self._calibration_results = cal_results
         return self._calibration_results
 
-    def _get_batch_results_v2(
-        self,
-        results: v2.batch_pb2.BatchResult,
-    ) -> Sequence[Sequence[EngineResult]]:
+    def _get_job_results_v1(self, result: v1.program_pb2.Result) -> Sequence[EngineResult]:
+        job_id = self.id()
+        job_finished = self.update_time()
+
         trial_results = []
-        for result in results.results:
-            # Add a new list for the result
-            trial_results.append(_get_job_results_v2(result, job=self))
+        for sweep_result in result.sweep_results:
+            sweep_repetitions = sweep_result.repetitions
+            key_sizes = [(m.key, len(m.qubits)) for m in sweep_result.measurement_keys]
+            for result in sweep_result.parameterized_results:
+                data = result.measurement_results
+                measurements = v1.unpack_results(data, sweep_repetitions, key_sizes)
+
+                trial_results.append(
+                    EngineResult(
+                        params=cirq.ParamResolver(result.params.assignments),
+                        measurements=measurements,
+                        job_id=job_id,
+                        job_finished_time=job_finished,
+                    )
+                )
         return trial_results
 
+    def _get_job_results_v2(self, result: v2.result_pb2.Result) -> Sequence[EngineResult]:
+        sweep_results = v2.results_from_proto(result, job=self)
+        # Flatten to single list to match to sampler api.
+        return [trial_result for sweep_result in sweep_results for trial_result in sweep_result]
+
+    def _get_batch_results_v2(
+        self, results: v2.batch_pb2.BatchResult
+    ) -> Sequence[Sequence[EngineResult]]:
+        return [self._get_job_results_v2(result) for result in results.results]
+
     @classmethod
-    def _flatten(cls, result) -> Sequence[cirq.Result]:
+    def _flatten(cls, result) -> Sequence[EngineResult]:
         return [res for result_list in result for res in result_list]
 
     def __iter__(self) -> Iterator[cirq.Result]:
@@ -401,31 +420,6 @@ def _deserialize_run_context(run_context: any_pb2.Any) -> Tuple[int, List[cirq.S
             v2.sweep_from_proto(s.sweep) for s in v2_run_context.parameter_sweeps
         ]
     raise ValueError(f'unsupported run_context type: {run_context_type}')
-
-
-def _get_job_results_v1(result: v1.program_pb2.Result) -> Sequence[cirq.Result]:
-    trial_results = []
-    for sweep_result in result.sweep_results:
-        sweep_repetitions = sweep_result.repetitions
-        key_sizes = [(m.key, len(m.qubits)) for m in sweep_result.measurement_keys]
-        for result in sweep_result.parameterized_results:
-            data = result.measurement_results
-            measurements = v1.unpack_results(data, sweep_repetitions, key_sizes)
-
-            trial_results.append(
-                cirq.ResultDict(
-                    params=cirq.ParamResolver(result.params.assignments), measurements=measurements
-                )
-            )
-    return trial_results
-
-
-def _get_job_results_v2(
-    result: v2.result_pb2.Result, job: 'cg.engine.AbstractJob'
-) -> Sequence[EngineResult]:
-    sweep_results = v2.results_from_proto(result, job=job)
-    # Flatten to single list to match to sampler api.
-    return [trial_result for sweep_result in sweep_results for trial_result in sweep_result]
 
 
 def _raise_on_failure(job: quantum.QuantumJob) -> None:

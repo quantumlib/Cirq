@@ -14,47 +14,58 @@
 import datetime
 from typing import Optional, Mapping, TYPE_CHECKING
 
-import pandas as pd
+import numpy as np
 
 from cirq import study
-import numpy as np
 
 if TYPE_CHECKING:
     import cirq
 
 
 class EngineResult(study.ResultDict):
+    """A ResultDict with additional job metadata.
+
+    Please see the documentation for `cirq.ResultDict` for more information.
+
+    Additional Attributes:
+        job_id: A string job identifier.
+        job_finished_time: A timestamp for when the job finished.
+    """
+
     def __init__(
         self,
         *,  # Forces keyword args.
-        job_id: Optional[str],
-        job_finished_time: Optional[datetime.datetime],
+        job_id: str,
+        job_finished_time: datetime.datetime,
         params: Optional[study.ParamResolver] = None,
         measurements: Optional[Mapping[str, np.ndarray]] = None,
         records: Optional[Mapping[str, np.ndarray]] = None,
-    ) -> None:
-        super().__init__(
-            params=params,
-            measurements=measurements,
-            records=records,
-        )
+    ):
+        """Initialize the result.
+
+        Args:
+            job_id: A string job identifier.
+            job_finished_time: A timestamp for when the job finished.
+            params: A ParamResolver of settings used for this result.
+            measurements: A dictionary from measurement gate key to measurement
+                results. See `cirq.ResultDict`.
+            records: A dictionary from measurement gate key to measurement
+                results. See `cirq.ResultDict`.
+        """
+        super().__init__(params=params, measurements=measurements, records=records)
         self.job_id = job_id
         self.job_finished_time = job_finished_time
 
     @classmethod
     def from_result(
-        cls,
-        result: 'cirq.Result',
-        *,
-        job_id: Optional[str],
-        job_finished_time: Optional[datetime.datetime],
+        cls, result: 'cirq.Result', *, job_id: str, job_finished_time: datetime.datetime
     ):
         if isinstance(result, study.ResultDict):
             # optimize by using private methods
             return cls(
                 params=result._params,
                 measurements=result._measurements,
-                records=result._measurements,
+                records=result._records,
                 job_id=job_id,
                 job_finished_time=job_finished_time,
             )

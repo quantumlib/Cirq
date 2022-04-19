@@ -848,6 +848,8 @@ def test_run_sweep_params(client):
         assert results[i].repetitions == 1
         assert results[i].params.param_dict == {'a': v}
         assert results[i].measurements == {'q': np.array([[0]], dtype='uint8')}
+    for result in results:
+        assert result.job_id == job.id()
 
     client().create_program.assert_called_once()
     client().create_job.assert_called_once()
@@ -890,6 +892,8 @@ def test_run_batch(client):
         assert results[i].repetitions == 1
         assert results[i].params.param_dict == {'a': v}
         assert results[i].measurements == {'q': np.array([[0]], dtype='uint8')}
+    for result in results:
+        assert result.job_id == job.id()
     client().create_program.assert_called_once()
     client().create_job.assert_called_once()
     run_context = v2.batch_pb2.BatchRunContext()
