@@ -123,8 +123,8 @@ class EngineJob(abstract_job.AbstractJob):
 
     def update_time(self) -> 'datetime.datetime':
         """Returns when the job was last updated."""
-        self._refresh_job()
-        return self._job.update_time
+        job = self._refresh_job()
+        return job.update_time
 
     def description(self) -> str:
         """Returns the description of the job."""
