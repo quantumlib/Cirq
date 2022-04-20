@@ -75,6 +75,14 @@ def filter_unwanted_inherited_methods(path, parent, children):
     return filtered_children
 
 
+def filter_type_checking(path, parent, children):
+    filtered_children = []
+    for name, obj in children:
+        if name != 'TYPE_CHECKING':
+            filtered_children.append((name, obj))
+    return filtered_children
+
+
 def main(unused_argv):
     generate_cirq()
     generate_cirq_google()
@@ -93,7 +101,11 @@ def generate_cirq():
         code_url_prefix=FLAGS.code_url_prefix + "/cirq-core/cirq",
         search_hints=FLAGS.search_hints,
         site_path=FLAGS.site_path,
-        callbacks=[public_api.local_definitions_filter, filter_unwanted_inherited_methods],
+        callbacks=[
+            public_api.local_definitions_filter,
+            filter_unwanted_inherited_methods,
+            filter_type_checking,
+        ],
         extra_docs=_doc.RECORDED_CONST_DOCS,
     )
     doc_controls.decorate_all_class_attributes(
@@ -110,7 +122,11 @@ def generate_cirq_aqt():
         code_url_prefix=FLAGS.code_url_prefix + "/cirq-aqt/cirq_aqt",
         search_hints=FLAGS.search_hints,
         site_path=FLAGS.site_path,
-        callbacks=[public_api.local_definitions_filter, filter_unwanted_inherited_methods],
+        callbacks=[
+            public_api.local_definitions_filter,
+            filter_unwanted_inherited_methods,
+            filter_type_checking,
+        ],
         extra_docs=_doc.RECORDED_CONST_DOCS,
     )
     doc_controls.decorate_all_class_attributes(
@@ -128,7 +144,11 @@ def generate_cirq_ionq():
         code_url_prefix=FLAGS.code_url_prefix + "/cirq-ionq/cirq_ionq",
         search_hints=FLAGS.search_hints,
         site_path=FLAGS.site_path,
-        callbacks=[public_api.local_definitions_filter, filter_unwanted_inherited_methods],
+        callbacks=[
+            public_api.local_definitions_filter,
+            filter_unwanted_inherited_methods,
+            filter_type_checking,
+        ],
         extra_docs=_doc.RECORDED_CONST_DOCS,
     )
     doc_controls.decorate_all_class_attributes(
@@ -146,7 +166,11 @@ def generate_cirq_pasqal():
         code_url_prefix=FLAGS.code_url_prefix + "/cirq-pasqal/cirq_pasqal",
         search_hints=FLAGS.search_hints,
         site_path=FLAGS.site_path,
-        callbacks=[public_api.local_definitions_filter, filter_unwanted_inherited_methods],
+        callbacks=[
+            public_api.local_definitions_filter,
+            filter_unwanted_inherited_methods,
+            filter_type_checking,
+        ],
         extra_docs=_doc.RECORDED_CONST_DOCS,
     )
     doc_controls.decorate_all_class_attributes(
@@ -164,7 +188,11 @@ def generate_cirq_rigetti():
         code_url_prefix=FLAGS.code_url_prefix + "/cirq-rigetti/cirq_rigetti",
         search_hints=FLAGS.search_hints,
         site_path=FLAGS.site_path,
-        callbacks=[public_api.local_definitions_filter, filter_unwanted_inherited_methods],
+        callbacks=[
+            public_api.local_definitions_filter,
+            filter_unwanted_inherited_methods,
+            filter_type_checking,
+        ],
         extra_docs=_doc.RECORDED_CONST_DOCS,
     )
     doc_controls.decorate_all_class_attributes(
@@ -182,7 +210,11 @@ def generate_cirq_google():
         code_url_prefix=FLAGS.code_url_prefix + "/cirq-google/cirq_google",
         search_hints=FLAGS.search_hints,
         site_path=FLAGS.site_path,
-        callbacks=[public_api.local_definitions_filter, filter_unwanted_inherited_methods],
+        callbacks=[
+            public_api.local_definitions_filter,
+            filter_unwanted_inherited_methods,
+            filter_type_checking,
+        ],
         private_map={
             # Opt to not build docs for these paths for now since they error.
             "cirq_google.cloud.quantum.QuantumEngineServiceClient": ["enums"],
@@ -202,7 +234,11 @@ def generate_cirq_web():
         code_url_prefix=FLAGS.code_url_prefix + "/cirq-web/cirq_web",
         search_hints=FLAGS.search_hints,
         site_path=FLAGS.site_path,
-        callbacks=[public_api.local_definitions_filter, filter_unwanted_inherited_methods],
+        callbacks=[
+            public_api.local_definitions_filter,
+            filter_unwanted_inherited_methods,
+            filter_type_checking,
+        ],
         extra_docs=_doc.RECORDED_CONST_DOCS,
     )
     doc_controls.decorate_all_class_attributes(

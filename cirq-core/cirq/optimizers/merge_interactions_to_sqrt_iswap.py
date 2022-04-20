@@ -76,8 +76,8 @@ class MergeInteractionsToSqrtIswap(merge_interactions.MergeInteractionsAbc):
         self.use_sqrt_iswap_inv = use_sqrt_iswap_inv
         self.gateset = ops.Gateset(
             ops.SQRT_ISWAP_INV if use_sqrt_iswap_inv else ops.SQRT_ISWAP,
+            ops.GlobalPhaseGate,
             unroll_circuit_op=False,
-            accept_global_phase_op=True,
         )
 
     def _may_keep_old_op(self, old_op: 'cirq.Operation') -> bool:
