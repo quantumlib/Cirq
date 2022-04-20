@@ -40,6 +40,10 @@ TERMINAL_STATES = [
 ]
 
 
+def _flatten(result: Sequence[Sequence[EngineResult]]) -> List[EngineResult]:
+    return [res for result_list in result for res in result_list]
+
+
 class EngineJob(abstract_job.AbstractJob):
     """A job created via the Quantum Engine API.
 
@@ -308,7 +312,7 @@ class EngineJob(abstract_job.AbstractJob):
             elif result.Is(v2.batch_pb2.BatchResult.DESCRIPTOR):
                 v2_parsed_result = v2.batch_pb2.BatchResult.FromString(result.value)
                 self._batched_results = self._get_batch_results_v2(v2_parsed_result)
-                self._results = self._flatten(self._batched_results)
+                self._results = _flatten(self._batched_results)
             else:
                 raise ValueError(f'invalid result proto version: {result_type}')
         return self._results
@@ -362,18 +366,18 @@ class EngineJob(abstract_job.AbstractJob):
         return trial_results
 
     def _get_job_results_v2(self, result: v2.result_pb2.Result) -> Sequence[EngineResult]:
-        sweep_results = v2.results_from_proto(result, job=self)
+        sweep_results = v2.results_from_proto(result)
         # Flatten to single list to match to sampler api.
-        return [trial_result for sweep_result in sweep_results for trial_result in sweep_result]
+        return [
+            EngineResult.from_result(result, job_id=self.id(), job_finished_time=self.update_time())
+            for sweep_result in sweep_results
+            for result in sweep_result
+        ]
 
     def _get_batch_results_v2(
         self, results: v2.batch_pb2.BatchResult
     ) -> Sequence[Sequence[EngineResult]]:
         return [self._get_job_results_v2(result) for result in results.results]
-
-    @classmethod
-    def _flatten(cls, result) -> Sequence[EngineResult]:
-        return [res for result_list in result for res in result_list]
 
     def __iter__(self) -> Iterator[cirq.Result]:
         return iter(self.results())

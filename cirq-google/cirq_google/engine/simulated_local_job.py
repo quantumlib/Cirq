@@ -26,7 +26,7 @@ from cirq_google.engine.local_simulation_type import LocalSimulationType
 from cirq_google.engine.engine_result import EngineResult
 
 
-def _flatten_results(batch_results: Sequence[Sequence[EngineResult]]):
+def _flatten_results(batch_results: Sequence[Sequence[EngineResult]]) -> List[EngineResult]:
     return [result for batch in batch_results for result in batch]
 
 

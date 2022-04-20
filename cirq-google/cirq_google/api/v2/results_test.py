@@ -5,7 +5,6 @@ import pytest
 import cirq
 import cirq_google
 from cirq_google.api import v2
-from cirq_google.engine.abstract_local_job_test import NothingJob
 
 
 @pytest.mark.parametrize('reps', range(1, 100, 7))
@@ -164,8 +163,7 @@ def test_results_to_proto():
     proto = v2.results_to_proto(trial_results, measurements)
     assert isinstance(proto, v2.result_pb2.Result)
     assert len(proto.sweep_results) == 2
-    job = NothingJob(job_id='myjobid', parent_program=None, repetitions=1, sweeps=[])
-    deserialized = v2.results_from_proto(proto, measurements=measurements, job=job)
+    deserialized = v2.results_from_proto(proto, measurements)
     assert len(deserialized) == 2
     for sweep_results, expected in zip(deserialized, trial_results):
         assert len(sweep_results) == len(expected)
@@ -213,8 +211,7 @@ def test_results_from_proto_qubit_ordering():
         qmr.qubit.id = v2.qubit_to_proto_id(qubit)
         qmr.results = bytes([results])
 
-    job = NothingJob(job_id='myjobid', parent_program=None, repetitions=1, sweeps=[])
-    trial_results = v2.results_from_proto(proto, measurements=measurements, job=job)
+    trial_results = v2.results_from_proto(proto, measurements)
     trial = trial_results[0][0]
     assert trial.params == cirq.ParamResolver({'i': 1})
     assert trial.repetitions == 8
@@ -253,9 +250,8 @@ def test_results_from_proto_duplicate_qubit():
         qmr = mr.qubit_measurement_results.add()
         qmr.qubit.id = v2.qubit_to_proto_id(qubit)
         qmr.results = bytes([results])
-    job = NothingJob(job_id='myjobid', parent_program=None, repetitions=1, sweeps=[])
     with pytest.raises(ValueError, match='Qubit already exists'):
-        v2.results_from_proto(proto, measurements=measurements, job=job)
+        v2.results_from_proto(proto, measurements)
 
 
 def test_results_from_proto_default_ordering():
@@ -271,8 +267,7 @@ def test_results_from_proto_default_ordering():
         qmr.qubit.id = v2.qubit_to_proto_id(qubit)
         qmr.results = bytes([results])
 
-    job = NothingJob(job_id='myjobid', parent_program=None, repetitions=1, sweeps=[])
-    trial_results = v2.results_from_proto(proto, job=job)
+    trial_results = v2.results_from_proto(proto)
     trial = trial_results[0][0]
     assert trial.params == cirq.ParamResolver({'i': 1})
     assert trial.repetitions == 8

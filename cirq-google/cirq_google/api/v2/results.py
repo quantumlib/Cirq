@@ -11,18 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from typing import (
-    cast,
-    Dict,
-    Hashable,
-    Iterable,
-    Iterator,
-    List,
-    Optional,
-    Sequence,
-    Set,
-    TYPE_CHECKING,
-)
+from typing import cast, Dict, Hashable, Iterable, Iterator, List, Optional, Sequence, Set
 from collections import OrderedDict
 import dataclasses
 import numpy as np
@@ -30,10 +19,6 @@ import numpy as np
 import cirq
 from cirq_google.api import v2
 from cirq_google.api.v2 import result_pb2
-from cirq_google.engine.engine_result import EngineResult
-
-if TYPE_CHECKING:
-    import cirq_google as cg
 
 
 @dataclasses.dataclass
@@ -166,13 +151,12 @@ def results_to_proto(
 
 
 def results_from_proto(
-    msg: result_pb2.Result, *, job: 'cg.engine.AbstractJob', measurements: List[MeasureInfo] = None
-) -> Sequence[Sequence[EngineResult]]:
+    msg: result_pb2.Result, measurements: List[MeasureInfo] = None
+) -> Sequence[Sequence[cirq.Result]]:
     """Converts a v2 result proto into List of list of trial results.
 
     Args:
         msg: v2 Result message to convert.
-        job: The Job associated with this result.
         measurements: List of info about expected measurements in the program.
             This may be used for custom ordering of the result. If no
             measurement config is provided, then all results will be returned
@@ -184,21 +168,17 @@ def results_from_proto(
 
     measure_map = {m.key: m for m in measurements} if measurements else None
     return [
-        _trial_sweep_from_proto(sweep_result, job, measure_map)
-        for sweep_result in msg.sweep_results
+        _trial_sweep_from_proto(sweep_result, measure_map) for sweep_result in msg.sweep_results
     ]
 
 
 def _trial_sweep_from_proto(
-    msg: result_pb2.SweepResult,
-    job: 'cg.engine.AbstractJob',
-    measure_map: Optional[Dict[str, MeasureInfo]] = None,
-) -> Sequence[EngineResult]:
+    msg: result_pb2.SweepResult, measure_map: Dict[str, MeasureInfo] = None
+) -> Sequence[cirq.Result]:
     """Converts a SweepResult proto into List of list of trial results.
 
     Args:
         msg: v2 Result message to convert.
-        job: The Job associated with this result.
         measure_map: A mapping of measurement keys to a measurement
             configuration containing qubit ordering. If no measurement config is
             provided, then all results will be returned in the order specified
@@ -210,10 +190,8 @@ def _trial_sweep_from_proto(
     Raises:
         ValueError: If a qubit already exists in the measurement results.
     """
-    job_id = job.id()
-    job_finished = job.update_time()
 
-    trial_sweep: List[EngineResult] = []
+    trial_sweep: List[cirq.Result] = []
     for pr in msg.parameterized_results:
         m_data: Dict[str, np.ndarray] = {}
         for mr in pr.measurement_results:
@@ -229,11 +207,8 @@ def _trial_sweep_from_proto(
                 ordered_results = list(qubit_results.values())
             m_data[mr.key] = np.array(ordered_results).transpose()
         trial_sweep.append(
-            EngineResult(
-                params=cirq.ParamResolver(dict(pr.params.assignments)),
-                measurements=m_data,
-                job_id=job_id,
-                job_finished_time=job_finished,
+            cirq.ResultDict(
+                params=cirq.ParamResolver(dict(pr.params.assignments)), measurements=m_data
             )
         )
     return trial_sweep
