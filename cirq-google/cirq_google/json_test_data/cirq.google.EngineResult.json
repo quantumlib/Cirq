@@ -27,13 +27,6 @@
   "job_id": "my_job_id",
   "job_finished_time": {
     "cirq_type": "datetime.datetime",
-    "year": 2022,
-    "month": 4,
-    "day": 1,
-    "hour": 1,
-    "minute": 23,
-    "second": 45,
-    "microsecond": 0,
-    "fold": 0
+    "timestamp": 1648801425.0
   }
 }
