@@ -54,6 +54,16 @@ def _class_resolver_dictionary() -> Dict[str, ObjectFactory]:
     def _parallel_gate_op(gate, qubits):
         return cirq.parallel_gate_op(gate, *qubits)
 
+    def _datetime(timestamp: float) -> datetime.datetime:
+        # As part of our serialization logic, we make sure we only serialize "aware"
+        # datetimes with the UTC timezone, so we implicitly add back in the UTC timezone here.
+        #
+        # Please note: even if the assumption is somehow violated, the fact that we use
+        # unix timestamps should mean that the deserialized datetime should refer to the
+        # same point in time but may not satisfy o = read_json(to_json(o)) because the actual
+        # timezones, and hour fields will not be identical.
+        return datetime.datetime.fromtimestamp(timestamp, tz=datetime.timezone.utc)
+
     import sympy
 
     return {
@@ -216,5 +226,5 @@ def _class_resolver_dictionary() -> Dict[str, ObjectFactory]:
         'sympy.E': lambda: sympy.E,
         'sympy.EulerGamma': lambda: sympy.EulerGamma,
         'complex': complex,
-        'datetime.datetime': datetime.datetime,
+        'datetime.datetime': _datetime,
     }

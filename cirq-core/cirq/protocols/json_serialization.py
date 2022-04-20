@@ -389,20 +389,18 @@ class CirqEncoder(json.JSONEncoder):
 
         # datetime
         if isinstance(o, datetime.datetime):
-            if o.tzinfo is not None:
-                # coverage: ignore
-                raise TypeError("datetime tzinfo is not serializable")
-            return {
-                'cirq_type': 'datetime.datetime',
-                'year': o.year,
-                'month': o.month,
-                'day': o.day,
-                'hour': o.hour,
-                'minute': o.minute,
-                'second': o.second,
-                'microsecond': o.microsecond,
-                'fold': o.fold,
-            }
+            if o.tzinfo is None or o.tzinfo.utcoffset(o) is None:
+                # Otherwise, the deserialized object may change depending on local timezone.
+                raise TypeError(
+                    "Can only serialize 'aware' datetime objects with `tzinfo`. "
+                    "Consider using e.g. `datetime.datetime.now(tz=datetime.timezone.utc)`"
+                )
+
+            if o.tzinfo != datetime.timezone.utc:
+                # Saves us the trouble of having to serialize the timezone.
+                raise TypeError("Can only serialize UTC timestamps.")
+
+            return {'cirq_type': 'datetime.datetime', 'timestamp': o.timestamp()}
 
         return super().default(o)  # coverage: ignore
 

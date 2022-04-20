@@ -933,3 +933,29 @@ def test_numpy_values():
   "value": 1
 }"""
     )
+
+
+def test_basic_time_assertions():
+    naive_ts = datetime.datetime.now()
+    utc_ts = naive_ts.astimezone(datetime.timezone.utc)
+    assert naive_ts.timestamp() == utc_ts.timestamp()
+
+    re_utc = datetime.datetime.fromtimestamp(utc_ts.timestamp())
+    re_naive = datetime.datetime.fromtimestamp(naive_ts.timestamp())
+
+    assert re_utc == re_naive, 'roundtripping w/o tz turns to naive utc'
+    assert re_utc != utc_ts, 'roundtripping loses tzinfo'
+    assert naive_ts == re_naive, 'works, as long as you called fromtimestamp from the same timezone'
+
+
+def test_datetime():
+    naive_ts = datetime.datetime.now()
+
+    with pytest.raises(TypeError):
+        cirq.to_json(naive_ts)
+
+    with pytest.raises(TypeError):
+        cirq.to_json(naive_ts.astimezone(datetime.timezone(offset=datetime.timedelta(hours=-8))))
+
+    utc_ts = naive_ts.astimezone(datetime.timezone.utc)
+    assert utc_ts == cirq.read_json(json_text=cirq.to_json(utc_ts))
