@@ -149,9 +149,7 @@ class GateOperation(raw_types.Operation):
         groups: Dict[int, List['cirq.Qid']] = {}
         for i, q in enumerate(self.qubits):
             k = self.gate.qubit_index_to_equivalence_group_key(i)
-            if k not in groups:
-                groups[k] = []
-            groups[k].append(q)
+            groups.setdefault(k, []).append(q)
         return tuple(sorted((k, frozenset(v)) for k, v in groups.items()))
 
     def _value_equality_values_(self):
