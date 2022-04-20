@@ -311,7 +311,7 @@ def is_valid_placement(big_graph: nx.Graph, small_graph: nx.Graph, small_to_big_
     Args:
         big_graph: A larger graph we're placing `small_graph` onto.
         small_graph: A smaller, (potential) sub-graph to validate the given mapping.
-        small_to_big_mapping: A mappings from `small_graph` nodes to `big_graph`
+        small_to_big_mapping: A mapping from `small_graph` nodes to `big_graph`
             nodes. After the mapping occurs, we check whether all of the mapped nodes and
             edges exist on `big_graph`.
     """
