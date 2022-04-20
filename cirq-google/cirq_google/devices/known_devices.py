@@ -11,7 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
+import inspect
 from typing import Any, Collection, Dict, Optional, Iterable, List, Set, Tuple
 
 import cirq
@@ -147,8 +147,8 @@ def create_device_proto_for_qubits(
                 # Choose target set and number of qubits based on gate type.
                 gate_type = internal_type
 
-                # Note: if it is not a measurement gate and doesn't inherit
-                # from SingleQubitGate, it's assumed to be a two qubit gate.
+                # Note: if it is not a measurement gate, and it's _num_qubits_ method
+                # doesn't return 2, it's assumed to be a two qubit gate.
                 if gate_type == cirq.MeasurementGate:
                     gate.valid_targets.append(_MEAS_TARGET_SET)
                 elif gate_type == cirq.WaitGate:
@@ -157,7 +157,10 @@ def create_device_proto_for_qubits(
                     # Github issue:
                     # https://github.com/quantumlib/Cirq/issues/2537
                     gate.number_of_qubits = 1
-                elif issubclass(gate_type, cirq.SingleQubitGate):
+                elif (
+                    inspect.getsource(gate_type._num_qubits_)
+                    == '    def _num_qubits_(self) -> int:\n        return 1\n'
+                ):
                     gate.number_of_qubits = 1
                 else:
                     # This must be a two-qubit gate

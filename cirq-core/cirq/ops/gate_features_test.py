@@ -19,7 +19,7 @@ from cirq.testing import assert_deprecated
 
 
 def test_single_qubit_gate_validate_args():
-    class Dummy(cirq.Gate):
+    class Dummy(cirq.SingleQubitGate):
         def matrix(self):
             pass
 
@@ -27,7 +27,7 @@ def test_single_qubit_gate_validate_args():
         g = Dummy()
 
     with assert_deprecated(deadline="isinstance(gate, SingleQubitGate) is deprecated"):
-        assert isinstance(g, cirq.Gate)
+        assert isinstance(g, cirq.SingleQubitGate)
     q1 = cirq.NamedQubit('q1')
     q2 = cirq.NamedQubit('q2')
 

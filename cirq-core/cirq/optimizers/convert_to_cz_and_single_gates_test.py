@@ -63,7 +63,10 @@ def test_kak_decomposes_unknown_two_qubit_gate():
 
 
 def test_composite_gates_without_matrix():
-    class CompositeDummy(cirq.SingleQubitGate):
+    class CompositeDummy(cirq.Gate):
+        def _num_qubits_(self) -> int:
+            return 1
+
         def _decompose_(self, qubits):
             yield cirq.X(qubits[0])
             yield cirq.Y(qubits[0]) ** 0.5

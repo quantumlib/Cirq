@@ -140,6 +140,7 @@ class PhasedXZGate(raw_types.Gate):
 
     def _num_qubits_(self) -> int:
         return 1
+
     def _has_unitary_(self) -> bool:
         return not self._is_parameterized_()
 

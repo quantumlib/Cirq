@@ -20,7 +20,10 @@ import pytest
 import cirq
 
 
-class GoodGate(cirq.SingleQubitGate):
+class GoodGate(cirq.Gate):
+    def _num_qubits_(self) -> int:
+        return 1
+
     def _unitary_(self):
         return np.array([[0, 1], [1, 0]])
 
@@ -33,7 +36,10 @@ class GoodGate(cirq.SingleQubitGate):
         return NotImplemented
 
 
-class BadGate(cirq.SingleQubitGate):
+class BadGate(cirq.Gate):
+    def _num_qubits_(self) -> int:
+        return 1
+
     def _unitary_(self):
         return np.array([[0, 1j], [1, 0]])
 

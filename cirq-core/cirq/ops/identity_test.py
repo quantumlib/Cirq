@@ -178,8 +178,9 @@ def test_identity_global():
 
 
 def test_identity_mul():
-    class UnknownGate(cirq.SingleQubitGate):
-        pass
+    class UnknownGate(cirq.Gate):
+        def _num_qubits_(self) -> int:
+            return 1
 
     class UnknownOperation(cirq.Operation):
         @property

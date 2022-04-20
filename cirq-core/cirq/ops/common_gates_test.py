@@ -324,16 +324,20 @@ def test_x_act_on_tableau():
 
 class iZGate(cirq.Gate):
     """Equivalent to an iZ gate without _act_on_ defined on it."""
+
     def _num_qubits_(self) -> int:
         return 1
+
     def _unitary_(self):
         return np.array([[1j, 0], [0, -1j]])
 
 
 class MinusOnePhaseGate(cirq.Gate):
     """Equivalent to a -1 global phase without _act_on_ defined on it."""
+
     def _num_qubits_(self) -> int:
         return 1
+
     def _unitary_(self):
         return np.array([[-1, 0], [0, -1]])
 

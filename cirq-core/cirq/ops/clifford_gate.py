@@ -30,15 +30,7 @@ import numpy as np
 from cirq import protocols, value, linalg, qis
 from cirq._doc import document
 from cirq._import import LazyLoader
-from cirq.ops import (
-    common_gates,
-    gate_features,
-    identity,
-    named_qubit,
-    raw_types,
-    pauli_gates,
-    phased_x_z_gate,
-)
+from cirq.ops import common_gates, identity, named_qubit, raw_types, pauli_gates, phased_x_z_gate
 from cirq.ops.pauli_gates import Pauli
 from cirq.type_workarounds import NotImplementedType
 
@@ -153,6 +145,7 @@ class SingleQubitCliffordGate(raw_types.Gate):
 
     def _num_qubits_(self) -> int:
         return 1
+
     @property
     def clifford_tableau(self):
         return self._clifford_tableau

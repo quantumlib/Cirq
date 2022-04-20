@@ -39,7 +39,7 @@ from cirq_google.calibration.xeb_wrapper import run_local_xeb_calibration
 from cirq_google.engine import Engine, QuantumEngineSampler, util
 from cirq_google.serialization.serializer import Serializer
 
-_CALIBRATION_IRRELEVANT_GATES = cirq.MeasurementGate, cirq.SingleQubitGate, cirq.WaitGate
+_CALIBRATION_IRRELEVANT_GATES = cirq.MeasurementGate, cirq.WaitGate
 
 
 @dataclasses.dataclass(frozen=True)
@@ -184,7 +184,7 @@ def _list_moment_pairs_to_characterize(
         if isinstance(op.gate, cirq.GlobalPhaseGate):
             raise IncompatibleMomentError('Moment contains global phase gate')
 
-        if isinstance(op.gate, _CALIBRATION_IRRELEVANT_GATES):
+        if isinstance(op.gate, _CALIBRATION_IRRELEVANT_GATES) or cirq.num_qubits(op.gate) == 1:
             other_operation = True
         else:
             translated = gates_translator(op.gate)
@@ -1079,7 +1079,7 @@ def _find_moment_zeta_chi_gamma_corrections(
         if isinstance(op.gate, cirq.GlobalPhaseGate):
             raise IncompatibleMomentError('Moment contains global phase gate')
 
-        if isinstance(op.gate, _CALIBRATION_IRRELEVANT_GATES):
+        if isinstance(op.gate, _CALIBRATION_IRRELEVANT_GATES) or cirq.num_qubits(op.gate) == 1:
             other.append(op)
             continue
 

@@ -20,14 +20,15 @@ import cirq
 
 
 class OtherX(cirq.Gate):
-    def _num_qubits_(self)-> int:
+    def _num_qubits_(self) -> int:
         return 1
+
     def _unitary_(self) -> np.ndarray:
         return np.array([[0, 1], [1, 0]])
 
 
 class NoUnitary(cirq.Gate):
-    def _num_qubits_(self)-> int:
+    def _num_qubits_(self) -> int:
         return 1
 
 

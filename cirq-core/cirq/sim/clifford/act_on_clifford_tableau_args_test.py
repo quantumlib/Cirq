@@ -21,10 +21,7 @@ import cirq
 
 
 def test_unitary_fallback():
-    class UnitaryXGate(cirq.Gate):
-        def _num_qubits_(self) -> int:
-            return 1
-
+    class UnitaryXGate(cirq.testing.SingleQubitGate):
         def _unitary_(self):
             return np.array([[0, 1], [1, 0]])
 
@@ -64,7 +61,7 @@ def test_cannot_act():
     class NoDetails:
         pass
 
-    class NoDetailsSingleQubitGate(cirq.SingleQubitGate):
+    class NoDetailsSingleQubitGate(cirq.testing.SingleQubitGate):
         pass
 
     args = cirq.ActOnCliffordTableauArgs(

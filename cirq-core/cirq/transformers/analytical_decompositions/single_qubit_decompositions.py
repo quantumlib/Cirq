@@ -97,9 +97,7 @@ def single_qubit_matrix_to_pauli_rotations(
     return [(pauli, ht) for pauli, ht in rotation_list if not is_no_turn(ht)]
 
 
-def single_qubit_matrix_to_gates(
-    mat: np.ndarray, tolerance: float = 0
-) -> List[ops.SingleQubitGate]:
+def single_qubit_matrix_to_gates(mat: np.ndarray, tolerance: float = 0) -> List[ops.Gate]:
     """Implements a single-qubit operation with few gates.
 
     Args:

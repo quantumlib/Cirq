@@ -36,7 +36,8 @@ class InterchangeableQubitsGate(metaclass=abc.ABCMeta):
 class _SingleQubitGateMeta(value.ABCMetaImplementAnyOneOf):
     def __instancecheck__(cls, instance):
         warnings.warn(
-            'isinstance(gate, SingleQubitGate) is deprecated. Use cirq.num_qubits(gate) == 1 instead',
+            'isinstance(gate, SingleQubitGate) is deprecated. '
+            'Use cirq.num_qubits(gate) == 1 instead',
             DeprecationWarning,
         )
         return isinstance(instance, raw_types.Gate) and instance._num_qubits_() == 1
