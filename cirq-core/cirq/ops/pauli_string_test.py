@@ -1047,7 +1047,7 @@ def test_pauli_string_expectation_from_state_vector_pure_state():
     circuit = cirq.Circuit(
         cirq.X(qubits[1]), cirq.H(qubits[2]), cirq.X(qubits[3]), cirq.H(qubits[3])
     )
-    wf = circuit.final_state_vector(qubit_order=qubits)
+    wf = circuit.final_state_vector(qubit_order=qubits, dtype=np.complex128)
 
     z0z1 = cirq.PauliString({qubits[0]: cirq.Z, qubits[1]: cirq.Z})
     z0z2 = cirq.PauliString({qubits[0]: cirq.Z, qubits[2]: cirq.Z})
@@ -1072,7 +1072,7 @@ def test_pauli_string_expectation_from_state_vector_pure_state_with_coef():
     q_map = {q: i for i, q in enumerate(qs)}
 
     circuit = cirq.Circuit(cirq.X(qs[1]), cirq.H(qs[2]), cirq.X(qs[3]), cirq.H(qs[3]))
-    wf = circuit.final_state_vector(qubit_order=qs)
+    wf = circuit.final_state_vector(qubit_order=qs, dtype=np.complex128)
 
     z0z1 = cirq.Z(qs[0]) * cirq.Z(qs[1]) * 0.123
     z0z2 = cirq.Z(qs[0]) * cirq.Z(qs[2]) * -1
@@ -1256,7 +1256,7 @@ def test_pauli_string_expectation_from_density_matrix_pure_state():
     circuit = cirq.Circuit(
         cirq.X(qubits[1]), cirq.H(qubits[2]), cirq.X(qubits[3]), cirq.H(qubits[3])
     )
-    state_vector = circuit.final_state_vector(qubit_order=qubits)
+    state_vector = circuit.final_state_vector(qubit_order=qubits, dtype=np.complex128)
     rho = np.outer(state_vector, np.conj(state_vector))
 
     z0z1 = cirq.PauliString({qubits[0]: cirq.Z, qubits[1]: cirq.Z})
@@ -1282,7 +1282,7 @@ def test_pauli_string_expectation_from_density_matrix_pure_state_with_coef():
     q_map = {q: i for i, q in enumerate(qs)}
 
     circuit = cirq.Circuit(cirq.X(qs[1]), cirq.H(qs[2]), cirq.X(qs[3]), cirq.H(qs[3]))
-    state_vector = circuit.final_state_vector(qubit_order=qs)
+    state_vector = circuit.final_state_vector(qubit_order=qs, dtype=np.complex128)
     rho = np.outer(state_vector, np.conj(state_vector))
 
     z0z1 = cirq.Z(qs[0]) * cirq.Z(qs[1]) * 0.123

@@ -214,21 +214,10 @@ def test_final_state_vector_ignore_terminal_measurement():
         [0, 0, 0.5 + 0.5j, 0.5 - 0.5j],
     )
     with pytest.raises(ValueError, match='is not unitary'):
-        cirq.final_state_vector([cirq.X(a), cirq.X(b), cirq.measure(a, b, key='m')]),
-
-
-def test_final_state_vector_seed():
-    a = cirq.LineQubit(0)
-    np.testing.assert_allclose(
-        cirq.final_state_vector([cirq.X(a) ** 0.5, cirq.measure(a)], seed=123),
-        [0, 0.707107 - 0.707107j],
-        atol=1e-4,
-    )
-    np.testing.assert_allclose(
-        cirq.final_state_vector([cirq.X(a) ** 0.5, cirq.measure(a)], seed=124),
-        [0.707107 + 0.707107j, 0],
-        atol=1e-4,
-    )
+        cirq.final_state_vector(
+            [cirq.X(a), cirq.amplitude_damp(0.1).on(b), cirq.measure(a, b, key='m')],
+            ignore_terminal_measurements=True
+        ),
 
 
 @pytest.mark.parametrize('repetitions', (0, 1, 100))
