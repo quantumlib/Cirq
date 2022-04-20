@@ -288,10 +288,7 @@ def test_repr():
         repr(cirq.GateOperation(cirq.CZ, (a, b))) == 'cirq.CZ(cirq.LineQubit(0), cirq.LineQubit(1))'
     )
 
-    class Inconsistent(cirq.Gate):
-        def _num_qubits_(self) -> int:
-            return 1
-
+    class Inconsistent(cirq.testing.SingleQubitGate):
         def __repr__(self):
             return 'Inconsistent'
 
@@ -425,7 +422,7 @@ def test_cannot_remap_non_measurement_gate():
 
 
 def test_is_parameterized():
-    class No1(cirq.Gate):
+    class No1(cirq.testing.SingleQubitGate):
         def num_qubits(self) -> int:
             return 1
 

@@ -18,10 +18,7 @@ import cirq
 import cirq_google
 
 
-class OtherX(cirq.Gate):
-    def _num_qubits_(self) -> int:
-        return 1
-
+class OtherX(cirq.testing.SingleQubitGate):
     def _unitary_(self) -> np.ndarray:
         return np.array([[0, 1], [1, 0]])
 
@@ -31,17 +28,13 @@ class OtherX(cirq.Gate):
         return OtherOtherX().on(*qubits)  # coverage:ignore
 
 
-class OtherOtherX(cirq.Gate):
-    def _num_qubits_(self) -> int:
-        return 1
-
+class OtherOtherX(cirq.testing.SingleQubitGate):
     def _decompose_(self, qubits):
         return OtherX().on(*qubits)
 
 
-class NonNativeGate(cirq.Gate):
-    def _num_qubits_(self) -> int:
-        return 1
+class NonNativeGate(cirq.testing.SingleQubitGate):
+    pass
 
 
 def test_avoids_infinite_cycle_when_matrix_available():

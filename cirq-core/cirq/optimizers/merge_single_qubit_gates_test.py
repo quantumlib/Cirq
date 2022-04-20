@@ -129,9 +129,8 @@ def test_ignores_2qubit_target():
 
 
 def test_ignore_unsupported_gate():
-    class UnsupportedDummy(cirq.Gate):
-        def _num_qubits_(self) -> int:
-            return 1
+    class UnsupportedDummy(cirq.testing.SingleQubitGate):
+        pass
 
     q0 = cirq.LineQubit(0)
     circuit = cirq.Circuit(UnsupportedDummy()(q0))

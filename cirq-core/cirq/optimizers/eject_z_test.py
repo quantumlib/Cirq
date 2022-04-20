@@ -159,9 +159,8 @@ def test_measurement_consumes_zs():
 
 
 def test_unphaseable_causes_earlier_merge_without_size_increase():
-    class UnknownGate(cirq.Gate):
-        def _num_qubits_(self) -> int:
-            return 1
+    class UnknownGate(cirq.testing.SingleQubitGate):
+        pass
 
     u = UnknownGate()
 

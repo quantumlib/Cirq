@@ -22,10 +22,7 @@ import cirq
 from cirq.type_workarounds import NotImplementedType
 
 
-class GateUsingWorkspaceForApplyUnitary(cirq.Gate):
-    def _num_qubits_(self) -> int:
-        return 1
-
+class GateUsingWorkspaceForApplyUnitary(cirq.testing.SingleQubitGate):
     def _apply_unitary_(self, args: cirq.ApplyUnitaryArgs) -> Union[np.ndarray, NotImplementedType]:
         args.available_buffer[...] = args.target_tensor
         args.target_tensor[...] = 0
@@ -41,12 +38,9 @@ class GateUsingWorkspaceForApplyUnitary(cirq.Gate):
         return 'cirq.ops.controlled_gate_test.GateUsingWorkspaceForApplyUnitary()'
 
 
-class GateAllocatingNewSpaceForResult(cirq.Gate):
+class GateAllocatingNewSpaceForResult(cirq.testing.SingleQubitGate):
     def __init__(self):
         self._matrix = cirq.testing.random_unitary(2, random_state=4321)
-
-    def _num_qubits_(self) -> int:
-        return 1
 
     def _apply_unitary_(self, args: cirq.ApplyUnitaryArgs) -> Union[np.ndarray, NotImplementedType]:
         assert len(args.axes) == 1
@@ -75,10 +69,7 @@ class GateAllocatingNewSpaceForResult(cirq.Gate):
         return 'cirq.ops.controlled_gate_test.GateAllocatingNewSpaceForResult()'
 
 
-class RestrictedGate(cirq.Gate):
-    def _num_qubits_(self) -> int:
-        return 1
-
+class RestrictedGate(cirq.testing.SingleQubitGate):
     def __str__(self):
         return 'Restricted'
 

@@ -177,9 +177,8 @@ class MysteryOperation(cirq.Operation):
         return MysteryOperation(*new_qubits)
 
 
-class MysteryGate(cirq.Gate):
-    def _num_qubits_(self) -> int:
-        return 1
+class MysteryGate(cirq.testing.SingleQubitGate):
+    pass
 
 
 def test_various_unknown_gate_types():
