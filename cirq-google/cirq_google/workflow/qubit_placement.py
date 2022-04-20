@@ -131,7 +131,7 @@ class HardcodedQubitPlacer(QubitPlacer):
             The attribute `topo_node_to_qubit_func` is not preserved in JSON serialization. This
             bit of plumbing does not affect the placement behavior.
         """
-        self.mapping = mapping
+        self._mapping = mapping
         self.topo_node_to_qubit_func = topo_node_to_qubit_func
 
     def place_circuit(
@@ -155,7 +155,7 @@ class HardcodedQubitPlacer(QubitPlacer):
             qubits or nodes to output qubits.
         """
         try:
-            nt_mapping = self.mapping[problem_topology]
+            nt_mapping = self._mapping[problem_topology]
         except KeyError as e:
             raise CouldNotPlaceError(str(e))
 
@@ -167,7 +167,7 @@ class HardcodedQubitPlacer(QubitPlacer):
         return circuit, circuit_mapping
 
     def __repr__(self) -> str:
-        return f'cirq_google.HardcodedQubitPlacer(mapping={_compat.proper_repr(self.mapping)})'
+        return f'cirq_google.HardcodedQubitPlacer(mapping={_compat.proper_repr(self._mapping)})'
 
     @classmethod
     def _json_namespace_(cls) -> str:
@@ -177,7 +177,7 @@ class HardcodedQubitPlacer(QubitPlacer):
         d = obj_to_dict_helper(self, attribute_names=[])
 
         # Nested dict: turn both levels to list(key_value_pair)
-        mapping = {topo: list(placement.items()) for topo, placement in self.mapping.items()}
+        mapping = {topo: list(placement.items()) for topo, placement in self._mapping.items()}
         mapping = list(mapping.items())
         d['mapping'] = mapping
         return d
@@ -201,7 +201,7 @@ class HardcodedQubitPlacer(QubitPlacer):
             # coverage: ignore
             return False
 
-        return self.mapping == other.mapping
+        return self._mapping == other._mapping
 
 
 @lru_cache()
