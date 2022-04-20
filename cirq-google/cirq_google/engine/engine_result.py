@@ -80,7 +80,7 @@ class EngineResult(study.ResultDict):
 
     def __eq__(self, other):
         if not isinstance(other, EngineResult):
-            return NotImplemented
+            return False
 
         return (
             super().__eq__(other)

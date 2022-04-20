@@ -34,6 +34,8 @@ def test_engine_result():
     assert res.job_finished_time <= datetime.datetime.now()
     assert res.measurements['a'].shape == (2, 2)
 
+    cirq.testing.assert_equivalent_repr(res, global_vals={'cirq_google': cg})
+
 
 def test_engine_result_from_result_dict():
     res = cg.EngineResult(
@@ -47,6 +49,8 @@ def test_engine_result_from_result_dict():
         params=None,
         measurements={'a': np.array([[0, 0], [1, 1]]), 'b': np.array([[0, 0, 0], [1, 1, 1]])},
     )
+    assert res2 != res
+    assert res != res2
     assert res == cg.EngineResult.from_result(
         res2, job_id='my_job_id', job_finished_time=datetime.datetime(2022, 4, 1, 1, 23, 45)
     )
@@ -91,6 +95,7 @@ class MyResult(cirq.Result):
 
     @property
     def data(self) -> pd.DataFrame:
+        # coverage: ignore
         return cirq.Result.dataframe_from_measurements(self.measurements)
 
 

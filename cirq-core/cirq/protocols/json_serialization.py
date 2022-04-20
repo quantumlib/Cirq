@@ -390,6 +390,7 @@ class CirqEncoder(json.JSONEncoder):
         # datetime
         if isinstance(o, datetime.datetime):
             if o.tzinfo is not None:
+                # coverage: ignore
                 raise TypeError("datetime tzinfo is not serializable")
             return {
                 'cirq_type': 'datetime.datetime',
