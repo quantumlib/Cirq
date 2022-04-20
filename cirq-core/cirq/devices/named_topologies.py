@@ -15,7 +15,18 @@
 import abc
 import warnings
 from dataclasses import dataclass
-from typing import Dict, List, Tuple, Any, Sequence, Union, Iterable, TYPE_CHECKING
+from typing import (
+    Dict,
+    List,
+    Tuple,
+    Any,
+    Sequence,
+    Union,
+    Iterable,
+    TYPE_CHECKING,
+    Callable,
+    Optional,
+)
 
 import networkx as nx
 from matplotlib import pyplot as plt
@@ -327,8 +338,8 @@ def draw_placements(
     small_to_big_mappings: Sequence[Dict],
     max_plots: int = 20,
     axes: Sequence[plt.Axes] = None,
-    tilted=True,
-    bad_placement_callback=None,
+    tilted: bool = True,
+    bad_placement_callback: Optional[Callable[[plt.Axes, int], None]] = None,
 ):
     """Draw a visualization of placements from small_graph onto big_graph using Matplotlib.
 
@@ -373,7 +384,7 @@ def draw_placements(
                 small_mapped=small_mapped,
                 small_to_big_mapping=small_to_big_map,
             ):
-                bad_placement_callback(ax=ax, i=i)
+                bad_placement_callback(ax, i)
 
         draw_gridlike(big_graph, ax=ax, tilted=tilted)
         draw_gridlike(
