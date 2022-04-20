@@ -214,10 +214,12 @@ def test_final_state_vector_ignore_terminal_measurement():
         [0, 0, 0.5 + 0.5j, 0.5 - 0.5j],
     )
     with pytest.raises(ValueError, match='is not unitary'):
-        _ = cirq.final_state_vector(
-            [cirq.X(a), cirq.amplitude_damp(0.1).on(b), cirq.measure(a, b, key='m')],
-            ignore_terminal_measurements=True,
-        ),
+        _ = (
+            cirq.final_state_vector(
+                [cirq.X(a), cirq.amplitude_damp(0.1).on(b), cirq.measure(a, b, key='m')],
+                ignore_terminal_measurements=True,
+            ),
+        )
 
 
 @pytest.mark.parametrize('repetitions', (0, 1, 100))
