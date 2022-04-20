@@ -954,8 +954,8 @@ def test_datetime():
     with pytest.raises(TypeError):
         cirq.to_json(naive_ts)
 
-    with pytest.raises(TypeError):
-        cirq.to_json(naive_ts.astimezone(datetime.timezone(offset=datetime.timedelta(hours=-8))))
-
     utc_ts = naive_ts.astimezone(datetime.timezone.utc)
     assert utc_ts == cirq.read_json(json_text=cirq.to_json(utc_ts))
+
+    pst_ts = naive_ts.astimezone(tz=datetime.timezone(offset=datetime.timedelta(hours=-8)))
+    assert utc_ts == cirq.read_json(json_text=cirq.to_json(pst_ts))
