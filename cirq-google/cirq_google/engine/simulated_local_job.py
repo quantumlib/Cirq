@@ -39,7 +39,7 @@ def _to_engine_results(
     """Convert cirq.Result from simulators into (simulated) EngineResults."""
 
     if job_finished_time is None:
-        job_finished_time = datetime.datetime.now()
+        job_finished_time = datetime.datetime.now(tz=datetime.timezone.utc)
 
     return [
         [

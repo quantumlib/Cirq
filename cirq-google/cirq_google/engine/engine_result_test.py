@@ -31,7 +31,7 @@ def test_engine_result():
     )
 
     assert res.job_id == 'my_job_id'
-    assert res.job_finished_time <= datetime.datetime.now()
+    assert res.job_finished_time <= datetime.datetime.now(tz=datetime.timezone.utc)
     assert res.measurements['a'].shape == (2, 2)
 
     cirq.testing.assert_equivalent_repr(res, global_vals={'cirq_google': cg})

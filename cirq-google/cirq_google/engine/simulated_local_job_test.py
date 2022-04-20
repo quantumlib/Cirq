@@ -109,6 +109,8 @@ def test_run_batch(simulation_type):
 
     for result in results:
         assert result.job_id == 'test_job'
+        assert result.job_finished_time is not None
+    assert results == cirq.read_json(json_text=cirq.to_json(results))
 
 
 def test_cancel():

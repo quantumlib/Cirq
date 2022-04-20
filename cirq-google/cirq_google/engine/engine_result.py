@@ -45,7 +45,7 @@ class EngineResult(study.ResultDict):
 
         Args:
             job_id: A string job identifier.
-            job_finished_time: A timestamp for when the job finished.
+            job_finished_time: A timestamp for when the job finished; will be converted to UTC.
             params: A ParamResolver of settings used for this result.
             measurements: A dictionary from measurement gate key to measurement
                 results. See `cirq.ResultDict`.
@@ -54,7 +54,7 @@ class EngineResult(study.ResultDict):
         """
         super().__init__(params=params, measurements=measurements, records=records)
         self.job_id = job_id
-        self.job_finished_time = job_finished_time
+        self.job_finished_time = job_finished_time.astimezone(datetime.timezone.utc)
 
     @classmethod
     def from_result(
