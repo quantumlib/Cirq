@@ -109,6 +109,9 @@ def create_device_proto_for_qubits(
     # Create valid qubit list
     out.valid_qubits.extend(v2.qubit_to_proto_id(q) for q in qubits)
 
+    # Single qubit gates in this gateset
+    single_qubit_gates = (cirq.PhasedXPowGate, cirq.PhasedXZGate, cirq.ZPowGate)
+
     # Set up a target set for measurement (any qubit permutation)
     meas_targets = out.valid_targets.add()
     meas_targets.name = _MEAS_TARGET_SET
@@ -157,10 +160,7 @@ def create_device_proto_for_qubits(
                     # Github issue:
                     # https://github.com/quantumlib/Cirq/issues/2537
                     gate.number_of_qubits = 1
-                elif (
-                    inspect.getsource(gate_type._num_qubits_)
-                    == '    def _num_qubits_(self) -> int:\n        return 1\n'
-                ):
+                elif gate_type in single_qubit_gates:
                     gate.number_of_qubits = 1
                 else:
                     # This must be a two-qubit gate
