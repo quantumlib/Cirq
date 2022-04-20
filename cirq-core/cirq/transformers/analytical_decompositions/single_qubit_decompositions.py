@@ -164,9 +164,7 @@ def _deconstruct_single_qubit_matrix_into_gate_turns(mat: np.ndarray) -> Tuple[f
     return (_signed_mod_1(xy_turn), _signed_mod_1(xy_phase_turn), _signed_mod_1(total_z_turn))
 
 
-def single_qubit_matrix_to_phased_x_z(
-    mat: np.ndarray, atol: float = 0
-) -> List[ops.SingleQubitGate]:
+def single_qubit_matrix_to_phased_x_z(mat: np.ndarray, atol: float = 0) -> List[ops.Gate]:
     """Implements a single-qubit operation with a PhasedX and Z gate.
 
     If one of the gates isn't needed, it will be omitted.

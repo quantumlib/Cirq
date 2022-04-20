@@ -703,9 +703,6 @@ class ResetChannel(raw_types.Gate):
         """
         self._dimension = dimension
 
-    def _num_qubits_(self) -> int:
-        return 1
-
     def _has_stabilizer_effect_(self) -> Optional[bool]:
         return True
 
