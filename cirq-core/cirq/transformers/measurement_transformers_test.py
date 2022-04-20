@@ -359,10 +359,7 @@ def test_drop_terminal():
     q0, q1 = cirq.LineQubit.range(2)
     circuit = cirq.Circuit(
         cirq.CircuitOperation(
-            cirq.FrozenCircuit(
-                cirq.CX(q0, q1),
-                cirq.measure(q0, q1, key='a~b', invert_mask=[0, 1]),
-            )
+            cirq.FrozenCircuit(cirq.CX(q0, q1), cirq.measure(q0, q1, key='a~b', invert_mask=[0, 1]))
         )
     )
     dropped = cirq.drop_terminal_measurements(circuit)
@@ -378,10 +375,7 @@ def test_drop_terminal_nonterminal_error():
     q0, q1 = cirq.LineQubit.range(2)
     circuit = cirq.Circuit(
         cirq.CircuitOperation(
-            cirq.FrozenCircuit(
-                cirq.measure(q0, q1, key='a~b', invert_mask=[0, 1]),
-                cirq.CX(q0, q1),
-            )
+            cirq.FrozenCircuit(cirq.measure(q0, q1, key='a~b', invert_mask=[0, 1]), cirq.CX(q0, q1))
         )
     )
     with pytest.raises(ValueError, match='Circuit contains a non-terminal measurement'):

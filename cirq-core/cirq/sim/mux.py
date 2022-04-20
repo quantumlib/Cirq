@@ -21,7 +21,7 @@ from typing import cast, List, Optional, Sequence, Type, TYPE_CHECKING, Union
 
 import numpy as np
 
-from cirq import _compat, circuits, protocols, study, devices, ops, value
+from cirq import circuits, protocols, study, devices, ops, value
 from cirq._doc import document
 from cirq.sim import sparse_simulator, density_matrix_simulator
 from cirq.sim.clifford import clifford_simulator
@@ -98,6 +98,7 @@ def _to_circuit(program: 'cirq.CIRCUIT_LIKE') -> 'cirq.Circuit':
         # It should be an OP_TREE.
         result = circuits.Circuit(program)
     return cast('cirq.Circuit', result)
+
 
 def final_state_vector(
     program: 'cirq.CIRCUIT_LIKE',

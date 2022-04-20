@@ -1034,7 +1034,7 @@ class AbstractCircuit(abc.ABC):
         if n > 10:
             raise ValueError(f"{n} > 10 qubits is too many to compute superoperator")
 
-        circuit_superoperator = np.eye(4 ** n)
+        circuit_superoperator = np.eye(4**n)
         for moment in self:
             full_moment = moment.expand_to(all_qubits)
             moment_superoperator = full_moment._superoperator_()
@@ -1111,7 +1111,7 @@ class AbstractCircuit(abc.ABC):
 
         from cirq.sim.mux import final_state_vector
 
-        program = [cirq.I(q) for q in qubits_that_should_be_present] + self
+        program = Circuit(cirq.I(q) for q in qubits_that_should_be_present) + self
         return final_state_vector(
             program,
             initial_state=initial_state,
