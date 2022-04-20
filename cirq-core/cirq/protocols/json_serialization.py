@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import dataclasses
+import datetime
 import gzip
 import json
 import numbers
@@ -385,6 +386,21 @@ class CirqEncoder(json.JSONEncoder):
                 'columns': o.columns,
                 'index': o.index,
             }
+
+        # datetime
+        if isinstance(o, datetime.datetime):
+            if o.tzinfo is None or o.tzinfo.utcoffset(o) is None:
+                # Otherwise, the deserialized object may change depending on local timezone.
+                raise TypeError(
+                    "Can only serialize 'aware' datetime objects with `tzinfo`. "
+                    "Consider using e.g. `datetime.datetime.now(tz=datetime.timezone.utc)`"
+                )
+
+            if o.tzinfo != datetime.timezone.utc:
+                # Saves us the trouble of having to serialize the timezone.
+                raise TypeError("Can only serialize UTC timestamps.")
+
+            return {'cirq_type': 'datetime.datetime', 'timestamp': o.timestamp()}
 
         return super().default(o)  # coverage: ignore
 
