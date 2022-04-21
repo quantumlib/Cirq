@@ -1953,5 +1953,5 @@ def test_resolve(resolve_fn):
     t = sympy.Symbol('t')
     q = cirq.LineQubit(0)
     pst = cirq.PauliString({q: 'x'}, coefficient=t)
-    ps1 = cirq.PauliString({q: 'x'}, coefficient=1)
-    assert resolve_fn(pst, {'t': 1}) == ps1
+    ps1 = cirq.PauliString({q: 'x'}, coefficient=1j)
+    assert resolve_fn(pst, {'t': 1j}) == ps1
