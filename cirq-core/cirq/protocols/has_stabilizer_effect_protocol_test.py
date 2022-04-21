@@ -98,7 +98,7 @@ class OpWithUnitary(EmptyOp):
 def test_inconclusive():
     assert not cirq.has_stabilizer_effect(object())
     assert not cirq.has_stabilizer_effect('boo')
-    assert not cirq.has_stabilizer_effect(cirq.SingleQubitGate())
+    assert not cirq.has_stabilizer_effect(cirq.testing.SingleQubitGate())
     assert not cirq.has_stabilizer_effect(No())
     assert not cirq.has_stabilizer_effect(NoOp())
 

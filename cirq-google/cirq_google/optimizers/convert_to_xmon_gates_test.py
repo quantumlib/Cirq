@@ -18,7 +18,7 @@ import cirq
 import cirq_google
 
 
-class OtherX(cirq.SingleQubitGate):
+class OtherX(cirq.testing.SingleQubitGate):
     def _unitary_(self) -> np.ndarray:
         return np.array([[0, 1], [1, 0]])
 
@@ -28,12 +28,12 @@ class OtherX(cirq.SingleQubitGate):
         return OtherOtherX().on(*qubits)  # coverage:ignore
 
 
-class OtherOtherX(cirq.SingleQubitGate):
+class OtherOtherX(cirq.testing.SingleQubitGate):
     def _decompose_(self, qubits):
         return OtherX().on(*qubits)
 
 
-class NonNativeGate(cirq.SingleQubitGate):
+class NonNativeGate(cirq.testing.SingleQubitGate):
     pass
 
 

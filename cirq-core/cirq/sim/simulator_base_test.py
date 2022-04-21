@@ -86,19 +86,28 @@ class SplittableCountingActOnArgs(CountingActOnArgs):
         return True
 
 
-class CountingStepResult(cirq.StepResultBase[CountingActOnArgs, CountingActOnArgs]):
+class CountingStepResult(cirq.StepResultBase[CountingActOnArgs]):
+    def sample(
+        self,
+        qubits: List[cirq.Qid],
+        repetitions: int = 1,
+        seed: cirq.RANDOM_STATE_OR_SEED_LIKE = None,
+    ) -> np.ndarray:
+        measurements: List[List[int]] = []
+        for _ in range(repetitions):
+            measurements.append(self._merged_sim_state._perform_measurement(qubits))
+        return np.array(measurements, dtype=int)
+
     def _simulator_state(self) -> CountingActOnArgs:
         return self._merged_sim_state
 
 
-class CountingTrialResult(cirq.SimulationTrialResultBase[CountingActOnArgs, CountingActOnArgs]):
+class CountingTrialResult(cirq.SimulationTrialResultBase[CountingActOnArgs]):
     pass
 
 
 class CountingSimulator(
-    cirq.SimulatorBase[
-        CountingStepResult, CountingTrialResult, CountingActOnArgs, CountingActOnArgs
-    ]
+    cirq.SimulatorBase[CountingStepResult, CountingTrialResult, CountingActOnArgs]
 ):
     def __init__(self, noise=None, split_untangled_states=False):
         super().__init__(noise=noise, split_untangled_states=split_untangled_states)

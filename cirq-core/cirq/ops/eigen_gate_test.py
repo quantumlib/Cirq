@@ -294,7 +294,7 @@ def test_resolve_parameters(resolve_fn):
 
 
 def test_diagram_period():
-    class ShiftyGate(cirq.EigenGate, cirq.SingleQubitGate):
+    class ShiftyGate(cirq.EigenGate, cirq.testing.SingleQubitGate):
         def _eigen_components(self) -> List[Tuple[float, np.ndarray]]:
             raise NotImplementedError()
 
@@ -327,7 +327,7 @@ def test_diagram_period():
     assert ShiftyGate(505.2, 0, np.pi, np.e)._diagram_exponent(args) == 505.2
 
 
-class WeightedZPowGate(cirq.EigenGate, cirq.SingleQubitGate):
+class WeightedZPowGate(cirq.EigenGate, cirq.testing.SingleQubitGate):
     def __init__(self, weight, **kwargs):
         self.weight = weight
         super().__init__(**kwargs)
