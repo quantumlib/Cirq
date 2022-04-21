@@ -12,8 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from unittest import mock
-
 import numpy as np
 
 import cirq
@@ -59,10 +57,14 @@ def test_state_vector_trial_result_equality():
     final_simulator_state = cirq.ActOnStateVectorArgs(initial_state=np.array([]))
     eq.add_equality_group(
         cirq.StateVectorTrialResult(
-            params=cirq.ParamResolver({}), measurements={}, final_simulator_state=final_simulator_state
+            params=cirq.ParamResolver({}),
+            measurements={},
+            final_simulator_state=final_simulator_state,
         ),
         cirq.StateVectorTrialResult(
-            params=cirq.ParamResolver({}), measurements={}, final_simulator_state=final_simulator_state
+            params=cirq.ParamResolver({}),
+            measurements={},
+            final_simulator_state=final_simulator_state,
         ),
     )
     eq.add_equality_group(
@@ -91,7 +93,9 @@ def test_state_vector_trial_result_equality():
 
 def test_state_vector_trial_result_state_mixin():
     qubits = cirq.LineQubit.range(2)
-    final_simulator_state = cirq.ActOnStateVectorArgs(qubits=qubits, initial_state=np.array([0, 1, 0, 0]))
+    final_simulator_state = cirq.ActOnStateVectorArgs(
+        qubits=qubits, initial_state=np.array([0, 1, 0, 0])
+    )
     result = cirq.StateVectorTrialResult(
         params=cirq.ParamResolver({'a': 2}),
         measurements={'m': np.array([1, 2])},
@@ -129,7 +133,9 @@ def test_state_vector_trial_result_qid_shape():
 def test_state_vector_trial_state_vector_is_copy():
     final_state_vector = np.array([0, 1], dtype=np.complex64)
     qubit_map = {cirq.NamedQubit('a'): 0}
-    final_simulator_state = cirq.ActOnStateVectorArgs(qubits=list(qubit_map), initial_state=final_state_vector)
+    final_simulator_state = cirq.ActOnStateVectorArgs(
+        qubits=list(qubit_map), initial_state=final_state_vector
+    )
     trial_result = cirq.StateVectorTrialResult(
         params=cirq.ParamResolver({}), measurements={}, final_simulator_state=final_simulator_state
     )
