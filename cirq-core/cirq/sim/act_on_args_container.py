@@ -13,18 +13,7 @@
 # limitations under the License.
 
 from collections import abc
-from typing import (
-    Any,
-    Dict,
-    Generic,
-    Iterator,
-    List,
-    Mapping,
-    Optional,
-    Sequence,
-    Tuple,
-    TYPE_CHECKING,
-)
+from typing import Any, Dict, Generic, Iterator, List, Mapping, Optional, Sequence, TYPE_CHECKING
 
 import numpy as np
 
@@ -58,10 +47,10 @@ class ActOnArgsContainer(Generic[TActOnArgs], OperationTarget[TActOnArgs], abc.M
             classical_data: The shared classical data container for this
                 simulation.
         """
+        classical_data = classical_data or value.ClassicalDataDictionaryStore()
+        super().__init__(qubits=qubits, classical_data=classical_data)
         self._args = args
-        self._qubits = tuple(qubits)
         self._split_untangled_states = split_untangled_states
-        self._classical_data = classical_data or value.ClassicalDataDictionaryStore()
 
     @property
     def args(self) -> Mapping[Optional['cirq.Qid'], TActOnArgs]:
@@ -151,14 +140,6 @@ class ActOnArgsContainer(Generic[TActOnArgs], OperationTarget[TActOnArgs], abc.M
         return ActOnArgsContainer(
             args, self.qubits, self.split_untangled_states, classical_data=classical_data
         )
-
-    @property
-    def qubits(self) -> Tuple['cirq.Qid', ...]:
-        return self._qubits
-
-    @property
-    def classical_data(self) -> 'cirq.ClassicalDataStoreReader':
-        return self._classical_data
 
     def sample(
         self,

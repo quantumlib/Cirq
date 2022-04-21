@@ -396,10 +396,6 @@ class CirqEncoder(json.JSONEncoder):
                     "Consider using e.g. `datetime.datetime.now(tz=datetime.timezone.utc)`"
                 )
 
-            if o.tzinfo != datetime.timezone.utc:
-                # Saves us the trouble of having to serialize the timezone.
-                raise TypeError("Can only serialize UTC timestamps.")
-
             return {'cirq_type': 'datetime.datetime', 'timestamp': o.timestamp()}
 
         return super().default(o)  # coverage: ignore
