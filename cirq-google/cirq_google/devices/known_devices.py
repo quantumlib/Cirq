@@ -150,8 +150,8 @@ def create_device_proto_for_qubits(
                 # Choose target set and number of qubits based on gate type.
                 gate_type = internal_type
 
-                # Note: if it is not a measurement gate, and it's _num_qubits_ method
-                # doesn't return 1, it's assumed to be a two qubit gate.
+                # Note: if it is not a measurement gate, and it's type
+                # is not in the single_qubit_gates tuple, it's assumed to be a two qubit gate.
                 if gate_type == cirq.MeasurementGate:
                     gate.valid_targets.append(_MEAS_TARGET_SET)
                 elif gate_type == cirq.WaitGate:
