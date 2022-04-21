@@ -278,29 +278,6 @@ def test_append_control_key_subcircuit():
     assert len(c) == 1
 
 
-def test_does_not_move_controls_through():
-    c = cirq.Circuit()
-    q0, q1 = cirq.LineQubit.range(2)
-    c.append(cirq.measure(q0, key="a"))
-    c.append(cirq.X(q1).with_classical_controls("a"))
-    assert c == cirq.Circuit(
-        [
-            cirq.Moment([cirq.measure(q0, key="a")]),
-            cirq.Moment([cirq.X(q1).with_classical_controls("a")]),
-        ]
-    )
-
-
-def test_moment_keys_objs_caching():
-    q0, q1 = cirq.LineQubit.range(2)
-    c = cirq.Circuit()
-    c.append(cirq.measure(q0, key="a"))
-    print(c.all_measurement_key_objs())
-    c.append(cirq.measure(q0, key="b"))
-    print(c.all_measurement_key_objs())
-    assert False
-
-
 def test_append_moments():
     a = cirq.NamedQubit('a')
     b = cirq.NamedQubit('b')
