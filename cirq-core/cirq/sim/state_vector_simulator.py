@@ -69,10 +69,10 @@ class SimulatesIntermediateStateVector(
         self,
         params: 'cirq.ParamResolver',
         measurements: Dict[str, np.ndarray],
-        final_step_result: 'cirq.StateVectorStepResult',
+        final_simulator_state: 'cirq.OperationTarget[cirq.ActOnStateVectorArgs]',
     ) -> 'cirq.StateVectorTrialResult':
         return StateVectorTrialResult(
-            params=params, measurements=measurements, final_step_result=final_step_result
+            params=params, measurements=measurements, final_simulator_state=final_simulator_state
         )
 
     def compute_amplitudes_sweep_iter(
@@ -143,13 +143,13 @@ class StateVectorTrialResult(
         self,
         params: 'cirq.ParamResolver',
         measurements: Dict[str, np.ndarray],
-        final_step_result: 'cirq.StateVectorStepResult',
+        final_simulator_state: 'cirq.OperationTarget[cirq.ActOnStateVectorArgs]',
     ) -> None:
         super().__init__(
             params=params,
             measurements=measurements,
-            final_step_result=final_step_result,
-            qubit_map=final_step_result._qubit_mapping,
+            final_simulator_state=final_simulator_state,
+            qubit_map=final_simulator_state.qubit_map,
         )
         self._final_state_vector: Optional[np.ndarray] = None
 

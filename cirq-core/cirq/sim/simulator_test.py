@@ -73,7 +73,7 @@ class SimulatesIntermediateStateImpl(
         self,
         params: study.ParamResolver,
         measurements: Dict[str, np.ndarray],
-        final_step_result: TStepResult,
+        final_simulator_state: 'cirq.OperationTarget[TActOnArgs]',
     ) -> 'SimulationTrialResult':
         """This method creates a default trial result.
 
@@ -86,7 +86,7 @@ class SimulatesIntermediateStateImpl(
             The SimulationTrialResult.
         """
         return SimulationTrialResult(
-            params=params, measurements=measurements, final_step_result=final_step_result
+            params=params, measurements=measurements, final_simulator_state=final_simulator_state
         )
 
 
@@ -171,17 +171,16 @@ def test_intermediate_sweeps():
         program=circuit, params=param_resolvers, qubit_order=qubit_order, initial_state=2
     )
 
-    final_step_result = FakeStepResult(final_state=final_state)
     expected_results = [
         cirq.SimulationTrialResult(
             measurements={'a': np.array([True, True])},
             params=param_resolvers[0],
-            final_step_result=final_step_result,
+            final_simulator_state=final_state,
         ),
         cirq.SimulationTrialResult(
             measurements={'a': np.array([True, True])},
             params=param_resolvers[1],
-            final_step_result=final_step_result,
+            final_simulator_state=final_state,
         ),
     ]
     assert results == expected_results
@@ -242,46 +241,41 @@ def test_step_sample_measurement_ops_repeated_qubit():
 
 def test_simulation_trial_result_equality():
     eq = cirq.testing.EqualsTester()
-    final_step_result = FakeStepResult(final_state=())
     eq.add_equality_group(
         cirq.SimulationTrialResult(
-            params=cirq.ParamResolver({}), measurements={}, final_step_result=final_step_result
+            params=cirq.ParamResolver({}), measurements={}, final_simulator_state=()
         ),
         cirq.SimulationTrialResult(
-            params=cirq.ParamResolver({}), measurements={}, final_step_result=final_step_result
+            params=cirq.ParamResolver({}), measurements={}, final_simulator_state=()
         ),
     )
     eq.add_equality_group(
         cirq.SimulationTrialResult(
-            params=cirq.ParamResolver({'s': 1}),
-            measurements={},
-            final_step_result=final_step_result,
+            params=cirq.ParamResolver({'s': 1}), measurements={}, final_simulator_state=()
         )
     )
     eq.add_equality_group(
         cirq.SimulationTrialResult(
             params=cirq.ParamResolver({'s': 1}),
             measurements={'m': np.array([1])},
-            final_step_result=final_step_result,
+            final_simulator_state=(),
         )
     )
-    final_step_result._final_state = (0, 1)
     eq.add_equality_group(
         cirq.SimulationTrialResult(
             params=cirq.ParamResolver({'s': 1}),
             measurements={'m': np.array([1])},
-            final_step_result=final_step_result,
+            final_simulator_state=(0, 1),
         )
     )
 
 
 def test_simulation_trial_result_repr():
-    final_step_result = FakeStepResult(final_state=(0, 1))
     assert repr(
         cirq.SimulationTrialResult(
             params=cirq.ParamResolver({'s': 1}),
             measurements={'m': np.array([1])},
-            final_step_result=final_step_result,
+            final_simulator_state=(0, 1),
         )
     ) == (
         "cirq.SimulationTrialResult("
@@ -292,13 +286,10 @@ def test_simulation_trial_result_repr():
 
 
 def test_simulation_trial_result_str():
-    final_step_result = FakeStepResult(final_state=(0, 1))
     assert (
         str(
             cirq.SimulationTrialResult(
-                params=cirq.ParamResolver({'s': 1}),
-                measurements={},
-                final_step_result=final_step_result,
+                params=cirq.ParamResolver({'s': 1}), measurements={}, final_simulator_state=(0, 1)
             )
         )
         == '(no measurements)'
@@ -309,7 +300,7 @@ def test_simulation_trial_result_str():
             cirq.SimulationTrialResult(
                 params=cirq.ParamResolver({'s': 1}),
                 measurements={'m': np.array([1])},
-                final_step_result=final_step_result,
+                final_simulator_state=(0, 1),
             )
         )
         == 'm=1'
@@ -320,7 +311,7 @@ def test_simulation_trial_result_str():
             cirq.SimulationTrialResult(
                 params=cirq.ParamResolver({'s': 1}),
                 measurements={'m': np.array([1, 2, 3])},
-                final_step_result=final_step_result,
+                final_simulator_state=(0, 1),
             )
         )
         == 'm=123'
@@ -331,7 +322,7 @@ def test_simulation_trial_result_str():
             cirq.SimulationTrialResult(
                 params=cirq.ParamResolver({'s': 1}),
                 measurements={'m': np.array([9, 10, 11])},
-                final_step_result=final_step_result,
+                final_simulator_state=(0, 1),
             )
         )
         == 'm=9 10 11'
@@ -447,9 +438,7 @@ def test_monte_carlo_on_unknown_channel():
 
 
 def test_iter_definitions():
-    dummy_trial_result = SimulationTrialResult(
-        params={}, measurements={}, final_step_result=FakeStepResult(final_state=[])
-    )
+    dummy_trial_result = SimulationTrialResult(params={}, measurements={}, final_simulator_state=[])
 
     class FakeNonIterSimulatorImpl(
         SimulatesAmplitudes, SimulatesExpectationValues, SimulatesFinalState
@@ -543,3 +532,14 @@ def test_trial_result_initializer():
         _ = SimulationTrialResult(cirq.ParamResolver(), {}, None, None)
     with pytest.raises(ValueError, match='Exactly one of'):
         _ = SimulationTrialResult(cirq.ParamResolver(), {}, object(), mock.Mock(TStepResult))
+    with pytest.raises(ValueError, match='Exactly one of'):
+        _ = SimulationTrialResult(
+            cirq.ParamResolver(), {}, final_simulator_state=None, final_step_result=None
+        )
+    with pytest.raises(ValueError, match='Exactly one of'):
+        _ = SimulationTrialResult(
+            cirq.ParamResolver(),
+            {},
+            final_simulator_state=object(),
+            final_step_result=mock.Mock(TStepResult),
+        )

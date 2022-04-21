@@ -26,7 +26,7 @@ import quimb.tensor as qtn
 
 from cirq import devices, protocols, qis, value
 from cirq._compat import deprecated_parameter
-from cirq.sim import simulator_base
+from cirq.sim import simulator, simulator_base
 from cirq.sim.act_on_args import ActOnArgs
 
 if TYPE_CHECKING:
@@ -122,7 +122,7 @@ class MPSSimulator(
         self,
         params: 'cirq.ParamResolver',
         measurements: Dict[str, np.ndarray],
-        final_step_result: 'MPSSimulatorStepResult',
+        final_simulator_state: 'cirq.OperationTarget[MPSState]',
     ) -> 'MPSTrialResult':
         """Creates a single trial results with the measurements.
 
@@ -136,21 +136,22 @@ class MPSSimulator(
             A single result.
         """
         return MPSTrialResult(
-            params=params, measurements=measurements, final_step_result=final_step_result
+            params=params, measurements=measurements, final_simulator_state=final_simulator_state
         )
 
 
 class MPSTrialResult(simulator_base.SimulationTrialResultBase['MPSState']):
     """A single trial reult"""
 
+    @simulator.deprecated_step_result_parameter(old_position=3)
     def __init__(
         self,
         params: 'cirq.ParamResolver',
         measurements: Dict[str, np.ndarray],
-        final_step_result: 'MPSSimulatorStepResult',
+        final_simulator_state: 'cirq.OperationTarget[MPSState]',
     ) -> None:
         super().__init__(
-            params=params, measurements=measurements, final_step_result=final_step_result
+            params=params, measurements=measurements, final_simulator_state=final_simulator_state
         )
 
     @property
