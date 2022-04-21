@@ -31,7 +31,6 @@ _VALID_GATES = cirq.Gateset(
     cirq.ZZPowGate,
     cirq.MeasurementGate,
     unroll_circuit_op=False,
-    accept_global_phase_op=False,
 )
 
 

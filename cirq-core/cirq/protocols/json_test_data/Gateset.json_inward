@@ -26,7 +26,8 @@
       }
     ],
     "name": null,
-    "unroll_circuit_op": true
+    "unroll_circuit_op": true,
+    "accept_global_phase_op": true
   },
   {
     "cirq_type": "Gateset",
@@ -52,9 +53,17 @@
       {
         "cirq_type": "AnyUnitaryGateFamily",
         "num_qubits": 2
+      },
+      {
+        "cirq_type": "GateFamily",
+        "gate": "GlobalPhaseGate",
+        "name": "Type GateFamily: cirq.ops.global_phase_gate.GlobalPhaseGate",
+        "description": "Accepts `cirq.Gate` instances `g` s.t. `isinstance(g, cirq.ops.global_phase_gate.GlobalPhaseGate)`",
+        "ignore_global_phase": true
       }
     ],
     "name": "Custom Name",
-    "unroll_circuit_op": false
+    "unroll_circuit_op": false,
+    "accept_global_phase_op": false
   }
 ]
