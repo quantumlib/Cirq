@@ -168,6 +168,11 @@ class Moment:
         m._operations = self._operations + (operation,)
         m._qubits = frozenset(self._qubits.union(set(operation.qubits)))
         m._qubit_to_op = self._qubit_to_op.copy()
+
+        m._measurement_key_objs = set(self._measurement_key_objs or {})
+        m._control_keys = set(self._control_keys or {})
+        m._measurement_key_objs |= protocols.measurement_key_objs(operation)
+        m._control_keys |= protocols.control_keys(operation)
         for q in operation.qubits:
             m._qubit_to_op[q] = operation
 
@@ -187,17 +192,23 @@ class Moment:
         """
         operations = list(self._operations)
         qubits = set(self._qubits)
+        measurement_key_objs = set(self._measurement_key_objs or {})
+        control_keys = set(self._control_keys or {})
         for op in op_tree.flatten_to_ops(contents):
             if any(q in qubits for q in op.qubits):
                 raise ValueError(f'Overlapping operations: {op}')
             operations.append(op)
             qubits.update(op.qubits)
+            measurement_key_objs |= protocols.measurement_key_objs(op)
+            control_keys |= protocols.control_keys(op)
 
         # Use private variables to facilitate a quick copy.
         m = Moment()
         m._operations = tuple(operations)
         m._qubits = frozenset(qubits)
         m._qubit_to_op = self._qubit_to_op.copy()
+        m._measurement_key_objs = measurement_key_objs
+        m._control_keys = control_keys
         for op in operations:
             for q in op.qubits:
                 m._qubit_to_op[q] = op
@@ -412,7 +423,7 @@ class Moment:
         transpose = input_subscripts + '->' + output_subscripts
 
         r = []
-        d = 2**n
+        d = 2 ** n
         kss = [kraus_tensors(op) for op in self.operations]
         for ks in itertools.product(*kss):
             k = np.einsum(transpose, *ks)
