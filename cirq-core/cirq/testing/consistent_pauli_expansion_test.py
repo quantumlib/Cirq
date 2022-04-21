@@ -22,7 +22,7 @@ Y = np.array([[0, -1j], [1j, 0]])
 Z = np.diag([1, -1])
 
 
-class GoodGateExplicitPauliExpansion(cirq.SingleQubitGate):
+class GoodGateExplicitPauliExpansion(cirq.testing.SingleQubitGate):
     def _unitary_(self) -> np.ndarray:
         return np.sqrt(1 / 2) * X + np.sqrt(1 / 3) * Y + np.sqrt(1 / 6) * Z
 
@@ -35,16 +35,16 @@ class GoodGateNoPauliExpansion(cirq.Gate):
         return 4
 
 
-class GoodGateNoUnitary(cirq.SingleQubitGate):
+class GoodGateNoUnitary(cirq.testing.SingleQubitGate):
     def _pauli_expansion_(self) -> cirq.LinearDict[str]:
         return cirq.LinearDict({'X': np.sqrt(1 / 2), 'Y': np.sqrt(1 / 2)})
 
 
-class GoodGateNoPauliExpansionNoUnitary(cirq.SingleQubitGate):
+class GoodGateNoPauliExpansionNoUnitary(cirq.testing.SingleQubitGate):
     pass
 
 
-class BadGateInconsistentPauliExpansion(cirq.SingleQubitGate):
+class BadGateInconsistentPauliExpansion(cirq.testing.SingleQubitGate):
     def _unitary_(self) -> np.ndarray:
         return np.sqrt(1 / 2) * X + np.sqrt(1 / 3) * Y + np.sqrt(1 / 6) * Z
 
