@@ -25,7 +25,7 @@ from cirq.type_workarounds import NotImplementedType
 import cirq.testing.consistent_controlled_gate_op_test as controlled_gate_op_test
 
 
-class GoodGate(cirq.SingleQubitGate):
+class GoodGate(cirq.testing.SingleQubitGate):
     def __init__(
         self,
         *,
@@ -184,7 +184,7 @@ class BadGateRepr(GoodGate):
         return f"BadGateRepr({', '.join(args)})"
 
 
-class GoodEigenGate(cirq.EigenGate, cirq.SingleQubitGate):
+class GoodEigenGate(cirq.EigenGate, cirq.testing.SingleQubitGate):
     def _eigen_components(self) -> List[Tuple[float, np.ndarray]]:
         return [(0, np.diag([1, 0])), (1, np.diag([0, 1]))]
 

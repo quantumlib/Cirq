@@ -67,7 +67,7 @@ def _pi(rads):
 
 
 @value.value_equality
-class XPowGate(eigen_gate.EigenGate, gate_features.SingleQubitGate):
+class XPowGate(eigen_gate.EigenGate):
     """A gate that rotates around the X axis of the Bloch sphere.
 
     The unitary matrix of ``XPowGate(exponent=t)`` is:
@@ -97,6 +97,9 @@ class XPowGate(eigen_gate.EigenGate, gate_features.SingleQubitGate):
     ):
         super().__init__(exponent=exponent, global_shift=global_shift)
         self._dimension = dimension
+
+    def _num_qubits_(self) -> int:
+        return 1
 
     def _apply_unitary_(self, args: 'protocols.ApplyUnitaryArgs') -> Optional[np.ndarray]:
         if self._exponent != 1 or self._dimension != 2:
@@ -307,7 +310,7 @@ class Rx(XPowGate):
 
 
 @value.value_equality
-class YPowGate(eigen_gate.EigenGate, gate_features.SingleQubitGate):
+class YPowGate(eigen_gate.EigenGate):
     """A gate that rotates around the Y axis of the Bloch sphere.
 
     The unitary matrix of ``YPowGate(exponent=t)`` is:
@@ -329,6 +332,9 @@ class YPowGate(eigen_gate.EigenGate, gate_features.SingleQubitGate):
 
     `cirq.Y`, the Pauli Y gate, is an instance of this gate at exponent=1.
     """
+
+    def _num_qubits_(self) -> int:
+        return 1
 
     def _apply_unitary_(self, args: 'protocols.ApplyUnitaryArgs') -> Optional[np.ndarray]:
         if self._exponent != 1:
@@ -475,7 +481,7 @@ class Ry(YPowGate):
 
 
 @value.value_equality
-class ZPowGate(eigen_gate.EigenGate, gate_features.SingleQubitGate):
+class ZPowGate(eigen_gate.EigenGate):
     """A gate that rotates around the Z axis of the Bloch sphere.
 
     The unitary matrix of ``ZPowGate(exponent=t)`` is:
@@ -503,6 +509,9 @@ class ZPowGate(eigen_gate.EigenGate, gate_features.SingleQubitGate):
     ):
         super().__init__(exponent=exponent, global_shift=global_shift)
         self._dimension = dimension
+
+    def _num_qubits_(self) -> int:
+        return 1
 
     def _apply_unitary_(self, args: 'protocols.ApplyUnitaryArgs') -> Optional[np.ndarray]:
         if protocols.is_parameterized(self):
@@ -738,7 +747,7 @@ class Rz(ZPowGate):
         return cls(rads=rads)
 
 
-class HPowGate(eigen_gate.EigenGate, gate_features.SingleQubitGate):
+class HPowGate(eigen_gate.EigenGate):
     """A Gate that performs a rotation around the X+Z axis of the Bloch sphere.
 
     The unitary matrix of ``HPowGate(exponent=t)`` is:
@@ -765,6 +774,9 @@ class HPowGate(eigen_gate.EigenGate, gate_features.SingleQubitGate):
         component1 = np.array([[3 - 2 * s, 1 - s], [1 - s, 1]]) / (4 - 2 * s)
 
         return [(0, component0), (1, component1)]
+
+    def _num_qubits_(self) -> int:
+        return 1
 
     def _trace_distance_bound_(self) -> Optional[float]:
         if self._is_parameterized_():

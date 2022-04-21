@@ -765,7 +765,7 @@ def test_tagged_act_on():
 
 
 def test_single_qubit_gate_validates_on_each():
-    class Dummy(cirq.SingleQubitGate):
+    class Dummy(cirq.testing.SingleQubitGate):
         def matrix(self):
             pass
 
@@ -785,7 +785,7 @@ def test_single_qubit_gate_validates_on_each():
 
 
 def test_on_each():
-    class CustomGate(cirq.SingleQubitGate):
+    class CustomGate(cirq.testing.SingleQubitGate):
         pass
 
     a = cirq.NamedQubit('a')

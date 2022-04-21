@@ -500,6 +500,7 @@ def test_sycamore_metadata():
         cirq.PhasedXZGate,
         cirq.MeasurementGate,
         cirq.WaitGate,
+        cirq.GlobalPhaseGate,
     )
 
 

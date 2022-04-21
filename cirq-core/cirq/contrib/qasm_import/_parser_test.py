@@ -429,7 +429,7 @@ single_qubit_gates = [
 
 
 @pytest.mark.parametrize('qasm_gate,cirq_gate', rotation_gates)
-def test_rotation_gates(qasm_gate: str, cirq_gate: cirq.SingleQubitGate):
+def test_rotation_gates(qasm_gate: str, cirq_gate: cirq.Gate):
     qasm = """OPENQASM 2.0;
      include "qelib1.inc";
      qreg q[2];
@@ -989,7 +989,7 @@ def test_three_qubit_gates_with_too_much_parameters(qasm_gate: str):
 
 
 @pytest.mark.parametrize('qasm_gate,cirq_gate', single_qubit_gates)
-def test_single_qubit_gates(qasm_gate: str, cirq_gate: cirq.SingleQubitGate):
+def test_single_qubit_gates(qasm_gate: str, cirq_gate: cirq.Gate):
     qasm = """OPENQASM 2.0;
      include "qelib1.inc";
      qreg q[2];
