@@ -19,6 +19,7 @@ from typing import (
     Generic,
     Iterator,
     List,
+    Mapping,
     Optional,
     Sequence,
     Tuple,
@@ -29,7 +30,7 @@ from typing import (
 
 import numpy as np
 
-from cirq import protocols
+from cirq import protocols, value
 from cirq.type_workarounds import NotImplementedType
 
 if TYPE_CHECKING:
@@ -42,6 +43,38 @@ TActOnArgs = TypeVar('TActOnArgs', bound='cirq.ActOnArgs')
 
 class OperationTarget(Generic[TActOnArgs], metaclass=abc.ABCMeta):
     """An interface for quantum states as targets for operations."""
+
+    def __init__(
+        self,
+        *,
+        qubits: Sequence['cirq.Qid'],
+        classical_data: Optional['cirq.ClassicalDataStore'] = None,
+    ):
+        """Initializes the class.
+
+        Args:
+            qubits: The canonical ordering of qubits.
+            classical_data: The shared classical data container for this
+                simulation.
+        """
+        self._set_qubits(tuple(qubits))
+        self._classical_data = classical_data or value.ClassicalDataDictionaryStore()
+
+    @property
+    def qubits(self) -> Tuple['cirq.Qid', ...]:
+        return self._qubits
+
+    @property
+    def qubit_map(self) -> Mapping['cirq.Qid', int]:
+        return self._qubit_map
+
+    def _set_qubits(self, qubits: Sequence['cirq.Qid']):
+        self._qubits = tuple(qubits)
+        self._qubit_map = {q: i for i, q in enumerate(self.qubits)}
+
+    @property
+    def classical_data(self) -> 'cirq.ClassicalDataStoreReader':
+        return self._classical_data
 
     @abc.abstractmethod
     def create_merged_state(self) -> TActOnArgs:
@@ -78,19 +111,9 @@ class OperationTarget(Generic[TActOnArgs], metaclass=abc.ABCMeta):
         """
 
     @property
-    @abc.abstractmethod
-    def qubits(self) -> Tuple['cirq.Qid', ...]:
-        """Gets the qubit order maintained by this target."""
-
-    @property
     def log_of_measurement_results(self) -> Dict[str, List[int]]:
         """Gets the log of measurement results."""
         return {str(k): list(self.classical_data.get_digits(k)) for k in self.classical_data.keys()}
-
-    @property
-    @abc.abstractmethod
-    def classical_data(self) -> 'cirq.ClassicalDataStoreReader':
-        """The shared classical data container for this simulation.."""
 
     @abc.abstractmethod
     def sample(
