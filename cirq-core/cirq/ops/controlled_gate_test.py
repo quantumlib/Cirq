@@ -22,7 +22,7 @@ import cirq
 from cirq.type_workarounds import NotImplementedType
 
 
-class GateUsingWorkspaceForApplyUnitary(cirq.SingleQubitGate):
+class GateUsingWorkspaceForApplyUnitary(cirq.testing.SingleQubitGate):
     def _apply_unitary_(self, args: cirq.ApplyUnitaryArgs) -> Union[np.ndarray, NotImplementedType]:
         args.available_buffer[...] = args.target_tensor
         args.target_tensor[...] = 0
@@ -38,7 +38,7 @@ class GateUsingWorkspaceForApplyUnitary(cirq.SingleQubitGate):
         return 'cirq.ops.controlled_gate_test.GateUsingWorkspaceForApplyUnitary()'
 
 
-class GateAllocatingNewSpaceForResult(cirq.SingleQubitGate):
+class GateAllocatingNewSpaceForResult(cirq.testing.SingleQubitGate):
     def __init__(self):
         self._matrix = cirq.testing.random_unitary(2, random_state=4321)
 
@@ -69,7 +69,7 @@ class GateAllocatingNewSpaceForResult(cirq.SingleQubitGate):
         return 'cirq.ops.controlled_gate_test.GateAllocatingNewSpaceForResult()'
 
 
-class RestrictedGate(cirq.SingleQubitGate):
+class RestrictedGate(cirq.testing.SingleQubitGate):
     def __str__(self):
         return 'Restricted'
 
@@ -247,7 +247,7 @@ def test_eq():
 
 
 def test_control():
-    g = cirq.SingleQubitGate()
+    g = cirq.testing.SingleQubitGate()
 
     # Ignores empty.
     assert g.controlled() == cirq.ControlledGate(g)
@@ -423,7 +423,7 @@ def test_reversible():
     )
 
 
-class UnphaseableGate(cirq.SingleQubitGate):
+class UnphaseableGate(cirq.Gate):
     pass
 
 
@@ -458,7 +458,7 @@ def test_circuit_diagram_info():
         wire_symbols=('@', 'S'), exponent=1
     )
 
-    class UndiagrammableGate(cirq.SingleQubitGate):
+    class UndiagrammableGate(cirq.testing.SingleQubitGate):
         pass
 
     assert (

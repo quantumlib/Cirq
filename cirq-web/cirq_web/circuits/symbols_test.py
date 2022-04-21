@@ -16,12 +16,12 @@ import cirq_web
 import pytest
 
 
-class MockGateNoDiagramInfo(cirq.SingleQubitGate):
+class MockGateNoDiagramInfo(cirq.testing.SingleQubitGate):
     def __init__(self):
         super(MockGateNoDiagramInfo, self)
 
 
-class MockGateUnimplementedDiagramInfo(cirq.SingleQubitGate):
+class MockGateUnimplementedDiagramInfo(cirq.testing.SingleQubitGate):
     def __init__(self):
         super(MockGateUnimplementedDiagramInfo, self)
 
