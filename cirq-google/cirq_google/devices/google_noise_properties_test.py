@@ -18,10 +18,6 @@ import numpy as np
 import pytest
 import cirq, cirq_google
 
-from cirq_google.devices.google_noise_properties import (
-    SYMMETRIC_TWO_QUBIT_GATES,
-    SINGLE_QUBIT_GATES,
-)
 from cirq.devices.noise_utils import OpIdentifier, PHYSICAL_GATE_TAG
 
 from cirq_google.devices.google_noise_properties import (
@@ -62,16 +58,20 @@ def sample_noise_properties(
         tphi_ns={q: 2e5 for q in system_qubits},
         readout_errors={q: np.array([SINGLE_QUBIT_ERROR, TWO_QUBIT_ERROR]) for q in system_qubits},
         gate_pauli_errors={
-            **{OpIdentifier(g, q): 0.001 for g in SINGLE_QUBIT_GATES for q in system_qubits},
+            **{
+                OpIdentifier(g, q): 0.001
+                for g in GoogleNoiseProperties.single_qubit_gates()
+                for q in system_qubits
+            },
             **{
                 OpIdentifier(g, q0, q1): 0.01
-                for g in SYMMETRIC_TWO_QUBIT_GATES
+                for g in GoogleNoiseProperties.symmetric_two_qubit_gates()
                 for q0, q1 in qubit_pairs
             },
         },
         fsim_errors={
             OpIdentifier(g, q0, q1): cirq.PhasedFSimGate(0.01, 0.03, 0.04, 0.05, 0.02)
-            for g in SYMMETRIC_TWO_QUBIT_GATES
+            for g in GoogleNoiseProperties.symmetric_two_qubit_gates()
             for q0, q1 in qubit_pairs
         },
     )
@@ -89,7 +89,7 @@ def test_equals():
     q0, q1, q2 = cirq.LineQubit.range(3)
     test_props = sample_noise_properties([q0, q1], [(q0, q1), (q1, q0)])
     assert test_props != "mismatched_type"
-    test_props_v2 = test_props.override(readout_errors={q2: [0.01, 0.02]})
+    test_props_v2 = test_props.with_params(readout_errors={q2: [0.01, 0.02]})
     assert test_props != test_props_v2
 
 
