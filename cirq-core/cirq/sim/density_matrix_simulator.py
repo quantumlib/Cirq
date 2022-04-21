@@ -17,7 +17,7 @@ from typing import Any, Dict, TYPE_CHECKING, Tuple, Union, Sequence, Optional, L
 import numpy as np
 
 from cirq import ops, protocols, study, value
-from cirq._compat import deprecated_parameter, proper_repr
+from cirq._compat import deprecated_class, deprecated_parameter, proper_repr
 from cirq.sim import simulator, act_on_density_matrix_args, simulator_base
 
 if TYPE_CHECKING:
@@ -310,6 +310,7 @@ class DensityMatrixStepResult(simulator_base.StepResultBase['cirq.ActOnDensityMa
         )
 
 
+@deprecated_class(deadline='v0.16', fix='This class is no longer used.')
 @value.value_equality(unhashable=True)
 class DensityMatrixSimulatorState:
     """The simulator state for DensityMatrixSimulator

@@ -30,7 +30,7 @@ from typing import (
 import numpy as np
 
 from cirq import ops, value, qis
-from cirq._compat import proper_repr
+from cirq._compat import deprecated_class, proper_repr
 from cirq.sim import simulator, state_vector, simulator_base
 
 if TYPE_CHECKING:
@@ -107,6 +107,7 @@ class StateVectorStepResult(
     pass
 
 
+@deprecated_class(deadline='v0.16', fix='This class is no longer used.')
 @value.value_equality(unhashable=True)
 class StateVectorSimulatorState:
     def __init__(self, state_vector: np.ndarray, qubit_map: Dict[ops.Qid, int]) -> None:

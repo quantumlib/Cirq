@@ -46,10 +46,11 @@ def test_state_vector_trial_result_repr():
 
 
 def test_state_vector_simulator_state_repr():
-    final_simulator_state = cirq.StateVectorSimulatorState(
-        qubit_map={cirq.NamedQubit('a'): 0}, state_vector=np.array([0, 1])
-    )
-    cirq.testing.assert_equivalent_repr(final_simulator_state)
+    with cirq.testing.assert_deprecated('no longer used', deadline='v0.16', count=4):
+        final_simulator_state = cirq.StateVectorSimulatorState(
+            qubit_map={cirq.NamedQubit('a'): 0}, state_vector=np.array([0, 1])
+        )
+        cirq.testing.assert_equivalent_repr(final_simulator_state)
 
 
 def test_state_vector_trial_result_equality():
