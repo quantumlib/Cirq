@@ -222,5 +222,5 @@ class StateVectorTrialResult(
         return (
             'cirq.StateVectorTrialResult('
             f'params={self.params!r}, measurements={proper_repr(self.measurements)}, '
-            f'final_step_result={self._final_step_result!r})'
+            f'final_simulator_state={self._final_simulator_state!r})'
         )

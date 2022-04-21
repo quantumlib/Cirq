@@ -138,7 +138,7 @@ class CliffordTrialResult(
 
     def __str__(self) -> str:
         samples = super().__str__()
-        final = self._final_simulator_state
+        final = self._get_merged_sim_state().state
         return f'measurements: {samples}\noutput state: {final}'
 
     def _repr_pretty_(self, p: Any, cycle: bool):
