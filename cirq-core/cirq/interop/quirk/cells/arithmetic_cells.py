@@ -348,8 +348,7 @@ def _arithmetic_family(identifier_prefix: str, func: _IntsToIntCallable) -> Iter
 
 
 def _size_dependent_arithmetic_family(
-    identifier_prefix: str,
-    size_to_func: Callable[[int], _IntsToIntCallable],
+    identifier_prefix: str, size_to_func: Callable[[int], _IntsToIntCallable]
 ) -> Iterator[CellMaker]:
     for i in CELL_SIZES:
         yield _arithmetic_gate(identifier_prefix + str(i), size=i, func=size_to_func(i))

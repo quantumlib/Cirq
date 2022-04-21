@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import dataclasses
+import datetime
 import gzip
 import json
 import numbers
@@ -343,11 +344,7 @@ class CirqEncoder(json.JSONEncoder):
             return {'cirq_type': 'sympy.Float', 'approx': float(o)}
 
         if isinstance(o, sympy.Rational):
-            return {
-                'cirq_type': 'sympy.Rational',
-                'p': o.p,
-                'q': o.q,
-            }
+            return {'cirq_type': 'sympy.Rational', 'p': o.p, 'q': o.q}
 
         if isinstance(o, sympy.NumberSymbol):
             # check if `o` is a numeric symbol,
@@ -367,11 +364,7 @@ class CirqEncoder(json.JSONEncoder):
         if isinstance(o, numbers.Real):
             return float(o)
         if isinstance(o, numbers.Complex):
-            return {
-                'cirq_type': 'complex',
-                'real': o.real,
-                'imag': o.imag,
-            }
+            return {'cirq_type': 'complex', 'real': o.real, 'imag': o.imag}
 
         # Numpy object?
         if isinstance(o, np.bool_):
@@ -381,17 +374,9 @@ class CirqEncoder(json.JSONEncoder):
 
         # Pandas object?
         if isinstance(o, pd.MultiIndex):
-            return {
-                'cirq_type': 'pandas.MultiIndex',
-                'tuples': list(o),
-                'names': list(o.names),
-            }
+            return {'cirq_type': 'pandas.MultiIndex', 'tuples': list(o), 'names': list(o.names)}
         if isinstance(o, pd.Index):
-            return {
-                'cirq_type': 'pandas.Index',
-                'data': list(o),
-                'name': o.name,
-            }
+            return {'cirq_type': 'pandas.Index', 'data': list(o), 'name': o.name}
         if isinstance(o, pd.DataFrame):
             cols = [o[col].tolist() for col in o.columns]
             rows = list(zip(*cols))
@@ -401,6 +386,17 @@ class CirqEncoder(json.JSONEncoder):
                 'columns': o.columns,
                 'index': o.index,
             }
+
+        # datetime
+        if isinstance(o, datetime.datetime):
+            if o.tzinfo is None or o.tzinfo.utcoffset(o) is None:
+                # Otherwise, the deserialized object may change depending on local timezone.
+                raise TypeError(
+                    "Can only serialize 'aware' datetime objects with `tzinfo`. "
+                    "Consider using e.g. `datetime.datetime.now(tz=datetime.timezone.utc)`"
+                )
+
+            return {'cirq_type': 'datetime.datetime', 'timestamp': o.timestamp()}
 
         return super().default(o)  # coverage: ignore
 

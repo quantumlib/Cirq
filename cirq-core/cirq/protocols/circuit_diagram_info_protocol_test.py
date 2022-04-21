@@ -50,12 +50,7 @@ def test_circuit_diagram_info_value_wrapping():
         == single_info
     )
 
-    double_info = cirq.CircuitDiagramInfo(
-        (
-            'Single',
-            'Double',
-        )
-    )
+    double_info = cirq.CircuitDiagramInfo(('Single', 'Double'))
 
     class ReturnDoubleInfo:
         def _circuit_diagram_info_(self, args):

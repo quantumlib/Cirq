@@ -486,9 +486,7 @@ class CircuitOperation(ops.Operation):
     # Methods for constructing a similar object with one field modified.
 
     def repeat(
-        self,
-        repetitions: Optional[IntParam] = None,
-        repetition_ids: Optional[List[str]] = None,
+        self, repetitions: Optional[IntParam] = None, repetition_ids: Optional[List[str]] = None
     ) -> 'CircuitOperation':
         """Returns a copy of this operation repeated 'repetitions' times.
          Each repetition instance will be identified by a single repetition_id.
@@ -550,9 +548,7 @@ class CircuitOperation(ops.Operation):
         return dataclasses.replace(self, parent_path=prefix + self.parent_path)
 
     def _with_rescoped_keys_(
-        self,
-        path: Tuple[str, ...],
-        bindable_keys: FrozenSet['cirq.MeasurementKey'],
+        self, path: Tuple[str, ...], bindable_keys: FrozenSet['cirq.MeasurementKey']
     ):
         # The following line prevents binding to measurement keys in previous repeated subcircuits
         # "just because their repetition ids matched". If we eventually decide to change that
@@ -571,8 +567,7 @@ class CircuitOperation(ops.Operation):
         return self.replace(repetition_ids=repetition_ids)
 
     def with_qubit_mapping(
-        self,
-        qubit_map: Union[Dict['cirq.Qid', 'cirq.Qid'], Callable[['cirq.Qid'], 'cirq.Qid']],
+        self, qubit_map: Union[Dict['cirq.Qid', 'cirq.Qid'], Callable[['cirq.Qid'], 'cirq.Qid']]
     ) -> 'cirq.CircuitOperation':
         """Returns a copy of this operation with an updated qubit mapping.
 

@@ -13,51 +13,26 @@
 # limitations under the License.
 
 from collections import abc
-from typing import (
-    Any,
-    Dict,
-    Generic,
-    Iterator,
-    List,
-    Mapping,
-    Optional,
-    Sequence,
-    Tuple,
-    TYPE_CHECKING,
-)
+from typing import Any, Dict, Generic, Iterator, List, Mapping, Optional, Sequence, TYPE_CHECKING
 
 import numpy as np
 
 from cirq import ops, protocols, value
-from cirq._compat import deprecated_parameter
 from cirq.sim.operation_target import OperationTarget
-from cirq.sim.simulator import (
-    TActOnArgs,
-)
+from cirq.sim.simulator import TActOnArgs
 
 if TYPE_CHECKING:
     import cirq
 
 
-class ActOnArgsContainer(
-    Generic[TActOnArgs],
-    OperationTarget[TActOnArgs],
-    abc.Mapping,
-):
+class ActOnArgsContainer(Generic[TActOnArgs], OperationTarget[TActOnArgs], abc.Mapping):
     """A container for a `Qid`-to-`ActOnArgs` dictionary."""
 
-    @deprecated_parameter(
-        deadline='v0.15',
-        fix='Use classical_data.',
-        parameter_desc='log_of_measurement_results',
-        match=lambda args, kwargs: 'log_of_measurement_results' in kwargs or len(args) > 4,
-    )
     def __init__(
         self,
         args: Dict[Optional['cirq.Qid'], TActOnArgs],
         qubits: Sequence['cirq.Qid'],
         split_untangled_states: bool,
-        log_of_measurement_results: Optional[Dict[str, List[int]]] = None,
         classical_data: Optional['cirq.ClassicalDataStore'] = None,
     ):
         """Initializes the class.
@@ -69,20 +44,13 @@ class ActOnArgsContainer(
             split_untangled_states: If True, optimizes operations by running
                 unentangled qubit sets independently and merging those states
                 at the end.
-            log_of_measurement_results: A mutable object that measurements are
-                being recorded into.
             classical_data: The shared classical data container for this
                 simulation.
         """
+        classical_data = classical_data or value.ClassicalDataDictionaryStore()
+        super().__init__(qubits=qubits, classical_data=classical_data)
         self._args = args
-        self._qubits = tuple(qubits)
         self._split_untangled_states = split_untangled_states
-        self._classical_data = classical_data or value.ClassicalDataDictionaryStore(
-            _records={
-                value.MeasurementKey.parse_serialized(k): [tuple(v)]
-                for k, v in (log_of_measurement_results or {}).items()
-            }
-        )
 
     @property
     def args(self) -> Mapping[Optional['cirq.Qid'], TActOnArgs]:
@@ -101,10 +69,7 @@ class ActOnArgsContainer(
         return final_args.transpose_to_qubit_order(self.qubits)
 
     def _act_on_fallback_(
-        self,
-        action: Any,
-        qubits: Sequence['cirq.Qid'],
-        allow_decompose: bool = True,
+        self, action: Any, qubits: Sequence['cirq.Qid'], allow_decompose: bool = True
     ) -> bool:
         gate_opt = (
             action
@@ -175,14 +140,6 @@ class ActOnArgsContainer(
         return ActOnArgsContainer(
             args, self.qubits, self.split_untangled_states, classical_data=classical_data
         )
-
-    @property
-    def qubits(self) -> Tuple['cirq.Qid', ...]:
-        return self._qubits
-
-    @property
-    def classical_data(self) -> 'cirq.ClassicalDataStoreReader':
-        return self._classical_data
 
     def sample(
         self,

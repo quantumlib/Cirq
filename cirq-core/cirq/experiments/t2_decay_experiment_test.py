@@ -23,31 +23,16 @@ import cirq.experiments.t2_decay_experiment as t2
 
 def test_init_t2_decay_result():
     x_data = pd.DataFrame(
-        columns=['delay_ns', 0, 1],
-        index=range(2),
-        data=[
-            [100.0, 0, 10],
-            [1000.0, 10, 0],
-        ],
+        columns=['delay_ns', 0, 1], index=range(2), data=[[100.0, 0, 10], [1000.0, 10, 0]]
     )
     y_data = pd.DataFrame(
-        columns=['delay_ns', 0, 1],
-        index=range(2),
-        data=[
-            [100.0, 5, 5],
-            [1000.0, 5, 5],
-        ],
+        columns=['delay_ns', 0, 1], index=range(2), data=[[100.0, 5, 5], [1000.0, 5, 5]]
     )
     result = cirq.experiments.T2DecayResult(x_data, y_data)
     assert result
 
     bad_data = pd.DataFrame(
-        columns=['delay_ms', 0, 1],
-        index=range(2),
-        data=[
-            [100.0, 0, 10],
-            [1000.0, 10, 0],
-        ],
+        columns=['delay_ms', 0, 1], index=range(2), data=[[100.0, 0, 10], [1000.0, 10, 0]]
     )
     with pytest.raises(ValueError):
         cirq.experiments.T2DecayResult(bad_data, y_data)
@@ -85,24 +70,12 @@ def test_result_eq():
     example_data = pd.DataFrame(
         columns=['delay_ns', 0, 1],
         index=range(5),
-        data=[
-            [200.0, 0, 100],
-            [400.0, 20, 80],
-            [600.0, 40, 60],
-            [800.0, 60, 40],
-            [1000.0, 80, 20],
-        ],
+        data=[[200.0, 0, 100], [400.0, 20, 80], [600.0, 40, 60], [800.0, 60, 40], [1000.0, 80, 20]],
     )
     other_data = pd.DataFrame(
         columns=['delay_ns', 0, 1],
         index=range(5),
-        data=[
-            [200.0, 0, 100],
-            [400.0, 19, 81],
-            [600.0, 39, 61],
-            [800.0, 59, 41],
-            [1000.0, 79, 21],
-        ],
+        data=[[200.0, 0, 100], [400.0, 19, 81], [600.0, 39, 61], [800.0, 59, 41], [1000.0, 79, 21]],
     )
     eq = cirq.testing.EqualsTester()
     eq.make_equality_group(lambda: cirq.experiments.T2DecayResult(example_data, example_data))
@@ -216,22 +189,12 @@ def test_all_off_results(experiment_type):
         x_basis_data=pd.DataFrame(
             columns=['delay_ns', 0, 1],
             index=range(4),
-            data=[
-                [100.0, 10, 0],
-                [400.0, 10, 0],
-                [700.0, 10, 0],
-                [1000.0, 10, 0],
-            ],
+            data=[[100.0, 10, 0], [400.0, 10, 0], [700.0, 10, 0], [1000.0, 10, 0]],
         ),
         y_basis_data=pd.DataFrame(
             columns=['delay_ns', 0, 1],
             index=range(4),
-            data=[
-                [100.0, 10, 0],
-                [400.0, 10, 0],
-                [700.0, 10, 0],
-                [1000.0, 10, 0],
-            ],
+            data=[[100.0, 10, 0], [400.0, 10, 0], [700.0, 10, 0], [1000.0, 10, 0]],
         ),
     )
 
@@ -257,24 +220,12 @@ def test_custom_delay_sweep(experiment_type):
         x_basis_data=pd.DataFrame(
             columns=['delay_ns', 0, 1],
             index=range(5),
-            data=[
-                [1.0, 10, 0],
-                [10.0, 10, 0],
-                [100.0, 10, 0],
-                [1000.0, 10, 0],
-                [10000.0, 10, 0],
-            ],
+            data=[[1.0, 10, 0], [10.0, 10, 0], [100.0, 10, 0], [1000.0, 10, 0], [10000.0, 10, 0]],
         ),
         y_basis_data=pd.DataFrame(
             columns=['delay_ns', 0, 1],
             index=range(5),
-            data=[
-                [1.0, 10, 0],
-                [10.0, 10, 0],
-                [100.0, 10, 0],
-                [1000.0, 10, 0],
-                [10000.0, 10, 0],
-            ],
+            data=[[1.0, 10, 0], [10.0, 10, 0], [100.0, 10, 0], [1000.0, 10, 0], [10000.0, 10, 0]],
         ),
     )
 
@@ -315,14 +266,10 @@ def test_multiple_pulses():
     ]
     assert results == cirq.experiments.T2DecayResult(
         x_basis_data=pd.DataFrame(
-            columns=['delay_ns', 'num_pulses', 0, 1],
-            index=range(20),
-            data=data,
+            columns=['delay_ns', 'num_pulses', 0, 1], index=range(20), data=data
         ),
         y_basis_data=pd.DataFrame(
-            columns=['delay_ns', 'num_pulses', 0, 1],
-            index=range(20),
-            data=data,
+            columns=['delay_ns', 'num_pulses', 0, 1], index=range(20), data=data
         ),
     )
     expected = pd.DataFrame(
@@ -462,20 +409,10 @@ def test_cpmg_sweep():
 
 def test_str():
     x_data = pd.DataFrame(
-        columns=['delay_ns', 0, 1],
-        index=range(2),
-        data=[
-            [100.0, 0, 10],
-            [1000.0, 10, 0],
-        ],
+        columns=['delay_ns', 0, 1], index=range(2), data=[[100.0, 0, 10], [1000.0, 10, 0]]
     )
     y_data = pd.DataFrame(
-        columns=['delay_ns', 0, 1],
-        index=range(2),
-        data=[
-            [100.0, 5, 5],
-            [1000.0, 5, 5],
-        ],
+        columns=['delay_ns', 0, 1], index=range(2), data=[[100.0, 5, 5], [1000.0, 5, 5]]
     )
     result = cirq.experiments.T2DecayResult(x_data, y_data)
 

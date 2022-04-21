@@ -13,18 +13,7 @@
 # limitations under the License.
 """Classes and methods for quantum states."""
 
-from typing import (
-    Any,
-    cast,
-    Iterable,
-    List,
-    Optional,
-    Sequence,
-    Set,
-    TYPE_CHECKING,
-    Tuple,
-    Union,
-)
+from typing import Any, cast, Iterable, List, Optional, Sequence, Set, TYPE_CHECKING, Tuple, Union
 import itertools
 
 import numpy as np
@@ -182,10 +171,7 @@ class QuantumState:
             state_vector = self.state_vector()
             assert state_vector is not None
             validate_normalized_state_vector(
-                state_vector,
-                qid_shape=self.qid_shape,
-                dtype=dtype,
-                atol=atol,
+                state_vector, qid_shape=self.qid_shape, dtype=dtype, atol=atol
             )
         elif self._is_density_matrix():
             validate_density_matrix(

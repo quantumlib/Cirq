@@ -71,7 +71,7 @@ def test_run_sweep(mock_post, mock_get):
     par = sympy.Symbol('par')
     sweep = cirq.Linspace(key='par', start=0.0, stop=1.0, length=2)
 
-    num = np.random.randint(0, 2 ** 9)
+    num = np.random.randint(0, 2**9)
     binary = bin(num)[2:].zfill(9)
 
     device = cirq_pasqal.PasqalVirtualDevice(control_radius=1, qubits=qs)
@@ -103,42 +103,3 @@ def test_run_sweep(mock_post, mock_get):
     assert cirq.read_json(json_text=submitted_json) == ex_circuit_odd
     assert mock_post.call_count == 2
     assert data[1] == ex_circuit_odd
-
-
-@patch('cirq_pasqal.pasqal_sampler.requests.get')
-@patch('cirq_pasqal.pasqal_sampler.requests.post')
-def test_run_sweep_device_deprecated(mock_post, mock_get):
-    """Test running a sweep.
-
-    Encodes a random binary number in the qubits, sweeps between odd and even
-    without noise and checks if the results match.
-    """
-
-    qs = [cirq_pasqal.ThreeDQubit(i, j, 0) for i in range(3) for j in range(3)]
-
-    par = sympy.Symbol('par')
-    sweep = cirq.Linspace(key='par', start=0.0, stop=1.0, length=2)
-
-    num = np.random.randint(0, 2 ** 9)
-    binary = bin(num)[2:].zfill(9)
-
-    device = cirq_pasqal.PasqalVirtualDevice(control_radius=1, qubits=qs)
-    ex_circuit = cirq.Circuit()
-
-    for i, b in enumerate(binary[:-1]):
-        if b == '1':
-            ex_circuit.append(cirq.X(qs[-i - 1]), strategy=cirq.InsertStrategy.NEW)
-
-    ex_circuit_odd = copy.deepcopy(ex_circuit)
-    ex_circuit_odd.append(cirq.X(qs[0]), strategy=cirq.InsertStrategy.NEW)
-    ex_circuit_odd.append(cirq.measure(*qs), strategy=cirq.InsertStrategy.NEW)
-
-    xpow = cirq.XPowGate(exponent=par)
-    ex_circuit.append([xpow(qs[0])], strategy=cirq.InsertStrategy.NEW)
-    ex_circuit.append(cirq.measure(*qs), strategy=cirq.InsertStrategy.NEW)
-
-    mock_get.return_value = MockGet(cirq.to_json(ex_circuit_odd))
-    sampler = _make_sampler(device)
-    ex_circuit._device = device
-    with cirq.testing.assert_deprecated('The program.device component', deadline='v0.15'):
-        _ = sampler.run_sweep(program=ex_circuit, params=sweep, repetitions=1)

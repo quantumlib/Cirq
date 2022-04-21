@@ -359,8 +359,7 @@ def _op_info_with_fallback(
 # pylint: disable=function-redefined
 @overload
 def circuit_diagram_info(
-    val: Any,
-    args: Optional[CircuitDiagramInfoArgs] = None,
+    val: Any, args: Optional[CircuitDiagramInfoArgs] = None
 ) -> CircuitDiagramInfo:
     pass
 

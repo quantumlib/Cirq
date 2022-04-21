@@ -26,11 +26,7 @@ def test_correct_mappings():
     )
 
     cirq.testing.assert_equivalent_computational_basis_map(
-        maps={
-            0b001: 0b100,
-            0b010: 0b010,
-            0b100: 0b001,
-        },
+        maps={0b001: 0b100, 0b010: 0b010, 0b100: 0b001},
         circuit=circuits.Circuit(cirq.SWAP(a, c), cirq.I(b)),
     )
 
@@ -42,10 +38,6 @@ def test_incorrect_mappings():
         match=r"0b001 \(1\) was mapped to " r"0b100 \(4\) instead of " r"0b010 \(2\)",
     ):
         cirq.testing.assert_equivalent_computational_basis_map(
-            maps={
-                0b001: 0b010,
-                0b010: 0b100,
-                0b100: 0b001,
-            },
+            maps={0b001: 0b010, 0b010: 0b100, 0b100: 0b001},
             circuit=circuits.Circuit(cirq.SWAP(a, c), cirq.I(b)),
         )

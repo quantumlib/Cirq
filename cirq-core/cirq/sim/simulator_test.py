@@ -24,7 +24,6 @@ import cirq
 from cirq import study
 from cirq.sim.simulator import (
     TStepResult,
-    TSimulatorState,
     SimulatesAmplitudes,
     SimulatesExpectationValues,
     SimulatesFinalState,
@@ -64,8 +63,8 @@ class FakeStepResult(cirq.StepResult):
 
 
 class SimulatesIntermediateStateImpl(
-    Generic[TStepResult, TSimulatorState, TActOnArgs],
-    SimulatesIntermediateState[TStepResult, 'SimulationTrialResult', TSimulatorState, TActOnArgs],
+    Generic[TStepResult, TActOnArgs],
+    SimulatesIntermediateState[TStepResult, 'SimulationTrialResult', TActOnArgs],
     metaclass=abc.ABCMeta,
 ):
     """A SimulatesIntermediateState that uses the default SimulationTrialResult type."""
@@ -440,8 +439,7 @@ def test_monte_carlo_on_unknown_channel():
 
     for k in range(4):
         out = cirq.Simulator().simulate(
-            cirq.Circuit(Reset11To00().on(*cirq.LineQubit.range(2))),
-            initial_state=k,
+            cirq.Circuit(Reset11To00().on(*cirq.LineQubit.range(2))), initial_state=k
         )
         np.testing.assert_allclose(
             out.state_vector(), cirq.one_hot(index=k % 3, shape=4, dtype=np.complex64), atol=1e-8
@@ -454,9 +452,7 @@ def test_iter_definitions():
     )
 
     class FakeNonIterSimulatorImpl(
-        SimulatesAmplitudes,
-        SimulatesExpectationValues,
-        SimulatesFinalState,
+        SimulatesAmplitudes, SimulatesExpectationValues, SimulatesFinalState
     ):
         """A class which defines the non-Iterator simulator API methods.
 
@@ -513,9 +509,7 @@ def test_iter_definitions():
 
 def test_missing_iter_definitions():
     class FakeMissingIterSimulatorImpl(
-        SimulatesAmplitudes,
-        SimulatesExpectationValues,
-        SimulatesFinalState,
+        SimulatesAmplitudes, SimulatesExpectationValues, SimulatesFinalState
     ):
         """A class which fails to define simulator methods."""
 

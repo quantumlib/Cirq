@@ -23,9 +23,7 @@ import abc
 from typing import Iterable, Sequence, TYPE_CHECKING, List
 
 from cirq import _compat, _import, ops, protocols, devices
-from cirq.devices.noise_utils import (
-    PHYSICAL_GATE_TAG,
-)
+from cirq.devices.noise_utils import PHYSICAL_GATE_TAG
 
 circuits = _import.LazyLoader("circuits", globals(), "cirq.circuits.circuit")
 

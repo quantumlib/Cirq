@@ -27,11 +27,7 @@ from cirq.qis.channels import (
 
 from cirq.qis.clifford_tableau import CliffordTableau, QuantumStateRepresentation, StabilizerState
 
-from cirq.qis.measures import (
-    entanglement_fidelity,
-    fidelity,
-    von_neumann_entropy,
-)
+from cirq.qis.measures import entanglement_fidelity, fidelity, von_neumann_entropy
 
 from cirq.qis.states import (
     bloch_vector_from_state_vector,

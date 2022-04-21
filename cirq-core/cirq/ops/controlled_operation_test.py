@@ -23,7 +23,7 @@ from cirq import protocols
 from cirq.type_workarounds import NotImplementedType
 
 
-class GateUsingWorkspaceForApplyUnitary(cirq.SingleQubitGate):
+class GateUsingWorkspaceForApplyUnitary(cirq.testing.SingleQubitGate):
     def _apply_unitary_(self, args: cirq.ApplyUnitaryArgs) -> Union[np.ndarray, NotImplementedType]:
         args.available_buffer[...] = args.target_tensor
         args.target_tensor[...] = 0
@@ -39,7 +39,7 @@ class GateUsingWorkspaceForApplyUnitary(cirq.SingleQubitGate):
         return 'cirq.ops.controlled_operation_test.GateUsingWorkspaceForApplyUnitary()'
 
 
-class GateAllocatingNewSpaceForResult(cirq.SingleQubitGate):
+class GateAllocatingNewSpaceForResult(cirq.testing.SingleQubitGate):
     def __init__(self):
         self._matrix = cirq.testing.random_unitary(2, random_state=1234)
 
@@ -73,7 +73,7 @@ class GateAllocatingNewSpaceForResult(cirq.SingleQubitGate):
 def test_controlled_operation_init():
     cb = cirq.NamedQubit('ctr')
     q = cirq.NamedQubit('q')
-    g = cirq.SingleQubitGate()
+    g = cirq.testing.SingleQubitGate()
     v = cirq.GateOperation(g, (q,))
     c = cirq.ControlledOperation([cb], v)
     assert c.sub_operation == v
@@ -296,7 +296,7 @@ def test_uninformed_circuit_diagram_info():
 def test_non_diagrammable_subop():
     qbits = cirq.LineQubit.range(2)
 
-    class UndiagrammableGate(cirq.SingleQubitGate):
+    class UndiagrammableGate(cirq.testing.SingleQubitGate):
         pass
 
     undiagrammable_op = UndiagrammableGate()(qbits[1])
@@ -436,22 +436,10 @@ def test_controlled_mixture():
         def with_qubits(self, *new_qubits):
             raise NotImplementedError()
 
-    c_no = cirq.ControlledOperation(
-        controls=[b],
-        sub_operation=NoDetails(),
-    )
+    c_no = cirq.ControlledOperation(controls=[b], sub_operation=NoDetails())
     assert not cirq.has_mixture(c_no)
     assert cirq.mixture(c_no, None) is None
 
-    c_yes = cirq.ControlledOperation(
-        controls=[b],
-        sub_operation=cirq.phase_flip(0.25).on(a),
-    )
+    c_yes = cirq.ControlledOperation(controls=[b], sub_operation=cirq.phase_flip(0.25).on(a))
     assert cirq.has_mixture(c_yes)
-    assert cirq.approx_eq(
-        cirq.mixture(c_yes),
-        [
-            (0.75, np.eye(4)),
-            (0.25, cirq.unitary(cirq.CZ)),
-        ],
-    )
+    assert cirq.approx_eq(cirq.mixture(c_yes), [(0.75, np.eye(4)), (0.25, cirq.unitary(cirq.CZ))])

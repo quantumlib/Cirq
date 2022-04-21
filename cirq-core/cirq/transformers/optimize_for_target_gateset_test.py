@@ -127,10 +127,7 @@ class MatrixGateTargetGateset(cirq.CompilationTargetGateset):
 def test_optimize_for_target_gateset_default():
     q = cirq.LineQubit.range(2)
     c_orig = cirq.Circuit(
-        cirq.T(q[0]),
-        cirq.SWAP(*q),
-        cirq.T(q[0]),
-        cirq.SWAP(*q).with_tags("ignore"),
+        cirq.T(q[0]), cirq.SWAP(*q), cirq.T(q[0]), cirq.SWAP(*q).with_tags("ignore")
     )
     context = cirq.TransformerContext(tags_to_ignore=("ignore",))
     c_new = cirq.optimize_for_target_gateset(c_orig, context=context)

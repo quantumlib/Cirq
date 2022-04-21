@@ -37,6 +37,7 @@ from typing import (
     Generic,
     Iterator,
     List,
+    Optional,
     Sequence,
     Set,
     Tuple,
@@ -57,7 +58,7 @@ if TYPE_CHECKING:
 
 TStepResult = TypeVar('TStepResult', bound='StepResult')
 TSimulationTrialResult = TypeVar('TSimulationTrialResult', bound='SimulationTrialResult')
-TSimulatorState = TypeVar('TSimulatorState')
+TSimulatorState = TypeVar('TSimulatorState', bound=Any)
 TActOnArgs = TypeVar('TActOnArgs', bound=ActOnArgs)
 
 
@@ -68,18 +69,12 @@ class SimulatesSamples(work.Sampler, metaclass=abc.ABCMeta):
     """
 
     def run_sweep(
-        self,
-        program: 'cirq.AbstractCircuit',
-        params: 'cirq.Sweepable',
-        repetitions: int = 1,
+        self, program: 'cirq.AbstractCircuit', params: 'cirq.Sweepable', repetitions: int = 1
     ) -> Sequence['cirq.Result']:
         return list(self.run_sweep_iter(program, params, repetitions))
 
     def run_sweep_iter(
-        self,
-        program: 'cirq.AbstractCircuit',
-        params: 'cirq.Sweepable',
-        repetitions: int = 1,
+        self, program: 'cirq.AbstractCircuit', params: 'cirq.Sweepable', repetitions: int = 1
     ) -> Iterator['cirq.Result']:
         """Runs the supplied Circuit, mimicking quantum hardware.
 
@@ -406,12 +401,7 @@ class SimulatesExpectationValues(metaclass=value.ABCMetaImplementAnyOneOf):
                 "simulate_expectation_values_sweep_iter."
             )
         yield from self.simulate_expectation_values_sweep(
-            program,
-            observables,
-            params,
-            qubit_order,
-            initial_state,
-            permit_terminal_measurements,
+            program, observables, params, qubit_order, initial_state, permit_terminal_measurements
         )
 
     @value.alternative(
@@ -560,7 +550,7 @@ class SimulatesFinalState(
 
 
 class SimulatesIntermediateState(
-    Generic[TStepResult, TSimulationTrialResult, TSimulatorState, TActOnArgs],
+    Generic[TStepResult, TSimulationTrialResult, TActOnArgs],
     SimulatesFinalState[TSimulationTrialResult],
     metaclass=abc.ABCMeta,
 ):
@@ -620,9 +610,7 @@ class SimulatesIntermediateState(
                 for k, v in step_result.measurements.items():
                     measurements[k] = np.array(v, dtype=np.uint8)
             yield self._create_simulator_trial_result(
-                params=param_resolver,
-                measurements=measurements,
-                final_step_result=step_result,
+                params=param_resolver, measurements=measurements, final_step_result=step_result
             )
 
     def simulate_moment_steps(
@@ -690,9 +678,7 @@ class SimulatesIntermediateState(
 
     @abc.abstractmethod
     def _create_act_on_args(
-        self,
-        initial_state: Any,
-        qubits: Sequence['cirq.Qid'],
+        self, initial_state: Any, qubits: Sequence['cirq.Qid']
     ) -> 'cirq.OperationTarget[TActOnArgs]':
         """Creates the OperationTarget state for a simulator.
 
@@ -891,7 +877,7 @@ class StepResult(Generic[TSimulatorState], metaclass=abc.ABCMeta):
 
 
 @value.value_equality(unhashable=True)
-class SimulationTrialResult:
+class SimulationTrialResult(Generic[TSimulatorState]):
     """Results of a simulation by a SimulatesFinalState.
 
     Unlike Result these results contain the final simulator_state of the
@@ -911,8 +897,8 @@ class SimulationTrialResult:
         self,
         params: 'cirq.ParamResolver',
         measurements: Dict[str, np.ndarray],
-        final_simulator_state: Any = None,
-        final_step_result: 'cirq.StepResult' = None,
+        final_simulator_state: Optional[TSimulatorState] = None,
+        final_step_result: Optional['cirq.StepResult[TSimulatorState]'] = None,
     ) -> None:
         """Initializes the `SimulationTrialResult` class.
 
@@ -940,13 +926,11 @@ class SimulationTrialResult:
         self.params = params
         self.measurements = measurements
         self._final_step_result = final_step_result
-        self._final_simulator_state_cache = final_simulator_state
-
-    @property
-    def _final_simulator_state(self):
-        if self._final_simulator_state_cache is None:
-            self._final_simulator_state_cache = self._final_step_result._simulator_state()
-        return self._final_simulator_state_cache
+        self._final_simulator_state: TSimulatorState = (
+            final_simulator_state
+            if final_simulator_state is not None
+            else cast('cirq.StepResult[TSimulatorState]', final_step_result)._simulator_state()
+        )
 
     def __repr__(self) -> str:
         return (
@@ -1011,8 +995,7 @@ def check_all_resolved(circuit):
 
 
 def split_into_matching_protocol_then_general(
-    circuit: 'cirq.AbstractCircuit',
-    predicate: Callable[['cirq.Operation'], bool],
+    circuit: 'cirq.AbstractCircuit', predicate: Callable[['cirq.Operation'], bool]
 ) -> Tuple['cirq.AbstractCircuit', 'cirq.AbstractCircuit']:
     """Splits the circuit into a matching prefix and non-matching suffix.
 

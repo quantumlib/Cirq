@@ -72,11 +72,7 @@ def _kak_decomposition_to_operations(
         cast(
             Iterable[ops.Operation],
             ops.flatten_op_tree(
-                [
-                    pre,
-                    _non_local_part(q0, q1, kak.interaction_coefficients, atol),
-                    post,
-                ]
+                [pre, _non_local_part(q0, q1, kak.interaction_coefficients, atol), post]
             ),
         )
     )
