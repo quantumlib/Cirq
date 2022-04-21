@@ -127,7 +127,7 @@ def _validate_map_input(
 def _pad_tableau(
     clifford_tableau: qis.CliffordTableau, num_qubits_after_padding: int, axes: List[int]
 ) -> qis.CliffordTableau:
-    """Roughly, this function copies self.tabluea into the "identity" matrix."""
+    """Roughly, this function copies self.tableau into the "identity" matrix."""
     # Sanity check
     if len(set(axes)) != clifford_tableau.n:
         raise ValueError(
