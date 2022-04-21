@@ -26,9 +26,6 @@ if TYPE_CHECKING:
     import cirq
 
 
-ComplexParam = Union[value.Scalar, sympy.Basic]
-
-
 @value.value_equality(approximate=True)
 @deprecated_class(deadline='v0.16', fix='Use cirq.global_phase_operation')
 class GlobalPhaseOperation(gate_operation.GateOperation):
@@ -62,13 +59,13 @@ class GlobalPhaseOperation(gate_operation.GateOperation):
 
 @value.value_equality(approximate=True)
 class GlobalPhaseGate(raw_types.Gate):
-    def __init__(self, coefficient: ComplexParam, atol: float = 1e-8) -> None:
+    def __init__(self, coefficient: 'cirq.TParamValComplex', atol: float = 1e-8) -> None:
         if not isinstance(coefficient, sympy.Basic) and abs(1 - abs(coefficient)) > atol:
             raise ValueError(f'Coefficient is not unitary: {coefficient!r}')
         self._coefficient = coefficient
 
     @property
-    def coefficient(self) -> ComplexParam:
+    def coefficient(self) -> 'cirq.TParamValComplex':
         return self._coefficient
 
     def _value_equality_values_(self) -> Any:
@@ -126,5 +123,7 @@ class GlobalPhaseGate(raw_types.Gate):
         return GlobalPhaseGate(coefficient=coefficient)
 
 
-def global_phase_operation(coefficient: ComplexParam, atol: float = 1e-8) -> 'cirq.GateOperation':
+def global_phase_operation(
+    coefficient: 'cirq.TParamValComplex', atol: float = 1e-8
+) -> 'cirq.GateOperation':
     return GlobalPhaseGate(coefficient, atol)()

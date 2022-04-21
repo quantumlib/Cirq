@@ -183,8 +183,6 @@ class DiagonalGate(raw_types.Gate):
         # decomposed gates. On its own it is not physically observable. However, if using this
         # diagonal gate for sub-system like controlled gate, it is no longer equivalent. Hence,
         # we add global phase.
-        # Global phase is ignored for parameterized gates as `cirq.GlobalPhaseGate` expects a
-        # scalar value.
         decomposed_circ: List[Any] = [
             global_phase_op.global_phase_operation(1j ** (2 * hat_angles[0] / np.pi))
         ]

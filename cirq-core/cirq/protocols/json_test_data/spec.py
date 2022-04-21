@@ -178,6 +178,7 @@ TestSpec = ModuleJsonTestSpec(
         'Sweepable',
         'TParamKey',
         'TParamVal',
+        'TParamValComplex',
         'TRANSFORMER',
         'ParamDictType',
         # utility:
