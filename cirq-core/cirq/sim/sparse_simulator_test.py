@@ -571,9 +571,8 @@ def test_simulate_moment_steps_empty_circuit(dtype: Type[np.number], split: bool
     step = None
     for step in simulator.simulate_moment_steps(circuit):
         pass
-    assert step._simulator_state() == cirq.StateVectorSimulatorState(
-        state_vector=np.array([1]), qubit_map={}
-    )
+    assert np.allclose(step.state_vector(), np.array([1]))
+    assert not step.qubit_map
 
 
 @pytest.mark.parametrize('dtype', [np.complex64, np.complex128])
