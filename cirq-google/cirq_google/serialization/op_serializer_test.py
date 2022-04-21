@@ -35,12 +35,12 @@ def op_proto(json: Dict) -> v2.program_pb2.Operation:
     return op
 
 
-class GateWithAttribute(cirq.SingleQubitGate):
+class GateWithAttribute(cirq.testing.SingleQubitGate):
     def __init__(self, val):
         self.val = val
 
 
-class GateWithProperty(cirq.SingleQubitGate):
+class GateWithProperty(cirq.testing.SingleQubitGate):
     def __init__(self, val, not_req=None):
         self._val = val
         self._not_req = not_req
@@ -50,7 +50,7 @@ class GateWithProperty(cirq.SingleQubitGate):
         return self._val
 
 
-class GateWithMethod(cirq.SingleQubitGate):
+class GateWithMethod(cirq.testing.SingleQubitGate):
     def __init__(self, val):
         self._val = val
 

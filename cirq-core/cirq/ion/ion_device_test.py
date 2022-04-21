@@ -53,8 +53,8 @@ def test_init():
     assert d.duration_of(cirq.measure(q0)) == 100 * ms
     assert d.duration_of(cirq.measure(q0, q1)) == 100 * ms
     assert d.duration_of(cirq.ops.XX(q0, q1)) == 200 * ms
-    with pytest.raises(ValueError):
-        _ = d.duration_of(cirq.SingleQubitGate().on(q0))
+    with pytest.raises(ValueError, match="Unsupported gate type"):
+        _ = d.duration_of(cirq.I(q0))
 
     with pytest.raises(TypeError, match="NamedQubit"):
         _ = cirq.IonDevice(
@@ -86,7 +86,7 @@ def test_init_timedelta():
     assert d.duration_of(cirq.measure(q0, q1)) == 100 * ms
     assert d.duration_of(cirq.ops.XX(q0, q1)) == 200 * ms
     with pytest.raises(ValueError):
-        _ = d.duration_of(cirq.SingleQubitGate().on(q0))
+        _ = d.duration_of(cirq.testing.SingleQubitGate().on(q0))
 
 
 def test_decomposition_deprecated():

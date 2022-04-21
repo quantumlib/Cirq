@@ -1884,7 +1884,7 @@ def test_qid_shape_qubit(circuit_cls):
 
 @pytest.mark.parametrize('circuit_cls', [cirq.Circuit, cirq.FrozenCircuit])
 def test_qid_shape_qudit(circuit_cls):
-    class PlusOneMod3Gate(cirq.SingleQubitGate):
+    class PlusOneMod3Gate(cirq.testing.SingleQubitGate):
         def _qid_shape_(self):
             return (3,)
 
@@ -1892,7 +1892,7 @@ def test_qid_shape_qudit(circuit_cls):
         def _qid_shape_(self):
             return (3, 2)
 
-    class IdentityGate(cirq.SingleQubitGate):
+    class IdentityGate(cirq.testing.SingleQubitGate):
         def _qid_shape_(self):
             return (1,)
 
@@ -1987,13 +1987,13 @@ M      |      M      |
 
 @pytest.mark.parametrize('circuit_cls', [cirq.Circuit, cirq.FrozenCircuit])
 def test_diagram_with_unknown_exponent(circuit_cls):
-    class WeirdGate(cirq.SingleQubitGate):
+    class WeirdGate(cirq.testing.SingleQubitGate):
         def _circuit_diagram_info_(
             self, args: cirq.CircuitDiagramInfoArgs
         ) -> cirq.CircuitDiagramInfo:
             return cirq.CircuitDiagramInfo(wire_symbols=('B',), exponent='fancy')
 
-    class WeirderGate(cirq.SingleQubitGate):
+    class WeirderGate(cirq.testing.SingleQubitGate):
         def _circuit_diagram_info_(
             self, args: cirq.CircuitDiagramInfoArgs
         ) -> cirq.CircuitDiagramInfo:
@@ -2103,7 +2103,7 @@ def test_to_text_diagram_many_qubits_gate_but_multiple_wire_symbols(circuit_cls)
 def test_to_text_diagram_parameterized_value(circuit_cls):
     q = cirq.NamedQubit('cube')
 
-    class PGate(cirq.SingleQubitGate):
+    class PGate(cirq.testing.SingleQubitGate):
         def __init__(self, val):
             self.val = val
 
@@ -2266,10 +2266,10 @@ global phase:   0.5π   0.5π
 
 @pytest.mark.parametrize('circuit_cls', [cirq.Circuit, cirq.FrozenCircuit])
 def test_has_unitary(circuit_cls):
-    class NonUnitary(cirq.SingleQubitGate):
+    class NonUnitary(cirq.testing.SingleQubitGate):
         pass
 
-    class EventualUnitary(cirq.SingleQubitGate):
+    class EventualUnitary(cirq.testing.SingleQubitGate):
         def _decompose_(self, qubits):
             return cirq.X.on_each(*qubits)
 
@@ -4098,7 +4098,7 @@ def test_indexing_by_numpy_integer(circuit_cls):
 
 @pytest.mark.parametrize('circuit_cls', [cirq.Circuit, cirq.FrozenCircuit])
 def test_all_measurement_key_names(circuit_cls):
-    class Unknown(cirq.SingleQubitGate):
+    class Unknown(cirq.testing.SingleQubitGate):
         def _measurement_key_name_(self):
             return 'test'
 

@@ -98,7 +98,7 @@ def test_init():
     assert d.duration_of(cirq.X(q00)) == 2 * ns
     assert d.duration_of(cirq.CZ(q00, q01)) == 3 * ns
     with pytest.raises(ValueError):
-        _ = d.duration_of(cirq.SingleQubitGate().on(q00))
+        _ = d.duration_of(cirq.testing.SingleQubitGate().on(q00))
 
 
 @mock.patch.dict(os.environ, clear='CIRQ_TESTING')
