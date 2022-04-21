@@ -37,6 +37,7 @@ from typing import (
     Generic,
     Iterator,
     List,
+    Optional,
     Sequence,
     Set,
     Tuple,
@@ -57,7 +58,7 @@ if TYPE_CHECKING:
 
 TStepResult = TypeVar('TStepResult', bound='StepResult')
 TSimulationTrialResult = TypeVar('TSimulationTrialResult', bound='SimulationTrialResult')
-TSimulatorState = TypeVar('TSimulatorState')
+TSimulatorState = TypeVar('TSimulatorState', bound=Any)
 TActOnArgs = TypeVar('TActOnArgs', bound=ActOnArgs)
 
 
@@ -549,7 +550,7 @@ class SimulatesFinalState(
 
 
 class SimulatesIntermediateState(
-    Generic[TStepResult, TSimulationTrialResult, TSimulatorState, TActOnArgs],
+    Generic[TStepResult, TSimulationTrialResult, TActOnArgs],
     SimulatesFinalState[TSimulationTrialResult],
     metaclass=abc.ABCMeta,
 ):
@@ -876,7 +877,7 @@ class StepResult(Generic[TSimulatorState], metaclass=abc.ABCMeta):
 
 
 @value.value_equality(unhashable=True)
-class SimulationTrialResult:
+class SimulationTrialResult(Generic[TSimulatorState]):
     """Results of a simulation by a SimulatesFinalState.
 
     Unlike Result these results contain the final simulator_state of the
@@ -896,8 +897,8 @@ class SimulationTrialResult:
         self,
         params: 'cirq.ParamResolver',
         measurements: Dict[str, np.ndarray],
-        final_simulator_state: Any = None,
-        final_step_result: 'cirq.StepResult' = None,
+        final_simulator_state: Optional[TSimulatorState] = None,
+        final_step_result: Optional['cirq.StepResult[TSimulatorState]'] = None,
     ) -> None:
         """Initializes the `SimulationTrialResult` class.
 
@@ -925,13 +926,11 @@ class SimulationTrialResult:
         self.params = params
         self.measurements = measurements
         self._final_step_result = final_step_result
-        self._final_simulator_state_cache = final_simulator_state
-
-    @property
-    def _final_simulator_state(self):
-        if self._final_simulator_state_cache is None:
-            self._final_simulator_state_cache = self._final_step_result._simulator_state()
-        return self._final_simulator_state_cache
+        self._final_simulator_state: TSimulatorState = (
+            final_simulator_state
+            if final_simulator_state is not None
+            else cast('cirq.StepResult[TSimulatorState]', final_step_result)._simulator_state()
+        )
 
     def __repr__(self) -> str:
         return (
