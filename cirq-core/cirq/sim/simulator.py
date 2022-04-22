@@ -29,6 +29,7 @@ Simulator types include:
 
 import abc
 import collections
+import inspect
 from typing import (
     Any,
     Callable,
@@ -609,11 +610,21 @@ class SimulatesIntermediateState(
             for step_result in all_step_results:
                 for k, v in step_result.measurements.items():
                     measurements[k] = np.array(v, dtype=np.uint8)
-            yield self._create_simulator_trial_result(
-                params=param_resolver,
-                measurements=measurements,
-                final_simulator_state=step_result._simulator_state(),
-            )
+            if (
+                'final_simulator_state'
+                in inspect.signature(self._create_simulator_trial_result).parameters
+            ):
+                yield self._create_simulator_trial_result(
+                    params=param_resolver,
+                    measurements=measurements,
+                    final_simulator_state=step_result._simulator_state(),
+                )
+            else:
+                yield self._create_simulator_trial_result(
+                    params=param_resolver,
+                    measurements=measurements,
+                    final_step_result=step_result,  # type: ignore
+                )
 
     def simulate_moment_steps(
         self,
