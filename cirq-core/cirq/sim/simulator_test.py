@@ -80,7 +80,7 @@ class SimulatesIntermediateStateImpl(
         Args:
             params: The ParamResolver for this trial.
             measurements: The measurement results for this trial.
-            final_step_result: The final step result of the simulation.
+            final_simulator_state: The final state of the simulation.
 
         Returns:
             The SimulationTrialResult.

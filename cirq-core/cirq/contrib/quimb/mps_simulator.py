@@ -130,7 +130,7 @@ class MPSSimulator(
             params: A ParamResolver for determining values of Symbols.
             measurements: A dictionary from measurement key (e.g. qubit) to the
                 actual measurement array.
-            final_step_result: The final step result of the simulation.
+            final_simulator_state: The final state of the simulation.
 
         Returns:
             A single result.

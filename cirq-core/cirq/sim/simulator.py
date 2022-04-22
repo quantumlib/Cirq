@@ -744,7 +744,7 @@ class SimulatesIntermediateState(
         Args:
             params: The ParamResolver for this trial.
             measurements: The measurement results for this trial.
-            final_step_result: The final step result of the simulation.
+            final_simulator_state: The final state of the simulation.
 
         Returns:
             The SimulationTrialResult.
@@ -889,6 +889,8 @@ class StepResult(Generic[TSimulatorState], metaclass=abc.ABCMeta):
         )
 
 
+# When removing this, also remove the check in simulate_sweep_iter.
+# Basically there should be no "final_step_result" anywhere in the project afterwards.
 def deprecated_step_result_parameter(
     old_position: int = 4, new_position: int = 3
 ) -> Callable[[Callable], Callable]:
@@ -950,10 +952,6 @@ class SimulationTrialResult(Generic[TSimulatorState]):
                 boolean measurement results (ordered by the qubits acted on by
                 the measurement gate.)
             final_simulator_state: The final simulator state.
-
-        Raises:
-            ValueError: If `final_step_result` and `final_simulator_state` are both
-                None or both not None.
         """
         self.params = params
         self.measurements = measurements
