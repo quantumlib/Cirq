@@ -53,7 +53,6 @@ QCVV_MAINTAINERS = BASE_MAINTAINERS.union(QCVV_TEAM)
         ("docs/_book.yaml", DOCS_MAINTAINERS),
         # qcvv
         ("cirq-core/cirq/experiments/__init__.py", QCVV_MAINTAINERS),
-        ("docs/noise/qcvv/isolated_xeb.ipynb", QCVV_MAINTAINERS.union(DOCS_MAINTAINERS)),
         # aqt
         ("cirq-aqt/cirq_aqt/__init__.py", AQT_MAINTAINERS),
         ("cirq-aqt/setup.py", AQT_MAINTAINERS),
