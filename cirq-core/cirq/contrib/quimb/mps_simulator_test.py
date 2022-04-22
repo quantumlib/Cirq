@@ -1,7 +1,6 @@
 # pylint: disable=wrong-or-nonexistent-copyright-notice
 import itertools
 import math
-from unittest import mock
 
 import numpy as np
 import pytest

@@ -528,18 +528,31 @@ def test_missing_iter_definitions():
 
 
 def test_trial_result_initializer():
+    resolver = cirq.ParamResolver()
+    step = mock.Mock(cirq.StepResultBase)
+    step._simulator_state.return_value = 1
+    state = 3
     with pytest.raises(ValueError, match='Exactly one of'):
-        _ = SimulationTrialResult(cirq.ParamResolver(), {}, None, None)
+        _ = SimulationTrialResult(resolver, {}, None, None)
     with pytest.raises(ValueError, match='Exactly one of'):
-        _ = SimulationTrialResult(cirq.ParamResolver(), {}, object(), mock.Mock(TStepResult))
+        _ = SimulationTrialResult(resolver, {}, state, step)
     with pytest.raises(ValueError, match='Exactly one of'):
-        _ = SimulationTrialResult(
-            cirq.ParamResolver(), {}, final_simulator_state=None, final_step_result=None
-        )
+        _ = SimulationTrialResult(resolver, {}, final_simulator_state=None, final_step_result=None)
     with pytest.raises(ValueError, match='Exactly one of'):
-        _ = SimulationTrialResult(
-            cirq.ParamResolver(),
-            {},
-            final_simulator_state=object(),
-            final_step_result=mock.Mock(TStepResult),
-        )
+        _ = SimulationTrialResult(resolver, {}, final_simulator_state=state, final_step_result=step)
+    with cirq.testing.assert_deprecated(deadline='v0.16'):
+        x = SimulationTrialResult(resolver, {}, final_step_result=step)
+        assert x._final_simulator_state == 1
+    with cirq.testing.assert_deprecated(deadline='v0.16'):
+        x = SimulationTrialResult(resolver, {}, None, final_step_result=step)
+        assert x._final_simulator_state == 1
+    with cirq.testing.assert_deprecated(deadline='v0.16'):
+        x = SimulationTrialResult(resolver, {}, None, step)
+        assert x._final_simulator_state == 1
+    with cirq.testing.assert_deprecated(deadline='v0.16'):
+        x = SimulationTrialResult(resolver, {}, final_simulator_state=None, final_step_result=step)
+        assert x._final_simulator_state == 1
+    x = SimulationTrialResult(resolver, {}, state)
+    assert x._final_simulator_state == 3
+    x = SimulationTrialResult(resolver, {}, final_simulator_state=state)
+    assert x._final_simulator_state == 3

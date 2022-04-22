@@ -620,7 +620,7 @@ class SimulatesIntermediateState(
                     final_simulator_state=step_result._simulator_state(),
                 )
             else:
-                yield self._create_simulator_trial_result(
+                yield self._create_simulator_trial_result(  # pylint: disable=no-value-for-parameter, unexpected-keyword-arg, line-too-long
                     params=param_resolver,
                     measurements=measurements,
                     final_step_result=step_result,  # type: ignore
@@ -891,24 +891,43 @@ class StepResult(Generic[TSimulatorState], metaclass=abc.ABCMeta):
 
 # When removing this, also remove the check in simulate_sweep_iter.
 # Basically there should be no "final_step_result" anywhere in the project afterwards.
-def deprecated_step_result_parameter(
+def _deprecated_step_result_parameter(
     old_position: int = 4, new_position: int = 3
 ) -> Callable[[Callable], Callable]:
+    assert old_position >= new_position
+
     def rewrite_deprecated_step_result_param(args, kwargs):
-        has_state = len(args) > new_position or 'final_simulator_state' in kwargs
-        has_step_result = len(args) > old_position or 'final_step_result' in kwargs
-        if not has_step_result ^ has_state:
+        args = list(args)
+        state = (
+            kwargs['final_simulator_state']
+            if 'final_simulator_state' in kwargs
+            else args[new_position]
+            if len(args) > new_position and not isinstance(args[new_position], StepResult)
+            else None
+        )
+        step_result = (
+            kwargs['final_step_result']
+            if 'final_step_result' in kwargs
+            else args[old_position]
+            if len(args) > old_position and isinstance(args[old_position], StepResult)
+            else None
+        )
+        if (step_result is None) == (state is None):
             raise ValueError(
                 'Exactly one of final_simulator_state and final_step_result should be provided'
             )
-        if len(args) > old_position:
+        if len(args) > old_position and isinstance(args[old_position], StepResult):
             args[new_position] = args[old_position]._simulator_state()
             if old_position > new_position:
                 del args[old_position]
         elif 'final_step_result' in kwargs:
-            kwargs['final_simulator_state'] = kwargs['final_step_result']._simulator_state()
+            sim_state = kwargs['final_step_result']._simulator_state()
+            if len(args) > new_position:
+                args[new_position] = sim_state
+            else:
+                kwargs['final_simulator_state'] = sim_state
             del kwargs['final_step_result']
-        return args, kwargs
+        return tuple(args), kwargs
 
     return _compat.deprecated_parameter(
         deadline='v0.16',
@@ -936,7 +955,7 @@ class SimulationTrialResult(Generic[TSimulatorState]):
             measurement gate.)
     """
 
-    @deprecated_step_result_parameter()
+    @_deprecated_step_result_parameter()
     def __init__(
         self,
         params: 'cirq.ParamResolver',

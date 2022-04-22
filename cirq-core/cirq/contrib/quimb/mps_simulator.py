@@ -143,7 +143,7 @@ class MPSSimulator(
 class MPSTrialResult(simulator_base.SimulationTrialResultBase['MPSState']):
     """A single trial reult"""
 
-    @simulator.deprecated_step_result_parameter(old_position=3)
+    @simulator._deprecated_step_result_parameter(old_position=3)
     def __init__(
         self,
         params: 'cirq.ParamResolver',

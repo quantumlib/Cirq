@@ -394,7 +394,7 @@ def test_sweep_unparameterized_prefix_not_repeated_iff_unitary():
 
 def test_deprecated_final_step_result():
     class OldCountingSimulator(CountingSimulator):
-        def _create_simulator_trial_result(
+        def _create_simulator_trial_result(  # type: ignore
             self,
             params: cirq.ParamResolver,
             measurements: Dict[str, np.ndarray],
