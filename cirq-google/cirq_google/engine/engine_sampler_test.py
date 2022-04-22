@@ -19,8 +19,10 @@ import pytest
 import cirq
 import cirq_google as cg
 import cirq_google.cloud.quantum
+from cirq_google.engine.util_test import uses_async_mock
 
 
+@uses_async_mock
 @pytest.mark.parametrize('circuit', [cirq.Circuit(), cirq.FrozenCircuit()])
 def test_run_circuit(circuit):
     engine = mock.Mock()
@@ -33,6 +35,7 @@ def test_run_circuit(circuit):
     )
 
 
+@uses_async_mock
 def test_run_engine_program():
     engine = mock.Mock()
     engine.run_sweep_async = mock.AsyncMock()
@@ -45,6 +48,7 @@ def test_run_engine_program():
     engine.run_sweep_async.assert_not_called()
 
 
+@uses_async_mock
 def test_run_batch():
     engine = mock.Mock()
     engine.run_batch_async = mock.AsyncMock()
@@ -62,6 +66,7 @@ def test_run_batch():
     )
 
 
+@uses_async_mock
 def test_run_batch_identical_repetitions():
     engine = mock.Mock()
     engine.run_batch_async = mock.AsyncMock()
@@ -93,6 +98,7 @@ def test_run_batch_bad_number_of_repetitions():
         sampler.run_batch(circuits, params_list, [5, 5, 5])
 
 
+@uses_async_mock
 def test_run_batch_differing_repetitions():
     engine = mock.Mock()
     job = mock.Mock()

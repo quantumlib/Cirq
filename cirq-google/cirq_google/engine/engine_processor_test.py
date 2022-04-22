@@ -28,6 +28,7 @@ import cirq_google.devices.known_devices as known_devices
 from cirq_google.api import v2
 from cirq_google.engine import util
 from cirq_google.engine.engine import EngineContext
+from cirq_google.engine.util_test import uses_async_mock
 from cirq_google.cloud import quantum
 
 
@@ -232,6 +233,7 @@ def test_engine_repr():
     assert 'the-processor-id' in repr(processor)
 
 
+@uses_async_mock
 @mock.patch('cirq_google.engine.engine_client.EngineClient.get_processor_async')
 def test_health(get_processor):
     get_processor.return_value = quantum.QuantumProcessor(health=quantum.QuantumProcessor.Health.OK)
@@ -244,6 +246,7 @@ def test_health(get_processor):
     assert processor.health() == 'OK'
 
 
+@uses_async_mock
 @mock.patch('cirq_google.engine.engine_client.EngineClient.get_processor_async')
 def test_expected_down_time(get_processor):
     processor = cg.EngineProcessor('a', 'p', EngineContext(), _processor=quantum.QuantumProcessor())
@@ -352,6 +355,7 @@ def test_get_missing_device():
         _ = processor.get_device(gate_sets=[_GATE_SET])
 
 
+@uses_async_mock
 @mock.patch('cirq_google.engine.engine_client.EngineClient.list_calibrations_async')
 def test_list_calibrations(list_calibrations):
     list_calibrations.return_value = [_CALIBRATION]
@@ -391,6 +395,7 @@ def test_list_calibrations(list_calibrations):
     list_calibrations.assert_called_with('a', 'p', f'timestamp >= {today_midnight_timestamp}')
 
 
+@uses_async_mock
 @mock.patch('cirq_google.engine.engine_client.EngineClient.list_calibrations_async')
 def test_list_calibrations_old_params(list_calibrations):
     # Disable pylint warnings for use of deprecated parameters
@@ -409,6 +414,7 @@ def test_list_calibrations_old_params(list_calibrations):
     list_calibrations.assert_called_with('a', 'p', 'timestamp <= 1562600000')
 
 
+@uses_async_mock
 @mock.patch('cirq_google.engine.engine_client.EngineClient.get_calibration_async')
 def test_get_calibration(get_calibration):
     get_calibration.return_value = _CALIBRATION
@@ -419,6 +425,7 @@ def test_get_calibration(get_calibration):
     get_calibration.assert_called_once_with('a', 'p', 1562544000021)
 
 
+@uses_async_mock
 @mock.patch('cirq_google.engine.engine_client.EngineClient.get_current_calibration_async')
 def test_current_calibration(get_current_calibration):
     get_current_calibration.return_value = _CALIBRATION
@@ -429,6 +436,7 @@ def test_current_calibration(get_current_calibration):
     get_current_calibration.assert_called_once_with('a', 'p')
 
 
+@uses_async_mock
 @mock.patch('cirq_google.engine.engine_client.EngineClient.get_current_calibration_async')
 def test_missing_latest_calibration(get_current_calibration):
     get_current_calibration.return_value = None
@@ -437,6 +445,7 @@ def test_missing_latest_calibration(get_current_calibration):
     get_current_calibration.assert_called_once_with('a', 'p')
 
 
+@uses_async_mock
 @mock.patch('cirq_google.engine.engine_client.EngineClient.create_reservation_async')
 def test_create_reservation(create_reservation):
     name = 'projects/proj/processors/p0/reservations/psherman-wallaby-way'
@@ -462,6 +471,7 @@ def test_create_reservation(create_reservation):
     )
 
 
+@uses_async_mock
 @mock.patch('cirq_google.engine.engine_client.EngineClient.delete_reservation_async')
 def test_delete_reservation(delete_reservation):
     name = 'projects/proj/processors/p0/reservations/rid'
@@ -477,6 +487,7 @@ def test_delete_reservation(delete_reservation):
     delete_reservation.assert_called_once_with('proj', 'p0', 'rid')
 
 
+@uses_async_mock
 @mock.patch('cirq_google.engine.engine_client.EngineClient.cancel_reservation_async')
 def test_cancel_reservation(cancel_reservation):
     name = 'projects/proj/processors/p0/reservations/rid'
@@ -492,6 +503,7 @@ def test_cancel_reservation(cancel_reservation):
     cancel_reservation.assert_called_once_with('proj', 'p0', 'rid')
 
 
+@uses_async_mock
 @mock.patch('cirq_google.engine.engine_client.EngineClient.get_reservation_async')
 @mock.patch('cirq_google.engine.engine_client.EngineClient.delete_reservation_async')
 def test_remove_reservation_delete(delete_reservation, get_reservation):
@@ -515,6 +527,7 @@ def test_remove_reservation_delete(delete_reservation, get_reservation):
     delete_reservation.assert_called_once_with('proj', 'p0', 'rid')
 
 
+@uses_async_mock
 @mock.patch('cirq_google.engine.engine_client.EngineClient.get_reservation_async')
 @mock.patch('cirq_google.engine.engine_client.EngineClient.cancel_reservation_async')
 def test_remove_reservation_cancel(cancel_reservation, get_reservation):
@@ -538,6 +551,7 @@ def test_remove_reservation_cancel(cancel_reservation, get_reservation):
     cancel_reservation.assert_called_once_with('proj', 'p0', 'rid')
 
 
+@uses_async_mock
 @mock.patch('cirq_google.engine.engine_client.EngineClient.get_reservation_async')
 def test_remove_reservation_not_found(get_reservation):
     get_reservation.return_value = None
@@ -551,6 +565,7 @@ def test_remove_reservation_not_found(get_reservation):
         processor.remove_reservation('rid')
 
 
+@uses_async_mock
 @mock.patch('cirq_google.engine.engine_client.EngineClient.get_processor_async')
 @mock.patch('cirq_google.engine.engine_client.EngineClient.get_reservation_async')
 def test_remove_reservation_failures(get_reservation, get_processor):
@@ -576,6 +591,7 @@ def test_remove_reservation_failures(get_reservation, get_processor):
         processor.remove_reservation('rid')
 
 
+@uses_async_mock
 @mock.patch('cirq_google.engine.engine_client.EngineClient.get_reservation_async')
 def test_get_reservation(get_reservation):
     name = 'projects/proj/processors/p0/reservations/rid'
@@ -591,6 +607,7 @@ def test_get_reservation(get_reservation):
     get_reservation.assert_called_once_with('proj', 'p0', 'rid')
 
 
+@uses_async_mock
 @mock.patch('cirq_google.engine.engine_client.EngineClient.update_reservation_async')
 def test_update_reservation(update_reservation):
     name = 'projects/proj/processors/p0/reservations/rid'
@@ -610,6 +627,7 @@ def test_update_reservation(update_reservation):
     )
 
 
+@uses_async_mock
 @mock.patch('cirq_google.engine.engine_client.EngineClient.list_reservations_async')
 def test_list_reservation(list_reservations):
     name = 'projects/proj/processors/p0/reservations/rid'
@@ -640,6 +658,7 @@ def test_list_reservation(list_reservations):
     )
 
 
+@uses_async_mock
 @mock.patch('cirq_google.engine.engine_client.EngineClient.list_time_slots_async')
 def test_get_schedule(list_time_slots):
     results = [
@@ -675,6 +694,7 @@ def test_get_schedule(list_time_slots):
     )
 
 
+@uses_async_mock
 @mock.patch('cirq_google.engine.engine_client.EngineClient.list_time_slots_async')
 def test_get_schedule_filter_by_time_slot(list_time_slots):
     results = [
@@ -735,6 +755,7 @@ def _allow_deprecated_freezegun(func):
     return wrapper
 
 
+@uses_async_mock
 @_allow_deprecated_freezegun
 @freezegun.freeze_time()
 @mock.patch('cirq_google.engine.engine_client.EngineClient.list_time_slots_async')
@@ -779,6 +800,7 @@ def test_get_schedule_time_filter_behavior(list_time_slots):
     list_time_slots.assert_called_with('proj', 'p0', f'start_time < {utc_ts}')
 
 
+@uses_async_mock
 @_allow_deprecated_freezegun
 @freezegun.freeze_time()
 @mock.patch('cirq_google.engine.engine_client.EngineClient.list_reservations_async')
@@ -823,6 +845,7 @@ def test_list_reservations_time_filter_behavior(list_reservations):
     list_reservations.assert_called_with('proj', 'p0', f'start_time < {utc_ts}')
 
 
+@uses_async_mock
 @mock.patch('cirq_google.engine.engine_client.EngineClient', autospec=True)
 def test_run_sweep_params(client):
     client().create_program_async.return_value = (
@@ -871,6 +894,7 @@ def test_run_sweep_params(client):
     client().get_job_results_async.assert_called_once()
 
 
+@uses_async_mock
 @mock.patch('cirq_google.engine.engine_client.EngineClient', autospec=True)
 def test_run_batch(client):
     client().create_program_async.return_value = (
@@ -919,6 +943,7 @@ def test_run_batch(client):
     client().get_job_results_async.assert_called_once()
 
 
+@uses_async_mock
 @mock.patch('cirq_google.engine.engine_client.EngineClient', autospec=True)
 def test_run_calibration(client):
     client().create_program_async.return_value = (
@@ -967,6 +992,7 @@ def test_run_calibration(client):
     )
 
 
+@uses_async_mock
 @mock.patch('cirq_google.engine.engine_client.EngineClient', autospec=True)
 def test_sampler(client):
     client().create_program_async.return_value = (

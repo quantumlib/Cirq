@@ -24,6 +24,7 @@ from google.protobuf.timestamp_pb2 import Timestamp
 import duet
 
 from cirq_google.engine.engine_client import EngineClient, EngineException
+from cirq_google.engine.util_test import uses_async_mock
 from cirq_google.cloud import quantum
 
 
@@ -33,6 +34,7 @@ def setup_mock_(client_constructor):
     return grpc_client
 
 
+@uses_async_mock
 @mock.patch.object(quantum, 'QuantumEngineServiceAsyncClient', autospec=True)
 def test_create_program(client_constructor):
     grpc_client = setup_mock_(client_constructor)
@@ -99,6 +101,7 @@ def test_create_program(client_constructor):
     )
 
 
+@uses_async_mock
 @mock.patch.object(quantum, 'QuantumEngineServiceAsyncClient', autospec=True)
 def test_get_program(client_constructor):
     grpc_client = setup_mock_(client_constructor)
@@ -118,6 +121,7 @@ def test_get_program(client_constructor):
     )
 
 
+@uses_async_mock
 @mock.patch.object(quantum, 'QuantumEngineServiceAsyncClient', autospec=True)
 def test_list_program(client_constructor):
     grpc_client = setup_mock_(client_constructor)
@@ -135,6 +139,7 @@ def test_list_program(client_constructor):
     )
 
 
+@uses_async_mock
 @pytest.mark.parametrize(
     'expected_filter, created_after, created_before, labels',
     [
@@ -179,12 +184,14 @@ def test_list_program_filters(
     assert grpc_client.list_quantum_programs.call_args[0][0].filter == expected_filter
 
 
+@uses_async_mock
 @mock.patch.object(quantum, 'QuantumEngineServiceAsyncClient', autospec=True)
 def test_list_program_filters_invalid_type(client_constructor):
     with pytest.raises(ValueError, match=""):
         EngineClient().list_programs(project_id='proj', created_before="Unsupported date/time")
 
 
+@uses_async_mock
 @mock.patch.object(quantum, 'QuantumEngineServiceAsyncClient', autospec=True)
 def test_set_program_description(client_constructor):
     grpc_client = setup_mock_(client_constructor)
@@ -214,6 +221,7 @@ def test_set_program_description(client_constructor):
     )
 
 
+@uses_async_mock
 @mock.patch.object(quantum, 'QuantumEngineServiceAsyncClient', autospec=True)
 def test_set_program_labels(client_constructor):
     grpc_client = setup_mock_(client_constructor)
@@ -249,6 +257,7 @@ def test_set_program_labels(client_constructor):
     )
 
 
+@uses_async_mock
 @mock.patch.object(quantum, 'QuantumEngineServiceAsyncClient', autospec=True)
 def test_add_program_labels(client_constructor):
     grpc_client = setup_mock_(client_constructor)
@@ -291,6 +300,7 @@ def test_add_program_labels(client_constructor):
     )
 
 
+@uses_async_mock
 @mock.patch.object(quantum, 'QuantumEngineServiceAsyncClient', autospec=True)
 def test_remove_program_labels(client_constructor):
     grpc_client = setup_mock_(client_constructor)
@@ -331,6 +341,7 @@ def test_remove_program_labels(client_constructor):
     )
 
 
+@uses_async_mock
 @mock.patch.object(quantum, 'QuantumEngineServiceAsyncClient', autospec=True)
 def test_delete_program(client_constructor):
     grpc_client = setup_mock_(client_constructor)
@@ -347,6 +358,7 @@ def test_delete_program(client_constructor):
     )
 
 
+@uses_async_mock
 @mock.patch.object(quantum, 'QuantumEngineServiceAsyncClient', autospec=True)
 def test_create_job(client_constructor):
     grpc_client = setup_mock_(client_constructor)
@@ -478,6 +490,7 @@ def test_create_job(client_constructor):
         )
 
 
+@uses_async_mock
 @mock.patch.object(quantum, 'QuantumEngineServiceAsyncClient', autospec=True)
 def test_get_job(client_constructor):
     grpc_client = setup_mock_(client_constructor)
@@ -501,6 +514,7 @@ def test_get_job(client_constructor):
     )
 
 
+@uses_async_mock
 @mock.patch.object(quantum, 'QuantumEngineServiceAsyncClient', autospec=True)
 def test_set_job_description(client_constructor):
     grpc_client = setup_mock_(client_constructor)
@@ -530,6 +544,7 @@ def test_set_job_description(client_constructor):
     )
 
 
+@uses_async_mock
 @mock.patch.object(quantum, 'QuantumEngineServiceAsyncClient', autospec=True)
 def test_set_job_labels(client_constructor):
     grpc_client = setup_mock_(client_constructor)
@@ -567,6 +582,7 @@ def test_set_job_labels(client_constructor):
     )
 
 
+@uses_async_mock
 @mock.patch.object(quantum, 'QuantumEngineServiceAsyncClient', autospec=True)
 def test_add_job_labels(client_constructor):
     grpc_client = setup_mock_(client_constructor)
@@ -611,6 +627,7 @@ def test_add_job_labels(client_constructor):
     )
 
 
+@uses_async_mock
 @mock.patch.object(quantum, 'QuantumEngineServiceAsyncClient', autospec=True)
 def test_remove_job_labels(client_constructor):
     grpc_client = setup_mock_(client_constructor)
@@ -651,6 +668,7 @@ def test_remove_job_labels(client_constructor):
     )
 
 
+@uses_async_mock
 @mock.patch.object(quantum, 'QuantumEngineServiceAsyncClient', autospec=True)
 def test_delete_job(client_constructor):
     grpc_client = setup_mock_(client_constructor)
@@ -662,6 +680,7 @@ def test_delete_job(client_constructor):
     )
 
 
+@uses_async_mock
 @mock.patch.object(quantum, 'QuantumEngineServiceAsyncClient', autospec=True)
 def test_cancel_job(client_constructor):
     grpc_client = setup_mock_(client_constructor)
@@ -673,6 +692,7 @@ def test_cancel_job(client_constructor):
     )
 
 
+@uses_async_mock
 @mock.patch.object(quantum, 'QuantumEngineServiceAsyncClient', autospec=True)
 def test_job_results(client_constructor):
     grpc_client = setup_mock_(client_constructor)
@@ -687,6 +707,7 @@ def test_job_results(client_constructor):
     )
 
 
+@uses_async_mock
 @mock.patch.object(quantum, 'QuantumEngineServiceAsyncClient', autospec=True)
 def test_list_jobs(client_constructor):
     grpc_client = setup_mock_(client_constructor)
@@ -709,6 +730,7 @@ def test_list_jobs(client_constructor):
     )
 
 
+@uses_async_mock
 @pytest.mark.parametrize(
     'expected_filter, '
     'created_after, '
@@ -825,6 +847,7 @@ class Pager:
         return duet.aiter(self.items)
 
 
+@uses_async_mock
 @mock.patch.object(quantum, 'QuantumEngineServiceAsyncClient', autospec=True)
 def test_list_processors(client_constructor):
     grpc_client = setup_mock_(client_constructor)
@@ -842,6 +865,7 @@ def test_list_processors(client_constructor):
     )
 
 
+@uses_async_mock
 @mock.patch.object(quantum, 'QuantumEngineServiceAsyncClient', autospec=True)
 def test_get_processor(client_constructor):
     grpc_client = setup_mock_(client_constructor)
@@ -856,6 +880,7 @@ def test_get_processor(client_constructor):
     )
 
 
+@uses_async_mock
 @mock.patch.object(quantum, 'QuantumEngineServiceAsyncClient', autospec=True)
 def test_list_calibrations(client_constructor):
     grpc_client = setup_mock_(client_constructor)
@@ -873,6 +898,7 @@ def test_list_calibrations(client_constructor):
     )
 
 
+@uses_async_mock
 @mock.patch.object(quantum, 'QuantumEngineServiceAsyncClient', autospec=True)
 def test_get_calibration(client_constructor):
     grpc_client = setup_mock_(client_constructor)
@@ -891,6 +917,7 @@ def test_get_calibration(client_constructor):
     )
 
 
+@uses_async_mock
 @mock.patch.object(quantum, 'QuantumEngineServiceAsyncClient', autospec=True)
 def test_get_current_calibration(client_constructor):
     grpc_client = setup_mock_(client_constructor)
@@ -909,6 +936,7 @@ def test_get_current_calibration(client_constructor):
     )
 
 
+@uses_async_mock
 @mock.patch.object(quantum, 'QuantumEngineServiceAsyncClient', autospec=True)
 def test_get_current_calibration_does_not_exist(client_constructor):
     grpc_client = setup_mock_(client_constructor)
@@ -924,6 +952,7 @@ def test_get_current_calibration_does_not_exist(client_constructor):
     )
 
 
+@uses_async_mock
 @mock.patch.object(quantum, 'QuantumEngineServiceAsyncClient', autospec=True)
 def test_get_current_calibration_error(client_constructor):
     grpc_client = setup_mock_(client_constructor)
@@ -935,6 +964,7 @@ def test_get_current_calibration_error(client_constructor):
         client.get_current_calibration('proj', 'processor0')
 
 
+@uses_async_mock
 @mock.patch.object(quantum, 'QuantumEngineServiceAsyncClient', autospec=True)
 def test_api_doesnt_retry_not_found_errors(client_constructor):
     grpc_client = setup_mock_(client_constructor)
@@ -946,6 +976,7 @@ def test_api_doesnt_retry_not_found_errors(client_constructor):
     assert grpc_client.get_quantum_program.call_count == 1
 
 
+@uses_async_mock
 @mock.patch.object(quantum, 'QuantumEngineServiceAsyncClient', autospec=True)
 def test_api_retry_5xx_errors(client_constructor):
     grpc_client = setup_mock_(client_constructor)
@@ -957,6 +988,7 @@ def test_api_retry_5xx_errors(client_constructor):
     assert grpc_client.get_quantum_program.call_count == 3
 
 
+@uses_async_mock
 @mock.patch('duet.sleep', return_value=duet.completed_future(None))
 @mock.patch.object(quantum, 'QuantumEngineServiceAsyncClient', autospec=True)
 def test_api_retry_times(client_constructor, mock_sleep):
@@ -972,6 +1004,7 @@ def test_api_retry_times(client_constructor, mock_sleep):
     assert all(x == y for (x, _), y in zip(mock_sleep.call_args_list, [(0.1,), (0.2,)]))
 
 
+@uses_async_mock
 @mock.patch.object(quantum, 'QuantumEngineServiceAsyncClient', autospec=True)
 def test_create_reservation(client_constructor):
     grpc_client = setup_mock_(client_constructor)
@@ -998,6 +1031,7 @@ def test_create_reservation(client_constructor):
     )
 
 
+@uses_async_mock
 @mock.patch.object(quantum, 'QuantumEngineServiceAsyncClient', autospec=True)
 def test_cancel_reservation(client_constructor):
     grpc_client = setup_mock_(client_constructor)
@@ -1017,6 +1051,7 @@ def test_cancel_reservation(client_constructor):
     )
 
 
+@uses_async_mock
 @mock.patch.object(quantum, 'QuantumEngineServiceAsyncClient', autospec=True)
 def test_delete_reservation(client_constructor):
     grpc_client = setup_mock_(client_constructor)
@@ -1036,6 +1071,7 @@ def test_delete_reservation(client_constructor):
     )
 
 
+@uses_async_mock
 @mock.patch.object(quantum, 'QuantumEngineServiceAsyncClient', autospec=True)
 def test_get_reservation(client_constructor):
     grpc_client = setup_mock_(client_constructor)
@@ -1055,6 +1091,7 @@ def test_get_reservation(client_constructor):
     )
 
 
+@uses_async_mock
 @mock.patch.object(quantum, 'QuantumEngineServiceAsyncClient', autospec=True)
 def test_get_reservation_not_found(client_constructor):
     grpc_client = setup_mock_(client_constructor)
@@ -1068,6 +1105,7 @@ def test_get_reservation_not_found(client_constructor):
     )
 
 
+@uses_async_mock
 @mock.patch.object(quantum, 'QuantumEngineServiceAsyncClient', autospec=True)
 def test_get_reservation_exception(client_constructor):
     grpc_client = setup_mock_(client_constructor)
@@ -1078,6 +1116,7 @@ def test_get_reservation_exception(client_constructor):
         client.get_reservation('proj', 'processor0', 'goog')
 
 
+@uses_async_mock
 @mock.patch.object(quantum, 'QuantumEngineServiceAsyncClient', autospec=True)
 def test_list_reservation(client_constructor):
     grpc_client = setup_mock_(client_constructor)
@@ -1102,6 +1141,7 @@ def test_list_reservation(client_constructor):
     assert client.list_reservations('proj', 'processor0') == results
 
 
+@uses_async_mock
 @mock.patch.object(quantum, 'QuantumEngineServiceAsyncClient', autospec=True)
 def test_update_reservation(client_constructor):
     grpc_client = setup_mock_(client_constructor)
@@ -1135,6 +1175,7 @@ def test_update_reservation(client_constructor):
     )
 
 
+@uses_async_mock
 @mock.patch.object(quantum, 'QuantumEngineServiceAsyncClient', autospec=True)
 def test_update_reservation_remove_all_users(client_constructor):
     grpc_client = setup_mock_(client_constructor)
@@ -1156,6 +1197,7 @@ def test_update_reservation_remove_all_users(client_constructor):
     )
 
 
+@uses_async_mock
 @mock.patch.object(quantum, 'QuantumEngineServiceAsyncClient', autospec=True)
 def test_list_time_slots(client_constructor):
     grpc_client = setup_mock_(client_constructor)
