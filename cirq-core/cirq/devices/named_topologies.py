@@ -15,7 +15,18 @@
 import abc
 import warnings
 from dataclasses import dataclass
-from typing import Dict, List, Tuple, Any, Sequence, Union, Iterable, TYPE_CHECKING
+from typing import (
+    Dict,
+    List,
+    Tuple,
+    Any,
+    Sequence,
+    Union,
+    Iterable,
+    TYPE_CHECKING,
+    Callable,
+    Optional,
+)
 
 import networkx as nx
 from matplotlib import pyplot as plt
@@ -290,13 +301,45 @@ def get_placements(
     return small_to_bigs
 
 
+def _is_valid_placement_helper(
+    big_graph: nx.Graph, small_mapped: nx.Graph, small_to_big_mapping: Dict
+):
+    """Helper function for `is_valid_placement` that assumes the mapping of `small_graph` has
+    already occurred.
+
+    This is so we don't duplicate work when checking placements during `draw_placements`.
+    """
+    subgraph = big_graph.subgraph(small_to_big_mapping.values())
+    return (subgraph.nodes == small_mapped.nodes) and (subgraph.edges == small_mapped.edges)
+
+
+def is_valid_placement(big_graph: nx.Graph, small_graph: nx.Graph, small_to_big_mapping: Dict):
+    """Return whether the given placement is a valid placement of small_graph onto big_graph.
+
+    This is done by making sure all the nodes and edges on the mapped version of `small_graph`
+    are present in `big_graph`.
+
+    Args:
+        big_graph: A larger graph we're placing `small_graph` onto.
+        small_graph: A smaller, (potential) sub-graph to validate the given mapping.
+        small_to_big_mapping: A mapping from `small_graph` nodes to `big_graph`
+            nodes. After the mapping occurs, we check whether all of the mapped nodes and
+            edges exist on `big_graph`.
+    """
+    small_mapped = nx.relabel_nodes(small_graph, small_to_big_mapping)
+    return _is_valid_placement_helper(
+        big_graph=big_graph, small_mapped=small_mapped, small_to_big_mapping=small_to_big_mapping
+    )
+
+
 def draw_placements(
     big_graph: nx.Graph,
     small_graph: nx.Graph,
     small_to_big_mappings: Sequence[Dict],
     max_plots: int = 20,
     axes: Sequence[plt.Axes] = None,
-    tilted=True,
+    tilted: bool = True,
+    bad_placement_callback: Optional[Callable[[plt.Axes, int], None]] = None,
 ):
     """Draw a visualization of placements from small_graph onto big_graph using Matplotlib.
 
@@ -312,6 +355,9 @@ def draw_placements(
             `max_plots` plots.
         axes: Optional list of matplotlib Axes to contain the drawings.
         tilted: Whether to draw gridlike graphs in the ordinary cartesian or tilted plane.
+        bad_placement_callback: If provided, we check that the given mappings are valid. If not,
+            this callback is called. The callback should accept `ax` and `i` keyword arguments
+            for the current axis and mapping index, respectively.
     """
     if len(small_to_big_mappings) > max_plots:
         # coverage: ignore
@@ -331,6 +377,15 @@ def draw_placements(
             ax = plt.gca()
 
         small_mapped = nx.relabel_nodes(small_graph, small_to_big_map)
+        if bad_placement_callback is not None:
+            # coverage: ignore
+            if not _is_valid_placement_helper(
+                big_graph=big_graph,
+                small_mapped=small_mapped,
+                small_to_big_mapping=small_to_big_map,
+            ):
+                bad_placement_callback(ax, i)
+
         draw_gridlike(big_graph, ax=ax, tilted=tilted)
         draw_gridlike(
             small_mapped,

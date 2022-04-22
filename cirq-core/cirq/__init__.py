@@ -102,6 +102,7 @@ from cirq.devices import (
     LineTopology,
     TiltedSquareLattice,
     get_placements,
+    is_valid_placement,
     draw_placements,
 )
 
