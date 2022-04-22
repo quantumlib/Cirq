@@ -143,6 +143,7 @@ from cirq_google.workflow import (
     CouldNotPlaceError,
     NaiveQubitPlacer,
     RandomDevicePlacer,
+    HardcodedQubitPlacer,
     ProcessorRecord,
     EngineProcessorRecord,
     SimulatedProcessorRecord,

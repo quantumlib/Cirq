@@ -72,6 +72,7 @@ TestSpec = ModuleJsonTestSpec(
             'ExecutableGroupResultFilesystemRecord',
             'NaiveQubitPlacer',
             'RandomDevicePlacer',
+            'HardcodedQubitPlacer',
             'EngineProcessorRecord',
             'SimulatedProcessorRecord',
             'SimulatedProcessorWithLocalDeviceRecord',

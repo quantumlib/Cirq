@@ -21,7 +21,7 @@ import numpy as np
 import cirq
 
 
-class GoodGate(cirq.EigenGate, cirq.SingleQubitGate):
+class GoodGate(cirq.EigenGate, cirq.testing.SingleQubitGate):
     def _eigen_components(self) -> List[Tuple[float, np.ndarray]]:
         # coverage: ignore
         return [(0, np.diag([1, 0])), (1, np.diag([0, 1]))]
@@ -36,7 +36,7 @@ class BadGateOperation(cirq.GateOperation):
         return cirq.ControlledOperation(control_qubits, self, control_values)
 
 
-class BadGate(cirq.EigenGate, cirq.SingleQubitGate):
+class BadGate(cirq.EigenGate, cirq.testing.SingleQubitGate):
     def _eigen_components(self) -> List[Tuple[float, np.ndarray]]:
         # coverage: ignore
         return [(0, np.diag([1, 0])), (1, np.diag([0, 1]))]
