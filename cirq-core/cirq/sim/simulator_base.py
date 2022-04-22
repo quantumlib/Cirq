@@ -35,11 +35,11 @@ import numpy as np
 
 from cirq import ops, protocols, study, value, devices
 from cirq.sim import ActOnArgsContainer
-from cirq.sim.operation_target import OperationTarget
 from cirq.sim import simulator
+from cirq.sim.act_on_args import TActOnArgs
+from cirq.sim.operation_target import OperationTarget
 from cirq.sim.simulator import (
     TSimulationTrialResult,
-    TActOnArgs,
     SimulatesIntermediateState,
     SimulatesSamples,
     StepResult,
@@ -57,7 +57,9 @@ TStepResultBase = TypeVar('TStepResultBase', bound='StepResultBase')
 
 class SimulatorBase(
     Generic[TStepResultBase, TSimulationTrialResult, TActOnArgs],
-    SimulatesIntermediateState[TStepResultBase, TSimulationTrialResult, TActOnArgs],
+    SimulatesIntermediateState[
+        TStepResultBase, TSimulationTrialResult, OperationTarget[TActOnArgs]
+    ],
     SimulatesSamples,
     metaclass=abc.ABCMeta,
 ):
