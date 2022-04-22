@@ -36,6 +36,7 @@ import numpy as np
 from cirq import ops, protocols, study, value, devices
 from cirq.sim import ActOnArgsContainer
 from cirq.sim.operation_target import OperationTarget
+from cirq.sim import simulator
 from cirq.sim.simulator import (
     TSimulationTrialResult,
     TActOnArgs,
@@ -385,11 +386,12 @@ class SimulationTrialResultBase(
 ):
     """A base class for trial results."""
 
+    @simulator._deprecated_step_result_parameter(old_position=3)
     def __init__(
         self,
         params: study.ParamResolver,
         measurements: Dict[str, np.ndarray],
-        final_step_result: StepResultBase[TActOnArgs],
+        final_simulator_state: 'cirq.OperationTarget[TActOnArgs]',
     ) -> None:
         """Initializes the `SimulationTrialResultBase` class.
 
@@ -399,10 +401,10 @@ class SimulationTrialResultBase(
                 results. Measurement results are a numpy ndarray of actual
                 boolean measurement results (ordered by the qubits acted on by
                 the measurement gate.)
-            final_step_result: The step result coming from the simulation, that
-                can be used to get the final simulator state.
+            final_simulator_state: The final simulator state of the system after the
+                trial finishes.
         """
-        super().__init__(params, measurements, final_step_result=final_step_result)
+        super().__init__(params, measurements, final_simulator_state=final_simulator_state)
         self._merged_sim_state_cache: Optional[TActOnArgs] = None
 
     def get_state_containing_qubit(self, qubit: 'cirq.Qid') -> TActOnArgs:
