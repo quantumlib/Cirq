@@ -20,7 +20,7 @@ import cirq
 
 def test_gate_operation_init():
     q = cirq.NamedQubit('q')
-    g = cirq.SingleQubitGate()
+    g = cirq.testing.SingleQubitGate()
     v = cirq.GateOperation(g, (q,))
     assert v.gate == g
     assert v.qubits == (q,)
@@ -45,8 +45,8 @@ def test_immutable():
 
 
 def test_gate_operation_eq():
-    g1 = cirq.SingleQubitGate()
-    g2 = cirq.SingleQubitGate()
+    g1 = cirq.testing.SingleQubitGate()
+    g2 = cirq.testing.SingleQubitGate()
     g3 = cirq.testing.TwoQubitGate()
     r1 = [cirq.NamedQubit('r1')]
     r2 = [cirq.NamedQubit('r2')]
@@ -157,7 +157,7 @@ def test_extrapolate():
     q = cirq.NamedQubit('q')
 
     # If the gate isn't extrapolatable, you get a type error.
-    op0 = cirq.GateOperation(cirq.SingleQubitGate(), [q])
+    op0 = cirq.GateOperation(cirq.testing.SingleQubitGate(), [q])
     with pytest.raises(TypeError):
         _ = op0**0.5
 
@@ -170,7 +170,7 @@ def test_inverse():
     q = cirq.NamedQubit('q')
 
     # If the gate isn't reversible, you get a type error.
-    op0 = cirq.GateOperation(cirq.SingleQubitGate(), [q])
+    op0 = cirq.GateOperation(cirq.testing.SingleQubitGate(), [q])
     assert cirq.inverse(op0, None) is None
 
     op1 = cirq.GateOperation(cirq.S, [q])
@@ -182,7 +182,7 @@ def test_text_diagrammable():
     q = cirq.NamedQubit('q')
 
     # If the gate isn't diagrammable, you get a type error.
-    op0 = cirq.GateOperation(cirq.SingleQubitGate(), [q])
+    op0 = cirq.GateOperation(cirq.testing.SingleQubitGate(), [q])
     with pytest.raises(TypeError):
         _ = cirq.circuit_diagram_info(op0)
 
@@ -196,7 +196,7 @@ def test_bounded_effect():
     q = cirq.NamedQubit('q')
 
     # If the gate isn't bounded, you get a type error.
-    op0 = cirq.GateOperation(cirq.SingleQubitGate(), [q])
+    op0 = cirq.GateOperation(cirq.testing.SingleQubitGate(), [q])
     assert cirq.trace_distance_bound(op0) >= 1
     op1 = cirq.GateOperation(cirq.Z**0.000001, [q])
     op1_bound = cirq.trace_distance_bound(op1)
@@ -253,8 +253,8 @@ def test_channel():
     np.testing.assert_allclose(cirq.kraus(op), cirq.kraus(op.gate))
     assert cirq.has_kraus(op)
 
-    assert cirq.kraus(cirq.SingleQubitGate()(a), None) is None
-    assert not cirq.has_kraus(cirq.SingleQubitGate()(a))
+    assert cirq.kraus(cirq.testing.SingleQubitGate()(a), None) is None
+    assert not cirq.has_kraus(cirq.testing.SingleQubitGate()(a))
 
 
 def test_measurement_key():
@@ -288,7 +288,7 @@ def test_repr():
         repr(cirq.GateOperation(cirq.CZ, (a, b))) == 'cirq.CZ(cirq.LineQubit(0), cirq.LineQubit(1))'
     )
 
-    class Inconsistent(cirq.SingleQubitGate):
+    class Inconsistent(cirq.testing.SingleQubitGate):
         def __repr__(self):
             return 'Inconsistent'
 
@@ -422,7 +422,7 @@ def test_cannot_remap_non_measurement_gate():
 
 
 def test_is_parameterized():
-    class No1(cirq.Gate):
+    class No1(cirq.testing.SingleQubitGate):
         def num_qubits(self) -> int:
             return 1
 
@@ -444,3 +444,24 @@ def test_is_parameterized():
     assert not cirq.is_parameterized(No1().on(q))
     assert not cirq.is_parameterized(No2().on(q))
     assert cirq.is_parameterized(Yes().on(q))
+
+
+def test_group_interchangeable_qubits_creates_tuples_with_unique_keys():
+    class MyGate(cirq.Gate, cirq.InterchangeableQubitsGate):
+        def __init__(self, num_qubits) -> None:
+            self._num_qubits = num_qubits
+
+        def num_qubits(self) -> int:
+            return self._num_qubits
+
+        def qubit_index_to_equivalence_group_key(self, index: int) -> int:
+            if index % 2 == 0:
+                return index
+            return 0
+
+    qubits = cirq.LineQubit.range(4)
+    gate = MyGate(len(qubits))
+
+    assert gate(qubits[0], qubits[1], qubits[2], qubits[3]) == gate(
+        qubits[3], qubits[1], qubits[2], qubits[0]
+    )

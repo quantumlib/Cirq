@@ -65,8 +65,8 @@ upper_tabs:
         path: /cirq/interop
       - title: "Custom gates"
         path: /cirq/custom_gates
-      - title: "Operators and observables"
-        path: /cirq/operators_and_observables
+      - title: "Operators"
+        path: /cirq/operators
       - title: "Issues / requests / questions"
         path: /cirq/support
 

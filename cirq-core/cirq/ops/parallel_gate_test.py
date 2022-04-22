@@ -21,7 +21,7 @@ import cirq
 @pytest.mark.parametrize(
     'gate, num_copies, qubits',
     [
-        (cirq.SingleQubitGate(), 2, cirq.LineQubit.range(2)),
+        (cirq.testing.SingleQubitGate(), 2, cirq.LineQubit.range(2)),
         (cirq.X**0.5, 4, cirq.LineQubit.range(4)),
     ],
 )
@@ -35,9 +35,19 @@ def test_parallel_gate_operation_init(gate, num_copies, qubits):
 @pytest.mark.parametrize(
     'gate, num_copies, qubits, error_msg',
     [
-        (cirq.SingleQubitGate(), 3, cirq.LineQubit.range(2), "Wrong number of qubits"),
-        (cirq.SingleQubitGate(), 0, cirq.LineQubit.range(4), "gate must be applied at least once"),
-        (cirq.SingleQubitGate(), 2, [cirq.NamedQubit("a"), cirq.NamedQubit("a")], "Duplicate"),
+        (cirq.testing.SingleQubitGate(), 3, cirq.LineQubit.range(2), "Wrong number of qubits"),
+        (
+            cirq.testing.SingleQubitGate(),
+            0,
+            cirq.LineQubit.range(4),
+            "gate must be applied at least once",
+        ),
+        (
+            cirq.testing.SingleQubitGate(),
+            2,
+            [cirq.NamedQubit("a"), cirq.NamedQubit("a")],
+            "Duplicate",
+        ),
         (cirq.testing.TwoQubitGate(), 2, cirq.LineQubit.range(4), "must be a single qubit gate"),
     ],
 )
@@ -65,14 +75,14 @@ def test_decompose_raises():
 
 
 def test_with_num_copies():
-    g = cirq.SingleQubitGate()
+    g = cirq.testing.SingleQubitGate()
     pg = cirq.ParallelGate(g, 3)
     assert pg.with_num_copies(5) == cirq.ParallelGate(g, 5)
 
 
 def test_extrapolate():
     # If the gate isn't extrapolatable, you get a type error.
-    g = cirq.ParallelGate(cirq.SingleQubitGate(), 2)
+    g = cirq.ParallelGate(cirq.testing.SingleQubitGate(), 2)
     with pytest.raises(TypeError):
         _ = g**0.5
     # If the gate is extrapolatable, the effect is applied on the underlying gate.
@@ -90,7 +100,7 @@ def test_parameterizable_gates(resolve_fn):
     assert not cirq.is_parameterized(g2)
 
 
-@pytest.mark.parametrize('gate', [cirq.X ** sympy.Symbol("a"), cirq.SingleQubitGate()])
+@pytest.mark.parametrize('gate', [cirq.X ** sympy.Symbol("a"), cirq.testing.SingleQubitGate()])
 def test_no_unitary(gate):
     g = cirq.ParallelGate(gate, 2)
     assert not cirq.has_unitary(g)
@@ -115,10 +125,10 @@ def test_unitary(gate, num_copies, qubits):
 
 def test_not_implemented_diagram():
     q = cirq.LineQubit.range(2)
-    g = cirq.SingleQubitGate()
+    g = cirq.testing.SingleQubitGate()
     c = cirq.Circuit()
     c.append(cirq.ParallelGate(g, 2)(*q))
-    assert 'cirq.ops.gate_features.SingleQubitGate' in str(c)
+    assert 'cirq.testing.gate_features.SingleQubitGate ' in str(c)
 
 
 def test_repr():

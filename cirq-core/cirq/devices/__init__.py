@@ -32,6 +32,7 @@ from cirq.devices.named_topologies import (
     LineTopology,
     TiltedSquareLattice,
     get_placements,
+    is_valid_placement,
     draw_placements,
 )
 

@@ -686,6 +686,13 @@ def test_clifford_gate_from_tableau():
     t = cirq.CliffordGate.CNOT.clifford_tableau
     assert cirq.CliffordGate.from_clifford_tableau(t) == cirq.CliffordGate.CNOT
 
+    with pytest.raises(ValueError, match='Input argument has to be a CliffordTableau instance.'):
+        cirq.SingleQubitCliffordGate.from_clifford_tableau(123)
+
+    with pytest.raises(ValueError, match="The number of qubit of input tableau should be 1"):
+        t = cirq.CliffordTableau(num_qubits=2)
+        cirq.SingleQubitCliffordGate.from_clifford_tableau(t)
+
     with pytest.raises(ValueError):
         t = cirq.CliffordTableau(num_qubits=1)
         t.xs = np.array([1, 1]).reshape(2, 1)
@@ -754,14 +761,7 @@ def test_pad_tableau():
     # fmt: off
     np.testing.assert_equal(
         padded_tableau.matrix().astype(np.int64),
-        np.array(
-            [
-                [0, 0, 1, 0],
-                [0, 1, 0, 0],
-                [1, 0, 0, 0],
-                [0, 0, 0, 1]
-            ]
-        ),
+        np.array([[0, 0, 1, 0], [0, 1, 0, 0], [1, 0, 0, 0], [0, 0, 0, 1]]),
     )
     # fmt: on
     np.testing.assert_equal(padded_tableau.rs.astype(np.int64), np.zeros(4))
@@ -773,14 +773,7 @@ def test_pad_tableau():
     # fmt: off
     np.testing.assert_equal(
         padded_tableau.matrix().astype(np.int64),
-        np.array(
-            [
-                [1, 0, 0, 0],
-                [0, 0, 0, 1],
-                [0, 0, 1, 0],
-                [0, 1, 0, 0]
-            ]
-        ),
+        np.array([[1, 0, 0, 0], [0, 0, 0, 1], [0, 0, 1, 0], [0, 1, 0, 0]]),
     )
     # fmt: on
     np.testing.assert_equal(padded_tableau.rs.astype(np.int64), np.zeros(4))
