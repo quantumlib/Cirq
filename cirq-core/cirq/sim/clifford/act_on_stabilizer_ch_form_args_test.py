@@ -26,7 +26,7 @@ def test_init_state():
 
 
 def test_cannot_act():
-    class NoDetails(cirq.SingleQubitGate):
+    class NoDetails(cirq.testing.SingleQubitGate):
         pass
 
     args = cirq.ActOnStabilizerCHFormArgs(qubits=[], prng=np.random.RandomState())
@@ -36,7 +36,7 @@ def test_cannot_act():
 
 
 def test_gate_with_act_on():
-    class CustomGate(cirq.SingleQubitGate):
+    class CustomGate(cirq.testing.SingleQubitGate):
         def _act_on_(self, args, qubits):
             if isinstance(args, cirq.ActOnStabilizerCHFormArgs):
                 qubit = args.qubit_map[qubits[0]]

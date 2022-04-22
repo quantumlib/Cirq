@@ -95,7 +95,7 @@ class PhaseEstimation(cirq.Gate):
         yield cirq.qft(*qubits[:-1], without_reverse=True) ** -1
 
 
-class HamiltonianSimulation(cirq.EigenGate, cirq.SingleQubitGate):
+class HamiltonianSimulation(cirq.EigenGate):
     """A gate that represents e^iAt.
 
     This EigenGate + np.linalg.eigh() implementation is used here purely for demonstrative
@@ -104,7 +104,6 @@ class HamiltonianSimulation(cirq.EigenGate, cirq.SingleQubitGate):
     """
 
     def __init__(self, A, t, exponent=1.0):
-        cirq.SingleQubitGate.__init__(self)
         cirq.EigenGate.__init__(self, exponent=exponent)
         self.A = A
         self.t = t
@@ -114,6 +113,9 @@ class HamiltonianSimulation(cirq.EigenGate, cirq.SingleQubitGate):
             theta = w * t / math.pi
             P = np.outer(v, np.conj(v))
             self.eigen_components.append((theta, P))
+
+    def _num_qubits_(self) -> int:
+        return 1
 
     def _with_exponent(self, exponent):
         return HamiltonianSimulation(self.A, self.t, exponent)

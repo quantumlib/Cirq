@@ -20,7 +20,7 @@ import sympy
 import cirq
 
 
-class GoodGateDecompose(cirq.SingleQubitGate):
+class GoodGateDecompose(cirq.testing.SingleQubitGate):
     def _decompose_(self, qubits):
         return cirq.X(qubits[0])
 
@@ -28,7 +28,7 @@ class GoodGateDecompose(cirq.SingleQubitGate):
         return np.array([[0, 1], [1, 0]])
 
 
-class BadGateDecompose(cirq.SingleQubitGate):
+class BadGateDecompose(cirq.testing.SingleQubitGate):
     def _decompose_(self, qubits):
         return cirq.Y(qubits[0])
 
@@ -68,12 +68,12 @@ class GateDecomposeDoesNotEndInDefaultGateset(cirq.Gate):
         yield GateDecomposeNotImplemented().on_each(*qubits)
 
 
-class GateDecomposeNotImplemented(cirq.SingleQubitGate):
+class GateDecomposeNotImplemented(cirq.testing.SingleQubitGate):
     def _decompose_(self, qubits):
         return NotImplemented
 
 
-class ParameterizedGate(cirq.SingleQubitGate):
+class ParameterizedGate(cirq.Gate):
     def _num_qubits_(self):
         return 2
 

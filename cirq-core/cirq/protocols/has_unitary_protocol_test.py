@@ -74,7 +74,7 @@ def test_via_apply_unitary():
         def _apply_unitary_(self, args):
             return NotImplemented
 
-    class No3(cirq.SingleQubitGate):
+    class No3(cirq.testing.SingleQubitGate):
         def _apply_unitary_(self, args):
             return NotImplemented
 
@@ -86,7 +86,7 @@ def test_via_apply_unitary():
         def _apply_unitary_(self, args):
             return args.target_tensor
 
-    class Yes2(cirq.SingleQubitGate):
+    class Yes2(cirq.testing.SingleQubitGate):
         def _apply_unitary_(self, args):
             return args.target_tensor
 

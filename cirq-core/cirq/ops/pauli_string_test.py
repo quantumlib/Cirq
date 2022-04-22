@@ -709,7 +709,7 @@ def test_pass_operations_over_cz():
 
 
 def test_pass_operations_over_no_common_qubits():
-    class DummyGate(cirq.SingleQubitGate):
+    class DummyGate(cirq.testing.SingleQubitGate):
         pass
 
     q0, q1 = _make_qubits(2)

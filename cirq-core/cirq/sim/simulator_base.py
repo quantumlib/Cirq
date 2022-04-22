@@ -36,9 +36,9 @@ import numpy as np
 from cirq import ops, protocols, study, value, devices
 from cirq.sim import ActOnArgsContainer
 from cirq.sim.operation_target import OperationTarget
+from cirq.sim import simulator
 from cirq.sim.simulator import (
     TSimulationTrialResult,
-    TSimulatorState,
     TActOnArgs,
     SimulatesIntermediateState,
     SimulatesSamples,
@@ -56,10 +56,8 @@ TStepResultBase = TypeVar('TStepResultBase', bound='StepResultBase')
 
 
 class SimulatorBase(
-    Generic[TStepResultBase, TSimulationTrialResult, TSimulatorState, TActOnArgs],
-    SimulatesIntermediateState[
-        TStepResultBase, TSimulationTrialResult, TSimulatorState, TActOnArgs
-    ],
+    Generic[TStepResultBase, TSimulationTrialResult, TActOnArgs],
+    SimulatesIntermediateState[TStepResultBase, TSimulationTrialResult, TActOnArgs],
     SimulatesSamples,
     metaclass=abc.ABCMeta,
 ):
@@ -345,7 +343,7 @@ class SimulatorBase(
             )
 
 
-class StepResultBase(Generic[TSimulatorState, TActOnArgs], StepResult[TSimulatorState], abc.ABC):
+class StepResultBase(Generic[TActOnArgs], StepResult[OperationTarget[TActOnArgs]], abc.ABC):
     """A base class for step results."""
 
     def __init__(self, sim_state: OperationTarget[TActOnArgs]):
@@ -366,7 +364,7 @@ class StepResultBase(Generic[TSimulatorState, TActOnArgs], StepResult[TSimulator
         return self._qubit_shape
 
     @property
-    def _merged_sim_state(self):
+    def _merged_sim_state(self) -> TActOnArgs:
         if self._merged_sim_state_cache is None:
             self._merged_sim_state_cache = self._sim_state.create_merged_state()
         return self._merged_sim_state_cache
@@ -379,17 +377,21 @@ class StepResultBase(Generic[TSimulatorState, TActOnArgs], StepResult[TSimulator
     ) -> np.ndarray:
         return self._sim_state.sample(qubits, repetitions, seed)
 
+    def _simulator_state(self) -> 'cirq.OperationTarget[TActOnArgs]':
+        return self._sim_state
+
 
 class SimulationTrialResultBase(
-    Generic[TSimulatorState, TActOnArgs], SimulationTrialResult, abc.ABC
+    SimulationTrialResult[OperationTarget[TActOnArgs]], Generic[TActOnArgs], abc.ABC
 ):
     """A base class for trial results."""
 
+    @simulator._deprecated_step_result_parameter(old_position=3)
     def __init__(
         self,
         params: study.ParamResolver,
         measurements: Dict[str, np.ndarray],
-        final_step_result: StepResultBase[TSimulatorState, TActOnArgs],
+        final_simulator_state: 'cirq.OperationTarget[TActOnArgs]',
     ) -> None:
         """Initializes the `SimulationTrialResultBase` class.
 
@@ -399,11 +401,11 @@ class SimulationTrialResultBase(
                 results. Measurement results are a numpy ndarray of actual
                 boolean measurement results (ordered by the qubits acted on by
                 the measurement gate.)
-            final_step_result: The step result coming from the simulation, that
-                can be used to get the final simulator state.
+            final_simulator_state: The final simulator state of the system after the
+                trial finishes.
         """
-        super().__init__(params, measurements, final_step_result=final_step_result)
-        self._final_step_result_typed = final_step_result
+        super().__init__(params, measurements, final_simulator_state=final_simulator_state)
+        self._merged_sim_state_cache: Optional[TActOnArgs] = None
 
     def get_state_containing_qubit(self, qubit: 'cirq.Qid') -> TActOnArgs:
         """Returns the independent state space containing the qubit.
@@ -413,10 +415,10 @@ class SimulationTrialResultBase(
 
         Returns:
             The state space containing the qubit."""
-        return self._final_step_result_typed._sim_state[qubit]
+        return self._final_simulator_state[qubit]
 
     def _get_substates(self) -> Sequence[TActOnArgs]:
-        state = self._final_step_result_typed._sim_state
+        state = self._final_simulator_state
         if isinstance(state, ActOnArgsContainer):
             substates: Dict[TActOnArgs, int] = {}
             for q in state.qubits:
@@ -424,3 +426,8 @@ class SimulationTrialResultBase(
             substates[state[None]] = 0
             return tuple(substates.keys())
         return [state.create_merged_state()]
+
+    def _get_merged_sim_state(self) -> TActOnArgs:
+        if self._merged_sim_state_cache is None:
+            self._merged_sim_state_cache = self._final_simulator_state.create_merged_state()
+        return self._merged_sim_state_cache

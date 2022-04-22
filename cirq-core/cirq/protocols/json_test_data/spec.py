@@ -130,6 +130,8 @@ TestSpec = ModuleJsonTestSpec(
         'SimulatesAmplitudes',
         'SimulatesExpectationValues',
         'SimulatesFinalState',
+        'StateVectorStepResult',
+        'StepResultBase',
         'NamedTopology',
         # protocols:
         'HasJSONNamespace',

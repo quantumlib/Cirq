@@ -17,7 +17,7 @@ from typing import Any, Dict, TYPE_CHECKING, Tuple, Union, Sequence, Optional, L
 import numpy as np
 
 from cirq import ops, protocols, study, value
-from cirq._compat import deprecated_parameter, proper_repr
+from cirq._compat import deprecated_class, deprecated_parameter, proper_repr
 from cirq.sim import simulator, act_on_density_matrix_args, simulator_base
 
 if TYPE_CHECKING:
@@ -29,7 +29,6 @@ class DensityMatrixSimulator(
     simulator_base.SimulatorBase[
         'cirq.DensityMatrixStepResult',
         'cirq.DensityMatrixTrialResult',
-        'cirq.DensityMatrixSimulatorState',
         'cirq.ActOnDensityMatrixArgs',
     ],
     simulator.SimulatesExpectationValues,
@@ -187,10 +186,10 @@ class DensityMatrixSimulator(
         self,
         params: 'cirq.ParamResolver',
         measurements: Dict[str, np.ndarray],
-        final_step_result: 'cirq.DensityMatrixStepResult',
+        final_simulator_state: 'cirq.OperationTarget[cirq.ActOnDensityMatrixArgs]',
     ) -> 'cirq.DensityMatrixTrialResult':
         return DensityMatrixTrialResult(
-            params=params, measurements=measurements, final_step_result=final_step_result
+            params=params, measurements=measurements, final_simulator_state=final_simulator_state
         )
 
     # TODO(#4209): Deduplicate with identical code in sparse_simulator.
@@ -228,9 +227,7 @@ class DensityMatrixSimulator(
         return swept_evs
 
 
-class DensityMatrixStepResult(
-    simulator_base.StepResultBase['cirq.DensityMatrixSimulatorState', 'cirq.ActOnDensityMatrixArgs']
-):
+class DensityMatrixStepResult(simulator_base.StepResultBase['cirq.ActOnDensityMatrixArgs']):
     """A single step in the simulation of the DensityMatrixSimulator.
 
     Attributes:
@@ -261,9 +258,6 @@ class DensityMatrixStepResult(
         super().__init__(sim_state)
         self._dtype = dtype
         self._density_matrix: Optional[np.ndarray] = None
-
-    def _simulator_state(self) -> 'cirq.DensityMatrixSimulatorState':
-        return DensityMatrixSimulatorState(self.density_matrix(copy=False), self._qubit_mapping)
 
     def density_matrix(self, copy=True):
         """Returns the density matrix at this step in the simulation.
@@ -316,6 +310,7 @@ class DensityMatrixStepResult(
         )
 
 
+@deprecated_class(deadline='v0.16', fix='This class is no longer used.')
 @value.value_equality(unhashable=True)
 class DensityMatrixSimulatorState:
     """The simulator state for DensityMatrixSimulator
@@ -347,9 +342,7 @@ class DensityMatrixSimulatorState:
 
 @value.value_equality(unhashable=True)
 class DensityMatrixTrialResult(
-    simulator_base.SimulationTrialResultBase[
-        'DensityMatrixSimulatorState', act_on_density_matrix_args.ActOnDensityMatrixArgs
-    ]
+    simulator_base.SimulationTrialResultBase[act_on_density_matrix_args.ActOnDensityMatrixArgs]
 ):
     """A `SimulationTrialResult` for `DensityMatrixSimulator` runs.
 
@@ -388,29 +381,29 @@ class DensityMatrixTrialResult(
             trial finishes.
     """
 
+    @simulator._deprecated_step_result_parameter(old_position=3)
     def __init__(
         self,
         params: 'cirq.ParamResolver',
         measurements: Dict[str, np.ndarray],
-        final_step_result: 'cirq.DensityMatrixStepResult',
+        final_simulator_state: 'cirq.OperationTarget[cirq.ActOnDensityMatrixArgs]',
     ) -> None:
         super().__init__(
-            params=params, measurements=measurements, final_step_result=final_step_result
+            params=params, measurements=measurements, final_simulator_state=final_simulator_state
         )
         self._final_density_matrix: Optional[np.ndarray] = None
 
     @property
-    def final_density_matrix(self):
+    def final_density_matrix(self) -> np.ndarray:
         if self._final_density_matrix is None:
             size = np.prod(protocols.qid_shape(self), dtype=np.int64)
-            self._final_density_matrix = np.reshape(
-                self._final_simulator_state.density_matrix.copy(), (size, size)
-            )
+            tensor = self._get_merged_sim_state().target_tensor
+            self._final_density_matrix = np.reshape(tensor.copy(), (size, size))
         return self._final_density_matrix
 
     def _value_equality_values_(self) -> Any:
         measurements = {k: v.tolist() for k, v in sorted(self.measurements.items())}
-        return self.params, measurements, self._final_simulator_state
+        return self.params, measurements, self.qubit_map, self.final_density_matrix.tolist()
 
     def __str__(self) -> str:
         samples = super().__str__()
@@ -427,7 +420,7 @@ class DensityMatrixTrialResult(
         return (
             'cirq.DensityMatrixTrialResult('
             f'params={self.params!r}, measurements={proper_repr(self.measurements)}, '
-            f'final_step_result={self._final_step_result!r})'
+            f'final_simulator_state={self._final_simulator_state!r})'
         )
 
     def _repr_pretty_(self, p: Any, cycle: bool):
