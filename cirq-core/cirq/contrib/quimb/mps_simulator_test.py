@@ -263,8 +263,7 @@ def test_measurement_str():
 
 def test_trial_result_str():
     q0 = cirq.LineQubit(0)
-    final_step_result = mock.Mock(cirq.StepResult)
-    final_step_result._simulator_state.return_value = ccq.mps_simulator.MPSState(
+    final_simulator_state = ccq.mps_simulator.MPSState(
         qubits=(q0,),
         prng=value.parse_random_state(0),
         simulation_options=ccq.mps_simulator.MPSOptions(),
@@ -274,7 +273,7 @@ def test_trial_result_str():
             ccq.mps_simulator.MPSTrialResult(
                 params=cirq.ParamResolver({}),
                 measurements={'m': np.array([[1]])},
-                final_step_result=final_step_result,
+                final_simulator_state=final_simulator_state,
             )
         )
         == """measurements: m=1
@@ -286,8 +285,7 @@ output state: TensorNetwork([
 
 def test_trial_result_repr_pretty():
     q0 = cirq.LineQubit(0)
-    final_step_result = mock.Mock(cirq.StepResult)
-    final_step_result._simulator_state.return_value = ccq.mps_simulator.MPSState(
+    final_simulator_state = ccq.mps_simulator.MPSState(
         qubits=(q0,),
         prng=value.parse_random_state(0),
         simulation_options=ccq.mps_simulator.MPSOptions(),
@@ -295,7 +293,7 @@ def test_trial_result_repr_pretty():
     result = ccq.mps_simulator.MPSTrialResult(
         params=cirq.ParamResolver({}),
         measurements={'m': np.array([[1]])},
-        final_step_result=final_step_result,
+        final_simulator_state=final_simulator_state,
     )
     cirq.testing.assert_repr_pretty(
         result,
