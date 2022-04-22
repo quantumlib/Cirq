@@ -83,10 +83,7 @@ def test_from_single_parameter_set_deprecation():
 def test_construct_from_measurements():
     r = cirq.ResultDict(
         params=None,
-        measurements={
-            'a': np.array([[0, 0], [1, 1]]),
-            'b': np.array([[0, 0, 0], [1, 1, 1]]),
-        },
+        measurements={'a': np.array([[0, 0], [1, 1]]), 'b': np.array([[0, 0, 0], [1, 1, 1]])},
     )
     assert np.all(r.measurements['a'] == np.array([[0, 0], [1, 1]]))
     assert np.all(r.measurements['b'] == np.array([[0, 0, 0], [1, 1, 1]]))
@@ -110,10 +107,7 @@ def test_construct_from_repeated_measurements():
 
     r2 = cirq.ResultDict(
         params=None,
-        records={
-            'a': np.array([[[0, 0]], [[1, 1]]]),
-            'b': np.array([[[0, 0, 0]], [[1, 1, 1]]]),
-        },
+        records={'a': np.array([[[0, 0]], [[1, 1]]]), 'b': np.array([[[0, 0, 0]], [[1, 1, 1]]])},
     )
     assert np.all(r2.measurements['a'] == np.array([[0, 0], [1, 1]]))
     assert np.all(r2.measurements['b'] == np.array([[0, 0, 0], [1, 1, 1]]))
@@ -156,7 +150,9 @@ def test_df():
             'c': np.array([[0], [0], [1], [0], [1]], dtype=bool),
         },
     )
-    remove_end_measurements = pd.DataFrame(data={'ab': [1, 1, 2], 'c': [0, 1, 0]}, index=[1, 2, 3])
+    remove_end_measurements = pd.DataFrame(
+        data={'ab': [1, 1, 2], 'c': [0, 1, 0]}, index=[1, 2, 3], dtype=np.int64
+    )
 
     pd.testing.assert_frame_equal(result.data.iloc[1:-1], remove_end_measurements)
 
@@ -164,6 +160,21 @@ def test_df():
     df = result.data
     assert len(df[df['ab'] == 1]) == 4
     assert df.c.value_counts().to_dict() == {0: 3, 1: 2}
+
+
+def test_df_large():
+    result = cirq.ResultDict(
+        params=cirq.ParamResolver({}),
+        measurements={
+            'a': np.array([[0 for _ in range(76)]] * 10_000, dtype=bool),
+            'd': np.array([[1 for _ in range(76)]] * 10_000, dtype=bool),
+        },
+    )
+
+    assert np.all(result.data['a'] == 0)
+    assert np.all(result.data['d'] == 0xFFF_FFFFFFFF_FFFFFFFF)
+    assert result.data['a'].dtype == object
+    assert result.data['d'].dtype == object
 
 
 def test_histogram():
@@ -179,11 +190,7 @@ def test_histogram():
     assert result.histogram(key='ab', fold_func=tuple) == collections.Counter(
         {(False, True): 4, (True, False): 1}
     )
-    assert result.histogram(key='ab', fold_func=lambda e: None) == collections.Counter(
-        {
-            None: 5,
-        }
-    )
+    assert result.histogram(key='ab', fold_func=lambda e: None) == collections.Counter({None: 5})
     assert result.histogram(key='c') == collections.Counter({0: 3, 1: 2})
 
 
@@ -197,64 +204,27 @@ def test_multi_measurement_histogram():
     )
 
     assert result.multi_measurement_histogram(keys=['ab']) == collections.Counter(
-        {
-            (1,): 4,
-            (2,): 1,
-        }
+        {(1,): 4, (2,): 1}
     )
-    assert result.multi_measurement_histogram(keys=['c']) == collections.Counter(
-        {
-            (0,): 3,
-            (1,): 2,
-        }
-    )
+    assert result.multi_measurement_histogram(keys=['c']) == collections.Counter({(0,): 3, (1,): 2})
     assert result.multi_measurement_histogram(keys=['ab', 'c']) == collections.Counter(
-        {
-            (
-                1,
-                0,
-            ): 2,
-            (
-                1,
-                1,
-            ): 2,
-            (
-                2,
-                0,
-            ): 1,
-        }
+        {(1, 0): 2, (1, 1): 2, (2, 0): 1}
     )
 
     assert result.multi_measurement_histogram(
         keys=[], fold_func=lambda e: None
-    ) == collections.Counter(
-        {
-            None: 5,
-        }
-    )
+    ) == collections.Counter({None: 5})
     assert result.multi_measurement_histogram(
         keys=['ab'], fold_func=lambda e: None
-    ) == collections.Counter(
-        {
-            None: 5,
-        }
-    )
+    ) == collections.Counter({None: 5})
     assert result.multi_measurement_histogram(
         keys=['ab', 'c'], fold_func=lambda e: None
-    ) == collections.Counter(
-        {
-            None: 5,
-        }
-    )
+    ) == collections.Counter({None: 5})
 
     assert result.multi_measurement_histogram(
         keys=['ab', 'c'], fold_func=lambda e: tuple(tuple(f) for f in e)
     ) == collections.Counter(
-        {
-            ((False, True), (False,)): 2,
-            ((False, True), (True,)): 2,
-            ((True, False), (False,)): 1,
-        }
+        {((False, True), (False,)): 2, ((False, True), (True,)): 2, ((True, False), (False,)): 1}
     )
 
 
@@ -285,10 +255,7 @@ def test_result_addition_valid():
     )
     b = cirq.ResultDict(
         params=cirq.ParamResolver({'ax': 1}),
-        measurements={
-            'q0': np.array([[0, 1]], dtype=bool),
-            'q1': np.array([[0]], dtype=bool),
-        },
+        measurements={'q0': np.array([[0, 1]], dtype=bool), 'q1': np.array([[0]], dtype=bool)},
     )
 
     c = a + b
@@ -305,10 +272,7 @@ def test_result_addition_valid():
     )
     b = cirq.ResultDict(
         params=cirq.ParamResolver({'ax': 1}),
-        records={
-            'q0': np.array([[[0, 1]]], dtype=bool),
-            'q1': np.array([[[1], [1]]], dtype=bool),
-        },
+        records={'q0': np.array([[[0, 1]]], dtype=bool), 'q1': np.array([[[1], [1]]], dtype=bool)},
     )
 
     c = a + b
@@ -371,11 +335,7 @@ def test_result_addition_invalid():
 
 def test_qubit_keys_for_histogram():
     a, b, c = cirq.LineQubit.range(3)
-    circuit = cirq.Circuit(
-        cirq.measure(a, b),
-        cirq.X(c),
-        cirq.measure(c),
-    )
+    circuit = cirq.Circuit(cirq.measure(a, b), cirq.X(c), cirq.measure(c))
     results = cirq.Simulator().run(program=circuit, repetitions=100)
     with pytest.raises(KeyError):
         _ = results.histogram(key=a)

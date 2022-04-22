@@ -19,12 +19,12 @@ import numpy as np
 import cirq
 
 
-class OtherX(cirq.SingleQubitGate):
+class OtherX(cirq.testing.SingleQubitGate):
     def _unitary_(self) -> np.ndarray:
         return np.array([[0, 1], [1, 0]])
 
 
-class NoUnitary(cirq.SingleQubitGate):
+class NoUnitary(cirq.testing.SingleQubitGate):
     pass
 
 

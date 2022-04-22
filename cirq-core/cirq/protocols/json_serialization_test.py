@@ -343,14 +343,7 @@ def test_builtins():
     assert_json_roundtrip_works(True)
     assert_json_roundtrip_works(1)
     assert_json_roundtrip_works(1 + 2j)
-    assert_json_roundtrip_works(
-        {
-            'test': [123, 5.5],
-            'key2': 'asdf',
-            '3': None,
-            '0.0': [],
-        }
-    )
+    assert_json_roundtrip_works({'test': [123, 5.5], 'key2': 'asdf', '3': None, '0.0': []})
 
 
 def test_numpy():
@@ -412,7 +405,7 @@ def test_sympy():
     assert_json_roundtrip_works(t * s)
     assert_json_roundtrip_works(t / s)
     assert_json_roundtrip_works(t - s)
-    assert_json_roundtrip_works(t ** s)
+    assert_json_roundtrip_works(t**s)
 
     # Linear combinations.
     assert_json_roundtrip_works(t * 2)
@@ -548,10 +541,7 @@ def _list_public_classes_for_tested_modules():
         )
 
 
-@pytest.mark.parametrize(
-    'mod_spec,cirq_obj_name,cls',
-    _list_public_classes_for_tested_modules(),
-)
+@pytest.mark.parametrize('mod_spec,cirq_obj_name,cls', _list_public_classes_for_tested_modules())
 def test_json_test_data_coverage(mod_spec: ModuleJsonTestSpec, cirq_obj_name: str, cls):
     if cirq_obj_name in mod_spec.tested_elsewhere:
         pytest.skip("Tested elsewhere.")
@@ -631,19 +621,14 @@ class SerializableTypeObject:
     test_type: Type
 
     def _json_dict_(self):
-        return {
-            'test_type': json_serialization.json_cirq_type(self.test_type),
-        }
+        return {'test_type': json_serialization.json_cirq_type(self.test_type)}
 
     @classmethod
     def _from_json_dict_(cls, test_type, **kwargs):
         return cls(json_serialization.cirq_type_from_json(test_type))
 
 
-@pytest.mark.parametrize(
-    'mod_spec,cirq_obj_name,cls',
-    _list_public_classes_for_tested_modules(),
-)
+@pytest.mark.parametrize('mod_spec,cirq_obj_name,cls', _list_public_classes_for_tested_modules())
 def test_type_serialization(mod_spec: ModuleJsonTestSpec, cirq_obj_name: str, cls):
     if cirq_obj_name in mod_spec.tested_elsewhere:
         pytest.skip("Tested elsewhere.")
@@ -738,11 +723,7 @@ def _eval_repr_data_file(path: pathlib.Path, deprecation_deadline: Optional[str]
     with contextlib.ExitStack() as stack:
         for ctx_manager in ctx_managers:
             stack.enter_context(ctx_manager)
-        obj = eval(
-            content,
-            imports,
-            {},
-        )
+        obj = eval(content, imports, {})
         return obj
 
 
@@ -855,10 +836,14 @@ def test_pathlib_paths(tmpdir):
 
 
 def test_json_serializable_dataclass():
-    @cirq.json_serializable_dataclass
-    class MyDC:
-        q: cirq.LineQubit
-        desc: str
+    with cirq.testing.assert_deprecated(
+        "Implement _json_dict_ using cirq.dataclass_json_dict()", deadline="v0.15"
+    ):
+
+        @cirq.json_serializable_dataclass
+        class MyDC:
+            q: cirq.LineQubit
+            desc: str
 
     my_dc = MyDC(cirq.LineQubit(4), 'hi mom')
 
@@ -885,10 +870,14 @@ def test_json_serializable_dataclass():
 
 
 def test_json_serializable_dataclass_parenthesis():
-    @cirq.json_serializable_dataclass()
-    class MyDC:
-        q: cirq.LineQubit
-        desc: str
+    with cirq.testing.assert_deprecated(
+        "Implement _json_dict_ using cirq.dataclass_json_dict()", deadline="v0.15"
+    ):
+
+        @cirq.json_serializable_dataclass()
+        class MyDC:
+            q: cirq.LineQubit
+            desc: str
 
     def custom_resolver(name):
         if name == 'MyDC':
@@ -918,11 +907,15 @@ def test_dataclass_json_dict():
 
 
 def test_json_serializable_dataclass_namespace():
-    @cirq.json_serializable_dataclass(namespace='cirq.experiments')
-    class QuantumVolumeParams:
-        width: int
-        depth: int
-        circuit_i: int
+    with cirq.testing.assert_deprecated(
+        "Implement _json_dict_ using cirq.dataclass_json_dict()", deadline="v0.15"
+    ):
+
+        @cirq.json_serializable_dataclass(namespace='cirq.experiments')
+        class QuantumVolumeParams:
+            width: int
+            depth: int
+            circuit_i: int
 
     qvp = QuantumVolumeParams(width=5, depth=5, circuit_i=0)
 
@@ -940,3 +933,29 @@ def test_numpy_values():
   "value": 1
 }"""
     )
+
+
+def test_basic_time_assertions():
+    naive_dt = datetime.datetime.now()
+    utc_dt = naive_dt.astimezone(datetime.timezone.utc)
+    assert naive_dt.timestamp() == utc_dt.timestamp()
+
+    re_utc = datetime.datetime.fromtimestamp(utc_dt.timestamp())
+    re_naive = datetime.datetime.fromtimestamp(naive_dt.timestamp())
+
+    assert re_utc == re_naive, 'roundtripping w/o tz turns to naive utc'
+    assert re_utc != utc_dt, 'roundtripping loses tzinfo'
+    assert naive_dt == re_naive, 'works, as long as you called fromtimestamp from the same timezone'
+
+
+def test_datetime():
+    naive_dt = datetime.datetime.now()
+
+    with pytest.raises(TypeError):
+        cirq.to_json(naive_dt)
+
+    utc_dt = naive_dt.astimezone(datetime.timezone.utc)
+    assert utc_dt == cirq.read_json(json_text=cirq.to_json(utc_dt))
+
+    pst_dt = naive_dt.astimezone(tz=datetime.timezone(offset=datetime.timedelta(hours=-8)))
+    assert utc_dt == cirq.read_json(json_text=cirq.to_json(pst_dt))

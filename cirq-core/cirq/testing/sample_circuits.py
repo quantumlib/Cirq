@@ -13,24 +13,13 @@
 # limitations under the License.
 from typing import TYPE_CHECKING
 
-from cirq import _compat, ops, circuits, devices
+from cirq import ops, circuits
 
 if TYPE_CHECKING:
     import cirq
 
 
-@_compat.deprecated_parameter(
-    deadline='v0.15',
-    fix='The returned circuit will no longer include a device object.',
-    parameter_desc='device',
-    match=lambda args, kwargs: 'device' in kwargs or len(args) == 4,
-)
-def nonoptimal_toffoli_circuit(
-    q0: 'cirq.Qid',
-    q1: 'cirq.Qid',
-    q2: 'cirq.Qid',
-    device: devices.Device = devices.UNCONSTRAINED_DEVICE,
-) -> circuits.Circuit:
+def nonoptimal_toffoli_circuit(q0: 'cirq.Qid', q1: 'cirq.Qid', q2: 'cirq.Qid') -> circuits.Circuit:
     ret = circuits.Circuit(
         ops.Y(q2) ** 0.5,
         ops.X(q2),
@@ -62,5 +51,4 @@ def nonoptimal_toffoli_circuit(
         ops.Y(q2) ** 0.5,
         ops.X(q2),
     )
-    ret._device = device
     return ret

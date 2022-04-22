@@ -90,12 +90,7 @@ document(
     """,
 )
 
-PAULI_GATE_LIKE = Union[
-    'cirq.Pauli',
-    'cirq.IdentityGate',
-    str,
-    int,
-]
+PAULI_GATE_LIKE = Union['cirq.Pauli', 'cirq.IdentityGate', str, int,]
 document(
     PAULI_GATE_LIKE,  # type: ignore
     """An object that can be interpreted as a Pauli gate.
@@ -678,7 +673,7 @@ class PauliString(raw_types.Operation, Generic[TKey]):
         return (paulis for qubit, paulis in self.zip_items(other))
 
     def _commutes_(
-        self, other: Any, *, atol: Union[int, float] = 1e-8
+        self, other: Any, *, atol: float = 1e-8
     ) -> Union[bool, NotImplementedType, None]:
         if not isinstance(other, PauliString):
             return NotImplemented
@@ -693,7 +688,7 @@ class PauliString(raw_types.Operation, Generic[TKey]):
     def __array_ufunc__(self, ufunc, method, *inputs, **kwargs):
         """Override behavior of numpy's exp method."""
         if ufunc == np.exp and len(inputs) == 1 and inputs[0] is self:
-            return math.e ** self
+            return math.e**self
         return NotImplemented
 
     def __pow__(self, power):
@@ -701,7 +696,7 @@ class PauliString(raw_types.Operation, Generic[TKey]):
             return self
         if power == -1:
             return PauliString(
-                qubit_pauli_map=self._qubit_pauli_map, coefficient=self.coefficient ** -1
+                qubit_pauli_map=self._qubit_pauli_map, coefficient=self.coefficient**-1
             )
         if isinstance(power, (int, float)):
             r, i = cmath.polar(self.coefficient)
@@ -1112,8 +1107,7 @@ class MutablePauliString(Generic[TKey]):
     def mutable_copy(self) -> 'cirq.MutablePauliString':
         """Returns a new cirq.MutablePauliString with the same contents."""
         return MutablePauliString(
-            coefficient=self.coefficient,
-            pauli_int_dict=dict(self.pauli_int_dict),
+            coefficient=self.coefficient, pauli_int_dict=dict(self.pauli_int_dict)
         )
 
     def items(self) -> Iterator[Tuple[TKey, Union['cirq.Pauli', 'cirq.IdentityGate']]]:
@@ -1354,10 +1348,7 @@ class MutablePauliString(Generic[TKey]):
         """
         new_dict = {func(q): p for q, p in self.pauli_int_dict.items()}
         if not inplace:
-            return MutablePauliString(
-                coefficient=self.coefficient,
-                pauli_int_dict=new_dict,
-            )
+            return MutablePauliString(coefficient=self.coefficient, pauli_int_dict=new_dict)
         result = cast('cirq.MutablePauliString[TKeyNew]', self)
         result.pauli_int_dict = new_dict
         return result
@@ -1429,9 +1420,7 @@ def _decompose_into_cliffords(op: 'cirq.Operation') -> List['cirq.Operation']:
 
 
 def _pass_operation_over(
-    pauli_map: Dict[TKey, pauli_gates.Pauli],
-    op: 'cirq.Operation',
-    after_to_before: bool = False,
+    pauli_map: Dict[TKey, pauli_gates.Pauli], op: 'cirq.Operation', after_to_before: bool = False
 ) -> bool:
     if isinstance(op, gate_operation.GateOperation):
         gate = op.gate
@@ -1546,6 +1535,6 @@ def _pauli_like_to_pauli_int(key: Any, pauli_gate_like: PAULI_GATE_LIKE):
             f'Expected {key!r}: {pauli_gate_like!r} to have a '
             f'cirq.PAULI_GATE_LIKE value. '
             f"But the value isn't in "
-            f"{list(PAULI_GATE_LIKE_TO_INDEX_MAP.values())!r}"
+            f"{set(PAULI_GATE_LIKE_TO_INDEX_MAP.keys())!r}"
         )
     return cast(int, pauli_int)

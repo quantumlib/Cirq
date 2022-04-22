@@ -11,54 +11,40 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from typing import Any, Dict, List, Optional, Sequence, Union
+from typing import Any, Dict, Optional, Sequence
 
 import cirq
 
 
-class EmptyActOnArgs(cirq.ActOnArgs):
-    def __init__(self, qubits, logs):
-        super().__init__(
-            qubits=qubits,
-            log_of_measurement_results=logs,
-        )
+class EmptyQuantumState(cirq.QuantumStateRepresentation):
+    def copy(self, deep_copy_buffers=True):
+        return self
 
-    def _perform_measurement(self, qubits: Sequence[cirq.Qid]) -> List[int]:
-        return [0] * len(qubits)
-
-    def copy(self) -> 'EmptyActOnArgs':  # type: ignore
-        """The deep_copy_buffers parameter is omitted to trigger a deprecation warning test."""
-        return EmptyActOnArgs(
-            qubits=self.qubits,
-            logs=self.log_of_measurement_results.copy(),
-        )
-
-    def _act_on_fallback_(
-        self,
-        action: Union['cirq.Operation', 'cirq.Gate'],
-        qubits: Sequence['cirq.Qid'],
-        allow_decompose: bool = True,
-    ) -> bool:
-        return True
-
-    def _on_copy(self, args):
-        pass
-
-    def _on_kronecker_product(self, other, target):
-        pass
-
-    def _on_transpose_to_qubit_order(self, qubits, target):
-        pass
-
-    def _on_factor(self, qubits, extracted, remainder, validate=True, atol=1e-07):
-        pass
+    def measure(self, axes, seed=None):
+        return [0] * len(axes)
 
     @property
-    def allows_factoring(self):
+    def supports_factor(self):
         return True
 
-    def sample(self, qubits, repetitions=1, seed=None):
-        pass
+    def kron(self, other):
+        return self
+
+    def factor(self, axes, *, validate=True, atol=1e-07):
+        return self, self
+
+    def reindex(self, axes):
+        return self
+
+
+class EmptyActOnArgs(cirq.ActOnArgs):
+    def __init__(self, qubits, classical_data):
+        super().__init__(state=EmptyQuantumState(), qubits=qubits, classical_data=classical_data)
+
+    def _act_on_fallback_(
+        self, action: Any, qubits: Sequence['cirq.Qid'], allow_decompose: bool = True
+    ) -> bool:
+        return True
 
 
 q0, q1, q2 = qs3 = cirq.LineQubit.range(3)
@@ -66,11 +52,10 @@ qs2 = cirq.LineQubit.range(2)
 
 
 def create_container(
-    qubits: Sequence['cirq.Qid'],
-    split_untangled_states=True,
+    qubits: Sequence['cirq.Qid'], split_untangled_states=True
 ) -> cirq.ActOnArgsContainer[EmptyActOnArgs]:
     args_map: Dict[Optional['cirq.Qid'], EmptyActOnArgs] = {}
-    log: Dict[str, Any] = {}
+    log = cirq.ClassicalDataDictionaryStore()
     if split_untangled_states:
         for q in reversed(qubits):
             args_map[q] = EmptyActOnArgs([q], log)
@@ -80,7 +65,7 @@ def create_container(
         for q in qubits:
             args_map[q] = args
         args_map[None] = args if not split_untangled_states else EmptyActOnArgs((), log)
-    return cirq.ActOnArgsContainer(args_map, qubits, split_untangled_states, log)
+    return cirq.ActOnArgsContainer(args_map, qubits, split_untangled_states, classical_data=log)
 
 
 def test_entanglement_causes_join():
@@ -231,12 +216,6 @@ def test_copy_succeeds():
     assert copied.qubits == (q0, q1)
 
 
-def test_copy_deprecation_warning():
-    args = create_container(qs2, False)
-    with cirq.testing.assert_deprecated('deep_copy_buffers', deadline='0.15'):
-        args.copy(False)
-
-
 def test_merge_succeeds():
     args = create_container(qs2, False)
     merged = args.create_merged_state()
@@ -288,11 +267,3 @@ def test_field_getters():
     args = create_container(qs2)
     assert args.args.keys() == set(qs2) | {None}
     assert args.split_untangled_states
-
-
-def test_field_setters_deprecated():
-    args = create_container(qs2)
-    with cirq.testing.assert_deprecated(deadline='v0.15'):
-        args.args = {}
-    with cirq.testing.assert_deprecated(deadline='v0.15'):
-        args.split_untangled_states = False

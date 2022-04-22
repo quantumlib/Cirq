@@ -354,8 +354,7 @@ def measure_confusion_matrix(
     for qs in qubits:
         flip_symbols = sympy.symbols(f'flip_0:{len(qs)}')
         flip_circuit = circuits.Circuit(
-            [ops.X(q) ** s for q, s in zip(qs, flip_symbols)],
-            ops.measure(*qs),
+            [ops.X(q) ** s for q, s in zip(qs, flip_symbols)], ops.measure(*qs)
         )
         sweeps = study.Product(*[study.Points(f'flip_{i}', [0, 1]) for i in range(len(qs))])
         results = sampler.run_sweep(flip_circuit, sweeps, repetitions=repetitions)

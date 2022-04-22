@@ -11,6 +11,8 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
+import itertools
 from typing import (
     AbstractSet,
     Any,
@@ -25,11 +27,10 @@ from typing import (
     TYPE_CHECKING,
 )
 
-import itertools
 import numpy as np
 
 from cirq import protocols, qis, value
-from cirq.ops import raw_types, gate_operation, controlled_gate
+from cirq.ops import raw_types, gate_operation, controlled_gate, matrix_gates
 from cirq.type_workarounds import NotImplementedType
 
 if TYPE_CHECKING:
@@ -54,7 +55,7 @@ class ControlledOperation(raw_types.Operation):
         if len(control_values) != len(controls):
             raise ValueError('len(control_values) != len(controls)')
         # Convert to sorted tuples
-        self.control_values = cast(
+        self._control_values = cast(
             Tuple[Tuple[int, ...], ...],
             tuple((val,) if isinstance(val, int) else tuple(sorted(val)) for val in control_values),
         )
@@ -64,13 +65,25 @@ class ControlledOperation(raw_types.Operation):
                 raise ValueError(f'Control values <{val!r}> outside of range for qubit <{q!r}>.')
 
         if not isinstance(sub_operation, ControlledOperation):
-            self.controls = tuple(controls)
-            self.sub_operation = sub_operation
+            self._controls = tuple(controls)
+            self._sub_operation = sub_operation
         else:
             # Auto-flatten nested controlled operations.
-            self.controls = tuple(controls) + sub_operation.controls
-            self.sub_operation = sub_operation.sub_operation
-            self.control_values += sub_operation.control_values
+            self._controls = tuple(controls) + sub_operation.controls
+            self._sub_operation = sub_operation.sub_operation
+            self._control_values += sub_operation.control_values
+
+    @property
+    def controls(self) -> Tuple['cirq.Qid', ...]:
+        return self._controls
+
+    @property
+    def control_values(self) -> Tuple[Tuple[int, ...], ...]:
+        return self._control_values
+
+    @property
+    def sub_operation(self) -> 'cirq.Operation':
+        return self._sub_operation
 
     @property
     def gate(self) -> Optional['cirq.ControlledGate']:
@@ -93,11 +106,22 @@ class ControlledOperation(raw_types.Operation):
         )
 
     def _decompose_(self):
+        result = protocols.decompose_once_with_qubits(self.gate, self.qubits, NotImplemented)
+        if result is not NotImplemented:
+            return result
+
+        if isinstance(self.sub_operation.gate, matrix_gates.MatrixGate):
+            # Default decompositions of 2/3 qubit `cirq.MatrixGate` ignores global phase, which is
+            # local phase in the controlled variant and hence cannot be ignored.
+            return NotImplemented
+
         result = protocols.decompose_once(self.sub_operation, NotImplemented)
         if result is NotImplemented:
             return NotImplemented
 
-        return [ControlledOperation(self.controls, op, self.control_values) for op in result]
+        return [
+            op.controlled_by(*self.controls, control_values=self.control_values) for op in result
+        ]
 
     def _value_equality_values_(self):
         return (frozenset(zip(self.controls, self.control_values)), self.sub_operation)

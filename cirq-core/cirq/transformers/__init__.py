@@ -31,8 +31,8 @@ from cirq.transformers.analytical_decompositions import (
     single_qubit_matrix_to_phxz,
     single_qubit_op_to_framed_phase_form,
     three_qubit_matrix_to_operations,
-    two_qubit_matrix_to_diagonal_and_operations,
-    two_qubit_matrix_to_operations,
+    two_qubit_matrix_to_cz_operations,
+    two_qubit_matrix_to_diagonal_and_cz_operations,
     two_qubit_matrix_to_sqrt_iswap_operations,
 )
 
@@ -65,10 +65,7 @@ from cirq.transformers.drop_negligible_operations import drop_negligible_operati
 
 from cirq.transformers.eject_z import eject_z
 
-from cirq.transformers.measurement_transformers import (
-    defer_measurements,
-    dephase_measurements,
-)
+from cirq.transformers.measurement_transformers import defer_measurements, dephase_measurements
 
 from cirq.transformers.merge_k_qubit_gates import merge_k_qubit_unitaries
 

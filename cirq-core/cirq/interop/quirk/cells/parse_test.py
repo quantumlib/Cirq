@@ -16,11 +16,7 @@ import numpy as np
 import pytest
 import sympy
 
-from cirq.interop.quirk.cells.parse import (
-    parse_matrix,
-    parse_formula,
-    parse_complex,
-)
+from cirq.interop.quirk.cells.parse import parse_matrix, parse_formula, parse_complex
 
 
 def test_parse_matrix():
@@ -85,7 +81,7 @@ def test_parse_complex():
     assert parse_complex('+i') == 1j
     assert parse_complex('1 + i - i') == 1
     assert parse_complex('1 + 2i - 3 i') == 1 - 1j
-    np.testing.assert_allclose(parse_complex('exp 2'), np.e ** 2, atol=1e-8)
+    np.testing.assert_allclose(parse_complex('exp 2'), np.e**2, atol=1e-8)
 
 
 def test_parse_complex_raw_cases_from_quirk():

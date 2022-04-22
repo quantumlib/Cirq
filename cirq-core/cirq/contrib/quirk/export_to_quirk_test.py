@@ -177,7 +177,7 @@ class MysteryOperation(cirq.Operation):
         return MysteryOperation(*new_qubits)
 
 
-class MysteryGate(cirq.SingleQubitGate):
+class MysteryGate(cirq.testing.SingleQubitGate):
     pass
 
 
@@ -245,9 +245,7 @@ def test_formulaic_rotation_xyz_export():
     t = sympy.Symbol('t')
     assert_links_to(
         cirq.Circuit(
-            cirq.rx(sympy.pi / 2).on(a),
-            cirq.ry(sympy.pi * t).on(a),
-            cirq.rz(-sympy.pi * t).on(a),
+            cirq.rx(sympy.pi / 2).on(a), cirq.ry(sympy.pi * t).on(a), cirq.rz(-sympy.pi * t).on(a)
         ),
         """
         http://algassert.com/quirk#circuit={"cols":[
@@ -281,7 +279,7 @@ def test_unrecognized_single_qubit_gate_with_matrix():
 
 
 def test_unknown_gate():
-    class UnknownGate(cirq.SingleQubitGate):
+    class UnknownGate(cirq.testing.SingleQubitGate):
         pass
 
     a = cirq.NamedQubit('a')

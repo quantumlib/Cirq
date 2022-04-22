@@ -43,8 +43,9 @@ from cirq_google.engine import (
     engine_processor,
     engine_program,
     engine_sampler,
+    util,
 )
-from cirq_google.engine.client import quantum
+from cirq_google.cloud import quantum
 from cirq_google.engine.result_type import ResultType
 from cirq_google.serialization import CIRCUIT_SERIALIZER, SerializableGateSet, Serializer
 from cirq_google.serialization.arg_func_langs import arg_to_proto
@@ -126,6 +127,22 @@ class EngineContext:
     def _value_equality_values_(self):
         return self.proto_version, self.client
 
+    def _serialize_program(
+        self, program: cirq.AbstractCircuit, serializer: Optional[Serializer] = None
+    ) -> any_pb2.Any:
+        if not isinstance(program, cirq.AbstractCircuit):
+            raise TypeError(f'Unrecognized program type: {type(program)}')
+        if serializer is None:
+            serializer = self.serializer
+        if self.proto_version != ProtoVersion.V2:
+            raise ValueError(f'invalid program proto version: {self.proto_version}')
+        return util.pack_any(serializer.serialize(program))
+
+    def _serialize_run_context(self, sweeps: 'cirq.Sweepable', repetitions: int) -> any_pb2.Any:
+        if self.proto_version != ProtoVersion.V2:
+            raise ValueError(f'invalid run context proto version: {self.proto_version}')
+        return util.pack_any(v2.run_context_to_proto(sweeps, repetitions))
+
 
 class Engine(abstract_engine.AbstractEngine):
     """Runs programs via the Quantum Engine API.
@@ -191,6 +208,7 @@ class Engine(abstract_engine.AbstractEngine):
     def __str__(self) -> str:
         return f'Engine(project_id={self.project_id!r})'
 
+    @util.deprecated_gate_set_parameter
     def run(
         self,
         program: cirq.AbstractCircuit,
@@ -199,7 +217,7 @@ class Engine(abstract_engine.AbstractEngine):
         param_resolver: cirq.ParamResolver = cirq.ParamResolver({}),
         repetitions: int = 1,
         processor_ids: Sequence[str] = ('xmonsim',),
-        gate_set: Serializer = None,
+        gate_set: Optional[Serializer] = None,
         program_description: Optional[str] = None,
         program_labels: Optional[Dict[str, str]] = None,
         job_description: Optional[str] = None,
@@ -245,7 +263,6 @@ class Engine(abstract_engine.AbstractEngine):
                 params=[param_resolver],
                 repetitions=repetitions,
                 processor_ids=processor_ids,
-                gate_set=gate_set,
                 program_description=program_description,
                 program_labels=program_labels,
                 job_description=job_description,
@@ -253,6 +270,7 @@ class Engine(abstract_engine.AbstractEngine):
             )
         )[0]
 
+    @util.deprecated_gate_set_parameter
     def run_sweep(
         self,
         program: cirq.AbstractCircuit,
@@ -304,7 +322,7 @@ class Engine(abstract_engine.AbstractEngine):
             ValueError: If no gate set is provided.
         """
         engine_program = self.create_program(
-            program, program_id, gate_set, program_description, program_labels
+            program, program_id, description=program_description, labels=program_labels
         )
         return engine_program.run_sweep(
             job_id=job_id,
@@ -315,6 +333,7 @@ class Engine(abstract_engine.AbstractEngine):
             labels=job_labels,
         )
 
+    @util.deprecated_gate_set_parameter
     def run_batch(
         self,
         programs: Sequence[cirq.AbstractCircuit],
@@ -385,7 +404,7 @@ class Engine(abstract_engine.AbstractEngine):
         if not processor_ids:
             raise ValueError('Processor id must be specified.')
         engine_program = self.create_batch_program(
-            programs, program_id, gate_set, program_description, program_labels
+            programs, program_id, description=program_description, labels=program_labels
         )
         return engine_program.run_batch(
             job_id=job_id,
@@ -396,6 +415,7 @@ class Engine(abstract_engine.AbstractEngine):
             labels=job_labels,
         )
 
+    @util.deprecated_gate_set_parameter
     def run_calibration(
         self,
         layers: List['cirq_google.CalibrationLayer'],
@@ -464,7 +484,7 @@ class Engine(abstract_engine.AbstractEngine):
         if job_labels is None:
             job_labels = {'calibration': ''}
         engine_program = self.create_calibration_program(
-            layers, program_id, gate_set, program_description, program_labels
+            layers, program_id, description=program_description, labels=program_labels
         )
         return engine_program.run_calibration(
             job_id=job_id,
@@ -473,6 +493,7 @@ class Engine(abstract_engine.AbstractEngine):
             labels=job_labels,
         )
 
+    @util.deprecated_gate_set_parameter
     def create_program(
         self,
         program: cirq.AbstractCircuit,
@@ -501,16 +522,13 @@ class Engine(abstract_engine.AbstractEngine):
         Raises:
             ValueError: If no gate set is provided.
         """
-        if not gate_set:
-            gate_set = self.context.serializer
-
         if not program_id:
             program_id = _make_random_id('prog-')
 
         new_program_id, new_program = self.context.client.create_program(
             self.project_id,
             program_id,
-            code=self._serialize_program(program, gate_set),
+            code=self.context._serialize_program(program, gate_set),
             description=description,
             labels=labels,
         )
@@ -519,6 +537,7 @@ class Engine(abstract_engine.AbstractEngine):
             self.project_id, new_program_id, self.context, new_program
         )
 
+    @util.deprecated_gate_set_parameter
     def create_batch_program(
         self,
         programs: Sequence[cirq.AbstractCircuit],
@@ -559,7 +578,7 @@ class Engine(abstract_engine.AbstractEngine):
         new_program_id, new_program = self.context.client.create_program(
             self.project_id,
             program_id,
-            code=self._pack_any(batch),
+            code=util.pack_any(batch),
             description=description,
             labels=labels,
         )
@@ -568,6 +587,7 @@ class Engine(abstract_engine.AbstractEngine):
             self.project_id, new_program_id, self.context, new_program, result_type=ResultType.Batch
         )
 
+    @util.deprecated_gate_set_parameter
     def create_calibration_program(
         self,
         layers: List['cirq_google.CalibrationLayer'],
@@ -616,7 +636,7 @@ class Engine(abstract_engine.AbstractEngine):
         new_program_id, new_program = self.context.client.create_program(
             self.project_id,
             program_id,
-            code=self._pack_any(calibration),
+            code=util.pack_any(calibration),
             description=description,
             labels=labels,
         )
@@ -628,27 +648,6 @@ class Engine(abstract_engine.AbstractEngine):
             new_program,
             result_type=ResultType.Calibration,
         )
-
-    def _serialize_program(
-        self, program: cirq.AbstractCircuit, gate_set: Serializer
-    ) -> any_pb2.Any:
-        if not isinstance(program, cirq.AbstractCircuit):
-            raise TypeError(f'Unrecognized program type: {type(program)}')
-
-        if self.context.proto_version == ProtoVersion.V2:
-            program = gate_set.serialize(program)
-            return self._pack_any(program)
-        else:
-            raise ValueError(f'invalid program proto version: {self.context.proto_version}')
-
-    def _pack_any(self, message: 'google.protobuf.Message') -> any_pb2.Any:
-        """Packs a message into an Any proto.
-
-        Returns the packed Any proto.
-        """
-        packed = any_pb2.Any()
-        packed.Pack(message)
-        return packed
 
     def get_program(self, program_id: str) -> engine_program.EngineProgram:
         """Returns an EngineProgram for an existing Quantum Engine program.
@@ -704,7 +703,7 @@ class Engine(abstract_engine.AbstractEngine):
         created_before: Optional[Union[datetime.datetime, datetime.date]] = None,
         created_after: Optional[Union[datetime.datetime, datetime.date]] = None,
         has_labels: Optional[Dict[str, str]] = None,
-        execution_states: Optional[Set[quantum.enums.ExecutionStatus.State]] = None,
+        execution_states: Optional[Set[quantum.ExecutionStatus.State]] = None,
     ):
         """Returns the list of jobs in the project.
 
@@ -729,7 +728,7 @@ class Engine(abstract_engine.AbstractEngine):
 
             execution_states: retrieve jobs that have an execution state  that
                  is contained in `execution_states`. See
-                 `quantum.enums.ExecutionStatus.State` enum for accepted values.
+                 `quantum.ExecutionStatus.State` enum for accepted values.
         """
         client = self.context.client
         response = client.list_jobs(
@@ -763,10 +762,7 @@ class Engine(abstract_engine.AbstractEngine):
         response = self.context.client.list_processors(self.project_id)
         return [
             engine_processor.EngineProcessor(
-                self.project_id,
-                engine_client._ids_from_processor_name(p.name)[1],
-                self.context,
-                p,
+                self.project_id, engine_client._ids_from_processor_name(p.name)[1], self.context, p
             )
             for p in response
         ]
@@ -783,6 +779,7 @@ class Engine(abstract_engine.AbstractEngine):
         return engine_processor.EngineProcessor(self.project_id, processor_id, self.context)
 
     @deprecated(deadline="v1.0", fix="Use get_sampler instead.")
+    @util.deprecated_gate_set_parameter
     def sampler(
         self, processor_id: Union[str, List[str]], gate_set: Optional[Serializer] = None
     ) -> engine_sampler.QuantumEngineSampler:
@@ -799,8 +796,9 @@ class Engine(abstract_engine.AbstractEngine):
             that will send circuits to the Quantum Computing Service
             when sampled.
         """
-        return self.get_sampler(processor_id, gate_set)
+        return self.get_sampler(processor_id)
 
+    @util.deprecated_gate_set_parameter
     def get_sampler(
         self, processor_id: Union[str, List[str]], gate_set: Optional[Serializer] = None
     ) -> engine_sampler.QuantumEngineSampler:
@@ -817,9 +815,7 @@ class Engine(abstract_engine.AbstractEngine):
             that will send circuits to the Quantum Computing Service
             when sampled.
         """
-        return engine_sampler.QuantumEngineSampler(
-            engine=self, processor_id=processor_id, gate_set=gate_set
-        )
+        return engine_sampler.QuantumEngineSampler(engine=self, processor_id=processor_id)
 
 
 def get_engine(project_id: Optional[str] = None) -> Engine:
@@ -872,8 +868,7 @@ def get_engine_device(
 
 
 def get_engine_calibration(
-    processor_id: str,
-    project_id: Optional[str] = None,
+    processor_id: str, project_id: Optional[str] = None
 ) -> Optional['cirq_google.Calibration']:
     """Returns calibration metrics for a given processor.
 

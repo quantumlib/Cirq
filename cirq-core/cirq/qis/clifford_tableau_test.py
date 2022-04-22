@@ -45,7 +45,7 @@ def _CNOT(table, q1, q2):
 
 @pytest.mark.parametrize('num_qubits', range(1, 4))
 def test_tableau_initial_state_string(num_qubits):
-    for i in range(2 ** num_qubits):
+    for i in range(2**num_qubits):
         t = cirq.CliffordTableau(initial_state=i, num_qubits=num_qubits)
         splitted_represent_string = str(t).split('\n')
         assert len(splitted_represent_string) == num_qubits
@@ -179,7 +179,7 @@ def test_measurement():
 
 def test_validate_tableau():
     num_qubits = 4
-    for i in range(2 ** num_qubits):
+    for i in range(2**num_qubits):
         t = cirq.CliffordTableau(initial_state=i, num_qubits=num_qubits)
         assert t._validate()
 

@@ -321,13 +321,7 @@ def _kak_decomposition_to_sqrt_iswap_operations(
             u0_after=z_unitary,
             atol=atol,
         )
-    return _decomp_to_operations(
-        q0,
-        q1,
-        ops.SQRT_ISWAP,
-        single_qubit_operations,
-        atol=atol,
-    )
+    return _decomp_to_operations(q0, q1, ops.SQRT_ISWAP, single_qubit_operations, atol=atol)
 
 
 def _decomp_to_operations(
@@ -370,13 +364,13 @@ def _decomp_to_operations(
             # Commute rightmost Z(q0)**b, Z(q1)**b through next sqrt-iSWAP
             if len(rots1) > 0 and rots1[-1][0] == ops.Z:
                 _, prev_z = rots1.pop()
-                z_unitary = protocols.unitary(ops.Z ** prev_z)
+                z_unitary = protocols.unitary(ops.Z**prev_z)
                 new_commute = new_commute @ z_unitary
                 matrix0 = z_unitary.T.conj() @ matrix0
             # Commute rightmost whole X(q0), X(q0) or Y, Y through next sqrt-iSWAP
             if len(rots1) > 0 and linalg.tolerance.near_zero_mod(rots1[-1][1], 1, atol=atol):
                 pauli, half_turns = rots1.pop()
-                p_unitary = protocols.unitary(pauli ** half_turns)
+                p_unitary = protocols.unitary(pauli**half_turns)
                 new_commute = new_commute @ p_unitary
                 matrix0 = p_unitary.T.conj() @ matrix0
         rots0 = list(
@@ -385,8 +379,8 @@ def _decomp_to_operations(
             )
         )
         # Append single qubit ops
-        operations.extend((pauli ** half_turns).on(q0) for pauli, half_turns in rots0)
-        operations.extend((pauli ** half_turns).on(q1) for pauli, half_turns in rots1)
+        operations.extend((pauli**half_turns).on(q0) for pauli, half_turns in rots0)
+        operations.extend((pauli**half_turns).on(q1) for pauli, half_turns in rots1)
         prev_commute = new_commute
 
     single_ops = list(single_qubit_operations)
@@ -436,8 +430,7 @@ def _single_qubit_matrices_with_sqrt_iswap(
 
 
 def _in_0_region(
-    interaction_coefficients: Tuple[float, float, float],
-    weyl_tol: float = 1e-8,
+    interaction_coefficients: Tuple[float, float, float], weyl_tol: float = 1e-8
 ) -> bool:
     """Tests if (x, y, z) ~= (0, 0, 0) assuming x, y, z are canonical."""
     x, y, z = interaction_coefficients
@@ -445,8 +438,7 @@ def _in_0_region(
 
 
 def _in_1sqrt_iswap_region(
-    interaction_coefficients: Tuple[float, float, float],
-    weyl_tol: float = 1e-8,
+    interaction_coefficients: Tuple[float, float, float], weyl_tol: float = 1e-8
 ) -> bool:
     """Tests if (x, y, z) ~= (π/8, π/8, 0), assuming x, y, z are canonical."""
     x, y, z = interaction_coefficients
@@ -454,8 +446,7 @@ def _in_1sqrt_iswap_region(
 
 
 def _in_2sqrt_iswap_region(
-    interaction_coefficients: Tuple[float, float, float],
-    weyl_tol: float = 1e-8,
+    interaction_coefficients: Tuple[float, float, float], weyl_tol: float = 1e-8
 ) -> bool:
     """Tests if (x, y, z) is inside or within weyl_tol of the volume
     x >= y + |z| assuming x, y, z are canonical.
@@ -472,8 +463,7 @@ def _in_2sqrt_iswap_region(
 
 
 def _in_3sqrt_iswap_region(
-    interaction_coefficients: Tuple[float, float, float],
-    weyl_tol: float = 1e-8,
+    interaction_coefficients: Tuple[float, float, float], weyl_tol: float = 1e-8
 ) -> bool:
     """Any two-qubit operation is decomposable into three SQRT_ISWAP gates.
 
@@ -486,8 +476,7 @@ def _in_3sqrt_iswap_region(
 
 
 def _decomp_0_matrices(
-    kak: 'cirq.KakDecomposition',
-    atol: float = 1e-8,
+    kak: 'cirq.KakDecomposition', atol: float = 1e-8
 ) -> Tuple[Sequence[Tuple[np.ndarray, np.ndarray]], complex]:
     """Returns the single-qubit matrices for the 0-SQRT_ISWAP decomposition.
 
@@ -505,8 +494,7 @@ def _decomp_0_matrices(
 
 
 def _decomp_1sqrt_iswap_matrices(
-    kak: 'cirq.KakDecomposition',
-    atol: float = 1e-8,
+    kak: 'cirq.KakDecomposition', atol: float = 1e-8
 ) -> Tuple[Sequence[Tuple[np.ndarray, np.ndarray]], complex]:
     """Returns the single-qubit matrices for the 1-SQRT_ISWAP decomposition.
 
@@ -519,8 +507,7 @@ def _decomp_1sqrt_iswap_matrices(
 
 
 def _decomp_2sqrt_iswap_matrices(
-    kak: 'cirq.KakDecomposition',
-    atol: float = 1e-8,
+    kak: 'cirq.KakDecomposition', atol: float = 1e-8
 ) -> Tuple[Sequence[Tuple[np.ndarray, np.ndarray]], complex]:
     """Returns the single-qubit matrices for the 2-SQRT_ISWAP decomposition.
 
@@ -583,8 +570,7 @@ def _decomp_2sqrt_iswap_matrices(
 
 
 def _decomp_3sqrt_iswap_matrices(
-    kak: 'cirq.KakDecomposition',
-    atol: float = 1e-8,
+    kak: 'cirq.KakDecomposition', atol: float = 1e-8
 ) -> Tuple[Sequence[Tuple[np.ndarray, np.ndarray]], complex]:
     """Returns the single-qubit matrices for the 3-SQRT_ISWAP decomposition.
 

@@ -14,10 +14,12 @@
 """An interface for quantum states as targets for operations."""
 import abc
 from typing import (
+    Any,
     Dict,
     Generic,
     Iterator,
     List,
+    Mapping,
     Optional,
     Sequence,
     Tuple,
@@ -28,7 +30,7 @@ from typing import (
 
 import numpy as np
 
-from cirq import protocols
+from cirq import protocols, value
 from cirq.type_workarounds import NotImplementedType
 
 if TYPE_CHECKING:
@@ -42,21 +44,50 @@ TActOnArgs = TypeVar('TActOnArgs', bound='cirq.ActOnArgs')
 class OperationTarget(Generic[TActOnArgs], metaclass=abc.ABCMeta):
     """An interface for quantum states as targets for operations."""
 
+    def __init__(
+        self,
+        *,
+        qubits: Sequence['cirq.Qid'],
+        classical_data: Optional['cirq.ClassicalDataStore'] = None,
+    ):
+        """Initializes the class.
+
+        Args:
+            qubits: The canonical ordering of qubits.
+            classical_data: The shared classical data container for this
+                simulation.
+        """
+        self._set_qubits(tuple(qubits))
+        self._classical_data = classical_data or value.ClassicalDataDictionaryStore()
+
+    @property
+    def qubits(self) -> Tuple['cirq.Qid', ...]:
+        return self._qubits
+
+    @property
+    def qubit_map(self) -> Mapping['cirq.Qid', int]:
+        return self._qubit_map
+
+    def _set_qubits(self, qubits: Sequence['cirq.Qid']):
+        self._qubits = tuple(qubits)
+        self._qubit_map = {q: i for i, q in enumerate(self.qubits)}
+
+    @property
+    def classical_data(self) -> 'cirq.ClassicalDataStoreReader':
+        return self._classical_data
+
     @abc.abstractmethod
     def create_merged_state(self) -> TActOnArgs:
         """Creates a final merged state."""
 
     @abc.abstractmethod
     def _act_on_fallback_(
-        self,
-        action: Union['cirq.Operation', 'cirq.Gate'],
-        qubits: Sequence['cirq.Qid'],
-        allow_decompose: bool = True,
+        self, action: Any, qubits: Sequence['cirq.Qid'], allow_decompose: bool = True
     ) -> Union[bool, NotImplementedType]:
         """Handles the act_on protocol fallback implementation.
 
         Args:
-            action: Either a gate or an operation to act on.
+            action: A gate, operation, or other to act on.
             qubits: The applicable qubits if a gate is passed as the action.
             allow_decompose: Flag to allow decomposition.
 
@@ -80,19 +111,9 @@ class OperationTarget(Generic[TActOnArgs], metaclass=abc.ABCMeta):
         """
 
     @property
-    @abc.abstractmethod
-    def qubits(self) -> Tuple['cirq.Qid', ...]:
-        """Gets the qubit order maintained by this target."""
-
-    @property
     def log_of_measurement_results(self) -> Dict[str, List[int]]:
         """Gets the log of measurement results."""
         return {str(k): list(self.classical_data.get_digits(k)) for k in self.classical_data.keys()}
-
-    @property
-    @abc.abstractmethod
-    def classical_data(self) -> 'cirq.ClassicalDataStoreReader':
-        """The shared classical data container for this simulation.."""
 
     @abc.abstractmethod
     def sample(

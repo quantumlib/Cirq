@@ -26,27 +26,21 @@ import cirq
 import cirq_google as cg
 import cirq_google.devices.known_devices as known_devices
 from cirq_google.api import v2
+from cirq_google.engine import util
 from cirq_google.engine.engine import EngineContext
-from cirq_google.engine.client.quantum_v1alpha1 import enums as qenums
-from cirq_google.engine.client.quantum_v1alpha1 import types as qtypes
-
-
-def _to_any(proto):
-    any_proto = qtypes.any_pb2.Any()
-    any_proto.Pack(proto)
-    return any_proto
+from cirq_google.cloud import quantum
 
 
 def _to_timestamp(json_string):
-    timestamp_proto = qtypes.timestamp_pb2.Timestamp()
+    timestamp_proto = Timestamp()
     timestamp_proto.FromJsonString(json_string)
     return timestamp_proto
 
 
-_CALIBRATION = qtypes.QuantumCalibration(
+_CALIBRATION = quantum.QuantumCalibration(
     name='projects/a/processors/p/calibrations/1562715599',
     timestamp=_to_timestamp('2019-07-09T23:39:59Z'),
-    data=_to_any(
+    data=util.pack_any(
         v2.metrics_pb2.MetricsSnapshot(
             timestamp_ms=1562544000021,
             metrics=[
@@ -61,30 +55,23 @@ _CALIBRATION = qtypes.QuantumCalibration(
                     values=[v2.metrics_pb2.Value(double_val=0.9998)],
                 ),
                 v2.metrics_pb2.Metric(
-                    name='t1',
-                    targets=['0_0'],
-                    values=[v2.metrics_pb2.Value(double_val=321)],
+                    name='t1', targets=['0_0'], values=[v2.metrics_pb2.Value(double_val=321)]
                 ),
                 v2.metrics_pb2.Metric(
-                    name='t1',
-                    targets=['0_1'],
-                    values=[v2.metrics_pb2.Value(double_val=911)],
+                    name='t1', targets=['0_1'], values=[v2.metrics_pb2.Value(double_val=911)]
                 ),
                 v2.metrics_pb2.Metric(
-                    name='t1',
-                    targets=['0_1'],
-                    values=[v2.metrics_pb2.Value(double_val=505)],
+                    name='t1', targets=['0_1'], values=[v2.metrics_pb2.Value(double_val=505)]
                 ),
                 v2.metrics_pb2.Metric(
-                    name='globalMetric',
-                    values=[v2.metrics_pb2.Value(int32_val=12300)],
+                    name='globalMetric', values=[v2.metrics_pb2.Value(int32_val=12300)]
                 ),
             ],
-        ),
+        )
     ),
 )
 
-_DEVICE_SPEC = _to_any(
+_DEVICE_SPEC = util.pack_any(
     Merge(
         """
 valid_gate_sets: [{
@@ -198,12 +185,10 @@ _RESULTS2_V2 = v2.result_pb2.Result(
 )
 
 
-_BATCH_RESULTS_V2 = _to_any(
-    v2.batch_pb2.BatchResult(results=[_RESULTS_V2, _RESULTS2_V2]),
-)
+_BATCH_RESULTS_V2 = util.pack_any(v2.batch_pb2.BatchResult(results=[_RESULTS_V2, _RESULTS2_V2]))
 
 
-_CALIBRATION_RESULTS_V2 = _to_any(
+_CALIBRATION_RESULTS_V2 = util.pack_any(
     v2.calibration_pb2.FocusedCalibrationResult(
         results=[
             v2.calibration_pb2.CalibrationLayerResult(
@@ -249,60 +234,60 @@ def test_engine_repr():
 
 @mock.patch('cirq_google.engine.engine_client.EngineClient.get_processor')
 def test_health(get_processor):
-    get_processor.return_value = qtypes.QuantumProcessor(health=qtypes.QuantumProcessor.Health.OK)
+    get_processor.return_value = quantum.QuantumProcessor(health=quantum.QuantumProcessor.Health.OK)
     processor = cg.EngineProcessor(
         'a',
         'p',
         EngineContext(),
-        _processor=qtypes.QuantumProcessor(health=qtypes.QuantumProcessor.Health.DOWN),
+        _processor=quantum.QuantumProcessor(health=quantum.QuantumProcessor.Health.DOWN),
     )
     assert processor.health() == 'OK'
 
 
 @mock.patch('cirq_google.engine.engine_client.EngineClient.get_processor')
 def test_expected_down_time(get_processor):
-    processor = cg.EngineProcessor('a', 'p', EngineContext(), _processor=qtypes.QuantumProcessor())
+    processor = cg.EngineProcessor('a', 'p', EngineContext(), _processor=quantum.QuantumProcessor())
     assert not processor.expected_down_time()
 
-    get_processor.return_value = qtypes.QuantumProcessor(
-        expected_down_time=qtypes.timestamp_pb2.Timestamp(seconds=1581515101)
+    get_processor.return_value = quantum.QuantumProcessor(
+        expected_down_time=Timestamp(seconds=1581515101)
     )
 
     assert cg.EngineProcessor('a', 'p', EngineContext()).expected_down_time() == datetime.datetime(
-        2020, 2, 12, 13, 45, 1
+        2020, 2, 12, 13, 45, 1, tzinfo=datetime.timezone.utc
     )
     get_processor.assert_called_once()
 
 
 def test_expected_recovery_time():
-    processor = cg.EngineProcessor('a', 'p', EngineContext(), _processor=qtypes.QuantumProcessor())
+    processor = cg.EngineProcessor('a', 'p', EngineContext(), _processor=quantum.QuantumProcessor())
     assert not processor.expected_recovery_time()
     processor = cg.EngineProcessor(
         'a',
         'p',
         EngineContext(),
-        _processor=qtypes.QuantumProcessor(
-            expected_recovery_time=qtypes.timestamp_pb2.Timestamp(seconds=1581515101)
-        ),
+        _processor=quantum.QuantumProcessor(expected_recovery_time=Timestamp(seconds=1581515101)),
     )
-    assert processor.expected_recovery_time() == datetime.datetime(2020, 2, 12, 13, 45, 1)
+    assert processor.expected_recovery_time() == datetime.datetime(
+        2020, 2, 12, 13, 45, 1, tzinfo=datetime.timezone.utc
+    )
 
 
 def test_supported_languages():
-    processor = cg.EngineProcessor('a', 'p', EngineContext(), _processor=qtypes.QuantumProcessor())
+    processor = cg.EngineProcessor('a', 'p', EngineContext(), _processor=quantum.QuantumProcessor())
     assert processor.supported_languages() == []
     processor = cg.EngineProcessor(
         'a',
         'p',
         EngineContext(),
-        _processor=qtypes.QuantumProcessor(supported_languages=['lang1', 'lang2']),
+        _processor=quantum.QuantumProcessor(supported_languages=['lang1', 'lang2']),
     )
     assert processor.supported_languages() == ['lang1', 'lang2']
 
 
 def test_get_device_specification():
-    processor = cg.EngineProcessor('a', 'p', EngineContext(), _processor=qtypes.QuantumProcessor())
-    assert not processor.get_device_specification()
+    processor = cg.EngineProcessor('a', 'p', EngineContext(), _processor=quantum.QuantumProcessor())
+    assert processor.get_device_specification() is None
 
     # Construct expected device proto based on example
     expected = v2.device_pb2.DeviceSpecification()
@@ -321,14 +306,14 @@ def test_get_device_specification():
     new_target.ids.extend(['0_0'])
 
     processor = cg.EngineProcessor(
-        'a', 'p', EngineContext(), _processor=qtypes.QuantumProcessor(device_spec=_DEVICE_SPEC)
+        'a', 'p', EngineContext(), _processor=quantum.QuantumProcessor(device_spec=_DEVICE_SPEC)
     )
     assert processor.get_device_specification() == expected
 
 
 def test_get_device():
     processor = cg.EngineProcessor(
-        'a', 'p', EngineContext(), _processor=qtypes.QuantumProcessor(device_spec=_DEVICE_SPEC)
+        'a', 'p', EngineContext(), _processor=quantum.QuantumProcessor(device_spec=_DEVICE_SPEC)
     )
     device = processor.get_device(gate_sets=[_GATE_SET])
     assert device.qubits == [cirq.GridQubit(0, 0), cirq.GridQubit(1, 1)]
@@ -347,20 +332,22 @@ def test_default_gate_sets():
         'a',
         'p',
         EngineContext(),
-        _processor=qtypes.QuantumProcessor(device_spec=_to_any(known_devices.SYCAMORE_PROTO)),
+        _processor=quantum.QuantumProcessor(
+            device_spec=util.pack_any(known_devices.SYCAMORE_PROTO)
+        ),
     )
     device = processor.get_device()
     device.validate_operation(cirq.X(cirq.GridQubit(5, 4)))
     # Test that a device with no standard gatesets doesn't blow up
     processor = cg.EngineProcessor(
-        'a', 'p', EngineContext(), _processor=qtypes.QuantumProcessor(device_spec=_DEVICE_SPEC)
+        'a', 'p', EngineContext(), _processor=quantum.QuantumProcessor(device_spec=_DEVICE_SPEC)
     )
     device = processor.get_device()
     assert device.qubits == [cirq.GridQubit(0, 0), cirq.GridQubit(1, 1)]
 
 
 def test_get_missing_device():
-    processor = cg.EngineProcessor('a', 'p', EngineContext(), _processor=qtypes.QuantumProcessor())
+    processor = cg.EngineProcessor('a', 'p', EngineContext(), _processor=quantum.QuantumProcessor())
     with pytest.raises(ValueError, match='device specification'):
         _ = processor.get_device(gate_sets=[_GATE_SET])
 
@@ -453,7 +440,7 @@ def test_missing_latest_calibration(get_current_calibration):
 @mock.patch('cirq_google.engine.engine_client.EngineClient.create_reservation')
 def test_create_reservation(create_reservation):
     name = 'projects/proj/processors/p0/reservations/psherman-wallaby-way'
-    result = qtypes.QuantumReservation(
+    result = quantum.QuantumReservation(
         name=name,
         start_time=Timestamp(seconds=1000000000),
         end_time=Timestamp(seconds=1000003600),
@@ -478,7 +465,7 @@ def test_create_reservation(create_reservation):
 @mock.patch('cirq_google.engine.engine_client.EngineClient.delete_reservation')
 def test_delete_reservation(delete_reservation):
     name = 'projects/proj/processors/p0/reservations/rid'
-    result = qtypes.QuantumReservation(
+    result = quantum.QuantumReservation(
         name=name,
         start_time=Timestamp(seconds=1000000000),
         end_time=Timestamp(seconds=1000003600),
@@ -493,7 +480,7 @@ def test_delete_reservation(delete_reservation):
 @mock.patch('cirq_google.engine.engine_client.EngineClient.cancel_reservation')
 def test_cancel_reservation(cancel_reservation):
     name = 'projects/proj/processors/p0/reservations/rid'
-    result = qtypes.QuantumReservation(
+    result = quantum.QuantumReservation(
         name=name,
         start_time=Timestamp(seconds=1000000000),
         end_time=Timestamp(seconds=1000003600),
@@ -510,7 +497,7 @@ def test_cancel_reservation(cancel_reservation):
 def test_remove_reservation_delete(delete_reservation, get_reservation):
     name = 'projects/proj/processors/p0/reservations/rid'
     now = int(datetime.datetime.now().timestamp())
-    result = qtypes.QuantumReservation(
+    result = quantum.QuantumReservation(
         name=name,
         start_time=Timestamp(seconds=now + 20000),
         end_time=Timestamp(seconds=now + 23610),
@@ -522,7 +509,7 @@ def test_remove_reservation_delete(delete_reservation, get_reservation):
         'proj',
         'p0',
         EngineContext(),
-        qtypes.QuantumProcessor(schedule_frozen_period=Duration(seconds=10000)),
+        quantum.QuantumProcessor(schedule_frozen_period=Duration(seconds=10000)),
     )
     assert processor.remove_reservation('rid') == result
     delete_reservation.assert_called_once_with('proj', 'p0', 'rid')
@@ -533,7 +520,7 @@ def test_remove_reservation_delete(delete_reservation, get_reservation):
 def test_remove_reservation_cancel(cancel_reservation, get_reservation):
     name = 'projects/proj/processors/p0/reservations/rid'
     now = int(datetime.datetime.now().timestamp())
-    result = qtypes.QuantumReservation(
+    result = quantum.QuantumReservation(
         name=name,
         start_time=Timestamp(seconds=now + 10),
         end_time=Timestamp(seconds=now + 3610),
@@ -545,7 +532,7 @@ def test_remove_reservation_cancel(cancel_reservation, get_reservation):
         'proj',
         'p0',
         EngineContext(),
-        qtypes.QuantumProcessor(schedule_frozen_period=Duration(seconds=10000)),
+        quantum.QuantumProcessor(schedule_frozen_period=Duration(seconds=10000)),
     )
     assert processor.remove_reservation('rid') == result
     cancel_reservation.assert_called_once_with('proj', 'p0', 'rid')
@@ -558,7 +545,7 @@ def test_remove_reservation_not_found(get_reservation):
         'proj',
         'p0',
         EngineContext(),
-        qtypes.QuantumProcessor(schedule_frozen_period=Duration(seconds=10000)),
+        quantum.QuantumProcessor(schedule_frozen_period=Duration(seconds=10000)),
     )
     with pytest.raises(ValueError):
         processor.remove_reservation('rid')
@@ -569,7 +556,7 @@ def test_remove_reservation_not_found(get_reservation):
 def test_remove_reservation_failures(get_reservation, get_processor):
     name = 'projects/proj/processors/p0/reservations/rid'
     now = int(datetime.datetime.now().timestamp())
-    result = qtypes.QuantumReservation(
+    result = quantum.QuantumReservation(
         name=name,
         start_time=Timestamp(seconds=now + 10),
         end_time=Timestamp(seconds=now + 3610),
@@ -584,7 +571,7 @@ def test_remove_reservation_failures(get_reservation, get_processor):
         processor.remove_reservation('rid')
 
     # No freeze period defined
-    processor = cg.EngineProcessor('proj', 'p0', EngineContext(), qtypes.QuantumProcessor())
+    processor = cg.EngineProcessor('proj', 'p0', EngineContext(), quantum.QuantumProcessor())
     with pytest.raises(ValueError):
         processor.remove_reservation('rid')
 
@@ -592,7 +579,7 @@ def test_remove_reservation_failures(get_reservation, get_processor):
 @mock.patch('cirq_google.engine.engine_client.EngineClient.get_reservation')
 def test_get_reservation(get_reservation):
     name = 'projects/proj/processors/p0/reservations/rid'
-    result = qtypes.QuantumReservation(
+    result = quantum.QuantumReservation(
         name=name,
         start_time=Timestamp(seconds=1000000000),
         end_time=Timestamp(seconds=1000003600),
@@ -607,7 +594,7 @@ def test_get_reservation(get_reservation):
 @mock.patch('cirq_google.engine.engine_client.EngineClient.update_reservation')
 def test_update_reservation(update_reservation):
     name = 'projects/proj/processors/p0/reservations/rid'
-    result = qtypes.QuantumReservation(
+    result = quantum.QuantumReservation(
         name=name,
         start_time=Timestamp(seconds=1000000000),
         end_time=Timestamp(seconds=1000003600),
@@ -627,13 +614,13 @@ def test_update_reservation(update_reservation):
 def test_list_reservation(list_reservations):
     name = 'projects/proj/processors/p0/reservations/rid'
     results = [
-        qtypes.QuantumReservation(
+        quantum.QuantumReservation(
             name=name,
             start_time=Timestamp(seconds=1000000000),
             end_time=Timestamp(seconds=1000003600),
             whitelisted_users=['dstrain@google.com'],
         ),
-        qtypes.QuantumReservation(
+        quantum.QuantumReservation(
             name=name + '2',
             start_time=Timestamp(seconds=1000003600),
             end_time=Timestamp(seconds=1000007200),
@@ -656,22 +643,21 @@ def test_list_reservation(list_reservations):
 @mock.patch('cirq_google.engine.engine_client.EngineClient.list_time_slots')
 def test_get_schedule(list_time_slots):
     results = [
-        qtypes.QuantumTimeSlot(
+        quantum.QuantumTimeSlot(
             processor_name='potofgold',
             start_time=Timestamp(seconds=1000020000),
             end_time=Timestamp(seconds=1000040000),
-            slot_type=qenums.QuantumTimeSlot.TimeSlotType.MAINTENANCE,
-            maintenance_config=qtypes.QuantumTimeSlot.MaintenanceConfig(
-                title='Testing',
-                description='Testing some new configuration.',
+            time_slot_type=quantum.QuantumTimeSlot.TimeSlotType.MAINTENANCE,
+            maintenance_config=quantum.QuantumTimeSlot.MaintenanceConfig(
+                title='Testing', description='Testing some new configuration.'
             ),
         ),
-        qtypes.QuantumTimeSlot(
+        quantum.QuantumTimeSlot(
             processor_name='potofgold',
             start_time=Timestamp(seconds=1000010000),
             end_time=Timestamp(seconds=1000020000),
-            slot_type=qenums.QuantumTimeSlot.TimeSlotType.RESERVATION,
-            reservation_config=qtypes.QuantumTimeSlot.ReservationConfig(
+            time_slot_type=quantum.QuantumTimeSlot.TimeSlotType.RESERVATION,
+            reservation_config=quantum.QuantumTimeSlot.ReservationConfig(
                 project_id='super_secret_quantum'
             ),
         ),
@@ -692,14 +678,13 @@ def test_get_schedule(list_time_slots):
 @mock.patch('cirq_google.engine.engine_client.EngineClient.list_time_slots')
 def test_get_schedule_filter_by_time_slot(list_time_slots):
     results = [
-        qtypes.QuantumTimeSlot(
+        quantum.QuantumTimeSlot(
             processor_name='potofgold',
             start_time=Timestamp(seconds=1000020000),
             end_time=Timestamp(seconds=1000040000),
-            slot_type=qenums.QuantumTimeSlot.TimeSlotType.MAINTENANCE,
-            maintenance_config=qtypes.QuantumTimeSlot.MaintenanceConfig(
-                title='Testing',
-                description='Testing some new configuration.',
+            time_slot_type=quantum.QuantumTimeSlot.TimeSlotType.MAINTENANCE,
+            maintenance_config=quantum.QuantumTimeSlot.MaintenanceConfig(
+                title='Testing', description='Testing some new configuration.'
             ),
         )
     ]
@@ -710,7 +695,7 @@ def test_get_schedule_filter_by_time_slot(list_time_slots):
         processor.get_schedule(
             datetime.datetime.fromtimestamp(1000000000),
             datetime.datetime.fromtimestamp(1000050000),
-            qenums.QuantumTimeSlot.TimeSlotType.MAINTENANCE,
+            quantum.QuantumTimeSlot.TimeSlotType.MAINTENANCE,
         )
         == results
     )
@@ -842,22 +827,20 @@ def test_list_reservations_time_filter_behavior(list_reservations):
 def test_run_sweep_params(client):
     client().create_program.return_value = (
         'prog',
-        qtypes.QuantumProgram(name='projects/proj/programs/prog'),
+        quantum.QuantumProgram(name='projects/proj/programs/prog'),
     )
     client().create_job.return_value = (
         'job-id',
-        qtypes.QuantumJob(
+        quantum.QuantumJob(
             name='projects/proj/programs/prog/jobs/job-id', execution_status={'state': 'READY'}
         ),
     )
-    client().get_job.return_value = qtypes.QuantumJob(execution_status={'state': 'SUCCESS'})
-    client().get_job_results.return_value = qtypes.QuantumResult(result=_to_any(_RESULTS_V2))
+    client().get_job.return_value = quantum.QuantumJob(execution_status={'state': 'SUCCESS'})
+    client().get_job_results.return_value = quantum.QuantumResult(result=util.pack_any(_RESULTS_V2))
 
     processor = cg.EngineProcessor('a', 'p', EngineContext())
     job = processor.run_sweep(
-        program=_CIRCUIT,
-        params=[cirq.ParamResolver({'a': 1}), cirq.ParamResolver({'a': 2})],
-        gate_set=cg.XMON,
+        program=_CIRCUIT, params=[cirq.ParamResolver({'a': 1}), cirq.ParamResolver({'a': 2})]
     )
     results = job.results()
     assert len(results) == 2
@@ -884,20 +867,19 @@ def test_run_sweep_params(client):
 def test_run_batch(client):
     client().create_program.return_value = (
         'prog',
-        qtypes.QuantumProgram(name='projects/proj/programs/prog'),
+        quantum.QuantumProgram(name='projects/proj/programs/prog'),
     )
     client().create_job.return_value = (
         'job-id',
-        qtypes.QuantumJob(
+        quantum.QuantumJob(
             name='projects/proj/programs/prog/jobs/job-id', execution_status={'state': 'READY'}
         ),
     )
-    client().get_job.return_value = qtypes.QuantumJob(execution_status={'state': 'SUCCESS'})
-    client().get_job_results.return_value = qtypes.QuantumResult(result=_BATCH_RESULTS_V2)
+    client().get_job.return_value = quantum.QuantumJob(execution_status={'state': 'SUCCESS'})
+    client().get_job_results.return_value = quantum.QuantumResult(result=_BATCH_RESULTS_V2)
 
     processor = cg.EngineProcessor('a', 'p', EngineContext())
     job = processor.run_batch(
-        gate_set=cg.XMON,
         programs=[_CIRCUIT, _CIRCUIT],
         job_id='job-id',
         params_list=[cirq.Points('a', [1, 2]), cirq.Points('a', [3, 4])],
@@ -929,16 +911,16 @@ def test_run_batch(client):
 def test_run_calibration(client):
     client().create_program.return_value = (
         'prog',
-        qtypes.QuantumProgram(name='projects/proj/programs/prog'),
+        quantum.QuantumProgram(name='projects/proj/programs/prog'),
     )
     client().create_job.return_value = (
         'job-id',
-        qtypes.QuantumJob(
+        quantum.QuantumJob(
             name='projects/proj/programs/prog/jobs/job-id', execution_status={'state': 'READY'}
         ),
     )
-    client().get_job.return_value = qtypes.QuantumJob(execution_status={'state': 'SUCCESS'})
-    client().get_job_results.return_value = qtypes.QuantumResult(result=_CALIBRATION_RESULTS_V2)
+    client().get_job.return_value = quantum.QuantumJob(execution_status={'state': 'SUCCESS'})
+    client().get_job_results.return_value = quantum.QuantumResult(result=_CALIBRATION_RESULTS_V2)
 
     q1 = cirq.GridQubit(2, 3)
     q2 = cirq.GridQubit(2, 4)
@@ -947,9 +929,7 @@ def test_run_calibration(client):
         'readout', cirq.Circuit(cirq.measure(q1, q2)), {'num_samples': 4242}
     )
     processor = cg.EngineProcessor('proj', 'mysim', EngineContext())
-    job = processor.run_calibration(
-        gate_set=cg.FSIM_GATESET, layers=[layer1, layer2], job_id='job-id'
-    )
+    job = processor.run_calibration(layers=[layer1, layer2], job_id='job-id')
     results = job.calibration_results()
     assert len(results) == 2
     assert results[0].code == v2.calibration_pb2.SUCCESS
@@ -967,7 +947,7 @@ def test_run_calibration(client):
         program_id='prog',
         job_id='job-id',
         processor_ids=['mysim'],
-        run_context=_to_any(v2.run_context_pb2.RunContext()),
+        run_context=util.pack_any(v2.run_context_pb2.RunContext()),
         description=None,
         labels={'calibration': ''},
     )
@@ -977,18 +957,18 @@ def test_run_calibration(client):
 def test_sampler(client):
     client().create_program.return_value = (
         'prog',
-        qtypes.QuantumProgram(name='projects/proj/programs/prog'),
+        quantum.QuantumProgram(name='projects/proj/programs/prog'),
     )
     client().create_job.return_value = (
         'job-id',
-        qtypes.QuantumJob(
+        quantum.QuantumJob(
             name='projects/proj/programs/prog/jobs/job-id', execution_status={'state': 'READY'}
         ),
     )
-    client().get_job.return_value = qtypes.QuantumJob(execution_status={'state': 'SUCCESS'})
-    client().get_job_results.return_value = qtypes.QuantumResult(result=_to_any(_RESULTS_V2))
+    client().get_job.return_value = quantum.QuantumJob(execution_status={'state': 'SUCCESS'})
+    client().get_job_results.return_value = quantum.QuantumResult(result=util.pack_any(_RESULTS_V2))
     processor = cg.EngineProcessor('proj', 'mysim', EngineContext())
-    sampler = processor.get_sampler(gate_set=cg.XMON)
+    sampler = processor.get_sampler()
     results = sampler.run_sweep(
         program=_CIRCUIT, params=[cirq.ParamResolver({'a': 1}), cirq.ParamResolver({'a': 2})]
     )

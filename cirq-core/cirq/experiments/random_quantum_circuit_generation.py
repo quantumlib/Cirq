@@ -186,8 +186,8 @@ def random_rotations_between_two_qubit_circuit(
         ['cirq.Qid', 'cirq.Qid', 'np.random.RandomState'], 'cirq.OP_TREE'
     ] = lambda a, b, _: ops.CZPowGate()(a, b),
     single_qubit_gates: Sequence['cirq.Gate'] = (
-        ops.X ** 0.5,
-        ops.Y ** 0.5,
+        ops.X**0.5,
+        ops.Y**0.5,
         ops.PhasedXPowGate(phase_exponent=0.25, exponent=0.5),
     ),
     add_final_single_qubit_layer: bool = True,
@@ -305,7 +305,7 @@ class CircuitLibraryCombination:
     """
 
     layer: Optional[Any]
-    combinations: np.array
+    combinations: np.ndarray
     pairs: List[QidPairT]
 
 
@@ -520,7 +520,7 @@ def get_random_combinations_for_layer_circuit(
 def get_grid_interaction_layer_circuit(
     device_graph: nx.Graph,
     pattern: Sequence[GridInteractionLayer] = HALF_GRID_STAGGERED_PATTERN,
-    two_qubit_gate=ops.ISWAP ** 0.5,
+    two_qubit_gate=ops.ISWAP**0.5,
 ) -> 'cirq.Circuit':
     """Create a circuit representation of a grid interaction pattern on a given device topology.
 
@@ -554,8 +554,8 @@ def random_rotations_between_grid_interaction_layers_circuit(
     ] = lambda a, b, _: ops.CZPowGate()(a, b),
     pattern: Sequence[GridInteractionLayer] = GRID_STAGGERED_PATTERN,
     single_qubit_gates: Sequence['cirq.Gate'] = (
-        ops.X ** 0.5,
-        ops.Y ** 0.5,
+        ops.X**0.5,
+        ops.Y**0.5,
         ops.PhasedXPowGate(phase_exponent=0.25, exponent=0.5),
     ),
     add_final_single_qubit_layer: bool = True,
@@ -618,9 +618,7 @@ def random_rotations_between_grid_interaction_layers_circuit(
     return circuit
 
 
-def _coupled_qubit_pairs(
-    qubits: List['cirq.GridQubit'],
-) -> List[GridQubitPairT]:
+def _coupled_qubit_pairs(qubits: List['cirq.GridQubit']) -> List[GridQubitPairT]:
     pairs = []
     qubit_set = set(qubits)
     for qubit in qubits:

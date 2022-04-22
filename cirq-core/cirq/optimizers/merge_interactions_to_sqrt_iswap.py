@@ -76,8 +76,8 @@ class MergeInteractionsToSqrtIswap(merge_interactions.MergeInteractionsAbc):
         self.use_sqrt_iswap_inv = use_sqrt_iswap_inv
         self.gateset = ops.Gateset(
             ops.SQRT_ISWAP_INV if use_sqrt_iswap_inv else ops.SQRT_ISWAP,
+            ops.GlobalPhaseGate,
             unroll_circuit_op=False,
-            accept_global_phase_op=True,
         )
 
     def _may_keep_old_op(self, old_op: 'cirq.Operation') -> bool:
@@ -85,11 +85,8 @@ class MergeInteractionsToSqrtIswap(merge_interactions.MergeInteractionsAbc):
         without decomposition."""
         return old_op in self.gateset
 
-    def _two_qubit_matrix_to_operations(
-        self,
-        q0: 'cirq.Qid',
-        q1: 'cirq.Qid',
-        mat: np.ndarray,
+    def _two_qubit_matrix_to_cz_operations(
+        self, q0: 'cirq.Qid', q1: 'cirq.Qid', mat: np.ndarray
     ) -> Sequence['cirq.Operation']:
         """Decomposes the merged two-qubit gate unitary into the minimum number
         of SQRT_ISWAP gates.

@@ -177,7 +177,7 @@ class Moment:
         """Returns a new moment with the given contents added.
 
         Args:
-            contents: New operations to add to this moment.
+            *contents: New operations to add to this moment.
 
         Returns:
             The new moment.
@@ -262,9 +262,7 @@ class Moment:
         )
 
     def _with_rescoped_keys_(
-        self,
-        path: Tuple[str, ...],
-        bindable_keys: FrozenSet['cirq.MeasurementKey'],
+        self, path: Tuple[str, ...], bindable_keys: FrozenSet['cirq.MeasurementKey']
     ):
         return Moment(
             protocols.with_rescoped_keys(op, path, bindable_keys) for op in self.operations
@@ -414,7 +412,7 @@ class Moment:
         transpose = input_subscripts + '->' + output_subscripts
 
         r = []
-        d = 2 ** n
+        d = 2**n
         kss = [kraus_tensors(op) for op in self.operations]
         for ks in itertools.product(*kss):
             k = np.einsum(transpose, *ks)
@@ -574,9 +572,7 @@ class Moment:
 
         return diagram.render()
 
-    def _commutes_(
-        self, other: Any, *, atol: Union[int, float] = 1e-8
-    ) -> Union[bool, NotImplementedType]:
+    def _commutes_(self, other: Any, *, atol: float = 1e-8) -> Union[bool, NotImplementedType]:
         """Determines whether Moment commutes with the Operation.
 
         Args:

@@ -163,7 +163,7 @@ class StateVectorMixin:
 
 def sample_state_vector(
     state_vector: np.ndarray,
-    indices: List[int],
+    indices: Sequence[int],
     *,  # Force keyword args
     qid_shape: Optional[Tuple[int, ...]] = None,
     repetitions: int = 1,

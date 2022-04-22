@@ -18,18 +18,7 @@ import itertools
 import os
 import tempfile
 import warnings
-from typing import (
-    Optional,
-    Union,
-    Iterable,
-    Dict,
-    List,
-    Tuple,
-    TYPE_CHECKING,
-    Set,
-    Sequence,
-    Any,
-)
+from typing import Optional, Union, Iterable, Dict, List, Tuple, TYPE_CHECKING, Set, Sequence, Any
 
 import numpy as np
 import pandas as pd
@@ -42,11 +31,7 @@ from cirq.work.observable_measurement_data import (
     ObservableMeasuredResult,
     flatten_grouped_results,
 )
-from cirq.work.observable_settings import (
-    InitObsSetting,
-    observables_to_settings,
-    _MeasurementSpec,
-)
+from cirq.work.observable_settings import InitObsSetting, observables_to_settings, _MeasurementSpec
 
 if TYPE_CHECKING:
     import cirq
@@ -64,9 +49,7 @@ document(
 
 
 def _with_parameterized_layers(
-    circuit: 'cirq.AbstractCircuit',
-    qubits: Sequence['cirq.Qid'],
-    needs_init_layer: bool,
+    circuit: 'cirq.AbstractCircuit', qubits: Sequence['cirq.Qid'], needs_init_layer: bool
 ) -> 'cirq.Circuit':
     """Return a copy of the input circuit with parameterized single-qubit rotations.
 
@@ -348,22 +331,12 @@ def _subdivide_meas_specs(
     flippy_mspecs = []
     for meas_spec in meas_specs:
         all_normal = np.zeros(n_qubits, dtype=bool)
-        flippy_mspecs.append(
-            _FlippyMeasSpec(
-                meas_spec=meas_spec,
-                flips=all_normal,
-                qubits=qubits,
-            )
-        )
+        flippy_mspecs.append(_FlippyMeasSpec(meas_spec=meas_spec, flips=all_normal, qubits=qubits))
 
         if readout_symmetrization:
             all_flipped = np.ones(n_qubits, dtype=bool)
             flippy_mspecs.append(
-                _FlippyMeasSpec(
-                    meas_spec=meas_spec,
-                    flips=all_flipped,
-                    qubits=qubits,
-                )
+                _FlippyMeasSpec(meas_spec=meas_spec, flips=all_flipped, qubits=qubits)
             )
 
     if readout_symmetrization:
@@ -608,9 +581,7 @@ def measure_grouped_settings(
     return list(accumulators.values())
 
 
-_GROUPING_FUNCS: Dict[str, GROUPER_T] = {
-    'greedy': group_settings_greedy,
-}
+_GROUPING_FUNCS: Dict[str, GROUPER_T] = {'greedy': group_settings_greedy}
 
 
 def _parse_grouper(grouper: Union[str, GROUPER_T] = group_settings_greedy) -> GROUPER_T:
@@ -625,8 +596,7 @@ def _parse_grouper(grouper: Union[str, GROUPER_T] = group_settings_greedy) -> GR
 
 
 def _get_all_qubits(
-    circuit: 'cirq.AbstractCircuit',
-    observables: Iterable['cirq.PauliString'],
+    circuit: 'cirq.AbstractCircuit', observables: Iterable['cirq.PauliString']
 ) -> List['cirq.Qid']:
     """Helper function for `measure_observables` to get all qubits from a circuit and a
     collection of observables."""

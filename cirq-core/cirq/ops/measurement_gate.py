@@ -65,8 +65,10 @@ class MeasurementGate(raw_types.Gate):
         self._qid_shape = qid_shape
         if len(self._qid_shape) != num_qubits:
             raise ValueError('len(qid_shape) != num_qubits')
-        self.key = key  # type: ignore
-        self.invert_mask = invert_mask or ()
+        self._mkey = (
+            key if isinstance(key, value.MeasurementKey) else value.MeasurementKey(name=key)
+        )
+        self._invert_mask = invert_mask or ()
         if self.invert_mask is not None and len(self.invert_mask) > self.num_qubits():
             raise ValueError('len(invert_mask) > num_qubits')
 
@@ -74,12 +76,13 @@ class MeasurementGate(raw_types.Gate):
     def key(self) -> str:
         return str(self.mkey)
 
-    @key.setter
-    def key(self, key: Union[str, 'cirq.MeasurementKey']):
-        if isinstance(key, value.MeasurementKey):
-            self.mkey = key
-        else:
-            self.mkey = value.MeasurementKey(name=key)
+    @property
+    def mkey(self) -> 'cirq.MeasurementKey':
+        return self._mkey
+
+    @property
+    def invert_mask(self) -> Tuple[bool, ...]:
+        return self._invert_mask
 
     def _qid_shape_(self) -> Tuple[int, ...]:
         return self._qid_shape
@@ -102,9 +105,7 @@ class MeasurementGate(raw_types.Gate):
         return self.with_key(self.mkey._with_key_path_prefix_(prefix))
 
     def _with_rescoped_keys_(
-        self,
-        path: Tuple[str, ...],
-        bindable_keys: FrozenSet['cirq.MeasurementKey'],
+        self, path: Tuple[str, ...], bindable_keys: FrozenSet['cirq.MeasurementKey']
     ):
         return self.with_key(protocols.with_rescoped_keys(self.mkey, path, bindable_keys))
 
@@ -122,7 +123,7 @@ class MeasurementGate(raw_types.Gate):
             self.num_qubits(), key=self.key, invert_mask=tuple(new_mask), qid_shape=self._qid_shape
         )
 
-    def full_invert_mask(self):
+    def full_invert_mask(self) -> Tuple[bool, ...]:
         """Returns the invert mask for all qubits.
 
         If the user supplies a partial invert_mask, this returns that mask

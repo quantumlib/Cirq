@@ -13,17 +13,7 @@
 # limitations under the License.
 
 import abc
-from typing import (
-    Any,
-    cast,
-    Dict,
-    Iterable,
-    Sequence,
-    Tuple,
-    TypeVar,
-    Union,
-    TYPE_CHECKING,
-)
+from typing import Any, cast, Dict, Iterable, Sequence, Tuple, TypeVar, Union, TYPE_CHECKING
 
 from cirq import circuits, ops, protocols, transformers, value
 from cirq.type_workarounds import NotImplementedType
@@ -164,9 +154,7 @@ class SwapPermutationGate(PermutationGate):
     def _value_equality_values_(self) -> Any:
         return (self.swap_gate,)
 
-    def _commutes_(
-        self, other: Any, atol: Union[int, float] = 1e-8
-    ) -> Union[bool, NotImplementedType]:
+    def _commutes_(self, other: Any, *, atol: float = 1e-8) -> Union[bool, NotImplementedType]:
         if (
             isinstance(other, ops.Gate)
             and isinstance(other, ops.InterchangeableQubitsGate)

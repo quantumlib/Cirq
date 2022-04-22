@@ -81,9 +81,7 @@ def _sweep_from_param_sweep_zip_proto(param_sweep_zip: params_pb2.ZipSweep) -> c
     return cirq.UnitSweep
 
 
-def _sweep_from_single_param_sweep_proto(
-    single_param_sweep: params_pb2.SingleSweep,
-) -> cirq.Sweep:
+def _sweep_from_single_param_sweep_proto(single_param_sweep: params_pb2.SingleSweep) -> cirq.Sweep:
     key = single_param_sweep.parameter_key
     if single_param_sweep.HasField('points'):
         points = single_param_sweep.points

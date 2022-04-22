@@ -11,7 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from typing import Any, Tuple, Union, Sequence
+from typing import Any, Sequence, Tuple
 
 import numpy as np
 import pytest
@@ -20,30 +20,23 @@ import cirq
 from cirq.ops.raw_types import TSelf
 
 
+class DummyQuantumState(cirq.QuantumStateRepresentation):
+    def copy(self, deep_copy_buffers=True):
+        pass
+
+    def measure(self, axes, seed=None):
+        pass
+
+
 class DummyActOnArgs(cirq.ActOnArgs):
-    def __init__(self, fallback_result: Any = NotImplemented, measurements=None):
-        super().__init__(np.random.RandomState())
-        if measurements is None:
-            measurements = []
-        self.measurements = measurements
+    def __init__(self, fallback_result: Any = NotImplemented):
+        super().__init__(prng=np.random.RandomState(), state=DummyQuantumState())
         self.fallback_result = fallback_result
 
-    def _perform_measurement(self, qubits):
-        return self.measurements  # coverage: ignore
-
-    def copy(self, deep_copy_buffers: bool = True):
-        return DummyActOnArgs(self.fallback_result, self.measurements.copy())  # coverage: ignore
-
     def _act_on_fallback_(
-        self,
-        action: Union['cirq.Operation', 'cirq.Gate'],
-        qubits: Sequence['cirq.Qid'],
-        allow_decompose: bool = True,
+        self, action: Any, qubits: Sequence['cirq.Qid'], allow_decompose: bool = True
     ):
         return self.fallback_result
-
-    def sample(self, qubits, repetitions=1, seed=None):
-        pass
 
 
 op = cirq.X(cirq.LineQubit(0))

@@ -39,6 +39,7 @@ class CZTargetGateset(compilation_target_gateset.TwoQubitCompilationTargetGatese
             ops.CZPowGate if allow_partial_czs else ops.CZ,
             ops.MeasurementGate,
             ops.AnyUnitaryGateFamily(1),
+            ops.GlobalPhaseGate,
             name='CZPowTargetGateset' if allow_partial_czs else 'CZTargetGateset',
         )
         self.atol = atol
@@ -47,7 +48,7 @@ class CZTargetGateset(compilation_target_gateset.TwoQubitCompilationTargetGatese
     def _decompose_two_qubit_operation(self, op: 'cirq.Operation', _) -> 'cirq.OP_TREE':
         if not protocols.has_unitary(op):
             return NotImplemented
-        return two_qubit_to_cz.two_qubit_matrix_to_operations(
+        return two_qubit_to_cz.two_qubit_matrix_to_cz_operations(
             op.qubits[0],
             op.qubits[1],
             protocols.unitary(op),
@@ -62,10 +63,7 @@ class CZTargetGateset(compilation_target_gateset.TwoQubitCompilationTargetGatese
         return self.atol, self.allow_partial_czs
 
     def _json_dict_(self) -> Dict[str, Any]:
-        return {
-            'atol': self.atol,
-            'allow_partial_czs': self.allow_partial_czs,
-        }
+        return {'atol': self.atol, 'allow_partial_czs': self.allow_partial_czs}
 
     @classmethod
     def _from_json_dict_(cls, atol, allow_partial_czs, **kwargs):

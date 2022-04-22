@@ -62,11 +62,7 @@ z: ───────────X───────X───X───
 
 def test_map_operations_does_not_insert_too_many_moments():
     q = cirq.LineQubit.range(5)
-    c_orig = cirq.Circuit(
-        cirq.CX(q[0], q[1]),
-        cirq.CX(q[3], q[2]),
-        cirq.CX(q[3], q[4]),
-    )
+    c_orig = cirq.Circuit(cirq.CX(q[0], q[1]), cirq.CX(q[3], q[2]), cirq.CX(q[3], q[4]))
 
     def map_func(op: cirq.Operation, _: int) -> cirq.OP_TREE:
         yield cirq.Z.on_each(*op.qubits)
@@ -117,19 +113,21 @@ def test_map_operations_does_not_insert_too_many_moments():
     )
 
 
+# pylint: disable=line-too-long
 def test_map_operations_deep_subcircuits():
     q = cirq.LineQubit.range(5)
-    c_orig = cirq.Circuit(
-        cirq.CX(q[0], q[1]),
-        cirq.CX(q[3], q[2]),
-        cirq.CX(q[3], q[4]),
-    )
+    c_orig = cirq.Circuit(cirq.CX(q[0], q[1]), cirq.CX(q[3], q[2]), cirq.CX(q[3], q[4]))
     c_orig_with_circuit_ops = cirq.Circuit(
         cirq.CircuitOperation(
             cirq.FrozenCircuit(
-                [cirq.CircuitOperation(cirq.FrozenCircuit(op)) for op in c_orig.all_operations()]
+                [
+                    cirq.CircuitOperation(cirq.FrozenCircuit(op)).repeat(2).with_tags("internal")
+                    for op in c_orig.all_operations()
+                ]
             )
         )
+        .repeat(6)
+        .with_tags("external")
     )
 
     def map_func(op: cirq.Operation, _: int) -> cirq.OP_TREE:
@@ -139,21 +137,112 @@ def test_map_operations_deep_subcircuits():
             cirq.Z.on_each(*op.qubits),
         ] if op.gate == cirq.CX else op
 
-    c_mapped = cirq.map_operations(c_orig_with_circuit_ops, map_func, deep=True)
-    c_mapped = cirq.unroll_circuit_op(c_mapped, deep=True, tags_to_check=None)
     cirq.testing.assert_has_diagram(
-        c_mapped,
+        c_orig_with_circuit_ops,
         '''
-0: ───Z───@───Z───────────────
-          │
-1: ───Z───X───Z───────────────
-
-2: ───Z───X───Z───────────────
-          │
-3: ───Z───@───Z───Z───@───Z───
-                      │
-4: ───────────────Z───X───Z───
+      [       [ 0: ───@─── ]                                                               ]
+      [ 0: ───[       │    ]────────────────────────────────────────────────────────────── ]
+      [       [ 1: ───X─── ](loops=2)['internal']                                          ]
+      [       │                                                                            ]
+      [ 1: ───#2────────────────────────────────────────────────────────────────────────── ]
+      [                                                                                    ]
+      [       [ 2: ───X─── ]                                                               ]
+0: ───[ 2: ───[       │    ]────────────────────────────────────────────────────────────── ]────────────────────────
+      [       [ 3: ───@─── ](loops=2)['internal']                                          ]
+      [       │                                                                            ]
+      [       │                                     [ 3: ───@─── ]                         ]
+      [ 3: ───#2────────────────────────────────────[       │    ]──────────────────────── ]
+      [                                             [ 4: ───X─── ](loops=2)['internal']    ]
+      [                                             │                                      ]
+      [ 4: ─────────────────────────────────────────#2──────────────────────────────────── ](loops=6)['external']
+      │
+1: ───#2────────────────────────────────────────────────────────────────────────────────────────────────────────────
+      │
+2: ───#3────────────────────────────────────────────────────────────────────────────────────────────────────────────
+      │
+3: ───#4────────────────────────────────────────────────────────────────────────────────────────────────────────────
+      │
+4: ───#5────────────────────────────────────────────────────────────────────────────────────────────────────────────
 ''',
+    )
+
+    c_mapped = cirq.map_operations(c_orig_with_circuit_ops, map_func, deep=True)
+    for unroller in [
+        cirq.unroll_circuit_op,
+        cirq.unroll_circuit_op_greedy_earliest,
+        cirq.unroll_circuit_op_greedy_frontier,
+    ]:
+        cirq.testing.assert_has_diagram(
+            unroller(c_mapped, deep=True),
+            '''
+      [       [ 0: ───Z───@───Z─── ]                                                                       ]
+      [ 0: ───[           │        ]────────────────────────────────────────────────────────────────────── ]
+      [       [ 1: ───Z───X───Z─── ](loops=2)['internal']                                                  ]
+      [       │                                                                                            ]
+      [ 1: ───#2────────────────────────────────────────────────────────────────────────────────────────── ]
+      [                                                                                                    ]
+      [       [ 2: ───Z───X───Z─── ]                                                                       ]
+0: ───[ 2: ───[           │        ]────────────────────────────────────────────────────────────────────── ]────────────────────────
+      [       [ 3: ───Z───@───Z─── ](loops=2)['internal']                                                  ]
+      [       │                                                                                            ]
+      [       │                                             [ 3: ───Z───@───Z─── ]                         ]
+      [ 3: ───#2────────────────────────────────────────────[           │        ]──────────────────────── ]
+      [                                                     [ 4: ───Z───X───Z─── ](loops=2)['internal']    ]
+      [                                                     │                                              ]
+      [ 4: ─────────────────────────────────────────────────#2──────────────────────────────────────────── ](loops=6)['external']
+      │
+1: ───#2────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+      │
+2: ───#3────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+      │
+3: ───#4────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+      │
+4: ───#5────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+''',
+        )
+
+
+# pylint: enable=line-too-long
+
+
+def test_map_operations_deep_respects_tags_to_ignore():
+    q = cirq.LineQubit.range(2)
+    c_nested = cirq.FrozenCircuit(cirq.CX(*q), cirq.CX(*q).with_tags("ignore"), cirq.CX(*q))
+    c_nested_mapped = cirq.FrozenCircuit(cirq.CZ(*q), cirq.CX(*q).with_tags("ignore"), cirq.CZ(*q))
+    c_orig = cirq.Circuit(
+        c_nested,
+        cirq.CircuitOperation(c_nested).repeat(4).with_tags("ignore"),
+        c_nested,
+        cirq.CircuitOperation(
+            cirq.FrozenCircuit(
+                cirq.CircuitOperation(c_nested).repeat(5).with_tags("preserve_tag"),
+                cirq.CircuitOperation(c_nested).repeat(6).with_tags("ignore"),
+                cirq.CircuitOperation(c_nested).repeat(7),
+            )
+        ),
+        c_nested,
+    )
+    c_expected = cirq.Circuit(
+        c_nested_mapped,
+        cirq.CircuitOperation(c_nested).repeat(4).with_tags("ignore"),
+        c_nested_mapped,
+        cirq.CircuitOperation(
+            cirq.FrozenCircuit(
+                cirq.CircuitOperation(c_nested_mapped).repeat(5).with_tags("preserve_tag"),
+                cirq.CircuitOperation(c_nested).repeat(6).with_tags("ignore"),
+                cirq.CircuitOperation(c_nested_mapped).repeat(7),
+            )
+        ),
+        c_nested_mapped,
+    )
+    cirq.testing.assert_same_circuits(
+        cirq.map_operations(
+            c_orig,
+            lambda op, _: cirq.CZ(*op.qubits) if op.gate == cirq.CX else op,
+            tags_to_ignore=["ignore"],
+            deep=True,
+        ),
+        c_expected,
     )
 
 
@@ -204,13 +293,29 @@ def test_unroll_circuit_op_and_variants():
         [cirq.Moment(cirq.CircuitOperation(cirq.FrozenCircuit(m))) for m in mapped_circuit[:-1]],
         mapped_circuit[-1],
     )
+    cirq.testing.assert_has_diagram(
+        mapped_circuit_deep,
+        '''
+0: ───[ 0: ───X─── ]────────────────────────────────────────────────────────────X───
+
+1: ────────────────────[ 1: ───[ 1: ───Z───Z─── ]['<mapped_circuit_op>']─── ]───────
+''',
+    )
     for unroller in [
         cirq.unroll_circuit_op_greedy_earliest,
         cirq.unroll_circuit_op_greedy_frontier,
         cirq.unroll_circuit_op,
     ]:
         cirq.testing.assert_same_circuits(
-            unroller(mapped_circuit), unroller(mapped_circuit_deep, tags_to_check=None, deep=True)
+            unroller(mapped_circuit), unroller(mapped_circuit_deep, deep=True, tags_to_check=None)
+        )
+        cirq.testing.assert_has_diagram(
+            unroller(mapped_circuit_deep, deep=True),
+            '''
+0: ───[ 0: ───X─── ]────────────────────────X───
+
+1: ────────────────────[ 1: ───Z───Z─── ]───────
+            ''',
         )
 
     cirq.testing.assert_has_diagram(
@@ -237,6 +342,16 @@ def test_unroll_circuit_op_and_variants():
 1: ───────Z───Z───
 ''',
     )
+
+
+def test_unroll_circuit_op_greedy_frontier_doesnt_touch_same_op_twice():
+    q = cirq.NamedQubit("q")
+    nested_ops = [cirq.CircuitOperation(cirq.FrozenCircuit(cirq.X(q)))] * 5
+    nested_circuit_op = cirq.CircuitOperation(cirq.FrozenCircuit(nested_ops))
+    c = cirq.Circuit(nested_circuit_op, nested_circuit_op, nested_circuit_op)
+    c_expected = cirq.Circuit(nested_ops, nested_ops, nested_ops)
+    c_unrolled = cirq.unroll_circuit_op_greedy_frontier(c, tags_to_check=None)
+    cirq.testing.assert_same_circuits(c_unrolled, c_expected)
 
 
 def test_unroll_circuit_op_deep():
@@ -279,10 +394,7 @@ def test_unroll_circuit_op_no_tags():
             unroller(c, tags_to_check=("custom tag",)), cirq.Circuit([op1, op_list, op3])
         )
         cirq.testing.assert_same_circuits(
-            unroller(
-                c,
-                tags_to_check=("custom tag", MAPPED_CIRCUIT_OP_TAG),
-            ),
+            unroller(c, tags_to_check=("custom tag", MAPPED_CIRCUIT_OP_TAG)),
             cirq.Circuit([op1, op_list, op_list]),
         )
 
@@ -317,6 +429,47 @@ def test_map_moments_drop_empty_moments():
     cirq.testing.assert_same_circuits(c_mapped, cirq.Circuit(c[0], c[0]))
 
 
+def test_map_moments_drop_empty_moments_deep():
+    op = cirq.X(cirq.NamedQubit("q"))
+    c_nested = cirq.FrozenCircuit(cirq.Moment(op), cirq.Moment(), cirq.Moment(op))
+    circuit_op = cirq.CircuitOperation(c_nested).repeat(2)
+    circuit_op_dropped = cirq.CircuitOperation(cirq.FrozenCircuit([op, op])).repeat(2)
+    c_orig = cirq.Circuit(
+        c_nested,
+        cirq.CircuitOperation(c_nested).repeat(6).with_tags("ignore"),
+        c_nested,
+        cirq.CircuitOperation(
+            cirq.FrozenCircuit(circuit_op, circuit_op.with_tags("ignore"), circuit_op)
+        )
+        .repeat(5)
+        .with_tags("preserve_tag"),
+    )
+    c_expected = cirq.Circuit(
+        [op, op],
+        cirq.CircuitOperation(c_nested).repeat(6).with_tags("ignore"),
+        [op, op],
+        cirq.CircuitOperation(
+            cirq.FrozenCircuit(
+                circuit_op_dropped, circuit_op.with_tags("ignore"), circuit_op_dropped
+            )
+        )
+        .repeat(5)
+        .with_tags("preserve_tag"),
+    )
+    c_mapped = cirq.map_moments(
+        c_orig, lambda m, i: [] if len(m) == 0 else [m], deep=True, tags_to_ignore=("ignore",)
+    )
+    cirq.testing.assert_same_circuits(c_mapped, c_expected)
+
+
+def _merge_z_moments_func(m1: cirq.Moment, m2: cirq.Moment) -> Optional[cirq.Moment]:
+    if any(op.gate != cirq.Z for m in [m1, m2] for op in m):
+        return None
+    return cirq.Moment(
+        cirq.Z(q) for q in (m1.qubits | m2.qubits) if m1.operates_on([q]) ^ m2.operates_on([q])
+    )
+
+
 def test_merge_moments():
     q = cirq.LineQubit.range(3)
     c_orig = cirq.Circuit(
@@ -337,21 +490,8 @@ def test_merge_moments():
 ''',
     )
 
-    def merge_func(m1: cirq.Moment, m2: cirq.Moment) -> Optional[cirq.Moment]:
-        def is_z_moment(m):
-            return all(op.gate == cirq.Z for op in m)
-
-        if not (is_z_moment(m1) and is_z_moment(m2)):
-            return None
-        qubits = m1.qubits | m2.qubits
-
-        def mul(op1, op2):
-            return (op1 or op2) if not (op1 and op2) else cirq.decompose_once(op1 * op2)
-
-        return cirq.Moment(mul(m1.operation_at(q), m2.operation_at(q)) for q in qubits)
-
     cirq.testing.assert_has_diagram(
-        cirq.merge_moments(c_orig, merge_func),
+        cirq.merge_moments(c_orig, _merge_z_moments_func),
         '''
 0: ───────@───────
           │
@@ -359,6 +499,35 @@ def test_merge_moments():
           │
 2: ───Z───X───Z───
 ''',
+    )
+
+
+def test_merge_moments_deep():
+    q = cirq.LineQubit.range(3)
+    c_z_moments = cirq.Circuit(
+        [cirq.Z.on_each(q[0], q[1]), cirq.Z.on_each(q[1], q[2]), cirq.Z.on_each(q[1], q[0])],
+        strategy=cirq.InsertStrategy.NEW_THEN_INLINE,
+    )
+    merged_z_moment = cirq.Moment(cirq.Z.on_each(*q[1:]))
+    c_nested_circuit = cirq.FrozenCircuit(c_z_moments, cirq.CCX(*q), c_z_moments)
+    c_merged_circuit = cirq.FrozenCircuit(merged_z_moment, cirq.CCX(*q), merged_z_moment)
+    c_orig = cirq.Circuit(
+        cirq.CircuitOperation(c_nested_circuit).repeat(5).with_tags("ignore"),
+        c_nested_circuit,
+        cirq.CircuitOperation(c_nested_circuit).repeat(6).with_tags("preserve_tag"),
+        c_nested_circuit,
+        cirq.CircuitOperation(c_nested_circuit).repeat(7),
+    )
+    c_expected = cirq.Circuit(
+        cirq.CircuitOperation(c_nested_circuit).repeat(5).with_tags("ignore"),
+        c_merged_circuit,
+        cirq.CircuitOperation(c_merged_circuit).repeat(6).with_tags("preserve_tag"),
+        c_merged_circuit,
+        cirq.CircuitOperation(c_merged_circuit).repeat(7),
+    )
+    cirq.testing.assert_same_circuits(
+        cirq.merge_moments(c_orig, _merge_z_moments_func, tags_to_ignore=("ignore",), deep=True),
+        c_expected,
     )
 
 
@@ -461,7 +630,45 @@ def test_merge_operations_merges_connected_component():
     )
 
 
+def test_merge_operations_deep():
+    q = cirq.LineQubit.range(2)
+    h_cz_y = [cirq.H(q[0]), cirq.CZ(*q), cirq.Y(q[1])]
+    m_cz_m = [cirq.Moment(), cirq.Moment(cirq.CZ(*q)), cirq.Moment()]
+    c_orig = cirq.Circuit(
+        h_cz_y,
+        cirq.Moment(cirq.X(q[0]).with_tags("ignore"), cirq.Y(q[1])),
+        cirq.CircuitOperation(cirq.FrozenCircuit(h_cz_y)).repeat(6).with_tags("ignore"),
+        [cirq.CNOT(*q), cirq.CNOT(*q)],
+        cirq.CircuitOperation(cirq.FrozenCircuit(h_cz_y)).repeat(4),
+        [cirq.CNOT(*q), cirq.CZ(*q), cirq.CNOT(*q)],
+        cirq.CircuitOperation(cirq.FrozenCircuit(h_cz_y)).repeat(5).with_tags("preserve_tag"),
+    )
+    c_expected = cirq.Circuit(
+        m_cz_m,
+        cirq.Moment(cirq.X(q[0]).with_tags("ignore")),
+        cirq.CircuitOperation(cirq.FrozenCircuit(h_cz_y)).repeat(6).with_tags("ignore"),
+        [cirq.CNOT(*q), cirq.CNOT(*q)],
+        cirq.CircuitOperation(cirq.FrozenCircuit(m_cz_m)).repeat(4),
+        [cirq.CZ(*q), cirq.Moment(), cirq.Moment()],
+        cirq.CircuitOperation(cirq.FrozenCircuit(m_cz_m)).repeat(5).with_tags("preserve_tag"),
+        strategy=cirq.InsertStrategy.NEW,
+    )
+
+    def merge_func(op1, op2):
+        """Artificial example where a CZ will absorb any merge-able operation."""
+        for op in [op1, op2]:
+            if op.gate == cirq.CZ:
+                return op
+        return None
+
+    cirq.testing.assert_same_circuits(
+        cirq.merge_operations(c_orig, merge_func, tags_to_ignore=["ignore"], deep=True), c_expected
+    )
+
+
 # pylint: disable=line-too-long
+
+
 def test_merge_operations_to_circuit_op_merges_connected_component():
     c_orig = _create_circuit_to_merge()
     cirq.testing.assert_has_diagram(

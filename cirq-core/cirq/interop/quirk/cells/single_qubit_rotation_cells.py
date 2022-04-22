@@ -83,9 +83,9 @@ def generate_all_single_qubit_rotation_cell_makers() -> Iterator[CellMaker]:
     yield _gate("e^-iZt", ops.rz(-2 * sympy.pi * sympy.Symbol('t')))
 
     # Formulaic single qubit rotations.
-    yield _formula_gate("X^ft", "sin(pi*t)", lambda e: ops.X ** e)
-    yield _formula_gate("Y^ft", "sin(pi*t)", lambda e: ops.Y ** e)
-    yield _formula_gate("Z^ft", "sin(pi*t)", lambda e: ops.Z ** e)
+    yield _formula_gate("X^ft", "sin(pi*t)", lambda e: ops.X**e)
+    yield _formula_gate("Y^ft", "sin(pi*t)", lambda e: ops.Y**e)
+    yield _formula_gate("Z^ft", "sin(pi*t)", lambda e: ops.Z**e)
     yield _formula_gate("Rxft", "pi*t*t", ops.rx)
     yield _formula_gate("Ryft", "pi*t*t", ops.ry)
     yield _formula_gate("Rzft", "pi*t*t", ops.rz)

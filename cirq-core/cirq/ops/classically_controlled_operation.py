@@ -169,10 +169,7 @@ class ClassicallyControlledOperation(raw_types.Operation):
         )
 
     def _json_dict_(self) -> Dict[str, Any]:
-        return {
-            'conditions': self._conditions,
-            'sub_operation': self._sub_operation,
-        }
+        return {'conditions': self._conditions, 'sub_operation': self._sub_operation}
 
     def _act_on_(self, args: 'cirq.OperationTarget') -> bool:
         if all(c.resolve(args.classical_data) for c in self._conditions):
@@ -194,9 +191,7 @@ class ClassicallyControlledOperation(raw_types.Operation):
         return sub_operation.with_classical_controls(*conditions)
 
     def _with_rescoped_keys_(
-        self,
-        path: Tuple[str, ...],
-        bindable_keys: FrozenSet['cirq.MeasurementKey'],
+        self, path: Tuple[str, ...], bindable_keys: FrozenSet['cirq.MeasurementKey']
     ) -> 'ClassicallyControlledOperation':
         conds = [protocols.with_rescoped_keys(c, path, bindable_keys) for c in self._conditions]
         sub_operation = protocols.with_rescoped_keys(self._sub_operation, path, bindable_keys)

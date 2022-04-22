@@ -38,14 +38,10 @@ def _set_get_processor_return(get_processor):
     from google.protobuf.text_format import Merge
 
     from cirq_google.api import v2
-    from cirq_google.engine.client.quantum_v1alpha1 import types as qtypes
+    from cirq_google.engine import util
+    from cirq_google.cloud import quantum
 
-    def _to_any(proto):
-        any_proto = qtypes.any_pb2.Any()
-        any_proto.Pack(proto)
-        return any_proto
-
-    device_spec = _to_any(
+    device_spec = util.pack_any(
         Merge(
             """
 valid_gate_sets: [{
@@ -70,11 +66,11 @@ valid_targets: [{
         )
     )
 
-    get_processor.return_value = qtypes.QuantumProcessor(device_spec=device_spec)
+    get_processor.return_value = quantum.QuantumProcessor(device_spec=device_spec)
     return get_processor
 
 
-@mock.patch('cirq_google.engine.client.quantum.QuantumEngineServiceClient')
+@mock.patch('cirq_google.cloud.quantum.QuantumEngineServiceClient')
 @mock.patch('cirq_google.engine.engine_client.EngineClient.get_processor')
 def test_engine_backend(get_processor, _):
     _set_get_processor_return(get_processor)
@@ -89,7 +85,7 @@ def test_engine_backend(get_processor, _):
     assert str(proc_rec) == 'rainbow'
 
 
-@mock.patch('cirq_google.engine.client.quantum.QuantumEngineServiceClient')
+@mock.patch('cirq_google.cloud.quantum.QuantumEngineServiceClient')
 @mock.patch('cirq_google.engine.engine_client.EngineClient.get_processor')
 def test_simulated_backend(get_processor, _):
     _set_get_processor_return(get_processor)
@@ -122,12 +118,18 @@ def test_simulated_backend_with_bad_local_device():
 def test_simulated_backend_descriptive_name():
     p = cg.SimulatedProcessorWithLocalDeviceRecord('rainbow')
     assert str(p) == 'rainbow-simulator'
-    assert isinstance(p.get_sampler(), cirq.Simulator)
+    assert isinstance(p.get_sampler(), cg.ValidatingSampler)
+    assert isinstance(p.get_sampler()._sampler, cirq.Simulator)
 
     p = cg.SimulatedProcessorWithLocalDeviceRecord('rainbow', noise_strength=1e-3)
     assert str(p) == 'rainbow-depol(1.000e-03)'
-    assert isinstance(p.get_sampler(), cirq.DensityMatrixSimulator)
+    assert isinstance(p.get_sampler()._sampler, cirq.DensityMatrixSimulator)
 
     p = cg.SimulatedProcessorWithLocalDeviceRecord('rainbow', noise_strength=float('inf'))
     assert str(p) == 'rainbow-zeros'
-    assert isinstance(p.get_sampler(), cirq.ZerosSampler)
+    assert isinstance(p.get_sampler()._sampler, cirq.ZerosSampler)
+
+
+def test_sampler_equality():
+    p = cg.SimulatedProcessorWithLocalDeviceRecord('rainbow')
+    assert p.get_sampler().__class__ == p.get_processor().get_sampler().__class__

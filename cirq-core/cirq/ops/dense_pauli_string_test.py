@@ -278,33 +278,33 @@ def test_pow():
     f = cirq.DensePauliString
     m = cirq.DensePauliString
     p = 1j * f('IXYZ')
-    assert p ** 0 == p ** 4 == p ** 8 == cirq.DensePauliString.eye(4)
-    assert p ** 1 == p ** 5 == p ** -3 == p == p ** 101
-    assert p ** 2 == p ** -2 == p ** 6 == -f('IIII')
-    assert p ** 3 == p ** -1 == p ** 7 == -1j * f('IXYZ')
+    assert p**0 == p**4 == p**8 == cirq.DensePauliString.eye(4)
+    assert p**1 == p**5 == p**-3 == p == p**101
+    assert p**2 == p**-2 == p**6 == -f('IIII')
+    assert p**3 == p**-1 == p**7 == -1j * f('IXYZ')
 
     p = -f('IXYZ')
-    assert p == p ** 1 == p ** -1 == p ** -3 == p ** -303
-    assert p ** 0 == p ** 2 == p ** -2 == p ** -4 == p ** 102
+    assert p == p**1 == p**-1 == p**-3 == p**-303
+    assert p**0 == p**2 == p**-2 == p**-4 == p**102
 
     p = 2 * f('XX')
-    assert p ** -1 == (0.5 + 0j) * f('XX')
-    assert p ** 0 == f('II')
-    assert p ** 1 == 2 * f('XX')
-    assert p ** 2 == 4 * f('II')
-    assert p ** 3 == 8 * f('XX')
-    assert p ** 4 == 16 * f('II')
+    assert p**-1 == (0.5 + 0j) * f('XX')
+    assert p**0 == f('II')
+    assert p**1 == 2 * f('XX')
+    assert p**2 == 4 * f('II')
+    assert p**3 == 8 * f('XX')
+    assert p**4 == 16 * f('II')
 
     p = -1j * f('XY')
-    assert p ** 101 == p == p ** -103
+    assert p**101 == p == p**-103
 
     p = 2j * f('XY')
-    assert (p ** -1) ** -1 == p
-    assert p ** -2 == f('II') / -4
+    assert (p**-1) ** -1 == p
+    assert p**-2 == f('II') / -4
 
     p = f('XY')
-    assert p ** -100 == p ** 0 == p ** 100 == f('II')
-    assert p ** -101 == p ** 1 == p ** 101 == f('XY')
+    assert p**-100 == p**0 == p**100 == f('II')
+    assert p**-101 == p**1 == p**101 == f('XY')
 
     # Becomes an immutable copy.
     assert m('X') ** 3 == f('X')
@@ -376,9 +376,11 @@ def test_protocols():
     cirq.testing.assert_implements_consistent_protocols(-cirq.DensePauliString('Z'))
     cirq.testing.assert_implements_consistent_protocols(1j * cirq.DensePauliString('X'))
     cirq.testing.assert_implements_consistent_protocols(2 * cirq.DensePauliString('X'))
-    cirq.testing.assert_implements_consistent_protocols(t * cirq.DensePauliString('XYIZ'))
     cirq.testing.assert_implements_consistent_protocols(
-        cirq.DensePauliString('XYIZ', coefficient=t + 2)
+        t * cirq.DensePauliString('XYIZ'), ignore_decompose_to_default_gateset=True
+    )
+    cirq.testing.assert_implements_consistent_protocols(
+        cirq.DensePauliString('XYIZ', coefficient=t + 2), ignore_decompose_to_default_gateset=True
     )
     cirq.testing.assert_implements_consistent_protocols(-cirq.DensePauliString('XYIZ'))
     cirq.testing.assert_implements_consistent_protocols(
@@ -551,43 +553,17 @@ def test_gaussian_elimination():
     f(t)
     assert t == table('+X')
 
-    t = table(
-        "+.X.X",
-        "+Z.Z.",
-        "+X.XX",
-        "+ZZ.Z",
-    )
+    t = table("+.X.X", "+Z.Z.", "+X.XX", "+ZZ.Z")
     f(t)
-    assert t == table(
-        "+X.XX",
-        "+Z.Z.",
-        "+.X.X",
-        "+.ZZZ",
-    )
+    assert t == table("+X.XX", "+Z.Z.", "+.X.X", "+.ZZZ")
 
-    t = table(
-        "+XXX",
-        "+YYY",
-    )
+    t = table("+XXX", "+YYY")
     f(t)
-    assert t == table(
-        "+XXX",
-        "iZZZ",
-    )
+    assert t == table("+XXX", "iZZZ")
 
-    t = table(
-        "+XXXX",
-        "+X...",
-        "+..ZZ",
-        "+.ZZ.",
-    )
+    t = table("+XXXX", "+X...", "+..ZZ", "+.ZZ.")
     f(t)
-    assert t == table(
-        "+X...",
-        "+.XXX",
-        "+.Z.Z",
-        "+..ZZ",
-    )
+    assert t == table("+X...", "+.XXX", "+.Z.Z", "+..ZZ")
 
     t = table(
         '+ZZZ.........',

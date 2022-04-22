@@ -24,7 +24,6 @@ import cirq
 from cirq import study
 from cirq.sim.simulator import (
     TStepResult,
-    TSimulatorState,
     SimulatesAmplitudes,
     SimulatesExpectationValues,
     SimulatesFinalState,
@@ -64,8 +63,8 @@ class FakeStepResult(cirq.StepResult):
 
 
 class SimulatesIntermediateStateImpl(
-    Generic[TStepResult, TSimulatorState, TActOnArgs],
-    SimulatesIntermediateState[TStepResult, 'SimulationTrialResult', TSimulatorState, TActOnArgs],
+    Generic[TStepResult, TActOnArgs],
+    SimulatesIntermediateState[TStepResult, 'SimulationTrialResult', TActOnArgs],
     metaclass=abc.ABCMeta,
 ):
     """A SimulatesIntermediateState that uses the default SimulationTrialResult type."""
@@ -114,25 +113,6 @@ def test_run_simulator_sweeps():
     assert expected_results == simulator.run_sweep(
         program=circuit, repetitions=10, params=param_resolvers
     )
-
-
-def test_run_simulator_sweeps_with_deprecated_run():
-    expected_measurements = {'a': np.array([[1]])}
-    simulator = FakeSimulatesSamples(expected_measurements)
-    circuit = cirq.Circuit(cirq.measure(cirq.LineQubit(0), key='k'))
-    param_resolvers = [cirq.ParamResolver({}), cirq.ParamResolver({})]
-    expected_records = {'a': np.array([[[1]]])}
-    expected_results = [
-        cirq.ResultDict(records=expected_records, params=param_resolvers[0]),
-        cirq.ResultDict(records=expected_records, params=param_resolvers[1]),
-    ]
-    with cirq.testing.assert_deprecated(
-        'values in the output of simulator._run must be 3D',
-        deadline='v0.15',
-    ):
-        assert expected_results == simulator.run_sweep(
-            program=circuit, repetitions=10, params=param_resolvers
-        )
 
 
 @mock.patch.multiple(
@@ -459,8 +439,7 @@ def test_monte_carlo_on_unknown_channel():
 
     for k in range(4):
         out = cirq.Simulator().simulate(
-            cirq.Circuit(Reset11To00().on(*cirq.LineQubit.range(2))),
-            initial_state=k,
+            cirq.Circuit(Reset11To00().on(*cirq.LineQubit.range(2))), initial_state=k
         )
         np.testing.assert_allclose(
             out.state_vector(), cirq.one_hot(index=k % 3, shape=4, dtype=np.complex64), atol=1e-8
@@ -473,9 +452,7 @@ def test_iter_definitions():
     )
 
     class FakeNonIterSimulatorImpl(
-        SimulatesAmplitudes,
-        SimulatesExpectationValues,
-        SimulatesFinalState,
+        SimulatesAmplitudes, SimulatesExpectationValues, SimulatesFinalState
     ):
         """A class which defines the non-Iterator simulator API methods.
 
@@ -532,9 +509,7 @@ def test_iter_definitions():
 
 def test_missing_iter_definitions():
     class FakeMissingIterSimulatorImpl(
-        SimulatesAmplitudes,
-        SimulatesExpectationValues,
-        SimulatesFinalState,
+        SimulatesAmplitudes, SimulatesExpectationValues, SimulatesFinalState
     ):
         """A class which fails to define simulator methods."""
 

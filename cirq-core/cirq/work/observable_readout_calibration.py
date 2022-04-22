@@ -4,10 +4,7 @@ from typing import Union, Iterable, TYPE_CHECKING
 
 from cirq import circuits, study, ops
 from cirq.work.observable_measurement import measure_grouped_settings, StoppingCriteria
-from cirq.work.observable_settings import (
-    InitObsSetting,
-    zeros_state,
-)
+from cirq.work.observable_settings import InitObsSetting, zeros_state
 
 if TYPE_CHECKING:
     import cirq

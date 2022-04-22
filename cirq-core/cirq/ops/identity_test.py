@@ -79,7 +79,7 @@ def test_identity_on_each_two_qubits():
         cirq.IdentityGate(2)(q2, q3),
     ]
     assert cirq.IdentityGate(2, (3, 3)).on_each([(q0_3, q1_3)]) == [
-        cirq.IdentityGate(2, (3, 3))(q0_3, q1_3),
+        cirq.IdentityGate(2, (3, 3))(q0_3, q1_3)
     ]
     assert cirq.IdentityGate(2).on_each((q0, q1)) == [cirq.IdentityGate(2)(q0, q1)]
     with pytest.raises(ValueError, match='Inputs to multi-qubit gates must be Sequence'):
@@ -95,9 +95,9 @@ def test_identity_on_each_two_qubits():
 @pytest.mark.parametrize('num_qubits', [1, 2, 4])
 def test_identity_unitary(num_qubits):
     i = cirq.IdentityGate(num_qubits)
-    assert np.allclose(cirq.unitary(i), np.identity(2 ** num_qubits))
+    assert np.allclose(cirq.unitary(i), np.identity(2**num_qubits))
     i3 = cirq.IdentityGate(num_qubits, (3,) * num_qubits)
-    assert np.allclose(cirq.unitary(i3), np.identity(3 ** num_qubits))
+    assert np.allclose(cirq.unitary(i3), np.identity(3**num_qubits))
 
 
 def test_identity_str():
@@ -129,9 +129,7 @@ def test_identity_apply_unitary():
 def test_identity_eq():
     equals_tester = cirq.testing.EqualsTester()
     equals_tester.make_equality_group(
-        lambda: cirq.I,
-        lambda: cirq.IdentityGate(1),
-        lambda: cirq.IdentityGate(1, (2,)),
+        lambda: cirq.I, lambda: cirq.IdentityGate(1), lambda: cirq.IdentityGate(1, (2,))
     )
     equals_tester.add_equality_group(cirq.IdentityGate(2), cirq.IdentityGate(2, (2, 2)))
     equals_tester.add_equality_group(cirq.IdentityGate(4))
@@ -153,7 +151,7 @@ def test_identity_pow():
     assert I(q) ** (1 + 1j) == I(q)
     assert I(q) ** sympy.Symbol('x') == I(q)
     with pytest.raises(TypeError):
-        _ = (I ** q)(q)
+        _ = (I**q)(q)
     with pytest.raises(TypeError):
         _ = I(q) ** q
 
@@ -180,7 +178,7 @@ def test_identity_global():
 
 
 def test_identity_mul():
-    class UnknownGate(cirq.SingleQubitGate):
+    class UnknownGate(cirq.testing.SingleQubitGate):
         pass
 
     class UnknownOperation(cirq.Operation):
