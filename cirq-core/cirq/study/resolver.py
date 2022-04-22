@@ -26,8 +26,7 @@ if TYPE_CHECKING:
     import cirq
 
 
-TParamValAny = Union['cirq.TParamVal', 'cirq.TParamValComplex']
-ParamDictType = Dict['cirq.TParamKey', TParamValAny]
+ParamDictType = Dict['cirq.TParamKey', 'cirq.TParamValComplex']
 document(ParamDictType, """Dictionary from symbols to values.""")  # type: ignore
 
 ParamResolverOrSimilarType = Union['cirq.ParamResolver', ParamDictType, None]
@@ -72,8 +71,8 @@ class ParamResolver:
         self._deep_eval_map: ParamDictType = {}
 
     def value_of(
-        self, value: Union['cirq.TParamKey', TParamValAny], recursive: bool = True
-    ) -> TParamValAny:
+        self, value: Union['cirq.TParamKey', 'cirq.TParamValComplex'], recursive: bool = True
+    ) -> 'cirq.TParamValComplex':
         """Attempt to resolve a parameter to its assigned value.
 
         Scalars are returned without modification.  Strings are resolved via
@@ -208,7 +207,9 @@ class ParamResolver:
     def __bool__(self) -> bool:
         return bool(self.param_dict)
 
-    def __getitem__(self, key: Union['cirq.TParamKey', TParamValAny]) -> TParamValAny:
+    def __getitem__(
+        self, key: Union['cirq.TParamKey', 'cirq.TParamValComplex']
+    ) -> 'cirq.TParamValComplex':
         return self.value_of(key)
 
     def __hash__(self) -> int:
