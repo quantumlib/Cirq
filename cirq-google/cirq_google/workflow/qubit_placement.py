@@ -153,6 +153,10 @@ class HardcodedQubitPlacer(QubitPlacer):
         Returns:
             A tuple of a new frozen circuit with the qubits placed and a mapping from input
             qubits or nodes to output qubits.
+
+        Raises:
+            CouldNotPlaceError: if the given problem_topology is not present in the hardcoded
+                mapping.
         """
         try:
             nt_mapping = self._mapping[problem_topology]
