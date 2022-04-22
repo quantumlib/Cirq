@@ -53,7 +53,7 @@ def test_init():
     assert d.duration_of(cirq.GateOperation(cirq.IdentityGate(1), [q00])) == 100 * us
     assert d.duration_of(cirq.measure(q00)) == 50 * ms
     with pytest.raises(ValueError):
-        _ = d.duration_of(cirq.SingleQubitGate().on(q00))
+        _ = d.duration_of(cirq.testing.SingleQubitGate().on(q00))
 
 
 def test_metadata():
@@ -83,7 +83,7 @@ def test_init_timedelta():
     assert d.duration_of(cirq.GateOperation(cirq.IdentityGate(1), [q00])) == 100 * us
     assert d.duration_of(cirq.measure(q00)) == 50 * ms
     with pytest.raises(ValueError):
-        _ = d.duration_of(cirq.SingleQubitGate().on(q00))
+        _ = d.duration_of(cirq.testing.SingleQubitGate().on(q00))
 
 
 def test_init_errors():
@@ -126,7 +126,7 @@ def test_validate_gate_errors():
     with pytest.raises(ValueError, match="controlled gates must have integer exponents"):
         d.validate_gate(cirq.CNotPowGate(exponent=0.5))
     with pytest.raises(ValueError, match="Unsupported gate"):
-        d.validate_gate(cirq.SingleQubitGate())
+        d.validate_gate(cirq.testing.SingleQubitGate())
 
 
 def test_validate_operation_errors():

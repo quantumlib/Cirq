@@ -245,7 +245,7 @@ def test_avoids_decompose_when_matrix_available():
 
 
 def test_composite_gates_without_matrix():
-    class CompositeDummy(cirq.SingleQubitGate):
+    class CompositeDummy(cirq.testing.SingleQubitGate):
         def _decompose_(self, qubits):
             yield cirq.X(qubits[0])
             yield cirq.Y(qubits[0]) ** 0.5

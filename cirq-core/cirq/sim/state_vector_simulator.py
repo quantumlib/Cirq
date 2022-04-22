@@ -43,10 +43,7 @@ TStateVectorStepResult = TypeVar('TStateVectorStepResult', bound='StateVectorSte
 class SimulatesIntermediateStateVector(
     Generic[TStateVectorStepResult],
     simulator_base.SimulatorBase[
-        TStateVectorStepResult,
-        'cirq.StateVectorTrialResult',
-        'cirq.StateVectorSimulatorState',
-        'cirq.ActOnStateVectorArgs',
+        TStateVectorStepResult, 'cirq.StateVectorTrialResult', 'cirq.ActOnStateVectorArgs',
     ],
     simulator.SimulatesAmplitudes,
     metaclass=abc.ABCMeta,
@@ -105,18 +102,9 @@ class SimulatesIntermediateStateVector(
 
 
 class StateVectorStepResult(
-    simulator_base.StepResultBase['StateVectorSimulatorState', 'cirq.ActOnStateVectorArgs'],
-    metaclass=abc.ABCMeta,
+    simulator_base.StepResultBase['cirq.ActOnStateVectorArgs'], metaclass=abc.ABCMeta
 ):
-    @abc.abstractmethod
-    def _simulator_state(self) -> 'StateVectorSimulatorState':
-        """Returns the simulator_state of the simulator after this step.
-
-        The form of the simulator_state depends on the implementation of the
-        simulation,see documentation for the implementing class for the form of
-        details.
-        """
-        raise NotImplementedError()
+    pass
 
 
 @value.value_equality(unhashable=True)
@@ -143,9 +131,7 @@ class StateVectorSimulatorState:
 @value.value_equality(unhashable=True)
 class StateVectorTrialResult(
     state_vector.StateVectorMixin,
-    simulator_base.SimulationTrialResultBase[
-        StateVectorSimulatorState, 'cirq.ActOnStateVectorArgs'
-    ],
+    simulator_base.SimulationTrialResultBase['cirq.ActOnStateVectorArgs'],
 ):
     """A `SimulationTrialResult` that includes the `StateVectorMixin` methods.
 
@@ -168,12 +154,15 @@ class StateVectorTrialResult(
         self._final_state_vector: Optional[np.ndarray] = None
 
     @property
-    def final_state_vector(self):
+    def final_state_vector(self) -> np.ndarray:
         if self._final_state_vector is None:
-            self._final_state_vector = self._final_simulator_state.state_vector
+            tensor = self._get_merged_sim_state().target_tensor
+            if tensor.ndim > 1:
+                tensor = tensor.reshape(np.prod(tensor.shape))
+            self._final_state_vector = tensor
         return self._final_state_vector
 
-    def state_vector(self):
+    def state_vector(self) -> np.ndarray:
         """Return the state vector at the end of the computation.
 
         The state is returned in the computational basis with these basis
@@ -199,11 +188,11 @@ class StateVectorTrialResult(
                 |  6  |   1    |   1    |   0    |
                 |  7  |   1    |   1    |   1    |
         """
-        return self._final_simulator_state.state_vector.copy()
+        return self.final_state_vector.copy()
 
     def _value_equality_values_(self):
         measurements = {k: v.tolist() for k, v in sorted(self.measurements.items())}
-        return self.params, measurements, self._final_simulator_state
+        return self.params, measurements, self.qubit_map, self.final_state_vector.tolist()
 
     def __str__(self) -> str:
         samples = super().__str__()

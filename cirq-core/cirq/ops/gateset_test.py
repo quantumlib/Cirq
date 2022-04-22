@@ -126,7 +126,7 @@ def test_gate_family_eq():
                 (CustomX**0.5, True),
                 (CustomX ** sympy.Symbol('theta'), True),
                 (CustomXPowGate(exponent=0.25, global_shift=0.15), True),
-                (cirq.SingleQubitGate(), False),
+                (cirq.testing.SingleQubitGate(), False),
                 (cirq.X**0.5, False),
                 (None, False),
                 (cirq.global_phase_operation(1j), False),

@@ -62,7 +62,7 @@ from cirq.testing.equivalent_basis_map import assert_equivalent_computational_ba
 
 from cirq.testing.equivalent_repr_eval import assert_equivalent_repr
 
-from cirq.testing.gate_features import TwoQubitGate, ThreeQubitGate
+from cirq.testing.gate_features import SingleQubitGate, TwoQubitGate, ThreeQubitGate
 
 from cirq.testing.json import assert_json_roundtrip_works
 
