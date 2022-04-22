@@ -13,15 +13,7 @@
 # limitations under the License.
 
 import abc
-from typing import (
-    TYPE_CHECKING,
-    Optional,
-    AbstractSet,
-    cast,
-    FrozenSet,
-    Iterator,
-    Iterable,
-)
+from typing import TYPE_CHECKING, Optional, AbstractSet, cast, FrozenSet, Iterator, Iterable
 import networkx as nx
 from cirq import _compat, value
 from cirq.devices.grid_qubit import _BaseGridQid
@@ -34,6 +26,7 @@ if TYPE_CHECKING:
 class Device(metaclass=abc.ABCMeta):
     """Hardware constraints for validating circuits."""
 
+    @_compat.deprecated(fix='Use metadata.qubit_set if applicable.', deadline='v0.15')
     def qubit_set(self) -> Optional[AbstractSet['cirq.Qid']]:
         """Returns a set or frozenset of qubits on the device, if possible.
 
@@ -59,8 +52,7 @@ class Device(metaclass=abc.ABCMeta):
         return None
 
     @_compat.deprecated(
-        deadline='v0.15',
-        fix='qubit coupling data can now be found in device.metadata if provided.',
+        deadline='v0.15', fix='qubit coupling data can now be found in device.metadata if provided.'
     )
     def qid_pairs(self) -> Optional[FrozenSet['cirq.SymmetricalQidPair']]:
         """Returns a set of qubit edges on the device, if possible.
@@ -77,7 +69,7 @@ class Device(metaclass=abc.ABCMeta):
             `cirq.UnconstrainedDevice` has this property), then `None` is
             returned.
         """
-        with _compat.block_overlapping_deprecation('device\\.metadata'):
+        with _compat.block_overlapping_deprecation('(device\\.metadata|qubit_set)'):
             qs = self.qubit_set()
             if qs is None:
                 return None
@@ -100,10 +92,7 @@ class Device(metaclass=abc.ABCMeta):
                 )
             return frozenset([SymmetricalQidPair(q, q2) for q in qs for q2 in qs if q < q2])
 
-    @_compat.deprecated(
-        deadline='v0.15',
-        fix='Devices will no longer decompose operations.',
-    )
+    @_compat.deprecated(deadline='v0.15', fix='Devices will no longer decompose operations.')
     def decompose_operation(self, operation: 'cirq.Operation') -> 'cirq.OP_TREE':
         """Returns a device-valid decomposition for the given operation.
 
@@ -197,9 +186,7 @@ class SymmetricalQidPair:
         return f'cirq.QidPair({repr(sorted(self.qids))[1:-1]})'
 
     def _json_dict_(self):
-        return {
-            'qids': sorted(self.qids),
-        }
+        return {'qids': sorted(self.qids)}
 
     @classmethod
     def _from_json_dict_(cls, qids, **kwargs):
@@ -219,11 +206,7 @@ class SymmetricalQidPair:
 class DeviceMetadata:
     """Parent type for all device specific metadata classes."""
 
-    def __init__(
-        self,
-        qubits: Iterable['cirq.Qid'],
-        nx_graph: 'nx.Graph',
-    ):
+    def __init__(self, qubits: Iterable['cirq.Qid'], nx_graph: 'nx.Graph'):
         """Construct a DeviceMetadata object.
 
         Args:

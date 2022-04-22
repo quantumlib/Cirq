@@ -156,14 +156,18 @@ def test_ideal_sqrt_iswap_inverse_simulates_correctly():
 
 def test_ideal_sqrt_iswap_simulates_correctly_invalid_circuit_fails():
     engine_simulator = PhasedFSimEngineSimulator.create_with_ideal_sqrt_iswap()
+    a, b = cirq.LineQubit.range(2)
 
     with pytest.raises(IncompatibleMomentError):
-        a, b = cirq.LineQubit.range(2)
         circuit = cirq.Circuit([cirq.CZ.on(a, b)])
         engine_simulator.simulate(circuit)
 
     with pytest.raises(IncompatibleMomentError):
         circuit = cirq.Circuit(cirq.global_phase_operation(coefficient=1.0))
+        engine_simulator.simulate(circuit)
+
+    with pytest.raises(IncompatibleMomentError):
+        circuit = cirq.Circuit(cirq.CircuitOperation(cirq.FrozenCircuit(cirq.X(a))))
         engine_simulator.simulate(circuit)
 
 
@@ -342,7 +346,7 @@ def test_from_dictionary_sqrt_iswap_ideal_when_missing_parameter_fails():
     circuit = cirq.Circuit(cirq.FSimGate(np.pi / 4, 0.0).on(a, b))
 
     engine_simulator = PhasedFSimEngineSimulator.create_from_dictionary_sqrt_iswap(
-        parameters={(a, b): parameters_ab},
+        parameters={(a, b): parameters_ab}
     )
 
     with pytest.raises(ValueError):

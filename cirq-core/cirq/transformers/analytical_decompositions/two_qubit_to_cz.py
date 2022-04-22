@@ -23,15 +23,15 @@ from cirq.linalg.decompositions import num_cnots_required, extract_right_diag
 
 from cirq import ops, linalg, protocols, circuits
 from cirq.transformers.analytical_decompositions import single_qubit_decompositions
+from cirq.transformers.merge_single_qubit_gates import merge_single_qubit_gates_to_phased_x_and_z
 from cirq.transformers.eject_z import eject_z
 from cirq.transformers.eject_phased_paulis import eject_phased_paulis
-from cirq.optimizers import merge_single_qubit_gates
 
 if TYPE_CHECKING:
     import cirq
 
 
-def two_qubit_matrix_to_operations(
+def two_qubit_matrix_to_cz_operations(
     q0: 'cirq.Qid',
     q1: 'cirq.Qid',
     mat: np.ndarray,
@@ -61,7 +61,7 @@ def two_qubit_matrix_to_operations(
     return operations
 
 
-def two_qubit_matrix_to_diagonal_and_operations(
+def two_qubit_matrix_to_diagonal_and_cz_operations(
     q0: 'cirq.Qid',
     q1: 'cirq.Qid',
     mat: np.ndarray,
@@ -94,7 +94,7 @@ def two_qubit_matrix_to_diagonal_and_operations(
         right_diag = extract_right_diag(mat)
         two_cnot_unitary = mat @ right_diag
         # note that this implies that two_cnot_unitary @ d = mat
-        return right_diag.conj().T, two_qubit_matrix_to_operations(
+        return right_diag.conj().T, two_qubit_matrix_to_cz_operations(
             q0,
             q1,
             two_cnot_unitary,
@@ -103,7 +103,7 @@ def two_qubit_matrix_to_diagonal_and_operations(
             clean_operations=clean_operations,
         )
 
-    return np.eye(4), two_qubit_matrix_to_operations(
+    return np.eye(4), two_qubit_matrix_to_cz_operations(
         q0,
         q1,
         mat,
@@ -161,7 +161,7 @@ def _xx_yy_zz_interaction_via_full_czs(
 
 def _cleanup_operations(operations: Sequence[ops.Operation]):
     circuit = circuits.Circuit(operations)
-    merge_single_qubit_gates.merge_single_qubit_gates_into_phased_x_z(circuit)
+    circuit = merge_single_qubit_gates_to_phased_x_and_z(circuit)
     circuit = eject_phased_paulis(circuit)
     circuit = eject_z(circuit)
     circuit = circuits.Circuit(circuit.all_operations(), strategy=circuits.InsertStrategy.EARLIEST)
@@ -251,8 +251,8 @@ def _non_local_part(
 
     if allow_partial_czs or all(_is_trivial_angle(e, atol) for e in [x, y, z]):
         return [
-            _parity_interaction(q0, q1, x, atol, ops.Y ** -0.5),
-            _parity_interaction(q0, q1, y, atol, ops.X ** 0.5),
+            _parity_interaction(q0, q1, x, atol, ops.Y**-0.5),
+            _parity_interaction(q0, q1, y, atol, ops.X**0.5),
             _parity_interaction(q0, q1, z, atol),
         ]
 

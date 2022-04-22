@@ -18,27 +18,23 @@ import pytest
 
 import cirq
 import cirq_google as cg
-import cirq_google.engine.client.quantum
+import cirq_google.cloud.quantum
 
 
 @pytest.mark.parametrize('circuit', [cirq.Circuit(), cirq.FrozenCircuit()])
 def test_run_circuit(circuit):
     engine = mock.Mock()
-    sampler = cg.QuantumEngineSampler(engine=engine, processor_id='tmp', gate_set=cg.XMON)
+    sampler = cg.QuantumEngineSampler(engine=engine, processor_id='tmp')
     params = [cirq.ParamResolver({'a': 1})]
     sampler.run_sweep(circuit, params, 5)
     engine.run_sweep.assert_called_with(
-        gate_set=cg.XMON,
-        params=params,
-        processor_ids=['tmp'],
-        program=circuit,
-        repetitions=5,
+        params=params, processor_ids=['tmp'], program=circuit, repetitions=5
     )
 
 
 def test_run_engine_program():
     engine = mock.Mock()
-    sampler = cg.QuantumEngineSampler(engine=engine, processor_id='tmp', gate_set=cg.XMON)
+    sampler = cg.QuantumEngineSampler(engine=engine, processor_id='tmp')
     program = mock.Mock(spec=cg.EngineProgram)
     params = [cirq.ParamResolver({'a': 1})]
     sampler.run_sweep(program, params, 5)
@@ -48,7 +44,7 @@ def test_run_engine_program():
 
 def test_run_batch():
     engine = mock.Mock()
-    sampler = cg.QuantumEngineSampler(engine=engine, processor_id='tmp', gate_set=cg.XMON)
+    sampler = cg.QuantumEngineSampler(engine=engine, processor_id='tmp')
     a = cirq.LineQubit(0)
     circuit1 = cirq.Circuit(cirq.X(a))
     circuit2 = cirq.Circuit(cirq.Y(a))
@@ -58,17 +54,13 @@ def test_run_batch():
     params_list = [params1, params2]
     sampler.run_batch(circuits, params_list, 5)
     engine.run_batch.assert_called_with(
-        gate_set=cg.XMON,
-        params_list=params_list,
-        processor_ids=['tmp'],
-        programs=circuits,
-        repetitions=5,
+        params_list=params_list, processor_ids=['tmp'], programs=circuits, repetitions=5
     )
 
 
 def test_run_batch_identical_repetitions():
     engine = mock.Mock()
-    sampler = cg.QuantumEngineSampler(engine=engine, processor_id='tmp', gate_set=cg.XMON)
+    sampler = cg.QuantumEngineSampler(engine=engine, processor_id='tmp')
     a = cirq.LineQubit(0)
     circuit1 = cirq.Circuit(cirq.X(a))
     circuit2 = cirq.Circuit(cirq.Y(a))
@@ -78,17 +70,13 @@ def test_run_batch_identical_repetitions():
     params_list = [params1, params2]
     sampler.run_batch(circuits, params_list, [5, 5])
     engine.run_batch.assert_called_with(
-        gate_set=cg.XMON,
-        params_list=params_list,
-        processor_ids=['tmp'],
-        programs=circuits,
-        repetitions=5,
+        params_list=params_list, processor_ids=['tmp'], programs=circuits, repetitions=5
     )
 
 
 def test_run_batch_bad_number_of_repetitions():
     engine = mock.Mock()
-    sampler = cg.QuantumEngineSampler(engine=engine, processor_id='tmp', gate_set=cg.XMON)
+    sampler = cg.QuantumEngineSampler(engine=engine, processor_id='tmp')
     a = cirq.LineQubit(0)
     circuit1 = cirq.Circuit(cirq.X(a))
     circuit2 = cirq.Circuit(cirq.Y(a))
@@ -105,7 +93,7 @@ def test_run_batch_differing_repetitions():
     job = mock.Mock()
     job.results.return_value = []
     engine.run_sweep.return_value = job
-    sampler = cg.QuantumEngineSampler(engine=engine, processor_id='tmp', gate_set=cg.XMON)
+    sampler = cg.QuantumEngineSampler(engine=engine, processor_id='tmp')
     a = cirq.LineQubit(0)
     circuit1 = cirq.Circuit(cirq.X(a))
     circuit2 = cirq.Circuit(cirq.Y(a))
@@ -116,38 +104,25 @@ def test_run_batch_differing_repetitions():
     repetitions = [1, 2]
     sampler.run_batch(circuits, params_list, repetitions)
     engine.run_sweep.assert_called_with(
-        gate_set=cg.XMON, params=params2, processor_ids=['tmp'], program=circuit2, repetitions=2
+        params=params2, processor_ids=['tmp'], program=circuit2, repetitions=2
     )
     engine.run_batch.assert_not_called()
 
 
 def test_engine_sampler_engine_property():
     engine = mock.Mock()
-    sampler = cg.QuantumEngineSampler(engine=engine, processor_id='tmp', gate_set=cg.XMON)
+    sampler = cg.QuantumEngineSampler(engine=engine, processor_id='tmp')
     assert sampler.engine is engine
 
 
-def test_get_engine_sampler_explicit_project_id(monkeypatch):
-    with mock.patch.object(
-        cirq_google.engine.client.quantum, 'QuantumEngineServiceClient', autospec=True
-    ):
-        sampler = cg.get_engine_sampler(
-            processor_id='hi mom', gate_set_name='sqrt_iswap', project_id='myproj'
-        )
+def test_get_engine_sampler_explicit_project_id():
+    with mock.patch.object(cirq_google.cloud.quantum, 'QuantumEngineServiceClient', autospec=True):
+        sampler = cg.get_engine_sampler(processor_id='hi mom', project_id='myproj')
     assert hasattr(sampler, 'run_sweep')
 
-    with pytest.raises(ValueError):
-        sampler = cg.get_engine_sampler(processor_id='hi mom', gate_set_name='ccz')
 
-
-def test_get_engine_sampler(monkeypatch):
-    monkeypatch.setenv('GOOGLE_CLOUD_PROJECT', 'myproj')
-
-    with mock.patch.object(
-        cirq_google.engine.client.quantum, 'QuantumEngineServiceClient', autospec=True
-    ):
-        sampler = cg.get_engine_sampler(processor_id='hi mom', gate_set_name='sqrt_iswap')
+def test_get_engine_sampler():
+    with mock.patch.object(cirq_google.cloud.quantum, 'QuantumEngineServiceClient', autospec=True):
+        with mock.patch('google.auth.default', lambda: (None, 'myproj')):
+            sampler = cg.get_engine_sampler(processor_id='hi mom')
     assert hasattr(sampler, 'run_sweep')
-
-    with pytest.raises(ValueError):
-        sampler = cg.get_engine_sampler(processor_id='hi mom', gate_set_name='ccz')

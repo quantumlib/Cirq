@@ -82,7 +82,7 @@ def test_interchangeable_qubits(gate):
 def test_exponent():
     cnot = cirq.PauliInteractionGate(cirq.Z, False, cirq.X, False)
     np.testing.assert_almost_equal(
-        cirq.unitary(cnot ** 0.5),
+        cirq.unitary(cnot**0.5),
         np.array(
             [
                 [1, 0, 0, 0],

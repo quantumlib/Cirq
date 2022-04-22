@@ -23,7 +23,7 @@ from typing import Iterable, List, Optional, cast, Tuple, TYPE_CHECKING
 
 import numpy as np
 
-from cirq import ops, linalg, protocols, optimizers, circuits, transformers
+from cirq import ops, linalg, protocols, circuits, transformers
 from cirq.ion import ms
 
 if TYPE_CHECKING:
@@ -52,7 +52,7 @@ def two_qubit_matrix_to_ion_operations(
 
 def _cleanup_operations(operations: List[ops.Operation]):
     circuit = circuits.Circuit(operations)
-    optimizers.merge_single_qubit_gates.merge_single_qubit_gates_into_phased_x_z(circuit)
+    circuit = transformers.merge_single_qubit_gates_to_phased_x_and_z(circuit)
     circuit = transformers.eject_phased_paulis(circuit)
     circuit = transformers.eject_z(circuit)
     circuit = circuits.Circuit(circuit.all_operations(), strategy=circuits.InsertStrategy.EARLIEST)
@@ -72,11 +72,7 @@ def _kak_decomposition_to_operations(
         cast(
             Iterable[ops.Operation],
             ops.flatten_op_tree(
-                [
-                    pre,
-                    _non_local_part(q0, q1, kak.interaction_coefficients, atol),
-                    post,
-                ]
+                [pre, _non_local_part(q0, q1, kak.interaction_coefficients, atol), post]
             ),
         )
     )
@@ -118,6 +114,6 @@ def _non_local_part(
 
     return [
         _parity_interaction(q0, q1, x, atol),
-        _parity_interaction(q0, q1, y, atol, ops.Z ** -0.5),
-        _parity_interaction(q0, q1, z, atol, ops.Y ** 0.5),
+        _parity_interaction(q0, q1, y, atol, ops.Z**-0.5),
+        _parity_interaction(q0, q1, z, atol, ops.Y**0.5),
     ]

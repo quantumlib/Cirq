@@ -1,0 +1,12 @@
+{
+  "cirq_type": "QubitPermutationGate",
+  "permutation": [
+    0,
+    5,
+    2,
+    1,
+    6,
+    3,
+    4
+  ]
+}

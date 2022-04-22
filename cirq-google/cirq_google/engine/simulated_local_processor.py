@@ -18,7 +18,7 @@ from typing import Callable, Dict, Iterable, List, Optional, Sequence, TYPE_CHEC
 import cirq
 
 from cirq_google.api import v2
-from cirq_google.engine import calibration, validating_sampler
+from cirq_google.engine import calibration, util, validating_sampler
 from cirq_google.engine.abstract_local_processor import AbstractLocalProcessor
 from cirq_google.engine.abstract_local_program import AbstractLocalProgram
 from cirq_google.engine.abstract_program import AbstractProgram
@@ -36,8 +36,7 @@ VALID_LANGUAGES = [
 ]
 
 GATE_SET_VALIDATOR_TYPE = Callable[
-    [Sequence[cirq.AbstractCircuit], Sequence[cirq.Sweepable], int, 'Serializer'],
-    None,
+    [Sequence[cirq.AbstractCircuit], Sequence[cirq.Sweepable], int, 'Serializer'], None,
 ]
 
 
@@ -75,6 +74,8 @@ class SimulatedLocalProcessor(AbstractLocalProcessor):
             beyond the device, such as serialization, repetition limits, etc.
         gate_set_validator:  A callable that can validate a circuit and sweeps
             based on the given serializer.
+        simulation_type:  Whether sampler execution should be
+            synchronous or asynchronous.
         calibrations: A dictionary of calibration metrics keyed by epoch seconds
             that can be returned by the processor.
         processor_id: Unique string id of the processor.
@@ -158,6 +159,7 @@ class SimulatedLocalProcessor(AbstractLocalProcessor):
             if earliest_timestamp_seconds <= cal[0] <= latest_timestamp_seconds
         ]
 
+    @util.deprecated_gate_set_parameter
     def get_sampler(self, gate_set: Optional['Serializer'] = None) -> cirq.Sampler:
         return self._sampler
 
@@ -201,6 +203,7 @@ class SimulatedLocalProcessor(AbstractLocalProcessor):
         """
         return self._programs[program_id]
 
+    @util.deprecated_gate_set_parameter
     def run_batch(
         self,
         programs: Sequence[cirq.AbstractCircuit],
@@ -240,6 +243,7 @@ class SimulatedLocalProcessor(AbstractLocalProcessor):
         self._programs[program_id].add_job(job_id, job)
         return job
 
+    @util.deprecated_gate_set_parameter
     def run(
         self,
         program: cirq.Circuit,
@@ -284,13 +288,13 @@ class SimulatedLocalProcessor(AbstractLocalProcessor):
             job_id=job_id,
             params=[param_resolver or cirq.ParamResolver({})],
             repetitions=repetitions,
-            gate_set=gate_set,
             program_description=program_description,
             program_labels=program_labels,
             job_description=job_description,
             job_labels=job_labels,
         ).results()[0]
 
+    @util.deprecated_gate_set_parameter
     def run_sweep(
         self,
         program: cirq.Circuit,

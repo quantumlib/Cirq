@@ -24,7 +24,7 @@ class GoodPhaser:
         self.e = e
 
     def _unitary_(self):
-        return np.array([[0, 1j ** -self.e], [1j ** self.e, 0]])
+        return np.array([[0, 1j**-self.e], [1j**self.e, 0]])
 
     def _phase_by_(self, phase_turns: float, qubit_index: int):
         return GoodPhaser(self.e + phase_turns * 4)
@@ -41,13 +41,7 @@ class GoodQuditPhaser:
         return (3,)
 
     def _unitary_(self):
-        return np.array(
-            [
-                [0, 1j ** -self.e, 0],
-                [0, 0, 1j ** self.e],
-                [1, 0, 0],
-            ]
-        )
+        return np.array([[0, 1j**-self.e, 0], [0, 0, 1j**self.e], [1, 0, 0]])
 
     def _phase_by_(self, phase_turns: float, qubit_index: int):
         return GoodQuditPhaser(self.e + phase_turns * 4)
@@ -61,7 +55,7 @@ class BadPhaser:
         self.e = e
 
     def _unitary_(self):
-        return np.array([[0, 1j ** -(self.e * 2)], [1j ** self.e, 0]])
+        return np.array([[0, 1j ** -(self.e * 2)], [1j**self.e, 0]])
 
     def _phase_by_(self, phase_turns: float, qubit_index: int):
         return BadPhaser(self.e + phase_turns * 4)

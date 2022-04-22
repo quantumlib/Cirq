@@ -50,8 +50,7 @@ def hilbert_schmidt_inner_product(m1: np.ndarray, m2: np.ndarray) -> complex:
 
 
 def expand_matrix_in_orthogonal_basis(
-    m: np.ndarray,
-    basis: Dict[str, np.ndarray],
+    m: np.ndarray, basis: Dict[str, np.ndarray]
 ) -> value.LinearDict[str]:
     """Computes coefficients of expansion of m in basis.
 

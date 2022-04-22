@@ -94,7 +94,7 @@ def _measurement_subspaces(
 
 
 def assert_circuits_with_terminal_measurements_are_equivalent(
-    actual: circuits.AbstractCircuit, reference: circuits.AbstractCircuit, atol: float
+    actual: circuits.AbstractCircuit, reference: circuits.AbstractCircuit, atol: float = 1.0e-8
 ) -> None:
     """Determines if two circuits have equivalent effects.
 
@@ -183,8 +183,7 @@ def assert_circuits_with_terminal_measurements_are_equivalent(
 
 
 def assert_same_circuits(
-    actual: circuits.AbstractCircuit,
-    expected: circuits.AbstractCircuit,
+    actual: circuits.AbstractCircuit, expected: circuits.AbstractCircuit
 ) -> None:
     """Asserts that two circuits are identical, with a descriptive error.
 

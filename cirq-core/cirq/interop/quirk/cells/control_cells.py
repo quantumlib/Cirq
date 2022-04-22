@@ -121,18 +121,18 @@ def generate_all_control_cell_makers() -> Iterator[CellMaker]:
     # Controls.
     yield _reg_control("•", basis_change=None)
     yield _reg_control("◦", basis_change=ops.X)
-    yield _reg_control("⊕", basis_change=ops.Y ** 0.5)
-    yield _reg_control("⊖", basis_change=ops.Y ** -0.5)
-    yield _reg_control("⊗", basis_change=ops.X ** -0.5)
-    yield _reg_control("(/)", basis_change=ops.X ** 0.5)
+    yield _reg_control("⊕", basis_change=ops.Y**0.5)
+    yield _reg_control("⊖", basis_change=ops.Y**-0.5)
+    yield _reg_control("⊗", basis_change=ops.X**-0.5)
+    yield _reg_control("(/)", basis_change=ops.X**0.5)
 
     # Parity controls.
-    yield _reg_parity_control("xpar", basis_change=ops.Y ** 0.5)
-    yield _reg_parity_control("ypar", basis_change=ops.X ** -0.5)
+    yield _reg_parity_control("xpar", basis_change=ops.Y**0.5)
+    yield _reg_parity_control("ypar", basis_change=ops.X**-0.5)
     yield _reg_parity_control("zpar", basis_change=None)
 
 
-def _reg_control(identifier: str, *, basis_change: Optional['cirq.SingleQubitGate']) -> CellMaker:
+def _reg_control(identifier: str, *, basis_change: Optional['cirq.Gate']) -> CellMaker:
     return CellMaker(
         identifier=identifier,
         size=1,
@@ -143,7 +143,7 @@ def _reg_control(identifier: str, *, basis_change: Optional['cirq.SingleQubitGat
 
 
 def _reg_parity_control(
-    identifier: str, *, basis_change: Optional['cirq.SingleQubitGate'] = None
+    identifier: str, *, basis_change: Optional['cirq.Gate'] = None
 ) -> CellMaker:
     return CellMaker(
         identifier=identifier,
@@ -155,7 +155,7 @@ def _reg_parity_control(
 
 
 def _basis_else_empty(
-    basis_change: Optional['cirq.SingleQubitGate'], qureg: Union['cirq.Qid', Iterable['cirq.Qid']]
+    basis_change: Optional['cirq.Gate'], qureg: Union['cirq.Qid', Iterable['cirq.Qid']]
 ) -> Iterable['cirq.Operation']:
     if basis_change is None:
         return ()

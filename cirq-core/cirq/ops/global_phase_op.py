@@ -74,7 +74,7 @@ class GlobalPhaseGate(raw_types.Gate):
 
     def __pow__(self, power) -> 'cirq.GlobalPhaseGate':
         if isinstance(power, (int, float)):
-            return GlobalPhaseGate(self.coefficient ** power)
+            return GlobalPhaseGate(self.coefficient**power)
         return NotImplemented
 
     def _unitary_(self) -> np.ndarray:

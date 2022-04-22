@@ -50,7 +50,7 @@ class WaitGate(raw_types.Gate):
             ValueError: If the `qid_shape` provided is empty or `num_qubits` contradicts
                 `qid_shape`.
         """
-        self.duration = value.Duration(duration)
+        self._duration = value.Duration(duration)
         if not protocols.is_parameterized(self.duration) and self.duration < 0:
             raise ValueError('duration < 0')
         if qid_shape is None:
@@ -66,6 +66,10 @@ class WaitGate(raw_types.Gate):
         if num_qubits != len(qid_shape):
             raise ValueError('len(qid_shape) != num_qubits')
         self._qid_shape = qid_shape
+
+    @property
+    def duration(self) -> 'cirq.Duration':
+        return self._duration
 
     def _is_parameterized_(self) -> bool:
         return protocols.is_parameterized(self.duration)
@@ -151,12 +155,6 @@ def wait(
         millis: Milliseconds to wait (see Duration).
     """
     return WaitGate(
-        duration=value.Duration(
-            duration,
-            picos=picos,
-            nanos=nanos,
-            micros=micros,
-            millis=millis,
-        ),
+        duration=value.Duration(duration, picos=picos, nanos=nanos, micros=micros, millis=millis),
         qid_shape=protocols.qid_shape(target),
     ).on(*target)

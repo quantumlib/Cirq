@@ -30,6 +30,10 @@ achieved by following procedure: Alice rotate in X-basis by angle
 -pi/4 followed by controlled-rotation by angle pi/2 in X-basis for
 Alice (Bob) based on input x (y).
 
+Note that the higher repetitions, the more accurate the maximum success
+probability (closer to 85.3%). Here, repetitions = 75 are chosen to follow
+the bit by bit logic.
+
 [1] https://en.wikipedia.org/wiki/Bell%27s_theorem
 [2] R. de Wolf. Quantum Computing: Lecture Notes
 (arXiv:1907.09415, Section 15.2)
@@ -101,20 +105,10 @@ def make_bell_test_circuit():
     circuit = cirq.Circuit()
 
     # Prepare shared entangled state.
-    circuit.append(
-        [
-            cirq.H(alice),
-            cirq.CNOT(alice, bob),
-        ]
-    )
+    circuit.append([cirq.H(alice), cirq.CNOT(alice, bob)])
 
     # Referees flip coins.
-    circuit.append(
-        [
-            cirq.H(alice_referee),
-            cirq.H(bob_referee),
-        ]
-    )
+    circuit.append([cirq.H(alice_referee), cirq.H(bob_referee)])
 
     # Players do a sqrt(X) based on their referee's coin.
     circuit.append(

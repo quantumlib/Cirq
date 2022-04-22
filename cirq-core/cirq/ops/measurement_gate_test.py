@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from typing import cast
 import numpy as np
 import pytest
 
@@ -20,18 +21,11 @@ import cirq
 
 @pytest.mark.parametrize(
     'key',
-    [
-        'q0_1_0',
-        cirq.MeasurementKey(name='q0_1_0'),
-        cirq.MeasurementKey(path=('a', 'b'), name='c'),
-    ],
+    ['q0_1_0', cirq.MeasurementKey(name='q0_1_0'), cirq.MeasurementKey(path=('a', 'b'), name='c')],
 )
 def test_eval_repr(key):
     # Basic safeguard against repr-inequality.
-    op = cirq.GateOperation(
-        gate=cirq.MeasurementGate(1, key),
-        qubits=[cirq.GridQubit(0, 1)],
-    )
+    op = cirq.GateOperation(gate=cirq.MeasurementGate(1, key), qubits=[cirq.GridQubit(0, 1)])
     cirq.testing.assert_equivalent_repr(op)
 
 
@@ -56,6 +50,11 @@ def test_measure_init(num_qubits):
         cirq.MeasurementGate(2, qid_shape=(1, 2), key=None)
     with pytest.raises(ValueError, match='Specify either'):
         cirq.MeasurementGate()
+
+
+def test_measurement_has_unitary_returns_false():
+    gate = cirq.MeasurementGate(1, 'a')
+    assert not cirq.has_unitary(gate)
 
 
 @pytest.mark.parametrize('num_qubits', [1, 2, 4])
@@ -167,19 +166,16 @@ def test_measurement_gate_diagram():
     ) == cirq.CircuitDiagramInfo(("M('test')",))
 
     # Uses known qubit count.
-    assert (
-        cirq.circuit_diagram_info(
-            cirq.MeasurementGate(3, 'a'),
-            cirq.CircuitDiagramInfoArgs(
-                known_qubits=None,
-                known_qubit_count=3,
-                use_unicode_characters=True,
-                precision=None,
-                label_map=None,
-            ),
-        )
-        == cirq.CircuitDiagramInfo(("M('a')", 'M', 'M'))
-    )
+    assert cirq.circuit_diagram_info(
+        cirq.MeasurementGate(3, 'a'),
+        cirq.CircuitDiagramInfoArgs(
+            known_qubits=None,
+            known_qubit_count=3,
+            use_unicode_characters=True,
+            precision=None,
+            label_map=None,
+        ),
+    ) == cirq.CircuitDiagramInfo(("M('a')", 'M', 'M'))
 
     # Shows invert mask.
     assert cirq.circuit_diagram_info(
@@ -292,7 +288,6 @@ def test_act_on_state_vector():
         available_buffer=np.empty(shape=(2, 2, 2, 2, 2)),
         qubits=cirq.LineQubit.range(5),
         prng=np.random.RandomState(),
-        log_of_measurement_results={},
         initial_state=cirq.one_hot(shape=(2, 2, 2, 2, 2), dtype=np.complex64),
         dtype=np.complex64,
     )
@@ -303,7 +298,6 @@ def test_act_on_state_vector():
         available_buffer=np.empty(shape=(2, 2, 2, 2, 2)),
         qubits=cirq.LineQubit.range(5),
         prng=np.random.RandomState(),
-        log_of_measurement_results={},
         initial_state=cirq.one_hot(
             index=(0, 1, 0, 0, 0), shape=(2, 2, 2, 2, 2), dtype=np.complex64
         ),
@@ -316,17 +310,19 @@ def test_act_on_state_vector():
         available_buffer=np.empty(shape=(2, 2, 2, 2, 2)),
         qubits=cirq.LineQubit.range(5),
         prng=np.random.RandomState(),
-        log_of_measurement_results={},
         initial_state=cirq.one_hot(
             index=(0, 1, 0, 1, 0), shape=(2, 2, 2, 2, 2), dtype=np.complex64
         ),
         dtype=np.complex64,
     )
     cirq.act_on(m, args)
+    datastore = cast(cirq.ClassicalDataDictionaryStore, args.classical_data)
+    out = cirq.MeasurementKey('out')
     assert args.log_of_measurement_results == {'out': [0, 1]}
-
-    with pytest.raises(ValueError, match="already logged to key"):
-        cirq.act_on(m, args)
+    assert datastore.records[out] == [(0, 1)]
+    cirq.act_on(m, args)
+    assert args.log_of_measurement_results == {'out': [0, 1]}
+    assert datastore.records[out] == [(0, 1), (0, 1)]
 
 
 def test_act_on_clifford_tableau():
@@ -339,7 +335,6 @@ def test_act_on_clifford_tableau():
         tableau=cirq.CliffordTableau(num_qubits=5, initial_state=0),
         qubits=cirq.LineQubit.range(5),
         prng=np.random.RandomState(),
-        log_of_measurement_results={},
     )
     cirq.act_on(m, args)
     assert args.log_of_measurement_results == {'out': [1, 0]}
@@ -348,7 +343,6 @@ def test_act_on_clifford_tableau():
         tableau=cirq.CliffordTableau(num_qubits=5, initial_state=8),
         qubits=cirq.LineQubit.range(5),
         prng=np.random.RandomState(),
-        log_of_measurement_results={},
     )
 
     cirq.act_on(m, args)
@@ -358,13 +352,15 @@ def test_act_on_clifford_tableau():
         tableau=cirq.CliffordTableau(num_qubits=5, initial_state=10),
         qubits=cirq.LineQubit.range(5),
         prng=np.random.RandomState(),
-        log_of_measurement_results={},
     )
     cirq.act_on(m, args)
+    datastore = cast(cirq.ClassicalDataDictionaryStore, args.classical_data)
+    out = cirq.MeasurementKey('out')
     assert args.log_of_measurement_results == {'out': [0, 1]}
-
-    with pytest.raises(ValueError, match="already logged to key"):
-        cirq.act_on(m, args)
+    assert datastore.records[out] == [(0, 1)]
+    cirq.act_on(m, args)
+    assert args.log_of_measurement_results == {'out': [0, 1]}
+    assert datastore.records[out] == [(0, 1), (0, 1)]
 
 
 def test_act_on_stabilizer_ch_form():
@@ -374,35 +370,29 @@ def test_act_on_stabilizer_ch_form():
     cirq.testing.assert_all_implemented_act_on_effects_match_unitary(m)
 
     args = cirq.ActOnStabilizerCHFormArgs(
-        qubits=cirq.LineQubit.range(5),
-        prng=np.random.RandomState(),
-        log_of_measurement_results={},
-        initial_state=0,
+        qubits=cirq.LineQubit.range(5), prng=np.random.RandomState(), initial_state=0
     )
     cirq.act_on(m, args)
     assert args.log_of_measurement_results == {'out': [1, 0]}
 
     args = cirq.ActOnStabilizerCHFormArgs(
-        qubits=cirq.LineQubit.range(5),
-        prng=np.random.RandomState(),
-        log_of_measurement_results={},
-        initial_state=8,
+        qubits=cirq.LineQubit.range(5), prng=np.random.RandomState(), initial_state=8
     )
 
     cirq.act_on(m, args)
     assert args.log_of_measurement_results == {'out': [1, 1]}
 
     args = cirq.ActOnStabilizerCHFormArgs(
-        qubits=cirq.LineQubit.range(5),
-        prng=np.random.RandomState(),
-        log_of_measurement_results={},
-        initial_state=10,
+        qubits=cirq.LineQubit.range(5), prng=np.random.RandomState(), initial_state=10
     )
     cirq.act_on(m, args)
+    datastore = cast(cirq.ClassicalDataDictionaryStore, args.classical_data)
+    out = cirq.MeasurementKey('out')
     assert args.log_of_measurement_results == {'out': [0, 1]}
-
-    with pytest.raises(ValueError, match="already logged to key"):
-        cirq.act_on(m, args)
+    assert datastore.records[out] == [(0, 1)]
+    cirq.act_on(m, args)
+    assert args.log_of_measurement_results == {'out': [0, 1]}
+    assert datastore.records[out] == [(0, 1), (0, 1)]
 
 
 def test_act_on_qutrit():
@@ -413,7 +403,6 @@ def test_act_on_qutrit():
         available_buffer=np.empty(shape=(3, 3, 3, 3, 3)),
         qubits=cirq.LineQid.range(5, dimension=3),
         prng=np.random.RandomState(),
-        log_of_measurement_results={},
         initial_state=cirq.one_hot(
             index=(0, 2, 0, 2, 0), shape=(3, 3, 3, 3, 3), dtype=np.complex64
         ),
@@ -426,7 +415,6 @@ def test_act_on_qutrit():
         available_buffer=np.empty(shape=(3, 3, 3, 3, 3)),
         qubits=cirq.LineQid.range(5, dimension=3),
         prng=np.random.RandomState(),
-        log_of_measurement_results={},
         initial_state=cirq.one_hot(
             index=(0, 1, 0, 2, 0), shape=(3, 3, 3, 3, 3), dtype=np.complex64
         ),
@@ -439,7 +427,6 @@ def test_act_on_qutrit():
         available_buffer=np.empty(shape=(3, 3, 3, 3, 3)),
         qubits=cirq.LineQid.range(5, dimension=3),
         prng=np.random.RandomState(),
-        log_of_measurement_results={},
         initial_state=cirq.one_hot(
             index=(0, 2, 0, 1, 0), shape=(3, 3, 3, 3, 3), dtype=np.complex64
         ),

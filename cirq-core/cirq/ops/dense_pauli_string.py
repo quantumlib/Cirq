@@ -11,6 +11,8 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
+import abc
 import numbers
 from typing import (
     AbstractSet,
@@ -29,7 +31,6 @@ from typing import (
     TypeVar,
     Union,
 )
-import abc
 
 import numpy as np
 import sympy
@@ -95,12 +96,21 @@ class BaseDensePauliString(raw_types.Gate, metaclass=abc.ABCMeta):
             ...                             coefficient=sympy.Symbol('t')))
             t*IXYZ
         """
-        self.pauli_mask = _as_pauli_mask(pauli_mask)
-        self.coefficient = (
+        self._pauli_mask = _as_pauli_mask(pauli_mask)
+        self._coefficient = (
             coefficient if isinstance(coefficient, sympy.Basic) else complex(coefficient)
         )
         if type(self) != MutableDensePauliString:
-            self.pauli_mask = np.copy(self.pauli_mask)
+            self._pauli_mask = np.copy(self.pauli_mask)
+            self._pauli_mask.flags.writeable = False
+
+    @property
+    def pauli_mask(self) -> np.ndarray:
+        return self._pauli_mask
+
+    @property
+    def coefficient(self) -> complex:
+        return self._coefficient
 
     def _json_dict_(self) -> Dict[str, Any]:
         return protocols.obj_to_dict_helper(self, ['pauli_mask', 'coefficient'])
@@ -186,7 +196,7 @@ class BaseDensePauliString(raw_types.Gate, metaclass=abc.ABCMeta):
             if self.coefficient in i_group:
                 coef = i_group[i_group.index(self.coefficient) * power % 4]
             else:
-                coef = self.coefficient ** power
+                coef = self.coefficient**power
             if power % 2 == 0:
                 return coef * DensePauliString.eye(len(self))
             return DensePauliString(coefficient=coef, pauli_mask=self.pauli_mask)
@@ -333,7 +343,9 @@ class BaseDensePauliString(raw_types.Gate, metaclass=abc.ABCMeta):
             f'coefficient={proper_repr(self.coefficient)})'
         )
 
-    def _commutes_(self, other: Any, atol: float) -> Union[bool, NotImplementedType, None]:
+    def _commutes_(
+        self, other: Any, *, atol: float = 1e-8
+    ) -> Union[bool, NotImplementedType, None]:
         if isinstance(other, BaseDensePauliString):
             n = min(len(self.pauli_mask), len(other.pauli_mask))
             phase = _vectorized_pauli_mul_phase(self.pauli_mask[:n], other.pauli_mask[:n])
@@ -432,8 +444,8 @@ class MutableDensePauliString(BaseDensePauliString):
                     f"other={repr(other)}"
                 )
             self_mask = self.pauli_mask[: len(other.pauli_mask)]
-            self.coefficient *= _vectorized_pauli_mul_phase(self_mask, other.pauli_mask)
-            self.coefficient *= other.coefficient
+            self._coefficient *= _vectorized_pauli_mul_phase(self_mask, other.pauli_mask)
+            self._coefficient *= other.coefficient
             self_mask ^= other.pauli_mask
             return self
 
@@ -441,13 +453,13 @@ class MutableDensePauliString(BaseDensePauliString):
             new_coef = protocols.mul(self.coefficient, other, default=None)
             if new_coef is None:
                 return NotImplemented
-            self.coefficient = new_coef if isinstance(new_coef, sympy.Basic) else complex(new_coef)
+            self._coefficient = new_coef if isinstance(new_coef, sympy.Basic) else complex(new_coef)
             return self
 
         split = _attempt_value_to_pauli_index(other)
         if split is not None:
             p, i = split
-            self.coefficient *= _vectorized_pauli_mul_phase(self.pauli_mask[i], p)
+            self._coefficient *= _vectorized_pauli_mul_phase(self.pauli_mask[i], p)
             self.pauli_mask[i] ^= p
             return self
 
@@ -560,4 +572,4 @@ def _vectorized_pauli_mul_phase(
 
     # Result is i raised to the sum of the per-term phase exponents.
     s = int(np.sum(t, dtype=np.uint8).item() & 3)
-    return 1j ** s
+    return 1j**s

@@ -41,10 +41,7 @@ class QuantumFourierTransformGate(raw_types.Gate):
         self._without_reverse = without_reverse
 
     def _json_dict_(self) -> Dict[str, Any]:
-        return {
-            'num_qubits': self._num_qubits,
-            'without_reverse': self._without_reverse,
-        }
+        return {'num_qubits': self._num_qubits, 'without_reverse': self._without_reverse}
 
     def _value_equality_values_(self):
         return self._num_qubits, self._without_reverse
@@ -93,13 +90,14 @@ class PhaseGradientGate(raw_types.Gate):
 
     def __init__(self, *, num_qubits: int, exponent: Union[float, sympy.Basic]):
         self._num_qubits = num_qubits
-        self.exponent = exponent
+        self._exponent = exponent
+
+    @property
+    def exponent(self) -> Union[float, sympy.Basic]:
+        return self._exponent
 
     def _json_dict_(self) -> Dict[str, Any]:
-        return {
-            'num_qubits': self._num_qubits,
-            'exponent': self.exponent,
-        }
+        return {'num_qubits': self._num_qubits, 'exponent': self.exponent}
 
     def _value_equality_values_(self):
         return self._num_qubits, self.exponent
@@ -109,7 +107,7 @@ class PhaseGradientGate(raw_types.Gate):
 
     def _decompose_(self, qubits):
         for i, q in enumerate(qubits):
-            yield cirq.Z(q) ** (self.exponent / 2 ** i)
+            yield cirq.Z(q) ** (self.exponent / 2**i)
 
     def _apply_unitary_(self, args: 'cirq.ApplyUnitaryArgs'):
         if isinstance(self.exponent, sympy.Basic):
@@ -185,7 +183,7 @@ def qft(
     equivalently `cirq.inverse(cirq.qft(*qubits))`.
 
     Args:
-        qubits: The qubits to apply the qft to.
+        *qubits: The qubits to apply the qft to.
         without_reverse: When set, swap gates at the end of the qft are omitted.
             This reverses the qubit order relative to the standard qft effect,
             but makes the gate cheaper to apply.

@@ -19,11 +19,7 @@ import cirq
 
 @pytest.mark.parametrize(
     'key',
-    [
-        'q0_1_0',
-        cirq.MeasurementKey(name='q0_1_0'),
-        cirq.MeasurementKey(path=('a', 'b'), name='c'),
-    ],
+    ['q0_1_0', cirq.MeasurementKey(name='q0_1_0'), cirq.MeasurementKey(path=('a', 'b'), name='c')],
 )
 def test_eval_repr(key):
     # Basic safeguard against repr-inequality.
@@ -45,6 +41,11 @@ def test_init(observable, key):
     assert g.mkey == cirq.MeasurementKey('a')
     assert g._observable == cirq.DensePauliString(observable)
     assert cirq.qid_shape(g) == (2,) * len(observable)
+
+
+def test_measurement_has_unitary_returns_false():
+    gate = cirq.PauliMeasurementGate([cirq.X], 'a')
+    assert not cirq.has_unitary(gate)
 
 
 def test_measurement_eq():
@@ -123,11 +124,7 @@ b: ───M(Y)───────────
 @pytest.mark.parametrize('observable', [[cirq.X], [cirq.X, cirq.Y, cirq.Z]])
 @pytest.mark.parametrize(
     'key',
-    [
-        'q0_1_0',
-        cirq.MeasurementKey(name='q0_1_0'),
-        cirq.MeasurementKey(path=('a', 'b'), name='c'),
-    ],
+    ['q0_1_0', cirq.MeasurementKey(name='q0_1_0'), cirq.MeasurementKey(path=('a', 'b'), name='c')],
 )
 def test_consistent_protocols(observable, key):
     gate = cirq.PauliMeasurementGate(observable, key=key)
@@ -180,10 +177,10 @@ def test_with_observable():
     [
         (cirq.I, cirq.DensePauliString("Z", coefficient=+1), 0),
         (cirq.I, cirq.DensePauliString("Z", coefficient=-1), 1),
-        (cirq.Y ** 0.5, cirq.DensePauliString("X", coefficient=+1), 0),
-        (cirq.Y ** 0.5, cirq.DensePauliString("X", coefficient=-1), 1),
-        (cirq.X ** -0.5, cirq.DensePauliString("Y", coefficient=+1), 0),
-        (cirq.X ** -0.5, cirq.DensePauliString("Y", coefficient=-1), 1),
+        (cirq.Y**0.5, cirq.DensePauliString("X", coefficient=+1), 0),
+        (cirq.Y**0.5, cirq.DensePauliString("X", coefficient=-1), 1),
+        (cirq.X**-0.5, cirq.DensePauliString("Y", coefficient=+1), 0),
+        (cirq.X**-0.5, cirq.DensePauliString("Y", coefficient=-1), 1),
     ],
 )
 def test_pauli_measurement_gate_samples(rot, obs, out):

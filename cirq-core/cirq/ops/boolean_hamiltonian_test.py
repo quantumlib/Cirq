@@ -72,13 +72,13 @@ def test_circuit(boolean_str):
     circuit = cirq.Circuit()
     circuit.append(cirq.H.on_each(*qubits))
 
-    hamiltonian_gate = cirq.BooleanHamiltonian(
+    hamiltonian_gate = cirq.BooleanHamiltonianGate(
         {q.name: q for q in qubits}, [boolean_str], 0.1 * math.pi
     )
 
     assert hamiltonian_gate.num_qubits() == n
 
-    circuit.append(hamiltonian_gate)
+    circuit.append(hamiltonian_gate.on(*qubits))
 
     phi = cirq.Simulator().simulate(circuit, qubit_order=qubits, initial_state=0).state_vector()
     actual = np.arctan2(phi.real, phi.imag) - math.pi / 2.0 > 0.0
@@ -87,20 +87,25 @@ def test_circuit(boolean_str):
     np.testing.assert_array_equal(actual, expected)
 
 
-def test_with_custom_names():
+def test_gate_with_custom_names():
     q0, q1, q2, q3 = cirq.LineQubit.range(4)
-    original_op = cirq.BooleanHamiltonian(
-        {'a': q0, 'b': q1},
-        ['a'],
-        0.1,
-    )
-    assert cirq.decompose(original_op) == [cirq.Rz(rads=-0.05).on(q0)]
+    gate = cirq.BooleanHamiltonianGate(['a', 'b'], ['a'], 0.1)
+    assert cirq.decompose(gate.on(q0, q1)) == [cirq.Rz(rads=-0.05).on(q0)]
+    assert cirq.decompose_once_with_qubits(gate, (q0, q1)) == [cirq.Rz(rads=-0.05).on(q0)]
+    assert cirq.decompose(gate.on(q2, q3)) == [cirq.Rz(rads=-0.05).on(q2)]
+    assert cirq.decompose_once_with_qubits(gate, (q2, q3)) == [cirq.Rz(rads=-0.05).on(q2)]
 
-    renamed_op = original_op.with_qubits(q2, q3)
-    assert cirq.decompose(renamed_op) == [cirq.Rz(rads=-0.05).on(q2)]
+    with pytest.raises(ValueError, match='Wrong number of qubits'):
+        gate.on(q2)
+    with pytest.raises(ValueError, match='Wrong shape of qids'):
+        gate.on(q0, cirq.LineQid(1, 3))
 
-    with pytest.raises(ValueError, match='Length of replacement qubits must be the same'):
-        original_op.with_qubits(q2)
+
+def test_gate_consistent():
+    gate = cirq.BooleanHamiltonianGate(['a', 'b'], ['a'], 0.1)
+    op = gate.on(*cirq.LineQubit.range(2))
+    cirq.testing.assert_implements_consistent_protocols(gate)
+    cirq.testing.assert_implements_consistent_protocols(op)
 
 
 @pytest.mark.parametrize(
@@ -113,7 +118,7 @@ def test_with_custom_names():
 )
 def test_gray_code_sorting(n_bits, expected_hs):
     hs_template = []
-    for x in range(2 ** n_bits):
+    for x in range(2**n_bits):
         h = []
         for i in range(n_bits):
             if x % 2 == 1:
@@ -134,13 +139,7 @@ def test_gray_code_sorting(n_bits, expected_hs):
 
 
 @pytest.mark.parametrize(
-    'seq_a,seq_b,expected',
-    [
-        ((), (), 0),
-        ((), (0,), -1),
-        ((0,), (), 1),
-        ((0,), (0,), 0),
-    ],
+    'seq_a,seq_b,expected', [((), (), 0), ((), (0,), -1), ((0,), (), 1), ((0,), (0,), 0)]
 )
 def test_gray_code_comparison(seq_a, seq_b, expected):
     assert bh._gray_code_comparator(seq_a, seq_b) == expected

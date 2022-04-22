@@ -59,7 +59,6 @@ TestSpec = ModuleJsonTestSpec(
         'QasmOutput',
         'QuantumState',
         'QubitOrder',
-        'QubitPermutationGate',
         'QuilFormatter',
         'QuilOutput',
         'SimulationTrialResult',
@@ -86,12 +85,16 @@ TestSpec = ModuleJsonTestSpec(
         'ActOnArgsContainer',
         'ActOnCliffordTableauArgs',
         'ActOnDensityMatrixArgs',
+        'ActOnStabilizerArgs',
         'ActOnStabilizerCHFormArgs',
         'ActOnStateVectorArgs',
         'ApplyChannelArgs',
         'ApplyMixtureArgs',
         'ApplyUnitaryArgs',
         'OperationTarget',
+        # Abstract base class for creating compilation targets.
+        'CompilationTargetGateset',
+        'TwoQubitCompilationTargetGateset',
         # Circuit optimizers are function-like. Only attributes
         # are ignore_failures, tolerance, and other feature flags
         'AlignLeft',
@@ -127,6 +130,8 @@ TestSpec = ModuleJsonTestSpec(
         'SimulatesAmplitudes',
         'SimulatesExpectationValues',
         'SimulatesFinalState',
+        'StateVectorStepResult',
+        'StepResultBase',
         'NamedTopology',
         # protocols:
         'HasJSONNamespace',
@@ -185,13 +190,10 @@ TestSpec = ModuleJsonTestSpec(
         'Unique',
         'DEFAULT_RESOLVERS',
     ],
-    deprecated={
-        'GlobalPhaseOperation': 'v0.16',
-        'SymmetricalQidPair': 'v0.15',
-    },
+    deprecated={'GlobalPhaseOperation': 'v0.16', 'SymmetricalQidPair': 'v0.15'},
     tested_elsewhere=[
         # SerializableByKey does not follow common serialization rules.
         # It is tested separately in test_context_serialization.
-        'SerializableByKey',
+        'SerializableByKey'
     ],
 )

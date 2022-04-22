@@ -12,38 +12,20 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import inspect
-import warnings
 from collections import abc
-from typing import (
-    Dict,
-    Generic,
-    Iterator,
-    List,
-    Optional,
-    Sequence,
-    Tuple,
-    TYPE_CHECKING,
-    Union,
-)
+from typing import Any, Dict, Generic, Iterator, List, Mapping, Optional, Sequence, TYPE_CHECKING
 
 import numpy as np
 
 from cirq import ops, protocols, value
 from cirq.sim.operation_target import OperationTarget
-from cirq.sim.simulator import (
-    TActOnArgs,
-)
+from cirq.sim.simulator import TActOnArgs
 
 if TYPE_CHECKING:
     import cirq
 
 
-class ActOnArgsContainer(
-    Generic[TActOnArgs],
-    OperationTarget[TActOnArgs],
-    abc.Mapping,
-):
+class ActOnArgsContainer(Generic[TActOnArgs], OperationTarget[TActOnArgs], abc.Mapping):
     """A container for a `Qid`-to-`ActOnArgs` dictionary."""
 
     def __init__(
@@ -51,7 +33,6 @@ class ActOnArgsContainer(
         args: Dict[Optional['cirq.Qid'], TActOnArgs],
         qubits: Sequence['cirq.Qid'],
         split_untangled_states: bool,
-        log_of_measurement_results: Optional[Dict[str, List[int]]] = None,
         classical_data: Optional['cirq.ClassicalDataStore'] = None,
     ):
         """Initializes the class.
@@ -63,20 +44,21 @@ class ActOnArgsContainer(
             split_untangled_states: If True, optimizes operations by running
                 unentangled qubit sets independently and merging those states
                 at the end.
-            log_of_measurement_results: A mutable object that measurements are
-                being recorded into.
             classical_data: The shared classical data container for this
                 simulation.
         """
-        self.args = args
-        self._qubits = tuple(qubits)
-        self.split_untangled_states = split_untangled_states
-        self._classical_data = classical_data or value.ClassicalDataDictionaryStore(
-            _measurements={
-                value.MeasurementKey.parse_serialized(k): tuple(v)
-                for k, v in (log_of_measurement_results or {}).items()
-            }
-        )
+        classical_data = classical_data or value.ClassicalDataDictionaryStore()
+        super().__init__(qubits=qubits, classical_data=classical_data)
+        self._args = args
+        self._split_untangled_states = split_untangled_states
+
+    @property
+    def args(self) -> Mapping[Optional['cirq.Qid'], TActOnArgs]:
+        return self._args
+
+    @property
+    def split_untangled_states(self) -> bool:
+        return self._split_untangled_states
 
     def create_merged_state(self) -> TActOnArgs:
         if not self.split_untangled_states:
@@ -87,25 +69,32 @@ class ActOnArgsContainer(
         return final_args.transpose_to_qubit_order(self.qubits)
 
     def _act_on_fallback_(
-        self,
-        action: Union['cirq.Operation', 'cirq.Gate'],
-        qubits: Sequence['cirq.Qid'],
-        allow_decompose: bool = True,
+        self, action: Any, qubits: Sequence['cirq.Qid'], allow_decompose: bool = True
     ) -> bool:
-        gate = action.gate if isinstance(action, ops.Operation) else action
+        gate_opt = (
+            action
+            if isinstance(action, ops.Gate)
+            else action.gate
+            if isinstance(action, ops.Operation)
+            else None
+        )
 
-        if isinstance(gate, ops.IdentityGate):
+        if isinstance(gate_opt, ops.IdentityGate):
             return True
 
-        if isinstance(gate, ops.SwapPowGate) and gate.exponent % 2 == 1 and gate.global_shift == 0:
+        if (
+            isinstance(gate_opt, ops.SwapPowGate)
+            and gate_opt.exponent % 2 == 1
+            and gate_opt.global_shift == 0
+        ):
             q0, q1 = qubits
             args0 = self.args[q0]
             args1 = self.args[q1]
             if args0 is args1:
                 args0.swap(q0, q1, inplace=True)
             else:
-                self.args[q0] = args1.rename(q1, q0, inplace=True)
-                self.args[q1] = args0.rename(q0, q1, inplace=True)
+                self._args[q0] = args1.rename(q1, q0, inplace=True)
+                self._args[q1] = args0.rename(q0, q1, inplace=True)
             return True
 
         # Go through the op's qubits and join any disparate ActOnArgs states
@@ -120,56 +109,37 @@ class ActOnArgsContainer(
 
         # (Backfill the args map with the new value)
         for q in op_args.qubits:
-            self.args[q] = op_args
+            self._args[q] = op_args
 
         # Act on the args with the operation
         act_on_qubits = qubits if isinstance(action, ops.Gate) else None
         protocols.act_on(action, op_args, act_on_qubits, allow_decompose=allow_decompose)
 
         # Decouple any measurements or resets
-        if self.split_untangled_states and (
-            isinstance(gate, ops.ResetChannel)
-            or (isinstance(gate, ops.MeasurementGate) and not op_args.ignore_measurement_results)
+        if self.split_untangled_states and isinstance(
+            gate_opt, (ops.ResetChannel, ops.MeasurementGate)
         ):
             for q in qubits:
                 if op_args.allows_factoring:
                     q_args, op_args = op_args.factor((q,), validate=False)
-                    self.args[q] = q_args
+                    self._args[q] = q_args
 
             # (Backfill the args map with the new value)
             for q in op_args.qubits:
-                self.args[q] = op_args
+                self._args[q] = op_args
         return True
 
     def copy(self, deep_copy_buffers: bool = True) -> 'cirq.ActOnArgsContainer[TActOnArgs]':
         classical_data = self._classical_data.copy()
         copies = {}
         for act_on_args in set(self.args.values()):
-            if 'deep_copy_buffers' in inspect.signature(act_on_args.copy).parameters:
-                copies[act_on_args] = act_on_args.copy(deep_copy_buffers)
-            else:
-                warnings.warn(
-                    (
-                        'A new parameter deep_copy_buffers has been added to ActOnArgs.copy(). The '
-                        'classes that inherit from ActOnArgs should support it before Cirq 0.15.'
-                    ),
-                    DeprecationWarning,
-                )
-                copies[act_on_args] = act_on_args.copy()
+            copies[act_on_args] = act_on_args.copy(deep_copy_buffers)
         for copy in copies.values():
             copy._classical_data = classical_data
         args = {q: copies[a] for q, a in self.args.items()}
         return ActOnArgsContainer(
             args, self.qubits, self.split_untangled_states, classical_data=classical_data
         )
-
-    @property
-    def qubits(self) -> Tuple['cirq.Qid', ...]:
-        return self._qubits
-
-    @property
-    def classical_data(self) -> 'cirq.ClassicalDataStoreReader':
-        return self._classical_data
 
     def sample(
         self,

@@ -100,9 +100,7 @@ class KrausChannel(raw_types.Gate):
         )
 
     def _with_rescoped_keys_(
-        self,
-        path: Tuple[str, ...],
-        bindable_keys: FrozenSet['cirq.MeasurementKey'],
+        self, path: Tuple[str, ...], bindable_keys: FrozenSet['cirq.MeasurementKey']
     ):
         return KrausChannel(
             kraus_ops=self._kraus_ops,

@@ -15,20 +15,13 @@
 
 import cirq
 
-from cirq.contrib.paulistring import (
-    converted_gate_set,
-    pauli_string_optimized_circuit,
-)
+from cirq.contrib.paulistring import converted_gate_set, pauli_string_optimized_circuit
 
 
 def test_optimize():
     q0, q1 = cirq.LineQubit.range(2)
     c_orig = cirq.Circuit(
-        cirq.X(q0) ** 0.25,
-        cirq.H(q0),
-        cirq.CZ(q0, q1),
-        cirq.H(q0),
-        cirq.X(q0) ** 0.125,
+        cirq.X(q0) ** 0.25, cirq.H(q0), cirq.CZ(q0, q1), cirq.H(q0), cirq.X(q0) ** 0.125
     )
     c_expected = converted_gate_set(
         cirq.Circuit(
@@ -43,11 +36,7 @@ def test_optimize():
 
     c_opt = pauli_string_optimized_circuit(c_orig)
 
-    cirq.testing.assert_allclose_up_to_global_phase(
-        c_orig.unitary(),
-        c_opt.unitary(),
-        atol=1e-7,
-    )
+    cirq.testing.assert_allclose_up_to_global_phase(c_orig.unitary(), c_opt.unitary(), atol=1e-7)
 
     assert c_opt == c_expected
 
@@ -74,11 +63,7 @@ def test_handles_measurement_gate():
     )
     c_opt = pauli_string_optimized_circuit(c_orig)
 
-    cirq.testing.assert_allclose_up_to_global_phase(
-        c_orig.unitary(),
-        c_opt.unitary(),
-        atol=1e-7,
-    )
+    cirq.testing.assert_allclose_up_to_global_phase(c_orig.unitary(), c_opt.unitary(), atol=1e-7)
 
     cirq.testing.assert_has_diagram(
         c_opt,
@@ -96,8 +81,4 @@ def test_optimize_large_circuit():
 
     c_opt = pauli_string_optimized_circuit(c_orig)
 
-    cirq.testing.assert_allclose_up_to_global_phase(
-        c_orig.unitary(),
-        c_opt.unitary(),
-        atol=1e-7,
-    )
+    cirq.testing.assert_allclose_up_to_global_phase(c_orig.unitary(), c_opt.unitary(), atol=1e-7)

@@ -15,17 +15,7 @@
 """Transformer pass to repack circuits avoiding simultaneous operations with different classes."""
 
 import itertools
-from typing import (
-    TYPE_CHECKING,
-    Type,
-    Callable,
-    Optional,
-    Union,
-    Iterable,
-    Sequence,
-    List,
-    Tuple,
-)
+from typing import TYPE_CHECKING, Type, Callable, Optional, Union, Iterable, Sequence, List, Tuple
 
 from cirq import ops, circuits, _import
 from cirq.transformers import transformer_api, transformer_primitives
@@ -45,7 +35,7 @@ Category = Union[
 ]
 
 
-@transformer_api.transformer
+@transformer_api.transformer(add_deep_support=True)
 def stratified_circuit(
     circuit: 'cirq.AbstractCircuit',
     *,
@@ -152,8 +142,7 @@ def _stratify_circuit(
         batch_removals: List[Tuple[int, 'cirq.Operation']] = []
         batch_inserts: List[Tuple[int, 'cirq.Operation']] = []
         for op in moment:
-            prv_idx = stratified_circuit._prev_moment_available(op, curr_idx)
-            prv_idx = 0 if prv_idx is None else prv_idx
+            prv_idx = stratified_circuit.earliest_available_moment(op, end_moment_index=curr_idx)
             prv_category = prv_idx % num_categories
             should_move_to_next_batch = curr_category < prv_category
             prv_idx += curr_category - prv_category + num_categories * should_move_to_next_batch

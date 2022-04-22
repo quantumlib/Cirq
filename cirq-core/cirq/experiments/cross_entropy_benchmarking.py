@@ -95,10 +95,10 @@ class SpecklePurityDepolarizingModel(CrossEntropyDepolarizingModel):
     @property
     def purity(self) -> float:
         """The purity. Equal to p**2, where p is the cycle depolarization."""
-        return self.cycle_depolarization ** 2
+        return self.cycle_depolarization**2
 
 
-@protocols.json_serializable_dataclass(frozen=True)
+@dataclasses.dataclass(frozen=True)
 class CrossEntropyResult:
     """Results from a cross-entropy benchmarking (XEB) experiment.
 
@@ -208,6 +208,9 @@ class CrossEntropyResult:
             purity_data=purity_data,
         )
 
+    def _json_dict_(self):
+        return protocols.dataclass_json_dict(self)
+
     def __repr__(self) -> str:
         args = f'data={[tuple(p) for p in self.data]!r}, repetitions={self.repetitions!r}'
         if self.purity_data is not None:
@@ -235,7 +238,7 @@ def _fit_exponential_decay(x: Sequence[int], y: Sequence[float]) -> Tuple[np.nda
 
     # Perform nonlinear least squares
     def f(a, S, p):
-        return S * p ** a
+        return S * p**a
 
     return optimize.curve_fit(f, x, y, p0=p0)
 
@@ -252,9 +255,7 @@ class CrossEntropyResultDict(Mapping[Tuple['cirq.Qid', ...], CrossEntropyResult]
     results: Dict[Tuple['cirq.Qid', ...], CrossEntropyResult]
 
     def _json_dict_(self) -> Dict[str, Any]:
-        return {
-            'results': list(self.results.items()),
-        }
+        return {'results': list(self.results.items())}
 
     @classmethod
     def _from_json_dict_(
@@ -283,7 +284,7 @@ def cross_entropy_benchmarking(
     num_circuits: int = 20,
     repetitions: int = 1000,
     cycles: Union[int, Iterable[int]] = range(2, 103, 10),
-    scrambling_gates_per_cycle: List[List[ops.SingleQubitGate]] = None,
+    scrambling_gates_per_cycle: List[List[ops.Gate]] = None,
     simulator: sim.Simulator = None,
 ) -> CrossEntropyResult:
     r"""Cross-entropy benchmarking (XEB) of multiple qubits.
@@ -382,8 +383,8 @@ def cross_entropy_benchmarking(
     # all trials in two dictionaries. The keys of the dictionaries are the
     # numbers of cycles. The values are 2D arrays with each row being the
     # probabilities obtained from a single trial.
-    probs_meas = {n: np.zeros((num_circuits, 2 ** num_qubits)) for n in cycle_range}
-    probs_th = {n: np.zeros((num_circuits, 2 ** num_qubits)) for n in cycle_range}
+    probs_meas = {n: np.zeros((num_circuits, 2**num_qubits)) for n in cycle_range}
+    probs_th = {n: np.zeros((num_circuits, 2**num_qubits)) for n in cycle_range}
 
     for k in range(num_circuits):
 
@@ -481,7 +482,7 @@ def build_entangling_layers(
 def _build_xeb_circuits(
     qubits: Sequence[ops.Qid],
     cycles: Sequence[int],
-    single_qubit_gates: List[List[ops.SingleQubitGate]] = None,
+    single_qubit_gates: List[List[ops.Gate]] = None,
     benchmark_ops: Sequence[circuits.Moment] = None,
 ) -> List[circuits.Circuit]:
     if benchmark_ops is not None:
@@ -552,14 +553,14 @@ def _compute_fidelity(probs_th: np.ndarray, probs_meas: np.ndarray) -> float:
     """
     _, num_states = probs_th.shape
     pp_cross = probs_th * probs_meas
-    pp_th = probs_th ** 2
+    pp_th = probs_th**2
     f_meas = np.mean(num_states * np.sum(pp_cross, axis=1) - 1.0)
     f_th = np.mean(num_states * np.sum(pp_th, axis=1) - 1.0)
     return float(f_meas / f_th)
 
 
 def _random_half_rotations(qubits: Sequence[ops.Qid], num_layers: int) -> List[List[ops.OP_TREE]]:
-    rot_ops = [ops.X ** 0.5, ops.Y ** 0.5, ops.PhasedXPowGate(phase_exponent=0.25, exponent=0.5)]
+    rot_ops = [ops.X**0.5, ops.Y**0.5, ops.PhasedXPowGate(phase_exponent=0.25, exponent=0.5)]
     num_qubits = len(qubits)
     rand_nums = np.random.choice(3, (num_qubits, num_layers))
     single_q_layers: List[List[ops.OP_TREE]] = []
@@ -569,7 +570,7 @@ def _random_half_rotations(qubits: Sequence[ops.Qid], num_layers: int) -> List[L
 
 
 def _random_any_gates(
-    qubits: Sequence[ops.Qid], op_list: List[List[ops.SingleQubitGate]], num_layers: int
+    qubits: Sequence[ops.Qid], op_list: List[List[ops.Gate]], num_layers: int
 ) -> List[List[ops.OP_TREE]]:
     num_ops = len(op_list)
     num_qubits = len(qubits)

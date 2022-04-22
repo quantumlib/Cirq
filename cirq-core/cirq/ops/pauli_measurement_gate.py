@@ -68,20 +68,23 @@ class PauliMeasurementGate(raw_types.Gate):
             )
 
         self._observable = dps.DensePauliString(observable, coefficient=coefficient)
-        self.key = key  # type: ignore
+        self._mkey = (
+            key if isinstance(key, value.MeasurementKey) else value.MeasurementKey(name=key)
+        )
 
     @property
     def key(self) -> str:
         return str(self.mkey)
 
-    @key.setter
-    def key(self, key: Union[str, 'cirq.MeasurementKey']) -> None:
-        if isinstance(key, str):
-            key = value.MeasurementKey(name=key)
-        self.mkey = key
+    @property
+    def mkey(self) -> 'cirq.MeasurementKey':
+        return self._mkey
 
     def _qid_shape_(self) -> Tuple[int, ...]:
         return (2,) * len(self._observable)
+
+    def _has_unitary_(self) -> bool:
+        return False
 
     def with_key(self, key: Union[str, 'cirq.MeasurementKey']) -> 'PauliMeasurementGate':
         """Creates a pauli measurement gate with a new key but otherwise identical."""
@@ -96,9 +99,7 @@ class PauliMeasurementGate(raw_types.Gate):
         return self.with_key(self.mkey._with_key_path_prefix_(prefix))
 
     def _with_rescoped_keys_(
-        self,
-        path: Tuple[str, ...],
-        bindable_keys: FrozenSet['cirq.MeasurementKey'],
+        self, path: Tuple[str, ...], bindable_keys: FrozenSet['cirq.MeasurementKey']
     ) -> 'PauliMeasurementGate':
         return self.with_key(protocols.with_rescoped_keys(self.mkey, path, bindable_keys))
 
@@ -177,17 +178,11 @@ class PauliMeasurementGate(raw_types.Gate):
         return self.key, self._observable
 
     def _json_dict_(self) -> Dict[str, Any]:
-        return {
-            'observable': self._observable,
-            'key': self.key,
-        }
+        return {'observable': self._observable, 'key': self.key}
 
     @classmethod
     def _from_json_dict_(cls, observable, key, **kwargs) -> 'PauliMeasurementGate':
-        return cls(
-            observable=observable,
-            key=value.MeasurementKey.parse_serialized(key),
-        )
+        return cls(observable=observable, key=value.MeasurementKey.parse_serialized(key))
 
 
 def _default_measurement_key(qubits: Iterable[raw_types.Qid]) -> str:

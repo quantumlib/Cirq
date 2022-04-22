@@ -13,22 +13,13 @@
 # limitations under the License.
 
 import numbers
-from typing import (
-    AbstractSet,
-    Tuple,
-    TYPE_CHECKING,
-    Dict,
-    Any,
-    cast,
-    SupportsFloat,
-    Optional,
-)
+from typing import AbstractSet, Tuple, TYPE_CHECKING, Dict, Any, cast, SupportsFloat, Optional
 
 import numpy as np
 
 from cirq import protocols, value
-from cirq.ops import raw_types
 from cirq._compat import proper_repr
+from cirq.ops import raw_types
 
 if TYPE_CHECKING:
     import cirq
@@ -38,20 +29,28 @@ if TYPE_CHECKING:
 class RandomGateChannel(raw_types.Gate):
     """Applies a sub gate with some probability."""
 
-    def __init__(self, *, sub_gate: 'cirq.Gate', probability: value.TParamVal):
+    def __init__(self, *, sub_gate: 'cirq.Gate', probability: 'cirq.TParamVal'):
         if (
             isinstance(probability, numbers.Number)
             and not 0 <= float(cast(SupportsFloat, probability)) <= 1
         ):
             raise ValueError("not 0 <= probability <= 1")
 
-        self.sub_gate = sub_gate
-        self.probability = probability
+        self._sub_gate = sub_gate
+        self._probability = probability
 
         # Auto flatten.
         if isinstance(self.sub_gate, RandomGateChannel):
-            self.probability *= self.sub_gate.probability
-            self.sub_gate = self.sub_gate.sub_gate
+            self._probability *= self.sub_gate.probability
+            self._sub_gate = self.sub_gate.sub_gate
+
+    @property
+    def sub_gate(self) -> 'cirq.Gate':
+        return self._sub_gate
+
+    @property
+    def probability(self) -> 'cirq.TParamVal':
+        return self._probability
 
     def _qid_shape_(self) -> Tuple[int, ...]:
         return protocols.qid_shape(self.sub_gate)

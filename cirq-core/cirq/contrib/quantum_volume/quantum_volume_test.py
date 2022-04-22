@@ -10,7 +10,7 @@ import cirq.contrib.routing as ccr
 from cirq.contrib.quantum_volume import CompilationResult
 
 
-class TestDevice(cirq.Device):
+class FakeDevice(cirq.Device):
     qubits = cirq.GridQubit.rect(5, 5)
 
 
@@ -123,7 +123,7 @@ def test_compile_circuit_router():
     router_mock = MagicMock()
     cirq.contrib.quantum_volume.compile_circuit(
         cirq.Circuit(),
-        device_graph=ccr.gridqubits_to_graph_device(TestDevice().qubits),
+        device_graph=ccr.gridqubits_to_graph_device(FakeDevice().qubits),
         router=router_mock,
         routing_attempts=1,
     )
@@ -134,14 +134,10 @@ def test_compile_circuit():
     """Tests that we are able to compile a model circuit."""
     compiler_mock = MagicMock(side_effect=lambda circuit: circuit)
     a, b, c = cirq.LineQubit.range(3)
-    model_circuit = cirq.Circuit(
-        [
-            cirq.Moment([cirq.X(a), cirq.Y(b), cirq.Z(c)]),
-        ]
-    )
+    model_circuit = cirq.Circuit([cirq.Moment([cirq.X(a), cirq.Y(b), cirq.Z(c)])])
     compilation_result = cirq.contrib.quantum_volume.compile_circuit(
         model_circuit,
-        device_graph=ccr.gridqubits_to_graph_device(TestDevice().qubits),
+        device_graph=ccr.gridqubits_to_graph_device(FakeDevice().qubits),
         compiler=compiler_mock,
         routing_attempts=1,
     )
@@ -149,7 +145,7 @@ def test_compile_circuit():
     assert len(compilation_result.mapping) == 3
     assert cirq.contrib.routing.ops_are_consistent_with_device_graph(
         compilation_result.circuit.all_operations(),
-        cirq.contrib.routing.gridqubits_to_graph_device(TestDevice().qubits),
+        cirq.contrib.routing.gridqubits_to_graph_device(FakeDevice().qubits),
     )
     compiler_mock.assert_called_with(compilation_result.circuit)
 
@@ -169,7 +165,7 @@ def test_compile_circuit_replaces_swaps():
     )
     compilation_result = cirq.contrib.quantum_volume.compile_circuit(
         model_circuit,
-        device_graph=ccr.gridqubits_to_graph_device(TestDevice().qubits),
+        device_graph=ccr.gridqubits_to_graph_device(FakeDevice().qubits),
         compiler=compiler_mock,
         routing_attempts=1,
     )
@@ -202,14 +198,10 @@ def test_compile_circuit_with_readout_correction():
     router_mock = MagicMock(side_effect=lambda circuit, network: ccr.SwapNetwork(circuit, {}))
     a, b, c = cirq.LineQubit.range(3)
     ap, bp, cp = cirq.LineQubit.range(3, 6)
-    model_circuit = cirq.Circuit(
-        [
-            cirq.Moment([cirq.X(a), cirq.Y(b), cirq.Z(c)]),
-        ]
-    )
+    model_circuit = cirq.Circuit([cirq.Moment([cirq.X(a), cirq.Y(b), cirq.Z(c)])])
     compilation_result = cirq.contrib.quantum_volume.compile_circuit(
         model_circuit,
-        device_graph=ccr.gridqubits_to_graph_device(TestDevice().qubits),
+        device_graph=ccr.gridqubits_to_graph_device(FakeDevice().qubits),
         compiler=compiler_mock,
         router=router_mock,
         routing_attempts=1,
@@ -230,22 +222,9 @@ def test_compile_circuit_multiple_routing_attempts():
     """Tests that we make multiple attempts at routing and keep the best one."""
     qubits = cirq.LineQubit.range(3)
     initial_mapping = dict(zip(qubits, qubits))
-    more_operations = cirq.Circuit(
-        [
-            cirq.X.on_each(qubits),
-            cirq.Y.on_each(qubits),
-        ]
-    )
-    more_qubits = cirq.Circuit(
-        [
-            cirq.X.on_each(cirq.LineQubit.range(4)),
-        ]
-    )
-    well_routed = cirq.Circuit(
-        [
-            cirq.X.on_each(qubits),
-        ]
-    )
+    more_operations = cirq.Circuit([cirq.X.on_each(qubits), cirq.Y.on_each(qubits)])
+    more_qubits = cirq.Circuit([cirq.X.on_each(cirq.LineQubit.range(4))])
+    well_routed = cirq.Circuit([cirq.X.on_each(qubits)])
     router_mock = MagicMock(
         side_effect=[
             ccr.SwapNetwork(more_operations, initial_mapping),
@@ -258,7 +237,7 @@ def test_compile_circuit_multiple_routing_attempts():
 
     compilation_result = cirq.contrib.quantum_volume.compile_circuit(
         model_circuit,
-        device_graph=ccr.gridqubits_to_graph_device(TestDevice().qubits),
+        device_graph=ccr.gridqubits_to_graph_device(FakeDevice().qubits),
         compiler=compiler_mock,
         router=router_mock,
         routing_attempts=3,
@@ -272,16 +251,12 @@ def test_compile_circuit_multiple_routing_attempts():
 def test_compile_circuit_no_routing_attempts():
     """Tests that setting no routing attempts throws an error."""
     a, b, c = cirq.LineQubit.range(3)
-    model_circuit = cirq.Circuit(
-        [
-            cirq.Moment([cirq.X(a), cirq.Y(b), cirq.Z(c)]),
-        ]
-    )
+    model_circuit = cirq.Circuit([cirq.Moment([cirq.X(a), cirq.Y(b), cirq.Z(c)])])
 
     with pytest.raises(AssertionError) as e:
         cirq.contrib.quantum_volume.compile_circuit(
             model_circuit,
-            device_graph=ccr.gridqubits_to_graph_device(TestDevice().qubits),
+            device_graph=ccr.gridqubits_to_graph_device(FakeDevice().qubits),
             routing_attempts=0,
         )
     assert e.match('Unable to get routing for circuit')

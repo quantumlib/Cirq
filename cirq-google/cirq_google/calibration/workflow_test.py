@@ -135,9 +135,7 @@ def test_prepare_characterization_for_moment_fails_for_unsupported_gate(options)
     moment = cirq.Moment(cirq.CZ(a, b))
     with pytest.raises(workflow.IncompatibleMomentError):
         workflow.prepare_characterization_for_moment(
-            moment,
-            options,
-            gates_translator=_fsim_identity_converter,
+            moment, options, gates_translator=_fsim_identity_converter
         )
 
 
@@ -505,8 +503,7 @@ def test_prepare_floquet_characterization_for_moments_does_not_merge_sub_sets_wh
         ]
     )
     circuit += cirq.Circuit(
-        [SQRT_ISWAP_INV_GATE.on(b, c), SQRT_ISWAP_INV_GATE.on(d, e)],
-        [SQRT_ISWAP_INV_GATE.on(b, c)],
+        [SQRT_ISWAP_INV_GATE.on(b, c), SQRT_ISWAP_INV_GATE.on(d, e)], [SQRT_ISWAP_INV_GATE.on(b, c)]
     )
     options = WITHOUT_CHI_FLOQUET_PHASED_FSIM_CHARACTERIZATION
 
@@ -554,8 +551,7 @@ def test_prepare_characterization_for_moments_does_not_merge_sub_sets_when_disab
         ]
     )
     circuit += cirq.Circuit(
-        [SQRT_ISWAP_INV_GATE.on(b, c), SQRT_ISWAP_INV_GATE.on(d, e)],
-        [SQRT_ISWAP_INV_GATE.on(b, c)],
+        [SQRT_ISWAP_INV_GATE.on(b, c), SQRT_ISWAP_INV_GATE.on(d, e)], [SQRT_ISWAP_INV_GATE.on(b, c)]
     )
 
     circuit_with_calibration, requests = workflow.prepare_characterization_for_moments(
@@ -858,13 +854,11 @@ def test_make_zeta_chi_gamma_compensation_for_operations():
     ]
 
     calibrated_circuit = workflow.make_zeta_chi_gamma_compensation_for_operations(
-        circuit,
-        characterizations,
+        circuit, characterizations
     )
 
     assert cirq.allclose_up_to_global_phase(
-        engine_simulator.final_state_vector(calibrated_circuit),
-        cirq.final_state_vector(circuit),
+        engine_simulator.final_state_vector(calibrated_circuit), cirq.final_state_vector(circuit)
     )
 
 
@@ -900,10 +894,7 @@ def test_make_zeta_chi_gamma_compensation_for_operations_with_permit_mixed_momen
     ]
 
     with pytest.raises(workflow.IncompatibleMomentError):
-        workflow.make_zeta_chi_gamma_compensation_for_operations(
-            circuit,
-            characterizations,
-        )
+        workflow.make_zeta_chi_gamma_compensation_for_operations(circuit, characterizations)
 
 
 def test_make_zeta_chi_gamma_compensation_for_operations_with_permit_mixed_moments():
@@ -945,14 +936,11 @@ def test_make_zeta_chi_gamma_compensation_for_operations_with_permit_mixed_momen
     ]
 
     calibrated_circuit = workflow.make_zeta_chi_gamma_compensation_for_operations(
-        circuit,
-        characterizations,
-        permit_mixed_moments=True,
+        circuit, characterizations, permit_mixed_moments=True
     )
 
     assert cirq.allclose_up_to_global_phase(
-        engine_simulator.final_state_vector(calibrated_circuit),
-        cirq.final_state_vector(circuit),
+        engine_simulator.final_state_vector(calibrated_circuit), cirq.final_state_vector(circuit)
     )
     assert calibrated_circuit[5] == cirq.Moment(
         [cirq.X(a), SQRT_ISWAP_INV_GATE.on(b, c), cirq.Y(d)]
@@ -1021,9 +1009,7 @@ def test_run_calibrations():
     engine = mock.MagicMock(spec=cirq_google.Engine)
     engine.run_calibration.return_value = job
 
-    sampler = cirq_google.QuantumEngineSampler(
-        engine=engine, processor_id='qproc', gate_set=cirq_google.FSIM_GATESET
-    )
+    sampler = cirq_google.QuantumEngineSampler(engine=engine, processor_id='qproc')
 
     progress_calls = []
 
@@ -1127,9 +1113,7 @@ def test_run_characterization_with_engine():
     def progress(step: int, steps: int) -> None:
         progress_calls.append((step, steps))
 
-    actual = workflow.run_calibrations(
-        [request], engine, 'qproc', cirq_google.FSIM_GATESET, progress_func=progress
-    )
+    actual = workflow.run_calibrations([request], engine, 'qproc', progress_func=progress)
 
     expected = [
         PhasedFSimCalibrationResult(
@@ -1160,7 +1144,7 @@ def test_run_characterization_with_engine():
 
 
 def test_run_calibrations_empty():
-    assert workflow.run_calibrations([], None, 'qproc', cirq_google.FSIM_GATESET) == []
+    assert workflow.run_calibrations([], None, 'qproc') == []
 
 
 def test_run_calibrations_fails_when_invalid_arguments():
@@ -1170,9 +1154,7 @@ def test_run_calibrations_fails_when_invalid_arguments():
         )
 
     request = FloquetPhasedFSimCalibrationRequest(
-        gate=SQRT_ISWAP_INV_GATE,
-        pairs=(),
-        options=WITHOUT_CHI_FLOQUET_PHASED_FSIM_CHARACTERIZATION,
+        gate=SQRT_ISWAP_INV_GATE, pairs=(), options=WITHOUT_CHI_FLOQUET_PHASED_FSIM_CHARACTERIZATION
     )
     engine = mock.MagicMock(spec=cirq_google.Engine)
 
@@ -1289,7 +1271,7 @@ def test_run_floquet_characterization_for_moments():
     engine.run_calibration.return_value = job
 
     circuit_with_calibration, requests = workflow.run_floquet_characterization_for_moments(
-        circuit, engine, 'qproc', cirq_google.FSIM_GATESET, options=options
+        circuit, engine, 'qproc', options=options
     )
 
     assert requests == [
@@ -1586,8 +1568,7 @@ def test_make_zeta_chi_gamma_compensation_for_moments_imperfect_gates():
     ]
 
     circuit_with_calibration = workflow.make_zeta_chi_gamma_compensation_for_moments(
-        circuit,
-        characterizations,
+        circuit, characterizations
     )
 
     assert cirq.allclose_up_to_global_phase(
@@ -1627,11 +1608,7 @@ def test_run_zeta_chi_gamma_calibration_for_moments() -> None:
     )
 
     calibrated_circuit, calibrations = workflow.run_zeta_chi_gamma_compensation_for_moments(
-        circuit,
-        engine_simulator,
-        processor_id=None,
-        gate_set=cirq_google.FSIM_GATESET,
-        options=options,
+        circuit, engine_simulator, processor_id=None, options=options
     )
 
     assert cirq.allclose_up_to_global_phase(
@@ -1671,7 +1648,7 @@ def test_run_zeta_chi_gamma_calibration_for_moments_no_chi() -> None:
     )
 
     calibrated_circuit, *_ = workflow.run_zeta_chi_gamma_compensation_for_moments(
-        circuit, engine_simulator, processor_id=None, gate_set=cirq_google.SQRT_ISWAP_GATESET
+        circuit, engine_simulator, processor_id=None
     )
 
     assert cirq.allclose_up_to_global_phase(
@@ -1689,10 +1666,7 @@ _MOCK_ENGINE_SAMPLER = mock.MagicMock(
 def test_run_local(sampler_engine, monkeypatch):
     called_times = 0
 
-    def myfunc(
-        calibration: LocalXEBPhasedFSimCalibrationRequest,
-        sampler: cirq.Sampler,
-    ):
+    def myfunc(calibration: LocalXEBPhasedFSimCalibrationRequest, sampler: cirq.Sampler):
         nonlocal called_times
         assert isinstance(calibration, LocalXEBPhasedFSimCalibrationRequest)
         assert sampler is not None
@@ -1702,12 +1676,7 @@ def test_run_local(sampler_engine, monkeypatch):
     # Note: you must patch specifically the function imported into `workflow`.
     monkeypatch.setattr('cirq_google.calibration.workflow.run_local_xeb_calibration', myfunc)
 
-    qubit_indices = [
-        (0, 5),
-        (0, 6),
-        (1, 6),
-        (2, 6),
-    ]
+    qubit_indices = [(0, 5), (0, 6), (1, 6), (2, 6)]
     qubits = [cirq.GridQubit(*idx) for idx in qubit_indices]
 
     circuits = [

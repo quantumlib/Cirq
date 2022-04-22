@@ -172,13 +172,13 @@ def test_exponentiation_as_base():
         _ = p ** 'test'
 
     with pytest.raises(TypeError, match='unsupported'):
-        _ = p ** 1j
+        _ = p**1j
 
-    assert p ** -1 == p
+    assert p**-1 == p
 
-    assert cirq.approx_eq(p ** 0.5, cirq.PauliStringPhasor(p, exponent_neg=0.5, exponent_pos=0))
+    assert cirq.approx_eq(p**0.5, cirq.PauliStringPhasor(p, exponent_neg=0.5, exponent_pos=0))
 
-    assert cirq.approx_eq(p ** -0.5, cirq.PauliStringPhasor(p, exponent_neg=-0.5, exponent_pos=0))
+    assert cirq.approx_eq(p**-0.5, cirq.PauliStringPhasor(p, exponent_neg=-0.5, exponent_pos=0))
 
     assert cirq.approx_eq(
         math.e ** (0.25j * math.pi * p),
@@ -219,6 +219,8 @@ def test_constructor_flexibility():
         _ = cirq.PauliString('test')
     with pytest.raises(TypeError, match='S is not a Pauli'):
         _ = cirq.PauliString(qubit_pauli_map={a: cirq.S})
+    with pytest.raises(TypeError, match="cirq.PAULI_STRING_LIKE"):
+        _ = cirq.PauliString(cirq.Z(a) + cirq.Z(b))
 
     assert cirq.PauliString(cirq.X(a)) == cirq.PauliString(qubit_pauli_map={a: cirq.X})
     assert cirq.PauliString([cirq.X(a)]) == cirq.PauliString(qubit_pauli_map={a: cirq.X})
@@ -458,14 +460,7 @@ def test_mul_strings():
     a, b, c, d = cirq.LineQubit.range(4)
     p1 = cirq.PauliString({a: cirq.X, b: cirq.Y, c: cirq.Z})
     p2 = cirq.PauliString({b: cirq.X, c: cirq.Y, d: cirq.Z})
-    assert p1 * p2 == -cirq.PauliString(
-        {
-            a: cirq.X,
-            b: cirq.Z,
-            c: cirq.X,
-            d: cirq.Z,
-        }
-    )
+    assert p1 * p2 == -cirq.PauliString({a: cirq.X, b: cirq.Z, c: cirq.X, d: cirq.Z})
 
     assert cirq.X(a) * cirq.PauliString({a: cirq.X}) == cirq.PauliString()
     assert cirq.PauliString({a: cirq.X}) * cirq.X(a) == cirq.PauliString()
@@ -533,8 +528,8 @@ def test_pow():
     assert cirq.PauliString({a: cirq.Z}) ** 0.25 == cirq.Z(a) ** 0.25
 
     p = cirq.PauliString({a: cirq.X, b: cirq.Y})
-    assert p ** 1 == p
-    assert p ** -1 == p
+    assert p**1 == p
+    assert p**-1 == p
     assert (-p) ** 1 == -p
     assert (-p) ** -1 == -p
     assert (1j * p) ** 1 == 1j * p
@@ -591,7 +586,7 @@ def test_to_z_basis_ops():
     initial_state = cirq.kron(x0, x1, y0, y1, z0, z1, shape_len=1)
     z_basis_state = circuit.final_state_vector(initial_state)
 
-    expected_state = np.zeros(2 ** 6)
+    expected_state = np.zeros(2**6)
     expected_state[0b010101] = 1
 
     cirq.testing.assert_allclose_up_to_global_phase(
@@ -616,7 +611,7 @@ def test_to_z_basis_ops_product_state():
     )
     z_basis_state = circuit.final_state_vector(initial_state)
 
-    expected_state = np.zeros(2 ** 6)
+    expected_state = np.zeros(2**6)
     expected_state[0b010101] = 1
 
     cirq.testing.assert_allclose_up_to_global_phase(
@@ -714,7 +709,7 @@ def test_pass_operations_over_cz():
 
 
 def test_pass_operations_over_no_common_qubits():
-    class DummyGate(cirq.SingleQubitGate):
+    class DummyGate(cirq.testing.SingleQubitGate):
         pass
 
     q0, q1 = _make_qubits(2)
@@ -828,6 +823,7 @@ def test_unitary_matrix():
     a, b = cirq.LineQubit.range(2)
     assert not cirq.has_unitary(2 * cirq.X(a) * cirq.Z(b))
     assert cirq.unitary(2 * cirq.X(a) * cirq.Z(b), default=None) is None
+    # fmt: off
     np.testing.assert_allclose(
         cirq.unitary(cirq.X(a) * cirq.Z(b)),
         np.array(
@@ -850,6 +846,7 @@ def test_unitary_matrix():
             ]
         ),
     )
+    # fmt: on
 
 
 def test_decompose():
@@ -1048,10 +1045,7 @@ def test_pauli_string_expectation_from_state_vector_pure_state():
     q_map = {q: i for i, q in enumerate(qubits)}
 
     circuit = cirq.Circuit(
-        cirq.X(qubits[1]),
-        cirq.H(qubits[2]),
-        cirq.X(qubits[3]),
-        cirq.H(qubits[3]),
+        cirq.X(qubits[1]), cirq.H(qubits[2]), cirq.X(qubits[3]), cirq.H(qubits[3])
     )
     wf = circuit.final_state_vector(qubit_order=qubits)
 
@@ -1077,12 +1071,7 @@ def test_pauli_string_expectation_from_state_vector_pure_state_with_coef():
     qs = cirq.LineQubit.range(4)
     q_map = {q: i for i, q in enumerate(qs)}
 
-    circuit = cirq.Circuit(
-        cirq.X(qs[1]),
-        cirq.H(qs[2]),
-        cirq.X(qs[3]),
-        cirq.H(qs[3]),
-    )
+    circuit = cirq.Circuit(cirq.X(qs[1]), cirq.H(qs[2]), cirq.X(qs[3]), cirq.H(qs[3]))
     wf = circuit.final_state_vector(qubit_order=qs)
 
     z0z1 = cirq.Z(qs[0]) * cirq.Z(qs[1]) * 0.123
@@ -1198,8 +1187,7 @@ def test_expectation_from_density_matrix_basis_states():
         x0.expectation_from_density_matrix(np.array([[0, 0], [0, 1]], dtype=complex), q_map), 0
     )
     np.testing.assert_allclose(
-        x0.expectation_from_density_matrix(np.array([[1, 1], [1, 1]], dtype=complex) / 2, q_map),
-        1,
+        x0.expectation_from_density_matrix(np.array([[1, 1], [1, 1]], dtype=complex) / 2, q_map), 1
     )
     np.testing.assert_allclose(
         x0.expectation_from_density_matrix(np.array([[1, -1], [-1, 1]], dtype=complex) / 2, q_map),
@@ -1266,10 +1254,7 @@ def test_pauli_string_expectation_from_density_matrix_pure_state():
     q_map = {q: i for i, q in enumerate(qubits)}
 
     circuit = cirq.Circuit(
-        cirq.X(qubits[1]),
-        cirq.H(qubits[2]),
-        cirq.X(qubits[3]),
-        cirq.H(qubits[3]),
+        cirq.X(qubits[1]), cirq.H(qubits[2]), cirq.X(qubits[3]), cirq.H(qubits[3])
     )
     state_vector = circuit.final_state_vector(qubit_order=qubits)
     rho = np.outer(state_vector, np.conj(state_vector))
@@ -1296,12 +1281,7 @@ def test_pauli_string_expectation_from_density_matrix_pure_state_with_coef():
     qs = cirq.LineQubit.range(4)
     q_map = {q: i for i, q in enumerate(qs)}
 
-    circuit = cirq.Circuit(
-        cirq.X(qs[1]),
-        cirq.H(qs[2]),
-        cirq.X(qs[3]),
-        cirq.H(qs[3]),
-    )
+    circuit = cirq.Circuit(cirq.X(qs[1]), cirq.H(qs[2]), cirq.X(qs[3]), cirq.H(qs[3]))
     state_vector = circuit.final_state_vector(qubit_order=qs)
     rho = np.outer(state_vector, np.conj(state_vector))
 
@@ -1309,7 +1289,7 @@ def test_pauli_string_expectation_from_density_matrix_pure_state_with_coef():
     z0z2 = cirq.Z(qs[0]) * cirq.Z(qs[2]) * -1
     z1x2 = -cirq.Z(qs[1]) * cirq.X(qs[2])
 
-    for state in [rho, rho.reshape(2, 2, 2, 2, 2, 2, 2, 2)]:
+    for state in [rho, rho.reshape((2, 2, 2, 2, 2, 2, 2, 2))]:
         np.testing.assert_allclose(z0z1.expectation_from_density_matrix(state, q_map), -0.123)
         np.testing.assert_allclose(z0z2.expectation_from_density_matrix(state, q_map), 0)
         np.testing.assert_allclose(z1x2.expectation_from_density_matrix(state, q_map), 1)
@@ -1318,8 +1298,8 @@ def test_pauli_string_expectation_from_density_matrix_pure_state_with_coef():
 def test_pauli_string_expectation_from_state_vector_mixed_state_linearity():
     n_qubits = 6
 
-    state_vector1 = cirq.testing.random_superposition(2 ** n_qubits)
-    state_vector2 = cirq.testing.random_superposition(2 ** n_qubits)
+    state_vector1 = cirq.testing.random_superposition(2**n_qubits)
+    state_vector2 = cirq.testing.random_superposition(2**n_qubits)
     rho1 = np.outer(state_vector1, np.conj(state_vector1))
     rho2 = np.outer(state_vector2, np.conj(state_vector2))
     density_matrix = rho1 / 2 + rho2 / 2
@@ -1388,7 +1368,7 @@ def test_conjugated_by_incorrectly_powered_cliffords():
     ]
     for c in cliffords:
         with pytest.raises(TypeError, match='not a known Clifford'):
-            _ = p.conjugated_by(c ** 0.1)
+            _ = p.conjugated_by(c**0.1)
         with pytest.raises(TypeError, match='not a known Clifford'):
             _ = p.conjugated_by(c ** sympy.Symbol('t'))
 
@@ -1442,24 +1422,8 @@ def test_conjugated_by_clifford_composite():
 def test_conjugated_by_move_into_uninvolved():
     a, b, c, d = cirq.LineQubit.range(4)
     p = cirq.X(a) * cirq.Z(b)
-    assert (
-        p.conjugated_by(
-            [
-                cirq.SWAP(c, d),
-                cirq.SWAP(b, c),
-            ]
-        )
-        == cirq.X(a) * cirq.Z(d)
-    )
-    assert (
-        p.conjugated_by(
-            [
-                cirq.SWAP(b, c),
-                cirq.SWAP(c, d),
-            ]
-        )
-        == cirq.X(a) * cirq.Z(c)
-    )
+    assert p.conjugated_by([cirq.SWAP(c, d), cirq.SWAP(b, c)]) == cirq.X(a) * cirq.Z(d)
+    assert p.conjugated_by([cirq.SWAP(b, c), cirq.SWAP(c, d)]) == cirq.X(a) * cirq.Z(c)
 
 
 def test_conjugated_by_common_single_qubit_gates():
@@ -1470,15 +1434,15 @@ def test_conjugated_by_common_single_qubit_gates():
         cirq.X,
         cirq.Y,
         cirq.Z,
-        cirq.X ** -0.5,
-        cirq.Y ** -0.5,
-        cirq.Z ** -0.5,
-        cirq.X ** 0.5,
-        cirq.Y ** 0.5,
-        cirq.Z ** 0.5,
+        cirq.X**-0.5,
+        cirq.Y**-0.5,
+        cirq.Z**-0.5,
+        cirq.X**0.5,
+        cirq.Y**0.5,
+        cirq.Z**0.5,
         cirq.H,
     ]
-    single_qubit_gates = [g ** i for i in range(4) for g in base_single_qubit_gates]
+    single_qubit_gates = [g**i for i in range(4) for g in base_single_qubit_gates]
     for p in [cirq.X, cirq.Y, cirq.Z]:
         for g in single_qubit_gates:
             assert p.on(a).conjugated_by(g.on(b)) == p.on(a)
@@ -1502,23 +1466,19 @@ def test_conjugated_by_common_two_qubit_gates():
         cirq.CNOT,
         cirq.CZ,
         cirq.ISWAP,
-        cirq.ISWAP ** -1,
+        cirq.ISWAP**-1,
         cirq.SWAP,
-        cirq.XX ** 0.5,
-        cirq.YY ** 0.5,
-        cirq.ZZ ** 0.5,
+        cirq.XX**0.5,
+        cirq.YY**0.5,
+        cirq.ZZ**0.5,
         cirq.XX,
         cirq.YY,
         cirq.ZZ,
-        cirq.XX ** -0.5,
-        cirq.YY ** -0.5,
-        cirq.ZZ ** -0.5,
+        cirq.XX**-0.5,
+        cirq.YY**-0.5,
+        cirq.ZZ**-0.5,
     ]
-    two_qubit_gates.extend(
-        [
-            OrderSensitiveGate(),
-        ]
-    )
+    two_qubit_gates.extend([OrderSensitiveGate()])
     for p1 in [cirq.I, cirq.X, cirq.Y, cirq.Z]:
         for p2 in [cirq.I, cirq.X, cirq.Y, cirq.Z]:
             pd = cirq.DensePauliString([p1, p2])
@@ -1617,7 +1577,7 @@ def test_circuit_diagram_info():
             cirq.X(a) * cirq.Z(c),
             1j * cirq.X(a) * cirq.Y(b),
             -1j * cirq.Y(b),
-            1j ** 0.5 * cirq.X(a) * cirq.Y(b),
+            1j**0.5 * cirq.X(a) * cirq.Y(b),
         ),
         """
 0: ───PauliString(+X)───PauliString(-X)───PauliString(+X)───PauliString(iX)──────────────────────PauliString((0.707+0.707i)*X)───
@@ -1883,6 +1843,22 @@ def test_mutable_pauli_string_dict_functionality():
     assert b not in p
 
 
+@pytest.mark.parametrize(
+    'pauli', (cirq.X, cirq.Y, cirq.Z, cirq.I, "I", "X", "Y", "Z", "i", "x", "y", "z", 0, 1, 2, 3)
+)
+def test_mutable_pauli_string_dict_pauli_like(pauli):
+    p = cirq.MutablePauliString()
+    # Check that is successfully converts.
+    p[0] = pauli
+
+
+def test_mutable_pauli_string_dict_pauli_like_not_pauli_like():
+    p = cirq.MutablePauliString()
+    # Check error string includes terms like "X" in error message.
+    with pytest.raises(TypeError, match="PAULI_GATE_LIKE.*X"):
+        p[0] = 1.2
+
+
 def test_mutable_pauli_string_text():
     p = cirq.MutablePauliString(cirq.X(cirq.LineQubit(0)) * cirq.Y(cirq.LineQubit(1)))
     assert str(cirq.MutablePauliString()) == "mutable I"
@@ -1916,7 +1892,7 @@ def test_mutable_can_override_mul():
 
 
 def test_coefficient_precision():
-    qs = cirq.LineQubit.range(4 * 10 ** 3)
+    qs = cirq.LineQubit.range(4 * 10**3)
     r = cirq.MutablePauliString({q: cirq.X for q in qs})
     r2 = cirq.MutablePauliString({q: cirq.Y for q in qs})
     r2 *= r

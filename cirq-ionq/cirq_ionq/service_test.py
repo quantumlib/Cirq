@@ -18,6 +18,7 @@ from unittest import mock
 
 import pytest
 
+import numpy as np
 import pandas as pd
 import sympy
 
@@ -31,10 +32,7 @@ import cirq_ionq as ionq
 def test_service_run(target, expected_results):
     service = ionq.Service(remote_host='http://example.com', api_key='key')
     mock_client = mock.MagicMock()
-    mock_client.create_job.return_value = {
-        'id': 'job_id',
-        'status': 'ready',
-    }
+    mock_client.create_job.return_value = {'id': 'job_id', 'status': 'ready'}
     mock_client.get_job.return_value = {
         'id': 'job_id',
         'status': 'completed',
@@ -48,17 +46,12 @@ def test_service_run(target, expected_results):
 
     a = sympy.Symbol('a')
     q = cirq.LineQubit(0)
-    circuit = cirq.Circuit((cirq.X ** a)(q), cirq.measure(q, key='a'))
+    circuit = cirq.Circuit((cirq.X**a)(q), cirq.measure(q, key='a'))
     params = cirq.ParamResolver({'a': 0.5})
     result = service.run(
-        circuit=circuit,
-        repetitions=4,
-        target=target,
-        name='bacon',
-        param_resolver=params,
-        seed=2,
+        circuit=circuit, repetitions=4, target=target, name='bacon', param_resolver=params, seed=2
     )
-    assert result == cirq.ResultDict(params=params, measurements={'a': expected_results})
+    assert result == cirq.ResultDict(params=params, measurements={'a': np.array(expected_results)})
 
     create_job_kwargs = mock_client.create_job.call_args[1]
     # Serialization induces a float, so we don't validate full circuit.
