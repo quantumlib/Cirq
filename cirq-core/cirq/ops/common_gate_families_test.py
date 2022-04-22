@@ -51,12 +51,12 @@ def test_any_unitary_gate_family():
                 assert 'Any-Qubit' in gate_family.name
                 assert 'any unitary' in gate_family.description
 
-    assert cirq.SingleQubitGate() not in cirq.AnyUnitaryGateFamily()
+    assert cirq.testing.SingleQubitGate() not in cirq.AnyUnitaryGateFamily()
 
 
 def test_any_integer_power_gate_family():
     with pytest.raises(ValueError, match='subclass of `cirq.EigenGate`'):
-        cirq.AnyIntegerPowerGateFamily(gate=cirq.SingleQubitGate)
+        cirq.AnyIntegerPowerGateFamily(gate=cirq.testing.SingleQubitGate)
     with pytest.raises(ValueError, match='subclass of `cirq.EigenGate`'):
         cirq.AnyIntegerPowerGateFamily(gate=CustomXPowGate())
     eq = cirq.testing.EqualsTester()

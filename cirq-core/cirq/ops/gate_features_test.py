@@ -15,6 +15,7 @@
 import pytest
 
 import cirq
+from cirq.testing import assert_deprecated
 
 
 def test_single_qubit_gate_validate_args():
@@ -22,7 +23,11 @@ def test_single_qubit_gate_validate_args():
         def matrix(self):
             pass
 
-    g = Dummy()
+    with assert_deprecated(deadline="v1.0"):
+        g = Dummy()
+
+    with assert_deprecated(deadline="isinstance(gate, SingleQubitGate) is deprecated"):
+        assert isinstance(g, cirq.SingleQubitGate)
     q1 = cirq.NamedQubit('q1')
     q2 = cirq.NamedQubit('q2')
 
@@ -36,9 +41,12 @@ def test_single_qubit_gate_validate_args():
 
 
 def test_single_qubit_gate_validates_on_each():
-    class Dummy(cirq.SingleQubitGate):
+    class Dummy(cirq.Gate):
         def matrix(self):
             pass
+
+        def _num_qubits_(self) -> int:
+            return 1
 
     g = Dummy()
     assert g.num_qubits() == 1
@@ -56,9 +64,12 @@ def test_single_qubit_gate_validates_on_each():
 
 
 def test_single_qubit_validates_on():
-    class Dummy(cirq.SingleQubitGate):
+    class Dummy(cirq.Gate):
         def matrix(self):
             pass
+
+        def _num_qubits_(self) -> int:
+            return 1
 
     g = Dummy()
     assert g.num_qubits() == 1
@@ -108,7 +119,7 @@ def test_qasm_output_args_format():
 
 def test_multi_qubit_gate_validate():
     class Dummy(cirq.Gate):
-        def num_qubits(self) -> int:
+        def _num_qubits_(self) -> int:
             return self._num_qubits
 
         def __init__(self, num_qubits):

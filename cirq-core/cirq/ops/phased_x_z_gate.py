@@ -6,7 +6,7 @@ import numpy as np
 import sympy
 
 from cirq import value, ops, protocols, linalg
-from cirq.ops import gate_features
+from cirq.ops import raw_types
 from cirq._compat import proper_repr
 
 if TYPE_CHECKING:
@@ -14,7 +14,7 @@ if TYPE_CHECKING:
 
 
 @value.value_equality(approximate=True)
-class PhasedXZGate(gate_features.SingleQubitGate):
+class PhasedXZGate(raw_types.Gate):
     """A single qubit operation expressed as $Z^z Z^a X^x Z^{-a}$.
 
     The above expression is a matrix multiplication with time going to the left.
@@ -137,6 +137,9 @@ class PhasedXZGate(gate_features.SingleQubitGate):
             phi=self._z_exponent + self._axis_phase_exponent - 0.5,
         )
         return protocols.qasm(qasm_gate, args=args, qubits=qubits)
+
+    def _num_qubits_(self) -> int:
+        return 1
 
     def _has_unitary_(self) -> bool:
         return not self._is_parameterized_()
