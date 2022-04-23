@@ -19,7 +19,7 @@ from typing import Dict, FrozenSet, List, Optional, Sequence, Tuple, TYPE_CHECKI
 
 import pandas as pd
 
-from cirq import ops, protocols, study, value
+from cirq import ops, protocols, study
 from cirq.work.observable_measurement import (
     measure_observables,
     RepetitionsStoppingCriteria,
@@ -330,7 +330,7 @@ class Sampler(metaclass=abc.ABCMeta):
         # Flatten Circuit Sweep into one big list of Params.
         # Keep track of their indices so we can map back.
         flat_params = [pr.param_dict for pr in study.to_resolvers(params)]
-        circuit_param_to_sweep_i: Dict[FrozenSet[Tuple[str, value.Scalar]], int] = {
+        circuit_param_to_sweep_i: Dict[FrozenSet[Tuple[str, Union[int, Tuple[int, int]]]], int] = {
             _hashable_param(param.items()): i for i, param in enumerate(flat_params)
         }
 
