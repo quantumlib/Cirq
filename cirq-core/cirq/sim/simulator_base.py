@@ -379,9 +379,6 @@ class StepResultBase(Generic[TActOnArgs], StepResult[OperationTarget[TActOnArgs]
     ) -> np.ndarray:
         return self._sim_state.sample(qubits, repetitions, seed)
 
-    def _simulator_state(self) -> 'cirq.OperationTarget[TActOnArgs]':
-        return self._sim_state
-
 
 class SimulationTrialResultBase(
     SimulationTrialResult[OperationTarget[TActOnArgs]], Generic[TActOnArgs], abc.ABC
