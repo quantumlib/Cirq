@@ -18,18 +18,7 @@ import itertools
 import os
 import tempfile
 import warnings
-from typing import (
-    Any,
-    Dict,
-    Iterable,
-    List,
-    Optional,
-    Sequence,
-    Set,
-    Tuple,
-    TYPE_CHECKING,
-    Union,
-)
+from typing import Any, Dict, Iterable, List, Optional, Sequence, Set, Tuple, TYPE_CHECKING, Union
 
 import numpy as np
 import pandas as pd
