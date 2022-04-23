@@ -20,7 +20,6 @@ import tempfile
 import warnings
 from typing import (
     Any,
-    cast,
     Dict,
     Iterable,
     List,
@@ -35,6 +34,7 @@ from typing import (
 import numpy as np
 import pandas as pd
 import sympy
+
 from cirq import circuits, study, ops, value, protocols
 from cirq._doc import document
 from cirq.work.observable_grouping import group_settings_greedy, GROUPER_T
