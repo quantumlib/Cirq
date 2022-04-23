@@ -354,13 +354,13 @@ class StepResultBase(Generic[TActOnArgs], StepResult[OperationTarget[TActOnArgs]
         Args:
             sim_state: The `OperationTarget` for this step.
         """
-        self._sim_state = sim_state
-        self._merged_sim_state_cache: Optional[TActOnArgs] = None
         super().__init__(sim_state)
+        self._merged_sim_state_cache: Optional[TActOnArgs] = None
         qubits = sim_state.qubits
         self._qubits = qubits
         self._qubit_mapping = {q: i for i, q in enumerate(qubits)}
         self._qubit_shape = tuple(q.dimension for q in qubits)
+        self._classical_data = sim_state.classical_data
 
     def _qid_shape_(self):
         return self._qubit_shape

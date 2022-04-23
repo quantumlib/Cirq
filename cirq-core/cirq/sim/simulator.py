@@ -758,11 +758,10 @@ class StepResult(Generic[TSimulatorState], metaclass=abc.ABCMeta):
             results, ordered by the qubits that the measurement operates on.
     """
 
-    def __init__(self, sim_state: 'cirq.OperationTarget') -> None:
+    def __init__(self, sim_state: TSimulatorState) -> None:
+        self._sim_state = sim_state
         self.measurements = sim_state.log_of_measurement_results
-        self._classical_data = sim_state.classical_data
 
-    @abc.abstractmethod
     def _simulator_state(self) -> TSimulatorState:
         """Returns the simulator state of the simulator after this step.
 
@@ -773,6 +772,7 @@ class StepResult(Generic[TSimulatorState], metaclass=abc.ABCMeta):
         simulation,see documentation for the implementing class for the form of
         details.
         """
+        return self._sim_state
 
     @abc.abstractmethod
     def sample(
