@@ -105,6 +105,8 @@ def test_controlled_operation_init():
         _ = cirq.ControlledOperation([cb], v, control_values=[2])
     with pytest.raises(ValueError, match='Control values .*outside of range'):
         _ = cirq.ControlledOperation([cb], v, control_values=[(1, -1)])
+    with pytest.raises(ValueError, match='share qubits'):
+        _ = cirq.ControlledOperation([cb], cirq.X(cb))
 
 
 def test_controlled_operation_eq():
@@ -140,8 +142,9 @@ def test_str():
     assert str(cirq.ControlledOperation([c1], cirq.CZ(c2, q2))) == "CCZ(c1, c2, q2)"
 
     class SingleQubitOp(cirq.Operation):
+        @property
         def qubits(self) -> Tuple[cirq.Qid, ...]:
-            pass
+            return ()
 
         def with_qubits(self, *new_qubits: cirq.Qid):
             pass

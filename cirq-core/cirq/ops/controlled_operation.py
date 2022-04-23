@@ -54,6 +54,12 @@ class ControlledOperation(raw_types.Operation):
             control_values = ((1,),) * len(controls)
         if len(control_values) != len(controls):
             raise ValueError('len(control_values) != len(controls)')
+        # Verify qubits don't overlap
+        op_qids = set(sub_operation.qubits)
+        if not op_qids.isdisjoint(controls):
+            raise ValueError(
+                f'Sub-operation and controls share qubits ({op_qids.intersection(controls)}).'
+            )
         # Convert to sorted tuples
         self._control_values = cast(
             Tuple[Tuple[int, ...], ...],
