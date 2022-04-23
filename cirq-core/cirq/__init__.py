@@ -545,6 +545,7 @@ from cirq.value import (
     Timestamp,
     TParamKey,
     TParamVal,
+    TParamValComplex,
     validate_probability,
     value_equality,
     KET_PLUS,
