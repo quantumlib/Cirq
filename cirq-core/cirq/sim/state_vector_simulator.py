@@ -30,7 +30,7 @@ from typing import (
 import numpy as np
 
 from cirq import ops, value, qis
-from cirq._compat import proper_repr
+from cirq._compat import deprecated_class, proper_repr
 from cirq.sim import simulator, state_vector, simulator_base
 
 if TYPE_CHECKING:
@@ -69,10 +69,10 @@ class SimulatesIntermediateStateVector(
         self,
         params: 'cirq.ParamResolver',
         measurements: Dict[str, np.ndarray],
-        final_step_result: 'cirq.StateVectorStepResult',
+        final_simulator_state: 'cirq.OperationTarget[cirq.ActOnStateVectorArgs]',
     ) -> 'cirq.StateVectorTrialResult':
         return StateVectorTrialResult(
-            params=params, measurements=measurements, final_step_result=final_step_result
+            params=params, measurements=measurements, final_simulator_state=final_simulator_state
         )
 
     def compute_amplitudes_sweep_iter(
@@ -107,6 +107,7 @@ class StateVectorStepResult(
     pass
 
 
+@deprecated_class(deadline='v0.16', fix='This class is no longer used.')
 @value.value_equality(unhashable=True)
 class StateVectorSimulatorState:
     def __init__(self, state_vector: np.ndarray, qubit_map: Dict[ops.Qid, int]) -> None:
@@ -143,13 +144,13 @@ class StateVectorTrialResult(
         self,
         params: 'cirq.ParamResolver',
         measurements: Dict[str, np.ndarray],
-        final_step_result: 'cirq.StateVectorStepResult',
+        final_simulator_state: 'cirq.OperationTarget[cirq.ActOnStateVectorArgs]',
     ) -> None:
         super().__init__(
             params=params,
             measurements=measurements,
-            final_step_result=final_step_result,
-            qubit_map=final_step_result._qubit_mapping,
+            final_simulator_state=final_simulator_state,
+            qubit_map=final_simulator_state.qubit_map,
         )
         self._final_state_vector: Optional[np.ndarray] = None
 
@@ -222,5 +223,5 @@ class StateVectorTrialResult(
         return (
             'cirq.StateVectorTrialResult('
             f'params={self.params!r}, measurements={proper_repr(self.measurements)}, '
-            f'final_step_result={self._final_step_result!r})'
+            f'final_simulator_state={self._final_simulator_state!r})'
         )

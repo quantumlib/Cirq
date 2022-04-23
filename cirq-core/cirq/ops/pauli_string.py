@@ -39,6 +39,7 @@ from typing import (
 )
 
 import numpy as np
+import sympy
 
 from cirq import value, protocols, linalg, qis
 from cirq._doc import document
@@ -110,7 +111,7 @@ class PauliString(raw_types.Operation, Generic[TKey]):
         self,
         *contents: 'cirq.PAULI_STRING_LIKE',
         qubit_pauli_map: Optional[Dict[TKey, 'cirq.Pauli']] = None,
-        coefficient: Union[int, float, complex] = 1,
+        coefficient: 'cirq.TParamValComplex' = 1,
     ):
         """Initializes a new PauliString.
 
@@ -146,7 +147,7 @@ class PauliString(raw_types.Operation, Generic[TKey]):
                 argument specifies values that are logically *before* factors
                 specified in `contents`; `contents` are *right* multiplied onto
                 the values in this dictionary.
-            coefficient: Initial scalar coefficient. Defaults to 1.
+            coefficient: Initial scalar coefficient or symbol. Defaults to 1.
 
         Raises:
             TypeError: If the `qubit_pauli_map` has values that are not Paulis.
@@ -157,14 +158,16 @@ class PauliString(raw_types.Operation, Generic[TKey]):
                     raise TypeError(f'{v} is not a Pauli')
 
         self._qubit_pauli_map: Dict[TKey, 'cirq.Pauli'] = qubit_pauli_map or {}
-        self._coefficient = complex(coefficient)
+        self._coefficient = (
+            coefficient if isinstance(coefficient, sympy.Basic) else complex(coefficient)
+        )
         if contents:
             m = self.mutable_copy().inplace_left_multiply_by(contents).frozen()
             self._qubit_pauli_map = m._qubit_pauli_map
             self._coefficient = m._coefficient
 
     @property
-    def coefficient(self) -> complex:
+    def coefficient(self) -> 'cirq.TParamValComplex':
         return self._coefficient
 
     def _value_equality_values_(self):
@@ -335,8 +338,10 @@ class PauliString(raw_types.Operation, Generic[TKey]):
             prefix = 'i'
         elif self.coefficient == -1j:
             prefix = '-i'
-        else:
+        elif isinstance(self.coefficient, numbers.Number):
             prefix = f'({args.format_complex(self.coefficient)})*'
+        else:
+            prefix = f'({self.coefficient})*'
         symbols[0] = f'PauliString({prefix}{symbols[0]})'
         return symbols
 
@@ -346,7 +351,7 @@ class PauliString(raw_types.Operation, Generic[TKey]):
             coefficient=self._coefficient,
         )
 
-    def with_coefficient(self, new_coefficient: Union[int, float, complex]) -> 'PauliString':
+    def with_coefficient(self, new_coefficient: 'cirq.TParamValComplex') -> 'PauliString':
         return PauliString(qubit_pauli_map=dict(self._qubit_pauli_map), coefficient=new_coefficient)
 
     def values(self) -> ValuesView[pauli_gates.Pauli]:
@@ -436,6 +441,8 @@ class PauliString(raw_types.Operation, Generic[TKey]):
         return linalg.kron(self.coefficient, *[protocols.unitary(f) for f in factors])
 
     def _has_unitary_(self) -> bool:
+        if self._is_parameterized_():
+            return False
         return abs(1 - abs(self.coefficient)) < 1e-6
 
     def _unitary_(self) -> Optional[np.ndarray]:
@@ -489,10 +496,14 @@ class PauliString(raw_types.Operation, Generic[TKey]):
             The expectation value of the input state.
 
         Raises:
-            NotImplementedError: If this PauliString is non-Hermitian.
+            NotImplementedError: If this PauliString is non-Hermitian or
+                parameterized.
             TypeError: If the input state is not complex.
             ValueError: If the input state does not have the correct shape.
         """
+        if self._is_parameterized_():
+            raise NotImplementedError('Cannot get expectation value when parameterized')
+
         if abs(self.coefficient.imag) > 0.0001:
             raise NotImplementedError(
                 'Cannot compute expectation value of a non-Hermitian '
@@ -593,10 +604,13 @@ class PauliString(raw_types.Operation, Generic[TKey]):
             The expectation value of the input state.
 
         Raises:
-            NotImplementedError: If this PauliString is non-Hermitian.
+            NotImplementedError: If this PauliString is non-Hermitian or
+                parameterized.
             TypeError: If the input state is not complex.
             ValueError: If the input state does not have the correct shape.
         """
+        if self._is_parameterized_():
+            raise NotImplementedError('Cannot get expectation value when parameterized')
         if abs(self.coefficient.imag) > 0.0001:
             raise NotImplementedError(
                 'Cannot compute expectation value of a non-Hermitian '
@@ -698,6 +712,8 @@ class PauliString(raw_types.Operation, Generic[TKey]):
             return PauliString(
                 qubit_pauli_map=self._qubit_pauli_map, coefficient=self.coefficient**-1
             )
+        if self._is_parameterized_():
+            return NotImplemented
         if isinstance(power, (int, float)):
             r, i = cmath.polar(self.coefficient)
             if abs(r - 1) > 0.0001:
@@ -726,6 +742,8 @@ class PauliString(raw_types.Operation, Generic[TKey]):
         return NotImplemented
 
     def __rpow__(self, base):
+        if self._is_parameterized_():
+            return NotImplemented
         if isinstance(base, (int, float)) and base > 0:
             if abs(self.coefficient.real) > 0.0001:
                 raise NotImplementedError(
@@ -941,6 +959,18 @@ class PauliString(raw_types.Operation, Generic[TKey]):
         coef = -self._coefficient if should_negate else self.coefficient
         return PauliString(qubit_pauli_map=pauli_map, coefficient=coef)
 
+    def _is_parameterized_(self) -> bool:
+        return protocols.is_parameterized(self.coefficient)
+
+    def _parameter_names_(self) -> AbstractSet[str]:
+        return protocols.parameter_names(self.coefficient)
+
+    def _resolve_parameters_(
+        self, resolver: 'cirq.ParamResolver', recursive: bool
+    ) -> 'cirq.PauliString':
+        coefficient = protocols.resolve_parameters(self.coefficient, resolver, recursive)
+        return PauliString(qubit_pauli_map=self._qubit_pauli_map, coefficient=coefficient)
+
 
 def _validate_qubit_mapping(
     qubit_map: Mapping[TKey, int], pauli_qubits: Tuple[TKey, ...], num_state_qubits: int
@@ -1048,10 +1078,12 @@ class MutablePauliString(Generic[TKey]):
     def __init__(
         self,
         *contents: 'cirq.PAULI_STRING_LIKE',
-        coefficient: Union[int, float, complex] = 1,
+        coefficient: 'cirq.TParamValComplex' = 1,
         pauli_int_dict: Optional[Dict[TKey, int]] = None,
     ):
-        self.coefficient = complex(coefficient)
+        self.coefficient = (
+            coefficient if isinstance(coefficient, sympy.Basic) else complex(coefficient)
+        )
         self.pauli_int_dict: Dict[TKey, int] = {} if pauli_int_dict is None else pauli_int_dict
         if contents:
             self.inplace_left_multiply_by(contents)

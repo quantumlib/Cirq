@@ -42,6 +42,8 @@ from cirq_google.engine.calibration import Calibration
 
 from cirq_google.engine.calibration_layer import CalibrationLayer
 from cirq_google.engine.calibration_result import CalibrationResult
+from cirq_google.engine.calibration_to_noise_properties import noise_properties_from_calibration
+
 from cirq_google.engine.engine import (
     Engine,
     get_engine,
