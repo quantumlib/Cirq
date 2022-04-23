@@ -125,21 +125,22 @@ def observables_to_settings(
         yield InitObsSetting(init_state=zeros_state(qubits), observable=observable)
 
 
-def _fix_precision(val: float, precision) -> int:
-    """Convert floating point numbers to (implicitly) fixed point integers.
+def _fix_precision(val: value.Scalar, precision) -> int:
+    """Convert floating point or complex numbers to (implicitly) fixed point
+    integers. Complex numbers will use the real part only.
 
     Circuit parameters can be floats but we also need to use them as
     dictionary keys. We secretly use these fixed-precision integers.
     """
-    return int(val * precision)
+    return int((val if isinstance(val, float) else val.real) * precision)
 
 
 def _hashable_param(
-    param_tuples: ItemsView[str, float], precision=1e7
+    param_tuples: ItemsView[str, value.Scalar], precision=1e7
 ) -> FrozenSet[Tuple[str, float]]:
     """Hash circuit parameters using fixed precision.
 
-    Circuit parameters can be floats but we also need to use them as
+    Circuit parameters can be complex but we also need to use them as
     dictionary keys. We secretly use these fixed-precision integers.
     """
     return frozenset((k, _fix_precision(v, precision)) for k, v in param_tuples)
@@ -156,7 +157,7 @@ class _MeasurementSpec:
     """
 
     max_setting: InitObsSetting
-    circuit_params: Dict[str, float]
+    circuit_params: Dict[str, value.Scalar]
 
     def __hash__(self):
         return hash((self.max_setting, _hashable_param(self.circuit_params.items())))
