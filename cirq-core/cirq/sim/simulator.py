@@ -691,7 +691,7 @@ class SimulatesIntermediateState(
     def _create_act_on_args(
         self, initial_state: Any, qubits: Sequence['cirq.Qid']
     ) -> TSimulatorState:
-        """Creates the TSimulatorState state for a simulator.
+        """Creates the state for a simulator.
 
         Custom simulators should implement this method.
 
