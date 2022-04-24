@@ -14,7 +14,7 @@
 
 import itertools
 import re
-from typing import Union, Tuple, cast
+from typing import cast, Tuple, Union
 
 import numpy as np
 import pytest
