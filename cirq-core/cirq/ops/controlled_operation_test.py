@@ -11,6 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import re
 from typing import Union, Tuple, cast
 import itertools
 
@@ -105,8 +106,10 @@ def test_controlled_operation_init():
         _ = cirq.ControlledOperation([cb], v, control_values=[2])
     with pytest.raises(ValueError, match='Control values .*outside of range'):
         _ = cirq.ControlledOperation([cb], v, control_values=[(1, -1)])
-    with pytest.raises(ValueError, match='share qubits'):
-        _ = cirq.ControlledOperation([cb], cirq.X(cb))
+    with pytest.raises(ValueError, match=re.escape("Duplicate control qubits ['ctr'].")):
+        _ = cirq.ControlledOperation([cb, cirq.LineQubit(0), cb], cirq.X(q))
+    with pytest.raises(ValueError, match=re.escape("Sub-op and controls share qubits ['ctr']")):
+        _ = cirq.ControlledOperation([cb, cirq.LineQubit(0)], cirq.CX(cb, q))
 
 
 def test_controlled_operation_eq():
