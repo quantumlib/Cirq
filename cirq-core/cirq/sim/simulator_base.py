@@ -226,7 +226,7 @@ class SimulatorBase(
         resolved_circuit = protocols.resolve_parameters(circuit, param_resolver)
         check_all_resolved(resolved_circuit)
         qubits = tuple(sorted(resolved_circuit.all_qubits()))
-        act_on_args = self._create_act_on_args(0, qubits)
+        sim_state = self._create_act_on_args(0, qubits)
 
         prefix, general_suffix = (
             split_into_matching_protocol_then_general(resolved_circuit, self._can_be_in_run_prefix)
@@ -234,13 +234,13 @@ class SimulatorBase(
             else (resolved_circuit[0:0], resolved_circuit)
         )
         step_result = None
-        for step_result in self._core_iterator(circuit=prefix, sim_state=act_on_args):
+        for step_result in self._core_iterator(circuit=prefix, sim_state=sim_state):
             pass
 
         general_ops = list(general_suffix.all_operations())
         if all(isinstance(op.gate, ops.MeasurementGate) for op in general_ops):
             for step_result in self._core_iterator(
-                circuit=general_suffix, sim_state=act_on_args, all_measurements_are_terminal=True
+                circuit=general_suffix, sim_state=sim_state, all_measurements_are_terminal=True
             ):
                 pass
             assert step_result is not None
@@ -253,9 +253,9 @@ class SimulatorBase(
         for i in range(repetitions):
             for step_result in self._core_iterator(
                 general_suffix,
-                sim_state=act_on_args.copy(deep_copy_buffers=False)
+                sim_state=sim_state.copy(deep_copy_buffers=False)
                 if i < repetitions - 1
-                else act_on_args,
+                else sim_state,
             ):
                 pass
             for k, r in step_result._classical_data.records.items():

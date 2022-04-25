@@ -99,7 +99,7 @@ def test_simulate_initial_state():
             )
 
 
-def test_simulate_act_on_args():
+def test_simulation_state():
     q0, q1 = cirq.LineQubit.range(2)
     simulator = cirq.CliffordSimulator()
     for b0 in [0, 1]:

@@ -136,8 +136,8 @@ class SimulationProductState(
     ) -> 'cirq.SimulationProductState[TDenseSimulationState]':
         classical_data = self._classical_data.copy()
         copies = {}
-        for act_on_args in set(self.args.values()):
-            copies[act_on_args] = act_on_args.copy(deep_copy_buffers)
+        for sim_state in set(self.args.values()):
+            copies[sim_state] = sim_state.copy(deep_copy_buffers)
         for copy in copies.values():
             copy._classical_data = classical_data
         args = {q: copies[a] for q, a in self.args.items()}
