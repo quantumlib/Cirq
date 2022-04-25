@@ -13,11 +13,25 @@
 # limitations under the License.
 """Devices for IonQ hardware."""
 
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional
 import cirq
 from cirq import protocols
-from cirq.transformers import drop_empty_moments, drop_negligible_operations
+from cirq.transformers import transformer_api, drop_empty_moments, drop_negligible_operations
 from cirq.transformers.target_gatesets import compilation_target_gateset
+
+
+@transformer_api.transformer
+def merge_to_phased_x_and_z(
+    c: cirq.Circuit, *, context: Optional['cirq.TransformerContext'] = None
+):
+    return cirq.merge_single_qubit_gates_to_phased_x_and_z(c)
+
+
+@transformer_api.transformer
+def decompose_phased_x_pow(c: cirq.Circuit, *, context: Optional['cirq.TransformerContext'] = None):
+    return cirq.map_operations_and_unroll(
+        c, lambda op, _: cirq.decompose_once(op) if type(op.gate) == cirq.PhasedXPowGate else op
+    )
 
 
 def decompose_to_device(operation: cirq.Operation, atol: float = 1e-8) -> cirq.OP_TREE:
@@ -143,13 +157,8 @@ class IonQCompilationTargetGateset(compilation_target_gateset.TwoQubitCompilatio
     def postprocess_transformers(self) -> List['cirq.TRANSFORMER']:
         """List of transformers which should be run after decomposing individual operations."""
         return [
-            lambda c, context: cirq.merge_single_qubit_gates_to_phased_x_and_z(c),
-            lambda c, context: cirq.map_operations_and_unroll(
-                c,
-                lambda op, _: cirq.decompose_once(op)
-                if type(op.gate) == cirq.PhasedXPowGate
-                else op,
-            ),
+            merge_to_phased_x_and_z,
+            decompose_phased_x_pow,
             drop_negligible_operations,
             drop_empty_moments,
         ]
