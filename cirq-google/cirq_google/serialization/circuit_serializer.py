@@ -434,7 +434,7 @@ class CircuitSerializer(serializer.Serializer):
                 exponent=arg_func_langs.float_arg_from_proto(
                     operation_proto.xpowgate.exponent,
                     arg_function_language=arg_function_language,
-                    required_arg_name='exponent',
+                    required_arg_name=None,
                 )
                 or 0.0
             )(*qubits)
@@ -443,7 +443,7 @@ class CircuitSerializer(serializer.Serializer):
                 exponent=arg_func_langs.float_arg_from_proto(
                     operation_proto.ypowgate.exponent,
                     arg_function_language=arg_function_language,
-                    required_arg_name='exponent',
+                    required_arg_name=None,
                 )
                 or 0.0
             )(*qubits)
@@ -452,7 +452,7 @@ class CircuitSerializer(serializer.Serializer):
                 exponent=arg_func_langs.float_arg_from_proto(
                     operation_proto.zpowgate.exponent,
                     arg_function_language=arg_function_language,
-                    required_arg_name='exponent',
+                    required_arg_name=None,
                 )
                 or 0.0
             )(*qubits)
@@ -463,7 +463,7 @@ class CircuitSerializer(serializer.Serializer):
                 arg_func_langs.float_arg_from_proto(
                     operation_proto.phasedxpowgate.exponent,
                     arg_function_language=arg_function_language,
-                    required_arg_name='exponent',
+                    required_arg_name=None,
                 )
                 or 0.0
             )
@@ -471,7 +471,7 @@ class CircuitSerializer(serializer.Serializer):
                 arg_func_langs.float_arg_from_proto(
                     operation_proto.phasedxpowgate.phase_exponent,
                     arg_function_language=arg_function_language,
-                    required_arg_name='phase_exponent',
+                    required_arg_name=None,
                 )
                 or 0.0
             )
@@ -481,7 +481,7 @@ class CircuitSerializer(serializer.Serializer):
                 arg_func_langs.float_arg_from_proto(
                     operation_proto.phasedxzgate.x_exponent,
                     arg_function_language=arg_function_language,
-                    required_arg_name='x_exponent',
+                    required_arg_name=None,
                 )
                 or 0.0
             )
@@ -489,7 +489,7 @@ class CircuitSerializer(serializer.Serializer):
                 arg_func_langs.float_arg_from_proto(
                     operation_proto.phasedxzgate.z_exponent,
                     arg_function_language=arg_function_language,
-                    required_arg_name='z_exponent',
+                    required_arg_name=None,
                 )
                 or 0.0
             )
@@ -497,7 +497,7 @@ class CircuitSerializer(serializer.Serializer):
                 arg_func_langs.float_arg_from_proto(
                     operation_proto.phasedxzgate.axis_phase_exponent,
                     arg_function_language=arg_function_language,
-                    required_arg_name='axis_phase_exponent',
+                    required_arg_name=None,
                 )
                 or 0.0
             )
@@ -511,7 +511,7 @@ class CircuitSerializer(serializer.Serializer):
                 exponent=arg_func_langs.float_arg_from_proto(
                     operation_proto.czpowgate.exponent,
                     arg_function_language=arg_function_language,
-                    required_arg_name='exponent',
+                    required_arg_name=None,
                 )
                 or 0.0
             )(*qubits)
@@ -520,26 +520,20 @@ class CircuitSerializer(serializer.Serializer):
                 exponent=arg_func_langs.float_arg_from_proto(
                     operation_proto.iswappowgate.exponent,
                     arg_function_language=arg_function_language,
-                    required_arg_name='exponent',
+                    required_arg_name=None,
                 )
                 or 0.0
             )(*qubits)
         elif which_gate_type == 'fsimgate':
-            theta = (
-                arg_func_langs.float_arg_from_proto(
-                    operation_proto.fsimgate.theta,
-                    arg_function_language=arg_function_language,
-                    required_arg_name='theta',
-                )
-                or 0.0
+            theta = arg_func_langs.float_arg_from_proto(
+                operation_proto.fsimgate.theta,
+                arg_function_language=arg_function_language,
+                required_arg_name=None,
             )
-            phi = (
-                arg_func_langs.float_arg_from_proto(
-                    operation_proto.fsimgate.phi,
-                    arg_function_language=arg_function_language,
-                    required_arg_name='phi',
-                )
-                or 0.0
+            phi = arg_func_langs.float_arg_from_proto(
+                operation_proto.fsimgate.phi,
+                arg_function_language=arg_function_language,
+                required_arg_name=None,
             )
             if isinstance(theta, (int, float, sympy.Basic)) and isinstance(
                 phi, (int, float, sympy.Basic)

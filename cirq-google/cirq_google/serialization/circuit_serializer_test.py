@@ -610,7 +610,7 @@ def test_deserialize_fsim_missing_parameters():
         {'fsimgate': {'theta': {'float_value': 3.0}}, 'qubit_constant_index': [0, 1]},
         ['1_1', '1_2'],
     )
-    with pytest.raises(ValueError, match='phi is missing'):
+    with pytest.raises(ValueError, match='theta and phi must be specified'):
         serializer.deserialize(proto)
 
 
