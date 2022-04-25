@@ -130,6 +130,8 @@ TestSpec = ModuleJsonTestSpec(
         'SimulatesAmplitudes',
         'SimulatesExpectationValues',
         'SimulatesFinalState',
+        'StateVectorStepResult',
+        'StepResultBase',
         'NamedTopology',
         # protocols:
         'HasJSONNamespace',
@@ -178,6 +180,7 @@ TestSpec = ModuleJsonTestSpec(
         'Sweepable',
         'TParamKey',
         'TParamVal',
+        'TParamValComplex',
         'TRANSFORMER',
         'ParamDictType',
         # utility:

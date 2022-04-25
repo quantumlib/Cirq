@@ -399,11 +399,16 @@ def test_protocols():
 def test_parameterizable(resolve_fn):
     t = sympy.Symbol('t')
     x = cirq.DensePauliString('X')
+    xt = x * t
+    x2 = x * 2
+    q = cirq.LineQubit(0)
     assert not cirq.is_parameterized(x)
     assert not cirq.is_parameterized(x * 2)
     assert cirq.is_parameterized(x * t)
-    assert resolve_fn(x * t, {'t': 2}) == x * 2
+    assert resolve_fn(xt, {'t': 2}) == x2
     assert resolve_fn(x * 3, {'t': 2}) == x * 3
+    assert resolve_fn(xt(q), {'t': 2}).gate == x2
+    assert resolve_fn(xt(q).gate, {'t': 2}) == x2
 
 
 def test_item_immutable():

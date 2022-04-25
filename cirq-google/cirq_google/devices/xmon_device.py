@@ -54,6 +54,7 @@ class _XmonDeviceBase(cirq.Device):
                 cirq.PhasedXZGate,
                 cirq.MeasurementGate,
                 cirq.ZPowGate,
+                cirq.GlobalPhaseGate,
             ),
             None,
         )

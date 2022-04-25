@@ -70,7 +70,7 @@ class QuantumStateRepresentation(metaclass=abc.ABCMeta):
         for _ in range(repetitions):
             state = self.copy()
             measurements.append(state.measure(axes, prng))
-        return np.array(measurements, dtype=bool)
+        return np.array(measurements, dtype=np.uint8)
 
     def kron(self: TSelf, other: TSelf) -> TSelf:
         """Joins two state spaces together."""

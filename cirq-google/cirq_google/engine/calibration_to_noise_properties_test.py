@@ -14,7 +14,6 @@
 
 import cirq, cirq_google
 from cirq.devices.noise_utils import OpIdentifier
-from cirq_google.engine.calibration_to_noise_properties import noise_properties_from_calibration
 
 from google.protobuf.text_format import Merge
 import numpy as np
@@ -211,7 +210,7 @@ def test_noise_properties_from_calibration():
 
     # Create NoiseProperties object from Calibration
     calibration = cirq_google.Calibration(_CALIBRATION_DATA)
-    prop = noise_properties_from_calibration(calibration)
+    prop = cirq_google.noise_properties_from_calibration(calibration)
 
     for i, q in enumerate(qubits):
         assert np.isclose(
@@ -337,4 +336,4 @@ def test_incomplete_calibration():
     # Create NoiseProperties object from Calibration
     calibration = cirq_google.Calibration(_CALIBRATION_DATA)
     with pytest.raises(ValueError, match='Keys specified for T1 and Tphi are not identical.'):
-        _ = noise_properties_from_calibration(calibration)
+        _ = cirq_google.noise_properties_from_calibration(calibration)

@@ -571,9 +571,8 @@ def test_simulate_moment_steps_empty_circuit(dtype: Type[np.number], split: bool
     step = None
     for step in simulator.simulate_moment_steps(circuit):
         pass
-    assert step._simulator_state() == cirq.StateVectorSimulatorState(
-        state_vector=np.array([1]), qubit_map={}
-    )
+    assert np.allclose(step.state_vector(), np.array([1]))
+    assert not step.qubit_map
 
 
 @pytest.mark.parametrize('dtype', [np.complex64, np.complex128])
@@ -694,7 +693,7 @@ def test_simulate_expectation_values_qubit_order(dtype: Type[np.number], split: 
 
 
 def test_invalid_run_no_unitary():
-    class NoUnitary(cirq.SingleQubitGate):
+    class NoUnitary(cirq.testing.SingleQubitGate):
         pass
 
     q0 = cirq.LineQubit(0)
@@ -706,7 +705,7 @@ def test_invalid_run_no_unitary():
 
 
 def test_allocates_new_state():
-    class NoUnitary(cirq.SingleQubitGate):
+    class NoUnitary(cirq.testing.SingleQubitGate):
         def _has_unitary_(self):
             return True
 
@@ -727,7 +726,7 @@ def test_does_not_modify_initial_state():
     q0 = cirq.LineQubit(0)
     simulator = cirq.Simulator()
 
-    class InPlaceUnitary(cirq.SingleQubitGate):
+    class InPlaceUnitary(cirq.testing.SingleQubitGate):
         def _has_unitary_(self):
             return True
 
@@ -1276,7 +1275,7 @@ def test_separated_measurements():
 def test_state_vector_copy():
     sim = cirq.Simulator(split_untangled_states=False)
 
-    class InplaceGate(cirq.SingleQubitGate):
+    class InplaceGate(cirq.testing.SingleQubitGate):
         """A gate that modifies the target tensor in place, multiply by -1."""
 
         def _apply_unitary_(self, args):

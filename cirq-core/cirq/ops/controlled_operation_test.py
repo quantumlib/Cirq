@@ -11,8 +11,10 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from typing import Union, Tuple, cast
+
 import itertools
+import re
+from typing import cast, Tuple, Union
 
 import numpy as np
 import pytest
@@ -23,7 +25,7 @@ from cirq import protocols
 from cirq.type_workarounds import NotImplementedType
 
 
-class GateUsingWorkspaceForApplyUnitary(cirq.SingleQubitGate):
+class GateUsingWorkspaceForApplyUnitary(cirq.testing.SingleQubitGate):
     def _apply_unitary_(self, args: cirq.ApplyUnitaryArgs) -> Union[np.ndarray, NotImplementedType]:
         args.available_buffer[...] = args.target_tensor
         args.target_tensor[...] = 0
@@ -39,7 +41,7 @@ class GateUsingWorkspaceForApplyUnitary(cirq.SingleQubitGate):
         return 'cirq.ops.controlled_operation_test.GateUsingWorkspaceForApplyUnitary()'
 
 
-class GateAllocatingNewSpaceForResult(cirq.SingleQubitGate):
+class GateAllocatingNewSpaceForResult(cirq.testing.SingleQubitGate):
     def __init__(self):
         self._matrix = cirq.testing.random_unitary(2, random_state=1234)
 
@@ -73,7 +75,7 @@ class GateAllocatingNewSpaceForResult(cirq.SingleQubitGate):
 def test_controlled_operation_init():
     cb = cirq.NamedQubit('ctr')
     q = cirq.NamedQubit('q')
-    g = cirq.SingleQubitGate()
+    g = cirq.testing.SingleQubitGate()
     v = cirq.GateOperation(g, (q,))
     c = cirq.ControlledOperation([cb], v)
     assert c.sub_operation == v
@@ -105,6 +107,10 @@ def test_controlled_operation_init():
         _ = cirq.ControlledOperation([cb], v, control_values=[2])
     with pytest.raises(ValueError, match='Control values .*outside of range'):
         _ = cirq.ControlledOperation([cb], v, control_values=[(1, -1)])
+    with pytest.raises(ValueError, match=re.escape("Duplicate control qubits ['ctr'].")):
+        _ = cirq.ControlledOperation([cb, cirq.LineQubit(0), cb], cirq.X(q))
+    with pytest.raises(ValueError, match=re.escape("Sub-op and controls share qubits ['ctr']")):
+        _ = cirq.ControlledOperation([cb, cirq.LineQubit(0)], cirq.CX(cb, q))
 
 
 def test_controlled_operation_eq():
@@ -140,8 +146,9 @@ def test_str():
     assert str(cirq.ControlledOperation([c1], cirq.CZ(c2, q2))) == "CCZ(c1, c2, q2)"
 
     class SingleQubitOp(cirq.Operation):
+        @property
         def qubits(self) -> Tuple[cirq.Qid, ...]:
-            pass
+            return ()
 
         def with_qubits(self, *new_qubits: cirq.Qid):
             pass
@@ -296,7 +303,7 @@ def test_uninformed_circuit_diagram_info():
 def test_non_diagrammable_subop():
     qbits = cirq.LineQubit.range(2)
 
-    class UndiagrammableGate(cirq.SingleQubitGate):
+    class UndiagrammableGate(cirq.testing.SingleQubitGate):
         pass
 
     undiagrammable_op = UndiagrammableGate()(qbits[1])

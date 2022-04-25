@@ -15,7 +15,7 @@
 
 import abc
 import collections
-from typing import Dict, FrozenSet, List, Optional, Sequence, Tuple, TYPE_CHECKING, Union
+from typing import cast, Dict, FrozenSet, List, Optional, Sequence, Tuple, TYPE_CHECKING, Union
 
 import pandas as pd
 
