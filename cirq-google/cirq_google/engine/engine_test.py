@@ -333,6 +333,7 @@ def test_engine_str():
     )
     assert str(engine) == 'Engine(project_id=\'proj\')'
 
+_DT = datetime.datetime.now(tz=datetime.timezone.utc)
 
 def setup_run_circuit_with_result_(client, result):
     client().create_program.return_value = (
@@ -346,7 +347,7 @@ def setup_run_circuit_with_result_(client, result):
         ),
     )
     client().get_job.return_value = quantum.QuantumJob(
-        execution_status={'state': 'SUCCESS'}, update_time=datetime.datetime.now()
+        execution_status={'state': 'SUCCESS'}, update_time=_DT
     )
     client().get_job_results.return_value = quantum.QuantumResult(result=result)
 
@@ -378,7 +379,7 @@ def test_run_circuit(client):
                     parameter_sweeps=[v2.run_context_pb2.ParameterSweep(repetitions=1)]
                 )
             ),
-            update_time=datetime.datetime.now(),
+            update_time=_DT,
         ),
         False,
     )
