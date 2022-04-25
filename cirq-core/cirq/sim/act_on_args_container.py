@@ -18,8 +18,8 @@ from typing import Any, Dict, Generic, Iterator, List, Mapping, Optional, Sequen
 import numpy as np
 
 from cirq import ops, protocols, value
+from cirq.sim.act_on_args import TActOnArgs
 from cirq.sim.operation_target import OperationTarget
-from cirq.sim.simulator import TActOnArgs
 
 if TYPE_CHECKING:
     import cirq

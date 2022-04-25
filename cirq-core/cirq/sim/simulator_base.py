@@ -35,11 +35,11 @@ import numpy as np
 
 from cirq import ops, protocols, study, value, devices
 from cirq.sim import ActOnArgsContainer
-from cirq.sim.operation_target import OperationTarget
 from cirq.sim import simulator
+from cirq.sim.act_on_args import TActOnArgs
+from cirq.sim.operation_target import OperationTarget
 from cirq.sim.simulator import (
     TSimulationTrialResult,
-    TActOnArgs,
     SimulatesIntermediateState,
     SimulatesSamples,
     StepResult,
@@ -57,7 +57,9 @@ TStepResultBase = TypeVar('TStepResultBase', bound='StepResultBase')
 
 class SimulatorBase(
     Generic[TStepResultBase, TSimulationTrialResult, TActOnArgs],
-    SimulatesIntermediateState[TStepResultBase, TSimulationTrialResult, TActOnArgs],
+    SimulatesIntermediateState[
+        TStepResultBase, TSimulationTrialResult, OperationTarget[TActOnArgs]
+    ],
     SimulatesSamples,
     metaclass=abc.ABCMeta,
 ):
@@ -352,13 +354,13 @@ class StepResultBase(Generic[TActOnArgs], StepResult[OperationTarget[TActOnArgs]
         Args:
             sim_state: The `OperationTarget` for this step.
         """
-        self._sim_state = sim_state
-        self._merged_sim_state_cache: Optional[TActOnArgs] = None
         super().__init__(sim_state)
+        self._merged_sim_state_cache: Optional[TActOnArgs] = None
         qubits = sim_state.qubits
         self._qubits = qubits
         self._qubit_mapping = {q: i for i, q in enumerate(qubits)}
         self._qubit_shape = tuple(q.dimension for q in qubits)
+        self._classical_data = sim_state.classical_data
 
     def _qid_shape_(self):
         return self._qubit_shape
@@ -376,9 +378,6 @@ class StepResultBase(Generic[TActOnArgs], StepResult[OperationTarget[TActOnArgs]
         seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None,
     ) -> np.ndarray:
         return self._sim_state.sample(qubits, repetitions, seed)
-
-    def _simulator_state(self) -> 'cirq.OperationTarget[TActOnArgs]':
-        return self._sim_state
 
 
 class SimulationTrialResultBase(
