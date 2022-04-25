@@ -14,7 +14,7 @@
 """Helpers for handling quantum state vectors."""
 
 import abc
-from typing import Dict, List, Optional, Tuple, TYPE_CHECKING, Sequence
+from typing import List, Mapping, Optional, Tuple, TYPE_CHECKING, Sequence
 
 import numpy as np
 
@@ -31,7 +31,7 @@ if TYPE_CHECKING:
 class StateVectorMixin:
     """A mixin that provide methods for objects that have a state vector."""
 
-    def __init__(self, qubit_map: Optional[Dict['cirq.Qid', int]] = None, *args, **kwargs):
+    def __init__(self, qubit_map: Optional[Mapping['cirq.Qid', int]] = None, *args, **kwargs):
         """Inits StateVectorMixin.
 
         Args:
@@ -48,7 +48,7 @@ class StateVectorMixin:
         self._qid_shape = None if qubit_map is None else qid_shape
 
     @property
-    def qubit_map(self) -> Dict['cirq.Qid', int]:
+    def qubit_map(self) -> Mapping['cirq.Qid', int]:
         return self._qubit_map
 
     def _qid_shape_(self) -> Tuple[int, ...]:

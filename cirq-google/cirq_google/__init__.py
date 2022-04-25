@@ -57,6 +57,8 @@ from cirq_google.calibration import (
 from cirq_google.devices import (
     Bristlecone,
     Foxtail,
+    GoogleNoiseProperties,
+    NoiseModelFromGoogleNoiseProperties,
     SerializableDevice,
     Sycamore,
     Sycamore23,
@@ -79,6 +81,7 @@ from cirq_google.engine import (
     get_engine_calibration,
     get_engine_device,
     get_engine_sampler,
+    noise_properties_from_calibration,
 )
 
 from cirq_google.line import (
@@ -141,6 +144,7 @@ from cirq_google.workflow import (
     CouldNotPlaceError,
     NaiveQubitPlacer,
     RandomDevicePlacer,
+    HardcodedQubitPlacer,
     ProcessorRecord,
     EngineProcessorRecord,
     SimulatedProcessorRecord,

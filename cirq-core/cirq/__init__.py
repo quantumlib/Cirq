@@ -102,6 +102,7 @@ from cirq.devices import (
     LineTopology,
     TiltedSquareLattice,
     get_placements,
+    is_valid_placement,
     draw_placements,
 )
 
@@ -544,6 +545,7 @@ from cirq.value import (
     Timestamp,
     TParamKey,
     TParamVal,
+    TParamValComplex,
     validate_probability,
     value_equality,
     KET_PLUS,

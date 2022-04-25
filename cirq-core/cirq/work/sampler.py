@@ -15,7 +15,7 @@
 
 import abc
 import collections
-from typing import Dict, FrozenSet, List, Optional, Sequence, Tuple, TYPE_CHECKING, Union
+from typing import cast, Dict, FrozenSet, List, Optional, Sequence, Tuple, TYPE_CHECKING, Union
 
 import pandas as pd
 
@@ -329,7 +329,7 @@ class Sampler(metaclass=abc.ABCMeta):
 
         # Flatten Circuit Sweep into one big list of Params.
         # Keep track of their indices so we can map back.
-        flat_params: List[Dict[str, float]] = [pr.param_dict for pr in study.to_resolvers(params)]
+        flat_params = [cast(Dict[str, float], pr.param_dict) for pr in study.to_resolvers(params)]
         circuit_param_to_sweep_i: Dict[FrozenSet[Tuple[str, float]], int] = {
             _hashable_param(param.items()): i for i, param in enumerate(flat_params)
         }
