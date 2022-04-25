@@ -14,6 +14,7 @@
 
 import dataclasses
 from typing import Union, Iterable, Dict, TYPE_CHECKING, ItemsView, Tuple, FrozenSet
+
 import sympy
 
 from cirq import ops, value, protocols
