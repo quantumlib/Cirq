@@ -338,7 +338,7 @@ def test_dephase_nocompile_context():
         )
     )
     dephased = cirq.dephase_measurements(
-        circuit, context=cirq.TransformerContext(tags_to_ignore=('nocompile',))
+        circuit, context=cirq.TransformerContext(deep=True, tags_to_ignore=('nocompile',))
     )
     cirq.testing.assert_same_circuits(
         dephased,
