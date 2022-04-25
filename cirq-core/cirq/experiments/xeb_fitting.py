@@ -150,7 +150,7 @@ class XEBCharacterizationOptions(ABC):
 def phased_fsim_angles_from_gate(gate: 'cirq.Gate') -> Dict[str, Union[float, sympy.Expr]]:
     """For a given gate, return a dictionary mapping '{angle}_default' to its noiseless value
     for the five PhasedFSim angles."""
-    defaults: Dict[str, Union[float, sympy.Expr]] = {
+    defaults: Dict[str, 'cirq.TParamVal'] = {
         'theta_default': 0.0,
         'zeta_default': 0.0,
         'chi_default': 0.0,
