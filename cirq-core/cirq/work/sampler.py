@@ -29,7 +29,6 @@ from cirq.work.observable_settings import _hashable_param
 
 if TYPE_CHECKING:
     import cirq
-    import sympy
 
 
 class Sampler(metaclass=abc.ABCMeta):
