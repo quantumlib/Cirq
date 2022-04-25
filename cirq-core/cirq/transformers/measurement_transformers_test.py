@@ -382,9 +382,7 @@ def test_drop_terminal_nonterminal_error():
         _ = cirq.drop_terminal_measurements(circuit)
 
     with pytest.raises(ValueError, match='Context has `deep=False`'):
-        _ = cirq.drop_terminal_measurements(
-            circuit, context=cirq.TransformerContext(deep=False)
-        )
+        _ = cirq.drop_terminal_measurements(circuit, context=cirq.TransformerContext(deep=False))
 
     with pytest.raises(ValueError, match='Context has `deep=False`'):
         _ = cirq.drop_terminal_measurements(circuit, context=None)
