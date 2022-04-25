@@ -98,9 +98,7 @@ def _gate(identifier: str, gate: 'cirq.Gate') -> CellMaker:
 
 
 def _formula_gate(
-    identifier: str,
-    default_formula: str,
-    gate_func: Callable[['cirq.TParamVal'], 'cirq.Gate'],
+    identifier: str, default_formula: str, gate_func: Callable[['cirq.TParamVal'], 'cirq.Gate']
 ) -> CellMaker:
     return CellMaker(
         identifier=identifier,

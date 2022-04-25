@@ -184,9 +184,7 @@ class BaseDensePauliString(raw_types.Gate, metaclass=abc.ABCMeta):
 
     def _resolve_parameters_(self: TCls, resolver: 'cirq.ParamResolver', recursive: bool) -> TCls:
         return self.copy(
-            coefficient=cast(
-                complex, protocols.resolve_parameters(self.coefficient, resolver, recursive)
-            )
+            coefficient=protocols.resolve_parameters(self.coefficient, resolver, recursive)
         )
 
     def __pos__(self):
@@ -321,8 +319,13 @@ class BaseDensePauliString(raw_types.Gate, metaclass=abc.ABCMeta):
         if len(qubits) != len(self):
             raise ValueError('Wrong number of qubits.')
 
+        if isinstance(self.coefficient, sympy.Expr):
+            raise ValueError(
+                'Sparse pauli string does not support '
+                f'symbolic coefficients ({self.coefficient}i).'
+            )
         return pauli_string.PauliString(
-            coefficient=cast(complex, self.coefficient),
+            coefficient=self.coefficient,
             qubit_pauli_map={q: PAULI_GATES[p] for q, p in zip(qubits, self.pauli_mask) if p},
         )
 
@@ -375,7 +378,7 @@ class BaseDensePauliString(raw_types.Gate, metaclass=abc.ABCMeta):
     @abc.abstractmethod
     def copy(
         self: TCls,
-        coefficient: Optional[complex] = None,
+        coefficient: Optional[Union[sympy.Expr, int, float, complex]] = None,
         pauli_mask: Union[None, str, Iterable[int], np.ndarray] = None,
     ) -> TCls:
         """Returns a copy with possibly modified contents.
@@ -397,7 +400,7 @@ class DensePauliString(BaseDensePauliString):
 
     def copy(
         self,
-        coefficient: Optional[complex] = None,
+        coefficient: Optional[Union[sympy.Expr, int, float, complex]] = None,
         pauli_mask: Union[None, str, Iterable[int], np.ndarray] = None,
     ) -> 'DensePauliString':
         if pauli_mask is None and (coefficient is None or coefficient == self.coefficient):
@@ -469,7 +472,7 @@ class MutableDensePauliString(BaseDensePauliString):
 
     def copy(
         self,
-        coefficient: Optional[complex] = None,
+        coefficient: Optional[Union[sympy.Expr, int, float, complex]] = None,
         pauli_mask: Union[None, str, Iterable[int], np.ndarray] = None,
     ) -> 'MutableDensePauliString':
         return MutableDensePauliString(
