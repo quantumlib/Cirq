@@ -138,9 +138,7 @@ def t2_decay(
     # Input validation
     if repetitions <= 0:
         raise ValueError('repetitions <= 0')
-    if not isinstance(min_delay_nanos, (float, int)) or not isinstance(
-        max_delay_nanos, (float, int)
-    ):
+    if isinstance(min_delay_nanos, sympy.Expr) or isinstance(max_delay_nanos, sympy.Expr):
         raise ValueError('min_delay and max_delay cannot be sympy expressions.')
     if max_delay_dur < min_delay_dur:
         raise ValueError('max_delay < min_delay')
