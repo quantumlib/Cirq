@@ -147,7 +147,7 @@ class XEBCharacterizationOptions(ABC):
         """Return an initial Nelder-Mead simplex and the names for each parameter."""
 
 
-def phased_fsim_angles_from_gate(gate: 'cirq.Gate') -> Dict[str, Union[float, sympy.Expr]]:
+def phased_fsim_angles_from_gate(gate: 'cirq.Gate') -> Dict[str, 'cirq.TParamVal']:
     """For a given gate, return a dictionary mapping '{angle}_default' to its noiseless value
     for the five PhasedFSim angles."""
     defaults: Dict[str, 'cirq.TParamVal'] = {
