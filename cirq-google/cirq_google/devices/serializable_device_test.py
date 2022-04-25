@@ -471,8 +471,3 @@ def test_sycamore23_str():
                                     │
                                     (9, 4)"""
     )
-
-
-def test_sycamore23_qid_pairs_deprecated():
-    with cirq.testing.assert_deprecated('device.metadata', deadline='v0.15', count=1):
-        assert len(cg.Sycamore23.qid_pairs()) == 32

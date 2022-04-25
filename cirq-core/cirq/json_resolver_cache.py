@@ -176,7 +176,6 @@ def _class_resolver_dictionary() -> Dict[str, ObjectFactory]:
         'StabilizerStateChForm': cirq.StabilizerStateChForm,
         'StatePreparationChannel': cirq.StatePreparationChannel,
         'SwapPowGate': cirq.SwapPowGate,
-        'SymmetricalQidPair': cirq.SymmetricalQidPair,
         'SympyCondition': cirq.SympyCondition,
         'TaggedOperation': cirq.TaggedOperation,
         'TiltedSquareLattice': cirq.TiltedSquareLattice,
