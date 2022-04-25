@@ -184,7 +184,9 @@ class Simulator(
             dtype=self._dtype,
         )
 
-    def _create_step_result(self, sim_state: 'cirq.SimulationState[cirq.StateVectorSimulationState]'):
+    def _create_step_result(
+        self, sim_state: 'cirq.SimulationState[cirq.StateVectorSimulationState]'
+    ):
         return SparseSimulatorStep(sim_state=sim_state, dtype=self._dtype)
 
     def simulate_expectation_values_sweep_iter(

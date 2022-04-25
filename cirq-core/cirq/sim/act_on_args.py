@@ -157,8 +157,8 @@ class DenseSimulationState(SimulationState, Generic[TState], metaclass=abc.ABCMe
             args._state = self._state.copy(deep_copy_buffers=deep_copy_buffers)
         else:
             _warn_or_error(
-                'Pass a `QuantumStateRepresentation` into the `DenseSimulationState` constructor. The `_on_`'
-                ' overrides will be removed in cirq v0.16.'
+                'Pass a `QuantumStateRepresentation` into the `DenseSimulationState` constructor.'
+                ' The `_on_` overrides will be removed in cirq v0.16.'
             )
             self._on_copy(args, deep_copy_buffers)
         return args
@@ -182,8 +182,8 @@ class DenseSimulationState(SimulationState, Generic[TState], metaclass=abc.ABCMe
             args._state = self._state.kron(other._state)
         else:
             _warn_or_error(
-                'Pass a `QuantumStateRepresentation` into the `DenseSimulationState` constructor. The `_on_`'
-                ' overrides will be removed in cirq v0.16.'
+                'Pass a `QuantumStateRepresentation` into the `DenseSimulationState` constructor.'
+                ' The `_on_` overrides will be removed in cirq v0.16.'
             )
             self._on_kronecker_product(other, args)
         args._set_qubits(self.qubits + other.qubits)
@@ -225,8 +225,8 @@ class DenseSimulationState(SimulationState, Generic[TState], metaclass=abc.ABCMe
             remainder._state = r
         else:
             _warn_or_error(
-                'Pass a `QuantumStateRepresentation` into the `DenseSimulationState` constructor. The `_on_`'
-                ' overrides will be removed in cirq v0.16.'
+                'Pass a `QuantumStateRepresentation` into the `DenseSimulationState` constructor.'
+                ' The `_on_` overrides will be removed in cirq v0.16.'
             )
             self._on_factor(qubits, extracted, remainder, validate, atol)
         extracted._set_qubits(qubits)
@@ -276,8 +276,8 @@ class DenseSimulationState(SimulationState, Generic[TState], metaclass=abc.ABCMe
             args._state = self._state.reindex(self.get_axes(qubits))
         else:
             _warn_or_error(
-                'Pass a `QuantumStateRepresentation` into the `DenseSimulationState` constructor. The `_on_`'
-                ' overrides will be removed in cirq v0.16.'
+                'Pass a `QuantumStateRepresentation` into the `DenseSimulationState` constructor.'
+                ' The `_on_` overrides will be removed in cirq v0.16.'
             )
             self._on_transpose_to_qubit_order(qubits, args)
         args._set_qubits(qubits)

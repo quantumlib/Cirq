@@ -277,7 +277,9 @@ class CommonCliffordGates(metaclass=CommonCliffordGateMetaClass):
     ) -> Union['SingleQubitCliffordGate', 'CliffordGate']:
         qubits = devices.LineQubit.range(num_qubits)
         t = qis.CliffordTableau(num_qubits=num_qubits)
-        args = sim.CliffordTableauSimulationState(tableau=t, qubits=qubits, prng=np.random.RandomState())
+        args = sim.CliffordTableauSimulationState(
+            tableau=t, qubits=qubits, prng=np.random.RandomState()
+        )
 
         protocols.act_on(gate, args, qubits, allow_decompose=False)
         if num_qubits == 1:

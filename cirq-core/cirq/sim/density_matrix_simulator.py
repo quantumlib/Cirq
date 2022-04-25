@@ -147,7 +147,9 @@ class DensityMatrixSimulator(
 
     def _create_partial_act_on_args(
         self,
-        initial_state: Union[np.ndarray, 'cirq.STATE_VECTOR_LIKE', 'cirq.DensityMatrixSimulationState'],
+        initial_state: Union[
+            np.ndarray, 'cirq.STATE_VECTOR_LIKE', 'cirq.DensityMatrixSimulationState'
+        ],
         qubits: Sequence['cirq.Qid'],
         classical_data: 'cirq.ClassicalDataStore',
     ) -> 'cirq.DensityMatrixSimulationState':
@@ -179,7 +181,9 @@ class DensityMatrixSimulator(
     def _can_be_in_run_prefix(self, val: Any):
         return not protocols.measurement_keys_touched(val)
 
-    def _create_step_result(self, sim_state: 'cirq.SimulationState[cirq.DensityMatrixSimulationState]'):
+    def _create_step_result(
+        self, sim_state: 'cirq.SimulationState[cirq.DensityMatrixSimulationState]'
+    ):
         return DensityMatrixStepResult(sim_state=sim_state, dtype=self._dtype)
 
     def _create_simulator_trial_result(
@@ -342,7 +346,9 @@ class DensityMatrixSimulatorState:
 
 @value.value_equality(unhashable=True)
 class DensityMatrixTrialResult(
-    simulator_base.SimulationTrialResultBase[act_on_density_matrix_args.DensityMatrixSimulationState]
+    simulator_base.SimulationTrialResultBase[
+        act_on_density_matrix_args.DensityMatrixSimulationState
+    ]
 ):
     """A `SimulationTrialResult` for `DensityMatrixSimulator` runs.
 

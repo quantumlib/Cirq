@@ -25,7 +25,9 @@ if TYPE_CHECKING:
     import cirq
 
 
-class SimulationProductState(Generic[TDenseSimulationState], SimulationState[TDenseSimulationState], abc.Mapping):
+class SimulationProductState(
+    Generic[TDenseSimulationState], SimulationState[TDenseSimulationState], abc.Mapping
+):
     """A container for a `Qid`-to-`DenseSimulationState` dictionary."""
 
     def __init__(
@@ -129,7 +131,9 @@ class SimulationProductState(Generic[TDenseSimulationState], SimulationState[TDe
                 self._args[q] = op_args
         return True
 
-    def copy(self, deep_copy_buffers: bool = True) -> 'cirq.SimulationProductState[TDenseSimulationState]':
+    def copy(
+        self, deep_copy_buffers: bool = True
+    ) -> 'cirq.SimulationProductState[TDenseSimulationState]':
         classical_data = self._classical_data.copy()
         copies = {}
         for act_on_args in set(self.args.values()):

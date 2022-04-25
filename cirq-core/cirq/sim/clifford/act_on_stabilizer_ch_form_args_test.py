@@ -61,9 +61,7 @@ def test_unitary_fallback_y():
         def _unitary_(self):
             return np.array([[0, -1j], [1j, 0]])
 
-    args = cirq.CHFormSimulationState(
-        qubits=cirq.LineQubit.range(3), prng=np.random.RandomState()
-    )
+    args = cirq.CHFormSimulationState(qubits=cirq.LineQubit.range(3), prng=np.random.RandomState())
     cirq.act_on(UnitaryYGate(), args, [cirq.LineQubit(1)])
     expected_args = cirq.CHFormSimulationState(
         qubits=cirq.LineQubit.range(3), prng=np.random.RandomState()
@@ -80,9 +78,7 @@ def test_unitary_fallback_h():
         def _unitary_(self):
             return np.array([[1, 1], [1, -1]]) / (2**0.5)
 
-    args = cirq.CHFormSimulationState(
-        qubits=cirq.LineQubit.range(3), prng=np.random.RandomState()
-    )
+    args = cirq.CHFormSimulationState(qubits=cirq.LineQubit.range(3), prng=np.random.RandomState())
     cirq.act_on(UnitaryHGate(), args, [cirq.LineQubit(1)])
     expected_args = cirq.CHFormSimulationState(
         qubits=cirq.LineQubit.range(3), prng=np.random.RandomState()
@@ -92,9 +88,7 @@ def test_unitary_fallback_h():
 
 
 def test_copy():
-    args = cirq.CHFormSimulationState(
-        qubits=cirq.LineQubit.range(3), prng=np.random.RandomState()
-    )
+    args = cirq.CHFormSimulationState(qubits=cirq.LineQubit.range(3), prng=np.random.RandomState())
     args1 = args.copy()
     assert isinstance(args1, cirq.CHFormSimulationState)
     assert args is not args1

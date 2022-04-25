@@ -44,7 +44,9 @@ def test_infer_target_tensor():
         np.array([[1.0 + 0.0j, 0.0 + 0.0j], [0.0 + 0.0j, 0.0 + 0.0j]], dtype=dtype),
     )
 
-    args = cirq.StateVectorSimulationState(qubits=cirq.LineQubit.range(2), initial_state=0, dtype=dtype)
+    args = cirq.StateVectorSimulationState(
+        qubits=cirq.LineQubit.range(2), initial_state=0, dtype=dtype
+    )
     np.testing.assert_almost_equal(
         args.target_tensor,
         np.array([[1.0 + 0.0j, 0.0 + 0.0j], [0.0 + 0.0j, 0.0 + 0.0j]], dtype=dtype),

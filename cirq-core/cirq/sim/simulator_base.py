@@ -134,7 +134,9 @@ class SimulatorBase(
         """
 
     @abc.abstractmethod
-    def _create_step_result(self, sim_state: SimulationState[TDenseSimulationState]) -> TStepResultBase:
+    def _create_step_result(
+        self, sim_state: SimulationState[TDenseSimulationState]
+    ) -> TStepResultBase:
         """This method should be implemented to create a step result.
 
         Args:
@@ -345,7 +347,9 @@ class SimulatorBase(
             )
 
 
-class StepResultBase(Generic[TDenseSimulationState], StepResult[SimulationState[TDenseSimulationState]], abc.ABC):
+class StepResultBase(
+    Generic[TDenseSimulationState], StepResult[SimulationState[TDenseSimulationState]], abc.ABC
+):
     """A base class for step results."""
 
     def __init__(self, sim_state: SimulationState[TDenseSimulationState]):
@@ -381,7 +385,9 @@ class StepResultBase(Generic[TDenseSimulationState], StepResult[SimulationState[
 
 
 class SimulationTrialResultBase(
-    SimulationTrialResult[SimulationState[TDenseSimulationState]], Generic[TDenseSimulationState], abc.ABC
+    SimulationTrialResult[SimulationState[TDenseSimulationState]],
+    Generic[TDenseSimulationState],
+    abc.ABC,
 ):
     """A base class for trial results."""
 

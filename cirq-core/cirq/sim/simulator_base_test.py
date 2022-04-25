@@ -118,7 +118,9 @@ class CountingSimulator(
         qubits: Sequence['cirq.Qid'],
         classical_data: cirq.ClassicalDataStore,
     ) -> CountingSimulationState:
-        return CountingSimulationState(qubits=qubits, state=initial_state, classical_data=classical_data)
+        return CountingSimulationState(
+            qubits=qubits, state=initial_state, classical_data=classical_data
+        )
 
     def _create_simulator_trial_result(
         self,
