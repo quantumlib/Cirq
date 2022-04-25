@@ -22,7 +22,7 @@ import pytest
 
 import cirq
 from cirq import study
-from cirq.sim.act_on_args import TDenseSimulationState
+from cirq.sim.dense_simulation_state import TDenseSimulationState
 from cirq.sim.simulator import (
     TStepResult,
     SimulatesAmplitudes,

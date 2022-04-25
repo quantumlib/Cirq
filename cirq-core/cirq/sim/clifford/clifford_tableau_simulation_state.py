@@ -19,7 +19,7 @@ from typing import Optional, Sequence, TYPE_CHECKING
 import numpy as np
 
 from cirq.qis import clifford_tableau
-from cirq.sim.clifford.act_on_stabilizer_args import StabilizerSimulationState
+from cirq.sim.clifford.stabilizer_simulation_state import StabilizerSimulationState
 
 if TYPE_CHECKING:
     import cirq

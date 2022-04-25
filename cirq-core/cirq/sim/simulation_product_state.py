@@ -18,8 +18,8 @@ from typing import Any, Dict, Generic, Iterator, List, Mapping, Optional, Sequen
 import numpy as np
 
 from cirq import ops, protocols, value
-from cirq.sim.act_on_args import TDenseSimulationState
-from cirq.sim.operation_target import SimulationState
+from cirq.sim.dense_simulation_state import TDenseSimulationState
+from cirq.sim.simulation_state import SimulationState
 
 if TYPE_CHECKING:
     import cirq

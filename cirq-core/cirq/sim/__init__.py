@@ -15,13 +15,13 @@
 """Classes for circuit simulators and base implementations of these classes."""
 from typing import Tuple, Dict
 
-from cirq.sim.act_on_args import DenseSimulationState
+from cirq.sim.dense_simulation_state import DenseSimulationState
 
-from cirq.sim.act_on_args_container import SimulationProductState
+from cirq.sim.simulation_product_state import SimulationProductState
 
-from cirq.sim.act_on_density_matrix_args import DensityMatrixSimulationState
+from cirq.sim.density_matrix_simulation_state import DensityMatrixSimulationState
 
-from cirq.sim.act_on_state_vector_args import StateVectorSimulationState
+from cirq.sim.state_vector_simulation_state import StateVectorSimulationState
 
 from cirq.sim.density_matrix_utils import measure_density_matrix, sample_density_matrix
 
@@ -32,7 +32,7 @@ from cirq.sim.density_matrix_simulator import (
     DensityMatrixTrialResult,
 )
 
-from cirq.sim.operation_target import SimulationState
+from cirq.sim.simulation_state import SimulationState
 
 from cirq.sim.mux import (
     CIRCUIT_LIKE,

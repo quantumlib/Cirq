@@ -18,7 +18,7 @@ import numpy as np
 
 from cirq._compat import proper_repr
 from cirq.sim.clifford import stabilizer_state_ch_form
-from cirq.sim.clifford.act_on_stabilizer_args import StabilizerSimulationState
+from cirq.sim.clifford.stabilizer_simulation_state import StabilizerSimulationState
 
 if TYPE_CHECKING:
     import cirq

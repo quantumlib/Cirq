@@ -36,8 +36,8 @@ import numpy as np
 from cirq import ops, protocols, study, value, devices
 from cirq.sim import SimulationProductState
 from cirq.sim import simulator
-from cirq.sim.act_on_args import TDenseSimulationState
-from cirq.sim.operation_target import SimulationState
+from cirq.sim.dense_simulation_state import TDenseSimulationState
+from cirq.sim.simulation_state import SimulationState
 from cirq.sim.simulator import (
     TSimulationTrialResult,
     SimulatesIntermediateState,

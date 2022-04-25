@@ -27,7 +27,7 @@ import quimb.tensor as qtn
 from cirq import devices, protocols, qis, value
 from cirq._compat import deprecated_parameter
 from cirq.sim import simulator, simulator_base
-from cirq.sim.act_on_args import DenseSimulationState
+from cirq.sim.dense_simulation_state import DenseSimulationState
 
 if TYPE_CHECKING:
     import cirq

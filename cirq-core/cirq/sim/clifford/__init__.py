@@ -1,9 +1,9 @@
 # pylint: disable=wrong-or-nonexistent-copyright-notice
-from cirq.sim.clifford.act_on_clifford_tableau_args import CliffordTableauSimulationState
+from cirq.sim.clifford.clifford_tableau_simulation_state import CliffordTableauSimulationState
 
-from cirq.sim.clifford.act_on_stabilizer_ch_form_args import CHFormSimulationState
+from cirq.sim.clifford.ch_form_simulation_state import CHFormSimulationState
 
-from cirq.sim.clifford.act_on_stabilizer_args import StabilizerSimulationState
+from cirq.sim.clifford.stabilizer_simulation_state import StabilizerSimulationState
 
 from cirq.sim.clifford.stabilizer_state_ch_form import StabilizerStateChForm
 

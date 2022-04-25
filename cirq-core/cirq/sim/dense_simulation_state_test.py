@@ -18,7 +18,7 @@ import numpy as np
 import pytest
 
 import cirq
-from cirq.sim import act_on_args
+from cirq.sim import dense_simulation_state
 
 
 class DummyQuantumState(cirq.QuantumStateRepresentation):
@@ -57,7 +57,9 @@ def test_decompose():
             yield cirq.X(*qubits)
 
     args = DummyArgs()
-    assert act_on_args.strat_act_on_from_apply_decompose(Composite(), args, [cirq.LineQubit(0)])
+    assert dense_simulation_state.strat_act_on_from_apply_decompose(
+        Composite(), args, [cirq.LineQubit(0)]
+    )
 
 
 def test_mapping():

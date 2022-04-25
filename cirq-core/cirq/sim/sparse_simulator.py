@@ -20,7 +20,7 @@ import numpy as np
 
 from cirq import ops
 from cirq._compat import deprecated_parameter
-from cirq.sim import simulator, state_vector, state_vector_simulator, act_on_state_vector_args
+from cirq.sim import simulator, state_vector, state_vector_simulator, state_vector_simulation_state
 
 if TYPE_CHECKING:
     import cirq
@@ -173,10 +173,10 @@ class Simulator(
         Returns:
             StateVectorSimulationState for the circuit.
         """
-        if isinstance(initial_state, act_on_state_vector_args.StateVectorSimulationState):
+        if isinstance(initial_state, state_vector_simulation_state.StateVectorSimulationState):
             return initial_state
 
-        return act_on_state_vector_args.StateVectorSimulationState(
+        return state_vector_simulation_state.StateVectorSimulationState(
             qubits=qubits,
             prng=self._prng,
             classical_data=classical_data,

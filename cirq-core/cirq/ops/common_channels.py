@@ -734,10 +734,10 @@ class ResetChannel(raw_types.Gate):
                 u[:inc] = np.eye(self.dimension)[-inc:]
                 return u
 
-        from cirq.sim import act_on_args
+        from cirq.sim import dense_simulation_state
 
         if (
-            isinstance(args, act_on_args.DenseSimulationState)
+            isinstance(args, dense_simulation_state.DenseSimulationState)
             and not args.can_represent_mixed_states
         ):
             result = args._perform_measurement(qubits)[0]

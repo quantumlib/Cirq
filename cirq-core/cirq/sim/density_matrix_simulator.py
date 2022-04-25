@@ -18,7 +18,7 @@ import numpy as np
 
 from cirq import ops, protocols, study, value
 from cirq._compat import deprecated_class, deprecated_parameter, proper_repr
-from cirq.sim import simulator, act_on_density_matrix_args, simulator_base
+from cirq.sim import simulator, density_matrix_simulation_state, simulator_base
 
 if TYPE_CHECKING:
     import cirq
@@ -167,10 +167,10 @@ class DensityMatrixSimulator(
         Returns:
             DensityMatrixSimulationState for the circuit.
         """
-        if isinstance(initial_state, act_on_density_matrix_args.DensityMatrixSimulationState):
+        if isinstance(initial_state, density_matrix_simulation_state.DensityMatrixSimulationState):
             return initial_state
 
-        return act_on_density_matrix_args.DensityMatrixSimulationState(
+        return density_matrix_simulation_state.DensityMatrixSimulationState(
             qubits=qubits,
             prng=self._prng,
             classical_data=classical_data,
@@ -347,7 +347,7 @@ class DensityMatrixSimulatorState:
 @value.value_equality(unhashable=True)
 class DensityMatrixTrialResult(
     simulator_base.SimulationTrialResultBase[
-        act_on_density_matrix_args.DensityMatrixSimulationState
+        density_matrix_simulation_state.DensityMatrixSimulationState
     ]
 ):
     """A `SimulationTrialResult` for `DensityMatrixSimulator` runs.
