@@ -33,16 +33,16 @@ import numpy as np
 from cirq import protocols, value
 from cirq._compat import _warn_or_error, deprecated, deprecated_parameter
 from cirq.protocols.decompose_protocol import _try_decompose_into_operations_and_qubits
-from cirq.sim.operation_target import OperationTarget
+from cirq.sim.operation_target import SimulationState
 
-TSelf = TypeVar('TSelf', bound='ActOnArgs')
+TSelf = TypeVar('TSelf', bound='DenseSimulationState')
 TState = TypeVar('TState', bound='cirq.QuantumStateRepresentation')
 
 if TYPE_CHECKING:
     import cirq
 
 
-class ActOnArgs(OperationTarget, Generic[TState], metaclass=abc.ABCMeta):
+class DenseSimulationState(SimulationState, Generic[TState], metaclass=abc.ABCMeta):
     """State and context for an operation acting on a state tensor."""
 
     @deprecated_parameter(
@@ -66,7 +66,7 @@ class ActOnArgs(OperationTarget, Generic[TState], metaclass=abc.ABCMeta):
         classical_data: Optional['cirq.ClassicalDataStore'] = None,
         state: Optional[TState] = None,
     ):
-        """Inits ActOnArgs.
+        """Inits DenseSimulationState.
 
         Args:
             prng: The pseudo random number generator to use for probabilistic
@@ -157,7 +157,7 @@ class ActOnArgs(OperationTarget, Generic[TState], metaclass=abc.ABCMeta):
             args._state = self._state.copy(deep_copy_buffers=deep_copy_buffers)
         else:
             _warn_or_error(
-                'Pass a `QuantumStateRepresentation` into the `ActOnArgs` constructor. The `_on_`'
+                'Pass a `QuantumStateRepresentation` into the `DenseSimulationState` constructor. The `_on_`'
                 ' overrides will be removed in cirq v0.16.'
             )
             self._on_copy(args, deep_copy_buffers)
@@ -165,7 +165,7 @@ class ActOnArgs(OperationTarget, Generic[TState], metaclass=abc.ABCMeta):
 
     @deprecated(
         deadline='v0.16',
-        fix='Pass a `QuantumStateRepresentation` into the `ActOnArgs` constructor.',
+        fix='Pass a `QuantumStateRepresentation` into the `DenseSimulationState` constructor.',
     )
     def _on_copy(self: TSelf, args: TSelf, deep_copy_buffers: bool = True):
         """Subclasses should implement this with any additional state copy
@@ -182,7 +182,7 @@ class ActOnArgs(OperationTarget, Generic[TState], metaclass=abc.ABCMeta):
             args._state = self._state.kron(other._state)
         else:
             _warn_or_error(
-                'Pass a `QuantumStateRepresentation` into the `ActOnArgs` constructor. The `_on_`'
+                'Pass a `QuantumStateRepresentation` into the `DenseSimulationState` constructor. The `_on_`'
                 ' overrides will be removed in cirq v0.16.'
             )
             self._on_kronecker_product(other, args)
@@ -191,7 +191,7 @@ class ActOnArgs(OperationTarget, Generic[TState], metaclass=abc.ABCMeta):
 
     @deprecated(
         deadline='v0.16',
-        fix='Pass a `QuantumStateRepresentation` into the `ActOnArgs` constructor.',
+        fix='Pass a `QuantumStateRepresentation` into the `DenseSimulationState` constructor.',
     )
     def _on_kronecker_product(self: TSelf, other: TSelf, target: TSelf):
         """Subclasses should implement this with any additional state product
@@ -225,7 +225,7 @@ class ActOnArgs(OperationTarget, Generic[TState], metaclass=abc.ABCMeta):
             remainder._state = r
         else:
             _warn_or_error(
-                'Pass a `QuantumStateRepresentation` into the `ActOnArgs` constructor. The `_on_`'
+                'Pass a `QuantumStateRepresentation` into the `DenseSimulationState` constructor. The `_on_`'
                 ' overrides will be removed in cirq v0.16.'
             )
             self._on_factor(qubits, extracted, remainder, validate, atol)
@@ -240,7 +240,7 @@ class ActOnArgs(OperationTarget, Generic[TState], metaclass=abc.ABCMeta):
 
     @deprecated(
         deadline='v0.16',
-        fix='Pass a `QuantumStateRepresentation` into the `ActOnArgs` constructor.',
+        fix='Pass a `QuantumStateRepresentation` into the `DenseSimulationState` constructor.',
     )
     def _on_factor(
         self: TSelf,
@@ -276,7 +276,7 @@ class ActOnArgs(OperationTarget, Generic[TState], metaclass=abc.ABCMeta):
             args._state = self._state.reindex(self.get_axes(qubits))
         else:
             _warn_or_error(
-                'Pass a `QuantumStateRepresentation` into the `ActOnArgs` constructor. The `_on_`'
+                'Pass a `QuantumStateRepresentation` into the `DenseSimulationState` constructor. The `_on_`'
                 ' overrides will be removed in cirq v0.16.'
             )
             self._on_transpose_to_qubit_order(qubits, args)
@@ -285,7 +285,7 @@ class ActOnArgs(OperationTarget, Generic[TState], metaclass=abc.ABCMeta):
 
     @deprecated(
         deadline='v0.16',
-        fix='Pass a `QuantumStateRepresentation` into the `ActOnArgs` constructor.',
+        fix='Pass a `QuantumStateRepresentation` into the `DenseSimulationState` constructor.',
     )
     def _on_transpose_to_qubit_order(self: TSelf, qubits: Sequence['cirq.Qid'], target: TSelf):
         """Subclasses should implement this with any additional state transpose
@@ -375,7 +375,7 @@ class ActOnArgs(OperationTarget, Generic[TState], metaclass=abc.ABCMeta):
 
 
 def strat_act_on_from_apply_decompose(
-    val: Any, args: 'cirq.ActOnArgs', qubits: Sequence['cirq.Qid']
+    val: Any, args: 'cirq.DenseSimulationState', qubits: Sequence['cirq.Qid']
 ) -> bool:
     operations, qubits1, _ = _try_decompose_into_operations_and_qubits(val)
     assert len(qubits1) == len(qubits)
@@ -388,4 +388,4 @@ def strat_act_on_from_apply_decompose(
     return True
 
 
-TActOnArgs = TypeVar('TActOnArgs', bound=ActOnArgs)
+TDenseSimulationState = TypeVar('TDenseSimulationState', bound=DenseSimulationState)

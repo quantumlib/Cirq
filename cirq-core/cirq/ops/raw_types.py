@@ -797,7 +797,7 @@ class TaggedOperation(Operation):
             protocols.is_parameterized(tag) for tag in self.tags
         )
 
-    def _act_on_(self, args: 'cirq.OperationTarget') -> bool:
+    def _act_on_(self, args: 'cirq.SimulationState') -> bool:
         sub = getattr(self.sub_operation, "_act_on_", None)
         if sub is not None:
             return sub(args)

@@ -22,7 +22,7 @@ import pytest
 
 import cirq
 from cirq import study
-from cirq.sim.act_on_args import TActOnArgs
+from cirq.sim.act_on_args import TDenseSimulationState
 from cirq.sim.simulator import (
     TStepResult,
     SimulatesAmplitudes,
@@ -63,8 +63,8 @@ class FakeStepResult(cirq.StepResult):
 
 
 class SimulatesIntermediateStateImpl(
-    Generic[TStepResult, TActOnArgs],
-    SimulatesIntermediateState[TStepResult, 'SimulationTrialResult', TActOnArgs],
+    Generic[TStepResult, TDenseSimulationState],
+    SimulatesIntermediateState[TStepResult, 'SimulationTrialResult', TDenseSimulationState],
     metaclass=abc.ABCMeta,
 ):
     """A SimulatesIntermediateState that uses the default SimulationTrialResult type."""
@@ -73,7 +73,7 @@ class SimulatesIntermediateStateImpl(
         self,
         params: study.ParamResolver,
         measurements: Dict[str, np.ndarray],
-        final_simulator_state: 'cirq.OperationTarget[TActOnArgs]',
+        final_simulator_state: 'cirq.SimulationState[TDenseSimulationState]',
     ) -> 'SimulationTrialResult':
         """This method creates a default trial result.
 

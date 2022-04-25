@@ -19,13 +19,13 @@ from typing import Optional, Sequence, TYPE_CHECKING
 import numpy as np
 
 from cirq.qis import clifford_tableau
-from cirq.sim.clifford.act_on_stabilizer_args import ActOnStabilizerArgs
+from cirq.sim.clifford.act_on_stabilizer_args import StabilizerSimulationState
 
 if TYPE_CHECKING:
     import cirq
 
 
-class ActOnCliffordTableauArgs(ActOnStabilizerArgs[clifford_tableau.CliffordTableau]):
+class CliffordTableauSimulationState(StabilizerSimulationState[clifford_tableau.CliffordTableau]):
     """State and context for an operation acting on a clifford tableau."""
 
     def __init__(
@@ -35,7 +35,7 @@ class ActOnCliffordTableauArgs(ActOnStabilizerArgs[clifford_tableau.CliffordTabl
         qubits: Optional[Sequence['cirq.Qid']] = None,
         classical_data: Optional['cirq.ClassicalDataStore'] = None,
     ):
-        """Inits ActOnCliffordTableauArgs.
+        """Inits CliffordTableauSimulationState.
 
         Args:
             tableau: The CliffordTableau to act on. Operations are expected to

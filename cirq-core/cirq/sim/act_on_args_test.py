@@ -32,7 +32,7 @@ class DummyQuantumState(cirq.QuantumStateRepresentation):
         return self
 
 
-class DummyArgs(cirq.ActOnArgs):
+class DummyArgs(cirq.DenseSimulationState):
     def __init__(self):
         super().__init__(state=DummyQuantumState(), qubits=cirq.LineQubit.range(2))
 
@@ -104,7 +104,7 @@ def test_field_getters():
 
 
 def test_on_methods_deprecated():
-    class OldStyleArgs(cirq.ActOnArgs):
+    class OldStyleArgs(cirq.DenseSimulationState):
         def _act_on_fallback_(self, action, qubits, allow_decompose=True):
             pass
 
@@ -121,7 +121,7 @@ def test_on_methods_deprecated():
 
 
 def test_on_methods_deprecated_if_implemented():
-    class OldStyleArgs(cirq.ActOnArgs):
+    class OldStyleArgs(cirq.DenseSimulationState):
         def _act_on_fallback_(self, action, qubits, allow_decompose=True):
             pass
 
@@ -150,7 +150,7 @@ def test_on_methods_deprecated_if_implemented():
 
 
 def test_deprecated():
-    class DeprecatedArgs(cirq.ActOnArgs):
+    class DeprecatedArgs(cirq.DenseSimulationState):
         def _act_on_fallback_(self, action, qubits, allow_decompose=True):
             pass
 

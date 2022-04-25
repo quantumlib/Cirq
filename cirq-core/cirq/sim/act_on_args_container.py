@@ -18,19 +18,19 @@ from typing import Any, Dict, Generic, Iterator, List, Mapping, Optional, Sequen
 import numpy as np
 
 from cirq import ops, protocols, value
-from cirq.sim.act_on_args import TActOnArgs
-from cirq.sim.operation_target import OperationTarget
+from cirq.sim.act_on_args import TDenseSimulationState
+from cirq.sim.operation_target import SimulationState
 
 if TYPE_CHECKING:
     import cirq
 
 
-class ActOnArgsContainer(Generic[TActOnArgs], OperationTarget[TActOnArgs], abc.Mapping):
-    """A container for a `Qid`-to-`ActOnArgs` dictionary."""
+class SimulationProductState(Generic[TDenseSimulationState], SimulationState[TDenseSimulationState], abc.Mapping):
+    """A container for a `Qid`-to-`DenseSimulationState` dictionary."""
 
     def __init__(
         self,
-        args: Dict[Optional['cirq.Qid'], TActOnArgs],
+        args: Dict[Optional['cirq.Qid'], TDenseSimulationState],
         qubits: Sequence['cirq.Qid'],
         split_untangled_states: bool,
         classical_data: Optional['cirq.ClassicalDataStore'] = None,
@@ -38,7 +38,7 @@ class ActOnArgsContainer(Generic[TActOnArgs], OperationTarget[TActOnArgs], abc.M
         """Initializes the class.
 
         Args:
-            args: The `ActOnArgs` dictionary. This will not be copied; the
+            args: The `DenseSimulationState` dictionary. This will not be copied; the
                 original reference will be kept here.
             qubits: The canonical ordering of qubits.
             split_untangled_states: If True, optimizes operations by running
@@ -53,14 +53,14 @@ class ActOnArgsContainer(Generic[TActOnArgs], OperationTarget[TActOnArgs], abc.M
         self._split_untangled_states = split_untangled_states
 
     @property
-    def args(self) -> Mapping[Optional['cirq.Qid'], TActOnArgs]:
+    def args(self) -> Mapping[Optional['cirq.Qid'], TDenseSimulationState]:
         return self._args
 
     @property
     def split_untangled_states(self) -> bool:
         return self._split_untangled_states
 
-    def create_merged_state(self) -> TActOnArgs:
+    def create_merged_state(self) -> TDenseSimulationState:
         if not self.split_untangled_states:
             return self.args[None]
         final_args = self.args[None]
@@ -97,9 +97,9 @@ class ActOnArgsContainer(Generic[TActOnArgs], OperationTarget[TActOnArgs], abc.M
                 self._args[q1] = args0.rename(q0, q1, inplace=True)
             return True
 
-        # Go through the op's qubits and join any disparate ActOnArgs states
+        # Go through the op's qubits and join any disparate DenseSimulationState states
         # into a new combined state.
-        op_args_opt: Optional[TActOnArgs] = None
+        op_args_opt: Optional[TDenseSimulationState] = None
         for q in qubits:
             if op_args_opt is None:
                 op_args_opt = self.args[q]
@@ -129,7 +129,7 @@ class ActOnArgsContainer(Generic[TActOnArgs], OperationTarget[TActOnArgs], abc.M
                 self._args[q] = op_args
         return True
 
-    def copy(self, deep_copy_buffers: bool = True) -> 'cirq.ActOnArgsContainer[TActOnArgs]':
+    def copy(self, deep_copy_buffers: bool = True) -> 'cirq.SimulationProductState[TDenseSimulationState]':
         classical_data = self._classical_data.copy()
         copies = {}
         for act_on_args in set(self.args.values()):
@@ -137,7 +137,7 @@ class ActOnArgsContainer(Generic[TActOnArgs], OperationTarget[TActOnArgs], abc.M
         for copy in copies.values():
             copy._classical_data = classical_data
         args = {q: copies[a] for q, a in self.args.items()}
-        return ActOnArgsContainer(
+        return SimulationProductState(
             args, self.qubits, self.split_untangled_states, classical_data=classical_data
         )
 
@@ -161,7 +161,7 @@ class ActOnArgsContainer(Generic[TActOnArgs], OperationTarget[TActOnArgs], abc.M
         index_order = [qubit_map[q] for q in qubits]
         return stacked[:, index_order]
 
-    def __getitem__(self, item: Optional['cirq.Qid']) -> TActOnArgs:
+    def __getitem__(self, item: Optional['cirq.Qid']) -> TDenseSimulationState:
         return self.args[item]
 
     def __len__(self) -> int:

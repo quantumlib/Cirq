@@ -171,7 +171,7 @@ class ClassicallyControlledOperation(raw_types.Operation):
     def _json_dict_(self) -> Dict[str, Any]:
         return {'conditions': self._conditions, 'sub_operation': self._sub_operation}
 
-    def _act_on_(self, args: 'cirq.OperationTarget') -> bool:
+    def _act_on_(self, args: 'cirq.SimulationState') -> bool:
         if all(c.resolve(args.classical_data) for c in self._conditions):
             protocols.act_on(self._sub_operation, args)
         return True

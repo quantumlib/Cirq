@@ -749,7 +749,7 @@ def test_does_not_modify_initial_state():
 
 def test_simulator_step_state_mixin():
     qubits = cirq.LineQubit.range(2)
-    args = cirq.ActOnStateVectorArgs(
+    args = cirq.StateVectorSimulationState(
         available_buffer=np.array([0, 1, 0, 0]).reshape((2, 2)),
         prng=cirq.value.parse_random_state(0),
         qubits=qubits,

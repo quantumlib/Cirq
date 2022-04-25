@@ -37,11 +37,11 @@ if TYPE_CHECKING:
     import cirq
 
 
-TSelfTarget = TypeVar('TSelfTarget', bound='OperationTarget')
-TActOnArgs = TypeVar('TActOnArgs', bound='cirq.ActOnArgs')
+TSelfTarget = TypeVar('TSelfTarget', bound='SimulationState')
+TDenseSimulationState = TypeVar('TDenseSimulationState', bound='cirq.DenseSimulationState')
 
 
-class OperationTarget(Generic[TActOnArgs], metaclass=abc.ABCMeta):
+class SimulationState(Generic[TDenseSimulationState], metaclass=abc.ABCMeta):
     """An interface for quantum states as targets for operations."""
 
     def __init__(
@@ -77,7 +77,7 @@ class OperationTarget(Generic[TActOnArgs], metaclass=abc.ABCMeta):
         return self._classical_data
 
     @abc.abstractmethod
-    def create_merged_state(self) -> TActOnArgs:
+    def create_merged_state(self) -> TDenseSimulationState:
         """Creates a final merged state."""
 
     @abc.abstractmethod
@@ -124,7 +124,7 @@ class OperationTarget(Generic[TActOnArgs], metaclass=abc.ABCMeta):
     ) -> np.ndarray:
         """Samples the state value."""
 
-    def __getitem__(self, item: Optional['cirq.Qid']) -> TActOnArgs:
+    def __getitem__(self, item: Optional['cirq.Qid']) -> TDenseSimulationState:
         """Gets the item associated with the qubit."""
 
     def __len__(self) -> int:
