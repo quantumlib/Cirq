@@ -29,7 +29,7 @@ document(
     TParamVal, """A value that a parameter resolver may return for a parameter."""  # type: ignore
 )
 
-TParamValComplex = Union[linear_dict.Scalar, sympy.Basic]
+TParamValComplex = Union[linear_dict.Scalar, sympy.Expr]
 document(
     TParamValComplex,
     """A complex value that parameter resolvers may use for parameters.""",  # type: ignore

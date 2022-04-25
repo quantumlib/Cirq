@@ -159,7 +159,7 @@ class PauliString(raw_types.Operation, Generic[TKey]):
 
         self._qubit_pauli_map: Dict[TKey, 'cirq.Pauli'] = qubit_pauli_map or {}
         self._coefficient = (
-            coefficient if isinstance(coefficient, sympy.Basic) else complex(coefficient)
+            coefficient if isinstance(coefficient, sympy.Expr) else complex(coefficient)
         )
         if contents:
             m = self.mutable_copy().inplace_left_multiply_by(contents).frozen()
@@ -1082,7 +1082,7 @@ class MutablePauliString(Generic[TKey]):
         pauli_int_dict: Optional[Dict[TKey, int]] = None,
     ):
         self.coefficient = (
-            coefficient if isinstance(coefficient, sympy.Basic) else complex(coefficient)
+            coefficient if isinstance(coefficient, sympy.Expr) else complex(coefficient)
         )
         self.pauli_int_dict: Dict[TKey, int] = {} if pauli_int_dict is None else pauli_int_dict
         if contents:
