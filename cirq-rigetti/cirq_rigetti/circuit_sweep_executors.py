@@ -61,7 +61,6 @@ def _execute_and_read_result(
         memory_map = {}
 
     for region_name, values in memory_map.items():
-        print(region_name)
         if isinstance(region_name, str):
             executable.write_memory(region_name=region_name, value=values)
         else:
