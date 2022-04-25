@@ -333,7 +333,9 @@ def test_engine_str():
     )
     assert str(engine) == 'Engine(project_id=\'proj\')'
 
+
 _DT = datetime.datetime.now(tz=datetime.timezone.utc)
+
 
 def setup_run_circuit_with_result_(client, result):
     client().create_program.return_value = (

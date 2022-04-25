@@ -23,6 +23,7 @@ import numpy as np
 
 _DT = datetime.datetime(2022, 4, 1, 1, 23, 45, tzinfo=datetime.timezone.utc)
 
+
 def test_engine_result():
     res = cg.EngineResult(
         job_id='my_job_id',
@@ -52,9 +53,7 @@ def test_engine_result_from_result_dict():
     )
     assert res2 != res
     assert res != res2
-    assert res == cg.EngineResult.from_result(
-        res2, job_id='my_job_id', job_finished_time=_DT
-    )
+    assert res == cg.EngineResult.from_result(res2, job_id='my_job_id', job_finished_time=_DT)
 
 
 def test_engine_result_eq():
@@ -109,6 +108,4 @@ def test_engine_result_from_result():
     )
 
     res2 = MyResult()
-    assert res == cg.EngineResult.from_result(
-        res2, job_id='my_job_id', job_finished_time=_DT
-    )
+    assert res == cg.EngineResult.from_result(res2, job_id='my_job_id', job_finished_time=_DT)
