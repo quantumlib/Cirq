@@ -386,3 +386,6 @@ def strat_act_on_from_apply_decompose(
         operation = operation.with_qubits(*[qubit_map[q] for q in operation.qubits])
         protocols.act_on(operation, args)
     return True
+
+
+TActOnArgs = TypeVar('TActOnArgs', bound=ActOnArgs)

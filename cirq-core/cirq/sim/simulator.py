@@ -50,7 +50,6 @@ from typing import (
 import numpy as np
 
 from cirq import _compat, circuits, ops, protocols, study, value, work
-from cirq.sim.act_on_args import ActOnArgs
 from cirq.sim.operation_target import OperationTarget
 
 if TYPE_CHECKING:
@@ -60,7 +59,6 @@ if TYPE_CHECKING:
 TStepResult = TypeVar('TStepResult', bound='StepResult')
 TSimulationTrialResult = TypeVar('TSimulationTrialResult', bound='SimulationTrialResult')
 TSimulatorState = TypeVar('TSimulatorState', bound=Any)
-TActOnArgs = TypeVar('TActOnArgs', bound=ActOnArgs)
 
 
 class SimulatesSamples(work.Sampler, metaclass=abc.ABCMeta):
@@ -551,7 +549,7 @@ class SimulatesFinalState(
 
 
 class SimulatesIntermediateState(
-    Generic[TStepResult, TSimulationTrialResult, TActOnArgs],
+    Generic[TStepResult, TSimulationTrialResult, TSimulatorState],
     SimulatesFinalState[TSimulationTrialResult],
     metaclass=abc.ABCMeta,
 ):
@@ -692,8 +690,8 @@ class SimulatesIntermediateState(
     @abc.abstractmethod
     def _create_act_on_args(
         self, initial_state: Any, qubits: Sequence['cirq.Qid']
-    ) -> 'cirq.OperationTarget[TActOnArgs]':
-        """Creates the OperationTarget state for a simulator.
+    ) -> TSimulatorState:
+        """Creates the state for a simulator.
 
         Custom simulators should implement this method.
 
@@ -706,14 +704,14 @@ class SimulatesIntermediateState(
                 ordering of the computational basis states.
 
         Returns:
-            The `OperationTarget` for this simulator.
+            The `TSimulatorState` for this simulator.
         """
 
     @abc.abstractmethod
     def _core_iterator(
         self,
         circuit: 'cirq.AbstractCircuit',
-        sim_state: 'cirq.OperationTarget[TActOnArgs]',
+        sim_state: TSimulatorState,
         all_measurements_are_terminal: bool = False,
     ) -> Iterator[TStepResult]:
         """Iterator over StepResult from Moments of a Circuit.
@@ -722,7 +720,7 @@ class SimulatesIntermediateState(
 
         Args:
             circuit: The circuit to simulate.
-            sim_state: The initial args for the simulation. The form of
+            sim_state: The initial state for the simulation. The form of
                 this state depends on the simulation implementation. See
                 documentation of the implementing class for details.
             all_measurements_are_terminal: Whether all measurements in
@@ -737,7 +735,7 @@ class SimulatesIntermediateState(
         self,
         params: 'cirq.ParamResolver',
         measurements: Dict[str, np.ndarray],
-        final_simulator_state: 'cirq.OperationTarget[TActOnArgs]',
+        final_simulator_state: TSimulatorState,
     ) -> TSimulationTrialResult:
         """This method can be implemented to create a trial result.
 
@@ -760,11 +758,10 @@ class StepResult(Generic[TSimulatorState], metaclass=abc.ABCMeta):
             results, ordered by the qubits that the measurement operates on.
     """
 
-    def __init__(self, sim_state: 'cirq.OperationTarget') -> None:
+    def __init__(self, sim_state: TSimulatorState) -> None:
+        self._sim_state = sim_state
         self.measurements = sim_state.log_of_measurement_results
-        self._classical_data = sim_state.classical_data
 
-    @abc.abstractmethod
     def _simulator_state(self) -> TSimulatorState:
         """Returns the simulator state of the simulator after this step.
 
@@ -775,6 +772,7 @@ class StepResult(Generic[TSimulatorState], metaclass=abc.ABCMeta):
         simulation,see documentation for the implementing class for the form of
         details.
         """
+        return self._sim_state
 
     @abc.abstractmethod
     def sample(
