@@ -13,15 +13,19 @@
 # limitations under the License.
 
 """Runtime information dataclasses and execution of executables."""
+import abc
 import contextlib
 import dataclasses
+import queue
+import threading
 import datetime
 import time
 import uuid
-from typing import Any, Dict, Optional, List, TYPE_CHECKING
+from typing import Any, Dict, Optional, List, TYPE_CHECKING, Union
+
+import numpy as np
 
 import cirq
-import numpy as np
 from cirq import _compat
 from cirq.protocols import dataclass_json_dict
 from cirq_google.workflow.io import _FilesystemSaver
@@ -222,6 +226,127 @@ def _time_into_runtime_info(runtime_info: RuntimeInfo, name: str):
     runtime_info.timings_s[name] = time.monotonic() - start
 
 
+class _JobSubmitter(metaclass=abc.ABCMeta):
+    """A Queue-based submission system.
+
+    Descendants are callable and suitable for launching via a daemon Thread.
+
+    Descendants use two queues: an input and output queue. The former is filled with
+    _InputQueueT objects which contain all information required to call
+    `cg.engine.AbstractProcessor.run` and its friends. The `collect()` method is responsible
+    for getting these tasks from the input queue. It will mark them as done and then push
+    `_JobSubmissionResult` objects to the output queue for final processing and bookkeeping
+    by the main thread.
+    """
+
+    def __init__(self):
+        self._input_q = None
+        self._output_q = None
+        self._sampler = None
+
+    def set_up_plumbing(self, input_q: queue.Queue, output_q: queue.Queue, sampler: 'cirq.Sampler'):
+        self._input_q = input_q
+        self._output_q = output_q
+        self._sampler = sampler
+
+    def collect(self) -> None:
+        """Pull from queue etc."""
+
+    def __call__(self):
+        while True:
+            self.collect()
+
+
+@dataclasses.dataclass(frozen=True)
+class _FlushJobSubmission:
+    """A sentinel class that can be enqueued to signal that the consumer should flush its queue."""
+
+
+@dataclasses.dataclass(frozen=True)
+class _JobSubmissionRequest:
+    """An internal-use dataclass for submitting to _JobSubmitter input queues."""
+
+    circuit: cirq.FrozenCircuit
+    n_reps: int
+    runtime_info: RuntimeInfo
+
+
+@dataclasses.dataclass(frozen=True)
+class _JobSubmissionResult:
+    """An internal-use dataclass returned by _JobSubmitter output queues."""
+
+    result: cirq.Result
+    runtime_info: RuntimeInfo
+
+
+_InputQueueT = Union[_FlushJobSubmission, _JobSubmissionRequest]
+
+
+class _SerialJobSubmitter(_JobSubmitter):
+    def collect(self):
+        request: _InputQueueT = self._input_q.get()
+        if isinstance(request, _FlushJobSubmission):
+            # The serial job submitter ignores flush commands, as submission is serial.
+            self._input_q.task_done()
+            return
+
+        print('Processing', request.runtime_info.execution_index)
+        with _time_into_runtime_info(request.runtime_info, 'run'):
+            sampler_run_result = self._sampler.run(request.circuit, repetitions=request.n_reps)
+
+        self._output_q.put(
+            _JobSubmissionResult(result=sampler_run_result, runtime_info=request.runtime_info)
+        )
+        self._input_q.task_done()
+
+
+class _BatchingJobSubmitter(_JobSubmitter):
+    def __init__(
+        self,
+        batch_size: int = 100,
+    ):
+        super().__init__()
+        self.batch_size = batch_size
+
+    def collect(self):
+        requests: List[_JobSubmissionRequest] = []
+        flush = False
+        while len(requests) < self.batch_size:
+            request: _InputQueueT = self._input_q.get()
+            if isinstance(request, _FlushJobSubmission):
+                flush = True
+                break
+
+            requests.append(request)
+
+        if len(requests) == 0 and flush:
+            # If we have nothing but flush
+            self._input_q.task_done()
+            return
+
+        (n_reps,) = set(req.n_reps for req in requests)
+        print('Running', [req.runtime_info.execution_index for req in requests])
+
+        start_s = time.monotonic()
+        nested_results = self._sampler.run_batch(
+            [req.circuit for req in requests], repetitions=n_reps
+        )
+        cirq_results = [sweep_res[0] for sweep_res in nested_results]
+        end_s = time.monotonic()
+
+        rt_infos = [req.runtime_info for req in requests]
+        assert len(rt_infos) == len(cirq_results)
+        for cirq_res, rt_info in zip(cirq_results, rt_infos):
+            rt_info.timings_s['run'] = end_s - start_s
+            self._output_q.put(_JobSubmissionResult(result=cirq_res, runtime_info=rt_info))
+            self._input_q.task_done()
+
+        if flush:
+            # Make sure we mark the flush "task" as done.
+            # Please note that we do not forward the flush task to the `output_q`
+            self._input_q.task_done()
+
+
 def execute(
     rt_config: QuantumRuntimeConfiguration,
     executable_group: QuantumExecutableGroup,
@@ -277,6 +402,16 @@ def execute(
     logger = _PrintLogger(n_total=len(executable_group))
     logger.initialize()
 
+    input_q = queue.Queue()
+    output_q = queue.Queue()
+
+    # TODO: let outsiders specify this? as part of runtime_configuration?
+    submitter: _JobSubmitter = _SerialJobSubmitter()
+    submitter: _JobSubmitter = _BatchingJobSubmitter(batch_size=100)
+    # -------------------------
+
+    submitter.set_up_plumbing(input_q=input_q, output_q=output_q, sampler=sampler)
+    threading.Thread(target=submitter, daemon=True).start()
     rs = np.random.RandomState(rt_config.random_seed)
     exe: QuantumExecutable
     for i, exe in enumerate(executable_group):
@@ -297,23 +432,34 @@ def execute(
                     rs=rs,
                 )
                 runtime_info.qubit_placement = mapping
-
         if rt_config.target_gateset is not None:
             circuit = cirq.optimize_for_target_gateset(
                 circuit, gateset=rt_config.target_gateset
             ).freeze()
 
-        with _time_into_runtime_info(runtime_info, 'run'):
-            sampler_run_result = sampler.run(circuit, repetitions=exe.measurement.n_repetitions)
+        input_q.put(
+            _JobSubmissionRequest(
+                circuit=circuit, n_reps=exe.measurement.n_repetitions, runtime_info=runtime_info
+            )
+        )
 
+    input_q.put(_FlushJobSubmission())
+
+    for i, exe in enumerate(executable_group):
+        submission_result: _JobSubmissionResult = output_q.get()
         exe_result = ExecutableResult(
-            spec=exe.spec, runtime_info=runtime_info, raw_data=sampler_run_result
+            spec=exe.spec,
+            runtime_info=submission_result.runtime_info,
+            raw_data=submission_result.result,
         )
         # Do bookkeeping for finished ExecutableResult
         executable_results.append(exe_result)
         saver.consume_result(exe_result, shared_rt_info)
         logger.consume_result(exe_result, shared_rt_info)
+        output_q.task_done()
 
+    input_q.join()
+    output_q.join()
     shared_rt_info.run_end_time = datetime.datetime.now(tz=datetime.timezone.utc)
     saver.finalize(shared_rt_info=shared_rt_info)
     logger.finalize()

@@ -207,6 +207,20 @@ def test_execute(tmpdir, rt_config):
     assert manual_exegroup_result == exegroup_result
     assert helper_loaded_result == exegroup_result
 
-    exe_result = returned_exegroup_result.executable_results[0]
+
+def test_execute_2(tmpdir):
+    rt_config = cg.QuantumRuntimeConfiguration(
+        processor_record=cg.SimulatedProcessorWithLocalDeviceRecord('rainbow'),
+        run_id='my_run_id',
+        qubit_placer=cg.NaiveQubitPlacer(),
+    )
+    executable_group = cg.QuantumExecutableGroup(_get_quantum_executables())
+    cg.execute(rt_config=rt_config, executable_group=executable_group, base_data_dir=tmpdir)
+
+    results = cg.ExecutableGroupResultFilesystemRecord.from_json(
+        run_id='my_run_id', base_data_dir=tmpdir
+    ).load(base_data_dir=tmpdir)
+
+    exe_result = results.executable_results[0]
     assert 'placement' in exe_result.runtime_info.timings_s
     assert 'run' in exe_result.runtime_info.timings_s
