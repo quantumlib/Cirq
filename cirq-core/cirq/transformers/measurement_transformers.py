@@ -203,7 +203,7 @@ def drop_terminal_measurements(
             the provided context has`deep=False`.
     """
 
-    if not context.deep:
+    if context is None or not context.deep:
         raise ValueError(
             'Context has `deep=False`, but `deep=True` is required to drop terminal measurements.'
         )
