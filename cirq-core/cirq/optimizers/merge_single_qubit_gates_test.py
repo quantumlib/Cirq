@@ -129,7 +129,7 @@ def test_ignores_2qubit_target():
 
 
 def test_ignore_unsupported_gate():
-    class UnsupportedDummy(cirq.SingleQubitGate):
+    class UnsupportedDummy(cirq.testing.SingleQubitGate):
         pass
 
     q0 = cirq.LineQubit(0)

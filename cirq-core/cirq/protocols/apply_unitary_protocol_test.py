@@ -325,14 +325,14 @@ def test_apply_unitaries():
 
 
 def test_apply_unitaries_mixed_qid_shapes():
-    class PlusOneMod3Gate(cirq.SingleQubitGate):
+    class PlusOneMod3Gate(cirq.testing.SingleQubitGate):
         def _qid_shape_(self):
             return (3,)
 
         def _unitary_(self):
             return np.array([[0, 0, 1], [1, 0, 0], [0, 1, 0]])  # yapf: disable
 
-    class PlusOneMod4Gate(cirq.SingleQubitGate):
+    class PlusOneMod4Gate(cirq.testing.SingleQubitGate):
         def _qid_shape_(self):
             return (4,)
 

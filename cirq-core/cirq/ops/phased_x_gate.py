@@ -21,13 +21,27 @@ import sympy
 import cirq
 from cirq import value, protocols
 from cirq._compat import proper_repr
-from cirq.ops import gate_features, common_gates
+from cirq.ops import common_gates, raw_types
 from cirq.type_workarounds import NotImplementedType
 
 
 @value.value_equality(manual_cls=True, approximate=True)
-class PhasedXPowGate(gate_features.SingleQubitGate):
-    """A gate equivalent to the circuit ───Z^-p───X^t───Z^p───."""
+class PhasedXPowGate(raw_types.Gate):
+    r"""A gate equivalent to $Z^{p} X^t Z^{-p}$.
+
+    The unitary matrix of `cirq.PhasedXPowGate(exponent=t, phase_exponent=p)` is:
+    $$
+        \begin{bmatrix}
+            e^{i \pi t /2} \cos(\pi t/2) & -i e^{i \pi (t /2 - p)} \sin(\pi t /2) \\
+            -i e^{i \pi (t /2 + p)} \sin(\pi t /2) & e^{i \pi t /2} \cos(\pi t/2)
+        \end{bmatrix}
+    $$
+
+    This gate is like an `cirq.XPowGate`, but which has been "phased",
+    by applying a `cirq.ZPowGate` before and after this gate. In the language
+    of the Bloch sphere, $p$ determines the axis in the XY plane about which
+    a rotation of amount determined by $t$ occurs.
+    """
 
     def __init__(
         self,
@@ -123,6 +137,9 @@ class PhasedXPowGate(gate_features.SingleQubitGate):
         x = protocols.unitary(cirq.X**self._exponent)
         p = np.exp(1j * np.pi * self._global_shift * self._exponent)
         return np.dot(np.dot(z, x), np.conj(z)) * p
+
+    def _num_qubits_(self) -> int:
+        return 1
 
     def _pauli_expansion_(self) -> value.LinearDict[str]:
         if self._is_parameterized_():

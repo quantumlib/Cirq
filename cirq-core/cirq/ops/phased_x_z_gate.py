@@ -6,7 +6,7 @@ import numpy as np
 import sympy
 
 from cirq import value, ops, protocols, linalg
-from cirq.ops import gate_features
+from cirq.ops import raw_types
 from cirq._compat import proper_repr
 
 if TYPE_CHECKING:
@@ -14,17 +14,24 @@ if TYPE_CHECKING:
 
 
 @value.value_equality(approximate=True)
-class PhasedXZGate(gate_features.SingleQubitGate):
-    """A single qubit operation expressed as $Z^z Z^a X^x Z^{-a}$.
+class PhasedXZGate(raw_types.Gate):
+    r"""A single qubit gate equivalent to the circuit $Z^z Z^{a} X^x Z^{-a}$.
 
-    The above expression is a matrix multiplication with time going to the left.
-    In quantum circuit notation, this operation decomposes into this circuit:
+    The unitary matrix of `cirq.PhasedXZGate(x_exponent=x, z_exponent=z, axis_phase_exponent=a)` is:
+    $$
+        \begin{bmatrix}
+            e^{i \pi x / 2} \cos(\pi x /2) & -i e^{i \pi (x/2 - a)} \sin(\pi x / 2) \\
+             -i e^{i \pi (x/2 + z + a)} \sin(\pi x / 2) &  e^{i \pi (x / 2 + z)} \cos(\pi x /2)
+        \end{bmatrix}
+    $$
 
-    ───Z^(-a)──X^x──Z^a────Z^z───
+    This gate can be thought of as a `cirq.PhasedXPowGate` followed by a `cirq.ZPowGate`.
 
-    The axis phase exponent (a) decides which axis in the XY plane to rotate
+    The axis phase exponent ($a$) decides which axis in the XY plane to rotate
     around. The amount of rotation around that axis is decided by the x
-    exponent (x). Then the z exponent (z) decides how much to phase the qubit.
+    exponent ($x$). Then the z exponent ($z$) decides how much to finally phase the qubit.
+
+    Every single qubit gate can be written as a single `cirq.PhasedXZGate`.
     """
 
     def __init__(
@@ -137,6 +144,9 @@ class PhasedXZGate(gate_features.SingleQubitGate):
             phi=self._z_exponent + self._axis_phase_exponent - 0.5,
         )
         return protocols.qasm(qasm_gate, args=args, qubits=qubits)
+
+    def _num_qubits_(self) -> int:
+        return 1
 
     def _has_unitary_(self) -> bool:
         return not self._is_parameterized_()

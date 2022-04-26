@@ -67,28 +67,28 @@ def _pi(rads):
 
 
 @value.value_equality
-class XPowGate(eigen_gate.EigenGate, gate_features.SingleQubitGate):
-    """A gate that rotates around the X axis of the Bloch sphere.
+class XPowGate(eigen_gate.EigenGate):
+    r"""A gate that rotates around the X axis of the Bloch sphere.
 
-    The unitary matrix of ``XPowGate(exponent=t)`` is:
-
-        [[g·c, -i·g·s],
-         [-i·g·s, g·c]]
-
-    where:
-
-        c = cos(π·t/2)
-        s = sin(π·t/2)
-        g = exp(i·π·t/2).
+    The unitary matrix of `cirq.XPowGate(exponent=t)` is:
+    $$
+    \begin{bmatrix}
+      e^{i \pi t /2} \cos(\pi t) & -i e^{i \pi t /2} \sin(\pi t) \\
+      -i e^{i \pi t /2} \sin(\pi t) & e^{i \pi t /2} \cos(\pi t)
+    \end{bmatrix}
+    $$
 
     Note in particular that this gate has a global phase factor of
-    e^{i·π·t/2} vs the traditionally defined rotation matrices
-    about the Pauli X axis. See `cirq.rx` for rotations without the global
+    $e^{i \pi t / 2}$ vs the traditionally defined rotation matrices
+    about the Pauli X axis. See `cirq.Rx` for rotations without the global
     phase. The global phase factor can be adjusted by using the `global_shift`
     parameter when initializing.
 
-    `cirq.X`, the Pauli X gate, is an instance of this gate at exponent=1.
+    `cirq.X`, the Pauli X gate, is an instance of this gate at `exponent=1`.
     """
+
+    def _num_qubits_(self) -> int:
+        return 1
 
     def _apply_unitary_(self, args: 'protocols.ApplyUnitaryArgs') -> Optional[np.ndarray]:
         if self._exponent != 1:
@@ -242,14 +242,18 @@ class XPowGate(eigen_gate.EigenGate, gate_features.SingleQubitGate):
 
 
 class Rx(XPowGate):
-    """A gate, with matrix e^{-i X rads/2}, that rotates around the X axis of the Bloch sphere.
+    r"""A gate with matrix $e^{-i X t/2}$ that rotates around the X axis of the Bloch sphere by $t$.
 
-    The unitary matrix of ``Rx(rads=t)`` is:
+    The unitary matrix of `cirq.Rx(rads=t)` is:
+    $$
+    e^{-i X t /2} =
+        \begin{bmatrix}
+            \cos(t/2) & -i \sin(t/2) \\
+            -i \sin(t/2) & \cos(t/2)
+        \end{bmatrix}
+    $$
 
-    exp(-i X t/2) =  [ cos(t/2)  -isin(t/2)]
-                     [-isin(t/2)  cos(t/2) ]
-
-    The gate corresponds to the traditionally defined rotation matrices about the Pauli X axis.
+    This gate corresponds to the traditionally defined rotation matrices about the Pauli X axis.
     """
 
     def __init__(self, *, rads: value.TParamVal):
@@ -282,28 +286,28 @@ class Rx(XPowGate):
 
 
 @value.value_equality
-class YPowGate(eigen_gate.EigenGate, gate_features.SingleQubitGate):
-    """A gate that rotates around the Y axis of the Bloch sphere.
+class YPowGate(eigen_gate.EigenGate):
+    r"""A gate that rotates around the Y axis of the Bloch sphere.
 
-    The unitary matrix of ``YPowGate(exponent=t)`` is:
-
-        [[g·c, -g·s],
-         [g·s, g·c]]
-
-    where:
-
-        c = cos(π·t/2)
-        s = sin(π·t/2)
-        g = exp(i·π·t/2).
+    The unitary matrix of `cirq.YPowGate(exponent=t)` is:
+    $$
+        \begin{bmatrix}
+            e^{i \pi t /2} \cos(\pi t /2) & - e^{i \pi t /2} \sin(\pi t /2) \\
+            e^{i \pi t /2} \sin(\pi t /2) & e^{i \pi t /2} \cos(\pi t /2)
+        \end{bmatrix}
+    $$
 
     Note in particular that this gate has a global phase factor of
-    e^{i·π·t/2} vs the traditionally defined rotation matrices
+    $e^{i \pi t / 2}$ vs the traditionally defined rotation matrices
     about the Pauli Y axis. See `cirq.Ry` for rotations without the global
     phase. The global phase factor can be adjusted by using the `global_shift`
     parameter when initializing.
 
-    `cirq.Y`, the Pauli Y gate, is an instance of this gate at exponent=1.
+    `cirq.Y`, the Pauli Y gate, is an instance of this gate at `exponent=1`.
     """
+
+    def _num_qubits_(self) -> int:
+        return 1
 
     def _apply_unitary_(self, args: 'protocols.ApplyUnitaryArgs') -> Optional[np.ndarray]:
         if self._exponent != 1:
@@ -410,14 +414,18 @@ class YPowGate(eigen_gate.EigenGate, gate_features.SingleQubitGate):
 
 
 class Ry(YPowGate):
-    """A gate, with matrix e^{-i Y rads/2}, that rotates around the Y axis of the Bloch sphere.
+    r"""A gate with matrix $e^{-i Y t/2}$ that rotates around the Y axis of the Bloch sphere by $t$.
 
-    The unitary matrix of ``Ry(rads=t)`` is:
+    The unitary matrix of `cirq.Ry(rads=t)` is:
+    $$
+    e^{-i Y t / 2} =
+        \begin{bmatrix}
+            \cos(t/2) & -\sin(t/2) \\
+            \sin(t/2) & \cos(t/2)
+        \end{bmatrix}
+    $$
 
-    exp(-i Y t/2) =  [cos(t/2)  -sin(t/2)]
-                     [sin(t/2)  cos(t/2) ]
-
-    The gate corresponds to the traditionally defined rotation matrices about the Pauli Y axis.
+    This gate corresponds to the traditionally defined rotation matrices about the Pauli Y axis.
     """
 
     def __init__(self, *, rads: value.TParamVal):
@@ -450,26 +458,28 @@ class Ry(YPowGate):
 
 
 @value.value_equality
-class ZPowGate(eigen_gate.EigenGate, gate_features.SingleQubitGate):
-    """A gate that rotates around the Z axis of the Bloch sphere.
+class ZPowGate(eigen_gate.EigenGate):
+    r"""A gate that rotates around the Z axis of the Bloch sphere.
 
-    The unitary matrix of ``ZPowGate(exponent=t)`` is:
-
-        [[1, 0],
-         [0, g]]
-
-    where:
-
-        g = exp(i·π·t).
+    The unitary matrix of `cirq.ZPowGate(exponent=t)` is:
+    $$
+        \begin{bmatrix}
+            1 & 0 \\
+            0 & e^{i \pi t}
+        \end{bmatrix}
+    $$
 
     Note in particular that this gate has a global phase factor of
-    e^{i·π·t/2} vs the traditionally defined rotation matrices
+    $e^{i\pi t/2}$ vs the traditionally defined rotation matrices
     about the Pauli Z axis. See `cirq.Rz` for rotations without the global
     phase. The global phase factor can be adjusted by using the `global_shift`
     parameter when initializing.
 
-    `cirq.Z`, the Pauli Z gate, is an instance of this gate at exponent=1.
+    `cirq.Z`, the Pauli Z gate, is an instance of this gate at `exponent=1`.
     """
+
+    def _num_qubits_(self) -> int:
+        return 1
 
     def _apply_unitary_(self, args: 'protocols.ApplyUnitaryArgs') -> Optional[np.ndarray]:
         if protocols.is_parameterized(self):
@@ -649,14 +659,18 @@ class ZPowGate(eigen_gate.EigenGate, gate_features.SingleQubitGate):
 
 
 class Rz(ZPowGate):
-    """A gate, with matrix e^{-i Z rads/2}, that rotates around the Z axis of the Bloch sphere.
+    r"""A gate with matrix $e^{-i Z t/2}$ that rotates around the Z axis of the Bloch sphere by $t$.
 
-    The unitary matrix of ``Rz(rads=t)`` is:
+    The unitary matrix of `cirq.Rz(rads=t)` is:
+    $$
+    e^{-i Z t /2} =
+        \begin{bmatrix}
+            e^{-it/2} & 0 \\
+            0 & e^{it/2}
+        \end{bmatrix}
+    $$
 
-    exp(-i Z t/2) =  [ e^(-it/2)     0   ]
-                     [    0      e^(it/2)]
-
-    The gate corresponds to the traditionally defined rotation matrices about the Pauli Z axis.
+    This gate corresponds to the traditionally defined rotation matrices about the Pauli Z axis.
     """
 
     def __init__(self, *, rads: value.TParamVal):
@@ -688,21 +702,25 @@ class Rz(ZPowGate):
         return cls(rads=rads)
 
 
-class HPowGate(eigen_gate.EigenGate, gate_features.SingleQubitGate):
-    """A Gate that performs a rotation around the X+Z axis of the Bloch sphere.
+class HPowGate(eigen_gate.EigenGate):
+    r"""A Gate that performs a rotation around the X+Z axis of the Bloch sphere.
 
-    The unitary matrix of ``HPowGate(exponent=t)`` is:
-
-        [[g·(c-i·s/sqrt(2)), -i·g·s/sqrt(2)],
-        [-i·g·s/sqrt(2)], g·(c+i·s/sqrt(2))]]
-
-    where
-
-        c = cos(π·t/2)
-        s = sin(π·t/2)
-        g = exp(i·π·t/2).
-
-    Note in particular that for `t=1`, this gives the Hadamard matrix.
+    The unitary matrix of `cirq.HPowGate(exponent=t)` is:
+    $$
+        \begin{bmatrix}
+            e^{i\pi t/2} \left(\cos(\pi t/2) - i \frac{\sin (\pi t /2)}{\sqrt{2}}\right)
+                && -i e^{i\pi t/2} \frac{\sin(\pi t /2)}{\sqrt{2}} \\
+            -i e^{i\pi t/2} \frac{\sin(\pi t /2)}{\sqrt{2}}
+                && e^{i\pi t/2} \left(\cos(\pi t/2) + i \frac{\sin (\pi t /2)}{\sqrt{2}}\right)
+        \end{bmatrix}
+    $$
+    Note in particular that for $t=1$, this gives the Hadamard matrix
+    $$
+        \begin{bmatrix}
+            \frac{1}{\sqrt{2}} & \frac{1}{\sqrt{2}} \\
+            \frac{1}{\sqrt{2}} & -\frac{1}{\sqrt{2}}
+        \end{bmatrix}
+    $$
 
     `cirq.H`, the Hadamard gate, is an instance of this gate at `exponent=1`.
     """
@@ -715,6 +733,9 @@ class HPowGate(eigen_gate.EigenGate, gate_features.SingleQubitGate):
         component1 = np.array([[3 - 2 * s, 1 - s], [1 - s, 1]]) / (4 - 2 * s)
 
         return [(0, component0), (1, component1)]
+
+    def _num_qubits_(self) -> int:
+        return 1
 
     def _trace_distance_bound_(self) -> Optional[float]:
         if self._is_parameterized_():
@@ -989,7 +1010,7 @@ class CXPowGate(eigen_gate.EigenGate):
     or named arguments CNOT(control=q1, target=q2).
     (Mixing the two is not permitted.)
 
-    The unitary matrix of `CXPowGate(exponent=t)` is:
+    The unitary matrix of `cirq.CXPowGate(exponent=t)` is:
 
         [[1, 0, 0, 0],
          [0, 1, 0, 0],
@@ -1185,46 +1206,51 @@ def cphase(rads: value.TParamVal) -> CZPowGate:
 H = HPowGate()
 document(
     H,
-    """The Hadamard gate.
+    r"""The Hadamard gate.
 
     The `exponent=1` instance of `cirq.HPowGate`.
 
-    Matrix:
-    ```
-        [[s, s],
-         [s, -s]]
-    ```
-        where s = sqrt(0.5).
+    The unitary matrix of `cirq.H` is:
+    $$
+    \begin{bmatrix}
+        \frac{1}{\sqrt{2}} & \frac{1}{\sqrt{2}} \\
+        \frac{1}{\sqrt{2}} & -\frac{1}{\sqrt{2}}
+    \end{bmatrix}
+    $$
     """,
 )
 
 S = ZPowGate(exponent=0.5)
 document(
     S,
-    """The Clifford S gate.
+    r"""The Clifford S gate.
 
     The `exponent=0.5` instance of `cirq.ZPowGate`.
 
-    Matrix:
-    ```
-        [[1, 0],
-         [0, i]]
-    ```
+    The unitary matrix of `cirq.S` is:
+    $$
+    \begin{bmatrix}
+        1 & 0 \\
+        0 & i
+    \end{bmatrix}
+    $$
     """,
 )
 
 T = ZPowGate(exponent=0.25)
 document(
     T,
-    """The non-Clifford T gate.
+    r"""The non-Clifford T gate.
 
     The `exponent=0.25` instance of `cirq.ZPowGate`.
 
-    Matrix:
-    ```
-        [[1, 0]
-         [0, exp(i pi / 4)]]
-    ```
+    The unitary matrix of `cirq.T` is
+    $$
+    \begin{bmatrix}
+        1 & 0 \\
+        0 & e^{i \pi /4}
+    \end{bmatrix}
+    $$
     """,
 )
 

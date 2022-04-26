@@ -25,22 +25,6 @@ from cirq.devices import noise_utils
 from cirq.transformers.heuristic_decompositions import gate_tabulation_math_utils
 
 
-SINGLE_QUBIT_GATES: Set[Type['cirq.Gate']] = {
-    cirq.ZPowGate,
-    cirq.PhasedXZGate,
-    cirq.MeasurementGate,
-    cirq.ResetChannel,
-}
-SYMMETRIC_TWO_QUBIT_GATES: Set[Type['cirq.Gate']] = {
-    cirq_google.SycamoreGate,
-    cirq.FSimGate,
-    cirq.PhasedFSimGate,
-    cirq.ISwapPowGate,
-    cirq.CZPowGate,
-}
-ASYMMETRIC_TWO_QUBIT_GATES: Set[Type['cirq.Gate']] = set()
-
-
 T = TypeVar('T')
 V = TypeVar('V')
 
@@ -93,6 +77,26 @@ class GoogleNoiseProperties(devices.SuperconductingQubitsNoiseProperties):
 
         # validate two qubit gate errors.
         self._validate_symmetric_errors('fsim_errors')
+
+    def __eq__(self, other):
+        if not isinstance(other, GoogleNoiseProperties):
+            return NotImplemented
+        if set(self.readout_errors) != set(other.readout_errors):
+            return False
+        return all(
+            [
+                self.gate_times_ns == other.gate_times_ns,
+                self.t1_ns == other.t1_ns,
+                self.tphi_ns == other.tphi_ns,
+                all(
+                    np.allclose(self.readout_errors[q], other.readout_errors[q])
+                    for q in self.readout_errors
+                ),
+                self.gate_pauli_errors == other.gate_pauli_errors,
+                self.validate == other.validate,
+                self.fsim_errors == other.fsim_errors,
+            ]
+        )
 
     def with_params(
         self,
@@ -181,15 +185,21 @@ class GoogleNoiseProperties(devices.SuperconductingQubitsNoiseProperties):
 
     @classmethod
     def single_qubit_gates(cls) -> Set[type]:
-        return SINGLE_QUBIT_GATES
+        return {cirq.ZPowGate, cirq.PhasedXZGate, cirq.MeasurementGate, cirq.ResetChannel}
 
     @classmethod
     def symmetric_two_qubit_gates(cls) -> Set[type]:
-        return SYMMETRIC_TWO_QUBIT_GATES
+        return {
+            cirq_google.SycamoreGate,
+            cirq.FSimGate,
+            cirq.PhasedFSimGate,
+            cirq.ISwapPowGate,
+            cirq.CZPowGate,
+        }
 
     @classmethod
     def asymmetric_two_qubit_gates(cls) -> Set[type]:
-        return ASYMMETRIC_TWO_QUBIT_GATES
+        return set()
 
     @_compat.cached_property
     def _depolarizing_error(self) -> Dict[noise_utils.OpIdentifier, float]:
@@ -233,6 +243,62 @@ class GoogleNoiseProperties(devices.SuperconductingQubitsNoiseProperties):
             noise_models.insert(1, devices.InsertionNoiseModel(ops_added=fsim_ops))
 
         return noise_models
+
+    def __repr__(self):
+        gate_times_repr = ', '.join(
+            f'{key.__module__}.{key.__qualname__}: {val}' for key, val in self.gate_times_ns.items()
+        )
+        args = [
+            f'gate_times_ns={{{gate_times_repr}}}',
+            f't1_ns={self.t1_ns!r}',
+            f'tphi_ns={self.tphi_ns!r}',
+            f'readout_errors={_compat.proper_repr(self.readout_errors)}',
+            f'gate_pauli_errors={self.gate_pauli_errors!r}',
+            f'fsim_errors={self.fsim_errors!r}',
+            f'validate={self.validate!r}',
+        ]
+        arglines = ",\n".join(args)
+        return f'cirq_google.GoogleNoiseProperties({arglines})'
+
+    def _json_dict_(self):
+        storage_gate_times = {
+            cirq.json_cirq_type(key): val for key, val in self.gate_times_ns.items()
+        }
+        return {
+            # JSON requires mappings to have keys of basic types.
+            # Pairs must be sorted to ensure consistent serialization.
+            'gate_times_ns': tuple(storage_gate_times.items()),
+            't1_ns': tuple(self.t1_ns.items()),
+            'tphi_ns': tuple(self.tphi_ns.items()),
+            'readout_errors': tuple((k, v.tolist()) for k, v in self.readout_errors.items()),
+            'gate_pauli_errors': tuple(self.gate_pauli_errors.items()),
+            'fsim_errors': tuple(self.fsim_errors.items()),
+            'validate': self.validate,
+        }
+
+    @classmethod
+    def _from_json_dict_(
+        cls,
+        gate_times_ns,
+        t1_ns,
+        tphi_ns,
+        readout_errors,
+        gate_pauli_errors,
+        fsim_errors,
+        validate,
+        **kwargs,
+    ):
+        gate_type_times = {cirq.cirq_type_from_json(gate): val for gate, val in gate_times_ns}
+        # Known false positive: https://github.com/PyCQA/pylint/issues/5857
+        return GoogleNoiseProperties(  # pylint: disable=unexpected-keyword-arg
+            gate_times_ns=gate_type_times,
+            t1_ns=dict(t1_ns),
+            tphi_ns=dict(tphi_ns),
+            readout_errors={k: np.array(v) for k, v in readout_errors},
+            gate_pauli_errors=dict(gate_pauli_errors),
+            fsim_errors=dict(fsim_errors),
+            validate=validate,
+        )
 
 
 class NoiseModelFromGoogleNoiseProperties(devices.NoiseModelFromNoiseProperties):
