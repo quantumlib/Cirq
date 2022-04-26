@@ -1102,12 +1102,13 @@ class AbstractCircuit(abc.ABC):
             ValueError: If the program doesn't have a well defined final state
                 because it has non-unitary gates.
         """
-        if ignore_terminal_measurements is None and self.has_measurements():
-            _compat._warn_or_error(
-                '`ignore_terminal_measurements` will default to False in v0.16. '
-                'To drop terminal measurements, please explicitly include '
-                '`ignore_terminal_measurements=True` when calling this method.'
-            )
+        if ignore_terminal_measurements is None:
+            if self.has_measurements():
+                _compat._warn_or_error(
+                    '`ignore_terminal_measurements` will default to False in v0.16. '
+                    'To drop terminal measurements, please explicitly include '
+                    '`ignore_terminal_measurements=True` when calling this method.'
+                )
             ignore_terminal_measurements = True
 
         if dtype is None:
