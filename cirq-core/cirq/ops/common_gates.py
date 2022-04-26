@@ -286,13 +286,8 @@ class Rx(XPowGate):
 
 
 @value.value_equality
-<<<<<<< HEAD
-class YPowGate(eigen_gate.EigenGate, gate_features.SingleQubitGate):
-    r"""A gate that rotates around the Y axis of the Bloch sphere.
-=======
 class YPowGate(eigen_gate.EigenGate):
-    """A gate that rotates around the Y axis of the Bloch sphere.
->>>>>>> master
+    r"""A gate that rotates around the Y axis of the Bloch sphere.
 
     The unitary matrix of `cirq.YPowGate(exponent=t)` is:
     $$
@@ -463,13 +458,8 @@ class Ry(YPowGate):
 
 
 @value.value_equality
-<<<<<<< HEAD
-class ZPowGate(eigen_gate.EigenGate, gate_features.SingleQubitGate):
-    r"""A gate that rotates around the Z axis of the Bloch sphere.
-=======
 class ZPowGate(eigen_gate.EigenGate):
-    """A gate that rotates around the Z axis of the Bloch sphere.
->>>>>>> master
+    r"""A gate that rotates around the Z axis of the Bloch sphere.
 
     The unitary matrix of `cirq.ZPowGate(exponent=t)` is:
     $$
@@ -712,13 +702,8 @@ class Rz(ZPowGate):
         return cls(rads=rads)
 
 
-<<<<<<< HEAD
-class HPowGate(eigen_gate.EigenGate, gate_features.SingleQubitGate):
-    r"""A Gate that performs a rotation around the X+Z axis of the Bloch sphere.
-=======
 class HPowGate(eigen_gate.EigenGate):
-    """A Gate that performs a rotation around the X+Z axis of the Bloch sphere.
->>>>>>> master
+    r"""A Gate that performs a rotation around the X+Z axis of the Bloch sphere.
 
     The unitary matrix of `cirq.HPowGate(exponent=t)` is:
     $$
