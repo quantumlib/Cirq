@@ -13,7 +13,7 @@
 # limitations under the License.
 """Resolves symbolic expressions to unique symbols."""
 
-from typing import overload, Any, Callable, List, Optional, Tuple, Union, TYPE_CHECKING
+from typing import Any, Callable, List, Optional, Tuple, Union, TYPE_CHECKING
 import numbers
 
 import sympy
@@ -224,7 +224,8 @@ class _ParamFlattener(resolver.ParamResolver):
             params = param_dict if param_dict else {}
         # TODO: Support complex values for typing below.
         symbol_params: resolver.ParamDictType = {
-            _ensure_not_str(param): _ensure_not_str(val) for param, val in params.items()  # type: ignore[misc]
+            _ensure_not_str(param): _ensure_not_str(val)  # type: ignore[misc]
+            for param, val in params.items()  # type: ignore[misc]
         }
         super().__init__(symbol_params)
         if get_param_name is None:

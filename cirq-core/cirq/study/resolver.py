@@ -200,7 +200,9 @@ class ParamResolver:
             k: k for k in resolver
         }
         new_dict.update({k: self.value_of(k, recursive) for k in self})  # type: ignore[misc]
-        new_dict.update({k: resolver.value_of(v, recursive) for k, v in new_dict.items()})  # type: ignore[misc]
+        new_dict.update(
+            {k: resolver.value_of(v, recursive) for k, v in new_dict.items()}  # type: ignore[misc]
+        )  # type: ignore[misc]
         if recursive and self.param_dict:
             new_resolver = ParamResolver(cast(ParamDictType, new_dict))
             # Resolve down to single-step mappings.
