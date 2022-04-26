@@ -20,15 +20,15 @@ from cirq.transformers import transformer_api, drop_empty_moments, drop_negligib
 from cirq.transformers.target_gatesets import compilation_target_gateset
 
 
-@transformer_api.transformer
+@cirq.transformer
 def merge_to_phased_x_and_z(
     c: cirq.Circuit, *, context: Optional['cirq.TransformerContext'] = None
-):
+) -> cirq.Circuit:
     return cirq.merge_single_qubit_gates_to_phased_x_and_z(c)
 
 
-@transformer_api.transformer
-def decompose_phased_x_pow(c: cirq.Circuit, *, context: Optional['cirq.TransformerContext'] = None):
+@cirq.transformer
+def decompose_phased_x_pow(c: cirq.Circuit, *, context: Optional['cirq.TransformerContext'] = None) -> cirq.Circuit:
     return cirq.map_operations_and_unroll(
         c, lambda op, _: cirq.decompose_once(op) if type(op.gate) == cirq.PhasedXPowGate else op
     )
