@@ -26,7 +26,7 @@ if TYPE_CHECKING:
     import cirq
 
 
-ParamDictType = Dict['cirq.TParamKey', 'cirq.TParamVal']
+ParamDictType = Dict['cirq.TParamKey', 'cirq.TParamValComplex']
 document(ParamDictType, """Dictionary from symbols to values.""")  # type: ignore
 
 ParamResolverOrSimilarType = Union['cirq.ParamResolver', ParamDictType, None]
@@ -71,11 +71,11 @@ class ParamResolver:
         self._deep_eval_map: ParamDictType = {}
 
     def value_of(
-        self, value: Union['cirq.TParamKey', float], recursive: bool = True
-    ) -> 'cirq.TParamVal':
+        self, value: Union['cirq.TParamKey', 'cirq.TParamValComplex'], recursive: bool = True
+    ) -> 'cirq.TParamValComplex':
         """Attempt to resolve a parameter to its assigned value.
 
-        Floats are returned without modification.  Strings are resolved via
+        Scalars are returned without modification.  Strings are resolved via
         the parameter dictionary with exact match only.  Otherwise, strings
         are considered to be sympy.Symbols with the name as the input string.
 
@@ -207,7 +207,9 @@ class ParamResolver:
     def __bool__(self) -> bool:
         return bool(self.param_dict)
 
-    def __getitem__(self, key: Union[sympy.Basic, float, str]) -> 'cirq.TParamVal':
+    def __getitem__(
+        self, key: Union['cirq.TParamKey', 'cirq.TParamValComplex']
+    ) -> 'cirq.TParamValComplex':
         return self.value_of(key)
 
     def __hash__(self) -> int:

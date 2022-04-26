@@ -68,13 +68,13 @@ def noise_properties_from_calibration(
     """Translates between `cirq_google.Calibration` and NoiseProperties.
 
     The NoiseProperties object can then be used as input to the
-    `cirq.devices.noise_propertiesNoiseModelFromNoiseProperties` class to
-    create a `cirq.NoiseModel` that can be used with a simulator.
+    `cirq_google.NoiseModelFromGoogleNoiseProperties` class to create a
+    `cirq.NoiseModel` that can be used with a simulator.
 
-    To manually override noise properties, call `override` on the output:
+    To manually override noise properties, call `with_params` on the output:
 
-        # Set all gate durations to 37ns.
-        >>> noise_properties_from_calibration(cal).override(gate_times_ns=37)
+        >>> noise_props = noise_properties_from_calibration(cal).with_params(gate_times_ns=37)
+        # noise_props with all gate durations set to 37ns.
 
     See `cirq_google.GoogleNoiseProperties` for details.
 
@@ -96,6 +96,7 @@ def noise_properties_from_calibration(
         ops.FSimGate: 32.0,
         ops.ISwapPowGate: 32.0,
         ops.CZPowGate: 32.0,
+        cg_ops.SycamoreGate: 12.0,
         # ops.WaitGate is a special case.
     }
 
@@ -123,7 +124,7 @@ def noise_properties_from_calibration(
     gate_pauli_errors = {
         noise_utils.OpIdentifier(gate, q): pauli_err
         for q, pauli_err in rb_pauli_errors.items()
-        for gate in google_noise_properties.SINGLE_QUBIT_GATES
+        for gate in google_noise_properties.GoogleNoiseProperties.single_qubit_gates()
     }
 
     # 3b. Extract Pauli error for two-qubit gates.

@@ -17,7 +17,7 @@ from typing import Any, Dict, TYPE_CHECKING, Tuple, Union, Sequence, Optional, L
 import numpy as np
 
 from cirq import ops, protocols, study, value
-from cirq._compat import deprecated_parameter, proper_repr
+from cirq._compat import deprecated_class, deprecated_parameter, proper_repr
 from cirq.sim import simulator, act_on_density_matrix_args, simulator_base
 
 if TYPE_CHECKING:
@@ -186,10 +186,10 @@ class DensityMatrixSimulator(
         self,
         params: 'cirq.ParamResolver',
         measurements: Dict[str, np.ndarray],
-        final_step_result: 'cirq.DensityMatrixStepResult',
+        final_simulator_state: 'cirq.OperationTarget[cirq.ActOnDensityMatrixArgs]',
     ) -> 'cirq.DensityMatrixTrialResult':
         return DensityMatrixTrialResult(
-            params=params, measurements=measurements, final_step_result=final_step_result
+            params=params, measurements=measurements, final_simulator_state=final_simulator_state
         )
 
     # TODO(#4209): Deduplicate with identical code in sparse_simulator.
@@ -310,6 +310,7 @@ class DensityMatrixStepResult(simulator_base.StepResultBase['cirq.ActOnDensityMa
         )
 
 
+@deprecated_class(deadline='v0.16', fix='This class is no longer used.')
 @value.value_equality(unhashable=True)
 class DensityMatrixSimulatorState:
     """The simulator state for DensityMatrixSimulator
@@ -380,14 +381,15 @@ class DensityMatrixTrialResult(
             trial finishes.
     """
 
+    @simulator._deprecated_step_result_parameter(old_position=3)
     def __init__(
         self,
         params: 'cirq.ParamResolver',
         measurements: Dict[str, np.ndarray],
-        final_step_result: 'cirq.DensityMatrixStepResult',
+        final_simulator_state: 'cirq.OperationTarget[cirq.ActOnDensityMatrixArgs]',
     ) -> None:
         super().__init__(
-            params=params, measurements=measurements, final_step_result=final_step_result
+            params=params, measurements=measurements, final_simulator_state=final_simulator_state
         )
         self._final_density_matrix: Optional[np.ndarray] = None
 
@@ -418,7 +420,7 @@ class DensityMatrixTrialResult(
         return (
             'cirq.DensityMatrixTrialResult('
             f'params={self.params!r}, measurements={proper_repr(self.measurements)}, '
-            f'final_step_result={self._final_step_result!r})'
+            f'final_simulator_state={self._final_simulator_state!r})'
         )
 
     def _repr_pretty_(self, p: Any, cycle: bool):

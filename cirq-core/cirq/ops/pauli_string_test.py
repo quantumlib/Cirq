@@ -1918,3 +1918,40 @@ def test_transform_qubits():
     assert m is m2
     assert m == p2
     assert m2 == p2
+
+
+def test_parameterization():
+    t = sympy.Symbol('t')
+    q = cirq.LineQubit(0)
+    pst = cirq.PauliString({q: 'x'}, coefficient=t)
+    assert cirq.is_parameterized(pst)
+    assert cirq.parameter_names(pst) == {'t'}
+    assert pst.coefficient == 1.0 * t
+    assert not cirq.has_unitary(pst)
+    assert not cirq.is_parameterized(pst.with_coefficient(2))
+    with pytest.raises(TypeError):
+        cirq.decompose_once(pst)
+    with pytest.raises(NotImplementedError, match='parameterized'):
+        pst.expectation_from_state_vector(np.array([]), {})
+    with pytest.raises(NotImplementedError, match='parameterized'):
+        pst.expectation_from_density_matrix(np.array([]), {})
+    assert pst**1 == pst
+    assert pst**-1 == pst.with_coefficient(1.0 / t)
+    assert (-pst) ** 1 == -pst
+    assert (-pst) ** -1 == -pst.with_coefficient(1.0 / t)
+    assert (1j * pst) ** 1 == 1j * pst
+    assert (1j * pst) ** -1 == -1j * pst.with_coefficient(1.0 / t)
+    with pytest.raises(TypeError):
+        _ = pst**2
+    with pytest.raises(TypeError):
+        _ = 1**pst
+    cirq.testing.assert_has_diagram(cirq.Circuit(pst), '0: ───PauliString((1.0*t)*X)───')
+
+
+@pytest.mark.parametrize('resolve_fn', [cirq.resolve_parameters, cirq.resolve_parameters_once])
+def test_resolve(resolve_fn):
+    t = sympy.Symbol('t')
+    q = cirq.LineQubit(0)
+    pst = cirq.PauliString({q: 'x'}, coefficient=t)
+    ps1 = cirq.PauliString({q: 'x'}, coefficient=1j)
+    assert resolve_fn(pst, {'t': 1j}) == ps1
