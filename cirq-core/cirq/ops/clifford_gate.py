@@ -462,7 +462,7 @@ class CliffordGate(raw_types.Gate, CommonCliffordGates):
             args._state = args.tableau.then(padded_tableau)
             return True
 
-        if isinstance(args, sim.clifford.StabilizerChFormSimulationState):
+        if isinstance(args, sim.clifford.StabilizerChFormSimulationState):  # coverage: ignore
             # Do we know how to apply CliffordTableau on StabilizerChFormSimulationState?
             # It should be unlike because CliffordTableau ignores the global phase but CHForm
             # is aimed to fix that.

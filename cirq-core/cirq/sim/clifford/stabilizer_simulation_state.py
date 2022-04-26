@@ -143,7 +143,7 @@ class StabilizerSimulationState(
         if mixture is None:
             return NotImplemented
         if not all(linalg.is_unitary(m) for _, m in mixture):
-            return NotImplemented
+            return NotImplemented  # coverage: ignore
         probabilities, unitaries = zip(*mixture)
         index = self.prng.choice(len(unitaries), p=probabilities)
         return self._strat_act_from_single_qubit_decompose(
