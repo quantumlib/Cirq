@@ -34,10 +34,10 @@ from typing import (
 import numpy as np
 
 from cirq import ops, protocols, study, value, devices
-from cirq.sim import SimulationProductState
 from cirq.sim import simulator
-from cirq.sim.act_on_args import TActOnArgs
-from cirq.sim.operation_target import SimulationStateBase
+from cirq.sim.simulation_product_state import SimulationProductState
+from cirq.sim.simulation_state import TActOnArgs
+from cirq.sim.simulation_state_base import SimulationStateBase
 from cirq.sim.simulator import (
     TSimulationTrialResult,
     SimulatesIntermediateState,

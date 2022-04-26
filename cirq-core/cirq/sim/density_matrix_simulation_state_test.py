@@ -89,7 +89,7 @@ def test_with_qubits():
 
 def test_qid_shape_error():
     with pytest.raises(ValueError, match="qid_shape must be provided"):
-        cirq.sim.act_on_density_matrix_args._BufferedDensityMatrix.create(initial_state=0)
+        cirq.sim.density_matrix_simulation_state._BufferedDensityMatrix.create(initial_state=0)
 
 
 def test_initial_state_vector():

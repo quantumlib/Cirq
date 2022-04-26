@@ -22,7 +22,7 @@ import pytest
 
 import cirq
 from cirq import study
-from cirq.sim.act_on_args import TActOnArgs
+from cirq.sim.simulation_state import TActOnArgs
 from cirq.sim.simulator import (
     TStepResult,
     SimulatesAmplitudes,

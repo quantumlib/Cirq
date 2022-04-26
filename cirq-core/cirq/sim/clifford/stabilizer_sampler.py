@@ -19,7 +19,7 @@ import numpy as np
 import cirq
 from cirq import protocols, value
 from cirq.qis.clifford_tableau import CliffordTableau
-from cirq.sim.clifford.act_on_clifford_tableau_args import CliffordTableauSimulationState
+from cirq.sim.clifford.clifford_tableau_simulation_state import CliffordTableauSimulationState
 from cirq.work import sampler
 
 

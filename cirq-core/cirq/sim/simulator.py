@@ -50,7 +50,7 @@ from typing import (
 import numpy as np
 
 from cirq import _compat, circuits, ops, protocols, study, value, work
-from cirq.sim.operation_target import SimulationStateBase
+from cirq.sim.simulation_state_base import SimulationStateBase
 
 if TYPE_CHECKING:
     import cirq

@@ -20,7 +20,7 @@ import numpy as np
 from cirq import _compat, linalg, protocols, qis, sim
 from cirq._compat import proper_repr
 from cirq.linalg import transformations
-from cirq.sim.act_on_args import SimulationState, strat_act_on_from_apply_decompose
+from cirq.sim.simulation_state import SimulationState, strat_act_on_from_apply_decompose
 
 if TYPE_CHECKING:
     import cirq

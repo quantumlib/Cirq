@@ -33,7 +33,7 @@ import numpy as np
 from cirq import protocols, value
 from cirq._compat import _warn_or_error, deprecated, deprecated_parameter
 from cirq.protocols.decompose_protocol import _try_decompose_into_operations_and_qubits
-from cirq.sim.operation_target import SimulationStateBase
+from cirq.sim.simulation_state_base import SimulationStateBase
 
 TSelf = TypeVar('TSelf', bound='SimulationState')
 TState = TypeVar('TState', bound='cirq.QuantumStateRepresentation')

@@ -284,7 +284,7 @@ def test_with_qubits():
 
 def test_qid_shape_error():
     with pytest.raises(ValueError, match="qid_shape must be provided"):
-        cirq.sim.act_on_state_vector_args._BufferedStateVector.create(initial_state=0)
+        cirq.sim.state_vector_simulation_state._BufferedStateVector.create(initial_state=0)
 
 
 def test_deprecated_methods():

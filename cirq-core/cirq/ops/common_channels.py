@@ -734,9 +734,12 @@ class ResetChannel(raw_types.Gate):
                 u[:inc] = np.eye(self.dimension)[-inc:]
                 return u
 
-        from cirq.sim import act_on_args
+        from cirq.sim import simulation_state
 
-        if isinstance(args, act_on_args.SimulationState) and not args.can_represent_mixed_states:
+        if (
+            isinstance(args, simulation_state.SimulationState)
+            and not args.can_represent_mixed_states
+        ):
             result = args._perform_measurement(qubits)[0]
             gate = PlusGate(self.dimension, self.dimension - result)
             protocols.act_on(gate, args, qubits)
