@@ -22,7 +22,7 @@ from cirq._compat import deprecated_parameter
 from cirq.ops import common_gates, global_phase_op, matrix_gates, swap_gates
 from cirq.ops.clifford_gate import SingleQubitCliffordGate
 from cirq.protocols import has_unitary, num_qubits, unitary
-from cirq.sim.act_on_args import ActOnArgs
+from cirq.sim.act_on_args import SimulationState
 from cirq.type_workarounds import NotImplementedType
 
 if TYPE_CHECKING:
@@ -32,8 +32,8 @@ if TYPE_CHECKING:
 TStabilizerState = TypeVar('TStabilizerState', bound='cirq.StabilizerState')
 
 
-class ActOnStabilizerArgs(
-    ActOnArgs[TStabilizerState], Generic[TStabilizerState], metaclass=abc.ABCMeta
+class StabilizerSimulationState(
+    SimulationState[TStabilizerState], Generic[TStabilizerState], metaclass=abc.ABCMeta
 ):
     """Abstract wrapper around a stabilizer state for the act_on protocol."""
 
@@ -58,7 +58,7 @@ class ActOnStabilizerArgs(
         qubits: Optional[Sequence['cirq.Qid']] = None,
         classical_data: Optional['cirq.ClassicalDataStore'] = None,
     ):
-        """Initializes the ActOnStabilizerArgs.
+        """Initializes the StabilizerSimulationState.
 
         Args:
             state: The quantum stabilizer state to use in the simulation or

@@ -350,7 +350,7 @@ class CircuitOperation(ops.Operation):
     def _decompose_(self) -> Iterator['cirq.Operation']:
         return self.mapped_circuit(deep=False).all_operations()
 
-    def _act_on_(self, args: 'cirq.OperationTarget') -> bool:
+    def _act_on_(self, args: 'cirq.SimulationStateBase') -> bool:
         if self.repeat_until:
             circuit = self._mapped_single_loop()
             while True:

@@ -19,14 +19,14 @@ import numpy as np
 
 from cirq import ops, protocols, value
 from cirq.sim.act_on_args import TActOnArgs
-from cirq.sim.operation_target import OperationTarget
+from cirq.sim.operation_target import SimulationStateBase
 
 if TYPE_CHECKING:
     import cirq
 
 
-class ActOnArgsContainer(Generic[TActOnArgs], OperationTarget[TActOnArgs], abc.Mapping):
-    """A container for a `Qid`-to-`ActOnArgs` dictionary."""
+class SimulationProductState(Generic[TActOnArgs], SimulationStateBase[TActOnArgs], abc.Mapping):
+    """A container for a `Qid`-to-`SimulationState` dictionary."""
 
     def __init__(
         self,
@@ -38,7 +38,7 @@ class ActOnArgsContainer(Generic[TActOnArgs], OperationTarget[TActOnArgs], abc.M
         """Initializes the class.
 
         Args:
-            args: The `ActOnArgs` dictionary. This will not be copied; the
+            args: The `SimulationState` dictionary. This will not be copied; the
                 original reference will be kept here.
             qubits: The canonical ordering of qubits.
             split_untangled_states: If True, optimizes operations by running
@@ -97,7 +97,7 @@ class ActOnArgsContainer(Generic[TActOnArgs], OperationTarget[TActOnArgs], abc.M
                 self._args[q1] = args0.rename(q0, q1, inplace=True)
             return True
 
-        # Go through the op's qubits and join any disparate ActOnArgs states
+        # Go through the op's qubits and join any disparate SimulationState states
         # into a new combined state.
         op_args_opt: Optional[TActOnArgs] = None
         for q in qubits:
@@ -129,7 +129,7 @@ class ActOnArgsContainer(Generic[TActOnArgs], OperationTarget[TActOnArgs], abc.M
                 self._args[q] = op_args
         return True
 
-    def copy(self, deep_copy_buffers: bool = True) -> 'cirq.ActOnArgsContainer[TActOnArgs]':
+    def copy(self, deep_copy_buffers: bool = True) -> 'cirq.SimulationProductState[TActOnArgs]':
         classical_data = self._classical_data.copy()
         copies = {}
         for act_on_args in set(self.args.values()):
@@ -137,7 +137,7 @@ class ActOnArgsContainer(Generic[TActOnArgs], OperationTarget[TActOnArgs], abc.M
         for copy in copies.values():
             copy._classical_data = classical_data
         args = {q: copies[a] for q, a in self.args.items()}
-        return ActOnArgsContainer(
+        return SimulationProductState(
             args, self.qubits, self.split_untangled_states, classical_data=classical_data
         )
 

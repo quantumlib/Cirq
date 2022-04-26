@@ -73,7 +73,7 @@ class SimulatesIntermediateStateImpl(
         self,
         params: study.ParamResolver,
         measurements: Dict[str, np.ndarray],
-        final_simulator_state: 'cirq.OperationTarget[TActOnArgs]',
+        final_simulator_state: 'cirq.SimulationStateBase[TActOnArgs]',
     ) -> 'SimulationTrialResult':
         """This method creates a default trial result.
 

@@ -37,11 +37,11 @@ if TYPE_CHECKING:
     import cirq
 
 
-TSelfTarget = TypeVar('TSelfTarget', bound='OperationTarget')
-TActOnArgs = TypeVar('TActOnArgs', bound='cirq.ActOnArgs')
+TSelfTarget = TypeVar('TSelfTarget', bound='SimulationStateBase')
+TActOnArgs = TypeVar('TActOnArgs', bound='cirq.SimulationState')
 
 
-class OperationTarget(Generic[TActOnArgs], metaclass=abc.ABCMeta):
+class SimulationStateBase(Generic[TActOnArgs], metaclass=abc.ABCMeta):
     """An interface for quantum states as targets for operations."""
 
     def __init__(

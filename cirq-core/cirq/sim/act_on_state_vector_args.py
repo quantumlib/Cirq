@@ -20,7 +20,7 @@ import numpy as np
 from cirq import _compat, linalg, protocols, qis, sim
 from cirq._compat import proper_repr
 from cirq.linalg import transformations
-from cirq.sim.act_on_args import ActOnArgs, strat_act_on_from_apply_decompose
+from cirq.sim.act_on_args import SimulationState, strat_act_on_from_apply_decompose
 
 if TYPE_CHECKING:
     import cirq
@@ -293,7 +293,7 @@ class _BufferedStateVector(qis.QuantumStateRepresentation):
         """Gives a new state vector for the system.
 
         Typically, the new state vector should be `args.available_buffer` where
-        `args` is this `cirq.ActOnStateVectorArgs` instance.
+        `args` is this `cirq.StateVectorSimulationState` instance.
 
         Args:
             new_target_tensor: The new system state. Must have the same shape
@@ -308,7 +308,7 @@ class _BufferedStateVector(qis.QuantumStateRepresentation):
         return True
 
 
-class ActOnStateVectorArgs(ActOnArgs[_BufferedStateVector]):
+class StateVectorSimulationState(SimulationState[_BufferedStateVector]):
     """State and context for an operation acting on a state vector.
 
     There are two common ways to act on this object:
@@ -329,7 +329,7 @@ class ActOnStateVectorArgs(ActOnArgs[_BufferedStateVector]):
         dtype: Type[np.number] = np.complex64,
         classical_data: Optional['cirq.ClassicalDataStore'] = None,
     ):
-        """Inits ActOnStateVectorArgs.
+        """Inits StateVectorSimulationState.
 
         Args:
             available_buffer: A workspace with the same shape and dtype as
@@ -365,7 +365,7 @@ class ActOnStateVectorArgs(ActOnArgs[_BufferedStateVector]):
         """Gives a new state vector for the system.
 
         Typically, the new state vector should be `args.available_buffer` where
-        `args` is this `cirq.ActOnStateVectorArgs` instance.
+        `args` is this `cirq.StateVectorSimulationState` instance.
 
         Args:
             new_target_tensor: The new system state. Must have the same shape
@@ -456,7 +456,7 @@ class ActOnStateVectorArgs(ActOnArgs[_BufferedStateVector]):
 
     def __repr__(self) -> str:
         return (
-            'cirq.ActOnStateVectorArgs('
+            'cirq.StateVectorSimulationState('
             f'initial_state={proper_repr(self.target_tensor)},'
             f' qubits={self.qubits!r},'
             f' classical_data={self.classical_data!r})'
@@ -472,13 +472,13 @@ class ActOnStateVectorArgs(ActOnArgs[_BufferedStateVector]):
 
 
 def _strat_act_on_state_vector_from_apply_unitary(
-    action: Any, args: 'cirq.ActOnStateVectorArgs', qubits: Sequence['cirq.Qid']
+    action: Any, args: 'cirq.StateVectorSimulationState', qubits: Sequence['cirq.Qid']
 ) -> bool:
     return True if args._state.apply_unitary(action, args.get_axes(qubits)) else NotImplemented
 
 
 def _strat_act_on_state_vector_from_mixture(
-    action: Any, args: 'cirq.ActOnStateVectorArgs', qubits: Sequence['cirq.Qid']
+    action: Any, args: 'cirq.StateVectorSimulationState', qubits: Sequence['cirq.Qid']
 ) -> bool:
     index = args._state.apply_mixture(action, args.get_axes(qubits), args.prng)
     if index is None:
@@ -490,7 +490,7 @@ def _strat_act_on_state_vector_from_mixture(
 
 
 def _strat_act_on_state_vector_from_channel(
-    action: Any, args: 'cirq.ActOnStateVectorArgs', qubits: Sequence['cirq.Qid']
+    action: Any, args: 'cirq.StateVectorSimulationState', qubits: Sequence['cirq.Qid']
 ) -> bool:
     index = args._state.apply_channel(action, args.get_axes(qubits), args.prng)
     if index is None:

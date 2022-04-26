@@ -34,10 +34,10 @@ from typing import (
 import numpy as np
 
 from cirq import ops, protocols, study, value, devices
-from cirq.sim import ActOnArgsContainer
+from cirq.sim import SimulationProductState
 from cirq.sim import simulator
 from cirq.sim.act_on_args import TActOnArgs
-from cirq.sim.operation_target import OperationTarget
+from cirq.sim.operation_target import SimulationStateBase
 from cirq.sim.simulator import (
     TSimulationTrialResult,
     SimulatesIntermediateState,
@@ -58,7 +58,7 @@ TStepResultBase = TypeVar('TStepResultBase', bound='StepResultBase')
 class SimulatorBase(
     Generic[TStepResultBase, TSimulationTrialResult, TActOnArgs],
     SimulatesIntermediateState[
-        TStepResultBase, TSimulationTrialResult, OperationTarget[TActOnArgs]
+        TStepResultBase, TSimulationTrialResult, SimulationStateBase[TActOnArgs]
     ],
     SimulatesSamples,
     metaclass=abc.ABCMeta,
@@ -134,11 +134,11 @@ class SimulatorBase(
         """
 
     @abc.abstractmethod
-    def _create_step_result(self, sim_state: OperationTarget[TActOnArgs]) -> TStepResultBase:
+    def _create_step_result(self, sim_state: SimulationStateBase[TActOnArgs]) -> TStepResultBase:
         """This method should be implemented to create a step result.
 
         Args:
-            sim_state: The OperationTarget for this trial.
+            sim_state: The SimulationStateBase for this trial.
 
         Returns:
             The StepResult.
@@ -169,7 +169,7 @@ class SimulatorBase(
     def _core_iterator(
         self,
         circuit: 'cirq.AbstractCircuit',
-        sim_state: OperationTarget[TActOnArgs],
+        sim_state: SimulationStateBase[TActOnArgs],
         all_measurements_are_terminal: bool = False,
     ) -> Iterator[TStepResultBase]:
         """Standard iterator over StepResult from Moments of a Circuit.
@@ -286,7 +286,7 @@ class SimulatorBase(
                 is often used in specifying the initial state, i.e. the
                 ordering of the computational basis states.
             initial_state: The initial state for the simulation. This can be
-                either a raw state or an `OperationTarget`. The form of the
+                either a raw state or an `SimulationStateBase`. The form of the
                 raw state depends on the simulation implementation. See
                 documentation of the implementing class for details.
 
@@ -314,8 +314,8 @@ class SimulatorBase(
 
     def _create_act_on_args(
         self, initial_state: Any, qubits: Sequence['cirq.Qid']
-    ) -> OperationTarget[TActOnArgs]:
-        if isinstance(initial_state, OperationTarget):
+    ) -> SimulationStateBase[TActOnArgs]:
+        if isinstance(initial_state, SimulationStateBase):
             return initial_state
 
         classical_data = value.ClassicalDataDictionaryStore()
@@ -336,7 +336,7 @@ class SimulatorBase(
                 for q in qubits:
                     args_map[q] = args
             args_map[None] = self._create_partial_act_on_args(0, (), classical_data)
-            return ActOnArgsContainer(
+            return SimulationProductState(
                 args_map, qubits, self._split_untangled_states, classical_data=classical_data
             )
         else:
@@ -345,14 +345,14 @@ class SimulatorBase(
             )
 
 
-class StepResultBase(Generic[TActOnArgs], StepResult[OperationTarget[TActOnArgs]], abc.ABC):
+class StepResultBase(Generic[TActOnArgs], StepResult[SimulationStateBase[TActOnArgs]], abc.ABC):
     """A base class for step results."""
 
-    def __init__(self, sim_state: OperationTarget[TActOnArgs]):
+    def __init__(self, sim_state: SimulationStateBase[TActOnArgs]):
         """Initializes the step result.
 
         Args:
-            sim_state: The `OperationTarget` for this step.
+            sim_state: The `SimulationStateBase` for this step.
         """
         super().__init__(sim_state)
         self._merged_sim_state_cache: Optional[TActOnArgs] = None
@@ -381,7 +381,7 @@ class StepResultBase(Generic[TActOnArgs], StepResult[OperationTarget[TActOnArgs]
 
 
 class SimulationTrialResultBase(
-    SimulationTrialResult[OperationTarget[TActOnArgs]], Generic[TActOnArgs], abc.ABC
+    SimulationTrialResult[SimulationStateBase[TActOnArgs]], Generic[TActOnArgs], abc.ABC
 ):
     """A base class for trial results."""
 
@@ -390,7 +390,7 @@ class SimulationTrialResultBase(
         self,
         params: study.ParamResolver,
         measurements: Dict[str, np.ndarray],
-        final_simulator_state: 'cirq.OperationTarget[TActOnArgs]',
+        final_simulator_state: 'cirq.SimulationStateBase[TActOnArgs]',
     ) -> None:
         """Initializes the `SimulationTrialResultBase` class.
 
@@ -418,7 +418,7 @@ class SimulationTrialResultBase(
 
     def _get_substates(self) -> Sequence[TActOnArgs]:
         state = self._final_simulator_state
-        if isinstance(state, ActOnArgsContainer):
+        if isinstance(state, SimulationProductState):
             substates: Dict[TActOnArgs, int] = {}
             for q in state.qubits:
                 substates[self.get_state_containing_qubit(q)] = 0

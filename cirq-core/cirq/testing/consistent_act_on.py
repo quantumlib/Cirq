@@ -46,7 +46,7 @@ def state_vector_has_stabilizer(state_vector: np.ndarray, stabilizer: DensePauli
     """
 
     qubits = LineQubit.range(protocols.num_qubits(stabilizer))
-    args = act_on_state_vector_args.ActOnStateVectorArgs(
+    args = act_on_state_vector_args.StateVectorSimulationState(
         available_buffer=np.empty_like(state_vector),
         qubits=qubits,
         prng=np.random.RandomState(),
@@ -71,7 +71,7 @@ def assert_all_implemented_act_on_effects_match_unitary(
     Args:
         val: A gate or operation that may be an input to protocols.act_on.
         assert_tableau_implemented: asserts that protocols.act_on() works with
-          val and ActOnCliffordTableauArgs inputs.
+          val and CliffordTableauSimulationState inputs.
         assert_ch_form_implemented: asserts that protocols.act_on() works with
           val and ActOnStabilizerStateChFormArgs inputs.
     """
@@ -159,7 +159,7 @@ def _final_clifford_tableau(
         the tableau otherwise."""
 
     tableau = clifford_tableau.CliffordTableau(len(qubit_map))
-    args = act_on_clifford_tableau_args.ActOnCliffordTableauArgs(
+    args = act_on_clifford_tableau_args.CliffordTableauSimulationState(
         tableau=tableau, qubits=list(qubit_map.keys()), prng=np.random.RandomState()
     )
     for op in circuit.all_operations():
@@ -187,7 +187,7 @@ def _final_stabilizer_state_ch_form(
         returns the StabilizerStateChForm otherwise."""
 
     stabilizer_ch_form = stabilizer_state_ch_form.StabilizerStateChForm(len(qubit_map))
-    args = act_on_stabilizer_ch_form_args.ActOnStabilizerCHFormArgs(
+    args = act_on_stabilizer_ch_form_args.StabilizerChFormSimulationState(
         qubits=list(qubit_map.keys()),
         prng=np.random.RandomState(),
         initial_state=stabilizer_ch_form,

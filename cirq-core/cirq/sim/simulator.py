@@ -50,7 +50,7 @@ from typing import (
 import numpy as np
 
 from cirq import _compat, circuits, ops, protocols, study, value, work
-from cirq.sim.operation_target import OperationTarget
+from cirq.sim.operation_target import SimulationStateBase
 
 if TYPE_CHECKING:
     import cirq
@@ -586,7 +586,7 @@ class SimulatesIntermediateState(
                 is often used in specifying the initial state, i.e. the
                 ordering of the computational basis states.
             initial_state: The initial state for the simulation. This can be
-                either a raw state or an `OperationTarget`. The form of the
+                either a raw state or an `SimulationStateBase`. The form of the
                 raw state depends on the simulation implementation. See
                 documentation of the implementing class for details.
 
@@ -598,7 +598,7 @@ class SimulatesIntermediateState(
         for param_resolver in study.to_resolvers(params):
             state = (
                 initial_state.copy()
-                if isinstance(initial_state, OperationTarget)
+                if isinstance(initial_state, SimulationStateBase)
                 else initial_state
             )
             all_step_results = self.simulate_moment_steps(

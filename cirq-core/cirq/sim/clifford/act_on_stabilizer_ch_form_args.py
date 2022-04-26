@@ -18,14 +18,14 @@ import numpy as np
 
 from cirq._compat import proper_repr
 from cirq.sim.clifford import stabilizer_state_ch_form
-from cirq.sim.clifford.act_on_stabilizer_args import ActOnStabilizerArgs
+from cirq.sim.clifford.act_on_stabilizer_args import StabilizerSimulationState
 
 if TYPE_CHECKING:
     import cirq
 
 
-class ActOnStabilizerCHFormArgs(
-    ActOnStabilizerArgs[stabilizer_state_ch_form.StabilizerStateChForm]
+class StabilizerChFormSimulationState(
+    StabilizerSimulationState[stabilizer_state_ch_form.StabilizerStateChForm]
 ):
     """Wrapper around a stabilizer state in CH form for the act_on protocol."""
 
@@ -69,7 +69,7 @@ class ActOnStabilizerCHFormArgs(
 
     def __repr__(self) -> str:
         return (
-            'cirq.ActOnStabilizerCHFormArgs('
+            'cirq.StabilizerChFormSimulationState('
             f'initial_state={proper_repr(self.state)},'
             f' qubits={self.qubits!r},'
             f' classical_data={self.classical_data!r})'

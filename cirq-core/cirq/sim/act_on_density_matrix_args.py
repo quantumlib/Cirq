@@ -20,7 +20,7 @@ import numpy as np
 from cirq import protocols, qis, sim
 from cirq._compat import proper_repr
 from cirq.linalg import transformations
-from cirq.sim.act_on_args import ActOnArgs, strat_act_on_from_apply_decompose
+from cirq.sim.act_on_args import SimulationState, strat_act_on_from_apply_decompose
 
 if TYPE_CHECKING:
     import cirq
@@ -236,7 +236,7 @@ class _BufferedDensityMatrix(qis.QuantumStateRepresentation):
         return True
 
 
-class ActOnDensityMatrixArgs(ActOnArgs[_BufferedDensityMatrix]):
+class DensityMatrixSimulationState(SimulationState[_BufferedDensityMatrix]):
     """State and context for an operation acting on a density matrix.
 
     To act on this object, directly edit the `target_tensor` property, which is
@@ -254,7 +254,7 @@ class ActOnDensityMatrixArgs(ActOnArgs[_BufferedDensityMatrix]):
         dtype: Type[np.number] = np.complex64,
         classical_data: Optional['cirq.ClassicalDataStore'] = None,
     ):
-        """Inits ActOnDensityMatrixArgs.
+        """Inits DensityMatrixSimulationState.
 
         Args:
             available_buffer: A workspace with the same shape and dtype as
@@ -312,7 +312,7 @@ class ActOnDensityMatrixArgs(ActOnArgs[_BufferedDensityMatrix]):
 
     def __repr__(self) -> str:
         return (
-            'cirq.ActOnDensityMatrixArgs('
+            'cirq.DensityMatrixSimulationState('
             f'initial_state={proper_repr(self.target_tensor)},'
             f' qid_shape={self.qid_shape!r},'
             f' qubits={self.qubits!r},'
@@ -333,7 +333,7 @@ class ActOnDensityMatrixArgs(ActOnArgs[_BufferedDensityMatrix]):
 
 
 def _strat_apply_channel_to_state(
-    action: Any, args: 'cirq.ActOnDensityMatrixArgs', qubits: Sequence['cirq.Qid']
+    action: Any, args: 'cirq.DensityMatrixSimulationState', qubits: Sequence['cirq.Qid']
 ) -> bool:
     """Apply channel to state."""
     return True if args._state.apply_channel(action, args.get_axes(qubits)) else NotImplemented
