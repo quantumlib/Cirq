@@ -169,8 +169,8 @@ class Moment:
         m._qubits = frozenset(self._qubits.union(set(operation.qubits)))
         m._qubit_to_op = self._qubit_to_op.copy()
 
-        m._measurement_key_objs = set(self._measurement_key_objs or {})
-        m._control_keys = set(self._control_keys or {})
+        m._measurement_key_objs = set(self._measurement_key_objs_())
+        m._control_keys = frozenset(self._control_keys_())
         m._measurement_key_objs |= protocols.measurement_key_objs(operation)
         m._control_keys |= protocols.control_keys(operation)
         for q in operation.qubits:
@@ -192,8 +192,8 @@ class Moment:
         """
         operations = list(self._operations)
         qubits = set(self._qubits)
-        measurement_key_objs = set(self._measurement_key_objs or {})
-        control_keys = set(self._control_keys or {})
+        measurement_key_objs = set(self._measurement_key_objs_())
+        control_keys = set(self._control_keys_())
         for op in op_tree.flatten_to_ops(contents):
             if any(q in qubits for q in op.qubits):
                 raise ValueError(f'Overlapping operations: {op}')
@@ -208,7 +208,7 @@ class Moment:
         m._qubits = frozenset(qubits)
         m._qubit_to_op = self._qubit_to_op.copy()
         m._measurement_key_objs = measurement_key_objs
-        m._control_keys = control_keys
+        m._control_keys = frozenset(control_keys)
         for op in operations:
             for q in op.qubits:
                 m._qubit_to_op[q] = op
