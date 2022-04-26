@@ -27,7 +27,21 @@ from cirq.type_workarounds import NotImplementedType
 
 @value.value_equality(manual_cls=True, approximate=True)
 class PhasedXPowGate(raw_types.Gate):
-    """A gate equivalent to the circuit ───Z^-p───X^t───Z^p───."""
+    r"""A gate equivalent to $Z^{p} X^t Z^{-p}$.
+
+    The unitary matrix of `cirq.PhasedXPowGate(exponent=t, phase_exponent=p)` is:
+    $$
+        \begin{bmatrix}
+            e^{i \pi t /2} \cos(\pi t/2) & -i e^{i \pi (t /2 - p)} \sin(\pi t /2) \\
+            -i e^{i \pi (t /2 + p)} \sin(\pi t /2) & e^{i \pi t /2} \cos(\pi t/2)
+        \end{bmatrix}
+    $$
+
+    This gate is like an `cirq.XPowGate`, but which has been "phased",
+    by applying a `cirq.ZPowGate` before and after this gate. In the language
+    of the Bloch sphere, $p$ determines the axis in the XY plane about which
+    a rotation of amount determined by $t$ occurs.
+    """
 
     def __init__(
         self,

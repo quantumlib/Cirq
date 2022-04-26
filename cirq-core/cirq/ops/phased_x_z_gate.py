@@ -15,16 +15,23 @@ if TYPE_CHECKING:
 
 @value.value_equality(approximate=True)
 class PhasedXZGate(raw_types.Gate):
-    """A single qubit operation expressed as $Z^z Z^a X^x Z^{-a}$.
+    r"""A single qubit gate equivalent to the circuit $Z^z Z^{a} X^x Z^{-a}$.
 
-    The above expression is a matrix multiplication with time going to the left.
-    In quantum circuit notation, this operation decomposes into this circuit:
+    The unitary matrix of `cirq.PhasedXZGate(x_exponent=x, z_exponent=z, axis_phase_exponent=a)` is:
+    $$
+        \begin{bmatrix}
+            e^{i \pi x / 2} \cos(\pi x /2) & -i e^{i \pi (x/2 - a)} \sin(\pi x / 2) \\
+             -i e^{i \pi (x/2 + z + a)} \sin(\pi x / 2) &  e^{i \pi (x / 2 + z)} \cos(\pi x /2)
+        \end{bmatrix}
+    $$
 
-    ───Z^(-a)──X^x──Z^a────Z^z───
+    This gate can be thought of as a `cirq.PhasedXPowGate` followed by a `cirq.ZPowGate`.
 
-    The axis phase exponent (a) decides which axis in the XY plane to rotate
+    The axis phase exponent ($a$) decides which axis in the XY plane to rotate
     around. The amount of rotation around that axis is decided by the x
-    exponent (x). Then the z exponent (z) decides how much to phase the qubit.
+    exponent ($x$). Then the z exponent ($z$) decides how much to finally phase the qubit.
+
+    Every single qubit gate can be written as a single `cirq.PhasedXZGate`.
     """
 
     def __init__(
