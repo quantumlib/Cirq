@@ -48,9 +48,8 @@ class _BufferedDensityMatrix(qis.QuantumStateRepresentation):
             buffer = [np.empty_like(density_matrix) for _ in range(3)]
         self._buffer = buffer
         if len(density_matrix.shape) % 2 != 0:
-            raise ValueError(  # coverage: ignore
-                'The dimension of target_tensor is not divisible by 2.'
-            )
+            # coverage: ignore
+            raise ValueError('The dimension of target_tensor is not divisible by 2.')
         self._qid_shape = density_matrix.shape[: len(density_matrix.shape) // 2]
 
     @classmethod
