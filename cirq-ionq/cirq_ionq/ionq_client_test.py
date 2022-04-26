@@ -181,12 +181,12 @@ def test_ionq_client_create_job_not_found(mock_post):
 @mock.patch('requests.post')
 def test_ionq_client_create_job_not_retriable(mock_post):
     mock_post.return_value.ok = False
-    mock_post.return_value.status_code = requests.codes.not_implemented
+    mock_post.return_value.status_code = requests.codes.conflict
 
     client = ionq.ionq_client._IonQClient(
         remote_host='http://example.com', api_key='to_my_heart', default_target='simulator'
     )
-    with pytest.raises(ionq.IonQException, match='Status: 501'):
+    with pytest.raises(ionq.IonQException, match='Status: 409'):
         _ = client.create_job(
             serialized_program=ionq.SerializedProgram(body={'job': 'mine'}, metadata={})
         )
@@ -244,6 +244,22 @@ def test_ionq_client_create_job_timeout(mock_post):
         _ = client.create_job(
             serialized_program=ionq.SerializedProgram(body={'job': 'mine'}, metadata={})
         )
+
+
+@mock.patch('requests.get')
+def test_ionq_client_get_job_retry_409(mock_get):
+    response1 = mock.MagicMock()
+    response2 = mock.MagicMock()
+    mock_get.side_effect = [response1, response2]
+    response1.ok = False
+    response1.status_code = requests.codes.aborted
+
+    client = ionq.ionq_client._IonQClient(remote_host='http://example.com', api_key='to_my_heart')
+    response = client.get_job(job_id='job_id')
+    assert response == {'foo': 'bar'}
+
+    expected_headers = {'Authorization': 'apiKey to_my_heart', 'Content-Type': 'application/json'}
+    mock_get.assert_called_with('http://example.com/v0.1/jobs/job_id', headers=expected_headers)
 
 
 @mock.patch('requests.get')
