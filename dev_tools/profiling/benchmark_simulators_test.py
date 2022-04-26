@@ -20,10 +20,7 @@ from dev_tools.profiling import benchmark_simulators
 def test_unitary_simulator():
     for num_qubits in (4, 10):
         for num_gates in (10, 20):
-            with cirq.testing.assert_deprecated(
-                '`ignore_terminal_measurements` will default to False', deadline='v0.16'
-            ):
-                benchmark_simulators.simulate('unitary', num_qubits, num_gates)
+            benchmark_simulators.simulate('unitary', num_qubits, num_gates)
 
 
 def test_density_matrix_simulator():
@@ -41,13 +38,10 @@ def test_args_have_defaults():
 def test_main_loop():
     # Keep test from taking a long time by lowering max qubits.
     args = '--max_num_qubits 5'.split()
-    with cirq.testing.assert_deprecated(
-        '`ignore_terminal_measurements` will default to False', deadline='v0.16', count=20
-    ):
-        benchmark_simulators.main(
-            **benchmark_simulators.parse_arguments(args),
-            setup='from dev_tools.profiling.benchmark_simulators import simulate',
-        )
+    benchmark_simulators.main(
+        **benchmark_simulators.parse_arguments(args),
+        setup='from dev_tools.profiling.benchmark_simulators import simulate',
+    )
 
 
 def test_parse_args():

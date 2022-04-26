@@ -2779,17 +2779,23 @@ def test_final_state_vector(circuit_cls):
 
     # State ordering.
     cirq.testing.assert_allclose_up_to_global_phase(
-        circuit_cls(cirq.X(a) ** 0.5).final_state_vector(),
+        circuit_cls(cirq.X(a) ** 0.5).final_state_vector(
+            ignore_terminal_measurements=False, dtype=np.complex64
+        ),
         np.array([1j, 1]) * np.sqrt(0.5),
         atol=1e-8,
     )
     cirq.testing.assert_allclose_up_to_global_phase(
-        circuit_cls(cirq.X(a) ** 0.5).final_state_vector(initial_state=0),
+        circuit_cls(cirq.X(a) ** 0.5).final_state_vector(
+            initial_state=0, ignore_terminal_measurements=False, dtype=np.complex64
+        ),
         np.array([1j, 1]) * np.sqrt(0.5),
         atol=1e-8,
     )
     cirq.testing.assert_allclose_up_to_global_phase(
-        circuit_cls(cirq.X(a) ** 0.5).final_state_vector(initial_state=1),
+        circuit_cls(cirq.X(a) ** 0.5).final_state_vector(
+            initial_state=1, ignore_terminal_measurements=False, dtype=np.complex64
+        ),
         np.array([1, 1j]) * np.sqrt(0.5),
         atol=1e-8,
     )
@@ -2797,7 +2803,9 @@ def test_final_state_vector(circuit_cls):
     # Vector state.
     cirq.testing.assert_allclose_up_to_global_phase(
         circuit_cls(cirq.X(a) ** 0.5).final_state_vector(
-            initial_state=np.array([1j, 1]) * np.sqrt(0.5)
+            initial_state=np.array([1j, 1]) * np.sqrt(0.5),
+            ignore_terminal_measurements=False,
+            dtype=np.complex64,
         ),
         np.array([0, 1]),
         atol=1e-8,
@@ -2805,22 +2813,30 @@ def test_final_state_vector(circuit_cls):
 
     # Qubit ordering.
     cirq.testing.assert_allclose_up_to_global_phase(
-        circuit_cls(cirq.CNOT(a, b)).final_state_vector(initial_state=0),
+        circuit_cls(cirq.CNOT(a, b)).final_state_vector(
+            initial_state=0, ignore_terminal_measurements=False, dtype=np.complex64
+        ),
         np.array([1, 0, 0, 0]),
         atol=1e-8,
     )
     cirq.testing.assert_allclose_up_to_global_phase(
-        circuit_cls(cirq.CNOT(a, b)).final_state_vector(initial_state=1),
+        circuit_cls(cirq.CNOT(a, b)).final_state_vector(
+            initial_state=1, ignore_terminal_measurements=False, dtype=np.complex64
+        ),
         np.array([0, 1, 0, 0]),
         atol=1e-8,
     )
     cirq.testing.assert_allclose_up_to_global_phase(
-        circuit_cls(cirq.CNOT(a, b)).final_state_vector(initial_state=2),
+        circuit_cls(cirq.CNOT(a, b)).final_state_vector(
+            initial_state=2, ignore_terminal_measurements=False, dtype=np.complex64
+        ),
         np.array([0, 0, 0, 1]),
         atol=1e-8,
     )
     cirq.testing.assert_allclose_up_to_global_phase(
-        circuit_cls(cirq.CNOT(a, b)).final_state_vector(initial_state=3),
+        circuit_cls(cirq.CNOT(a, b)).final_state_vector(
+            initial_state=3, ignore_terminal_measurements=False, dtype=np.complex64
+        ),
         np.array([0, 0, 1, 0]),
         atol=1e-8,
     )
@@ -2828,71 +2844,85 @@ def test_final_state_vector(circuit_cls):
     # Product state
     cirq.testing.assert_allclose_up_to_global_phase(
         circuit_cls(cirq.CNOT(a, b)).final_state_vector(
-            initial_state=cirq.KET_ZERO(a) * cirq.KET_ZERO(b)
+            initial_state=cirq.KET_ZERO(a) * cirq.KET_ZERO(b),
+            ignore_terminal_measurements=False,
+            dtype=np.complex64,
         ),
         np.array([1, 0, 0, 0]),
         atol=1e-8,
     )
     cirq.testing.assert_allclose_up_to_global_phase(
         circuit_cls(cirq.CNOT(a, b)).final_state_vector(
-            initial_state=cirq.KET_ZERO(a) * cirq.KET_ONE(b)
+            initial_state=cirq.KET_ZERO(a) * cirq.KET_ONE(b),
+            ignore_terminal_measurements=False,
+            dtype=np.complex64,
         ),
         np.array([0, 1, 0, 0]),
         atol=1e-8,
     )
     cirq.testing.assert_allclose_up_to_global_phase(
         circuit_cls(cirq.CNOT(a, b)).final_state_vector(
-            initial_state=cirq.KET_ONE(a) * cirq.KET_ZERO(b)
+            initial_state=cirq.KET_ONE(a) * cirq.KET_ZERO(b),
+            ignore_terminal_measurements=False,
+            dtype=np.complex64,
         ),
         np.array([0, 0, 0, 1]),
         atol=1e-8,
     )
     cirq.testing.assert_allclose_up_to_global_phase(
         circuit_cls(cirq.CNOT(a, b)).final_state_vector(
-            initial_state=cirq.KET_ONE(a) * cirq.KET_ONE(b)
+            initial_state=cirq.KET_ONE(a) * cirq.KET_ONE(b),
+            ignore_terminal_measurements=False,
+            dtype=np.complex64,
         ),
         np.array([0, 0, 1, 0]),
         atol=1e-8,
     )
 
     # Measurements.
-    # TODO: remove deprecation assertions after v0.16, but keep tests.
-    # Warnings are unavoidable due to how they are triggered.
-    with cirq.testing.assert_deprecated("To drop terminal measurements", deadline="v0.16"):
+    cirq.testing.assert_allclose_up_to_global_phase(
+        circuit_cls(cirq.measure(a)).final_state_vector(
+            ignore_terminal_measurements=True, dtype=np.complex64
+        ),
+        np.array([1, 0]),
+        atol=1e-8,
+    )
+    cirq.testing.assert_allclose_up_to_global_phase(
+        circuit_cls(cirq.X(a), cirq.measure(a)).final_state_vector(
+            ignore_terminal_measurements=True, dtype=np.complex64
+        ),
+        np.array([0, 1]),
+        atol=1e-8,
+    )
+    with pytest.raises(ValueError):
         cirq.testing.assert_allclose_up_to_global_phase(
-            circuit_cls(cirq.measure(a)).final_state_vector(ignore_terminal_measurements=True),
-            np.array([1, 0]),
-            atol=1e-8,
-        )
-    with cirq.testing.assert_deprecated("To drop terminal measurements", deadline="v0.16"):
-        cirq.testing.assert_allclose_up_to_global_phase(
-            circuit_cls(cirq.X(a), cirq.measure(a)).final_state_vector(
-                ignore_terminal_measurements=True
+            circuit_cls(cirq.measure(a), cirq.X(a)).final_state_vector(
+                ignore_terminal_measurements=True, dtype=np.complex64
             ),
-            np.array([0, 1]),
-            atol=1e-8,
-        )
-    with pytest.raises(ValueError):
-        cirq.testing.assert_allclose_up_to_global_phase(
-            circuit_cls(cirq.measure(a), cirq.X(a)).final_state_vector(),
             np.array([1, 0]),
             atol=1e-8,
         )
     with pytest.raises(ValueError):
         cirq.testing.assert_allclose_up_to_global_phase(
-            circuit_cls(cirq.measure(a)).final_state_vector(ignore_terminal_measurements=False),
+            circuit_cls(cirq.measure(a)).final_state_vector(
+                ignore_terminal_measurements=False, dtype=np.complex64
+            ),
             np.array([1, 0]),
             atol=1e-8,
         )
 
     # Qubit order.
     cirq.testing.assert_allclose_up_to_global_phase(
-        circuit_cls(cirq.Z(a), cirq.X(b)).final_state_vector(qubit_order=[a, b]),
+        circuit_cls(cirq.Z(a), cirq.X(b)).final_state_vector(
+            qubit_order=[a, b], ignore_terminal_measurements=False, dtype=np.complex64
+        ),
         np.array([0, 1, 0, 0]),
         atol=1e-8,
     )
     cirq.testing.assert_allclose_up_to_global_phase(
-        circuit_cls(cirq.Z(a), cirq.X(b)).final_state_vector(qubit_order=[b, a]),
+        circuit_cls(cirq.Z(a), cirq.X(b)).final_state_vector(
+            qubit_order=[b, a], ignore_terminal_measurements=False, dtype=np.complex64
+        ),
         np.array([0, 0, 1, 0]),
         atol=1e-8,
     )
@@ -2904,7 +2934,9 @@ def test_final_state_vector(circuit_cls):
     for dt in dtypes:
         cirq.testing.assert_allclose_up_to_global_phase(
             circuit_cls(cirq.X(a) ** 0.5).final_state_vector(
-                initial_state=np.array([1j, 1]) * np.sqrt(0.5), dtype=dt
+                initial_state=np.array([1j, 1]) * np.sqrt(0.5),
+                ignore_terminal_measurements=False,
+                dtype=dt,
             ),
             np.array([0, 1]),
             atol=1e-8,
@@ -2917,24 +2949,41 @@ def test_final_state_vector_deprecated_params(circuit_cls):
     b = cirq.NamedQubit('b')
     # Extra qubits.
     cirq.testing.assert_allclose_up_to_global_phase(
-        circuit_cls().final_state_vector(), np.array([1]), atol=1e-8
+        circuit_cls().final_state_vector(ignore_terminal_measurements=False, dtype=np.complex128),
+        np.array([1]),
+        atol=1e-8,
     )
     with cirq.testing.assert_deprecated("Inject identity operators", deadline="v0.16"):
         cirq.testing.assert_allclose_up_to_global_phase(
-            circuit_cls().final_state_vector(qubits_that_should_be_present=[a]),
+            circuit_cls().final_state_vector(
+                qubits_that_should_be_present=[a],
+                ignore_terminal_measurements=False,
+                dtype=np.complex128,
+            ),
             np.array([1, 0]),
             atol=1e-8,
         )
     with cirq.testing.assert_deprecated("Inject identity operators", deadline="v0.16"):
         cirq.testing.assert_allclose_up_to_global_phase(
-            circuit_cls(cirq.X(b)).final_state_vector(qubits_that_should_be_present=[a]),
+            circuit_cls(cirq.X(b)).final_state_vector(
+                qubits_that_should_be_present=[a],
+                ignore_terminal_measurements=False,
+                dtype=np.complex128,
+            ),
             np.array([0, 1, 0, 0]),
             atol=1e-8,
         )
 
     with cirq.testing.assert_deprecated("To drop terminal measurements", deadline="v0.16"):
         cirq.testing.assert_allclose_up_to_global_phase(
-            circuit_cls(cirq.X(a), cirq.measure(a)).final_state_vector(),
+            circuit_cls(cirq.X(a), cirq.measure(a)).final_state_vector(dtype=np.complex128),
+            np.array([0, 1]),
+            atol=1e-8,
+        )
+
+    with cirq.testing.assert_deprecated("`dtype` will default to np.complex64", deadline="v0.16"):
+        cirq.testing.assert_allclose_up_to_global_phase(
+            circuit_cls(cirq.X(a)).final_state_vector(ignore_terminal_measurements=False),
             np.array([0, 1]),
             atol=1e-8,
         )
@@ -2942,7 +2991,9 @@ def test_final_state_vector_deprecated_params(circuit_cls):
     # Non-keyword args.
     with cirq.testing.assert_deprecated("Only use keyword arguments", deadline="v0.16"):
         cirq.testing.assert_allclose_up_to_global_phase(
-            circuit_cls(cirq.X(a) ** 0.5).final_state_vector(1),
+            circuit_cls(cirq.X(a) ** 0.5).final_state_vector(
+                1, ignore_terminal_measurements=False, dtype=np.complex128
+            ),
             np.array([1, 1j]) * np.sqrt(0.5),
             atol=1e-8,
         )

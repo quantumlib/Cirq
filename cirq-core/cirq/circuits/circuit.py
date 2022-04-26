@@ -1060,8 +1060,8 @@ class AbstractCircuit(abc.ABC):
         initial_state: 'cirq.STATE_VECTOR_LIKE' = 0,
         qubit_order: 'cirq.QubitOrderOrList' = ops.QubitOrder.DEFAULT,
         qubits_that_should_be_present: Iterable['cirq.Qid'] = (),
-        ignore_terminal_measurements: bool = True,
-        dtype: Type[np.number] = np.complex64,
+        ignore_terminal_measurements: Optional[bool] = None,
+        dtype: Optional[Type[np.number]] = None,
         param_resolver: 'cirq.ParamResolverOrSimilarType' = None,
         seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None,
     ) -> np.ndarray:
@@ -1102,12 +1102,21 @@ class AbstractCircuit(abc.ABC):
             ValueError: If the program doesn't have a well defined final state
                 because it has non-unitary gates.
         """
-        if ignore_terminal_measurements and self.has_measurements():
+        if ignore_terminal_measurements is None and self.has_measurements():
             _compat._warn_or_error(
                 '`ignore_terminal_measurements` will default to False in v0.16. '
                 'To drop terminal measurements, please explicitly include '
                 '`ignore_terminal_measurements=True` when calling this method.'
             )
+            ignore_terminal_measurements = True
+
+        if dtype is None:
+            _compat._warn_or_error(
+                '`dtype` will default to np.complex64 in v0.16. '
+                'To use the previous default, please explicitly include '
+                '`dtype=np.complex128` when calling this method.'
+            )
+            dtype = np.complex128
 
         from cirq.sim.mux import final_state_vector
 
