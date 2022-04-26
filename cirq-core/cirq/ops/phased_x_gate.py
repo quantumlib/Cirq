@@ -15,6 +15,7 @@
 from typing import AbstractSet, Any, cast, Dict, Optional, Sequence, Tuple, Union
 
 import math
+import numbers
 import numpy as np
 import sympy
 
@@ -171,10 +172,20 @@ class PhasedXPowGate(raw_types.Gate):
         self, resolver: 'cirq.ParamResolver', recursive: bool
     ) -> 'PhasedXPowGate':
         """See `cirq.SupportsParameterization`."""
+        phase_exponent = resolver.value_of(self._phase_exponent, recursive)
+        exponent = resolver.value_of(self._exponent, recursive)
+        if isinstance(phase_exponent, (complex, numbers.Complex)):
+            if isinstance(phase_exponent, numbers.Real):
+                phase_exponent = float(phase_exponent)
+            else:
+                raise ValueError(f'PhasedXPowGate does not support complex value {phase_exponent}')
+        if isinstance(exponent, (complex, numbers.Complex)):
+            if isinstance(exponent, numbers.Real):
+                exponent = float(exponent)
+            else:
+                raise ValueError(f'PhasedXPowGate does not support complex value {exponent}')
         return PhasedXPowGate(
-            phase_exponent=resolver.value_of(self._phase_exponent, recursive),
-            exponent=resolver.value_of(self._exponent, recursive),
-            global_shift=self._global_shift,
+            phase_exponent=phase_exponent, exponent=exponent, global_shift=self._global_shift
         )
 
     def _phase_by_(self, phase_turns, qubit_index):

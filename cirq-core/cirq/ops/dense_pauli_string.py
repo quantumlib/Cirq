@@ -69,7 +69,7 @@ class BaseDensePauliString(raw_types.Gate, metaclass=abc.ABCMeta):
         self,
         pauli_mask: Union[Iterable['cirq.PAULI_GATE_LIKE'], np.ndarray],
         *,
-        coefficient: Union[sympy.Expr, int, float, complex] = 1,
+        coefficient: Union[sympy.Expr, int, float, 'cirq.TParamValComplex'] = 1,
     ):
         """Initializes a new dense pauli string.
 
@@ -319,11 +319,6 @@ class BaseDensePauliString(raw_types.Gate, metaclass=abc.ABCMeta):
         if len(qubits) != len(self):
             raise ValueError('Wrong number of qubits.')
 
-        if isinstance(self.coefficient, sympy.Expr):
-            raise ValueError(
-                'Sparse pauli string does not support '
-                f'symbolic coefficients ({self.coefficient}i).'
-            )
         return pauli_string.PauliString(
             coefficient=self.coefficient,
             qubit_pauli_map={q: PAULI_GATES[p] for q, p in zip(qubits, self.pauli_mask) if p},

@@ -14,10 +14,12 @@
 
 import dataclasses
 import datetime
-from typing import Any, Dict, Iterable, List, Tuple, TYPE_CHECKING
+from typing import Any, Dict, Iterable, List, Tuple, TYPE_CHECKING, Union
 
 import numpy as np
+import sympy
 from cirq import ops, protocols, value
+
 from cirq._compat import proper_repr
 from cirq.work.observable_settings import (
     InitObsSetting,
@@ -29,14 +31,13 @@ from cirq.work.observable_settings import (
 
 if TYPE_CHECKING:
     import cirq
-    import sympy
 
 
 def _check_and_get_real_coef(observable: 'cirq.PauliString', atol: float):
     """Assert that a PauliString has a real coefficient and return it."""
     coef = observable.coefficient
-    if not np.isclose(coef.imag, 0, atol=atol):
-        raise ValueError(f"{observable} has a complex coefficient.")
+    if isinstance(coef, sympy.Expr) or not np.isclose(coef.imag, 0, atol=atol):
+        raise ValueError(f"{observable} has a complex or symbolic coefficient.")
     return coef.real
 
 
@@ -106,8 +107,8 @@ class ObservableMeasuredResult:
     mean: float
     variance: float
     repetitions: int
-    circuit_params: Dict[str, value.Scalar]
-      
+    circuit_params: Dict[Union[str, sympy.Expr], Union[value.Scalar, sympy.Expr]]
+
     def __repr__(self):
         # I wish we could use the default dataclass __repr__ but
         # we need to prefix our class name with `cirq.work.`

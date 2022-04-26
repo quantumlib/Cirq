@@ -128,7 +128,6 @@ def observables_to_settings(
         yield InitObsSetting(init_state=zeros_state(qubits), observable=observable)
 
 
-
 def _fix_precision(val: Union[value.Scalar, sympy.Expr], precision) -> Union[int, Tuple[int, int]]:
     """Convert floating point or complex numbers to (implicitly) fixed point
     integers. Complex numbers will return fixed-point (real, imag) tuples.
@@ -167,7 +166,7 @@ class _MeasurementSpec:
     """
 
     max_setting: InitObsSetting
-    circuit_params: Dict[str, value.Scalar]
+    circuit_params: Dict[Union[str, sympy.Expr], Union[value.Scalar, sympy.Expr]]
 
     def __hash__(self):
         return hash((self.max_setting, _hashable_param(self.circuit_params.items())))

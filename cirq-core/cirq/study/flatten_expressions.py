@@ -13,12 +13,16 @@
 # limitations under the License.
 """Resolves symbolic expressions to unique symbols."""
 
-from typing import overload, Any, Callable, List, Optional, Tuple, Union
+from typing import overload, Any, Callable, List, Optional, Tuple, Union, TYPE_CHECKING
+import numbers
 
 import sympy
 
 from cirq import protocols
 from cirq.study import resolver, sweeps, sweepable
+
+if TYPE_CHECKING:
+    import cirq
 
 
 def flatten(val: Any) -> Tuple[Any, 'ExpressionMap']:
@@ -218,8 +222,9 @@ class _ParamFlattener(resolver.ParamResolver):
             params = param_dict.param_dict
         else:
             params = param_dict if param_dict else {}
+        # TODO: Support complex values for typing below.
         symbol_params: resolver.ParamDictType = {
-            _ensure_not_str(param): _ensure_not_str(val) for param, val in params.items()
+            _ensure_not_str(param): _ensure_not_str(val) for param, val in params.items()  # type: ignore[misc]
         }
         super().__init__(symbol_params)
         if get_param_name is None:
@@ -244,8 +249,8 @@ class _ParamFlattener(resolver.ParamResolver):
         return symbol
 
     def value_of(
-        self, value: Union[sympy.Expr, float, str], recursive: bool = False
-    ) -> Union[sympy.Expr, float]:
+        self, value: Union['cirq.TParamKey', 'cirq.TParamValComplex'], recursive: bool = False
+    ) -> 'cirq.TParamValComplex':
         """Resolves a symbol or expression to a new symbol unique to that value.
 
         - If value is a float, returns it.
@@ -263,7 +268,7 @@ class _ParamFlattener(resolver.ParamResolver):
             The unique symbol or value of the parameter as resolved by this
             resolver.
         """
-        if isinstance(value, (int, float)):
+        if isinstance(value, (int, float, complex, numbers.Complex)):
             return value
         if isinstance(value, str):
             value = sympy.Symbol(value)
@@ -373,17 +378,9 @@ class ExpressionMap(dict):
         return f'cirq.ExpressionMap({super_repr})'
 
 
-@overload
-def _ensure_not_str(param: Union[sympy.Expr, str]) -> sympy.Expr:
-    pass
-
-
-@overload
-def _ensure_not_str(param: float) -> float:
-    pass
-
-
-def _ensure_not_str(param):
+def _ensure_not_str(
+    param: Union[sympy.Expr, 'cirq.TParamValComplex', str]
+) -> Union[sympy.Expr, 'cirq.TParamValComplex']:
     if isinstance(param, str):
         return sympy.Symbol(param)
     return param

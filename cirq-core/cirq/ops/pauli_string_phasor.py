@@ -13,6 +13,7 @@
 # limitations under the License.
 
 from typing import AbstractSet, cast, Dict, Iterable, Union, TYPE_CHECKING, Sequence, Iterator
+import numbers
 
 import sympy
 
@@ -309,10 +310,24 @@ class PauliStringPhasorGate(raw_types.Gate):
     def _resolve_parameters_(
         self, resolver: 'cirq.ParamResolver', recursive: bool
     ) -> 'PauliStringPhasorGate':
+        exponent_neg = resolver.value_of(self.exponent_neg, recursive)
+        exponent_pos = resolver.value_of(self.exponent_pos, recursive)
+        if isinstance(exponent_neg, (complex, numbers.Complex)):
+            if isinstance(exponent_neg, numbers.Real):
+                exponent_neg = float(exponent_neg)
+            else:
+                raise ValueError(
+                    f'PauliStringPhasorGate does not support complex exponent {exponent_neg}'
+                )
+        if isinstance(exponent_pos, (complex, numbers.Complex)):
+            if isinstance(exponent_pos, numbers.Real):
+                exponent_pos = float(exponent_pos)
+            else:
+                raise ValueError(
+                    f'PauliStringPhasorGate does not support complex exponent {exponent_pos}'
+                )
         return PauliStringPhasorGate(
-            self.dense_pauli_string,
-            exponent_neg=resolver.value_of(self.exponent_neg, recursive),
-            exponent_pos=resolver.value_of(self.exponent_pos, recursive),
+            self.dense_pauli_string, exponent_neg=exponent_neg, exponent_pos=exponent_pos
         )
 
     def __repr__(self) -> str:

@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 from typing import AbstractSet, Any, Dict, Optional, Sequence, Tuple, TYPE_CHECKING, Union
+import numbers
 
 import numpy as np
 import sympy
@@ -208,10 +209,28 @@ class PhasedXZGate(raw_types.Gate):
         self, resolver: 'cirq.ParamResolver', recursive: bool
     ) -> 'cirq.PhasedXZGate':
         """See `cirq.SupportsParameterization`."""
+        z_exponent = resolver.value_of(self._z_exponent, recursive)
+        x_exponent = resolver.value_of(self._x_exponent, recursive)
+        axis_phase_exponent = resolver.value_of(self._axis_phase_exponent, recursive)
+        if isinstance(z_exponent, (complex, numbers.Complex)):
+            if isinstance(z_exponent, numbers.Real):
+                z_exponent = float(z_exponent)
+            else:
+                raise ValueError(f'Complex exponent {z_exponent} not allowed in cirq.PhasedXZGate')
+        if isinstance(x_exponent, (complex, numbers.Complex)):
+            if isinstance(x_exponent, numbers.Real):
+                x_exponent = float(x_exponent)
+            else:
+                raise ValueError(f'Complex exponent {x_exponent} not allowed in cirq.PhasedXZGate')
+        if isinstance(axis_phase_exponent, (complex, numbers.Complex)):
+            if isinstance(axis_phase_exponent, numbers.Real):
+                axis_phase_exponent = float(axis_phase_exponent)
+            else:
+                raise ValueError(
+                    f'Complex exponent {axis_phase_exponent} not allowed in cirq.PhasedXZGate'
+                )
         return PhasedXZGate(
-            z_exponent=resolver.value_of(self._z_exponent, recursive),
-            x_exponent=resolver.value_of(self._x_exponent, recursive),
-            axis_phase_exponent=resolver.value_of(self._axis_phase_exponent, recursive),
+            z_exponent=z_exponent, x_exponent=x_exponent, axis_phase_exponent=axis_phase_exponent
         )
 
     def _phase_by_(self, phase_turns, qubit_index) -> 'cirq.PhasedXZGate':
