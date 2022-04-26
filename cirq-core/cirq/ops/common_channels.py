@@ -20,7 +20,7 @@ from typing import Any, Dict, Iterable, List, Optional, Sequence, Tuple, Union, 
 import numpy as np
 
 from cirq import protocols, value
-from cirq.ops import raw_types, common_gates, pauli_gates, gate_features, identity
+from cirq.ops import raw_types, common_gates, pauli_gates, identity
 
 
 if TYPE_CHECKING:
@@ -28,7 +28,7 @@ if TYPE_CHECKING:
 
 
 @value.value_equality
-class AsymmetricDepolarizingChannel(gate_features.SingleQubitGate):
+class AsymmetricDepolarizingChannel(raw_types.Gate):
     """A channel that depolarizes asymmetrically along different directions."""
 
     def __init__(
@@ -380,7 +380,7 @@ def depolarize(p: float, n_qubits: int = 1) -> DepolarizingChannel:
 
 
 @value.value_equality
-class GeneralizedAmplitudeDampingChannel(gate_features.SingleQubitGate):
+class GeneralizedAmplitudeDampingChannel(raw_types.Gate):
     """Dampen qubit amplitudes through non ideal dissipation.
 
     This channel models the effect of energy dissipation into the environment
@@ -443,6 +443,9 @@ class GeneralizedAmplitudeDampingChannel(gate_features.SingleQubitGate):
         """
         self._p = value.validate_probability(p, 'p')
         self._gamma = value.validate_probability(gamma, 'gamma')
+
+    def _num_qubits_(self) -> int:
+        return 1
 
     def _kraus_(self) -> Iterable[np.ndarray]:
         p0 = np.sqrt(self._p)
@@ -541,7 +544,7 @@ def generalized_amplitude_damp(p: float, gamma: float) -> GeneralizedAmplitudeDa
 
 
 @value.value_equality
-class AmplitudeDampingChannel(gate_features.SingleQubitGate):
+class AmplitudeDampingChannel(raw_types.Gate):
     """Dampen qubit amplitudes through dissipation.
 
     This channel models the effect of energy dissipation to the
@@ -584,6 +587,9 @@ class AmplitudeDampingChannel(gate_features.SingleQubitGate):
         """
         self._gamma = value.validate_probability(gamma, 'gamma')
         self._delegate = GeneralizedAmplitudeDampingChannel(1.0, self._gamma)
+
+    def _num_qubits_(self) -> int:
+        return 1
 
     def _kraus_(self) -> Iterable[np.ndarray]:
         # just return first two kraus ops, we don't care about
@@ -655,7 +661,7 @@ def amplitude_damp(gamma: float) -> AmplitudeDampingChannel:
 
 
 @value.value_equality
-class ResetChannel(gate_features.SingleQubitGate):
+class ResetChannel(raw_types.Gate):
     """Reset a qubit back to its |0⟩ state.
 
     The reset channel is equivalent to performing an unobserved measurement
@@ -782,7 +788,7 @@ def reset_each(*qubits: 'cirq.Qid') -> List[raw_types.Operation]:
 
 
 @value.value_equality
-class PhaseDampingChannel(gate_features.SingleQubitGate):
+class PhaseDampingChannel(raw_types.Gate):
     """Dampen qubit phase.
 
     This channel models phase damping which is the loss of quantum
@@ -823,6 +829,9 @@ class PhaseDampingChannel(gate_features.SingleQubitGate):
             ValueError: if gamma is not a valid probability.
         """
         self._gamma = value.validate_probability(gamma, 'gamma')
+
+    def _num_qubits_(self) -> int:
+        return 1
 
     def _kraus_(self) -> Iterable[np.ndarray]:
         return (
@@ -895,7 +904,7 @@ def phase_damp(gamma: float) -> PhaseDampingChannel:
 
 
 @value.value_equality
-class PhaseFlipChannel(gate_features.SingleQubitGate):
+class PhaseFlipChannel(raw_types.Gate):
     """Probabilistically flip the sign of the phase of a qubit."""
 
     def __init__(self, p: float) -> None:
@@ -933,6 +942,9 @@ class PhaseFlipChannel(gate_features.SingleQubitGate):
         """
         self._p = value.validate_probability(p, 'p')
         self._delegate = AsymmetricDepolarizingChannel(0.0, 0.0, p)
+
+    def _num_qubits_(self) -> int:
+        return 1
 
     def _mixture_(self) -> Sequence[Tuple[float, np.ndarray]]:
         mixture = self._delegate._mixture_()
@@ -1048,7 +1060,7 @@ def phase_flip(p: Optional[float] = None) -> Union[common_gates.ZPowGate, PhaseF
 
 
 @value.value_equality
-class BitFlipChannel(gate_features.SingleQubitGate):
+class BitFlipChannel(raw_types.Gate):
     r"""Probabilistically flip a qubit from 1 to 0 state or vice versa."""
 
     def __init__(self, p: float) -> None:
@@ -1086,6 +1098,9 @@ class BitFlipChannel(gate_features.SingleQubitGate):
         """
         self._p = value.validate_probability(p, 'p')
         self._delegate = AsymmetricDepolarizingChannel(p, 0.0, 0.0)
+
+    def _num_qubits_(self) -> int:
+        return 1
 
     def _mixture_(self) -> Sequence[Tuple[float, np.ndarray]]:
         mixture = self._delegate._mixture_()

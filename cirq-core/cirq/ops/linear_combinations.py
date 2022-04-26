@@ -134,12 +134,7 @@ class LinearCombinationOfGates(value.LinearDict[raw_types.Gate]):
             return NotImplemented
         if self.num_qubits() != 1:
             return NotImplemented
-        pauli_basis = {
-            identity.I,
-            pauli_gates.X,
-            pauli_gates.Y,
-            pauli_gates.Z,
-        }
+        pauli_basis = {identity.I, pauli_gates.X, pauli_gates.Y, pauli_gates.Z}
         if not set(self.keys()).issubset(pauli_basis):
             return NotImplemented
 
@@ -782,9 +777,7 @@ class ProjectorSum:
         for projector_dict, scalar in dict(self._linear_dict).items():
             key = [[k, v] for k, v in dict(projector_dict).items()]
             linear_dict.append([key, scalar])
-        return {
-            'linear_dict': linear_dict,
-        }
+        return {'linear_dict': linear_dict}
 
     @classmethod
     def _from_json_dict_(cls, linear_dict, **kwargs):
@@ -839,9 +832,7 @@ class ProjectorSum:
         )
 
     def expectation_from_state_vector(
-        self,
-        state_vector: np.ndarray,
-        qid_map: Mapping[raw_types.Qid, int],
+        self, state_vector: np.ndarray, qid_map: Mapping[raw_types.Qid, int]
     ) -> float:
         """Compute the expectation value of this ProjectorSum given a state vector.
 
@@ -865,9 +856,7 @@ class ProjectorSum:
         )
 
     def expectation_from_density_matrix(
-        self,
-        state: np.ndarray,
-        qid_map: Mapping[raw_types.Qid, int],
+        self, state: np.ndarray, qid_map: Mapping[raw_types.Qid, int]
     ) -> float:
         """Expectation of the sum of projections from a density matrix.
 

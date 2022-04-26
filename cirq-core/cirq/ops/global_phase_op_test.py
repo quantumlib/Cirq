@@ -14,6 +14,7 @@
 
 import numpy as np
 import pytest
+import sympy
 
 import cirq
 
@@ -52,9 +53,7 @@ def test_act_on_tableau(phase):
 def test_act_on_ch_form(phase):
     state = cirq.StabilizerStateChForm(0)
     args = cirq.ActOnStabilizerCHFormArgs(
-        qubits=[],
-        prng=np.random.RandomState(),
-        initial_state=state,
+        qubits=[], prng=np.random.RandomState(), initial_state=state
     )
     cirq.act_on(cirq.global_phase_operation(phase), args, allow_decompose=False)
     assert state.state_vector() == [[phase]]
@@ -88,15 +87,7 @@ def test_diagram():
 
     cirq.testing.assert_has_diagram(
         cirq.Circuit(
-            [
-                cirq.Moment(
-                    [
-                        cirq.CNOT(a, x),
-                        cirq.CNOT(b, y),
-                        cirq.global_phase_operation(-1),
-                    ]
-                )
-            ]
+            [cirq.Moment([cirq.CNOT(a, x), cirq.CNOT(b, y), cirq.global_phase_operation(-1)])]
         ),
         """
                 ┌──┐
@@ -123,7 +114,7 @@ global phase:    π
                         cirq.global_phase_operation(-1),
                         cirq.global_phase_operation(-1),
                     ]
-                ),
+                )
             ]
         ),
         """
@@ -152,16 +143,8 @@ global phase:
                         cirq.global_phase_operation(-1),
                     ]
                 ),
-                cirq.Moment(
-                    [
-                        cirq.global_phase_operation(1j),
-                    ]
-                ),
-                cirq.Moment(
-                    [
-                        cirq.X(a),
-                    ]
-                ),
+                cirq.Moment([cirq.global_phase_operation(1j)]),
+                cirq.Moment([cirq.X(a)]),
             ]
         ),
         """
@@ -180,20 +163,7 @@ global phase:          0.5π
     )
 
     cirq.testing.assert_has_diagram(
-        cirq.Circuit(
-            [
-                cirq.Moment(
-                    [
-                        cirq.X(a),
-                    ]
-                ),
-                cirq.Moment(
-                    [
-                        cirq.global_phase_operation(-1j),
-                    ]
-                ),
-            ]
-        ),
+        cirq.Circuit([cirq.Moment([cirq.X(a)]), cirq.Moment([cirq.global_phase_operation(-1j)])]),
         """
 0: ─────────────X───────────
 
@@ -202,16 +172,7 @@ global phase:       -0.5π
     )
 
     cirq.testing.assert_has_diagram(
-        cirq.Circuit(
-            [
-                cirq.Moment(
-                    [
-                        cirq.X(a),
-                        cirq.global_phase_operation(np.exp(1j)),
-                    ]
-                ),
-            ]
-        ),
+        cirq.Circuit([cirq.Moment([cirq.X(a), cirq.global_phase_operation(np.exp(1j))])]),
         """
 0: ─────────────X────────
 
@@ -220,16 +181,7 @@ global phase:   0.318π
     )
 
     cirq.testing.assert_has_diagram(
-        cirq.Circuit(
-            [
-                cirq.Moment(
-                    [
-                        cirq.X(a),
-                        cirq.global_phase_operation(np.exp(1j)),
-                    ]
-                ),
-            ]
-        ),
+        cirq.Circuit([cirq.Moment([cirq.X(a), cirq.global_phase_operation(np.exp(1j))])]),
         """
 0: ─────────────X──────────
 
@@ -241,17 +193,8 @@ global phase:   0.31831π
     cirq.testing.assert_has_diagram(
         cirq.Circuit(
             [
-                cirq.Moment(
-                    [
-                        cirq.X(a),
-                        cirq.global_phase_operation(1j),
-                    ]
-                ),
-                cirq.Moment(
-                    [
-                        cirq.global_phase_operation(-1j),
-                    ]
-                ),
+                cirq.Moment([cirq.X(a), cirq.global_phase_operation(1j)]),
+                cirq.Moment([cirq.global_phase_operation(-1j)]),
             ]
         ),
         """
@@ -263,15 +206,7 @@ global phase:   0.5pi   -0.5pi
     )
 
     cirq.testing.assert_has_diagram(
-        cirq.Circuit(
-            [
-                cirq.Moment(
-                    [
-                        cirq.global_phase_operation(-1j),
-                    ]
-                ),
-            ]
-        ),
+        cirq.Circuit([cirq.Moment([cirq.global_phase_operation(-1j)])]),
         """
 global phase:   -0.5π
         """,
@@ -280,9 +215,7 @@ global phase:   -0.5π
 
 def test_global_phase_op_json_dict():
     with cirq.testing.assert_deprecated('Use cirq.global_phase_operation', deadline='v0.16'):
-        assert cirq.GlobalPhaseOperation(-1j)._json_dict_() == {
-            'coefficient': -1j,
-        }
+        assert cirq.GlobalPhaseOperation(-1j)._json_dict_() == {'coefficient': -1j}
 
 
 def test_gate_init():
@@ -317,9 +250,7 @@ def test_gate_act_on_tableau(phase):
 def test_gate_act_on_ch_form(phase):
     state = cirq.StabilizerStateChForm(0)
     args = cirq.ActOnStabilizerCHFormArgs(
-        qubits=[],
-        prng=np.random.RandomState(),
-        initial_state=state,
+        qubits=[], prng=np.random.RandomState(), initial_state=state
     )
     cirq.act_on(cirq.GlobalPhaseGate(phase), args, qubits=(), allow_decompose=False)
     assert state.state_vector() == [[phase]]
@@ -340,6 +271,29 @@ def test_gate_op_repr():
 
 
 def test_gate_global_phase_op_json_dict():
-    assert cirq.GlobalPhaseGate(-1j)._json_dict_() == {
-        'coefficient': -1j,
-    }
+    assert cirq.GlobalPhaseGate(-1j)._json_dict_() == {'coefficient': -1j}
+
+
+def test_parameterization():
+    t = sympy.Symbol('t')
+    gpt = cirq.GlobalPhaseGate(coefficient=t)
+    assert cirq.is_parameterized(gpt)
+    assert cirq.parameter_names(gpt) == {'t'}
+    assert not cirq.has_unitary(gpt)
+    assert gpt.coefficient == t
+    assert (gpt**2).coefficient == t**2
+
+
+@pytest.mark.parametrize('resolve_fn', [cirq.resolve_parameters, cirq.resolve_parameters_once])
+def test_resolve(resolve_fn):
+    t = sympy.Symbol('t')
+    gpt = cirq.GlobalPhaseGate(coefficient=t)
+    assert resolve_fn(gpt, {'t': -1}) == cirq.GlobalPhaseGate(coefficient=-1)
+
+
+@pytest.mark.parametrize('resolve_fn', [cirq.resolve_parameters, cirq.resolve_parameters_once])
+def test_resolve_error(resolve_fn):
+    t = sympy.Symbol('t')
+    gpt = cirq.GlobalPhaseGate(coefficient=t)
+    with pytest.raises(ValueError, match='Coefficient is not unitary'):
+        resolve_fn(gpt, {'t': -2})

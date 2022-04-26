@@ -621,10 +621,7 @@ def test_tagged_operation_forwards_protocols():
     assert 3 * tagged_y == (3 * y)
     assert cirq.phase_by(y, 0.125, 0) == cirq.phase_by(tagged_y, 0.125, 0)
     controlled_y = tagged_y.controlled_by(q2)
-    assert controlled_y.qubits == (
-        q2,
-        q1,
-    )
+    assert controlled_y.qubits == (q2, q1)
     assert isinstance(controlled_y, cirq.Operation)
     assert not isinstance(controlled_y, cirq.TaggedOperation)
 
@@ -768,7 +765,7 @@ def test_tagged_act_on():
 
 
 def test_single_qubit_gate_validates_on_each():
-    class Dummy(cirq.SingleQubitGate):
+    class Dummy(cirq.testing.SingleQubitGate):
         def matrix(self):
             pass
 
@@ -788,7 +785,7 @@ def test_single_qubit_gate_validates_on_each():
 
 
 def test_on_each():
-    class CustomGate(cirq.SingleQubitGate):
+    class CustomGate(cirq.testing.SingleQubitGate):
         pass
 
     a = cirq.NamedQubit('a')

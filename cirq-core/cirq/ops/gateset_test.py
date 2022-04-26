@@ -23,10 +23,7 @@ import numpy as np
 
 class CustomXPowGate(cirq.EigenGate):
     def _eigen_components(self) -> List[Tuple[float, np.ndarray]]:
-        return [
-            (0, np.array([[0.5, 0.5], [0.5, 0.5]])),
-            (1, np.array([[0.5, -0.5], [-0.5, 0.5]])),
-        ]
+        return [(0, np.array([[0.5, 0.5], [0.5, 0.5]])), (1, np.array([[0.5, -0.5], [-0.5, 0.5]]))]
 
     def __str__(self) -> str:
         if self._global_shift == 0:
@@ -129,7 +126,7 @@ def test_gate_family_eq():
                 (CustomX**0.5, True),
                 (CustomX ** sympy.Symbol('theta'), True),
                 (CustomXPowGate(exponent=0.25, global_shift=0.15), True),
-                (cirq.SingleQubitGate(), False),
+                (cirq.testing.SingleQubitGate(), False),
                 (cirq.X**0.5, False),
                 (None, False),
                 (cirq.global_phase_operation(1j), False),
@@ -149,10 +146,7 @@ def test_gate_family_eq():
         ),
         (
             cirq.GateFamily(CustomX, ignore_global_phase=False),
-            [
-                (CustomX, True),
-                (CustomXPowGate(exponent=1, global_shift=0.15), False),
-            ],
+            [(CustomX, True), (CustomXPowGate(exponent=1, global_shift=0.15), False)],
         ),
     ],
 )
@@ -263,23 +257,21 @@ def test_gateset_validate(use_circuit_op, use_global_phase):
             assert gateset.validate(item) is result
 
     op_tree = [*get_ops(use_circuit_op, use_global_phase)]
-    assert_validate_and_contains_consistent(
-        gateset.with_params(
-            unroll_circuit_op=use_circuit_op,
-            accept_global_phase_op=use_global_phase,
-        ),
-        op_tree,
-        True,
-    )
-    if use_circuit_op or use_global_phase:
+    with cirq.testing.assert_deprecated('global phase', deadline='v0.16', count=None):
         assert_validate_and_contains_consistent(
             gateset.with_params(
-                unroll_circuit_op=False,
-                accept_global_phase_op=False,
+                unroll_circuit_op=use_circuit_op, accept_global_phase_op=use_global_phase
             ),
             op_tree,
-            False,
+            True,
         )
+    if use_circuit_op or use_global_phase:
+        with cirq.testing.assert_deprecated('global phase', deadline='v0.16', count=2):
+            assert_validate_and_contains_consistent(
+                gateset.with_params(unroll_circuit_op=False, accept_global_phase_op=False),
+                op_tree,
+                False,
+            )
 
 
 def test_gateset_validate_circuit_op_negative_reps():
@@ -291,31 +283,39 @@ def test_gateset_validate_circuit_op_negative_reps():
 
 def test_with_params():
     assert gateset.with_params() is gateset
-    assert (
-        gateset.with_params(
-            name=gateset.name,
-            unroll_circuit_op=gateset._unroll_circuit_op,
-            accept_global_phase_op=gateset._accept_global_phase_op,
+    with cirq.testing.assert_deprecated('global phase', deadline='v0.16'):
+        assert (
+            gateset.with_params(
+                name=gateset.name,
+                unroll_circuit_op=gateset._unroll_circuit_op,
+                accept_global_phase_op=None,
+            )
+            is gateset
         )
-        is gateset
-    )
-    gateset_with_params = gateset.with_params(
-        name='new name', unroll_circuit_op=False, accept_global_phase_op=False
-    )
+    with cirq.testing.assert_deprecated('global phase', deadline='v0.16', count=2):
+        gateset_with_params = gateset.with_params(
+            name='new name', unroll_circuit_op=False, accept_global_phase_op=False
+        )
     assert gateset_with_params.name == 'new name'
     assert gateset_with_params._unroll_circuit_op is False
-    assert gateset_with_params._accept_global_phase_op is False
 
 
 def test_gateset_eq():
     eq = cirq.testing.EqualsTester()
     eq.add_equality_group(cirq.Gateset(CustomX))
     eq.add_equality_group(cirq.Gateset(CustomX**3))
-    eq.add_equality_group(cirq.Gateset(CustomX, name='Custom Gateset'))
+    with cirq.testing.assert_deprecated('global phase', deadline='v0.16'):
+        eq.add_equality_group(
+            cirq.Gateset(CustomX, name='Custom Gateset'),
+            cirq.Gateset(
+                CustomX, cirq.GlobalPhaseGate, name='Custom Gateset', accept_global_phase_op=False
+            ),
+        )
     eq.add_equality_group(cirq.Gateset(CustomX, name='Custom Gateset', unroll_circuit_op=False))
-    eq.add_equality_group(
-        cirq.Gateset(CustomX, name='Custom Gateset', accept_global_phase_op=False)
-    )
+    with cirq.testing.assert_deprecated('global phase', deadline='v0.16'):
+        eq.add_equality_group(
+            cirq.Gateset(CustomX, name='Custom Gateset', accept_global_phase_op=True)
+        )
     eq.add_equality_group(
         cirq.Gateset(
             cirq.GateFamily(CustomX, name='custom_name', description='custom_description'),

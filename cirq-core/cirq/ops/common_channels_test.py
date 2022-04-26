@@ -138,12 +138,7 @@ def test_depolarizing_channel():
     d = cirq.depolarize(0.3)
     np.testing.assert_almost_equal(
         cirq.kraus(d),
-        (
-            np.sqrt(0.7) * np.eye(2),
-            np.sqrt(0.1) * X,
-            np.sqrt(0.1) * Y,
-            np.sqrt(0.1) * Z,
-        ),
+        (np.sqrt(0.7) * np.eye(2), np.sqrt(0.1) * X, np.sqrt(0.1) * Y, np.sqrt(0.1) * Z),
     )
     assert cirq.has_kraus(d)
 
@@ -448,6 +443,8 @@ def test_reset_channel():
     np.testing.assert_almost_equal(
         cirq.kraus(r), (np.array([[1.0, 0.0], [0.0, 0]]), np.array([[0.0, 1.0], [0.0, 0.0]]))
     )
+
+    assert cirq.num_qubits(r) == 1
     assert cirq.has_kraus(r)
     assert not cirq.has_mixture(r)
     assert cirq.qid_shape(r) == (2,)

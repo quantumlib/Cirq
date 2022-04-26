@@ -20,9 +20,7 @@ from cirq import circuits, protocols
 from cirq.contrib.routing.greedy import route_circuit_greedily
 from cirq.contrib.routing.swap_network import SwapNetwork
 
-ROUTERS = {
-    'greedy': route_circuit_greedily,
-}
+ROUTERS = {'greedy': route_circuit_greedily}
 
 
 def route_circuit(

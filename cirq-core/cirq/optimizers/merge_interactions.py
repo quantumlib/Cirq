@@ -99,10 +99,7 @@ class MergeInteractionsAbc(circuits.PointOptimizer, metaclass=abc.ABCMeta):
 
     @abc.abstractmethod
     def _two_qubit_matrix_to_cz_operations(
-        self,
-        q0: 'cirq.Qid',
-        q1: 'cirq.Qid',
-        mat: np.ndarray,
+        self, q0: 'cirq.Qid', q1: 'cirq.Qid', mat: np.ndarray
     ) -> Sequence['cirq.Operation']:
         """Decomposes the merged two-qubit gate unitary into the minimum number
         of two-qubit gates.
@@ -238,8 +235,8 @@ class MergeInteractions(MergeInteractionsAbc):
         self.allow_partial_czs = allow_partial_czs
         self.gateset = ops.Gateset(
             ops.CZPowGate if allow_partial_czs else ops.CZ,
+            ops.GlobalPhaseGate,
             unroll_circuit_op=False,
-            accept_global_phase_op=True,
         )
 
     def _may_keep_old_op(self, old_op: 'cirq.Operation') -> bool:
@@ -248,10 +245,7 @@ class MergeInteractions(MergeInteractionsAbc):
         return old_op in self.gateset
 
     def _two_qubit_matrix_to_cz_operations(
-        self,
-        q0: 'cirq.Qid',
-        q1: 'cirq.Qid',
-        mat: np.ndarray,
+        self, q0: 'cirq.Qid', q1: 'cirq.Qid', mat: np.ndarray
     ) -> Sequence['cirq.Operation']:
         """Decomposes the merged two-qubit gate unitary into the minimum number
         of CZ gates.

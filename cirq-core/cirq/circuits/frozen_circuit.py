@@ -46,9 +46,7 @@ class FrozenCircuit(AbstractCircuit, protocols.SerializableByKey):
     """
 
     def __init__(
-        self,
-        *contents: 'cirq.OP_TREE',
-        strategy: 'cirq.InsertStrategy' = InsertStrategy.EARLIEST,
+        self, *contents: 'cirq.OP_TREE', strategy: 'cirq.InsertStrategy' = InsertStrategy.EARLIEST
     ) -> None:
         """Initializes a frozen circuit.
 

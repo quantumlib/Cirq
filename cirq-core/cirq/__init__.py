@@ -58,9 +58,7 @@ from cirq import (
 
 # End dependency order list of sub-modules
 
-from cirq._version import (
-    __version__,
-)
+from cirq._version import __version__
 
 # Flattened sub-modules.
 
@@ -104,6 +102,7 @@ from cirq.devices import (
     LineTopology,
     TiltedSquareLattice,
     get_placements,
+    is_valid_placement,
     draw_placements,
 )
 
@@ -125,10 +124,7 @@ from cirq.experiments import (
     xeb_fidelity,
 )
 
-from cirq.interop import (
-    quirk_json_to_circuit,
-    quirk_url_to_circuit,
-)
+from cirq.interop import quirk_json_to_circuit, quirk_url_to_circuit
 
 from cirq.linalg import (
     all_near_zero,
@@ -549,6 +545,7 @@ from cirq.value import (
     Timestamp,
     TParamKey,
     TParamVal,
+    TParamValComplex,
     validate_probability,
     value_equality,
     KET_PLUS,
@@ -662,12 +659,7 @@ from cirq.protocols import (
     with_rescoped_keys,
 )
 
-from cirq.ion import (
-    ConvertToIonGates,
-    IonDevice,
-    ms,
-    two_qubit_matrix_to_ion_operations,
-)
+from cirq.ion import ConvertToIonGates, IonDevice, ms, two_qubit_matrix_to_ion_operations
 from cirq.neutral_atoms import (
     ConvertToNeutralAtomGates,
     is_native_neutral_atom_gate,
@@ -684,21 +676,13 @@ from cirq.vis import (
     plot_state_histogram,
 )
 
-from cirq.work import (
-    CircuitSampleJob,
-    PauliSumCollector,
-    Sampler,
-    Collector,
-    ZerosSampler,
-)
+from cirq.work import CircuitSampleJob, PauliSumCollector, Sampler, Collector, ZerosSampler
 
 # pylint: enable=redefined-builtin
 
 # Unflattened sub-modules.
 
-from cirq import (
-    testing,
-)
+from cirq import testing
 
 # Registers cirq-core's public classes for JSON serialization.
 # pylint: disable=wrong-import-position
@@ -710,9 +694,7 @@ _register_resolver(_class_resolver_dictionary)
 
 # contrib's json resolver cache depends on cirq.DEFAULT_RESOLVER
 
-from cirq import (
-    contrib,
-)
+from cirq import contrib
 
 # deprecate cirq.ops and related attributes
 
@@ -727,11 +709,6 @@ _compat.deprecated_submodule(
 )
 
 ops.Moment = Moment  # type: ignore
-_compat.deprecate_attributes(
-    'cirq.ops',
-    {
-        'Moment': ('v0.16', 'Use cirq.circuits.Moment instead'),
-    },
-)
+_compat.deprecate_attributes('cirq.ops', {'Moment': ('v0.16', 'Use cirq.circuits.Moment instead')})
 
 # pylint: enable=wrong-import-position

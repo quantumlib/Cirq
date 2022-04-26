@@ -21,12 +21,12 @@ import sympy
 import cirq
 from cirq import value, protocols
 from cirq._compat import proper_repr
-from cirq.ops import gate_features, common_gates
+from cirq.ops import common_gates, raw_types
 from cirq.type_workarounds import NotImplementedType
 
 
 @value.value_equality(manual_cls=True, approximate=True)
-class PhasedXPowGate(gate_features.SingleQubitGate):
+class PhasedXPowGate(raw_types.Gate):
     r"""A gate equivalent to $Z^{p} X^t Z^{-p}$.
 
     The unitary matrix of `cirq.PhasedXPowGate(exponent=t, phase_exponent=p)` is:
@@ -137,6 +137,9 @@ class PhasedXPowGate(gate_features.SingleQubitGate):
         x = protocols.unitary(cirq.X**self._exponent)
         p = np.exp(1j * np.pi * self._global_shift * self._exponent)
         return np.dot(np.dot(z, x), np.conj(z)) * p
+
+    def _num_qubits_(self) -> int:
+        return 1
 
     def _pauli_expansion_(self) -> value.LinearDict[str]:
         if self._is_parameterized_():

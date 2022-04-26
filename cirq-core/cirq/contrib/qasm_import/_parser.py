@@ -249,11 +249,7 @@ class QasmParser:
     tokens = QasmLexer.tokens
     start = 'start'
 
-    precedence = (
-        ('left', '+', '-'),
-        ('left', '*', '/'),
-        ('right', '^'),
-    )
+    precedence = (('left', '+', '-'), ('left', '*', '/'), ('right', '^'))
 
     def p_start(self, p):
         """start : qasm"""

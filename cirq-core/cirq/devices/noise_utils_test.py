@@ -66,10 +66,7 @@ def test_op_id_swap():
 
 @pytest.mark.parametrize(
     'decay_constant,num_qubits,expected_output',
-    [
-        (0.01, 1, 1 - (0.99 * 1 / 2)),
-        (0.05, 2, 1 - (0.95 * 3 / 4)),
-    ],
+    [(0.01, 1, 1 - (0.99 * 1 / 2)), (0.05, 2, 1 - (0.95 * 3 / 4))],
 )
 def test_decay_constant_to_xeb_fidelity(decay_constant, num_qubits, expected_output):
     val = decay_constant_to_xeb_fidelity(decay_constant, num_qubits)
@@ -78,10 +75,7 @@ def test_decay_constant_to_xeb_fidelity(decay_constant, num_qubits, expected_out
 
 @pytest.mark.parametrize(
     'decay_constant,num_qubits,expected_output',
-    [
-        (0.01, 1, 0.99 * 3 / 4),
-        (0.05, 2, 0.95 * 15 / 16),
-    ],
+    [(0.01, 1, 0.99 * 3 / 4), (0.05, 2, 0.95 * 15 / 16)],
 )
 def test_decay_constant_to_pauli_error(decay_constant, num_qubits, expected_output):
     val = decay_constant_to_pauli_error(decay_constant, num_qubits)
@@ -90,10 +84,7 @@ def test_decay_constant_to_pauli_error(decay_constant, num_qubits, expected_outp
 
 @pytest.mark.parametrize(
     'pauli_error,num_qubits,expected_output',
-    [
-        (0.01, 1, 1 - (0.01 / (3 / 4))),
-        (0.05, 2, 1 - (0.05 / (15 / 16))),
-    ],
+    [(0.01, 1, 1 - (0.01 / (3 / 4))), (0.05, 2, 1 - (0.05 / (15 / 16)))],
 )
 def test_pauli_error_to_decay_constant(pauli_error, num_qubits, expected_output):
     val = pauli_error_to_decay_constant(pauli_error, num_qubits)
@@ -102,10 +93,7 @@ def test_pauli_error_to_decay_constant(pauli_error, num_qubits, expected_output)
 
 @pytest.mark.parametrize(
     'xeb_fidelity,num_qubits,expected_output',
-    [
-        (0.01, 1, 1 - 0.99 / (1 / 2)),
-        (0.05, 2, 1 - 0.95 / (3 / 4)),
-    ],
+    [(0.01, 1, 1 - 0.99 / (1 / 2)), (0.05, 2, 1 - 0.95 / (3 / 4))],
 )
 def test_xeb_fidelity_to_decay_constant(xeb_fidelity, num_qubits, expected_output):
     val = xeb_fidelity_to_decay_constant(xeb_fidelity, num_qubits)
@@ -125,11 +113,7 @@ def test_pauli_error_from_t1(t, t1_ns, expected_output):
 
 
 @pytest.mark.parametrize(
-    'decay_constant,num_qubits,expected_output',
-    [
-        (0.01, 1, 0.99 * 1 / 2),
-        (0.05, 2, 0.95 * 3 / 4),
-    ],
+    'decay_constant,num_qubits,expected_output', [(0.01, 1, 0.99 * 1 / 2), (0.05, 2, 0.95 * 3 / 4)]
 )
 def test_average_error(decay_constant, num_qubits, expected_output):
     val = average_error(decay_constant, num_qubits)
@@ -137,12 +121,7 @@ def test_average_error(decay_constant, num_qubits, expected_output):
 
 
 @pytest.mark.parametrize(
-    'T1_ns,Tphi_ns,gate_time_ns',
-    [
-        (1e4, 2e4, 25),
-        (1e5, 2e3, 25),
-        (1e4, 2e4, 4000),
-    ],
+    'T1_ns,Tphi_ns,gate_time_ns', [(1e4, 2e4, 25), (1e5, 2e3, 25), (1e4, 2e4, 4000)]
 )
 def test_decoherence_pauli_error(T1_ns, Tphi_ns, gate_time_ns):
     val = decoherence_pauli_error(T1_ns, Tphi_ns, gate_time_ns)

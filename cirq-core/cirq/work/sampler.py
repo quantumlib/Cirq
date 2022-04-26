@@ -161,10 +161,7 @@ class Sampler(metaclass=abc.ABCMeta):
 
     @abc.abstractmethod
     def run_sweep(
-        self,
-        program: 'cirq.AbstractCircuit',
-        params: 'cirq.Sweepable',
-        repetitions: int = 1,
+        self, program: 'cirq.AbstractCircuit', params: 'cirq.Sweepable', repetitions: int = 1
     ) -> Sequence['cirq.Result']:
         """Samples from the given Circuit.
 
@@ -181,10 +178,7 @@ class Sampler(metaclass=abc.ABCMeta):
         """
 
     async def run_sweep_async(
-        self,
-        program: 'cirq.AbstractCircuit',
-        params: 'cirq.Sweepable',
-        repetitions: int = 1,
+        self, program: 'cirq.AbstractCircuit', params: 'cirq.Sweepable', repetitions: int = 1
     ) -> Sequence['cirq.Result']:
         """Asynchronously samples from the given Circuit.
 
@@ -335,8 +329,8 @@ class Sampler(metaclass=abc.ABCMeta):
 
         # Flatten Circuit Sweep into one big list of Params.
         # Keep track of their indices so we can map back.
-        flat_params: List[Dict[str, float]] = [pr.param_dict for pr in study.to_resolvers(params)]
-        circuit_param_to_sweep_i: Dict[FrozenSet[Tuple[str, float]], int] = {
+        flat_params = [pr.param_dict for pr in study.to_resolvers(params)]
+        circuit_param_to_sweep_i: Dict[FrozenSet[Tuple[str, Union[int, Tuple[int, int]]]], int] = {
             _hashable_param(param.items()): i for i, param in enumerate(flat_params)
         }
 

@@ -14,15 +14,7 @@
 """Estimation of fidelity associated with experimental circuit executions."""
 import dataclasses
 from abc import abstractmethod, ABC
-from typing import (
-    List,
-    Optional,
-    Sequence,
-    Tuple,
-    TYPE_CHECKING,
-    Dict,
-    Iterable,
-)
+from typing import List, Optional, Sequence, Tuple, TYPE_CHECKING, Dict, Iterable
 
 import numpy as np
 import pandas as pd
@@ -327,8 +319,7 @@ def SqrtISwapXEBOptions(*args, **kwargs):
 
 
 def parameterize_circuit(
-    circuit: 'cirq.Circuit',
-    options: XEBCharacterizationOptions,
+    circuit: 'cirq.Circuit', options: XEBCharacterizationOptions
 ) -> 'cirq.Circuit':
     """Parameterize PhasedFSim-like gates in a given circuit according to
     `phased_fsim_options`.
@@ -418,11 +409,7 @@ def characterize_phased_fsim_parameters_with_xeb(
     optimization_result = optimize.minimize(
         _mean_infidelity,
         x0=x0,
-        options={
-            'initial_simplex': initial_simplex,
-            'xatol': xatol,
-            'fatol': fatol,
-        },
+        options={'initial_simplex': initial_simplex, 'xatol': xatol, 'fatol': fatol},
         method='nelder-mead',
     )
 

@@ -35,10 +35,7 @@ class _Sweepable(Protocol):
 
 
 Sweepable = Union[SweepLike, _Sweepable]
-document(
-    Sweepable,
-    """An object or collection of objects representing a parameter sweep.""",
-)
+document(Sweepable, """An object or collection of objects representing a parameter sweep.""")
 
 
 def to_resolvers(sweepable: Sweepable) -> Iterator[ParamResolver]:

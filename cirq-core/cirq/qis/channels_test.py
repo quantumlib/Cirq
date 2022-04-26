@@ -128,6 +128,7 @@ def test_choi_to_kraus_invalid_input(choi, error):
         ),
         (
             # Amplitude damping channel
+            # fmt: off
             np.array(
                 [
                     [1, 0, 0, 0.8],
@@ -136,6 +137,7 @@ def test_choi_to_kraus_invalid_input(choi, error):
                     [0.8, 0, 0, 0.64],
                 ],
             ),
+            # fmt: off
             (np.diag([1, 0.8]), np.array([[0, 0.6], [0, 0]])),
         ),
         (
@@ -204,6 +206,7 @@ def test_choi_to_kraus_action_on_operatorial_basis(choi):
         np.eye(4),
         np.diag([1, 0, 0, 1]),
         np.diag([0.2, 0.3, 0.8, 0.7]),
+        # fmt: off
         np.array(
             [
                 [1, 0, 1, 0],
@@ -220,6 +223,7 @@ def test_choi_to_kraus_action_on_operatorial_basis(choi):
                 [0.5, 0, 0, 0.7],
             ],
         ),
+        # fmt: on
     ),
 )
 def test_choi_to_kraus_inverse_of_kraus_to_choi(choi):
@@ -291,6 +295,7 @@ def test_superoperator_to_kraus_fixed_values(superoperator, expected_kraus_opera
         np.eye(4),
         np.diag([1, 0, 0, 1]),
         np.diag([1, -1j, 1j, 1]),
+        # fmt: off
         np.array(
             [
                 [1, 0, 0, 1],
@@ -307,6 +312,7 @@ def test_superoperator_to_kraus_fixed_values(superoperator, expected_kraus_opera
                 [0, 0, 0, 0.64],
             ],
         ),
+        # fmt: on
     ),
 )
 def test_superoperator_to_kraus_inverse_of_kraus_to_superoperator(superoperator):
@@ -347,11 +353,7 @@ def test_choi_to_superoperator_invalid_input(choi, error):
 
 
 @pytest.mark.parametrize(
-    'superoperator, error',
-    (
-        (np.array([[1, 2, 3], [4, 5, 6]]), "shape"),
-        (np.eye(2), "shape"),
-    ),
+    'superoperator, error', ((np.array([[1, 2, 3], [4, 5, 6]]), "shape"), (np.eye(2), "shape"))
 )
 def test_superoperator_to_choi_invalid_input(superoperator, error):
     with pytest.raises(ValueError, match=error):
@@ -383,6 +385,7 @@ def test_superoperator_to_choi_invalid_input(superoperator, error):
         ),
         (
             # Amplitude damping channel
+            # fmt: off
             np.array(
                 [
                     [1, 0, 0, 0.36],
@@ -399,6 +402,7 @@ def test_superoperator_to_choi_invalid_input(superoperator, error):
                     [0.8, 0, 0, 0.64],
                 ],
             ),
+            # fmt: on
         ),
         (
             # Completely depolarizing channel
@@ -421,6 +425,7 @@ def test_superoperator_vs_choi_fixed_values(superoperator, choi):
         np.eye(4),
         np.diag([1, 0, 0, 1]),
         np.diag([0.2, 0.3, 0.8, 0.7]),
+        # fmt: off
         np.array(
             [
                 [1, 0, 1, 0],
@@ -437,6 +442,7 @@ def test_superoperator_vs_choi_fixed_values(superoperator, choi):
                 [0.5, 0, 0, 0.7],
             ],
         ),
+        # fmt: on
     ),
 )
 def test_choi_to_superoperator_inverse_of_superoperator_to_choi(choi):
