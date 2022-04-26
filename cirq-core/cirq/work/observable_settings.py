@@ -13,6 +13,7 @@
 # limitations under the License.
 
 import dataclasses
+import numbers
 from typing import Union, Iterable, Dict, TYPE_CHECKING, ItemsView, Tuple, FrozenSet
 
 import sympy
@@ -127,23 +128,27 @@ def observables_to_settings(
         yield InitObsSetting(init_state=zeros_state(qubits), observable=observable)
 
 
-def _fix_precision(val: Union[float, sympy.Expr], precision) -> int:
-    """Convert floating point numbers to (implicitly) fixed point integers.
 
-    Circuit parameters can be floats but we also need to use them as
+def _fix_precision(val: Union[value.Scalar, sympy.Expr], precision) -> Union[int, Tuple[int, int]]:
+    """Convert floating point or complex numbers to (implicitly) fixed point
+    integers. Complex numbers will return fixed-point (real, imag) tuples.
+
+    Circuit parameters can be complex but we also need to use them as
     dictionary keys. We secretly use these fixed-precision integers.
     """
     if isinstance(val, sympy.Expr):
         raise ValueError(f'Cannot convert {val} to fixed precision in observable settings')
+    if isinstance(val, (complex, numbers.Complex)):
+        return int(val.real * precision), int(val.imag * precision)
     return int(val * precision)
 
 
 def _hashable_param(
-    param_tuples: ItemsView[Union[str, sympy.Expr], Union[float, sympy.Expr]], precision=1e7
-) -> FrozenSet[Tuple[str, float]]:
+    param_tuples: ItemsView[Union[str, sympy.Expr], Union[value.Scalar, sympy.Expr]], precision=1e7
+) -> FrozenSet[Tuple[str, Union[int, Tuple[int, int]]]]:
     """Hash circuit parameters using fixed precision.
 
-    Circuit parameters can be floats but we also need to use them as
+    Circuit parameters can be complex but we also need to use them as
     dictionary keys. We secretly use these fixed-precision integers.
     """
     return frozenset(
@@ -162,7 +167,7 @@ class _MeasurementSpec:
     """
 
     max_setting: InitObsSetting
-    circuit_params: 'cirq.ParamDictType'
+    circuit_params: Dict[str, value.Scalar]
 
     def __hash__(self):
         return hash((self.max_setting, _hashable_param(self.circuit_params.items())))

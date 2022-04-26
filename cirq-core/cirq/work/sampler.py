@@ -332,7 +332,7 @@ class Sampler(metaclass=abc.ABCMeta):
         flat_params: List['cirq.ParamDictType'] = [
             pr.param_dict for pr in study.to_resolvers(params)
         ]
-        circuit_param_to_sweep_i: Dict[FrozenSet[Tuple[str, float]], int] = {
+        circuit_param_to_sweep_i: Dict[FrozenSet[Tuple[str, Union[int, Tuple[int, int]]]], int] = {
             _hashable_param(param.items()): i for i, param in enumerate(flat_params)
         }
 

@@ -17,7 +17,7 @@ import datetime
 from typing import Any, Dict, Iterable, List, Tuple, TYPE_CHECKING
 
 import numpy as np
-from cirq import ops, protocols
+from cirq import ops, protocols, value
 from cirq._compat import proper_repr
 from cirq.work.observable_settings import (
     InitObsSetting,
@@ -106,8 +106,8 @@ class ObservableMeasuredResult:
     mean: float
     variance: float
     repetitions: int
-    circuit_params: 'cirq.ParamDictType'
-
+    circuit_params: Dict[str, value.Scalar]
+      
     def __repr__(self):
         # I wish we could use the default dataclass __repr__ but
         # we need to prefix our class name with `cirq.work.`

@@ -18,23 +18,12 @@ import itertools
 import os
 import tempfile
 import warnings
-from typing import (
-    Any,
-    cast,
-    Dict,
-    Iterable,
-    List,
-    Optional,
-    Sequence,
-    Set,
-    Tuple,
-    TYPE_CHECKING,
-    Union,
-)
+from typing import Any, Dict, Iterable, List, Optional, Sequence, Set, Tuple, TYPE_CHECKING, Union
 
 import numpy as np
 import pandas as pd
 import sympy
+
 from cirq import circuits, study, ops, value, protocols
 from cirq._doc import document
 from cirq.work.observable_grouping import group_settings_greedy, GROUPER_T
@@ -542,7 +531,7 @@ def measure_grouped_settings(
     for max_setting, param_resolver in itertools.product(
         grouped_settings.keys(), study.to_resolvers(circuit_sweep)
     ):
-        circuit_params = cast(Dict[str, float], param_resolver.param_dict)
+        circuit_params = param_resolver.param_dict
         meas_spec = _MeasurementSpec(max_setting=max_setting, circuit_params=circuit_params)
         accumulator = BitstringAccumulator(
             meas_spec=meas_spec,
