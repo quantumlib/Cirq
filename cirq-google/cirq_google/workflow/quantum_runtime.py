@@ -23,7 +23,7 @@ from typing import Any, Dict, Optional, List, TYPE_CHECKING
 import cirq
 import numpy as np
 from cirq import _compat
-from cirq.protocols import dataclass_json_dict, obj_to_dict_helper
+from cirq.protocols import dataclass_json_dict
 from cirq_google.workflow.io import _FilesystemSaver
 from cirq_google.workflow.progress import _PrintLogger
 from cirq_google.workflow.quantum_executable import (
