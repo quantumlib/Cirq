@@ -26,13 +26,13 @@ def test_griddevice_metadata():
     metadata = cirq.GridDeviceMetadata(qubit_pairs, gateset, all_qubits=qubits + isolated_qubits)
     expected_pairings = frozenset(
         {
-            (cirq.GridQubit(0, 0), cirq.GridQubit(0, 1)),
-            (cirq.GridQubit(0, 1), cirq.GridQubit(0, 2)),
-            (cirq.GridQubit(0, 1), cirq.GridQubit(1, 1)),
-            (cirq.GridQubit(0, 2), cirq.GridQubit(1, 2)),
-            (cirq.GridQubit(1, 0), cirq.GridQubit(1, 1)),
-            (cirq.GridQubit(1, 1), cirq.GridQubit(1, 2)),
-            (cirq.GridQubit(0, 0), cirq.GridQubit(1, 0)),
+            frozenset((cirq.GridQubit(0, 0), cirq.GridQubit(0, 1))),
+            frozenset((cirq.GridQubit(0, 1), cirq.GridQubit(0, 2))),
+            frozenset((cirq.GridQubit(0, 1), cirq.GridQubit(1, 1))),
+            frozenset((cirq.GridQubit(0, 2), cirq.GridQubit(1, 2))),
+            frozenset((cirq.GridQubit(1, 0), cirq.GridQubit(1, 1))),
+            frozenset((cirq.GridQubit(1, 1), cirq.GridQubit(1, 2))),
+            frozenset((cirq.GridQubit(0, 0), cirq.GridQubit(1, 0))),
         }
     )
     assert metadata.qubit_set == frozenset(qubits + isolated_qubits)
