@@ -13,7 +13,7 @@
 # limitations under the License.
 
 import abc
-from typing import Any, Dict, Generic, List, Optional, Sequence, TYPE_CHECKING, TypeVar, Union
+from typing import Any, cast, Dict, Generic, List, Optional, Sequence, TYPE_CHECKING, TypeVar, Union
 
 import numpy as np
 import sympy
@@ -119,9 +119,7 @@ class StabilizerSimulationState(
             return NotImplemented
         gate = val.gate if isinstance(val, ops.Operation) else val
         axes = self.get_axes(qubits)
-        exponent = getattr(gate, 'exponent', None)
-        if isinstance(exponent, sympy.Expr):
-            return NotImplemented
+        exponent = cast(float, getattr(gate, 'exponent', None))
         if isinstance(gate, common_gates.XPowGate):
             self._state.apply_x(axes[0], exponent, gate.global_shift)
         elif isinstance(gate, common_gates.YPowGate):
