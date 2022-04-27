@@ -46,6 +46,7 @@ class CustomXPowGate(cirq.EigenGate):
 
 
 CustomX = CustomXPowGate()
+q = cirq.NamedQubit("q")
 
 
 @pytest.mark.parametrize('gate', [CustomX, CustomXPowGate])
@@ -71,6 +72,9 @@ def test_invalid_gate_family():
 
     with pytest.raises(ValueError, match='non-parameterized instance of `cirq.Gate`'):
         _ = cirq.GateFamily(gate=CustomX ** sympy.Symbol('theta'))
+
+    with pytest.raises(ValueError, match='cannot be in both'):
+        _ = cirq.GateFamily(gate=cirq.H, tags_to_accept={'a', 'b'}, tags_to_ignore={'b', 'c'})
 
 
 def test_gate_family_immutable():
@@ -151,13 +155,67 @@ def test_gate_family_eq():
     ],
 )
 def test_gate_family_predicate_and_containment(gate_family, gates_to_check):
-    q = cirq.NamedQubit("q")
     for gate, result in gates_to_check:
         assert gate_family._predicate(gate) == result
         assert (gate in gate_family) == result
         if isinstance(gate, cirq.Gate):
             assert (gate(q) in gate_family) == result
             assert (gate(q).with_tags('tags') in gate_family) == result
+
+
+@pytest.mark.parametrize(
+    'gate_family, gates_to_check',
+    [
+        (
+            # Accept only if the input operation contains at least one of the accepted tags.
+            cirq.GateFamily(cirq.ZPowGate, tags_to_accept=['a', 'b']),
+            [
+                (cirq.Z(q).with_tags('a', 'b'), True),
+                (cirq.Z(q).with_tags('a'), True),
+                (cirq.Z(q).with_tags('b'), True),
+                (cirq.Z(q).with_tags('c'), False),
+                (cirq.Z(q).with_tags('a', 'c'), True),
+                (cirq.Z(q).with_tags(), False),
+                (cirq.Z(q), False),
+                (cirq.Z, False),
+                (cirq.X(q).with_tags('a'), False),
+                (cirq.X(q).with_tags('c'), False),
+            ],
+        ),
+        (
+            # Reject if input operation contains at least one of the rejected tags.
+            cirq.GateFamily(cirq.ZPowGate, tags_to_ignore=['a', 'b']),
+            [
+                (cirq.Z(q).with_tags('a', 'b'), False),
+                (cirq.Z(q).with_tags('a'), False),
+                (cirq.Z(q).with_tags('b'), False),
+                (cirq.Z(q).with_tags('c'), True),
+                (cirq.Z(q).with_tags('a', 'c'), False),
+                (cirq.Z(q).with_tags(), True),
+                (cirq.Z(q), True),
+                (cirq.Z, True),
+                (cirq.X(q).with_tags('a'), False),
+                (cirq.X(q).with_tags('c'), False),
+            ],
+        ),
+        (
+            cirq.GateFamily(cirq.ZPowGate, tags_to_accept=['a'], tags_to_ignore=['c']),
+            [
+                (cirq.Z(q).with_tags('a', 'c'), False),  # should prioritize tags_to_ignore
+                (cirq.Z(q).with_tags('a'), True),
+                (cirq.Z(q).with_tags('c'), False),
+                (cirq.Z(q).with_tags(), False),
+                (cirq.Z(q), False),
+                (cirq.Z, False),
+                (cirq.X(q).with_tags('a'), False),
+                (cirq.X(q).with_tags('c'), False),
+            ],
+        ),
+    ],
+)
+def test_gate_family_tagged_operations(gate_family, gates_to_check):
+    for gate, result in gates_to_check:
+        assert (gate in gate_family) == result
 
 
 class CustomXGateFamily(cirq.GateFamily):
