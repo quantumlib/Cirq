@@ -14,6 +14,7 @@
 from typing import (
     AbstractSet,
     Any,
+    cast,
     Dict,
     FrozenSet,
     List,
@@ -83,7 +84,7 @@ class ClassicallyControlledOperation(raw_types.Operation):
                 c = value.KeyCondition(c)
             if isinstance(c, sympy.Basic):
                 c = value.SympyCondition(c)
-            conds.append(c)
+            conds.append(cast('cirq.Condition', c))
         self._conditions: Tuple['cirq.Condition', ...] = tuple(conds)
         self._sub_operation: 'cirq.Operation' = sub_operation
 

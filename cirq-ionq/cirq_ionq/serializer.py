@@ -13,9 +13,10 @@
 # limitations under the License.
 """Support for serializing gates supported by IonQ's API."""
 import dataclasses
-from typing import Callable, cast, Collection, Dict, Iterator, Optional, Sequence, Type
+from typing import Callable, cast, Collection, Dict, Iterator, Optional, Sequence, Type, Union
 
 import numpy as np
+import sympy
 
 import cirq
 from cirq.devices import line_qubit
@@ -200,9 +201,13 @@ class Serializer:
             )
         return {'gate': 'meas', 'key': key, 'targets': ','.join(str(t) for t in targets)}
 
-    def _near_mod_n(self, e: float, t: float, n: float) -> bool:
-        """Returns whether a value, e, translated by t, is equal to 0 mod n."""
-        return abs((e - t + 1) % n - 1) <= self.atol
+    def _near_mod_n(self, e: Union[float, sympy.Expr], t: float, n: float) -> bool:
+        """Returns whether a value, e, translated by t, is equal to 0 mod n.
+
+        Note that, despite the typing, e should actually always be a float
+        since the gate is checked for parameterization before this point.
+        """
+        return abs((cast(float, e) - t + 1) % n - 1) <= self.atol
 
     def _serialize_measurements(self, meas_ops: Iterator) -> Dict[str, str]:
         """Serializes measurement ops into a form suitable to be passed via metadata.

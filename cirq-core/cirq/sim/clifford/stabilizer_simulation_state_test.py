@@ -15,6 +15,7 @@
 from unittest.mock import Mock, call
 
 import numpy as np
+import sympy
 
 import cirq
 
@@ -30,6 +31,10 @@ def test_apply_gate():
     state.reset_mock()
     assert args._strat_apply_gate(cirq.X**2, [q0]) is True
     state.apply_x.assert_called_with(0, 2.0, 0.0)
+
+    state.reset_mock()
+    assert args._strat_apply_gate(cirq.X ** sympy.Symbol('t'), [q0]) is NotImplemented
+    state.apply_x.assert_not_called()
 
     state.reset_mock()
     assert args._strat_apply_gate(cirq.XPowGate(exponent=2, global_shift=1.3), [q1]) is True
@@ -66,6 +71,10 @@ def test_apply_gate():
     state.reset_mock()
     assert args._strat_apply_gate(cirq.GlobalPhaseGate(1j), []) is True
     state.apply_global_phase.assert_called_with(1j)
+
+    state.reset_mock()
+    assert args._strat_apply_gate(cirq.GlobalPhaseGate(sympy.Symbol('t')), []) is NotImplemented
+    state.apply_global_phase.assert_not_called()
 
     state.reset_mock()
     assert args._strat_apply_gate(cirq.SWAP, [q0, q1]) is True

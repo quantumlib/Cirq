@@ -1,5 +1,29 @@
-# pylint: disable=wrong-or-nonexistent-copyright-notice
-from typing import Any, Callable, Dict, Iterable, Iterator, List, Optional, Sequence, Tuple, Union
+# Copyright 2021 The Cirq Developers
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     https://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+from typing import (
+    Any,
+    Callable,
+    cast,
+    Dict,
+    Iterable,
+    Iterator,
+    List,
+    Optional,
+    Sequence,
+    Tuple,
+    Union,
+)
 
 import numpy as np
 
@@ -399,11 +423,11 @@ class PhasedFSimEngineSimulator(cirq.SimulatesIntermediateStateVector[cirq.Spars
             for a, b in request.pairs:
                 drifted = self.create_gate_with_drift(a, b, translated)
                 parameters[a, b] = PhasedFSimCharacterization(
-                    theta=drifted.theta if characterize_theta else None,
-                    zeta=drifted.zeta if characterize_zeta else None,
-                    chi=drifted.chi if characterize_chi else None,
-                    gamma=drifted.gamma if characterize_gamma else None,
-                    phi=drifted.phi if characterize_phi else None,
+                    theta=cast(float, drifted.theta) if characterize_theta else None,
+                    zeta=cast(float, drifted.zeta) if characterize_zeta else None,
+                    chi=cast(float, drifted.chi) if characterize_chi else None,
+                    gamma=cast(float, drifted.gamma) if characterize_gamma else None,
+                    phi=cast(float, drifted.phi) if characterize_phi else None,
                 )
 
             results.append(
