@@ -65,7 +65,9 @@ def create_container(
         for q in qubits:
             state_map[q] = state
         state_map[None] = state if not split_untangled_states else EmptySimulationState((), log)
-    return cirq.SimulationProductState(state_map, qubits, split_untangled_states, classical_data=log)
+    return cirq.SimulationProductState(
+        state_map, qubits, split_untangled_states, classical_data=log
+    )
 
 
 def test_entanglement_causes_join():

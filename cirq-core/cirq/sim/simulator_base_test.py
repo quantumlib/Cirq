@@ -409,3 +409,19 @@ def test_deprecated_final_step_result():
         r = sim.simulate(cirq.Circuit())
     assert r._final_simulator_state.gate_count == 0
     assert r._final_simulator_state.measurement_count == 0
+
+
+def test_deprecated_create_partial_act_on_args():
+    class DeprecatedSim(cirq.SimulatorBase):
+        def _create_partial_act_on_args(self, initial_state, qubits, classical_data):
+            return 0
+
+        def _create_step_result(self):
+            pass
+
+        def _create_simulator_trial_result(self):
+            pass
+
+    sim = DeprecatedSim()
+    with cirq.testing.assert_deprecated(deadline='v0.16'):
+        sim.simulate_moment_steps(cirq.Circuit())
