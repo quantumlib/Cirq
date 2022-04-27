@@ -684,10 +684,9 @@ class SimulatesIntermediateState(
             StepResults from simulating a Moment of the Circuit.
         """
         qubits = ops.QubitOrder.as_qubit_order(qubit_order).order_for(circuit.all_qubits())
-        sim_state = self._create_act_on_args(initial_state, qubits)
+        sim_state = self._create_simulation_state(initial_state, qubits)
         return self._core_iterator(circuit, sim_state)
 
-    @abc.abstractmethod
     def _create_act_on_args(
         self, initial_state: Any, qubits: Sequence['cirq.Qid']
     ) -> TSimulatorState:
@@ -706,6 +705,33 @@ class SimulatesIntermediateState(
         Returns:
             The `TSimulatorState` for this simulator.
         """
+        raise NotImplementedError()
+
+    def _create_simulation_state(
+        self, initial_state: Any, qubits: Sequence['cirq.Qid']
+    ) -> TSimulatorState:
+        """Creates the state for a simulator.
+
+        Custom simulators should implement this method.
+
+        Args:
+            initial_state: The initial state for the simulation. The form of
+                this state depends on the simulation implementation. See
+                documentation of the implementing class for details.
+            qubits: Determines the canonical ordering of the qubits. This
+                is often used in specifying the initial state, i.e. the
+                ordering of the computational basis states.
+
+        Returns:
+            The `TSimulatorState` for this simulator.
+        """
+        _compat._warn_or_error(
+            '_create_act_on_args is deprecated and will be removed in v0.16. Use or'
+            ' override `_create_simulation_state` instead.'
+        )
+        # When cleaning this up in v0.16, this default implementation can be removed, and this
+        # function can be marked as @abc.abstractmethod.
+        return self._create_act_on_args(initial_state, qubits)
 
     @abc.abstractmethod
     def _core_iterator(
