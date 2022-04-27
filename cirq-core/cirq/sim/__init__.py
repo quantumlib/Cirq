@@ -13,7 +13,6 @@
 # limitations under the License.
 
 """Classes for circuit simulators and base implementations of these classes."""
-from typing import Tuple, Dict
 
 from cirq.sim.act_on_args import ActOnArgs
 
@@ -23,7 +22,22 @@ from cirq.sim.act_on_density_matrix_args import ActOnDensityMatrixArgs
 
 from cirq.sim.act_on_state_vector_args import ActOnStateVectorArgs
 
-from cirq.sim.density_matrix_utils import measure_density_matrix, sample_density_matrix
+from cirq.sim.clifford import (
+    ActOnCliffordTableauArgs,
+    ActOnStabilizerArgs,
+    ActOnStabilizerCHFormArgs,
+    CliffordSimulator,
+    CliffordSimulatorStepResult,
+    CliffordState,
+    CliffordTrialResult,
+    CliffordTableauSimulationState,
+    StabilizerChFormSimulationState,
+    StabilizerSampler,
+    StabilizerSimulationState,
+    StabilizerStateChForm,
+)
+
+from cirq.sim.density_matrix_simulation_state import DensityMatrixSimulationState
 
 from cirq.sim.density_matrix_simulator import (
     DensityMatrixSimulator,
@@ -32,7 +46,7 @@ from cirq.sim.density_matrix_simulator import (
     DensityMatrixTrialResult,
 )
 
-from cirq.sim.operation_target import OperationTarget
+from cirq.sim.density_matrix_utils import measure_density_matrix, sample_density_matrix
 
 from cirq.sim.mux import (
     CIRCUIT_LIKE,
@@ -41,6 +55,14 @@ from cirq.sim.mux import (
     sample,
     sample_sweep,
 )
+
+from cirq.sim.operation_target import OperationTarget
+
+from cirq.sim.simulation_product_state import SimulationProductState
+
+from cirq.sim.simulation_state import SimulationState
+
+from cirq.sim.simulation_state_base import SimulationStateBase
 
 from cirq.sim.simulator import (
     SimulatesAmplitudes,
@@ -56,23 +78,13 @@ from cirq.sim.simulator_base import SimulationTrialResultBase, SimulatorBase, St
 
 from cirq.sim.sparse_simulator import Simulator, SparseSimulatorStep
 
+from cirq.sim.state_vector import measure_state_vector, sample_state_vector, StateVectorMixin
+
+from cirq.sim.state_vector_simulation_state import StateVectorSimulationState
+
 from cirq.sim.state_vector_simulator import (
     SimulatesIntermediateStateVector,
     StateVectorSimulatorState,
     StateVectorStepResult,
     StateVectorTrialResult,
-)
-
-from cirq.sim.state_vector import measure_state_vector, sample_state_vector, StateVectorMixin
-
-from cirq.sim.clifford import (
-    ActOnCliffordTableauArgs,
-    ActOnStabilizerCHFormArgs,
-    ActOnStabilizerArgs,
-    StabilizerSampler,
-    StabilizerStateChForm,
-    CliffordSimulator,
-    CliffordState,
-    CliffordTrialResult,
-    CliffordSimulatorStepResult,
 )

@@ -91,7 +91,15 @@ TestSpec = ModuleJsonTestSpec(
         'ApplyChannelArgs',
         'ApplyMixtureArgs',
         'ApplyUnitaryArgs',
+        'CliffordTableauSimulationState',
+        'DensityMatrixSimulationState',
         'OperationTarget',
+        'SimulationProductState',
+        'SimulationState',
+        'SimulationStateBase',
+        'StabilizerChFormSimulationState',
+        'StabilizerSimulationState',
+        'StateVectorSimulationState',
         # Abstract base class for creating compilation targets.
         'CompilationTargetGateset',
         'TwoQubitCompilationTargetGateset',
@@ -180,6 +188,7 @@ TestSpec = ModuleJsonTestSpec(
         'Sweepable',
         'TParamKey',
         'TParamVal',
+        'TParamValComplex',
         'TRANSFORMER',
         'ParamDictType',
         # utility:

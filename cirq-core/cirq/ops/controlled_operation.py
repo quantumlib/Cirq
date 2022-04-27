@@ -54,11 +54,25 @@ class ControlledOperation(raw_types.Operation):
             control_values = ((1,),) * len(controls)
         if len(control_values) != len(controls):
             raise ValueError('len(control_values) != len(controls)')
+
+        # Verify qubits control qubits unique
+        control_set = set(controls)
+        if len(controls) != len(control_set):
+            seen = set()
+            dupes = [x for x in controls if x in seen or seen.add(x)]  # type: ignore
+            raise ValueError(f'Duplicate control qubits {[str(x) for x in dupes]}.')
+
+        # Verify qubits don't overlap
+        if not control_set.isdisjoint(sub_operation.qubits):
+            overlap = control_set.intersection(sub_operation.qubits)
+            raise ValueError(f'Sub-op and controls share qubits {[str(x) for x in overlap]}.')
+
         # Convert to sorted tuples
         self._control_values = cast(
             Tuple[Tuple[int, ...], ...],
             tuple((val,) if isinstance(val, int) else tuple(sorted(val)) for val in control_values),
         )
+
         # Verify control values not out of bounds
         for q, val in zip(controls, self.control_values):
             if not all(0 <= v < q.dimension for v in val):

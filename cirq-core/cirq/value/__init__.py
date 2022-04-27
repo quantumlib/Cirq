@@ -62,6 +62,6 @@ from cirq.value.random_state import parse_random_state, RANDOM_STATE_OR_SEED_LIK
 
 from cirq.value.timestamp import Timestamp
 
-from cirq.value.type_alias import TParamKey, TParamVal
+from cirq.value.type_alias import TParamKey, TParamVal, TParamValComplex
 
 from cirq.value.value_equality_attr import value_equality

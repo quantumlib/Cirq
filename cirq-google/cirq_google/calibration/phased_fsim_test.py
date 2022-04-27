@@ -14,6 +14,7 @@
 import os
 import re
 
+from typing import cast
 from unittest import mock
 import numpy as np
 import pandas as pd
@@ -693,11 +694,11 @@ def test_phase_calibrated_fsim_gate_as_characterized_phased_fsim_gate(phase_expo
         theta=ideal_gate.theta, zeta=0.1, chi=0.2, gamma=0.3, phi=ideal_gate.phi
     )
     parameters = PhasedFSimCharacterization(
-        theta=ideal_gate.theta,
-        zeta=characterized_gate.zeta,
-        chi=characterized_gate.chi,
-        gamma=characterized_gate.gamma,
-        phi=ideal_gate.phi,
+        theta=cast(float, ideal_gate.theta),
+        zeta=cast(float, characterized_gate.zeta),
+        chi=cast(float, characterized_gate.chi),
+        gamma=cast(float, characterized_gate.gamma),
+        phi=cast(float, ideal_gate.phi),
     )
 
     calibrated = PhaseCalibratedFSimGate(ideal_gate, phase_exponent=phase_exponent)
@@ -725,11 +726,11 @@ def test_phase_calibrated_fsim_gate_compensated(phase_exponent: float):
         theta=ideal_gate.theta, zeta=0.1, chi=0.2, gamma=0.3, phi=ideal_gate.phi
     )
     parameters = PhasedFSimCharacterization(
-        theta=ideal_gate.theta,
-        zeta=characterized_gate.zeta,
-        chi=characterized_gate.chi,
-        gamma=characterized_gate.gamma,
-        phi=ideal_gate.phi,
+        theta=cast(float, ideal_gate.theta),
+        zeta=cast(float, characterized_gate.zeta),
+        chi=cast(float, characterized_gate.chi),
+        gamma=cast(float, characterized_gate.gamma),
+        phi=cast(float, ideal_gate.phi),
     )
 
     calibrated = PhaseCalibratedFSimGate(ideal_gate, phase_exponent=phase_exponent)
@@ -788,6 +789,13 @@ def test_try_convert_sqrt_iswap_to_fsim_converts_correctly():
     )
 
     assert try_convert_sqrt_iswap_to_fsim(cirq.CZ) is None
+
+    assert (
+        try_convert_sqrt_iswap_to_fsim(
+            cirq.FSimGate(theta=sympy.Symbol('t'), phi=sympy.Symbol('p'))
+        )
+        is None
+    )
 
 
 def test_result_override():
@@ -961,6 +969,7 @@ def test_try_convert_gate_to_fsim():
     x = sympy.Symbol('x')
     assert try_convert_gate_to_fsim(cirq.ops.ISwapPowGate(exponent=x)) is None
     assert try_convert_gate_to_fsim(cirq.PhasedFSimGate(theta=x)) is None
+    assert try_convert_gate_to_fsim(cirq.FSimGate(theta=x, phi=x)) is None
     assert try_convert_gate_to_fsim(cirq.PhasedISwapPowGate(exponent=x)) is None
     assert try_convert_gate_to_fsim(cirq.CZPowGate(exponent=x)) is None
 

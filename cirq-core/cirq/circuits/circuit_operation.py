@@ -45,7 +45,7 @@ if TYPE_CHECKING:
 
 INT_CLASSES = (int, np.integer)
 INT_TYPE = Union[int, np.integer]
-IntParam = Union[INT_TYPE, sympy.Basic]
+IntParam = Union[INT_TYPE, sympy.Expr]
 REPETITION_ID_SEPARATOR = '-'
 
 
@@ -156,7 +156,7 @@ class CircuitOperation(ops.Operation):
                     f'Expected repetition_ids to be a list of length {loop_size}, '
                     f'got: {self.repetition_ids}'
                 )
-        elif isinstance(self.repetitions, sympy.Basic):
+        elif isinstance(self.repetitions, sympy.Expr):
             if self.repetition_ids is not None:
                 raise ValueError('Cannot use repetition ids with parameterized repetitions')
         else:
@@ -240,7 +240,7 @@ class CircuitOperation(ops.Operation):
         return NotImplemented
 
     def _ensure_deterministic_loop_count(self):
-        if self.repeat_until or isinstance(self.repetitions, sympy.Basic):
+        if self.repeat_until or isinstance(self.repetitions, sympy.Expr):
             raise ValueError('Cannot unroll circuit due to nondeterministic repetitions')
 
     def _measurement_key_objs_(self) -> AbstractSet['cirq.MeasurementKey']:
@@ -350,17 +350,17 @@ class CircuitOperation(ops.Operation):
     def _decompose_(self) -> Iterator['cirq.Operation']:
         return self.mapped_circuit(deep=False).all_operations()
 
-    def _act_on_(self, args: 'cirq.OperationTarget') -> bool:
+    def _act_on_(self, sim_state: 'cirq.SimulationStateBase') -> bool:
         if self.repeat_until:
             circuit = self._mapped_single_loop()
             while True:
                 for op in circuit.all_operations():
-                    protocols.act_on(op, args)
-                if self.repeat_until.resolve(args.classical_data):
+                    protocols.act_on(op, sim_state)
+                if self.repeat_until.resolve(sim_state.classical_data):
                     break
         else:
             for op in self._decompose_():
-                protocols.act_on(op, args)
+                protocols.act_on(op, sim_state)
         return True
 
     # Methods for string representation of the operation.
