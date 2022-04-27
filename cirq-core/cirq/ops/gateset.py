@@ -15,7 +15,20 @@
 """Functionality for grouping and validating Cirq Gates"""
 
 import warnings
-from typing import Any, Callable, cast, Dict, FrozenSet, List, Optional, Type, TYPE_CHECKING, Union
+from typing import (
+    Any,
+    Callable,
+    cast,
+    Dict,
+    FrozenSet,
+    Hashable,
+    List,
+    Optional,
+    Sequence,
+    Type,
+    TYPE_CHECKING,
+    Union,
+)
 
 from cirq import _compat, protocols, value
 from cirq.ops import global_phase_op, op_tree, raw_types
@@ -56,6 +69,37 @@ class GateFamily:
             >>> assert cirq.Rx(rads=np.pi) in gate_family
             >>> assert cirq.X ** sympy.Symbol("theta") in gate_family
 
+    As seen in the examples above, GateFamily supports containment checks for instances of both
+    `cirq.Operation` and `cirq.Gate`. By default, a `cirq.Operation` instance `op` is accepted if
+    the underlying `op.gate` is accepted.
+
+    Further constraints can be added on containment checks for `cirq.Operation` objects by setting
+    `tags_to_accept` and/or `tags_to_ignore` in the GateFamily constructor. For a tagged
+    operation, the underlying gate `op.gate` will be checked for containment only if:
+
+        * `op.tags` has no intersection with `tags_to_ignore`, and
+        * if `tags_to_accept` is not empty, then `op.tags` should have a non-empty intersection with
+            `tags_to_accept`.
+
+    If a `cirq.Operation` contains tags from both `tags_to_accept` and `tags_to_ignore`, it is
+    rejected. Furthermore, tags cannot appear in both `tags_to_accept` and `tags_to_ignore`.
+
+    For the purpose of tag comparisons, a `Gate` is considered as an `Operation` without tags.
+
+    For example:
+        >>> q = cirq.NamedQubit('q')
+        >>> gate_family = cirq.GateFamily(cirq.ZPowGate, tags_to_accept=['accepted_tag'])
+        >>> assert cirq.Z(q).with_tags('accepted_tag') in gate_family
+        >>> assert cirq.Z(q).with_tags('other_tag') not in gate_family
+        >>> assert cirq.Z(q) not in gate_family
+        >>> assert cirq.Z not in gate_family
+        ...
+        >>> gate_family = cirq.GateFamily(cirq.ZPowGate, tags_to_ignore=['ignored_tag'])
+        >>> assert cirq.Z(q).with_tags('ignored_tag') not in gate_family
+        >>> assert cirq.Z(q).with_tags('other_tag') in gate_family
+        >>> assert cirq.Z(q) in gate_family
+        >>> assert cirq.Z in gate_family
+
     In order to create gate families with constraints on parameters of a gate
     type, users should derive from the `cirq.GateFamily` class and override the
     `_predicate` method used to check for gate containment.
@@ -68,6 +112,8 @@ class GateFamily:
         name: Optional[str] = None,
         description: Optional[str] = None,
         ignore_global_phase: bool = True,
+        tags_to_accept: Sequence[Hashable] = (),
+        tags_to_ignore: Sequence[Hashable] = (),
     ) -> None:
         """Init GateFamily.
 
@@ -78,10 +124,16 @@ class GateFamily:
             description: Human readable description of the gate family.
             ignore_global_phase: If True, value equality is checked via
                 `cirq.equal_up_to_global_phase`.
+            tags_to_accept: If non-empty, only `cirq.Operations` containing at least one tag in this
+                sequence can be accepted.
+            tags_to_ignore: Any `cirq.Operation` containing at least one tag in this sequence is
+                rejected. Note that this takes precedence over `tags_to_accept`, so an operation
+                which contains tags from both `tags_to_accept` and `tags_to_ignore` is rejected.
 
         Raises:
             ValueError: if `gate` is not a `cirq.Gate` instance or subclass.
             ValueError: if `gate` is a parameterized instance of `cirq.Gate`.
+            ValueError: if `tags_to_accept` and `tags_to_ignore` contain common tags.
         """
         if not (
             isinstance(gate, raw_types.Gate)
@@ -95,6 +147,14 @@ class GateFamily:
         self._name = name if name else self._default_name()
         self._description = description if description else self._default_description()
         self._ignore_global_phase = ignore_global_phase
+        self._tags_to_accept = frozenset(tags_to_accept)
+        self._tags_to_ignore = frozenset(tags_to_ignore)
+
+        common_tags = self._tags_to_accept & self._tags_to_ignore
+        if common_tags:
+            raise ValueError(
+                f"Tag(s) '{list(common_tags)}' cannot be in both tags_to_accept and tags_to_ignore."
+            )
 
     def _gate_str(self, gettr: Callable[[Any], str] = str) -> str:
         return _gate_str(self.gate, gettr)
@@ -142,6 +202,13 @@ class GateFamily:
         return isinstance(gate, self.gate)
 
     def __contains__(self, item: Union[raw_types.Gate, raw_types.Operation]) -> bool:
+        if self._tags_to_accept and (
+            not isinstance(item, raw_types.Operation) or self._tags_to_accept.isdisjoint(item.tags)
+        ):
+            return False
+        if isinstance(item, raw_types.Operation) and not self._tags_to_ignore.isdisjoint(item.tags):
+            return False
+
         if isinstance(item, raw_types.Operation):
             if item.gate is None:
                 return False
@@ -159,7 +226,9 @@ class GateFamily:
             f'cirq.GateFamily('
             f'gate={self._gate_str(repr)}, '
             f'{name_and_description}'
-            f'ignore_global_phase={self._ignore_global_phase})'
+            f'ignore_global_phase={self._ignore_global_phase}, '
+            f'tags_to_accept={self._tags_to_accept}, '
+            f'tags_to_ignore={self._tags_to_ignore})'
         )
 
     def _value_equality_values_(self) -> Any:
@@ -170,24 +239,41 @@ class GateFamily:
             self.name,
             self.description,
             self._ignore_global_phase,
+            self._tags_to_accept,
+            self._tags_to_ignore,
         )
 
     def _json_dict_(self) -> Dict[str, Any]:
-        return {
+        d: Dict[str, Any] = {
             'gate': self._gate_json(),
             'name': self.name,
             'description': self.description,
             'ignore_global_phase': self._ignore_global_phase,
+            'tags_to_accept': list(self._tags_to_accept),
+            'tags_to_ignore': list(self._tags_to_ignore),
         }
+        return d
 
     @classmethod
     def _from_json_dict_(
-        cls, gate, name, description, ignore_global_phase, **kwargs
+        cls,
+        gate,
+        name,
+        description,
+        ignore_global_phase,
+        tags_to_accept=(),
+        tags_to_ignore=(),
+        **kwargs,
     ) -> 'GateFamily':
         if isinstance(gate, str):
             gate = protocols.cirq_type_from_json(gate)
         return cls(
-            gate, name=name, description=description, ignore_global_phase=ignore_global_phase
+            gate,
+            name=name,
+            description=description,
+            ignore_global_phase=ignore_global_phase,
+            tags_to_accept=tags_to_accept,
+            tags_to_ignore=tags_to_ignore,
         )
 
 

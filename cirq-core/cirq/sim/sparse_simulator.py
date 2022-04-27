@@ -20,7 +20,7 @@ import numpy as np
 
 from cirq import ops
 from cirq._compat import deprecated_parameter
-from cirq.sim import simulator, state_vector, state_vector_simulator, act_on_state_vector_args
+from cirq.sim import simulator, state_vector, state_vector_simulator, state_vector_simulation_state
 
 if TYPE_CHECKING:
     import cirq
@@ -155,11 +155,11 @@ class Simulator(
 
     def _create_partial_act_on_args(
         self,
-        initial_state: Union['cirq.STATE_VECTOR_LIKE', 'cirq.ActOnStateVectorArgs'],
+        initial_state: Union['cirq.STATE_VECTOR_LIKE', 'cirq.StateVectorSimulationState'],
         qubits: Sequence['cirq.Qid'],
         classical_data: 'cirq.ClassicalDataStore',
     ):
-        """Creates the ActOnStateVectorArgs for a circuit.
+        """Creates the StateVectorSimulationState for a circuit.
 
         Args:
             initial_state: The initial state for the simulation in the
@@ -171,12 +171,12 @@ class Simulator(
                 simulation.
 
         Returns:
-            ActOnStateVectorArgs for the circuit.
+            StateVectorSimulationState for the circuit.
         """
-        if isinstance(initial_state, act_on_state_vector_args.ActOnStateVectorArgs):
+        if isinstance(initial_state, state_vector_simulation_state.StateVectorSimulationState):
             return initial_state
 
-        return act_on_state_vector_args.ActOnStateVectorArgs(
+        return state_vector_simulation_state.StateVectorSimulationState(
             qubits=qubits,
             prng=self._prng,
             classical_data=classical_data,
@@ -184,7 +184,9 @@ class Simulator(
             dtype=self._dtype,
         )
 
-    def _create_step_result(self, sim_state: 'cirq.OperationTarget[cirq.ActOnStateVectorArgs]'):
+    def _create_step_result(
+        self, sim_state: 'cirq.SimulationStateBase[cirq.StateVectorSimulationState]'
+    ):
         return SparseSimulatorStep(sim_state=sim_state, dtype=self._dtype)
 
     def simulate_expectation_values_sweep_iter(
@@ -228,14 +230,14 @@ class SparseSimulatorStep(
     )
     def __init__(
         self,
-        sim_state: 'cirq.OperationTarget[cirq.ActOnStateVectorArgs]',
+        sim_state: 'cirq.SimulationStateBase[cirq.StateVectorSimulationState]',
         simulator: 'cirq.Simulator' = None,
         dtype: 'DTypeLike' = np.complex64,
     ):
         """Results of a step of the simulator.
 
         Args:
-            sim_state: The qubit:ActOnArgs lookup for this step.
+            sim_state: The qubit:SimulationState lookup for this step.
             simulator: The simulator used to create this.
             dtype: The `numpy.dtype` used by the simulation. One of
                 `numpy.complex64` or `numpy.complex128`.

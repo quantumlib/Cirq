@@ -36,7 +36,7 @@ class PeriodicValue:
     interval.
     """
 
-    def __init__(self, value: Union[int, float], period: Union[int, float]):
+    def __init__(self, value: Union[int, float, sympy.Expr], period: Union[int, float, sympy.Expr]):
         """Initializes the equivalence class.
 
         Args:

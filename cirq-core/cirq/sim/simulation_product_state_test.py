@@ -37,7 +37,7 @@ class EmptyQuantumState(cirq.QuantumStateRepresentation):
         return self
 
 
-class EmptyActOnArgs(cirq.ActOnArgs):
+class EmptySimulationState(cirq.SimulationState):
     def __init__(self, qubits, classical_data):
         super().__init__(state=EmptyQuantumState(), qubits=qubits, classical_data=classical_data)
 
@@ -53,19 +53,19 @@ qs2 = cirq.LineQubit.range(2)
 
 def create_container(
     qubits: Sequence['cirq.Qid'], split_untangled_states=True
-) -> cirq.ActOnArgsContainer[EmptyActOnArgs]:
-    args_map: Dict[Optional['cirq.Qid'], EmptyActOnArgs] = {}
+) -> cirq.SimulationProductState[EmptySimulationState]:
+    args_map: Dict[Optional['cirq.Qid'], EmptySimulationState] = {}
     log = cirq.ClassicalDataDictionaryStore()
     if split_untangled_states:
         for q in reversed(qubits):
-            args_map[q] = EmptyActOnArgs([q], log)
-        args_map[None] = EmptyActOnArgs((), log)
+            args_map[q] = EmptySimulationState([q], log)
+        args_map[None] = EmptySimulationState((), log)
     else:
-        args = EmptyActOnArgs(qubits, log)
+        args = EmptySimulationState(qubits, log)
         for q in qubits:
             args_map[q] = args
-        args_map[None] = args if not split_untangled_states else EmptyActOnArgs((), log)
-    return cirq.ActOnArgsContainer(args_map, qubits, split_untangled_states, classical_data=log)
+        args_map[None] = args if not split_untangled_states else EmptySimulationState((), log)
+    return cirq.SimulationProductState(args_map, qubits, split_untangled_states, classical_data=log)
 
 
 def test_entanglement_causes_join():

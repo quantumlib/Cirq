@@ -27,10 +27,7 @@ import cirq.testing.consistent_controlled_gate_op_test as controlled_gate_op_tes
 
 class GoodGate(cirq.testing.SingleQubitGate):
     def __init__(
-        self,
-        *,
-        phase_exponent: Union[float, sympy.Symbol],
-        exponent: Union[float, sympy.Symbol] = 1.0,
+        self, *, phase_exponent: Union[float, sympy.Expr], exponent: Union[float, sympy.Expr] = 1.0
     ) -> None:
         self.phase_exponent = cirq.canonicalize_half_turns(phase_exponent)
         self.exponent = exponent
@@ -87,7 +84,7 @@ class GoodGate(cirq.testing.SingleQubitGate):
             exponent=self.exponent, phase_exponent=self.phase_exponent + phase_turns * 2
         )
 
-    def __pow__(self, exponent: Union[float, sympy.Symbol]) -> 'GoodGate':
+    def __pow__(self, exponent: Union[float, sympy.Expr]) -> 'GoodGate':
         new_exponent = cirq.mul(self.exponent, exponent, NotImplemented)
         if new_exponent is NotImplemented:
             # coverage: ignore

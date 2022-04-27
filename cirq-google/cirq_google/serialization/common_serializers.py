@@ -603,21 +603,21 @@ COUPLER_PULSE_DESERIALIZER = op_deserializer.GateOpDeserializer(
             serialized_name='hold_time_ns',
             constructor_arg_name='hold_time',
             value_func=lambda nanos: cirq.Duration(
-                nanos=cast(Union[int, float, sympy.Basic], nanos)
+                nanos=cast(Union[int, float, sympy.Expr], nanos)
             ),
         ),
         op_deserializer.DeserializingArg(
             serialized_name='rise_time_ns',
             constructor_arg_name='rise_time',
             value_func=lambda nanos: cirq.Duration(
-                nanos=cast(Union[int, float, sympy.Basic], nanos)
+                nanos=cast(Union[int, float, sympy.Expr], nanos)
             ),
         ),
         op_deserializer.DeserializingArg(
             serialized_name='padding_time_ns',
             constructor_arg_name='padding_time',
             value_func=lambda nanos: cirq.Duration(
-                nanos=cast(Union[int, float, sympy.Basic], nanos)
+                nanos=cast(Union[int, float, sympy.Expr], nanos)
             ),
         ),
     ],
@@ -645,7 +645,7 @@ WAIT_GATE_DESERIALIZER = op_deserializer.GateOpDeserializer(
             serialized_name='nanos',
             constructor_arg_name='duration',
             value_func=lambda nanos: cirq.Duration(
-                nanos=cast(Union[int, float, sympy.Basic], nanos)
+                nanos=cast(Union[int, float, sympy.Expr], nanos)
             ),
         )
     ],

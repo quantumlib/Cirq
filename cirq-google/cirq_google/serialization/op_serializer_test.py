@@ -519,3 +519,22 @@ def test_circuit_op_to_proto(repetitions):
     )
     actual = serializer.to_proto(to_serialize, constants=constants, raw_constants=raw_constants)
     assert actual == expected
+
+
+def test_circuit_op_to_proto_complex():
+    serializer = cg.CircuitOpSerializer()
+    to_serialize = cirq.CircuitOperation(
+        circuit=default_circuit(),
+        qubit_map={cirq.GridQubit(1, 1): cirq.GridQubit(1, 2)},
+        measurement_key_map={'m': 'results'},
+        param_resolver={'k': 1.0j},
+        repetitions=10,
+        repetition_ids=None,
+    )
+    constants = [
+        v2.program_pb2.Constant(string_value=DEFAULT_TOKEN),
+        v2.program_pb2.Constant(circuit_value=default_circuit_proto()),
+    ]
+    raw_constants = {DEFAULT_TOKEN: 0, default_circuit(): 1}
+    with pytest.raises(ValueError, match='complex value'):
+        serializer.to_proto(to_serialize, constants=constants, raw_constants=raw_constants)
