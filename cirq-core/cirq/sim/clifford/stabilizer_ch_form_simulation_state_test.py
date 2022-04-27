@@ -37,10 +37,10 @@ def test_cannot_act():
 
 def test_gate_with_act_on():
     class CustomGate(cirq.testing.SingleQubitGate):
-        def _act_on_(self, args, qubits):
-            if isinstance(args, cirq.StabilizerChFormSimulationState):
-                qubit = args.qubit_map[qubits[0]]
-                args.state.gamma[qubit] += 1
+        def _act_on_(self, sim_state, qubits):
+            if isinstance(sim_state, cirq.StabilizerChFormSimulationState):
+                qubit = sim_state.qubit_map[qubits[0]]
+                sim_state.state.gamma[qubit] += 1
                 return True
 
     state = cirq.StabilizerStateChForm(num_qubits=3)

@@ -446,7 +446,7 @@ class CliffordGate(raw_types.Gate, CommonCliffordGates):
         )
 
     def _act_on_(
-        self, args: 'cirq.SimulationStateBase', qubits: Sequence['cirq.Qid']
+        self, sim_state: 'cirq.SimulationStateBase', qubits: Sequence['cirq.Qid']
     ) -> Union[NotImplementedType, bool]:
 
         # Note the computation complexity difference between _decompose_ and _act_on_.
@@ -455,14 +455,14 @@ class CliffordGate(raw_types.Gate, CommonCliffordGates):
         #   1. Direct act_on is O(n^3) -- two matrices multiplication
         #   2. Decomposition is O(m^3)+O(k*n^2) -- Decomposition complexity + k * One/two-qubits Ops
         # So when m << n, the decomposition is more efficient.
-        if isinstance(args, sim.clifford.CliffordTableauSimulationState):
-            axes = args.get_axes(qubits)
+        if isinstance(sim_state, sim.clifford.CliffordTableauSimulationState):
+            axes = sim_state.get_axes(qubits)
             # This padding is important and cannot be omitted.
-            padded_tableau = _pad_tableau(self._clifford_tableau, len(args.qubits), axes)
-            args._state = args.tableau.then(padded_tableau)
+            padded_tableau = _pad_tableau(self._clifford_tableau, len(sim_state.qubits), axes)
+            sim_state._state = sim_state.tableau.then(padded_tableau)
             return True
 
-        if isinstance(args, sim.clifford.StabilizerChFormSimulationState):  # coverage: ignore
+        if isinstance(sim_state, sim.clifford.StabilizerChFormSimulationState):  # coverage: ignore
             # Do we know how to apply CliffordTableau on StabilizerChFormSimulationState?
             # It should be unlike because CliffordTableau ignores the global phase but CHForm
             # is aimed to fix that.
@@ -708,7 +708,7 @@ class SingleQubitCliffordGate(CliffordGate):
 
     def _act_on_(
         self,
-        args: 'cirq.SimulationStateBase',  # pylint: disable=unused-argument
+        sim_state: 'cirq.SimulationStateBase',  # pylint: disable=unused-argument
         qubits: Sequence['cirq.Qid'],  # pylint: disable=unused-argument
     ):
         # TODO(#5256) Add the implementation of _act_on_ with CliffordTableauSimulationState.

@@ -713,7 +713,7 @@ class ResetChannel(raw_types.Gate):
     def _qid_shape_(self):
         return (self._dimension,)
 
-    def _act_on_(self, args: 'cirq.SimulationStateBase', qubits: Sequence['cirq.Qid']):
+    def _act_on_(self, sim_state: 'cirq.SimulationStateBase', qubits: Sequence['cirq.Qid']):
         if len(qubits) != 1:
             return NotImplemented
 
@@ -737,12 +737,12 @@ class ResetChannel(raw_types.Gate):
         from cirq.sim import simulation_state
 
         if (
-            isinstance(args, simulation_state.SimulationState)
-            and not args.can_represent_mixed_states
+            isinstance(sim_state, simulation_state.SimulationState)
+            and not sim_state.can_represent_mixed_states
         ):
-            result = args._perform_measurement(qubits)[0]
+            result = sim_state._perform_measurement(qubits)[0]
             gate = PlusGate(self.dimension, self.dimension - result)
-            protocols.act_on(gate, args, qubits)
+            protocols.act_on(gate, sim_state, qubits)
             return True
 
         return NotImplemented

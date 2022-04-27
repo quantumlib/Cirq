@@ -68,7 +68,7 @@ def test_act_on_errors():
         def with_qubits(self: TSelf, *new_qubits: 'cirq.Qid') -> TSelf:
             pass
 
-        def _act_on_(self, args):
+        def _act_on_(self, sim_state):
             return False
 
     args = DummySimulationState(fallback_result=True)

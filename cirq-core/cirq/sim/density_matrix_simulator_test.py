@@ -1593,7 +1593,7 @@ def test_sweep_unparameterized_prefix_not_repeated_even_non_unitaries():
     class NonUnitaryOp(cirq.Operation):
         count = 0
 
-        def _act_on_(self, args):
+        def _act_on_(self, sim_state):
             self.count += 1
             return True
 

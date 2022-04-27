@@ -28,7 +28,7 @@ class SupportsActOn(Protocol):
     """An object that explicitly specifies how to act on simulator states."""
 
     @doc_private
-    def _act_on_(self, args: 'cirq.SimulationStateBase') -> Union[NotImplementedType, bool]:
+    def _act_on_(self, sim_state: 'cirq.SimulationStateBase') -> Union[NotImplementedType, bool]:
         """Applies an action to the given argument, if it is a supported type.
 
         For example, unitary operations can implement an `_act_on_` method that
@@ -43,8 +43,8 @@ class SupportsActOn(Protocol):
         as gates should use `SupportsActOnQubits`.
 
         Args:
-            args: An object of unspecified type. The method must check if this
-                object is of a recognized type and act on it if so.
+            sim_state: An object of unspecified type. The method must check if
+                this object is of a recognized type and act on it if so.
 
         Returns:
             True: The receiving object (`self`) acted on the argument.
@@ -59,7 +59,7 @@ class SupportsActOnQubits(Protocol):
 
     @doc_private
     def _act_on_(
-        self, args: 'cirq.SimulationStateBase', qubits: Sequence['cirq.Qid']
+        self, sim_state: 'cirq.SimulationStateBase', qubits: Sequence['cirq.Qid']
     ) -> Union[NotImplementedType, bool]:
         """Applies an action to the given argument, if it is a supported type.
 
@@ -74,8 +74,8 @@ class SupportsActOnQubits(Protocol):
         If implementing this on an `Operation`, use `SupportsActOn` instead.
 
         Args:
-            args: An object of unspecified type. The method must check if this
-                object is of a recognized type and act on it if so.
+            sim_state: An object of unspecified type. The method must check if
+                this object is of a recognized type and act on it if so.
             qubits: The sequence of qubits to use when applying the action.
 
         Returns:

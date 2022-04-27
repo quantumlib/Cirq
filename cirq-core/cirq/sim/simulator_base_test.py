@@ -207,7 +207,7 @@ def test_noise_applied_measurement_gate():
 
 def test_cannot_act():
     class BadOp(TestOp):
-        def _act_on_(self, args):
+        def _act_on_(self, sim_state):
             raise TypeError()
 
     sim = CountingSimulator()
@@ -362,7 +362,7 @@ def test_sweep_unparameterized_prefix_not_repeated_iff_unitary():
             self.count = 0
             self.has_unitary = has_unitary
 
-        def _act_on_(self, args):
+        def _act_on_(self, sim_state):
             self.count += 1
             return True
 
