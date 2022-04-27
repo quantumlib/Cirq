@@ -1182,6 +1182,9 @@ class CXPowGate(eigen_gate.EigenGate):
             "keyword arguments. But got args={!r}, kwargs={!r}.".format(args, kwargs)
         )
 
+    def __call__(self, *qubits: 'cirq.Qid', **kwargs: 'cirq.Qid'):
+        return self.on(*qubits, **kwargs)
+
 
 def rx(rads: value.TParamVal) -> Rx:
     """Returns a gate with the matrix e^{-i X rads / 2}."""
