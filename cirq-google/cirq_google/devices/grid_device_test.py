@@ -33,14 +33,20 @@ def _create_device_spec_with_horizontal_couplings():
     #   x -- x
 
     grid_qubits = [cirq.GridQubit(i, j) for i in range(GRID_HEIGHT) for j in range(2)]
+
     spec = v2.device_pb2.DeviceSpecification()
     spec.valid_qubits.extend([v2.qubit_to_proto_id(q) for q in grid_qubits])
     grid_targets = spec.valid_targets.add()
     grid_targets.name = '2_qubit_targets'
     grid_targets.target_ordering = v2.device_pb2.TargetSet.SYMMETRIC
-    for row in range(GRID_HEIGHT):
+    for row in range(int(GRID_HEIGHT / 2)):
         new_target = grid_targets.targets.add()
         new_target.ids.extend([v2.qubit_to_proto_id(cirq.GridQubit(row, j)) for j in range(2)])
+    for row in range(int(GRID_HEIGHT / 2), GRID_HEIGHT):
+        # Flip the qubit pair order for the second half of qubits
+        # to verify GridDevice properly handles pair symmetry.
+        new_target = grid_targets.targets.add()
+        new_target.ids.extend([v2.qubit_to_proto_id(cirq.GridQubit(row, 1 - j)) for j in range(2)])
     gate = spec.valid_gates.add()
     gate.syc.SetInParent()
     gate.gate_duration_picos = 12000
@@ -74,7 +80,7 @@ def _create_device_spec_with_all_couplings():
     return grid_qubits, spec
 
 
-def _create_device_spec_with_qubit_pair_self_loops() -> v2.device_pb2.DeviceSpecification:
+def _create_device_spec_qubit_pair_self_loops() -> v2.device_pb2.DeviceSpecification:
     q_proto_id = v2.qubit_to_proto_id(cirq.NamedQubit('q'))
 
     spec = v2.device_pb2.DeviceSpecification()
@@ -88,7 +94,7 @@ def _create_device_spec_with_qubit_pair_self_loops() -> v2.device_pb2.DeviceSpec
     return spec
 
 
-def _create_device_spec_with_invalid_qubit_in_qubit_pair() -> v2.device_pb2.DeviceSpecification:
+def _create_device_spec_invalid_qubit_in_qubit_pair() -> v2.device_pb2.DeviceSpecification:
     q_proto_ids = [v2.qubit_to_proto_id(cirq.GridQubit(0, i)) for i in range(2)]
 
     spec = v2.device_pb2.DeviceSpecification()
@@ -102,22 +108,36 @@ def _create_device_spec_with_invalid_qubit_in_qubit_pair() -> v2.device_pb2.Devi
     return spec
 
 
-def test_google_device_from_proto_and_validation():
+def _create_device_spec_invalid_subset_permutation_target() -> v2.device_pb2.DeviceSpecification:
+    q_proto_ids = [v2.qubit_to_proto_id(cirq.GridQubit(0, i)) for i in range(2)]
+
+    spec = v2.device_pb2.DeviceSpecification()
+    spec.valid_qubits.extend(q_proto_ids)
+    targets = spec.valid_targets.add()
+    targets.name = 'test_targets'
+    targets.target_ordering = v2.device_pb2.TargetSet.SUBSET_PERMUTATION
+    new_target = targets.targets.add()
+    new_target.ids.extend(q_proto_ids)  # should only have 1 qubit instead
+
+    return spec
+
+
+def test_grid_device_from_proto_and_validation():
     grid_qubits, spec = _create_device_spec_with_horizontal_couplings()
 
-    device = cirq_google.GoogleDevice.from_proto(spec)
+    device = cirq_google.GridDevice.from_proto(spec)
 
     assert len(device.metadata.qubit_set) == len(grid_qubits)
     assert device.metadata.qubit_set == frozenset(grid_qubits)
     assert all(
-        (cirq.GridQubit(row, 0), cirq.GridQubit(row, 1)) in device.metadata.qubit_pairs
+        frozenset((cirq.GridQubit(row, 0), cirq.GridQubit(row, 1))) in device.metadata.qubit_pairs
         for row in range(GRID_HEIGHT)
     )
 
 
-def test_google_device_validate_operations_positive():
+def test_grid_device_validate_operations_positive():
     grid_qubits, spec = _create_device_spec_with_horizontal_couplings()
-    device = cirq_google.GoogleDevice.from_proto(spec)
+    device = cirq_google.GridDevice.from_proto(spec)
 
     for q in grid_qubits:
         device.validate_operation(cirq.X(q))
@@ -129,9 +149,9 @@ def test_google_device_validate_operations_positive():
     # TODO(#5050) verify validate_operations gateset support
 
 
-def test_google_device_validate_operations_negative():
+def test_grid_device_validate_operations_negative():
     grid_qubits, spec = _create_device_spec_with_horizontal_couplings()
-    device = cirq_google.GoogleDevice.from_proto(spec)
+    device = cirq_google.GridDevice.from_proto(spec)
 
     q = cirq.GridQubit(10, 10)
     with pytest.raises(ValueError, match='Qubit not on device'):
@@ -145,31 +165,32 @@ def test_google_device_validate_operations_negative():
     # TODO(#5050) verify validate_operations gateset errors
 
 
-@pytest.mark.parametrize(
-    'spec',
-    [
-        # TODO(#5050) implement once gateset support is implemented
-        # _create_device_spec_with_missing_gate_durations(),
-        _create_device_spec_with_qubit_pair_self_loops(),
-        _create_device_spec_with_invalid_qubit_in_qubit_pair(),
-    ],
-)
-def test_google_device_invalid_device_spec(spec):
-    with pytest.raises(ValueError, match='DeviceSpecification is invalid'):
-        cirq_google.GoogleDevice.from_proto(spec)
+def test_grid_device_invalid_qubit_in_qubit_pair():
+    with pytest.raises(ValueError, match='which is not in valid_qubits'):
+        cirq_google.GridDevice.from_proto(_create_device_spec_invalid_qubit_in_qubit_pair())
 
 
-def test_google_device_repr_json():
+def test_grid_device_invalid_target_self_loops():
+    with pytest.raises(ValueError, match='contains repeated qubits'):
+        cirq_google.GridDevice.from_proto(_create_device_spec_qubit_pair_self_loops())
+
+
+def test_grid_device_invalid_subset_permutation_target():
+    with pytest.raises(ValueError, match='does not have exactly 1 qubit'):
+        cirq_google.GridDevice.from_proto(_create_device_spec_invalid_subset_permutation_target())
+
+
+def test_grid_device_repr_json():
     _, spec = _create_device_spec_with_horizontal_couplings()
-    device = cirq_google.GoogleDevice.from_proto(spec)
+    device = cirq_google.GridDevice.from_proto(spec)
 
     assert eval(repr(device)) == device
     assert cirq.read_json(json_text=cirq.to_json(device)) == device
 
 
-def test_google_device_str_grid_qubits():
+def test_grid_device_str_grid_qubits():
     _, spec = _create_device_spec_with_all_couplings()
-    device = cirq_google.GoogleDevice.from_proto(spec)
+    device = cirq_google.GridDevice.from_proto(spec)
 
     assert (
         str(device)
@@ -191,17 +212,17 @@ def test_google_device_str_grid_qubits():
 
 
 @pytest.mark.parametrize('cycle,func', [(False, str), (True, repr)])
-def test_google_device_repr_pretty(cycle, func):
+def test_grid_device_repr_pretty(cycle, func):
     _, spec = _create_device_spec_with_all_couplings()
-    device = cirq_google.GoogleDevice.from_proto(spec)
+    device = cirq_google.GridDevice.from_proto(spec)
     printer = mock.Mock()
     device._repr_pretty_(printer, cycle)
     printer.text.assert_called_once_with(func(device))
 
 
-def test_serializable_device_str_named_qubits():
+def test_grid_device_str_named_qubits():
     q_proto_id = v2.qubit_to_proto_id(cirq.NamedQubit('q'))
     spec = v2.device_pb2.DeviceSpecification()
     spec.valid_qubits.extend([q_proto_id])
-    device = cirq_google.GoogleDevice.from_proto(spec)
+    device = cirq_google.GridDevice.from_proto(spec)
     assert device.__class__.__name__ in str(device)

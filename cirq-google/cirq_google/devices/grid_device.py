@@ -12,27 +12,73 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Device object representing Google devices."""
+"""Device object representing Google devices with a grid qubit layout."""
 
 from typing import Any, Set, Tuple, cast
 import cirq
 from cirq_google.api import v2
 
 
+def _validate_device_specification(proto: v2.device_pb2.DeviceSpecification) -> None:
+    """Validates the DeviceSpecification proto.
+
+    Args:
+        proto: The DeviceSpecification proto to validate.
+
+    Raises:
+        ValueError: If the DeviceSpecification is invalid.
+
+    """
+
+    for target_set in proto.valid_targets:
+
+        # Check for unknown qubits in targets.
+        for target in target_set.targets:
+            for target_id in target.ids:
+                if target_id not in proto.valid_qubits:
+                    raise ValueError(
+                        f"Invalid DeviceSpecification: valid_targets contain qubit '{target_id}'"
+                        " which is not in valid_qubits."
+                    )
+
+        # Symmetric and asymmetric targets should not have repeated qubits.
+        if (
+            target_set.target_ordering == v2.device_pb2.TargetSet.SYMMETRIC
+            or target_set.target_ordering == v2.device_pb2.TargetSet.ASYMMETRIC
+        ):
+            for target in target_set.targets:
+                if len(target.ids) > len(set(target.ids)):
+                    raise ValueError(
+                        f"Invalid DeviceSpecification: the target set '{target_set.name}' is either"
+                        " SYMMETRIC or ASYMMETRIC but has a target which contains repeated qubits:"
+                        f" {target.ids}."
+                    )
+
+        # A SUBSET_PERMUTATION target should contain exactly one qubit.
+        if target_set.target_ordering == v2.device_pb2.TargetSet.SUBSET_PERMUTATION:
+            for target in target_set.targets:
+                if len(target.ids) != 1:
+                    raise ValueError(
+                        f"Invalid DeviceSpecification: the target set '{target_set.name}' is of"
+                        " type SUBSET_PERMUTATION but contains a target which does not have exactly"
+                        f" 1 qubit: {target.ids}."
+                    )
+
+
 @cirq.value_equality
-class GoogleDevice(cirq.Device):
-    """Device object representing Google devices.
+class GridDevice(cirq.Device):
+    """Device object representing Google devices with a grid qubit layout.
 
     For end users, instances of this class are typically accessed via
     `Engine.get_processor('processor_name').get_device()`.
 
     This class is compliant with the core `cirq.Device` abstraction. In particular:
         * Device information is captured in the `metadata` property.
-        * An instance of `GoogleDevice` can be used to validate circuits, moments, and operations.
+        * An instance of `GridDevice` can be used to validate circuits, moments, and operations.
 
     Example use cases:
 
-        * Get an instance of a Google device.
+        * Get an instance of a Google grid device.
         >>> device = cirq_google.get_engine().get_processor('weber').get_device()
 
         * Print the grid layout of the device.
@@ -78,15 +124,15 @@ class GoogleDevice(cirq.Device):
     """
 
     def __init__(self, metadata: cirq.GridDeviceMetadata):
-        """Creates a GoogleDevice object.
+        """Creates a GridDevice object.
 
         This constructor typically should not be used directly. Use `from_proto()` instead.
         """
         self._metadata = metadata
 
     @classmethod
-    def from_proto(cls, proto: v2.device_pb2.DeviceSpecification) -> 'GoogleDevice':
-        """Create a `GoogleDevice` from a DeviceSpecification proto.
+    def from_proto(cls, proto: v2.device_pb2.DeviceSpecification) -> 'GridDevice':
+        """Create a `GridDevice` from a DeviceSpecification proto.
 
         This class only supports `cirq.GridQubit`s and `cirq.NamedQubit`s. If a
         `DeviceSpecification.valid_qubits` string is in the form `<int>_<int>`, it is parsed as a
@@ -99,6 +145,8 @@ class GoogleDevice(cirq.Device):
             ValueError: If the given `DeviceSpecification` is invalid.
         """
 
+        _validate_device_specification(proto)
+
         # Create qubit set
         all_qubits = [_qid_from_str(q) for q in proto.valid_qubits]
 
@@ -110,7 +158,6 @@ class GoogleDevice(cirq.Device):
         # * All valid qubits work for all single-qubit gates.
         # * Measurement gate can always be applied to all subset of qubits.
         #
-        # TODO(#5169) Consider adding the reversed pair, depending on the issue's solution.
         qubit_pairs = [
             (_qid_from_str(target.ids[0]), _qid_from_str(target.ids[1]))
             for ts in proto.valid_targets
@@ -125,13 +172,14 @@ class GoogleDevice(cirq.Device):
                 gateset=cirq.Gateset(),  # TODO(#5050) implement
                 all_qubits=all_qubits,
             )
-        except ValueError as ve:
-            raise ValueError("DeviceSpecification is invalid.") from ve
+        except ValueError as ve:  # coverage: ignore
+            # Spec errors should have been caught in validation above.
+            raise ValueError("DeviceSpecification is invalid.") from ve  # coverage: ignore
 
-        return GoogleDevice(metadata)
+        return GridDevice(metadata)
 
     @property
-    def metadata(self):
+    def metadata(self) -> cirq.GridDeviceMetadata:
         """Get metadata information for the device."""
         return self._metadata
 
@@ -157,8 +205,10 @@ class GoogleDevice(cirq.Device):
             if q not in self._metadata.qubit_set:
                 raise ValueError(f'Qubit not on device: {q!r}')
 
-        # TODO(#5169) May need to check the reverse pair depending on the issue's solution.
-        if len(operation.qubits) == 2 and tuple(operation.qubits) not in self._metadata.qubit_pairs:
+        if (
+            len(operation.qubits) == 2
+            and frozenset(operation.qubits) not in self._metadata.qubit_pairs
+        ):
             raise ValueError(f'Qubit pair is not valid on device: {operation.qubits!r}')
 
     def __str__(self) -> str:
@@ -177,7 +227,7 @@ class GoogleDevice(cirq.Device):
 
             # Find pairs that are connected by two-qubit gates.
             Pair = Tuple[cirq.GridQubit, cirq.GridQubit]
-            pairs = sorted({cast(Pair, pair) for pair in self._metadata.qubit_pairs})
+            pairs = sorted({cast(Pair, tuple(pair)) for pair in self._metadata.qubit_pairs})
 
             # Draw lines between connected pairs. Limit to horizontal/vertical
             # lines since that is all the diagram drawer can handle.
@@ -199,12 +249,10 @@ class GoogleDevice(cirq.Device):
         p.text(repr(self) if cycle else str(self))
 
     def __repr__(self) -> str:
-        return f'cirq_google.GoogleDevice({repr(self._metadata)})'
+        return f'cirq_google.GridDevice({repr(self._metadata)})'
 
     def _json_dict_(self):
-        return {
-            'metadata': self._metadata,
-        }
+        return {'metadata': self._metadata}
 
     @classmethod
     def _from_json_dict_(cls, metadata, **kwargs):
