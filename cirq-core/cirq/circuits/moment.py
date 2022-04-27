@@ -166,15 +166,18 @@ class Moment:
         # Use private variables to facilitate a quick copy.
         m = Moment()
         m._operations = self._operations + (operation,)
-        m._qubits = frozenset(self._qubits.union(set(operation.qubits)))
-        m._qubit_to_op = self._qubit_to_op.copy()
-
-        m._measurement_key_objs = set(self._measurement_key_objs_())
-        m._control_keys = frozenset(self._control_keys_())
-        m._measurement_key_objs |= protocols.measurement_key_objs(operation)
-        m._control_keys |= protocols.control_keys(operation)
-        for q in operation.qubits:
-            m._qubit_to_op[q] = operation
+        m._qubits = frozenset(itertools.chain(self._qubits, operation.qubits))
+        m._qubit_to_op = dict(
+            itertools.chain(self._qubit_to_op.items(), ((q, operation) for q in operation))
+        )
+        m._measurement_key_objs = set(
+            itertools.chain(
+                self._measurement_key_objs_(), protocols.measurement_key_objs(operation)
+            )
+        )
+        m._control_keys = frozenset(
+            itertools.chain(self._control_keys_(), protocols.control_keys(operation))
+        )
 
         return m
 
@@ -190,29 +193,34 @@ class Moment:
         Raises:
             ValueError: If the contents given overlaps a current operation in the moment.
         """
-        operations = list(self._operations)
+        flattened_contents = tuple(op_tree.flatten_to_ops(contents))
+
         qubits = set(self._qubits)
-        measurement_key_objs = set(self._measurement_key_objs_())
-        control_keys = set(self._control_keys_())
-        for op in op_tree.flatten_to_ops(contents):
+        for op in flattened_contents:
             if any(q in qubits for q in op.qubits):
                 raise ValueError(f'Overlapping operations: {op}')
-            operations.append(op)
             qubits.update(op.qubits)
-            measurement_key_objs |= protocols.measurement_key_objs(op)
-            control_keys |= protocols.control_keys(op)
 
         # Use private variables to facilitate a quick copy.
         m = Moment()
-        m._operations = tuple(operations)
+        m._operations = tuple(itertools.chain(self._operations, flattened_contents))
         m._qubits = frozenset(qubits)
-        m._qubit_to_op = self._qubit_to_op.copy()
-        m._measurement_key_objs = measurement_key_objs
-        m._control_keys = frozenset(control_keys)
-        for op in operations:
-            for q in op.qubits:
-                m._qubit_to_op[q] = op
-
+        m._qubit_to_op = dict(
+            itertools.chain(
+                self._qubit_to_op.items(), ((q, op) for op in flattened_contents for q in qubits)
+            )
+        )
+        m._measurement_key_objs = set(
+            itertools.chain(
+                self._measurement_key_objs_(),
+                (protocols.measurement_key_objs(op) for op in flattened_contents),
+            )
+        )
+        m._control_keys = frozenset(
+            itertools.chain(
+                self._control_keys(), (protocols.control_keys(op) for op in flattened_contents)
+            )
+        )
         return m
 
     def without_operations_touching(self, qubits: Iterable['cirq.Qid']) -> 'cirq.Moment':
