@@ -28,12 +28,7 @@ from cirq_google.workflow.quantum_runtime import _time_into_runtime_info
 
 def cg_assert_equivalent_repr(value):
     """cirq.testing.assert_equivalent_repr with cirq_google.workflow imported."""
-    return cirq.testing.assert_equivalent_repr(
-        value,
-        global_vals={
-            'cirq_google': cg,
-        },
-    )
+    return cirq.testing.assert_equivalent_repr(value, global_vals={'cirq_google': cg})
 
 
 def test_shared_runtime_info():
@@ -68,8 +63,7 @@ def _assert_json_roundtrip(o, tmpdir):
 
 def test_quantum_runtime_configuration():
     rt_config = cg.QuantumRuntimeConfiguration(
-        processor_record=cg.SimulatedProcessorWithLocalDeviceRecord('rainbow'),
-        run_id='unit-test',
+        processor_record=cg.SimulatedProcessorWithLocalDeviceRecord('rainbow'), run_id='unit-test'
     )
 
     sampler = rt_config.processor_record.get_sampler()
@@ -81,8 +75,7 @@ def test_quantum_runtime_configuration():
 
 def test_quantum_runtime_configuration_serialization(tmpdir):
     rt_config = cg.QuantumRuntimeConfiguration(
-        processor_record=cg.SimulatedProcessorWithLocalDeviceRecord('rainbow'),
-        run_id='unit-test',
+        processor_record=cg.SimulatedProcessorWithLocalDeviceRecord('rainbow'), run_id='unit-test'
     )
     cg_assert_equivalent_repr(rt_config)
     _assert_json_roundtrip(rt_config, tmpdir)

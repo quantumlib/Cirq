@@ -1,6 +1,6 @@
 # pylint: disable=wrong-or-nonexistent-copyright-notice
 import warnings
-from typing import Sequence, Union, List, Tuple, Dict, Optional
+from typing import cast, Sequence, Union, List, Tuple, Dict, Optional
 
 import numpy as np
 import quimb
@@ -178,5 +178,5 @@ def tensor_expectation_value(
         raise MemoryError(f"We estimate that this contraction will take too much RAM! {ram_gb} GB")
     e_val = tn.contract(inplace=True)
     assert e_val.imag < tol
-    assert pauli_string.coefficient.imag < tol
+    assert cast(complex, pauli_string.coefficient).imag < tol
     return e_val.real * pauli_string.coefficient

@@ -199,20 +199,8 @@ def test_quantum_executable_group_serialization(tmpdir):
 
 
 def test_equality():
-    k1 = KeyValueExecutableSpec(
-        executable_family='test',
-        key_value_pairs=(
-            ('a', 1),
-            ('b', 2),
-        ),
-    )
-    k2 = KeyValueExecutableSpec(
-        executable_family='test',
-        key_value_pairs=(
-            ('b', 2),
-            ('a', 1),
-        ),
-    )
+    k1 = KeyValueExecutableSpec(executable_family='test', key_value_pairs=(('a', 1), ('b', 2)))
+    k2 = KeyValueExecutableSpec(executable_family='test', key_value_pairs=(('b', 2), ('a', 1)))
     assert k1 == k2
 
 

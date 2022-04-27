@@ -18,7 +18,10 @@ For example: some gates are reversible, some have known matrices, etc.
 """
 
 import abc
+import warnings
 
+from cirq import value
+from cirq._compat import deprecated_class
 from cirq.ops import raw_types
 
 
@@ -30,7 +33,18 @@ class InterchangeableQubitsGate(metaclass=abc.ABCMeta):
         return 0
 
 
-class SingleQubitGate(raw_types.Gate, metaclass=abc.ABCMeta):
+class _SingleQubitGateMeta(value.ABCMetaImplementAnyOneOf):
+    def __instancecheck__(cls, instance):
+        warnings.warn(
+            'isinstance(gate, SingleQubitGate) is deprecated. '
+            'Use cirq.num_qubits(gate) == 1 instead',
+            DeprecationWarning,
+        )
+        return isinstance(instance, raw_types.Gate) and instance._num_qubits_() == 1
+
+
+@deprecated_class(deadline='v1.0', fix='Define _num_qubits_ manually.')
+class SingleQubitGate(raw_types.Gate, metaclass=_SingleQubitGateMeta):
     """A gate that must be applied to exactly one qubit."""
 
     def _num_qubits_(self) -> int:

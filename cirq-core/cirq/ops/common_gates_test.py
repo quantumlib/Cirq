@@ -17,7 +17,7 @@ import pytest
 import sympy
 
 import cirq
-from cirq.protocols.act_on_protocol_test import DummyActOnArgs
+from cirq.protocols.act_on_protocol_test import DummySimulationState
 
 H = np.array([[1, 1], [1, -1]]) * np.sqrt(0.5)
 HH = cirq.kron(H, H)
@@ -25,25 +25,13 @@ QFT2 = np.array([[1, 1, 1, 1], [1, 1j, -1, -1j], [1, -1, 1, -1], [1, -1j, -1, 1j
 
 
 @pytest.mark.parametrize(
-    'eigen_gate_type',
-    [
-        cirq.CZPowGate,
-        cirq.XPowGate,
-        cirq.YPowGate,
-        cirq.ZPowGate,
-    ],
+    'eigen_gate_type', [cirq.CZPowGate, cirq.XPowGate, cirq.YPowGate, cirq.ZPowGate]
 )
 def test_phase_insensitive_eigen_gates_consistent_protocols(eigen_gate_type):
     cirq.testing.assert_eigengate_implements_consistent_protocols(eigen_gate_type)
 
 
-@pytest.mark.parametrize(
-    'eigen_gate_type',
-    [
-        cirq.CNotPowGate,
-        cirq.HPowGate,
-    ],
-)
+@pytest.mark.parametrize('eigen_gate_type', [cirq.CNotPowGate, cirq.HPowGate])
 def test_phase_sensitive_eigen_gates_consistent_protocols(eigen_gate_type):
     cirq.testing.assert_eigengate_implements_consistent_protocols(
         eigen_gate_type, ignoring_global_phase=True
@@ -301,11 +289,11 @@ def test_h_str():
 
 def test_x_act_on_tableau():
     with pytest.raises(TypeError, match="Failed to act"):
-        cirq.act_on(cirq.X, DummyActOnArgs(), qubits=())
+        cirq.act_on(cirq.X, DummySimulationState(), qubits=())
     original_tableau = cirq.CliffordTableau(num_qubits=5, initial_state=31)
     flipped_tableau = cirq.CliffordTableau(num_qubits=5, initial_state=23)
 
-    args = cirq.ActOnCliffordTableauArgs(
+    args = cirq.CliffordTableauSimulationState(
         tableau=original_tableau.copy(),
         qubits=cirq.LineQubit.range(5),
         prng=np.random.RandomState(),
@@ -334,14 +322,14 @@ def test_x_act_on_tableau():
         cirq.act_on(cirq.X**foo, args, [cirq.LineQubit(1)])
 
 
-class iZGate(cirq.SingleQubitGate):
+class iZGate(cirq.testing.SingleQubitGate):
     """Equivalent to an iZ gate without _act_on_ defined on it."""
 
     def _unitary_(self):
         return np.array([[1j, 0], [0, -1j]])
 
 
-class MinusOnePhaseGate(cirq.SingleQubitGate):
+class MinusOnePhaseGate(cirq.testing.SingleQubitGate):
     """Equivalent to a -1 global phase without _act_on_ defined on it."""
 
     def _unitary_(self):
@@ -350,11 +338,11 @@ class MinusOnePhaseGate(cirq.SingleQubitGate):
 
 def test_y_act_on_tableau():
     with pytest.raises(TypeError, match="Failed to act"):
-        cirq.act_on(cirq.Y, DummyActOnArgs(), qubits=())
+        cirq.act_on(cirq.Y, DummySimulationState(), qubits=())
     original_tableau = cirq.CliffordTableau(num_qubits=5, initial_state=31)
     flipped_tableau = cirq.CliffordTableau(num_qubits=5, initial_state=23)
 
-    args = cirq.ActOnCliffordTableauArgs(
+    args = cirq.CliffordTableauSimulationState(
         tableau=original_tableau.copy(),
         qubits=cirq.LineQubit.range(5),
         prng=np.random.RandomState(),
@@ -388,13 +376,13 @@ def test_y_act_on_tableau():
 
 def test_z_h_act_on_tableau():
     with pytest.raises(TypeError, match="Failed to act"):
-        cirq.act_on(cirq.Z, DummyActOnArgs(), qubits=())
+        cirq.act_on(cirq.Z, DummySimulationState(), qubits=())
     with pytest.raises(TypeError, match="Failed to act"):
-        cirq.act_on(cirq.H, DummyActOnArgs(), qubits=())
+        cirq.act_on(cirq.H, DummySimulationState(), qubits=())
     original_tableau = cirq.CliffordTableau(num_qubits=5, initial_state=31)
     flipped_tableau = cirq.CliffordTableau(num_qubits=5, initial_state=23)
 
-    args = cirq.ActOnCliffordTableauArgs(
+    args = cirq.CliffordTableauSimulationState(
         tableau=original_tableau.copy(),
         qubits=cirq.LineQubit.range(5),
         prng=np.random.RandomState(),
@@ -441,10 +429,10 @@ def test_z_h_act_on_tableau():
 
 def test_cx_act_on_tableau():
     with pytest.raises(TypeError, match="Failed to act"):
-        cirq.act_on(cirq.CX, DummyActOnArgs(), qubits=())
+        cirq.act_on(cirq.CX, DummySimulationState(), qubits=())
     original_tableau = cirq.CliffordTableau(num_qubits=5, initial_state=31)
 
-    args = cirq.ActOnCliffordTableauArgs(
+    args = cirq.CliffordTableauSimulationState(
         tableau=original_tableau.copy(),
         qubits=cirq.LineQubit.range(5),
         prng=np.random.RandomState(),
@@ -485,10 +473,10 @@ def test_cx_act_on_tableau():
 
 def test_cz_act_on_tableau():
     with pytest.raises(TypeError, match="Failed to act"):
-        cirq.act_on(cirq.CZ, DummyActOnArgs(), qubits=())
+        cirq.act_on(cirq.CZ, DummySimulationState(), qubits=())
     original_tableau = cirq.CliffordTableau(num_qubits=5, initial_state=31)
 
-    args = cirq.ActOnCliffordTableauArgs(
+    args = cirq.CliffordTableauSimulationState(
         tableau=original_tableau.copy(),
         qubits=cirq.LineQubit.range(5),
         prng=np.random.RandomState(),
@@ -528,12 +516,12 @@ def test_cz_act_on_tableau():
 
 
 def test_cz_act_on_equivalent_to_h_cx_h_tableau():
-    args1 = cirq.ActOnCliffordTableauArgs(
+    args1 = cirq.CliffordTableauSimulationState(
         tableau=cirq.CliffordTableau(num_qubits=2),
         qubits=cirq.LineQubit.range(2),
         prng=np.random.RandomState(),
     )
-    args2 = cirq.ActOnCliffordTableauArgs(
+    args2 = cirq.CliffordTableauSimulationState(
         tableau=cirq.CliffordTableau(num_qubits=2),
         qubits=cirq.LineQubit.range(2),
         prng=np.random.RandomState(),
@@ -595,7 +583,7 @@ def test_act_on_ch_form(input_gate_sequence, outcome):
     else:
         assert num_qubits == 2
         qubits = cirq.LineQubit.range(2)
-    args = cirq.ActOnStabilizerCHFormArgs(
+    args = cirq.StabilizerChFormSimulationState(
         qubits=cirq.LineQubit.range(2),
         prng=np.random.RandomState(),
         initial_state=original_state.copy(),
@@ -926,11 +914,7 @@ def test_rz_unitary():
 
 @pytest.mark.parametrize(
     'angle_rads, expected_unitary',
-    [
-        (0, np.eye(4)),
-        (1, np.diag([1, 1, 1, np.exp(1j)])),
-        (np.pi / 2, np.diag([1, 1, 1, 1j])),
-    ],
+    [(0, np.eye(4)), (1, np.diag([1, 1, 1, np.exp(1j)])), (np.pi / 2, np.diag([1, 1, 1, 1j]))],
 )
 def test_cphase_unitary(angle_rads, expected_unitary):
     np.testing.assert_allclose(cirq.unitary(cirq.cphase(angle_rads)), expected_unitary)
@@ -1005,26 +989,14 @@ q: ───X───X───X───X───X───X^0.5───X^0.
     )
 
     cirq.testing.assert_has_diagram(
-        cirq.Circuit(
-            iy(q),
-            iy(q) ** -1,
-            iy(q) ** 3,
-            iy(q) ** 4.5,
-            iy(q) ** 4.500001,
-        ),
+        cirq.Circuit(iy(q), iy(q) ** -1, iy(q) ** 3, iy(q) ** 4.5, iy(q) ** 4.500001),
         """
 q: ───Y───Y───Y───Y^0.5───Y^0.5───
     """,
     )
 
     cirq.testing.assert_has_diagram(
-        cirq.Circuit(
-            iz(q),
-            iz(q) ** -1,
-            iz(q) ** 3,
-            iz(q) ** 4.5,
-            iz(q) ** 4.500001,
-        ),
+        cirq.Circuit(iz(q), iz(q) ** -1, iz(q) ** 3, iz(q) ** 4.5, iz(q) ** 4.500001),
         """
 q: ───Z───Z───Z───S───S───
     """,

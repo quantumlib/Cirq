@@ -28,11 +28,7 @@ def test_inconclusive():
 
 
 @pytest.mark.parametrize(
-    'measurement_gate',
-    (
-        cirq.MeasurementGate(1, 'a'),
-        cirq.PauliMeasurementGate([cirq.X], 'a'),
-    ),
+    'measurement_gate', (cirq.MeasurementGate(1, 'a'), cirq.PauliMeasurementGate([cirq.X], 'a'))
 )
 def test_fail_fast_measure(measurement_gate):
     assert not cirq.has_unitary(measurement_gate)
@@ -78,7 +74,7 @@ def test_via_apply_unitary():
         def _apply_unitary_(self, args):
             return NotImplemented
 
-    class No3(cirq.SingleQubitGate):
+    class No3(cirq.testing.SingleQubitGate):
         def _apply_unitary_(self, args):
             return NotImplemented
 
@@ -90,7 +86,7 @@ def test_via_apply_unitary():
         def _apply_unitary_(self, args):
             return args.target_tensor
 
-    class Yes2(cirq.SingleQubitGate):
+    class Yes2(cirq.testing.SingleQubitGate):
         def _apply_unitary_(self, args):
             return args.target_tensor
 

@@ -26,7 +26,7 @@ if TYPE_CHECKING:
 
 
 @value.value_equality(approximate=True)
-class QasmUGate(ops.SingleQubitGate):
+class QasmUGate(ops.Gate):
     def __init__(self, theta, phi, lmda) -> None:
         """A QASM gate representing any single qubit unitary with a series of
         three rotations, Z, Y, and Z.
@@ -42,14 +42,13 @@ class QasmUGate(ops.SingleQubitGate):
         self.theta = theta % 2
         self.phi = phi % 2
 
+    def _num_qubits_(self) -> int:
+        return 1
+
     @staticmethod
     def from_matrix(mat: np.ndarray) -> 'QasmUGate':
         pre_phase, rotation, post_phase = linalg.deconstruct_single_qubit_matrix_into_angles(mat)
-        return QasmUGate(
-            rotation / np.pi,
-            post_phase / np.pi,
-            pre_phase / np.pi,
-        )
+        return QasmUGate(rotation / np.pi, post_phase / np.pi, pre_phase / np.pi)
 
     def _has_unitary_(self):
         return True
@@ -84,11 +83,7 @@ class QasmUGate(ops.SingleQubitGate):
         return self.lmda, self.theta, self.phi
 
     def _json_dict_(self) -> Dict[str, float]:
-        return {
-            'theta': self.theta,
-            'phi': self.phi,
-            'lmda': self.lmda,
-        }
+        return {'theta': self.theta, 'phi': self.phi, 'lmda': self.lmda}
 
     @classmethod
     def _from_json_dict_(cls, theta: float, phi: float, lmda: float, **kwargs) -> 'QasmUGate':

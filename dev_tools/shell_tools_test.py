@@ -64,17 +64,14 @@ def test_run_shell_capture():
 
 @only_on_posix
 def test_run_shell_does_not_deadlock_on_large_outputs():
-    assert (
-        run_shell(
-            r"""python3 -c "import sys;"""
-            r"""print((('o' * 99) + '\n') * 10000);"""
-            r"""print((('e' * 99) + '\n') * 10000, file=sys.stderr)"""
-            '"',
-            out=None,
-            err=None,
-        )
-        == (None, None, 0)
-    )
+    assert run_shell(
+        r"""python3 -c "import sys;"""
+        r"""print((('o' * 99) + '\n') * 10000);"""
+        r"""print((('e' * 99) + '\n') * 10000, file=sys.stderr)"""
+        '"',
+        out=None,
+        err=None,
+    ) == (None, None, 0)
 
 
 @only_on_posix

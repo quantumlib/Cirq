@@ -137,22 +137,22 @@ def test_kraus_fallback_to_unitary():
     assert cirq.has_kraus(ReturnsUnitary())
 
 
-class HasKraus(cirq.SingleQubitGate):
+class HasKraus(cirq.testing.SingleQubitGate):
     def _has_kraus_(self) -> bool:
         return True
 
 
-class HasMixture(cirq.SingleQubitGate):
+class HasMixture(cirq.testing.SingleQubitGate):
     def _has_mixture_(self) -> bool:
         return True
 
 
-class HasUnitary(cirq.SingleQubitGate):
+class HasUnitary(cirq.testing.SingleQubitGate):
     def _has_unitary_(self) -> bool:
         return True
 
 
-class HasKrausWhenDecomposed(cirq.SingleQubitGate):
+class HasKrausWhenDecomposed(cirq.testing.SingleQubitGate):
     def __init__(self, decomposed_cls):
         self.decomposed_cls = decomposed_cls
 

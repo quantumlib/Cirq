@@ -77,10 +77,7 @@ def test_default_text_diagram():
     q0, q1, q2 = _make_qubits(3)
     ps = cirq.PauliString({q0: cirq.X, q1: cirq.Y, q2: cirq.Z})
 
-    circuit = cirq.Circuit(
-        DiagramGate(ps),
-        DiagramGate(-ps),
-    )
+    circuit = cirq.Circuit(DiagramGate(ps), DiagramGate(-ps))
     cirq.testing.assert_has_diagram(
         circuit,
         """

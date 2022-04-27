@@ -26,10 +26,10 @@ from typing import (
     TypeVar,
     Union,
 )
-
 import abc
-
 import math
+import numbers
+
 import numpy as np
 import sympy
 
@@ -202,9 +202,7 @@ class EigenGate(raw_types.Gate):
         return result
 
     def _format_exponent_as_angle(
-        self,
-        args: 'protocols.CircuitDiagramInfoArgs',
-        order: int = 2,
+        self, args: 'protocols.CircuitDiagramInfoArgs', order: int = 2
     ) -> str:
         """Returns string with exponent expressed as angle in radians.
 
@@ -357,7 +355,13 @@ class EigenGate(raw_types.Gate):
         return protocols.parameter_names(self._exponent)
 
     def _resolve_parameters_(self, resolver: 'cirq.ParamResolver', recursive: bool) -> 'EigenGate':
-        return self._with_exponent(exponent=resolver.value_of(self._exponent, recursive))
+        exponent = resolver.value_of(self._exponent, recursive)
+        if isinstance(exponent, (complex, numbers.Complex)):
+            if isinstance(exponent, numbers.Real):
+                exponent = float(exponent)
+            else:
+                raise ValueError(f'Complex exponent {exponent} not supported for EigenGate')
+        return self._with_exponent(exponent=exponent)
 
     def _equal_up_to_global_phase_(self, other, atol):
         if not isinstance(other, EigenGate):

@@ -212,13 +212,11 @@ class BlockDiagramDrawer:
         # Determine desired size of diagram in blocks.
         if block_span_x is None:
             block_span_x = 1 + max(
-                max(x for x, _ in self._blocks.keys()),
-                max(self._min_widths.keys()),
+                max(x for x, _ in self._blocks.keys()), max(self._min_widths.keys())
             )
         if block_span_y is None:
             block_span_y = 1 + max(
-                max(y for _, y in self._blocks.keys()),
-                max(self._min_heights.keys()),
+                max(y for _, y in self._blocks.keys()), max(self._min_heights.keys())
             )
 
         # Method for accessing blocks without creating new entries.

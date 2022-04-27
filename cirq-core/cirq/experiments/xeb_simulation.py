@@ -13,14 +13,7 @@
 # limitations under the License.
 """Estimation of fidelity associated with experimental circuit executions."""
 from dataclasses import dataclass
-from typing import (
-    List,
-    Optional,
-    Sequence,
-    TYPE_CHECKING,
-    Dict,
-    Any,
-)
+from typing import List, Optional, Sequence, TYPE_CHECKING, Dict, Any
 
 import numpy as np
 import pandas as pd
@@ -76,11 +69,7 @@ class _Simulate_2q_XEB_Circuit:
             pure_probs = value.state_vector_to_probabilities(psi)
 
             records += [
-                {
-                    'circuit_i': circuit_i,
-                    'cycle_depth': cycle_depth,
-                    'pure_probs': pure_probs,
-                }
+                {'circuit_i': circuit_i, 'cycle_depth': cycle_depth, 'pure_probs': pure_probs}
             ]
 
         return records

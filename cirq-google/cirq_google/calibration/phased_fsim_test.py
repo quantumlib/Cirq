@@ -14,6 +14,7 @@
 import os
 import re
 
+from typing import cast
 from unittest import mock
 import numpy as np
 import pandas as pd
@@ -206,9 +207,7 @@ def test_floquet_to_calibration_layer_with_measure_qubits():
 
     assert request.to_calibration_layer() == cirq_google.CalibrationLayer(
         calibration_type='floquet_phased_fsim_characterization',
-        program=cirq.Circuit(
-            [gate.on(q_00, q_01), gate.on(q_02, q_03), cirq.measure(*qubits)],
-        ),
+        program=cirq.Circuit([gate.on(q_00, q_01), gate.on(q_02, q_03), cirq.measure(*qubits)]),
         args={
             'est_theta': True,
             'est_zeta': True,
@@ -459,7 +458,7 @@ def test_xeb_parse_bad_fidelities():
     metrics = cirq_google.Calibration(
         metrics={
             'initial_fidelities_depth_5': {
-                ('layer_0', 'pair_0', cirq.GridQubit(0, 0), cirq.GridQubit(1, 1)): [1.0],
+                ('layer_0', 'pair_0', cirq.GridQubit(0, 0), cirq.GridQubit(1, 1)): [1.0]
             }
         }
     )
@@ -478,21 +477,13 @@ def test_xeb_parse_bad_fidelities():
     )
 
     metrics = cirq_google.Calibration(
-        metrics={
-            'initial_fidelities_depth_5x': {
-                ('layer_0', 'pair_0', '0_0', '1_1'): [1.0],
-            }
-        }
+        metrics={'initial_fidelities_depth_5x': {('layer_0', 'pair_0', '0_0', '1_1'): [1.0]}}
     )
     df = _parse_xeb_fidelities_df(metrics, 'initial_fidelities')
     assert len(df) == 0, 'bad metric name ignored'
 
     metrics = cirq_google.Calibration(
-        metrics={
-            'initial_fidelities_depth_5': {
-                ('bad_name_0', 'pair_0', '0_0', '1_1'): [1.0],
-            }
-        }
+        metrics={'initial_fidelities_depth_5': {('bad_name_0', 'pair_0', '0_0', '1_1'): [1.0]}}
     )
     with pytest.raises(ValueError, match=r'Could not parse layer value for bad_name_0'):
         _parse_xeb_fidelities_df(metrics, 'initial_fidelities')
@@ -589,12 +580,8 @@ def test_floquet_parse_result_bad_metric():
                 metrics=[
                     cirq_google.api.v2.metrics_pb2.Metric(
                         name='angles',
-                        targets=[
-                            '1000gerbils',
-                        ],
-                        values=[
-                            cirq_google.api.v2.metrics_pb2.Value(str_val='100_10'),
-                        ],
+                        targets=['1000gerbils'],
+                        values=[cirq_google.api.v2.metrics_pb2.Value(str_val='100_10')],
                     )
                 ]
             )
@@ -642,33 +629,19 @@ def test_merge_matching_results():
     gate = cirq.FSimGate(theta=np.pi / 4, phi=0.0)
     options = WITHOUT_CHI_FLOQUET_PHASED_FSIM_CHARACTERIZATION
     parameters_1 = {
-        (q_00, q_01): PhasedFSimCharacterization(
-            theta=0.1, zeta=0.2, chi=None, gamma=None, phi=0.3
-        ),
+        (q_00, q_01): PhasedFSimCharacterization(theta=0.1, zeta=0.2, chi=None, gamma=None, phi=0.3)
     }
     parameters_2 = {
-        (q_02, q_03): PhasedFSimCharacterization(
-            theta=0.4, zeta=0.5, chi=None, gamma=None, phi=0.6
-        ),
+        (q_02, q_03): PhasedFSimCharacterization(theta=0.4, zeta=0.5, chi=None, gamma=None, phi=0.6)
     }
 
     results = [
-        PhasedFSimCalibrationResult(
-            parameters=parameters_1,
-            gate=gate,
-            options=options,
-        ),
-        PhasedFSimCalibrationResult(
-            parameters=parameters_2,
-            gate=gate,
-            options=options,
-        ),
+        PhasedFSimCalibrationResult(parameters=parameters_1, gate=gate, options=options),
+        PhasedFSimCalibrationResult(parameters=parameters_2, gate=gate, options=options),
     ]
 
     assert merge_matching_results(results) == PhasedFSimCalibrationResult(
-        parameters={**parameters_1, **parameters_2},
-        gate=gate,
-        options=options,
+        parameters={**parameters_1, **parameters_2}, gate=gate, options=options
     )
 
 
@@ -681,53 +654,29 @@ def test_merge_matching_results_when_incompatible_fails():
     gate = cirq.FSimGate(theta=np.pi / 4, phi=0.0)
     options = WITHOUT_CHI_FLOQUET_PHASED_FSIM_CHARACTERIZATION
     parameters_1 = {
-        (q_00, q_01): PhasedFSimCharacterization(
-            theta=0.1, zeta=0.2, chi=None, gamma=None, phi=0.3
-        ),
+        (q_00, q_01): PhasedFSimCharacterization(theta=0.1, zeta=0.2, chi=None, gamma=None, phi=0.3)
     }
     parameters_2 = {
-        (q_02, q_03): PhasedFSimCharacterization(
-            theta=0.4, zeta=0.5, chi=None, gamma=None, phi=0.6
-        ),
+        (q_02, q_03): PhasedFSimCharacterization(theta=0.4, zeta=0.5, chi=None, gamma=None, phi=0.6)
     }
 
     with pytest.raises(ValueError):
         results = [
-            PhasedFSimCalibrationResult(
-                parameters=parameters_1,
-                gate=gate,
-                options=options,
-            ),
-            PhasedFSimCalibrationResult(
-                parameters=parameters_1,
-                gate=gate,
-                options=options,
-            ),
+            PhasedFSimCalibrationResult(parameters=parameters_1, gate=gate, options=options),
+            PhasedFSimCalibrationResult(parameters=parameters_1, gate=gate, options=options),
         ]
         assert merge_matching_results(results)
 
     with pytest.raises(ValueError):
         results = [
-            PhasedFSimCalibrationResult(
-                parameters=parameters_1,
-                gate=gate,
-                options=options,
-            ),
-            PhasedFSimCalibrationResult(
-                parameters=parameters_2,
-                gate=cirq.CZ,
-                options=options,
-            ),
+            PhasedFSimCalibrationResult(parameters=parameters_1, gate=gate, options=options),
+            PhasedFSimCalibrationResult(parameters=parameters_2, gate=cirq.CZ, options=options),
         ]
         assert merge_matching_results(results)
 
     with pytest.raises(ValueError):
         results = [
-            PhasedFSimCalibrationResult(
-                parameters=parameters_1,
-                gate=gate,
-                options=options,
-            ),
+            PhasedFSimCalibrationResult(parameters=parameters_1, gate=gate, options=options),
             PhasedFSimCalibrationResult(
                 parameters=parameters_2,
                 gate=gate,
@@ -745,11 +694,11 @@ def test_phase_calibrated_fsim_gate_as_characterized_phased_fsim_gate(phase_expo
         theta=ideal_gate.theta, zeta=0.1, chi=0.2, gamma=0.3, phi=ideal_gate.phi
     )
     parameters = PhasedFSimCharacterization(
-        theta=ideal_gate.theta,
-        zeta=characterized_gate.zeta,
-        chi=characterized_gate.chi,
-        gamma=characterized_gate.gamma,
-        phi=ideal_gate.phi,
+        theta=cast(float, ideal_gate.theta),
+        zeta=cast(float, characterized_gate.zeta),
+        chi=cast(float, characterized_gate.chi),
+        gamma=cast(float, characterized_gate.gamma),
+        phi=cast(float, ideal_gate.phi),
     )
 
     calibrated = PhaseCalibratedFSimGate(ideal_gate, phase_exponent=phase_exponent)
@@ -777,11 +726,11 @@ def test_phase_calibrated_fsim_gate_compensated(phase_exponent: float):
         theta=ideal_gate.theta, zeta=0.1, chi=0.2, gamma=0.3, phi=ideal_gate.phi
     )
     parameters = PhasedFSimCharacterization(
-        theta=ideal_gate.theta,
-        zeta=characterized_gate.zeta,
-        chi=characterized_gate.chi,
-        gamma=characterized_gate.gamma,
-        phi=ideal_gate.phi,
+        theta=cast(float, ideal_gate.theta),
+        zeta=cast(float, characterized_gate.zeta),
+        chi=cast(float, characterized_gate.chi),
+        gamma=cast(float, characterized_gate.gamma),
+        phi=cast(float, ideal_gate.phi),
     )
 
     calibrated = PhaseCalibratedFSimGate(ideal_gate, phase_exponent=phase_exponent)
@@ -840,6 +789,13 @@ def test_try_convert_sqrt_iswap_to_fsim_converts_correctly():
     )
 
     assert try_convert_sqrt_iswap_to_fsim(cirq.CZ) is None
+
+    assert (
+        try_convert_sqrt_iswap_to_fsim(
+            cirq.FSimGate(theta=sympy.Symbol('t'), phi=sympy.Symbol('p'))
+        )
+        is None
+    )
 
 
 def test_result_override():
@@ -1013,6 +969,7 @@ def test_try_convert_gate_to_fsim():
     x = sympy.Symbol('x')
     assert try_convert_gate_to_fsim(cirq.ops.ISwapPowGate(exponent=x)) is None
     assert try_convert_gate_to_fsim(cirq.PhasedFSimGate(theta=x)) is None
+    assert try_convert_gate_to_fsim(cirq.FSimGate(theta=x, phi=x)) is None
     assert try_convert_gate_to_fsim(cirq.PhasedISwapPowGate(exponent=x)) is None
     assert try_convert_gate_to_fsim(cirq.CZPowGate(exponent=x)) is None
 

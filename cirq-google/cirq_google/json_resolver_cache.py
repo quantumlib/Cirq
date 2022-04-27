@@ -30,6 +30,7 @@ def _class_resolver_dictionary() -> Dict[str, ObjectFactory]:
         'CalibrationLayer': cirq_google.CalibrationLayer,
         'CalibrationResult': cirq_google.CalibrationResult,
         'CouplerPulse': cirq_google.experimental.CouplerPulse,
+        'GoogleNoiseProperties': cirq_google.GoogleNoiseProperties,
         'SycamoreGate': cirq_google.SycamoreGate,
         'GateTabulation': cirq_google.GateTabulation,
         'PhysicalZTag': cirq_google.PhysicalZTag,
@@ -61,5 +62,6 @@ def _class_resolver_dictionary() -> Dict[str, ObjectFactory]:
         'cirq.google.SimulatedProcessorRecord': cirq_google.SimulatedProcessorRecord,
         # pylint: disable=line-too-long
         'cirq.google.SimulatedProcessorWithLocalDeviceRecord': cirq_google.SimulatedProcessorWithLocalDeviceRecord,
+        'cirq.google.HardcodedQubitPlacer': cirq_google.HardcodedQubitPlacer,
         # pylint: enable=line-too-long
     }

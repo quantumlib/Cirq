@@ -102,7 +102,9 @@ fi
 flynt "${format_files[@]}" "${flynt_args[@]}"
 FLYNTSTATUS=$?
 
-echo "Running the black formatter..."
+BLACKVERSION="$(black --version)"
+
+echo "Running the black formatter... (version: $BLACKVERSION)"
 
 args=("--color")
 if (( only_print == 1 )); then

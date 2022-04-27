@@ -1,6 +1,5 @@
 # pylint: disable=wrong-or-nonexistent-copyright-notice
 import itertools
-from unittest import mock
 
 import numpy as np
 import pytest
@@ -100,7 +99,7 @@ def test_simulate_initial_state():
             )
 
 
-def test_simulate_act_on_args():
+def test_simulation_state():
     q0, q1 = cirq.LineQubit.range(2)
     simulator = cirq.CliffordSimulator()
     for b0 in [0, 1]:
@@ -212,32 +211,33 @@ def test_clifford_state_initial_state():
 
 def test_clifford_trial_result_repr():
     q0 = cirq.LineQubit(0)
-    final_step_result = mock.Mock(cirq.CliffordSimulatorStepResult)
-    final_step_result._simulator_state.return_value = cirq.CliffordState(qubit_map={q0: 0})
+    final_simulator_state = cirq.StabilizerChFormSimulationState(qubits=[q0])
     assert (
         repr(
             cirq.CliffordTrialResult(
                 params=cirq.ParamResolver({}),
                 measurements={'m': np.array([[1]])},
-                final_step_result=final_step_result,
+                final_simulator_state=final_simulator_state,
             )
         )
         == "cirq.SimulationTrialResult(params=cirq.ParamResolver({}), "
         "measurements={'m': array([[1]])}, "
-        "final_simulator_state=StabilizerStateChForm(num_qubits=1))"
+        "final_simulator_state=cirq.StabilizerChFormSimulationState("
+        "initial_state=StabilizerStateChForm(num_qubits=1), "
+        "qubits=(cirq.LineQubit(0),), "
+        "classical_data=cirq.ClassicalDataDictionaryStore()))"
     )
 
 
 def test_clifford_trial_result_str():
     q0 = cirq.LineQubit(0)
-    final_step_result = mock.Mock(cirq.CliffordSimulatorStepResult)
-    final_step_result._simulator_state.return_value = cirq.CliffordState(qubit_map={q0: 0})
+    final_simulator_state = cirq.StabilizerChFormSimulationState(qubits=[q0])
     assert (
         str(
             cirq.CliffordTrialResult(
                 params=cirq.ParamResolver({}),
                 measurements={'m': np.array([[1]])},
-                final_step_result=final_step_result,
+                final_simulator_state=final_simulator_state,
             )
         )
         == "measurements: m=1\n"
@@ -247,12 +247,11 @@ def test_clifford_trial_result_str():
 
 def test_clifford_trial_result_repr_pretty():
     q0 = cirq.LineQubit(0)
-    final_step_result = mock.Mock(cirq.CliffordSimulatorStepResult)
-    final_step_result._simulator_state.return_value = cirq.CliffordState(qubit_map={q0: 0})
+    final_simulator_state = cirq.StabilizerChFormSimulationState(qubits=[q0])
     result = cirq.CliffordTrialResult(
         params=cirq.ParamResolver({}),
         measurements={'m': np.array([[1]])},
-        final_step_result=final_step_result,
+        final_simulator_state=final_simulator_state,
     )
 
     cirq.testing.assert_repr_pretty(result, "measurements: m=1\n" "output state: |0⟩")
