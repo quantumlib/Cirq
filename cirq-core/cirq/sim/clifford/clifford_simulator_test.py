@@ -99,7 +99,7 @@ def test_simulate_initial_state():
             )
 
 
-def test_simulate_act_on_args():
+def test_simulation_state():
     q0, q1 = cirq.LineQubit.range(2)
     simulator = cirq.CliffordSimulator()
     for b0 in [0, 1]:
@@ -211,7 +211,7 @@ def test_clifford_state_initial_state():
 
 def test_clifford_trial_result_repr():
     q0 = cirq.LineQubit(0)
-    final_simulator_state = cirq.ActOnStabilizerCHFormArgs(qubits=[q0])
+    final_simulator_state = cirq.StabilizerChFormSimulationState(qubits=[q0])
     assert (
         repr(
             cirq.CliffordTrialResult(
@@ -222,7 +222,7 @@ def test_clifford_trial_result_repr():
         )
         == "cirq.SimulationTrialResult(params=cirq.ParamResolver({}), "
         "measurements={'m': array([[1]])}, "
-        "final_simulator_state=cirq.ActOnStabilizerCHFormArgs("
+        "final_simulator_state=cirq.StabilizerChFormSimulationState("
         "initial_state=StabilizerStateChForm(num_qubits=1), "
         "qubits=(cirq.LineQubit(0),), "
         "classical_data=cirq.ClassicalDataDictionaryStore()))"
@@ -231,7 +231,7 @@ def test_clifford_trial_result_repr():
 
 def test_clifford_trial_result_str():
     q0 = cirq.LineQubit(0)
-    final_simulator_state = cirq.ActOnStabilizerCHFormArgs(qubits=[q0])
+    final_simulator_state = cirq.StabilizerChFormSimulationState(qubits=[q0])
     assert (
         str(
             cirq.CliffordTrialResult(
@@ -247,7 +247,7 @@ def test_clifford_trial_result_str():
 
 def test_clifford_trial_result_repr_pretty():
     q0 = cirq.LineQubit(0)
-    final_simulator_state = cirq.ActOnStabilizerCHFormArgs(qubits=[q0])
+    final_simulator_state = cirq.StabilizerChFormSimulationState(qubits=[q0])
     result = cirq.CliffordTrialResult(
         params=cirq.ParamResolver({}),
         measurements={'m': np.array([[1]])},

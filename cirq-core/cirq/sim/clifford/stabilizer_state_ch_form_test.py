@@ -66,7 +66,7 @@ def test_run():
         state = cirq.StabilizerStateChForm(num_qubits=3)
         classical_data = cirq.ClassicalDataDictionaryStore()
         for op in circuit.all_operations():
-            args = cirq.ActOnStabilizerCHFormArgs(
+            args = cirq.StabilizerChFormSimulationState(
                 qubits=list(circuit.all_qubits()),
                 prng=np.random.RandomState(),
                 classical_data=classical_data,

@@ -14,6 +14,7 @@
 
 from dataclasses import dataclass
 from typing import Any, Callable, Dict, List, Optional, Type, TypeVar, Union
+import numbers
 
 import abc
 import numpy as np
@@ -117,7 +118,7 @@ class SerializingArg:
 
     serialized_name: str
     serialized_type: Type[ARG_LIKE]
-    op_getter: Union[str, Callable[[cirq.Operation], ARG_LIKE]]
+    op_getter: Union[str, Callable[[cirq.Operation], Optional[ARG_LIKE]]]
     required: bool = True
     default: Any = None
 
@@ -360,6 +361,11 @@ class CircuitOpSerializer(OpSerializer):
         for p1, p2 in op.param_resolver.param_dict.items():
             entry = msg.arg_map.entries.add()
             arg_to_proto(p1, out=entry.key, arg_function_language=arg_function_language)
+            if isinstance(p2, (complex, numbers.Complex)):
+                if isinstance(p2, numbers.Real):
+                    p2 = float(p2)
+                else:
+                    raise ValueError(f'Cannot serialize complex value {p2}')
             arg_to_proto(p2, out=entry.value, arg_function_language=arg_function_language)
 
         return msg

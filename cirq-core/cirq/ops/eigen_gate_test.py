@@ -292,6 +292,9 @@ def test_resolve_parameters(resolve_fn):
 
     assert resolve_fn(CExpZinGate(0.25), cirq.ParamResolver({})) == CExpZinGate(0.25)
 
+    with pytest.raises(ValueError, match='Complex exponent'):
+        resolve_fn(CExpZinGate(sympy.Symbol('a')), cirq.ParamResolver({'a': 0.5j}))
+
 
 def test_diagram_period():
     class ShiftyGate(cirq.EigenGate, cirq.testing.SingleQubitGate):
