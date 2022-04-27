@@ -53,8 +53,8 @@ class SimulationProductState(
         """Initializes the class.
 
         Args:
-            args: The `SimulationState` dictionary. This will not be copied; the
-                original reference will be kept here.
+            sim_states: The `SimulationState` dictionary. This will not be
+                copied; the original reference will be kept here.
             qubits: The canonical ordering of qubits.
             split_untangled_states: If True, optimizes operations by running
                 unentangled qubit sets independently and merging those states
