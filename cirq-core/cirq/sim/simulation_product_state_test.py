@@ -265,5 +265,5 @@ def test_act_on_gate_does_not_join():
 
 def test_field_getters():
     args = create_container(qs2)
-    assert args.args.keys() == set(qs2) | {None}
+    assert args.sim_states.keys() == set(qs2) | {None}
     assert args.split_untangled_states
