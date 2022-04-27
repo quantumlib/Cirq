@@ -101,4 +101,4 @@ def test_qubits_should_be_defined_for_operations():
 def test_args_deprecated():
     args = DummySimulationState(fallback_result=True)
     with cirq.testing.assert_deprecated(deadline='v0.16'):
-        cirq.act_on(action=op, args=args)
+        cirq.act_on(action=op, args=args)  # pylint: disable=no-value-for-parameter
