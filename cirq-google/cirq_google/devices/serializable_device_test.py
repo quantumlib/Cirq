@@ -89,7 +89,7 @@ def test_metadata_correct():
         qubits=qubits, pairs=pairs, gate_sets=[cg.FSIM_GATESET]
     )
     device = cgdk.SerializableDevice.from_proto(device_proto, gate_sets=[cg.FSIM_GATESET])
-    assert device.metadata.qubit_pairs == frozenset(pairs)
+    assert device.metadata.qubit_pairs == frozenset({frozenset(p) for p in pairs})
     assert device.metadata.gateset == cirq.Gateset(
         cirq.FSimGate,
         cirq.ISwapPowGate,

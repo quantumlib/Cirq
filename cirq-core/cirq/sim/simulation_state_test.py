@@ -18,7 +18,7 @@ import numpy as np
 import pytest
 
 import cirq
-from cirq.sim import act_on_args
+from cirq.sim import simulation_state
 
 
 class DummyQuantumState(cirq.QuantumStateRepresentation):
@@ -32,7 +32,7 @@ class DummyQuantumState(cirq.QuantumStateRepresentation):
         return self
 
 
-class DummyArgs(cirq.ActOnArgs):
+class DummySimulationState(cirq.SimulationState):
     def __init__(self):
         super().__init__(state=DummyQuantumState(), qubits=cirq.LineQubit.range(2))
 
@@ -43,7 +43,7 @@ class DummyArgs(cirq.ActOnArgs):
 
 
 def test_measurements():
-    args = DummyArgs()
+    args = DummySimulationState()
     args.measure([cirq.LineQubit(0)], "test", [False])
     assert args.log_of_measurement_results["test"] == [5]
 
@@ -56,12 +56,14 @@ def test_decompose():
         def _decompose_(self, qubits):
             yield cirq.X(*qubits)
 
-    args = DummyArgs()
-    assert act_on_args.strat_act_on_from_apply_decompose(Composite(), args, [cirq.LineQubit(0)])
+    args = DummySimulationState()
+    assert simulation_state.strat_act_on_from_apply_decompose(
+        Composite(), args, [cirq.LineQubit(0)]
+    )
 
 
 def test_mapping():
-    args = DummyArgs()
+    args = DummySimulationState()
     assert list(iter(args)) == cirq.LineQubit.range(2)
     r1 = args[cirq.LineQubit(0)]
     assert args is r1
@@ -72,7 +74,7 @@ def test_mapping():
 def test_swap_bad_dimensions():
     q0 = cirq.LineQubit(0)
     q1 = cirq.LineQid(1, 3)
-    args = DummyArgs()
+    args = DummySimulationState()
     with pytest.raises(ValueError, match='Cannot swap different dimensions'):
         args.swap(q0, q1)
 
@@ -80,14 +82,14 @@ def test_swap_bad_dimensions():
 def test_rename_bad_dimensions():
     q0 = cirq.LineQubit(0)
     q1 = cirq.LineQid(1, 3)
-    args = DummyArgs()
+    args = DummySimulationState()
     with pytest.raises(ValueError, match='Cannot rename to different dimensions'):
         args.rename(q0, q1)
 
 
 def test_transpose_qubits():
     q0, q1, q2 = cirq.LineQubit.range(3)
-    args = DummyArgs()
+    args = DummySimulationState()
     assert args.transpose_to_qubit_order((q1, q0)).qubits == (q1, q0)
     with pytest.raises(ValueError, match='Qubits do not match'):
         args.transpose_to_qubit_order((q0, q2))
@@ -96,7 +98,7 @@ def test_transpose_qubits():
 
 
 def test_field_getters():
-    args = DummyArgs()
+    args = DummySimulationState()
     assert args.prng is np.random
     assert args.qubit_map == {q: i for i, q in enumerate(cirq.LineQubit.range(2))}
     with cirq.testing.assert_deprecated('always returns False', deadline='v0.16'):
@@ -104,7 +106,7 @@ def test_field_getters():
 
 
 def test_on_methods_deprecated():
-    class OldStyleArgs(cirq.ActOnArgs):
+    class OldStyleArgs(cirq.SimulationState):
         def _act_on_fallback_(self, action, qubits, allow_decompose=True):
             pass
 
@@ -121,7 +123,7 @@ def test_on_methods_deprecated():
 
 
 def test_on_methods_deprecated_if_implemented():
-    class OldStyleArgs(cirq.ActOnArgs):
+    class OldStyleArgs(cirq.SimulationState):
         def _act_on_fallback_(self, action, qubits, allow_decompose=True):
             pass
 
@@ -150,7 +152,7 @@ def test_on_methods_deprecated_if_implemented():
 
 
 def test_deprecated():
-    class DeprecatedArgs(cirq.ActOnArgs):
+    class DeprecatedArgs(cirq.SimulationState):
         def _act_on_fallback_(self, action, qubits, allow_decompose=True):
             pass
 

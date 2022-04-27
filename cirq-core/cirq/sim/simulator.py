@@ -50,7 +50,7 @@ from typing import (
 import numpy as np
 
 from cirq import _compat, circuits, ops, protocols, study, value, work
-from cirq.sim.operation_target import OperationTarget
+from cirq.sim.simulation_state_base import SimulationStateBase
 
 if TYPE_CHECKING:
     import cirq
@@ -586,7 +586,7 @@ class SimulatesIntermediateState(
                 is often used in specifying the initial state, i.e. the
                 ordering of the computational basis states.
             initial_state: The initial state for the simulation. This can be
-                either a raw state or an `OperationTarget`. The form of the
+                either a raw state or an `SimulationStateBase`. The form of the
                 raw state depends on the simulation implementation. See
                 documentation of the implementing class for details.
 
@@ -598,7 +598,7 @@ class SimulatesIntermediateState(
         for param_resolver in study.to_resolvers(params):
             state = (
                 initial_state.copy()
-                if isinstance(initial_state, OperationTarget)
+                if isinstance(initial_state, SimulationStateBase)
                 else initial_state
             )
             all_step_results = self.simulate_moment_steps(
@@ -643,7 +643,7 @@ class SimulatesIntermediateState(
                 is often used in specifying the initial state, i.e. the
                 ordering of the computational basis states.
             initial_state: The initial state for the simulation. This can be
-                either a raw state or a `TActOnArgs`. The form of the
+                either a raw state or a `TSimulationState`. The form of the
                 raw state depends on the simulation implementation. See
                 documentation of the implementing class for details.
 
@@ -684,8 +684,8 @@ class SimulatesIntermediateState(
             StepResults from simulating a Moment of the Circuit.
         """
         qubits = ops.QubitOrder.as_qubit_order(qubit_order).order_for(circuit.all_qubits())
-        act_on_args = self._create_act_on_args(initial_state, qubits)
-        return self._core_iterator(circuit, act_on_args)
+        sim_state = self._create_act_on_args(initial_state, qubits)
+        return self._core_iterator(circuit, sim_state)
 
     @abc.abstractmethod
     def _create_act_on_args(
