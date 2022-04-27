@@ -18,19 +18,21 @@ from typing import Any, Dict, Generic, Iterator, List, Mapping, Optional, Sequen
 import numpy as np
 
 from cirq import ops, protocols, value
-from cirq.sim.simulation_state import TActOnArgs
+from cirq.sim.simulation_state import TSimulationState
 from cirq.sim.simulation_state_base import SimulationStateBase
 
 if TYPE_CHECKING:
     import cirq
 
 
-class SimulationProductState(Generic[TActOnArgs], SimulationStateBase[TActOnArgs], abc.Mapping):
+class SimulationProductState(
+    Generic[TSimulationState], SimulationStateBase[TSimulationState], abc.Mapping
+):
     """A container for a `Qid`-to-`SimulationState` dictionary."""
 
     def __init__(
         self,
-        args: Dict[Optional['cirq.Qid'], TActOnArgs],
+        args: Dict[Optional['cirq.Qid'], TSimulationState],
         qubits: Sequence['cirq.Qid'],
         split_untangled_states: bool,
         classical_data: Optional['cirq.ClassicalDataStore'] = None,
@@ -53,14 +55,14 @@ class SimulationProductState(Generic[TActOnArgs], SimulationStateBase[TActOnArgs
         self._split_untangled_states = split_untangled_states
 
     @property
-    def args(self) -> Mapping[Optional['cirq.Qid'], TActOnArgs]:
+    def args(self) -> Mapping[Optional['cirq.Qid'], TSimulationState]:
         return self._args
 
     @property
     def split_untangled_states(self) -> bool:
         return self._split_untangled_states
 
-    def create_merged_state(self) -> TActOnArgs:
+    def create_merged_state(self) -> TSimulationState:
         if not self.split_untangled_states:
             return self.args[None]
         final_args = self.args[None]
@@ -99,7 +101,7 @@ class SimulationProductState(Generic[TActOnArgs], SimulationStateBase[TActOnArgs
 
         # Go through the op's qubits and join any disparate SimulationState states
         # into a new combined state.
-        op_args_opt: Optional[TActOnArgs] = None
+        op_args_opt: Optional[TSimulationState] = None
         for q in qubits:
             if op_args_opt is None:
                 op_args_opt = self.args[q]
@@ -129,7 +131,9 @@ class SimulationProductState(Generic[TActOnArgs], SimulationStateBase[TActOnArgs
                 self._args[q] = op_args
         return True
 
-    def copy(self, deep_copy_buffers: bool = True) -> 'cirq.SimulationProductState[TActOnArgs]':
+    def copy(
+        self, deep_copy_buffers: bool = True
+    ) -> 'cirq.SimulationProductState[TSimulationState]':
         classical_data = self._classical_data.copy()
         copies = {}
         for sim_state in set(self.args.values()):
@@ -161,7 +165,7 @@ class SimulationProductState(Generic[TActOnArgs], SimulationStateBase[TActOnArgs
         index_order = [qubit_map[q] for q in qubits]
         return stacked[:, index_order]
 
-    def __getitem__(self, item: Optional['cirq.Qid']) -> TActOnArgs:
+    def __getitem__(self, item: Optional['cirq.Qid']) -> TSimulationState:
         return self.args[item]
 
     def __len__(self) -> int:

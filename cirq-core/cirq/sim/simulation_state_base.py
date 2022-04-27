@@ -38,10 +38,10 @@ if TYPE_CHECKING:
 
 
 TSelfTarget = TypeVar('TSelfTarget', bound='SimulationStateBase')
-TActOnArgs = TypeVar('TActOnArgs', bound='cirq.SimulationState')
+TSimulationState = TypeVar('TSimulationState', bound='cirq.SimulationState')
 
 
-class SimulationStateBase(Generic[TActOnArgs], metaclass=abc.ABCMeta):
+class SimulationStateBase(Generic[TSimulationState], metaclass=abc.ABCMeta):
     """An interface for quantum states as targets for operations."""
 
     def __init__(
@@ -77,7 +77,7 @@ class SimulationStateBase(Generic[TActOnArgs], metaclass=abc.ABCMeta):
         return self._classical_data
 
     @abc.abstractmethod
-    def create_merged_state(self) -> TActOnArgs:
+    def create_merged_state(self) -> TSimulationState:
         """Creates a final merged state."""
 
     @abc.abstractmethod
@@ -124,7 +124,7 @@ class SimulationStateBase(Generic[TActOnArgs], metaclass=abc.ABCMeta):
     ) -> np.ndarray:
         """Samples the state value."""
 
-    def __getitem__(self, item: Optional['cirq.Qid']) -> TActOnArgs:
+    def __getitem__(self, item: Optional['cirq.Qid']) -> TSimulationState:
         """Gets the item associated with the qubit."""
 
     def __len__(self) -> int:

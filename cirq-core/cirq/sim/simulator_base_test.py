@@ -80,7 +80,7 @@ class CountingSimulationState(cirq.SimulationState[CountingState]):
         return self._state.measurement_count
 
 
-class SplittableCountiingSimulationState(CountingSimulationState):
+class SplittableCountingSimulationState(CountingSimulationState):
     @property
     def allows_factoring(self):
         return True
@@ -148,7 +148,7 @@ class SplittableCountingSimulator(CountingSimulator):
         qubits: Sequence['cirq.Qid'],
         classical_data: cirq.ClassicalDataStore,
     ) -> CountingSimulationState:
-        return SplittableCountiingSimulationState(
+        return SplittableCountingSimulationState(
             qubits=qubits, state=initial_state, classical_data=classical_data
         )
 
@@ -262,7 +262,7 @@ def test_integer_initial_state_is_split():
 def test_integer_initial_state_is_not_split_if_disabled():
     sim = SplittableCountingSimulator(split_untangled_states=False)
     args = sim._create_act_on_args(2, (q0, q1))
-    assert isinstance(args, SplittableCountiingSimulationState)
+    assert isinstance(args, SplittableCountingSimulationState)
     assert args[q0] is args[q1]
     assert args.state == 2
 
@@ -271,7 +271,7 @@ def test_integer_initial_state_is_not_split_if_impossible():
     sim = CountingSimulator()
     args = sim._create_act_on_args(2, (q0, q1))
     assert isinstance(args, CountingSimulationState)
-    assert not isinstance(args, SplittableCountiingSimulationState)
+    assert not isinstance(args, SplittableCountingSimulationState)
     assert args[q0] is args[q1]
     assert args.state == 2
 
@@ -308,9 +308,9 @@ def test_measurement_causes_split():
 def test_measurement_does_not_split_if_disabled():
     sim = SplittableCountingSimulator(split_untangled_states=False)
     args = sim._create_act_on_args(2, (q0, q1))
-    assert isinstance(args, SplittableCountiingSimulationState)
+    assert isinstance(args, SplittableCountingSimulationState)
     args.apply_operation(cirq.measure(q0))
-    assert isinstance(args, SplittableCountiingSimulationState)
+    assert isinstance(args, SplittableCountingSimulationState)
     assert args[q0] is args[q1]
 
 
@@ -318,10 +318,10 @@ def test_measurement_does_not_split_if_impossible():
     sim = CountingSimulator()
     args = sim._create_act_on_args(2, (q0, q1))
     assert isinstance(args, CountingSimulationState)
-    assert not isinstance(args, SplittableCountiingSimulationState)
+    assert not isinstance(args, SplittableCountingSimulationState)
     args.apply_operation(cirq.measure(q0))
     assert isinstance(args, CountingSimulationState)
-    assert not isinstance(args, SplittableCountiingSimulationState)
+    assert not isinstance(args, SplittableCountingSimulationState)
     assert args[q0] is args[q1]
 
 

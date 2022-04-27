@@ -388,4 +388,4 @@ def strat_act_on_from_apply_decompose(
     return True
 
 
-TActOnArgs = TypeVar('TActOnArgs', bound=SimulationState)
+TSimulationState = TypeVar('TSimulationState', bound=SimulationState)
