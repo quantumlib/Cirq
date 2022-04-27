@@ -350,17 +350,17 @@ class CircuitOperation(ops.Operation):
     def _decompose_(self) -> Iterator['cirq.Operation']:
         return self.mapped_circuit(deep=False).all_operations()
 
-    def _act_on_(self, args: 'cirq.OperationTarget') -> bool:
+    def _act_on_(self, sim_state: 'cirq.SimulationStateBase') -> bool:
         if self.repeat_until:
             circuit = self._mapped_single_loop()
             while True:
                 for op in circuit.all_operations():
-                    protocols.act_on(op, args)
-                if self.repeat_until.resolve(args.classical_data):
+                    protocols.act_on(op, sim_state)
+                if self.repeat_until.resolve(sim_state.classical_data):
                     break
         else:
             for op in self._decompose_():
-                protocols.act_on(op, args)
+                protocols.act_on(op, sim_state)
         return True
 
     # Methods for string representation of the operation.

@@ -27,7 +27,7 @@ import quimb.tensor as qtn
 from cirq import devices, protocols, qis, value
 from cirq._compat import deprecated_parameter
 from cirq.sim import simulator, simulator_base
-from cirq.sim.act_on_args import ActOnArgs
+from cirq.sim.simulation_state import SimulationState
 
 if TYPE_CHECKING:
     import cirq
@@ -115,14 +115,14 @@ class MPSSimulator(
             classical_data=classical_data,
         )
 
-    def _create_step_result(self, sim_state: 'cirq.OperationTarget[MPSState]'):
+    def _create_step_result(self, sim_state: 'cirq.SimulationStateBase[MPSState]'):
         return MPSSimulatorStepResult(sim_state)
 
     def _create_simulator_trial_result(
         self,
         params: 'cirq.ParamResolver',
         measurements: Dict[str, np.ndarray],
-        final_simulator_state: 'cirq.OperationTarget[MPSState]',
+        final_simulator_state: 'cirq.SimulationStateBase[MPSState]',
     ) -> 'MPSTrialResult':
         """Creates a single trial results with the measurements.
 
@@ -148,7 +148,7 @@ class MPSTrialResult(simulator_base.SimulationTrialResultBase['MPSState']):
         self,
         params: 'cirq.ParamResolver',
         measurements: Dict[str, np.ndarray],
-        final_simulator_state: 'cirq.OperationTarget[MPSState]',
+        final_simulator_state: 'cirq.SimulationStateBase[MPSState]',
     ) -> None:
         super().__init__(
             params=params, measurements=measurements, final_simulator_state=final_simulator_state
@@ -175,10 +175,10 @@ class MPSTrialResult(simulator_base.SimulationTrialResultBase['MPSState']):
 class MPSSimulatorStepResult(simulator_base.StepResultBase['MPSState']):
     """A `StepResult` that can perform measurements."""
 
-    def __init__(self, sim_state: 'cirq.OperationTarget[MPSState]'):
+    def __init__(self, sim_state: 'cirq.SimulationStateBase[MPSState]'):
         """Results of a step of the simulator.
         Attributes:
-            sim_state: The qubit:ActOnArgs lookup for this step.
+            sim_state: The qubit:SimulationState lookup for this step.
         """
         super().__init__(sim_state)
 
@@ -560,7 +560,7 @@ class _MPSHandler(qis.QuantumStateRepresentation):
 
 
 @value.value_equality
-class MPSState(ActOnArgs[_MPSHandler]):
+class MPSState(SimulationState[_MPSHandler]):
     """A state of the MPS simulation."""
 
     @deprecated_parameter(
