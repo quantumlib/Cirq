@@ -168,7 +168,7 @@ class Moment:
         m._operations = self._operations + (operation,)
         m._qubits = frozenset(itertools.chain(self._qubits, operation.qubits))
         m._qubit_to_op = dict(
-            itertools.chain(self._qubit_to_op.items(), ((q, operation) for q in operation))
+            itertools.chain(self._qubit_to_op.items(), ((q, operation) for q in operation.qubits))
         )
         m._measurement_key_objs = set(
             itertools.chain(
@@ -213,12 +213,12 @@ class Moment:
         m._measurement_key_objs = set(
             itertools.chain(
                 self._measurement_key_objs_(),
-                (protocols.measurement_key_objs(op) for op in flattened_contents),
+                *(protocols.measurement_key_objs(op) for op in flattened_contents),
             )
         )
         m._control_keys = frozenset(
             itertools.chain(
-                self._control_keys(), (protocols.control_keys(op) for op in flattened_contents)
+                self._control_keys_(), *(protocols.control_keys(op) for op in flattened_contents)
             )
         )
         return m
