@@ -456,14 +456,14 @@ class PhasedFSimEngineSimulator(cirq.SimulatesIntermediateStateVector[cirq.Spars
 
     def _create_partial_act_on_args(
         self,
-        initial_state: Union[int, cirq.ActOnStateVectorArgs],
+        initial_state: Union[int, cirq.StateVectorSimulationState],
         qubits: Sequence[cirq.Qid],
         classical_data: cirq.ClassicalDataStore,
-    ) -> cirq.ActOnStateVectorArgs:
+    ) -> cirq.StateVectorSimulationState:
         # Needs an implementation since it's abstract but will never actually be called.
         raise NotImplementedError()
 
-    def _create_step_result(self, sim_state: cirq.OperationTarget) -> cirq.SparseSimulatorStep:
+    def _create_step_result(self, sim_state: cirq.SimulationStateBase) -> cirq.SparseSimulatorStep:
         # Needs an implementation since it's abstract but will never actually be called.
         raise NotImplementedError()
 

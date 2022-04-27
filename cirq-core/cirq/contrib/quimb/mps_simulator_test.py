@@ -183,7 +183,7 @@ def test_cnot_flipped():
         )
 
 
-def test_act_on_args():
+def test_simulation_state():
     q0, q1 = qubit_order = cirq.LineQubit.range(2)
     circuit = cirq.Circuit(cirq.CNOT(q1, q0))
     mps_simulator = ccq.mps_simulator.MPSSimulator()
@@ -537,7 +537,7 @@ def test_state_copy():
             assert not np.shares_memory(x[i], y[i])
 
 
-def test_state_act_on_args_initializer():
+def test_simulation_state_initializer():
     s = ccq.mps_simulator.MPSState(
         qubits=(cirq.LineQubit(0),),
         prng=np.random.RandomState(0),

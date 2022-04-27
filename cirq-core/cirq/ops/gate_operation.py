@@ -254,10 +254,10 @@ class GateOperation(raw_types.Operation):
             return getter()
         return NotImplemented
 
-    def _act_on_(self, args: 'cirq.OperationTarget'):
+    def _act_on_(self, sim_state: 'cirq.SimulationStateBase'):
         getter = getattr(self.gate, '_act_on_', None)
         if getter is not None:
-            return getter(args, self.qubits)
+            return getter(sim_state, self.qubits)
         return NotImplemented
 
     def _is_parameterized_(self) -> bool:

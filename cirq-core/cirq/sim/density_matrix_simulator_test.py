@@ -591,7 +591,7 @@ def test_simulate_initial_state(dtype: Type[np.number], split: bool):
 
 @pytest.mark.parametrize('dtype', [np.complex64, np.complex128])
 @pytest.mark.parametrize('split', [True, False])
-def test_simulate_act_on_args(dtype: Type[np.number], split: bool):
+def test_simulation_state(dtype: Type[np.number], split: bool):
     q0, q1 = cirq.LineQubit.range(2)
     simulator = cirq.DensityMatrixSimulator(dtype=dtype, split_untangled_states=split)
     for b0 in [0, 1]:
@@ -976,7 +976,7 @@ def test_density_matrix_simulator_state_repr():
 
 def test_density_matrix_trial_result_eq():
     q0 = cirq.LineQubit(0)
-    final_simulator_state = cirq.ActOnDensityMatrixArgs(
+    final_simulator_state = cirq.DensityMatrixSimulationState(
         initial_state=np.ones((2, 2)) * 0.5, qubits=[q0]
     )
     eq = cirq.testing.EqualsTester()
@@ -1010,7 +1010,7 @@ def test_density_matrix_trial_result_eq():
 
 def test_density_matrix_trial_result_qid_shape():
     q0, q1 = cirq.LineQubit.range(2)
-    final_simulator_state = cirq.ActOnDensityMatrixArgs(
+    final_simulator_state = cirq.DensityMatrixSimulationState(
         initial_state=np.ones((4, 4)) / 4, qubits=[q0, q1]
     )
     assert cirq.qid_shape(
@@ -1021,7 +1021,7 @@ def test_density_matrix_trial_result_qid_shape():
         )
     ) == (2, 2)
     q0, q1 = cirq.LineQid.for_qid_shape((3, 4))
-    final_simulator_state = cirq.ActOnDensityMatrixArgs(
+    final_simulator_state = cirq.DensityMatrixSimulationState(
         initial_state=np.ones((12, 12)) / 12, qubits=[q0, q1]
     )
     assert cirq.qid_shape(
@@ -1036,7 +1036,7 @@ def test_density_matrix_trial_result_qid_shape():
 def test_density_matrix_trial_result_repr():
     q0 = cirq.LineQubit(0)
     dtype = np.complex64
-    final_simulator_state = cirq.ActOnDensityMatrixArgs(
+    final_simulator_state = cirq.DensityMatrixSimulationState(
         available_buffer=[],
         qid_shape=(2,),
         prng=np.random.RandomState(0),
@@ -1053,7 +1053,7 @@ def test_density_matrix_trial_result_repr():
         "cirq.DensityMatrixTrialResult("
         "params=cirq.ParamResolver({'s': 1}), "
         "measurements={'m': np.array([[1]], dtype=np.int32)}, "
-        "final_simulator_state=cirq.ActOnDensityMatrixArgs("
+        "final_simulator_state=cirq.DensityMatrixSimulationState("
         "initial_state=np.array([[(0.5+0j), (0.5+0j)], [(0.5+0j), (0.5+0j)]], dtype=np.complex64), "
         "qid_shape=(2,), "
         "qubits=(cirq.LineQubit(0),), "
@@ -1124,7 +1124,7 @@ def test_works_on_pauli_string():
 def test_density_matrix_trial_result_str():
     q0 = cirq.LineQubit(0)
     dtype = np.complex64
-    final_simulator_state = cirq.ActOnDensityMatrixArgs(
+    final_simulator_state = cirq.DensityMatrixSimulationState(
         available_buffer=[],
         qid_shape=(2,),
         prng=np.random.RandomState(0),
@@ -1149,7 +1149,7 @@ def test_density_matrix_trial_result_str():
 def test_density_matrix_trial_result_repr_pretty():
     q0 = cirq.LineQubit(0)
     dtype = np.complex64
-    final_simulator_state = cirq.ActOnDensityMatrixArgs(
+    final_simulator_state = cirq.DensityMatrixSimulationState(
         available_buffer=[],
         qid_shape=(2,),
         prng=np.random.RandomState(0),
@@ -1593,7 +1593,7 @@ def test_sweep_unparameterized_prefix_not_repeated_even_non_unitaries():
     class NonUnitaryOp(cirq.Operation):
         count = 0
 
-        def _act_on_(self, args):
+        def _act_on_(self, sim_state):
             self.count += 1
             return True
 
