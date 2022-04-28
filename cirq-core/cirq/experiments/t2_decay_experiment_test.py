@@ -331,6 +331,16 @@ def test_bad_args():
             min_delay=cirq.Duration(micros=-1),
         )
 
+    with pytest.raises(ValueError, match='sympy expressions'):
+        _ = cirq.experiments.t2_decay(
+            sampler=cirq.Simulator(),
+            qubit=cirq.GridQubit(0, 0),
+            num_points=4,
+            repetitions=10,
+            max_delay=cirq.Duration(micros=sympy.Symbol('t')),
+            min_delay=cirq.Duration(micros=sympy.Symbol('t')),
+        )
+
     with pytest.raises(ValueError, match='CPMG'):
         _ = cirq.experiments.t2_decay(
             sampler=cirq.Simulator(),

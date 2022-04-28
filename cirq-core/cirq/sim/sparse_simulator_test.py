@@ -465,7 +465,7 @@ def test_simulate_initial_state(dtype: Type[np.number], split: bool):
 
 @pytest.mark.parametrize('dtype', [np.complex64, np.complex128])
 @pytest.mark.parametrize('split', [True, False])
-def test_simulate_act_on_args(dtype: Type[np.number], split: bool):
+def test_simulation_state(dtype: Type[np.number], split: bool):
     q0, q1 = cirq.LineQubit.range(2)
     simulator = cirq.Simulator(dtype=dtype, split_untangled_states=split)
     for b0 in [0, 1]:
@@ -749,7 +749,7 @@ def test_does_not_modify_initial_state():
 
 def test_simulator_step_state_mixin():
     qubits = cirq.LineQubit.range(2)
-    args = cirq.ActOnStateVectorArgs(
+    args = cirq.StateVectorSimulationState(
         available_buffer=np.array([0, 1, 0, 0]).reshape((2, 2)),
         prng=cirq.value.parse_random_state(0),
         qubits=qubits,
@@ -1343,7 +1343,7 @@ def test_nondeterministic_mixture_noise():
     assert result1 != result2
 
 
-def test_act_on_args_pure_state_creation():
+def test_pure_state_creation():
     sim = cirq.Simulator()
     qids = cirq.LineQubit.range(3)
     shape = cirq.qid_shape(qids)

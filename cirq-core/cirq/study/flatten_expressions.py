@@ -13,12 +13,16 @@
 # limitations under the License.
 """Resolves symbolic expressions to unique symbols."""
 
-from typing import overload, Any, Callable, List, Optional, Tuple, Union
+from typing import Any, Callable, List, Optional, Tuple, Union, TYPE_CHECKING
+import numbers
 
 import sympy
 
 from cirq import protocols
 from cirq.study import resolver, sweeps, sweepable
+
+if TYPE_CHECKING:
+    import cirq
 
 
 def flatten(val: Any) -> Tuple[Any, 'ExpressionMap']:
@@ -195,7 +199,7 @@ class _ParamFlattener(resolver.ParamResolver):
         self,
         param_dict: Optional[resolver.ParamResolverOrSimilarType] = None,
         *,  # Force keyword args
-        get_param_name: Callable[[sympy.Basic], str,] = None,
+        get_param_name: Callable[[sympy.Expr], str,] = None,
     ):
         """Initializes a new _ParamFlattener.
 
@@ -218,8 +222,10 @@ class _ParamFlattener(resolver.ParamResolver):
             params = param_dict.param_dict
         else:
             params = param_dict if param_dict else {}
-        symbol_params = {
-            _ensure_not_str(param): _ensure_not_str(val) for param, val in params.items()
+        # TODO: Support complex values for typing below.
+        symbol_params: resolver.ParamDictType = {
+            _ensure_not_str(param): _ensure_not_str(val)  # type: ignore[misc]
+            for param, val in params.items()  # type: ignore[misc]
         }
         super().__init__(symbol_params)
         if get_param_name is None:
@@ -228,12 +234,12 @@ class _ParamFlattener(resolver.ParamResolver):
         self._taken_symbols = set(self.param_dict.values())
 
     @staticmethod
-    def default_get_param_name(val: sympy.Basic) -> str:
+    def default_get_param_name(val: sympy.Expr) -> str:
         if isinstance(val, sympy.Symbol):
             return val.name
         return f'<{val!s}>'
 
-    def _next_symbol(self, val: sympy.Basic) -> sympy.Symbol:
+    def _next_symbol(self, val: sympy.Expr) -> sympy.Symbol:
         name = self.get_param_name(val)
         symbol = sympy.Symbol(name)
         # Ensure the symbol hasn't already been used
@@ -244,8 +250,8 @@ class _ParamFlattener(resolver.ParamResolver):
         return symbol
 
     def value_of(
-        self, value: Union[sympy.Basic, float, str], recursive: bool = False
-    ) -> Union[sympy.Basic, float]:
+        self, value: Union['cirq.TParamKey', 'cirq.TParamValComplex'], recursive: bool = False
+    ) -> 'cirq.TParamValComplex':
         """Resolves a symbol or expression to a new symbol unique to that value.
 
         - If value is a float, returns it.
@@ -263,7 +269,7 @@ class _ParamFlattener(resolver.ParamResolver):
             The unique symbol or value of the parameter as resolved by this
             resolver.
         """
-        if isinstance(value, (int, float)):
+        if isinstance(value, (int, float, complex, numbers.Complex)):
             return value
         if isinstance(value, str):
             value = sympy.Symbol(value)
@@ -316,7 +322,7 @@ class ExpressionMap(dict):
         """Initializes the `ExpressionMap`.
 
         Takes the same arguments as the builtin `dict`.  Keys must be sympy
-        expressions or symbols (instances of `sympy.Basic`).
+        expressions or symbols (instances of `sympy.Expr`).
         """
         super().__init__(*args, **kwargs)
 
@@ -337,9 +343,9 @@ class ExpressionMap(dict):
             sweep: The sweep to transform.
         """
         sweep = sweepable.to_sweep(sweep)
-        param_list = []
+        param_list: List[resolver.ParamDictType] = []
         for r in sweep:
-            param_dict = {}
+            param_dict: resolver.ParamDictType = {}
             for formula, sym in self.items():
                 if isinstance(sym, (sympy.Symbol, str)):
                     param_dict[str(sym)] = protocols.resolve_parameters(formula, r)
@@ -361,10 +367,10 @@ class ExpressionMap(dict):
         Args:
             params: The params to transform.
         """
-        param_dict = {
+        param_dict: resolver.ParamDictType = {
             sym: protocols.resolve_parameters(formula, params)
             for formula, sym in self.items()
-            if isinstance(sym, sympy.Basic)
+            if isinstance(sym, sympy.Expr)
         }
         return param_dict
 
@@ -373,17 +379,9 @@ class ExpressionMap(dict):
         return f'cirq.ExpressionMap({super_repr})'
 
 
-@overload
-def _ensure_not_str(param: Union[sympy.Basic, str]) -> sympy.Basic:
-    pass
-
-
-@overload
-def _ensure_not_str(param: float) -> float:
-    pass
-
-
-def _ensure_not_str(param):
+def _ensure_not_str(
+    param: Union[sympy.Expr, 'cirq.TParamValComplex', str]
+) -> Union[sympy.Expr, 'cirq.TParamValComplex']:
     if isinstance(param, str):
         return sympy.Symbol(param)
     return param
