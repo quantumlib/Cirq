@@ -87,11 +87,19 @@ class XPowGate(eigen_gate.EigenGate):
     `cirq.X`, the Pauli X gate, is an instance of this gate at `exponent=1`.
     """
 
+    _eigencomponents: Dict[int, List[Tuple[float, np.ndarray]]] = {}
+
+    def __init__(
+        self, *, exponent: value.TParamVal = 1.0, global_shift: float = 0.0, dimension: int = 2
+    ):
+        super().__init__(exponent=exponent, global_shift=global_shift)
+        self._dimension = dimension
+
     def _num_qubits_(self) -> int:
         return 1
 
     def _apply_unitary_(self, args: 'protocols.ApplyUnitaryArgs') -> Optional[np.ndarray]:
-        if self._exponent != 1:
+        if self._exponent != 1 or self._dimension != 2:
             return NotImplemented
         zero = args.subspace_index(0)
         one = args.subspace_index(1)
@@ -108,10 +116,27 @@ class XPowGate(eigen_gate.EigenGate):
 
     def with_canonical_global_phase(self) -> 'XPowGate':
         """Returns an equal-up-global-phase standardized form of the gate."""
-        return XPowGate(exponent=self._exponent)
+        return XPowGate(exponent=self._exponent, dimension=self._dimension)
+
+    def _qid_shape_(self) -> Tuple[int, ...]:
+        return (self._dimension,)
 
     def _eigen_components(self) -> List[Tuple[float, np.ndarray]]:
-        return [(0, np.array([[0.5, 0.5], [0.5, 0.5]])), (1, np.array([[0.5, -0.5], [-0.5, 0.5]]))]
+        if self._dimension not in XPowGate._eigencomponents:
+            components = []
+            root = 1j ** (4 / self._dimension)
+            for i in range(self._dimension):
+                half_turns = i * 2 / self._dimension
+                v = np.array([root ** (i * j) / self._dimension for j in range(self._dimension)])
+                m = np.array([np.roll(v, j) for j in range(self._dimension)])
+                components.append((half_turns, m))
+            XPowGate._eigencomponents[self._dimension] = components
+        return XPowGate._eigencomponents[self._dimension]
+
+    def _with_exponent(self, exponent: 'cirq.TParamVal') -> 'cirq.XPowGate':
+        return XPowGate(
+            exponent=exponent, global_shift=self._global_shift, dimension=self._dimension
+        )
 
     def _decompose_into_clifford_with_qubits_(self, qubits):
         from cirq.ops.clifford_gate import SingleQubitCliffordGate
@@ -127,7 +152,7 @@ class XPowGate(eigen_gate.EigenGate):
         return NotImplemented
 
     def _trace_distance_bound_(self) -> Optional[float]:
-        if self._is_parameterized_():
+        if self._is_parameterized_() or self._dimension != 2:
             return None
         return abs(np.sin(self._exponent * 0.5 * np.pi))
 
@@ -179,7 +204,7 @@ class XPowGate(eigen_gate.EigenGate):
         return result
 
     def _pauli_expansion_(self) -> value.LinearDict[str]:
-        if protocols.is_parameterized(self):
+        if protocols.is_parameterized(self) or self._dimension != 2:
             return NotImplemented
         phase = 1j ** (2 * self._exponent * (self._global_shift + 0.5))
         angle = np.pi * self._exponent / 2
@@ -220,7 +245,7 @@ class XPowGate(eigen_gate.EigenGate):
         )
 
     def _has_stabilizer_effect_(self) -> Optional[bool]:
-        if self._is_parameterized_():
+        if self._is_parameterized_() or self._dimension != 2:
             return None
         return self.exponent % 0.5 == 0
 
@@ -232,13 +257,19 @@ class XPowGate(eigen_gate.EigenGate):
         return f'XPowGate(exponent={self._exponent}, global_shift={self._global_shift!r})'
 
     def __repr__(self) -> str:
-        if self._global_shift == 0:
+        if self._global_shift == 0 and self._dimension == 2:
             if self._exponent == 1:
                 return 'cirq.X'
             return f'(cirq.X**{proper_repr(self._exponent)})'
-        return 'cirq.XPowGate(exponent={}, global_shift={!r})'.format(
-            proper_repr(self._exponent), self._global_shift
-        )
+        args = []
+        if self._exponent != 1:
+            args.append(f'exponent={proper_repr(self._exponent)}')
+        if self._global_shift != 0:
+            args.append(f'global_shift={self._global_shift}')
+        if self._dimension != 2:
+            args.append(f'dimension={self._dimension}')
+        all_args = ', '.join(args)
+        return f'cirq.XPowGate({all_args})'
 
 
 class Rx(XPowGate):
@@ -478,6 +509,14 @@ class ZPowGate(eigen_gate.EigenGate):
     `cirq.Z`, the Pauli Z gate, is an instance of this gate at `exponent=1`.
     """
 
+    _eigencomponents: Dict[int, List[Tuple[float, np.ndarray]]] = {}
+
+    def __init__(
+        self, *, exponent: value.TParamVal = 1.0, global_shift: float = 0.0, dimension: int = 2
+    ):
+        super().__init__(exponent=exponent, global_shift=global_shift)
+        self._dimension = dimension
+
     def _num_qubits_(self) -> int:
         return 1
 
@@ -485,9 +524,10 @@ class ZPowGate(eigen_gate.EigenGate):
         if protocols.is_parameterized(self):
             return None
 
-        one = args.subspace_index(1)
-        c = 1j ** (self._exponent * 2)
-        args.target_tensor[one] *= c
+        for i in range(1, self._dimension):
+            subspace = args.subspace_index(i)
+            c = 1j ** (self._exponent * 4 * i / self._dimension)
+            args.target_tensor[subspace] *= c
         p = 1j ** (2 * self._exponent * self._global_shift)
         if p != 1:
             args.target_tensor *= p
@@ -512,7 +552,7 @@ class ZPowGate(eigen_gate.EigenGate):
 
     def with_canonical_global_phase(self) -> 'ZPowGate':
         """Returns an equal-up-global-phase standardized form of the gate."""
-        return ZPowGate(exponent=self._exponent)
+        return ZPowGate(exponent=self._exponent, dimension=self._dimension)
 
     def controlled(
         self,
@@ -561,16 +601,32 @@ class ZPowGate(eigen_gate.EigenGate):
             )
         return result
 
+    def _qid_shape_(self) -> Tuple[int, ...]:
+        return (self._dimension,)
+
     def _eigen_components(self) -> List[Tuple[float, np.ndarray]]:
-        return [(0, np.diag([1, 0])), (1, np.diag([0, 1]))]
+        if self._dimension not in ZPowGate._eigencomponents:
+            components = []
+            for i in range(self._dimension):
+                half_turns = i * 2 / self._dimension
+                m = np.zeros((self._dimension, self._dimension))
+                m[i][i] = 1
+                components.append((half_turns, m))
+            ZPowGate._eigencomponents[self._dimension] = components
+        return ZPowGate._eigencomponents[self._dimension]
+
+    def _with_exponent(self, exponent: 'cirq.TParamVal') -> 'cirq.ZPowGate':
+        return ZPowGate(
+            exponent=exponent, global_shift=self._global_shift, dimension=self._dimension
+        )
 
     def _trace_distance_bound_(self) -> Optional[float]:
-        if self._is_parameterized_():
+        if self._is_parameterized_() or self._dimension != 2:
             return None
         return abs(np.sin(self._exponent * 0.5 * np.pi))
 
     def _pauli_expansion_(self) -> value.LinearDict[str]:
-        if protocols.is_parameterized(self):
+        if protocols.is_parameterized(self) or self._dimension != 2:
             return NotImplemented
         phase = 1j ** (2 * self._exponent * (self._global_shift + 0.5))
         angle = np.pi * self._exponent / 2
@@ -580,7 +636,7 @@ class ZPowGate(eigen_gate.EigenGate):
         return self
 
     def _has_stabilizer_effect_(self) -> Optional[bool]:
-        if self._is_parameterized_():
+        if self._is_parameterized_() or self._dimension != 2:
             return None
         return self.exponent % 0.5 == 0
 
@@ -630,7 +686,7 @@ class ZPowGate(eigen_gate.EigenGate):
         return f'ZPowGate(exponent={self._exponent}, global_shift={self._global_shift!r})'
 
     def __repr__(self) -> str:
-        if self._global_shift == 0:
+        if self._global_shift == 0 and self._dimension == 2:
             if self._exponent == 0.25:
                 return 'cirq.T'
             if self._exponent == -0.25:
@@ -642,9 +698,15 @@ class ZPowGate(eigen_gate.EigenGate):
             if self._exponent == 1:
                 return 'cirq.Z'
             return f'(cirq.Z**{proper_repr(self._exponent)})'
-        return 'cirq.ZPowGate(exponent={}, global_shift={!r})'.format(
-            proper_repr(self._exponent), self._global_shift
-        )
+        args = []
+        if self._exponent != 1:
+            args.append(f'exponent={proper_repr(self._exponent)}')
+        if self._global_shift != 0:
+            args.append(f'global_shift={self._global_shift}')
+        if self._dimension != 2:
+            args.append(f'dimension={self._dimension}')
+        all_args = ', '.join(args)
+        return f'cirq.ZPowGate({all_args})'
 
     def _commutes_on_qids_(
         self, qids: 'Sequence[cirq.Qid]', other: Any, *, atol: float = 1e-8
