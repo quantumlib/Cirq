@@ -166,18 +166,13 @@ class Moment:
         # Use private variables to facilitate a quick copy.
         m = Moment()
         m._operations = self._operations + (operation,)
-        m._qubits = frozenset(itertools.chain(self._qubits, operation.qubits))
-        m._qubit_to_op = dict(
-            itertools.chain(self._qubit_to_op.items(), ((q, operation) for q in operation.qubits))
+        m._qubits = self._qubits.union(operation.qubits)
+        m._qubit_to_op = {**self._qubit_to_op, **{q: operation for q in operation.qubits}}
+
+        m._measurement_key_objs = self._measurement_key_objs_().union(
+            protocols.measurement_key_objs(operation)
         )
-        m._measurement_key_objs = set(
-            itertools.chain(
-                self._measurement_key_objs_(), protocols.measurement_key_objs(operation)
-            )
-        )
-        m._control_keys = frozenset(
-            itertools.chain(self._control_keys_(), protocols.control_keys(operation))
-        )
+        m._control_keys = self._control_keys_().union(protocols.control_keys(operation))
 
         return m
 
@@ -195,21 +190,20 @@ class Moment:
         """
         flattened_contents = tuple(op_tree.flatten_to_ops(contents))
 
-        qubits = set(self._qubits)
+        new_qubits = set()
+        new_qubit_to_op = {}
         for op in flattened_contents:
             if any(q in qubits for q in op.qubits):
                 raise ValueError(f'Overlapping operations: {op}')
-            qubits.update(op.qubits)
+            new_qubits.update(op.qubits)
+            for q in op.qubits:
+                new_qubit_to_op[q] = op
 
         # Use private variables to facilitate a quick copy.
         m = Moment()
-        m._operations = tuple(itertools.chain(self._operations, flattened_contents))
-        m._qubits = frozenset(qubits)
-        m._qubit_to_op = dict(
-            itertools.chain(
-                self._qubit_to_op.items(), ((q, op) for op in flattened_contents for q in qubits)
-            )
-        )
+        m._operations = self._operations + flattened_contents
+        m._qubits = self.qubits.update(new_qubits)
+        m._qubit_to_op = {**self._qubit_to_op, **new_qubit_to_op}
         m._measurement_key_objs = set(
             itertools.chain(
                 self._measurement_key_objs_(),
