@@ -1,1 +1,1 @@
-cirq_google.SharedRuntimeInfo(run_id='my run', device=None)
+cirq_google.SharedRuntimeInfo(run_id='my run', device=None, run_start_time=datetime.datetime(2022, 4, 27, 20, 27, 55, 571572, tzinfo=datetime.timezone.utc), run_end_time=datetime.datetime(2022, 4, 27, 20, 47, 55, 571585, tzinfo=datetime.timezone.utc))

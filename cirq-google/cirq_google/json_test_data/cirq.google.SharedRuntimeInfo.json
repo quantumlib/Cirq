@@ -1,4 +1,12 @@
 {
   "cirq_type": "cirq.google.SharedRuntimeInfo",
-  "run_id": "my run"
+  "run_id": "my run",
+  "run_start_time": {
+    "cirq_type": "datetime.datetime",
+    "timestamp": 1651091275.571572
+  },
+  "run_end_time": {
+    "cirq_type": "datetime.datetime",
+    "timestamp": 1651092475.571585
+  }
 }
