@@ -54,7 +54,7 @@ class EngineResult(study.ResultDict):
         """
         super().__init__(params=params, measurements=measurements, records=records)
         self.job_id = job_id
-        self.job_finished_time = job_finished_time.astimezone(datetime.timezone.utc)
+        self.job_finished_time = job_finished_time
 
     @classmethod
     def from_result(
