@@ -261,9 +261,15 @@ class XPowGate(eigen_gate.EigenGate):
             if self._exponent == 1:
                 return 'cirq.X'
             return f'(cirq.X**{proper_repr(self._exponent)})'
-        return 'cirq.XPowGate(exponent={}, global_shift={!r}, dimension={!r})'.format(
-            proper_repr(self._exponent), self._global_shift, self._dimension
-        )
+        args = []
+        if self._exponent != 1:
+            args.append(f'exponent={proper_repr(self._exponent)}')
+        if self._global_shift != 0:
+            args.append(f'global_shift={self._global_shift}')
+        if self._dimension != 2:
+            args.append(f'dimension={self._dimension}')
+        all_args = ', '.join(args)
+        return f'cirq.XPowGate({all_args})'
 
 
 class Rx(XPowGate):
@@ -692,9 +698,15 @@ class ZPowGate(eigen_gate.EigenGate):
             if self._exponent == 1:
                 return 'cirq.Z'
             return f'(cirq.Z**{proper_repr(self._exponent)})'
-        return 'cirq.ZPowGate(exponent={}, global_shift={!r}, dimension={!r})'.format(
-            proper_repr(self._exponent), self._global_shift, self._dimension
-        )
+        args = []
+        if self._exponent != 1:
+            args.append(f'exponent={proper_repr(self._exponent)}')
+        if self._global_shift != 0:
+            args.append(f'global_shift={self._global_shift}')
+        if self._dimension != 2:
+            args.append(f'dimension={self._dimension}')
+        all_args = ', '.join(args)
+        return f'cirq.ZPowGate({all_args})'
 
     def _commutes_on_qids_(
         self, qids: 'Sequence[cirq.Qid]', other: Any, *, atol: float = 1e-8
