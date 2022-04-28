@@ -293,7 +293,7 @@ class BaseDensePauliString(raw_types.Gate, metaclass=abc.ABCMeta):
     def __abs__(self):
         return DensePauliString(coefficient=abs(self.coefficient), pauli_mask=self.pauli_mask)
 
-    def on(self, *qubits) -> 'cirq.PauliString':
+    def on(self, *qubits: 'cirq.Qid') -> 'cirq.PauliString':
         return self.sparse(qubits)
 
     def sparse(self, qubits: Optional[Sequence['cirq.Qid']] = None) -> 'cirq.PauliString':

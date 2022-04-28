@@ -123,7 +123,6 @@ class GateOperation(raw_types.Operation):
                 return result
         gate_repr = repr(self.gate)
         qubit_args_repr = ', '.join(repr(q) for q in self.qubits)
-        assert type(self.gate).__call__ == raw_types.Gate.__call__
 
         # Abbreviate when possible.
         dont_need_on = re.match(r'^[a-zA-Z0-9.()]+$', gate_repr)
