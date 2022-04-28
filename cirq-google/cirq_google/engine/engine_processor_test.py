@@ -835,7 +835,9 @@ def test_run_sweep_params(client):
             name='projects/proj/programs/prog/jobs/job-id', execution_status={'state': 'READY'}
         ),
     )
-    client().get_job.return_value = quantum.QuantumJob(execution_status={'state': 'SUCCESS'})
+    client().get_job.return_value = quantum.QuantumJob(
+        execution_status={'state': 'SUCCESS'}, update_time=_to_timestamp('2019-07-09T23:39:59Z')
+    )
     client().get_job_results.return_value = quantum.QuantumResult(result=util.pack_any(_RESULTS_V2))
 
     processor = cg.EngineProcessor('a', 'p', EngineContext())
@@ -848,6 +850,10 @@ def test_run_sweep_params(client):
         assert results[i].repetitions == 1
         assert results[i].params.param_dict == {'a': v}
         assert results[i].measurements == {'q': np.array([[0]], dtype='uint8')}
+    for result in results:
+        assert result.job_id == job.id()
+        assert result.job_finished_time is not None
+    assert results == cirq.read_json(json_text=cirq.to_json(results))
 
     client().create_program.assert_called_once()
     client().create_job.assert_called_once()
@@ -875,7 +881,9 @@ def test_run_batch(client):
             name='projects/proj/programs/prog/jobs/job-id', execution_status={'state': 'READY'}
         ),
     )
-    client().get_job.return_value = quantum.QuantumJob(execution_status={'state': 'SUCCESS'})
+    client().get_job.return_value = quantum.QuantumJob(
+        execution_status={'state': 'SUCCESS'}, update_time=_to_timestamp('2019-07-09T23:39:59Z')
+    )
     client().get_job_results.return_value = quantum.QuantumResult(result=_BATCH_RESULTS_V2)
 
     processor = cg.EngineProcessor('a', 'p', EngineContext())
@@ -890,6 +898,8 @@ def test_run_batch(client):
         assert results[i].repetitions == 1
         assert results[i].params.param_dict == {'a': v}
         assert results[i].measurements == {'q': np.array([[0]], dtype='uint8')}
+    for result in results:
+        assert result.job_id == job.id()
     client().create_program.assert_called_once()
     client().create_job.assert_called_once()
     run_context = v2.batch_pb2.BatchRunContext()
@@ -965,7 +975,9 @@ def test_sampler(client):
             name='projects/proj/programs/prog/jobs/job-id', execution_status={'state': 'READY'}
         ),
     )
-    client().get_job.return_value = quantum.QuantumJob(execution_status={'state': 'SUCCESS'})
+    client().get_job.return_value = quantum.QuantumJob(
+        execution_status={'state': 'SUCCESS'}, update_time=_to_timestamp('2019-07-09T23:39:59Z')
+    )
     client().get_job_results.return_value = quantum.QuantumResult(result=util.pack_any(_RESULTS_V2))
     processor = cg.EngineProcessor('proj', 'mysim', EngineContext())
     sampler = processor.get_sampler()
