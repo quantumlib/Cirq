@@ -95,7 +95,6 @@ from cirq.devices import (
     NoiseProperties,
     OpIdentifier,
     SuperconductingQubitsNoiseProperties,
-    SymmetricalQidPair,
     UNCONSTRAINED_DEVICE,
     NamedTopology,
     draw_gridlike,
