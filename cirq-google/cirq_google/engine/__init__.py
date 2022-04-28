@@ -71,6 +71,7 @@ from cirq_google.engine.engine_sampler import get_engine_sampler, QuantumEngineS
 from cirq_google.engine.validating_sampler import ValidatingSampler
 
 from cirq_google.engine.virtual_engine_factory import (
+    create_device_from_processor_id,
     create_noiseless_virtual_engine_from_device,
     create_noiseless_virtual_engine_from_proto,
     create_noiseless_virtual_engine_from_templates,
