@@ -204,17 +204,13 @@ class Moment:
         m._operations = self._operations + flattened_contents
         m._qubits = self.qubits.update(new_qubits)
         m._qubit_to_op = {**self._qubit_to_op, **new_qubit_to_op}
-        m._measurement_key_objs = set(
-            itertools.chain(
-                self._measurement_key_objs_(),
-                *(protocols.measurement_key_objs(op) for op in flattened_contents),
-            )
+        m._measurement_key_objs = self._measurement_key_objs_().union(
+            set(itertools.chain(*(protocols.measurement_key_objs(op) for op in flattened_contents)))
         )
-        m._control_keys = frozenset(
-            itertools.chain(
-                self._control_keys_(), *(protocols.control_keys(op) for op in flattened_contents)
-            )
+        m._control_keys = self._control_keys().union(
+            *(protocols.control_keys(op) for op in flattened_contents)
         )
+
         return m
 
     def without_operations_touching(self, qubits: Iterable['cirq.Qid']) -> 'cirq.Moment':
