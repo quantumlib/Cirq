@@ -80,8 +80,20 @@ def _create_device_spec_with_all_couplings():
     return grid_qubits, spec
 
 
+def _create_device_spec_invalid_qubit_name() -> v2.device_pb2.DeviceSpecification:
+    """Creates a DeviceSpecification with a qubit name that does not conform to '<int>_<int>'."""
+    q_proto_id = v2.qubit_to_proto_id(cirq.NamedQubit('q0_0'))
+
+    spec = v2.device_pb2.DeviceSpecification()
+    spec.valid_qubits.extend([q_proto_id])
+
+    return spec
+
+
 def _create_device_spec_qubit_pair_self_loops() -> v2.device_pb2.DeviceSpecification:
-    q_proto_id = v2.qubit_to_proto_id(cirq.NamedQubit('q'))
+    """Creates an invalid DeviceSpecification with a qubit pair ('0_0', '0_0')."""
+
+    q_proto_id = v2.qubit_to_proto_id(cirq.GridQubit(0, 0))
 
     spec = v2.device_pb2.DeviceSpecification()
     spec.valid_qubits.extend([q_proto_id])
@@ -95,6 +107,8 @@ def _create_device_spec_qubit_pair_self_loops() -> v2.device_pb2.DeviceSpecifica
 
 
 def _create_device_spec_invalid_qubit_in_qubit_pair() -> v2.device_pb2.DeviceSpecification:
+    """Creates a DeviceSpecification where qubit '0_1' is in a pair but not in valid_qubits."""
+
     q_proto_ids = [v2.qubit_to_proto_id(cirq.GridQubit(0, i)) for i in range(2)]
 
     spec = v2.device_pb2.DeviceSpecification()
@@ -109,6 +123,8 @@ def _create_device_spec_invalid_qubit_in_qubit_pair() -> v2.device_pb2.DeviceSpe
 
 
 def _create_device_spec_invalid_subset_permutation_target() -> v2.device_pb2.DeviceSpecification:
+    """Creates a DeviceSpecification where a SUBSET_PERMUTATION target contains 2 qubits."""
+
     q_proto_ids = [v2.qubit_to_proto_id(cirq.GridQubit(0, i)) for i in range(2)]
 
     spec = v2.device_pb2.DeviceSpecification()
@@ -122,7 +138,7 @@ def _create_device_spec_invalid_subset_permutation_target() -> v2.device_pb2.Dev
     return spec
 
 
-def test_grid_device_from_proto_and_validation():
+def test_grid_device_from_proto():
     grid_qubits, spec = _create_device_spec_with_horizontal_couplings()
 
     device = cirq_google.GridDevice.from_proto(spec)
@@ -163,6 +179,11 @@ def test_grid_device_validate_operations_negative():
         device.validate_operation(cirq.CZ(q00, q10))
 
     # TODO(#5050) verify validate_operations gateset errors
+
+
+def test_grid_device_invalid_qubit_name():
+    with pytest.raises(ValueError, match='not in the GridQubit form'):
+        cirq_google.GridDevice.from_proto(_create_device_spec_invalid_qubit_name())
 
 
 def test_grid_device_invalid_qubit_in_qubit_pair():
@@ -218,11 +239,3 @@ def test_grid_device_repr_pretty(cycle, func):
     printer = mock.Mock()
     device._repr_pretty_(printer, cycle)
     printer.text.assert_called_once_with(func(device))
-
-
-def test_grid_device_str_named_qubits():
-    q_proto_id = v2.qubit_to_proto_id(cirq.NamedQubit('q'))
-    spec = v2.device_pb2.DeviceSpecification()
-    spec.valid_qubits.extend([q_proto_id])
-    device = cirq_google.GridDevice.from_proto(spec)
-    assert device.__class__.__name__ in str(device)

@@ -14,6 +14,8 @@
 
 """Device object representing Google devices with a grid qubit layout."""
 
+import re
+
 from typing import Any, Set, Tuple, cast
 import cirq
 from cirq_google.api import v2
@@ -27,8 +29,15 @@ def _validate_device_specification(proto: v2.device_pb2.DeviceSpecification) -> 
 
     Raises:
         ValueError: If the DeviceSpecification is invalid.
-
     """
+
+    # Qubit names must be in the form <int>_<int> to be parsed as cirq.GridQubits.
+    for q_name in proto.valid_qubits:
+        if re.match(r'^[0-9]+\_[0-9]+$', q_name) is None:
+            raise ValueError(
+                f"Invalid DeviceSpecification: valid_qubits contains the qubit '{q_name}' which is"
+                " not in the GridQubit form '<int>_<int>."
+            )
 
     for target_set in proto.valid_targets:
 
@@ -79,16 +88,16 @@ class GridDevice(cirq.Device):
     Example use cases:
 
         * Get an instance of a Google grid device.
-        >>> device = cirq_google.get_engine().get_processor('weber').get_device()
+        >>> device = cirq_google.get_engine().get_processor('processor_name').get_device()
 
         * Print the grid layout of the device.
         >>> print(device)
 
         * Determine whether a circuit can be run on the device.
-        >>> device.validate_circuit(circuit)  # Raises an exception if the circuit is invalid.
+        >>> device.validate_circuit(circuit)  # Raises a ValueError if the circuit is invalid.
 
         * Determine whether an operation can be run on the device.
-        >>> device.validate_operation(operation)  # Raises an exception if the operation is invalid.
+        >>> device.validate_operation(operation)  # Raises a ValueError if the operation is invalid.
 
         * Get the `cirq.Gateset` containing valid gates for the device, and inspect the full list
           of valid gates.
@@ -116,7 +125,7 @@ class GridDevice(cirq.Device):
 
     For Google devices, the
     [DeviceSpecification proto](
-        https://github.com/quantumlib/Cirq/blob/3969c2d3964cea56df33b329f036ba6810683882/cirq-google/cirq_google/api/v2/device.proto#L13
+        https://github.com/quantumlib/Cirq/blob/master/cirq-google/cirq_google/api/v2/device.proto
     )
     is the main specification for device information surfaced by the Quantum Computing Service.
     Thus, this class is should be instantiated using a `DeviceSpecification` proto via the
@@ -134,21 +143,29 @@ class GridDevice(cirq.Device):
     def from_proto(cls, proto: v2.device_pb2.DeviceSpecification) -> 'GridDevice':
         """Create a `GridDevice` from a DeviceSpecification proto.
 
-        This class only supports `cirq.GridQubit`s and `cirq.NamedQubit`s. If a
-        `DeviceSpecification.valid_qubits` string is in the form `<int>_<int>`, it is parsed as a
-        GridQubit. Otherwise it is parsed as a NamedQubit.
-
         Args:
             proto: The `DeviceSpecification` proto describing a Google device.
 
         Raises:
-            ValueError: If the given `DeviceSpecification` is invalid.
+            ValueError: If the given `DeviceSpecification` is invalid. It is invalid if:
+                * A `DeviceSpecification.valid_qubits` string is not in the form `<int>_<int>`, thus
+                  cannot be parsed as a `cirq.GridQubit`.
+                * `DeviceSpecification.valid_targets` refer to qubits which are not in
+                  `DeviceSpecification.valid_qubits`.
+                * A target set in `DeviceSpecification.valid_targets` has type `SYMMETRIC` or
+                  `ASYMMETRIC` but contains targets with repeated qubits, e.g. a qubit pair with a
+                  self loop.
+                * A target set in `DeviceSpecification.valid_targets` has type `SUBSET_PERMUTATION`
+                  but contains targets which do not have exactly one element. A `SUBSET_PERMUTATION`
+                  target set uses each target to represent a single qubit, and a gate can apply to
+                  any subset of qubits in the target set.
+
         """
 
         _validate_device_specification(proto)
 
         # Create qubit set
-        all_qubits = [_qid_from_str(q) for q in proto.valid_qubits]
+        all_qubits = [v2.grid_qubit_from_proto_id(q) for q in proto.valid_qubits]
 
         # Create qubit pair set
         #
@@ -159,7 +176,7 @@ class GridDevice(cirq.Device):
         # * Measurement gate can always be applied to all subset of qubits.
         #
         qubit_pairs = [
-            (_qid_from_str(target.ids[0]), _qid_from_str(target.ids[1]))
+            (v2.grid_qubit_from_proto_id(target.ids[0]), v2.grid_qubit_from_proto_id(target.ids[1]))
             for ts in proto.valid_targets
             for target in ts.targets
             if len(target.ids) == 2 and ts.target_ordering == v2.device_pb2.TargetSet.SYMMETRIC
@@ -212,36 +229,30 @@ class GridDevice(cirq.Device):
             raise ValueError(f'Qubit pair is not valid on device: {operation.qubits!r}')
 
     def __str__(self) -> str:
-        # If all qubits are grid qubits, render an appropriate text diagram.
-        if all(isinstance(q, cirq.GridQubit) for q in self._metadata.qubit_set):
-            diagram = cirq.TextDiagramDrawer()
+        diagram = cirq.TextDiagramDrawer()
 
-            qubits = cast(Set[cirq.GridQubit], self._metadata.qubit_set)
+        qubits = cast(Set[cirq.GridQubit], self._metadata.qubit_set)
 
-            # Don't print out extras newlines if the row/col doesn't start at 0
-            min_col = min(q.col for q in qubits)
-            min_row = min(q.row for q in qubits)
+        # Don't print out extras newlines if the row/col doesn't start at 0
+        min_col = min(q.col for q in qubits)
+        min_row = min(q.row for q in qubits)
 
-            for q in qubits:
-                diagram.write(q.col - min_col, q.row - min_row, str(q))
+        for q in qubits:
+            diagram.write(q.col - min_col, q.row - min_row, str(q))
 
-            # Find pairs that are connected by two-qubit gates.
-            Pair = Tuple[cirq.GridQubit, cirq.GridQubit]
-            pairs = sorted({cast(Pair, tuple(pair)) for pair in self._metadata.qubit_pairs})
+        # Find pairs that are connected by two-qubit gates.
+        Pair = Tuple[cirq.GridQubit, cirq.GridQubit]
+        pairs = sorted({cast(Pair, tuple(pair)) for pair in self._metadata.qubit_pairs})
 
-            # Draw lines between connected pairs. Limit to horizontal/vertical
-            # lines since that is all the diagram drawer can handle.
-            for q1, q2 in pairs:
-                if q1.row == q2.row or q1.col == q2.col:
-                    diagram.grid_line(
-                        q1.col - min_col, q1.row - min_row, q2.col - min_col, q2.row - min_row
-                    )
+        # Draw lines between connected pairs. Limit to horizontal/vertical
+        # lines since that is all the diagram drawer can handle.
+        for q1, q2 in pairs:
+            if q1.row == q2.row or q1.col == q2.col:
+                diagram.grid_line(
+                    q1.col - min_col, q1.row - min_row, q2.col - min_col, q2.row - min_row
+                )
 
-            return diagram.render(
-                horizontal_spacing=3, vertical_spacing=2, use_unicode_characters=True
-            )
-
-        return super().__str__()
+        return diagram.render(horizontal_spacing=3, vertical_spacing=2, use_unicode_characters=True)
 
     def _repr_pretty_(self, p: Any, cycle: bool) -> None:
         """Creates ASCII diagram for Jupyter, IPython, etc."""
@@ -260,15 +271,3 @@ class GridDevice(cirq.Device):
 
     def _value_equality_values_(self):
         return self._metadata
-
-
-def _qid_from_str(id_str: str) -> cirq.Qid:
-    """Translates a qubit id string info cirq.Qid objects.
-
-    Tries to translate to GridQubit if possible (e.g. '4_3'), otherwise
-    falls back to using NamedQubit.
-    """
-    try:
-        return v2.grid_qubit_from_proto_id(id_str)
-    except ValueError:
-        return v2.named_qubit_from_proto_id(id_str)
