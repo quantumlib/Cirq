@@ -16,9 +16,15 @@
 
 import re
 
-from typing import Any, Set, Tuple, cast
+from typing import Any, Dict, List, Sequence, Set, Tuple, Type, Union, cast
+import warnings
+
 import cirq
+from cirq_google import ops
+from cirq_google import transformers
 from cirq_google.api import v2
+from cirq_google.experimental import ops as experimental_ops
+from cirq_google.ops.fsim_gate_family import POSSIBLE_FSIM_GATES
 
 
 def _validate_device_specification(proto: v2.device_pb2.DeviceSpecification) -> None:
@@ -77,6 +83,91 @@ def _validate_device_specification(proto: v2.device_pb2.DeviceSpecification) -> 
                     )
 
 
+def _build_gateset_and_gate_durations(
+    proto: v2.device_pb2.DeviceSpecification,
+) -> Tuple[cirq.Gateset, Dict[cirq.GateFamily, cirq.Duration]]:
+    gates_list: List[Union[Type[cirq.Gate], cirq.Gate, cirq.GateFamily]] = []
+    fsim_gates: List[Union[Type[POSSIBLE_FSIM_GATES], POSSIBLE_FSIM_GATES]] = []
+    gate_durations: Dict[cirq.GateFamily, cirq.Duration] = {}
+
+    # TODO(#5050) Describe how to add/remove gates.
+
+    for gate_spec in proto.valid_gates:
+        gate_name = gate_spec.WhichOneof('gate')
+        cirq_gates: List[Union[Type[cirq.Gate], cirq.Gate, cirq.GateFamily]] = []
+
+        if gate_name == 'syc':
+            cirq_gates = [ops.SYC]
+            fsim_gates.append(ops.SYC)
+        elif gate_name == 'sqrt_iswap':
+            cirq_gates = [cirq.SQRT_ISWAP]
+            fsim_gates.append(cirq.SQRT_ISWAP)
+        elif gate_name == 'sqrt_iswap_inv':
+            cirq_gates = [cirq.SQRT_ISWAP_INV]
+            fsim_gates.append(cirq.SQRT_ISWAP_INV)
+        elif gate_name == 'cz':
+            cirq_gates = [cirq.CZ]
+            fsim_gates.append(cirq.CZ)
+        elif gate_name == 'phased_xz':
+            cirq_gates = [
+                cirq.PhasedXZGate,
+                cirq.XPowGate,
+                cirq.YPowGate,
+                cirq.ZPowGate,
+                cirq.PhasedXPowGate,
+            ]
+        elif gate_name == 'virtual_zpow':
+            cirq_gates = [cirq.GateFamily(cirq.ZPowGate, tags_to_ignore=[ops.PhysicalZTag()])]
+        elif gate_name == 'physical_zpow':
+            cirq_gates = [cirq.GateFamily(cirq.ZPowGate, tags_to_accept=[ops.PhysicalZTag()])]
+        elif gate_name == 'coupler_pulse':
+            cirq_gates = [experimental_ops.CouplerPulse]
+        elif gate_name == 'meas':
+            cirq_gates = [cirq.MeasurementGate]
+        elif gate_name == 'wait':
+            cirq_gates = [cirq.WaitGate]
+        else:
+            # coverage: ignore
+            warnings.warn(
+                f"The DeviceSpecification contains the gate '{gate_name}' which is not recognized"
+                " by Cirq and will be ignored. This may be due to an out-of-date Cirq version.",
+                UserWarning,
+            )
+            continue
+
+        gates_list.extend(cirq_gates)
+        for g in cirq_gates:
+            if not isinstance(g, cirq.GateFamily):
+                g = cirq.GateFamily(g)
+            gate_durations[g] = cirq.Duration(picos=gate_spec.gate_duration_picos)
+
+    if fsim_gates:
+        gates_list.append(ops.FSimGateFamily(gates_to_accept=fsim_gates))
+
+    # TODO(#4833) Add identity gate support
+    # TODO(#5050) Add GlobalPhaseGate support
+
+    return cirq.Gateset(*gates_list), gate_durations
+
+
+def _build_compilation_target_gatesets(
+    gateset: cirq.Gateset,
+) -> Sequence[cirq.CompilationTargetGateset]:
+    """Detects compilation target gatesets based on what gates are inside the gateset."""
+
+    target_gatesets: List[cirq.CompilationTargetGateset] = []
+    if cirq.CZ in gateset:
+        target_gatesets.append(cirq.CZTargetGateset())
+    if ops.SYC in gateset:
+        target_gatesets.append(transformers.SycamoreTargetGateset())
+    if cirq.SQRT_ISWAP in gateset:
+        target_gatesets.append(
+            cirq.SqrtIswapTargetGateset(use_sqrt_iswap_inv=cirq.SQRT_ISWAP_INV in gateset)
+        )
+
+    return tuple(target_gatesets)
+
+
 @cirq.value_equality
 class GridDevice(cirq.Device):
     """Device object representing Google devices with a grid qubit layout.
@@ -122,7 +213,16 @@ class GridDevice(cirq.Device):
         * Get a collection of approximate gate durations for every gate supported by the device.
         >>> device.metadata.gate_durations
 
-        TODO(#5050) Add compilation_target_gatesets example.
+        * Get a collection of valid CompilationTargetGatesets for the device, which can be used to
+          transform a circuit which is invalid for the device to a valid one.
+        >>> device.metadata.compilation_target_gatesets
+
+        * Assuming valid CompilationTargetGatesets exist for the device, select the first one and
+          use it to transform a circuit to an equivalent form which is valid for the device.
+        >>> cirq.optimize_for_target_gateset(
+                circuit,
+                gateset=device.metadata.compilation_target_gatesets[0]
+            )
 
     Notes for cirq_google internal implementation:
 
@@ -187,12 +287,15 @@ class GridDevice(cirq.Device):
             if len(target.ids) == 2 and ts.target_ordering == v2.device_pb2.TargetSet.SYMMETRIC
         ]
 
-        # TODO(#5050) implement gate durations
+        gateset, gate_durations = _build_gateset_and_gate_durations(proto)
+
         try:
             metadata = cirq.GridDeviceMetadata(
                 qubit_pairs=qubit_pairs,
-                gateset=cirq.Gateset(),  # TODO(#5050) implement
+                gateset=gateset,
+                gate_durations=gate_durations,
                 all_qubits=all_qubits,
+                compilation_target_gatesets=_build_compilation_target_gatesets(gateset),
             )
         except ValueError as ve:  # coverage: ignore
             # Spec errors should have been caught in validation above.
@@ -219,9 +322,9 @@ class GridDevice(cirq.Device):
         Raises:
             ValueError: The operation isn't valid for this device.
         """
-        # TODO(#5050) uncomment once gateset logic is implemented
-        # if operation not in self._metadata.gateset:
-        #     raise ValueError(f'Operation {operation} is not a supported gate')
+
+        if operation not in self._metadata.gateset:
+            raise ValueError(f'Operation {operation} is not a supported gate')
 
         for q in operation.qubits:
             if q not in self._metadata.qubit_set:
