@@ -144,11 +144,11 @@ class GateFamily:
             raise ValueError(f'Gate {gate} must be a non-parameterized instance of `cirq.Gate`.')
 
         self._gate = gate
+        self._tags_to_accept = frozenset(tags_to_accept)
+        self._tags_to_ignore = frozenset(tags_to_ignore)
         self._name = name if name else self._default_name()
         self._description = description if description else self._default_description()
         self._ignore_global_phase = ignore_global_phase
-        self._tags_to_accept = frozenset(tags_to_accept)
-        self._tags_to_ignore = frozenset(tags_to_ignore)
 
         common_tags = self._tags_to_accept & self._tags_to_ignore
         if common_tags:
@@ -168,7 +168,17 @@ class GateFamily:
 
     def _default_description(self) -> str:
         check_type = r'g == {}' if isinstance(self.gate, raw_types.Gate) else r'isinstance(g, {})'
-        return f'Accepts `cirq.Gate` instances `g` s.t. `{check_type.format(self._gate_str())}`'
+        tags_to_accept_str = (
+            f'\nAccepted tags: {list(self._tags_to_accept)}' if self._tags_to_accept else ''
+        )
+        tags_to_ignore_str = (
+            f'\nIgnored tags: {list(self._tags_to_ignore)}' if self._tags_to_ignore else ''
+        )
+        return (
+            f'Accepts `cirq.Gate` instances `g` s.t. `{check_type.format(self._gate_str())}`'
+            + tags_to_accept_str
+            + tags_to_ignore_str
+        )
 
     @property
     def gate(self) -> Union[Type[raw_types.Gate], raw_types.Gate]:
@@ -244,14 +254,17 @@ class GateFamily:
         )
 
     def _json_dict_(self) -> Dict[str, Any]:
-        d: Dict[str, Any] = {
+        d = {
             'gate': self._gate_json(),
-            'name': self.name,
-            'description': self.description,
+            'name': None,
+            'description': None,
             'ignore_global_phase': self._ignore_global_phase,
             'tags_to_accept': list(self._tags_to_accept),
             'tags_to_ignore': list(self._tags_to_ignore),
         }
+        if self.name != self._default_name() or self.description != self._default_description():
+            d['name'] = self.name
+            d['description'] = self.description
         return d
 
     @classmethod
