@@ -19,17 +19,17 @@ import cirq
 
 
 def test_init_state():
-    args = cirq.ActOnStabilizerCHFormArgs(qubits=cirq.LineQubit.range(1), initial_state=1)
+    args = cirq.StabilizerChFormSimulationState(qubits=cirq.LineQubit.range(1), initial_state=1)
     np.testing.assert_allclose(args.state.state_vector(), [0, 1])
     with pytest.raises(ValueError, match='Must specify qubits'):
-        _ = cirq.ActOnStabilizerCHFormArgs(initial_state=1)
+        _ = cirq.StabilizerChFormSimulationState(initial_state=1)
 
 
 def test_cannot_act():
     class NoDetails(cirq.testing.SingleQubitGate):
         pass
 
-    args = cirq.ActOnStabilizerCHFormArgs(qubits=[], prng=np.random.RandomState())
+    args = cirq.StabilizerChFormSimulationState(qubits=[], prng=np.random.RandomState())
 
     with pytest.raises(TypeError, match="Failed to act"):
         cirq.act_on(NoDetails(), args, qubits=())
@@ -37,14 +37,14 @@ def test_cannot_act():
 
 def test_gate_with_act_on():
     class CustomGate(cirq.testing.SingleQubitGate):
-        def _act_on_(self, args, qubits):
-            if isinstance(args, cirq.ActOnStabilizerCHFormArgs):
-                qubit = args.qubit_map[qubits[0]]
-                args.state.gamma[qubit] += 1
+        def _act_on_(self, sim_state, qubits):
+            if isinstance(sim_state, cirq.StabilizerChFormSimulationState):
+                qubit = sim_state.qubit_map[qubits[0]]
+                sim_state.state.gamma[qubit] += 1
                 return True
 
     state = cirq.StabilizerStateChForm(num_qubits=3)
-    args = cirq.ActOnStabilizerCHFormArgs(
+    args = cirq.StabilizerChFormSimulationState(
         qubits=cirq.LineQubit.range(3), prng=np.random.RandomState(), initial_state=state
     )
 
@@ -61,11 +61,11 @@ def test_unitary_fallback_y():
         def _unitary_(self):
             return np.array([[0, -1j], [1j, 0]])
 
-    args = cirq.ActOnStabilizerCHFormArgs(
+    args = cirq.StabilizerChFormSimulationState(
         qubits=cirq.LineQubit.range(3), prng=np.random.RandomState()
     )
     cirq.act_on(UnitaryYGate(), args, [cirq.LineQubit(1)])
-    expected_args = cirq.ActOnStabilizerCHFormArgs(
+    expected_args = cirq.StabilizerChFormSimulationState(
         qubits=cirq.LineQubit.range(3), prng=np.random.RandomState()
     )
     cirq.act_on(cirq.Y, expected_args, [cirq.LineQubit(1)])
@@ -80,11 +80,11 @@ def test_unitary_fallback_h():
         def _unitary_(self):
             return np.array([[1, 1], [1, -1]]) / (2**0.5)
 
-    args = cirq.ActOnStabilizerCHFormArgs(
+    args = cirq.StabilizerChFormSimulationState(
         qubits=cirq.LineQubit.range(3), prng=np.random.RandomState()
     )
     cirq.act_on(UnitaryHGate(), args, [cirq.LineQubit(1)])
-    expected_args = cirq.ActOnStabilizerCHFormArgs(
+    expected_args = cirq.StabilizerChFormSimulationState(
         qubits=cirq.LineQubit.range(3), prng=np.random.RandomState()
     )
     cirq.act_on(cirq.H, expected_args, [cirq.LineQubit(1)])
@@ -92,11 +92,11 @@ def test_unitary_fallback_h():
 
 
 def test_copy():
-    args = cirq.ActOnStabilizerCHFormArgs(
+    args = cirq.StabilizerChFormSimulationState(
         qubits=cirq.LineQubit.range(3), prng=np.random.RandomState()
     )
     args1 = args.copy()
-    assert isinstance(args1, cirq.ActOnStabilizerCHFormArgs)
+    assert isinstance(args1, cirq.StabilizerChFormSimulationState)
     assert args is not args1
     assert args.state is not args1.state
     np.testing.assert_equal(args.state.state_vector(), args1.state.state_vector())

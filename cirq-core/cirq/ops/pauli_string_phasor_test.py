@@ -231,6 +231,12 @@ def test_with_parameters_resolved_by(resolve_fn):
     expected = cirq.PauliStringPhasor(cirq.PauliString({}), exponent_neg=0.1)
     assert actual == expected
 
+    with pytest.raises(ValueError, match='complex'):
+        resolve_fn(op, cirq.ParamResolver({'a': 0.1j}))
+    op = cirq.PauliStringPhasor(cirq.PauliString({}), exponent_pos=sympy.Symbol('a'))
+    with pytest.raises(ValueError, match='complex'):
+        resolve_fn(op, cirq.ParamResolver({'a': 0.1j}))
+
 
 def test_drop_negligible():
     (q0,) = _make_qubits(1)

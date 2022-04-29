@@ -18,7 +18,7 @@ import numpy as np
 
 from cirq import ops, protocols, study, value
 from cirq._compat import deprecated_class, deprecated_parameter, proper_repr
-from cirq.sim import simulator, act_on_density_matrix_args, simulator_base
+from cirq.sim import simulator, density_matrix_simulation_state, simulator_base
 
 if TYPE_CHECKING:
     import cirq
@@ -29,7 +29,7 @@ class DensityMatrixSimulator(
     simulator_base.SimulatorBase[
         'cirq.DensityMatrixStepResult',
         'cirq.DensityMatrixTrialResult',
-        'cirq.ActOnDensityMatrixArgs',
+        'cirq.DensityMatrixSimulationState',
     ],
     simulator.SimulatesExpectationValues,
 ):
@@ -147,11 +147,13 @@ class DensityMatrixSimulator(
 
     def _create_partial_act_on_args(
         self,
-        initial_state: Union[np.ndarray, 'cirq.STATE_VECTOR_LIKE', 'cirq.ActOnDensityMatrixArgs'],
+        initial_state: Union[
+            np.ndarray, 'cirq.STATE_VECTOR_LIKE', 'cirq.DensityMatrixSimulationState'
+        ],
         qubits: Sequence['cirq.Qid'],
         classical_data: 'cirq.ClassicalDataStore',
-    ) -> 'cirq.ActOnDensityMatrixArgs':
-        """Creates the ActOnDensityMatrixArgs for a circuit.
+    ) -> 'cirq.DensityMatrixSimulationState':
+        """Creates the DensityMatrixSimulationState for a circuit.
 
         Args:
             initial_state: The initial state for the simulation in the
@@ -163,12 +165,12 @@ class DensityMatrixSimulator(
                 simulation.
 
         Returns:
-            ActOnDensityMatrixArgs for the circuit.
+            DensityMatrixSimulationState for the circuit.
         """
-        if isinstance(initial_state, act_on_density_matrix_args.ActOnDensityMatrixArgs):
+        if isinstance(initial_state, density_matrix_simulation_state.DensityMatrixSimulationState):
             return initial_state
 
-        return act_on_density_matrix_args.ActOnDensityMatrixArgs(
+        return density_matrix_simulation_state.DensityMatrixSimulationState(
             qubits=qubits,
             prng=self._prng,
             classical_data=classical_data,
@@ -179,14 +181,16 @@ class DensityMatrixSimulator(
     def _can_be_in_run_prefix(self, val: Any):
         return not protocols.measurement_keys_touched(val)
 
-    def _create_step_result(self, sim_state: 'cirq.OperationTarget[cirq.ActOnDensityMatrixArgs]'):
+    def _create_step_result(
+        self, sim_state: 'cirq.SimulationStateBase[cirq.DensityMatrixSimulationState]'
+    ):
         return DensityMatrixStepResult(sim_state=sim_state, dtype=self._dtype)
 
     def _create_simulator_trial_result(
         self,
         params: 'cirq.ParamResolver',
         measurements: Dict[str, np.ndarray],
-        final_simulator_state: 'cirq.OperationTarget[cirq.ActOnDensityMatrixArgs]',
+        final_simulator_state: 'cirq.SimulationStateBase[cirq.DensityMatrixSimulationState]',
     ) -> 'cirq.DensityMatrixTrialResult':
         return DensityMatrixTrialResult(
             params=params, measurements=measurements, final_simulator_state=final_simulator_state
@@ -227,7 +231,7 @@ class DensityMatrixSimulator(
         return swept_evs
 
 
-class DensityMatrixStepResult(simulator_base.StepResultBase['cirq.ActOnDensityMatrixArgs']):
+class DensityMatrixStepResult(simulator_base.StepResultBase['cirq.DensityMatrixSimulationState']):
     """A single step in the simulation of the DensityMatrixSimulator.
 
     Attributes:
@@ -243,14 +247,14 @@ class DensityMatrixStepResult(simulator_base.StepResultBase['cirq.ActOnDensityMa
     )
     def __init__(
         self,
-        sim_state: 'cirq.OperationTarget[cirq.ActOnDensityMatrixArgs]',
+        sim_state: 'cirq.SimulationStateBase[cirq.DensityMatrixSimulationState]',
         simulator: 'cirq.DensityMatrixSimulator' = None,
         dtype: 'DTypeLike' = np.complex64,
     ):
         """DensityMatrixStepResult.
 
         Args:
-            sim_state: The qubit:ActOnArgs lookup for this step.
+            sim_state: The qubit:SimulationState lookup for this step.
             simulator: The simulator used to create this.
             dtype: The `numpy.dtype` used by the simulation. One of
                 `numpy.complex64` or `numpy.complex128`.
@@ -342,7 +346,9 @@ class DensityMatrixSimulatorState:
 
 @value.value_equality(unhashable=True)
 class DensityMatrixTrialResult(
-    simulator_base.SimulationTrialResultBase[act_on_density_matrix_args.ActOnDensityMatrixArgs]
+    simulator_base.SimulationTrialResultBase[
+        density_matrix_simulation_state.DensityMatrixSimulationState
+    ]
 ):
     """A `SimulationTrialResult` for `DensityMatrixSimulator` runs.
 
@@ -386,7 +392,7 @@ class DensityMatrixTrialResult(
         self,
         params: 'cirq.ParamResolver',
         measurements: Dict[str, np.ndarray],
-        final_simulator_state: 'cirq.OperationTarget[cirq.ActOnDensityMatrixArgs]',
+        final_simulator_state: 'cirq.SimulationStateBase[cirq.DensityMatrixSimulationState]',
     ) -> None:
         super().__init__(
             params=params, measurements=measurements, final_simulator_state=final_simulator_state
