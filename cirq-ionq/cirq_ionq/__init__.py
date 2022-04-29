@@ -33,3 +33,5 @@ from cirq_ionq.sampler import Sampler
 from cirq_ionq.serializer import Serializer, SerializedProgram
 
 from cirq_ionq.service import Service
+
+from cirq_ionq.ionq_native_gates import GPIGate, GPI2Gate, MSGate
