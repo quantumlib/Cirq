@@ -219,7 +219,7 @@ def create_device_from_processor_id(processor_id: str) -> serializable_device.Se
     if template_name is None:
         raise ValueError(f"Got processor_id={processor_id}, but no such processor is defined.")
     device_specification = _create_device_spec_from_template(template_name)
-    return serializable_device.SerializableDevice.from_proto(device_specification, FSIM_GATESET)
+    return serializable_device.SerializableDevice.from_proto(device_specification, [FSIM_GATESET])
 
 
 def create_noiseless_virtual_processor_from_template(
