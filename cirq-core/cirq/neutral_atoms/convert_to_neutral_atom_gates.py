@@ -13,15 +13,25 @@
 # limitations under the License.
 from typing import List, Optional, TYPE_CHECKING
 
-from cirq import ops, protocols
+from cirq import ops, protocols, transformers
+from cirq._compat import deprecated_class
 from cirq.circuits.optimization_pass import PointOptimizationSummary, PointOptimizer
-from cirq.neutral_atoms import neutral_atom_devices
-from cirq import transformers
+from cirq.neutral_atoms import neutral_atom_gateset
 
 if TYPE_CHECKING:
     import cirq
 
 
+@transformers.transformer
+def convert_to_neutral_atom_gates(
+    circuit: 'cirq.AbstractCircuit', *, context: Optional['cirq.TransformerContext'] = None
+) -> 'cirq.Circuit':
+    return transformers.optimize_for_target_gateset(
+        circuit, gateset=neutral_atom_gateset.NeutralAtomGateset()
+    )
+
+
+@deprecated_class(deadline='v0.16', fix='Use cirq.convert_to_neutral_atom_gates instead.')
 class ConvertToNeutralAtomGates(PointOptimizer):
     """Attempts to convert gates into native Atom gates.
 
@@ -48,7 +58,7 @@ class ConvertToNeutralAtomGates(PointOptimizer):
         """
         super().__init__()
         self.ignore_failures = ignore_failures
-        self.gateset = neutral_atom_devices.neutral_atom_gateset()
+        self.gateset = neutral_atom_gateset.neutral_atom_gateset()
 
     def _convert_one(self, op: ops.Operation) -> ops.OP_TREE:
         # Known matrix?
@@ -91,8 +101,8 @@ class ConvertToNeutralAtomGates(PointOptimizer):
 
 
 def is_native_neutral_atom_op(operation: ops.Operation) -> bool:
-    return operation in neutral_atom_devices.neutral_atom_gateset()
+    return operation in neutral_atom_gateset.neutral_atom_gateset()
 
 
 def is_native_neutral_atom_gate(gate: ops.Gate) -> bool:
-    return gate in neutral_atom_devices.neutral_atom_gateset()
+    return gate in neutral_atom_gateset.neutral_atom_gateset()

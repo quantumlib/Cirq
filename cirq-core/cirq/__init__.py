@@ -668,6 +668,7 @@ from cirq.protocols import (
 
 from cirq.ion import ConvertToIonGates, IonDevice, ms, two_qubit_matrix_to_ion_operations
 from cirq.neutral_atoms import (
+    convert_to_neutral_atom_gates,
     ConvertToNeutralAtomGates,
     is_native_neutral_atom_gate,
     is_native_neutral_atom_op,

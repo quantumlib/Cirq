@@ -17,6 +17,7 @@
 from cirq.neutral_atoms.neutral_atom_devices import NeutralAtomDevice
 
 from cirq.neutral_atoms.convert_to_neutral_atom_gates import (
+    convert_to_neutral_atom_gates,
     ConvertToNeutralAtomGates,
     is_native_neutral_atom_gate,
     is_native_neutral_atom_op,
