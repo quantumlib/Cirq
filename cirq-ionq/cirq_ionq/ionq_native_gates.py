@@ -21,6 +21,7 @@ import cirq
 from cirq._doc import document
 import numpy as np
 
+
 class GPIGate(cirq.Gate):
     """The GPI gate is a single qubit gate.
     The unitary of this gate is
@@ -34,7 +35,7 @@ class GPIGate(cirq.Gate):
     def _unitary_(self) -> np.ndarray:
         top = cmath.exp(self.phi * 1j)
         bot = cmath.exp(-self.phi * 1j)
-        return np.array([[0, top], [bot, 0]])         
+        return np.array([[0, top], [bot, 0]])
 
     def __repr__(self) -> str:
         return 'cirq_ionq.GPI'
@@ -69,8 +70,9 @@ document(
          [e^{-i\\phi}, 0]]
     It is driven by Rabi laser.
     https://ionq.com/best-practices
-    """
+    """,
 )
+
 
 class GPI2Gate(cirq.Gate):
     """The GPI2 gate is a single qubit gate.
@@ -85,7 +87,7 @@ class GPI2Gate(cirq.Gate):
     def _unitary_(self) -> np.ndarray:
         top = -1j * cmath.exp(self.phase * -1j)
         bot = -1j * cmath.exp(self.phase * 1j)
-        return np.array([[1, top], [bot, 1]])/math.sqrt(2)
+        return np.array([[1, top], [bot, 1]]) / math.sqrt(2)
 
     @property
     def phase(self) -> float:
@@ -120,8 +122,9 @@ document(
          [-i*e^{-i\\phi}, 1]]
     It is driven by Rabi laser.
     https://ionq.com/best-practices
-    """
+    """,
 )
+
 
 class MSGate(cirq.Gate):
     """The MS gate is a 2 qubit gate.
@@ -145,15 +148,15 @@ class MSGate(cirq.Gate):
     def _unitary_(self) -> np.ndarray:
         tee = self.phi2 - self.phi1
         diag = math.cos(tee)
-        adiag = -1j*math.sin(tee)
+        adiag = -1j * math.sin(tee)
         return np.array(
-            [[diag, 0, 0, adiag], [0, diag, adiag, 0], [0, adiag, diag, 0], [adiag, 0, 0, diag]],
+            [[diag, 0, 0, adiag], [0, diag, adiag, 0], [0, adiag, diag, 0], [adiag, 0, 0, diag]]
         )
-    
+
     @property
     def phases(self) -> [float]:
         return [self.phi1, self.phi2]
-    
+
     def __str__(self) -> str:
         return 'MS'
 
@@ -185,5 +188,5 @@ document(
              [-i*\\sin(t), 0, 0, \\cos(t)]]
 
     https://ionq.com/best-practices
-    """
+    """,
 )

@@ -4,6 +4,7 @@ import numpy
 import pytest
 from .ionq_native_gates import GPIGate, GPI2Gate, MSGate
 
+
 @pytest.mark.parametrize("phase", [0, 0.1, 0.4, math.pi / 2, math.pi, 2 * math.pi])
 def test_gpi_unitary(phase):
     """Tests that the GPI gate is unitary."""
@@ -23,8 +24,7 @@ def test_gpi2_unitary(phase):
 
 
 @pytest.mark.parametrize(
-    "phases",
-    [(0, 1), (0.1, 1), (0.4, 1), (math.pi / 2, 0), (0, math.pi), (0.1, 2 * math.pi)],
+    "phases", [(0, 1), (0.1, 1), (0.4, 1), (math.pi / 2, 0), (0, math.pi), (0.1, 2 * math.pi)]
 )
 def test_ms_unitary(phases):
     """Tests that the MS gate is unitary."""
