@@ -18,7 +18,7 @@ import numpy as np
 import pytest
 
 import cirq
-from cirq.protocols.act_on_protocol_test import DummyActOnArgs
+from cirq.protocols.act_on_protocol_test import DummySimulationState
 
 X = np.array([[0, 1], [1, 0]])
 Y = np.array([[0, -1j], [1j, 0]])
@@ -489,9 +489,9 @@ def test_reset_channel_text_diagram():
 
 def test_reset_act_on():
     with pytest.raises(TypeError, match="Failed to act"):
-        cirq.act_on(cirq.ResetChannel(), DummyActOnArgs(), qubits=())
+        cirq.act_on(cirq.ResetChannel(), DummySimulationState(), qubits=())
 
-    args = cirq.ActOnStateVectorArgs(
+    args = cirq.StateVectorSimulationState(
         available_buffer=np.empty(shape=(2, 2, 2, 2, 2), dtype=np.complex64),
         qubits=cirq.LineQubit.range(5),
         prng=np.random.RandomState(),
@@ -714,7 +714,7 @@ def test_bit_flip_channel_text_diagram():
 def test_stabilizer_supports_depolarize():
     with pytest.raises(TypeError, match="act_on"):
         for _ in range(100):
-            cirq.act_on(cirq.depolarize(3 / 4), DummyActOnArgs(), qubits=())
+            cirq.act_on(cirq.depolarize(3 / 4), DummySimulationState(), qubits=())
 
     q = cirq.LineQubit(0)
     c = cirq.Circuit(cirq.depolarize(3 / 4).on(q), cirq.measure(q, key='m'))

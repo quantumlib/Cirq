@@ -158,8 +158,8 @@ class PauliString(raw_types.Operation, Generic[TKey]):
                     raise TypeError(f'{v} is not a Pauli')
 
         self._qubit_pauli_map: Dict[TKey, 'cirq.Pauli'] = qubit_pauli_map or {}
-        self._coefficient = (
-            coefficient if isinstance(coefficient, sympy.Basic) else complex(coefficient)
+        self._coefficient: Union['cirq.TParamValComplex', sympy.Expr] = (
+            coefficient if isinstance(coefficient, sympy.Expr) else complex(coefficient)
         )
         if contents:
             m = self.mutable_copy().inplace_left_multiply_by(contents).frozen()
@@ -504,7 +504,8 @@ class PauliString(raw_types.Operation, Generic[TKey]):
         if self._is_parameterized_():
             raise NotImplementedError('Cannot get expectation value when parameterized')
 
-        if abs(self.coefficient.imag) > 0.0001:
+        # cast since Expressions will be forbidden by the above statement.
+        if abs(cast(complex, self.coefficient).imag) > 0.0001:
             raise NotImplementedError(
                 'Cannot compute expectation value of a non-Hermitian '
                 f'PauliString <{self}>. Coefficient must be real.'
@@ -611,7 +612,7 @@ class PauliString(raw_types.Operation, Generic[TKey]):
         """
         if self._is_parameterized_():
             raise NotImplementedError('Cannot get expectation value when parameterized')
-        if abs(self.coefficient.imag) > 0.0001:
+        if abs(cast(complex, self.coefficient).imag) > 0.0001:
             raise NotImplementedError(
                 'Cannot compute expectation value of a non-Hermitian '
                 f'PauliString <{self}>. Coefficient must be real.'
@@ -1081,8 +1082,8 @@ class MutablePauliString(Generic[TKey]):
         coefficient: 'cirq.TParamValComplex' = 1,
         pauli_int_dict: Optional[Dict[TKey, int]] = None,
     ):
-        self.coefficient = (
-            coefficient if isinstance(coefficient, sympy.Basic) else complex(coefficient)
+        self.coefficient: Union[sympy.Expr, 'cirq.TParamValComplex'] = (
+            coefficient if isinstance(coefficient, sympy.Expr) else complex(coefficient)
         )
         self.pauli_int_dict: Dict[TKey, int] = {} if pauli_int_dict is None else pauli_int_dict
         if contents:

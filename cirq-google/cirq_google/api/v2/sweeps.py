@@ -12,7 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Dict, Iterable, List, Optional, Tuple
+from typing import cast, Dict, Iterable, List, Optional, Tuple
+
+import sympy
 
 import cirq
 from cirq_google.api.v2 import batch_pb2
@@ -47,21 +49,23 @@ def sweep_to_proto(
         out.sweep_function.function_type = run_context_pb2.SweepFunction.ZIP
         for s in sweep.sweeps:
             sweep_to_proto(s, out=out.sweep_function.sweeps.add())
-    elif isinstance(sweep, cirq.Linspace):
+    elif isinstance(sweep, cirq.Linspace) and not isinstance(sweep.key, sympy.Expr):
         out.single_sweep.parameter_key = sweep.key
         out.single_sweep.linspace.first_point = sweep.start
         out.single_sweep.linspace.last_point = sweep.stop
         out.single_sweep.linspace.num_points = sweep.length
-    elif isinstance(sweep, cirq.Points):
+    elif isinstance(sweep, cirq.Points) and not isinstance(sweep.key, sympy.Expr):
         out.single_sweep.parameter_key = sweep.key
         out.single_sweep.points.points.extend(sweep.points)
     elif isinstance(sweep, cirq.ListSweep):
-        sweep_dict: Dict[str, List[cirq.TParamVal]] = {}
+        sweep_dict: Dict[str, List[float]] = {}
         for param_resolver in sweep:
             for key in param_resolver:
+                if isinstance(key, sympy.Expr):
+                    raise ValueError(f'cannot convert to v2 Sweep proto: {sweep}')
                 if key not in sweep_dict:
                     sweep_dict[key] = []
-                sweep_dict[key].append(param_resolver.value_of(key))
+                sweep_dict[key].append(cast(float, param_resolver.value_of(key)))
         out.sweep_function.function_type = run_context_pb2.SweepFunction.ZIP
         for key in sweep_dict:
             sweep_to_proto(cirq.Points(key, sweep_dict[key]), out=out.sweep_function.sweeps.add())

@@ -15,6 +15,7 @@
 """Runtime information dataclasses and execution of executables."""
 import contextlib
 import dataclasses
+import datetime
 import time
 import uuid
 from typing import Any, Dict, Optional, List, TYPE_CHECKING
@@ -22,7 +23,7 @@ from typing import Any, Dict, Optional, List, TYPE_CHECKING
 import cirq
 import numpy as np
 from cirq import _compat
-from cirq.protocols import dataclass_json_dict, obj_to_dict_helper
+from cirq.protocols import dataclass_json_dict
 from cirq_google.workflow.io import _FilesystemSaver
 from cirq_google.workflow.progress import _PrintLogger
 from cirq_google.workflow.quantum_executable import (
@@ -50,14 +51,18 @@ class SharedRuntimeInfo:
 
     run_id: str
     device: Optional[cirq.Device] = None
+    run_start_time: Optional[datetime.datetime] = None
+    run_end_time: Optional[datetime.datetime] = None
 
     @classmethod
     def _json_namespace_(cls) -> str:
         return 'cirq.google'
 
     def _json_dict_(self) -> Dict[str, Any]:
+        d = dataclass_json_dict(self)
         # TODO (gh-4699): serialize `device` as well once SerializableDevice is serializable.
-        return obj_to_dict_helper(self, attribute_names=['run_id'])
+        del d['device']
+        return d
 
     def __repr__(self) -> str:
         return _compat.dataclass_repr(self, namespace='cirq_google')
@@ -261,7 +266,9 @@ def execute(
     sampler = rt_config.processor_record.get_sampler()
     device = rt_config.processor_record.get_device()
 
-    shared_rt_info = SharedRuntimeInfo(run_id=run_id, device=device)
+    shared_rt_info = SharedRuntimeInfo(
+        run_id=run_id, device=device, run_start_time=datetime.datetime.now(tz=datetime.timezone.utc)
+    )
     executable_results = []
 
     saver = _FilesystemSaver(base_data_dir=base_data_dir, run_id=run_id)
@@ -302,7 +309,8 @@ def execute(
         saver.consume_result(exe_result, shared_rt_info)
         logger.consume_result(exe_result, shared_rt_info)
 
-    saver.finalize()
+    shared_rt_info.run_end_time = datetime.datetime.now(tz=datetime.timezone.utc)
+    saver.finalize(shared_rt_info=shared_rt_info)
     logger.finalize()
 
     return ExecutableGroupResult(

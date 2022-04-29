@@ -104,7 +104,7 @@ def parameter_names(val: Any) -> AbstractSet[str]:
         returns NotImplemented, returns an empty set.
     """
     if isinstance(val, sympy.Basic):
-        return {symbol.name for symbol in val.free_symbols}
+        return {cast(sympy.Symbol, symbol).name for symbol in val.free_symbols}
     if isinstance(val, numbers.Number):
         return set()
     if isinstance(val, (list, tuple)):
@@ -172,7 +172,7 @@ def resolve_parameters(
 
     # Handle special cases for sympy expressions and sequences.
     # These may not in fact preserve types, but we pretend they do by casting.
-    if isinstance(val, sympy.Basic):
+    if isinstance(val, sympy.Expr):
         return cast(T, param_resolver.value_of(val, recursive))
     if isinstance(val, (list, tuple)):
         return cast(T, type(val)(resolve_parameters(e, param_resolver, recursive) for e in val))
