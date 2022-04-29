@@ -726,11 +726,14 @@ class SimulatesIntermediateState(
             The `TSimulatorState` for this simulator.
         """
         _compat._warn_or_error(
-            '_create_act_on_args is deprecated and will be removed in v0.16. Use or'
-            ' override `_create_simulation_state` instead.'
+            '`_create_act_on_args` has been renamed to `_create_simulation_state` in the'
+            ' SimulatesIntermediateState interface, so simulators need to rename that method'
+            f' implementation as well before v0.16. {type(self)}'
+            ' has no `_create_simulation_state` method, so falling back to `_create_act_on_args`.'
+            ' This fallback functionality will be removed in v0.16.'
         )
-        # When cleaning this up in v0.16, this default implementation can be removed, and this
-        # function can be marked as @abc.abstractmethod.
+        # When cleaning this up in v0.16, mark `_create_simulation_state` as @abc.abstractmethod,
+        # remove this implementation, and delete `_create_act_on_args` entirely.
         return self._create_act_on_args(initial_state, qubits)
 
     @abc.abstractmethod
