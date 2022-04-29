@@ -56,9 +56,6 @@ class GPIGate(cirq.Gate):
     ) -> Union[str, 'protocols.CircuitDiagramInfo']:
         return protocols.CircuitDiagramInfo(wire_symbols=('GPI',), exponent=self.phase)
 
-    def _json_dict_(self):
-        return cirq.obj_to_dict_helper(self, [])
-
 
 GPI = GPIGate(phi=0)
 document(
@@ -105,9 +102,6 @@ class GPI2Gate(cirq.Gate):
 
     def _num_qubits_(self) -> int:
         return 1
-
-    def _json_dict_(self):
-        return cirq.obj_to_dict_helper(self, [])
 
 
 GPI2 = GPI2Gate(phi=0)
@@ -164,9 +158,6 @@ class MSGate(cirq.Gate):
         self, args: 'cirq.CircuitDiagramInfoArgs'
     ) -> Union[str, 'protocols.CircuitDiagramInfo']:
         return protocols.CircuitDiagramInfo(wire_symbols=('MS',), exponent=self.phases)
-
-    def _json_dict_(self):
-        return cirq.obj_to_dict_helper(self, [])
 
 
 MS = MSGate(phi1=0, phi2=0)
