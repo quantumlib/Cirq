@@ -15,7 +15,6 @@ from typing import List, TYPE_CHECKING
 
 from cirq import ops, protocols, transformers
 from cirq.protocols.decompose_protocol import DecomposeResult
-from cirq.transformers.target_gatesets import compilation_target_gateset
 
 
 if TYPE_CHECKING:
@@ -23,25 +22,24 @@ if TYPE_CHECKING:
 
 
 class NeutralAtomGateset(transformers.CompilationTargetGateset):
-
     def __init__(self, max_parallel_z=None, max_parallel_xy=None):
-      super().__init__(ops.AnyIntegerPowerGateFamily(ops.CNotPowGate),
-        ops.AnyIntegerPowerGateFamily(ops.CCNotPowGate),
-        ops.AnyIntegerPowerGateFamily(ops.CZPowGate),
-        ops.AnyIntegerPowerGateFamily(ops.CCZPowGate),
-        ops.ParallelGateFamily(ops.ZPowGate, max_parallel_allowed=max_parallel_z),
-        ops.ParallelGateFamily(ops.XPowGate, max_parallel_allowed=max_parallel_xy),
-        ops.ParallelGateFamily(ops.YPowGate, max_parallel_allowed=max_parallel_xy),
-        ops.ParallelGateFamily(ops.PhasedXPowGate, max_parallel_allowed=max_parallel_xy),
-        ops.MeasurementGate,
-        ops.IdentityGate,
-        unroll_circuit_op=False,
-      )
+        super().__init__(
+            ops.AnyIntegerPowerGateFamily(ops.CNotPowGate),
+            ops.AnyIntegerPowerGateFamily(ops.CCNotPowGate),
+            ops.AnyIntegerPowerGateFamily(ops.CZPowGate),
+            ops.AnyIntegerPowerGateFamily(ops.CCZPowGate),
+            ops.ParallelGateFamily(ops.ZPowGate, max_parallel_allowed=max_parallel_z),
+            ops.ParallelGateFamily(ops.XPowGate, max_parallel_allowed=max_parallel_xy),
+            ops.ParallelGateFamily(ops.YPowGate, max_parallel_allowed=max_parallel_xy),
+            ops.ParallelGateFamily(ops.PhasedXPowGate, max_parallel_allowed=max_parallel_xy),
+            ops.MeasurementGate,
+            ops.IdentityGate,
+            unroll_circuit_op=False,
+        )
 
     def num_qubits(self) -> int:
         """Maximum number of qubits on which a gate from this gateset can act upon."""
         return 2
-
 
     def decompose_to_target_gateset(self, op: 'cirq.Operation', moment_idx: int) -> DecomposeResult:
         """Method to rewrite the given operation using gates from this gateset.
