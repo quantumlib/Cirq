@@ -52,8 +52,8 @@ class PhasedISwapPowGate(eigen_gate.EigenGate):
     def __init__(
         self,
         *,
-        phase_exponent: Union[float, sympy.Symbol] = 0.25,
-        exponent: Union[float, sympy.Symbol] = 1.0,
+        phase_exponent: Union[float, sympy.Expr] = 0.25,
+        exponent: Union[float, sympy.Expr] = 1.0,
     ):
         """Inits PhasedISwapPowGate.
 
@@ -68,7 +68,7 @@ class PhasedISwapPowGate(eigen_gate.EigenGate):
         super().__init__(exponent=exponent)
 
     @property
-    def phase_exponent(self) -> Union[float, sympy.Symbol]:
+    def phase_exponent(self) -> Union[float, sympy.Expr]:
         return self._phase_exponent
 
     def _num_qubits_(self) -> int:

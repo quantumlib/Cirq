@@ -24,24 +24,6 @@ import cirq
 import cirq.testing
 
 
-class PlusGate(cirq.Gate):
-    """A qudit gate that increments a qudit state mod its dimension."""
-
-    def __init__(self, dimension, increment=1):
-        self.dimension = dimension
-        self.increment = increment % dimension
-
-    def _qid_shape_(self):
-        return (self.dimension,)
-
-    def _unitary_(self):
-        inc = (self.increment - 1) % self.dimension + 1
-        u = np.empty((self.dimension, self.dimension))
-        u[inc:] = np.eye(self.dimension)[:-inc]
-        u[:inc] = np.eye(self.dimension)[-inc:]
-        return u
-
-
 class _TestMixture(cirq.Gate):
     def __init__(self, gate_options):
         self.gate_options = gate_options
@@ -135,8 +117,8 @@ def test_run_qudit_increments(dtype: Type[np.number], split: bool):
     for b0 in [0, 1, 2]:
         for b1 in [0, 1, 2, 3]:
             circuit = cirq.Circuit(
-                [PlusGate(3, 1)(q0)] * b0,
-                [PlusGate(4, 1)(q1)] * b1,
+                [cirq.XPowGate(dimension=3)(q0)] * b0,
+                [cirq.XPowGate(dimension=4)(q1)] * b1,
                 cirq.measure(q0),
                 cirq.measure(q1),
             )
@@ -184,7 +166,13 @@ def test_run_mixture(dtype: Type[np.number], split: bool):
 @pytest.mark.parametrize('split', [True, False])
 def test_run_qudit_mixture(dtype: Type[np.number], split: bool):
     q0, q1 = cirq.LineQid.for_qid_shape((3, 2))
-    mixture = _TestMixture([PlusGate(3, 0), PlusGate(3, 1), PlusGate(3, 2)])
+    mixture = _TestMixture(
+        [
+            cirq.XPowGate(dimension=3) ** 0,
+            cirq.XPowGate(dimension=3),
+            cirq.XPowGate(dimension=3) ** 2,
+        ]
+    )
     circuit = cirq.Circuit(mixture(q0), cirq.measure(q0), cirq.measure(q1))
     simulator = cirq.DensityMatrixSimulator(dtype=dtype, split_untangled_states=split)
     result = simulator.run(circuit, repetitions=100)
@@ -249,7 +237,11 @@ def test_run_qudit_channel(dtype: Type[np.number], split: bool):
 
     q0, q1 = cirq.LineQid.for_qid_shape((3, 4))
     circuit = cirq.Circuit(
-        PlusGate(3, 2)(q0), TestChannel()(q0), TestChannel()(q0), cirq.measure(q0), cirq.measure(q1)
+        cirq.XPowGate(dimension=3)(q0) ** 2,
+        TestChannel()(q0),
+        TestChannel()(q0),
+        cirq.measure(q0),
+        cirq.measure(q1),
     )
 
     simulator = cirq.DensityMatrixSimulator(dtype=dtype, split_untangled_states=split)
@@ -306,7 +298,10 @@ def test_run_qudits_repetitions_measure_at_end(dtype: Type[np.number], split: bo
         for b0 in [0, 1]:
             for b1 in [0, 1, 2]:
                 circuit = cirq.Circuit(
-                    (cirq.X**b0)(q0), PlusGate(3, b1)(q1), cirq.measure(q0), cirq.measure(q1)
+                    (cirq.X**b0)(q0),
+                    cirq.XPowGate(dimension=3)(q1) ** b1,
+                    cirq.measure(q0),
+                    cirq.measure(q1),
                 )
                 result = simulator.run(circuit, repetitions=3)
                 np.testing.assert_equal(
@@ -372,11 +367,11 @@ def test_run_qudits_repetitions_measurement_not_terminal(dtype: Type[np.number],
             for b1 in [0, 1, 2]:
                 circuit = cirq.Circuit(
                     (cirq.X**b0)(q0),
-                    PlusGate(3, b1)(q1),
+                    cirq.XPowGate(dimension=3)(q1) ** b1,
                     cirq.measure(q0),
                     cirq.measure(q1),
                     cirq.H(q0),
-                    PlusGate(3, -b1)(q1),
+                    cirq.XPowGate(dimension=3)(q1) ** (-b1),
                 )
                 result = simulator.run(circuit, repetitions=3)
                 np.testing.assert_equal(
@@ -437,7 +432,9 @@ def test_run_measure_multiple_qudits(dtype: Type[np.number], split: bool):
     simulator = cirq.DensityMatrixSimulator(dtype=dtype, split_untangled_states=split)
     for b0 in [0, 1]:
         for b1 in [0, 1, 2]:
-            circuit = cirq.Circuit((cirq.X**b0)(q0), PlusGate(3, b1)(q1), cirq.measure(q0, q1))
+            circuit = cirq.Circuit(
+                (cirq.X**b0)(q0), cirq.XPowGate(dimension=3)(q1) ** b1, cirq.measure(q0, q1)
+            )
             result = simulator.run(circuit, repetitions=3)
             np.testing.assert_equal(result.measurements, {'0 (d=2),1 (d=3)': [[b0, b1]] * 3})
 
@@ -497,7 +494,7 @@ def test_simulate(dtype: Type[np.number], split: bool):
 def test_simulate_qudits(dtype: Type[np.number], split: bool):
     q0, q1 = cirq.LineQid.for_qid_shape((2, 3))
     simulator = cirq.DensityMatrixSimulator(dtype=dtype, split_untangled_states=split)
-    circuit = cirq.Circuit(cirq.H(q0), PlusGate(3, 2)(q1))
+    circuit = cirq.Circuit(cirq.H(q0), cirq.XPowGate(dimension=3)(q1) ** 2)
     result = simulator.simulate(circuit, qubit_order=[q1, q0])
     expected = np.zeros((6, 6))
     expected[4:, 4:] = np.ones((2, 2)) / 2
@@ -566,13 +563,16 @@ def test_simulate_qudit_increments(dtype: Type[np.number], split: bool):
     for b0 in [0, 1]:
         for b1 in [0, 1, 2]:
             circuit = cirq.Circuit(
-                (cirq.X**b0)(q0), (PlusGate(3)(q1),) * b1, cirq.measure(q0), cirq.measure(q1)
+                (cirq.X**b0)(q0),
+                (cirq.XPowGate(dimension=3)(q1),) * b1,
+                cirq.measure(q0),
+                cirq.measure(q1),
             )
             result = simulator.simulate(circuit)
             np.testing.assert_equal(result.measurements, {'0 (d=2)': [b0], '1 (d=3)': [b1]})
             expected_density_matrix = np.zeros(shape=(6, 6))
             expected_density_matrix[b0 * 3 + b1, b0 * 3 + b1] = 1.0
-            np.testing.assert_equal(result.final_density_matrix, expected_density_matrix)
+            np.testing.assert_allclose(result.final_density_matrix, expected_density_matrix)
 
 
 @pytest.mark.parametrize('dtype', [np.complex64, np.complex128])
@@ -623,13 +623,17 @@ def test_simulate_initial_qudit_state(dtype: Type[np.number], split: bool):
     simulator = cirq.DensityMatrixSimulator(dtype=dtype, split_untangled_states=split)
     for b0 in [0, 1, 2]:
         for b1 in [0, 1, 2, 3]:
-            circuit = cirq.Circuit(PlusGate(3, b0)(q0), PlusGate(4, b1)(q1))
+            circuit = cirq.Circuit(
+                cirq.XPowGate(dimension=3)(q0) ** b0, cirq.XPowGate(dimension=4)(q1) ** b1
+            )
             result = simulator.simulate(circuit, initial_state=6)
             expected_density_matrix = np.zeros(shape=(12, 12))
             expected_density_matrix[
                 (b0 + 1) % 3 * 4 + (b1 + 2) % 4, (b0 + 1) % 3 * 4 + (b1 + 2) % 4
             ] = 1.0
-            np.testing.assert_equal(result.final_density_matrix, expected_density_matrix)
+            np.testing.assert_allclose(
+                result.final_density_matrix, expected_density_matrix, atol=1e-15
+            )
 
 
 @pytest.mark.parametrize('dtype', [np.complex64, np.complex128])
@@ -684,7 +688,9 @@ def test_simulate_measure_multiple_qudits(dtype: Type[np.number], split: bool):
     simulator = cirq.DensityMatrixSimulator(dtype=dtype, split_untangled_states=split)
     for b0 in [0, 1]:
         for b1 in [0, 1, 2]:
-            circuit = cirq.Circuit((cirq.X**b0)(q0), PlusGate(3, b1)(q1), cirq.measure(q0, q1))
+            circuit = cirq.Circuit(
+                (cirq.X**b0)(q0), cirq.XPowGate(dimension=3)(q1) ** b1, cirq.measure(q0, q1)
+            )
             result = simulator.simulate(circuit)
             np.testing.assert_equal(result.measurements, {'0 (d=2),1 (d=3)': [b0, b1]})
 
@@ -735,7 +741,10 @@ def test_simulate_moment_steps(dtype: Type[np.number], split: bool):
 def test_simulate_moment_steps_qudits(dtype: Type[np.number], split: bool):
     q0, q1 = cirq.LineQid.for_qid_shape((2, 3))
     circuit = cirq.Circuit(
-        PlusGate(2, 1)(q0), PlusGate(3, 1)(q1), cirq.reset(q1), PlusGate(3, 1)(q1)
+        cirq.XPowGate(dimension=2)(q0),
+        cirq.XPowGate(dimension=3)(q1),
+        cirq.reset(q1),
+        cirq.XPowGate(dimension=3)(q1),
     )
     simulator = cirq.DensityMatrixSimulator(dtype=dtype, split_untangled_states=split)
     for i, step in enumerate(simulator.simulate_moment_steps(circuit)):
@@ -1400,29 +1409,12 @@ def test_random_seed_non_terminal_measurements_deterministic():
 
 
 def test_simulate_with_invert_mask():
-    class PlusGate(cirq.Gate):
-        """A qudit gate that increments a qudit state mod its dimension."""
-
-        def __init__(self, dimension, increment=1):
-            self.dimension = dimension
-            self.increment = increment % dimension
-
-        def _qid_shape_(self):
-            return (self.dimension,)
-
-        def _unitary_(self):
-            inc = (self.increment - 1) % self.dimension + 1
-            u = np.empty((self.dimension, self.dimension))
-            u[inc:] = np.eye(self.dimension)[:-inc]
-            u[:inc] = np.eye(self.dimension)[-inc:]
-            return u
-
     q0, q1, q2, q3, q4 = cirq.LineQid.for_qid_shape((2, 3, 3, 3, 4))
     c = cirq.Circuit(
-        PlusGate(2, 1)(q0),
-        PlusGate(3, 1)(q2),
-        PlusGate(3, 2)(q3),
-        PlusGate(4, 3)(q4),
+        cirq.XPowGate(dimension=2)(q0),
+        cirq.XPowGate(dimension=3)(q2),
+        cirq.XPowGate(dimension=3)(q3) ** 2,
+        cirq.XPowGate(dimension=4)(q4) ** 3,
         cirq.measure(q0, q1, q2, q3, q4, key='a', invert_mask=(True,) * 4),
     )
     assert np.all(cirq.DensityMatrixSimulator().run(c).measurements['a'] == [[0, 1, 0, 2, 3]])

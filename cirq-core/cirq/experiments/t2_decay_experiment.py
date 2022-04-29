@@ -132,10 +132,14 @@ def t2_decay(
     """
     min_delay_dur = value.Duration(min_delay)
     max_delay_dur = value.Duration(max_delay)
+    min_delay_nanos = min_delay_dur.total_nanos()
+    max_delay_nanos = max_delay_dur.total_nanos()
 
     # Input validation
     if repetitions <= 0:
         raise ValueError('repetitions <= 0')
+    if isinstance(min_delay_nanos, sympy.Expr) or isinstance(max_delay_nanos, sympy.Expr):
+        raise ValueError('min_delay and max_delay cannot be sympy expressions.')
     if max_delay_dur < min_delay_dur:
         raise ValueError('max_delay < min_delay')
     if min_delay_dur < 0:
@@ -151,10 +155,7 @@ def t2_decay(
 
     if not delay_sweep:
         delay_sweep = study.Linspace(
-            delay_var,
-            start=min_delay_dur.total_nanos(),
-            stop=max_delay_dur.total_nanos(),
-            length=num_points,
+            delay_var, start=min_delay_nanos, stop=max_delay_nanos, length=num_points
         )
     if delay_sweep.keys != ['delay_ns']:
         raise ValueError('delay_sweep must be a SingleSweep with delay_ns parameter')
