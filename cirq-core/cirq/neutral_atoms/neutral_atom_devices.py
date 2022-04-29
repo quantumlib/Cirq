@@ -21,7 +21,7 @@ from cirq.devices.grid_qubit import GridQubit
 from cirq.ops import raw_types
 from cirq.value import Duration
 from cirq.neutral_atoms.convert_to_neutral_atom_gates import ConvertToNeutralAtomGates
-from cirq.neutral_atoms import neutral_atom_gateset
+from cirq.neutral_atoms.neutral_atom_gateset import NeutralAtomGateset
 
 if TYPE_CHECKING:
     import cirq
@@ -92,7 +92,7 @@ class NeutralAtomDevice(devices.Device):
             ops.AnyIntegerPowerGateFamily(ops.CCZPowGate),
             unroll_circuit_op=False,
         )
-        self.gateset = neutral_atom_gateset.neutral_atom_gateset(max_parallel_z, max_parallel_xy)
+        self.gateset = NeutralAtomGateset(max_parallel_z, max_parallel_xy)
         for q in qubits:
             if not isinstance(q, GridQubit):
                 raise ValueError(f'Unsupported qubit type: {q!r}')
