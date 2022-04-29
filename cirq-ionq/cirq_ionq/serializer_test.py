@@ -268,12 +268,6 @@ def test_serialize_native_gates():
     )
 
 
-def test_serialize_measurement_string_too_long():
-    q = cirq.LineQubit(0)
-    # Max limit for metadata is 9 keys of length 40.  Here we create a key of length
-    # 40 * 9 - 1. When combined with one qubit for the qubit, 0, and the deliminator this
-
-
 def test_serialize_measurement_gate_multiple_keys():
     q0, q1 = cirq.LineQubit.range(2)
     circuit = cirq.Circuit(cirq.measure(q0, key='a'), cirq.measure(q1, key='b'))
