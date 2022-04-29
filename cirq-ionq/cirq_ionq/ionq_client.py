@@ -24,6 +24,7 @@ import requests
 import cirq_ionq
 from cirq_ionq import ionq_exceptions
 
+
 RETRIABLE_STATUS_CODES = {requests.codes.internal_server_error, requests.codes.service_unavailable}
 
 
@@ -120,7 +121,7 @@ class _IonQClient:
         json: Dict[str, Any] = {
             'target': actual_target,
             'body': serialized_program.body,
-            'lang': 'json',
+            'lang': serialized_program.lang,
         }
         if name:
             json['name'] = name
