@@ -13,11 +13,12 @@
 # limitations under the License.
 """Native gates for IonQ hardware"""
 
-from typing import Union
+from typing import Sequence, Union
 
 import cmath
 import math
 import cirq
+from cirq import protocols
 from cirq._doc import document
 import numpy as np
 
@@ -54,7 +55,7 @@ class GPIGate(cirq.Gate):
         self, args: 'cirq.CircuitDiagramInfoArgs'
     ) -> Union[str, 'protocols.CircuitDiagramInfo']:
         return protocols.CircuitDiagramInfo(
-            wire_symbols=('GPI',), exponent=self._diagram_exponent(args)
+            wire_symbols=('GPI',), exponent=self.phase
         )
 
     def _json_dict_(self):
@@ -103,7 +104,7 @@ class GPI2Gate(cirq.Gate):
         self, args: 'cirq.CircuitDiagramInfoArgs'
     ) -> Union[str, 'protocols.CircuitDiagramInfo']:
         return protocols.CircuitDiagramInfo(
-            wire_symbols=('GPI2',), exponent=self._diagram_exponent(args)
+            wire_symbols=('GPI2',), exponent=self.phase
         )
 
     def _num_qubits_(self) -> int:
@@ -154,7 +155,7 @@ class MSGate(cirq.Gate):
         )
 
     @property
-    def phases(self) -> [float]:
+    def phases(self) -> Sequence[float]:
         return [self.phi1, self.phi2]
 
     def __str__(self) -> str:
@@ -167,7 +168,7 @@ class MSGate(cirq.Gate):
         self, args: 'cirq.CircuitDiagramInfoArgs'
     ) -> Union[str, 'protocols.CircuitDiagramInfo']:
         return protocols.CircuitDiagramInfo(
-            wire_symbols=('MS',), exponent=self._diagram_exponent(args)
+            wire_symbols=('MS',), exponent=self.phases
         )
 
     def _json_dict_(self):
