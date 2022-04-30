@@ -620,7 +620,7 @@ class SimulatesIntermediateState(
                     qubits=qubits,
                 )
             elif has_final_simulator_state and not has_qubits:
-                yield self._create_simulator_trial_result(  # pylint: disable=no-value-for-parameter
+                yield self._create_simulator_trial_result(  # type: ignore  # pylint: disable=no-value-for-parameter, line-too-long
                     params=param_resolver,
                     measurements=measurements,
                     final_simulator_state=step_result._sim_state,
