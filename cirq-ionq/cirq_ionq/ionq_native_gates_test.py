@@ -19,7 +19,10 @@ import numpy
 import pytest
 from .ionq_native_gates import GPIGate, GPI2Gate, MSGate
 
-@pytest.mark.parametrize("gate,nqubits", [(GPIGate(phi=0.1), 1), (GPI2Gate(phi=0.2), 1), (MSGate(phi1=0.1, phi2=0.2), 2)])
+
+@pytest.mark.parametrize(
+    "gate,nqubits", [(GPIGate(phi=0.1), 1), (GPI2Gate(phi=0.2), 1), (MSGate(phi1=0.1, phi2=0.2), 2)]
+)
 def test_gate_methods(gate, nqubits):
     assert str(gate) != ""
     assert repr(gate) != ""
