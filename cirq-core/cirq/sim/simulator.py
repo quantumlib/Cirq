@@ -620,7 +620,7 @@ class SimulatesIntermediateState(
                     qubits=qubits,
                 )
             elif has_final_simulator_state and not has_qubits:
-                yield self._create_simulator_trial_result(  # pylint: disable=no-call-arg
+                yield self._create_simulator_trial_result(  # pylint: disable=no-value-for-parameter
                     params=param_resolver,
                     measurements=measurements,
                     final_simulator_state=step_result._sim_state,
@@ -633,7 +633,7 @@ class SimulatesIntermediateState(
                     qubits=qubits,
                 )
             else:
-                yield self._create_simulator_trial_result(  # pylint: disable=no-value-for-parameter, unexpected-keyword-arg, call-arg, line-too-long
+                yield self._create_simulator_trial_result(  # pylint: disable=no-value-for-parameter, unexpected-keyword-arg, line-too-long
                     params=param_resolver,
                     measurements=measurements,
                     final_step_result=step_result,  # type: ignore
@@ -821,7 +821,9 @@ class StepResult(Generic[TSimulatorState], metaclass=abc.ABCMeta):
     """
 
     @_require_logs()
-    def __init__(self, sim_state: TSimulatorState, measurements: Mapping[str, Sequence[int]]) -> None:
+    def __init__(
+        self, sim_state: TSimulatorState, measurements: Mapping[str, Sequence[int]]
+    ) -> None:
         self._sim_state = sim_state
         self.measurements = measurements
 
