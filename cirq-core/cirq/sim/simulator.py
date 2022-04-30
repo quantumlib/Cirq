@@ -620,7 +620,7 @@ class SimulatesIntermediateState(
                     qubits=qubits,
                 )
             elif has_final_simulator_state and not has_qubits:
-                yield self._create_simulator_trial_result(
+                yield self._create_simulator_trial_result(  # pylint: disable=no-value-for-parameter, unexpected-keyword-arg, line-too-long
                     params=param_resolver,
                     measurements=measurements,
                     final_simulator_state=step_result._sim_state,
@@ -780,7 +780,7 @@ class SimulatesIntermediateState(
         params: 'cirq.ParamResolver',
         measurements: Dict[str, np.ndarray],
         final_simulator_state: TSimulatorState,
-        qubits: Sequence['cirq.Qid'],
+        qubits: Tuple['cirq.Qid'],
     ) -> TSimulationTrialResult:
         """This method can be implemented to create a trial result.
 
