@@ -17,7 +17,7 @@ from typing import Any, Dict, Generic, Iterator, List, Mapping, Optional, Sequen
 
 import numpy as np
 
-from cirq import ops, protocols, value
+from cirq import _compat, ops, protocols, value
 from cirq.sim.simulation_state import TSimulationState
 from cirq.sim.simulation_state_base import SimulationStateBase
 
@@ -25,14 +25,27 @@ if TYPE_CHECKING:
     import cirq
 
 
+def _fix_deprecated_args(args, kwargs):
+    kwargs['sim_states'] = kwargs['args']
+    del kwargs['args']
+    return args, kwargs
+
+
 class SimulationProductState(
     Generic[TSimulationState], SimulationStateBase[TSimulationState], abc.Mapping
 ):
     """A container for a `Qid`-to-`SimulationState` dictionary."""
 
+    @_compat.deprecated_parameter(
+        deadline='v0.16',
+        fix='Change argument name to `sim_states`',
+        parameter_desc='args',
+        match=lambda args, kwargs: 'args' in kwargs,
+        rewrite=_fix_deprecated_args,
+    )
     def __init__(
         self,
-        args: Dict[Optional['cirq.Qid'], TSimulationState],
+        sim_states: Dict[Optional['cirq.Qid'], TSimulationState],
         qubits: Sequence['cirq.Qid'],
         split_untangled_states: bool,
         classical_data: Optional['cirq.ClassicalDataStore'] = None,
@@ -40,8 +53,8 @@ class SimulationProductState(
         """Initializes the class.
 
         Args:
-            args: The `SimulationState` dictionary. This will not be copied; the
-                original reference will be kept here.
+            sim_states: The `SimulationState` dictionary. This will not be
+                copied; the original reference will be kept here.
             qubits: The canonical ordering of qubits.
             split_untangled_states: If True, optimizes operations by running
                 unentangled qubit sets independently and merging those states
@@ -51,12 +64,17 @@ class SimulationProductState(
         """
         classical_data = classical_data or value.ClassicalDataDictionaryStore()
         super().__init__(qubits=qubits, classical_data=classical_data)
-        self._args = args
+        self._sim_states = sim_states
         self._split_untangled_states = split_untangled_states
 
     @property
+    def sim_states(self) -> Mapping[Optional['cirq.Qid'], TSimulationState]:
+        return self._sim_states
+
+    @property  # type: ignore
+    @_compat.deprecated(deadline='v0.16', fix='Use `sim_states` instead.')
     def args(self) -> Mapping[Optional['cirq.Qid'], TSimulationState]:
-        return self._args
+        return self._sim_states
 
     @property
     def split_untangled_states(self) -> bool:
@@ -64,9 +82,9 @@ class SimulationProductState(
 
     def create_merged_state(self) -> TSimulationState:
         if not self.split_untangled_states:
-            return self.args[None]
-        final_args = self.args[None]
-        for args in set([self.args[k] for k in self.args.keys() if k is not None]):
+            return self.sim_states[None]
+        final_args = self.sim_states[None]
+        for args in set([self.sim_states[k] for k in self.sim_states.keys() if k is not None]):
             final_args = final_args.kronecker_product(args)
         return final_args.transpose_to_qubit_order(self.qubits)
 
@@ -90,13 +108,13 @@ class SimulationProductState(
             and gate_opt.global_shift == 0
         ):
             q0, q1 = qubits
-            args0 = self.args[q0]
-            args1 = self.args[q1]
+            args0 = self.sim_states[q0]
+            args1 = self.sim_states[q1]
             if args0 is args1:
                 args0.swap(q0, q1, inplace=True)
             else:
-                self._args[q0] = args1.rename(q1, q0, inplace=True)
-                self._args[q1] = args0.rename(q0, q1, inplace=True)
+                self._sim_states[q0] = args1.rename(q1, q0, inplace=True)
+                self._sim_states[q1] = args0.rename(q0, q1, inplace=True)
             return True
 
         # Go through the op's qubits and join any disparate SimulationState states
@@ -104,14 +122,14 @@ class SimulationProductState(
         op_args_opt: Optional[TSimulationState] = None
         for q in qubits:
             if op_args_opt is None:
-                op_args_opt = self.args[q]
+                op_args_opt = self.sim_states[q]
             elif q not in op_args_opt.qubits:
-                op_args_opt = op_args_opt.kronecker_product(self.args[q])
-        op_args = op_args_opt or self.args[None]
+                op_args_opt = op_args_opt.kronecker_product(self.sim_states[q])
+        op_args = op_args_opt or self.sim_states[None]
 
         # (Backfill the args map with the new value)
         for q in op_args.qubits:
-            self._args[q] = op_args
+            self._sim_states[q] = op_args
 
         # Act on the args with the operation
         act_on_qubits = qubits if isinstance(action, ops.Gate) else None
@@ -124,11 +142,11 @@ class SimulationProductState(
             for q in qubits:
                 if op_args.allows_factoring:
                     q_args, op_args = op_args.factor((q,), validate=False)
-                    self._args[q] = q_args
+                    self._sim_states[q] = q_args
 
             # (Backfill the args map with the new value)
             for q in op_args.qubits:
-                self._args[q] = op_args
+                self._sim_states[q] = op_args
         return True
 
     def copy(
@@ -136,11 +154,11 @@ class SimulationProductState(
     ) -> 'cirq.SimulationProductState[TSimulationState]':
         classical_data = self._classical_data.copy()
         copies = {}
-        for sim_state in set(self.args.values()):
+        for sim_state in set(self.sim_states.values()):
             copies[sim_state] = sim_state.copy(deep_copy_buffers)
         for copy in copies.values():
             copy._classical_data = classical_data
-        args = {q: copies[a] for q, a in self.args.items()}
+        args = {q: copies[a] for q, a in self.sim_states.items()}
         return SimulationProductState(
             args, self.qubits, self.split_untangled_states, classical_data=classical_data
         )
@@ -154,7 +172,7 @@ class SimulationProductState(
         columns = []
         selected_order: List[ops.Qid] = []
         q_set = set(qubits)
-        for v in dict.fromkeys(self.args.values()):
+        for v in dict.fromkeys(self.sim_states.values()):
             qs = [q for q in v.qubits if q in q_set]
             if any(qs):
                 column = v.sample(qs, repetitions, seed)
@@ -166,10 +184,10 @@ class SimulationProductState(
         return stacked[:, index_order]
 
     def __getitem__(self, item: Optional['cirq.Qid']) -> TSimulationState:
-        return self.args[item]
+        return self.sim_states[item]
 
     def __len__(self) -> int:
-        return len(self.args)
+        return len(self.sim_states)
 
     def __iter__(self) -> Iterator[Optional['cirq.Qid']]:
-        return iter(self.args)
+        return iter(self.sim_states)
