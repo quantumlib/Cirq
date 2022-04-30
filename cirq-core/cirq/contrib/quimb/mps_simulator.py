@@ -123,7 +123,7 @@ class MPSSimulator(
         params: 'cirq.ParamResolver',
         measurements: Dict[str, np.ndarray],
         final_simulator_state: 'cirq.SimulationStateBase[MPSState]',
-        qubits: Tuple['cirq.Qid'],
+        qubits: Tuple['cirq.Qid', ...],
     ) -> 'MPSTrialResult':
         """Creates a single trial results with the measurements.
 
@@ -155,7 +155,7 @@ class MPSTrialResult(simulator_base.SimulationTrialResultBase['MPSState']):
         params: 'cirq.ParamResolver',
         measurements: Dict[str, np.ndarray],
         final_simulator_state: 'cirq.SimulationStateBase[MPSState]',
-        qubits: Tuple['cirq.Qid'],
+        qubits: Tuple['cirq.Qid', ...],
     ) -> None:
         super().__init__(
             params=params,

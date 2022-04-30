@@ -191,7 +191,7 @@ class DensityMatrixSimulator(
         params: 'cirq.ParamResolver',
         measurements: Dict[str, np.ndarray],
         final_simulator_state: 'cirq.SimulationStateBase[cirq.DensityMatrixSimulationState]',
-        qubits: Tuple['cirq.Qid'],
+        qubits: Tuple['cirq.Qid', ...],
     ) -> 'cirq.DensityMatrixTrialResult':
         return DensityMatrixTrialResult(
             params=params,
@@ -398,7 +398,7 @@ class DensityMatrixTrialResult(
         params: 'cirq.ParamResolver',
         measurements: Dict[str, np.ndarray],
         final_simulator_state: 'cirq.SimulationStateBase[cirq.DensityMatrixSimulationState]',
-        qubits: Tuple['cirq.Qid'],
+        qubits: Tuple['cirq.Qid', ...],
     ) -> None:
         print(qubits)
         super().__init__(

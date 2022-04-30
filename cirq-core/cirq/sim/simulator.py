@@ -780,7 +780,7 @@ class SimulatesIntermediateState(
         params: 'cirq.ParamResolver',
         measurements: Dict[str, np.ndarray],
         final_simulator_state: TSimulatorState,
-        qubits: Tuple['cirq.Qid'],
+        qubits: Tuple['cirq.Qid', ...],
     ) -> TSimulationTrialResult:
         """This method can be implemented to create a trial result.
 
@@ -1020,12 +1020,13 @@ class SimulationTrialResult(Generic[TSimulatorState]):
     """
 
     @_deprecated_step_result_parameter()
+    @_require_qubits()
     def __init__(
         self,
         params: 'cirq.ParamResolver',
         measurements: Dict[str, np.ndarray],
         final_simulator_state: TSimulatorState,
-        qubits: Tuple['cirq.Qid'],
+        qubits: Tuple['cirq.Qid', ...],
     ) -> None:
         """Initializes the `SimulationTrialResult` class.
 

@@ -426,7 +426,7 @@ class SimulationTrialResultBase(
         params: study.ParamResolver,
         measurements: Dict[str, np.ndarray],
         final_simulator_state: 'cirq.SimulationStateBase[TSimulationState]',
-        qubits: Tuple['cirq.Qid'],
+        qubits: Tuple['cirq.Qid', ...],
     ) -> None:
         """Initializes the `SimulationTrialResultBase` class.
 

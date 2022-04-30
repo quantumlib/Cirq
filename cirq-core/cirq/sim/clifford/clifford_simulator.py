@@ -108,7 +108,7 @@ class CliffordSimulator(
         params: 'cirq.ParamResolver',
         measurements: Dict[str, np.ndarray],
         final_simulator_state: 'cirq.SimulationStateBase[cirq.StabilizerChFormSimulationState]',
-        qubits: Tuple['cirq.Qid'],
+        qubits: Tuple['cirq.Qid', ...],
     ):
 
         return CliffordTrialResult(
@@ -129,7 +129,7 @@ class CliffordTrialResult(
         params: 'cirq.ParamResolver',
         measurements: Dict[str, np.ndarray],
         final_simulator_state: 'cirq.SimulationStateBase[cirq.StabilizerChFormSimulationState]',
-        qubits: Tuple['cirq.Qid'],
+        qubits: Tuple['cirq.Qid', ...],
     ) -> None:
         super().__init__(
             params=params,

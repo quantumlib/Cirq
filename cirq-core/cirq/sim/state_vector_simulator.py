@@ -70,7 +70,7 @@ class SimulatesIntermediateStateVector(
         params: 'cirq.ParamResolver',
         measurements: Dict[str, np.ndarray],
         final_simulator_state: 'cirq.SimulationStateBase[cirq.StateVectorSimulationState]',
-        qubits: Tuple['cirq.Qid'],
+        qubits: Tuple['cirq.Qid', ...],
     ) -> 'cirq.StateVectorTrialResult':
         return StateVectorTrialResult(
             params=params,
@@ -151,7 +151,7 @@ class StateVectorTrialResult(
         params: 'cirq.ParamResolver',
         measurements: Dict[str, np.ndarray],
         final_simulator_state: 'cirq.SimulationStateBase[cirq.StateVectorSimulationState]',
-        qubits: Tuple['cirq.Qid'],
+        qubits: Tuple['cirq.Qid', ...],
     ) -> None:
         super().__init__(
             params=params,
