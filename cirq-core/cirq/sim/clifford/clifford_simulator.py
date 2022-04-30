@@ -29,7 +29,7 @@ The quantum state is specified in two forms:
     to state vector amplitudes.
 """
 
-from typing import Any, Dict, List, Sequence, Union
+from typing import Any, Dict, List, Sequence, Tuple, Union
 
 import numpy as np
 
@@ -108,10 +108,14 @@ class CliffordSimulator(
         params: 'cirq.ParamResolver',
         measurements: Dict[str, np.ndarray],
         final_simulator_state: 'cirq.SimulationStateBase[cirq.StabilizerChFormSimulationState]',
+        qubits: Tuple['cirq.Qid'],
     ):
 
         return CliffordTrialResult(
-            params=params, measurements=measurements, final_simulator_state=final_simulator_state
+            params=params,
+            measurements=measurements,
+            final_simulator_state=final_simulator_state,
+            qubits=qubits,
         )
 
 
@@ -119,14 +123,19 @@ class CliffordTrialResult(
     simulator_base.SimulationTrialResultBase['clifford.StabilizerChFormSimulationState']
 ):
     @simulator._deprecated_step_result_parameter(old_position=3)
+    @simulator._require_qubits()
     def __init__(
         self,
         params: 'cirq.ParamResolver',
         measurements: Dict[str, np.ndarray],
         final_simulator_state: 'cirq.SimulationStateBase[cirq.StabilizerChFormSimulationState]',
+        qubits: Tuple['cirq.Qid'],
     ) -> None:
         super().__init__(
-            params=params, measurements=measurements, final_simulator_state=final_simulator_state
+            params=params,
+            measurements=measurements,
+            final_simulator_state=final_simulator_state,
+            qubits=qubits,
         )
 
     @property

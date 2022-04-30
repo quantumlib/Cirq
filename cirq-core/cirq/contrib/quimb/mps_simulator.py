@@ -123,6 +123,7 @@ class MPSSimulator(
         params: 'cirq.ParamResolver',
         measurements: Dict[str, np.ndarray],
         final_simulator_state: 'cirq.SimulationStateBase[MPSState]',
+        qubits: Tuple['cirq.Qid'],
     ) -> 'MPSTrialResult':
         """Creates a single trial results with the measurements.
 
@@ -131,12 +132,16 @@ class MPSSimulator(
             measurements: A dictionary from measurement key (e.g. qubit) to the
                 actual measurement array.
             final_simulator_state: The final state of the simulation.
+            qubits: The qubits in the same order as the final simulation state.
 
         Returns:
             A single result.
         """
         return MPSTrialResult(
-            params=params, measurements=measurements, final_simulator_state=final_simulator_state
+            params=params,
+            measurements=measurements,
+            final_simulator_state=final_simulator_state,
+            qubits=qubits,
         )
 
 
@@ -144,14 +149,19 @@ class MPSTrialResult(simulator_base.SimulationTrialResultBase['MPSState']):
     """A single trial reult"""
 
     @simulator._deprecated_step_result_parameter(old_position=3)
+    @simulator._require_qubits()
     def __init__(
         self,
         params: 'cirq.ParamResolver',
         measurements: Dict[str, np.ndarray],
         final_simulator_state: 'cirq.SimulationStateBase[MPSState]',
+        qubits: Tuple['cirq.Qid'],
     ) -> None:
         super().__init__(
-            params=params, measurements=measurements, final_simulator_state=final_simulator_state
+            params=params,
+            measurements=measurements,
+            final_simulator_state=final_simulator_state,
+            qubits=qubits,
         )
 
     @property

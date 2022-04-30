@@ -13,7 +13,7 @@
 # limitations under the License.
 """Tests for simulator.py"""
 import abc
-from typing import Generic, Dict, Any, List, Sequence, Union
+from typing import Generic, Dict, Any, List, Sequence, Tuple, Union
 from unittest import mock
 
 import duet
@@ -74,6 +74,7 @@ class SimulatesIntermediateStateImpl(
         params: study.ParamResolver,
         measurements: Dict[str, np.ndarray],
         final_simulator_state: 'cirq.SimulationStateBase[TSimulationState]',
+        qubits: Tuple['cirq.Qid'],
     ) -> 'SimulationTrialResult':
         """This method creates a default trial result.
 
@@ -86,7 +87,10 @@ class SimulatesIntermediateStateImpl(
             The SimulationTrialResult.
         """
         return SimulationTrialResult(
-            params=params, measurements=measurements, final_simulator_state=final_simulator_state
+            params=params,
+            measurements=measurements,
+            final_simulator_state=final_simulator_state,
+            qubits=qubits,
         )
 
 

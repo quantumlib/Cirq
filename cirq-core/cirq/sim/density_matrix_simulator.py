@@ -191,9 +191,13 @@ class DensityMatrixSimulator(
         params: 'cirq.ParamResolver',
         measurements: Dict[str, np.ndarray],
         final_simulator_state: 'cirq.SimulationStateBase[cirq.DensityMatrixSimulationState]',
+        qubits: Tuple['cirq.Qid'],
     ) -> 'cirq.DensityMatrixTrialResult':
         return DensityMatrixTrialResult(
-            params=params, measurements=measurements, final_simulator_state=final_simulator_state
+            params=params,
+            measurements=measurements,
+            final_simulator_state=final_simulator_state,
+            qubits=qubits,
         )
 
     # TODO(#4209): Deduplicate with identical code in sparse_simulator.
@@ -388,14 +392,20 @@ class DensityMatrixTrialResult(
     """
 
     @simulator._deprecated_step_result_parameter(old_position=3)
+    @simulator._require_qubits()
     def __init__(
         self,
         params: 'cirq.ParamResolver',
         measurements: Dict[str, np.ndarray],
         final_simulator_state: 'cirq.SimulationStateBase[cirq.DensityMatrixSimulationState]',
+        qubits: Tuple['cirq.Qid'],
     ) -> None:
+        print(qubits)
         super().__init__(
-            params=params, measurements=measurements, final_simulator_state=final_simulator_state
+            params=params,
+            measurements=measurements,
+            final_simulator_state=final_simulator_state,
+            qubits=qubits,
         )
         self._final_density_matrix: Optional[np.ndarray] = None
 

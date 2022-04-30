@@ -58,7 +58,7 @@ if TYPE_CHECKING:
 
 TStepResult = TypeVar('TStepResult', bound='StepResult')
 TSimulationTrialResult = TypeVar('TSimulationTrialResult', bound='SimulationTrialResult')
-TSimulatorState = TypeVar('TSimulatorState', bound=Any)
+TSimulatorState = TypeVar('TSimulatorState')
 
 
 class SimulatesSamples(work.Sampler, metaclass=abc.ABCMeta):
@@ -595,6 +595,7 @@ class SimulatesIntermediateState(
             possible parameter resolver.
         """
         qubit_order = ops.QubitOrder.as_qubit_order(qubit_order)
+        qubits = qubit_order.order_for(program.all_qubits())
         for param_resolver in study.to_resolvers(params):
             state = (
                 initial_state.copy()
@@ -608,14 +609,28 @@ class SimulatesIntermediateState(
             for step_result in all_step_results:
                 for k, v in step_result.measurements.items():
                     measurements[k] = np.array(v, dtype=np.uint8)
-            if (
-                'final_simulator_state'
-                in inspect.signature(self._create_simulator_trial_result).parameters
-            ):
+            trial_result_params = inspect.signature(self._create_simulator_trial_result).parameters
+            has_final_simulator_state = 'final_simulator_state' in trial_result_params
+            has_qubits = 'qubits' in trial_result_params
+            if has_final_simulator_state and has_qubits:
                 yield self._create_simulator_trial_result(
                     params=param_resolver,
                     measurements=measurements,
-                    final_simulator_state=step_result._simulator_state(),
+                    final_simulator_state=step_result._sim_state,
+                    qubits=qubits,
+                )
+            elif has_final_simulator_state and not has_qubits:
+                yield self._create_simulator_trial_result(
+                    params=param_resolver,
+                    measurements=measurements,
+                    final_simulator_state=step_result._sim_state,
+                )
+            elif not has_final_simulator_state and has_qubits:
+                yield self._create_simulator_trial_result(  # pylint: disable=no-value-for-parameter, unexpected-keyword-arg, line-too-long
+                    params=param_resolver,
+                    measurements=measurements,
+                    final_step_result=step_result,  # type: ignore
+                    qubits=qubits,
                 )
             else:
                 yield self._create_simulator_trial_result(  # pylint: disable=no-value-for-parameter, unexpected-keyword-arg, line-too-long
@@ -765,6 +780,7 @@ class SimulatesIntermediateState(
         params: 'cirq.ParamResolver',
         measurements: Dict[str, np.ndarray],
         final_simulator_state: TSimulatorState,
+        qubits: Sequence['cirq.Qid'],
     ) -> TSimulationTrialResult:
         """This method can be implemented to create a trial result.
 
@@ -772,11 +788,12 @@ class SimulatesIntermediateState(
             params: The ParamResolver for this trial.
             measurements: The measurement results for this trial.
             final_simulator_state: The final state of the simulation.
+            qubits: The qubits simulated, with the same index order as the
+                final simulator state.
 
         Returns:
             The SimulationTrialResult.
         """
-        raise NotImplementedError()
 
 
 class StepResult(Generic[TSimulatorState], metaclass=abc.ABCMeta):
@@ -916,6 +933,26 @@ class StepResult(Generic[TSimulatorState], metaclass=abc.ABCMeta):
         )
 
 
+def _require_qubits() -> Callable[[Callable], Callable]:
+    def add_quibts(args, kwargs):
+        sim_state = args[3] if len(args) > 3 else kwargs['final_simulator_state']
+        if len(args) < 4 and 'qubits' not in kwargs:
+            qubit_map = sim_state.qubit_map
+            reverse = {i: q for q, i in qubit_map.items()}
+            qubits = tuple(reverse[i] for i in range(len(reverse)))
+            args = list(args)
+            args.append(qubits)
+        return tuple(args), kwargs
+
+    return _compat.deprecated_parameter(
+        deadline='v0.16',
+        fix='Add an explicit `qubits` parameter.',
+        parameter_desc='qubits',
+        match=lambda args, kwargs: 'qubits' not in kwargs and len(args) < 4,
+        rewrite=add_quibts,
+    )
+
+
 # When removing this, also remove the check in simulate_sweep_iter.
 # Basically there should be no "final_step_result" anywhere in the project afterwards.
 def _deprecated_step_result_parameter(
@@ -988,6 +1025,7 @@ class SimulationTrialResult(Generic[TSimulatorState]):
         params: 'cirq.ParamResolver',
         measurements: Dict[str, np.ndarray],
         final_simulator_state: TSimulatorState,
+        qubits: Tuple['cirq.Qid'],
     ) -> None:
         """Initializes the `SimulationTrialResult` class.
 
@@ -1002,6 +1040,7 @@ class SimulationTrialResult(Generic[TSimulatorState]):
         self.params = params
         self.measurements = measurements
         self._final_simulator_state = final_simulator_state
+        self._qubits = qubits
 
     def __repr__(self) -> str:
         return (
@@ -1037,10 +1076,11 @@ class SimulationTrialResult(Generic[TSimulatorState]):
         """A map from Qid to index used to define the ordering of the basis in
         the result.
         """
-        return self._final_simulator_state.qubit_map
+        return {q: i for i, q in enumerate(self._qubits)}
 
     def _qid_shape_(self) -> Tuple[int, ...]:
-        return _qubit_map_to_shape(self.qubit_map)
+        print(self._qubits)
+        return tuple(q.dimension for q in self._qubits)
 
 
 def _qubit_map_to_shape(qubit_map: Mapping['cirq.Qid', int]) -> Tuple[int, ...]:

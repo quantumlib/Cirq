@@ -342,7 +342,7 @@ class SimulatorBase(
         for step_result in self._core_iterator(circuit=prefix, sim_state=sim_state):
             pass
         sim_state = step_result._sim_state
-        yield from super().simulate_sweep_iter(suffix, params, qubit_order, sim_state)
+        yield from super().simulate_sweep_iter(suffix, params, qubits, sim_state)
 
     def _create_simulation_state(
         self, initial_state: Any, qubits: Sequence['cirq.Qid']
@@ -420,11 +420,13 @@ class SimulationTrialResultBase(
     """A base class for trial results."""
 
     @simulator._deprecated_step_result_parameter(old_position=3)
+    @simulator._require_qubits()
     def __init__(
         self,
         params: study.ParamResolver,
         measurements: Dict[str, np.ndarray],
         final_simulator_state: 'cirq.SimulationStateBase[TSimulationState]',
+        qubits: Tuple['cirq.Qid'],
     ) -> None:
         """Initializes the `SimulationTrialResultBase` class.
 
@@ -437,7 +439,9 @@ class SimulationTrialResultBase(
             final_simulator_state: The final simulator state of the system after the
                 trial finishes.
         """
-        super().__init__(params, measurements, final_simulator_state=final_simulator_state)
+        super().__init__(
+            params, measurements, final_simulator_state=final_simulator_state, qubits=qubits
+        )
         self._merged_sim_state_cache: Optional[TSimulationState] = None
 
     def get_state_containing_qubit(self, qubit: 'cirq.Qid') -> TSimulationState:

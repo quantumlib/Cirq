@@ -70,9 +70,13 @@ class SimulatesIntermediateStateVector(
         params: 'cirq.ParamResolver',
         measurements: Dict[str, np.ndarray],
         final_simulator_state: 'cirq.SimulationStateBase[cirq.StateVectorSimulationState]',
+        qubits: Tuple['cirq.Qid'],
     ) -> 'cirq.StateVectorTrialResult':
         return StateVectorTrialResult(
-            params=params, measurements=measurements, final_simulator_state=final_simulator_state
+            params=params,
+            measurements=measurements,
+            final_simulator_state=final_simulator_state,
+            qubits=qubits,
         )
 
     def compute_amplitudes_sweep_iter(
@@ -140,16 +144,20 @@ class StateVectorTrialResult(
         final_state_vector: The final state vector for the system.
     """
 
+    @simulator._deprecated_step_result_parameter(old_position=3)
+    @simulator._require_qubits()
     def __init__(
         self,
         params: 'cirq.ParamResolver',
         measurements: Dict[str, np.ndarray],
         final_simulator_state: 'cirq.SimulationStateBase[cirq.StateVectorSimulationState]',
+        qubits: Tuple['cirq.Qid'],
     ) -> None:
         super().__init__(
             params=params,
             measurements=measurements,
             final_simulator_state=final_simulator_state,
+            qubits=qubits,
             qubit_map=final_simulator_state.qubit_map,
         )
         self._final_state_vector: Optional[np.ndarray] = None

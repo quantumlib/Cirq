@@ -127,9 +127,10 @@ class CountingSimulator(
         params: cirq.ParamResolver,
         measurements: Dict[str, np.ndarray],
         final_simulator_state: 'cirq.SimulationStateBase[CountingSimulationState]',
+        qubits: Tuple['cirq.Qid'],
     ) -> CountingTrialResult:
         return CountingTrialResult(
-            params, measurements, final_simulator_state=final_simulator_state
+            params, measurements, final_simulator_state=final_simulator_state, qubits=qubits
         )
 
     def _create_step_result(
