@@ -388,7 +388,7 @@ class StepResultBase(
         Args:
             sim_state: The `SimulationStateBase` for this step.
         """
-        super().__init__(sim_state)
+        super().__init__(sim_state, sim_state.log_of_measurement_results)
         self._merged_sim_state_cache: Optional[TSimulationState] = None
         qubits = sim_state.qubits
         self._qubits = qubits

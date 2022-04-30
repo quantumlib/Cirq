@@ -620,7 +620,7 @@ class SimulatesIntermediateState(
                     qubits=qubits,
                 )
             elif has_final_simulator_state and not has_qubits:
-                yield self._create_simulator_trial_result(  # pylint: disable=no-value-for-parameter, unexpected-keyword-arg, line-too-long
+                yield self._create_simulator_trial_result(  # pylint: disable=no-call-arg
                     params=param_resolver,
                     measurements=measurements,
                     final_simulator_state=step_result._sim_state,
@@ -633,7 +633,7 @@ class SimulatesIntermediateState(
                     qubits=qubits,
                 )
             else:
-                yield self._create_simulator_trial_result(  # pylint: disable=no-value-for-parameter, unexpected-keyword-arg, line-too-long
+                yield self._create_simulator_trial_result(  # pylint: disable=no-value-for-parameter, unexpected-keyword-arg, call-arg, line-too-long
                     params=param_resolver,
                     measurements=measurements,
                     final_step_result=step_result,  # type: ignore
@@ -796,6 +796,22 @@ class SimulatesIntermediateState(
         """
 
 
+def _require_logs() -> Callable[[Callable], Callable]:
+    def add_logs(args, kwargs):
+        if len(args) < 2 and 'measurements' not in kwargs:
+            sim_state = args[1] if len(args) > 1 else kwargs['sim_state']
+            kwargs['measurements'] = sim_state.log_of_measurement_results
+        return args, kwargs
+
+    return _compat.deprecated_parameter(
+        deadline='v0.16',
+        fix='Add an explicit `measurements` parameter.',
+        parameter_desc='measurements',
+        match=lambda args, kwargs: 'measurements' not in kwargs and len(args) < 2,
+        rewrite=add_logs,
+    )
+
+
 class StepResult(Generic[TSimulatorState], metaclass=abc.ABCMeta):
     """Results of a step of a SimulatesIntermediateState.
 
@@ -804,9 +820,10 @@ class StepResult(Generic[TSimulatorState], metaclass=abc.ABCMeta):
             results, ordered by the qubits that the measurement operates on.
     """
 
-    def __init__(self, sim_state: TSimulatorState) -> None:
+    @_require_logs()
+    def __init__(self, sim_state: TSimulatorState, measurements: Mapping[str, Sequence[int]]) -> None:
         self._sim_state = sim_state
-        self.measurements = sim_state.log_of_measurement_results
+        self.measurements = measurements
 
     def _simulator_state(self) -> TSimulatorState:
         """Returns the simulator state of the simulator after this step.
@@ -935,14 +952,13 @@ class StepResult(Generic[TSimulatorState], metaclass=abc.ABCMeta):
 
 def _require_qubits() -> Callable[[Callable], Callable]:
     def add_quibts(args, kwargs):
-        sim_state = args[3] if len(args) > 3 else kwargs['final_simulator_state']
         if len(args) < 4 and 'qubits' not in kwargs:
+            sim_state = args[3] if len(args) > 3 else kwargs['final_simulator_state']
             qubit_map = sim_state.qubit_map
             reverse = {i: q for q, i in qubit_map.items()}
             qubits = tuple(reverse[i] for i in range(len(reverse)))
-            args = list(args)
-            args.append(qubits)
-        return tuple(args), kwargs
+            kwargs['qubits'] = qubits
+        return args, kwargs
 
     return _compat.deprecated_parameter(
         deadline='v0.16',
