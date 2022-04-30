@@ -45,12 +45,12 @@ Q = cirq.LineQubit.range(10)
             False,
         ),
         (cirq.CNOT.on(Q[0], Q[1]), True),
-        (cirq.CNOT.on(Q[0], Q[1]) ** 0.5, False),
+        ((cirq.CNOT**0.5).on(Q[0], Q[1]), False),
         (cirq.CZ.on(Q[0], Q[1]), True),
-        (cirq.CZ.on(Q[0], Q[1]) ** 0.5, False),
+        ((cirq.CZ**0.5).on(Q[0], Q[1]), False),
         (cirq.CCZ.on(Q[0], Q[1], Q[2]), True),
-        (cirq.CCZ.on(Q[0], Q[1], Q[2]) ** 0.5, False),
-        (cirq.TOFFOLI.on(Q[0], Q[1], Q[2]) ** 0.5, False),
+        ((cirq.CCZ**0.5).on(Q[0], Q[1], Q[2]), False),
+        ((cirq.TOFFOLI**0.5).on(Q[0], Q[1], Q[2]), False),
     ),
 )
 def test_gateset(op: cirq.Operation, is_in_gateset: bool):
