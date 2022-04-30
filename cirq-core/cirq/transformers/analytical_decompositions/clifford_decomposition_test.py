@@ -39,7 +39,7 @@ def test_misaligned_qubits():
 def test_clifford_decompose_one_qubit():
     """Two random instance for one qubit decomposition."""
     qubits = cirq.LineQubit.range(1)
-    args = cirq.ActOnCliffordTableauArgs(
+    args = cirq.CliffordTableauSimulationState(
         tableau=cirq.CliffordTableau(num_qubits=1), qubits=qubits, prng=np.random.RandomState()
     )
     cirq.act_on(cirq.X, args, qubits=[qubits[0]], allow_decompose=False)
@@ -51,7 +51,7 @@ def test_clifford_decompose_one_qubit():
     assert_allclose_up_to_global_phase(cirq.unitary(expect_circ), cirq.unitary(circ), atol=1e-7)
 
     qubits = cirq.LineQubit.range(1)
-    args = cirq.ActOnCliffordTableauArgs(
+    args = cirq.CliffordTableauSimulationState(
         tableau=cirq.CliffordTableau(num_qubits=1), qubits=qubits, prng=np.random.RandomState()
     )
     cirq.act_on(cirq.Z, args, qubits=[qubits[0]], allow_decompose=False)
@@ -74,7 +74,7 @@ def test_clifford_decompose_one_qubit():
 def test_clifford_decompose_two_qubits():
     """Two random instance for two qubits decomposition."""
     qubits = cirq.LineQubit.range(2)
-    args = cirq.ActOnCliffordTableauArgs(
+    args = cirq.CliffordTableauSimulationState(
         tableau=cirq.CliffordTableau(num_qubits=2), qubits=qubits, prng=np.random.RandomState()
     )
     cirq.act_on(cirq.H, args, qubits=[qubits[0]], allow_decompose=False)
@@ -85,7 +85,7 @@ def test_clifford_decompose_two_qubits():
     assert_allclose_up_to_global_phase(cirq.unitary(expect_circ), cirq.unitary(circ), atol=1e-7)
 
     qubits = cirq.LineQubit.range(2)
-    args = cirq.ActOnCliffordTableauArgs(
+    args = cirq.CliffordTableauSimulationState(
         tableau=cirq.CliffordTableau(num_qubits=2), qubits=qubits, prng=np.random.RandomState()
     )
     cirq.act_on(cirq.H, args, qubits=[qubits[0]], allow_decompose=False)
@@ -118,7 +118,7 @@ def test_clifford_decompose_by_unitary():
         t = cirq.CliffordTableau(num_qubits=n)
         qubits = cirq.LineQubit.range(n)
         expect_circ = cirq.Circuit()
-        args = cirq.ActOnCliffordTableauArgs(tableau=t, qubits=qubits, prng=prng)
+        args = cirq.CliffordTableauSimulationState(tableau=t, qubits=qubits, prng=prng)
         for _ in range(num_ops):
             g = prng.randint(len(gate_candidate))
             indices = (prng.randint(n),) if g < 5 else prng.choice(n, 2, replace=False)
@@ -145,7 +145,7 @@ def test_clifford_decompose_by_reconstruction():
         t = cirq.CliffordTableau(num_qubits=n)
         qubits = cirq.LineQubit.range(n)
         expect_circ = cirq.Circuit()
-        args = cirq.ActOnCliffordTableauArgs(tableau=t, qubits=qubits, prng=prng)
+        args = cirq.CliffordTableauSimulationState(tableau=t, qubits=qubits, prng=prng)
         for _ in range(num_ops):
             g = prng.randint(len(gate_candidate))
             indices = (prng.randint(n),) if g < 5 else prng.choice(n, 2, replace=False)
@@ -156,7 +156,7 @@ def test_clifford_decompose_by_reconstruction():
         ops = cirq.decompose_clifford_tableau_to_operations(qubits, args.tableau)
 
         reconstruct_t = cirq.CliffordTableau(num_qubits=n)
-        reconstruct_args = cirq.ActOnCliffordTableauArgs(
+        reconstruct_args = cirq.CliffordTableauSimulationState(
             tableau=reconstruct_t, qubits=qubits, prng=prng
         )
         for op in ops:

@@ -21,15 +21,15 @@ from cirq.value import linear_dict
 """Supply aliases for commonly used types.
 """
 
-TParamKey = Union[str, sympy.Basic]
+TParamKey = Union[str, sympy.Expr]
 document(TParamKey, """A parameter that a parameter resolver may map to a value.""")  # type: ignore
 
-TParamVal = Union[float, sympy.Basic]
+TParamVal = Union[float, sympy.Expr]
 document(
     TParamVal, """A value that a parameter resolver may return for a parameter."""  # type: ignore
 )
 
-TParamValComplex = Union[linear_dict.Scalar, sympy.Basic]
+TParamValComplex = Union[linear_dict.Scalar, sympy.Expr]
 document(
     TParamValComplex,
     """A complex value that parameter resolvers may use for parameters.""",  # type: ignore

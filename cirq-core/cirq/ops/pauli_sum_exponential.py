@@ -45,7 +45,7 @@ class PauliSumExponential:
     def __init__(
         self,
         pauli_sum_like: 'cirq.PauliSumLike',
-        exponent: Union[int, float, sympy.Basic] = 1,
+        exponent: Union[int, float, sympy.Expr] = 1,
         atol: float = 1e-8,
     ):
         pauli_sum = linear_combinations.PauliSum.wrap(pauli_sum_like)

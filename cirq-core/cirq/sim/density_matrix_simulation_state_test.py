@@ -23,7 +23,7 @@ def test_default_parameter():
     tensor = cirq.to_valid_density_matrix(
         0, len(qid_shape), qid_shape=qid_shape, dtype=np.complex64
     )
-    args = cirq.ActOnDensityMatrixArgs(qubits=cirq.LineQubit.range(1), initial_state=0)
+    args = cirq.DensityMatrixSimulationState(qubits=cirq.LineQubit.range(1), initial_state=0)
     np.testing.assert_almost_equal(args.target_tensor, tensor)
     assert len(args.available_buffer) == 3
     for buffer in args.available_buffer:
@@ -33,7 +33,7 @@ def test_default_parameter():
 
 
 def test_shallow_copy_buffers():
-    args = cirq.ActOnDensityMatrixArgs(qubits=cirq.LineQubit.range(1), initial_state=0)
+    args = cirq.DensityMatrixSimulationState(qubits=cirq.LineQubit.range(1), initial_state=0)
     copy = args.copy(deep_copy_buffers=False)
     assert copy.available_buffer is args.available_buffer
 
@@ -46,7 +46,7 @@ def test_decomposed_fallback():
         def _decompose_(self, qubits):
             yield cirq.X(*qubits)
 
-    args = cirq.ActOnDensityMatrixArgs(
+    args = cirq.DensityMatrixSimulationState(
         qubits=cirq.LineQubit.range(1),
         prng=np.random.RandomState(),
         initial_state=0,
@@ -63,7 +63,7 @@ def test_cannot_act():
     class NoDetails:
         pass
 
-    args = cirq.ActOnDensityMatrixArgs(
+    args = cirq.DensityMatrixSimulationState(
         qubits=cirq.LineQubit.range(1),
         prng=np.random.RandomState(),
         initial_state=0,
@@ -74,7 +74,7 @@ def test_cannot_act():
 
 
 def test_with_qubits():
-    original = cirq.ActOnDensityMatrixArgs(
+    original = cirq.DensityMatrixSimulationState(
         qubits=cirq.LineQubit.range(1), initial_state=1, dtype=np.complex64
     )
     extened = original.with_qubits(cirq.LineQubit.range(1, 2))
@@ -89,17 +89,17 @@ def test_with_qubits():
 
 def test_qid_shape_error():
     with pytest.raises(ValueError, match="qid_shape must be provided"):
-        cirq.sim.act_on_density_matrix_args._BufferedDensityMatrix.create(initial_state=0)
+        cirq.sim.density_matrix_simulation_state._BufferedDensityMatrix.create(initial_state=0)
 
 
 def test_initial_state_vector():
     qubits = cirq.LineQubit.range(3)
-    args = cirq.ActOnDensityMatrixArgs(
+    args = cirq.DensityMatrixSimulationState(
         qubits=qubits, initial_state=np.full((8,), 1 / np.sqrt(8)), dtype=np.complex64
     )
     assert args.target_tensor.shape == (2, 2, 2, 2, 2, 2)
 
-    args2 = cirq.ActOnDensityMatrixArgs(
+    args2 = cirq.DensityMatrixSimulationState(
         qubits=qubits, initial_state=np.full((2, 2, 2), 1 / np.sqrt(8)), dtype=np.complex64
     )
     assert args2.target_tensor.shape == (2, 2, 2, 2, 2, 2)
@@ -107,12 +107,12 @@ def test_initial_state_vector():
 
 def test_initial_state_matrix():
     qubits = cirq.LineQubit.range(3)
-    args = cirq.ActOnDensityMatrixArgs(
+    args = cirq.DensityMatrixSimulationState(
         qubits=qubits, initial_state=np.full((8, 8), 1 / 8), dtype=np.complex64
     )
     assert args.target_tensor.shape == (2, 2, 2, 2, 2, 2)
 
-    args2 = cirq.ActOnDensityMatrixArgs(
+    args2 = cirq.DensityMatrixSimulationState(
         qubits=qubits, initial_state=np.full((2, 2, 2, 2, 2, 2), 1 / 8), dtype=np.complex64
     )
     assert args2.target_tensor.shape == (2, 2, 2, 2, 2, 2)
@@ -121,19 +121,19 @@ def test_initial_state_matrix():
 def test_initial_state_bad_shape():
     qubits = cirq.LineQubit.range(3)
     with pytest.raises(ValueError, match="Invalid quantum state"):
-        cirq.ActOnDensityMatrixArgs(
+        cirq.DensityMatrixSimulationState(
             qubits=qubits, initial_state=np.full((4,), 1 / 2), dtype=np.complex64
         )
     with pytest.raises(ValueError, match="Invalid quantum state"):
-        cirq.ActOnDensityMatrixArgs(
+        cirq.DensityMatrixSimulationState(
             qubits=qubits, initial_state=np.full((2, 2), 1 / 2), dtype=np.complex64
         )
 
     with pytest.raises(ValueError, match="Invalid quantum state"):
-        cirq.ActOnDensityMatrixArgs(
+        cirq.DensityMatrixSimulationState(
             qubits=qubits, initial_state=np.full((4, 4), 1 / 4), dtype=np.complex64
         )
     with pytest.raises(ValueError, match="Invalid quantum state"):
-        cirq.ActOnDensityMatrixArgs(
+        cirq.DensityMatrixSimulationState(
             qubits=qubits, initial_state=np.full((2, 2, 2, 2), 1 / 4), dtype=np.complex64
         )

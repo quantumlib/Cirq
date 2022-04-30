@@ -20,7 +20,7 @@ import cirq.testing
 
 def test_state_vector_trial_result_repr():
     q0 = cirq.NamedQubit('a')
-    final_simulator_state = cirq.ActOnStateVectorArgs(
+    final_simulator_state = cirq.StateVectorSimulationState(
         available_buffer=np.array([0, 1], dtype=np.complex64),
         prng=np.random.RandomState(0),
         qubits=[q0],
@@ -36,7 +36,7 @@ def test_state_vector_trial_result_repr():
         "cirq.StateVectorTrialResult("
         "params=cirq.ParamResolver({'s': 1}), "
         "measurements={'m': np.array([[1]], dtype=np.int32)}, "
-        "final_simulator_state=cirq.ActOnStateVectorArgs("
+        "final_simulator_state=cirq.StateVectorSimulationState("
         "initial_state=np.array([0j, (1+0j)], dtype=np.complex64), "
         "qubits=(cirq.NamedQubit('a'),), "
         "classical_data=cirq.ClassicalDataDictionaryStore()))"
@@ -55,7 +55,7 @@ def test_state_vector_simulator_state_repr():
 
 def test_state_vector_trial_result_equality():
     eq = cirq.testing.EqualsTester()
-    final_simulator_state = cirq.ActOnStateVectorArgs(initial_state=np.array([]))
+    final_simulator_state = cirq.StateVectorSimulationState(initial_state=np.array([]))
     eq.add_equality_group(
         cirq.StateVectorTrialResult(
             params=cirq.ParamResolver({}),
@@ -82,7 +82,7 @@ def test_state_vector_trial_result_equality():
             final_simulator_state=final_simulator_state,
         )
     )
-    final_simulator_state = cirq.ActOnStateVectorArgs(initial_state=np.array([1]))
+    final_simulator_state = cirq.StateVectorSimulationState(initial_state=np.array([1]))
     eq.add_equality_group(
         cirq.StateVectorTrialResult(
             params=cirq.ParamResolver({'s': 1}),
@@ -94,7 +94,7 @@ def test_state_vector_trial_result_equality():
 
 def test_state_vector_trial_result_state_mixin():
     qubits = cirq.LineQubit.range(2)
-    final_simulator_state = cirq.ActOnStateVectorArgs(
+    final_simulator_state = cirq.StateVectorSimulationState(
         qubits=qubits, initial_state=np.array([0, 1, 0, 0])
     )
     result = cirq.StateVectorTrialResult(
@@ -110,7 +110,7 @@ def test_state_vector_trial_result_state_mixin():
 
 
 def test_state_vector_trial_result_qid_shape():
-    final_simulator_state = cirq.ActOnStateVectorArgs(
+    final_simulator_state = cirq.StateVectorSimulationState(
         qubits=[cirq.NamedQubit('a')], initial_state=np.array([0, 1])
     )
     trial_result = cirq.StateVectorTrialResult(
@@ -120,7 +120,7 @@ def test_state_vector_trial_result_qid_shape():
     )
     assert cirq.qid_shape(trial_result) == (2,)
 
-    final_simulator_state = cirq.ActOnStateVectorArgs(
+    final_simulator_state = cirq.StateVectorSimulationState(
         qubits=cirq.LineQid.for_qid_shape((3, 2)), initial_state=np.array([0, 0, 0, 0, 1, 0])
     )
     trial_result = cirq.StateVectorTrialResult(
@@ -134,7 +134,7 @@ def test_state_vector_trial_result_qid_shape():
 def test_state_vector_trial_state_vector_is_copy():
     final_state_vector = np.array([0, 1], dtype=np.complex64)
     qubit_map = {cirq.NamedQubit('a'): 0}
-    final_simulator_state = cirq.ActOnStateVectorArgs(
+    final_simulator_state = cirq.StateVectorSimulationState(
         qubits=list(qubit_map), initial_state=final_state_vector
     )
     trial_result = cirq.StateVectorTrialResult(
@@ -145,7 +145,7 @@ def test_state_vector_trial_state_vector_is_copy():
 
 def test_str_big():
     qs = cirq.LineQubit.range(10)
-    final_simulator_state = cirq.ActOnStateVectorArgs(
+    final_simulator_state = cirq.StateVectorSimulationState(
         prng=np.random.RandomState(0),
         qubits=qs,
         initial_state=np.array([1] * 2**10, dtype=np.complex64) * 0.03125,
@@ -156,7 +156,7 @@ def test_str_big():
 
 
 def test_pretty_print():
-    final_simulator_state = cirq.ActOnStateVectorArgs(
+    final_simulator_state = cirq.StateVectorSimulationState(
         available_buffer=np.array([1]),
         prng=np.random.RandomState(0),
         qubits=[],
