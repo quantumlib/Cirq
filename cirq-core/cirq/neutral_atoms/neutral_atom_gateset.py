@@ -69,7 +69,3 @@ class NeutralAtomGateset(transformers.CompilationTargetGateset):
     @property
     def postprocess_transformers(self) -> List['cirq.TRANSFORMER']:
         return []
-
-
-def neutral_atom_gateset(max_parallel_z=None, max_parallel_xy=None):
-    return NeutralAtomGateset(max_parallel_z, max_parallel_xy)
