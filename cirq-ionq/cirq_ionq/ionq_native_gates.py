@@ -38,9 +38,6 @@ class GPIGate(cirq.Gate):
         bot = cmath.exp(-self.phi * 1j)
         return np.array([[0, top], [bot, 0]])
 
-    def __repr__(self) -> str:
-        return 'cirq_ionq.GPIGate'
-
     def __str__(self) -> str:
         return 'GPI'
 
@@ -51,8 +48,15 @@ class GPIGate(cirq.Gate):
     def phase(self) -> float:
         return self.phi
 
+    def __repr__(self) -> str:
+        return f'cirq_ionq.GPIGate(phi={self.phi!r})'
+
     def _json_dict_(self) -> Dict[str, Any]:
         return cirq.obj_to_dict_helper(self, ['phi'])
+
+    @classmethod
+    def _from_json_dict_(cls, phi, **kwargs):
+        return cls(phi=phi)
 
     def _circuit_diagram_info_(
         self, args: 'cirq.CircuitDiagramInfoArgs'
@@ -92,14 +96,8 @@ class GPI2Gate(cirq.Gate):
     def phase(self) -> float:
         return self.phi
 
-    def __repr__(self) -> str:
-        return 'cirq_ionq.GPI2Gate'
-
     def __str__(self) -> str:
         return 'GPI2'
-
-    def _json_dict_(self) -> Dict[str, Any]:
-        return cirq.obj_to_dict_helper(self, ['phi'])
 
     def _circuit_diagram_info_(
         self, args: 'cirq.CircuitDiagramInfoArgs'
@@ -108,6 +106,16 @@ class GPI2Gate(cirq.Gate):
 
     def _num_qubits_(self) -> int:
         return 1
+
+    def __repr__(self) -> str:
+        return f'cirq_ionq.GPI2Gate(phi={self.phi!r})'
+
+    def _json_dict_(self) -> Dict[str, Any]:
+        return cirq.obj_to_dict_helper(self, ['phi'])
+
+    @classmethod
+    def _from_json_dict_(cls, phi, **kwargs):
+        return cls(phi=phi)
 
 
 GPI2 = GPI2Gate(phi=0)
@@ -139,9 +147,6 @@ class MSGate(cirq.Gate):
         self.phi1 = phi1
         self.phi2 = phi2
 
-    def __repr__(self) -> str:
-        return 'cirq_ionq.MSGate'
-
     def _unitary_(self) -> np.ndarray:
         tee = self.phi2 - self.phi1
         diag = math.cos(tee)
@@ -154,9 +159,6 @@ class MSGate(cirq.Gate):
     def phases(self) -> Sequence[float]:
         return [self.phi1, self.phi2]
 
-    def _json_dict_(self) -> Dict[str, Any]:
-        return cirq.obj_to_dict_helper(self, ['phi1', 'phi2'])
-
     def __str__(self) -> str:
         return 'MS'
 
@@ -167,6 +169,16 @@ class MSGate(cirq.Gate):
         self, args: 'cirq.CircuitDiagramInfoArgs'
     ) -> Union[str, 'protocols.CircuitDiagramInfo']:
         return protocols.CircuitDiagramInfo(wire_symbols=('MS',), exponent=self.phases)
+
+    def __repr__(self) -> str:
+        return f'cirq_ionq.MSGate(phi1={self.phi1!r}, phi2={self.phi2!r})'
+
+    def _json_dict_(self) -> Dict[str, Any]:
+        return cirq.obj_to_dict_helper(self, ['phi1', 'phi2'])
+
+    @classmethod
+    def _from_json_dict_(cls, phi1, phi2, **kwargs):
+        return cls(phi1=phi1, phi2=phi2)
 
 
 MS = MSGate(phi1=0, phi2=0)
