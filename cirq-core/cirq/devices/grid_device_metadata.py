@@ -49,14 +49,14 @@ class GridDeviceMetadata(device.DeviceMetadata):
             gate_durations: Optional dictionary of `cirq.GateFamily`
                 instances mapping to `cirq.Duration` instances for
                 gate timing metadata information. If provided,
-                must match all entries in gateset.
+                all keys must exist in gateset.
             all_qubits: Optional iterable specifying all qubits
                 found on the device. If None, all_qubits will
                 be inferred from the entries in qubit_pairs.
 
         Raises:
-            ValueError: if the union of GateFamily keys in gate_durations
-                is not identical to set of gate families in gateset.
+            ValueError: if some GateFamily keys in gate_durations are
+                not in gateset.
             ValueError: If qubit_pairs contains a self loop.
             ValueError: if all_qubits is provided and is not a superset
                 of all the qubits found in qubit_pairs.
@@ -98,11 +98,9 @@ class GridDeviceMetadata(device.DeviceMetadata):
 
         if gate_durations is not None:
             working_gatefamilies = frozenset(gate_durations.keys())
-            if working_gatefamilies != gateset.gates:
+            if not working_gatefamilies.issubset(gateset.gates):
                 raise ValueError(
-                    "set of gate_durations keys are not equal to the "
-                    "GateFamily instances found in gateset. Some gates "
-                    "will be missing duration information."
+                    "Some gate_durations keys are not found in gateset."
                     f" gate_durations={gate_durations}"
                     f" gateset.gates={gateset.gates}"
                 )
