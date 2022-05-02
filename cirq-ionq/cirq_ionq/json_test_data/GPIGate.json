@@ -1,1 +1,4 @@
-{"phi": 0.2}
+{
+ "cirq_type": "GPIGate",
+ "phi": 0.2
+}
