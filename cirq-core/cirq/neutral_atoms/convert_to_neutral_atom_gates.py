@@ -26,7 +26,7 @@ if TYPE_CHECKING:
 def convert_to_neutral_atom_gates(
     circuit: 'cirq.AbstractCircuit', *, context: Optional['cirq.TransformerContext'] = None
 ) -> 'cirq.Circuit':
-    return transformers.optimize_for_target_gateset(circuit, gateset=NeutralAtomGateset())
+    return transformers.optimize_for_target_gateset(circuit, gateset=NeutralAtomGateset(), context=context)
 
 
 @deprecated_class(deadline='v0.16', fix='Use cirq.convert_to_neutral_atom_gates instead.')
