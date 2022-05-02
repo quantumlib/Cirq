@@ -33,7 +33,7 @@ from typing import (
 
 import numpy as np
 
-from cirq import ops, protocols, study, value, devices
+from cirq import _compat, devices, ops, protocols, study, value
 from cirq.sim import simulator
 from cirq.sim.simulation_product_state import SimulationProductState
 from cirq.sim.simulation_state import TSimulationState
@@ -66,10 +66,10 @@ class SimulatorBase(
     """A base class for the built-in simulators.
 
     Most implementors of this interface should implement the
-    `_create_partial_act_on_args` and `_create_step_result` methods. The first
-    one creates the simulator's quantum state representation at the beginning
-    of the simulation. The second creates the step result emitted after each
-    `Moment` in the simulation.
+    `_create_partial_simulation_state` and `_create_step_result` methods. The
+    first one creates the simulator's quantum state representation at the
+    beginning of the simulation. The second creates the step result emitted
+    after each `Moment` in the simulation.
 
     Iteration in the subclass is handled by the `_core_iterator` implementation
     here, which handles moment stepping, application of operations, measurement
@@ -113,7 +113,6 @@ class SimulatorBase(
         self.noise = devices.NoiseModel.from_noise_model_like(noise)
         self._split_untangled_states = split_untangled_states
 
-    @abc.abstractmethod
     def _create_partial_act_on_args(
         self,
         initial_state: Any,
@@ -132,6 +131,37 @@ class SimulatorBase(
             classical_data: The shared classical data container for this
                 simulation.
         """
+        raise NotImplementedError()
+
+    def _create_partial_simulation_state(
+        self,
+        initial_state: Any,
+        qubits: Sequence['cirq.Qid'],
+        classical_data: 'cirq.ClassicalDataStore',
+    ) -> TSimulationState:
+        """Creates an instance of the TSimulationState class for the simulator.
+
+        It represents the supplied qubits initialized to the provided state.
+
+        Args:
+            initial_state: The initial state to represent. An integer state is
+                understood to be a pure state. Other state representations are
+                simulator-dependent.
+            qubits: The sequence of qubits to represent.
+            classical_data: The shared classical data container for this
+                simulation.
+        """
+        _compat._warn_or_error(
+            '`_create_partial_act_on_args` has been renamed to `_create_partial_simulation_state`'
+            ' in the SimulatorBase class, so simulators need to rename that method'
+            f' implementation as well before v0.16. {type(self)}'
+            ' has no `_create_partial_simulation_state` method, so falling back to'
+            ' `_create_partial_act_on_args`. This fallback functionality will be removed in v0.16.'
+        )
+        # When cleaning this up in v0.16, mark `_create_partial_simulation_state` as
+        # @abc.abstractmethod, remove this implementation, and delete `_create_partial_act_on_args`
+        # entirely.
+        return self._create_partial_act_on_args(initial_state, qubits, classical_data)
 
     @abc.abstractmethod
     def _create_step_result(
@@ -226,7 +256,7 @@ class SimulatorBase(
         resolved_circuit = protocols.resolve_parameters(circuit, param_resolver)
         check_all_resolved(resolved_circuit)
         qubits = tuple(sorted(resolved_circuit.all_qubits()))
-        sim_state = self._create_act_on_args(0, qubits)
+        sim_state = self._create_simulation_state(0, qubits)
 
         prefix, general_suffix = (
             split_into_matching_protocol_then_general(resolved_circuit, self._can_be_in_run_prefix)
@@ -302,7 +332,7 @@ class SimulatorBase(
 
         qubits = ops.QubitOrder.as_qubit_order(qubit_order).order_for(program.all_qubits())
         initial_state = 0 if initial_state is None else initial_state
-        sim_state = self._create_act_on_args(initial_state, qubits)
+        sim_state = self._create_simulation_state(initial_state, qubits)
         prefix, suffix = (
             split_into_matching_protocol_then_general(program, sweep_prefixable)
             if self._can_be_in_run_prefix(self.noise)
@@ -314,7 +344,7 @@ class SimulatorBase(
         sim_state = step_result._sim_state
         yield from super().simulate_sweep_iter(suffix, params, qubit_order, sim_state)
 
-    def _create_act_on_args(
+    def _create_simulation_state(
         self, initial_state: Any, qubits: Sequence['cirq.Qid']
     ) -> SimulationStateBase[TSimulationState]:
         if isinstance(initial_state, SimulationStateBase):
@@ -325,24 +355,24 @@ class SimulatorBase(
             args_map: Dict[Optional['cirq.Qid'], TSimulationState] = {}
             if isinstance(initial_state, int):
                 for q in reversed(qubits):
-                    args_map[q] = self._create_partial_act_on_args(
+                    args_map[q] = self._create_partial_simulation_state(
                         initial_state=initial_state % q.dimension,
                         qubits=[q],
                         classical_data=classical_data,
                     )
                     initial_state = int(initial_state / q.dimension)
             else:
-                args = self._create_partial_act_on_args(
+                args = self._create_partial_simulation_state(
                     initial_state=initial_state, qubits=qubits, classical_data=classical_data
                 )
                 for q in qubits:
                     args_map[q] = args
-            args_map[None] = self._create_partial_act_on_args(0, (), classical_data)
+            args_map[None] = self._create_partial_simulation_state(0, (), classical_data)
             return SimulationProductState(
                 args_map, qubits, self._split_untangled_states, classical_data=classical_data
             )
         else:
-            return self._create_partial_act_on_args(
+            return self._create_partial_simulation_state(
                 initial_state=initial_state, qubits=qubits, classical_data=classical_data
             )
 

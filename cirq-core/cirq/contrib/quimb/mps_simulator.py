@@ -83,7 +83,7 @@ class MPSSimulator(
         self.grouping = grouping
         super().__init__(noise=noise, seed=seed)
 
-    def _create_partial_act_on_args(
+    def _create_partial_simulation_state(
         self,
         initial_state: Union[int, 'MPSState'],
         qubits: Sequence['cirq.Qid'],

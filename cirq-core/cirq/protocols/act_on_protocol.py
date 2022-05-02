@@ -16,7 +16,7 @@ from typing import Any, Sequence, TYPE_CHECKING, Union
 
 from typing_extensions import Protocol
 
-from cirq import ops
+from cirq import _compat, ops
 from cirq._doc import doc_private
 from cirq.type_workarounds import NotImplementedType
 
@@ -32,8 +32,8 @@ class SupportsActOn(Protocol):
         """Applies an action to the given argument, if it is a supported type.
 
         For example, unitary operations can implement an `_act_on_` method that
-        checks if `isinstance(args, cirq.StateVectorSimulationState)` and, if so,
-        apply their unitary effect to the state vector.
+        checks if `isinstance(sim_state, cirq.StateVectorSimulationState)` and,
+        if so, apply their unitary effect to the state vector.
 
         The global `cirq.act_on` method looks for whether or not the given
         argument has this value, before attempting any fallback strategies
@@ -64,8 +64,8 @@ class SupportsActOnQubits(Protocol):
         """Applies an action to the given argument, if it is a supported type.
 
         For example, unitary operations can implement an `_act_on_` method that
-        checks if `isinstance(args, cirq.StateVectorSimulationState)` and, if so,
-        apply their unitary effect to the state vector.
+        checks if `isinstance(sim_state, cirq.StateVectorSimulationState)` and,
+        if so, apply their unitary effect to the state vector.
 
         The global `cirq.act_on` method looks for whether or not the given
         argument has this value, before attempting any fallback strategies
@@ -86,9 +86,22 @@ class SupportsActOnQubits(Protocol):
         """
 
 
+def _fix_deprecated_args(args, kwargs):
+    kwargs['sim_state'] = kwargs['args']
+    del kwargs['args']
+    return args, kwargs
+
+
+@_compat.deprecated_parameter(
+    deadline='v0.16',
+    fix='Change argument name to `sim_state`',
+    parameter_desc='args',
+    match=lambda args, kwargs: 'args' in kwargs,
+    rewrite=_fix_deprecated_args,
+)
 def act_on(
     action: Any,
-    args: 'cirq.SimulationStateBase',
+    sim_state: 'cirq.SimulationStateBase',
     qubits: Sequence['cirq.Qid'] = None,
     *,
     allow_decompose: bool = True,
@@ -108,24 +121,25 @@ def act_on(
 
     Args:
         action: The operation, gate, or other to apply to the state tensor.
-        args: A mutable state object that should be modified by the action. May
-            specify an `_act_on_fallback_` method to use in case the action
-            doesn't recognize it.
+        sim_state: A mutable state object that should be modified by the
+            action. May specify an `_act_on_fallback_` method to use in case
+            the action doesn't recognize it.
         qubits: The sequence of qubits to use when applying the action.
         allow_decompose: Defaults to True. Forwarded into the
-            `_act_on_fallback_` method of `args`. Determines if decomposition
-            should be used or avoided when attempting to act `action` on `args`.
-            Used by internal methods to avoid redundant decompositions.
+            `_act_on_fallback_` method of `sim_state`. Determines if
+            decomposition should be used or avoided when attempting to act
+            `action` on `sim_state`. Used by internal methods to avoid
+            redundant decompositions.
 
     Returns:
-        Nothing. Results are communicated by editing `args`.
+        Nothing. Results are communicated by editing `sim_state`.
 
     Raises:
         ValueError: If called on an operation and supplied qubits, if not called
             on an operation and no qubits are supplied, or if `_act_on_` or
              `_act_on_fallback_` returned something other than `True` or
              `NotImplemented`.
-        TypeError: Failed to act `action` on `args`.
+        TypeError: Failed to act `action` on `sim_state`.
     """
     is_op = isinstance(action, ops.Operation)
 
@@ -137,7 +151,7 @@ def act_on(
 
     action_act_on = getattr(action, '_act_on_', None)
     if action_act_on is not None:
-        result = action_act_on(args) if is_op else action_act_on(args, qubits)
+        result = action_act_on(sim_state) if is_op else action_act_on(sim_state, qubits)
         if result is True:
             return
         if result is not NotImplemented:
@@ -146,7 +160,7 @@ def act_on(
                 f'{result!r} from {action!r}._act_on_'
             )
 
-    arg_fallback = getattr(args, '_act_on_fallback_', None)
+    arg_fallback = getattr(sim_state, '_act_on_fallback_', None)
     if arg_fallback is not None:
         qubits = action.qubits if isinstance(action, ops.Operation) else qubits
         result = arg_fallback(action, qubits=qubits, allow_decompose=allow_decompose)
@@ -155,14 +169,14 @@ def act_on(
         if result is not NotImplemented:
             raise ValueError(
                 f'_act_on_fallback_ must return True or NotImplemented but got '
-                f'{result!r} from {type(args)}._act_on_fallback_'
+                f'{result!r} from {type(sim_state)}._act_on_fallback_'
             )
 
     raise TypeError(
         "Failed to act action on state argument.\n"
-        "Tried both action._act_on_ and args._act_on_fallback_.\n"
+        "Tried both action._act_on_ and sim_state._act_on_fallback_.\n"
         "\n"
-        f"State argument type: {type(args)}\n"
+        f"State argument type: {type(sim_state)}\n"
         f"Action type: {type(action)}\n"
         f"Action repr: {action!r}\n"
     )
