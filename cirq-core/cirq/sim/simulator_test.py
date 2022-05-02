@@ -539,3 +539,19 @@ def test_trial_result_initializer():
     assert x._final_simulator_state == 3
     x = SimulationTrialResult(resolver, {}, final_simulator_state=state)
     assert x._final_simulator_state == 3
+
+
+def test_deprecated_create_act_on_args():
+    class DeprecatedSim(cirq.SimulatesIntermediateState):
+        def _create_act_on_args(self, initial_state, qubits):
+            return 0
+
+        def _core_iterator(self, circuit, sim_state):
+            pass
+
+        def _create_simulator_trial_result(self):
+            pass
+
+    sim = DeprecatedSim()
+    with cirq.testing.assert_deprecated(deadline='v0.16'):
+        sim.simulate_moment_steps(cirq.Circuit())
