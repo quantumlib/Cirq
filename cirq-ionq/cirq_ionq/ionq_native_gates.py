@@ -56,7 +56,7 @@ class GPIGate(cirq.Gate):
         return cirq.obj_to_dict_helper(self, ['phi'])
 
     def _value_equality_values_(self) -> Any:
-        return (self.phi)
+        return self.phi
 
     def _circuit_diagram_info_(
         self, args: 'cirq.CircuitDiagramInfoArgs'
@@ -115,7 +115,8 @@ class GPI2Gate(cirq.Gate):
         return cirq.obj_to_dict_helper(self, ['phi'])
 
     def _value_equality_values_(self) -> Any:
-        return (self.phi)
+        return self.phi
+
 
 GPI2 = GPI2Gate(phi=0)
 document(
@@ -178,7 +179,6 @@ class MSGate(cirq.Gate):
 
     def _value_equality_values_(self) -> Any:
         return (self.phi1, self.phi2)
-
 
 
 MS = MSGate(phi1=0, phi2=0)

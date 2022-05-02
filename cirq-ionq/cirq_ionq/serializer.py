@@ -36,12 +36,10 @@ class SerializedProgram:
         body: A dictionary which containts the number of qubits and the serialized circuit
             minus the measurements.
         metadata: A dictionary whose keys store information about the measurements in the circuit.
-        lang: The language of this program (currently supported: json (or qis) and native.
     """
 
     body: dict
     metadata: dict
-    lang: str
 
 
 class Serializer:
@@ -88,17 +86,18 @@ class Serializer:
 
         serialized_ops = self._serialize_circuit(circuit)
 
+        gateset = "qis" if not _NATIVE_GATES.validate(circuit) else "native"
+
         # IonQ API does not support measurements, so we pass the measurement keys through
         # the metadata field.  Here we split these out of the serialized ops.
         body = {
+            'gateset': gateset,
             'qubits': num_qubits,
             'circuit': [op for op in serialized_ops if op['gate'] != 'meas'],
         }
         metadata = self._serialize_measurements(op for op in serialized_ops if op['gate'] == 'meas')
 
-        lang = "qis" if not _NATIVE_GATES.validate(circuit) else "native"
-
-        return SerializedProgram(body=body, metadata=metadata, lang=lang)
+        return SerializedProgram(body=body, metadata=metadata)
 
     def _validate_circuit(self, circuit: cirq.AbstractCircuit):
         if len(circuit) == 0:

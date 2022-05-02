@@ -118,11 +118,7 @@ class _IonQClient:
         """
         actual_target = self._target(target)
 
-        json: Dict[str, Any] = {
-            'target': actual_target,
-            'body': serialized_program.body,
-            'lang': serialized_program.lang,
-        }
+        json: Dict[str, Any] = {'target': actual_target, 'body': serialized_program.body}
         if name:
             json['name'] = name
         # We have to pass measurement keys through the metadata.

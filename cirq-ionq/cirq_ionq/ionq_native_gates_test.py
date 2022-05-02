@@ -29,12 +29,12 @@ def test_gate_methods(gate, nqubits):
     assert gate.num_qubits() == nqubits
     assert cirq.protocols.circuit_diagram_info(gate) is not None
 
-@pytest.mark.parametrize(
-    "gate", [GPIGate(phi=0.1), GPI2Gate(phi=0.2), MSGate(phi1=0.1, phi2=0.2)]
-)
+
+@pytest.mark.parametrize("gate", [GPIGate(phi=0.1), GPI2Gate(phi=0.2), MSGate(phi1=0.1, phi2=0.2)])
 def test_gate_json(gate):
     g_json = cirq.to_json(gate)
     assert cirq.read_json(json_text=g_json) == gate
+
 
 @pytest.mark.parametrize("phase", [0, 0.1, 0.4, math.pi / 2, math.pi, 2 * math.pi])
 def test_gpi_unitary(phase):
