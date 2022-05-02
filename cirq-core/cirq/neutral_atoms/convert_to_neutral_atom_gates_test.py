@@ -31,13 +31,15 @@ Q = cirq.LineQubit.range(3)
     ),
 )
 def test_gates_preserved(expected: cirq.Circuit):
-    actual = cirq.convert_to_neutral_atom_gates(expected)
+    actual = cirq.optimize_for_target_gateset(
+        expected, gateset=cirq.neutral_atoms.NeutralAtomGateset()
+    )
     assert actual == expected
 
 
 def test_coverage():
     with cirq.testing.assert_deprecated(
-        "Use cirq.convert_to_neutral_atom_gates", deadline='v0.16', count=5
+        "Use cirq.optimize_for_target_gateset", deadline='v0.16', count=5
     ):
         q = cirq.LineQubit.range(3)
         g = cirq.testing.ThreeQubitGate()
@@ -79,10 +81,10 @@ def test_avoids_decompose_fallback_when_matrix_available_single_qubit():
 
     q = cirq.GridQubit(0, 0)
     c = cirq.Circuit(OtherX().on(q), OtherOtherX().on(q))
-    converted = cirq.convert_to_neutral_atom_gates(c)
+    converted = cirq.optimize_for_target_gateset(c, gateset=cirq.neutral_atoms.NeutralAtomGateset())
     cirq.testing.assert_has_diagram(converted, '(0, 0): ───PhX(1)───PhX(1)───')
     with cirq.testing.assert_deprecated(
-        "Use cirq.convert_to_neutral_atom_gates", deadline='v0.16', count=2
+        "Use cirq.optimize_for_target_gateset", deadline='v0.16', count=2
     ):
         cirq.neutral_atoms.ConvertToNeutralAtomGates().optimize_circuit(c)
         cirq.testing.assert_has_diagram(c, '(0, 0): ───PhX(1)───PhX(1)───')
@@ -105,10 +107,10 @@ def test_avoids_decompose_fallback_when_matrix_available_two_qubit():
            │   │
 (0, 1): ───@───@───
 """
-    converted = cirq.convert_to_neutral_atom_gates(c)
+    converted = cirq.optimize_for_target_gateset(c, gateset=cirq.neutral_atoms.NeutralAtomGateset())
     cirq.testing.assert_has_diagram(converted, expected_diagram)
     with cirq.testing.assert_deprecated(
-        "Use cirq.convert_to_neutral_atom_gates", deadline='v0.16', count=2
+        "Use cirq.optimize_for_target_gateset", deadline='v0.16', count=2
     ):
         cirq.neutral_atoms.ConvertToNeutralAtomGates().optimize_circuit(c)
         cirq.testing.assert_has_diagram(c, expected_diagram)

@@ -11,7 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from typing import List, TYPE_CHECKING
+from typing import List, Optional, TYPE_CHECKING
 
 from cirq import ops, protocols, transformers
 from cirq.protocols.decompose_protocol import DecomposeResult
@@ -22,7 +22,21 @@ if TYPE_CHECKING:
 
 
 class NeutralAtomGateset(transformers.CompilationTargetGateset):
-    def __init__(self, max_parallel_z=None, max_parallel_xy=None):
+    """A Compilation target intended for neutral atom devices.
+
+    This gateset supports CNOT, CCNOT (TOFFOLI) gates, CZ,
+    CCZ gates, as well as single qubits gates that can be used
+    in a parallel fashion.  The maximum amount of parallelism
+    can be set by arguments.
+
+    Args:
+        max_parallel_z: The maximum amount of parallelism for
+            Z gates.
+        max_parallel_xy: The maximum amount of parallelism for
+            X, Y and PhasedXPow gates.
+    """
+
+    def __init__(self, max_parallel_z: Optional[int] = None, max_parallel_xy: Optional[int] = None):
         super().__init__(
             ops.AnyIntegerPowerGateFamily(ops.CNotPowGate),
             ops.AnyIntegerPowerGateFamily(ops.CCNotPowGate),

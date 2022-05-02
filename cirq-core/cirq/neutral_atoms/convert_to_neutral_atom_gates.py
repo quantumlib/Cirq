@@ -22,14 +22,10 @@ if TYPE_CHECKING:
     import cirq
 
 
-@transformers.transformer
-def convert_to_neutral_atom_gates(
-    circuit: 'cirq.AbstractCircuit', *, context: Optional['cirq.TransformerContext'] = None
-) -> 'cirq.Circuit':
-    return transformers.optimize_for_target_gateset(circuit, gateset=NeutralAtomGateset(), context=context)
-
-
-@deprecated_class(deadline='v0.16', fix='Use cirq.convert_to_neutral_atom_gates instead.')
+@deprecated_class(
+    deadline='v0.16',
+    fix='Use cirq.optimize_for_target_gateset(' + 'circuit, gateset=NeutralAtomGateset()).',
+)
 class ConvertToNeutralAtomGates(PointOptimizer):
     """Attempts to convert gates into native Atom gates.
 
