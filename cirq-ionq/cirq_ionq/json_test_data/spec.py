@@ -33,10 +33,6 @@ TestSpec = ModuleJsonTestSpec(
         "IonQAPIDevice",
         "Job",
         "SimulatorResult",
-        # Hack, these are serialized elsewhere
-        "GPIGate",
-        "GPI2Gate",
-        "MSGate",
     ],
     should_not_be_serialized=["Sampler", "Service", "Serializer"],
     resolver_cache=_class_resolver_dictionary(),

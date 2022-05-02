@@ -13,7 +13,7 @@
 # limitations under the License.
 """Native gates for IonQ hardware"""
 
-from typing import Sequence, Union
+from typing import Any, Dict, Sequence, Union
 
 import cmath
 import math
@@ -50,6 +50,9 @@ class GPIGate(cirq.Gate):
     @property
     def phase(self) -> float:
         return self.phi
+
+    def _json_dict_(self) -> Dict[str, Any]:
+        return cirq.obj_to_dict_helper(self, ['phi'])
 
     def _circuit_diagram_info_(
         self, args: 'cirq.CircuitDiagramInfoArgs'
@@ -94,6 +97,9 @@ class GPI2Gate(cirq.Gate):
 
     def __str__(self) -> str:
         return 'GPI2'
+    
+    def _json_dict_(self) -> Dict[str, Any]:
+        return cirq.obj_to_dict_helper(self, ['phi'])
 
     def _circuit_diagram_info_(
         self, args: 'cirq.CircuitDiagramInfoArgs'
@@ -147,6 +153,9 @@ class MSGate(cirq.Gate):
     @property
     def phases(self) -> Sequence[float]:
         return [self.phi1, self.phi2]
+    
+    def _json_dict_(self) -> Dict[str, Any]:
+        return cirq.obj_to_dict_helper(self, ['phi1', 'phi2'])
 
     def __str__(self) -> str:
         return 'MS'
