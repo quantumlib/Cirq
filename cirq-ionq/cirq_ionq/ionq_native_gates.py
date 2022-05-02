@@ -39,7 +39,7 @@ class GPIGate(cirq.Gate):
         return np.array([[0, top], [bot, 0]])
 
     def __repr__(self) -> str:
-        return 'cirq_ionq.GPI'
+        return 'cirq_ionq.GPIGate'
 
     def __str__(self) -> str:
         return 'GPI'
@@ -93,11 +93,11 @@ class GPI2Gate(cirq.Gate):
         return self.phi
 
     def __repr__(self) -> str:
-        return 'cirq_ionq.GPI2'
+        return 'cirq_ionq.GPI2Gate'
 
     def __str__(self) -> str:
         return 'GPI2'
-    
+
     def _json_dict_(self) -> Dict[str, Any]:
         return cirq.obj_to_dict_helper(self, ['phi'])
 
@@ -140,7 +140,7 @@ class MSGate(cirq.Gate):
         self.phi2 = phi2
 
     def __repr__(self) -> str:
-        return 'cirq_ionq.MS'
+        return 'cirq_ionq.MSGate'
 
     def _unitary_(self) -> np.ndarray:
         tee = self.phi2 - self.phi1
@@ -153,7 +153,7 @@ class MSGate(cirq.Gate):
     @property
     def phases(self) -> Sequence[float]:
         return [self.phi1, self.phi2]
-    
+
     def _json_dict_(self) -> Dict[str, Any]:
         return cirq.obj_to_dict_helper(self, ['phi1', 'phi2'])
 
