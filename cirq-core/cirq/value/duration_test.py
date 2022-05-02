@@ -15,6 +15,7 @@
 from datetime import timedelta
 import pytest
 import sympy
+import numpy as np
 
 import cirq
 from cirq.value import Duration
@@ -43,6 +44,13 @@ def test_init():
 
     with pytest.raises(TypeError):
         _ = Duration(object())
+
+
+def test_numpy_types():
+    assert Duration(nanos=np.float64(1)).total_nanos() == 1.0
+    assert Duration(nanos=np.int64(1)).total_nanos() == 1.0
+    assert type(Duration(nanos=np.float64(1)).total_nanos()) == float
+    assert type(Duration(nanos=np.int64(1)).total_nanos()) == float
 
 
 def test_init_timedelta():

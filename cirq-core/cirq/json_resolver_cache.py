@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """Methods for resolving JSON types during serialization."""
-
+import datetime
 import functools
 from typing import Dict, TYPE_CHECKING
 
@@ -53,6 +53,19 @@ def _class_resolver_dictionary() -> Dict[str, ObjectFactory]:
 
     def _parallel_gate_op(gate, qubits):
         return cirq.parallel_gate_op(gate, *qubits)
+
+    def _datetime(timestamp: float) -> datetime.datetime:
+        # As part of our serialization logic, we make sure we only serialize "aware"
+        # datetimes with the UTC timezone, so we implicitly add back in the UTC timezone here.
+        #
+        # Please note: even if the assumption is somehow violated, the fact that we use
+        # unix timestamps should mean that the deserialized datetime should refer to the
+        # same point in time but may not satisfy o = read_json(to_json(o)) because the actual
+        # timezones, and hour fields will not be identical.
+        return datetime.datetime.fromtimestamp(timestamp, tz=datetime.timezone.utc)
+
+    def _symmetricalqidpair(qids):
+        return frozenset(qids)
 
     import sympy
 
@@ -166,7 +179,6 @@ def _class_resolver_dictionary() -> Dict[str, ObjectFactory]:
         'StabilizerStateChForm': cirq.StabilizerStateChForm,
         'StatePreparationChannel': cirq.StatePreparationChannel,
         'SwapPowGate': cirq.SwapPowGate,
-        'SymmetricalQidPair': cirq.SymmetricalQidPair,
         'SympyCondition': cirq.SympyCondition,
         'TaggedOperation': cirq.TaggedOperation,
         'TiltedSquareLattice': cirq.TiltedSquareLattice,
@@ -194,6 +206,7 @@ def _class_resolver_dictionary() -> Dict[str, ObjectFactory]:
         'IdentityOperation': _identity_operation_from_dict,
         'ParallelGateOperation': _parallel_gate_op,  # Removed in v0.14
         'SingleQubitMatrixGate': single_qubit_matrix_gate,
+        'SymmetricalQidPair': _symmetricalqidpair,  # Removed in v0.15
         'TwoQubitMatrixGate': two_qubit_matrix_gate,
         # not a cirq class, but treated as one:
         'pandas.DataFrame': pd.DataFrame,
@@ -216,4 +229,5 @@ def _class_resolver_dictionary() -> Dict[str, ObjectFactory]:
         'sympy.E': lambda: sympy.E,
         'sympy.EulerGamma': lambda: sympy.EulerGamma,
         'complex': complex,
+        'datetime.datetime': _datetime,
     }

@@ -36,6 +36,7 @@ from typing import (
 import numpy as np
 import pandas as pd
 
+
 import cirq
 from cirq.experiments.xeb_fitting import XEBPhasedFSimCharacterizationOptions
 from cirq_google.api import v2
@@ -959,11 +960,11 @@ class PhaseCalibratedFSimGate:
             parameters of the engine_gate.
         """
         return cirq.PhasedFSimGate(
-            theta=parameters.theta,
-            zeta=parameters.zeta,
+            theta=parameters.theta or 0.0,
+            zeta=parameters.zeta or 0.0,
             chi=parameters.chi - 2 * np.pi * self.phase_exponent,
-            gamma=parameters.gamma,
-            phi=parameters.phi,
+            gamma=parameters.gamma or 0.0,
+            phi=parameters.phi or 0.0,
         )
 
     def with_zeta_chi_gamma_compensated(
@@ -1039,7 +1040,9 @@ def try_convert_sqrt_iswap_to_fsim(gate: cirq.Gate) -> Optional[PhaseCalibratedF
     if result is None:
         return None
     engine_gate = result.engine_gate
-    if math.isclose(engine_gate.theta, np.pi / 4) and math.isclose(engine_gate.phi, 0.0):
+    if math.isclose(cast(float, engine_gate.theta), np.pi / 4) and math.isclose(
+        cast(float, engine_gate.phi), 0.0
+    ):
         return result
     return None
 

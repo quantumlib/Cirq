@@ -21,10 +21,7 @@ import cirq
 
 
 def test_unitary_fallback():
-    class UnitaryXGate(cirq.Gate):
-        def _num_qubits_(self) -> int:
-            return 1
-
+    class UnitaryXGate(cirq.testing.SingleQubitGate):
         def _unitary_(self):
             return np.array([[0, 1], [1, 0]])
 
@@ -36,7 +33,7 @@ def test_unitary_fallback():
             return np.array([[0, -1j], [1j, 0]])
 
     original_tableau = cirq.CliffordTableau(num_qubits=3)
-    args = cirq.ActOnCliffordTableauArgs(
+    args = cirq.CliffordTableauSimulationState(
         tableau=original_tableau.copy(),
         qubits=cirq.LineQubit.range(3),
         prng=np.random.RandomState(),
@@ -45,13 +42,13 @@ def test_unitary_fallback():
     cirq.act_on(UnitaryXGate(), args, [cirq.LineQubit(1)])
     assert args.tableau == cirq.CliffordTableau(num_qubits=3, initial_state=2)
 
-    args = cirq.ActOnCliffordTableauArgs(
+    args = cirq.CliffordTableauSimulationState(
         tableau=original_tableau.copy(),
         qubits=cirq.LineQubit.range(3),
         prng=np.random.RandomState(),
     )
     cirq.act_on(UnitaryYGate(), args, [cirq.LineQubit(1)])
-    expected_args = cirq.ActOnCliffordTableauArgs(
+    expected_args = cirq.CliffordTableauSimulationState(
         tableau=original_tableau.copy(),
         qubits=cirq.LineQubit.range(3),
         prng=np.random.RandomState(),
@@ -64,10 +61,10 @@ def test_cannot_act():
     class NoDetails:
         pass
 
-    class NoDetailsSingleQubitGate(cirq.SingleQubitGate):
+    class NoDetailsSingleQubitGate(cirq.testing.SingleQubitGate):
         pass
 
-    args = cirq.ActOnCliffordTableauArgs(
+    args = cirq.CliffordTableauSimulationState(
         tableau=cirq.CliffordTableau(num_qubits=3),
         qubits=cirq.LineQubit.range(3),
         prng=np.random.RandomState(),
@@ -81,13 +78,13 @@ def test_cannot_act():
 
 
 def test_copy():
-    args = cirq.ActOnCliffordTableauArgs(
+    args = cirq.CliffordTableauSimulationState(
         tableau=cirq.CliffordTableau(num_qubits=3),
         qubits=cirq.LineQubit.range(3),
         prng=np.random.RandomState(),
     )
     args1 = args.copy()
-    assert isinstance(args1, cirq.ActOnCliffordTableauArgs)
+    assert isinstance(args1, cirq.CliffordTableauSimulationState)
     assert args is not args1
     assert args.tableau is not args1.tableau
     assert args.tableau == args1.tableau

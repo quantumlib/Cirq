@@ -14,7 +14,7 @@
 
 """Device classes, qubits, and topologies, as well as noise models."""
 
-from cirq.devices.device import Device, DeviceMetadata, SymmetricalQidPair
+from cirq.devices.device import Device, DeviceMetadata
 
 from cirq.devices.grid_device_metadata import GridDeviceMetadata
 
@@ -32,6 +32,7 @@ from cirq.devices.named_topologies import (
     LineTopology,
     TiltedSquareLattice,
     get_placements,
+    is_valid_placement,
     draw_placements,
 )
 

@@ -15,6 +15,7 @@
 from typing import Optional, Sequence, Tuple, TYPE_CHECKING
 
 import numpy as np
+import sympy
 
 from cirq import devices, ops, protocols
 
@@ -49,6 +50,9 @@ def compute_cphase_exponents_for_fsim_decomposition(
         value of the exponent for which CZPowGate can be decomposed into
         two FSimGates. The intervals are cropped to [0, 2]. The function
         returns zero, one or two intervals.
+
+    Raises:
+        ValueError: if the fsim_gate contains symbolic parameters.
     """
 
     def nonempty_intervals(
@@ -57,6 +61,8 @@ def compute_cphase_exponents_for_fsim_decomposition(
         return tuple((a, b) for a, b in intervals if a < b)
 
     # Each of the two FSimGate parameters sets a bound on phase angle.
+    if isinstance(fsim_gate.theta, sympy.Expr) or isinstance(fsim_gate.phi, sympy.Expr):
+        raise ValueError('Symbolic arguments not supported')
     bound1 = abs(_asinsin(fsim_gate.theta))
     bound2 = abs(_asinsin(fsim_gate.phi / 2))
 

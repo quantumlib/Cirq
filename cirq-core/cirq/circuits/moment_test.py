@@ -574,10 +574,7 @@ aa │
         xy_breakdown_func=lambda q: ('abc'[q.x], q.x),
     )
 
-    class EmptyGate(cirq.Gate):
-        def _num_qubits_(self) -> int:
-            return 1
-
+    class EmptyGate(cirq.testing.SingleQubitGate):
         def __str__(self):
             return 'Empty'
 
@@ -701,9 +698,8 @@ def test_kraus_too_big():
 
 
 def test_op_has_no_kraus():
-    class EmptyGate(cirq.Gate):
-        def _num_qubits_(self) -> int:
-            return 1
+    class EmptyGate(cirq.testing.SingleQubitGate):
+        pass
 
     m = cirq.Moment(EmptyGate().on(cirq.NamedQubit("a")))
     assert not cirq.has_kraus(m)

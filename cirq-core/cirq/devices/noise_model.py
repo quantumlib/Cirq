@@ -264,7 +264,7 @@ document(
     """,
 )
 
-NOISE_MODEL_LIKE = Union[None, 'cirq.NoiseModel', 'cirq.SingleQubitGate']
+NOISE_MODEL_LIKE = Union[None, 'cirq.NoiseModel', 'cirq.Gate']
 document(
     NOISE_MODEL_LIKE,  # type: ignore
     """A `cirq.NoiseModel` or a value that can be trivially converted into one.

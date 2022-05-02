@@ -18,11 +18,12 @@ import itertools
 import os
 import tempfile
 import warnings
-from typing import Optional, Union, Iterable, Dict, List, Tuple, TYPE_CHECKING, Set, Sequence, Any
+from typing import Any, Dict, Iterable, List, Optional, Sequence, Set, Tuple, TYPE_CHECKING, Union
 
 import numpy as np
 import pandas as pd
 import sympy
+
 from cirq import circuits, study, ops, value, protocols
 from cirq._doc import document
 from cirq.work.observable_grouping import group_settings_greedy, GROUPER_T

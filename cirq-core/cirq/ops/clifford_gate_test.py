@@ -19,7 +19,7 @@ import numpy as np
 import pytest
 
 import cirq
-from cirq.protocols.act_on_protocol_test import DummyActOnArgs
+from cirq.protocols.act_on_protocol_test import DummySimulationState
 from cirq.testing import EqualsTester, assert_allclose_up_to_global_phase
 
 _bools = (False, True)
@@ -686,6 +686,13 @@ def test_clifford_gate_from_tableau():
     t = cirq.CliffordGate.CNOT.clifford_tableau
     assert cirq.CliffordGate.from_clifford_tableau(t) == cirq.CliffordGate.CNOT
 
+    with pytest.raises(ValueError, match='Input argument has to be a CliffordTableau instance.'):
+        cirq.SingleQubitCliffordGate.from_clifford_tableau(123)
+
+    with pytest.raises(ValueError, match="The number of qubit of input tableau should be 1"):
+        t = cirq.CliffordTableau(num_qubits=2)
+        cirq.SingleQubitCliffordGate.from_clifford_tableau(t)
+
     with pytest.raises(ValueError):
         t = cirq.CliffordTableau(num_qubits=1)
         t.xs = np.array([1, 1]).reshape(2, 1)
@@ -754,14 +761,7 @@ def test_pad_tableau():
     # fmt: off
     np.testing.assert_equal(
         padded_tableau.matrix().astype(np.int64),
-        np.array(
-            [
-                [0, 0, 1, 0],
-                [0, 1, 0, 0],
-                [1, 0, 0, 0],
-                [0, 0, 0, 1]
-            ]
-        ),
+        np.array([[0, 0, 1, 0], [0, 1, 0, 0], [1, 0, 0, 0], [0, 0, 0, 1]]),
     )
     # fmt: on
     np.testing.assert_equal(padded_tableau.rs.astype(np.int64), np.zeros(4))
@@ -773,14 +773,7 @@ def test_pad_tableau():
     # fmt: off
     np.testing.assert_equal(
         padded_tableau.matrix().astype(np.int64),
-        np.array(
-            [
-                [1, 0, 0, 0],
-                [0, 0, 0, 1],
-                [0, 0, 1, 0],
-                [0, 1, 0, 0]
-            ]
-        ),
+        np.array([[1, 0, 0, 0], [0, 0, 0, 1], [0, 0, 1, 0], [0, 1, 0, 0]]),
     )
     # fmt: on
     np.testing.assert_equal(padded_tableau.rs.astype(np.int64), np.zeros(4))
@@ -790,10 +783,10 @@ def test_clifford_gate_act_on_small_case():
     # Note this is also covered by the `from_op_list` one, etc.
 
     qubits = cirq.LineQubit.range(5)
-    args = cirq.ActOnCliffordTableauArgs(
+    args = cirq.CliffordTableauSimulationState(
         tableau=cirq.CliffordTableau(num_qubits=5), qubits=qubits, prng=np.random.RandomState()
     )
-    expected_args = cirq.ActOnCliffordTableauArgs(
+    expected_args = cirq.CliffordTableauSimulationState(
         tableau=cirq.CliffordTableau(num_qubits=5), qubits=qubits, prng=np.random.RandomState()
     )
     cirq.act_on(cirq.H, expected_args, qubits=[qubits[0]], allow_decompose=False)
@@ -825,8 +818,8 @@ def test_clifford_gate_act_on_large_case():
         t1 = cirq.CliffordTableau(num_qubits=n)
         t2 = cirq.CliffordTableau(num_qubits=n)
         qubits = cirq.LineQubit.range(n)
-        args1 = cirq.ActOnCliffordTableauArgs(tableau=t1, qubits=qubits, prng=prng)
-        args2 = cirq.ActOnCliffordTableauArgs(tableau=t2, qubits=qubits, prng=prng)
+        args1 = cirq.CliffordTableauSimulationState(tableau=t1, qubits=qubits, prng=prng)
+        args2 = cirq.CliffordTableauSimulationState(tableau=t2, qubits=qubits, prng=prng)
         ops = []
         for _ in range(num_ops):
             g = prng.randint(len(gate_candidate))
@@ -845,7 +838,7 @@ def test_clifford_gate_act_on_ch_form():
     # Although we don't support CH_form from the _act_on_, it will fall back
     # to the decomposititon method and apply it through decomposed ops.
     # Here we run it for the coverage only.
-    args = cirq.ActOnStabilizerCHFormArgs(
+    args = cirq.StabilizerChFormSimulationState(
         initial_state=cirq.StabilizerStateChForm(num_qubits=2, initial_state=1),
         qubits=cirq.LineQubit.range(2),
         prng=np.random.RandomState(),
@@ -856,4 +849,4 @@ def test_clifford_gate_act_on_ch_form():
 
 def test_clifford_gate_act_on_fail():
     with pytest.raises(TypeError, match="Failed to act"):
-        cirq.act_on(cirq.CliffordGate.X, DummyActOnArgs(), qubits=())
+        cirq.act_on(cirq.CliffordGate.X, DummySimulationState(), qubits=())

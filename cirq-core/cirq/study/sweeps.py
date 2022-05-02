@@ -348,11 +348,11 @@ class SingleSweep(Sweep):
 class Points(SingleSweep):
     """A simple sweep with explicitly supplied values."""
 
-    def __init__(self, key: 'cirq.TParamKey', points: Sequence['cirq.TParamVal']) -> None:
+    def __init__(self, key: 'cirq.TParamKey', points: Sequence[float]) -> None:
         super(Points, self).__init__(key)
         self.points = points
 
-    def _tuple(self) -> Tuple[Union[str, sympy.Symbol], Sequence[float]]:
+    def _tuple(self) -> Tuple[Union[str, sympy.Expr], Sequence[float]]:
         return self.key, tuple(self.points)
 
     def __len__(self) -> int:
@@ -379,7 +379,7 @@ class Linspace(SingleSweep):
         self.stop = stop
         self.length = length
 
-    def _tuple(self) -> Tuple[Union[str, sympy.Symbol], float, float, int]:
+    def _tuple(self) -> Tuple[Union[str, sympy.Expr], float, float, int]:
         return (self.key, self.start, self.stop, self.length)
 
     def __len__(self) -> int:
@@ -466,7 +466,10 @@ def dict_to_product_sweep(factor_dict: ProductOrZipSweepLike) -> Product:
         Cartesian product of the sweeps.
     """
     return Product(
-        *(Points(k, v if isinstance(v, Sequence) else [v]) for k, v in factor_dict.items())
+        *(
+            Points(k, v if isinstance(v, Sequence) else [v])  # type: ignore
+            for k, v in factor_dict.items()
+        )
     )
 
 
@@ -483,4 +486,9 @@ def dict_to_zip_sweep(factor_dict: ProductOrZipSweepLike) -> Zip:
     Returns:
         Zip product of the sweeps.
     """
-    return Zip(*(Points(k, v if isinstance(v, Sequence) else [v]) for k, v in factor_dict.items()))
+    return Zip(
+        *(
+            Points(k, cast(float, v) if isinstance(v, Sequence) else [v])  # type: ignore
+            for k, v in factor_dict.items()
+        )
+    )

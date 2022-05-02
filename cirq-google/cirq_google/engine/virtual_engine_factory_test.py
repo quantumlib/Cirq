@@ -38,6 +38,14 @@ def _test_processor(processor: cg.engine.abstract_processor.AbstractProcessor):
         _ = processor.run(circuit, repetitions=100)
 
 
+def test_create_device_from_processor_id():
+    device = factory.create_device_from_processor_id('rainbow')
+    assert device is not None
+
+    with pytest.raises(ValueError, match='no such processor is defined'):
+        _ = factory.create_device_from_processor_id('bad_processor')
+
+
 def test_create_from_device():
     engine = factory.create_noiseless_virtual_engine_from_device('sycamore', cg.Sycamore)
     _test_processor(engine.get_processor('sycamore'))

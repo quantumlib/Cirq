@@ -15,25 +15,40 @@
 from typing import AbstractSet, Any, cast, Dict, Optional, Sequence, Tuple, Union
 
 import math
+import numbers
 import numpy as np
 import sympy
 
 import cirq
 from cirq import value, protocols
 from cirq._compat import proper_repr
-from cirq.ops import gate_features, common_gates
+from cirq.ops import common_gates, raw_types
 from cirq.type_workarounds import NotImplementedType
 
 
 @value.value_equality(manual_cls=True, approximate=True)
-class PhasedXPowGate(gate_features.SingleQubitGate):
-    """A gate equivalent to the circuit ───Z^-p───X^t───Z^p───."""
+class PhasedXPowGate(raw_types.Gate):
+    r"""A gate equivalent to $Z^{p} X^t Z^{-p}$.
+
+    The unitary matrix of `cirq.PhasedXPowGate(exponent=t, phase_exponent=p)` is:
+    $$
+        \begin{bmatrix}
+            e^{i \pi t /2} \cos(\pi t/2) & -i e^{i \pi (t /2 - p)} \sin(\pi t /2) \\
+            -i e^{i \pi (t /2 + p)} \sin(\pi t /2) & e^{i \pi t /2} \cos(\pi t/2)
+        \end{bmatrix}
+    $$
+
+    This gate is like an `cirq.XPowGate`, but which has been "phased",
+    by applying a `cirq.ZPowGate` before and after this gate. In the language
+    of the Bloch sphere, $p$ determines the axis in the XY plane about which
+    a rotation of amount determined by $t$ occurs.
+    """
 
     def __init__(
         self,
         *,
-        phase_exponent: Union[float, sympy.Symbol],
-        exponent: Union[float, sympy.Symbol] = 1.0,
+        phase_exponent: Union[float, sympy.Expr],
+        exponent: Union[float, sympy.Expr] = 1.0,
         global_shift: float = 0.0,
     ) -> None:
         """Inits PhasedXPowGate.
@@ -84,12 +99,12 @@ class PhasedXPowGate(gate_features.SingleQubitGate):
         return z**-1, x, z
 
     @property
-    def exponent(self) -> Union[float, sympy.Symbol]:
+    def exponent(self) -> Union[float, sympy.Expr]:
         """The exponent on the central X gate conjugated by the Z gates."""
         return self._exponent
 
     @property
-    def phase_exponent(self) -> Union[float, sympy.Symbol]:
+    def phase_exponent(self) -> Union[float, sympy.Expr]:
         """The exponent on the Z gates conjugating the X gate."""
         return self._phase_exponent
 
@@ -97,7 +112,7 @@ class PhasedXPowGate(gate_features.SingleQubitGate):
     def global_shift(self) -> float:
         return self._global_shift
 
-    def __pow__(self, exponent: Union[float, sympy.Symbol]) -> 'PhasedXPowGate':
+    def __pow__(self, exponent: Union[float, sympy.Expr]) -> 'PhasedXPowGate':
         new_exponent = protocols.mul(self._exponent, exponent, NotImplemented)
         if new_exponent is NotImplemented:
             return NotImplemented
@@ -123,6 +138,9 @@ class PhasedXPowGate(gate_features.SingleQubitGate):
         x = protocols.unitary(cirq.X**self._exponent)
         p = np.exp(1j * np.pi * self._global_shift * self._exponent)
         return np.dot(np.dot(z, x), np.conj(z)) * p
+
+    def _num_qubits_(self) -> int:
+        return 1
 
     def _pauli_expansion_(self) -> value.LinearDict[str]:
         if self._is_parameterized_():
@@ -154,10 +172,20 @@ class PhasedXPowGate(gate_features.SingleQubitGate):
         self, resolver: 'cirq.ParamResolver', recursive: bool
     ) -> 'PhasedXPowGate':
         """See `cirq.SupportsParameterization`."""
+        phase_exponent = resolver.value_of(self._phase_exponent, recursive)
+        exponent = resolver.value_of(self._exponent, recursive)
+        if isinstance(phase_exponent, (complex, numbers.Complex)):
+            if isinstance(phase_exponent, numbers.Real):
+                phase_exponent = float(phase_exponent)
+            else:
+                raise ValueError(f'PhasedXPowGate does not support complex value {phase_exponent}')
+        if isinstance(exponent, (complex, numbers.Complex)):
+            if isinstance(exponent, numbers.Real):
+                exponent = float(exponent)
+            else:
+                raise ValueError(f'PhasedXPowGate does not support complex value {exponent}')
         return PhasedXPowGate(
-            phase_exponent=resolver.value_of(self._phase_exponent, recursive),
-            exponent=resolver.value_of(self._exponent, recursive),
-            global_shift=self._global_shift,
+            phase_exponent=phase_exponent, exponent=exponent, global_shift=self._global_shift
         )
 
     def _phase_by_(self, phase_turns, qubit_index):

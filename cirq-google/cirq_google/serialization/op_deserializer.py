@@ -207,7 +207,7 @@ class GateOpDeserializer(OpDeserializer):
                 required_arg_name=None if not arg.required else arg.serialized_name,
             )
 
-            if arg.value_func is not None:
+            if arg.value_func is not None and value is not None:
                 value = arg.value_func(value)
 
             if value is not None:
