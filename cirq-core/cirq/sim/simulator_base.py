@@ -291,12 +291,19 @@ class SimulatorBase(
             for k, r in step_result._classical_data.records.items():
                 if k not in records:
                     records[k] = []
-                records[k].append(r)
+                records[k].append(np.array(r, dtype=np.uint8))
             for k, cr in step_result._classical_data.channel_records.items():
                 if k not in records:
                     records[k] = []
-                records[k].append([cr])
-        return {str(k): np.array(v, dtype=np.uint8) for k, v in records.items()}
+                records[k].append(np.array([cr], dtype=np.uint8))
+
+        def pad_evenly(results: Sequence[np.ndarray]):
+            largest = max([result.shape[0] for result in results])
+            return np.array(
+                [np.pad(result, ((0, largest - result.shape[0]), (0, 0))) for result in results]
+            )
+
+        return {str(k): pad_evenly(v) for k, v in records.items()}
 
     def simulate_sweep_iter(
         self,
