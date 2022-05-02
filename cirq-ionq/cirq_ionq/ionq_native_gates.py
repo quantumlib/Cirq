@@ -23,6 +23,7 @@ from cirq._doc import document
 import numpy as np
 
 
+@cirq.value.value_equality
 class GPIGate(cirq.Gate):
     """The GPI gate is a single qubit gate.
     The unitary of this gate is
@@ -54,9 +55,8 @@ class GPIGate(cirq.Gate):
     def _json_dict_(self) -> Dict[str, Any]:
         return cirq.obj_to_dict_helper(self, ['phi'])
 
-    @classmethod
-    def _from_json_dict_(cls, phi, **kwargs):
-        return cls(phi=phi)
+    def _value_equality_values_(self) -> Any:
+        return (self.phi)
 
     def _circuit_diagram_info_(
         self, args: 'cirq.CircuitDiagramInfoArgs'
@@ -77,6 +77,7 @@ document(
 )
 
 
+@cirq.value.value_equality
 class GPI2Gate(cirq.Gate):
     """The GPI2 gate is a single qubit gate.
     The unitary of this gate is
@@ -113,10 +114,8 @@ class GPI2Gate(cirq.Gate):
     def _json_dict_(self) -> Dict[str, Any]:
         return cirq.obj_to_dict_helper(self, ['phi'])
 
-    @classmethod
-    def _from_json_dict_(cls, phi, **kwargs):
-        return cls(phi=phi)
-
+    def _value_equality_values_(self) -> Any:
+        return (self.phi)
 
 GPI2 = GPI2Gate(phi=0)
 document(
@@ -131,6 +130,7 @@ document(
 )
 
 
+@cirq.value.value_equality
 class MSGate(cirq.Gate):
     """The MS gate is a 2 qubit gate.
     The unitary of this gate is
@@ -176,9 +176,9 @@ class MSGate(cirq.Gate):
     def _json_dict_(self) -> Dict[str, Any]:
         return cirq.obj_to_dict_helper(self, ['phi1', 'phi2'])
 
-    @classmethod
-    def _from_json_dict_(cls, phi1, phi2, **kwargs):
-        return cls(phi1=phi1, phi2=phi2)
+    def _value_equality_values_(self) -> Any:
+        return (self.phi1, self.phi2)
+
 
 
 MS = MSGate(phi1=0, phi2=0)
