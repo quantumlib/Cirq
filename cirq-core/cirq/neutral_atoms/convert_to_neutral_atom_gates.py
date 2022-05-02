@@ -24,7 +24,7 @@ if TYPE_CHECKING:
 
 @deprecated_class(
     deadline='v0.16',
-    fix='Use cirq.optimize_for_target_gateset(' + 'circuit, gateset=NeutralAtomGateset()).',
+    fix='Use cirq.optimize_for_target_gateset(circuit, gateset=NeutralAtomGateset()).',
 )
 class ConvertToNeutralAtomGates(PointOptimizer):
     """Attempts to convert gates into native Atom gates.

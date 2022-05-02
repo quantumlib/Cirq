@@ -29,6 +29,10 @@ class NeutralAtomGateset(transformers.CompilationTargetGateset):
     in a parallel fashion.  The maximum amount of parallelism
     can be set by arguments.
 
+    This compilation gateset decomposes operations into CZ
+    because CZ gates are the highest fidelity two qubit gates
+    for neutral atoms.
+
     Args:
         max_parallel_z: The maximum amount of parallelism for
             Z gates.
