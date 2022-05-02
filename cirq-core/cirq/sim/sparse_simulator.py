@@ -153,7 +153,7 @@ class Simulator(
             dtype=dtype, noise=noise, seed=seed, split_untangled_states=split_untangled_states
         )
 
-    def _create_partial_act_on_args(
+    def _create_partial_simulation_state(
         self,
         initial_state: Union['cirq.STATE_VECTOR_LIKE', 'cirq.StateVectorSimulationState'],
         qubits: Sequence['cirq.Qid'],

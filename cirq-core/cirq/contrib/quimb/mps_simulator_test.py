@@ -189,7 +189,7 @@ def test_simulation_state():
     mps_simulator = ccq.mps_simulator.MPSSimulator()
     ref_simulator = cirq.Simulator()
     for initial_state in range(4):
-        args = mps_simulator._create_act_on_args(initial_state=initial_state, qubits=(q0, q1))
+        args = mps_simulator._create_simulation_state(initial_state=initial_state, qubits=(q0, q1))
         actual = mps_simulator.simulate(circuit, qubit_order=qubit_order, initial_state=args)
         expected = ref_simulator.simulate(
             circuit, qubit_order=qubit_order, initial_state=initial_state

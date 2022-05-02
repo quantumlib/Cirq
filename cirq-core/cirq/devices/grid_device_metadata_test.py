@@ -23,7 +23,15 @@ def test_griddevice_metadata():
     qubit_pairs = [(a, b) for a in qubits for b in qubits if a != b and a.is_adjacent(b)]
     isolated_qubits = [cirq.GridQubit(9, 9), cirq.GridQubit(10, 10)]
     gateset = cirq.Gateset(cirq.XPowGate, cirq.YPowGate, cirq.ZPowGate, cirq.CZ)
-    metadata = cirq.GridDeviceMetadata(qubit_pairs, gateset, all_qubits=qubits + isolated_qubits)
+    gate_durations = {
+        cirq.GateFamily(cirq.XPowGate): 1_000,
+        cirq.GateFamily(cirq.YPowGate): 1_000,
+        cirq.GateFamily(cirq.ZPowGate): 1_000,
+        # omitting cirq.CZ
+    }
+    metadata = cirq.GridDeviceMetadata(
+        qubit_pairs, gateset, gate_durations=gate_durations, all_qubits=qubits + isolated_qubits
+    )
     expected_pairings = frozenset(
         {
             frozenset((cirq.GridQubit(0, 0), cirq.GridQubit(0, 1))),
@@ -43,7 +51,7 @@ def test_griddevice_metadata():
     expected_graph.add_edges_from(sorted(list(expected_pairings)), directed=False)
     assert metadata.nx_graph.edges() == expected_graph.edges()
     assert metadata.nx_graph.nodes() == expected_graph.nodes()
-    assert metadata.gate_durations is None
+    assert metadata.gate_durations == gate_durations
     assert metadata.isolated_qubits == frozenset(isolated_qubits)
 
 
