@@ -218,19 +218,12 @@ def test_single_qubit_gates(op):
     model = NoiseModelFromNoiseProperties(props)
     circuit = cirq.Circuit(op)
     noisy_circuit = circuit.with_noise(model)
+    print(noisy_circuit.moments)
     assert len(noisy_circuit.moments) == 3
-    assert len(noisy_circuit.moments[0].operations) == 1
-    assert noisy_circuit.moments[0].operations[0] == op.with_tags(PHYSICAL_GATE_TAG)
-
-    # Depolarizing noise
-    assert len(noisy_circuit.moments[1].operations) == 1
-    depol_op = noisy_circuit.moments[1].operations[0]
-    assert isinstance(depol_op.gate, cirq.DepolarizingChannel)
-    assert np.isclose(depol_op.gate.p, 0.00081252)
 
     # Thermal noise
-    assert len(noisy_circuit.moments[2].operations) == 1
-    thermal_op = noisy_circuit.moments[2].operations[0]
+    assert len(noisy_circuit.moments[0].operations) == 1
+    thermal_op = noisy_circuit.moments[0].operations[0]
     assert isinstance(thermal_op.gate, cirq.KrausChannel)
     thermal_choi = cirq.kraus_to_choi(cirq.kraus(thermal_op))
     assert np.allclose(
@@ -243,6 +236,16 @@ def test_single_qubit_gates(op):
         ],
     )
 
+    # Depolarizing noise
+    assert len(noisy_circuit.moments[1].operations) == 1
+    depol_op = noisy_circuit.moments[1].operations[0]
+    assert isinstance(depol_op.gate, cirq.DepolarizingChannel)
+    assert np.isclose(depol_op.gate.p, 0.00081252)
+
+    # Original moment
+    assert len(noisy_circuit.moments[2].operations) == 1
+    assert noisy_circuit.moments[2].operations[0] == op.with_tags(PHYSICAL_GATE_TAG)
+
 
 @pytest.mark.parametrize(
     'op', [cirq.ISWAP(*cirq.LineQubit.range(2)) ** 0.6, cirq.CZ(*cirq.LineQubit.range(2)) ** 0.3]
@@ -254,19 +257,11 @@ def test_two_qubit_gates(op):
     circuit = cirq.Circuit(op)
     noisy_circuit = circuit.with_noise(model)
     assert len(noisy_circuit.moments) == 3
-    assert len(noisy_circuit.moments[0].operations) == 1
-    assert noisy_circuit.moments[0].operations[0] == op.with_tags(PHYSICAL_GATE_TAG)
-
-    # Depolarizing noise
-    assert len(noisy_circuit.moments[1].operations) == 1
-    depol_op = noisy_circuit.moments[1].operations[0]
-    assert isinstance(depol_op.gate, cirq.DepolarizingChannel)
-    assert np.isclose(depol_op.gate.p, 0.00952008)
 
     # Thermal noise
-    assert len(noisy_circuit.moments[2].operations) == 2
-    thermal_op_0 = noisy_circuit.moments[2].operation_at(q0)
-    thermal_op_1 = noisy_circuit.moments[2].operation_at(q1)
+    assert len(noisy_circuit.moments[0].operations) == 2
+    thermal_op_0 = noisy_circuit.moments[0].operation_at(q0)
+    thermal_op_1 = noisy_circuit.moments[0].operation_at(q1)
     assert isinstance(thermal_op_0.gate, cirq.KrausChannel)
     assert isinstance(thermal_op_1.gate, cirq.KrausChannel)
     thermal_choi_0 = cirq.kraus_to_choi(cirq.kraus(thermal_op_0))
@@ -281,6 +276,16 @@ def test_two_qubit_gates(op):
     )
     assert np.allclose(thermal_choi_0, expected_thermal_choi)
     assert np.allclose(thermal_choi_1, expected_thermal_choi)
+
+    # Depolarizing noise
+    assert len(noisy_circuit.moments[1].operations) == 1
+    depol_op = noisy_circuit.moments[1].operations[0]
+    assert isinstance(depol_op.gate, cirq.DepolarizingChannel)
+    assert np.isclose(depol_op.gate.p, 0.00952008)
+
+    # Original moment
+    assert len(noisy_circuit.moments[2].operations) == 1
+    assert noisy_circuit.moments[2].operations[0] == op.with_tags(PHYSICAL_GATE_TAG)
 
 
 def test_measure_gates():
@@ -329,12 +334,10 @@ def test_wait_gates():
     circuit = cirq.Circuit(op)
     noisy_circuit = circuit.with_noise(model)
     assert len(noisy_circuit.moments) == 2
-    assert noisy_circuit.moments[0].operations[0] == op.with_tags(PHYSICAL_GATE_TAG)
 
     # No depolarizing noise because WaitGate has none.
-
-    assert len(noisy_circuit.moments[1].operations) == 1
-    thermal_op = noisy_circuit.moments[1].operations[0]
+    assert len(noisy_circuit.moments[0].operations) == 1
+    thermal_op = noisy_circuit.moments[0].operations[0]
     assert isinstance(thermal_op.gate, cirq.KrausChannel)
     thermal_choi = cirq.kraus_to_choi(cirq.kraus(thermal_op))
     assert np.allclose(
@@ -346,3 +349,4 @@ def test_wait_gates():
             [9.990005e-01, 0, 0, 9.990005e-01],
         ],
     )
+    assert noisy_circuit.moments[1].operations[0] == op.with_tags(PHYSICAL_GATE_TAG)

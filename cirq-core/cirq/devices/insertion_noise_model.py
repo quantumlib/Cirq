@@ -38,6 +38,7 @@ class InsertionNoiseModel(devices.NoiseModel):
             qubits and A does not) then the first one appering in this dict
             will match.
         prepend: whether to add the new moment before the current one.
+            Defaults to True.
         require_physical_tag: whether to only apply noise to operations tagged
             with PHYSICAL_GATE_TAG.
     """
@@ -45,7 +46,7 @@ class InsertionNoiseModel(devices.NoiseModel):
     ops_added: Dict[noise_utils.OpIdentifier, 'cirq.Operation'] = dataclasses.field(
         default_factory=dict
     )
-    prepend: bool = False
+    prepend: bool = True
     require_physical_tag: bool = True
 
     def noisy_moment(

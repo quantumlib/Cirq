@@ -80,10 +80,7 @@ class PerQubitDepolarizingWithDampedReadoutNoiseModel(cirq.NoiseModel):
                         cirq.BitFlipChannel(self.bitflip_probs[q])(q) for q in system_qubits
                     )
                 )
-            moments.append(moment)
-            return moments
         else:
-            moments.append(moment)
             if self.depol_probs:
                 gated_qubits = [q for q in system_qubits if moment.operates_on_single_qubit(q)]
                 if gated_qubits:
@@ -92,7 +89,8 @@ class PerQubitDepolarizingWithDampedReadoutNoiseModel(cirq.NoiseModel):
                             cirq.DepolarizingChannel(self.depol_probs[q])(q) for q in gated_qubits
                         )
                     )
-            return moments
+        moments.append(moment)
+        return moments
 
 
 def simple_noise_from_calibration_metrics(

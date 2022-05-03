@@ -228,10 +228,10 @@ class ConstantQubitNoiseModel(NoiseModel):
         if self.is_virtual_moment(moment):
             return moment
         return [
-            moment,
             moment_module.Moment(
                 [self.qubit_noise_gate(q).with_tags(ops.VirtualTag()) for q in system_qubits]
             ),
+            moment,
         ]
 
     def _json_dict_(self):

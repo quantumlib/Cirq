@@ -109,12 +109,12 @@ def test_constant_qubit_noise():
     actual = damp_all.noisy_moments([cirq.Moment([cirq.X(a)]), cirq.Moment()], [a, b, c])
     expected = [
         [
-            cirq.Moment([cirq.X(a)]),
             cirq.Moment(d.with_tags(ops.VirtualTag()) for d in [damp(a), damp(b), damp(c)]),
+            cirq.Moment([cirq.X(a)]),
         ],
         [
-            cirq.Moment(),
             cirq.Moment(d.with_tags(ops.VirtualTag()) for d in [damp(a), damp(b), damp(c)]),
+            cirq.Moment(),
         ],
     ]
     assert actual == expected
@@ -137,12 +137,12 @@ def test_noise_composition():
     actual_sz = cirq.Circuit(noise_z.noisy_moments(circuit_s.moments, [a, b, c]))
 
     expected_circuit = cirq.Circuit(
+        cirq.Moment([cirq.S(a), cirq.S(b), cirq.S(c)]),
         cirq.Moment([cirq.X(a)]),
         cirq.Moment([cirq.S(a), cirq.S(b), cirq.S(c)]),
         cirq.Moment([cirq.Y(b)]),
         cirq.Moment([cirq.S(a), cirq.S(b), cirq.S(c)]),
         cirq.Moment([cirq.H(c)]),
-        cirq.Moment([cirq.S(a), cirq.S(b), cirq.S(c)]),
     )
 
     # All of the gates will be the same, just out of order. Merging fixes this.

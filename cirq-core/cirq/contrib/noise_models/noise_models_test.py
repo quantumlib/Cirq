@@ -22,15 +22,15 @@ def test_depol_noise():
     noise_model = ccn.DepolarizingNoiseModel(depol_prob=0.005)
     qubits = cirq.LineQubit.range(2)
     moment = cirq.Moment([cirq.X(qubits[0]), cirq.Y(qubits[1])])
-    noisy_mom = noise_model.noisy_moment(moment, system_qubits=qubits)
-    assert len(noisy_mom) == 2
-    assert noisy_mom[0] == moment
-    for g in noisy_mom[1]:
+    noisy_moment = noise_model.noisy_moment(moment, system_qubits=qubits)
+    assert len(noisy_moment) == 2
+    assert noisy_moment[1] == moment
+    for g in noisy_moment[0]:
         assert isinstance(g.gate, cirq.DepolarizingChannel)
 
 
 # Composes depolarization noise with readout noise.
-def test_readout_noise_after_moment():
+def test_readout_noise_before_moment():
     program = cirq.Circuit()
     qubits = cirq.LineQubit.range(3)
     program.append(
@@ -53,6 +53,10 @@ def test_readout_noise_after_moment():
 
     # Insert channels explicitly
     true_noisy_program = cirq.Circuit()
+    true_noisy_program.append(
+        [cirq.DepolarizingChannel(0.01).on(q).with_tags(ops.VirtualTag()) for q in qubits],
+        strategy=cirq.InsertStrategy.NEW_THEN_INLINE,
+    )
     true_noisy_program.append([cirq.H(qubits[0])])
     true_noisy_program.append(
         [cirq.DepolarizingChannel(0.01).on(q).with_tags(ops.VirtualTag()) for q in qubits],
@@ -64,10 +68,6 @@ def test_readout_noise_after_moment():
         strategy=cirq.InsertStrategy.NEW_THEN_INLINE,
     )
     true_noisy_program.append([cirq.CNOT(qubits[1], qubits[2])])
-    true_noisy_program.append(
-        [cirq.DepolarizingChannel(0.01).on(q).with_tags(ops.VirtualTag()) for q in qubits],
-        strategy=cirq.InsertStrategy.NEW_THEN_INLINE,
-    )
     true_noisy_program.append(
         [cirq.BitFlipChannel(0.05).on(q).with_tags(ops.VirtualTag()) for q in qubits]
     )
@@ -82,7 +82,7 @@ def test_readout_noise_after_moment():
 
 
 # Composes depolarization, damping, and readout noise (in that order).
-def test_decay_noise_after_moment():
+def test_decay_noise_before_moment():
     program = cirq.Circuit()
     qubits = cirq.LineQubit.range(3)
     program.append(
@@ -107,6 +107,10 @@ def test_decay_noise_after_moment():
 
     # Insert channels explicitly
     true_noisy_program = cirq.Circuit()
+    true_noisy_program.append(
+        [cirq.DepolarizingChannel(0.01).on(q).with_tags(ops.VirtualTag()) for q in qubits],
+        strategy=cirq.InsertStrategy.NEW_THEN_INLINE,
+    )
     true_noisy_program.append([cirq.H(qubits[0])])
     true_noisy_program.append(
         [cirq.DepolarizingChannel(0.01).on(q).with_tags(ops.VirtualTag()) for q in qubits],
@@ -118,10 +122,6 @@ def test_decay_noise_after_moment():
         strategy=cirq.InsertStrategy.NEW_THEN_INLINE,
     )
     true_noisy_program.append([cirq.CNOT(qubits[1], qubits[2])])
-    true_noisy_program.append(
-        [cirq.DepolarizingChannel(0.01).on(q).with_tags(ops.VirtualTag()) for q in qubits],
-        strategy=cirq.InsertStrategy.NEW_THEN_INLINE,
-    )
     true_noisy_program.append(
         [cirq.AmplitudeDampingChannel(0.02).on(q).with_tags(ops.VirtualTag()) for q in qubits]
     )
@@ -139,7 +139,7 @@ def test_decay_noise_after_moment():
 
 
 # Test the aggregate noise models.
-def test_aggregate_readout_noise_after_moment():
+def test_aggregate_readout_noise_before_moment():
     program = cirq.Circuit()
     qubits = cirq.LineQubit.range(3)
     program.append(
@@ -160,6 +160,10 @@ def test_aggregate_readout_noise_after_moment():
 
     # Insert channels explicitly
     true_noisy_program = cirq.Circuit()
+    true_noisy_program.append(
+        [cirq.DepolarizingChannel(0.01).on(q) for q in qubits],
+        strategy=cirq.InsertStrategy.NEW_THEN_INLINE,
+    )
     true_noisy_program.append([cirq.H(qubits[0])])
     true_noisy_program.append(
         [cirq.DepolarizingChannel(0.01).on(q) for q in qubits],
@@ -171,10 +175,6 @@ def test_aggregate_readout_noise_after_moment():
         strategy=cirq.InsertStrategy.NEW_THEN_INLINE,
     )
     true_noisy_program.append([cirq.CNOT(qubits[1], qubits[2])])
-    true_noisy_program.append(
-        [cirq.DepolarizingChannel(0.01).on(q) for q in qubits],
-        strategy=cirq.InsertStrategy.NEW_THEN_INLINE,
-    )
     true_noisy_program.append([cirq.BitFlipChannel(0.05).on(q) for q in qubits])
     true_noisy_program.append(
         [
@@ -186,7 +186,7 @@ def test_aggregate_readout_noise_after_moment():
     assert_equivalent_op_tree(true_noisy_program, noisy_circuit)
 
 
-def test_aggregate_decay_noise_after_moment():
+def test_aggregate_decay_noise_before_moment():
     program = cirq.Circuit()
     qubits = cirq.LineQubit.range(3)
     program.append(
@@ -209,6 +209,10 @@ def test_aggregate_decay_noise_after_moment():
 
     # Insert channels explicitly
     true_noisy_program = cirq.Circuit()
+    true_noisy_program.append(
+        [cirq.DepolarizingChannel(0.01).on(q) for q in qubits],
+        strategy=cirq.InsertStrategy.NEW_THEN_INLINE,
+    )
     true_noisy_program.append([cirq.H(qubits[0])])
     true_noisy_program.append(
         [cirq.DepolarizingChannel(0.01).on(q) for q in qubits],
@@ -220,10 +224,6 @@ def test_aggregate_decay_noise_after_moment():
         strategy=cirq.InsertStrategy.NEW_THEN_INLINE,
     )
     true_noisy_program.append([cirq.CNOT(qubits[1], qubits[2])])
-    true_noisy_program.append(
-        [cirq.DepolarizingChannel(0.01).on(q) for q in qubits],
-        strategy=cirq.InsertStrategy.NEW_THEN_INLINE,
-    )
     true_noisy_program.append([cirq.AmplitudeDampingChannel(0.02).on(q) for q in qubits])
     true_noisy_program.append([cirq.BitFlipChannel(0.05).on(q) for q in qubits])
     true_noisy_program.append(

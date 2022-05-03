@@ -141,22 +141,22 @@ def test_per_qubit_depol_noise_from_data():
 
     # Insert channels explicitly to construct expected output.
     expected_program = cirq.Circuit(
-        cirq.Moment([cirq.H(qubits[0])]),
         cirq.Moment([cirq.DepolarizingChannel(DEPOL_001).on(qubits[0])]),
-        cirq.Moment([cirq.CNOT(qubits[0], qubits[1])]),
+        cirq.Moment([cirq.H(qubits[0])]),
         cirq.Moment(
             [
                 cirq.DepolarizingChannel(DEPOL_001).on(qubits[0]),
                 cirq.DepolarizingChannel(DEPOL_002).on(qubits[1]),
             ]
         ),
-        cirq.Moment([cirq.CNOT(qubits[0], qubits[2])]),
+        cirq.Moment([cirq.CNOT(qubits[0], qubits[1])]),
         cirq.Moment(
             [
                 cirq.DepolarizingChannel(DEPOL_001).on(qubits[0]),
                 cirq.DepolarizingChannel(DEPOL_003).on(qubits[2]),
             ]
         ),
+        cirq.Moment([cirq.CNOT(qubits[0], qubits[2])]),
         cirq.Moment([cirq.Z(qubits[1]).with_tags(cirq.VirtualTag())]),
         cirq.Moment(
             [
@@ -285,22 +285,22 @@ def test_per_qubit_combined_noise_from_data():
     # Insert channels explicitly to construct expected output.
     decay_prob = [1 - exp(-1 / 0.007), 1 - exp(-1 / 0.008), 1 - exp(-1 / 0.009)]
     expected_program = cirq.Circuit(
-        cirq.Moment([cirq.H(qubits[0])]),
         cirq.Moment([cirq.DepolarizingChannel(DEPOL_001).on(qubits[0])]),
-        cirq.Moment([cirq.CNOT(qubits[0], qubits[1])]),
+        cirq.Moment([cirq.H(qubits[0])]),
         cirq.Moment(
             [
                 cirq.DepolarizingChannel(DEPOL_001).on(qubits[0]),
                 cirq.DepolarizingChannel(DEPOL_002).on(qubits[1]),
             ]
         ),
-        cirq.Moment([cirq.CNOT(qubits[0], qubits[2])]),
+        cirq.Moment([cirq.CNOT(qubits[0], qubits[1])]),
         cirq.Moment(
             [
                 cirq.DepolarizingChannel(DEPOL_001).on(qubits[0]),
                 cirq.DepolarizingChannel(DEPOL_003).on(qubits[2]),
             ]
         ),
+        cirq.Moment([cirq.CNOT(qubits[0], qubits[2])]),
         cirq.Moment([cirq.AmplitudeDampingChannel(decay_prob[i]).on(qubits[i]) for i in range(3)]),
         cirq.Moment(
             [

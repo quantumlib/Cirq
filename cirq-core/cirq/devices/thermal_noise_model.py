@@ -277,4 +277,4 @@ class ThermalNoiseModel(devices.NoiseModel):
             noise_ops.append(ops.KrausChannel(kraus_ops).on(qubit))
         if not noise_ops:
             return [moment]
-        return [moment, moment_module.Moment(noise_ops)]
+        return [moment_module.Moment(noise_ops), moment]

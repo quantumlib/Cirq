@@ -44,10 +44,10 @@ class DepolarizingNoiseModel(devices.NoiseModel):
             return moment
 
         return [
-            moment,
             circuits.Moment(
                 self.qubit_noise_gate(q).with_tags(ops.VirtualTag()) for q in system_qubits
             ),
+            moment,
         ]
 
 
@@ -141,7 +141,7 @@ class DepolarizingWithReadoutNoiseModel(devices.NoiseModel):
     def noisy_moment(self, moment: 'cirq.Moment', system_qubits: Sequence['cirq.Qid']):
         if validate_all_measurements(moment):
             return [circuits.Moment(self.readout_noise_gate(q) for q in system_qubits), moment]
-        return [moment, circuits.Moment(self.qubit_noise_gate(q) for q in system_qubits)]
+        return [circuits.Moment(self.qubit_noise_gate(q) for q in system_qubits), moment]
 
 
 class DepolarizingWithDampedReadoutNoiseModel(devices.NoiseModel):
@@ -176,4 +176,4 @@ class DepolarizingWithDampedReadoutNoiseModel(devices.NoiseModel):
                 moment,
             ]
         else:
-            return [moment, circuits.Moment(self.qubit_noise_gate(q) for q in system_qubits)]
+            return [circuits.Moment(self.qubit_noise_gate(q) for q in system_qubits), moment]

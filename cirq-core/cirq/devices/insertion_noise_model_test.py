@@ -24,24 +24,24 @@ def test_insertion_noise():
     model = InsertionNoiseModel(
         {op_id0: cirq.T(q0), op_id1: cirq.H(q1)}, require_physical_tag=False
     )
-    assert not model.prepend
+    assert model.prepend
 
     moment_0 = cirq.Moment(cirq.X(q0), cirq.X(q1))
     assert model.noisy_moment(moment_0, system_qubits=[q0, q1]) == [
-        moment_0,
         cirq.Moment(cirq.T(q0)),
+        moment_0,
     ]
 
     moment_1 = cirq.Moment(cirq.Z(q0), cirq.Z(q1))
     assert model.noisy_moment(moment_1, system_qubits=[q0, q1]) == [
-        moment_1,
         cirq.Moment(cirq.H(q1)),
+        moment_1,
     ]
 
     moment_2 = cirq.Moment(cirq.X(q0), cirq.Z(q1))
     assert model.noisy_moment(moment_2, system_qubits=[q0, q1]) == [
-        moment_2,
         cirq.Moment(cirq.T(q0), cirq.H(q1)),
+        moment_2,
     ]
 
     moment_3 = cirq.Moment(cirq.Z(q0), cirq.X(q1))
@@ -56,9 +56,9 @@ def test_colliding_noise_qubits():
 
     moment_0 = cirq.Moment(cirq.CZ(q0, q1), cirq.CZ(q2, q3))
     assert model.noisy_moment(moment_0, system_qubits=[q0, q1, q2, q3]) == [
+        cirq.Moment(cirq.CNOT(q1, q2)),
+        cirq.Moment(cirq.CNOT(q1, q2)),
         moment_0,
-        cirq.Moment(cirq.CNOT(q1, q2)),
-        cirq.Moment(cirq.CNOT(q1, q2)),
     ]
 
 
@@ -67,13 +67,13 @@ def test_prepend():
     op_id0 = OpIdentifier(cirq.XPowGate, q0)
     op_id1 = OpIdentifier(cirq.ZPowGate, q1)
     model = InsertionNoiseModel(
-        {op_id0: cirq.T(q0), op_id1: cirq.H(q1)}, prepend=True, require_physical_tag=False
+        {op_id0: cirq.T(q0), op_id1: cirq.H(q1)}, prepend=False, require_physical_tag=False
     )
 
     moment_0 = cirq.Moment(cirq.X(q0), cirq.Z(q1))
     assert model.noisy_moment(moment_0, system_qubits=[q0, q1]) == [
-        cirq.Moment(cirq.T(q0), cirq.H(q1)),
         moment_0,
+        cirq.Moment(cirq.T(q0), cirq.H(q1)),
     ]
 
 
@@ -86,8 +86,8 @@ def test_require_physical_tag():
 
     moment_0 = cirq.Moment(cirq.X(q0).with_tags(PHYSICAL_GATE_TAG), cirq.Z(q1))
     assert model.noisy_moment(moment_0, system_qubits=[q0, q1]) == [
-        moment_0,
         cirq.Moment(cirq.T(q0)),
+        moment_0,
     ]
 
 
@@ -102,7 +102,7 @@ def test_supertype_matching():
     )
 
     moment_0 = cirq.Moment(cirq.Rx(rads=1).on(q0))
-    assert model.noisy_moment(moment_0, system_qubits=[q0]) == [moment_0, cirq.Moment(cirq.S(q0))]
+    assert model.noisy_moment(moment_0, system_qubits=[q0]) == [cirq.Moment(cirq.S(q0)), moment_0]
 
     moment_1 = cirq.Moment(cirq.Y(q0))
-    assert model.noisy_moment(moment_1, system_qubits=[q0]) == [moment_1, cirq.Moment(cirq.T(q0))]
+    assert model.noisy_moment(moment_1, system_qubits=[q0]) == [cirq.Moment(cirq.T(q0)), moment_1]

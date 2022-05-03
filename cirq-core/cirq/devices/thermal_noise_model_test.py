@@ -210,10 +210,9 @@ def test_noisy_moment_one_qubit():
     gate = cirq.PhasedXZGate(x_exponent=1, z_exponent=0.5, axis_phase_exponent=0.25)
     moment = cirq.Moment(gate.on(q0))
     noisy_moment = model.noisy_moment(moment, system_qubits=[q0, q1])
-    assert noisy_moment[0] == moment
     # Noise applies to both qubits, even if only one is acted upon.
-    assert len(noisy_moment[1]) == 2
-    noisy_choi = cirq.kraus_to_choi(cirq.kraus(noisy_moment[1].operations[0]))
+    assert len(noisy_moment[0]) == 2
+    noisy_choi = cirq.kraus_to_choi(cirq.kraus(noisy_moment[0].operations[0]))
     assert np.allclose(
         noisy_choi,
         [
@@ -223,6 +222,7 @@ def test_noisy_moment_one_qubit():
             [9.91164267e-01, 0, 0, 9.97503434e-01],
         ],
     )
+    assert noisy_moment[1] == moment
 
 
 def test_noise_from_wait():
@@ -242,9 +242,8 @@ def test_noise_from_wait():
     )
     moment = cirq.Moment(cirq.wait(q0, nanos=100))
     noisy_moment = model.noisy_moment(moment, system_qubits=[q0])
-    assert noisy_moment[0] == moment
-    assert len(noisy_moment[1]) == 1
-    noisy_choi = cirq.kraus_to_choi(cirq.kraus(noisy_moment[1].operations[0]))
+    assert len(noisy_moment[0]) == 1
+    noisy_choi = cirq.kraus_to_choi(cirq.kraus(noisy_moment[0].operations[0]))
     assert np.allclose(
         noisy_choi,
         [
@@ -254,6 +253,7 @@ def test_noise_from_wait():
             [9.94515097e-01, 0, 0, 9.90054799e-01],
         ],
     )
+    assert noisy_moment[1] == moment
 
 
 def test_symbolic_times_for_wait_gate():
@@ -288,9 +288,8 @@ def test_noisy_moment_two_qubit():
     gate = cirq.CZ**0.5
     moment = cirq.Moment(gate.on(q0, q1))
     noisy_moment = model.noisy_moment(moment, system_qubits=[q0, q1])
-    assert noisy_moment[0] == moment
-    assert len(noisy_moment[1]) == 2
-    noisy_choi_0 = cirq.kraus_to_choi(cirq.kraus(noisy_moment[1].operations[0]))
+    assert len(noisy_moment[0]) == 2
+    noisy_choi_0 = cirq.kraus_to_choi(cirq.kraus(noisy_moment[0].operations[0]))
     assert np.allclose(
         noisy_choi_0,
         [
@@ -300,7 +299,7 @@ def test_noisy_moment_two_qubit():
             [9.91164267e-01, 0, 0, 9.97503434e-01],
         ],
     )
-    noisy_choi_1 = cirq.kraus_to_choi(cirq.kraus(noisy_moment[1].operations[1]))
+    noisy_choi_1 = cirq.kraus_to_choi(cirq.kraus(noisy_moment[0].operations[1]))
     assert np.allclose(
         noisy_choi_1,
         [
@@ -310,3 +309,4 @@ def test_noisy_moment_two_qubit():
             [9.87330937e-01, 0, 0, 9.95013725e-01],
         ],
     )
+    assert noisy_moment[1] == moment
