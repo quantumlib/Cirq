@@ -3,42 +3,6 @@ import networkx as nx
 import cirq
 
 
-def test_qubit_set_deprecated():
-    class RawDevice(cirq.Device):
-        pass
-
-    with cirq.testing.assert_deprecated('qubit_set', deadline='v0.15'):
-        assert RawDevice().qubit_set() is None
-
-    class QubitFieldDevice(cirq.Device):
-        def __init__(self):
-            self.qubits = cirq.LineQubit.range(3)
-
-    with cirq.testing.assert_deprecated('qubit_set', deadline='v0.15'):
-        assert QubitFieldDevice().qubit_set() == frozenset(cirq.LineQubit.range(3))
-
-    class PrivateQubitFieldDevice(cirq.Device):
-        def __init__(self):
-            self._qubits = cirq.LineQubit.range(4)
-
-    with cirq.testing.assert_deprecated('qubit_set', deadline='v0.15'):
-        assert PrivateQubitFieldDevice().qubit_set() == frozenset(cirq.LineQubit.range(4))
-
-    class QubitMethodDevice(cirq.Device):
-        def qubits(self):
-            return cirq.LineQubit.range(5)
-
-    with cirq.testing.assert_deprecated('qubit_set', deadline='v0.15'):
-        assert QubitMethodDevice().qubit_set() == frozenset(cirq.LineQubit.range(5))
-
-    class PrivateQubitMethodDevice(cirq.Device):
-        def _qubits(self):
-            return cirq.LineQubit.range(6)
-
-    with cirq.testing.assert_deprecated('qubit_set', deadline='v0.15'):
-        assert PrivateQubitMethodDevice().qubit_set() == frozenset(cirq.LineQubit.range(6))
-
-
 def test_decompose_operation_deprecated():
     q0 = cirq.GridQubit(0, 0)
 
