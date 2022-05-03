@@ -43,7 +43,7 @@ TStateVectorStepResult = TypeVar('TStateVectorStepResult', bound='StateVectorSte
 class SimulatesIntermediateStateVector(
     Generic[TStateVectorStepResult],
     simulator_base.SimulatorBase[
-        TStateVectorStepResult, 'cirq.StateVectorTrialResult', 'cirq.ActOnStateVectorArgs',
+        TStateVectorStepResult, 'cirq.StateVectorTrialResult', 'cirq.StateVectorSimulationState',
     ],
     simulator.SimulatesAmplitudes,
     metaclass=abc.ABCMeta,
@@ -69,7 +69,7 @@ class SimulatesIntermediateStateVector(
         self,
         params: 'cirq.ParamResolver',
         measurements: Dict[str, np.ndarray],
-        final_simulator_state: 'cirq.OperationTarget[cirq.ActOnStateVectorArgs]',
+        final_simulator_state: 'cirq.SimulationStateBase[cirq.StateVectorSimulationState]',
     ) -> 'cirq.StateVectorTrialResult':
         return StateVectorTrialResult(
             params=params, measurements=measurements, final_simulator_state=final_simulator_state
@@ -102,7 +102,7 @@ class SimulatesIntermediateStateVector(
 
 
 class StateVectorStepResult(
-    simulator_base.StepResultBase['cirq.ActOnStateVectorArgs'], metaclass=abc.ABCMeta
+    simulator_base.StepResultBase['cirq.StateVectorSimulationState'], metaclass=abc.ABCMeta
 ):
     pass
 
@@ -132,7 +132,7 @@ class StateVectorSimulatorState:
 @value.value_equality(unhashable=True)
 class StateVectorTrialResult(
     state_vector.StateVectorMixin,
-    simulator_base.SimulationTrialResultBase['cirq.ActOnStateVectorArgs'],
+    simulator_base.SimulationTrialResultBase['cirq.StateVectorSimulationState'],
 ):
     """A `SimulationTrialResult` that includes the `StateVectorMixin` methods.
 
@@ -144,7 +144,7 @@ class StateVectorTrialResult(
         self,
         params: 'cirq.ParamResolver',
         measurements: Dict[str, np.ndarray],
-        final_simulator_state: 'cirq.OperationTarget[cirq.ActOnStateVectorArgs]',
+        final_simulator_state: 'cirq.SimulationStateBase[cirq.StateVectorSimulationState]',
     ) -> None:
         super().__init__(
             params=params,

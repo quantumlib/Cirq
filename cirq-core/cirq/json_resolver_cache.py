@@ -64,6 +64,9 @@ def _class_resolver_dictionary() -> Dict[str, ObjectFactory]:
         # timezones, and hour fields will not be identical.
         return datetime.datetime.fromtimestamp(timestamp, tz=datetime.timezone.utc)
 
+    def _symmetricalqidpair(qids):
+        return frozenset(qids)
+
     import sympy
 
     return {
@@ -176,7 +179,6 @@ def _class_resolver_dictionary() -> Dict[str, ObjectFactory]:
         'StabilizerStateChForm': cirq.StabilizerStateChForm,
         'StatePreparationChannel': cirq.StatePreparationChannel,
         'SwapPowGate': cirq.SwapPowGate,
-        'SymmetricalQidPair': cirq.SymmetricalQidPair,
         'SympyCondition': cirq.SympyCondition,
         'TaggedOperation': cirq.TaggedOperation,
         'TiltedSquareLattice': cirq.TiltedSquareLattice,
@@ -204,6 +206,7 @@ def _class_resolver_dictionary() -> Dict[str, ObjectFactory]:
         'IdentityOperation': _identity_operation_from_dict,
         'ParallelGateOperation': _parallel_gate_op,  # Removed in v0.14
         'SingleQubitMatrixGate': single_qubit_matrix_gate,
+        'SymmetricalQidPair': _symmetricalqidpair,  # Removed in v0.15
         'TwoQubitMatrixGate': two_qubit_matrix_gate,
         # not a cirq class, but treated as one:
         'pandas.DataFrame': pd.DataFrame,

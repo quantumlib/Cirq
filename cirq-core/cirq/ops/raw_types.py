@@ -318,8 +318,8 @@ class Gate(metaclass=value.ABCMetaImplementAnyOneOf):
 
         return NotImplemented
 
-    def __call__(self, *args, **kwargs):
-        return self.on(*args, **kwargs)
+    def __call__(self, *qubits: Qid, **kwargs):
+        return self.on(*qubits)
 
     def with_probability(self, probability: 'cirq.TParamVal') -> 'cirq.Gate':
 
@@ -797,10 +797,10 @@ class TaggedOperation(Operation):
             protocols.is_parameterized(tag) for tag in self.tags
         )
 
-    def _act_on_(self, args: 'cirq.OperationTarget') -> bool:
+    def _act_on_(self, sim_state: 'cirq.SimulationStateBase') -> bool:
         sub = getattr(self.sub_operation, "_act_on_", None)
         if sub is not None:
-            return sub(args)
+            return sub(sim_state)
         return NotImplemented
 
     def _parameter_names_(self) -> AbstractSet[str]:

@@ -59,18 +59,18 @@ def test_device_metadata():
     )
     assert d.metadata.qubit_pairs == frozenset(
         {
-            (cirq.GridQubit(0, 0), cirq.GridQubit(0, 1)),
-            (cirq.GridQubit(0, 1), cirq.GridQubit(1, 1)),
-            (cirq.GridQubit(2, 0), cirq.GridQubit(2, 1)),
-            (cirq.GridQubit(0, 0), cirq.GridQubit(1, 0)),
-            (cirq.GridQubit(0, 2), cirq.GridQubit(1, 2)),
-            (cirq.GridQubit(1, 0), cirq.GridQubit(2, 0)),
-            (cirq.GridQubit(1, 0), cirq.GridQubit(1, 1)),
-            (cirq.GridQubit(1, 1), cirq.GridQubit(2, 1)),
-            (cirq.GridQubit(1, 1), cirq.GridQubit(1, 2)),
-            (cirq.GridQubit(0, 1), cirq.GridQubit(0, 2)),
-            (cirq.GridQubit(2, 1), cirq.GridQubit(2, 2)),
-            (cirq.GridQubit(1, 2), cirq.GridQubit(2, 2)),
+            frozenset((cirq.GridQubit(0, 0), cirq.GridQubit(0, 1))),
+            frozenset((cirq.GridQubit(0, 1), cirq.GridQubit(1, 1))),
+            frozenset((cirq.GridQubit(2, 0), cirq.GridQubit(2, 1))),
+            frozenset((cirq.GridQubit(0, 0), cirq.GridQubit(1, 0))),
+            frozenset((cirq.GridQubit(0, 2), cirq.GridQubit(1, 2))),
+            frozenset((cirq.GridQubit(1, 0), cirq.GridQubit(2, 0))),
+            frozenset((cirq.GridQubit(1, 0), cirq.GridQubit(1, 1))),
+            frozenset((cirq.GridQubit(1, 1), cirq.GridQubit(2, 1))),
+            frozenset((cirq.GridQubit(1, 1), cirq.GridQubit(1, 2))),
+            frozenset((cirq.GridQubit(0, 1), cirq.GridQubit(0, 2))),
+            frozenset((cirq.GridQubit(2, 1), cirq.GridQubit(2, 2))),
+            frozenset((cirq.GridQubit(1, 2), cirq.GridQubit(2, 2))),
         }
     )
 

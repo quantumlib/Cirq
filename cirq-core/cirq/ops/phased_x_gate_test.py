@@ -186,6 +186,22 @@ def test_parameterize(resolve_fn, global_shift):
     assert cirq.is_parameterized(unparameterized_gate ** sympy.Symbol('a'))
     assert cirq.is_parameterized(unparameterized_gate ** (sympy.Symbol('a') + 1))
 
+    resolver = {'a': 0.5j}
+    with pytest.raises(ValueError, match='complex value'):
+        resolve_fn(
+            cirq.PhasedXPowGate(
+                exponent=sympy.Symbol('a'), phase_exponent=0.2, global_shift=global_shift
+            ),
+            resolver,
+        )
+    with pytest.raises(ValueError, match='complex value'):
+        resolve_fn(
+            cirq.PhasedXPowGate(
+                exponent=0.1, phase_exponent=sympy.Symbol('a'), global_shift=global_shift
+            ),
+            resolver,
+        )
+
 
 def test_trace_bound():
     assert (
