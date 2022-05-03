@@ -279,7 +279,7 @@ class SimulatorBase(
                 measurement_ops, repetitions, seed=self._prng, _allow_repeated=True
             )
 
-        records: Dict['cirq.MeasurementKey', List[np.ndarray]] = {}
+        records: Dict['cirq.MeasurementKey', List[Sequence[Sequence[int]]]] = {}
         for i in range(repetitions):
             for step_result in self._core_iterator(
                 general_suffix,
@@ -291,17 +291,18 @@ class SimulatorBase(
             for k, r in step_result._classical_data.records.items():
                 if k not in records:
                     records[k] = []
-                records[k].append(np.array(r, dtype=np.uint8))
+                records[k].append(r)
             for k, cr in step_result._classical_data.channel_records.items():
                 if k not in records:
                     records[k] = []
-                records[k].append(np.array([cr], dtype=np.uint8))
+                records[k].append([cr])
 
-        def pad_evenly(results: Sequence[np.ndarray]):
-            largest = max([result.shape[0] for result in results])
-            return np.array(
-                [np.pad(result, ((0, largest - result.shape[0]), (0, 0))) for result in results]
-            )
+        def pad_evenly(results: Sequence[Sequence[Sequence[int]]]):
+            largest = max(len(result) for result in results)
+            xs = np.zeros((len(results), largest, len(results[0][0])), dtype=np.uint8)
+            for i, result in enumerate(results):
+                xs[i, 0 : len(result), :] = result
+            return xs
 
         return {str(k): pad_evenly(v) for k, v in records.items()}
 
