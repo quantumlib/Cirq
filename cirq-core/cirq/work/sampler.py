@@ -329,7 +329,9 @@ class Sampler(metaclass=abc.ABCMeta):
 
         # Flatten Circuit Sweep into one big list of Params.
         # Keep track of their indices so we can map back.
-        flat_params = [pr.param_dict for pr in study.to_resolvers(params)]
+        flat_params: List['cirq.ParamDictType'] = [
+            pr.param_dict for pr in study.to_resolvers(params)
+        ]
         circuit_param_to_sweep_i: Dict[FrozenSet[Tuple[str, Union[int, Tuple[int, int]]]], int] = {
             _hashable_param(param.items()): i for i, param in enumerate(flat_params)
         }

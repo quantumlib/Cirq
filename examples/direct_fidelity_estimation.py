@@ -369,7 +369,7 @@ def direct_fidelity_estimation(
     clifford_tableau = cirq.CliffordTableau(n_qubits)
     try:
         for gate in circuit.all_operations():
-            tableau_args = clifford.ActOnCliffordTableauArgs(
+            tableau_args = clifford.CliffordTableauSimulationState(
                 tableau=clifford_tableau, qubits=qubits
             )
             cirq.act_on(gate, tableau_args)

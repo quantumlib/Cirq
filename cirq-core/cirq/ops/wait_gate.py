@@ -136,10 +136,10 @@ class WaitGate(raw_types.Gate):
 def wait(
     *target: 'cirq.Qid',
     duration: 'cirq.DURATION_LIKE' = None,
-    picos: Union[int, float, sympy.Basic] = 0,
-    nanos: Union[int, float, sympy.Basic] = 0,
-    micros: Union[int, float, sympy.Basic] = 0,
-    millis: Union[int, float, sympy.Basic] = 0,
+    picos: Union[int, float, sympy.Expr] = 0,
+    nanos: Union[int, float, sympy.Expr] = 0,
+    micros: Union[int, float, sympy.Expr] = 0,
+    millis: Union[int, float, sympy.Expr] = 0,
 ) -> raw_types.Operation:
     """Creates a WaitGate applied to all the given qubits.
 

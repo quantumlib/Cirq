@@ -25,7 +25,7 @@ from cirq.linalg.tolerance import near_zero_mod
 
 
 def is_negligible_turn(turns: float, tolerance: float) -> bool:
-    if isinstance(turns, sympy.Basic):
+    if isinstance(turns, sympy.Expr):
         if not turns.is_constant():
             return False
         turns = float(turns)

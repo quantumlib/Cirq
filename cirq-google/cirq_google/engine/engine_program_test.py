@@ -245,11 +245,13 @@ def test_run_in_batch_mode():
 @mock.patch('cirq_google.engine.engine_client.EngineClient.get_job_results')
 @mock.patch('cirq_google.engine.engine_client.EngineClient.create_job')
 def test_run_delegation(create_job, get_results):
+    dt = datetime.datetime.now(tz=datetime.timezone.utc)
     create_job.return_value = (
         'steve',
         quantum.QuantumJob(
             name='projects/a/programs/b/jobs/steve',
             execution_status=quantum.ExecutionStatus(state=quantum.ExecutionStatus.State.SUCCESS),
+            update_time=dt,
         ),
     )
     get_results.return_value = quantum.QuantumResult(
@@ -287,9 +289,11 @@ def test_run_delegation(create_job, get_results):
         job_id='steve', repetitions=10, param_resolver=param_resolver, processor_ids=['mine']
     )
 
-    assert results == cirq.ResultDict(
+    assert results == cg.EngineResult(
         params=cirq.ParamResolver({'a': 1.0}),
         measurements={'q': np.array([[False], [True], [True], [False]], dtype=bool)},
+        job_id='steve',
+        job_finished_time=dt,
     )
 
 

@@ -39,6 +39,7 @@ def _class_resolver_dictionary() -> Dict[str, ObjectFactory]:
         'FloquetPhasedFSimCalibrationRequest': cirq_google.FloquetPhasedFSimCalibrationRequest,
         'PhasedFSimCalibrationResult': cirq_google.PhasedFSimCalibrationResult,
         'PhasedFSimCharacterization': cirq_google.PhasedFSimCharacterization,
+        'SycamoreTargetGateset': cirq_google.SycamoreTargetGateset,
         'XEBPhasedFSimCalibrationOptions': cirq_google.XEBPhasedFSimCalibrationOptions,
         'XEBPhasedFSimCalibrationRequest': cirq_google.XEBPhasedFSimCalibrationRequest,
         'LocalXEBPhasedFSimCalibrationOptions': cirq_google.LocalXEBPhasedFSimCalibrationOptions,
@@ -64,4 +65,5 @@ def _class_resolver_dictionary() -> Dict[str, ObjectFactory]:
         'cirq.google.SimulatedProcessorWithLocalDeviceRecord': cirq_google.SimulatedProcessorWithLocalDeviceRecord,
         'cirq.google.HardcodedQubitPlacer': cirq_google.HardcodedQubitPlacer,
         # pylint: enable=line-too-long
+        'cirq.google.EngineResult': cirq_google.EngineResult,
     }

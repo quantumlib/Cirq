@@ -22,7 +22,7 @@ import pytest
 
 import cirq
 from cirq import study
-from cirq.sim.act_on_args import TActOnArgs
+from cirq.sim.simulation_state import TSimulationState
 from cirq.sim.simulator import (
     TStepResult,
     SimulatesAmplitudes,
@@ -63,8 +63,8 @@ class FakeStepResult(cirq.StepResult):
 
 
 class SimulatesIntermediateStateImpl(
-    Generic[TStepResult, TActOnArgs],
-    SimulatesIntermediateState[TStepResult, 'SimulationTrialResult', TActOnArgs],
+    Generic[TStepResult, TSimulationState],
+    SimulatesIntermediateState[TStepResult, 'SimulationTrialResult', TSimulationState],
     metaclass=abc.ABCMeta,
 ):
     """A SimulatesIntermediateState that uses the default SimulationTrialResult type."""
@@ -73,7 +73,7 @@ class SimulatesIntermediateStateImpl(
         self,
         params: study.ParamResolver,
         measurements: Dict[str, np.ndarray],
-        final_simulator_state: 'cirq.OperationTarget[TActOnArgs]',
+        final_simulator_state: 'cirq.SimulationStateBase[TSimulationState]',
     ) -> 'SimulationTrialResult':
         """This method creates a default trial result.
 
@@ -389,29 +389,12 @@ def test_sample_repeated_measurement_keys():
 
 
 def test_simulate_with_invert_mask():
-    class PlusGate(cirq.Gate):
-        """A qudit gate that increments a qudit state mod its dimension."""
-
-        def __init__(self, dimension, increment=1):
-            self.dimension = dimension
-            self.increment = increment % dimension
-
-        def _qid_shape_(self):
-            return (self.dimension,)
-
-        def _unitary_(self):
-            inc = (self.increment - 1) % self.dimension + 1
-            u = np.empty((self.dimension, self.dimension))
-            u[inc:] = np.eye(self.dimension)[:-inc]
-            u[:inc] = np.eye(self.dimension)[-inc:]
-            return u
-
     q0, q1, q2, q3, q4 = cirq.LineQid.for_qid_shape((2, 3, 3, 3, 4))
     c = cirq.Circuit(
-        PlusGate(2, 1)(q0),
-        PlusGate(3, 1)(q2),
-        PlusGate(3, 2)(q3),
-        PlusGate(4, 3)(q4),
+        cirq.XPowGate(dimension=2)(q0),
+        cirq.XPowGate(dimension=3)(q2),
+        cirq.XPowGate(dimension=3)(q3) ** 2,
+        cirq.XPowGate(dimension=4)(q4) ** 3,
         cirq.measure(q0, q1, q2, q3, q4, key='a', invert_mask=(True,) * 4),
     )
     assert np.all(cirq.Simulator().run(c).measurements['a'] == [[0, 1, 0, 2, 3]])
@@ -556,3 +539,19 @@ def test_trial_result_initializer():
     assert x._final_simulator_state == 3
     x = SimulationTrialResult(resolver, {}, final_simulator_state=state)
     assert x._final_simulator_state == 3
+
+
+def test_deprecated_create_act_on_args():
+    class DeprecatedSim(cirq.SimulatesIntermediateState):
+        def _create_act_on_args(self, initial_state, qubits):
+            return 0
+
+        def _core_iterator(self, circuit, sim_state):
+            pass
+
+        def _create_simulator_trial_result(self):
+            pass
+
+    sim = DeprecatedSim()
+    with cirq.testing.assert_deprecated(deadline='v0.16'):
+        sim.simulate_moment_steps(cirq.Circuit())

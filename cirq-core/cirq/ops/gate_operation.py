@@ -123,7 +123,6 @@ class GateOperation(raw_types.Operation):
                 return result
         gate_repr = repr(self.gate)
         qubit_args_repr = ', '.join(repr(q) for q in self.qubits)
-        assert type(self.gate).__call__ == raw_types.Gate.__call__
 
         # Abbreviate when possible.
         dont_need_on = re.match(r'^[a-zA-Z0-9.()]+$', gate_repr)
@@ -254,10 +253,10 @@ class GateOperation(raw_types.Operation):
             return getter()
         return NotImplemented
 
-    def _act_on_(self, args: 'cirq.OperationTarget'):
+    def _act_on_(self, sim_state: 'cirq.SimulationStateBase'):
         getter = getattr(self.gate, '_act_on_', None)
         if getter is not None:
-            return getter(args, self.qubits)
+            return getter(sim_state, self.qubits)
         return NotImplemented
 
     def _is_parameterized_(self) -> bool:
