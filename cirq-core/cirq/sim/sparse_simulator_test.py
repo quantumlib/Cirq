@@ -551,6 +551,17 @@ def test_simulate_moment_steps(dtype: Type[np.number], split: bool):
             np.testing.assert_almost_equal(step.state_vector(copy=True), np.array([1, 0, 0, 0]))
 
 
+def test_simulate_moment_steps_implicit_copy_deprecated():
+    q0 = cirq.LineQubit(0)
+    simulator = cirq.Simulator()
+    steps = list(simulator.simulate_moment_steps(cirq.Circuit(cirq.X(q0))))
+
+    with cirq.testing.assert_deprecated(
+        "state_vector will not copy the state by default", deadline="v0.16"
+    ):
+        _ = steps[0].state_vector()
+
+
 @pytest.mark.parametrize('dtype', [np.complex64, np.complex128])
 @pytest.mark.parametrize('split', [True, False])
 def test_simulate_moment_steps_empty_circuit(dtype: Type[np.number], split: bool):
