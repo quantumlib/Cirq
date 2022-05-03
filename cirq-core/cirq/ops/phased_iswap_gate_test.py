@@ -25,9 +25,11 @@ np.set_printoptions(linewidth=300)
 def test_phased_iswap_init():
     p = -0.25
     t = 0.75
-    gate = cirq.PhasedISwapPowGate(phase_exponent=p, exponent=t)
+    s = 0.5
+    gate = cirq.PhasedISwapPowGate(phase_exponent=p, exponent=t, global_shift=s)
     assert gate.phase_exponent == p
     assert gate.exponent == t
+    assert gate.global_shift == s
 
 
 def test_phased_iswap_equality():
@@ -37,7 +39,8 @@ def test_phased_iswap_equality():
 def test_repr():
     p = -0.25
     t = 0.75
-    gate = cirq.PhasedISwapPowGate(phase_exponent=p, exponent=t)
+    s = 0.3
+    gate = cirq.PhasedISwapPowGate(phase_exponent=p, exponent=t, global_shift=s)
     cirq.testing.assert_equivalent_repr(gate)
 
 
@@ -77,6 +80,10 @@ def test_phased_iswap_equivalent_circuit():
 def test_phased_iswap_str():
     assert str(cirq.PhasedISwapPowGate(exponent=1)) == 'PhasedISWAP'
     assert str(cirq.PhasedISwapPowGate(exponent=0.5)) == 'PhasedISWAP**0.5'
+    assert (
+        str(cirq.PhasedISwapPowGate(exponent=0.5, global_shift=0.5))
+        == 'PhasedISWAP(exponent=0.5, global_shift=0.5)'
+    )
 
 
 def test_phased_iswap_pow():

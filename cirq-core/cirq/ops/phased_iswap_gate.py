@@ -63,7 +63,7 @@ class PhasedISwapPowGate(eigen_gate.EigenGate):
                 the T gate by default.
             exponent: The exponent on the ISWAP gate, see EigenGate for
                 details.
-            global_shift: The global_shift on the PhasedISwapPowGate gate, see EigenGate for
+            global_shift: The global_shift on the ISWAP gate, see EigenGate for
                 details.
         """
         self._phase_exponent = value.canonicalize_half_turns(phase_exponent)
@@ -182,9 +182,11 @@ class PhasedISwapPowGate(eigen_gate.EigenGate):
         )
 
     def __str__(self) -> str:
-        if self.exponent == 1:
-            return 'PhasedISWAP'
-        return f'PhasedISWAP**{self.exponent}'
+        if self._global_shift == 0:
+            if self.exponent == 1:
+                return 'PhasedISWAP'
+            return f'PhasedISWAP**{self.exponent}'
+        return f'PhasedISWAP(exponent={self._exponent}, global_shift={self._global_shift!r})'
 
     def __repr__(self) -> str:
         phase_exponent = proper_repr(self._phase_exponent)
@@ -192,6 +194,8 @@ class PhasedISwapPowGate(eigen_gate.EigenGate):
         if self.exponent != 1:
             exponent = proper_repr(self.exponent)
             args.append(f'exponent={exponent}')
+        if self._global_shift != 0:
+            args.append(f'global_shift={self._global_shift}')
         arg_string = ', '.join(args)
         return f'cirq.PhasedISwapPowGate({arg_string})'
 
