@@ -140,7 +140,7 @@ def test_state_vector_trial_state_vector_is_copy():
     trial_result = cirq.StateVectorTrialResult(
         params=cirq.ParamResolver({}), measurements={}, final_simulator_state=final_simulator_state
     )
-    assert trial_result.state_vector() is not final_simulator_state.target_tensor
+    assert trial_result.state_vector(copy=True) is not final_simulator_state.target_tensor
 
 
 def test_str_big():

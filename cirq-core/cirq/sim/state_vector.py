@@ -57,7 +57,7 @@ class StateVectorMixin:
         return self._qid_shape
 
     @abc.abstractmethod
-    def state_vector(self) -> np.ndarray:
+    def state_vector(self, copy: Optional[bool] = False) -> np.ndarray:
         """Return the state vector (wave function).
 
         The vector is returned in the computational basis with these basis
@@ -83,6 +83,12 @@ class StateVectorMixin:
                 |  6  |   1    |   1    |   0    |
                 |  7  |   1    |   1    |   1    |
 
+        Args:
+            copy: If True, the returned state vector will be a copy of that
+            stored by the object. This is potentially expensive for large
+            state vectors, but prevents mutation of the object state, e.g. for
+            operating on intermediate states of a circuit.
+            Defaults to False.
         """
         raise NotImplementedError()
 
@@ -95,19 +101,21 @@ class StateVectorMixin:
         Returns:
             A pretty string consisting of a sum of computational basis kets
             and non-zero floats of the specified accuracy."""
-        return qis.dirac_notation(self.state_vector(), decimals, qid_shape=self._qid_shape)
+        return qis.dirac_notation(
+            self.state_vector(copy=False), decimals, qid_shape=self._qid_shape
+        )
 
     def density_matrix_of(self, qubits: List['cirq.Qid'] = None) -> np.ndarray:
         r"""Returns the density matrix of the state.
 
         Calculate the density matrix for the system on the list, qubits.
-        Any qubits not in the list that are present in self.state_vector() will
+        Any qubits not in the list that are present in self.state_vector(copy=False) will
         be traced out. If qubits is None the full density matrix for
-        self.state_vector() is returned, given self.state_vector() follows
+        self.state_vector(copy=False) is returned, given self.state_vector(copy=False) follows
         standard Kronecker convention of numpy.kron.
 
         For example:
-        self.state_vector() = np.array([1/np.sqrt(2), 1/np.sqrt(2)],
+        self.state_vector(copy=False) = np.array([1/np.sqrt(2), 1/np.sqrt(2)],
             dtype=np.complex64)
         qubits = None
         gives us
@@ -132,7 +140,7 @@ class StateVectorMixin:
                 corresponding to the state.
         """
         return qis.density_matrix_from_state_vector(
-            self.state_vector(),
+            self.state_vector(copy=False),
             [self.qubit_map[q] for q in qubits] if qubits is not None else None,
             qid_shape=self._qid_shape,
         )
@@ -141,8 +149,8 @@ class StateVectorMixin:
         """Returns the bloch vector of a qubit in the state.
 
         Calculates the bloch vector of the given qubit
-        in the state given by self.state_vector(), given that
-        self.state_vector() follows the standard Kronecker convention of
+        in the state given by self.state_vector(copy=False), given that
+        self.state_vector(copy=False) follows the standard Kronecker convention of
         numpy.kron.
 
         Args:
@@ -157,7 +165,7 @@ class StateVectorMixin:
                 corresponding to the state.
         """
         return qis.bloch_vector_from_state_vector(
-            self.state_vector(), self.qubit_map[qubit], qid_shape=self._qid_shape
+            self.state_vector(copy=False), self.qubit_map[qubit], qid_shape=self._qid_shape
         )
 
 

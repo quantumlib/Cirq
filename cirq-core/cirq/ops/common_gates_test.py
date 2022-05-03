@@ -1131,7 +1131,7 @@ def test_xpow_dim_3():
 
     sim = cirq.Simulator()
     circuit = cirq.Circuit([x(cirq.LineQid(0, 3)) ** 0.5] * 6)
-    svs = [step.state_vector() for step in sim.simulate_moment_steps(circuit)]
+    svs = [step.state_vector(copy=True) for step in sim.simulate_moment_steps(circuit)]
     # fmt: off
     expected = [
         [0.67, 0.67, 0.33],
@@ -1159,7 +1159,7 @@ def test_xpow_dim_4():
 
     sim = cirq.Simulator()
     circuit = cirq.Circuit([x(cirq.LineQid(0, 4)) ** 0.5] * 8)
-    svs = [step.state_vector() for step in sim.simulate_moment_steps(circuit)]
+    svs = [step.state_vector(copy=True) for step in sim.simulate_moment_steps(circuit)]
     # fmt: off
     expected = [
         [0.65, 0.65, 0.27, 0.27],
@@ -1190,11 +1190,15 @@ def test_zpow_dim_3():
 
     sim = cirq.Simulator()
     circuit = cirq.Circuit([z(cirq.LineQid(0, 3)) ** 0.5] * 6)
-    svs = [step.state_vector() for step in sim.simulate_moment_steps(circuit, initial_state=0)]
+    svs = [
+        step.state_vector(copy=True) for step in sim.simulate_moment_steps(circuit, initial_state=0)
+    ]
     expected = [[1, 0, 0]] * 6
     assert np.allclose((svs), expected)
 
-    svs = [step.state_vector() for step in sim.simulate_moment_steps(circuit, initial_state=1)]
+    svs = [
+        step.state_vector(copy=True) for step in sim.simulate_moment_steps(circuit, initial_state=1)
+    ]
     # fmt: off
     expected = [
         [0, L**0.5, 0],
@@ -1207,7 +1211,9 @@ def test_zpow_dim_3():
     # fmt: on
     assert np.allclose((svs), expected)
 
-    svs = [step.state_vector() for step in sim.simulate_moment_steps(circuit, initial_state=2)]
+    svs = [
+        step.state_vector(copy=True) for step in sim.simulate_moment_steps(circuit, initial_state=2)
+    ]
     # fmt: off
     expected = [
         [0, 0, L],
@@ -1235,11 +1241,15 @@ def test_zpow_dim_4():
 
     sim = cirq.Simulator()
     circuit = cirq.Circuit([z(cirq.LineQid(0, 4)) ** 0.5] * 8)
-    svs = [step.state_vector() for step in sim.simulate_moment_steps(circuit, initial_state=0)]
+    svs = [
+        step.state_vector(copy=True) for step in sim.simulate_moment_steps(circuit, initial_state=0)
+    ]
     expected = [[1, 0, 0, 0]] * 8
     assert np.allclose((svs), expected)
 
-    svs = [step.state_vector() for step in sim.simulate_moment_steps(circuit, initial_state=1)]
+    svs = [
+        step.state_vector(copy=True) for step in sim.simulate_moment_steps(circuit, initial_state=1)
+    ]
     # fmt: off
     expected = [
         [0, 1j**0.5, 0, 0],
@@ -1254,7 +1264,9 @@ def test_zpow_dim_4():
     # fmt: on
     assert np.allclose(svs, expected)
 
-    svs = [step.state_vector() for step in sim.simulate_moment_steps(circuit, initial_state=2)]
+    svs = [
+        step.state_vector(copy=True) for step in sim.simulate_moment_steps(circuit, initial_state=2)
+    ]
     # fmt: off
     expected = [
         [0, 0, 1j, 0],
@@ -1269,7 +1281,9 @@ def test_zpow_dim_4():
     # fmt: on
     assert np.allclose(svs, expected)
 
-    svs = [step.state_vector() for step in sim.simulate_moment_steps(circuit, initial_state=3)]
+    svs = [
+        step.state_vector(copy=True) for step in sim.simulate_moment_steps(circuit, initial_state=3)
+    ]
     # fmt: off
     expected = [
         [0, 0, 0, 1j**1.5],
