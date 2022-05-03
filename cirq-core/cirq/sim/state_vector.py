@@ -109,13 +109,13 @@ class StateVectorMixin:
         r"""Returns the density matrix of the state.
 
         Calculate the density matrix for the system on the list, qubits.
-        Any qubits not in the list that are present in self.state_vector(copy=False) will
+        Any qubits not in the list that are present in self.state_vector() will
         be traced out. If qubits is None the full density matrix for
-        self.state_vector(copy=False) is returned, given self.state_vector(copy=False) follows
+        self.state_vector() is returned, given self.state_vector() follows
         standard Kronecker convention of numpy.kron.
 
         For example:
-        self.state_vector(copy=False) = np.array([1/np.sqrt(2), 1/np.sqrt(2)],
+        self.state_vector() = np.array([1/np.sqrt(2), 1/np.sqrt(2)],
             dtype=np.complex64)
         qubits = None
         gives us
@@ -149,8 +149,8 @@ class StateVectorMixin:
         """Returns the bloch vector of a qubit in the state.
 
         Calculates the bloch vector of the given qubit
-        in the state given by self.state_vector(copy=False), given that
-        self.state_vector(copy=False) follows the standard Kronecker convention of
+        in the state given by self.state_vector(), given that
+        self.state_vector() follows the standard Kronecker convention of
         numpy.kron.
 
         Args:
