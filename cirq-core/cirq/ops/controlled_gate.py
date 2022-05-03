@@ -74,7 +74,7 @@ class ControlledGate(raw_types.Gate):
 
         Raises:
             ValueError: If the `control_values` or `control_qid_shape` does not
-                match with `num_conrols`, if the `control_values` are out of
+                match with `num_controls`, if the `control_values` are out of
                 bounds, or if the sub_gate is not a unitary or mixture.
         """
         _validate_sub_object(sub_gate)
@@ -337,4 +337,4 @@ def _validate_sub_object(sub_object: Union['cirq.Gate', 'cirq.Operation']):
     if protocols.is_measurement(sub_object):
         raise ValueError(f'Cannot control measurement {sub_object}')
     if not protocols.has_mixture(sub_object) and not protocols.is_parameterized(sub_object):
-        raise ValueError(f'Cannot control channel {sub_object}')
+        raise ValueError(f'Cannot control channel with non-unitary operators: {sub_object}')
