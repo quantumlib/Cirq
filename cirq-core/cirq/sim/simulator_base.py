@@ -110,8 +110,20 @@ class SimulatorBase(
         """
         self._dtype = dtype
         self._prng = value.parse_random_state(seed)
-        self.noise = devices.NoiseModel.from_noise_model_like(noise)
+        self._noise = devices.NoiseModel.from_noise_model_like(noise)
         self._split_untangled_states = split_untangled_states
+
+    @property
+    def noise(self) -> 'cirq.NoiseModel':
+        return self._noise
+
+    @noise.setter  # type: ignore
+    @_compat.deprecated(
+        deadline="v0.16",
+        fix="The mutators of this class are deprecated, instantiate a new object instead.",
+    )
+    def noise(self, noise: 'cirq.NoiseModel'):
+        self._noise = noise
 
     def _create_partial_act_on_args(
         self,
