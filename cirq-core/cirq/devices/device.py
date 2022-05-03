@@ -13,7 +13,7 @@
 # limitations under the License.
 
 import abc
-from typing import TYPE_CHECKING, Optional, AbstractSet, FrozenSet, Iterable
+from typing import TYPE_CHECKING, Optional, FrozenSet, Iterable
 import networkx as nx
 from cirq import _compat, value
 
@@ -23,31 +23,6 @@ if TYPE_CHECKING:
 
 class Device(metaclass=abc.ABCMeta):
     """Hardware constraints for validating circuits."""
-
-    @_compat.deprecated(fix='Use metadata.qubit_set if applicable.', deadline='v0.15')
-    def qubit_set(self) -> Optional[AbstractSet['cirq.Qid']]:
-        """Returns a set or frozenset of qubits on the device, if possible.
-
-        Returns:
-            If the device has a finite set of qubits, then a set or frozen set
-            of all qubits on the device is returned.
-
-            If the device has no well defined finite set of qubits (e.g.
-            `cirq.UnconstrainedDevice` has this property), then `None` is
-            returned.
-        """
-
-        # Compatibility hack to work with devices that were written before this
-        # method was defined.
-        for name in ['qubits', '_qubits']:
-            if hasattr(self, name):
-                val = getattr(self, name)
-                if callable(val):
-                    val = val()
-                return frozenset(val)
-
-        # Default to the qubits being unknown.
-        return None
 
     @_compat.deprecated(deadline='v0.15', fix='Devices will no longer decompose operations.')
     def decompose_operation(self, operation: 'cirq.Operation') -> 'cirq.OP_TREE':

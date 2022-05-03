@@ -525,9 +525,10 @@ class Gateset:
 
     def __repr__(self) -> str:
         name_str = f'name = "{self.name}", ' if self.name is not None else ''
+        gates_str = f'{self._gates_repr_str}, ' if len(self._gates_repr_str) > 0 else ''
         return (
             f'cirq.Gateset('
-            f'{self._gates_repr_str}, '
+            f'{gates_str}'
             f'{name_str}'
             f'unroll_circuit_op = {self._unroll_circuit_op})'
         )

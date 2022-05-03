@@ -50,6 +50,25 @@ class ControlledOperation(raw_types.Operation):
         sub_operation: 'cirq.Operation',
         control_values: Optional[Sequence[Union[int, Collection[int]]]] = None,
     ):
+        """Initializes the controlled operation.
+
+        Args:
+            controls: The qubits that control the sub-operation.
+            sub_operation: The operation that will be controlled.
+            control_values: Which control qubit values to apply the sub
+                operation.  A sequence of length `num_controls` where each
+                entry is an integer (or set of integers) corresponding to the
+                qubit value (or set of possible values) where that control is
+                enabled.  When all controls are enabled, the sub gate is
+                applied.  If unspecified, control values default to 1.
+
+        Raises:
+            ValueError: If the `control_values` or `control_qid_shape` does not
+                match the number of qubits, if the `control_values` are out of
+                bounds, if the qubits overlap, or if the sub_operation is not a
+                unitary or mixture.
+        """
+        controlled_gate._validate_sub_object(sub_operation)
         if control_values is None:
             control_values = ((1,),) * len(controls)
         if len(control_values) != len(controls):
