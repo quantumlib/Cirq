@@ -178,7 +178,8 @@ class MysteryOperation(cirq.Operation):
 
 
 class MysteryGate(cirq.testing.SingleQubitGate):
-    pass
+    def _has_mixture_(self):
+        return True
 
 
 def test_various_unknown_gate_types():
