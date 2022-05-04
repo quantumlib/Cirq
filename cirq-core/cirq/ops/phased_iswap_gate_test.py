@@ -33,10 +33,13 @@ def test_phased_iswap_init():
 
 
 def test_phased_iswap_equality():
-    assert cirq.PhasedISwapPowGate(phase_exponent=0, exponent=0.4) == cirq.ISWAP**0.4
-    assert (
-        cirq.PhasedISwapPowGate(phase_exponent=0, exponent=0.4, global_shift=0.3)
-        == cirq.ISwapPowGate(global_shift=0.3) ** 0.4
+    eq = cirq.testing.EqualsTester()
+    eq.add_equality_group(
+        cirq.PhasedISwapPowGate(phase_exponent=0, exponent=0.4), cirq.ISWAP**0.4
+    )
+    eq.add_equality_group(
+        cirq.PhasedISwapPowGate(phase_exponent=0, exponent=0.4, global_shift=0.3),
+        cirq.ISwapPowGate(global_shift=0.3) ** 0.4,
     )
 
 
