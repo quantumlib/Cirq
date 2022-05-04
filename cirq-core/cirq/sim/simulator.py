@@ -684,10 +684,9 @@ class SimulatesIntermediateState(
             StepResults from simulating a Moment of the Circuit.
         """
         qubits = ops.QubitOrder.as_qubit_order(qubit_order).order_for(circuit.all_qubits())
-        sim_state = self._create_act_on_args(initial_state, qubits)
+        sim_state = self._create_simulation_state(initial_state, qubits)
         return self._core_iterator(circuit, sim_state)
 
-    @abc.abstractmethod
     def _create_act_on_args(
         self, initial_state: Any, qubits: Sequence['cirq.Qid']
     ) -> TSimulatorState:
@@ -706,6 +705,36 @@ class SimulatesIntermediateState(
         Returns:
             The `TSimulatorState` for this simulator.
         """
+        raise NotImplementedError()
+
+    def _create_simulation_state(
+        self, initial_state: Any, qubits: Sequence['cirq.Qid']
+    ) -> TSimulatorState:
+        """Creates the state for a simulator.
+
+        Custom simulators should implement this method.
+
+        Args:
+            initial_state: The initial state for the simulation. The form of
+                this state depends on the simulation implementation. See
+                documentation of the implementing class for details.
+            qubits: Determines the canonical ordering of the qubits. This
+                is often used in specifying the initial state, i.e. the
+                ordering of the computational basis states.
+
+        Returns:
+            The `TSimulatorState` for this simulator.
+        """
+        _compat._warn_or_error(
+            '`_create_act_on_args` has been renamed to `_create_simulation_state` in the'
+            ' SimulatesIntermediateState interface, so simulators need to rename that method'
+            f' implementation as well before v0.16. {type(self)}'
+            ' has no `_create_simulation_state` method, so falling back to `_create_act_on_args`.'
+            ' This fallback functionality will be removed in v0.16.'
+        )
+        # When cleaning this up in v0.16, mark `_create_simulation_state` as @abc.abstractmethod,
+        # remove this implementation, and delete `_create_act_on_args` entirely.
+        return self._create_act_on_args(initial_state, qubits)
 
     @abc.abstractmethod
     def _core_iterator(

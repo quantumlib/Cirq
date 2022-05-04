@@ -378,7 +378,7 @@ def test_step_result_bloch_vector():
 
 
 def test_factor_validation():
-    args = cirq.Simulator()._create_act_on_args(0, qubits=cirq.LineQubit.range(2))
+    args = cirq.Simulator()._create_simulation_state(0, qubits=cirq.LineQubit.range(2))
     args.apply_operation(cirq.H(cirq.LineQubit(0)) ** 0.7)
     t = args.create_merged_state().target_tensor
     cirq.linalg.transformations.factor_state_vector(t, [0])
