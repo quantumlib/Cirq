@@ -156,7 +156,7 @@ class PhasedISwapPowGate(eigen_gate.EigenGate):
 
         yield cirq.Z(a) ** self.phase_exponent
         yield cirq.Z(b) ** -self.phase_exponent
-        yield cirq.ISwapPowGate(global_shift=self.global_shift).on(a, b) ** self.exponent
+        yield cirq.ISwapPowGate(exponent=self.exponent, global_shift=self.global_shift).on(a, b)
         yield cirq.Z(a) ** -self.phase_exponent
         yield cirq.Z(b) ** self.phase_exponent
 
