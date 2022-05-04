@@ -80,6 +80,16 @@ def _create_device_spec_with_all_couplings():
     return grid_qubits, spec
 
 
+def _create_device_spec_duplicate_qubit() -> v2.device_pb2.DeviceSpecification:
+    """Creates a DeviceSpecification with a qubit name that does not conform to '<int>_<int>'."""
+    q_proto_id = v2.qubit_to_proto_id(cirq.GridQubit(0, 0))
+
+    spec = v2.device_pb2.DeviceSpecification()
+    spec.valid_qubits.extend([q_proto_id, q_proto_id])
+
+    return spec
+
+
 def _create_device_spec_invalid_qubit_name() -> v2.device_pb2.DeviceSpecification:
     """Creates a DeviceSpecification with a qubit name that does not conform to '<int>_<int>'."""
     q_proto_id = v2.qubit_to_proto_id(cirq.NamedQubit('q0_0'))
@@ -181,24 +191,19 @@ def test_grid_device_validate_operations_negative():
     # TODO(#5050) verify validate_operations gateset errors
 
 
-def test_grid_device_invalid_qubit_name():
-    with pytest.raises(ValueError, match='not in the GridQubit form'):
-        cirq_google.GridDevice.from_proto(_create_device_spec_invalid_qubit_name())
-
-
-def test_grid_device_invalid_qubit_in_qubit_pair():
-    with pytest.raises(ValueError, match='which is not in valid_qubits'):
-        cirq_google.GridDevice.from_proto(_create_device_spec_invalid_qubit_in_qubit_pair())
-
-
-def test_grid_device_invalid_target_self_loops():
-    with pytest.raises(ValueError, match='contains repeated qubits'):
-        cirq_google.GridDevice.from_proto(_create_device_spec_qubit_pair_self_loops())
-
-
-def test_grid_device_invalid_subset_permutation_target():
-    with pytest.raises(ValueError, match='does not have exactly 1 qubit'):
-        cirq_google.GridDevice.from_proto(_create_device_spec_invalid_subset_permutation_target())
+@pytest.mark.parametrize(
+    'spec, error_match',
+    [
+        (_create_device_spec_duplicate_qubit(), 'duplicate qubit'),
+        (_create_device_spec_invalid_qubit_name(), 'not in the GridQubit form'),
+        (_create_device_spec_invalid_qubit_in_qubit_pair(), 'which is not in valid_qubits'),
+        (_create_device_spec_qubit_pair_self_loops(), 'contains repeated qubits'),
+        (_create_device_spec_invalid_subset_permutation_target(), 'does not have exactly 1 qubit'),
+    ],
+)
+def test_grid_device_invalid_device_specification(spec, error_match):
+    with pytest.raises(ValueError, match=error_match):
+        cirq_google.GridDevice.from_proto(spec)
 
 
 def test_grid_device_repr_json():

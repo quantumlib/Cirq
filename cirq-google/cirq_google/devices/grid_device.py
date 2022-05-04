@@ -31,13 +31,20 @@ def _validate_device_specification(proto: v2.device_pb2.DeviceSpecification) -> 
         ValueError: If the DeviceSpecification is invalid.
     """
 
-    # Qubit names must be in the form <int>_<int> to be parsed as cirq.GridQubits.
+    qubit_set = set()
     for q_name in proto.valid_qubits:
+        # Qubit names must be unique.
+        if q_name in qubit_set:
+            raise ValueError(
+                f"Invalid DeviceSpecification: valid_qubits contains duplicate qubit '{q_name}'."
+            )
+        # Qubit names must be in the form <int>_<int> to be parsed as cirq.GridQubits.
         if re.match(r'^[0-9]+\_[0-9]+$', q_name) is None:
             raise ValueError(
                 f"Invalid DeviceSpecification: valid_qubits contains the qubit '{q_name}' which is"
                 " not in the GridQubit form '<int>_<int>."
             )
+        qubit_set.add(q_name)
 
     for target_set in proto.valid_targets:
 
@@ -116,7 +123,7 @@ class GridDevice(cirq.Device):
         * Get a collection of isolated qubits, i.e. qubits which are not part of any qubit pair.
         >>> device.metadata.isolated_qubits
 
-        * Get a collection of approximate durations of performing each gate supported by the device.
+        * Get a collection of approximate gate durations for every gate supported by the device.
         >>> device.metadata.gate_durations
 
         TODO(#5050) Add compilation_target_gatesets example.
@@ -157,15 +164,14 @@ class GridDevice(cirq.Device):
                   self loop.
                 * A target set in `DeviceSpecification.valid_targets` has type `SUBSET_PERMUTATION`
                   but contains targets which do not have exactly one element. A `SUBSET_PERMUTATION`
-                  target set uses each target to represent a single qubit, and a gate can apply to
-                  any subset of qubits in the target set.
-
+                  target set uses each target to represent a single qubit, and a gate can be applied
+                  to any subset of qubits in the target set.
         """
 
         _validate_device_specification(proto)
 
         # Create qubit set
-        all_qubits = [v2.grid_qubit_from_proto_id(q) for q in proto.valid_qubits]
+        all_qubits = {v2.grid_qubit_from_proto_id(q) for q in proto.valid_qubits}
 
         # Create qubit pair set
         #
@@ -175,6 +181,9 @@ class GridDevice(cirq.Device):
         # * All valid qubits work for all single-qubit gates.
         # * Measurement gate can always be applied to all subset of qubits.
         #
+        # TODO(#5050) Consider removing `GateSpecification.valid_targets` and
+        # ASYMMETRIC and SUBSET_PERMUTATION target types.
+        # If they are not removed, then their validation should be tightened.
         qubit_pairs = [
             (v2.grid_qubit_from_proto_id(target.ids[0]), v2.grid_qubit_from_proto_id(target.ids[1]))
             for ts in proto.valid_targets
