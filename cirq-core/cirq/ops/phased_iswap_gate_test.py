@@ -63,6 +63,7 @@ def test_phased_iswap_unitary():
     # yapf: enable
     assert np.allclose(actual, expected)
 
+
 def test_phased_iswap_equivalent_circuit():
     p = 0.7
     t = -0.4
