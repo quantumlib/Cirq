@@ -78,7 +78,7 @@ class PhasedISwapPowGate(eigen_gate.EigenGate):
         return 2
 
     def _json_dict_(self) -> Dict[str, Any]:
-        return {'phase_exponent': self._phase_exponent, 'exponent': self._exponent}
+        return {'phase_exponent': self._phase_exponent, 'exponent': self._exponent, 'global_shift': self._global_shift}
 
     def _value_equality_values_cls_(self):
         if self.phase_exponent == 0:
@@ -108,8 +108,8 @@ class PhasedISwapPowGate(eigen_gate.EigenGate):
             exponent=protocols.resolve_parameters(self.exponent, resolver, recursive),
         )
 
-    def _with_exponent(self, exponent: value.type_alias.TParamVal) -> 'PhasedISwapPowGate':
-        return PhasedISwapPowGate(phase_exponent=self.phase_exponent, exponent=exponent)
+    def _with_exponent(self, exponent: value.type_alias.TParamVal, global_shift: float = 0.00) -> 'PhasedISwapPowGate':
+        return PhasedISwapPowGate(phase_exponent=self.phase_exponent, exponent=exponent, global_shift=global_shift)
 
     def _eigen_shifts(self) -> List[float]:
         return [0.0, +0.5, -0.5]
