@@ -177,8 +177,9 @@ class MysteryOperation(cirq.Operation):
         return MysteryOperation(*new_qubits)
 
 
-class MysteryGate(cirq.SingleQubitGate):
-    pass
+class MysteryGate(cirq.testing.SingleQubitGate):
+    def _has_mixture_(self):
+        return True
 
 
 def test_various_unknown_gate_types():
@@ -279,7 +280,7 @@ def test_unrecognized_single_qubit_gate_with_matrix():
 
 
 def test_unknown_gate():
-    class UnknownGate(cirq.SingleQubitGate):
+    class UnknownGate(cirq.testing.SingleQubitGate):
         pass
 
     a = cirq.NamedQubit('a')

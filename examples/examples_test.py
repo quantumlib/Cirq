@@ -1,6 +1,7 @@
 # pylint: disable=wrong-or-nonexistent-copyright-notice
 import itertools
 
+import networkx
 import numpy as np
 import pytest
 import matplotlib.pyplot as plt
@@ -93,7 +94,28 @@ def test_example_heatmaps():
 
 
 def test_example_runs_qaoa():
-    examples.qaoa.main(repetitions=10, maxiter=5)
+    examples.qaoa.main(repetitions=10, maxiter=5, use_boolean_hamiltonian_gate=False)
+    examples.qaoa.main(repetitions=10, maxiter=5, use_boolean_hamiltonian_gate=True)
+
+
+def test_example_qaoa_same_unitary():
+    n = 6
+    p = 2
+
+    qubits = cirq.LineQubit.range(n)
+
+    graph = networkx.random_regular_graph(3, n)
+
+    betas = np.random.uniform(-np.pi, np.pi, size=p)
+    gammas = np.random.uniform(-np.pi, np.pi, size=p)
+    circuits = [
+        examples.qaoa.qaoa_max_cut_circuit(
+            qubits, betas, gammas, graph, use_boolean_hamiltonian_gate
+        )
+        for use_boolean_hamiltonian_gate in [True, False]
+    ]
+
+    assert cirq.allclose_up_to_global_phase(cirq.unitary(circuits[0]), cirq.unitary(circuits[1]))
 
 
 def test_example_runs_quantum_teleportation():

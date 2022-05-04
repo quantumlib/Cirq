@@ -26,7 +26,7 @@ if TYPE_CHECKING:
 
 
 @value.value_equality(approximate=True)
-class QasmUGate(ops.SingleQubitGate):
+class QasmUGate(ops.Gate):
     def __init__(self, theta, phi, lmda) -> None:
         """A QASM gate representing any single qubit unitary with a series of
         three rotations, Z, Y, and Z.
@@ -41,6 +41,9 @@ class QasmUGate(ops.SingleQubitGate):
         self.lmda = lmda % 2
         self.theta = theta % 2
         self.phi = phi % 2
+
+    def _num_qubits_(self) -> int:
+        return 1
 
     @staticmethod
     def from_matrix(mat: np.ndarray) -> 'QasmUGate':

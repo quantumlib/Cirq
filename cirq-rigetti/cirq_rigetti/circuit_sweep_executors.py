@@ -20,6 +20,7 @@ from pyquil import Program
 from pyquil.api import QuantumComputer, QuantumExecutable
 from pyquil.quilbase import Declare
 import cirq
+import sympy
 from typing_extensions import Protocol
 from cirq_rigetti.logging import logger
 from cirq_rigetti import circuit_transformers as transformers
@@ -30,7 +31,9 @@ def _execute_and_read_result(
     executable: QuantumExecutable,
     measurement_id_map: Dict[str, str],
     resolver: cirq.ParamResolverOrSimilarType,
-    memory_map: Optional[Dict[str, Union[int, float, Sequence[int], Sequence[float]]]] = None,
+    memory_map: Optional[
+        Dict[Union[sympy.Expr, str], Union[int, float, Sequence[int], Sequence[float]]]
+    ] = None,
 ) -> cirq.Result:
     """Execute the `pyquil.api.QuantumExecutable` and parse the measurements into
     a `cirq.Result`.
@@ -45,7 +48,8 @@ def _execute_and_read_result(
             the returned `cirq.Result`.
         memory_map: A dict of values to write to memory values on the
             `quantum_computer`. The `pyquil.api.QuantumAbstractMachine` reads these
-            values into memory regions on the pre-compiled `executable` during execution.
+            v_execute_and_read_resultalues into memory regions on the pre-compiled
+            `executable` during execution.
 
     Returns:
         A `cirq.Result` with measurements read from the `quantum_computer`.
@@ -57,7 +61,10 @@ def _execute_and_read_result(
         memory_map = {}
 
     for region_name, values in memory_map.items():
-        executable.write_memory(region_name=region_name, value=values)
+        if isinstance(region_name, str):
+            executable.write_memory(region_name=region_name, value=values)
+        else:
+            raise ValueError(f'Symbols not valid for region name {region_name}')
     qam_execution_result = quantum_computer.qam.run(executable)
 
     measurements = {}
@@ -79,7 +86,7 @@ def _execute_and_read_result(
     return result
 
 
-def _get_param_dict(resolver: cirq.ParamResolverOrSimilarType) -> Dict[str, Any]:
+def _get_param_dict(resolver: cirq.ParamResolverOrSimilarType) -> Dict[Union[str, sympy.Expr], Any]:
     """Converts a `cirq.ParamResolverOrSimilarType` to a dictionary.
 
     Args:
@@ -88,7 +95,7 @@ def _get_param_dict(resolver: cirq.ParamResolverOrSimilarType) -> Dict[str, Any]
     Returns:
         A dictionary representation of the `resolver`.
     """
-    param_dict: Dict[str, Any] = {}
+    param_dict: Dict[Union[str, sympy.Expr], Any] = {}
     if isinstance(resolver, cirq.ParamResolver):
         param_dict = resolver.param_dict
     elif isinstance(resolver, dict):

@@ -15,6 +15,7 @@
 from unittest.mock import Mock, call
 
 import numpy as np
+import sympy
 
 import cirq
 
@@ -22,7 +23,7 @@ import cirq
 def test_apply_gate():
     q0, q1 = cirq.LineQubit.range(2)
     state = Mock()
-    args = cirq.ActOnStabilizerArgs(state=state, qubits=[q0, q1])
+    args = cirq.StabilizerSimulationState(state=state, qubits=[q0, q1])
 
     assert args._strat_apply_gate(cirq.X, [q0]) is True
     state.apply_x.assert_called_with(0, 1.0, 0.0)
@@ -30,6 +31,10 @@ def test_apply_gate():
     state.reset_mock()
     assert args._strat_apply_gate(cirq.X**2, [q0]) is True
     state.apply_x.assert_called_with(0, 2.0, 0.0)
+
+    state.reset_mock()
+    assert args._strat_apply_gate(cirq.X ** sympy.Symbol('t'), [q0]) is NotImplemented
+    state.apply_x.assert_not_called()
 
     state.reset_mock()
     assert args._strat_apply_gate(cirq.XPowGate(exponent=2, global_shift=1.3), [q1]) is True
@@ -68,6 +73,10 @@ def test_apply_gate():
     state.apply_global_phase.assert_called_with(1j)
 
     state.reset_mock()
+    assert args._strat_apply_gate(cirq.GlobalPhaseGate(sympy.Symbol('t')), []) is NotImplemented
+    state.apply_global_phase.assert_not_called()
+
+    state.reset_mock()
     assert args._strat_apply_gate(cirq.SWAP, [q0, q1]) is True
     state.apply_cx.assert_has_calls([call(0, 1), call(1, 0, 1.0, 0.0), call(0, 1)])
 
@@ -83,7 +92,7 @@ def test_apply_gate():
 def test_apply_mixture():
     q0 = cirq.LineQubit(0)
     state = Mock()
-    args = cirq.ActOnStabilizerArgs(state=state, qubits=[q0])
+    args = cirq.StabilizerSimulationState(state=state, qubits=[q0])
 
     for _ in range(100):
         assert args._strat_apply_mixture(cirq.BitFlipChannel(0.5), [q0]) is True
@@ -94,7 +103,7 @@ def test_apply_mixture():
 def test_act_from_single_qubit_decompose():
     q0 = cirq.LineQubit(0)
     state = Mock()
-    args = cirq.ActOnStabilizerArgs(state=state, qubits=[q0])
+    args = cirq.StabilizerSimulationState(state=state, qubits=[q0])
     assert (
         args._strat_act_from_single_qubit_decompose(
             cirq.MatrixGate(np.array([[0, 1], [1, 0]])), [q0]
@@ -114,13 +123,13 @@ def test_decompose():
 
     q0 = cirq.LineQubit(0)
     state = Mock()
-    args = cirq.ActOnStabilizerArgs(state=state, qubits=[q0])
+    args = cirq.StabilizerSimulationState(state=state, qubits=[q0])
     assert args._strat_decompose(XContainer(), [q0]) is True
     state.apply_x.assert_called_with(0, 1.0, 0.0)
 
 
 def test_deprecated():
     with cirq.testing.assert_deprecated('log_of_measurement_results', deadline='v0.16', count=2):
-        _ = cirq.ActOnStabilizerArgs(state=0, log_of_measurement_results={})
+        _ = cirq.StabilizerSimulationState(state=0, log_of_measurement_results={})
     with cirq.testing.assert_deprecated('positional', deadline='v0.16'):
-        _ = cirq.ActOnStabilizerArgs(0)
+        _ = cirq.StabilizerSimulationState(0)

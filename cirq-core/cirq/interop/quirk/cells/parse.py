@@ -86,7 +86,7 @@ def _tokenize(text: str) -> List[str]:
     return _merge_scientific_float_tokens(g for g in result if g.strip())
 
 
-_ResolvedToken = Union[sympy.Basic, int, float, complex]
+_ResolvedToken = Union[sympy.Expr, int, float, complex]
 
 
 class _CustomQuirkOperationToken:
@@ -152,7 +152,9 @@ def _parse_formula_using_token_map(
             raise ValueError("Bad expression: operated on nothing.\ntext={text!r}")
         b = vals.pop()
         a = vals.pop()
-        vals.append(cast(_HangingNode, op).func(a, b))
+        # Note: vals seems to be _HangingToken
+        # func operates on _ResolvedTokens. Ignoring type issues for now.
+        vals.append(cast(_HangingNode, op).func(a, b))  # type: ignore[arg-type]
 
     def close_paren() -> None:
         while True:
@@ -213,7 +215,7 @@ def _parse_formula_using_token_map(
     if not is_valid_end_state():
         raise ValueError(f"Incomplete expression.\ntext={text!r}")
 
-    return vals[0]
+    return cast(_ResolvedToken, vals[0])
 
 
 UNICODE_FRACTIONS = {
@@ -337,12 +339,12 @@ def parse_complex(text: str) -> complex:
         raise ValueError(f'Failed to parse complex from {text!r}') from ex
 
 
-def parse_formula(formula: str) -> Union[float, sympy.Basic]:
+def parse_formula(formula: str) -> Union[float, sympy.Expr]:
     """Attempts to parse formula text in exactly the same way as Quirk."""
     if not isinstance(formula, str):
         raise TypeError('formula must be a string')
 
-    token_map = {**PARSE_COMPLEX_TOKEN_MAP_RAD, 't': sympy.Symbol('t')}
+    token_map: Dict[str, _HangingToken] = {**PARSE_COMPLEX_TOKEN_MAP_RAD, 't': sympy.Symbol('t')}
     result = _parse_formula_using_token_map(formula, token_map)
 
     if isinstance(result, sympy.Basic):

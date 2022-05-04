@@ -292,9 +292,12 @@ def test_resolve_parameters(resolve_fn):
 
     assert resolve_fn(CExpZinGate(0.25), cirq.ParamResolver({})) == CExpZinGate(0.25)
 
+    with pytest.raises(ValueError, match='Complex exponent'):
+        resolve_fn(CExpZinGate(sympy.Symbol('a')), cirq.ParamResolver({'a': 0.5j}))
+
 
 def test_diagram_period():
-    class ShiftyGate(cirq.EigenGate, cirq.SingleQubitGate):
+    class ShiftyGate(cirq.EigenGate, cirq.testing.SingleQubitGate):
         def _eigen_components(self) -> List[Tuple[float, np.ndarray]]:
             raise NotImplementedError()
 
@@ -327,7 +330,7 @@ def test_diagram_period():
     assert ShiftyGate(505.2, 0, np.pi, np.e)._diagram_exponent(args) == 505.2
 
 
-class WeightedZPowGate(cirq.EigenGate, cirq.SingleQubitGate):
+class WeightedZPowGate(cirq.EigenGate, cirq.testing.SingleQubitGate):
     def __init__(self, weight, **kwargs):
         self.weight = weight
         super().__init__(**kwargs)

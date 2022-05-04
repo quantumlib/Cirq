@@ -30,7 +30,6 @@ def get_ion_gateset() -> ops.Gateset:
         ops.ZPowGate,
         ops.PhasedXPowGate,
         unroll_circuit_op=False,
-        accept_global_phase_op=False,
     )
 
 
@@ -82,19 +81,6 @@ class IonDevice(devices.Device):
     @_compat.deprecated(fix='Use metadata.qubit_set if applicable.', deadline='v0.15')
     def qubit_set(self) -> FrozenSet['cirq.LineQubit']:
         return self.qubits
-
-    @_compat.deprecated(
-        deadline='v0.15', fix='qubit coupling data can now be found in device.metadata if provided.'
-    )
-    def qid_pairs(self) -> FrozenSet['cirq.SymmetricalQidPair']:
-        """Qubits have all-to-all connectivity, so returns all pairs.
-
-        Returns:
-            All qubit pairs on the device.
-        """
-        with _compat.block_overlapping_deprecation('device\\.metadata'):
-            qs = self.qubits
-            return frozenset([devices.SymmetricalQidPair(q, q2) for q in qs for q2 in qs if q < q2])
 
     @_compat.deprecated(
         fix='Use cirq.ConvertToIonGates() instead to decompose operations.', deadline='v0.15'

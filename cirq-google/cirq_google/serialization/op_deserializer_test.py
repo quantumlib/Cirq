@@ -33,7 +33,7 @@ def op_proto(json_dict: Dict) -> v2.program_pb2.Operation:
 
 
 @cirq.value_equality
-class GateWithAttribute(cirq.SingleQubitGate):
+class GateWithAttribute(cirq.testing.SingleQubitGate):
     def __init__(self, val, not_req=None):
         self.val = val
         self.not_req = not_req
