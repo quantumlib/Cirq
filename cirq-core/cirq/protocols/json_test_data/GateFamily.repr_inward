@@ -1,5 +1,0 @@
-[
-	cirq.GateFamily(gate=cirq.ops.common_gates.XPowGate, ignore_global_phase=True, tags_to_accept=frozenset(), tags_to_ignore=frozenset()),
-	cirq.GateFamily(gate=cirq.ops.common_gates.ZPowGate, name="Type GateFamily: cirq.ops.common_gates.ZPowGate", description="Accepts `cirq.Gate` instances `g` s.t. `isinstance(g, cirq.ops.common_gates.ZPowGate)`", ignore_global_phase=True, tags_to_accept=frozenset({'physical_z'}), tags_to_ignore=frozenset()),
-	cirq.GateFamily(gate=cirq.ops.common_gates.ZPowGate, name="Type GateFamily: cirq.ops.common_gates.ZPowGate", description="Accepts `cirq.Gate` instances `g` s.t. `isinstance(g, cirq.ops.common_gates.ZPowGate)`", ignore_global_phase=True, tags_to_accept=frozenset(), tags_to_ignore=frozenset({'physical_z'})),
-]
