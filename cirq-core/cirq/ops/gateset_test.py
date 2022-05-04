@@ -255,11 +255,12 @@ def test_gateset_init():
     )
 
 
-def test_gateset_repr_and_str():
-    cirq.testing.assert_equivalent_repr(gateset)
-    assert gateset.name in str(gateset)
-    for gate_family in gateset.gates:
-        assert str(gate_family) in str(gateset)
+@pytest.mark.parametrize('g', [gateset, cirq.Gateset(name='empty gateset')])
+def test_gateset_repr_and_str(g):
+    cirq.testing.assert_equivalent_repr(g)
+    assert g.name in str(g)
+    for gate_family in g.gates:
+        assert str(gate_family) in str(g)
 
 
 @pytest.mark.parametrize(
