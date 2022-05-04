@@ -149,7 +149,7 @@ class PhaseKickback(cirq.Gate):
 
 class EigenRotation(cirq.Gate):
     """Perform a rotation on an ancilla equivalent to division by eigenvalues of a matrix.
-    
+
     EigenRotation performs the set of rotation on the ancilla qubit equivalent to division on the
     memory register by each eigenvalue of the matrix. The last qubit is the ancilla qubit; all
     remaining qubits are the register, assumed to be big-endian.
