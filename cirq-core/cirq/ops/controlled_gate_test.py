@@ -70,6 +70,9 @@ class GateAllocatingNewSpaceForResult(cirq.testing.SingleQubitGate):
 
 
 class RestrictedGate(cirq.testing.SingleQubitGate):
+    def _unitary_(self):
+        return True
+
     def __str__(self):
         return 'Restricted'
 
@@ -113,6 +116,10 @@ def test_init2():
         cirq.ControlledGate(cirq.Z, control_values=[(1, -1)])
     with pytest.raises(ValueError, match='Control values .*outside of range'):
         cirq.ControlledGate(cirq.Z, control_values=[3], control_qid_shape=[3])
+    with pytest.raises(ValueError, match='Cannot control measurement'):
+        cirq.ControlledGate(cirq.MeasurementGate(1))
+    with pytest.raises(ValueError, match='Cannot control channel'):
+        cirq.ControlledGate(cirq.PhaseDampingChannel(1))
 
     gate = cirq.ControlledGate(cirq.Z, 1)
     assert gate.sub_gate is cirq.Z
@@ -247,7 +254,11 @@ def test_eq():
 
 
 def test_control():
-    g = cirq.testing.SingleQubitGate()
+    class G(cirq.testing.SingleQubitGate):
+        def _has_mixture_(self):
+            return True
+
+    g = G()
 
     # Ignores empty.
     assert g.controlled() == cirq.ControlledGate(g)
@@ -436,6 +447,12 @@ def test_parameterizable(resolve_fn):
     assert not cirq.is_parameterized(cy)
     assert resolve_fn(cya, cirq.ParamResolver({'a': 1})) == cy
 
+    cchan = cirq.ControlledGate(
+        cirq.RandomGateChannel(sub_gate=cirq.PhaseDampingChannel(0.1), probability=a)
+    )
+    with pytest.raises(ValueError, match='Cannot control channel'):
+        resolve_fn(cchan, cirq.ParamResolver({'a': 0.1}))
+
 
 def test_circuit_diagram_info():
     assert cirq.circuit_diagram_info(CY) == cirq.CircuitDiagramInfo(
@@ -459,7 +476,8 @@ def test_circuit_diagram_info():
     )
 
     class UndiagrammableGate(cirq.testing.SingleQubitGate):
-        pass
+        def _has_unitary_(self):
+            return True
 
     assert (
         cirq.circuit_diagram_info(cirq.ControlledGate(UndiagrammableGate()), default=None) is None
@@ -483,6 +501,9 @@ class MultiH(cirq.Gate):
         return cirq.CircuitDiagramInfo(
             wire_symbols=tuple(f'H({q})' for q in args.known_qubits), connected=True
         )
+
+    def _has_unitary_(self):
+        return True
 
 
 def test_circuit_diagram():
@@ -525,6 +546,9 @@ class MockGate(cirq.testing.TwoQubitGate):
         self.captured_diagram_args = args
         return cirq.CircuitDiagramInfo(wire_symbols=tuple(['M1', 'M2']), exponent=1, connected=True)
 
+    def _has_unitary_(self):
+        return True
+
 
 def test_uninformed_circuit_diagram_info():
     qbits = cirq.LineQubit.range(3)
@@ -542,7 +566,6 @@ def test_uninformed_circuit_diagram_info():
 def test_bounded_effect():
     assert cirq.trace_distance_bound(CY**0.001) < 0.01
     assert cirq.approx_eq(cirq.trace_distance_bound(CCH), 1.0)
-    assert cirq.approx_eq(cirq.trace_distance_bound(CRestricted), 1.0)
     foo = sympy.Symbol('foo')
     assert cirq.trace_distance_bound(cirq.ControlledGate(cirq.X**foo)) == 1
 
@@ -570,14 +593,6 @@ def test_str():
 
 
 def test_controlled_mixture():
-    class NoDetails(cirq.Gate):
-        def num_qubits(self) -> int:
-            return 1
-
-    c_no = cirq.ControlledGate(num_controls=1, sub_gate=NoDetails())
-    assert not cirq.has_mixture(c_no)
-    assert cirq.mixture(c_no, None) is None
-
     c_yes = cirq.ControlledGate(sub_gate=cirq.phase_flip(0.25), num_controls=1)
     assert cirq.has_mixture(c_yes)
     assert cirq.approx_eq(cirq.mixture(c_yes), [(0.75, np.eye(4)), (0.25, cirq.unitary(cirq.CZ))])

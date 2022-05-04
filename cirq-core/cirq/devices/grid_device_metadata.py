@@ -33,6 +33,7 @@ class GridDeviceMetadata(device.DeviceMetadata):
         gateset: 'cirq.Gateset',
         gate_durations: Optional[Dict['cirq.GateFamily', 'cirq.Duration']] = None,
         all_qubits: Optional[Iterable['cirq.Qid']] = None,
+        compilation_target_gatesets: Iterable['cirq.CompilationTargetGateset'] = (),
     ):
         """Create a GridDeviceMetadata object.
 
@@ -53,6 +54,10 @@ class GridDeviceMetadata(device.DeviceMetadata):
             all_qubits: Optional iterable specifying all qubits
                 found on the device. If None, all_qubits will
                 be inferred from the entries in qubit_pairs.
+            compilation_target_gatesets: A collection of valid
+                `cirq.CompilationTargetGateset`s which can be used to
+                transform circuits into ones that consist of only
+                operations in `gateset`.
 
         Raises:
             ValueError: if some GateFamily keys in gate_durations are
@@ -95,6 +100,7 @@ class GridDeviceMetadata(device.DeviceMetadata):
         self._qubit_pairs = frozenset({frozenset(pair) for pair in edge_set})
         self._gateset = gateset
         self._isolated_qubits = all_qubits.difference(node_set)
+        self._compilation_target_gatesets = tuple(compilation_target_gatesets)
 
         if gate_durations is not None:
             working_gatefamilies = frozenset(gate_durations.keys())
@@ -127,6 +133,11 @@ class GridDeviceMetadata(device.DeviceMetadata):
         return self._gateset
 
     @property
+    def compilation_target_gatesets(self) -> Tuple['cirq.CompilationTargetGateset', ...]:
+        """Returns a sequence of valid `cirq.CompilationTargetGateset`s for this device."""
+        return self._compilation_target_gatesets
+
+    @property
     def gate_durations(self) -> Optional[Dict['cirq.GateFamily', 'cirq.Duration']]:
         """Get a dictionary mapping from gateset to duration for gates."""
         return self._gate_durations
@@ -141,6 +152,7 @@ class GridDeviceMetadata(device.DeviceMetadata):
             self._gateset,
             tuple(duration_equality),
             tuple(sorted(self.qubit_set)),
+            frozenset(self._compilation_target_gatesets),
         )
 
     def __repr__(self) -> str:
@@ -148,7 +160,7 @@ class GridDeviceMetadata(device.DeviceMetadata):
         return (
             f'cirq.GridDeviceMetadata({repr(qubit_pair_tuples)},'
             f' {repr(self._gateset)}, {repr(self._gate_durations)},'
-            f' {repr(self.qubit_set)})'
+            f' {repr(self.qubit_set)}, {repr(self._compilation_target_gatesets)})'
         )
 
     def _json_dict_(self):
@@ -161,8 +173,23 @@ class GridDeviceMetadata(device.DeviceMetadata):
             'gateset': self._gateset,
             'gate_durations': duration_payload,
             'all_qubits': sorted(list(self.qubit_set)),
+            'compilation_target_gatesets': list(self._compilation_target_gatesets),
         }
 
     @classmethod
-    def _from_json_dict_(cls, qubit_pairs, gateset, gate_durations, all_qubits, **kwargs):
-        return cls(qubit_pairs, gateset, dict(gate_durations), all_qubits)
+    def _from_json_dict_(
+        cls,
+        qubit_pairs,
+        gateset,
+        gate_durations,
+        all_qubits,
+        compilation_target_gatesets=(),
+        **kwargs,
+    ):
+        return cls(
+            qubit_pairs,
+            gateset,
+            None if gate_durations is None else dict(gate_durations),
+            all_qubits,
+            compilation_target_gatesets,
+        )
