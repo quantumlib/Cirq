@@ -70,5 +70,5 @@ setup(
     license='Apache 2',
     description=description,
     long_description=long_description,
-    packages = [],
+    packages=[],
 )
