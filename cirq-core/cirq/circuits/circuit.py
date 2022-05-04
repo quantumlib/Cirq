@@ -1704,7 +1704,16 @@ class Circuit(AbstractCircuit):
         """
         self._moments: List['cirq.Moment'] = []
         with _compat.block_overlapping_deprecation('.*'):
-            self.append(contents, strategy=strategy)
+            self.append(contents, strategy=strategy, _use_builder=True)
+        for i, m in enumerate(self._moments):
+            if isinstance(m, _MomentBuilder):
+                m1 = Moment()
+                m1._operations = tuple(m._operations)
+                m1._qubit_to_op = m._qubit_to_op
+                m1._qubits = frozenset(m._qubits)
+                m1._measurement_key_objs = frozenset(m._measurement_key_objs)
+                m1._control_keys = frozenset(m._control_keys)
+                self._moments[i] = m1
 
     def __copy__(self) -> 'cirq.Circuit':
         return self.copy()
@@ -1895,7 +1904,11 @@ class Circuit(AbstractCircuit):
         return last_available
 
     def _pick_or_create_inserted_op_moment_index(
-        self, splitter_index: int, op: 'cirq.Operation', strategy: 'cirq.InsertStrategy'
+        self,
+        splitter_index: int,
+        op: 'cirq.Operation',
+        strategy: 'cirq.InsertStrategy',
+        _use_builder: bool = False,
     ) -> int:
         """Determines and prepares where an insertion will occur.
 
@@ -1903,6 +1916,7 @@ class Circuit(AbstractCircuit):
             splitter_index: The index to insert at.
             op: The operation that will be inserted.
             strategy: The insertion strategy.
+            _use_builder: Internal option used during circuit construction.
 
         Returns:
             The index of the (possibly new) moment where the insertion should
@@ -1913,7 +1927,7 @@ class Circuit(AbstractCircuit):
         """
 
         if strategy is InsertStrategy.NEW or strategy is InsertStrategy.NEW_THEN_INLINE:
-            self._moments.insert(splitter_index, Moment())
+            self._moments.insert(splitter_index, _MomentBuilder() if _use_builder else Moment())
             return splitter_index
 
         if strategy is InsertStrategy.INLINE:
@@ -1947,6 +1961,7 @@ class Circuit(AbstractCircuit):
         index: int,
         moment_or_operation_tree: Union['cirq.Operation', 'cirq.OP_TREE'],
         strategy: 'cirq.InsertStrategy' = InsertStrategy.EARLIEST,
+        _use_builder: bool = False,
     ) -> int:
         """Inserts operations into the circuit.
 
@@ -1958,6 +1973,7 @@ class Circuit(AbstractCircuit):
             index: The index to insert all of the operations at.
             moment_or_operation_tree: The moment or operation tree to insert.
             strategy: How to pick/create the moment to put operations into.
+            _use_builder: Internal option used during circuit construction.
 
         Returns:
             The insertion index that will place operations just after the
@@ -1981,7 +1997,7 @@ class Circuit(AbstractCircuit):
                 op = cast(ops.Operation, moment_or_op)
                 p = self._pick_or_create_inserted_op_moment_index(k, op, strategy)
                 while p >= len(self._moments):
-                    self._moments.append(Moment())
+                    self._moments.append(_MomentBuilder() if _use_builder else Moment())
                 self._moments[p] = self._moments[p].with_operation(op)
                 k = max(k, p + 1)
                 if strategy is InsertStrategy.NEW_THEN_INLINE:
@@ -2242,6 +2258,7 @@ class Circuit(AbstractCircuit):
         self,
         moment_or_operation_tree: Union['cirq.Moment', 'cirq.OP_TREE'],
         strategy: 'cirq.InsertStrategy' = InsertStrategy.EARLIEST,
+        _use_builder: bool = False,
     ):
         """Appends operations onto the end of the circuit.
 
@@ -2250,8 +2267,9 @@ class Circuit(AbstractCircuit):
         Args:
             moment_or_operation_tree: The moment or operation tree to append.
             strategy: How to pick/create the moment to put operations into.
+            _use_builder: Internal option used during circuit construction.
         """
-        self.insert(len(self._moments), moment_or_operation_tree, strategy)
+        self.insert(len(self._moments), moment_or_operation_tree, strategy, _use_builder)
 
     def clear_operations_touching(
         self, qubits: Iterable['cirq.Qid'], moment_indices: Iterable[int]
@@ -2641,3 +2659,26 @@ def _group_until_different(items: Iterable[_TIn], key: Callable[[_TIn], _TKey], 
         Tuples containing the group key and item values.
     """
     return ((k, [val(i) for i in v]) for (k, v) in itertools.groupby(items, key))
+
+
+class _MomentBuilder(Moment):
+    """A mutable moment used for building circuits quickly."""
+
+    def __init__(self) -> None:
+        self._operations = []  # type: ignore
+        self._qubit_to_op: Dict['cirq.Qid', 'cirq.Operation'] = {}
+        self._qubits: Set['cirq.Qid'] = set()  # type: ignore
+        self._measurement_key_objs: Set['cirq.MeasurementKey'] = set()
+        self._control_keys: Set['cirq.MeasurementKey'] = set()  # type: ignore
+
+    def with_operation(self, operation: 'cirq.Operation') -> 'cirq.Moment':
+        self._operations.append(operation)  # type: ignore
+        self._qubits.update(operation.qubits)
+        for q in operation.qubits:
+            self._qubit_to_op[q] = operation
+        keys = protocols.measurement_key_objs(operation)
+        if keys is not None:
+            self._measurement_key_objs.update(keys)
+        keys = protocols.control_keys(operation)
+        self._control_keys.update(keys)
+        return self
