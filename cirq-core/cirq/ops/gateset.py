@@ -254,18 +254,14 @@ class GateFamily:
         )
 
     def _json_dict_(self) -> Dict[str, Any]:
-        d = {
+        return {
             'gate': self._gate_json(),
-            'name': None,
-            'description': None,
+            'name': self.name,
+            'description': self.description,
             'ignore_global_phase': self._ignore_global_phase,
             'tags_to_accept': list(self._tags_to_accept),
             'tags_to_ignore': list(self._tags_to_ignore),
         }
-        if self.name != self._default_name() or self.description != self._default_description():
-            d['name'] = self.name
-            d['description'] = self.description
-        return d
 
     @classmethod
     def _from_json_dict_(
