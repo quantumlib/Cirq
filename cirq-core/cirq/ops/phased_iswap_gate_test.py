@@ -34,6 +34,10 @@ def test_phased_iswap_init():
 
 def test_phased_iswap_equality():
     assert cirq.PhasedISwapPowGate(phase_exponent=0, exponent=0.4) == cirq.ISWAP**0.4
+    assert (
+        cirq.PhasedISwapPowGate(phase_exponent=0, exponent=0.4, global_shift=0.3)
+        == cirq.ISwapPowGate(global_shift=0.3) ** 0.4
+    )
 
 
 def test_repr():
@@ -58,7 +62,6 @@ def test_phased_iswap_unitary():
                          [0, 0, 0, 1]])
     # yapf: enable
     assert np.allclose(actual, expected)
-
 
 def test_phased_iswap_equivalent_circuit():
     p = 0.7
@@ -95,6 +98,14 @@ def test_phased_iswap_pow():
     u2 = cirq.unitary(gate2)
     assert np.allclose(u1 @ u1, u2)
 
+    gate1 = cirq.PhasedISwapPowGate(phase_exponent=0.1, exponent=0.25, global_shift=0.25)
+    gate2 = cirq.PhasedISwapPowGate(phase_exponent=0.1, exponent=0.5, global_shift=0.25)
+    assert gate1**2 == gate2
+
+    u1 = cirq.unitary(gate1)
+    u2 = cirq.unitary(gate2)
+    assert np.allclose(u1 @ u1, u2)
+
 
 def test_decompose_invalid_qubits():
     qs = cirq.LineQubit.range(3)
@@ -103,28 +114,30 @@ def test_decompose_invalid_qubits():
 
 
 @pytest.mark.parametrize(
-    'phase_exponent, exponent',
+    'phase_exponent, exponent, global_shift',
     [
-        (0, 0),
-        (0, 0.1),
-        (0, 0.5),
-        (0, -1),
-        (-0.3, 0),
-        (0.1, 0.1),
-        (0.1, 0.5),
-        (0.5, 0.5),
-        (-0.1, 0.1),
-        (-0.5, 1),
-        (0.3, 2),
-        (0.4, -2),
-        (0.1, sympy.Symbol('p')),
-        (sympy.Symbol('t'), 0.5),
-        (sympy.Symbol('t'), sympy.Symbol('p')),
+        (0, 0, 0),
+        (0, 0.1, 0.1),
+        (0, 0.5, 0.5),
+        (0, -1, 0.2),
+        (-0.3, 0, 0.3),
+        (0.1, 0.1, 0.6),
+        (0.1, 0.5, 0.7),
+        (0.5, 0.5, 0.8),
+        (-0.1, 0.1, 0.9),
+        (-0.5, 1, 1),
+        (0.3, 2, 0.1),
+        (0.4, -2, 0.25),
+        (0.1, sympy.Symbol('p'), 0.33),
+        (sympy.Symbol('t'), 0.5, 0.86),
+        (sympy.Symbol('t'), sympy.Symbol('p'), 1),
     ],
 )
-def test_phased_iswap_has_consistent_protocols(phase_exponent, exponent):
+def test_phased_iswap_has_consistent_protocols(phase_exponent, exponent, global_shift):
     cirq.testing.assert_implements_consistent_protocols(
-        cirq.PhasedISwapPowGate(phase_exponent=phase_exponent, exponent=exponent),
+        cirq.PhasedISwapPowGate(
+            phase_exponent=phase_exponent, exponent=exponent, global_shift=global_shift
+        ),
         ignoring_global_phase=False,
     )
 

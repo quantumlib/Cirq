@@ -78,7 +78,11 @@ class PhasedISwapPowGate(eigen_gate.EigenGate):
         return 2
 
     def _json_dict_(self) -> Dict[str, Any]:
-        return {'phase_exponent': self._phase_exponent, 'exponent': self._exponent, 'global_shift': self._global_shift}
+        return {
+            'phase_exponent': self._phase_exponent,
+            'exponent': self._exponent,
+            'global_shift': self._global_shift,
+        }
 
     def _value_equality_values_cls_(self):
         if self.phase_exponent == 0:
@@ -108,8 +112,10 @@ class PhasedISwapPowGate(eigen_gate.EigenGate):
             exponent=protocols.resolve_parameters(self.exponent, resolver, recursive),
         )
 
-    def _with_exponent(self, exponent: value.type_alias.TParamVal, global_shift: float = 0.00) -> 'PhasedISwapPowGate':
-        return PhasedISwapPowGate(phase_exponent=self.phase_exponent, exponent=exponent, global_shift=global_shift)
+    def _with_exponent(self, exponent: value.type_alias.TParamVal) -> 'PhasedISwapPowGate':
+        return PhasedISwapPowGate(
+            phase_exponent=self.phase_exponent, exponent=exponent, global_shift=self.global_shift
+        )
 
     def _eigen_shifts(self) -> List[float]:
         return [0.0, +0.5, -0.5]
@@ -132,6 +138,9 @@ class PhasedISwapPowGate(eigen_gate.EigenGate):
         s = np.sin(np.pi * self._exponent / 2)
         f = np.exp(2j * np.pi * self._phase_exponent)
         matrix = np.array([[c, 1j * s * f], [1j * s * f.conjugate(), c]])
+        p = 1j ** (2 * self._exponent * self._global_shift)
+        if p != 1:
+            args.target_tensor *= p
 
         zo = args.subspace_index(0b01)
         oz = args.subspace_index(0b10)
@@ -147,7 +156,7 @@ class PhasedISwapPowGate(eigen_gate.EigenGate):
 
         yield cirq.Z(a) ** self.phase_exponent
         yield cirq.Z(b) ** -self.phase_exponent
-        yield cirq.ISWAP(a, b) ** self.exponent
+        yield cirq.ISwapPowGate(global_shift=self.global_shift).on(a, b) ** self.exponent
         yield cirq.Z(a) ** -self.phase_exponent
         yield cirq.Z(b) ** self.phase_exponent
 
