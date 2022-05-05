@@ -4614,4 +4614,3 @@ def test_create_speed():
     t = time.perf_counter()
     _ = cirq.Circuit(opa)
     assert time.perf_counter() - t < 1
-    print(time.perf_counter() - t)
