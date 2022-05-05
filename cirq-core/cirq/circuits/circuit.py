@@ -1710,8 +1710,8 @@ class Circuit(AbstractCircuit):
                 self.append(contents, strategy=strategy)
 
     def _create_from_earliest(self, contents):
-        moments_and_operations = list(
-            ops.flatten_to_ops_or_moments(ops.transform_op_tree(contents, preserve_moments=True))
+        moments_and_operations = ops.flatten_to_ops_or_moments(
+            ops.transform_op_tree(contents, preserve_moments=True)
         )
 
         qubits = defaultdict(lambda: -1)
@@ -1729,7 +1729,7 @@ class Circuit(AbstractCircuit):
             else:
                 op = cast(ops.Operation, moment_or_op)
                 op_qubits = op.qubits
-                op_mkeys = protocols.measurement_key_objs(op) or frozenset()
+                op_mkeys = protocols.measurement_key_objs(op)
                 op_ckeys = protocols.control_keys(op)
                 i = moment
                 i = max(i, i, *[qubits[q] for q in op_qubits])

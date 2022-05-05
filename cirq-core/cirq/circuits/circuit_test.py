@@ -13,6 +13,7 @@
 # limitations under the License.
 import itertools
 import os
+import time
 from collections import defaultdict
 from random import randint, random, sample, randrange
 from typing import Iterator, Optional, Tuple, TYPE_CHECKING
@@ -4603,3 +4604,14 @@ global phase:   0.5π
                 └────────┘
     """,
     )
+
+
+def test_create_speed():
+    qs = 100
+    moments = 500
+    xs = [cirq.X(cirq.LineQubit(i)) for i in range(qs)]
+    opa = [xs[i] for i in range(qs) for _ in range(moments)]
+    t = time.perf_counter()
+    _ = cirq.Circuit(opa)
+    assert time.perf_counter() - t < 1
+    print(time.perf_counter() - t)
