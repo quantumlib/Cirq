@@ -1720,22 +1720,29 @@ class Circuit(AbstractCircuit):
         opses = defaultdict(list)
         moments = {}
         length = 0
-        moment = -1
         for moment_or_op in moments_and_operations:
             if isinstance(moment_or_op, Moment):
                 moments[length] = moment_or_op
-                moment = length
+                for q in moment_or_op.qubits:
+                    qubits[q] = length
+                for k in moment_or_op._measurement_key_objs_():
+                    mkeys[k] = length
+                for k in moment_or_op._control_keys_():
+                    ckeys[k] = length
                 length += 1
             else:
                 op = cast(ops.Operation, moment_or_op)
                 op_qubits = op.qubits
                 op_mkeys = protocols.measurement_key_objs(op)
                 op_ckeys = protocols.control_keys(op)
-                i = moment
-                i = max(i, i, *[qubits[q] for q in op_qubits])
-                i = max(i, i, *[mkeys[k] for k in op_mkeys])
-                i = max(i, i, *[ckeys[k] for k in op_mkeys])
-                i = max(i, i, *[mkeys[k] for k in op_ckeys])
+                i = max(
+                    -1,
+                    -1,  # in case none of the following exist
+                    *[qubits[q] for q in op_qubits],
+                    *[mkeys[k] for k in op_mkeys],
+                    *[ckeys[k] for k in op_mkeys],
+                    *[mkeys[k] for k in op_ckeys],
+                )
                 i += 1
                 for q in op_qubits:
                     qubits[q] = i
@@ -1747,7 +1754,7 @@ class Circuit(AbstractCircuit):
                 length = max(length, i + 1)
         for i in range(length):
             if i in moments:
-                self._moments.append(moments[i])
+                self._moments.append(moments[i].with_operations(opses[i]))
             else:
                 self._moments.append(Moment(opses[i]))
 
