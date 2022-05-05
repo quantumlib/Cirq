@@ -1724,14 +1724,13 @@ class Circuit(AbstractCircuit):
                 i = length
                 moments[i] = mop
             else:
-                i = max(
-                    -1,
-                    -1,  # in case none of the following exist
-                    *[qubits[q] for q in mop_qubits],
-                    *[mkeys[k] for k in mop_mkeys],
-                    *[ckeys[k] for k in mop_mkeys],
-                    *[mkeys[k] for k in mop_ckeys],
-                )
+                i = -1
+                if mop_qubits:
+                    i = max(i, *[qubits[q] for q in mop_qubits])
+                if mop_mkeys:
+                    i = max(i, *[mkeys[k] for k in mop_mkeys], *[ckeys[k] for k in mop_mkeys])
+                if mop_ckeys:
+                    i = max(i, *[mkeys[k] for k in mop_ckeys])
                 i += 1
                 opses[i].append(mop)
             for q in mop_qubits:
