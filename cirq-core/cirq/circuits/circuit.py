@@ -1704,7 +1704,56 @@ class Circuit(AbstractCircuit):
         """
         self._moments: List['cirq.Moment'] = []
         with _compat.block_overlapping_deprecation('.*'):
-            self.append(contents, strategy=strategy)
+            if strategy == InsertStrategy.EARLIEST:
+                self._create_from_earliest(contents)
+            else:
+                self.append(contents, strategy=strategy)
+
+    def _create_from_earliest(self, contents):
+        moments_and_operations = list(
+            ops.flatten_to_ops_or_moments(
+                ops.transform_op_tree(contents, preserve_moments=True)
+            )
+        )
+
+        qubits = defaultdict(lambda: -1)
+        mkeys = defaultdict(lambda: -1)
+        ckeys = defaultdict(lambda: -1)
+        moments = {}
+        opses = {}
+        length = 0
+        moment = -1
+        for moment_or_op in moments_and_operations:
+            if isinstance(moment_or_op, Moment):
+                moments[length] = moment_or_op
+                moment = length
+                length += 1
+            else:
+                op = cast(ops.Operation, moment_or_op)
+                op_qubits = op.qubits
+                op_mkeys = protocols.measurement_key_objs(op) or frozenset()
+                op_ckeys = protocols.control_keys(op)
+                i = moment
+                i = max(i, i, *[qubits[q] for q in op_qubits])
+                i = max(i, i, *[mkeys[k] for k in op_mkeys])
+                i = max(i, i, *[ckeys[k] for k in op_mkeys])
+                i = max(i, i, *[mkeys[k] for k in op_ckeys])
+                i += 1
+                if i not in opses:
+                    opses[i] = set()
+                for q in op_qubits:
+                    qubits[q] = i
+                for k in op_mkeys:
+                    mkeys[k] = i
+                for k in op_ckeys:
+                    ckeys[k] = i
+                opses[i].add(op)
+                length = max(length, i + 1)
+        for i in range(length):
+            if i in moments:
+                self._moments.append(moments[i])
+            else:
+                self._moments.append(Moment(opses[i]))
 
     def __copy__(self) -> 'cirq.Circuit':
         return self.copy()
