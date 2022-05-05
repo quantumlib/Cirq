@@ -25,7 +25,7 @@
     "cirq_type": "GateFamily",
     "gate": "ZPowGate",
     "name": "Type GateFamily: cirq.ops.common_gates.ZPowGate",
-    "description": "Accepts `cirq.Gate` instances `g` s.t. `isinstance(g, cirq.ops.common_gates.ZPowGate)`",
+    "description": "Accepts `cirq.Gate` instances `g` s.t. `isinstance(g, cirq.ops.common_gates.ZPowGate)`\nAccepted tags: ['physical_z']",
     "ignore_global_phase": true,
     "tags_to_accept": [
       "physical_z"
@@ -36,7 +36,7 @@
     "cirq_type": "GateFamily",
     "gate": "ZPowGate",
     "name": "Type GateFamily: cirq.ops.common_gates.ZPowGate",
-    "description": "Accepts `cirq.Gate` instances `g` s.t. `isinstance(g, cirq.ops.common_gates.ZPowGate)`",
+    "description": "Accepts `cirq.Gate` instances `g` s.t. `isinstance(g, cirq.ops.common_gates.ZPowGate)`\nIgnored tags: ['physical_z']",
     "ignore_global_phase": true,
     "tags_to_accept": [],
     "tags_to_ignore": [
