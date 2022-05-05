@@ -396,9 +396,6 @@ class EigenGate(raw_types.Gate):
     def _measurement_key_objs_(self):
         return frozenset()
 
-    def _control_keys_(self):
-        return frozenset()
-
 
 def _lcm(vals: Iterable[int]) -> int:
     t = 1
