@@ -2007,14 +2007,9 @@ class Circuit(AbstractCircuit):
         Raises:
             ValueError: Bad insertion strategy.
         """
-        moments_and_operations = list(
-            ops.flatten_to_ops_or_moments(
-                ops.transform_op_tree(moment_or_operation_tree, preserve_moments=True)
-            )
-        )
         # limit index to 0..len(self._moments), also deal with indices smaller 0
         k = max(min(index if index >= 0 else len(self._moments) + index, len(self._moments)), 0)
-        for moment_or_op in moments_and_operations:
+        for moment_or_op in ops.flatten_to_ops_or_moments(moment_or_operation_tree):
             if isinstance(moment_or_op, Moment):
                 self._moments.insert(k, moment_or_op)
                 k += 1
