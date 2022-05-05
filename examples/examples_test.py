@@ -185,8 +185,8 @@ def test_example_shor_modular_exp_registers():
 def test_example_shor_modular_exp_diagram():
     target = [2, 2, 2]
     exponent = [2, 2]
-    operation = examples.shor.ModularExp(target, exponent, 4, 5)
-    circuit = cirq.Circuit(operation.on(*cirq.LineQubit.range(5)))
+    gate = examples.shor.ModularExp(target, exponent, 4, 5)
+    circuit = cirq.Circuit(gate.on(*cirq.LineQubit.range(5)))
     cirq.testing.assert_has_diagram(
         circuit,
         """
@@ -202,8 +202,8 @@ def test_example_shor_modular_exp_diagram():
 """,
     )
 
-    operation = operation.with_registers(target, 2, 4, 5)
-    circuit = cirq.Circuit(operation.on(*cirq.LineQubit.range(3)))
+    gate = gate.with_registers(target, 2, 4, 5)
+    circuit = cirq.Circuit(gate.on(*cirq.LineQubit.range(3)))
     cirq.testing.assert_has_diagram(
         circuit,
         """

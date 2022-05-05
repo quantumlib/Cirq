@@ -172,8 +172,9 @@ class QuirkArithmeticGate(ops.ArithmeticGate):
         Args:
             identifier: The quirk identifier string for this operation.
             target: The target qubit register.
-            inputs: Qubit registers (or classical constants) that
-                determine what happens to the target.
+            inputs: Qubit registers, which correspond to the qid shape of the
+                qubits from which the input will be read, or classical
+                constants, that determine what happens to the target.
 
         Raises:
             ValueError: If the target is too small for a modular operation with
