@@ -1711,16 +1711,14 @@ class Circuit(AbstractCircuit):
 
     def _create_from_earliest(self, contents):
         moments_and_operations = list(
-            ops.flatten_to_ops_or_moments(
-                ops.transform_op_tree(contents, preserve_moments=True)
-            )
+            ops.flatten_to_ops_or_moments(ops.transform_op_tree(contents, preserve_moments=True))
         )
 
         qubits = defaultdict(lambda: -1)
         mkeys = defaultdict(lambda: -1)
         ckeys = defaultdict(lambda: -1)
+        opses = defaultdict(list)
         moments = {}
-        opses = {}
         length = 0
         moment = -1
         for moment_or_op in moments_and_operations:
@@ -1739,15 +1737,13 @@ class Circuit(AbstractCircuit):
                 i = max(i, i, *[ckeys[k] for k in op_mkeys])
                 i = max(i, i, *[mkeys[k] for k in op_ckeys])
                 i += 1
-                if i not in opses:
-                    opses[i] = set()
                 for q in op_qubits:
                     qubits[q] = i
                 for k in op_mkeys:
                     mkeys[k] = i
                 for k in op_ckeys:
                     ckeys[k] = i
-                opses[i].add(op)
+                opses[i].append(op)
                 length = max(length, i + 1)
         for i in range(length):
             if i in moments:
