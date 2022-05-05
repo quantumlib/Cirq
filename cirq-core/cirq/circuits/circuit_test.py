@@ -4613,4 +4613,4 @@ def test_create_speed():
     opa = [xs[i] for i in range(qs) for _ in range(moments)]
     t = time.perf_counter()
     _ = cirq.Circuit(opa)
-    assert time.perf_counter() - t < 1
+    assert time.perf_counter() - t < 2
