@@ -1720,38 +1720,31 @@ class Circuit(AbstractCircuit):
         opses = defaultdict(list)
         moments = {}
         length = 0
-        for moment_or_op in moments_and_operations:
-            if isinstance(moment_or_op, Moment):
-                moments[length] = moment_or_op
-                for q in moment_or_op.qubits:
-                    qubits[q] = length
-                for k in moment_or_op._measurement_key_objs_():
-                    mkeys[k] = length
-                for k in moment_or_op._control_keys_():
-                    ckeys[k] = length
-                length += 1
+        for mop in moments_and_operations:
+            mop_qubits = mop.qubits
+            mop_mkeys = protocols.measurement_key_objs(mop)
+            mop_ckeys = protocols.control_keys(mop)
+            if isinstance(mop, Moment):
+                i = length
+                moments[i] = mop
             else:
-                op = cast(ops.Operation, moment_or_op)
-                op_qubits = op.qubits
-                op_mkeys = protocols.measurement_key_objs(op)
-                op_ckeys = protocols.control_keys(op)
                 i = max(
                     -1,
                     -1,  # in case none of the following exist
-                    *[qubits[q] for q in op_qubits],
-                    *[mkeys[k] for k in op_mkeys],
-                    *[ckeys[k] for k in op_mkeys],
-                    *[mkeys[k] for k in op_ckeys],
+                    *[qubits[q] for q in mop_qubits],
+                    *[mkeys[k] for k in mop_mkeys],
+                    *[ckeys[k] for k in mop_mkeys],
+                    *[mkeys[k] for k in mop_ckeys],
                 )
                 i += 1
-                for q in op_qubits:
-                    qubits[q] = i
-                for k in op_mkeys:
-                    mkeys[k] = i
-                for k in op_ckeys:
-                    ckeys[k] = i
-                opses[i].append(op)
-                length = max(length, i + 1)
+                opses[i].append(mop)
+            for q in mop_qubits:
+                qubits[q] = i
+            for k in mop_mkeys:
+                mkeys[k] = i
+            for k in mop_ckeys:
+                ckeys[k] = i
+            length = max(length, i + 1)
         for i in range(length):
             if i in moments:
                 self._moments.append(moments[i].with_operations(opses[i]))
