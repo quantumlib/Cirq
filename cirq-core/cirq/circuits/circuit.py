@@ -1710,17 +1710,13 @@ class Circuit(AbstractCircuit):
                 self.append(contents, strategy=strategy)
 
     def _create_from_earliest(self, contents):
-        moments_and_operations = ops.flatten_to_ops_or_moments(
-            ops.transform_op_tree(contents, preserve_moments=True)
-        )
-
         qubits = defaultdict(lambda: -1)
         mkeys = defaultdict(lambda: -1)
         ckeys = defaultdict(lambda: -1)
         opses = defaultdict(list)
         moments = {}
         length = 0
-        for mop in moments_and_operations:
+        for mop in ops.flatten_to_ops_or_moments(contents):
             mop_qubits = mop.qubits
             mop_mkeys = protocols.measurement_key_objs(mop)
             mop_ckeys = protocols.control_keys(mop)
