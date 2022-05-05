@@ -54,6 +54,7 @@ class PhasedISwapPowGate(eigen_gate.EigenGate):
         *,
         phase_exponent: Union[float, sympy.Expr] = 0.25,
         exponent: Union[float, sympy.Expr] = 1.0,
+        global_shift: float = 0.0,
     ):
         """Inits PhasedISwapPowGate.
 
@@ -62,10 +63,12 @@ class PhasedISwapPowGate(eigen_gate.EigenGate):
                 the T gate by default.
             exponent: The exponent on the ISWAP gate, see EigenGate for
                 details.
+            global_shift: The global_shift on the ISWAP gate, see EigenGate for
+                details.
         """
         self._phase_exponent = value.canonicalize_half_turns(phase_exponent)
-        self._iswap = swap_gates.ISwapPowGate(exponent=exponent)
-        super().__init__(exponent=exponent)
+        self._iswap = swap_gates.ISwapPowGate(exponent=exponent, global_shift=global_shift)
+        super().__init__(exponent=exponent, global_shift=global_shift)
 
     @property
     def phase_exponent(self) -> Union[float, sympy.Expr]:
@@ -75,7 +78,11 @@ class PhasedISwapPowGate(eigen_gate.EigenGate):
         return 2
 
     def _json_dict_(self) -> Dict[str, Any]:
-        return {'phase_exponent': self._phase_exponent, 'exponent': self._exponent}
+        return {
+            'phase_exponent': self._phase_exponent,
+            'exponent': self._exponent,
+            'global_shift': self._global_shift,
+        }
 
     def _value_equality_values_cls_(self):
         if self.phase_exponent == 0:
@@ -106,7 +113,9 @@ class PhasedISwapPowGate(eigen_gate.EigenGate):
         )
 
     def _with_exponent(self, exponent: value.type_alias.TParamVal) -> 'PhasedISwapPowGate':
-        return PhasedISwapPowGate(phase_exponent=self.phase_exponent, exponent=exponent)
+        return PhasedISwapPowGate(
+            phase_exponent=self.phase_exponent, exponent=exponent, global_shift=self.global_shift
+        )
 
     def _eigen_shifts(self) -> List[float]:
         return [0.0, +0.5, -0.5]
@@ -129,6 +138,9 @@ class PhasedISwapPowGate(eigen_gate.EigenGate):
         s = np.sin(np.pi * self._exponent / 2)
         f = np.exp(2j * np.pi * self._phase_exponent)
         matrix = np.array([[c, 1j * s * f], [1j * s * f.conjugate(), c]])
+        p = 1j ** (2 * self._exponent * self._global_shift)
+        if p != 1:
+            args.target_tensor *= p
 
         zo = args.subspace_index(0b01)
         oz = args.subspace_index(0b10)
@@ -144,7 +156,7 @@ class PhasedISwapPowGate(eigen_gate.EigenGate):
 
         yield cirq.Z(a) ** self.phase_exponent
         yield cirq.Z(b) ** -self.phase_exponent
-        yield cirq.ISWAP(a, b) ** self.exponent
+        yield cirq.ISwapPowGate(exponent=self.exponent, global_shift=self.global_shift).on(a, b)
         yield cirq.Z(a) ** -self.phase_exponent
         yield cirq.Z(b) ** self.phase_exponent
 
@@ -179,9 +191,11 @@ class PhasedISwapPowGate(eigen_gate.EigenGate):
         )
 
     def __str__(self) -> str:
-        if self.exponent == 1:
-            return 'PhasedISWAP'
-        return f'PhasedISWAP**{self.exponent}'
+        if self._global_shift == 0:
+            if self.exponent == 1:
+                return 'PhasedISWAP'
+            return f'PhasedISWAP**{self.exponent}'
+        return f'PhasedISWAP(exponent={self._exponent}, global_shift={self._global_shift!r})'
 
     def __repr__(self) -> str:
         phase_exponent = proper_repr(self._phase_exponent)
@@ -189,6 +203,8 @@ class PhasedISwapPowGate(eigen_gate.EigenGate):
         if self.exponent != 1:
             exponent = proper_repr(self.exponent)
             args.append(f'exponent={exponent}')
+        if self._global_shift != 0:
+            args.append(f'global_shift={self._global_shift}')
         arg_string = ', '.join(args)
         return f'cirq.PhasedISwapPowGate({arg_string})'
 
