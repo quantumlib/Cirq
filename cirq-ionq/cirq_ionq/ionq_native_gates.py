@@ -25,10 +25,10 @@ import numpy as np
 
 @cirq.value.value_equality
 class GPIGate(cirq.Gate):
-    """The GPI gate is a single qubit gate.
+    r"""The GPI gate is a single qubit gate.
     The unitary of this gate is
-        [[0, e^{-i\\phi}],
-         [e^{-i\\phi}, 0]]
+        [[0, e^{-i\phi}],
+         [e^{-i\phi}, 0]]
     """
 
     def __init__(self, *, phi):
@@ -67,10 +67,10 @@ class GPIGate(cirq.Gate):
 GPI = GPIGate(phi=0)
 document(
     GPI,
-    """The GPI gate is a single qubit gate.
+    r"""The GPI gate is a single qubit gate.
     The unitary of this gate is
-        [[0, e^{-i\\phi}],
-         [e^{-i\\phi}, 0]]
+        [[0, e^{-i\phi}],
+         [e^{-i\phi}, 0]]
     It is driven by Rabi laser.
     https://ionq.com/best-practices
     """,
@@ -79,10 +79,10 @@ document(
 
 @cirq.value.value_equality
 class GPI2Gate(cirq.Gate):
-    """The GPI2 gate is a single qubit gate.
+    r"""The GPI2 gate is a single qubit gate.
     The unitary of this gate is
-        \\frac{1}{/\\sqrt{2}}[[1, -i*e^{-i\\phi}],
-         [-i*e^{-i\\phi}, 1]]
+        \frac{1}{/\sqrt{2}}[[1, -i*e^{-i\phi}],
+         [-i*e^{-i\phi}, 1]]
     """
 
     def __init__(self, *, phi):
@@ -121,10 +121,10 @@ class GPI2Gate(cirq.Gate):
 GPI2 = GPI2Gate(phi=0)
 document(
     GPI2,
-    """The GPI2 gate is a single qubit gate.
+    r"""The GPI2 gate is a single qubit gate.
     The unitary of this gate is
-        \\frac{1}{/\\sqrt{2}}[[1, -i*e^{-i\\phi}],
-         [-i*e^{-i\\phi}, 1]]
+        \frac{1}{/\sqrt{2}}[[1, -i*e^{-i\phi}],
+         [-i*e^{-i\phi}, 1]]
     It is driven by Rabi laser.
     https://ionq.com/best-practices
     """,
@@ -133,15 +133,14 @@ document(
 
 @cirq.value.value_equality
 class MSGate(cirq.Gate):
-    """The MS gate is a 2 qubit gate.
+    r"""The MS gate is a 2 qubit gate.
     The unitary of this gate is
-         MS(\\phi_1 - \\phi_0) =
-         MS(t) =
-            \\frac{1}{\\sqrt{2}}
-            [[\\cos(t), 0, 0, -i*\\sin(t)],
-             [0, \\cos(t), -i*\\sin(t), 0],
-             [0, -i*\\sin(t), \\cos(t), 0],
-             [-i*\\sin(t), 0, 0, \\cos(t)]]
+        MS(\phi_0, \phi_1) q_0, q_1 =
+            \frac{1}{\sqrt{2}}
+               [[1, 0, 0, -i*e^{-i*(\phi_0+\phi_1}],
+                [0, 1, -i*e^{-i*(\phi_0-\phi_1}, 0],
+                [0, -i*e^{i*(\phi_0-\phi_1}, 1, 0],
+                [-i*e^{i*(\phi_0+\phi_1}, 0, 0, 1]]
     """
 
     def __init__(self, *, phi1, phi2):
@@ -184,15 +183,15 @@ class MSGate(cirq.Gate):
 MS = MSGate(phi1=0, phi2=0)
 document(
     MS,
-    """The MS gate is a 2 qubit gate.
+    r"""The MS gate is a 2 qubit gate.
     The unitary of this gate is
     .. math::
-        MS(\\phi_0, \\phi_1) q_0, q_1 =
-            \\frac{1}{\\sqrt{2}}
-               [[1, 0, 0, -i*e^{-i*(\\phi_0+\\phi_1}],
-                [0, 1, -i*e^{-i*(\\phi_0-\\phi_1}, 0],
-                [0, -i*e^{i*(\\phi_0-\\phi_1}, 1, 0],
-                [-i*e^{i*(\\phi_0+\\phi_1}, 0, 0, 1]]
+        MS(\phi_0, \phi_1) q_0, q_1 =
+            \frac{1}{\sqrt{2}}
+               [[1, 0, 0, -i*e^{-i*(\phi_0+\phi_1}],
+                [0, 1, -i*e^{-i*(\phi_0-\phi_1}, 0],
+                [0, -i*e^{i*(\phi_0-\phi_1}, 1, 0],
+                [-i*e^{i*(\phi_0+\phi_1}, 0, 0, 1]]
 
     https://ionq.com/best-practices
     """,
