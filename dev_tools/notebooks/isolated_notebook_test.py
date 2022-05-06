@@ -41,6 +41,8 @@ from dev_tools.notebooks import list_all_notebooks, filter_notebooks, rewrite_no
 # Please, always indicate in comments the feature used for easier bookkeeping.
 
 NOTEBOOKS_DEPENDING_ON_UNRELEASED_FEATURES: List[str] = [
+    # Hardcoded qubit placement
+    'docs/google/qubit-placement.ipynb',
     # get_qcs_objects_for_notebook
     'docs/tutorials/google/calibration_api.ipynb',
     'docs/tutorials/google/colab.ipynb',

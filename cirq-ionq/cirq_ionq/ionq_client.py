@@ -24,6 +24,7 @@ import requests
 import cirq_ionq
 from cirq_ionq import ionq_exceptions
 
+
 RETRIABLE_STATUS_CODES = {requests.codes.internal_server_error, requests.codes.service_unavailable}
 
 
@@ -117,11 +118,7 @@ class _IonQClient:
         """
         actual_target = self._target(target)
 
-        json: Dict[str, Any] = {
-            'target': actual_target,
-            'body': serialized_program.body,
-            'lang': 'json',
-        }
+        json: Dict[str, Any] = {'target': actual_target, 'body': serialized_program.body}
         if name:
             json['name'] = name
         # We have to pass measurement keys through the metadata.

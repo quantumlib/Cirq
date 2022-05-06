@@ -21,6 +21,11 @@ import sympy
 import cirq
 from cirq.devices import line_qubit
 from cirq.ops import common_gates, parity_gates
+from .ionq_native_gates import GPIGate, GPI2Gate, MSGate
+
+_NATIVE_GATES = cirq.Gateset(
+    GPIGate, GPI2Gate, MSGate, cirq.MeasurementGate, unroll_circuit_op=False
+)
 
 
 @dataclasses.dataclass
@@ -63,6 +68,11 @@ class Serializer:
             common_gates.HPowGate: self._serialize_h_pow_gate,
             common_gates.SwapPowGate: self._serialize_swap_gate,
             common_gates.MeasurementGate: self._serialize_measurement_gate,
+            # These gates can't be used with any of the non-measurement gates above
+            # Rather than validating this here, we rely on the IonQ API to report failure.
+            GPIGate: self._serialize_gpi_gate,
+            GPI2Gate: self._serialize_gpi2_gate,
+            MSGate: self._serialize_ms_gate,
         }
 
     def serialize(self, circuit: cirq.AbstractCircuit) -> SerializedProgram:
@@ -76,13 +86,17 @@ class Serializer:
 
         serialized_ops = self._serialize_circuit(circuit)
 
+        gateset = "qis" if not _NATIVE_GATES.validate(circuit) else "native"
+
         # IonQ API does not support measurements, so we pass the measurement keys through
         # the metadata field.  Here we split these out of the serialized ops.
         body = {
+            'gateset': gateset,
             'qubits': num_qubits,
             'circuit': [op for op in serialized_ops if op['gate'] != 'meas'],
         }
         metadata = self._serialize_measurements(op for op in serialized_ops if op['gate'] == 'meas')
+
         return SerializedProgram(body=body, metadata=metadata)
 
     def _validate_circuit(self, circuit: cirq.AbstractCircuit):
@@ -182,6 +196,16 @@ class Serializer:
         if self._near_mod_n(gate.exponent, 1, 2):
             return {'gate': 'h', 'targets': targets}
         return None
+
+    # These could potentially be using serialize functions on the gates themselves.
+    def _serialize_gpi_gate(self, gate: GPIGate, targets: Sequence[int]) -> Optional[dict]:
+        return {'gate': 'gpi', 'target': targets[0], 'phase': gate.phase}
+
+    def _serialize_gpi2_gate(self, gate: GPI2Gate, targets: Sequence[int]) -> Optional[dict]:
+        return {'gate': 'gpi2', 'target': targets[0], 'phase': gate.phase}
+
+    def _serialize_ms_gate(self, gate: MSGate, targets: Sequence[int]) -> Optional[dict]:
+        return {'gate': 'ms', 'targets': targets, 'phases': gate.phases}
 
     def _serialize_cnot_pow_gate(
         self, gate: cirq.CNotPowGate, targets: Sequence[int]

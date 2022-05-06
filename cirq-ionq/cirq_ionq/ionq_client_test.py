@@ -103,7 +103,6 @@ def test_ionq_client_create_job(mock_post):
     expected_json = {
         'target': 'qpu',
         'body': {'job': 'mine'},
-        'lang': 'json',
         'name': 'bacon',
         'shots': '200',
         'metadata': {'shots': '200', 'a': '0,1'},

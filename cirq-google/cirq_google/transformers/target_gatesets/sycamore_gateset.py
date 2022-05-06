@@ -15,7 +15,7 @@
 """Target gateset used for compiling circuits to Sycamore + 1-q rotations + measurement gates."""
 
 import itertools
-from typing import cast, List, Optional, Sequence
+from typing import cast, Any, Dict, List, Optional, Sequence
 
 import cirq
 from cirq.protocols.decompose_protocol import DecomposeResult
@@ -165,6 +165,12 @@ class SycamoreTargetGateset(cirq.TwoQubitCompilationTargetGateset):
         return (
             f'cirq_google.SycamoreTargetGateset('
             f'atol={self.atol}, '
-            f'tabulation={self.tabulation}, '
-            f')'
+            f'tabulation={self.tabulation})'
         )
+
+    def _json_dict_(self) -> Dict[str, Any]:
+        return {'atol': self.atol, 'tabulation': self.tabulation}
+
+    @classmethod
+    def _from_json_dict_(cls, atol, tabulation, **kwargs):
+        return cls(atol=atol, tabulation=tabulation)

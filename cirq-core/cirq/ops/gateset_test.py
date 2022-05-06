@@ -59,11 +59,26 @@ def test_gate_family_init(gate):
     assert g.description == description
 
 
-@pytest.mark.parametrize('gate', [CustomX, CustomXPowGate])
-def test_gate_family_default_name_and_description(gate):
-    g = cirq.GateFamily(gate)
+@pytest.mark.parametrize(
+    'gate, tags_to_accept, tags_to_ignore',
+    [
+        (CustomX, [], []),
+        (CustomX, ['tag1'], []),
+        (CustomX, [], ['tag2']),
+        (CustomX, ['tag3'], ['tag4']),
+        (CustomXPowGate, [], []),
+    ],
+)
+def test_gate_family_default_name_and_description(gate, tags_to_accept, tags_to_ignore):
+    g = cirq.GateFamily(gate, tags_to_accept=tags_to_accept, tags_to_ignore=tags_to_ignore)
     assert re.match('.*GateFamily.*CustomX.*', g.name)
     assert re.match('Accepts.*instances.*CustomX.*', g.description)
+
+    accepted_match = re.compile('.*Accepted tags.*', re.DOTALL).match(g.description)
+    assert (accepted_match is None) == (tags_to_accept == [])
+
+    ignored_match = re.compile('.*Ignored tags.*', re.DOTALL).match(g.description)
+    assert (ignored_match is None) == (tags_to_ignore == [])
 
 
 def test_invalid_gate_family():
@@ -255,11 +270,12 @@ def test_gateset_init():
     )
 
 
-def test_gateset_repr_and_str():
-    cirq.testing.assert_equivalent_repr(gateset)
-    assert gateset.name in str(gateset)
-    for gate_family in gateset.gates:
-        assert str(gate_family) in str(gateset)
+@pytest.mark.parametrize('g', [gateset, cirq.Gateset(name='empty gateset')])
+def test_gateset_repr_and_str(g):
+    cirq.testing.assert_equivalent_repr(g)
+    assert g.name in str(g)
+    for gate_family in g.gates:
+        assert str(gate_family) in str(g)
 
 
 @pytest.mark.parametrize(
