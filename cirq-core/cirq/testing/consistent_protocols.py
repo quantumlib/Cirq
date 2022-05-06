@@ -163,7 +163,7 @@ def _assert_meets_standards_helper(
     assert protocols.measurement_key_objs(val) == protocols.measurement_key_names(val)
     if isinstance(val, ops.EigenGate):
         assert_eigen_shifts_is_consistent_with_eigen_components(val)
-    if isinstance(val, ops.Gate):
+    if isinstance(val, ops.Gate) and protocols.has_mixture(val):
         assert_controlled_and_controlled_by_identical(val)
 
 

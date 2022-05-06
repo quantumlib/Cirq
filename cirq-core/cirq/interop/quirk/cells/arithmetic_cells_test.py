@@ -344,7 +344,7 @@ def test_with_registers():
         '["+=AB3",1,1,"inputB2"]'
         ']}'
     )
-    op = cast(cirq.ArithmeticOperation, circuit[0].operations[0])
+    op = cast(cirq.ArithmeticGate, circuit[0].operations[0].gate)
 
     with pytest.raises(ValueError, match='number of registers'):
         _ = op.with_registers()
@@ -353,11 +353,11 @@ def test_with_registers():
         _ = op.with_registers(1, 2, 3)
 
     op2 = op.with_registers([], 5, 5)
-    np.testing.assert_allclose(cirq.unitary(cirq.Circuit(op2)), np.array([[1]]), atol=1e-8)
+    np.testing.assert_allclose(cirq.unitary(cirq.Circuit(op2())), np.array([[1]]), atol=1e-8)
 
-    op2 = op.with_registers([*cirq.LineQubit.range(3)], 5, 5)
+    op2 = op.with_registers([2, 2, 2], 5, 5)
     np.testing.assert_allclose(
-        cirq.final_state_vector(cirq.Circuit(op2), initial_state=0),
+        cirq.final_state_vector(cirq.Circuit(op2(*cirq.LineQubit.range(3))), initial_state=0),
         cirq.one_hot(index=25 % 8, shape=8, dtype=np.complex64),
         atol=1e-8,
     )
