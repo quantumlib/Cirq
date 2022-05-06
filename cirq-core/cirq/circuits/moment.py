@@ -94,7 +94,7 @@ class Moment:
 
         # An internal dictionary to support efficient operation access by qubit.
         self._qubit_to_op: Dict['cirq.Qid', 'cirq.Operation'] = {}
-        for op in self.operations:
+        for op in self._operations:
             for q in op.qubits:
                 # Check that operations don't overlap.
                 if q in self._qubit_to_op:
@@ -104,6 +104,14 @@ class Moment:
         self._qubits = frozenset(self._qubit_to_op.keys())
         self._measurement_key_objs: Optional[AbstractSet['cirq.MeasurementKey']] = None
         self._control_keys: Optional[FrozenSet['cirq.MeasurementKey']] = None
+
+    @classmethod
+    def _create_unchecked(cls, operations: Tuple['cirq.Operation']):
+        moment = cls()
+        moment._operations = operations
+        moment._qubit_to_op = {q: op for op in operations for q in op.qubits}
+        moment._qubits = frozenset(moment._qubit_to_op.keys())
+        return moment
 
     @property
     def operations(self) -> Tuple['cirq.Operation', ...]:
