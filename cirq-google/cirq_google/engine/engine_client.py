@@ -105,7 +105,10 @@ class EngineClient:
             service_args = {}
 
         self._service_args = service_args
-        self._executor = AsyncioExecutor()
+
+    @cached_property
+    def _executor(self) -> AsyncioExecutor:
+        return AsyncioExecutor()
 
     @cached_property
     def grpc_client(self) -> quantum.QuantumEngineServiceAsyncClient:
