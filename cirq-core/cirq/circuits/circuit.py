@@ -1741,12 +1741,10 @@ class Circuit(AbstractCircuit):
                 ckeys[k] = i
             length = max(length, i + 1)
         for i in range(length):
-            curr_ops = []
             if i in moments:
-                curr_ops.extend(moments[i]._operations)
-            if i in opses:
-                curr_ops.extend(opses[i])
-            self._moments.append(Moment._create_unchecked(tuple(curr_ops)))
+                self._moments.append(moments[i].with_operations(opses[i]))
+            else:
+                self._moments.append(Moment(opses[i]))
 
     def __copy__(self) -> 'cirq.Circuit':
         return self.copy()
