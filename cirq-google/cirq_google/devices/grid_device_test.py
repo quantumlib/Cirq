@@ -194,11 +194,23 @@ def test_grid_device_validate_operations_negative():
 @pytest.mark.parametrize(
     'spec, error_match',
     [
-        (_create_device_spec_duplicate_qubit(), 'duplicate qubit'),
-        (_create_device_spec_invalid_qubit_name(), 'not in the GridQubit form'),
-        (_create_device_spec_invalid_qubit_in_qubit_pair(), 'which is not in valid_qubits'),
-        (_create_device_spec_qubit_pair_self_loops(), 'contains repeated qubits'),
-        (_create_device_spec_invalid_subset_permutation_target(), 'does not have exactly 1 qubit'),
+        (_create_device_spec_duplicate_qubit(), 'Invalid DeviceSpecification: .*duplicate qubit'),
+        (
+            _create_device_spec_invalid_qubit_name(),
+            'Invalid DeviceSpecification: .*not in the GridQubit form',
+        ),
+        (
+            _create_device_spec_invalid_qubit_in_qubit_pair(),
+            'Invalid DeviceSpecification: .*which is not in valid_qubits',
+        ),
+        (
+            _create_device_spec_qubit_pair_self_loops(),
+            'Invalid DeviceSpecification: .*contains repeated qubits',
+        ),
+        (
+            _create_device_spec_invalid_subset_permutation_target(),
+            'Invalid DeviceSpecification: .*does not have exactly 1 qubit',
+        ),
     ],
 )
 def test_grid_device_invalid_device_specification(spec, error_match):
