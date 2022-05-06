@@ -22,14 +22,7 @@ from cirq_google.api import v2
 
 
 def _validate_device_specification(proto: v2.device_pb2.DeviceSpecification) -> None:
-    """Validates the DeviceSpecification proto.
-
-    Args:
-        proto: The DeviceSpecification proto to validate.
-
-    Raises:
-        ValueError: If the DeviceSpecification is invalid.
-    """
+    """Raises a ValueError if the `DeviceSpecification` proto is invalid."""
 
     qubit_set = set()
     for q_name in proto.valid_qubits:
@@ -71,6 +64,9 @@ def _validate_device_specification(proto: v2.device_pb2.DeviceSpecification) -> 
                     )
 
         # A SUBSET_PERMUTATION target should contain exactly one qubit.
+        # SUBSET_PERMUTATION describes a target set (rather than a target), where a gate can have
+        # any subset of the targets, with each target being exactly 1 qubit.
+        # See the `DeviceSpecification` proto definition for a detailed description.
         if target_set.target_ordering == v2.device_pb2.TargetSet.SUBSET_PERMUTATION:
             for target in target_set.targets:
                 if len(target.ids) != 1:
@@ -148,7 +144,7 @@ class GridDevice(cirq.Device):
 
     @classmethod
     def from_proto(cls, proto: v2.device_pb2.DeviceSpecification) -> 'GridDevice':
-        """Create a `GridDevice` from a DeviceSpecification proto.
+        """Create a `GridDevice` from a `DeviceSpecification` proto.
 
         Args:
             proto: The `DeviceSpecification` proto describing a Google device.
