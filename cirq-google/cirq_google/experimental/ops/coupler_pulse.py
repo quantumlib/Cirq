@@ -55,7 +55,7 @@ class CouplerPulse(cirq.ops.Gate):
     def __init__(
         self,
         hold_time: cirq.Duration,
-        coupling_mhz: float,
+        coupling_mhz: cirq.TParamVal,
         rise_time: Optional[cirq.Duration] = cirq.Duration(nanos=8),
         padding_time: Optional[cirq.Duration] = cirq.Duration(nanos=2.5),
     ):
