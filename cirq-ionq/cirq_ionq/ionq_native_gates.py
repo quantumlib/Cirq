@@ -187,12 +187,12 @@ document(
     """The MS gate is a 2 qubit gate.
     The unitary of this gate is
     .. math::
-        MS(\phi_0, _\phi_1) q_0, q_1 =
-            \frac{1}{\sqrt{2}}
-               [[1, 0, 0, -i*e^{-i*(\phi_0+\phi_1}],
-                [0, 1, -i*e^{-i*(\phi_0-\phi_1}, 0],
-                [0, -i*e^{i*(\phi_0-\phi_1}, 1, 0],
-                [-i*e^{i*(\phi_0+\phi_1}, 0, 0, 1]]
+        MS(\\phi_0, \\phi_1) q_0, q_1 =
+            \\frac{1}{\\sqrt{2}}
+               [[1, 0, 0, -i*e^{-i*(\\phi_0+\\phi_1}],
+                [0, 1, -i*e^{-i*(\\phi_0-\\phi_1}, 0],
+                [0, -i*e^{i*(\\phi_0-\\phi_1}, 1, 0],
+                [-i*e^{i*(\\phi_0+\\phi_1}, 0, 0, 1]]
 
     https://ionq.com/best-practices
     """,
