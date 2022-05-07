@@ -197,7 +197,7 @@ class QuantumRuntimeConfiguration:
     run_id: Optional[str] = None
     random_seed: Optional[int] = None
     qubit_placer: QubitPlacer = NaiveQubitPlacer()
-    target_gateset: cirq.CompilationTargetGateset = None
+    target_gateset: Optional[cirq.CompilationTargetGateset] = None
 
     @classmethod
     def _json_namespace_(cls) -> str:
@@ -302,7 +302,9 @@ def execute(
                 runtime_info.qubit_placement = mapping
 
         if rt_config.target_gateset is not None:
-            circuit = cirq.optimize_for_target_gateset(circuit, gateset=rt_config.target_gateset)
+            circuit = cirq.optimize_for_target_gateset(
+                circuit, gateset=rt_config.target_gateset
+            ).freeze()
 
         with _time_into_runtime_info(runtime_info, 'run'):
             sampler_run_result = sampler.run(circuit, repetitions=exe.measurement.n_repetitions)
