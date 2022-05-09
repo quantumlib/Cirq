@@ -177,16 +177,16 @@ class MSGate(cirq.Gate):
         return protocols.CircuitDiagramInfo(wire_symbols=('MS',), exponent=self.phases)
 
     def __repr__(self) -> str:
-        return f'cirq_ionq.MSGate(phi1={self.phi1!r}, phi2={self.phi2!r})'
+        return f'cirq_ionq.MSGate(phi0={self.phi0!r}, phi1={self.phi1!r})'
 
     def _json_dict_(self) -> Dict[str, Any]:
-        return cirq.obj_to_dict_helper(self, ['phi1', 'phi2'])
+        return cirq.obj_to_dict_helper(self, ['phi0', 'phi1'])
 
     def _value_equality_values_(self) -> Any:
-        return (self.phi1, self.phi2)
+        return (self.phi0, self.phi1)
 
 
-MS = MSGate(phi1=0, phi2=0)
+MS = MSGate(phi0=0, phi1=0)
 document(
     MS,
     r"""The MS gate is a 2 qubit gate.
