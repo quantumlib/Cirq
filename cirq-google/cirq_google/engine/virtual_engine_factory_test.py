@@ -64,7 +64,7 @@ def test_median_device():
 
 
 def test_median_device_bad_processor():
-    with pytest.raises(ValueError, match='Got processor_id=bad_processor'):
+    with pytest.raises(ValueError, match='no median calibration is defined'):
         _ = factory.load_median_device_calibration('bad_processor')
 
 
@@ -91,12 +91,12 @@ def test_create_from_proto():
 
 def test_create_from_template():
     engine = factory.create_noiseless_virtual_engine_from_templates(
-        'sycamore', 'weber_12_10_2021_device_spec.proto.txt'
+        'sycamore', 'weber_2021_12_10_device_spec.proto.txt'
     )
     _test_processor(engine.get_processor('sycamore'))
 
     processor = factory.create_noiseless_virtual_processor_from_template(
-        'sycamore', 'weber_12_10_2021_device_spec.proto.txt'
+        'sycamore', 'weber_2021_12_10_device_spec.proto.txt'
     )
     _test_processor(processor)
 
@@ -110,7 +110,7 @@ def test_default_creation():
 def test_create_from_template_wrong_args():
     with pytest.raises(ValueError, match='equal numbers of processor ids'):
         _ = factory.create_noiseless_virtual_engine_from_templates(
-            ['sycamore', 'sycamore2'], 'weber_12_10_2021_device_spec.proto.txt'
+            ['sycamore', 'sycamore2'], 'weber_2021_12_10_device_spec.proto.txt'
         )
     with pytest.raises(ValueError, match='equal numbers of processor ids'):
         _ = factory.create_noiseless_virtual_engine_from_proto('sycamore', [])
