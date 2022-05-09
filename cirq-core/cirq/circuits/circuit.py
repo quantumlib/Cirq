@@ -1705,26 +1705,65 @@ class Circuit(AbstractCircuit):
         self._moments: List['cirq.Moment'] = []
         with _compat.block_overlapping_deprecation('.*'):
             if strategy == InsertStrategy.EARLIEST:
-                self._create_from_earliest(contents)
+                self._load_contents_with_earliest_strategy(contents)
             else:
                 self.append(contents, strategy=strategy)
 
-    def _create_from_earliest(self, contents):
-        qubits = defaultdict(lambda: -1)
-        mkeys = defaultdict(lambda: -1)
-        ckeys = defaultdict(lambda: -1)
-        opses = defaultdict(list)
-        moments = {}
+    def _load_contents_with_earliest_strategy(self, contents: 'cirq.OP_TREE'):
+        """Optimized algorithm to load contents quickly.
+
+        The default algorithm appends operations one-at-a-time, letting them
+        fall back until they encounter a moment they cannot commute with. This
+        is slow because it requires re-checking for conflicts at each moment.
+
+        Here, we instead keep track of the greatest moment that contains each
+        qubit, measurement key, and control key, and append the operation to
+        the moment after the maximum of these. This avoids having to check each
+        moment.
+
+        Args:
+            contents: The initial list of moments and operations defining the
+                circuit. You can also pass in operations, lists of operations,
+                or generally anything meeting the `cirq.OP_TREE` contract.
+                Non-moment entries will be inserted according to the specified
+                insertion strategy.
+    """
+        # Initialize dicts from the qubit/key to the greatest moment index that has it. It is safe
+        # to default to `-1`, as that is interpreted as meaning the zeroth index onward does not
+        # have this value.
+        qubits: Dict['cirq.Qid', int] = defaultdict(lambda: -1)
+        mkeys: Dict['cirq.MeasurementKey', int] = defaultdict(lambda: -1)
+        ckeys: Dict['cirq.MeasurementKey', int] = defaultdict(lambda: -1)
+
+        # We also maintain the dict from moment index to moments/ops that go into it, for use when
+        # building the actual moments at the end.
+        opses: Dict[int, List['cirq.Operation']] = defaultdict(list)
+        moments: Dict[int, 'cirq.Moment'] = {}
+
+        # For keeping track of length of the circuit thus far.
         length = 0
+
+        # "mop" means current moment-or-operation
         for mop in ops.flatten_to_ops_or_moments(contents):
             mop_qubits = mop.qubits
             mop_mkeys = protocols.measurement_key_objs(mop)
             mop_ckeys = protocols.control_keys(mop)
+
+            # Both branches define `i`, the moment index at which to place the mop.
             if isinstance(mop, Moment):
+                # We always append moment to the end, as does `self.append`
                 i = length
                 moments[i] = mop
             else:
+                # Initially we define `i` as the greatest moment index that has a conflict. We
+                # increment it at the end of the branch.
                 i = -1
+
+                # Look for the maximum conflict; i.e. a moment that has the same qubit as this op,
+                # that has a measurement or control key the same as of of this op's measurement
+                # keys, or that has a measurement key the same as one of this op's control keys.
+                # (Control keys alone can commute past each other). The `ifs` are logically
+                # unnecessary but seem to make this slightly faster.
                 if mop_qubits:
                     i = max(i, *[qubits[q] for q in mop_qubits])
                 if mop_mkeys:
@@ -1733,6 +1772,9 @@ class Circuit(AbstractCircuit):
                     i = max(i, *[mkeys[k] for k in mop_ckeys])
                 i += 1
                 opses[i].append(mop)
+
+            # Update our dicts with data from the latest mop placement. Note `i` will always be
+            # greater than the existing value for all of these, so this is safe.
             for q in mop_qubits:
                 qubits[q] = i
             for k in mop_mkeys:
@@ -1740,6 +1782,9 @@ class Circuit(AbstractCircuit):
             for k in mop_ckeys:
                 ckeys[k] = i
             length = max(length, i + 1)
+
+        # Finally once everything is placed, we can construct and append the actual moments for
+        # each index.
         for i in range(length):
             if i in moments:
                 self._moments.append(moments[i].with_operations(opses[i]))
