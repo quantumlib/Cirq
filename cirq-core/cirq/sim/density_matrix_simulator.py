@@ -105,9 +105,10 @@ class DensityMatrixSimulator(
         simulate_moment_steps(circuit, param_resolver, qubit_order,
                               initial_state)
 
-    One can iterate over the moments via
+    One can iterate over the moments with the following
+    (replace 'sim' with your `Simulator` object):
 
-        for step_result in simulate_moments(circuit):
+        for step_result in sim.simulate_moment_steps(circuit):
            # do something with the density matrix via
            # step_result.density_matrix()
     """
@@ -354,7 +355,7 @@ class DensityMatrixTrialResult(
 
     The density matrix that is stored in this result is returned in the
     computational basis with these basis states defined by the qubit_map.
-    In particular the value in the qubit_map is the index of the qubit,
+    In particular, the value in the qubit_map is the index of the qubit,
     and these are translated into binary vectors where the last qubit is
     the 1s bit of the index, the second-to-last is the 2s bit of the index,
     and so forth (i.e. big endian ordering). The density matrix is a
