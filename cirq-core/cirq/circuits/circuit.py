@@ -1727,7 +1727,7 @@ class Circuit(AbstractCircuit):
                 or generally anything meeting the `cirq.OP_TREE` contract.
                 Non-moment entries will be inserted according to the specified
                 insertion strategy.
-    """
+        """
         # Initialize dicts from the qubit/key to the greatest moment index that has it. It is safe
         # to default to `-1`, as that is interpreted as meaning the zeroth index onward does not
         # have this value.
