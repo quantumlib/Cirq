@@ -185,6 +185,7 @@ from cirq.ops import (
     AmplitudeDampingChannel,
     AnyIntegerPowerGateFamily,
     AnyUnitaryGateFamily,
+    ArithmeticGate,
     ArithmeticOperation,
     asymmetric_depolarize,
     AsymmetricDepolarizingChannel,

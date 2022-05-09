@@ -279,7 +279,7 @@ class SimulatorBase(
                 measurement_ops, repetitions, seed=self._prng, _allow_repeated=True
             )
 
-        records: Dict['cirq.MeasurementKey', List[np.ndarray]] = {}
+        records: Dict['cirq.MeasurementKey', List[Sequence[Sequence[int]]]] = {}
         for i in range(repetitions):
             for step_result in self._core_iterator(
                 general_suffix,
@@ -296,7 +296,15 @@ class SimulatorBase(
                 if k not in records:
                     records[k] = []
                 records[k].append([cr])
-        return {str(k): np.array(v, dtype=np.uint8) for k, v in records.items()}
+
+        def pad_evenly(results: Sequence[Sequence[Sequence[int]]]):
+            largest = max(len(result) for result in results)
+            xs = np.zeros((len(results), largest, len(results[0][0])), dtype=np.uint8)
+            for i, result in enumerate(results):
+                xs[i, 0 : len(result), :] = result
+            return xs
+
+        return {str(k): pad_evenly(v) for k, v in records.items()}
 
     def simulate_sweep_iter(
         self,

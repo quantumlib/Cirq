@@ -35,7 +35,7 @@ _VALID_GATES = cirq.Gateset(
 
 
 class IonQAPIDevice(cirq.Device):
-    """A device that uses the gates exposed by the IonQ API.
+    """A device that uses the QIS gates exposed by the IonQ API.
 
     When using this device in constructing a circuit, it will convert one and two qubit gates
     that are not supported by the API into those supported by the API if they have a unitary
