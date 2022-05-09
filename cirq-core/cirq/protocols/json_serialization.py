@@ -283,9 +283,14 @@ def _json_dict_with_cirq_type(obj: Any):
     if 'cirq_type' in base_dict:
         # TODO: upgrade to ValueError in v0.15
         warnings.warn(
-            f"Found 'cirq_type': '{base_dict['cirq_type']}' in _json_dict_. "
-            f"Custom values of this field are not permitted, and will produce "
-            "an error starting in Cirq v0.15.",
+            f"Found 'cirq_type': '{base_dict['cirq_type']}' in user-specified _json_dict_. "
+            "This field is now automatically generated from the class name and (if present) "
+            "its _json_namespace_ method. Starting in v0.15, custom 'cirq_type' values "
+            "will trigger an error."
+            "\n\n"
+            "To fix this, remove 'cirq_type' from the class _json_dict_ method. Classes "
+            "outside of cirq should also define a non-empty _json_namespace_ to avoid "
+            "collision with Cirq classes.",
             DeprecationWarning,
         )
         return base_dict
