@@ -101,8 +101,8 @@ def load_median_device_calibration(processor_id: str) -> calibration.Calibration
     saved in Cirq. The calibrations selected are roughly representative of the
     median performance for that chip.
 
-    A description of the stored metrics can be found here:
-    https://quantumai.google/cirq/google/calibration
+    A description of the stored metrics can be found on the
+    [calibration page](https://quantumai.google/cirq/google/calibration).
 
     Args:
         processor_id: name of the processor to simulate.
