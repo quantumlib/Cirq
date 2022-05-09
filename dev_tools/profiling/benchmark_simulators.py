@@ -54,7 +54,9 @@ def simulate(sim_type: str, num_qubits: int, num_gates: int, run_repetitions: in
             circuit.append(cirq.measure(cirq.GridQubit(0, i), key=f"meas{i}."))
 
     if sim_type == _UNITARY:
-        circuit.final_state_vector(initial_state=0)
+        circuit.final_state_vector(
+            initial_state=0, ignore_terminal_measurements=True, dtype=np.complex64
+        )
     elif sim_type == _DENSITY:
         cirq.DensityMatrixSimulator().run(circuit, repetitions=run_repetitions)
 
