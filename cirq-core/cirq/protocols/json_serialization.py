@@ -285,9 +285,10 @@ def _json_dict_with_cirq_type(obj: Any):
         warnings.warn(
             f"Found 'cirq_type': '{base_dict['cirq_type']}' in user-specified _json_dict_. "
             "This field is now automatically generated from the class name and (if present) "
-            "its _json_namespace_ method. Starting in v0.15, custom 'cirq_type' values "
-            "will trigger an error."
+            "its _json_namespace_ method; this produces the same serialization format as "
+            "the existing convention of `[namespace.]class_name`."
             "\n\n"
+            "Starting in v0.15, custom 'cirq_type' values will trigger an error. "
             "To fix this, remove 'cirq_type' from the class _json_dict_ method. Classes "
             "outside of cirq should also define a non-empty _json_namespace_ to avoid "
             "collision with Cirq classes.",
