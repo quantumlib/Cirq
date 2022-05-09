@@ -190,7 +190,7 @@ class QuantumRuntimeConfiguration:
             The placer is only called if a given `cg.QuantumExecutable` has a `problem_topology`.
             This subroutine's runtime is keyed by "placement" in `RuntimeInfo.timings_s`.
         target_gateset: If not `None`, compile all circuits to this target gateset prior to
-            execution.
+            execution with `cirq.optimize_for_target_gateset`.
     """
 
     processor_record: 'cg.ProcessorRecord'

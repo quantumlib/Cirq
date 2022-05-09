@@ -80,7 +80,7 @@ def rt_config(request):
             target_gateset=cirq.CZTargetGateset(),
         )
 
-    raise ValueError(f"Unknown flavor {request}")
+    raise ValueError(f"Unknown flavor {request}")  # coverage: ignore
 
 
 def test_quantum_runtime_configuration_sampler(rt_config):
