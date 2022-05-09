@@ -150,11 +150,7 @@ class Heatmap:
             "colorbar_pad",
             "colorbar_options",
         ]
-        valid_collection_kwargs = [
-            "collection_options",
-            "vmin",
-            "vmax",
-        ]
+        valid_collection_kwargs = ["collection_options", "vmin", "vmax"]
         valid_heatmap_kwargs = [
             "title",
             "annotation_map",
@@ -181,12 +177,7 @@ class Heatmap:
         qubit = qubits[0]
         x, y = float(qubit.row), float(qubit.col)
         return (
-            [
-                (y - 0.5, x - 0.5),
-                (y - 0.5, x + 0.5),
-                (y + 0.5, x + 0.5),
-                (y + 0.5, x - 0.5),
-            ],
+            [(y - 0.5, x - 0.5), (y - 0.5, x + 0.5), (y + 0.5, x + 0.5), (y + 0.5, x - 0.5)],
             Point(y, x),
         )
 
@@ -255,8 +246,7 @@ class Heatmap:
         # Step-1: Convert value_map to a list of polygons to plot.
         polygon_list = self._get_polygon_units()
         collection: mpl_collections.Collection = mpl_collections.PolyCollection(
-            [c.polygon for c in polygon_list],
-            **self._config.get('collection_options', {}),
+            [c.polygon for c in polygon_list], **self._config.get('collection_options', {})
         )
         collection.set_clim(self._config.get('vmin'), self._config.get('vmax'))
         collection.set_array(np.array([c.value for c in polygon_list]))
@@ -330,10 +320,7 @@ class TwoQubitInteractionHeatmap(Heatmap):
                 coupler_margin: float, default = 0.03
                 coupler_width: float, default = 0.6
         """
-        self._config: Dict[str, Any] = {
-            "coupler_margin": 0.03,
-            "coupler_width": 0.6,
-        }
+        self._config: Dict[str, Any] = {"coupler_margin": 0.03, "coupler_width": 0.6}
         super().__init__(value_map, **kwargs)
 
     def _extra_valid_kwargs(self) -> List[str]:

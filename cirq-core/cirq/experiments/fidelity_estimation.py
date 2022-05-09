@@ -12,15 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """Estimation of fidelity associated with experimental circuit executions."""
-from typing import (
-    Callable,
-    List,
-    Mapping,
-    Optional,
-    Sequence,
-    Tuple,
-    cast,
-)
+from typing import Callable, List, Mapping, Optional, Sequence, Tuple, cast
 
 import numpy as np
 
@@ -31,8 +23,7 @@ from cirq.value import state_vector_to_probabilities
 
 
 def linear_xeb_fidelity_from_probabilities(
-    hilbert_space_dimension: int,
-    probabilities: Sequence[float],
+    hilbert_space_dimension: int, probabilities: Sequence[float]
 ) -> float:
     """Linear XEB fidelity estimator.
 
@@ -73,8 +64,7 @@ def linear_xeb_fidelity_from_probabilities(
 
 
 def log_xeb_fidelity_from_probabilities(
-    hilbert_space_dimension: int,
-    probabilities: Sequence[float],
+    hilbert_space_dimension: int, probabilities: Sequence[float]
 ) -> float:
     """Logarithmic XEB fidelity estimator.
 
@@ -107,8 +97,7 @@ def log_xeb_fidelity_from_probabilities(
 
 
 def hog_score_xeb_fidelity_from_probabilities(
-    hilbert_space_dimension: int,
-    probabilities: Sequence[float],
+    hilbert_space_dimension: int, probabilities: Sequence[float]
 ) -> float:
     """XEB fidelity estimator based on normalized HOG score.
 

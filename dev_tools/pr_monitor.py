@@ -462,10 +462,7 @@ def classify_pr_synced_state(pr: PullRequestDetails) -> Optional[bool]:
         True if the classification is clean, False if it is behind, and None otherwise.
     """
     state = pr.payload['mergeable_state'].lower()
-    classification = {
-        'behind': False,
-        'clean': True,
-    }
+    classification = {'behind': False, 'clean': True}
     return classification.get(state, None)
 
 
@@ -682,9 +679,7 @@ def update_branch(pr: PullRequestDetails) -> Union[bool, CannotAutomergeError]:
         f"https://api.github.com/repos/{pr.repo.organization}/{pr.repo.name}"
         f"/pulls/{pr.pull_id}/update-branch"
     )
-    data = {
-        'expected_head_sha': pr.branch_sha,
-    }
+    data = {'expected_head_sha': pr.branch_sha}
     response = pr.repo.put(
         url,
         json=data,
@@ -694,12 +689,11 @@ def update_branch(pr: PullRequestDetails) -> Union[bool, CannotAutomergeError]:
 
     if response.status_code == 422:
         return CannotAutomergeError(
-            "Failed to update branch (incorrect expected_head_sha).",
-            may_be_temporary=True,
+            "Failed to update branch (incorrect expected_head_sha).", may_be_temporary=True
         )
     if response.status_code != 202:
         return CannotAutomergeError(
-            f"Unrecognized update-branch status code ({response.status_code}).",
+            f"Unrecognized update-branch status code ({response.status_code})."
         )
 
     return True
@@ -938,9 +932,7 @@ def list_open_pull_requests(
         f"https://api.github.com/repos/{repo.organization}/{repo.name}/pulls"
         f"?per_page={per_page}"
     )
-    data = {
-        'state': 'open',
-    }
+    data = {'state': 'open'}
     if base_branch is not None:
         data['base'] = base_branch
     response = repo.get(url, json=data)

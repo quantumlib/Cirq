@@ -18,9 +18,7 @@ import sys
 from cirq import _compat
 from cirq_google import api
 
-from cirq_google._version import (
-    __version__,
-)
+from cirq_google._version import __version__
 
 from cirq_google.calibration import (
     ALL_ANGLES_FLOQUET_PHASED_FSIM_CHARACTERIZATION,
@@ -59,6 +57,8 @@ from cirq_google.calibration import (
 from cirq_google.devices import (
     Bristlecone,
     Foxtail,
+    GoogleNoiseProperties,
+    NoiseModelFromGoogleNoiseProperties,
     SerializableDevice,
     Sycamore,
     Sycamore23,
@@ -73,6 +73,7 @@ from cirq_google.engine import (
     EngineJob,
     EngineProgram,
     EngineProcessor,
+    EngineResult,
     ProtoVersion,
     QuantumEngineSampler,
     ValidatingSampler,
@@ -80,6 +81,7 @@ from cirq_google.engine import (
     get_engine_calibration,
     get_engine_device,
     get_engine_sampler,
+    noise_properties_from_calibration,
 )
 
 from cirq_google.line import (
@@ -89,13 +91,7 @@ from cirq_google.line import (
     LinePlacementStrategy,
 )
 
-from cirq_google.ops import (
-    CalibrationTag,
-    FSimGateFamily,
-    PhysicalZTag,
-    SycamoreGate,
-    SYC,
-)
+from cirq_google.ops import CalibrationTag, FSimGateFamily, PhysicalZTag, SycamoreGate, SYC
 
 from cirq_google.optimizers import (
     ConvertToXmonGates,
@@ -148,6 +144,7 @@ from cirq_google.workflow import (
     CouldNotPlaceError,
     NaiveQubitPlacer,
     RandomDevicePlacer,
+    HardcodedQubitPlacer,
     ProcessorRecord,
     EngineProcessorRecord,
     SimulatedProcessorRecord,

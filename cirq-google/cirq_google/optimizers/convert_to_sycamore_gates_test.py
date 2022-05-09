@@ -234,7 +234,7 @@ def test_zztheta_zzpow_unsorted_qubits():
     qubits = cirq.LineQubit(1), cirq.LineQubit(0)
     exponent = 0.06366197723675814
     expected_circuit = cirq.Circuit(
-        cirq.ZZPowGate(exponent=exponent, global_shift=-0.5).on(qubits[0], qubits[1]),
+        cirq.ZZPowGate(exponent=exponent, global_shift=-0.5).on(qubits[0], qubits[1])
     )
     actual_circuit = expected_circuit.copy()
     with cirq.testing.assert_deprecated("Use cirq.optimize_for_target_gateset", deadline='v1.0'):

@@ -115,9 +115,7 @@ class SimulatedProcessorRecord(ProcessorRecord):
         """
         return cg.get_engine_device(self.processor_id)
 
-    def _get_input_sampler(
-        self,
-    ) -> 'cirq.Sampler':
+    def _get_input_sampler(self) -> 'cirq.Sampler':
         """Return a local `cirq.Sampler` based on the `noise_strength` attribute.
 
         If `self.noise_strength` is `0` return a noiseless state-vector simulator.

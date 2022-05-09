@@ -155,9 +155,7 @@ def test_decompose_two_qubit_interaction_into_four_fsim_gates():
     )
     assert set(c.all_qubits()) == set(cirq.LineQubit.range(10, 12))
     c = cirq.decompose_two_qubit_interaction_into_four_fsim_gates(
-        cirq.CZ(*cirq.LineQubit.range(20, 22)),
-        fsim_gate=iswap,
-        qubits=cirq.LineQubit.range(10, 12),
+        cirq.CZ(*cirq.LineQubit.range(20, 22)), fsim_gate=iswap, qubits=cirq.LineQubit.range(10, 12)
     )
     assert set(c.all_qubits()) == set(cirq.LineQubit.range(10, 12))
 

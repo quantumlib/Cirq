@@ -86,12 +86,10 @@ def test_metadata_correct():
         (qubits[4], qubits[5]),
     ]
     device_proto = cgdk.create_device_proto_for_qubits(
-        qubits=qubits,
-        pairs=pairs,
-        gate_sets=[cg.FSIM_GATESET],
+        qubits=qubits, pairs=pairs, gate_sets=[cg.FSIM_GATESET]
     )
     device = cgdk.SerializableDevice.from_proto(device_proto, gate_sets=[cg.FSIM_GATESET])
-    assert device.metadata.qubit_pairs == frozenset(pairs)
+    assert device.metadata.qubit_pairs == frozenset({frozenset(p) for p in pairs})
     assert device.metadata.gateset == cirq.Gateset(
         cirq.FSimGate,
         cirq.ISwapPowGate,
@@ -103,6 +101,7 @@ def test_metadata_correct():
         cirq.PhasedXZGate,
         cirq.MeasurementGate,
         cirq.WaitGate,
+        cirq.GlobalPhaseGate,
     )
 
 
@@ -385,17 +384,10 @@ def test_half_pi_takes_half_duration():
     """
     half_pi_gs = cirq_google.SerializableGateSet(
         gate_set_name='half_pi',
-        serializers=[
-            *cgc.SINGLE_QUBIT_HALF_PI_SERIALIZERS,
-        ],
-        deserializers=[
-            *cgc.SINGLE_QUBIT_HALF_PI_DESERIALIZERS,
-        ],
+        serializers=[*cgc.SINGLE_QUBIT_HALF_PI_SERIALIZERS],
+        deserializers=[*cgc.SINGLE_QUBIT_HALF_PI_DESERIALIZERS],
     )
-    durations_dict = {
-        'xy_pi': 20_000,
-        'xy_half_pi': 10_000,
-    }
+    durations_dict = {'xy_pi': 20_000, 'xy_half_pi': 10_000}
     spec = cirq_google.devices.known_devices.create_device_proto_from_diagram(
         "aa\naa", [half_pi_gs], durations_dict
     )
@@ -416,17 +408,10 @@ def test_multiple_fsim_gatesets():
     """
     half_pi_gs = cirq_google.SerializableGateSet(
         gate_set_name='half_pi',
-        serializers=[
-            *cgc.SINGLE_QUBIT_HALF_PI_SERIALIZERS,
-        ],
-        deserializers=[
-            *cgc.SINGLE_QUBIT_HALF_PI_DESERIALIZERS,
-        ],
+        serializers=[*cgc.SINGLE_QUBIT_HALF_PI_SERIALIZERS],
+        deserializers=[*cgc.SINGLE_QUBIT_HALF_PI_DESERIALIZERS],
     )
-    durations_dict = {
-        'xy_pi': 20_000,
-        'xy_half_pi': 10_000,
-    }
+    durations_dict = {'xy_pi': 20_000, 'xy_half_pi': 10_000}
     spec = cirq_google.devices.known_devices.create_device_proto_from_diagram(
         "aa\naa", [half_pi_gs], durations_dict
     )
@@ -486,8 +471,3 @@ def test_sycamore23_str():
                                     │
                                     (9, 4)"""
     )
-
-
-def test_sycamore23_qid_pairs_deprecated():
-    with cirq.testing.assert_deprecated('device.metadata', deadline='v0.15', count=1):
-        assert len(cg.Sycamore23.qid_pairs()) == 32

@@ -546,8 +546,7 @@ def test_invalid_to_valid_state_vector():
 def test_validate_normalized_state():
     cirq.validate_normalized_state_vector(cirq.testing.random_superposition(2), qid_shape=(2,))
     cirq.validate_normalized_state_vector(
-        np.array([0.5, 0.5, 0.5, 0.5], dtype=np.complex64),
-        qid_shape=(2, 2),
+        np.array([0.5, 0.5, 0.5, 0.5], dtype=np.complex64), qid_shape=(2, 2)
     )
     with pytest.raises(ValueError, match='invalid dtype'):
         cirq.validate_normalized_state_vector(
@@ -607,6 +606,21 @@ def test_to_valid_density_matrix_from_density_matrix():
     assert_valid_density_matrix(np.diag([0.2, 0.8, 0, 0]), qid_shape=(4,))
 
 
+def test_to_valid_density_matrix_from_density_matrix_tensor():
+    np.testing.assert_almost_equal(
+        cirq.to_valid_density_matrix(
+            cirq.one_hot(shape=(2, 2, 2, 2, 2, 2), dtype=np.complex64), num_qubits=3
+        ),
+        cirq.one_hot(shape=(8, 8), dtype=np.complex64),
+    )
+    np.testing.assert_almost_equal(
+        cirq.to_valid_density_matrix(
+            cirq.one_hot(shape=(2, 3, 4, 2, 3, 4), dtype=np.complex64), qid_shape=(2, 3, 4)
+        ),
+        cirq.one_hot(shape=(24, 24), dtype=np.complex64),
+    )
+
+
 def test_to_valid_density_matrix_not_square():
     with pytest.raises(ValueError, match='shape'):
         cirq.to_valid_density_matrix(np.array([[1], [0]]), num_qubits=1)
@@ -614,7 +628,7 @@ def test_to_valid_density_matrix_not_square():
 
 def test_to_valid_density_matrix_size_mismatch_num_qubits():
     with pytest.raises(ValueError, match='shape'):
-        cirq.to_valid_density_matrix(np.array([[1, 0], [0, 0]]), num_qubits=2)
+        cirq.to_valid_density_matrix(np.array([[[1, 0], [0, 0]], [[0, 0], [0, 0]]]), num_qubits=2)
     with pytest.raises(ValueError, match='shape'):
         cirq.to_valid_density_matrix(np.eye(4) / 4.0, num_qubits=1)
 
@@ -685,6 +699,15 @@ def test_to_valid_density_matrix_from_state_vector():
     np.testing.assert_almost_equal(
         cirq.to_valid_density_matrix(
             density_matrix_rep=np.array([0.5] * 4, dtype=np.complex64), num_qubits=2
+        ),
+        0.25 * np.ones((4, 4)),
+    )
+
+
+def test_to_valid_density_matrix_from_state_vector_tensor():
+    np.testing.assert_almost_equal(
+        cirq.to_valid_density_matrix(
+            density_matrix_rep=np.array(np.full((2, 2), 0.5), dtype=np.complex64), num_qubits=2
         ),
         0.25 * np.ones((4, 4)),
     )

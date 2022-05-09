@@ -12,17 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from cirq_google.devices.known_devices import (
-    Bristlecone,
-    Foxtail,
-    Sycamore,
-    Sycamore23,
+from cirq_google.devices.google_noise_properties import (
+    GoogleNoiseProperties,
+    NoiseModelFromGoogleNoiseProperties,
 )
 
-from cirq_google.devices.serializable_device import (
-    SerializableDevice,
-)
+from cirq_google.devices.known_devices import Bristlecone, Foxtail, Sycamore, Sycamore23
 
-from cirq_google.devices.xmon_device import (
-    XmonDevice,
-)
+from cirq_google.devices.serializable_device import SerializableDevice
+
+from cirq_google.devices.xmon_device import XmonDevice

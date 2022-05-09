@@ -29,7 +29,6 @@ from typing import (
 import numpy as np
 
 from cirq import protocols, value, _import
-from cirq._compat import deprecated
 from cirq.ops import raw_types, controlled_operation as cop, matrix_gates
 from cirq.type_workarounds import NotImplementedType
 
@@ -75,9 +74,10 @@ class ControlledGate(raw_types.Gate):
 
         Raises:
             ValueError: If the `control_values` or `control_qid_shape` does not
-                match with `num_conrols`, or if the `control_values` are out of
-                bounds.
+                match with `num_controls`, if the `control_values` are out of
+                bounds, or if the sub_gate is not a unitary or mixture.
         """
+        _validate_sub_object(sub_gate)
         if num_controls is None:
             if control_values is not None:
                 num_controls = len(control_values)
@@ -121,37 +121,13 @@ class ControlledGate(raw_types.Gate):
     def control_qid_shape(self) -> Tuple[int, ...]:
         return self._control_qid_shape
 
-    @control_qid_shape.setter  # type: ignore
-    @deprecated(
-        deadline="v0.15",
-        fix="The mutators of this class are deprecated, instantiate a new object instead.",
-    )
-    def control_qid_shape(self, control_qid_shape: Tuple[int, ...]):
-        self._control_qid_shape = control_qid_shape
-
     @property
     def control_values(self) -> Tuple[Tuple[int, ...], ...]:
         return self._control_values
 
-    @control_values.setter  # type: ignore
-    @deprecated(
-        deadline="v0.15",
-        fix="The mutators of this class are deprecated, instantiate a new object instead.",
-    )
-    def control_values(self, control_values: Tuple[Tuple[int, ...], ...]):
-        self._control_values = control_values
-
     @property
     def sub_gate(self) -> 'cirq.Gate':
         return self._sub_gate
-
-    @sub_gate.setter  # type: ignore
-    @deprecated(
-        deadline="v0.15",
-        fix="The mutators of this class are deprecated, instantiate a new object instead.",
-    )
-    def sub_gate(self, sub_gate: 'cirq.Gate'):
-        self._sub_gate = sub_gate
 
     def num_controls(self) -> int:
         return len(self.control_qid_shape)
@@ -223,12 +199,7 @@ class ControlledGate(raw_types.Gate):
         )
 
     def _value_equality_values_(self):
-        return (
-            self.sub_gate,
-            self.num_controls(),
-            self.control_values,
-            self.control_qid_shape,
-        )
+        return (self.sub_gate, self.num_controls(), self.control_values, self.control_qid_shape)
 
     def _apply_unitary_(self, args: 'protocols.ApplyUnitaryArgs') -> np.ndarray:
         qubits = line_qubit.LineQid.for_gate(self)
@@ -360,3 +331,10 @@ class ControlledGate(raw_types.Gate):
             'control_qid_shape': self.control_qid_shape,
             'sub_gate': self.sub_gate,
         }
+
+
+def _validate_sub_object(sub_object: Union['cirq.Gate', 'cirq.Operation']):
+    if protocols.is_measurement(sub_object):
+        raise ValueError(f'Cannot control measurement {sub_object}')
+    if not protocols.has_mixture(sub_object) and not protocols.is_parameterized(sub_object):
+        raise ValueError(f'Cannot control channel with non-unitary operators: {sub_object}')
