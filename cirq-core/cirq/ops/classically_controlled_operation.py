@@ -14,6 +14,7 @@
 from typing import (
     AbstractSet,
     Any,
+    cast,
     Dict,
     FrozenSet,
     List,
@@ -83,7 +84,7 @@ class ClassicallyControlledOperation(raw_types.Operation):
                 c = value.KeyCondition(c)
             if isinstance(c, sympy.Basic):
                 c = value.SympyCondition(c)
-            conds.append(c)
+            conds.append(cast('cirq.Condition', c))
         self._conditions: Tuple['cirq.Condition', ...] = tuple(conds)
         self._sub_operation: 'cirq.Operation' = sub_operation
 
@@ -171,9 +172,9 @@ class ClassicallyControlledOperation(raw_types.Operation):
     def _json_dict_(self) -> Dict[str, Any]:
         return {'conditions': self._conditions, 'sub_operation': self._sub_operation}
 
-    def _act_on_(self, args: 'cirq.OperationTarget') -> bool:
-        if all(c.resolve(args.classical_data) for c in self._conditions):
-            protocols.act_on(self._sub_operation, args)
+    def _act_on_(self, sim_state: 'cirq.SimulationStateBase') -> bool:
+        if all(c.resolve(sim_state.classical_data) for c in self._conditions):
+            protocols.act_on(self._sub_operation, sim_state)
         return True
 
     def _with_measurement_key_mapping_(

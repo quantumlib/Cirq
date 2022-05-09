@@ -22,7 +22,6 @@ TestSpec = ModuleJsonTestSpec(
         'WITHOUT_CHI_FLOQUET_PHASED_FSIM_CHARACTERIZATION',
         'XmonDevice',
         'XMON',
-        'SycamoreTargetGateset',
     ],
     should_not_be_serialized=[
         'AnnealSequenceSearchStrategy',
@@ -41,6 +40,7 @@ TestSpec = ModuleJsonTestSpec(
         'EngineProgram',
         'FSimPhaseCorrections',
         'NAMED_GATESETS',
+        'NoiseModelFromGoogleNoiseProperties',
         'ProtoVersion',
         'GateOpSerializer',
         'GateOpDeserializer',
@@ -71,9 +71,11 @@ TestSpec = ModuleJsonTestSpec(
             'ExecutableGroupResultFilesystemRecord',
             'NaiveQubitPlacer',
             'RandomDevicePlacer',
+            'HardcodedQubitPlacer',
             'EngineProcessorRecord',
             'SimulatedProcessorRecord',
             'SimulatedProcessorWithLocalDeviceRecord',
+            'EngineResult',
         ]
     },
     resolver_cache=_class_resolver_dictionary(),

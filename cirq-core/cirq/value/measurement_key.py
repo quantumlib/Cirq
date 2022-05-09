@@ -95,7 +95,7 @@ class MeasurementKey:
         return cls(name=name, path=tuple(path))
 
     @classmethod
-    def parse_serialized(cls, key_str: str):
+    def parse_serialized(cls, key_str: str) -> 'MeasurementKey':
         """Parses the serialized string representation of `Measurementkey` into a `MeasurementKey`.
 
         This is the only way to construct a `MeasurementKey` from a nested string representation

@@ -105,7 +105,7 @@ def test_recursive_composite():
 
 
 def test_decompose_returns_not_flat_op_tree():
-    class DummyGate(cirq.SingleQubitGate):
+    class DummyGate(cirq.testing.SingleQubitGate):
         def _decompose_(self, qubits):
             (q0,) = qubits
             # Yield a tuple of gates instead of yielding a gate

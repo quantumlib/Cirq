@@ -12,7 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import math
-from typing import List, Union, Optional, Iterator, Iterable, Dict, FrozenSet
+import numbers
+from typing import cast, Dict, FrozenSet, Iterable, Iterator, List, Optional, Sequence, Union
 
 import numpy as np
 import sympy
@@ -30,8 +31,9 @@ MOST_PERMISSIVE_LANGUAGE = 'exp'
 SUPPORTED_SYMPY_OPS = (sympy.Symbol, sympy.Add, sympy.Mul, sympy.Pow)
 
 # Argument types for gates.
-ARG_LIKE = Union[int, float, List[bool], str, sympy.Symbol, sympy.Add, sympy.Mul]
-FLOAT_ARG_LIKE = Union[float, sympy.Symbol, sympy.Add, sympy.Mul]
+ARG_LIKE = Union[int, float, numbers.Real, Sequence[bool], str, sympy.Expr]
+ARG_RETURN_LIKE = Union[float, int, str, List[bool], sympy.Expr]
+FLOAT_ARG_LIKE = Union[float, sympy.Expr]
 
 # Types for comparing floats
 # Includes sympy types.  Needed for arg parsing.
@@ -227,7 +229,7 @@ def float_arg_from_proto(
             raise ValueError(
                 f'Arg {arg_proto.func} could not be processed for {required_arg_name}.'
             )
-        return func
+        return cast(FLOAT_ARG_LIKE, func)
     elif which is None:
         if required_arg_name is not None:
             raise ValueError(f'Arg {required_arg_name} is missing.')
@@ -241,7 +243,7 @@ def arg_from_proto(
     *,
     arg_function_language: str,
     required_arg_name: Optional[str] = None,
-) -> Optional[ARG_LIKE]:
+) -> Optional[ARG_RETURN_LIKE]:
     """Extracts a python value from an argument value proto.
 
     Args:
@@ -306,7 +308,7 @@ def _arg_func_from_proto(
     *,
     arg_function_language: str,
     required_arg_name: Optional[str] = None,
-) -> Optional[ARG_LIKE]:
+) -> Optional[ARG_RETURN_LIKE]:
     supported = SUPPORTED_FUNCTIONS_FOR_LANGUAGE.get(arg_function_language)
     if supported is None:
         raise ValueError(f'Unrecognized arg_function_language: {arg_function_language!r}')

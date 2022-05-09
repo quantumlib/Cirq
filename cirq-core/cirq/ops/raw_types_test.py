@@ -104,6 +104,9 @@ class ValiGate(cirq.Gate):
             return  # Bypass check for some tests
         super().validate_args(qubits)
 
+    def _has_mixture_(self):
+        return True
+
 
 def test_gate():
     a, b, c = cirq.LineQubit.range(3)
@@ -735,14 +738,14 @@ def test_tagged_act_on():
         def _num_qubits_(self) -> int:
             return 1
 
-        def _act_on_(self, args, qubits):
+        def _act_on_(self, sim_state, qubits):
             return True
 
     class NoActOn(cirq.Gate):
         def _num_qubits_(self) -> int:
             return 1
 
-        def _act_on_(self, args, qubits):
+        def _act_on_(self, sim_state, qubits):
             return NotImplemented
 
     class MissingActOn(cirq.Operation):
@@ -754,9 +757,9 @@ def test_tagged_act_on():
             pass
 
     q = cirq.LineQubit(1)
-    from cirq.protocols.act_on_protocol_test import DummyActOnArgs
+    from cirq.protocols.act_on_protocol_test import DummySimulationState
 
-    args = DummyActOnArgs()
+    args = DummySimulationState()
     cirq.act_on(YesActOn()(q).with_tags("test"), args)
     with pytest.raises(TypeError, match="Failed to act"):
         cirq.act_on(NoActOn()(q).with_tags("test"), args)
@@ -765,7 +768,7 @@ def test_tagged_act_on():
 
 
 def test_single_qubit_gate_validates_on_each():
-    class Dummy(cirq.SingleQubitGate):
+    class Dummy(cirq.testing.SingleQubitGate):
         def matrix(self):
             pass
 
@@ -785,7 +788,7 @@ def test_single_qubit_gate_validates_on_each():
 
 
 def test_on_each():
-    class CustomGate(cirq.SingleQubitGate):
+    class CustomGate(cirq.testing.SingleQubitGate):
         pass
 
     a = cirq.NamedQubit('a')

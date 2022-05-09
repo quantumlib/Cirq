@@ -18,6 +18,7 @@ from typing import Dict, Iterator, List, Optional, overload, Sequence, Tuple, TY
 
 import cirq
 from cirq_google.cloud import quantum
+from cirq_google.engine.engine_result import EngineResult
 
 if TYPE_CHECKING:
     import datetime
@@ -161,7 +162,7 @@ class AbstractJob(abc.ABC):
         """Deletes the job and result, if any."""
 
     @abc.abstractmethod
-    def batched_results(self) -> Sequence[Sequence[cirq.Result]]:
+    def batched_results(self) -> Sequence[Sequence[EngineResult]]:
         """Returns the job results, blocking until the job is complete.
 
         This method is intended for batched jobs.  Instead of flattening
@@ -170,7 +171,7 @@ class AbstractJob(abc.ABC):
         """
 
     @abc.abstractmethod
-    def results(self) -> Sequence[cirq.Result]:
+    def results(self) -> Sequence[EngineResult]:
         """Returns the job results, blocking until the job is complete."""
 
     @abc.abstractmethod

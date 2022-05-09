@@ -31,6 +31,13 @@ def test_deprecated_submodule():
         _ = cirq.optimizers.cphase_to_fsim.decompose_cphase_into_two_fsim
 
 
+def test_symbols():
+    with pytest.raises(ValueError, match='Symbolic arguments'):
+        cirq.compute_cphase_exponents_for_fsim_decomposition(
+            cirq.FSimGate(theta=sympy.Symbol('t'), phi=sympy.Symbol('phi'))
+        )
+
+
 class FakeSycamoreGate(cirq.FSimGate):
     def __init__(self):
         super().__init__(theta=np.pi / 2, phi=np.pi / 6)
