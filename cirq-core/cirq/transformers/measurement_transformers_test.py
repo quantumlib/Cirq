@@ -338,7 +338,7 @@ def test_dephase_nocompile_context():
         )
     )
     dephased = cirq.dephase_measurements(
-        circuit, context=cirq.TransformerContext(tags_to_ignore=('nocompile',))
+        circuit, context=cirq.TransformerContext(deep=True, tags_to_ignore=('nocompile',))
     )
     cirq.testing.assert_same_circuits(
         dephased,
@@ -353,3 +353,36 @@ def test_dephase_nocompile_context():
             )
         ),
     )
+
+
+def test_drop_terminal():
+    q0, q1 = cirq.LineQubit.range(2)
+    circuit = cirq.Circuit(
+        cirq.CircuitOperation(
+            cirq.FrozenCircuit(cirq.CX(q0, q1), cirq.measure(q0, q1, key='a~b', invert_mask=[0, 1]))
+        )
+    )
+    dropped = cirq.drop_terminal_measurements(circuit)
+    cirq.testing.assert_same_circuits(
+        dropped,
+        cirq.Circuit(
+            cirq.CircuitOperation(cirq.FrozenCircuit(cirq.CX(q0, q1), cirq.I(q0), cirq.X(q1)))
+        ),
+    )
+
+
+def test_drop_terminal_nonterminal_error():
+    q0, q1 = cirq.LineQubit.range(2)
+    circuit = cirq.Circuit(
+        cirq.CircuitOperation(
+            cirq.FrozenCircuit(cirq.measure(q0, q1, key='a~b', invert_mask=[0, 1]), cirq.CX(q0, q1))
+        )
+    )
+    with pytest.raises(ValueError, match='Circuit contains a non-terminal measurement'):
+        _ = cirq.drop_terminal_measurements(circuit)
+
+    with pytest.raises(ValueError, match='Context has `deep=False`'):
+        _ = cirq.drop_terminal_measurements(circuit, context=cirq.TransformerContext(deep=False))
+
+    with pytest.raises(ValueError, match='Context has `deep=False`'):
+        _ = cirq.drop_terminal_measurements(circuit, context=None)
