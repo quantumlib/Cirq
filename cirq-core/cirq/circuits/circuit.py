@@ -1725,7 +1725,7 @@ class Circuit(AbstractCircuit):
             contents: The initial list of moments and operations defining the
                 circuit. You can also pass in operations, lists of operations,
                 or generally anything meeting the `cirq.OP_TREE` contract.
-                Non-moment entries will be inserted according to the specified
+                Non-moment entries will be inserted according to the EARLIEST
                 insertion strategy.
         """
         # Initialize dicts from the qubit/key to the greatest moment index that has it. It is safe
