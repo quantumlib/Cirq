@@ -74,9 +74,10 @@ class ControlledGate(raw_types.Gate):
 
         Raises:
             ValueError: If the `control_values` or `control_qid_shape` does not
-                match with `num_conrols`, or if the `control_values` are out of
-                bounds.
+                match with `num_controls`, if the `control_values` are out of
+                bounds, or if the sub_gate is not a unitary or mixture.
         """
+        _validate_sub_object(sub_gate)
         if num_controls is None:
             if control_values is not None:
                 num_controls = len(control_values)
@@ -198,12 +199,7 @@ class ControlledGate(raw_types.Gate):
         )
 
     def _value_equality_values_(self):
-        return (
-            self.sub_gate,
-            self.num_controls(),
-            self.control_values,
-            self.control_qid_shape,
-        )
+        return (self.sub_gate, self.num_controls(), self.control_values, self.control_qid_shape)
 
     def _apply_unitary_(self, args: 'protocols.ApplyUnitaryArgs') -> np.ndarray:
         qubits = line_qubit.LineQid.for_gate(self)
@@ -335,3 +331,10 @@ class ControlledGate(raw_types.Gate):
             'control_qid_shape': self.control_qid_shape,
             'sub_gate': self.sub_gate,
         }
+
+
+def _validate_sub_object(sub_object: Union['cirq.Gate', 'cirq.Operation']):
+    if protocols.is_measurement(sub_object):
+        raise ValueError(f'Cannot control measurement {sub_object}')
+    if not protocols.has_mixture(sub_object) and not protocols.is_parameterized(sub_object):
+        raise ValueError(f'Cannot control channel with non-unitary operators: {sub_object}')

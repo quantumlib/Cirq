@@ -67,8 +67,7 @@ class KeyValueExecutableSpec(ExecutableSpec):
     @classmethod
     def from_dict(cls, d: Dict[str, Any], *, executable_family: str) -> 'KeyValueExecutableSpec':
         return cls(
-            executable_family=executable_family,
-            key_value_pairs=tuple((k, v) for k, v in d.items()),
+            executable_family=executable_family, key_value_pairs=tuple((k, v) for k, v in d.items())
         )
 
     @classmethod
@@ -234,10 +233,7 @@ class QuantumExecutableGroup:
 
     executables: Tuple[QuantumExecutable, ...]
 
-    def __init__(
-        self,
-        executables: Sequence[QuantumExecutable],
-    ):
+    def __init__(self, executables: Sequence[QuantumExecutable]):
         """Initialize and normalize the quantum executable group.
 
         Args:

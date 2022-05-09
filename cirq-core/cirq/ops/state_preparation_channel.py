@@ -59,10 +59,7 @@ class StatePreparationChannel(raw_types.Gate):
 
     def _json_dict_(self) -> Dict[str, Any]:
         """Converts the gate object into a serializable dictionary"""
-        return {
-            'target_state': self._state.tolist(),
-            'name': self._name,
-        }
+        return {'target_state': self._state.tolist(), 'name': self._name}
 
     @classmethod
     def _from_json_dict_(

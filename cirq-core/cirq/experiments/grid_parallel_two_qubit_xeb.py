@@ -528,9 +528,7 @@ def _get_xeb_result(
     )
 
 
-def _coupled_qubit_pairs(
-    qubits: List['cirq.GridQubit'],
-) -> List[GridQubitPair]:
+def _coupled_qubit_pairs(qubits: List['cirq.GridQubit']) -> List[GridQubitPair]:
     """Get pairs of GridQubits that are neighbors."""
     pairs = []
     qubit_set = set(qubits)

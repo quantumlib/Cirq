@@ -22,9 +22,9 @@ VALID_GATES = (
     cirq.X,
     cirq.Y,
     cirq.Z,
-    cirq.X ** 0.5,
-    cirq.Y ** 0.5,
-    cirq.Z ** 0.5,
+    cirq.X**0.5,
+    cirq.Y**0.5,
+    cirq.Z**0.5,
     cirq.rx(0.1),
     cirq.ry(0.1),
     cirq.rz(0.1),
@@ -37,9 +37,9 @@ VALID_GATES = (
     cirq.XX,
     cirq.YY,
     cirq.ZZ,
-    cirq.XX ** 0.5,
-    cirq.YY ** 0.5,
-    cirq.ZZ ** 0.5,
+    cirq.XX**0.5,
+    cirq.YY**0.5,
+    cirq.ZZ**0.5,
     cirq.SWAP,
     cirq.SwapPowGate(exponent=1, global_shift=-0.5),
     cirq.MeasurementGate(num_qubits=1, key='a'),
@@ -56,13 +56,7 @@ def test_validate_operation_valid(gate):
     device.validate_operation(operation)
 
 
-INVALID_GATES = (
-    cirq.CNOT ** 0.5,
-    cirq.SWAP ** 0.5,
-    cirq.CCX,
-    cirq.CCZ,
-    cirq.CZ,
-)
+INVALID_GATES = (cirq.CNOT**0.5, cirq.SWAP**0.5, cirq.CCX, cirq.CCZ, cirq.CZ)
 
 
 @pytest.mark.parametrize('gate', INVALID_GATES)

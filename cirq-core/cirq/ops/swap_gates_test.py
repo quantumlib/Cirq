@@ -20,13 +20,7 @@ from scipy import linalg
 import cirq
 
 
-@pytest.mark.parametrize(
-    'eigen_gate_type',
-    [
-        cirq.ISwapPowGate,
-        cirq.SwapPowGate,
-    ],
-)
+@pytest.mark.parametrize('eigen_gate_type', [cirq.ISwapPowGate, cirq.SwapPowGate])
 def test_phase_sensitive_eigen_gates_consistent_protocols(eigen_gate_type):
     cirq.testing.assert_eigengate_implements_consistent_protocols(eigen_gate_type)
 

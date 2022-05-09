@@ -63,11 +63,7 @@ class PasqalSampler(cirq.work.Sampler):
 
         url = f'{self.remote_host}/get-result/{task_id}'
         while True:
-            response = requests.get(
-                url,
-                headers=self._authorization_header,
-                verify=False,
-            )
+            response = requests.get(url, headers=self._authorization_header, verify=False)
             response.raise_for_status()
 
             result = response.text
@@ -90,10 +86,7 @@ class PasqalSampler(cirq.work.Sampler):
         submit_response = requests.post(
             simulate_url,
             verify=False,
-            headers={
-                "Repetitions": str(repetitions),
-                **self._authorization_header,
-            },
+            headers={"Repetitions": str(repetitions), **self._authorization_header},
             data=serialization_str,
         )
         submit_response.raise_for_status()
@@ -105,20 +98,6 @@ class PasqalSampler(cirq.work.Sampler):
 
         return result
 
-    @cirq._compat.deprecated_parameter(
-        deadline='v0.15',
-        fix='The program.device component is going away.'
-        'Attaching a device to PasqalSampler is now done in __init__.',
-        parameter_desc='program',
-        match=lambda args, kwargs: (
-            len(args) >= 2
-            and isinstance(args[1], cirq.AbstractCircuit)
-            and args[1]._device != cirq.UNCONSTRAINED_DEVICE
-        )
-        or 'program' in kwargs
-        and isinstance(kwargs['program'], cirq.AbstractCircuit)
-        and kwargs['program']._device != cirq.UNCONSTRAINED_DEVICE,
-    )
     def run_sweep(
         self, program: cirq.AbstractCircuit, params: cirq.study.Sweepable, repetitions: int = 1
     ) -> List[cirq.study.Result]:
@@ -133,7 +112,7 @@ class PasqalSampler(cirq.work.Sampler):
             Result list for this run; one for each possible parameter
             resolver.
         """
-        device = program._device if program._device != cirq.UNCONSTRAINED_DEVICE else self._device
+        device = self._device
         assert isinstance(
             device, cirq_pasqal.PasqalDevice
         ), "Device must inherit from cirq.PasqalDevice."

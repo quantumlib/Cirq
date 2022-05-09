@@ -21,9 +21,7 @@ import cirq
 from cirq.testing import assert_equivalent_op_tree
 import cirq_google
 from cirq_google.api import v2
-from cirq_google.experimental.noise_models import (
-    simple_noise_from_calibration_metrics,
-)
+from cirq_google.experimental.noise_models import simple_noise_from_calibration_metrics
 
 # Fake calibration data object.
 _CALIBRATION_DATA = Merge(

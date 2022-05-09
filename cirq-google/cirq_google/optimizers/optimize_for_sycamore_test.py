@@ -123,19 +123,6 @@ def test_one_q_matrix_gate():
             assert cg.SQRT_ISWAP_GATESET.is_supported_operation(op)
 
 
-def test_assert_new_device_deprecated():
-    u = cirq.testing.random_special_unitary(2)
-    q = cirq.LineQubit(0)
-    circuit0 = cirq.Circuit(cirq.MatrixGate(u).on(q))
-    _ = cg.optimized_for_sycamore(circuit0, optimizer_type='sqrt_iswap')
-    with cirq.testing.assert_deprecated(
-        cirq.circuits.circuit._DEVICE_DEP_MESSAGE, deadline='v0.15'
-    ):
-        _ = cg.optimized_for_sycamore(
-            circuit0, optimizer_type='sqrt_iswap', new_device=FakeDevice()
-        )
-
-
 @pytest.mark.parametrize(
     'optimizer_type, two_qubit_gate_type',
     [('sycamore', cg.SycamoreGate), ('sqrt_iswap', cirq.ISwapPowGate), ('xmon', cirq.CZPowGate)],

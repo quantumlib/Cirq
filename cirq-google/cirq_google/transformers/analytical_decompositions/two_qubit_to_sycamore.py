@@ -126,7 +126,7 @@ def known_2q_op_to_sycamore_operations(op: cirq.Operation) -> Optional[cirq.OP_T
 
     gate = op.gate
     if isinstance(gate, cirq.PhasedISwapPowGate):
-        if math.isclose(gate.exponent, 1):
+        if math.isclose(gate.exponent, 1) and isinstance(gate.phase_exponent, float):
             return _decompose_phased_iswap_into_syc(gate.phase_exponent, q0, q1)
         if math.isclose(gate.phase_exponent, 0.25):
             return _decompose_phased_iswap_into_syc_precomputed(gate.exponent * np.pi / 2, q0, q1)

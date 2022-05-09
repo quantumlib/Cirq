@@ -236,12 +236,7 @@ def test_rigetti_qcs_aspen_device_invalid_operation(
         device.validate_operation(operation)
 
 
-@pytest.mark.parametrize(
-    'operation',
-    [
-        cirq.CNOT(AspenQubit(0, 1), AspenQubit(0, 2)),
-    ],
-)
+@pytest.mark.parametrize('operation', [cirq.CNOT(AspenQubit(0, 1), AspenQubit(0, 2))])
 def test_rigetti_qcs_aspen_device_valid_operation(
     operation: cirq.Operation, qcs_aspen8_isa: InstructionSetArchitecture
 ):

@@ -42,11 +42,7 @@ def assert_deprecated(*msgs: str, deadline: str, count: Optional[int] = 1) -> It
     os.environ[ALLOW_DEPRECATION_IN_TEST] = 'True'
     try:
         with assert_logs(
-            *msgs,
-            deadline,
-            min_level=logging.WARNING,
-            max_level=logging.WARNING,
-            count=count,
+            *msgs, deadline, min_level=logging.WARNING, max_level=logging.WARNING, count=count
         ):
             yield
     finally:

@@ -14,7 +14,6 @@
 
 """Basic types defining qubits, gates, and operations."""
 
-import itertools
 import re
 from typing import (
     AbstractSet,
@@ -29,6 +28,7 @@ from typing import (
     TypeVar,
     TYPE_CHECKING,
     Union,
+    List,
 )
 
 import numpy as np
@@ -109,9 +109,7 @@ class GateOperation(raw_types.Operation):
         return new_gate.on(*self.qubits)
 
     def _with_rescoped_keys_(
-        self,
-        path: Tuple[str, ...],
-        bindable_keys: FrozenSet['cirq.MeasurementKey'],
+        self, path: Tuple[str, ...], bindable_keys: FrozenSet['cirq.MeasurementKey']
     ):
         new_gate = protocols.with_rescoped_keys(self.gate, path, bindable_keys)
         if new_gate is self.gate:
@@ -125,7 +123,6 @@ class GateOperation(raw_types.Operation):
                 return result
         gate_repr = repr(self.gate)
         qubit_args_repr = ', '.join(repr(q) for q in self.qubits)
-        assert type(self.gate).__call__ == raw_types.Gate.__call__
 
         # Abbreviate when possible.
         dont_need_on = re.match(r'^[a-zA-Z0-9.()]+$', gate_repr)
@@ -148,17 +145,11 @@ class GateOperation(raw_types.Operation):
     ) -> Tuple[Union['cirq.Qid', Tuple[int, FrozenSet['cirq.Qid']]], ...]:
         if not isinstance(self.gate, gate_features.InterchangeableQubitsGate):
             return self.qubits
-        else:
-
-            def make_key(i_q: Tuple[int, 'cirq.Qid']) -> int:
-                return cast(
-                    gate_features.InterchangeableQubitsGate, self.gate
-                ).qubit_index_to_equivalence_group_key(i_q[0])
-
-            return tuple(
-                (k, frozenset(g for _, g in kg))
-                for k, kg in itertools.groupby(enumerate(self.qubits), make_key)
-            )
+        groups: Dict[int, List['cirq.Qid']] = {}
+        for i, q in enumerate(self.qubits):
+            k = self.gate.qubit_index_to_equivalence_group_key(i)
+            groups.setdefault(k, []).append(q)
+        return tuple(sorted((k, frozenset(v)) for k, v in groups.items()))
 
     def _value_equality_values_(self):
         return self.gate, self._group_interchangeable_qubits()
@@ -262,10 +253,10 @@ class GateOperation(raw_types.Operation):
             return getter()
         return NotImplemented
 
-    def _act_on_(self, args: 'cirq.OperationTarget'):
+    def _act_on_(self, sim_state: 'cirq.SimulationStateBase'):
         getter = getattr(self.gate, '_act_on_', None)
         if getter is not None:
-            return getter(args, self.qubits)
+            return getter(sim_state, self.qubits)
         return NotImplemented
 
     def _is_parameterized_(self) -> bool:

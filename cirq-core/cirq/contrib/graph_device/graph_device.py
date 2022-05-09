@@ -163,20 +163,6 @@ class UndirectedGraphDevice(devices.Device):
     def edges(self):
         return tuple(sorted(self.device_graph.edges))
 
-    @_compat.deprecated(
-        deadline='v0.15',
-        fix='qubit coupling data can now be found in device.metadata.nx_graph if provided.',
-    )
-    def qid_pairs(self) -> FrozenSet['cirq.SymmetricalQidPair']:
-        with _compat.block_overlapping_deprecation('device\\.metadata'):
-            return frozenset(
-                [
-                    devices.SymmetricalQidPair(*edge)  # type: ignore
-                    for edge in self.device_graph.edges
-                    if len(edge) == 2 and all(isinstance(q, ops.Qid) for q in edge)
-                ]
-            )
-
     @property
     def labelled_edges(self):
         return self.device_graph.labelled_edges

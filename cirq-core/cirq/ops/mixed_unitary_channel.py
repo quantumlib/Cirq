@@ -67,15 +67,9 @@ class MixedUnitaryChannel(raw_types.Gate):
             return NotImplemented
         if self._key != other._key:
             return False
-        if not np.allclose(
-            [m[0] for m in self._mixture],
-            [m[0] for m in other._mixture],
-        ):
+        if not np.allclose([m[0] for m in self._mixture], [m[0] for m in other._mixture]):
             return False
-        return np.allclose(
-            [m[1] for m in self._mixture],
-            [m[1] for m in other._mixture],
-        )
+        return np.allclose([m[1] for m in self._mixture], [m[1] for m in other._mixture])
 
     def num_qubits(self) -> int:
         return self._num_qubits
@@ -111,13 +105,10 @@ class MixedUnitaryChannel(raw_types.Gate):
         )
 
     def _with_rescoped_keys_(
-        self,
-        path: Tuple[str, ...],
-        bindable_keys: FrozenSet['cirq.MeasurementKey'],
+        self, path: Tuple[str, ...], bindable_keys: FrozenSet['cirq.MeasurementKey']
     ):
         return MixedUnitaryChannel(
-            mixture=self._mixture,
-            key=protocols.with_rescoped_keys(self._key, path, bindable_keys),
+            mixture=self._mixture, key=protocols.with_rescoped_keys(self._key, path, bindable_keys)
         )
 
     def __str__(self):

@@ -33,7 +33,7 @@ def test_deprecated_submodule():
 
 
 def assert_gates_implement_unitary(
-    gates: Sequence[cirq.SingleQubitGate], intended_effect: np.ndarray, atol: float
+    gates: Sequence[cirq.testing.SingleQubitGate], intended_effect: np.ndarray, atol: float
 ):
     actual_effect = cirq.dot(*[cirq.unitary(g) for g in reversed(gates)])
     cirq.testing.assert_allclose_up_to_global_phase(actual_effect, intended_effect, atol=atol)
@@ -229,10 +229,7 @@ def test_single_qubit_matrix_to_phased_x_z_known():
 
 @pytest.mark.parametrize(
     'intended_effect',
-    [
-        np.array([[0, 1j], [1, 0]]),
-    ]
-    + [cirq.testing.random_unitary(2) for _ in range(10)],
+    [np.array([[0, 1j], [1, 0]])] + [cirq.testing.random_unitary(2) for _ in range(10)],
 )
 def test_single_qubit_matrix_to_phased_x_z_cases(intended_effect):
     gates = cirq.single_qubit_matrix_to_phased_x_z(intended_effect, atol=1e-6)

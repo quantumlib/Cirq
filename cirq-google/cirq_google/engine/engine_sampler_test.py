@@ -54,10 +54,7 @@ def test_run_batch():
     params_list = [params1, params2]
     sampler.run_batch(circuits, params_list, 5)
     engine.run_batch.assert_called_with(
-        params_list=params_list,
-        processor_ids=['tmp'],
-        programs=circuits,
-        repetitions=5,
+        params_list=params_list, processor_ids=['tmp'], programs=circuits, repetitions=5
     )
 
 
@@ -73,10 +70,7 @@ def test_run_batch_identical_repetitions():
     params_list = [params1, params2]
     sampler.run_batch(circuits, params_list, [5, 5])
     engine.run_batch.assert_called_with(
-        params_list=params_list,
-        processor_ids=['tmp'],
-        programs=circuits,
-        repetitions=5,
+        params_list=params_list, processor_ids=['tmp'], programs=circuits, repetitions=5
     )
 
 
