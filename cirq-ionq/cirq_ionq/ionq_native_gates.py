@@ -163,7 +163,7 @@ class MSGate(cirq.Gate):
 
     @property
     def phases(self) -> Sequence[float]:
-        return [self.phi1, self.phi2]
+        return [self.phi0, self.phi1]
 
     def __str__(self) -> str:
         return 'MS'
