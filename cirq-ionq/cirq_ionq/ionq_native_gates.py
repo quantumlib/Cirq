@@ -27,16 +27,16 @@ import numpy as np
 class GPIGate(cirq.Gate):
     r"""The GPI gate is a single qubit gate.
     The unitary of this gate is
-        [[0, e^{-i\phi}],
-         [e^{-i\phi}, 0]]
+        [[0, e^{-i*2*\pi*\phi}],
+         [e^{-i*2*\pi*\phi}, 0]]
     """
 
     def __init__(self, *, phi):
         self.phi = phi
 
     def _unitary_(self) -> np.ndarray:
-        top = cmath.exp(self.phi * 1j)
-        bot = cmath.exp(-self.phi * 1j)
+        top = cmath.exp(self.phi * 2 * math.pi * 1j)
+        bot = cmath.exp(-self.phi * 2 * math.pi * 1j)
         return np.array([[0, top], [bot, 0]])
 
     def __str__(self) -> str:
@@ -69,8 +69,8 @@ document(
     GPI,
     r"""The GPI gate is a single qubit gate.
     The unitary of this gate is
-        [[0, e^{-i\phi}],
-         [e^{-i\phi}, 0]]
+        [[0, e^{-i*2*\pi*\phi}],
+         [e^{-i*2*\pi*\phi}, 0]]
     It is driven by Rabi laser.
     https://ionq.com/best-practices
     """,
@@ -89,8 +89,8 @@ class GPI2Gate(cirq.Gate):
         self.phi = phi
 
     def _unitary_(self) -> np.ndarray:
-        top = -1j * cmath.exp(self.phase * -1j)
-        bot = -1j * cmath.exp(self.phase * 1j)
+        top = -1j * cmath.exp(self.phase * 2 * math.pi * -1j)
+        bot = -1j * cmath.exp(self.phase * 2 * math.pi * 1j)
         return np.array([[1, top], [bot, 1]]) / math.sqrt(2)
 
     @property
@@ -123,8 +123,8 @@ document(
     GPI2,
     r"""The GPI2 gate is a single qubit gate.
     The unitary of this gate is
-        \frac{1}{/\sqrt{2}}[[1, -i*e^{-i\phi}],
-         [-i*e^{-i\phi}, 1]]
+        \frac{1}{/\sqrt{2}}[[1, -i*e^{-i*2*\pi*\phi}],
+         [-i*e^{-i*2*\phi}, 1]]
     It is driven by Rabi laser.
     https://ionq.com/best-practices
     """,
@@ -137,22 +137,28 @@ class MSGate(cirq.Gate):
     The unitary of this gate is
         MS(\phi_0, \phi_1) q_0, q_1 =
             \frac{1}{\sqrt{2}}
-               [[1, 0, 0, -i*e^{-i*(\phi_0+\phi_1}],
-                [0, 1, -i*e^{-i*(\phi_0-\phi_1}, 0],
-                [0, -i*e^{i*(\phi_0-\phi_1}, 1, 0],
-                [-i*e^{i*(\phi_0+\phi_1}, 0, 0, 1]]
+               [[1, 0, 0, -i*e^{-i*2*\pi*(\phi_0+\phi_1}],
+                [0, 1, -i*e^{-i*2*\pi*(\phi_0-\phi_1}, 0],
+                [0, -i*e^{i*2*\pi*(\phi_0-\phi_1}, 1, 0],
+                [-i*e^{i*2*\pi*(\phi_0+\phi_1}, 0, 0, 1]]
     """
 
-    def __init__(self, *, phi1, phi2):
+    def __init__(self, *, phi0, phi1):
+        self.phi0 = phi0
         self.phi1 = phi1
-        self.phi2 = phi2
 
     def _unitary_(self) -> np.ndarray:
-        tee = self.phi2 - self.phi1
-        diag = math.cos(tee)
-        adiag = -1j * math.sin(tee)
-        return np.array(
-            [[diag, 0, 0, adiag], [0, diag, adiag, 0], [0, adiag, diag, 0], [adiag, 0, 0, diag]]
+        diag = 1 / math.sqrt(2)
+        phi0 = self.phi0
+        phi1 = self.phi1
+        return numpy.array(
+            [
+                [diag, 0, 0, diag * -1j * cmath.exp(-1j * 2 * math.pi * (phi0 + phi1))],
+                [0, diag, diag * -1j * cmath.exp(-1j * 2 * math.pi * (phi0 - phi1)), 0],
+                [0, diag * -1j * cmath.exp(1j * 2 * math.pi * (phi0 - phi1)), diag, 0],
+                [diag * -1j * cmath.exp(1j * 2 * math.pi * (phi0 + phi1)), 0, 0, diag],
+            ],
+            dtype=dtype,
         )
 
     @property
