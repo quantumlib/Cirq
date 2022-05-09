@@ -151,14 +151,13 @@ class MSGate(cirq.Gate):
         diag = 1 / math.sqrt(2)
         phi0 = self.phi0
         phi1 = self.phi1
-        return numpy.array(
+        return np.array(
             [
                 [diag, 0, 0, diag * -1j * cmath.exp(-1j * 2 * math.pi * (phi0 + phi1))],
                 [0, diag, diag * -1j * cmath.exp(-1j * 2 * math.pi * (phi0 - phi1)), 0],
                 [0, diag * -1j * cmath.exp(1j * 2 * math.pi * (phi0 - phi1)), diag, 0],
                 [diag * -1j * cmath.exp(1j * 2 * math.pi * (phi0 + phi1)), 0, 0, diag],
-            ],
-            dtype=dtype,
+            ]
         )
 
     @property
