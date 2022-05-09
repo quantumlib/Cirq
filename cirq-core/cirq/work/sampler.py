@@ -70,7 +70,7 @@ class Sampler(metaclass=abc.ABCMeta):
     ) -> 'cirq.Result':
         """Asynchronously samples from the given Circuit.
 
-        Provides measurement outcomes as a `Result` object.  This
+        Provides measurement outcomes as a `cirq.Result` object.  This
         interface will operate in a similar way to the `run` method
         except for executing asynchronously.
 
@@ -95,7 +95,7 @@ class Sampler(metaclass=abc.ABCMeta):
         """Samples the given Circuit, producing a pandas data frame.
 
         This interface will operate in a similar way to the `run` method
-        except that it returns a pandas data frame rather than a `Result`
+        except that it returns a pandas data frame rather than a `cirq.Result`
         object.
 
         Args:
