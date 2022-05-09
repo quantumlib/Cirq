@@ -155,46 +155,38 @@ def test_example_noisy_simulation():
 
 def test_example_shor_modular_exp_register_size():
     with pytest.raises(ValueError):
-        _ = examples.shor.ModularExp(
-            target=cirq.LineQubit.range(2), exponent=cirq.LineQubit.range(2, 5), base=4, modulus=5
-        )
+        _ = examples.shor.ModularExp(target=[2, 2], exponent=[2, 2, 2], base=4, modulus=5)
 
 
 def test_example_shor_modular_exp_register_type():
-    operation = examples.shor.ModularExp(
-        target=cirq.LineQubit.range(3), exponent=cirq.LineQubit.range(3, 5), base=4, modulus=5
-    )
+    operation = examples.shor.ModularExp(target=[2, 2, 2], exponent=[2, 2], base=4, modulus=5)
     with pytest.raises(ValueError):
-        _ = operation.with_registers(cirq.LineQubit.range(3))
+        _ = operation.with_registers([2, 2, 2])
     with pytest.raises(ValueError):
-        _ = operation.with_registers(1, cirq.LineQubit.range(3, 6), 4, 5)
+        _ = operation.with_registers(1, [2, 2, 2], 4, 5)
     with pytest.raises(ValueError):
-        _ = operation.with_registers(
-            cirq.LineQubit.range(3), cirq.LineQubit.range(3, 6), cirq.LineQubit.range(6, 9), 5
-        )
+        _ = operation.with_registers([2, 2, 2], [2, 2, 2], [2, 2, 2], 5)
     with pytest.raises(ValueError):
-        _ = operation.with_registers(
-            cirq.LineQubit.range(3), cirq.LineQubit.range(3, 6), 4, cirq.LineQubit.range(6, 9)
-        )
+        _ = operation.with_registers([2, 2, 2], [2, 2, 2], 4, [2, 2, 2])
 
 
 def test_example_shor_modular_exp_registers():
-    target = cirq.LineQubit.range(3)
-    exponent = cirq.LineQubit.range(3, 5)
+    target = [2, 2, 2]
+    exponent = [2, 2]
     operation = examples.shor.ModularExp(target, exponent, 4, 5)
     assert operation.registers() == (target, exponent, 4, 5)
 
-    new_target = cirq.LineQubit.range(5, 8)
-    new_exponent = cirq.LineQubit.range(8, 12)
+    new_target = [2, 2, 2]
+    new_exponent = [2, 2, 2, 2]
     new_operation = operation.with_registers(new_target, new_exponent, 6, 7)
     assert new_operation.registers() == (new_target, new_exponent, 6, 7)
 
 
 def test_example_shor_modular_exp_diagram():
-    target = cirq.LineQubit.range(3)
-    exponent = cirq.LineQubit.range(3, 5)
-    operation = examples.shor.ModularExp(target, exponent, 4, 5)
-    circuit = cirq.Circuit(operation)
+    target = [2, 2, 2]
+    exponent = [2, 2]
+    gate = examples.shor.ModularExp(target, exponent, 4, 5)
+    circuit = cirq.Circuit(gate.on(*cirq.LineQubit.range(5)))
     cirq.testing.assert_has_diagram(
         circuit,
         """
@@ -210,8 +202,8 @@ def test_example_shor_modular_exp_diagram():
 """,
     )
 
-    operation = operation.with_registers(target, 2, 4, 5)
-    circuit = cirq.Circuit(operation)
+    gate = gate.with_registers(target, 2, 4, 5)
+    circuit = cirq.Circuit(gate.on(*cirq.LineQubit.range(3)))
     cirq.testing.assert_has_diagram(
         circuit,
         """
