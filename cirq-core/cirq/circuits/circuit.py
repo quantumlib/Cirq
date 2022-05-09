@@ -1880,10 +1880,11 @@ class Circuit(AbstractCircuit):
         while k > 0:
             k -= 1
             moment = self._moments[k]
+            if moment.operates_on(op_qubits):
+                return last_available
             moment_measurement_keys = protocols.measurement_key_objs(moment)
             if (
-                moment.operates_on(op_qubits)
-                or not op_measurement_keys.isdisjoint(moment_measurement_keys)
+                not op_measurement_keys.isdisjoint(moment_measurement_keys)
                 or not op_control_keys.isdisjoint(moment_measurement_keys)
                 or not protocols.control_keys(moment).isdisjoint(op_measurement_keys)
             ):
@@ -1955,7 +1956,7 @@ class Circuit(AbstractCircuit):
         Moments within the operation tree are inserted intact.
 
         Args:
-            index: The index to insert all of the operations at.
+            index: The index to insert all the operations at.
             moment_or_operation_tree: The moment or operation tree to insert.
             strategy: How to pick/create the moment to put operations into.
 
