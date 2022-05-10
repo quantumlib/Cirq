@@ -984,16 +984,16 @@ def test_add_number_paulistring():
 def test_pauli_sum_formatting():
     q = cirq.LineQubit.range(2)
     pauli = cirq.X(q[0])
-    assert str(pauli) == 'X(0)'
+    assert str(pauli) == 'X(q0)'
     paulistr = cirq.X(q[0]) * cirq.X(q[1])
-    assert str(paulistr) == 'X(0)*X(1)'
+    assert str(paulistr) == 'X(q0)*X(q1)'
     paulisum1 = cirq.X(q[0]) * cirq.X(q[1]) + 4
-    assert str(paulisum1) == '1.000*X(0)*X(1)+4.000*I'
+    assert str(paulisum1) == '1.000*X(q0)*X(q1)+4.000*I'
     paulisum2 = cirq.X(q[0]) * cirq.X(q[1]) + cirq.Z(q[0])
-    assert str(paulisum2) == '1.000*X(0)*X(1)+1.000*Z(0)'
+    assert str(paulisum2) == '1.000*X(q0)*X(q1)+1.000*Z(q0)'
     paulisum3 = cirq.X(q[0]) * cirq.X(q[1]) + cirq.Z(q[0]) * cirq.Z(q[1])
-    assert str(paulisum3) == '1.000*X(0)*X(1)+1.000*Z(0)*Z(1)'
-    assert f"{paulisum3:.0f}" == '1*X(0)*X(1)+1*Z(0)*Z(1)'
+    assert str(paulisum3) == '1.000*X(q0)*X(q1)+1.000*Z(q0)*Z(q1)'
+    assert f"{paulisum3:.0f}" == '1*X(q0)*X(q1)+1*Z(q0)*Z(q1)'
 
     empty = cirq.PauliSum.from_pauli_strings([])
     assert str(empty) == "0.000"

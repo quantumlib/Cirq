@@ -1187,7 +1187,7 @@ class AbstractCircuit(abc.ABC):
         Args:
             use_unicode_characters: Determines if unicode characters are
                 allowed (as opposed to ascii-only diagrams).
-            qubit_namer: Names qubits in diagram. Defaults to str.
+            qubit_namer: Names qubits in diagram. Defaults to using _circuit_diagram_info_ or str.
             transpose: Arranges qubit wires vertically instead of horizontally.
             include_tags: Whether to include tags in the operation.
             draw_moment_groups: Whether to draw moment symbol or not
@@ -1210,7 +1210,11 @@ class AbstractCircuit(abc.ABC):
         label_map = {labels[i]: i for i in range(len(labels))}
 
         def default_namer(label_entity):
-            return str(label_entity) + ('' if transpose else ': ')
+            try:
+                qubit_name = protocols.circuit_diagram_info(label_entity).wire_symbols[0]
+            except TypeError:
+                qubit_name = str(label_entity)
+            return qubit_name + ('' if transpose else ': ')
 
         if qubit_namer is None:
             qubit_namer = default_namer
