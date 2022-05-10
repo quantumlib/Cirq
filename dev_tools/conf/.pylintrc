@@ -63,7 +63,7 @@ enable=
     yield-outside-function
 
 # Ignore long lines containing urls or pylint directives.
-ignore-long-lines=^(.*#\w*pylint: disable.*|\s*(# )?<?https?://\S+>?)$
+ignore-long-lines=^(.*#\w*pylint: disable.*|\s*(# )?[<\[\(]?https?://\S+[>\]\)]?)$
 
 [TYPECHECK]
 
