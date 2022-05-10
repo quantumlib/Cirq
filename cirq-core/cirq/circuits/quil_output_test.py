@@ -233,6 +233,7 @@ RY({-np.pi / 2}) 1
 CPHASE({np.pi / 2}) 0 1
 RY({np.pi / 2}) 1
 SWAP 0 1
+SWAP 1 0
 PSWAP({3 * np.pi / 4}) 0 1
 H 2
 CCNOT 0 1 2
@@ -324,6 +325,7 @@ def _all_operations(q0, q1, q2, q3, q4, include_measurements=True):
         cirq.CNOT(q0, q1),
         cirq.CNOT(q0, q1) ** 0.5,  # Requires 2-qubit decomposition
         cirq.SWAP(q0, q1),
+        cirq.SWAP(q1, q0) ** -1,
         cirq.SWAP(q0, q1) ** 0.75,  # Requires 2-qubit decomposition
         cirq.CCZ(q0, q1, q2),
         cirq.CCX(q0, q1, q2),
