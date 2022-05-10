@@ -190,7 +190,7 @@ class LineQid(_BaseLineQid):
         return f"cirq.LineQid({self.x}, dimension={self.dimension})"
 
     def __str__(self) -> str:
-        return f"q{self.x} (d={self.dimension})"
+        return f"q({self.x}) (d={self.dimension})"
 
     def _circuit_diagram_info_(
         self, args: 'cirq.CircuitDiagramInfoArgs'
@@ -246,7 +246,7 @@ class LineQubit(_BaseLineQid):
         return f"cirq.LineQubit({self.x})"
 
     def __str__(self) -> str:
-        return f"q{self.x}"
+        return f"q({self.x})"
 
     def _circuit_diagram_info_(
         self, args: 'cirq.CircuitDiagramInfoArgs'

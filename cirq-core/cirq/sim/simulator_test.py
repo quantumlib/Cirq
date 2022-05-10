@@ -192,7 +192,7 @@ def test_step_sample_measurement_ops():
     step_result = FakeStepResult(ones_qubits=[q1])
 
     measurements = step_result.sample_measurement_ops(measurement_ops)
-    np.testing.assert_equal(measurements, {'q0,q1': [[False, True]], 'q2': [[False]]})
+    np.testing.assert_equal(measurements, {'q(0),q(1)': [[False, True]], 'q(2)': [[False]]})
 
 
 def test_step_sample_measurement_ops_repetitions():
@@ -201,7 +201,7 @@ def test_step_sample_measurement_ops_repetitions():
     step_result = FakeStepResult(ones_qubits=[q1])
 
     measurements = step_result.sample_measurement_ops(measurement_ops, repetitions=3)
-    np.testing.assert_equal(measurements, {'q0,q1': [[False, True]] * 3, 'q2': [[False]] * 3})
+    np.testing.assert_equal(measurements, {'q(0),q(1)': [[False, True]] * 3, 'q(2)': [[False]] * 3})
 
 
 def test_step_sample_measurement_ops_invert_mask():
@@ -213,7 +213,7 @@ def test_step_sample_measurement_ops_invert_mask():
     step_result = FakeStepResult(ones_qubits=[q1])
 
     measurements = step_result.sample_measurement_ops(measurement_ops)
-    np.testing.assert_equal(measurements, {'q0,q1': [[True, True]], 'q2': [[False]]})
+    np.testing.assert_equal(measurements, {'q(0),q(1)': [[True, True]], 'q(2)': [[False]]})
 
 
 def test_step_sample_measurement_ops_no_measurements():
