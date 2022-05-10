@@ -102,7 +102,7 @@ class Moment:
                 self._qubit_to_op[q] = op
 
         self._qubits = frozenset(self._qubit_to_op.keys())
-        self._measurement_key_objs: Optional[AbstractSet['cirq.MeasurementKey']] = None
+        self._measurement_key_objs: Optional[FrozenSet['cirq.MeasurementKey']] = None
         self._control_keys: Optional[FrozenSet['cirq.MeasurementKey']] = None
 
     @property
@@ -166,10 +166,13 @@ class Moment:
         # Use private variables to facilitate a quick copy.
         m = Moment()
         m._operations = self._operations + (operation,)
-        m._qubits = frozenset(self._qubits.union(set(operation.qubits)))
-        m._qubit_to_op = self._qubit_to_op.copy()
-        for q in operation.qubits:
-            m._qubit_to_op[q] = operation
+        m._qubits = self._qubits.union(operation.qubits)
+        m._qubit_to_op = {**self._qubit_to_op, **{q: operation for q in operation.qubits}}
+
+        m._measurement_key_objs = self._measurement_key_objs_().union(
+            protocols.measurement_key_objs(operation)
+        )
+        m._control_keys = self._control_keys_().union(protocols.control_keys(operation))
 
         return m
 
@@ -185,22 +188,27 @@ class Moment:
         Raises:
             ValueError: If the contents given overlaps a current operation in the moment.
         """
-        operations = list(self._operations)
+        flattened_contents = tuple(op_tree.flatten_to_ops(contents))
+
+        m = Moment()
+        # Use private variables to facilitate a quick copy.
+        m._qubit_to_op = self._qubit_to_op.copy()
         qubits = set(self._qubits)
-        for op in op_tree.flatten_to_ops(contents):
+        for op in flattened_contents:
             if any(q in qubits for q in op.qubits):
                 raise ValueError(f'Overlapping operations: {op}')
-            operations.append(op)
             qubits.update(op.qubits)
-
-        # Use private variables to facilitate a quick copy.
-        m = Moment()
-        m._operations = tuple(operations)
-        m._qubits = frozenset(qubits)
-        m._qubit_to_op = self._qubit_to_op.copy()
-        for op in operations:
             for q in op.qubits:
                 m._qubit_to_op[q] = op
+        m._qubits = frozenset(qubits)
+
+        m._operations = self._operations + flattened_contents
+        m._measurement_key_objs = self._measurement_key_objs_().union(
+            set(itertools.chain(*(protocols.measurement_key_objs(op) for op in flattened_contents)))
+        )
+        m._control_keys = self._control_keys_().union(
+            set(itertools.chain(*(protocols.control_keys(op) for op in flattened_contents)))
+        )
 
         return m
 
@@ -233,11 +241,11 @@ class Moment:
     def _measurement_key_names_(self) -> AbstractSet[str]:
         return {str(key) for key in self._measurement_key_objs_()}
 
-    def _measurement_key_objs_(self) -> AbstractSet['cirq.MeasurementKey']:
+    def _measurement_key_objs_(self) -> FrozenSet['cirq.MeasurementKey']:
         if self._measurement_key_objs is None:
-            self._measurement_key_objs = {
+            self._measurement_key_objs = frozenset(
                 key for op in self.operations for key in protocols.measurement_key_objs(op)
-            }
+            )
         return self._measurement_key_objs
 
     def _control_keys_(self) -> FrozenSet['cirq.MeasurementKey']:
