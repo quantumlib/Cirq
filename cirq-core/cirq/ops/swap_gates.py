@@ -143,7 +143,7 @@ class SwapPowGate(gate_features.InterchangeableQubitsGate, eigen_gate.EigenGate)
     def _quil_(
         self, qubits: Tuple['cirq.Qid', ...], formatter: 'cirq.QuilFormatter'
     ) -> Optional[str]:
-        if self._exponent == 1:
+        if self._exponent % 2 == 1:
             return formatter.format('SWAP {0} {1}\n', qubits[0], qubits[1])
         return formatter.format(
             'PSWAP({0}) {1} {2}\n', self._exponent * np.pi, qubits[0], qubits[1]
