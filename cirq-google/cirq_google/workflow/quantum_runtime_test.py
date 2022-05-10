@@ -64,22 +64,63 @@ def _assert_json_roundtrip(o, tmpdir):
     assert o == o2
 
 
-def test_quantum_runtime_configuration():
-    rt_config = cg.QuantumRuntimeConfiguration(
-        processor_record=cg.SimulatedProcessorWithLocalDeviceRecord('rainbow'), run_id='unit-test'
-    )
+@pytest.fixture(params=['minimal', 'full'])
+def rt_config(request):
+    if request.param == 'minimal':
+        return cg.QuantumRuntimeConfiguration(
+            processor_record=cg.SimulatedProcessorWithLocalDeviceRecord('rainbow')
+        )
 
+    elif request.param == 'full':
+        return cg.QuantumRuntimeConfiguration(
+            processor_record=cg.SimulatedProcessorWithLocalDeviceRecord('rainbow'),
+            run_id='unit-test',
+            random_seed=52,
+            qubit_placer=cg.RandomDevicePlacer(),
+            target_gateset=cirq.CZTargetGateset(),
+        )
+
+    raise ValueError(f"Unknown flavor {request}")  # coverage: ignore
+
+
+def test_quantum_runtime_configuration_sampler(rt_config):
     sampler = rt_config.processor_record.get_sampler()
     result = sampler.run(cirq.Circuit(cirq.measure(cirq.GridQubit(5, 3), key='z')))
     assert isinstance(result, cirq.Result)
 
+
+def test_quantum_runtime_configuration_device(rt_config):
     assert isinstance(rt_config.processor_record.get_device(), cirq.Device)
 
 
-def test_quantum_runtime_configuration_serialization(tmpdir):
-    rt_config = cg.QuantumRuntimeConfiguration(
-        processor_record=cg.SimulatedProcessorWithLocalDeviceRecord('rainbow'), run_id='unit-test'
+def test_quantum_runtime_configuration_run_id(rt_config):
+    if rt_config.run_id is not None:
+        assert isinstance(rt_config.run_id, str)
+
+
+def test_quantum_runtime_configuration_qubit_placer(rt_config):
+    device = rt_config.processor_record.get_device()
+    c, _ = rt_config.qubit_placer.place_circuit(
+        cirq.Circuit(cirq.measure(cirq.LineQubit(0), cirq.LineQubit(1), key='z')),
+        problem_topology=cirq.LineTopology(n_nodes=2),
+        shared_rt_info=cg.SharedRuntimeInfo(run_id=rt_config.run_id, device=device),
+        rs=np.random.RandomState(rt_config.random_seed),
     )
+    if isinstance(rt_config.qubit_placer, cg.NaiveQubitPlacer):
+        assert all(isinstance(q, cirq.LineQubit) for q in c.all_qubits())
+    else:
+        assert all(isinstance(q, cirq.GridQubit) for q in c.all_qubits())
+
+
+def test_quantum_runtime_configuration_target_gateset(rt_config):
+    c = cirq.Circuit(cirq.CNOT(cirq.LineQubit(0), cirq.LineQubit(1)))
+    if rt_config.target_gateset is not None:
+        # CNOT = H CZ H
+        c = cirq.optimize_for_target_gateset(c, gateset=rt_config.target_gateset)
+        assert len(c) == 3
+
+
+def test_quantum_runtime_configuration_serialization(tmpdir, rt_config):
     cg_assert_equivalent_repr(rt_config)
     _assert_json_roundtrip(rt_config, tmpdir)
 
@@ -135,20 +176,14 @@ def _load_result_by_hand(tmpdir: str, run_id: str) -> cg.ExecutableGroupResult:
     )
 
 
-@pytest.mark.parametrize('run_id_in', ['unit_test_runid', None])
-def test_execute(tmpdir, run_id_in):
-    rt_config = cg.QuantumRuntimeConfiguration(
-        processor_record=cg.SimulatedProcessorWithLocalDeviceRecord('rainbow'),
-        run_id=run_id_in,
-        qubit_placer=cg.NaiveQubitPlacer(),
-    )
+def test_execute(tmpdir, rt_config):
     executable_group = cg.QuantumExecutableGroup(_get_quantum_executables())
     returned_exegroup_result = cg.execute(
         rt_config=rt_config, executable_group=executable_group, base_data_dir=tmpdir
     )
     run_id = returned_exegroup_result.shared_runtime_info.run_id
-    if run_id_in is not None:
-        assert run_id_in == run_id
+    if rt_config.run_id is not None:
+        assert run_id == 'unit-test'
     else:
         assert isinstance(uuid.UUID(run_id), uuid.UUID)
 
