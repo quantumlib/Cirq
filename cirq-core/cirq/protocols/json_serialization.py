@@ -284,14 +284,16 @@ def _json_dict_with_cirq_type(obj: Any):
         # TODO: upgrade to ValueError in v0.15
         warnings.warn(
             f"Found 'cirq_type': '{base_dict['cirq_type']}' in user-specified _json_dict_. "
-            "This field is now automatically generated from the class name and (if present) "
-            "its _json_namespace_ method; this produces the same serialization format as "
-            "the existing convention of `[namespace.]class_name`."
+            "'cirq_type' is now automatically generated from the class's name and its "
+            "_json_namespace_ method as `cirq_type: '[<namespace>.]<class_name>'`."
             "\n\n"
             "Starting in v0.15, custom 'cirq_type' values will trigger an error. "
-            "To fix this, remove 'cirq_type' from the class _json_dict_ method. Classes "
-            "outside of cirq should also define a non-empty _json_namespace_ to avoid "
-            "collision with Cirq classes.",
+            "To fix this, remove 'cirq_type' from the class _json_dict_ method and "
+            "define _json_namespace_ for the class."
+            "\n\n"
+            "For backwards compatibility, classes whose old 'cirq_type' does not match the "
+            "new value must appear in `json_resolver_cache.py::_class_resolver_dictionary()` "
+            "under both values.",
             DeprecationWarning,
         )
         return base_dict
