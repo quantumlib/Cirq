@@ -129,11 +129,7 @@ def make_simon_circuit(input_qubits, output_qubits, oracle):
     c = cirq.Circuit()
 
     # Initialize qubits.
-    c.append(
-        [
-            cirq.H.on_each(*input_qubits),
-        ]
-    )
+    c.append([cirq.H.on_each(*input_qubits)])
 
     # Query oracle.
     c.append(oracle)

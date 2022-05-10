@@ -91,14 +91,9 @@ def test_same_pauli_traces_clifford():
     n_qubits = 4
 
     qubits = cirq.LineQubit.range(n_qubits)
-    circuit_clifford = cirq.Circuit(
-        cirq.X(qubits[3]),
-    )
+    circuit_clifford = cirq.Circuit(cirq.X(qubits[3]))
 
-    circuit_general = cirq.Circuit(
-        cirq.CCX(qubits[0], qubits[1], qubits[2]),
-        circuit_clifford,
-    )
+    circuit_general = cirq.Circuit(cirq.CCX(qubits[0], qubits[1], qubits[2]), circuit_clifford)
 
     def _run_dfe(circuit):
         class NoiseOnLastQubitOnly(cirq.NoiseModel):
@@ -132,7 +127,7 @@ def test_same_pauli_traces_clifford():
     assert clifford_is_clifford
     assert not general_is_clifford
 
-    assert len(pauli_traces_clifford) == 2 ** n_qubits
+    assert len(pauli_traces_clifford) == 2**n_qubits
     for pauli_trace_clifford in pauli_traces_clifford:
         pauli_trace_general = [x for x in pauli_traces_general if x.P_i == pauli_trace_clifford.P_i]
         assert len(pauli_trace_general) == 1

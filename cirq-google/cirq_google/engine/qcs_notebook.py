@@ -12,7 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import os
 import dataclasses
 from typing import Union, Optional
 
@@ -24,8 +23,7 @@ from cirq_google import (
     Sycamore,
     SQRT_ISWAP_INV_PARAMETERS,
     PhasedFSimCharacterization,
-    get_engine_sampler,
-    get_engine_device,
+    get_engine,
 )
 
 
@@ -40,9 +38,12 @@ class QCSObjectsForNotebook:
         return isinstance(self.sampler, PhasedFSimEngineSimulator)
 
 
+# Disable missing-raises-doc lint check, since pylint gets confused
+# by exceptions that are raised and caught within this function.
+# pylint: disable=missing-raises-doc
 def get_qcs_objects_for_notebook(
     project_id: Optional[str] = None, processor_id: Optional[str] = None
-) -> QCSObjectsForNotebook:
+) -> QCSObjectsForNotebook:  # pragma: nocover
     """Authenticates on Google Cloud, can return a Device and Simulator.
 
     Args:
@@ -57,68 +58,54 @@ def get_qcs_objects_for_notebook(
         An instance of DeviceSamplerInfo.
     """
 
-    # Converting empty strings to None for form field inputs
-    if project_id == "":
-        project_id = None
-    if processor_id == "":
-        processor_id = None
-
-    google_cloud_signin_failed: bool = False
-    if project_id is None:
-        if 'GOOGLE_CLOUD_PROJECT' not in os.environ:
-            print("No project_id provided and environment variable GOOGLE_CLOUD_PROJECT not set.")
-            google_cloud_signin_failed = True
-    else:  # pragma: no cover
-        os.environ['GOOGLE_CLOUD_PROJECT'] = project_id
-
-        # Following code runs the user through the Colab OAuth process.
-
-        # Checks for Google Application Default Credentials and runs
-        # interactive login if the notebook is executed in Colab. In
-        # case the notebook is executed in Jupyter notebook or other
-        # IPython runtimes, no interactive login is provided, it is
-        # assumed that the `GOOGLE_APPLICATION_CREDENTIALS` env var is
-        # set or `gcloud auth application-default login` was executed
-        # already. For more information on using Application Default Credentials
-        # see https://cloud.google.com/docs/authentication/production
-
-        in_colab = False
+    # Check for Google Application Default Credentials and run
+    # interactive login if the notebook is executed in Colab. In
+    # case the notebook is executed in Jupyter notebook or other
+    # IPython runtimes, no interactive login is provided, it is
+    # assumed that the `GOOGLE_APPLICATION_CREDENTIALS` env var is
+    # set or `gcloud auth application-default login` was executed
+    # already. For more information on using Application Default Credentials
+    # see https://cloud.google.com/docs/authentication/production
+    try:
+        from google.colab import auth
+    except ImportError:
+        print("Not running in a colab kernel. Will use Application Default Credentials.")
+    else:
+        print("Getting OAuth2 credentials.")
+        print("Press enter after entering the verification code.")
         try:
-            from IPython import get_ipython
+            auth.authenticate_user(clear_output=False)
+            print("Authentication complete.")
+        except Exception as exc:
+            print(f"Authentication failed: {exc}")
 
-            in_colab = 'google.colab' in str(get_ipython())
-
-            if in_colab:
-                from google.colab import auth
-
-                print("Getting OAuth2 credentials.")
-                print("Press enter after entering the verification code.")
-                auth.authenticate_user(clear_output=False)
-                print("Authentication complete.")
-            else:
-                print(
-                    "Notebook isn't executed with Colab, assuming "
-                    "Application Default Credentials are setup."
-                )
-        except:
-            pass
-
-        # End of Google Colab Authentication segment
-
-    device: cirq.Device
+    # Attempt to connect to the Quantum Engine API, and use a simulator if unable to connect.
     sampler: Union[PhasedFSimEngineSimulator, QuantumEngineSampler]
-    if google_cloud_signin_failed or processor_id is None:
+    try:
+        engine = get_engine(project_id)
+        if processor_id:
+            processor = engine.get_processor(processor_id)
+        else:
+            processors = engine.list_processors()
+            if not processors:
+                raise ValueError("No processors available.")
+            processor = processors[0]
+            print(f"Available processors: {[p.processor_id for p in processors]}")
+            print(f"Using processor: {processor.processor_id}")
+        device = processor.get_device()
+        sampler = processor.get_sampler()
+        signed_in = True
+    except Exception as exc:
+        print(f"Unable to connect to quantum engine: {exc}")
         print("Using a noisy simulator.")
         sampler = PhasedFSimEngineSimulator.create_with_random_gaussian_sqrt_iswap(
             mean=SQRT_ISWAP_INV_PARAMETERS,
             sigma=PhasedFSimCharacterization(theta=0.01, zeta=0.10, chi=0.01, gamma=0.10, phi=0.02),
         )
         device = Sycamore
-    else:  # pragma: no cover
-        device = get_engine_device(processor_id)
-        sampler = get_engine_sampler(processor_id, gate_set_name="sqrt_iswap")
-    return QCSObjectsForNotebook(
-        device=device,
-        sampler=sampler,
-        signed_in=not google_cloud_signin_failed,
-    )
+        signed_in = False
+
+    return QCSObjectsForNotebook(device=device, sampler=sampler, signed_in=signed_in)
+
+
+# pylint: enable=missing-raises-doc

@@ -14,11 +14,10 @@
 
 import numpy as np
 import pytest
+import sympy
 
 import cirq
-from cirq.devices.noise_utils import (
-    PHYSICAL_GATE_TAG,
-)
+from cirq.devices.noise_utils import PHYSICAL_GATE_TAG
 from cirq.devices.thermal_noise_model import (
     _left_mul,
     _right_mul,
@@ -176,10 +175,7 @@ def test_noise_from_measurement():
     # Verify that a moment with only measurement gates has no noise if
     # skip_measurements is True.
     q0, q1 = cirq.LineQubit.range(2)
-    gate_durations = {
-        cirq.ZPowGate: 25.0,
-        cirq.MeasurementGate: 4000.0,
-    }
+    gate_durations = {cirq.ZPowGate: 25.0, cirq.MeasurementGate: 4000.0}
     heat_rate_GHz = {q1: 1e-5}
     cool_rate_GHz = {q0: 1e-4}
     model = ThermalNoiseModel(
@@ -205,10 +201,7 @@ def test_noisy_moment_one_qubit():
     q0, q1 = cirq.LineQubit.range(2)
     model = ThermalNoiseModel(
         qubits={q0, q1},
-        gate_durations_ns={
-            cirq.PhasedXZGate: 25.0,
-            cirq.CZPowGate: 25.0,
-        },
+        gate_durations_ns={cirq.PhasedXZGate: 25.0, cirq.CZPowGate: 25.0},
         heat_rate_GHz={q0: 1e-5, q1: 2e-5},
         cool_rate_GHz={q0: 1e-4, q1: 2e-4},
         dephase_rate_GHz={q0: 3e-4, q1: 4e-4},
@@ -252,7 +245,6 @@ def test_noise_from_wait():
     assert noisy_moment[0] == moment
     assert len(noisy_moment[1]) == 1
     noisy_choi = cirq.kraus_to_choi(cirq.kraus(noisy_moment[1].operations[0]))
-    print(noisy_choi)
     assert np.allclose(
         noisy_choi,
         [
@@ -264,14 +256,30 @@ def test_noise_from_wait():
     )
 
 
+def test_symbolic_times_for_wait_gate():
+    q0 = cirq.LineQubit(0)
+    gate_durations = {cirq.ZPowGate: 25.0}
+    heat_rate_GHz = {q0: 1e-5}
+    cool_rate_GHz = {q0: 1e-4}
+    model = ThermalNoiseModel(
+        qubits={q0},
+        gate_durations_ns=gate_durations,
+        heat_rate_GHz=heat_rate_GHz,
+        cool_rate_GHz=cool_rate_GHz,
+        dephase_rate_GHz=None,
+        require_physical_tag=False,
+        skip_measurements=True,
+    )
+    moment = cirq.Moment(cirq.wait(q0, nanos=sympy.Symbol('t')))
+    with pytest.raises(ValueError, match='Symbolic'):
+        _ = model.noisy_moment(moment, system_qubits=[q0])
+
+
 def test_noisy_moment_two_qubit():
     q0, q1 = cirq.LineQubit.range(2)
     model = ThermalNoiseModel(
         qubits={q0, q1},
-        gate_durations_ns={
-            cirq.PhasedXZGate: 25.0,
-            cirq.CZPowGate: 25.0,
-        },
+        gate_durations_ns={cirq.PhasedXZGate: 25.0, cirq.CZPowGate: 25.0},
         heat_rate_GHz={q0: 1e-5, q1: 2e-5},
         cool_rate_GHz={q0: 1e-4, q1: 2e-4},
         dephase_rate_GHz={q0: 3e-4, q1: 4e-4},

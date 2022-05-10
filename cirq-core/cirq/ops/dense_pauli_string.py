@@ -11,6 +11,8 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
+import abc
 import numbers
 from typing import (
     AbstractSet,
@@ -29,13 +31,12 @@ from typing import (
     TypeVar,
     Union,
 )
-import abc
 
 import numpy as np
 import sympy
 
 from cirq import protocols, linalg, value
-from cirq._compat import deprecated, proper_repr
+from cirq._compat import proper_repr
 from cirq.ops import raw_types, identity, pauli_gates, global_phase_op, pauli_string
 from cirq.type_workarounds import NotImplementedType
 
@@ -68,7 +69,7 @@ class BaseDensePauliString(raw_types.Gate, metaclass=abc.ABCMeta):
         self,
         pauli_mask: Union[Iterable['cirq.PAULI_GATE_LIKE'], np.ndarray],
         *,
-        coefficient: Union[sympy.Basic, int, float, complex] = 1,
+        coefficient: Union[sympy.Expr, int, float, 'cirq.TParamValComplex'] = 1,
     ):
         """Initializes a new dense pauli string.
 
@@ -96,8 +97,8 @@ class BaseDensePauliString(raw_types.Gate, metaclass=abc.ABCMeta):
             t*IXYZ
         """
         self._pauli_mask = _as_pauli_mask(pauli_mask)
-        self._coefficient = (
-            coefficient if isinstance(coefficient, sympy.Basic) else complex(coefficient)
+        self._coefficient: Union[complex, sympy.Expr] = (
+            coefficient if isinstance(coefficient, sympy.Expr) else complex(coefficient)
         )
         if type(self) != MutableDensePauliString:
             self._pauli_mask = np.copy(self.pauli_mask)
@@ -107,25 +108,9 @@ class BaseDensePauliString(raw_types.Gate, metaclass=abc.ABCMeta):
     def pauli_mask(self) -> np.ndarray:
         return self._pauli_mask
 
-    @pauli_mask.setter  # type: ignore
-    @deprecated(
-        deadline="v0.15",
-        fix="The mutators of this class are deprecated, instantiate a new object instead.",
-    )
-    def pauli_mask(self, pauli_mask: np.ndarray):
-        self._pauli_mask = pauli_mask
-
     @property
-    def coefficient(self) -> complex:
+    def coefficient(self) -> Union[sympy.Expr, complex]:
         return self._coefficient
-
-    @coefficient.setter  # type: ignore
-    @deprecated(
-        deadline="v0.15",
-        fix="The mutators of this class are deprecated, instantiate a new object instead.",
-    )
-    def coefficient(self, coefficient: complex):
-        self._coefficient = coefficient
 
     def _json_dict_(self) -> Dict[str, Any]:
         return protocols.obj_to_dict_helper(self, ['pauli_mask', 'coefficient'])
@@ -308,7 +293,7 @@ class BaseDensePauliString(raw_types.Gate, metaclass=abc.ABCMeta):
     def __abs__(self):
         return DensePauliString(coefficient=abs(self.coefficient), pauli_mask=self.pauli_mask)
 
-    def on(self, *qubits) -> 'cirq.PauliString':
+    def on(self, *qubits: 'cirq.Qid') -> 'cirq.PauliString':
         return self.sparse(qubits)
 
     def sparse(self, qubits: Optional[Sequence['cirq.Qid']] = None) -> 'cirq.PauliString':
@@ -358,7 +343,9 @@ class BaseDensePauliString(raw_types.Gate, metaclass=abc.ABCMeta):
             f'coefficient={proper_repr(self.coefficient)})'
         )
 
-    def _commutes_(self, other: Any, atol: float) -> Union[bool, NotImplementedType, None]:
+    def _commutes_(
+        self, other: Any, *, atol: float = 1e-8
+    ) -> Union[bool, NotImplementedType, None]:
         if isinstance(other, BaseDensePauliString):
             n = min(len(self.pauli_mask), len(other.pauli_mask))
             phase = _vectorized_pauli_mul_phase(self.pauli_mask[:n], other.pauli_mask[:n])
@@ -386,7 +373,7 @@ class BaseDensePauliString(raw_types.Gate, metaclass=abc.ABCMeta):
     @abc.abstractmethod
     def copy(
         self: TCls,
-        coefficient: Optional[complex] = None,
+        coefficient: Optional[Union[sympy.Expr, int, float, complex]] = None,
         pauli_mask: Union[None, str, Iterable[int], np.ndarray] = None,
     ) -> TCls:
         """Returns a copy with possibly modified contents.
@@ -408,7 +395,7 @@ class DensePauliString(BaseDensePauliString):
 
     def copy(
         self,
-        coefficient: Optional[complex] = None,
+        coefficient: Optional[Union[sympy.Expr, int, float, complex]] = None,
         pauli_mask: Union[None, str, Iterable[int], np.ndarray] = None,
     ) -> 'DensePauliString':
         if pauli_mask is None and (coefficient is None or coefficient == self.coefficient):
@@ -480,7 +467,7 @@ class MutableDensePauliString(BaseDensePauliString):
 
     def copy(
         self,
-        coefficient: Optional[complex] = None,
+        coefficient: Optional[Union[sympy.Expr, int, float, complex]] = None,
         pauli_mask: Union[None, str, Iterable[int], np.ndarray] = None,
     ) -> 'MutableDensePauliString':
         return MutableDensePauliString(

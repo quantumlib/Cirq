@@ -25,7 +25,7 @@ def to_quil_complex_format(num) -> str:
 
 
 @value.value_equality(approximate=True)
-class QuilOneQubitGate(ops.SingleQubitGate):
+class QuilOneQubitGate(ops.Gate):
     """A QUIL gate representing any single qubit unitary with a DEFGATE and
     2x2 matrix in QUIL.
     """
@@ -37,6 +37,9 @@ class QuilOneQubitGate(ops.SingleQubitGate):
             matrix: The 2x2 unitary matrix for this gate.
         """
         self.matrix = matrix
+
+    def _num_qubits_(self) -> int:
+        return 1
 
     def _quil_(self, qubits: Tuple['cirq.Qid', ...], formatter: 'cirq.QuilFormatter') -> str:
         return (

@@ -16,7 +16,7 @@ from typing import List, Optional, Sequence, TYPE_CHECKING, Union
 
 import cirq
 from cirq_google import engine
-from cirq_google.serialization import gate_sets
+from cirq_google.engine import util
 
 if TYPE_CHECKING:
     import cirq_google
@@ -28,6 +28,7 @@ class QuantumEngineSampler(cirq.Sampler):
     Exposes a `cirq_google.Engine` instance as a `cirq.Sampler`.
     """
 
+    @util.deprecated_gate_set_parameter
     def __init__(
         self,
         *,
@@ -45,7 +46,6 @@ class QuantumEngineSampler(cirq.Sampler):
                 samples.
         """
         self._processor_ids = [processor_id] if isinstance(processor_id, str) else processor_id
-        self._gate_set = gate_set
         self._engine = engine
 
     def run_sweep(
@@ -64,7 +64,6 @@ class QuantumEngineSampler(cirq.Sampler):
                 params=params,
                 repetitions=repetitions,
                 processor_ids=self._processor_ids,
-                gate_set=self._gate_set,
             )
         return job.results()
 
@@ -97,7 +96,6 @@ class QuantumEngineSampler(cirq.Sampler):
                 params_list=params_list,
                 repetitions=repetitions,
                 processor_ids=self._processor_ids,
-                gate_set=self._gate_set,
             )
             return job.batched_results()
         # Varying number of repetitions so no speedup
@@ -108,8 +106,14 @@ class QuantumEngineSampler(cirq.Sampler):
         return self._engine
 
 
+@cirq._compat.deprecated_parameter(
+    deadline='v0.15',
+    fix='Remove the "gate_set_name" parameter.',
+    parameter_desc='gate_set_name',
+    match=lambda args, kwargs: 'gate_set_name' in kwargs or len(args) > 1,
+)
 def get_engine_sampler(
-    processor_id: str, gate_set_name: str, project_id: Optional[str] = None
+    processor_id: str, gate_set_name: str = '', project_id: Optional[str] = None
 ) -> 'cirq_google.QuantumEngineSampler':
     """Get an EngineSampler assuming some sensible defaults.
 
@@ -134,10 +138,4 @@ def get_engine_sampler(
          EnvironmentError: If no project_id is specified and the environment
             variable GOOGLE_CLOUD_PROJECT is not set.
     """
-    if gate_set_name not in gate_sets.NAMED_GATESETS:
-        raise ValueError(
-            f"Unknown gateset {gate_set_name}. Please use one of: "
-            f"{sorted(gate_sets.NAMED_GATESETS.keys())}."
-        )
-    gate_set = gate_sets.NAMED_GATESETS[gate_set_name]
-    return engine.get_engine(project_id).get_sampler(processor_id=processor_id, gate_set=gate_set)
+    return engine.get_engine(project_id).get_sampler(processor_id=processor_id)

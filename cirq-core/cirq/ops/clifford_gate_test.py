@@ -19,11 +19,8 @@ import numpy as np
 import pytest
 
 import cirq
-from cirq.protocols.act_on_protocol_test import DummyActOnArgs
-from cirq.testing import (
-    EqualsTester,
-    assert_allclose_up_to_global_phase,
-)
+from cirq.protocols.act_on_protocol_test import DummySimulationState
+from cirq.testing import EqualsTester, assert_allclose_up_to_global_phase
 
 _bools = (False, True)
 _paulis = (cirq.X, cirq.Y, cirq.Z)
@@ -49,10 +46,7 @@ def _assert_no_collision(gate) -> None:
 
 
 def _all_rotations():
-    for (
-        pauli,
-        flip,
-    ) in itertools.product(_paulis, _bools):
+    for (pauli, flip) in itertools.product(_paulis, _bools):
         yield cirq.PauliTransform(pauli, flip)
 
 
@@ -369,9 +363,7 @@ def test_y_rotation(gate, trans_y):
 def test_decompose(gate, gate_equiv):
     q0 = cirq.NamedQubit('q0')
     mat = cirq.Circuit(gate(q0)).unitary()
-    mat_check = cirq.Circuit(
-        gate_equiv(q0),
-    ).unitary()
+    mat_check = cirq.Circuit(gate_equiv(q0)).unitary()
     assert_allclose_up_to_global_phase(mat, mat_check, rtol=1e-7, atol=1e-7)
 
 
@@ -428,23 +420,14 @@ def test_commutes_single_qubit_gate(gate, other):
     q0 = cirq.NamedQubit('q0')
     gate_op = gate(q0)
     other_op = other(q0)
-    mat = cirq.Circuit(
-        gate_op,
-        other_op,
-    ).unitary()
-    mat_swap = cirq.Circuit(
-        other_op,
-        gate_op,
-    ).unitary()
+    mat = cirq.Circuit(gate_op, other_op).unitary()
+    mat_swap = cirq.Circuit(other_op, gate_op).unitary()
     commutes = cirq.commutes(gate, other)
     commutes_check = cirq.allclose_up_to_global_phase(mat, mat_swap)
     assert commutes == commutes_check
 
     # Test after switching order
-    mat_swap = cirq.Circuit(
-        gate.equivalent_gate_before(other)(q0),
-        gate_op,
-    ).unitary()
+    mat_swap = cirq.Circuit(gate.equivalent_gate_before(other)(q0), gate_op).unitary()
     assert_allclose_up_to_global_phase(mat, mat_swap, rtol=1e-7, atol=1e-7)
 
 
@@ -461,14 +444,8 @@ def test_commutes_pauli(gate, pauli, half_turns):
     # TODO(#4328) cirq.X**1 should be _PauliX instead of XPowGate
     pauli_gate = pauli if half_turns == 1 else pauli**half_turns
     q0 = cirq.NamedQubit('q0')
-    mat = cirq.Circuit(
-        gate(q0),
-        pauli_gate(q0),
-    ).unitary()
-    mat_swap = cirq.Circuit(
-        pauli_gate(q0),
-        gate(q0),
-    ).unitary()
+    mat = cirq.Circuit(gate(q0), pauli_gate(q0)).unitary()
+    mat_swap = cirq.Circuit(pauli_gate(q0), gate(q0)).unitary()
     commutes = cirq.commutes(gate, pauli_gate)
     commutes_check = np.allclose(mat, mat_swap)
     assert commutes == commutes_check, f"gate: {gate}, pauli {pauli}"
@@ -709,6 +686,13 @@ def test_clifford_gate_from_tableau():
     t = cirq.CliffordGate.CNOT.clifford_tableau
     assert cirq.CliffordGate.from_clifford_tableau(t) == cirq.CliffordGate.CNOT
 
+    with pytest.raises(ValueError, match='Input argument has to be a CliffordTableau instance.'):
+        cirq.SingleQubitCliffordGate.from_clifford_tableau(123)
+
+    with pytest.raises(ValueError, match="The number of qubit of input tableau should be 1"):
+        t = cirq.CliffordTableau(num_qubits=2)
+        cirq.SingleQubitCliffordGate.from_clifford_tableau(t)
+
     with pytest.raises(ValueError):
         t = cirq.CliffordTableau(num_qubits=1)
         t.xs = np.array([1, 1]).reshape(2, 1)
@@ -774,34 +758,24 @@ def test_pad_tableau():
     padded_tableau = cirq.ops.clifford_gate._pad_tableau(
         tableau, num_qubits_after_padding=2, axes=[0]
     )
+    # fmt: off
     np.testing.assert_equal(
         padded_tableau.matrix().astype(np.int64),
-        np.array(
-            [
-                [0, 0, 1, 0],
-                [0, 1, 0, 0],
-                [1, 0, 0, 0],
-                [0, 0, 0, 1],
-            ]
-        ),
+        np.array([[0, 0, 1, 0], [0, 1, 0, 0], [1, 0, 0, 0], [0, 0, 0, 1]]),
     )
+    # fmt: on
     np.testing.assert_equal(padded_tableau.rs.astype(np.int64), np.zeros(4))
     # The tableau of H again but pad for another ax
     tableau = cirq.CliffordGate.H.clifford_tableau
     padded_tableau = cirq.ops.clifford_gate._pad_tableau(
         tableau, num_qubits_after_padding=2, axes=[1]
     )
+    # fmt: off
     np.testing.assert_equal(
         padded_tableau.matrix().astype(np.int64),
-        np.array(
-            [
-                [1, 0, 0, 0],
-                [0, 0, 0, 1],
-                [0, 0, 1, 0],
-                [0, 1, 0, 0],
-            ]
-        ),
+        np.array([[1, 0, 0, 0], [0, 0, 0, 1], [0, 0, 1, 0], [0, 1, 0, 0]]),
     )
+    # fmt: on
     np.testing.assert_equal(padded_tableau.rs.astype(np.int64), np.zeros(4))
 
 
@@ -809,15 +783,11 @@ def test_clifford_gate_act_on_small_case():
     # Note this is also covered by the `from_op_list` one, etc.
 
     qubits = cirq.LineQubit.range(5)
-    args = cirq.ActOnCliffordTableauArgs(
-        tableau=cirq.CliffordTableau(num_qubits=5),
-        qubits=qubits,
-        prng=np.random.RandomState(),
+    args = cirq.CliffordTableauSimulationState(
+        tableau=cirq.CliffordTableau(num_qubits=5), qubits=qubits, prng=np.random.RandomState()
     )
-    expected_args = cirq.ActOnCliffordTableauArgs(
-        tableau=cirq.CliffordTableau(num_qubits=5),
-        qubits=qubits,
-        prng=np.random.RandomState(),
+    expected_args = cirq.CliffordTableauSimulationState(
+        tableau=cirq.CliffordTableau(num_qubits=5), qubits=qubits, prng=np.random.RandomState()
     )
     cirq.act_on(cirq.H, expected_args, qubits=[qubits[0]], allow_decompose=False)
     cirq.act_on(cirq.CliffordGate.H, args, qubits=[qubits[0]], allow_decompose=False)
@@ -848,8 +818,8 @@ def test_clifford_gate_act_on_large_case():
         t1 = cirq.CliffordTableau(num_qubits=n)
         t2 = cirq.CliffordTableau(num_qubits=n)
         qubits = cirq.LineQubit.range(n)
-        args1 = cirq.ActOnCliffordTableauArgs(tableau=t1, qubits=qubits, prng=prng)
-        args2 = cirq.ActOnCliffordTableauArgs(tableau=t2, qubits=qubits, prng=prng)
+        args1 = cirq.CliffordTableauSimulationState(tableau=t1, qubits=qubits, prng=prng)
+        args2 = cirq.CliffordTableauSimulationState(tableau=t2, qubits=qubits, prng=prng)
         ops = []
         for _ in range(num_ops):
             g = prng.randint(len(gate_candidate))
@@ -868,7 +838,7 @@ def test_clifford_gate_act_on_ch_form():
     # Although we don't support CH_form from the _act_on_, it will fall back
     # to the decomposititon method and apply it through decomposed ops.
     # Here we run it for the coverage only.
-    args = cirq.ActOnStabilizerCHFormArgs(
+    args = cirq.StabilizerChFormSimulationState(
         initial_state=cirq.StabilizerStateChForm(num_qubits=2, initial_state=1),
         qubits=cirq.LineQubit.range(2),
         prng=np.random.RandomState(),
@@ -879,4 +849,4 @@ def test_clifford_gate_act_on_ch_form():
 
 def test_clifford_gate_act_on_fail():
     with pytest.raises(TypeError, match="Failed to act"):
-        cirq.act_on(cirq.CliffordGate.X, DummyActOnArgs(), qubits=())
+        cirq.act_on(cirq.CliffordGate.X, DummySimulationState(), qubits=())

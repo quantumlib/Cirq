@@ -11,6 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import datetime
 import glob
 import re
 import time
@@ -28,16 +29,13 @@ from cirq_google.workflow.quantum_runtime import _time_into_runtime_info
 
 def cg_assert_equivalent_repr(value):
     """cirq.testing.assert_equivalent_repr with cirq_google.workflow imported."""
-    return cirq.testing.assert_equivalent_repr(
-        value,
-        global_vals={
-            'cirq_google': cg,
-        },
-    )
+    return cirq.testing.assert_equivalent_repr(value, global_vals={'cirq_google': cg})
 
 
 def test_shared_runtime_info():
-    shared_rtinfo = cg.SharedRuntimeInfo(run_id='my run')
+    shared_rtinfo = cg.SharedRuntimeInfo(
+        run_id='my run', run_start_time=datetime.datetime.now(tz=datetime.timezone.utc)
+    )
     cg_assert_equivalent_repr(shared_rtinfo)
 
 
@@ -68,8 +66,7 @@ def _assert_json_roundtrip(o, tmpdir):
 
 def test_quantum_runtime_configuration():
     rt_config = cg.QuantumRuntimeConfiguration(
-        processor_record=cg.SimulatedProcessorWithLocalDeviceRecord('rainbow'),
-        run_id='unit-test',
+        processor_record=cg.SimulatedProcessorWithLocalDeviceRecord('rainbow'), run_id='unit-test'
     )
 
     sampler = rt_config.processor_record.get_sampler()
@@ -81,8 +78,7 @@ def test_quantum_runtime_configuration():
 
 def test_quantum_runtime_configuration_serialization(tmpdir):
     rt_config = cg.QuantumRuntimeConfiguration(
-        processor_record=cg.SimulatedProcessorWithLocalDeviceRecord('rainbow'),
-        run_id='unit-test',
+        processor_record=cg.SimulatedProcessorWithLocalDeviceRecord('rainbow'), run_id='unit-test'
     )
     cg_assert_equivalent_repr(rt_config)
     _assert_json_roundtrip(rt_config, tmpdir)
@@ -155,6 +151,11 @@ def test_execute(tmpdir, run_id_in):
         assert run_id_in == run_id
     else:
         assert isinstance(uuid.UUID(run_id), uuid.UUID)
+
+    start_dt = returned_exegroup_result.shared_runtime_info.run_start_time
+    end_dt = returned_exegroup_result.shared_runtime_info.run_end_time
+    assert end_dt > start_dt
+    assert end_dt <= datetime.datetime.now(tz=datetime.timezone.utc)
 
     manual_exegroup_result = _load_result_by_hand(tmpdir, run_id)
     egr_record: cg.ExecutableGroupResultFilesystemRecord = cirq.read_json_gzip(

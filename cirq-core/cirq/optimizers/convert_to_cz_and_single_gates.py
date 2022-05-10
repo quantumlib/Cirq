@@ -51,6 +51,7 @@ class ConvertToCzAndSingleGates(circuits.PointOptimizer):
             ops.CZPowGate if allow_partial_czs else ops.CZ,
             ops.MeasurementGate,
             ops.AnyUnitaryGateFamily(1),
+            ops.GlobalPhaseGate,
         )
 
     def _decompose_two_qubit_unitaries(self, op: ops.Operation) -> ops.OP_TREE:

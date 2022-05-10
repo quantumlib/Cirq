@@ -61,7 +61,7 @@ class IdentityGate(raw_types.Gate):
         if len(self._qid_shape) != num_qubits:
             raise ValueError('len(qid_shape) != num_qubits')
 
-    def _act_on_(self, args: 'cirq.OperationTarget', qubits: Sequence['cirq.Qid']):
+    def _act_on_(self, sim_state: 'cirq.SimulationStateBase', qubits: Sequence['cirq.Qid']):
         return True
 
     def _qid_shape_(self) -> Tuple[int, ...]:
@@ -114,10 +114,7 @@ class IdentityGate(raw_types.Gate):
         other = {}
         if not all(d == 2 for d in self._qid_shape):
             other['qid_shape'] = self._qid_shape
-        return {
-            'num_qubits': len(self._qid_shape),
-            **other,
-        }
+        return {'num_qubits': len(self._qid_shape), **other}
 
     def _mul_with_qubits(self, qubits: Tuple['cirq.Qid', ...], other):
         if isinstance(other, raw_types.Operation):

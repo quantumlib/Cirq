@@ -36,11 +36,7 @@ def test_merge_swap_rzz_and_2q_unitaries():
         cirq.Moment(cirq.H.on_each(*q)),
         cirq.CNOT(q[0], q[2]),
         cirq.CircuitOperation(
-            cirq.FrozenCircuit(
-                cirq.CNOT(*q[0:2]),
-                cirq.H(q[0]),
-                cirq.CZ(*q[:2]),
-            )
+            cirq.FrozenCircuit(cirq.CNOT(*q[0:2]), cirq.H(q[0]), cirq.CZ(*q[:2]))
         ),
         cirq.CNOT(*q[1:3]),
         cirq.X(q[0]),
@@ -282,7 +278,7 @@ def test_zztheta_zzpow_unsorted_qubits():
     qubits = cirq.LineQubit(1), cirq.LineQubit(0)
     exponent = 0.06366197723675814
     circuit = cirq.Circuit(
-        cirq.ZZPowGate(exponent=exponent, global_shift=-0.5).on(qubits[0], qubits[1]),
+        cirq.ZZPowGate(exponent=exponent, global_shift=-0.5).on(qubits[0], qubits[1])
     )
     converted_circuit = cirq.optimize_for_target_gateset(
         circuit, gateset=cirq_google.SycamoreTargetGateset()
@@ -391,3 +387,19 @@ def test_supported_operation(op):
     )
     multi_qubit_ops = [e for e in converted_circuit.all_operations() if len(e.qubits) > 1]
     assert all(isinstance(e.gate, cirq_google.SycamoreGate) for e in multi_qubit_ops)
+
+
+@pytest.mark.parametrize(
+    'gateset',
+    [
+        cirq_google.SycamoreTargetGateset(),
+        cirq_google.SycamoreTargetGateset(
+            tabulation=cirq.two_qubit_gate_product_tabulation(
+                cirq.unitary(cirq_google.SYC), 0.1, random_state=cirq.value.parse_random_state(11)
+            )
+        ),
+    ],
+)
+def test_repr_json(gateset):
+    assert eval(repr(gateset)) == gateset
+    assert cirq.read_json(json_text=cirq.to_json(gateset)) == gateset

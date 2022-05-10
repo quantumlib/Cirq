@@ -346,7 +346,7 @@ def test_from_dictionary_sqrt_iswap_ideal_when_missing_parameter_fails():
     circuit = cirq.Circuit(cirq.FSimGate(np.pi / 4, 0.0).on(a, b))
 
     engine_simulator = PhasedFSimEngineSimulator.create_from_dictionary_sqrt_iswap(
-        parameters={(a, b): parameters_ab},
+        parameters={(a, b): parameters_ab}
     )
 
     with pytest.raises(ValueError):

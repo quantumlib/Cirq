@@ -22,16 +22,15 @@ import pytest
 
 import cirq
 from cirq import study
+from cirq.sim.simulation_state import TSimulationState
 from cirq.sim.simulator import (
     TStepResult,
-    TSimulatorState,
     SimulatesAmplitudes,
     SimulatesExpectationValues,
     SimulatesFinalState,
     SimulatesIntermediateState,
     SimulatesSamples,
     SimulationTrialResult,
-    TActOnArgs,
 )
 
 
@@ -64,8 +63,8 @@ class FakeStepResult(cirq.StepResult):
 
 
 class SimulatesIntermediateStateImpl(
-    Generic[TStepResult, TSimulatorState, TActOnArgs],
-    SimulatesIntermediateState[TStepResult, 'SimulationTrialResult', TSimulatorState, TActOnArgs],
+    Generic[TStepResult, TSimulationState],
+    SimulatesIntermediateState[TStepResult, 'SimulationTrialResult', TSimulationState],
     metaclass=abc.ABCMeta,
 ):
     """A SimulatesIntermediateState that uses the default SimulationTrialResult type."""
@@ -74,20 +73,20 @@ class SimulatesIntermediateStateImpl(
         self,
         params: study.ParamResolver,
         measurements: Dict[str, np.ndarray],
-        final_step_result: TStepResult,
+        final_simulator_state: 'cirq.SimulationStateBase[TSimulationState]',
     ) -> 'SimulationTrialResult':
         """This method creates a default trial result.
 
         Args:
             params: The ParamResolver for this trial.
             measurements: The measurement results for this trial.
-            final_step_result: The final step result of the simulation.
+            final_simulator_state: The final state of the simulation.
 
         Returns:
             The SimulationTrialResult.
         """
         return SimulationTrialResult(
-            params=params, measurements=measurements, final_step_result=final_step_result
+            params=params, measurements=measurements, final_simulator_state=final_simulator_state
         )
 
 
@@ -114,25 +113,6 @@ def test_run_simulator_sweeps():
     assert expected_results == simulator.run_sweep(
         program=circuit, repetitions=10, params=param_resolvers
     )
-
-
-def test_run_simulator_sweeps_with_deprecated_run():
-    expected_measurements = {'a': np.array([[1]])}
-    simulator = FakeSimulatesSamples(expected_measurements)
-    circuit = cirq.Circuit(cirq.measure(cirq.LineQubit(0), key='k'))
-    param_resolvers = [cirq.ParamResolver({}), cirq.ParamResolver({})]
-    expected_records = {'a': np.array([[[1]]])}
-    expected_results = [
-        cirq.ResultDict(records=expected_records, params=param_resolvers[0]),
-        cirq.ResultDict(records=expected_records, params=param_resolvers[1]),
-    ]
-    with cirq.testing.assert_deprecated(
-        'values in the output of simulator._run must be 3D',
-        deadline='v0.15',
-    ):
-        assert expected_results == simulator.run_sweep(
-            program=circuit, repetitions=10, params=param_resolvers
-        )
 
 
 @mock.patch.multiple(
@@ -191,17 +171,16 @@ def test_intermediate_sweeps():
         program=circuit, params=param_resolvers, qubit_order=qubit_order, initial_state=2
     )
 
-    final_step_result = FakeStepResult(final_state=final_state)
     expected_results = [
         cirq.SimulationTrialResult(
             measurements={'a': np.array([True, True])},
             params=param_resolvers[0],
-            final_step_result=final_step_result,
+            final_simulator_state=final_state,
         ),
         cirq.SimulationTrialResult(
             measurements={'a': np.array([True, True])},
             params=param_resolvers[1],
-            final_step_result=final_step_result,
+            final_simulator_state=final_state,
         ),
     ]
     assert results == expected_results
@@ -262,46 +241,41 @@ def test_step_sample_measurement_ops_repeated_qubit():
 
 def test_simulation_trial_result_equality():
     eq = cirq.testing.EqualsTester()
-    final_step_result = FakeStepResult(final_state=())
     eq.add_equality_group(
         cirq.SimulationTrialResult(
-            params=cirq.ParamResolver({}), measurements={}, final_step_result=final_step_result
+            params=cirq.ParamResolver({}), measurements={}, final_simulator_state=()
         ),
         cirq.SimulationTrialResult(
-            params=cirq.ParamResolver({}), measurements={}, final_step_result=final_step_result
+            params=cirq.ParamResolver({}), measurements={}, final_simulator_state=()
         ),
     )
     eq.add_equality_group(
         cirq.SimulationTrialResult(
-            params=cirq.ParamResolver({'s': 1}),
-            measurements={},
-            final_step_result=final_step_result,
+            params=cirq.ParamResolver({'s': 1}), measurements={}, final_simulator_state=()
         )
     )
     eq.add_equality_group(
         cirq.SimulationTrialResult(
             params=cirq.ParamResolver({'s': 1}),
             measurements={'m': np.array([1])},
-            final_step_result=final_step_result,
+            final_simulator_state=(),
         )
     )
-    final_step_result._final_state = (0, 1)
     eq.add_equality_group(
         cirq.SimulationTrialResult(
             params=cirq.ParamResolver({'s': 1}),
             measurements={'m': np.array([1])},
-            final_step_result=final_step_result,
+            final_simulator_state=(0, 1),
         )
     )
 
 
 def test_simulation_trial_result_repr():
-    final_step_result = FakeStepResult(final_state=(0, 1))
     assert repr(
         cirq.SimulationTrialResult(
             params=cirq.ParamResolver({'s': 1}),
             measurements={'m': np.array([1])},
-            final_step_result=final_step_result,
+            final_simulator_state=(0, 1),
         )
     ) == (
         "cirq.SimulationTrialResult("
@@ -312,13 +286,10 @@ def test_simulation_trial_result_repr():
 
 
 def test_simulation_trial_result_str():
-    final_step_result = FakeStepResult(final_state=(0, 1))
     assert (
         str(
             cirq.SimulationTrialResult(
-                params=cirq.ParamResolver({'s': 1}),
-                measurements={},
-                final_step_result=final_step_result,
+                params=cirq.ParamResolver({'s': 1}), measurements={}, final_simulator_state=(0, 1)
             )
         )
         == '(no measurements)'
@@ -329,7 +300,7 @@ def test_simulation_trial_result_str():
             cirq.SimulationTrialResult(
                 params=cirq.ParamResolver({'s': 1}),
                 measurements={'m': np.array([1])},
-                final_step_result=final_step_result,
+                final_simulator_state=(0, 1),
             )
         )
         == 'm=1'
@@ -340,7 +311,7 @@ def test_simulation_trial_result_str():
             cirq.SimulationTrialResult(
                 params=cirq.ParamResolver({'s': 1}),
                 measurements={'m': np.array([1, 2, 3])},
-                final_step_result=final_step_result,
+                final_simulator_state=(0, 1),
             )
         )
         == 'm=123'
@@ -351,7 +322,7 @@ def test_simulation_trial_result_str():
             cirq.SimulationTrialResult(
                 params=cirq.ParamResolver({'s': 1}),
                 measurements={'m': np.array([9, 10, 11])},
-                final_step_result=final_step_result,
+                final_simulator_state=(0, 1),
             )
         )
         == 'm=9 10 11'
@@ -418,29 +389,12 @@ def test_sample_repeated_measurement_keys():
 
 
 def test_simulate_with_invert_mask():
-    class PlusGate(cirq.Gate):
-        """A qudit gate that increments a qudit state mod its dimension."""
-
-        def __init__(self, dimension, increment=1):
-            self.dimension = dimension
-            self.increment = increment % dimension
-
-        def _qid_shape_(self):
-            return (self.dimension,)
-
-        def _unitary_(self):
-            inc = (self.increment - 1) % self.dimension + 1
-            u = np.empty((self.dimension, self.dimension))
-            u[inc:] = np.eye(self.dimension)[:-inc]
-            u[:inc] = np.eye(self.dimension)[-inc:]
-            return u
-
     q0, q1, q2, q3, q4 = cirq.LineQid.for_qid_shape((2, 3, 3, 3, 4))
     c = cirq.Circuit(
-        PlusGate(2, 1)(q0),
-        PlusGate(3, 1)(q2),
-        PlusGate(3, 2)(q3),
-        PlusGate(4, 3)(q4),
+        cirq.XPowGate(dimension=2)(q0),
+        cirq.XPowGate(dimension=3)(q2),
+        cirq.XPowGate(dimension=3)(q3) ** 2,
+        cirq.XPowGate(dimension=4)(q4) ** 3,
         cirq.measure(q0, q1, q2, q3, q4, key='a', invert_mask=(True,) * 4),
     )
     assert np.all(cirq.Simulator().run(c).measurements['a'] == [[0, 1, 0, 2, 3]])
@@ -459,8 +413,7 @@ def test_monte_carlo_on_unknown_channel():
 
     for k in range(4):
         out = cirq.Simulator().simulate(
-            cirq.Circuit(Reset11To00().on(*cirq.LineQubit.range(2))),
-            initial_state=k,
+            cirq.Circuit(Reset11To00().on(*cirq.LineQubit.range(2))), initial_state=k
         )
         np.testing.assert_allclose(
             out.state_vector(), cirq.one_hot(index=k % 3, shape=4, dtype=np.complex64), atol=1e-8
@@ -468,14 +421,10 @@ def test_monte_carlo_on_unknown_channel():
 
 
 def test_iter_definitions():
-    dummy_trial_result = SimulationTrialResult(
-        params={}, measurements={}, final_step_result=FakeStepResult(final_state=[])
-    )
+    dummy_trial_result = SimulationTrialResult(params={}, measurements={}, final_simulator_state=[])
 
     class FakeNonIterSimulatorImpl(
-        SimulatesAmplitudes,
-        SimulatesExpectationValues,
-        SimulatesFinalState,
+        SimulatesAmplitudes, SimulatesExpectationValues, SimulatesFinalState
     ):
         """A class which defines the non-Iterator simulator API methods.
 
@@ -532,9 +481,7 @@ def test_iter_definitions():
 
 def test_missing_iter_definitions():
     class FakeMissingIterSimulatorImpl(
-        SimulatesAmplitudes,
-        SimulatesExpectationValues,
-        SimulatesFinalState,
+        SimulatesAmplitudes, SimulatesExpectationValues, SimulatesFinalState
     ):
         """A class which fails to define simulator methods."""
 
@@ -564,7 +511,47 @@ def test_missing_iter_definitions():
 
 
 def test_trial_result_initializer():
+    resolver = cirq.ParamResolver()
+    step = mock.Mock(cirq.StepResultBase)
+    step._simulator_state.return_value = 1
+    state = 3
     with pytest.raises(ValueError, match='Exactly one of'):
-        _ = SimulationTrialResult(cirq.ParamResolver(), {}, None, None)
+        _ = SimulationTrialResult(resolver, {}, None, None)
     with pytest.raises(ValueError, match='Exactly one of'):
-        _ = SimulationTrialResult(cirq.ParamResolver(), {}, object(), mock.Mock(TStepResult))
+        _ = SimulationTrialResult(resolver, {}, state, step)
+    with pytest.raises(ValueError, match='Exactly one of'):
+        _ = SimulationTrialResult(resolver, {}, final_simulator_state=None, final_step_result=None)
+    with pytest.raises(ValueError, match='Exactly one of'):
+        _ = SimulationTrialResult(resolver, {}, final_simulator_state=state, final_step_result=step)
+    with cirq.testing.assert_deprecated(deadline='v0.16'):
+        x = SimulationTrialResult(resolver, {}, final_step_result=step)
+        assert x._final_simulator_state == 1
+    with cirq.testing.assert_deprecated(deadline='v0.16'):
+        x = SimulationTrialResult(resolver, {}, None, final_step_result=step)
+        assert x._final_simulator_state == 1
+    with cirq.testing.assert_deprecated(deadline='v0.16'):
+        x = SimulationTrialResult(resolver, {}, None, step)
+        assert x._final_simulator_state == 1
+    with cirq.testing.assert_deprecated(deadline='v0.16'):
+        x = SimulationTrialResult(resolver, {}, final_simulator_state=None, final_step_result=step)
+        assert x._final_simulator_state == 1
+    x = SimulationTrialResult(resolver, {}, state)
+    assert x._final_simulator_state == 3
+    x = SimulationTrialResult(resolver, {}, final_simulator_state=state)
+    assert x._final_simulator_state == 3
+
+
+def test_deprecated_create_act_on_args():
+    class DeprecatedSim(cirq.SimulatesIntermediateState):
+        def _create_act_on_args(self, initial_state, qubits):
+            return 0
+
+        def _core_iterator(self, circuit, sim_state):
+            pass
+
+        def _create_simulator_trial_result(self):
+            pass
+
+    sim = DeprecatedSim()
+    with cirq.testing.assert_deprecated(deadline='v0.16'):
+        sim.simulate_moment_steps(cirq.Circuit())

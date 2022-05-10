@@ -98,7 +98,7 @@ class SpecklePurityDepolarizingModel(CrossEntropyDepolarizingModel):
         return self.cycle_depolarization**2
 
 
-@protocols.json_serializable_dataclass(frozen=True)
+@dataclasses.dataclass(frozen=True)
 class CrossEntropyResult:
     """Results from a cross-entropy benchmarking (XEB) experiment.
 
@@ -208,6 +208,9 @@ class CrossEntropyResult:
             purity_data=purity_data,
         )
 
+    def _json_dict_(self):
+        return protocols.dataclass_json_dict(self)
+
     def __repr__(self) -> str:
         args = f'data={[tuple(p) for p in self.data]!r}, repetitions={self.repetitions!r}'
         if self.purity_data is not None:
@@ -252,9 +255,7 @@ class CrossEntropyResultDict(Mapping[Tuple['cirq.Qid', ...], CrossEntropyResult]
     results: Dict[Tuple['cirq.Qid', ...], CrossEntropyResult]
 
     def _json_dict_(self) -> Dict[str, Any]:
-        return {
-            'results': list(self.results.items()),
-        }
+        return {'results': list(self.results.items())}
 
     @classmethod
     def _from_json_dict_(
@@ -283,7 +284,7 @@ def cross_entropy_benchmarking(
     num_circuits: int = 20,
     repetitions: int = 1000,
     cycles: Union[int, Iterable[int]] = range(2, 103, 10),
-    scrambling_gates_per_cycle: List[List[ops.SingleQubitGate]] = None,
+    scrambling_gates_per_cycle: List[List[ops.Gate]] = None,
     simulator: sim.Simulator = None,
 ) -> CrossEntropyResult:
     r"""Cross-entropy benchmarking (XEB) of multiple qubits.
@@ -481,7 +482,7 @@ def build_entangling_layers(
 def _build_xeb_circuits(
     qubits: Sequence[ops.Qid],
     cycles: Sequence[int],
-    single_qubit_gates: List[List[ops.SingleQubitGate]] = None,
+    single_qubit_gates: List[List[ops.Gate]] = None,
     benchmark_ops: Sequence[circuits.Moment] = None,
 ) -> List[circuits.Circuit]:
     if benchmark_ops is not None:
@@ -569,7 +570,7 @@ def _random_half_rotations(qubits: Sequence[ops.Qid], num_layers: int) -> List[L
 
 
 def _random_any_gates(
-    qubits: Sequence[ops.Qid], op_list: List[List[ops.SingleQubitGate]], num_layers: int
+    qubits: Sequence[ops.Qid], op_list: List[List[ops.Gate]], num_layers: int
 ) -> List[List[ops.OP_TREE]]:
     num_ops = len(op_list)
     num_qubits = len(qubits)

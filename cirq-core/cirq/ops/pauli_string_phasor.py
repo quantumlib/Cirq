@@ -13,11 +13,12 @@
 # limitations under the License.
 
 from typing import AbstractSet, cast, Dict, Iterable, Union, TYPE_CHECKING, Sequence, Iterator
+import numbers
 
 import sympy
 
 from cirq import value, protocols
-from cirq._compat import proper_repr, deprecated
+from cirq._compat import proper_repr
 from cirq.ops import (
     raw_types,
     common_gates,
@@ -45,8 +46,8 @@ class PauliStringPhasor(gate_operation.GateOperation):
         self,
         pauli_string: ps.PauliString,
         *,
-        exponent_neg: Union[int, float, sympy.Basic] = 1,
-        exponent_pos: Union[int, float, sympy.Basic] = 0,
+        exponent_neg: Union[int, float, sympy.Expr] = 1,
+        exponent_pos: Union[int, float, sympy.Expr] = 0,
     ) -> None:
         """Initializes the operation.
 
@@ -79,59 +80,23 @@ class PauliStringPhasor(gate_operation.GateOperation):
         """The negative exponent."""
         return self.gate.exponent_neg
 
-    @exponent_neg.setter  # type: ignore
-    @deprecated(
-        deadline="v0.15",
-        fix="The mutators of this class are deprecated, instantiate a new object instead.",
-    )
-    def exponent_neg(self, exponent_neg):
-        """Sets the negative exponent."""
-        # coverage: ignore
-        self.gate._exponent_neg = value.canonicalize_half_turns(exponent_neg)
-
     @property
     def exponent_pos(self):
         """The positive exponent."""
         return self.gate.exponent_pos
-
-    @exponent_pos.setter  # type: ignore
-    @deprecated(
-        deadline="v0.15",
-        fix="The mutators of this class are deprecated, instantiate a new object instead.",
-    )
-    def exponent_pos(self, exponent_pos):
-        """Sets the positive exponent."""
-        # coverage: ignore
-        self.gate._exponent_pos = value.canonicalize_half_turns(exponent_pos)
 
     @property
     def pauli_string(self):
         """The underlying pauli string."""
         return self._pauli_string
 
-    @pauli_string.setter  # type: ignore
-    @deprecated(
-        deadline="v0.15",
-        fix="The mutators of this class are deprecated, instantiate a new object instead.",
-    )
-    def pauli_string(self, pauli_string):
-        """Sets the underlying pauli string."""
-        # coverage: ignore
-        self._pauli_string = pauli_string
-        self.gate._dense_pauli_string = pauli_string.dense(pauli_string.qubits)
-        super()._qubits = pauli_string.qubits
-
     @property
-    def exponent_relative(self) -> Union[int, float, sympy.Basic]:
+    def exponent_relative(self) -> Union[int, float, sympy.Expr]:
         """The relative exponent between negative and positive exponents."""
         return self.gate.exponent_relative
 
     def _value_equality_values_(self):
-        return (
-            self.pauli_string,
-            self.exponent_neg,
-            self.exponent_pos,
-        )
+        return (self.pauli_string, self.exponent_neg, self.exponent_pos)
 
     def equal_up_to_global_phase(self, other):
         """Checks equality of two PauliStringPhasors, up to global phase."""
@@ -233,8 +198,8 @@ class PauliStringPhasorGate(raw_types.Gate):
         self,
         dense_pauli_string: dps.DensePauliString,
         *,
-        exponent_neg: Union[int, float, sympy.Basic] = 1,
-        exponent_pos: Union[int, float, sympy.Basic] = 0,
+        exponent_neg: Union[int, float, sympy.Expr] = 1,
+        exponent_pos: Union[int, float, sympy.Expr] = 0,
     ) -> None:
         """Initializes the PauliStringPhasorGate.
 
@@ -264,7 +229,7 @@ class PauliStringPhasorGate(raw_types.Gate):
         self._exponent_pos = value.canonicalize_half_turns(exponent_pos)
 
     @property
-    def exponent_relative(self) -> Union[int, float, sympy.Basic]:
+    def exponent_relative(self) -> Union[int, float, sympy.Expr]:
         """The relative exponent between negative and positive exponents."""
         return value.canonicalize_half_turns(self.exponent_neg - self.exponent_pos)
 
@@ -284,11 +249,7 @@ class PauliStringPhasorGate(raw_types.Gate):
         return self._dense_pauli_string
 
     def _value_equality_values_(self):
-        return (
-            self.dense_pauli_string,
-            self.exponent_neg,
-            self.exponent_pos,
-        )
+        return (self.dense_pauli_string, self.exponent_neg, self.exponent_pos)
 
     def equal_up_to_global_phase(self, other):
         """Checks equality of two PauliStringPhasors, up to global phase."""
@@ -349,10 +310,24 @@ class PauliStringPhasorGate(raw_types.Gate):
     def _resolve_parameters_(
         self, resolver: 'cirq.ParamResolver', recursive: bool
     ) -> 'PauliStringPhasorGate':
+        exponent_neg = resolver.value_of(self.exponent_neg, recursive)
+        exponent_pos = resolver.value_of(self.exponent_pos, recursive)
+        if isinstance(exponent_neg, (complex, numbers.Complex)):
+            if isinstance(exponent_neg, numbers.Real):
+                exponent_neg = float(exponent_neg)
+            else:
+                raise ValueError(
+                    f'PauliStringPhasorGate does not support complex exponent {exponent_neg}'
+                )
+        if isinstance(exponent_pos, (complex, numbers.Complex)):
+            if isinstance(exponent_pos, numbers.Real):
+                exponent_pos = float(exponent_pos)
+            else:
+                raise ValueError(
+                    f'PauliStringPhasorGate does not support complex exponent {exponent_pos}'
+                )
         return PauliStringPhasorGate(
-            self.dense_pauli_string,
-            exponent_neg=resolver.value_of(self.exponent_neg, recursive),
-            exponent_pos=resolver.value_of(self.exponent_pos, recursive),
+            self.dense_pauli_string, exponent_neg=exponent_neg, exponent_pos=exponent_pos
         )
 
     def __repr__(self) -> str:

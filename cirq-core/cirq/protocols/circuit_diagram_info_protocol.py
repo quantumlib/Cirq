@@ -245,7 +245,7 @@ class CircuitDiagramInfoArgs:
             return str(val)
         return f'{float(val):.{self.precision}}'
 
-    def format_complex(self, val: Union[sympy.Basic, int, float, complex]) -> str:
+    def format_complex(self, val: Union[sympy.Basic, int, float, 'cirq.TParamValComplex']) -> str:
         if isinstance(val, sympy.Basic):
             return str(val)
         c = complex(val)
@@ -359,8 +359,7 @@ def _op_info_with_fallback(
 # pylint: disable=function-redefined
 @overload
 def circuit_diagram_info(
-    val: Any,
-    args: Optional[CircuitDiagramInfoArgs] = None,
+    val: Any, args: Optional[CircuitDiagramInfoArgs] = None
 ) -> CircuitDiagramInfo:
     pass
 

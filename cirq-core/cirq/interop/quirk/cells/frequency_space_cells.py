@@ -16,11 +16,7 @@ from typing import Iterator, Callable
 import sympy
 
 import cirq
-from cirq.interop.quirk.cells.cell import (
-    CellMaker,
-    CELL_SIZES,
-    ExplicitOperationsCell,
-)
+from cirq.interop.quirk.cells.cell import CellMaker, CELL_SIZES, ExplicitOperationsCell
 
 
 def generate_all_frequency_space_cell_makers() -> Iterator[CellMaker]:

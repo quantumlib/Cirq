@@ -16,9 +16,10 @@ from typing import Optional, Sequence, Tuple
 import datetime
 import cirq
 
-from cirq_google.engine.client import quantum
+from cirq_google.cloud import quantum
 from cirq_google.engine.calibration_result import CalibrationResult
 from cirq_google.engine.abstract_local_job import AbstractLocalJob
+from cirq_google.engine.engine_result import EngineResult
 
 
 class NothingJob(AbstractLocalJob):
@@ -26,9 +27,9 @@ class NothingJob(AbstractLocalJob):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self._status = quantum.enums.ExecutionStatus.State.READY
+        self._status = quantum.ExecutionStatus.State.READY
 
-    def execution_status(self) -> quantum.enums.ExecutionStatus.State:
+    def execution_status(self) -> quantum.ExecutionStatus.State:
         return self._status
 
     def failure(self) -> Optional[Tuple[str, str]]:
@@ -40,10 +41,10 @@ class NothingJob(AbstractLocalJob):
     def delete(self) -> None:
         pass
 
-    def batched_results(self) -> Sequence[Sequence[cirq.Result]]:
+    def batched_results(self) -> Sequence[Sequence[EngineResult]]:
         return []  # coverage: ignore
 
-    def results(self) -> Sequence[cirq.Result]:
+    def results(self) -> Sequence[EngineResult]:
         return []  # coverage: ignore
 
     def calibration_results(self) -> Sequence[CalibrationResult]:

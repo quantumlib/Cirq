@@ -92,7 +92,7 @@ def test_decomposition_with_parameterization(n):
             )
             resolved_op = cirq.resolve_parameters(parameterized_op, resolver)
             resolved_circuit = cirq.resolve_parameters(decomposed_circuit, resolver)
-            cirq.testing.assert_allclose_up_to_global_phase(
+            np.testing.assert_allclose(
                 cirq.unitary(resolved_op), cirq.unitary(resolved_circuit), atol=1e-8
             )
 

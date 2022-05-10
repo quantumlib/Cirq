@@ -104,6 +104,9 @@ class ValiGate(cirq.Gate):
             return  # Bypass check for some tests
         super().validate_args(qubits)
 
+    def _has_mixture_(self):
+        return True
+
 
 def test_gate():
     a, b, c = cirq.LineQubit.range(3)
@@ -621,10 +624,7 @@ def test_tagged_operation_forwards_protocols():
     assert 3 * tagged_y == (3 * y)
     assert cirq.phase_by(y, 0.125, 0) == cirq.phase_by(tagged_y, 0.125, 0)
     controlled_y = tagged_y.controlled_by(q2)
-    assert controlled_y.qubits == (
-        q2,
-        q1,
-    )
+    assert controlled_y.qubits == (q2, q1)
     assert isinstance(controlled_y, cirq.Operation)
     assert not isinstance(controlled_y, cirq.TaggedOperation)
 
@@ -738,14 +738,14 @@ def test_tagged_act_on():
         def _num_qubits_(self) -> int:
             return 1
 
-        def _act_on_(self, args, qubits):
+        def _act_on_(self, sim_state, qubits):
             return True
 
     class NoActOn(cirq.Gate):
         def _num_qubits_(self) -> int:
             return 1
 
-        def _act_on_(self, args, qubits):
+        def _act_on_(self, sim_state, qubits):
             return NotImplemented
 
     class MissingActOn(cirq.Operation):
@@ -757,9 +757,9 @@ def test_tagged_act_on():
             pass
 
     q = cirq.LineQubit(1)
-    from cirq.protocols.act_on_protocol_test import DummyActOnArgs
+    from cirq.protocols.act_on_protocol_test import DummySimulationState
 
-    args = DummyActOnArgs()
+    args = DummySimulationState()
     cirq.act_on(YesActOn()(q).with_tags("test"), args)
     with pytest.raises(TypeError, match="Failed to act"):
         cirq.act_on(NoActOn()(q).with_tags("test"), args)
@@ -768,7 +768,7 @@ def test_tagged_act_on():
 
 
 def test_single_qubit_gate_validates_on_each():
-    class Dummy(cirq.SingleQubitGate):
+    class Dummy(cirq.testing.SingleQubitGate):
         def matrix(self):
             pass
 
@@ -788,7 +788,7 @@ def test_single_qubit_gate_validates_on_each():
 
 
 def test_on_each():
-    class CustomGate(cirq.SingleQubitGate):
+    class CustomGate(cirq.testing.SingleQubitGate):
         pass
 
     a = cirq.NamedQubit('a')
@@ -932,14 +932,3 @@ def test_on_each_iterable_qid():
             raise NotImplementedError()
 
     assert cirq.H.on_each(QidIter())[0] == cirq.H.on(QidIter())
-
-
-def test_setters_deprecated():
-    q = cirq.LineQubit(0)
-    subop = cirq.X(q)
-    op = cirq.TaggedOperation(subop, 'tag')
-    assert op.sub_operation == subop
-    with cirq.testing.assert_deprecated('mutators', deadline='v0.15'):
-        new_subop = cirq.Y(q)
-        op.sub_operation = new_subop
-        assert op.sub_operation == new_subop

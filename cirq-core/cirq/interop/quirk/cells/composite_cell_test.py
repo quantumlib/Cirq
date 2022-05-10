@@ -78,11 +78,7 @@ def test_custom_circuit_gate():
     assert_url_to_circuit_returns(
         '{"cols":[["~d3pq"],["Y"]],'
         '"gates":[{"id":"~d3pq","circuit":{"cols":[["H"],["•","X"]]}}]}',
-        cirq.Circuit(
-            cirq.H(a),
-            cirq.X(b).controlled_by(a),
-            cirq.Y(a),
-        ),
+        cirq.Circuit(cirq.H(a), cirq.X(b).controlled_by(a), cirq.Y(a)),
     )
 
     # With name.
@@ -90,11 +86,7 @@ def test_custom_circuit_gate():
         '{"cols":[["~d3pq"],["Y"]],'
         '"gates":[{"id":"~d3pq","name":"test",'
         '"circuit":{"cols":[["H"],["•","X"]]}}]}',
-        cirq.Circuit(
-            cirq.H(a),
-            cirq.X(b).controlled_by(a),
-            cirq.Y(a),
-        ),
+        cirq.Circuit(cirq.H(a), cirq.X(b).controlled_by(a), cirq.Y(a)),
     )
 
     # With internal input.
