@@ -1975,11 +1975,11 @@ class Circuit(AbstractCircuit):
             moment = self._moments[k]
             if moment.operates_on(op_qubits):
                 return last_available
-            moment_measurement_keys = protocols.measurement_key_objs(moment)
+            moment_measurement_keys = moment._measurement_key_objs_()
             if (
                 not op_measurement_keys.isdisjoint(moment_measurement_keys)
                 or not op_control_keys.isdisjoint(moment_measurement_keys)
-                or not protocols.control_keys(moment).isdisjoint(op_measurement_keys)
+                or not moment._control_keys_().isdisjoint(op_measurement_keys)
             ):
                 return last_available
             if self._can_add_op_at(k, op):
