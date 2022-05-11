@@ -28,8 +28,18 @@ from cirq_google.engine.simulated_local_engine import SimulatedLocalEngine
 from cirq_google.engine.simulated_local_processor import SimulatedLocalProcessor
 
 MOST_RECENT_TEMPLATES = {
-    'rainbow': 'rainbow_12_10_2021_device_spec.proto.txt',
-    'weber': 'weber_12_10_2021_device_spec.proto.txt',
+    'rainbow': 'rainbow_2021_12_10_device_spec.proto.txt',
+    'weber': 'weber_2021_12_10_device_spec.proto.txt',
+}
+
+MEDIAN_CALIBRATIONS = {
+    'rainbow': 'rainbow_2021_11_16_calibration.json',
+    'weber': 'weber_2021_11_03_calibration.json',
+}
+
+MEDIAN_CALIBRATION_TIMESTAMPS = {
+    'rainbow': 1637058415838,  # 2021-11-16 10:26:55.838 UTC
+    'weber': 1635923188204,  # 2021-11-03 07:06:28.204 UTC
 }
 
 METRICS_1Q = [
@@ -84,6 +94,35 @@ def _create_perfect_calibration(device: cirq.Device) -> calibration.Calibration:
     return calibration.Calibration(calibration=snapshot, metrics=all_metrics)
 
 
+def load_median_device_calibration(processor_id: str) -> calibration.Calibration:
+    """Loads a median `cirq_google.Calibration` for the given device.
+
+    Real calibration data from Google's 'rainbow' and 'weber' devices has been
+    saved in Cirq. The calibrations selected are roughly representative of the
+    median performance for that chip.
+
+    A description of the stored metrics can be found on the
+    [calibration page](https://quantumai.google/cirq/google/calibration).
+
+    Args:
+        processor_id: name of the processor to simulate.
+
+    Raises:
+        ValueError: if processor_id is not a supported QCS processor.
+    """
+    cal_name = MEDIAN_CALIBRATIONS.get(processor_id, None)
+    if cal_name is None:
+        raise ValueError(
+            f"Got processor_id={processor_id}, but no median calibration "
+            "is defined for that processor."
+        )
+    path = pathlib.Path(__file__).parent.parent.resolve()
+    with path.joinpath('devices', 'calibrations', cal_name).open() as f:
+        cal = cast(calibration.Calibration, cirq.read_json(f))
+    cal.timestamp = MEDIAN_CALIBRATION_TIMESTAMPS[processor_id]
+    return cal
+
+
 def _create_virtual_processor_from_device(
     processor_id: str, device: cirq.Device
 ) -> simulated_local_processor.SimulatedLocalProcessor:
@@ -93,10 +132,10 @@ def _create_virtual_processor_from_device(
     a default validator, and a provided device.
 
     Args:
-         processor_id: name of the processor to simulate.  This is an arbitrary
-             string identifier and does not have to match the processor's name
-             in QCS.
-         device: A `cirq.Device` to validate circuits against.
+        processor_id: name of the processor to simulate.  This is an arbitrary
+            string identifier and does not have to match the processor's name
+            in QCS.
+        device: A `cirq.Device` to validate circuits against.
     """
     calibration = _create_perfect_calibration(device)
     return simulated_local_processor.SimulatedLocalProcessor(
@@ -117,10 +156,10 @@ def create_noiseless_virtual_engine_from_device(
     a default validator, and a provided device.
 
     Args:
-         processor_id: name of the processor to simulate.  This is an arbitrary
-             string identifier and does not have to match the processor's name
-             in QCS.
-         device: A `cirq.Device` to validate circuits against.
+        processor_id: name of the processor to simulate.  This is an arbitrary
+            string identifier and does not have to match the processor's name
+            in QCS.
+        device: A `cirq.Device` to validate circuits against.
     """
     return SimulatedLocalEngine([_create_virtual_processor_from_device(processor_id, device)])
 
@@ -136,13 +175,13 @@ def create_noiseless_virtual_processor_from_proto(
     and can be retrieved from a stored "proto.txt" file or from the QCS API.
 
     Args:
-         processor_id: name of the processor to simulate.  This is an arbitrary
-             string identifier and does not have to match the processor's name
-             in QCS.
-         device_specification:  `v2.device_pb2.DeviceSpecification` proto to create
-             a validating device from.
-         gate_sets: Iterable of serializers to use in the processor.  Defaults
-             to the FSIM_GATESET.
+        processor_id: name of the processor to simulate.  This is an arbitrary
+            string identifier and does not have to match the processor's name
+            in QCS.
+        device_specification:  `v2.device_pb2.DeviceSpecification` proto to create
+            a validating device from.
+        gate_sets: Iterable of serializers to use in the processor.  Defaults
+            to the FSIM_GATESET.
     """
     if gate_sets is None:
         gate_sets = [FSIM_GATESET]
@@ -165,15 +204,15 @@ def create_noiseless_virtual_engine_from_proto(
     and can be retrieved from a stored "proto.txt" file or from the QCS API.
 
     Args:
-         processor_ids: names of the processors to simulate.  These are arbitrary
-             string identifiers and do not have to match the processors' names
-             in QCS.  This can be a single string or list of strings.
-         device_specifications:  `v2.device_pb2.DeviceSpecification` proto to create
-             validating devices from.  This can be a single DeviceSpecification
-             or a list of them.  There should be one DeviceSpecification for each
-             processor_id.
-         gate_sets: Iterable of serializers to use in the processor.  Defaults
-             to the FSIM_GATESET.
+        processor_ids: names of the processors to simulate.  These are arbitrary
+            string identifiers and do not have to match the processors' names
+            in QCS.  This can be a single string or list of strings.
+        device_specifications:  `v2.device_pb2.DeviceSpecification` proto to create
+            validating devices from.  This can be a single DeviceSpecification
+            or a list of them.  There should be one DeviceSpecification for each
+            processor_id.
+        gate_sets: Iterable of serializers to use in the processor.  Defaults
+            to the FSIM_GATESET.
 
     Raises:
         ValueError: if processor_ids and device_specifications are not the same length.
@@ -210,7 +249,7 @@ def create_device_from_processor_id(processor_id: str) -> serializable_device.Se
     """Generates a `cirq_google.SerializableDevice` for a given processor ID.
 
     Args:
-         processor_id: name of the processor to simulate.
+        processor_id: name of the processor to simulate.
 
     Raises:
         ValueError: if processor_id is not a supported QCS processor.
@@ -230,13 +269,13 @@ def create_noiseless_virtual_processor_from_template(
     """Creates a simulated local processor from a device specification template.
 
     Args:
-         processor_id: name of the processor to simulate.  This is an arbitrary
-             string identifier and does not have to match the processor's name
-             in QCS.
-         template_name: File name of the device specification template, see
-             cirq_google/devices/specifications for valid templates.
-         gate_sets: Iterable of serializers to use in the processor.  Defaults
-             to the FSIM_GATESET.
+        processor_id: name of the processor to simulate.  This is an arbitrary
+            string identifier and does not have to match the processor's name
+            in QCS.
+        template_name: File name of the device specification template, see
+            cirq_google/devices/specifications for valid templates.
+        gate_sets: Iterable of serializers to use in the processor.  Defaults
+            to the FSIM_GATESET.
     """
     return create_noiseless_virtual_processor_from_proto(
         processor_id,
@@ -253,16 +292,16 @@ def create_noiseless_virtual_engine_from_templates(
     """Creates a noiseless virtual engine object from a device specification template.
 
     Args:
-         processor_ids: names of the processors to simulate.  These are arbitrary
-             string identifiers and do not have to match the processors' names
-             in QCS.  There can be a single string or a list of strings for multiple
-             processors.
-         template_names: File names of the device specification templates, see
-             cirq_google/devices/specifications for valid templates.  There can
-             be a single str for a template name or a list of strings.  Each
-             template name should be matched to a single processor id.
-         gate_sets: Iterable of serializers to use in the processor.  Defaults
-             to the FSIM_GATESET.
+        processor_ids: names of the processors to simulate.  These are arbitrary
+            string identifiers and do not have to match the processors' names
+            in QCS.  There can be a single string or a list of strings for multiple
+            processors.
+        template_names: File names of the device specification templates, see
+            cirq_google/devices/specifications for valid templates.  There can
+            be a single str for a template name or a list of strings.  Each
+            template name should be matched to a single processor id.
+        gate_sets: Iterable of serializers to use in the processor.  Defaults
+            to the FSIM_GATESET.
 
     Raises:
         ValueError: if processor_ids and template_names are not the same length.

@@ -189,7 +189,7 @@ class GridDeviceMetadata(device.DeviceMetadata):
         return cls(
             qubit_pairs,
             gateset,
-            None if gate_durations is None else dict(gate_durations),
+            dict(gate_durations) if gate_durations is not None else None,
             all_qubits,
             compilation_target_gatesets,
         )
