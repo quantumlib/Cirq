@@ -127,7 +127,9 @@ def main(num_qubits=8):
     repetitions = 1
 
     result = cirq.Simulator().run(program=circuit, repetitions=repetitions)
-    result_bitstring = bitstring([int(result.measurements[str(i)]) for i in range(num_qubits)])
+    result_bitstring = bitstring(
+        ['q' + int(result.measurements[str(i)]) for i in range(num_qubits)]
+    )
 
     # Take only qubits where bases match
     obtained_key = ''.join(

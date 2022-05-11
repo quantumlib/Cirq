@@ -123,7 +123,9 @@ def test_run_qudit_increments(dtype: Type[np.number], split: bool):
                 cirq.measure(q1),
             )
             result = simulator.run(circuit)
-            np.testing.assert_equal(result.measurements, {'q(0) (d=3)': [[b0]], 'q(1) (d=4)': [[b1]]})
+            np.testing.assert_equal(
+                result.measurements, {'q(0) (d=3)': [[b0]], 'q(1) (d=4)': [[b1]]}
+            )
 
 
 @pytest.mark.parametrize('dtype', [np.complex64, np.complex128])
@@ -284,7 +286,9 @@ def test_run_repetitions_measure_at_end(dtype: Type[np.number], split: bool):
                     (cirq.X**b0)(q0), (cirq.X**b1)(q1), cirq.measure(q0), cirq.measure(q1)
                 )
                 result = simulator.run(circuit, repetitions=3)
-                np.testing.assert_equal(result.measurements, {'q(0)': [[b0]] * 3, 'q(1)': [[b1]] * 3})
+                np.testing.assert_equal(
+                    result.measurements, {'q(0)': [[b0]] * 3, 'q(1)': [[b1]] * 3}
+                )
                 assert result.repetitions == 3
         assert mock_sim.call_count == 8
 
@@ -352,7 +356,9 @@ def test_run_repetitions_measurement_not_terminal(dtype: Type[np.number], split:
                     cirq.H(q1),
                 )
                 result = simulator.run(circuit, repetitions=3)
-                np.testing.assert_equal(result.measurements, {'q(0)': [[b0]] * 3, 'q(1)': [[b1]] * 3})
+                np.testing.assert_equal(
+                    result.measurements, {'q(0)': [[b0]] * 3, 'q(1)': [[b1]] * 3}
+                )
                 assert result.repetitions == 3
         assert mock_sim.call_count == 16
 

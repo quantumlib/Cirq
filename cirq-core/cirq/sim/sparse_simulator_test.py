@@ -129,7 +129,9 @@ def test_run_repetitions_measure_at_end(dtype: Type[np.number], split: bool):
                     (cirq.X**b0)(q0), (cirq.X**b1)(q1), cirq.measure(q0), cirq.measure(q1)
                 )
                 result = simulator.run(circuit, repetitions=3)
-                np.testing.assert_equal(result.measurements, {'q(0)': [[b0]] * 3, 'q(1)': [[b1]] * 3})
+                np.testing.assert_equal(
+                    result.measurements, {'q(0)': [[b0]] * 3, 'q(1)': [[b1]] * 3}
+                )
                 assert result.repetitions == 3
         # We expect one call per b0,b1.
         assert mock_sim.call_count == 8
@@ -218,7 +220,9 @@ def test_run_repetitions_measurement_not_terminal(dtype: Type[np.number], split:
                     cirq.H(q1),
                 )
                 result = simulator.run(circuit, repetitions=3)
-                np.testing.assert_equal(result.measurements, {'q(0)': [[b0]] * 3, 'q(1)': [[b1]] * 3})
+                np.testing.assert_equal(
+                    result.measurements, {'q(0)': [[b0]] * 3, 'q(1)': [[b1]] * 3}
+                )
                 assert result.repetitions == 3
         # We expect repeated calls per b0,b1 instead of one call.
         assert mock_sim.call_count > 4
