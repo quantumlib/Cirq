@@ -267,6 +267,7 @@ class _IonQClient:
 
         Args:
             request: A function that returns a `requests.Response`.
+            json: POST body to be logged on failures.
 
         Returns:
             The request.Response from the final successful request call.
