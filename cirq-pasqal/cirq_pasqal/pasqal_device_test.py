@@ -100,7 +100,7 @@ def test_is_pasqal_device_op():
 
 def test_decompose_operation_deprecated():
     d = generic_device(3)
-    with cirq.testing.assert_deprecated('decompose', deadline='v0.15'):
+    with cirq.testing.assert_deprecated('decompose', deadline='v0.15', count=2):
         for op in d.decompose_operation((cirq.CCZ**1.5).on(*(d.qubit_list()))):
             d.validate_operation(op)
 
@@ -108,7 +108,7 @@ def test_decompose_operation_deprecated():
     d = PasqalVirtualDevice(1.0, p_qubits)
     op = (cirq.ops.CNOT).on(*(d.qubit_list())) ** 2
 
-    with cirq.testing.assert_deprecated('decompose', deadline='v0.15'):
+    with cirq.testing.assert_deprecated('decompose', deadline='v0.15', count=2):
         assert d.decompose_operation(op) == []
 
 
@@ -132,7 +132,7 @@ def test_pasqal_converter_deprecated():
     d = PasqalDevice(q)
 
     with pytest.raises(TypeError, match="Don't know how to work with"):
-        with cirq.testing.assert_deprecated('decompose', deadline='v0.15'):
+        with cirq.testing.assert_deprecated('decompose', deadline='v0.15', count=2):
             d.decompose_operation(op)
 
 

@@ -394,6 +394,22 @@ def test_sweep_unparameterized_prefix_not_repeated_iff_unitary():
     assert op2.count == 2
 
 
+def test_inhomogeneous_measurement_count_padding():
+    q = cirq.LineQubit(0)
+    key = cirq.MeasurementKey('m')
+    sim = cirq.Simulator()
+    c = cirq.Circuit(
+        cirq.CircuitOperation(
+            cirq.FrozenCircuit(cirq.X(q) ** 0.2, cirq.measure(q, key=key)),
+            use_repetition_ids=False,
+            repeat_until=cirq.KeyCondition(key),
+        )
+    )
+    results = sim.run(c, repetitions=10)
+    for i in range(10):
+        assert np.sum(results.records['m'][i, :, :]) == 1
+
+
 def test_deprecated_final_step_result():
     class OldCountingSimulator(CountingSimulator):
         def _create_simulator_trial_result(  # type: ignore
