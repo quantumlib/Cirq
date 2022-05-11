@@ -117,7 +117,7 @@ class CompositeCell(Cell):
                 )
                 result += basis_change
                 result += body
-                result += basis_change ** -1
+                result += basis_change**-1
         return result
 
     def operations(self) -> 'cirq.OP_TREE':

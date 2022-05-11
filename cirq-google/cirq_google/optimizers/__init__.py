@@ -12,27 +12,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """Package for optimizers and gate compilers related to Google-specific devices."""
-from cirq_google.optimizers.two_qubit_gates import (
-    gate_product_tabulation,
-    GateTabulation,
-)
+from cirq_google.optimizers.two_qubit_gates import gate_product_tabulation, GateTabulation
 
-from cirq_google.optimizers.convert_to_sycamore_gates import (
-    ConvertToSycamoreGates,
-)
+from cirq_google.optimizers.convert_to_sycamore_gates import ConvertToSycamoreGates
 
-from cirq_google.optimizers.convert_to_sqrt_iswap import (
-    ConvertToSqrtIswapGates,
-)
+from cirq_google.optimizers.convert_to_sqrt_iswap import ConvertToSqrtIswapGates
 
-from cirq_google.optimizers.convert_to_xmon_gates import (
-    ConvertToXmonGates,
-)
+from cirq_google.optimizers.convert_to_xmon_gates import ConvertToXmonGates
 
-from cirq_google.optimizers.optimize_for_sycamore import (
-    optimized_for_sycamore,
-)
+from cirq_google.optimizers.optimize_for_sycamore import optimized_for_sycamore
 
-from cirq_google.optimizers.optimize_for_xmon import (
-    optimized_for_xmon,
-)
+from cirq_google.optimizers.optimize_for_xmon import optimized_for_xmon

@@ -20,12 +20,10 @@ References:
 
 # Imports from cells are only to ensure operation reprs work correctly.
 from cirq.interop.quirk.cells import (
+    QuirkArithmeticGate,
     QuirkArithmeticOperation,
     QuirkInputRotationOperation,
     QuirkQubitPermutationGate,
 )
 
-from cirq.interop.quirk.url_to_circuit import (
-    quirk_json_to_circuit,
-    quirk_url_to_circuit,
-)
+from cirq.interop.quirk.url_to_circuit import quirk_json_to_circuit, quirk_url_to_circuit

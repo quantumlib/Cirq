@@ -181,11 +181,3 @@ def test_qubit_set_deprecated():
     device = ccgd.UndirectedGraphDevice(device_graph=device_graph)
     with cirq.testing.assert_deprecated('qubit_set', deadline='v0.15'):
         assert device.qubit_set() == {a, b, c, d}
-
-
-def test_qid_pairs_deprecated():
-    a, b, c, d = cirq.LineQubit.range(4)
-    device_graph = ccgd.UndirectedHypergraph(labelled_edges={(a, b): None, (c, d): None})
-    device = ccgd.UndirectedGraphDevice(device_graph=device_graph)
-    with cirq.testing.assert_deprecated('device.metadata', deadline='v0.15', count=1):
-        assert len(device.qid_pairs()) == 2

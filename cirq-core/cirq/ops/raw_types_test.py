@@ -104,6 +104,9 @@ class ValiGate(cirq.Gate):
             return  # Bypass check for some tests
         super().validate_args(qubits)
 
+    def _has_mixture_(self):
+        return True
+
 
 def test_gate():
     a, b, c = cirq.LineQubit.range(3)
@@ -171,9 +174,9 @@ def test_default_validation_and_inverse():
         TestGate().on(a)
 
     t = TestGate().on(a, b)
-    i = t ** -1
-    assert i ** -1 == t
-    assert t ** -1 == i
+    i = t**-1
+    assert i**-1 == t
+    assert t**-1 == i
     assert cirq.decompose(i) == [cirq.X(a), cirq.S(b) ** -1, cirq.Z(a)]
     cirq.testing.assert_allclose_up_to_global_phase(
         cirq.unitary(i), cirq.unitary(t).conj().T, atol=1e-8
@@ -188,7 +191,7 @@ def test_default_inverse():
             return 3
 
         def _decompose_(self, qubits):
-            return (cirq.X ** 0.1).on_each(*qubits)
+            return (cirq.X**0.1).on_each(*qubits)
 
     assert cirq.inverse(TestGate(), None) is not None
     cirq.testing.assert_has_consistent_qid_shape(cirq.inverse(TestGate()))
@@ -214,7 +217,7 @@ def test_default_qudit_inverse():
             return (1, 2, 3)
 
         def _decompose_(self, qubits):
-            return (cirq.X ** 0.1).on(qubits[1])
+            return (cirq.X**0.1).on(qubits[1])
 
     assert cirq.qid_shape(cirq.inverse(TestGate(), None)) == (1, 2, 3)
     cirq.testing.assert_has_consistent_qid_shape(cirq.inverse(TestGate()))
@@ -616,15 +619,12 @@ def test_tagged_operation_forwards_protocols():
 
     y = cirq.Y(q1)
     tagged_y = cirq.Y(q1).with_tags(tag)
-    assert tagged_y ** 0.5 == cirq.YPowGate(exponent=0.5)(q1)
+    assert tagged_y**0.5 == cirq.YPowGate(exponent=0.5)(q1)
     assert tagged_y * 2 == (y * 2)
     assert 3 * tagged_y == (3 * y)
     assert cirq.phase_by(y, 0.125, 0) == cirq.phase_by(tagged_y, 0.125, 0)
     controlled_y = tagged_y.controlled_by(q2)
-    assert controlled_y.qubits == (
-        q2,
-        q1,
-    )
+    assert controlled_y.qubits == (q2, q1)
     assert isinstance(controlled_y, cirq.Operation)
     assert not isinstance(controlled_y, cirq.TaggedOperation)
 
@@ -635,8 +635,8 @@ def test_tagged_operation_forwards_protocols():
     assert cirq.commutes(clifford_x, tagged_x)
     assert cirq.commutes(tagged_x, tagged_x)
 
-    assert cirq.trace_distance_bound(y ** 0.001) == cirq.trace_distance_bound(
-        (y ** 0.001).with_tags(tag)
+    assert cirq.trace_distance_bound(y**0.001) == cirq.trace_distance_bound(
+        (y**0.001).with_tags(tag)
     )
 
     flip = cirq.bit_flip(0.5)(q1)
@@ -738,14 +738,14 @@ def test_tagged_act_on():
         def _num_qubits_(self) -> int:
             return 1
 
-        def _act_on_(self, args, qubits):
+        def _act_on_(self, sim_state, qubits):
             return True
 
     class NoActOn(cirq.Gate):
         def _num_qubits_(self) -> int:
             return 1
 
-        def _act_on_(self, args, qubits):
+        def _act_on_(self, sim_state, qubits):
             return NotImplemented
 
     class MissingActOn(cirq.Operation):
@@ -757,9 +757,9 @@ def test_tagged_act_on():
             pass
 
     q = cirq.LineQubit(1)
-    from cirq.protocols.act_on_protocol_test import DummyActOnArgs
+    from cirq.protocols.act_on_protocol_test import DummySimulationState
 
-    args = DummyActOnArgs()
+    args = DummySimulationState()
     cirq.act_on(YesActOn()(q).with_tags("test"), args)
     with pytest.raises(TypeError, match="Failed to act"):
         cirq.act_on(NoActOn()(q).with_tags("test"), args)
@@ -768,7 +768,7 @@ def test_tagged_act_on():
 
 
 def test_single_qubit_gate_validates_on_each():
-    class Dummy(cirq.SingleQubitGate):
+    class Dummy(cirq.testing.SingleQubitGate):
         def matrix(self):
             pass
 
@@ -788,7 +788,7 @@ def test_single_qubit_gate_validates_on_each():
 
 
 def test_on_each():
-    class CustomGate(cirq.SingleQubitGate):
+    class CustomGate(cirq.testing.SingleQubitGate):
         pass
 
     a = cirq.NamedQubit('a')
@@ -932,14 +932,3 @@ def test_on_each_iterable_qid():
             raise NotImplementedError()
 
     assert cirq.H.on_each(QidIter())[0] == cirq.H.on(QidIter())
-
-
-def test_setters_deprecated():
-    q = cirq.LineQubit(0)
-    subop = cirq.X(q)
-    op = cirq.TaggedOperation(subop, 'tag')
-    assert op.sub_operation == subop
-    with cirq.testing.assert_deprecated('mutators', deadline='v0.15'):
-        new_subop = cirq.Y(q)
-        op.sub_operation = new_subop
-        assert op.sub_operation == new_subop

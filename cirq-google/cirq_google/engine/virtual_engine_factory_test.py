@@ -38,9 +38,36 @@ def _test_processor(processor: cg.engine.abstract_processor.AbstractProcessor):
         _ = processor.run(circuit, repetitions=100)
 
 
+def test_create_device_from_processor_id():
+    device = factory.create_device_from_processor_id('rainbow')
+    assert device is not None
+
+    with pytest.raises(ValueError, match='no such processor is defined'):
+        _ = factory.create_device_from_processor_id('bad_processor')
+
+
 def test_create_from_device():
     engine = factory.create_noiseless_virtual_engine_from_device('sycamore', cg.Sycamore)
     _test_processor(engine.get_processor('sycamore'))
+
+
+def test_median_device():
+    q0, q1 = cirq.GridQubit.rect(1, 2, 5, 3)
+    cal = factory.load_median_device_calibration('rainbow')
+    # Spot-check an arbitrary set of values to confirm we got the right data.
+    assert np.isclose(cal['parallel_p00_error'][(q0,)][0], 0.0067149999999998045)
+    assert np.isclose(
+        cal['single_qubit_readout_separation_error'][(q1,)][0], 0.00039635847369929797
+    )
+    assert np.isclose(
+        cal['two_qubit_sycamore_gate_xeb_average_error_per_cycle'][(q0, q1)][0],
+        0.0034558565201338043,
+    )
+
+
+def test_median_device_bad_processor():
+    with pytest.raises(ValueError, match='no median calibration is defined'):
+        _ = factory.load_median_device_calibration('bad_processor')
 
 
 def test_create_from_proto():
@@ -66,12 +93,12 @@ def test_create_from_proto():
 
 def test_create_from_template():
     engine = factory.create_noiseless_virtual_engine_from_templates(
-        'sycamore', 'weber_12_10_2021_device_spec.proto.txt'
+        'sycamore', 'weber_2021_12_10_device_spec.proto.txt'
     )
     _test_processor(engine.get_processor('sycamore'))
 
     processor = factory.create_noiseless_virtual_processor_from_template(
-        'sycamore', 'weber_12_10_2021_device_spec.proto.txt'
+        'sycamore', 'weber_2021_12_10_device_spec.proto.txt'
     )
     _test_processor(processor)
 
@@ -85,7 +112,7 @@ def test_default_creation():
 def test_create_from_template_wrong_args():
     with pytest.raises(ValueError, match='equal numbers of processor ids'):
         _ = factory.create_noiseless_virtual_engine_from_templates(
-            ['sycamore', 'sycamore2'], 'weber_12_10_2021_device_spec.proto.txt'
+            ['sycamore', 'sycamore2'], 'weber_2021_12_10_device_spec.proto.txt'
         )
     with pytest.raises(ValueError, match='equal numbers of processor ids'):
         _ = factory.create_noiseless_virtual_engine_from_proto('sycamore', [])

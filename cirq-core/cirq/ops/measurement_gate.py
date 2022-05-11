@@ -17,7 +17,6 @@ from typing import Any, Dict, FrozenSet, Iterable, Optional, Tuple, Sequence, TY
 import numpy as np
 
 from cirq import protocols, value
-from cirq._compat import deprecated
 from cirq.ops import raw_types
 
 if TYPE_CHECKING:
@@ -77,40 +76,13 @@ class MeasurementGate(raw_types.Gate):
     def key(self) -> str:
         return str(self.mkey)
 
-    @key.setter  # type: ignore
-    @deprecated(
-        deadline="v0.15",
-        fix="The mutators of this class are deprecated, instantiate a new object instead.",
-    )
-    def key(self, key: Union[str, 'cirq.MeasurementKey']):
-        if isinstance(key, value.MeasurementKey):
-            self._mkey = key
-        else:
-            self._mkey = value.MeasurementKey(name=key)
-
     @property
     def mkey(self) -> 'cirq.MeasurementKey':
         return self._mkey
 
-    @mkey.setter  # type: ignore
-    @deprecated(
-        deadline="v0.15",
-        fix="The mutators of this class are deprecated, instantiate a new object instead.",
-    )
-    def mkey(self, mkey: 'cirq.MeasurementKey'):
-        self._mkey = mkey
-
     @property
     def invert_mask(self) -> Tuple[bool, ...]:
         return self._invert_mask
-
-    @invert_mask.setter  # type: ignore
-    @deprecated(
-        deadline="v0.15",
-        fix="The mutators of this class are deprecated, instantiate a new object instead.",
-    )
-    def invert_mask(self, invert_mask: Tuple[bool, ...]):
-        self._invert_mask = invert_mask
 
     def _qid_shape_(self) -> Tuple[int, ...]:
         return self._qid_shape
@@ -133,9 +105,7 @@ class MeasurementGate(raw_types.Gate):
         return self.with_key(self.mkey._with_key_path_prefix_(prefix))
 
     def _with_rescoped_keys_(
-        self,
-        path: Tuple[str, ...],
-        bindable_keys: FrozenSet['cirq.MeasurementKey'],
+        self, path: Tuple[str, ...], bindable_keys: FrozenSet['cirq.MeasurementKey']
     ):
         return self.with_key(protocols.with_rescoped_keys(self.mkey, path, bindable_keys))
 
@@ -153,7 +123,7 @@ class MeasurementGate(raw_types.Gate):
             self.num_qubits(), key=self.key, invert_mask=tuple(new_mask), qid_shape=self._qid_shape
         )
 
-    def full_invert_mask(self):
+    def full_invert_mask(self) -> Tuple[bool, ...]:
         """Returns the invert mask for all qubits.
 
         If the user supplies a partial invert_mask, this returns that mask
@@ -290,12 +260,12 @@ class MeasurementGate(raw_types.Gate):
     def _has_stabilizer_effect_(self) -> Optional[bool]:
         return True
 
-    def _act_on_(self, args: 'cirq.OperationTarget', qubits: Sequence['cirq.Qid']) -> bool:
-        from cirq.sim import ActOnArgs
+    def _act_on_(self, sim_state: 'cirq.SimulationStateBase', qubits: Sequence['cirq.Qid']) -> bool:
+        from cirq.sim import SimulationState
 
-        if not isinstance(args, ActOnArgs):
+        if not isinstance(sim_state, SimulationState):
             return NotImplemented
-        args.measure(qubits, self.key, self.full_invert_mask())
+        sim_state.measure(qubits, self.key, self.full_invert_mask())
         return True
 
 

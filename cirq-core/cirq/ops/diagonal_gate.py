@@ -54,7 +54,7 @@ def _gen_gray_code(n: int) -> Iterator[Tuple[int, int]]:
     gray code.
     """
     gray_code = 0
-    for i in range(1, 2 ** n):
+    for i in range(1, 2**n):
         next_gray = i ^ (i >> 1)
         bit_flip = int(np.log2(gray_code ^ next_gray))
         yield gray_code, bit_flip
@@ -66,7 +66,7 @@ def _gen_gray_code(n: int) -> Iterator[Tuple[int, int]]:
 class DiagonalGate(raw_types.Gate):
     """A gate given by a diagonal (2^n)\\times(2^n) matrix."""
 
-    def __init__(self, diag_angles_radians: Sequence[value.TParamVal]) -> None:
+    def __init__(self, diag_angles_radians: Sequence['cirq.TParamVal']) -> None:
         r"""A n-qubit gate with only diagonal elements.
 
         This gate's off-diagonal elements are zero and it's on diagonal
@@ -77,7 +77,7 @@ class DiagonalGate(raw_types.Gate):
                 If these values are $(x_0, x_1, \ldots , x_N)$ then the unitary
                 has diagonal values $(e^{i x_0}, e^{i x_1}, \ldots, e^{i x_N})$.
         """
-        self._diag_angles_radians: Tuple[value.TParamVal, ...] = tuple(diag_angles_radians)
+        self._diag_angles_radians: Tuple['cirq.TParamVal', ...] = tuple(diag_angles_radians)
 
     def _num_qubits_(self):
         return int(np.log2(len(self._diag_angles_radians)))
@@ -144,7 +144,7 @@ class DiagonalGate(raw_types.Gate):
         return tuple(self._diag_angles_radians)
 
     def _decompose_for_basis(
-        self, index: int, bit_flip: int, theta: float, qubits: Sequence['cirq.Qid']
+        self, index: int, bit_flip: int, theta: 'cirq.TParamVal', qubits: Sequence['cirq.Qid']
     ) -> Iterator[Union['cirq.ZPowGate', 'cirq.CXPowGate']]:
         if index == 0:
             return []
@@ -166,7 +166,7 @@ class DiagonalGate(raw_types.Gate):
                       │           │                       │                       │
         2: ───Rz(1)───@───────────@───────────────────────@───────────────────────@───────────
 
-        where the angles in Rz gates are corresponding to the fast-walsh-Hadamard transfrom
+        where the angles in Rz gates are corresponding to the fast-walsh-Hadamard transform
         of diagonal_angles in the Gray Code order.
 
         For n qubits decomposition looks similar but with 2^n-1 Rz gates and 2^n-2 CNOT gates.
@@ -176,18 +176,15 @@ class DiagonalGate(raw_types.Gate):
             ancillas." New Journal of Physics 16.3 (2014): 033040.
             https://iopscience.iop.org/article/10.1088/1367-2630/16/3/033040/meta
         """
-        if protocols.is_parameterized(self):
-            return NotImplemented
-
         n = self._num_qubits_()
-        hat_angles = _fast_walsh_hadamard_transform(self._diag_angles_radians) / (2 ** n)
+        hat_angles = _fast_walsh_hadamard_transform(self._diag_angles_radians) / (2**n)
 
         # There is one global phase shift between unitary matrix of the diagonal gate and the
         # decomposed gates. On its own it is not physically observable. However, if using this
         # diagonal gate for sub-system like controlled gate, it is no longer equivalent. Hence,
         # we add global phase.
         decomposed_circ: List[Any] = [
-            global_phase_op.global_phase_operation(np.exp(1j * hat_angles[0]))
+            global_phase_op.global_phase_operation(1j ** (2 * hat_angles[0] / np.pi))
         ]
         for i, bit_flip in _gen_gray_code(n):
             decomposed_circ.extend(self._decompose_for_basis(i, bit_flip, -hat_angles[i], qubits))

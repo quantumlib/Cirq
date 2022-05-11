@@ -38,7 +38,6 @@ import numpy as np
 import sympy
 
 from cirq import protocols, value
-from cirq._compat import deprecated
 from cirq._import import LazyLoader
 from cirq.type_workarounds import NotImplementedType
 
@@ -325,8 +324,8 @@ class Gate(metaclass=value.ABCMetaImplementAnyOneOf):
 
         return NotImplemented
 
-    def __call__(self, *args, **kwargs):
-        return self.on(*args, **kwargs)
+    def __call__(self, *qubits: Qid, **kwargs):
+        return self.on(*qubits)
 
     def with_probability(self, probability: 'cirq.TParamVal') -> 'cirq.Gate':
 
@@ -405,11 +404,13 @@ class Gate(metaclass=value.ABCMetaImplementAnyOneOf):
         """
 
     def _commutes_on_qids_(
-        self, qids: 'Sequence[cirq.Qid]', other: Any, atol: float
+        self, qids: 'Sequence[cirq.Qid]', other: Any, *, atol: float = 1e-8
     ) -> Union[bool, NotImplementedType, None]:
         return NotImplemented
 
-    def _commutes_(self, other: Any, atol: float) -> Union[None, NotImplementedType, bool]:
+    def _commutes_(
+        self, other: Any, *, atol: float = 1e-8
+    ) -> Union[None, NotImplementedType, bool]:
         if not isinstance(other, Gate):
             return NotImplemented
         if protocols.qid_shape(self) != protocols.qid_shape(other):
@@ -464,7 +465,7 @@ class Operation(metaclass=abc.ABCMeta):
         """Returns the same operation, but applied to different qubits.
 
         Args:
-            new_qubits: The new qubits to apply the operation to. The order must
+            *new_qubits: The new qubits to apply the operation to. The order must
                 exactly match the order of qubits returned from the operation's
                 `qubits` property.
         """
@@ -495,7 +496,7 @@ class Operation(metaclass=abc.ABCMeta):
         also restrict the operation to be JSON serializable.
 
         Args:
-            new_tags: The tags to wrap this operation in.
+            *new_tags: The tags to wrap this operation in.
         """
         if not new_tags:
             return self
@@ -535,7 +536,7 @@ class Operation(metaclass=abc.ABCMeta):
            are specified, returns self.
 
         Args:
-            control_qubits: Qubits to control the operation by. Required.
+            *control_qubits: Qubits to control the operation by. Required.
             control_values: For which control qubit values to apply the
                 operation.  A sequence of the same length as `control_qubits`
                 where each entry is an integer (or set of integers)
@@ -573,7 +574,7 @@ class Operation(metaclass=abc.ABCMeta):
         _validate_qid_shape(self, qubits)
 
     def _commutes_(
-        self, other: Any, *, atol: Union[int, float] = 1e-8
+        self, other: Any, *, atol: float = 1e-8
     ) -> Union[bool, NotImplementedType, None]:
         """Determine if this Operation commutes with the object"""
         if not isinstance(other, Operation):
@@ -604,7 +605,7 @@ class Operation(metaclass=abc.ABCMeta):
 
         # Don't create gigantic matrices.
         shape = protocols.qid_shape_protocol.qid_shape(circuit12)
-        if np.prod(shape, dtype=np.int64) > 2 ** 10:
+        if np.prod(shape, dtype=np.int64) > 2**10:
             return NotImplemented  # coverage: ignore
 
         m12 = protocols.unitary_protocol.unitary(circuit12, default=None)
@@ -633,7 +634,7 @@ class Operation(metaclass=abc.ABCMeta):
         since tags are considered a local attribute.
 
         Args:
-            conditions: A list of measurement keys, strings that can be parsed
+            *conditions: A list of measurement keys, strings that can be parsed
                 into measurement keys, or sympy expressions where the free
                 symbols are measurement key strings.
 
@@ -688,14 +689,6 @@ class TaggedOperation(Operation):
     @property
     def sub_operation(self) -> 'cirq.Operation':
         return self._sub_operation
-
-    @sub_operation.setter  # type: ignore
-    @deprecated(
-        deadline="v0.15",
-        fix="The mutators of this class are deprecated, instantiate a new object instead.",
-    )
-    def sub_operation(self, sub_operation: 'cirq.Operation'):
-        self._sub_operation = sub_operation
 
     @property
     def qubits(self) -> Tuple['cirq.Qid', ...]:
@@ -777,7 +770,7 @@ class TaggedOperation(Operation):
         return protocols.unitary(self.sub_operation, NotImplemented)
 
     def _commutes_(
-        self, other: Any, *, atol: Union[int, float] = 1e-8
+        self, other: Any, *, atol: float = 1e-8
     ) -> Union[bool, NotImplementedType, None]:
         return protocols.commutes(self.sub_operation, other, atol=atol)
 
@@ -810,10 +803,10 @@ class TaggedOperation(Operation):
             protocols.is_parameterized(tag) for tag in self.tags
         )
 
-    def _act_on_(self, args: 'cirq.OperationTarget') -> bool:
+    def _act_on_(self, sim_state: 'cirq.SimulationStateBase') -> bool:
         sub = getattr(self.sub_operation, "_act_on_", None)
         if sub is not None:
-            return sub(args)
+            return sub(sim_state)
         return NotImplemented
 
     def _parameter_names_(self) -> AbstractSet[str]:
@@ -847,7 +840,7 @@ class TaggedOperation(Operation):
         return protocols.phase_by(self.sub_operation, phase_turns, qubit_index)
 
     def __pow__(self, exponent: Any) -> 'cirq.Operation':
-        return self.sub_operation ** exponent
+        return self.sub_operation**exponent
 
     def __mul__(self, other: Any) -> Any:
         return self.sub_operation * other

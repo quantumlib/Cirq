@@ -15,17 +15,7 @@
 """Transformer pass to repack circuits avoiding simultaneous operations with different classes."""
 
 import itertools
-from typing import (
-    TYPE_CHECKING,
-    Type,
-    Callable,
-    Optional,
-    Union,
-    Iterable,
-    Sequence,
-    List,
-    Tuple,
-)
+from typing import TYPE_CHECKING, Type, Callable, Optional, Union, Iterable, Sequence, List, Tuple
 
 from cirq import ops, circuits, _import
 from cirq.transformers import transformer_api, transformer_primitives
@@ -45,7 +35,7 @@ Category = Union[
 ]
 
 
-@transformer_api.transformer
+@transformer_api.transformer(add_deep_support=True)
 def stratified_circuit(
     circuit: 'cirq.AbstractCircuit',
     *,

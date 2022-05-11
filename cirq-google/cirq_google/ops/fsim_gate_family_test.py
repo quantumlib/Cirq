@@ -30,34 +30,28 @@ ALL_POSSIBLE_FSIM_GATES = [
 ]
 THETA, PHI = sympy.Symbol("theta"), sympy.Symbol("phi")
 VALID_IDENTITY = [
-    (cirq.CZ ** THETA, {THETA: 2}),
+    (cirq.CZ**THETA, {THETA: 2}),
     (cirq.IdentityGate(2), {}),
     (cirq.FSimGate(THETA, PHI), {THETA: 0, PHI: 0}),
     (cirq.PhasedFSimGate(THETA, 0, 0, 0, PHI), {THETA: 0, PHI: 0}),
-    (cirq.ISWAP ** THETA, {THETA: 4}),
+    (cirq.ISWAP**THETA, {THETA: 4}),
     (cirq.PhasedISwapPowGate(exponent=THETA, phase_exponent=PHI), {THETA: 4, PHI: 2}),
 ]
 
 VALID_CZPOW_GATES = [
     (cirq.CZPowGate(exponent=THETA, global_shift=2.5), {THETA: 0.1}),
-    (cirq.CZ ** THETA, {THETA: 0.5}),
+    (cirq.CZ**THETA, {THETA: 0.5}),
     (cirq.FSimGate(theta=THETA, phi=0.1), {THETA: 0}),
     (cirq.FSimGate(theta=2 * np.pi, phi=PHI), {PHI: -0.4}),
     (
         cirq.PhasedFSimGate.from_fsim_rz(
-            theta=THETA,
-            phi=10,
-            rz_angles_before=(THETA, THETA),
-            rz_angles_after=(PHI, PHI),
+            theta=THETA, phi=10, rz_angles_before=(THETA, THETA), rz_angles_after=(PHI, PHI)
         ),
         {THETA: 0, PHI: 2 * np.pi},
     ),
     (
         cirq.PhasedFSimGate.from_fsim_rz(
-            theta=THETA,
-            phi=PHI,
-            rz_angles_before=(2 * np.pi, 2 * np.pi),
-            rz_angles_after=(0, 0),
+            theta=THETA, phi=PHI, rz_angles_before=(2 * np.pi, 2 * np.pi), rz_angles_after=(0, 0)
         ),
         {THETA: 2 * np.pi, PHI: -0.01},
     ),
@@ -67,24 +61,18 @@ VALID_CZPOW_GATES = [
 VALID_ISWAP_GATES = [
     (cirq.ISwapPowGate(exponent=THETA, global_shift=2.5), {THETA: 0.1}),
     (cirq.PhasedISwapPowGate(exponent=0.1, phase_exponent=PHI), {PHI: 2}),
-    (cirq.SQRT_ISWAP_INV ** THETA, {THETA: 0.1}),
+    (cirq.SQRT_ISWAP_INV**THETA, {THETA: 0.1}),
     (cirq.FSimGate(theta=THETA, phi=PHI), {THETA: 0.1, PHI: 0}),
     (cirq.FSimGate(theta=-0.4, phi=PHI), {PHI: 2 * np.pi}),
     (
         cirq.PhasedFSimGate.from_fsim_rz(
-            theta=10,
-            phi=PHI,
-            rz_angles_before=(PHI, PHI),
-            rz_angles_after=(THETA, THETA),
+            theta=10, phi=PHI, rz_angles_before=(PHI, PHI), rz_angles_after=(THETA, THETA)
         ),
         {THETA: 2 * np.pi, PHI: 0},
     ),
     (
         cirq.PhasedFSimGate.from_fsim_rz(
-            theta=THETA,
-            phi=PHI,
-            rz_angles_before=(PHI, PHI),
-            rz_angles_after=(0, 0),
+            theta=THETA, phi=PHI, rz_angles_before=(PHI, PHI), rz_angles_after=(0, 0)
         ),
         {THETA: -0.01, PHI: 2 * np.pi},
     ),

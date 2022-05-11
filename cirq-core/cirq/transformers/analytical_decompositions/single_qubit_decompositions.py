@@ -25,7 +25,7 @@ from cirq.linalg.tolerance import near_zero_mod
 
 
 def is_negligible_turn(turns: float, tolerance: float) -> bool:
-    if isinstance(turns, sympy.Basic):
+    if isinstance(turns, sympy.Expr):
         if not turns.is_constant():
             return False
         turns = float(turns)
@@ -97,9 +97,7 @@ def single_qubit_matrix_to_pauli_rotations(
     return [(pauli, ht) for pauli, ht in rotation_list if not is_no_turn(ht)]
 
 
-def single_qubit_matrix_to_gates(
-    mat: np.ndarray, tolerance: float = 0
-) -> List[ops.SingleQubitGate]:
+def single_qubit_matrix_to_gates(mat: np.ndarray, tolerance: float = 0) -> List[ops.Gate]:
     """Implements a single-qubit operation with few gates.
 
     Args:
@@ -166,9 +164,7 @@ def _deconstruct_single_qubit_matrix_into_gate_turns(mat: np.ndarray) -> Tuple[f
     return (_signed_mod_1(xy_turn), _signed_mod_1(xy_phase_turn), _signed_mod_1(total_z_turn))
 
 
-def single_qubit_matrix_to_phased_x_z(
-    mat: np.ndarray, atol: float = 0
-) -> List[ops.SingleQubitGate]:
+def single_qubit_matrix_to_phased_x_z(mat: np.ndarray, atol: float = 0) -> List[ops.Gate]:
     """Implements a single-qubit operation with a PhasedX and Z gate.
 
     If one of the gates isn't needed, it will be omitted.
@@ -199,10 +195,7 @@ def single_qubit_matrix_to_phased_x_z(
     return result
 
 
-def single_qubit_matrix_to_phxz(
-    mat: np.ndarray,
-    atol: float = 0,
-) -> Optional[ops.PhasedXZGate]:
+def single_qubit_matrix_to_phxz(mat: np.ndarray, atol: float = 0) -> Optional[ops.PhasedXZGate]:
     """Implements a single-qubit operation with a PhasedXZ gate.
 
     Under the hood, this uses deconstruct_single_qubit_matrix_into_angles which
@@ -224,9 +217,7 @@ def single_qubit_matrix_to_phxz(
 
     # Build the intended operation out of non-negligible XY and Z rotations.
     g = ops.PhasedXZGate(
-        axis_phase_exponent=2 * xy_phase_turn,
-        x_exponent=2 * xy_turn,
-        z_exponent=2 * total_z_turn,
+        axis_phase_exponent=2 * xy_phase_turn, x_exponent=2 * xy_turn, z_exponent=2 * total_z_turn
     )
 
     if protocols.trace_distance_bound(g) <= atol:
@@ -235,9 +226,7 @@ def single_qubit_matrix_to_phxz(
     # Special case: XY half-turns can absorb Z rotations.
     if math.isclose(abs(xy_turn), 0.5, abs_tol=atol):
         g = ops.PhasedXZGate(
-            axis_phase_exponent=2 * xy_phase_turn + total_z_turn,
-            x_exponent=1,
-            z_exponent=0,
+            axis_phase_exponent=2 * xy_phase_turn + total_z_turn, x_exponent=1, z_exponent=0
         )
 
     return g

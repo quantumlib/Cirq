@@ -92,7 +92,7 @@ def test_random_circuit(
     )
 
 
-@pytest.mark.parametrize('seed', [random.randint(0, 2 ** 32) for _ in range(10)])
+@pytest.mark.parametrize('seed', [random.randint(0, 2**32) for _ in range(10)])
 def test_random_circuit_reproducible_with_seed(seed):
     wrappers = (lambda s: s, np.random.RandomState)
     circuits = [

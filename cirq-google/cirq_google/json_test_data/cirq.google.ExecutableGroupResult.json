@@ -11,11 +11,24 @@
     "random_seed": null,
     "qubit_placer": {
       "cirq_type": "cirq.google.NaiveQubitPlacer"
+    },
+    "target_gateset": {
+      "cirq_type": "CZTargetGateset",
+      "atol": 1e-08,
+      "allow_partial_czs": false
     }
   },
   "shared_runtime_info": {
     "cirq_type": "cirq.google.SharedRuntimeInfo",
-    "run_id": "my run"
+    "run_id": "my run",
+    "run_start_time": {
+      "cirq_type": "datetime.datetime",
+      "timestamp": 1651091275.571572
+    },
+    "run_end_time": {
+      "cirq_type": "datetime.datetime",
+      "timestamp": 1651092475.571585
+    }
   },
   "executable_results": [
     {
@@ -33,7 +46,8 @@
       "runtime_info": {
         "cirq_type": "cirq.google.RuntimeInfo",
         "execution_index": 0,
-        "qubit_placement": null
+        "qubit_placement": null,
+        "timings_s": []
       },
       "raw_data": {
         "cirq_type": "ResultDict",
@@ -70,7 +84,8 @@
       "runtime_info": {
         "cirq_type": "cirq.google.RuntimeInfo",
         "execution_index": 1,
-        "qubit_placement": null
+        "qubit_placement": null,
+        "timings_s": []
       },
       "raw_data": {
         "cirq_type": "ResultDict",
@@ -107,7 +122,8 @@
       "runtime_info": {
         "cirq_type": "cirq.google.RuntimeInfo",
         "execution_index": 2,
-        "qubit_placement": null
+        "qubit_placement": null,
+        "timings_s": []
       },
       "raw_data": {
         "cirq_type": "ResultDict",

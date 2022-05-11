@@ -35,7 +35,7 @@ The result is good if the register size is large enough such that for every pair
 the ratio can be approximated by a pair of possible register values. Let s be the scaling factor
 from possible register values to eigenvalues. One way to set t is
 
-t = 2π/sN
+t = 2π/(sN)
 
 For arbitrary matrices, because properties of their eigenvalues are typically unknown, parameters C
 and t are fine-tuned based on their condition number.
@@ -95,7 +95,7 @@ class PhaseEstimation(cirq.Gate):
         yield cirq.qft(*qubits[:-1], without_reverse=True) ** -1
 
 
-class HamiltonianSimulation(cirq.EigenGate, cirq.SingleQubitGate):
+class HamiltonianSimulation(cirq.EigenGate):
     """A gate that represents e^iAt.
 
     This EigenGate + np.linalg.eigh() implementation is used here purely for demonstrative
@@ -104,7 +104,6 @@ class HamiltonianSimulation(cirq.EigenGate, cirq.SingleQubitGate):
     """
 
     def __init__(self, A, t, exponent=1.0):
-        cirq.SingleQubitGate.__init__(self)
         cirq.EigenGate.__init__(self, exponent=exponent)
         self.A = A
         self.t = t
@@ -114,6 +113,9 @@ class HamiltonianSimulation(cirq.EigenGate, cirq.SingleQubitGate):
             theta = w * t / math.pi
             P = np.outer(v, np.conj(v))
             self.eigen_components.append((theta, P))
+
+    def _num_qubits_(self) -> int:
+        return 1
 
     def _with_exponent(self, exponent):
         return HamiltonianSimulation(self.A, self.t, exponent)
@@ -142,11 +144,11 @@ class PhaseKickback(cirq.Gate):
         qubits = list(qubits)
         memory = qubits.pop()
         for i, qubit in enumerate(qubits):
-            yield cirq.ControlledGate(self.U ** (2 ** i))(qubit, memory)
+            yield cirq.ControlledGate(self.U ** (2**i))(qubit, memory)
 
 
 class EigenRotation(cirq.Gate):
-    """Perform the of the ancilla equivalent to divison of the memory by eigenvalues of matrix.
+    """Perform a rotation on an ancilla equivalent to division by eigenvalues of a matrix.
 
     EigenRotation performs the set of rotation on the ancilla qubit equivalent to division on the
     memory register by each eigenvalue of the matrix. The last qubit is the ancilla qubit; all
@@ -200,7 +202,7 @@ def hhl_circuit(A, C, t, register_size, *input_prep_gates):
         C: Algorithm parameter, see above.
         t: Algorithm parameter, see above.
         register_size: The size of the eigenvalue register.
-        input_prep_gates: A list of gates to be applied to |0> to generate the desired input
+        *input_prep_gates: A list of gates to be applied to |0> to generate the desired input
             state |b>.
 
     Returns:
@@ -286,7 +288,7 @@ def main():
 
     # Set C to be the smallest eigenvalue that can be represented by the
     # circuit.
-    C = 2 * math.pi / (2 ** register_size * t)
+    C = 2 * math.pi / (2**register_size * t)
 
     # Simulate circuit.
     print("Expected observable outputs:")

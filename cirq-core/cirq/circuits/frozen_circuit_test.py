@@ -47,39 +47,9 @@ def test_freeze_and_unfreeze():
     assert fcc is not f
 
 
-def test_init_device_deprecated():
-    q = cirq.LineQubit(0)
-    with cirq.testing.assert_deprecated(
-        cirq.circuits.circuit._DEVICE_DEP_MESSAGE, deadline='v0.15'
-    ):
-        _ = cirq.FrozenCircuit(cirq.X(q), device=cirq.UNCONSTRAINED_DEVICE)
-
-
-def test_device_deprecated():
-    q = cirq.LineQubit(0)
-    a = cirq.FrozenCircuit(cirq.X(q))
-    with cirq.testing.assert_deprecated(
-        cirq.circuits.circuit._DEVICE_DEP_MESSAGE, deadline='v0.15'
-    ):
-        _ = a.device
-
-
-def test_with_device_deprecated():
-    q = cirq.LineQubit(0)
-    a = cirq.FrozenCircuit(cirq.X(q))
-    with cirq.testing.assert_deprecated(
-        cirq.circuits.circuit._DEVICE_DEP_MESSAGE, deadline='v0.15'
-    ):
-        # one for frozencircuit.with_device and one for circuit.with_device.
-        _ = a.with_device(cirq.UNCONSTRAINED_DEVICE)
-
-
 def test_immutable():
     q = cirq.LineQubit(0)
     c = cirq.FrozenCircuit(cirq.X(q), cirq.H(q))
 
     with pytest.raises(AttributeError, match="can't set attribute"):
         c.moments = (cirq.Moment(cirq.H(q)), cirq.Moment(cirq.X(q)))
-
-    with pytest.raises(AttributeError, match="can't set attribute"):
-        c.device = cirq.UNCONSTRAINED_DEVICE

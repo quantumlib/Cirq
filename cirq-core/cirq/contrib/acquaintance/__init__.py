@@ -14,15 +14,9 @@
 
 """Tools for creating and using acquaintance strategies."""
 
-from cirq.contrib.acquaintance.bipartite import (
-    BipartiteGraphType,
-    BipartiteSwapNetworkGate,
-)
+from cirq.contrib.acquaintance.bipartite import BipartiteGraphType, BipartiteSwapNetworkGate
 
-from cirq.contrib.acquaintance.devices import (
-    get_acquaintance_size,
-    UnconstrainedAcquaintanceDevice,
-)
+from cirq.contrib.acquaintance.devices import get_acquaintance_size, UnconstrainedAcquaintanceDevice
 
 from cirq.contrib.acquaintance.executor import (
     AcquaintanceOperation,
@@ -30,15 +24,9 @@ from cirq.contrib.acquaintance.executor import (
     StrategyExecutor,
 )
 
-from cirq.contrib.acquaintance.gates import (
-    acquaint,
-    AcquaintanceOpportunityGate,
-    SwapNetworkGate,
-)
+from cirq.contrib.acquaintance.gates import acquaint, AcquaintanceOpportunityGate, SwapNetworkGate
 
-from cirq.contrib.acquaintance.inspection_utils import (
-    get_logical_acquaintance_opportunities,
-)
+from cirq.contrib.acquaintance.inspection_utils import get_logical_acquaintance_opportunities
 
 from cirq.contrib.acquaintance.mutation_utils import (
     expose_acquaintance_gates,
@@ -46,9 +34,7 @@ from cirq.contrib.acquaintance.mutation_utils import (
     replace_acquaintance_with_swap_network,
 )
 
-from cirq.contrib.acquaintance.optimizers import (
-    remove_redundant_acquaintance_opportunities,
-)
+from cirq.contrib.acquaintance.optimizers import remove_redundant_acquaintance_opportunities
 
 from cirq.contrib.acquaintance.permutation import (
     LinearPermutationGate,
@@ -63,13 +49,9 @@ from cirq.contrib.acquaintance.permutation import (
     DECOMPOSE_PERMUTATION_GATES,
 )
 
-from cirq.contrib.acquaintance.shift import (
-    CircularShiftGate,
-)
+from cirq.contrib.acquaintance.shift import CircularShiftGate
 
-from cirq.contrib.acquaintance.shift_swap_network import (
-    ShiftSwapNetworkGate,
-)
+from cirq.contrib.acquaintance.shift_swap_network import ShiftSwapNetworkGate
 
 from cirq.contrib.acquaintance.strategies import (
     complete_acquaintance_strategy,
@@ -82,6 +64,4 @@ from cirq.contrib.acquaintance.topological_sort import (
     random_topological_sort,
 )
 
-from cirq.contrib.acquaintance import (
-    testing,
-)
+from cirq.contrib.acquaintance import testing

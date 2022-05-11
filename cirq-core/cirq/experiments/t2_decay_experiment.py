@@ -132,10 +132,14 @@ def t2_decay(
     """
     min_delay_dur = value.Duration(min_delay)
     max_delay_dur = value.Duration(max_delay)
+    min_delay_nanos = min_delay_dur.total_nanos()
+    max_delay_nanos = max_delay_dur.total_nanos()
 
     # Input validation
     if repetitions <= 0:
         raise ValueError('repetitions <= 0')
+    if isinstance(min_delay_nanos, sympy.Expr) or isinstance(max_delay_nanos, sympy.Expr):
+        raise ValueError('min_delay and max_delay cannot be sympy expressions.')
     if max_delay_dur < min_delay_dur:
         raise ValueError('max_delay < min_delay')
     if min_delay_dur < 0:
@@ -151,10 +155,7 @@ def t2_decay(
 
     if not delay_sweep:
         delay_sweep = study.Linspace(
-            delay_var,
-            start=min_delay_dur.total_nanos(),
-            stop=max_delay_dur.total_nanos(),
-            length=num_points,
+            delay_var, start=min_delay_nanos, stop=max_delay_nanos, length=num_points
         )
     if delay_sweep.keys != ['delay_ns']:
         raise ValueError('delay_sweep must be a SingleSweep with delay_ns parameter')
@@ -165,10 +166,7 @@ def t2_decay(
         # Evolve the state for a given amount of delay time
         # Then measure the state in both X and Y bases.
 
-        circuit = circuits.Circuit(
-            ops.Y(qubit) ** 0.5,
-            ops.wait(qubit, nanos=delay_var),
-        )
+        circuit = circuits.Circuit(ops.Y(qubit) ** 0.5, ops.wait(qubit, nanos=delay_var))
     else:
         if experiment_type == ExperimentType.HAHN_ECHO:
             # Hahn / Spin Echo T2 experiment
@@ -196,8 +194,7 @@ def t2_decay(
     circuit.append(ops.Y(qubit) ** inv_y_var)
     circuit.append(ops.measure(qubit, key='output'))
     tomography_sweep = study.Zip(
-        study.Points('inv_x', [0.0, 0.5]),
-        study.Points('inv_y', [-0.5, 0.0]),
+        study.Points('inv_x', [0.0, 0.5]), study.Points('inv_y', [-0.5, 0.0])
     )
 
     if num_pulses and max_pulses > 0:
@@ -423,7 +420,7 @@ class T2DecayResult:
 
         # Estimate length of Bloch vector (projected to xy plane)
         # by squaring <X> and <Y> expectation values
-        bloch_vector = self._expectation_pauli_x ** 2 + self._expectation_pauli_y ** 2
+        bloch_vector = self._expectation_pauli_x**2 + self._expectation_pauli_y**2
 
         ax.plot(self._expectation_pauli_x['delay_ns'], bloch_vector['value'], 'r+-', **plot_kwargs)
         ax.set_xlabel(r"Delay between initialization and measurement (nanoseconds)")

@@ -52,23 +52,25 @@ def test_device_metadata():
         cirq.XPowGate,
         cirq.YPowGate,
         cirq.PhasedXPowGate,
+        cirq.PhasedXZGate,
         cirq.MeasurementGate,
         cirq.ZPowGate,
+        cirq.GlobalPhaseGate,
     )
     assert d.metadata.qubit_pairs == frozenset(
         {
-            (cirq.GridQubit(0, 0), cirq.GridQubit(0, 1)),
-            (cirq.GridQubit(0, 1), cirq.GridQubit(1, 1)),
-            (cirq.GridQubit(2, 0), cirq.GridQubit(2, 1)),
-            (cirq.GridQubit(0, 0), cirq.GridQubit(1, 0)),
-            (cirq.GridQubit(0, 2), cirq.GridQubit(1, 2)),
-            (cirq.GridQubit(1, 0), cirq.GridQubit(2, 0)),
-            (cirq.GridQubit(1, 0), cirq.GridQubit(1, 1)),
-            (cirq.GridQubit(1, 1), cirq.GridQubit(2, 1)),
-            (cirq.GridQubit(1, 1), cirq.GridQubit(1, 2)),
-            (cirq.GridQubit(0, 1), cirq.GridQubit(0, 2)),
-            (cirq.GridQubit(2, 1), cirq.GridQubit(2, 2)),
-            (cirq.GridQubit(1, 2), cirq.GridQubit(2, 2)),
+            frozenset((cirq.GridQubit(0, 0), cirq.GridQubit(0, 1))),
+            frozenset((cirq.GridQubit(0, 1), cirq.GridQubit(1, 1))),
+            frozenset((cirq.GridQubit(2, 0), cirq.GridQubit(2, 1))),
+            frozenset((cirq.GridQubit(0, 0), cirq.GridQubit(1, 0))),
+            frozenset((cirq.GridQubit(0, 2), cirq.GridQubit(1, 2))),
+            frozenset((cirq.GridQubit(1, 0), cirq.GridQubit(2, 0))),
+            frozenset((cirq.GridQubit(1, 0), cirq.GridQubit(1, 1))),
+            frozenset((cirq.GridQubit(1, 1), cirq.GridQubit(2, 1))),
+            frozenset((cirq.GridQubit(1, 1), cirq.GridQubit(1, 2))),
+            frozenset((cirq.GridQubit(0, 1), cirq.GridQubit(0, 2))),
+            frozenset((cirq.GridQubit(2, 1), cirq.GridQubit(2, 2))),
+            frozenset((cirq.GridQubit(1, 2), cirq.GridQubit(2, 2))),
         }
     )
 
@@ -96,7 +98,7 @@ def test_init():
     assert d.duration_of(cirq.X(q00)) == 2 * ns
     assert d.duration_of(cirq.CZ(q00, q01)) == 3 * ns
     with pytest.raises(ValueError):
-        _ = d.duration_of(cirq.SingleQubitGate().on(q00))
+        _ = d.duration_of(cirq.testing.SingleQubitGate().on(q00))
 
 
 @mock.patch.dict(os.environ, clear='CIRQ_TESTING')

@@ -18,12 +18,22 @@ from typing import Any, cast, Dict, Iterable, Optional, Tuple, TYPE_CHECKING
 
 import numpy as np
 
-from cirq import linalg, protocols
+from cirq import linalg, protocols, _import
 from cirq._compat import proper_repr
 from cirq.ops import raw_types
 
 if TYPE_CHECKING:
     import cirq
+
+single_qubit_decompositions = _import.LazyLoader(
+    'single_qubit_decompositions', globals(), 'cirq.transformers.analytical_decompositions'
+)
+two_qubit_to_cz = _import.LazyLoader(
+    'two_qubit_to_cz', globals(), 'cirq.transformers.analytical_decompositions'
+)
+three_qubit_decomposition = _import.LazyLoader(
+    'three_qubit_decomposition', globals(), 'cirq.transformers.analytical_decompositions'
+)
 
 
 class MatrixGate(raw_types.Gate):
@@ -61,7 +71,7 @@ class MatrixGate(raw_types.Gate):
 
         if qid_shape is None:
             n = int(np.round(np.log2(matrix.shape[0] or 1)))
-            if 2 ** n != matrix.shape[0]:
+            if 2**n != matrix.shape[0]:
                 raise ValueError(
                     f'Matrix width ({matrix.shape[0]}) is not a power of 2 and '
                     f'qid_shape is not specified.'
@@ -83,10 +93,7 @@ class MatrixGate(raw_types.Gate):
             raise ValueError(f'Not a unitary matrix: {self._matrix}')
 
     def _json_dict_(self) -> Dict[str, Any]:
-        return {
-            'matrix': self._matrix.tolist(),
-            'qid_shape': self._qid_shape,
-        }
+        return {'matrix': self._matrix.tolist(), 'qid_shape': self._qid_shape}
 
     @classmethod
     def _from_json_dict_(cls, matrix, qid_shape, **kwargs):
@@ -99,7 +106,7 @@ class MatrixGate(raw_types.Gate):
         if not isinstance(exponent, (int, float)):
             return NotImplemented
         e = cast(float, exponent)
-        new_mat = linalg.map_eigenvalues(self._matrix, lambda b: b ** e)
+        new_mat = linalg.map_eigenvalues(self._matrix, lambda b: b**e)
         return MatrixGate(new_mat, qid_shape=self._qid_shape)
 
     def _phase_by_(self, phase_turns: float, qubit_index: int) -> 'MatrixGate':
@@ -115,6 +122,20 @@ class MatrixGate(raw_types.Gate):
         result[linalg.slice_for_qubits_equal_to([i], 1)] *= p
         result[linalg.slice_for_qubits_equal_to([j], 1)] *= np.conj(p)
         return MatrixGate(matrix=result.reshape(self._matrix.shape), qid_shape=self._qid_shape)
+
+    def _decompose_(self, qubits: Tuple['cirq.Qid', ...]) -> 'cirq.OP_TREE':
+        if self._qid_shape == (2,):
+            return [
+                g.on(qubits[0])
+                for g in single_qubit_decompositions.single_qubit_matrix_to_gates(self._matrix)
+            ]
+        if self._qid_shape == (2,) * 2:
+            return two_qubit_to_cz.two_qubit_matrix_to_cz_operations(
+                *qubits, self._matrix, allow_partial_czs=True
+            )
+        if self._qid_shape == (2,) * 3:
+            return three_qubit_decomposition.three_qubit_matrix_to_operations(*qubits, self._matrix)
+        return NotImplemented
 
     def _has_unitary_(self) -> bool:
         return True

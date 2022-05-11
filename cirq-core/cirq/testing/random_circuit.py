@@ -150,11 +150,7 @@ def random_two_qubit_circuit_with_czs(
         return ops.PhasedXPowGate(phase_exponent=prng.rand(), exponent=prng.rand())
 
     def one_cz():
-        return [
-            ops.CZ.on(q0, q1),
-            random_one_qubit_gate().on(q0),
-            random_one_qubit_gate().on(q1),
-        ]
+        return [ops.CZ.on(q0, q1), random_one_qubit_gate().on(q0), random_one_qubit_gate().on(q1)]
 
     return circuits.Circuit(
         [

@@ -1,7 +1,20 @@
-# pylint: disable=wrong-or-nonexistent-copyright-notice
+# Copyright 2021 The Cirq Developers
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     https://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
 from typing import (
     Any,
     Callable,
+    cast,
     Dict,
     Iterable,
     Iterator,
@@ -75,9 +88,7 @@ class PhasedFSimEngineSimulator(cirq.SimulatesIntermediateStateVector[cirq.Spars
 
     @classmethod
     def create_with_ideal_sqrt_iswap(
-        cls,
-        *,
-        simulator: Optional[cirq.Simulator] = None,
+        cls, *, simulator: Optional[cirq.Simulator] = None
     ) -> 'PhasedFSimEngineSimulator':
         """Creates a PhasedFSimEngineSimulator that simulates ideal FSimGate(theta=π/4, phi=0).
 
@@ -373,7 +384,7 @@ class PhasedFSimEngineSimulator(cirq.SimulatesIntermediateStateVector[cirq.Spars
             ideal_when_missing_parameter=ideal_when_missing_parameter,
         )
 
-    def final_state_vector(self, program: cirq.Circuit) -> np.array:
+    def final_state_vector(self, program: cirq.Circuit) -> np.ndarray:
         result = self.simulate(program)
         return result.state_vector()
 
@@ -412,11 +423,11 @@ class PhasedFSimEngineSimulator(cirq.SimulatesIntermediateStateVector[cirq.Spars
             for a, b in request.pairs:
                 drifted = self.create_gate_with_drift(a, b, translated)
                 parameters[a, b] = PhasedFSimCharacterization(
-                    theta=drifted.theta if characterize_theta else None,
-                    zeta=drifted.zeta if characterize_zeta else None,
-                    chi=drifted.chi if characterize_chi else None,
-                    gamma=drifted.gamma if characterize_gamma else None,
-                    phi=drifted.phi if characterize_phi else None,
+                    theta=cast(float, drifted.theta) if characterize_theta else None,
+                    zeta=cast(float, drifted.zeta) if characterize_zeta else None,
+                    chi=cast(float, drifted.chi) if characterize_chi else None,
+                    gamma=cast(float, drifted.gamma) if characterize_gamma else None,
+                    phi=cast(float, drifted.phi) if characterize_phi else None,
                 )
 
             results.append(
@@ -452,10 +463,7 @@ class PhasedFSimEngineSimulator(cirq.SimulatesIntermediateStateVector[cirq.Spars
         return gate_calibration.as_characterized_phased_fsim_gate(parameters)
 
     def run_sweep_iter(
-        self,
-        program: cirq.AbstractCircuit,
-        params: cirq.Sweepable,
-        repetitions: int = 1,
+        self, program: cirq.AbstractCircuit, params: cirq.Sweepable, repetitions: int = 1
     ) -> Iterator[cirq.Result]:
         converted = _convert_to_circuit_with_drift(self, program)
         yield from self._simulator.run_sweep_iter(converted, params, repetitions)
@@ -470,55 +478,41 @@ class PhasedFSimEngineSimulator(cirq.SimulatesIntermediateStateVector[cirq.Spars
         converted = _convert_to_circuit_with_drift(self, program)
         return self._simulator.simulate(converted, param_resolver, qubit_order, initial_state)
 
-    def _create_partial_act_on_args(
+    def _create_partial_simulation_state(
         self,
-        initial_state: Union[int, cirq.ActOnStateVectorArgs],
+        initial_state: Union[int, cirq.StateVectorSimulationState],
         qubits: Sequence[cirq.Qid],
         classical_data: cirq.ClassicalDataStore,
-    ) -> cirq.ActOnStateVectorArgs:
+    ) -> cirq.StateVectorSimulationState:
         # Needs an implementation since it's abstract but will never actually be called.
         raise NotImplementedError()
 
-    def _create_step_result(
-        self,
-        sim_state: cirq.OperationTarget,
-    ) -> cirq.SparseSimulatorStep:
+    def _create_step_result(self, sim_state: cirq.SimulationStateBase) -> cirq.SparseSimulatorStep:
         # Needs an implementation since it's abstract but will never actually be called.
         raise NotImplementedError()
-
-
-class _PhasedFSimConverter(cirq.PointOptimizer):
-    def __init__(self, simulator: PhasedFSimEngineSimulator) -> None:
-        super().__init__()
-        self._simulator = simulator
-
-    def optimization_at(
-        self, circuit: cirq.Circuit, index: int, op: cirq.Operation
-    ) -> Optional[cirq.PointOptimizationSummary]:
-
-        if isinstance(op.gate, (cirq.MeasurementGate, cirq.SingleQubitGate, cirq.WaitGate)):
-            new_op = op
-        else:
-            if op.gate is None:
-                raise IncompatibleMomentError(f'Operation {op} has a missing gate')
-            translated = self._simulator.gates_translator(op.gate)
-            if translated is None:
-                raise IncompatibleMomentError(
-                    f'Moment contains non-single qubit operation ' f'{op} with unsupported gate'
-                )
-
-            a, b = op.qubits
-            new_op = self._simulator.create_gate_with_drift(a, b, translated).on(a, b)
-
-        return cirq.PointOptimizationSummary(
-            clear_span=1, clear_qubits=op.qubits, new_operations=new_op
-        )
 
 
 def _convert_to_circuit_with_drift(
     simulator: PhasedFSimEngineSimulator, circuit: cirq.AbstractCircuit
 ) -> cirq.Circuit:
-    circuit_with_drift = cirq.Circuit(circuit)
-    converter = _PhasedFSimConverter(simulator)
-    converter.optimize_circuit(circuit_with_drift)
-    return circuit_with_drift
+    def map_func(op: cirq.Operation, _) -> cirq.Operation:
+
+        if op.gate is None:
+            raise IncompatibleMomentError(f'Operation {op} has a missing gate')
+
+        if (
+            isinstance(op.gate, (cirq.MeasurementGate, cirq.WaitGate))
+            or cirq.num_qubits(op.gate) == 1
+        ):
+            return op
+
+        translated = simulator.gates_translator(op.gate)
+        if translated is None:
+            raise IncompatibleMomentError(
+                f'Moment contains non-single qubit operation ' f'{op} with unsupported gate'
+            )
+
+        a, b = op.qubits
+        return simulator.create_gate_with_drift(a, b, translated).on(a, b)
+
+    return cirq.map_operations(circuit, map_func).unfreeze(copy=False)

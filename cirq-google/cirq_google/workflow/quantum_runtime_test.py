@@ -11,8 +11,10 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import datetime
 import glob
 import re
+import time
 import uuid
 from typing import List, cast, Any
 
@@ -22,25 +24,25 @@ import pytest
 import cirq
 import cirq_google as cg
 from cirq_google.workflow.quantum_executable_test import _get_quantum_executables, _get_example_spec
+from cirq_google.workflow.quantum_runtime import _time_into_runtime_info
 
 
 def cg_assert_equivalent_repr(value):
     """cirq.testing.assert_equivalent_repr with cirq_google.workflow imported."""
-    return cirq.testing.assert_equivalent_repr(
-        value,
-        global_vals={
-            'cirq_google': cg,
-        },
-    )
+    return cirq.testing.assert_equivalent_repr(value, global_vals={'cirq_google': cg})
 
 
 def test_shared_runtime_info():
-    shared_rtinfo = cg.SharedRuntimeInfo(run_id='my run')
+    shared_rtinfo = cg.SharedRuntimeInfo(
+        run_id='my run', run_start_time=datetime.datetime.now(tz=datetime.timezone.utc)
+    )
     cg_assert_equivalent_repr(shared_rtinfo)
 
 
 def test_runtime_info():
     rtinfo = cg.RuntimeInfo(execution_index=5)
+    with _time_into_runtime_info(rtinfo, 'test'):
+        pass
     cg_assert_equivalent_repr(rtinfo)
 
 
@@ -62,24 +64,63 @@ def _assert_json_roundtrip(o, tmpdir):
     assert o == o2
 
 
-def test_quantum_runtime_configuration():
-    rt_config = cg.QuantumRuntimeConfiguration(
-        processor_record=cg.SimulatedProcessorWithLocalDeviceRecord('rainbow'),
-        run_id='unit-test',
-    )
+@pytest.fixture(params=['minimal', 'full'])
+def rt_config(request):
+    if request.param == 'minimal':
+        return cg.QuantumRuntimeConfiguration(
+            processor_record=cg.SimulatedProcessorWithLocalDeviceRecord('rainbow')
+        )
 
+    elif request.param == 'full':
+        return cg.QuantumRuntimeConfiguration(
+            processor_record=cg.SimulatedProcessorWithLocalDeviceRecord('rainbow'),
+            run_id='unit-test',
+            random_seed=52,
+            qubit_placer=cg.RandomDevicePlacer(),
+            target_gateset=cirq.CZTargetGateset(),
+        )
+
+    raise ValueError(f"Unknown flavor {request}")  # coverage: ignore
+
+
+def test_quantum_runtime_configuration_sampler(rt_config):
     sampler = rt_config.processor_record.get_sampler()
     result = sampler.run(cirq.Circuit(cirq.measure(cirq.GridQubit(5, 3), key='z')))
     assert isinstance(result, cirq.Result)
 
+
+def test_quantum_runtime_configuration_device(rt_config):
     assert isinstance(rt_config.processor_record.get_device(), cirq.Device)
 
 
-def test_quantum_runtime_configuration_serialization(tmpdir):
-    rt_config = cg.QuantumRuntimeConfiguration(
-        processor_record=cg.SimulatedProcessorWithLocalDeviceRecord('rainbow'),
-        run_id='unit-test',
+def test_quantum_runtime_configuration_run_id(rt_config):
+    if rt_config.run_id is not None:
+        assert isinstance(rt_config.run_id, str)
+
+
+def test_quantum_runtime_configuration_qubit_placer(rt_config):
+    device = rt_config.processor_record.get_device()
+    c, _ = rt_config.qubit_placer.place_circuit(
+        cirq.Circuit(cirq.measure(cirq.LineQubit(0), cirq.LineQubit(1), key='z')),
+        problem_topology=cirq.LineTopology(n_nodes=2),
+        shared_rt_info=cg.SharedRuntimeInfo(run_id=rt_config.run_id, device=device),
+        rs=np.random.RandomState(rt_config.random_seed),
     )
+    if isinstance(rt_config.qubit_placer, cg.NaiveQubitPlacer):
+        assert all(isinstance(q, cirq.LineQubit) for q in c.all_qubits())
+    else:
+        assert all(isinstance(q, cirq.GridQubit) for q in c.all_qubits())
+
+
+def test_quantum_runtime_configuration_target_gateset(rt_config):
+    c = cirq.Circuit(cirq.CNOT(cirq.LineQubit(0), cirq.LineQubit(1)))
+    if rt_config.target_gateset is not None:
+        # CNOT = H CZ H
+        c = cirq.optimize_for_target_gateset(c, gateset=rt_config.target_gateset)
+        assert len(c) == 3
+
+
+def test_quantum_runtime_configuration_serialization(tmpdir, rt_config):
     cg_assert_equivalent_repr(rt_config)
     _assert_json_roundtrip(rt_config, tmpdir)
 
@@ -107,6 +148,15 @@ def test_executable_group_result(tmpdir):
     _assert_json_roundtrip(egr, tmpdir)
 
 
+def test_timing():
+    rt = cg.RuntimeInfo(execution_index=0)
+    with _time_into_runtime_info(rt, 'test_proc'):
+        time.sleep(0.1)
+
+    assert 'test_proc' in rt.timings_s
+    assert rt.timings_s['test_proc'] > 0.05
+
+
 def _load_result_by_hand(tmpdir: str, run_id: str) -> cg.ExecutableGroupResult:
     """Load `ExecutableGroupResult` "by hand" without using
     `ExecutableGroupResultFilesystemRecord`."""
@@ -126,22 +176,21 @@ def _load_result_by_hand(tmpdir: str, run_id: str) -> cg.ExecutableGroupResult:
     )
 
 
-@pytest.mark.parametrize('run_id_in', ['unit_test_runid', None])
-def test_execute(tmpdir, run_id_in):
-    rt_config = cg.QuantumRuntimeConfiguration(
-        processor_record=cg.SimulatedProcessorWithLocalDeviceRecord('rainbow'),
-        run_id=run_id_in,
-        qubit_placer=cg.NaiveQubitPlacer(),
-    )
+def test_execute(tmpdir, rt_config):
     executable_group = cg.QuantumExecutableGroup(_get_quantum_executables())
     returned_exegroup_result = cg.execute(
         rt_config=rt_config, executable_group=executable_group, base_data_dir=tmpdir
     )
     run_id = returned_exegroup_result.shared_runtime_info.run_id
-    if run_id_in is not None:
-        assert run_id_in == run_id
+    if rt_config.run_id is not None:
+        assert run_id == 'unit-test'
     else:
         assert isinstance(uuid.UUID(run_id), uuid.UUID)
+
+    start_dt = returned_exegroup_result.shared_runtime_info.run_start_time
+    end_dt = returned_exegroup_result.shared_runtime_info.run_end_time
+    assert end_dt > start_dt
+    assert end_dt <= datetime.datetime.now(tz=datetime.timezone.utc)
 
     manual_exegroup_result = _load_result_by_hand(tmpdir, run_id)
     egr_record: cg.ExecutableGroupResultFilesystemRecord = cirq.read_json_gzip(
@@ -159,3 +208,7 @@ def test_execute(tmpdir, run_id_in):
     assert returned_exegroup_result == exegroup_result
     assert manual_exegroup_result == exegroup_result
     assert helper_loaded_result == exegroup_result
+
+    exe_result = returned_exegroup_result.executable_results[0]
+    assert 'placement' in exe_result.runtime_info.timings_s
+    assert 'run' in exe_result.runtime_info.timings_s

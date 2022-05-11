@@ -72,11 +72,7 @@ def _kak_decomposition_to_operations(
         cast(
             Iterable[ops.Operation],
             ops.flatten_op_tree(
-                [
-                    pre,
-                    _non_local_part(q0, q1, kak.interaction_coefficients, atol),
-                    post,
-                ]
+                [pre, _non_local_part(q0, q1, kak.interaction_coefficients, atol), post]
             ),
         )
     )
@@ -118,6 +114,6 @@ def _non_local_part(
 
     return [
         _parity_interaction(q0, q1, x, atol),
-        _parity_interaction(q0, q1, y, atol, ops.Z ** -0.5),
-        _parity_interaction(q0, q1, z, atol, ops.Y ** 0.5),
+        _parity_interaction(q0, q1, y, atol, ops.Z**-0.5),
+        _parity_interaction(q0, q1, z, atol, ops.Y**0.5),
     ]

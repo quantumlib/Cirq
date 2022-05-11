@@ -1,0 +1,32 @@
+{
+  "cirq_type": "cirq.google.EngineResult",
+  "params": {
+    "cirq_type": "ParamResolver",
+    "param_dict": [
+      [
+        {
+          "cirq_type": "sympy.Symbol",
+          "name": "a"
+        },
+        0.5
+      ]
+    ]
+  },
+  "records": {
+    "m": {
+      "packed_digits": "d32a",
+      "binary": true,
+      "dtype": "bool",
+      "shape": [
+        3,
+        1,
+        5
+      ]
+    }
+  },
+  "job_id": "my_job_id",
+  "job_finished_time": {
+    "cirq_type": "datetime.datetime",
+    "timestamp": 1648801425.0
+  }
+}
