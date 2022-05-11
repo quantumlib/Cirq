@@ -136,7 +136,9 @@ def defer_measurements(
 
 @transformer_api.transformer
 def dephase_measurements(
-    circuit: 'cirq.AbstractCircuit', *, context: Optional['cirq.TransformerContext'] = None
+    circuit: 'cirq.AbstractCircuit',
+    *,
+    context: Optional['cirq.TransformerContext'] = transformer_api.TransformerContext(deep=True),
 ) -> 'cirq.Circuit':
     """Changes all measurements to a dephase operation.
 
@@ -147,7 +149,8 @@ def dephase_measurements(
     Args:
         circuit: The circuit to transform. It will not be modified.
         context: `cirq.TransformerContext` storing common configurable options
-            for transformers.
+            for transformers. The default has `deep=True` to ensure
+            measurements at all levels are dephased.
     Returns:
         A copy of the circuit, with dephase operations in place of all
         measurements.
@@ -170,5 +173,52 @@ def dephase_measurements(
 
     ignored = () if context is None else context.tags_to_ignore
     return transformer_primitives.map_operations(
-        circuit, dephase, deep=True, tags_to_ignore=ignored
+        circuit, dephase, deep=context.deep if context else True, tags_to_ignore=ignored
+    ).unfreeze()
+
+
+@transformer_api.transformer
+def drop_terminal_measurements(
+    circuit: 'cirq.AbstractCircuit',
+    *,
+    context: Optional['cirq.TransformerContext'] = transformer_api.TransformerContext(deep=True),
+) -> 'cirq.Circuit':
+    """Removes terminal measurements from a circuit.
+
+    This transformer is helpful when trying to capture the final state vector
+    of a circuit with many terminal measurements, as simulating the circuit
+    with those measurements in place would otherwise collapse the final state.
+
+    Args:
+        circuit: The circuit to transform. It will not be modified.
+        context: `cirq.TransformerContext` storing common configurable options
+            for transformers. The default has `deep=True`, as "terminal
+            measurements" is ill-defined without inspecting subcircuits;
+            passing a context with `deep=False` will return an error.
+    Returns:
+        A copy of the circuit, with identity or X gates in place of terminal
+        measurements.
+    Raises:
+        ValueError: if the circuit contains non-terminal measurements, or if
+            the provided context has`deep=False`.
+    """
+
+    if context is None or not context.deep:
+        raise ValueError(
+            'Context has `deep=False`, but `deep=True` is required to drop terminal measurements.'
+        )
+
+    if not circuit.are_all_measurements_terminal():
+        raise ValueError('Circuit contains a non-terminal measurement.')
+
+    def flip_inversion(op: 'cirq.Operation', _) -> 'cirq.OP_TREE':
+        if isinstance(op.gate, ops.MeasurementGate):
+            return [
+                ops.X(q) if b else ops.I(q) for q, b in zip(op.qubits, op.gate.full_invert_mask())
+            ]
+        return op
+
+    ignored = () if context is None else context.tags_to_ignore
+    return transformer_primitives.map_operations(
+        circuit, flip_inversion, deep=context.deep if context else True, tags_to_ignore=ignored
     ).unfreeze()
