@@ -1,0 +1,46 @@
+[
+  {
+    "cirq_type": "GateFamily",
+    "gate": "XPowGate",
+    "name": "Type GateFamily: cirq.ops.common_gates.XPowGate",
+    "description": "Accepts `cirq.Gate` instances `g` s.t. `isinstance(g, cirq.ops.common_gates.XPowGate)`",
+    "ignore_global_phase": true,
+    "tags_to_accept": [],
+    "tags_to_ignore": []
+  },
+  {
+    "cirq_type": "GateFamily",
+    "gate": {
+      "cirq_type": "_PauliX",
+      "exponent": 1.0,
+      "global_shift": 0.0
+    },
+    "name": "XFamily",
+    "description": "Just the X gate.",
+    "ignore_global_phase": false,
+    "tags_to_accept": [],
+    "tags_to_ignore": []
+  },
+  {
+    "cirq_type": "GateFamily",
+    "gate": "ZPowGate",
+    "name": "Type GateFamily: cirq.ops.common_gates.ZPowGate",
+    "description": "Accepts `cirq.Gate` instances `g` s.t. `isinstance(g, cirq.ops.common_gates.ZPowGate)`\nAccepted tags: ['physical_z']",
+    "ignore_global_phase": true,
+    "tags_to_accept": [
+      "physical_z"
+    ],
+    "tags_to_ignore": []
+  },
+  {
+    "cirq_type": "GateFamily",
+    "gate": "ZPowGate",
+    "name": "Type GateFamily: cirq.ops.common_gates.ZPowGate",
+    "description": "Accepts `cirq.Gate` instances `g` s.t. `isinstance(g, cirq.ops.common_gates.ZPowGate)`\nIgnored tags: ['physical_z']",
+    "ignore_global_phase": true,
+    "tags_to_accept": [],
+    "tags_to_ignore": [
+      "physical_z"
+    ]
+  }
+]

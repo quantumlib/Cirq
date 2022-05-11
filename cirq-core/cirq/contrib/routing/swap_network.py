@@ -56,10 +56,6 @@ class SwapNetwork:
             return NotImplemented
         return self.circuit == other.circuit and self.initial_mapping == other.initial_mapping
 
-    @property
-    def device(self) -> 'cirq.Device':
-        return self.circuit.device
-
     def __str__(self) -> str:
         circuit = self.circuit.copy()
         cca.display_mapping(circuit, self.initial_mapping)

@@ -1,0 +1,1 @@
+cirq_google.QuantumRuntimeConfiguration(processor_record=cirq_google.SimulatedProcessorRecord(processor_id='rainbow', noise_strength=0), run_id='unit-test', random_seed=None, qubit_placer=cirq_google.NaiveQubitPlacer(), target_gateset=cirq.CZTargetGateset(atol=1e-08, allow_partial_czs=False))

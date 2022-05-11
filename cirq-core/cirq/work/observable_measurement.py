@@ -18,22 +18,12 @@ import itertools
 import os
 import tempfile
 import warnings
-from typing import (
-    Optional,
-    Union,
-    Iterable,
-    Dict,
-    List,
-    Tuple,
-    TYPE_CHECKING,
-    Set,
-    Sequence,
-    Any,
-)
+from typing import Any, Dict, Iterable, List, Optional, Sequence, Set, Tuple, TYPE_CHECKING, Union
 
 import numpy as np
 import pandas as pd
 import sympy
+
 from cirq import circuits, study, ops, value, protocols
 from cirq._doc import document
 from cirq.work.observable_grouping import group_settings_greedy, GROUPER_T
@@ -42,11 +32,7 @@ from cirq.work.observable_measurement_data import (
     ObservableMeasuredResult,
     flatten_grouped_results,
 )
-from cirq.work.observable_settings import (
-    InitObsSetting,
-    observables_to_settings,
-    _MeasurementSpec,
-)
+from cirq.work.observable_settings import InitObsSetting, observables_to_settings, _MeasurementSpec
 
 if TYPE_CHECKING:
     import cirq
@@ -64,9 +50,7 @@ document(
 
 
 def _with_parameterized_layers(
-    circuit: 'cirq.AbstractCircuit',
-    qubits: Sequence['cirq.Qid'],
-    needs_init_layer: bool,
+    circuit: 'cirq.AbstractCircuit', qubits: Sequence['cirq.Qid'], needs_init_layer: bool
 ) -> 'cirq.Circuit':
     """Return a copy of the input circuit with parameterized single-qubit rotations.
 
@@ -79,11 +63,11 @@ def _with_parameterized_layers(
     "{qubit}-Xf" and "{qubit}-Yf" and are use to change the frame of the
     qubit before measurement, effectively measuring in bases other than Z.
     """
-    x_beg_mom = ops.Moment([ops.X(q) ** sympy.Symbol(f'{q}-Xi') for q in qubits])
-    y_beg_mom = ops.Moment([ops.Y(q) ** sympy.Symbol(f'{q}-Yi') for q in qubits])
-    x_end_mom = ops.Moment([ops.X(q) ** sympy.Symbol(f'{q}-Xf') for q in qubits])
-    y_end_mom = ops.Moment([ops.Y(q) ** sympy.Symbol(f'{q}-Yf') for q in qubits])
-    meas_mom = ops.Moment([ops.measure(*qubits, key='z')])
+    x_beg_mom = circuits.Moment([ops.X(q) ** sympy.Symbol(f'{q}-Xi') for q in qubits])
+    y_beg_mom = circuits.Moment([ops.Y(q) ** sympy.Symbol(f'{q}-Yi') for q in qubits])
+    x_end_mom = circuits.Moment([ops.X(q) ** sympy.Symbol(f'{q}-Xf') for q in qubits])
+    y_end_mom = circuits.Moment([ops.Y(q) ** sympy.Symbol(f'{q}-Yf') for q in qubits])
+    meas_mom = circuits.Moment([ops.measure(*qubits, key='z')])
     if needs_init_layer:
         total_circuit = circuits.Circuit([x_beg_mom, y_beg_mom])
         total_circuit += circuit.unfreeze()
@@ -348,22 +332,12 @@ def _subdivide_meas_specs(
     flippy_mspecs = []
     for meas_spec in meas_specs:
         all_normal = np.zeros(n_qubits, dtype=bool)
-        flippy_mspecs.append(
-            _FlippyMeasSpec(
-                meas_spec=meas_spec,
-                flips=all_normal,
-                qubits=qubits,
-            )
-        )
+        flippy_mspecs.append(_FlippyMeasSpec(meas_spec=meas_spec, flips=all_normal, qubits=qubits))
 
         if readout_symmetrization:
             all_flipped = np.ones(n_qubits, dtype=bool)
             flippy_mspecs.append(
-                _FlippyMeasSpec(
-                    meas_spec=meas_spec,
-                    flips=all_flipped,
-                    qubits=qubits,
-                )
+                _FlippyMeasSpec(meas_spec=meas_spec, flips=all_flipped, qubits=qubits)
             )
 
     if readout_symmetrization:
@@ -379,8 +353,6 @@ def _to_sweep(param_tuples):
     return to_sweep
 
 
-# TODO(#3388) Add documentation for Raises.
-# pylint: disable=missing-raises-doc
 def _parse_checkpoint_options(
     checkpoint: bool, checkpoint_fn: Optional[str], checkpoint_other_fn: Optional[str]
 ) -> Tuple[Optional[str], Optional[str]]:
@@ -392,6 +364,11 @@ def _parse_checkpoint_options(
     Returns:
         checkpoint_fn, checkpoint_other_fn: Parsed or default filenames for primary and previous
             checkpoint files.
+
+    Raises:
+        ValueError: If a `checkpoint_fn` was specified, but `checkpoint` was False, if the
+            `checkpoint_fn` is not of the form filename.json, or if `checkout_fn` and
+            `checkpoint_other_fn` are the same filename.
     """
     if not checkpoint:
         if checkpoint_fn is not None or checkpoint_other_fn is not None:
@@ -481,7 +458,6 @@ class CheckpointFileOptions:
         protocols.to_json(obj, self.checkpoint_fn)
 
 
-# pylint: enable=missing-raises-doc
 def _needs_init_layer(grouped_settings: Dict[InitObsSetting, List[InitObsSetting]]) -> bool:
     """Helper function to go through init_states and determine if any of them need an
     initialization layer of single-qubit gates."""
@@ -491,8 +467,6 @@ def _needs_init_layer(grouped_settings: Dict[InitObsSetting, List[InitObsSetting
     return False
 
 
-# TODO(#3388) Add documentation for Raises.
-# pylint: disable=missing-raises-doc
 def measure_grouped_settings(
     circuit: 'cirq.AbstractCircuit',
     grouped_settings: Dict[InitObsSetting, List[InitObsSetting]],
@@ -535,6 +509,10 @@ def measure_grouped_settings(
             data for each iteration of the sampling loop. See the documentation
             for `CheckpointFileOptions` for more. Load in these results with
             `cirq.read_json`.
+
+    Raises:
+        ValueError: If readout calibration is specified, but `readout_symmetrization
+            is not True.
     """
     if readout_calibrations is not None and not readout_symmetrization:
         raise ValueError("Readout calibration only works if `readout_symmetrization` is enabled.")
@@ -604,12 +582,7 @@ def measure_grouped_settings(
     return list(accumulators.values())
 
 
-# pylint: enable=missing-raises-doc
-
-
-_GROUPING_FUNCS: Dict[str, GROUPER_T] = {
-    'greedy': group_settings_greedy,
-}
+_GROUPING_FUNCS: Dict[str, GROUPER_T] = {'greedy': group_settings_greedy}
 
 
 def _parse_grouper(grouper: Union[str, GROUPER_T] = group_settings_greedy) -> GROUPER_T:
@@ -624,8 +597,7 @@ def _parse_grouper(grouper: Union[str, GROUPER_T] = group_settings_greedy) -> GR
 
 
 def _get_all_qubits(
-    circuit: 'cirq.AbstractCircuit',
-    observables: Iterable['cirq.PauliString'],
+    circuit: 'cirq.AbstractCircuit', observables: Iterable['cirq.PauliString']
 ) -> List['cirq.Qid']:
     """Helper function for `measure_observables` to get all qubits from a circuit and a
     collection of observables."""

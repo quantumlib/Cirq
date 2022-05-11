@@ -19,6 +19,7 @@ import pytest
 
 import cirq
 import cirq.ion as ci
+import cirq.testing
 
 
 def ion_device(chain_length: int, use_timedelta=False) -> ci.IonDevice:
@@ -52,8 +53,24 @@ def test_init():
     assert d.duration_of(cirq.measure(q0)) == 100 * ms
     assert d.duration_of(cirq.measure(q0, q1)) == 100 * ms
     assert d.duration_of(cirq.ops.XX(q0, q1)) == 200 * ms
-    with pytest.raises(ValueError):
-        _ = d.duration_of(cirq.SingleQubitGate().on(q0))
+    with pytest.raises(ValueError, match="Unsupported gate type"):
+        _ = d.duration_of(cirq.I(q0))
+
+    with pytest.raises(TypeError, match="NamedQubit"):
+        _ = cirq.IonDevice(
+            measurement_duration=ms,
+            twoq_gates_duration=ms,
+            oneq_gates_duration=ms,
+            qubits=[cirq.LineQubit(0), cirq.NamedQubit("a")],
+        )
+
+
+def test_metadata():
+    d = ion_device(3)
+    assert d.metadata.qubit_set == frozenset(
+        {cirq.LineQubit(0), cirq.LineQubit(1), cirq.LineQubit(2)}
+    )
+    assert len(d.metadata.nx_graph.edges()) == 3
 
 
 def test_init_timedelta():
@@ -69,17 +86,18 @@ def test_init_timedelta():
     assert d.duration_of(cirq.measure(q0, q1)) == 100 * ms
     assert d.duration_of(cirq.ops.XX(q0, q1)) == 200 * ms
     with pytest.raises(ValueError):
-        _ = d.duration_of(cirq.SingleQubitGate().on(q0))
+        _ = d.duration_of(cirq.testing.SingleQubitGate().on(q0))
 
 
-def test_decomposition():
+def test_decomposition_deprecated():
     d = ion_device(3)
     q0 = cirq.LineQubit(0)
     q1 = cirq.LineQubit(1)
-    assert d.decompose_operation(cirq.H(q0)) == [
-        cirq.rx(np.pi * 1.0).on(cirq.LineQubit(0)),
-        cirq.ry(np.pi * -0.5).on(cirq.LineQubit(0)),
-    ]
+    with cirq.testing.assert_deprecated('ConvertToIonGates', deadline='v0.15'):
+        assert d.decompose_operation(cirq.H(q0)) == [
+            cirq.rx(np.pi * 1.0).on(cirq.LineQubit(0)),
+            cirq.ry(np.pi * -0.5).on(cirq.LineQubit(0)),
+        ]
     circuit = cirq.Circuit()
     circuit.append([cirq.X(q0), cirq.CNOT(q0, q1)])
     ion_circuit = d.decompose_circuit(circuit)
@@ -147,21 +165,22 @@ def test_validate_operation_supported_gate():
         d.validate_operation(NotImplementedOperation())
 
 
-def test_can_add_operation_into_moment():
-    d = ion_device(3)
-    q0 = cirq.LineQubit(0)
-    q1 = cirq.LineQubit(1)
-    q2 = cirq.LineQubit(2)
-    q3 = cirq.LineQubit(3)
-    circuit = cirq.Circuit()
-    circuit.append(cirq.XX(q0, q1))
-    for moment in circuit:
-        assert not d.can_add_operation_into_moment(cirq.XX(q2, q0), moment)
-        assert not d.can_add_operation_into_moment(cirq.XX(q1, q2), moment)
-        assert d.can_add_operation_into_moment(cirq.XX(q2, q3), moment)
-        assert d.can_add_operation_into_moment(cirq.Z(q3), moment)
-    circuit = cirq.Circuit([cirq.X(q0)])
-    assert d.can_add_operation_into_moment(cirq.XX(q1, q2), circuit[0])
+def test_can_add_operation_into_moment_device_deprecated():
+    with cirq.testing.assert_deprecated('can_add_operation_into_moment', deadline='v0.15', count=6):
+        d = ion_device(3)
+        q0 = cirq.LineQubit(0)
+        q1 = cirq.LineQubit(1)
+        q2 = cirq.LineQubit(2)
+        q3 = cirq.LineQubit(3)
+        circuit = cirq.Circuit()
+        circuit.append(cirq.XX(q0, q1))
+        for moment in circuit:
+            assert not d.can_add_operation_into_moment(cirq.XX(q2, q0), moment)
+            assert not d.can_add_operation_into_moment(cirq.XX(q1, q2), moment)
+            assert d.can_add_operation_into_moment(cirq.XX(q2, q3), moment)
+            assert d.can_add_operation_into_moment(cirq.Z(q3), moment)
+        circuit = cirq.Circuit([cirq.X(q0)])
+        assert d.can_add_operation_into_moment(cirq.XX(q1, q2), circuit[0])
 
 
 def test_ion_device_eq():
@@ -183,12 +202,12 @@ def test_validate_circuit_repeat_measurement_keys():
 
 
 def test_ion_device_str():
-    assert (
-        str(ion_device(3)).strip()
-        == """
-0───1───2
-    """.strip()
-    )
+    assert str(ion_device(3)) == "0───1───2"
+
+
+def test_ion_device_pretty_repr():
+    cirq.testing.assert_repr_pretty(ion_device(3), "0───1───2")
+    cirq.testing.assert_repr_pretty(ion_device(3), "IonDevice(...)", cycle=True)
 
 
 def test_at():
@@ -198,9 +217,6 @@ def test_at():
     assert d.at(2) == cirq.LineQubit(2)
 
 
-def test_qubit_set():
-    assert ion_device(3).qubit_set() == frozenset(cirq.LineQubit.range(3))
-
-
-def test_qid_pairs():
-    assert len(ion_device(10).qid_pairs()) == 45
+def test_qubit_set_deprecated():
+    with cirq.testing.assert_deprecated('qubit_set', deadline='v0.15', count=2):
+        assert ion_device(3).qubit_set() == frozenset(cirq.LineQubit.range(3))

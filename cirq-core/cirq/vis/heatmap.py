@@ -82,8 +82,6 @@ class Heatmap:
     def __init__(self, value_map: Mapping[grid_qubit.GridQubit, SupportsFloat], **kwargs):
         pass
 
-    # TODO(#3388) Add documentation for Args.
-    # pylint: disable=missing-param-doc
     def __init__(
         self,
         value_map: Union[
@@ -97,31 +95,31 @@ class Heatmap:
         the plot.
 
         Args:
-            value_map: dictionary
-                A dictionary of qubits or QubitTuples as keys and corresponding magnitude as float
-                values. It corresponds to the data which should be plotted as a heatmap.
+            value_map: A dictionary of qubits or QubitTuples as keys and corresponding magnitude
+                as float values. It corresponds to the data which should be plotted as a heatmap.
+            **kwargs: Optional kwargs including
+                title: str, default = None
+                plot_colorbar: bool, default = True
 
-            title: str, default = None
-            plot_colorbar: bool, default = True
+                annotation_map: dictionary,
+                    A dictionary of QubitTuples as keys and corresponding annotation str as values.
+                    It corresponds to the text that should be added on top of each heatmap
+                    polygon unit.
+                annotation_format: str, default = '.2g'
+                    Formatting string using which annotation_map will be implicitly constructed by
+                    applying format(value, annotation_format) for each key in value_map.
+                    This is ignored if annotation_map is explicitly specified.
+                annotation_text_kwargs: Matplotlib Text **kwargs,
 
-            annotation_map: dictionary,
-                A dictionary of QubitTuples as keys and corresponding annotation str as values. It
-                corresponds to the text that should be added on top of each heatmap polygon unit.
-            annotation_format: str, default = '.2g'
-                Formatting string using which annotation_map will be implicitly contstructed by
-                applying format(value, annotation_format) for each key in value_map.
-                This is ignored if annotation_map is explicitly specified.
-            annotation_text_kwargs: Matplotlib Text **kwargs,
-
-            colorbar_position: {'right', 'left', 'top', 'bottom'}, default = 'right'
-            colorbar_size: str, default = '5%'
-            colorbar_pad: str, default = '2%'
-            colorbar_options: Matplotlib colorbar **kwargs, default = None,
+                colorbar_position: {'right', 'left', 'top', 'bottom'}, default = 'right'
+                colorbar_size: str, default = '5%'
+                colorbar_pad: str, default = '2%'
+                colorbar_options: Matplotlib colorbar **kwargs, default = None,
 
 
-            collection_options: Matplotlib PolyCollection **kwargs, default
-                                {"cmap" : "viridis"}
-            vmin, vmax: colormap scaling floats, default = None
+                collection_options: Matplotlib PolyCollection **kwargs, default
+                                    {"cmap" : "viridis"}
+                vmin, vmax: colormap scaling floats, default = None
         """
         self._value_map: Mapping[QubitTuple, SupportsFloat] = {
             k if isinstance(k, tuple) else (k,): v for k, v in value_map.items()
@@ -141,7 +139,6 @@ class Heatmap:
         )
         self._config.update(kwargs)
 
-    # pylint: enable=function-redefined,missing-param-doc
     def _extra_valid_kwargs(self) -> List[str]:
         return []
 
@@ -153,11 +150,7 @@ class Heatmap:
             "colorbar_pad",
             "colorbar_options",
         ]
-        valid_collection_kwargs = [
-            "collection_options",
-            "vmin",
-            "vmax",
-        ]
+        valid_collection_kwargs = ["collection_options", "vmin", "vmax"]
         valid_heatmap_kwargs = [
             "title",
             "annotation_map",
@@ -184,12 +177,7 @@ class Heatmap:
         qubit = qubits[0]
         x, y = float(qubit.row), float(qubit.col)
         return (
-            [
-                (y - 0.5, x - 0.5),
-                (y - 0.5, x + 0.5),
-                (y + 0.5, x + 0.5),
-                (y + 0.5, x - 0.5),
-            ],
+            [(y - 0.5, x - 0.5), (y - 0.5, x + 0.5), (y + 0.5, x + 0.5), (y + 0.5, x - 0.5)],
             Point(y, x),
         )
 
@@ -258,8 +246,7 @@ class Heatmap:
         # Step-1: Convert value_map to a list of polygons to plot.
         polygon_list = self._get_polygon_units()
         collection: mpl_collections.Collection = mpl_collections.PolyCollection(
-            [c.polygon for c in polygon_list],
-            **self._config.get('collection_options', {}),
+            [c.polygon for c in polygon_list], **self._config.get('collection_options', {})
         )
         collection.set_clim(self._config.get('vmin'), self._config.get('vmax'))
         collection.set_array(np.array([c.value for c in polygon_list]))
@@ -298,7 +285,7 @@ class Heatmap:
         Args:
             ax: the Axes to plot on. If not given, a new figure is created,
                 plotted on, and shown.
-            kwargs: The optional keyword arguments are used to temporarily
+            **kwargs: The optional keyword arguments are used to temporarily
                 override the values present in the heatmap config. See
                 __init__ for more details on the allowed arguments.
         Returns:
@@ -320,8 +307,6 @@ class Heatmap:
 class TwoQubitInteractionHeatmap(Heatmap):
     """Visualizing interactions between neighboring qubits on a 2D grid."""
 
-    # TODO(#3388) Add documentation for Args.
-    # pylint: disable=missing-param-doc
     def __init__(self, value_map: Mapping[QubitTuple, SupportsFloat], **kwargs):
         """Heatmap to display two-qubit interaction fidelities.
 
@@ -330,16 +315,14 @@ class TwoQubitInteractionHeatmap(Heatmap):
         plus the following.
 
         Args:
-            coupler_margin: float, default = 0.03
-            coupler_width: float, default = 0.6
+            value_map: A map from a qubit tuple location to a value.
+            **kwargs: Optinal kwargs including
+                coupler_margin: float, default = 0.03
+                coupler_width: float, default = 0.6
         """
-        self._config: Dict[str, Any] = {
-            "coupler_margin": 0.03,
-            "coupler_width": 0.6,
-        }
+        self._config: Dict[str, Any] = {"coupler_margin": 0.03, "coupler_width": 0.6}
         super().__init__(value_map, **kwargs)
 
-    # pylint: enable=missing-param-doc
     def _extra_valid_kwargs(self) -> List[str]:
         return ["coupler_margin", "coupler_width"]
 
@@ -388,7 +371,7 @@ class TwoQubitInteractionHeatmap(Heatmap):
         Args:
             ax: the Axes to plot on. If not given, a new figure is created,
                 plotted on, and shown.
-            kwargs: The optional keyword arguments are used to temporarily
+            **kwargs: The optional keyword arguments are used to temporarily
                 override the values present in the heatmap config. See
                 __init__ for more details on the allowed arguments.
         Returns:

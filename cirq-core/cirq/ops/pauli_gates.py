@@ -36,7 +36,7 @@ class Pauli(raw_types.Gate, metaclass=abc.ABCMeta):
     of private subclasses are the X, Y, or Z Pauli gates defined below.
     """
 
-    _XYZ = None  # type: Tuple[Pauli, Pauli, Pauli]
+    _XYZ: Tuple['Pauli', 'Pauli', 'Pauli']
 
     @staticmethod
     def by_index(index: int) -> 'Pauli':
@@ -53,7 +53,9 @@ class Pauli(raw_types.Gate, metaclass=abc.ABCMeta):
     def num_qubits(self):
         return 1
 
-    def _commutes_(self, other: Any, atol: float) -> Union[bool, NotImplementedType, None]:
+    def _commutes_(
+        self, other: Any, *, atol: float = 1e-8
+    ) -> Union[bool, NotImplementedType, None]:
         if not isinstance(other, Pauli):
             return NotImplemented
         return self is other
@@ -84,13 +86,14 @@ class Pauli(raw_types.Gate, metaclass=abc.ABCMeta):
             return NotImplemented
         return (other._index - self._index) % 3 == 1
 
-    # TODO(#3388) Add documentation for Raises.
-    # pylint: disable=missing-raises-doc
     def on(self, *qubits: 'cirq.Qid') -> 'SingleQubitPauliStringGateOperation':
         """Returns an application of this gate to the given qubits.
 
         Args:
             *qubits: The collection of qubits to potentially apply the gate to.
+
+        Raises:
+            ValueError: If more than one qubit is acted upon.
         """
         if len(qubits) != 1:
             raise ValueError(f'Expected a single qubit, got <{qubits!r}>.')
@@ -98,7 +101,6 @@ class Pauli(raw_types.Gate, metaclass=abc.ABCMeta):
 
         return SingleQubitPauliStringGateOperation(self, qubits[0])
 
-    # pylint: enable=missing-raises-doc
     @property
     def _canonical_exponent(self):
         """Overrides EigenGate._canonical_exponent in subclasses."""
@@ -126,10 +128,7 @@ class _PauliX(Pauli, common_gates.XPowGate):
     def basis(self: '_PauliX') -> Dict[int, '_XEigenState']:
         from cirq.value.product_state import _XEigenState
 
-        return {
-            +1: _XEigenState(+1),
-            -1: _XEigenState(-1),
-        }
+        return {+1: _XEigenState(+1), -1: _XEigenState(-1)}
 
 
 class _PauliY(Pauli, common_gates.YPowGate):
@@ -153,10 +152,7 @@ class _PauliY(Pauli, common_gates.YPowGate):
     def basis(self: '_PauliY') -> Dict[int, '_YEigenState']:
         from cirq.value.product_state import _YEigenState
 
-        return {
-            +1: _YEigenState(+1),
-            -1: _YEigenState(-1),
-        }
+        return {+1: _YEigenState(+1), -1: _YEigenState(-1)}
 
 
 class _PauliZ(Pauli, common_gates.ZPowGate):
@@ -180,45 +176,57 @@ class _PauliZ(Pauli, common_gates.ZPowGate):
     def basis(self: '_PauliZ') -> Dict[int, '_ZEigenState']:
         from cirq.value.product_state import _ZEigenState
 
-        return {
-            +1: _ZEigenState(+1),
-            -1: _ZEigenState(-1),
-        }
+        return {+1: _ZEigenState(+1), -1: _ZEigenState(-1)}
 
 
 X = _PauliX()
 document(
     X,
-    """The Pauli X gate.
+    r"""The Pauli X gate.
 
-    Matrix:
+    This is the `exponent=1` instance of the `cirq.XPowGate`.
 
-        [[0, 1],
-         [1, 0]]
+    The untary matrix of `cirq.X` is:
+    $$
+    \begin{bmatrix}
+        0 & 1 \\
+        1 & 0
+    \end{bmatrix}
+    $$
     """,
 )
 
 Y = _PauliY()
 document(
     Y,
-    """The Pauli Y gate.
+    r"""The Pauli Y gate.
 
-    Matrix:
+    This is the `exponent=1` instance of the `cirq.YPowGate`.
 
-        [[0, -i],
-         [i, 0]]
+    The unitary matrix of `cirq.Y` is:
+    $$
+    \begin{bmatrix}
+        0 & -i \\
+        i & 0
+    \end{bmatrix}
+    $$
     """,
 )
 
 Z = _PauliZ()
 document(
     Z,
-    """The Pauli Z gate.
+    r"""The Pauli Z gate.
 
-    Matrix:
+    This is the `exponent=1` instance of the `cirq.ZPowGate`.
 
-        [[1, 0],
-         [0, -1]]
+    The unitary matrix of `cirq.Z` is:
+    $$
+    \begin{bmatrix}
+        1 & 0 \\
+        0 & -1
+    \end{bmatrix}
+    $$
     """,
 )
 

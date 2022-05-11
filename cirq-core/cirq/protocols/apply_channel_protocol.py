@@ -20,10 +20,7 @@ from typing_extensions import Protocol
 
 from cirq import linalg
 from cirq._doc import doc_private
-from cirq.protocols.apply_unitary_protocol import (
-    apply_unitary,
-    ApplyUnitaryArgs,
-)
+from cirq.protocols.apply_unitary_protocol import apply_unitary, ApplyUnitaryArgs
 from cirq.protocols.kraus_protocol import kraus
 from cirq.protocols import qid_shape_protocol
 from cirq.type_workarounds import NotImplementedType
@@ -34,7 +31,7 @@ from cirq.type_workarounds import NotImplementedType
 # that case. It is checked for using `is`, so it won't have a false positive if
 # the user provides a different np.array([]) value.
 
-RaiseTypeErrorIfNotProvided = np.array([])  # type: np.ndarray
+RaiseTypeErrorIfNotProvided: np.ndarray = np.array([])
 
 TDefault = TypeVar('TDefault')
 
@@ -235,9 +232,8 @@ def apply_channel(
         )
 
     # Check if the specialized method is present.
-    func = getattr(val, '_apply_channel_', None)
-    if func is not None:
-        result = func(args)
+    if hasattr(val, '_apply_channel_'):
+        result = val._apply_channel_(args)
         if result is not NotImplemented and result is not None:
 
             def err_str(buf_num_str):

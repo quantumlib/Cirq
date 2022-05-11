@@ -13,21 +13,9 @@
 # limitations under the License.
 """Device object for converting from device specification protos"""
 
-from typing import (
-    Any,
-    Callable,
-    cast,
-    Dict,
-    Iterable,
-    Optional,
-    List,
-    Set,
-    Tuple,
-    Type,
-    FrozenSet,
-)
-
+from typing import Any, Callable, cast, Dict, Iterable, Optional, List, Set, Tuple, Type, FrozenSet
 import cirq
+from cirq import _compat
 from cirq_google.serialization import serializable_gate_set
 from cirq_google.api import v2
 
@@ -92,9 +80,7 @@ class SerializableDevice(cirq.Device):
     """
 
     def __init__(
-        self,
-        qubits: List[cirq.Qid],
-        gate_definitions: Dict[Type[cirq.Gate], List[_GateDefinition]],
+        self, qubits: List[cirq.Qid], gate_definitions: Dict[Type[cirq.Gate], List[_GateDefinition]]
     ):
         """Constructor for SerializableDevice using python objects.
 
@@ -108,26 +94,54 @@ class SerializableDevice(cirq.Device):
         """
         self.qubits = qubits
         self.gate_definitions = gate_definitions
+        self._metadata = cirq.GridDeviceMetadata(
+            qubit_pairs=[
+                (pair[0], pair[1])
+                for gate_defs in gate_definitions.values()
+                for gate_def in gate_defs
+                if gate_def.number_of_qubits == 2
+                for pair in gate_def.target_set
+                if len(pair) == 2 and pair[0] < pair[1]
+            ],
+            gateset=cirq.Gateset(
+                *[
+                    g
+                    for g in gate_definitions.keys()
+                    if isinstance(g, (cirq.Gate, type(cirq.Gate)))
+                ],
+                cirq.GlobalPhaseGate,
+            ),
+            gate_durations=None,
+        )
 
+    @property
+    def metadata(self) -> cirq.GridDeviceMetadata:
+        """Get metadata information for device."""
+        return self._metadata
+
+    @_compat.deprecated(fix='Please use metadata.qubit_set if applicable.', deadline='v0.15')
     def qubit_set(self) -> FrozenSet[cirq.Qid]:
         return frozenset(self.qubits)
 
-    # TODO(#3388) Add summary line to docstring.
-    # TODO(#3388) Add documentation for Raises.
-    # pylint: disable=docstring-first-line-empty,missing-raises-doc
     @classmethod
     def from_proto(
         cls,
         proto: v2.device_pb2.DeviceSpecification,
         gate_sets: Iterable[serializable_gate_set.SerializableGateSet],
     ) -> 'SerializableDevice':
-        """
+        """Create a `SerializableDevice` from a proto.
 
         Args:
             proto: A proto describing the qubits on the device, as well as the
                 supported gates and timing information.
             gate_sets: SerializableGateSets that can translate the gate_ids
                 into cirq Gates.
+
+        Raises:
+            NotImplementedError: If the target ordering mixes `SUBSET_PERMUTATION`
+                and other types of ordering.
+            ValueError: If the serializable gate set does not have a serialized id
+                that matches that in the device specification.
         """
 
         # Store target sets, since they are referred to by name later
@@ -183,11 +197,9 @@ class SerializableDevice(cirq.Device):
                     gates_by_type[internal_type].append(gate_def)
 
         return SerializableDevice(
-            qubits=[_qid_from_str(q) for q in proto.valid_qubits],
-            gate_definitions=gates_by_type,
+            qubits=[_qid_from_str(q) for q in proto.valid_qubits], gate_definitions=gates_by_type
         )
 
-    # pylint: enable=docstring-first-line-empty,missing-raises-doc
     @classmethod
     def _create_target_set(cls, ts: v2.device_pb2.TargetSet) -> Set[Tuple[cirq.Qid, ...]]:
         """Transform a TargetSet proto into a set of qubit tuples"""
@@ -237,24 +249,6 @@ class SerializableDevice(cirq.Device):
             )
 
         return super().__str__()
-
-    def qid_pairs(self) -> FrozenSet['cirq.SymmetricalQidPair']:
-        """Returns a list of qubit edges on the device, defined by the gate
-        definitions.
-
-        Returns:
-            The list of qubit edges on the device.
-        """
-        return frozenset(
-            [
-                cirq.SymmetricalQidPair(pair[0], pair[1])
-                for gate_defs in self.gate_definitions.values()
-                for gate_def in gate_defs
-                if gate_def.number_of_qubits == 2
-                for pair in gate_def.target_set
-                if len(pair) == 2 and pair[0] < pair[1]
-            ]
-        )
 
     def _repr_pretty_(self, p: Any, cycle: bool) -> None:
         """Creates ASCII diagram for Jupyter, IPython, etc."""

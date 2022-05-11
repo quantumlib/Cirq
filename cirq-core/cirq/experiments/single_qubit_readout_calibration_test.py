@@ -11,7 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from typing import List
+from typing import Sequence
 import pytest
 
 import numpy as np
@@ -44,20 +44,17 @@ class NoisySingleQubitReadoutSampler(cirq.Sampler):
         self.simulator = cirq.Simulator(seed=self.prng, split_untangled_states=False)
 
     def run_sweep(
-        self,
-        program: 'cirq.AbstractCircuit',
-        params: cirq.Sweepable,
-        repetitions: int = 1,
-    ) -> List[cirq.Result]:
+        self, program: 'cirq.AbstractCircuit', params: cirq.Sweepable, repetitions: int = 1
+    ) -> Sequence[cirq.Result]:
         results = self.simulator.run_sweep(program, params, repetitions)
         for result in results:
             for bits in result.measurements.values():
-                with np.nditer(bits, op_flags=['readwrite']) as it:
-                    for x in it:
-                        if x == 0 and self.prng.uniform() < self.p0:
-                            x[...] = 1
-                        elif self.prng.uniform() < self.p1:
-                            x[...] = 0
+                rand_num = self.prng.uniform(size=bits.shape)
+                should_flip = np.logical_or(
+                    np.logical_and(bits == 0, rand_num < self.p0),
+                    np.logical_and(bits == 1, rand_num < self.p1),
+                )
+                bits[should_flip] ^= 1
         return results
 
 
@@ -140,11 +137,7 @@ def test_estimate_parallel_readout_errors_zero_reps():
     qubits = cirq.LineQubit.range(10)
     with pytest.raises(ValueError, match='non-zero repetition'):
         _ = cirq.estimate_parallel_single_qubit_readout_errors(
-            cirq.ZerosSampler(),
-            qubits=qubits,
-            repetitions=0,
-            trials=35,
-            trials_per_batch=10,
+            cirq.ZerosSampler(), qubits=qubits, repetitions=0, trials=35, trials_per_batch=10
         )
 
 
@@ -152,11 +145,7 @@ def test_estimate_parallel_readout_errors_zero_trials():
     qubits = cirq.LineQubit.range(10)
     with pytest.raises(ValueError, match='non-zero trials'):
         _ = cirq.estimate_parallel_single_qubit_readout_errors(
-            cirq.ZerosSampler(),
-            qubits=qubits,
-            repetitions=1000,
-            trials=0,
-            trials_per_batch=10,
+            cirq.ZerosSampler(), qubits=qubits, repetitions=1000, trials=0, trials_per_batch=10
         )
 
 
@@ -164,11 +153,7 @@ def test_estimate_parallel_readout_errors_zero_batch():
     qubits = cirq.LineQubit.range(10)
     with pytest.raises(ValueError, match='non-zero trials_per_batch'):
         _ = cirq.estimate_parallel_single_qubit_readout_errors(
-            cirq.ZerosSampler(),
-            qubits=qubits,
-            repetitions=1000,
-            trials=10,
-            trials_per_batch=0,
+            cirq.ZerosSampler(), qubits=qubits, repetitions=1000, trials=10, trials_per_batch=0
         )
 
 

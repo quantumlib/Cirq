@@ -19,11 +19,7 @@ import cirq
 
 @pytest.mark.parametrize(
     'key',
-    [
-        'q0_1_0',
-        cirq.MeasurementKey(name='q0_1_0'),
-        cirq.MeasurementKey(path=('a', 'b'), name='c'),
-    ],
+    ['q0_1_0', cirq.MeasurementKey(name='q0_1_0'), cirq.MeasurementKey(path=('a', 'b'), name='c')],
 )
 def test_eval_repr(key):
     # Basic safeguard against repr-inequality.
@@ -43,8 +39,13 @@ def test_init(observable, key):
     assert g.num_qubits() == len(observable)
     assert g.key == 'a'
     assert g.mkey == cirq.MeasurementKey('a')
-    assert g._observable == tuple(observable)
+    assert g._observable == cirq.DensePauliString(observable)
     assert cirq.qid_shape(g) == (2,) * len(observable)
+
+
+def test_measurement_has_unitary_returns_false():
+    gate = cirq.PauliMeasurementGate([cirq.X], 'a')
+    assert not cirq.has_unitary(gate)
 
 
 def test_measurement_eq():
@@ -123,11 +124,7 @@ b: ───M(Y)───────────
 @pytest.mark.parametrize('observable', [[cirq.X], [cirq.X, cirq.Y, cirq.Z]])
 @pytest.mark.parametrize(
     'key',
-    [
-        'q0_1_0',
-        cirq.MeasurementKey(name='q0_1_0'),
-        cirq.MeasurementKey(path=('a', 'b'), name='c'),
-    ],
+    ['q0_1_0', cirq.MeasurementKey(name='q0_1_0'), cirq.MeasurementKey(path=('a', 'b'), name='c')],
 )
 def test_consistent_protocols(observable, key):
     gate = cirq.PauliMeasurementGate(observable, key=key)
@@ -162,6 +159,9 @@ def test_bad_observable_raises():
     with pytest.raises(ValueError, match=r'Pauli observable .* must be Iterable\[`cirq.Pauli`\]'):
         _ = cirq.PauliMeasurementGate(cirq.DensePauliString('XYZI'))
 
+    with pytest.raises(ValueError, match=r'must have coefficient \+1/-1.'):
+        _ = cirq.PauliMeasurementGate(cirq.DensePauliString('XYZ', coefficient=1j))
+
 
 def test_with_observable():
     o1 = [cirq.Z, cirq.Y, cirq.X]
@@ -170,3 +170,20 @@ def test_with_observable():
     g2 = cirq.PauliMeasurementGate(o2, key='a')
     assert g1.with_observable(o2) == g2
     assert g1.with_observable(o1) is g1
+
+
+@pytest.mark.parametrize(
+    'rot, obs, out',
+    [
+        (cirq.I, cirq.DensePauliString("Z", coefficient=+1), 0),
+        (cirq.I, cirq.DensePauliString("Z", coefficient=-1), 1),
+        (cirq.Y**0.5, cirq.DensePauliString("X", coefficient=+1), 0),
+        (cirq.Y**0.5, cirq.DensePauliString("X", coefficient=-1), 1),
+        (cirq.X**-0.5, cirq.DensePauliString("Y", coefficient=+1), 0),
+        (cirq.X**-0.5, cirq.DensePauliString("Y", coefficient=-1), 1),
+    ],
+)
+def test_pauli_measurement_gate_samples(rot, obs, out):
+    q = cirq.NamedQubit("q")
+    c = cirq.Circuit(rot(q), cirq.PauliMeasurementGate(obs, key='out').on(q))
+    assert cirq.Simulator().sample(c)['out'][0] == out

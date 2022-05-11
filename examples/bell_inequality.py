@@ -1,7 +1,6 @@
 # pylint: disable=wrong-or-nonexistent-copyright-notice
-# TODO(#3388) Add summary line to docstring.
-# pylint: disable=docstring-first-line-empty
-"""
+"""An example demonstrating Bell's theorem.
+
 Bell's theorem or inequality proves that entanglement based
 observations can't be reproduced with any local realist theory [1].
 
@@ -31,6 +30,10 @@ achieved by following procedure: Alice rotate in X-basis by angle
 -pi/4 followed by controlled-rotation by angle pi/2 in X-basis for
 Alice (Bob) based on input x (y).
 
+Note that the higher repetitions, the more accurate the maximum success
+probability (closer to 85.3%). Here, repetitions = 75 are chosen to follow
+the bit by bit logic.
+
 [1] https://en.wikipedia.org/wiki/Bell%27s_theorem
 [2] R. de Wolf. Quantum Computing: Lecture Notes
 (arXiv:1907.09415, Section 15.2)
@@ -56,7 +59,6 @@ y: ____1__111_______1___11_111__1_111______111___11_11_11__1_1_1111_1111__1_11
    11111_11111_11___11111_111_111_11_111111111_1111111_111_1111111111111111111
 Win rate: 84.0%
 """
-# pylint: enable=docstring-first-line-empty
 
 import numpy as np
 
@@ -103,20 +105,10 @@ def make_bell_test_circuit():
     circuit = cirq.Circuit()
 
     # Prepare shared entangled state.
-    circuit.append(
-        [
-            cirq.H(alice),
-            cirq.CNOT(alice, bob),
-        ]
-    )
+    circuit.append([cirq.H(alice), cirq.CNOT(alice, bob)])
 
     # Referees flip coins.
-    circuit.append(
-        [
-            cirq.H(alice_referee),
-            cirq.H(bob_referee),
-        ]
-    )
+    circuit.append([cirq.H(alice_referee), cirq.H(bob_referee)])
 
     # Players do a sqrt(X) based on their referee's coin.
     circuit.append(

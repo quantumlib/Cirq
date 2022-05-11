@@ -12,27 +12,23 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from cirq import circuits, optimizers
+from cirq import circuits, transformers
 
 from cirq.contrib.paulistring.convert_to_pauli_string_phasors import ConvertToPauliStringPhasors
 
 
 def converted_gate_set(
-    circuit: circuits.Circuit,
-    no_clifford_gates: bool = False,
-    atol: float = 1e-8,
+    circuit: circuits.Circuit, no_clifford_gates: bool = False, atol: float = 1e-8
 ) -> circuits.Circuit:
     """Returns a new, equivalent circuit using the gate set
     {SingleQubitCliffordGate,
     CZ/PauliInteractionGate, PauliStringPhasor}.
     """
-    conv_circuit = circuits.Circuit(circuit)
-    optimizers.ConvertToCzAndSingleGates().optimize_circuit(conv_circuit)
-    optimizers.MergeSingleQubitGates().optimize_circuit(conv_circuit)
+    conv_circuit = transformers.optimize_for_target_gateset(
+        circuit, gateset=transformers.CZTargetGateset()
+    )
+    conv_circuit = transformers.merge_k_qubit_unitaries(conv_circuit, k=1)
     ConvertToPauliStringPhasors(
-        ignore_failures=True,
-        keep_clifford=not no_clifford_gates,
-        atol=atol,
+        ignore_failures=True, keep_clifford=not no_clifford_gates, atol=atol
     ).optimize_circuit(conv_circuit)
-    optimizers.DropEmptyMoments().optimize_circuit(conv_circuit)
-    return conv_circuit
+    return transformers.drop_empty_moments(conv_circuit)

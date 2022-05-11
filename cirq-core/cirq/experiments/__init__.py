@@ -11,7 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""Package containing characterization tools and experiments."""
+"""Experiments and tools for characterizing quantum operations."""
 
 from cirq.experiments.google_v2_supremacy_circuit import (
     generate_boixo_2018_supremacy_circuits_v2,
@@ -53,9 +53,7 @@ from cirq.experiments.grid_parallel_two_qubit_xeb import (
     compute_grid_parallel_two_qubit_xeb_results,
 )
 
-from cirq.experiments.purity_estimation import (
-    purity_from_probabilities,
-)
+from cirq.experiments.purity_estimation import purity_from_probabilities
 
 from cirq.experiments.random_quantum_circuit_generation import (
     GRID_ALIGNED_PATTERN,
@@ -63,6 +61,11 @@ from cirq.experiments.random_quantum_circuit_generation import (
     HALF_GRID_STAGGERED_PATTERN,
     GridInteractionLayer,
     random_rotations_between_grid_interaction_layers_circuit,
+)
+
+from cirq.experiments.readout_confusion_matrix import (
+    TensoredConfusionMatrices,
+    measure_confusion_matrix,
 )
 
 from cirq.experiments.n_qubit_tomography import (
@@ -77,14 +80,8 @@ from cirq.experiments.single_qubit_readout_calibration import (
     SingleQubitReadoutCalibrationResult,
 )
 
-from cirq.experiments.t1_decay_experiment import (
-    t1_decay,
-    T1DecayResult,
-)
+from cirq.experiments.t1_decay_experiment import t1_decay, T1DecayResult
 
-from cirq.experiments.t2_decay_experiment import (
-    t2_decay,
-    T2DecayResult,
-)
+from cirq.experiments.t2_decay_experiment import t2_decay, T2DecayResult
 
 from cirq.experiments.xeb_fitting import XEBPhasedFSimCharacterizationOptions

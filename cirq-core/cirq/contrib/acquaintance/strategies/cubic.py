@@ -16,7 +16,6 @@ import itertools
 from typing import Iterable, Sequence, Tuple, TypeVar, TYPE_CHECKING
 
 from cirq import circuits, ops
-from cirq.contrib.acquaintance.devices import UnconstrainedAcquaintanceDevice
 from cirq.contrib.acquaintance.gates import acquaint
 from cirq.contrib.acquaintance.permutation import LinearPermutationGate, SwapPermutationGate
 
@@ -64,17 +63,17 @@ def cubic_acquaintance_strategy(
         new_index_order = skip_and_wrap_around(stepped_indices_concatenated)
         permutation = {i: new_index_order.index(j) for i, j in enumerate(index_order)}
         permutation_gate = LinearPermutationGate(n_qubits, permutation, swap_gate)
-        moments.append(ops.Moment([permutation_gate(*qubits)]))
+        moments.append(circuits.Moment([permutation_gate(*qubits)]))
         for i in range(n_qubits + 1):
             for offset in range(3):
-                moment = ops.Moment(
+                moment = circuits.Moment(
                     acquaint(*qubits[j : j + 3]) for j in range(offset, n_qubits - 2, 3)
                 )
                 moments.append(moment)
             if i < n_qubits:
-                moment = ops.Moment(
+                moment = circuits.Moment(
                     swap_gate(*qubits[j : j + 2]) for j in range(i % 2, n_qubits - 1, 2)
                 )
                 moments.append(moment)
         index_order = new_index_order[::-1]
-    return circuits.Circuit(moments, device=UnconstrainedAcquaintanceDevice)
+    return circuits.Circuit(moments)

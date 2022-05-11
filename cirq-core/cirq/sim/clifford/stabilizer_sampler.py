@@ -12,14 +12,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Dict, List
+from typing import Dict, List, Sequence
 
 import numpy as np
 
 import cirq
-from cirq import circuits, protocols, value
+from cirq import protocols, value
 from cirq.qis.clifford_tableau import CliffordTableau
-from cirq.sim.clifford.act_on_clifford_tableau_args import ActOnCliffordTableauArgs
+from cirq.sim.clifford.clifford_tableau_simulation_state import CliffordTableauSimulationState
 from cirq.work import sampler
 
 
@@ -36,39 +36,30 @@ class StabilizerSampler(sampler.Sampler):
         self._prng = value.parse_random_state(seed)
 
     def run_sweep(
-        self,
-        program: 'cirq.AbstractCircuit',
-        params: 'cirq.Sweepable',
-        repetitions: int = 1,
-    ) -> List['cirq.Result']:
+        self, program: 'cirq.AbstractCircuit', params: 'cirq.Sweepable', repetitions: int = 1
+    ) -> Sequence['cirq.Result']:
         results: List[cirq.Result] = []
         for param_resolver in cirq.to_resolvers(params):
             resolved_circuit = cirq.resolve_parameters(program, param_resolver)
-            measurements = self._run(
-                resolved_circuit,
-                repetitions=repetitions,
-            )
-            results.append(cirq.Result(params=param_resolver, measurements=measurements))
+            measurements = self._run(resolved_circuit, repetitions=repetitions)
+            results.append(cirq.ResultDict(params=param_resolver, measurements=measurements))
         return results
 
-    def _run(self, circuit: circuits.AbstractCircuit, repetitions: int) -> Dict[str, np.ndarray]:
+    def _run(self, circuit: 'cirq.AbstractCircuit', repetitions: int) -> Dict[str, np.ndarray]:
 
-        measurements: Dict[str, List[int]] = {
+        measurements: Dict[str, List[np.ndarray]] = {
             key: [] for key in protocols.measurement_key_names(circuit)
         }
         qubits = circuit.all_qubits()
 
         for _ in range(repetitions):
-            state = ActOnCliffordTableauArgs(
-                CliffordTableau(num_qubits=len(qubits)),
-                qubits=list(qubits),
-                prng=self._prng,
-                log_of_measurement_results={},
+            state = CliffordTableauSimulationState(
+                CliffordTableau(num_qubits=len(qubits)), qubits=list(qubits), prng=self._prng
             )
             for op in circuit.all_operations():
                 protocols.act_on(op, state)
 
             for k, v in state.log_of_measurement_results.items():
-                measurements[k].append(v)
+                measurements[k].append(np.array(v, dtype=np.uint8))
 
         return {k: np.array(v) for k, v in measurements.items()}

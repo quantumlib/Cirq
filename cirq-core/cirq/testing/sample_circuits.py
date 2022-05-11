@@ -13,19 +13,14 @@
 # limitations under the License.
 from typing import TYPE_CHECKING
 
-from cirq import ops, circuits, devices
+from cirq import ops, circuits
 
 if TYPE_CHECKING:
     import cirq
 
 
-def nonoptimal_toffoli_circuit(
-    q0: 'cirq.Qid',
-    q1: 'cirq.Qid',
-    q2: 'cirq.Qid',
-    device: devices.Device = devices.UNCONSTRAINED_DEVICE,
-) -> circuits.Circuit:
-    return circuits.Circuit(
+def nonoptimal_toffoli_circuit(q0: 'cirq.Qid', q1: 'cirq.Qid', q2: 'cirq.Qid') -> circuits.Circuit:
+    ret = circuits.Circuit(
         ops.Y(q2) ** 0.5,
         ops.X(q2),
         ops.CNOT(q1, q2),
@@ -55,5 +50,5 @@ def nonoptimal_toffoli_circuit(
         ops.CNOT(q0, q1),
         ops.Y(q2) ** 0.5,
         ops.X(q2),
-        device=device,
     )
+    return ret

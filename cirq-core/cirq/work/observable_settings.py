@@ -13,7 +13,10 @@
 # limitations under the License.
 
 import dataclasses
+import numbers
 from typing import Union, Iterable, Dict, TYPE_CHECKING, ItemsView, Tuple, FrozenSet
+
+import sympy
 
 from cirq import ops, value, protocols
 
@@ -75,7 +78,7 @@ def _max_weight_observable(observables: Iterable[ops.PauliString]) -> Union[None
     The returned value need not actually be present in the input observables.
     Coefficients from input observables will be dropped.
     """
-    qubit_pauli_map = dict()  # type: Dict[ops.Qid, ops.Pauli]
+    qubit_pauli_map: Dict[ops.Qid, ops.Pauli] = {}
     for observable in observables:
         for qubit, pauli in observable.items():
             if qubit in qubit_pauli_map:
@@ -99,7 +102,7 @@ def _max_weight_state(states: Iterable[value.ProductState]) -> Union[None, value
     "+X(0) * -Z(1)". Asking for the max weight state of something like
     [+X(0), +Z(0)] will return None.
     """
-    qubit_state_map = dict()  # type: Dict[ops.Qid, _NamedOneQubitState]
+    qubit_state_map: Dict[ops.Qid, _NamedOneQubitState] = {}
     for state in states:
         for qubit, named_state in state:
             if qubit in qubit_state_map:
@@ -125,24 +128,31 @@ def observables_to_settings(
         yield InitObsSetting(init_state=zeros_state(qubits), observable=observable)
 
 
-def _fix_precision(val: float, precision) -> int:
-    """Convert floating point numbers to (implicitly) fixed point integers.
+def _fix_precision(val: Union[value.Scalar, sympy.Expr], precision) -> Union[int, Tuple[int, int]]:
+    """Convert floating point or complex numbers to (implicitly) fixed point
+    integers. Complex numbers will return fixed-point (real, imag) tuples.
 
-    Circuit parameters can be floats but we also need to use them as
+    Circuit parameters can be complex but we also need to use them as
     dictionary keys. We secretly use these fixed-precision integers.
     """
+    if isinstance(val, sympy.Expr):
+        raise ValueError(f'Cannot convert {val} to fixed precision in observable settings')
+    if isinstance(val, (complex, numbers.Complex)):
+        return int(val.real * precision), int(val.imag * precision)
     return int(val * precision)
 
 
 def _hashable_param(
-    param_tuples: ItemsView[str, float], precision=1e7
-) -> FrozenSet[Tuple[str, float]]:
+    param_tuples: ItemsView[Union[str, sympy.Expr], Union[value.Scalar, sympy.Expr]], precision=1e7
+) -> FrozenSet[Tuple[str, Union[int, Tuple[int, int]]]]:
     """Hash circuit parameters using fixed precision.
 
-    Circuit parameters can be floats but we also need to use them as
+    Circuit parameters can be complex but we also need to use them as
     dictionary keys. We secretly use these fixed-precision integers.
     """
-    return frozenset((k, _fix_precision(v, precision)) for k, v in param_tuples)
+    return frozenset(
+        (k, _fix_precision(v, precision)) for k, v in param_tuples if isinstance(k, str)
+    )
 
 
 @dataclasses.dataclass(frozen=True)
@@ -156,7 +166,7 @@ class _MeasurementSpec:
     """
 
     max_setting: InitObsSetting
-    circuit_params: Dict[str, float]
+    circuit_params: Dict[Union[str, sympy.Expr], Union[value.Scalar, sympy.Expr]]
 
     def __hash__(self):
         return hash((self.max_setting, _hashable_param(self.circuit_params.items())))

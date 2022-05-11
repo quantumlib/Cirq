@@ -13,12 +13,12 @@
 # limitations under the License.
 """Measures on and between quantum states and operations."""
 
+
 from typing import Optional, TYPE_CHECKING, Tuple
 
 import numpy as np
-import scipy
 
-from cirq import protocols, value
+from cirq import protocols, value, _import
 from cirq.qis.states import (
     QuantumState,
     infer_qid_shape,
@@ -27,13 +27,18 @@ from cirq.qis.states import (
     validate_normalized_state_vector,
 )
 
+# We initialize these lazily, otherwise they slow global import speed.
+stats = _import.LazyLoader("stats", globals(), "scipy.stats")
+linalg = _import.LazyLoader("linalg", globals(), "scipy.linalg")
+
+
 if TYPE_CHECKING:
     import cirq
 
 
 def _sqrt_positive_semidefinite_matrix(mat: np.ndarray) -> np.ndarray:
     """Square root of a positive semidefinite matrix."""
-    eigs, vecs = scipy.linalg.eigh(mat)
+    eigs, vecs = linalg.eigh(mat)
     return vecs @ (np.sqrt(np.abs(eigs)) * vecs).T.conj()
 
 
@@ -115,7 +120,7 @@ def fidelity(
         for q, s1 in state1:
             s2 = state2[q]
             prod *= np.abs(np.vdot(s1.state_vector(), s2.state_vector()))
-        return prod ** 2
+        return prod**2
 
     # Two numpy arrays that are either state vector, state tensor, or
     # density matrix
@@ -237,9 +242,9 @@ def _fidelity_state_vectors_or_density_matrices(state1: np.ndarray, state2: np.n
     elif state1.ndim == 2 and state2.ndim == 2:
         # Both density matrices
         state1_sqrt = _sqrt_positive_semidefinite_matrix(state1)
-        eigs = scipy.linalg.eigvalsh(state1_sqrt @ state2 @ state1_sqrt)
+        eigs = linalg.eigvalsh(state1_sqrt @ state2 @ state1_sqrt)
         trace = np.sum(np.sqrt(np.abs(eigs)))
-        return trace ** 2
+        return trace**2
     raise ValueError(
         'The given arrays must be one- or two-dimensional. '
         f'Got shapes {state1.shape} and {state2.shape}.'
@@ -277,11 +282,7 @@ def von_neumann_entropy(
                 qid_shape = (state.shape[0],)
             validate_density_matrix(state, qid_shape=qid_shape, dtype=state.dtype, atol=atol)
         eigenvalues = np.linalg.eigvalsh(state)
-
-        # We import here to avoid a costly module level load time dependency on scipy.stats.
-        import scipy.stats
-
-        return scipy.stats.entropy(np.abs(eigenvalues), base=2)
+        return stats.entropy(np.abs(eigenvalues), base=2)
     if validate:
         _ = quantum_state(state, qid_shape=qid_shape, copy=False, validate=True, atol=atol)
     return 0.0
@@ -309,4 +310,4 @@ def entanglement_fidelity(operation: 'cirq.SupportsKraus') -> float:
     for k in protocols.kraus(operation):
         f += np.abs(np.trace(k)) ** 2
     n_qubits = protocols.num_qubits(operation)
-    return float(f / 4 ** n_qubits)
+    return float(f / 4**n_qubits)

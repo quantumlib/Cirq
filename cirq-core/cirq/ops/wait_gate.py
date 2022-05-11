@@ -30,9 +30,6 @@ class WaitGate(raw_types.Gate):
     simulators and noise models may insert more error for longer waits.
     """
 
-    # TODO(#3388) Add documentation for Args.
-    # TODO(#3388) Add documentation for Raises.
-    # pylint: disable=missing-param-doc,missing-raises-doc
     def __init__(
         self,
         duration: 'cirq.DURATION_LIKE',
@@ -44,8 +41,16 @@ class WaitGate(raw_types.Gate):
         Args:
             duration: A constant or parameterized wait duration. This can be
                 an instance of `datetime.timedelta` or `cirq.Duration`.
+            num_qubits: The number of qubits the gate operates on. If None and `qid_shape` is None,
+                this defaults to one qubit.
+            qid_shape: Can be specified instead of `num_qubits` for the case that the gate should
+                act on qudits.
+
+        Raises:
+            ValueError: If the `qid_shape` provided is empty or `num_qubits` contradicts
+                `qid_shape`.
         """
-        self.duration = value.Duration(duration)
+        self._duration = value.Duration(duration)
         if not protocols.is_parameterized(self.duration) and self.duration < 0:
             raise ValueError('duration < 0')
         if qid_shape is None:
@@ -62,7 +67,10 @@ class WaitGate(raw_types.Gate):
             raise ValueError('len(qid_shape) != num_qubits')
         self._qid_shape = qid_shape
 
-    # pylint: enable=missing-param-doc,missing-raises-doc
+    @property
+    def duration(self) -> 'cirq.Duration':
+        return self._duration
+
     def _is_parameterized_(self) -> bool:
         return protocols.is_parameterized(self.duration)
 
@@ -128,10 +136,10 @@ class WaitGate(raw_types.Gate):
 def wait(
     *target: 'cirq.Qid',
     duration: 'cirq.DURATION_LIKE' = None,
-    picos: Union[int, float, sympy.Basic] = 0,
-    nanos: Union[int, float, sympy.Basic] = 0,
-    micros: Union[int, float, sympy.Basic] = 0,
-    millis: Union[int, float, sympy.Basic] = 0,
+    picos: Union[int, float, sympy.Expr] = 0,
+    nanos: Union[int, float, sympy.Expr] = 0,
+    micros: Union[int, float, sympy.Expr] = 0,
+    millis: Union[int, float, sympy.Expr] = 0,
 ) -> raw_types.Operation:
     """Creates a WaitGate applied to all the given qubits.
 
@@ -147,12 +155,6 @@ def wait(
         millis: Milliseconds to wait (see Duration).
     """
     return WaitGate(
-        duration=value.Duration(
-            duration,
-            picos=picos,
-            nanos=nanos,
-            micros=micros,
-            millis=millis,
-        ),
+        duration=value.Duration(duration, picos=picos, nanos=nanos, micros=micros, millis=millis),
         qid_shape=protocols.qid_shape(target),
     ).on(*target)

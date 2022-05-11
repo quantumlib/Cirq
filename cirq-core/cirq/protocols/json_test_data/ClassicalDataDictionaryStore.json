@@ -1,0 +1,69 @@
+[
+  {
+    "cirq_type": "ClassicalDataDictionaryStore",
+    "records": [
+      [
+        {
+          "cirq_type": "MeasurementKey",
+          "name": "m",
+          "path": []
+        },
+        [[0, 1]]
+      ]
+    ],
+    "measured_qubits": [
+      [
+        {
+          "cirq_type": "MeasurementKey",
+          "name": "m",
+          "path": []
+        },
+        [[
+          {
+            "cirq_type": "LineQubit",
+            "x": 0
+          },
+          {
+            "cirq_type": "LineQubit",
+            "x": 1
+          }
+        ]]
+      ]
+    ],
+    "channel_records": [
+      [
+        {
+          "cirq_type": "MeasurementKey",
+          "name": "c",
+          "path": []
+        },
+        [3]
+      ]
+    ],
+    "measurement_types": [
+      [
+        {
+          "cirq_type": "MeasurementKey",
+          "name": "m",
+          "path": []
+        },
+        1
+      ],
+      [
+        {
+          "cirq_type": "MeasurementKey",
+          "name": "c",
+          "path": []
+        },
+        2
+      ]
+    ]
+  },
+  {
+    "cirq_type": "ClassicalDataDictionaryStore",
+    "records": [],
+    "measured_qubits": [],
+    "channel_records": [],
+    "measurement_types": []
+  }
+]

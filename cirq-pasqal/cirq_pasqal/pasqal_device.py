@@ -12,11 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 from typing import FrozenSet, Callable, List, Sequence, Any, Union, Dict
-
 import numpy as np
+import networkx as nx
 
 import cirq
-from cirq import GridQubit, LineQubit
+from cirq import _compat, GridQubit, LineQubit
 from cirq.ops import NamedQubit
 from cirq_pasqal import ThreeDQubit, TwoDQubit
 
@@ -34,16 +34,16 @@ class PasqalDevice(cirq.devices.Device):
     execution on the specified device are handled internally by Pasqal.
     """
 
-    # TODO(#3388) Add documentation for Raises.
-    # pylint: disable=missing-raises-doc
-    def __init__(self, qubits: Sequence[cirq.ops.Qid]) -> None:
+    def __init__(self, qubits: Sequence[cirq.Qid]) -> None:
         """Initializes a device with some qubits.
 
         Args:
             qubits (NamedQubit): Qubits on the device, exclusively unrelated to
                 a physical position.
         Raises:
-            TypeError: if the wrong qubit type is provided.
+            TypeError: If the wrong qubit type is provided.
+            ValueError: If the number of qubits is greater than the devices maximum.
+
         """
         if len(qubits) > 0:
             q_type = type(qubits[0])
@@ -76,9 +76,11 @@ class PasqalDevice(cirq.devices.Device):
             cirq.IdentityGate,
             cirq.MeasurementGate,
             unroll_circuit_op=False,
-            accept_global_phase_op=False,
         )
         self.qubits = qubits
+        self._metadata = cirq.DeviceMetadata(
+            qubits, nx.from_edgelist([(a, b) for a in qubits for b in qubits if a != b])
+        )
 
     # pylint: enable=missing-raises-doc
     @property
@@ -89,17 +91,25 @@ class PasqalDevice(cirq.devices.Device):
     def maximum_qubit_number(self):
         return 100
 
+    @property
+    def metadata(self):
+        return self._metadata
+
+    @_compat.deprecated(fix='Use metadata.qubit_set() if applicable.', deadline='v0.15')
     def qubit_set(self) -> FrozenSet[cirq.Qid]:
         return frozenset(self.qubits)
 
     def qubit_list(self):
         return [qubit for qubit in self.qubits]
 
-    def decompose_operation(self, operation: cirq.ops.Operation) -> 'cirq.OP_TREE':
+    @_compat.deprecated(
+        fix='Use PasqalConverter() to decompose operation instead.', deadline='v0.15'
+    )
+    def decompose_operation(self, operation: cirq.Operation) -> 'cirq.OP_TREE':
 
         decomposition = [operation]
 
-        if not isinstance(operation, cirq.ops.GateOperation):
+        if not isinstance(operation, cirq.GateOperation):
             raise TypeError(f"{operation!r} is not a gate operation.")
 
         # Try to decompose the operation into elementary device operations
@@ -110,21 +120,21 @@ class PasqalDevice(cirq.devices.Device):
 
         return decomposition
 
-    def is_pasqal_device_op(self, op: cirq.ops.Operation) -> bool:
-        if not isinstance(op, cirq.ops.Operation):
+    def is_pasqal_device_op(self, op: cirq.Operation) -> bool:
+        if not isinstance(op, cirq.Operation):
             raise ValueError('Got unknown operation:', op)
         return op in self.gateset
 
-    # TODO(#3388) Add documentation for Raises.
-    # pylint: disable=missing-raises-doc
-    def validate_operation(self, operation: cirq.ops.Operation):
+    def validate_operation(self, operation: cirq.Operation):
         """Raises an error if the given operation is invalid on this device.
 
         Args:
-            operation: the operation to validate
+            operation: The operation to validate.
 
         Raises:
-            ValueError: If the operation is not valid
+            ValueError: If the operation is not valid.
+            NotImplementedError: If the operation is a measurement with an invert
+                mask.
         """
 
         if not isinstance(operation, cirq.GateOperation):
@@ -140,16 +150,15 @@ class PasqalDevice(cirq.devices.Device):
                     'device accepts gates on qubits of type: '
                     '{}'.format(qub, operation.gate, self.supported_qubit_type)
                 )
-            if qub not in self.qubit_set():
+            if qub not in self.metadata.qubit_set:
                 raise ValueError(f'{qub} is not part of the device.')
 
-        if isinstance(operation.gate, cirq.ops.MeasurementGate):
+        if isinstance(operation.gate, cirq.MeasurementGate):
             if operation.gate.invert_mask != ():
                 raise NotImplementedError(
                     "Measurements on Pasqal devices don't support invert_mask."
                 )
 
-    # pylint: enable=missing-raises-doc
     def validate_circuit(self, circuit: 'cirq.AbstractCircuit') -> None:
         """Raises an error if the given circuit is invalid on this device.
 
@@ -171,12 +180,10 @@ class PasqalDevice(cirq.devices.Device):
                 if len(moment.operations) > 0:
                     raise ValueError("Non-empty moment after measurement")
             for operation in moment.operations:
-                if isinstance(operation.gate, cirq.ops.MeasurementGate):
+                if isinstance(operation.gate, cirq.MeasurementGate):
                     has_measurement_occurred = True
 
-    def can_add_operation_into_moment(
-        self, operation: cirq.ops.Operation, moment: cirq.ops.Moment
-    ) -> bool:
+    def can_add_operation_into_moment(self, operation: cirq.Operation, moment: cirq.Moment) -> bool:
         """Determines if it's possible to add an operation into a moment.
 
         An operation can be added if the moment with the operation added is
@@ -254,23 +261,17 @@ class PasqalVirtualDevice(PasqalDevice):
             cirq.AnyIntegerPowerGateFamily(cirq.CCZPowGate),
         )
         self.controlled_gateset = cirq.Gateset(
-            *self.exclude_gateset.gates,
-            cirq.AnyIntegerPowerGateFamily(cirq.CZPowGate),
+            *self.exclude_gateset.gates, cirq.AnyIntegerPowerGateFamily(cirq.CZPowGate)
         )
 
     @property
     def supported_qubit_type(self):
-        return (
-            ThreeDQubit,
-            TwoDQubit,
-            GridQubit,
-            LineQubit,
-        )
+        return (ThreeDQubit, TwoDQubit, GridQubit, LineQubit)
 
-    def is_pasqal_device_op(self, op: cirq.ops.Operation) -> bool:
+    def is_pasqal_device_op(self, op: cirq.Operation) -> bool:
         return super().is_pasqal_device_op(op) and op not in self.exclude_gateset
 
-    def validate_operation(self, operation: cirq.ops.Operation):
+    def validate_operation(self, operation: cirq.Operation):
         """Raises an error if the given operation is invalid on this device.
 
         Args:
@@ -287,7 +288,7 @@ class PasqalVirtualDevice(PasqalDevice):
                     if self.distance(p, q) > self.control_radius:
                         raise ValueError(f"Qubits {p!r}, {q!r} are too far away")
 
-    def validate_moment(self, moment: cirq.ops.Moment):
+    def validate_moment(self, moment: cirq.Moment):
         """Raises an error if the given moment is invalid on this device.
 
         Args:
@@ -299,7 +300,7 @@ class PasqalVirtualDevice(PasqalDevice):
         super().validate_moment(moment)
         if len(moment) > 1:
             for operation in moment:
-                if not isinstance(operation.gate, cirq.ops.MeasurementGate):
+                if not isinstance(operation.gate, cirq.MeasurementGate):
                     raise ValueError("Cannot do simultaneous gates. Use cirq.InsertStrategy.NEW.")
 
     def minimal_distance(self) -> float:
@@ -355,22 +356,6 @@ class PasqalVirtualDevice(PasqalDevice):
     def _json_dict_(self) -> Dict[str, Any]:
         return cirq.protocols.obj_to_dict_helper(self, ['control_radius', 'qubits'])
 
-    def qid_pairs(self) -> FrozenSet['cirq.SymmetricalQidPair']:
-        """Returns a list of qubit edges on the device.
-
-        Returns:
-            All qubit pairs that are less or equal to the control radius apart.
-        """
-        qs = self.qubits
-        return frozenset(
-            [
-                cirq.SymmetricalQidPair(q, q2)
-                for q in qs
-                for q2 in qs
-                if q < q2 and self.distance(q, q2) <= self.control_radius
-            ]
-        )
-
 
 class PasqalConverter(cirq.neutral_atoms.ConvertToNeutralAtomGates):
     """A gate converter for compatibility with Pasqal processors.
@@ -380,8 +365,8 @@ class PasqalConverter(cirq.neutral_atoms.ConvertToNeutralAtomGates):
     """
 
     def pasqal_convert(
-        self, op: cirq.ops.Operation, keep: Callable[[cirq.ops.Operation], bool]
-    ) -> List[cirq.ops.Operation]:
+        self, op: cirq.Operation, keep: Callable[[cirq.Operation], bool]
+    ) -> List[cirq.Operation]:
         def on_stuck_raise(bad):
             return TypeError(
                 "Don't know how to work with {!r}. "

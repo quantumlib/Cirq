@@ -35,12 +35,12 @@ def op_proto(json: Dict) -> v2.program_pb2.Operation:
     return op
 
 
-class GateWithAttribute(cirq.SingleQubitGate):
+class GateWithAttribute(cirq.testing.SingleQubitGate):
     def __init__(self, val):
         self.val = val
 
 
-class GateWithProperty(cirq.SingleQubitGate):
+class GateWithProperty(cirq.testing.SingleQubitGate):
     def __init__(self, val, not_req=None):
         self._val = val
         self._not_req = not_req
@@ -50,7 +50,7 @@ class GateWithProperty(cirq.SingleQubitGate):
         return self._val
 
 
-class GateWithMethod(cirq.SingleQubitGate):
+class GateWithMethod(cirq.testing.SingleQubitGate):
     def __init__(self, val):
         self._val = val
 
@@ -367,11 +367,7 @@ TWO_CONSTANTS = [
 
 @pytest.mark.parametrize(
     ('constants', 'expected_index', 'expected_constants'),
-    (
-        ([], 0, ONE_CONSTANT),
-        (ONE_CONSTANT, 0, ONE_CONSTANT),
-        (TWO_CONSTANTS, 1, TWO_CONSTANTS),
-    ),
+    (([], 0, ONE_CONSTANT), (ONE_CONSTANT, 0, ONE_CONSTANT), (TWO_CONSTANTS, 1, TWO_CONSTANTS)),
 )
 def test_token_serialization_with_constant_reference(constants, expected_index, expected_constants):
     serializer = cg.GateOpSerializer(
@@ -411,11 +407,7 @@ def default_circuit_proto():
 
     return v2.program_pb2.Circuit(
         scheduling_strategy=v2.program_pb2.Circuit.MOMENT_BY_MOMENT,
-        moments=[
-            v2.program_pb2.Moment(
-                operations=[op1, op2],
-            ),
-        ],
+        moments=[v2.program_pb2.Moment(operations=[op1, op2])],
     )
 
 
@@ -447,10 +439,7 @@ def test_circuit_op_to_proto_errors():
         v2.program_pb2.Constant(string_value=DEFAULT_TOKEN),
         v2.program_pb2.Constant(circuit_value=default_circuit_proto()),
     ]
-    raw_constants = {
-        DEFAULT_TOKEN: 0,
-        default_circuit(): 1,
-    }
+    raw_constants = {DEFAULT_TOKEN: 0, default_circuit(): 1}
 
     with pytest.raises(ValueError, match='CircuitOp serialization requires a constants list'):
         serializer.to_proto(to_serialize)
@@ -469,6 +458,11 @@ def test_circuit_op_to_proto_errors():
     bad_raw_constants = {cirq.FrozenCircuit(): 0}
     with pytest.raises(ValueError, match='Encountered a circuit not in the constants table'):
         serializer.to_proto(to_serialize, constants=constants, raw_constants=bad_raw_constants)
+
+    with pytest.raises(ValueError, match='Cannot serialize repetitions of type'):
+        serializer.to_proto(
+            to_serialize ** sympy.Symbol('a'), constants=constants, raw_constants=raw_constants
+        )
 
 
 @pytest.mark.parametrize('repetitions', [1, 5, ['a', 'b', 'c']])
@@ -492,10 +486,7 @@ def test_circuit_op_to_proto(repetitions):
         v2.program_pb2.Constant(string_value=DEFAULT_TOKEN),
         v2.program_pb2.Constant(circuit_value=default_circuit_proto()),
     ]
-    raw_constants = {
-        DEFAULT_TOKEN: 0,
-        default_circuit(): 1,
-    }
+    raw_constants = {DEFAULT_TOKEN: 0, default_circuit(): 1}
 
     repetition_spec = v2.program_pb2.RepetitionSpecification()
     if repetition_ids is None:
@@ -528,3 +519,22 @@ def test_circuit_op_to_proto(repetitions):
     )
     actual = serializer.to_proto(to_serialize, constants=constants, raw_constants=raw_constants)
     assert actual == expected
+
+
+def test_circuit_op_to_proto_complex():
+    serializer = cg.CircuitOpSerializer()
+    to_serialize = cirq.CircuitOperation(
+        circuit=default_circuit(),
+        qubit_map={cirq.GridQubit(1, 1): cirq.GridQubit(1, 2)},
+        measurement_key_map={'m': 'results'},
+        param_resolver={'k': 1.0j},
+        repetitions=10,
+        repetition_ids=None,
+    )
+    constants = [
+        v2.program_pb2.Constant(string_value=DEFAULT_TOKEN),
+        v2.program_pb2.Constant(circuit_value=default_circuit_proto()),
+    ]
+    raw_constants = {DEFAULT_TOKEN: 0, default_circuit(): 1}
+    with pytest.raises(ValueError, match='complex value'):
+        serializer.to_proto(to_serialize, constants=constants, raw_constants=raw_constants)

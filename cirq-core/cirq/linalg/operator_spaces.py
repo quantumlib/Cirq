@@ -31,7 +31,7 @@ document(PAULI_BASIS, """The four Pauli matrices (including identity) keyed by c
 
 def kron_bases(*bases: Dict[str, np.ndarray], repeat: int = 1) -> Dict[str, np.ndarray]:
     """Creates tensor product of bases."""
-    product_basis = {'': np.ones(1)}
+    product_basis = {'': np.array([[1]])}
     for basis in bases * repeat:
         product_basis = {
             name1 + name2: np.kron(matrix1, matrix2)
@@ -50,8 +50,7 @@ def hilbert_schmidt_inner_product(m1: np.ndarray, m2: np.ndarray) -> complex:
 
 
 def expand_matrix_in_orthogonal_basis(
-    m: np.ndarray,
-    basis: Dict[str, np.ndarray],
+    m: np.ndarray, basis: Dict[str, np.ndarray]
 ) -> value.LinearDict[str]:
     """Computes coefficients of expansion of m in basis.
 

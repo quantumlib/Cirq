@@ -11,7 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 from typing import Dict
 import numpy as np
 import pytest
@@ -34,9 +33,9 @@ def op_proto(json_dict: Dict) -> v2.program_pb2.Operation:
     ('gate', 'axis_half_turns', 'half_turns'),
     [
         (cirq.X, 0.0, 1.0),
-        (cirq.X ** 0.25, 0.0, 0.25),
+        (cirq.X**0.25, 0.0, 0.25),
         (cirq.Y, 0.5, 1.0),
-        (cirq.Y ** 0.25, 0.5, 0.25),
+        (cirq.Y**0.25, 0.5, 0.25),
         (cirq.PhasedXPowGate(exponent=0.125, phase_exponent=0.25), 0.25, 0.125),
         (cirq.rx(0.125 * np.pi), 0.0, 0.125),
         (cirq.ry(0.25 * np.pi), 0.5, 0.25),
@@ -101,11 +100,7 @@ def test_serialize_exp_w_parameterized_axis_half_turns():
 
 @pytest.mark.parametrize(
     ('gate', 'half_turns'),
-    [
-        (cirq.Z, 1.0),
-        (cirq.Z ** 0.125, 0.125),
-        (cirq.rz(0.125 * np.pi), 0.125),
-    ],
+    [(cirq.Z, 1.0), (cirq.Z**0.125, 0.125), (cirq.rz(0.125 * np.pi), 0.125)],
 )
 def test_serialize_exp_z(gate, half_turns):
     q = cirq.GridQubit(1, 2)
@@ -136,22 +131,14 @@ def test_serialize_exp_z_parameterized():
     )
 
 
-@pytest.mark.parametrize(
-    ('gate', 'half_turns'),
-    [
-        (cirq.CZ, 1.0),
-        (cirq.CZ ** 0.125, 0.125),
-    ],
-)
+@pytest.mark.parametrize(('gate', 'half_turns'), [(cirq.CZ, 1.0), (cirq.CZ**0.125, 0.125)])
 def test_serialize_exp_11(gate, half_turns):
     c = cirq.GridQubit(1, 2)
     t = cirq.GridQubit(1, 3)
     assert cg.XMON.serialize_op(gate.on(c, t)) == op_proto(
         {
             'gate': {'id': 'cz'},
-            'args': {
-                'half_turns': {'arg_value': {'float_value': half_turns}},
-            },
+            'args': {'half_turns': {'arg_value': {'float_value': half_turns}}},
             'qubits': [{'id': '1_2'}, {'id': '1_3'}],
         }
     )
@@ -213,14 +200,7 @@ def test_serialize_circuit():
     assert cg.XMON.serialize(circuit) == expected
 
 
-@pytest.mark.parametrize(
-    ('axis_half_turns', 'half_turns'),
-    [
-        (0.25, 0.25),
-        (0, 0.25),
-        (0.5, 0.25),
-    ],
-)
+@pytest.mark.parametrize(('axis_half_turns', 'half_turns'), [(0.25, 0.25), (0, 0.25), (0.5, 0.25)])
 def test_deserialize_exp_w(axis_half_turns, half_turns):
     serialized_op = op_proto(
         {
@@ -358,9 +338,7 @@ def test_deserialize_circuit():
 def test_deserialize_schedule():
     q0 = cirq.GridQubit(4, 4)
     q1 = cirq.GridQubit(4, 5)
-    circuit = cirq.Circuit(
-        cirq.CZ(q0, q1), cirq.X(q0), cirq.Z(q1), cirq.measure(q0, key='a'), device=cg.Bristlecone
-    )
+    circuit = cirq.Circuit(cirq.CZ(q0, q1), cirq.X(q0), cirq.Z(q1), cirq.measure(q0, key='a'))
     serialized = v2.program_pb2.Program(
         language=v2.program_pb2.Language(gate_set='xmon'),
         schedule=v2.program_pb2.Schedule(
@@ -381,7 +359,7 @@ def test_deserialize_schedule():
             ]
         ),
     )
-    assert cg.XMON.deserialize(serialized, cg.Bristlecone) == circuit
+    assert cg.XMON.deserialize(serialized) == circuit
 
 
 def test_serialize_deserialize_syc():
@@ -449,8 +427,8 @@ def test_serialize_deserialize_inv_sqrt_iswap():
 @pytest.mark.parametrize(
     ('gate', 'axis_half_turns', 'half_turns'),
     [
-        (cirq.X ** 0.25, 0.0, 0.25),
-        (cirq.Y ** 0.25, 0.5, 0.25),
+        (cirq.X**0.25, 0.0, 0.25),
+        (cirq.Y**0.25, 0.5, 0.25),
         (cirq.XPowGate(exponent=0.125), 0.0, 0.125),
         (cirq.YPowGate(exponent=0.125), 0.5, 0.125),
         (cirq.PhasedXPowGate(exponent=0.125, phase_exponent=0.25), 0.25, 0.125),
@@ -473,16 +451,12 @@ def test_serialize_deserialize_arbitrary_xy(gate, axis_half_turns, half_turns):
     assert cg.SYC_GATESET.serialize_op(op) == expected
     deserialized_op = cg.SYC_GATESET.deserialize_op(expected)
     cirq.testing.assert_allclose_up_to_global_phase(
-        cirq.unitary(deserialized_op),
-        cirq.unitary(op),
-        atol=1e-7,
+        cirq.unitary(deserialized_op), cirq.unitary(op), atol=1e-7
     )
     assert cg.SQRT_ISWAP_GATESET.serialize_op(op) == expected
     deserialized_op = cg.SQRT_ISWAP_GATESET.deserialize_op(expected)
     cirq.testing.assert_allclose_up_to_global_phase(
-        cirq.unitary(deserialized_op),
-        cirq.unitary(op),
-        atol=1e-7,
+        cirq.unitary(deserialized_op), cirq.unitary(op), atol=1e-7
     )
 
 
@@ -518,9 +492,7 @@ def test_serialize_deserialize_wait_gate():
         {
             'gate': {'id': 'wait'},
             'qubits': [{'id': '1_2'}],
-            'args': {
-                'nanos': {'arg_value': {'float_value': 50.0}},
-            },
+            'args': {'nanos': {'arg_value': {'float_value': 50.0}}},
         }
     )
     assert cg.SYC_GATESET.serialize_op(op) == proto
@@ -537,11 +509,7 @@ def default_circuit_proto():
 
     return v2.program_pb2.Circuit(
         scheduling_strategy=v2.program_pb2.Circuit.MOMENT_BY_MOMENT,
-        moments=[
-            v2.program_pb2.Moment(
-                operations=[op1],
-            ),
-        ],
+        moments=[v2.program_pb2.Moment(operations=[op1])],
     )
 
 

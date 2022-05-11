@@ -11,7 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from typing import Iterator, Callable, Union, TYPE_CHECKING
+from typing import Iterator, Callable, TYPE_CHECKING
 
 import sympy
 
@@ -83,9 +83,9 @@ def generate_all_single_qubit_rotation_cell_makers() -> Iterator[CellMaker]:
     yield _gate("e^-iZt", ops.rz(-2 * sympy.pi * sympy.Symbol('t')))
 
     # Formulaic single qubit rotations.
-    yield _formula_gate("X^ft", "sin(pi*t)", lambda e: ops.X ** e)
-    yield _formula_gate("Y^ft", "sin(pi*t)", lambda e: ops.Y ** e)
-    yield _formula_gate("Z^ft", "sin(pi*t)", lambda e: ops.Z ** e)
+    yield _formula_gate("X^ft", "sin(pi*t)", lambda e: ops.X**e)
+    yield _formula_gate("Y^ft", "sin(pi*t)", lambda e: ops.Y**e)
+    yield _formula_gate("Z^ft", "sin(pi*t)", lambda e: ops.Z**e)
     yield _formula_gate("Rxft", "pi*t*t", ops.rx)
     yield _formula_gate("Ryft", "pi*t*t", ops.ry)
     yield _formula_gate("Rzft", "pi*t*t", ops.rz)
@@ -98,9 +98,7 @@ def _gate(identifier: str, gate: 'cirq.Gate') -> CellMaker:
 
 
 def _formula_gate(
-    identifier: str,
-    default_formula: str,
-    gate_func: Callable[[Union[sympy.Symbol, float]], 'cirq.Gate'],
+    identifier: str, default_formula: str, gate_func: Callable[['cirq.TParamVal'], 'cirq.Gate']
 ) -> CellMaker:
     return CellMaker(
         identifier=identifier,

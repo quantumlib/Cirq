@@ -14,10 +14,13 @@
 
 from typing import Optional
 
-from cirq import circuits, ops, protocols
-from cirq.optimizers import two_qubit_decompositions
+from cirq import circuits, ops, protocols, _compat
+from cirq.transformers.analytical_decompositions import two_qubit_to_cz
 
 
+@_compat.deprecated_class(
+    deadline='v1.0', fix='Use cirq.optimize_for_target_gateset and cirq.CZTargetGateset instead.'
+)
 class ConvertToCzAndSingleGates(circuits.PointOptimizer):
     """Attempts to convert strange multi-qubit gates into CZ and single qubit
     gates.
@@ -48,6 +51,7 @@ class ConvertToCzAndSingleGates(circuits.PointOptimizer):
             ops.CZPowGate if allow_partial_czs else ops.CZ,
             ops.MeasurementGate,
             ops.AnyUnitaryGateFamily(1),
+            ops.GlobalPhaseGate,
         )
 
     def _decompose_two_qubit_unitaries(self, op: ops.Operation) -> ops.OP_TREE:
@@ -55,7 +59,7 @@ class ConvertToCzAndSingleGates(circuits.PointOptimizer):
         if len(op.qubits) == 2:
             mat = protocols.unitary(op, None)
             if mat is not None:
-                return two_qubit_decompositions.two_qubit_matrix_to_operations(
+                return two_qubit_to_cz.two_qubit_matrix_to_cz_operations(
                     op.qubits[0], op.qubits[1], mat, allow_partial_czs=self.allow_partial_czs
                 )
         return NotImplemented

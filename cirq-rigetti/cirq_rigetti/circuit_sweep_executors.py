@@ -15,11 +15,12 @@
 `RigettiQCSSampler` as `executor`.
 """
 
-from typing import Dict, Union, Sequence, cast, List, Any, Optional
+from typing import Any, cast, Dict, Optional, Sequence, Union
 from pyquil import Program
 from pyquil.api import QuantumComputer, QuantumExecutable
 from pyquil.quilbase import Declare
 import cirq
+import sympy
 from typing_extensions import Protocol
 from cirq_rigetti.logging import logger
 from cirq_rigetti import circuit_transformers as transformers
@@ -30,7 +31,9 @@ def _execute_and_read_result(
     executable: QuantumExecutable,
     measurement_id_map: Dict[str, str],
     resolver: cirq.ParamResolverOrSimilarType,
-    memory_map: Optional[Dict[str, Union[int, float, Sequence[int], Sequence[float]]]] = None,
+    memory_map: Optional[
+        Dict[Union[sympy.Expr, str], Union[int, float, Sequence[int], Sequence[float]]]
+    ] = None,
 ) -> cirq.Result:
     """Execute the `pyquil.api.QuantumExecutable` and parse the measurements into
     a `cirq.Result`.
@@ -45,7 +48,8 @@ def _execute_and_read_result(
             the returned `cirq.Result`.
         memory_map: A dict of values to write to memory values on the
             `quantum_computer`. The `pyquil.api.QuantumAbstractMachine` reads these
-            values into memory regions on the pre-compiled `executable` during execution.
+            v_execute_and_read_resultalues into memory regions on the pre-compiled
+            `executable` during execution.
 
     Returns:
         A `cirq.Result` with measurements read from the `quantum_computer`.
@@ -57,7 +61,10 @@ def _execute_and_read_result(
         memory_map = {}
 
     for region_name, values in memory_map.items():
-        executable.write_memory(region_name=region_name, value=values)
+        if isinstance(region_name, str):
+            executable.write_memory(region_name=region_name, value=values)
+        else:
+            raise ValueError(f'Symbols not valid for region name {region_name}')
     qam_execution_result = quantum_computer.qam.run(executable)
 
     measurements = {}
@@ -72,14 +79,14 @@ def _execute_and_read_result(
     logger.debug(f"measurements {measurements}")
 
     # collect results in a cirq.Result.
-    result = cirq.Result(
+    result = cirq.ResultDict(
         params=cast(cirq.ParamResolver, resolver or cirq.ParamResolver({})),
         measurements=measurements,
     )  # noqa
     return result
 
 
-def _get_param_dict(resolver: cirq.ParamResolverOrSimilarType) -> Dict[str, Any]:
+def _get_param_dict(resolver: cirq.ParamResolverOrSimilarType) -> Dict[Union[str, sympy.Expr], Any]:
     """Converts a `cirq.ParamResolverOrSimilarType` to a dictionary.
 
     Args:
@@ -88,7 +95,7 @@ def _get_param_dict(resolver: cirq.ParamResolverOrSimilarType) -> Dict[str, Any]
     Returns:
         A dictionary representation of the `resolver`.
     """
-    param_dict: Dict[str, Any] = {}
+    param_dict: Dict[Union[str, sympy.Expr], Any] = {}
     if isinstance(resolver, cirq.ParamResolver):
         param_dict = resolver.param_dict
     elif isinstance(resolver, dict):
@@ -133,7 +140,7 @@ class CircuitSweepExecutor(Protocol):
         resolvers: Sequence[cirq.ParamResolverOrSimilarType],
         repetitions: int,
         transformer: transformers.CircuitTransformer,
-    ) -> List[cirq.Result]:
+    ) -> Sequence[cirq.Result]:
         """Transforms `cirq.Circuit` to `pyquil.Program` and executes it for given arguments.
 
         Args:
@@ -159,7 +166,7 @@ def without_quilc_compilation(
     resolvers: Sequence[cirq.ParamResolverOrSimilarType],
     repetitions: int,
     transformer: transformers.CircuitTransformer = transformers.default,
-) -> List[cirq.Result]:
+) -> Sequence[cirq.Result]:
     """This `CircuitSweepExecutor` will bypass quilc entirely, treating the transformed
     `cirq.Circuit` as native Quil.
 
@@ -200,7 +207,7 @@ def with_quilc_compilation_and_cirq_parameter_resolution(
     resolvers: Sequence[cirq.ParamResolverOrSimilarType],
     repetitions: int,
     transformer: transformers.CircuitTransformer = transformers.default,
-) -> List[cirq.Result]:
+) -> Sequence[cirq.Result]:
     """This `CircuitSweepExecutor` will first resolve each resolver in `resolvers` using
     `cirq.protocols.resolve_parameters` and then compile that resolved `cirq.Circuit` into
     native Quil using quilc. This executor may be useful if `with_quilc_parametric_compilation`
@@ -243,7 +250,7 @@ def with_quilc_parametric_compilation(
     resolvers: Sequence[cirq.ParamResolverOrSimilarType],
     repetitions: int,
     transformer: transformers.CircuitTransformer = transformers.default,
-) -> List[cirq.Result]:
+) -> Sequence[cirq.Result]:
     """This `CircuitSweepExecutor` will compile the `circuit` using quilc as a
     parameterized `pyquil.api.QuantumExecutable` and on each iteration of
     `resolvers`, rather than resolving the `circuit` with `cirq.protocols.resolve_parameters`,
@@ -275,11 +282,7 @@ def with_quilc_parametric_compilation(
         memory_map = _get_param_dict(resolver)
         logger.debug(f"running pre-compiled parametric circuit with parameters {memory_map}")
         result = _execute_and_read_result(
-            quantum_computer,
-            executable.copy(),
-            measurement_id_map,
-            resolver,
-            memory_map=memory_map,
+            quantum_computer, executable.copy(), measurement_id_map, resolver, memory_map=memory_map
         )
         cirq_results.append(result)
 

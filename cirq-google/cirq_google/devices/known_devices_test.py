@@ -21,11 +21,14 @@ import cirq_google.serialization.common_serializers as cgc
 
 
 def test_foxtail_qubits():
-    expected_qubits = []
-    for i in range(0, 2):
-        for j in range(0, 11):
-            expected_qubits.append(cirq.GridQubit(i, j))
-    assert set(expected_qubits) == cirq_google.Foxtail.qubits
+    with cirq.testing.assert_deprecated('Foxtail', deadline='v0.15', count=2):
+        expected_qubits = []
+        for i in range(0, 2):
+            for j in range(0, 11):
+                expected_qubits.append(cirq.GridQubit(i, j))
+
+        assert set(expected_qubits) == cirq_google.Foxtail.qubits
+        assert len(cirq_google.Foxtail.metadata.qubit_pairs) == 31
 
 
 def test_foxtail_device_proto():
@@ -462,19 +465,14 @@ valid_targets {
     )
 
 
-def test_json_dict():
-    assert cirq_google.Foxtail._json_dict_() == {
-        'cirq_type': '_NamedConstantXmonDevice',
-        'constant': 'cirq_google.Foxtail',
-    }
-
-    assert cirq_google.Bristlecone._json_dict_() == {
-        'cirq_type': '_NamedConstantXmonDevice',
-        'constant': 'cirq_google.Bristlecone',
-    }
-
-    with pytest.raises(ValueError, match='xmon device name'):
-        known_devices._NamedConstantXmonDevice._from_json_dict_('the_unknown_fiddler')
+def test_json_dict_deprecated():
+    with cirq.testing.assert_deprecated('Foxtail', deadline='v0.15', count=1):
+        assert cirq_google.Foxtail._json_dict_() == {'constant': 'cirq_google.Foxtail'}
+    with cirq.testing.assert_deprecated('Bristlecone', deadline='v0.15', count=1):
+        assert cirq_google.Bristlecone._json_dict_() == {'constant': 'cirq_google.Bristlecone'}
+    with cirq.testing.assert_deprecated('Constant', deadline='v0.15', count=1):
+        with pytest.raises(ValueError, match='xmon device name'):
+            known_devices._NamedConstantXmonDevice._from_json_dict_('the_unknown_fiddler')
 
 
 @pytest.mark.parametrize('device', [cirq_google.Sycamore, cirq_google.Sycamore23])
@@ -489,25 +487,35 @@ def test_sycamore_devices(device):
     assert device.duration_of(sqrt_iswap) == cirq.Duration(nanos=32)
 
 
+def test_sycamore_metadata():
+    assert len(cirq_google.Sycamore.metadata.qubit_pairs) == 88
+    assert len(cirq_google.Sycamore23.metadata.qubit_pairs) == 32
+    assert cirq_google.Sycamore.metadata.gateset == cirq.Gateset(
+        cirq.FSimGate,
+        cirq.ISwapPowGate,
+        cirq.PhasedXPowGate,
+        cirq.XPowGate,
+        cirq.YPowGate,
+        cirq.ZPowGate,
+        cirq.PhasedXZGate,
+        cirq.MeasurementGate,
+        cirq.WaitGate,
+        cirq.GlobalPhaseGate,
+    )
+
+
 def test_sycamore_circuitop_device():
     circuitop_gateset = cirq_google.SerializableGateSet(
         gate_set_name='circuitop_gateset',
         serializers=[cgc.CIRCUIT_OP_SERIALIZER],
         deserializers=[cgc.CIRCUIT_OP_DESERIALIZER],
     )
-    gateset_list = [
-        cirq_google.SQRT_ISWAP_GATESET,
-        cirq_google.SYC_GATESET,
-        circuitop_gateset,
-    ]
+    gateset_list = [cirq_google.SQRT_ISWAP_GATESET, cirq_google.SYC_GATESET, circuitop_gateset]
     circuitop_proto = cirq_google.devices.known_devices.create_device_proto_from_diagram(
-        known_devices._SYCAMORE23_GRID,
-        gateset_list,
-        known_devices._SYCAMORE_DURATIONS_PICOS,
+        known_devices._SYCAMORE23_GRID, gateset_list, known_devices._SYCAMORE_DURATIONS_PICOS
     )
     device = cirq_google.SerializableDevice.from_proto(
-        proto=circuitop_proto,
-        gate_sets=gateset_list,
+        proto=circuitop_proto, gate_sets=gateset_list
     )
     q0 = cirq.GridQubit(5, 3)
     q1 = cirq.GridQubit(5, 4)
@@ -545,8 +553,7 @@ def test_proto_with_circuitop():
         deserializers=[cgc.CIRCUIT_OP_DESERIALIZER],
     )
     circuitop_proto = cirq_google.devices.known_devices.create_device_proto_from_diagram(
-        "aa\naa",
-        [circuitop_gateset],
+        "aa\naa", [circuitop_gateset]
     )
 
     assert (
@@ -597,8 +604,7 @@ def test_proto_with_waitgate():
         deserializers=[cgc.WAIT_GATE_DESERIALIZER],
     )
     wait_proto = cirq_google.devices.known_devices.create_device_proto_from_diagram(
-        "aa\naa",
-        [wait_gateset],
+        "aa\naa", [wait_gateset]
     )
     wait_device = cirq_google.SerializableDevice.from_proto(
         proto=wait_proto, gate_sets=[wait_gateset]
@@ -664,8 +670,7 @@ def test_adding_gates_multiple_times():
         ],
     )
     wait_proto = cirq_google.devices.known_devices.create_device_proto_from_diagram(
-        "aa",
-        [waiting_for_godot],
+        "aa", [waiting_for_godot]
     )
     wait_device = cirq_google.SerializableDevice.from_proto(
         proto=wait_proto, gate_sets=[waiting_for_godot]

@@ -15,6 +15,7 @@
 from datetime import timedelta
 import pytest
 import sympy
+import numpy as np
 
 import cirq
 from cirq.value import Duration
@@ -45,16 +46,23 @@ def test_init():
         _ = Duration(object())
 
 
+def test_numpy_types():
+    assert Duration(nanos=np.float64(1)).total_nanos() == 1.0
+    assert Duration(nanos=np.int64(1)).total_nanos() == 1.0
+    assert type(Duration(nanos=np.float64(1)).total_nanos()) == float
+    assert type(Duration(nanos=np.int64(1)).total_nanos()) == float
+
+
 def test_init_timedelta():
     assert Duration(timedelta(microseconds=0)).total_picos() == 0
-    assert Duration(timedelta(microseconds=513)).total_picos() == 513 * 10 ** 6
-    assert Duration(timedelta(microseconds=-5)).total_picos() == -5 * 10 ** 6
-    assert Duration(timedelta(microseconds=211)).total_picos() == 211 * 10 ** 6
+    assert Duration(timedelta(microseconds=513)).total_picos() == 513 * 10**6
+    assert Duration(timedelta(microseconds=-5)).total_picos() == -5 * 10**6
+    assert Duration(timedelta(microseconds=211)).total_picos() == 211 * 10**6
 
-    assert Duration(timedelta(seconds=3)).total_picos() == 3 * 10 ** 12
-    assert Duration(timedelta(seconds=-5)).total_picos() == -5 * 10 ** 12
-    assert Duration(timedelta(seconds=3)).total_nanos() == 3 * 10 ** 9
-    assert Duration(timedelta(seconds=-5)).total_nanos() == -5 * 10 ** 9
+    assert Duration(timedelta(seconds=3)).total_picos() == 3 * 10**12
+    assert Duration(timedelta(seconds=-5)).total_picos() == -5 * 10**12
+    assert Duration(timedelta(seconds=3)).total_nanos() == 3 * 10**9
+    assert Duration(timedelta(seconds=-5)).total_nanos() == -5 * 10**9
 
 
 def test_total():
@@ -177,7 +185,7 @@ def test_div():
 
 def test_json_dict():
     d = Duration(picos=6)
-    assert d._json_dict_() == {'cirq_type': 'Duration', 'picos': 6}
+    assert d._json_dict_() == {'picos': 6}
 
 
 def test_str():

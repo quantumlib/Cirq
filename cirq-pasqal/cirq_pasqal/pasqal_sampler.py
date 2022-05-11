@@ -21,15 +21,20 @@ import cirq_pasqal
 
 
 class PasqalSampler(cirq.work.Sampler):
-    def __init__(self, remote_host: str, access_token: str = '') -> None:
+    def __init__(
+        self, remote_host: str, access_token: str = '', device: cirq_pasqal.PasqalDevice = None
+    ) -> None:
         """Inits PasqalSampler.
 
         Args:
             remote_host: Address of the remote device.
             access_token: Access token for the remote api.
+            device: Optional cirq_pasqal.PasqalDevice to use with
+                the sampler.
         """
         self.remote_host = remote_host
         self._authorization_header = {"Authorization": access_token}
+        self._device = device
 
     def _serialize_circuit(
         self,
@@ -58,11 +63,7 @@ class PasqalSampler(cirq.work.Sampler):
 
         url = f'{self.remote_host}/get-result/{task_id}'
         while True:
-            response = requests.get(
-                url,
-                headers=self._authorization_header,
-                verify=False,
-            )
+            response = requests.get(url, headers=self._authorization_header, verify=False)
             response.raise_for_status()
 
             result = response.text
@@ -85,10 +86,7 @@ class PasqalSampler(cirq.work.Sampler):
         submit_response = requests.post(
             simulate_url,
             verify=False,
-            headers={
-                "Repetitions": str(repetitions),
-                **self._authorization_header,
-            },
+            headers={"Repetitions": str(repetitions), **self._authorization_header},
             data=serialization_str,
         )
         submit_response.raise_for_status()
@@ -114,8 +112,11 @@ class PasqalSampler(cirq.work.Sampler):
             Result list for this run; one for each possible parameter
             resolver.
         """
-        assert isinstance(program.device, cirq_pasqal.PasqalDevice)
-        program.device.validate_circuit(program)
+        device = self._device
+        assert isinstance(
+            device, cirq_pasqal.PasqalDevice
+        ), "Device must inherit from cirq.PasqalDevice."
+        device.validate_circuit(program)
         trial_results = []
 
         for param_resolver in cirq.study.to_resolvers(params):

@@ -134,12 +134,7 @@ class LinearCombinationOfGates(value.LinearDict[raw_types.Gate]):
             return NotImplemented
         if self.num_qubits() != 1:
             return NotImplemented
-        pauli_basis = {
-            identity.I,
-            pauli_gates.X,
-            pauli_gates.Y,
-            pauli_gates.Z,
-        }
+        pauli_basis = {identity.I, pauli_gates.X, pauli_gates.Y, pauli_gates.Z}
         if not set(self.keys()).issubset(pauli_basis):
             return NotImplemented
 
@@ -168,26 +163,23 @@ class LinearCombinationOfGates(value.LinearDict[raw_types.Gate]):
             }
         )
 
-    # TODO(#3388) Add documentation for Raises.
-    # pylint: disable=missing-raises-doc
     def matrix(self) -> np.ndarray:
         """Reconstructs matrix of self using unitaries of underlying gates.
 
         Raises:
-            TypeError: if any of the gates in self does not provide a unitary.
+            ValueError: If the number of qubits has not been specified.
         """
         if self._is_parameterized_():
             return NotImplemented
         num_qubits = self.num_qubits()
         if num_qubits is None:
             raise ValueError('Unknown number of qubits')
-        num_dim = 2 ** num_qubits
+        num_dim = 2**num_qubits
         result = np.zeros((num_dim, num_dim), dtype=np.complex128)
         for gate, coefficient in self.items():
             result += protocols.unitary(gate) * coefficient
         return result
 
-    # pylint: enable=missing-raises-doc
     def _has_unitary_(self) -> bool:
         m = self.matrix()
         return m is not NotImplemented and linalg.is_unitary(m)
@@ -199,7 +191,7 @@ class LinearCombinationOfGates(value.LinearDict[raw_types.Gate]):
         raise ValueError(f'{self} is not unitary')
 
     def _pauli_expansion_(self) -> value.LinearDict[str]:
-        result = value.LinearDict({})  # type: value.LinearDict[str]
+        result: value.LinearDict[str] = value.LinearDict({})
         for gate, coefficient in self.items():
             result += protocols.pauli_expansion(gate) * coefficient
         return result
@@ -295,7 +287,7 @@ class LinearCombinationOfOperations(value.LinearDict[raw_types.Operation]):
         if self._is_parameterized_():
             return NotImplemented
         num_qubits = len(self.qubits)
-        num_dim = 2 ** num_qubits
+        num_dim = 2**num_qubits
         qubit_to_axis = {q: i for i, q in enumerate(self.qubits)}
         result = np.zeros((2,) * (2 * num_qubits), dtype=np.complex128)
         for op, coefficient in self.items():
@@ -337,7 +329,7 @@ class LinearCombinationOfOperations(value.LinearDict[raw_types.Operation]):
                 {extend_term(p, qubits, all_qubits): c for p, c in expansion.items()}
             )
 
-        result = value.LinearDict({})  # type: value.LinearDict[str]
+        result: value.LinearDict[str] = value.LinearDict({})
         for op, coefficient in self.items():
             expansion = protocols.pauli_expansion(op)
             extended_expansion = extend(expansion, op.qubits, self.qubits)
@@ -408,8 +400,6 @@ class PauliSum:
             termdict[key] += pstring.coefficient
         return cls(linear_dict=value.LinearDict(termdict))
 
-    # TODO(#3388) Add documentation for Raises.
-    # pylint: disable=missing-raises-doc
     @classmethod
     def from_boolean_expression(
         cls, boolean_expr: Expr, qubit_map: Dict[str, 'cirq.Qid']
@@ -425,6 +415,9 @@ class PauliSum:
 
         Return:
             The PauliString that represents the Boolean expression.
+
+        Raises:
+            ValueError: If `boolean_expr` is of an unsupported type.
         """
         if isinstance(boolean_expr, Symbol):
             # In table 1, the entry for 'x' is '1/2.I - 1/2.Z'
@@ -460,7 +453,6 @@ class PauliSum:
 
         raise ValueError(f'Unsupported type: {type(boolean_expr)}')
 
-    # pylint: enable=missing-raises-doc
     @property
     def qubits(self) -> Tuple[raw_types.Qid, ...]:
         qs = {q for k in self._linear_dict.keys() for q, _ in k}
@@ -490,7 +482,7 @@ class PauliSum:
 
         qubits = self.qubits if qubits is None else tuple(qubits)
         num_qubits = len(qubits)
-        num_dim = 2 ** num_qubits
+        num_dim = 2**num_qubits
         result = np.zeros((num_dim, num_dim), dtype=np.complex128)
         for vec, coeff in self._linear_dict.items():
             op = _pauli_string_from_unit(vec)
@@ -506,8 +498,6 @@ class PauliSum:
             return m
         raise ValueError(f'{self} is not unitary')
 
-    # TODO(#3388) Add documentation for Raises.
-    # pylint: disable=missing-raises-doc
     def expectation_from_state_vector(
         self,
         state_vector: np.ndarray,
@@ -530,6 +520,12 @@ class PauliSum:
 
         Returns:
             The expectation value of the input state.
+
+        Raises:
+            NotImplementedError: If any of the coefficients are imaginary,
+                so that this is not Hermitian.
+            TypeError: If the input state is not a complex type.
+            ValueError: If the input vector is not the correct size or shape.
         """
         if any(abs(p.coefficient.imag) > 0.0001 for p in self):
             raise NotImplementedError(
@@ -564,7 +560,6 @@ class PauliSum:
             p._expectation_from_state_vector_no_validation(state_vector, qubit_map) for p in self
         )
 
-    # TODO(#3388) Add documentation for Raises.
     def expectation_from_density_matrix(
         self,
         state: np.ndarray,
@@ -587,6 +582,12 @@ class PauliSum:
 
         Returns:
             The expectation value of the input state.
+
+        Raises:
+            NotImplementedError: If any of the coefficients are imaginary,
+                so that this is not Hermitian.
+            TypeError: If the input state is not a complex type.
+            ValueError: If the input vector is not the correct size or shape.
         """
         if any(abs(p.coefficient.imag) > 0.0001 for p in self):
             raise NotImplementedError(
@@ -620,7 +621,6 @@ class PauliSum:
             )
         return sum(p._expectation_from_density_matrix_no_validation(state, qubit_map) for p in self)
 
-    # pylint: enable=missing-raises-doc
     def __iter__(self):
         for vec, coeff in self._linear_dict.items():
             yield _pauli_string_from_unit(vec, coeff)
@@ -777,10 +777,7 @@ class ProjectorSum:
         for projector_dict, scalar in dict(self._linear_dict).items():
             key = [[k, v] for k, v in dict(projector_dict).items()]
             linear_dict.append([key, scalar])
-        return {
-            'cirq_type': self.__class__.__name__,
-            'linear_dict': linear_dict,
-        }
+        return {'linear_dict': linear_dict}
 
     @classmethod
     def _from_json_dict_(cls, linear_dict, **kwargs):
@@ -835,9 +832,7 @@ class ProjectorSum:
         )
 
     def expectation_from_state_vector(
-        self,
-        state_vector: np.ndarray,
-        qid_map: Mapping[raw_types.Qid, int],
+        self, state_vector: np.ndarray, qid_map: Mapping[raw_types.Qid, int]
     ) -> float:
         """Compute the expectation value of this ProjectorSum given a state vector.
 
@@ -861,9 +856,7 @@ class ProjectorSum:
         )
 
     def expectation_from_density_matrix(
-        self,
-        state: np.ndarray,
-        qid_map: Mapping[raw_types.Qid, int],
+        self, state: np.ndarray, qid_map: Mapping[raw_types.Qid, int]
     ) -> float:
         """Expectation of the sum of projections from a density matrix.
 

@@ -25,20 +25,23 @@ import cirq_ionq
 from cirq_ionq import ionq_exceptions
 
 
+RETRIABLE_STATUS_CODES = {requests.codes.internal_server_error, requests.codes.service_unavailable}
+
+
+def _is_retriable(code):
+    # Handle 52x responses from cloudflare.
+    # See https://support.cloudflare.com/hc/en-us/articles/115003011431/
+    return code in RETRIABLE_STATUS_CODES or (code >= 520 and code <= 530)
+
+
 class _IonQClient:
     """Handles calls to IonQ's API.
 
     Users should not instantiate this themselves, but instead should use `cirq_ionq.Service`.
     """
 
-    RETRIABLE_STATUS_CODES = {
-        requests.codes.internal_server_error,
-        requests.codes.service_unavailable,
-    }
     SUPPORTED_TARGETS = {'qpu', 'simulator'}
-    SUPPORTED_VERSIONS = {
-        'v0.1',
-    }
+    SUPPORTED_VERSIONS = {'v0.1'}
 
     def __init__(
         self,
@@ -115,11 +118,7 @@ class _IonQClient:
         """
         actual_target = self._target(target)
 
-        json: Dict[str, Any] = {
-            'target': actual_target,
-            'body': serialized_program.body,
-            'lang': 'json',
-        }
+        json: Dict[str, Any] = {'target': actual_target, 'body': serialized_program.body}
         if name:
             json['name'] = name
         # We have to pass measurement keys through the metadata.
@@ -261,8 +260,6 @@ class _IonQClient:
         )
         return cast(str, target or self.default_target)
 
-    # TODO(#3388) Add documentation for Raises.
-    # pylint: disable=missing-raises-doc
     def _make_request(self, request: Callable[[], requests.Response]) -> requests.Response:
         """Make a request to the API, retrying if necessary.
 
@@ -274,7 +271,9 @@ class _IonQClient:
 
         Raises:
             IonQException: If there was a not-retriable error from the API.
+            IonQNotFoundException: If the api returned not found.
             TimeoutError: If the requests retried for more than `max_retry_seconds`.
+
         """
         # Initial backoff of 100ms.
         delay_seconds = 0.1
@@ -294,7 +293,7 @@ class _IonQClient:
                     raise ionq_exceptions.IonQNotFoundException(
                         'IonQ could not find requested resource.'
                     )
-                if response.status_code not in self.RETRIABLE_STATUS_CODES:
+                if not _is_retriable(response.status_code):
                     raise ionq_exceptions.IonQException(
                         'Non-retry-able error making request to IonQ API. '
                         f'Status: {response.status_code} '
@@ -315,7 +314,6 @@ class _IonQClient:
             time.sleep(delay_seconds)
             delay_seconds *= 2
 
-    # pylint: enable=missing-raises-doc
     def _list(
         self, resource_path: str, params: dict, response_key: str, limit: int, batch_size: int
     ) -> List[Dict]:

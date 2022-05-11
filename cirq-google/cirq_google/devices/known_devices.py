@@ -15,11 +15,12 @@
 from typing import Any, Collection, Dict, Optional, Iterable, List, Set, Tuple
 
 import cirq
+from cirq import _compat
 from cirq._doc import document
 from cirq_google.api import v2
 from cirq_google.api.v2 import device_pb2
 from cirq_google.devices.serializable_device import SerializableDevice
-from cirq_google.devices.xmon_device import XmonDevice
+from cirq_google.devices.xmon_device import _XmonDeviceBase
 from cirq_google.serialization import gate_sets, op_serializer, serializable_gate_set
 
 _2_QUBIT_TARGET_SET = "2_qubit_targets"
@@ -42,8 +43,8 @@ def _parse_device(s: str) -> Tuple[List[cirq.GridQubit], Dict[str, Set[cirq.Grid
         on that measurement line.
     """
     lines = s.strip().split('\n')
-    qubits = []  # type: List[cirq.GridQubit]
-    measurement_lines = {}  # type: Dict[str, Set[cirq.GridQubit]]
+    qubits: List[cirq.GridQubit] = []
+    measurement_lines: Dict[str, Set[cirq.GridQubit]] = {}
     for row, line in enumerate(lines):
         for col, c in enumerate(line.strip()):
             if c != '-':
@@ -108,6 +109,9 @@ def create_device_proto_for_qubits(
     # Create valid qubit list
     out.valid_qubits.extend(v2.qubit_to_proto_id(q) for q in qubits)
 
+    # Single qubit gates in this gateset
+    single_qubit_gates = (cirq.PhasedXPowGate, cirq.PhasedXZGate, cirq.ZPowGate)
+
     # Set up a target set for measurement (any qubit permutation)
     meas_targets = out.valid_targets.add()
     meas_targets.name = _MEAS_TARGET_SET
@@ -146,8 +150,8 @@ def create_device_proto_for_qubits(
                 # Choose target set and number of qubits based on gate type.
                 gate_type = internal_type
 
-                # Note: if it is not a measurement gate and doesn't inherit
-                # from SingleQubitGate, it's assumed to be a two qubit gate.
+                # Note: if it is not a measurement gate and it's type
+                # is not in the single_qubit_gates tuple, it's assumed to be a two qubit gate.
                 if gate_type == cirq.MeasurementGate:
                     gate.valid_targets.append(_MEAS_TARGET_SET)
                 elif gate_type == cirq.WaitGate:
@@ -156,7 +160,7 @@ def create_device_proto_for_qubits(
                     # Github issue:
                     # https://github.com/quantumlib/Cirq/issues/2537
                     gate.number_of_qubits = 1
-                elif issubclass(gate_type, cirq.SingleQubitGate):
+                elif gate_type in single_qubit_gates:
                     gate.number_of_qubits = 1
                 else:
                     # This must be a two-qubit gate
@@ -188,7 +192,7 @@ CCCCCCDDDDD
 """
 
 
-class _NamedConstantXmonDevice(XmonDevice):
+class _NamedConstantXmonDevice(_XmonDeviceBase):
     def __init__(self, constant: str, **kwargs) -> None:
         super().__init__(**kwargs)
         self._repr = constant
@@ -198,17 +202,18 @@ class _NamedConstantXmonDevice(XmonDevice):
 
     @classmethod
     def _from_json_dict_(cls, constant: str, **kwargs):
-        if constant in ['cirq.google.Foxtail', Foxtail._repr]:
+        _compat._warn_or_error(
+            f'NamedConstantXmonDevice was used but is deprecated.\n'
+            f'It will be removed in cirq v0.15.\n'
+        )
+        if constant in ['cirq.google.Foxtail', 'cirq_google.Foxtail']:
             return Foxtail
-        if constant in ['cirq.google.Bristlecone', Bristlecone._repr]:
+        if constant in ['cirq.google.Bristlecone', 'cirq_google.Bristlecone']:
             return Bristlecone
         raise ValueError(f'Unrecognized xmon device name: {constant!r}')
 
     def _json_dict_(self) -> Dict[str, Any]:
-        return {
-            'cirq_type': self.__class__.__name__,
-            'constant': self._repr,
-        }
+        return {'constant': self._repr}
 
 
 Foxtail = _NamedConstantXmonDevice(
@@ -262,6 +267,7 @@ Bristlecone = _NamedConstantXmonDevice(
     exp_11_duration=cirq.Duration(nanos=50),
     qubits=_parse_device(_BRISTLECONE_GRID)[0],
 )
+
 document(
     Bristlecone,
     f"""72 xmon qubit device.
@@ -303,9 +309,7 @@ _SYCAMORE_DURATIONS_PICOS = {
 }
 
 SYCAMORE_PROTO = create_device_proto_from_diagram(
-    _SYCAMORE_GRID,
-    [gate_sets.SQRT_ISWAP_GATESET, gate_sets.SYC_GATESET],
-    _SYCAMORE_DURATIONS_PICOS,
+    _SYCAMORE_GRID, [gate_sets.SQRT_ISWAP_GATESET, gate_sets.SYC_GATESET], _SYCAMORE_DURATIONS_PICOS
 )
 
 Sycamore = SerializableDevice.from_proto(

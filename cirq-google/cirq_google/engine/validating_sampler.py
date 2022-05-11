@@ -59,20 +59,17 @@ class ValidatingSampler(cirq.Sampler):
             self._validator(circuits, sweeps, repetitions)
 
     def run_sweep(
-        self,
-        program: cirq.AbstractCircuit,
-        params: cirq.Sweepable,
-        repetitions: int = 1,
-    ) -> List['cirq.Result']:
+        self, program: cirq.AbstractCircuit, params: cirq.Sweepable, repetitions: int = 1
+    ) -> Sequence[cirq.Result]:
         self._validate_circuit([program], [params], repetitions)
         return self._sampler.run_sweep(program, params, repetitions)
 
     def run_batch(
         self,
-        programs: Sequence['cirq.AbstractCircuit'],
-        params_list: Optional[List['cirq.Sweepable']] = None,
+        programs: Sequence[cirq.AbstractCircuit],
+        params_list: Optional[List[cirq.Sweepable]] = None,
         repetitions: Union[int, List[int]] = 1,
-    ) -> List[List['cirq.Result']]:
+    ) -> Sequence[Sequence[cirq.Result]]:
         if params_list is None:
             params_list = [None] * len(programs)
         self._validate_circuit(programs, params_list, repetitions)

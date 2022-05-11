@@ -1,0 +1,4 @@
+[
+    cirq.ClassicalDataDictionaryStore(_records={cirq.MeasurementKey('m'): [[0, 1]]}, _measured_qubits={cirq.MeasurementKey('m'): [[cirq.LineQubit(0), cirq.LineQubit(1)]]}, _channel_records={cirq.MeasurementKey('c'): [3]}, _measurement_types={cirq.MeasurementKey('m'): cirq.MeasurementType.MEASUREMENT, cirq.MeasurementKey('c'): cirq.MeasurementType.CHANNEL}),
+    cirq.ClassicalDataDictionaryStore(),
+]

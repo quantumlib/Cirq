@@ -24,17 +24,15 @@ import cirq.contrib.acquaintance as cca
 def test_swap_permutation_gate():
     no_decomp = lambda op: (isinstance(op, cirq.GateOperation) and op.gate == cirq.SWAP)
     a, b = cirq.NamedQubit('a'), cirq.NamedQubit('b')
-    expander = cirq.ExpandComposite(no_decomp=no_decomp)
     gate = cca.SwapPermutationGate()
     assert gate.num_qubits() == 2
     circuit = cirq.Circuit(gate(a, b))
-    expander(circuit)
+    circuit = cirq.expand_composite(circuit, no_decomp=no_decomp)
     assert tuple(circuit.all_operations()) == (cirq.SWAP(a, b),)
 
     no_decomp = lambda op: (isinstance(op, cirq.GateOperation) and op.gate == cirq.CZ)
-    expander = cirq.ExpandComposite(no_decomp=no_decomp)
     circuit = cirq.Circuit(cca.SwapPermutationGate(cirq.CZ)(a, b))
-    expander(circuit)
+    circuit = cirq.expand_composite(circuit, no_decomp=no_decomp)
     assert tuple(circuit.all_operations()) == (cirq.CZ(a, b),)
 
     assert cirq.commutes(gate, cirq.ZZ)
@@ -186,7 +184,7 @@ def test_linear_permutation_gate_pow_not_implemented():
 def test_linear_permutation_gate_pow_identity(num_qubits, permutation):
     permutation_gate = cca.LinearPermutationGate(num_qubits, permutation)
 
-    assert permutation_gate ** 1 == permutation_gate
+    assert permutation_gate**1 == permutation_gate
 
 
 @pytest.mark.parametrize(
@@ -203,7 +201,7 @@ def test_linear_permutation_gate_pow_inverse(num_qubits, permutation, inverse):
     permutation_gate = cca.LinearPermutationGate(num_qubits, permutation)
     inverse_gate = cca.LinearPermutationGate(num_qubits, inverse)
 
-    assert permutation_gate ** -1 == inverse_gate
+    assert permutation_gate**-1 == inverse_gate
     assert cirq.inverse(permutation_gate) == inverse_gate
 
 

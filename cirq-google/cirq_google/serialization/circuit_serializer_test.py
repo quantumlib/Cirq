@@ -22,6 +22,11 @@ import cirq_google as cg
 from cirq_google.api import v2
 
 
+class FakeDevice(cirq.Device):
+    def __init__(self):
+        pass
+
+
 def op_proto(json: Dict) -> v2.program_pb2.Operation:
     op = v2.program_pb2.Operation()
     json_format.ParseDict(json, op)
@@ -44,51 +49,26 @@ Q0 = cirq.GridQubit(2, 4)
 Q1 = cirq.GridQubit(2, 5)
 
 
-X_PROTO = op_proto(
-    {
-        'xpowgate': {'exponent': {'float_value': 1.0}},
-        'qubit_constant_index': [0],
-    }
-)
+X_PROTO = op_proto({'xpowgate': {'exponent': {'float_value': 1.0}}, 'qubit_constant_index': [0]})
 
 
 OPERATIONS = [
     (cirq.X(Q0), X_PROTO),
     (
         cirq.Y(Q0),
-        op_proto(
-            {
-                'ypowgate': {'exponent': {'float_value': 1.0}},
-                'qubit_constant_index': [0],
-            }
-        ),
+        op_proto({'ypowgate': {'exponent': {'float_value': 1.0}}, 'qubit_constant_index': [0]}),
     ),
     (
         cirq.Z(Q0),
-        op_proto(
-            {
-                'zpowgate': {'exponent': {'float_value': 1.0}},
-                'qubit_constant_index': [0],
-            }
-        ),
+        op_proto({'zpowgate': {'exponent': {'float_value': 1.0}}, 'qubit_constant_index': [0]}),
     ),
     (
         cirq.XPowGate(exponent=0.125)(Q1),
-        op_proto(
-            {
-                'xpowgate': {'exponent': {'float_value': 0.125}},
-                'qubit_constant_index': [0],
-            }
-        ),
+        op_proto({'xpowgate': {'exponent': {'float_value': 0.125}}, 'qubit_constant_index': [0]}),
     ),
     (
         cirq.XPowGate(exponent=sympy.Symbol('a'))(Q1),
-        op_proto(
-            {
-                'xpowgate': {'exponent': {'symbol': 'a'}},
-                'qubit_constant_index': [0],
-            }
-        ),
+        op_proto({'xpowgate': {'exponent': {'symbol': 'a'}}, 'qubit_constant_index': [0]}),
     ),
     (
         cirq.XPowGate(exponent=0.25 + sympy.Symbol('t'))(Q1),
@@ -140,21 +120,11 @@ OPERATIONS = [
     ),
     (
         cirq.YPowGate(exponent=0.25)(Q0),
-        op_proto(
-            {
-                'ypowgate': {'exponent': {'float_value': 0.25}},
-                'qubit_constant_index': [0],
-            }
-        ),
+        op_proto({'ypowgate': {'exponent': {'float_value': 0.25}}, 'qubit_constant_index': [0]}),
     ),
     (
         cirq.ZPowGate(exponent=0.5)(Q0),
-        op_proto(
-            {
-                'zpowgate': {'exponent': {'float_value': 0.5}},
-                'qubit_constant_index': [0],
-            }
-        ),
+        op_proto({'zpowgate': {'exponent': {'float_value': 0.5}}, 'qubit_constant_index': [0]}),
     ),
     (
         cirq.ZPowGate(exponent=0.5)(Q0).with_tags(cg.PhysicalZTag()),
@@ -192,27 +162,31 @@ OPERATIONS = [
     ),
     (
         cirq.CZ(Q0, Q1),
-        op_proto(
-            {
-                'czpowgate': {'exponent': {'float_value': 1.0}},
-                'qubit_constant_index': [0, 1],
-            }
-        ),
+        op_proto({'czpowgate': {'exponent': {'float_value': 1.0}}, 'qubit_constant_index': [0, 1]}),
     ),
     (
         cirq.CZPowGate(exponent=0.5)(Q0, Q1),
-        op_proto(
-            {
-                'czpowgate': {'exponent': {'float_value': 0.5}},
-                'qubit_constant_index': [0, 1],
-            }
-        ),
+        op_proto({'czpowgate': {'exponent': {'float_value': 0.5}}, 'qubit_constant_index': [0, 1]}),
     ),
     (
         cirq.ISwapPowGate(exponent=0.5)(Q0, Q1),
         op_proto(
+            {'iswappowgate': {'exponent': {'float_value': 0.5}}, 'qubit_constant_index': [0, 1]}
+        ),
+    ),
+    (
+        cirq.FSimGate(theta=2 + sympy.Symbol('a'), phi=1)(Q0, Q1),
+        op_proto(
             {
-                'iswappowgate': {'exponent': {'float_value': 0.5}},
+                'fsimgate': {
+                    'theta': {
+                        'func': {
+                            'type': 'add',
+                            'args': [{'arg_value': {'float_value': 2.00}}, {'symbol': 'a'}],
+                        }
+                    },
+                    'phi': {'float_value': 1.0},
+                },
                 'qubit_constant_index': [0, 1],
             }
         ),
@@ -227,12 +201,27 @@ OPERATIONS = [
         ),
     ),
     (
-        cirq.WaitGate(duration=cirq.Duration(nanos=15))(Q0),
+        cirq.FSimGate(theta=0.5, phi=0.0)(Q0, Q1),
         op_proto(
             {
-                'waitgate': {'duration_nanos': {'float_value': 15}},
-                'qubit_constant_index': [0],
+                'fsimgate': {'theta': {'float_value': 0.5}, 'phi': {'float_value': 0.0}},
+                'qubit_constant_index': [0, 1],
             }
+        ),
+    ),
+    (
+        cirq.FSimGate(theta=2, phi=1)(Q0, Q1),
+        op_proto(
+            {
+                'fsimgate': {'theta': {'float_value': 2.0}, 'phi': {'float_value': 1.0}},
+                'qubit_constant_index': [0, 1],
+            }
+        ),
+    ),
+    (
+        cirq.WaitGate(duration=cirq.Duration(nanos=15))(Q0),
+        op_proto(
+            {'waitgate': {'duration_nanos': {'float_value': 15}}, 'qubit_constant_index': [0]}
         ),
     ),
     (
@@ -297,7 +286,7 @@ def test_serialize_deserialize_circuit():
                             ),
                             qubit_constant_index=[1],
                         ),
-                    ],
+                    ]
                 ),
                 v2.program_pb2.Moment(
                     operations=[
@@ -306,8 +295,8 @@ def test_serialize_deserialize_circuit():
                                 exponent=v2.program_pb2.FloatArg(float_value=1.0)
                             ),
                             qubit_constant_index=[0],
-                        ),
-                    ],
+                        )
+                    ]
                 ),
             ],
         ),
@@ -352,15 +341,9 @@ def test_serialize_deserialize_circuit_with_tokens():
         circuit=v2.program_pb2.Circuit(
             scheduling_strategy=v2.program_pb2.Circuit.MOMENT_BY_MOMENT,
             moments=[
-                v2.program_pb2.Moment(
-                    operations=[op_q0_tag1, op_q1_tag2],
-                ),
-                v2.program_pb2.Moment(
-                    operations=[op_q0_tag2],
-                ),
-                v2.program_pb2.Moment(
-                    operations=[X_PROTO],
-                ),
+                v2.program_pb2.Moment(operations=[op_q0_tag1, op_q1_tag2]),
+                v2.program_pb2.Moment(operations=[op_q0_tag2]),
+                v2.program_pb2.Moment(operations=[X_PROTO]),
             ],
         ),
         constants=[
@@ -390,14 +373,12 @@ def test_deserialize_circuit_with_token_strings():
                             ),
                             token_value='abc123',
                             qubit_constant_index=[0],
-                        ),
-                    ],
-                ),
+                        )
+                    ]
+                )
             ],
         ),
-        constants=[
-            v2.program_pb2.Constant(qubit=v2.program_pb2.Qubit(id='2_4')),
-        ],
+        constants=[v2.program_pb2.Constant(qubit=v2.program_pb2.Qubit(id='2_4'))],
     )
     tag = cg.CalibrationTag('abc123')
     circuit = cirq.Circuit(cirq.X(Q0).with_tags(tag))
@@ -446,14 +427,8 @@ def test_serialize_deserialize_circuit_with_subcircuit():
         circuit=v2.program_pb2.Circuit(
             scheduling_strategy=v2.program_pb2.Circuit.MOMENT_BY_MOMENT,
             moments=[
-                v2.program_pb2.Moment(
-                    operations=[op_tag],
-                    circuit_operations=[c_op1],
-                ),
-                v2.program_pb2.Moment(
-                    operations=[op_x],
-                    circuit_operations=[c_op2],
-                ),
+                v2.program_pb2.Moment(operations=[op_tag], circuit_operations=[c_op1]),
+                v2.program_pb2.Moment(operations=[op_x], circuit_operations=[c_op2]),
             ],
         ),
         constants=[
@@ -463,11 +438,7 @@ def test_serialize_deserialize_circuit_with_subcircuit():
             v2.program_pb2.Constant(
                 circuit_value=v2.program_pb2.Circuit(
                     scheduling_strategy=v2.program_pb2.Circuit.MOMENT_BY_MOMENT,
-                    moments=[
-                        v2.program_pb2.Moment(
-                            operations=[op_symbol],
-                        )
-                    ],
+                    moments=[v2.program_pb2.Moment(operations=[op_symbol])],
                 )
             ),
         ],
@@ -498,9 +469,7 @@ def test_deserialize_empty_moment():
         language=v2.program_pb2.Language(arg_function_language='', gate_set='my_gate_set'),
         circuit=v2.program_pb2.Circuit(
             scheduling_strategy=v2.program_pb2.Circuit.MOMENT_BY_MOMENT,
-            moments=[
-                v2.program_pb2.Moment(),
-            ],
+            moments=[v2.program_pb2.Moment()],
         ),
     )
     assert serializer.deserialize(proto) == circuit
@@ -528,11 +497,7 @@ def default_circuit_proto():
 
     return v2.program_pb2.Circuit(
         scheduling_strategy=v2.program_pb2.Circuit.MOMENT_BY_MOMENT,
-        moments=[
-            v2.program_pb2.Moment(
-                operations=[op1],
-            ),
-        ],
+        moments=[v2.program_pb2.Moment(operations=[op1])],
     )
 
 
@@ -564,9 +529,7 @@ def test_deserialize_unsupported_gate_type():
     operation_proto = op_proto(
         {
             'gate': {'id': 'no_pow'},
-            'args': {
-                'half_turns': {'arg_value': {'float_value': 0.125}},
-            },
+            'args': {'half_turns': {'arg_value': {'float_value': 0.125}}},
             'qubits': [{'id': '1_1'}],
         }
     )
@@ -574,9 +537,7 @@ def test_deserialize_unsupported_gate_type():
         language=v2.program_pb2.Language(arg_function_language='', gate_set='my_gate_set'),
         circuit=v2.program_pb2.Circuit(
             scheduling_strategy=v2.program_pb2.Circuit.MOMENT_BY_MOMENT,
-            moments=[
-                v2.program_pb2.Moment(operations=[operation_proto]),
-            ],
+            moments=[v2.program_pb2.Moment(operations=[operation_proto])],
         ),
     )
     with pytest.raises(ValueError, match='no_pow'):
@@ -640,18 +601,13 @@ def test_deserialize_schedule_not_supported():
         ),
     )
     with pytest.raises(ValueError, match='no longer supported'):
-        serializer.deserialize(proto, cg.Bristlecone)
+        serializer.deserialize(proto)
 
 
 def test_deserialize_fsim_missing_parameters():
     serializer = cg.CircuitSerializer('my_gate_set')
     proto = circuit_proto(
-        {
-            'fsimgate': {
-                'theta': {'float_value': 3.0},
-            },
-            'qubit_constant_index': [0, 1],
-        },
+        {'fsimgate': {'theta': {'float_value': 3.0}}, 'qubit_constant_index': [0, 1]},
         ['1_1', '1_2'],
     )
     with pytest.raises(ValueError, match='theta and phi must be specified'):

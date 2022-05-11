@@ -12,12 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import (
-    Any,
-    TypeVar,
-    Union,
-    Optional,
-)
+from typing import Any, TypeVar, Union, Optional
 
 import numpy as np
 from typing_extensions import Protocol
@@ -25,13 +20,8 @@ from typing_extensions import Protocol
 from cirq import qis
 from cirq._doc import doc_private
 from cirq.protocols import qid_shape_protocol
-from cirq.protocols.apply_unitary_protocol import (
-    ApplyUnitaryArgs,
-    apply_unitaries,
-)
-from cirq.protocols.decompose_protocol import (
-    _try_decompose_into_operations_and_qubits,
-)
+from cirq.protocols.apply_unitary_protocol import ApplyUnitaryArgs, apply_unitaries
+from cirq.protocols.decompose_protocol import _try_decompose_into_operations_and_qubits
 from cirq.type_workarounds import NotImplementedType
 
 # This is a special indicator value used by the unitary method to determine
@@ -39,7 +29,7 @@ from cirq.type_workarounds import NotImplementedType
 # np.ndarray to ensure the method has the correct type signature in that case.
 # It is checked for using `is`, so it won't have a false positive if the user
 # provides a different np.array([]) value.
-RaiseTypeErrorIfNotProvided = np.array([])  # type: np.ndarray
+RaiseTypeErrorIfNotProvided: np.ndarray = np.array([])
 
 TDefault = TypeVar('TDefault')
 

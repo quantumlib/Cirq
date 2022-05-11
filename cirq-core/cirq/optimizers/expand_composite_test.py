@@ -17,34 +17,33 @@ import cirq
 
 
 def assert_equal_mod_empty(expected, actual):
-    drop_empty = cirq.DropEmptyMoments()
-    drop_empty.optimize_circuit(actual)
-
+    actual = cirq.drop_empty_moments(actual)
     assert expected == actual, f'EXPECTED {expected} : ACTUAL {actual}'
+
+
+def assert_optimizes(no_decomp, expected, actual):
+    with cirq.testing.assert_deprecated("Use cirq.expand_composite", deadline='v1.0'):
+        expander = cirq.ExpandComposite(no_decomp) if no_decomp else cirq.ExpandComposite()
+        expander(expected)
+        if actual:
+            assert_equal_mod_empty(expected, actual)
 
 
 def test_empty_circuit():
     circuit = cirq.Circuit()
-    opt = cirq.ExpandComposite()
-    opt.optimize_circuit(circuit)
-    assert_equal_mod_empty(cirq.Circuit(), circuit)
+    assert_optimizes(None, circuit.copy(), circuit)
 
 
 def test_empty_moment():
     circuit = cirq.Circuit([])
-    opt = cirq.ExpandComposite()
-    opt.optimize_circuit(circuit)
-    assert_equal_mod_empty(cirq.Circuit([]), circuit)
+    assert_optimizes(None, circuit.copy(), circuit)
 
 
 def test_ignore_non_composite():
     q0, q1 = cirq.LineQubit.range(2)
     circuit = cirq.Circuit()
     circuit.append([cirq.X(q0), cirq.Y(q1), cirq.CZ(q0, q1), cirq.Z(q0)])
-    expected = circuit.copy()
-    opt = cirq.ExpandComposite()
-    opt.optimize_circuit(circuit)
-    assert_equal_mod_empty(expected, circuit)
+    assert_optimizes(None, circuit.copy(), circuit)
 
 
 def test_composite_default():
@@ -52,11 +51,9 @@ def test_composite_default():
     cnot = cirq.CNOT(q0, q1)
     circuit = cirq.Circuit()
     circuit.append(cnot)
-    opt = cirq.ExpandComposite()
-    opt.optimize_circuit(circuit)
     expected = cirq.Circuit()
     expected.append([cirq.Y(q1) ** -0.5, cirq.CZ(q0, q1), cirq.Y(q1) ** 0.5])
-    assert_equal_mod_empty(expected, circuit)
+    assert_optimizes(None, circuit, expected)
 
 
 def test_multiple_composite_default():
@@ -64,11 +61,10 @@ def test_multiple_composite_default():
     cnot = cirq.CNOT(q0, q1)
     circuit = cirq.Circuit()
     circuit.append([cnot, cnot])
-    opt = cirq.ExpandComposite()
-    opt.optimize_circuit(circuit)
     expected = cirq.Circuit()
     decomp = [cirq.Y(q1) ** -0.5, cirq.CZ(q0, q1), cirq.Y(q1) ** 0.5]
     expected.append([decomp, decomp])
+    assert_optimizes(None, circuit, expected)
     assert_equal_mod_empty(expected, circuit)
 
 
@@ -76,8 +72,6 @@ def test_mix_composite_non_composite():
     q0, q1 = cirq.LineQubit.range(2)
 
     actual = cirq.Circuit(cirq.X(q0), cirq.CNOT(q0, q1), cirq.X(q1))
-    opt = cirq.ExpandComposite()
-    opt.optimize_circuit(actual)
 
     expected = cirq.Circuit(
         cirq.X(q0),
@@ -87,7 +81,7 @@ def test_mix_composite_non_composite():
         cirq.X(q1),
         strategy=cirq.InsertStrategy.NEW,
     )
-    assert_equal_mod_empty(expected, actual)
+    assert_optimizes(None, actual, expected)
 
 
 def test_recursive_composite():
@@ -96,8 +90,6 @@ def test_recursive_composite():
     circuit = cirq.Circuit()
     circuit.append(swap)
 
-    opt = cirq.ExpandComposite()
-    opt.optimize_circuit(circuit)
     expected = cirq.Circuit(
         cirq.Y(q1) ** -0.5,
         cirq.CZ(q0, q1),
@@ -109,11 +101,11 @@ def test_recursive_composite():
         cirq.CZ(q0, q1),
         cirq.Y(q1) ** 0.5,
     )
-    assert_equal_mod_empty(expected, circuit)
+    assert_optimizes(None, circuit, expected)
 
 
 def test_decompose_returns_not_flat_op_tree():
-    class DummyGate(cirq.SingleQubitGate):
+    class DummyGate(cirq.testing.SingleQubitGate):
         def _decompose_(self, qubits):
             (q0,) = qubits
             # Yield a tuple of gates instead of yielding a gate
@@ -122,10 +114,8 @@ def test_decompose_returns_not_flat_op_tree():
     q0 = cirq.NamedQubit('q0')
     circuit = cirq.Circuit(DummyGate()(q0))
 
-    opt = cirq.ExpandComposite()
-    opt.optimize_circuit(circuit)
     expected = cirq.Circuit(cirq.X(q0))
-    assert_equal_mod_empty(expected, circuit)
+    assert_optimizes(None, circuit, expected)
 
 
 def test_decompose_returns_deep_op_tree():
@@ -150,8 +140,6 @@ def test_decompose_returns_deep_op_tree():
     q0, q1 = cirq.LineQubit.range(2)
     circuit = cirq.Circuit(DummyGate()(q0, q1))
 
-    opt = cirq.ExpandComposite()
-    opt.optimize_circuit(circuit)
     expected = cirq.Circuit(
         cirq.X(q0),
         cirq.Y(q0),
@@ -167,26 +155,23 @@ def test_decompose_returns_deep_op_tree():
         cirq.Z(q0),
         cirq.Z(q0),
     )
-    assert_equal_mod_empty(expected, circuit)
+    assert_optimizes(None, circuit, expected)
 
 
 def test_non_recursive_expansion():
     qubits = [cirq.NamedQubit(s) for s in 'xy']
     no_decomp = lambda op: (isinstance(op, cirq.GateOperation) and op.gate == cirq.ISWAP)
-    expander = cirq.ExpandComposite(no_decomp=no_decomp)
     unexpanded_circuit = cirq.Circuit(cirq.ISWAP(*qubits))
 
     circuit = unexpanded_circuit.__copy__()
-    expander.optimize_circuit(circuit)
-    assert circuit == unexpanded_circuit
+    assert_optimizes(no_decomp, circuit, unexpanded_circuit)
 
     no_decomp = lambda op: (
         isinstance(op, cirq.GateOperation)
         and isinstance(op.gate, (cirq.CNotPowGate, cirq.HPowGate))
     )
-    expander = cirq.ExpandComposite(no_decomp=no_decomp)
     circuit = unexpanded_circuit.__copy__()
-    expander.optimize_circuit(circuit)
+    assert_optimizes(no_decomp, circuit, None)
     actual_text_diagram = circuit.to_text_diagram().strip()
     expected_text_diagram = """
 x: ───@───H───X───S───X───S^-1───H───@───

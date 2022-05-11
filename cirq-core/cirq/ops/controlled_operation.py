@@ -11,6 +11,8 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
+import itertools
 from typing import (
     AbstractSet,
     Any,
@@ -25,11 +27,10 @@ from typing import (
     TYPE_CHECKING,
 )
 
-import itertools
 import numpy as np
 
 from cirq import protocols, qis, value
-from cirq.ops import raw_types, gate_operation, controlled_gate
+from cirq.ops import raw_types, gate_operation, controlled_gate, matrix_gates
 from cirq.type_workarounds import NotImplementedType
 
 if TYPE_CHECKING:
@@ -49,28 +50,73 @@ class ControlledOperation(raw_types.Operation):
         sub_operation: 'cirq.Operation',
         control_values: Optional[Sequence[Union[int, Collection[int]]]] = None,
     ):
+        """Initializes the controlled operation.
+
+        Args:
+            controls: The qubits that control the sub-operation.
+            sub_operation: The operation that will be controlled.
+            control_values: Which control qubit values to apply the sub
+                operation.  A sequence of length `num_controls` where each
+                entry is an integer (or set of integers) corresponding to the
+                qubit value (or set of possible values) where that control is
+                enabled.  When all controls are enabled, the sub gate is
+                applied.  If unspecified, control values default to 1.
+
+        Raises:
+            ValueError: If the `control_values` or `control_qid_shape` does not
+                match the number of qubits, if the `control_values` are out of
+                bounds, if the qubits overlap, or if the sub_operation is not a
+                unitary or mixture.
+        """
+        controlled_gate._validate_sub_object(sub_operation)
         if control_values is None:
             control_values = ((1,),) * len(controls)
         if len(control_values) != len(controls):
             raise ValueError('len(control_values) != len(controls)')
+
+        # Verify qubits control qubits unique
+        control_set = set(controls)
+        if len(controls) != len(control_set):
+            seen = set()
+            dupes = [x for x in controls if x in seen or seen.add(x)]  # type: ignore
+            raise ValueError(f'Duplicate control qubits {[str(x) for x in dupes]}.')
+
+        # Verify qubits don't overlap
+        if not control_set.isdisjoint(sub_operation.qubits):
+            overlap = control_set.intersection(sub_operation.qubits)
+            raise ValueError(f'Sub-op and controls share qubits {[str(x) for x in overlap]}.')
+
         # Convert to sorted tuples
-        self.control_values = cast(
+        self._control_values = cast(
             Tuple[Tuple[int, ...], ...],
             tuple((val,) if isinstance(val, int) else tuple(sorted(val)) for val in control_values),
         )
+
         # Verify control values not out of bounds
         for q, val in zip(controls, self.control_values):
             if not all(0 <= v < q.dimension for v in val):
                 raise ValueError(f'Control values <{val!r}> outside of range for qubit <{q!r}>.')
 
         if not isinstance(sub_operation, ControlledOperation):
-            self.controls = tuple(controls)
-            self.sub_operation = sub_operation
+            self._controls = tuple(controls)
+            self._sub_operation = sub_operation
         else:
             # Auto-flatten nested controlled operations.
-            self.controls = tuple(controls) + sub_operation.controls
-            self.sub_operation = sub_operation.sub_operation
-            self.control_values += sub_operation.control_values
+            self._controls = tuple(controls) + sub_operation.controls
+            self._sub_operation = sub_operation.sub_operation
+            self._control_values += sub_operation.control_values
+
+    @property
+    def controls(self) -> Tuple['cirq.Qid', ...]:
+        return self._controls
+
+    @property
+    def control_values(self) -> Tuple[Tuple[int, ...], ...]:
+        return self._control_values
+
+    @property
+    def sub_operation(self) -> 'cirq.Operation':
+        return self._sub_operation
 
     @property
     def gate(self) -> Optional['cirq.ControlledGate']:
@@ -93,11 +139,22 @@ class ControlledOperation(raw_types.Operation):
         )
 
     def _decompose_(self):
+        result = protocols.decompose_once_with_qubits(self.gate, self.qubits, NotImplemented)
+        if result is not NotImplemented:
+            return result
+
+        if isinstance(self.sub_operation.gate, matrix_gates.MatrixGate):
+            # Default decompositions of 2/3 qubit `cirq.MatrixGate` ignores global phase, which is
+            # local phase in the controlled variant and hence cannot be ignored.
+            return NotImplemented
+
         result = protocols.decompose_once(self.sub_operation, NotImplemented)
         if result is NotImplemented:
             return NotImplemented
 
-        return [ControlledOperation(self.controls, op, self.control_values) for op in result]
+        return [
+            op.controlled_by(*self.controls, control_values=self.control_values) for op in result
+        ]
 
     def _value_equality_values_(self):
         return (frozenset(zip(self.controls, self.control_values)), self.sub_operation)
@@ -225,7 +282,7 @@ class ControlledOperation(raw_types.Operation):
             known_qubits=(args.known_qubits[n:] if args.known_qubits is not None else None),
             use_unicode_characters=args.use_unicode_characters,
             precision=args.precision,
-            qubit_map=args.qubit_map,
+            label_map=args.label_map,
         )
         sub_info = protocols.circuit_diagram_info(self.sub_operation, sub_args, None)
         if sub_info is None:
@@ -254,7 +311,6 @@ class ControlledOperation(raw_types.Operation):
 
     def _json_dict_(self) -> Dict[str, Any]:
         return {
-            'cirq_type': self.__class__.__name__,
             'controls': self.controls,
             'control_values': self.control_values,
             'sub_operation': self.sub_operation,

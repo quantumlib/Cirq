@@ -14,6 +14,7 @@
 
 from dataclasses import dataclass
 from typing import Any, Callable, Dict, List, Optional, Type, TypeVar, Union
+import numbers
 
 import abc
 import numpy as np
@@ -117,7 +118,7 @@ class SerializingArg:
 
     serialized_name: str
     serialized_type: Type[ARG_LIKE]
-    op_getter: Union[str, Callable[[cirq.Operation], ARG_LIKE]]
+    op_getter: Union[str, Callable[[cirq.Operation], Optional[ARG_LIKE]]]
     required: bool = True
     default: Any = None
 
@@ -132,8 +133,6 @@ class GateOpSerializer(OpSerializer):
             on the Operation proto.  Defaults to True.
     """
 
-    # TODO(#3388) Add documentation for Args.
-    # pylint: disable=missing-param-doc
     def __init__(
         self,
         *,
@@ -148,14 +147,16 @@ class GateOpSerializer(OpSerializer):
         Args:
             gate_type: The type of the gate that is being serialized.
             serialized_gate_id: The string id of the gate when serialized.
+            args: A list of specification of the arguments to the gate when
+                serializing, including how to get this information from the
+                gate of the given gate type.
             can_serialize_predicate: Sometimes an Operation can only be
                 serialized for particular parameters. This predicate will be
                 checked before attempting to serialize the Operation. If the
                 predicate is False, serialization will result in a None value.
                 Default value is a lambda that always returns True.
-            args: A list of specification of the arguments to the gate when
-                serializing, including how to get this information from the
-                gate of the given gate type.
+            serialize_tokens: Whether to convert calibration tags into tokens
+                on the Operation proto.
         """
         self._gate_type = gate_type
         self._serialized_gate_id = serialized_gate_id
@@ -163,7 +164,6 @@ class GateOpSerializer(OpSerializer):
         self._can_serialize_predicate = can_serialize_predicate
         self._serialize_tokens = serialize_tokens
 
-    # pylint: enable=missing-param-doc
     @property
     def internal_type(self):
         return self._gate_type
@@ -342,8 +342,11 @@ class CircuitOpSerializer(OpSerializer):
         ):
             for rep_id in op.repetition_ids:
                 msg.repetition_specification.repetition_ids.ids.append(rep_id)
+        elif isinstance(op.repetitions, (int, np.integer)):
+            msg.repetition_specification.repetition_count = int(op.repetitions)
         else:
-            msg.repetition_specification.repetition_count = op.repetitions
+            # TODO: Parameterized repetitions should be serializable.
+            raise ValueError(f'Cannot serialize repetitions of type {type(op.repetitions)}')
 
         for q1, q2 in op.qubit_map.items():
             entry = msg.qubit_map.entries.add()
@@ -358,6 +361,11 @@ class CircuitOpSerializer(OpSerializer):
         for p1, p2 in op.param_resolver.param_dict.items():
             entry = msg.arg_map.entries.add()
             arg_to_proto(p1, out=entry.key, arg_function_language=arg_function_language)
+            if isinstance(p2, (complex, numbers.Complex)):
+                if isinstance(p2, numbers.Real):
+                    p2 = float(p2)
+                else:
+                    raise ValueError(f'Cannot serialize complex value {p2}')
             arg_to_proto(p2, out=entry.value, arg_function_language=arg_function_language)
 
         return msg

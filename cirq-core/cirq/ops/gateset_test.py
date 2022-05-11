@@ -23,10 +23,7 @@ import numpy as np
 
 class CustomXPowGate(cirq.EigenGate):
     def _eigen_components(self) -> List[Tuple[float, np.ndarray]]:
-        return [
-            (0, np.array([[0.5, 0.5], [0.5, 0.5]])),
-            (1, np.array([[0.5, -0.5], [-0.5, 0.5]])),
-        ]
+        return [(0, np.array([[0.5, 0.5], [0.5, 0.5]])), (1, np.array([[0.5, -0.5], [-0.5, 0.5]]))]
 
     def __str__(self) -> str:
         if self._global_shift == 0:
@@ -49,6 +46,7 @@ class CustomXPowGate(cirq.EigenGate):
 
 
 CustomX = CustomXPowGate()
+q = cirq.NamedQubit("q")
 
 
 @pytest.mark.parametrize('gate', [CustomX, CustomXPowGate])
@@ -61,11 +59,26 @@ def test_gate_family_init(gate):
     assert g.description == description
 
 
-@pytest.mark.parametrize('gate', [CustomX, CustomXPowGate])
-def test_gate_family_default_name_and_description(gate):
-    g = cirq.GateFamily(gate)
+@pytest.mark.parametrize(
+    'gate, tags_to_accept, tags_to_ignore',
+    [
+        (CustomX, [], []),
+        (CustomX, ['tag1'], []),
+        (CustomX, [], ['tag2']),
+        (CustomX, ['tag3'], ['tag4']),
+        (CustomXPowGate, [], []),
+    ],
+)
+def test_gate_family_default_name_and_description(gate, tags_to_accept, tags_to_ignore):
+    g = cirq.GateFamily(gate, tags_to_accept=tags_to_accept, tags_to_ignore=tags_to_ignore)
     assert re.match('.*GateFamily.*CustomX.*', g.name)
     assert re.match('Accepts.*instances.*CustomX.*', g.description)
+
+    accepted_match = re.compile('.*Accepted tags.*', re.DOTALL).match(g.description)
+    assert (accepted_match is None) == (tags_to_accept == [])
+
+    ignored_match = re.compile('.*Ignored tags.*', re.DOTALL).match(g.description)
+    assert (ignored_match is None) == (tags_to_ignore == [])
 
 
 def test_invalid_gate_family():
@@ -74,6 +87,9 @@ def test_invalid_gate_family():
 
     with pytest.raises(ValueError, match='non-parameterized instance of `cirq.Gate`'):
         _ = cirq.GateFamily(gate=CustomX ** sympy.Symbol('theta'))
+
+    with pytest.raises(ValueError, match='cannot be in both'):
+        _ = cirq.GateFamily(gate=cirq.H, tags_to_accept={'a', 'b'}, tags_to_ignore={'b', 'c'})
 
 
 def test_gate_family_immutable():
@@ -97,13 +113,21 @@ def test_gate_family_repr_and_str(gate, name, description):
     assert g.description in str(g)
 
 
+@pytest.mark.parametrize('gate', [cirq.X, cirq.XPowGate(), cirq.XPowGate])
+@pytest.mark.parametrize('name, description', [(None, None), ('custom_name', 'custom_description')])
+def test_gate_family_json(gate, name, description):
+    g = cirq.GateFamily(gate, name=name, description=description)
+    g_json = cirq.to_json(g)
+    assert cirq.read_json(json_text=g_json) == g
+
+
 def test_gate_family_eq():
     eq = cirq.testing.EqualsTester()
     eq.add_equality_group(cirq.GateFamily(CustomX))
-    eq.add_equality_group(cirq.GateFamily(CustomX ** 3))
+    eq.add_equality_group(cirq.GateFamily(CustomX**3))
     eq.add_equality_group(
         cirq.GateFamily(CustomX, name='custom_name', description='custom_description'),
-        cirq.GateFamily(CustomX ** 3, name='custom_name', description='custom_description'),
+        cirq.GateFamily(CustomX**3, name='custom_name', description='custom_description'),
     )
     eq.add_equality_group(cirq.GateFamily(CustomXPowGate))
     eq.add_equality_group(
@@ -118,13 +142,13 @@ def test_gate_family_eq():
             cirq.GateFamily(CustomXPowGate),
             [
                 (CustomX, True),
-                (CustomX ** 0.5, True),
+                (CustomX**0.5, True),
                 (CustomX ** sympy.Symbol('theta'), True),
                 (CustomXPowGate(exponent=0.25, global_shift=0.15), True),
-                (cirq.SingleQubitGate(), False),
-                (cirq.X ** 0.5, False),
+                (cirq.testing.SingleQubitGate(), False),
+                (cirq.X**0.5, False),
                 (None, False),
-                (cirq.GlobalPhaseOperation(1j), False),
+                (cirq.global_phase_operation(1j), False),
             ],
         ),
         (
@@ -132,30 +156,81 @@ def test_gate_family_eq():
             [
                 (CustomX, True),
                 (CustomXPowGate(exponent=1, global_shift=0.15), True),
-                (CustomX ** 2, False),
-                (CustomX ** 3, True),
+                (CustomX**2, False),
+                (CustomX**3, True),
                 (CustomX ** sympy.Symbol('theta'), False),
                 (None, False),
-                (cirq.GlobalPhaseOperation(1j), False),
+                (cirq.global_phase_operation(1j), False),
             ],
         ),
         (
             cirq.GateFamily(CustomX, ignore_global_phase=False),
-            [
-                (CustomX, True),
-                (CustomXPowGate(exponent=1, global_shift=0.15), False),
-            ],
+            [(CustomX, True), (CustomXPowGate(exponent=1, global_shift=0.15), False)],
         ),
     ],
 )
 def test_gate_family_predicate_and_containment(gate_family, gates_to_check):
-    q = cirq.NamedQubit("q")
     for gate, result in gates_to_check:
         assert gate_family._predicate(gate) == result
         assert (gate in gate_family) == result
         if isinstance(gate, cirq.Gate):
             assert (gate(q) in gate_family) == result
             assert (gate(q).with_tags('tags') in gate_family) == result
+
+
+@pytest.mark.parametrize(
+    'gate_family, gates_to_check',
+    [
+        (
+            # Accept only if the input operation contains at least one of the accepted tags.
+            cirq.GateFamily(cirq.ZPowGate, tags_to_accept=['a', 'b']),
+            [
+                (cirq.Z(q).with_tags('a', 'b'), True),
+                (cirq.Z(q).with_tags('a'), True),
+                (cirq.Z(q).with_tags('b'), True),
+                (cirq.Z(q).with_tags('c'), False),
+                (cirq.Z(q).with_tags('a', 'c'), True),
+                (cirq.Z(q).with_tags(), False),
+                (cirq.Z(q), False),
+                (cirq.Z, False),
+                (cirq.X(q).with_tags('a'), False),
+                (cirq.X(q).with_tags('c'), False),
+            ],
+        ),
+        (
+            # Reject if input operation contains at least one of the rejected tags.
+            cirq.GateFamily(cirq.ZPowGate, tags_to_ignore=['a', 'b']),
+            [
+                (cirq.Z(q).with_tags('a', 'b'), False),
+                (cirq.Z(q).with_tags('a'), False),
+                (cirq.Z(q).with_tags('b'), False),
+                (cirq.Z(q).with_tags('c'), True),
+                (cirq.Z(q).with_tags('a', 'c'), False),
+                (cirq.Z(q).with_tags(), True),
+                (cirq.Z(q), True),
+                (cirq.Z, True),
+                (cirq.X(q).with_tags('a'), False),
+                (cirq.X(q).with_tags('c'), False),
+            ],
+        ),
+        (
+            cirq.GateFamily(cirq.ZPowGate, tags_to_accept=['a'], tags_to_ignore=['c']),
+            [
+                (cirq.Z(q).with_tags('a', 'c'), False),  # should prioritize tags_to_ignore
+                (cirq.Z(q).with_tags('a'), True),
+                (cirq.Z(q).with_tags('c'), False),
+                (cirq.Z(q).with_tags(), False),
+                (cirq.Z(q), False),
+                (cirq.Z, False),
+                (cirq.X(q).with_tags('a'), False),
+                (cirq.X(q).with_tags('c'), False),
+            ],
+        ),
+    ],
+)
+def test_gate_family_tagged_operations(gate_family, gates_to_check):
+    for gate, result in gates_to_check:
+        assert (gate in gate_family) == result
 
 
 class CustomXGateFamily(cirq.GateFamily):
@@ -180,7 +255,7 @@ class CustomXGateFamily(cirq.GateFamily):
 
 
 gateset = cirq.Gateset(
-    CustomX ** 0.5, cirq.testing.TwoQubitGate, CustomXGateFamily(), name='custom gateset'
+    CustomX**0.5, cirq.testing.TwoQubitGate, CustomXGateFamily(), name='custom gateset'
 )
 
 
@@ -188,29 +263,30 @@ def test_gateset_init():
     assert gateset.name == 'custom gateset'
     assert gateset.gates == frozenset(
         [
-            cirq.GateFamily(CustomX ** 0.5),
+            cirq.GateFamily(CustomX**0.5),
             cirq.GateFamily(cirq.testing.TwoQubitGate),
             CustomXGateFamily(),
         ]
     )
 
 
-def test_gateset_repr_and_str():
-    cirq.testing.assert_equivalent_repr(gateset)
-    assert gateset.name in str(gateset)
-    for gate_family in gateset.gates:
-        assert str(gate_family) in str(gateset)
+@pytest.mark.parametrize('g', [gateset, cirq.Gateset(name='empty gateset')])
+def test_gateset_repr_and_str(g):
+    cirq.testing.assert_equivalent_repr(g)
+    assert g.name in str(g)
+    for gate_family in g.gates:
+        assert str(gate_family) in str(g)
 
 
 @pytest.mark.parametrize(
     'gate, result',
     [
         (CustomX, True),
-        (CustomX ** 2, True),
+        (CustomX**2, True),
         (CustomXPowGate(exponent=3, global_shift=0.5), True),
-        (CustomX ** 0.5, True),
+        (CustomX**0.5, True),
         (CustomXPowGate(exponent=0.5, global_shift=0.5), True),
-        (CustomX ** 0.25, False),
+        (CustomX**0.25, False),
         (CustomX ** sympy.Symbol('theta'), False),
         (cirq.testing.TwoQubitGate(), True),
     ],
@@ -247,7 +323,7 @@ def test_gateset_validate(use_circuit_op, use_global_phase):
             )
             yield [circuit_op, recursive_circuit_op]
         if use_global_phase:
-            yield cirq.GlobalPhaseOperation(1j)
+            yield cirq.global_phase_operation(1j)
 
     def assert_validate_and_contains_consistent(gateset, op_tree, result):
         assert all(op in gateset for op in cirq.flatten_to_ops(op_tree)) is result
@@ -255,59 +331,72 @@ def test_gateset_validate(use_circuit_op, use_global_phase):
             assert gateset.validate(item) is result
 
     op_tree = [*get_ops(use_circuit_op, use_global_phase)]
-    assert_validate_and_contains_consistent(
-        gateset.with_params(
-            unroll_circuit_op=use_circuit_op,
-            accept_global_phase_op=use_global_phase,
-        ),
-        op_tree,
-        True,
-    )
-    if use_circuit_op or use_global_phase:
+    with cirq.testing.assert_deprecated('global phase', deadline='v0.16', count=None):
         assert_validate_and_contains_consistent(
             gateset.with_params(
-                unroll_circuit_op=False,
-                accept_global_phase_op=False,
+                unroll_circuit_op=use_circuit_op, accept_global_phase_op=use_global_phase
             ),
             op_tree,
-            False,
+            True,
         )
+    if use_circuit_op or use_global_phase:
+        with cirq.testing.assert_deprecated('global phase', deadline='v0.16', count=2):
+            assert_validate_and_contains_consistent(
+                gateset.with_params(unroll_circuit_op=False, accept_global_phase_op=False),
+                op_tree,
+                False,
+            )
+
+
+def test_gateset_validate_circuit_op_negative_reps():
+    gate = CustomXPowGate(exponent=0.5)
+    op = cirq.CircuitOperation(cirq.FrozenCircuit(gate.on(cirq.LineQubit(0))), repetitions=-1)
+    assert op not in cirq.Gateset(gate)
+    assert op**-1 in cirq.Gateset(gate)
 
 
 def test_with_params():
     assert gateset.with_params() is gateset
-    assert (
-        gateset.with_params(
-            name=gateset.name,
-            unroll_circuit_op=gateset._unroll_circuit_op,
-            accept_global_phase_op=gateset._accept_global_phase_op,
+    with cirq.testing.assert_deprecated('global phase', deadline='v0.16'):
+        assert (
+            gateset.with_params(
+                name=gateset.name,
+                unroll_circuit_op=gateset._unroll_circuit_op,
+                accept_global_phase_op=None,
+            )
+            is gateset
         )
-        is gateset
-    )
-    gateset_with_params = gateset.with_params(
-        name='new name', unroll_circuit_op=False, accept_global_phase_op=False
-    )
+    with cirq.testing.assert_deprecated('global phase', deadline='v0.16', count=2):
+        gateset_with_params = gateset.with_params(
+            name='new name', unroll_circuit_op=False, accept_global_phase_op=False
+        )
     assert gateset_with_params.name == 'new name'
     assert gateset_with_params._unroll_circuit_op is False
-    assert gateset_with_params._accept_global_phase_op is False
 
 
 def test_gateset_eq():
     eq = cirq.testing.EqualsTester()
     eq.add_equality_group(cirq.Gateset(CustomX))
-    eq.add_equality_group(cirq.Gateset(CustomX ** 3))
-    eq.add_equality_group(cirq.Gateset(CustomX, name='Custom Gateset'))
+    eq.add_equality_group(cirq.Gateset(CustomX**3))
+    with cirq.testing.assert_deprecated('global phase', deadline='v0.16'):
+        eq.add_equality_group(
+            cirq.Gateset(CustomX, name='Custom Gateset'),
+            cirq.Gateset(
+                CustomX, cirq.GlobalPhaseGate, name='Custom Gateset', accept_global_phase_op=False
+            ),
+        )
     eq.add_equality_group(cirq.Gateset(CustomX, name='Custom Gateset', unroll_circuit_op=False))
-    eq.add_equality_group(
-        cirq.Gateset(CustomX, name='Custom Gateset', accept_global_phase_op=False)
-    )
+    with cirq.testing.assert_deprecated('global phase', deadline='v0.16'):
+        eq.add_equality_group(
+            cirq.Gateset(CustomX, name='Custom Gateset', accept_global_phase_op=True)
+        )
     eq.add_equality_group(
         cirq.Gateset(
             cirq.GateFamily(CustomX, name='custom_name', description='custom_description'),
             cirq.GateFamily(CustomX, name='custom_name', description='custom_description'),
         ),
         cirq.Gateset(
-            cirq.GateFamily(CustomX ** 3, name='custom_name', description='custom_description'),
+            cirq.GateFamily(CustomX**3, name='custom_name', description='custom_description'),
             cirq.GateFamily(CustomX, name='custom_name', description='custom_description'),
         ),
     )

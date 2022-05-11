@@ -48,15 +48,15 @@ def test_any_unitary_gate_family():
                 assert f'{init_num_qubits}' in gate_family.description
                 assert UnitaryGate(num_qubits + 1) not in gate_family
             else:
-                assert f'Any-Qubit' in gate_family.name
-                assert f'any unitary' in gate_family.description
+                assert 'Any-Qubit' in gate_family.name
+                assert 'any unitary' in gate_family.description
 
-    assert cirq.SingleQubitGate() not in cirq.AnyUnitaryGateFamily()
+    assert cirq.testing.SingleQubitGate() not in cirq.AnyUnitaryGateFamily()
 
 
 def test_any_integer_power_gate_family():
     with pytest.raises(ValueError, match='subclass of `cirq.EigenGate`'):
-        cirq.AnyIntegerPowerGateFamily(gate=cirq.SingleQubitGate)
+        cirq.AnyIntegerPowerGateFamily(gate=cirq.testing.SingleQubitGate)
     with pytest.raises(ValueError, match='subclass of `cirq.EigenGate`'):
         cirq.AnyIntegerPowerGateFamily(gate=CustomXPowGate())
     eq = cirq.testing.EqualsTester()
@@ -65,8 +65,8 @@ def test_any_integer_power_gate_family():
     eq.add_equality_group(cirq.AnyIntegerPowerGateFamily(cirq.EigenGate))
     cirq.testing.assert_equivalent_repr(gate_family)
     assert CustomX in gate_family
-    assert CustomX ** 2 in gate_family
-    assert CustomX ** 1.5 not in gate_family
+    assert CustomX**2 in gate_family
+    assert CustomX**1.5 not in gate_family
     assert CustomX ** sympy.Symbol('theta') not in gate_family
     assert 'CustomXPowGate' in gate_family.name
     assert '`g.exponent` is an integer' in gate_family.description

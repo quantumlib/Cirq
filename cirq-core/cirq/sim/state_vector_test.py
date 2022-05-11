@@ -244,7 +244,7 @@ def test_measure_state_collapse():
 
 def test_measure_state_seed():
     n = 10
-    initial_state = np.ones(2 ** n) / 2 ** (n / 2)
+    initial_state = np.ones(2**n) / 2 ** (n / 2)
 
     bits, state1 = cirq.measure_state_vector(initial_state, range(n), seed=1234)
     np.testing.assert_equal(
@@ -378,14 +378,14 @@ def test_step_result_bloch_vector():
 
 
 def test_factor_validation():
-    args = cirq.Simulator()._create_act_on_args(0, qubits=cirq.LineQubit.range(2))
-    args.apply_operation(cirq.H(cirq.LineQubit(0)))
+    args = cirq.Simulator()._create_simulation_state(0, qubits=cirq.LineQubit.range(2))
+    args.apply_operation(cirq.H(cirq.LineQubit(0)) ** 0.7)
     t = args.create_merged_state().target_tensor
     cirq.linalg.transformations.factor_state_vector(t, [0])
-    cirq.linalg.transformations.factor_state_vector(t, [1], atol=1e-2)
+    cirq.linalg.transformations.factor_state_vector(t, [1])
     args.apply_operation(cirq.CNOT(cirq.LineQubit(0), cirq.LineQubit(1)))
     t = args.create_merged_state().target_tensor
-    with pytest.raises(ValueError, match='factor'):
+    with pytest.raises(cirq.linalg.transformations.EntangledStateError):
         cirq.linalg.transformations.factor_state_vector(t, [0])
-    with pytest.raises(ValueError, match='factor'):
+    with pytest.raises(cirq.linalg.transformations.EntangledStateError):
         cirq.linalg.transformations.factor_state_vector(t, [1])

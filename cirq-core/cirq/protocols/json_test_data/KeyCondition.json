@@ -1,0 +1,9 @@
+{
+  "cirq_type": "KeyCondition",
+  "key": {
+    "cirq_type": "MeasurementKey",
+    "name": "a",
+    "path": []
+  },
+  "index": -1
+}

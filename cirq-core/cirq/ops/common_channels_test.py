@@ -18,7 +18,7 @@ import numpy as np
 import pytest
 
 import cirq
-from cirq.protocols.act_on_protocol_test import DummyActOnArgs
+from cirq.protocols.act_on_protocol_test import DummySimulationState
 
 X = np.array([[0, 1], [1, 0]])
 Y = np.array([[0, -1j], [1j, 0]])
@@ -29,7 +29,7 @@ no_precision = cirq.CircuitDiagramInfoArgs(
     known_qubit_count=None,
     use_unicode_characters=True,
     precision=None,
-    qubit_map=None,
+    label_map=None,
 )
 
 round_to_6_prec = cirq.CircuitDiagramInfoArgs(
@@ -37,7 +37,7 @@ round_to_6_prec = cirq.CircuitDiagramInfoArgs(
     known_qubit_count=None,
     use_unicode_characters=True,
     precision=6,
-    qubit_map=None,
+    label_map=None,
 )
 
 round_to_2_prec = cirq.CircuitDiagramInfoArgs(
@@ -45,7 +45,7 @@ round_to_2_prec = cirq.CircuitDiagramInfoArgs(
     known_qubit_count=None,
     use_unicode_characters=True,
     precision=2,
-    qubit_map=None,
+    label_map=None,
 )
 
 
@@ -63,6 +63,8 @@ def test_asymmetric_depolarizing_channel():
         (np.sqrt(0.4) * np.eye(2), np.sqrt(0.1) * X, np.sqrt(0.2) * Y, np.sqrt(0.3) * Z),
     )
     assert cirq.has_kraus(d)
+
+    assert cirq.AsymmetricDepolarizingChannel(p_x=0, p_y=0.1, p_z=0).num_qubits() == 1
 
 
 def test_asymmetric_depolarizing_mixture():
@@ -136,12 +138,7 @@ def test_depolarizing_channel():
     d = cirq.depolarize(0.3)
     np.testing.assert_almost_equal(
         cirq.kraus(d),
-        (
-            np.sqrt(0.7) * np.eye(2),
-            np.sqrt(0.1) * X,
-            np.sqrt(0.1) * Y,
-            np.sqrt(0.1) * Z,
-        ),
+        (np.sqrt(0.7) * np.eye(2), np.sqrt(0.1) * X, np.sqrt(0.1) * Y, np.sqrt(0.1) * Z),
     )
     assert cirq.has_kraus(d)
 
@@ -446,6 +443,8 @@ def test_reset_channel():
     np.testing.assert_almost_equal(
         cirq.kraus(r), (np.array([[1.0, 0.0], [0.0, 0]]), np.array([[0.0, 1.0], [0.0, 0.0]]))
     )
+
+    assert cirq.num_qubits(r) == 1
     assert cirq.has_kraus(r)
     assert not cirq.has_mixture(r)
     assert cirq.qid_shape(r) == (2,)
@@ -490,16 +489,16 @@ def test_reset_channel_text_diagram():
 
 def test_reset_act_on():
     with pytest.raises(TypeError, match="Failed to act"):
-        cirq.act_on(cirq.ResetChannel(), DummyActOnArgs(), qubits=())
+        cirq.act_on(cirq.ResetChannel(), DummySimulationState(), qubits=())
 
-    args = cirq.ActOnStateVectorArgs(
-        target_tensor=cirq.one_hot(
-            index=(1, 1, 1, 1, 1), shape=(2, 2, 2, 2, 2), dtype=np.complex64
-        ),
-        available_buffer=np.empty(shape=(2, 2, 2, 2, 2)),
+    args = cirq.StateVectorSimulationState(
+        available_buffer=np.empty(shape=(2, 2, 2, 2, 2), dtype=np.complex64),
         qubits=cirq.LineQubit.range(5),
         prng=np.random.RandomState(),
-        log_of_measurement_results={},
+        initial_state=cirq.one_hot(
+            index=(1, 1, 1, 1, 1), shape=(2, 2, 2, 2, 2), dtype=np.complex64
+        ),
+        dtype=np.complex64,
     )
 
     cirq.act_on(cirq.ResetChannel(), args, [cirq.LineQubit(1)])
@@ -715,7 +714,7 @@ def test_bit_flip_channel_text_diagram():
 def test_stabilizer_supports_depolarize():
     with pytest.raises(TypeError, match="act_on"):
         for _ in range(100):
-            cirq.act_on(cirq.depolarize(3 / 4), DummyActOnArgs(), qubits=())
+            cirq.act_on(cirq.depolarize(3 / 4), DummySimulationState(), qubits=())
 
     q = cirq.LineQubit(0)
     c = cirq.Circuit(cirq.depolarize(3 / 4).on(q), cirq.measure(q, key='m'))
@@ -729,7 +728,7 @@ def test_default_asymmetric_depolarizing_channel():
     assert d.p_x == 0.0
     assert d.p_y == 0.0
     assert d.p_z == 0.0
-    assert d.num_qubits == 1
+    assert d.num_qubits() == 1
 
 
 def test_bad_error_probabilities_gate():

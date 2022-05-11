@@ -51,7 +51,7 @@ def quirk_url_to_circuit(
     extra_cell_makers: Union[
         Dict[str, 'cirq.Gate'], Iterable['cirq.interop.quirk.cells.CellMaker']
     ] = (),
-    max_operation_count: int = 10 ** 6,
+    max_operation_count: int = 10**6,
 ) -> 'cirq.Circuit':
     """Parses a Cirq circuit out of a Quirk URL.
 
@@ -154,7 +154,7 @@ def quirk_json_to_circuit(
         Dict[str, 'cirq.Gate'], Iterable['cirq.interop.quirk.cells.CellMaker']
     ] = (),
     quirk_url: Optional[str] = None,
-    max_operation_count: int = 10 ** 6,
+    max_operation_count: int = 10**6,
 ) -> 'cirq.Circuit':
     """Constructs a Cirq circuit from Quirk's JSON format.
 
@@ -365,7 +365,7 @@ def _init_ops(data: Dict[str, Any]) -> 'cirq.OP_TREE':
             init_ops.append(ops.rx(np.pi / 2).on(q))
         else:
             raise ValueError(f'Unrecognized init state: {state!r}')
-    return ops.Moment(init_ops)
+    return circuits.Moment(init_ops)
 
 
 def _parse_col_cells_with_height(

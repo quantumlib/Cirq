@@ -30,13 +30,17 @@ def _class_resolver_dictionary() -> Dict[str, ObjectFactory]:
         'CalibrationLayer': cirq_google.CalibrationLayer,
         'CalibrationResult': cirq_google.CalibrationResult,
         'CouplerPulse': cirq_google.experimental.CouplerPulse,
+        'GoogleNoiseProperties': cirq_google.GoogleNoiseProperties,
         'SycamoreGate': cirq_google.SycamoreGate,
         'GateTabulation': cirq_google.GateTabulation,
+        'GridDevice': cirq_google.GridDevice,
         'PhysicalZTag': cirq_google.PhysicalZTag,
+        'FSimGateFamily': cirq_google.FSimGateFamily,
         'FloquetPhasedFSimCalibrationOptions': cirq_google.FloquetPhasedFSimCalibrationOptions,
         'FloquetPhasedFSimCalibrationRequest': cirq_google.FloquetPhasedFSimCalibrationRequest,
         'PhasedFSimCalibrationResult': cirq_google.PhasedFSimCalibrationResult,
         'PhasedFSimCharacterization': cirq_google.PhasedFSimCharacterization,
+        'SycamoreTargetGateset': cirq_google.SycamoreTargetGateset,
         'XEBPhasedFSimCalibrationOptions': cirq_google.XEBPhasedFSimCalibrationOptions,
         'XEBPhasedFSimCalibrationRequest': cirq_google.XEBPhasedFSimCalibrationRequest,
         'LocalXEBPhasedFSimCalibrationOptions': cirq_google.LocalXEBPhasedFSimCalibrationOptions,
@@ -54,4 +58,13 @@ def _class_resolver_dictionary() -> Dict[str, ObjectFactory]:
         'cirq.google.ExecutableGroupResultFilesystemRecord': cirq_google.ExecutableGroupResultFilesystemRecord,
         # pylint: enable=line-too-long
         'cirq.google.QuantumRuntimeConfiguration': cirq_google.QuantumRuntimeConfiguration,
+        'cirq.google.NaiveQubitPlacer': cirq_google.NaiveQubitPlacer,
+        'cirq.google.RandomDevicePlacer': cirq_google.RandomDevicePlacer,
+        'cirq.google.EngineProcessorRecord': cirq_google.EngineProcessorRecord,
+        'cirq.google.SimulatedProcessorRecord': cirq_google.SimulatedProcessorRecord,
+        # pylint: disable=line-too-long
+        'cirq.google.SimulatedProcessorWithLocalDeviceRecord': cirq_google.SimulatedProcessorWithLocalDeviceRecord,
+        'cirq.google.HardcodedQubitPlacer': cirq_google.HardcodedQubitPlacer,
+        # pylint: enable=line-too-long
+        'cirq.google.EngineResult': cirq_google.EngineResult,
     }

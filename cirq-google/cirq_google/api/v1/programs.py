@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import json
-from typing import Any, cast, Dict, Iterable, Optional, Sequence, Tuple, TYPE_CHECKING, Iterator
+from typing import Any, cast, Dict, Optional, Sequence, Tuple, TYPE_CHECKING, Iterator
 import numpy as np
 import sympy
 
@@ -166,16 +166,14 @@ def circuit_as_schedule_to_protos(circuit: cirq.Circuit) -> Iterator[operations_
         yield op_proto
 
 
-def circuit_from_schedule_from_protos(
-    device: 'cirq_google.XmonDevice',
-    ops: Iterable[operations_pb2.Operation],
-) -> cirq.Circuit:
-    """Convert protos into a Circuit for the given device."""
+def circuit_from_schedule_from_protos(ops) -> cirq.Circuit:
+    """Convert protos into a Circuit."""
     result = []
     for op in ops:
         xmon_op = xmon_op_from_proto(op)
         result.append(xmon_op)
-    return cirq.Circuit(result, device=device)
+    ret = cirq.Circuit(result)
+    return ret
 
 
 def pack_results(measurements: Sequence[Tuple[str, np.ndarray]]) -> bytes:
@@ -285,8 +283,6 @@ def is_native_xmon_gate(gate: cirq.Gate) -> bool:
     )
 
 
-# TODO(#3388) Add documentation for Raises.
-# pylint: disable=missing-raises-doc
 def xmon_op_from_proto(proto: operations_pb2.Operation) -> cirq.Operation:
     """Convert the proto to the corresponding operation.
 
@@ -297,14 +293,16 @@ def xmon_op_from_proto(proto: operations_pb2.Operation) -> cirq.Operation:
 
     Returns:
         The operation.
+
+    Raises:
+        ValueError: If the proto has an operation that is invalid.
     """
     param = _parameterized_value_from_proto
     qubit = _qubit_from_proto
     if proto.HasField('exp_w'):
         exp_w = proto.exp_w
         return cirq.PhasedXPowGate(
-            exponent=param(exp_w.half_turns),
-            phase_exponent=param(exp_w.axis_half_turns),
+            exponent=param(exp_w.half_turns), phase_exponent=param(exp_w.axis_half_turns)
         ).on(qubit(exp_w.target))
     if proto.HasField('exp_z'):
         exp_z = proto.exp_z
@@ -321,7 +319,6 @@ def xmon_op_from_proto(proto: operations_pb2.Operation) -> cirq.Operation:
     raise ValueError(f'invalid operation: {proto}')
 
 
-# pylint: enable=missing-raises-doc
 def _qubit_from_proto(proto: operations_pb2.Qubit):
     return cirq.GridQubit(row=proto.row, col=proto.col)
 

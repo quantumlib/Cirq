@@ -26,10 +26,10 @@ from typing import (
     TypeVar,
     Union,
 )
-
 import abc
-
 import math
+import numbers
+
 import numpy as np
 import sympy
 
@@ -73,8 +73,6 @@ class EigenGate(raw_types.Gate):
     method.
     """
 
-    # TODO(#3388) Add documentation for Raises.
-    # pylint: disable=missing-raises-doc
     def __init__(
         self, *, exponent: value.TParamVal = 1.0, global_shift: float = 0.0  # Forces keyword args.
     ) -> None:
@@ -114,6 +112,10 @@ class EigenGate(raw_types.Gate):
                 For example, `cirq.X**t` uses a `global_shift` of 0 but
                 `cirq.rx(t)` uses a `global_shift` of -0.5, which is why
                 `cirq.unitary(cirq.rx(pi))` equals -iX instead of X.
+
+        Raises:
+            ValueError: If the supplied exponent is a complex number with an
+                imaginary component.
         """
         if isinstance(exponent, complex):
             if exponent.imag:
@@ -123,7 +125,6 @@ class EigenGate(raw_types.Gate):
         self._global_shift = global_shift
         self._canonical_exponent_cached = None
 
-    # pylint: enable=missing-raises-doc
     @property
     def exponent(self) -> value.TParamVal:
         return self._exponent
@@ -201,9 +202,7 @@ class EigenGate(raw_types.Gate):
         return result
 
     def _format_exponent_as_angle(
-        self,
-        args: 'protocols.CircuitDiagramInfoArgs',
-        order: int = 2,
+        self, args: 'protocols.CircuitDiagramInfoArgs', order: int = 2
     ) -> str:
         """Returns string with exponent expressed as angle in radians.
 
@@ -356,7 +355,13 @@ class EigenGate(raw_types.Gate):
         return protocols.parameter_names(self._exponent)
 
     def _resolve_parameters_(self, resolver: 'cirq.ParamResolver', recursive: bool) -> 'EigenGate':
-        return self._with_exponent(exponent=resolver.value_of(self._exponent, recursive))
+        exponent = resolver.value_of(self._exponent, recursive)
+        if isinstance(exponent, (complex, numbers.Complex)):
+            if isinstance(exponent, numbers.Real):
+                exponent = float(exponent)
+            else:
+                raise ValueError(f'Complex exponent {exponent} not supported for EigenGate')
+        return self._with_exponent(exponent=exponent)
 
     def _equal_up_to_global_phase_(self, other, atol):
         if not isinstance(other, EigenGate):

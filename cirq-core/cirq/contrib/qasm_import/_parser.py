@@ -50,8 +50,6 @@ class QasmGateStatement:
     `cirq.GateOperation`s in the `on` method.
     """
 
-    # TODO(#3388) Add documentation for Args.
-    # pylint: disable=missing-param-doc
     def __init__(
         self,
         qasm_gate: str,
@@ -62,10 +60,11 @@ class QasmGateStatement:
         """Initializes a Qasm gate statement.
 
         Args:
-            qasm_gate: the symbol of the QASM gate
-            cirq_gate: the gate class on the cirq side
-            num_args: the number of qubits (used in validation) this
-                        gate takes
+            qasm_gate: The symbol of the QASM gate.
+            cirq_gate: The gate class on the cirq side.
+            num_params: The number of params taken by this gate.
+            num_args: The number of qubits (used in validation) this
+                gate takes.
         """
         self.qasm_gate = qasm_gate
         self.cirq_gate = cirq_gate
@@ -75,7 +74,6 @@ class QasmGateStatement:
         assert num_args >= 1
         self.num_args = num_args
 
-    # pylint: enable=missing-param-doc
     def _validate_args(self, args: List[List[ops.Qid]], lineno: int):
         if len(args) != self.num_args:
             raise QasmException(
@@ -183,6 +181,9 @@ class QasmParser:
         'sx': QasmGateStatement(
             qasm_gate='sx', num_params=0, num_args=1, cirq_gate=ops.XPowGate(exponent=0.5)
         ),
+        'sxdg': QasmGateStatement(
+            qasm_gate='sxdg', num_params=0, num_args=1, cirq_gate=ops.XPowGate(exponent=-0.5)
+        ),
         'ry': QasmGateStatement(
             qasm_gate='ry', cirq_gate=(lambda params: ops.ry(params[0])), num_params=1, num_args=1
         ),
@@ -239,8 +240,8 @@ class QasmParser:
             qasm_gate='cswap', num_params=0, num_args=3, cirq_gate=ops.CSWAP
         ),
         'ccx': QasmGateStatement(qasm_gate='ccx', num_params=0, num_args=3, cirq_gate=ops.CCX),
-        'sdg': QasmGateStatement(qasm_gate='sdg', num_params=0, num_args=1, cirq_gate=ops.S ** -1),
-        'tdg': QasmGateStatement(qasm_gate='tdg', num_params=0, num_args=1, cirq_gate=ops.T ** -1),
+        'sdg': QasmGateStatement(qasm_gate='sdg', num_params=0, num_args=1, cirq_gate=ops.S**-1),
+        'tdg': QasmGateStatement(qasm_gate='tdg', num_params=0, num_args=1, cirq_gate=ops.T**-1),
     }
 
     all_gates = {**basic_gates, **qelib_gates}
@@ -248,11 +249,7 @@ class QasmParser:
     tokens = QasmLexer.tokens
     start = 'start'
 
-    precedence = (
-        ('left', '+', '-'),
-        ('left', '*', '/'),
-        ('right', '^'),
-    )
+    precedence = (('left', '+', '-'), ('left', '*', '/'), ('right', '^'))
 
     def p_start(self, p):
         """start : qasm"""
@@ -289,15 +286,17 @@ class QasmParser:
     # circuit : new_reg circuit
     #         | gate_op circuit
     #         | measurement circuit
+    #         | if circuit
     #         | empty
 
     def p_circuit_reg(self, p):
         """circuit : new_reg circuit"""
         p[0] = self.circuit
 
-    def p_circuit_gate_or_measurement(self, p):
+    def p_circuit_gate_or_measurement_or_if(self, p):
         """circuit :  circuit gate_op
-        |  circuit measurement"""
+        |  circuit measurement
+        |  circuit if"""
         self.circuit.append(p[2])
         p[0] = self.circuit
 
@@ -355,7 +354,7 @@ class QasmParser:
         p[0] = p[3]
 
     def p_params_single(self, p):
-        """params : expr """
+        """params : expr"""
         p[0] = [p[1]]
 
     # expr : term
@@ -417,7 +416,7 @@ class QasmParser:
     #     | ID '[' NATURAL_NUMBER ']'
 
     def p_quantum_arg_register(self, p):
-        """qarg : ID """
+        """qarg : ID"""
         reg = p[1]
         if reg not in self.qregs.keys():
             raise QasmException(f'Undefined quantum register "{reg}" at line {p.lineno(1)}')
@@ -433,7 +432,7 @@ class QasmParser:
     #     | ID '[' NATURAL_NUMBER ']'
 
     def p_classical_arg_register(self, p):
-        """carg : ID """
+        """carg : ID"""
         reg = p[1]
         if reg not in self.cregs.keys():
             raise QasmException(f'Undefined classical register "{reg}" at line {p.lineno(1)}')
@@ -444,7 +443,7 @@ class QasmParser:
         return str(reg) + "_" + str(idx)
 
     def p_quantum_arg_bit(self, p):
-        """qarg : ID '[' NATURAL_NUMBER ']' """
+        """qarg : ID '[' NATURAL_NUMBER ']'"""
         reg = p[1]
         idx = p[3]
         arg_name = self.make_name(idx, reg)
@@ -462,7 +461,7 @@ class QasmParser:
         p[0] = [self.qubits[arg_name]]
 
     def p_classical_arg_bit(self, p):
-        """carg : ID '[' NATURAL_NUMBER ']' """
+        """carg : ID '[' NATURAL_NUMBER ']'"""
         reg = p[1]
         idx = p[3]
         arg_name = self.make_name(idx, reg)
@@ -495,6 +494,13 @@ class QasmParser:
         p[0] = [
             ops.MeasurementGate(num_qubits=1, key=creg[i]).on(qreg[i]) for i in range(len(qreg))
         ]
+
+    # if operations
+    # if : IF '(' carg NE NATURAL_NUMBER ')' ID qargs
+
+    def p_if(self, p):
+        """if : IF '(' carg NE NATURAL_NUMBER ')' gate_op"""
+        p[0] = [ops.ClassicallyControlledOperation(conditions=p[3], sub_operation=tuple(p[7])[0])]
 
     def p_error(self, p):
         if p is None:

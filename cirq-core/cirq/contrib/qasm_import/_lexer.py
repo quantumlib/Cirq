@@ -30,17 +30,14 @@ class QasmLexer:
         'qreg': 'QREG',
         'creg': 'CREG',
         'measure': 'MEASURE',
+        'if': 'IF',
         '->': 'ARROW',
+        '!=': 'NE',
     }
 
-    tokens = [
-        'FORMAT_SPEC',
-        'NUMBER',
-        'NATURAL_NUMBER',
-        'QELIBINC',
-        'ID',
-        'PI',
-    ] + list(reserved.values())
+    tokens = ['FORMAT_SPEC', 'NUMBER', 'NATURAL_NUMBER', 'QELIBINC', 'ID', 'PI'] + list(
+        reserved.values()
+    )
 
     def t_newline(self, t):
         r"""\n+"""
@@ -98,8 +95,16 @@ class QasmLexer:
         r"""measure"""
         return t
 
+    def t_IF(self, t):
+        r"""if"""
+        return t
+
     def t_ARROW(self, t):
         """->"""
+        return t
+
+    def t_NE(self, t):
+        """!="""
         return t
 
     def t_ID(self, t):

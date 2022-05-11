@@ -37,12 +37,13 @@ if TYPE_CHECKING:
     import cirq
 
 
+LabelEntity = Union['cirq.Qid', 'cirq.MeasurementKey']
+
+
 @value.value_equality
 class CircuitDiagramInfo:
     """Describes how to draw an operation in a circuit diagram."""
 
-    # TODO(#3388) Add documentation for Raises.
-    # pylint: disable=missing-raises-doc
     def __init__(
         self,
         wire_symbols: Iterable[str],
@@ -70,6 +71,10 @@ class CircuitDiagramInfo:
                 add parentheses around exponents whose contents could look
                 ambiguous (e.g. if the exponent contains a dash character that
                 could be mistaken for an identity wire). Defaults to True.
+
+        Raises:
+            ValueError: If `wire_symbols` is a string, and not an interable
+                of strings.
         """
         if isinstance(wire_symbols, str):
             raise ValueError('Expected an Iterable[str] for wire_symbols but got a str.')
@@ -79,7 +84,6 @@ class CircuitDiagramInfo:
         self.exponent_qubit_index = exponent_qubit_index
         self.auto_exponent_parens = auto_exponent_parens
 
-    # pylint: enable=missing-raises-doc
     def with_wire_symbols(self, new_wire_symbols: Iterable[str]):
         return CircuitDiagramInfo(
             wire_symbols=new_wire_symbols,
@@ -142,7 +146,7 @@ class CircuitDiagramInfo:
                 # funky behavior of fraction, cast to str in constructor helps.
                 approx_frac = Fraction(self.exponent).limit_denominator(16)
                 if approx_frac.denominator not in [2, 4, 5, 10]:
-                    if abs(float(approx_frac) - self.exponent) < 10 ** -args.precision:
+                    if abs(float(approx_frac) - self.exponent) < 10**-args.precision:
                         return f'({approx_frac})'
 
                 return args.format_real(self.exponent)
@@ -187,11 +191,13 @@ class CircuitDiagramInfoArgs:
             properly handle unicode characters.
         precision: The number of digits after the decimal to show for numbers in
             the text diagram. None means use full precision.
-        qubit_map: The map from qubits to diagram positions.
-        include_tags: Whether to print tags from TaggedOperations
+        label_map: The map from label entities to diagram positions.
+        include_tags: Whether to print tags from TaggedOperations.
+        transpose: Whether the circuit is to be drawn with time from left to
+            right (transpose is False), or from top to bottom.
     """
 
-    UNINFORMED_DEFAULT = None  # type: CircuitDiagramInfoArgs
+    UNINFORMED_DEFAULT: 'CircuitDiagramInfoArgs'
 
     def __init__(
         self,
@@ -199,15 +205,17 @@ class CircuitDiagramInfoArgs:
         known_qubit_count: Optional[int],
         use_unicode_characters: bool,
         precision: Optional[int],
-        qubit_map: Optional[Dict['cirq.Qid', int]],
+        label_map: Optional[Dict['cirq.LabelEntity', int]],
         include_tags: bool = True,
+        transpose: bool = False,
     ) -> None:
         self.known_qubits = None if known_qubits is None else tuple(known_qubits)
         self.known_qubit_count = known_qubit_count
         self.use_unicode_characters = use_unicode_characters
         self.precision = precision
-        self.qubit_map = qubit_map
+        self.label_map = label_map
         self.include_tags = include_tags
+        self.transpose = transpose
 
     def _value_equality_values_(self) -> Any:
         return (
@@ -216,9 +224,10 @@ class CircuitDiagramInfoArgs:
             self.use_unicode_characters,
             self.precision,
             None
-            if self.qubit_map is None
-            else tuple(sorted(self.qubit_map.items(), key=lambda e: e[0])),
+            if self.label_map is None
+            else tuple(sorted(self.label_map.items(), key=lambda e: e[0])),
             self.include_tags,
+            self.transpose,
         )
 
     def __repr__(self) -> str:
@@ -228,8 +237,9 @@ class CircuitDiagramInfoArgs:
             f'known_qubit_count={self.known_qubit_count!r}, '
             f'use_unicode_characters={self.use_unicode_characters!r}, '
             f'precision={self.precision!r}, '
-            f'qubit_map={self.qubit_map!r},'
-            f'include_tags={self.include_tags!r})'
+            f'label_map={self.label_map!r}, '
+            f'include_tags={self.include_tags!r}, '
+            f'transpose={self.transpose!r})'
         )
 
     def format_real(self, val: Union[sympy.Basic, int, float]) -> str:
@@ -241,7 +251,7 @@ class CircuitDiagramInfoArgs:
             return str(val)
         return f'{float(val):.{self.precision}}'
 
-    def format_complex(self, val: Union[sympy.Basic, int, float, complex]) -> str:
+    def format_complex(self, val: Union[sympy.Basic, int, float, 'cirq.TParamValComplex']) -> str:
         if isinstance(val, sympy.Basic):
             return str(val)
         c = complex(val)
@@ -275,7 +285,8 @@ class CircuitDiagramInfoArgs:
             known_qubit_count=self.known_qubit_count,
             use_unicode_characters=self.use_unicode_characters,
             precision=self.precision,
-            qubit_map=self.qubit_map,
+            label_map=self.label_map,
+            transpose=self.transpose,
         )
 
     def with_args(self, **kwargs):
@@ -290,7 +301,8 @@ CircuitDiagramInfoArgs.UNINFORMED_DEFAULT = CircuitDiagramInfoArgs(
     known_qubit_count=None,
     use_unicode_characters=True,
     precision=3,
-    qubit_map=None,
+    label_map=None,
+    transpose=False,
 )
 
 
@@ -325,11 +337,12 @@ def _op_info_with_fallback(
     op: 'cirq.Operation', args: 'cirq.CircuitDiagramInfoArgs'
 ) -> 'cirq.CircuitDiagramInfo':
     info = protocols.circuit_diagram_info(op, args, None)
+    rows: List[LabelEntity] = list(op.qubits)
+    if args.label_map is not None:
+        rows += protocols.measurement_keys_touched(op) & args.label_map.keys()
     if info is not None:
-        if max(1, len(op.qubits)) != len(info.wire_symbols):
-            raise ValueError(
-                f'Wanted diagram info from {op!r} for {len(op.qubits)} qubits but got {info!r}'
-            )
+        if max(1, len(rows)) != len(info.wire_symbols):
+            raise ValueError(f'Wanted diagram info from {op!r} for {rows!r}) but got {info!r}')
         return info
 
     # Use the untagged operation's __str__.
@@ -354,8 +367,7 @@ def _op_info_with_fallback(
 # pylint: disable=function-redefined
 @overload
 def circuit_diagram_info(
-    val: Any,
-    args: Optional[CircuitDiagramInfoArgs] = None,
+    val: Any, args: Optional[CircuitDiagramInfoArgs] = None
 ) -> CircuitDiagramInfo:
     pass
 

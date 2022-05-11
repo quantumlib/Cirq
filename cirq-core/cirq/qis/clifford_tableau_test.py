@@ -45,7 +45,7 @@ def _CNOT(table, q1, q2):
 
 @pytest.mark.parametrize('num_qubits', range(1, 4))
 def test_tableau_initial_state_string(num_qubits):
-    for i in range(2 ** num_qubits):
+    for i in range(2**num_qubits):
         t = cirq.CliffordTableau(initial_state=i, num_qubits=num_qubits)
         splitted_represent_string = str(t).split('\n')
         assert len(splitted_represent_string) == num_qubits
@@ -179,7 +179,7 @@ def test_measurement():
 
 def test_validate_tableau():
     num_qubits = 4
-    for i in range(2 ** num_qubits):
+    for i in range(2**num_qubits):
         t = cirq.CliffordTableau(initial_state=i, num_qubits=num_qubits)
         assert t._validate()
 
@@ -197,7 +197,7 @@ def test_validate_tableau():
     assert t._validate()
 
     t.xs = np.zeros((4, 2))
-    assert t._validate() == False
+    assert not t._validate()
 
 
 def test_rowsum():
@@ -234,7 +234,6 @@ def test_json_dict():
     assert t.stabilizers()[0] == cirq.DensePauliString('Z', coefficient=1)
     json_dict = t._json_dict_()
     except_json_dict = {
-        'cirq_type': 'CliffordTableau',
         'n': 1,
         'rs': [False, False],
         'xs': [[True], [False]],

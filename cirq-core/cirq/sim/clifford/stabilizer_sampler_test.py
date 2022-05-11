@@ -19,13 +19,19 @@ import cirq
 
 def test_produces_samples():
     a, b = cirq.LineQubit.range(2)
-    c = cirq.Circuit(
-        cirq.H(a),
-        cirq.CNOT(a, b),
-        cirq.measure(a, key='a'),
-        cirq.measure(b, key='b'),
-    )
+    c = cirq.Circuit(cirq.H(a), cirq.CNOT(a, b), cirq.measure(a, key='a'), cirq.measure(b, key='b'))
 
     result = cirq.StabilizerSampler().sample(c, repetitions=100)
     assert 5 < sum(result['a']) < 95
     assert np.all(result['a'] ^ result['b'] == 0)
+
+
+def test_reset():
+    q = cirq.LineQubit(0)
+    sampler = cirq.StabilizerSampler()
+    c = cirq.Circuit(cirq.X(q), cirq.reset(q), cirq.measure(q))
+    assert sampler.sample(c)['0'][0] == 0
+    c = cirq.Circuit(cirq.H(q), cirq.reset(q), cirq.measure(q))
+    assert sampler.sample(c)['0'][0] == 0
+    c = cirq.Circuit(cirq.reset(q), cirq.measure(q))
+    assert sampler.sample(c)['0'][0] == 0

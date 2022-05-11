@@ -95,8 +95,6 @@ def match_global_phase(a: np.ndarray, b: np.ndarray) -> Tuple[np.ndarray, np.nda
     return a * dephase(a[k]), b * dephase(b[k])
 
 
-# TODO(#3388) Add documentation for Raises.
-# pylint: disable=missing-raises-doc
 def targeted_left_multiply(
     left_matrix: np.ndarray,
     right_target: np.ndarray,
@@ -134,6 +132,9 @@ def targeted_left_multiply(
 
     Returns:
         The output tensor.
+
+    Raises:
+        ValueError: If `out` is either `right_target` or `left_matrix`.
     """
     if out is right_target or out is left_matrix:
         raise ValueError('out is right_target or out is left_matrix')
@@ -166,7 +167,6 @@ def targeted_left_multiply(
     )
 
 
-# pylint: enable=missing-raises-doc
 def targeted_conjugate_about(
     tensor: np.ndarray,
     target: np.ndarray,
@@ -223,8 +223,6 @@ _TSliceAtom = Union[int, slice, 'ellipsis']
 _TSlice = Union[_TSliceAtom, Sequence[_TSliceAtom]]
 
 
-# TODO(#3388) Add documentation for Raises.
-# pylint: disable=missing-raises-doc
 def apply_matrix_to_slices(
     target: np.ndarray,
     matrix: np.ndarray,
@@ -269,6 +267,10 @@ def apply_matrix_to_slices(
 
     Returns:
         The transformed array.
+
+    Raises:
+        ValueError: If `out` is `target` , or the matrix shaped does not match
+            `slices`.
     """
     # Validate arguments.
     if out is target:
@@ -292,7 +294,6 @@ def apply_matrix_to_slices(
     return out
 
 
-# pylint: enable=missing-raises-doc
 def partial_trace(tensor: np.ndarray, keep_indices: Sequence[int]) -> np.ndarray:
     """Takes the partial trace of a given tensor.
 
@@ -339,10 +340,10 @@ def partial_trace_of_state_vector_as_mixture(
 ) -> Tuple[Tuple[float, np.ndarray], ...]:
     """Returns a mixture representing a state vector with only some qubits kept.
 
-    The input state vector must have shape `(2,) * n` or `(2 ** n)` where
-    `state_vector` is expressed over n qubits. States in the output mixture will
-    retain the same type of shape as the input state vector, either `(2 ** k)`
-    or `(2,) * k` where k is the number of qubits kept.
+    The input state vector can have any shape, but if it is one-dimensional it
+    will be interpreted as qubits, since that is the most common case, and fail
+    if the dimension is not size `2 ** n`. States in the output mixture will
+    retain the same type of shape as the input state vector.
 
     If the state vector cannot be factored into a pure state over `keep_indices`
     then eigendecomposition is used and the output mixture will not be unique.
@@ -360,31 +361,30 @@ def partial_trace_of_state_vector_as_mixture(
         partial trace.
 
     Raises:
-        ValueError: if the input `state_vector` is not an array of length
-        `(2 ** n)` or a tensor with a shape of `(2,) * n`
+        ValueError: If the input `state_vector` is one dimension, but that
+            dimension size is not a power of two.
+        IndexError: If any indexes are out of range.
     """
+
+    if state_vector.ndim == 1:
+        dims = int(np.log2(state_vector.size))
+        if 2**dims != state_vector.size:
+            raise ValueError(f'Cannot infer underlying shape of {state_vector.shape}.')
+        state_vector = state_vector.reshape((2,) * dims)
+        ret_shape: Tuple[int, ...] = (2 ** len(keep_indices),)
+    else:
+        ret_shape = tuple(state_vector.shape[i] for i in keep_indices)
 
     # Attempt to do efficient state factoring.
     try:
-        state = sub_state_vector(
-            state_vector, keep_indices, default=RaiseValueErrorIfNotProvided, atol=atol
-        )
-        return ((1.0, state),)
+        state, _ = factor_state_vector(state_vector, keep_indices, atol=atol)
+        return ((1.0, state.reshape(ret_shape)),)
     except EntangledStateError:
         pass
 
     # Fall back to a (non-unique) mixture representation.
-    keep_dims = 1 << len(keep_indices)
-    ret_shape: Union[Tuple[int], Tuple[int, ...]]
-    if state_vector.shape == (state_vector.size,):
-        ret_shape = (keep_dims,)
-    elif all(e == 2 for e in state_vector.shape):
-        ret_shape = tuple(2 for _ in range(len(keep_indices)))
-
-    rho = np.kron(np.conj(state_vector.reshape(-1, 1)).T, state_vector.reshape(-1, 1)).reshape(
-        (2, 2) * int(np.log2(state_vector.size))
-    )
-    keep_rho = partial_trace(rho, keep_indices).reshape((keep_dims,) * 2)
+    rho = np.outer(state_vector, np.conj(state_vector)).reshape(state_vector.shape * 2)
+    keep_rho = partial_trace(rho, keep_indices).reshape((np.prod(ret_shape),) * 2)
     eigvals, eigvecs = np.linalg.eigh(keep_rho)
     mixture = tuple(zip(eigvals, [vec.reshape(ret_shape) for vec in eigvecs.T]))
     return tuple([(float(p[0]), p[1]) for p in mixture if not protocols.approx_eq(p[0], 0.0)])
@@ -395,7 +395,7 @@ def sub_state_vector(
     keep_indices: List[int],
     *,
     default: np.ndarray = RaiseValueErrorIfNotProvided,
-    atol: Union[int, float] = 1e-8,
+    atol: Union[int, float] = 1e-6,
 ) -> np.ndarray:
     r"""Attempts to factor a state vector into two parts and return one of them.
 
@@ -435,8 +435,10 @@ def sub_state_vector(
         The state vector expressed over the desired subset of qubits.
 
     Raises:
-        ValueError: if the `state_vector` is not of the correct shape or the
-            indices are not a valid subset of the input `state_vector`'s indices
+        ValueError: If the `state_vector` is not of the correct shape or the
+            indices are not a valid subset of the input `state_vector`'s
+            indices.
+        IndexError: If any indexes are out of range.
         EntangledStateError: If the result of factoring is not a pure state and
             `default` is not provided.
 
@@ -508,10 +510,7 @@ def to_special(u: np.ndarray) -> np.ndarray:
     return u * (np.linalg.det(u) ** (-1 / len(u)))
 
 
-def state_vector_kronecker_product(
-    t1: np.ndarray,
-    t2: np.ndarray,
-) -> np.ndarray:
+def state_vector_kronecker_product(t1: np.ndarray, t2: np.ndarray) -> np.ndarray:
     """Merges two state vectors into a single unified state vector.
 
     The resulting vector's shape will be `t1.shape + t2.shape`.
@@ -525,10 +524,7 @@ def state_vector_kronecker_product(
     return np.outer(t1, t2).reshape(t1.shape + t2.shape)
 
 
-def density_matrix_kronecker_product(
-    t1: np.ndarray,
-    t2: np.ndarray,
-) -> np.ndarray:
+def density_matrix_kronecker_product(t1: np.ndarray, t2: np.ndarray) -> np.ndarray:
     """Merges two density matrices into a single unified density matrix.
 
     The resulting matrix's shape will be `(t1.shape/2 + t2.shape/2) * 2`. In
@@ -552,14 +548,8 @@ def density_matrix_kronecker_product(
     )
 
 
-# TODO(#3388) Add documentation for Raises.
-# pylint: disable=missing-raises-doc
 def factor_state_vector(
-    t: np.ndarray,
-    axes: Sequence[int],
-    *,
-    validate=True,
-    atol=1e-07,
+    t: np.ndarray, axes: Sequence[int], *, validate=True, atol=1e-07
 ) -> Tuple[np.ndarray, np.ndarray]:
     """Factors a state vector into two independent state vectors.
 
@@ -580,6 +570,11 @@ def factor_state_vector(
         requested, and with the axes in the requested order, and where
         `remainder` means the sub-state vector on the remaining axes, in the
         same order as the original state vector.
+
+    Raises:
+        EntangledStateError: If the tensor is already in entangled state, and
+            the validate flag is set.
+        ValueError: If the tensor factorization fails for any other reason.
     """
     n_axes = len(axes)
     t1 = np.moveaxis(t, axes, range(n_axes))
@@ -592,20 +587,15 @@ def factor_state_vector(
     remainder = remainder / np.sum(abs(remainder) ** 2) ** 0.5
     if validate:
         t2 = state_vector_kronecker_product(extracted, remainder)
-        axes2 = list(axes) + [i for i in range(t1.ndim) if i not in axes]
-        t3 = transpose_state_vector_to_axis_order(t2, axes2)
-        if not np.allclose(t3, t, atol=atol):
-            raise ValueError('The tensor cannot be factored by the requested axes')
+        if not predicates.allclose_up_to_global_phase(t2, t1, atol=atol):
+            if not np.isclose(np.linalg.norm(t1), 1):
+                raise ValueError('Input state must be normalized.')
+            raise EntangledStateError('The tensor cannot be factored by the requested axes')
     return extracted, remainder
 
 
-# TODO(#3388) Add documentation for Raises.
 def factor_density_matrix(
-    t: np.ndarray,
-    axes: Sequence[int],
-    *,
-    validate=True,
-    atol=1e-07,
+    t: np.ndarray, axes: Sequence[int], *, validate=True, atol=1e-07
 ) -> Tuple[np.ndarray, np.ndarray]:
     """Factors a density matrix into two independent density matrices.
 
@@ -630,6 +620,9 @@ def factor_density_matrix(
         requested, and with the axes in the requested order, and where
         `remainder` means the sub-matrix on the remaining axes, in the same
         order as the original density matrix.
+
+    Raises:
+        ValueError: If the tensor cannot be factored along the given aces.
     """
     extracted = partial_trace(t, axes)
     remaining_axes = [i for i in range(t.ndim // 2) if i not in axes]
@@ -643,7 +636,6 @@ def factor_density_matrix(
     return extracted, remainder
 
 
-# pylint: enable=missing-raises-doc
 def transpose_state_vector_to_axis_order(t: np.ndarray, axes: Sequence[int]):
     """Transposes the axes of a state vector to a specified order.
 

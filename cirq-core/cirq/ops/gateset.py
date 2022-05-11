@@ -14,9 +14,24 @@
 
 """Functionality for grouping and validating Cirq Gates"""
 
-from typing import Any, Callable, cast, Dict, FrozenSet, List, Optional, Type, TYPE_CHECKING, Union
+import warnings
+from typing import (
+    Any,
+    Callable,
+    cast,
+    Dict,
+    FrozenSet,
+    Hashable,
+    List,
+    Optional,
+    Sequence,
+    Type,
+    TYPE_CHECKING,
+    Union,
+)
+
+from cirq import _compat, protocols, value
 from cirq.ops import global_phase_op, op_tree, raw_types
-from cirq import protocols, value
 
 if TYPE_CHECKING:
     import cirq
@@ -54,6 +69,37 @@ class GateFamily:
             >>> assert cirq.Rx(rads=np.pi) in gate_family
             >>> assert cirq.X ** sympy.Symbol("theta") in gate_family
 
+    As seen in the examples above, GateFamily supports containment checks for instances of both
+    `cirq.Operation` and `cirq.Gate`. By default, a `cirq.Operation` instance `op` is accepted if
+    the underlying `op.gate` is accepted.
+
+    Further constraints can be added on containment checks for `cirq.Operation` objects by setting
+    `tags_to_accept` and/or `tags_to_ignore` in the GateFamily constructor. For a tagged
+    operation, the underlying gate `op.gate` will be checked for containment only if:
+
+        * `op.tags` has no intersection with `tags_to_ignore`, and
+        * if `tags_to_accept` is not empty, then `op.tags` should have a non-empty intersection with
+            `tags_to_accept`.
+
+    If a `cirq.Operation` contains tags from both `tags_to_accept` and `tags_to_ignore`, it is
+    rejected. Furthermore, tags cannot appear in both `tags_to_accept` and `tags_to_ignore`.
+
+    For the purpose of tag comparisons, a `Gate` is considered as an `Operation` without tags.
+
+    For example:
+        >>> q = cirq.NamedQubit('q')
+        >>> gate_family = cirq.GateFamily(cirq.ZPowGate, tags_to_accept=['accepted_tag'])
+        >>> assert cirq.Z(q).with_tags('accepted_tag') in gate_family
+        >>> assert cirq.Z(q).with_tags('other_tag') not in gate_family
+        >>> assert cirq.Z(q) not in gate_family
+        >>> assert cirq.Z not in gate_family
+        ...
+        >>> gate_family = cirq.GateFamily(cirq.ZPowGate, tags_to_ignore=['ignored_tag'])
+        >>> assert cirq.Z(q).with_tags('ignored_tag') not in gate_family
+        >>> assert cirq.Z(q).with_tags('other_tag') in gate_family
+        >>> assert cirq.Z(q) in gate_family
+        >>> assert cirq.Z in gate_family
+
     In order to create gate families with constraints on parameters of a gate
     type, users should derive from the `cirq.GateFamily` class and override the
     `_predicate` method used to check for gate containment.
@@ -66,6 +112,8 @@ class GateFamily:
         name: Optional[str] = None,
         description: Optional[str] = None,
         ignore_global_phase: bool = True,
+        tags_to_accept: Sequence[Hashable] = (),
+        tags_to_ignore: Sequence[Hashable] = (),
     ) -> None:
         """Init GateFamily.
 
@@ -76,10 +124,16 @@ class GateFamily:
             description: Human readable description of the gate family.
             ignore_global_phase: If True, value equality is checked via
                 `cirq.equal_up_to_global_phase`.
+            tags_to_accept: If non-empty, only `cirq.Operations` containing at least one tag in this
+                sequence can be accepted.
+            tags_to_ignore: Any `cirq.Operation` containing at least one tag in this sequence is
+                rejected. Note that this takes precedence over `tags_to_accept`, so an operation
+                which contains tags from both `tags_to_accept` and `tags_to_ignore` is rejected.
 
         Raises:
             ValueError: if `gate` is not a `cirq.Gate` instance or subclass.
             ValueError: if `gate` is a parameterized instance of `cirq.Gate`.
+            ValueError: if `tags_to_accept` and `tags_to_ignore` contain common tags.
         """
         if not (
             isinstance(gate, raw_types.Gate)
@@ -90,12 +144,23 @@ class GateFamily:
             raise ValueError(f'Gate {gate} must be a non-parameterized instance of `cirq.Gate`.')
 
         self._gate = gate
+        self._tags_to_accept = frozenset(tags_to_accept)
+        self._tags_to_ignore = frozenset(tags_to_ignore)
         self._name = name if name else self._default_name()
         self._description = description if description else self._default_description()
         self._ignore_global_phase = ignore_global_phase
 
+        common_tags = self._tags_to_accept & self._tags_to_ignore
+        if common_tags:
+            raise ValueError(
+                f"Tag(s) '{list(common_tags)}' cannot be in both tags_to_accept and tags_to_ignore."
+            )
+
     def _gate_str(self, gettr: Callable[[Any], str] = str) -> str:
         return _gate_str(self.gate, gettr)
+
+    def _gate_json(self) -> Union[raw_types.Gate, str]:
+        return self.gate if not isinstance(self.gate, type) else protocols.json_cirq_type(self.gate)
 
     def _default_name(self) -> str:
         family_type = 'Instance' if isinstance(self.gate, raw_types.Gate) else 'Type'
@@ -103,7 +168,17 @@ class GateFamily:
 
     def _default_description(self) -> str:
         check_type = r'g == {}' if isinstance(self.gate, raw_types.Gate) else r'isinstance(g, {})'
-        return f'Accepts `cirq.Gate` instances `g` s.t. `{check_type.format(self._gate_str())}`'
+        tags_to_accept_str = (
+            f'\nAccepted tags: {list(self._tags_to_accept)}' if self._tags_to_accept else ''
+        )
+        tags_to_ignore_str = (
+            f'\nIgnored tags: {list(self._tags_to_ignore)}' if self._tags_to_ignore else ''
+        )
+        return (
+            f'Accepts `cirq.Gate` instances `g` s.t. `{check_type.format(self._gate_str())}`'
+            + tags_to_accept_str
+            + tags_to_ignore_str
+        )
 
     @property
     def gate(self) -> Union[Type[raw_types.Gate], raw_types.Gate]:
@@ -137,6 +212,13 @@ class GateFamily:
         return isinstance(gate, self.gate)
 
     def __contains__(self, item: Union[raw_types.Gate, raw_types.Operation]) -> bool:
+        if self._tags_to_accept and (
+            not isinstance(item, raw_types.Operation) or self._tags_to_accept.isdisjoint(item.tags)
+        ):
+            return False
+        if isinstance(item, raw_types.Operation) and not self._tags_to_ignore.isdisjoint(item.tags):
+            return False
+
         if isinstance(item, raw_types.Operation):
             if item.gate is None:
                 return False
@@ -154,7 +236,9 @@ class GateFamily:
             f'cirq.GateFamily('
             f'gate={self._gate_str(repr)}, '
             f'{name_and_description}'
-            f'ignore_global_phase={self._ignore_global_phase})'
+            f'ignore_global_phase={self._ignore_global_phase}, '
+            f'tags_to_accept={self._tags_to_accept}, '
+            f'tags_to_ignore={self._tags_to_ignore})'
         )
 
     def _value_equality_values_(self) -> Any:
@@ -165,6 +249,40 @@ class GateFamily:
             self.name,
             self.description,
             self._ignore_global_phase,
+            self._tags_to_accept,
+            self._tags_to_ignore,
+        )
+
+    def _json_dict_(self) -> Dict[str, Any]:
+        return {
+            'gate': self._gate_json(),
+            'name': self.name,
+            'description': self.description,
+            'ignore_global_phase': self._ignore_global_phase,
+            'tags_to_accept': list(self._tags_to_accept),
+            'tags_to_ignore': list(self._tags_to_ignore),
+        }
+
+    @classmethod
+    def _from_json_dict_(
+        cls,
+        gate,
+        name,
+        description,
+        ignore_global_phase,
+        tags_to_accept=(),
+        tags_to_ignore=(),
+        **kwargs,
+    ) -> 'GateFamily':
+        if isinstance(gate, str):
+            gate = protocols.cirq_type_from_json(gate)
+        return cls(
+            gate,
+            name=name,
+            description=description,
+            ignore_global_phase=ignore_global_phase,
+            tags_to_accept=tags_to_accept,
+            tags_to_ignore=tags_to_ignore,
         )
 
 
@@ -180,12 +298,20 @@ class Gateset:
     validation purposes.
     """
 
+    @_compat.deprecated_parameter(
+        deadline='v0.16',
+        fix='To accept global phase gates, add cirq.GlobalPhaseGate to the list of *gates passed '
+        'to the constructor. By default, global phase gates will not be accepted by the '
+        'gateset',
+        parameter_desc='accept_global_phase_op',
+        match=lambda args, kwargs: 'accept_global_phase_op' in kwargs,
+    )
     def __init__(
         self,
         *gates: Union[Type[raw_types.Gate], raw_types.Gate, GateFamily],
         name: Optional[str] = None,
         unroll_circuit_op: bool = True,
-        accept_global_phase_op: bool = True,
+        accept_global_phase_op: Optional[bool] = None,
     ) -> None:
         """Init Gateset.
 
@@ -204,24 +330,43 @@ class Gateset:
             name: (Optional) Name for the Gateset. Useful for description.
             unroll_circuit_op: If True, `cirq.CircuitOperation` is recursively
                 validated by validating the underlying `cirq.Circuit`.
-            accept_global_phase_op: If True, `cirq.GlobalPhaseOperation` is accepted.
+            accept_global_phase_op: If True, a `GateFamily` accepting
+                `cirq.GlobalPhaseGate` will be included. If None,
+                `cirq.GlobalPhaseGate` will not modify the input `*gates`.
+                If False, `cirq.GlobalPhaseGate` will be removed from the
+                gates. This parameter defaults to None (a breaking change from
+                v0.14.1) and will be removed in v0.16.
         """
         self._name = name
         self._unroll_circuit_op = unroll_circuit_op
-        self._accept_global_phase_op = accept_global_phase_op
+        if accept_global_phase_op:
+            gates = gates + (global_phase_op.GlobalPhaseGate,)
         self._instance_gate_families: Dict[raw_types.Gate, GateFamily] = {}
         self._type_gate_families: Dict[Type[raw_types.Gate], GateFamily] = {}
         self._gates_repr_str = ", ".join([_gate_str(g, repr) for g in gates])
         unique_gate_list: List[GateFamily] = list(
             dict.fromkeys(g if isinstance(g, GateFamily) else GateFamily(gate=g) for g in gates)
         )
+        if accept_global_phase_op is False:
+            unique_gate_list = [
+                g for g in unique_gate_list if g.gate is not global_phase_op.GlobalPhaseGate
+            ]
+        elif accept_global_phase_op is None:
+            if not any(g.gate is global_phase_op.GlobalPhaseGate for g in unique_gate_list):
+                warnings.warn(
+                    'v0.14.1 is the last release `cirq.GlobalPhaseGate` is included by default. If'
+                    ' you were relying on this behavior, you can include a `cirq.GlobalPhaseGate`'
+                    ' in your `*gates`. If not, then you can ignore this warning. It will be'
+                    ' removed in v0.16'
+                )
+
         for g in unique_gate_list:
             if type(g) == GateFamily:
                 if isinstance(g.gate, raw_types.Gate):
                     self._instance_gate_families[g.gate] = g
                 else:
                     self._type_gate_families[g.gate] = g
-        self._gates_str_str = "\n\n".join([str(g) for g in unique_gate_list])
+        self._unique_gate_list = unique_gate_list
         self._gates = frozenset(unique_gate_list)
 
     @property
@@ -232,6 +377,12 @@ class Gateset:
     def gates(self) -> FrozenSet[GateFamily]:
         return self._gates
 
+    @_compat.deprecated_parameter(
+        deadline='v0.16',
+        fix='Add a global phase gate to the Gateset',
+        parameter_desc='accept_global_phase_op',
+        match=lambda args, kwargs: 'accept_global_phase_op' in kwargs,
+    )
     def with_params(
         self,
         *,
@@ -247,7 +398,12 @@ class Gateset:
             name: New name for the Gateset.
             unroll_circuit_op: If True, new Gateset will recursively validate
                 `cirq.CircuitOperation` by validating the underlying `cirq.Circuit`.
-            accept_global_phase_op: If True, new Gateset will accept `cirq.GlobalPhaseOperation`.
+            accept_global_phase_op: If True, a `GateFamily` accepting
+                `cirq.GlobalPhaseGate` will be included. If None,
+                `cirq.GlobalPhaseGate` will not modify the input `*gates`.
+                If False, `cirq.GlobalPhaseGate` will be removed from the
+                gates. This parameter defaults to None (a breaking change from
+                v0.14.1) and will be removed in v0.16.
 
         Returns:
             `self` if all new values are None or identical to the values of current Gateset.
@@ -259,19 +415,23 @@ class Gateset:
 
         name = val_if_none(name, self._name)
         unroll_circuit_op = val_if_none(unroll_circuit_op, self._unroll_circuit_op)
-        accept_global_phase_op = val_if_none(accept_global_phase_op, self._accept_global_phase_op)
+        global_phase_family = GateFamily(gate=global_phase_op.GlobalPhaseGate)
         if (
             name == self._name
             and unroll_circuit_op == self._unroll_circuit_op
-            and accept_global_phase_op == self._accept_global_phase_op
+            and (
+                accept_global_phase_op is True
+                and global_phase_family in self.gates
+                or accept_global_phase_op is False
+                and not any(g.gate is global_phase_op.GlobalPhaseGate for g in self.gates)
+                or accept_global_phase_op is None
+            )
         ):
             return self
-        return Gateset(
-            *self.gates,
-            name=name,
-            unroll_circuit_op=cast(bool, unroll_circuit_op),
-            accept_global_phase_op=cast(bool, accept_global_phase_op),
-        )
+        gates = self.gates
+        if accept_global_phase_op:
+            gates = gates.union({global_phase_family})
+        return Gateset(*gates, name=name, unroll_circuit_op=cast(bool, unroll_circuit_op))
 
     def __contains__(self, item: Union[raw_types.Gate, raw_types.Operation]) -> bool:
         """Check for containment of a given Gate/Operation in this Gateset.
@@ -289,7 +449,7 @@ class Gateset:
                     and tagged variants (i.e. instances of `cirq.TaggedOperation`,
                     `cirq.ControlledOperation` where `op.gate` is None) etc.
 
-        The complexity of the method is:
+        The complexity of the method in terms of the number of `gates`, n, is
             a) O(1) when any default `cirq.GateFamily` instance accepts the given item, except
                 for an Instance GateFamily trying to match an item with a different global phase.
             b) O(n) for all other cases: matching against custom gate families, matching across
@@ -322,10 +482,7 @@ class Gateset:
 
         return any(item in gate_family for gate_family in self._gates)
 
-    def validate(
-        self,
-        circuit_or_optree: Union['cirq.AbstractCircuit', op_tree.OP_TREE],
-    ) -> bool:
+    def validate(self, circuit_or_optree: Union['cirq.AbstractCircuit', op_tree.OP_TREE]) -> bool:
         """Validates gates forming `circuit_or_optree` should be contained in Gateset.
 
         Args:
@@ -368,38 +525,45 @@ class Gateset:
         if isinstance(op, raw_types.TaggedOperation):
             return self._validate_operation(op.sub_operation)
         elif isinstance(op, circuit_operation.CircuitOperation) and self._unroll_circuit_op:
-            op_circuit = protocols.resolve_parameters(
-                op.circuit.unfreeze(), op.param_resolver, recursive=False
-            )
-            op_circuit = op_circuit.transform_qubits(
-                lambda q: cast(circuit_operation.CircuitOperation, op).qubit_map.get(q, q)
-            )
-            return self.validate(op_circuit)
-        elif isinstance(op, global_phase_op.GlobalPhaseOperation):
-            return self._accept_global_phase_op
+            return self.validate(op.mapped_circuit(deep=True))
         else:
             return False
 
     def _value_equality_values_(self) -> Any:
-        return (
-            self.gates,
-            self.name,
-            self._unroll_circuit_op,
-            self._accept_global_phase_op,
-        )
+        return (self.gates, self.name, self._unroll_circuit_op)
 
     def __repr__(self) -> str:
         name_str = f'name = "{self.name}", ' if self.name is not None else ''
+        gates_str = f'{self._gates_repr_str}, ' if len(self._gates_repr_str) > 0 else ''
         return (
             f'cirq.Gateset('
-            f'{self._gates_repr_str}, '
+            f'{gates_str}'
             f'{name_str}'
-            f'unroll_circuit_op = {self._unroll_circuit_op},'
-            f'accept_global_phase_op = {self._accept_global_phase_op})'
+            f'unroll_circuit_op = {self._unroll_circuit_op})'
         )
 
     def __str__(self) -> str:
         header = 'Gateset: '
         if self.name:
             header += self.name
-        return f'{header}\n' + self._gates_str_str
+        return f'{header}\n' + "\n\n".join([str(g) for g in self._unique_gate_list])
+
+    def _json_dict_(self) -> Dict[str, Any]:
+        return {
+            'gates': self._unique_gate_list,
+            'name': self.name,
+            'unroll_circuit_op': self._unroll_circuit_op,
+        }
+
+    @classmethod
+    def _from_json_dict_(cls, gates, name, unroll_circuit_op, **kwargs) -> 'Gateset':
+        if 'accept_global_phase_op' in kwargs:
+            accept_global_phase_op = kwargs['accept_global_phase_op']
+            global_phase_family = GateFamily(gate=global_phase_op.GlobalPhaseGate)
+            if accept_global_phase_op is True:
+                gates.append(global_phase_family)
+            elif accept_global_phase_op is False:
+                gates = [
+                    family for family in gates if family.gate is not global_phase_op.GlobalPhaseGate
+                ]
+        return cls(*gates, name=name, unroll_circuit_op=unroll_circuit_op)

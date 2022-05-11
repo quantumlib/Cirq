@@ -53,6 +53,3 @@ def test_immutable():
 
     with pytest.raises(AttributeError, match="can't set attribute"):
         c.moments = (cirq.Moment(cirq.H(q)), cirq.Moment(cirq.X(q)))
-
-    with pytest.raises(AttributeError, match="can't set attribute"):
-        c.device = cirq.UNCONSTRAINED_DEVICE

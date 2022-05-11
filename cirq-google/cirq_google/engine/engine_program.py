@@ -15,10 +15,11 @@
 import datetime
 from typing import Dict, List, Optional, Sequence, Set, TYPE_CHECKING, Union
 
+from google.protobuf import any_pb2
+
 import cirq
-from cirq_google.engine import engine_client
-from cirq_google.engine.client import quantum
-from cirq_google.engine.client.quantum import types as qtypes
+from cirq_google.engine import abstract_program, engine_client, util
+from cirq_google.cloud import quantum
 from cirq_google.engine.result_type import ResultType
 from cirq_google.api import v2
 from cirq_google.engine import engine_job
@@ -28,7 +29,7 @@ if TYPE_CHECKING:
     import cirq_google.engine.engine as engine_base
 
 
-class EngineProgram:
+class EngineProgram(abstract_program.AbstractProgram):
     """A program created via the Quantum Engine API.
 
     This program wraps a Circuit with additional metadata used to
@@ -44,7 +45,7 @@ class EngineProgram:
         project_id: str,
         program_id: str,
         context: 'engine_base.EngineContext',
-        _program: Optional[qtypes.QuantumProgram] = None,
+        _program: Optional[quantum.QuantumProgram] = None,
         result_type: ResultType = ResultType.Program,
     ) -> None:
         """A job submitted to the engine.
@@ -62,8 +63,6 @@ class EngineProgram:
         self._program = _program
         self.result_type = result_type
 
-    # TODO(#3388) Add documentation for Raises.
-    # pylint: disable=missing-raises-doc
     def run_sweep(
         self,
         job_id: Optional[str] = None,
@@ -94,6 +93,9 @@ class EngineProgram:
         Returns:
             An EngineJob. If this is iterated over it returns a list of
             TrialResults, one for each parameter sweep.
+
+        Raises:
+            ValueError: If called on a program that is a batch of programs.
         """
         import cirq_google.engine.engine as engine_base
 
@@ -101,8 +103,7 @@ class EngineProgram:
             raise ValueError('Please use run_batch() for batch mode.')
         if not job_id:
             job_id = engine_base._make_random_id('job-')
-        sweeps = cirq.to_sweeps(params or cirq.ParamResolver({}))
-        run_context = self._serialize_run_context(sweeps, repetitions)
+        run_context = self.context._serialize_run_context(params, repetitions)
 
         created_job_id, job = self.context.client.create_job(
             project_id=self.project_id,
@@ -117,7 +118,6 @@ class EngineProgram:
             self.project_id, self.program_id, created_job_id, self.context, job
         )
 
-    # pylint: enable=missing-raises-doc
     def run_batch(
         self,
         job_id: Optional[str] = None,
@@ -175,23 +175,16 @@ class EngineProgram:
             raise ValueError('No processors specified')
 
         # Pack the run contexts into batches
-        batch = v2.batch_pb2.BatchRunContext()
-        for param in params_list:
-            sweeps = cirq.to_sweeps(param)
-            current_context = batch.run_contexts.add()
-            for sweep in sweeps:
-                sweep_proto = current_context.parameter_sweeps.add()
-                sweep_proto.repetitions = repetitions
-                v2.sweep_to_proto(sweep, out=sweep_proto.sweep)
-        batch_context = qtypes.any_pb2.Any()
-        batch_context.Pack(batch)
+        batch_context = v2.batch_run_context_to_proto(
+            (params, repetitions) for params in params_list
+        )
 
         created_job_id, job = self.context.client.create_job(
             project_id=self.project_id,
             program_id=self.program_id,
             job_id=job_id,
             processor_ids=processor_ids,
-            run_context=batch_context,
+            run_context=util.pack_any(batch_context),
             description=description,
             labels=labels,
         )
@@ -204,8 +197,6 @@ class EngineProgram:
             result_type=ResultType.Batch,
         )
 
-    # TODO(#3388) Add documentation for Raises.
-    # pylint: disable=missing-raises-doc
     def run_calibration(
         self,
         job_id: Optional[str] = None,
@@ -233,7 +224,10 @@ class EngineProgram:
             labels: Optional set of labels to set on the job.
 
         Returns:
-            An EngineJob.  Results can be accessed with calibration_results().
+            An EngineJob. Results can be accessed with calibration_results().
+
+        Raises:
+            ValueError: If no processors are specified.
         """
         import cirq_google.engine.engine as engine_base
 
@@ -245,15 +239,14 @@ class EngineProgram:
         # Default run context
         # Note that Quantum Engine currently requires a valid type url
         # on a run context in order to succeed validation.
-        any_context = qtypes.any_pb2.Any()
-        any_context.Pack(v2.run_context_pb2.RunContext())
+        run_context = v2.run_context_pb2.RunContext()
 
         created_job_id, job = self.context.client.create_job(
             project_id=self.project_id,
             program_id=self.program_id,
             job_id=job_id,
             processor_ids=processor_ids,
-            run_context=any_context,
+            run_context=util.pack_any(run_context),
             description=description,
             labels=labels,
         )
@@ -266,7 +259,6 @@ class EngineProgram:
             result_type=ResultType.Batch,
         )
 
-    # pylint: enable=missing-raises-doc
     def run(
         self,
         job_id: Optional[str] = None,
@@ -305,27 +297,6 @@ class EngineProgram:
             )
         )[0]
 
-    def _serialize_run_context(
-        self,
-        sweeps: List[cirq.Sweep],
-        repetitions: int,
-    ) -> qtypes.any_pb2.Any:
-        import cirq_google.engine.engine as engine_base
-
-        context = qtypes.any_pb2.Any()
-        proto_version = self.context.proto_version
-        if proto_version == engine_base.ProtoVersion.V2:
-            run_context = v2.run_context_pb2.RunContext()
-            for sweep in sweeps:
-                sweep_proto = run_context.parameter_sweeps.add()
-                sweep_proto.repetitions = repetitions
-                v2.sweep_to_proto(sweep, out=sweep_proto.sweep)
-
-            context.Pack(run_context)
-        else:
-            raise ValueError(f'invalid run context proto version: {proto_version}')
-        return context
-
     def engine(self) -> 'engine_base.Engine':
         """Returns the parent Engine object.
 
@@ -352,7 +323,7 @@ class EngineProgram:
         created_before: Optional[Union[datetime.datetime, datetime.date]] = None,
         created_after: Optional[Union[datetime.datetime, datetime.date]] = None,
         has_labels: Optional[Dict[str, str]] = None,
-        execution_states: Optional[Set[quantum.enums.ExecutionStatus.State]] = None,
+        execution_states: Optional[Set[quantum.ExecutionStatus.State]] = None,
     ):
         """Returns the list of jobs for this program.
 
@@ -373,7 +344,7 @@ class EngineProgram:
 
             execution_states: retrieve jobs that have an execution state  that
                 is contained in `execution_states`. See
-                `quantum.enums.ExecutionStatus.State` enum for accepted values.
+                `quantum.ExecutionStatus.State` enum for accepted values.
         """
         client = self.context.client
         response = client.list_jobs(
@@ -395,19 +366,19 @@ class EngineProgram:
             for j in response
         ]
 
-    def _inner_program(self) -> qtypes.QuantumProgram:
-        if not self._program:
+    def _inner_program(self) -> quantum.QuantumProgram:
+        if self._program is None:
             self._program = self.context.client.get_program(self.project_id, self.program_id, False)
         return self._program
 
     def create_time(self) -> 'datetime.datetime':
         """Returns when the program was created."""
-        return self._inner_program().create_time.ToDatetime()
+        return self._inner_program().create_time
 
     def update_time(self) -> 'datetime.datetime':
         """Returns when the program was last updated."""
         self._program = self.context.client.get_program(self.project_id, self.program_id, False)
-        return self._program.update_time.ToDatetime()
+        return self._program.update_time
 
     def description(self) -> str:
         """Returns the description of the program."""
@@ -487,7 +458,7 @@ class EngineProgram:
         Returns:
             The program's cirq Circuit.
         """
-        if not self._program or not self._program.HasField('code'):
+        if self._program is None or self._program.code is None:
             self._program = self.context.client.get_program(self.project_id, self.program_id, True)
         return _deserialize_program(self._program.code, program_num)
 
@@ -503,7 +474,7 @@ class EngineProgram:
             )
         import cirq_google.engine.engine as engine_base
 
-        if not self._program or not self._program.HasField('code'):
+        if self._program is None or self._program.code is None:
             self._program = self.context.client.get_program(self.project_id, self.program_id, True)
         code = self._program.code
         code_type = code.type_url[len(engine_base.TYPE_PREFIX) :]
@@ -523,13 +494,15 @@ class EngineProgram:
             self.project_id, self.program_id, delete_jobs=delete_jobs
         )
 
+    def delete_job(self, job_id: str) -> None:
+        """Deletes the job and result, if any."""
+        self.context.client.delete_job(self.project_id, self.program_id, job_id)
+
     def __str__(self) -> str:
         return f'EngineProgram(project_id=\'{self.project_id}\', program_id=\'{self.program_id}\')'
 
 
-def _deserialize_program(
-    code: qtypes.any_pb2.Any, program_num: Optional[int] = None
-) -> cirq.Circuit:
+def _deserialize_program(code: any_pb2.Any, program_num: Optional[int] = None) -> cirq.Circuit:
     import cirq_google.engine.engine as engine_base
 
     code_type = code.type_url[len(engine_base.TYPE_PREFIX) :]
@@ -550,7 +523,7 @@ def _deserialize_program(
             )
 
         program = batch.programs[program_num]
-    if program:
+    if program is not None:
         gate_set_map = {g.name: g for g in gate_sets.GOOGLE_GATESETS}
         if program.language.gate_set not in gate_set_map:
             raise ValueError(

@@ -72,6 +72,8 @@ setup(
         'cirq_google': ['py.typed'],
         'cirq_google.api.v2': ['*'],
         'cirq_google.api.v1': ['*'],
+        'cirq_google.devices.calibrations': ['*'],
+        'cirq_google.devices.specifications': ['*'],
         'cirq_google.json_test_data': ['*'],
     },
 )

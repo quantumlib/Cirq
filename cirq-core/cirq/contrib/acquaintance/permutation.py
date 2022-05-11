@@ -13,20 +13,9 @@
 # limitations under the License.
 
 import abc
-from typing import (
-    Any,
-    cast,
-    Dict,
-    Iterable,
-    Sequence,
-    Tuple,
-    TYPE_CHECKING,
-    TypeVar,
-    Union,
-    TYPE_CHECKING,
-)
+from typing import Any, cast, Dict, Iterable, Sequence, Tuple, TypeVar, Union, TYPE_CHECKING
 
-from cirq import circuits, ops, optimizers, protocols, value
+from cirq import circuits, ops, protocols, transformers, value
 from cirq.type_workarounds import NotImplementedType
 
 if TYPE_CHECKING:
@@ -40,14 +29,13 @@ LogicalMappingKey = TypeVar('LogicalMappingKey', bound=ops.Qid)
 LogicalMapping = Dict[LogicalMappingKey, LogicalIndex]
 
 
-# TODO(#3388) Add documentation for Args.
-# pylint: disable=missing-param-doc
 class PermutationGate(ops.Gate, metaclass=abc.ABCMeta):
     """A permutation gate indicates a change in the mapping from qubits to
     logical indices.
 
     Args:
-        swap_gate: the gate that swaps the indices mapped to by a pair of
+        num_qubits: The number of qubits the gate should act on.
+        swap_gate: The gate that swaps the indices mapped to by a pair of
             qubits (e.g. SWAP or fermionic swap).
     """
 
@@ -108,7 +96,6 @@ class PermutationGate(ops.Gate, metaclass=abc.ABCMeta):
         return wire_symbols
 
 
-# pylint: enable=missing-param-doc
 class MappingDisplayGate(ops.Gate):
     """Displays the indices mapped to a set of wires."""
 
@@ -134,12 +121,12 @@ def display_mapping(circuit: 'cirq.Circuit', initial_mapping: LogicalMapping) ->
 
     old_moments = circuit._moments
     gate = MappingDisplayGate(mapping.get(q) for q in qubits)
-    new_moments = [ops.Moment([gate(*qubits)])]
+    new_moments = [circuits.Moment([gate(*qubits)])]
     for moment in old_moments:
         new_moments.append(moment)
         update_mapping(mapping, moment)
         gate = MappingDisplayGate(mapping.get(q) for q in qubits)
-        new_moments.append(ops.Moment([gate(*qubits)]))
+        new_moments.append(circuits.Moment([gate(*qubits)]))
 
     circuit._moments = new_moments
 
@@ -167,9 +154,7 @@ class SwapPermutationGate(PermutationGate):
     def _value_equality_values_(self) -> Any:
         return (self.swap_gate,)
 
-    def _commutes_(
-        self, other: Any, atol: Union[int, float] = 1e-8
-    ) -> Union[bool, NotImplementedType]:
+    def _commutes_(self, other: Any, *, atol: float = 1e-8) -> Union[bool, NotImplementedType]:
         if (
             isinstance(other, ops.Gate)
             and isinstance(other, ops.InterchangeableQubitsGate)
@@ -188,14 +173,13 @@ class LinearPermutationGate(PermutationGate):
     """A permutation gate that decomposes a given permutation using a linear
     sorting network."""
 
-    # TODO(#3388) Add documentation for Args.
-    # pylint: disable=missing-param-doc
     def __init__(
         self, num_qubits: int, permutation: Dict[int, int], swap_gate: 'cirq.Gate' = ops.SWAP
     ) -> None:
         """Initializes a linear permutation gate.
 
         Args:
+            num_qubits: The number of qubits to permute.
             permutation: The permutation effected by the gate.
             swap_gate: The swap gate used in decompositions.
         """
@@ -203,7 +187,6 @@ class LinearPermutationGate(PermutationGate):
         PermutationGate.validate_permutation(permutation, num_qubits)
         self._permutation = permutation
 
-    # pylint: enable=missing-param-doc
     def permutation(self) -> Dict[int, int]:
         return self._permutation
 
@@ -282,7 +265,7 @@ def get_logical_operations(
             yield op.transform_qubits(mapping.__getitem__)
 
 
-class DecomposePermutationGates(optimizers.ExpandComposite):
+class DecomposePermutationGates:
     def __init__(self, keep_swap_permutations: bool = True):
         """Decomposes permutation gates.
 
@@ -290,8 +273,6 @@ class DecomposePermutationGates(optimizers.ExpandComposite):
             keep_swap_permutations: Whether or not to except
                 SwapPermutationGate.
         """
-        circuits.PointOptimizer.__init__(self)
-
         if keep_swap_permutations:
             self.no_decomp = lambda op: (
                 not all(
@@ -306,6 +287,12 @@ class DecomposePermutationGates(optimizers.ExpandComposite):
             self.no_decomp = lambda op: (
                 not all([isinstance(op, ops.GateOperation), isinstance(op.gate, PermutationGate)])
             )
+
+    def optimize_circuit(self, circuit: 'cirq.Circuit') -> None:
+        circuit._moments = [*transformers.expand_composite(circuit, no_decomp=self.no_decomp)]
+
+    def __call__(self, circuit: 'cirq.Circuit') -> None:
+        self.optimize_circuit(circuit)
 
 
 EXPAND_PERMUTATION_GATES = DecomposePermutationGates(keep_swap_permutations=True)

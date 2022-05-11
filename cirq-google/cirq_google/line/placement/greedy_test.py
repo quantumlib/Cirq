@@ -17,18 +17,17 @@ from unittest import mock
 import pytest
 
 import cirq
-import cirq_google as cg
 from cirq_google.line.placement import greedy
-from cirq_google.line.placement.sequence import (
-    GridQubitLineTuple,
-    NotFoundError,
-)
+from cirq_google.line.placement.sequence import GridQubitLineTuple, NotFoundError
+
+
+class FakeDevice(cirq.Device):
+    def __init__(self, qubits):
+        self.qubits = qubits
 
 
 def _create_device(qubits: Iterable[cirq.GridQubit]):
-    return cg.XmonDevice(
-        cirq.Duration(nanos=0), cirq.Duration(nanos=0), cirq.Duration(nanos=0), qubits
-    )
+    return FakeDevice(qubits)
 
 
 def test_greedy_sequence_search_fails_on_wrong_start_qubit():

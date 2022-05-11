@@ -1,6 +1,6 @@
 # pylint: disable=wrong-or-nonexistent-copyright-notice
 import warnings
-from typing import Sequence, Union, List, Tuple, Dict, Optional
+from typing import cast, Sequence, Union, List, Tuple, Dict, Optional
 
 import numpy as np
 import quimb
@@ -25,8 +25,6 @@ def _get_quimb_version():
 QUIMB_VERSION = _get_quimb_version()
 
 
-# TODO(#3388) Add documentation for Raises.
-# pylint: disable=missing-raises-doc
 def circuit_to_tensors(
     circuit: cirq.Circuit,
     qubits: Optional[Sequence[cirq.Qid]] = None,
@@ -55,6 +53,10 @@ def circuit_to_tensors(
             a suitable mapping for tn.graph()'s `fix` argument. Currently,
             `fix=None` will draw the resulting tensor network using a spring
             layout.
+
+    Raises:
+        ValueError: If the ihitial state is anything other than that
+            corresponding to the |0> state.
     """
     if qubits is None:
         qubits = sorted(circuit.all_qubits())  # coverage: ignore
@@ -87,7 +89,6 @@ def circuit_to_tensors(
     return tensors, qubit_frontier, positions
 
 
-# pylint: enable=missing-raises-doc
 def tensor_state_vector(
     circuit: cirq.Circuit, qubits: Optional[Sequence[cirq.Qid]] = None
 ) -> np.ndarray:
@@ -177,5 +178,5 @@ def tensor_expectation_value(
         raise MemoryError(f"We estimate that this contraction will take too much RAM! {ram_gb} GB")
     e_val = tn.contract(inplace=True)
     assert e_val.imag < tol
-    assert pauli_string.coefficient.imag < tol
+    assert cast(complex, pauli_string.coefficient).imag < tol
     return e_val.real * pauli_string.coefficient

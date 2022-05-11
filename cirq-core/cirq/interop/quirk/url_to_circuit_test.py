@@ -83,21 +83,15 @@ def test_parse_with_qubits():
     b = cirq.GridQubit(0, 1)
     c = cirq.GridQubit(0, 2)
 
-    assert (
-        quirk_url_to_circuit(
-            'http://algassert.com/quirk#circuit={"cols":[["H"],["•","X"]]}',
-            qubits=cirq.GridQubit.rect(4, 4),
-        )
-        == cirq.Circuit(cirq.H(a), cirq.X(b).controlled_by(a))
-    )
+    assert quirk_url_to_circuit(
+        'http://algassert.com/quirk#circuit={"cols":[["H"],["•","X"]]}',
+        qubits=cirq.GridQubit.rect(4, 4),
+    ) == cirq.Circuit(cirq.H(a), cirq.X(b).controlled_by(a))
 
-    assert (
-        quirk_url_to_circuit(
-            'http://algassert.com/quirk#circuit={"cols":[["H"],["•",1,"X"]]}',
-            qubits=cirq.GridQubit.rect(4, 4),
-        )
-        == cirq.Circuit(cirq.H(a), cirq.X(c).controlled_by(a))
-    )
+    assert quirk_url_to_circuit(
+        'http://algassert.com/quirk#circuit={"cols":[["H"],["•",1,"X"]]}',
+        qubits=cirq.GridQubit.rect(4, 4),
+    ) == cirq.Circuit(cirq.H(a), cirq.X(c).controlled_by(a))
 
     with pytest.raises(IndexError, match="qubits specified"):
         _ = quirk_url_to_circuit(
@@ -107,25 +101,19 @@ def test_parse_with_qubits():
 
 
 def test_extra_cell_makers():
-    assert (
-        cirq.quirk_url_to_circuit(
-            'http://algassert.com/quirk#circuit={"cols":[["iswap"]]}',
-            extra_cell_makers=[
-                cirq.interop.quirk.cells.CellMaker(
-                    identifier='iswap', size=2, maker=lambda args: cirq.ISWAP(*args.qubits)
-                )
-            ],
-        )
-        == cirq.Circuit(cirq.ISWAP(*cirq.LineQubit.range(2)))
-    )
+    assert cirq.quirk_url_to_circuit(
+        'http://algassert.com/quirk#circuit={"cols":[["iswap"]]}',
+        extra_cell_makers=[
+            cirq.interop.quirk.cells.CellMaker(
+                identifier='iswap', size=2, maker=lambda args: cirq.ISWAP(*args.qubits)
+            )
+        ],
+    ) == cirq.Circuit(cirq.ISWAP(*cirq.LineQubit.range(2)))
 
-    assert (
-        cirq.quirk_url_to_circuit(
-            'http://algassert.com/quirk#circuit={"cols":[["iswap"]]}',
-            extra_cell_makers={'iswap': cirq.ISWAP},
-        )
-        == cirq.Circuit(cirq.ISWAP(*cirq.LineQubit.range(2)))
-    )
+    assert cirq.quirk_url_to_circuit(
+        'http://algassert.com/quirk#circuit={"cols":[["iswap"]]}',
+        extra_cell_makers={'iswap': cirq.ISWAP},
+    ) == cirq.Circuit(cirq.ISWAP(*cirq.LineQubit.range(2)))
 
     assert cirq.quirk_url_to_circuit(
         'http://algassert.com/quirk#circuit={"cols":[["iswap"], ["toffoli"]]}',
@@ -244,31 +232,13 @@ def test_custom_matrix_gate():
     # Without name.
     assert_url_to_circuit_returns(
         '{"cols":[["~cv0d"]],"gates":[{"id":"~cv0d","matrix":"{{0,1},{1,0}}"}]}',
-        cirq.Circuit(
-            cirq.MatrixGate(
-                np.array(
-                    [
-                        [0, 1],
-                        [1, 0],
-                    ]
-                )
-            ).on(a),
-        ),
+        cirq.Circuit(cirq.MatrixGate(np.array([[0, 1], [1, 0]])).on(a)),
     )
 
     # With name.
     assert_url_to_circuit_returns(
         '{"cols":[["~cv0d"]],"gates":[{"id":"~cv0d","name":"test","matrix":"{{0,i},{1,0}}"}]}',
-        cirq.Circuit(
-            cirq.MatrixGate(
-                np.array(
-                    [
-                        [0, 1j],
-                        [1, 0],
-                    ]
-                )
-            ).on(a),
-        ),
+        cirq.Circuit(cirq.MatrixGate(np.array([[0, 1j], [1, 0]])).on(a)),
     )
 
     # Multi-qubit. Reversed qubit order to account for endian-ness difference.
@@ -276,10 +246,7 @@ def test_custom_matrix_gate():
         '{"cols":[["X"],["~2hj0"]],'
         '"gates":[{"id":"~2hj0",'
         '"matrix":"{{-1,0,0,0},{0,i,0,0},{0,0,1,0},{0,0,0,-i}}"}]}',
-        cirq.Circuit(
-            cirq.X(a),
-            cirq.MatrixGate(np.diag([-1, 1j, 1, -1j])).on(b, a),
-        ),
+        cirq.Circuit(cirq.X(a), cirq.MatrixGate(np.diag([-1, 1j, 1, -1j])).on(b, a)),
         output_amplitudes_from_quirk=[
             {"r": 0, "i": 0},
             {"r": 0, "i": 1},
@@ -327,7 +294,7 @@ def test_survives_a_billion_laughs():
             '{"id":"~y","circuit":{"cols":[["~x"],["~x"],["~x"],["~x"]]}},'
             '{"id":"~z","circuit":{"cols":[["~y"],["~y"],["~y"],["~y"]]}}'
             ']}',
-            max_operation_count=10 ** 6,
+            max_operation_count=10**6,
         )
 
 

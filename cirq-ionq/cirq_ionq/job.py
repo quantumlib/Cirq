@@ -14,6 +14,7 @@
 """Represents a job created via the IonQ API."""
 
 import time
+import warnings
 from typing import Dict, Sequence, Union, TYPE_CHECKING
 
 from cirq_ionq import ionq_exceptions, results
@@ -169,8 +170,6 @@ class Job:
                 measurement_dict[key] = [int(t) for t in value.split(',')]
         return measurement_dict
 
-    # TODO(#3388) Add documentation for Raises.
-    # pylint: disable=missing-raises-doc
     def results(
         self, timeout_seconds: int = 7200, polling_seconds: int = 1
     ) -> Union[results.QPUResult, results.SimulatorResult]:
@@ -187,6 +186,9 @@ class Job:
         Raises:
             IonQUnsuccessfulJob: If the job has failed, been canceled, or deleted.
             IonQException: If unable to get the results from the API.
+            RuntimeError: If the job reported that it had failed on the server, or
+                the job had an unknown status.
+            TimeoutError: If the job timed out at the server.
         """
         time_waited_seconds = 0
         while time_waited_seconds < timeout_seconds:
@@ -195,6 +197,10 @@ class Job:
                 break
             time.sleep(polling_seconds)
             time_waited_seconds += polling_seconds
+        if 'warning' in self._job and 'messages' in self._job['warning']:
+            for warning in self._job['warning']['messages']:
+                warnings.warn(warning)
+
         if self.status() != 'completed':
             if 'failure' in self._job and 'error' in self._job['failure']:
                 error = self._job['failure']['error']
@@ -205,7 +211,7 @@ class Job:
                 f'Job was not completed successfully. Instead had status: {self.status()}'
             )
         # IonQ returns results in little endian, Cirq prefers to use big endian, so we convert.
-        if self.target() == 'qpu':
+        if self.target().startswith('qpu'):
             repetitions = self.repetitions()
             counts = {
                 _little_endian_to_big(int(k), self.num_qubits()): int(repetitions * float(v))
@@ -228,7 +234,6 @@ class Job:
                 repetitions=self.repetitions(),
             )
 
-    # pylint: enable=missing-raises-doc
     def cancel(self):
         """Cancel the given job.
 

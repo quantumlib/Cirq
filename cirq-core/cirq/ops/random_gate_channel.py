@@ -13,23 +13,13 @@
 # limitations under the License.
 
 import numbers
-from typing import (
-    AbstractSet,
-    Tuple,
-    TYPE_CHECKING,
-    Dict,
-    Any,
-    cast,
-    SupportsFloat,
-    Optional,
-    Sequence,
-)
+from typing import AbstractSet, Tuple, TYPE_CHECKING, Dict, Any, cast, SupportsFloat, Optional
 
 import numpy as np
 
 from cirq import protocols, value
-from cirq.ops import raw_types
 from cirq._compat import proper_repr
+from cirq.ops import raw_types
 
 if TYPE_CHECKING:
     import cirq
@@ -39,20 +29,28 @@ if TYPE_CHECKING:
 class RandomGateChannel(raw_types.Gate):
     """Applies a sub gate with some probability."""
 
-    def __init__(self, *, sub_gate: 'cirq.Gate', probability: value.TParamVal):
+    def __init__(self, *, sub_gate: 'cirq.Gate', probability: 'cirq.TParamVal'):
         if (
             isinstance(probability, numbers.Number)
             and not 0 <= float(cast(SupportsFloat, probability)) <= 1
         ):
             raise ValueError("not 0 <= probability <= 1")
 
-        self.sub_gate = sub_gate
-        self.probability = probability
+        self._sub_gate = sub_gate
+        self._probability = probability
 
         # Auto flatten.
         if isinstance(self.sub_gate, RandomGateChannel):
-            self.probability *= self.sub_gate.probability
-            self.sub_gate = self.sub_gate.sub_gate
+            self._probability *= self.sub_gate.probability
+            self._sub_gate = self.sub_gate.sub_gate
+
+    @property
+    def sub_gate(self) -> 'cirq.Gate':
+        return self._sub_gate
+
+    @property
+    def probability(self) -> 'cirq.TParamVal':
+        return self._probability
 
     def _qid_shape_(self) -> Tuple[int, ...]:
         return protocols.qid_shape(self.sub_gate)
@@ -122,20 +120,6 @@ class RandomGateChannel(raw_types.Gate):
         if not self._is_parameterized_():
             result *= float(self.probability)
         return result
-
-    def _act_on_(self, args: 'cirq.ActOnArgs', qubits: Sequence['cirq.Qid']):
-        from cirq.sim import clifford
-
-        if self._is_parameterized_():
-            return NotImplemented
-        if isinstance(args, clifford.ActOnCliffordTableauArgs):
-            if args.prng.random() < self.probability:
-                # Note: because we're doing this probabilistically, it's not
-                # safe to fallback to other strategies if act_on fails. Those
-                # strategies could double-count the probability.
-                protocols.act_on(self.sub_gate, args, qubits)
-            return True
-        return NotImplemented
 
     def _json_dict_(self) -> Dict[str, Any]:
         return protocols.obj_to_dict_helper(self, ['sub_gate', 'probability'])

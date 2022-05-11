@@ -18,8 +18,6 @@ import sympy
 from cirq.value import type_alias
 
 
-# TODO(#3388) Add documentation for Raises.
-# pylint: disable=missing-raises-doc
 def chosen_angle_to_half_turns(
     half_turns: Optional[type_alias.TParamVal] = None,
     rads: Optional[float] = None,
@@ -39,6 +37,9 @@ def chosen_angle_to_half_turns(
 
     Returns:
         A number of half turns.
+
+    Raises:
+        ValueError: If more than one of `half_turn`, `rads`, or `degs` is given.
     """
 
     if len([1 for e in [half_turns, rads, degs] if e is not None]) > 1:
@@ -56,7 +57,6 @@ def chosen_angle_to_half_turns(
     return default
 
 
-# pylint: enable=missing-raises-doc
 def chosen_angle_to_canonical_half_turns(
     half_turns: Optional[type_alias.TParamVal] = None,
     rads: Optional[float] = None,
@@ -89,13 +89,13 @@ def canonicalize_half_turns(half_turns: float) -> float:
 
 
 @overload
-def canonicalize_half_turns(half_turns: sympy.Basic) -> sympy.Basic:
+def canonicalize_half_turns(half_turns: sympy.Expr) -> sympy.Expr:
     pass
 
 
 def canonicalize_half_turns(half_turns: type_alias.TParamVal) -> type_alias.TParamVal:
     """Wraps the input into the range (-1, +1]."""
-    if isinstance(half_turns, sympy.Basic):
+    if isinstance(half_turns, sympy.Expr):
         if not half_turns.is_constant():
             return half_turns
         half_turns = float(half_turns)

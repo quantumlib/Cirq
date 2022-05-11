@@ -17,6 +17,7 @@
 import numpy as np
 from matplotlib import pyplot as plt
 import matplotlib as mpl
+import pytest
 
 import cirq
 from cirq.devices import GridQubit
@@ -42,8 +43,7 @@ def test_get_state_histogram():
 def test_get_state_histogram_multi_1():
     qubits = cirq.LineQubit.range(4)
     c = cirq.Circuit(
-        cirq.X.on_each(*qubits[1:]),
-        cirq.measure(*qubits),  # One multi-qubit measurement
+        cirq.X.on_each(*qubits[1:]), cirq.measure(*qubits)  # One multi-qubit measurement
     )
     r = cirq.sample(c, repetitions=5)
     values_to_plot = state_histogram.get_state_histogram(r)
@@ -64,11 +64,11 @@ def test_get_state_histogram_multi_2():
     np.testing.assert_equal(values_to_plot, expected_values)
 
 
+@pytest.mark.usefixtures('closefigures')
 def test_plot_state_histogram_result():
     qubits = cirq.LineQubit.range(4)
     c = cirq.Circuit(
-        cirq.X.on_each(*qubits[1:]),
-        cirq.measure(*qubits),  # One multi-qubit measurement
+        cirq.X.on_each(*qubits[1:]), cirq.measure(*qubits)  # One multi-qubit measurement
     )
     r = cirq.sample(c, repetitions=5)
     expected_values = [0, 0, 0, 0, 0, 0, 0, 5, 0, 0, 0, 0, 0, 0, 0, 0]
@@ -80,11 +80,11 @@ def test_plot_state_histogram_result():
             assert str(r1) == str(r2)
 
 
+@pytest.mark.usefixtures('closefigures')
 def test_plot_state_histogram_collection():
     qubits = cirq.LineQubit.range(4)
     c = cirq.Circuit(
-        cirq.X.on_each(*qubits[1:]),
-        cirq.measure(*qubits),  # One multi-qubit measurement
+        cirq.X.on_each(*qubits[1:]), cirq.measure(*qubits)  # One multi-qubit measurement
     )
     r = cirq.sample(c, repetitions=5)
     _, (ax1, ax2) = plt.subplots(1, 2)

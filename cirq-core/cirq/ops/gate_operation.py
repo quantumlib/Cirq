@@ -22,13 +22,13 @@ from typing import (
     Collection,
     Dict,
     FrozenSet,
-    List,
     Optional,
     Sequence,
     Tuple,
     TypeVar,
     TYPE_CHECKING,
     Union,
+    List,
 )
 
 import numpy as np
@@ -99,6 +99,23 @@ class GateOperation(raw_types.Operation):
             return self
         return new_gate.on(*self.qubits)
 
+    def _with_key_path_prefix_(self, prefix: Tuple[str, ...]):
+        new_gate = protocols.with_key_path_prefix(self.gate, prefix)
+        if new_gate is NotImplemented:
+            return NotImplemented
+        if new_gate is self.gate:
+            # As GateOperation is immutable, this can return the original.
+            return self
+        return new_gate.on(*self.qubits)
+
+    def _with_rescoped_keys_(
+        self, path: Tuple[str, ...], bindable_keys: FrozenSet['cirq.MeasurementKey']
+    ):
+        new_gate = protocols.with_rescoped_keys(self.gate, path, bindable_keys)
+        if new_gate is self.gate:
+            return self
+        return new_gate.on(*self.qubits)
+
     def __repr__(self):
         if hasattr(self.gate, '_op_repr_'):
             result = self.gate._op_repr_(self.qubits)
@@ -106,7 +123,6 @@ class GateOperation(raw_types.Operation):
                 return result
         gate_repr = repr(self.gate)
         qubit_args_repr = ', '.join(repr(q) for q in self.qubits)
-        assert type(self.gate).__call__ == raw_types.Gate.__call__
 
         # Abbreviate when possible.
         dont_need_on = re.match(r'^[a-zA-Z0-9.()]+$', gate_repr)
@@ -119,7 +135,7 @@ class GateOperation(raw_types.Operation):
 
     def __str__(self) -> str:
         qubits = ', '.join(str(e) for e in self.qubits)
-        return f'{self.gate}({qubits})'
+        return f'{self.gate}({qubits})' if qubits else str(self.gate)
 
     def _json_dict_(self) -> Dict[str, Any]:
         return protocols.obj_to_dict_helper(self, ['gate', 'qubits'])
@@ -127,16 +143,12 @@ class GateOperation(raw_types.Operation):
     def _group_interchangeable_qubits(
         self,
     ) -> Tuple[Union['cirq.Qid', Tuple[int, FrozenSet['cirq.Qid']]], ...]:
-
         if not isinstance(self.gate, gate_features.InterchangeableQubitsGate):
             return self.qubits
-
         groups: Dict[int, List['cirq.Qid']] = {}
         for i, q in enumerate(self.qubits):
             k = self.gate.qubit_index_to_equivalence_group_key(i)
-            if k not in groups:
-                groups[k] = []
-            groups[k].append(q)
+            groups.setdefault(k, []).append(q)
         return tuple(sorted((k, frozenset(v)) for k, v in groups.items()))
 
     def _value_equality_values_(self):
@@ -178,7 +190,7 @@ class GateOperation(raw_types.Operation):
         return NotImplemented
 
     def _commutes_(
-        self, other: Any, atol: Union[int, float] = 1e-8
+        self, other: Any, *, atol: float = 1e-8
     ) -> Union[bool, NotImplementedType, None]:
         commutes = self.gate._commutes_on_qids_(self.qubits, other, atol=atol)
         if commutes is not NotImplemented:
@@ -229,22 +241,22 @@ class GateOperation(raw_types.Operation):
             return getter()
         return NotImplemented
 
-    def _measurement_key_obj_(self) -> Optional[value.MeasurementKey]:
+    def _measurement_key_obj_(self) -> Optional['cirq.MeasurementKey']:
         getter = getattr(self.gate, '_measurement_key_obj_', None)
         if getter is not None:
             return getter()
         return NotImplemented
 
-    def _measurement_key_objs_(self) -> Optional[AbstractSet[value.MeasurementKey]]:
+    def _measurement_key_objs_(self) -> Optional[AbstractSet['cirq.MeasurementKey']]:
         getter = getattr(self.gate, '_measurement_key_objs_', None)
         if getter is not None:
             return getter()
         return NotImplemented
 
-    def _act_on_(self, args: 'cirq.ActOnArgs'):
+    def _act_on_(self, sim_state: 'cirq.SimulationStateBase'):
         getter = getattr(self.gate, '_act_on_', None)
         if getter is not None:
-            return getter(args, self.qubits)
+            return getter(sim_state, self.qubits)
         return NotImplemented
 
     def _is_parameterized_(self) -> bool:
@@ -330,7 +342,7 @@ class GateOperation(raw_types.Operation):
     ) -> Union[NotImplementedType, bool]:
         if not isinstance(other, type(self)):
             return NotImplemented
-        if self.qubits != other.qubits:
+        if self._group_interchangeable_qubits() != other._group_interchangeable_qubits():
             return False
         return protocols.equal_up_to_global_phase(self.gate, other.gate, atol=atol)
 

@@ -41,8 +41,8 @@ pauli_eigen_map = cast(
 class PauliInteractionGate(gate_features.InterchangeableQubitsGate, eigen_gate.EigenGate):
     """A CZ conjugated by arbitrary single qubit Cliffords."""
 
-    CZ = None  # type: PauliInteractionGate
-    CNOT = None  # type: PauliInteractionGate
+    CZ: 'PauliInteractionGate'
+    CNOT: 'PauliInteractionGate'
 
     def __init__(
         self,
@@ -66,10 +66,26 @@ class PauliInteractionGate(gate_features.InterchangeableQubitsGate, eigen_gate.E
                 equal to the tensor product of the two conditions.
         """
         super().__init__(exponent=exponent)
-        self.pauli0 = pauli0
-        self.invert0 = invert0
-        self.pauli1 = pauli1
-        self.invert1 = invert1
+        self._pauli0 = pauli0
+        self._invert0 = invert0
+        self._pauli1 = pauli1
+        self._invert1 = invert1
+
+    @property
+    def pauli0(self) -> 'cirq.Pauli':
+        return self._pauli0
+
+    @property
+    def invert0(self) -> bool:
+        return self._invert0
+
+    @property
+    def pauli1(self) -> 'cirq.Pauli':
+        return self._pauli1
+
+    @property
+    def invert1(self) -> bool:
+        return self._invert1
 
     def _num_qubits_(self) -> int:
         return 2
@@ -103,8 +119,8 @@ class PauliInteractionGate(gate_features.InterchangeableQubitsGate, eigen_gate.E
         right_gate0 = SingleQubitCliffordGate.from_single_map(z_to=(self.pauli0, self.invert0))
         right_gate1 = SingleQubitCliffordGate.from_single_map(z_to=(self.pauli1, self.invert1))
 
-        left_gate0 = right_gate0 ** -1
-        left_gate1 = right_gate1 ** -1
+        left_gate0 = right_gate0**-1
+        left_gate1 = right_gate1**-1
         yield left_gate0(q0)
         yield left_gate1(q1)
         yield common_gates.CZ(q0, q1) ** self._exponent

@@ -59,13 +59,14 @@ def test_quantum_fourier_transform_gate_repr():
 
 def test_pow():
     a = cirq.PhaseGradientGate(num_qubits=2, exponent=0.5)
-    assert a ** 0.5 == cirq.PhaseGradientGate(num_qubits=2, exponent=0.25)
+    assert a**0.5 == cirq.PhaseGradientGate(num_qubits=2, exponent=0.25)
     assert a ** sympy.Symbol('t') == cirq.PhaseGradientGate(
         num_qubits=2, exponent=0.5 * sympy.Symbol('t')
     )
 
 
 def test_qft():
+    # fmt: off
     np.testing.assert_allclose(
         cirq.unitary(cirq.qft(*cirq.LineQubit.range(2))),
         np.array(
@@ -93,6 +94,7 @@ def test_qft():
         / 2,
         atol=1e-8,
     )
+    # fmt: on
 
     np.testing.assert_allclose(
         cirq.unitary(cirq.qft(*cirq.LineQubit.range(4))),
@@ -102,15 +104,7 @@ def test_qft():
 
     np.testing.assert_allclose(
         cirq.unitary(cirq.qft(*cirq.LineQubit.range(2)) ** -1),
-        np.array(
-            [
-                [1, 1, 1, 1],
-                [1, -1j, -1, 1j],
-                [1, -1, 1, -1],
-                [1, 1j, -1, -1j],
-            ]
-        )
-        / 2,
+        np.array([[1, 1, 1, 1], [1, -1j, -1, 1j], [1, -1, 1, -1], [1, 1j, -1, -1j]]) / 2,
         atol=1e-8,
     )
 

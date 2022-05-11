@@ -13,22 +13,30 @@
 # limitations under the License.
 
 import abc
-import dataclasses
 import warnings
 from dataclasses import dataclass
-from typing import Dict, List, Tuple, Any, Sequence, Union, Iterable, TYPE_CHECKING
+from typing import (
+    Dict,
+    List,
+    Tuple,
+    Any,
+    Sequence,
+    Union,
+    Iterable,
+    TYPE_CHECKING,
+    Callable,
+    Optional,
+)
 
 import networkx as nx
-from cirq.devices import GridQubit, LineQubit
-from cirq.protocols.json_serialization import obj_to_dict_helper
 from matplotlib import pyplot as plt
+
+from cirq import _compat
+from cirq.devices import GridQubit, LineQubit
+from cirq.protocols.json_serialization import dataclass_json_dict
 
 if TYPE_CHECKING:
     import cirq
-
-
-def dataclass_json_dict(obj: Any, namespace: str = None) -> Dict[str, Any]:
-    return obj_to_dict_helper(obj, [f.name for f in dataclasses.fields(obj)], namespace=namespace)
 
 
 class NamedTopology(metaclass=abc.ABCMeta):
@@ -78,7 +86,7 @@ def draw_gridlike(
         ax: Optional matplotlib axis to use for drawing.
         tilted: If True, directly position as (row, column); otherwise,
             rotate 45 degrees to accommodate google-style diagonal grids.
-        kwargs: Additional arguments to pass to `nx.draw_networkx`.
+        **kwargs: Additional arguments to pass to `nx.draw_networkx`.
 
     Returns:
         A positions dictionary mapping nodes to (x, y) coordinates suitable for future calls
@@ -129,13 +137,16 @@ class LineTopology(NamedTopology):
         Args:
             ax: Optional matplotlib axis to use for drawing.
             tilted: If True, draw as a horizontal line. Otherwise, draw on a diagonal.
-            kwargs: Additional arguments to pass to `nx.draw_networkx`.
+            **kwargs: Additional arguments to pass to `nx.draw_networkx`.
         """
         g2 = nx.relabel_nodes(self.graph, {n: (n, 1) for n in self.graph.nodes})
         return draw_gridlike(g2, ax=ax, tilted=tilted, **kwargs)
 
     def _json_dict_(self) -> Dict[str, Any]:
         return dataclass_json_dict(self)
+
+    def __repr__(self) -> str:
+        return _compat.dataclass_repr(self)
 
 
 @dataclass(frozen=True)
@@ -217,7 +228,7 @@ class TiltedSquareLattice(NamedTopology):
             ax: Optional matplotlib axis to use for drawing.
             tilted: If True, directly position as (row, column); otherwise,
                 rotate 45 degrees to accommodate the diagonal nature of this topology.
-            kwargs: Additional arguments to pass to `nx.draw_networkx`.
+            **kwargs: Additional arguments to pass to `nx.draw_networkx`.
         """
         return draw_gridlike(self.graph, ax=ax, tilted=tilted, **kwargs)
 
@@ -225,8 +236,20 @@ class TiltedSquareLattice(NamedTopology):
         """Get the graph nodes as cirq.GridQubit"""
         return [GridQubit(r, c) for r, c in sorted(self.graph.nodes)]
 
+    def nodes_to_gridqubits(self, offset=(0, 0)) -> Dict[Tuple[int, int], 'cirq.GridQubit']:
+        """Return a mapping from graph nodes to `cirq.GridQubit`
+
+        Args:
+            offset: Offest row and column indices of the resultant GridQubits by this amount.
+                The offest positions the top-left node in the `draw(tilted=False)` frame.
+        """
+        return {(r, c): GridQubit(r, c) + offset for r, c in self.graph.nodes}
+
     def _json_dict_(self) -> Dict[str, Any]:
         return dataclass_json_dict(self)
+
+    def __repr__(self) -> str:
+        return _compat.dataclass_repr(self)
 
 
 def get_placements(
@@ -278,17 +301,63 @@ def get_placements(
     return small_to_bigs
 
 
+def _is_valid_placement_helper(
+    big_graph: nx.Graph, small_mapped: nx.Graph, small_to_big_mapping: Dict
+):
+    """Helper function for `is_valid_placement` that assumes the mapping of `small_graph` has
+    already occurred.
+
+    This is so we don't duplicate work when checking placements during `draw_placements`.
+    """
+    subgraph = big_graph.subgraph(small_to_big_mapping.values())
+    return (subgraph.nodes == small_mapped.nodes) and (subgraph.edges == small_mapped.edges)
+
+
+def is_valid_placement(big_graph: nx.Graph, small_graph: nx.Graph, small_to_big_mapping: Dict):
+    """Return whether the given placement is a valid placement of small_graph onto big_graph.
+
+    This is done by making sure all the nodes and edges on the mapped version of `small_graph`
+    are present in `big_graph`.
+
+    Args:
+        big_graph: A larger graph we're placing `small_graph` onto.
+        small_graph: A smaller, (potential) sub-graph to validate the given mapping.
+        small_to_big_mapping: A mapping from `small_graph` nodes to `big_graph`
+            nodes. After the mapping occurs, we check whether all of the mapped nodes and
+            edges exist on `big_graph`.
+    """
+    small_mapped = nx.relabel_nodes(small_graph, small_to_big_mapping)
+    return _is_valid_placement_helper(
+        big_graph=big_graph, small_mapped=small_mapped, small_to_big_mapping=small_to_big_mapping
+    )
+
+
 def draw_placements(
     big_graph: nx.Graph,
     small_graph: nx.Graph,
-    small_to_big_mappings,
-    max_plots=20,
+    small_to_big_mappings: Sequence[Dict],
+    max_plots: int = 20,
     axes: Sequence[plt.Axes] = None,
+    tilted: bool = True,
+    bad_placement_callback: Optional[Callable[[plt.Axes, int], None]] = None,
 ):
     """Draw a visualization of placements from small_graph onto big_graph using Matplotlib.
 
     The entire `big_graph` will be drawn with default blue colored nodes. `small_graph` nodes
     and edges will be highlighted with a red color.
+
+    Args:
+        big_graph: A larger graph to draw with blue colored nodes.
+        small_graph: A smaller, sub-graph to highlight with red nodes and edges.
+        small_to_big_mappings: A sequence of mappings from `small_graph` nodes to `big_graph`
+            nodes.
+        max_plots: To prevent an explosion of open Matplotlib figures, we only show the first
+            `max_plots` plots.
+        axes: Optional list of matplotlib Axes to contain the drawings.
+        tilted: Whether to draw gridlike graphs in the ordinary cartesian or tilted plane.
+        bad_placement_callback: If provided, we check that the given mappings are valid. If not,
+            this callback is called. The callback should accept `ax` and `i` keyword arguments
+            for the current axis and mapping index, respectively.
     """
     if len(small_to_big_mappings) > max_plots:
         # coverage: ignore
@@ -308,9 +377,24 @@ def draw_placements(
             ax = plt.gca()
 
         small_mapped = nx.relabel_nodes(small_graph, small_to_big_map)
-        draw_gridlike(big_graph, ax=ax)
+        if bad_placement_callback is not None:
+            # coverage: ignore
+            if not _is_valid_placement_helper(
+                big_graph=big_graph,
+                small_mapped=small_mapped,
+                small_to_big_mapping=small_to_big_map,
+            ):
+                bad_placement_callback(ax, i)
+
+        draw_gridlike(big_graph, ax=ax, tilted=tilted)
         draw_gridlike(
-            small_mapped, node_color='red', edge_color='red', width=2, with_labels=False, ax=ax
+            small_mapped,
+            node_color='red',
+            edge_color='red',
+            width=2,
+            with_labels=False,
+            ax=ax,
+            tilted=tilted,
         )
         ax.axis('equal')
         if call_show:

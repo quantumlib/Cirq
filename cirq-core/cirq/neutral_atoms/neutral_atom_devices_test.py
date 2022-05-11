@@ -17,13 +17,14 @@ import pytest
 
 import cirq
 import cirq.neutral_atoms as neutral_atoms
+import cirq.testing
 
 
 def square_device(
     width: int, height: int, holes=(), max_controls=2, use_timedelta=False
 ) -> neutral_atoms.NeutralAtomDevice:
-    us = cirq.Duration(nanos=10 ** 3) if not use_timedelta else timedelta(microseconds=1)
-    ms = cirq.Duration(nanos=10 ** 6) if not use_timedelta else timedelta(microseconds=1000)
+    us = cirq.Duration(nanos=10**3) if not use_timedelta else timedelta(microseconds=1)
+    ms = cirq.Duration(nanos=10**6) if not use_timedelta else timedelta(microseconds=1000)
     return neutral_atoms.NeutralAtomDevice(  # type: ignore
         measurement_duration=50 * ms,  # type: ignore
         gate_duration=100 * us,  # type: ignore
@@ -42,8 +43,8 @@ def square_device(
 
 def test_init():
     d = square_device(2, 2, holes=[cirq.GridQubit(1, 1)])
-    us = cirq.Duration(nanos=10 ** 3)
-    ms = cirq.Duration(nanos=10 ** 6)
+    us = cirq.Duration(nanos=10**3)
+    ms = cirq.Duration(nanos=10**6)
     q00 = cirq.GridQubit(0, 0)
     q01 = cirq.GridQubit(0, 1)
     q10 = cirq.GridQubit(1, 0)
@@ -52,13 +53,28 @@ def test_init():
     assert d.duration_of(cirq.GateOperation(cirq.IdentityGate(1), [q00])) == 100 * us
     assert d.duration_of(cirq.measure(q00)) == 50 * ms
     with pytest.raises(ValueError):
-        _ = d.duration_of(cirq.SingleQubitGate().on(q00))
+        _ = d.duration_of(cirq.testing.SingleQubitGate().on(q00))
+
+
+def test_metadata():
+    d = square_device(2, 3)
+    assert d.metadata.qubit_set == frozenset(
+        {
+            cirq.GridQubit(0, 0),
+            cirq.GridQubit(0, 1),
+            cirq.GridQubit(1, 0),
+            cirq.GridQubit(1, 1),
+            cirq.GridQubit(2, 0),
+            cirq.GridQubit(2, 1),
+        }
+    )
+    assert len(d.metadata.nx_graph.edges()) == 7
 
 
 def test_init_timedelta():
     d = square_device(2, 2, holes=[cirq.GridQubit(1, 1)], use_timedelta=True)
-    us = cirq.Duration(nanos=10 ** 3)
-    ms = cirq.Duration(nanos=10 ** 6)
+    us = cirq.Duration(nanos=10**3)
+    ms = cirq.Duration(nanos=10**6)
     q00 = cirq.GridQubit(0, 0)
     q01 = cirq.GridQubit(0, 1)
     q10 = cirq.GridQubit(1, 0)
@@ -67,13 +83,13 @@ def test_init_timedelta():
     assert d.duration_of(cirq.GateOperation(cirq.IdentityGate(1), [q00])) == 100 * us
     assert d.duration_of(cirq.measure(q00)) == 50 * ms
     with pytest.raises(ValueError):
-        _ = d.duration_of(cirq.SingleQubitGate().on(q00))
+        _ = d.duration_of(cirq.testing.SingleQubitGate().on(q00))
 
 
 def test_init_errors():
     line = cirq.LineQubit.range(3)
-    us = cirq.Duration(nanos=10 ** 3)
-    ms = cirq.Duration(nanos=10 ** 6)
+    us = cirq.Duration(nanos=10**3)
+    ms = cirq.Duration(nanos=10**6)
     with pytest.raises(ValueError, match="Unsupported qubit type"):
         _ = neutral_atoms.NeutralAtomDevice(
             measurement_duration=50 * ms,
@@ -96,10 +112,11 @@ def test_init_errors():
         )
 
 
-def test_decompose_error():
+def test_decompose_error_deprecated():
     d = square_device(2, 2, holes=[cirq.GridQubit(1, 1)])
-    for op in d.decompose_operation((cirq.CCZ ** 1.5).on(*(d.qubit_list()))):
-        d.validate_operation(op)
+    with cirq.testing.assert_deprecated('ConvertToNeutralAtomGates', deadline='v0.15', count=2):
+        for op in d.decompose_operation((cirq.CCZ**1.5).on(*(d.qubit_list()))):
+            d.validate_operation(op)
 
 
 def test_validate_gate_errors():
@@ -109,7 +126,7 @@ def test_validate_gate_errors():
     with pytest.raises(ValueError, match="controlled gates must have integer exponents"):
         d.validate_gate(cirq.CNotPowGate(exponent=0.5))
     with pytest.raises(ValueError, match="Unsupported gate"):
-        d.validate_gate(cirq.SingleQubitGate())
+        d.validate_gate(cirq.testing.SingleQubitGate())
 
 
 def test_validate_operation_errors():
@@ -159,7 +176,7 @@ def test_validate_moment_errors():
     q20 = cirq.GridQubit(2, 0)
     q21 = cirq.GridQubit(2, 1)
 
-    m = cirq.Moment([cirq.Z.on(q00), (cirq.Z ** 2).on(q01)])
+    m = cirq.Moment([cirq.Z.on(q00), (cirq.Z**2).on(q01)])
     with pytest.raises(ValueError, match="Non-identical simultaneous "):
         d.validate_moment(m)
     m = cirq.Moment([cirq.X.on(q00), cirq.Y.on(q01)])
@@ -189,8 +206,8 @@ def test_validate_moment_errors():
     ):
         d.validate_moment(m)
     d.validate_moment(cirq.Moment([cirq.X.on(q00), cirq.Z.on(q01)]))
-    us = cirq.Duration(nanos=10 ** 3)
-    ms = cirq.Duration(nanos=10 ** 6)
+    us = cirq.Duration(nanos=10**3)
+    ms = cirq.Duration(nanos=10**6)
     d2 = neutral_atoms.NeutralAtomDevice(
         measurement_duration=50 * ms,
         gate_duration=100 * us,
@@ -219,15 +236,16 @@ def test_validate_moment_errors():
         d2.validate_moment(m)
 
 
-def test_can_add_operation_into_moment_coverage():
-    d = square_device(2, 2)
-    q00 = cirq.GridQubit(0, 0)
-    q01 = cirq.GridQubit(0, 1)
-    q10 = cirq.GridQubit(1, 0)
-    m = cirq.Moment([cirq.X.on(q00)])
-    assert not d.can_add_operation_into_moment(cirq.X.on(q00), m)
-    assert not d.can_add_operation_into_moment(cirq.CZ.on(q01, q10), m)
-    assert d.can_add_operation_into_moment(cirq.Z.on(q01), m)
+def test_can_add_operation_into_moment_coverage_deprecated():
+    with cirq.testing.assert_deprecated('can_add_operation_into_moment', deadline='v0.15', count=4):
+        d = square_device(2, 2)
+        q00 = cirq.GridQubit(0, 0)
+        q01 = cirq.GridQubit(0, 1)
+        q10 = cirq.GridQubit(1, 0)
+        m = cirq.Moment([cirq.X.on(q00)])
+        assert not d.can_add_operation_into_moment(cirq.X.on(q00), m)
+        assert not d.can_add_operation_into_moment(cirq.CZ.on(q01, q10), m)
+        assert d.can_add_operation_into_moment(cirq.Z.on(q01), m)
 
 
 def test_validate_circuit_errors():
@@ -266,5 +284,19 @@ def test_str():
     )
 
 
-def test_qubit_set():
-    assert square_device(2, 2).qubit_set() == frozenset(cirq.GridQubit.square(2, 0, 0))
+def test_repr_pretty():
+    cirq.testing.assert_repr_pretty(
+        square_device(2, 2),
+        """
+(0, 0)───(0, 1)
+│        │
+│        │
+(1, 0)───(1, 1)
+    """.strip(),
+    )
+    cirq.testing.assert_repr_pretty(square_device(2, 2), "cirq.NeutralAtomDevice(...)", cycle=True)
+
+
+def test_qubit_set_deprecated():
+    with cirq.testing.assert_deprecated('qubit_set', deadline='v0.15', count=2):
+        assert square_device(2, 2).qubit_set() == frozenset(cirq.GridQubit.square(2, 0, 0))

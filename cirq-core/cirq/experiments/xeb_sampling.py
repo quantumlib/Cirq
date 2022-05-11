@@ -36,7 +36,7 @@ import pandas as pd
 import tqdm
 
 from cirq import ops, devices, value, protocols
-from cirq.circuits import Circuit
+from cirq.circuits import Circuit, Moment
 from cirq.experiments.random_quantum_circuit_generation import CircuitLibraryCombination
 
 if TYPE_CHECKING:
@@ -90,7 +90,7 @@ class _SampleInBatches:
                 pair_measurement_key = str(pair_i)
                 pair = self.combinations_by_layer[task.layer_i].pairs[pair_i]
                 sampled_inds = result.data[pair_measurement_key].values
-                sampled_probs = np.bincount(sampled_inds, minlength=2 ** 2) / len(sampled_inds)
+                sampled_probs = np.bincount(sampled_inds, minlength=2**2) / len(sampled_inds)
 
                 records.append(
                     {
@@ -135,9 +135,7 @@ class _NoProgress:
     def __init__(self, total: int):
         pass
 
-    def __enter__(
-        self,
-    ):
+    def __enter__(self):
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
@@ -193,9 +191,7 @@ def _get_combinations_by_layer_for_isolated_xeb(
     ]
     return [
         CircuitLibraryCombination(
-            layer=None,
-            combinations=np.arange(len(circuits))[:, np.newaxis],
-            pairs=[(q0, q1)],
+            layer=None, combinations=np.arange(len(circuits))[:, np.newaxis], pairs=[(q0, q1)]
         )
     ], circuits
 
@@ -248,7 +244,7 @@ def _generate_sample_2q_xeb_tasks(
             assert circuit_depth <= len(zipped_circuit.wide_circuit)
             # Slicing creates a copy, although this isn't documented
             prepared_circuit = zipped_circuit.wide_circuit[:circuit_depth]
-            prepared_circuit += ops.Moment(
+            prepared_circuit += Moment(
                 ops.measure(*pair, key=str(pair_i))
                 for pair_i, pair in enumerate(zipped_circuit.pairs)
             )

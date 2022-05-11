@@ -35,10 +35,7 @@ class _Sweepable(Protocol):
 
 
 Sweepable = Union[SweepLike, _Sweepable]
-document(
-    Sweepable,
-    """An object or collection of objects representing a parameter sweep.""",
-)
+document(Sweepable, """An object or collection of objects representing a parameter sweep.""")
 
 
 def to_resolvers(sweepable: Sweepable) -> Iterator[ParamResolver]:
@@ -65,15 +62,13 @@ def to_sweeps(sweepable: Sweepable) -> List[Sweep]:
                 DeprecationWarning,
                 stacklevel=2,
             )
-        product_sweep = dict_to_product_sweep(sweepable)
+        product_sweep = dict_to_product_sweep(sweepable)  # type: ignore[arg-type]
         return [_resolver_to_sweep(resolver) for resolver in product_sweep]
     if isinstance(sweepable, Iterable) and not isinstance(sweepable, str):
-        return [sweep for item in sweepable for sweep in to_sweeps(item)]
+        return [sweep for item in sweepable for sweep in to_sweeps(item)]  # type: ignore[arg-type]
     raise TypeError(f'Unrecognized sweepable type: {type(sweepable)}.\nsweepable: {sweepable}')
 
 
-# TODO(#3388) Add documentation for Raises.
-# pylint: disable=missing-raises-doc
 def to_sweep(
     sweep_or_resolver_list: Union[
         'Sweep', ParamResolverOrSimilarType, Iterable[ParamResolverOrSimilarType]
@@ -88,6 +83,9 @@ def to_sweep(
 
     Returns:
         A sweep equal to or containing the argument.
+
+    Raises:
+        TypeError: If an unsupport type was supplied.
     """
     if isinstance(sweep_or_resolver_list, Sweep):
         return sweep_or_resolver_list
@@ -100,7 +98,6 @@ def to_sweep(
     raise TypeError(f'Unexpected sweep-like value: {sweep_or_resolver_list}')
 
 
-# pylint: enable=missing-raises-doc
 def _resolver_to_sweep(resolver: ParamResolver) -> Sweep:
     params = resolver.param_dict
     if not params:

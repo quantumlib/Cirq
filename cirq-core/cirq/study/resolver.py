@@ -26,7 +26,7 @@ if TYPE_CHECKING:
     import cirq
 
 
-ParamDictType = Dict['cirq.TParamKey', 'cirq.TParamVal']
+ParamDictType = Dict['cirq.TParamKey', 'cirq.TParamValComplex']
 document(ParamDictType, """Dictionary from symbols to values.""")  # type: ignore
 
 ParamResolverOrSimilarType = Union['cirq.ParamResolver', ParamDictType, None]
@@ -71,11 +71,11 @@ class ParamResolver:
         self._deep_eval_map: ParamDictType = {}
 
     def value_of(
-        self, value: Union['cirq.TParamKey', float], recursive: bool = True
-    ) -> 'cirq.TParamVal':
+        self, value: Union['cirq.TParamKey', 'cirq.TParamValComplex'], recursive: bool = True
+    ) -> 'cirq.TParamValComplex':
         """Attempt to resolve a parameter to its assigned value.
 
-        Floats are returned without modification.  Strings are resolved via
+        Scalars are returned without modification.  Strings are resolved via
         the parameter dictionary with exact match only.  Otherwise, strings
         are considered to be sympy.Symbols with the name as the input string.
 
@@ -113,7 +113,9 @@ class ParamResolver:
         # Input is a symbol and maps to a number in the dictionary
         # In both cases, return it directly.
         if value in self.param_dict:
-            param_value = self.param_dict[value]
+            # Note: if the value is in the dictionary, it will be a key type
+            # Add a cast to make mypy happy.
+            param_value = self.param_dict[cast('cirq.TParamKey', value)]
             v = _resolve_value(param_value)
             if v is not NotImplemented:
                 return v
@@ -168,7 +170,9 @@ class ParamResolver:
             if v.free_symbols:
                 return v
             elif sympy.im(v):
-                return complex(v)
+                # Technically, this should not return complex, but changing
+                # type signature to complex would cause many cascading issues
+                return complex(v)  # type: ignore[return-value]
             else:
                 return float(v)
 
@@ -182,7 +186,7 @@ class ParamResolver:
 
         # There isn't a full evaluation for 'value' yet. Until it's ready,
         # map value to None to identify loops in component evaluation.
-        self._deep_eval_map[value] = _RecursionFlag
+        self._deep_eval_map[value] = _RecursionFlag  # type: ignore
 
         v = self.value_of(value, recursive=False)
         if v == value:
@@ -192,22 +196,28 @@ class ParamResolver:
         return self._deep_eval_map[value]
 
     def _resolve_parameters_(self, resolver: 'ParamResolver', recursive: bool) -> 'ParamResolver':
-        new_dict = {k: k for k in resolver}
-        new_dict.update({k: self.value_of(k, recursive) for k in self})
-        new_dict.update({k: resolver.value_of(v, recursive) for k, v in new_dict.items()})
+        new_dict: Dict['cirq.TParamKey', Union[float, str, sympy.Symbol, sympy.Expr]] = {
+            k: k for k in resolver
+        }
+        new_dict.update({k: self.value_of(k, recursive) for k in self})  # type: ignore[misc]
+        new_dict.update(
+            {k: resolver.value_of(v, recursive) for k, v in new_dict.items()}  # type: ignore[misc]
+        )  # type: ignore[misc]
         if recursive and self.param_dict:
-            new_resolver = ParamResolver(new_dict)
+            new_resolver = ParamResolver(cast(ParamDictType, new_dict))
             # Resolve down to single-step mappings.
             return ParamResolver()._resolve_parameters_(new_resolver, recursive=True)
-        return ParamResolver(new_dict)
+        return ParamResolver(cast(ParamDictType, new_dict))
 
-    def __iter__(self) -> Iterator[Union[str, sympy.Symbol]]:
+    def __iter__(self) -> Iterator[Union[str, sympy.Expr]]:
         return iter(self.param_dict)
 
     def __bool__(self) -> bool:
         return bool(self.param_dict)
 
-    def __getitem__(self, key: Union[sympy.Basic, float, str]) -> 'cirq.TParamVal':
+    def __getitem__(
+        self, key: Union['cirq.TParamKey', 'cirq.TParamValComplex']
+    ) -> 'cirq.TParamValComplex':
         return self.value_of(key)
 
     def __hash__(self) -> int:
@@ -233,9 +243,8 @@ class ParamResolver:
 
     def _json_dict_(self) -> Dict[str, Any]:
         return {
-            'cirq_type': self.__class__.__name__,
             # JSON requires mappings to have keys of basic types.
-            'param_dict': list(self.param_dict.items()),
+            'param_dict': list(self.param_dict.items())
         }
 
     @classmethod

@@ -77,6 +77,34 @@ def test_repr_pretty(cycle, func):
     printer.text.assert_called_once_with(func(device))
 
 
+def test_metadata_correct():
+    qubits = cirq.GridQubit.rect(2, 3, left=1, top=1)
+    pairs = [
+        (qubits[0], qubits[1]),
+        (qubits[0], qubits[3]),
+        (qubits[1], qubits[4]),
+        (qubits[4], qubits[5]),
+    ]
+    device_proto = cgdk.create_device_proto_for_qubits(
+        qubits=qubits, pairs=pairs, gate_sets=[cg.FSIM_GATESET]
+    )
+    device = cgdk.SerializableDevice.from_proto(device_proto, gate_sets=[cg.FSIM_GATESET])
+    assert device.metadata.qubit_pairs == frozenset({frozenset(p) for p in pairs})
+    assert device.metadata.gateset == cirq.Gateset(
+        cirq.FSimGate,
+        cirq.ISwapPowGate,
+        cirq.CZPowGate,
+        cirq.PhasedXPowGate,
+        cirq.XPowGate,
+        cirq.YPowGate,
+        cirq.ZPowGate,
+        cirq.PhasedXZGate,
+        cirq.MeasurementGate,
+        cirq.WaitGate,
+        cirq.GlobalPhaseGate,
+    )
+
+
 def test_gate_definition_equality():
     def1 = cg.devices.serializable_device._GateDefinition(
         duration=cirq.Duration(picos=4),
@@ -104,6 +132,14 @@ def test_gate_definition_equality():
     eq.add_equality_group(cirq.X)
 
 
+def test_qubit_set_deprecated():
+    foxtail = cg.SerializableDevice.from_proto(
+        proto=cg.devices.known_devices.FOXTAIL_PROTO, gate_sets=[cg.XMON]
+    )
+    with cirq.testing.assert_deprecated('qubit_set', deadline='v0.15'):
+        _ = foxtail.qubit_set()
+
+
 def test_foxtail():
     valid_qubit1 = cirq.GridQubit(0, 0)
     valid_qubit2 = cirq.GridQubit(1, 0)
@@ -114,7 +150,7 @@ def test_foxtail():
     foxtail = cg.SerializableDevice.from_proto(
         proto=cg.devices.known_devices.FOXTAIL_PROTO, gate_sets=[cg.XMON]
     )
-    assert foxtail.qubit_set() == frozenset(cirq.GridQubit.rect(2, 11, 0, 0))
+    assert foxtail.metadata.qubit_set == frozenset(cirq.GridQubit.rect(2, 11, 0, 0))
     foxtail.validate_operation(cirq.X(valid_qubit1))
     foxtail.validate_operation(cirq.X(valid_qubit2))
     foxtail.validate_operation(cirq.X(valid_qubit3))
@@ -348,17 +384,10 @@ def test_half_pi_takes_half_duration():
     """
     half_pi_gs = cirq_google.SerializableGateSet(
         gate_set_name='half_pi',
-        serializers=[
-            *cgc.SINGLE_QUBIT_HALF_PI_SERIALIZERS,
-        ],
-        deserializers=[
-            *cgc.SINGLE_QUBIT_HALF_PI_DESERIALIZERS,
-        ],
+        serializers=[*cgc.SINGLE_QUBIT_HALF_PI_SERIALIZERS],
+        deserializers=[*cgc.SINGLE_QUBIT_HALF_PI_DESERIALIZERS],
     )
-    durations_dict = {
-        'xy_pi': 20_000,
-        'xy_half_pi': 10_000,
-    }
+    durations_dict = {'xy_pi': 20_000, 'xy_half_pi': 10_000}
     spec = cirq_google.devices.known_devices.create_device_proto_from_diagram(
         "aa\naa", [half_pi_gs], durations_dict
     )
@@ -379,17 +408,10 @@ def test_multiple_fsim_gatesets():
     """
     half_pi_gs = cirq_google.SerializableGateSet(
         gate_set_name='half_pi',
-        serializers=[
-            *cgc.SINGLE_QUBIT_HALF_PI_SERIALIZERS,
-        ],
-        deserializers=[
-            *cgc.SINGLE_QUBIT_HALF_PI_DESERIALIZERS,
-        ],
+        serializers=[*cgc.SINGLE_QUBIT_HALF_PI_SERIALIZERS],
+        deserializers=[*cgc.SINGLE_QUBIT_HALF_PI_DESERIALIZERS],
     )
-    durations_dict = {
-        'xy_pi': 20_000,
-        'xy_half_pi': 10_000,
-    }
+    durations_dict = {'xy_pi': 20_000, 'xy_half_pi': 10_000}
     spec = cirq_google.devices.known_devices.create_device_proto_from_diagram(
         "aa\naa", [half_pi_gs], durations_dict
     )
@@ -449,7 +471,3 @@ def test_sycamore23_str():
                                     │
                                     (9, 4)"""
     )
-
-
-def test_sycamore23_qid_pairs():
-    assert len(cg.Sycamore23.qid_pairs()) == 32

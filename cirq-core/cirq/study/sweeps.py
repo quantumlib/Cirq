@@ -70,7 +70,7 @@ class Sweep(metaclass=abc.ABCMeta):
     """
 
     def __mul__(self, other: 'Sweep') -> 'Sweep':
-        factors = []  # type: List[Sweep]
+        factors: List[Sweep] = []
         if isinstance(self, Product):
             factors.extend(self.factors)
         else:
@@ -84,7 +84,7 @@ class Sweep(metaclass=abc.ABCMeta):
         return Product(*factors)
 
     def __add__(self, other: 'Sweep') -> 'Sweep':
-        sweeps = []  # type: List[Sweep]
+        sweeps: List[Sweep] = []
         if isinstance(self, Zip):
             sweeps.extend(self.sweeps)
         else:
@@ -98,10 +98,10 @@ class Sweep(metaclass=abc.ABCMeta):
         return Zip(*sweeps)
 
     @abc.abstractmethod
-    def __eq__(self, other):
+    def __eq__(self, other) -> bool:
         pass
 
-    def __ne__(self, other):
+    def __ne__(self, other) -> bool:
         return not self == other
 
     @property
@@ -348,11 +348,11 @@ class SingleSweep(Sweep):
 class Points(SingleSweep):
     """A simple sweep with explicitly supplied values."""
 
-    def __init__(self, key: 'cirq.TParamKey', points: Sequence['cirq.TParamVal']) -> None:
+    def __init__(self, key: 'cirq.TParamKey', points: Sequence[float]) -> None:
         super(Points, self).__init__(key)
         self.points = points
 
-    def _tuple(self) -> Tuple[Union[str, sympy.Symbol], Sequence[float]]:
+    def _tuple(self) -> Tuple[Union[str, sympy.Expr], Sequence[float]]:
         return self.key, tuple(self.points)
 
     def __len__(self) -> int:
@@ -379,7 +379,7 @@ class Linspace(SingleSweep):
         self.stop = stop
         self.length = length
 
-    def _tuple(self) -> Tuple[Union[str, sympy.Symbol], float, float, int]:
+    def _tuple(self) -> Tuple[Union[str, sympy.Expr], float, float, int]:
         return (self.key, self.start, self.stop, self.length)
 
     def __len__(self) -> int:
@@ -403,14 +403,16 @@ class Linspace(SingleSweep):
 class ListSweep(Sweep):
     """A wrapper around a list of `ParamResolver`s."""
 
-    # TODO(#3388) Add documentation for Raises.
-    # pylint: disable=missing-raises-doc
     def __init__(self, resolver_list: Iterable[resolver.ParamResolverOrSimilarType]):
         """Creates a `Sweep` over a list of `ParamResolver`s.
 
         Args:
             resolver_list: The list of parameter resolvers to use in the sweep.
                 All resolvers must resolve the same set of parameters.
+
+        Raises:
+            TypeError: If `resolver_list` is not a `cirq.ParamResolver` or a
+                dict.
         """
         self.resolver_list: List[resolver.ParamResolver] = []
         for r in resolver_list:
@@ -418,7 +420,6 @@ class ListSweep(Sweep):
                 raise TypeError(f'Not a ParamResolver or dict: <{r!r}>')
             self.resolver_list.append(resolver.ParamResolver(r))
 
-    # pylint: enable=missing-raises-doc
     def __eq__(self, other):
         if not isinstance(other, type(self)):
             return NotImplemented
@@ -465,7 +466,10 @@ def dict_to_product_sweep(factor_dict: ProductOrZipSweepLike) -> Product:
         Cartesian product of the sweeps.
     """
     return Product(
-        *(Points(k, v if isinstance(v, Sequence) else [v]) for k, v in factor_dict.items())
+        *(
+            Points(k, v if isinstance(v, Sequence) else [v])  # type: ignore
+            for k, v in factor_dict.items()
+        )
     )
 
 
@@ -482,4 +486,9 @@ def dict_to_zip_sweep(factor_dict: ProductOrZipSweepLike) -> Zip:
     Returns:
         Zip product of the sweeps.
     """
-    return Zip(*(Points(k, v if isinstance(v, Sequence) else [v]) for k, v in factor_dict.items()))
+    return Zip(
+        *(
+            Points(k, cast(float, v) if isinstance(v, Sequence) else [v])  # type: ignore
+            for k, v in factor_dict.items()
+        )
+    )

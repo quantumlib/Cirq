@@ -47,6 +47,15 @@ RaiseTypeErrorIfNotProvided: Any = ([],)
 DecomposeResult = Union[None, NotImplementedType, 'cirq.OP_TREE']
 OpDecomposer = Callable[['cirq.Operation'], DecomposeResult]
 
+DECOMPOSE_TARGET_GATESET = ops.Gateset(
+    ops.XPowGate,
+    ops.YPowGate,
+    ops.ZPowGate,
+    ops.CZPowGate,
+    ops.MeasurementGate,
+    ops.GlobalPhaseGate,
+)
+
 
 def _value_error_describing_bad_operation(op: 'cirq.Operation') -> ValueError:
     return ValueError(f"Operation doesn't satisfy the given `keep` but can't be decomposed: {op!r}")
@@ -180,7 +189,11 @@ def decompose(
             that doesn't satisfy the given `keep` predicate.
     """
 
-    if on_stuck_raise is not _value_error_describing_bad_operation and keep is None:
+    if (
+        on_stuck_raise is not _value_error_describing_bad_operation
+        and on_stuck_raise is not None
+        and keep is None
+    ):
         raise ValueError(
             "Must specify 'keep' if specifying 'on_stuck_raise', because it's "
             "not possible to get stuck if you don't have a criteria on what's "
@@ -266,10 +279,10 @@ def decompose_once(val: Any, default=RaiseTypeErrorIfNotProvided, *args, **kwarg
             `_decompose_` method or that method returns `NotImplemented` or
             `None`. If not specified, non-decomposable values cause a
             `TypeError`.
-        args: Positional arguments to forward into the `_decompose_` method of
+        *args: Positional arguments to forward into the `_decompose_` method of
             `val`.  For example, this is used to tell gates what qubits they are
             being applied to.
-        kwargs: Keyword arguments to forward into the `_decompose_` method of
+        **kwargs: Keyword arguments to forward into the `_decompose_` method of
             `val`.
 
     Returns:
@@ -305,9 +318,7 @@ def decompose_once_with_qubits(val: Any, qubits: Iterable['cirq.Qid']) -> List['
 
 @overload
 def decompose_once_with_qubits(
-    val: Any,
-    qubits: Iterable['cirq.Qid'],
-    default: Optional[TDefault],
+    val: Any, qubits: Iterable['cirq.Qid'], default: Optional[TDefault]
 ) -> Union[TDefault, List['cirq.Operation']]:
     pass
 
@@ -355,7 +366,7 @@ def _try_decompose_into_operations_and_qubits(
     if isinstance(val, ops.Gate):
         # Gates don't specify qubits, and so must be handled specially.
         qid_shape = qid_shape_protocol.qid_shape(val)
-        qubits = devices.LineQid.for_qid_shape(qid_shape)  # type: Sequence[cirq.Qid]
+        qubits: Sequence[cirq.Qid] = devices.LineQid.for_qid_shape(qid_shape)
         return decompose_once_with_qubits(val, qubits, None), qubits, qid_shape
 
     if isinstance(val, ops.Operation):

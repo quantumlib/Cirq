@@ -120,12 +120,10 @@ def test_kron_bases_consistency(basis1, basis2):
         assert np.all(basis1[name] == basis2[name])
 
 
-@pytest.mark.parametrize(
-    'basis,repeat', itertools.product((PAULI_BASIS, STANDARD_BASIS), range(1, 5))
-)
+@pytest.mark.parametrize('basis,repeat', itertools.product((PAULI_BASIS, STANDARD_BASIS), range(5)))
 def test_kron_bases_repeat_sanity_checks(basis, repeat):
     product_basis = cirq.kron_bases(basis, repeat=repeat)
-    assert len(product_basis) == 4 ** repeat
+    assert len(product_basis) == 4**repeat
     for name1, matrix1 in product_basis.items():
         for name2, matrix2 in product_basis.items():
             p = cirq.hilbert_schmidt_inner_product(matrix1, matrix2)
@@ -137,13 +135,7 @@ def test_kron_bases_repeat_sanity_checks(basis, repeat):
 
 @pytest.mark.parametrize(
     'm1,m2,expect_real',
-    (
-        (X, X, True),
-        (X, Y, True),
-        (X, H, True),
-        (X, SQRT_X, False),
-        (I, SQRT_Z, False),
-    ),
+    ((X, X, True), (X, Y, True), (X, H, True), (X, SQRT_X, False), (I, SQRT_Z, False)),
 )
 def test_hilbert_schmidt_inner_product_is_conjugate_symmetric(m1, m2, expect_real):
     v1 = cirq.hilbert_schmidt_inner_product(m1, m2)
@@ -155,15 +147,7 @@ def test_hilbert_schmidt_inner_product_is_conjugate_symmetric(m1, m2, expect_rea
         assert v1 != v2
 
 
-@pytest.mark.parametrize(
-    'a,m1,b,m2',
-    (
-        (1, X, 1, Z),
-        (2, X, 3, Y),
-        (2j, X, 3, I),
-        (2, X, 3, X),
-    ),
-)
+@pytest.mark.parametrize('a,m1,b,m2', ((1, X, 1, Z), (2, X, 3, Y), (2j, X, 3, I), (2, X, 3, X)))
 def test_hilbert_schmidt_inner_product_is_linear(a, m1, b, m2):
     v1 = cirq.hilbert_schmidt_inner_product(H, (a * m1 + b * m2))
     v2 = a * cirq.hilbert_schmidt_inner_product(H, m1) + b * cirq.hilbert_schmidt_inner_product(
@@ -175,7 +159,9 @@ def test_hilbert_schmidt_inner_product_is_linear(a, m1, b, m2):
 @pytest.mark.parametrize('m', (I, X, Y, Z, H, SQRT_X, SQRT_Y, SQRT_Z))
 def test_hilbert_schmidt_inner_product_is_positive_definite(m):
     v = cirq.hilbert_schmidt_inner_product(m, m)
-    assert np.isreal(v)
+    # Cannot check using np.is_real due to bug in aarch64.
+    # See https://github.com/quantumlib/Cirq/issues/4379
+    assert np.isclose(np.imag(v), 1e-16)
     assert v.real > 0
 
 
@@ -206,10 +192,7 @@ def test_hilbert_schmidt_inner_product_values(m1, m2, expected_value):
 
 @pytest.mark.parametrize(
     'm,basis',
-    itertools.product(
-        (I, X, Y, Z, H, SQRT_X, SQRT_Y, SQRT_Z),
-        (PAULI_BASIS, STANDARD_BASIS),
-    ),
+    itertools.product((I, X, Y, Z, H, SQRT_X, SQRT_Y, SQRT_Z), (PAULI_BASIS, STANDARD_BASIS)),
 )
 def test_expand_matrix_in_orthogonal_basis(m, basis):
     expansion = cirq.expand_matrix_in_orthogonal_basis(m, basis)

@@ -12,11 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import List, TYPE_CHECKING, Union, Optional, cast, Sequence, Tuple
+from typing import List, Optional, Sequence, TYPE_CHECKING, Union
 
 import cirq
 from cirq_google import engine
-from cirq_google.serialization import gate_sets
+from cirq_google.engine import util
 
 if TYPE_CHECKING:
     import cirq_google
@@ -28,12 +28,13 @@ class QuantumEngineSampler(cirq.Sampler):
     Exposes a `cirq_google.Engine` instance as a `cirq.Sampler`.
     """
 
+    @util.deprecated_gate_set_parameter
     def __init__(
         self,
         *,
         engine: 'cirq_google.Engine',
         processor_id: Union[str, List[str]],
-        gate_set: 'cirq_google.serialization.Serializer',
+        gate_set: Optional['cirq_google.serialization.Serializer'] = None,
     ):
         """Inits QuantumEngineSampler.
 
@@ -45,7 +46,6 @@ class QuantumEngineSampler(cirq.Sampler):
                 samples.
         """
         self._processor_ids = [processor_id] if isinstance(processor_id, str) else processor_id
-        self._gate_set = gate_set
         self._engine = engine
 
     def run_sweep(
@@ -53,27 +53,26 @@ class QuantumEngineSampler(cirq.Sampler):
         program: Union[cirq.AbstractCircuit, 'cirq_google.EngineProgram'],
         params: cirq.Sweepable,
         repetitions: int = 1,
-    ) -> List[cirq.Result]:
+    ) -> Sequence[cirq.Result]:
         if isinstance(program, engine.EngineProgram):
             job = program.run_sweep(
                 params=params, repetitions=repetitions, processor_ids=self._processor_ids
             )
         else:
             job = self._engine.run_sweep(
-                program=cast(cirq.Circuit, program),
+                program=program,
                 params=params,
                 repetitions=repetitions,
                 processor_ids=self._processor_ids,
-                gate_set=self._gate_set,
             )
         return job.results()
 
     def run_batch(
         self,
-        programs: Sequence['cirq.AbstractCircuit'],
+        programs: Sequence[cirq.AbstractCircuit],
         params_list: Optional[List[cirq.Sweepable]] = None,
         repetitions: Union[int, List[int]] = 1,
-    ) -> List[List[cirq.Result]]:
+    ) -> Sequence[Sequence[cirq.Result]]:
         """Runs the supplied circuits.
 
         In order to gain a speedup from using this method instead of other run
@@ -97,7 +96,6 @@ class QuantumEngineSampler(cirq.Sampler):
                 params_list=params_list,
                 repetitions=repetitions,
                 processor_ids=self._processor_ids,
-                gate_set=self._gate_set,
             )
             return job.batched_results()
         # Varying number of repetitions so no speedup
@@ -108,8 +106,14 @@ class QuantumEngineSampler(cirq.Sampler):
         return self._engine
 
 
+@cirq._compat.deprecated_parameter(
+    deadline='v0.15',
+    fix='Remove the "gate_set_name" parameter.',
+    parameter_desc='gate_set_name',
+    match=lambda args, kwargs: 'gate_set_name' in kwargs or len(args) > 1,
+)
 def get_engine_sampler(
-    processor_id: str, gate_set_name: str, project_id: Optional[str] = None
+    processor_id: str, gate_set_name: str = '', project_id: Optional[str] = None
 ) -> 'cirq_google.QuantumEngineSampler':
     """Get an EngineSampler assuming some sensible defaults.
 
@@ -134,10 +138,4 @@ def get_engine_sampler(
          EnvironmentError: If no project_id is specified and the environment
             variable GOOGLE_CLOUD_PROJECT is not set.
     """
-    if gate_set_name not in gate_sets.NAMED_GATESETS:
-        raise ValueError(
-            f"Unknown gateset {gate_set_name}. Please use one of: "
-            f"{sorted(gate_sets.NAMED_GATESETS.keys())}."
-        )
-    gate_set = gate_sets.NAMED_GATESETS[gate_set_name]
-    return engine.get_engine(project_id).sampler(processor_id=processor_id, gate_set=gate_set)
+    return engine.get_engine(project_id).get_sampler(processor_id=processor_id)

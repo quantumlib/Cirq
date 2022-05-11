@@ -22,27 +22,14 @@ import cirq
 
 
 @pytest.mark.parametrize(
-    'phase_exponent',
-    [
-        -0.5,
-        0,
-        0.1,
-        0.25,
-        0.5,
-        1,
-        sympy.Symbol('p'),
-        sympy.Symbol('p') + 1,
-    ],
+    'phase_exponent', [-0.5, 0, 0.1, 0.25, 0.5, 1, sympy.Symbol('p'), sympy.Symbol('p') + 1]
 )
 def test_phased_x_consistent_protocols(phase_exponent):
-    # If there is no global_shift, the gate is global phase insensitive.
     cirq.testing.assert_implements_consistent_protocols(
-        cirq.PhasedXPowGate(phase_exponent=phase_exponent, exponent=1.0),
-        ignoring_global_phase=False,
+        cirq.PhasedXPowGate(phase_exponent=phase_exponent, exponent=1.0)
     )
     cirq.testing.assert_implements_consistent_protocols(
-        cirq.PhasedXPowGate(phase_exponent=phase_exponent, exponent=1.0, global_shift=0.1),
-        ignoring_global_phase=True,
+        cirq.PhasedXPowGate(phase_exponent=phase_exponent, exponent=1.0, global_shift=0.1)
     )
 
 
@@ -63,13 +50,7 @@ def test_init():
     assert y._global_shift == 0.2
 
 
-@pytest.mark.parametrize(
-    'sym',
-    [
-        sympy.Symbol('a'),
-        sympy.Symbol('a') + 1,
-    ],
-)
+@pytest.mark.parametrize('sym', [sympy.Symbol('a'), sympy.Symbol('a') + 1])
 def test_no_symbolic_qasm_but_fails_gracefully(sym):
     q = cirq.NamedQubit('q')
     v = cirq.PhasedXPowGate(phase_exponent=sym).on(q)
@@ -78,16 +59,16 @@ def test_no_symbolic_qasm_but_fails_gracefully(sym):
 
 def test_extrapolate():
     g = cirq.PhasedXPowGate(phase_exponent=0.25)
-    assert g ** 0.25 == (g ** 0.5) ** 0.5
+    assert g**0.25 == (g**0.5) ** 0.5
 
     # The gate is self-inverse, but there are hidden variables tracking the
     # exponent's sign and scale.
-    assert g ** -1 == g
+    assert g**-1 == g
     assert g.exponent == 1
-    assert (g ** -1).exponent == -1
-    assert g ** -0.5 == (g ** -1) ** 0.5 != g ** 0.5
-    assert g == g ** 3
-    assert g ** 0.5 != (g ** 3) ** 0.5 == g ** -0.5
+    assert (g**-1).exponent == -1
+    assert g**-0.5 == (g**-1) ** 0.5 != g**0.5
+    assert g == g**3
+    assert g**0.5 != (g**3) ** 0.5 == g**-0.5
 
 
 def test_eq():
@@ -107,7 +88,7 @@ def test_eq():
         cirq.PhasedXPowGate(phase_exponent=2.5, exponent=3),
         cirq.Y,
     )
-    eq.add_equality_group(cirq.PhasedXPowGate(phase_exponent=0.5, exponent=0.25), cirq.Y ** 0.25)
+    eq.add_equality_group(cirq.PhasedXPowGate(phase_exponent=0.5, exponent=0.25), cirq.Y**0.25)
 
     eq.add_equality_group(cirq.PhasedXPowGate(phase_exponent=0.25, exponent=0.25, global_shift=0.1))
     eq.add_equality_group(cirq.PhasedXPowGate(phase_exponent=2.25, exponent=0.25, global_shift=0.2))
@@ -171,29 +152,55 @@ def test_str_repr():
     )
 
 
-@pytest.mark.parametrize('resolve_fn', [cirq.resolve_parameters, cirq.resolve_parameters_once])
-def test_parameterize(resolve_fn):
+@pytest.mark.parametrize(
+    'resolve_fn, global_shift', [(cirq.resolve_parameters, 0), (cirq.resolve_parameters_once, 0.1)]
+)
+def test_parameterize(resolve_fn, global_shift):
     parameterized_gate = cirq.PhasedXPowGate(
-        exponent=sympy.Symbol('a'), phase_exponent=sympy.Symbol('b')
+        exponent=sympy.Symbol('a'), phase_exponent=sympy.Symbol('b'), global_shift=global_shift
     )
     assert cirq.pow(parameterized_gate, 5) == cirq.PhasedXPowGate(
-        exponent=sympy.Symbol('a') * 5, phase_exponent=sympy.Symbol('b')
-    )
-    assert (
-        cirq.decompose_once_with_qubits(parameterized_gate, [cirq.LineQubit(0)], NotImplemented)
-        is NotImplemented
+        exponent=sympy.Symbol('a') * 5, phase_exponent=sympy.Symbol('b'), global_shift=global_shift
     )
     assert cirq.unitary(parameterized_gate, default=None) is None
     assert cirq.is_parameterized(parameterized_gate)
+    q = cirq.NamedQubit("q")
+    parameterized_decomposed_circuit = cirq.Circuit(cirq.decompose(parameterized_gate(q)))
+    for resolver in cirq.Linspace('a', 0, 2, 10) * cirq.Linspace('b', 0, 2, 10):
+        resolved_gate = resolve_fn(parameterized_gate, resolver)
+        assert resolved_gate == cirq.PhasedXPowGate(
+            exponent=resolver.value_of('a'),
+            phase_exponent=resolver.value_of('b'),
+            global_shift=global_shift,
+        )
+        np.testing.assert_allclose(
+            cirq.unitary(resolved_gate(q)),
+            cirq.unitary(resolve_fn(parameterized_decomposed_circuit, resolver)),
+            atol=1e-8,
+        )
 
-    resolver = cirq.ParamResolver({'a': 0.1, 'b': 0.2})
-    resolved_gate = resolve_fn(parameterized_gate, resolver)
-    assert resolved_gate == cirq.PhasedXPowGate(exponent=0.1, phase_exponent=0.2)
-
-    unparameterized_gate = cirq.PhasedXPowGate(exponent=0.1, phase_exponent=0.2)
+    unparameterized_gate = cirq.PhasedXPowGate(
+        exponent=0.1, phase_exponent=0.2, global_shift=global_shift
+    )
     assert not cirq.is_parameterized(unparameterized_gate)
     assert cirq.is_parameterized(unparameterized_gate ** sympy.Symbol('a'))
     assert cirq.is_parameterized(unparameterized_gate ** (sympy.Symbol('a') + 1))
+
+    resolver = {'a': 0.5j}
+    with pytest.raises(ValueError, match='complex value'):
+        resolve_fn(
+            cirq.PhasedXPowGate(
+                exponent=sympy.Symbol('a'), phase_exponent=0.2, global_shift=global_shift
+            ),
+            resolver,
+        )
+    with pytest.raises(ValueError, match='complex value'):
+        resolve_fn(
+            cirq.PhasedXPowGate(
+                exponent=0.1, phase_exponent=sympy.Symbol('a'), global_shift=global_shift
+            ),
+            resolver,
+        )
 
 
 def test_trace_bound():
@@ -245,8 +252,7 @@ def test_phase_by():
 
 
 @pytest.mark.parametrize(
-    'exponent,phase_exponent',
-    itertools.product(np.arange(-2.5, 2.75, 0.25), repeat=2),
+    'exponent,phase_exponent', itertools.product(np.arange(-2.5, 2.75, 0.25), repeat=2)
 )
 def test_exponent_consistency(exponent, phase_exponent):
     """Verifies that instances of PhasedX gate expose consistent exponents."""

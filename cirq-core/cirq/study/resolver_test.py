@@ -155,10 +155,9 @@ def test_param_dict_iter():
     assert list(r) == ['a', 'b']
 
 
-# TODO(#3388) Add summary line to docstring.
-# pylint: disable=docstring-first-line-empty
 def test_formulas_in_param_dict():
-    """
+    """Test formulas in a `param_dict`.
+
     Param dicts are allowed to have str or sympy.Symbol as keys and
     floats or sympy.Symbol as values.  This should not be a common use case,
     but this tests makes sure something reasonable is returned when
@@ -180,22 +179,13 @@ def test_formulas_in_param_dict():
     assert sympy.Eq(r.value_of('d'), 2 * e)
 
 
-# pylint: enable=docstring-first-line-empty
 def test_recursive_evaluation():
     a = sympy.Symbol('a')
     b = sympy.Symbol('b')
     c = sympy.Symbol('c')
     d = sympy.Symbol('d')
     e = sympy.Symbol('e')
-    r = cirq.ParamResolver(
-        {
-            a: a,
-            b: e + 2,
-            c: b + d,
-            d: a + 3,
-            e: 0,
-        }
-    )
+    r = cirq.ParamResolver({a: a, b: e + 2, c: b + d, d: a + 3, e: 0})
 
     # sympy.Basic.subs evaluates in alphabetical order.
     assert c.subs(r.param_dict) == b + a + 3
@@ -271,13 +261,8 @@ def test_custom_resolved_value():
     assert r.value_of(c) == 'Baz'
 
 
-# TODO(#3388) Add summary line to docstring.
-# pylint: disable=docstring-first-line-empty
 def test_compose():
-    """
-    Calling cirq.resolve_paramters on a ParamResolver composes that resolver
-    with the provided resolver.
-    """
+    """Tests that cirq.resolve_parameters on a ParamResolver composes."""
     a = sympy.Symbol('a')
     b = sympy.Symbol('b')
     c = sympy.Symbol('c')
@@ -299,7 +284,6 @@ def test_compose():
     assert r13.value_of('a') == b
 
 
-# pylint: enable=docstring-first-line-empty
 @pytest.mark.parametrize(
     'p1, p2, p3',
     [

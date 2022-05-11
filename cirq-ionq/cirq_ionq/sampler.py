@@ -13,7 +13,7 @@
 # limitations under the License.
 """A `cirq.Sampler` implementation for the IonQ API."""
 
-from typing import List, Optional, TYPE_CHECKING
+from typing import Optional, Sequence, TYPE_CHECKING
 
 from cirq_ionq import results
 import cirq
@@ -44,6 +44,7 @@ class Sampler(cirq.Sampler):
         self,
         service: 'cirq_ionq.Service',
         target: Optional[str],
+        timeout_seconds: Optional[int] = None,
         seed: cirq.RANDOM_STATE_OR_SEED_LIKE = None,
     ):
         """Construct the sampler.
@@ -57,17 +58,16 @@ class Sampler(cirq.Sampler):
             seed: If the target is `simulation` the seed for generating results. If None, this
                 will be `np.random`, if an int, will be `np.random.RandomState(int)`, otherwise
                 must be a modulate similar to `np.random`.
+            timeout_seconds: Length of time to wait for results. Default is specified in the job.
         """
         self._service = service
         self._target = target
         self._seed = seed
+        self._timeout_seconds = timeout_seconds
 
     def run_sweep(
-        self,
-        program: cirq.AbstractCircuit,
-        params: cirq.Sweepable,
-        repetitions: int = 1,
-    ) -> List['cirq.Result']:
+        self, program: cirq.AbstractCircuit, params: cirq.Sweepable, repetitions: int = 1
+    ) -> Sequence[cirq.Result]:
         """Runs a sweep for the given Circuit.
 
         Note that this creates jobs for each of the sweeps in the given sweepable, and then
@@ -86,7 +86,10 @@ class Sampler(cirq.Sampler):
             )
             for resolver in resolvers
         ]
-        job_results = [job.results() for job in jobs]
+        kwargs = {}
+        if self._timeout_seconds is not None:
+            kwargs = {"timeout_seconds": self._timeout_seconds}
+        job_results = [job.results(**kwargs) for job in jobs]
         cirq_results = []
         for result, params in zip(job_results, resolvers):
             if isinstance(result, results.QPUResult):

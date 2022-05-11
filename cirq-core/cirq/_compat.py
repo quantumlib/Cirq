@@ -13,6 +13,7 @@
 # limitations under the License.
 
 """Workarounds for compatibility issues between versions and libraries."""
+import contextlib
 import dataclasses
 import functools
 import importlib
@@ -27,21 +28,48 @@ from typing import Any, Callable, Optional, Dict, Tuple, Type, Set
 import numpy as np
 import pandas as pd
 import sympy
+import sympy.printing.repr
+
+ALLOW_DEPRECATION_IN_TEST = 'ALLOW_DEPRECATION_IN_TEST'
+
+
+try:
+    from functools import cached_property  # pylint: disable=unused-import
+except ImportError:
+    from backports.cached_property import cached_property  # type: ignore[no-redef]
 
 
 def proper_repr(value: Any) -> str:
     """Overrides sympy and numpy returning repr strings that don't parse."""
 
     if isinstance(value, sympy.Basic):
-        result = sympy.srepr(value)
-
         # HACK: work around https://github.com/sympy/sympy/issues/16074
-        # (only handles a few cases)
-        fixed_tokens = ['Symbol', 'pi', 'Mul', 'Pow', 'Add', 'Mod', 'Integer', 'Float', 'Rational']
-        for token in fixed_tokens:
-            result = result.replace(token, 'sympy.' + token)
+        fixed_tokens = [
+            'Symbol',
+            'pi',
+            'Mul',
+            'Pow',
+            'Add',
+            'Mod',
+            'Integer',
+            'Float',
+            'Rational',
+            'GreaterThan',
+            'StrictGreaterThan',
+            'LessThan',
+            'StrictLessThan',
+            'Equality',
+            'Unequality',
+        ]
 
-        return result
+        class Printer(sympy.printing.repr.ReprPrinter):
+            def _print(self, expr, **kwargs):
+                s = super()._print(expr, **kwargs)
+                if any(s.startswith(t) for t in fixed_tokens):
+                    return 'sympy.' + s
+                return s
+
+        return Printer().doprint(value)
 
     if isinstance(value, np.ndarray):
         if np.issubdtype(value.dtype, np.datetime64):
@@ -68,6 +96,9 @@ def proper_repr(value: Any) -> str:
             f'\n    data={repr(rows)}'
             f'\n)'
         )
+
+    if isinstance(value, Dict):
+        return '{' + ','.join(f"{proper_repr(k)}: {proper_repr(v)}" for k, v in value.items()) + '}'
 
     return repr(value)
 
@@ -115,8 +146,6 @@ def proper_eq(a: Any, b: Any) -> bool:
 
 
 def _warn_or_error(msg):
-    from cirq.testing.deprecation import ALLOW_DEPRECATION_IN_TEST
-
     deprecation_allowed = ALLOW_DEPRECATION_IN_TEST in os.environ
     if _called_from_test() and not deprecation_allowed:
         for filename, line_number, function_name, text in reversed(traceback.extract_stack()):
@@ -146,11 +175,7 @@ def _warn_or_error(msg):
         if "_compat.py" in filename:
             stack_level += 1
 
-    warnings.warn(
-        msg,
-        DeprecationWarning,
-        stacklevel=stack_level,
-    )
+    warnings.warn(msg, DeprecationWarning, stacklevel=stack_level)
 
 
 def _validate_deadline(deadline: str):
@@ -295,7 +320,7 @@ def deprecated_parameter(
                     f'The {parameter_desc} parameter of {qualname} was '
                     f'used but is deprecated.\n'
                     f'It will be removed in cirq {deadline}.\n'
-                    f'{fix}\n',
+                    f'{fix}\n'
                 )
 
             return func(*args, **kwargs)
@@ -305,11 +330,11 @@ def deprecated_parameter(
     return decorator
 
 
-def deprecate_attributes(module: ModuleType, deprecated_attributes: Dict[str, Tuple[str, str]]):
-    """Wrap a module with deprecated attributes that give warnings.
+def deprecate_attributes(module_name: str, deprecated_attributes: Dict[str, Tuple[str, str]]):
+    """Replace module with a wrapper that gives warnings for deprecated attributes.
 
     Args:
-        module: The module to wrap.
+        module_name: Absolute name of the module that deprecates attributes.
         deprecated_attributes: A dictionary from attribute name to a tuple of
             strings, where the first string gives the version that the attribute
             will be removed in, and the second string describes what the user
@@ -323,9 +348,14 @@ def deprecate_attributes(module: ModuleType, deprecated_attributes: Dict[str, Tu
     for (deadline, _) in deprecated_attributes.values():
         _validate_deadline(deadline)
 
+    module = sys.modules[module_name]
+
     class Wrapped(ModuleType):
 
         __dict__ = module.__dict__
+
+        # Workaround for: https://github.com/python/mypy/issues/8083
+        __spec__ = _make_proxy_spec_property(module)  # type: ignore
 
         def __getattr__(self, name):
             if name in deprecated_attributes:
@@ -337,7 +367,13 @@ def deprecate_attributes(module: ModuleType, deprecated_attributes: Dict[str, Tu
                 )
             return getattr(module, name)
 
-    return Wrapped(module.__name__, module.__doc__)
+    wrapped_module = Wrapped(module_name, module.__doc__)
+    if '.' in module_name:
+        parent_name, module_tail = module_name.rsplit('.', 1)
+        setattr(sys.modules[parent_name], module_tail, wrapped_module)
+    sys.modules[module_name] = wrapped_module
+
+    return wrapped_module
 
 
 class DeprecatedModuleLoader(importlib.abc.Loader):
@@ -460,12 +496,10 @@ def _deduped_module_warn_or_error(old_module_name: str, new_module_name: str, de
     _warn_or_error(
         f"{old_module_name} was used but is deprecated.\n "
         f"it will be removed in cirq {deadline}.\n "
-        f"Use {new_module_name} instead.\n",
+        f"Use {new_module_name} instead.\n"
     )
 
 
-# TODO(#3388) Add documentation for Args.
-# pylint: disable=missing-param-doc
 class DeprecatedModuleFinder(importlib.abc.MetaPathFinder):
     """A module finder to handle deprecated module references.
 
@@ -473,43 +507,27 @@ class DeprecatedModuleFinder(importlib.abc.MetaPathFinder):
     It is meant to be used as a wrapper around existing MetaPathFinder instances.
 
     Args:
-        finder: the finder to wrap.
-        new_module_name: the new module's fully qualified name
-        old_module_name: the deprecated module's fully qualified name
-        deadline: the deprecation deadline
+        new_module_name: The new module's fully qualified name.
+        old_module_name: The deprecated module's fully qualified name.
+        deadline: The deprecation deadline.
+        broken_module_exception: If specified, an exception to throw if
+            the module is found.
     """
 
     def __init__(
         self,
-        finder: Any,
         new_module_name: str,
         old_module_name: str,
         deadline: str,
         broken_module_exception: Optional[BaseException],
     ):
-        """An aliasing module finder that uses an existing module finder to find a python
+        """An aliasing module finder that uses existing module finders to find a python
         module spec and intercept the execution of matching modules.
         """
-        self.finder = finder
         self.new_module_name = new_module_name
         self.old_module_name = old_module_name
         self.deadline = deadline
         self.broken_module_exception = broken_module_exception
-        # to cater for metadata path finders
-        # https://docs.python.org/3/library/importlib.metadata.html#extending-the-search-algorithm
-        if hasattr(finder, "find_distributions"):
-
-            def find_distributions(context):
-                return self.finder.find_distributions(context)
-
-            self.find_distributions = find_distributions
-        if hasattr(finder, "invalidate_caches"):
-
-            def invalidate_caches() -> None:
-                return self.finder.invalidate_caches()
-
-            # mypy#2427
-            self.invalidate_caches = invalidate_caches  # type: ignore
 
     def find_spec(self, fullname: str, path: Any = None, target: Any = None) -> Any:
         """Finds the specification of a module.
@@ -525,8 +543,7 @@ class DeprecatedModuleFinder(importlib.abc.MetaPathFinder):
                 to the wrapped finder.
         """
         if fullname != self.old_module_name and not fullname.startswith(self.old_module_name + "."):
-            # if we are not interested in it, then just pass through to the wrapped finder
-            return self.finder.find_spec(fullname, path, target)
+            return None
 
         if self.broken_module_exception is not None:
             raise self.broken_module_exception
@@ -535,33 +552,8 @@ class DeprecatedModuleFinder(importlib.abc.MetaPathFinder):
 
         new_fullname = self.new_module_name + fullname[len(self.old_module_name) :]
 
-        # find the corresponding spec in the new structure
-        if fullname == self.old_module_name:
-            # this is the first time the deprecated module is being found
-            # which means that the new parent needs to be found first and under
-            # the new parent's path, we should be able to find the new name of
-            # the deprecated module
-            # this code is heavily inspired by importlib.util.find_spec
-            parent_name = new_fullname.rpartition('.')[0]
-            if parent_name:
-                parent = __import__(parent_name, fromlist=['__path__'])
-                # note that compared to importlib.util.find_spec we don't handle
-                # AttributeError here because it is not expected to happen in case
-                # of a DeprecatedModuleLoader - the new parent should exist and be
-                # a proper package
-                parent_path = parent.__path__
-            else:
-                parent_path = None
-            spec = self.finder.find_spec(new_fullname, parent_path, None)
-        else:
-            # we are finding a submodule of the parent of the deprecated module,
-            # which means that the parent was already found, and thus, `path` is
-            # correctly pointing to the module's parent in the new hierarchy
-            spec = self.finder.find_spec(
-                new_fullname,
-                path=path,
-                target=target,
-            )
+        # use normal import mechanism for the new module specs
+        spec = importlib.util.find_spec(new_fullname)
 
         # if the spec exists, return the DeprecatedModuleLoader that will do the loading as well
         # as set the alias(es) in sys.modules as necessary
@@ -576,7 +568,6 @@ class DeprecatedModuleFinder(importlib.abc.MetaPathFinder):
         return spec
 
 
-# pylint: enable=missing-param-doc
 class _BrokenModule(ModuleType):
     def __init__(self, name, exc):
         self.exc = exc
@@ -590,8 +581,6 @@ class DeprecatedModuleImportError(ImportError):
     pass
 
 
-# TODO(#3388) Add documentation for Args.
-# pylint: disable=missing-param-doc
 def deprecated_submodule(
     *, new_module_name: str, old_parent: str, old_child: str, deadline: str, create_attribute: bool
 ):
@@ -607,11 +596,12 @@ def deprecated_submodule(
     cache.
 
     Args:
-        new_module_name: absolute module name for the new module
-        old_parent: the current module that had the original submodule
-        old_child: the submodule that is being relocated
-        create_attribute: if True, the submodule will be added as a deprecated attribute to the
-            old_parent module
+        new_module_name: Absolute module name for the new module.
+        old_parent: The current module that had the original submodule.
+        old_child: The submodule that is being relocated.
+        deadline: The version of Cirq where the module will be removed.
+        create_attribute: If True, the submodule will be added as a deprecated attribute to the
+            old_parent module.
 
     Returns:
         None
@@ -646,24 +636,12 @@ def deprecated_submodule(
                 _BrokenModule(new_module_name, broken_module_exception),
             )
 
-    def wrap(finder: Any) -> Any:
-        # Sphinx looks for non-wrapped MockFinders
-        # so we have to check for them and not wrap them
-        if 'sphinx' in sys.modules:
-            from sphinx.ext.autodoc.mock import MockFinder
-
-            if isinstance(finder, MockFinder):
-                return finder
-        if not hasattr(finder, 'find_spec'):
-            return finder
-        return DeprecatedModuleFinder(
-            finder, new_module_name, old_module_name, deadline, broken_module_exception
-        )
-
-    sys.meta_path = [wrap(finder) for finder in sys.meta_path]
+    finder = DeprecatedModuleFinder(
+        new_module_name, old_module_name, deadline, broken_module_exception
+    )
+    sys.meta_path.append(finder)
 
 
-# pylint: enable=missing-param-doc
 def _setup_deprecated_submodule_attribute(
     new_module_name: str,
     old_parent: str,
@@ -677,6 +655,9 @@ def _setup_deprecated_submodule_attribute(
     class Wrapped(ModuleType):
         __dict__ = parent_module.__dict__
 
+        # Workaround for: https://github.com/python/mypy/issues/8083
+        __spec__ = _make_proxy_spec_property(parent_module)  # type: ignore
+
         def __getattr__(self, name):
             if name == old_child:
                 _deduped_module_warn_or_error(
@@ -684,4 +665,37 @@ def _setup_deprecated_submodule_attribute(
                 )
             return getattr(parent_module, name)
 
-    sys.modules[old_parent] = Wrapped(parent_module.__name__, parent_module.__doc__)
+    wrapped_parent_module = Wrapped(parent_module.__name__, parent_module.__doc__)
+    if '.' in old_parent:
+        grandpa_name, parent_tail = old_parent.rsplit('.', 1)
+        grandpa_module = sys.modules[grandpa_name]
+        setattr(grandpa_module, parent_tail, wrapped_parent_module)
+    sys.modules[old_parent] = wrapped_parent_module
+
+
+def _make_proxy_spec_property(source_module: ModuleType) -> property:
+    def fget(self):
+        return source_module.__spec__
+
+    def fset(self, value):
+        source_module.__spec__ = value
+
+    return property(fget, fset)
+
+
+@contextlib.contextmanager
+def block_overlapping_deprecation(match_regex: str):
+    """Context to block deprecation warnings raised within it.
+
+    Useful if a function call might raise more than one warning,
+    where only one warning is desired.
+
+    Args:
+        match_regex: DeprecationWarnings with message fields matching
+            match_regex will be blocked.
+    """
+    with warnings.catch_warnings():
+        warnings.filterwarnings(
+            action='ignore', category=DeprecationWarning, message=f'(.|\n)*{match_regex}(.|\n)*'
+        )
+        yield

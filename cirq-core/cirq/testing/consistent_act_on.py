@@ -22,11 +22,11 @@ from cirq.ops import common_gates
 from cirq.ops.dense_pauli_string import DensePauliString
 from cirq import protocols
 from cirq.qis import clifford_tableau
-from cirq.sim import act_on_state_vector_args, final_state_vector
+from cirq.sim import state_vector_simulation_state, final_state_vector
 from cirq.sim.clifford import (
-    act_on_clifford_tableau_args,
+    clifford_tableau_simulation_state,
     stabilizer_state_ch_form,
-    act_on_stabilizer_ch_form_args,
+    stabilizer_ch_form_simulation_state,
 )
 
 
@@ -46,12 +46,12 @@ def state_vector_has_stabilizer(state_vector: np.ndarray, stabilizer: DensePauli
     """
 
     qubits = LineQubit.range(protocols.num_qubits(stabilizer))
-    args = act_on_state_vector_args.ActOnStateVectorArgs(
-        target_tensor=state_vector.copy(),
+    args = state_vector_simulation_state.StateVectorSimulationState(
         available_buffer=np.empty_like(state_vector),
         qubits=qubits,
         prng=np.random.RandomState(),
-        log_of_measurement_results={},
+        initial_state=state_vector.copy(),
+        dtype=state_vector.dtype,
     )
     protocols.act_on(stabilizer, args, qubits)
     return np.allclose(args.target_tensor, state_vector)
@@ -71,7 +71,7 @@ def assert_all_implemented_act_on_effects_match_unitary(
     Args:
         val: A gate or operation that may be an input to protocols.act_on.
         assert_tableau_implemented: asserts that protocols.act_on() works with
-          val and ActOnCliffordTableauArgs inputs.
+          val and CliffordTableauSimulationState inputs.
         assert_ch_form_implemented: asserts that protocols.act_on() works with
           val and ActOnStabilizerStateChFormArgs inputs.
     """
@@ -159,11 +159,8 @@ def _final_clifford_tableau(
         the tableau otherwise."""
 
     tableau = clifford_tableau.CliffordTableau(len(qubit_map))
-    args = act_on_clifford_tableau_args.ActOnCliffordTableauArgs(
-        tableau=tableau,
-        qubits=list(qubit_map.keys()),
-        prng=np.random.RandomState(),
-        log_of_measurement_results={},
+    args = clifford_tableau_simulation_state.CliffordTableauSimulationState(
+        tableau=tableau, qubits=list(qubit_map.keys()), prng=np.random.RandomState()
     )
     for op in circuit.all_operations():
         try:
@@ -190,11 +187,10 @@ def _final_stabilizer_state_ch_form(
         returns the StabilizerStateChForm otherwise."""
 
     stabilizer_ch_form = stabilizer_state_ch_form.StabilizerStateChForm(len(qubit_map))
-    args = act_on_stabilizer_ch_form_args.ActOnStabilizerCHFormArgs(
-        state=stabilizer_ch_form,
+    args = stabilizer_ch_form_simulation_state.StabilizerChFormSimulationState(
         qubits=list(qubit_map.keys()),
         prng=np.random.RandomState(),
-        log_of_measurement_results={},
+        initial_state=stabilizer_ch_form,
     )
     for op in circuit.all_operations():
         try:

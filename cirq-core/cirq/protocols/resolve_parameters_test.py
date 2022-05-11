@@ -18,13 +18,7 @@ import cirq
 from cirq.study import ParamResolver
 
 
-@pytest.mark.parametrize(
-    'resolve_fn',
-    [
-        cirq.resolve_parameters,
-        cirq.resolve_parameters_once,
-    ],
-)
+@pytest.mark.parametrize('resolve_fn', [cirq.resolve_parameters, cirq.resolve_parameters_once])
 def test_resolve_parameters(resolve_fn):
     class NoMethod:
         pass
@@ -109,13 +103,7 @@ def test_parameter_names():
     assert cirq.parameter_names(1j) == set()
 
 
-@pytest.mark.parametrize(
-    'resolve_fn',
-    [
-        cirq.resolve_parameters,
-        cirq.resolve_parameters_once,
-    ],
-)
+@pytest.mark.parametrize('resolve_fn', [cirq.resolve_parameters, cirq.resolve_parameters_once])
 def test_skips_empty_resolution(resolve_fn):
     class Tester:
         def _resolve_parameters_(self, resolver, recursive):

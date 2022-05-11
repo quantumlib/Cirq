@@ -15,11 +15,12 @@
 import pytest
 
 import numpy as np
+import sympy
 
 import cirq
 
 
-class GoodGateDecompose(cirq.SingleQubitGate):
+class GoodGateDecompose(cirq.testing.SingleQubitGate):
     def _decompose_(self, qubits):
         return cirq.X(qubits[0])
 
@@ -27,7 +28,7 @@ class GoodGateDecompose(cirq.SingleQubitGate):
         return np.array([[0, 1], [1, 0]])
 
 
-class BadGateDecompose(cirq.SingleQubitGate):
+class BadGateDecompose(cirq.testing.SingleQubitGate):
     def _decompose_(self, qubits):
         return cirq.Y(qubits[0])
 
@@ -48,4 +49,64 @@ def test_assert_decompose_is_consistent_with_unitary():
     with pytest.raises(AssertionError):
         cirq.testing.assert_decompose_is_consistent_with_unitary(
             BadGateDecompose().on(cirq.NamedQubit('q'))
+        )
+
+
+class GateDecomposesToDefaultGateset(cirq.Gate):
+    def _num_qubits_(self):
+        return 2
+
+    def _decompose_(self, qubits):
+        return [GoodGateDecompose().on(qubits[0]), BadGateDecompose().on(qubits[1])]
+
+
+class GateDecomposeDoesNotEndInDefaultGateset(cirq.Gate):
+    def _num_qubits_(self):
+        return 4
+
+    def _decompose_(self, qubits):
+        yield GateDecomposeNotImplemented().on_each(*qubits)
+
+
+class GateDecomposeNotImplemented(cirq.testing.SingleQubitGate):
+    def _decompose_(self, qubits):
+        return NotImplemented
+
+
+class ParameterizedGate(cirq.Gate):
+    def _num_qubits_(self):
+        return 2
+
+    def _decompose_(self, qubits):
+        yield cirq.X(qubits[0]) ** sympy.Symbol("x")
+        yield cirq.Y(qubits[1]) ** sympy.Symbol("y")
+
+
+def test_assert_decompose_ends_at_default_gateset():
+
+    cirq.testing.assert_decompose_ends_at_default_gateset(GateDecomposesToDefaultGateset())
+    cirq.testing.assert_decompose_ends_at_default_gateset(
+        GateDecomposesToDefaultGateset().on(*cirq.LineQubit.range(2))
+    )
+
+    cirq.testing.assert_decompose_ends_at_default_gateset(ParameterizedGate())
+    cirq.testing.assert_decompose_ends_at_default_gateset(
+        ParameterizedGate().on(*cirq.LineQubit.range(2))
+    )
+
+    with pytest.raises(AssertionError):
+        cirq.testing.assert_decompose_ends_at_default_gateset(GateDecomposeNotImplemented())
+
+    with pytest.raises(AssertionError):
+        cirq.testing.assert_decompose_ends_at_default_gateset(
+            GateDecomposeNotImplemented().on(cirq.NamedQubit('q'))
+        )
+    with pytest.raises(AssertionError):
+        cirq.testing.assert_decompose_ends_at_default_gateset(
+            GateDecomposeDoesNotEndInDefaultGateset()
+        )
+
+    with pytest.raises(AssertionError):
+        cirq.testing.assert_decompose_ends_at_default_gateset(
+            GateDecomposeDoesNotEndInDefaultGateset().on(*cirq.LineQubit.range(4))
         )

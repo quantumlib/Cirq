@@ -21,6 +21,10 @@ import networkx
 import cirq
 
 
+class FakeDevice(cirq.Device):
+    pass
+
+
 def test_wrapper_eq():
     q0, q1 = cirq.LineQubit.range(2)
     eq = cirq.testing.EqualsTester()
@@ -109,17 +113,6 @@ def test_from_circuit():
     assert sorted(circuit.all_qubits()) == sorted(dag.all_qubits())
 
 
-def test_from_circuit_with_device():
-    q0 = cirq.GridQubit(5, 5)
-    circuit = cirq.Circuit(cirq.X(q0), cirq.Y(q0), device=cirq.UNCONSTRAINED_DEVICE)
-    dag = cirq.CircuitDag.from_circuit(circuit)
-    assert networkx.dag.is_directed_acyclic_graph(dag)
-    assert dag.device == circuit.device
-    assert len(dag.nodes()) == 2
-    assert [(n1.val, n2.val) for n1, n2 in dag.edges()] == [(cirq.X(q0), cirq.Y(q0))]
-    assert sorted(circuit.all_qubits()) == sorted(dag.all_qubits())
-
-
 def test_to_empty_circuit():
     circuit = cirq.Circuit()
     dag = cirq.CircuitDag.from_circuit(circuit)
@@ -144,22 +137,10 @@ def test_to_circuit():
 def test_equality():
     q0, q1 = cirq.LineQubit.range(2)
     circuit1 = cirq.Circuit(
-        cirq.X(q0),
-        cirq.Y(q0),
-        cirq.Z(q1),
-        cirq.CZ(q0, q1),
-        cirq.X(q1),
-        cirq.Y(q1),
-        cirq.Z(q0),
+        cirq.X(q0), cirq.Y(q0), cirq.Z(q1), cirq.CZ(q0, q1), cirq.X(q1), cirq.Y(q1), cirq.Z(q0)
     )
     circuit2 = cirq.Circuit(
-        cirq.Z(q1),
-        cirq.X(q0),
-        cirq.Y(q0),
-        cirq.CZ(q0, q1),
-        cirq.Z(q0),
-        cirq.X(q1),
-        cirq.Y(q1),
+        cirq.Z(q1), cirq.X(q0), cirq.Y(q0), cirq.CZ(q0, q1), cirq.Z(q0), cirq.X(q1), cirq.Y(q1)
     )
     circuit3 = cirq.Circuit(
         cirq.X(q0),
@@ -171,12 +152,7 @@ def test_equality():
         cirq.Z(q0) ** 0.5,
     )
     circuit4 = cirq.Circuit(
-        cirq.X(q0),
-        cirq.Y(q0),
-        cirq.Z(q1),
-        cirq.CZ(q0, q1),
-        cirq.X(q1),
-        cirq.Y(q1),
+        cirq.X(q0), cirq.Y(q0), cirq.Z(q1), cirq.CZ(q0, q1), cirq.X(q1), cirq.Y(q1)
     )
 
     eq = cirq.testing.EqualsTester()
@@ -184,12 +160,8 @@ def test_equality():
         lambda: cirq.CircuitDag.from_circuit(circuit1),
         lambda: cirq.CircuitDag.from_circuit(circuit2),
     )
-    eq.add_equality_group(
-        cirq.CircuitDag.from_circuit(circuit3),
-    )
-    eq.add_equality_group(
-        cirq.CircuitDag.from_circuit(circuit4),
-    )
+    eq.add_equality_group(cirq.CircuitDag.from_circuit(circuit3))
+    eq.add_equality_group(cirq.CircuitDag.from_circuit(circuit4))
 
 
 def test_larger_circuit():
@@ -213,13 +185,11 @@ def test_larger_circuit():
         cirq.CZ(q0, q1),
         cirq.T(q3),
         strategy=cirq.InsertStrategy.EARLIEST,
-        device=cirq.UNCONSTRAINED_DEVICE,
     )
 
     dag = cirq.CircuitDag.from_circuit(circuit)
 
     assert networkx.dag.is_directed_acyclic_graph(dag)
-    assert circuit.device == dag.to_circuit().device
     # Operation order within a moment is non-deterministic
     # but text diagrams still look the same.
     desired = """

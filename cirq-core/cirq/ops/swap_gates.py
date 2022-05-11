@@ -25,7 +25,7 @@ raised to a power (i.e. SQRT_ISWAP_INV=cirq.ISWAP**-0.5). See the definition in
 EigenGate.
 """
 
-from typing import Optional, Tuple, TYPE_CHECKING, List, Sequence
+from typing import Optional, Tuple, TYPE_CHECKING, List
 
 import numpy as np
 import sympy
@@ -95,25 +95,6 @@ class SwapPowGate(gate_features.InterchangeableQubitsGate, eigen_gate.EigenGate)
             return None
         return self.exponent % 1 == 0
 
-    def _act_on_(self, args: 'cirq.ActOnArgs', qubits: Sequence['cirq.Qid']):
-        from cirq import ops, sim, protocols
-
-        if isinstance(args, (sim.ActOnStabilizerCHFormArgs, sim.ActOnCliffordTableauArgs)):
-            if not self._has_stabilizer_effect_():
-                return NotImplemented
-            if isinstance(args, sim.ActOnStabilizerCHFormArgs):
-                args.state.omega *= 1j ** (2 * self.global_shift * self._exponent)
-
-            if self._exponent % 2 == 1:
-                protocols.act_on(ops.CNOT, args, qubits)
-                protocols.act_on(ops.CNOT, args, tuple(reversed(qubits)))
-                protocols.act_on(ops.CNOT, args, qubits)
-
-            # An even exponent does not change anything except the global phase above.
-            return True
-
-        return NotImplemented
-
     def _apply_unitary_(self, args: 'protocols.ApplyUnitaryArgs') -> Optional[np.ndarray]:
         if self._exponent != 1:
             return NotImplemented
@@ -132,7 +113,7 @@ class SwapPowGate(gate_features.InterchangeableQubitsGate, eigen_gate.EigenGate)
         if protocols.is_parameterized(self):
             return NotImplemented
         global_phase = 1j ** (2 * self._exponent * self._global_shift)
-        swap_phase = 1j ** self._exponent
+        swap_phase = 1j**self._exponent
         c = -1j * swap_phase * np.sin(np.pi * self._exponent / 2) / 2
         return value.LinearDict(
             {
@@ -163,7 +144,7 @@ class SwapPowGate(gate_features.InterchangeableQubitsGate, eigen_gate.EigenGate)
     def _quil_(
         self, qubits: Tuple['cirq.Qid', ...], formatter: 'cirq.QuilFormatter'
     ) -> Optional[str]:
-        if self._exponent == 1:
+        if self._exponent % 2 == 1:
             return formatter.format('SWAP {0} {1}\n', qubits[0], qubits[1])
         return formatter.format(
             'PSWAP({0}) {1} {2}\n', self._exponent * np.pi, qubits[0], qubits[1]

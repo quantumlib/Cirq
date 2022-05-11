@@ -140,31 +140,23 @@ def test_results_to_proto():
     measurements = [v2.MeasureInfo('foo', [q(0, 0)], slot=0, invert_mask=[False], tags=[])]
     trial_results = [
         [
-            cirq.Result.from_single_parameter_set(
+            cirq.ResultDict(
                 params=cirq.ParamResolver({'i': 0}),
-                measurements={
-                    'foo': np.array([[0], [1], [0], [1]], dtype=bool),
-                },
+                measurements={'foo': np.array([[0], [1], [0], [1]], dtype=bool)},
             ),
-            cirq.Result.from_single_parameter_set(
+            cirq.ResultDict(
                 params=cirq.ParamResolver({'i': 1}),
-                measurements={
-                    'foo': np.array([[0], [1], [1], [0]], dtype=bool),
-                },
+                measurements={'foo': np.array([[0], [1], [1], [0]], dtype=bool)},
             ),
         ],
         [
-            cirq.Result.from_single_parameter_set(
+            cirq.ResultDict(
                 params=cirq.ParamResolver({'i': 0}),
-                measurements={
-                    'foo': np.array([[0], [1], [0], [1]], dtype=bool),
-                },
+                measurements={'foo': np.array([[0], [1], [0], [1]], dtype=bool)},
             ),
-            cirq.Result.from_single_parameter_set(
+            cirq.ResultDict(
                 params=cirq.ParamResolver({'i': 1}),
-                measurements={
-                    'foo': np.array([[0], [1], [1], [0]], dtype=bool),
-                },
+                measurements={'foo': np.array([[0], [1], [1], [0]], dtype=bool)},
             ),
         ],
     ]
@@ -187,21 +179,17 @@ def test_results_to_proto_sweep_repetitions():
     measurements = [v2.MeasureInfo('foo', [q(0, 0)], slot=0, invert_mask=[False], tags=[])]
     trial_results = [
         [
-            cirq.Result.from_single_parameter_set(
+            cirq.ResultDict(
                 params=cirq.ParamResolver({'i': 0}),
-                measurements={
-                    'foo': np.array([[0]], dtype=bool),
-                },
+                measurements={'foo': np.array([[0]], dtype=bool)},
             ),
-            cirq.Result.from_single_parameter_set(
+            cirq.ResultDict(
                 params=cirq.ParamResolver({'i': 1}),
-                measurements={
-                    'foo': np.array([[0], [1]], dtype=bool),
-                },
+                measurements={'foo': np.array([[0], [1]], dtype=bool)},
             ),
         ]
     ]
-    with pytest.raises(ValueError, match='different numbers of repetitions'):
+    with pytest.raises(ValueError, match='Different numbers of repetitions'):
         v2.results_to_proto(trial_results, measurements)
 
 
@@ -218,11 +206,7 @@ def test_results_from_proto_qubit_ordering():
     pr.params.assignments.update({'i': 1})
     mr = pr.measurement_results.add()
     mr.key = 'foo'
-    for qubit, results in [
-        (q(0, 1), 0b1100_1100),
-        (q(1, 1), 0b1010_1010),
-        (q(0, 0), 0b1111_0000),
-    ]:
+    for qubit, results in [(q(0, 1), 0b1100_1100), (q(1, 1), 0b1010_1010), (q(0, 0), 0b1111_0000)]:
         qmr = mr.qubit_measurement_results.add()
         qmr.qubit.id = v2.qubit_to_proto_id(qubit)
         qmr.results = bytes([results])
@@ -262,15 +246,11 @@ def test_results_from_proto_duplicate_qubit():
     pr.params.assignments.update({'i': 0})
     mr = pr.measurement_results.add()
     mr.key = 'foo'
-    for qubit, results in [
-        (q(0, 0), 0b1100_1100),
-        (q(0, 1), 0b1010_1010),
-        (q(0, 1), 0b1111_0000),
-    ]:
+    for qubit, results in [(q(0, 0), 0b1100_1100), (q(0, 1), 0b1010_1010), (q(0, 1), 0b1111_0000)]:
         qmr = mr.qubit_measurement_results.add()
         qmr.qubit.id = v2.qubit_to_proto_id(qubit)
         qmr.results = bytes([results])
-    with pytest.raises(ValueError, match='qubit already exists'):
+    with pytest.raises(ValueError, match='Qubit already exists'):
         v2.results_from_proto(proto, measurements)
 
 
@@ -282,11 +262,7 @@ def test_results_from_proto_default_ordering():
     pr.params.assignments.update({'i': 1})
     mr = pr.measurement_results.add()
     mr.key = 'foo'
-    for qubit, results in [
-        (q(0, 1), 0b1100_1100),
-        (q(1, 1), 0b1010_1010),
-        (q(0, 0), 0b1111_0000),
-    ]:
+    for qubit, results in [(q(0, 1), 0b1100_1100), (q(1, 1), 0b1010_1010), (q(0, 0), 0b1111_0000)]:
         qmr = mr.qubit_measurement_results.add()
         qmr.qubit.id = v2.qubit_to_proto_id(qubit)
         qmr.results = bytes([results])

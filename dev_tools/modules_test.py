@@ -68,20 +68,14 @@ def test_modules():
     assert parent.top_level_packages == []
     assert modules.list_modules(
         search_dir=Path("dev_tools/modules_test_data"), include_parent=True
-    ) == [
-        mod1,
-        mod2,
-        parent,
-    ]
+    ) == [mod1, mod2, parent]
 
 
 def test_cli():
     env = os.environ.copy()
     env["PYTHONPATH"] = "../.."
     output = subprocess.check_output(
-        [sys.executable, "../modules.py", "list"],
-        cwd="dev_tools/modules_test_data",
-        env=env,
+        [sys.executable, "../modules.py", "list"], cwd="dev_tools/modules_test_data", env=env
     )
     assert output.decode("utf-8") == "mod1 mod2 "
 
@@ -155,7 +149,7 @@ def test_get_version_on_no_modules():
 def test_get_version_on_inconsistent_version_modules():
     modules.replace_version(search_dir=Path("./mod2"), old="1.2.3.dev", new="1.2.4.dev")
     assert modules.get_version(search_dir=Path("./mod2")) == "1.2.4.dev"
-    with pytest.raises(ValueError, match=f"Versions should be the same, instead:"):
+    with pytest.raises(ValueError, match="Versions should be the same, instead:"):
         modules.get_version(search_dir=Path("."))
 
 

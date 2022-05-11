@@ -29,9 +29,9 @@ from typing import (
 
 import numpy as np
 
-from cirq import ops, study, value
+from cirq import ops, value, qis
+from cirq._compat import deprecated_class, proper_repr
 from cirq.sim import simulator, state_vector, simulator_base
-from cirq.sim.act_on_state_vector_args import ActOnStateVectorArgs
 
 if TYPE_CHECKING:
     import cirq
@@ -43,10 +43,7 @@ TStateVectorStepResult = TypeVar('TStateVectorStepResult', bound='StateVectorSte
 class SimulatesIntermediateStateVector(
     Generic[TStateVectorStepResult],
     simulator_base.SimulatorBase[
-        TStateVectorStepResult,
-        'StateVectorTrialResult',
-        'StateVectorSimulatorState',
-        ActOnStateVectorArgs,
+        TStateVectorStepResult, 'cirq.StateVectorTrialResult', 'cirq.StateVectorSimulationState',
     ],
     simulator.SimulatesAmplitudes,
     metaclass=abc.ABCMeta,
@@ -65,28 +62,25 @@ class SimulatesIntermediateStateVector(
         split_untangled_states: bool = False,
     ):
         super().__init__(
-            dtype=dtype,
-            noise=noise,
-            seed=seed,
-            split_untangled_states=split_untangled_states,
+            dtype=dtype, noise=noise, seed=seed, split_untangled_states=split_untangled_states
         )
 
     def _create_simulator_trial_result(
         self,
-        params: study.ParamResolver,
+        params: 'cirq.ParamResolver',
         measurements: Dict[str, np.ndarray],
-        final_step_result: 'StateVectorStepResult',
-    ) -> 'StateVectorTrialResult':
+        final_simulator_state: 'cirq.SimulationStateBase[cirq.StateVectorSimulationState]',
+    ) -> 'cirq.StateVectorTrialResult':
         return StateVectorTrialResult(
-            params=params, measurements=measurements, final_step_result=final_step_result
+            params=params, measurements=measurements, final_simulator_state=final_simulator_state
         )
 
     def compute_amplitudes_sweep_iter(
         self,
         program: 'cirq.AbstractCircuit',
         bitstrings: Sequence[int],
-        params: study.Sweepable,
-        qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT,
+        params: 'cirq.Sweepable',
+        qubit_order: 'cirq.QubitOrderOrList' = ops.QubitOrder.DEFAULT,
     ) -> Iterator[Sequence[complex]]:
         if isinstance(bitstrings, np.ndarray) and len(bitstrings.shape) > 1:
             raise ValueError(
@@ -108,20 +102,12 @@ class SimulatesIntermediateStateVector(
 
 
 class StateVectorStepResult(
-    simulator_base.StepResultBase['StateVectorSimulatorState', 'cirq.ActOnStateVectorArgs'],
-    metaclass=abc.ABCMeta,
+    simulator_base.StepResultBase['cirq.StateVectorSimulationState'], metaclass=abc.ABCMeta
 ):
-    @abc.abstractmethod
-    def _simulator_state(self) -> 'StateVectorSimulatorState':
-        """Returns the simulator_state of the simulator after this step.
-
-        The form of the simulator_state depends on the implementation of the
-        simulation,see documentation for the implementing class for the form of
-        details.
-        """
-        raise NotImplementedError()
+    pass
 
 
+@deprecated_class(deadline='v0.16', fix='This class is no longer used.')
 @value.value_equality(unhashable=True)
 class StateVectorSimulatorState:
     def __init__(self, state_vector: np.ndarray, qubit_map: Dict[ops.Qid, int]) -> None:
@@ -140,11 +126,14 @@ class StateVectorSimulatorState:
         )
 
     def _value_equality_values_(self) -> Any:
-        return (self.state_vector.tolist(), self.qubit_map)
+        return self.state_vector.tolist(), self.qubit_map
 
 
 @value.value_equality(unhashable=True)
-class StateVectorTrialResult(state_vector.StateVectorMixin, simulator.SimulationTrialResult):
+class StateVectorTrialResult(
+    state_vector.StateVectorMixin,
+    simulator_base.SimulationTrialResultBase['cirq.StateVectorSimulationState'],
+):
     """A `SimulationTrialResult` that includes the `StateVectorMixin` methods.
 
     Attributes:
@@ -153,25 +142,28 @@ class StateVectorTrialResult(state_vector.StateVectorMixin, simulator.Simulation
 
     def __init__(
         self,
-        params: study.ParamResolver,
+        params: 'cirq.ParamResolver',
         measurements: Dict[str, np.ndarray],
-        final_step_result: StateVectorStepResult,
+        final_simulator_state: 'cirq.SimulationStateBase[cirq.StateVectorSimulationState]',
     ) -> None:
         super().__init__(
             params=params,
             measurements=measurements,
-            final_step_result=final_step_result,
-            qubit_map=final_step_result._qubit_mapping,
+            final_simulator_state=final_simulator_state,
+            qubit_map=final_simulator_state.qubit_map,
         )
         self._final_state_vector: Optional[np.ndarray] = None
 
     @property
-    def final_state_vector(self):
+    def final_state_vector(self) -> np.ndarray:
         if self._final_state_vector is None:
-            self._final_state_vector = self._final_simulator_state.state_vector
+            tensor = self._get_merged_sim_state().target_tensor
+            if tensor.ndim > 1:
+                tensor = tensor.reshape(np.prod(tensor.shape))
+            self._final_state_vector = tensor
         return self._final_state_vector
 
-    def state_vector(self):
+    def state_vector(self) -> np.ndarray:
         """Return the state vector at the end of the computation.
 
         The state is returned in the computational basis with these basis
@@ -197,23 +189,30 @@ class StateVectorTrialResult(state_vector.StateVectorMixin, simulator.Simulation
                 |  6  |   1    |   1    |   0    |
                 |  7  |   1    |   1    |   1    |
         """
-        return self._final_simulator_state.state_vector.copy()
+        return self.final_state_vector.copy()
 
     def _value_equality_values_(self):
         measurements = {k: v.tolist() for k, v in sorted(self.measurements.items())}
-        return (self.params, measurements, self._final_simulator_state)
+        return self.params, measurements, self.qubit_map, self.final_state_vector.tolist()
 
     def __str__(self) -> str:
         samples = super().__str__()
-        final = self.state_vector()
-        if len([1 for e in final if abs(e) > 0.001]) < 16:
-            state_vector = self.dirac_notation(3)
-        else:
-            state_vector = str(final)
-        return f'measurements: {samples}\noutput vector: {state_vector}'
+        ret = f'measurements: {samples}'
+        for substate in self._get_substates():
+            final = substate.target_tensor
+            shape = final.shape
+            size = np.prod(shape, dtype=np.int64)
+            final = final.reshape(size)
+            if len([1 for e in final if abs(e) > 0.001]) < 16:
+                state_vector = qis.dirac_notation(final, 3)
+            else:
+                state_vector = str(final)
+            label = f'qubits: {substate.qubits}' if substate.qubits else 'phase:'
+            ret += f'\n\n{label}\noutput vector: {state_vector}'
+        return ret
 
-    def _repr_pretty_(self, p: Any, cycle: bool) -> None:
-        """Text output in Jupyter."""
+    def _repr_pretty_(self, p: Any, cycle: bool):
+        """iPython (Jupyter) pretty print."""
         if cycle:
             # There should never be a cycle.  This is just in case.
             p.text('StateVectorTrialResult(...)')
@@ -222,7 +221,7 @@ class StateVectorTrialResult(state_vector.StateVectorMixin, simulator.Simulation
 
     def __repr__(self) -> str:
         return (
-            f'cirq.StateVectorTrialResult(params={self.params!r}, '
-            f'measurements={self.measurements!r}, '
+            'cirq.StateVectorTrialResult('
+            f'params={self.params!r}, measurements={proper_repr(self.measurements)}, '
             f'final_simulator_state={self._final_simulator_state!r})'
         )

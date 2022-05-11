@@ -16,11 +16,12 @@ import itertools
 import collections
 from typing import Any, Iterable, cast, DefaultDict, TYPE_CHECKING, FrozenSet
 from numpy import sqrt
-from cirq import devices, ops, circuits, value
+from cirq import _compat, devices, ops, circuits, value
 from cirq.devices.grid_qubit import GridQubit
 from cirq.ops import raw_types
 from cirq.value import Duration
-from cirq.neutral_atoms import convert_to_neutral_atom_gates
+from cirq.neutral_atoms.convert_to_neutral_atom_gates import ConvertToNeutralAtomGates
+from cirq.neutral_atoms.neutral_atom_gateset import NeutralAtomGateset
 
 if TYPE_CHECKING:
     import cirq
@@ -29,23 +30,6 @@ if TYPE_CHECKING:
 def _subgate_if_parallel_gate(gate: 'cirq.Gate') -> 'cirq.Gate':
     """Returns gate.sub_gate if gate is a ParallelGate, else returns gate"""
     return gate.sub_gate if isinstance(gate, ops.ParallelGate) else gate
-
-
-def neutral_atom_gateset(max_parallel_z=None, max_parallel_xy=None):
-    return ops.Gateset(
-        ops.AnyIntegerPowerGateFamily(ops.CNotPowGate),
-        ops.AnyIntegerPowerGateFamily(ops.CCNotPowGate),
-        ops.AnyIntegerPowerGateFamily(ops.CZPowGate),
-        ops.AnyIntegerPowerGateFamily(ops.CCZPowGate),
-        ops.ParallelGateFamily(ops.ZPowGate, max_parallel_allowed=max_parallel_z),
-        ops.ParallelGateFamily(ops.XPowGate, max_parallel_allowed=max_parallel_xy),
-        ops.ParallelGateFamily(ops.YPowGate, max_parallel_allowed=max_parallel_xy),
-        ops.ParallelGateFamily(ops.PhasedXPowGate, max_parallel_allowed=max_parallel_xy),
-        ops.MeasurementGate,
-        ops.IdentityGate,
-        unroll_circuit_op=False,
-        accept_global_phase_op=False,
-    )
 
 
 @value.value_equality
@@ -100,7 +84,6 @@ class NeutralAtomDevice(devices.Device):
             ops.ParallelGateFamily(ops.YPowGate),
             ops.ParallelGateFamily(ops.PhasedXPowGate),
             unroll_circuit_op=False,
-            accept_global_phase_op=False,
         )
         self.controlled_gateset = ops.Gateset(
             ops.AnyIntegerPowerGateFamily(ops.CNotPowGate),
@@ -108,22 +91,34 @@ class NeutralAtomDevice(devices.Device):
             ops.AnyIntegerPowerGateFamily(ops.CZPowGate),
             ops.AnyIntegerPowerGateFamily(ops.CCZPowGate),
             unroll_circuit_op=False,
-            accept_global_phase_op=False,
         )
-        self.gateset = neutral_atom_gateset(max_parallel_z, max_parallel_xy)
+        self.gateset = NeutralAtomGateset(max_parallel_z, max_parallel_xy)
         for q in qubits:
             if not isinstance(q, GridQubit):
                 raise ValueError(f'Unsupported qubit type: {q!r}')
         self.qubits = frozenset(qubits)
 
+        self._metadata = devices.GridDeviceMetadata(
+            [(a, b) for a in self.qubits for b in self.qubits if a.is_adjacent(b)], self.gateset
+        )
+
+    @property
+    def metadata(self) -> devices.GridDeviceMetadata:
+        return self._metadata
+
+    @_compat.deprecated(fix='Use metadata.qubit_set if applicable.', deadline='v0.15')
     def qubit_set(self) -> FrozenSet['cirq.GridQubit']:
         return self.qubits
 
     def qubit_list(self):
         return [qubit for qubit in self.qubits]
 
+    @_compat.deprecated(
+        fix='Use cirq.ConvertToNeutralAtomGates() instead to decompose operations.',
+        deadline='v0.15',
+    )
     def decompose_operation(self, operation: ops.Operation) -> ops.OP_TREE:
-        return convert_to_neutral_atom_gates.ConvertToNeutralAtomGates().convert(operation)
+        return ConvertToNeutralAtomGates().convert(operation)
 
     def duration_of(self, operation: ops.Operation):
         """Provides the duration of the given operation on this device.
@@ -190,7 +185,7 @@ class NeutralAtomDevice(devices.Device):
                     if self.distance(p, q) > self._control_radius:
                         raise ValueError(f"Qubits {p!r}, {q!r} are too far away")
 
-    def validate_moment(self, moment: ops.Moment):
+    def validate_moment(self, moment: circuits.Moment):
         """Raises an error if the given moment is invalid on this device.
 
         Args:
@@ -203,17 +198,8 @@ class NeutralAtomDevice(devices.Device):
 
         CATEGORIES = {
             'Z': (ops.ZPowGate,),
-            'XY': (
-                ops.XPowGate,
-                ops.YPowGate,
-                ops.PhasedXPowGate,
-            ),
-            'controlled': (
-                ops.CNotPowGate,
-                ops.CZPowGate,
-                ops.CCXPowGate,
-                ops.CCZPowGate,
-            ),
+            'XY': (ops.XPowGate, ops.YPowGate, ops.PhasedXPowGate),
+            'controlled': (ops.CNotPowGate, ops.CZPowGate, ops.CCXPowGate, ops.CCZPowGate),
             'measure': (ops.MeasurementGate,),
         }
 
@@ -264,7 +250,9 @@ class NeutralAtomDevice(devices.Device):
             self._are_qubit_lists_too_close(a, b) for a, b in itertools.combinations(qubit_lists, 2)
         )
 
-    def can_add_operation_into_moment(self, operation: ops.Operation, moment: ops.Moment) -> bool:
+    def can_add_operation_into_moment(
+        self, operation: ops.Operation, moment: circuits.Moment
+    ) -> bool:
         """Determines if it's possible to add an operation into a moment.
 
         An operation can be added if the moment with the operation added is valid.
@@ -358,3 +346,7 @@ class NeutralAtomDevice(devices.Device):
                 diagram.grid_line(q.col, q.row, q2.col, q2.row)
 
         return diagram.render(horizontal_spacing=3, vertical_spacing=2, use_unicode_characters=True)
+
+    def _repr_pretty_(self, p: Any, cycle: bool):
+        """iPython (Jupyter) pretty print."""
+        p.text("cirq.NeutralAtomDevice(...)" if cycle else self.__str__())

@@ -13,18 +13,19 @@
 # limitations under the License.
 from typing import List, Optional, TYPE_CHECKING
 
-from cirq import ops, protocols
-from cirq.circuits.optimization_pass import (
-    PointOptimizationSummary,
-    PointOptimizer,
-)
-from cirq.neutral_atoms import neutral_atom_devices
-from cirq import optimizers
+from cirq import ops, protocols, transformers
+from cirq._compat import deprecated_class
+from cirq.circuits.optimization_pass import PointOptimizationSummary, PointOptimizer
+from cirq.neutral_atoms.neutral_atom_gateset import NeutralAtomGateset
 
 if TYPE_CHECKING:
     import cirq
 
 
+@deprecated_class(
+    deadline='v0.16',
+    fix='Use cirq.optimize_for_target_gateset(circuit, gateset=NeutralAtomGateset()).',
+)
 class ConvertToNeutralAtomGates(PointOptimizer):
     """Attempts to convert gates into native Atom gates.
 
@@ -51,16 +52,16 @@ class ConvertToNeutralAtomGates(PointOptimizer):
         """
         super().__init__()
         self.ignore_failures = ignore_failures
-        self.gateset = neutral_atom_devices.neutral_atom_gateset()
+        self.gateset = NeutralAtomGateset()
 
     def _convert_one(self, op: ops.Operation) -> ops.OP_TREE:
         # Known matrix?
         mat = protocols.unitary(op, None) if len(op.qubits) <= 2 else None
         if mat is not None and len(op.qubits) == 1:
-            gates = optimizers.single_qubit_matrix_to_phased_x_z(mat)
+            gates = transformers.single_qubit_matrix_to_phased_x_z(mat)
             return [g.on(op.qubits[0]) for g in gates]
         if mat is not None and len(op.qubits) == 2:
-            return optimizers.two_qubit_matrix_to_operations(
+            return transformers.two_qubit_matrix_to_cz_operations(
                 op.qubits[0], op.qubits[1], mat, allow_partial_czs=False, clean_operations=True
             )
 
@@ -94,8 +95,8 @@ class ConvertToNeutralAtomGates(PointOptimizer):
 
 
 def is_native_neutral_atom_op(operation: ops.Operation) -> bool:
-    return operation in neutral_atom_devices.neutral_atom_gateset()
+    return operation in NeutralAtomGateset()
 
 
 def is_native_neutral_atom_gate(gate: ops.Gate) -> bool:
-    return gate in neutral_atom_devices.neutral_atom_gateset()
+    return gate in NeutralAtomGateset()

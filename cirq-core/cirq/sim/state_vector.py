@@ -13,12 +13,12 @@
 # limitations under the License.
 """Helpers for handling quantum state vectors."""
 
-from typing import Dict, List, Optional, Tuple, TYPE_CHECKING, Sequence
-
 import abc
+from typing import List, Mapping, Optional, Tuple, TYPE_CHECKING, Sequence
+
 import numpy as np
 
-from cirq import linalg, ops, qis, value
+from cirq import linalg, qis, value
 from cirq.sim import simulator
 
 if TYPE_CHECKING:
@@ -26,31 +26,29 @@ if TYPE_CHECKING:
 
 
 # For backwards compatibility and to make mypy happy:
-from cirq.qis import STATE_VECTOR_LIKE  # pylint: disable=unused-import,wrong-import-position
 
 
 class StateVectorMixin:
     """A mixin that provide methods for objects that have a state vector."""
 
-    # TODO(#3388) Add documentation for Args.
-    # pylint: disable=missing-param-doc
-    # Reason for 'type: ignore': https://github.com/python/mypy/issues/5887
-    def __init__(self, qubit_map: Optional[Dict[ops.Qid, int]] = None, *args, **kwargs):
+    def __init__(self, qubit_map: Optional[Mapping['cirq.Qid', int]] = None, *args, **kwargs):
         """Inits StateVectorMixin.
 
         Args:
             qubit_map: A map from the Qubits in the Circuit to the the index
                 of this qubit for a canonical ordering. This canonical ordering
                 is used to define the state (see the state_vector() method).
+            *args: Passed on to the class that this is mixed in with.
+            **kwargs: Passed on to the class that this is mixed in with.
         """
+        # Reason for 'type: ignore': https://github.com/python/mypy/issues/5887
         super().__init__(*args, **kwargs)  # type: ignore
         self._qubit_map = qubit_map or {}
         qid_shape = simulator._qubit_map_to_shape(self._qubit_map)
         self._qid_shape = None if qubit_map is None else qid_shape
 
-    # pylint: enable=missing-param-doc
     @property
-    def qubit_map(self) -> Dict[ops.Qid, int]:
+    def qubit_map(self) -> Mapping['cirq.Qid', int]:
         return self._qubit_map
 
     def _qid_shape_(self) -> Tuple[int, ...]:
@@ -99,7 +97,7 @@ class StateVectorMixin:
             and non-zero floats of the specified accuracy."""
         return qis.dirac_notation(self.state_vector(), decimals, qid_shape=self._qid_shape)
 
-    def density_matrix_of(self, qubits: List[ops.Qid] = None) -> np.ndarray:
+    def density_matrix_of(self, qubits: List['cirq.Qid'] = None) -> np.ndarray:
         r"""Returns the density matrix of the state.
 
         Calculate the density matrix for the system on the list, qubits.
@@ -165,7 +163,7 @@ class StateVectorMixin:
 
 def sample_state_vector(
     state_vector: np.ndarray,
-    indices: List[int],
+    indices: Sequence[int],
     *,  # Force keyword args
     qid_shape: Optional[Tuple[int, ...]] = None,
     repetitions: int = 1,

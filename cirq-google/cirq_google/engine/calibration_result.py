@@ -66,7 +66,6 @@ class CalibrationResult:
             else None
         )
         return {
-            'cirq_type': 'CalibrationResult',
             'code': self.code,
             'error_message': self.error_message,
             'token': self.token,

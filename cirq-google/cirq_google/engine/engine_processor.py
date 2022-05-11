@@ -13,22 +13,52 @@
 # limitations under the License.
 import datetime
 
-from typing import Iterable, List, Optional, TYPE_CHECKING, Union
-from pytz import utc
+from typing import cast, Dict, Iterable, List, Optional, Sequence, TYPE_CHECKING, Union
+
+from google.protobuf import any_pb2
 
 import cirq
-from cirq_google.engine.client.quantum import types as qtypes
-from cirq_google.engine.client.quantum import enums as qenums
+from cirq_google.cloud import quantum
 from cirq_google.api import v2
 from cirq_google.devices import serializable_device
-from cirq_google.engine import calibration
-from cirq_google.serialization.serializable_gate_set import SerializableGateSet
+from cirq_google.engine import (
+    abstract_processor,
+    calibration,
+    calibration_layer,
+    engine_sampler,
+    util,
+)
+from cirq_google.serialization import serializable_gate_set, serializer
+from cirq_google.serialization import gate_sets as gs
 
 if TYPE_CHECKING:
     import cirq_google.engine.engine as engine_base
+    import cirq_google.engine.abstract_job as abstract_job
 
 
-class EngineProcessor:
+def _date_to_timestamp(
+    union_time: Optional[Union[datetime.datetime, datetime.date, int]]
+) -> Optional[int]:
+    if isinstance(union_time, int):
+        return union_time
+    elif isinstance(union_time, datetime.datetime):
+        return int(union_time.timestamp())
+    elif isinstance(union_time, datetime.date):
+        return int(datetime.datetime.combine(union_time, datetime.datetime.min.time()).timestamp())
+    return None
+
+
+def _fix_deprecated_seconds_kwargs(kwargs):
+    if 'earliest_timestamp_seconds' in kwargs:
+        kwargs['earliest_timestamp'] = kwargs['earliest_timestamp_seconds']
+        del kwargs['earliest_timestamp_seconds']
+    if 'latest_timestamp_seconds' in kwargs:
+        kwargs['latest_timestamp'] = kwargs['latest_timestamp_seconds']
+        del kwargs['latest_timestamp_seconds']
+    return kwargs
+
+
+class EngineProcessor(abstract_processor.AbstractProcessor):
     """A processor available via the Quantum Engine API.
 
     Attributes:
@@ -41,7 +71,7 @@ class EngineProcessor:
         project_id: str,
         processor_id: str,
         context: 'engine_base.EngineContext',
-        _processor: Optional[qtypes.QuantumProcessor] = None,
+        _processor: Optional[quantum.QuantumProcessor] = None,
     ) -> None:
         """A processor available via the engine.
 
@@ -56,6 +86,12 @@ class EngineProcessor:
         self.context = context
         self._processor = _processor
 
+    def __repr__(self) -> str:
+        return (
+            f'<EngineProcessor: processor_id={self.processor_id!r}, '
+            f'project_id={self.project_id!r}>'
+        )
+
     def engine(self) -> 'engine_base.Engine':
         """Returns the parent Engine object.
 
@@ -66,30 +102,221 @@ class EngineProcessor:
 
         return engine_base.Engine(self.project_id, context=self.context)
 
-    def _inner_processor(self) -> qtypes.QuantumProcessor:
-        if not self._processor:
+    @util.deprecated_gate_set_parameter
+    def get_sampler(
+        self, gate_set: Optional[serializer.Serializer] = None
+    ) -> engine_sampler.QuantumEngineSampler:
+        """Returns a sampler backed by the engine.
+
+        Args:
+            gate_set: A `Serializer` that determines how to serialize circuits
+            when requesting samples. If not specified, uses proto v2.5 serialization.
+
+        Returns:
+            A `cirq.Sampler` instance (specifically a `engine_sampler.QuantumEngineSampler`
+            that will send circuits to the Quantum Computing Service
+            when sampled.1
+        """
+        return engine_sampler.QuantumEngineSampler(
+            engine=self.engine(), processor_id=self.processor_id
+        )
+
+    @util.deprecated_gate_set_parameter
+    def run_batch(
+        self,
+        programs: Sequence[cirq.AbstractCircuit],
+        program_id: Optional[str] = None,
+        job_id: Optional[str] = None,
+        params_list: Sequence[cirq.Sweepable] = None,
+        repetitions: int = 1,
+        gate_set: Optional[serializer.Serializer] = None,
+        program_description: Optional[str] = None,
+        program_labels: Optional[Dict[str, str]] = None,
+        job_description: Optional[str] = None,
+        job_labels: Optional[Dict[str, str]] = None,
+    ) -> 'abstract_job.AbstractJob':
+        """Runs the supplied Circuits on this processor.
+
+        This will combine each Circuit provided in `programs` into
+        a BatchProgram.  Each circuit will pair with the associated
+        parameter sweep provided in the `params_list`.  The number of
+        programs is required to match the number of sweeps.
+        This method does not block until a result is returned.  However,
+        no results will be available until the entire batch is complete.
+        Args:
+            programs: The Circuits to execute as a batch.
+            program_id: A user-provided identifier for the program. This must
+                be unique within the Google Cloud project being used. If this
+                parameter is not provided, a random id of the format
+                'prog-################YYMMDD' will be generated, where # is
+                alphanumeric and YYMMDD is the current year, month, and day.
+            job_id: Job identifier to use. If this is not provided, a random id
+                of the format 'job-################YYMMDD' will be generated,
+                where # is alphanumeric and YYMMDD is the current year, month,
+                and day.
+            params_list: Parameter sweeps to use with the circuits. The number
+                of sweeps should match the number of circuits and will be
+                paired in order with the circuits. If this is None, it is
+                assumed that the circuits are not parameterized and do not
+                require sweeps.
+            repetitions: Number of circuit repetitions to run.  Each sweep value
+                of each circuit in the batch will run with the same repetitions.
+            gate_set: The gate set used to serialize the circuit. The gate set
+                must be supported by the selected processor.
+            program_description: An optional description to set on the program.
+            program_labels: Optional set of labels to set on the program.
+            job_description: An optional description to set on the job.
+            job_labels: Optional set of labels to set on the job.
+        Returns:
+            An `abstract_job.AbstractJob`. If this is iterated over it returns
+            a list of `cirq.Result`. All Results for the first circuit are listed
+            first, then the Results for the second, etc. The Results
+            for a circuit are listed in the order imposed by the associated
+            parameter sweep.
+        """
+        return self.engine().run_batch(
+            programs=programs,
+            processor_ids=[self.processor_id],
+            program_id=program_id,
+            params_list=list(params_list) if params_list is not None else None,
+            repetitions=repetitions,
+            program_description=program_description,
+            program_labels=program_labels,
+            job_description=job_description,
+            job_labels=job_labels,
+        )
+
+    @util.deprecated_gate_set_parameter
+    def run_calibration(
+        self,
+        layers: List[calibration_layer.CalibrationLayer],
+        program_id: Optional[str] = None,
+        job_id: Optional[str] = None,
+        gate_set: Optional[serializer.Serializer] = None,
+        program_description: Optional[str] = None,
+        program_labels: Optional[Dict[str, str]] = None,
+        job_description: Optional[str] = None,
+        job_labels: Optional[Dict[str, str]] = None,
+    ) -> 'abstract_job.AbstractJob':
+        """Runs the specified calibrations on the processor.
+
+        Each calibration will be specified by a `CalibrationLayer`
+        that contains the type of the calibrations to run, a `Circuit`
+        to optimize, and any arguments needed by the calibration routine.
+        Arguments and circuits needed for each layer will vary based on the
+        calibration type.  However, the typical calibration routine may
+        require a single moment defining the gates to optimize, for example.
+        Note: this is an experimental API and is not yet fully supported
+        for all users.
+
+        Args:
+            layers: The layers of calibration to execute as a batch.
+            program_id: A user-provided identifier for the program. This must
+                be unique within the Google Cloud project being used. If this
+                parameter is not provided, a random id of the format
+                'calibration-################YYMMDD' will be generated,
+                where # is alphanumeric and YYMMDD is the current year, month,
+                and day.
+            job_id: Job identifier to use. If this is not provided, a random id
+                of the format 'calibration-################YYMMDD' will be
+                generated, where # is alphanumeric and YYMMDD is the current
+                year, month, and day.
+            gate_set: The gate set used to serialize the circuit. The gate set
+                must be supported by the selected processor.
+            program_description: An optional description to set on the program.
+            program_labels: Optional set of labels to set on the program.
+            job_description: An optional description to set on the job.
+            job_labels: Optional set of labels to set on the job.  By defauly,
+                this will add a 'calibration' label to the job.
+        Returns:
+            An AbstractJob whose results can be retrieved by calling
+            calibration_results().
+        """
+        return self.engine().run_calibration(
+            layers=layers,
+            processor_id=self.processor_id,
+            program_id=program_id,
+            job_id=job_id,
+            program_description=program_description,
+            program_labels=program_labels,
+            job_description=job_description,
+            job_labels=job_labels,
+        )
+
+    @util.deprecated_gate_set_parameter
+    def run_sweep(
+        self,
+        program: cirq.Circuit,
+        program_id: Optional[str] = None,
+        job_id: Optional[str] = None,
+        params: cirq.Sweepable = None,
+        repetitions: int = 1,
+        gate_set: Optional[serializer.Serializer] = None,
+        program_description: Optional[str] = None,
+        program_labels: Optional[Dict[str, str]] = None,
+        job_description: Optional[str] = None,
+        job_labels: Optional[Dict[str, str]] = None,
+    ) -> 'abstract_job.AbstractJob':
+        """Runs the supplied Circuit on this processor.
+
+        In contrast to run, this runs across multiple parameter sweeps, and
+        does not block until a result is returned.
+
+        Args:
+            program: The Circuit to execute. If a circuit is
+                provided, a moment by moment schedule will be used.
+            program_id: A user-provided identifier for the program. This must
+                be unique within the Google Cloud project being used. If this
+                parameter is not provided, a random id of the format
+                'prog-################YYMMDD' will be generated, where # is
+                alphanumeric and YYMMDD is the current year, month, and day.
+            job_id: Job identifier to use. If this is not provided, a random id
+                of the format 'job-################YYMMDD' will be generated,
+                where # is alphanumeric and YYMMDD is the current year, month,
+                and day.
+            params: Parameters to run with the program.
+            repetitions: The number of circuit repetitions to run.
+            gate_set: The gate set used to serialize the circuit. The gate set
+                must be supported by the selected processor.
+            program_description: An optional description to set on the program.
+            program_labels: Optional set of labels to set on the program.
+            job_description: An optional description to set on the job.
+            job_labels: Optional set of labels to set on the job.
+        Returns:
+            An AbstractJob. If this is iterated over it returns a list of
+            `cirq.Result`, one for each parameter sweep.
+        """
+        return self.engine().run_sweep(
+            processor_ids=[self.processor_id],
+            program=program,
+            program_id=program_id,
+            job_id=job_id,
+            params=params,
+            repetitions=repetitions,
+            program_description=program_description,
+            program_labels=program_labels,
+            job_description=job_description,
+            job_labels=job_labels,
+        )
+
+    def _inner_processor(self) -> quantum.QuantumProcessor:
+        if self._processor is None:
             self._processor = self.context.client.get_processor(self.project_id, self.processor_id)
         return self._processor
 
     def health(self) -> str:
         """Returns the current health of processor."""
         self._processor = self.context.client.get_processor(self.project_id, self.processor_id)
-        return qtypes.QuantumProcessor.Health.Name(self._processor.health)
+        return self._processor.health.name
 
     def expected_down_time(self) -> 'Optional[datetime.datetime]':
         """Returns the start of the next expected down time of the processor, if
         set."""
-        if self._inner_processor().HasField('expected_down_time'):
-            return self._inner_processor().expected_down_time.ToDatetime()
-        else:
-            return None
+        return self._inner_processor().expected_down_time
 
     def expected_recovery_time(self) -> 'Optional[datetime.datetime]':
         """Returns the expected the processor should be available, if set."""
-        if self._inner_processor().HasField('expected_recovery_time'):
-            return self._inner_processor().expected_recovery_time.ToDatetime()
-        else:
-            return None
+        return self._inner_processor().expected_recovery_time
 
     def supported_languages(self) -> List[str]:
         """Returns the list of processor supported program languages."""
@@ -102,29 +329,52 @@ class EngineProcessor:
         Returns:
             Device specification proto if present.
         """
-        if self._inner_processor().HasField('device_spec'):
-            return v2.device_pb2.DeviceSpecification.FromString(
-                self._inner_processor().device_spec.value
-            )
+        device_spec = self._inner_processor().device_spec
+        if device_spec and device_spec.type_url:
+            return util.unpack_any(device_spec, v2.device_pb2.DeviceSpecification())
         else:
             return None
 
-    def get_device(self, gate_sets: Iterable[SerializableGateSet]) -> cirq.Device:
+    def get_device(self, gate_sets: Iterable[serializer.Serializer] = ()) -> cirq.Device:
         """Returns a `Device` created from the processor's device specification.
 
         This method queries the processor to retrieve the device specification,
-        which is then use to create a `SerializableDevice` that will validate
+        which is then use to create a `serializable_gate_set.SerializableDevice` that will validate
         that operations are supported and use the correct qubits.
         """
         spec = self.get_device_specification()
         if not spec:
             raise ValueError('Processor does not have a device specification')
-        return serializable_device.SerializableDevice.from_proto(spec, gate_sets)
+        if not gate_sets:
+            # Default is to use all named gatesets in the device spec
+            gate_sets = []
+            for valid_gate_set in spec.valid_gate_sets:
+                if valid_gate_set.name in gs.NAMED_GATESETS:
+                    gate_sets.append(gs.NAMED_GATESETS[valid_gate_set.name])
+        if not all(isinstance(gs, serializable_gate_set.SerializableGateSet) for gs in gate_sets):
+            raise ValueError('All gate_sets must be SerializableGateSet currently.')
+        return serializable_device.SerializableDevice.from_proto(
+            spec, cast(Iterable[serializable_gate_set.SerializableGateSet], gate_sets)
+        )
 
+    @cirq._compat.deprecated_parameter(
+        deadline='v1.0',
+        fix='Change earliest_timestamp_seconds to earliest_timestamp.',
+        parameter_desc='earliest_timestamp_seconds',
+        match=lambda args, kwargs: 'earliest_timestamp_seconds' in kwargs,
+        rewrite=lambda args, kwargs: (args, _fix_deprecated_seconds_kwargs(kwargs)),
+    )
+    @cirq._compat.deprecated_parameter(
+        deadline='v1.0',
+        fix='Change latest_timestamp_seconds to latest_timestamp.',
+        parameter_desc='latest_timestamp_seconds',
+        match=lambda args, kwargs: 'latest_timestamp_seconds' in kwargs,
+        rewrite=lambda args, kwargs: (args, _fix_deprecated_seconds_kwargs(kwargs)),
+    )
     def list_calibrations(
         self,
-        earliest_timestamp_seconds: Optional[int] = None,
-        latest_timestamp_seconds: Optional[int] = None,
+        earliest_timestamp: Optional[Union[datetime.datetime, datetime.date, int]] = None,
+        latest_timestamp: Optional[Union[datetime.datetime, datetime.date, int]] = None,
     ) -> List[calibration.Calibration]:
         """Retrieve metadata about a specific calibration run.
 
@@ -137,6 +387,9 @@ class EngineProcessor:
         Returns:
             The list of calibration data with the most recent first.
         """
+        earliest_timestamp_seconds = _date_to_timestamp(earliest_timestamp)
+        latest_timestamp_seconds = _date_to_timestamp(latest_timestamp)
+
         if earliest_timestamp_seconds and latest_timestamp_seconds:
             filter_str = 'timestamp >= %d AND timestamp <= %d' % (
                 earliest_timestamp_seconds,
@@ -168,16 +421,14 @@ class EngineProcessor:
         )
         return _to_calibration(response.data)
 
-    def get_current_calibration(
-        self,
-    ) -> Optional[calibration.Calibration]:
+    def get_current_calibration(self) -> Optional[calibration.Calibration]:
         """Returns metadata about the current calibration for a processor.
 
         Returns:
             The calibration data or None if there is no current calibration.
         """
         response = self.context.client.get_current_calibration(self.project_id, self.processor_id)
-        if response:
+        if response is not None:
             return _to_calibration(response.data)
         else:
             return None
@@ -229,8 +480,8 @@ class EngineProcessor:
         if reservation is None:
             raise ValueError(f'Reservation id {reservation_id} not found.')
         proc = self._inner_processor()
-        if proc:
-            freeze = proc.schedule_frozen_period.seconds
+        if proc is not None:
+            freeze = proc.schedule_frozen_period
         else:
             freeze = None
         if not freeze:
@@ -238,13 +489,13 @@ class EngineProcessor:
                 'Cannot determine freeze_schedule from processor.'
                 'Call _cancel_reservation or _delete_reservation.'
             )
-        secs_until = reservation.start_time.seconds - int(datetime.datetime.now(tz=utc).timestamp())
-        if secs_until > freeze:
+        secs_until = reservation.start_time.timestamp() - datetime.datetime.now().timestamp()
+        if secs_until > freeze.total_seconds():
             return self._delete_reservation(reservation_id)
         else:
             return self._cancel_reservation(reservation_id)
 
-    def get_reservation(self, reservation_id: str):
+    def get_reservation(self, reservation_id: str) -> Optional[quantum.QuantumReservation]:
         """Retrieve a reservation given its id."""
         return self.context.client.get_reservation(
             self.project_id, self.processor_id, reservation_id
@@ -276,7 +527,7 @@ class EngineProcessor:
         self,
         from_time: Union[None, datetime.datetime, datetime.timedelta] = datetime.timedelta(),
         to_time: Union[None, datetime.datetime, datetime.timedelta] = datetime.timedelta(weeks=2),
-    ) -> List[qenums.QuantumTimeSlot]:
+    ) -> List[quantum.QuantumTimeSlot]:
         """Retrieves the reservations from a processor.
 
         Only reservations from this processor and project will be
@@ -305,8 +556,8 @@ class EngineProcessor:
         self,
         from_time: Union[None, datetime.datetime, datetime.timedelta] = datetime.timedelta(),
         to_time: Union[None, datetime.datetime, datetime.timedelta] = datetime.timedelta(weeks=2),
-        time_slot_type: Optional[qenums.QuantumTimeSlot.TimeSlotType] = None,
-    ) -> List[qenums.QuantumTimeSlot]:
+        time_slot_type: Optional[quantum.QuantumTimeSlot.TimeSlotType] = None,
+    ) -> List[quantum.QuantumTimeSlot]:
         """Retrieves the schedule for a processor.
 
         The schedule may be filtered by time.
@@ -344,7 +595,7 @@ class EngineProcessor:
         )
 
 
-def _to_calibration(calibration_any: qtypes.any_pb2.Any) -> calibration.Calibration:
+def _to_calibration(calibration_any: any_pb2.Any) -> calibration.Calibration:
     metrics = v2.metrics_pb2.MetricsSnapshot.FromString(calibration_any.value)
     return calibration.Calibration(metrics)
 

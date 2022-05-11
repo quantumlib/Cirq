@@ -14,35 +14,28 @@
 """Estimation of fidelity associated with experimental circuit executions."""
 import dataclasses
 from abc import abstractmethod, ABC
-from typing import (
-    List,
-    Optional,
-    Sequence,
-    Tuple,
-    TYPE_CHECKING,
-    Dict,
-    Iterable,
-)
+from typing import Dict, Iterable, List, Optional, Sequence, Tuple, TYPE_CHECKING
 
 import numpy as np
 import pandas as pd
-import scipy.optimize
-import scipy.stats
 import sympy
-from cirq import ops, protocols
-from cirq.circuits import Circuit
+from cirq import circuits, ops, protocols, _import
 from cirq.experiments.xeb_simulation import simulate_2q_xeb_circuits
 
 if TYPE_CHECKING:
     import cirq
     import multiprocessing
+    import scipy.optimize
+
+# We initialize these lazily, otherwise they slow global import speed.
+optimize = _import.LazyLoader("optimize", globals(), "scipy.optimize")
+stats = _import.LazyLoader("stats", globals(), "scipy.stats")
 
 THETA_SYMBOL, ZETA_SYMBOL, CHI_SYMBOL, GAMMA_SYMBOL, PHI_SYMBOL = sympy.symbols(
     'theta zeta chi gamma phi'
 )
 
-# TODO(#3388) Add documentation for Raises.
-# pylint: disable=missing-raises-doc
+
 def benchmark_2q_xeb_fidelities(
     sampled_df: pd.DataFrame,
     circuits: Sequence['cirq.Circuit'],
@@ -69,6 +62,10 @@ def benchmark_2q_xeb_fidelities(
 
     Returns:
         A DataFrame with columns 'cycle_depth' and 'fidelity'.
+
+    Raises:
+        ValueError: If `cycle_depths` is not a non-empty array or if the `cycle_depths` provided
+            includes some values not available in `sampled_df`.
     """
     sampled_cycle_depths = (
         sampled_df.index.get_level_values('cycle_depth').drop_duplicates().sort_values()
@@ -95,7 +92,7 @@ def benchmark_2q_xeb_fidelities(
     D = 4  # two qubits
     pure_probs = np.array(df['pure_probs'].to_list())
     sampled_probs = np.array(df['sampled_probs'].to_list())
-    df['e_u'] = np.sum(pure_probs ** 2, axis=1)
+    df['e_u'] = np.sum(pure_probs**2, axis=1)
     df['u_u'] = np.sum(pure_probs, axis=1) / D
     df['m_u'] = np.sum(pure_probs * sampled_probs, axis=1)
     df['y'] = df['m_u'] - df['u_u']
@@ -133,7 +130,6 @@ def benchmark_2q_xeb_fidelities(
     return df.groupby(groupby_names).apply(per_cycle_depth).reset_index()
 
 
-# pylint: enable=missing-raises-doc
 class XEBCharacterizationOptions(ABC):
     @staticmethod
     @abstractmethod
@@ -151,10 +147,10 @@ class XEBCharacterizationOptions(ABC):
         """Return an initial Nelder-Mead simplex and the names for each parameter."""
 
 
-def phased_fsim_angles_from_gate(gate: 'cirq.Gate') -> Dict[str, float]:
+def phased_fsim_angles_from_gate(gate: 'cirq.Gate') -> Dict[str, 'cirq.TParamVal']:
     """For a given gate, return a dictionary mapping '{angle}_default' to its noiseless value
     for the five PhasedFSim angles."""
-    defaults = {
+    defaults: Dict[str, 'cirq.TParamVal'] = {
         'theta_default': 0.0,
         'zeta_default': 0.0,
         'chi_default': 0.0,
@@ -323,15 +319,14 @@ def SqrtISwapXEBOptions(*args, **kwargs):
 
 
 def parameterize_circuit(
-    circuit: 'cirq.Circuit',
-    options: XEBCharacterizationOptions,
+    circuit: 'cirq.Circuit', options: XEBCharacterizationOptions
 ) -> 'cirq.Circuit':
     """Parameterize PhasedFSim-like gates in a given circuit according to
     `phased_fsim_options`.
     """
     gate = options.get_parameterized_gate()
-    return Circuit(
-        ops.Moment(
+    return circuits.Circuit(
+        circuits.Moment(
             gate.on(*op.qubits) if options.should_parameterize(op) else op
             for op in moment.operations
         )
@@ -354,7 +349,7 @@ class XEBCharacterizationResult:
             fitting the characterization.
     """
 
-    optimization_results: Dict[QPair_T, scipy.optimize.OptimizeResult]
+    optimization_results: Dict[QPair_T, 'scipy.optimize.OptimizeResult']
     final_params: Dict[QPair_T, Dict[str, float]]
     fidelities_df: pd.DataFrame
 
@@ -411,24 +406,20 @@ def characterize_phased_fsim_parameters_with_xeb(
             print(f"Loss: {loss:7.3g}", flush=True)
         return loss
 
-    optimization_result = scipy.optimize.minimize(
+    optimization_result = optimize.minimize(
         _mean_infidelity,
         x0=x0,
-        options={
-            'initial_simplex': initial_simplex,
-            'xatol': xatol,
-            'fatol': fatol,
-        },
+        options={'initial_simplex': initial_simplex, 'xatol': xatol, 'fatol': fatol},
         method='nelder-mead',
     )
 
-    final_params = dict(zip(names, optimization_result.x))
+    final_params: 'cirq.ParamDictType' = dict(zip(names, optimization_result.x))
     fidelities_df = benchmark_2q_xeb_fidelities(
         sampled_df, parameterized_circuits, cycle_depths, param_resolver=final_params
     )
     return XEBCharacterizationResult(
         optimization_results={pair: optimization_result},
-        final_params={pair: final_params},
+        final_params={pair: final_params},  # type: ignore[dict-item]
         fidelities_df=fidelities_df,
     )
 
@@ -535,7 +526,7 @@ def exponential_decay(cycle_depths: np.ndarray, a: float, layer_fid: float) -> n
         a: A scale parameter in the exponential function.
         layer_fid: The base of the exponent in the exponential function.
     """
-    return a * layer_fid ** cycle_depths
+    return a * layer_fid**cycle_depths
 
 
 def _fit_exponential_decay(
@@ -571,12 +562,13 @@ def _fit_exponential_decay(
         return 0, 0, np.inf, np.inf
     cycle_depths_pos = cycle_depths[positives]
     log_fidelities = np.log(fidelities[positives])
-    slope, intercept, _, _, _ = scipy.stats.linregress(cycle_depths_pos, log_fidelities)
+
+    slope, intercept, _, _, _ = stats.linregress(cycle_depths_pos, log_fidelities)
     layer_fid_0 = np.clip(np.exp(slope), 0, 1)
     a_0 = np.clip(np.exp(intercept), 0, 1)
 
     try:
-        (a, layer_fid), pcov = scipy.optimize.curve_fit(
+        (a, layer_fid), pcov = optimize.curve_fit(
             exponential_decay,
             cycle_depths,
             fidelities,

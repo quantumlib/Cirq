@@ -20,9 +20,7 @@ import networkx as nx
 import cirq
 from pyquil.quantum_processor import QCSQuantumProcessor
 from qcs_api_client.models import InstructionSetArchitecture
-from qcs_api_client.operations.sync import (
-    get_instruction_set_architecture,
-)
+from qcs_api_client.operations.sync import get_instruction_set_architecture
 from cirq_rigetti._qcs_api_client_decorator import _provide_default_client
 
 
@@ -70,7 +68,7 @@ class RigettiQCSAspenDevice(cirq.devices.Device):
         if self.isa.architecture.family.lower() != 'aspen':
             raise UnsupportedRigettiQCSQuantumProcessor(
                 'this integration currently only supports Aspen devices, '
-                f'but client provided a {self.isa.architecture.family} device',
+                f'but client provided a {self.isa.architecture.family} device'
             )
         self.quantum_processor = QCSQuantumProcessor(
             quantum_processor_id=self.isa.name, isa=self.isa
@@ -169,14 +167,12 @@ class RigettiQCSAspenDevice(cirq.devices.Device):
                     )
                 if not ((index % 10) <= 7):
                     raise UnsupportedQubit(
-                        f'this Aspen device only supports qubit indices mod 10 <= 7'
+                        'this Aspen device only supports qubit indices mod 10 <= 7'
                     )
                 return
 
             except ValueError:
-                raise UnsupportedQubit(
-                    f'Aspen devices only support named qubits by octagonal index'
-                )
+                raise UnsupportedQubit('Aspen devices only support named qubits by octagonal index')
 
         if isinstance(qubit, (OctagonalQubit, AspenQubit)):
             if not (qubit.index < self._maximum_qubit_number):
@@ -220,7 +216,7 @@ class RigettiQCSAspenDevice(cirq.devices.Device):
             j = self._aspen_qubit_index(qubits[1])
             if j not in self.qubit_topology[i]:
                 raise UnsupportedRigettiQCSOperation(
-                    f'qubits {qubits[0]} and {qubits[1]} do not share an edge',
+                    f'qubits {qubits[0]} and {qubits[1]} do not share an edge'
                 )
 
     def _value_equality_values_(self):
@@ -230,22 +226,16 @@ class RigettiQCSAspenDevice(cirq.devices.Device):
         return f'cirq_rigetti.RigettiQCSAspenDevice(isa={self.isa!r})'
 
     def _json_dict_(self):
-        return {
-            'cirq_type': 'RigettiQCSAspenDevice',
-            'isa': self.isa.to_dict(),
-        }
+        return {'isa': self.isa.to_dict()}
 
     @classmethod
     def _from_json_dict_(cls, isa, **kwargs):
-        return cls(
-            isa=InstructionSetArchitecture.from_dict(isa),
-        )
+        return cls(isa=InstructionSetArchitecture.from_dict(isa))
 
 
 @_provide_default_client
 def get_rigetti_qcs_aspen_device(
-    quantum_processor_id: str,
-    client: Optional[httpx.Client],
+    quantum_processor_id: str, client: Optional[httpx.Client]
 ) -> RigettiQCSAspenDevice:
     """Retrieves a `qcs_api_client.models.InstructionSetArchitecture` from the Rigetti
     QCS API and uses it to initialize a RigettiQCSAspenDevice.
@@ -275,8 +265,6 @@ def get_rigetti_qcs_aspen_device(
 class OctagonalQubit(cirq.ops.Qid):
     """A cirq.Qid supporting Octagonal indexing."""
 
-    # TODO(#3388) Add documentation for Raises.
-    # pylint: disable=missing-raises-doc
     def __init__(self, octagon_position: int):
         r"""Initializes an `OctagonalQubit` using indices 0-7.
               4  - 3
@@ -292,6 +280,9 @@ class OctagonalQubit(cirq.ops.Qid):
 
         Returns:
             The initialized `OctagonalQubit`.
+
+        Raises:
+            ValueError: If the position specified is greater than 7.
         """
         if octagon_position >= 8:
             raise ValueError(f'OctagonQubit must be less than 8, received {octagon_position}')
@@ -299,7 +290,6 @@ class OctagonalQubit(cirq.ops.Qid):
         self._octagon_position = octagon_position
         self.index = octagon_position
 
-    # pylint: enable=missing-raises-doc
     @property
     def octagon_position(self):
         return self._octagon_position
@@ -385,10 +375,7 @@ class OctagonalQubit(cirq.ops.Qid):
         return f'cirq_rigetti.OctagonalQubit(octagon_position={self.octagon_position})'
 
     def _json_dict_(self):
-        return {
-            'cirq_type': 'OctagonalQubit',
-            'octagon_position': self.octagon_position,
-        }
+        return {'octagon_position': self.octagon_position}
 
 
 class AspenQubit(OctagonalQubit):
@@ -479,8 +466,6 @@ class AspenQubit(OctagonalQubit):
             return AspenQubit.from_aspen_index(_grid_qubit_mapping[grid_qubit])
         raise ValueError(f'{grid_qubit} is not convertible to Aspen qubit')
 
-    # TODO(#3388) Add documentation for Raises.
-    # pylint: disable=missing-raises-doc
     @staticmethod
     def from_named_qubit(qubit: cirq.NamedQubit) -> 'AspenQubit':
         """Converts `cirq.NamedQubit` to `AspenQubit`.
@@ -490,14 +475,15 @@ class AspenQubit(OctagonalQubit):
 
         Raises:
             ValueError: NamedQubit cannot be converted to AspenQubit.
+            UnsupportedQubit: If the supplied qubit is not a named qubit with an octagonal
+                index.
         """
         try:
             index = int(qubit.name)
             return AspenQubit.from_aspen_index(index)
         except ValueError:
-            raise UnsupportedQubit(f'Aspen devices only support named qubits by octagonal index')
+            raise UnsupportedQubit('Aspen devices only support named qubits by octagonal index')
 
-    # pylint: enable=missing-raises-doc
     @staticmethod
     def from_aspen_index(index: int) -> 'AspenQubit':
         """Initializes an `AspenQubit` at the given index. See `OctagonalQubit` to understand
@@ -526,8 +512,4 @@ class AspenQubit(OctagonalQubit):
         return f'({self.octagon}, {self.octagon_position})'
 
     def _json_dict_(self):
-        return {
-            'cirq_type': 'AspenQubit',
-            'octagon': self.octagon,
-            'octagon_position': self.octagon_position,
-        }
+        return {'octagon': self.octagon, 'octagon_position': self.octagon_position}

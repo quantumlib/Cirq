@@ -16,9 +16,10 @@ import cirq
 
 
 def assert_optimizes(before, after):
-    opt = cirq.DropEmptyMoments()
-    opt.optimize_circuit(before)
-    assert before == after
+    with cirq.testing.assert_deprecated("Use cirq.drop_empty_moments", deadline='v1.0'):
+        opt = cirq.DropEmptyMoments()
+        opt.optimize_circuit(before)
+        assert before == after
 
 
 def test_drop():
@@ -26,16 +27,7 @@ def test_drop():
     q2 = cirq.NamedQubit('q2')
     assert_optimizes(
         before=cirq.Circuit(
-            [
-                cirq.Moment(),
-                cirq.Moment(),
-                cirq.Moment([cirq.CNOT(q1, q2)]),
-                cirq.Moment(),
-            ]
+            [cirq.Moment(), cirq.Moment(), cirq.Moment([cirq.CNOT(q1, q2)]), cirq.Moment()]
         ),
-        after=cirq.Circuit(
-            [
-                cirq.Moment([cirq.CNOT(q1, q2)]),
-            ]
-        ),
+        after=cirq.Circuit([cirq.Moment([cirq.CNOT(q1, q2)])]),
     )

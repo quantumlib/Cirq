@@ -36,21 +36,15 @@ from typing import (
 import numpy as np
 import pandas as pd
 
+
 import cirq
-from cirq.experiments.xeb_fitting import (
-    XEBPhasedFSimCharacterizationOptions,
-)
+from cirq.experiments.xeb_fitting import XEBPhasedFSimCharacterizationOptions
 from cirq_google.api import v2
 from cirq_google.engine import Calibration, CalibrationLayer, CalibrationResult, Engine, EngineJob
-from cirq_google.ops import SycamoreGate
+from cirq_google.ops import FSimGateFamily
 
 if TYPE_CHECKING:
     import cirq_google
-
-    # Workaround for mypy custom dataclasses (python/mypy#5406)
-    from dataclasses import dataclass as json_serializable_dataclass
-else:
-    from cirq.protocols import json_serializable_dataclass
 
 
 _FLOQUET_PHASED_FSIM_HANDLER_NAME = 'floquet_phased_fsim_characterization'
@@ -94,7 +88,7 @@ def _create_pairs_from_moment(
     return tuple(pairs), gate
 
 
-@json_serializable_dataclass(frozen=True)
+@dataclasses.dataclass(frozen=True)
 class PhasedFSimCharacterization:
     """Holder for the unitary angles of the cirq.PhasedFSimGate.
 
@@ -202,6 +196,9 @@ class PhasedFSimCharacterization:
         """
         return other.merge_with(self)
 
+    def _json_dict_(self):
+        return cirq.dataclass_json_dict(self)
+
 
 SQRT_ISWAP_INV_PARAMETERS = PhasedFSimCharacterization(
     theta=np.pi / 4, zeta=0.0, chi=0.0, gamma=0.0, phi=0.0
@@ -213,9 +210,7 @@ class PhasedFSimCalibrationOptions(abc.ABC, Generic[RequestT]):
 
     @abc.abstractmethod
     def create_phased_fsim_request(
-        self,
-        pairs: Tuple[Tuple[cirq.Qid, cirq.Qid], ...],
-        gate: cirq.Gate,
+        self, pairs: Tuple[Tuple[cirq.Qid, cirq.Qid], ...], gate: cirq.Gate
     ) -> RequestT:
         """Create a PhasedFSimCalibrationRequest of the correct type for these options.
 
@@ -306,8 +301,7 @@ class PhasedFSimCalibrationResult:
 
     @classmethod
     def _create_parameters_dict(
-        cls,
-        parameters: List[Tuple[cirq.Qid, cirq.Qid, PhasedFSimCharacterization]],
+        cls, parameters: List[Tuple[cirq.Qid, cirq.Qid, PhasedFSimCharacterization]]
     ) -> Dict[Tuple[cirq.Qid, cirq.Qid], PhasedFSimCharacterization]:
         """Utility function to create parameters from JSON.
 
@@ -316,10 +310,7 @@ class PhasedFSimCalibrationResult:
         return {(q_a, q_b): params for q_a, q_b, params in parameters}
 
     @classmethod
-    def _from_json_dict_(
-        cls,
-        **kwargs,
-    ) -> 'PhasedFSimCalibrationResult':
+    def _from_json_dict_(cls, **kwargs) -> 'PhasedFSimCalibrationResult':
         """Magic method for the JSON serialization protocol.
 
         Converts serialized dictionary into a dict suitable for
@@ -331,7 +322,6 @@ class PhasedFSimCalibrationResult:
     def _json_dict_(self) -> Dict[str, Any]:
         """Magic method for the JSON serialization protocol."""
         return {
-            'cirq_type': 'PhasedFSimCalibrationResult',
             'gate': self.gate,
             'parameters': [(q_a, q_b, params) for (q_a, q_b), params in self.parameters.items()],
             'options': self.options,
@@ -341,8 +331,6 @@ class PhasedFSimCalibrationResult:
         }
 
 
-# TODO(#3388) Add documentation for Raises.
-# pylint: disable=missing-raises-doc
 def merge_matching_results(
     results: Iterable[PhasedFSimCalibrationResult],
 ) -> Optional[PhasedFSimCalibrationResult]:
@@ -356,6 +344,10 @@ def merge_matching_results(
     Returns:
         New PhasedFSimCalibrationResult that contains all the parameters from every result in
         results or None when the results list is empty.
+
+    Raises:
+        ValueError: If the gate and options fields are not all equal, or if the
+            results have shared keys.
     """
     all_parameters: Dict[Tuple[cirq.Qid, cirq.Qid], PhasedFSimCharacterization] = {}
     common_gate = None
@@ -377,7 +369,7 @@ def merge_matching_results(
             )
 
         if not all_parameters.keys().isdisjoint(result.parameters):
-            raise ValueError(f'Only results with disjoint parameters sets can be merged')
+            raise ValueError('Only results with disjoint parameters sets can be merged')
 
         all_parameters.update(result.parameters)
 
@@ -387,7 +379,6 @@ def merge_matching_results(
     return PhasedFSimCalibrationResult(all_parameters, common_gate, common_options)
 
 
-# pylint: enable=missing-raises-doc
 class PhasedFSimCalibrationError(Exception):
     """Error that indicates the calibration failure."""
 
@@ -429,7 +420,7 @@ class PhasedFSimCalibrationRequest(abc.ABC):
         """Decodes the characterization result issued for this request."""
 
 
-@json_serializable_dataclass(frozen=True)
+@dataclasses.dataclass(frozen=True)
 class XEBPhasedFSimCalibrationOptions(PhasedFSimCalibrationOptions):
     """Options for configuring a PhasedFSim calibration using XEB.
 
@@ -484,9 +475,7 @@ class XEBPhasedFSimCalibrationOptions(PhasedFSimCalibrationOptions):
         return args
 
     def create_phased_fsim_request(
-        self,
-        pairs: Tuple[Tuple[cirq.Qid, cirq.Qid], ...],
-        gate: cirq.Gate,
+        self, pairs: Tuple[Tuple[cirq.Qid, cirq.Qid], ...], gate: cirq.Gate
     ) -> 'XEBPhasedFSimCalibrationRequest':
         return XEBPhasedFSimCalibrationRequest(pairs=pairs, gate=gate, options=self)
 
@@ -496,8 +485,11 @@ class XEBPhasedFSimCalibrationOptions(PhasedFSimCalibrationOptions):
         kwargs['cycle_depths'] = tuple(kwargs['cycle_depths'])
         return cls(**kwargs)
 
+    def _json_dict_(self):
+        return cirq.dataclass_json_dict(self)
 
-@json_serializable_dataclass(frozen=True)
+
+@dataclasses.dataclass(frozen=True)
 class LocalXEBPhasedFSimCalibrationOptions(XEBPhasedFSimCalibrationOptions):
     """Options for configuring a PhasedFSim calibration using a local version of XEB.
 
@@ -536,14 +528,15 @@ class LocalXEBPhasedFSimCalibrationOptions(XEBPhasedFSimCalibrationOptions):
     n_processes: Optional[int] = None
 
     def create_phased_fsim_request(
-        self,
-        pairs: Tuple[Tuple[cirq.Qid, cirq.Qid], ...],
-        gate: cirq.Gate,
+        self, pairs: Tuple[Tuple[cirq.Qid, cirq.Qid], ...], gate: cirq.Gate
     ):
         return LocalXEBPhasedFSimCalibrationRequest(pairs=pairs, gate=gate, options=self)
 
+    def _json_dict_(self):
+        return cirq.dataclass_json_dict(self)
 
-@json_serializable_dataclass(frozen=True)
+
+@dataclasses.dataclass(frozen=True)
 class FloquetPhasedFSimCalibrationOptions(PhasedFSimCalibrationOptions):
     """Options specific to Floquet PhasedFSimCalibration.
 
@@ -584,11 +577,12 @@ class FloquetPhasedFSimCalibrationOptions(PhasedFSimCalibrationOptions):
         )
 
     def create_phased_fsim_request(
-        self,
-        pairs: Tuple[Tuple[cirq.Qid, cirq.Qid], ...],
-        gate: cirq.Gate,
+        self, pairs: Tuple[Tuple[cirq.Qid, cirq.Qid], ...], gate: cirq.Gate
     ) -> 'FloquetPhasedFSimCalibrationRequest':
         return FloquetPhasedFSimCalibrationRequest(pairs=pairs, gate=gate, options=self)
+
+    def _json_dict_(self):
+        return cirq.dataclass_json_dict(self)
 
 
 """Floquet PhasedFSimCalibrationOptions options with all angles characterization requests set to
@@ -686,9 +680,7 @@ class FloquetPhasedFSimCalibrationRequest(PhasedFSimCalibrationRequest):
                 self.options.readout_error_tolerance
             )
         return CalibrationLayer(
-            calibration_type=_FLOQUET_PHASED_FSIM_HANDLER_NAME,
-            program=circuit,
-            args=args,
+            calibration_type=_FLOQUET_PHASED_FSIM_HANDLER_NAME, program=circuit, args=args
         )
 
     def parse_result(
@@ -746,7 +738,6 @@ class FloquetPhasedFSimCalibrationRequest(PhasedFSimCalibrationRequest):
     def _json_dict_(self) -> Dict[str, Any]:
         """Magic method for the JSON serialization protocol."""
         return {
-            'cirq_type': 'FloquetPhasedFSimCalibrationRequest',
             'pairs': [(pair[0], pair[1]) for pair in self.pairs],
             'gate': self.gate,
             'options': self.options,
@@ -797,8 +788,7 @@ def _parse_xeb_fidelities_df(metrics: 'cirq_google.Calibration', super_name: str
 
 
 def _parse_characterized_angles(
-    metrics: 'cirq_google.Calibration',
-    super_name: str,
+    metrics: 'cirq_google.Calibration', super_name: str
 ) -> Dict[Tuple[cirq.Qid, cirq.Qid], Dict[str, float]]:
     """Parses characterized angles from Metric protos.
 
@@ -822,7 +812,7 @@ def _parse_characterized_angles(
     return dict(records)
 
 
-@json_serializable_dataclass(frozen=True)
+@dataclasses.dataclass(frozen=True)
 class LocalXEBPhasedFSimCalibrationRequest(PhasedFSimCalibrationRequest):
     """PhasedFSim characterization request for local cross entropy benchmarking (XEB) calibration.
 
@@ -857,8 +847,11 @@ class LocalXEBPhasedFSimCalibrationRequest(PhasedFSimCalibrationRequest):
         instantiation_pairs = tuple((q_a, q_b) for q_a, q_b in pairs)
         return cls(instantiation_pairs, gate, options)
 
+    def _json_dict_(self):
+        return cirq.dataclass_json_dict(self)
 
-@json_serializable_dataclass(frozen=True)
+
+@dataclasses.dataclass(frozen=True)
 class XEBPhasedFSimCalibrationRequest(PhasedFSimCalibrationRequest):
     """PhasedFSim characterization request for cross entropy benchmarking (XEB) calibration.
 
@@ -916,6 +909,9 @@ class XEBPhasedFSimCalibrationRequest(PhasedFSimCalibrationRequest):
         instantiation_pairs = tuple((q_a, q_b) for q_a, q_b in pairs)
         return cls(instantiation_pairs, gate, options)
 
+    def _json_dict_(self):
+        return cirq.dataclass_json_dict(self)
+
 
 class IncompatibleMomentError(Exception):
     """Error that occurs when a moment is not supported by a calibration routine."""
@@ -929,6 +925,15 @@ class PhaseCalibratedFSimGate:
     phase_exponent p:
 
         (Z^-p ⊗ Z^p) FSim (Z^p ⊗ Z^-p).
+
+    The unitary matrix of the gate is:
+
+    [[1,            0,              0,        0],
+     [0,       cos(θ), (1/g^2) sin(θ),        0],
+     [0, (g^2) sin(θ),         cos(θ),        0],
+     [0,            0,              0, exp(-iφ)]]
+
+     where g = exp(i·π·p)
 
     The rotation should be reflected back during the compilation after the gate is calibrated and
     is equivalent to the shift of -2πp in the χ angle of PhasedFSimGate.
@@ -955,11 +960,11 @@ class PhaseCalibratedFSimGate:
             parameters of the engine_gate.
         """
         return cirq.PhasedFSimGate(
-            theta=parameters.theta,
-            zeta=parameters.zeta,
+            theta=parameters.theta or 0.0,
+            zeta=parameters.zeta or 0.0,
             chi=parameters.chi - 2 * np.pi * self.phase_exponent,
-            gamma=parameters.gamma,
-            phi=parameters.phi,
+            gamma=parameters.gamma or 0.0,
+            phi=parameters.phi or 0.0,
         )
 
     def with_zeta_chi_gamma_compensated(
@@ -1012,7 +1017,7 @@ class PhaseCalibratedFSimGate:
             (cirq.rz(0.5 * gamma - beta).on(a), cirq.rz(0.5 * gamma + beta).on(b)),
         )
 
-    def _unitary_(self) -> np.array:
+    def _unitary_(self) -> np.ndarray:
         """Implements Cirq's `unitary` protocol for this object."""
         p = np.exp(-np.pi * 1j * self.phase_exponent)
         return (
@@ -1035,7 +1040,9 @@ def try_convert_sqrt_iswap_to_fsim(gate: cirq.Gate) -> Optional[PhaseCalibratedF
     if result is None:
         return None
     engine_gate = result.engine_gate
-    if math.isclose(engine_gate.theta, np.pi / 4) and math.isclose(engine_gate.phi, 0.0):
+    if math.isclose(cast(float, engine_gate.theta), np.pi / 4) and math.isclose(
+        cast(float, engine_gate.phi), 0.0
+    ):
         return result
     return None
 
@@ -1050,37 +1057,13 @@ def try_convert_gate_to_fsim(gate: cirq.Gate) -> Optional[PhaseCalibratedFSimGat
         If provided gate is equivalent to some PhaseCalibratedFSimGate, returns that gate.
         Otherwise returns None.
     """
-    if cirq.is_parameterized(gate):
+    cgate = FSimGateFamily().convert(gate, cirq.PhasedFSimGate)
+    if (cgate is None) or not (np.isclose(cgate.zeta, 0.0) and np.isclose(cgate.gamma, 0.0)):
         return None
-
-    phi = 0.0
-    theta = 0.0
-    phase_exponent = 0.0
-    if isinstance(gate, SycamoreGate):
-        phi = np.pi / 6
-        theta = np.pi / 2
-    elif isinstance(gate, cirq.FSimGate):
-        theta = gate.theta
-        phi = gate.phi
-    elif isinstance(gate, cirq.ISwapPowGate):
-        if not np.isclose(np.exp(np.pi * 1j * gate.global_shift * gate.exponent), 1.0):
-            return None
-        theta = -gate.exponent * np.pi / 2
-    elif isinstance(gate, cirq.PhasedFSimGate):
-        if not np.isclose(gate.zeta, 0.0) or not np.isclose(gate.gamma, 0.0):
-            return None
-        theta = gate.theta
-        phi = gate.phi
-        phase_exponent = -gate.chi / (2 * np.pi)
-    elif isinstance(gate, cirq.PhasedISwapPowGate):
-        theta = -gate.exponent * np.pi / 2
-        phase_exponent = -gate.phase_exponent
-    elif isinstance(gate, cirq.ops.CZPowGate):
-        if not np.isclose(np.exp(np.pi * 1j * gate.global_shift * gate.exponent), 1.0):
-            return None
-        phi = -np.pi * gate.exponent
-    else:
-        return None
+    # On comparing the unitary matrices of `PhasedFSimGate` and `PhaseCalibratedFSimGate`, we get:
+    theta = cgate.theta
+    phi = cgate.phi
+    phase_exponent = -cgate.chi / (2 * np.pi)
 
     phi = phi % (2 * np.pi)
     theta = theta % (2 * np.pi)
@@ -1091,9 +1074,7 @@ def try_convert_gate_to_fsim(gate: cirq.Gate) -> Optional[PhaseCalibratedFSimGat
     return PhaseCalibratedFSimGate(cirq.FSimGate(theta=theta, phi=phi), phase_exponent)
 
 
-def try_convert_syc_or_sqrt_iswap_to_fsim(
-    gate: cirq.Gate,
-) -> Optional[PhaseCalibratedFSimGate]:
+def try_convert_syc_or_sqrt_iswap_to_fsim(gate: cirq.Gate) -> Optional[PhaseCalibratedFSimGate]:
     """Converts a gate to equivalent PhaseCalibratedFSimGate if possible.
 
     Args:

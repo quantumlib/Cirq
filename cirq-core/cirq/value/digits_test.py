@@ -70,7 +70,7 @@ def test_big_endian_int_to_digits():
     with pytest.raises(ValueError, match='Out of range'):
         assert cirq.big_endian_int_to_digits(101, base=[], digit_count=0) == []
     with pytest.raises(ValueError, match='Out of range'):
-        _ = cirq.big_endian_int_to_digits(10 ** 100, base=[2, 3, 4, 5, 6])
+        _ = cirq.big_endian_int_to_digits(10**100, base=[2, 3, 4, 5, 6])
 
     assert cirq.big_endian_int_to_digits(0, base=[], digit_count=0) == []
     assert cirq.big_endian_int_to_digits(0, base=[]) == []
