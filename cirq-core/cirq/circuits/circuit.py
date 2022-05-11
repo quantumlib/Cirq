@@ -1739,14 +1739,14 @@ class Circuit(AbstractCircuit):
         # These are dicts from the qubit/key to the greatest moment index that has it. It is safe
         # to default to `-1`, as that is interpreted as meaning the zeroth index onward does not
         # have this value.
-        qubits: Dict['cirq.Qid', int] = defaultdict(lambda: -1)
-        mkeys: Dict['cirq.MeasurementKey', int] = defaultdict(lambda: -1)
-        ckeys: Dict['cirq.MeasurementKey', int] = defaultdict(lambda: -1)
+        qubit_indexes: Dict['cirq.Qid', int] = defaultdict(lambda: -1)
+        mkey_indexes: Dict['cirq.MeasurementKey', int] = defaultdict(lambda: -1)
+        ckey_indexes: Dict['cirq.MeasurementKey', int] = defaultdict(lambda: -1)
 
         # We also maintain the dict from moment index to moments/ops that go into it, for use when
         # building the actual moments at the end.
-        opses: Dict[int, List['cirq.Operation']] = defaultdict(list)
-        moments: Dict[int, 'cirq.Moment'] = {}
+        ops_at_index: Dict[int, List['cirq.Operation']] = defaultdict(list)
+        moment_at_index: Dict[int, 'cirq.Moment'] = {}
 
         # For keeping track of length of the circuit thus far.
         length = 0
@@ -1761,7 +1761,7 @@ class Circuit(AbstractCircuit):
             if isinstance(mop, Moment):
                 # We always append moment to the end, to be consistent with `self.append`
                 i = length
-                moments[i] = mop
+                moment_at_index[i] = mop
             else:
                 # Initially we define `i` as the greatest moment index that has a conflict. `-1` is
                 # the initial conflict, and we search for larger ones. Once we get the largest one,
@@ -1774,32 +1774,33 @@ class Circuit(AbstractCircuit):
                 # control keys. (Control keys alone can commute past each other). The `ifs` are
                 # logically unnecessary but seem to make this slightly faster.
                 if mop_qubits:
-                    i = max(i, *[qubits[q] for q in mop_qubits])
+                    i = max(i, *[qubit_indexes[q] for q in mop_qubits])
                 if mop_mkeys:
-                    i = max(i, *[mkeys[k] for k in mop_mkeys], *[ckeys[k] for k in mop_mkeys])
+                    i = max(i, *[mkey_indexes[k] for k in mop_mkeys])
+                    i = max(i, *[ckey_indexes[k] for k in mop_mkeys])
                 if mop_ckeys:
-                    i = max(i, *[mkeys[k] for k in mop_ckeys])
+                    i = max(i, *[mkey_indexes[k] for k in mop_ckeys])
                 i += 1
-                opses[i].append(mop)
+                ops_at_index[i].append(mop)
 
             # Update our dicts with data from the latest mop placement. Note `i` will always be
             # greater than the existing value for all of these, by construction, so there is no
             # need to do a `max(i, existing)`.
             for q in mop_qubits:
-                qubits[q] = i
+                qubit_indexes[q] = i
             for k in mop_mkeys:
-                mkeys[k] = i
+                mkey_indexes[k] = i
             for k in mop_ckeys:
-                ckeys[k] = i
+                ckey_indexes[k] = i
             length = max(length, i + 1)
 
         # Finally once everything is placed, we can construct and append the actual moments for
         # each index.
         for i in range(length):
-            if i in moments:
-                self._moments.append(moments[i].with_operations(opses[i]))
+            if i in moment_at_index:
+                self._moments.append(moment_at_index[i].with_operations(ops_at_index[i]))
             else:
-                self._moments.append(Moment(opses[i]))
+                self._moments.append(Moment(ops_at_index[i]))
 
     def __copy__(self) -> 'cirq.Circuit':
         return self.copy()
