@@ -2749,6 +2749,30 @@ def test_transposed_diagram_exponent_order(circuit_cls):
     )
 
 
+@pytest.mark.parametrize('circuit_cls', [cirq.Circuit, cirq.FrozenCircuit])
+def test_transposed_diagram_can_depend_on_transpose(circuit_cls):
+    class TestGate(cirq.Gate):
+        def num_qubits(self):
+            return 1
+
+        def _circuit_diagram_info_(self, args):
+            return cirq.CircuitDiagramInfo(wire_symbols=("t" if args.transpose else "r",))
+
+    c = cirq.Circuit(TestGate()(cirq.NamedQubit("a")))
+
+    cirq.testing.assert_has_diagram(c, "a: ───r───")
+    cirq.testing.assert_has_diagram(
+        c,
+        """
+a
+│
+t
+│
+""",
+        transpose=True,
+    )
+
+
 def test_insert_moments():
     q = cirq.NamedQubit('q')
     c = cirq.Circuit()

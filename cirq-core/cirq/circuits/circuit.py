@@ -1241,6 +1241,7 @@ class AbstractCircuit(abc.ABC):
                 get_circuit_diagram_info=get_circuit_diagram_info,
                 include_tags=include_tags,
                 first_annotation_row=first_annotation_row,
+                transpose=transpose,
             )
 
         w = diagram.width()
@@ -2376,6 +2377,7 @@ def _draw_moment_annotations(
     ],
     include_tags: bool,
     first_annotation_row: int,
+    transpose: bool,
 ):
 
     for k, annotation in enumerate(_get_moment_annotations(moment)):
@@ -2386,6 +2388,7 @@ def _draw_moment_annotations(
             label_map=label_map,
             precision=precision,
             include_tags=include_tags,
+            transpose=transpose,
         )
         info = get_circuit_diagram_info(annotation, args)
         symbols = info._wire_symbols_including_formatted_exponent(args)
@@ -2407,6 +2410,7 @@ def _draw_moment_in_diagram(
     ],
     include_tags: bool,
     first_annotation_row: int,
+    transpose: bool,
 ):
     if get_circuit_diagram_info is None:
         get_circuit_diagram_info = circuit_diagram_info_protocol._op_info_with_fallback
@@ -2436,6 +2440,7 @@ def _draw_moment_in_diagram(
             label_map=label_map,
             precision=precision,
             include_tags=include_tags,
+            transpose=transpose,
         )
         info = get_circuit_diagram_info(op, args)
 
@@ -2464,6 +2469,7 @@ def _draw_moment_in_diagram(
         get_circuit_diagram_info=get_circuit_diagram_info,
         include_tags=include_tags,
         first_annotation_row=first_annotation_row,
+        transpose=transpose,
     )
 
     global_phase, tags = _get_global_phase_and_tags_for_ops(moment)

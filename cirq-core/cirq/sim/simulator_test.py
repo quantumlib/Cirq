@@ -555,3 +555,14 @@ def test_deprecated_create_act_on_args():
     sim = DeprecatedSim()
     with cirq.testing.assert_deprecated(deadline='v0.16'):
         sim.simulate_moment_steps(cirq.Circuit())
+
+
+def test_deprecated_setters():
+    step = FakeStepResult()
+    result = cirq.SimulationTrialResult(cirq.ParamResolver(), {}, 0)
+    with cirq.testing.assert_deprecated(deadline='v0.16'):
+        step.measurements = {}
+    with cirq.testing.assert_deprecated(deadline='v0.16'):
+        result.measurements = {}
+    with cirq.testing.assert_deprecated(deadline='v0.16'):
+        result.params = cirq.ParamResolver()

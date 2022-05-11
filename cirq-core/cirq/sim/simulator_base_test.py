@@ -441,3 +441,9 @@ def test_deprecated_create_partial_act_on_args():
     sim = DeprecatedSim()
     with cirq.testing.assert_deprecated(deadline='v0.16'):
         sim.simulate_moment_steps(cirq.Circuit())
+
+
+def test_deprecated_setters():
+    sim = CountingSimulator()
+    with cirq.testing.assert_deprecated(deadline='v0.16'):
+        sim.noise = cirq.ConstantQubitNoiseModel(cirq.Z)
