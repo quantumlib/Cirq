@@ -173,7 +173,9 @@ class MSGate(cirq.Gate):
     def _circuit_diagram_info_(
         self, args: 'cirq.CircuitDiagramInfoArgs'
     ) -> Union[str, 'protocols.CircuitDiagramInfo']:
-        return protocols.CircuitDiagramInfo(wire_symbols=(f'MS({self.phi0!r})',f'MS({self.phi1!r})'))
+        return protocols.CircuitDiagramInfo(
+            wire_symbols=(f'MS({self.phi0!r})', f'MS({self.phi1!r})')
+        )
 
     def __repr__(self) -> str:
         return f'cirq_ionq.MSGate(phi0={self.phi0!r}, phi1={self.phi1!r})'

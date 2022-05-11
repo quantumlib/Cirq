@@ -260,7 +260,9 @@ class _IonQClient:
         )
         return cast(str, target or self.default_target)
 
-    def _make_request(self, request: Callable[[], requests.Response], json: dict) -> requests.Response:
+    def _make_request(
+        self, request: Callable[[], requests.Response], json: dict
+    ) -> requests.Response:
         """Make a request to the API, retrying if necessary.
 
         Args:

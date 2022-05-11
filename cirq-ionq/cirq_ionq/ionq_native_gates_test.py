@@ -21,7 +21,12 @@ from .ionq_native_gates import GPIGate, GPI2Gate, MSGate
 
 
 @pytest.mark.parametrize(
-    "gate,nqubits,diagram", [(GPIGate(phi=0.1), 1, "0: ───GPI(0.1)───"), (GPI2Gate(phi=0.2), 1, "0: ───GPI2(0.2)───"), (MSGate(phi0=0.1, phi1=0.2), 2, "0: ───MS(0.1)───\n      │\n1: ───MS(0.2)───")]
+    "gate,nqubits,diagram",
+    [
+        (GPIGate(phi=0.1), 1, "0: ───GPI(0.1)───"),
+        (GPI2Gate(phi=0.2), 1, "0: ───GPI2(0.2)───"),
+        (MSGate(phi0=0.1, phi1=0.2), 2, "0: ───MS(0.1)───\n      │\n1: ───MS(0.2)───"),
+    ],
 )
 def test_gate_methods(gate, nqubits, diagram):
     assert str(gate) != ""
