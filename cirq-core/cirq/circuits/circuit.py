@@ -1794,7 +1794,7 @@ class Circuit(AbstractCircuit):
                 ckey_indexes[k] = i
             length = max(length, i + 1)
 
-        # Finally once everything is placed, we can construct and append the actual moments for
+        # Finally, once everything is placed, we can construct and append the actual moments for
         # each index.
         for i in range(length):
             if i in moment_at_index:
