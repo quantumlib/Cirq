@@ -303,9 +303,9 @@ class _IonQClient:
                 if not _is_retriable(response.status_code):
                     error = {}
                     try:
-                      error = response.json()
+                        error = response.json()
                     except json.decoder.JSONDecodeError:
-                      pass  # Ignore invalid/missing JSON.
+                        pass  # Ignore invalid/missing JSON.
                     raise ionq_exceptions.IonQException(
                         'Non-retry-able error making request to IonQ API. '
                         f'Request Body: {json} '
