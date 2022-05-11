@@ -61,7 +61,7 @@ class GPIGate(cirq.Gate):
     def _circuit_diagram_info_(
         self, args: 'cirq.CircuitDiagramInfoArgs'
     ) -> Union[str, 'protocols.CircuitDiagramInfo']:
-        return protocols.CircuitDiagramInfo(wire_symbols=('GPI',), exponent=self.phase)
+        return protocols.CircuitDiagramInfo(wire_symbols=(f'GPI({self.phase!r})',))
 
 
 GPI = GPIGate(phi=0)
@@ -103,7 +103,7 @@ class GPI2Gate(cirq.Gate):
     def _circuit_diagram_info_(
         self, args: 'cirq.CircuitDiagramInfoArgs'
     ) -> Union[str, 'protocols.CircuitDiagramInfo']:
-        return protocols.CircuitDiagramInfo(wire_symbols=('GPI2',), exponent=self.phase)
+        return protocols.CircuitDiagramInfo(wire_symbols=(f'GPI2({self.phase!r})',))
 
     def _num_qubits_(self) -> int:
         return 1
@@ -173,7 +173,9 @@ class MSGate(cirq.Gate):
     def _circuit_diagram_info_(
         self, args: 'cirq.CircuitDiagramInfoArgs'
     ) -> Union[str, 'protocols.CircuitDiagramInfo']:
-        return protocols.CircuitDiagramInfo(wire_symbols=('MS',), exponent=self.phases)
+        return protocols.CircuitDiagramInfo(
+            wire_symbols=(f'MS({self.phi0!r})', f'MS({self.phi1!r})')
+        )
 
     def __repr__(self) -> str:
         return f'cirq_ionq.MSGate(phi0={self.phi0!r}, phi1={self.phi1!r})'

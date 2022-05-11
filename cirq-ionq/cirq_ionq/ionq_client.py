@@ -132,7 +132,7 @@ class _IonQClient:
         def request():
             return requests.post(f'{self.url}/jobs', json=json, headers=self.headers)
 
-        return self._make_request(request).json()
+        return self._make_request(request, {}).json()
 
     def get_job(self, job_id: str) -> dict:
         """Get the job from the IonQ API.
@@ -151,7 +151,7 @@ class _IonQClient:
         def request():
             return requests.get(f'{self.url}/jobs/{job_id}', headers=self.headers)
 
-        return self._make_request(request).json()
+        return self._make_request(request, {}).json()
 
     def list_jobs(
         self, status: Optional[str] = None, limit: int = 100, batch_size: int = 1000
@@ -190,7 +190,7 @@ class _IonQClient:
         def request():
             return requests.put(f'{self.url}/jobs/{job_id}/status/cancel', headers=self.headers)
 
-        return self._make_request(request).json()
+        return self._make_request(request, {}).json()
 
     def delete_job(self, job_id: str) -> dict:
         """Permanently delete the job on the IonQ API.
@@ -205,7 +205,7 @@ class _IonQClient:
         def request():
             return requests.delete(f'{self.url}/jobs/{job_id}', headers=self.headers)
 
-        return self._make_request(request).json()
+        return self._make_request(request, {}).json()
 
     def get_current_calibration(self) -> dict:
         """Returns the current calibration as an `cirq_ionq.Calibration` object.
@@ -216,7 +216,7 @@ class _IonQClient:
         def request():
             return requests.get(f'{self.url}/calibrations/current', headers=self.headers)
 
-        return self._make_request(request).json()
+        return self._make_request(request, {}).json()
 
     def list_calibrations(
         self,
@@ -260,11 +260,14 @@ class _IonQClient:
         )
         return cast(str, target or self.default_target)
 
-    def _make_request(self, request: Callable[[], requests.Response]) -> requests.Response:
+    def _make_request(
+        self, request: Callable[[], requests.Response], json: dict
+    ) -> requests.Response:
         """Make a request to the API, retrying if necessary.
 
         Args:
             request: A function that returns a `requests.Response`.
+            json: POST body to be logged on failures.
 
         Returns:
             The request.Response from the final successful request call.
@@ -296,6 +299,7 @@ class _IonQClient:
                 if not _is_retriable(response.status_code):
                     raise ionq_exceptions.IonQException(
                         'Non-retry-able error making request to IonQ API. '
+                        f'Request Body: {json} '
                         f'Status: {response.status_code} '
                         f'Error :{response.reason}',
                         response.status_code,
@@ -346,7 +350,7 @@ class _IonQClient:
                     params=full_params,
                 )
 
-            response = self._make_request(request).json()
+            response = self._make_request(request, json).json()
             results.extend(response[response_key])
             if 'next' not in response:
                 break
