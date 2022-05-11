@@ -1373,7 +1373,7 @@ def test_separated_states_str_does_not_merge():
     result = cirq.Simulator().simulate(circuit)
     assert (
         str(result)
-        == """measurements: q0=0 q1=0
+        == """measurements: q(0)=0 q(1)=0
 
 qubits: (cirq.LineQubit(0),)
 output vector: 0.707|0⟩ + 0.707|1⟩
@@ -1405,7 +1405,7 @@ def test_unseparated_states_str():
     result = cirq.Simulator(split_untangled_states=False).simulate(circuit)
     assert (
         str(result)
-        == """measurements: q0=0 q1=0
+        == """measurements: q(0)=0 q(1)=0
 
 qubits: (cirq.LineQubit(0), cirq.LineQubit(1))
 output vector: 0.707j|00⟩ + 0.707j|10⟩"""
