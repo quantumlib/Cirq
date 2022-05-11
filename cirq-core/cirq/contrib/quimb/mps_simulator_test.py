@@ -379,43 +379,6 @@ def test_tensor_index_names():
     assert state.mu_str(3, 0) == "mu_0_3"
 
 
-def test_random_circuit_big():
-    circuit = cirq.testing.random_circuit(
-        qubits=cirq.GridQubit.rect(4, 3),
-        n_moments=3,
-        op_density=1.0,
-        gate_domain={cirq.CZ: 2},
-        random_state=np.random.RandomState(0),
-    )
-    qubit_order = circuit.all_qubits()
-    q0 = next(iter(qubit_order))
-    circuit.append(cirq.measure(q0))
-
-    mps_simulator_1 = ccq.mps_simulator.MPSSimulator(
-        simulation_options=ccq.mps_simulator.MPSOptions(cutoff=5e-5)
-    )
-    result_1 = mps_simulator_1.simulate(circuit, qubit_order=qubit_order, initial_state=0)
-
-    assert result_1.final_state.estimation_stats() == {
-        'estimated_fidelity': 0.998,
-        'memory_bytes': 512,
-        'num_coefs_used': 32,
-    }
-
-    mps_simulator_2 = ccq.mps_simulator.MPSSimulator(
-        simulation_options=ccq.mps_simulator.MPSOptions(
-            method='isvd', max_bond=1, cutoff_mode='sum2'
-        )
-    )
-    result_2 = mps_simulator_2.simulate(circuit, qubit_order=qubit_order, initial_state=0)
-
-    assert result_2.final_state.estimation_stats() == {
-        'estimated_fidelity': 1.0,
-        'memory_bytes': 512,
-        'num_coefs_used': 32,
-    }
-
-
 def test_simulate_moment_steps_sample():
     q0, q1 = cirq.LineQubit.range(2)
     circuit = cirq.Circuit(cirq.H(q0), cirq.CNOT(q0, q1))
