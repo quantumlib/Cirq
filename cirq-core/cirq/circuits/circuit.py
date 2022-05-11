@@ -1759,7 +1759,7 @@ class Circuit(AbstractCircuit):
 
             # Both branches define `i`, the moment index at which to place the mop.
             if isinstance(mop, Moment):
-                # We always append moment to the end, as does `self.append`
+                # We always append moment to the end, to be consistent with `self.append`
                 i = length
                 moments[i] = mop
             else:
