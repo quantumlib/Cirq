@@ -159,7 +159,7 @@ def main(num_qubits=8):
     # Run simulations.
     repetitions = 1
     result = cirq.Simulator().run(program=alice_eve_circuit, repetitions=repetitions)
-    eve_state = [int(result.measurements[str(i)]) for i in range(num_qubits)]
+    eve_state = [int(result.measurements[str(q)]) for q in cirq.LineQubit.range(num_qubits)]
 
     eve_bob_circuit = make_bb84_circ(num_qubits, eve_basis, bob_basis, eve_state)
 
