@@ -24,7 +24,7 @@ if TYPE_CHECKING:
 
 @value.value_equality
 class WaitGate(raw_types.Gate):
-    """A single-qubit idle gate that represents waiting.
+    r"""An idle gate that represents waiting.
 
     In non-noisy simulators, this gate is just an identity gate. But noisy
     simulators and noise models may insert more error for longer waits.
