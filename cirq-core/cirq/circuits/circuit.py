@@ -1736,7 +1736,7 @@ class Circuit(AbstractCircuit):
                 Non-moment entries will be inserted according to the EARLIEST
                 insertion strategy.
         """
-        # Initialize dicts from the qubit/key to the greatest moment index that has it. It is safe
+        # These are dicts from the qubit/key to the greatest moment index that has it. It is safe
         # to default to `-1`, as that is interpreted as meaning the zeroth index onward does not
         # have this value.
         qubits: Dict['cirq.Qid', int] = defaultdict(lambda: -1)
@@ -1763,15 +1763,16 @@ class Circuit(AbstractCircuit):
                 i = length
                 moments[i] = mop
             else:
-                # Initially we define `i` as the greatest moment index that has a conflict. We
-                # increment it at the end of the branch.
+                # Initially we define `i` as the greatest moment index that has a conflict. `-1` is
+                # the initial conflict, and we search for larger ones. Once we get the largest one,
+                # we increment i by 1 to set the placement index.
                 i = -1
 
-                # Look for the maximum conflict; i.e. a moment that has the same qubit as this op,
-                # that has a measurement or control key the same as of of this op's measurement
-                # keys, or that has a measurement key the same as one of this op's control keys.
-                # (Control keys alone can commute past each other). The `ifs` are logically
-                # unnecessary but seem to make this slightly faster.
+                # Look for the maximum conflict; i.e. a moment that has a qubit the same as one of
+                # this op's qubits, that has a measurement or control key the same as one of this
+                # op's measurement keys, or that has a measurement key the same as one of this op's
+                # control keys. (Control keys alone can commute past each other). The `ifs` are
+                # logically unnecessary but seem to make this slightly faster.
                 if mop_qubits:
                     i = max(i, *[qubits[q] for q in mop_qubits])
                 if mop_mkeys:
@@ -1782,7 +1783,8 @@ class Circuit(AbstractCircuit):
                 opses[i].append(mop)
 
             # Update our dicts with data from the latest mop placement. Note `i` will always be
-            # greater than the existing value for all of these, so this is safe.
+            # greater than the existing value for all of these, by construction, so there is no
+            # need to do a `max(i, existing)`.
             for q in mop_qubits:
                 qubits[q] = i
             for k in mop_mkeys:
