@@ -789,7 +789,19 @@ class StepResult(Generic[TSimulatorState], metaclass=abc.ABCMeta):
 
     def __init__(self, sim_state: TSimulatorState) -> None:
         self._sim_state = sim_state
-        self.measurements = sim_state.log_of_measurement_results
+        self._measurements = sim_state.log_of_measurement_results
+
+    @property
+    def measurements(self) -> Mapping[str, Sequence[int]]:
+        return self._measurements
+
+    @measurements.setter  # type: ignore
+    @_compat.deprecated(
+        deadline="v0.16",
+        fix="The mutators of this class are deprecated, instantiate a new object instead.",
+    )
+    def measurements(self, measurements: Mapping[str, Sequence[int]]):
+        self._measurements = measurements
 
     def _simulator_state(self) -> TSimulatorState:
         """Returns the simulator state of the simulator after this step.
@@ -986,22 +998,46 @@ class SimulationTrialResult(Generic[TSimulatorState]):
     def __init__(
         self,
         params: 'cirq.ParamResolver',
-        measurements: Dict[str, np.ndarray],
+        measurements: Mapping[str, np.ndarray],
         final_simulator_state: TSimulatorState,
     ) -> None:
         """Initializes the `SimulationTrialResult` class.
 
         Args:
             params: A ParamResolver of settings used for this result.
-            measurements: A dictionary from measurement gate key to measurement
+            measurements: A mapping from measurement gate key to measurement
                 results. Measurement results are a numpy ndarray of actual
                 boolean measurement results (ordered by the qubits acted on by
                 the measurement gate.)
             final_simulator_state: The final simulator state.
         """
-        self.params = params
-        self.measurements = measurements
+        self._params = params
+        self._measurements = measurements
         self._final_simulator_state = final_simulator_state
+
+    @property
+    def params(self) -> 'cirq.ParamResolver':
+        return self._params
+
+    @params.setter  # type: ignore
+    @_compat.deprecated(
+        deadline='v0.16',
+        fix='The mutators of this class are deprecated, instantiate a new object instead.',
+    )
+    def params(self, params: 'cirq.ParamResolver'):
+        self._params = params
+
+    @property
+    def measurements(self) -> Mapping[str, np.ndarray]:
+        return self._measurements
+
+    @measurements.setter  # type: ignore
+    @_compat.deprecated(
+        deadline="v0.16",
+        fix="The mutators of this class are deprecated, instantiate a new object instead.",
+    )
+    def measurements(self, measurements: Mapping[str, np.ndarray]):
+        self._measurements = measurements
 
     def __repr__(self) -> str:
         return (

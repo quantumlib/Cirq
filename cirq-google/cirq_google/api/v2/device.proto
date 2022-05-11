@@ -22,6 +22,7 @@ message DeviceSpecification {
   // A list of allowed ids for qubits within the Program.
   // Any programs with ids not in this list will be rejected.
   // If empty, all qubit values are allowed (e.g. in a simulator)
+  // Only grid qubits are supported. Strings must be in the form '<int>_<int>'.
   repeated string valid_qubits = 2;
 
   // A list of targets that gates can use.
