@@ -76,7 +76,6 @@ class PasqalDevice(cirq.devices.Device):
             cirq.IdentityGate,
             cirq.MeasurementGate,
             unroll_circuit_op=False,
-            accept_global_phase_op=False,
         )
         self.qubits = qubits
         self._metadata = cirq.DeviceMetadata(
@@ -96,10 +95,7 @@ class PasqalDevice(cirq.devices.Device):
     def metadata(self):
         return self._metadata
 
-    @_compat.deprecated(
-        fix='Use metadata.qubit_set() if applicable.',
-        deadline='v0.15',
-    )
+    @_compat.deprecated(fix='Use metadata.qubit_set() if applicable.', deadline='v0.15')
     def qubit_set(self) -> FrozenSet[cirq.Qid]:
         return frozenset(self.qubits)
 
@@ -265,18 +261,12 @@ class PasqalVirtualDevice(PasqalDevice):
             cirq.AnyIntegerPowerGateFamily(cirq.CCZPowGate),
         )
         self.controlled_gateset = cirq.Gateset(
-            *self.exclude_gateset.gates,
-            cirq.AnyIntegerPowerGateFamily(cirq.CZPowGate),
+            *self.exclude_gateset.gates, cirq.AnyIntegerPowerGateFamily(cirq.CZPowGate)
         )
 
     @property
     def supported_qubit_type(self):
-        return (
-            ThreeDQubit,
-            TwoDQubit,
-            GridQubit,
-            LineQubit,
-        )
+        return (ThreeDQubit, TwoDQubit, GridQubit, LineQubit)
 
     def is_pasqal_device_op(self, op: cirq.Operation) -> bool:
         return super().is_pasqal_device_op(op) and op not in self.exclude_gateset
@@ -365,27 +355,6 @@ class PasqalVirtualDevice(PasqalDevice):
 
     def _json_dict_(self) -> Dict[str, Any]:
         return cirq.protocols.obj_to_dict_helper(self, ['control_radius', 'qubits'])
-
-    @_compat.deprecated(
-        deadline='v0.15',
-        fix='qubit coupling data can now be found in device.metadata if provided.',
-    )
-    def qid_pairs(self) -> FrozenSet['cirq.SymmetricalQidPair']:
-        """Returns a list of qubit edges on the device.
-
-        Returns:
-            All qubit pairs that are less or equal to the control radius apart.
-        """
-        with _compat.block_overlapping_deprecation('device\\.metadata'):
-            qs = self.qubits
-            return frozenset(
-                [
-                    cirq.SymmetricalQidPair(q, q2)
-                    for q in qs
-                    for q2 in qs
-                    if q < q2 and self.distance(q, q2) <= self.control_radius
-                ]
-            )
 
 
 class PasqalConverter(cirq.neutral_atoms.ConvertToNeutralAtomGates):

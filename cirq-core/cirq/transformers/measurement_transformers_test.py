@@ -24,7 +24,7 @@ def assert_equivalent_to_deferred(circuit: cirq.Circuit):
     qubits = list(circuit.all_qubits())
     sim = cirq.Simulator()
     num_qubits = len(qubits)
-    for i in range(2 ** num_qubits):
+    for i in range(2**num_qubits):
         bits = cirq.big_endian_int_to_bits(i, bit_count=num_qubits)
         modified = cirq.Circuit()
         for j in range(num_qubits):
@@ -35,23 +35,6 @@ def assert_equivalent_to_deferred(circuit: cirq.Circuit):
         result = sim.simulate(modified)
         result1 = sim.simulate(deferred)
         np.testing.assert_equal(result.measurements, result1.measurements)
-
-
-def assert_equivalent_to_dephased(circuit: cirq.Circuit):
-    qubits = list(circuit.all_qubits())
-    with cirq.testing.assert_deprecated('ignore_measurement_results', deadline='v0.15', count=None):
-        sim = cirq.DensityMatrixSimulator(ignore_measurement_results=True)
-        num_qubits = len(qubits)
-        backwards = list(circuit.all_operations())[::-1]
-        for j in range(num_qubits):
-            backwards.append(cirq.H(qubits[j]) ** np.random.rand())
-        modified = cirq.Circuit(backwards[::-1])
-        for j in range(num_qubits):
-            modified.append(cirq.H(qubits[j]) ** np.random.rand())
-        dephased = cirq.dephase_measurements(modified)
-        result = sim.simulate(modified)
-        result1 = sim.simulate(dephased)
-        np.testing.assert_almost_equal(result.final_density_matrix, result1.final_density_matrix)
 
 
 def test_basic():
@@ -289,10 +272,7 @@ def test_repr():
 
 def test_multi_qubit_control():
     q0, q1 = cirq.LineQubit.range(2)
-    circuit = cirq.Circuit(
-        cirq.measure(q0, q1, key='a'),
-        cirq.X(q1).with_classical_controls('a'),
-    )
+    circuit = cirq.Circuit(cirq.measure(q0, q1, key='a'), cirq.X(q1).with_classical_controls('a'))
     with pytest.raises(ValueError, match='Only single qubit conditions are allowed'):
         _ = cirq.defer_measurements(circuit)
 
@@ -300,8 +280,7 @@ def test_multi_qubit_control():
 def test_sympy_control():
     q0, q1 = cirq.LineQubit.range(2)
     circuit = cirq.Circuit(
-        cirq.measure(q0, q1, key='a'),
-        cirq.X(q1).with_classical_controls(sympy.Symbol('a')),
+        cirq.measure(q0, q1, key='a'), cirq.X(q1).with_classical_controls(sympy.Symbol('a'))
     )
     with pytest.raises(ValueError, match='Only KeyConditions are allowed'):
         _ = cirq.defer_measurements(circuit)
@@ -319,7 +298,6 @@ def test_dephase():
             )
         )
     )
-    assert_equivalent_to_dephased(circuit)
     dephased = cirq.dephase_measurements(circuit)
     cirq.testing.assert_same_circuits(
         dephased,
@@ -360,7 +338,7 @@ def test_dephase_nocompile_context():
         )
     )
     dephased = cirq.dephase_measurements(
-        circuit, context=cirq.TransformerContext(tags_to_ignore=('nocompile',))
+        circuit, context=cirq.TransformerContext(deep=True, tags_to_ignore=('nocompile',))
     )
     cirq.testing.assert_same_circuits(
         dephased,
@@ -375,3 +353,36 @@ def test_dephase_nocompile_context():
             )
         ),
     )
+
+
+def test_drop_terminal():
+    q0, q1 = cirq.LineQubit.range(2)
+    circuit = cirq.Circuit(
+        cirq.CircuitOperation(
+            cirq.FrozenCircuit(cirq.CX(q0, q1), cirq.measure(q0, q1, key='a~b', invert_mask=[0, 1]))
+        )
+    )
+    dropped = cirq.drop_terminal_measurements(circuit)
+    cirq.testing.assert_same_circuits(
+        dropped,
+        cirq.Circuit(
+            cirq.CircuitOperation(cirq.FrozenCircuit(cirq.CX(q0, q1), cirq.I(q0), cirq.X(q1)))
+        ),
+    )
+
+
+def test_drop_terminal_nonterminal_error():
+    q0, q1 = cirq.LineQubit.range(2)
+    circuit = cirq.Circuit(
+        cirq.CircuitOperation(
+            cirq.FrozenCircuit(cirq.measure(q0, q1, key='a~b', invert_mask=[0, 1]), cirq.CX(q0, q1))
+        )
+    )
+    with pytest.raises(ValueError, match='Circuit contains a non-terminal measurement'):
+        _ = cirq.drop_terminal_measurements(circuit)
+
+    with pytest.raises(ValueError, match='Context has `deep=False`'):
+        _ = cirq.drop_terminal_measurements(circuit, context=cirq.TransformerContext(deep=False))
+
+    with pytest.raises(ValueError, match='Context has `deep=False`'):
+        _ = cirq.drop_terminal_measurements(circuit, context=None)

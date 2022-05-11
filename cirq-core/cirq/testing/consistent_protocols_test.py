@@ -25,12 +25,9 @@ from cirq.type_workarounds import NotImplementedType
 import cirq.testing.consistent_controlled_gate_op_test as controlled_gate_op_test
 
 
-class GoodGate(cirq.SingleQubitGate):
+class GoodGate(cirq.testing.SingleQubitGate):
     def __init__(
-        self,
-        *,
-        phase_exponent: Union[float, sympy.Symbol],
-        exponent: Union[float, sympy.Symbol] = 1.0,
+        self, *, phase_exponent: Union[float, sympy.Expr], exponent: Union[float, sympy.Expr] = 1.0
     ) -> None:
         self.phase_exponent = cirq.canonicalize_half_turns(phase_exponent)
         self.exponent = exponent
@@ -41,8 +38,8 @@ class GoodGate(cirq.SingleQubitGate):
     def _unitary_(self) -> Union[np.ndarray, NotImplementedType]:
         if cirq.is_parameterized(self):
             return NotImplemented
-        z = cirq.unitary(cirq.Z ** self.phase_exponent)
-        x = cirq.unitary(cirq.X ** self.exponent)
+        z = cirq.unitary(cirq.Z**self.phase_exponent)
+        x = cirq.unitary(cirq.X**self.exponent)
         return np.dot(np.dot(z, x), np.conj(z))
 
     def _apply_unitary_(self, args: cirq.ApplyUnitaryArgs) -> Union[np.ndarray, NotImplementedType]:
@@ -65,7 +62,7 @@ class GoodGate(cirq.SingleQubitGate):
         q = qubits[0]
         z = cirq.Z(q) ** self.phase_exponent
         x = cirq.X(q) ** self.exponent
-        return z ** -1, x, z
+        return z**-1, x, z
 
     def _pauli_expansion_(self) -> cirq.LinearDict[str]:
         if self._is_parameterized_():
@@ -87,7 +84,7 @@ class GoodGate(cirq.SingleQubitGate):
             exponent=self.exponent, phase_exponent=self.phase_exponent + phase_turns * 2
         )
 
-    def __pow__(self, exponent: Union[float, sympy.Symbol]) -> 'GoodGate':
+    def __pow__(self, exponent: Union[float, sympy.Expr]) -> 'GoodGate':
         new_exponent = cirq.mul(self.exponent, exponent, NotImplemented)
         if new_exponent is NotImplemented:
             # coverage: ignore
@@ -159,7 +156,7 @@ class BadGateDecompose(GoodGate):
         if cirq.is_parameterized(z):
             # coverage: ignore
             return NotImplemented
-        return z ** -1, x, z
+        return z**-1, x, z
 
 
 class BadGatePauliExpansion(GoodGate):
@@ -184,12 +181,9 @@ class BadGateRepr(GoodGate):
         return f"BadGateRepr({', '.join(args)})"
 
 
-class GoodEigenGate(cirq.EigenGate, cirq.SingleQubitGate):
+class GoodEigenGate(cirq.EigenGate, cirq.testing.SingleQubitGate):
     def _eigen_components(self) -> List[Tuple[float, np.ndarray]]:
-        return [
-            (0, np.diag([1, 0])),
-            (1, np.diag([0, 1])),
-        ]
+        return [(0, np.diag([1, 0])), (1, np.diag([0, 1]))]
 
     def __repr__(self):
         return 'GoodEigenGate(exponent={}, global_shift={!r})'.format(

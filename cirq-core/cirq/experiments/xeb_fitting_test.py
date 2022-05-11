@@ -103,15 +103,12 @@ def _gridqubits_to_graph_device(qubits: Iterable[cirq.GridQubit]):
 
 def test_benchmark_2q_xeb_fidelities_parallel():
     circuits = rqcg.generate_library_of_2q_circuits(
-        n_library_circuits=5, two_qubit_gate=cirq.ISWAP ** 0.5, max_cycle_depth=4
+        n_library_circuits=5, two_qubit_gate=cirq.ISWAP**0.5, max_cycle_depth=4
     )
     cycle_depths = [2, 3, 4]
     graph = _gridqubits_to_graph_device(cirq.GridQubit.rect(2, 2))
     combs = rqcg.get_random_combinations_for_device(
-        n_library_circuits=len(circuits),
-        n_combinations=2,
-        device_graph=graph,
-        random_state=10,
+        n_library_circuits=len(circuits), n_combinations=2, device_graph=graph, random_state=10
     )
 
     sampled_df = sample_2q_xeb_circuits(
@@ -155,7 +152,7 @@ def test_benchmark_2q_xeb_fidelities_vectorized():
     D = 4  # two qubits
     pure_probs = np.array(df['pure_probs'].to_list())
     sampled_probs = np.array(df['sampled_probs'].to_list())
-    df['e_u'] = np.sum(pure_probs ** 2, axis=1)
+    df['e_u'] = np.sum(pure_probs**2, axis=1)
     df['u_u'] = np.sum(pure_probs, axis=1) / D
     df['m_u'] = np.sum(pure_probs * sampled_probs, axis=1)
     df['y'] = df['m_u'] - df['u_u']
@@ -211,11 +208,7 @@ def test_characterize_phased_fsim_parameters_with_xeb():
     rs = np.random.RandomState(52)
     circuits = [
         rqcg.random_rotations_between_two_qubit_circuit(
-            q0,
-            q1,
-            depth=20,
-            two_qubit_op_factory=lambda a, b, _: cirq.SQRT_ISWAP(a, b),
-            seed=rs,
+            q0, q1, depth=20, two_qubit_op_factory=lambda a, b, _: cirq.SQRT_ISWAP(a, b), seed=rs
         )
         for _ in range(2)
     ]
@@ -258,17 +251,14 @@ def test_characterize_phased_fsim_parameters_with_xeb():
 def test_parallel_full_workflow(use_pool):
     circuits = rqcg.generate_library_of_2q_circuits(
         n_library_circuits=5,
-        two_qubit_gate=cirq.ISWAP ** 0.5,
+        two_qubit_gate=cirq.ISWAP**0.5,
         max_cycle_depth=4,
         random_state=8675309,
     )
     cycle_depths = [2, 3, 4]
     graph = _gridqubits_to_graph_device(cirq.GridQubit.rect(2, 2))
     combs = rqcg.get_random_combinations_for_device(
-        n_library_circuits=len(circuits),
-        n_combinations=2,
-        device_graph=graph,
-        random_state=10,
+        n_library_circuits=len(circuits), n_combinations=2, device_graph=graph, random_state=10
     )
 
     sampled_df = sample_2q_xeb_circuits(
@@ -284,10 +274,7 @@ def test_parallel_full_workflow(use_pool):
         pool = None
 
     fids_df_0 = benchmark_2q_xeb_fidelities(
-        sampled_df=sampled_df,
-        circuits=circuits,
-        cycle_depths=cycle_depths,
-        pool=pool,
+        sampled_df=sampled_df, circuits=circuits, cycle_depths=cycle_depths, pool=pool
     )
 
     options = SqrtISwapXEBOptions(
@@ -328,7 +315,7 @@ def test_parallel_full_workflow(use_pool):
 def test_fit_exponential_decays():
     rs = np.random.RandomState(999)
     cycle_depths = np.arange(3, 100, 11)
-    fidelities = 0.95 * 0.98 ** cycle_depths + rs.normal(0, 0.2)
+    fidelities = 0.95 * 0.98**cycle_depths + rs.normal(0, 0.2)
     a, layer_fid, a_std, layer_fid_std = _fit_exponential_decay(cycle_depths, fidelities)
     np.testing.assert_allclose([a, layer_fid], [0.95, 0.98], atol=0.02)
     assert 0 < a_std < 0.2 / len(cycle_depths)
@@ -338,7 +325,7 @@ def test_fit_exponential_decays():
 def test_fit_exponential_decays_negative_fids():
     rs = np.random.RandomState(999)
     cycle_depths = np.arange(3, 100, 11)
-    fidelities = 0.5 * 0.5 ** cycle_depths + rs.normal(0, 0.2) - 0.5
+    fidelities = 0.5 * 0.5**cycle_depths + rs.normal(0, 0.2) - 0.5
     assert np.sum(fidelities > 0) <= 1, 'they go negative'
     a, layer_fid, a_std, layer_fid_std = _fit_exponential_decay(cycle_depths, fidelities)
     assert a == 0
@@ -348,9 +335,9 @@ def test_fit_exponential_decays_negative_fids():
 
 
 def test_options_with_defaults_from_gate():
-    options = XEBPhasedFSimCharacterizationOptions().with_defaults_from_gate(cirq.ISWAP ** 0.5)
+    options = XEBPhasedFSimCharacterizationOptions().with_defaults_from_gate(cirq.ISWAP**0.5)
     np.testing.assert_allclose(options.theta_default, -np.pi / 4)
-    options = XEBPhasedFSimCharacterizationOptions().with_defaults_from_gate(cirq.ISWAP ** -0.5)
+    options = XEBPhasedFSimCharacterizationOptions().with_defaults_from_gate(cirq.ISWAP**-0.5)
     np.testing.assert_allclose(options.theta_default, np.pi / 4)
 
     options = XEBPhasedFSimCharacterizationOptions().with_defaults_from_gate(

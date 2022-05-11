@@ -16,14 +16,8 @@ from typing import List, Tuple
 import cirq
 
 from cirq.devices.insertion_noise_model import InsertionNoiseModel
-from cirq.devices.noise_properties import (
-    NoiseProperties,
-    NoiseModelFromNoiseProperties,
-)
-from cirq.devices.noise_utils import (
-    OpIdentifier,
-    PHYSICAL_GATE_TAG,
-)
+from cirq.devices.noise_properties import NoiseProperties, NoiseModelFromNoiseProperties
+from cirq.devices.noise_utils import OpIdentifier, PHYSICAL_GATE_TAG
 
 
 # These properties are for testing purposes only - they are not representative
@@ -60,3 +54,11 @@ def test_sample_model():
         cirq.Moment(cirq.H(q0), cirq.H(q1)),
     )
     assert noisy_circuit == expected_circuit
+
+
+def test_deprecated_virtual_predicate():
+    q0, q1 = cirq.LineQubit.range(2)
+    props = SampleNoiseProperties([q0, q1], [(q0, q1), (q1, q0)])
+    model = NoiseModelFromNoiseProperties(props)
+    with cirq.testing.assert_deprecated("Use is_virtual", deadline="v0.16"):
+        _ = model.virtual_predicate(cirq.X(q0))

@@ -71,7 +71,7 @@ class MatrixGate(raw_types.Gate):
 
         if qid_shape is None:
             n = int(np.round(np.log2(matrix.shape[0] or 1)))
-            if 2 ** n != matrix.shape[0]:
+            if 2**n != matrix.shape[0]:
                 raise ValueError(
                     f'Matrix width ({matrix.shape[0]}) is not a power of 2 and '
                     f'qid_shape is not specified.'
@@ -93,10 +93,7 @@ class MatrixGate(raw_types.Gate):
             raise ValueError(f'Not a unitary matrix: {self._matrix}')
 
     def _json_dict_(self) -> Dict[str, Any]:
-        return {
-            'matrix': self._matrix.tolist(),
-            'qid_shape': self._qid_shape,
-        }
+        return {'matrix': self._matrix.tolist(), 'qid_shape': self._qid_shape}
 
     @classmethod
     def _from_json_dict_(cls, matrix, qid_shape, **kwargs):
@@ -109,7 +106,7 @@ class MatrixGate(raw_types.Gate):
         if not isinstance(exponent, (int, float)):
             return NotImplemented
         e = cast(float, exponent)
-        new_mat = linalg.map_eigenvalues(self._matrix, lambda b: b ** e)
+        new_mat = linalg.map_eigenvalues(self._matrix, lambda b: b**e)
         return MatrixGate(new_mat, qid_shape=self._qid_shape)
 
     def _phase_by_(self, phase_turns: float, qubit_index: int) -> 'MatrixGate':

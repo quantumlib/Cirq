@@ -55,7 +55,7 @@ def test_distance_3d():
         for y in np.arange(-2, 3):
             for z in np.arange(-2, 3):
                 assert ThreeDQubit(0, 0, 0).distance(ThreeDQubit(x, y, z)) == np.sqrt(
-                    x ** 2 + y ** 2 + z ** 2
+                    x**2 + y**2 + z**2
                 )
 
 
@@ -164,14 +164,7 @@ def test_str():
 def test_to_json():
     q = ThreeDQubit(1.3, 1, 1)
     d = q._json_dict_()
-    assert d == {
-        'x': 1.3,
-        'y': 1,
-        'z': 1,
-    }
+    assert d == {'x': 1.3, 'y': 1, 'z': 1}
     q = TwoDQubit(1.3, 1)
     d = q._json_dict_()
-    assert d == {
-        'x': 1.3,
-        'y': 1,
-    }
+    assert d == {'x': 1.3, 'y': 1}

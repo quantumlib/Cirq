@@ -1,0 +1,653 @@
+{
+  "cirq_type": "GoogleNoiseProperties",
+  "gate_times_ns": [
+    [
+      "ZPowGate",
+      25.0
+    ],
+    [
+      "MeasurementGate",
+      4000.0
+    ],
+    [
+      "ResetChannel",
+      250.0
+    ],
+    [
+      "PhasedXZGate",
+      25.0
+    ],
+    [
+      "FSimGate",
+      32.0
+    ],
+    [
+      "ISwapPowGate",
+      32.0
+    ],
+    [
+      "CZPowGate",
+      32.0
+    ]
+  ],
+  "t1_ns": [
+    [
+      {
+        "cirq_type": "GridQubit",
+        "row": 0,
+        "col": 0
+      },
+      10000.0
+    ],
+    [
+      {
+        "cirq_type": "GridQubit",
+        "row": 0,
+        "col": 1
+      },
+      20000.0
+    ],
+    [
+      {
+        "cirq_type": "GridQubit",
+        "row": 1,
+        "col": 0
+      },
+      30000.0
+    ]
+  ],
+  "tphi_ns": [
+    [
+      {
+        "cirq_type": "GridQubit",
+        "row": 0,
+        "col": 0
+      },
+      10000000000.0
+    ],
+    [
+      {
+        "cirq_type": "GridQubit",
+        "row": 0,
+        "col": 1
+      },
+      10000000000.0
+    ],
+    [
+      {
+        "cirq_type": "GridQubit",
+        "row": 1,
+        "col": 0
+      },
+      375000.00000000047
+    ]
+  ],
+  "readout_errors": [
+    [
+      {
+        "cirq_type": "GridQubit",
+        "row": 0,
+        "col": 0
+      },
+      [
+        0.004,
+        0.007
+      ]
+    ],
+    [
+      {
+        "cirq_type": "GridQubit",
+        "row": 0,
+        "col": 1
+      },
+      [
+        0.005,
+        0.008
+      ]
+    ],
+    [
+      {
+        "cirq_type": "GridQubit",
+        "row": 1,
+        "col": 0
+      },
+      [
+        0.006,
+        0.009
+      ]
+    ]
+  ],
+  "gate_pauli_errors": [
+    [
+      {
+        "cirq_type": "OpIdentifier",
+        "gate_type": "ZPowGate",
+        "qubits": [
+          {
+            "cirq_type": "GridQubit",
+            "row": 0,
+            "col": 0
+          }
+        ]
+      },
+      0.001
+    ],
+    [
+      {
+        "cirq_type": "OpIdentifier",
+        "gate_type": "MeasurementGate",
+        "qubits": [
+          {
+            "cirq_type": "GridQubit",
+            "row": 0,
+            "col": 0
+          }
+        ]
+      },
+      0.001
+    ],
+    [
+      {
+        "cirq_type": "OpIdentifier",
+        "gate_type": "ResetChannel",
+        "qubits": [
+          {
+            "cirq_type": "GridQubit",
+            "row": 0,
+            "col": 0
+          }
+        ]
+      },
+      0.001
+    ],
+    [
+      {
+        "cirq_type": "OpIdentifier",
+        "gate_type": "PhasedXZGate",
+        "qubits": [
+          {
+            "cirq_type": "GridQubit",
+            "row": 0,
+            "col": 0
+          }
+        ]
+      },
+      0.001
+    ],
+    [
+      {
+        "cirq_type": "OpIdentifier",
+        "gate_type": "ZPowGate",
+        "qubits": [
+          {
+            "cirq_type": "GridQubit",
+            "row": 0,
+            "col": 1
+          }
+        ]
+      },
+      0.002
+    ],
+    [
+      {
+        "cirq_type": "OpIdentifier",
+        "gate_type": "MeasurementGate",
+        "qubits": [
+          {
+            "cirq_type": "GridQubit",
+            "row": 0,
+            "col": 1
+          }
+        ]
+      },
+      0.002
+    ],
+    [
+      {
+        "cirq_type": "OpIdentifier",
+        "gate_type": "ResetChannel",
+        "qubits": [
+          {
+            "cirq_type": "GridQubit",
+            "row": 0,
+            "col": 1
+          }
+        ]
+      },
+      0.002
+    ],
+    [
+      {
+        "cirq_type": "OpIdentifier",
+        "gate_type": "PhasedXZGate",
+        "qubits": [
+          {
+            "cirq_type": "GridQubit",
+            "row": 0,
+            "col": 1
+          }
+        ]
+      },
+      0.002
+    ],
+    [
+      {
+        "cirq_type": "OpIdentifier",
+        "gate_type": "ZPowGate",
+        "qubits": [
+          {
+            "cirq_type": "GridQubit",
+            "row": 1,
+            "col": 0
+          }
+        ]
+      },
+      0.003
+    ],
+    [
+      {
+        "cirq_type": "OpIdentifier",
+        "gate_type": "MeasurementGate",
+        "qubits": [
+          {
+            "cirq_type": "GridQubit",
+            "row": 1,
+            "col": 0
+          }
+        ]
+      },
+      0.003
+    ],
+    [
+      {
+        "cirq_type": "OpIdentifier",
+        "gate_type": "ResetChannel",
+        "qubits": [
+          {
+            "cirq_type": "GridQubit",
+            "row": 1,
+            "col": 0
+          }
+        ]
+      },
+      0.003
+    ],
+    [
+      {
+        "cirq_type": "OpIdentifier",
+        "gate_type": "PhasedXZGate",
+        "qubits": [
+          {
+            "cirq_type": "GridQubit",
+            "row": 1,
+            "col": 0
+          }
+        ]
+      },
+      0.003
+    ],
+    [
+      {
+        "cirq_type": "OpIdentifier",
+        "gate_type": "SycamoreGate",
+        "qubits": [
+          {
+            "cirq_type": "GridQubit",
+            "row": 0,
+            "col": 0
+          },
+          {
+            "cirq_type": "GridQubit",
+            "row": 0,
+            "col": 1
+          }
+        ]
+      },
+      0.01
+    ],
+    [
+      {
+        "cirq_type": "OpIdentifier",
+        "gate_type": "SycamoreGate",
+        "qubits": [
+          {
+            "cirq_type": "GridQubit",
+            "row": 0,
+            "col": 1
+          },
+          {
+            "cirq_type": "GridQubit",
+            "row": 0,
+            "col": 0
+          }
+        ]
+      },
+      0.01
+    ],
+    [
+      {
+        "cirq_type": "OpIdentifier",
+        "gate_type": "SycamoreGate",
+        "qubits": [
+          {
+            "cirq_type": "GridQubit",
+            "row": 0,
+            "col": 0
+          },
+          {
+            "cirq_type": "GridQubit",
+            "row": 1,
+            "col": 0
+          }
+        ]
+      },
+      0.02
+    ],
+    [
+      {
+        "cirq_type": "OpIdentifier",
+        "gate_type": "SycamoreGate",
+        "qubits": [
+          {
+            "cirq_type": "GridQubit",
+            "row": 1,
+            "col": 0
+          },
+          {
+            "cirq_type": "GridQubit",
+            "row": 0,
+            "col": 0
+          }
+        ]
+      },
+      0.02
+    ],
+    [
+      {
+        "cirq_type": "OpIdentifier",
+        "gate_type": "ISwapPowGate",
+        "qubits": [
+          {
+            "cirq_type": "GridQubit",
+            "row": 0,
+            "col": 0
+          },
+          {
+            "cirq_type": "GridQubit",
+            "row": 0,
+            "col": 1
+          }
+        ]
+      },
+      0.03
+    ],
+    [
+      {
+        "cirq_type": "OpIdentifier",
+        "gate_type": "ISwapPowGate",
+        "qubits": [
+          {
+            "cirq_type": "GridQubit",
+            "row": 0,
+            "col": 1
+          },
+          {
+            "cirq_type": "GridQubit",
+            "row": 0,
+            "col": 0
+          }
+        ]
+      },
+      0.03
+    ],
+    [
+      {
+        "cirq_type": "OpIdentifier",
+        "gate_type": "ISwapPowGate",
+        "qubits": [
+          {
+            "cirq_type": "GridQubit",
+            "row": 0,
+            "col": 0
+          },
+          {
+            "cirq_type": "GridQubit",
+            "row": 1,
+            "col": 0
+          }
+        ]
+      },
+      0.04
+    ],
+    [
+      {
+        "cirq_type": "OpIdentifier",
+        "gate_type": "ISwapPowGate",
+        "qubits": [
+          {
+            "cirq_type": "GridQubit",
+            "row": 1,
+            "col": 0
+          },
+          {
+            "cirq_type": "GridQubit",
+            "row": 0,
+            "col": 0
+          }
+        ]
+      },
+      0.04
+    ]
+  ],
+  "fsim_errors": [
+    [
+      {
+        "cirq_type": "OpIdentifier",
+        "gate_type": "SycamoreGate",
+        "qubits": [
+          {
+            "cirq_type": "GridQubit",
+            "row": 0,
+            "col": 0
+          },
+          {
+            "cirq_type": "GridQubit",
+            "row": 0,
+            "col": 1
+          }
+        ]
+      },
+      {
+        "cirq_type": "PhasedFSimGate",
+        "theta": 0.011,
+        "zeta": 0.0,
+        "chi": 0.0,
+        "gamma": 0.0,
+        "phi": -0.021
+      }
+    ],
+    [
+      {
+        "cirq_type": "OpIdentifier",
+        "gate_type": "SycamoreGate",
+        "qubits": [
+          {
+            "cirq_type": "GridQubit",
+            "row": 0,
+            "col": 1
+          },
+          {
+            "cirq_type": "GridQubit",
+            "row": 0,
+            "col": 0
+          }
+        ]
+      },
+      {
+        "cirq_type": "PhasedFSimGate",
+        "theta": 0.011,
+        "zeta": 0.0,
+        "chi": 0.0,
+        "gamma": 0.0,
+        "phi": -0.021
+      }
+    ],
+    [
+      {
+        "cirq_type": "OpIdentifier",
+        "gate_type": "SycamoreGate",
+        "qubits": [
+          {
+            "cirq_type": "GridQubit",
+            "row": 0,
+            "col": 0
+          },
+          {
+            "cirq_type": "GridQubit",
+            "row": 1,
+            "col": 0
+          }
+        ]
+      },
+      {
+        "cirq_type": "PhasedFSimGate",
+        "theta": -0.012,
+        "zeta": 0.0,
+        "chi": 0.0,
+        "gamma": 0.0,
+        "phi": 0.022
+      }
+    ],
+    [
+      {
+        "cirq_type": "OpIdentifier",
+        "gate_type": "SycamoreGate",
+        "qubits": [
+          {
+            "cirq_type": "GridQubit",
+            "row": 1,
+            "col": 0
+          },
+          {
+            "cirq_type": "GridQubit",
+            "row": 0,
+            "col": 0
+          }
+        ]
+      },
+      {
+        "cirq_type": "PhasedFSimGate",
+        "theta": -0.012,
+        "zeta": 0.0,
+        "chi": 0.0,
+        "gamma": 0.0,
+        "phi": 0.022
+      }
+    ],
+    [
+      {
+        "cirq_type": "OpIdentifier",
+        "gate_type": "ISwapPowGate",
+        "qubits": [
+          {
+            "cirq_type": "GridQubit",
+            "row": 0,
+            "col": 0
+          },
+          {
+            "cirq_type": "GridQubit",
+            "row": 0,
+            "col": 1
+          }
+        ]
+      },
+      {
+        "cirq_type": "PhasedFSimGate",
+        "theta": -0.013,
+        "zeta": 0.0,
+        "chi": 0.0,
+        "gamma": 0.0,
+        "phi": 0.023
+      }
+    ],
+    [
+      {
+        "cirq_type": "OpIdentifier",
+        "gate_type": "ISwapPowGate",
+        "qubits": [
+          {
+            "cirq_type": "GridQubit",
+            "row": 0,
+            "col": 1
+          },
+          {
+            "cirq_type": "GridQubit",
+            "row": 0,
+            "col": 0
+          }
+        ]
+      },
+      {
+        "cirq_type": "PhasedFSimGate",
+        "theta": -0.013,
+        "zeta": 0.0,
+        "chi": 0.0,
+        "gamma": 0.0,
+        "phi": 0.023
+      }
+    ],
+    [
+      {
+        "cirq_type": "OpIdentifier",
+        "gate_type": "ISwapPowGate",
+        "qubits": [
+          {
+            "cirq_type": "GridQubit",
+            "row": 0,
+            "col": 0
+          },
+          {
+            "cirq_type": "GridQubit",
+            "row": 1,
+            "col": 0
+          }
+        ]
+      },
+      {
+        "cirq_type": "PhasedFSimGate",
+        "theta": 0.014,
+        "zeta": 0.0,
+        "chi": 0.0,
+        "gamma": 0.0,
+        "phi": -0.024
+      }
+    ],
+    [
+      {
+        "cirq_type": "OpIdentifier",
+        "gate_type": "ISwapPowGate",
+        "qubits": [
+          {
+            "cirq_type": "GridQubit",
+            "row": 1,
+            "col": 0
+          },
+          {
+            "cirq_type": "GridQubit",
+            "row": 0,
+            "col": 0
+          }
+        ]
+      },
+      {
+        "cirq_type": "PhasedFSimGate",
+        "theta": 0.014,
+        "zeta": 0.0,
+        "chi": 0.0,
+        "gamma": 0.0,
+        "phi": -0.024
+      }
+    ]
+  ],
+  "validate": true
+}

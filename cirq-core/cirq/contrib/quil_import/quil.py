@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Callable, Dict, Union
+from typing import Callable, cast, Dict, Union
 
 import numpy as np
 from pyquil.parser import parse
@@ -152,15 +152,17 @@ def pswap(phi: float) -> MatrixGate:
     Returns:
         A MatrixGate equivalent to a PSWAP gate of given angle.
     """
+    # fmt: off
     pswap_matrix = np.array(
         [
             [1, 0, 0, 0],
             [0, 0, np.exp(1j * phi), 0],
             [0, np.exp(1j * phi), 0, 0],
-            [0, 0, 0, 1],
+            [0, 0, 0, 1]
         ],
         dtype=complex,
     )
+    # fmt: on
     return MatrixGate(pswap_matrix)
 
 
@@ -258,7 +260,7 @@ def circuit_from_quil(quil: str) -> Circuit:
                 raise UndefinedQuilGate(f"Quil gate {quil_gate_name} not supported in Cirq.")
             cirq_gate_fn = defined_gates[quil_gate_name]
             if quil_gate_params:
-                circuit += cirq_gate_fn(*quil_gate_params)(*line_qubits)
+                circuit += cast(Callable[..., Gate], cirq_gate_fn)(*quil_gate_params)(*line_qubits)
             else:
                 circuit += cirq_gate_fn(*line_qubits)
 

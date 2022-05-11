@@ -9,7 +9,7 @@ from cirq_rigetti import circuit_transformers as transformers
 
 
 def test_transform_cirq_circuit_to_pyquil_program(
-    parametric_circuit_with_params: Tuple[cirq.Circuit, cirq.Linspace],
+    parametric_circuit_with_params: Tuple[cirq.Circuit, cirq.Linspace]
 ) -> None:
     """test that a user can transform a `cirq.Circuit` to a `pyquil.Program`
     functionally.
@@ -17,9 +17,7 @@ def test_transform_cirq_circuit_to_pyquil_program(
 
     parametric_circuit, param_resolvers = parametric_circuit_with_params
     circuit = cirq.protocols.resolve_parameters(parametric_circuit, param_resolvers[1])
-    program, _ = transformers.default(
-        circuit=circuit,
-    )
+    program, _ = transformers.default(circuit=circuit)
 
     assert (
         RX(np.pi / 2, 0) in program.instructions
@@ -31,7 +29,7 @@ def test_transform_cirq_circuit_to_pyquil_program(
 
 
 def test_transform_cirq_circuit_to_pyquil_program_with_qubit_id_map(
-    bell_circuit_with_qids: Tuple[cirq.Circuit, List[cirq.Qid]],
+    bell_circuit_with_qids: Tuple[cirq.Circuit, List[cirq.Qid]]
 ) -> None:
     """test that a user can transform a `cirq.Circuit` to a `pyquil.Program`
     functionally with explicit physical qubit address mapping.
@@ -39,10 +37,7 @@ def test_transform_cirq_circuit_to_pyquil_program_with_qubit_id_map(
 
     bell_circuit, qubits = bell_circuit_with_qids
 
-    qubit_id_map = {
-        qubits[1]: "11",
-        qubits[0]: "13",
-    }
+    qubit_id_map = {qubits[1]: "11", qubits[0]: "13"}
     transformer = transformers.build(qubit_id_map=qubit_id_map)
     program, _ = transformer(circuit=bell_circuit)
 
@@ -60,7 +55,7 @@ def test_transform_cirq_circuit_to_pyquil_program_with_qubit_id_map(
 
 
 def test_transform_with_post_transformation_hooks(
-    bell_circuit_with_qids: Tuple[cirq.Circuit, List[cirq.Qid]],
+    bell_circuit_with_qids: Tuple[cirq.Circuit, List[cirq.Qid]]
 ) -> None:
     """test that a user can transform a `cirq.Circuit` to a `pyquil.Program`
     functionally with explicit physical qubit address mapping.
@@ -71,10 +66,7 @@ def test_transform_with_post_transformation_hooks(
         program._instructions.insert(0, Reset())
         return program, measurement_id_map
 
-    reset_hook_spec = create_autospec(
-        reset_hook,
-        side_effect=reset_hook,
-    )
+    reset_hook_spec = create_autospec(reset_hook, side_effect=reset_hook)
 
     pragma = Pragma('INTIAL_REWIRING', freeform_string='GREEDY')
 
@@ -82,13 +74,9 @@ def test_transform_with_post_transformation_hooks(
         program._instructions.insert(0, pragma)
         return program, measurement_id_map
 
-    rewire_hook_spec = create_autospec(
-        rewire_hook,
-        side_effect=rewire_hook,
-    )
+    rewire_hook_spec = create_autospec(rewire_hook, side_effect=rewire_hook)
     transformer = transformers.build(
-        qubits=tuple(qubits),
-        post_transformation_hooks=[reset_hook_spec, rewire_hook_spec],
+        qubits=tuple(qubits), post_transformation_hooks=[reset_hook_spec, rewire_hook_spec]
     )
     program, _ = transformer(circuit=bell_circuit)
 
@@ -112,16 +100,14 @@ def test_transform_with_post_transformation_hooks(
 
 
 def test_transform_cirq_circuit_with_explicit_decompose(
-    parametric_circuit_with_params: Tuple[cirq.Circuit, cirq.Linspace],
+    parametric_circuit_with_params: Tuple[cirq.Circuit, cirq.Linspace]
 ) -> None:
     """test that a user add a custom circuit decomposition function"""
 
     parametric_circuit, param_resolvers = parametric_circuit_with_params
     parametric_circuit.append(cirq.I(cirq.GridQubit(0, 0)))
     parametric_circuit.append(cirq.I(cirq.GridQubit(0, 1)))
-    parametric_circuit.append(
-        cirq.measure(cirq.GridQubit(0, 0), cirq.GridQubit(0, 1), key='m'),
-    )
+    parametric_circuit.append(cirq.measure(cirq.GridQubit(0, 0), cirq.GridQubit(0, 1), key='m'))
     circuit = cirq.protocols.resolve_parameters(parametric_circuit, param_resolvers[1])
 
     def decompose_operation(operation: cirq.Operation) -> List[cirq.Operation]:
@@ -130,9 +116,7 @@ def test_transform_cirq_circuit_with_explicit_decompose(
             operations.append(cirq.I(operation.qubits[0]))
         return operations
 
-    program, _ = transformers.build(
-        decompose_operation=decompose_operation,
-    )(circuit=circuit)
+    program, _ = transformers.build(decompose_operation=decompose_operation)(circuit=circuit)
 
     assert (
         RX(np.pi / 2, 2) in program.instructions

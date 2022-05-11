@@ -146,7 +146,7 @@ class CircuitDiagramInfo:
                 # funky behavior of fraction, cast to str in constructor helps.
                 approx_frac = Fraction(self.exponent).limit_denominator(16)
                 if approx_frac.denominator not in [2, 4, 5, 10]:
-                    if abs(float(approx_frac) - self.exponent) < 10 ** -args.precision:
+                    if abs(float(approx_frac) - self.exponent) < 10**-args.precision:
                         return f'({approx_frac})'
 
                 return args.format_real(self.exponent)
@@ -192,7 +192,9 @@ class CircuitDiagramInfoArgs:
         precision: The number of digits after the decimal to show for numbers in
             the text diagram. None means use full precision.
         label_map: The map from label entities to diagram positions.
-        include_tags: Whether to print tags from TaggedOperations
+        include_tags: Whether to print tags from TaggedOperations.
+        transpose: Whether the circuit is to be drawn with time from left to
+            right (transpose is False), or from top to bottom.
     """
 
     UNINFORMED_DEFAULT: 'CircuitDiagramInfoArgs'
@@ -205,6 +207,7 @@ class CircuitDiagramInfoArgs:
         precision: Optional[int],
         label_map: Optional[Dict['cirq.LabelEntity', int]],
         include_tags: bool = True,
+        transpose: bool = False,
     ) -> None:
         self.known_qubits = None if known_qubits is None else tuple(known_qubits)
         self.known_qubit_count = known_qubit_count
@@ -212,6 +215,7 @@ class CircuitDiagramInfoArgs:
         self.precision = precision
         self.label_map = label_map
         self.include_tags = include_tags
+        self.transpose = transpose
 
     def _value_equality_values_(self) -> Any:
         return (
@@ -223,6 +227,7 @@ class CircuitDiagramInfoArgs:
             if self.label_map is None
             else tuple(sorted(self.label_map.items(), key=lambda e: e[0])),
             self.include_tags,
+            self.transpose,
         )
 
     def __repr__(self) -> str:
@@ -232,8 +237,9 @@ class CircuitDiagramInfoArgs:
             f'known_qubit_count={self.known_qubit_count!r}, '
             f'use_unicode_characters={self.use_unicode_characters!r}, '
             f'precision={self.precision!r}, '
-            f'label_map={self.label_map!r},'
-            f'include_tags={self.include_tags!r})'
+            f'label_map={self.label_map!r}, '
+            f'include_tags={self.include_tags!r}, '
+            f'transpose={self.transpose!r})'
         )
 
     def format_real(self, val: Union[sympy.Basic, int, float]) -> str:
@@ -245,7 +251,7 @@ class CircuitDiagramInfoArgs:
             return str(val)
         return f'{float(val):.{self.precision}}'
 
-    def format_complex(self, val: Union[sympy.Basic, int, float, complex]) -> str:
+    def format_complex(self, val: Union[sympy.Basic, int, float, 'cirq.TParamValComplex']) -> str:
         if isinstance(val, sympy.Basic):
             return str(val)
         c = complex(val)
@@ -280,6 +286,7 @@ class CircuitDiagramInfoArgs:
             use_unicode_characters=self.use_unicode_characters,
             precision=self.precision,
             label_map=self.label_map,
+            transpose=self.transpose,
         )
 
     def with_args(self, **kwargs):
@@ -295,6 +302,7 @@ CircuitDiagramInfoArgs.UNINFORMED_DEFAULT = CircuitDiagramInfoArgs(
     use_unicode_characters=True,
     precision=3,
     label_map=None,
+    transpose=False,
 )
 
 
@@ -359,8 +367,7 @@ def _op_info_with_fallback(
 # pylint: disable=function-redefined
 @overload
 def circuit_diagram_info(
-    val: Any,
-    args: Optional[CircuitDiagramInfoArgs] = None,
+    val: Any, args: Optional[CircuitDiagramInfoArgs] = None
 ) -> CircuitDiagramInfo:
     pass
 

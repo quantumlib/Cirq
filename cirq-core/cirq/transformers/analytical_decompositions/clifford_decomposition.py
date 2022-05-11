@@ -26,7 +26,7 @@ if TYPE_CHECKING:
 
 def _X(
     q: int,
-    args: sim.ActOnCliffordTableauArgs,
+    args: sim.CliffordTableauSimulationState,
     operations: List[ops.Operation],
     qubits: List['cirq.Qid'],
 ):
@@ -36,7 +36,7 @@ def _X(
 
 def _Z(
     q: int,
-    args: sim.ActOnCliffordTableauArgs,
+    args: sim.CliffordTableauSimulationState,
     operations: List[ops.Operation],
     qubits: List['cirq.Qid'],
 ):
@@ -46,18 +46,18 @@ def _Z(
 
 def _Sdg(
     q: int,
-    args: sim.ActOnCliffordTableauArgs,
+    args: sim.CliffordTableauSimulationState,
     operations: List[ops.Operation],
     qubits: List['cirq.Qid'],
 ):
     # Apply the tableau with S^\{dagger}
-    protocols.act_on(ops.S ** -1, args, qubits=[qubits[q]], allow_decompose=False)
+    protocols.act_on(ops.S**-1, args, qubits=[qubits[q]], allow_decompose=False)
     operations.append(ops.S(qubits[q]))
 
 
 def _H(
     q: int,
-    args: sim.ActOnCliffordTableauArgs,
+    args: sim.CliffordTableauSimulationState,
     operations: List[ops.Operation],
     qubits: List['cirq.Qid'],
 ):
@@ -68,7 +68,7 @@ def _H(
 def _CNOT(
     q1: int,
     q2: int,
-    args: sim.ActOnCliffordTableauArgs,
+    args: sim.CliffordTableauSimulationState,
     operations: List[ops.Operation],
     qubits: List['cirq.Qid'],
 ):
@@ -79,7 +79,7 @@ def _CNOT(
 def _SWAP(
     q1: int,
     q2: int,
-    args: sim.ActOnCliffordTableauArgs,
+    args: sim.CliffordTableauSimulationState,
     operations: List[ops.Operation],
     qubits: List['cirq.Qid'],
 ):
@@ -114,7 +114,9 @@ def decompose_clifford_tableau_to_operations(
 
     t: qis.CliffordTableau = clifford_tableau.copy()
     operations: List[ops.Operation] = []
-    args = sim.ActOnCliffordTableauArgs(tableau=t, qubits=qubits, prng=np.random.RandomState())
+    args = sim.CliffordTableauSimulationState(
+        tableau=t, qubits=qubits, prng=np.random.RandomState()
+    )
 
     _X_with_ops = functools.partial(_X, args=args, operations=operations, qubits=qubits)
     _Z_with_ops = functools.partial(_Z, args=args, operations=operations, qubits=qubits)

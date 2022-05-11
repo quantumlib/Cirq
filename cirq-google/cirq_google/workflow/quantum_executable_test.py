@@ -31,15 +31,12 @@ def test_bitstrings_measurement():
 
 
 def _get_random_circuit(qubits, *, n_moments=10, random_state=52):
-    return (
-        cirq.experiments.random_rotations_between_grid_interaction_layers_circuit(
-            qubits=qubits,
-            depth=n_moments,
-            seed=random_state,
-            two_qubit_op_factory=lambda a, b, _: cirq.SQRT_ISWAP(a, b),
-        )
-        + cirq.measure(*qubits, key='z')
-    )
+    return cirq.experiments.random_rotations_between_grid_interaction_layers_circuit(
+        qubits=qubits,
+        depth=n_moments,
+        seed=random_state,
+        two_qubit_op_factory=lambda a, b, _: cirq.SQRT_ISWAP(a, b),
+    ) + cirq.measure(*qubits, key='z')
 
 
 def _get_example_spec(name='example-program'):
@@ -202,20 +199,8 @@ def test_quantum_executable_group_serialization(tmpdir):
 
 
 def test_equality():
-    k1 = KeyValueExecutableSpec(
-        executable_family='test',
-        key_value_pairs=(
-            ('a', 1),
-            ('b', 2),
-        ),
-    )
-    k2 = KeyValueExecutableSpec(
-        executable_family='test',
-        key_value_pairs=(
-            ('b', 2),
-            ('a', 1),
-        ),
-    )
+    k1 = KeyValueExecutableSpec(executable_family='test', key_value_pairs=(('a', 1), ('b', 2)))
+    k2 = KeyValueExecutableSpec(executable_family='test', key_value_pairs=(('b', 2), ('a', 1)))
     assert k1 == k2
 
 

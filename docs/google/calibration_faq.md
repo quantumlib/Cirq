@@ -282,7 +282,7 @@ In order to ensure an apt comparison, it is important to keep the following poin
 * Do not increase the gate depth past the T1 time of the qubits.
 * Use out of the box re-compilation first. If that doesn’t work, then try custom recompilation.
 
-For a complete set of best practices, check the following [guide](./best_practices.md).
+For a complete set of best practices, check the following [guide](./best_practices.ipynb).
 
 ## How to compensate for the parasitic c-phase φ angle?
 

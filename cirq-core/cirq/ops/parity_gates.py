@@ -291,10 +291,7 @@ class ZZPowGate(gate_features.InterchangeableQubitsGate, eigen_gate.EigenGate):
         )(qubits[0], qubits[1])
 
     def _eigen_components(self) -> List[Tuple[float, np.ndarray]]:
-        return [
-            (0, np.diag([1, 0, 0, 1])),
-            (1, np.diag([0, 1, 1, 0])),
-        ]
+        return [(0, np.diag([1, 0, 0, 1])), (1, np.diag([0, 1, 1, 0]))]
 
     def _eigen_shifts(self):
         return [0, 1]

@@ -21,14 +21,7 @@ import sympy
 import cirq
 
 
-@pytest.mark.parametrize(
-    'eigen_gate_type',
-    [
-        cirq.XXPowGate,
-        cirq.YYPowGate,
-        cirq.ZZPowGate,
-    ],
-)
+@pytest.mark.parametrize('eigen_gate_type', [cirq.XXPowGate, cirq.YYPowGate, cirq.ZZPowGate])
 def test_eigen_gates_consistent_protocols(eigen_gate_type):
     cirq.testing.assert_eigengate_implements_consistent_protocols(eigen_gate_type)
 
@@ -47,23 +40,23 @@ def test_xx_eq():
         cirq.XXPowGate(exponent=1, global_shift=0),
         cirq.XXPowGate(exponent=3, global_shift=0),
     )
-    eq.add_equality_group(cirq.XX ** 0.5, cirq.XX ** 2.5, cirq.XX ** 4.5)
-    eq.add_equality_group(cirq.XX ** 0.25, cirq.XX ** 2.25, cirq.XX ** -1.75)
+    eq.add_equality_group(cirq.XX**0.5, cirq.XX**2.5, cirq.XX**4.5)
+    eq.add_equality_group(cirq.XX**0.25, cirq.XX**2.25, cirq.XX**-1.75)
 
     iXX = cirq.XXPowGate(global_shift=0.5)
-    eq.add_equality_group(iXX ** 0.5, iXX ** 4.5)
-    eq.add_equality_group(iXX ** 2.5, iXX ** 6.5)
+    eq.add_equality_group(iXX**0.5, iXX**4.5)
+    eq.add_equality_group(iXX**2.5, iXX**6.5)
 
 
 def test_xx_pow():
-    assert cirq.XX ** 0.5 != cirq.XX ** -0.5
-    assert cirq.XX ** -1 == cirq.XX
-    assert (cirq.XX ** -1) ** 0.5 == cirq.XX ** -0.5
+    assert cirq.XX**0.5 != cirq.XX**-0.5
+    assert cirq.XX**-1 == cirq.XX
+    assert (cirq.XX**-1) ** 0.5 == cirq.XX**-0.5
 
 
 def test_xx_str():
     assert str(cirq.XX) == 'XX'
-    assert str(cirq.XX ** 0.5) == 'XX**0.5'
+    assert str(cirq.XX**0.5) == 'XX**0.5'
     assert str(cirq.XXPowGate(global_shift=0.1)) == 'XX'
 
 
@@ -78,7 +71,7 @@ def test_xx_matrix():
         np.array([[0, 0, 0, 1], [0, 0, 1, 0], [0, 1, 0, 0], [1, 0, 0, 0]]),
         atol=1e-8,
     )
-    np.testing.assert_allclose(cirq.unitary(cirq.XX ** 2), np.eye(4), atol=1e-8)
+    np.testing.assert_allclose(cirq.unitary(cirq.XX**2), np.eye(4), atol=1e-8)
     c = np.cos(np.pi / 6)
     s = -1j * np.sin(np.pi / 6)
     np.testing.assert_allclose(
@@ -91,11 +84,7 @@ def test_xx_matrix():
 def test_xx_diagrams():
     a = cirq.NamedQubit('a')
     b = cirq.NamedQubit('b')
-    circuit = cirq.Circuit(
-        cirq.XX(a, b),
-        cirq.XX(a, b) ** 3,
-        cirq.XX(a, b) ** 0.5,
-    )
+    circuit = cirq.Circuit(cirq.XX(a, b), cirq.XX(a, b) ** 3, cirq.XX(a, b) ** 0.5)
     cirq.testing.assert_has_diagram(
         circuit,
         """
@@ -120,23 +109,23 @@ def test_yy_eq():
         cirq.YYPowGate(exponent=1, global_shift=0),
         cirq.YYPowGate(exponent=3, global_shift=0),
     )
-    eq.add_equality_group(cirq.YY ** 0.5, cirq.YY ** 2.5, cirq.YY ** 4.5)
-    eq.add_equality_group(cirq.YY ** 0.25, cirq.YY ** 2.25, cirq.YY ** -1.75)
+    eq.add_equality_group(cirq.YY**0.5, cirq.YY**2.5, cirq.YY**4.5)
+    eq.add_equality_group(cirq.YY**0.25, cirq.YY**2.25, cirq.YY**-1.75)
 
     iYY = cirq.YYPowGate(global_shift=0.5)
-    eq.add_equality_group(iYY ** 0.5, iYY ** 4.5)
-    eq.add_equality_group(iYY ** 2.5, iYY ** 6.5)
+    eq.add_equality_group(iYY**0.5, iYY**4.5)
+    eq.add_equality_group(iYY**2.5, iYY**6.5)
 
 
 def test_yy_pow():
-    assert cirq.YY ** 0.5 != cirq.YY ** -0.5
-    assert cirq.YY ** -1 == cirq.YY
-    assert (cirq.YY ** -1) ** 0.5 == cirq.YY ** -0.5
+    assert cirq.YY**0.5 != cirq.YY**-0.5
+    assert cirq.YY**-1 == cirq.YY
+    assert (cirq.YY**-1) ** 0.5 == cirq.YY**-0.5
 
 
 def test_yy_str():
     assert str(cirq.YY) == 'YY'
-    assert str(cirq.YY ** 0.5) == 'YY**0.5'
+    assert str(cirq.YY**0.5) == 'YY**0.5'
     assert str(cirq.YYPowGate(global_shift=0.1)) == 'YY'
 
     iYY = cirq.YYPowGate(global_shift=0.5)
@@ -154,7 +143,7 @@ def test_yy_matrix():
         np.array([[0, 0, 0, -1], [0, 0, 1, 0], [0, 1, 0, 0], [-1, 0, 0, 0]]),
         atol=1e-8,
     )
-    np.testing.assert_allclose(cirq.unitary(cirq.YY ** 2), np.eye(4), atol=1e-8)
+    np.testing.assert_allclose(cirq.unitary(cirq.YY**2), np.eye(4), atol=1e-8)
     c = np.cos(np.pi / 6)
     s = 1j * np.sin(np.pi / 6)
     np.testing.assert_allclose(
@@ -167,11 +156,7 @@ def test_yy_matrix():
 def test_yy_diagrams():
     a = cirq.NamedQubit('a')
     b = cirq.NamedQubit('b')
-    circuit = cirq.Circuit(
-        cirq.YY(a, b),
-        cirq.YY(a, b) ** 3,
-        cirq.YY(a, b) ** 0.5,
-    )
+    circuit = cirq.Circuit(cirq.YY(a, b), cirq.YY(a, b) ** 3, cirq.YY(a, b) ** 0.5)
     cirq.testing.assert_has_diagram(
         circuit,
         """
@@ -196,23 +181,23 @@ def test_zz_eq():
         cirq.ZZPowGate(exponent=1, global_shift=0),
         cirq.ZZPowGate(exponent=3, global_shift=0),
     )
-    eq.add_equality_group(cirq.ZZ ** 0.5, cirq.ZZ ** 2.5, cirq.ZZ ** 4.5)
-    eq.add_equality_group(cirq.ZZ ** 0.25, cirq.ZZ ** 2.25, cirq.ZZ ** -1.75)
+    eq.add_equality_group(cirq.ZZ**0.5, cirq.ZZ**2.5, cirq.ZZ**4.5)
+    eq.add_equality_group(cirq.ZZ**0.25, cirq.ZZ**2.25, cirq.ZZ**-1.75)
 
     iZZ = cirq.ZZPowGate(global_shift=0.5)
-    eq.add_equality_group(iZZ ** 0.5, iZZ ** 4.5)
-    eq.add_equality_group(iZZ ** 2.5, iZZ ** 6.5)
+    eq.add_equality_group(iZZ**0.5, iZZ**4.5)
+    eq.add_equality_group(iZZ**2.5, iZZ**6.5)
 
 
 def test_zz_pow():
-    assert cirq.ZZ ** 0.5 != cirq.ZZ ** -0.5
-    assert cirq.ZZ ** -1 == cirq.ZZ
-    assert (cirq.ZZ ** -1) ** 0.5 == cirq.ZZ ** -0.5
+    assert cirq.ZZ**0.5 != cirq.ZZ**-0.5
+    assert cirq.ZZ**-1 == cirq.ZZ
+    assert (cirq.ZZ**-1) ** 0.5 == cirq.ZZ**-0.5
 
 
 def test_zz_str():
     assert str(cirq.ZZ) == 'ZZ'
-    assert str(cirq.ZZ ** 0.5) == 'ZZ**0.5'
+    assert str(cirq.ZZ**0.5) == 'ZZ**0.5'
     assert str(cirq.ZZPowGate(global_shift=0.1)) == 'ZZ'
 
     iZZ = cirq.ZZPowGate(global_shift=0.5)
@@ -230,8 +215,8 @@ def test_zz_matrix():
         np.array([[1, 0, 0, 0], [0, -1, 0, 0], [0, 0, -1, 0], [0, 0, 0, 1]]),
         atol=1e-8,
     )
-    np.testing.assert_allclose(cirq.unitary(cirq.ZZ ** 2), np.eye(4), atol=1e-8)
-    b = 1j ** 0.25
+    np.testing.assert_allclose(cirq.unitary(cirq.ZZ**2), np.eye(4), atol=1e-8)
+    b = 1j**0.25
     a = np.conj(b)
     np.testing.assert_allclose(
         cirq.unitary(cirq.ZZPowGate(exponent=0.25, global_shift=-0.5)),
@@ -243,11 +228,7 @@ def test_zz_matrix():
 def test_zz_diagrams():
     a = cirq.NamedQubit('a')
     b = cirq.NamedQubit('b')
-    circuit = cirq.Circuit(
-        cirq.ZZ(a, b),
-        cirq.ZZ(a, b) ** 3,
-        cirq.ZZ(a, b) ** 0.5,
-    )
+    circuit = cirq.Circuit(cirq.ZZ(a, b), cirq.ZZ(a, b) ** 3, cirq.ZZ(a, b) ** 0.5)
     cirq.testing.assert_has_diagram(
         circuit,
         """
@@ -260,9 +241,9 @@ b: ───ZZ───ZZ───ZZ^0.5───
 
 def test_trace_distance():
     foo = sympy.Symbol('foo')
-    assert cirq.trace_distance_bound(cirq.XX ** foo) == 1.0
-    assert cirq.trace_distance_bound(cirq.YY ** foo) == 1.0
-    assert cirq.trace_distance_bound(cirq.ZZ ** foo) == 1.0
+    assert cirq.trace_distance_bound(cirq.XX**foo) == 1.0
+    assert cirq.trace_distance_bound(cirq.YY**foo) == 1.0
+    assert cirq.trace_distance_bound(cirq.ZZ**foo) == 1.0
     assert cirq.approx_eq(cirq.trace_distance_bound(cirq.XX), 1.0)
-    assert cirq.approx_eq(cirq.trace_distance_bound(cirq.YY ** 0), 0)
+    assert cirq.approx_eq(cirq.trace_distance_bound(cirq.YY**0), 0)
     assert cirq.approx_eq(cirq.trace_distance_bound(cirq.ZZ ** (1 / 3)), np.sin(np.pi / 6))

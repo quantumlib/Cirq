@@ -64,8 +64,5 @@ setup(
     description=description,
     long_description=long_description,
     packages=cirq_packages,
-    package_data={
-        'cirq_pasqal': ['py.typed'],
-        'cirq_pasqal.json_test_data': ['*'],
-    },
+    package_data={'cirq_pasqal': ['py.typed'], 'cirq_pasqal.json_test_data': ['*']},
 )

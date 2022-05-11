@@ -37,10 +37,7 @@ class CircuitSerializer(serializer.Serializer):
     at the cost of some extendability.
     """
 
-    def __init__(
-        self,
-        gate_set_name: str,
-    ):
+    def __init__(self, gate_set_name: str):
         """Construct the circuit serializer object.
 
         Args:
@@ -207,20 +204,14 @@ class CircuitSerializer(serializer.Serializer):
             )
         elif isinstance(gate, cirq.FSimGate):
             arg_func_langs.float_arg_to_proto(
-                gate.theta,
-                out=msg.fsimgate.theta,
-                arg_function_language=arg_function_language,
+                gate.theta, out=msg.fsimgate.theta, arg_function_language=arg_function_language
             )
             arg_func_langs.float_arg_to_proto(
-                gate.phi,
-                out=msg.fsimgate.phi,
-                arg_function_language=arg_function_language,
+                gate.phi, out=msg.fsimgate.phi, arg_function_language=arg_function_language
             )
         elif isinstance(gate, cirq.MeasurementGate):
             arg_func_langs.arg_to_proto(
-                gate.key,
-                out=msg.measurementgate.key,
-                arg_function_language=arg_function_language,
+                gate.key, out=msg.measurementgate.key, arg_function_language=arg_function_language
             )
             arg_func_langs.arg_to_proto(
                 gate.invert_mask,
@@ -313,18 +304,14 @@ class CircuitSerializer(serializer.Serializer):
             raw_constants=raw_constants,
         )
 
-    def deserialize(
-        self, proto: v2.program_pb2.Program, device: Optional[cirq.Device] = None
-    ) -> cirq.Circuit:
+    def deserialize(self, proto: v2.program_pb2.Program) -> cirq.Circuit:
         """Deserialize a Circuit from a cirq_google.api.v2.Program.
 
         Args:
             proto: A dictionary representing a cirq_google.api.v2.Program proto.
-            device: If the proto is for a schedule, a device is required
-                Otherwise optional.
 
         Returns:
-            The deserialized Circuit, with a device if device was not None.
+            The deserialized Circuit
 
         Raises:
             ValueError: If the given proto has no language or the langauge gate set mismatches
@@ -367,7 +354,7 @@ class CircuitSerializer(serializer.Serializer):
                 constants=proto.constants,
                 deserialized_constants=deserialized_constants,
             )
-            return circuit if device is None else circuit.with_device(device)
+            return circuit
         if which == 'schedule':
             raise ValueError('Deserializing a schedule is no longer supported.')
 
@@ -449,6 +436,7 @@ class CircuitSerializer(serializer.Serializer):
                     arg_function_language=arg_function_language,
                     required_arg_name=None,
                 )
+                or 0.0
             )(*qubits)
         elif which_gate_type == 'ypowgate':
             op = cirq.YPowGate(
@@ -457,6 +445,7 @@ class CircuitSerializer(serializer.Serializer):
                     arg_function_language=arg_function_language,
                     required_arg_name=None,
                 )
+                or 0.0
             )(*qubits)
         elif which_gate_type == 'zpowgate':
             op = cirq.ZPowGate(
@@ -465,36 +454,52 @@ class CircuitSerializer(serializer.Serializer):
                     arg_function_language=arg_function_language,
                     required_arg_name=None,
                 )
+                or 0.0
             )(*qubits)
             if operation_proto.zpowgate.is_physical_z:
                 op = op.with_tags(PhysicalZTag())
         elif which_gate_type == 'phasedxpowgate':
-            exponent = arg_func_langs.float_arg_from_proto(
-                operation_proto.phasedxpowgate.exponent,
-                arg_function_language=arg_function_language,
-                required_arg_name=None,
+            exponent = (
+                arg_func_langs.float_arg_from_proto(
+                    operation_proto.phasedxpowgate.exponent,
+                    arg_function_language=arg_function_language,
+                    required_arg_name=None,
+                )
+                or 0.0
             )
-            phase_exponent = arg_func_langs.float_arg_from_proto(
-                operation_proto.phasedxpowgate.phase_exponent,
-                arg_function_language=arg_function_language,
-                required_arg_name=None,
+            phase_exponent = (
+                arg_func_langs.float_arg_from_proto(
+                    operation_proto.phasedxpowgate.phase_exponent,
+                    arg_function_language=arg_function_language,
+                    required_arg_name=None,
+                )
+                or 0.0
             )
             op = cirq.PhasedXPowGate(exponent=exponent, phase_exponent=phase_exponent)(*qubits)
         elif which_gate_type == 'phasedxzgate':
-            x_exponent = arg_func_langs.float_arg_from_proto(
-                operation_proto.phasedxzgate.x_exponent,
-                arg_function_language=arg_function_language,
-                required_arg_name=None,
+            x_exponent = (
+                arg_func_langs.float_arg_from_proto(
+                    operation_proto.phasedxzgate.x_exponent,
+                    arg_function_language=arg_function_language,
+                    required_arg_name=None,
+                )
+                or 0.0
             )
-            z_exponent = arg_func_langs.float_arg_from_proto(
-                operation_proto.phasedxzgate.z_exponent,
-                arg_function_language=arg_function_language,
-                required_arg_name=None,
+            z_exponent = (
+                arg_func_langs.float_arg_from_proto(
+                    operation_proto.phasedxzgate.z_exponent,
+                    arg_function_language=arg_function_language,
+                    required_arg_name=None,
+                )
+                or 0.0
             )
-            axis_phase_exponent = arg_func_langs.float_arg_from_proto(
-                operation_proto.phasedxzgate.axis_phase_exponent,
-                arg_function_language=arg_function_language,
-                required_arg_name=None,
+            axis_phase_exponent = (
+                arg_func_langs.float_arg_from_proto(
+                    operation_proto.phasedxzgate.axis_phase_exponent,
+                    arg_function_language=arg_function_language,
+                    required_arg_name=None,
+                )
+                or 0.0
             )
             op = cirq.PhasedXZGate(
                 x_exponent=x_exponent,
@@ -508,6 +513,7 @@ class CircuitSerializer(serializer.Serializer):
                     arg_function_language=arg_function_language,
                     required_arg_name=None,
                 )
+                or 0.0
             )(*qubits)
         elif which_gate_type == 'iswappowgate':
             op = cirq.ISwapPowGate(
@@ -516,6 +522,7 @@ class CircuitSerializer(serializer.Serializer):
                     arg_function_language=arg_function_language,
                     required_arg_name=None,
                 )
+                or 0.0
             )(*qubits)
         elif which_gate_type == 'fsimgate':
             theta = arg_func_langs.float_arg_from_proto(
@@ -558,7 +565,7 @@ class CircuitSerializer(serializer.Serializer):
                 arg_function_language=arg_function_language,
                 required_arg_name=None,
             )
-            op = cirq.WaitGate(duration=cirq.Duration(nanos=total_nanos))(*qubits)
+            op = cirq.WaitGate(duration=cirq.Duration(nanos=total_nanos or 0.0))(*qubits)
         else:
             raise ValueError(
                 f'Unsupported serialized gate with type "{which_gate_type}".'

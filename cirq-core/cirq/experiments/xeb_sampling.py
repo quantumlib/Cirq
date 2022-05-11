@@ -90,7 +90,7 @@ class _SampleInBatches:
                 pair_measurement_key = str(pair_i)
                 pair = self.combinations_by_layer[task.layer_i].pairs[pair_i]
                 sampled_inds = result.data[pair_measurement_key].values
-                sampled_probs = np.bincount(sampled_inds, minlength=2 ** 2) / len(sampled_inds)
+                sampled_probs = np.bincount(sampled_inds, minlength=2**2) / len(sampled_inds)
 
                 records.append(
                     {
@@ -135,9 +135,7 @@ class _NoProgress:
     def __init__(self, total: int):
         pass
 
-    def __enter__(
-        self,
-    ):
+    def __enter__(self):
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
@@ -193,9 +191,7 @@ def _get_combinations_by_layer_for_isolated_xeb(
     ]
     return [
         CircuitLibraryCombination(
-            layer=None,
-            combinations=np.arange(len(circuits))[:, np.newaxis],
-            pairs=[(q0, q1)],
+            layer=None, combinations=np.arange(len(circuits))[:, np.newaxis], pairs=[(q0, q1)]
         )
     ], circuits
 

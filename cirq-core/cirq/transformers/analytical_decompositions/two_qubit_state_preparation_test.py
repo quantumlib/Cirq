@@ -66,7 +66,9 @@ def test_prepare_two_qubit_state_using_cz(state):
     ops_2q = [*circuit.findall_operations(lambda op: cirq.num_qubits(op) > 1)]
     assert ops_cz == ops_2q
     assert len(ops_cz) <= 1
-    assert cirq.allclose_up_to_global_phase(circuit.final_state_vector(), state)
+    assert cirq.allclose_up_to_global_phase(
+        circuit.final_state_vector(ignore_terminal_measurements=False, dtype=np.complex64), state
+    )
 
 
 @pytest.mark.parametrize("state", STATES_TO_PREPARE)
@@ -84,4 +86,6 @@ def test_prepare_two_qubit_state_using_sqrt_iswap(state, use_sqrt_iswap_inv):
     ops_2q = [*circuit.findall_operations(lambda op: cirq.num_qubits(op) > 1)]
     assert ops_iswap == ops_2q
     assert len(ops_iswap) <= 1
-    assert cirq.allclose_up_to_global_phase(circuit.final_state_vector(), state)
+    assert cirq.allclose_up_to_global_phase(
+        circuit.final_state_vector(ignore_terminal_measurements=False, dtype=np.complex64), state
+    )
