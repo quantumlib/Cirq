@@ -301,11 +301,17 @@ class _IonQClient:
                         'IonQ could not find requested resource.'
                     )
                 if not _is_retriable(response.status_code):
+                    error = {}
+                    try:
+                      error = response.json()
+                    except json.decoder.JSONDecodeError:
+                      pass  # Ignore invalid/missing JSON.
                     raise ionq_exceptions.IonQException(
                         'Non-retry-able error making request to IonQ API. '
                         f'Request Body: {json} '
+                        f'Response Body: {error} '
                         f'Status: {response.status_code} '
-                        f'Error :{response.reason}',
+                        f'Error:{response.reason}',
                         response.status_code,
                     )
                 message = response.reason
