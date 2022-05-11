@@ -381,8 +381,8 @@ def test_tensor_index_names():
 
 def test_random_circuit_big():
     circuit = cirq.testing.random_circuit(
-        qubits=cirq.GridQubit.rect(4, 4),
-        n_moments=4,
+        qubits=cirq.GridQubit.rect(4, 3),
+        n_moments=3,
         op_density=1.0,
         gate_domain={cirq.CZ: 2},
         random_state=np.random.RandomState(0),
