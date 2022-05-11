@@ -28,6 +28,9 @@ def test_gate_methods(gate, nqubits):
     assert repr(gate) != ""
     assert gate.num_qubits() == nqubits
     assert cirq.protocols.circuit_diagram_info(gate) is not None
+    c = cirq.Circuit()
+    c.append([gate.on(*cirq.LineQubit.range(nqubits))])
+    assert c.to_text_diagram() is not None
 
 
 @pytest.mark.parametrize("gate", [GPIGate(phi=0.1), GPI2Gate(phi=0.2), MSGate(phi0=0.1, phi1=0.2)])
