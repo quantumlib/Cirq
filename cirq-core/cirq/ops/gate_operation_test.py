@@ -499,10 +499,6 @@ def test_gate_to_operation_to_gate_round_trips():
         cirq.ion.ion_gates.MSGate,
         # Gate features.
         cirq.SingleQubitGate,
-        # Testing gate features.
-        cirq.testing.TwoQubitGate,
-        cirq.testing.ThreeQubitGate,
-        cirq.testing.SingleQubitGate,
         # Interop gates
         cirq.interop.quirk.QuirkQubitPermutationGate,
         cirq.interop.quirk.QuirkArithmeticGate,
