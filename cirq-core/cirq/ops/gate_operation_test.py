@@ -476,7 +476,8 @@ def test_gate_to_operation_to_gate_round_trips():
             [s for c in cls.__subclasses__() for s in all_subclasses(c)]
         )
 
-    gate_subclasses = all_subclasses(cirq.Gate)
+    # Filter out contrib, since we should decouple cirq from contrib.
+    gate_subclasses = [g for g in all_subclasses(cirq.Gate) if "contrib" not in g.__module__]
 
     test_module_spec = cirq.testing.json.spec_for("cirq.protocols")
 
@@ -498,16 +499,6 @@ def test_gate_to_operation_to_gate_round_trips():
         cirq.testing.TwoQubitGate,
         cirq.testing.ThreeQubitGate,
         cirq.testing.SingleQubitGate,
-        # Contrib gates
-        cirq.contrib.acquaintance.SwapNetworkGate,
-        cirq.contrib.acquaintance.ShiftSwapNetworkGate,
-        cirq.contrib.acquaintance.permutation.MappingDisplayGate,
-        cirq.contrib.acquaintance.CircularShiftGate,
-        cirq.contrib.acquaintance.BipartiteSwapNetworkGate,
-        cirq.contrib.acquaintance.SwapPermutationGate,
-        cirq.contrib.acquaintance.AcquaintanceOpportunityGate,
-        cirq.contrib.acquaintance.PermutationGate,
-        cirq.contrib.acquaintance.LinearPermutationGate,
         # Interop gates
         cirq.interop.quirk.QuirkQubitPermutationGate,
         cirq.interop.quirk.QuirkArithmeticGate,
