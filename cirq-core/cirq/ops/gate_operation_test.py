@@ -476,7 +476,7 @@ def test_gate_to_operation_to_gate_round_trips():
             [s for c in cls.__subclasses__() for s in all_subclasses(c)]
         )
 
-    # Filter out contrib, since we should decouple cirq from contrib.
+    # Only test gate subclasses in cirq-core.
     gate_subclasses = [
         g
         for g in all_subclasses(cirq.Gate)
