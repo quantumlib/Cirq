@@ -1745,8 +1745,8 @@ class Circuit(AbstractCircuit):
 
         # We also maintain the dict from moment index to moments/ops that go into it, for use when
         # building the actual moments at the end.
-        ops_at_index: Dict[int, List['cirq.Operation']] = defaultdict(list)
-        moment_at_index: Dict[int, 'cirq.Moment'] = {}
+        op_lists_by_index: Dict[int, List['cirq.Operation']] = defaultdict(list)
+        moments_by_index: Dict[int, 'cirq.Moment'] = {}
 
         # For keeping track of length of the circuit thus far.
         length = 0
@@ -1761,7 +1761,7 @@ class Circuit(AbstractCircuit):
             if isinstance(mop, Moment):
                 # We always append moment to the end, to be consistent with `self.append`
                 i = length
-                moment_at_index[i] = mop
+                moments_by_index[i] = mop
             else:
                 # Initially we define `i` as the greatest moment index that has a conflict. `-1` is
                 # the initial conflict, and we search for larger ones. Once we get the largest one,
@@ -1781,7 +1781,7 @@ class Circuit(AbstractCircuit):
                 if mop_ckeys:
                     i = max(i, *[mkey_indexes[k] for k in mop_ckeys])
                 i += 1
-                ops_at_index[i].append(mop)
+                op_lists_by_index[i].append(mop)
 
             # Update our dicts with data from the latest mop placement. Note `i` will always be
             # greater than the existing value for all of these, by construction, so there is no
@@ -1797,10 +1797,10 @@ class Circuit(AbstractCircuit):
         # Finally, once everything is placed, we can construct and append the actual moments for
         # each index.
         for i in range(length):
-            if i in moment_at_index:
-                self._moments.append(moment_at_index[i].with_operations(ops_at_index[i]))
+            if i in moments_by_index:
+                self._moments.append(moments_by_index[i].with_operations(op_lists_by_index[i]))
             else:
-                self._moments.append(Moment(ops_at_index[i]))
+                self._moments.append(Moment(op_lists_by_index[i]))
 
     def __copy__(self) -> 'cirq.Circuit':
         return self.copy()
