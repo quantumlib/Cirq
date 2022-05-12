@@ -18,6 +18,7 @@ from typing import (
     AbstractSet,
     Any,
     Collection,
+    Dict,
     List,
     Optional,
     Sequence,
@@ -204,7 +205,7 @@ class CCZPowGate(gate_features.InterchangeableQubitsGate, eigen_gate.EigenGate):
 class ThreeQubitDiagonalGate(raw_types.Gate):
     """A gate given by a diagonal 8x8 matrix."""
 
-    def __init__(self, diag_angles_radians: List[value.TParamVal]) -> None:
+    def __init__(self, diag_angles_radians: Sequence[value.TParamVal]) -> None:
         r"""A three qubit gate with only diagonal elements.
 
         This gate's off-diagonal elements are zero and it's on diagonal
@@ -215,7 +216,11 @@ class ThreeQubitDiagonalGate(raw_types.Gate):
                 If these values are $(x_0, x_1, \ldots , x_7)$ then the unitary
                 has diagonal values $(e^{i x_0}, e^{i x_1}, \ldots, e^{i x_7})$.
         """
-        self._diag_angles_radians: List[value.TParamVal] = diag_angles_radians
+        self._diag_angles_radians: Tuple[value.TParamVal, ...] = tuple(diag_angles_radians)
+
+    @property
+    def diag_angles_radians(self) -> Tuple[value.TParamVal, ...]:
+        return self._diag_angles_radians
 
     def _is_parameterized_(self) -> bool:
         return any(protocols.is_parameterized(angle) for angle in self._diag_angles_radians)
@@ -349,6 +354,9 @@ class ThreeQubitDiagonalGate(raw_types.Gate):
                 'ZZZ': (x[0] - x[1] - x[2] + x[3] - x[4] + x[5] + x[6] - x[7]) / 8,
             }
         )
+
+    def _json_dict_(self) -> Dict[str, Any]:
+        return protocols.obj_to_dict_helper(self, attribute_names=["diag_angles_radians"])
 
     def __repr__(self) -> str:
         return 'cirq.ThreeQubitDiagonalGate([{}])'.format(
