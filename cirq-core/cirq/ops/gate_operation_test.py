@@ -480,7 +480,7 @@ def test_gate_to_operation_to_gate_round_trips():
     gate_subclasses = [
         g
         for g in all_subclasses(cirq.Gate)
-        if "cirq." in g.__module__ and "contrib" not in g.__module__
+        if "cirq." in g.__module__ and "contrib" not in g.__module__ and "_test" not in g.__module__
     ]
 
     test_module_spec = cirq.testing.json.spec_for("cirq.protocols")
