@@ -1210,10 +1210,8 @@ class AbstractCircuit(abc.ABC):
         label_map = {labels[i]: i for i in range(len(labels))}
 
         def default_namer(label_entity):
-            try:
-                qubit_name = protocols.circuit_diagram_info(label_entity).wire_symbols[0]
-            except TypeError:
-                qubit_name = str(label_entity)
+            info = protocols.circuit_diagram_info(label_entity, default=None)
+            qubit_name = info.wire_symbols[0] if info else str(label_entity)
             return qubit_name + ('' if transpose else ': ')
 
         if qubit_namer is None:
