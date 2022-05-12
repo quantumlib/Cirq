@@ -449,32 +449,6 @@ def test_is_parameterized():
     assert cirq.is_parameterized(Yes().on(q))
 
 
-<<<<<<< HEAD
-def test_gate_on_gate():
-    def all_subclasses(cls):
-        return set(cls.__subclasses__()).union(
-            [s for c in cls.__subclasses__() for s in all_subclasses(c)]
-        )
-
-    gate_subclasses = all_subclasses(cirq.Gate)
-
-    test_module_spec = cirq.testing.json.spec_for("cirq.protocols")
-
-    for gate_cls in gate_subclasses:
-        filename = test_module_spec.test_data_path.joinpath(f"{gate_cls.__name__}.json")
-        try:
-            gates = cirq.read_json(filename)
-        except:
-            print(gate_cls)
-            continue
-        if not isinstance(gates, collections.abc.Iterable):
-            gates = [gates]
-        for gate in gates:
-            if gate.num_qubits():
-                qudits = [cirq.LineQid(i, d) for i, d in enumerate(cirq.qid_shape(gate))]
-                assert gate.on(*qudits).gate == gate
-    assert False
-
 def test_group_interchangeable_qubits_creates_tuples_with_unique_keys():
     class MyGate(cirq.Gate, cirq.InterchangeableQubitsGate):
         def __init__(self, num_qubits) -> None:
@@ -494,3 +468,86 @@ def test_group_interchangeable_qubits_creates_tuples_with_unique_keys():
     assert gate(qubits[0], qubits[1], qubits[2], qubits[3]) == gate(
         qubits[3], qubits[1], qubits[2], qubits[0]
     )
+
+
+def test_gate_to_operation_to_gate_round_trips():
+    def all_subclasses(cls):
+        return set(cls.__subclasses__()).union(
+            [s for c in cls.__subclasses__() for s in all_subclasses(c)]
+        )
+
+    gate_subclasses = all_subclasses(cirq.Gate)
+
+    test_module_spec = cirq.testing.json.spec_for("cirq.protocols")
+
+    skip_classes = {
+        # Abstract or private parent classes.
+        cirq.BaseDensePauliString,
+        cirq.EigenGate,
+        cirq.Pauli,
+        # Private gates.
+        cirq.transformers.analytical_decompositions.two_qubit_to_fsim._BGate,
+        cirq.ops.raw_types._InverseCompositeGate,
+        cirq.circuits.qasm_output.QasmTwoQubitGate,
+        cirq.circuits.quil_output.QuilTwoQubitGate,
+        cirq.circuits.quil_output.QuilOneQubitGate,
+        cirq.ion.ion_gates.MSGate,
+        # Gate features.
+        cirq.SingleQubitGate,
+        # Testing gate features.
+        cirq.testing.TwoQubitGate,
+        cirq.testing.ThreeQubitGate,
+        cirq.testing.SingleQubitGate,
+        # Contrib gates
+        cirq.contrib.acquaintance.SwapNetworkGate,
+        cirq.contrib.acquaintance.ShiftSwapNetworkGate,
+        cirq.contrib.acquaintance.permutation.MappingDisplayGate,
+        cirq.contrib.acquaintance.CircularShiftGate,
+        cirq.contrib.acquaintance.BipartiteSwapNetworkGate,
+        cirq.contrib.acquaintance.SwapPermutationGate,
+        cirq.contrib.acquaintance.AcquaintanceOpportunityGate,
+        cirq.contrib.acquaintance.PermutationGate,
+        cirq.contrib.acquaintance.LinearPermutationGate,
+        # Interop gates
+        cirq.interop.quirk.QuirkQubitPermutationGate,
+        cirq.interop.quirk.QuirkArithmeticGate,
+        # No reason given for missing json.
+        # TODO(#5353): Serialize these gates.
+        cirq.DiagonalGate,
+        cirq.TwoQubitDiagonalGate,
+        cirq.ThreeQubitDiagonalGate,
+        cirq.PauliInteractionGate,
+        cirq.ArithmeticGate,
+    }
+
+    # Gates that do not satisfy the contract.
+    # TODO(#5167): Fix this case.
+    exceptions = {cirq.PauliStringPhasorGate}
+
+    skipped = set()
+    for gate_cls in gate_subclasses:
+        if gate_cls in exceptions:
+            continue
+        filename = test_module_spec.test_data_path.joinpath(f"{gate_cls.__name__}.json")
+        try:
+            gates = cirq.read_json(filename)
+        except FileNotFoundError:
+            if gate_cls in skip_classes:
+                skipped.add(gate_cls)
+                continue
+            raise AssertionError(
+                f"{gate_cls} has no json file, please add a json file or add to the list of "
+                "classes to be skipped if there is a reason this gate should not round trip "
+                "to a gate via creating an operation."
+            )
+
+        if not isinstance(gates, collections.abc.Iterable):
+            gates = [gates]
+        for gate in gates:
+            if gate.num_qubits():
+                qudits = [cirq.LineQid(i, d) for i, d in enumerate(cirq.qid_shape(gate))]
+                assert gate.on(*qudits).gate == gate
+
+    assert (
+        skipped == skip_classes
+    ), "A gate that was supposed to be skipped was not, please update the list of skipped gates."
