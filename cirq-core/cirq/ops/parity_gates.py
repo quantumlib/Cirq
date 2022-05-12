@@ -270,10 +270,10 @@ class ZZPowGate(gate_features.InterchangeableQubitsGate, eigen_gate.EigenGate):
 
     $$
     (Z \otimes Z)^t = \begin{bmatrix}
-                      1 & 0 & 0 & 0 \\
-                      0 & e^{i \pi t} & 0 & 0 \\
-                      0 & 0 & e^{i \pi t} & 0 \\
-                      0 & 0 & 0 & 1
+                      1 & & & \\
+                      & e^{i \pi t} & & \\
+                      & & e^{i \pi t} & \\
+                      & & & 1
                       \end{bmatrix}
     $$
     """

@@ -1334,15 +1334,15 @@ document(
     CZ,
     r"""The controlled Z gate.
 
-    This the `exponent=1` instance of `cirq.CZPowGate`.
+    This is the `exponent=1` instance of `cirq.CZPowGate`.
 
-    The unitary matrix of this gate is:
+    The unitary matrix of this gate is (empty elements are $0$):
     $$
         \begin{bmatrix}
-            1 & 0 & 0 & 0 \\
-            0 & 1 & 0 & 0 \\
-            0 & 0 & 1 & 0 \\
-            0 & 0 & 0 & -1
+            1 & & & \\
+            & 1 & & \\
+            & & 1 & \\
+            & & & -1
         \end{bmatrix}
     $$
     """,
@@ -1358,7 +1358,7 @@ document(
 
     Alternative name: `cirq.CNOT`.
 
-    The unitary matrix of this gate is:
+    The unitary matrix of this gate is (empty elements are $0$):
     $$
         \begin{bmatrix}
             1 & 0 & 0 & 0 \\

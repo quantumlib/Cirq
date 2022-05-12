@@ -43,7 +43,7 @@ class BooleanHamiltonianGate(raw_types.Gate):
 
     The gate is specified by a list of parameters, $[x_0, x_1, \dots, x_{n-1}]$, a
     list of boolean expressions that are functions of these parameters,
-    $[f_0(x_0,\dots,x_{n-1}), f_1(x_0,\dots,x_{n-1}), f_{p-1}(x_0,\dots,x_{n-1})]$
+    $[f_0(x_0,\dots,x_{n-1}), f_1(x_0,\dots,x_{n-1}), \dots f_{p-1}(x_0,\dots,x_{n-1})]$
     and an angle $t$. For these parameters the gate is
 
     $$

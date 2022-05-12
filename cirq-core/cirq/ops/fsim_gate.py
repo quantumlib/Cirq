@@ -221,7 +221,7 @@ class PhasedFSimGate(gate_features.InterchangeableQubitsGate, raw_types.Gate):
     $$
     \begin{bmatrix}
         1 & 0 & 0 & 0 \\
-        0 & e^{-i \gamma-i \zeta} & -i e^{-i \gamma + i\chi} & 0 \\
+        0 & e^{-i \gamma - i \zeta} & -i e^{-i \gamma + i\chi} & 0 \\
         0 & -i e^{-i \gamma - i \chi} & e^{-i \gamma + i \zeta} & 0 \\
         0 & 0 & 0 & e^{-2i \gamma - i \phi}
     \end{bmatrix}

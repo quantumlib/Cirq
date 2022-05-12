@@ -29,7 +29,7 @@ class QuantumFourierTransformGate(raw_types.Gate):
     This gate has the unitary
 
     $$
-    \frac{1}{2^{n/2}}\sum_{x,y=0}^{2^n-1} \omega ^{xy} |x\rangle\langle y|
+    \frac{1}{2^{n/2}}\sum_{x,y=0}^{2^n-1} \omega^{xy} |x\rangle\langle y|
     $$
 
     where
@@ -98,11 +98,11 @@ class QuantumFourierTransformGate(raw_types.Gate):
 
 @value.value_equality
 class PhaseGradientGate(raw_types.Gate):
-    r"""Phases each all computational basis states proportional to the integer value of the state.
+    r"""Phases all computational basis states proportional to the integer value of the state.
 
     The gate `cirq.PhaseGradientGate(n, t)` has the unitary
     $$
-    \sum_{x=0}^{2^n-1} \omega^t |x\rangle \langle x|
+    \sum_{x=0}^{2^n-1} \omega^x |x\rangle \langle x|
     $$
     where
     $$

@@ -55,14 +55,14 @@ class CCZPowGate(gate_features.InterchangeableQubitsGate, eigen_gate.EigenGate):
 
     $$
     \begin{bmatrix}
-        1 & 0 & 0 & 0 & 0 & 0 & 0 & 0 \\
-        0 & 1 & 0 & 0 & 0 & 0 & 0 & 0 \\
-        0 & 0 & 1 & 0 & 0 & 0 & 0 & 0 \\
-        0 & 0 & 0 & 1 & 0 & 0 & 0 & 0 \\
-        0 & 0 & 0 & 0 & 1 & 0 & 0 & 0 \\
-        0 & 0 & 0 & 0 & 0 & 1 & 0 & 0 \\
-        0 & 0 & 0 & 0 & 0 & 0 & 1 & 0 \\
-        0 & 0 & 0 & 0 & 0 & 0 & 0 & e^{i \pi t}
+        1 & & & & & & & \\
+        & 1 & & & & & & \\
+        & & 1 & & & & & \\
+        & & & 1 & & & & \\
+        & & & & 1 & & & \\
+        & & & & & 1 & & \\
+        & & & & & & 1 & \\
+        & & & & & & & e^{i \pi t}
     \end{bmatrix}
     $$
     """
@@ -215,7 +215,7 @@ class CCZPowGate(gate_features.InterchangeableQubitsGate, eigen_gate.EigenGate):
 
 @value.value_equality()
 class ThreeQubitDiagonalGate(raw_types.Gate):
-    r"""A three qubit gate given whose unitary is given by a diagonal $8 \times 8$ matrix.
+    r"""A three qubit gate whose unitary is given by a diagonal $8 \times 8$ matrix.
 
     This gate's off-diagonal elements are zero and its on diagonal
     elements are all phases.
@@ -384,14 +384,15 @@ class CCXPowGate(gate_features.InterchangeableQubitsGate, eigen_gate.EigenGate):
 
     $$
     \begin{bmatrix}
-        1 & 0 & 0 & 0 & 0 & 0 & 0 & 0 \\
-        0 & 1 & 0 & 0 & 0 & 0 & 0 & 0 \\
-        0 & 0 & 1 & 0 & 0 & 0 & 0 & 0 \\
-        0 & 0 & 0 & 1 & 0 & 0 & 0 & 0 \\
-        0 & 0 & 0 & 0 & 1 & 0 & 0 & 0 \\
-        0 & 0 & 0 & 0 & 0 & 1 & 0 & 0 \\
-        0 & 0 & 0 & 0 & 0 & 0 & e^{i \pi t /2} \cos(\pi t) & -i e^{i \pi t /2} \sin(\pi t) \\
-        0 & 0 & 0 & 0 & 0 & 0 & -i e^{i \pi t /2} \sin(\pi t) & e^{i \pi t /2} \cos(\pi t)
+
+        1 & & & & & & & \\
+        & 1 & & & & & & \\
+        & & 1 & & & & & \\
+        & & & 1 & & & & \\
+        & & & & 1 & & & \\
+        & & & & & 1 & & \\
+        & & & & & & e^{i \pi t /2} \cos(\pi t) & -i e^{i \pi t /2} \sin(\pi t) \\
+        & & & & & & -i e^{i \pi t /2} \sin(\pi t) & e^{i \pi t /2} \cos(\pi t)
     \end{bmatrix}
     $$
     """
@@ -695,17 +696,17 @@ document(
 
     The `exponent=1` instance of `cirq.CCZPowGate`.
 
-    The unitary matrix of this gate is:
+    The unitary matrix of this gate is (empty elements are $0$):
     $$
     \begin{bmatrix}
-        1 & 0 & 0 & 0 & 0 & 0 & 0 & 0 \\
-        0 & 1 & 0 & 0 & 0 & 0 & 0 & 0 \\
-        0 & 0 & 1 & 0 & 0 & 0 & 0 & 0 \\
-        0 & 0 & 0 & 1 & 0 & 0 & 0 & 0 \\
-        0 & 0 & 0 & 0 & 1 & 0 & 0 & 0 \\
-        0 & 0 & 0 & 0 & 0 & 1 & 0 & 0 \\
-        0 & 0 & 0 & 0 & 0 & 0 & 1 & 0 \\
-        0 & 0 & 0 & 0 & 0 & 0 & 0 & -1
+        1 & & & & & & & \\
+        & 1 & & & & & & \\
+        & & 1 & & & & & \\
+        & & & 1 & & & & \\
+        & & & & 1 & & & \\
+        & & & & & 1 & & \\
+        & & & & & & 1 & \\
+        & & & & & & & -1
     \end{bmatrix}
     $$
     """,
@@ -722,18 +723,18 @@ document(
 
     The `exponent=1` instance of `cirq.CCXPowGate`.
 
-    The unitary matrix of this gate is:
+    The unitary matrix of this gate is (empty elements are $0$):
 
     $$
     \begin{bmatrix}
-        1 & 0 & 0 & 0 & 0 & 0 & 0 & 0 \\
-        0 & 1 & 0 & 0 & 0 & 0 & 0 & 0 \\
-        0 & 0 & 1 & 0 & 0 & 0 & 0 & 0 \\
-        0 & 0 & 0 & 1 & 0 & 0 & 0 & 0 \\
-        0 & 0 & 0 & 0 & 1 & 0 & 0 & 0 \\
-        0 & 0 & 0 & 0 & 0 & 1 & 0 & 0 \\
-        0 & 0 & 0 & 0 & 0 & 0 & 0 & 1 \\
-        0 & 0 & 0 & 0 & 0 & 0 & 1 & 0
+        1 & & & & & & & \\
+        & 1 & & & & & & \\
+        & & 1 & & & & & \\
+        & & & 1 & & & & \\
+        & & & & 1 & & & \\
+        & & & & & 1 & & \\
+        & & & & & & 0 & 1 \\
+        & & & & & & 1 & 0
     \end{bmatrix}
     $$
 
@@ -751,17 +752,17 @@ document(
 
     An instance of `cirq.CSwapGate`.
 
-    The unitary matrix of this gate is:
+    The unitary matrix of this gate is (empty elements are $0$):
     $$
     \begin{bmatrix}
-        1 & 0 & 0 & 0 & 0 & 0 & 0 & 0 \\
-        0 & 1 & 0 & 0 & 0 & 0 & 0 & 0 \\
-        0 & 0 & 1 & 0 & 0 & 0 & 0 & 0 \\
-        0 & 0 & 0 & 1 & 0 & 0 & 0 & 0 \\
-        0 & 0 & 0 & 0 & 1 & 0 & 0 & 0 \\
-        0 & 0 & 0 & 0 & 0 & 0 & 1 & 0 \\
-        0 & 0 & 0 & 0 & 0 & 1 & 0 & 0 \\
-        0 & 0 & 0 & 0 & 0 & 0 & 0 & 1
+        1 & & & & & & & \\
+        & 1 & & & & & & \\
+        & & 1 & & & & & \\
+        & & & 1 & & & & \\
+        & & & & 1 & & & \\
+        & & & & & 0 & 1 & \\
+        & & & & & 1 & 0 & \\
+        & & & & & & & 1
     \end{bmatrix}
     $$
 

@@ -66,14 +66,14 @@ def _gen_gray_code(n: int) -> Iterator[Tuple[int, int]]:
 class DiagonalGate(raw_types.Gate):
     r"""An n qubit gate which acts as phases on computational basis states.
 
-    This gate's off-diagonal elements are zero and its on diagonal elements are
+    This gate's off-diagonal elements are zero and its on-diagonal elements are
     all phases.
     """
 
     def __init__(self, diag_angles_radians: Sequence['cirq.TParamVal']) -> None:
         r"""A n-qubit gate with only diagonal elements.
 
-        This gate's off-diagonal elements are zero and its on diagonal
+        This gate's off-diagonal elements are zero and its on-diagonal
         elements are all phases.
 
         Args:
