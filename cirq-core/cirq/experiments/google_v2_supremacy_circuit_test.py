@@ -14,15 +14,17 @@
 
 import pytest
 
+import cirq
 from cirq import GridQubit
 from cirq import ops
 import cirq.experiments.google_v2_supremacy_circuit as supremacy_v2
 
 
 def test_google_v2_supremacy_circuit():
-    circuit = supremacy_v2.generate_boixo_2018_supremacy_circuits_v2_grid(
-        n_rows=4, n_cols=5, cz_depth=9, seed=0
-    )
+    with cirq.testing.assert_deprecated('_beyond_classical_', deadline='v0.16', count=2):
+        circuit = supremacy_v2.generate_boixo_2018_supremacy_circuits_v2_grid(
+            n_rows=4, n_cols=5, cz_depth=9, seed=0
+        )
     # We check that is exactly circuit inst_4x5_10_0
     # in github.com/sboixo/GRCS cz_v2
     assert len(circuit) == 11
@@ -47,9 +49,10 @@ def test_google_v2_supremacy_circuit():
 def test_google_v2_supremacy_bristlecone():
     pytest.importorskip("cirq_google")
     # Check instance consistency
-    c = supremacy_v2.generate_boixo_2018_supremacy_circuits_v2_bristlecone(
-        n_rows=11, cz_depth=8, seed=0
-    )
+    with cirq.testing.assert_deprecated('_beyond_classical_', deadline='v0.16', count=2):
+        c = supremacy_v2.generate_boixo_2018_supremacy_circuits_v2_bristlecone(
+            n_rows=11, cz_depth=8, seed=0
+        )
     assert len(c) == 10
     assert len(c.all_qubits()) == 70
     assert len(list(c.findall_operations_with_gate_type(ops.CZPowGate))) == 119
@@ -59,9 +62,10 @@ def test_google_v2_supremacy_bristlecone():
     assert isinstance(c.operation_at(GridQubit(3, 2), 2).gate, ops.XPowGate)
     assert isinstance(c.operation_at(GridQubit(1, 6), 3).gate, ops.XPowGate)
     # test smaller subgraph
-    c = supremacy_v2.generate_boixo_2018_supremacy_circuits_v2_bristlecone(
-        n_rows=9, cz_depth=8, seed=0
-    )
+    with cirq.testing.assert_deprecated('_beyond_classical_', deadline='v0.16', count=2):
+        c = supremacy_v2.generate_boixo_2018_supremacy_circuits_v2_bristlecone(
+            n_rows=9, cz_depth=8, seed=0
+        )
     qubits = list(c.all_qubits())
     qubits.sort()
     assert len(qubits) == 48
@@ -74,6 +78,7 @@ def test_google_v2_supremacy_bristlecone():
 def test_n_rows_less_than_2():
     pytest.importorskip("cirq_google")
     with pytest.raises(AssertionError):
-        supremacy_v2.generate_boixo_2018_supremacy_circuits_v2_bristlecone(
-            n_rows=1, cz_depth=0, seed=0
-        )
+        with cirq.testing.assert_deprecated('_beyond_classical_', deadline='v0.16'):
+            supremacy_v2.generate_boixo_2018_supremacy_circuits_v2_bristlecone(
+                n_rows=1, cz_depth=0, seed=0
+            )
