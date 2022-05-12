@@ -51,7 +51,7 @@ if TYPE_CHECKING:
 class CCZPowGate(gate_features.InterchangeableQubitsGate, eigen_gate.EigenGate):
     r"""A doubly-controlled-Z that can be raised to a power.
 
-    The unitary matrix of `CCZ**t` is
+    The unitary matrix of `CCZ**t` is (empty elements are $0$):
 
     $$
     \begin{bmatrix}
