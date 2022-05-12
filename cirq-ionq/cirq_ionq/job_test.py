@@ -77,6 +77,22 @@ def test_job_results_qpu():
     assert results == expected
 
 
+def test_job_results_rounding_qpu():
+    job_dict = {
+        'id': 'my_id',
+        'status': 'completed',
+        'qubits': '2',
+        'target': 'qpu',
+        'metadata': {'shots': 5000, 'measurement0': f'a{chr(31)}0,1'},
+        'data': {'histogram': {'0': '0.0006', '2': '0.9994'}},
+    }
+    # 5000*0.0006 ~ 2.9999 but should be interpreted as 3
+    job = ionq.Job(None, job_dict)
+    expected = ionq.QPUResult({0: 3, 1: 4997}, 2, {'a': [0, 1]})
+    results = job.results()
+    assert results == expected
+
+
 def test_job_results_failed():
     job_dict = {'id': 'my_id', 'status': 'failed', 'failure': {'error': 'too many qubits'}}
     job = ionq.Job(None, job_dict)

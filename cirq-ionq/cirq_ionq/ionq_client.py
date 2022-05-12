@@ -136,7 +136,7 @@ class _IonQClient:
         def request():
             return requests.post(f'{self.url}/jobs', json=json, headers=self.headers)
 
-        return self._make_request(request, {}).json()
+        return self._make_request(request, json).json()
 
     def get_job(self, job_id: str) -> dict:
         """Get the job from the IonQ API.
