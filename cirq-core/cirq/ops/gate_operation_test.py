@@ -526,11 +526,12 @@ def test_gate_to_operation_to_gate_round_trips():
             if gate_cls in skip_classes:
                 skipped.add(gate_cls)
                 continue
+            # coverage:ignore
             raise AssertionError(
                 f"{gate_cls} has no json file, please add a json file or add to the list of "
                 "classes to be skipped if there is a reason this gate should not round trip "
                 "to a gate via creating an operation."
-            )  # coverage:ignore
+            )
 
         if not isinstance(gates, collections.abc.Iterable):
             gates = [gates]
