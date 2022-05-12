@@ -906,18 +906,18 @@ class HPowGate(eigen_gate.EigenGate):
 
 
 class CZPowGate(gate_features.InterchangeableQubitsGate, eigen_gate.EigenGate):
-    """A gate that applies a phase to the |11⟩ state of two qubits.
+    r"""A gate that applies a phase to the |11⟩ state of two qubits.
 
     The unitary matrix of `CZPowGate(exponent=t)` is:
 
-        [[1, 0, 0, 0],
-         [0, 1, 0, 0],
-         [0, 0, 1, 0],
-         [0, 0, 0, g]]
-
-    where:
-
-        g = exp(i·π·t).
+    $$
+    \begin{bmatrix}
+        1 & 0 & 0 & 0 \\
+        0 & 1 & 0 & 0 \\
+        0 & 0 & 1 & 0 \\
+        0 & 0 & 0 & e^{i \pi t} \\
+    \end{bmatrix}
+    $$
 
     `cirq.CZ`, the controlled Z gate, is an instance of this gate at
     `exponent=1`.
@@ -1065,7 +1065,7 @@ class CZPowGate(gate_features.InterchangeableQubitsGate, eigen_gate.EigenGate):
 
 
 class CXPowGate(eigen_gate.EigenGate):
-    """A gate that applies a controlled power of an X gate.
+    r"""A gate that applies a controlled power of an X gate.
 
     When applying CNOT (controlled-not) to qubits, you can either use
     positional arguments CNOT(q1, q2), where q2 is toggled when q1 is on,
@@ -1074,16 +1074,26 @@ class CXPowGate(eigen_gate.EigenGate):
 
     The unitary matrix of `cirq.CXPowGate(exponent=t)` is:
 
-        [[1, 0, 0, 0],
-         [0, 1, 0, 0],
-         [0, 0, g·c, -i·g·s],
-         [0, 0, -i·g·s, g·c]]
+    $$
+    \begin{bmatrix}
+        1 & 0 & 0 & 0 \\
+        0 & 1 & 0 & 0 \\
+        0 & 0 & g c & -i g s \\
+        0 & 0 & -i g s & g c
+    \end{bmatrix}
+    $$
 
     where:
 
-        c = cos(π·t/2)
-        s = sin(π·t/2)
-        g = exp(i·π·t/2).
+    $$
+    c = \cos\left(\frac{\pi t}{2}\right)
+    $$
+    $$
+    s = \sin\left(\frac{\pi t}{2}\right)
+    $$
+    $$
+    g = e^{\frac{i \pi t}{2}}
+    $$
 
     `cirq.CNOT`, the controlled NOT gate, is an instance of this gate at
     `exponent=1`.
@@ -1322,17 +1332,19 @@ document(
 CZ = CZPowGate()
 document(
     CZ,
-    """The controlled Z gate.
+    r"""The controlled Z gate.
 
-    The `exponent=1` instance of `cirq.CZPowGate`.
+    This is the `exponent=1` instance of `cirq.CZPowGate`.
 
-    Matrix:
-    ```
-        [[1 . . .],
-         [. 1 . .],
-         [. . 1 .],
-         [. . . -1]]
-    ```
+    The unitary matrix of this gate is (empty elements are $0$):
+    $$
+        \begin{bmatrix}
+            1 & & & \\
+            & 1 & & \\
+            & & 1 & \\
+            & & & -1
+        \end{bmatrix}
+    $$
     """,
 )
 
@@ -1340,16 +1352,20 @@ CNotPowGate = CXPowGate
 CNOT = CX = CNotPowGate()
 document(
     CNOT,
-    """The controlled NOT gate.
+    r"""The controlled NOT gate.
 
-    The `exponent=1` instance of `cirq.CXPowGate`.
+    This is the `exponent=1` instance of `cirq.CXPowGate`.
 
-    Matrix:
-    ```
-        [[1 . . .],
-         [. 1 . .],
-         [. . . 1],
-         [. . 1 .]]
-    ```
+    Alternative name: `cirq.CNOT`.
+
+    The unitary matrix of this gate is (empty elements are $0$):
+    $$
+        \begin{bmatrix}
+            1 & 0 & 0 & 0 \\
+            0 & 1 & 0 & 0 \\
+            0 & 0 & 0 & 1 \\
+            0 & 0 & 1 & 0
+        \end{bmatrix}
+    $$
     """,
 )
