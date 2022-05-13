@@ -21,6 +21,7 @@ import numpy as np
 import cirq
 from cirq.ops import control_values as cv
 
+
 class GoodGate(cirq.EigenGate, cirq.testing.SingleQubitGate):
     def _eigen_components(self) -> List[Tuple[float, np.ndarray]]:
         # coverage: ignore
