@@ -23,6 +23,8 @@ if TYPE_CHECKING:
 
 
 class MeasurementType(enum.IntEnum):
+    """Type of a measurement, whether a measurement or channel."""
+
     MEASUREMENT = 1
     CHANNEL = 2
 
