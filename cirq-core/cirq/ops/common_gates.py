@@ -219,8 +219,6 @@ class XPowGate(eigen_gate.EigenGate):
 
     def _qasm_(self, args: 'cirq.QasmArgs', qubits: Tuple['cirq.Qid', ...]) -> Optional[str]:
         args.validate_version('2.0')
-        if self._exponent == 0:
-            return args.format('id {0};\n', qubits[0])
         if self._global_shift != -0.5:
             if self._exponent == 1:
                 return args.format('x {0};\n', qubits[0])
@@ -409,8 +407,6 @@ class YPowGate(eigen_gate.EigenGate):
         args.validate_version('2.0')
         if self._exponent == 1 and self.global_shift != -0.5:
             return args.format('y {0};\n', qubits[0])
-        elif self._exponent == 0:
-            return args.format('id {0};\n', qubits[0])
 
         return args.format('ry({0:half_turns}) {1};\n', self._exponent, qubits[0])
 
@@ -667,8 +663,7 @@ class ZPowGate(eigen_gate.EigenGate):
 
     def _qasm_(self, args: 'cirq.QasmArgs', qubits: Tuple['cirq.Qid', ...]) -> Optional[str]:
         args.validate_version('2.0')
-        if self._exponent == 0:
-            return args.format('id {0};\n', qubits[0])
+
         if self.global_shift != -0.5:
             # Not an Rz gate.
             if self._exponent == 1:
