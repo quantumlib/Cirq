@@ -11,17 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from typing import (
-    cast,
-    Dict,
-    Hashable,
-    Iterable,
-    Iterator,
-    List,
-    Optional,
-    Sequence,
-    Set,
-)
+from typing import cast, Dict, Hashable, Iterable, Iterator, List, Optional, Sequence, Set
 from collections import OrderedDict
 import dataclasses
 import numpy as np
@@ -161,8 +151,7 @@ def results_to_proto(
 
 
 def results_from_proto(
-    msg: result_pb2.Result,
-    measurements: List[MeasureInfo] = None,
+    msg: result_pb2.Result, measurements: List[MeasureInfo] = None
 ) -> Sequence[Sequence[cirq.Result]]:
     """Converts a v2 result proto into List of list of trial results.
 
@@ -184,8 +173,7 @@ def results_from_proto(
 
 
 def _trial_sweep_from_proto(
-    msg: result_pb2.SweepResult,
-    measure_map: Dict[str, MeasureInfo] = None,
+    msg: result_pb2.SweepResult, measure_map: Dict[str, MeasureInfo] = None
 ) -> Sequence[cirq.Result]:
     """Converts a SweepResult proto into List of list of trial results.
 
@@ -220,8 +208,7 @@ def _trial_sweep_from_proto(
             m_data[mr.key] = np.array(ordered_results).transpose()
         trial_sweep.append(
             cirq.ResultDict(
-                params=cirq.ParamResolver(dict(pr.params.assignments)),
-                measurements=m_data,
+                params=cirq.ParamResolver(dict(pr.params.assignments)), measurements=m_data
             )
         )
     return trial_sweep

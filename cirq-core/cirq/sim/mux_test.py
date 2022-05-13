@@ -33,23 +33,13 @@ def test_sample():
     assert results.histogram(key=q) == collections.Counter({1: 1})
 
     # Intermediate measurements.
-    results = cirq.sample(
-        cirq.Circuit(
-            cirq.measure(q, key='drop'),
-            cirq.X(q),
-            cirq.measure(q),
-        )
-    )
+    results = cirq.sample(cirq.Circuit(cirq.measure(q, key='drop'), cirq.X(q), cirq.measure(q)))
     assert results.histogram(key='drop') == collections.Counter({0: 1})
     assert results.histogram(key=q) == collections.Counter({1: 1})
 
     # Overdamped everywhere.
     results = cirq.sample(
-        cirq.Circuit(
-            cirq.measure(q, key='drop'),
-            cirq.X(q),
-            cirq.measure(q),
-        ),
+        cirq.Circuit(cirq.measure(q, key='drop'), cirq.X(q), cirq.measure(q)),
         noise=cirq.ConstantQubitNoiseModel(cirq.amplitude_damp(1)),
     )
     assert results.histogram(key='drop') == collections.Counter({0: 1})
@@ -160,12 +150,7 @@ def test_final_state_vector_initial_state():
 
 
 def test_final_state_vector_dtype_insensitive_to_initial_state():
-    assert (
-        cirq.final_state_vector(
-            cirq.X,
-        ).dtype
-        == np.complex64
-    )
+    assert cirq.final_state_vector(cirq.X).dtype == np.complex64
 
     assert cirq.final_state_vector(cirq.X, initial_state=0).dtype == np.complex64
 
@@ -218,18 +203,23 @@ def test_final_state_vector_qubit_order():
     )
 
 
-def test_final_state_vector_seed():
-    a = cirq.LineQubit(0)
+def test_final_state_vector_ignore_terminal_measurement():
+    a, b = cirq.LineQubit.range(2)
+
     np.testing.assert_allclose(
-        cirq.final_state_vector([cirq.X(a) ** 0.5, cirq.measure(a)], seed=123),
-        [0, 0.707107 - 0.707107j],
-        atol=1e-4,
+        cirq.final_state_vector(
+            [cirq.X(a), cirq.X(b) ** 0.5, cirq.measure(a, b, key='m')],
+            ignore_terminal_measurements=True,
+        ),
+        [0, 0, 0.5 + 0.5j, 0.5 - 0.5j],
     )
-    np.testing.assert_allclose(
-        cirq.final_state_vector([cirq.X(a) ** 0.5, cirq.measure(a)], seed=124),
-        [0.707107 + 0.707107j, 0],
-        atol=1e-4,
-    )
+    with pytest.raises(ValueError, match='is not unitary'):
+        _ = (
+            cirq.final_state_vector(
+                [cirq.X(a), cirq.amplitude_damp(0.1).on(b), cirq.measure(a, b, key='m')],
+                ignore_terminal_measurements=True,
+            ),
+        )
 
 
 @pytest.mark.parametrize('repetitions', (0, 1, 100))
@@ -273,12 +263,7 @@ def test_final_density_matrix_initial_state():
 
 
 def test_final_density_matrix_dtype_insensitive_to_initial_state():
-    assert (
-        cirq.final_density_matrix(
-            cirq.X,
-        ).dtype
-        == np.complex64
-    )
+    assert cirq.final_density_matrix(cirq.X).dtype == np.complex64
 
     assert cirq.final_density_matrix(cirq.X, initial_state=0).dtype == np.complex64
 

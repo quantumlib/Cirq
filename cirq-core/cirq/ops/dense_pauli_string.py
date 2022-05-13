@@ -69,7 +69,7 @@ class BaseDensePauliString(raw_types.Gate, metaclass=abc.ABCMeta):
         self,
         pauli_mask: Union[Iterable['cirq.PAULI_GATE_LIKE'], np.ndarray],
         *,
-        coefficient: Union[sympy.Basic, int, float, complex] = 1,
+        coefficient: Union[sympy.Expr, int, float, 'cirq.TParamValComplex'] = 1,
     ):
         """Initializes a new dense pauli string.
 
@@ -97,8 +97,8 @@ class BaseDensePauliString(raw_types.Gate, metaclass=abc.ABCMeta):
             t*IXYZ
         """
         self._pauli_mask = _as_pauli_mask(pauli_mask)
-        self._coefficient = (
-            coefficient if isinstance(coefficient, sympy.Basic) else complex(coefficient)
+        self._coefficient: Union[complex, sympy.Expr] = (
+            coefficient if isinstance(coefficient, sympy.Expr) else complex(coefficient)
         )
         if type(self) != MutableDensePauliString:
             self._pauli_mask = np.copy(self.pauli_mask)
@@ -109,7 +109,7 @@ class BaseDensePauliString(raw_types.Gate, metaclass=abc.ABCMeta):
         return self._pauli_mask
 
     @property
-    def coefficient(self) -> complex:
+    def coefficient(self) -> Union[sympy.Expr, complex]:
         return self._coefficient
 
     def _json_dict_(self) -> Dict[str, Any]:
@@ -293,7 +293,7 @@ class BaseDensePauliString(raw_types.Gate, metaclass=abc.ABCMeta):
     def __abs__(self):
         return DensePauliString(coefficient=abs(self.coefficient), pauli_mask=self.pauli_mask)
 
-    def on(self, *qubits) -> 'cirq.PauliString':
+    def on(self, *qubits: 'cirq.Qid') -> 'cirq.PauliString':
         return self.sparse(qubits)
 
     def sparse(self, qubits: Optional[Sequence['cirq.Qid']] = None) -> 'cirq.PauliString':
@@ -373,7 +373,7 @@ class BaseDensePauliString(raw_types.Gate, metaclass=abc.ABCMeta):
     @abc.abstractmethod
     def copy(
         self: TCls,
-        coefficient: Optional[complex] = None,
+        coefficient: Optional[Union[sympy.Expr, int, float, complex]] = None,
         pauli_mask: Union[None, str, Iterable[int], np.ndarray] = None,
     ) -> TCls:
         """Returns a copy with possibly modified contents.
@@ -390,12 +390,27 @@ class BaseDensePauliString(raw_types.Gate, metaclass=abc.ABCMeta):
 
 
 class DensePauliString(BaseDensePauliString):
+    """An immutable string of Paulis, like `XIXY`, with a coefficient.
+
+    This represents a Pauli operator acting on qubits.
+
+    For example, `cirq.MutableDensePauliString("XXY")` represents a
+    three qubit operation that acts with `X` on the first two qubits, and
+    `Y` on the last.
+
+    This can optionally take a coefficient, for example,
+    `cirq.MutableDensePauliString("XX", 3)`, which represents 3 times
+    the operator acting on X on two qubits.
+
+    If the coefficient has magnitude of 1, then this is also a `cirq.Gate`.
+    """
+
     def frozen(self) -> 'DensePauliString':
         return self
 
     def copy(
         self,
-        coefficient: Optional[complex] = None,
+        coefficient: Optional[Union[sympy.Expr, int, float, complex]] = None,
         pauli_mask: Union[None, str, Iterable[int], np.ndarray] = None,
     ) -> 'DensePauliString':
         if pauli_mask is None and (coefficient is None or coefficient == self.coefficient):
@@ -408,6 +423,21 @@ class DensePauliString(BaseDensePauliString):
 
 @value.value_equality(unhashable=True, approximate=True)
 class MutableDensePauliString(BaseDensePauliString):
+    """A mutable string of Paulis, like `XIXY`, with a coefficient.
+
+    This represents a Pauli operator acting on qubits.
+
+    For example, `cirq.MutableDensePauliString("XXY")` represents a
+    three qubit operation that acts with `X` on the first two qubits, and
+    `Y` on the last.
+
+    This can optionally take a coefficient, for example,
+    `cirq.MutableDensePauliString("XX", 3)`, which represents 3 times
+    the operator acting on X on two qubits.
+
+    If the coefficient has magnitude of 1, then this is also a `cirq.Gate`.
+    """
+
     def __setitem__(self, key, value):
         if isinstance(key, int):
             self.pauli_mask[key] = _pauli_index(value)
@@ -467,7 +497,7 @@ class MutableDensePauliString(BaseDensePauliString):
 
     def copy(
         self,
-        coefficient: Optional[complex] = None,
+        coefficient: Optional[Union[sympy.Expr, int, float, complex]] = None,
         pauli_mask: Union[None, str, Iterable[int], np.ndarray] = None,
     ) -> 'MutableDensePauliString':
         return MutableDensePauliString(

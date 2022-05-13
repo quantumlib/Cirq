@@ -92,11 +92,7 @@ def get_grid_moments(
 class MergeNQubitGates(cirq.PointOptimizer):
     """Optimizes runs of adjacent unitary n-qubit operations."""
 
-    def __init__(
-        self,
-        *,
-        n_qubits: int,
-    ):
+    def __init__(self, *, n_qubits: int):
         super().__init__()
         self.n_qubits = n_qubits
 

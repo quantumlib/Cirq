@@ -24,7 +24,7 @@ if TYPE_CHECKING:
 
 @value.value_equality
 class WaitGate(raw_types.Gate):
-    """A single-qubit idle gate that represents waiting.
+    r"""An idle gate that represents waiting.
 
     In non-noisy simulators, this gate is just an identity gate. But noisy
     simulators and noise models may insert more error for longer waits.
@@ -136,10 +136,10 @@ class WaitGate(raw_types.Gate):
 def wait(
     *target: 'cirq.Qid',
     duration: 'cirq.DURATION_LIKE' = None,
-    picos: Union[int, float, sympy.Basic] = 0,
-    nanos: Union[int, float, sympy.Basic] = 0,
-    micros: Union[int, float, sympy.Basic] = 0,
-    millis: Union[int, float, sympy.Basic] = 0,
+    picos: Union[int, float, sympy.Expr] = 0,
+    nanos: Union[int, float, sympy.Expr] = 0,
+    micros: Union[int, float, sympy.Expr] = 0,
+    millis: Union[int, float, sympy.Expr] = 0,
 ) -> raw_types.Operation:
     """Creates a WaitGate applied to all the given qubits.
 
@@ -155,12 +155,6 @@ def wait(
         millis: Milliseconds to wait (see Duration).
     """
     return WaitGate(
-        duration=value.Duration(
-            duration,
-            picos=picos,
-            nanos=nanos,
-            micros=micros,
-            millis=millis,
-        ),
+        duration=value.Duration(duration, picos=picos, nanos=nanos, micros=micros, millis=millis),
         qid_shape=protocols.qid_shape(target),
     ).on(*target)

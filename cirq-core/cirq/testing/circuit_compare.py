@@ -183,8 +183,7 @@ def assert_circuits_with_terminal_measurements_are_equivalent(
 
 
 def assert_same_circuits(
-    actual: circuits.AbstractCircuit,
-    expected: circuits.AbstractCircuit,
+    actual: circuits.AbstractCircuit, expected: circuits.AbstractCircuit
 ) -> None:
     """Asserts that two circuits are identical, with a descriptive error.
 

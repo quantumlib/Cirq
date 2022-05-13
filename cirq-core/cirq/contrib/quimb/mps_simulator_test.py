@@ -1,7 +1,6 @@
 # pylint: disable=wrong-or-nonexistent-copyright-notice
 import itertools
 import math
-from unittest import mock
 
 import numpy as np
 import pytest
@@ -9,7 +8,6 @@ import sympy
 
 import cirq
 import cirq.contrib.quimb as ccq
-import cirq.experiments.google_v2_supremacy_circuit as supremacy_v2
 import cirq.testing
 from cirq import value
 
@@ -45,10 +43,7 @@ def test_various_gates_1d():
 def test_various_gates_1d_flip():
     q0, q1 = cirq.LineQubit.range(2)
 
-    circuit = cirq.Circuit(
-        cirq.H(q1),
-        cirq.CNOT(q1, q0),
-    )
+    circuit = cirq.Circuit(cirq.H(q1), cirq.CNOT(q1, q0))
 
     assert_same_output_as_dense(circuit=circuit, qubit_order=[q0, q1])
     assert_same_output_as_dense(circuit=circuit, qubit_order=[q1, q0])
@@ -187,13 +182,13 @@ def test_cnot_flipped():
         )
 
 
-def test_act_on_args():
+def test_simulation_state():
     q0, q1 = qubit_order = cirq.LineQubit.range(2)
     circuit = cirq.Circuit(cirq.CNOT(q1, q0))
     mps_simulator = ccq.mps_simulator.MPSSimulator()
     ref_simulator = cirq.Simulator()
     for initial_state in range(4):
-        args = mps_simulator._create_act_on_args(initial_state=initial_state, qubits=(q0, q1))
+        args = mps_simulator._create_simulation_state(initial_state=initial_state, qubits=(q0, q1))
         actual = mps_simulator.simulate(circuit, qubit_order=qubit_order, initial_state=args)
         expected = ref_simulator.simulate(
             circuit, qubit_order=qubit_order, initial_state=initial_state
@@ -266,8 +261,7 @@ def test_measurement_str():
 
 def test_trial_result_str():
     q0 = cirq.LineQubit(0)
-    final_step_result = mock.Mock(cirq.StepResult)
-    final_step_result._simulator_state.return_value = ccq.mps_simulator.MPSState(
+    final_simulator_state = ccq.mps_simulator.MPSState(
         qubits=(q0,),
         prng=value.parse_random_state(0),
         simulation_options=ccq.mps_simulator.MPSOptions(),
@@ -277,7 +271,7 @@ def test_trial_result_str():
             ccq.mps_simulator.MPSTrialResult(
                 params=cirq.ParamResolver({}),
                 measurements={'m': np.array([[1]])},
-                final_step_result=final_step_result,
+                final_simulator_state=final_simulator_state,
             )
         )
         == """measurements: m=1
@@ -289,8 +283,7 @@ output state: TensorNetwork([
 
 def test_trial_result_repr_pretty():
     q0 = cirq.LineQubit(0)
-    final_step_result = mock.Mock(cirq.StepResult)
-    final_step_result._simulator_state.return_value = ccq.mps_simulator.MPSState(
+    final_simulator_state = ccq.mps_simulator.MPSState(
         qubits=(q0,),
         prng=value.parse_random_state(0),
         simulation_options=ccq.mps_simulator.MPSOptions(),
@@ -298,7 +291,7 @@ def test_trial_result_repr_pretty():
     result = ccq.mps_simulator.MPSTrialResult(
         params=cirq.ParamResolver({}),
         measurements={'m': np.array([[1]])},
-        final_step_result=final_step_result,
+        final_simulator_state=final_simulator_state,
     )
     cirq.testing.assert_repr_pretty(
         result,
@@ -359,17 +352,17 @@ def test_state_equal():
     assert state1a != state1b
 
 
-def test_supremacy_equal_more_rows():
-    circuit = supremacy_v2.generate_boixo_2018_supremacy_circuits_v2_grid(
-        n_rows=3, n_cols=2, cz_depth=3, seed=0
+def test_random_circuits_equal_more_rows():
+    circuit = cirq.testing.random_circuit(
+        qubits=cirq.GridQubit.rect(3, 2), n_moments=6, op_density=1.0
     )
     qubits = circuit.all_qubits()
     assert_same_output_as_dense(circuit, qubits)
 
 
 def test_supremacy_equal_more_cols():
-    circuit = supremacy_v2.generate_boixo_2018_supremacy_circuits_v2_grid(
-        n_rows=2, n_cols=3, cz_depth=3, seed=0
+    circuit = cirq.testing.random_circuit(
+        qubits=cirq.GridQubit.rect(2, 3), n_moments=6, op_density=1.0
     )
     qubits = circuit.all_qubits()
     assert_same_output_as_dense(circuit, qubits)
@@ -378,48 +371,12 @@ def test_supremacy_equal_more_cols():
 def test_tensor_index_names():
     qubits = cirq.LineQubit.range(12)
     qubit_map = {qubit: i for i, qubit in enumerate(qubits)}
-    state = ccq.mps_simulator.MPSState(
-        qubit_map,
-        prng=value.parse_random_state(0),
-    )
+    state = ccq.mps_simulator.MPSState(qubits=qubit_map, prng=value.parse_random_state(0))
 
     assert state.i_str(0) == "i_00"
     assert state.i_str(11) == "i_11"
     assert state.mu_str(0, 3) == "mu_0_3"
     assert state.mu_str(3, 0) == "mu_0_3"
-
-
-def test_supremacy_big():
-    circuit = supremacy_v2.generate_boixo_2018_supremacy_circuits_v2_grid(
-        n_rows=7, n_cols=7, cz_depth=6, seed=0
-    )
-    qubit_order = circuit.all_qubits()
-    q0 = next(iter(qubit_order))
-    circuit.append(cirq.measure(q0))
-
-    mps_simulator_1 = ccq.mps_simulator.MPSSimulator(
-        simulation_options=ccq.mps_simulator.MPSOptions(cutoff=5e-5)
-    )
-    result_1 = mps_simulator_1.simulate(circuit, qubit_order=qubit_order, initial_state=0)
-
-    assert result_1.final_state.estimation_stats() == {
-        'estimated_fidelity': 0.997,
-        'memory_bytes': 11008,
-        'num_coefs_used': 688,
-    }
-
-    mps_simulator_2 = ccq.mps_simulator.MPSSimulator(
-        simulation_options=ccq.mps_simulator.MPSOptions(
-            method='isvd', max_bond=1, cutoff_mode='sum2'
-        )
-    )
-    result_2 = mps_simulator_2.simulate(circuit, qubit_order=qubit_order, initial_state=0)
-
-    assert result_2.final_state.estimation_stats() == {
-        'estimated_fidelity': 1.0,
-        'memory_bytes': 1568,
-        'num_coefs_used': 98,
-    }
 
 
 def test_simulate_moment_steps_sample():
@@ -546,7 +503,7 @@ def test_state_copy():
             assert not np.shares_memory(x[i], y[i])
 
 
-def test_state_act_on_args_initializer():
+def test_simulation_state_initializer():
     s = ccq.mps_simulator.MPSState(
         qubits=(cirq.LineQubit(0),),
         prng=np.random.RandomState(0),
@@ -559,10 +516,7 @@ def test_state_act_on_args_initializer():
 
 
 def test_act_on_gate():
-    args = ccq.mps_simulator.MPSState(
-        qubits=cirq.LineQubit.range(3),
-        prng=np.random.RandomState(0),
-    )
+    args = ccq.mps_simulator.MPSState(qubits=cirq.LineQubit.range(3), prng=np.random.RandomState(0))
 
     cirq.act_on(cirq.X, args, [cirq.LineQubit(1)])
     np.testing.assert_allclose(
@@ -571,15 +525,11 @@ def test_act_on_gate():
     )
 
 
-def test_deprectated():
-    q0 = cirq.LineQubit(0)
+def test_deprecated():
     prng = np.random.RandomState(0)
-    args = ccq.mps_simulator.MPSState(
-        qubits=cirq.LineQubit.range(3),
-        prng=prng,
-        log_of_measurement_results={},
-    )
-    with cirq.testing.assert_deprecated(deadline='0.15'):
-        args.perform_measurement([q0], prng)
-    with cirq.testing.assert_deprecated(deadline='0.15'):
-        args.apply_op(cirq.X(q0), prng)
+    with cirq.testing.assert_deprecated('log_of_measurement_results', deadline='0.16', count=2):
+        _ = ccq.mps_simulator.MPSState(
+            qubits=cirq.LineQubit.range(3), prng=prng, log_of_measurement_results={}
+        )
+    with cirq.testing.assert_deprecated('positional', deadline='0.16'):
+        _ = ccq.mps_simulator.MPSState(cirq.LineQubit.range(3), prng=prng)

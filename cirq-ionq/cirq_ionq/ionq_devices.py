@@ -31,12 +31,11 @@ _VALID_GATES = cirq.Gateset(
     cirq.ZZPowGate,
     cirq.MeasurementGate,
     unroll_circuit_op=False,
-    accept_global_phase_op=False,
 )
 
 
 class IonQAPIDevice(cirq.Device):
-    """A device that uses the gates exposed by the IonQ API.
+    """A device that uses the QIS gates exposed by the IonQ API.
 
     When using this device in constructing a circuit, it will convert one and two qubit gates
     that are not supported by the API into those supported by the API if they have a unitary
@@ -67,18 +66,14 @@ class IonQAPIDevice(cirq.Device):
             self.qubits = frozenset(qubits)
         self.atol = atol
         self._metadata = cirq.DeviceMetadata(
-            self.qubits,
-            [(a, b) for a in self.qubits for b in self.qubits if a != b],
+            self.qubits, [(a, b) for a in self.qubits for b in self.qubits if a != b]
         )
 
     @property
     def metadata(self) -> cirq.DeviceMetadata:
         return self._metadata
 
-    @_compat.deprecated(
-        fix='Use metadata.qubit_set if applicable.',
-        deadline='v0.15',
-    )
+    @_compat.deprecated(fix='Use metadata.qubit_set if applicable.', deadline='v0.15')
     def qubit_set(self) -> AbstractSet['cirq.Qid']:
         return self.qubits
 
@@ -96,8 +91,7 @@ class IonQAPIDevice(cirq.Device):
         return operation in _VALID_GATES
 
     @_compat.deprecated(
-        fix='Use cirq_ionq.decompose_to_device operation instead.',
-        deadline='v0.15',
+        fix='Use cirq_ionq.decompose_to_device operation instead.', deadline='v0.15'
     )
     def decompose_operation(self, operation: cirq.Operation) -> cirq.OP_TREE:
         return decompose_to_device(operation)
@@ -158,6 +152,5 @@ def _decompose_two_qubit(operation: cirq.Operation) -> cirq.OP_TREE:
     temp = cirq.merge_single_qubit_gates_to_phased_x_and_z(temp)
     # A final pass breaks up PhasedXPow into Rz, Rx.
     yield cirq.map_operations_and_unroll(
-        temp,
-        lambda op, _: cirq.decompose_once(op) if type(op.gate) == cirq.PhasedXPowGate else op,
+        temp, lambda op, _: cirq.decompose_once(op) if type(op.gate) == cirq.PhasedXPowGate else op
     ).all_operations()

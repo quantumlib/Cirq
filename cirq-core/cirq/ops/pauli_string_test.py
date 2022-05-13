@@ -460,14 +460,7 @@ def test_mul_strings():
     a, b, c, d = cirq.LineQubit.range(4)
     p1 = cirq.PauliString({a: cirq.X, b: cirq.Y, c: cirq.Z})
     p2 = cirq.PauliString({b: cirq.X, c: cirq.Y, d: cirq.Z})
-    assert p1 * p2 == -cirq.PauliString(
-        {
-            a: cirq.X,
-            b: cirq.Z,
-            c: cirq.X,
-            d: cirq.Z,
-        }
-    )
+    assert p1 * p2 == -cirq.PauliString({a: cirq.X, b: cirq.Z, c: cirq.X, d: cirq.Z})
 
     assert cirq.X(a) * cirq.PauliString({a: cirq.X}) == cirq.PauliString()
     assert cirq.PauliString({a: cirq.X}) * cirq.X(a) == cirq.PauliString()
@@ -591,7 +584,9 @@ def test_to_z_basis_ops():
     circuit = cirq.Circuit(pauli_string.to_z_basis_ops())
 
     initial_state = cirq.kron(x0, x1, y0, y1, z0, z1, shape_len=1)
-    z_basis_state = circuit.final_state_vector(initial_state)
+    z_basis_state = circuit.final_state_vector(
+        initial_state=initial_state, ignore_terminal_measurements=False, dtype=np.complex64
+    )
 
     expected_state = np.zeros(2**6)
     expected_state[0b010101] = 1
@@ -616,7 +611,9 @@ def test_to_z_basis_ops_product_state():
         * cirq.KET_ZERO(q4)
         * cirq.KET_ONE(q5)
     )
-    z_basis_state = circuit.final_state_vector(initial_state)
+    z_basis_state = circuit.final_state_vector(
+        initial_state=initial_state, ignore_terminal_measurements=False, dtype=np.complex64
+    )
 
     expected_state = np.zeros(2**6)
     expected_state[0b010101] = 1
@@ -716,7 +713,7 @@ def test_pass_operations_over_cz():
 
 
 def test_pass_operations_over_no_common_qubits():
-    class DummyGate(cirq.SingleQubitGate):
+    class DummyGate(cirq.testing.SingleQubitGate):
         pass
 
     q0, q1 = _make_qubits(2)
@@ -830,6 +827,7 @@ def test_unitary_matrix():
     a, b = cirq.LineQubit.range(2)
     assert not cirq.has_unitary(2 * cirq.X(a) * cirq.Z(b))
     assert cirq.unitary(2 * cirq.X(a) * cirq.Z(b), default=None) is None
+    # fmt: off
     np.testing.assert_allclose(
         cirq.unitary(cirq.X(a) * cirq.Z(b)),
         np.array(
@@ -852,6 +850,7 @@ def test_unitary_matrix():
             ]
         ),
     )
+    # fmt: on
 
 
 def test_decompose():
@@ -1050,12 +1049,11 @@ def test_pauli_string_expectation_from_state_vector_pure_state():
     q_map = {q: i for i, q in enumerate(qubits)}
 
     circuit = cirq.Circuit(
-        cirq.X(qubits[1]),
-        cirq.H(qubits[2]),
-        cirq.X(qubits[3]),
-        cirq.H(qubits[3]),
+        cirq.X(qubits[1]), cirq.H(qubits[2]), cirq.X(qubits[3]), cirq.H(qubits[3])
     )
-    wf = circuit.final_state_vector(qubit_order=qubits)
+    wf = circuit.final_state_vector(
+        qubit_order=qubits, ignore_terminal_measurements=False, dtype=np.complex128
+    )
 
     z0z1 = cirq.PauliString({qubits[0]: cirq.Z, qubits[1]: cirq.Z})
     z0z2 = cirq.PauliString({qubits[0]: cirq.Z, qubits[2]: cirq.Z})
@@ -1079,13 +1077,10 @@ def test_pauli_string_expectation_from_state_vector_pure_state_with_coef():
     qs = cirq.LineQubit.range(4)
     q_map = {q: i for i, q in enumerate(qs)}
 
-    circuit = cirq.Circuit(
-        cirq.X(qs[1]),
-        cirq.H(qs[2]),
-        cirq.X(qs[3]),
-        cirq.H(qs[3]),
+    circuit = cirq.Circuit(cirq.X(qs[1]), cirq.H(qs[2]), cirq.X(qs[3]), cirq.H(qs[3]))
+    wf = circuit.final_state_vector(
+        qubit_order=qs, ignore_terminal_measurements=False, dtype=np.complex128
     )
-    wf = circuit.final_state_vector(qubit_order=qs)
 
     z0z1 = cirq.Z(qs[0]) * cirq.Z(qs[1]) * 0.123
     z0z2 = cirq.Z(qs[0]) * cirq.Z(qs[2]) * -1
@@ -1200,8 +1195,7 @@ def test_expectation_from_density_matrix_basis_states():
         x0.expectation_from_density_matrix(np.array([[0, 0], [0, 1]], dtype=complex), q_map), 0
     )
     np.testing.assert_allclose(
-        x0.expectation_from_density_matrix(np.array([[1, 1], [1, 1]], dtype=complex) / 2, q_map),
-        1,
+        x0.expectation_from_density_matrix(np.array([[1, 1], [1, 1]], dtype=complex) / 2, q_map), 1
     )
     np.testing.assert_allclose(
         x0.expectation_from_density_matrix(np.array([[1, -1], [-1, 1]], dtype=complex) / 2, q_map),
@@ -1268,12 +1262,11 @@ def test_pauli_string_expectation_from_density_matrix_pure_state():
     q_map = {q: i for i, q in enumerate(qubits)}
 
     circuit = cirq.Circuit(
-        cirq.X(qubits[1]),
-        cirq.H(qubits[2]),
-        cirq.X(qubits[3]),
-        cirq.H(qubits[3]),
+        cirq.X(qubits[1]), cirq.H(qubits[2]), cirq.X(qubits[3]), cirq.H(qubits[3])
     )
-    state_vector = circuit.final_state_vector(qubit_order=qubits)
+    state_vector = circuit.final_state_vector(
+        qubit_order=qubits, ignore_terminal_measurements=False, dtype=np.complex128
+    )
     rho = np.outer(state_vector, np.conj(state_vector))
 
     z0z1 = cirq.PauliString({qubits[0]: cirq.Z, qubits[1]: cirq.Z})
@@ -1298,13 +1291,10 @@ def test_pauli_string_expectation_from_density_matrix_pure_state_with_coef():
     qs = cirq.LineQubit.range(4)
     q_map = {q: i for i, q in enumerate(qs)}
 
-    circuit = cirq.Circuit(
-        cirq.X(qs[1]),
-        cirq.H(qs[2]),
-        cirq.X(qs[3]),
-        cirq.H(qs[3]),
+    circuit = cirq.Circuit(cirq.X(qs[1]), cirq.H(qs[2]), cirq.X(qs[3]), cirq.H(qs[3]))
+    state_vector = circuit.final_state_vector(
+        qubit_order=qs, ignore_terminal_measurements=False, dtype=np.complex128
     )
-    state_vector = circuit.final_state_vector(qubit_order=qs)
     rho = np.outer(state_vector, np.conj(state_vector))
 
     z0z1 = cirq.Z(qs[0]) * cirq.Z(qs[1]) * 0.123
@@ -1444,12 +1434,8 @@ def test_conjugated_by_clifford_composite():
 def test_conjugated_by_move_into_uninvolved():
     a, b, c, d = cirq.LineQubit.range(4)
     p = cirq.X(a) * cirq.Z(b)
-    assert p.conjugated_by([cirq.SWAP(c, d), cirq.SWAP(b, c),]) == cirq.X(
-        a
-    ) * cirq.Z(d)
-    assert p.conjugated_by([cirq.SWAP(b, c), cirq.SWAP(c, d),]) == cirq.X(
-        a
-    ) * cirq.Z(c)
+    assert p.conjugated_by([cirq.SWAP(c, d), cirq.SWAP(b, c)]) == cirq.X(a) * cirq.Z(d)
+    assert p.conjugated_by([cirq.SWAP(b, c), cirq.SWAP(c, d)]) == cirq.X(a) * cirq.Z(c)
 
 
 def test_conjugated_by_common_single_qubit_gates():
@@ -1504,11 +1490,7 @@ def test_conjugated_by_common_two_qubit_gates():
         cirq.YY**-0.5,
         cirq.ZZ**-0.5,
     ]
-    two_qubit_gates.extend(
-        [
-            OrderSensitiveGate(),
-        ]
-    )
+    two_qubit_gates.extend([OrderSensitiveGate()])
     for p1 in [cirq.I, cirq.X, cirq.Y, cirq.Z]:
         for p2 in [cirq.I, cirq.X, cirq.Y, cirq.Z]:
             pd = cirq.DensePauliString([p1, p2])
@@ -1948,3 +1930,40 @@ def test_transform_qubits():
     assert m is m2
     assert m == p2
     assert m2 == p2
+
+
+def test_parameterization():
+    t = sympy.Symbol('t')
+    q = cirq.LineQubit(0)
+    pst = cirq.PauliString({q: 'x'}, coefficient=t)
+    assert cirq.is_parameterized(pst)
+    assert cirq.parameter_names(pst) == {'t'}
+    assert pst.coefficient == 1.0 * t
+    assert not cirq.has_unitary(pst)
+    assert not cirq.is_parameterized(pst.with_coefficient(2))
+    with pytest.raises(TypeError):
+        cirq.decompose_once(pst)
+    with pytest.raises(NotImplementedError, match='parameterized'):
+        pst.expectation_from_state_vector(np.array([]), {})
+    with pytest.raises(NotImplementedError, match='parameterized'):
+        pst.expectation_from_density_matrix(np.array([]), {})
+    assert pst**1 == pst
+    assert pst**-1 == pst.with_coefficient(1.0 / t)
+    assert (-pst) ** 1 == -pst
+    assert (-pst) ** -1 == -pst.with_coefficient(1.0 / t)
+    assert (1j * pst) ** 1 == 1j * pst
+    assert (1j * pst) ** -1 == -1j * pst.with_coefficient(1.0 / t)
+    with pytest.raises(TypeError):
+        _ = pst**2
+    with pytest.raises(TypeError):
+        _ = 1**pst
+    cirq.testing.assert_has_diagram(cirq.Circuit(pst), '0: ───PauliString((1.0*t)*X)───')
+
+
+@pytest.mark.parametrize('resolve_fn', [cirq.resolve_parameters, cirq.resolve_parameters_once])
+def test_resolve(resolve_fn):
+    t = sympy.Symbol('t')
+    q = cirq.LineQubit(0)
+    pst = cirq.PauliString({q: 'x'}, coefficient=t)
+    ps1 = cirq.PauliString({q: 'x'}, coefficient=1j)
+    assert resolve_fn(pst, {'t': 1j}) == ps1

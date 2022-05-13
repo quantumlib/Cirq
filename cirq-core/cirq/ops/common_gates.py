@@ -67,31 +67,39 @@ def _pi(rads):
 
 
 @value.value_equality
-class XPowGate(eigen_gate.EigenGate, gate_features.SingleQubitGate):
-    """A gate that rotates around the X axis of the Bloch sphere.
+class XPowGate(eigen_gate.EigenGate):
+    r"""A gate that rotates around the X axis of the Bloch sphere.
 
-    The unitary matrix of ``XPowGate(exponent=t)`` is:
-
-        [[g·c, -i·g·s],
-         [-i·g·s, g·c]]
-
-    where:
-
-        c = cos(π·t/2)
-        s = sin(π·t/2)
-        g = exp(i·π·t/2).
+    The unitary matrix of `cirq.XPowGate(exponent=t)` is:
+    $$
+    \begin{bmatrix}
+      e^{i \pi t /2} \cos(\pi t) & -i e^{i \pi t /2} \sin(\pi t) \\
+      -i e^{i \pi t /2} \sin(\pi t) & e^{i \pi t /2} \cos(\pi t)
+    \end{bmatrix}
+    $$
 
     Note in particular that this gate has a global phase factor of
-    e^{i·π·t/2} vs the traditionally defined rotation matrices
-    about the Pauli X axis. See `cirq.rx` for rotations without the global
+    $e^{i \pi t / 2}$ vs the traditionally defined rotation matrices
+    about the Pauli X axis. See `cirq.Rx` for rotations without the global
     phase. The global phase factor can be adjusted by using the `global_shift`
     parameter when initializing.
 
-    `cirq.X`, the Pauli X gate, is an instance of this gate at exponent=1.
+    `cirq.X`, the Pauli X gate, is an instance of this gate at `exponent=1`.
     """
 
+    _eigencomponents: Dict[int, List[Tuple[float, np.ndarray]]] = {}
+
+    def __init__(
+        self, *, exponent: value.TParamVal = 1.0, global_shift: float = 0.0, dimension: int = 2
+    ):
+        super().__init__(exponent=exponent, global_shift=global_shift)
+        self._dimension = dimension
+
+    def _num_qubits_(self) -> int:
+        return 1
+
     def _apply_unitary_(self, args: 'protocols.ApplyUnitaryArgs') -> Optional[np.ndarray]:
-        if self._exponent != 1:
+        if self._exponent != 1 or self._dimension != 2:
             return NotImplemented
         zero = args.subspace_index(0)
         one = args.subspace_index(1)
@@ -108,13 +116,27 @@ class XPowGate(eigen_gate.EigenGate, gate_features.SingleQubitGate):
 
     def with_canonical_global_phase(self) -> 'XPowGate':
         """Returns an equal-up-global-phase standardized form of the gate."""
-        return XPowGate(exponent=self._exponent)
+        return XPowGate(exponent=self._exponent, dimension=self._dimension)
+
+    def _qid_shape_(self) -> Tuple[int, ...]:
+        return (self._dimension,)
 
     def _eigen_components(self) -> List[Tuple[float, np.ndarray]]:
-        return [
-            (0, np.array([[0.5, 0.5], [0.5, 0.5]])),
-            (1, np.array([[0.5, -0.5], [-0.5, 0.5]])),
-        ]
+        if self._dimension not in XPowGate._eigencomponents:
+            components = []
+            root = 1j ** (4 / self._dimension)
+            for i in range(self._dimension):
+                half_turns = i * 2 / self._dimension
+                v = np.array([root ** (i * j) / self._dimension for j in range(self._dimension)])
+                m = np.array([np.roll(v, j) for j in range(self._dimension)])
+                components.append((half_turns, m))
+            XPowGate._eigencomponents[self._dimension] = components
+        return XPowGate._eigencomponents[self._dimension]
+
+    def _with_exponent(self, exponent: 'cirq.TParamVal') -> 'cirq.XPowGate':
+        return XPowGate(
+            exponent=exponent, global_shift=self._global_shift, dimension=self._dimension
+        )
 
     def _decompose_into_clifford_with_qubits_(self, qubits):
         from cirq.ops.clifford_gate import SingleQubitCliffordGate
@@ -130,7 +152,7 @@ class XPowGate(eigen_gate.EigenGate, gate_features.SingleQubitGate):
         return NotImplemented
 
     def _trace_distance_bound_(self) -> Optional[float]:
-        if self._is_parameterized_():
+        if self._is_parameterized_() or self._dimension != 2:
             return None
         return abs(np.sin(self._exponent * 0.5 * np.pi))
 
@@ -182,16 +204,11 @@ class XPowGate(eigen_gate.EigenGate, gate_features.SingleQubitGate):
         return result
 
     def _pauli_expansion_(self) -> value.LinearDict[str]:
-        if protocols.is_parameterized(self):
+        if protocols.is_parameterized(self) or self._dimension != 2:
             return NotImplemented
         phase = 1j ** (2 * self._exponent * (self._global_shift + 0.5))
         angle = np.pi * self._exponent / 2
-        return value.LinearDict(
-            {
-                'I': phase * np.cos(angle),
-                'X': -1j * phase * np.sin(angle),
-            }
-        )
+        return value.LinearDict({'I': phase * np.cos(angle), 'X': -1j * phase * np.sin(angle)})
 
     def _circuit_diagram_info_(
         self, args: 'cirq.CircuitDiagramInfoArgs'
@@ -228,7 +245,7 @@ class XPowGate(eigen_gate.EigenGate, gate_features.SingleQubitGate):
         )
 
     def _has_stabilizer_effect_(self) -> Optional[bool]:
-        if self._is_parameterized_():
+        if self._is_parameterized_() or self._dimension != 2:
             return None
         return self.exponent % 0.5 == 0
 
@@ -240,24 +257,34 @@ class XPowGate(eigen_gate.EigenGate, gate_features.SingleQubitGate):
         return f'XPowGate(exponent={self._exponent}, global_shift={self._global_shift!r})'
 
     def __repr__(self) -> str:
-        if self._global_shift == 0:
+        if self._global_shift == 0 and self._dimension == 2:
             if self._exponent == 1:
                 return 'cirq.X'
             return f'(cirq.X**{proper_repr(self._exponent)})'
-        return 'cirq.XPowGate(exponent={}, global_shift={!r})'.format(
-            proper_repr(self._exponent), self._global_shift
-        )
+        args = []
+        if self._exponent != 1:
+            args.append(f'exponent={proper_repr(self._exponent)}')
+        if self._global_shift != 0:
+            args.append(f'global_shift={self._global_shift}')
+        if self._dimension != 2:
+            args.append(f'dimension={self._dimension}')
+        all_args = ', '.join(args)
+        return f'cirq.XPowGate({all_args})'
 
 
 class Rx(XPowGate):
-    """A gate, with matrix e^{-i X rads/2}, that rotates around the X axis of the Bloch sphere.
+    r"""A gate with matrix $e^{-i X t/2}$ that rotates around the X axis of the Bloch sphere by $t$.
 
-    The unitary matrix of ``Rx(rads=t)`` is:
+    The unitary matrix of `cirq.Rx(rads=t)` is:
+    $$
+    e^{-i X t /2} =
+        \begin{bmatrix}
+            \cos(t/2) & -i \sin(t/2) \\
+            -i \sin(t/2) & \cos(t/2)
+        \end{bmatrix}
+    $$
 
-    exp(-i X t/2) =  [ cos(t/2)  -isin(t/2)]
-                     [-isin(t/2)  cos(t/2) ]
-
-    The gate corresponds to the traditionally defined rotation matrices about the Pauli X axis.
+    This gate corresponds to the traditionally defined rotation matrices about the Pauli X axis.
     """
 
     def __init__(self, *, rads: value.TParamVal):
@@ -282,9 +309,7 @@ class Rx(XPowGate):
         return f'cirq.Rx(rads={proper_repr(self._rads)})'
 
     def _json_dict_(self) -> Dict[str, Any]:
-        return {
-            'rads': self._rads,
-        }
+        return {'rads': self._rads}
 
     @classmethod
     def _from_json_dict_(cls, rads, **kwargs) -> 'Rx':
@@ -292,28 +317,28 @@ class Rx(XPowGate):
 
 
 @value.value_equality
-class YPowGate(eigen_gate.EigenGate, gate_features.SingleQubitGate):
-    """A gate that rotates around the Y axis of the Bloch sphere.
+class YPowGate(eigen_gate.EigenGate):
+    r"""A gate that rotates around the Y axis of the Bloch sphere.
 
-    The unitary matrix of ``YPowGate(exponent=t)`` is:
-
-        [[g·c, -g·s],
-         [g·s, g·c]]
-
-    where:
-
-        c = cos(π·t/2)
-        s = sin(π·t/2)
-        g = exp(i·π·t/2).
+    The unitary matrix of `cirq.YPowGate(exponent=t)` is:
+    $$
+        \begin{bmatrix}
+            e^{i \pi t /2} \cos(\pi t /2) & - e^{i \pi t /2} \sin(\pi t /2) \\
+            e^{i \pi t /2} \sin(\pi t /2) & e^{i \pi t /2} \cos(\pi t /2)
+        \end{bmatrix}
+    $$
 
     Note in particular that this gate has a global phase factor of
-    e^{i·π·t/2} vs the traditionally defined rotation matrices
+    $e^{i \pi t / 2}$ vs the traditionally defined rotation matrices
     about the Pauli Y axis. See `cirq.Ry` for rotations without the global
     phase. The global phase factor can be adjusted by using the `global_shift`
     parameter when initializing.
 
-    `cirq.Y`, the Pauli Y gate, is an instance of this gate at exponent=1.
+    `cirq.Y`, the Pauli Y gate, is an instance of this gate at `exponent=1`.
     """
+
+    def _num_qubits_(self) -> int:
+        return 1
 
     def _apply_unitary_(self, args: 'protocols.ApplyUnitaryArgs') -> Optional[np.ndarray]:
         if self._exponent != 1:
@@ -364,12 +389,7 @@ class YPowGate(eigen_gate.EigenGate, gate_features.SingleQubitGate):
             return NotImplemented
         phase = 1j ** (2 * self._exponent * (self._global_shift + 0.5))
         angle = np.pi * self._exponent / 2
-        return value.LinearDict(
-            {
-                'I': phase * np.cos(angle),
-                'Y': -1j * phase * np.sin(angle),
-            }
-        )
+        return value.LinearDict({'I': phase * np.cos(angle), 'Y': -1j * phase * np.sin(angle)})
 
     def _circuit_diagram_info_(
         self, args: 'cirq.CircuitDiagramInfoArgs'
@@ -425,14 +445,18 @@ class YPowGate(eigen_gate.EigenGate, gate_features.SingleQubitGate):
 
 
 class Ry(YPowGate):
-    """A gate, with matrix e^{-i Y rads/2}, that rotates around the Y axis of the Bloch sphere.
+    r"""A gate with matrix $e^{-i Y t/2}$ that rotates around the Y axis of the Bloch sphere by $t$.
 
-    The unitary matrix of ``Ry(rads=t)`` is:
+    The unitary matrix of `cirq.Ry(rads=t)` is:
+    $$
+    e^{-i Y t / 2} =
+        \begin{bmatrix}
+            \cos(t/2) & -\sin(t/2) \\
+            \sin(t/2) & \cos(t/2)
+        \end{bmatrix}
+    $$
 
-    exp(-i Y t/2) =  [cos(t/2)  -sin(t/2)]
-                     [sin(t/2)  cos(t/2) ]
-
-    The gate corresponds to the traditionally defined rotation matrices about the Pauli Y axis.
+    This gate corresponds to the traditionally defined rotation matrices about the Pauli Y axis.
     """
 
     def __init__(self, *, rads: value.TParamVal):
@@ -457,9 +481,7 @@ class Ry(YPowGate):
         return f'cirq.Ry(rads={proper_repr(self._rads)})'
 
     def _json_dict_(self) -> Dict[str, Any]:
-        return {
-            'rads': self._rads,
-        }
+        return {'rads': self._rads}
 
     @classmethod
     def _from_json_dict_(cls, rads, **kwargs) -> 'Ry':
@@ -467,34 +489,45 @@ class Ry(YPowGate):
 
 
 @value.value_equality
-class ZPowGate(eigen_gate.EigenGate, gate_features.SingleQubitGate):
-    """A gate that rotates around the Z axis of the Bloch sphere.
+class ZPowGate(eigen_gate.EigenGate):
+    r"""A gate that rotates around the Z axis of the Bloch sphere.
 
-    The unitary matrix of ``ZPowGate(exponent=t)`` is:
-
-        [[1, 0],
-         [0, g]]
-
-    where:
-
-        g = exp(i·π·t).
+    The unitary matrix of `cirq.ZPowGate(exponent=t)` is:
+    $$
+        \begin{bmatrix}
+            1 & 0 \\
+            0 & e^{i \pi t}
+        \end{bmatrix}
+    $$
 
     Note in particular that this gate has a global phase factor of
-    e^{i·π·t/2} vs the traditionally defined rotation matrices
+    $e^{i\pi t/2}$ vs the traditionally defined rotation matrices
     about the Pauli Z axis. See `cirq.Rz` for rotations without the global
     phase. The global phase factor can be adjusted by using the `global_shift`
     parameter when initializing.
 
-    `cirq.Z`, the Pauli Z gate, is an instance of this gate at exponent=1.
+    `cirq.Z`, the Pauli Z gate, is an instance of this gate at `exponent=1`.
     """
+
+    _eigencomponents: Dict[int, List[Tuple[float, np.ndarray]]] = {}
+
+    def __init__(
+        self, *, exponent: value.TParamVal = 1.0, global_shift: float = 0.0, dimension: int = 2
+    ):
+        super().__init__(exponent=exponent, global_shift=global_shift)
+        self._dimension = dimension
+
+    def _num_qubits_(self) -> int:
+        return 1
 
     def _apply_unitary_(self, args: 'protocols.ApplyUnitaryArgs') -> Optional[np.ndarray]:
         if protocols.is_parameterized(self):
             return None
 
-        one = args.subspace_index(1)
-        c = 1j ** (self._exponent * 2)
-        args.target_tensor[one] *= c
+        for i in range(1, self._dimension):
+            subspace = args.subspace_index(i)
+            c = 1j ** (self._exponent * 4 * i / self._dimension)
+            args.target_tensor[subspace] *= c
         p = 1j ** (2 * self._exponent * self._global_shift)
         if p != 1:
             args.target_tensor *= p
@@ -519,7 +552,7 @@ class ZPowGate(eigen_gate.EigenGate, gate_features.SingleQubitGate):
 
     def with_canonical_global_phase(self) -> 'ZPowGate':
         """Returns an equal-up-global-phase standardized form of the gate."""
-        return ZPowGate(exponent=self._exponent)
+        return ZPowGate(exponent=self._exponent, dimension=self._dimension)
 
     def controlled(
         self,
@@ -568,34 +601,42 @@ class ZPowGate(eigen_gate.EigenGate, gate_features.SingleQubitGate):
             )
         return result
 
+    def _qid_shape_(self) -> Tuple[int, ...]:
+        return (self._dimension,)
+
     def _eigen_components(self) -> List[Tuple[float, np.ndarray]]:
-        return [
-            (0, np.diag([1, 0])),
-            (1, np.diag([0, 1])),
-        ]
+        if self._dimension not in ZPowGate._eigencomponents:
+            components = []
+            for i in range(self._dimension):
+                half_turns = i * 2 / self._dimension
+                m = np.zeros((self._dimension, self._dimension))
+                m[i][i] = 1
+                components.append((half_turns, m))
+            ZPowGate._eigencomponents[self._dimension] = components
+        return ZPowGate._eigencomponents[self._dimension]
+
+    def _with_exponent(self, exponent: 'cirq.TParamVal') -> 'cirq.ZPowGate':
+        return ZPowGate(
+            exponent=exponent, global_shift=self._global_shift, dimension=self._dimension
+        )
 
     def _trace_distance_bound_(self) -> Optional[float]:
-        if self._is_parameterized_():
+        if self._is_parameterized_() or self._dimension != 2:
             return None
         return abs(np.sin(self._exponent * 0.5 * np.pi))
 
     def _pauli_expansion_(self) -> value.LinearDict[str]:
-        if protocols.is_parameterized(self):
+        if protocols.is_parameterized(self) or self._dimension != 2:
             return NotImplemented
         phase = 1j ** (2 * self._exponent * (self._global_shift + 0.5))
         angle = np.pi * self._exponent / 2
-        return value.LinearDict(
-            {
-                'I': phase * np.cos(angle),
-                'Z': -1j * phase * np.sin(angle),
-            }
-        )
+        return value.LinearDict({'I': phase * np.cos(angle), 'Z': -1j * phase * np.sin(angle)})
 
     def _phase_by_(self, phase_turns: float, qubit_index: int):
         return self
 
     def _has_stabilizer_effect_(self) -> Optional[bool]:
-        if self._is_parameterized_():
+        if self._is_parameterized_() or self._dimension != 2:
             return None
         return self.exponent % 0.5 == 0
 
@@ -645,7 +686,7 @@ class ZPowGate(eigen_gate.EigenGate, gate_features.SingleQubitGate):
         return f'ZPowGate(exponent={self._exponent}, global_shift={self._global_shift!r})'
 
     def __repr__(self) -> str:
-        if self._global_shift == 0:
+        if self._global_shift == 0 and self._dimension == 2:
             if self._exponent == 0.25:
                 return 'cirq.T'
             if self._exponent == -0.25:
@@ -657,9 +698,15 @@ class ZPowGate(eigen_gate.EigenGate, gate_features.SingleQubitGate):
             if self._exponent == 1:
                 return 'cirq.Z'
             return f'(cirq.Z**{proper_repr(self._exponent)})'
-        return 'cirq.ZPowGate(exponent={}, global_shift={!r})'.format(
-            proper_repr(self._exponent), self._global_shift
-        )
+        args = []
+        if self._exponent != 1:
+            args.append(f'exponent={proper_repr(self._exponent)}')
+        if self._global_shift != 0:
+            args.append(f'global_shift={self._global_shift}')
+        if self._dimension != 2:
+            args.append(f'dimension={self._dimension}')
+        all_args = ', '.join(args)
+        return f'cirq.ZPowGate({all_args})'
 
     def _commutes_on_qids_(
         self, qids: 'Sequence[cirq.Qid]', other: Any, *, atol: float = 1e-8
@@ -674,14 +721,18 @@ class ZPowGate(eigen_gate.EigenGate, gate_features.SingleQubitGate):
 
 
 class Rz(ZPowGate):
-    """A gate, with matrix e^{-i Z rads/2}, that rotates around the Z axis of the Bloch sphere.
+    r"""A gate with matrix $e^{-i Z t/2}$ that rotates around the Z axis of the Bloch sphere by $t$.
 
-    The unitary matrix of ``Rz(rads=t)`` is:
+    The unitary matrix of `cirq.Rz(rads=t)` is:
+    $$
+    e^{-i Z t /2} =
+        \begin{bmatrix}
+            e^{-it/2} & 0 \\
+            0 & e^{it/2}
+        \end{bmatrix}
+    $$
 
-    exp(-i Z t/2) =  [ e^(-it/2)     0   ]
-                     [    0      e^(it/2)]
-
-    The gate corresponds to the traditionally defined rotation matrices about the Pauli Z axis.
+    This gate corresponds to the traditionally defined rotation matrices about the Pauli Z axis.
     """
 
     def __init__(self, *, rads: value.TParamVal):
@@ -706,30 +757,32 @@ class Rz(ZPowGate):
         return f'cirq.Rz(rads={proper_repr(self._rads)})'
 
     def _json_dict_(self) -> Dict[str, Any]:
-        return {
-            'rads': self._rads,
-        }
+        return {'rads': self._rads}
 
     @classmethod
     def _from_json_dict_(cls, rads, **kwargs) -> 'Rz':
         return cls(rads=rads)
 
 
-class HPowGate(eigen_gate.EigenGate, gate_features.SingleQubitGate):
-    """A Gate that performs a rotation around the X+Z axis of the Bloch sphere.
+class HPowGate(eigen_gate.EigenGate):
+    r"""A Gate that performs a rotation around the X+Z axis of the Bloch sphere.
 
-    The unitary matrix of ``HPowGate(exponent=t)`` is:
-
-        [[g·(c-i·s/sqrt(2)), -i·g·s/sqrt(2)],
-        [-i·g·s/sqrt(2)], g·(c+i·s/sqrt(2))]]
-
-    where
-
-        c = cos(π·t/2)
-        s = sin(π·t/2)
-        g = exp(i·π·t/2).
-
-    Note in particular that for `t=1`, this gives the Hadamard matrix.
+    The unitary matrix of `cirq.HPowGate(exponent=t)` is:
+    $$
+        \begin{bmatrix}
+            e^{i\pi t/2} \left(\cos(\pi t/2) - i \frac{\sin (\pi t /2)}{\sqrt{2}}\right)
+                && -i e^{i\pi t/2} \frac{\sin(\pi t /2)}{\sqrt{2}} \\
+            -i e^{i\pi t/2} \frac{\sin(\pi t /2)}{\sqrt{2}}
+                && e^{i\pi t/2} \left(\cos(\pi t/2) + i \frac{\sin (\pi t /2)}{\sqrt{2}}\right)
+        \end{bmatrix}
+    $$
+    Note in particular that for $t=1$, this gives the Hadamard matrix
+    $$
+        \begin{bmatrix}
+            \frac{1}{\sqrt{2}} & \frac{1}{\sqrt{2}} \\
+            \frac{1}{\sqrt{2}} & -\frac{1}{\sqrt{2}}
+        \end{bmatrix}
+    $$
 
     `cirq.H`, the Hadamard gate, is an instance of this gate at `exponent=1`.
     """
@@ -742,6 +795,9 @@ class HPowGate(eigen_gate.EigenGate, gate_features.SingleQubitGate):
         component1 = np.array([[3 - 2 * s, 1 - s], [1 - s, 1]]) / (4 - 2 * s)
 
         return [(0, component0), (1, component1)]
+
+    def _num_qubits_(self) -> int:
+        return 1
 
     def _trace_distance_bound_(self) -> Optional[float]:
         if self._is_parameterized_():
@@ -850,18 +906,18 @@ class HPowGate(eigen_gate.EigenGate, gate_features.SingleQubitGate):
 
 
 class CZPowGate(gate_features.InterchangeableQubitsGate, eigen_gate.EigenGate):
-    """A gate that applies a phase to the |11⟩ state of two qubits.
+    r"""A gate that applies a phase to the |11⟩ state of two qubits.
 
     The unitary matrix of `CZPowGate(exponent=t)` is:
 
-        [[1, 0, 0, 0],
-         [0, 1, 0, 0],
-         [0, 0, 1, 0],
-         [0, 0, 0, g]]
-
-    where:
-
-        g = exp(i·π·t).
+    $$
+    \begin{bmatrix}
+        1 & 0 & 0 & 0 \\
+        0 & 1 & 0 & 0 \\
+        0 & 0 & 1 & 0 \\
+        0 & 0 & 0 & e^{i \pi t} \\
+    \end{bmatrix}
+    $$
 
     `cirq.CZ`, the controlled Z gate, is an instance of this gate at
     `exponent=1`.
@@ -880,10 +936,7 @@ class CZPowGate(gate_features.InterchangeableQubitsGate, eigen_gate.EigenGate):
         return NotImplemented
 
     def _eigen_components(self) -> List[Tuple[float, np.ndarray]]:
-        return [
-            (0, np.diag([1, 1, 1, 0])),
-            (1, np.diag([0, 0, 0, 1])),
-        ]
+        return [(0, np.diag([1, 1, 1, 0])), (1, np.diag([0, 0, 0, 1]))]
 
     def _trace_distance_bound_(self) -> Optional[float]:
         if self._is_parameterized_():
@@ -1012,25 +1065,35 @@ class CZPowGate(gate_features.InterchangeableQubitsGate, eigen_gate.EigenGate):
 
 
 class CXPowGate(eigen_gate.EigenGate):
-    """A gate that applies a controlled power of an X gate.
+    r"""A gate that applies a controlled power of an X gate.
 
     When applying CNOT (controlled-not) to qubits, you can either use
     positional arguments CNOT(q1, q2), where q2 is toggled when q1 is on,
     or named arguments CNOT(control=q1, target=q2).
     (Mixing the two is not permitted.)
 
-    The unitary matrix of `CXPowGate(exponent=t)` is:
+    The unitary matrix of `cirq.CXPowGate(exponent=t)` is:
 
-        [[1, 0, 0, 0],
-         [0, 1, 0, 0],
-         [0, 0, g·c, -i·g·s],
-         [0, 0, -i·g·s, g·c]]
+    $$
+    \begin{bmatrix}
+        1 & 0 & 0 & 0 \\
+        0 & 1 & 0 & 0 \\
+        0 & 0 & g c & -i g s \\
+        0 & 0 & -i g s & g c
+    \end{bmatrix}
+    $$
 
     where:
 
-        c = cos(π·t/2)
-        s = sin(π·t/2)
-        g = exp(i·π·t/2).
+    $$
+    c = \cos\left(\frac{\pi t}{2}\right)
+    $$
+    $$
+    s = \sin\left(\frac{\pi t}{2}\right)
+    $$
+    $$
+    g = e^{\frac{i \pi t}{2}}
+    $$
 
     `cirq.CNOT`, the controlled NOT gate, is an instance of this gate at
     `exponent=1`.
@@ -1191,6 +1254,9 @@ class CXPowGate(eigen_gate.EigenGate):
             "keyword arguments. But got args={!r}, kwargs={!r}.".format(args, kwargs)
         )
 
+    def __call__(self, *qubits: 'cirq.Qid', **kwargs: 'cirq.Qid'):
+        return self.on(*qubits, **kwargs)
+
 
 def rx(rads: value.TParamVal) -> Rx:
     """Returns a gate with the matrix e^{-i X rads / 2}."""
@@ -1215,63 +1281,70 @@ def cphase(rads: value.TParamVal) -> CZPowGate:
 H = HPowGate()
 document(
     H,
-    """The Hadamard gate.
+    r"""The Hadamard gate.
 
     The `exponent=1` instance of `cirq.HPowGate`.
 
-    Matrix:
-    ```
-        [[s, s],
-         [s, -s]]
-    ```
-        where s = sqrt(0.5).
+    The unitary matrix of `cirq.H` is:
+    $$
+    \begin{bmatrix}
+        \frac{1}{\sqrt{2}} & \frac{1}{\sqrt{2}} \\
+        \frac{1}{\sqrt{2}} & -\frac{1}{\sqrt{2}}
+    \end{bmatrix}
+    $$
     """,
 )
 
 S = ZPowGate(exponent=0.5)
 document(
     S,
-    """The Clifford S gate.
+    r"""The Clifford S gate.
 
     The `exponent=0.5` instance of `cirq.ZPowGate`.
 
-    Matrix:
-    ```
-        [[1, 0],
-         [0, i]]
-    ```
+    The unitary matrix of `cirq.S` is:
+    $$
+    \begin{bmatrix}
+        1 & 0 \\
+        0 & i
+    \end{bmatrix}
+    $$
     """,
 )
 
 T = ZPowGate(exponent=0.25)
 document(
     T,
-    """The non-Clifford T gate.
+    r"""The non-Clifford T gate.
 
     The `exponent=0.25` instance of `cirq.ZPowGate`.
 
-    Matrix:
-    ```
-        [[1, 0]
-         [0, exp(i pi / 4)]]
-    ```
+    The unitary matrix of `cirq.T` is
+    $$
+    \begin{bmatrix}
+        1 & 0 \\
+        0 & e^{i \pi /4}
+    \end{bmatrix}
+    $$
     """,
 )
 
 CZ = CZPowGate()
 document(
     CZ,
-    """The controlled Z gate.
+    r"""The controlled Z gate.
 
-    The `exponent=1` instance of `cirq.CZPowGate`.
+    This is the `exponent=1` instance of `cirq.CZPowGate`.
 
-    Matrix:
-    ```
-        [[1 . . .],
-         [. 1 . .],
-         [. . 1 .],
-         [. . . -1]]
-    ```
+    The unitary matrix of this gate is (empty elements are $0$):
+    $$
+        \begin{bmatrix}
+            1 & & & \\
+            & 1 & & \\
+            & & 1 & \\
+            & & & -1
+        \end{bmatrix}
+    $$
     """,
 )
 
@@ -1279,16 +1352,20 @@ CNotPowGate = CXPowGate
 CNOT = CX = CNotPowGate()
 document(
     CNOT,
-    """The controlled NOT gate.
+    r"""The controlled NOT gate.
 
-    The `exponent=1` instance of `cirq.CXPowGate`.
+    This is the `exponent=1` instance of `cirq.CXPowGate`.
 
-    Matrix:
-    ```
-        [[1 . . .],
-         [. 1 . .],
-         [. . . 1],
-         [. . 1 .]]
-    ```
+    Alternative name: `cirq.CNOT`.
+
+    The unitary matrix of this gate is (empty elements are $0$):
+    $$
+        \begin{bmatrix}
+            1 & 0 & 0 & 0 \\
+            0 & 1 & 0 & 0 \\
+            0 & 0 & 0 & 1 \\
+            0 & 0 & 1 & 0
+        \end{bmatrix}
+    $$
     """,
 )

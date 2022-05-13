@@ -347,8 +347,7 @@ def transformer(cls_or_func: Any = None, *, add_deep_support: bool = False) -> A
     # without a `cls` argument, then passes `cls` into the result.
     if cls_or_func is None:
         return lambda deferred_cls_or_func: transformer(
-            deferred_cls_or_func,
-            add_deep_support=add_deep_support,
+            deferred_cls_or_func, add_deep_support=add_deep_support
         )
 
     if isinstance(cls_or_func, type):

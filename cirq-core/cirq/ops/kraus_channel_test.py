@@ -34,10 +34,7 @@ def test_kraus_channel_equality():
     assert kc_a1 != kc_b1
     assert kc_a2 != kc_b1
 
-    ops = [
-        np.array([[1, 0], [0, 0]]),
-        np.array([[0, 0], [0, 1]]),
-    ]
+    ops = [np.array([[1, 0], [0, 0]]), np.array([[0, 0], [0, 1]])]
     x_meas = cirq.KrausChannel(ops)
     ops_inv = list(reversed(ops))
     x_meas_inv = cirq.KrausChannel(ops_inv)
@@ -66,10 +63,7 @@ def test_kraus_channel_remap_keys():
 def test_kraus_channel_from_kraus():
     q0 = cirq.LineQubit(0)
     # This is equivalent to an X-basis measurement.
-    ops = [
-        np.array([[1, 1], [1, 1]]) * 0.5,
-        np.array([[1, -1], [-1, 1]]) * 0.5,
-    ]
+    ops = [np.array([[1, 1], [1, 1]]) * 0.5, np.array([[1, -1], [-1, 1]]) * 0.5]
     x_meas = cirq.KrausChannel(ops, key='x_meas')
     assert cirq.measurement_key_name(x_meas) == 'x_meas'
 
@@ -83,10 +77,7 @@ def test_kraus_channel_from_kraus():
 
 def test_kraus_channel_str():
     # This is equivalent to an X-basis measurement.
-    ops = [
-        np.array([[1, 1], [1, 1]]) * 0.5,
-        np.array([[1, -1], [-1, 1]]) * 0.5,
-    ]
+    ops = [np.array([[1, 1], [1, 1]]) * 0.5, np.array([[1, -1], [-1, 1]]) * 0.5]
     x_meas = cirq.KrausChannel(ops)
     assert (
         str(x_meas)
@@ -137,10 +128,7 @@ def test_ops_mismatch_fails():
 
 
 def test_nonqubit_kraus_ops_fails():
-    ops = [
-        np.array([[1, 0, 0], [0, 0, 0]]),
-        np.array([[0, 0, 0], [0, 1, 0]]),
-    ]
+    ops = [np.array([[1, 0, 0], [0, 0, 0]]), np.array([[0, 0, 0], [0, 1, 0]])]
 
     with pytest.raises(ValueError, match='Input Kraus ops'):
         _ = cirq.KrausChannel(kraus_ops=ops, key='m')
@@ -148,9 +136,6 @@ def test_nonqubit_kraus_ops_fails():
 
 def test_validate():
     # Not quite CPTP.
-    ops = [
-        np.array([[1, 0], [0, 0]]),
-        np.array([[0, 0], [0, 0.9]]),
-    ]
+    ops = [np.array([[1, 0], [0, 0]]), np.array([[0, 0], [0, 0.9]])]
     with pytest.raises(ValueError, match='CPTP map'):
         _ = cirq.KrausChannel(kraus_ops=ops, key='m', validate=True)

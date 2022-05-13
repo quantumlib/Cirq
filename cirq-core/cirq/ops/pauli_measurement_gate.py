@@ -99,9 +99,7 @@ class PauliMeasurementGate(raw_types.Gate):
         return self.with_key(self.mkey._with_key_path_prefix_(prefix))
 
     def _with_rescoped_keys_(
-        self,
-        path: Tuple[str, ...],
-        bindable_keys: FrozenSet['cirq.MeasurementKey'],
+        self, path: Tuple[str, ...], bindable_keys: FrozenSet['cirq.MeasurementKey']
     ) -> 'PauliMeasurementGate':
         return self.with_key(protocols.with_rescoped_keys(self.mkey, path, bindable_keys))
 
@@ -180,17 +178,11 @@ class PauliMeasurementGate(raw_types.Gate):
         return self.key, self._observable
 
     def _json_dict_(self) -> Dict[str, Any]:
-        return {
-            'observable': self._observable,
-            'key': self.key,
-        }
+        return {'observable': self._observable, 'key': self.key}
 
     @classmethod
     def _from_json_dict_(cls, observable, key, **kwargs) -> 'PauliMeasurementGate':
-        return cls(
-            observable=observable,
-            key=value.MeasurementKey.parse_serialized(key),
-        )
+        return cls(observable=observable, key=value.MeasurementKey.parse_serialized(key))
 
 
 def _default_measurement_key(qubits: Iterable[raw_types.Qid]) -> str:

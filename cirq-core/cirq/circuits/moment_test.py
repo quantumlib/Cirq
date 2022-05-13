@@ -22,18 +22,12 @@ ALLOW_DEPRECATION_IN_TEST = 'ALLOW_DEPRECATION_IN_TEST'
 
 
 def test_deprecated_submodule():
-    with cirq.testing.assert_deprecated(
-        "Use cirq.circuits.moment instead",
-        deadline="v0.16",
-    ):
+    with cirq.testing.assert_deprecated("Use cirq.circuits.moment instead", deadline="v0.16"):
         _ = cirq.ops.moment.Moment
 
 
 def test_deprecated_attribute_in_cirq_ops():
-    with cirq.testing.assert_deprecated(
-        "Use cirq.circuits.Moment instead",
-        deadline="v0.16",
-    ):
+    with cirq.testing.assert_deprecated("Use cirq.circuits.Moment instead", deadline="v0.16"):
         _ = cirq.ops.Moment
 
 
@@ -296,14 +290,7 @@ def test_with_measurement_keys():
     a, b = cirq.LineQubit.range(2)
     m = cirq.Moment(cirq.measure(a, key='m1'), cirq.measure(b, key='m2'))
 
-    new_moment = cirq.with_measurement_key_mapping(
-        m,
-        {
-            'm1': 'p1',
-            'm2': 'p2',
-            'x': 'z',
-        },
-    )
+    new_moment = cirq.with_measurement_key_mapping(m, {'m1': 'p1', 'm2': 'p2', 'x': 'z'})
 
     assert new_moment.operations[0] == cirq.measure(a, key='p1')
     assert new_moment.operations[1] == cirq.measure(b, key='p2')
@@ -382,6 +369,51 @@ def test_measurement_keys():
     assert cirq.measurement_key_objs(m2) == {cirq.MeasurementKey('foo')}
     assert cirq.measurement_key_names(m2) == {'foo'}
     assert cirq.is_measurement(m2)
+
+
+def test_measurement_key_objs_caching():
+    q0, q1, q2, q3 = cirq.LineQubit.range(4)
+    m = cirq.Moment(cirq.measure(q0, key='foo'))
+    assert m._measurement_key_objs is None
+    key_objs = cirq.measurement_key_objs(m)
+    assert m._measurement_key_objs == key_objs
+
+    # Make sure it gets updated when adding an operation.
+    m = m.with_operation(cirq.measure(q1, key='bar'))
+    assert m._measurement_key_objs == {
+        cirq.MeasurementKey(name='bar'),
+        cirq.MeasurementKey(name='foo'),
+    }
+    # Or multiple operations.
+    m = m.with_operations(cirq.measure(q2, key='doh'), cirq.measure(q3, key='baz'))
+    assert m._measurement_key_objs == {
+        cirq.MeasurementKey(name='bar'),
+        cirq.MeasurementKey(name='foo'),
+        cirq.MeasurementKey(name='doh'),
+        cirq.MeasurementKey(name='baz'),
+    }
+
+
+def test_control_keys_caching():
+    q0, q1, q2, q3 = cirq.LineQubit.range(4)
+    m = cirq.Moment(cirq.X(q0).with_classical_controls('foo'))
+    assert m._control_keys is None
+    keys = cirq.control_keys(m)
+    assert m._control_keys == keys
+
+    # Make sure it gets updated when adding an operation.
+    m = m.with_operation(cirq.X(q1).with_classical_controls('bar'))
+    assert m._control_keys == {cirq.MeasurementKey(name='bar'), cirq.MeasurementKey(name='foo')}
+    # Or multiple operations.
+    m = m.with_operations(
+        cirq.X(q2).with_classical_controls('doh'), cirq.X(q3).with_classical_controls('baz')
+    )
+    assert m._control_keys == {
+        cirq.MeasurementKey(name='bar'),
+        cirq.MeasurementKey(name='foo'),
+        cirq.MeasurementKey(name='doh'),
+        cirq.MeasurementKey(name='baz'),
+    }
 
 
 def test_bool():
@@ -472,22 +504,13 @@ def test_op_tree():
     eq = cirq.testing.EqualsTester()
     a, b = cirq.LineQubit.range(2)
 
-    eq.add_equality_group(
-        cirq.Moment(),
-        cirq.Moment([]),
-        cirq.Moment([[], [[[]]]]),
-    )
+    eq.add_equality_group(cirq.Moment(), cirq.Moment([]), cirq.Moment([[], [[[]]]]))
 
     eq.add_equality_group(
-        cirq.Moment(cirq.X(a)),
-        cirq.Moment([cirq.X(a)]),
-        cirq.Moment({cirq.X(a)}),
+        cirq.Moment(cirq.X(a)), cirq.Moment([cirq.X(a)]), cirq.Moment({cirq.X(a)})
     )
 
-    eq.add_equality_group(
-        cirq.Moment(cirq.X(a), cirq.Y(b)),
-        cirq.Moment([cirq.X(a), cirq.Y(b)]),
-    )
+    eq.add_equality_group(cirq.Moment(cirq.X(a), cirq.Y(b)), cirq.Moment([cirq.X(a), cirq.Y(b)]))
 
 
 def test_indexes_by_qubit():
@@ -596,10 +619,7 @@ aa │
         xy_breakdown_func=lambda q: ('abc'[q.x], q.x),
     )
 
-    class EmptyGate(cirq.Gate):
-        def _num_qubits_(self) -> int:
-            return 1
-
+    class EmptyGate(cirq.testing.SingleQubitGate):
         def __str__(self):
             return 'Empty'
 
@@ -723,9 +743,8 @@ def test_kraus_too_big():
 
 
 def test_op_has_no_kraus():
-    class EmptyGate(cirq.Gate):
-        def _num_qubits_(self) -> int:
-            return 1
+    class EmptyGate(cirq.testing.SingleQubitGate):
+        pass
 
     m = cirq.Moment(EmptyGate().on(cirq.NamedQubit("a")))
     assert not cirq.has_kraus(m)

@@ -22,8 +22,8 @@ import cirq
 
 
 class CountingState(cirq.qis.QuantumStateRepresentation):
-    def __init__(self, state, gate_count=0, measurement_count=0):
-        self.state = state
+    def __init__(self, data, gate_count=0, measurement_count=0):
+        self.data = data
         self.gate_count = gate_count
         self.measurement_count = measurement_count
 
@@ -35,7 +35,7 @@ class CountingState(cirq.qis.QuantumStateRepresentation):
 
     def kron(self: 'CountingState', other: 'CountingState') -> 'CountingState':
         return CountingState(
-            self.state,
+            self.data,
             self.gate_count + other.gate_count,
             self.measurement_count + other.measurement_count,
         )
@@ -43,8 +43,8 @@ class CountingState(cirq.qis.QuantumStateRepresentation):
     def factor(
         self: 'CountingState', axes: Sequence[int], *, validate=True, atol=1e-07
     ) -> Tuple['CountingState', 'CountingState']:
-        return CountingState(self.state, self.gate_count, self.measurement_count), CountingState(
-            self.state
+        return CountingState(self.data, self.gate_count, self.measurement_count), CountingState(
+            self.data
         )
 
     def reindex(self: 'CountingState', axes: Sequence[int]) -> 'CountingState':
@@ -52,32 +52,24 @@ class CountingState(cirq.qis.QuantumStateRepresentation):
 
     def copy(self, deep_copy_buffers: bool = True) -> 'CountingState':
         return CountingState(
-            state=self.state, gate_count=self.gate_count, measurement_count=self.measurement_count
+            data=self.data, gate_count=self.gate_count, measurement_count=self.measurement_count
         )
 
 
-class CountingActOnArgs(cirq.ActOnArgs):
+class CountingSimulationState(cirq.SimulationState[CountingState]):
     def __init__(self, state, qubits, classical_data):
         state_obj = CountingState(state)
-        super().__init__(
-            state=state_obj,
-            qubits=qubits,
-            classical_data=classical_data,
-        )
-        self._state: CountingState = state_obj
+        super().__init__(state=state_obj, qubits=qubits, classical_data=classical_data)
 
     def _act_on_fallback_(
-        self,
-        action: Any,
-        qubits: Sequence['cirq.Qid'],
-        allow_decompose: bool = True,
+        self, action: Any, qubits: Sequence['cirq.Qid'], allow_decompose: bool = True
     ) -> bool:
         self._state.gate_count += 1
         return True
 
     @property
-    def state(self):
-        return self._state.state
+    def data(self):
+        return self._state.data
 
     @property
     def gate_count(self):
@@ -88,13 +80,13 @@ class CountingActOnArgs(cirq.ActOnArgs):
         return self._state.measurement_count
 
 
-class SplittableCountingActOnArgs(CountingActOnArgs):
+class SplittableCountingSimulationState(CountingSimulationState):
     @property
     def allows_factoring(self):
         return True
 
 
-class CountingStepResult(cirq.StepResultBase[CountingActOnArgs, CountingActOnArgs]):
+class CountingStepResult(cirq.StepResultBase[CountingSimulationState]):
     def sample(
         self,
         qubits: List[cirq.Qid],
@@ -106,62 +98,57 @@ class CountingStepResult(cirq.StepResultBase[CountingActOnArgs, CountingActOnArg
             measurements.append(self._merged_sim_state._perform_measurement(qubits))
         return np.array(measurements, dtype=int)
 
-    def _simulator_state(self) -> CountingActOnArgs:
+    def _simulator_state(self) -> CountingSimulationState:
         return self._merged_sim_state
 
 
-class CountingTrialResult(cirq.SimulationTrialResultBase[CountingActOnArgs, CountingActOnArgs]):
+class CountingTrialResult(cirq.SimulationTrialResultBase[CountingSimulationState]):
     pass
 
 
 class CountingSimulator(
-    cirq.SimulatorBase[
-        CountingStepResult, CountingTrialResult, CountingActOnArgs, CountingActOnArgs
-    ]
+    cirq.SimulatorBase[CountingStepResult, CountingTrialResult, CountingSimulationState]
 ):
     def __init__(self, noise=None, split_untangled_states=False):
-        super().__init__(
-            noise=noise,
-            split_untangled_states=split_untangled_states,
-        )
+        super().__init__(noise=noise, split_untangled_states=split_untangled_states)
 
-    def _create_partial_act_on_args(
+    def _create_partial_simulation_state(
         self,
         initial_state: Any,
         qubits: Sequence['cirq.Qid'],
         classical_data: cirq.ClassicalDataStore,
-    ) -> CountingActOnArgs:
-        return CountingActOnArgs(qubits=qubits, state=initial_state, classical_data=classical_data)
+    ) -> CountingSimulationState:
+        return CountingSimulationState(
+            qubits=qubits, state=initial_state, classical_data=classical_data
+        )
 
     def _create_simulator_trial_result(
         self,
         params: cirq.ParamResolver,
         measurements: Dict[str, np.ndarray],
-        final_step_result: CountingStepResult,
+        final_simulator_state: 'cirq.SimulationStateBase[CountingSimulationState]',
     ) -> CountingTrialResult:
-        return CountingTrialResult(params, measurements, final_step_result=final_step_result)
+        return CountingTrialResult(
+            params, measurements, final_simulator_state=final_simulator_state
+        )
 
     def _create_step_result(
-        self,
-        sim_state: cirq.OperationTarget[CountingActOnArgs],
+        self, sim_state: cirq.SimulationStateBase[CountingSimulationState]
     ) -> CountingStepResult:
         return CountingStepResult(sim_state)
 
 
 class SplittableCountingSimulator(CountingSimulator):
     def __init__(self, noise=None, split_untangled_states=True):
-        super().__init__(
-            noise=noise,
-            split_untangled_states=split_untangled_states,
-        )
+        super().__init__(noise=noise, split_untangled_states=split_untangled_states)
 
-    def _create_partial_act_on_args(
+    def _create_partial_simulation_state(
         self,
         initial_state: Any,
         qubits: Sequence['cirq.Qid'],
         classical_data: cirq.ClassicalDataStore,
-    ) -> CountingActOnArgs:
-        return SplittableCountingActOnArgs(
+    ) -> CountingSimulationState:
+        return SplittableCountingSimulationState(
             qubits=qubits, state=initial_state, classical_data=classical_data
         )
 
@@ -220,7 +207,7 @@ def test_noise_applied_measurement_gate():
 
 def test_cannot_act():
     class BadOp(TestOp):
-        def _act_on_(self, args):
+        def _act_on_(self, sim_state):
             raise TypeError()
 
     sim = CountingSimulator()
@@ -264,95 +251,95 @@ def test_run_non_terminal_measurement():
 
 def test_integer_initial_state_is_split():
     sim = SplittableCountingSimulator()
-    args = sim._create_act_on_args(2, (q0, q1))
-    assert len(set(args.values())) == 3
-    assert args[q0] is not args[q1]
-    assert args[q0].state == 1
-    assert args[q1].state == 0
-    assert args[None].state == 0
+    state = sim._create_simulation_state(2, (q0, q1))
+    assert len(set(state.values())) == 3
+    assert state[q0] is not state[q1]
+    assert state[q0].data == 1
+    assert state[q1].data == 0
+    assert state[None].data == 0
 
 
 def test_integer_initial_state_is_not_split_if_disabled():
     sim = SplittableCountingSimulator(split_untangled_states=False)
-    args = sim._create_act_on_args(2, (q0, q1))
-    assert isinstance(args, SplittableCountingActOnArgs)
-    assert args[q0] is args[q1]
-    assert args.state == 2
+    state = sim._create_simulation_state(2, (q0, q1))
+    assert isinstance(state, SplittableCountingSimulationState)
+    assert state[q0] is state[q1]
+    assert state.data == 2
 
 
 def test_integer_initial_state_is_not_split_if_impossible():
     sim = CountingSimulator()
-    args = sim._create_act_on_args(2, (q0, q1))
-    assert isinstance(args, CountingActOnArgs)
-    assert not isinstance(args, SplittableCountingActOnArgs)
-    assert args[q0] is args[q1]
-    assert args.state == 2
+    state = sim._create_simulation_state(2, (q0, q1))
+    assert isinstance(state, CountingSimulationState)
+    assert not isinstance(state, SplittableCountingSimulationState)
+    assert state[q0] is state[q1]
+    assert state.data == 2
 
 
 def test_non_integer_initial_state_is_not_split():
     sim = SplittableCountingSimulator()
-    args = sim._create_act_on_args(entangled_state_repr, (q0, q1))
-    assert len(set(args.values())) == 2
-    assert (args[q0].state == entangled_state_repr).all()
-    assert args[q1] is args[q0]
-    assert args[None].state == 0
+    state = sim._create_simulation_state(entangled_state_repr, (q0, q1))
+    assert len(set(state.values())) == 2
+    assert (state[q0].data == entangled_state_repr).all()
+    assert state[q1] is state[q0]
+    assert state[None].data == 0
 
 
 def test_entanglement_causes_join():
     sim = SplittableCountingSimulator()
-    args = sim._create_act_on_args(2, (q0, q1))
-    assert len(set(args.values())) == 3
-    args.apply_operation(cirq.CNOT(q0, q1))
-    assert len(set(args.values())) == 2
-    assert args[q0] is args[q1]
-    assert args[None] is not args[q0]
+    state = sim._create_simulation_state(2, (q0, q1))
+    assert len(set(state.values())) == 3
+    state.apply_operation(cirq.CNOT(q0, q1))
+    assert len(set(state.values())) == 2
+    assert state[q0] is state[q1]
+    assert state[None] is not state[q0]
 
 
 def test_measurement_causes_split():
     sim = SplittableCountingSimulator()
-    args = sim._create_act_on_args(entangled_state_repr, (q0, q1))
-    assert len(set(args.values())) == 2
-    args.apply_operation(cirq.measure(q0))
-    assert len(set(args.values())) == 3
-    assert args[q0] is not args[q1]
-    assert args[q0] is not args[None]
+    state = sim._create_simulation_state(entangled_state_repr, (q0, q1))
+    assert len(set(state.values())) == 2
+    state.apply_operation(cirq.measure(q0))
+    assert len(set(state.values())) == 3
+    assert state[q0] is not state[q1]
+    assert state[q0] is not state[None]
 
 
 def test_measurement_does_not_split_if_disabled():
     sim = SplittableCountingSimulator(split_untangled_states=False)
-    args = sim._create_act_on_args(2, (q0, q1))
-    assert isinstance(args, SplittableCountingActOnArgs)
-    args.apply_operation(cirq.measure(q0))
-    assert isinstance(args, SplittableCountingActOnArgs)
-    assert args[q0] is args[q1]
+    state = sim._create_simulation_state(2, (q0, q1))
+    assert isinstance(state, SplittableCountingSimulationState)
+    state.apply_operation(cirq.measure(q0))
+    assert isinstance(state, SplittableCountingSimulationState)
+    assert state[q0] is state[q1]
 
 
 def test_measurement_does_not_split_if_impossible():
     sim = CountingSimulator()
-    args = sim._create_act_on_args(2, (q0, q1))
-    assert isinstance(args, CountingActOnArgs)
-    assert not isinstance(args, SplittableCountingActOnArgs)
-    args.apply_operation(cirq.measure(q0))
-    assert isinstance(args, CountingActOnArgs)
-    assert not isinstance(args, SplittableCountingActOnArgs)
-    assert args[q0] is args[q1]
+    state = sim._create_simulation_state(2, (q0, q1))
+    assert isinstance(state, CountingSimulationState)
+    assert not isinstance(state, SplittableCountingSimulationState)
+    state.apply_operation(cirq.measure(q0))
+    assert isinstance(state, CountingSimulationState)
+    assert not isinstance(state, SplittableCountingSimulationState)
+    assert state[q0] is state[q1]
 
 
 def test_reorder_succeeds():
     sim = SplittableCountingSimulator()
-    args = sim._create_act_on_args(entangled_state_repr, (q0, q1))
-    reordered = args[q0].transpose_to_qubit_order([q1, q0])
+    state = sim._create_simulation_state(entangled_state_repr, (q0, q1))
+    reordered = state[q0].transpose_to_qubit_order([q1, q0])
     assert reordered.qubits == (q1, q0)
 
 
 @pytest.mark.parametrize('split', [True, False])
 def test_sim_state_instance_unchanged_during_normal_sim(split: bool):
     sim = SplittableCountingSimulator(split_untangled_states=split)
-    args = sim._create_act_on_args(0, (q0, q1))
+    state = sim._create_simulation_state(0, (q0, q1))
     circuit = cirq.Circuit(cirq.H(q0), cirq.CNOT(q0, q1), cirq.reset(q1))
-    for step in sim.simulate_moment_steps(circuit, initial_state=args):
-        assert step._sim_state is args
-        assert (step._merged_sim_state is not args) == split
+    for step in sim.simulate_moment_steps(circuit, initial_state=state):
+        assert step._sim_state is state
+        assert (step._merged_sim_state is not state) == split
 
 
 def test_measurements_retained_in_step_results():
@@ -375,7 +362,7 @@ def test_sweep_unparameterized_prefix_not_repeated_iff_unitary():
             self.count = 0
             self.has_unitary = has_unitary
 
-        def _act_on_(self, args):
+        def _act_on_(self, sim_state):
             self.count += 1
             return True
 
@@ -390,10 +377,7 @@ def test_sweep_unparameterized_prefix_not_repeated_iff_unitary():
             return self.has_unitary
 
     simulator = CountingSimulator()
-    params = [
-        cirq.ParamResolver({'a': 0}),
-        cirq.ParamResolver({'a': 1}),
-    ]
+    params = [cirq.ParamResolver({'a': 0}), cirq.ParamResolver({'a': 1})]
 
     op1 = TestOp(has_unitary=True)
     op2 = TestOp(has_unitary=True)
@@ -408,3 +392,58 @@ def test_sweep_unparameterized_prefix_not_repeated_iff_unitary():
     simulator.simulate_sweep(program=circuit, params=params)
     assert op1.count == 2
     assert op2.count == 2
+
+
+def test_inhomogeneous_measurement_count_padding():
+    q = cirq.LineQubit(0)
+    key = cirq.MeasurementKey('m')
+    sim = cirq.Simulator()
+    c = cirq.Circuit(
+        cirq.CircuitOperation(
+            cirq.FrozenCircuit(cirq.X(q) ** 0.2, cirq.measure(q, key=key)),
+            use_repetition_ids=False,
+            repeat_until=cirq.KeyCondition(key),
+        )
+    )
+    results = sim.run(c, repetitions=10)
+    for i in range(10):
+        assert np.sum(results.records['m'][i, :, :]) == 1
+
+
+def test_deprecated_final_step_result():
+    class OldCountingSimulator(CountingSimulator):
+        def _create_simulator_trial_result(  # type: ignore
+            self,
+            params: cirq.ParamResolver,
+            measurements: Dict[str, np.ndarray],
+            final_step_result: CountingStepResult,
+        ) -> CountingTrialResult:
+            return CountingTrialResult(params, measurements, final_step_result=final_step_result)
+
+    sim = OldCountingSimulator()
+    with cirq.testing.assert_deprecated('final_step_result', deadline='0.16'):
+        r = sim.simulate(cirq.Circuit())
+    assert r._final_simulator_state.gate_count == 0
+    assert r._final_simulator_state.measurement_count == 0
+
+
+def test_deprecated_create_partial_act_on_args():
+    class DeprecatedSim(cirq.SimulatorBase):
+        def _create_partial_act_on_args(self, initial_state, qubits, classical_data):
+            return 0
+
+        def _create_step_result(self):
+            pass
+
+        def _create_simulator_trial_result(self):
+            pass
+
+    sim = DeprecatedSim()
+    with cirq.testing.assert_deprecated(deadline='v0.16'):
+        sim.simulate_moment_steps(cirq.Circuit())
+
+
+def test_deprecated_setters():
+    sim = CountingSimulator()
+    with cirq.testing.assert_deprecated(deadline='v0.16'):
+        sim.noise = cirq.ConstantQubitNoiseModel(cirq.Z)

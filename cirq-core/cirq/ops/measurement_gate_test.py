@@ -21,18 +21,11 @@ import cirq
 
 @pytest.mark.parametrize(
     'key',
-    [
-        'q0_1_0',
-        cirq.MeasurementKey(name='q0_1_0'),
-        cirq.MeasurementKey(path=('a', 'b'), name='c'),
-    ],
+    ['q0_1_0', cirq.MeasurementKey(name='q0_1_0'), cirq.MeasurementKey(path=('a', 'b'), name='c')],
 )
 def test_eval_repr(key):
     # Basic safeguard against repr-inequality.
-    op = cirq.GateOperation(
-        gate=cirq.MeasurementGate(1, key),
-        qubits=[cirq.GridQubit(0, 1)],
-    )
+    op = cirq.GateOperation(gate=cirq.MeasurementGate(1, key), qubits=[cirq.GridQubit(0, 1)])
     cirq.testing.assert_equivalent_repr(op)
 
 
@@ -292,7 +285,7 @@ def test_act_on_state_vector():
     a, b = [cirq.LineQubit(3), cirq.LineQubit(1)]
     m = cirq.measure(a, b, key='out', invert_mask=(True,))
 
-    args = cirq.ActOnStateVectorArgs(
+    args = cirq.StateVectorSimulationState(
         available_buffer=np.empty(shape=(2, 2, 2, 2, 2)),
         qubits=cirq.LineQubit.range(5),
         prng=np.random.RandomState(),
@@ -302,7 +295,7 @@ def test_act_on_state_vector():
     cirq.act_on(m, args)
     assert args.log_of_measurement_results == {'out': [1, 0]}
 
-    args = cirq.ActOnStateVectorArgs(
+    args = cirq.StateVectorSimulationState(
         available_buffer=np.empty(shape=(2, 2, 2, 2, 2)),
         qubits=cirq.LineQubit.range(5),
         prng=np.random.RandomState(),
@@ -314,7 +307,7 @@ def test_act_on_state_vector():
     cirq.act_on(m, args)
     assert args.log_of_measurement_results == {'out': [1, 1]}
 
-    args = cirq.ActOnStateVectorArgs(
+    args = cirq.StateVectorSimulationState(
         available_buffer=np.empty(shape=(2, 2, 2, 2, 2)),
         qubits=cirq.LineQubit.range(5),
         prng=np.random.RandomState(),
@@ -339,7 +332,7 @@ def test_act_on_clifford_tableau():
     # The below assertion does not fail since it ignores non-unitary operations
     cirq.testing.assert_all_implemented_act_on_effects_match_unitary(m)
 
-    args = cirq.ActOnCliffordTableauArgs(
+    args = cirq.CliffordTableauSimulationState(
         tableau=cirq.CliffordTableau(num_qubits=5, initial_state=0),
         qubits=cirq.LineQubit.range(5),
         prng=np.random.RandomState(),
@@ -347,7 +340,7 @@ def test_act_on_clifford_tableau():
     cirq.act_on(m, args)
     assert args.log_of_measurement_results == {'out': [1, 0]}
 
-    args = cirq.ActOnCliffordTableauArgs(
+    args = cirq.CliffordTableauSimulationState(
         tableau=cirq.CliffordTableau(num_qubits=5, initial_state=8),
         qubits=cirq.LineQubit.range(5),
         prng=np.random.RandomState(),
@@ -356,7 +349,7 @@ def test_act_on_clifford_tableau():
     cirq.act_on(m, args)
     assert args.log_of_measurement_results == {'out': [1, 1]}
 
-    args = cirq.ActOnCliffordTableauArgs(
+    args = cirq.CliffordTableauSimulationState(
         tableau=cirq.CliffordTableau(num_qubits=5, initial_state=10),
         qubits=cirq.LineQubit.range(5),
         prng=np.random.RandomState(),
@@ -377,27 +370,21 @@ def test_act_on_stabilizer_ch_form():
     # The below assertion does not fail since it ignores non-unitary operations
     cirq.testing.assert_all_implemented_act_on_effects_match_unitary(m)
 
-    args = cirq.ActOnStabilizerCHFormArgs(
-        qubits=cirq.LineQubit.range(5),
-        prng=np.random.RandomState(),
-        initial_state=0,
+    args = cirq.StabilizerChFormSimulationState(
+        qubits=cirq.LineQubit.range(5), prng=np.random.RandomState(), initial_state=0
     )
     cirq.act_on(m, args)
     assert args.log_of_measurement_results == {'out': [1, 0]}
 
-    args = cirq.ActOnStabilizerCHFormArgs(
-        qubits=cirq.LineQubit.range(5),
-        prng=np.random.RandomState(),
-        initial_state=8,
+    args = cirq.StabilizerChFormSimulationState(
+        qubits=cirq.LineQubit.range(5), prng=np.random.RandomState(), initial_state=8
     )
 
     cirq.act_on(m, args)
     assert args.log_of_measurement_results == {'out': [1, 1]}
 
-    args = cirq.ActOnStabilizerCHFormArgs(
-        qubits=cirq.LineQubit.range(5),
-        prng=np.random.RandomState(),
-        initial_state=10,
+    args = cirq.StabilizerChFormSimulationState(
+        qubits=cirq.LineQubit.range(5), prng=np.random.RandomState(), initial_state=10
     )
     cirq.act_on(m, args)
     datastore = cast(cirq.ClassicalDataDictionaryStore, args.classical_data)
@@ -413,7 +400,7 @@ def test_act_on_qutrit():
     a, b = [cirq.LineQid(3, dimension=3), cirq.LineQid(1, dimension=3)]
     m = cirq.measure(a, b, key='out', invert_mask=(True,))
 
-    args = cirq.ActOnStateVectorArgs(
+    args = cirq.StateVectorSimulationState(
         available_buffer=np.empty(shape=(3, 3, 3, 3, 3)),
         qubits=cirq.LineQid.range(5, dimension=3),
         prng=np.random.RandomState(),
@@ -425,7 +412,7 @@ def test_act_on_qutrit():
     cirq.act_on(m, args)
     assert args.log_of_measurement_results == {'out': [2, 2]}
 
-    args = cirq.ActOnStateVectorArgs(
+    args = cirq.StateVectorSimulationState(
         available_buffer=np.empty(shape=(3, 3, 3, 3, 3)),
         qubits=cirq.LineQid.range(5, dimension=3),
         prng=np.random.RandomState(),
@@ -437,7 +424,7 @@ def test_act_on_qutrit():
     cirq.act_on(m, args)
     assert args.log_of_measurement_results == {'out': [2, 1]}
 
-    args = cirq.ActOnStateVectorArgs(
+    args = cirq.StateVectorSimulationState(
         available_buffer=np.empty(shape=(3, 3, 3, 3, 3)),
         qubits=cirq.LineQid.range(5, dimension=3),
         prng=np.random.RandomState(),

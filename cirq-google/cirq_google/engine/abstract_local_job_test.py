@@ -19,6 +19,7 @@ import cirq
 from cirq_google.cloud import quantum
 from cirq_google.engine.calibration_result import CalibrationResult
 from cirq_google.engine.abstract_local_job import AbstractLocalJob
+from cirq_google.engine.engine_result import EngineResult
 
 
 class NothingJob(AbstractLocalJob):
@@ -40,10 +41,10 @@ class NothingJob(AbstractLocalJob):
     def delete(self) -> None:
         pass
 
-    def batched_results(self) -> Sequence[Sequence[cirq.Result]]:
+    def batched_results(self) -> Sequence[Sequence[EngineResult]]:
         return []  # coverage: ignore
 
-    def results(self) -> Sequence[cirq.Result]:
+    def results(self) -> Sequence[EngineResult]:
         return []  # coverage: ignore
 
     def calibration_results(self) -> Sequence[CalibrationResult]:

@@ -11,7 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 """Utility functions to estimate runtime using Engine to execute circuits.
 
 Users can call estimate_run_time, estimate_run_sweep_time, or
@@ -25,12 +24,12 @@ Your experience may vary based on many factors not captured here.
 Parameters were calculated using a variety of width/depth/sweeps from
 the rep rate calculator, see:
 
-https://github.com/quantumlib/ReCirq/blob/master/recirq/benchmarks/rep_rate/
+[https://github.com/quantumlib/ReCirq/blob/master/recirq/benchmarks/rep_rate/](https://github.com/quantumlib/ReCirq/blob/master/recirq/benchmarks/rep_rate/){:.external}
 
 Model was then fitted by hand, correcting for anomalies and outliers
 when possible.
-
 """
+
 from typing import List, Optional, Sequence
 import cirq
 

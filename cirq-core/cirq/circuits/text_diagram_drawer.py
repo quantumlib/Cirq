@@ -63,13 +63,7 @@ _VerticalLine = NamedTuple(
         ('doubled', bool),
     ],
 )
-_DiagramText = NamedTuple(
-    'DiagramText',
-    [
-        ('text', str),
-        ('transposed_text', str),
-    ],
-)
+_DiagramText = NamedTuple('DiagramText', [('text', str), ('transposed_text', str)])
 
 
 def pick_charset(use_unicode: bool, emphasize: bool, doubled: bool) -> BoxDrawCharacterSet:

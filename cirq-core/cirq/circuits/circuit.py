@@ -928,9 +928,7 @@ class AbstractCircuit(abc.ABC):
         )
 
     def _with_rescoped_keys_(
-        self,
-        path: Tuple[str, ...],
-        bindable_keys: FrozenSet['cirq.MeasurementKey'],
+        self, path: Tuple[str, ...], bindable_keys: FrozenSet['cirq.MeasurementKey']
     ):
         moments = []
         for moment in self.moments:
@@ -1043,89 +1041,96 @@ class AbstractCircuit(abc.ABC):
             circuit_superoperator = moment_superoperator @ circuit_superoperator
         return circuit_superoperator
 
+    @_compat.deprecated_parameter(
+        deadline='v0.16',
+        fix='Inject identity operators to include untouched qubits.',
+        parameter_desc='qubits_that_should_be_present',
+        match=lambda args, kwargs: 'qubits_that_should_be_present' in kwargs,
+    )
+    @_compat.deprecated_parameter(
+        deadline='v0.16',
+        fix='Only use keyword arguments.',
+        parameter_desc='positional args',
+        match=lambda args, kwargs: len(args) > 1,
+    )
     def final_state_vector(
         self,
+        # TODO(v0.16): Force kwargs and match order found in:
+        # cirq-core/cirq/sim/mux.py:final_state_vector
         initial_state: 'cirq.STATE_VECTOR_LIKE' = 0,
         qubit_order: 'cirq.QubitOrderOrList' = ops.QubitOrder.DEFAULT,
         qubits_that_should_be_present: Iterable['cirq.Qid'] = (),
-        ignore_terminal_measurements: bool = True,
-        dtype: Type[np.number] = np.complex128,
+        ignore_terminal_measurements: Optional[bool] = None,
+        dtype: Optional[Type[np.number]] = None,
+        param_resolver: 'cirq.ParamResolverOrSimilarType' = None,
+        seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None,
     ) -> np.ndarray:
-        """Left-multiplies a state vector by the circuit's unitary effect.
+        """Returns the state vector resulting from acting operations on a state.
 
-        A circuit's "unitary effect" is the unitary matrix produced by
-        multiplying together all of its gates' unitary matrices. A circuit
-        with non-unitary gates (such as measurement or parameterized gates) does
-        not have a well-defined unitary effect, and the method will fail if such
-        operations are present.
-
-        For convenience, terminal measurements are automatically ignored
-        instead of causing a failure. Set the `ignore_terminal_measurements`
-        argument to False to disable this behavior.
-
-        This method is equivalent to left-multiplying the input state by
-        `cirq.unitary(circuit)` but it's computed in a more efficient
-        way.
+        This is equivalent to calling cirq.final_state_vector with the same
+        arguments and this circuit as the "program".
 
         Args:
-            initial_state: The input state for the circuit. This can be a list
-                of qudit values, a big endian int encoding the qudit values,
-                a vector of amplitudes, or a tensor of amplitudes.
-
-                When this is an int, it refers to a computational
-                basis state (e.g. 5 means initialize to ``|5⟩ = |...000101⟩``).
-
-                If this is a vector of amplitudes (a flat numpy array of the
-                correct length for the system) or a tensor of amplitudes (a
-                numpy array whose shape equals this circuit's `qid_shape`), it
-                directly specifies the initial state's amplitudes. The vector
-                type must be convertible to the given `dtype` argument.
-            qubit_order: Determines how qubits are ordered when passing matrices
-                into np.kron.
+            initial_state: If an int, the state is set to the computational
+                basis state corresponding to this state. Otherwise  if this
+                is a np.ndarray it is the full initial state. In this case it
+                must be the correct size, be normalized (an L2 norm of 1), and
+                be safely castable to an appropriate dtype for the simulator.
+            qubit_order: Determines the canonical ordering of the qubits. This
+                is often used in specifying the initial state, i.e. the
+                ordering of the computational basis states.
             qubits_that_should_be_present: Qubits that may or may not appear
                 in operations within the circuit, but that should be included
                 regardless when generating the matrix.
             ignore_terminal_measurements: When set, measurements at the end of
                 the circuit are ignored instead of causing the method to
                 fail.
-            dtype: The numpy dtype for the returned unitary. Defaults to
-                np.complex128. Specifying np.complex64 will run faster at the
-                cost of precision. `dtype` must be a complex np.dtype, unless
-                all operations in the circuit have unitary matrices with
-                exclusively real coefficients (e.g. an H + TOFFOLI circuit).
+            dtype: The `numpy.dtype` used by the simulation. Typically one of
+                `numpy.complex64` or `numpy.complex128`.
+            param_resolver: Parameters to run with the program.
+            seed: The random seed to use for this simulator.
 
         Returns:
-            A (possibly gigantic) numpy array storing the superposition that
-            came out of the circuit for the given input state.
+            The state vector resulting from applying the given unitary
+            operations to the desired initial state. Specifically, a numpy
+            array containing the amplitudes in np.kron order, where the
+            order of arguments to kron is determined by the qubit order
+            argument (which defaults to just sorting the qubits that are
+            present into an ascending order).
 
         Raises:
-            ValueError: The circuit contains measurement gates that are not
-                ignored.
-            TypeError: The circuit contains gates that don't have a known
-                unitary matrix, e.g. gates parameterized by a Symbol.
+            ValueError: If the program doesn't have a well defined final state
+                because it has non-unitary gates.
         """
+        if ignore_terminal_measurements is None:
+            if self.has_measurements():
+                _compat._warn_or_error(
+                    '`ignore_terminal_measurements` will default to False in v0.16. '
+                    'To drop terminal measurements, please explicitly include '
+                    '`ignore_terminal_measurements=True` when calling this method.'
+                )
+            ignore_terminal_measurements = True
 
-        if not ignore_terminal_measurements and any(
-            protocols.is_measurement(op) for op in self.all_operations()
-        ):
-            raise ValueError('Circuit contains a measurement.')
+        if dtype is None:
+            _compat._warn_or_error(
+                '`dtype` will default to np.complex64 in v0.16. '
+                'To use the previous default, please explicitly include '
+                '`dtype=np.complex128` when calling this method.'
+            )
+            dtype = np.complex128
 
-        if not self.are_all_measurements_terminal():
-            raise ValueError('Circuit contains a non-terminal measurement.')
+        from cirq.sim.mux import final_state_vector
 
-        qs = ops.QubitOrder.as_qubit_order(qubit_order).order_for(
-            self.all_qubits().union(qubits_that_should_be_present)
+        program = Circuit(cirq.I(q) for q in qubits_that_should_be_present) + self
+        return final_state_vector(
+            program,
+            initial_state=initial_state,
+            param_resolver=param_resolver,
+            qubit_order=qubit_order,
+            ignore_terminal_measurements=ignore_terminal_measurements,
+            dtype=dtype,
+            seed=seed,
         )
-
-        # Force qubits to have dimension at least 2 for backwards compatibility.
-        qid_shape = self.qid_shape(qubit_order=qs)
-        state_len = np.prod(qid_shape, dtype=np.int64)
-
-        state = qis.to_valid_state_vector(initial_state, qid_shape=qid_shape, dtype=dtype).reshape(
-            qid_shape
-        )
-        result = _apply_unitary_circuit(self, state, qs, dtype)
-        return result.reshape((state_len,))
 
     def to_text_diagram(
         self,
@@ -1236,6 +1241,7 @@ class AbstractCircuit(abc.ABC):
                 get_circuit_diagram_info=get_circuit_diagram_info,
                 include_tags=include_tags,
                 first_annotation_row=first_annotation_row,
+                transpose=transpose,
             )
 
         w = diagram.width()
@@ -1689,9 +1695,7 @@ class Circuit(AbstractCircuit):
     """
 
     def __init__(
-        self,
-        *contents: 'cirq.OP_TREE',
-        strategy: 'cirq.InsertStrategy' = InsertStrategy.EARLIEST,
+        self, *contents: 'cirq.OP_TREE', strategy: 'cirq.InsertStrategy' = InsertStrategy.EARLIEST
     ) -> None:
         """Initializes a circuit.
 
@@ -1826,8 +1830,7 @@ class Circuit(AbstractCircuit):
     zip.__doc__ = AbstractCircuit.zip.__doc__
 
     def transform_qubits(
-        self,
-        qubit_map: Union[Dict['cirq.Qid', 'cirq.Qid'], Callable[['cirq.Qid'], 'cirq.Qid']],
+        self, qubit_map: Union[Dict['cirq.Qid', 'cirq.Qid'], Callable[['cirq.Qid'], 'cirq.Qid']]
     ) -> 'cirq.Circuit':
         """Returns the same circuit, but with different qubits.
 
@@ -1885,10 +1888,11 @@ class Circuit(AbstractCircuit):
         while k > 0:
             k -= 1
             moment = self._moments[k]
+            if moment.operates_on(op_qubits):
+                return last_available
             moment_measurement_keys = protocols.measurement_key_objs(moment)
             if (
-                moment.operates_on(op_qubits)
-                or not op_measurement_keys.isdisjoint(moment_measurement_keys)
+                not op_measurement_keys.isdisjoint(moment_measurement_keys)
                 or not op_control_keys.isdisjoint(moment_measurement_keys)
                 or not protocols.control_keys(moment).isdisjoint(op_measurement_keys)
             ):
@@ -1960,7 +1964,7 @@ class Circuit(AbstractCircuit):
         Moments within the operation tree are inserted intact.
 
         Args:
-            index: The index to insert all of the operations at.
+            index: The index to insert all the operations at.
             moment_or_operation_tree: The moment or operation tree to insert.
             strategy: How to pick/create the moment to put operations into.
 
@@ -1973,10 +1977,7 @@ class Circuit(AbstractCircuit):
         """
         moments_and_operations = list(
             ops.flatten_to_ops_or_moments(
-                ops.transform_op_tree(
-                    moment_or_operation_tree,
-                    preserve_moments=True,
-                ),
+                ops.transform_op_tree(moment_or_operation_tree, preserve_moments=True)
             )
         )
         # limit index to 0..len(self._moments), also deal with indices smaller 0
@@ -2313,9 +2314,7 @@ class Circuit(AbstractCircuit):
 
 
 def _pick_inserted_ops_moment_indices(
-    operations: Sequence['cirq.Operation'],
-    start: int = 0,
-    frontier: Dict['cirq.Qid', int] = None,
+    operations: Sequence['cirq.Operation'], start: int = 0, frontier: Dict['cirq.Qid', int] = None
 ) -> Tuple[Sequence[int], Dict['cirq.Qid', int]]:
     """Greedily assigns operations to moments.
 
@@ -2351,9 +2350,7 @@ def _resolve_operations(
     return resolved_operations
 
 
-def _get_moment_annotations(
-    moment: 'cirq.Moment',
-) -> Iterator['cirq.Operation']:
+def _get_moment_annotations(moment: 'cirq.Moment') -> Iterator['cirq.Operation']:
     for op in moment.operations:
         if op.qubits:
             continue
@@ -2380,6 +2377,7 @@ def _draw_moment_annotations(
     ],
     include_tags: bool,
     first_annotation_row: int,
+    transpose: bool,
 ):
 
     for k, annotation in enumerate(_get_moment_annotations(moment)):
@@ -2390,6 +2388,7 @@ def _draw_moment_annotations(
             label_map=label_map,
             precision=precision,
             include_tags=include_tags,
+            transpose=transpose,
         )
         info = get_circuit_diagram_info(annotation, args)
         symbols = info._wire_symbols_including_formatted_exponent(args)
@@ -2411,6 +2410,7 @@ def _draw_moment_in_diagram(
     ],
     include_tags: bool,
     first_annotation_row: int,
+    transpose: bool,
 ):
     if get_circuit_diagram_info is None:
         get_circuit_diagram_info = circuit_diagram_info_protocol._op_info_with_fallback
@@ -2440,6 +2440,7 @@ def _draw_moment_in_diagram(
             label_map=label_map,
             precision=precision,
             include_tags=include_tags,
+            transpose=transpose,
         )
         info = get_circuit_diagram_info(op, args)
 
@@ -2468,6 +2469,7 @@ def _draw_moment_in_diagram(
         get_circuit_diagram_info=get_circuit_diagram_info,
         include_tags=include_tags,
         first_annotation_row=first_annotation_row,
+        transpose=transpose,
     )
 
     global_phase, tags = _get_global_phase_and_tags_for_ops(moment)
