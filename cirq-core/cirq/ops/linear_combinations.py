@@ -498,6 +498,23 @@ class PauliSum:
             return m
         raise ValueError(f'{self} is not unitary')
 
+    def _json_dict_(self):
+        def key_json(k):
+            # k is a frozenset, each element of frozen set is a tuple.
+            return [[x for x in e] for e in sorted(list(k))]
+
+        return {
+            'keys': [key_json(k) for k in self._linear_dict.keys()],
+            'values': list(self._linear_dict.values()),
+        }
+
+    @classmethod
+    def _from_json_dict_(cls, keys, values, **kwargs):
+        mapping = dict()
+        for k, v in zip(keys, values):
+            mapping[frozenset(tuple(x) for x in k)] = v
+        return cls(linear_dict=value.LinearDict(mapping))
+
     def expectation_from_state_vector(
         self,
         state_vector: np.ndarray,
