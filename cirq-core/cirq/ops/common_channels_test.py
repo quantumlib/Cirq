@@ -443,13 +443,10 @@ def test_reset_channel():
     np.testing.assert_almost_equal(
         cirq.kraus(r), (np.array([[1.0, 0.0], [0.0, 0]]), np.array([[0.0, 1.0], [0.0, 0.0]]))
     )
-<<<<<<< HEAD
     cirq.testing.assert_consistent_channel(r)
-=======
 
     assert cirq.num_qubits(r) == 1
     assert cirq.has_kraus(r)
->>>>>>> master
     assert not cirq.has_mixture(r)
     assert cirq.qid_shape(r) == (2,)
 
