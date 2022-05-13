@@ -15,7 +15,6 @@
 from typing import List, Optional, Sequence, TYPE_CHECKING, Union, cast
 
 import cirq
-from cirq_google.engine.engine_program import EngineProgram
 
 if TYPE_CHECKING:
     import cirq_google as cg
