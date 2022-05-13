@@ -53,6 +53,8 @@ class AbstractProcessor(abc.ABC):
     This is an abstract class.  Inheritors should implement abstract methods.
     """
 
+    processor_id: str = NotImplemented
+
     @util.deprecated_gate_set_parameter
     def run(
         self,
@@ -97,7 +99,7 @@ class AbstractProcessor(abc.ABC):
     @util.deprecated_gate_set_parameter
     def run_sweep(
         self,
-        program: cirq.Circuit,
+        program: cirq.AbstractCircuit,
         program_id: Optional[str] = None,
         job_id: Optional[str] = None,
         params: cirq.Sweepable = None,
