@@ -77,8 +77,8 @@ class AbstractControlValues(abc.ABC):
     def _validate(self, qid_shapes: Union[Tuple[int, ...], List[int]]) -> None:
         """Validates control values
 
-          Validate that control values are in the half closed interval
-          [0, qid_shapes) for each qubit.
+        Validate that control values are in the half closed interval
+        [0, qid_shapes) for each qubit.
         """
 
     @abc.abstractmethod
