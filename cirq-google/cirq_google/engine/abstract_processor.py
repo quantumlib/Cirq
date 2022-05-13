@@ -30,7 +30,7 @@ from cirq_google.cloud import quantum
 from cirq_google.engine import calibration, util
 
 if TYPE_CHECKING:
-    import cirq_google
+    import cirq_google as cg
     import cirq_google.engine.abstract_engine as abstract_engine
     import cirq_google.engine.abstract_job as abstract_job
     import cirq_google.serialization.serializer as serializer
@@ -198,7 +198,7 @@ class AbstractProcessor(abc.ABC):
     @util.deprecated_gate_set_parameter
     def run_calibration(
         self,
-        layers: List['cirq_google.CalibrationLayer'],
+        layers: List['cg.CalibrationLayer'],
         program_id: Optional[str] = None,
         job_id: Optional[str] = None,
         gate_set: Optional['serializer.Serializer'] = None,
@@ -243,7 +243,9 @@ class AbstractProcessor(abc.ABC):
 
     @abc.abstractmethod
     @util.deprecated_gate_set_parameter
-    def get_sampler(self, gate_set: Optional['serializer.Serializer'] = None) -> cirq.Sampler:
+    def get_sampler(
+        self, gate_set: Optional['serializer.Serializer'] = None
+    ) -> 'cg.QuantumProcessorSampler':
         """Returns a sampler backed by the processor.
 
         Args:

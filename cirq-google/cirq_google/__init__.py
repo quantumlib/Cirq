@@ -79,6 +79,7 @@ from cirq_google.engine import (
     ProtoVersion,
     QuantumEngineSampler,
     ValidatingSampler,
+    QuantumProcessorSampler,
     get_engine,
     get_engine_calibration,
     get_engine_device,
