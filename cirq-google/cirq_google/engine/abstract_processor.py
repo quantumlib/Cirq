@@ -53,8 +53,6 @@ class AbstractProcessor(abc.ABC):
     This is an abstract class.  Inheritors should implement abstract methods.
     """
 
-    processor_id: str = NotImplemented
-
     @util.deprecated_gate_set_parameter
     def run(
         self,

@@ -33,17 +33,9 @@ class QuantumProcessorSampler(cirq.Sampler):
         self._processor = processor
 
     def run_sweep(
-        self,
-        program: Union[cirq.AbstractCircuit, 'cg.EngineProgram'],
-        params: cirq.Sweepable,
-        repetitions: int = 1,
+        self, program: 'cirq.AbstractCircuit', params: cirq.Sweepable, repetitions: int = 1
     ) -> Sequence['cg.EngineResult']:
-        if isinstance(program, EngineProgram):
-            job = program.run_sweep(
-                params=params, repetitions=repetitions, processor_ids=[self._processor.processor_id]
-            )
-        else:
-            job = self._processor.run_sweep(program=program, params=params, repetitions=repetitions)
+        job = self._processor.run_sweep(program=program, params=params, repetitions=repetitions)
         return job.results()
 
     def run_batch(
