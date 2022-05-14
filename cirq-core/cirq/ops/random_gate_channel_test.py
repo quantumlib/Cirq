@@ -168,6 +168,10 @@ def test_channel():
     cirq.testing.assert_consistent_channel(cirq.bit_flip(0.75).with_probability(0.25))
     cirq.testing.assert_consistent_channel(cirq.amplitude_damp(0.75).with_probability(0.25))
 
+    cirq.testing.assert_consistent_mixture(cirq.X.with_probability(0.25))
+    cirq.testing.assert_consistent_mixture(cirq.bit_flip(0.75).with_probability(0.25))
+    assert not cirq.has_mixture(cirq.amplitude_damp(0.75).with_probability(0.25))
+
     m = cirq.kraus(cirq.X.with_probability(0.25))
     assert len(m) == 2
     np.testing.assert_allclose(m[0], cirq.unitary(cirq.X) * np.sqrt(0.25), atol=1e-8)
