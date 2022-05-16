@@ -146,6 +146,7 @@ def _class_resolver_dictionary() -> Dict[str, ObjectFactory]:
         'PauliString': cirq.PauliString,
         'PauliStringPhasor': cirq.PauliStringPhasor,
         'PauliStringPhasorGate': cirq.PauliStringPhasorGate,
+        'PauliSum': cirq.PauliSum,
         '_PauliX': cirq.ops.pauli_gates._PauliX,
         '_PauliY': cirq.ops.pauli_gates._PauliY,
         '_PauliZ': cirq.ops.pauli_gates._PauliZ,
