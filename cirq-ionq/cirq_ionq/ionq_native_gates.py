@@ -35,8 +35,8 @@ class GPIGate(cirq.Gate):
         self.phi = phi
 
     def _unitary_(self) -> np.ndarray:
-        top = cmath.exp(self.phi * 2 * math.pi * 1j)
-        bot = cmath.exp(-self.phi * 2 * math.pi * 1j)
+        top = cmath.exp(-self.phi * 2 * math.pi * 1j)
+        bot = cmath.exp(self.phi * 2 * math.pi * 1j)
         return np.array([[0, top], [bot, 0]])
 
     def __str__(self) -> str:
@@ -70,7 +70,7 @@ document(
     r"""The GPI gate is a single qubit gate.
     The unitary of this gate is
         [[0, e^{-i*2*\pi*\phi}],
-         [e^{-i*2*\pi*\phi}, 0]]
+         [e^{i*2*\pi*\phi}, 0]]
     It is driven by Rabi laser.
     https://ionq.com/best-practices
     """,

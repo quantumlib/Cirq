@@ -29,6 +29,9 @@ class MeasurementGate(raw_types.Gate):
 
     The measurement gate contains a key that is used to identify results
     of measurements.
+
+    Instead of constructing this directly, consider using the `cirq.measure`
+    helper method.
     """
 
     def __init__(

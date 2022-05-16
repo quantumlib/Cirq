@@ -88,7 +88,7 @@ def test_plot_state_histogram_collection():
     )
     r = cirq.sample(c, repetitions=5)
     _, (ax1, ax2) = plt.subplots(1, 2)
-    state_histogram.plot_state_histogram(r.histogram(key='0,1,2,3'), ax1)
+    state_histogram.plot_state_histogram(r.histogram(key='q(0),q(1),q(2),q(3)'), ax1)
     expected_values = [5]
     tick_label = ['7']
     state_histogram.plot_state_histogram(expected_values, ax2, tick_label=tick_label, xlabel=None)
