@@ -506,9 +506,10 @@ class PauliSum:
 
     @classmethod
     def _from_json_dict_(cls, items, **kwargs):
-        mapping = dict()
-        for k, v in items:
-            mapping[frozenset(tuple(x) for x in k)] = v
+        mapping = {
+            frozenset(tuple(qid_pauli) for qid_pauli in unit_pauli_string): val
+            for unit_pauli_string, val in items
+        }
         return cls(linear_dict=value.LinearDict(mapping))
 
     def expectation_from_state_vector(
