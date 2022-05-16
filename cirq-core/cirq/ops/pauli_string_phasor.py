@@ -187,7 +187,7 @@ class PauliStringPhasor(gate_operation.GateOperation):
 
 @value.value_equality(approximate=True)
 class PauliStringPhasorGate(raw_types.Gate):
-    """A gate that phases the eigenstates of a Pauli string.
+    r"""A gate that phases the eigenstates of a Pauli string.
 
     The -1 eigenstates of the Pauli string will have their amplitude multiplied
     by e^(i pi exponent_neg) while +1 eigenstates of the Pauli string will have

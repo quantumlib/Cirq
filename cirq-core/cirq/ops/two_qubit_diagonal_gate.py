@@ -31,12 +31,28 @@ if TYPE_CHECKING:
 
 @value.value_equality()
 class TwoQubitDiagonalGate(raw_types.Gate):
-    """A gate given by a diagonal 4\\times 4 matrix."""
+    r"""A two qubit gate whose unitary is a diagonal $4 \times 4$ matrix.
+
+    This gate's off-diagonal elements are zero and its on-diagonal
+    elements are all phases.
+
+    For example, `cirq.TwoQubitDiagonalGate([0, 1, -1, 0])` has the
+    unitary matrix
+
+    $$
+    \begin{bmatrix}
+        1 & 0 & 0 & 0 \\
+        0 & e^i & 0 & 0 \\
+        0 & 0 & e^{-i} & 0 \\
+        0 & 0 & 0 & 1
+    \end{bmatrix}
+    $$
+    """
 
     def __init__(self, diag_angles_radians: Sequence[value.TParamVal]) -> None:
         r"""A two qubit gate with only diagonal elements.
 
-        This gate's off-diagonal elements are zero and it's on diagonal
+        This gate's off-diagonal elements are zero and its on-diagonal
         elements are all phases.
 
         Args:
