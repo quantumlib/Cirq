@@ -358,11 +358,11 @@ def least_squares_xeb_fidelity_from_probabilities(
     uniform_expectations = []
     prefactor = hilbert_space_dimension if normalize_probabilities else 1.0
     for observed_probs, all_probs in zip(observed_probabilities, all_probabilities):
-        observed_probs = np.array(observed_probs)
-        all_probs = np.array(all_probs)
-        observable = observable_from_probability(prefactor * cast(np.ndarray, all_probs))
+        observed_probs_array = np.array(observed_probs)
+        all_probs_array = np.array(all_probs)
+        observable = observable_from_probability(prefactor * all_probs_array)
         measured_expectations.append(
-            np.mean(observable_from_probability(prefactor * cast(np.ndarray, observed_probs)))
+            np.mean(observable_from_probability(prefactor * observed_probs_array))
         )
         exact_expectations.append(np.sum(all_probs * observable))
         uniform_expectations.append(np.sum(observable) / hilbert_space_dimension)
