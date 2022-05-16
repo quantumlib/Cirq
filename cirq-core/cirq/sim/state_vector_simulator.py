@@ -111,6 +111,7 @@ class StateVectorStepResult(
 @value.value_equality(unhashable=True)
 class StateVectorSimulatorState:
     """Object representing current state of the simulator.
+
     Includes the state vector, qubit map, and shape information.
     """
 

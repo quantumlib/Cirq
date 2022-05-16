@@ -92,7 +92,7 @@ _INT_TYPE = Union[int, np.integer]
 
 
 class Alignment(enum.Enum):
-    """Alignment Option for combining/zipping two circuits together."""
+    """Alignment option for combining/zipping two circuits together."""
 
     # Stop when left ends are lined up.
     LEFT = 1

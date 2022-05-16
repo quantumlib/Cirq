@@ -843,7 +843,7 @@ def read_json_gzip(
     Args:
         file_or_fn: A filename (if a string or `pathlib.Path`) to read from, or
             an IO object (such as a file or buffer) to read from, or `None` to
-            indicate that `json_text` argument should be used. Defaults to
+            indicate that `gzip_raw` argument should be used. Defaults to
             `None`.
         gzip_raw: Bytes representing the raw gzip input to unzip and parse
             or else `None` indicating `file_or_fn` should be used. Defaults to
