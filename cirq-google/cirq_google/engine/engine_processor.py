@@ -106,7 +106,7 @@ class EngineProcessor(abstract_processor.AbstractProcessor):
     @util.deprecated_gate_set_parameter
     def get_sampler(
         self, gate_set: Optional[serializer.Serializer] = None
-    ) -> 'cg.engine.QuantumProcessorSampler':
+    ) -> 'cg.engine.ProcessorSampler':
         """Returns a sampler backed by the engine.
 
         Args:
@@ -118,7 +118,7 @@ class EngineProcessor(abstract_processor.AbstractProcessor):
             that will send circuits to the Quantum Computing Service
             when sampled.1
         """
-        return processor_sampler.QuantumProcessorSampler(processor=self)
+        return processor_sampler.ProcessorSampler(processor=self)
 
     @util.deprecated_gate_set_parameter
     def run_batch(

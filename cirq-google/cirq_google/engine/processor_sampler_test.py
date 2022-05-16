@@ -23,7 +23,7 @@ import cirq_google as cg
 @pytest.mark.parametrize('circuit', [cirq.Circuit(), cirq.FrozenCircuit()])
 def test_run_circuit(circuit):
     processor = mock.Mock()
-    sampler = cg.QuantumProcessorSampler(processor=processor)
+    sampler = cg.ProcessorSampler(processor=processor)
     params = [cirq.ParamResolver({'a': 1})]
     sampler.run_sweep(circuit, params, 5)
     processor.run_sweep.assert_called_with(params=params, program=circuit, repetitions=5)
@@ -31,7 +31,7 @@ def test_run_circuit(circuit):
 
 def test_run_batch():
     processor = mock.Mock()
-    sampler = cg.QuantumProcessorSampler(processor=processor)
+    sampler = cg.ProcessorSampler(processor=processor)
     a = cirq.LineQubit(0)
     circuit1 = cirq.Circuit(cirq.X(a))
     circuit2 = cirq.Circuit(cirq.Y(a))
@@ -47,7 +47,7 @@ def test_run_batch():
 
 def test_run_batch_identical_repetitions():
     processor = mock.Mock()
-    sampler = cg.QuantumProcessorSampler(processor=processor)
+    sampler = cg.ProcessorSampler(processor=processor)
     a = cirq.LineQubit(0)
     circuit1 = cirq.Circuit(cirq.X(a))
     circuit2 = cirq.Circuit(cirq.Y(a))
@@ -63,7 +63,7 @@ def test_run_batch_identical_repetitions():
 
 def test_run_batch_bad_number_of_repetitions():
     processor = mock.Mock()
-    sampler = cg.QuantumProcessorSampler(processor=processor)
+    sampler = cg.ProcessorSampler(processor=processor)
     a = cirq.LineQubit(0)
     circuit1 = cirq.Circuit(cirq.X(a))
     circuit2 = cirq.Circuit(cirq.Y(a))
@@ -80,7 +80,7 @@ def test_run_batch_differing_repetitions():
     job = mock.Mock()
     job.results.return_value = []
     processor.run_sweep.return_value = job
-    sampler = cg.QuantumProcessorSampler(processor=processor)
+    sampler = cg.ProcessorSampler(processor=processor)
     a = cirq.LineQubit(0)
     circuit1 = cirq.Circuit(cirq.X(a))
     circuit2 = cirq.Circuit(cirq.Y(a))
@@ -96,12 +96,12 @@ def test_run_batch_differing_repetitions():
 
 def test_processor_sampler_processor_property():
     processor = mock.Mock()
-    sampler = cg.QuantumProcessorSampler(processor=processor)
+    sampler = cg.ProcessorSampler(processor=processor)
     assert sampler.processor is processor
 
 
 def test_with_local_processor():
-    sampler = cg.QuantumProcessorSampler(
+    sampler = cg.ProcessorSampler(
         processor=cg.engine.SimulatedLocalProcessor(processor_id='my-fancy-processor')
     )
     r = sampler.run(cirq.Circuit(cirq.measure(cirq.LineQubit(0), key='z')))

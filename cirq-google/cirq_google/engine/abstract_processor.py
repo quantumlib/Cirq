@@ -243,7 +243,7 @@ class AbstractProcessor(abc.ABC):
     @util.deprecated_gate_set_parameter
     def get_sampler(
         self, gate_set: Optional['serializer.Serializer'] = None
-    ) -> 'cg.QuantumProcessorSampler':
+    ) -> 'cg.ProcessorSampler':
         """Returns a sampler backed by the processor.
 
         Args:

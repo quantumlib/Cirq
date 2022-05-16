@@ -20,11 +20,11 @@ if TYPE_CHECKING:
     import cirq_google as cg
 
 
-class QuantumProcessorSampler(cirq.Sampler):
+class ProcessorSampler(cirq.Sampler):
     """A wrapper around AbstractProcessor to implement the cirq.Sampler interface."""
 
     def __init__(self, *, processor: 'cg.engine.AbstractProcessor'):
-        """Inits QuantumProcessorSampler.
+        """Inits ProcessorSampler.
 
         Args:
             processor: AbstractProcessor instance to use.

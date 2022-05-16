@@ -26,7 +26,7 @@ from cirq_google.engine.local_simulation_type import LocalSimulationType
 from cirq_google.engine.simulated_local_job import SimulatedLocalJob
 from cirq_google.engine.simulated_local_program import SimulatedLocalProgram
 from cirq_google.serialization.circuit_serializer import CIRCUIT_SERIALIZER
-from cirq_google.engine.processor_sampler import QuantumProcessorSampler
+from cirq_google.engine.processor_sampler import ProcessorSampler
 
 if TYPE_CHECKING:
     import cirq_google as cg
@@ -163,7 +163,7 @@ class SimulatedLocalProcessor(AbstractLocalProcessor):
 
     @util.deprecated_gate_set_parameter
     def get_sampler(self, gate_set: Optional['Serializer'] = None) -> cirq.Sampler:
-        return QuantumProcessorSampler(processor=self)
+        return ProcessorSampler(processor=self)
 
     def supported_languages(self) -> List[str]:
         return VALID_LANGUAGES

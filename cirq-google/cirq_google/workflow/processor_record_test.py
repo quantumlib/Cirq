@@ -118,10 +118,10 @@ def test_simulated_backend_with_bad_local_device():
 def test_simulated_backend_descriptive_name():
     p = cg.SimulatedProcessorWithLocalDeviceRecord('rainbow')
     assert str(p) == 'rainbow-simulator'
-    assert isinstance(p.get_sampler(), cg.engine.QuantumProcessorSampler)
+    assert isinstance(p.get_sampler(), cg.engine.ProcessorSampler)
 
     # The actual simulator hiding behind the indirection is
-    # p.get_sampler() -> QuantumProcessorSampler
+    # p.get_sampler() -> ProcessorSampler
     # p.get_sampler().processor._sampler -> Validating Sampler
     # p.get_sampler().processor._sampler._sampler -> The actual simulator
     assert isinstance(p.get_sampler().processor._sampler._sampler, cirq.Simulator)
