@@ -72,5 +72,5 @@ class QuantumProcessorSampler(cirq.Sampler):
         )
 
     @property
-    def processor(self):
+    def processor(self) -> 'cg.engine.AbstractProcessor':
         return self._processor
