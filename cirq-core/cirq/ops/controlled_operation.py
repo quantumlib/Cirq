@@ -35,7 +35,7 @@ from cirq.ops import (
     gate_operation,
     matrix_gates,
     raw_types,
-  control_values as cv,
+    control_values as cv,
 )
 from cirq.type_workarounds import NotImplementedType
 
