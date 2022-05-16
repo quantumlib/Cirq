@@ -270,19 +270,39 @@ def _all_operations(q0, q1, q2, q3, q4, include_measurements=True):
             return 'DummyCompositeOperation()'
 
     return (
+        cirq.I(q0),
         cirq.Z(q0),
         cirq.Z(q0) ** 0.625,
+        cirq.Z(q0) ** 0,
         cirq.Y(q0),
         cirq.Y(q0) ** 0.375,
+        cirq.Y(q0) ** 0,
         cirq.X(q0),
         cirq.X(q0) ** 0.875,
-        cirq.H(q1),
+        cirq.X(q0) ** 0,
+        cirq.H(q0),
+        cirq.H(q0) ** 0,
         cirq.X(q0) ** 0.5,
         cirq.X(q0) ** -0.5,
+        cirq.S(q0),
+        cirq.Z(q0) ** -0.5,
+        cirq.T(q0),
+        cirq.Z(q0) ** -0.25,
+        cirq.Rx(rads=np.pi)(q0),
+        cirq.Rx(rads=np.pi / 2)(q0),
+        cirq.Rx(rads=np.pi / 4)(q0),
+        cirq.Ry(rads=np.pi)(q0),
+        cirq.Ry(rads=np.pi / 2)(q0),
+        cirq.Ry(rads=np.pi / 4)(q0),
+        cirq.Rz(rads=np.pi)(q0),
+        cirq.Rz(rads=np.pi / 2)(q0),
+        cirq.Rz(rads=np.pi / 4)(q0),
         cirq.CZ(q0, q1),
         cirq.CZ(q0, q1) ** 0.25,  # Requires 2-qubit decomposition
         cirq.CNOT(q0, q1),
         cirq.CNOT(q0, q1) ** 0.5,  # Requires 2-qubit decomposition
+        cirq.ControlledGate(cirq.Y)(q0, q1),
+        cirq.ControlledGate(cirq.H)(q0, q1),
         cirq.SWAP(q0, q1),
         cirq.SWAP(q0, q1) ** 0.75,  # Requires 2-qubit decomposition
         cirq.CCZ(q0, q1, q2),
@@ -356,15 +376,33 @@ creg m__x[1];
 creg m_multi[3];
 
 
+id q[0];
 z q[0];
 rz(pi*0.625) q[0];
+rz(0) q[0];
 y q[0];
 ry(pi*0.375) q[0];
+ry(0) q[0];
 x q[0];
 rx(pi*0.875) q[0];
-h q[1];
+rx(0) q[0];
+h q[0];
+id q[0];
 sx q[0];
 sxdg q[0];
+s q[0];
+sdg q[0];
+t q[0];
+tdg q[0];
+rx(pi*1.0) q[0];
+rx(pi*0.5) q[0];
+rx(pi*0.25) q[0];
+ry(pi*1.0) q[0];
+ry(pi*0.5) q[0];
+ry(pi*0.25) q[0];
+rz(pi*1.0) q[0];
+rz(pi*0.5) q[0];
+rz(pi*0.25) q[0];
 cz q[0],q[1];
 
 // Gate: CZ**0.25
@@ -399,6 +437,8 @@ u3(pi*0.5,pi*1.0,pi*1.0) q[0];
 u3(pi*0.5,pi*0.5,pi*1.0) q[1];
 ry(pi*0.5) q[1];
 
+cy q[0],q[1];
+ch q[0],q[1];
 swap q[0],q[1];
 
 // Gate: SWAP**0.75

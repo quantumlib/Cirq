@@ -54,28 +54,40 @@ def _half_pi_mod_pi(param: 'cirq.TParamVal') -> bool:
 
 @value.value_equality(approximate=True)
 class FSimGate(gate_features.InterchangeableQubitsGate, raw_types.Gate):
-    """Fermionic simulation gate family.
+    r"""Fermionic simulation gate family.
 
     Contains all two qubit interactions that preserve excitations, up to
     single-qubit rotations and global phase.
 
     The unitary matrix of this gate is:
 
-        [[1, 0, 0, 0],
-         [0, a, b, 0],
-         [0, b, a, 0],
-         [0, 0, 0, c]]
+    $$
+    \begin{bmatrix}
+        1 & 0 & 0 & 0 \\
+        0 & a & b & 0 \\
+        0 & b & a & 0 \\
+        0 & 0 & 0 & c
+    \end{bmatrix}
+    $$
 
     where:
 
-        a = cos(theta)
-        b = -i·sin(theta)
-        c = exp(-i·phi)
+    $$
+    a = \cos(\theta)
+    $$
+
+    $$
+    b = -i \sin(\theta)
+    $$
+
+    $$
+    c = e^{i \phi}
+    $$
 
     Note the difference in sign conventions between FSimGate and the
     ISWAP and CZPowGate:
 
-        FSimGate(θ, φ) = ISWAP**(-2θ/π) CZPowGate(exponent=-φ/π)
+    FSimGate(θ, φ) = ISWAP**(-2θ/π) CZPowGate(exponent=-φ/π)
     """
 
     def __init__(self, theta: 'cirq.TParamVal', phi: 'cirq.TParamVal') -> None:
@@ -202,20 +214,24 @@ class FSimGate(gate_features.InterchangeableQubitsGate, raw_types.Gate):
 
 @value.value_equality(approximate=True)
 class PhasedFSimGate(gate_features.InterchangeableQubitsGate, raw_types.Gate):
-    """General excitation-preserving two-qubit gate.
+    r"""General excitation-preserving two-qubit gate.
 
     The unitary matrix of PhasedFSimGate(θ, ζ, χ, γ, φ) is:
 
-        [[1,                       0,                       0,            0],
-         [0,    exp(-iγ - iζ) cos(θ), -i exp(-iγ + iχ) sin(θ),            0],
-         [0, -i exp(-iγ - iχ) sin(θ),    exp(-iγ + iζ) cos(θ),            0],
-         [0,                       0,                       0, exp(-2iγ-iφ)]].
+    $$
+    \begin{bmatrix}
+        1 & 0 & 0 & 0 \\
+        0 & e^{-i \gamma - i \zeta} & -i e^{-i \gamma + i\chi} & 0 \\
+        0 & -i e^{-i \gamma - i \chi} & e^{-i \gamma + i \zeta} & 0 \\
+        0 & 0 & 0 & e^{-2i \gamma - i \phi}
+    \end{bmatrix}
+    $$
 
     This parametrization follows eq (18) in https://arxiv.org/abs/2010.07965.
     See also eq (43) in https://arxiv.org/abs/1910.11333 for an older variant
-    which uses the same θ and φ parameters, but its three phase angles have
-    different names and opposite sign. Specifically, ∆+ angle corresponds to
-    -γ, ∆- corresponds to -ζ and ∆-,off corresponds to -χ.
+    which uses the same θ and φ parameters, but has three phase angles that
+    have different names and opposite sign. Specifically, ∆+ angle corresponds
+    to -γ, ∆- corresponds to -ζ and ∆-,off corresponds to -χ.
 
     Another useful parametrization of PhasedFSimGate is based on the fact that
     the gate is equivalent up to global phase to the following circuit:
