@@ -58,11 +58,12 @@ class ApplyUnitaryArgs:
             dtype as the target tensor.
         axes: Which axes the unitary effect is being applied to (e.g. the
             qubits that the gate is operating on).
-        subspaces: Which subspace the unitary effect is being applied to on
-            each axis. By default it applies to subspace 0..d-1 on each
-            axis, where d is the dimension of the unitary effect on that
-            axis. Subspaces must be representable as a slice, so the
-            dimensions specified here need to have a consistent step size.
+        subspaces: Which subspace (in the computational basis) the unitary
+            effect is being applied to, on each axis. By default it applies
+            to subspace 0..d-1 on each axis, where d is the dimension of the
+            unitary effect on that axis. Subspaces on each axis must be
+            representable as a slice, so the dimensions specified here need to
+            have a consistent step size.
     """
 
     def __init__(
@@ -84,15 +85,16 @@ class ApplyUnitaryArgs:
                 dtype as the target tensor.
             axes: Which axes the unitary effect is being applied to (e.g. the
                 qubits that the gate is operating on).
-            subspaces: Which subspace the unitary effect is being applied to on
-                each axis. By default it applies to subspace 0..d-1 on each
-                axis, where d is the dimension of the unitary effect on that
-                axis. Subspaces must be representable as a slice, so the
-                dimensions specified here need to have a consistent step size.
+            subspaces: Which subspace (in the computational basis) the unitary
+                effect is being applied to, on each axis. By default it applies
+                to subspace 0..d-1 on each axis, where d is the dimension of
+                the unitary effect on that axis. Subspaces on each axis must be
+                representable as a slice, so the dimensions specified here need
+                to have a consistent step size.
         Raises:
             ValueError: If the subspace count does not equal the axis count, if
-                any subspace has fewer than two dimensions, or if any subspace
-                has dimensions specified without a consistent step size.
+                any subspace has zero dimensions, or if any subspace has
+                dimensions specified without a consistent step size.
         """
         self.target_tensor = target_tensor
         self.available_buffer = available_buffer
@@ -595,8 +597,11 @@ def _incorporate_result_into_target(
 
 
 def _to_slice(subspace_def: Tuple[int, ...]):
-    if len(subspace_def) < 2:
-        raise ValueError(f'Subspace {subspace_def} is fewer than 2 dimensions.')
+    if len(subspace_def) < 1:
+        raise ValueError(f'Subspace {subspace_def} has zero dimensions.')
+
+    if len(subspace_def) == 1:
+        return slice(subspace_def[0], subspace_def[0] + 1, 1)
 
     step = subspace_def[1] - subspace_def[0]
     for i in range(len(subspace_def) - 1):
