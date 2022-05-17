@@ -254,7 +254,14 @@ class GridQid(_BaseGridQid):
         return f"cirq.GridQid({self.row}, {self.col}, dimension={self.dimension})"
 
     def __str__(self) -> str:
-        return f"({self.row}, {self.col}) (d={self.dimension})"
+        return f"q({self.row}, {self.col}) (d={self.dimension})"
+
+    def _circuit_diagram_info_(
+        self, args: 'cirq.CircuitDiagramInfoArgs'
+    ) -> 'cirq.CircuitDiagramInfo':
+        return protocols.CircuitDiagramInfo(
+            wire_symbols=(f"({self.row}, {self.col}) (d={self.dimension})",)
+        )
 
     def _json_dict_(self) -> Dict[str, Any]:
         return protocols.obj_to_dict_helper(self, ['row', 'col', 'dimension'])
@@ -403,7 +410,12 @@ class GridQubit(_BaseGridQid):
         return f"cirq.GridQubit({self.row}, {self.col})"
 
     def __str__(self) -> str:
-        return f"({self.row}, {self.col})"
+        return f"q({self.row}, {self.col})"
+
+    def _circuit_diagram_info_(
+        self, args: 'cirq.CircuitDiagramInfoArgs'
+    ) -> 'cirq.CircuitDiagramInfo':
+        return protocols.CircuitDiagramInfo(wire_symbols=(f"({self.row}, {self.col})",))
 
     def _json_dict_(self) -> Dict[str, Any]:
         return protocols.obj_to_dict_helper(self, ['row', 'col'])
