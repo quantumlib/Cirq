@@ -37,7 +37,17 @@ three_qubit_decomposition = _import.LazyLoader(
 
 
 class MatrixGate(raw_types.Gate):
-    """A unitary qubit or qudit gate defined entirely by its matrix."""
+    r"""A unitary qubit or qudit gate defined entirely by its numpy matrix.
+
+    For example `cirq.MatrixGate(np.array([[0, 1j], [1, 0]]))` has the unitary matrix:
+
+    $$
+    \begin{bmatrix}
+        0 & i \\
+        1 & 0
+    \end{bmatrix}
+    $$
+    """
 
     def __init__(
         self,
@@ -93,10 +103,7 @@ class MatrixGate(raw_types.Gate):
             raise ValueError(f'Not a unitary matrix: {self._matrix}')
 
     def _json_dict_(self) -> Dict[str, Any]:
-        return {
-            'matrix': self._matrix.tolist(),
-            'qid_shape': self._qid_shape,
-        }
+        return {'matrix': self._matrix.tolist(), 'qid_shape': self._qid_shape}
 
     @classmethod
     def _from_json_dict_(cls, matrix, qid_shape, **kwargs):

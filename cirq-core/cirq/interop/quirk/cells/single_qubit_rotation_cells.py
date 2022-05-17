@@ -11,7 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from typing import Iterator, Callable, Union, TYPE_CHECKING
+from typing import Iterator, Callable, TYPE_CHECKING
 
 import sympy
 
@@ -98,9 +98,7 @@ def _gate(identifier: str, gate: 'cirq.Gate') -> CellMaker:
 
 
 def _formula_gate(
-    identifier: str,
-    default_formula: str,
-    gate_func: Callable[[Union[sympy.Symbol, float]], 'cirq.Gate'],
+    identifier: str, default_formula: str, gate_func: Callable[['cirq.TParamVal'], 'cirq.Gate']
 ) -> CellMaker:
     return CellMaker(
         identifier=identifier,

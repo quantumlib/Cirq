@@ -16,7 +16,7 @@ passed as Sympy expressions and then turned into an optimized set of gates.
 
 References:
 [1] On the representation of Boolean and real functions as Hamiltonians for quantum computing
-    by Stuart Hadfield, https://arxiv.org/pdf/1804.09130.pdf
+    by Stuart Hadfield, https://arxiv.org/abs/1804.09130
 [2] https://www.youtube.com/watch?v=AOKM9BkweVU is a useful intro
 [3] https://github.com/rsln-s/IEEE_QW_2020/blob/master/Slides.pdf
 [4] Efficient Quantum Circuits for Diagonal Unitaries Without Ancillas by Jonathan Welch, Daniel
@@ -30,116 +30,28 @@ import sympy.parsing.sympy_parser as sympy_parser
 
 import cirq
 from cirq import value
-from cirq._compat import deprecated_class
 from cirq.ops import raw_types
 from cirq.ops.linear_combinations import PauliSum, PauliString
 
 
-@deprecated_class(deadline='v0.15', fix='Use cirq.BooleanHamiltonianGate')
-@value.value_equality
-class BooleanHamiltonian(raw_types.Operation):
-    """An operation that represents a Hamiltonian from a set of Boolean functions."""
-
-    def __init__(
-        self,
-        qubit_map: Dict[str, 'cirq.Qid'],
-        boolean_strs: Sequence[str],
-        theta: float,
-    ):
-        """Builds a BooleanHamiltonian.
-
-        For each element of a sequence of Boolean expressions, the code first transforms it into a
-        polynomial of Pauli Zs that represent that particular expression. Then, we sum all the
-        polynomials, thus making a function that goes from a series to Boolean inputs to an integer
-        that is the number of Boolean expressions that are true.
-
-        For example, if we were using this gate for the unweighted max-cut problem that is typically
-        used to demonstrate the QAOA algorithm, there would be one Boolean expression per edge. Each
-        Boolean expression would be true iff the vertices on that are in different cuts (i.e. it's)
-        an XOR.
-
-        Then, we compute exp(-j * theta * polynomial), which is unitary because the polynomial is
-        Hermitian.
-
-        Args:
-            boolean_strs: The list of Sympy-parsable Boolean expressions.
-            qubit_map: map of string (boolean variable name) to qubit.
-            theta: The evolution time (angle) for the Hamiltonian
-
-        Raises:
-            ValueError: If the any qubits are not 2D.
-        """
-        if any(q.dimension != 2 for q in qubit_map.values()):
-            raise ValueError('All qubits must be 2-dimensional.')
-        self._qubit_map: Dict[str, 'cirq.Qid'] = qubit_map
-        self._boolean_strs: Sequence[str] = boolean_strs
-        self._theta: float = theta
-
-    def with_qubits(self, *new_qubits: 'cirq.Qid') -> 'BooleanHamiltonian':
-        if len(self._qubit_map) != len(new_qubits):
-            raise ValueError('Length of replacement qubits must be the same')
-        new_qubit_map = {
-            variable_name: new_qubit
-            for variable_name, new_qubit in zip(self._qubit_map, new_qubits)
-        }
-        return BooleanHamiltonian(
-            new_qubit_map,
-            self._boolean_strs,
-            self._theta,
-        )
-
-    @property
-    def qubits(self) -> Tuple[raw_types.Qid, ...]:
-        return tuple(self._qubit_map.values())
-
-    def num_qubits(self) -> int:
-        return len(self._qubit_map)
-
-    def _value_equality_values_(self):
-        return self._qubit_map, self._boolean_strs, self._theta
-
-    def _json_dict_(self) -> Dict[str, Any]:
-        return {
-            'qubit_map': self._qubit_map,
-            'boolean_strs': self._boolean_strs,
-            'theta': self._theta,
-        }
-
-    @classmethod
-    def _from_json_dict_(cls, qubit_map, boolean_strs, theta, **kwargs):
-        return cls(qubit_map, boolean_strs, theta)
-
-    def _decompose_(self):
-        boolean_exprs = [sympy_parser.parse_expr(boolean_str) for boolean_str in self._boolean_strs]
-        hamiltonian_polynomial_list = [
-            PauliSum.from_boolean_expression(boolean_expr, self._qubit_map)
-            for boolean_expr in boolean_exprs
-        ]
-
-        return _get_gates_from_hamiltonians(
-            hamiltonian_polynomial_list, self._qubit_map, self._theta
-        )
-
-    def _has_unitary_(self):
-        return True
-
-    @property
-    def gate(self) -> 'cirq.Gate':
-        return BooleanHamiltonianGate(
-            tuple(self._qubit_map.keys()), self._boolean_strs, self._theta
-        )
-
-
 @value.value_equality
 class BooleanHamiltonianGate(raw_types.Gate):
-    """A gate that represents a Hamiltonian from a set of Boolean functions."""
+    r"""A gate that represents evolution due to a Hamiltonian from a set of Boolean functions.
 
-    def __init__(
-        self,
-        parameter_names: Sequence[str],
-        boolean_strs: Sequence[str],
-        theta: float,
-    ):
+    This gate constructs a diagonal gate in the computational basis that encodes in its
+    phases classical functions.
+
+    The gate is specified by a list of parameters, $[x_0, x_1, \dots, x_{n-1}]$, a
+    list of boolean expressions that are functions of these parameters,
+    $[f_0(x_0,\dots,x_{n-1}), f_1(x_0,\dots,x_{n-1}), \dots f_{p-1}(x_0,\dots,x_{n-1})]$
+    and an angle $t$. For these parameters the gate is
+
+    $$
+    \sum_{x=0}^{2^n-1} e^{i \frac{t}{2} \sum_{k=0}^{p-1}f_k(x_0,\dots,x_{n-1})} |x\rangle\langle x|
+    $$
+    """
+
+    def __init__(self, parameter_names: Sequence[str], boolean_strs: Sequence[str], theta: float):
         """Builds a BooleanHamiltonianGate.
 
         For each element of a sequence of Boolean expressions, the code first transforms it into a
@@ -172,7 +84,6 @@ class BooleanHamiltonianGate(raw_types.Gate):
 
     def _json_dict_(self) -> Dict[str, Any]:
         return {
-            'cirq_type': self.__class__.__name__,
             'parameter_names': self._parameter_names,
             'boolean_strs': self._boolean_strs,
             'theta': self._theta,

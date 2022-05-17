@@ -14,15 +14,7 @@
 """Estimation of fidelity associated with experimental circuit executions."""
 import dataclasses
 from abc import abstractmethod, ABC
-from typing import (
-    List,
-    Optional,
-    Sequence,
-    Tuple,
-    TYPE_CHECKING,
-    Dict,
-    Iterable,
-)
+from typing import Dict, Iterable, List, Optional, Sequence, Tuple, TYPE_CHECKING
 
 import numpy as np
 import pandas as pd
@@ -155,10 +147,10 @@ class XEBCharacterizationOptions(ABC):
         """Return an initial Nelder-Mead simplex and the names for each parameter."""
 
 
-def phased_fsim_angles_from_gate(gate: 'cirq.Gate') -> Dict[str, float]:
+def phased_fsim_angles_from_gate(gate: 'cirq.Gate') -> Dict[str, 'cirq.TParamVal']:
     """For a given gate, return a dictionary mapping '{angle}_default' to its noiseless value
     for the five PhasedFSim angles."""
-    defaults = {
+    defaults: Dict[str, 'cirq.TParamVal'] = {
         'theta_default': 0.0,
         'zeta_default': 0.0,
         'chi_default': 0.0,
@@ -249,24 +241,23 @@ class XEBPhasedFSimCharacterizationOptions(XEBCharacterizationOptions):
         We also return a list of parameter names so the Cirq `param_resovler`
         can be accurately constructed during optimization.
         """
-        x0 = []
+        x0_list = []
         names = []
 
         for default, symbol in self._iter_angles_for_characterization():
             if default is None:
                 raise ValueError(f'{symbol.name}_default was not set.')
-            x0.append(default)
+            x0_list.append(default)
             names.append(symbol.name)
 
-        x0 = np.asarray(x0)
+        x0 = np.asarray(x0_list)
         n_param = len(x0)
         initial_simplex = [x0]
         for i in range(n_param):
             basis_vec = np.eye(1, n_param, i)[0]
             initial_simplex += [x0 + initial_simplex_step_size * basis_vec]
-        initial_simplex = np.asarray(initial_simplex)
 
-        return initial_simplex, names
+        return np.asarray(initial_simplex), names
 
     def get_parameterized_gate(self):
         theta = THETA_SYMBOL if self.characterize_theta else self.theta_default
@@ -327,8 +318,7 @@ def SqrtISwapXEBOptions(*args, **kwargs):
 
 
 def parameterize_circuit(
-    circuit: 'cirq.Circuit',
-    options: XEBCharacterizationOptions,
+    circuit: 'cirq.Circuit', options: XEBCharacterizationOptions
 ) -> 'cirq.Circuit':
     """Parameterize PhasedFSim-like gates in a given circuit according to
     `phased_fsim_options`.
@@ -418,21 +408,17 @@ def characterize_phased_fsim_parameters_with_xeb(
     optimization_result = optimize.minimize(
         _mean_infidelity,
         x0=x0,
-        options={
-            'initial_simplex': initial_simplex,
-            'xatol': xatol,
-            'fatol': fatol,
-        },
+        options={'initial_simplex': initial_simplex, 'xatol': xatol, 'fatol': fatol},
         method='nelder-mead',
     )
 
-    final_params = dict(zip(names, optimization_result.x))
+    final_params: 'cirq.ParamDictType' = dict(zip(names, optimization_result.x))
     fidelities_df = benchmark_2q_xeb_fidelities(
         sampled_df, parameterized_circuits, cycle_depths, param_resolver=final_params
     )
     return XEBCharacterizationResult(
         optimization_results={pair: optimization_result},
-        final_params={pair: final_params},
+        final_params={pair: final_params},  # type: ignore[dict-item]
         fidelities_df=fidelities_df,
     )
 

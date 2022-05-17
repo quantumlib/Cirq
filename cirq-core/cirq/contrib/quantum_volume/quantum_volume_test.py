@@ -97,10 +97,10 @@ def test_sample_heavy_set_with_parity():
     result = cirq.ResultDict(
         params=cirq.ParamResolver({}),
         measurements={
-            '0': np.array([[1], [0]]),
-            '1': np.array([[0], [1]]),
-            '2': np.array([[1], [1]]),
-            '3': np.array([[0], [0]]),
+            'q(0)': np.array([[1], [0]]),
+            'q(1)': np.array([[0], [1]]),
+            'q(2)': np.array([[1], [1]]),
+            'q(3)': np.array([[0], [0]]),
         },
     )
     sampler.run = MagicMock(return_value=result)
@@ -134,11 +134,7 @@ def test_compile_circuit():
     """Tests that we are able to compile a model circuit."""
     compiler_mock = MagicMock(side_effect=lambda circuit: circuit)
     a, b, c = cirq.LineQubit.range(3)
-    model_circuit = cirq.Circuit(
-        [
-            cirq.Moment([cirq.X(a), cirq.Y(b), cirq.Z(c)]),
-        ]
-    )
+    model_circuit = cirq.Circuit([cirq.Moment([cirq.X(a), cirq.Y(b), cirq.Z(c)])])
     compilation_result = cirq.contrib.quantum_volume.compile_circuit(
         model_circuit,
         device_graph=ccr.gridqubits_to_graph_device(FakeDevice().qubits),
@@ -202,11 +198,7 @@ def test_compile_circuit_with_readout_correction():
     router_mock = MagicMock(side_effect=lambda circuit, network: ccr.SwapNetwork(circuit, {}))
     a, b, c = cirq.LineQubit.range(3)
     ap, bp, cp = cirq.LineQubit.range(3, 6)
-    model_circuit = cirq.Circuit(
-        [
-            cirq.Moment([cirq.X(a), cirq.Y(b), cirq.Z(c)]),
-        ]
-    )
+    model_circuit = cirq.Circuit([cirq.Moment([cirq.X(a), cirq.Y(b), cirq.Z(c)])])
     compilation_result = cirq.contrib.quantum_volume.compile_circuit(
         model_circuit,
         device_graph=ccr.gridqubits_to_graph_device(FakeDevice().qubits),
@@ -230,22 +222,9 @@ def test_compile_circuit_multiple_routing_attempts():
     """Tests that we make multiple attempts at routing and keep the best one."""
     qubits = cirq.LineQubit.range(3)
     initial_mapping = dict(zip(qubits, qubits))
-    more_operations = cirq.Circuit(
-        [
-            cirq.X.on_each(qubits),
-            cirq.Y.on_each(qubits),
-        ]
-    )
-    more_qubits = cirq.Circuit(
-        [
-            cirq.X.on_each(cirq.LineQubit.range(4)),
-        ]
-    )
-    well_routed = cirq.Circuit(
-        [
-            cirq.X.on_each(qubits),
-        ]
-    )
+    more_operations = cirq.Circuit([cirq.X.on_each(qubits), cirq.Y.on_each(qubits)])
+    more_qubits = cirq.Circuit([cirq.X.on_each(cirq.LineQubit.range(4))])
+    well_routed = cirq.Circuit([cirq.X.on_each(qubits)])
     router_mock = MagicMock(
         side_effect=[
             ccr.SwapNetwork(more_operations, initial_mapping),
@@ -272,11 +251,7 @@ def test_compile_circuit_multiple_routing_attempts():
 def test_compile_circuit_no_routing_attempts():
     """Tests that setting no routing attempts throws an error."""
     a, b, c = cirq.LineQubit.range(3)
-    model_circuit = cirq.Circuit(
-        [
-            cirq.Moment([cirq.X(a), cirq.Y(b), cirq.Z(c)]),
-        ]
-    )
+    model_circuit = cirq.Circuit([cirq.Moment([cirq.X(a), cirq.Y(b), cirq.Z(c)])])
 
     with pytest.raises(AssertionError) as e:
         cirq.contrib.quantum_volume.compile_circuit(

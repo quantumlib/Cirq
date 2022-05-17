@@ -30,7 +30,7 @@ import sympy
 
 import cirq
 from cirq import protocols, value
-from cirq._compat import deprecated, proper_repr
+from cirq._compat import proper_repr
 from cirq.ops import gate_features, raw_types
 
 
@@ -54,28 +54,40 @@ def _half_pi_mod_pi(param: 'cirq.TParamVal') -> bool:
 
 @value.value_equality(approximate=True)
 class FSimGate(gate_features.InterchangeableQubitsGate, raw_types.Gate):
-    """Fermionic simulation gate family.
+    r"""Fermionic simulation gate family.
 
     Contains all two qubit interactions that preserve excitations, up to
     single-qubit rotations and global phase.
 
     The unitary matrix of this gate is:
 
-        [[1, 0, 0, 0],
-         [0, a, b, 0],
-         [0, b, a, 0],
-         [0, 0, 0, c]]
+    $$
+    \begin{bmatrix}
+        1 & 0 & 0 & 0 \\
+        0 & a & b & 0 \\
+        0 & b & a & 0 \\
+        0 & 0 & 0 & c
+    \end{bmatrix}
+    $$
 
     where:
 
-        a = cos(theta)
-        b = -i·sin(theta)
-        c = exp(-i·phi)
+    $$
+    a = \cos(\theta)
+    $$
+
+    $$
+    b = -i \sin(\theta)
+    $$
+
+    $$
+    c = e^{i \phi}
+    $$
 
     Note the difference in sign conventions between FSimGate and the
     ISWAP and CZPowGate:
 
-        FSimGate(θ, φ) = ISWAP**(-2θ/π) CZPowGate(exponent=-φ/π)
+    FSimGate(θ, φ) = ISWAP**(-2θ/π) CZPowGate(exponent=-φ/π)
     """
 
     def __init__(self, theta: 'cirq.TParamVal', phi: 'cirq.TParamVal') -> None:
@@ -97,25 +109,9 @@ class FSimGate(gate_features.InterchangeableQubitsGate, raw_types.Gate):
     def theta(self) -> 'cirq.TParamVal':
         return self._theta
 
-    @theta.setter  # type: ignore
-    @deprecated(
-        deadline="v0.15",
-        fix="The mutators of this class are deprecated, instantiate a new object instead.",
-    )
-    def theta(self, theta: 'cirq.TParamVal'):
-        self._theta = theta
-
     @property
     def phi(self) -> 'cirq.TParamVal':
         return self._phi
-
-    @phi.setter  # type: ignore
-    @deprecated(
-        deadline="v0.15",
-        fix="The mutators of this class are deprecated, instantiate a new object instead.",
-    )
-    def phi(self, phi: 'cirq.TParamVal'):
-        self._phi = phi
 
     def _num_qubits_(self) -> int:
         return 2
@@ -138,6 +134,7 @@ class FSimGate(gate_features.InterchangeableQubitsGate, raw_types.Gate):
         a = math.cos(self.theta)
         b = -1j * math.sin(self.theta)
         c = cmath.exp(-1j * self.phi)
+        # fmt: off
         return np.array(
             [
                 [1, 0, 0, 0],
@@ -146,6 +143,7 @@ class FSimGate(gate_features.InterchangeableQubitsGate, raw_types.Gate):
                 [0, 0, 0, c],
             ]
         )
+        # fmt: on
 
     def _pauli_expansion_(self) -> value.LinearDict[str]:
         if protocols.is_parameterized(self):
@@ -216,20 +214,24 @@ class FSimGate(gate_features.InterchangeableQubitsGate, raw_types.Gate):
 
 @value.value_equality(approximate=True)
 class PhasedFSimGate(gate_features.InterchangeableQubitsGate, raw_types.Gate):
-    """General excitation-preserving two-qubit gate.
+    r"""General excitation-preserving two-qubit gate.
 
     The unitary matrix of PhasedFSimGate(θ, ζ, χ, γ, φ) is:
 
-        [[1,                       0,                       0,            0],
-         [0,    exp(-iγ - iζ) cos(θ), -i exp(-iγ + iχ) sin(θ),            0],
-         [0, -i exp(-iγ - iχ) sin(θ),    exp(-iγ + iζ) cos(θ),            0],
-         [0,                       0,                       0, exp(-2iγ-iφ)]].
+    $$
+    \begin{bmatrix}
+        1 & 0 & 0 & 0 \\
+        0 & e^{-i \gamma - i \zeta} & -i e^{-i \gamma + i\chi} & 0 \\
+        0 & -i e^{-i \gamma - i \chi} & e^{-i \gamma + i \zeta} & 0 \\
+        0 & 0 & 0 & e^{-2i \gamma - i \phi}
+    \end{bmatrix}
+    $$
 
     This parametrization follows eq (18) in https://arxiv.org/abs/2010.07965.
     See also eq (43) in https://arxiv.org/abs/1910.11333 for an older variant
-    which uses the same θ and φ parameters, but its three phase angles have
-    different names and opposite sign. Specifically, ∆+ angle corresponds to
-    -γ, ∆- corresponds to -ζ and ∆-,off corresponds to -χ.
+    which uses the same θ and φ parameters, but has three phase angles that
+    have different names and opposite sign. Specifically, ∆+ angle corresponds
+    to -γ, ∆- corresponds to -ζ and ∆-,off corresponds to -χ.
 
     Another useful parametrization of PhasedFSimGate is based on the fact that
     the gate is equivalent up to global phase to the following circuit:
@@ -303,61 +305,21 @@ class PhasedFSimGate(gate_features.InterchangeableQubitsGate, raw_types.Gate):
     def theta(self) -> 'cirq.TParamVal':
         return self._theta
 
-    @theta.setter  # type: ignore
-    @deprecated(
-        deadline="v0.15",
-        fix="The mutators of this class are deprecated, instantiate a new object instead.",
-    )
-    def theta(self, theta: 'cirq.TParamVal'):
-        self._theta = theta
-
     @property
     def zeta(self) -> 'cirq.TParamVal':
         return self._zeta
-
-    @zeta.setter  # type: ignore
-    @deprecated(
-        deadline="v0.15",
-        fix="The mutators of this class are deprecated, instantiate a new object instead.",
-    )
-    def zeta(self, zeta: 'cirq.TParamVal'):
-        self._zeta = zeta
 
     @property
     def chi(self) -> 'cirq.TParamVal':
         return self._chi
 
-    @chi.setter  # type: ignore
-    @deprecated(
-        deadline="v0.15",
-        fix="The mutators of this class are deprecated, instantiate a new object instead.",
-    )
-    def chi(self, chi: 'cirq.TParamVal'):
-        self._chi = chi
-
     @property
     def gamma(self) -> 'cirq.TParamVal':
         return self._gamma
 
-    @gamma.setter  # type: ignore
-    @deprecated(
-        deadline="v0.15",
-        fix="The mutators of this class are deprecated, instantiate a new object instead.",
-    )
-    def gamma(self, gamma: 'cirq.TParamVal'):
-        self._gamma = gamma
-
     @property
     def phi(self) -> 'cirq.TParamVal':
         return self._phi
-
-    @phi.setter  # type: ignore
-    @deprecated(
-        deadline="v0.15",
-        fix="The mutators of this class are deprecated, instantiate a new object instead.",
-    )
-    def phi(self, phi: 'cirq.TParamVal'):
-        self._phi = phi
 
     @staticmethod
     def from_fsim_rz(
@@ -443,6 +405,7 @@ class PhasedFSimGate(gate_features.InterchangeableQubitsGate, raw_types.Gate):
         f3 = cmath.exp(-1j * self.gamma - 1j * self.chi)
         f4 = cmath.exp(-1j * self.gamma + 1j * self.zeta)
         f5 = cmath.exp(-2j * self.gamma)
+        # fmt: off
         return np.array(
             [
                 [1, 0, 0, 0],
@@ -451,6 +414,7 @@ class PhasedFSimGate(gate_features.InterchangeableQubitsGate, raw_types.Gate):
                 [0, 0, 0, f5 * c],
             ]
         )
+        # fmt: on
 
     def _resolve_parameters_(
         self, resolver: 'cirq.ParamResolver', recursive: bool

@@ -36,10 +36,7 @@ class ZerosSampler(work.Sampler, metaclass=abc.ABCMeta):
         self.device = device
 
     def run_sweep(
-        self,
-        program: 'cirq.AbstractCircuit',
-        params: study.Sweepable,
-        repetitions: int = 1,
+        self, program: 'cirq.AbstractCircuit', params: study.Sweepable, repetitions: int = 1
     ) -> List[study.Result]:
         """Samples circuit as if every measurement resulted in zero.
 

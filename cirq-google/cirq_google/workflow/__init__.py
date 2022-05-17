@@ -16,15 +16,14 @@ from cirq_google.workflow.quantum_runtime import (
     execute,
 )
 
-from cirq_google.workflow.io import (
-    ExecutableGroupResultFilesystemRecord,
-)
+from cirq_google.workflow.io import ExecutableGroupResultFilesystemRecord
 
 from cirq_google.workflow.qubit_placement import (
     QubitPlacer,
     CouldNotPlaceError,
     NaiveQubitPlacer,
     RandomDevicePlacer,
+    HardcodedQubitPlacer,
 )
 
 from cirq_google.workflow.processor_record import (

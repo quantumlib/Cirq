@@ -55,6 +55,7 @@ class SqrtIswapTargetGateset(compilation_target_gateset.TwoQubitCompilationTarge
             ops.SQRT_ISWAP_INV if use_sqrt_iswap_inv else ops.SQRT_ISWAP,
             ops.MeasurementGate,
             ops.AnyUnitaryGateFamily(1),
+            ops.GlobalPhaseGate,
             name='SqrtIswapInvTargetGateset' if use_sqrt_iswap_inv else 'SqrtIswapTargetGateset',
         )
         self.atol = atol
@@ -89,11 +90,7 @@ class SqrtIswapTargetGateset(compilation_target_gateset.TwoQubitCompilationTarge
         )
 
     def _value_equality_values_(self) -> Any:
-        return (
-            self.atol,
-            self.required_sqrt_iswap_count,
-            self.use_sqrt_iswap_inv,
-        )
+        return (self.atol, self.required_sqrt_iswap_count, self.use_sqrt_iswap_inv)
 
     def _json_dict_(self) -> Dict[str, Any]:
         return {

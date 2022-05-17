@@ -15,7 +15,6 @@
 from typing import Any, Dict, Iterable, Sequence, Tuple, TYPE_CHECKING
 
 from cirq import protocols, value
-from cirq._compat import deprecated
 from cirq.ops import raw_types, swap_gates
 
 if TYPE_CHECKING:
@@ -24,7 +23,15 @@ if TYPE_CHECKING:
 
 @value.value_equality
 class QubitPermutationGate(raw_types.Gate):
-    """A qubit permutation gate specified by a permutation list."""
+    r"""A qubit permutation gate specified by a permutation list.
+
+    For a permutation list $[p_0, p_1,\dots,p_{n-1}]$ this gate has the unitary
+
+    $$
+    \sum_{x_0,x_1,\dots,x_{n-1} \in \{0, 1\}} |x_{p_0}, x_{p_1}, \dots, x_{p_{n-1}}\rangle
+                                              \langle x_0, x_1, \dots, x_{n-1}|
+    $$
+    """
 
     def __init__(self, permutation: Sequence[int]):
         """Create a `cirq.QubitPermutationGate`.
@@ -56,14 +63,6 @@ class QubitPermutationGate(raw_types.Gate):
     @property
     def permutation(self) -> Tuple[int, ...]:
         return self._permutation
-
-    @permutation.setter  # type: ignore
-    @deprecated(
-        deadline="v0.15",
-        fix="The mutators of this class are deprecated, instantiate a new object instead.",
-    )
-    def permutation(self, permutation: Tuple[int, ...]):
-        self._permutation = permutation
 
     def _value_equality_values_(self):
         return self.permutation

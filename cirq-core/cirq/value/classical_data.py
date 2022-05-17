@@ -229,8 +229,7 @@ class ClassicalDataDictionaryStore(ClassicalDataStore):
         if key not in self._measured_qubits:
             return digits.big_endian_bits_to_int(self._records[key][index])
         return digits.big_endian_digits_to_int(
-            self._records[key][index],
-            base=[q.dimension for q in self._measured_qubits[key][index]],
+            self._records[key][index], base=[q.dimension for q in self._measured_qubits[key][index]]
         )
 
     def copy(self):
@@ -261,12 +260,16 @@ class ClassicalDataDictionaryStore(ClassicalDataStore):
         )
 
     def __repr__(self):
-        return (
-            f'cirq.ClassicalDataDictionaryStore(_records={self.records!r},'
-            f' _measured_qubits={self.measured_qubits!r},'
-            f' _channel_records={self.channel_records!r},'
-            f' _measurement_types={self.measurement_types!r})'
-        )
+        rep = 'cirq.ClassicalDataDictionaryStore('
+        if self.records:
+            rep += f'_records={self.records!r},'
+        if self.measured_qubits:
+            rep += f' _measured_qubits={self.measured_qubits!r},'
+        if self.channel_records:
+            rep += f' _channel_records={self.channel_records!r},'
+        if self.measurement_types:
+            rep += f' _measurement_types={self.measurement_types!r},'
+        return rep + ')'
 
     def _value_equality_values_(self):
         return (

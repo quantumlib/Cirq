@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """Methods for resolving JSON types during serialization."""
-
+import datetime
 import functools
 from typing import Dict, TYPE_CHECKING
 
@@ -33,6 +33,11 @@ def _class_resolver_dictionary() -> Dict[str, ObjectFactory]:
     from cirq.experiments import CrossEntropyResult, CrossEntropyResultDict, GridInteractionLayer
     from cirq.experiments.grid_parallel_two_qubit_xeb import GridParallelXEBMetadata
 
+    def _boolean_hamiltonian_gate_op(qubit_map, boolean_strs, theta):
+        return cirq.BooleanHamiltonianGate(
+            parameter_names=list(qubit_map.keys()), boolean_strs=boolean_strs, theta=theta
+        ).on(*qubit_map.values())
+
     def _identity_operation_from_dict(qubits, **kwargs):
         return cirq.identity_each(*qubits)
 
@@ -49,6 +54,19 @@ def _class_resolver_dictionary() -> Dict[str, ObjectFactory]:
     def _parallel_gate_op(gate, qubits):
         return cirq.parallel_gate_op(gate, *qubits)
 
+    def _datetime(timestamp: float) -> datetime.datetime:
+        # As part of our serialization logic, we make sure we only serialize "aware"
+        # datetimes with the UTC timezone, so we implicitly add back in the UTC timezone here.
+        #
+        # Please note: even if the assumption is somehow violated, the fact that we use
+        # unix timestamps should mean that the deserialized datetime should refer to the
+        # same point in time but may not satisfy o = read_json(to_json(o)) because the actual
+        # timezones, and hour fields will not be identical.
+        return datetime.datetime.fromtimestamp(timestamp, tz=datetime.timezone.utc)
+
+    def _symmetricalqidpair(qids):
+        return frozenset(qids)
+
     import sympy
 
     return {
@@ -58,7 +76,6 @@ def _class_resolver_dictionary() -> Dict[str, ObjectFactory]:
         'AsymmetricDepolarizingChannel': cirq.AsymmetricDepolarizingChannel,
         'BitFlipChannel': cirq.BitFlipChannel,
         'BitstringAccumulator': cirq.work.BitstringAccumulator,
-        'BooleanHamiltonian': cirq.BooleanHamiltonian,
         'BooleanHamiltonianGate': cirq.BooleanHamiltonianGate,
         'CCNotPowGate': cirq.CCNotPowGate,
         'CCXPowGate': cirq.CCXPowGate,
@@ -80,6 +97,7 @@ def _class_resolver_dictionary() -> Dict[str, ObjectFactory]:
         'CXPowGate': cirq.CXPowGate,
         'CZPowGate': cirq.CZPowGate,
         'CZTargetGateset': cirq.CZTargetGateset,
+        'DiagonalGate': cirq.DiagonalGate,
         'DensePauliString': cirq.DensePauliString,
         'DepolarizingChannel': cirq.DepolarizingChannel,
         'DeviceMetadata': cirq.DeviceMetadata,
@@ -129,6 +147,7 @@ def _class_resolver_dictionary() -> Dict[str, ObjectFactory]:
         'PauliString': cirq.PauliString,
         'PauliStringPhasor': cirq.PauliStringPhasor,
         'PauliStringPhasorGate': cirq.PauliStringPhasorGate,
+        'PauliSum': cirq.PauliSum,
         '_PauliX': cirq.ops.pauli_gates._PauliX,
         '_PauliY': cirq.ops.pauli_gates._PauliY,
         '_PauliZ': cirq.ops.pauli_gates._PauliZ,
@@ -147,7 +166,6 @@ def _class_resolver_dictionary() -> Dict[str, ObjectFactory]:
         'QuantumFourierTransformGate': cirq.QuantumFourierTransformGate,
         'QubitPermutationGate': cirq.QubitPermutationGate,
         'RandomGateChannel': cirq.RandomGateChannel,
-        'TensoredConfusionMatrices': cirq.TensoredConfusionMatrices,
         'RepetitionsStoppingCriteria': cirq.work.RepetitionsStoppingCriteria,
         'ResetChannel': cirq.ResetChannel,
         'Result': cirq.ResultDict,  # Keep support for Cirq < 0.14.
@@ -162,11 +180,13 @@ def _class_resolver_dictionary() -> Dict[str, ObjectFactory]:
         'StabilizerStateChForm': cirq.StabilizerStateChForm,
         'StatePreparationChannel': cirq.StatePreparationChannel,
         'SwapPowGate': cirq.SwapPowGate,
-        'SymmetricalQidPair': cirq.SymmetricalQidPair,
         'SympyCondition': cirq.SympyCondition,
         'TaggedOperation': cirq.TaggedOperation,
+        'TensoredConfusionMatrices': cirq.TensoredConfusionMatrices,
         'TiltedSquareLattice': cirq.TiltedSquareLattice,
+        'ThreeQubitDiagonalGate': cirq.ThreeQubitDiagonalGate,
         'TrialResult': cirq.ResultDict,  # keep support for Cirq < 0.11.
+        'TwoQubitDiagonalGate': cirq.TwoQubitDiagonalGate,
         'TwoQubitGateTabulation': cirq.TwoQubitGateTabulation,
         '_UnconstrainedDevice': cirq.devices.unconstrained_device._UnconstrainedDevice,
         'VarianceStoppingCriteria': cirq.work.VarianceStoppingCriteria,
@@ -186,9 +206,11 @@ def _class_resolver_dictionary() -> Dict[str, ObjectFactory]:
         'ZPowGate': cirq.ZPowGate,
         'ZZPowGate': cirq.ZZPowGate,
         # Old types, only supported for backwards-compatibility
+        'BooleanHamiltonian': _boolean_hamiltonian_gate_op,  # Removed in v0.15
         'IdentityOperation': _identity_operation_from_dict,
         'ParallelGateOperation': _parallel_gate_op,  # Removed in v0.14
         'SingleQubitMatrixGate': single_qubit_matrix_gate,
+        'SymmetricalQidPair': _symmetricalqidpair,  # Removed in v0.15
         'TwoQubitMatrixGate': two_qubit_matrix_gate,
         # not a cirq class, but treated as one:
         'pandas.DataFrame': pd.DataFrame,
@@ -211,4 +233,5 @@ def _class_resolver_dictionary() -> Dict[str, ObjectFactory]:
         'sympy.E': lambda: sympy.E,
         'sympy.EulerGamma': lambda: sympy.EulerGamma,
         'complex': complex,
+        'datetime.datetime': _datetime,
     }

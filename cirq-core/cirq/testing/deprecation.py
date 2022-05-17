@@ -28,7 +28,7 @@ def assert_deprecated(*msgs: str, deadline: str, count: Optional[int] = 1) -> It
     >>>     # do something deprecated
 
     Args:
-        msgs: messages that should match the warnings captured
+        *msgs: messages that should match the warnings captured
         deadline: the expected deadline the feature will be deprecated by. Has to follow the format
             vX.Y (minor versions only)
         count: if None count of messages is not asserted, otherwise the number of deprecation
@@ -42,11 +42,7 @@ def assert_deprecated(*msgs: str, deadline: str, count: Optional[int] = 1) -> It
     os.environ[ALLOW_DEPRECATION_IN_TEST] = 'True'
     try:
         with assert_logs(
-            *msgs,
-            deadline,
-            min_level=logging.WARNING,
-            max_level=logging.WARNING,
-            count=count,
+            *msgs, deadline, min_level=logging.WARNING, max_level=logging.WARNING, count=count
         ):
             yield
     finally:

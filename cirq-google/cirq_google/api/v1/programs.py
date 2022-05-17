@@ -166,25 +166,13 @@ def circuit_as_schedule_to_protos(circuit: cirq.Circuit) -> Iterator[operations_
         yield op_proto
 
 
-@cirq._compat.deprecated_parameter(
-    deadline='v0.15',
-    fix=cirq.circuits.circuit._DEVICE_DEP_MESSAGE,
-    parameter_desc='device',
-    match=lambda args, kwargs: 'device' in kwargs or len(args) > 1,
-)
-def circuit_from_schedule_from_protos(*args) -> cirq.Circuit:
+def circuit_from_schedule_from_protos(ops) -> cirq.Circuit:
     """Convert protos into a Circuit."""
-    if len(args) == 2:
-        device, ops = args[0], args[1]
-    else:
-        ops = args[0]
     result = []
     for op in ops:
         xmon_op = xmon_op_from_proto(op)
         result.append(xmon_op)
     ret = cirq.Circuit(result)
-    if len(args) == 2:
-        ret._device = device
     return ret
 
 
@@ -314,8 +302,7 @@ def xmon_op_from_proto(proto: operations_pb2.Operation) -> cirq.Operation:
     if proto.HasField('exp_w'):
         exp_w = proto.exp_w
         return cirq.PhasedXPowGate(
-            exponent=param(exp_w.half_turns),
-            phase_exponent=param(exp_w.axis_half_turns),
+            exponent=param(exp_w.half_turns), phase_exponent=param(exp_w.axis_half_turns)
         ).on(qubit(exp_w.target))
     if proto.HasField('exp_z'):
         exp_z = proto.exp_z

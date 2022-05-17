@@ -62,10 +62,10 @@ def test_str_with_grid_qubits():
     device = cgdk.SerializableDevice.from_proto(device_proto, gate_sets=[cg.FSIM_GATESET])
     assert str(device) == textwrap.dedent(
         """\
-        (1, 1)───(1, 2)   (1, 3)
-        │        │
-        │        │
-        (2, 1)   (2, 2)───(2, 3)"""
+        q(1, 1)───q(1, 2)   q(1, 3)
+        │         │
+        │         │
+        q(2, 1)   q(2, 2)───q(2, 3)"""
     )
 
 
@@ -86,12 +86,10 @@ def test_metadata_correct():
         (qubits[4], qubits[5]),
     ]
     device_proto = cgdk.create_device_proto_for_qubits(
-        qubits=qubits,
-        pairs=pairs,
-        gate_sets=[cg.FSIM_GATESET],
+        qubits=qubits, pairs=pairs, gate_sets=[cg.FSIM_GATESET]
     )
     device = cgdk.SerializableDevice.from_proto(device_proto, gate_sets=[cg.FSIM_GATESET])
-    assert device.metadata.qubit_pairs == frozenset(pairs)
+    assert device.metadata.qubit_pairs == frozenset({frozenset(p) for p in pairs})
     assert device.metadata.gateset == cirq.Gateset(
         cirq.FSimGate,
         cirq.ISwapPowGate,
@@ -103,6 +101,7 @@ def test_metadata_correct():
         cirq.PhasedXZGate,
         cirq.MeasurementGate,
         cirq.WaitGate,
+        cirq.GlobalPhaseGate,
     )
 
 
@@ -385,17 +384,10 @@ def test_half_pi_takes_half_duration():
     """
     half_pi_gs = cirq_google.SerializableGateSet(
         gate_set_name='half_pi',
-        serializers=[
-            *cgc.SINGLE_QUBIT_HALF_PI_SERIALIZERS,
-        ],
-        deserializers=[
-            *cgc.SINGLE_QUBIT_HALF_PI_DESERIALIZERS,
-        ],
+        serializers=[*cgc.SINGLE_QUBIT_HALF_PI_SERIALIZERS],
+        deserializers=[*cgc.SINGLE_QUBIT_HALF_PI_DESERIALIZERS],
     )
-    durations_dict = {
-        'xy_pi': 20_000,
-        'xy_half_pi': 10_000,
-    }
+    durations_dict = {'xy_pi': 20_000, 'xy_half_pi': 10_000}
     spec = cirq_google.devices.known_devices.create_device_proto_from_diagram(
         "aa\naa", [half_pi_gs], durations_dict
     )
@@ -416,17 +408,10 @@ def test_multiple_fsim_gatesets():
     """
     half_pi_gs = cirq_google.SerializableGateSet(
         gate_set_name='half_pi',
-        serializers=[
-            *cgc.SINGLE_QUBIT_HALF_PI_SERIALIZERS,
-        ],
-        deserializers=[
-            *cgc.SINGLE_QUBIT_HALF_PI_DESERIALIZERS,
-        ],
+        serializers=[*cgc.SINGLE_QUBIT_HALF_PI_SERIALIZERS],
+        deserializers=[*cgc.SINGLE_QUBIT_HALF_PI_DESERIALIZERS],
     )
-    durations_dict = {
-        'xy_pi': 20_000,
-        'xy_half_pi': 10_000,
-    }
+    durations_dict = {'xy_pi': 20_000, 'xy_half_pi': 10_000}
     spec = cirq_google.devices.known_devices.create_device_proto_from_diagram(
         "aa\naa", [half_pi_gs], durations_dict
     )
@@ -448,10 +433,10 @@ def test_serializable_device_str_grid_qubits():
     assert (
         str(device)
         == """\
-(0, 0)───(0, 1)
-│        │
-│        │
-(1, 0)───(1, 1)"""
+q(0, 0)───q(0, 1)
+│         │
+│         │
+q(1, 0)───q(1, 1)"""
     )
 
 
@@ -466,28 +451,23 @@ def test_sycamore23_str():
     assert (
         str(cg.Sycamore23)
         == """\
-                  (3, 2)
-                  │
-                  │
-         (4, 1)───(4, 2)───(4, 3)
-         │        │        │
-         │        │        │
-(5, 0)───(5, 1)───(5, 2)───(5, 3)───(5, 4)
-         │        │        │        │
-         │        │        │        │
-         (6, 1)───(6, 2)───(6, 3)───(6, 4)───(6, 5)
-                  │        │        │        │
-                  │        │        │        │
-                  (7, 2)───(7, 3)───(7, 4)───(7, 5)───(7, 6)
-                           │        │        │
-                           │        │        │
-                           (8, 3)───(8, 4)───(8, 5)
-                                    │
-                                    │
-                                    (9, 4)"""
+                    q(3, 2)
+                    │
+                    │
+          q(4, 1)───q(4, 2)───q(4, 3)
+          │         │         │
+          │         │         │
+q(5, 0)───q(5, 1)───q(5, 2)───q(5, 3)───q(5, 4)
+          │         │         │         │
+          │         │         │         │
+          q(6, 1)───q(6, 2)───q(6, 3)───q(6, 4)───q(6, 5)
+                    │         │         │         │
+                    │         │         │         │
+                    q(7, 2)───q(7, 3)───q(7, 4)───q(7, 5)───q(7, 6)
+                              │         │         │
+                              │         │         │
+                              q(8, 3)───q(8, 4)───q(8, 5)
+                                        │
+                                        │
+                                        q(9, 4)"""
     )
-
-
-def test_sycamore23_qid_pairs_deprecated():
-    with cirq.testing.assert_deprecated('device.metadata', deadline='v0.15', count=1):
-        assert len(cg.Sycamore23.qid_pairs()) == 32

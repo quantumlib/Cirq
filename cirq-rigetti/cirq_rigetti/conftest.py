@@ -54,8 +54,7 @@ def pytest_collection_modifyitems(config, items):
 
 def pytest_configure(config):
     config.addinivalue_line(
-        "markers",
-        "rigetti_integration: tests that connect to Quil compiler or QVM.",
+        "markers", "rigetti_integration: tests that connect to Quil compiler or QVM."
     )
 
 
@@ -66,11 +65,7 @@ class MockQAM(QAM, Generic[T]):
     _run_count: int
     _mock_results: Dict[str, np.ndarray]
 
-    def __init__(
-        self,
-        *args,
-        **kwargs,
-    ) -> None:
+    def __init__(self, *args, **kwargs) -> None:
         self._run_count = 0
         self._mock_results: Dict[str, np.ndarray] = {}
 
@@ -107,11 +102,7 @@ def quantum_processor() -> AbstractQuantumProcessor:
 def qcs_client_configuration() -> QCSClientConfiguration:
     settings = QCSClientConfigurationSettings()
     secrets = QCSClientConfigurationSecrets()
-    return QCSClientConfiguration(
-        profile_name="default",
-        settings=settings,
-        secrets=secrets,
-    )
+    return QCSClientConfiguration(profile_name="default", settings=settings, secrets=secrets)
 
 
 @pytest.fixture
@@ -125,11 +116,7 @@ def compiler(quantum_processor, qcs_client_configuration) -> AbstractCompiler:
 
 @pytest.fixture
 def quantum_computer(qam: QAM, compiler: AbstractCompiler) -> QuantumComputer:
-    return QuantumComputer(
-        name='mocked',
-        qam=qam,
-        compiler=compiler,
-    )
+    return QuantumComputer(name='mocked', qam=qam, compiler=compiler)
 
 
 @pytest.fixture
@@ -169,8 +156,7 @@ class MockQPUImplementer:
         self.quantum_computer = quantum_computer
 
     def implement_passive_quantum_computer_with_results(
-        self,
-        results: List[np.ndarray],
+        self, results: List[np.ndarray]
     ) -> QuantumComputer:
         """Mocks compilation methods on the `quantum_computer.compiler`, passively passing the
         `Program` through. Sequentially adds results to the
@@ -188,8 +174,7 @@ class MockQPUImplementer:
             return program
 
         quantum_computer.compiler.quil_to_native_quil = create_autospec(  # type: ignore
-            quantum_computer.compiler.quil_to_native_quil,
-            side_effect=quil_to_native_quil,
+            quantum_computer.compiler.quil_to_native_quil, side_effect=quil_to_native_quil
         )
 
         def native_quil_to_executable(nq_program: Program) -> QuantumExecutable:
@@ -208,13 +193,11 @@ class MockQPUImplementer:
 
             quantum_computer.qam._run_count += 1  # type: ignore
             return QAMExecutionResult(
-                executable=program,
-                readout_data=qam._mock_results,  # type: ignore
+                executable=program, readout_data=qam._mock_results  # type: ignore
             )
 
         quantum_computer.qam.run = Mock(  # type: ignore
-            quantum_computer.qam.run,  # type: ignore
-            side_effect=run,
+            quantum_computer.qam.run, side_effect=run  # type: ignore
         )
         return quantum_computer
 

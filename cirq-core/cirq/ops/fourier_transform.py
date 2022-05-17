@@ -19,13 +19,24 @@ import sympy
 
 import cirq
 from cirq import value, _compat
-from cirq._compat import deprecated
 from cirq.ops import raw_types
 
 
 @value.value_equality
 class QuantumFourierTransformGate(raw_types.Gate):
-    """Switches from the computational basis to the frequency basis."""
+    r"""Switches from the computational basis to the frequency basis.
+
+    This gate has the unitary
+
+    $$
+    \frac{1}{2^{n/2}}\sum_{x,y=0}^{2^n-1} \omega^{xy} |x\rangle\langle y|
+    $$
+
+    where
+    $$
+    \omega = e^{\frac{2\pi i}{2^n}}
+    $$
+    """
 
     def __init__(self, num_qubits: int, *, without_reverse: bool = False):
         """Inits QuantumFourierTransformGate.
@@ -42,10 +53,7 @@ class QuantumFourierTransformGate(raw_types.Gate):
         self._without_reverse = without_reverse
 
     def _json_dict_(self) -> Dict[str, Any]:
-        return {
-            'num_qubits': self._num_qubits,
-            'without_reverse': self._without_reverse,
-        }
+        return {'num_qubits': self._num_qubits, 'without_reverse': self._without_reverse}
 
     def _value_equality_values_(self):
         return self._num_qubits, self._without_reverse
@@ -90,7 +98,19 @@ class QuantumFourierTransformGate(raw_types.Gate):
 
 @value.value_equality
 class PhaseGradientGate(raw_types.Gate):
-    """Phases each state |k⟩ out of n by e^(2*pi*i*k/n*exponent)."""
+    r"""Phases all computational basis states proportional to the integer value of the state.
+
+    The gate `cirq.PhaseGradientGate(n, t)` has the unitary
+    $$
+    \sum_{x=0}^{2^n-1} \omega^x |x\rangle \langle x|
+    $$
+    where
+    $$
+    \omega=e^{2 \pi i/2^n}
+    $$
+
+    This gate makes up a portion of the quantum fourier transform.
+    """
 
     def __init__(self, *, num_qubits: int, exponent: Union[float, sympy.Basic]):
         self._num_qubits = num_qubits
@@ -100,19 +120,8 @@ class PhaseGradientGate(raw_types.Gate):
     def exponent(self) -> Union[float, sympy.Basic]:
         return self._exponent
 
-    @exponent.setter  # type: ignore
-    @deprecated(
-        deadline="v0.15",
-        fix="The mutators of this class are deprecated, instantiate a new object instead.",
-    )
-    def exponent(self, exponent: Union[float, sympy.Basic]):
-        self._exponent = exponent
-
     def _json_dict_(self) -> Dict[str, Any]:
-        return {
-            'num_qubits': self._num_qubits,
-            'exponent': self.exponent,
-        }
+        return {'num_qubits': self._num_qubits, 'exponent': self.exponent}
 
     def _value_equality_values_(self):
         return self._num_qubits, self.exponent
@@ -198,7 +207,7 @@ def qft(
     equivalently `cirq.inverse(cirq.qft(*qubits))`.
 
     Args:
-        qubits: The qubits to apply the qft to.
+        *qubits: The qubits to apply the qft to.
         without_reverse: When set, swap gates at the end of the qft are omitted.
             This reverses the qubit order relative to the standard qft effect,
             but makes the gate cheaper to apply.

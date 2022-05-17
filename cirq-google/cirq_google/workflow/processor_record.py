@@ -34,7 +34,7 @@ class ProcessorRecord(metaclass=abc.ABCMeta):
         This is the primary method that descendants must implement.
         """
 
-    def get_sampler(self) -> 'cirq.Sampler':
+    def get_sampler(self) -> 'cg.ProcessorSampler':
         """Return a `cirq.Sampler` for the processor specified by this class.
 
         The default implementation delegates to `self.get_processor()`.
@@ -115,9 +115,7 @@ class SimulatedProcessorRecord(ProcessorRecord):
         """
         return cg.get_engine_device(self.processor_id)
 
-    def _get_input_sampler(
-        self,
-    ) -> 'cirq.Sampler':
+    def _get_input_sampler(self) -> 'cirq.Sampler':
         """Return a local `cirq.Sampler` based on the `noise_strength` attribute.
 
         If `self.noise_strength` is `0` return a noiseless state-vector simulator.

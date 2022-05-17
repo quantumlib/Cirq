@@ -14,6 +14,7 @@
 """Represents a job created via the IonQ API."""
 
 import time
+import warnings
 from typing import Dict, Sequence, Union, TYPE_CHECKING
 
 from cirq_ionq import ionq_exceptions, results
@@ -196,6 +197,10 @@ class Job:
                 break
             time.sleep(polling_seconds)
             time_waited_seconds += polling_seconds
+        if 'warning' in self._job and 'messages' in self._job['warning']:
+            for warning in self._job['warning']['messages']:
+                warnings.warn(warning)
+
         if self.status() != 'completed':
             if 'failure' in self._job and 'error' in self._job['failure']:
                 error = self._job['failure']['error']
@@ -209,7 +214,7 @@ class Job:
         if self.target().startswith('qpu'):
             repetitions = self.repetitions()
             counts = {
-                _little_endian_to_big(int(k), self.num_qubits()): int(repetitions * float(v))
+                _little_endian_to_big(int(k), self.num_qubits()): round(repetitions * float(v))
                 for k, v in self._job['data']['histogram'].items()
             }
             return results.QPUResult(

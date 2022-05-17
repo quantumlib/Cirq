@@ -324,13 +324,13 @@ def bcs_parameters(n_site, n_fermi, u, t):
 
         s = 0.0
         for i in range(n_site):
-            s += 1.0 / np.sqrt(hop_erg[i] ** 2 + x ** 2)
+            s += 1.0 / np.sqrt(hop_erg[i] ** 2 + x**2)
         return 1 + s * u / (2 * n_site)
 
     # Superconducting gap
     delta = scipy.optimize.bisect(_bcs_gap, 0.01, 10000.0 * abs(u))
     # The amplitude of the double excitation state
-    bcs_v = np.sqrt(0.5 * (1 - hop_erg / np.sqrt(hop_erg ** 2 + delta ** 2)))
+    bcs_v = np.sqrt(0.5 * (1 - hop_erg / np.sqrt(hop_erg**2 + delta**2)))
     # The rotational angle in the Bogoliubov transformation.
     bog_theta = np.arcsin(bcs_v)
 

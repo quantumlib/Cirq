@@ -53,8 +53,8 @@ def test_init():
     assert d.duration_of(cirq.measure(q0)) == 100 * ms
     assert d.duration_of(cirq.measure(q0, q1)) == 100 * ms
     assert d.duration_of(cirq.ops.XX(q0, q1)) == 200 * ms
-    with pytest.raises(ValueError):
-        _ = d.duration_of(cirq.SingleQubitGate().on(q0))
+    with pytest.raises(ValueError, match="Unsupported gate type"):
+        _ = d.duration_of(cirq.I(q0))
 
     with pytest.raises(TypeError, match="NamedQubit"):
         _ = cirq.IonDevice(
@@ -86,7 +86,7 @@ def test_init_timedelta():
     assert d.duration_of(cirq.measure(q0, q1)) == 100 * ms
     assert d.duration_of(cirq.ops.XX(q0, q1)) == 200 * ms
     with pytest.raises(ValueError):
-        _ = d.duration_of(cirq.SingleQubitGate().on(q0))
+        _ = d.duration_of(cirq.testing.SingleQubitGate().on(q0))
 
 
 def test_decomposition_deprecated():
@@ -166,7 +166,7 @@ def test_validate_operation_supported_gate():
 
 
 def test_can_add_operation_into_moment_device_deprecated():
-    with cirq.testing.assert_deprecated('can_add_operation_into_moment', deadline='v0.15', count=5):
+    with cirq.testing.assert_deprecated('can_add_operation_into_moment', deadline='v0.15', count=6):
         d = ion_device(3)
         q0 = cirq.LineQubit(0)
         q1 = cirq.LineQubit(1)
@@ -202,11 +202,11 @@ def test_validate_circuit_repeat_measurement_keys():
 
 
 def test_ion_device_str():
-    assert str(ion_device(3)) == "0───1───2"
+    assert str(ion_device(3)) == "q(0)───q(1)───q(2)"
 
 
 def test_ion_device_pretty_repr():
-    cirq.testing.assert_repr_pretty(ion_device(3), "0───1───2")
+    cirq.testing.assert_repr_pretty(ion_device(3), "q(0)───q(1)───q(2)")
     cirq.testing.assert_repr_pretty(ion_device(3), "IonDevice(...)", cycle=True)
 
 
@@ -218,10 +218,5 @@ def test_at():
 
 
 def test_qubit_set_deprecated():
-    with cirq.testing.assert_deprecated('qubit_set', deadline='v0.15'):
+    with cirq.testing.assert_deprecated('qubit_set', deadline='v0.15', count=2):
         assert ion_device(3).qubit_set() == frozenset(cirq.LineQubit.range(3))
-
-
-def test_qid_pairs_deprecated():
-    with cirq.testing.assert_deprecated('device.metadata', deadline='v0.15', count=1):
-        assert len(ion_device(10).qid_pairs()) == 45

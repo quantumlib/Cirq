@@ -18,7 +18,18 @@ The gate is used to create a (2^n)x(2^n) matrix with the diagonal elements
 passed as a list.
 """
 
-from typing import AbstractSet, Any, Iterator, List, Optional, Sequence, Tuple, TYPE_CHECKING, Union
+from typing import (
+    AbstractSet,
+    Any,
+    Dict,
+    Iterator,
+    List,
+    Optional,
+    Sequence,
+    Tuple,
+    TYPE_CHECKING,
+    Union,
+)
 
 import numpy as np
 import sympy
@@ -64,12 +75,16 @@ def _gen_gray_code(n: int) -> Iterator[Tuple[int, int]]:
 
 @value.value_equality()
 class DiagonalGate(raw_types.Gate):
-    """A gate given by a diagonal (2^n)\\times(2^n) matrix."""
+    r"""An n qubit gate which acts as phases on computational basis states.
 
-    def __init__(self, diag_angles_radians: Sequence[value.TParamVal]) -> None:
+    This gate's off-diagonal elements are zero and its on-diagonal elements are
+    all phases.
+    """
+
+    def __init__(self, diag_angles_radians: Sequence['cirq.TParamVal']) -> None:
         r"""A n-qubit gate with only diagonal elements.
 
-        This gate's off-diagonal elements are zero and it's on diagonal
+        This gate's off-diagonal elements are zero and its on-diagonal
         elements are all phases.
 
         Args:
@@ -77,7 +92,11 @@ class DiagonalGate(raw_types.Gate):
                 If these values are $(x_0, x_1, \ldots , x_N)$ then the unitary
                 has diagonal values $(e^{i x_0}, e^{i x_1}, \ldots, e^{i x_N})$.
         """
-        self._diag_angles_radians: Tuple[value.TParamVal, ...] = tuple(diag_angles_radians)
+        self._diag_angles_radians: Tuple['cirq.TParamVal', ...] = tuple(diag_angles_radians)
+
+    @property
+    def diag_angles_radians(self) -> Tuple['cirq.TParamVal', ...]:
+        return self._diag_angles_radians
 
     def _num_qubits_(self):
         return int(np.log2(len(self._diag_angles_radians)))
@@ -144,7 +163,7 @@ class DiagonalGate(raw_types.Gate):
         return tuple(self._diag_angles_radians)
 
     def _decompose_for_basis(
-        self, index: int, bit_flip: int, theta: value.TParamVal, qubits: Sequence['cirq.Qid']
+        self, index: int, bit_flip: int, theta: 'cirq.TParamVal', qubits: Sequence['cirq.Qid']
     ) -> Iterator[Union['cirq.ZPowGate', 'cirq.CXPowGate']]:
         if index == 0:
             return []
@@ -183,16 +202,15 @@ class DiagonalGate(raw_types.Gate):
         # decomposed gates. On its own it is not physically observable. However, if using this
         # diagonal gate for sub-system like controlled gate, it is no longer equivalent. Hence,
         # we add global phase.
-        # Global phase is ignored for parameterized gates as `cirq.GlobalPhaseGate` expects a
-        # scalar value.
-        decomposed_circ: List[Any] = (
-            [global_phase_op.global_phase_operation(np.exp(1j * hat_angles[0]))]
-            if not protocols.is_parameterized(hat_angles[0])
-            else []
-        )
+        decomposed_circ: List[Any] = [
+            global_phase_op.global_phase_operation(1j ** (2 * hat_angles[0] / np.pi))
+        ]
         for i, bit_flip in _gen_gray_code(n):
             decomposed_circ.extend(self._decompose_for_basis(i, bit_flip, -hat_angles[i], qubits))
         return decomposed_circ
+
+    def _json_dict_(self) -> Dict[str, Any]:
+        return protocols.obj_to_dict_helper(self, attribute_names=["diag_angles_radians"])
 
     def __repr__(self) -> str:
         return 'cirq.DiagonalGate([{}])'.format(
