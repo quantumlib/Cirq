@@ -1568,7 +1568,7 @@ def test_pretty_print():
 
     p = FakePrinter()
     result._repr_pretty_(p, False)
-    assert p.text_pretty == 'X(0)*Y(1)*Z(2)'
+    assert p.text_pretty == 'X(q(0))*Y(q(1))*Z(q(2))'
 
     # Test cycle handling
     p = FakePrinter()
@@ -1874,7 +1874,7 @@ def test_mutable_pauli_string_dict_pauli_like_not_pauli_like():
 def test_mutable_pauli_string_text():
     p = cirq.MutablePauliString(cirq.X(cirq.LineQubit(0)) * cirq.Y(cirq.LineQubit(1)))
     assert str(cirq.MutablePauliString()) == "mutable I"
-    assert str(p) == "mutable X(0)*Y(1)"
+    assert str(p) == "mutable X(q(0))*Y(q(1))"
     cirq.testing.assert_equivalent_repr(p)
 
 

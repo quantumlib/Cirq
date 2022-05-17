@@ -32,28 +32,28 @@ class XXPowGate(gate_features.InterchangeableQubitsGate, eigen_gate.EigenGate):
 
     The XX**t gate implements the following unitary:
 
-        $$
-        (X \otimes X)^t = \begin{bmatrix}
-                          c & . & . & s \\
-                          . & c & s & . \\
-                          . & s & c & . \\
-                          s & . & . & c
-                          \end{bmatrix}
-        $$
+    $$
+    (X \otimes X)^t = \begin{bmatrix}
+                      c & 0 & 0 & s \\
+                      0 & c & s & 0 \\
+                      0 & s & c & 0 \\
+                      s & 0 & 0 & c
+                      \end{bmatrix}
+    $$
 
-    where '.' means '0' and
+    where
 
-        $$
-        c = f \cos(\frac{\pi t}{2})
-        $$
+    $$
+    c = f \cos\left(\frac{\pi t}{2}\right)
+    $$
 
-        $$
-        s = -i f \sin(\frac{\pi t}{2})
-        $$
+    $$
+    s = -i f \sin\left(\frac{\pi t}{2}\right)
+    $$
 
-        $$
-        f = e^{\frac{i \pi t}{2}}.
-        $$
+    $$
+    f = e^{\frac{i \pi t}{2}}.
+    $$
 
     See also: `cirq.ion.ion_gates.MSGate` (the Mølmer–Sørensen gate), which is
     implemented via this class.
@@ -150,28 +150,28 @@ class YYPowGate(gate_features.InterchangeableQubitsGate, eigen_gate.EigenGate):
 
     The YY**t gate implements the following unitary:
 
-        $$
-        (Y \otimes Y)^t = \begin{bmatrix}
-                          c & . & . & -s \\
-                          . & c & s & . \\
-                          . & s & c & . \\
-                          -s & . & . & c \\
-                          \end{bmatrix}
-        $$
+    $$
+    (Y \otimes Y)^t = \begin{bmatrix}
+                      c & 0 & 0 & -s \\
+                      0 & c & s & 0 \\
+                      0 & s & c & 0 \\
+                      -s & 0 & 0 & c \\
+                      \end{bmatrix}
+    $$
 
-    where '.' means '0' and
+    where
 
-        $$
-        c = f \cos(\frac{\pi t}{2})
-        $$
+    $$
+    c = f \cos\left(\frac{\pi t}{2}\right)
+    $$
 
-        $$
-        s = -i f \sin(\frac{\pi t}{2})
-        $$
+    $$
+    s = -i f \sin\left(\frac{\pi t}{2}\right)
+    $$
 
-        $$
-        f = e^{\frac{i \pi t}{2}}.
-        $$
+    $$
+    f = e^{\frac{i \pi t}{2}}.
+    $$
     """
 
     def _num_qubits_(self) -> int:
@@ -268,16 +268,14 @@ class ZZPowGate(gate_features.InterchangeableQubitsGate, eigen_gate.EigenGate):
 
     The ZZ**t gate implements the following unitary:
 
-        $$
-        (Z \otimes Z)^t = \begin{bmatrix}
-                          1 & . & . & . \\
-                          . & w & . & . \\
-                          . & . & w & . \\
-                          . & . & . & 1
-                          \end{bmatrix}
-        $$
-
-    where $w = e^{i \pi t}$ and '.' means '0'.
+    $$
+    (Z \otimes Z)^t = \begin{bmatrix}
+                      1 & & & \\
+                      & e^{i \pi t} & & \\
+                      & & e^{i \pi t} & \\
+                      & & & 1
+                      \end{bmatrix}
+    $$
     """
 
     def _num_qubits_(self) -> int:
@@ -357,24 +355,30 @@ class ZZPowGate(gate_features.InterchangeableQubitsGate, eigen_gate.EigenGate):
 XX = XXPowGate()
 document(
     XX,
-    """The tensor product of two X gates.
+    r"""The tensor product of two X gates.
 
-    The `exponent=1` instance of `cirq.XXPowGate`.
+    Useful for creating `cirq.XXPowGate`s via `cirq.XX**t`.
+
+    This is the `exponent=1` instance of `cirq.XXPowGate`.
     """,
 )
 YY = YYPowGate()
 document(
     YY,
-    """The tensor product of two Y gates.
+    r"""The tensor product of two Y gates.
 
-    The `exponent=1` instance of `cirq.YYPowGate`.
+    Useful for creating `cirq.YYPowGate`s via `cirq.YY**t`.
+
+    This is the `exponent=1` instance of `cirq.YYPowGate`.
     """,
 )
 ZZ = ZZPowGate()
 document(
     ZZ,
-    """The tensor product of two Z gates.
+    r"""The tensor product of two Z gates.
 
-    The `exponent=1` instance of `cirq.ZZPowGate`.
+    Useful for creating `cirq.ZZPowGate`s via `cirq.ZZ**t`.
+
+    This is the `exponent=1` instance of `cirq.ZZPowGate`.
     """,
 )

@@ -404,6 +404,21 @@ class BaseDensePauliString(raw_types.Gate, metaclass=abc.ABCMeta):
 
 
 class DensePauliString(BaseDensePauliString):
+    """An immutable string of Paulis, like `XIXY`, with a coefficient.
+
+    This represents a Pauli operator acting on qubits.
+
+    For example, `cirq.MutableDensePauliString("XXY")` represents a
+    three qubit operation that acts with `X` on the first two qubits, and
+    `Y` on the last.
+
+    This can optionally take a coefficient, for example,
+    `cirq.MutableDensePauliString("XX", 3)`, which represents 3 times
+    the operator acting on X on two qubits.
+
+    If the coefficient has magnitude of 1, then this is also a `cirq.Gate`.
+    """
+
     def frozen(self) -> 'DensePauliString':
         return self
 
@@ -422,6 +437,20 @@ class DensePauliString(BaseDensePauliString):
 
 @value.value_equality(unhashable=True, approximate=True)
 class MutableDensePauliString(BaseDensePauliString):
+    """A mutable string of Paulis, like `XIXY`, with a coefficient.
+
+    This represents a Pauli operator acting on qubits.
+
+    For example, `cirq.MutableDensePauliString("XXY")` represents a
+    three qubit operation that acts with `X` on the first two qubits, and
+    `Y` on the last.
+
+    This can optionally take a coefficient, for example,
+    `cirq.MutableDensePauliString("XX", 3)`, which represents 3 times
+    the operator acting on X on two qubits.
+
+    If the coefficient has magnitude of 1, then this is also a `cirq.Gate`.
+    """
     def __setitem__(self, key: Union[int, slice], value: Any) -> None:
         if isinstance(key, int):
             self.pauli_mask[key] = _pauli_index(value)
