@@ -18,9 +18,9 @@ import sys
 import time
 import urllib
 from typing import Any, Callable, cast, Dict, List, Optional
+import json.decoder as jd
 
 import requests
-import json.decoder as jd
 
 import cirq_ionq
 from cirq_ionq import ionq_exceptions
