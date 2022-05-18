@@ -305,7 +305,7 @@ class _IonQClient:
                     error = {}
                     try:
                         error = response.json()
-                    except jd.JSONDecodeError:
+                    except jd.JSONDecodeError:  # coverage: ignore
                         pass  # coverage: ignore
                     raise ionq_exceptions.IonQException(
                         'Non-retry-able error making request to IonQ API. '
