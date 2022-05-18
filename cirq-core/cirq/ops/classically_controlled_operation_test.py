@@ -208,7 +208,7 @@ OPENQASM 2.0;
 include "qelib1.inc";
 
 
-// Qubits: [0, 1]
+// Qubits: [q(0), q(1)]
 qreg q[2];
 creg m_a[1];
 
@@ -416,7 +416,7 @@ def test_decompose():
 def test_str():
     q0 = cirq.LineQubit(0)
     op = cirq.X(q0).with_classical_controls('a')
-    assert str(op) == 'X(0).with_classical_controls(a)'
+    assert str(op) == 'X(q(0)).with_classical_controls(a)'
 
 
 def test_scope_local():

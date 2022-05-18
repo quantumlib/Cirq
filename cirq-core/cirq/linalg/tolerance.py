@@ -22,19 +22,19 @@ if TYPE_CHECKING:
     from numpy.typing import ArrayLike
 
 
-def all_near_zero(a: 'ArrayLike', *, atol: float = 1e-8) -> np.bool_:
+def all_near_zero(a: 'ArrayLike', *, atol: float = 1e-8) -> bool:
     """Checks if the tensor's elements are all near zero.
 
     Args:
         a: Tensor of elements that could all be near zero.
         atol: Absolute tolerance.
     """
-    return np.all(np.less_equal(np.abs(a), atol))
+    return bool(np.all(np.less_equal(np.abs(a), atol)))
 
 
 def all_near_zero_mod(
     a: Union[float, complex, Iterable[float], np.ndarray], period: float, *, atol: float = 1e-8
-) -> np.bool_:
+) -> bool:
     """Checks if the tensor's elements are all near multiples of the period.
 
     Args:
@@ -43,7 +43,7 @@ def all_near_zero_mod(
         atol: Absolute tolerance.
     """
     b = (np.asarray(a) + period / 2) % period - period / 2
-    return np.all(np.less_equal(np.abs(b), atol))
+    return bool(np.all(np.less_equal(np.abs(b), atol)))
 
 
 def near_zero(a: float, *, atol: float = 1e-8) -> bool:

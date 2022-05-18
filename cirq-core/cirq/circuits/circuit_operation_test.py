@@ -577,7 +577,7 @@ cirq.CircuitOperation(
         == f"""\
 [ 0: ───X───X─── ]
 [           │    ]
-[ 1: ───H───@─── ](qubit_map={{1: 2}}, parent_path=('outer', 'inner'),\
+[ 1: ───H───@─── ](qubit_map={{q(1): q(2)}}, parent_path=('outer', 'inner'),\
  repetition_ids=['a', 'b', 'c'])"""
     )
     assert (
@@ -611,7 +611,7 @@ cirq.CircuitOperation(
     assert (
         str(op3)
         == f"""\
-[ 0: ───X^b───M('m')─── ](qubit_map={{0: 1}}, \
+[ 0: ───X^b───M('m')─── ](qubit_map={{q(0): q(1)}}, \
 key_map={{m: p}}, params={{b: 2}})"""
     )
     assert (
