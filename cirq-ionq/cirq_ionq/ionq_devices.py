@@ -28,7 +28,9 @@ def merge_to_phased_x_and_z(
 
 
 @cirq.transformer
-def decompose_phased_x_pow(c: cirq.Circuit, *, context: Optional['cirq.TransformerContext'] = None) -> cirq.Circuit:
+def decompose_phased_x_pow(
+    c: cirq.Circuit, *, context: Optional['cirq.TransformerContext'] = None
+) -> cirq.Circuit:
     return cirq.map_operations_and_unroll(
         c, lambda op, _: cirq.decompose_once(op) if type(op.gate) == cirq.PhasedXPowGate else op
     )
