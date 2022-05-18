@@ -295,7 +295,7 @@ class GridDevice(cirq.Device):
             metadata = cirq.GridDeviceMetadata(
                 qubit_pairs=qubit_pairs,
                 gateset=gateset,
-                gate_durations=gate_durations,
+                gate_durations=gate_durations if len(gate_durations) > 0 else None,
                 all_qubits=all_qubits,
                 compilation_target_gatesets=_build_compilation_target_gatesets(gateset),
             )
