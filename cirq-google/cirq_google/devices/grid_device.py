@@ -109,13 +109,7 @@ def _build_gateset_and_gate_durations(
             cirq_gates = [cirq.CZ]
             fsim_gates.append(cirq.CZ)
         elif gate_name == 'phased_xz':
-            cirq_gates = [
-                cirq.PhasedXZGate,
-                cirq.XPowGate,
-                cirq.YPowGate,
-                cirq.ZPowGate,
-                cirq.PhasedXPowGate,
-            ]
+            cirq_gates = [cirq.PhasedXZGate, cirq.XPowGate, cirq.YPowGate, cirq.PhasedXPowGate]
         elif gate_name == 'virtual_zpow':
             cirq_gates = [cirq.GateFamily(cirq.ZPowGate, tags_to_ignore=[ops.PhysicalZTag()])]
         elif gate_name == 'physical_zpow':
@@ -214,11 +208,13 @@ class GridDevice(cirq.Device):
         >>> device.metadata.gate_durations
 
         * Get a collection of valid CompilationTargetGatesets for the device, which can be used to
-          transform a circuit which is invalid for the device to a valid one.
+          transform a circuit to one which only contains gates from a native target gateset
+          supported by the device.
         >>> device.metadata.compilation_target_gatesets
 
         * Assuming valid CompilationTargetGatesets exist for the device, select the first one and
-          use it to transform a circuit to an equivalent form which is valid for the device.
+          use it to transform a circuit to one which only contains gates from a native target
+          gateset supported by the device.
         >>> cirq.optimize_for_target_gateset(
                 circuit,
                 gateset=device.metadata.compilation_target_gatesets[0]
@@ -324,17 +320,17 @@ class GridDevice(cirq.Device):
         """
 
         if operation not in self._metadata.gateset:
-            raise ValueError(f'Operation {operation} is not a supported gate')
+            raise ValueError(f'Operation {operation} contains a gate which is not supported.')
 
         for q in operation.qubits:
             if q not in self._metadata.qubit_set:
-                raise ValueError(f'Qubit not on device: {q!r}')
+                raise ValueError(f'Qubit not on device: {q!r}.')
 
         if (
             len(operation.qubits) == 2
             and frozenset(operation.qubits) not in self._metadata.qubit_pairs
         ):
-            raise ValueError(f'Qubit pair is not valid on device: {operation.qubits!r}')
+            raise ValueError(f'Qubit pair is not valid on device: {operation.qubits!r}.')
 
     def __str__(self) -> str:
         diagram = cirq.TextDiagramDrawer()

@@ -180,7 +180,6 @@ def test_grid_device_from_proto():
         cirq.ops.phased_x_z_gate.PhasedXZGate,
         cirq.ops.common_gates.XPowGate,
         cirq.ops.common_gates.YPowGate,
-        cirq.ops.common_gates.ZPowGate,
         cirq.ops.phased_x_gate.PhasedXPowGate,
         cirq.GateFamily(
             cirq.ops.common_gates.ZPowGate, tags_to_ignore=[cirq_google.PhysicalZTag()]
@@ -210,7 +209,6 @@ def test_grid_device_from_proto():
         cirq.GateFamily(cirq.ops.phased_x_z_gate.PhasedXZGate): base_duration * 4,
         cirq.GateFamily(cirq.ops.common_gates.XPowGate): base_duration * 4,
         cirq.GateFamily(cirq.ops.common_gates.YPowGate): base_duration * 4,
-        cirq.GateFamily(cirq.ops.common_gates.ZPowGate): base_duration * 4,
         cirq.GateFamily(cirq.ops.phased_x_gate.PhasedXPowGate): base_duration * 4,
         cirq.GateFamily(
             cirq.ops.common_gates.ZPowGate, tags_to_ignore=[cirq_google.PhysicalZTag()]
@@ -251,7 +249,7 @@ def test_grid_device_validate_operations_negative():
     with pytest.raises(ValueError, match='Qubit pair is not valid'):
         device.validate_operation(cirq.CZ(q00, q10))
 
-    with pytest.raises(ValueError, match='not a supported gate'):
+    with pytest.raises(ValueError, match='gate which is not supported'):
         device.validate_operation(cirq.H(grid_qubits[0]))
 
 
