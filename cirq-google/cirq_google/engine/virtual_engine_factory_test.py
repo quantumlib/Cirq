@@ -101,6 +101,11 @@ def test_median_device_bad_processor():
         _ = factory.load_median_device_calibration('bad_processor')
 
 
+def test_sample_device_zphase():
+    # Test extraction of zphase data.
+    assert False
+
+
 def test_create_from_proto():
 
     # Create a minimal gate specification that can handle the test.

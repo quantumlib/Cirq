@@ -247,6 +247,11 @@ def test_noise_properties_from_calibration():
             assert prop.fsim_errors[OpIdentifier(gate, *qs[::-1])] == values[i]
 
 
+def test_zphase_data():
+    # TODO: test injection of Z phase data.
+    assert False
+
+
 def test_incomplete_calibration():
     pauli_error = [0.001, 0.002, 0.003]
     p00_error = [0.004, 0.005, 0.006]

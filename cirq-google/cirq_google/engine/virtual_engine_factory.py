@@ -13,7 +13,8 @@
 # limitations under the License.
 
 """Functions to instantiate SimulatedLocalEngines to simulate various Google Devices."""
-from typing import cast, Iterable, List, Optional, Union
+import json
+from typing import Dict, Tuple, cast, Iterable, List, Optional, Union
 import pathlib
 import time
 
@@ -40,6 +41,11 @@ MEDIAN_CALIBRATIONS = {
 MEDIAN_CALIBRATION_TIMESTAMPS = {
     'rainbow': 1637058415838,  # 2021-11-16 10:26:55.838 UTC
     'weber': 1635923188204,  # 2021-11-03 07:06:28.204 UTC
+}
+
+ZPHASE_DATA = {
+    'rainbow': 'rainbow_zphase.json',
+    'weber': 'weber_zphase.json',
 }
 
 METRICS_1Q = [
@@ -121,6 +127,38 @@ def load_median_device_calibration(processor_id: str) -> calibration.Calibration
         cal = cast(calibration.Calibration, cirq.read_json(f))
     cal.timestamp = MEDIAN_CALIBRATION_TIMESTAMPS[processor_id]
     return cal
+
+
+def load_sample_device_zphase(
+    processor_id: str,
+) -> Dict[str, Dict[Tuple[cirq.Qid, cirq.Qid], float]]:
+    """Loads sample Z phase errors for the given device.
+
+    Output is of the form {angle_type: {qubit_pair: error}}, where angle_type
+    is "zeta" or "gamma" and "qubit_pair" is a tuple of qubits.
+
+    Args:
+        processor_id: name of the processor to simulate.
+
+    Raises:
+        ValueError: if processor_id is not a supported QCS processor.
+    """
+    zphase_name = ZPHASE_DATA.get(processor_id, None)
+    if zphase_name is None:
+        raise ValueError(
+            f"Got processor_id={processor_id}, but no Z phase data is defined for that processor."
+        )
+    path = pathlib.Path(__file__).parent.parent.resolve()
+    with path.joinpath('devices', 'calibrations', zphase_name).open() as f:
+        raw_data = json.load(f)
+        def to_grid_qid(qstr: str):
+            row, col = map(int, qstr.split("_"))
+            return cirq.GridQubit(row, col)
+        nested_data = {
+            k: {(to_grid_qid(q0), to_grid_qid(q1)): vals for q0, q1, vals in triples}
+            for k, triples in raw_data.items()
+        }
+    return nested_data
 
 
 def _create_virtual_processor_from_device(
