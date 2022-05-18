@@ -20,6 +20,7 @@ import urllib
 from typing import Any, Callable, cast, Dict, List, Optional
 
 import requests
+import json.decoder as jd
 
 import cirq_ionq
 from cirq_ionq import ionq_exceptions
@@ -304,7 +305,7 @@ class _IonQClient:
                     error = {}
                     try:
                         error = response.json()
-                    except json.decoder.JSONDecodeError:
+                    except jd.JSONDecodeError:
                         pass  # Ignore invalid/missing JSON.
                     raise ionq_exceptions.IonQException(
                         'Non-retry-able error making request to IonQ API. '
