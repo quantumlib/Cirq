@@ -35,8 +35,8 @@ class GPIGate(cirq.Gate):
         self.phi = phi
 
     def _unitary_(self) -> np.ndarray:
-        top = cmath.exp(self.phi * 2 * math.pi * 1j)
-        bot = cmath.exp(-self.phi * 2 * math.pi * 1j)
+        top = cmath.exp(-self.phi * 2 * math.pi * 1j)
+        bot = cmath.exp(self.phi * 2 * math.pi * 1j)
         return np.array([[0, top], [bot, 0]])
 
     def __str__(self) -> str:
@@ -61,7 +61,7 @@ class GPIGate(cirq.Gate):
     def _circuit_diagram_info_(
         self, args: 'cirq.CircuitDiagramInfoArgs'
     ) -> Union[str, 'protocols.CircuitDiagramInfo']:
-        return protocols.CircuitDiagramInfo(wire_symbols=('GPI',), exponent=self.phase)
+        return protocols.CircuitDiagramInfo(wire_symbols=(f'GPI({self.phase!r})',))
 
 
 GPI = GPIGate(phi=0)
@@ -70,7 +70,7 @@ document(
     r"""The GPI gate is a single qubit gate.
     The unitary of this gate is
         [[0, e^{-i*2*\pi*\phi}],
-         [e^{-i*2*\pi*\phi}, 0]]
+         [e^{i*2*\pi*\phi}, 0]]
     It is driven by Rabi laser.
     https://ionq.com/best-practices
     """,
@@ -103,7 +103,7 @@ class GPI2Gate(cirq.Gate):
     def _circuit_diagram_info_(
         self, args: 'cirq.CircuitDiagramInfoArgs'
     ) -> Union[str, 'protocols.CircuitDiagramInfo']:
-        return protocols.CircuitDiagramInfo(wire_symbols=('GPI2',), exponent=self.phase)
+        return protocols.CircuitDiagramInfo(wire_symbols=(f'GPI2({self.phase!r})',))
 
     def _num_qubits_(self) -> int:
         return 1
@@ -173,7 +173,9 @@ class MSGate(cirq.Gate):
     def _circuit_diagram_info_(
         self, args: 'cirq.CircuitDiagramInfoArgs'
     ) -> Union[str, 'protocols.CircuitDiagramInfo']:
-        return protocols.CircuitDiagramInfo(wire_symbols=('MS',), exponent=self.phases)
+        return protocols.CircuitDiagramInfo(
+            wire_symbols=(f'MS({self.phi0!r})', f'MS({self.phi1!r})')
+        )
 
     def __repr__(self) -> str:
         return f'cirq_ionq.MSGate(phi0={self.phi0!r}, phi1={self.phi1!r})'

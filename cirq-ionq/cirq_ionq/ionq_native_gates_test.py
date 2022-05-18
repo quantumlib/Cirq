@@ -21,13 +21,21 @@ from .ionq_native_gates import GPIGate, GPI2Gate, MSGate
 
 
 @pytest.mark.parametrize(
-    "gate,nqubits", [(GPIGate(phi=0.1), 1), (GPI2Gate(phi=0.2), 1), (MSGate(phi0=0.1, phi1=0.2), 2)]
+    "gate,nqubits,diagram",
+    [
+        (GPIGate(phi=0.1), 1, "0: ───GPI(0.1)───"),
+        (GPI2Gate(phi=0.2), 1, "0: ───GPI2(0.2)───"),
+        (MSGate(phi0=0.1, phi1=0.2), 2, "0: ───MS(0.1)───\n      │\n1: ───MS(0.2)───"),
+    ],
 )
-def test_gate_methods(gate, nqubits):
+def test_gate_methods(gate, nqubits, diagram):
     assert str(gate) != ""
     assert repr(gate) != ""
     assert gate.num_qubits() == nqubits
     assert cirq.protocols.circuit_diagram_info(gate) is not None
+    c = cirq.Circuit()
+    c.append([gate.on(*cirq.LineQubit.range(nqubits))])
+    assert c.to_text_diagram() == diagram
 
 
 @pytest.mark.parametrize("gate", [GPIGate(phi=0.1), GPI2Gate(phi=0.2), MSGate(phi0=0.1, phi1=0.2)])

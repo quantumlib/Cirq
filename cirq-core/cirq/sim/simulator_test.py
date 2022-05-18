@@ -192,7 +192,7 @@ def test_step_sample_measurement_ops():
     step_result = FakeStepResult(ones_qubits=[q1])
 
     measurements = step_result.sample_measurement_ops(measurement_ops)
-    np.testing.assert_equal(measurements, {'0,1': [[False, True]], '2': [[False]]})
+    np.testing.assert_equal(measurements, {'q(0),q(1)': [[False, True]], 'q(2)': [[False]]})
 
 
 def test_step_sample_measurement_ops_repetitions():
@@ -201,7 +201,7 @@ def test_step_sample_measurement_ops_repetitions():
     step_result = FakeStepResult(ones_qubits=[q1])
 
     measurements = step_result.sample_measurement_ops(measurement_ops, repetitions=3)
-    np.testing.assert_equal(measurements, {'0,1': [[False, True]] * 3, '2': [[False]] * 3})
+    np.testing.assert_equal(measurements, {'q(0),q(1)': [[False, True]] * 3, 'q(2)': [[False]] * 3})
 
 
 def test_step_sample_measurement_ops_invert_mask():
@@ -213,7 +213,7 @@ def test_step_sample_measurement_ops_invert_mask():
     step_result = FakeStepResult(ones_qubits=[q1])
 
     measurements = step_result.sample_measurement_ops(measurement_ops)
-    np.testing.assert_equal(measurements, {'0,1': [[True, True]], '2': [[False]]})
+    np.testing.assert_equal(measurements, {'q(0),q(1)': [[True, True]], 'q(2)': [[False]]})
 
 
 def test_step_sample_measurement_ops_no_measurements():
@@ -233,7 +233,7 @@ def test_step_sample_measurement_ops_not_measurement():
 def test_step_sample_measurement_ops_repeated_qubit():
     q0, q1, q2 = cirq.LineQubit.range(3)
     step_result = FakeStepResult(ones_qubits=[q0])
-    with pytest.raises(ValueError, match='Measurement key 0 repeated'):
+    with pytest.raises(ValueError, match=r'Measurement key q\(0\) repeated'):
         step_result.sample_measurement_ops(
             [cirq.measure(q0), cirq.measure(q1, q2), cirq.measure(q0)]
         )
