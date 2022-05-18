@@ -99,16 +99,16 @@ def test_is_pasqal_device_op():
 
 
 def test_decompose_operation_deprecated():
-    d = generic_device(3)
-    with cirq.testing.assert_deprecated('decompose', deadline='v0.15', count=2):
-        for op in d.decompose_operation((cirq.CCZ**1.5).on(*(d.qubit_list()))):
+    d = generic_device(2)
+    with cirq.testing.assert_deprecated('decompose', deadline='v0.15'):
+        for op in d.decompose_operation((cirq.CZ**1.5).on(*(d.qubit_list()))):
             d.validate_operation(op)
 
     p_qubits = [cirq.LineQubit(3), cirq.LineQubit(4)]
     d = PasqalVirtualDevice(1.0, p_qubits)
     op = (cirq.ops.CNOT).on(*(d.qubit_list())) ** 2
 
-    with cirq.testing.assert_deprecated('decompose', deadline='v0.15', count=2):
+    with cirq.testing.assert_deprecated('decompose', deadline='v0.15'):
         assert d.decompose_operation(op) == []
 
 
@@ -131,9 +131,8 @@ def test_pasqal_converter_deprecated():
     op = FakeOperation(g, q).with_qubits(*q)
     d = PasqalDevice(q)
 
-    with pytest.raises(TypeError, match="Don't know how to work with"):
-        with cirq.testing.assert_deprecated('decompose', deadline='v0.15', count=2):
-            d.decompose_operation(op)
+    with cirq.testing.assert_deprecated('decompose', deadline='v0.15', count=1):
+        assert d.decompose_operation(op) is NotImplemented
 
 
 def test_validate_operation_errors():
