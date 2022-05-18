@@ -16,7 +16,7 @@
 from typing import Any, Dict, List, Optional
 import cirq
 from cirq import protocols
-from cirq.transformers import transformer_api, drop_empty_moments, drop_negligible_operations
+from cirq.transformers import drop_empty_moments, drop_negligible_operations
 from cirq.transformers.target_gatesets import compilation_target_gateset
 
 
@@ -149,7 +149,7 @@ class IonQCompilationTargetGateset(compilation_target_gateset.TwoQubitCompilatio
         return self.atol
 
     def _json_dict_(self) -> Dict[str, Any]:
-        return {'atol': self.atol}
+        return cirq.obj_to_dict_helper(self, ['atol'])
 
     @classmethod
     def _from_json_dict_(cls, atol, **kwargs):
