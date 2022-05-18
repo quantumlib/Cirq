@@ -152,8 +152,12 @@ class _WorkflowSaver(abc.ABC):
             shared_rt_info: The current `cg.SharedRuntimeInfo` to be saved or updated.
         """
 
-    def finalize(self):
-        """Called at the end of a workflow execution to finalize data saving."""
+    def finalize(self, shared_rt_info: 'cg.SharedRuntimeInfo'):
+        """Called at the end of a workflow execution to finalize data saving.
+
+        Args:
+            shared_rt_info: The final `cg.SharedRuntimeInfo` to be saved or updated.
+        """
 
 
 class _FilesystemSaver(_WorkflowSaver):
@@ -230,3 +234,11 @@ class _FilesystemSaver(_WorkflowSaver):
         self._egr_record.executable_result_paths.append(exe_result_path)
 
         _update_updatable_files(self._egr_record, shared_rt_info, self._data_dir)
+
+    def finalize(self, shared_rt_info: 'cg.SharedRuntimeInfo'):
+        """Called at the end of a workflow execution to finalize data saving.
+
+        Args:
+            shared_rt_info: The final `cg.SharedRuntimeInfo` to be saved or updated.
+        """
+        _update_updatable_files(self.egr_record, shared_rt_info, self._data_dir)

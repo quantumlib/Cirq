@@ -104,6 +104,9 @@ class ValiGate(cirq.Gate):
             return  # Bypass check for some tests
         super().validate_args(qubits)
 
+    def _has_mixture_(self):
+        return True
+
 
 def test_gate():
     a, b, c = cirq.LineQubit.range(3)

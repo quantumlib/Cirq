@@ -114,7 +114,7 @@ def test_init_errors():
 
 def test_decompose_error_deprecated():
     d = square_device(2, 2, holes=[cirq.GridQubit(1, 1)])
-    with cirq.testing.assert_deprecated('ConvertToNeutralAtomGates', deadline='v0.15'):
+    with cirq.testing.assert_deprecated('ConvertToNeutralAtomGates', deadline='v0.15', count=2):
         for op in d.decompose_operation((cirq.CCZ**1.5).on(*(d.qubit_list()))):
             d.validate_operation(op)
 
@@ -276,10 +276,10 @@ def test_str():
     assert (
         str(square_device(2, 2)).strip()
         == """
-(0, 0)───(0, 1)
-│        │
-│        │
-(1, 0)───(1, 1)
+q(0, 0)───q(0, 1)
+│         │
+│         │
+q(1, 0)───q(1, 1)
     """.strip()
     )
 
@@ -288,10 +288,10 @@ def test_repr_pretty():
     cirq.testing.assert_repr_pretty(
         square_device(2, 2),
         """
-(0, 0)───(0, 1)
-│        │
-│        │
-(1, 0)───(1, 1)
+q(0, 0)───q(0, 1)
+│         │
+│         │
+q(1, 0)───q(1, 1)
     """.strip(),
     )
     cirq.testing.assert_repr_pretty(square_device(2, 2), "cirq.NeutralAtomDevice(...)", cycle=True)

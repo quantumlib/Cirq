@@ -15,9 +15,14 @@
 import functools
 from typing import Dict
 
+import cirq_ionq
 from cirq.protocols.json_serialization import ObjectFactory
 
 
-@functools.lru_cache()
-def _class_resolver_dictionary() -> Dict[str, ObjectFactory]:
-    return {}
+@functools.lru_cache()  # coverage: ignore
+def _class_resolver_dictionary() -> Dict[str, ObjectFactory]:  # coverage: ignore
+    return {
+        "GPIGate": cirq_ionq.GPIGate,
+        "GPI2Gate": cirq_ionq.GPI2Gate,
+        "MSGate": cirq_ionq.MSGate,
+    }

@@ -140,6 +140,12 @@ class Qid(metaclass=abc.ABCMeta):
             return NotImplemented
         return self._cmp_tuple() >= other._cmp_tuple()
 
+    def _circuit_diagram_info_(
+        self, args: 'cirq.CircuitDiagramInfoArgs'
+    ) -> 'cirq.CircuitDiagramInfo':
+        """Circuit symbol for qids defaults to the string representation."""
+        return protocols.CircuitDiagramInfo(wire_symbols=(str(self),))
+
 
 @functools.total_ordering
 class _QubitAsQid(Qid):
@@ -318,8 +324,8 @@ class Gate(metaclass=value.ABCMetaImplementAnyOneOf):
 
         return NotImplemented
 
-    def __call__(self, *args, **kwargs):
-        return self.on(*args, **kwargs)
+    def __call__(self, *qubits: Qid, **kwargs):
+        return self.on(*qubits)
 
     def with_probability(self, probability: 'cirq.TParamVal') -> 'cirq.Gate':
 

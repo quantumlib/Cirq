@@ -64,6 +64,9 @@ def _class_resolver_dictionary() -> Dict[str, ObjectFactory]:
         # timezones, and hour fields will not be identical.
         return datetime.datetime.fromtimestamp(timestamp, tz=datetime.timezone.utc)
 
+    def _symmetricalqidpair(qids):
+        return frozenset(qids)
+
     import sympy
 
     return {
@@ -94,6 +97,7 @@ def _class_resolver_dictionary() -> Dict[str, ObjectFactory]:
         'CXPowGate': cirq.CXPowGate,
         'CZPowGate': cirq.CZPowGate,
         'CZTargetGateset': cirq.CZTargetGateset,
+        'DiagonalGate': cirq.DiagonalGate,
         'DensePauliString': cirq.DensePauliString,
         'DepolarizingChannel': cirq.DepolarizingChannel,
         'DeviceMetadata': cirq.DeviceMetadata,
@@ -143,6 +147,7 @@ def _class_resolver_dictionary() -> Dict[str, ObjectFactory]:
         'PauliString': cirq.PauliString,
         'PauliStringPhasor': cirq.PauliStringPhasor,
         'PauliStringPhasorGate': cirq.PauliStringPhasorGate,
+        'PauliSum': cirq.PauliSum,
         '_PauliX': cirq.ops.pauli_gates._PauliX,
         '_PauliY': cirq.ops.pauli_gates._PauliY,
         '_PauliZ': cirq.ops.pauli_gates._PauliZ,
@@ -161,7 +166,6 @@ def _class_resolver_dictionary() -> Dict[str, ObjectFactory]:
         'QuantumFourierTransformGate': cirq.QuantumFourierTransformGate,
         'QubitPermutationGate': cirq.QubitPermutationGate,
         'RandomGateChannel': cirq.RandomGateChannel,
-        'TensoredConfusionMatrices': cirq.TensoredConfusionMatrices,
         'RepetitionsStoppingCriteria': cirq.work.RepetitionsStoppingCriteria,
         'ResetChannel': cirq.ResetChannel,
         'Result': cirq.ResultDict,  # Keep support for Cirq < 0.14.
@@ -176,11 +180,13 @@ def _class_resolver_dictionary() -> Dict[str, ObjectFactory]:
         'StabilizerStateChForm': cirq.StabilizerStateChForm,
         'StatePreparationChannel': cirq.StatePreparationChannel,
         'SwapPowGate': cirq.SwapPowGate,
-        'SymmetricalQidPair': cirq.SymmetricalQidPair,
         'SympyCondition': cirq.SympyCondition,
         'TaggedOperation': cirq.TaggedOperation,
+        'TensoredConfusionMatrices': cirq.TensoredConfusionMatrices,
         'TiltedSquareLattice': cirq.TiltedSquareLattice,
+        'ThreeQubitDiagonalGate': cirq.ThreeQubitDiagonalGate,
         'TrialResult': cirq.ResultDict,  # keep support for Cirq < 0.11.
+        'TwoQubitDiagonalGate': cirq.TwoQubitDiagonalGate,
         'TwoQubitGateTabulation': cirq.TwoQubitGateTabulation,
         '_UnconstrainedDevice': cirq.devices.unconstrained_device._UnconstrainedDevice,
         'VarianceStoppingCriteria': cirq.work.VarianceStoppingCriteria,
@@ -204,6 +210,7 @@ def _class_resolver_dictionary() -> Dict[str, ObjectFactory]:
         'IdentityOperation': _identity_operation_from_dict,
         'ParallelGateOperation': _parallel_gate_op,  # Removed in v0.14
         'SingleQubitMatrixGate': single_qubit_matrix_gate,
+        'SymmetricalQidPair': _symmetricalqidpair,  # Removed in v0.15
         'TwoQubitMatrixGate': two_qubit_matrix_gate,
         # not a cirq class, but treated as one:
         'pandas.DataFrame': pd.DataFrame,

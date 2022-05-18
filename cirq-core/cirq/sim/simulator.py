@@ -684,10 +684,9 @@ class SimulatesIntermediateState(
             StepResults from simulating a Moment of the Circuit.
         """
         qubits = ops.QubitOrder.as_qubit_order(qubit_order).order_for(circuit.all_qubits())
-        sim_state = self._create_act_on_args(initial_state, qubits)
+        sim_state = self._create_simulation_state(initial_state, qubits)
         return self._core_iterator(circuit, sim_state)
 
-    @abc.abstractmethod
     def _create_act_on_args(
         self, initial_state: Any, qubits: Sequence['cirq.Qid']
     ) -> TSimulatorState:
@@ -706,6 +705,36 @@ class SimulatesIntermediateState(
         Returns:
             The `TSimulatorState` for this simulator.
         """
+        raise NotImplementedError()
+
+    def _create_simulation_state(
+        self, initial_state: Any, qubits: Sequence['cirq.Qid']
+    ) -> TSimulatorState:
+        """Creates the state for a simulator.
+
+        Custom simulators should implement this method.
+
+        Args:
+            initial_state: The initial state for the simulation. The form of
+                this state depends on the simulation implementation. See
+                documentation of the implementing class for details.
+            qubits: Determines the canonical ordering of the qubits. This
+                is often used in specifying the initial state, i.e. the
+                ordering of the computational basis states.
+
+        Returns:
+            The `TSimulatorState` for this simulator.
+        """
+        _compat._warn_or_error(
+            '`_create_act_on_args` has been renamed to `_create_simulation_state` in the'
+            ' SimulatesIntermediateState interface, so simulators need to rename that method'
+            f' implementation as well before v0.16. {type(self)}'
+            ' has no `_create_simulation_state` method, so falling back to `_create_act_on_args`.'
+            ' This fallback functionality will be removed in v0.16.'
+        )
+        # When cleaning this up in v0.16, mark `_create_simulation_state` as @abc.abstractmethod,
+        # remove this implementation, and delete `_create_act_on_args` entirely.
+        return self._create_act_on_args(initial_state, qubits)
 
     @abc.abstractmethod
     def _core_iterator(
@@ -760,7 +789,19 @@ class StepResult(Generic[TSimulatorState], metaclass=abc.ABCMeta):
 
     def __init__(self, sim_state: TSimulatorState) -> None:
         self._sim_state = sim_state
-        self.measurements = sim_state.log_of_measurement_results
+        self._measurements = sim_state.log_of_measurement_results
+
+    @property
+    def measurements(self) -> Mapping[str, Sequence[int]]:
+        return self._measurements
+
+    @measurements.setter  # type: ignore
+    @_compat.deprecated(
+        deadline="v0.16",
+        fix="The mutators of this class are deprecated, instantiate a new object instead.",
+    )
+    def measurements(self, measurements: Mapping[str, Sequence[int]]):
+        self._measurements = measurements
 
     def _simulator_state(self) -> TSimulatorState:
         """Returns the simulator state of the simulator after this step.
@@ -957,22 +998,46 @@ class SimulationTrialResult(Generic[TSimulatorState]):
     def __init__(
         self,
         params: 'cirq.ParamResolver',
-        measurements: Dict[str, np.ndarray],
+        measurements: Mapping[str, np.ndarray],
         final_simulator_state: TSimulatorState,
     ) -> None:
         """Initializes the `SimulationTrialResult` class.
 
         Args:
             params: A ParamResolver of settings used for this result.
-            measurements: A dictionary from measurement gate key to measurement
+            measurements: A mapping from measurement gate key to measurement
                 results. Measurement results are a numpy ndarray of actual
                 boolean measurement results (ordered by the qubits acted on by
                 the measurement gate.)
             final_simulator_state: The final simulator state.
         """
-        self.params = params
-        self.measurements = measurements
+        self._params = params
+        self._measurements = measurements
         self._final_simulator_state = final_simulator_state
+
+    @property
+    def params(self) -> 'cirq.ParamResolver':
+        return self._params
+
+    @params.setter  # type: ignore
+    @_compat.deprecated(
+        deadline='v0.16',
+        fix='The mutators of this class are deprecated, instantiate a new object instead.',
+    )
+    def params(self, params: 'cirq.ParamResolver'):
+        self._params = params
+
+    @property
+    def measurements(self) -> Mapping[str, np.ndarray]:
+        return self._measurements
+
+    @measurements.setter  # type: ignore
+    @_compat.deprecated(
+        deadline="v0.16",
+        fix="The mutators of this class are deprecated, instantiate a new object instead.",
+    )
+    def measurements(self, measurements: Mapping[str, np.ndarray]):
+        self._measurements = measurements
 
     def __repr__(self) -> str:
         return (

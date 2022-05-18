@@ -202,11 +202,11 @@ def test_validate_circuit_repeat_measurement_keys():
 
 
 def test_ion_device_str():
-    assert str(ion_device(3)) == "0───1───2"
+    assert str(ion_device(3)) == "q(0)───q(1)───q(2)"
 
 
 def test_ion_device_pretty_repr():
-    cirq.testing.assert_repr_pretty(ion_device(3), "0───1───2")
+    cirq.testing.assert_repr_pretty(ion_device(3), "q(0)───q(1)───q(2)")
     cirq.testing.assert_repr_pretty(ion_device(3), "IonDevice(...)", cycle=True)
 
 
@@ -220,8 +220,3 @@ def test_at():
 def test_qubit_set_deprecated():
     with cirq.testing.assert_deprecated('qubit_set', deadline='v0.15', count=2):
         assert ion_device(3).qubit_set() == frozenset(cirq.LineQubit.range(3))
-
-
-def test_qid_pairs_deprecated():
-    with cirq.testing.assert_deprecated('device.metadata', deadline='v0.15', count=2):
-        assert len(ion_device(10).qid_pairs()) == 45

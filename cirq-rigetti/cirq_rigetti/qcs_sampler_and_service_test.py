@@ -24,12 +24,7 @@ class _ResultBuilder(Protocol):
         *,
         executor: executors.CircuitSweepExecutor = _default_executor,
         transformer: transformers.CircuitTransformer = transformers.default,
-    ) -> Tuple[
-        Sequence[cirq.Result],
-        QuantumComputer,
-        List["np.ndarray[Any, np.dtype[np.float_]]"],
-        List[cirq.ParamResolver],
-    ]:
+    ) -> Tuple[Sequence[cirq.Result], QuantumComputer, List[np.ndarray], List[cirq.ParamResolver],]:
         pass
 
 
@@ -40,12 +35,7 @@ def _build_service_results(
     *,
     executor: executors.CircuitSweepExecutor = _default_executor,
     transformer: transformers.CircuitTransformer = transformers.default,
-) -> Tuple[
-    Sequence[cirq.Result],
-    QuantumComputer,
-    List["np.ndarray[Any, np.dtype[np.float_]]"],
-    List[cirq.ParamResolver],
-]:
+) -> Tuple[Sequence[cirq.Result], QuantumComputer, List[np.ndarray], List[cirq.ParamResolver],]:
     repetitions = 2
     param_resolvers = [r for r in cirq.to_resolvers(sweepable)]
     param_resolver_index = min(1, len(param_resolvers) - 1)
@@ -73,12 +63,7 @@ def _build_sampler_results(
     *,
     executor: executors.CircuitSweepExecutor = _default_executor,
     transformer: transformers.CircuitTransformer = transformers.default,
-) -> Tuple[
-    Sequence[cirq.Result],
-    QuantumComputer,
-    List["np.ndarray[Any, np.dtype[np.float_]]"],
-    cirq.Sweepable,
-]:
+) -> Tuple[Sequence[cirq.Result], QuantumComputer, List[np.ndarray], cirq.Sweepable,]:
     repetitions = 2
 
     param_resolvers = [r for r in cirq.to_resolvers(sweepable)]
