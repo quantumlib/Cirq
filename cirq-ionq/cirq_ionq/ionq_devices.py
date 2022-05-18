@@ -16,18 +16,18 @@
 from typing import Any, Dict, List, Optional
 import cirq
 from cirq import protocols
-from cirq.transformers import drop_empty_moments, drop_negligible_operations
+from cirq.transformers import transformer_api, drop_empty_moments, drop_negligible_operations
 from cirq.transformers.target_gatesets import compilation_target_gateset
 
 
-@cirq.transformer
+@transformer_api.transformer
 def merge_to_phased_x_and_z(
     c: cirq.AbstractCircuit, *, context: Optional['cirq.TransformerContext'] = None
 ) -> cirq.AbstractCircuit:
     return cirq.merge_single_qubit_gates_to_phased_x_and_z(c)
 
 
-@cirq.transformer
+@transformer_api.transformer
 def decompose_phased_x_pow(
     c: cirq.AbstractCircuit, *, context: Optional['cirq.TransformerContext'] = None
 ) -> cirq.AbstractCircuit:
