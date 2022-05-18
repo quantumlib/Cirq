@@ -53,8 +53,17 @@ def test_pickled_hash():
 
 
 def test_str():
-    assert str(cirq.GridQubit(5, 2)) == '(5, 2)'
-    assert str(cirq.GridQid(5, 2, dimension=3)) == '(5, 2) (d=3)'
+    assert str(cirq.GridQubit(5, 2)) == 'q(5, 2)'
+    assert str(cirq.GridQid(5, 2, dimension=3)) == 'q(5, 2) (d=3)'
+
+
+def test_circuit_info():
+    assert cirq.circuit_diagram_info(cirq.GridQubit(5, 2)) == cirq.CircuitDiagramInfo(
+        wire_symbols=('(5, 2)',)
+    )
+    assert cirq.circuit_diagram_info(cirq.GridQid(5, 2, dimension=3)) == cirq.CircuitDiagramInfo(
+        wire_symbols=('(5, 2) (d=3)',)
+    )
 
 
 def test_repr():
