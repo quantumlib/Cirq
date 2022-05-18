@@ -22,22 +22,22 @@ from cirq.transformers.target_gatesets import compilation_target_gateset
 
 @cirq.transformer
 def merge_to_phased_x_and_z(
-    c: cirq.Circuit, *, context: Optional['cirq.TransformerContext'] = None
-) -> cirq.Circuit:
+    c: cirq.AbstractCircuit, *, context: Optional['cirq.TransformerContext'] = None
+) -> cirq.AbstractCircuit:
     return cirq.merge_single_qubit_gates_to_phased_x_and_z(c)
 
 
 @cirq.transformer
 def decompose_phased_x_pow(
-    c: cirq.Circuit, *, context: Optional['cirq.TransformerContext'] = None
-) -> cirq.Circuit:
+    c: cirq.AbstractCircuit, *, context: Optional['cirq.TransformerContext'] = None
+) -> cirq.AbstractCircuit:
     return cirq.map_operations_and_unroll(
         c, lambda op, _: cirq.decompose_once(op) if type(op.gate) == cirq.PhasedXPowGate else op
     )
 
 
 def decompose_to_device(operation: cirq.Operation, atol: float = 1e-8) -> cirq.OP_TREE:
-    """Decompose operation to ionq native operations.
+    """Decompose operation to IonQ QIS operations.
 
 
     Merges single qubit operations and decomposes two qubit operations
