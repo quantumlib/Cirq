@@ -218,19 +218,19 @@ def test_cannot_act():
 def test_run_one_gate_circuit():
     sim = CountingSimulator()
     r = sim.run(cirq.Circuit(cirq.X(q0), cirq.measure(q0)), repetitions=2)
-    assert np.allclose(r.measurements['0'], [[1], [1]])
+    assert np.allclose(r.measurements['q(0)'], [[1], [1]])
 
 
 def test_run_one_gate_circuit_noise():
     sim = CountingSimulator(noise=cirq.X)
     r = sim.run(cirq.Circuit(cirq.X(q0), cirq.measure(q0)), repetitions=2)
-    assert np.allclose(r.measurements['0'], [[2], [2]])
+    assert np.allclose(r.measurements['q(0)'], [[2], [2]])
 
 
 def test_run_non_unitary_circuit():
     sim = CountingSimulator()
     r = sim.run(cirq.Circuit(cirq.phase_damp(1).on(q0), cirq.measure(q0)), repetitions=2)
-    assert np.allclose(r.measurements['0'], [[1], [1]])
+    assert np.allclose(r.measurements['q(0)'], [[1], [1]])
 
 
 def test_run_non_unitary_circuit_non_unitary_state():
@@ -240,13 +240,13 @@ def test_run_non_unitary_circuit_non_unitary_state():
 
     sim = DensityCountingSimulator()
     r = sim.run(cirq.Circuit(cirq.phase_damp(1).on(q0), cirq.measure(q0)), repetitions=2)
-    assert np.allclose(r.measurements['0'], [[1], [1]])
+    assert np.allclose(r.measurements['q(0)'], [[1], [1]])
 
 
 def test_run_non_terminal_measurement():
     sim = CountingSimulator()
     r = sim.run(cirq.Circuit(cirq.X(q0), cirq.measure(q0), cirq.X(q0)), repetitions=2)
-    assert np.allclose(r.measurements['0'], [[1], [1]])
+    assert np.allclose(r.measurements['q(0)'], [[1], [1]])
 
 
 def test_integer_initial_state_is_split():

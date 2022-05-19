@@ -24,7 +24,19 @@ from cirq.ops import raw_types
 
 @value.value_equality
 class QuantumFourierTransformGate(raw_types.Gate):
-    """Switches from the computational basis to the frequency basis."""
+    r"""Switches from the computational basis to the frequency basis.
+
+    This gate has the unitary
+
+    $$
+    \frac{1}{2^{n/2}}\sum_{x,y=0}^{2^n-1} \omega^{xy} |x\rangle\langle y|
+    $$
+
+    where
+    $$
+    \omega = e^{\frac{2\pi i}{2^n}}
+    $$
+    """
 
     def __init__(self, num_qubits: int, *, without_reverse: bool = False):
         """Inits QuantumFourierTransformGate.
@@ -86,7 +98,19 @@ class QuantumFourierTransformGate(raw_types.Gate):
 
 @value.value_equality
 class PhaseGradientGate(raw_types.Gate):
-    """Phases each state |k⟩ out of n by e^(2*pi*i*k/n*exponent)."""
+    r"""Phases all computational basis states proportional to the integer value of the state.
+
+    The gate `cirq.PhaseGradientGate(n, t)` has the unitary
+    $$
+    \sum_{x=0}^{2^n-1} \omega^x |x\rangle \langle x|
+    $$
+    where
+    $$
+    \omega=e^{2 \pi i/2^n}
+    $$
+
+    This gate makes up a portion of the quantum fourier transform.
+    """
 
     def __init__(self, *, num_qubits: int, exponent: Union[float, sympy.Basic]):
         self._num_qubits = num_qubits

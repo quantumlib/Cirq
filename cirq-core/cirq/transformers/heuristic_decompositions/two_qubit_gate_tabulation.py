@@ -309,8 +309,6 @@ def _tabulate_kak_vectors(
     return _TabulationStepResult(kept_kaks, kept_cycles)
 
 
-# TODO(#3388) Add documentation for Raises.
-# pylint: disable=missing-raises-doc
 def two_qubit_gate_product_tabulation(
     base_gate: np.ndarray,
     max_infidelity: float,
@@ -333,12 +331,16 @@ def two_qubit_gate_product_tabulation(
         random_state: Random state or random state seed.
         allow_missed_points: If True, the tabulation is allowed to conclude
             even if not all points in the Weyl chamber are expected to be
-            compilable using 2 or 3 base gates. Otherwise an error is raised
+            compilable using 2 or 3 base gates. Otherwise, an error is raised
             in this case.
 
     Returns:
         A TwoQubitGateTabulation object used to compile new two-qubit gates from
         products of the base gate with 1-local unitaries.
+
+    Raises:
+        ValueError: If `allow_missing_points` is False and not all the points
+            in the Weyl chamber are compilable using 2 or 3 base gates.
     """
     rng = value.parse_random_state(random_state)
 

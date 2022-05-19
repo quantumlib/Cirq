@@ -65,7 +65,7 @@ This is in principle a three-step process which consists of the following three 
     to be characterized.
 
 3. Compile the circuit: The final step is to use the results of the characterization to re-compile the circuit to compensate 
-    for ζ, χ and γ angles.  This can be done with the help of `cirq_google.make_zeta_chi_gamma_compensation_for_moment` function.
+    for ζ, χ and γ angles.  This can be done with the help of `cirq_google.make_zeta_chi_gamma_compensation_for_moments` function.
 
 ## When should Floquet or XEB Calibrations be used?
 
@@ -199,7 +199,7 @@ Compensation for the remaining two parameters θ and φ can’t be realized in a
 to adjust to these errors by modifying circuit construction, compilation, or problem statement, but this must be handled by the
 user and cannot be done automatically.
 
-For these advanced use cases, the `cirq_google.run_calibration` method can be called directly with a list of 
+For these advanced use cases, the `cirq_google.run_calibrations` method can be called directly with a list of 
 `cirq_google.PhasedFSimCalibrationRequest` objects.  This will allow you to call the Calibration API directly to specify 
 customized layers for characterizations.
 
@@ -212,11 +212,11 @@ class PhasedFSimCalibrationRequest(abc.ABC):
                # either FloquetPhasedFSimCalibrationOptions or LocalXEBPhasedFSimCalibrationOptions
 ```
 
-After triggering this calibration with the `cirq_google.run_calibrations` method, the `PhasedFSimCalibrationResult` is returned
-with a parameters field that contains the unitary parameters of all the requested gates. The object also contains additional
-execution metadata which might be useful.
+After triggering this calibration with the `cirq_google.run_calibrations` method, the `cirq_google.PhasedFSimCalibrationResult`
+is returned with a parameters field that contains the unitary parameters of all the requested gates. The object also contains
+additional execution metadata which might be useful.
 
-See also ["How to compensate for the parasitic c-phase φ angle?"](#how-to-compensate-for-the-parasitic-c-phase-φ-angle) below.
+See also ["How to compensate for the parasitic c-phase φ angle?"](##how_to_compensate_for_the_parasitic_c-phase_φ_angle) below.
 
 ## Floquet calibration fails with a message: Readout errors above the tolerance for qubit pairs (...), what can be done?
 
@@ -286,14 +286,14 @@ For a complete set of best practices, check the following [guide](./best_practic
 
 ## How to compensate for the parasitic c-phase φ angle?
 
-The `cirq_google.SQRT_ISWAP` gate ideally should have a zero value of the φ angle. In practice the ZZ interaction always 
-happen during the gate execution and all the two-qubit gates attain some unwanted parasitic c-phase angle φ. The typical 
-values for √iSWAP gate are about 0.13 which might be significant amount for certain applications, especially when circuits
+The `cirq_google.SQRT_ISWAP` gate ideally should have a zero value of the φ angle. In practice the ZZ interaction always
+happens during the gate execution, and all the two-qubit gates attain some unwanted parasitic c-phase angle φ. The typical
+values for √iSWAP gate are about 0.13 which might be significant for certain applications, especially when circuits
 of large depth are executed that accumulate errors caused by this term.
 
 Compensating for this parameter can be achieved in certain situations although in most cases the compensation adds more gates 
 which can cause the increase in the circuit runtime. Thus, the compensation itself might introduce even more noise during 
-execution, so it’s feasibility should be chosen on a case-by-case basis.
+execution, so its feasibility should be chosen on a case-by-case basis.
 
 The following references might provide some help on dealing with this issue but none of them is a complete solution to the problem:
 
@@ -313,4 +313,4 @@ The following references might provide some help on dealing with this issue but 
   [arXiv:2105.06074](https://arxiv.org/abs/2105.06074). However, it only allows to decompose into ideal `cirq.SQRT_ISWAP` 
   gates and thus is not useful for dealing with parasitic c-phase.
 
-* This is an active topic of research and we welcome more references.
+* This is an active topic of research, and we welcome more references.
