@@ -66,10 +66,5 @@ class ValidatingTestDevice(devices.Device):
                 if not cast(devices.GridQubit, p).is_adjacent(q):
                     raise ValueError(f'Non-local interaction: {operation!r}.')
 
-    def decompose_operation(self, operation: 'ops.Operation') -> 'ops.OP_TREE':
-        if isinstance(operation.gate, self.auto_decompose_gates):
-            return protocols.decompose(operation)
-        return operation
-
     def __repr__(self):
         return self._repr

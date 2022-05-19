@@ -24,16 +24,6 @@ if TYPE_CHECKING:
 class Device(metaclass=abc.ABCMeta):
     """Hardware constraints for validating circuits."""
 
-    @_compat.deprecated(deadline='v0.15', fix='Devices will no longer decompose operations.')
-    def decompose_operation(self, operation: 'cirq.Operation') -> 'cirq.OP_TREE':
-        """Returns a device-valid decomposition for the given operation.
-
-        This method is used when adding operations into circuits with a device
-        specified, to avoid spurious failures due to e.g. using a Hadamard gate
-        that must be decomposed into native gates.
-        """
-        return operation
-
     @property
     def metadata(self) -> Optional['DeviceMetadata']:
         """Returns the associated Metadata with the device if applicable.

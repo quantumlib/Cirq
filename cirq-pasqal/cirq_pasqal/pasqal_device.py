@@ -102,24 +102,6 @@ class PasqalDevice(cirq.devices.Device):
     def qubit_list(self):
         return [qubit for qubit in self.qubits]
 
-    @_compat.deprecated(
-        fix='Use PasqalConverter() to decompose operation instead.', deadline='v0.15'
-    )
-    def decompose_operation(self, operation: cirq.Operation) -> 'cirq.OP_TREE':
-
-        decomposition = [operation]
-
-        if not isinstance(operation, cirq.GateOperation):
-            raise TypeError(f"{operation!r} is not a gate operation.")
-
-        # Try to decompose the operation into elementary device operations
-        if not self.is_pasqal_device_op(operation):
-            decomposition = PasqalConverter().pasqal_convert(
-                operation, keep=self.is_pasqal_device_op
-            )
-
-        return decomposition
-
     def is_pasqal_device_op(self, op: cirq.Operation) -> bool:
         if not isinstance(op, cirq.Operation):
             raise ValueError('Got unknown operation:', op)

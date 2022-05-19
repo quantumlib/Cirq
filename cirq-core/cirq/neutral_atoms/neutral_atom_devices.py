@@ -113,13 +113,6 @@ class NeutralAtomDevice(devices.Device):
     def qubit_list(self):
         return [qubit for qubit in self.qubits]
 
-    @_compat.deprecated(
-        fix='Use cirq.ConvertToNeutralAtomGates() instead to decompose operations.',
-        deadline='v0.15',
-    )
-    def decompose_operation(self, operation: ops.Operation) -> ops.OP_TREE:
-        return ConvertToNeutralAtomGates().convert(operation)
-
     def duration_of(self, operation: ops.Operation):
         """Provides the duration of the given operation on this device.
 
