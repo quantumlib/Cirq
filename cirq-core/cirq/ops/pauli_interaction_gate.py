@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import List, Sequence, Tuple, Dict, TYPE_CHECKING
+from typing import Any, Dict, List, Sequence, TYPE_CHECKING, Tuple
 
 import numpy as np
 
@@ -147,7 +147,7 @@ class PauliInteractionGate(gate_features.InterchangeableQubitsGate, eigen_gate.E
             return base
         return f'({base}**{proper_repr(self._exponent)})'
 
-    def _json_dict_(self):
+    def _json_dict_(self) -> Dict[str, Any]:
         return protocols.obj_to_dict_helper(self, ["pauli0", "invert0", "pauli1", "invert1"])
 
 
