@@ -214,19 +214,19 @@ def test_measurement_1qubit():
     simulator = ccq.mps_simulator.MPSSimulator()
 
     result = simulator.run(circuit, repetitions=100)
-    assert sum(result.measurements['1'])[0] < 80
-    assert sum(result.measurements['1'])[0] > 20
+    assert sum(result.measurements['q(1)'])[0] < 80
+    assert sum(result.measurements['q(1)'])[0] > 20
 
 
 def test_reset():
     q = cirq.LineQubit(0)
     simulator = ccq.mps_simulator.MPSSimulator()
     c = cirq.Circuit(cirq.X(q), cirq.reset(q), cirq.measure(q))
-    assert simulator.sample(c)['0'][0] == 0
+    assert simulator.sample(c)['q(0)'][0] == 0
     c = cirq.Circuit(cirq.H(q), cirq.reset(q), cirq.measure(q))
-    assert simulator.sample(c)['0'][0] == 0
+    assert simulator.sample(c)['q(0)'][0] == 0
     c = cirq.Circuit(cirq.reset(q), cirq.measure(q))
-    assert simulator.sample(c)['0'][0] == 0
+    assert simulator.sample(c)['q(0)'][0] == 0
 
 
 def test_measurement_2qubits():
@@ -236,7 +236,7 @@ def test_measurement_2qubits():
     simulator = ccq.mps_simulator.MPSSimulator()
 
     repetitions = 1024
-    measurement = simulator.run(circuit, repetitions=repetitions).measurements['0,2']
+    measurement = simulator.run(circuit, repetitions=repetitions).measurements['q(0),q(2)']
 
     result_counts = {'00': 0, '01': 0, '10': 0, '11': 0}
     for i in range(repetitions):
@@ -309,7 +309,7 @@ def test_empty_step_result():
     step_result = next(sim.simulate_moment_steps(cirq.Circuit(cirq.measure(q0))))
     assert (
         str(step_result)
-        == """0=0
+        == """q(0)=0
 TensorNetwork([
     Tensor(shape=(2,), inds=('i_0',), tags=set()),
 ])"""
@@ -322,7 +322,7 @@ def test_step_result_repr_pretty():
     step_result = next(sim.simulate_moment_steps(cirq.Circuit(cirq.measure(q0))))
     cirq.testing.assert_repr_pretty(
         step_result,
-        """0=0
+        """q(0)=0
 TensorNetwork([
     Tensor(shape=(2,), inds=('i_0',), tags=set()),
 ])""",
@@ -441,7 +441,7 @@ def test_run_no_repetitions():
     simulator = ccq.mps_simulator.MPSSimulator()
     circuit = cirq.Circuit(cirq.H(q0), cirq.measure(q0))
     result = simulator.run(circuit, repetitions=0)
-    assert len(result.measurements['0']) == 0
+    assert len(result.measurements['q(0)']) == 0
 
 
 def test_run_parameters_not_resolved():
