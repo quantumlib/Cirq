@@ -114,6 +114,11 @@ def test_sample_device_zphase(processor_id):
             assert isinstance(val, float)
 
 
+def test_device_zphase_bad_processor():
+    with pytest.raises(ValueError, match='no Z phase data is defined'):
+        _ = factory.load_sample_device_zphase('bad_processor')
+
+
 def test_create_from_proto():
 
     # Create a minimal gate specification that can handle the test.

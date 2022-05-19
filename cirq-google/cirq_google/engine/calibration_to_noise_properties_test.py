@@ -31,7 +31,8 @@ def get_mock_calibration(
     syc_angles,
     iswap_angles,
 ) -> cirq_google.Calibration:
-    _CALIBRATION_DATA = Merge(f"""
+    _CALIBRATION_DATA = Merge(
+        f"""
     timestamp_ms: 1579214873,
     metrics: [{{
         name: 'single_qubit_rb_pauli_error_per_gate',
@@ -304,25 +305,13 @@ def test_zphase_data():
     qubit_pairs = [(qubits[0], qubits[1]), (qubits[0], qubits[2])]
     zphase_data = {
         "syc": {
-            "zeta": {
-                qubit_pairs[0]: syc_angles[0].zeta,
-                qubit_pairs[1]: syc_angles[1].zeta,
-            },
-            "gamma": {
-                qubit_pairs[0]: syc_angles[0].gamma,
-                qubit_pairs[1]: syc_angles[1].gamma,
-            },
+            "zeta": {qubit_pairs[0]: syc_angles[0].zeta, qubit_pairs[1]: syc_angles[1].zeta},
+            "gamma": {qubit_pairs[0]: syc_angles[0].gamma, qubit_pairs[1]: syc_angles[1].gamma},
         },
         "sqrt_iswap": {
-            "zeta": {
-                qubit_pairs[0]: iswap_angles[0].zeta,
-                qubit_pairs[1]: iswap_angles[1].zeta,
-            },
-            "gamma": {
-                qubit_pairs[0]: iswap_angles[0].gamma,
-                qubit_pairs[1]: iswap_angles[1].gamma,
-            },
-        }
+            "zeta": {qubit_pairs[0]: iswap_angles[0].zeta, qubit_pairs[1]: iswap_angles[1].zeta},
+            "gamma": {qubit_pairs[0]: iswap_angles[0].gamma, qubit_pairs[1]: iswap_angles[1].gamma},
+        },
     }
 
     prop = cirq_google.noise_properties_from_calibration(calibration, zphase_data)
@@ -335,7 +324,6 @@ def test_zphase_data():
             assert prop.fsim_errors[OpIdentifier(gate, *qs[::-1])] == values[i]
             assert prop.fsim_errors[OpIdentifier(gate, *qs)] == values[i]
             assert prop.fsim_errors[OpIdentifier(gate, *qs[::-1])] == values[i]
-
 
 
 def test_incomplete_calibration():

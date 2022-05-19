@@ -37,7 +37,7 @@ from cirq_google.devices import google_noise_properties
 if TYPE_CHECKING:
     import cirq
 
-_ZPhaseData = Dict[str, Dict[Tuple[ops.Qid, ops.Qid], float]]
+_ZPhaseData = Dict[str, Dict[str, Dict[Tuple[ops.Qid, ...], float]]]
 
 
 def _unpack_1q_from_calibration(
@@ -65,8 +65,7 @@ def _unpack_2q_from_calibration(
 
 
 def noise_properties_from_calibration(
-    calibration: engine.Calibration,
-    zphase_data: Optional[_ZPhaseData] = None,
+    calibration: engine.Calibration, zphase_data: Optional[_ZPhaseData] = None
 ) -> google_noise_properties.GoogleNoiseProperties:
     """Translates between `cirq_google.Calibration` and NoiseProperties.
 
@@ -192,9 +191,7 @@ def noise_properties_from_calibration(
             zeta = zeta_errors.get(qubits, 0)
             gamma = gamma_errors.get(qubits, 0)
             op_id = noise_utils.OpIdentifier(gate, *qubits)
-            error_gate = ops.PhasedFSimGate(
-                theta=theta, phi=phi, zeta=zeta, gamma=gamma, 
-            )
+            error_gate = ops.PhasedFSimGate(theta=theta, phi=phi, zeta=zeta, gamma=gamma)
             fsim_errors[op_id] = error_gate
             op_id_reverse = noise_utils.OpIdentifier(gate, *qubits[::-1])
             fsim_errors[op_id_reverse] = error_gate

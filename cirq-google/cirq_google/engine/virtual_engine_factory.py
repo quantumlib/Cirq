@@ -43,10 +43,7 @@ MEDIAN_CALIBRATION_TIMESTAMPS = {
     'weber': 1635923188204,  # 2021-11-03 07:06:28.204 UTC
 }
 
-ZPHASE_DATA = {
-    'rainbow': 'rainbow_zphase.json',
-    'weber': 'weber_zphase.json',
-}
+ZPHASE_DATA = {'rainbow': 'rainbow_zphase.json', 'weber': 'weber_zphase.json'}
 
 METRICS_1Q = [
     'single_qubit_p00_error',
@@ -131,11 +128,12 @@ def load_median_device_calibration(processor_id: str) -> calibration.Calibration
 
 def load_sample_device_zphase(
     processor_id: str,
-) -> Dict[str, Dict[Tuple[cirq.Qid, cirq.Qid], float]]:
+) -> Dict[str, Dict[str, Dict[Tuple[cirq.Qid, ...], float]]]:
     """Loads sample Z phase errors for the given device.
 
-    Output is of the form {angle_type: {qubit_pair: error}}, where angle_type
-    is "zeta" or "gamma" and "qubit_pair" is a tuple of qubits.
+    Output is of the form {gate_type: {angle_type: {qubit_pair: error}}},
+    where gate_type is "syc" or "sqrt_iswap", angle_type is "zeta" or "gamma",
+    and "qubit_pair" is a tuple of qubits.
 
     Args:
         processor_id: name of the processor to simulate.
@@ -151,9 +149,11 @@ def load_sample_device_zphase(
     path = pathlib.Path(__file__).parent.parent.resolve()
     with path.joinpath('devices', 'calibrations', zphase_name).open() as f:
         raw_data = json.load(f)
+
         def to_grid_qid(qstr: str):
             row, col = map(int, qstr.split("_"))
             return cirq.GridQubit(row, col)
+
         nested_data = {
             gate_type: {
                 angle: {(to_grid_qid(q0), to_grid_qid(q1)): vals for q0, q1, vals in triples}
