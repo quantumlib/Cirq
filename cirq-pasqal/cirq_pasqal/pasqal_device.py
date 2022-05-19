@@ -95,16 +95,12 @@ class PasqalDevice(cirq.devices.Device):
     )
     def decompose_operation(self, operation: cirq.Operation) -> 'cirq.OP_TREE':
 
-        decomposition = [operation]
-
         if not isinstance(operation, cirq.GateOperation):
-            raise TypeError(f"{operation!r} is not a gate operation.")
+            raise TypeError(f'{operation!r} is not a gate operation.')
 
-        # Try to decompose the operation into elementary device operations
-        if not self.is_pasqal_device_op(operation):
-            decomposition = self.gateset.decompose_to_target_gateset(operation, 0)
-
-        return decomposition
+        return cirq.optimize_for_target_gateset(
+            cirq.Circuit(operation), gateset=self.gateset
+        ).all_operations()
 
     def is_pasqal_device_op(self, op: cirq.Operation) -> bool:
         if not isinstance(op, cirq.Operation):

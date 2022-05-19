@@ -109,14 +109,14 @@ def test_decompose_operation_deprecated():
     op = (cirq.ops.CNOT).on(*(d.qubit_list())) ** 2
 
     with cirq.testing.assert_deprecated('decompose', deadline='v0.15'):
-        assert d.decompose_operation(op) == []
+        assert list(d.decompose_operation(op)) == []
 
 
-def test_pasqal_converter_deprecated():
+def test_not_gate_operation_deprecated():
     q = cirq.NamedQubit.range(2, prefix='q')
     g = cirq.testing.TwoQubitGate()
 
-    class FakeOperation(cirq.ops.GateOperation):
+    class FakeOperation(cirq.ops.Operation):
         def __init__(self, gate, qubits):
             self._gate = gate
             self._qubits = qubits
@@ -132,7 +132,8 @@ def test_pasqal_converter_deprecated():
     d = PasqalDevice(q)
 
     with cirq.testing.assert_deprecated('decompose', deadline='v0.15', count=1):
-        assert d.decompose_operation(op) is NotImplemented
+        with pytest.raises(TypeError, match='not a gate operation'):
+            d.decompose_operation(op)
 
 
 def test_validate_operation_errors():

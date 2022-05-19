@@ -59,7 +59,7 @@ class PasqalGateset(cirq.neutral_atoms.NeutralAtomGateset):
         return f'cirq_pasqal.PasqalGateset(include_controlled_ops={self.include_controlled_ops})'
 
     @classmethod
-    def _from_json_dict_(cls, include_controlled_ops, **kwargs) -> 'PasqalGateset':
+    def _from_json_dict_(cls, include_controlled_ops, **kwargs):
         return cls(include_controlled_ops=include_controlled_ops)
 
     def _json_dict_(self) -> Dict[str, Any]:
