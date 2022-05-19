@@ -66,7 +66,7 @@ def _unpack_2q_from_calibration(
 
 def noise_properties_from_calibration(
     calibration: engine.Calibration,
-    zphase_data: Optional[_ZPhaseData],
+    zphase_data: Optional[_ZPhaseData] = None,
 ) -> google_noise_properties.GoogleNoiseProperties:
     """Translates between `cirq_google.Calibration` and NoiseProperties.
 
@@ -162,6 +162,10 @@ def noise_properties_from_calibration(
 
     # 5. Extract entangling angle errors.
     fsim_errors = {}
+    gate_zphase_code_pairs: Dict[Type['cirq.Gate'], str] = {
+        cg_ops.SycamoreGate: 'syc',
+        ops.ISwapPowGate: 'sqrt_iswap',
+    }
     for gate, prefix in gate_prefix_pairs.items():
         theta_errors = _unpack_2q_from_calibration(
             prefix + '_xeb_entangler_theta_error_per_cycle', calibration
@@ -169,25 +173,31 @@ def noise_properties_from_calibration(
         phi_errors = _unpack_2q_from_calibration(
             prefix + '_xeb_entangler_phi_error_per_cycle', calibration
         )
-        zeta_errors = zphase_data["zeta"] if zphase_data else {}
-        gamma_errors = zphase_data["gamma"] if zphase_data else {}
-        angle_keys = (
-            set(theta_errors.keys()) |
-            set(phi_errors.keys()) |
-            set(zeta_errors.keys()) |
-            set(gamma_errors.keys())
-        )
+        gate_str = gate_zphase_code_pairs[gate]
+        if zphase_data and gate_str in zphase_data:
+            zeta_errors = zphase_data[gate_str]["zeta"]
+            gamma_errors = zphase_data[gate_str]["gamma"]
+        else:
+            zeta_errors = {}
+            gamma_errors = {}
+        angle_keys = {
+            *theta_errors.keys(),
+            *phi_errors.keys(),
+            *zeta_errors.keys(),
+            *gamma_errors.keys(),
+        }
         for qubits in angle_keys:
             theta = theta_errors.get(qubits, 0)
             phi = phi_errors.get(qubits, 0)
             zeta = zeta_errors.get(qubits, 0)
             gamma = gamma_errors.get(qubits, 0)
             op_id = noise_utils.OpIdentifier(gate, *qubits)
-            fsim_errors[op_id] = ops.PhasedFSimGate(theta=theta, phi=phi)
-            op_id_reverse = noise_utils.OpIdentifier(gate, *qubits[::-1])
-            fsim_errors[op_id_reverse] = ops.PhasedFSimGate(
+            error_gate = ops.PhasedFSimGate(
                 theta=theta, phi=phi, zeta=zeta, gamma=gamma, 
             )
+            fsim_errors[op_id] = error_gate
+            op_id_reverse = noise_utils.OpIdentifier(gate, *qubits[::-1])
+            fsim_errors[op_id_reverse] = error_gate
 
     # Known false positive: https://github.com/PyCQA/pylint/issues/5857
     return google_noise_properties.GoogleNoiseProperties(  # pylint: disable=unexpected-keyword-arg
