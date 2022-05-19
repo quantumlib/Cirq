@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import collections.abc
+import pathlib
 
 import numpy as np
 import pytest
@@ -477,11 +478,11 @@ def test_gate_to_operation_to_gate_round_trips():
         )
 
     # Only test gate subclasses in cirq-core.
-    gate_subclasses = [
+    gate_subclasses = {
         g
         for g in all_subclasses(cirq.Gate)
         if "cirq." in g.__module__ and "contrib" not in g.__module__ and "test" not in g.__module__
-    ]
+    }
 
     test_module_spec = cirq.testing.json.spec_for("cirq.protocols")
 
@@ -504,9 +505,6 @@ def test_gate_to_operation_to_gate_round_trips():
         cirq.interop.quirk.QuirkArithmeticGate,
         # No reason given for missing json.
         # TODO(#5353): Serialize these gates.
-        cirq.DiagonalGate,
-        cirq.TwoQubitDiagonalGate,
-        cirq.ThreeQubitDiagonalGate,
         cirq.PauliInteractionGate,
         cirq.ArithmeticGate,
     }
@@ -516,13 +514,11 @@ def test_gate_to_operation_to_gate_round_trips():
     exceptions = {cirq.PauliStringPhasorGate}
 
     skipped = set()
-    for gate_cls in gate_subclasses:
-        if gate_cls in exceptions:
-            continue
+    for gate_cls in gate_subclasses - exceptions:
         filename = test_module_spec.test_data_path.joinpath(f"{gate_cls.__name__}.json")
-        try:
+        if pathlib.Path(filename).is_file():
             gates = cirq.read_json(filename)
-        except FileNotFoundError:
+        else:
             if gate_cls in skip_classes:
                 skipped.add(gate_cls)
                 continue
