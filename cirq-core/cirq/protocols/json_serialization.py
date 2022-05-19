@@ -799,6 +799,25 @@ def to_json_gzip(
     indent: int = 2,
     cls: Type[json.JSONEncoder] = CirqEncoder,
 ) -> Optional[bytes]:
+    """Write a gzipped JSON file containing a representation of obj.
+
+    The object may be a cirq object or have data members that are cirq
+    objects which implement the SupportsJSON protocol.
+
+    Args:
+        obj: An object which can be serialized to a JSON representation.
+        file_or_fn: A filename (if a string or `pathlib.Path`) to write to, or
+            an IO object (such as a file or buffer) to write to, or `None` to
+            indicate that the method should return the JSON text as its result.
+            Defaults to `None`.
+        indent: Pretty-print the resulting file with this indent level.
+            Passed to json.dump.
+        cls: Passed to json.dump; the default value of CirqEncoder
+            enables the serialization of Cirq objects which implement
+            the SupportsJSON protocol. To support serialization of 3rd
+            party classes, prefer adding the _json_dict_ magic method
+            to your classes rather than overriding this default.
+    """
     json_str = to_json(obj, indent=indent, cls=cls)
     if isinstance(file_or_fn, (str, pathlib.Path)):
         with gzip.open(file_or_fn, 'wt', encoding='utf-8') as actually_a_file:
@@ -819,6 +838,28 @@ def read_json_gzip(
     gzip_raw: Optional[bytes] = None,
     resolvers: Optional[Sequence[JsonResolver]] = None,
 ):
+    """Read a gzipped JSON file that optionally contains cirq objects.
+
+    Args:
+        file_or_fn: A filename (if a string or `pathlib.Path`) to read from, or
+            an IO object (such as a file or buffer) to read from, or `None` to
+            indicate that `gzip_raw` argument should be used. Defaults to
+            `None`.
+        gzip_raw: Bytes representing the raw gzip input to unzip and parse
+            or else `None` indicating `file_or_fn` should be used. Defaults to
+            `None`.
+        resolvers: A list of functions that are called in order to turn
+            the serialized `cirq_type` string into a constructable class.
+            By default, top-level cirq objects that implement the SupportsJSON
+            protocol are supported. You can extend the list of supported types
+            by pre-pending custom resolvers. Each resolver should return `None`
+            to indicate that it cannot resolve the given cirq_type and that
+            the next resolver should be tried.
+
+    Raises:
+        ValueError: If either none of `file_or_fn` and `gzip_raw` is specified,
+            or both are specified.
+    """
     if (file_or_fn is None) == (gzip_raw is None):
         raise ValueError('Must specify ONE of "file_or_fn" or "gzip_raw".')
 
