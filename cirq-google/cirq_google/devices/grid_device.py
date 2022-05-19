@@ -243,7 +243,9 @@ class GridDevice(cirq.Device):
         min_row = min(q.row for q in qubits)
 
         for q in qubits:
-            diagram.write(q.col - min_col, q.row - min_row, str(q))
+            info = cirq.circuit_diagram_info(q, default=None)
+            qubit_name = info.wire_symbols[0] if info else str(q)
+            diagram.write(q.col - min_col, q.row - min_row, qubit_name)
 
         # Find pairs that are connected by two-qubit gates.
         Pair = Tuple[cirq.GridQubit, cirq.GridQubit]

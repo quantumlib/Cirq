@@ -202,11 +202,11 @@ def test_validate_circuit_repeat_measurement_keys():
 
 
 def test_ion_device_str():
-    assert str(ion_device(3)) == "0───1───2"
+    assert str(ion_device(3)) == "q(0)───q(1)───q(2)"
 
 
 def test_ion_device_pretty_repr():
-    cirq.testing.assert_repr_pretty(ion_device(3), "0───1───2")
+    cirq.testing.assert_repr_pretty(ion_device(3), "q(0)───q(1)───q(2)")
     cirq.testing.assert_repr_pretty(ion_device(3), "IonDevice(...)", cycle=True)
 
 
