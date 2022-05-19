@@ -154,7 +154,7 @@ def load_sample_device_zphase(
             row, col = map(int, qstr.split("_"))
             return cirq.GridQubit(row, col)
 
-        nested_data = {
+        nested_data: Dict[str, Dict[str, Dict[Tuple[cirq.Qid, ...], float]]] = {
             gate_type: {
                 angle: {(to_grid_qid(q0), to_grid_qid(q1)): vals for q0, q1, vals in triples}
                 for angle, triples in angles.items()
