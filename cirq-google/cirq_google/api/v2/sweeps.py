@@ -63,7 +63,7 @@ def sweep_to_proto(
             for key in param_resolver:
                 if key not in sweep_dict:
                     sweep_dict[cast(str, key)] = []
-                sweep_dict[key].append(cast(float, param_resolver.value_of(key)))
+                sweep_dict[cast(str, key)].append(cast(float, param_resolver.value_of(key)))
         out.sweep_function.function_type = run_context_pb2.SweepFunction.ZIP
         for key in sweep_dict:
             sweep_to_proto(cirq.Points(key, sweep_dict[key]), out=out.sweep_function.sweeps.add())
