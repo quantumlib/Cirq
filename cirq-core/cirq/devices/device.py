@@ -15,7 +15,7 @@
 import abc
 from typing import TYPE_CHECKING, Optional, FrozenSet, Iterable
 import networkx as nx
-from cirq import _compat, value
+from cirq import value
 
 if TYPE_CHECKING:
     import cirq
