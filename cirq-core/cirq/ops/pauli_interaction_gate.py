@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import List, Sequence, Tuple, cast, Dict, TYPE_CHECKING
+from typing import Any, Dict, List, Sequence, TYPE_CHECKING, Tuple
 
 import numpy as np
 
@@ -24,17 +24,11 @@ from cirq.ops.clifford_gate import SingleQubitCliffordGate
 if TYPE_CHECKING:
     import cirq
 
-pauli_eigen_map = cast(
-    Dict[pauli_gates.Pauli, np.ndarray],
-    {
-        pauli_gates.X: (np.array([[0.5, 0.5], [0.5, 0.5]]), np.array([[0.5, -0.5], [-0.5, 0.5]])),
-        pauli_gates.Y: (
-            np.array([[0.5, -0.5j], [0.5j, 0.5]]),
-            np.array([[0.5, 0.5j], [-0.5j, 0.5]]),
-        ),
-        pauli_gates.Z: (np.diag([1, 0]), np.diag([0, 1])),
-    },
-)
+PAULI_EIGEN_MAP: Dict[pauli_gates.Pauli, np.ndarray] = {
+    pauli_gates.X: (np.array([[0.5, 0.5], [0.5, 0.5]]), np.array([[0.5, -0.5], [-0.5, 0.5]])),
+    pauli_gates.Y: (np.array([[0.5, -0.5j], [0.5j, 0.5]]), np.array([[0.5, 0.5j], [-0.5j, 0.5]])),
+    pauli_gates.Z: (np.diag([1, 0]), np.diag([0, 1])),
+}
 
 
 @value.value_equality
@@ -108,8 +102,8 @@ class PauliInteractionGate(gate_features.InterchangeableQubitsGate, eigen_gate.E
 
     def _eigen_components(self) -> List[Tuple[float, np.ndarray]]:
         comp1 = np.kron(
-            pauli_eigen_map[self.pauli0][not self.invert0],
-            pauli_eigen_map[self.pauli1][not self.invert1],
+            PAULI_EIGEN_MAP[self.pauli0][not self.invert0],
+            PAULI_EIGEN_MAP[self.pauli1][not self.invert1],
         )
         comp0 = np.eye(4) - comp1
         return [(0, comp0), (1, comp1)]
@@ -152,6 +146,9 @@ class PauliInteractionGate(gate_features.InterchangeableQubitsGate, eigen_gate.E
         if self._exponent == 1:
             return base
         return f'({base}**{proper_repr(self._exponent)})'
+
+    def _json_dict_(self) -> Dict[str, Any]:
+        return protocols.obj_to_dict_helper(self, ["pauli0", "invert0", "pauli1", "invert1"])
 
 
 PauliInteractionGate.CZ = PauliInteractionGate(pauli_gates.Z, False, pauli_gates.Z, False)

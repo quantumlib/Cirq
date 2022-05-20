@@ -164,9 +164,13 @@ def test_channel():
     assert not cirq.has_kraus(NoDetailsGate().with_probability(0.5))
     assert cirq.kraus(NoDetailsGate().with_probability(0.5), None) is None
     assert cirq.kraus(cirq.X.with_probability(sympy.Symbol('x')), None) is None
-    assert_channel_sums_to_identity(cirq.X.with_probability(0.25))
-    assert_channel_sums_to_identity(cirq.bit_flip(0.75).with_probability(0.25))
-    assert_channel_sums_to_identity(cirq.amplitude_damp(0.75).with_probability(0.25))
+    cirq.testing.assert_consistent_channel(cirq.X.with_probability(0.25))
+    cirq.testing.assert_consistent_channel(cirq.bit_flip(0.75).with_probability(0.25))
+    cirq.testing.assert_consistent_channel(cirq.amplitude_damp(0.75).with_probability(0.25))
+
+    cirq.testing.assert_consistent_mixture(cirq.X.with_probability(0.25))
+    cirq.testing.assert_consistent_mixture(cirq.bit_flip(0.75).with_probability(0.25))
+    assert not cirq.has_mixture(cirq.amplitude_damp(0.75).with_probability(0.25))
 
     m = cirq.kraus(cirq.X.with_probability(0.25))
     assert len(m) == 2

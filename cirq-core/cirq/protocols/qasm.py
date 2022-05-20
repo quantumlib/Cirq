@@ -30,6 +30,8 @@ RaiseTypeErrorIfNotProvided: Any = ([],)
 
 
 class QasmArgs(string.Formatter):
+    """Formatting Arguments for outputting QASM code."""
+
     def __init__(
         self,
         precision: int = 10,
