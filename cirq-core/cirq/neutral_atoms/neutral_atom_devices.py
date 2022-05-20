@@ -250,31 +250,6 @@ class NeutralAtomDevice(devices.Device):
             self._are_qubit_lists_too_close(a, b) for a, b in itertools.combinations(qubit_lists, 2)
         )
 
-    def can_add_operation_into_moment(
-        self, operation: ops.Operation, moment: circuits.Moment
-    ) -> bool:
-        """Determines if it's possible to add an operation into a moment.
-
-        An operation can be added if the moment with the operation added is valid.
-
-        Args:
-            operation: The operation being added.
-            moment: The moment being transformed.
-
-        Returns:
-            Whether or not the moment will validate after adding the operation.
-
-        Raises:
-            ValueError: If either of the given moment or operation is invalid
-        """
-        if not super().can_add_operation_into_moment(operation, moment):
-            return False
-        try:
-            self.validate_moment(moment.with_operation(operation))
-        except:
-            return False
-        return True
-
     def validate_circuit(self, circuit: circuits.AbstractCircuit):
         """Raises an error if the given circuit is invalid on this device.
 

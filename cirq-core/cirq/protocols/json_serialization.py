@@ -283,9 +283,18 @@ def _json_dict_with_cirq_type(obj: Any):
     if 'cirq_type' in base_dict:
         # TODO: upgrade to ValueError in v0.15
         warnings.warn(
-            f"Found 'cirq_type': '{base_dict['cirq_type']}' in _json_dict_. "
-            f"Custom values of this field are not permitted, and will produce "
-            "an error starting in Cirq v0.15.",
+            f"Found 'cirq_type': '{base_dict['cirq_type']}' in user-specified _json_dict_. "
+            "'cirq_type' is now automatically generated from the class's name and its "
+            "_json_namespace_ method as `cirq_type: '[<namespace>.]<class_name>'`."
+            "\n\n"
+            "Starting in v0.15, custom 'cirq_type' values will trigger an error. "
+            "To fix this, remove 'cirq_type' from the class _json_dict_ method and "
+            "define _json_namespace_ for the class."
+            "\n\n"
+            "For backwards compatibility, third-party classes whose old 'cirq_type' value "
+            "does not match the new value must appear under BOTH values in the resolver "
+            "for that package. For details on defining custom resolvers, see the "
+            "DEFAULT_RESOLVER docstring in cirq-core/cirq/protocols/json_serialization.py.",
             DeprecationWarning,
         )
         return base_dict

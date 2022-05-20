@@ -186,18 +186,6 @@ class _XmonDeviceBase(cirq.Device):
                     ):
                         raise ValueError(f'Adjacent Exp11 operations: {moment}.')
 
-    def can_add_operation_into_moment(self, operation: cirq.Operation, moment: cirq.Moment) -> bool:
-        self.validate_moment(moment)
-
-        if not super().can_add_operation_into_moment(operation, moment):
-            return False
-        if isinstance(operation.gate, cirq.CZPowGate):
-            return not self._check_if_exp11_operation_interacts_with_any(
-                cast(cirq.GateOperation, operation),
-                cast(Iterable[cirq.GateOperation], moment.operations),
-            )
-        return True
-
     def at(self, row: int, col: int) -> Optional[cirq.GridQubit]:
         """Returns the qubit at the given position, if there is one, else None."""
         q = cirq.GridQubit(row, col)

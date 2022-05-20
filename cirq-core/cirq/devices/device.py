@@ -77,28 +77,6 @@ class Device(metaclass=abc.ABCMeta):
         for operation in moment.operations:
             self.validate_operation(operation)
 
-    @_compat.deprecated(
-        deadline='v0.15',
-        fix='can_add_operation_into_moment will be removed in the future.'
-        ' Consider using device.validate_circuit instead.',
-    )
-    def can_add_operation_into_moment(
-        self, operation: 'cirq.Operation', moment: 'cirq.Moment'
-    ) -> bool:
-        """Determines if it's possible to add an operation into a moment.
-
-        For example, on the XmonDevice two CZs shouldn't be placed in the same
-        moment if they are on adjacent qubits.
-
-        Args:
-            operation: The operation being added.
-            moment: The moment being transformed.
-
-        Returns:
-            Whether or not the moment will validate after adding the operation.
-        """
-        return not moment.operates_on(operation.qubits)
-
 
 @value.value_equality
 class DeviceMetadata:
