@@ -14,7 +14,7 @@
 """Provides test devices that can validate circuits."""
 from typing import Tuple, AbstractSet, cast
 
-from cirq import devices, ops, protocols
+from cirq import devices, ops
 
 
 class ValidatingTestDevice(devices.Device):
