@@ -183,30 +183,6 @@ class PasqalDevice(cirq.devices.Device):
                 if isinstance(operation.gate, cirq.MeasurementGate):
                     has_measurement_occurred = True
 
-    def can_add_operation_into_moment(self, operation: cirq.Operation, moment: cirq.Moment) -> bool:
-        """Determines if it's possible to add an operation into a moment.
-
-        An operation can be added if the moment with the operation added is
-        valid.
-
-        Args:
-            operation: The operation being added.
-            moment: The moment being transformed.
-
-        Returns:
-            Whether or not the moment will validate after adding the operation.
-
-        Raises:
-            ValueError: If either of the given moment or operation is invalid
-        """
-        if not super().can_add_operation_into_moment(operation, moment):
-            return False
-        try:
-            self.validate_moment(moment.with_operation(operation))
-        except ValueError:
-            return False
-        return True
-
     def __repr__(self):
         return f'pasqal.PasqalDevice(qubits={sorted(self.qubits)!r})'
 
