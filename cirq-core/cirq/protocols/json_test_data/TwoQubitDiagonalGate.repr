@@ -1,0 +1,1 @@
+cirq.TwoQubitDiagonalGate(diag_angles_radians=[0.0, 1.0, -1.0, 0.0])

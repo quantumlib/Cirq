@@ -299,7 +299,7 @@ def test_example_qec_single_qubit():
     my_circuit1 += cirq.measure(mycode1.physical_qubits[0])
     sim1 = cirq.DensityMatrixSimulator()
     result1 = sim1.run(my_circuit1, repetitions=1)
-    assert result1.measurements['0'] == [[0]]
+    assert result1.measurements['q(0)'] == [[0]]
 
     mycode2 = OneQubitShorsCode()
     my_circuit2 = cirq.Circuit(mycode2.apply_gate(cirq.X, 0))
@@ -310,4 +310,4 @@ def test_example_qec_single_qubit():
     my_circuit2 += cirq.measure(mycode2.physical_qubits[0])
     sim2 = cirq.DensityMatrixSimulator()
     result2 = sim2.run(my_circuit2, repetitions=1)
-    assert result2.measurements['0'] == [[1]]
+    assert result2.measurements['q(0)'] == [[1]]

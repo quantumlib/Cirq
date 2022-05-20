@@ -206,6 +206,12 @@ def test_decomposition_cost(op: cirq.Operation, max_two_cost: int):
     assert two_cost == max_two_cost
 
 
+def test_diagonal_gate_property():
+    assert cirq.ThreeQubitDiagonalGate([2, 3, 5, 7, 0, 0, 0, 1]).diag_angles_radians == (
+        (2, 3, 5, 7, 0, 0, 0, 1)
+    )
+
+
 @pytest.mark.parametrize(
     'gate',
     [cirq.CCX, cirq.CSWAP, cirq.CCZ, cirq.ThreeQubitDiagonalGate([2, 3, 5, 7, 11, 13, 17, 19])],

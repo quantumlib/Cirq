@@ -34,6 +34,10 @@ def test_consistent_protocols(gate):
     cirq.testing.assert_implements_consistent_protocols(gate)
 
 
+def test_property():
+    assert cirq.TwoQubitDiagonalGate([2, 3, 5, 7]).diag_angles_radians == (2, 3, 5, 7)
+
+
 def test_parameterized_decompose():
     angles = sympy.symbols('x0, x1, x2, x3')
     parameterized_op = cirq.TwoQubitDiagonalGate(angles).on(*cirq.LineQubit.range(2))
