@@ -15,3 +15,6 @@ qiskit-aer~=0.9.1
 
 # For verifying rst
 rstcheck~=3.3.1
+
+# Lint bug
+dill=0.3.4
