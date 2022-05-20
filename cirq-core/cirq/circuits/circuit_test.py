@@ -29,17 +29,7 @@ from cirq.testing.devices import ValidatingTestDevice
 
 
 class _Foxy(ValidatingTestDevice):
-    def can_add_operation_into_moment(
-        self, operation: 'cirq.Operation', moment: 'cirq.Moment'
-    ) -> bool:
-        if not super().can_add_operation_into_moment(operation, moment):
-            return False
-        # a fake rule for ensuring that no two CZs are executed at the same moment.
-        # this will ensure that CZs are always in separate moments in this device
-        return not (
-            isinstance(operation.gate, ops.CZPowGate)
-            and any(isinstance(op.gate, ops.CZPowGate) for op in moment.operations)
-        )
+    pass
 
 
 FOXY = _Foxy(
