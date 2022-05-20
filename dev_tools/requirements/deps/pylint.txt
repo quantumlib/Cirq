@@ -1,3 +1,6 @@
 # for linting
 
 pylint~=2.13.0
+
+# Downgrade dill
+dill==0.3.4
