@@ -511,7 +511,6 @@ def test_gate_to_operation_to_gate_round_trips():
 
     # Gates that do not satisfy the contract.
     # TODO(#5167): Fix this case.
-
     exceptions = {cirq.PauliStringPhasorGate}
 
     skipped = set()
