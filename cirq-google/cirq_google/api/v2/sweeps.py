@@ -61,10 +61,8 @@ def sweep_to_proto(
         sweep_dict: Dict[str, List[float]] = {}
         for param_resolver in sweep:
             for key in param_resolver:
-                if isinstance(key, sympy.Expr):
-                    raise ValueError(f'cannot convert to v2 Sweep proto: {sweep}')
                 if key not in sweep_dict:
-                    sweep_dict[key] = []
+                    sweep_dict[cast(str, key)] = []
                 sweep_dict[key].append(cast(float, param_resolver.value_of(key)))
         out.sweep_function.function_type = run_context_pb2.SweepFunction.ZIP
         for key in sweep_dict:
