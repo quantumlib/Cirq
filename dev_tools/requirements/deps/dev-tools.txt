@@ -17,4 +17,4 @@ qiskit-aer~=0.9.1
 rstcheck~=3.3.1
 
 # Lint bug
-dill=0.3.4
+dill==0.3.4
