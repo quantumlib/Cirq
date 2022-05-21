@@ -179,14 +179,6 @@ def test_validate_measurement_non_adjacent_qubits_ok():
 
 
 @mock.patch.dict(os.environ, clear='CIRQ_TESTING')
-def test_decompose_operation_deprecated():
-    d = square_device(3, 3)
-
-    with cirq.testing.assert_deprecated('decompose', deadline='v0.15'):
-        _ = d.decompose_operation(cirq.H(cirq.GridQubit(1, 1)))
-
-
-@mock.patch.dict(os.environ, clear='CIRQ_TESTING')
 def test_validate_operation_existing_qubits():
     d = square_device(3, 3, holes=[cirq.GridQubit(1, 1)])
 

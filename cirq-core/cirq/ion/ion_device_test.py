@@ -14,7 +14,6 @@
 
 from datetime import timedelta
 
-import numpy as np
 import pytest
 
 import cirq
@@ -87,24 +86,6 @@ def test_init_timedelta():
     assert d.duration_of(cirq.ops.XX(q0, q1)) == 200 * ms
     with pytest.raises(ValueError):
         _ = d.duration_of(cirq.testing.SingleQubitGate().on(q0))
-
-
-def test_decomposition_deprecated():
-    d = ion_device(3)
-    q0 = cirq.LineQubit(0)
-    q1 = cirq.LineQubit(1)
-    with cirq.testing.assert_deprecated('ConvertToIonGates', deadline='v0.15'):
-        assert d.decompose_operation(cirq.H(q0)) == [
-            cirq.rx(np.pi * 1.0).on(cirq.LineQubit(0)),
-            cirq.ry(np.pi * -0.5).on(cirq.LineQubit(0)),
-        ]
-    circuit = cirq.Circuit()
-    circuit.append([cirq.X(q0), cirq.CNOT(q0, q1)])
-    ion_circuit = d.decompose_circuit(circuit)
-    d.validate_circuit(ion_circuit)
-    cirq.testing.assert_circuits_with_terminal_measurements_are_equivalent(
-        circuit, ion_circuit, atol=1e-6
-    )
 
 
 def test_repr():
