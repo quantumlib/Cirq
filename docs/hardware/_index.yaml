@@ -4,7 +4,7 @@ title: Hardware
 landing_page:
   nav: left
   rows:
-    - heading: Quantum hardware interfaces
+    - heading: Run circuits on quantum hardware
       description: In order to run circuits on a quantum hardware device, Cirq maintains a representation of that device in software that determines if a circuit can be run on it.
       items:
       - heading: Devices

@@ -4,12 +4,12 @@ title: Noise management for running circuits
 landing_page:
   nav: left
   rows:
-    - heading: Noise management for running circuits
+    - heading: Manage noise when running circuits
       description: Running circuits on real quantum devices means dealing with the noise those devices introduce to the computation. Cirq provides different ways to managing that noise, to improve the reliability of a circuit when run on hardware.
     - heading: Characterization and compensation
       description: By first characterizing how much and what kinds of error a device is exhibiting, compensation can be used to improve the reliability of the next run on the device or interpret the results of a previous run more accurately.
       items:
-        - heading: Calibration: Overview and API
+        - heading: "Calibration: Overview and API"
           description: Client-side characterization and compensation (aka calibration) procedures.
           path: /cirq/tutorials/google/calibration_api
           icon:
