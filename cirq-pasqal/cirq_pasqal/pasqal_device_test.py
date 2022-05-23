@@ -97,7 +97,7 @@ def test_is_pasqal_device_op():
     assert d.is_pasqal_device_op(cirq.ops.X(TwoDQubit(0, 0)))
     assert not d2.is_pasqal_device_op(op1(TwoDQubit(0, 0), TwoDQubit(0, 1)))
 
-    
+
 def test_validate_operation_errors():
     d = generic_device(3)
 
