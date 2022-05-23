@@ -11,7 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from typing import Any, cast, Mapping, Optional, Sequence, Union, SupportsFloat
+from typing import Any, Mapping, Optional, Sequence, Union, SupportsFloat
 
 import numpy as np
 from matplotlib import pyplot as plt

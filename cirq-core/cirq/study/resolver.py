@@ -157,9 +157,11 @@ class ParamResolver:
         if isinstance(value, sympy.Pow) and len(value.args) == 2:
             base = self.value_of(value.args[0], recursive)
             exponent = self.value_of(value.args[1], recursive)
+            # Casts because numpy can handle expressions (by delegating to __pow__), but does
+            # not have signature that will support this.
             if isinstance(base, numbers.Number):
-                return np.float_power(base, exponent)
-            return np.power(base, exponent)
+                return np.float_power(cast(complex, base), cast(complex, exponent))
+            return np.power(cast(complex, base), cast(complex, exponent))
 
         if not isinstance(value, sympy.Basic):
             # No known way to resolve this variable, return unchanged.
