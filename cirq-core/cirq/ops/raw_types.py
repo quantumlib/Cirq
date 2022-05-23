@@ -622,7 +622,7 @@ class Operation(metaclass=abc.ABCMeta):
 
     def with_classical_controls(
         self, *conditions: Union[str, 'cirq.MeasurementKey', 'cirq.Condition', sympy.Expr]
-    ) -> 'cirq.ClassicallyControlledOperation':
+    ) -> 'cirq.Operation':
         """Returns a classically controlled version of this operation.
 
         An operation that is classically controlled is executed iff all
@@ -643,7 +643,7 @@ class Operation(metaclass=abc.ABCMeta):
         """
         from cirq.ops.classically_controlled_operation import ClassicallyControlledOperation
 
-        if len(conditions) == 0:
+        if not conditions:
             return self
         return ClassicallyControlledOperation(self, conditions)
 
@@ -870,8 +870,8 @@ class TaggedOperation(Operation):
 
     def with_classical_controls(
         self, *conditions: Union[str, 'cirq.MeasurementKey', 'cirq.Condition', sympy.Expr]
-    ) -> 'cirq.ClassicallyControlledOperation':
-        if len(conditions) == 0:
+    ) -> 'cirq.Operation':
+        if not conditions:
             return self
         return self.sub_operation.with_classical_controls(*conditions)
 
