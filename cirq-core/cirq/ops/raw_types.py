@@ -643,6 +643,8 @@ class Operation(metaclass=abc.ABCMeta):
         """
         from cirq.ops.classically_controlled_operation import ClassicallyControlledOperation
 
+        if len(conditions) == 0:
+            return self
         return ClassicallyControlledOperation(self, conditions)
 
     def without_classical_controls(self) -> 'cirq.Operation':
@@ -712,6 +714,8 @@ class TaggedOperation(Operation):
         *control_qubits: 'cirq.Qid',
         control_values: Optional[Sequence[Union[int, Collection[int]]]] = None,
     ) -> 'cirq.Operation':
+        if len(control_qubits) == 0:
+            return self
         return self.sub_operation.controlled_by(*control_qubits, control_values=control_values)
 
     @property
@@ -863,6 +867,13 @@ class TaggedOperation(Operation):
     def without_classical_controls(self) -> 'cirq.Operation':
         new_sub_operation = self.sub_operation.without_classical_controls()
         return self if new_sub_operation is self.sub_operation else new_sub_operation
+
+    def with_classical_controls(
+        self, *conditions: Union[str, 'cirq.MeasurementKey', 'cirq.Condition', sympy.Expr]
+    ) -> 'cirq.ClassicallyControlledOperation':
+        if len(conditions) == 0:
+            return self
+        return self.sub_operation.with_classical_controls(*conditions)
 
     def _control_keys_(self) -> AbstractSet['cirq.MeasurementKey']:
         return protocols.control_keys(self.sub_operation)
