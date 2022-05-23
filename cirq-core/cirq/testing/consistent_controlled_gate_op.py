@@ -14,7 +14,7 @@
 
 from typing import Sequence, Optional, Union, Collection
 
-from cirq import protocols, devices, ops
+from cirq import devices, ops
 
 
 def assert_controlled_and_controlled_by_identical(
