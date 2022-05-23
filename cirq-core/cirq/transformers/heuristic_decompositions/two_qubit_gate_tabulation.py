@@ -15,7 +15,7 @@
 """Attempt to tabulate single qubit gates required to generate a target 2Q gate
 with a product A k A."""
 from functools import reduce
-from typing import cast, List, NamedTuple, Sequence, Tuple
+from typing import List, NamedTuple, Sequence, Tuple
 
 from dataclasses import dataclass
 import numpy as np
@@ -100,7 +100,7 @@ class TwoQubitGateTabulation:
         unitary = np.asarray(unitary)
         kak_vec = cirq.kak_vector(unitary, check_preconditions=False)
         infidelities = kak_vector_infidelity(kak_vec, self.kak_vecs, ignore_equivalent_vectors=True)
-        nearest_ind = cast(int, infidelities.argmin())
+        nearest_ind = int(infidelities.argmin())
 
         success = infidelities[nearest_ind] < self.max_expected_infidelity
 
