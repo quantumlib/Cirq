@@ -11,7 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from typing import Any, Mapping, Optional, Sequence, Union, SupportsFloat
+from typing import Any, cast, Mapping, Optional, Sequence, Union, SupportsFloat
 
 import numpy as np
 from matplotlib import pyplot as plt
@@ -86,15 +86,16 @@ def integrated_histogram(
     if isinstance(data, Mapping):
         data = list(data.values())
 
-    data = [d for d in data if not np.isnan(d)]
-    n = len(data)
+    float_data = [float(d) for d in data if not np.isnan(float(d))]
+
+    n = len(float_data)
 
     if not show_zero:
         bin_values = np.linspace(0, 1, n + 1)
-        parameter_values = sorted(np.concatenate(([0], data)))
+        parameter_values = sorted(np.concatenate(([0], float_data)))
     else:
         bin_values = np.linspace(0, 1, n)
-        parameter_values = sorted(data)
+        parameter_values = sorted(float_data)
     plot_options = {"where": 'post', "color": 'b', "linestyle": '-', "lw": 1.0, "ms": 0.0}
     plot_options.update(kwargs)
 
@@ -127,7 +128,7 @@ def integrated_histogram(
 
     if median_line:
         set_line(
-            np.median(data),
+            np.median(float_data),
             linestyle='--',
             color=plot_options['color'],
             alpha=0.5,
@@ -135,7 +136,11 @@ def integrated_histogram(
         )
     if mean_line:
         set_line(
-            np.mean(data), linestyle='-.', color=plot_options['color'], alpha=0.5, label=mean_label
+            np.mean(float_data),
+            linestyle='-.',
+            color=plot_options['color'],
+            alpha=0.5,
+            label=mean_label,
         )
     if show_plot:
         fig.show()

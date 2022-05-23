@@ -58,17 +58,17 @@ def random_qubit_unitary(
         rng: Random number generator to be used in sampling. Default is
             numpy.random.
     """
-    rng = np.random if rng is None else rng
+    real_rng: np.random.RandomState = np.random if rng is None else rng
 
-    theta = np.arcsin(np.sqrt(rng.rand(*shape)))
-    phi_d = rng.rand(*shape) * np.pi * 2
-    phi_o = rng.rand(*shape) * np.pi * 2
+    theta = np.arcsin(np.sqrt(real_rng.rand(*shape)))
+    phi_d = real_rng.rand(*shape) * np.pi * 2
+    phi_o = real_rng.rand(*shape) * np.pi * 2
 
     out = _single_qubit_unitary(theta, phi_d, phi_o)
 
     if randomize_global_phase:
         out = np.moveaxis(out, (-2, -1), (0, 1))
-        out *= np.exp(1j * np.pi * 2 * rng.rand(*shape))
+        out *= np.exp(1j * np.pi * 2 * real_rng.rand(*shape))
         out = np.moveaxis(out, (0, 1), (-2, -1))
     return out
 
