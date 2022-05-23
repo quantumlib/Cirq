@@ -661,7 +661,10 @@ class Operation(metaclass=abc.ABCMeta):
         `self`.
 
         Since tagged operations are considered to be immutable, this will also
-        remove any tags from the operation (unless there are no classical controls on it).
+        remove any tags from the operation, when called on ``TaggedOperation`
+        (unless there are no classical controls on it).
+        If a `TaggedOperation` is under all the classical control layers,
+        that `TaggedOperation` will be returned from this function.
 
         Returns:
             The operation with all classical controls removed.
