@@ -20,7 +20,6 @@ from cirq import _compat, devices, ops, circuits, value
 from cirq.devices.grid_qubit import GridQubit
 from cirq.ops import raw_types
 from cirq.value import Duration
-from cirq.neutral_atoms.convert_to_neutral_atom_gates import ConvertToNeutralAtomGates
 from cirq.neutral_atoms.neutral_atom_gateset import NeutralAtomGateset
 
 if TYPE_CHECKING:
@@ -112,13 +111,6 @@ class NeutralAtomDevice(devices.Device):
 
     def qubit_list(self):
         return [qubit for qubit in self.qubits]
-
-    @_compat.deprecated(
-        fix='Use cirq.ConvertToNeutralAtomGates() instead to decompose operations.',
-        deadline='v0.15',
-    )
-    def decompose_operation(self, operation: ops.Operation) -> ops.OP_TREE:
-        return ConvertToNeutralAtomGates().convert(operation)
 
     def duration_of(self, operation: ops.Operation):
         """Provides the duration of the given operation on this device.
