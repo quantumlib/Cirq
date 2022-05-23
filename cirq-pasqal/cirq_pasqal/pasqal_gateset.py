@@ -27,11 +27,11 @@ class PasqalGateset(cirq.neutral_atoms.NeutralAtomGateset):
     CCZ as well.
 
     Args:
-        include_controlled_ops: Whether to include CCZ, CCNOT, and CNOT
+        include_additional_controlled_ops: Whether to include CCZ, CCNOT, and CNOT
             gates (defaults to True).
     """
 
-    def __init__(self, include_controlled_ops: bool = True):
+    def __init__(self, include_additional_controlled_ops: bool = True):
         gate_families = [
             cirq.ParallelGateFamily(cirq.H),
             cirq.ParallelGateFamily(cirq.PhasedXPowGate),
@@ -42,8 +42,8 @@ class PasqalGateset(cirq.neutral_atoms.NeutralAtomGateset):
             cirq.IdentityGate,
             cirq.MeasurementGate,
         ]
-        self.include_controlled_ops = include_controlled_ops
-        if self.include_controlled_ops:
+        self.include_additional_controlled_ops = include_additional_controlled_ops
+        if self.include_additional_controlled_ops:
             gate_families.append(cirq.AnyIntegerPowerGateFamily(cirq.CNotPowGate))
             gate_families.append(cirq.AnyIntegerPowerGateFamily(cirq.CCNotPowGate))
             gate_families.append(cirq.AnyIntegerPowerGateFamily(cirq.CCZPowGate))
@@ -56,11 +56,12 @@ class PasqalGateset(cirq.neutral_atoms.NeutralAtomGateset):
         )
 
     def __repr__(self):
-        return f'cirq_pasqal.PasqalGateset(include_controlled_ops={self.include_controlled_ops})'
+        return (f'cirq_pasqal.PasqalGateset(include_additional_controlled_ops='
+                f'{self.include_additional_controlled_ops})')
 
     @classmethod
-    def _from_json_dict_(cls, include_controlled_ops, **kwargs):
-        return cls(include_controlled_ops=include_controlled_ops)
+    def _from_json_dict_(cls, include_additional_controlled_ops, **kwargs):
+        return cls(include_additional_controlled_ops=include_additional_controlled_ops)
 
     def _json_dict_(self) -> Dict[str, Any]:
-        return cirq.protocols.obj_to_dict_helper(self, ['include_controlled_ops'])
+        return cirq.protocols.obj_to_dict_helper(self, ['include_additional_controlled_ops'])

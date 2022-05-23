@@ -1,4 +1,4 @@
 {
     "cirq_type": "PasqalGateset",
-    "include_controlled_ops": false
+    "include_additional_controlled_ops": false
 }

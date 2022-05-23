@@ -236,7 +236,7 @@ class PasqalVirtualDevice(PasqalDevice):
                     ' the minimal distance between qubits.'
                 )
         self.control_radius = control_radius
-        self.gateset = PasqalGateset(include_controlled_ops=False)
+        self.gateset = PasqalGateset(include_additional_controlled_ops=False)
         self.controlled_gateset = cirq.Gateset(cirq.AnyIntegerPowerGateFamily(cirq.CZPowGate))
 
     @property
