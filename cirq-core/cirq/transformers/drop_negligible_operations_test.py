@@ -103,4 +103,7 @@ def test_ignores_large_ops():
     circuit = cirq.Circuit(
         cirq.CircuitOperation(subcircuit).repeat(10), cirq.measure(*qubits, key='out')
     )
-    assert cirq.drop_negligible_operations(circuit, context=cirq.TransformerContext(deep=True))
+    cirq.testing.assert_same_circuits(
+        circuit,
+        cirq.drop_negligible_operations(circuit, context=cirq.TransformerContext(deep=True)),
+    )
