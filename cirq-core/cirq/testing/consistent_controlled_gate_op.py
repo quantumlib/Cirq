@@ -39,10 +39,6 @@ def _assert_gate_consistent(
     num_controls: int,
     control_values: Optional[Sequence[Union[int, Collection[int]]]],
 ) -> None:
-    if isinstance(gate, ops.DensePauliString) and protocols.is_parameterized(gate):
-        # Parameterized `DensePauliString`s cannot be applied to qubits to produce valid operations.
-        # TODO: This behavior should be fixed (https://github.com/quantumlib/Cirq/issues/4508)
-        return None
     gate_controlled = gate.controlled(num_controls, control_values)
     qubits = devices.LineQid.for_gate(gate_controlled)
     control_qubits = qubits[:num_controls]
