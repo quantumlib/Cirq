@@ -98,44 +98,6 @@ def test_is_pasqal_device_op():
     assert not d2.is_pasqal_device_op(op1(TwoDQubit(0, 0), TwoDQubit(0, 1)))
 
 
-def test_decompose_operation_deprecated():
-    d = generic_device(3)
-    with cirq.testing.assert_deprecated('decompose', deadline='v0.15', count=2):
-        for op in d.decompose_operation((cirq.CCZ**1.5).on(*(d.qubit_list()))):
-            d.validate_operation(op)
-
-    p_qubits = [cirq.LineQubit(3), cirq.LineQubit(4)]
-    d = PasqalVirtualDevice(1.0, p_qubits)
-    op = (cirq.ops.CNOT).on(*(d.qubit_list())) ** 2
-
-    with cirq.testing.assert_deprecated('decompose', deadline='v0.15', count=2):
-        assert d.decompose_operation(op) == []
-
-
-def test_pasqal_converter_deprecated():
-    q = cirq.NamedQubit.range(2, prefix='q')
-    g = cirq.testing.TwoQubitGate()
-
-    class FakeOperation(cirq.ops.GateOperation):
-        def __init__(self, gate, qubits):
-            self._gate = gate
-            self._qubits = qubits
-
-        @property
-        def qubits(self):
-            return self._qubits
-
-        def with_qubits(self, *new_qubits):
-            return FakeOperation(self._gate, new_qubits)
-
-    op = FakeOperation(g, q).with_qubits(*q)
-    d = PasqalDevice(q)
-
-    with pytest.raises(TypeError, match="Don't know how to work with"):
-        with cirq.testing.assert_deprecated('decompose', deadline='v0.15', count=2):
-            d.decompose_operation(op)
-
-
 def test_validate_operation_errors():
     d = generic_device(3)
 

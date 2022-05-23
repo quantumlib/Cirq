@@ -68,20 +68,6 @@ class _XmonDeviceBase(cirq.Device):
     def qubit_set(self) -> FrozenSet[cirq.GridQubit]:
         return self.qubits
 
-    @_compat.deprecated(
-        deadline='v0.15',
-        fix='XmonDevice.decompose_operation is deprecated. '
-        'Please use cirq.optimize_for_target_gateset() and cirq.CZTargetGateset.',
-    )
-    def decompose_operation(self, operation: cirq.Operation) -> cirq.OP_TREE:
-        if operation.gate is not None and self.is_supported_gate(operation.gate):
-            return operation
-        return [
-            cirq.optimize_for_target_gateset(
-                cirq.Circuit(operation), gateset=cirq.CZTargetGateset(allow_partial_czs=True)
-            ).all_operations()
-        ]
-
     def neighbors_of(self, qubit: cirq.GridQubit):
         """Returns the qubits that the given qubit can interact with."""
         possibles = [
