@@ -97,45 +97,7 @@ def test_is_pasqal_device_op():
     assert d.is_pasqal_device_op(cirq.ops.X(TwoDQubit(0, 0)))
     assert not d2.is_pasqal_device_op(op1(TwoDQubit(0, 0), TwoDQubit(0, 1)))
 
-
-def test_decompose_operation_deprecated():
-    d = generic_device(2)
-    with cirq.testing.assert_deprecated('decompose', deadline='v0.15'):
-        for op in d.decompose_operation((cirq.CZ**1.5).on(*(d.qubit_list()))):
-            d.validate_operation(op)
-
-    p_qubits = [cirq.LineQubit(3), cirq.LineQubit(4)]
-    d = PasqalVirtualDevice(1.0, p_qubits)
-    op = (cirq.ops.CNOT).on(*(d.qubit_list())) ** 2
-
-    with cirq.testing.assert_deprecated('decompose', deadline='v0.15'):
-        assert list(d.decompose_operation(op)) == []
-
-
-def test_not_gate_operation_deprecated():
-    q = cirq.NamedQubit.range(2, prefix='q')
-    g = cirq.testing.TwoQubitGate()
-
-    class FakeOperation(cirq.ops.Operation):
-        def __init__(self, gate, qubits):
-            self._gate = gate
-            self._qubits = qubits
-
-        @property
-        def qubits(self):
-            return self._qubits
-
-        def with_qubits(self, *new_qubits):
-            return FakeOperation(self._gate, new_qubits)
-
-    op = FakeOperation(g, q).with_qubits(*q)
-    d = PasqalDevice(q)
-
-    with cirq.testing.assert_deprecated('decompose', deadline='v0.15', count=1):
-        with pytest.raises(TypeError, match='not a gate operation'):
-            d.decompose_operation(op)
-
-
+    
 def test_validate_operation_errors():
     d = generic_device(3)
 
@@ -191,16 +153,6 @@ def test_validate_circuit():
     circuit1.append(cirq.CX(cirq.NamedQubit('q1'), cirq.NamedQubit('q0')))
     with pytest.raises(ValueError, match="Non-empty moment after measurement"):
         d.validate_circuit(circuit1)
-
-
-def test_can_add_operation_into_moment_deprecated():
-    d = square_virtual_device(control_r=1.0, num_qubits=2)
-    with cirq.testing.assert_deprecated('can_add_operation_into_moment', deadline='v0.15', count=3):
-        m1 = cirq.Moment([cirq.Z.on(TwoDQubit(0, 0))])
-        assert not d.can_add_operation_into_moment(cirq.X.on(TwoDQubit(0, 0)), m1)
-        assert not d.can_add_operation_into_moment(cirq.X.on(TwoDQubit(1, 1)), m1)
-        m2 = cirq.Moment([cirq.measure(*d.qubits[:-1])])
-        assert d.can_add_operation_into_moment(cirq.measure(TwoDQubit(1, 1)), m2)
 
 
 def test_minimal_distance():

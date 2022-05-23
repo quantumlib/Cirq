@@ -89,19 +89,6 @@ class PasqalDevice(cirq.devices.Device):
     def qubit_list(self):
         return [qubit for qubit in self.qubits]
 
-    @_compat.deprecated(
-        fix='Use cirq.optimize_for_target_gateset(circuit, gateset=PasqalGateset()) instead.',
-        deadline='v0.15',
-    )
-    def decompose_operation(self, operation: cirq.Operation) -> 'cirq.OP_TREE':
-
-        if not isinstance(operation, cirq.GateOperation):
-            raise TypeError(f'{operation!r} is not a gate operation.')
-
-        return cirq.optimize_for_target_gateset(
-            cirq.Circuit(operation), gateset=self.gateset
-        ).all_operations()
-
     def is_pasqal_device_op(self, op: cirq.Operation) -> bool:
         if not isinstance(op, cirq.Operation):
             raise ValueError('Got unknown operation:', op)
@@ -164,30 +151,6 @@ class PasqalDevice(cirq.devices.Device):
             for operation in moment.operations:
                 if isinstance(operation.gate, cirq.MeasurementGate):
                     has_measurement_occurred = True
-
-    def can_add_operation_into_moment(self, operation: cirq.Operation, moment: cirq.Moment) -> bool:
-        """Determines if it's possible to add an operation into a moment.
-
-        An operation can be added if the moment with the operation added is
-        valid.
-
-        Args:
-            operation: The operation being added.
-            moment: The moment being transformed.
-
-        Returns:
-            Whether or not the moment will validate after adding the operation.
-
-        Raises:
-            ValueError: If either of the given moment or operation is invalid
-        """
-        if not super().can_add_operation_into_moment(operation, moment):
-            return False
-        try:
-            self.validate_moment(moment.with_operation(operation))
-        except ValueError:
-            return False
-        return True
 
     def __repr__(self):
         return f'pasqal.PasqalDevice(qubits={sorted(self.qubits)!r})'
