@@ -15,7 +15,18 @@
 """Defines primitives for common transformer patterns."""
 
 from collections import defaultdict
-from typing import cast, Callable, Dict, Hashable, List, Optional, Sequence, Union, TYPE_CHECKING
+from typing import (
+    cast,
+    Callable,
+    Dict,
+    Hashable,
+    List,
+    Optional,
+    Sequence,
+    Set,
+    Union,
+    TYPE_CHECKING,
+)
 
 from cirq import circuits, ops, protocols
 from cirq.circuits.circuit import CIRCUIT_TYPE
@@ -275,8 +286,16 @@ def merge_operations(
                     ).with_tags(*op.tags, _circuit_op_tag)
                 )
                 continue
+
+            op_ck = set(op.classical_controls)
+
+            def get_idx(op_qs: Set['cirq.Qid']):
+                op = ops.identity_each(*op_qs).with_classical_controls(*op_ck)
+                idx = ret_circuit.earliest_available_moment(op) - 1
+                return idx if (idx >= 0 and ret_circuit[idx].operates_on(op_qs)) else None
+
             op_qs = set(op.qubits)
-            idx = ret_circuit.prev_moment_operating_on(tuple(op_qs))
+            idx = get_idx(op_qs)
             if idx is not None and op_qs.issubset(ret_circuit[idx][op_qs].operations[0].qubits):
                 # Case-1: Try to merge op with the larger operation on the left.
                 left_op = ret_circuit[idx][op_qs].operations[0]
@@ -299,7 +318,7 @@ def merge_operations(
                             op, is_merged = new_op, True
                     if not is_merged:
                         op_qs -= frozenset(left_op.qubits)
-                idx = ret_circuit.prev_moment_operating_on(tuple(op_qs))
+                idx = get_idx(op_qs)
             new_moment = new_moment.with_operation(op)
         ret_circuit += new_moment
     if deep:
