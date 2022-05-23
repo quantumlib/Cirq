@@ -143,6 +143,7 @@ def _class_resolver_dictionary() -> Dict[str, ObjectFactory]:
         'ParamResolver': cirq.ParamResolver,
         'ParallelGate': cirq.ParallelGate,
         'ParallelGateFamily': cirq.ParallelGateFamily,
+        'PauliInteractionGate': cirq.PauliInteractionGate,
         'PauliMeasurementGate': cirq.PauliMeasurementGate,
         'PauliString': cirq.PauliString,
         'PauliStringPhasor': cirq.PauliStringPhasor,
