@@ -633,7 +633,8 @@ class Operation(metaclass=abc.ABCMeta):
         If no conditions are specified, returns self.
 
         The classical control will remove any tags on the existing operation,
-        since tagged operations are considered to be immutable.
+        since tags are fragile, and we always opt to get rid of the tags when
+        the underlying operation is changed.
 
         Args:
             *conditions: A list of measurement keys, strings that can be parsed
@@ -660,9 +661,8 @@ class Operation(metaclass=abc.ABCMeta):
         If there are no classical controls on the operation, it will return
         `self`.
 
-        Since tagged operations are considered to be immutable, this will also
-        remove any tags from the operation, when called on ``TaggedOperation`
-        (unless there are no classical controls on it).
+        Since tags are fragile, this will also remove any tags from the operation,
+        when called on `TaggedOperation` (unless there are no classical controls on it).
         If a `TaggedOperation` is under all the classical control layers,
         that `TaggedOperation` will be returned from this function.
 
