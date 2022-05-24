@@ -42,9 +42,4 @@ landing_page:
 
     - heading: ReCirq Experiments
       description: Research experiments that use additional library code reside in the external ReCirq repository.
-      items:
-      - heading: Research with Cirq
-        description: Guidelines for performing research with Cirq.
-        path: /cirq/experiments/index.md
-        icon:
-          name: menu_book
+    - include: /cirq/experiments/_index_included.yaml

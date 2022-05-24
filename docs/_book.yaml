@@ -196,6 +196,7 @@ upper_tabs:
         path: /cirq/tutorials/fourier_checking
       - title: "Hidden Linear Function problem"
         path: /cirq/tutorials/hidden_linear_function
+      - heading: "Algorithms in ReCirq"
       - include: /cirq/experiments/_toc.yaml
 
     - name: "Contribute"
