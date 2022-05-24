@@ -48,7 +48,11 @@ def drop_negligible_operations(
 
     def map_func(op: 'cirq.Operation', _: int) -> 'cirq.OP_TREE':
         return (
-            op if protocols.is_measurement(op) or protocols.trace_distance_bound(op) > atol else []
+            op
+            if protocols.num_qubits(op) > 10
+            or protocols.is_measurement(op)
+            or protocols.trace_distance_bound(op) > atol
+            else []
         )
 
     return transformer_primitives.map_operations(
