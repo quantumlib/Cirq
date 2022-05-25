@@ -88,11 +88,8 @@ class Duration:
             else:
                 raise TypeError(f'Not a `cirq.DURATION_LIKE`: {repr(value)}.')
 
-        self._picos: Union[float, int, sympy.Expr] = (
-            picos + nanos * 1000 + micros * 1000_000 + millis * 1000_000_000
-        )
-        if isinstance(self._picos, np.number):
-            self._picos = float(self._picos)
+        val = picos + nanos * 1000 + micros * 1000_000 + millis * 1000_000_000
+        self._picos: _NUMERIC_OUTPUT_TYPE = float(val) if isinstance(val, np.number) else val
 
     def _is_parameterized_(self) -> bool:
         return protocols.is_parameterized(self._picos)

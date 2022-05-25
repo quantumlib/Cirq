@@ -14,7 +14,7 @@
 """Provides test devices that can validate circuits."""
 from typing import Tuple, AbstractSet, cast
 
-from cirq import devices, ops, protocols
+from cirq import devices, ops
 
 
 class ValidatingTestDevice(devices.Device):
@@ -65,11 +65,6 @@ class ValidatingTestDevice(devices.Device):
                 p, q = operation.qubits
                 if not cast(devices.GridQubit, p).is_adjacent(q):
                     raise ValueError(f'Non-local interaction: {operation!r}.')
-
-    def decompose_operation(self, operation: 'ops.Operation') -> 'ops.OP_TREE':
-        if isinstance(operation.gate, self.auto_decompose_gates):
-            return protocols.decompose(operation)
-        return operation
 
     def __repr__(self):
         return self._repr

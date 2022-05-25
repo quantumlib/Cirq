@@ -18,10 +18,12 @@ def _check_qids_dimension(qids):
 
 @value.value_equality(approximate=True)
 class ProjectorString:
+    """Mapping of `cirq.Qid` to measurement values (with a coefficient) representing a projector."""
+
     def __init__(
         self, projector_dict: Dict[raw_types.Qid, int], coefficient: Union[int, float, complex] = 1
     ):
-        """Contructor for ProjectorString
+        """Constructor for ProjectorString
 
         Args:
             projector_dict: A python dictionary mapping from cirq.Qid to integers. A key value pair

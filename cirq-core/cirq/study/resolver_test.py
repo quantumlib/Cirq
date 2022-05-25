@@ -156,27 +156,13 @@ def test_param_dict_iter():
 
 
 def test_formulas_in_param_dict():
-    """Test formulas in a `param_dict`.
-
-    Param dicts are allowed to have str or sympy.Symbol as keys and
-    floats or sympy.Symbol as values.  This should not be a common use case,
-    but this tests makes sure something reasonable is returned when
-    mixing these types and using formulas in ParamResolvers.
-
-    Note that sympy orders expressions for deterministic resolution, so
-    depending on the operands sent to sub(), the expression may not fully
-    resolve if it needs to take several iterations of resolution.
-    """
+    """Tests that formula keys are rejected in a `param_dict`."""
     a = sympy.Symbol('a')
     b = sympy.Symbol('b')
     c = sympy.Symbol('c')
     e = sympy.Symbol('e')
-    r = cirq.ParamResolver({a: b + 1, b: 2, b + c: 101, 'd': 2 * e})
-    assert sympy.Eq(r.value_of('a'), 3)
-    assert sympy.Eq(r.value_of('b'), 2)
-    assert sympy.Eq(r.value_of(b + c), 101)
-    assert sympy.Eq(r.value_of('c'), c)
-    assert sympy.Eq(r.value_of('d'), 2 * e)
+    with pytest.raises(TypeError, match='formula'):
+        _ = cirq.ParamResolver({a: b + 1, b: 2, b + c: 101, 'd': 2 * e})
 
 
 def test_recursive_evaluation():
