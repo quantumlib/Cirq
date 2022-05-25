@@ -553,7 +553,7 @@ def test_deprecated_create_act_on_args():
             pass
 
     sim = DeprecatedSim()
-    with cirq.testing.assert_deprecated(deadline='v0.16'):
+    with cirq.testing.assert_deprecated(deadline='v0.16', count=2):
         sim.simulate_moment_steps(cirq.Circuit())
 
 

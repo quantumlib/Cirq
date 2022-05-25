@@ -665,12 +665,6 @@ class SimulatesIntermediateState(
     ) -> Iterator[TStepResult]:
         """Iterator over StepResult from Moments of a Circuit.
 
-        This is a thin wrapper around `create_act_on_args` and `_core_iterator`.
-        Overriding this method was the old way of creating a circuit iterator,
-        and this method is planned to be formally put on the deprecation path.
-        Going forward, override the aforementioned two methods in custom
-        simulators.
-
         Args:
             circuit: The circuit to simulate.
             qubit_order: Determines the canonical ordering of the qubits. This
@@ -683,6 +677,19 @@ class SimulatesIntermediateState(
         Yields:
             StepResults from simulating a Moment of the Circuit.
         """
+        # In 0.16 (or 1.0) _base_iterator should be made abstract. Then _create_simulation_state,
+        # _create_act_on_args, and _core_iterator can all be removed from this class completely.
+        # (They were only required because of this implementation, which has been moved to
+        # SimulatorBase instead).
+        _compat._warn_or_error(
+            'Custom implementations of `cirq.SimulatesIntermediateState` should inherit from'
+            ' `cirq.SimulatorBase` instead, to get a richer feature set. If inheriting from'
+            ' `cirq.SimulatorBase` is not desired, the custom implementation of'
+            ' `cirq.SimulatesIntermediateState` should implement `_base_iterator` directly rather'
+            ' than implementing both `_create_simulation_state` and `_core_iterator`.  The default'
+            ' implementation of `_base_iterator` will be removed in v0.16, and the method will'
+            ' become abstract.'
+        )
         qubits = ops.QubitOrder.as_qubit_order(qubit_order).order_for(circuit.all_qubits())
         sim_state = self._create_simulation_state(initial_state, qubits)
         return self._core_iterator(circuit, sim_state)

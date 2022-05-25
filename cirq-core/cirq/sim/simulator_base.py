@@ -210,6 +210,16 @@ class SimulatorBase(
             `_run` prefix."""
         return protocols.has_unitary(val)
 
+    def _base_iterator(
+        self,
+        circuit: 'cirq.AbstractCircuit',
+        qubit_order: 'cirq.QubitOrderOrList',
+        initial_state: Any,
+    ) -> Iterator[TStepResultBase]:
+        qubits = ops.QubitOrder.as_qubit_order(qubit_order).order_for(circuit.all_qubits())
+        sim_state = self._create_simulation_state(initial_state, qubits)
+        return self._core_iterator(circuit, sim_state)
+
     def _core_iterator(
         self,
         circuit: 'cirq.AbstractCircuit',
