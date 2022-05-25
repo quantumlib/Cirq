@@ -270,10 +270,11 @@ def merge_operations(
     qubit_indexes: Dict['cirq.Qid', List[int]] = defaultdict(lambda: [-1])
     mkey_indexes: Dict['cirq.MeasurementKey', List[int]] = defaultdict(lambda: [-1])
     ckey_indexes: Dict['cirq.MeasurementKey', List[int]] = defaultdict(lambda: [-1])
-    new_ops_by_index: List[Set['cirq.Operation']] = []
+    # Need a dict instead of set to preserve insertion order.
+    new_ops_by_index: List[Dict['cirq.Operation', int]] = []
 
     def add_op_to_moment(i: int, op: 'cirq.Operation') -> None:
-        new_ops_by_index[i].add(op)
+        new_ops_by_index[i][op] = 0
         for q in op.qubits:
             if i > qubit_indexes[q][-1]:
                 qubit_indexes[q].append(i)
@@ -285,7 +286,7 @@ def merge_operations(
             bisect.insort(ckey_indexes[ckey], i)
 
     def remove_op_from_moment(i: int, op: 'cirq.Operation') -> None:
-        new_ops_by_index[i].remove(op)
+        new_ops_by_index[i].pop(op)
         for q in op.qubits:
             if qubit_indexes[q][-1] == i:
                 qubit_indexes[q].pop()
@@ -297,7 +298,7 @@ def merge_operations(
             ckey_indexes[ckey].remove(i)
 
     for moment_idx, current_moment in enumerate(cast(List['cirq.Moment'], circuit)):
-        new_ops_by_index.append(set({}))
+        new_ops_by_index.append({})
         for op in sorted(current_moment.operations, key=lambda op: op.qubits):
             if (
                 deep
