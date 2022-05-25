@@ -33,11 +33,33 @@ from cirq.devices import noise_utils
 from cirq_google import engine
 from cirq_google import ops as cg_ops
 from cirq_google.devices import google_noise_properties
+from cirq_google.engine import util
 
 if TYPE_CHECKING:
     import cirq
 
-_ZPhaseData = Dict[str, Dict[str, Dict[Tuple[ops.Qid, ...], float]]]
+
+# TODO: acquire this based on the target device.
+# Default map of gates to their durations.
+DEFAULT_GATE_NS: Dict[Type['cirq.Gate'], float] = {
+    ops.ZPowGate: 25.0,
+    ops.MeasurementGate: 4000.0,
+    ops.ResetChannel: 250.0,
+    ops.PhasedXZGate: 25.0,
+    ops.FSimGate: 32.0,
+    ops.ISwapPowGate: 32.0,
+    ops.CZPowGate: 32.0,
+    cg_ops.SycamoreGate: 12.0,
+    # ops.WaitGate is a special case.
+}
+GATE_PREFIX_PAIRS: Dict[Type['cirq.Gate'], str] = {
+    cg_ops.SycamoreGate: 'two_qubit_parallel_sycamore_gate',
+    ops.ISwapPowGate: 'two_qubit_parallel_sqrt_iswap_gate',
+}
+GATE_ZPHASE_CODE_PAIRS: Dict[Type['cirq.Gate'], str] = {
+    cg_ops.SycamoreGate: 'syc',
+    ops.ISwapPowGate: 'sqrt_iswap',
+}
 
 
 def _unpack_1q_from_calibration(
@@ -65,7 +87,9 @@ def _unpack_2q_from_calibration(
 
 
 def noise_properties_from_calibration(
-    calibration: engine.Calibration, zphase_data: Optional[_ZPhaseData] = None
+    calibration: engine.Calibration,
+    zphase_data: Optional[util.ZPhaseDataType] = None,
+    gate_times_ns: Optional[Dict[Type['cirq.Gate'], float]] = None,
 ) -> google_noise_properties.GoogleNoiseProperties:
     """Translates between `cirq_google.Calibration` and NoiseProperties.
 
@@ -90,20 +114,8 @@ def noise_properties_from_calibration(
         A `cirq_google.GoogleNoiseProperties` which represents the error
         present in the given Calibration object.
     """
-
-    # TODO: acquire this based on the target device.
-    # Default map of gates to their durations.
-    default_gate_ns: Dict[Type['cirq.Gate'], float] = {
-        ops.ZPowGate: 25.0,
-        ops.MeasurementGate: 4000.0,
-        ops.ResetChannel: 250.0,
-        ops.PhasedXZGate: 25.0,
-        ops.FSimGate: 32.0,
-        ops.ISwapPowGate: 32.0,
-        ops.CZPowGate: 32.0,
-        cg_ops.SycamoreGate: 12.0,
-        # ops.WaitGate is a special case.
-    }
+    if gate_times_ns is None:
+        gate_times_ns = DEFAULT_GATE_NS
 
     # Unpack all values from Calibration object
     # 1. Extract T1 for all qubits
@@ -116,7 +128,7 @@ def noise_properties_from_calibration(
     )
     tphi_ns = {}
     if rb_incoherent_errors:
-        microwave_time_ns = default_gate_ns[ops.PhasedXZGate]
+        microwave_time_ns = gate_times_ns[ops.PhasedXZGate]
         for qubit, q_t1_ns in t1_ns.items():
             tphi_err = rb_incoherent_errors[qubit] - microwave_time_ns / (3 * q_t1_ns)
             q_tphi_ns = 1e10 if tphi_err <= 0 else microwave_time_ns / (3 * tphi_err)
@@ -133,11 +145,7 @@ def noise_properties_from_calibration(
     }
 
     # 3b. Extract Pauli error for two-qubit gates.
-    gate_prefix_pairs: Dict[Type['cirq.Gate'], str] = {
-        cg_ops.SycamoreGate: 'two_qubit_parallel_sycamore_gate',
-        ops.ISwapPowGate: 'two_qubit_parallel_sqrt_iswap_gate',
-    }
-    for gate, prefix in gate_prefix_pairs.items():
+    for gate, prefix in GATE_PREFIX_PAIRS.items():
         pauli_error = _unpack_2q_from_calibration(
             prefix + '_xeb_pauli_error_per_cycle', calibration
         )
@@ -161,18 +169,14 @@ def noise_properties_from_calibration(
 
     # 5. Extract entangling angle errors.
     fsim_errors = {}
-    gate_zphase_code_pairs: Dict[Type['cirq.Gate'], str] = {
-        cg_ops.SycamoreGate: 'syc',
-        ops.ISwapPowGate: 'sqrt_iswap',
-    }
-    for gate, prefix in gate_prefix_pairs.items():
+    for gate, prefix in GATE_PREFIX_PAIRS.items():
         theta_errors = _unpack_2q_from_calibration(
             prefix + '_xeb_entangler_theta_error_per_cycle', calibration
         )
         phi_errors = _unpack_2q_from_calibration(
             prefix + '_xeb_entangler_phi_error_per_cycle', calibration
         )
-        gate_str = gate_zphase_code_pairs[gate]
+        gate_str = GATE_ZPHASE_CODE_PAIRS[gate]
         if zphase_data and gate_str in zphase_data:
             zeta_errors = zphase_data[gate_str]["zeta"]
             gamma_errors = zphase_data[gate_str]["gamma"]
@@ -198,7 +202,7 @@ def noise_properties_from_calibration(
 
     # Known false positive: https://github.com/PyCQA/pylint/issues/5857
     return google_noise_properties.GoogleNoiseProperties(  # pylint: disable=unexpected-keyword-arg
-        gate_times_ns=default_gate_ns,
+        gate_times_ns=gate_times_ns,
         t1_ns=t1_ns,
         tphi_ns=tphi_ns,
         readout_errors=readout_errors,

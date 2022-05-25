@@ -13,7 +13,7 @@
 # limitations under the License.
 
 import inspect
-from typing import TypeVar
+from typing import Dict, Tuple, TypeVar
 
 from google.protobuf import any_pb2
 from google.protobuf.message import Message
@@ -21,6 +21,14 @@ from google.protobuf.message import Message
 import cirq
 
 M = TypeVar('M', bound=Message)
+
+# Bundled Z phase errors in the format:
+#
+#   {gate_type: {angle_type: {qubit_pair: error}}}
+#
+# where gate_type is "syc" or "sqrt_iswap", angle_type is "zeta" or "gamma",
+# and "qubit_pair" is a tuple of qubits.
+ZPhaseDataType = Dict[str, Dict[str, Dict[Tuple[cirq.Qid, ...], float]]]
 
 
 def pack_any(message: Message) -> any_pb2.Any:

@@ -21,7 +21,7 @@ import time
 import google.protobuf.text_format as text_format
 import cirq
 from cirq_google.api import v2
-from cirq_google.engine import calibration, engine_validator, simulated_local_processor
+from cirq_google.engine import calibration, engine_validator, simulated_local_processor, util
 from cirq_google.devices import serializable_device
 from cirq_google.serialization.gate_sets import FSIM_GATESET
 from cirq_google.serialization import serializable_gate_set
@@ -43,7 +43,7 @@ MEDIAN_CALIBRATION_TIMESTAMPS = {
     'weber': 1635923188204,  # 2021-11-03 07:06:28.204 UTC
 }
 
-ZPHASE_DATA = {'rainbow': 'rainbow_zphase.json', 'weber': 'weber_zphase.json'}
+ZPHASE_DATA = {'rainbow': 'rainbow_2021_08_26_zphase.json', 'weber': 'weber_2021_04_20_zphase.json'}
 
 METRICS_1Q = [
     'single_qubit_p00_error',
@@ -126,17 +126,16 @@ def load_median_device_calibration(processor_id: str) -> calibration.Calibration
     return cal
 
 
-def load_sample_device_zphase(
-    processor_id: str,
-) -> Dict[str, Dict[str, Dict[Tuple[cirq.Qid, ...], float]]]:
+def load_sample_device_zphase(processor_id: str) -> util.ZPhaseDataType:
     """Loads sample Z phase errors for the given device.
-
-    Output is of the form {gate_type: {angle_type: {qubit_pair: error}}},
-    where gate_type is "syc" or "sqrt_iswap", angle_type is "zeta" or "gamma",
-    and "qubit_pair" is a tuple of qubits.
 
     Args:
         processor_id: name of the processor to simulate.
+
+    Returns:
+        Z phases in the form {gate_type: {angle_type: {qubit_pair: error}}},
+        where gate_type is "syc" or "sqrt_iswap", angle_type is "zeta" or
+        "gamma", and "qubit_pair" is a tuple of qubits.
 
     Raises:
         ValueError: if processor_id is not a supported QCS processor.
