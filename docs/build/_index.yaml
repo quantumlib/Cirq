@@ -39,7 +39,7 @@ landing_page:
       description: More elaborate ways to build quantum circuits.
       items:
       - heading: Operators
-        description: Operations, measurements and noise channels.
+        description: Operators, measurements and noise channels.
         path: /cirq/operators
         icon:
           name: menu_book
