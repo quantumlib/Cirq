@@ -109,6 +109,8 @@ def noise_properties_from_calibration(
         zphase_data: Optional data for Z phases not captured by Calibration -
             specifically, zeta and gamma. These values require Floquet
             calibration and can be provided here if available.
+        gate_times_ns: Map of gate durations in nanoseconds. If not provided,
+            defaults to the Sycamore gate times listed in `known_devices.py`.
 
     Returns:
         A `cirq_google.GoogleNoiseProperties` which represents the error
