@@ -397,9 +397,7 @@ class SimulatorBase(
             )
 
 
-class StepResultBase(
-    Generic[TSimulationState], StepResult[SimulationStateBase[TSimulationState]], abc.ABC
-):
+class StepResultBase(Generic[TSimulationState], StepResult[SimulationStateBase[TSimulationState]]):
     """A base class for step results."""
 
     def __init__(self, sim_state: SimulationStateBase[TSimulationState]):
@@ -435,7 +433,7 @@ class StepResultBase(
 
 
 class SimulationTrialResultBase(
-    SimulationTrialResult[SimulationStateBase[TSimulationState]], Generic[TSimulationState], abc.ABC
+    SimulationTrialResult[SimulationStateBase[TSimulationState]], Generic[TSimulationState]
 ):
     """A base class for trial results."""
 

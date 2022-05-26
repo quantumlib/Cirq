@@ -11,14 +11,91 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import abc
 import math
-from typing import Any, Dict, List, Sequence, Tuple
+from typing import Any, Dict, Generic, List, Sequence, Tuple, TypeVar
 
 import numpy as np
 import pytest
 import sympy
 
 import cirq
+from cirq.qis.clifford_tableau import TSelf
+
+TSimulationState = TypeVar('TSimulationState', bound=cirq.SimulationState)
+
+
+class BasicSimulator(
+    cirq.SimulatorBase[
+        cirq.StepResultBase[TSimulationState],
+        cirq.SimulationTrialResultBase[TSimulationState],
+        TSimulationState,
+    ],
+    Generic[TSimulationState],
+    abc.ABC,
+):
+    def _create_simulator_trial_result(
+        self,
+        params: cirq.ParamResolver,
+        measurements: Dict[str, np.ndarray],
+        final_simulator_state: 'cirq.SimulationStateBase[TSimulationState]',
+    ) -> cirq.SimulationTrialResultBase[TSimulationState]:
+        return cirq.SimulationTrialResultBase(
+            params, measurements, final_simulator_state=final_simulator_state
+        )
+
+    def _create_step_result(
+        self, sim_state: cirq.SimulationStateBase[TSimulationState]
+    ) -> cirq.StepResultBase[TSimulationState]:
+        return cirq.StepResultBase(sim_state)
+
+
+class BasisState(cirq.qis.QuantumStateRepresentation):
+    def __init__(self, initial_state):
+        self.state = initial_state
+
+    def copy(self: TSelf, deep_copy_buffers: bool = True) -> TSelf:
+        return BasisState(self.state)
+
+    def measure(self, axes: Sequence[int], seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None):
+        return [self.state[i] for i in axes]
+
+
+class BasisSimState(cirq.SimulationState[BasisState]):
+    def __init__(self, initial_state, qubits, classical_data):
+        initial_state = cirq.big_endian_int_to_bits(initial_state, bit_count=len(qubits))
+        super().__init__(
+            state=BasisState(initial_state), qubits=qubits, classical_data=classical_data
+        )
+
+    def _act_on_fallback_(
+        self, action: Any, qubits: Sequence['cirq.Qid'], allow_decompose: bool = True
+    ) -> bool:
+        gate = action.gate if isinstance(action, cirq.Operation) else action
+        if isinstance(gate, cirq.XPowGate):
+            i = self.qubit_map[qubits[0]]
+            self._state.state[i] = 1 - self._state.state[i]
+            return True
+        return NotImplemented
+
+
+class BasisSimulator(BasicSimulator[BasisSimState]):
+    def _create_partial_simulation_state(
+        self,
+        initial_state: Any,
+        qubits: Sequence['cirq.Qid'],
+        classical_data: cirq.ClassicalDataStore,
+    ) -> BasisSimState:
+        return BasisSimState(initial_state, qubits, classical_data)
+
+
+def test_state():
+    q0, q1 = cirq.LineQubit.range(2)
+    sim = BasisSimulator()
+    c = cirq.Circuit(cirq.X(q0), cirq.X(q1), cirq.measure(q0))
+    r = sim.simulate(c)
+    print(r._final_simulator_state._state.state)
+    print(r.measurements)
 
 
 class CountingState(cirq.qis.QuantumStateRepresentation):
