@@ -11,41 +11,15 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-import abc
 import math
-from typing import Any, Dict, Generic, List, Sequence, Tuple
+from typing import Any, Dict, List, Sequence, Tuple
 
 import numpy as np
 import pytest
 import sympy
 
 import cirq
-from cirq.sim.simulation_state import TSimulationState
-
-
-class ThirdPartySimulatorBase(
-    cirq.SimulatorBase[
-        cirq.StepResultBase[TSimulationState],
-        cirq.SimulationTrialResultBase[TSimulationState],
-        TSimulationState,
-    ],
-    Generic[TSimulationState],
-    abc.ABC,
-):
-    def _create_simulator_trial_result(
-        self,
-        params: cirq.ParamResolver,
-        measurements: Dict[str, np.ndarray],
-        final_simulator_state: 'cirq.SimulationStateBase[TSimulationState]',
-    ) -> cirq.SimulationTrialResultBase[TSimulationState]:
-        return cirq.SimulationTrialResultBase(
-            params, measurements, final_simulator_state=final_simulator_state
-        )
-
-    def _create_step_result(
-        self, sim_state: cirq.SimulationStateBase[TSimulationState]
-    ) -> cirq.StepResultBase[TSimulationState]:
-        return cirq.StepResultBase(sim_state)
+from cirq.sim.simulator_base import ThirdPartySimulatorBase
 
 
 class BasisState(cirq.qis.QuantumStateRepresentation):

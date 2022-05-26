@@ -482,3 +482,28 @@ class SimulationTrialResultBase(
         if self._merged_sim_state_cache is None:
             self._merged_sim_state_cache = self._final_simulator_state.create_merged_state()
         return self._merged_sim_state_cache
+
+
+class ThirdPartySimulatorBase(
+    SimulatorBase[
+        StepResultBase[TSimulationState],
+        SimulationTrialResultBase[TSimulationState],
+        TSimulationState,
+    ],
+    Generic[TSimulationState],
+    abc.ABC,
+):
+    def _create_simulator_trial_result(
+        self,
+        params: 'cirq.ParamResolver',
+        measurements: Dict[str, np.ndarray],
+        final_simulator_state: 'cirq.SimulationStateBase[TSimulationState]',
+    ) -> 'cirq.SimulationTrialResultBase[TSimulationState]':
+        return SimulationTrialResultBase(
+            params, measurements, final_simulator_state=final_simulator_state
+        )
+
+    def _create_step_result(
+        self, sim_state: 'cirq.SimulationStateBase[TSimulationState]'
+    ) -> 'cirq.StepResultBase[TSimulationState]':
+        return StepResultBase(sim_state)
