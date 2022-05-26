@@ -141,12 +141,12 @@ def measure_each(
     return [MeasurementGate(1, key_func(q), qid_shape=(q.dimension,)).on(q) for q in qubits]
 
 
-def _flatten_recursively(items: Iterable[Any], keep: Optional[Tuple[type]]) -> Iterable[Any]:
+def _flatten_recursively(items: Iterable[Any], keep: Optional[Tuple[type, ...]]) -> Iterable[Any]:
     for item in items:
         if keep is not None and isinstance(item, keep):
             yield item
         elif isinstance(item, Iterable):
-            for subitem in _flatten_recursively(item, keep):
+            for subitem in _flatten_recursively(item, keep=keep):
                 yield subitem
         else:
             yield item
