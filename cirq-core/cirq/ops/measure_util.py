@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Callable, Iterable, List, Optional, Tuple, TYPE_CHECKING, Union
+from typing import Any, Callable, Iterable, List, Optional, Tuple, TYPE_CHECKING, Union
 
 import numpy as np
 
@@ -82,7 +82,7 @@ def measure_paulistring_terms(
 
 
 def measure(
-    *target: 'cirq.Qid',
+    *target: Union[raw_types.Qid, Iterable[Any]],
     key: Optional[Union[str, 'cirq.MeasurementKey']] = None,
     invert_mask: Tuple[bool, ...] = (),
 ) -> raw_types.Operation:
@@ -92,6 +92,8 @@ def measure(
 
     Args:
         *target: The qubits that the measurement gate should measure.
+            This can be provided as variable-length arguments or
+            a combination of nested iterables.
         key: The string key of the measurement. If this is None, it defaults
             to a comma-separated list of the target qubits' str values.
         invert_mask: A list of Truthy or Falsey values indicating whether
@@ -104,7 +106,8 @@ def measure(
     Raises:
         ValueError: If the qubits are not instances of Qid.
     """
-    for qubit in target:
+    targetlist: List[raw_types.Qid] = []
+    for qubit in _flatten_recursively(target, keep=(bytes, str, np.ndarray)):
         if isinstance(qubit, np.ndarray):
             raise ValueError(
                 'measure() was called a numpy ndarray. Perhaps you meant '
@@ -112,11 +115,12 @@ def measure(
             )
         elif not isinstance(qubit, raw_types.Qid):
             raise ValueError('measure() was called with type different than Qid.')
+        targetlist.append(qubit)
 
     if key is None:
-        key = _default_measurement_key(target)
-    qid_shape = protocols.qid_shape(target)
-    return MeasurementGate(len(target), key, invert_mask, qid_shape).on(*target)
+        key = _default_measurement_key(targetlist)
+    qid_shape = protocols.qid_shape(targetlist)
+    return MeasurementGate(len(targetlist), key, invert_mask, qid_shape).on(*targetlist)
 
 
 def measure_each(
@@ -135,3 +139,14 @@ def measure_each(
         A list of operations individually measuring the given qubits.
     """
     return [MeasurementGate(1, key_func(q), qid_shape=(q.dimension,)).on(q) for q in qubits]
+
+
+def _flatten_recursively(items: Iterable[Any], keep: Optional[Tuple[type]]) -> Iterable[Any]:
+    for item in items:
+        if keep is not None and isinstance(item, keep):
+            yield item
+        elif isinstance(item, Iterable):
+            for subitem in _flatten_recursively(item, keep):
+                yield subitem
+        else:
+            yield item

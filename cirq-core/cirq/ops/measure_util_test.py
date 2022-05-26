@@ -18,7 +18,6 @@ import pytest
 import cirq
 
 
-@pytest.mark.xfail(reason='wip - test cirq.measure with iterable argument')
 def test_measure_qubits():
     a = cirq.NamedQubit('a')
     b = cirq.NamedQubit('b')
