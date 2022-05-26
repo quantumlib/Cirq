@@ -13,19 +13,17 @@
 # limitations under the License.
 import abc
 import math
-from typing import Any, Dict, Generic, List, Sequence, Tuple, TypeVar
+from typing import Any, Dict, Generic, List, Sequence, Tuple
 
 import numpy as np
 import pytest
 import sympy
 
 import cirq
-from cirq.qis.clifford_tableau import TSelf
-
-TSimulationState = TypeVar('TSimulationState', bound=cirq.SimulationState)
+from cirq.sim.simulation_state import TSimulationState
 
 
-class BasicSimulator(
+class ThirdPartySimulatorBase(
     cirq.SimulatorBase[
         cirq.StepResultBase[TSimulationState],
         cirq.SimulationTrialResultBase[TSimulationState],
@@ -51,13 +49,15 @@ class BasicSimulator(
 
 
 class BasisState(cirq.qis.QuantumStateRepresentation):
-    def __init__(self, initial_state):
+    def __init__(self, initial_state: List[int]):
         self.state = initial_state
 
-    def copy(self: TSelf, deep_copy_buffers: bool = True) -> TSelf:
+    def copy(self, deep_copy_buffers: bool = True) -> 'BasisState':
         return BasisState(self.state)
 
-    def measure(self, axes: Sequence[int], seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None):
+    def measure(
+        self, axes: Sequence[int], seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None
+    ) -> List[int]:
         return [self.state[i] for i in axes]
 
 
@@ -79,7 +79,7 @@ class BasisSimState(cirq.SimulationState[BasisState]):
         return NotImplemented
 
 
-class BasisSimulator(BasicSimulator[BasisSimState]):
+class BasisSimulator(ThirdPartySimulatorBase[BasisSimState]):
     def _create_partial_simulation_state(
         self,
         initial_state: Any,
