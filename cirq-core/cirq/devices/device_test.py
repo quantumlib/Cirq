@@ -3,16 +3,6 @@ import networkx as nx
 import cirq
 
 
-def test_decompose_operation_deprecated():
-    q0 = cirq.GridQubit(0, 0)
-
-    class RawDevice(cirq.Device):
-        pass
-
-    with cirq.testing.assert_deprecated('decompose', deadline='v0.15'):
-        RawDevice().decompose_operation(cirq.H(q0))
-
-
 def test_device_metadata():
     class RawDevice(cirq.Device):
         pass

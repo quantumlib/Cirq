@@ -90,12 +90,6 @@ class IonQAPIDevice(cirq.Device):
     def is_api_gate(self, operation: cirq.Operation) -> bool:
         return operation in _VALID_GATES
 
-    @_compat.deprecated(
-        fix='Use cirq_ionq.decompose_to_device operation instead.', deadline='v0.15'
-    )
-    def decompose_operation(self, operation: cirq.Operation) -> cirq.OP_TREE:
-        return decompose_to_device(operation)
-
 
 def decompose_to_device(operation: cirq.Operation, atol: float = 1e-8) -> cirq.OP_TREE:
     """Decompose operation to ionq native operations.
