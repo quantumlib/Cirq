@@ -218,6 +218,9 @@ class ConstantQubitNoiseModel(NoiseModel):
         Args:
             qubit_noise_gate: The "noise" gate to use.
             prepend: If True, put noise before affected gates. Default: False.
+
+        Raises:
+            ValueError: if qubit_noise_gate is not a single-qubit gate.
         """
         if qubit_noise_gate.num_qubits() != 1:
             raise ValueError('noise.num_qubits() != 1')
