@@ -16,6 +16,8 @@
 
 from collections import defaultdict
 import bisect
+import dataclasses
+
 from typing import (
     cast,
     Callable,
@@ -199,6 +201,80 @@ def map_operations_and_unroll(
     )
 
 
+@dataclasses.dataclass
+class _MergedCircuit:
+    """An optimized internal representation of a circuit, tailored for `cirq.merge_operations`
+
+    Attributes:
+        qubit_indexes: Mapping from qubits to (sorted) list of moment indexes containing operations
+            acting on the qubit.
+        mkey_indexes: Mapping from measurement keys to (sorted) list of moment indexes containing
+            measurement operations with the same key.
+        ckey_indexes: Mapping from measurement keys to (sorted) list of moment indexes containing
+            classically controlled operations controlled on the same key.
+        ops_by_index: List of circuit moments containing operations. We use a dictionary instead
+            of a set to store operations to preserve insertion order.
+    """
+
+    qubit_indexes: Dict['cirq.Qid', List[int]] = dataclasses.field(
+        default_factory=lambda: defaultdict(lambda: [-1])
+    )
+    mkey_indexes: Dict['cirq.MeasurementKey', List[int]] = dataclasses.field(
+        default_factory=lambda: defaultdict(lambda: [-1])
+    )
+    ckey_indexes: Dict['cirq.MeasurementKey', List[int]] = dataclasses.field(
+        default_factory=lambda: defaultdict(lambda: [-1])
+    )
+    ops_by_index: List[Dict['cirq.Operation', int]] = dataclasses.field(default_factory=list)
+
+    def append_empty_moment(self) -> None:
+        self.ops_by_index.append({})
+
+    def add_op_to_moment(self, moment_index: int, op: 'cirq.Operation') -> None:
+        self.ops_by_index[moment_index][op] = 0
+        for q in op.qubits:
+            if moment_index > self.qubit_indexes[q][-1]:
+                self.qubit_indexes[q].append(moment_index)
+            else:
+                bisect.insort(self.qubit_indexes[q], moment_index)
+        for mkey in protocols.measurement_key_objs(op):
+            bisect.insort(self.mkey_indexes[mkey], moment_index)
+        for ckey in protocols.control_keys(op):
+            bisect.insort(self.ckey_indexes[ckey], moment_index)
+
+    def remove_op_from_moment(self, moment_index: int, op: 'cirq.Operation') -> None:
+        self.ops_by_index[moment_index].pop(op)
+        for q in op.qubits:
+            if self.qubit_indexes[q][-1] == moment_index:
+                self.qubit_indexes[q].pop()
+            else:
+                self.qubit_indexes[q].remove(moment_index)
+        for mkey in protocols.measurement_key_objs(op):
+            self.mkey_indexes[mkey].remove(moment_index)
+        for ckey in protocols.control_keys(op):
+            self.ckey_indexes[ckey].remove(moment_index)
+
+    def get_mergeable_ops(
+        self, op: 'cirq.Operation', op_qs: Set['cirq.Qid']
+    ) -> Tuple[int, List['cirq.Operation']]:
+        # Find the index of previous moment which can be merged with `op`.
+        idx = max([self.qubit_indexes[q][-1] for q in op_qs], default=-1)
+        idx = max([idx] + [self.mkey_indexes[ckey][-1] for ckey in protocols.control_keys(op)])
+        idx = max(
+            [idx] + [self.ckey_indexes[mkey][-1] for mkey in protocols.measurement_key_objs(op)]
+        )
+        # Return the set of overlapping ops in moment with index `idx`.
+        if idx == -1:
+            return idx, []
+
+        return idx, [
+            left_op for left_op in self.ops_by_index[idx] if not op_qs.isdisjoint(left_op.qubits)
+        ]
+
+    def get_cirq_circuit(self) -> 'cirq.Circuit':
+        return circuits.Circuit(circuits.Moment(m.keys()) for m in self.ops_by_index)
+
+
 def merge_operations(
     circuit: CIRCUIT_TYPE,
     merge_func: Callable[[ops.Operation, ops.Operation], Optional[ops.Operation]],
@@ -267,38 +343,9 @@ def merge_operations(
             )
         return new_op
 
-    qubit_indexes: Dict['cirq.Qid', List[int]] = defaultdict(lambda: [-1])
-    mkey_indexes: Dict['cirq.MeasurementKey', List[int]] = defaultdict(lambda: [-1])
-    ckey_indexes: Dict['cirq.MeasurementKey', List[int]] = defaultdict(lambda: [-1])
-    # Need a dict instead of set to preserve insertion order.
-    new_ops_by_index: List[Dict['cirq.Operation', int]] = []
-
-    def add_op_to_moment(i: int, op: 'cirq.Operation') -> None:
-        new_ops_by_index[i][op] = 0
-        for q in op.qubits:
-            if i > qubit_indexes[q][-1]:
-                qubit_indexes[q].append(i)
-            else:
-                bisect.insort(qubit_indexes[q], i)
-        for mkey in protocols.measurement_key_objs(op):
-            bisect.insort(mkey_indexes[mkey], i)
-        for ckey in protocols.control_keys(op):
-            bisect.insort(ckey_indexes[ckey], i)
-
-    def remove_op_from_moment(i: int, op: 'cirq.Operation') -> None:
-        new_ops_by_index[i].pop(op)
-        for q in op.qubits:
-            if qubit_indexes[q][-1] == i:
-                qubit_indexes[q].pop()
-            else:
-                qubit_indexes[q].remove(i)
-        for mkey in protocols.measurement_key_objs(op):
-            mkey_indexes[mkey].remove(i)
-        for ckey in protocols.control_keys(op):
-            ckey_indexes[ckey].remove(i)
-
+    merged_circuit = _MergedCircuit()
     for moment_idx, current_moment in enumerate(cast(List['cirq.Moment'], circuit)):
-        new_ops_by_index.append({})
+        merged_circuit.append_empty_moment()
         for op in sorted(current_moment.operations, key=lambda op: op.qubits):
             if (
                 deep
@@ -306,7 +353,7 @@ def merge_operations(
                 and tags_to_ignore_set.isdisjoint(op.tags)
             ):
                 op_untagged = op.untagged
-                add_op_to_moment(
+                merged_circuit.add_op_to_moment(
                     moment_idx,
                     op_untagged.replace(
                         circuit=merge_operations(
@@ -319,36 +366,19 @@ def merge_operations(
                 )
                 continue
 
-            def get_mergeable_ops(op_qs: Set['cirq.Qid']) -> Tuple[int, List['cirq.Operation']]:
-                # Find the index of previous moment which can be merged with `op`.
-                idx = max([qubit_indexes[q][-1] for q in op_qs], default=-1)
-                idx = max([idx] + [mkey_indexes[ckey][-1] for ckey in protocols.control_keys(op)])
-                idx = max(
-                    [idx] + [ckey_indexes[mkey][-1] for mkey in protocols.measurement_key_objs(op)]
-                )
-                # Return the set of overlapping ops in moment with index `idx`.
-                if idx == -1:
-                    return idx, []
-
-                return idx, [
-                    left_op
-                    for left_op in new_ops_by_index[idx]
-                    if not op_qs.isdisjoint(left_op.qubits)
-                ]
-
             op_qs = set(op.qubits)
-            left_idx, left_ops = get_mergeable_ops(op_qs)
+            left_idx, left_ops = merged_circuit.get_mergeable_ops(op, op_qs)
             if len(left_ops) == 1 and op_qs.issubset(left_ops[0].qubits):
                 # Case-1: Try to merge op with the larger operation on the left.
                 new_op = apply_merge_func(left_ops[0], op)
                 if new_op is not None:
-                    remove_op_from_moment(left_idx, left_ops[0])
-                    add_op_to_moment(left_idx, new_op)
+                    merged_circuit.remove_op_from_moment(left_idx, left_ops[0])
+                    merged_circuit.add_op_to_moment(left_idx, new_op)
                 else:
-                    add_op_to_moment(moment_idx, op)
+                    merged_circuit.add_op_to_moment(moment_idx, op)
                 continue
 
-            while left_ops and len(op_qs) > 0:
+            while left_ops and op_qs:
                 # Case-2: left_ops will merge right into `op` whenever possible.
                 for left_op in left_ops:
                     is_merged = False
@@ -356,14 +386,13 @@ def merge_operations(
                         # Try to merge left_op into op
                         new_op = apply_merge_func(left_op, op)
                         if new_op is not None:
-                            remove_op_from_moment(left_idx, left_op)
+                            merged_circuit.remove_op_from_moment(left_idx, left_op)
                             op, is_merged = new_op, True
                     if not is_merged:
                         op_qs -= frozenset(left_op.qubits)
-                left_idx, left_ops = get_mergeable_ops(op_qs)
-            add_op_to_moment(moment_idx, op)
-
-    ret_circuit = circuits.Circuit(circuits.Moment(m) for m in new_ops_by_index)
+                left_idx, left_ops = merged_circuit.get_mergeable_ops(op, op_qs)
+            merged_circuit.add_op_to_moment(moment_idx, op)
+    ret_circuit = merged_circuit.get_cirq_circuit()
     if deep:
         ret_circuit = map_operations(
             ret_circuit,
