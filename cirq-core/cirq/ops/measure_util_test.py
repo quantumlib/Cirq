@@ -38,7 +38,7 @@ def test_measure_qubits():
     ).on(*cirq.LineQid.for_qid_shape((1, 2, 3)))
 
     with pytest.raises(ValueError, match='ndarray'):
-        _ = cirq.measure(np.ndarray([1, 0]))
+        _ = cirq.measure(np.array([1, 0]))
 
     with pytest.raises(ValueError, match='Qid'):
         _ = cirq.measure("bork")
