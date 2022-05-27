@@ -682,13 +682,10 @@ class SimulatesIntermediateState(
         # (They were only required because of this implementation, which has been moved to
         # SimulatorBase instead).
         _compat._warn_or_error(
-            'Custom implementations of `cirq.SimulatesIntermediateState` should inherit from'
-            ' `cirq.SimulatorBase` instead, to get a richer feature set. If inheriting from'
-            ' `cirq.SimulatorBase` is not desired, the custom implementation of'
-            ' `cirq.SimulatesIntermediateState` should implement `_base_iterator` directly rather'
-            ' than implementing both `_create_simulation_state` and `_core_iterator`.  The default'
-            ' implementation of `_base_iterator` will be removed in v0.16, and the method will'
-            ' become abstract.'
+            'Custom implementations of `cirq.SimulatesIntermediateState` should implement'
+            ' `_base_iterator` directly rather than implementing both `_create_simulation_state`'
+            ' and `_core_iterator`. The default implementation of `_base_iterator` will be removed'
+            ' in v0.16, and the method will become abstract.'
         )
         qubits = ops.QubitOrder.as_qubit_order(qubit_order).order_for(circuit.all_qubits())
         sim_state = self._create_simulation_state(initial_state, qubits)
