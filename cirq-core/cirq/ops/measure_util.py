@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Any, Callable, Iterable, List, Optional, Tuple, TYPE_CHECKING, Union
+from typing import Callable, Iterable, List, overload, Optional, Tuple, TYPE_CHECKING, Union
 
 import numpy as np
 
@@ -81,8 +81,27 @@ def measure_paulistring_terms(
     return [PauliMeasurementGate([pauli_basis[q]], key=key_func(q)).on(q) for q in pauli_basis]
 
 
+# pylint: disable=function-redefined
+@overload
 def measure(
-    *target: Union[raw_types.Qid, Iterable[Any]],
+    *target: raw_types.Qid,
+    key: Optional[Union[str, 'cirq.MeasurementKey']] = None,
+    invert_mask: Tuple[bool, ...] = (),
+) -> raw_types.Operation:
+    pass
+
+
+@overload
+def measure(
+    *target: Iterable[raw_types.Qid],
+    key: Optional[Union[str, 'cirq.MeasurementKey']] = None,
+    invert_mask: Tuple[bool, ...] = (),
+) -> raw_types.Operation:
+    pass
+
+
+def measure(
+    *target,
     key: Optional[Union[str, 'cirq.MeasurementKey']] = None,
     invert_mask: Tuple[bool, ...] = (),
 ) -> raw_types.Operation:
@@ -92,8 +111,8 @@ def measure(
 
     Args:
         *target: The qubits that the measurement gate should measure.
-            This can be provided as variable-length arguments or
-            a combination of nested iterables.
+            These can be specified as separate function arguments or
+            with a single argument for an iterable of qubits.
         key: The string key of the measurement. If this is None, it defaults
             to a comma-separated list of the target qubits' str values.
         invert_mask: A list of Truthy or Falsey values indicating whether
@@ -106,8 +125,13 @@ def measure(
     Raises:
         ValueError: If the qubits are not instances of Qid.
     """
-    targetlist: List[raw_types.Qid] = []
-    for qubit in _flatten_recursively(target, keep=(bytes, str, np.ndarray)):
+    one_iterable_arg: bool = (
+        len(target) == 1
+        and isinstance(target[0], Iterable)
+        and not isinstance(target[0], (bytes, str, np.ndarray))
+    )
+    targets = tuple(target[0]) if one_iterable_arg else target
+    for qubit in targets:
         if isinstance(qubit, np.ndarray):
             raise ValueError(
                 'measure() was called a numpy ndarray. Perhaps you meant '
@@ -115,12 +139,14 @@ def measure(
             )
         elif not isinstance(qubit, raw_types.Qid):
             raise ValueError('measure() was called with type different than Qid.')
-        targetlist.append(qubit)
 
     if key is None:
-        key = _default_measurement_key(targetlist)
-    qid_shape = protocols.qid_shape(targetlist)
-    return MeasurementGate(len(targetlist), key, invert_mask, qid_shape).on(*targetlist)
+        key = _default_measurement_key(targets)
+    qid_shape = protocols.qid_shape(targets)
+    return MeasurementGate(len(targets), key, invert_mask, qid_shape).on(*targets)
+
+
+# pylint: enable=function-redefined
 
 
 def measure_each(
@@ -139,14 +165,3 @@ def measure_each(
         A list of operations individually measuring the given qubits.
     """
     return [MeasurementGate(1, key_func(q), qid_shape=(q.dimension,)).on(q) for q in qubits]
-
-
-def _flatten_recursively(items: Iterable[Any], keep: Optional[Tuple[type, ...]]) -> Iterable[Any]:
-    for item in items:
-        if keep is not None and isinstance(item, keep):
-            yield item
-        elif isinstance(item, Iterable):
-            for subitem in _flatten_recursively(item, keep=keep):
-                yield subitem
-        else:
-            yield item

@@ -32,7 +32,7 @@ def test_measure_qubits():
     assert cirq.measure(a) == cirq.MeasurementGate(num_qubits=1, key='a').on(a)
     assert cirq.measure([a]) == cirq.MeasurementGate(num_qubits=1, key='a').on(a)
     assert cirq.measure(a, b) == cirq.MeasurementGate(num_qubits=2, key='a,b').on(a, b)
-    assert cirq.measure([a, [b]]) == cirq.MeasurementGate(num_qubits=2, key='a,b').on(a, b)
+    assert cirq.measure([a, b]) == cirq.MeasurementGate(num_qubits=2, key='a,b').on(a, b)
     qubit_generator = (q for q in (a, b))
     assert cirq.measure(qubit_generator) == cirq.MeasurementGate(num_qubits=2, key='a,b').on(a, b)
     assert cirq.measure(b, a) == cirq.MeasurementGate(num_qubits=2, key='b,a').on(b, a)
@@ -50,14 +50,14 @@ def test_measure_qubits():
     with pytest.raises(ValueError, match='ndarray'):
         _ = cirq.measure(np.array([1, 0]))
 
-    with pytest.raises(ValueError, match='ndarray'):
-        _ = cirq.measure([a, np.array([1, 0])])
-
     with pytest.raises(ValueError, match='Qid'):
         _ = cirq.measure("bork")
 
     with pytest.raises(ValueError, match='Qid'):
-        _ = cirq.measure([a, "bork"])
+        _ = cirq.measure([a, [b]])
+
+    with pytest.raises(ValueError, match='Qid'):
+        _ = cirq.measure([a], [b])
 
 
 def test_measure_each():
