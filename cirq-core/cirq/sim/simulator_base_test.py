@@ -39,20 +39,24 @@ class BasisSimState(cirq.SimulationState[BasisState]):
         super().__init__(state=state, qubits=qubits, classical_data=classical_data)
 
     def _act_on_fallback_(self, action, qubits: Sequence[cirq.Qid], allow_decompose: bool = True):
-        if isinstance(action.gate, cirq.XPowGate):
+        gate = action.gate if isinstance(action, cirq.Operation) else action
+        if isinstance(gate, cirq.XPowGate):
             i = self.qubit_map[qubits[0]]
-            self._state.state[i] = (1 + self._state.state[i]) % qubits[0].dimension
+            self._state.state[i] = int(gate.exponent + self._state.state[i]) % qubits[0].dimension
             return True
         return NotImplemented
 
 
 def test_state():
     sim = SimpleSimulator(BasisSimState)
-    q0, q1 = cirq.LineQubit.range(2)
-    c = cirq.Circuit(cirq.X(q0), cirq.X(q1), cirq.measure(q0))
+    q0, q1 = cirq.LineQid.range(2, dimension=3)
+    x = cirq.XPowGate(dimension=3)
+    c = cirq.Circuit(
+        x(q0), x(q1), cirq.measure(q0, key='a'), x(q0).with_classical_controls('a'), cirq.reset(q1)
+    )
     r = sim.simulate(c)
-    print(r._final_simulator_state._state.state)
-    print(r.measurements)
+    assert r._final_simulator_state._state.state == [2, 0]
+    assert r.measurements == {'a': np.array([1], dtype=np.uint8)}
 
 
 class CountingState(cirq.qis.QuantumStateRepresentation):
