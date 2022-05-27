@@ -213,10 +213,9 @@ class SimulatorBase(
     def _base_iterator(
         self,
         circuit: 'cirq.AbstractCircuit',
-        qubit_order: 'cirq.QubitOrderOrList',
+        qubits: Tuple['cirq.Qid', ...],
         initial_state: Any,
     ) -> Iterator[TStepResultBase]:
-        qubits = ops.QubitOrder.as_qubit_order(qubit_order).order_for(circuit.all_qubits())
         sim_state = self._create_simulation_state(initial_state, qubits)
         return self._core_iterator(circuit, sim_state)
 
