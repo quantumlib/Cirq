@@ -659,10 +659,7 @@ class SimulatesIntermediateState(
         return self._base_iterator(resolved_circuit, qubits, actual_initial_state)
 
     def _base_iterator(
-        self,
-        circuit: 'cirq.AbstractCircuit',
-        qubits: Tuple['cirq.Qid', ...],
-        initial_state: Any,
+        self, circuit: 'cirq.AbstractCircuit', qubits: Tuple['cirq.Qid', ...], initial_state: Any
     ) -> Iterator[TStepResult]:
         """Iterator over StepResult from Moments of a Circuit.
 
