@@ -491,8 +491,11 @@ class ThirdPartySimulatorBase(
         TSimulationState,
     ],
     Generic[TSimulationState],
-    abc.ABC,
 ):
+    def __init__(self, state_type: Type[TSimulationState]):
+        super().__init__()
+        self.state_type = state_type
+
     def _create_simulator_trial_result(
         self,
         params: 'cirq.ParamResolver',
@@ -507,3 +510,11 @@ class ThirdPartySimulatorBase(
         self, sim_state: 'cirq.SimulationStateBase[TSimulationState]'
     ) -> 'cirq.StepResultBase[TSimulationState]':
         return StepResultBase(sim_state)
+
+    def _create_partial_simulation_state(
+        self,
+        initial_state: Any,
+        qubits: Sequence['cirq.Qid'],
+        classical_data: 'cirq.ClassicalDataStore',
+    ) -> TSimulationState:
+        return self.state_type(initial_state, qubits, classical_data)

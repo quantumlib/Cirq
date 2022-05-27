@@ -29,43 +29,26 @@ class BasisState(cirq.qis.QuantumStateRepresentation):
     def copy(self, deep_copy_buffers: bool = True) -> 'BasisState':
         return BasisState(self.state)
 
-    def measure(
-        self, axes: Sequence[int], seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None
-    ) -> List[int]:
+    def measure(self, axes: Sequence[int], seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None):
         return [self.state[i] for i in axes]
 
 
 class BasisSimState(cirq.SimulationState[BasisState]):
     def __init__(self, initial_state, qubits, classical_data):
-        initial_state = cirq.big_endian_int_to_bits(initial_state, bit_count=len(qubits))
-        super().__init__(
-            state=BasisState(initial_state), qubits=qubits, classical_data=classical_data
-        )
+        state = BasisState(cirq.big_endian_int_to_bits(initial_state, bit_count=len(qubits)))
+        super().__init__(state=state, qubits=qubits, classical_data=classical_data)
 
-    def _act_on_fallback_(
-        self, action: Any, qubits: Sequence['cirq.Qid'], allow_decompose: bool = True
-    ) -> bool:
-        gate = action.gate if isinstance(action, cirq.Operation) else action
-        if isinstance(gate, cirq.XPowGate):
+    def _act_on_fallback_(self, action, qubits: Sequence[cirq.Qid], allow_decompose: bool = True):
+        if isinstance(action.gate, cirq.XPowGate):
             i = self.qubit_map[qubits[0]]
-            self._state.state[i] = 1 - self._state.state[i]
+            self._state.state[i] = (1 + self._state.state[i]) % qubits[0].dimension
             return True
         return NotImplemented
 
 
-class BasisSimulator(ThirdPartySimulatorBase[BasisSimState]):
-    def _create_partial_simulation_state(
-        self,
-        initial_state: Any,
-        qubits: Sequence['cirq.Qid'],
-        classical_data: cirq.ClassicalDataStore,
-    ) -> BasisSimState:
-        return BasisSimState(initial_state, qubits, classical_data)
-
-
 def test_state():
+    sim = ThirdPartySimulatorBase(BasisSimState)
     q0, q1 = cirq.LineQubit.range(2)
-    sim = BasisSimulator()
     c = cirq.Circuit(cirq.X(q0), cirq.X(q1), cirq.measure(q0))
     r = sim.simulate(c)
     print(r._final_simulator_state._state.state)
