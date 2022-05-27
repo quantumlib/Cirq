@@ -19,7 +19,7 @@ import pytest
 import sympy
 
 import cirq
-from cirq.sim.simulator_base import ThirdPartySimulatorBase
+from cirq.sim.simulator_base import SimpleSimulator
 
 
 class BasisState(cirq.qis.QuantumStateRepresentation):
@@ -47,7 +47,7 @@ class BasisSimState(cirq.SimulationState[BasisState]):
 
 
 def test_state():
-    sim = ThirdPartySimulatorBase(BasisSimState)
+    sim = SimpleSimulator(BasisSimState)
     q0, q1 = cirq.LineQubit.range(2)
     c = cirq.Circuit(cirq.X(q0), cirq.X(q1), cirq.measure(q0))
     r = sim.simulate(c)

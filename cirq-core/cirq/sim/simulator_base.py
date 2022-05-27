@@ -484,7 +484,7 @@ class SimulationTrialResultBase(
         return self._merged_sim_state_cache
 
 
-class ThirdPartySimulatorBase(
+class SimpleSimulator(
     SimulatorBase[
         StepResultBase[TSimulationState],
         SimulationTrialResultBase[TSimulationState],
