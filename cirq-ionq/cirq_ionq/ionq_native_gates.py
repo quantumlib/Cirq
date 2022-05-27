@@ -75,7 +75,7 @@ GPI = GPIGate(phi=0)
 document(
     GPI,
     r"""An instance of the single qubit GPI gate with no phase.
-    
+
     The unitary matrix of this gate is:
     $$
     \begin{bmatrix}
@@ -83,7 +83,7 @@ document(
       1 & 0
     \end{bmatrix}
     $$
-    
+
     See [IonQ best practices](https://ionq.com/best-practices){:external}.
     """,
 )
@@ -236,7 +236,7 @@ document(
         -i & 0 & 0 & 1 \\
     \end{bmatrix}
     $$
-    
+
     See [IonQ best practices](https://ionq.com/best-practices){:external}.
     """,
 )
