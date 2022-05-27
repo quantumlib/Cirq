@@ -51,20 +51,27 @@ def test_simple_simulator():
     q0, q1 = cirq.LineQid.range(2, dimension=3)
     x = cirq.XPowGate(dimension=3)
     c = cirq.Circuit(
-        x(q0), x(q1), cirq.measure(q0, key='a'), x(q0).with_classical_controls('a'), cirq.reset(q1)
+        x(q0),
+        cirq.measure(q0, key='a'),
+        x(q0).with_classical_controls('a'),
+        cirq.CircuitOperation(
+            cirq.FrozenCircuit(x(q1), cirq.measure(q1, key='b')),
+            repeat_until=cirq.SympyCondition(sympy.Eq(sympy.Symbol('b'), 2)),
+            use_repetition_ids=False,
+        ),
     )
 
     sim = SimpleSimulator(BasisSimState)
     r = sim.simulate(c)
-    assert r.measurements == {'a': np.array([1], dtype=np.uint8)}
-    assert r._final_simulator_state._state.state == [2, 0]
+    assert r.measurements == {'a': np.array([1]), 'b': np.array([2])}
+    assert r._final_simulator_state._state.state == [2, 2]
 
     # works for the built-in states too, you just lose the custom step/trial results.
     sim = SimpleSimulator(cirq.StateVectorSimulationState)
     r = sim.simulate(c)
-    assert r.measurements == {'a': np.array([1], dtype=np.uint8)}
+    assert r.measurements == {'a': np.array([1]), 'b': np.array([2])}
     assert np.allclose(
-        r._final_simulator_state._state._state_vector, [[0, 0, 0], [0, 0, 0], [1, 0, 0]]
+        r._final_simulator_state._state._state_vector, [[0, 0, 0], [0, 0, 0], [0, 0, 1]]
     )
 
 
