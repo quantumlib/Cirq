@@ -1,0 +1,14 @@
+book_path: /cirq/_book.yaml
+project_path: /cirq/_project.yaml
+title: Transform a circuit
+landing_page:
+  nav: left
+  rows:
+    - heading: Transform a circuit
+      description: Cirq provides different ways of transforming a provided circuit, which may be necessary to prepare it to run on quantum hardware device, or to improve its reliability on a device.
+      items:
+      - heading: Circuit Transformers
+        description: The Transformer class to represent some process to change a supplied circuit.
+        path: /cirq/transformers
+        icon:
+          name: menu_book

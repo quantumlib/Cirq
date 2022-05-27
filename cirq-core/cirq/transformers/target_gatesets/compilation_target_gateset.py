@@ -170,10 +170,24 @@ class TwoQubitCompilationTargetGateset(CompilationTargetGateset):
         old_2q_gate_count = sum(1 for o in ops.flatten_to_ops(old_optree) if len(o.qubits) == 2)
         new_2q_gate_count = sum(1 for o in ops.flatten_to_ops(new_optree) if len(o.qubits) == 2)
         switch_to_new = (
-            any(op not in self for op in ops.flatten_to_ops(old_optree))
+            any(
+                protocols.num_qubits(op) == 2 and op not in self
+                for op in ops.flatten_to_ops(old_optree)
+            )
             or new_2q_gate_count < old_2q_gate_count
         )
-        return new_optree if switch_to_new else old_optree
+        if switch_to_new:
+            return new_optree
+        mapped_old_optree: List['cirq.OP_TREE'] = []
+        for old_op in ops.flatten_to_ops(old_optree):
+            if old_op in self:
+                mapped_old_optree.append(old_op)
+            else:
+                decomposed_op = self._decompose_single_qubit_operation(old_op, moment_idx)
+                if decomposed_op is None or decomposed_op is NotImplemented:
+                    return NotImplemented
+                mapped_old_optree.append(decomposed_op)
+        return mapped_old_optree
 
     def _decompose_single_qubit_operation(
         self, op: 'cirq.Operation', moment_idx: int
