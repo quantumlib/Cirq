@@ -87,6 +87,8 @@ upper_tabs:
         path: /cirq/transform
       - title: "Circuit Transformers"
         path: /cirq/transformers
+      - title: "Custom Transformers"
+        path: /cirq/transform/custom_transformers
 
     - name: "Hardware"
       contents:
