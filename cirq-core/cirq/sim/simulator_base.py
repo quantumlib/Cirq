@@ -517,4 +517,6 @@ class SimpleSimulator(
         qubits: Sequence['cirq.Qid'],
         classical_data: 'cirq.ClassicalDataStore',
     ) -> TSimulationState:
-        return self.state_type(initial_state, qubits, classical_data)
+        return self.state_type(
+            initial_state=initial_state, qubits=qubits, classical_data=classical_data
+        )
