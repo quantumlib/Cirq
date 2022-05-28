@@ -158,7 +158,7 @@ def measure_each(
 
 @overload
 def measure_each(
-    *qubits: Iterable[raw_types.Qid], key_func: Callable[[raw_types.Qid], str] = str
+    __qubits: Iterable[raw_types.Qid], *, key_func: Callable[[raw_types.Qid], str] = str
 ) -> List[raw_types.Operation]:
     pass
 
