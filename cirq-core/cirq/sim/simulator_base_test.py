@@ -19,23 +19,25 @@ import pytest
 import sympy
 
 import cirq
-from cirq.sim.simulator_base import SimpleSimulator
+from cirq.sim.simulator_base import ThirdPartySimulator
 
 
-class BasisState(cirq.qis.QuantumStateRepresentation):
+class ComputationalBaisisState(cirq.qis.QuantumStateRepresentation):
     def __init__(self, initial_state: List[int]):
         self.state = initial_state
 
-    def copy(self, deep_copy_buffers: bool = True) -> 'BasisState':
-        return BasisState(self.state)
+    def copy(self, deep_copy_buffers: bool = True) -> 'ComputationalBaisisState':
+        return ComputationalBaisisState(self.state)
 
     def measure(self, axes: Sequence[int], seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None):
         return [self.state[i] for i in axes]
 
 
-class BasisSimState(cirq.SimulationState[BasisState]):
+class ComputationalBaisisSimState(cirq.SimulationState[ComputationalBaisisState]):
     def __init__(self, initial_state, qubits, classical_data):
-        state = BasisState(cirq.big_endian_int_to_bits(initial_state, bit_count=len(qubits)))
+        state = ComputationalBaisisState(
+            cirq.big_endian_int_to_bits(initial_state, bit_count=len(qubits))
+        )
         super().__init__(state=state, qubits=qubits, classical_data=classical_data)
 
     def _act_on_fallback_(self, action, qubits: Sequence[cirq.Qid], allow_decompose: bool = True):
@@ -61,17 +63,33 @@ def test_simple_simulator():
         ),
     )
 
-    sim = SimpleSimulator(BasisSimState)
+    sim = ThirdPartySimulator(ComputationalBaisisSimState)
     r = sim.simulate(c)
     assert r.measurements == {'a': np.array([1]), 'b': np.array([2])}
     assert r._final_simulator_state._state.state == [2, 2]
 
+    # test noise
+    sim = ThirdPartySimulator(ComputationalBaisisSimState, noise=x**2)
+    r = sim.simulate(c)
+    assert r.measurements == {'a': np.array([2]), 'b': np.array([2])}
+    assert r._final_simulator_state._state.state == [1, 2]
+
     # works for the built-in states too, you just lose the custom step/trial results.
-    sim = SimpleSimulator(cirq.StateVectorSimulationState)
+    sim = ThirdPartySimulator(cirq.StateVectorSimulationState)
     r = sim.simulate(c)
     assert r.measurements == {'a': np.array([1]), 'b': np.array([2])}
     assert np.allclose(
         r._final_simulator_state._state._state_vector, [[0, 0, 0], [0, 0, 0], [0, 0, 1]]
+    )
+
+    # product state mode works.
+    sim = ThirdPartySimulator(cirq.StateVectorSimulationState, split_untangled_states=True)
+    r = sim.simulate(c)
+    assert r.measurements == {'a': np.array([1]), 'b': np.array([2])}
+    assert len(r._final_simulator_state) == 3
+    assert np.allclose(
+        r._final_simulator_state.create_merged_state()._state._state_vector,
+        [[0, 0, 0], [0, 0, 0], [0, 0, 1]],
     )
 
 

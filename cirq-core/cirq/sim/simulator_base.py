@@ -484,7 +484,7 @@ class SimulationTrialResultBase(
         return self._merged_sim_state_cache
 
 
-class SimpleSimulator(
+class ThirdPartySimulator(
     SimulatorBase[
         StepResultBase[TSimulationState],
         SimulationTrialResultBase[TSimulationState],
@@ -492,8 +492,14 @@ class SimpleSimulator(
     ],
     Generic[TSimulationState],
 ):
-    def __init__(self, state_type: Type[TSimulationState]):
-        super().__init__()
+    def __init__(
+        self,
+        state_type: Type[TSimulationState],
+        *,
+        noise: 'cirq.NOISE_MODEL_LIKE' = None,
+        split_untangled_states=False,
+    ):
+        super().__init__(noise=noise, split_untangled_states=split_untangled_states)
         self.state_type = state_type
 
     def _create_simulator_trial_result(
