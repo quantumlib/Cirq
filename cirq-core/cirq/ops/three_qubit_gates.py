@@ -42,6 +42,7 @@ from cirq.ops import (
     raw_types,
     swap_gates,
     raw_types,
+    global_phase_op,
 )
 
 if TYPE_CHECKING:
@@ -119,6 +120,9 @@ class CCZPowGate(gate_features.InterchangeableQubitsGate, eigen_gate.EigenGate):
         sweep_abc = [common_gates.CNOT(a, b), common_gates.CNOT(b, c)]
 
         return [
+            global_phase_op.global_phase_operation(
+                (1j) ** (2 * self.global_shift * self._exponent)
+            ),
             p(a),
             p(b),
             p(c),
@@ -339,6 +343,9 @@ class ThreeQubitDiagonalGate(raw_types.Gate):
         p_gates = [pauli_gates.Z ** (solution / np.pi) for solution in phase_solutions]
 
         return [
+            global_phase_op.global_phase_operation(
+                1j ** (2 * self._diag_angles_radians[0] / np.pi)
+            ),
             p_gates[0](a),
             p_gates[1](b),
             p_gates[2](c),
@@ -460,7 +467,7 @@ class CCXPowGate(gate_features.InterchangeableQubitsGate, eigen_gate.EigenGate):
     def _decompose_(self, qubits):
         c1, c2, t = qubits
         yield common_gates.H(t)
-        yield CCZ(c1, c2, t) ** self._exponent
+        yield CCZPowGate(exponent=self._exponent, global_shift=self.global_shift).on(c1, c2, t)
         yield common_gates.H(t)
 
     def _circuit_diagram_info_(
