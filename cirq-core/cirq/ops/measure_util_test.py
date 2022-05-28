@@ -60,7 +60,6 @@ def test_measure_qubits():
         _ = cirq.measure([a], [b])
 
 
-@pytest.mark.xfail(reason='wip - test cirq.measure_each with iterable argument')
 def test_measure_each():
     a = cirq.NamedQubit('a')
     b = cirq.NamedQubit('b')

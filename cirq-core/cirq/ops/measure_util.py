@@ -82,6 +82,8 @@ def measure_paulistring_terms(
 
 
 # pylint: disable=function-redefined
+
+
 @overload
 def measure(
     *target: raw_types.Qid,
@@ -146,22 +148,43 @@ def measure(
     return MeasurementGate(len(targets), key, invert_mask, qid_shape).on(*targets)
 
 
-# pylint: enable=function-redefined
+@overload
+def measure_each(
+    *qubits: raw_types.Qid, key_func: Callable[[raw_types.Qid], str] = str
+) -> List[raw_types.Operation]:
+    pass
+
+
+@overload
+def measure_each(
+    *qubits: Iterable[raw_types.Qid], key_func: Callable[[raw_types.Qid], str] = str
+) -> List[raw_types.Operation]:
+    pass
 
 
 def measure_each(
-    *qubits: 'cirq.Qid', key_func: Callable[[raw_types.Qid], str] = str
+    *qubits, key_func: Callable[[raw_types.Qid], str] = str
 ) -> List[raw_types.Operation]:
     """Returns a list of operations individually measuring the given qubits.
 
     The qubits are measured in the computational basis.
 
     Args:
-        *qubits: The qubits to measure.
+        *qubits: The qubits to measure.  These can be passed as separate
+            function arguments or as a one-argument iterable of qubits.
         key_func: Determines the key of the measurements of each qubit. Takes
             the qubit and returns the key for that qubit. Defaults to str.
 
     Returns:
         A list of operations individually measuring the given qubits.
     """
-    return [MeasurementGate(1, key_func(q), qid_shape=(q.dimension,)).on(q) for q in qubits]
+    one_iterable_arg: bool = (
+        len(qubits) == 1
+        and isinstance(qubits[0], Iterable)
+        and not isinstance(qubits[0], (bytes, str))
+    )
+    qubitsequence = qubits[0] if one_iterable_arg else qubits
+    return [MeasurementGate(1, key_func(q), qid_shape=(q.dimension,)).on(q) for q in qubitsequence]
+
+
+# pylint: enable=function-redefined
