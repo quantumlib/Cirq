@@ -21,20 +21,20 @@ import cirq
 from cirq.contrib.custom_simulators.custom_state_simulator import CustomStateSimulator
 
 
-class ComputationalBaisisState(cirq.qis.QuantumStateRepresentation):
+class ComputationalBasisState(cirq.qis.QuantumStateRepresentation):
     def __init__(self, initial_state: List[int]):
         self.basis = initial_state
 
-    def copy(self, deep_copy_buffers: bool = True) -> 'ComputationalBaisisState':
-        return ComputationalBaisisState(self.basis)
+    def copy(self, deep_copy_buffers: bool = True) -> 'ComputationalBasisState':
+        return ComputationalBasisState(self.basis)
 
     def measure(self, axes: Sequence[int], seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None):
         return [self.basis[i] for i in axes]
 
 
-class ComputationalBaisisSimState(cirq.SimulationState[ComputationalBaisisState]):
+class ComputationalBasisSimState(cirq.SimulationState[ComputationalBasisState]):
     def __init__(self, initial_state, qubits, classical_data):
-        state = ComputationalBaisisState(
+        state = ComputationalBasisState(
             cirq.big_endian_int_to_bits(initial_state, bit_count=len(qubits))
         )
         super().__init__(state=state, qubits=qubits, classical_data=classical_data)
@@ -45,7 +45,7 @@ class ComputationalBaisisSimState(cirq.SimulationState[ComputationalBaisisState]
             i = self.qubit_map[qubits[0]]
             self._state.basis[i] = int(gate.exponent + self._state.basis[i]) % qubits[0].dimension
             return True
-        return NotImplemented
+        pass
 
 
 def create_test_circuit():
@@ -64,7 +64,7 @@ def create_test_circuit():
 
 
 def test_basis_state_simulator():
-    sim = CustomStateSimulator(ComputationalBaisisSimState)
+    sim = CustomStateSimulator(ComputationalBasisSimState)
     circuit = create_test_circuit()
     r = sim.simulate(circuit)
     assert r.measurements == {'a': np.array([1]), 'b': np.array([2])}
@@ -100,7 +100,7 @@ def test_product_state_mode_built_in_state():
 
 def test_noise():
     x = cirq.XPowGate(dimension=3)
-    sim = CustomStateSimulator(ComputationalBaisisSimState, noise=x**2)
+    sim = CustomStateSimulator(ComputationalBasisSimState, noise=x**2)
     circuit = create_test_circuit()
     r = sim.simulate(circuit)
     assert r.measurements == {'a': np.array([2]), 'b': np.array([2])}
@@ -108,7 +108,7 @@ def test_noise():
 
 
 def test_run():
-    sim = CustomStateSimulator(ComputationalBaisisSimState)
+    sim = CustomStateSimulator(ComputationalBasisSimState)
     circuit = create_test_circuit()
     r = sim.run(circuit)
     assert np.allclose(r.records['a'], np.array([[1]]))
@@ -126,7 +126,7 @@ def test_parameterized_repetitions():
         )
     )
 
-    sim = CustomStateSimulator(ComputationalBaisisSimState)
+    sim = CustomStateSimulator(ComputationalBasisSimState)
     r = sim.run_sweep(circuit, [{'r': i} for i in range(1, 5)])
     assert np.allclose(r[0].records['a'], np.array([[1]]))
     assert np.allclose(r[1].records['a'], np.array([[1], [2]]))
@@ -177,7 +177,7 @@ class ComputationalBasisSimProductState(cirq.SimulationState[ComputationalBasisP
             i = self.qubit_map[qubits[0]]
             self._state.basis[i] = int(gate.exponent + self._state.basis[i]) % qubits[0].dimension
             return True
-        return NotImplemented
+        pass
 
 
 def test_product_state_mode():
