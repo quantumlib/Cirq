@@ -397,7 +397,9 @@ class SimulatorBase(
             )
 
 
-class StepResultBase(Generic[TSimulationState], StepResult[SimulationStateBase[TSimulationState]]):
+class StepResultBase(
+    Generic[TSimulationState], StepResult[SimulationStateBase[TSimulationState]], abc.ABC
+):
     """A base class for step results."""
 
     def __init__(self, sim_state: SimulationStateBase[TSimulationState]):
@@ -433,7 +435,7 @@ class StepResultBase(Generic[TSimulationState], StepResult[SimulationStateBase[T
 
 
 class SimulationTrialResultBase(
-    SimulationTrialResult[SimulationStateBase[TSimulationState]], Generic[TSimulationState]
+    SimulationTrialResult[SimulationStateBase[TSimulationState]], Generic[TSimulationState], abc.ABC
 ):
     """A base class for trial results."""
 
@@ -482,47 +484,3 @@ class SimulationTrialResultBase(
         if self._merged_sim_state_cache is None:
             self._merged_sim_state_cache = self._final_simulator_state.create_merged_state()
         return self._merged_sim_state_cache
-
-
-class ThirdPartySimulator(
-    SimulatorBase[
-        StepResultBase[TSimulationState],
-        SimulationTrialResultBase[TSimulationState],
-        TSimulationState,
-    ],
-    Generic[TSimulationState],
-):
-    def __init__(
-        self,
-        state_type: Type[TSimulationState],
-        *,
-        noise: 'cirq.NOISE_MODEL_LIKE' = None,
-        split_untangled_states=False,
-    ):
-        super().__init__(noise=noise, split_untangled_states=split_untangled_states)
-        self.state_type = state_type
-
-    def _create_simulator_trial_result(
-        self,
-        params: 'cirq.ParamResolver',
-        measurements: Dict[str, np.ndarray],
-        final_simulator_state: 'cirq.SimulationStateBase[TSimulationState]',
-    ) -> 'cirq.SimulationTrialResultBase[TSimulationState]':
-        return SimulationTrialResultBase(
-            params, measurements, final_simulator_state=final_simulator_state
-        )
-
-    def _create_step_result(
-        self, sim_state: 'cirq.SimulationStateBase[TSimulationState]'
-    ) -> 'cirq.StepResultBase[TSimulationState]':
-        return StepResultBase(sim_state)
-
-    def _create_partial_simulation_state(
-        self,
-        initial_state: Any,
-        qubits: Sequence['cirq.Qid'],
-        classical_data: 'cirq.ClassicalDataStore',
-    ) -> TSimulationState:
-        return self.state_type(
-            initial_state=initial_state, qubits=qubits, classical_data=classical_data
-        )
