@@ -95,7 +95,8 @@ def measure(
 
 @overload
 def measure(
-    *target: Iterable[raw_types.Qid],
+    __target: Iterable[raw_types.Qid],
+    *,
     key: Optional[Union[str, 'cirq.MeasurementKey']] = None,
     invert_mask: Tuple[bool, ...] = (),
 ) -> raw_types.Operation:
