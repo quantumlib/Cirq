@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import abc
-from typing import Union, Tuple, List, TYPE_CHECKING, Any, Dict
+from typing import Union, Tuple, List, TYPE_CHECKING, Any, Dict, Generator, Optional
 from dataclasses import dataclass
 
 import itertools
@@ -21,6 +21,7 @@ if TYPE_CHECKING:
     import cirq
 
 
+# ignore type to bypass github.com/python/mypy/issues/5374.
 @dataclass(frozen=True, eq=False)  # type: ignore
 class AbstractControlValues(abc.ABC):
     """AbstractControlValues is an abstract immutable data class.
@@ -42,9 +43,6 @@ class AbstractControlValues(abc.ABC):
         """
         return type(self)(self._internal_representation + other._internal_representation)
 
-    def _iterator(self):
-        return self._expand()
-
     @abc.abstractmethod
     def _expand(self):
         """Returns the control values tracked by the object."""
@@ -54,11 +52,11 @@ class AbstractControlValues(abc.ABC):
         """Returns a string representation to be used in circuit diagrams."""
 
     @abc.abstractmethod
-    def _number_variables(self):
+    def number_variables(self) -> int:
         """Returns the control values tracked by the object."""
 
     @abc.abstractmethod
-    def __len__(self):
+    def __len__(self) -> int:
         pass
 
     @abc.abstractmethod
@@ -74,7 +72,7 @@ class AbstractControlValues(abc.ABC):
         pass
 
     @abc.abstractmethod
-    def _validate(self, qid_shapes: Union[Tuple[int, ...], List[int]]) -> None:
+    def validate(self, qid_shapes: Union[Tuple[int, ...], List[int]]) -> Optional[ValueError]:
         """Validates control values
 
         Validate that control values are in the half closed interval
@@ -93,11 +91,11 @@ class AbstractControlValues(abc.ABC):
     def __getitem__(self, key):
         pass
 
-    def __iter__(self):
-        for assignment in self._iterator():
+    def __iter__(self) -> Generator[Tuple[int], None, None]:
+        for assignment in self._expand():
             yield assignment
 
-    def __eq__(self, other):
+    def __eq__(self, other) -> bool:
         """Returns True iff self and other represent the same configurations.
 
         Args:
@@ -111,7 +109,6 @@ class AbstractControlValues(abc.ABC):
         return sorted(v for v in self) == sorted(v for v in other)
 
 
-@AbstractControlValues.register
 class ProductOfSums(AbstractControlValues):
     """ProductOfSums represents control values in a form of a cartesian product of tuples."""
 
@@ -124,33 +121,34 @@ class ProductOfSums(AbstractControlValues):
         """Returns the combinations tracked by the object."""
         return itertools.product(*self._internal_representation)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f'cirq.ProductOfSums({str(self.identifier())})'
 
-    def _number_variables(self) -> int:
+    def number_variables(self) -> int:
         return len(self._internal_representation)
 
-    def __len__(self):
-        return self._number_variables()
+    def __len__(self) -> int:
+        return self.number_variables()
 
     def __hash__(self):
         return hash(self._internal_representation)
 
-    def _validate(self, qid_shapes: Union[Tuple[int, ...], List[int]]) -> None:
+    def validate(self, qid_shapes: Union[Tuple[int, ...], List[int]]) -> Optional[ValueError]:
         for i, (vals, shape) in enumerate(zip(self._internal_representation, qid_shapes)):
             if not all(0 <= v < shape for v in vals):
                 message = (
                     f'Control values <{vals!r}> outside of range for control qubit '
                     f'number <{i}>.'
                 )
-                raise ValueError(message)
+                return ValueError(message)
+        return None
 
     def _are_ones(self) -> bool:
         return frozenset(self._internal_representation) == {(1,)}
 
     def diagram_repr(self) -> str:
         if self._are_ones():
-            return 'C' * self._number_variables()
+            return 'C' * self.number_variables()
 
         def get_prefix(control_vals):
             control_vals_str = ''.join(map(str, sorted(control_vals)))

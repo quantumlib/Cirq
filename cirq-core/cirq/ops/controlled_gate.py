@@ -108,7 +108,9 @@ class ControlledGate(raw_types.Gate):
         self._control_values = control_values
 
         # Verify control values not out of bounds
-        self._control_values._validate(self.control_qid_shape)
+        e = self._control_values.validate(self.control_qid_shape)
+        if e:
+            raise e
 
         # Flatten nested ControlledGates.
         if isinstance(sub_gate, ControlledGate):
