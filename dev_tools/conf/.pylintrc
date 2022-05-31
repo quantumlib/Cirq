@@ -45,8 +45,7 @@ enable=
     syntax-error,
     too-many-function-args,
     trailing-whitespace,
-    # Disabling until https://github.com/PyCQA/pylint/issues/3791 is fixed
-    # undefined-variable,
+    undefined-variable,
     unexpected-keyword-arg,
     unhashable-dict-key,
     unnecessary-pass,
@@ -63,7 +62,7 @@ enable=
     yield-outside-function
 
 # Ignore long lines containing urls or pylint directives.
-ignore-long-lines=^(.*#\w*pylint: disable.*|\s*(# )?<?https?://\S+>?)$
+ignore-long-lines=^(.*#\w*pylint: disable.*|\s*(# )?[<\[\(]?https?://\S+[>\]\)]?)$
 
 [TYPECHECK]
 

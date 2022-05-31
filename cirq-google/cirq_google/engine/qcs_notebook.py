@@ -19,7 +19,7 @@ import cirq
 
 from cirq_google import (
     PhasedFSimEngineSimulator,
-    QuantumEngineSampler,
+    ProcessorSampler,
     Sycamore,
     SQRT_ISWAP_INV_PARAMETERS,
     PhasedFSimCharacterization,
@@ -30,7 +30,7 @@ from cirq_google import (
 @dataclasses.dataclass
 class QCSObjectsForNotebook:
     device: cirq.Device
-    sampler: Union[PhasedFSimEngineSimulator, QuantumEngineSampler]
+    sampler: Union[PhasedFSimEngineSimulator, ProcessorSampler]
     signed_in: bool
 
     @property
@@ -80,7 +80,7 @@ def get_qcs_objects_for_notebook(
             print(f"Authentication failed: {exc}")
 
     # Attempt to connect to the Quantum Engine API, and use a simulator if unable to connect.
-    sampler: Union[PhasedFSimEngineSimulator, QuantumEngineSampler]
+    sampler: Union[PhasedFSimEngineSimulator, ProcessorSampler]
     try:
         engine = get_engine(project_id)
         if processor_id:
