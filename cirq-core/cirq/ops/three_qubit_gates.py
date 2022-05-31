@@ -18,6 +18,7 @@ from typing import (
     AbstractSet,
     Any,
     Collection,
+    Dict,
     List,
     Optional,
     Sequence,
@@ -41,6 +42,7 @@ from cirq.ops import (
     raw_types,
     swap_gates,
     raw_types,
+    global_phase_op,
 )
 
 if TYPE_CHECKING:
@@ -116,8 +118,13 @@ class CCZPowGate(gate_features.InterchangeableQubitsGate, eigen_gate.EigenGate):
 
         p = common_gates.T**self._exponent
         sweep_abc = [common_gates.CNOT(a, b), common_gates.CNOT(b, c)]
-
-        return [
+        global_phase = 1j ** (2 * self.global_shift * self._exponent)
+        global_phase_operation = (
+            [global_phase_op.global_phase_operation(global_phase)]
+            if protocols.is_parameterized(global_phase) or abs(global_phase - 1.0) > 0
+            else []
+        )
+        return global_phase_operation + [
             p(a),
             p(b),
             p(c),
@@ -221,7 +228,7 @@ class ThreeQubitDiagonalGate(raw_types.Gate):
     elements are all phases.
     """
 
-    def __init__(self, diag_angles_radians: List[value.TParamVal]) -> None:
+    def __init__(self, diag_angles_radians: Sequence[value.TParamVal]) -> None:
         r"""A three qubit gate with only diagonal elements.
 
         This gate's off-diagonal elements are zero and its on diagonal
@@ -232,7 +239,11 @@ class ThreeQubitDiagonalGate(raw_types.Gate):
                 If these values are $(x_0, x_1, \ldots , x_7)$ then the unitary
                 has diagonal values $(e^{i x_0}, e^{i x_1}, \ldots, e^{i x_7})$.
         """
-        self._diag_angles_radians: List[value.TParamVal] = diag_angles_radians
+        self._diag_angles_radians: Tuple[value.TParamVal, ...] = tuple(diag_angles_radians)
+
+    @property
+    def diag_angles_radians(self) -> Tuple[value.TParamVal, ...]:
+        return self._diag_angles_radians
 
     def _is_parameterized_(self) -> bool:
         return any(protocols.is_parameterized(angle) for angle in self._diag_angles_radians)
@@ -332,8 +343,13 @@ class ThreeQubitDiagonalGate(raw_types.Gate):
         ]
         phase_solutions = phase_matrix_inverse.dot(shifted_angles_tail)
         p_gates = [pauli_gates.Z ** (solution / np.pi) for solution in phase_solutions]
-
-        return [
+        global_phase = 1j ** (2 * self._diag_angles_radians[0] / np.pi)
+        global_phase_operation = (
+            [global_phase_op.global_phase_operation(global_phase)]
+            if protocols.is_parameterized(global_phase) or abs(global_phase - 1.0) > 0
+            else []
+        )
+        return global_phase_operation + [
             p_gates[0](a),
             p_gates[1](b),
             p_gates[2](c),
@@ -366,6 +382,9 @@ class ThreeQubitDiagonalGate(raw_types.Gate):
                 'ZZZ': (x[0] - x[1] - x[2] + x[3] - x[4] + x[5] + x[6] - x[7]) / 8,
             }
         )
+
+    def _json_dict_(self) -> Dict[str, Any]:
+        return protocols.obj_to_dict_helper(self, attribute_names=["diag_angles_radians"])
 
     def __repr__(self) -> str:
         return 'cirq.ThreeQubitDiagonalGate([{}])'.format(
@@ -452,7 +471,7 @@ class CCXPowGate(gate_features.InterchangeableQubitsGate, eigen_gate.EigenGate):
     def _decompose_(self, qubits):
         c1, c2, t = qubits
         yield common_gates.H(t)
-        yield CCZ(c1, c2, t) ** self._exponent
+        yield CCZPowGate(exponent=self._exponent, global_shift=self.global_shift).on(c1, c2, t)
         yield common_gates.H(t)
 
     def _circuit_diagram_info_(

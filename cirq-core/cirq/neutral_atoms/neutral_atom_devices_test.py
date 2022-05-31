@@ -112,13 +112,6 @@ def test_init_errors():
         )
 
 
-def test_decompose_error_deprecated():
-    d = square_device(2, 2, holes=[cirq.GridQubit(1, 1)])
-    with cirq.testing.assert_deprecated('ConvertToNeutralAtomGates', deadline='v0.15', count=2):
-        for op in d.decompose_operation((cirq.CCZ**1.5).on(*(d.qubit_list()))):
-            d.validate_operation(op)
-
-
 def test_validate_gate_errors():
     d = square_device(1, 1)
 
@@ -234,18 +227,6 @@ def test_validate_moment_errors():
     m = cirq.Moment([cirq.CZ.on(q00, q01), cirq.CZ.on(q02, q03), cirq.CZ.on(q10, q11)])
     with pytest.raises(ValueError, match="Interacting controlled operations"):
         d2.validate_moment(m)
-
-
-def test_can_add_operation_into_moment_coverage_deprecated():
-    with cirq.testing.assert_deprecated('can_add_operation_into_moment', deadline='v0.15', count=4):
-        d = square_device(2, 2)
-        q00 = cirq.GridQubit(0, 0)
-        q01 = cirq.GridQubit(0, 1)
-        q10 = cirq.GridQubit(1, 0)
-        m = cirq.Moment([cirq.X.on(q00)])
-        assert not d.can_add_operation_into_moment(cirq.X.on(q00), m)
-        assert not d.can_add_operation_into_moment(cirq.CZ.on(q01, q10), m)
-        assert d.can_add_operation_into_moment(cirq.Z.on(q01), m)
 
 
 def test_validate_circuit_errors():

@@ -1,0 +1,24 @@
+book_path: /cirq/_book.yaml
+project_path: /cirq/_project.yaml
+title: Simulate a circuit
+landing_page:
+  nav: left
+  rows:
+    - heading: Simulate a circuit
+      description: Cirq provides different ways to compute the effects of a quantum circuit, by simulating a quantum computer with a classical one.
+      items:
+      - heading: Exact Simulation
+        description: Simulate a perfect and noiseless quantum computer, as the mathematical theory intended.
+        path: /cirq/simulation
+        icon:
+          name: menu_book
+      - heading: Noisy Simulation
+        description: Simulate a more realistic quantum computer, subject to error and noise, which affects the accuracy of the results.
+        path: /cirq/noisy_simulation
+        icon:
+          name: menu_book
+      - heading: State Histograms
+        description: Visualize the results of simulation as a histogram over basis states.
+        path: /cirq/tutorials/state_histograms
+        icon:
+          name: menu_book

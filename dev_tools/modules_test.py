@@ -37,7 +37,7 @@ def test_modules():
             'url': 'http://github.com/quantumlib/cirq',
             'author': 'The Cirq Developers',
             'author_email': 'cirq-dev@googlegroups.com',
-            'python_requires': '>=3.6.0',
+            'python_requires': '>=3.7.0',
             'install_requires': ['req1', 'req2'],
             'license': 'Apache 2',
             'packages': ['pack1', 'pack1.sub'],
