@@ -515,7 +515,7 @@ class Gateset:
             - Containment is checked via `self.__contains__` which further checks for containment
                 in any of the underlying gate families.
         - For all other types of operations (eg: `cirq.CircuitOperation`,
-            `cirq.GlobalPhaseOperation` etc):
+            etc):
             - The behavior is controlled via flags passed to the constructor.
 
         Users should override this method to define custom behavior for operations that do not
