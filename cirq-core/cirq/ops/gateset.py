@@ -454,7 +454,7 @@ class Gateset:
                 `cirq.ControlledOperation` where `op.gate` is not None) etc.
         - For Operations that do not have an underlying gate:
             - Forwards the containment check to `self._validate_operation(item)`.
-            - Examples of such operations include `cirq.CircuitOperations` and their controlled
+            - Examples of such operations include `cirq.CircuitOperation`s and their controlled
                 and tagged variants (i.e. instances of `cirq.TaggedOperation`,
                 `cirq.ControlledOperation` where `op.gate` is None) etc.
 
