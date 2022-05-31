@@ -205,7 +205,7 @@ class GridQid(_BaseGridQid):
 
     @staticmethod
     def from_diagram(diagram: str, dimension: int) -> List['GridQid']:
-        r"""Parse ASCII art device layout into a device.
+        """Parse ASCII art device layout into a device.
 
         As an example, the below diagram will create a list of GridQid in a
         pyramid structure.
@@ -218,8 +218,8 @@ class GridQid(_BaseGridQid):
         AAAAAAA
         ```
 
-        You can use any character other than a hyphen to mark a qid. As an
-        example, the qids for the Bristlecone device could be represented by
+        You can use any character other than a hyphen, period or space to mark a
+        qid. As an example, the qids for a Sycamore device could be represented by
         the below diagram. This produces a diamond-shaped grid of qids, and
         qids with the same letter correspond to the same readout line.
 
@@ -242,7 +242,7 @@ class GridQid(_BaseGridQid):
                 a row. Alphanumeric characters are assigned as qid.
                 Dots ('.'), dashes ('-'), and spaces are treated as
                 empty locations in the grid. If diagram has characters other
-                than alphanumerics, spacers, and newlines ('\n'), an error will
+                than alphanumerics, spacers, and newlines ('\\n'), an error will
                 be thrown. The top-left corner of the diagram will be have
                 coordinate (0, 0).
 
@@ -364,19 +364,25 @@ class GridQubit(_BaseGridQid):
 
     @staticmethod
     def from_diagram(diagram: str) -> List['GridQubit']:
-        """Parse ASCII art device layout into info about qubits and
-        connectivity. As an example, the below diagram will create a list of
+        """Parse ASCII art into device layout info.
+
+        As an example, the below diagram will create a list of
         GridQubit in a pyramid structure.
+
+        ```
         ---A---
         --AAA--
         -AAAAA-
         AAAAAAA
+        ```
 
-        You can use any character other than a hyphen to mark a qubit. As an
-        example, the qubits for the Bristlecone device could be represented by
-        the below diagram. This produces a diamond-shaped grid of qids, and
-        qids with the same letter correspond to the same readout line.
+        You can use any character other than a hyphen, period or space to mark
+        a qubit. As an example, the qubits for a Sycamore device could be
+        represented by the below diagram. This produces a diamond-shaped grid
+        of qids, and qids with the same letter correspond to the same readout
+        line.
 
+        ```
         .....AB.....
         ....ABCD....
         ...ABCDEF...
@@ -388,13 +394,14 @@ class GridQubit(_BaseGridQid):
         ...GHIJKL...
         ....IJKL....
         .....KL.....
+        ```
 
         Args:
             diagram: String representing the qubit layout. Each line represents
                 a row. Alphanumeric characters are assigned as qid.
                 Dots ('.'), dashes ('-'), and spaces (' ') are treated as
                 empty locations in the grid. If diagram has characters other
-                than alphanumerics, spacers, and newlines ('\n'), an error will
+                than alphanumerics, spacers, and newlines ('\\n'), an error will
                 be thrown. The top-left corner of the diagram will be have
                 coordinate (0,0).
 
