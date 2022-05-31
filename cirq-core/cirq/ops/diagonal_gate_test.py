@@ -52,7 +52,9 @@ def test_decomposition_unitary(n):
     expected_f = [np.exp(1j * angle) for angle in diagonal_angles]
     decomposed_f = cirq.unitary(decomposed_circ).diagonal()
 
-    np.testing.assert_allclose(decomposed_f, expected_f, atol=5e-5)
+    # For large qubit counts, the decomposed circuit is rather large, so we lose a lot of
+    # precision.
+    np.testing.assert_allclose(decomposed_f, expected_f, atol=5e-6)
 
 
 @pytest.mark.parametrize('n', [1, 2, 3, 4])

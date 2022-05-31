@@ -148,7 +148,7 @@ def test_givens_rotation():
             circuit.append(cirq.IdentityGate(2).on(*qubits))
             test_unitary = cirq.unitary(circuit)
             np.testing.assert_allclose(
-                4, np.abs(np.trace(np.conjugate(np.transpose(test_unitary)) @ unitary))
+                4, np.abs(np.trace(np.conjugate(np.transpose(test_unitary)) @ unitary)), atol=1e-6
             )
 
 

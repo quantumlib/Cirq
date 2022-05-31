@@ -119,7 +119,7 @@ def test_unitary(gate, num_copies, qubits):
     step = gate.num_qubits()
     qubit_lists = [qubits[i * step : (i + 1) * step] for i in range(num_copies)]
     np.testing.assert_allclose(
-        cirq.unitary(g), cirq.unitary(cirq.Circuit(gate.on_each(qubit_lists))), atol=1e-8
+        cirq.unitary(g), cirq.unitary(cirq.Circuit(gate.on_each(qubit_lists))), atol=1e-6
     )
 
 

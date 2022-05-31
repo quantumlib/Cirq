@@ -746,7 +746,9 @@ def test_kak_decompose(unitary: np.ndarray):
 def test_num_two_qubit_gates_required():
     for i in range(4):
         assert (
-            cirq.num_cnots_required(cirq.testing.random_two_qubit_circuit_with_czs(i).unitary())
+            cirq.num_cnots_required(
+                cirq.testing.random_two_qubit_circuit_with_czs(i).unitary(), atol=1e-6
+            )
             == i
         )
 

@@ -71,7 +71,7 @@ def test_convert_to_ion_gates():
         atol=1e-4,
     )
     assert cirq.allclose_up_to_global_phase(
-        cirq.unitary(cirq.Circuit(rcnot)), cirq.unitary(OtherCNOT().on(q0, q1))
+        cirq.unitary(cirq.Circuit(rcnot)), cirq.unitary(OtherCNOT().on(q0, q1)), atol=1e-6
     )
 
 
