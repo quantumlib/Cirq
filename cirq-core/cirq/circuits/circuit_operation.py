@@ -55,16 +55,16 @@ def default_repetition_ids(repetitions: IntParam) -> Optional[List[str]]:
     return None
 
 
-def _full_join_string_lists(list1: Optional[List[str]], list2: Optional[List[str]]):
+def _full_join_string_lists(
+    list1: Optional[List[str]], list2: Optional[List[str]]
+) -> Optional[List[str]]:
     if list1 is None and list2 is None:
         return None  # coverage: ignore
     if list1 is None:
         return list2  # coverage: ignore
     if list2 is None:
         return list1
-    return [
-        f'{REPETITION_ID_SEPARATOR.join([first, second])}' for first in list1 for second in list2
-    ]
+    return [f'{first}{REPETITION_ID_SEPARATOR}{second}' for first in list1 for second in list2]
 
 
 @dataclasses.dataclass(frozen=True)
@@ -148,15 +148,14 @@ class CircuitOperation(ops.Operation):
                     raise ValueError('repetitions are negative but the circuit is not invertible')
 
             # Initialize repetition_ids to default, if unspecified. Else, validate their length.
-            if self.use_repetition_ids:
-                loop_size = abs(self.repetitions)
-                if not self.repetition_ids:
-                    object.__setattr__(self, 'repetition_ids', self._default_repetition_ids())
-                elif len(self.repetition_ids) != loop_size:
-                    raise ValueError(
-                        f'Expected repetition_ids to be a list of length {loop_size}, '
-                        f'got: {self.repetition_ids}'
-                    )
+            loop_size = abs(self.repetitions)
+            if not self.repetition_ids:
+                object.__setattr__(self, 'repetition_ids', self._default_repetition_ids())
+            elif len(self.repetition_ids) != loop_size:
+                raise ValueError(
+                    f'Expected repetition_ids to be a list of length {loop_size}, '
+                    f'got: {self.repetition_ids}'
+                )
         elif isinstance(self.repetitions, sympy.Expr):
             if self.repetition_ids is not None:
                 raise ValueError('Cannot use repetition ids with parameterized repetitions')
@@ -225,7 +224,7 @@ class CircuitOperation(ops.Operation):
         return tuple(self.qubit_map.get(q, q) for q in ordered_qubits)
 
     def _default_repetition_ids(self) -> Optional[List[str]]:
-        return default_repetition_ids(self.repetitions)
+        return default_repetition_ids(self.repetitions) if self.use_repetition_ids else None
 
     def _qid_shape_(self) -> Tuple[int, ...]:
         return tuple(q.dimension for q in self.qubits)
@@ -378,7 +377,7 @@ class CircuitOperation(ops.Operation):
             args += f'param_resolver={proper_repr(self.param_resolver)},\n'
         if self.parent_path:
             args += f'parent_path={proper_repr(self.parent_path)},\n'
-        if self.use_repetition_ids and (self.repetition_ids != self._default_repetition_ids()):
+        if self.repetition_ids != self._default_repetition_ids():
             # Default repetition_ids need not be specified.
             args += f'repetition_ids={proper_repr(self.repetition_ids)},\n'
         if not self.use_repetition_ids:
@@ -409,7 +408,7 @@ class CircuitOperation(ops.Operation):
             args.append(f'params={self.param_resolver.param_dict}')
         if self.parent_path:
             args.append(f'parent_path={self.parent_path}')
-        if self.use_repetition_ids and (self.repetition_ids != self._default_repetition_ids()):
+        if self.repetition_ids != self._default_repetition_ids():
             # Default repetition_ids need not be specified.
             args.append(f'repetition_ids={self.repetition_ids}')
         elif self.repetitions != 1:
@@ -524,14 +523,14 @@ class CircuitOperation(ops.Operation):
 
             expected_repetition_id_length = abs(repetitions)
 
-            if self.use_repetition_ids:
-                if repetition_ids is None:
+            if repetition_ids is None:
+                if self.use_repetition_ids:
                     repetition_ids = default_repetition_ids(expected_repetition_id_length)
-                elif len(repetition_ids) != expected_repetition_id_length:
-                    raise ValueError(
-                        f'Expected repetition_ids={repetition_ids} length to be '
-                        f'{expected_repetition_id_length}'
-                    )
+            elif len(repetition_ids) != expected_repetition_id_length:
+                raise ValueError(
+                    f'Expected repetition_ids={repetition_ids} length to be '
+                    f'{expected_repetition_id_length}'
+                )
 
         # If either self.repetition_ids or repetitions is None, it returns the other unchanged.
         repetition_ids = _full_join_string_lists(repetition_ids, self.repetition_ids)
