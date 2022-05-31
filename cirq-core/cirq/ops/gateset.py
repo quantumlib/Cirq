@@ -449,7 +449,7 @@ class Gateset:
 
         - For Gates or Operations that have an underlying gate (i.e. op.gate is not None):
             - Forwards the containment check to the underlying `cirq.GateFamily` objects.
-            - Examples of such operations include `cirq.GateOperations` and their controlled
+            - Examples of such operations include `cirq.GateOperation`s and their controlled
                 and tagged variants (i.e. instances of `cirq.TaggedOperation`,
                 `cirq.ControlledOperation` where `op.gate` is not None) etc.
         - For Operations that do not have an underlying gate:
