@@ -86,6 +86,8 @@ def _validate_device_specification(proto: v2.device_pb2.DeviceSpecification) -> 
 def _build_gateset_and_gate_durations(
     proto: v2.device_pb2.DeviceSpecification,
 ) -> Tuple[cirq.Gateset, Dict[cirq.GateFamily, cirq.Duration]]:
+    """Extracts gate set and gate duration information from the given DeviceSpecification proto."""
+
     gates_list: List[Union[Type[cirq.Gate], cirq.Gate, cirq.GateFamily]] = []
     fsim_gates: List[Union[Type[POSSIBLE_FSIM_GATES], POSSIBLE_FSIM_GATES]] = []
     gate_durations: Dict[cirq.GateFamily, cirq.Duration] = {}
@@ -147,7 +149,16 @@ def _build_gateset_and_gate_durations(
 def _build_compilation_target_gatesets(
     gateset: cirq.Gateset,
 ) -> Sequence[cirq.CompilationTargetGateset]:
-    """Detects compilation target gatesets based on what gates are inside the gateset."""
+    """Detects compilation target gatesets based on what gates are inside the gateset.
+
+    If a device contains gates which yield multiple compilation target gatesets, the user can only
+    choose one target gateset to compile to. For example, a device may contain both SYC and
+    SQRT_ISWAP gates which yield two separate target gatesets, but a circuit can only be compiled to
+    either SYC or SQRT_ISWAP for its two-qubit gates, not both.
+
+    TODO(verult) when implemented, mention that gates which are part of the gateset but not the
+    compilation target gateset are untouched when compiled.
+    """
 
     target_gatesets: List[cirq.CompilationTargetGateset] = []
     if cirq.CZ in gateset:
