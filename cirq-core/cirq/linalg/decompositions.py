@@ -808,7 +808,7 @@ def kak_decomposition(
     unitary_object: Union[np.ndarray, 'cirq.SupportsUnitary'],
     *,
     rtol: float = 1e-5,
-    atol: float = 1e-8,
+    atol: float = 1e-6,
     check_preconditions: bool = True,
 ) -> KakDecomposition:
     """Decomposes a 2-qubit unitary into 1-qubit ops and XX/YY/ZZ interactions.

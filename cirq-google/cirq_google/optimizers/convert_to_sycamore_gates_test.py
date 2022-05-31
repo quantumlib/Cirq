@@ -65,7 +65,7 @@ def test_single_qubit_gate():
     assert len(ops) == 1
     assert isinstance(ops[0].gate, cirq.PhasedXZGate)
     cirq.testing.assert_circuits_with_terminal_measurements_are_equivalent(
-        circuit, converted_circuit, atol=1e-8
+        circuit, converted_circuit, atol=1e-6
     )
 
 
@@ -109,7 +109,7 @@ def test_circuit_operation_conversion():
         cgoc.ConvertToSycamoreGates().optimize_circuit(reconverted_subcircuit)
     assert ops[0].circuit == reconverted_subcircuit
     cirq.testing.assert_circuits_with_terminal_measurements_are_equivalent(
-        circuit, converted_circuit, atol=1e-8
+        circuit, converted_circuit, atol=1e-6
     )
 
 
@@ -303,7 +303,7 @@ def test_convert_to_sycamore_equivalent_unitaries(gate):
         converted = cgoc.ConvertToSycamoreGates().convert(operation)
     u1 = cirq.unitary(cirq.Circuit(converted))
     u2 = cirq.unitary(operation)
-    cirq.testing.assert_allclose_up_to_global_phase(u1, u2, atol=1e-8)
+    cirq.testing.assert_allclose_up_to_global_phase(u1, u2, atol=1e-6)
 
 
 def test_convert_to_sycamore_tabulation():

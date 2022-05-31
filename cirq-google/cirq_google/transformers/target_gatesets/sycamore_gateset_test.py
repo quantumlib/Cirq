@@ -343,7 +343,7 @@ def test_convert_to_sycamore_equivalent_unitaries(gate):
         circuit, gateset=cirq_google.SycamoreTargetGateset()
     )
     cirq.testing.assert_circuits_with_terminal_measurements_are_equivalent(
-        circuit, converted_circuit, atol=1e-8
+        circuit, converted_circuit, atol=1e-6
     )
 
 
