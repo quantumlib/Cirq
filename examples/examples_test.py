@@ -12,7 +12,6 @@ import examples.bb84
 import examples.bell_inequality
 import examples.bernstein_vazirani
 import examples.bcs_mean_field
-import examples.cross_entropy_benchmarking_example
 import examples.deutsch
 import examples.grover
 import examples.heatmaps
@@ -140,13 +139,6 @@ def test_example_runs_qubit_characterizations():
 
 def test_example_swap_networks():
     examples.swap_networks.main()
-
-
-@pytest.mark.usefixtures('closefigures')
-def test_example_cross_entropy_benchmarking():
-    examples.cross_entropy_benchmarking_example.main(
-        repetitions=10, num_circuits=2, cycles=[2, 3, 4]
-    )
 
 
 def test_example_noisy_simulation():
