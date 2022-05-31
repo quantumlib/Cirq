@@ -219,7 +219,7 @@ class GridParallelXEBResultsParameters:
         return os.path.join(self.data_collection_id, 'results.json')
 
 
-@_compat.deprecated_class(
+@_compat.deprecated(
     deadline='v0.16',
     fix=('Use recirq.benchmarks.xeb.collect_grid_parallel_two_qubit_xeb_data instead.'),
 )
@@ -377,7 +377,7 @@ def collect_grid_parallel_two_qubit_xeb_data(
     return data_collection_id
 
 
-@_compat.deprecated_class(
+@_compat.deprecated(
     deadline='v0.16',
     fix=('Use recirq.benchmarks.xeb.compute_grid_parallel_two_qubit_xeb_results instead.'),
 )
