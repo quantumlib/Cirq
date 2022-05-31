@@ -148,14 +148,15 @@ class CircuitOperation(ops.Operation):
                     raise ValueError('repetitions are negative but the circuit is not invertible')
 
             # Initialize repetition_ids to default, if unspecified. Else, validate their length.
-            loop_size = abs(self.repetitions)
-            if not self.repetition_ids:
-                object.__setattr__(self, 'repetition_ids', self._default_repetition_ids())
-            elif len(self.repetition_ids) != loop_size:
-                raise ValueError(
-                    f'Expected repetition_ids to be a list of length {loop_size}, '
-                    f'got: {self.repetition_ids}'
-                )
+            if self.use_repetition_ids:
+                loop_size = abs(self.repetitions)
+                if not self.repetition_ids:
+                    object.__setattr__(self, 'repetition_ids', self._default_repetition_ids())
+                elif len(self.repetition_ids) != loop_size:
+                    raise ValueError(
+                        f'Expected repetition_ids to be a list of length {loop_size}, '
+                        f'got: {self.repetition_ids}'
+                    )
         elif isinstance(self.repetitions, sympy.Expr):
             if self.repetition_ids is not None:
                 raise ValueError('Cannot use repetition ids with parameterized repetitions')
@@ -377,7 +378,7 @@ class CircuitOperation(ops.Operation):
             args += f'param_resolver={proper_repr(self.param_resolver)},\n'
         if self.parent_path:
             args += f'parent_path={proper_repr(self.parent_path)},\n'
-        if self.repetition_ids != self._default_repetition_ids():
+        if self.use_repetition_ids and (self.repetition_ids != self._default_repetition_ids()):
             # Default repetition_ids need not be specified.
             args += f'repetition_ids={proper_repr(self.repetition_ids)},\n'
         if not self.use_repetition_ids:
@@ -408,7 +409,7 @@ class CircuitOperation(ops.Operation):
             args.append(f'params={self.param_resolver.param_dict}')
         if self.parent_path:
             args.append(f'parent_path={self.parent_path}')
-        if self.repetition_ids != self._default_repetition_ids():
+        if self.use_repetition_ids and (self.repetition_ids != self._default_repetition_ids()):
             # Default repetition_ids need not be specified.
             args.append(f'repetition_ids={self.repetition_ids}')
         elif self.repetitions != 1:
