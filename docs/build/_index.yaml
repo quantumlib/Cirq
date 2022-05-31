@@ -1,0 +1,60 @@
+book_path: /cirq/_book.yaml
+project_path: /cirq/_project.yaml
+title: Build a circuit
+landing_page:
+  nav: left
+  rows:
+    - heading: Build a circuit
+      description: At the core of Cirq is the ability to construct quantum circuits. These are the methods and data structures necessary to do so.
+    - heading: Circuit construction
+      description: Read these to understand what goes into building a Cirq circuit (estimated reading time one hour).
+      items:
+      - heading: Circuits
+        description: The Circuit data structure and how to create them.
+        path: /cirq/circuits
+        icon:
+          name: menu_book
+      - heading: Qubits
+        description: The quantum bit data structure.
+        path: /cirq/qubits
+        icon:
+          name: menu_book
+      - heading: Gates and Operations
+        description: Quantum Gate and Operation data structures and how they are different.
+        path: /cirq/gates
+        icon:
+          name: menu_book
+      - heading: Custom gates
+        description: Create your own gates to add to circuits.
+        path: /cirq/custom_gates
+        icon:
+          name: menu_book
+      - heading: Import/export circuits
+        description: How to import or export a quantum circuit into/from Cirq.
+        path: /cirq/interop
+        icon:
+          name: menu_book
+
+    - heading: Advanced
+      description: More elaborate ways to build quantum circuits.
+      items:
+      - heading: Operators
+        description: Operators, measurements and noise channels.
+        path: /cirq/operators
+        icon:
+          name: menu_book
+      - heading: Qudits
+        description: Moving from qubits to qutrits and further.
+        path: /cirq/qudits
+        icon:
+          name: menu_book
+      - heading: Protocols
+        description: The magic methods supported by Cirq's classes.
+        path: /cirq/protocols
+        icon:
+          name: menu_book
+      - heading: Tools ecosystem
+        description: External tools for circuit construction.
+        path: /cirq/ecosystem
+        icon:
+          name: menu_book
