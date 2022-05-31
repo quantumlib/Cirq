@@ -93,3 +93,18 @@ later in the same file.
 Using consistent wording across Cirq is important for lowering users
 cognitive load. For rule governing naming, see the 
 [nomenclature guidelines](nomenclature.md).
+
+## Datetimes
+
+Prefer using timezone-aware `datetime` objects.
+
+```python
+import datetime
+dt = datetime.datetime.now(tz=datetime.timezone.utc)
+```
+
+Protobuf APIs will return "aware" `datetime` objects. JSON de-serialization will
+promote values to "aware" `datetime` objects upon deserialization. 
+
+Absolutely do not use `datetime.utcnow()` as explained in the warnings in the
+Python [documentation](https://docs.python.org/3/library/datetime.html).

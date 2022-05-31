@@ -55,13 +55,12 @@ def _class_resolver_dictionary() -> Dict[str, ObjectFactory]:
         return cirq.parallel_gate_op(gate, *qubits)
 
     def _datetime(timestamp: float) -> datetime.datetime:
-        # As part of our serialization logic, we make sure we only serialize "aware"
-        # datetimes with the UTC timezone, so we implicitly add back in the UTC timezone here.
+        # We serialize datetimes (both with ("aware") and without ("naive") timezone information)
+        # as unix timestamps. The deserialized datetime will always refer to the
+        # same point in time, but will be re-constructed as a timezone-aware object.
         #
-        # Please note: even if the assumption is somehow violated, the fact that we use
-        # unix timestamps should mean that the deserialized datetime should refer to the
-        # same point in time but may not satisfy o = read_json(to_json(o)) because the actual
-        # timezones, and hour fields will not be identical.
+        # If `o` is a naive datetime,  o != read_json(to_json(o)) because Python doesn't
+        # let you compare aware and naive datetimes.
         return datetime.datetime.fromtimestamp(timestamp, tz=datetime.timezone.utc)
 
     def _symmetricalqidpair(qids):
