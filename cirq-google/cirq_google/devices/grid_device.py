@@ -132,6 +132,9 @@ def _build_gateset_and_gate_durations(
             continue
 
         gates_list.extend(cirq_gates)
+
+        # TODO(#5050) Allow different gate representations of the same gate to be looked up in
+        # gate_durations.
         for g in cirq_gates:
             if not isinstance(g, cirq.GateFamily):
                 g = cirq.GateFamily(g)
@@ -156,9 +159,12 @@ def _build_compilation_target_gatesets(
     SQRT_ISWAP gates which yield two separate target gatesets, but a circuit can only be compiled to
     either SYC or SQRT_ISWAP for its two-qubit gates, not both.
 
-    TODO(verult) when implemented, mention that gates which are part of the gateset but not the
-    compilation target gateset are untouched when compiled.
+    TODO(#5050) when cirq-google CompilationTargetGateset subclasses are implemented, mention that
+    gates which are part of the gateset but not the compilation target gateset are untouched when
+    compiled.
     """
+
+    # TODO(#5050) Subclass core CompilationTargetGatesets in cirq-google.
 
     target_gatesets: List[cirq.CompilationTargetGateset] = []
     if cirq.CZ in gateset:
