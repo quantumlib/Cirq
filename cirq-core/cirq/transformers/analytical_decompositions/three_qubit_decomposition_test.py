@@ -69,7 +69,7 @@ def test_three_qubit_matrix_to_operations(u):
     operations = cirq.three_qubit_matrix_to_operations(a, b, c, u)
     final_circuit = cirq.Circuit(operations)
     final_unitary = final_circuit.unitary(qubits_that_should_be_present=[a, b, c])
-    cirq.testing.assert_allclose_up_to_global_phase(u, final_unitary, atol=1e-9)
+    cirq.testing.assert_allclose_up_to_global_phase(u, final_unitary, atol=1e-6)
     num_two_qubit_gates = len(
         [
             op

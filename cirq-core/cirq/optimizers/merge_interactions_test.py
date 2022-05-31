@@ -54,7 +54,7 @@ def assert_optimization_not_broken(circuit):
         cirq.MergeInteractions().optimize_circuit(circuit)
     u_after = circuit.unitary()
 
-    cirq.testing.assert_allclose_up_to_global_phase(u_before, u_after, atol=1e-8)
+    cirq.testing.assert_allclose_up_to_global_phase(u_before, u_after, atol=1e-6)
 
 
 def test_clears_paired_cnot():

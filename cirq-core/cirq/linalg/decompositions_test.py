@@ -738,7 +738,7 @@ def test_kak_vector_input_not_unitary():
 def test_kak_decompose(unitary: np.ndarray):
     kak = cirq.kak_decomposition(unitary)
     circuit = cirq.Circuit(kak._decompose_(cirq.LineQubit.range(2)))
-    np.testing.assert_allclose(cirq.unitary(circuit), unitary, atol=1e-8)
+    np.testing.assert_allclose(cirq.unitary(circuit), unitary, atol=1e-6)
     assert len(circuit) == 5
     assert len(list(circuit.all_operations())) == 8
 

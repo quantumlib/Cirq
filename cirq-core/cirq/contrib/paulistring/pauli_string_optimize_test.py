@@ -34,7 +34,7 @@ def test_optimize():
         no_clifford_gates=True,
     )
 
-    c_opt = pauli_string_optimized_circuit(c_orig)
+    c_opt = pauli_string_optimized_circuit(c_orig, atol=1e-6)
 
     cirq.testing.assert_allclose_up_to_global_phase(c_orig.unitary(), c_opt.unitary(), atol=1e-6)
 
