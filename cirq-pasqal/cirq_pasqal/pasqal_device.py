@@ -18,7 +18,7 @@ import networkx as nx
 import cirq
 from cirq import _compat, GridQubit, LineQubit
 from cirq.ops import NamedQubit
-from cirq_pasqal import ThreeDQubit, TwoDQubit
+from cirq_pasqal import ThreeDQubit, TwoDQubit, PasqalGateset
 
 
 @cirq.value.value_equality
@@ -63,20 +63,7 @@ class PasqalDevice(cirq.devices.Device):
                 'qubits.'.format(type(self), self.maximum_qubit_number)
             )
 
-        self.gateset = cirq.Gateset(
-            cirq.ParallelGateFamily(cirq.H),
-            cirq.ParallelGateFamily(cirq.PhasedXPowGate),
-            cirq.ParallelGateFamily(cirq.XPowGate),
-            cirq.ParallelGateFamily(cirq.YPowGate),
-            cirq.ParallelGateFamily(cirq.ZPowGate),
-            cirq.AnyIntegerPowerGateFamily(cirq.CNotPowGate),
-            cirq.AnyIntegerPowerGateFamily(cirq.CCNotPowGate),
-            cirq.AnyIntegerPowerGateFamily(cirq.CZPowGate),
-            cirq.AnyIntegerPowerGateFamily(cirq.CCZPowGate),
-            cirq.IdentityGate,
-            cirq.MeasurementGate,
-            unroll_circuit_op=False,
-        )
+        self.gateset = PasqalGateset()
         self.qubits = qubits
         self._metadata = cirq.DeviceMetadata(
             qubits, nx.from_edgelist([(a, b) for a in qubits for b in qubits if a != b])
@@ -101,24 +88,6 @@ class PasqalDevice(cirq.devices.Device):
 
     def qubit_list(self):
         return [qubit for qubit in self.qubits]
-
-    @_compat.deprecated(
-        fix='Use PasqalConverter() to decompose operation instead.', deadline='v0.15'
-    )
-    def decompose_operation(self, operation: cirq.Operation) -> 'cirq.OP_TREE':
-
-        decomposition = [operation]
-
-        if not isinstance(operation, cirq.GateOperation):
-            raise TypeError(f"{operation!r} is not a gate operation.")
-
-        # Try to decompose the operation into elementary device operations
-        if not self.is_pasqal_device_op(operation):
-            decomposition = PasqalConverter().pasqal_convert(
-                operation, keep=self.is_pasqal_device_op
-            )
-
-        return decomposition
 
     def is_pasqal_device_op(self, op: cirq.Operation) -> bool:
         if not isinstance(op, cirq.Operation):
@@ -183,30 +152,6 @@ class PasqalDevice(cirq.devices.Device):
                 if isinstance(operation.gate, cirq.MeasurementGate):
                     has_measurement_occurred = True
 
-    def can_add_operation_into_moment(self, operation: cirq.Operation, moment: cirq.Moment) -> bool:
-        """Determines if it's possible to add an operation into a moment.
-
-        An operation can be added if the moment with the operation added is
-        valid.
-
-        Args:
-            operation: The operation being added.
-            moment: The moment being transformed.
-
-        Returns:
-            Whether or not the moment will validate after adding the operation.
-
-        Raises:
-            ValueError: If either of the given moment or operation is invalid
-        """
-        if not super().can_add_operation_into_moment(operation, moment):
-            return False
-        try:
-            self.validate_moment(moment.with_operation(operation))
-        except ValueError:
-            return False
-        return True
-
     def __repr__(self):
         return f'pasqal.PasqalDevice(qubits={sorted(self.qubits)!r})'
 
@@ -253,23 +198,13 @@ class PasqalVirtualDevice(PasqalDevice):
                     'Control_radius cannot be larger than 3 times'
                     ' the minimal distance between qubits.'
                 )
-
         self.control_radius = control_radius
-        self.exclude_gateset = cirq.Gateset(
-            cirq.AnyIntegerPowerGateFamily(cirq.CNotPowGate),
-            cirq.AnyIntegerPowerGateFamily(cirq.CCNotPowGate),
-            cirq.AnyIntegerPowerGateFamily(cirq.CCZPowGate),
-        )
-        self.controlled_gateset = cirq.Gateset(
-            *self.exclude_gateset.gates, cirq.AnyIntegerPowerGateFamily(cirq.CZPowGate)
-        )
+        self.gateset = PasqalGateset(include_additional_controlled_ops=False)
+        self.controlled_gateset = cirq.Gateset(cirq.AnyIntegerPowerGateFamily(cirq.CZPowGate))
 
     @property
     def supported_qubit_type(self):
         return (ThreeDQubit, TwoDQubit, GridQubit, LineQubit)
-
-    def is_pasqal_device_op(self, op: cirq.Operation) -> bool:
-        return super().is_pasqal_device_op(op) and op not in self.exclude_gateset
 
     def validate_operation(self, operation: cirq.Operation):
         """Raises an error if the given operation is invalid on this device.
@@ -357,6 +292,9 @@ class PasqalVirtualDevice(PasqalDevice):
         return cirq.protocols.obj_to_dict_helper(self, ['control_radius', 'qubits'])
 
 
+@_compat.deprecated_class(
+    deadline='v0.16', fix='Use cirq.optimize_for_target_gateset(circuit, gateset=PasqalGateset()).'
+)
 class PasqalConverter(cirq.neutral_atoms.ConvertToNeutralAtomGates):
     """A gate converter for compatibility with Pasqal processors.
 

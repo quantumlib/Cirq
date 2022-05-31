@@ -13,7 +13,7 @@
 # limitations under the License.
 
 """Value conversion utilities and classes for time and quantum states."""
-from cirq.value.abc_alt import ABCMetaImplementAnyOneOf, alternative, GenericMetaImplementAnyOneOf
+from cirq.value.abc_alt import ABCMetaImplementAnyOneOf, alternative
 
 from cirq.value.angle import (
     canonicalize_half_turns,

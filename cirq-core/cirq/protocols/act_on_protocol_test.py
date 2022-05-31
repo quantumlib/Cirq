@@ -43,20 +43,20 @@ op = cirq.X(cirq.LineQubit(0))
 
 
 def test_act_on_fallback_succeeds():
-    args = DummySimulationState(fallback_result=True)
-    cirq.act_on(op, args)
+    state = DummySimulationState(fallback_result=True)
+    cirq.act_on(op, state)
 
 
 def test_act_on_fallback_fails():
-    args = DummySimulationState(fallback_result=NotImplemented)
+    state = DummySimulationState(fallback_result=NotImplemented)
     with pytest.raises(TypeError, match='Failed to act'):
-        cirq.act_on(op, args)
+        cirq.act_on(op, state)
 
 
 def test_act_on_fallback_errors():
-    args = DummySimulationState(fallback_result=False)
+    state = DummySimulationState(fallback_result=False)
     with pytest.raises(ValueError, match='_act_on_fallback_ must return True or NotImplemented'):
-        cirq.act_on(op, args)
+        cirq.act_on(op, state)
 
 
 def test_act_on_errors():
@@ -71,9 +71,9 @@ def test_act_on_errors():
         def _act_on_(self, sim_state):
             return False
 
-    args = DummySimulationState(fallback_result=True)
+    state = DummySimulationState(fallback_result=True)
     with pytest.raises(ValueError, match='_act_on_ must return True or NotImplemented'):
-        cirq.act_on(Op(), args)
+        cirq.act_on(Op(), state)
 
 
 def test_qubits_not_allowed_for_operations():
@@ -85,14 +85,20 @@ def test_qubits_not_allowed_for_operations():
         def with_qubits(self: TSelf, *new_qubits: 'cirq.Qid') -> TSelf:
             pass
 
-    args = DummySimulationState()
+    state = DummySimulationState()
     with pytest.raises(
         ValueError, match='Calls to act_on should not supply qubits if the action is an Operation'
     ):
-        cirq.act_on(Op(), args, qubits=[])
+        cirq.act_on(Op(), state, qubits=[])
 
 
 def test_qubits_should_be_defined_for_operations():
-    args = DummySimulationState()
+    state = DummySimulationState()
     with pytest.raises(ValueError, match='Calls to act_on should'):
-        cirq.act_on(cirq.KrausChannel([np.array([[1, 0], [0, 0]])]), args, qubits=None)
+        cirq.act_on(cirq.KrausChannel([np.array([[1, 0], [0, 0]])]), state, qubits=None)
+
+
+def test_args_deprecated():
+    args = DummySimulationState(fallback_result=True)
+    with cirq.testing.assert_deprecated(deadline='v0.16'):
+        cirq.act_on(action=op, args=args)  # pylint: disable=no-value-for-parameter

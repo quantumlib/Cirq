@@ -30,7 +30,14 @@ from typing import (
 import numpy as np
 
 from cirq import protocols, qis, value
-from cirq.ops import raw_types, gate_operation, controlled_gate, matrix_gates
+from cirq.ops import (
+    controlled_gate,
+    common_gates,
+    eigen_gate,
+    gate_operation,
+    matrix_gates,
+    raw_types,
+)
 from cirq.type_workarounds import NotImplementedType
 
 if TYPE_CHECKING:
@@ -50,6 +57,25 @@ class ControlledOperation(raw_types.Operation):
         sub_operation: 'cirq.Operation',
         control_values: Optional[Sequence[Union[int, Collection[int]]]] = None,
     ):
+        """Initializes the controlled operation.
+
+        Args:
+            controls: The qubits that control the sub-operation.
+            sub_operation: The operation that will be controlled.
+            control_values: Which control qubit values to apply the sub
+                operation.  A sequence of length `num_controls` where each
+                entry is an integer (or set of integers) corresponding to the
+                qubit value (or set of possible values) where that control is
+                enabled.  When all controls are enabled, the sub gate is
+                applied.  If unspecified, control values default to 1.
+
+        Raises:
+            ValueError: If the `control_values` or `control_qid_shape` does not
+                match the number of qubits, if the `control_values` are out of
+                bounds, if the qubits overlap, or if the sub_operation is not a
+                unitary or mixture.
+        """
+        controlled_gate._validate_sub_object(sub_operation)
         if control_values is None:
             control_values = ((1,),) * len(controls)
         if len(control_values) != len(controls):
@@ -166,6 +192,32 @@ class ControlledOperation(raw_types.Operation):
 
     def _has_unitary_(self) -> bool:
         return protocols.has_unitary(self.sub_operation)
+
+    def _qasm_(self, args: 'cirq.QasmArgs') -> Optional[str]:
+        if (
+            hasattr(self._sub_operation, "gate")
+            and len(self._controls) == 1
+            and self._control_values == ((1,),)
+        ):
+            gate = self.sub_operation.gate
+            if (
+                isinstance(gate, eigen_gate.EigenGate)
+                and gate.exponent == 1
+                and gate.global_shift == 0
+            ):
+                instr = None
+                if isinstance(gate, common_gates.XPowGate):
+                    instr = 'cx {0},{1};\n'
+                elif isinstance(gate, common_gates.YPowGate):
+                    instr = 'cy {0},{1};\n'
+                elif isinstance(gate, common_gates.ZPowGate):
+                    instr = 'cz {0},{1};\n'
+                elif isinstance(gate, common_gates.HPowGate):
+                    instr = 'ch {0},{1};\n'
+                if instr:
+                    return args.format(instr, self._controls[0], self.sub_operation.qubits[0])
+        # Fallback to decompose.
+        return None
 
     def _extend_matrix(self, sub_matrix: np.ndarray) -> np.ndarray:
         qid_shape = protocols.qid_shape(self)

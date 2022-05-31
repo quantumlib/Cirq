@@ -92,13 +92,17 @@ def test_custom_circuit_gate():
     # With internal input.
     assert_url_to_circuit_returns(
         '{"cols":[["~a5ls"]],"gates":[{"id":"~a5ls","circuit":{"cols":[["inputA1","+=A1"]]}}]}',
-        cirq.Circuit(cirq.interop.quirk.QuirkArithmeticOperation('+=A1', target=[b], inputs=[[a]])),
+        cirq.Circuit(
+            cirq.interop.quirk.QuirkArithmeticGate('+=A1', target=[2], inputs=[[2]]).on(b, a)
+        ),
     )
 
     # With external input.
     assert_url_to_circuit_returns(
         '{"cols":[["inputA1","~r79k"]],"gates":[{"id":"~r79k","circuit":{"cols":[["+=A1"]]}}]}',
-        cirq.Circuit(cirq.interop.quirk.QuirkArithmeticOperation('+=A1', target=[b], inputs=[[a]])),
+        cirq.Circuit(
+            cirq.interop.quirk.QuirkArithmeticGate('+=A1', target=[2], inputs=[[2]]).on(b, a)
+        ),
     )
 
     # With external control.
@@ -127,9 +131,15 @@ def test_custom_circuit_gate():
         '{"cols":[["~q1fh",1,1,"inputA2"]],"gates":[{"id":"~q1fh",'
         '"circuit":{"cols":[["+=A2"],[1,"+=A2"],[1,"+=A2"]]}}]}',
         cirq.Circuit(
-            cirq.interop.quirk.QuirkArithmeticOperation('+=A2', target=[a, b], inputs=[[d, e]]),
-            cirq.interop.quirk.QuirkArithmeticOperation('+=A2', target=[b, c], inputs=[[d, e]]),
-            cirq.interop.quirk.QuirkArithmeticOperation('+=A2', target=[b, c], inputs=[[d, e]]),
+            cirq.interop.quirk.QuirkArithmeticGate('+=A2', target=[2, 2], inputs=[[2, 2]]).on(
+                a, b, d, e
+            ),
+            cirq.interop.quirk.QuirkArithmeticGate('+=A2', target=[2, 2], inputs=[[2, 2]]).on(
+                b, c, d, e
+            ),
+            cirq.interop.quirk.QuirkArithmeticGate('+=A2', target=[2, 2], inputs=[[2, 2]]).on(
+                b, c, d, e
+            ),
         ),
     )
 

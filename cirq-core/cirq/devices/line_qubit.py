@@ -190,7 +190,12 @@ class LineQid(_BaseLineQid):
         return f"cirq.LineQid({self.x}, dimension={self.dimension})"
 
     def __str__(self) -> str:
-        return f"{self.x} (d={self.dimension})"
+        return f"q({self.x}) (d={self.dimension})"
+
+    def _circuit_diagram_info_(
+        self, args: 'cirq.CircuitDiagramInfoArgs'
+    ) -> 'cirq.CircuitDiagramInfo':
+        return protocols.CircuitDiagramInfo(wire_symbols=(f"{self.x} (d={self.dimension})",))
 
     def _json_dict_(self) -> Dict[str, Any]:
         return protocols.obj_to_dict_helper(self, ['x', 'dimension'])
@@ -241,7 +246,12 @@ class LineQubit(_BaseLineQid):
         return f"cirq.LineQubit({self.x})"
 
     def __str__(self) -> str:
-        return f"{self.x}"
+        return f"q({self.x})"
+
+    def _circuit_diagram_info_(
+        self, args: 'cirq.CircuitDiagramInfoArgs'
+    ) -> 'cirq.CircuitDiagramInfo':
+        return protocols.CircuitDiagramInfo(wire_symbols=(f"{self.x}",))
 
     def _json_dict_(self) -> Dict[str, Any]:
         return protocols.obj_to_dict_helper(self, ['x'])
