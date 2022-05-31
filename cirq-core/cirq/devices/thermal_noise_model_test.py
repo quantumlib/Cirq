@@ -225,6 +225,36 @@ def test_noisy_moment_one_qubit():
     )
 
 
+def test_noisy_moment_one_qubit_prepend():
+    q0, q1 = cirq.LineQubit.range(2)
+    model = ThermalNoiseModel(
+        qubits={q0, q1},
+        gate_durations_ns={cirq.PhasedXZGate: 25.0, cirq.CZPowGate: 25.0},
+        heat_rate_GHz={q0: 1e-5, q1: 2e-5},
+        cool_rate_GHz={q0: 1e-4, q1: 2e-4},
+        dephase_rate_GHz={q0: 3e-4, q1: 4e-4},
+        require_physical_tag=False,
+        prepend=True,
+    )
+    gate = cirq.PhasedXZGate(x_exponent=1, z_exponent=0.5, axis_phase_exponent=0.25)
+    moment = cirq.Moment(gate.on(q0))
+    noisy_moment = model.noisy_moment(moment, system_qubits=[q0, q1])
+    # Noise applies to both qubits, even if only one is acted upon.
+    assert len(noisy_moment[0]) == 2
+    noisy_choi = cirq.kraus_to_choi(cirq.kraus(noisy_moment[0].operations[0]))
+    assert np.allclose(
+        noisy_choi,
+        [
+            [9.99750343e-01, 0, 0, 9.91164267e-01],
+            [0, 2.49656565e-03, 0, 0],
+            [0, 0, 2.49656565e-04, 0],
+            [9.91164267e-01, 0, 0, 9.97503434e-01],
+        ],
+    )
+    # Prepend puts noise before the original moment.
+    assert noisy_moment[1] == moment
+
+
 def test_noise_from_wait():
     # Verify that wait-gate noise is duration-dependent.
     q0 = cirq.LineQubit(0)
