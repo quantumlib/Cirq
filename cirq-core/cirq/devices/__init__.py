@@ -16,7 +16,7 @@
 
 from cirq.devices.device import Device, DeviceMetadata
 
-from cirq.devices.grid_device_metadata import GridDeviceMetadata
+from cirq.devices.grid_device_metadata import GateDurationTable, GridDeviceMetadata
 
 from cirq.devices.grid_qubit import GridQid, GridQubit
 

@@ -83,6 +83,7 @@ from cirq.devices import (
     ConstantQubitNoiseModel,
     Device,
     DeviceMetadata,
+    GateDurationTable,
     GridDeviceMetadata,
     GridQid,
     GridQubit,
