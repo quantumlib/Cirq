@@ -15,7 +15,7 @@ ALIGNED_VERTICAL = cirq.experiments.GridInteractionLayer(col_offset=0, vertical=
 
 
 _DEPRECATION_MESSAGE = 'Use cirq.experiments.xeb_fitting.XEBCharacterizationResult instead'
-
+_DEPRECATION_RECIRQ = 'Use recirq.benchmarks.xeb.collect_grid_parallel_two_qubit_xeb_data instead.'
 
 def test_estimate_parallel_two_qubit_xeb_fidelity_on_grid_no_noise(tmpdir):
     # No noise, fidelities should be close to 1
@@ -23,7 +23,8 @@ def test_estimate_parallel_two_qubit_xeb_fidelity_on_grid_no_noise(tmpdir):
     qubits = cirq.GridQubit.square(2)
     two_qubit_gate = cirq.ISWAP**0.5
     cycles = [5, 10, 15]
-    data_collection_id = collect_grid_parallel_two_qubit_xeb_data(
+    with cirq.testing.assert_deprecated(_DEPRECATION_RECIRQ, deadline='v0.16'):
+      data_collection_id = collect_grid_parallel_two_qubit_xeb_data(
         sampler=cirq.Simulator(seed=34310, split_untangled_states=False),
         qubits=qubits,
         two_qubit_gate=two_qubit_gate,
@@ -34,8 +35,8 @@ def test_estimate_parallel_two_qubit_xeb_fidelity_on_grid_no_noise(tmpdir):
         seed=43435,
         num_workers=1,
         base_dir=base_dir,
-    )
-    with cirq.testing.assert_deprecated(_DEPRECATION_MESSAGE, deadline='v0.16', count=5):
+      )
+    with cirq.testing.assert_deprecated(_DEPRECATION_MESSAGE, deadline='v0.16', count=6):
         results = compute_grid_parallel_two_qubit_xeb_results(data_collection_id, base_dir=base_dir)
 
     assert len(results) == 4
@@ -57,7 +58,7 @@ def test_estimate_parallel_two_qubit_xeb_fidelity_on_grid_depolarizing(tmpdir):
     two_qubit_gate = cirq.ISWAP**0.5
     cycles = [5, 10, 15]
     e = 0.01
-    with cirq.testing.assert_deprecated(_DEPRECATION_MESSAGE, deadline='v0.16', count=5):
+    with cirq.testing.assert_deprecated(_DEPRECATION_MESSAGE, deadline='v0.16', count=7):
         data_collection_id = collect_grid_parallel_two_qubit_xeb_data(
             sampler=cirq.DensityMatrixSimulator(
                 noise=cirq.depolarize(e), seed=65008, split_untangled_states=False
@@ -92,7 +93,7 @@ def test_estimate_parallel_two_qubit_xeb_fidelity_on_grid_concurrent(tmpdir):
     qubits = cirq.GridQubit.square(2)
     two_qubit_gate = cirq.ISWAP**0.5
     cycles = [5, 10, 15]
-    with cirq.testing.assert_deprecated(_DEPRECATION_MESSAGE, deadline='v0.16', count=5):
+    with cirq.testing.assert_deprecated(_DEPRECATION_MESSAGE, deadline='v0.16', count=7):
         data_collection_id = collect_grid_parallel_two_qubit_xeb_data(
             sampler=cirq.Simulator(seed=34310),
             qubits=qubits,
