@@ -359,8 +359,14 @@ def test_no_repetition_ids():
             repetitions=1_000_000,
             use_repetition_ids=False,
         )
+        assert op.repetitions == 1_000_000
+        assert op.repetition_ids is None
         _ = repr(op)
         _ = str(op)
+
+        op2 = op.repeat(10)
+        assert op2.repetitions == 10_000_000
+        assert op2.repetition_ids is None
 
 
 def test_parameterized_repeat():

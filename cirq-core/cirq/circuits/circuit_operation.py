@@ -524,13 +524,14 @@ class CircuitOperation(ops.Operation):
 
             expected_repetition_id_length = abs(repetitions)
 
-            if repetition_ids is None:
-                repetition_ids = default_repetition_ids(expected_repetition_id_length)
-            elif len(repetition_ids) != expected_repetition_id_length:
-                raise ValueError(
-                    f'Expected repetition_ids={repetition_ids} length to be '
-                    f'{expected_repetition_id_length}'
-                )
+            if self.use_repetition_ids:
+                if repetition_ids is None:
+                    repetition_ids = default_repetition_ids(expected_repetition_id_length)
+                elif len(repetition_ids) != expected_repetition_id_length:
+                    raise ValueError(
+                        f'Expected repetition_ids={repetition_ids} length to be '
+                        f'{expected_repetition_id_length}'
+                    )
 
         # If either self.repetition_ids or repetitions is None, it returns the other unchanged.
         repetition_ids = _full_join_string_lists(repetition_ids, self.repetition_ids)
