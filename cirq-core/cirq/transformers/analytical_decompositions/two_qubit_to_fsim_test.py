@@ -115,7 +115,7 @@ def test_decompose_two_qubit_interaction_into_four_fsim_gates_equivalence(
     for operation in circuit.all_operations():
         assert len(operation.qubits) < 2 or operation.gate == fsim_gate
     assert len(circuit) <= 4 * 3 + 5
-    assert cirq.approx_eq(circuit.unitary(qubit_order=qubits), desired_unitary, atol=1e-6)
+    assert cirq.approx_eq(circuit.unitary(qubit_order=qubits), desired_unitary, atol=5e-5)
 
 
 def test_decompose_two_qubit_interaction_into_four_fsim_gates_validate():

@@ -118,7 +118,7 @@ def test_cs_to_ops(theta, num_czs):
     cs = _theta_to_cs(theta)
     circuit_cs = cirq.Circuit(_cs_to_ops(a, b, c, theta))
 
-    assert_almost_equal(circuit_cs.unitary(qubits_that_should_be_present=[a, b, c]), cs, 10)
+    assert_almost_equal(circuit_cs.unitary(qubits_that_should_be_present=[a, b, c]), cs, 7)
 
     assert (
         len([cz for cz in list(circuit_cs.all_operations()) if isinstance(cz.gate, cirq.CZPowGate)])
@@ -130,7 +130,7 @@ def _theta_to_cs(theta: np.ndarray) -> np.ndarray:
     """Returns the CS matrix from the cosine sine decomposition.
 
     Args:
-        theta: the 4 angles that result from the CS decomposition
+        theta: the 4 angles that result from the CS decomposition.
     Returns:
         the CS matrix
     """
