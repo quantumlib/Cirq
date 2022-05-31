@@ -240,7 +240,7 @@ class GridQid(_BaseGridQid):
         Args:
             diagram: String representing the qid layout. Each line represents
                 a row. Alphanumeric characters are assigned as qid.
-                Dots ('.'), dashes ('-'), and spaces are treated as
+                Dots ('.'), dashes ('-'), and spaces (' ') are treated as
                 empty locations in the grid. If diagram has characters other
                 than alphanumerics, spacers, and newlines ('\\n'), an error will
                 be thrown. The top-left corner of the diagram will be have
