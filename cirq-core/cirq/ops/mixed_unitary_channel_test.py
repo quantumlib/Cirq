@@ -9,6 +9,8 @@ def test_matrix_mixture_from_mixture():
     dp = cirq.depolarize(0.1)
     mm = cirq.MixedUnitaryChannel.from_mixture(dp, key='dp')
     assert cirq.measurement_key_name(mm) == 'dp'
+    cirq.testing.assert_consistent_channel(mm)
+    cirq.testing.assert_consistent_mixture(mm)
 
     circuit = cirq.Circuit(mm.on(q0))
     sim = cirq.Simulator(seed=0)

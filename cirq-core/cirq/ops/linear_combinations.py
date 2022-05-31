@@ -764,6 +764,8 @@ def _projector_string_from_projector_dict(projector_dict, coefficient=1.0):
 
 @value.value_equality(approximate=True)
 class ProjectorSum:
+    """List of mappings representing a sum of projector operators."""
+
     def __init__(
         self, linear_dict: Optional[value.LinearDict[FrozenSet[Tuple[raw_types.Qid, int]]]] = None
     ):
