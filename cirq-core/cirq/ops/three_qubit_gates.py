@@ -42,6 +42,7 @@ from cirq.ops import (
     raw_types,
     swap_gates,
     raw_types,
+    global_phase_op,
 )
 
 if TYPE_CHECKING:
@@ -117,8 +118,13 @@ class CCZPowGate(gate_features.InterchangeableQubitsGate, eigen_gate.EigenGate):
 
         p = common_gates.T**self._exponent
         sweep_abc = [common_gates.CNOT(a, b), common_gates.CNOT(b, c)]
-
-        return [
+        global_phase = 1j ** (2 * self.global_shift * self._exponent)
+        global_phase_operation = (
+            [global_phase_op.global_phase_operation(global_phase)]
+            if protocols.is_parameterized(global_phase) or abs(global_phase - 1.0) > 0
+            else []
+        )
+        return global_phase_operation + [
             p(a),
             p(b),
             p(c),
@@ -337,8 +343,13 @@ class ThreeQubitDiagonalGate(raw_types.Gate):
         ]
         phase_solutions = phase_matrix_inverse.dot(shifted_angles_tail)
         p_gates = [pauli_gates.Z ** (solution / np.pi) for solution in phase_solutions]
-
-        return [
+        global_phase = 1j ** (2 * self._diag_angles_radians[0] / np.pi)
+        global_phase_operation = (
+            [global_phase_op.global_phase_operation(global_phase)]
+            if protocols.is_parameterized(global_phase) or abs(global_phase - 1.0) > 0
+            else []
+        )
+        return global_phase_operation + [
             p_gates[0](a),
             p_gates[1](b),
             p_gates[2](c),
@@ -460,7 +471,7 @@ class CCXPowGate(gate_features.InterchangeableQubitsGate, eigen_gate.EigenGate):
     def _decompose_(self, qubits):
         c1, c2, t = qubits
         yield common_gates.H(t)
-        yield CCZ(c1, c2, t) ** self._exponent
+        yield CCZPowGate(exponent=self._exponent, global_shift=self.global_shift).on(c1, c2, t)
         yield common_gates.H(t)
 
     def _circuit_diagram_info_(
