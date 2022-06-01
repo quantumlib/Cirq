@@ -175,6 +175,7 @@ class ThermalNoiseModel(devices.NoiseModel):
         dephase_rate_GHz: Union[float, Dict['cirq.Qid', float], None] = None,
         require_physical_tag: bool = True,
         skip_measurements: bool = True,
+        prepend: bool = False,
     ):
         """Construct a ThermalNoiseModel data object.
 
@@ -203,6 +204,7 @@ class ThermalNoiseModel(devices.NoiseModel):
             require_physical_tag: whether to only apply noise to operations
                 tagged with PHYSICAL_GATE_TAG.
             skip_measurements: whether to skip applying noise to measurements.
+            prepend: If True, put noise before affected gates. Default: False.
 
         Returns:
             The ThermalNoiseModel with specified parameters.
@@ -225,6 +227,7 @@ class ThermalNoiseModel(devices.NoiseModel):
         self.rate_matrix_GHz: Dict['cirq.Qid', np.ndarray] = rate_dict
         self.require_physical_tag: bool = require_physical_tag
         self.skip_measurements: bool = skip_measurements
+        self._prepend = prepend
 
     def noisy_moment(
         self, moment: 'cirq.Moment', system_qubits: Sequence['cirq.Qid']
@@ -277,4 +280,5 @@ class ThermalNoiseModel(devices.NoiseModel):
             noise_ops.append(ops.KrausChannel(kraus_ops).on(qubit))
         if not noise_ops:
             return [moment]
-        return [moment, moment_module.Moment(noise_ops)]
+        output = [moment, moment_module.Moment(noise_ops)]
+        return output[::-1] if self._prepend else output
