@@ -115,7 +115,7 @@ def test_decompose_two_qubit_interaction_into_four_fsim_gates_equivalence(
     for operation in circuit.all_operations():
         assert len(operation.qubits) < 2 or operation.gate == fsim_gate
     assert len(circuit) <= 4 * 3 + 5
-    np.testing.assert_allclose(circuit.unitary(qubit_order=qubits), desired_unitary, atol=3e-6)
+    np.testing.assert_allclose(circuit.unitary(qubit_order=qubits), desired_unitary, atol=5e-6)
 
 
 def test_decompose_two_qubit_interaction_into_four_fsim_gates_validate():
