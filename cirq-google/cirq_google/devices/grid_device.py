@@ -26,6 +26,18 @@ from cirq_google.devices import known_devices
 from cirq_google.experimental import ops as experimental_ops
 
 
+SYC_GATE_FAMILY = cirq.GateFamily(ops.SYC)
+SQRT_ISWAP_GATE_FAMILY = cirq.GateFamily(cirq.SQRT_ISWAP)
+SQRT_ISWAP_INV_GATE_FAMILY = cirq.GateFamily(cirq.SQRT_ISWAP_INV)
+CZ_GATE_FAMILY = cirq.GateFamily(cirq.CZ)
+PHASED_XZ_GATE_FAMILY = cirq.GateFamily(cirq.PhasedXZGate)
+VIRTUAL_ZPOW_GATE_FAMILY = cirq.GateFamily(cirq.ZPowGate, tags_to_ignore=[ops.PhysicalZTag()])
+PHYSICAL_ZPOW_GATE_FAMILY = cirq.GateFamily(cirq.ZPowGate, tags_to_accept=[ops.PhysicalZTag()])
+COUPLER_PULSE_GATE_FAMILY = cirq.GateFamily(experimental_ops.CouplerPulse)
+MEASUREMENT_GATE_FAMILY = cirq.GateFamily(cirq.MeasurementGate)
+WAIT_GATE_FAMILY = cirq.GateFamily(cirq.WaitGate)
+
+
 def _validate_device_specification(proto: v2.device_pb2.DeviceSpecification) -> None:
     """Raises a ValueError if the `DeviceSpecification` proto is invalid."""
 
@@ -371,31 +383,32 @@ class GridDevice(cirq.Device):
 def _set_gate_in_gate_spec(
     gate_spec: v2.device_pb2.GateSpecification, gate_family: cirq.GateFamily
 ) -> None:
-    if gate_family == cirq.GateFamily(ops.SYC):
+    if gate_family == SYC_GATE_FAMILY:
         gate_spec.syc.SetInParent()
-    elif gate_family == cirq.GateFamily(cirq.SQRT_ISWAP):
+    elif gate_family == SQRT_ISWAP_GATE_FAMILY:
         gate_spec.sqrt_iswap.SetInParent()
-    elif gate_family == cirq.GateFamily(cirq.SQRT_ISWAP_INV):
+    elif gate_family == SQRT_ISWAP_INV_GATE_FAMILY:
         gate_spec.sqrt_iswap_inv.SetInParent()
-    elif gate_family == cirq.GateFamily(cirq.CZ):
+    elif gate_family == CZ_GATE_FAMILY:
         gate_spec.cz.SetInParent()
-    elif gate_family == cirq.GateFamily(cirq.PhasedXZGate):
+    elif gate_family == PHASED_XZ_GATE_FAMILY:
         gate_spec.phased_xz.SetInParent()
-    elif gate_family == cirq.GateFamily(cirq.ZPowGate, tags_to_ignore=[ops.PhysicalZTag()]):
+    elif gate_family == VIRTUAL_ZPOW_GATE_FAMILY:
         gate_spec.virtual_zpow.SetInParent()
-    elif gate_family == cirq.GateFamily(cirq.ZPowGate, tags_to_accept=[ops.PhysicalZTag()]):
+    elif gate_family == PHYSICAL_ZPOW_GATE_FAMILY:
         gate_spec.physical_zpow.SetInParent()
-    elif gate_family == cirq.GateFamily(experimental_ops.CouplerPulse):
+    elif gate_family == COUPLER_PULSE_GATE_FAMILY:
         gate_spec.coupler_pulse.SetInParent()
-    elif gate_family == cirq.GateFamily(cirq.MeasurementGate):
+    elif gate_family == MEASUREMENT_GATE_FAMILY:
         gate_spec.meas.SetInParent()
-    elif gate_family == cirq.GateFamily(cirq.WaitGate):
+    elif gate_family == WAIT_GATE_FAMILY:
         gate_spec.wait.SetInParent()
     else:
         raise ValueError(f'Unrecognized gate {gate_family}.')
 
 
-def to_proto(
+def create_device_specification_proto(
+    *,
     qubits: Collection[cirq.GridQubit],
     pairs: Collection[Tuple[cirq.GridQubit, cirq.GridQubit]],
     gateset: cirq.Gateset,
@@ -431,9 +444,8 @@ def to_proto(
         out = v2.device_pb2.DeviceSpecification()
 
     # If fields are already filled (i.e. as part of the old DeviceSpecification format), leave them
-    # as is.
-    # Fields populated in the new format do not conflict with how they were populated in the old
-    # format.
+    # as is. Fields populated in the new format do not conflict with how they were populated in the
+    # old format.
     # TODO(#5050) remove empty checks below once deprecated fields in DeviceSpecification are
     # removed.
 

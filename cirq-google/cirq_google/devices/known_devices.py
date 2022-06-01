@@ -184,12 +184,24 @@ def create_device_proto_for_qubits(
 def populate_qubits_in_device_proto(
     qubits: Collection[cirq.Qid], out: device_pb2.DeviceSpecification
 ) -> None:
+    """Populates `DeviceSpecification.valid_qubits` with the device's qubits.
+
+    Args:
+        qubits: The collection of the device's qubits.
+        out: The `DeviceSpecification` to be populated.
+    """
     out.valid_qubits.extend(v2.qubit_to_proto_id(q) for q in qubits)
 
 
 def populate_qubit_pairs_in_device_proto(
     pairs: Collection[Tuple[cirq.Qid, cirq.Qid]], out: device_pb2.DeviceSpecification
 ) -> None:
+    """Populates `DeviceSpecification.valid_targets` with the device's qubit pairs.
+
+    Args:
+        pairs: The collection of the device's bi-directional qubit pairs.
+        out: The `DeviceSpecification` to be populated.
+    """
     grid_targets = out.valid_targets.add()
     grid_targets.name = _2_QUBIT_TARGET_SET
     grid_targets.target_ordering = device_pb2.TargetSet.SYMMETRIC

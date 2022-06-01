@@ -372,11 +372,11 @@ def test_to_proto():
         cirq.GateFamily(cirq.ops.wait_gate.WaitGate): base_duration * 9,
     }
 
-    spec = grid_device.to_proto(
-        device_info.grid_qubits,
-        device_info.qubit_pairs,
-        cirq.Gateset(*gate_durations.keys()),
-        gate_durations,
+    spec = grid_device.create_device_specification_proto(
+        qubits=device_info.grid_qubits,
+        pairs=device_info.qubit_pairs,
+        gateset=cirq.Gateset(*gate_durations.keys()),
+        gate_durations=gate_durations,
     )
 
     assert text_format.MessageToString(spec) == text_format.MessageToString(expected_spec)
@@ -412,7 +412,9 @@ def test_to_proto():
 )
 def test_to_proto_invalid_input(error_match, qubits, qubit_pairs, gateset, gate_durations):
     with pytest.raises(ValueError, match=error_match):
-        grid_device.to_proto(qubits, qubit_pairs, gateset, gate_durations)
+        grid_device.create_device_specification_proto(
+            qubits=qubits, pairs=qubit_pairs, gateset=gateset, gate_durations=gate_durations
+        )
 
 
 def test_to_proto_backward_compatibility():
@@ -449,12 +451,12 @@ def test_to_proto_backward_compatibility():
     )
 
     # Serialize the new way
-    grid_device.to_proto(
-        device_info.grid_qubits,
-        device_info.qubit_pairs,
-        cirq.Gateset(*gate_durations.keys()),
-        gate_durations,
-        spec,
+    grid_device.create_device_specification_proto(
+        qubits=device_info.grid_qubits,
+        pairs=device_info.qubit_pairs,
+        gateset=cirq.Gateset(*gate_durations.keys()),
+        gate_durations=gate_durations,
+        out=spec,
     )
 
     # Deserialize both ways
@@ -487,7 +489,7 @@ def test_to_proto_backward_compatibility():
 
 
 def test_to_proto_empty():
-    spec = grid_device.to_proto(
+    spec = grid_device.create_device_specification_proto(
         # Qubits are always expected to be set
         qubits=[cirq.GridQubit(0, i) for i in range(5)],
         pairs=[],
