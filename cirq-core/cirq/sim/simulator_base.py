@@ -213,7 +213,7 @@ class SimulatorBase(
     def _base_iterator(
         self, circuit: 'cirq.AbstractCircuit', qubits: Tuple['cirq.Qid', ...], initial_state: Any
     ) -> Iterator[TStepResultBase]:
-        if not isinstance(qubits, Tuple):
+        if not isinstance(qubits, tuple):
             _compat._warn_or_error(
                 'The `qubits` parameter of `_base_iterator` will expect an explicit'
                 ' `Tuple[cirq.Qid, ...]` beginning in v0.16.'

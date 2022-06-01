@@ -685,7 +685,7 @@ class SimulatesIntermediateState(
             ' and `_core_iterator`. The default implementation of `_base_iterator` will be removed'
             ' in v0.16, and the method will become abstract.'
         )
-        if not isinstance(qubits, Tuple):
+        if not isinstance(qubits, tuple):
             _compat._warn_or_error(
                 'The `qubits` parameter of `_base_iterator` will expect an explicit'
                 ' `Tuple[cirq.Qid, ...]` beginning in v0.16.'

@@ -559,11 +559,14 @@ def test_deprecated_create_act_on_args():
 
 def test_deprecated_qubits_param():
     class Sim(cirq.SimulatesIntermediateState):
-        def _create_simulator_trial_result(self):
-            pass
-
         def _create_simulation_state(self, initial_state, qubits):
             return 0
+
+        def _core_iterator(self, circuit, sim_state):
+            pass
+
+        def _create_simulator_trial_result(self):
+            pass
 
     with cirq.testing.assert_deprecated(
         '`qubits` parameter of `_base_iterator', deadline='v0.16', count=2
