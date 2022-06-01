@@ -972,7 +972,7 @@ class AbstractCircuit(abc.ABC):
         qubit_order: 'cirq.QubitOrderOrList' = ops.QubitOrder.DEFAULT,
         qubits_that_should_be_present: Iterable['cirq.Qid'] = (),
         ignore_terminal_measurements: bool = True,
-        dtype: Type[np.number] = np.complex64,
+        dtype: Type[np.number] = None,
     ) -> np.ndarray:
         """Converts the circuit into a unitary matrix, if possible.
 

@@ -385,8 +385,10 @@ def _create_corrected_circuit(
     """
     # Get the local equivalents
     b_0, b_1, a_0, a_1 = _find_local_equivalents(
-        target_unitary, program.unitary(qubit_order=cirq.QubitOrder.explicit([q0, q1]))
+        target_unitary,
+        program.unitary(qubit_order=cirq.QubitOrder.explicit([q0, q1]), dtype=target_unitary.dtype),
     )
+    print(b_0, b_1, a_0, a_1)
 
     # Apply initial corrections
     yield from _phased_x_z_ops(b_0, q0)

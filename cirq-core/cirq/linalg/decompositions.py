@@ -549,6 +549,8 @@ def scatter_plot_normalized_kak_interaction_coefficients(
     *,
     include_frame: bool = True,
     ax: Optional[plt.Axes] = None,
+    rtol: float = 1e-5,
+    atol: float = 1e-6,
     **kwargs,
 ):
     r"""Plots the interaction coefficients of many two-qubit operations.
@@ -590,6 +592,13 @@ def scatter_plot_normalized_kak_interaction_coefficients(
             wireframe. Defaults to `True`.
         ax: A matplotlib 3d axes object to plot into. If not specified, a new
             figure is created, plotted, and shown.
+        rtol: Per-matrix-entry relative tolerance on equality used if the
+            kak decomposition is calculated from the `interactions`.
+        atol: Per-matrix-entry absolute tolerance on equality used if the
+            kak decomposition is calculated from the `interaction`s. T
+            Thisd etermines how close $k_x$  must be to π/4 to guarantee
+            $k_z$ ≥ 0. Must be non-negative.
+
         **kwargs: Arguments forwarded into the call to `scatter` that plots the
             points. Working arguments include color `c='blue'`, scale `s=2`,
             labelling `label="theta=pi/4"`, etc. For reference see the
@@ -662,7 +671,7 @@ def scatter_plot_normalized_kak_interaction_coefficients(
     else:
         interactions_extracted = [interactions]
 
-    points = kak_vector(interactions_extracted) * 4 / np.pi
+    points = kak_vector(interactions_extracted, rtol=rtol, atol=atol) * 4 / np.pi
 
     ax.scatter(*coord_transform(points), **kwargs)
     ax.set_xlim(0, +1)
@@ -944,7 +953,7 @@ def kak_vector(
 
     if check_preconditions:
         actual = np.einsum('...ba,...bc', unitary.conj(), unitary) - np.eye(4)
-        if not np.allclose(np.zeros_like(actual), actual, rtol=0, atol=atol):
+        if not np.allclose(np.zeros_like(actual), actual, rtol=rtol, atol=atol):
             raise ValueError(
                 'Input must correspond to a 4x4 unitary matrix or tensor of '
                 f'unitary matrices. Received input:\n{unitary}'

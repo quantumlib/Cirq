@@ -260,7 +260,7 @@ def test_swap_zztheta():
         ):
             cgoc.ConvertToSycamoreGates().optimize_circuit(actual_circuit)
         actual_unitary = cirq.unitary(actual_circuit)
-        cirq.testing.assert_allclose_up_to_global_phase(actual_unitary, expected_unitary, atol=2e-6)
+        cirq.testing.assert_allclose_up_to_global_phase(actual_unitary, expected_unitary, atol=6e-6)
 
 
 def test_known_two_q_operations_to_sycamore_operations_cnot():
