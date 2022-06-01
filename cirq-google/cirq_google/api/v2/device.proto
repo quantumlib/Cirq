@@ -24,7 +24,7 @@ message DeviceSpecification {
   // If empty, all qubit values are allowed (e.g. in a simulator)
   // Only grid qubits are supported. Strings must be in the form '<int>_<int>'.
   // Single-qubit gates can be applied to all qubits.
-  // Measurement gate can be applied to all subset of qubits.
+  // Measurement and wait gates can be applied to all subset of qubits.
   repeated string valid_qubits = 2;
 
   // A list of targets that gates can use.
