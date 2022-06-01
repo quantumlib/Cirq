@@ -685,6 +685,12 @@ class SimulatesIntermediateState(
             ' and `_core_iterator`. The default implementation of `_base_iterator` will be removed'
             ' in v0.16, and the method will become abstract.'
         )
+        if not isinstance(qubits, Tuple):
+            _compat._warn_or_error(
+                'The `qubits` parameter of `_base_iterator` will expect an explicit'
+                ' `Tuple[cirq.Qid, ...]` beginning in v0.16.'
+            )
+            qubits = ops.QubitOrder.as_qubit_order(qubits).order_for(circuit.all_qubits())
         sim_state = self._create_simulation_state(initial_state, qubits)
         return self._core_iterator(circuit, sim_state)
 
@@ -737,7 +743,6 @@ class SimulatesIntermediateState(
         # remove this implementation, and delete `_create_act_on_args` entirely.
         return self._create_act_on_args(initial_state, qubits)
 
-    @abc.abstractmethod
     def _core_iterator(
         self,
         circuit: 'cirq.AbstractCircuit',
@@ -759,6 +764,7 @@ class SimulatesIntermediateState(
         Yields:
             StepResults from simulating a Moment of the Circuit.
         """
+        raise NotImplementedError()
 
     @abc.abstractmethod
     def _create_simulator_trial_result(
