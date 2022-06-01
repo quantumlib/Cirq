@@ -111,7 +111,12 @@ def test_two_qubit_gates_with_symbols(gate: cirq.Gate, use_sqrt_iswap_inv: bool)
 
     c_orig = cirq.Circuit(gate(*cirq.LineQubit.range(2)))
     c_new = cirq.optimize_for_target_gateset(
-        c_orig, gateset=cirq.SqrtIswapTargetGateset(use_sqrt_iswap_inv=use_sqrt_iswap_inv)
+        c_orig,
+        gateset=cirq.SqrtIswapTargetGateset(
+            use_sqrt_iswap_inv=use_sqrt_iswap_inv,
+            additional_gates=[cirq.XPowGate, cirq.YPowGate, cirq.ZPowGate],
+        ),
+        ignore_failures=False,
     )
 
     # Check that `c_new` only contains sqrt iswap as the 2q entangling gate.
@@ -152,8 +157,12 @@ def test_sqrt_iswap_gateset_eq():
     [
         cirq.SqrtIswapTargetGateset(),
         cirq.SqrtIswapTargetGateset(
-            atol=1e-6, required_sqrt_iswap_count=2, use_sqrt_iswap_inv=True
+            atol=1e-6,
+            required_sqrt_iswap_count=2,
+            use_sqrt_iswap_inv=True,
+            additional_gates=[cirq.XPowGate, cirq.YPowGate],
         ),
+        cirq.SqrtIswapTargetGateset(additional_gates=()),
     ],
 )
 def test_sqrt_iswap_gateset_repr(gateset):
@@ -282,7 +291,9 @@ def test_optimizes_single_iswap():
     a, b = cirq.LineQubit.range(2)
     c = cirq.Circuit(cirq.ISWAP(a, b))
     assert_optimization_not_broken(c)
-    c = cirq.optimize_for_target_gateset(c, gateset=cirq.SqrtIswapTargetGateset())
+    c = cirq.optimize_for_target_gateset(
+        c, gateset=cirq.SqrtIswapTargetGateset(), ignore_failures=False
+    )
     assert len([1 for op in c.all_operations() if len(op.qubits) == 2]) == 2
 
 
@@ -290,7 +301,9 @@ def test_optimizes_single_inv_sqrt_iswap():
     a, b = cirq.LineQubit.range(2)
     c = cirq.Circuit(cirq.SQRT_ISWAP_INV(a, b))
     assert_optimization_not_broken(c)
-    c = cirq.optimize_for_target_gateset(c, gateset=cirq.SqrtIswapTargetGateset())
+    c = cirq.optimize_for_target_gateset(
+        c, gateset=cirq.SqrtIswapTargetGateset(), ignore_failures=False
+    )
     assert len([1 for op in c.all_operations() if len(op.qubits) == 2]) == 1
 
 
@@ -299,7 +312,7 @@ def test_optimizes_single_iswap_require0():
     c = cirq.Circuit(cirq.CNOT(a, b), cirq.CNOT(a, b))  # Minimum 0 sqrt-iSWAP
     assert_optimization_not_broken(c, required_sqrt_iswap_count=0)
     c = cirq.optimize_for_target_gateset(
-        c, gateset=cirq.SqrtIswapTargetGateset(required_sqrt_iswap_count=0)
+        c, gateset=cirq.SqrtIswapTargetGateset(required_sqrt_iswap_count=0), ignore_failures=False
     )
     assert len([1 for op in c.all_operations() if len(op.qubits) == 2]) == 0
 
@@ -309,7 +322,9 @@ def test_optimizes_single_iswap_require0_raises():
     c = cirq.Circuit(cirq.CNOT(a, b))  # Minimum 2 sqrt-iSWAP
     with pytest.raises(ValueError, match='cannot be decomposed into exactly 0 sqrt-iSWAP gates'):
         _ = cirq.optimize_for_target_gateset(
-            c, gateset=cirq.SqrtIswapTargetGateset(required_sqrt_iswap_count=0)
+            c,
+            gateset=cirq.SqrtIswapTargetGateset(required_sqrt_iswap_count=0),
+            ignore_failures=False,
         )
 
 
@@ -318,7 +333,7 @@ def test_optimizes_single_iswap_require1():
     c = cirq.Circuit(cirq.SQRT_ISWAP_INV(a, b))  # Minimum 1 sqrt-iSWAP
     assert_optimization_not_broken(c, required_sqrt_iswap_count=1)
     c = cirq.optimize_for_target_gateset(
-        c, gateset=cirq.SqrtIswapTargetGateset(required_sqrt_iswap_count=1)
+        c, gateset=cirq.SqrtIswapTargetGateset(required_sqrt_iswap_count=1), ignore_failures=False
     )
     assert len([1 for op in c.all_operations() if len(op.qubits) == 2]) == 1
 
@@ -328,7 +343,9 @@ def test_optimizes_single_iswap_require1_raises():
     c = cirq.Circuit(cirq.CNOT(a, b))  # Minimum 2 sqrt-iSWAP
     with pytest.raises(ValueError, match='cannot be decomposed into exactly 1 sqrt-iSWAP gates'):
         c = cirq.optimize_for_target_gateset(
-            c, gateset=cirq.SqrtIswapTargetGateset(required_sqrt_iswap_count=1)
+            c,
+            gateset=cirq.SqrtIswapTargetGateset(required_sqrt_iswap_count=1),
+            ignore_failures=False,
         )
 
 
@@ -337,7 +354,7 @@ def test_optimizes_single_iswap_require2():
     c = cirq.Circuit(cirq.SQRT_ISWAP_INV(a, b))  # Minimum 1 sqrt-iSWAP but 2 possible
     assert_optimization_not_broken(c, required_sqrt_iswap_count=2)
     c = cirq.optimize_for_target_gateset(
-        c, gateset=cirq.SqrtIswapTargetGateset(required_sqrt_iswap_count=2)
+        c, gateset=cirq.SqrtIswapTargetGateset(required_sqrt_iswap_count=2), ignore_failures=False
     )
     assert len([1 for op in c.all_operations() if len(op.qubits) == 2]) == 2
 
@@ -347,7 +364,9 @@ def test_optimizes_single_iswap_require2_raises():
     c = cirq.Circuit(cirq.SWAP(a, b))  # Minimum 3 sqrt-iSWAP
     with pytest.raises(ValueError, match='cannot be decomposed into exactly 2 sqrt-iSWAP gates'):
         c = cirq.optimize_for_target_gateset(
-            c, gateset=cirq.SqrtIswapTargetGateset(required_sqrt_iswap_count=2)
+            c,
+            gateset=cirq.SqrtIswapTargetGateset(required_sqrt_iswap_count=2),
+            ignore_failures=False,
         )
 
 
@@ -356,7 +375,7 @@ def test_optimizes_single_iswap_require3():
     c = cirq.Circuit(cirq.ISWAP(a, b))  # Minimum 2 sqrt-iSWAP but 3 possible
     assert_optimization_not_broken(c, required_sqrt_iswap_count=3)
     c = cirq.optimize_for_target_gateset(
-        c, gateset=cirq.SqrtIswapTargetGateset(required_sqrt_iswap_count=3)
+        c, gateset=cirq.SqrtIswapTargetGateset(required_sqrt_iswap_count=3), ignore_failures=False
     )
     assert len([1 for op in c.all_operations() if len(op.qubits) == 2]) == 3
 
@@ -366,6 +385,6 @@ def test_optimizes_single_inv_sqrt_iswap_require3():
     c = cirq.Circuit(cirq.SQRT_ISWAP_INV(a, b))
     assert_optimization_not_broken(c, required_sqrt_iswap_count=3)
     c = cirq.optimize_for_target_gateset(
-        c, gateset=cirq.SqrtIswapTargetGateset(required_sqrt_iswap_count=3)
+        c, gateset=cirq.SqrtIswapTargetGateset(required_sqrt_iswap_count=3), ignore_failures=False
     )
     assert len([1 for op in c.all_operations() if len(op.qubits) == 2]) == 3

@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from typing import Sequence, Type
 import pytest
 import cirq
 import sympy
@@ -25,9 +26,18 @@ def all_gates_of_type(m: cirq.Moment, g: cirq.Gateset):
     return True
 
 
-def assert_optimizes(before: cirq.Circuit, expected: cirq.Circuit):
+def assert_optimizes(
+    before: cirq.Circuit,
+    expected: cirq.Circuit,
+    additional_gates: Sequence[Type[cirq.Gate]] = (cirq.GlobalPhaseGate,),
+):
     cirq.testing.assert_same_circuits(
-        cirq.optimize_for_target_gateset(before, gateset=cirq.CZTargetGateset()), expected
+        cirq.optimize_for_target_gateset(
+            before,
+            gateset=cirq.CZTargetGateset(additional_gates=additional_gates),
+            ignore_failures=False,
+        ),
+        expected,
     )
 
 
@@ -37,7 +47,7 @@ def assert_optimization_not_broken(circuit: cirq.Circuit):
         circuit, c_new, atol=1e-6
     )
     c_new = cirq.optimize_for_target_gateset(
-        circuit, gateset=cirq.CZTargetGateset(allow_partial_czs=True)
+        circuit, gateset=cirq.CZTargetGateset(allow_partial_czs=True), ignore_failures=False
     )
     cirq.testing.assert_circuits_with_terminal_measurements_are_equivalent(
         circuit, c_new, atol=1e-6
@@ -57,7 +67,9 @@ def test_convert_to_cz_preserving_moment_structure():
         cirq.X(q[2]).with_classical_controls("m"),
         cirq.CZ(*q[3:]).with_classical_controls("m"),
     )
-    c_new = cirq.optimize_for_target_gateset(c_orig, gateset=cirq.CZTargetGateset())
+    c_new = cirq.optimize_for_target_gateset(
+        c_orig, gateset=cirq.CZTargetGateset(), ignore_failures=True
+    )
 
     assert c_orig[-2:] == c_new[-2:]
     c_orig, c_new = c_orig[:-2], c_new[:-2]
@@ -109,6 +121,7 @@ def test_ignores_czs_separated_by_parameterized():
                 cirq.Moment(cirq.CZ(a, b)),
             ]
         ),
+        additional_gates=[cirq.ZPowGate],
     )
 
 
@@ -153,7 +166,7 @@ def test_optimizes_single_iswap():
     a, b = cirq.LineQubit.range(2)
     c = cirq.Circuit(cirq.ISWAP(a, b))
     assert_optimization_not_broken(c)
-    c = cirq.optimize_for_target_gateset(c, gateset=cirq.CZTargetGateset())
+    c = cirq.optimize_for_target_gateset(c, gateset=cirq.CZTargetGateset(), ignore_failures=False)
     assert len([1 for op in c.all_operations() if len(op.qubits) == 2]) == 2
 
 
@@ -161,7 +174,7 @@ def test_optimizes_tagged_partial_cz():
     a, b = cirq.LineQubit.range(2)
     c = cirq.Circuit((cirq.CZ**0.5)(a, b).with_tags('mytag'))
     assert_optimization_not_broken(c)
-    c = cirq.optimize_for_target_gateset(c, gateset=cirq.CZTargetGateset())
+    c = cirq.optimize_for_target_gateset(c, gateset=cirq.CZTargetGateset(), ignore_failures=False)
     assert (
         len([1 for op in c.all_operations() if len(op.qubits) == 2]) == 2
     ), 'It should take 2 CZ gates to decompose a CZ**0.5 gate'
@@ -185,7 +198,9 @@ def test_not_decompose_czs():
     ),
 )
 def test_decompose_partial_czs(circuit):
-    circuit = cirq.optimize_for_target_gateset(circuit, gateset=cirq.CZTargetGateset())
+    circuit = cirq.optimize_for_target_gateset(
+        circuit, gateset=cirq.CZTargetGateset(), ignore_failures=False
+    )
     cz_gates = [
         op.gate
         for op in circuit.all_operations()
@@ -201,7 +216,7 @@ def test_not_decompose_partial_czs():
     circuit = cirq.Circuit(
         cirq.CZPowGate(exponent=0.1, global_shift=-0.5)(*cirq.LineQubit.range(2))
     )
-    cirq.optimize_for_target_gateset(circuit, gateset=cirq.CZTargetGateset())
+    cirq.optimize_for_target_gateset(circuit, gateset=cirq.CZTargetGateset(), ignore_failures=False)
     cz_gates = [
         op.gate
         for op in circuit.all_operations()
@@ -240,7 +255,7 @@ def test_avoids_decompose_when_matrix_available():
 
     a, b = cirq.LineQubit.range(2)
     c = cirq.Circuit(OtherXX()(a, b), OtherOtherXX()(a, b))
-    c = cirq.optimize_for_target_gateset(c, gateset=cirq.CZTargetGateset())
+    c = cirq.optimize_for_target_gateset(c, gateset=cirq.CZTargetGateset(), ignore_failures=False)
     assert len(c) == 0
 
 
@@ -260,7 +275,9 @@ def test_composite_gates_without_matrix():
     expected = cirq.Circuit(
         cirq.X(q0), cirq.Y(q0) ** 0.5, cirq.CZ(q0, q1), cirq.X(q1), cirq.Y(q1) ** 0.5
     )
-    c_new = cirq.optimize_for_target_gateset(circuit, gateset=cirq.CZTargetGateset())
+    c_new = cirq.optimize_for_target_gateset(
+        circuit, gateset=cirq.CZTargetGateset(), ignore_failures=False
+    )
 
     cirq.testing.assert_circuits_with_terminal_measurements_are_equivalent(
         c_new, expected, atol=1e-6
