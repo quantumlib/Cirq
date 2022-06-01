@@ -55,6 +55,9 @@ class ParamResolver:
     Attributes:
         param_dict: A dictionary from the ParameterValue key (str) to its
             assigned value.
+
+    Raises:
+        TypeError if formulas are passed as keys.
     """
 
     def __new__(cls, param_dict: 'cirq.ParamResolverOrSimilarType' = None):
@@ -68,6 +71,9 @@ class ParamResolver:
 
         self._param_hash: Optional[int] = None
         self.param_dict = cast(ParamDictType, {} if param_dict is None else param_dict)
+        for key in self.param_dict:
+            if isinstance(key, sympy.Expr) and not isinstance(key, sympy.Symbol):
+                raise TypeError(f'ParamResolver keys cannot be (non-symbol) formulas ({key})')
         self._deep_eval_map: ParamDictType = {}
 
     def value_of(
@@ -151,9 +157,11 @@ class ParamResolver:
         if isinstance(value, sympy.Pow) and len(value.args) == 2:
             base = self.value_of(value.args[0], recursive)
             exponent = self.value_of(value.args[1], recursive)
+            # Casts because numpy can handle expressions (by delegating to __pow__), but does
+            # not have signature that will support this.
             if isinstance(base, numbers.Number):
-                return np.float_power(base, exponent)
-            return np.power(base, exponent)
+                return np.float_power(cast(complex, base), cast(complex, exponent))
+            return np.power(cast(complex, base), cast(complex, exponent))
 
         if not isinstance(value, sympy.Basic):
             # No known way to resolve this variable, return unchanged.

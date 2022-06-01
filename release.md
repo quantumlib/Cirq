@@ -227,6 +227,19 @@ Be sure to include the whl file as an attachment.
 
 If there are unreleased notebooks, that are under testing (`NOTEBOOKS_DEPENDING_ON_UNRELEASED_FEATURES` is not empty in [dev_tools/notebooks/isolated_notebook_test.py](dev_tools/notebooks/isolated_notebook_test.py)), follow the steps in our [notebooks guide](docs/dev/notebooks.md).
 
+### Create zenodo release
+
+Got to the [Zenodo release page](https://zenodo.org/record/6599601#.YpZCspPMLzc).
+Login using credentials within Google's internal password utility (or get
+someone from Google to do this).  Click "New Version".
+
+*   Upload the new zip file (found in releases page under "assets").
+*   Remove old zip file.
+*   Update version.
+*   Double check all other fields.
+*   Click publish.
+
+
 ### Email cirq-announce
 
 Lastly, email cirq-announce@googlegroups.com with the release notes

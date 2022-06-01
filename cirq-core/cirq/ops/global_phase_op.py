@@ -126,4 +126,5 @@ class GlobalPhaseGate(raw_types.Gate):
 def global_phase_operation(
     coefficient: 'cirq.TParamValComplex', atol: float = 1e-8
 ) -> 'cirq.GateOperation':
+    """Creates an operation that represents a global phase on the state."""
     return GlobalPhaseGate(coefficient, atol)()

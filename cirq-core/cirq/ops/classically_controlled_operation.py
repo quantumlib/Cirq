@@ -134,7 +134,7 @@ class ClassicallyControlledOperation(raw_types.Operation):
         self, resolver: 'cirq.ParamResolver', recursive: bool
     ) -> 'ClassicallyControlledOperation':
         new_sub_op = protocols.resolve_parameters(self._sub_operation, resolver, recursive)
-        return new_sub_op.with_classical_controls(*self._conditions)
+        return ClassicallyControlledOperation(new_sub_op, self._conditions)
 
     def _circuit_diagram_info_(
         self, args: 'cirq.CircuitDiagramInfoArgs'
