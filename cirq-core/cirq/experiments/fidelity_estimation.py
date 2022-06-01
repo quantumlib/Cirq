@@ -16,6 +16,7 @@ from typing import Callable, List, Mapping, Optional, Sequence, Tuple, cast
 
 import numpy as np
 
+from cirq import _compat
 from cirq.circuits import Circuit
 from cirq.ops import QubitOrder, QubitOrderOrList
 from cirq.sim import final_state_vector
@@ -224,6 +225,13 @@ def log_xeb_fidelity(
     )
 
 
+@_compat.deprecated(
+    deadline='v0.16',
+    fix=(
+        'Use cirq.experiments.xeb_fitting '
+        '(benchmark_2q_xeb_fidelities and fit_exponential_decays) instead.'
+    ),
+)
 def least_squares_xeb_fidelity_from_expectations(
     measured_expectations: Sequence[float],
     exact_expectations: Sequence[float],
@@ -303,6 +311,13 @@ def least_squares_xeb_fidelity_from_expectations(
     return fidelity, residuals
 
 
+@_compat.deprecated(
+    deadline='v0.16',
+    fix=(
+        'Use cirq.experiments.xeb_fitting '
+        '(benchmark_2q_xeb_fidelities and fit_exponential_decays) instead.'
+    ),
+)
 def least_squares_xeb_fidelity_from_probabilities(
     hilbert_space_dimension: int,
     observed_probabilities: Sequence[Sequence[float]],
