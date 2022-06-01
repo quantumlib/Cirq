@@ -167,7 +167,7 @@ def test_sycamore_gateset_compiles_swap_zz():
         == 3
     )
     cirq.testing.assert_circuits_with_terminal_measurements_are_equivalent(
-        circuit1, compiled_circuit1, atol=1e-6
+        circuit1, compiled_circuit1, atol=1e-5
     )
 
 
