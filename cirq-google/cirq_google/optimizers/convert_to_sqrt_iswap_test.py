@@ -123,7 +123,7 @@ def test_cphase():
         actual = cirq.Circuit(decomposition)
         expected_unitary = cirq.unitary(expected)
         actual_unitary = cirq.unitary(actual)
-        np.testing.assert_allclose(expected_unitary, actual_unitary, atol=1e-06)
+        np.testing.assert_allclose(expected_unitary, actual_unitary, atol=1e-6)
 
 
 def test_givens_rotation():

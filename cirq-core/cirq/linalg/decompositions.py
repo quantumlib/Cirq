@@ -846,9 +846,7 @@ def kak_decomposition(
     if check_preconditions and (
         mat.shape != (4, 4) or not predicates.is_unitary(mat, rtol=rtol, atol=atol)
     ):
-        raise ValueError(
-            'Input must correspond to a 4x4 unitary matrix. Received matrix:\n' + str(mat)
-        )
+        raise ValueError(f'Input must correspond to a 4x4 unitary matrix. Received matrix:\n{mat}')
 
     # Diagonalize in magic basis.
     left, d, right = diagonalize.bidiagonalize_unitary_with_special_orthogonals(
@@ -946,7 +944,7 @@ def kak_vector(
 
     if check_preconditions:
         actual = np.einsum('...ba,...bc', unitary.conj(), unitary) - np.eye(4)
-        if not np.allclose(actual, np.zeros_like(actual), rtol, atol):
+        if not np.allclose(np.zeros_like(actual), actual, rtol=0, atol=atol):
             raise ValueError(
                 'Input must correspond to a 4x4 unitary matrix or tensor of '
                 f'unitary matrices. Received input:\n{unitary}'
