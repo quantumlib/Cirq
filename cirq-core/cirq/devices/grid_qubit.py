@@ -219,9 +219,9 @@ class GridQid(_BaseGridQid):
         ```
 
         You can use any character other than a hyphen, period or space to mark a
-        qid. As an example, the qids for a Bristlecone device could be represented by
-        the below diagram. This produces a diamond-shaped grid of qids, and
-        qids with the same letter correspond to the same readout line.
+        qid. As an example, the qids for a Bristlecone device could be
+        represented by the below diagram. This produces a diamond-shaped grid of
+        qids, and qids with the same letter correspond to the same readout line.
 
         ```
         .....AB.....
