@@ -131,6 +131,17 @@ def _create_device_spec_invalid_qubit_in_qubit_pair() -> v2.device_pb2.DeviceSpe
     return spec
 
 
+def _create_device_spec_unexpected_asymmetric_target() -> v2.device_pb2.DeviceSpecification:
+    """Creates a DeviceSpecification containing an ASYMMETRIC target set."""
+
+    spec = v2.device_pb2.DeviceSpecification()
+    targets = spec.valid_targets.add()
+    targets.name = 'test_targets'
+    targets.target_ordering = v2.device_pb2.TargetSet.ASYMMETRIC
+
+    return spec
+
+
 def test_grid_device_from_proto():
     grid_qubits, spec = _create_device_spec_with_horizontal_couplings()
 
@@ -189,6 +200,10 @@ def test_grid_device_validate_operations_negative():
         (
             _create_device_spec_qubit_pair_self_loops(),
             'Invalid DeviceSpecification: .*contains repeated qubits',
+        ),
+        (
+            _create_device_spec_unexpected_asymmetric_target(),
+            'Invalid DeviceSpecification: .*cannot be ASYMMETRIC',
         ),
     ],
 )

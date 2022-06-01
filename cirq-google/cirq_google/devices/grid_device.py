@@ -60,6 +60,12 @@ def _validate_device_specification(proto: v2.device_pb2.DeviceSpecification) -> 
                         f" {target.ids}."
                     )
 
+        # Asymmetric target set type is not expected.
+        # While this is allowed by the proto, it has never been set, so it's safe to raise an
+        # exception if this is set unexpectedly.
+        if target_set.target_ordering == v2.device_pb2.TargetSet.ASYMMETRIC:
+            raise ValueError("Invalid DeviceSpecification: target_ordering cannot be ASYMMETRIC.")
+
 
 @cirq.value_equality
 class GridDevice(cirq.Device):
