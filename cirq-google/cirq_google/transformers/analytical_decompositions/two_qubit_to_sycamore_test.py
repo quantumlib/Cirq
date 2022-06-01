@@ -32,7 +32,6 @@ def assert_implements(circuit: cirq.Circuit, target_op: cirq.Operation):
 
 _THETA = sympy.Symbol('theta')
 _ALL_EXPS = np.linspace(0, 1, 10)
-_ALL_EXPS = [1.0]
 _QUBITS = cirq.LineQubit.range(2)
 
 
@@ -61,7 +60,6 @@ _QUBITS = cirq.LineQubit.range(2)
     ],
 )
 def test_known_two_qubit_op_decomposition(op, theta_range):
-    print(op)
     for theta_val in theta_range:
         op_resolved = cirq.resolve_parameters(op, {'theta': theta_val}, recursive=False)
         known_2q_circuit = cirq.Circuit(cg.known_2q_op_to_sycamore_operations(op_resolved))
