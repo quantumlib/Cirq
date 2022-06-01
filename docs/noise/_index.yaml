@@ -1,0 +1,32 @@
+book_path: /cirq/_book.yaml
+project_path: /cirq/_project.yaml
+title: Noise management for running circuits
+landing_page:
+  nav: left
+  rows:
+    - heading: Manage noise when running circuits
+      description: Running circuits on real quantum devices means dealing with the noise those devices introduce to the computation. Cirq provides different ways to managing that noise, to improve the reliability of a circuit when run on hardware.
+    - heading: Characterization and compensation
+      description: By first characterizing how much and what kinds of error a device is exhibiting, compensation can be used to improve the reliability of the next run on the device or interpret the results of a previous run more accurately.
+      items:
+        - heading: Calibration FAQ
+          description: Frequently asked questions about characterization and compensation.
+          path: /cirq/tutorials/google/calibration_faq
+          icon:
+            name: menu_book
+        - heading: Floquet Calibration
+          description: A characterization method using Floquet theory.
+          path: /cirq/tutorials/google/floquet_calibration_example
+          icon:
+            name: menu_book
+        - heading: Cross Entropy Benchmarking (XEB)
+          description: A characterization benchmarking method using cross entropy.
+          path: /cirq/qcvv/xeb_theory
+          icon:
+            name: menu_book
+    - heading: Visualizing noise
+      description: Graphing and plotting methods for visualizing noise.
+      items:
+        - heading: Heatmaps
+          description: Functions to plot noise characteristics across a device.
+          path: /cirq/tutorials/heatmaps
