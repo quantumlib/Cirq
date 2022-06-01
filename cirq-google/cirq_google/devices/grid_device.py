@@ -24,7 +24,6 @@ from cirq_google import ops
 from cirq_google import transformers
 from cirq_google.api import v2
 from cirq_google.experimental import ops as experimental_ops
-from cirq_google.ops.fsim_gate_family import POSSIBLE_FSIM_GATES
 
 
 def _validate_device_specification(proto: v2.device_pb2.DeviceSpecification) -> None:
@@ -89,7 +88,6 @@ def _build_gateset_and_gate_durations(
     """Extracts gate set and gate duration information from the given DeviceSpecification proto."""
 
     gates_list: List[Union[Type[cirq.Gate], cirq.Gate, cirq.GateFamily]] = []
-    fsim_gates: List[Union[Type[POSSIBLE_FSIM_GATES], POSSIBLE_FSIM_GATES]] = []
     gate_durations: Dict[cirq.GateFamily, cirq.Duration] = {}
 
     # TODO(#5050) Describe how to add/remove gates.
@@ -99,17 +97,13 @@ def _build_gateset_and_gate_durations(
         cirq_gates: List[Union[Type[cirq.Gate], cirq.Gate, cirq.GateFamily]] = []
 
         if gate_name == 'syc':
-            cirq_gates = [ops.SYC]
-            fsim_gates.append(ops.SYC)
+            cirq_gates = [ops.FSimGateFamily(gates_to_accept=[ops.SYC])]
         elif gate_name == 'sqrt_iswap':
-            cirq_gates = [cirq.SQRT_ISWAP]
-            fsim_gates.append(cirq.SQRT_ISWAP)
+            cirq_gates = [ops.FSimGateFamily(gates_to_accept=[cirq.SQRT_ISWAP])]
         elif gate_name == 'sqrt_iswap_inv':
-            cirq_gates = [cirq.SQRT_ISWAP_INV]
-            fsim_gates.append(cirq.SQRT_ISWAP_INV)
+            cirq_gates = [ops.FSimGateFamily(gates_to_accept=[cirq.SQRT_ISWAP_INV])]
         elif gate_name == 'cz':
-            cirq_gates = [cirq.CZ]
-            fsim_gates.append(cirq.CZ)
+            cirq_gates = [ops.FSimGateFamily(gates_to_accept=[cirq.CZ])]
         elif gate_name == 'phased_xz':
             cirq_gates = [cirq.PhasedXZGate, cirq.XPowGate, cirq.YPowGate, cirq.PhasedXPowGate]
         elif gate_name == 'virtual_zpow':
@@ -139,9 +133,6 @@ def _build_gateset_and_gate_durations(
             if not isinstance(g, cirq.GateFamily):
                 g = cirq.GateFamily(g)
             gate_durations[g] = cirq.Duration(picos=gate_spec.gate_duration_picos)
-
-    if fsim_gates:
-        gates_list.append(ops.FSimGateFamily(gates_to_accept=fsim_gates))
 
     # TODO(#4833) Add identity gate support
     # TODO(#5050) Add GlobalPhaseGate support

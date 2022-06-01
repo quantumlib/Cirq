@@ -173,10 +173,10 @@ def test_grid_device_from_proto():
         for row in range(GRID_HEIGHT)
     )
     assert device.metadata.gateset == cirq.Gateset(
-        cirq_google.SYC,
-        cirq.SQRT_ISWAP,
-        cirq.SQRT_ISWAP_INV,
-        cirq.CZ,
+        cirq_google.FSimGateFamily(gates_to_accept=[cirq_google.SYC]),
+        cirq_google.FSimGateFamily(gates_to_accept=[cirq.SQRT_ISWAP]),
+        cirq_google.FSimGateFamily(gates_to_accept=[cirq.SQRT_ISWAP_INV]),
+        cirq_google.FSimGateFamily(gates_to_accept=[cirq.CZ]),
         cirq.ops.phased_x_z_gate.PhasedXZGate,
         cirq.ops.common_gates.XPowGate,
         cirq.ops.common_gates.YPowGate,
@@ -190,9 +190,6 @@ def test_grid_device_from_proto():
         cirq_google.experimental.ops.coupler_pulse.CouplerPulse,
         cirq.ops.measurement_gate.MeasurementGate,
         cirq.ops.wait_gate.WaitGate,
-        cirq_google.FSimGateFamily(
-            gates_to_accept=[cirq_google.SYC, cirq.SQRT_ISWAP, cirq.SQRT_ISWAP_INV, cirq.CZ]
-        ),
     )
     assert tuple(device.metadata.compilation_target_gatesets) == (
         cirq.CZTargetGateset(),
@@ -202,10 +199,10 @@ def test_grid_device_from_proto():
 
     base_duration = cirq.Duration(picos=1_000)
     assert device.metadata.gate_durations == {
-        cirq.GateFamily(cirq_google.SYC): base_duration * 0,
-        cirq.GateFamily(cirq.SQRT_ISWAP): base_duration * 1,
-        cirq.GateFamily(cirq.SQRT_ISWAP_INV): base_duration * 2,
-        cirq.GateFamily(cirq.CZ): base_duration * 3,
+        cirq_google.FSimGateFamily(gates_to_accept=[cirq_google.SYC]): base_duration * 0,
+        cirq_google.FSimGateFamily(gates_to_accept=[cirq.SQRT_ISWAP]): base_duration * 1,
+        cirq_google.FSimGateFamily(gates_to_accept=[cirq.SQRT_ISWAP_INV]): base_duration * 2,
+        cirq_google.FSimGateFamily(gates_to_accept=[cirq.CZ]): base_duration * 3,
         cirq.GateFamily(cirq.ops.phased_x_z_gate.PhasedXZGate): base_duration * 4,
         cirq.GateFamily(cirq.ops.common_gates.XPowGate): base_duration * 4,
         cirq.GateFamily(cirq.ops.common_gates.YPowGate): base_duration * 4,
