@@ -219,7 +219,7 @@ class GridQid(_BaseGridQid):
         ```
 
         You can use any character other than a hyphen, period or space to mark a
-        qid. As an example, the qids for a Sycamore device could be represented by
+        qid. As an example, the qids for a Bristlecone device could be represented by
         the below diagram. This produces a diamond-shaped grid of qids, and
         qids with the same letter correspond to the same readout line.
 
@@ -384,7 +384,7 @@ class GridQubit(_BaseGridQid):
         ```
 
         You can use any character other than a hyphen, period or space to mark
-        a qubit. As an example, the qubits for a Sycamore device could be
+        a qubit. As an example, the qubits for a Bristlecone device could be
         represented by the below diagram. This produces a diamond-shaped grid
         of qids, and qids with the same letter correspond to the same readout
         line.
