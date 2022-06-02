@@ -22,25 +22,21 @@ import cirq
 
 @pytest.mark.parametrize('eigen_gate_type', [cirq.CCXPowGate, cirq.CCZPowGate])
 def test_eigen_gates_consistent_protocols(eigen_gate_type):
-    cirq.testing.assert_eigengate_implements_consistent_protocols(
-        eigen_gate_type, ignoring_global_phase=True
-    )
+    cirq.testing.assert_eigengate_implements_consistent_protocols(eigen_gate_type)
 
 
 @pytest.mark.parametrize(
-    'gate,ignoring_global_phase',
+    'gate',
     (
-        (cirq.CSWAP, False),
-        (cirq.ThreeQubitDiagonalGate([2, 3, 5, 7, 11, 13, 17, 19]), True),
-        (cirq.ThreeQubitDiagonalGate([0, 0, 0, 0, 0, 0, 0, 0]), True),
-        (cirq.CCX, False),
-        (cirq.CCZ, False),
+        (cirq.CSWAP),
+        (cirq.ThreeQubitDiagonalGate([2, 3, 5, 7, 11, 13, 17, 19])),
+        (cirq.ThreeQubitDiagonalGate([0, 0, 0, 0, 0, 0, 0, 0])),
+        (cirq.CCX),
+        (cirq.CCZ),
     ),
 )
-def test_consistent_protocols(gate, ignoring_global_phase):
-    cirq.testing.assert_implements_consistent_protocols(
-        gate, ignoring_global_phase=ignoring_global_phase
-    )
+def test_consistent_protocols(gate):
+    cirq.testing.assert_implements_consistent_protocols(gate)
 
 
 def test_init():

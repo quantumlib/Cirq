@@ -50,7 +50,6 @@ def _create_device_spec_with_horizontal_couplings():
     gate = spec.valid_gates.add()
     gate.syc.SetInParent()
     gate.gate_duration_picos = 12000
-    gate.valid_targets.extend(['2_qubit_targets'])
 
     return grid_qubits, spec
 
@@ -132,18 +131,13 @@ def _create_device_spec_invalid_qubit_in_qubit_pair() -> v2.device_pb2.DeviceSpe
     return spec
 
 
-def _create_device_spec_invalid_subset_permutation_target() -> v2.device_pb2.DeviceSpecification:
-    """Creates a DeviceSpecification where a SUBSET_PERMUTATION target contains 2 qubits."""
-
-    q_proto_ids = [v2.qubit_to_proto_id(cirq.GridQubit(0, i)) for i in range(2)]
+def _create_device_spec_unexpected_asymmetric_target() -> v2.device_pb2.DeviceSpecification:
+    """Creates a DeviceSpecification containing an ASYMMETRIC target set."""
 
     spec = v2.device_pb2.DeviceSpecification()
-    spec.valid_qubits.extend(q_proto_ids)
     targets = spec.valid_targets.add()
     targets.name = 'test_targets'
-    targets.target_ordering = v2.device_pb2.TargetSet.SUBSET_PERMUTATION
-    new_target = targets.targets.add()
-    new_target.ids.extend(q_proto_ids)  # should only have 1 qubit instead
+    targets.target_ordering = v2.device_pb2.TargetSet.ASYMMETRIC
 
     return spec
 
@@ -208,8 +202,8 @@ def test_grid_device_validate_operations_negative():
             'Invalid DeviceSpecification: .*contains repeated qubits',
         ),
         (
-            _create_device_spec_invalid_subset_permutation_target(),
-            'Invalid DeviceSpecification: .*does not have exactly 1 qubit',
+            _create_device_spec_unexpected_asymmetric_target(),
+            'Invalid DeviceSpecification: .*cannot be ASYMMETRIC',
         ),
     ],
 )
