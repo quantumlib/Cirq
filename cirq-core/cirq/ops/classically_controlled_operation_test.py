@@ -220,6 +220,36 @@ measure q[0] -> m_a[0];
 if (m_a==0) x q[1];
 """
     )
+
+
+def test_qasm_no_conditions():
+    q0, q1 = cirq.LineQubit.range(2)
+    circuit = cirq.Circuit(
+        cirq.measure(q0, key='a'),
+        cirq.ClassicallyControlledOperation(cirq.X(q1), []),
+    )
+    qasm = cirq.qasm(circuit)
+    assert (
+        qasm
+        == """// Generated from Cirq v0.15.0.dev
+
+OPENQASM 2.0;
+include "qelib1.inc";
+
+
+// Qubits: [q(0), q(1)]
+qreg q[2];
+creg m_a[1];
+
+
+measure q[0] -> m_a[0];
+x q[1];
+"""
+    )
+
+
+def test_qasm_multiple_conditions():
+    q0, q1 = cirq.LineQubit.range(2)
     circuit = cirq.Circuit(
         cirq.measure(q0, key='a'),
         cirq.measure(q0, key='b'),
@@ -228,7 +258,7 @@ if (m_a==0) x q[1];
         ),
     )
     with pytest.raises(ValueError, match='QASM does not support multiple conditions'):
-        cirq.qasm(circuit),
+        _ = cirq.qasm(circuit),
 
 
 @pytest.mark.parametrize('sim', ALL_SIMULATORS)
