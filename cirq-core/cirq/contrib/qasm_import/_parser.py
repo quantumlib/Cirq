@@ -497,7 +497,7 @@ class QasmParser:
         ]
 
     # if operations
-    # if : IF '(' ID EQ NATURAL_NUMBER ')' ID qargs
+    # if : IF '(' carg EQ NATURAL_NUMBER ')' ID qargs
 
     def p_if(self, p):
         """if : IF '(' carg EQ NATURAL_NUMBER ')' gate_op"""
