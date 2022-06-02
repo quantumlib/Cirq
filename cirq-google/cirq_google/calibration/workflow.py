@@ -36,7 +36,7 @@ from cirq_google.calibration.phased_fsim import (
     LocalXEBPhasedFSimCalibrationRequest,
 )
 from cirq_google.calibration.xeb_wrapper import run_local_xeb_calibration
-from cirq_google.engine import AbstractEngine, ProcessorSampler, util
+from cirq_google.engine import AbstractEngine, Engine, ProcessorSampler, util
 from cirq_google.serialization.serializer import Serializer
 
 _CALIBRATION_IRRELEVANT_GATES = cirq.MeasurementGate, cirq.WaitGate
