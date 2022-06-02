@@ -224,6 +224,9 @@ def test_classical_control():
     q_1 = cirq.NamedQubit('q_1')
     # Since we split the measurement into two, we also need two conditions.
     # m_a==1 corresponds to m_a[0]==1, m_a[1]==0
+
+    # Note that this will *not* round-trip, but there's no good way around that due to the
+    # difference in how Cirq and QASM do multi-bit measurements.
     expected_circuit = cirq.Circuit(
         cirq.measure(q_0, key='m_a_0'),
         cirq.measure(q_0, key='m_a_1'),
