@@ -1008,8 +1008,11 @@ def test_run_calibrations():
 
     engine = mock.MagicMock(spec=cirq_google.Engine)
     engine.run_calibration.return_value = job
+    processor = mock.MagicMock(spec=cirq_google.EngineProcessor)
+    processor.processor_id = 'qproc'
+    processor.engine.return_value = engine
 
-    sampler = cirq_google.QuantumEngineSampler(engine=engine, processor_id='qproc')
+    sampler = cirq_google.ProcessorSampler(processor=processor)
 
     progress_calls = []
 
@@ -1657,9 +1660,7 @@ def test_run_zeta_chi_gamma_calibration_for_moments_no_chi() -> None:
     )
 
 
-_MOCK_ENGINE_SAMPLER = mock.MagicMock(
-    spec=cirq_google.QuantumEngineSampler, _processor_ids=['my_fancy_processor'], _gate_set='test'
-)
+_MOCK_ENGINE_SAMPLER = mock.MagicMock(spec=cirq_google.ProcessorSampler)
 
 
 @pytest.mark.parametrize('sampler_engine', [cirq.Simulator, _MOCK_ENGINE_SAMPLER])

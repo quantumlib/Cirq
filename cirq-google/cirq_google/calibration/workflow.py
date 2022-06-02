@@ -36,7 +36,7 @@ from cirq_google.calibration.phased_fsim import (
     LocalXEBPhasedFSimCalibrationRequest,
 )
 from cirq_google.calibration.xeb_wrapper import run_local_xeb_calibration
-from cirq_google.engine import Engine, QuantumEngineSampler, util
+from cirq_google.engine import Engine, ProcessorSampler, util
 from cirq_google.serialization.serializer import Serializer
 
 _CALIBRATION_IRRELEVANT_GATES = cirq.MeasurementGate, cirq.WaitGate
@@ -787,7 +787,7 @@ def run_calibrations(
     Args:
         calibrations: List of calibrations to perform described in a request object.
         sampler: cirq_google.Engine or cirq.Sampler object used for running the calibrations. When
-            sampler is cirq_google.Engine or cirq_google.QuantumEngineSampler object then the
+            sampler is cirq_google.Engine or cirq_google.ProcessorSampler object then the
             calibrations are issued against a Google's quantum device. The only other sampler
             supported for simulation purposes is cirq_google.PhasedFSimEngineSimulator.
         processor_id: Used when sampler is cirq_google.Engine object and passed to
@@ -826,9 +826,9 @@ def run_calibrations(
 
     if isinstance(sampler, Engine):
         engine: Optional[Engine] = sampler
-    elif isinstance(sampler, QuantumEngineSampler):
-        engine = sampler.engine
-        (processor_id,) = sampler._processor_ids
+    elif isinstance(sampler, ProcessorSampler):
+        processor_id = getattr(sampler.processor, 'processor_id', None)
+        engine = sampler.processor.engine() if processor_id is not None else None
     else:
         engine = None
 
@@ -1185,7 +1185,7 @@ def run_floquet_characterization_for_moments(
     Args:
         circuit: Circuit to characterize.
         sampler: cirq_google.Engine or cirq.Sampler object used for running the calibrations. When
-            sampler is cirq_google.Engine or cirq_google.QuantumEngineSampler object then the
+            sampler is cirq_google.Engine or cirq_google.ProcessorSampler object then the
             calibrations are issued against a Google's quantum device. The only other sampler
             supported for simulation purposes is cirq_google.PhasedFSimEngineSimulator.
         processor_id: Used when sampler is cirq_google.Engine object and passed to
@@ -1261,7 +1261,7 @@ def run_zeta_chi_gamma_compensation_for_moments(
     Args:
         circuit: Circuit to characterize and calibrate.
         sampler: cirq_google.Engine or cirq.Sampler object used for running the calibrations. When
-            sampler is cirq_google.Engine or cirq_google.QuantumEngineSampler object then the
+            sampler is cirq_google.Engine or cirq_google.ProcessorSampler object then the
             calibrations are issued against a Google's quantum device. The only other sampler
             supported for simulation purposes is cirq_google.PhasedFSimEngineSimulator.
         processor_id: Used when sampler is cirq_google.Engine object and passed to
