@@ -16,6 +16,7 @@ import operator
 from typing import Any, Callable, cast, Dict, Iterable, List, Optional, Sequence, Union
 
 import numpy as np
+import sympy
 from ply import yacc
 
 from cirq import ops, Circuit, NamedQubit, CX
@@ -496,11 +497,16 @@ class QasmParser:
         ]
 
     # if operations
-    # if : IF '(' carg NE NATURAL_NUMBER ')' ID qargs
+    # if : IF '(' ID EQ NATURAL_NUMBER ')' ID qargs
 
     def p_if(self, p):
-        """if : IF '(' carg NE NATURAL_NUMBER ')' gate_op"""
-        p[0] = [ops.ClassicallyControlledOperation(conditions=p[3], sub_operation=tuple(p[7])[0])]
+        """if : IF '(' carg EQ NATURAL_NUMBER ')' gate_op"""
+        p[0] = [
+            ops.ClassicallyControlledOperation(
+                conditions=[sympy.Eq(sympy.Symbol((x)), p[5]) for x in p[3]],
+                sub_operation=tuple(p[7])[0],
+            )
+        ]
 
     def p_error(self, p):
         if p is None:

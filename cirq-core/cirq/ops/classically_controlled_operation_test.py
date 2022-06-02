@@ -198,7 +198,10 @@ a: ═══@═══╩══════════════════�
 
 def test_qasm():
     q0, q1 = cirq.LineQubit.range(2)
-    circuit = cirq.Circuit(cirq.measure(q0, key='a'), cirq.X(q1).with_classical_controls('a'))
+    circuit = cirq.Circuit(
+        cirq.measure(q0, key='a'),
+        cirq.X(q1).with_classical_controls(sympy.Eq(sympy.Symbol('a'), 0)),
+    )
     qasm = cirq.qasm(circuit)
     assert (
         qasm
@@ -214,7 +217,7 @@ creg m_a[1];
 
 
 measure q[0] -> m_a[0];
-if (m_a!=0) x q[1];
+if (m_a==0) x q[1];
 """
     )
 

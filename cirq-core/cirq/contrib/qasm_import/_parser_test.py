@@ -213,16 +213,21 @@ def test_CX_gate():
 def test_classical_control():
     qasm = """OPENQASM 2.0;
         qreg q[2];
-        creg m_a[1];
+        creg m_a[2];
         measure q[0] -> m_a[0];
-        if (m_a!=0) CX q[0], q[1];
+        measure q[0] -> m_a[1];
+        if (m_a==0) CX q[0], q[1];
     """
     parser = QasmParser()
 
     q_0 = cirq.NamedQubit('q_0')
     q_1 = cirq.NamedQubit('q_1')
     expected_circuit = cirq.Circuit(
-        cirq.measure(q_0, key='m_a_0'), cirq.CNOT(q_0, q_1).with_classical_controls('m_a_0')
+        cirq.measure(q_0, key='m_a_0'),
+        cirq.measure(q_0, key='m_a_1'),
+        cirq.CNOT(q_0, q_1).with_classical_controls(
+            sympy.Eq(sympy.Symbol('m_a_0'), 0), sympy.Eq(sympy.Symbol('m_a_1'), 0)
+        ),
     )
 
     parsed_qasm = parser.parse(qasm)
