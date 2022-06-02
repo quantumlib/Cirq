@@ -210,6 +210,18 @@ class SimulatorBase(
             `_run` prefix."""
         return protocols.has_unitary(val)
 
+    def _base_iterator(
+        self, circuit: 'cirq.AbstractCircuit', qubits: Tuple['cirq.Qid', ...], initial_state: Any
+    ) -> Iterator[TStepResultBase]:
+        if not isinstance(qubits, tuple):
+            _compat._warn_or_error(
+                'The `qubits` parameter of `_base_iterator` will expect an explicit'
+                ' `Tuple[cirq.Qid, ...]` beginning in v0.16.'
+            )
+            qubits = ops.QubitOrder.as_qubit_order(qubits).order_for(circuit.all_qubits())
+        sim_state = self._create_simulation_state(initial_state, qubits)
+        return self._core_iterator(circuit, sim_state)
+
     def _core_iterator(
         self,
         circuit: 'cirq.AbstractCircuit',

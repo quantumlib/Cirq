@@ -176,12 +176,15 @@ def test_least_squares_xeb_fidelity_from_expectations():
         exact_expectations_log.append(np.sum(probabilities * np.log(dim * probabilities)))
         uniform_expectations_log.append(np.mean(np.log(dim * probabilities)))
 
-    f_lin, r_lin = cirq.experiments.least_squares_xeb_fidelity_from_expectations(
-        measured_expectations_lin, exact_expectations_lin, [1.0] * n_circuits
-    )
-    f_log, r_log = cirq.experiments.least_squares_xeb_fidelity_from_expectations(
-        measured_expectations_log, exact_expectations_log, uniform_expectations_log
-    )
+    with cirq.testing.assert_deprecated(
+        'Use cirq.experiments.xeb_fitting', deadline='v0.16', count=2
+    ):
+        f_lin, r_lin = cirq.experiments.least_squares_xeb_fidelity_from_expectations(
+            measured_expectations_lin, exact_expectations_lin, [1.0] * n_circuits
+        )
+        f_log, r_log = cirq.experiments.least_squares_xeb_fidelity_from_expectations(
+            measured_expectations_log, exact_expectations_log, uniform_expectations_log
+        )
 
     assert np.isclose(f_lin, 1 - depolarization, atol=0.01)
     assert np.isclose(f_log, 1 - depolarization, atol=0.01)
@@ -192,9 +195,11 @@ def test_least_squares_xeb_fidelity_from_expectations():
 
 
 def test_least_squares_xeb_fidelity_from_expectations_bad_length():
-    with pytest.raises(ValueError) as exception_info:
-        _ = cirq.experiments.least_squares_xeb_fidelity_from_expectations([1.0], [1.0], [1.0, 2.0])
-    assert '1, 1, and 2' in str(exception_info.value)
+    with pytest.raises(ValueError, match='1, 1, and 2'):
+        with cirq.testing.assert_deprecated('Use cirq.experiments.xeb_fitting', deadline='v0.16'):
+            _ = cirq.experiments.least_squares_xeb_fidelity_from_expectations(
+                [1.0], [1.0], [1.0, 2.0]
+            )
 
 
 def test_least_squares_xeb_fidelity_from_probabilities():
@@ -221,15 +226,19 @@ def test_least_squares_xeb_fidelity_from_probabilities():
         all_probabilities.append(probabilities)
         observed_probabilities.append(probabilities[bitstrings])
 
-    f_lin, r_lin = cirq.least_squares_xeb_fidelity_from_probabilities(
-        dim, observed_probabilities, all_probabilities, None, True
-    )
-    f_log_np, r_log_np = cirq.least_squares_xeb_fidelity_from_probabilities(
-        dim, observed_probabilities, all_probabilities, np.log, True
-    )
-    f_log_math, r_log_math = cirq.least_squares_xeb_fidelity_from_probabilities(
-        dim, observed_probabilities, all_probabilities, math.log, False
-    )
+    # 2 deprecation warnings for each of the following
+    with cirq.testing.assert_deprecated(
+        'Use cirq.experiments.xeb_fitting', deadline='v0.16', count=6
+    ):
+        f_lin, r_lin = cirq.least_squares_xeb_fidelity_from_probabilities(
+            dim, observed_probabilities, all_probabilities, None, True
+        )
+        f_log_np, r_log_np = cirq.least_squares_xeb_fidelity_from_probabilities(
+            dim, observed_probabilities, all_probabilities, np.log, True
+        )
+        f_log_math, r_log_math = cirq.least_squares_xeb_fidelity_from_probabilities(
+            dim, observed_probabilities, all_probabilities, math.log, False
+        )
 
     assert np.isclose(f_lin, 1 - depolarization, atol=0.01)
     assert np.isclose(f_log_np, 1 - depolarization, atol=0.01)
