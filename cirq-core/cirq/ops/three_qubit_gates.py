@@ -18,6 +18,7 @@ from typing import (
     AbstractSet,
     Any,
     Collection,
+    Dict,
     List,
     Optional,
     Sequence,
@@ -41,6 +42,7 @@ from cirq.ops import (
     raw_types,
     swap_gates,
     raw_types,
+    global_phase_op,
 )
 
 if TYPE_CHECKING:
@@ -49,9 +51,22 @@ if TYPE_CHECKING:
 
 
 class CCZPowGate(gate_features.InterchangeableQubitsGate, eigen_gate.EigenGate):
-    """A doubly-controlled-Z that can be raised to a power.
+    r"""A doubly-controlled-Z that can be raised to a power.
 
-    The matrix of `CCZ**t` is `diag(1, 1, 1, 1, 1, 1, 1, exp(i pi t))`.
+    The unitary matrix of `CCZ**t` is (empty elements are $0$):
+
+    $$
+    \begin{bmatrix}
+        1 & & & & & & & \\
+        & 1 & & & & & & \\
+        & & 1 & & & & & \\
+        & & & 1 & & & & \\
+        & & & & 1 & & & \\
+        & & & & & 1 & & \\
+        & & & & & & 1 & \\
+        & & & & & & & e^{i \pi t}
+    \end{bmatrix}
+    $$
     """
 
     def _eigen_components(self) -> List[Tuple[float, np.ndarray]]:
@@ -103,8 +118,13 @@ class CCZPowGate(gate_features.InterchangeableQubitsGate, eigen_gate.EigenGate):
 
         p = common_gates.T**self._exponent
         sweep_abc = [common_gates.CNOT(a, b), common_gates.CNOT(b, c)]
-
-        return [
+        global_phase = 1j ** (2 * self.global_shift * self._exponent)
+        global_phase_operation = (
+            [global_phase_op.global_phase_operation(global_phase)]
+            if protocols.is_parameterized(global_phase) or abs(global_phase - 1.0) > 0
+            else []
+        )
+        return global_phase_operation + [
             p(a),
             p(b),
             p(c),
@@ -202,12 +222,16 @@ class CCZPowGate(gate_features.InterchangeableQubitsGate, eigen_gate.EigenGate):
 
 @value.value_equality()
 class ThreeQubitDiagonalGate(raw_types.Gate):
-    """A gate given by a diagonal 8x8 matrix."""
+    r"""A three qubit gate whose unitary is given by a diagonal $8 \times 8$ matrix.
 
-    def __init__(self, diag_angles_radians: List[value.TParamVal]) -> None:
+    This gate's off-diagonal elements are zero and its on diagonal
+    elements are all phases.
+    """
+
+    def __init__(self, diag_angles_radians: Sequence[value.TParamVal]) -> None:
         r"""A three qubit gate with only diagonal elements.
 
-        This gate's off-diagonal elements are zero and it's on diagonal
+        This gate's off-diagonal elements are zero and its on diagonal
         elements are all phases.
 
         Args:
@@ -215,7 +239,11 @@ class ThreeQubitDiagonalGate(raw_types.Gate):
                 If these values are $(x_0, x_1, \ldots , x_7)$ then the unitary
                 has diagonal values $(e^{i x_0}, e^{i x_1}, \ldots, e^{i x_7})$.
         """
-        self._diag_angles_radians: List[value.TParamVal] = diag_angles_radians
+        self._diag_angles_radians: Tuple[value.TParamVal, ...] = tuple(diag_angles_radians)
+
+    @property
+    def diag_angles_radians(self) -> Tuple[value.TParamVal, ...]:
+        return self._diag_angles_radians
 
     def _is_parameterized_(self) -> bool:
         return any(protocols.is_parameterized(angle) for angle in self._diag_angles_radians)
@@ -315,8 +343,13 @@ class ThreeQubitDiagonalGate(raw_types.Gate):
         ]
         phase_solutions = phase_matrix_inverse.dot(shifted_angles_tail)
         p_gates = [pauli_gates.Z ** (solution / np.pi) for solution in phase_solutions]
-
-        return [
+        global_phase = 1j ** (2 * self._diag_angles_radians[0] / np.pi)
+        global_phase_operation = (
+            [global_phase_op.global_phase_operation(global_phase)]
+            if protocols.is_parameterized(global_phase) or abs(global_phase - 1.0) > 0
+            else []
+        )
+        return global_phase_operation + [
             p_gates[0](a),
             p_gates[1](b),
             p_gates[2](c),
@@ -350,6 +383,9 @@ class ThreeQubitDiagonalGate(raw_types.Gate):
             }
         )
 
+    def _json_dict_(self) -> Dict[str, Any]:
+        return protocols.obj_to_dict_helper(self, attribute_names=["diag_angles_radians"])
+
     def __repr__(self) -> str:
         return 'cirq.ThreeQubitDiagonalGate([{}])'.format(
             ','.join(proper_repr(angle) for angle in self._diag_angles_radians)
@@ -360,10 +396,24 @@ class ThreeQubitDiagonalGate(raw_types.Gate):
 
 
 class CCXPowGate(gate_features.InterchangeableQubitsGate, eigen_gate.EigenGate):
-    """A Toffoli (doubly-controlled-NOT) that can be raised to a power.
+    r"""A Toffoli (doubly-controlled-NOT) that can be raised to a power.
 
-    The matrix of `CCX**t` is an 8x8 identity except the bottom right 2x2 area
-    is the matrix of `X**t`.
+    The unitary matrix of `CCX**t` is an 8x8 identity except the bottom right
+    2x2 area is the matrix of `X**t`:
+
+    $$
+    \begin{bmatrix}
+
+        1 & & & & & & & \\
+        & 1 & & & & & & \\
+        & & 1 & & & & & \\
+        & & & 1 & & & & \\
+        & & & & 1 & & & \\
+        & & & & & 1 & & \\
+        & & & & & & e^{i \pi t /2} \cos(\pi t) & -i e^{i \pi t /2} \sin(\pi t) \\
+        & & & & & & -i e^{i \pi t /2} \sin(\pi t) & e^{i \pi t /2} \cos(\pi t)
+    \end{bmatrix}
+    $$
     """
 
     def _eigen_components(self) -> List[Tuple[float, np.ndarray]]:
@@ -421,7 +471,7 @@ class CCXPowGate(gate_features.InterchangeableQubitsGate, eigen_gate.EigenGate):
     def _decompose_(self, qubits):
         c1, c2, t = qubits
         yield common_gates.H(t)
-        yield CCZ(c1, c2, t) ** self._exponent
+        yield CCZPowGate(exponent=self._exponent, global_shift=self.global_shift).on(c1, c2, t)
         yield common_gates.H(t)
 
     def _circuit_diagram_info_(
@@ -661,22 +711,23 @@ class CSwapGate(gate_features.InterchangeableQubitsGate, raw_types.Gate):
 CCZ = CCZPowGate()
 document(
     CCZ,
-    """The Controlled-Controlled-Z gate.
+    r"""The Controlled-Controlled-Z gate.
 
     The `exponent=1` instance of `cirq.CCZPowGate`.
 
-    Matrix:
-
-    ```
-        [[1 . . . . . . .],
-         [. 1 . . . . . .],
-         [. . 1 . . . . .],
-         [. . . 1 . . . .],
-         [. . . . 1 . . .],
-         [. . . . . 1 . .],
-         [. . . . . . 1 .],
-         [. . . . . . . -1]]
-    ```
+    The unitary matrix of this gate is (empty elements are $0$):
+    $$
+    \begin{bmatrix}
+        1 & & & & & & & \\
+        & 1 & & & & & & \\
+        & & 1 & & & & & \\
+        & & & 1 & & & & \\
+        & & & & 1 & & & \\
+        & & & & & 1 & & \\
+        & & & & & & 1 & \\
+        & & & & & & & -1
+    \end{bmatrix}
+    $$
     """,
 )
 
@@ -684,47 +735,56 @@ CCNotPowGate = CCXPowGate
 CCX = TOFFOLI = CCNOT = CCXPowGate()
 document(
     CCX,
-    """The TOFFOLI gate, also known as the Controlled-Controlled-X gate.
+    r"""The Tofolli gate, also known as the Controlled-Controlled-X gate.
 
     If the first two qubits are in the |11⟩ state, this flips the third qubit
     in the computational basis, otherwise this applies identity to the third qubit.
 
     The `exponent=1` instance of `cirq.CCXPowGate`.
 
-    Matrix:
-    ```
-        [[1 . . . . . . .],
-         [. 1 . . . . . .],
-         [. . 1 . . . . .],
-         [. . . 1 . . . .],
-         [. . . . 1 . . .],
-         [. . . . . 1 . .],
-         [. . . . . . . 1],
-         [. . . . . . 1 .]]
-    ```
+    The unitary matrix of this gate is (empty elements are $0$):
+
+    $$
+    \begin{bmatrix}
+        1 & & & & & & & \\
+        & 1 & & & & & & \\
+        & & 1 & & & & & \\
+        & & & 1 & & & & \\
+        & & & & 1 & & & \\
+        & & & & & 1 & & \\
+        & & & & & & 0 & 1 \\
+        & & & & & & 1 & 0
+    \end{bmatrix}
+    $$
+
+    Alternative names: `cirq.CCNOT` and `cirq.TOFFOLI`.
     """,
 )
 
 CSWAP = FREDKIN = CSwapGate()
 document(
     CSWAP,
-    """The Controlled Swap gate, also known as the Fredkin gate.
+    r"""The Controlled Swap gate, also known as the Fredkin gate.
 
     If the first qubit is |1⟩, this applies a SWAP between the second and third qubit,
     otherwise it acts as identity on the second and third qubit.
 
     An instance of `cirq.CSwapGate`.
 
-    Matrix:
-    ```
-        [[1 . . . . . . .],
-         [. 1 . . . . . .],
-         [. . 1 . . . . .],
-         [. . . 1 . . . .],
-         [. . . . 1 . . .],
-         [. . . . . . 1 .],
-         [. . . . . 1 . .],
-         [. . . . . . . 1]]
-    ```
+    The unitary matrix of this gate is (empty elements are $0$):
+    $$
+    \begin{bmatrix}
+        1 & & & & & & & \\
+        & 1 & & & & & & \\
+        & & 1 & & & & & \\
+        & & & 1 & & & & \\
+        & & & & 1 & & & \\
+        & & & & & 0 & 1 & \\
+        & & & & & 1 & 0 & \\
+        & & & & & & & 1
+    \end{bmatrix}
+    $$
+
+    Alternative names: `cirq.FREDKIN`.
     """,
 )

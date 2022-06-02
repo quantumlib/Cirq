@@ -27,49 +27,180 @@ upper_tabs:
   lower_tabs:
     # Subsite tabs
     other:
-    - name: "Guide"
+    - name: "Start"
       contents:
       ####  FIRST STEPS  ####
       - heading: "First steps"
-
       - title: "Install"
         path: /cirq/install
-      - title: "Getting started"
+      - title: "Hello Qubit Example"
         path: /cirq/start
-      ####  CONCEPTS  ####
-      - heading: "Essential concepts"
+      - title: "Cirq Basics"
+        path: /cirq/tutorials/basics
+
+      ####  TEST UNDERSTANDING  ####
+      - heading: "Test understanding"
+      - title: "Cirq Intro Workshop"
+        path: /cirq/tutorials/educators/intro
+
+    - name: "Build"
+      contents:
+      - title: "Overview"
+        path: /cirq/build
+      ####  CIRCUIT CONSTRUCTION  ####
+      - heading: "Circuit construction"
+      - title: "Circuits"
+        path: /cirq/circuits
       - title: "Qubits"
         path: /cirq/qubits
       - title: "Gates and operations"
         path: /cirq/gates
-      - title: "Circuits"
-        path: /cirq/circuits
-      - title: "Simulation"
-        path: /cirq/simulation
-      - title: "Ecosystem"
-        path: /cirq/ecosystem
-
-      ####  FURTHER TOPICS  ####
-      - heading: "Further topics"
-      - title: "Noise"
-        path: /cirq/noise
-      - title: "Devices"
-        path: /cirq/devices
-      - title: "Transform circuits"
-        path: /cirq/transform
+      - title: "Custom gates"
+        path: /cirq/custom_gates
+      - title: "Import/export circuits"
+        path: /cirq/interop
+      ####   ADVANCED  ####
+      - heading: "Advanced"
+      - title: "Operators"
+        path: /cirq/operators
       - title: "Qudits"
         path: /cirq/qudits
       - title: "Protocols"
         path: /cirq/protocols
-      - title: "Import/export circuits"
-        path: /cirq/interop
-      - title: "Custom gates"
-        path: /cirq/custom_gates
-      - title: "Operators"
-        path: /cirq/operators
-      - title: "Issues / requests / questions"
-        path: /cirq/support
+      - title: "Tools Ecosystem"
+        path: /cirq/ecosystem
 
+    - name: "Simulate"
+      contents:
+      - title: "Overview"
+        path: /cirq/simulate
+      - title: "Exact Simulation"
+        path: /cirq/simulation
+      - title: "Noisy Simulation"
+        path: /cirq/noisy_simulation
+      - title: "State Histograms"
+        path: /cirq/tutorials/state_histograms
+
+    - name: "Transform"
+      contents:
+      - title: "Overview"
+        path: /cirq/transform
+      - title: "Circuit Transformers"
+        path: /cirq/transformers
+
+    - name: "Hardware"
+      contents:
+      - title: "Overview"
+        path: /cirq/hardware
+      - title: "Devices"
+        path: /cirq/devices
+
+      ####  AQT  ####
+      - heading: "AQT hardware"
+      - title: "Access and authentication"
+        path: /cirq/aqt/access
+      - title: "Getting started with AQT hardware"
+        path: /cirq/tutorials/aqt/getting_started
+
+      #### Azure Quantum ####
+      - heading: "Azure Quantum"
+      - title: "Access and authentication"
+        path: /cirq/azure-quantum/access
+      - title: "Getting started with Honeywell on Azure Quantum"
+        path: /cirq/tutorials/azure-quantum/getting_started_honeywell
+      - title: "Getting started with IonQ on Azure Quantum"
+        path: /cirq/tutorials/azure-quantum/getting_started_ionq
+
+      ##### IonQ ####
+      - heading: "IonQ hardware"
+      - title: "Access and authentication"
+        path: /cirq/ionq/access
+      - title: "Getting started with IonQ hardware"
+        path: /cirq/tutorials/ionq/getting_started
+      - title: "IonQ API service"
+        path: /cirq/ionq/service
+      - title: "IonQ API circuits"
+        path: /cirq/ionq/circuits
+      - title: "Running IonQ API jobs"
+        path: /cirq/ionq/jobs
+      - title: "IonQ API calibrations"
+        path: /cirq/ionq/calibrations
+
+      ####  PASQAL  ####
+      - heading: "Pasqal hardware"
+      - title: "Access and authentication"
+        path: /cirq/pasqal/access
+      - title: "Getting started with Pasqal hardware"
+        path: /cirq/tutorials/pasqal/getting_started
+      - title: "Pasqal devices"
+        path: /cirq/pasqal/devices
+      - title: "Pasqal sampler"
+        path: /cirq/pasqal/sampler
+
+      ##### RIGETTI ####
+      - heading: "Rigetti hardware"
+      - title: "Access and authentication"
+        path: /cirq/rigetti/access
+      - title: "Getting started with Rigetti hardware"
+        path: /cirq/tutorials/rigetti/getting_started
+
+      #### CUSTOM DEVICES  ####
+      - heading: "Custom devices"
+      - title: "Neutral atom device"
+        path: /cirq/tutorials/educators/neutral_atom
+      - title: "Ion device"
+        path: /cirq/tutorials/educators/ion_device
+
+    - name: "Noise"
+      contents:
+      - title: "Overview"
+        path: /cirq/noise
+      ####  CHARACTERIZATION AND COMPENSATION  ####
+      - heading: "Characterization and compensation"
+      - title: "Calibration: Overview and API"
+        path: /cirq/tutorials/google/calibration_api
+      - title: "Floquet Calibration"
+        path: /cirq/tutorials/google/floquet_calibration_example
+      - title: "Cross Entropy Benchmarking (XEB)"
+        style: accordion
+        section:
+        - title: "Cross Entropy Benchmarking Theory"
+          path: /cirq/qcvv/xeb_theory
+        - title: "XEB and coherent error"
+          path: /cirq/qcvv/xeb_coherent_noise
+        - title: "Parallel XEB"
+          path: /cirq/qcvv/parallel_xeb
+        - title: "XEB calibration: Example and Benchmark"
+          path: /cirq/tutorials/google/xeb_calibration_example
+      - title: "Calibration FAQ"
+        path: /cirq/google/calibration_faq
+      ####  VISUALIZING NOISE  ####
+      - heading: "Visualizing noise"
+      - title: "Heatmaps"
+        path: /cirq/tutorials/heatmaps
+
+    - name: "Experiments"
+      contents:
+      - title: "Overview"
+        path: /cirq/experiments
+      - heading: "Algorithms in Cirq"
+      - title: "Textbook Algorithms Workshop"
+        path: /cirq/tutorials/educators/textbook_algorithms
+      - title: "Shor's Algorithm"
+        path: /cirq/tutorials/shor
+      - title: "Variational Quantum Eigensolver"
+        path: /cirq/tutorials/variational_algorithm
+      - title: "Quantum Walks"
+        path: /cirq/tutorials/quantum_walks
+      - title: "Fourier Checking"
+        path: /cirq/tutorials/fourier_checking
+      - title: "Hidden Linear Function problem"
+        path: /cirq/tutorials/hidden_linear_function
+      - heading: "Algorithms in ReCirq"
+      - include: /cirq/experiments/_toc.yaml
+
+    - name: "Contribute"
+      contents:
       ####  Contributor Guide  ####
       - heading: "Contributor guide"
       - title: "Contribute"
@@ -92,176 +223,8 @@ upper_tabs:
         path: /cirq/dev/serialization
       - title: "Triage process"
         path: /cirq/dev/triage
-
-      ####  GOOGLE HARDWARE  ####
-      - heading: "Google hardware"
-      - title: "Access and authentication"
-        path: /cirq/google/access
-      - title: "Concepts"
-        path: /cirq/google/concepts
-      - title: "Quantum Engine API"
-        path: /cirq/google/engine
-      - title: "Google devices"
-        path: /cirq/google/devices
-      - title: "Device specifications"
-        path: /cirq/google/specification
-      - title: "Calibration metrics"
-        path: /cirq/google/calibration
-      - title: "Calibration FAQ"
-        path: /cirq/google/calibration_faq
-      - title: "Best practices"
-        path: /cirq/google/best_practices
-
-      ####  AQT  ####
-      - heading: "AQT hardware"
-      - title: "Access and authentication"
-        path: /cirq/aqt/access
-      
-      #### Azure Quantum ####
-      - heading: "Azure Quantum"
-      - title: "Access and authentication"
-        path: /cirq/azure-quantum/access
-
-      ##### IonQ ####
-      - heading: "IonQ hardware"
-      - title: "Access and authentication"
-        path: /cirq/ionq/access
-      - title: "IonQ API service"
-        path: /cirq/ionq/service
-      - title: "IonQ API circuits"
-        path: /cirq/ionq/circuits
-      - title: "Running IonQ API jobs"
-        path: /cirq/ionq/jobs
-      - title: "IonQ API calibrations"
-        path: /cirq/ionq/calibrations
-
-      ####  PASQAL  ####
-      - heading: "Pasqal hardware"
-      - title: "Access and authentication"
-        path: /cirq/pasqal/access
-      - title: "Pasqal devices"
-        path: /cirq/pasqal/devices
-      - title: "Pasqal sampler"
-        path: /cirq/pasqal/sampler
-
-      ##### RIGETTI ####
-      - heading: "Rigetti hardware"
-      - title: "Access and authentication"
-        path: /cirq/rigetti/access
-
-    - name: "Tutorials"
-      contents:
-      ####  OVERVIEW  ####
-      - title: "Tutorials and examples"
-        path: /cirq/tutorials/index
-
-      ####  BEGINNER  ####
-      - heading: "Beginner"
-      - title: "Basics"
-        path: /cirq/tutorials/basics
-      - title: "Heatmaps"
-        path: /cirq/tutorials/heatmaps
-      - title: "State Histograms"
-        path: /cirq/tutorials/state_histograms
-
-      ####  INTERMEDIATE  ####
-      - heading: "Intermediate"
-      - title: "Quantum variational algorithm"
-        path: /cirq/tutorials/variational_algorithm
-      - title: "Approximate optimization"
-        path: /cirq/tutorials/qaoa
-      - title: "Quantum walks"
-        path: /cirq/tutorials/quantum_walks
-      - title: "Fourier Checking"
-        path: /cirq/tutorials/fourier_checking
-
-      ####  ADVANCED  ####
-      - heading: "Advanced"
-      - title: "Rabi oscillation experiment"
-        path: /cirq/tutorials/rabi_oscillations
-      - title: "Cross entropy benchmarking (XEB) theory"
-        path: /cirq/qcvv/xeb_theory
-      - title: "XEB and coherent error"
-        path: /cirq/qcvv/xeb_coherent_noise
-      - title: "Parallel XEB"
-        path: /cirq/qcvv/parallel_xeb
-      - title: "Isolated XEB"
-        path: /cirq/qcvv/isolated_xeb
-      - title: "Hidden linear function problem"
-        path: /cirq/tutorials/hidden_linear_function
-      - title: "Shor's algorithm"
-        path: /cirq/tutorials/shor
-
-      ####  GOOGLE HARDWARE  ####
-      - heading: "Google hardware"
-      - title: "Getting started with QCS"
-        path: /cirq/tutorials/google/start
-      - title: "Visualizing calibration metrics"
-        path: /cirq/tutorials/google/visualizing_calibration_metrics
-      - title: "Identifying Hardware Changes"
-        path: /cirq/tutorials/google/identifying_hardware_changes
-      - title: "Qubit picking with Loschmidt echoes"
-        path: /cirq/tutorials/google/echoes
-      - title: "Circuit optimization, gate alignment, & spin echoes"
-        path: /cirq/tutorials/google/spin_echoes
-      - title: "Calibration"
-        style: accordion
-        section:
-        - title: "Calibration: Overview and API"
-          path: /cirq/tutorials/google/calibration_api
-        - title: "Floquet calibration: Example and benchmark"
-          path: /cirq/tutorials/google/floquet_calibration_example
-        - title: "XEB calibration: Example and benchmark"
-          path: /cirq/tutorials/google/xeb_calibration_example
-
-      ####  AQT HARDWARE  ####
-      - heading: "AQT hardware"
-      - title: "Getting started with AQT hardware"
-        path: /cirq/tutorials/aqt/getting_started
-
-      ####  AZURE QUANTUM  ####
-      - heading: "Azure Quantum"
-      - title: "Getting started with Honeywell on Azure Quantum"
-        path: /cirq/tutorials/azure-quantum/getting_started_honeywell
-      - title: "Getting started with IonQ on Azure Quantum"
-        path: /cirq/tutorials/azure-quantum/getting_started_ionq
-
-      ####  IONQ HARDWARE ####
-      - heading: "IonQ hardware"
-      - title: "Getting started with IonQ hardware"
-        path: /cirq/tutorials/ionq/getting_started
-      - title: "Binary paintshop"
-        path: /cirq/tutorials/ionq/binary_paintshop
-
-      ####  PASQAL HARDWARE  ####
-      - heading: "Pasqal hardware"
-      - title: "Getting started with Pasqal hardware"
-        path: /cirq/tutorials/pasqal/getting_started
-
-      ##### RIGETTI HARDWARE ####
-      - heading: "Rigetti hardware"
-      - title: "Getting started with Rigetti hardware"
-        path: /cirq/tutorials/rigetti/getting_started
-
-      ####  EDUCATORS WORKSHOP  ####
-      - heading: "Educators workshop"
-      - title: "Cirq intro workshop"
-        path: /cirq/tutorials/educators/intro
-      - title: "Textbook algorithms in Cirq"
-        path: /cirq/tutorials/educators/textbook_algorithms
-      - title: "Quantum chemistry with OpenFermion"
-        path: /cirq/tutorials/educators/chemistry
-      - title: "QAOA: Ising model"
-        path: /cirq/tutorials/educators/qaoa_ising
-      - title: "Neutral atom device"
-        path: /cirq/tutorials/educators/neutral_atom
-      - title: "Ion device"
-        path: /cirq/tutorials/educators/ion_device
-
-
-    - name: "Experiments"
-      contents:
-      - include: /cirq/experiments/_toc.yaml
+      - title: "Issues / requests / questions"
+        path: /cirq/support
 
     - name: "Reference"
       skip_translation: true
