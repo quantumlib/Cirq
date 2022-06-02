@@ -134,16 +134,18 @@ def test_access_sweep():
     assert sixth_elem == cirq.ParamResolver({'a': 2, 'b': 5})
 
 
+# We use factories since some of these produce generators and we want to
+# test for passing in a generator to initializer.
 @pytest.mark.parametrize(
-    'r_list',
+    'r_list_factory',
     [
-        [{'a': a, 'b': a + 1} for a in (0, 0.5, 1, -10)],
-        ({'a': a, 'b': a + 1} for a in (0, 0.5, 1, -10)),
-        ({sympy.Symbol('a'): a, 'b': a + 1} for a in (0, 0.5, 1, -10)),
+        lambda: [{'a': a, 'b': a + 1} for a in (0, 0.5, 1, -10)],
+        lambda: ({'a': a, 'b': a + 1} for a in (0, 0.5, 1, -10)),
+        lambda: ({sympy.Symbol('a'): a, 'b': a + 1} for a in (0, 0.5, 1, -10)),
     ],
 )
-def test_list_sweep(r_list):
-    sweep = cirq.ListSweep(r_list)
+def test_list_sweep(r_list_factory):
+    sweep = cirq.ListSweep(r_list_factory())
     assert sweep.keys == ['a', 'b']
     assert len(sweep) == 4
     assert len(list(sweep)) == 4
