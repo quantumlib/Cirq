@@ -825,7 +825,7 @@ def run_calibrations(
     (calibration_request_type,) = calibration_request_types
 
     if isinstance(sampler, Engine):
-        engine: Optional[Engine] = sampler
+        engine: Optional[AbstractEngine] = sampler
     elif isinstance(sampler, ProcessorSampler):
         processor_id = getattr(sampler.processor, 'processor_id', None)
         engine = sampler.processor.engine() if processor_id is not None else None
