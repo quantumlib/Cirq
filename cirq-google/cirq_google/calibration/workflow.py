@@ -36,7 +36,7 @@ from cirq_google.calibration.phased_fsim import (
     LocalXEBPhasedFSimCalibrationRequest,
 )
 from cirq_google.calibration.xeb_wrapper import run_local_xeb_calibration
-from cirq_google.engine import Engine, ProcessorSampler, util
+from cirq_google.engine import AbstractEngine, ProcessorSampler, util
 from cirq_google.serialization.serializer import Serializer
 
 _CALIBRATION_IRRELEVANT_GATES = cirq.MeasurementGate, cirq.WaitGate
@@ -730,7 +730,7 @@ def _merge_into_calibrations(
 
 def _run_calibrations_via_engine(
     calibration_requests: Sequence[PhasedFSimCalibrationRequest],
-    engine: Engine,
+    engine: AbstractEngine,
     processor_id: str,
     max_layers_per_request: int = 1,
     progress_func: Optional[Callable[[int, int], None]] = None,
@@ -776,7 +776,7 @@ def _run_local_calibrations_via_sampler(
 @util.deprecated_gate_set_parameter
 def run_calibrations(
     calibrations: Sequence[PhasedFSimCalibrationRequest],
-    sampler: Union[Engine, cirq.Sampler],
+    sampler: Union[AbstractEngine, cirq.Sampler],
     processor_id: Optional[str] = None,
     gate_set: Optional[Serializer] = None,
     max_layers_per_request: int = 1,
@@ -824,7 +824,7 @@ def run_calibrations(
         )
     (calibration_request_type,) = calibration_request_types
 
-    if isinstance(sampler, Engine):
+    if isinstance(sampler, AbstractEngine):
         engine: Optional[AbstractEngine] = sampler
     elif isinstance(sampler, ProcessorSampler):
         processor_id = getattr(sampler.processor, 'processor_id', None)
