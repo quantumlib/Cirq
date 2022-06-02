@@ -222,6 +222,7 @@ def test_classical_control():
 
     q_0 = cirq.NamedQubit('q_0')
     q_1 = cirq.NamedQubit('q_1')
+    # Since we split the measurement into two, we also need two conditions.
     expected_circuit = cirq.Circuit(
         cirq.measure(q_0, key='m_a_0'),
         cirq.measure(q_0, key='m_a_1'),

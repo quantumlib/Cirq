@@ -112,6 +112,7 @@ def test_sympy_condition_resolve():
 
 
 def test_sympy_condition_qasm():
+    # Measurements get prepended with "m_", so the condition needs to be too.
     assert cirq.SympyCondition(sympy.Eq(sympy.Symbol('a'), 2)).qasm == 'm_a==2'
     with pytest.raises(
         ValueError, match='QASM is defined only for SympyConditions of type key == constant'

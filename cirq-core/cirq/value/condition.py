@@ -162,5 +162,6 @@ class SympyCondition(Condition):
     def qasm(self):
         if isinstance(self.expr, sympy.Equality):
             if isinstance(self.expr.lhs, sympy.Symbol) and isinstance(self.expr.rhs, sympy.Integer):
+                # Measurements get prepended with "m_", so the condition needs to be too.
                 return f'm_{self.expr.lhs}=={self.expr.rhs}'
         raise ValueError('QASM is defined only for SympyConditions of type key == constant.')
