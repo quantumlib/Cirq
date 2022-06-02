@@ -216,18 +216,19 @@ def test_classical_control():
         creg m_a[2];
         measure q[0] -> m_a[0];
         measure q[0] -> m_a[1];
-        if (m_a==0) CX q[0], q[1];
+        if (m_a==1) CX q[0], q[1];
     """
     parser = QasmParser()
 
     q_0 = cirq.NamedQubit('q_0')
     q_1 = cirq.NamedQubit('q_1')
     # Since we split the measurement into two, we also need two conditions.
+    # m_a==1 corresponds to m_a[0]==1, m_a[1]==0
     expected_circuit = cirq.Circuit(
         cirq.measure(q_0, key='m_a_0'),
         cirq.measure(q_0, key='m_a_1'),
         cirq.CNOT(q_0, q_1).with_classical_controls(
-            sympy.Eq(sympy.Symbol('m_a_0'), 0), sympy.Eq(sympy.Symbol('m_a_1'), 0)
+            sympy.Eq(sympy.Symbol('m_a_0'), 1), sympy.Eq(sympy.Symbol('m_a_1'), 0)
         ),
     )
 

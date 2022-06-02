@@ -501,11 +501,14 @@ class QasmParser:
 
     def p_if(self, p):
         """if : IF '(' carg EQ NATURAL_NUMBER ')' gate_op"""
+        # We have to split the register into bits (since that's what measurement does above),
+        # and create one condition per bit, checking against that part of the binary value.
+        conditions = []
+        for i, key in enumerate(p[3]):
+            v = (p[5] >> i) & 1
+            conditions.append(sympy.Eq(sympy.Symbol(key), v))
         p[0] = [
-            ops.ClassicallyControlledOperation(
-                conditions=[sympy.Eq(sympy.Symbol((x)), p[5]) for x in p[3]],
-                sub_operation=tuple(p[7])[0],
-            )
+            ops.ClassicallyControlledOperation(conditions=conditions, sub_operation=tuple(p[7])[0])
         ]
 
     def p_error(self, p):
