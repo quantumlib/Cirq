@@ -134,9 +134,10 @@ def test_random_same_matrix(circuit):
 
     cirq.testing.assert_circuits_with_terminal_measurements_are_equivalent(circuit_copy, same)
 
-    circuit_copy.append(cirq.measure(a))
+    mutable_circuit = circuit.copy()
+    mutable_circuit.append(cirq.measure(a))
     same.append(cirq.measure(a))
-    cirq.testing.assert_circuits_with_terminal_measurements_are_equivalent(circuit_copy, same)
+    cirq.testing.assert_circuits_with_terminal_measurements_are_equivalent(mutable_circuit, same)
 
 
 def test_correct_qubit_ordering():

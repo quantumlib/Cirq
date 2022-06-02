@@ -134,6 +134,8 @@ def test_access_sweep():
     assert sixth_elem == cirq.ParamResolver({'a': 2, 'b': 5})
 
 
+# We use factories since some of these produce generators and we want to
+# test for passing in a generator to initializer.
 @pytest.mark.parametrize(
     'r_list_factory',
     [

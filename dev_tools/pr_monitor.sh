@@ -48,7 +48,7 @@
 
 
 # Get the working directory to the repo root.
-cd "$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+cd "$(dirname "${BASH_SOURCE[0]}")"
 repo_dir=$(git rev-parse --show-toplevel)
 cd "${repo_dir}"
 

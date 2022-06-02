@@ -50,31 +50,21 @@ def _validate_device_specification(proto: v2.device_pb2.DeviceSpecification) -> 
                         " which is not in valid_qubits."
                     )
 
-        # Symmetric and asymmetric targets should not have repeated qubits.
-        if (
-            target_set.target_ordering == v2.device_pb2.TargetSet.SYMMETRIC
-            or target_set.target_ordering == v2.device_pb2.TargetSet.ASYMMETRIC
-        ):
+        # Symmetric targets should not have repeated qubits.
+        if target_set.target_ordering == v2.device_pb2.TargetSet.SYMMETRIC:
             for target in target_set.targets:
                 if len(target.ids) > len(set(target.ids)):
                     raise ValueError(
-                        f"Invalid DeviceSpecification: the target set '{target_set.name}' is either"
-                        " SYMMETRIC or ASYMMETRIC but has a target which contains repeated qubits:"
+                        f"Invalid DeviceSpecification: the target set '{target_set.name}' is"
+                        " SYMMETRIC but has a target which contains repeated qubits:"
                         f" {target.ids}."
                     )
 
-        # A SUBSET_PERMUTATION target should contain exactly one qubit.
-        # SUBSET_PERMUTATION describes a target set (rather than a target), where a gate can have
-        # any subset of the targets, with each target being exactly 1 qubit.
-        # See the `DeviceSpecification` proto definition for a detailed description.
-        if target_set.target_ordering == v2.device_pb2.TargetSet.SUBSET_PERMUTATION:
-            for target in target_set.targets:
-                if len(target.ids) != 1:
-                    raise ValueError(
-                        f"Invalid DeviceSpecification: the target set '{target_set.name}' is of"
-                        " type SUBSET_PERMUTATION but contains a target which does not have exactly"
-                        f" 1 qubit: {target.ids}."
-                    )
+        # Asymmetric target set type is not expected.
+        # While this is allowed by the proto, it has never been set, so it's safe to raise an
+        # exception if this is set unexpectedly.
+        if target_set.target_ordering == v2.device_pb2.TargetSet.ASYMMETRIC:
+            raise ValueError("Invalid DeviceSpecification: target_ordering cannot be ASYMMETRIC.")
 
 
 @cirq.value_equality
@@ -155,13 +145,8 @@ class GridDevice(cirq.Device):
                   cannot be parsed as a `cirq.GridQubit`.
                 * `DeviceSpecification.valid_targets` refer to qubits which are not in
                   `DeviceSpecification.valid_qubits`.
-                * A target set in `DeviceSpecification.valid_targets` has type `SYMMETRIC` or
-                  `ASYMMETRIC` but contains targets with repeated qubits, e.g. a qubit pair with a
-                  self loop.
-                * A target set in `DeviceSpecification.valid_targets` has type `SUBSET_PERMUTATION`
-                  but contains targets which do not have exactly one element. A `SUBSET_PERMUTATION`
-                  target set uses each target to represent a single qubit, and a gate can be applied
-                  to any subset of qubits in the target set.
+                * A target set in `DeviceSpecification.valid_targets` has type `SYMMETRIC` but
+                  contains targets with repeated qubits, e.g. a qubit pair with a self loop.
         """
 
         _validate_device_specification(proto)
@@ -170,16 +155,6 @@ class GridDevice(cirq.Device):
         all_qubits = {v2.grid_qubit_from_proto_id(q) for q in proto.valid_qubits}
 
         # Create qubit pair set
-        #
-        # While the `GateSpecification` proto message contains qubit target references, they are
-        # ignored here because the following assumptions make them unnecessary currently:
-        # * All valid qubit pairs work for all two-qubit gates.
-        # * All valid qubits work for all single-qubit gates.
-        # * Measurement gate can always be applied to all subset of qubits.
-        #
-        # TODO(#5050) Consider removing `GateSpecification.valid_targets` and
-        # ASYMMETRIC and SUBSET_PERMUTATION target types.
-        # If they are not removed, then their validation should be tightened.
         qubit_pairs = [
             (v2.grid_qubit_from_proto_id(target.ids[0]), v2.grid_qubit_from_proto_id(target.ids[1]))
             for ts in proto.valid_targets
