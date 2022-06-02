@@ -55,7 +55,7 @@ else
 fi
 
 # All the protos.
-echo "Building protos in $(pwd)"
+echo "Building protos in $PWD"
 
 dev_tools/build-protos.sh
 
