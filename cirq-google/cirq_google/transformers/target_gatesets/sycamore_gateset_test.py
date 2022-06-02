@@ -299,7 +299,7 @@ def test_swap_zztheta():
             circuit, gateset=cirq_google.SycamoreTargetGateset()
         )
         cirq.testing.assert_circuits_with_terminal_measurements_are_equivalent(
-            circuit, converted_circuit, atol=1e-6
+            circuit, converted_circuit, atol=1e-5
         )
 
 
