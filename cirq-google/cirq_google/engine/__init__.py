@@ -76,6 +76,9 @@ from cirq_google.engine.virtual_engine_factory import (
     create_noiseless_virtual_engine_from_proto,
     create_noiseless_virtual_engine_from_templates,
     create_noiseless_virtual_engine_from_latest_templates,
+    load_median_device_calibration,
 )
 
 from cirq_google.engine.engine_result import EngineResult
+
+from cirq_google.engine.processor_sampler import ProcessorSampler

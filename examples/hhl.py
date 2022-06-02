@@ -35,7 +35,7 @@ The result is good if the register size is large enough such that for every pair
 the ratio can be approximated by a pair of possible register values. Let s be the scaling factor
 from possible register values to eigenvalues. One way to set t is
 
-t = 2π/sN
+t = 2π/(sN)
 
 For arbitrary matrices, because properties of their eigenvalues are typically unknown, parameters C
 and t are fine-tuned based on their condition number.
@@ -148,7 +148,7 @@ class PhaseKickback(cirq.Gate):
 
 
 class EigenRotation(cirq.Gate):
-    """Perform the of the ancilla equivalent to divison of the memory by eigenvalues of matrix.
+    """Perform a rotation on an ancilla equivalent to division by eigenvalues of a matrix.
 
     EigenRotation performs the set of rotation on the ancilla qubit equivalent to division on the
     memory register by each eigenvalue of the matrix. The last qubit is the ancilla qubit; all

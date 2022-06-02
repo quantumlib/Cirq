@@ -106,6 +106,7 @@ def final_state_vector(
     initial_state: 'cirq.STATE_VECTOR_LIKE' = 0,
     param_resolver: 'cirq.ParamResolverOrSimilarType' = None,
     qubit_order: 'cirq.QubitOrderOrList' = ops.QubitOrder.DEFAULT,
+    ignore_terminal_measurements: bool = False,
     dtype: Type[np.number] = np.complex64,
     seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None,
 ) -> 'np.ndarray':
@@ -117,15 +118,18 @@ def final_state_vector(
     Args:
         program: The circuit, gate, operation, or tree of operations
             to apply to the initial state in order to produce the result.
-        param_resolver: Parameters to run with the program.
-        qubit_order: Determines the canonical ordering of the qubits. This
-            is often used in specifying the initial state, i.e. the
-            ordering of the computational basis states.
         initial_state: If an int, the state is set to the computational
             basis state corresponding to this state. Otherwise  if this
             is a np.ndarray it is the full initial state. In this case it
             must be the correct size, be normalized (an L2 norm of 1), and
             be safely castable to an appropriate dtype for the simulator.
+        param_resolver: Parameters to run with the program.
+        qubit_order: Determines the canonical ordering of the qubits. This
+            is often used in specifying the initial state, i.e. the
+            ordering of the computational basis states.
+        ignore_terminal_measurements: When set, measurements at the end of
+            the circuit are ignored instead of causing the method to
+            fail.
         dtype: The `numpy.dtype` used by the simulation. Typically one of
             `numpy.complex64` or `numpy.complex128`.
         seed: The random seed to use for this simulator.
@@ -142,6 +146,11 @@ def final_state_vector(
             it has non-unitary gates.
     """
     circuit_like = _to_circuit(program)
+    if not ignore_terminal_measurements:
+        if any(protocols.is_measurement(op) for op in circuit_like.all_operations()):
+            raise ValueError('Circuit contains a measurement.')
+    else:
+        circuit_like = measurement_transformers.drop_terminal_measurements(circuit_like)
 
     if not protocols.has_unitary(protocols.resolve_parameters(circuit_like, param_resolver)):
         raise ValueError(

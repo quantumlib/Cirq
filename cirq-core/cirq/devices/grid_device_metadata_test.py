@@ -29,8 +29,13 @@ def test_griddevice_metadata():
         cirq.GateFamily(cirq.ZPowGate): 1_000,
         # omitting cirq.CZ
     }
+    target_gatesets = (cirq.CZTargetGateset(),)
     metadata = cirq.GridDeviceMetadata(
-        qubit_pairs, gateset, gate_durations=gate_durations, all_qubits=qubits + isolated_qubits
+        qubit_pairs,
+        gateset,
+        gate_durations=gate_durations,
+        all_qubits=qubits + isolated_qubits,
+        compilation_target_gatesets=target_gatesets,
     )
     expected_pairings = frozenset(
         {
@@ -53,6 +58,7 @@ def test_griddevice_metadata():
     assert metadata.nx_graph.nodes() == expected_graph.nodes()
     assert metadata.gate_durations == gate_durations
     assert metadata.isolated_qubits == frozenset(isolated_qubits)
+    assert metadata.compilation_target_gatesets == target_gatesets
 
 
 def test_griddevice_metadata_bad_durations():
@@ -88,35 +94,58 @@ def test_griddevice_self_loop():
 def test_griddevice_json_load():
     qubits = cirq.GridQubit.rect(2, 3)
     qubit_pairs = [(a, b) for a in qubits for b in qubits if a != b and a.is_adjacent(b)]
-    gateset = cirq.Gateset(cirq.XPowGate, cirq.YPowGate, cirq.ZPowGate)
+    gateset = cirq.Gateset(cirq.XPowGate, cirq.YPowGate, cirq.ZPowGate, cirq.CZ)
     duration = {
         cirq.GateFamily(cirq.XPowGate): cirq.Duration(nanos=1),
         cirq.GateFamily(cirq.YPowGate): cirq.Duration(picos=2),
         cirq.GateFamily(cirq.ZPowGate): cirq.Duration(picos=3),
+        cirq.GateFamily(cirq.CZ): cirq.Duration(nanos=4),
     }
     isolated_qubits = [cirq.GridQubit(9, 9), cirq.GridQubit(10, 10)]
+    target_gatesets = [cirq.CZTargetGateset()]
     metadata = cirq.GridDeviceMetadata(
-        qubit_pairs, gateset, gate_durations=duration, all_qubits=qubits + isolated_qubits
+        qubit_pairs,
+        gateset,
+        gate_durations=duration,
+        all_qubits=qubits + isolated_qubits,
+        compilation_target_gatesets=target_gatesets,
     )
     rep_str = cirq.to_json(metadata)
+    assert metadata == cirq.read_json(json_text=rep_str)
+
+
+def test_griddevice_json_load_with_defaults():
+    qubits = cirq.GridQubit.rect(2, 3)
+    qubit_pairs = [(a, b) for a in qubits for b in qubits if a != b and a.is_adjacent(b)]
+    gateset = cirq.Gateset(cirq.XPowGate, cirq.YPowGate, cirq.ZPowGate, cirq.CZ)
+
+    # Don't set parameters with default values
+    metadata = cirq.GridDeviceMetadata(qubit_pairs, gateset)
+    rep_str = cirq.to_json(metadata)
+
     assert metadata == cirq.read_json(json_text=rep_str)
 
 
 def test_griddevice_metadata_equality():
     qubits = cirq.GridQubit.rect(2, 3)
     qubit_pairs = [(a, b) for a in qubits for b in qubits if a != b and a.is_adjacent(b)]
-    gateset = cirq.Gateset(cirq.XPowGate, cirq.YPowGate, cirq.ZPowGate)
+    gateset = cirq.Gateset(cirq.XPowGate, cirq.YPowGate, cirq.ZPowGate, cirq.CZ, cirq.SQRT_ISWAP)
     duration = {
         cirq.GateFamily(cirq.XPowGate): cirq.Duration(nanos=1),
         cirq.GateFamily(cirq.YPowGate): cirq.Duration(picos=3),
         cirq.GateFamily(cirq.ZPowGate): cirq.Duration(picos=2),
+        cirq.GateFamily(cirq.CZ): cirq.Duration(nanos=4),
+        cirq.GateFamily(cirq.SQRT_ISWAP): cirq.Duration(nanos=5),
     }
     duration2 = {
         cirq.GateFamily(cirq.XPowGate): cirq.Duration(nanos=10),
         cirq.GateFamily(cirq.YPowGate): cirq.Duration(picos=13),
         cirq.GateFamily(cirq.ZPowGate): cirq.Duration(picos=12),
+        cirq.GateFamily(cirq.CZ): cirq.Duration(nanos=14),
+        cirq.GateFamily(cirq.SQRT_ISWAP): cirq.Duration(nanos=15),
     }
     isolated_qubits = [cirq.GridQubit(9, 9)]
+    target_gatesets = [cirq.CZTargetGateset(), cirq.SqrtIswapTargetGateset()]
     metadata = cirq.GridDeviceMetadata(qubit_pairs, gateset, gate_durations=duration)
     metadata2 = cirq.GridDeviceMetadata(qubit_pairs[:2], gateset, gate_durations=duration)
     metadata3 = cirq.GridDeviceMetadata(qubit_pairs, gateset, gate_durations=None)
@@ -125,6 +154,18 @@ def test_griddevice_metadata_equality():
     metadata6 = cirq.GridDeviceMetadata(
         qubit_pairs, gateset, gate_durations=duration, all_qubits=qubits + isolated_qubits
     )
+    metadata7 = cirq.GridDeviceMetadata(
+        qubit_pairs, gateset, compilation_target_gatesets=target_gatesets
+    )
+    metadata8 = cirq.GridDeviceMetadata(
+        qubit_pairs, gateset, compilation_target_gatesets=target_gatesets[::-1]
+    )
+    metadata9 = cirq.GridDeviceMetadata(
+        qubit_pairs, gateset, compilation_target_gatesets=tuple(target_gatesets)
+    )
+    metadata10 = cirq.GridDeviceMetadata(
+        qubit_pairs, gateset, compilation_target_gatesets=set(target_gatesets)
+    )
 
     eq = cirq.testing.EqualsTester()
     eq.add_equality_group(metadata)
@@ -132,6 +173,7 @@ def test_griddevice_metadata_equality():
     eq.add_equality_group(metadata3)
     eq.add_equality_group(metadata4)
     eq.add_equality_group(metadata6)
+    eq.add_equality_group(metadata7, metadata8, metadata9, metadata10)
 
     assert metadata == metadata5
 
@@ -139,14 +181,20 @@ def test_griddevice_metadata_equality():
 def test_repr():
     qubits = cirq.GridQubit.rect(2, 3)
     qubit_pairs = [(a, b) for a in qubits for b in qubits if a != b and a.is_adjacent(b)]
-    gateset = cirq.Gateset(cirq.XPowGate, cirq.YPowGate, cirq.ZPowGate)
+    gateset = cirq.Gateset(cirq.XPowGate, cirq.YPowGate, cirq.ZPowGate, cirq.CZ)
     duration = {
         cirq.GateFamily(cirq.XPowGate): cirq.Duration(nanos=1),
         cirq.GateFamily(cirq.YPowGate): cirq.Duration(picos=3),
         cirq.GateFamily(cirq.ZPowGate): cirq.Duration(picos=2),
+        cirq.GateFamily(cirq.CZ): cirq.Duration(nanos=4),
     }
     isolated_qubits = [cirq.GridQubit(9, 9)]
+    target_gatesets = [cirq.CZTargetGateset()]
     metadata = cirq.GridDeviceMetadata(
-        qubit_pairs, gateset, gate_durations=duration, all_qubits=qubits + isolated_qubits
+        qubit_pairs,
+        gateset,
+        gate_durations=duration,
+        all_qubits=qubits + isolated_qubits,
+        compilation_target_gatesets=target_gatesets,
     )
     cirq.testing.assert_equivalent_repr(metadata)

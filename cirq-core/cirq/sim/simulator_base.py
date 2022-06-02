@@ -110,8 +110,20 @@ class SimulatorBase(
         """
         self._dtype = dtype
         self._prng = value.parse_random_state(seed)
-        self.noise = devices.NoiseModel.from_noise_model_like(noise)
+        self._noise = devices.NoiseModel.from_noise_model_like(noise)
         self._split_untangled_states = split_untangled_states
+
+    @property
+    def noise(self) -> 'cirq.NoiseModel':
+        return self._noise
+
+    @noise.setter  # type: ignore
+    @_compat.deprecated(
+        deadline="v0.16",
+        fix="The mutators of this class are deprecated, instantiate a new object instead.",
+    )
+    def noise(self, noise: 'cirq.NoiseModel'):
+        self._noise = noise
 
     def _create_partial_act_on_args(
         self,
@@ -198,6 +210,18 @@ class SimulatorBase(
             `_run` prefix."""
         return protocols.has_unitary(val)
 
+    def _base_iterator(
+        self, circuit: 'cirq.AbstractCircuit', qubits: Tuple['cirq.Qid', ...], initial_state: Any
+    ) -> Iterator[TStepResultBase]:
+        if not isinstance(qubits, tuple):
+            _compat._warn_or_error(
+                'The `qubits` parameter of `_base_iterator` will expect an explicit'
+                ' `Tuple[cirq.Qid, ...]` beginning in v0.16.'
+            )
+            qubits = ops.QubitOrder.as_qubit_order(qubits).order_for(circuit.all_qubits())
+        sim_state = self._create_simulation_state(initial_state, qubits)
+        return self._core_iterator(circuit, sim_state)
+
     def _core_iterator(
         self,
         circuit: 'cirq.AbstractCircuit',
@@ -279,7 +303,7 @@ class SimulatorBase(
                 measurement_ops, repetitions, seed=self._prng, _allow_repeated=True
             )
 
-        records: Dict['cirq.MeasurementKey', List[np.ndarray]] = {}
+        records: Dict['cirq.MeasurementKey', List[Sequence[Sequence[int]]]] = {}
         for i in range(repetitions):
             for step_result in self._core_iterator(
                 general_suffix,
@@ -296,7 +320,15 @@ class SimulatorBase(
                 if k not in records:
                     records[k] = []
                 records[k].append([cr])
-        return {str(k): np.array(v, dtype=np.uint8) for k, v in records.items()}
+
+        def pad_evenly(results: Sequence[Sequence[Sequence[int]]]):
+            largest = max(len(result) for result in results)
+            xs = np.zeros((len(results), largest, len(results[0][0])), dtype=np.uint8)
+            for i, result in enumerate(results):
+                xs[i, 0 : len(result), :] = result
+            return xs
+
+        return {str(k): pad_evenly(v) for k, v in records.items()}
 
     def simulate_sweep_iter(
         self,

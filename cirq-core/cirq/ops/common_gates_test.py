@@ -33,9 +33,7 @@ def test_phase_insensitive_eigen_gates_consistent_protocols(eigen_gate_type):
 
 @pytest.mark.parametrize('eigen_gate_type', [cirq.CNotPowGate, cirq.HPowGate])
 def test_phase_sensitive_eigen_gates_consistent_protocols(eigen_gate_type):
-    cirq.testing.assert_eigengate_implements_consistent_protocols(
-        eigen_gate_type, ignoring_global_phase=True
-    )
+    cirq.testing.assert_eigengate_implements_consistent_protocols(eigen_gate_type)
 
 
 def test_cz_init():

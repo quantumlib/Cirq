@@ -31,7 +31,7 @@ import os
 
 import numpy as np
 
-from cirq import devices, ops, protocols, sim, value
+from cirq import _compat, devices, ops, protocols, sim, value
 from cirq.experiments.cross_entropy_benchmarking import (
     CrossEntropyResult,
     CrossEntropyResultDict,
@@ -219,6 +219,10 @@ class GridParallelXEBResultsParameters:
         return os.path.join(self.data_collection_id, 'results.json')
 
 
+@_compat.deprecated(
+    deadline='v0.16',
+    fix=('Use recirq.benchmarks.xeb.collect_grid_parallel_two_qubit_xeb_data instead.'),
+)
 def collect_grid_parallel_two_qubit_xeb_data(
     sampler: 'cirq.Sampler',
     qubits: Iterable['cirq.GridQubit'],
@@ -373,6 +377,10 @@ def collect_grid_parallel_two_qubit_xeb_data(
     return data_collection_id
 
 
+@_compat.deprecated(
+    deadline='v0.16',
+    fix=('Use recirq.benchmarks.xeb.compute_grid_parallel_two_qubit_xeb_results instead.'),
+)
 def compute_grid_parallel_two_qubit_xeb_results(
     data_collection_id: str, num_processors: int = 1, base_dir: str = DEFAULT_BASE_DIR
 ) -> CrossEntropyResultDict:
