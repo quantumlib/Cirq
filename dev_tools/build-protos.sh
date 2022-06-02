@@ -25,7 +25,7 @@ set -e
 trap "{ echo -e '\033[31mFAILED\033[0m'; }" ERR
 
 # Get the working directory to the repo root.
-cd "$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+cd "$(dirname "${BASH_SOURCE[0]}")"
 cd "$(git rev-parse --show-toplevel)"
 
 cd $(pwd)/cirq-google
