@@ -67,7 +67,7 @@ def test_key_condition_resolve():
 
 
 def test_key_condition_qasm():
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match='QASM is defined only for SympyConditions'):
         _ = cirq.KeyCondition(cirq.MeasurementKey('a')).qasm
 
 
@@ -113,5 +113,7 @@ def test_sympy_condition_resolve():
 
 def test_sympy_condition_qasm():
     assert cirq.SympyCondition(sympy.Eq(sympy.Symbol('a'), 2)).qasm == 'm_a==2'
-    with pytest.raises(ValueError):
+    with pytest.raises(
+        ValueError, match='QASM is defined only for SympyConditions of type key == constant'
+    ):
         _ = cirq.SympyCondition(sympy.Symbol('a') != 2).qasm

@@ -220,6 +220,13 @@ measure q[0] -> m_a[0];
 if (m_a==0) x q[1];
 """
     )
+    circuit.append(
+        cirq.X(q1).with_classical_controls(
+            sympy.Eq(sympy.Symbol('a'), 0), sympy.Eq(sympy.Symbol('b'), 0)
+        )
+    )
+    with pytest.raises(ValueError, match='QASM does not support multiple conditions'):
+        cirq.qasm(circuit),
 
 
 @pytest.mark.parametrize('sim', ALL_SIMULATORS)
