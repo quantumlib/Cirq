@@ -584,7 +584,9 @@ def test_to_z_basis_ops():
     circuit = cirq.Circuit(pauli_string.to_z_basis_ops())
 
     initial_state = cirq.kron(x0, x1, y0, y1, z0, z1, shape_len=1)
-    z_basis_state = circuit.final_state_vector(initial_state)
+    z_basis_state = circuit.final_state_vector(
+        initial_state=initial_state, ignore_terminal_measurements=False, dtype=np.complex64
+    )
 
     expected_state = np.zeros(2**6)
     expected_state[0b010101] = 1
@@ -609,7 +611,9 @@ def test_to_z_basis_ops_product_state():
         * cirq.KET_ZERO(q4)
         * cirq.KET_ONE(q5)
     )
-    z_basis_state = circuit.final_state_vector(initial_state)
+    z_basis_state = circuit.final_state_vector(
+        initial_state=initial_state, ignore_terminal_measurements=False, dtype=np.complex64
+    )
 
     expected_state = np.zeros(2**6)
     expected_state[0b010101] = 1
@@ -1047,7 +1051,9 @@ def test_pauli_string_expectation_from_state_vector_pure_state():
     circuit = cirq.Circuit(
         cirq.X(qubits[1]), cirq.H(qubits[2]), cirq.X(qubits[3]), cirq.H(qubits[3])
     )
-    wf = circuit.final_state_vector(qubit_order=qubits)
+    wf = circuit.final_state_vector(
+        qubit_order=qubits, ignore_terminal_measurements=False, dtype=np.complex128
+    )
 
     z0z1 = cirq.PauliString({qubits[0]: cirq.Z, qubits[1]: cirq.Z})
     z0z2 = cirq.PauliString({qubits[0]: cirq.Z, qubits[2]: cirq.Z})
@@ -1072,7 +1078,9 @@ def test_pauli_string_expectation_from_state_vector_pure_state_with_coef():
     q_map = {q: i for i, q in enumerate(qs)}
 
     circuit = cirq.Circuit(cirq.X(qs[1]), cirq.H(qs[2]), cirq.X(qs[3]), cirq.H(qs[3]))
-    wf = circuit.final_state_vector(qubit_order=qs)
+    wf = circuit.final_state_vector(
+        qubit_order=qs, ignore_terminal_measurements=False, dtype=np.complex128
+    )
 
     z0z1 = cirq.Z(qs[0]) * cirq.Z(qs[1]) * 0.123
     z0z2 = cirq.Z(qs[0]) * cirq.Z(qs[2]) * -1
@@ -1256,7 +1264,9 @@ def test_pauli_string_expectation_from_density_matrix_pure_state():
     circuit = cirq.Circuit(
         cirq.X(qubits[1]), cirq.H(qubits[2]), cirq.X(qubits[3]), cirq.H(qubits[3])
     )
-    state_vector = circuit.final_state_vector(qubit_order=qubits)
+    state_vector = circuit.final_state_vector(
+        qubit_order=qubits, ignore_terminal_measurements=False, dtype=np.complex128
+    )
     rho = np.outer(state_vector, np.conj(state_vector))
 
     z0z1 = cirq.PauliString({qubits[0]: cirq.Z, qubits[1]: cirq.Z})
@@ -1282,7 +1292,9 @@ def test_pauli_string_expectation_from_density_matrix_pure_state_with_coef():
     q_map = {q: i for i, q in enumerate(qs)}
 
     circuit = cirq.Circuit(cirq.X(qs[1]), cirq.H(qs[2]), cirq.X(qs[3]), cirq.H(qs[3]))
-    state_vector = circuit.final_state_vector(qubit_order=qs)
+    state_vector = circuit.final_state_vector(
+        qubit_order=qs, ignore_terminal_measurements=False, dtype=np.complex128
+    )
     rho = np.outer(state_vector, np.conj(state_vector))
 
     z0z1 = cirq.Z(qs[0]) * cirq.Z(qs[1]) * 0.123
@@ -1556,7 +1568,7 @@ def test_pretty_print():
 
     p = FakePrinter()
     result._repr_pretty_(p, False)
-    assert p.text_pretty == 'X(0)*Y(1)*Z(2)'
+    assert p.text_pretty == 'X(q(0))*Y(q(1))*Z(q(2))'
 
     # Test cycle handling
     p = FakePrinter()
@@ -1862,7 +1874,7 @@ def test_mutable_pauli_string_dict_pauli_like_not_pauli_like():
 def test_mutable_pauli_string_text():
     p = cirq.MutablePauliString(cirq.X(cirq.LineQubit(0)) * cirq.Y(cirq.LineQubit(1)))
     assert str(cirq.MutablePauliString()) == "mutable I"
-    assert str(p) == "mutable X(0)*Y(1)"
+    assert str(p) == "mutable X(q(0))*Y(q(1))"
     cirq.testing.assert_equivalent_repr(p)
 
 

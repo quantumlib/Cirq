@@ -13,9 +13,9 @@
 # limitations under the License.
 
 import abc
-from typing import TYPE_CHECKING, Optional, AbstractSet, FrozenSet, Iterable
+from typing import TYPE_CHECKING, Optional, FrozenSet, Iterable
 import networkx as nx
-from cirq import _compat, value
+from cirq import value
 
 if TYPE_CHECKING:
     import cirq
@@ -23,41 +23,6 @@ if TYPE_CHECKING:
 
 class Device(metaclass=abc.ABCMeta):
     """Hardware constraints for validating circuits."""
-
-    @_compat.deprecated(fix='Use metadata.qubit_set if applicable.', deadline='v0.15')
-    def qubit_set(self) -> Optional[AbstractSet['cirq.Qid']]:
-        """Returns a set or frozenset of qubits on the device, if possible.
-
-        Returns:
-            If the device has a finite set of qubits, then a set or frozen set
-            of all qubits on the device is returned.
-
-            If the device has no well defined finite set of qubits (e.g.
-            `cirq.UnconstrainedDevice` has this property), then `None` is
-            returned.
-        """
-
-        # Compatibility hack to work with devices that were written before this
-        # method was defined.
-        for name in ['qubits', '_qubits']:
-            if hasattr(self, name):
-                val = getattr(self, name)
-                if callable(val):
-                    val = val()
-                return frozenset(val)
-
-        # Default to the qubits being unknown.
-        return None
-
-    @_compat.deprecated(deadline='v0.15', fix='Devices will no longer decompose operations.')
-    def decompose_operation(self, operation: 'cirq.Operation') -> 'cirq.OP_TREE':
-        """Returns a device-valid decomposition for the given operation.
-
-        This method is used when adding operations into circuits with a device
-        specified, to avoid spurious failures due to e.g. using a Hadamard gate
-        that must be decomposed into native gates.
-        """
-        return operation
 
     @property
     def metadata(self) -> Optional['DeviceMetadata']:
@@ -101,28 +66,6 @@ class Device(metaclass=abc.ABCMeta):
         """
         for operation in moment.operations:
             self.validate_operation(operation)
-
-    @_compat.deprecated(
-        deadline='v0.15',
-        fix='can_add_operation_into_moment will be removed in the future.'
-        ' Consider using device.validate_circuit instead.',
-    )
-    def can_add_operation_into_moment(
-        self, operation: 'cirq.Operation', moment: 'cirq.Moment'
-    ) -> bool:
-        """Determines if it's possible to add an operation into a moment.
-
-        For example, on the XmonDevice two CZs shouldn't be placed in the same
-        moment if they are on adjacent qubits.
-
-        Args:
-            operation: The operation being added.
-            moment: The moment being transformed.
-
-        Returns:
-            Whether or not the moment will validate after adding the operation.
-        """
-        return not moment.operates_on(operation.qubits)
 
 
 @value.value_equality

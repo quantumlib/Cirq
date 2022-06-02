@@ -23,6 +23,7 @@ from cirq.protocols.json_serialization import ObjectFactory
 def _class_resolver_dictionary() -> Dict[str, ObjectFactory]:
     return {
         'PasqalDevice': cirq_pasqal.PasqalDevice,
+        'PasqalGateset': cirq_pasqal.PasqalGateset,
         'PasqalVirtualDevice': cirq_pasqal.PasqalVirtualDevice,
         'ThreeDQubit': cirq_pasqal.ThreeDQubit,
         'TwoDQubit': cirq_pasqal.TwoDQubit,

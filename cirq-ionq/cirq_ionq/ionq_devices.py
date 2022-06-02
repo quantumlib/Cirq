@@ -35,7 +35,7 @@ _VALID_GATES = cirq.Gateset(
 
 
 class IonQAPIDevice(cirq.Device):
-    """A device that uses the gates exposed by the IonQ API.
+    """A device that uses the QIS gates exposed by the IonQ API.
 
     When using this device in constructing a circuit, it will convert one and two qubit gates
     that are not supported by the API into those supported by the API if they have a unitary
@@ -89,12 +89,6 @@ class IonQAPIDevice(cirq.Device):
 
     def is_api_gate(self, operation: cirq.Operation) -> bool:
         return operation in _VALID_GATES
-
-    @_compat.deprecated(
-        fix='Use cirq_ionq.decompose_to_device operation instead.', deadline='v0.15'
-    )
-    def decompose_operation(self, operation: cirq.Operation) -> cirq.OP_TREE:
-        return decompose_to_device(operation)
 
 
 def decompose_to_device(operation: cirq.Operation, atol: float = 1e-8) -> cirq.OP_TREE:

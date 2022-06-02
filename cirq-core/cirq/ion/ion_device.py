@@ -82,12 +82,6 @@ class IonDevice(devices.Device):
     def qubit_set(self) -> FrozenSet['cirq.LineQubit']:
         return self.qubits
 
-    @_compat.deprecated(
-        fix='Use cirq.ConvertToIonGates() instead to decompose operations.', deadline='v0.15'
-    )
-    def decompose_operation(self, operation: ops.Operation) -> ops.OP_TREE:
-        return convert_to_ion_gates.ConvertToIonGates().convert_one(operation)
-
     def decompose_circuit(self, circuit: circuits.Circuit) -> circuits.Circuit:
         return convert_to_ion_gates.ConvertToIonGates().convert_circuit(circuit)
 

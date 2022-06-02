@@ -218,19 +218,19 @@ def test_cannot_act():
 def test_run_one_gate_circuit():
     sim = CountingSimulator()
     r = sim.run(cirq.Circuit(cirq.X(q0), cirq.measure(q0)), repetitions=2)
-    assert np.allclose(r.measurements['0'], [[1], [1]])
+    assert np.allclose(r.measurements['q(0)'], [[1], [1]])
 
 
 def test_run_one_gate_circuit_noise():
     sim = CountingSimulator(noise=cirq.X)
     r = sim.run(cirq.Circuit(cirq.X(q0), cirq.measure(q0)), repetitions=2)
-    assert np.allclose(r.measurements['0'], [[2], [2]])
+    assert np.allclose(r.measurements['q(0)'], [[2], [2]])
 
 
 def test_run_non_unitary_circuit():
     sim = CountingSimulator()
     r = sim.run(cirq.Circuit(cirq.phase_damp(1).on(q0), cirq.measure(q0)), repetitions=2)
-    assert np.allclose(r.measurements['0'], [[1], [1]])
+    assert np.allclose(r.measurements['q(0)'], [[1], [1]])
 
 
 def test_run_non_unitary_circuit_non_unitary_state():
@@ -240,13 +240,13 @@ def test_run_non_unitary_circuit_non_unitary_state():
 
     sim = DensityCountingSimulator()
     r = sim.run(cirq.Circuit(cirq.phase_damp(1).on(q0), cirq.measure(q0)), repetitions=2)
-    assert np.allclose(r.measurements['0'], [[1], [1]])
+    assert np.allclose(r.measurements['q(0)'], [[1], [1]])
 
 
 def test_run_non_terminal_measurement():
     sim = CountingSimulator()
     r = sim.run(cirq.Circuit(cirq.X(q0), cirq.measure(q0), cirq.X(q0)), repetitions=2)
-    assert np.allclose(r.measurements['0'], [[1], [1]])
+    assert np.allclose(r.measurements['q(0)'], [[1], [1]])
 
 
 def test_integer_initial_state_is_split():
@@ -394,6 +394,22 @@ def test_sweep_unparameterized_prefix_not_repeated_iff_unitary():
     assert op2.count == 2
 
 
+def test_inhomogeneous_measurement_count_padding():
+    q = cirq.LineQubit(0)
+    key = cirq.MeasurementKey('m')
+    sim = cirq.Simulator()
+    c = cirq.Circuit(
+        cirq.CircuitOperation(
+            cirq.FrozenCircuit(cirq.X(q) ** 0.2, cirq.measure(q, key=key)),
+            use_repetition_ids=False,
+            repeat_until=cirq.KeyCondition(key),
+        )
+    )
+    results = sim.run(c, repetitions=10)
+    for i in range(10):
+        assert np.sum(results.records['m'][i, :, :]) == 1
+
+
 def test_deprecated_final_step_result():
     class OldCountingSimulator(CountingSimulator):
         def _create_simulator_trial_result(  # type: ignore
@@ -425,3 +441,9 @@ def test_deprecated_create_partial_act_on_args():
     sim = DeprecatedSim()
     with cirq.testing.assert_deprecated(deadline='v0.16'):
         sim.simulate_moment_steps(cirq.Circuit())
+
+
+def test_deprecated_setters():
+    sim = CountingSimulator()
+    with cirq.testing.assert_deprecated(deadline='v0.16'):
+        sim.noise = cirq.ConstantQubitNoiseModel(cirq.Z)

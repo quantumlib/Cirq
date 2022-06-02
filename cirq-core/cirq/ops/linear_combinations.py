@@ -498,6 +498,20 @@ class PauliSum:
             return m
         raise ValueError(f'{self} is not unitary')
 
+    def _json_dict_(self):
+        def key_json(k: UnitPauliStringT):
+            return [list(e) for e in sorted(k)]
+
+        return {'items': list((key_json(k), v) for k, v in self._linear_dict.items())}
+
+    @classmethod
+    def _from_json_dict_(cls, items, **kwargs):
+        mapping = {
+            frozenset(tuple(qid_pauli) for qid_pauli in unit_pauli_string): val
+            for unit_pauli_string, val in items
+        }
+        return cls(linear_dict=value.LinearDict(mapping))
+
     def expectation_from_state_vector(
         self,
         state_vector: np.ndarray,
@@ -750,6 +764,8 @@ def _projector_string_from_projector_dict(projector_dict, coefficient=1.0):
 
 @value.value_equality(approximate=True)
 class ProjectorSum:
+    """List of mappings representing a sum of projector operators."""
+
     def __init__(
         self, linear_dict: Optional[value.LinearDict[FrozenSet[Tuple[raw_types.Qid, int]]]] = None
     ):

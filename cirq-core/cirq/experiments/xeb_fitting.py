@@ -241,24 +241,23 @@ class XEBPhasedFSimCharacterizationOptions(XEBCharacterizationOptions):
         We also return a list of parameter names so the Cirq `param_resovler`
         can be accurately constructed during optimization.
         """
-        x0 = []
+        x0_list = []
         names = []
 
         for default, symbol in self._iter_angles_for_characterization():
             if default is None:
                 raise ValueError(f'{symbol.name}_default was not set.')
-            x0.append(default)
+            x0_list.append(default)
             names.append(symbol.name)
 
-        x0 = np.asarray(x0)
+        x0 = np.asarray(x0_list)
         n_param = len(x0)
         initial_simplex = [x0]
         for i in range(n_param):
             basis_vec = np.eye(1, n_param, i)[0]
             initial_simplex += [x0 + initial_simplex_step_size * basis_vec]
-        initial_simplex = np.asarray(initial_simplex)
 
-        return initial_simplex, names
+        return np.asarray(initial_simplex), names
 
     def get_parameterized_gate(self):
         theta = THETA_SYMBOL if self.characterize_theta else self.theta_default

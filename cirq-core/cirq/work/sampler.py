@@ -40,7 +40,17 @@ class Sampler(metaclass=abc.ABCMeta):
         param_resolver: 'cirq.ParamResolverOrSimilarType' = None,
         repetitions: int = 1,
     ) -> 'cirq.Result':
-        """Samples from the given Circuit.
+        """Samples from the given `Circuit`.
+
+        This mode of operation for a sampler will provide results
+        in the form of measurement outcomes.  It will not provide
+        access to state vectors (even if the underlying
+        sampling mechanism is a simulator).  This method will substitute
+        parameters in the `param_resolver` attributes for `sympy.Symbols`
+        used within the Circuit.  This circuit will be executed a number
+        of times specified in the `repetitions` attribute, though some
+        simulated implementations may instead sample from the final
+        distribution rather than execute the circuit each time.
 
         Args:
             program: The circuit to sample from.
@@ -48,7 +58,7 @@ class Sampler(metaclass=abc.ABCMeta):
             repetitions: The number of times to sample.
 
         Returns:
-            Result for a run.
+            `cirq.Result` that contains all the measurements for a run.
         """
         return self.run_sweep(program, param_resolver, repetitions)[0]
 
@@ -59,6 +69,10 @@ class Sampler(metaclass=abc.ABCMeta):
         repetitions: int = 1,
     ) -> 'cirq.Result':
         """Asynchronously samples from the given Circuit.
+
+        Provides measurement outcomes as a `cirq.Result` object.  This
+        interface will operate in a similar way to the `run` method
+        except for executing asynchronously.
 
         Args:
             program: The circuit to sample from.
@@ -79,6 +93,10 @@ class Sampler(metaclass=abc.ABCMeta):
         params: 'cirq.Sweepable' = None,
     ) -> 'pd.DataFrame':
         """Samples the given Circuit, producing a pandas data frame.
+
+        This interface will operate in a similar way to the `run` method
+        except that it returns a pandas data frame rather than a `cirq.Result`
+        object.
 
         Args:
             program: The circuit to sample from.
@@ -166,7 +184,12 @@ class Sampler(metaclass=abc.ABCMeta):
         """Samples from the given Circuit.
 
         This allows for sweeping over different parameter values,
-        unlike the `run` method.
+        unlike the `run` method.  The `params` argument will provide a
+        mapping from `sympy.Symbol`s used within the circuit to a set of
+        values.  Unlike the `run` method, which specifies a single
+        mapping from symbol to value, this method allows a "sweep" of
+        values.  This allows a user to specify execution of a family of
+        related circuits efficiently.
 
         Args:
             program: The circuit to sample from.
@@ -270,8 +293,8 @@ class Sampler(metaclass=abc.ABCMeta):
     ) -> Sequence[Sequence[float]]:
         """Calculates estimated expectation values from samples of a circuit.
 
-        Please see also `cirq.work.measure_observables` for more control over how to measure
-        a suite of observables.
+        Please see also `cirq.work.observable_measurement.measure_observables`
+        for more control over how to measure a suite of observables.
 
         This method can be run on any device or simulator that supports circuit sampling. Compare
         with `simulate_expectation_values` in simulator.py, which is limited to simulators

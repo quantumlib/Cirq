@@ -16,7 +16,7 @@ passed as Sympy expressions and then turned into an optimized set of gates.
 
 References:
 [1] On the representation of Boolean and real functions as Hamiltonians for quantum computing
-    by Stuart Hadfield, https://arxiv.org/pdf/1804.09130.pdf
+    by Stuart Hadfield, https://arxiv.org/abs/1804.09130
 [2] https://www.youtube.com/watch?v=AOKM9BkweVU is a useful intro
 [3] https://github.com/rsln-s/IEEE_QW_2020/blob/master/Slides.pdf
 [4] Efficient Quantum Circuits for Diagonal Unitaries Without Ancillas by Jonathan Welch, Daniel
@@ -36,7 +36,20 @@ from cirq.ops.linear_combinations import PauliSum, PauliString
 
 @value.value_equality
 class BooleanHamiltonianGate(raw_types.Gate):
-    """A gate that represents a Hamiltonian from a set of Boolean functions."""
+    r"""A gate that represents evolution due to a Hamiltonian from a set of Boolean functions.
+
+    This gate constructs a diagonal gate in the computational basis that encodes in its
+    phases classical functions.
+
+    The gate is specified by a list of parameters, $[x_0, x_1, \dots, x_{n-1}]$, a
+    list of boolean expressions that are functions of these parameters,
+    $[f_0(x_0,\dots,x_{n-1}), f_1(x_0,\dots,x_{n-1}), \dots f_{p-1}(x_0,\dots,x_{n-1})]$
+    and an angle $t$. For these parameters the gate is
+
+    $$
+    \sum_{x=0}^{2^n-1} e^{i \frac{t}{2} \sum_{k=0}^{p-1}f_k(x_0,\dots,x_{n-1})} |x\rangle\langle x|
+    $$
+    """
 
     def __init__(self, parameter_names: Sequence[str], boolean_strs: Sequence[str], theta: float):
         """Builds a BooleanHamiltonianGate.
