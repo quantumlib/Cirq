@@ -77,7 +77,12 @@ class SqrtIswapTargetGateset(compilation_target_gateset.TwoQubitCompilationTarge
             *additional_gates,
             name='SqrtIswapInvTargetGateset' if use_sqrt_iswap_inv else 'SqrtIswapTargetGateset',
         )
-        self.additional_gates = additional_gates
+        self.additional_gates = tuple(
+            g if isinstance(g, ops.GateFamily) else ops.GateFamily(gate=g) for g in additional_gates
+        )
+        self._additional_gates_repr_str = ", ".join(
+            [ops.gateset._gate_str(g, repr) for g in additional_gates]
+        )
         self.atol = atol
         self.required_sqrt_iswap_count = required_sqrt_iswap_count
         self.use_sqrt_iswap_inv = use_sqrt_iswap_inv
@@ -115,7 +120,7 @@ class SqrtIswapTargetGateset(compilation_target_gateset.TwoQubitCompilationTarge
             self.atol,
             self.required_sqrt_iswap_count,
             self.use_sqrt_iswap_inv,
-            tuple(self.additional_gates),
+            frozenset(self.additional_gates),
         )
 
     def _json_dict_(self) -> Dict[str, Any]:
@@ -123,10 +128,7 @@ class SqrtIswapTargetGateset(compilation_target_gateset.TwoQubitCompilationTarge
             'atol': self.atol,
             'required_sqrt_iswap_count': self.required_sqrt_iswap_count,
             'use_sqrt_iswap_inv': self.use_sqrt_iswap_inv,
-            'additional_gates': [
-                protocols.json_cirq_type(g) if isinstance(g, type) else protocols.to_json(g)
-                for g in self.additional_gates
-            ],
+            'additional_gates': list(self.additional_gates),
         }
 
     @classmethod

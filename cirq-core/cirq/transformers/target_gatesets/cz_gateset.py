@@ -66,7 +66,12 @@ class CZTargetGateset(compilation_target_gateset.TwoQubitCompilationTargetGatese
             *additional_gates,
             name='CZPowTargetGateset' if allow_partial_czs else 'CZTargetGateset',
         )
-        self.additional_gates = additional_gates
+        self.additional_gates = tuple(
+            g if isinstance(g, ops.GateFamily) else ops.GateFamily(gate=g) for g in additional_gates
+        )
+        self._additional_gates_repr_str = ", ".join(
+            [ops.gateset._gate_str(g, repr) for g in additional_gates]
+        )
         self.atol = atol
         self.allow_partial_czs = allow_partial_czs
 
@@ -86,21 +91,18 @@ class CZTargetGateset(compilation_target_gateset.TwoQubitCompilationTargetGatese
             f'cirq.CZTargetGateset('
             f'atol={self.atol}, '
             f'allow_partial_czs={self.allow_partial_czs}, '
-            f'additional_gates=[{",".join(ops.gateset._gate_str(g, repr) for g in self.additional_gates)}]'
+            f'additional_gates=[{self._additional_gates_repr_str}]'
             f')'
         )
 
     def _value_equality_values_(self) -> Any:
-        return self.atol, self.allow_partial_czs, tuple(self.additional_gates)
+        return self.atol, self.allow_partial_czs, frozenset(self.additional_gates)
 
     def _json_dict_(self) -> Dict[str, Any]:
         return {
             'atol': self.atol,
             'allow_partial_czs': self.allow_partial_czs,
-            'additional_gates': [
-                protocols.json_cirq_type(g) if isinstance(g, type) else protocols.to_json(g)
-                for g in self.additional_gates
-            ],
+            'additional_gates': list(self.additional_gates),
         }
 
     @classmethod

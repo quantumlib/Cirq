@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Sequence, Type
+from typing import Optional, Sequence, Type
 import pytest
 import cirq
 import sympy
@@ -29,15 +29,15 @@ def all_gates_of_type(m: cirq.Moment, g: cirq.Gateset):
 def assert_optimizes(
     before: cirq.Circuit,
     expected: cirq.Circuit,
-    additional_gates: Sequence[Type[cirq.Gate]] = (cirq.GlobalPhaseGate,),
+    additional_gates: Optional[Sequence[Type[cirq.Gate]]] = None,
 ):
+    if additional_gates is None:
+        gateset = cirq.CZTargetGateset()
+    else:
+        gateset = cirq.CZTargetGateset(additional_gates=additional_gates)
+
     cirq.testing.assert_same_circuits(
-        cirq.optimize_for_target_gateset(
-            before,
-            gateset=cirq.CZTargetGateset(additional_gates=additional_gates),
-            ignore_failures=False,
-        ),
-        expected,
+        cirq.optimize_for_target_gateset(before, gateset=gateset, ignore_failures=False), expected
     )
 
 
