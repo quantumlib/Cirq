@@ -47,9 +47,23 @@ def _create_device_spec_with_horizontal_couplings():
         # to verify GridDevice properly handles pair symmetry.
         new_target = grid_targets.targets.add()
         new_target.ids.extend([v2.qubit_to_proto_id(cirq.GridQubit(row, 1 - j)) for j in range(2)])
-    gate = spec.valid_gates.add()
-    gate.syc.SetInParent()
-    gate.gate_duration_picos = 12000
+
+    gate_names = [
+        'syc',
+        'sqrt_iswap',
+        'sqrt_iswap_inv',
+        'cz',
+        'phased_xz',
+        'virtual_zpow',
+        'physical_zpow',
+        'coupler_pulse',
+        'meas',
+        'wait',
+    ]
+    for i, g in enumerate(gate_names):
+        gate = spec.valid_gates.add()
+        getattr(gate, g).SetInParent()
+        gate.gate_duration_picos = i * 1000
 
     return grid_qubits, spec
 
@@ -153,6 +167,53 @@ def test_grid_device_from_proto():
         frozenset((cirq.GridQubit(row, 0), cirq.GridQubit(row, 1))) in device.metadata.qubit_pairs
         for row in range(GRID_HEIGHT)
     )
+    assert device.metadata.gateset == cirq.Gateset(
+        cirq_google.FSimGateFamily(gates_to_accept=[cirq_google.SYC]),
+        cirq_google.FSimGateFamily(gates_to_accept=[cirq.SQRT_ISWAP]),
+        cirq_google.FSimGateFamily(gates_to_accept=[cirq.SQRT_ISWAP_INV]),
+        cirq_google.FSimGateFamily(gates_to_accept=[cirq.CZ]),
+        cirq.ops.phased_x_z_gate.PhasedXZGate,
+        cirq.ops.common_gates.XPowGate,
+        cirq.ops.common_gates.YPowGate,
+        cirq.ops.phased_x_gate.PhasedXPowGate,
+        cirq.GateFamily(
+            cirq.ops.common_gates.ZPowGate, tags_to_ignore=[cirq_google.PhysicalZTag()]
+        ),
+        cirq.GateFamily(
+            cirq.ops.common_gates.ZPowGate, tags_to_accept=[cirq_google.PhysicalZTag()]
+        ),
+        cirq_google.experimental.ops.coupler_pulse.CouplerPulse,
+        cirq.ops.measurement_gate.MeasurementGate,
+        cirq.ops.wait_gate.WaitGate,
+    )
+    assert tuple(device.metadata.compilation_target_gatesets) == (
+        cirq.CZTargetGateset(),
+        cirq_google.SycamoreTargetGateset(),
+        cirq.SqrtIswapTargetGateset(use_sqrt_iswap_inv=True),
+    )
+
+    base_duration = cirq.Duration(picos=1_000)
+    assert device.metadata.gate_durations == {
+        cirq_google.FSimGateFamily(gates_to_accept=[cirq_google.SYC]): base_duration * 0,
+        cirq_google.FSimGateFamily(gates_to_accept=[cirq.SQRT_ISWAP]): base_duration * 1,
+        cirq_google.FSimGateFamily(gates_to_accept=[cirq.SQRT_ISWAP_INV]): base_duration * 2,
+        cirq_google.FSimGateFamily(gates_to_accept=[cirq.CZ]): base_duration * 3,
+        cirq.GateFamily(cirq.ops.phased_x_z_gate.PhasedXZGate): base_duration * 4,
+        cirq.GateFamily(cirq.ops.common_gates.XPowGate): base_duration * 4,
+        cirq.GateFamily(cirq.ops.common_gates.YPowGate): base_duration * 4,
+        cirq.GateFamily(cirq.ops.phased_x_gate.PhasedXPowGate): base_duration * 4,
+        cirq.GateFamily(
+            cirq.ops.common_gates.ZPowGate, tags_to_ignore=[cirq_google.PhysicalZTag()]
+        ): base_duration
+        * 5,
+        cirq.GateFamily(
+            cirq.ops.common_gates.ZPowGate, tags_to_accept=[cirq_google.PhysicalZTag()]
+        ): base_duration
+        * 6,
+        cirq.GateFamily(cirq_google.experimental.ops.coupler_pulse.CouplerPulse): base_duration * 7,
+        cirq.GateFamily(cirq.ops.measurement_gate.MeasurementGate): base_duration * 8,
+        cirq.GateFamily(cirq.ops.wait_gate.WaitGate): base_duration * 9,
+    }
 
 
 def test_grid_device_validate_operations_positive():
@@ -166,23 +227,22 @@ def test_grid_device_validate_operations_positive():
     for i in range(GRID_HEIGHT):
         device.validate_operation(cirq.CZ(grid_qubits[2 * i], grid_qubits[2 * i + 1]))
 
-    # TODO(#5050) verify validate_operations gateset support
-
 
 def test_grid_device_validate_operations_negative():
     grid_qubits, spec = _create_device_spec_with_horizontal_couplings()
     device = cirq_google.GridDevice.from_proto(spec)
 
-    q = cirq.GridQubit(10, 10)
+    bad_qubit = cirq.GridQubit(10, 10)
     with pytest.raises(ValueError, match='Qubit not on device'):
-        device.validate_operation(cirq.X(q))
+        device.validate_operation(cirq.X(bad_qubit))
 
     # vertical qubit pair
     q00, q10 = grid_qubits[0], grid_qubits[2]  # (0, 0), (1, 0)
     with pytest.raises(ValueError, match='Qubit pair is not valid'):
         device.validate_operation(cirq.CZ(q00, q10))
 
-    # TODO(#5050) verify validate_operations gateset errors
+    with pytest.raises(ValueError, match='gate which is not supported'):
+        device.validate_operation(cirq.H(grid_qubits[0]))
 
 
 @pytest.mark.parametrize(
