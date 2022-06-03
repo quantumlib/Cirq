@@ -148,9 +148,11 @@ class GridDeviceMetadata(device.DeviceMetadata):
         >>> gate_durations = grid_device_metadata.gate_durations
         >>> op_duration = None
         >>> for gate_family in gate_durations:
-                if my_op in gate_family:
-                    op_duration = gate_durations[gate_family]
+        ...     if my_op in gate_family:
+        ...         op_duration = gate_durations[gate_family]
+        ...
         >>> print(op_duration)
+        1 ns
         """
         return self._gate_durations
 
