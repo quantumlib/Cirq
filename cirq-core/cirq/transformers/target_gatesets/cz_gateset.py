@@ -107,13 +107,7 @@ class CZTargetGateset(compilation_target_gateset.TwoQubitCompilationTargetGatese
 
     @classmethod
     def _from_json_dict_(
-        cls,
-        atol,
-        allow_partial_czs,
-        additional_gates: Sequence[Union[Type['cirq.Gate'], 'cirq.Gate', 'cirq.GateFamily']] = (
-            ops.GlobalPhaseGate,
-        ),
-        **kwargs,
+        cls, atol, allow_partial_czs, additional_gates=(ops.GlobalPhaseGate,), **kwargs
     ):
         return cls(
             atol=atol, allow_partial_czs=allow_partial_czs, additional_gates=additional_gates

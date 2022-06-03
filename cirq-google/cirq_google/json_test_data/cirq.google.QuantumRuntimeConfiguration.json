@@ -13,6 +13,17 @@
   "target_gateset": {
     "cirq_type": "CZTargetGateset",
     "atol": 1e-08,
-    "allow_partial_czs": false
+    "allow_partial_czs": false,
+    "additional_gates": [
+      {
+        "cirq_type": "GateFamily",
+        "gate": "GlobalPhaseGate",
+        "name": "Type GateFamily: cirq.ops.global_phase_op.GlobalPhaseGate",
+        "description": "Accepts `cirq.Gate` instances `g` s.t. `isinstance(g, cirq.ops.global_phase_op.GlobalPhaseGate)`",
+        "ignore_global_phase": true,
+        "tags_to_accept": [],
+        "tags_to_ignore": []
+      }
+    ]
   }
 }

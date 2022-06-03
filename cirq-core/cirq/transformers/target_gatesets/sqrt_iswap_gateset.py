@@ -111,7 +111,7 @@ class SqrtIswapTargetGateset(compilation_target_gateset.TwoQubitCompilationTarge
             f'atol={self.atol}, '
             f'required_sqrt_iswap_count={self.required_sqrt_iswap_count}, '
             f'use_sqrt_iswap_inv={self.use_sqrt_iswap_inv},'
-            f'additional_gates=[{",".join(ops.gateset._gate_str(g, repr) for g in self.additional_gates)}]'
+            f'additional_gates=[{self._additional_gates_repr_str}]'
             f')'
         )
 
@@ -137,9 +137,7 @@ class SqrtIswapTargetGateset(compilation_target_gateset.TwoQubitCompilationTarge
         atol,
         required_sqrt_iswap_count,
         use_sqrt_iswap_inv,
-        additional_gates: Sequence[Union[Type['cirq.Gate'], 'cirq.Gate', 'cirq.GateFamily']] = (
-            ops.GlobalPhaseGate,
-        ),
+        additional_gates=(ops.GlobalPhaseGate,),
         **kwargs,
     ):
         return cls(
