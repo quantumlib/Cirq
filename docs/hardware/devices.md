@@ -4,12 +4,11 @@
 This page describes this abstract concept.
 
 If you are looking for ways of running quantum algorithms, take a look at
- - [Simulation](simulation.ipynb), that is available on any computer
+ - [Simulation](/cirq/simulate/simulation.ipynb), that is available on any computer
  - Quantum processors, that are provided by different Quantum Service Providers:
-    - [Google Quantum Computing Service](tutorials/google/start.ipynb)
-    - [Alpine Quantum Technologies](tutorials/aqt/getting_started.ipynb)
-    - [Pasqal](tutorials/pasqal/getting_started.ipynb)
-    - [IonQ](tutorials/ionq/getting_started.ipynb)
+    - [Alpine Quantum Technologies](/cirq/hardware/aqt/getting_started.ipynb)
+    - [Pasqal](/cirq/hardware/pasqal/getting_started.ipynb)
+    - [IonQ](/cirq/hardware/ionq/getting_started.ipynb)
 
 ## The `cirq.Device` class
 

@@ -2,7 +2,7 @@
 
 [Azure Quantum](https://docs.microsoft.com/azure/quantum/overview-azure-quantum) is Microsoft's cloud service for running quantum computing programs or solving optimization problems and is currently in [Public Preview](https://cloudblogs.microsoft.com/quantum/2021/02/01/azure-quantum-preview/). You can try Azure Quantum for free today and submit quantum programs to Azure Quantum's partners and technologies. To send quantum programs with Cirq to IonQ* or Honeywell via an Azure Quantum subscription, follow the simple steps below to set up access.
 
-> *) Note that there are two packages that can be used to access IonQ devices with `cirq`: `azure-quantum` or `cirq-ionq`. If you would like to access IonQ via a new or existing Azure subscription, use `azure-quantum` by following the steps in this tutorial. If you already have a preexisting IonQ API key through other means, follow the steps outlined in [Cirq with the IonQ API](../ionq/access.md) to use `cirq-ionq` instead.
+> *) Note that there are two packages that can be used to access IonQ devices with `cirq`: `azure-quantum` or `cirq-ionq`. If you would like to access IonQ via a new or existing Azure subscription, use `azure-quantum` by following the steps in this tutorial. If you already have a preexisting IonQ API key through other means, follow the steps outlined in [Cirq with the IonQ API](/cirq/hardware/ionq/access.md) to use `cirq-ionq` instead.
 
 ## 1. Create an Azure Subscription
 
@@ -24,6 +24,6 @@ pip install azure-quantum[cirq]
 
 You're now all set up to get started submitting quantum circuits to Azure Quantum hardware providers with Cirq. To try it out, check out the tutorials below:
 
-[Getting started with IonQ and Cirq on Azure Quantum](../tutorials/azure-quantum/getting_started_ionq.ipynb)
+[Getting started with IonQ and Cirq on Azure Quantum](/cirq/hardware/azure-quantum/getting_started_ionq.ipynb)
 
-[Getting started with Honeywell and Cirq on Azure Quantum](../tutorials/azure-quantum/getting_started_honeywell.ipynb)
+[Getting started with Honeywell and Cirq on Azure Quantum](/cirq/hardware/azure-quantum/getting_started_honeywell.ipynb)

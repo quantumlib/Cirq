@@ -10,7 +10,7 @@ The following document provides an ecosystem overview of how the various tools c
 
 * **Quantum Circuit Simulators:** Cirq is compatible with a number of quantum circuit simulators that can run either locally or in a distributed fashion.
 
-# Research libraries and tools 
+# Research libraries and tools
 
 ## Algorithm libraries and experiments
 
@@ -38,12 +38,11 @@ The following document provides an ecosystem overview of how the various tools c
 
 |Company|Type of Quantum Computer|
 |--- |--- |
-|[Google QCS](https://quantumai.google/cirq/tutorials/google/start)|Superconducting qubits|
-|[Alpine Quantum Technologies](https://quantumai.google/cirq/tutorials/aqt/getting_started)|Trapped ions|
-|[IonQ](https://quantumai.google/cirq/tutorials/ionq/getting_started)|Trapped ions|
-|[Microsoft Azure Quantum](https://quantumai.google/cirq/tutorials/azure-quantum/getting_started_ionq)|Trapped ions (Honeywell and IonQ)|
-|[Pasqal](https://quantumai.google/cirq/tutorials/pasqal/getting_started)|Neutral atoms|
-|[Rigetti](https://quantumai.google/cirq/tutorials/rigetti/getting_started)|Superconducting qubits|
+|[Alpine Quantum Technologies](https://quantumai.google/cirq/hardware/aqt/getting_started)|Trapped ions|
+|[IonQ](https://quantumai.google/cirq/hardware/ionq/getting_started)|Trapped ions|
+|[Microsoft Azure Quantum](https://quantumai.google/cirq/hardware/azure-quantum/getting_started_ionq)|Trapped ions (Honeywell and IonQ)|
+|[Pasqal](https://quantumai.google/cirq/hardware/pasqal/getting_started)|Neutral atoms|
+|[Rigetti](https://quantumai.google/cirq/hardware/rigetti/getting_started)|Superconducting qubits|
 
 ## High performance quantum circuit simulators
 

@@ -37,7 +37,7 @@ You do not need billing information to use the service at this time.
 You will need to configure your project to be able to access the API.
 
 *   Log in and agree to Terms of Service
-*   Follow this link to 
+*   Follow this link to
 [enable the Quantum Engine API](https://console.cloud.google.com/apis/library/quantum.googleapis.com?returnUrl=quantum)
 in your Google Cloud Platform project.
 
@@ -57,7 +57,7 @@ sponsor so that they can be added.
 ## Next Steps
 
 At this point, you should now have access to the Quantum Computing Service.
-You can try out our [Getting Started Guide](../tutorials/google/start.ipynb).
+You can try out our [Getting Started Guide](/cirq/tutorials/google/start.ipynb).
 
 You can also learn more about how to use the [Engine class](engine.md) to
 access Google hardware or about [Google devices](devices.md) in the

@@ -13,7 +13,7 @@ this, visit [Pasqal Sampler](sampler.md).
 ## Next Steps
 
 Access to Pasqal's API is not required for using Cirq to create quantum circuits
-specifically tailored for our devices. 
+specifically tailored for our devices.
 
 Regardless of whether you have access or not, you can start playing around with Pasqal's classes with the
-tutorial [Quantum Circuits on Pasqal Devices](../tutorials/pasqal/getting_started.ipynb).
+tutorial [Quantum Circuits on Pasqal Devices](/cirq/hardware/pasqal/getting_started.ipynb).
