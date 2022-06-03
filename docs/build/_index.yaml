@@ -11,27 +11,27 @@ landing_page:
       items:
       - heading: Circuits
         description: The Circuit data structure and how to create them.
-        path: /cirq/circuits
+        path: /cirq/build/circuits
         icon:
           name: menu_book
       - heading: Qubits
         description: The quantum bit data structure.
-        path: /cirq/qubits
+        path: /cirq/build/qubits
         icon:
           name: menu_book
       - heading: Gates and Operations
         description: Quantum Gate and Operation data structures and how they are different.
-        path: /cirq/gates
+        path: /cirq/build/gates
         icon:
           name: menu_book
       - heading: Custom gates
         description: Create your own gates to add to circuits.
-        path: /cirq/custom_gates
+        path: /cirq/build/custom_gates
         icon:
           name: menu_book
       - heading: Import/export circuits
         description: How to import or export a quantum circuit into/from Cirq.
-        path: /cirq/interop
+        path: /cirq/build/interop
         icon:
           name: menu_book
 
@@ -40,21 +40,21 @@ landing_page:
       items:
       - heading: Operators
         description: Operators, measurements and noise channels.
-        path: /cirq/operators
+        path: /cirq/build/operators
         icon:
           name: menu_book
       - heading: Qudits
         description: Moving from qubits to qutrits and further.
-        path: /cirq/qudits
+        path: /cirq/build/qudits
         icon:
           name: menu_book
       - heading: Protocols
         description: The magic methods supported by Cirq's classes.
-        path: /cirq/protocols
+        path: /cirq/build/protocols
         icon:
           name: menu_book
       - heading: Tools ecosystem
         description: External tools for circuit construction.
-        path: /cirq/ecosystem
+        path: /cirq/build/ecosystem
         icon:
           name: menu_book

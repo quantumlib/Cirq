@@ -9,6 +9,6 @@ landing_page:
       items:
       - heading: Circuit Transformers
         description: The Transformer class to represent some process to change a supplied circuit.
-        path: /cirq/transformers
+        path: /cirq/transform/transformers
         icon:
           name: menu_book
