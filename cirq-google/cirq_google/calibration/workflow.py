@@ -36,7 +36,7 @@ from cirq_google.calibration.phased_fsim import (
     LocalXEBPhasedFSimCalibrationRequest,
 )
 from cirq_google.calibration.xeb_wrapper import run_local_xeb_calibration
-from cirq_google.engine import AbstractEngine, Engine, ProcessorSampler, util
+from cirq_google.engine import AbstractProcessor, AbstractEngine, ProcessorSampler, util
 from cirq_google.serialization.serializer import Serializer
 
 _CALIBRATION_IRRELEVANT_GATES = cirq.MeasurementGate, cirq.WaitGate
@@ -730,8 +730,7 @@ def _merge_into_calibrations(
 
 def _run_calibrations_via_engine(
     calibration_requests: Sequence[PhasedFSimCalibrationRequest],
-    engine: AbstractEngine,
-    processor_id: str,
+    processor: AbstractProcessor,
     max_layers_per_request: int = 1,
     progress_func: Optional[Callable[[int, int], None]] = None,
 ):
@@ -750,7 +749,7 @@ def _run_calibrations_via_engine(
     ]
 
     for cal_layers in nested_calibration_layers:
-        job = engine.run_calibration(cal_layers, processor_id=processor_id)
+        job = processor.run_calibration(cal_layers)
         request_results = job.calibration_results()
         results += [
             calibration.parse_result(result, job)
@@ -825,23 +824,22 @@ def run_calibrations(
     (calibration_request_type,) = calibration_request_types
 
     if isinstance(sampler, AbstractEngine):
-        engine: Optional[AbstractEngine] = sampler
-    elif isinstance(sampler, ProcessorSampler):
-        processor_id = getattr(sampler.processor, 'processor_id', None)
-        engine = sampler.processor.engine() if processor_id is not None else None
-    else:
-        engine = None
-
-    if engine is not None:
         if processor_id is None:
             raise ValueError('processor_id must be provided.')  # coverage: ignore
+        processor: Optional[AbstractProcessor] = sampler.get_processor(processor_id=processor_id)
+    elif isinstance(sampler, ProcessorSampler):
+        processor = sampler.processor
+    else:
+        processor = None
+
+    if processor is not None:
 
         if calibration_request_type == LocalXEBPhasedFSimCalibrationRequest:
-            engine_sampler = engine.get_sampler(processor_id=processor_id)
+            engine_sampler = processor.get_sampler()
             return _run_local_calibrations_via_sampler(calibrations, engine_sampler)
 
         return _run_calibrations_via_engine(
-            calibrations, engine, processor_id, max_layers_per_request, progress_func
+            calibrations, processor, max_layers_per_request, progress_func
         )
 
     if calibration_request_type == LocalXEBPhasedFSimCalibrationRequest:
@@ -1165,7 +1163,7 @@ class FSimPhaseCorrections:
 @util.deprecated_gate_set_parameter
 def run_floquet_characterization_for_moments(
     circuit: cirq.Circuit,
-    sampler: Union[Engine, cirq.Sampler],
+    sampler: Union[AbstractEngine, cirq.Sampler],
     processor_id: Optional[str] = None,
     gate_set: Optional[Serializer] = None,
     options: FloquetPhasedFSimCalibrationOptions = WITHOUT_CHI_FLOQUET_PHASED_FSIM_CHARACTERIZATION,
@@ -1236,7 +1234,7 @@ def run_floquet_characterization_for_moments(
 @util.deprecated_gate_set_parameter
 def run_zeta_chi_gamma_compensation_for_moments(
     circuit: cirq.Circuit,
-    sampler: Union[Engine, cirq.Sampler],
+    sampler: Union[AbstractEngine, cirq.Sampler],
     processor_id: Optional[str] = None,
     gate_set: Optional[Serializer] = None,
     options: FloquetPhasedFSimCalibrationOptions = (

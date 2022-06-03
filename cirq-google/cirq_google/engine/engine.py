@@ -781,7 +781,7 @@ class Engine(abstract_engine.AbstractEngine):
     @util.deprecated_gate_set_parameter
     def sampler(
         self, processor_id: Union[str, List[str]], gate_set: Optional[Serializer] = None
-    ) -> cirq.Sampler:
+    ) -> 'cirq_google.ProcessorSampler':
         """Returns a sampler backed by the engine.
 
         Args:
@@ -800,7 +800,7 @@ class Engine(abstract_engine.AbstractEngine):
     @util.deprecated_gate_set_parameter
     def get_sampler(
         self, processor_id: Union[str, List[str]], gate_set: Optional[Serializer] = None
-    ) -> cirq.Sampler:
+    ) -> 'cirq_google.ProcessorSampler':
         """Returns a sampler backed by the engine.
 
         Args:
@@ -886,7 +886,9 @@ def get_engine_calibration(
     return get_engine(project_id).get_processor(processor_id).get_current_calibration()
 
 
-def get_engine_sampler(processor_id: str, project_id: Optional[str] = None) -> cirq.Sampler:
+def get_engine_sampler(
+    processor_id: str, project_id: Optional[str] = None
+) -> 'cirq_google.ProcessorSampler':
     """Get an EngineSampler assuming some sensible defaults.
 
     This uses the environment variable GOOGLE_CLOUD_PROJECT for the Engine
@@ -895,18 +897,12 @@ def get_engine_sampler(processor_id: str, project_id: Optional[str] = None) -> c
     Args:
         processor_id: Engine processor ID (from Cloud console or
             ``Engine.list_processors``).
-        gate_set_name: One of ['sqrt_iswap', 'sycamore'].
-            See `cirq_google.NAMED_GATESETS`.
         project_id: Optional explicit Google Cloud project id. Otherwise,
             this defaults to the environment variable GOOGLE_CLOUD_PROJECT.
             By using an environment variable, you can avoid hard-coding
             personal project IDs in shared code.
 
-    Returns:
-        A `QuantumEngineSampler` instance.
-
     Raises:
-         ValueError: If the supplied gate set is not a supported gate set name.
          EnvironmentError: If no project_id is specified and the environment
             variable GOOGLE_CLOUD_PROJECT is not set.
     """
