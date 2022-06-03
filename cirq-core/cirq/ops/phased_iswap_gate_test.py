@@ -141,8 +141,7 @@ def test_phased_iswap_has_consistent_protocols(phase_exponent, exponent, global_
     cirq.testing.assert_implements_consistent_protocols(
         cirq.PhasedISwapPowGate(
             phase_exponent=phase_exponent, exponent=exponent, global_shift=global_shift
-        ),
-        ignoring_global_phase=False,
+        )
     )
 
 
@@ -206,6 +205,4 @@ def test_givens_rotation_equivalent_circuit():
 
 @pytest.mark.parametrize('angle_rads', (-np.pi / 5, 0.4, 2, np.pi))
 def test_givens_rotation_has_consistent_protocols(angle_rads):
-    cirq.testing.assert_implements_consistent_protocols(
-        cirq.givens(angle_rads), ignoring_global_phase=False
-    )
+    cirq.testing.assert_implements_consistent_protocols(cirq.givens(angle_rads))

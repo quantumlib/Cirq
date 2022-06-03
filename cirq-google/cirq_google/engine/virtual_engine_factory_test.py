@@ -51,7 +51,7 @@ def test_create_from_device():
     _test_processor(engine.get_processor('sycamore'))
 
 
-def test_median_device():
+def test_median_rainbow_device():
     q0, q1 = cirq.GridQubit.rect(1, 2, 5, 3)
     cal = factory.load_median_device_calibration('rainbow')
     # Spot-check an arbitrary set of values to confirm we got the right data.
@@ -63,6 +63,37 @@ def test_median_device():
         cal['two_qubit_sycamore_gate_xeb_average_error_per_cycle'][(q0, q1)][0],
         0.0034558565201338043,
     )
+
+
+def test_median_weber_device():
+    q0, q1 = cirq.GridQubit.rect(1, 2, 1, 4)
+    cal = factory.load_median_device_calibration('weber')
+    # Spot-check an arbitrary set of values to confirm we got the right data.
+    assert np.isclose(cal['parallel_p00_error'][(q0,)][0], 0.00592)
+    assert np.isclose(cal['single_qubit_readout_separation_error'][(q1,)][0], 0.0005456228122027591)
+    assert np.isclose(
+        cal['two_qubit_sycamore_gate_xeb_average_error_per_cycle'][(q0, q1)][0],
+        0.010057137642549896,
+    )
+
+
+@pytest.mark.parametrize('processor_id', ['rainbow', 'weber'])
+def test_median_device_expected_fields(processor_id):
+    cal = factory.load_median_device_calibration(processor_id)
+    expected_fields = {
+        'single_qubit_idle_t1_micros',
+        'single_qubit_rb_incoherent_error_per_gate',
+        'single_qubit_rb_pauli_error_per_gate',
+        'two_qubit_parallel_sycamore_gate_xeb_pauli_error_per_cycle',
+        'two_qubit_parallel_sqrt_iswap_gate_xeb_pauli_error_per_cycle',
+        'single_qubit_p00_error',
+        'single_qubit_p11_error',
+        'two_qubit_parallel_sycamore_gate_xeb_entangler_theta_error_per_cycle',
+        'two_qubit_parallel_sycamore_gate_xeb_entangler_phi_error_per_cycle',
+        'two_qubit_parallel_sqrt_iswap_gate_xeb_entangler_theta_error_per_cycle',
+        'two_qubit_parallel_sqrt_iswap_gate_xeb_entangler_phi_error_per_cycle',
+    }
+    assert expected_fields.issubset(cal.keys())
 
 
 def test_median_device_bad_processor():

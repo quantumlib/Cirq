@@ -6886,6 +6886,3078 @@
             "doubleVal": 0.004443498460645706
           }
         ]
+      },
+      {
+        "name": "two_qubit_parallel_sycamore_gate_xeb_entangler_theta_error_per_cycle",
+        "targets": [
+          "4_1",
+          "4_2"
+        ],
+        "values": [
+          {
+            "doubleVal": -0.01141152579913296
+          }
+        ]
+      },
+      {
+        "name": "two_qubit_parallel_sycamore_gate_xeb_entangler_theta_error_per_cycle",
+        "targets": [
+          "5_0",
+          "5_1"
+        ],
+        "values": [
+          {
+            "doubleVal": -0.041023641028874014
+          }
+        ]
+      },
+      {
+        "name": "two_qubit_parallel_sycamore_gate_xeb_entangler_theta_error_per_cycle",
+        "targets": [
+          "5_2",
+          "5_3"
+        ],
+        "values": [
+          {
+            "doubleVal": -0.018126585099093262
+          }
+        ]
+      },
+      {
+        "name": "two_qubit_parallel_sycamore_gate_xeb_entangler_theta_error_per_cycle",
+        "targets": [
+          "6_1",
+          "6_2"
+        ],
+        "values": [
+          {
+            "doubleVal": -0.006239615375017493
+          }
+        ]
+      },
+      {
+        "name": "two_qubit_parallel_sycamore_gate_xeb_entangler_theta_error_per_cycle",
+        "targets": [
+          "6_3",
+          "6_4"
+        ],
+        "values": [
+          {
+            "doubleVal": -0.08940235004302233
+          }
+        ]
+      },
+      {
+        "name": "two_qubit_parallel_sycamore_gate_xeb_entangler_theta_error_per_cycle",
+        "targets": [
+          "7_2",
+          "7_3"
+        ],
+        "values": [
+          {
+            "doubleVal": -0.03277882888911332
+          }
+        ]
+      },
+      {
+        "name": "two_qubit_parallel_sycamore_gate_xeb_entangler_theta_error_per_cycle",
+        "targets": [
+          "7_4",
+          "7_5"
+        ],
+        "values": [
+          {
+            "doubleVal": -0.08554551946975364
+          }
+        ]
+      },
+      {
+        "name": "two_qubit_parallel_sycamore_gate_xeb_entangler_theta_error_per_cycle",
+        "targets": [
+          "8_3",
+          "8_4"
+        ],
+        "values": [
+          {
+            "doubleVal": -0.033651803776560296
+          }
+        ]
+      },
+      {
+        "name": "two_qubit_parallel_sycamore_gate_xeb_entangler_theta_error_per_cycle",
+        "targets": [
+          "4_2",
+          "4_3"
+        ],
+        "values": [
+          {
+            "doubleVal": -0.10469840285968957
+          }
+        ]
+      },
+      {
+        "name": "two_qubit_parallel_sycamore_gate_xeb_entangler_theta_error_per_cycle",
+        "targets": [
+          "5_1",
+          "5_2"
+        ],
+        "values": [
+          {
+            "doubleVal": -0.04337955986274267
+          }
+        ]
+      },
+      {
+        "name": "two_qubit_parallel_sycamore_gate_xeb_entangler_theta_error_per_cycle",
+        "targets": [
+          "5_3",
+          "5_4"
+        ],
+        "values": [
+          {
+            "doubleVal": -0.03649318594433737
+          }
+        ]
+      },
+      {
+        "name": "two_qubit_parallel_sycamore_gate_xeb_entangler_theta_error_per_cycle",
+        "targets": [
+          "6_2",
+          "6_3"
+        ],
+        "values": [
+          {
+            "doubleVal": -0.02704460916257201
+          }
+        ]
+      },
+      {
+        "name": "two_qubit_parallel_sycamore_gate_xeb_entangler_theta_error_per_cycle",
+        "targets": [
+          "6_4",
+          "6_5"
+        ],
+        "values": [
+          {
+            "doubleVal": -0.009446501624529535
+          }
+        ]
+      },
+      {
+        "name": "two_qubit_parallel_sycamore_gate_xeb_entangler_theta_error_per_cycle",
+        "targets": [
+          "7_3",
+          "7_4"
+        ],
+        "values": [
+          {
+            "doubleVal": -0.07458463755555655
+          }
+        ]
+      },
+      {
+        "name": "two_qubit_parallel_sycamore_gate_xeb_entangler_theta_error_per_cycle",
+        "targets": [
+          "7_5",
+          "7_6"
+        ],
+        "values": [
+          {
+            "doubleVal": -0.05637454073822523
+          }
+        ]
+      },
+      {
+        "name": "two_qubit_parallel_sycamore_gate_xeb_entangler_theta_error_per_cycle",
+        "targets": [
+          "8_4",
+          "8_5"
+        ],
+        "values": [
+          {
+            "doubleVal": -0.017400781717099356
+          }
+        ]
+      },
+      {
+        "name": "two_qubit_parallel_sycamore_gate_xeb_entangler_theta_error_per_cycle",
+        "targets": [
+          "4_2",
+          "5_2"
+        ],
+        "values": [
+          {
+            "doubleVal": -0.042087698857799616
+          }
+        ]
+      },
+      {
+        "name": "two_qubit_parallel_sycamore_gate_xeb_entangler_theta_error_per_cycle",
+        "targets": [
+          "5_1",
+          "6_1"
+        ],
+        "values": [
+          {
+            "doubleVal": -0.030620045571495336
+          }
+        ]
+      },
+      {
+        "name": "two_qubit_parallel_sycamore_gate_xeb_entangler_theta_error_per_cycle",
+        "targets": [
+          "5_3",
+          "6_3"
+        ],
+        "values": [
+          {
+            "doubleVal": -0.006100063951953061
+          }
+        ]
+      },
+      {
+        "name": "two_qubit_parallel_sycamore_gate_xeb_entangler_theta_error_per_cycle",
+        "targets": [
+          "6_2",
+          "7_2"
+        ],
+        "values": [
+          {
+            "doubleVal": -0.5905183649614241
+          }
+        ]
+      },
+      {
+        "name": "two_qubit_parallel_sycamore_gate_xeb_entangler_theta_error_per_cycle",
+        "targets": [
+          "6_4",
+          "7_4"
+        ],
+        "values": [
+          {
+            "doubleVal": -0.06127429260210526
+          }
+        ]
+      },
+      {
+        "name": "two_qubit_parallel_sycamore_gate_xeb_entangler_theta_error_per_cycle",
+        "targets": [
+          "7_3",
+          "8_3"
+        ],
+        "values": [
+          {
+            "doubleVal": -0.004705191121023411
+          }
+        ]
+      },
+      {
+        "name": "two_qubit_parallel_sycamore_gate_xeb_entangler_theta_error_per_cycle",
+        "targets": [
+          "7_5",
+          "8_5"
+        ],
+        "values": [
+          {
+            "doubleVal": -0.004268350525092668
+          }
+        ]
+      },
+      {
+        "name": "two_qubit_parallel_sycamore_gate_xeb_entangler_theta_error_per_cycle",
+        "targets": [
+          "8_4",
+          "9_4"
+        ],
+        "values": [
+          {
+            "doubleVal": -0.07969991379926533
+          }
+        ]
+      },
+      {
+        "name": "two_qubit_parallel_sycamore_gate_xeb_entangler_theta_error_per_cycle",
+        "targets": [
+          "3_2",
+          "4_2"
+        ],
+        "values": [
+          {
+            "doubleVal": -0.06132771930981118
+          }
+        ]
+      },
+      {
+        "name": "two_qubit_parallel_sycamore_gate_xeb_entangler_theta_error_per_cycle",
+        "targets": [
+          "4_1",
+          "5_1"
+        ],
+        "values": [
+          {
+            "doubleVal": -0.06712514691236171
+          }
+        ]
+      },
+      {
+        "name": "two_qubit_parallel_sycamore_gate_xeb_entangler_theta_error_per_cycle",
+        "targets": [
+          "4_3",
+          "5_3"
+        ],
+        "values": [
+          {
+            "doubleVal": -0.011775948843103734
+          }
+        ]
+      },
+      {
+        "name": "two_qubit_parallel_sycamore_gate_xeb_entangler_theta_error_per_cycle",
+        "targets": [
+          "5_2",
+          "6_2"
+        ],
+        "values": [
+          {
+            "doubleVal": -0.05291648078194955
+          }
+        ]
+      },
+      {
+        "name": "two_qubit_parallel_sycamore_gate_xeb_entangler_theta_error_per_cycle",
+        "targets": [
+          "5_4",
+          "6_4"
+        ],
+        "values": [
+          {
+            "doubleVal": -0.0007393593394953157
+          }
+        ]
+      },
+      {
+        "name": "two_qubit_parallel_sycamore_gate_xeb_entangler_theta_error_per_cycle",
+        "targets": [
+          "6_3",
+          "7_3"
+        ],
+        "values": [
+          {
+            "doubleVal": -0.03671163768122465
+          }
+        ]
+      },
+      {
+        "name": "two_qubit_parallel_sycamore_gate_xeb_entangler_theta_error_per_cycle",
+        "targets": [
+          "6_5",
+          "7_5"
+        ],
+        "values": [
+          {
+            "doubleVal": -0.03537508046809901
+          }
+        ]
+      },
+      {
+        "name": "two_qubit_parallel_sycamore_gate_xeb_entangler_theta_error_per_cycle",
+        "targets": [
+          "7_4",
+          "8_4"
+        ],
+        "values": [
+          {
+            "doubleVal": -0.0007043622688294171
+          }
+        ]
+      },
+      {
+        "name": "two_qubit_parallel_sycamore_gate_xeb_entangler_theta_error_per_cycle",
+        "targets": [
+          "4_2",
+          "4_1"
+        ],
+        "values": [
+          {
+            "doubleVal": -0.01141152579913296
+          }
+        ]
+      },
+      {
+        "name": "two_qubit_parallel_sycamore_gate_xeb_entangler_theta_error_per_cycle",
+        "targets": [
+          "5_1",
+          "5_0"
+        ],
+        "values": [
+          {
+            "doubleVal": -0.041023641028874014
+          }
+        ]
+      },
+      {
+        "name": "two_qubit_parallel_sycamore_gate_xeb_entangler_theta_error_per_cycle",
+        "targets": [
+          "5_3",
+          "5_2"
+        ],
+        "values": [
+          {
+            "doubleVal": -0.018126585099093262
+          }
+        ]
+      },
+      {
+        "name": "two_qubit_parallel_sycamore_gate_xeb_entangler_theta_error_per_cycle",
+        "targets": [
+          "6_2",
+          "6_1"
+        ],
+        "values": [
+          {
+            "doubleVal": -0.006239615375017493
+          }
+        ]
+      },
+      {
+        "name": "two_qubit_parallel_sycamore_gate_xeb_entangler_theta_error_per_cycle",
+        "targets": [
+          "6_4",
+          "6_3"
+        ],
+        "values": [
+          {
+            "doubleVal": -0.08940235004302233
+          }
+        ]
+      },
+      {
+        "name": "two_qubit_parallel_sycamore_gate_xeb_entangler_theta_error_per_cycle",
+        "targets": [
+          "7_3",
+          "7_2"
+        ],
+        "values": [
+          {
+            "doubleVal": -0.03277882888911332
+          }
+        ]
+      },
+      {
+        "name": "two_qubit_parallel_sycamore_gate_xeb_entangler_theta_error_per_cycle",
+        "targets": [
+          "7_5",
+          "7_4"
+        ],
+        "values": [
+          {
+            "doubleVal": -0.08554551946975364
+          }
+        ]
+      },
+      {
+        "name": "two_qubit_parallel_sycamore_gate_xeb_entangler_theta_error_per_cycle",
+        "targets": [
+          "8_4",
+          "8_3"
+        ],
+        "values": [
+          {
+            "doubleVal": -0.033651803776560296
+          }
+        ]
+      },
+      {
+        "name": "two_qubit_parallel_sycamore_gate_xeb_entangler_theta_error_per_cycle",
+        "targets": [
+          "4_3",
+          "4_2"
+        ],
+        "values": [
+          {
+            "doubleVal": -0.10469840285968957
+          }
+        ]
+      },
+      {
+        "name": "two_qubit_parallel_sycamore_gate_xeb_entangler_theta_error_per_cycle",
+        "targets": [
+          "5_2",
+          "5_1"
+        ],
+        "values": [
+          {
+            "doubleVal": -0.04337955986274267
+          }
+        ]
+      },
+      {
+        "name": "two_qubit_parallel_sycamore_gate_xeb_entangler_theta_error_per_cycle",
+        "targets": [
+          "5_4",
+          "5_3"
+        ],
+        "values": [
+          {
+            "doubleVal": -0.03649318594433737
+          }
+        ]
+      },
+      {
+        "name": "two_qubit_parallel_sycamore_gate_xeb_entangler_theta_error_per_cycle",
+        "targets": [
+          "6_3",
+          "6_2"
+        ],
+        "values": [
+          {
+            "doubleVal": -0.02704460916257201
+          }
+        ]
+      },
+      {
+        "name": "two_qubit_parallel_sycamore_gate_xeb_entangler_theta_error_per_cycle",
+        "targets": [
+          "6_5",
+          "6_4"
+        ],
+        "values": [
+          {
+            "doubleVal": -0.009446501624529535
+          }
+        ]
+      },
+      {
+        "name": "two_qubit_parallel_sycamore_gate_xeb_entangler_theta_error_per_cycle",
+        "targets": [
+          "7_4",
+          "7_3"
+        ],
+        "values": [
+          {
+            "doubleVal": -0.07458463755555655
+          }
+        ]
+      },
+      {
+        "name": "two_qubit_parallel_sycamore_gate_xeb_entangler_theta_error_per_cycle",
+        "targets": [
+          "7_6",
+          "7_5"
+        ],
+        "values": [
+          {
+            "doubleVal": -0.05637454073822523
+          }
+        ]
+      },
+      {
+        "name": "two_qubit_parallel_sycamore_gate_xeb_entangler_theta_error_per_cycle",
+        "targets": [
+          "8_5",
+          "8_4"
+        ],
+        "values": [
+          {
+            "doubleVal": -0.017400781717099356
+          }
+        ]
+      },
+      {
+        "name": "two_qubit_parallel_sycamore_gate_xeb_entangler_theta_error_per_cycle",
+        "targets": [
+          "5_2",
+          "4_2"
+        ],
+        "values": [
+          {
+            "doubleVal": -0.042087698857799616
+          }
+        ]
+      },
+      {
+        "name": "two_qubit_parallel_sycamore_gate_xeb_entangler_theta_error_per_cycle",
+        "targets": [
+          "6_1",
+          "5_1"
+        ],
+        "values": [
+          {
+            "doubleVal": -0.030620045571495336
+          }
+        ]
+      },
+      {
+        "name": "two_qubit_parallel_sycamore_gate_xeb_entangler_theta_error_per_cycle",
+        "targets": [
+          "6_3",
+          "5_3"
+        ],
+        "values": [
+          {
+            "doubleVal": -0.006100063951953061
+          }
+        ]
+      },
+      {
+        "name": "two_qubit_parallel_sycamore_gate_xeb_entangler_theta_error_per_cycle",
+        "targets": [
+          "7_2",
+          "6_2"
+        ],
+        "values": [
+          {
+            "doubleVal": -0.5905183649614241
+          }
+        ]
+      },
+      {
+        "name": "two_qubit_parallel_sycamore_gate_xeb_entangler_theta_error_per_cycle",
+        "targets": [
+          "7_4",
+          "6_4"
+        ],
+        "values": [
+          {
+            "doubleVal": -0.06127429260210526
+          }
+        ]
+      },
+      {
+        "name": "two_qubit_parallel_sycamore_gate_xeb_entangler_theta_error_per_cycle",
+        "targets": [
+          "8_3",
+          "7_3"
+        ],
+        "values": [
+          {
+            "doubleVal": -0.004705191121023411
+          }
+        ]
+      },
+      {
+        "name": "two_qubit_parallel_sycamore_gate_xeb_entangler_theta_error_per_cycle",
+        "targets": [
+          "8_5",
+          "7_5"
+        ],
+        "values": [
+          {
+            "doubleVal": -0.004268350525092668
+          }
+        ]
+      },
+      {
+        "name": "two_qubit_parallel_sycamore_gate_xeb_entangler_theta_error_per_cycle",
+        "targets": [
+          "9_4",
+          "8_4"
+        ],
+        "values": [
+          {
+            "doubleVal": -0.07969991379926533
+          }
+        ]
+      },
+      {
+        "name": "two_qubit_parallel_sycamore_gate_xeb_entangler_theta_error_per_cycle",
+        "targets": [
+          "4_2",
+          "3_2"
+        ],
+        "values": [
+          {
+            "doubleVal": -0.06132771930981118
+          }
+        ]
+      },
+      {
+        "name": "two_qubit_parallel_sycamore_gate_xeb_entangler_theta_error_per_cycle",
+        "targets": [
+          "5_1",
+          "4_1"
+        ],
+        "values": [
+          {
+            "doubleVal": -0.06712514691236171
+          }
+        ]
+      },
+      {
+        "name": "two_qubit_parallel_sycamore_gate_xeb_entangler_theta_error_per_cycle",
+        "targets": [
+          "5_3",
+          "4_3"
+        ],
+        "values": [
+          {
+            "doubleVal": -0.011775948843103734
+          }
+        ]
+      },
+      {
+        "name": "two_qubit_parallel_sycamore_gate_xeb_entangler_theta_error_per_cycle",
+        "targets": [
+          "6_2",
+          "5_2"
+        ],
+        "values": [
+          {
+            "doubleVal": -0.05291648078194955
+          }
+        ]
+      },
+      {
+        "name": "two_qubit_parallel_sycamore_gate_xeb_entangler_theta_error_per_cycle",
+        "targets": [
+          "6_4",
+          "5_4"
+        ],
+        "values": [
+          {
+            "doubleVal": -0.0007393593394953157
+          }
+        ]
+      },
+      {
+        "name": "two_qubit_parallel_sycamore_gate_xeb_entangler_theta_error_per_cycle",
+        "targets": [
+          "7_3",
+          "6_3"
+        ],
+        "values": [
+          {
+            "doubleVal": -0.03671163768122465
+          }
+        ]
+      },
+      {
+        "name": "two_qubit_parallel_sycamore_gate_xeb_entangler_theta_error_per_cycle",
+        "targets": [
+          "7_5",
+          "6_5"
+        ],
+        "values": [
+          {
+            "doubleVal": -0.03537508046809901
+          }
+        ]
+      },
+      {
+        "name": "two_qubit_parallel_sycamore_gate_xeb_entangler_theta_error_per_cycle",
+        "targets": [
+          "8_4",
+          "7_4"
+        ],
+        "values": [
+          {
+            "doubleVal": -0.0007043622688294171
+          }
+        ]
+      },
+      {
+        "name": "two_qubit_parallel_sqrt_iswap_gate_xeb_entangler_theta_error_per_cycle",
+        "targets": [
+          "4_2",
+          "4_3"
+        ],
+        "values": [
+          {
+            "doubleVal": -0.030070439682556405
+          }
+        ]
+      },
+      {
+        "name": "two_qubit_parallel_sqrt_iswap_gate_xeb_entangler_theta_error_per_cycle",
+        "targets": [
+          "5_1",
+          "5_2"
+        ],
+        "values": [
+          {
+            "doubleVal": -0.006166631828583569
+          }
+        ]
+      },
+      {
+        "name": "two_qubit_parallel_sqrt_iswap_gate_xeb_entangler_theta_error_per_cycle",
+        "targets": [
+          "5_3",
+          "5_4"
+        ],
+        "values": [
+          {
+            "doubleVal": -0.012509411092600509
+          }
+        ]
+      },
+      {
+        "name": "two_qubit_parallel_sqrt_iswap_gate_xeb_entangler_theta_error_per_cycle",
+        "targets": [
+          "6_2",
+          "6_3"
+        ],
+        "values": [
+          {
+            "doubleVal": 0.00253527345388882
+          }
+        ]
+      },
+      {
+        "name": "two_qubit_parallel_sqrt_iswap_gate_xeb_entangler_theta_error_per_cycle",
+        "targets": [
+          "6_4",
+          "6_5"
+        ],
+        "values": [
+          {
+            "doubleVal": -0.008065695138362194
+          }
+        ]
+      },
+      {
+        "name": "two_qubit_parallel_sqrt_iswap_gate_xeb_entangler_theta_error_per_cycle",
+        "targets": [
+          "7_3",
+          "7_4"
+        ],
+        "values": [
+          {
+            "doubleVal": 0.007566106413936957
+          }
+        ]
+      },
+      {
+        "name": "two_qubit_parallel_sqrt_iswap_gate_xeb_entangler_theta_error_per_cycle",
+        "targets": [
+          "7_5",
+          "7_6"
+        ],
+        "values": [
+          {
+            "doubleVal": 0.0020537850296435955
+          }
+        ]
+      },
+      {
+        "name": "two_qubit_parallel_sqrt_iswap_gate_xeb_entangler_theta_error_per_cycle",
+        "targets": [
+          "8_4",
+          "8_5"
+        ],
+        "values": [
+          {
+            "doubleVal": 0.0028198192493587015
+          }
+        ]
+      },
+      {
+        "name": "two_qubit_parallel_sqrt_iswap_gate_xeb_entangler_theta_error_per_cycle",
+        "targets": [
+          "3_2",
+          "4_2"
+        ],
+        "values": [
+          {
+            "doubleVal": 0.013179819849972407
+          }
+        ]
+      },
+      {
+        "name": "two_qubit_parallel_sqrt_iswap_gate_xeb_entangler_theta_error_per_cycle",
+        "targets": [
+          "4_1",
+          "5_1"
+        ],
+        "values": [
+          {
+            "doubleVal": 0.004594044272584696
+          }
+        ]
+      },
+      {
+        "name": "two_qubit_parallel_sqrt_iswap_gate_xeb_entangler_theta_error_per_cycle",
+        "targets": [
+          "4_3",
+          "5_3"
+        ],
+        "values": [
+          {
+            "doubleVal": 0.010938341805865281
+          }
+        ]
+      },
+      {
+        "name": "two_qubit_parallel_sqrt_iswap_gate_xeb_entangler_theta_error_per_cycle",
+        "targets": [
+          "5_2",
+          "6_2"
+        ],
+        "values": [
+          {
+            "doubleVal": -4.882671089445623e-05
+          }
+        ]
+      },
+      {
+        "name": "two_qubit_parallel_sqrt_iswap_gate_xeb_entangler_theta_error_per_cycle",
+        "targets": [
+          "5_4",
+          "6_4"
+        ],
+        "values": [
+          {
+            "doubleVal": -0.006251380230192449
+          }
+        ]
+      },
+      {
+        "name": "two_qubit_parallel_sqrt_iswap_gate_xeb_entangler_theta_error_per_cycle",
+        "targets": [
+          "6_3",
+          "7_3"
+        ],
+        "values": [
+          {
+            "doubleVal": 0.0037325454419963044
+          }
+        ]
+      },
+      {
+        "name": "two_qubit_parallel_sqrt_iswap_gate_xeb_entangler_theta_error_per_cycle",
+        "targets": [
+          "6_5",
+          "7_5"
+        ],
+        "values": [
+          {
+            "doubleVal": 0.003936003812137212
+          }
+        ]
+      },
+      {
+        "name": "two_qubit_parallel_sqrt_iswap_gate_xeb_entangler_theta_error_per_cycle",
+        "targets": [
+          "7_4",
+          "8_4"
+        ],
+        "values": [
+          {
+            "doubleVal": 0.00027658524129803297
+          }
+        ]
+      },
+      {
+        "name": "two_qubit_parallel_sqrt_iswap_gate_xeb_entangler_theta_error_per_cycle",
+        "targets": [
+          "4_2",
+          "5_2"
+        ],
+        "values": [
+          {
+            "doubleVal": -0.004484652927013499
+          }
+        ]
+      },
+      {
+        "name": "two_qubit_parallel_sqrt_iswap_gate_xeb_entangler_theta_error_per_cycle",
+        "targets": [
+          "5_1",
+          "6_1"
+        ],
+        "values": [
+          {
+            "doubleVal": 0.0008178126585161039
+          }
+        ]
+      },
+      {
+        "name": "two_qubit_parallel_sqrt_iswap_gate_xeb_entangler_theta_error_per_cycle",
+        "targets": [
+          "5_3",
+          "6_3"
+        ],
+        "values": [
+          {
+            "doubleVal": 0.014181773108869589
+          }
+        ]
+      },
+      {
+        "name": "two_qubit_parallel_sqrt_iswap_gate_xeb_entangler_theta_error_per_cycle",
+        "targets": [
+          "6_2",
+          "7_2"
+        ],
+        "values": [
+          {
+            "doubleVal": -0.08874528425990125
+          }
+        ]
+      },
+      {
+        "name": "two_qubit_parallel_sqrt_iswap_gate_xeb_entangler_theta_error_per_cycle",
+        "targets": [
+          "6_4",
+          "7_4"
+        ],
+        "values": [
+          {
+            "doubleVal": -0.014815929909818504
+          }
+        ]
+      },
+      {
+        "name": "two_qubit_parallel_sqrt_iswap_gate_xeb_entangler_theta_error_per_cycle",
+        "targets": [
+          "7_3",
+          "8_3"
+        ],
+        "values": [
+          {
+            "doubleVal": 0.009940739988245184
+          }
+        ]
+      },
+      {
+        "name": "two_qubit_parallel_sqrt_iswap_gate_xeb_entangler_theta_error_per_cycle",
+        "targets": [
+          "7_5",
+          "8_5"
+        ],
+        "values": [
+          {
+            "doubleVal": 0.0018171865810900911
+          }
+        ]
+      },
+      {
+        "name": "two_qubit_parallel_sqrt_iswap_gate_xeb_entangler_theta_error_per_cycle",
+        "targets": [
+          "8_4",
+          "9_4"
+        ],
+        "values": [
+          {
+            "doubleVal": -0.00875416733733081
+          }
+        ]
+      },
+      {
+        "name": "two_qubit_parallel_sqrt_iswap_gate_xeb_entangler_theta_error_per_cycle",
+        "targets": [
+          "4_1",
+          "4_2"
+        ],
+        "values": [
+          {
+            "doubleVal": -0.0033568357466720045
+          }
+        ]
+      },
+      {
+        "name": "two_qubit_parallel_sqrt_iswap_gate_xeb_entangler_theta_error_per_cycle",
+        "targets": [
+          "5_0",
+          "5_1"
+        ],
+        "values": [
+          {
+            "doubleVal": 0.00014287635276666322
+          }
+        ]
+      },
+      {
+        "name": "two_qubit_parallel_sqrt_iswap_gate_xeb_entangler_theta_error_per_cycle",
+        "targets": [
+          "5_2",
+          "5_3"
+        ],
+        "values": [
+          {
+            "doubleVal": -0.008547938200144767
+          }
+        ]
+      },
+      {
+        "name": "two_qubit_parallel_sqrt_iswap_gate_xeb_entangler_theta_error_per_cycle",
+        "targets": [
+          "6_1",
+          "6_2"
+        ],
+        "values": [
+          {
+            "doubleVal": 0.005936629194240872
+          }
+        ]
+      },
+      {
+        "name": "two_qubit_parallel_sqrt_iswap_gate_xeb_entangler_theta_error_per_cycle",
+        "targets": [
+          "6_3",
+          "6_4"
+        ],
+        "values": [
+          {
+            "doubleVal": -0.008583096173947702
+          }
+        ]
+      },
+      {
+        "name": "two_qubit_parallel_sqrt_iswap_gate_xeb_entangler_theta_error_per_cycle",
+        "targets": [
+          "7_2",
+          "7_3"
+        ],
+        "values": [
+          {
+            "doubleVal": 0.14446617535102435
+          }
+        ]
+      },
+      {
+        "name": "two_qubit_parallel_sqrt_iswap_gate_xeb_entangler_theta_error_per_cycle",
+        "targets": [
+          "7_4",
+          "7_5"
+        ],
+        "values": [
+          {
+            "doubleVal": -0.006389211444005394
+          }
+        ]
+      },
+      {
+        "name": "two_qubit_parallel_sqrt_iswap_gate_xeb_entangler_theta_error_per_cycle",
+        "targets": [
+          "8_3",
+          "8_4"
+        ],
+        "values": [
+          {
+            "doubleVal": 0.0006924153528142796
+          }
+        ]
+      },
+      {
+        "name": "two_qubit_parallel_sqrt_iswap_gate_xeb_entangler_theta_error_per_cycle",
+        "targets": [
+          "4_3",
+          "4_2"
+        ],
+        "values": [
+          {
+            "doubleVal": -0.030070439682556405
+          }
+        ]
+      },
+      {
+        "name": "two_qubit_parallel_sqrt_iswap_gate_xeb_entangler_theta_error_per_cycle",
+        "targets": [
+          "5_2",
+          "5_1"
+        ],
+        "values": [
+          {
+            "doubleVal": -0.006166631828583569
+          }
+        ]
+      },
+      {
+        "name": "two_qubit_parallel_sqrt_iswap_gate_xeb_entangler_theta_error_per_cycle",
+        "targets": [
+          "5_4",
+          "5_3"
+        ],
+        "values": [
+          {
+            "doubleVal": -0.012509411092600509
+          }
+        ]
+      },
+      {
+        "name": "two_qubit_parallel_sqrt_iswap_gate_xeb_entangler_theta_error_per_cycle",
+        "targets": [
+          "6_3",
+          "6_2"
+        ],
+        "values": [
+          {
+            "doubleVal": 0.00253527345388882
+          }
+        ]
+      },
+      {
+        "name": "two_qubit_parallel_sqrt_iswap_gate_xeb_entangler_theta_error_per_cycle",
+        "targets": [
+          "6_5",
+          "6_4"
+        ],
+        "values": [
+          {
+            "doubleVal": -0.008065695138362194
+          }
+        ]
+      },
+      {
+        "name": "two_qubit_parallel_sqrt_iswap_gate_xeb_entangler_theta_error_per_cycle",
+        "targets": [
+          "7_4",
+          "7_3"
+        ],
+        "values": [
+          {
+            "doubleVal": 0.007566106413936957
+          }
+        ]
+      },
+      {
+        "name": "two_qubit_parallel_sqrt_iswap_gate_xeb_entangler_theta_error_per_cycle",
+        "targets": [
+          "7_6",
+          "7_5"
+        ],
+        "values": [
+          {
+            "doubleVal": 0.0020537850296435955
+          }
+        ]
+      },
+      {
+        "name": "two_qubit_parallel_sqrt_iswap_gate_xeb_entangler_theta_error_per_cycle",
+        "targets": [
+          "8_5",
+          "8_4"
+        ],
+        "values": [
+          {
+            "doubleVal": 0.0028198192493587015
+          }
+        ]
+      },
+      {
+        "name": "two_qubit_parallel_sqrt_iswap_gate_xeb_entangler_theta_error_per_cycle",
+        "targets": [
+          "4_2",
+          "3_2"
+        ],
+        "values": [
+          {
+            "doubleVal": 0.013179819849972407
+          }
+        ]
+      },
+      {
+        "name": "two_qubit_parallel_sqrt_iswap_gate_xeb_entangler_theta_error_per_cycle",
+        "targets": [
+          "5_1",
+          "4_1"
+        ],
+        "values": [
+          {
+            "doubleVal": 0.004594044272584696
+          }
+        ]
+      },
+      {
+        "name": "two_qubit_parallel_sqrt_iswap_gate_xeb_entangler_theta_error_per_cycle",
+        "targets": [
+          "5_3",
+          "4_3"
+        ],
+        "values": [
+          {
+            "doubleVal": 0.010938341805865281
+          }
+        ]
+      },
+      {
+        "name": "two_qubit_parallel_sqrt_iswap_gate_xeb_entangler_theta_error_per_cycle",
+        "targets": [
+          "6_2",
+          "5_2"
+        ],
+        "values": [
+          {
+            "doubleVal": -4.882671089445623e-05
+          }
+        ]
+      },
+      {
+        "name": "two_qubit_parallel_sqrt_iswap_gate_xeb_entangler_theta_error_per_cycle",
+        "targets": [
+          "6_4",
+          "5_4"
+        ],
+        "values": [
+          {
+            "doubleVal": -0.006251380230192449
+          }
+        ]
+      },
+      {
+        "name": "two_qubit_parallel_sqrt_iswap_gate_xeb_entangler_theta_error_per_cycle",
+        "targets": [
+          "7_3",
+          "6_3"
+        ],
+        "values": [
+          {
+            "doubleVal": 0.0037325454419963044
+          }
+        ]
+      },
+      {
+        "name": "two_qubit_parallel_sqrt_iswap_gate_xeb_entangler_theta_error_per_cycle",
+        "targets": [
+          "7_5",
+          "6_5"
+        ],
+        "values": [
+          {
+            "doubleVal": 0.003936003812137212
+          }
+        ]
+      },
+      {
+        "name": "two_qubit_parallel_sqrt_iswap_gate_xeb_entangler_theta_error_per_cycle",
+        "targets": [
+          "8_4",
+          "7_4"
+        ],
+        "values": [
+          {
+            "doubleVal": 0.00027658524129803297
+          }
+        ]
+      },
+      {
+        "name": "two_qubit_parallel_sqrt_iswap_gate_xeb_entangler_theta_error_per_cycle",
+        "targets": [
+          "5_2",
+          "4_2"
+        ],
+        "values": [
+          {
+            "doubleVal": -0.004484652927013499
+          }
+        ]
+      },
+      {
+        "name": "two_qubit_parallel_sqrt_iswap_gate_xeb_entangler_theta_error_per_cycle",
+        "targets": [
+          "6_1",
+          "5_1"
+        ],
+        "values": [
+          {
+            "doubleVal": 0.0008178126585161039
+          }
+        ]
+      },
+      {
+        "name": "two_qubit_parallel_sqrt_iswap_gate_xeb_entangler_theta_error_per_cycle",
+        "targets": [
+          "6_3",
+          "5_3"
+        ],
+        "values": [
+          {
+            "doubleVal": 0.014181773108869589
+          }
+        ]
+      },
+      {
+        "name": "two_qubit_parallel_sqrt_iswap_gate_xeb_entangler_theta_error_per_cycle",
+        "targets": [
+          "7_2",
+          "6_2"
+        ],
+        "values": [
+          {
+            "doubleVal": -0.08874528425990125
+          }
+        ]
+      },
+      {
+        "name": "two_qubit_parallel_sqrt_iswap_gate_xeb_entangler_theta_error_per_cycle",
+        "targets": [
+          "7_4",
+          "6_4"
+        ],
+        "values": [
+          {
+            "doubleVal": -0.014815929909818504
+          }
+        ]
+      },
+      {
+        "name": "two_qubit_parallel_sqrt_iswap_gate_xeb_entangler_theta_error_per_cycle",
+        "targets": [
+          "8_3",
+          "7_3"
+        ],
+        "values": [
+          {
+            "doubleVal": 0.009940739988245184
+          }
+        ]
+      },
+      {
+        "name": "two_qubit_parallel_sqrt_iswap_gate_xeb_entangler_theta_error_per_cycle",
+        "targets": [
+          "8_5",
+          "7_5"
+        ],
+        "values": [
+          {
+            "doubleVal": 0.0018171865810900911
+          }
+        ]
+      },
+      {
+        "name": "two_qubit_parallel_sqrt_iswap_gate_xeb_entangler_theta_error_per_cycle",
+        "targets": [
+          "9_4",
+          "8_4"
+        ],
+        "values": [
+          {
+            "doubleVal": -0.00875416733733081
+          }
+        ]
+      },
+      {
+        "name": "two_qubit_parallel_sqrt_iswap_gate_xeb_entangler_theta_error_per_cycle",
+        "targets": [
+          "4_2",
+          "4_1"
+        ],
+        "values": [
+          {
+            "doubleVal": -0.0033568357466720045
+          }
+        ]
+      },
+      {
+        "name": "two_qubit_parallel_sqrt_iswap_gate_xeb_entangler_theta_error_per_cycle",
+        "targets": [
+          "5_1",
+          "5_0"
+        ],
+        "values": [
+          {
+            "doubleVal": 0.00014287635276666322
+          }
+        ]
+      },
+      {
+        "name": "two_qubit_parallel_sqrt_iswap_gate_xeb_entangler_theta_error_per_cycle",
+        "targets": [
+          "5_3",
+          "5_2"
+        ],
+        "values": [
+          {
+            "doubleVal": -0.008547938200144767
+          }
+        ]
+      },
+      {
+        "name": "two_qubit_parallel_sqrt_iswap_gate_xeb_entangler_theta_error_per_cycle",
+        "targets": [
+          "6_2",
+          "6_1"
+        ],
+        "values": [
+          {
+            "doubleVal": 0.005936629194240872
+          }
+        ]
+      },
+      {
+        "name": "two_qubit_parallel_sqrt_iswap_gate_xeb_entangler_theta_error_per_cycle",
+        "targets": [
+          "6_4",
+          "6_3"
+        ],
+        "values": [
+          {
+            "doubleVal": -0.008583096173947702
+          }
+        ]
+      },
+      {
+        "name": "two_qubit_parallel_sqrt_iswap_gate_xeb_entangler_theta_error_per_cycle",
+        "targets": [
+          "7_3",
+          "7_2"
+        ],
+        "values": [
+          {
+            "doubleVal": 0.14446617535102435
+          }
+        ]
+      },
+      {
+        "name": "two_qubit_parallel_sqrt_iswap_gate_xeb_entangler_theta_error_per_cycle",
+        "targets": [
+          "7_5",
+          "7_4"
+        ],
+        "values": [
+          {
+            "doubleVal": -0.006389211444005394
+          }
+        ]
+      },
+      {
+        "name": "two_qubit_parallel_sqrt_iswap_gate_xeb_entangler_theta_error_per_cycle",
+        "targets": [
+          "8_4",
+          "8_3"
+        ],
+        "values": [
+          {
+            "doubleVal": 0.0006924153528142796
+          }
+        ]
+      },
+      {
+        "name": "two_qubit_parallel_sycamore_gate_xeb_entangler_phi_error_per_cycle",
+        "targets": [
+          "4_1",
+          "4_2"
+        ],
+        "values": [
+          {
+            "doubleVal": 0.023695894882417523
+          }
+        ]
+      },
+      {
+        "name": "two_qubit_parallel_sycamore_gate_xeb_entangler_phi_error_per_cycle",
+        "targets": [
+          "5_0",
+          "5_1"
+        ],
+        "values": [
+          {
+            "doubleVal": -0.0010443636962000902
+          }
+        ]
+      },
+      {
+        "name": "two_qubit_parallel_sycamore_gate_xeb_entangler_phi_error_per_cycle",
+        "targets": [
+          "5_2",
+          "5_3"
+        ],
+        "values": [
+          {
+            "doubleVal": 0.05789749005104117
+          }
+        ]
+      },
+      {
+        "name": "two_qubit_parallel_sycamore_gate_xeb_entangler_phi_error_per_cycle",
+        "targets": [
+          "6_1",
+          "6_2"
+        ],
+        "values": [
+          {
+            "doubleVal": 0.05986851612973032
+          }
+        ]
+      },
+      {
+        "name": "two_qubit_parallel_sycamore_gate_xeb_entangler_phi_error_per_cycle",
+        "targets": [
+          "6_3",
+          "6_4"
+        ],
+        "values": [
+          {
+            "doubleVal": 0.08902305222857665
+          }
+        ]
+      },
+      {
+        "name": "two_qubit_parallel_sycamore_gate_xeb_entangler_phi_error_per_cycle",
+        "targets": [
+          "7_2",
+          "7_3"
+        ],
+        "values": [
+          {
+            "doubleVal": 0.19780145549395778
+          }
+        ]
+      },
+      {
+        "name": "two_qubit_parallel_sycamore_gate_xeb_entangler_phi_error_per_cycle",
+        "targets": [
+          "7_4",
+          "7_5"
+        ],
+        "values": [
+          {
+            "doubleVal": -0.008218814187955559
+          }
+        ]
+      },
+      {
+        "name": "two_qubit_parallel_sycamore_gate_xeb_entangler_phi_error_per_cycle",
+        "targets": [
+          "8_3",
+          "8_4"
+        ],
+        "values": [
+          {
+            "doubleVal": 0.08734925851245334
+          }
+        ]
+      },
+      {
+        "name": "two_qubit_parallel_sycamore_gate_xeb_entangler_phi_error_per_cycle",
+        "targets": [
+          "4_2",
+          "4_3"
+        ],
+        "values": [
+          {
+            "doubleVal": 0.013290158895344906
+          }
+        ]
+      },
+      {
+        "name": "two_qubit_parallel_sycamore_gate_xeb_entangler_phi_error_per_cycle",
+        "targets": [
+          "5_1",
+          "5_2"
+        ],
+        "values": [
+          {
+            "doubleVal": 0.030970295126910852
+          }
+        ]
+      },
+      {
+        "name": "two_qubit_parallel_sycamore_gate_xeb_entangler_phi_error_per_cycle",
+        "targets": [
+          "5_3",
+          "5_4"
+        ],
+        "values": [
+          {
+            "doubleVal": -0.005740844683620239
+          }
+        ]
+      },
+      {
+        "name": "two_qubit_parallel_sycamore_gate_xeb_entangler_phi_error_per_cycle",
+        "targets": [
+          "6_2",
+          "6_3"
+        ],
+        "values": [
+          {
+            "doubleVal": -0.014195845033557308
+          }
+        ]
+      },
+      {
+        "name": "two_qubit_parallel_sycamore_gate_xeb_entangler_phi_error_per_cycle",
+        "targets": [
+          "6_4",
+          "6_5"
+        ],
+        "values": [
+          {
+            "doubleVal": 0.05560148906131568
+          }
+        ]
+      },
+      {
+        "name": "two_qubit_parallel_sycamore_gate_xeb_entangler_phi_error_per_cycle",
+        "targets": [
+          "7_3",
+          "7_4"
+        ],
+        "values": [
+          {
+            "doubleVal": 0.21500322581182685
+          }
+        ]
+      },
+      {
+        "name": "two_qubit_parallel_sycamore_gate_xeb_entangler_phi_error_per_cycle",
+        "targets": [
+          "7_5",
+          "7_6"
+        ],
+        "values": [
+          {
+            "doubleVal": -0.008358262382272219
+          }
+        ]
+      },
+      {
+        "name": "two_qubit_parallel_sycamore_gate_xeb_entangler_phi_error_per_cycle",
+        "targets": [
+          "8_4",
+          "8_5"
+        ],
+        "values": [
+          {
+            "doubleVal": 0.0730486989657515
+          }
+        ]
+      },
+      {
+        "name": "two_qubit_parallel_sycamore_gate_xeb_entangler_phi_error_per_cycle",
+        "targets": [
+          "4_2",
+          "5_2"
+        ],
+        "values": [
+          {
+            "doubleVal": 0.03429225930225632
+          }
+        ]
+      },
+      {
+        "name": "two_qubit_parallel_sycamore_gate_xeb_entangler_phi_error_per_cycle",
+        "targets": [
+          "5_1",
+          "6_1"
+        ],
+        "values": [
+          {
+            "doubleVal": 0.03365436332522398
+          }
+        ]
+      },
+      {
+        "name": "two_qubit_parallel_sycamore_gate_xeb_entangler_phi_error_per_cycle",
+        "targets": [
+          "5_3",
+          "6_3"
+        ],
+        "values": [
+          {
+            "doubleVal": 0.028263587006678303
+          }
+        ]
+      },
+      {
+        "name": "two_qubit_parallel_sycamore_gate_xeb_entangler_phi_error_per_cycle",
+        "targets": [
+          "6_2",
+          "7_2"
+        ],
+        "values": [
+          {
+            "doubleVal": 0.2087711188182464
+          }
+        ]
+      },
+      {
+        "name": "two_qubit_parallel_sycamore_gate_xeb_entangler_phi_error_per_cycle",
+        "targets": [
+          "6_4",
+          "7_4"
+        ],
+        "values": [
+          {
+            "doubleVal": 0.019337352027676058
+          }
+        ]
+      },
+      {
+        "name": "two_qubit_parallel_sycamore_gate_xeb_entangler_phi_error_per_cycle",
+        "targets": [
+          "7_3",
+          "8_3"
+        ],
+        "values": [
+          {
+            "doubleVal": 0.06539656263797822
+          }
+        ]
+      },
+      {
+        "name": "two_qubit_parallel_sycamore_gate_xeb_entangler_phi_error_per_cycle",
+        "targets": [
+          "7_5",
+          "8_5"
+        ],
+        "values": [
+          {
+            "doubleVal": -0.039928525422598504
+          }
+        ]
+      },
+      {
+        "name": "two_qubit_parallel_sycamore_gate_xeb_entangler_phi_error_per_cycle",
+        "targets": [
+          "8_4",
+          "9_4"
+        ],
+        "values": [
+          {
+            "doubleVal": 0.10105602043548023
+          }
+        ]
+      },
+      {
+        "name": "two_qubit_parallel_sycamore_gate_xeb_entangler_phi_error_per_cycle",
+        "targets": [
+          "3_2",
+          "4_2"
+        ],
+        "values": [
+          {
+            "doubleVal": 0.03605674575715012
+          }
+        ]
+      },
+      {
+        "name": "two_qubit_parallel_sycamore_gate_xeb_entangler_phi_error_per_cycle",
+        "targets": [
+          "4_1",
+          "5_1"
+        ],
+        "values": [
+          {
+            "doubleVal": 0.029126748294586502
+          }
+        ]
+      },
+      {
+        "name": "two_qubit_parallel_sycamore_gate_xeb_entangler_phi_error_per_cycle",
+        "targets": [
+          "4_3",
+          "5_3"
+        ],
+        "values": [
+          {
+            "doubleVal": 0.046740201299123374
+          }
+        ]
+      },
+      {
+        "name": "two_qubit_parallel_sycamore_gate_xeb_entangler_phi_error_per_cycle",
+        "targets": [
+          "5_2",
+          "6_2"
+        ],
+        "values": [
+          {
+            "doubleVal": 0.03438723194279225
+          }
+        ]
+      },
+      {
+        "name": "two_qubit_parallel_sycamore_gate_xeb_entangler_phi_error_per_cycle",
+        "targets": [
+          "5_4",
+          "6_4"
+        ],
+        "values": [
+          {
+            "doubleVal": 0.07581353010640379
+          }
+        ]
+      },
+      {
+        "name": "two_qubit_parallel_sycamore_gate_xeb_entangler_phi_error_per_cycle",
+        "targets": [
+          "6_3",
+          "7_3"
+        ],
+        "values": [
+          {
+            "doubleVal": 0.04927550438196571
+          }
+        ]
+      },
+      {
+        "name": "two_qubit_parallel_sycamore_gate_xeb_entangler_phi_error_per_cycle",
+        "targets": [
+          "6_5",
+          "7_5"
+        ],
+        "values": [
+          {
+            "doubleVal": -0.012832204815779846
+          }
+        ]
+      },
+      {
+        "name": "two_qubit_parallel_sycamore_gate_xeb_entangler_phi_error_per_cycle",
+        "targets": [
+          "7_4",
+          "8_4"
+        ],
+        "values": [
+          {
+            "doubleVal": 0.23364184083488393
+          }
+        ]
+      },
+      {
+        "name": "two_qubit_parallel_sycamore_gate_xeb_entangler_phi_error_per_cycle",
+        "targets": [
+          "4_2",
+          "4_1"
+        ],
+        "values": [
+          {
+            "doubleVal": 0.023695894882417523
+          }
+        ]
+      },
+      {
+        "name": "two_qubit_parallel_sycamore_gate_xeb_entangler_phi_error_per_cycle",
+        "targets": [
+          "5_1",
+          "5_0"
+        ],
+        "values": [
+          {
+            "doubleVal": -0.0010443636962000902
+          }
+        ]
+      },
+      {
+        "name": "two_qubit_parallel_sycamore_gate_xeb_entangler_phi_error_per_cycle",
+        "targets": [
+          "5_3",
+          "5_2"
+        ],
+        "values": [
+          {
+            "doubleVal": 0.05789749005104117
+          }
+        ]
+      },
+      {
+        "name": "two_qubit_parallel_sycamore_gate_xeb_entangler_phi_error_per_cycle",
+        "targets": [
+          "6_2",
+          "6_1"
+        ],
+        "values": [
+          {
+            "doubleVal": 0.05986851612973032
+          }
+        ]
+      },
+      {
+        "name": "two_qubit_parallel_sycamore_gate_xeb_entangler_phi_error_per_cycle",
+        "targets": [
+          "6_4",
+          "6_3"
+        ],
+        "values": [
+          {
+            "doubleVal": 0.08902305222857665
+          }
+        ]
+      },
+      {
+        "name": "two_qubit_parallel_sycamore_gate_xeb_entangler_phi_error_per_cycle",
+        "targets": [
+          "7_3",
+          "7_2"
+        ],
+        "values": [
+          {
+            "doubleVal": 0.19780145549395778
+          }
+        ]
+      },
+      {
+        "name": "two_qubit_parallel_sycamore_gate_xeb_entangler_phi_error_per_cycle",
+        "targets": [
+          "7_5",
+          "7_4"
+        ],
+        "values": [
+          {
+            "doubleVal": -0.008218814187955559
+          }
+        ]
+      },
+      {
+        "name": "two_qubit_parallel_sycamore_gate_xeb_entangler_phi_error_per_cycle",
+        "targets": [
+          "8_4",
+          "8_3"
+        ],
+        "values": [
+          {
+            "doubleVal": 0.08734925851245334
+          }
+        ]
+      },
+      {
+        "name": "two_qubit_parallel_sycamore_gate_xeb_entangler_phi_error_per_cycle",
+        "targets": [
+          "4_3",
+          "4_2"
+        ],
+        "values": [
+          {
+            "doubleVal": 0.013290158895344906
+          }
+        ]
+      },
+      {
+        "name": "two_qubit_parallel_sycamore_gate_xeb_entangler_phi_error_per_cycle",
+        "targets": [
+          "5_2",
+          "5_1"
+        ],
+        "values": [
+          {
+            "doubleVal": 0.030970295126910852
+          }
+        ]
+      },
+      {
+        "name": "two_qubit_parallel_sycamore_gate_xeb_entangler_phi_error_per_cycle",
+        "targets": [
+          "5_4",
+          "5_3"
+        ],
+        "values": [
+          {
+            "doubleVal": -0.005740844683620239
+          }
+        ]
+      },
+      {
+        "name": "two_qubit_parallel_sycamore_gate_xeb_entangler_phi_error_per_cycle",
+        "targets": [
+          "6_3",
+          "6_2"
+        ],
+        "values": [
+          {
+            "doubleVal": -0.014195845033557308
+          }
+        ]
+      },
+      {
+        "name": "two_qubit_parallel_sycamore_gate_xeb_entangler_phi_error_per_cycle",
+        "targets": [
+          "6_5",
+          "6_4"
+        ],
+        "values": [
+          {
+            "doubleVal": 0.05560148906131568
+          }
+        ]
+      },
+      {
+        "name": "two_qubit_parallel_sycamore_gate_xeb_entangler_phi_error_per_cycle",
+        "targets": [
+          "7_4",
+          "7_3"
+        ],
+        "values": [
+          {
+            "doubleVal": 0.21500322581182685
+          }
+        ]
+      },
+      {
+        "name": "two_qubit_parallel_sycamore_gate_xeb_entangler_phi_error_per_cycle",
+        "targets": [
+          "7_6",
+          "7_5"
+        ],
+        "values": [
+          {
+            "doubleVal": -0.008358262382272219
+          }
+        ]
+      },
+      {
+        "name": "two_qubit_parallel_sycamore_gate_xeb_entangler_phi_error_per_cycle",
+        "targets": [
+          "8_5",
+          "8_4"
+        ],
+        "values": [
+          {
+            "doubleVal": 0.0730486989657515
+          }
+        ]
+      },
+      {
+        "name": "two_qubit_parallel_sycamore_gate_xeb_entangler_phi_error_per_cycle",
+        "targets": [
+          "5_2",
+          "4_2"
+        ],
+        "values": [
+          {
+            "doubleVal": 0.03429225930225632
+          }
+        ]
+      },
+      {
+        "name": "two_qubit_parallel_sycamore_gate_xeb_entangler_phi_error_per_cycle",
+        "targets": [
+          "6_1",
+          "5_1"
+        ],
+        "values": [
+          {
+            "doubleVal": 0.03365436332522398
+          }
+        ]
+      },
+      {
+        "name": "two_qubit_parallel_sycamore_gate_xeb_entangler_phi_error_per_cycle",
+        "targets": [
+          "6_3",
+          "5_3"
+        ],
+        "values": [
+          {
+            "doubleVal": 0.028263587006678303
+          }
+        ]
+      },
+      {
+        "name": "two_qubit_parallel_sycamore_gate_xeb_entangler_phi_error_per_cycle",
+        "targets": [
+          "7_2",
+          "6_2"
+        ],
+        "values": [
+          {
+            "doubleVal": 0.2087711188182464
+          }
+        ]
+      },
+      {
+        "name": "two_qubit_parallel_sycamore_gate_xeb_entangler_phi_error_per_cycle",
+        "targets": [
+          "7_4",
+          "6_4"
+        ],
+        "values": [
+          {
+            "doubleVal": 0.019337352027676058
+          }
+        ]
+      },
+      {
+        "name": "two_qubit_parallel_sycamore_gate_xeb_entangler_phi_error_per_cycle",
+        "targets": [
+          "8_3",
+          "7_3"
+        ],
+        "values": [
+          {
+            "doubleVal": 0.06539656263797822
+          }
+        ]
+      },
+      {
+        "name": "two_qubit_parallel_sycamore_gate_xeb_entangler_phi_error_per_cycle",
+        "targets": [
+          "8_5",
+          "7_5"
+        ],
+        "values": [
+          {
+            "doubleVal": -0.039928525422598504
+          }
+        ]
+      },
+      {
+        "name": "two_qubit_parallel_sycamore_gate_xeb_entangler_phi_error_per_cycle",
+        "targets": [
+          "9_4",
+          "8_4"
+        ],
+        "values": [
+          {
+            "doubleVal": 0.10105602043548023
+          }
+        ]
+      },
+      {
+        "name": "two_qubit_parallel_sycamore_gate_xeb_entangler_phi_error_per_cycle",
+        "targets": [
+          "4_2",
+          "3_2"
+        ],
+        "values": [
+          {
+            "doubleVal": 0.03605674575715012
+          }
+        ]
+      },
+      {
+        "name": "two_qubit_parallel_sycamore_gate_xeb_entangler_phi_error_per_cycle",
+        "targets": [
+          "5_1",
+          "4_1"
+        ],
+        "values": [
+          {
+            "doubleVal": 0.029126748294586502
+          }
+        ]
+      },
+      {
+        "name": "two_qubit_parallel_sycamore_gate_xeb_entangler_phi_error_per_cycle",
+        "targets": [
+          "5_3",
+          "4_3"
+        ],
+        "values": [
+          {
+            "doubleVal": 0.046740201299123374
+          }
+        ]
+      },
+      {
+        "name": "two_qubit_parallel_sycamore_gate_xeb_entangler_phi_error_per_cycle",
+        "targets": [
+          "6_2",
+          "5_2"
+        ],
+        "values": [
+          {
+            "doubleVal": 0.03438723194279225
+          }
+        ]
+      },
+      {
+        "name": "two_qubit_parallel_sycamore_gate_xeb_entangler_phi_error_per_cycle",
+        "targets": [
+          "6_4",
+          "5_4"
+        ],
+        "values": [
+          {
+            "doubleVal": 0.07581353010640379
+          }
+        ]
+      },
+      {
+        "name": "two_qubit_parallel_sycamore_gate_xeb_entangler_phi_error_per_cycle",
+        "targets": [
+          "7_3",
+          "6_3"
+        ],
+        "values": [
+          {
+            "doubleVal": 0.04927550438196571
+          }
+        ]
+      },
+      {
+        "name": "two_qubit_parallel_sycamore_gate_xeb_entangler_phi_error_per_cycle",
+        "targets": [
+          "7_5",
+          "6_5"
+        ],
+        "values": [
+          {
+            "doubleVal": -0.012832204815779846
+          }
+        ]
+      },
+      {
+        "name": "two_qubit_parallel_sycamore_gate_xeb_entangler_phi_error_per_cycle",
+        "targets": [
+          "8_4",
+          "7_4"
+        ],
+        "values": [
+          {
+            "doubleVal": 0.23364184083488393
+          }
+        ]
+      },
+      {
+        "name": "two_qubit_parallel_sqrt_iswap_gate_xeb_entangler_phi_error_per_cycle",
+        "targets": [
+          "4_2",
+          "4_3"
+        ],
+        "values": [
+          {
+            "doubleVal": 0.15149393767054864
+          }
+        ]
+      },
+      {
+        "name": "two_qubit_parallel_sqrt_iswap_gate_xeb_entangler_phi_error_per_cycle",
+        "targets": [
+          "5_1",
+          "5_2"
+        ],
+        "values": [
+          {
+            "doubleVal": 0.08115490669503655
+          }
+        ]
+      },
+      {
+        "name": "two_qubit_parallel_sqrt_iswap_gate_xeb_entangler_phi_error_per_cycle",
+        "targets": [
+          "5_3",
+          "5_4"
+        ],
+        "values": [
+          {
+            "doubleVal": 0.12666058954618276
+          }
+        ]
+      },
+      {
+        "name": "two_qubit_parallel_sqrt_iswap_gate_xeb_entangler_phi_error_per_cycle",
+        "targets": [
+          "6_2",
+          "6_3"
+        ],
+        "values": [
+          {
+            "doubleVal": 0.1619170445052429
+          }
+        ]
+      },
+      {
+        "name": "two_qubit_parallel_sqrt_iswap_gate_xeb_entangler_phi_error_per_cycle",
+        "targets": [
+          "6_4",
+          "6_5"
+        ],
+        "values": [
+          {
+            "doubleVal": 0.16545977424191083
+          }
+        ]
+      },
+      {
+        "name": "two_qubit_parallel_sqrt_iswap_gate_xeb_entangler_phi_error_per_cycle",
+        "targets": [
+          "7_3",
+          "7_4"
+        ],
+        "values": [
+          {
+            "doubleVal": 0.1767259638259615
+          }
+        ]
+      },
+      {
+        "name": "two_qubit_parallel_sqrt_iswap_gate_xeb_entangler_phi_error_per_cycle",
+        "targets": [
+          "7_5",
+          "7_6"
+        ],
+        "values": [
+          {
+            "doubleVal": 0.1581161009286567
+          }
+        ]
+      },
+      {
+        "name": "two_qubit_parallel_sqrt_iswap_gate_xeb_entangler_phi_error_per_cycle",
+        "targets": [
+          "8_4",
+          "8_5"
+        ],
+        "values": [
+          {
+            "doubleVal": 0.11987164105620574
+          }
+        ]
+      },
+      {
+        "name": "two_qubit_parallel_sqrt_iswap_gate_xeb_entangler_phi_error_per_cycle",
+        "targets": [
+          "3_2",
+          "4_2"
+        ],
+        "values": [
+          {
+            "doubleVal": 0.1651271510086092
+          }
+        ]
+      },
+      {
+        "name": "two_qubit_parallel_sqrt_iswap_gate_xeb_entangler_phi_error_per_cycle",
+        "targets": [
+          "4_1",
+          "5_1"
+        ],
+        "values": [
+          {
+            "doubleVal": 0.13758612206017107
+          }
+        ]
+      },
+      {
+        "name": "two_qubit_parallel_sqrt_iswap_gate_xeb_entangler_phi_error_per_cycle",
+        "targets": [
+          "4_3",
+          "5_3"
+        ],
+        "values": [
+          {
+            "doubleVal": 0.14264564538070124
+          }
+        ]
+      },
+      {
+        "name": "two_qubit_parallel_sqrt_iswap_gate_xeb_entangler_phi_error_per_cycle",
+        "targets": [
+          "5_2",
+          "6_2"
+        ],
+        "values": [
+          {
+            "doubleVal": 0.19668995704053227
+          }
+        ]
+      },
+      {
+        "name": "two_qubit_parallel_sqrt_iswap_gate_xeb_entangler_phi_error_per_cycle",
+        "targets": [
+          "5_4",
+          "6_4"
+        ],
+        "values": [
+          {
+            "doubleVal": 0.14149247204885107
+          }
+        ]
+      },
+      {
+        "name": "two_qubit_parallel_sqrt_iswap_gate_xeb_entangler_phi_error_per_cycle",
+        "targets": [
+          "6_3",
+          "7_3"
+        ],
+        "values": [
+          {
+            "doubleVal": 0.1459506296712938
+          }
+        ]
+      },
+      {
+        "name": "two_qubit_parallel_sqrt_iswap_gate_xeb_entangler_phi_error_per_cycle",
+        "targets": [
+          "6_5",
+          "7_5"
+        ],
+        "values": [
+          {
+            "doubleVal": 0.10939315216454748
+          }
+        ]
+      },
+      {
+        "name": "two_qubit_parallel_sqrt_iswap_gate_xeb_entangler_phi_error_per_cycle",
+        "targets": [
+          "7_4",
+          "8_4"
+        ],
+        "values": [
+          {
+            "doubleVal": 0.1116559910874031
+          }
+        ]
+      },
+      {
+        "name": "two_qubit_parallel_sqrt_iswap_gate_xeb_entangler_phi_error_per_cycle",
+        "targets": [
+          "4_2",
+          "5_2"
+        ],
+        "values": [
+          {
+            "doubleVal": 0.12272528141239247
+          }
+        ]
+      },
+      {
+        "name": "two_qubit_parallel_sqrt_iswap_gate_xeb_entangler_phi_error_per_cycle",
+        "targets": [
+          "5_1",
+          "6_1"
+        ],
+        "values": [
+          {
+            "doubleVal": 0.1536875106814004
+          }
+        ]
+      },
+      {
+        "name": "two_qubit_parallel_sqrt_iswap_gate_xeb_entangler_phi_error_per_cycle",
+        "targets": [
+          "5_3",
+          "6_3"
+        ],
+        "values": [
+          {
+            "doubleVal": 0.15373009661869386
+          }
+        ]
+      },
+      {
+        "name": "two_qubit_parallel_sqrt_iswap_gate_xeb_entangler_phi_error_per_cycle",
+        "targets": [
+          "6_2",
+          "7_2"
+        ],
+        "values": [
+          {
+            "doubleVal": 0.2006132764804276
+          }
+        ]
+      },
+      {
+        "name": "two_qubit_parallel_sqrt_iswap_gate_xeb_entangler_phi_error_per_cycle",
+        "targets": [
+          "6_4",
+          "7_4"
+        ],
+        "values": [
+          {
+            "doubleVal": 0.12195542229709311
+          }
+        ]
+      },
+      {
+        "name": "two_qubit_parallel_sqrt_iswap_gate_xeb_entangler_phi_error_per_cycle",
+        "targets": [
+          "7_3",
+          "8_3"
+        ],
+        "values": [
+          {
+            "doubleVal": 0.16495127602861182
+          }
+        ]
+      },
+      {
+        "name": "two_qubit_parallel_sqrt_iswap_gate_xeb_entangler_phi_error_per_cycle",
+        "targets": [
+          "7_5",
+          "8_5"
+        ],
+        "values": [
+          {
+            "doubleVal": 0.1428083507953306
+          }
+        ]
+      },
+      {
+        "name": "two_qubit_parallel_sqrt_iswap_gate_xeb_entangler_phi_error_per_cycle",
+        "targets": [
+          "8_4",
+          "9_4"
+        ],
+        "values": [
+          {
+            "doubleVal": 0.1299184810087799
+          }
+        ]
+      },
+      {
+        "name": "two_qubit_parallel_sqrt_iswap_gate_xeb_entangler_phi_error_per_cycle",
+        "targets": [
+          "4_1",
+          "4_2"
+        ],
+        "values": [
+          {
+            "doubleVal": 0.07484561256129396
+          }
+        ]
+      },
+      {
+        "name": "two_qubit_parallel_sqrt_iswap_gate_xeb_entangler_phi_error_per_cycle",
+        "targets": [
+          "5_0",
+          "5_1"
+        ],
+        "values": [
+          {
+            "doubleVal": 0.06560165776085514
+          }
+        ]
+      },
+      {
+        "name": "two_qubit_parallel_sqrt_iswap_gate_xeb_entangler_phi_error_per_cycle",
+        "targets": [
+          "5_2",
+          "5_3"
+        ],
+        "values": [
+          {
+            "doubleVal": 0.11094611698260515
+          }
+        ]
+      },
+      {
+        "name": "two_qubit_parallel_sqrt_iswap_gate_xeb_entangler_phi_error_per_cycle",
+        "targets": [
+          "6_1",
+          "6_2"
+        ],
+        "values": [
+          {
+            "doubleVal": 0.08573029096311613
+          }
+        ]
+      },
+      {
+        "name": "two_qubit_parallel_sqrt_iswap_gate_xeb_entangler_phi_error_per_cycle",
+        "targets": [
+          "6_3",
+          "6_4"
+        ],
+        "values": [
+          {
+            "doubleVal": 0.11158790847177702
+          }
+        ]
+      },
+      {
+        "name": "two_qubit_parallel_sqrt_iswap_gate_xeb_entangler_phi_error_per_cycle",
+        "targets": [
+          "7_2",
+          "7_3"
+        ],
+        "values": [
+          {
+            "doubleVal": 0.0680538988738042
+          }
+        ]
+      },
+      {
+        "name": "two_qubit_parallel_sqrt_iswap_gate_xeb_entangler_phi_error_per_cycle",
+        "targets": [
+          "7_4",
+          "7_5"
+        ],
+        "values": [
+          {
+            "doubleVal": 0.13504888281033667
+          }
+        ]
+      },
+      {
+        "name": "two_qubit_parallel_sqrt_iswap_gate_xeb_entangler_phi_error_per_cycle",
+        "targets": [
+          "8_3",
+          "8_4"
+        ],
+        "values": [
+          {
+            "doubleVal": 0.11135690706947399
+          }
+        ]
+      },
+      {
+        "name": "two_qubit_parallel_sqrt_iswap_gate_xeb_entangler_phi_error_per_cycle",
+        "targets": [
+          "4_3",
+          "4_2"
+        ],
+        "values": [
+          {
+            "doubleVal": 0.15149393767054864
+          }
+        ]
+      },
+      {
+        "name": "two_qubit_parallel_sqrt_iswap_gate_xeb_entangler_phi_error_per_cycle",
+        "targets": [
+          "5_2",
+          "5_1"
+        ],
+        "values": [
+          {
+            "doubleVal": 0.08115490669503655
+          }
+        ]
+      },
+      {
+        "name": "two_qubit_parallel_sqrt_iswap_gate_xeb_entangler_phi_error_per_cycle",
+        "targets": [
+          "5_4",
+          "5_3"
+        ],
+        "values": [
+          {
+            "doubleVal": 0.12666058954618276
+          }
+        ]
+      },
+      {
+        "name": "two_qubit_parallel_sqrt_iswap_gate_xeb_entangler_phi_error_per_cycle",
+        "targets": [
+          "6_3",
+          "6_2"
+        ],
+        "values": [
+          {
+            "doubleVal": 0.1619170445052429
+          }
+        ]
+      },
+      {
+        "name": "two_qubit_parallel_sqrt_iswap_gate_xeb_entangler_phi_error_per_cycle",
+        "targets": [
+          "6_5",
+          "6_4"
+        ],
+        "values": [
+          {
+            "doubleVal": 0.16545977424191083
+          }
+        ]
+      },
+      {
+        "name": "two_qubit_parallel_sqrt_iswap_gate_xeb_entangler_phi_error_per_cycle",
+        "targets": [
+          "7_4",
+          "7_3"
+        ],
+        "values": [
+          {
+            "doubleVal": 0.1767259638259615
+          }
+        ]
+      },
+      {
+        "name": "two_qubit_parallel_sqrt_iswap_gate_xeb_entangler_phi_error_per_cycle",
+        "targets": [
+          "7_6",
+          "7_5"
+        ],
+        "values": [
+          {
+            "doubleVal": 0.1581161009286567
+          }
+        ]
+      },
+      {
+        "name": "two_qubit_parallel_sqrt_iswap_gate_xeb_entangler_phi_error_per_cycle",
+        "targets": [
+          "8_5",
+          "8_4"
+        ],
+        "values": [
+          {
+            "doubleVal": 0.11987164105620574
+          }
+        ]
+      },
+      {
+        "name": "two_qubit_parallel_sqrt_iswap_gate_xeb_entangler_phi_error_per_cycle",
+        "targets": [
+          "4_2",
+          "3_2"
+        ],
+        "values": [
+          {
+            "doubleVal": 0.1651271510086092
+          }
+        ]
+      },
+      {
+        "name": "two_qubit_parallel_sqrt_iswap_gate_xeb_entangler_phi_error_per_cycle",
+        "targets": [
+          "5_1",
+          "4_1"
+        ],
+        "values": [
+          {
+            "doubleVal": 0.13758612206017107
+          }
+        ]
+      },
+      {
+        "name": "two_qubit_parallel_sqrt_iswap_gate_xeb_entangler_phi_error_per_cycle",
+        "targets": [
+          "5_3",
+          "4_3"
+        ],
+        "values": [
+          {
+            "doubleVal": 0.14264564538070124
+          }
+        ]
+      },
+      {
+        "name": "two_qubit_parallel_sqrt_iswap_gate_xeb_entangler_phi_error_per_cycle",
+        "targets": [
+          "6_2",
+          "5_2"
+        ],
+        "values": [
+          {
+            "doubleVal": 0.19668995704053227
+          }
+        ]
+      },
+      {
+        "name": "two_qubit_parallel_sqrt_iswap_gate_xeb_entangler_phi_error_per_cycle",
+        "targets": [
+          "6_4",
+          "5_4"
+        ],
+        "values": [
+          {
+            "doubleVal": 0.14149247204885107
+          }
+        ]
+      },
+      {
+        "name": "two_qubit_parallel_sqrt_iswap_gate_xeb_entangler_phi_error_per_cycle",
+        "targets": [
+          "7_3",
+          "6_3"
+        ],
+        "values": [
+          {
+            "doubleVal": 0.1459506296712938
+          }
+        ]
+      },
+      {
+        "name": "two_qubit_parallel_sqrt_iswap_gate_xeb_entangler_phi_error_per_cycle",
+        "targets": [
+          "7_5",
+          "6_5"
+        ],
+        "values": [
+          {
+            "doubleVal": 0.10939315216454748
+          }
+        ]
+      },
+      {
+        "name": "two_qubit_parallel_sqrt_iswap_gate_xeb_entangler_phi_error_per_cycle",
+        "targets": [
+          "8_4",
+          "7_4"
+        ],
+        "values": [
+          {
+            "doubleVal": 0.1116559910874031
+          }
+        ]
+      },
+      {
+        "name": "two_qubit_parallel_sqrt_iswap_gate_xeb_entangler_phi_error_per_cycle",
+        "targets": [
+          "5_2",
+          "4_2"
+        ],
+        "values": [
+          {
+            "doubleVal": 0.12272528141239247
+          }
+        ]
+      },
+      {
+        "name": "two_qubit_parallel_sqrt_iswap_gate_xeb_entangler_phi_error_per_cycle",
+        "targets": [
+          "6_1",
+          "5_1"
+        ],
+        "values": [
+          {
+            "doubleVal": 0.1536875106814004
+          }
+        ]
+      },
+      {
+        "name": "two_qubit_parallel_sqrt_iswap_gate_xeb_entangler_phi_error_per_cycle",
+        "targets": [
+          "6_3",
+          "5_3"
+        ],
+        "values": [
+          {
+            "doubleVal": 0.15373009661869386
+          }
+        ]
+      },
+      {
+        "name": "two_qubit_parallel_sqrt_iswap_gate_xeb_entangler_phi_error_per_cycle",
+        "targets": [
+          "7_2",
+          "6_2"
+        ],
+        "values": [
+          {
+            "doubleVal": 0.2006132764804276
+          }
+        ]
+      },
+      {
+        "name": "two_qubit_parallel_sqrt_iswap_gate_xeb_entangler_phi_error_per_cycle",
+        "targets": [
+          "7_4",
+          "6_4"
+        ],
+        "values": [
+          {
+            "doubleVal": 0.12195542229709311
+          }
+        ]
+      },
+      {
+        "name": "two_qubit_parallel_sqrt_iswap_gate_xeb_entangler_phi_error_per_cycle",
+        "targets": [
+          "8_3",
+          "7_3"
+        ],
+        "values": [
+          {
+            "doubleVal": 0.16495127602861182
+          }
+        ]
+      },
+      {
+        "name": "two_qubit_parallel_sqrt_iswap_gate_xeb_entangler_phi_error_per_cycle",
+        "targets": [
+          "8_5",
+          "7_5"
+        ],
+        "values": [
+          {
+            "doubleVal": 0.1428083507953306
+          }
+        ]
+      },
+      {
+        "name": "two_qubit_parallel_sqrt_iswap_gate_xeb_entangler_phi_error_per_cycle",
+        "targets": [
+          "9_4",
+          "8_4"
+        ],
+        "values": [
+          {
+            "doubleVal": 0.1299184810087799
+          }
+        ]
+      },
+      {
+        "name": "two_qubit_parallel_sqrt_iswap_gate_xeb_entangler_phi_error_per_cycle",
+        "targets": [
+          "4_2",
+          "4_1"
+        ],
+        "values": [
+          {
+            "doubleVal": 0.07484561256129396
+          }
+        ]
+      },
+      {
+        "name": "two_qubit_parallel_sqrt_iswap_gate_xeb_entangler_phi_error_per_cycle",
+        "targets": [
+          "5_1",
+          "5_0"
+        ],
+        "values": [
+          {
+            "doubleVal": 0.06560165776085514
+          }
+        ]
+      },
+      {
+        "name": "two_qubit_parallel_sqrt_iswap_gate_xeb_entangler_phi_error_per_cycle",
+        "targets": [
+          "5_3",
+          "5_2"
+        ],
+        "values": [
+          {
+            "doubleVal": 0.11094611698260515
+          }
+        ]
+      },
+      {
+        "name": "two_qubit_parallel_sqrt_iswap_gate_xeb_entangler_phi_error_per_cycle",
+        "targets": [
+          "6_2",
+          "6_1"
+        ],
+        "values": [
+          {
+            "doubleVal": 0.08573029096311613
+          }
+        ]
+      },
+      {
+        "name": "two_qubit_parallel_sqrt_iswap_gate_xeb_entangler_phi_error_per_cycle",
+        "targets": [
+          "6_4",
+          "6_3"
+        ],
+        "values": [
+          {
+            "doubleVal": 0.11158790847177702
+          }
+        ]
+      },
+      {
+        "name": "two_qubit_parallel_sqrt_iswap_gate_xeb_entangler_phi_error_per_cycle",
+        "targets": [
+          "7_3",
+          "7_2"
+        ],
+        "values": [
+          {
+            "doubleVal": 0.0680538988738042
+          }
+        ]
+      },
+      {
+        "name": "two_qubit_parallel_sqrt_iswap_gate_xeb_entangler_phi_error_per_cycle",
+        "targets": [
+          "7_5",
+          "7_4"
+        ],
+        "values": [
+          {
+            "doubleVal": 0.13504888281033667
+          }
+        ]
+      },
+      {
+        "name": "two_qubit_parallel_sqrt_iswap_gate_xeb_entangler_phi_error_per_cycle",
+        "targets": [
+          "8_4",
+          "8_3"
+        ],
+        "values": [
+          {
+            "doubleVal": 0.11135690706947399
+          }
+        ]
       }
     ]
   }

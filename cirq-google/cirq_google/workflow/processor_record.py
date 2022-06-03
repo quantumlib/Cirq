@@ -34,7 +34,7 @@ class ProcessorRecord(metaclass=abc.ABCMeta):
         This is the primary method that descendants must implement.
         """
 
-    def get_sampler(self) -> 'cirq.Sampler':
+    def get_sampler(self) -> 'cg.ProcessorSampler':
         """Return a `cirq.Sampler` for the processor specified by this class.
 
         The default implementation delegates to `self.get_processor()`.

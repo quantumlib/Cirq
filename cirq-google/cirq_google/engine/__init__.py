@@ -49,6 +49,7 @@ from cirq_google.engine.engine import (
     get_engine,
     get_engine_calibration,
     get_engine_device,
+    get_engine_sampler,
     ProtoVersion,
 )
 
@@ -66,7 +67,7 @@ from cirq_google.engine.runtime_estimator import (
     estimate_run_sweep_time,
 )
 
-from cirq_google.engine.engine_sampler import get_engine_sampler, QuantumEngineSampler
+from cirq_google.engine.engine_sampler import QuantumEngineSampler
 
 from cirq_google.engine.validating_sampler import ValidatingSampler
 
@@ -80,3 +81,5 @@ from cirq_google.engine.virtual_engine_factory import (
 )
 
 from cirq_google.engine.engine_result import EngineResult
+
+from cirq_google.engine.processor_sampler import ProcessorSampler

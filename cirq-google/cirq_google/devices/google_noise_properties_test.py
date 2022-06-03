@@ -56,7 +56,7 @@ def sample_noise_properties(
         gate_times_ns=DEFAULT_GATE_NS,
         t1_ns={q: 1e5 for q in system_qubits},
         tphi_ns={q: 2e5 for q in system_qubits},
-        readout_errors={q: np.array([SINGLE_QUBIT_ERROR, TWO_QUBIT_ERROR]) for q in system_qubits},
+        readout_errors={q: [SINGLE_QUBIT_ERROR, TWO_QUBIT_ERROR] for q in system_qubits},
         gate_pauli_errors={
             **{
                 OpIdentifier(g, q): 0.001

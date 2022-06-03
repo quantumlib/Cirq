@@ -219,12 +219,13 @@ class XPowGate(eigen_gate.EigenGate):
 
     def _qasm_(self, args: 'cirq.QasmArgs', qubits: Tuple['cirq.Qid', ...]) -> Optional[str]:
         args.validate_version('2.0')
-        if self._exponent == 1 and self._global_shift != -0.5:
-            return args.format('x {0};\n', qubits[0])
-        elif self._exponent == 0.5:
-            return args.format('sx {0};\n', qubits[0])
-        elif self._exponent == -0.5:
-            return args.format('sxdg {0};\n', qubits[0])
+        if self._global_shift == 0:
+            if self._exponent == 1:
+                return args.format('x {0};\n', qubits[0])
+            elif self._exponent == 0.5:
+                return args.format('sx {0};\n', qubits[0])
+            elif self._exponent == -0.5:
+                return args.format('sxdg {0};\n', qubits[0])
         return args.format('rx({0:half_turns}) {1};\n', self._exponent, qubits[0])
 
     def _quil_(
@@ -307,6 +308,10 @@ class Rx(XPowGate):
 
     def __repr__(self) -> str:
         return f'cirq.Rx(rads={proper_repr(self._rads)})'
+
+    def _qasm_(self, args: 'cirq.QasmArgs', qubits: Tuple['cirq.Qid', ...]) -> Optional[str]:
+        args.validate_version('2.0')
+        return args.format('rx({0:half_turns}) {1};\n', self._exponent, qubits[0])
 
     def _json_dict_(self) -> Dict[str, Any]:
         return {'rads': self._rads}
@@ -479,6 +484,10 @@ class Ry(YPowGate):
 
     def __repr__(self) -> str:
         return f'cirq.Ry(rads={proper_repr(self._rads)})'
+
+    def _qasm_(self, args: 'cirq.QasmArgs', qubits: Tuple['cirq.Qid', ...]) -> Optional[str]:
+        args.validate_version('2.0')
+        return args.format('ry({0:half_turns}) {1};\n', self._exponent, qubits[0])
 
     def _json_dict_(self) -> Dict[str, Any]:
         return {'rads': self._rads}
@@ -654,13 +663,18 @@ class ZPowGate(eigen_gate.EigenGate):
 
     def _qasm_(self, args: 'cirq.QasmArgs', qubits: Tuple['cirq.Qid', ...]) -> Optional[str]:
         args.validate_version('2.0')
-        if self._exponent == 1 and self.global_shift != -0.5:
-            return args.format('z {0};\n', qubits[0])
-        elif self._exponent == 0.5:
-            return args.format('s {0};\n', qubits[0])
-        elif self._exponent == -0.5:
-            return args.format('sdg {0};\n', qubits[0])
 
+        if self.global_shift == 0:
+            if self._exponent == 1:
+                return args.format('z {0};\n', qubits[0])
+            elif self._exponent == 0.5:
+                return args.format('s {0};\n', qubits[0])
+            elif self._exponent == -0.5:
+                return args.format('sdg {0};\n', qubits[0])
+            elif self._exponent == 0.25:
+                return args.format('t {0};\n', qubits[0])
+            elif self._exponent == -0.25:
+                return args.format('tdg {0};\n', qubits[0])
         return args.format('rz({0:half_turns}) {1};\n', self._exponent, qubits[0])
 
     def _quil_(
@@ -756,6 +770,10 @@ class Rz(ZPowGate):
     def __repr__(self) -> str:
         return f'cirq.Rz(rads={proper_repr(self._rads)})'
 
+    def _qasm_(self, args: 'cirq.QasmArgs', qubits: Tuple['cirq.Qid', ...]) -> Optional[str]:
+        args.validate_version('2.0')
+        return args.format('rz({0:half_turns}) {1};\n', self._exponent, qubits[0])
+
     def _json_dict_(self) -> Dict[str, Any]:
         return {'rads': self._rads}
 
@@ -844,11 +862,11 @@ class HPowGate(eigen_gate.EigenGate):
 
         if self._exponent == 1:
             yield cirq.Y(q) ** 0.5
-            yield cirq.XPowGate(global_shift=-0.25).on(q)
+            yield cirq.XPowGate(global_shift=-0.25 + self.global_shift).on(q)
             return
 
         yield YPowGate(exponent=0.25).on(q)
-        yield XPowGate(exponent=self._exponent).on(q)
+        yield XPowGate(exponent=self._exponent, global_shift=self.global_shift).on(q)
         yield YPowGate(exponent=-0.25).on(q)
 
     def _circuit_diagram_info_(
@@ -860,7 +878,9 @@ class HPowGate(eigen_gate.EigenGate):
 
     def _qasm_(self, args: 'cirq.QasmArgs', qubits: Tuple['cirq.Qid', ...]) -> Optional[str]:
         args.validate_version('2.0')
-        if self._exponent == 1:
+        if self._exponent == 0:
+            return args.format('id {0};\n', qubits[0])
+        elif self._exponent == 1 and self._global_shift == 0:
             return args.format('h {0};\n', qubits[0])
 
         return args.format(
@@ -906,18 +926,18 @@ class HPowGate(eigen_gate.EigenGate):
 
 
 class CZPowGate(gate_features.InterchangeableQubitsGate, eigen_gate.EigenGate):
-    """A gate that applies a phase to the |11⟩ state of two qubits.
+    r"""A gate that applies a phase to the |11⟩ state of two qubits.
 
     The unitary matrix of `CZPowGate(exponent=t)` is:
 
-        [[1, 0, 0, 0],
-         [0, 1, 0, 0],
-         [0, 0, 1, 0],
-         [0, 0, 0, g]]
-
-    where:
-
-        g = exp(i·π·t).
+    $$
+    \begin{bmatrix}
+        1 & 0 & 0 & 0 \\
+        0 & 1 & 0 & 0 \\
+        0 & 0 & 1 & 0 \\
+        0 & 0 & 0 & e^{i \pi t} \\
+    \end{bmatrix}
+    $$
 
     `cirq.CZ`, the controlled Z gate, is an instance of this gate at
     `exponent=1`.
@@ -1065,7 +1085,7 @@ class CZPowGate(gate_features.InterchangeableQubitsGate, eigen_gate.EigenGate):
 
 
 class CXPowGate(eigen_gate.EigenGate):
-    """A gate that applies a controlled power of an X gate.
+    r"""A gate that applies a controlled power of an X gate.
 
     When applying CNOT (controlled-not) to qubits, you can either use
     positional arguments CNOT(q1, q2), where q2 is toggled when q1 is on,
@@ -1074,16 +1094,26 @@ class CXPowGate(eigen_gate.EigenGate):
 
     The unitary matrix of `cirq.CXPowGate(exponent=t)` is:
 
-        [[1, 0, 0, 0],
-         [0, 1, 0, 0],
-         [0, 0, g·c, -i·g·s],
-         [0, 0, -i·g·s, g·c]]
+    $$
+    \begin{bmatrix}
+        1 & 0 & 0 & 0 \\
+        0 & 1 & 0 & 0 \\
+        0 & 0 & g c & -i g s \\
+        0 & 0 & -i g s & g c
+    \end{bmatrix}
+    $$
 
     where:
 
-        c = cos(π·t/2)
-        s = sin(π·t/2)
-        g = exp(i·π·t/2).
+    $$
+    c = \cos\left(\frac{\pi t}{2}\right)
+    $$
+    $$
+    s = \sin\left(\frac{\pi t}{2}\right)
+    $$
+    $$
+    g = e^{\frac{i \pi t}{2}}
+    $$
 
     `cirq.CNOT`, the controlled NOT gate, is an instance of this gate at
     `exponent=1`.
@@ -1104,7 +1134,7 @@ class CXPowGate(eigen_gate.EigenGate):
     def _decompose_(self, qubits):
         c, t = qubits
         yield YPowGate(exponent=-0.5).on(t)
-        yield CZ(c, t) ** self._exponent
+        yield cirq.CZPowGate(exponent=self._exponent, global_shift=self.global_shift).on(c, t)
         yield YPowGate(exponent=0.5).on(t)
 
     def _eigen_components(self) -> List[Tuple[float, np.ndarray]]:
@@ -1322,17 +1352,19 @@ document(
 CZ = CZPowGate()
 document(
     CZ,
-    """The controlled Z gate.
+    r"""The controlled Z gate.
 
-    The `exponent=1` instance of `cirq.CZPowGate`.
+    This is the `exponent=1` instance of `cirq.CZPowGate`.
 
-    Matrix:
-    ```
-        [[1 . . .],
-         [. 1 . .],
-         [. . 1 .],
-         [. . . -1]]
-    ```
+    The unitary matrix of this gate is (empty elements are $0$):
+    $$
+        \begin{bmatrix}
+            1 & & & \\
+            & 1 & & \\
+            & & 1 & \\
+            & & & -1
+        \end{bmatrix}
+    $$
     """,
 )
 
@@ -1340,16 +1372,20 @@ CNotPowGate = CXPowGate
 CNOT = CX = CNotPowGate()
 document(
     CNOT,
-    """The controlled NOT gate.
+    r"""The controlled NOT gate.
 
-    The `exponent=1` instance of `cirq.CXPowGate`.
+    This is the `exponent=1` instance of `cirq.CXPowGate`.
 
-    Matrix:
-    ```
-        [[1 . . .],
-         [. 1 . .],
-         [. . . 1],
-         [. . 1 .]]
-    ```
+    Alternative name: `cirq.CNOT`.
+
+    The unitary matrix of this gate is (empty elements are $0$):
+    $$
+        \begin{bmatrix}
+            1 & 0 & 0 & 0 \\
+            0 & 1 & 0 & 0 \\
+            0 & 0 & 0 & 1 \\
+            0 & 0 & 1 & 0
+        \end{bmatrix}
+    $$
     """,
 )

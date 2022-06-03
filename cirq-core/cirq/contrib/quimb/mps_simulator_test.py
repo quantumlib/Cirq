@@ -8,7 +8,6 @@ import sympy
 
 import cirq
 import cirq.contrib.quimb as ccq
-import cirq.experiments.google_v2_supremacy_circuit as supremacy_v2
 import cirq.testing
 from cirq import value
 
@@ -215,19 +214,19 @@ def test_measurement_1qubit():
     simulator = ccq.mps_simulator.MPSSimulator()
 
     result = simulator.run(circuit, repetitions=100)
-    assert sum(result.measurements['1'])[0] < 80
-    assert sum(result.measurements['1'])[0] > 20
+    assert sum(result.measurements['q(1)'])[0] < 80
+    assert sum(result.measurements['q(1)'])[0] > 20
 
 
 def test_reset():
     q = cirq.LineQubit(0)
     simulator = ccq.mps_simulator.MPSSimulator()
     c = cirq.Circuit(cirq.X(q), cirq.reset(q), cirq.measure(q))
-    assert simulator.sample(c)['0'][0] == 0
+    assert simulator.sample(c)['q(0)'][0] == 0
     c = cirq.Circuit(cirq.H(q), cirq.reset(q), cirq.measure(q))
-    assert simulator.sample(c)['0'][0] == 0
+    assert simulator.sample(c)['q(0)'][0] == 0
     c = cirq.Circuit(cirq.reset(q), cirq.measure(q))
-    assert simulator.sample(c)['0'][0] == 0
+    assert simulator.sample(c)['q(0)'][0] == 0
 
 
 def test_measurement_2qubits():
@@ -237,7 +236,7 @@ def test_measurement_2qubits():
     simulator = ccq.mps_simulator.MPSSimulator()
 
     repetitions = 1024
-    measurement = simulator.run(circuit, repetitions=repetitions).measurements['0,2']
+    measurement = simulator.run(circuit, repetitions=repetitions).measurements['q(0),q(2)']
 
     result_counts = {'00': 0, '01': 0, '10': 0, '11': 0}
     for i in range(repetitions):
@@ -310,7 +309,7 @@ def test_empty_step_result():
     step_result = next(sim.simulate_moment_steps(cirq.Circuit(cirq.measure(q0))))
     assert (
         str(step_result)
-        == """0=0
+        == """q(0)=0
 TensorNetwork([
     Tensor(shape=(2,), inds=('i_0',), tags=set()),
 ])"""
@@ -323,7 +322,7 @@ def test_step_result_repr_pretty():
     step_result = next(sim.simulate_moment_steps(cirq.Circuit(cirq.measure(q0))))
     cirq.testing.assert_repr_pretty(
         step_result,
-        """0=0
+        """q(0)=0
 TensorNetwork([
     Tensor(shape=(2,), inds=('i_0',), tags=set()),
 ])""",
@@ -353,17 +352,17 @@ def test_state_equal():
     assert state1a != state1b
 
 
-def test_supremacy_equal_more_rows():
-    circuit = supremacy_v2.generate_boixo_2018_supremacy_circuits_v2_grid(
-        n_rows=3, n_cols=2, cz_depth=3, seed=0
+def test_random_circuits_equal_more_rows():
+    circuit = cirq.testing.random_circuit(
+        qubits=cirq.GridQubit.rect(3, 2), n_moments=6, op_density=1.0
     )
     qubits = circuit.all_qubits()
     assert_same_output_as_dense(circuit, qubits)
 
 
 def test_supremacy_equal_more_cols():
-    circuit = supremacy_v2.generate_boixo_2018_supremacy_circuits_v2_grid(
-        n_rows=2, n_cols=3, cz_depth=3, seed=0
+    circuit = cirq.testing.random_circuit(
+        qubits=cirq.GridQubit.rect(2, 3), n_moments=6, op_density=1.0
     )
     qubits = circuit.all_qubits()
     assert_same_output_as_dense(circuit, qubits)
@@ -378,39 +377,6 @@ def test_tensor_index_names():
     assert state.i_str(11) == "i_11"
     assert state.mu_str(0, 3) == "mu_0_3"
     assert state.mu_str(3, 0) == "mu_0_3"
-
-
-def test_supremacy_big():
-    circuit = supremacy_v2.generate_boixo_2018_supremacy_circuits_v2_grid(
-        n_rows=7, n_cols=7, cz_depth=6, seed=0
-    )
-    qubit_order = circuit.all_qubits()
-    q0 = next(iter(qubit_order))
-    circuit.append(cirq.measure(q0))
-
-    mps_simulator_1 = ccq.mps_simulator.MPSSimulator(
-        simulation_options=ccq.mps_simulator.MPSOptions(cutoff=5e-5)
-    )
-    result_1 = mps_simulator_1.simulate(circuit, qubit_order=qubit_order, initial_state=0)
-
-    assert result_1.final_state.estimation_stats() == {
-        'estimated_fidelity': 0.997,
-        'memory_bytes': 11008,
-        'num_coefs_used': 688,
-    }
-
-    mps_simulator_2 = ccq.mps_simulator.MPSSimulator(
-        simulation_options=ccq.mps_simulator.MPSOptions(
-            method='isvd', max_bond=1, cutoff_mode='sum2'
-        )
-    )
-    result_2 = mps_simulator_2.simulate(circuit, qubit_order=qubit_order, initial_state=0)
-
-    assert result_2.final_state.estimation_stats() == {
-        'estimated_fidelity': 1.0,
-        'memory_bytes': 1568,
-        'num_coefs_used': 98,
-    }
 
 
 def test_simulate_moment_steps_sample():
@@ -475,7 +441,7 @@ def test_run_no_repetitions():
     simulator = ccq.mps_simulator.MPSSimulator()
     circuit = cirq.Circuit(cirq.H(q0), cirq.measure(q0))
     result = simulator.run(circuit, repetitions=0)
-    assert len(result.measurements['0']) == 0
+    assert len(result.measurements['q(0)']) == 0
 
 
 def test_run_parameters_not_resolved():
