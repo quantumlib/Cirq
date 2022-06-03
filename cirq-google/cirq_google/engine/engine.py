@@ -42,7 +42,6 @@ from cirq_google.engine import (
     engine_job,
     engine_processor,
     engine_program,
-    engine_sampler,
     util,
 )
 from cirq_google.cloud import quantum
@@ -782,7 +781,7 @@ class Engine(abstract_engine.AbstractEngine):
     @util.deprecated_gate_set_parameter
     def sampler(
         self, processor_id: Union[str, List[str]], gate_set: Optional[Serializer] = None
-    ) -> engine_sampler.QuantumEngineSampler:
+    ) -> 'cirq_google.ProcessorSampler':
         """Returns a sampler backed by the engine.
 
         Args:
@@ -801,12 +800,11 @@ class Engine(abstract_engine.AbstractEngine):
     @util.deprecated_gate_set_parameter
     def get_sampler(
         self, processor_id: Union[str, List[str]], gate_set: Optional[Serializer] = None
-    ) -> engine_sampler.QuantumEngineSampler:
+    ) -> 'cirq_google.ProcessorSampler':
         """Returns a sampler backed by the engine.
 
         Args:
-            processor_id: String identifier, or list of string identifiers,
-                determining which processors may be used when sampling.
+            processor_id: String identifier of which processor should be used to sample.
             gate_set: A `Serializer` that determines how to serialize
                  circuits when requesting samples.
 
@@ -814,8 +812,17 @@ class Engine(abstract_engine.AbstractEngine):
             A `cirq.Sampler` instance (specifically a `engine_sampler.QuantumEngineSampler`
             that will send circuits to the Quantum Computing Service
             when sampled.
+
+        Raises:
+            ValueError: if a list of processors is provided.  This is no longer supported.
         """
-        return engine_sampler.QuantumEngineSampler(engine=self, processor_id=processor_id)
+        if not isinstance(processor_id, str):
+            raise ValueError(
+                f'Passing a list of processors ({processor_id}) '
+                'to get_sampler() no longer supported. Use Engine.run() instead if '
+                'you need to specify a list.'
+            )
+        return self.get_processor(processor_id).get_sampler()
 
 
 def get_engine(project_id: Optional[str] = None) -> Engine:
@@ -877,3 +884,26 @@ def get_engine_calibration(
     May return None if no calibration metrics exist for the device.
     """
     return get_engine(project_id).get_processor(processor_id).get_current_calibration()
+
+
+def get_engine_sampler(
+    processor_id: str, project_id: Optional[str] = None
+) -> 'cirq_google.ProcessorSampler':
+    """Get an EngineSampler assuming some sensible defaults.
+
+    This uses the environment variable GOOGLE_CLOUD_PROJECT for the Engine
+    project_id, unless set explicitly.
+
+    Args:
+        processor_id: Engine processor ID (from Cloud console or
+            ``Engine.list_processors``).
+        project_id: Optional explicit Google Cloud project id. Otherwise,
+            this defaults to the environment variable GOOGLE_CLOUD_PROJECT.
+            By using an environment variable, you can avoid hard-coding
+            personal project IDs in shared code.
+
+    Raises:
+         EnvironmentError: If no project_id is specified and the environment
+            variable GOOGLE_CLOUD_PROJECT is not set.
+    """
+    return get_engine(project_id).get_processor(processor_id).get_sampler()
