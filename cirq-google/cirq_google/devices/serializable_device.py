@@ -107,7 +107,7 @@ class SerializableDevice(cirq.Device):
                 *[
                     g
                     for g in gate_definitions.keys()
-                    if isinstance(g, (cirq.Gate, type(cirq.Gate)))
+                    if isinstance(g, cirq.Gate) or issubclass(g, cirq.Gate)
                 ],
                 cirq.GlobalPhaseGate,
             ),
