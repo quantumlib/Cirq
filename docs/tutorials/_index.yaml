@@ -43,11 +43,6 @@ landing_page:
         path: /cirq/tutorials/hidden_linear_function
         icon:
           name: menu_book
-      - heading: Rabi oscillation experiment
-        description: Example of using sweeps and symbols to show rotation of a qubit by different angles.
-        path: /cirq/tutorials/rabi_oscillations
-        icon:
-          name: menu_book
       - heading: Shor's algorithm
         description: Factor numbers using a quantum computer.
         path: /cirq/tutorials/shor
