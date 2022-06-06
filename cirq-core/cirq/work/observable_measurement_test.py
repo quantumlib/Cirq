@@ -546,26 +546,27 @@ def test_measure_observable_bad_grouper():
         )
 
 
+@pytest.mark.slow
 def test_measure_observables_vs_simulator():
     nq = 6
-    u = cirq.testing.random_unitary(2**nq, random_state=52)
+    rs = np.random.RandomState(52)
+    u = cirq.testing.random_unitary(2**nq, random_state=rs)
     gate = cirq.MatrixGate(u)
     qubits = cirq.LineQubit.range(nq)
     circuit = cirq.Circuit(gate.on(*qubits))
     state_vector = cirq.final_state_vector(circuit, qubit_order=qubits)
     qubit_map = {q: i for i, q in enumerate(qubits)}
-    sampler = cirq.Simulator()
+    sampler = cirq.Simulator(seed=rs)
 
-    weight_two_paulis = list(itertools.product([cirq.X, cirq.Y, cirq.Z], repeat=2))
-    qubit_pairs = list(itertools.combinations(qubits, r=2))
+    weight_two_paulis = itertools.product([cirq.X, cirq.Y, cirq.Z], repeat=2)
+    qubit_pairs = itertools.combinations(qubits, r=2)
     observables = [
         p1(q1) * p2(q2) for (p1, p2), (q1, q2) in itertools.product(weight_two_paulis, qubit_pairs)
     ]
-    stopping = RepetitionsStoppingCriteria(100_000)
+    stopping = RepetitionsStoppingCriteria(200_000, repetitions_per_chunk=50_000)
 
     results = measure_observables(circuit, observables, sampler, stopping)
     for result in results:
         obs = result.observable
         val = obs.expectation_from_state_vector(state_vector, qubit_map)
-        print(obs, val, result.mean, result.repetitions, result.variance)
         np.testing.assert_allclose(val, result.mean, atol=0.01)
