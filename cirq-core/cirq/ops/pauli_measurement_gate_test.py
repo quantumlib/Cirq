@@ -138,12 +138,12 @@ def test_op_repr():
     ps = cirq.X(a) * cirq.Y(b) * cirq.Z(c)
     assert (
         repr(cirq.measure_single_paulistring(ps))
-        == 'cirq.measure_single_paulistring((cirq.X(cirq.LineQubit(0))'
+        == 'cirq.measure_single_paulistring(((1+0j)*cirq.X(cirq.LineQubit(0))'
         '*cirq.Y(cirq.LineQubit(1))*cirq.Z(cirq.LineQubit(2))))'
     )
     assert (
         repr(cirq.measure_single_paulistring(ps, key='out'))
-        == "cirq.measure_single_paulistring((cirq.X(cirq.LineQubit(0))"
+        == "cirq.measure_single_paulistring(((1+0j)*cirq.X(cirq.LineQubit(0))"
         "*cirq.Y(cirq.LineQubit(1))*cirq.Z(cirq.LineQubit(2))), "
         "key=cirq.MeasurementKey(name='out'))"
     )
