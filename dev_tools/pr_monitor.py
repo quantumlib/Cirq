@@ -772,7 +772,7 @@ def attempt_squash_merge(pr: PullRequestDetails) -> Union[bool, CannotAutomergeE
     )
     data = {
         'commit_title': f'{pr.title} (#{pr.pull_id})',
-        'commit_message': pr.body if pr.body is not None else '',
+        'commit_message': pr.body or '',
         'sha': pr.branch_sha,
         'merge_method': 'squash',
     }
