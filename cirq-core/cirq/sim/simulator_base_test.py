@@ -218,19 +218,19 @@ def test_cannot_act():
 def test_run_one_gate_circuit():
     sim = CountingSimulator()
     r = sim.run(cirq.Circuit(cirq.X(q0), cirq.measure(q0)), repetitions=2)
-    assert np.allclose(r.measurements['0'], [[1], [1]])
+    assert np.allclose(r.measurements['q(0)'], [[1], [1]])
 
 
 def test_run_one_gate_circuit_noise():
     sim = CountingSimulator(noise=cirq.X)
     r = sim.run(cirq.Circuit(cirq.X(q0), cirq.measure(q0)), repetitions=2)
-    assert np.allclose(r.measurements['0'], [[2], [2]])
+    assert np.allclose(r.measurements['q(0)'], [[2], [2]])
 
 
 def test_run_non_unitary_circuit():
     sim = CountingSimulator()
     r = sim.run(cirq.Circuit(cirq.phase_damp(1).on(q0), cirq.measure(q0)), repetitions=2)
-    assert np.allclose(r.measurements['0'], [[1], [1]])
+    assert np.allclose(r.measurements['q(0)'], [[1], [1]])
 
 
 def test_run_non_unitary_circuit_non_unitary_state():
@@ -240,13 +240,13 @@ def test_run_non_unitary_circuit_non_unitary_state():
 
     sim = DensityCountingSimulator()
     r = sim.run(cirq.Circuit(cirq.phase_damp(1).on(q0), cirq.measure(q0)), repetitions=2)
-    assert np.allclose(r.measurements['0'], [[1], [1]])
+    assert np.allclose(r.measurements['q(0)'], [[1], [1]])
 
 
 def test_run_non_terminal_measurement():
     sim = CountingSimulator()
     r = sim.run(cirq.Circuit(cirq.X(q0), cirq.measure(q0), cirq.X(q0)), repetitions=2)
-    assert np.allclose(r.measurements['0'], [[1], [1]])
+    assert np.allclose(r.measurements['q(0)'], [[1], [1]])
 
 
 def test_integer_initial_state_is_split():
@@ -441,3 +441,24 @@ def test_deprecated_create_partial_act_on_args():
     sim = DeprecatedSim()
     with cirq.testing.assert_deprecated(deadline='v0.16'):
         sim.simulate_moment_steps(cirq.Circuit())
+
+
+def test_deprecated_qubits_param():
+    class Sim(cirq.SimulatorBase):
+        def _create_partial_simulation_state(self, initial_state, qubits, classical_data):
+            return 0
+
+        def _create_step_result(self):
+            pass
+
+        def _create_simulator_trial_result(self):
+            pass
+
+    with cirq.testing.assert_deprecated('`qubits` parameter of `_base_iterator', deadline='v0.16'):
+        Sim()._base_iterator(cirq.Circuit(), cirq.QubitOrder.explicit([]), 0)
+
+
+def test_deprecated_setters():
+    sim = CountingSimulator()
+    with cirq.testing.assert_deprecated(deadline='v0.16'):
+        sim.noise = cirq.ConstantQubitNoiseModel(cirq.Z)

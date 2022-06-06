@@ -41,6 +41,8 @@ from dev_tools.notebooks import list_all_notebooks, filter_notebooks, rewrite_no
 # Please, always indicate in comments the feature used for easier bookkeeping.
 
 NOTEBOOKS_DEPENDING_ON_UNRELEASED_FEATURES: List[str] = [
+    # Hardcoded qubit placement
+    'docs/google/qubit-placement.ipynb',
     # get_qcs_objects_for_notebook
     'docs/tutorials/google/calibration_api.ipynb',
     'docs/tutorials/google/colab.ipynb',
@@ -52,6 +54,7 @@ NOTEBOOKS_DEPENDING_ON_UNRELEASED_FEATURES: List[str] = [
     'docs/tutorials/google/visualizing_calibration_metrics.ipynb',
     'docs/tutorials/google/xeb_calibration_example.ipynb',
     'docs/named_topologies.ipynb',
+    'docs/tutorials/educators/intro.ipynb',
 ]
 
 # By default all notebooks should be tested, however, this list contains exceptions to the rule

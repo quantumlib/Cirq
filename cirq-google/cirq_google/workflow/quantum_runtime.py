@@ -189,12 +189,15 @@ class QuantumRuntimeConfiguration:
         qubit_placer: A `cg.QubitPlacer` implementation to map executable qubits to device qubits.
             The placer is only called if a given `cg.QuantumExecutable` has a `problem_topology`.
             This subroutine's runtime is keyed by "placement" in `RuntimeInfo.timings_s`.
+        target_gateset: If not `None`, compile all circuits to this target gateset prior to
+            execution with `cirq.optimize_for_target_gateset`.
     """
 
     processor_record: 'cg.ProcessorRecord'
     run_id: Optional[str] = None
     random_seed: Optional[int] = None
     qubit_placer: QubitPlacer = NaiveQubitPlacer()
+    target_gateset: Optional[cirq.CompilationTargetGateset] = None
 
     @classmethod
     def _json_namespace_(cls) -> str:
@@ -297,6 +300,11 @@ def execute(
                     rs=rs,
                 )
                 runtime_info.qubit_placement = mapping
+
+        if rt_config.target_gateset is not None:
+            circuit = cirq.optimize_for_target_gateset(
+                circuit, gateset=rt_config.target_gateset
+            ).freeze()
 
         with _time_into_runtime_info(runtime_info, 'run'):
             sampler_run_result = sampler.run(circuit, repetitions=exe.measurement.n_repetitions)

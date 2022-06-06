@@ -192,7 +192,9 @@ class CircuitDiagramInfoArgs:
         precision: The number of digits after the decimal to show for numbers in
             the text diagram. None means use full precision.
         label_map: The map from label entities to diagram positions.
-        include_tags: Whether to print tags from TaggedOperations
+        include_tags: Whether to print tags from TaggedOperations.
+        transpose: Whether the circuit is to be drawn with time from left to
+            right (transpose is False), or from top to bottom.
     """
 
     UNINFORMED_DEFAULT: 'CircuitDiagramInfoArgs'
@@ -205,6 +207,7 @@ class CircuitDiagramInfoArgs:
         precision: Optional[int],
         label_map: Optional[Dict['cirq.LabelEntity', int]],
         include_tags: bool = True,
+        transpose: bool = False,
     ) -> None:
         self.known_qubits = None if known_qubits is None else tuple(known_qubits)
         self.known_qubit_count = known_qubit_count
@@ -212,6 +215,7 @@ class CircuitDiagramInfoArgs:
         self.precision = precision
         self.label_map = label_map
         self.include_tags = include_tags
+        self.transpose = transpose
 
     def _value_equality_values_(self) -> Any:
         return (
@@ -223,6 +227,7 @@ class CircuitDiagramInfoArgs:
             if self.label_map is None
             else tuple(sorted(self.label_map.items(), key=lambda e: e[0])),
             self.include_tags,
+            self.transpose,
         )
 
     def __repr__(self) -> str:
@@ -232,8 +237,9 @@ class CircuitDiagramInfoArgs:
             f'known_qubit_count={self.known_qubit_count!r}, '
             f'use_unicode_characters={self.use_unicode_characters!r}, '
             f'precision={self.precision!r}, '
-            f'label_map={self.label_map!r},'
-            f'include_tags={self.include_tags!r})'
+            f'label_map={self.label_map!r}, '
+            f'include_tags={self.include_tags!r}, '
+            f'transpose={self.transpose!r})'
         )
 
     def format_real(self, val: Union[sympy.Basic, int, float]) -> str:
@@ -280,6 +286,7 @@ class CircuitDiagramInfoArgs:
             use_unicode_characters=self.use_unicode_characters,
             precision=self.precision,
             label_map=self.label_map,
+            transpose=self.transpose,
         )
 
     def with_args(self, **kwargs):
@@ -295,6 +302,7 @@ CircuitDiagramInfoArgs.UNINFORMED_DEFAULT = CircuitDiagramInfoArgs(
     use_unicode_characters=True,
     precision=3,
     label_map=None,
+    transpose=False,
 )
 
 
