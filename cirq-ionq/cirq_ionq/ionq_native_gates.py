@@ -102,7 +102,7 @@ class GPI2Gate(cirq.Gate):
     \end{bmatrix}
     $$
 
-    See [IonQ best practices](https://ionq.com/best-practices){:external}.
+    See [IonQ best practices](https://ionq.com/docs/getting-started-with-native-gates){:external}.
     """
 
     def __init__(self, *, phi):
@@ -152,7 +152,7 @@ document(
     \end{bmatrix}
     $$
 
-    See [IonQ best practices](https://ionq.com/best-practices){:external}.
+    See [IonQ best practices](https://ionq.com/docs/getting-started-with-native-gates){:external}.
     """,
 )
 
@@ -173,7 +173,7 @@ class MSGate(cirq.Gate):
     \end{bmatrix}
     $$
 
-    See [IonQ best practices](https://ionq.com/best-practices){:external}.
+    See [IonQ best practices](https://ionq.com/docs/getting-started-with-native-gates){:external}.
     """
 
     def __init__(self, *, phi0, phi1):
@@ -237,6 +237,6 @@ document(
     \end{bmatrix}
     $$
 
-    See [IonQ best practices](https://ionq.com/best-practices){:external}.
+    See [IonQ best practices](https://ionq.com/docs/getting-started-with-native-gates){:external}.
     """,
 )
