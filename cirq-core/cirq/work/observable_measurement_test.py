@@ -11,6 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import itertools
 import tempfile
 from typing import Iterable, Dict, List
 
@@ -543,3 +544,28 @@ def test_measure_observable_bad_grouper():
             stopping_criteria=RepetitionsStoppingCriteria(50_000),
             grouper='super fancy grouper',
         )
+
+
+def test_measure_observables_vs_simulator():
+    nq = 6
+    u = cirq.testing.random_unitary(2**nq, random_state=52)
+    gate = cirq.MatrixGate(u)
+    qubits = cirq.LineQubit.range(nq)
+    circuit = cirq.Circuit(gate.on(*qubits))
+    state_vector = cirq.final_state_vector(circuit, qubit_order=qubits)
+    qubit_map = {q: i for i, q in enumerate(qubits)}
+    sampler = cirq.Simulator()
+
+    weight_two_paulis = list(itertools.product([cirq.X, cirq.Y, cirq.Z], repeat=2))
+    qubit_pairs = list(itertools.combinations(qubits, r=2))
+    observables = [
+        p1(q1) * p2(q2) for (p1, p2), (q1, q2) in itertools.product(weight_two_paulis, qubit_pairs)
+    ]
+    stopping = RepetitionsStoppingCriteria(100_000)
+
+    results = measure_observables(circuit, observables, sampler, stopping)
+    for result in results:
+        obs = result.observable
+        val = obs.expectation_from_state_vector(state_vector, qubit_map)
+        print(obs, val, result.mean, result.repetitions, result.variance)
+        np.testing.assert_allclose(val, result.mean, atol=0.01)
