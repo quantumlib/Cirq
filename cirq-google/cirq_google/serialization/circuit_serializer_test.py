@@ -14,6 +14,8 @@
 
 from typing import Dict, List
 import pytest
+
+import numpy as np
 import sympy
 from google.protobuf import json_format
 
@@ -65,6 +67,14 @@ OPERATIONS = [
     (
         cirq.XPowGate(exponent=0.125)(Q1),
         op_proto({'xpowgate': {'exponent': {'float_value': 0.125}}, 'qubit_constant_index': [0]}),
+    ),
+    (
+        cirq.XPowGate(exponent=np.double(0.125))(Q1),
+        op_proto({'xpowgate': {'exponent': {'float_value': 0.125}}, 'qubit_constant_index': [0]}),
+    ),
+    (
+        cirq.XPowGate(exponent=np.short(1))(Q1),
+        op_proto({'xpowgate': {'exponent': {'float_value': 1.0}}, 'qubit_constant_index': [0]}),
     ),
     (
         cirq.XPowGate(exponent=sympy.Symbol('a'))(Q1),
