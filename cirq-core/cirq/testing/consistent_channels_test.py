@@ -45,3 +45,8 @@ def test_assert_consistent_channel_invalid():
 def test_assert_consistent_channel_not_kraus():
     with pytest.raises(AssertionError, match="12.*has_kraus"):
         cirq.testing.assert_consistent_channel(12)
+
+
+def test_assert_consistent_mixture_valid():
+    mixture = cirq.X.with_probability(0.1)
+    cirq.testing.assert_consistent_channel(mixture)
