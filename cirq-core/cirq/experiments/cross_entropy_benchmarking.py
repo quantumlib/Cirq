@@ -29,7 +29,7 @@ from typing import (
 import dataclasses
 import numpy as np
 from matplotlib import pyplot as plt
-from cirq import _import, circuits, devices, ops, protocols, sim, value, work
+from cirq import _compat, _import, circuits, devices, ops, protocols, sim, value, work
 
 if TYPE_CHECKING:
     import cirq
@@ -98,6 +98,9 @@ class SpecklePurityDepolarizingModel(CrossEntropyDepolarizingModel):
         return self.cycle_depolarization**2
 
 
+@_compat.deprecated_class(
+    deadline='v0.16', fix=('Use cirq.experiments.xeb_fitting.XEBCharacterizationResult instead')
+)
 @dataclasses.dataclass(frozen=True)
 class CrossEntropyResult:
     """Results from a cross-entropy benchmarking (XEB) experiment.
@@ -243,6 +246,9 @@ def _fit_exponential_decay(x: Sequence[int], y: Sequence[float]) -> Tuple[np.nda
     return optimize.curve_fit(f, x, y, p0=p0)
 
 
+@_compat.deprecated_class(
+    deadline='v0.16', fix=('Use cirq.experiments.xeb_fitting.XEBCharacterizationResult instead')
+)
 @dataclasses.dataclass
 class CrossEntropyResultDict(Mapping[Tuple['cirq.Qid', ...], CrossEntropyResult]):
     """Per-qubit-tuple results from cross-entropy benchmarking.
@@ -276,6 +282,9 @@ class CrossEntropyResultDict(Mapping[Tuple['cirq.Qid', ...], CrossEntropyResult]
         return len(self.results)
 
 
+@_compat.deprecated(
+    deadline='v0.16', fix=('Use cirq.experiments.xeb_fitting.benchmark_2q_xeb_fidelities instead')
+)
 def cross_entropy_benchmarking(
     sampler: work.Sampler,
     qubits: Sequence[ops.Qid],
@@ -418,6 +427,9 @@ def cross_entropy_benchmarking(
     return CrossEntropyResult(data=xeb_data, repetitions=repetitions)  # type: ignore
 
 
+@_compat.deprecated(
+    deadline='v0.16', fix=('Use cirq.experiments.random_quantum_circuit_generation instead')
+)
 def build_entangling_layers(
     qubits: Sequence[devices.GridQubit], two_qubit_gate: ops.Gate
 ) -> List[circuits.Moment]:

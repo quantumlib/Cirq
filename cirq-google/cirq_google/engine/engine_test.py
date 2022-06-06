@@ -832,6 +832,9 @@ def test_sampler(client):
     with cirq.testing.assert_deprecated('sampler', deadline='1.0'):
         _ = engine.sampler(processor_id='tmp')
 
+    with pytest.raises(ValueError, match='list of processors'):
+        _ = engine.get_sampler(['test1', 'test2'])
+
 
 @mock.patch('cirq_google.cloud.quantum.QuantumEngineServiceClient')
 def test_get_engine(build):
