@@ -22,7 +22,7 @@ from matplotlib import pyplot as plt
 
 # this is for older systems with matplotlib <3.2 otherwise 3d projections fail
 from mpl_toolkits import mplot3d  # pylint: disable=unused-import
-from cirq import circuits, ops, protocols, study
+from cirq import circuits, ops, protocol
 
 if TYPE_CHECKING:
     import cirq
