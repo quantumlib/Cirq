@@ -315,7 +315,7 @@ def measure_state_vector(
     out /= np.sqrt(probs[result])
 
     # We mutate and return out, so mypy cannot identify that the out cannot be None.
-    return measurement_bits, cast(np.ndarray, out)  # type: ignore
+    return measurement_bits, cast(np.ndarray, out)
 
 
 def _probs(state: np.ndarray, indices: Sequence[int], qid_shape: Tuple[int, ...]) -> np.ndarray:
