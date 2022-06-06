@@ -139,7 +139,21 @@ class GridDeviceMetadata(device.DeviceMetadata):
 
     @property
     def gate_durations(self) -> Optional[Dict['cirq.GateFamily', 'cirq.Duration']]:
-        """Get a dictionary mapping from gateset to duration for gates."""
+        """Get a dictionary mapping from gate family to duration for gates.
+
+        To look up the duration of a specific gate instance / gate type / operation which is part of
+        the device's gateset, you can search for its corresponding GateFamily. For example:
+
+        >>> my_op = cirq.Z
+        >>> gate_durations = grid_device_metadata.gate_durations
+        >>> op_duration = None
+        >>> for gate_family in gate_durations:
+        ...     if my_op in gate_family:
+        ...         op_duration = gate_durations[gate_family]
+        ...
+        >>> print(op_duration)
+        1 ns
+        """
         return self._gate_durations
 
     def _value_equality_values_(self):

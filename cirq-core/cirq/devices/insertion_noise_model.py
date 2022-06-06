@@ -37,7 +37,7 @@ class InsertionNoiseModel(devices.NoiseModel):
             type is more specific (e.g. A is a subtype of B, but B defines
             qubits and A does not) then the first one appering in this dict
             will match.
-        prepend: whether to add the new moment before the current one.
+        prepend: If True, put noise before affected gates. Default: False.
         require_physical_tag: whether to only apply noise to operations tagged
             with PHYSICAL_GATE_TAG.
     """

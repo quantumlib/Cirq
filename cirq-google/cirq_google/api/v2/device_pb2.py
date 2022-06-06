@@ -19,7 +19,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   syntax='proto3',
   serialized_options=b'\n\035com.google.cirq.google.api.v2B\013DeviceProtoP\001',
   create_key=_descriptor._internal_create_key,
-  serialized_pb=b'\n\x1f\x63irq_google/api/v2/device.proto\x12\x12\x63irq.google.api.v2\"\xfa\x01\n\x13\x44\x65viceSpecification\x12\x38\n\x0fvalid_gate_sets\x18\x01 \x03(\x0b\x32\x1b.cirq.google.api.v2.GateSetB\x02\x18\x01\x12:\n\x0bvalid_gates\x18\x05 \x03(\x0b\x32%.cirq.google.api.v2.GateSpecification\x12\x14\n\x0cvalid_qubits\x18\x02 \x03(\t\x12\x34\n\rvalid_targets\x18\x03 \x03(\x0b\x32\x1d.cirq.google.api.v2.TargetSet\x12!\n\x19\x64\x65veloper_recommendations\x18\x04 \x01(\t\"\x85\x07\n\x11GateSpecification\x12\x1b\n\x13gate_duration_picos\x18\x01 \x01(\x03\x12\x15\n\rvalid_targets\x18\x02 \x03(\t\x12=\n\x03syc\x18\x03 \x01(\x0b\x32..cirq.google.api.v2.GateSpecification.SycamoreH\x00\x12\x45\n\nsqrt_iswap\x18\x04 \x01(\x0b\x32/.cirq.google.api.v2.GateSpecification.SqrtISwapH\x00\x12L\n\x0esqrt_iswap_inv\x18\x05 \x01(\x0b\x32\x32.cirq.google.api.v2.GateSpecification.SqrtISwapInvH\x00\x12\x36\n\x02\x63z\x18\x06 \x01(\x0b\x32(.cirq.google.api.v2.GateSpecification.CZH\x00\x12\x43\n\tphased_xz\x18\x07 \x01(\x0b\x32..cirq.google.api.v2.GateSpecification.PhasedXZH\x00\x12I\n\x0cvirtual_zpow\x18\x08 \x01(\x0b\x32\x31.cirq.google.api.v2.GateSpecification.VirtualZPowH\x00\x12K\n\rphysical_zpow\x18\t \x01(\x0b\x32\x32.cirq.google.api.v2.GateSpecification.PhysicalZPowH\x00\x12K\n\rcoupler_pulse\x18\n \x01(\x0b\x32\x32.cirq.google.api.v2.GateSpecification.CouplerPulseH\x00\x12\x41\n\x04meas\x18\x0b \x01(\x0b\x32\x31.cirq.google.api.v2.GateSpecification.MeasurementH\x00\x12:\n\x04wait\x18\x0c \x01(\x0b\x32*.cirq.google.api.v2.GateSpecification.WaitH\x00\x1a\n\n\x08Sycamore\x1a\x0b\n\tSqrtISwap\x1a\x0e\n\x0cSqrtISwapInv\x1a\x04\n\x02\x43Z\x1a\n\n\x08PhasedXZ\x1a\r\n\x0bVirtualZPow\x1a\x0e\n\x0cPhysicalZPow\x1a\x0e\n\x0c\x43ouplerPulse\x1a\r\n\x0bMeasurement\x1a\x06\n\x04WaitB\x06\n\x04gate\"P\n\x07GateSet\x12\x0c\n\x04name\x18\x01 \x01(\t\x12\x37\n\x0bvalid_gates\x18\x02 \x03(\x0b\x32\".cirq.google.api.v2.GateDefinition\"\xa1\x01\n\x0eGateDefinition\x12\n\n\x02id\x18\x01 \x01(\t\x12\x18\n\x10number_of_qubits\x18\x02 \x01(\x05\x12\x35\n\nvalid_args\x18\x03 \x03(\x0b\x32!.cirq.google.api.v2.ArgDefinition\x12\x1b\n\x13gate_duration_picos\x18\x04 \x01(\x03\x12\x15\n\rvalid_targets\x18\x05 \x03(\t\"\xda\x01\n\rArgDefinition\x12\x0c\n\x04name\x18\x01 \x01(\t\x12\x37\n\x04type\x18\x02 \x01(\x0e\x32).cirq.google.api.v2.ArgDefinition.ArgType\x12\x39\n\x0e\x61llowed_ranges\x18\x03 \x03(\x0b\x32!.cirq.google.api.v2.ArgumentRange\"G\n\x07\x41rgType\x12\x0f\n\x0bUNSPECIFIED\x10\x00\x12\t\n\x05\x46LOAT\x10\x01\x12\x14\n\x10REPEATED_BOOLEAN\x10\x02\x12\n\n\x06STRING\x10\x03\"=\n\rArgumentRange\x12\x15\n\rminimum_value\x18\x01 \x01(\x02\x12\x15\n\rmaximum_value\x18\x02 \x01(\x02\"\xe7\x01\n\tTargetSet\x12\x0c\n\x04name\x18\x01 \x01(\t\x12\x45\n\x0ftarget_ordering\x18\x02 \x01(\x0e\x32,.cirq.google.api.v2.TargetSet.TargetOrdering\x12+\n\x07targets\x18\x03 \x03(\x0b\x32\x1a.cirq.google.api.v2.Target\"X\n\x0eTargetOrdering\x12\x0f\n\x0bUNSPECIFIED\x10\x00\x12\r\n\tSYMMETRIC\x10\x01\x12\x0e\n\nASYMMETRIC\x10\x02\x12\x16\n\x12SUBSET_PERMUTATION\x10\x03\"\x15\n\x06Target\x12\x0b\n\x03ids\x18\x01 \x03(\tB.\n\x1d\x63om.google.cirq.google.api.v2B\x0b\x44\x65viceProtoP\x01\x62\x06proto3'
+  serialized_pb=b'\n\x1f\x63irq_google/api/v2/device.proto\x12\x12\x63irq.google.api.v2\"\xfa\x01\n\x13\x44\x65viceSpecification\x12\x38\n\x0fvalid_gate_sets\x18\x01 \x03(\x0b\x32\x1b.cirq.google.api.v2.GateSetB\x02\x18\x01\x12:\n\x0bvalid_gates\x18\x05 \x03(\x0b\x32%.cirq.google.api.v2.GateSpecification\x12\x14\n\x0cvalid_qubits\x18\x02 \x03(\t\x12\x34\n\rvalid_targets\x18\x03 \x03(\x0b\x32\x1d.cirq.google.api.v2.TargetSet\x12!\n\x19\x64\x65veloper_recommendations\x18\x04 \x01(\t\"\xee\x06\n\x11GateSpecification\x12\x1b\n\x13gate_duration_picos\x18\x01 \x01(\x03\x12=\n\x03syc\x18\x02 \x01(\x0b\x32..cirq.google.api.v2.GateSpecification.SycamoreH\x00\x12\x45\n\nsqrt_iswap\x18\x03 \x01(\x0b\x32/.cirq.google.api.v2.GateSpecification.SqrtISwapH\x00\x12L\n\x0esqrt_iswap_inv\x18\x04 \x01(\x0b\x32\x32.cirq.google.api.v2.GateSpecification.SqrtISwapInvH\x00\x12\x36\n\x02\x63z\x18\x05 \x01(\x0b\x32(.cirq.google.api.v2.GateSpecification.CZH\x00\x12\x43\n\tphased_xz\x18\x06 \x01(\x0b\x32..cirq.google.api.v2.GateSpecification.PhasedXZH\x00\x12I\n\x0cvirtual_zpow\x18\x07 \x01(\x0b\x32\x31.cirq.google.api.v2.GateSpecification.VirtualZPowH\x00\x12K\n\rphysical_zpow\x18\x08 \x01(\x0b\x32\x32.cirq.google.api.v2.GateSpecification.PhysicalZPowH\x00\x12K\n\rcoupler_pulse\x18\t \x01(\x0b\x32\x32.cirq.google.api.v2.GateSpecification.CouplerPulseH\x00\x12\x41\n\x04meas\x18\n \x01(\x0b\x32\x31.cirq.google.api.v2.GateSpecification.MeasurementH\x00\x12:\n\x04wait\x18\x0b \x01(\x0b\x32*.cirq.google.api.v2.GateSpecification.WaitH\x00\x1a\n\n\x08Sycamore\x1a\x0b\n\tSqrtISwap\x1a\x0e\n\x0cSqrtISwapInv\x1a\x04\n\x02\x43Z\x1a\n\n\x08PhasedXZ\x1a\r\n\x0bVirtualZPow\x1a\x0e\n\x0cPhysicalZPow\x1a\x0e\n\x0c\x43ouplerPulse\x1a\r\n\x0bMeasurement\x1a\x06\n\x04WaitB\x06\n\x04gate\"P\n\x07GateSet\x12\x0c\n\x04name\x18\x01 \x01(\t\x12\x37\n\x0bvalid_gates\x18\x02 \x03(\x0b\x32\".cirq.google.api.v2.GateDefinition\"\xa1\x01\n\x0eGateDefinition\x12\n\n\x02id\x18\x01 \x01(\t\x12\x18\n\x10number_of_qubits\x18\x02 \x01(\x05\x12\x35\n\nvalid_args\x18\x03 \x03(\x0b\x32!.cirq.google.api.v2.ArgDefinition\x12\x1b\n\x13gate_duration_picos\x18\x04 \x01(\x03\x12\x15\n\rvalid_targets\x18\x05 \x03(\t\"\xda\x01\n\rArgDefinition\x12\x0c\n\x04name\x18\x01 \x01(\t\x12\x37\n\x04type\x18\x02 \x01(\x0e\x32).cirq.google.api.v2.ArgDefinition.ArgType\x12\x39\n\x0e\x61llowed_ranges\x18\x03 \x03(\x0b\x32!.cirq.google.api.v2.ArgumentRange\"G\n\x07\x41rgType\x12\x0f\n\x0bUNSPECIFIED\x10\x00\x12\t\n\x05\x46LOAT\x10\x01\x12\x14\n\x10REPEATED_BOOLEAN\x10\x02\x12\n\n\x06STRING\x10\x03\"=\n\rArgumentRange\x12\x15\n\rminimum_value\x18\x01 \x01(\x02\x12\x15\n\rmaximum_value\x18\x02 \x01(\x02\"\xef\x01\n\tTargetSet\x12\x0c\n\x04name\x18\x01 \x01(\t\x12\x45\n\x0ftarget_ordering\x18\x02 \x01(\x0e\x32,.cirq.google.api.v2.TargetSet.TargetOrdering\x12+\n\x07targets\x18\x03 \x03(\x0b\x32\x1a.cirq.google.api.v2.Target\"`\n\x0eTargetOrdering\x12\x0f\n\x0bUNSPECIFIED\x10\x00\x12\r\n\tSYMMETRIC\x10\x01\x12\x12\n\nASYMMETRIC\x10\x02\x1a\x02\x08\x01\x12\x1a\n\x12SUBSET_PERMUTATION\x10\x03\x1a\x02\x08\x01\"\x15\n\x06Target\x12\x0b\n\x03ids\x18\x01 \x03(\tB.\n\x1d\x63om.google.cirq.google.api.v2B\x0b\x44\x65viceProtoP\x01\x62\x06proto3'
 )
 
 
@@ -54,8 +54,8 @@ _ARGDEFINITION_ARGTYPE = _descriptor.EnumDescriptor(
   ],
   containing_type=None,
   serialized_options=None,
-  serialized_start=1606,
-  serialized_end=1677,
+  serialized_start=1583,
+  serialized_end=1654,
 )
 _sym_db.RegisterEnumDescriptor(_ARGDEFINITION_ARGTYPE)
 
@@ -78,19 +78,19 @@ _TARGETSET_TARGETORDERING = _descriptor.EnumDescriptor(
       create_key=_descriptor._internal_create_key),
     _descriptor.EnumValueDescriptor(
       name='ASYMMETRIC', index=2, number=2,
-      serialized_options=None,
+      serialized_options=b'\010\001',
       type=None,
       create_key=_descriptor._internal_create_key),
     _descriptor.EnumValueDescriptor(
       name='SUBSET_PERMUTATION', index=3, number=3,
-      serialized_options=None,
+      serialized_options=b'\010\001',
       type=None,
       create_key=_descriptor._internal_create_key),
   ],
   containing_type=None,
   serialized_options=None,
-  serialized_start=1886,
-  serialized_end=1974,
+  serialized_start=1863,
+  serialized_end=1959,
 )
 _sym_db.RegisterEnumDescriptor(_TARGETSET_TARGETORDERING)
 
@@ -175,8 +175,8 @@ _GATESPECIFICATION_SYCAMORE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1075,
-  serialized_end=1085,
+  serialized_start=1052,
+  serialized_end=1062,
 )
 
 _GATESPECIFICATION_SQRTISWAP = _descriptor.Descriptor(
@@ -199,8 +199,8 @@ _GATESPECIFICATION_SQRTISWAP = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1087,
-  serialized_end=1098,
+  serialized_start=1064,
+  serialized_end=1075,
 )
 
 _GATESPECIFICATION_SQRTISWAPINV = _descriptor.Descriptor(
@@ -223,8 +223,8 @@ _GATESPECIFICATION_SQRTISWAPINV = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1100,
-  serialized_end=1114,
+  serialized_start=1077,
+  serialized_end=1091,
 )
 
 _GATESPECIFICATION_CZ = _descriptor.Descriptor(
@@ -247,8 +247,8 @@ _GATESPECIFICATION_CZ = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1116,
-  serialized_end=1120,
+  serialized_start=1093,
+  serialized_end=1097,
 )
 
 _GATESPECIFICATION_PHASEDXZ = _descriptor.Descriptor(
@@ -271,8 +271,8 @@ _GATESPECIFICATION_PHASEDXZ = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1122,
-  serialized_end=1132,
+  serialized_start=1099,
+  serialized_end=1109,
 )
 
 _GATESPECIFICATION_VIRTUALZPOW = _descriptor.Descriptor(
@@ -295,8 +295,8 @@ _GATESPECIFICATION_VIRTUALZPOW = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1134,
-  serialized_end=1147,
+  serialized_start=1111,
+  serialized_end=1124,
 )
 
 _GATESPECIFICATION_PHYSICALZPOW = _descriptor.Descriptor(
@@ -319,8 +319,8 @@ _GATESPECIFICATION_PHYSICALZPOW = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1149,
-  serialized_end=1163,
+  serialized_start=1126,
+  serialized_end=1140,
 )
 
 _GATESPECIFICATION_COUPLERPULSE = _descriptor.Descriptor(
@@ -343,8 +343,8 @@ _GATESPECIFICATION_COUPLERPULSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1165,
-  serialized_end=1179,
+  serialized_start=1142,
+  serialized_end=1156,
 )
 
 _GATESPECIFICATION_MEASUREMENT = _descriptor.Descriptor(
@@ -367,8 +367,8 @@ _GATESPECIFICATION_MEASUREMENT = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1181,
-  serialized_end=1194,
+  serialized_start=1158,
+  serialized_end=1171,
 )
 
 _GATESPECIFICATION_WAIT = _descriptor.Descriptor(
@@ -391,8 +391,8 @@ _GATESPECIFICATION_WAIT = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1196,
-  serialized_end=1202,
+  serialized_start=1173,
+  serialized_end=1179,
 )
 
 _GATESPECIFICATION = _descriptor.Descriptor(
@@ -411,78 +411,71 @@ _GATESPECIFICATION = _descriptor.Descriptor(
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
     _descriptor.FieldDescriptor(
-      name='valid_targets', full_name='cirq.google.api.v2.GateSpecification.valid_targets', index=1,
-      number=2, type=9, cpp_type=9, label=3,
-      has_default_value=False, default_value=[],
+      name='syc', full_name='cirq.google.api.v2.GateSpecification.syc', index=1,
+      number=2, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
     _descriptor.FieldDescriptor(
-      name='syc', full_name='cirq.google.api.v2.GateSpecification.syc', index=2,
+      name='sqrt_iswap', full_name='cirq.google.api.v2.GateSpecification.sqrt_iswap', index=2,
       number=3, type=11, cpp_type=10, label=1,
       has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
     _descriptor.FieldDescriptor(
-      name='sqrt_iswap', full_name='cirq.google.api.v2.GateSpecification.sqrt_iswap', index=3,
+      name='sqrt_iswap_inv', full_name='cirq.google.api.v2.GateSpecification.sqrt_iswap_inv', index=3,
       number=4, type=11, cpp_type=10, label=1,
       has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
     _descriptor.FieldDescriptor(
-      name='sqrt_iswap_inv', full_name='cirq.google.api.v2.GateSpecification.sqrt_iswap_inv', index=4,
+      name='cz', full_name='cirq.google.api.v2.GateSpecification.cz', index=4,
       number=5, type=11, cpp_type=10, label=1,
       has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
     _descriptor.FieldDescriptor(
-      name='cz', full_name='cirq.google.api.v2.GateSpecification.cz', index=5,
+      name='phased_xz', full_name='cirq.google.api.v2.GateSpecification.phased_xz', index=5,
       number=6, type=11, cpp_type=10, label=1,
       has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
     _descriptor.FieldDescriptor(
-      name='phased_xz', full_name='cirq.google.api.v2.GateSpecification.phased_xz', index=6,
+      name='virtual_zpow', full_name='cirq.google.api.v2.GateSpecification.virtual_zpow', index=6,
       number=7, type=11, cpp_type=10, label=1,
       has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
     _descriptor.FieldDescriptor(
-      name='virtual_zpow', full_name='cirq.google.api.v2.GateSpecification.virtual_zpow', index=7,
+      name='physical_zpow', full_name='cirq.google.api.v2.GateSpecification.physical_zpow', index=7,
       number=8, type=11, cpp_type=10, label=1,
       has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
     _descriptor.FieldDescriptor(
-      name='physical_zpow', full_name='cirq.google.api.v2.GateSpecification.physical_zpow', index=8,
+      name='coupler_pulse', full_name='cirq.google.api.v2.GateSpecification.coupler_pulse', index=8,
       number=9, type=11, cpp_type=10, label=1,
       has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
     _descriptor.FieldDescriptor(
-      name='coupler_pulse', full_name='cirq.google.api.v2.GateSpecification.coupler_pulse', index=9,
+      name='meas', full_name='cirq.google.api.v2.GateSpecification.meas', index=9,
       number=10, type=11, cpp_type=10, label=1,
       has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
     _descriptor.FieldDescriptor(
-      name='meas', full_name='cirq.google.api.v2.GateSpecification.meas', index=10,
+      name='wait', full_name='cirq.google.api.v2.GateSpecification.wait', index=10,
       number=11, type=11, cpp_type=10, label=1,
-      has_default_value=False, default_value=None,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
-    _descriptor.FieldDescriptor(
-      name='wait', full_name='cirq.google.api.v2.GateSpecification.wait', index=11,
-      number=12, type=11, cpp_type=10, label=1,
       has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
@@ -505,7 +498,7 @@ _GATESPECIFICATION = _descriptor.Descriptor(
     fields=[]),
   ],
   serialized_start=309,
-  serialized_end=1210,
+  serialized_end=1187,
 )
 
 
@@ -543,8 +536,8 @@ _GATESET = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1212,
-  serialized_end=1292,
+  serialized_start=1189,
+  serialized_end=1269,
 )
 
 
@@ -603,8 +596,8 @@ _GATEDEFINITION = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1295,
-  serialized_end=1456,
+  serialized_start=1272,
+  serialized_end=1433,
 )
 
 
@@ -650,8 +643,8 @@ _ARGDEFINITION = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1459,
-  serialized_end=1677,
+  serialized_start=1436,
+  serialized_end=1654,
 )
 
 
@@ -689,8 +682,8 @@ _ARGUMENTRANGE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1679,
-  serialized_end=1740,
+  serialized_start=1656,
+  serialized_end=1717,
 )
 
 
@@ -736,8 +729,8 @@ _TARGETSET = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1743,
-  serialized_end=1974,
+  serialized_start=1720,
+  serialized_end=1959,
 )
 
 
@@ -768,8 +761,8 @@ _TARGET = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1976,
-  serialized_end=1997,
+  serialized_start=1961,
+  serialized_end=1982,
 )
 
 _DEVICESPECIFICATION.fields_by_name['valid_gate_sets'].message_type = _GATESET
@@ -982,4 +975,6 @@ _sym_db.RegisterMessage(Target)
 
 DESCRIPTOR._options = None
 _DEVICESPECIFICATION.fields_by_name['valid_gate_sets']._options = None
+_TARGETSET_TARGETORDERING.values_by_name["ASYMMETRIC"]._options = None
+_TARGETSET_TARGETORDERING.values_by_name["SUBSET_PERMUTATION"]._options = None
 # @@protoc_insertion_point(module_scope)
