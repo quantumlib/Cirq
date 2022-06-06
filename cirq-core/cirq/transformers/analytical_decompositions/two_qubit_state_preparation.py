@@ -57,9 +57,9 @@ def prepare_two_qubit_state_using_sqrt_iswap(
     Returns:
         List of operations (at-most 1 √iSWAP + single qubit rotations) preparing `state` from |00>.
     """
-    state = qis.to_valid_state_vector(state, num_qubits=2)
-    state = state / np.linalg.norm(state)
-    u, s, vh = np.linalg.svd(state.reshape(2, 2))
+    state_vector = qis.to_valid_state_vector(state, num_qubits=2)
+    state_vector = state_vector / np.linalg.norm(state_vector)
+    u, s, vh = np.linalg.svd(state_vector.reshape(2, 2))
     if np.isclose(s[0], 1):
         # Product state can be prepare with just single qubit unitaries.
         return _1q_matrices_to_ops(u, vh.T, q0, q1, True)
@@ -91,9 +91,9 @@ def prepare_two_qubit_state_using_cz(
     Returns:
         List of operations (at-most 1 CZ + single qubit rotations) preparing `state` from |00>.
     """
-    state = qis.to_valid_state_vector(state, num_qubits=2)
-    state = state / np.linalg.norm(state)
-    u, s, vh = np.linalg.svd(state.reshape(2, 2))
+    state_vector = qis.to_valid_state_vector(state, num_qubits=2)
+    state_vector = state_vector / np.linalg.norm(state_vector)
+    u, s, vh = np.linalg.svd(state_vector.reshape(2, 2))
     if np.isclose(s[0], 1):
         # Product state can be prepare with just single qubit unitaries.
         return _1q_matrices_to_ops(u, vh.T, q0, q1, True)

@@ -289,7 +289,8 @@ class SparseSimulatorStep(
         return self._state_vector.copy() if copy else self._state_vector
 
     def __repr__(self) -> str:
+        # Dtype doesn't have a good repr, so we work around by invoking __name__.
         return (
             f'cirq.SparseSimulatorStep(sim_state={self._sim_state!r},'
-            f' dtype=np.{self._dtype.__name__})'
+            f' dtype=np.{self._dtype.__name__})'  # type: ignore
         )

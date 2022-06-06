@@ -14,7 +14,7 @@
 """Helpers for handling quantum state vectors."""
 
 import abc
-from typing import List, Mapping, Optional, Tuple, TYPE_CHECKING, Sequence
+from typing import cast, List, Mapping, Optional, Tuple, TYPE_CHECKING, Sequence
 
 import numpy as np
 
@@ -314,7 +314,8 @@ def measure_state_vector(
     out.shape = initial_shape
     out /= np.sqrt(probs[result])
 
-    return measurement_bits, out
+    # We mutate and return out, so mypy cannot identify that the out cannot be None.
+    return measurement_bits, cast(np.ndarray, out)  # type: ignore
 
 
 def _probs(state: np.ndarray, indices: Sequence[int], qid_shape: Tuple[int, ...]) -> np.ndarray:

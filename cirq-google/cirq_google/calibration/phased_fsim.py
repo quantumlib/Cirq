@@ -959,6 +959,7 @@ class PhaseCalibratedFSimGate:
             Instance of PhasedFSimGate that executes a gate according to the characterized
             parameters of the engine_gate.
         """
+        assert parameters.chi is not None
         return cirq.PhasedFSimGate(
             theta=parameters.theta or 0.0,
             zeta=parameters.zeta or 0.0,
@@ -1058,7 +1059,10 @@ def try_convert_gate_to_fsim(gate: cirq.Gate) -> Optional[PhaseCalibratedFSimGat
         Otherwise returns None.
     """
     cgate = FSimGateFamily().convert(gate, cirq.PhasedFSimGate)
-    if (cgate is None) or not (np.isclose(cgate.zeta, 0.0) and np.isclose(cgate.gamma, 0.0)):
+    if cgate is None or cirq.is_parameterized(cgate):
+        return None
+    assert isinstance(cgate.zeta, float) and isinstance(cgate.gamma, float)
+    if not (np.isclose(cgate.zeta, 0.0) and np.isclose(cgate.gamma, 0.0)):
         return None
     # On comparing the unitary matrices of `PhasedFSimGate` and `PhaseCalibratedFSimGate`, we get:
     theta = cgate.theta

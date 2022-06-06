@@ -163,6 +163,7 @@ def decompose_cphase_into_two_fsim(
 
     theta = fsim_gate.theta
     phi = fsim_gate.phi
+    assert isinstance(theta, float) and isinstance(phi, float)
 
     sin_half_phi = np.sin(phi / 2)
     cos_half_phi = np.cos(phi / 2)

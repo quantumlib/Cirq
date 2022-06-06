@@ -103,10 +103,7 @@ class PhasedFSimEngineSimulator(cirq.SimulatesIntermediateStateVector[cirq.Spars
         def sample_gate(
             _1: cirq.Qid, _2: cirq.Qid, gate: cirq.FSimGate
         ) -> PhasedFSimCharacterization:
-            assert isinstance(gate, cirq.FSimGate), f'Expected FSimGate, got {gate}'
-            assert np.isclose(gate.theta, np.pi / 4) and np.isclose(
-                gate.phi, 0.0
-            ), f'Expected ISWAP ** -0.5 like gate, got {gate}'
+            _assert_inv_sqrt_iswap_like(gate)
             return PhasedFSimCharacterization(
                 theta=np.pi / 4, zeta=0.0, chi=0.0, gamma=0.0, phi=0.0
             )
@@ -165,10 +162,7 @@ class PhasedFSimEngineSimulator(cirq.SimulatesIntermediateStateVector[cirq.Spars
         def sample_gate(
             _1: cirq.Qid, _2: cirq.Qid, gate: cirq.FSimGate
         ) -> PhasedFSimCharacterization:
-            assert isinstance(gate, cirq.FSimGate), f'Expected FSimGate, got {gate}'
-            assert np.isclose(gate.theta, np.pi / 4) and np.isclose(
-                gate.phi, 0.0
-            ), f'Expected ISWAP ** -0.5 like gate, got {gate}'
+            _assert_inv_sqrt_iswap_like(gate)
 
             return PhasedFSimCharacterization(
                 theta=sample_value(mean.theta, sigma.theta),
@@ -220,10 +214,7 @@ class PhasedFSimEngineSimulator(cirq.SimulatesIntermediateStateVector[cirq.Spars
         def sample_gate(
             a: cirq.Qid, b: cirq.Qid, gate: cirq.FSimGate
         ) -> PhasedFSimCharacterization:
-            assert isinstance(gate, cirq.FSimGate), f'Expected FSimGate, got {gate}'
-            assert np.isclose(gate.theta, np.pi / 4) and np.isclose(
-                gate.phi, 0.0
-            ), f'Expected ISWAP ** -0.5 like gate, got {gate}'
+            _assert_inv_sqrt_iswap_like(gate)
 
             if (a, b) in parameters:
                 pair_parameters = parameters[(a, b)]
@@ -356,12 +347,7 @@ class PhasedFSimEngineSimulator(cirq.SimulatesIntermediateStateVector[cirq.Spars
         parameters: PhasedFsimDictParameters = {}
         for characterization in characterizations:
             gate = characterization.gate
-            if (
-                not isinstance(gate, cirq.FSimGate)
-                or not np.isclose(gate.theta, np.pi / 4)
-                or not np.isclose(gate.phi, 0.0)
-            ):
-                raise ValueError(f'Expected ISWAP ** -0.5 like gate, got {gate}')
+            _assert_inv_sqrt_iswap_like(gate)
 
             for (a, b), pair_parameters in characterization.parameters.items():
                 if a > b:
@@ -516,3 +502,16 @@ def _convert_to_circuit_with_drift(
         return simulator.create_gate_with_drift(a, b, translated).on(a, b)
 
     return cirq.map_operations(circuit, map_func).unfreeze(copy=False)
+
+
+def _assert_inv_sqrt_iswap_like(gate: cirq.Gate):
+    assert isinstance(gate, cirq.FSimGate), f'Expected FSimGate, got {gate}'
+
+    if cirq.is_parameterized(gate):
+        raise ValueError("Only unparameterized gates are supported. Gate: {gate}.")
+    theta = gate.theta
+    phi = gate.phi
+    assert isinstance(theta, float) and isinstance(phi, float)
+    assert np.isclose(theta, np.pi / 4) and np.isclose(
+        phi, 0.0
+    ), f'Expected ISWAP ** -0.5 like gate, got {gate}'
