@@ -274,7 +274,7 @@ class GateOpSerializer(OpSerializer):
 
     def _check_type(self, value: ARG_LIKE, arg: SerializingArg) -> None:
         if arg.serialized_type == float:
-            if not isinstance(value, (float, int)):
+            if not isinstance(value, (float, int, np.integer, np.floating)):
                 raise ValueError(f'Expected type convertible to float but was {type(value)}')
         elif arg.serialized_type == List[bool]:
             if not isinstance(value, (list, tuple, np.ndarray)) or not all(
