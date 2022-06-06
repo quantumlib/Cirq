@@ -22,6 +22,7 @@ if TYPE_CHECKING:
     import cirq_google
 
 
+@cirq._compat.deprecated_class(deadline='v0.16', fix='Use cirq_google.ProcessorSampler instead.')
 class QuantumEngineSampler(cirq.Sampler):
     """A sampler that samples from processors managed by the Quantum Engine.
 
@@ -106,15 +107,10 @@ class QuantumEngineSampler(cirq.Sampler):
         return self._engine
 
 
-@cirq._compat.deprecated_parameter(
-    deadline='v0.15',
-    fix='Remove the "gate_set_name" parameter.',
-    parameter_desc='gate_set_name',
-    match=lambda args, kwargs: 'gate_set_name' in kwargs or len(args) > 1,
-)
+@cirq._compat.deprecated(deadline='v0.16', fix='Use cirq_google.get_engine_sampler()')
 def get_engine_sampler(
     processor_id: str, gate_set_name: str = '', project_id: Optional[str] = None
-) -> 'cirq_google.QuantumEngineSampler':
+) -> cirq.Sampler:
     """Get an EngineSampler assuming some sensible defaults.
 
     This uses the environment variable GOOGLE_CLOUD_PROJECT for the Engine
