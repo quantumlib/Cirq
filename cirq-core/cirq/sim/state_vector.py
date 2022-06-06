@@ -14,7 +14,7 @@
 """Helpers for handling quantum state vectors."""
 
 import abc
-from typing import cast, List, Mapping, Optional, Tuple, TYPE_CHECKING, Sequence
+from typing import List, Mapping, Optional, Tuple, TYPE_CHECKING, Sequence
 
 import numpy as np
 
