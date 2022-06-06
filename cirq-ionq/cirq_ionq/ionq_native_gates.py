@@ -35,7 +35,7 @@ class GPIGate(cirq.Gate):
     \end{bmatrix}
     $$
 
-    See [IonQ best practices](https://ionq.com/best-practices){:external}.
+    See [IonQ best practices](https://ionq.com/docs/getting-started-with-native-gates){:external}.
     """
 
     def __init__(self, *, phi):
@@ -84,7 +84,7 @@ document(
     \end{bmatrix}
     $$
 
-    See [IonQ best practices](https://ionq.com/best-practices){:external}.
+    See [IonQ best practices](https://ionq.com/docs/getting-started-with-native-gates){:external}.
     """,
 )
 
