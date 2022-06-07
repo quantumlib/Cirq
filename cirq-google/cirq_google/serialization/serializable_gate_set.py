@@ -197,8 +197,8 @@ class SerializableGateSet(serializer.Serializer):
             if gate_type_mro in self.serializers:
                 # Check each serializer in turn, if serializer proto returns
                 # None, then skip.
-                for serializer in self.serializers[gate_type_mro]:
-                    proto_msg = serializer.to_proto(
+                for mro_serializer in self.serializers[gate_type_mro]:
+                    proto_msg = mro_serializer.to_proto(
                         op,
                         msg,
                         arg_function_language=arg_function_language,
