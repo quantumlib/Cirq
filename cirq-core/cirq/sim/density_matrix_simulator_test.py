@@ -989,6 +989,23 @@ def test_density_matrix_simulator_state_repr():
         )
 
 
+def test_density_matrix_step_result_repr():
+    q0 = cirq.LineQubit(0)
+    assert (
+        repr(
+            cirq.DensityMatrixStepResult(
+                sim_state=cirq.DensityMatrixSimulationState(
+                    initial_state=np.ones((2, 2)) * 0.5, qubits=[q0]
+                )
+            )
+        )
+        == "cirq.DensityMatrixStepResult(sim_state=cirq.DensityMatrixSimulationState("
+        "initial_state=np.array([[(0.5+0j), (0.5+0j)], [(0.5+0j), (0.5+0j)]], dtype=np.complex64), "
+        "qid_shape=(2,), qubits=(cirq.LineQubit(0),), "
+        "classical_data=cirq.ClassicalDataDictionaryStore()), dtype=np.complex64)"
+    )
+
+
 def test_density_matrix_trial_result_eq():
     q0 = cirq.LineQubit(0)
     final_simulator_state = cirq.DensityMatrixSimulationState(
