@@ -61,6 +61,7 @@ _QUBITS = cirq.LineQubit.range(2)
 )
 def test_known_two_qubit_op_decomposition(op, theta_range):
     for theta_val in theta_range:
+        print(theta_val)
         op_resolved = cirq.resolve_parameters(op, {'theta': theta_val}, recursive=False)
         known_2q_circuit = cirq.Circuit(cg.known_2q_op_to_sycamore_operations(op_resolved))
         matrix_2q_circuit = cirq.Circuit(

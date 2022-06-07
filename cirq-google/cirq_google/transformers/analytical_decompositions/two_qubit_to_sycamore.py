@@ -453,4 +453,4 @@ def _swap_rzz(theta: float, q0: cirq.Qid, q1: cirq.Qid) -> cirq.OP_TREE:
         cirq.SWAP(q0, q1), cirq.ZZPowGate(exponent=2 * theta / np.pi, global_shift=-0.5).on(q0, q1)
     )
 
-    yield _create_corrected_circuit(cirq.unitary(intended_circuit), circuit, q0, q1)
+    yield _create_corrected_circuit(cirq.unitary(intended_circuit.unitary()), circuit, q0, q1)
