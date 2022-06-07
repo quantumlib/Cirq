@@ -309,9 +309,10 @@ class DensityMatrixStepResult(simulator_base.StepResultBase['cirq.DensityMatrixS
         return self._density_matrix.copy() if copy else self._density_matrix
 
     def __repr__(self) -> str:
+        # Dtype doesn't have a good repr, so we work around by invoking __name__.
         return (
             f'cirq.DensityMatrixStepResult(sim_state={self._sim_state!r},'
-            f' dtype=np.{self._dtype.__name__})'
+            f' dtype=np.{self._dtype.__name__})'  # type: ignore
         )
 
 
