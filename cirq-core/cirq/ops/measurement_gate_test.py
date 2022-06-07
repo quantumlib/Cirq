@@ -216,6 +216,8 @@ def test_measurement_channel():
         cirq.kraus(cirq.MeasurementGate(1, 'a')),
         (np.array([[1, 0], [0, 0]]), np.array([[0, 0], [0, 1]])),
     )
+    cirq.testing.assert_consistent_channel(cirq.MeasurementGate(1, 'a'))
+    assert not cirq.has_mixture(cirq.MeasurementGate(1, 'a'))
     # yapf: disable
     np.testing.assert_allclose(
             cirq.kraus(cirq.MeasurementGate(2, 'a')),

@@ -283,9 +283,18 @@ def _json_dict_with_cirq_type(obj: Any):
     if 'cirq_type' in base_dict:
         # TODO: upgrade to ValueError in v0.15
         warnings.warn(
-            f"Found 'cirq_type': '{base_dict['cirq_type']}' in _json_dict_. "
-            f"Custom values of this field are not permitted, and will produce "
-            "an error starting in Cirq v0.15.",
+            f"Found 'cirq_type': '{base_dict['cirq_type']}' in user-specified _json_dict_. "
+            "'cirq_type' is now automatically generated from the class's name and its "
+            "_json_namespace_ method as `cirq_type: '[<namespace>.]<class_name>'`."
+            "\n\n"
+            "Starting in v0.15, custom 'cirq_type' values will trigger an error. "
+            "To fix this, remove 'cirq_type' from the class _json_dict_ method and "
+            "define _json_namespace_ for the class."
+            "\n\n"
+            "For backwards compatibility, third-party classes whose old 'cirq_type' value "
+            "does not match the new value must appear under BOTH values in the resolver "
+            "for that package. For details on defining custom resolvers, see the "
+            "DEFAULT_RESOLVER docstring in cirq-core/cirq/protocols/json_serialization.py.",
             DeprecationWarning,
         )
         return base_dict
@@ -799,6 +808,25 @@ def to_json_gzip(
     indent: int = 2,
     cls: Type[json.JSONEncoder] = CirqEncoder,
 ) -> Optional[bytes]:
+    """Write a gzipped JSON file containing a representation of obj.
+
+    The object may be a cirq object or have data members that are cirq
+    objects which implement the SupportsJSON protocol.
+
+    Args:
+        obj: An object which can be serialized to a JSON representation.
+        file_or_fn: A filename (if a string or `pathlib.Path`) to write to, or
+            an IO object (such as a file or buffer) to write to, or `None` to
+            indicate that the method should return the JSON text as its result.
+            Defaults to `None`.
+        indent: Pretty-print the resulting file with this indent level.
+            Passed to json.dump.
+        cls: Passed to json.dump; the default value of CirqEncoder
+            enables the serialization of Cirq objects which implement
+            the SupportsJSON protocol. To support serialization of 3rd
+            party classes, prefer adding the _json_dict_ magic method
+            to your classes rather than overriding this default.
+    """
     json_str = to_json(obj, indent=indent, cls=cls)
     if isinstance(file_or_fn, (str, pathlib.Path)):
         with gzip.open(file_or_fn, 'wt', encoding='utf-8') as actually_a_file:
@@ -819,6 +847,28 @@ def read_json_gzip(
     gzip_raw: Optional[bytes] = None,
     resolvers: Optional[Sequence[JsonResolver]] = None,
 ):
+    """Read a gzipped JSON file that optionally contains cirq objects.
+
+    Args:
+        file_or_fn: A filename (if a string or `pathlib.Path`) to read from, or
+            an IO object (such as a file or buffer) to read from, or `None` to
+            indicate that `gzip_raw` argument should be used. Defaults to
+            `None`.
+        gzip_raw: Bytes representing the raw gzip input to unzip and parse
+            or else `None` indicating `file_or_fn` should be used. Defaults to
+            `None`.
+        resolvers: A list of functions that are called in order to turn
+            the serialized `cirq_type` string into a constructable class.
+            By default, top-level cirq objects that implement the SupportsJSON
+            protocol are supported. You can extend the list of supported types
+            by pre-pending custom resolvers. Each resolver should return `None`
+            to indicate that it cannot resolve the given cirq_type and that
+            the next resolver should be tried.
+
+    Raises:
+        ValueError: If either none of `file_or_fn` and `gzip_raw` is specified,
+            or both are specified.
+    """
     if (file_or_fn is None) == (gzip_raw is None):
         raise ValueError('Must specify ONE of "file_or_fn" or "gzip_raw".')
 

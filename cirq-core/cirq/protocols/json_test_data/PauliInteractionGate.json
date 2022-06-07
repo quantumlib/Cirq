@@ -1,0 +1,15 @@
+{
+  "cirq_type": "PauliInteractionGate",
+  "pauli0": {
+    "cirq_type": "_PauliZ",
+    "exponent": 1.0,
+    "global_shift": 0.0
+  },
+  "invert0": false,
+  "pauli1": {
+    "cirq_type": "_PauliX",
+    "exponent": 1.0,
+    "global_shift": 0.0
+  },
+  "invert1": true
+}

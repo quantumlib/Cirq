@@ -862,11 +862,11 @@ class HPowGate(eigen_gate.EigenGate):
 
         if self._exponent == 1:
             yield cirq.Y(q) ** 0.5
-            yield cirq.XPowGate(global_shift=-0.25).on(q)
+            yield cirq.XPowGate(global_shift=-0.25 + self.global_shift).on(q)
             return
 
         yield YPowGate(exponent=0.25).on(q)
-        yield XPowGate(exponent=self._exponent).on(q)
+        yield XPowGate(exponent=self._exponent, global_shift=self.global_shift).on(q)
         yield YPowGate(exponent=-0.25).on(q)
 
     def _circuit_diagram_info_(
@@ -1134,7 +1134,7 @@ class CXPowGate(eigen_gate.EigenGate):
     def _decompose_(self, qubits):
         c, t = qubits
         yield YPowGate(exponent=-0.5).on(t)
-        yield CZ(c, t) ** self._exponent
+        yield cirq.CZPowGate(exponent=self._exponent, global_shift=self.global_shift).on(c, t)
         yield YPowGate(exponent=0.5).on(t)
 
     def _eigen_components(self) -> List[Tuple[float, np.ndarray]]:

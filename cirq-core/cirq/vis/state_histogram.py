@@ -92,7 +92,7 @@ def plot_state_histogram(
     elif isinstance(data, collections.Counter):
         tick_label, values = zip(*sorted(data.items()))
     else:
-        values = data
+        values = np.array(data)
     if not tick_label:
         tick_label = np.arange(len(values))
     ax.bar(np.arange(len(values)), values, tick_label=tick_label)

@@ -627,6 +627,10 @@ def test_tagged_operation_forwards_protocols():
     assert controlled_y.qubits == (q2, q1)
     assert isinstance(controlled_y, cirq.Operation)
     assert not isinstance(controlled_y, cirq.TaggedOperation)
+    classically_controlled_y = tagged_y.with_classical_controls("a")
+    assert classically_controlled_y == y.with_classical_controls("a")
+    assert isinstance(classically_controlled_y, cirq.Operation)
+    assert not isinstance(classically_controlled_y, cirq.TaggedOperation)
 
     clifford_x = cirq.SingleQubitCliffordGate.X(q1)
     tagged_x = cirq.SingleQubitCliffordGate.X(q1).with_tags(tag)
@@ -932,3 +936,12 @@ def test_on_each_iterable_qid():
             raise NotImplementedError()
 
     assert cirq.H.on_each(QidIter())[0] == cirq.H.on(QidIter())
+
+
+@pytest.mark.parametrize(
+    'op', [cirq.X(cirq.NamedQubit("q")), cirq.X(cirq.NamedQubit("q")).with_tags("tagged_op")]
+)
+def test_with_methods_return_self_on_empty_conditions(op):
+    assert op is op.with_tags(*[])
+    assert op is op.with_classical_controls(*[])
+    assert op is op.controlled_by(*[])

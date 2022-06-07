@@ -11,6 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import unittest.mock as mock
 from typing import Optional
 
 import numpy as np
@@ -18,6 +19,7 @@ import pytest
 import sympy
 
 import cirq
+import cirq.circuits.circuit_operation as circuit_operation
 from cirq.circuits.circuit_operation import _full_join_string_lists
 
 ALL_SIMULATORS = (cirq.Simulator(), cirq.DensityMatrixSimulator(), cirq.CliffordSimulator())
@@ -344,6 +346,27 @@ def test_repeat_zero_times(add_measurements, use_repetition_ids, initial_reps):
     assert np.allclose(result.state_vector(), [0, 1] if initial_reps % 2 else [1, 0])
     result = cirq.Simulator().simulate(cirq.Circuit(op**0))
     assert np.allclose(result.state_vector(), [1, 0])
+
+
+def test_no_repetition_ids():
+    def default_repetition_ids(self):
+        assert False, "Should not call default_repetition_ids"
+
+    with mock.patch.object(circuit_operation, 'default_repetition_ids', new=default_repetition_ids):
+        q = cirq.LineQubit(0)
+        op = cirq.CircuitOperation(
+            cirq.Circuit(cirq.X(q), cirq.measure(q)).freeze(),
+            repetitions=1_000_000,
+            use_repetition_ids=False,
+        )
+        assert op.repetitions == 1_000_000
+        assert op.repetition_ids is None
+        _ = repr(op)
+        _ = str(op)
+
+        op2 = op.repeat(10)
+        assert op2.repetitions == 10_000_000
+        assert op2.repetition_ids is None
 
 
 def test_parameterized_repeat():

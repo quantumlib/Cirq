@@ -541,7 +541,6 @@ from cirq.value import (
     Condition,
     Duration,
     DURATION_LIKE,
-    GenericMetaImplementAnyOneOf,
     KeyCondition,
     LinearDict,
     MEASUREMENT_KEY_SEPARATOR,
