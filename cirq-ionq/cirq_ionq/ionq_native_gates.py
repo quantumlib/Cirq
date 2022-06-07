@@ -25,10 +25,17 @@ import numpy as np
 
 @cirq.value.value_equality
 class GPIGate(cirq.Gate):
-    r"""The GPI gate is a single qubit gate.
-    The unitary of this gate is
-        [[0, e^{-i*2*\pi*\phi}],
-         [e^{-i*2*\pi*\phi}, 0]]
+    r"""The GPI gate is a single qubit gate representing a pi pulse.
+
+    The unitary matrix of this gate is:
+    $$
+    \begin{bmatrix}
+      0 & e^{-i 2\pi\phi} \\
+      e^{-i2\pi\phi} & 0
+    \end{bmatrix}
+    $$
+
+    See [IonQ best practices](https://ionq.com/docs/getting-started-with-native-gates){:external}.
     """
 
     def __init__(self, *, phi):
@@ -67,22 +74,35 @@ class GPIGate(cirq.Gate):
 GPI = GPIGate(phi=0)
 document(
     GPI,
-    r"""The GPI gate is a single qubit gate.
-    The unitary of this gate is
-        [[0, e^{-i*2*\pi*\phi}],
-         [e^{i*2*\pi*\phi}, 0]]
-    It is driven by Rabi laser.
-    https://ionq.com/best-practices
+    r"""An instance of the single qubit GPI gate with no phase.
+
+    The unitary matrix of this gate is:
+    $$
+    \begin{bmatrix}
+      0 & 1 \\
+      1 & 0
+    \end{bmatrix}
+    $$
+
+    See [IonQ best practices](https://ionq.com/docs/getting-started-with-native-gates){:external}.
     """,
 )
 
 
 @cirq.value.value_equality
 class GPI2Gate(cirq.Gate):
-    r"""The GPI2 gate is a single qubit gate.
-    The unitary of this gate is
-        \frac{1}{/\sqrt{2}}[[1, -i*e^{-i\phi}],
-         [-i*e^{-i\phi}, 1]]
+    r"""The GPI2 gate is a single qubit gate representing a pi/2 pulse.
+
+    The unitary matrix of this gate is
+    $$
+    \frac{1}{\sqrt{2}}
+    \begin{bmatrix}
+        1 & -i e^{-i \phi} \\
+        -i e^{-i \phi} & 1
+    \end{bmatrix}
+    $$
+
+    See [IonQ best practices](https://ionq.com/docs/getting-started-with-native-gates){:external}.
     """
 
     def __init__(self, *, phi):
@@ -121,26 +141,39 @@ class GPI2Gate(cirq.Gate):
 GPI2 = GPI2Gate(phi=0)
 document(
     GPI2,
-    r"""The GPI2 gate is a single qubit gate.
-    The unitary of this gate is
-        \frac{1}{/\sqrt{2}}[[1, -i*e^{-i*2*\pi*\phi}],
-         [-i*e^{-i*2*\phi}, 1]]
-    It is driven by Rabi laser.
-    https://ionq.com/best-practices
+    r"""An instance of the single qubit GPI2 gate with no phase.
+
+    The unitary matrix of this gate is
+    $$
+    \frac{1}{\sqrt{2}}
+    \begin{bmatrix}
+        1 & -i \\
+        -i & 1
+    \end{bmatrix}
+    $$
+
+    See [IonQ best practices](https://ionq.com/docs/getting-started-with-native-gates){:external}.
     """,
 )
 
 
 @cirq.value.value_equality
 class MSGate(cirq.Gate):
-    r"""The MS gate is a 2 qubit gate.
-    The unitary of this gate is
-        MS(\phi_0, \phi_1) q_0, q_1 =
-            \frac{1}{\sqrt{2}}
-               [[1, 0, 0, -i*e^{-i*2*\pi*(\phi_0+\phi_1}],
-                [0, 1, -i*e^{-i*2*\pi*(\phi_0-\phi_1}, 0],
-                [0, -i*e^{i*2*\pi*(\phi_0-\phi_1}, 1, 0],
-                [-i*e^{i*2*\pi*(\phi_0+\phi_1}, 0, 0, 1]]
+    r"""The Mølmer–Sørensen (MS) gate is a two qubit gate native to trapped ions.
+
+    The unitary matrix of this gate for parameters $\phi_0$ and $\phi_1$ is
+
+    $$
+    \frac{1}{\sqrt{2}}
+    \begin{bmatrix}
+        1 & 0 &  0 & -ie^{-i2\pi(\phi_0+\phi_1)} \\
+        0 & 1 & -ie^{-i2\pi(\phi_0-\phi_1)} & 0 \\
+        0 & -ie^{i2\pi(\phi_0-\phi_1)} & 1 & 0 \\
+        -ie^{i2\pi(\phi_0+\phi_1)} & 0 & 0 & 1 \\
+    \end{bmatrix}
+    $$
+
+    See [IonQ best practices](https://ionq.com/docs/getting-started-with-native-gates){:external}.
     """
 
     def __init__(self, *, phi0, phi1):
@@ -190,16 +223,20 @@ class MSGate(cirq.Gate):
 MS = MSGate(phi0=0, phi1=0)
 document(
     MS,
-    r"""The MS gate is a 2 qubit gate.
-    The unitary of this gate is
-    .. math::
-        MS(\phi_0, \phi_1) q_0, q_1 =
-            \frac{1}{\sqrt{2}}
-               [[1, 0, 0, -i*e^{-i*(\phi_0+\phi_1}],
-                [0, 1, -i*e^{-i*(\phi_0-\phi_1}, 0],
-                [0, -i*e^{i*(\phi_0-\phi_1}, 1, 0],
-                [-i*e^{i*(\phi_0+\phi_1}, 0, 0, 1]]
+    r"""An instance of the two qubit Mølmer–Sørensen (MS) gate with no phases.
 
-    https://ionq.com/best-practices
+    The unitary matrix of this gate for parameters $\phi_0$ and $\phi_1$ is
+
+    $$
+    \frac{1}{\sqrt{2}}
+    \begin{bmatrix}
+        1 & 0 &  0 & -i \\
+        0 & 1 & -i & 0 \\
+        0 & -i & 1 & 0 \\
+        -i & 0 & 0 & 1 \\
+    \end{bmatrix}
+    $$
+
+    See [IonQ best practices](https://ionq.com/docs/getting-started-with-native-gates){:external}.
     """,
 )
