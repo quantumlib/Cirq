@@ -13,7 +13,7 @@
 # limitations under the License.
 """Device object for converting from device specification protos"""
 
-from typing import Any, Callable, cast, Dict, Iterable, Optional, List, Set, Tuple, Type, FrozenSet
+from typing import Any, Callable, cast, Dict, Iterable, Optional, List, Set, Tuple, FrozenSet
 import cirq
 from cirq import _compat
 from cirq_google.serialization import serializable_gate_set
@@ -64,6 +64,9 @@ class _GateDefinition:
         return self.__dict__ == other.__dict__
 
 
+_GateOrFrozenCircuitTypes = serializable_gate_set._GateOrFrozenCircuitTypes
+
+
 class SerializableDevice(cirq.Device):
     """Device object generated from a device specification proto.
 
@@ -80,7 +83,9 @@ class SerializableDevice(cirq.Device):
     """
 
     def __init__(
-        self, qubits: List[cirq.Qid], gate_definitions: Dict[Type[cirq.Gate], List[_GateDefinition]]
+        self,
+        qubits: List[cirq.Qid],
+        gate_definitions: Dict[_GateOrFrozenCircuitTypes, List[_GateDefinition]],
     ):
         """Constructor for SerializableDevice using python objects.
 
@@ -177,7 +182,7 @@ class SerializableDevice(cirq.Device):
                 )
 
         # Loop through serializers and map gate_definitions to type
-        gates_by_type: Dict[Type[cirq.Gate], List[_GateDefinition]] = {}
+        gates_by_type: Dict[_GateOrFrozenCircuitTypes, List[_GateDefinition]] = {}
         for gate_set in gate_sets:
             for internal_type in gate_set.supported_internal_types():
                 for serializer in gate_set.serializers[internal_type]:
