@@ -805,7 +805,9 @@ KAK_GAMMA = np.array([[1, 1, 1, 1],
 
 
 def kak_decomposition(
-    unitary_object: Union[np.ndarray, 'cirq.SupportsUnitary'],
+    unitary_object: Union[
+        np.ndarray, 'cirq.SupportsUnitary', 'cirq.Gate', 'cirq.Operation', KakDecomposition
+    ],
     *,
     rtol: float = 1e-5,
     atol: float = 1e-8,
