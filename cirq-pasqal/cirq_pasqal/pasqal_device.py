@@ -11,7 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from typing import FrozenSet, Callable, List, Sequence, Any, Union, Dict
+from typing import Callable, List, Sequence, Any, Union, Dict
 import numpy as np
 import networkx as nx
 
@@ -81,10 +81,6 @@ class PasqalDevice(cirq.devices.Device):
     @property
     def metadata(self):
         return self._metadata
-
-    @_compat.deprecated(fix='Use metadata.qubit_set() if applicable.', deadline='v0.15')
-    def qubit_set(self) -> FrozenSet[cirq.Qid]:
-        return frozenset(self.qubits)
 
     def qubit_list(self):
         return [qubit for qubit in self.qubits]
