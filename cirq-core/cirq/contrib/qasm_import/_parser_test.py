@@ -237,7 +237,7 @@ def test_classical_control():
     # Note this cannot *exactly* round-trip because the way QASM and Cirq handle measurements
     # into classical registers is different. Cirq parses QASM classical registers into m_a_i for i
     # in 0..bit_count. Thus the generated key has an extra "_0" at the end.
-    expected_generated_qasm = """// Generated from Cirq v0.15.0.dev
+    expected_generated_qasm = f"""// Generated from Cirq v{cirq.__version__}
 
 OPENQASM 2.0;
 include "qelib1.inc";
