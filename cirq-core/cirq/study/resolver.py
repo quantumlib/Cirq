@@ -261,6 +261,8 @@ class ParamResolver:
 
 
 def _resolve_value(val: Any) -> Any:
+    if val is None:
+        return val
     if isinstance(val, numbers.Number) and not isinstance(val, sympy.Basic):
         return val
     if isinstance(val, sympy_numbers.IntegerConstant):
