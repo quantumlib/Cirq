@@ -94,6 +94,7 @@ class SerializableDevice(cirq.Device):
         """
         self.qubits = qubits
         self.gate_definitions = gate_definitions
+        has_subcircuit_support: bool = cirq.FrozenCircuit in gate_definitions
         self._metadata = cirq.GridDeviceMetadata(
             qubit_pairs=[
                 (pair[0], pair[1])
@@ -104,12 +105,9 @@ class SerializableDevice(cirq.Device):
                 if len(pair) == 2 and pair[0] < pair[1]
             ],
             gateset=cirq.Gateset(
-                *[
-                    g
-                    for g in gate_definitions.keys()
-                    if isinstance(g, cirq.Gate) or issubclass(g, cirq.Gate)
-                ],
+                *(g for g in gate_definitions.keys() if issubclass(g, cirq.Gate)),
                 cirq.GlobalPhaseGate,
+                unroll_circuit_op=has_subcircuit_support,
             ),
             gate_durations=None,
         )
