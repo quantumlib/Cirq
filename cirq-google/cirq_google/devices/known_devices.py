@@ -107,7 +107,7 @@ def create_device_proto_for_qubits(
         out = device_pb2.DeviceSpecification()
 
     # Create valid qubit list
-    out.valid_qubits.extend(v2.qubit_to_proto_id(q) for q in qubits)
+    populate_qubits_in_device_proto(qubits, out)
 
     # Single qubit gates in this gateset
     single_qubit_gates = (cirq.PhasedXPowGate, cirq.PhasedXZGate, cirq.ZPowGate)
@@ -118,12 +118,7 @@ def create_device_proto_for_qubits(
     meas_targets.target_ordering = device_pb2.TargetSet.SUBSET_PERMUTATION
 
     # Set up a target set for 2 qubit gates (specified qubit pairs)
-    grid_targets = out.valid_targets.add()
-    grid_targets.name = _2_QUBIT_TARGET_SET
-    grid_targets.target_ordering = device_pb2.TargetSet.SYMMETRIC
-    for pair in pairs:
-        new_target = grid_targets.targets.add()
-        new_target.ids.extend(v2.qubit_to_proto_id(q) for q in pair)
+    populate_qubit_pairs_in_device_proto(pairs, out)
 
     # Create gate sets
     arg_def = device_pb2.ArgDefinition
@@ -184,6 +179,35 @@ def create_device_proto_for_qubits(
                     # Note: this does not yet support adding allowed_ranges
 
     return out
+
+
+def populate_qubits_in_device_proto(
+    qubits: Collection[cirq.Qid], out: device_pb2.DeviceSpecification
+) -> None:
+    """Populates `DeviceSpecification.valid_qubits` with the device's qubits.
+
+    Args:
+        qubits: The collection of the device's qubits.
+        out: The `DeviceSpecification` to be populated.
+    """
+    out.valid_qubits.extend(v2.qubit_to_proto_id(q) for q in qubits)
+
+
+def populate_qubit_pairs_in_device_proto(
+    pairs: Collection[Tuple[cirq.Qid, cirq.Qid]], out: device_pb2.DeviceSpecification
+) -> None:
+    """Populates `DeviceSpecification.valid_targets` with the device's qubit pairs.
+
+    Args:
+        pairs: The collection of the device's bi-directional qubit pairs.
+        out: The `DeviceSpecification` to be populated.
+    """
+    grid_targets = out.valid_targets.add()
+    grid_targets.name = _2_QUBIT_TARGET_SET
+    grid_targets.target_ordering = device_pb2.TargetSet.SYMMETRIC
+    for pair in pairs:
+        new_target = grid_targets.targets.add()
+        new_target.ids.extend(v2.qubit_to_proto_id(q) for q in pair)
 
 
 _FOXTAIL_GRID = """

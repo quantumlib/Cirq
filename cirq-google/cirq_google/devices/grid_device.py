@@ -14,16 +14,28 @@
 
 """Device object representing Google devices with a grid qubit layout."""
 
+from typing import Any, Collection, Dict, List, Optional, Sequence, Set, Tuple, Type, Union, cast
 import re
-
-from typing import Any, Dict, List, Sequence, Set, Tuple, Type, Union, cast
 import warnings
 
 import cirq
 from cirq_google import ops
 from cirq_google import transformers
 from cirq_google.api import v2
+from cirq_google.devices import known_devices
 from cirq_google.experimental import ops as experimental_ops
+
+
+SYC_GATE_FAMILY = cirq.GateFamily(ops.SYC)
+SQRT_ISWAP_GATE_FAMILY = cirq.GateFamily(cirq.SQRT_ISWAP)
+SQRT_ISWAP_INV_GATE_FAMILY = cirq.GateFamily(cirq.SQRT_ISWAP_INV)
+CZ_GATE_FAMILY = cirq.GateFamily(cirq.CZ)
+PHASED_XZ_GATE_FAMILY = cirq.GateFamily(cirq.PhasedXZGate)
+VIRTUAL_ZPOW_GATE_FAMILY = cirq.GateFamily(cirq.ZPowGate, tags_to_ignore=[ops.PhysicalZTag()])
+PHYSICAL_ZPOW_GATE_FAMILY = cirq.GateFamily(cirq.ZPowGate, tags_to_accept=[ops.PhysicalZTag()])
+COUPLER_PULSE_GATE_FAMILY = cirq.GateFamily(experimental_ops.CouplerPulse)
+MEASUREMENT_GATE_FAMILY = cirq.GateFamily(cirq.MeasurementGate)
+WAIT_GATE_FAMILY = cirq.GateFamily(cirq.WaitGate)
 
 
 def _validate_device_specification(proto: v2.device_pb2.DeviceSpecification) -> None:
@@ -366,3 +378,94 @@ class GridDevice(cirq.Device):
 
     def _value_equality_values_(self):
         return self._metadata
+
+
+def _set_gate_in_gate_spec(
+    gate_spec: v2.device_pb2.GateSpecification, gate_family: cirq.GateFamily
+) -> None:
+    if gate_family == SYC_GATE_FAMILY:
+        gate_spec.syc.SetInParent()
+    elif gate_family == SQRT_ISWAP_GATE_FAMILY:
+        gate_spec.sqrt_iswap.SetInParent()
+    elif gate_family == SQRT_ISWAP_INV_GATE_FAMILY:
+        gate_spec.sqrt_iswap_inv.SetInParent()
+    elif gate_family == CZ_GATE_FAMILY:
+        gate_spec.cz.SetInParent()
+    elif gate_family == PHASED_XZ_GATE_FAMILY:
+        gate_spec.phased_xz.SetInParent()
+    elif gate_family == VIRTUAL_ZPOW_GATE_FAMILY:
+        gate_spec.virtual_zpow.SetInParent()
+    elif gate_family == PHYSICAL_ZPOW_GATE_FAMILY:
+        gate_spec.physical_zpow.SetInParent()
+    elif gate_family == COUPLER_PULSE_GATE_FAMILY:
+        gate_spec.coupler_pulse.SetInParent()
+    elif gate_family == MEASUREMENT_GATE_FAMILY:
+        gate_spec.meas.SetInParent()
+    elif gate_family == WAIT_GATE_FAMILY:
+        gate_spec.wait.SetInParent()
+    else:
+        raise ValueError(f'Unrecognized gate {gate_family}.')
+
+
+def create_device_specification_proto(
+    *,
+    qubits: Collection[cirq.GridQubit],
+    pairs: Collection[Tuple[cirq.GridQubit, cirq.GridQubit]],
+    gateset: cirq.Gateset,
+    gate_durations: Optional[Dict['cirq.GateFamily', 'cirq.Duration']] = None,
+    out: Optional[v2.device_pb2.DeviceSpecification] = None,
+) -> v2.device_pb2.DeviceSpecification:
+    """Serializes the given device information into a DeviceSpecification proto.
+
+    Args:
+        qubits: Collection of qubits available on the device.
+        pairs: Collection of bidirectional qubit couplings available on the device.
+        gateset: The gate set supported by the device.
+        gate_durations: Optional mapping from gates supported by the device to their timing
+            estimates. Not every gate is required to have an associated duration.
+        out: If set, device information will be serialized into this DeviceSpecification.
+
+    Raises:
+        ValueError: If a qubit in `pairs` is not part of `qubits`.
+        ValueError: If a pair contains two identical qubits.
+        ValueError: If `gate_durations` contains keys which are not in `gateset`.
+        ValueError: If `gateset` contains a gate which is not recognized by DeviceSpecification.
+    """
+
+    if gate_durations is not None:
+        extra_gate_families = (gate_durations.keys() | gateset.gates) - gateset.gates
+        if extra_gate_families:
+            raise ValueError(
+                'Gate durations contain keys which are not part of the gateset:'
+                f' {extra_gate_families}'
+            )
+
+    if out is None:
+        out = v2.device_pb2.DeviceSpecification()
+
+    # If fields are already filled (i.e. as part of the old DeviceSpecification format), leave them
+    # as is. Fields populated in the new format do not conflict with how they were populated in the
+    # old format.
+    # TODO(#5050) remove empty checks below once deprecated fields in DeviceSpecification are
+    # removed.
+
+    if len(out.valid_qubits) == 0:
+        known_devices.populate_qubits_in_device_proto(qubits, out)
+
+    if len(out.valid_targets) == 0:
+        known_devices.populate_qubit_pairs_in_device_proto(pairs, out)
+
+    gate_specs = []
+    for gate_family in gateset.gates:
+        gate_spec = v2.device_pb2.GateSpecification()
+        _set_gate_in_gate_spec(gate_spec, gate_family)
+        if gate_durations is not None and gate_family in gate_durations:
+            gate_spec.gate_duration_picos = int(gate_durations[gate_family].total_picos())
+        gate_specs.append(gate_spec)
+
+    # Sort by gate name to keep valid_gates stable.
+    out.valid_gates.extend(sorted(gate_specs, key=lambda s: s.WhichOneof('gate')))
+
+    _validate_device_specification(out)
+
+    return out
