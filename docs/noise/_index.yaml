@@ -30,3 +30,5 @@ landing_page:
         - heading: Heatmaps
           description: Functions to plot noise characteristics across a device.
           path: /cirq/tutorials/heatmaps
+          icon:
+            name: menu_book

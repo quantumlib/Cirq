@@ -178,8 +178,3 @@ def test_at():
     assert d.at(-1) is None
     assert d.at(0) == cirq.LineQubit(0)
     assert d.at(2) == cirq.LineQubit(2)
-
-
-def test_qubit_set_deprecated():
-    with cirq.testing.assert_deprecated('qubit_set', deadline='v0.15', count=2):
-        assert ion_device(3).qubit_set() == frozenset(cirq.LineQubit.range(3))
