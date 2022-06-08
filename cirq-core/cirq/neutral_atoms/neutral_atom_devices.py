@@ -14,9 +14,9 @@
 
 import itertools
 import collections
-from typing import Any, Iterable, cast, DefaultDict, TYPE_CHECKING, FrozenSet
+from typing import Any, Iterable, cast, DefaultDict, TYPE_CHECKING
 from numpy import sqrt
-from cirq import _compat, devices, ops, circuits, value
+from cirq import devices, ops, circuits, value
 from cirq.devices.grid_qubit import GridQubit
 from cirq.ops import raw_types
 from cirq.value import Duration
@@ -104,10 +104,6 @@ class NeutralAtomDevice(devices.Device):
     @property
     def metadata(self) -> devices.GridDeviceMetadata:
         return self._metadata
-
-    @_compat.deprecated(fix='Use metadata.qubit_set if applicable.', deadline='v0.15')
-    def qubit_set(self) -> FrozenSet['cirq.GridQubit']:
-        return self.qubits
 
     def qubit_list(self):
         return [qubit for qubit in self.qubits]
