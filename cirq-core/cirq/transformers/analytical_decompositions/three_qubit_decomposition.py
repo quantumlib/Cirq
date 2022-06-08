@@ -187,6 +187,8 @@ def _two_qubit_multiplexor_to_ops(
 
     w = d_v @ w
 
+    d_w: Optional[np.ndarray]
+
     # if it's interesting to extract the diagonal then let's do it
     if shift_left:
         d_w, circuit_u1u2_l = opt.two_qubit_matrix_to_diagonal_and_cz_operations(
