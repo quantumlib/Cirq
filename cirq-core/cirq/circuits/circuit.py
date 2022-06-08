@@ -781,8 +781,7 @@ class AbstractCircuit(abc.ABC):
     def are_all_measurements_terminal(self) -> bool:
         """Whether all measurement gates are at the end of the circuit.
 
-        Returns: bool that is True if all measurements have no gates
-            following them on their respective qubits.
+        Returns: True iff no measurement is followed by a gate.
         """
         return self.are_all_matches_terminal(protocols.is_measurement)
 
@@ -827,8 +826,7 @@ class AbstractCircuit(abc.ABC):
     def are_any_measurements_terminal(self) -> bool:
         """Whether any measurement gates are at the end of the circuit.
 
-        Returns: bool that is True if any measurements have no gates
-            following them on their respective qubits.
+        Returns: True iff some measurements are not followed by a gate.
         """
         return self.are_any_matches_terminal(protocols.is_measurement)
 
