@@ -953,6 +953,7 @@ def test_datetime():
 
     re_naive_dt = cirq.read_json(json_text=cirq.to_json(naive_dt))
     assert re_naive_dt != naive_dt, 'loads in with timezone'
+    assert re_naive_dt.timestamp() == naive_dt.timestamp()
 
     utc_dt = naive_dt.astimezone(datetime.timezone.utc)
     re_utc_dt = cirq.read_json(json_text=cirq.to_json(utc_dt))
