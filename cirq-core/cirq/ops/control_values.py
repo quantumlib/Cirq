@@ -84,7 +84,9 @@ class AbstractControlValues(abc.ABC):
         pass
 
     @abc.abstractmethod
-    def __getitem__(self, key):
+    def __getitem__(
+        self, key: Union[slice, int]
+    ) -> Union['AbstractControlValues', Tuple[int, ...]]:
         pass
 
     def __iter__(self) -> Generator[Tuple[int, ...], None, None]:
@@ -155,7 +157,9 @@ class ProductOfSums(AbstractControlValues):
 
         return ''.join(map(get_prefix, self._internal_representation))
 
-    def __getitem__(self, key):
+    def __getitem__(
+        self, key: Union[int, slice]
+    ) -> Union['AbstractControlValues', Tuple[int, ...]]:
         if isinstance(key, slice):
             return ProductOfSums(self._internal_representation[key])
         return self._internal_representation[key]
