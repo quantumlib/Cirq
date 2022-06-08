@@ -75,8 +75,6 @@ SKIP_NOTEBOOKS = [
     "examples/*fidelity*",
     # Also skipping stabilizer code testing.
     "examples/*stabilizer_code*",
-    # Until openfermion is upgraded, this version of Cirq throws an error
-    "docs/tutorials/educators/chemistry.ipynb",
     *NOTEBOOKS_DEPENDING_ON_UNRELEASED_FEATURES,
 ]
 
