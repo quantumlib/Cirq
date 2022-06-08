@@ -64,7 +64,7 @@ class ControlledGate(raw_types.Gate):
             sub_gate: The gate to add a control qubit to.
             num_controls: Total number of control qubits.
             control_values: For which control qubit values to apply the sub
-                gate.  Either an object that inherets from AbstractControlValues
+                gate.  Either an object that inherits from AbstractControlValues
                 or a sequence of length `num_controls` where each
                 entry is an integer (or set of integers) corresponding to the
                 qubit value (or set of possible values) where that control is
@@ -147,7 +147,7 @@ class ControlledGate(raw_types.Gate):
             control_qubits = list(qubits[: self.num_controls()])
             invert_ops: List['cirq.Operation'] = []
             for cvals, cqbit in zip(
-                self.control_values.identifier(), qubits[: self.num_controls()]
+                self.control_values._identifier(), qubits[: self.num_controls()]
             ):
                 if set(cvals) == {0}:
                     invert_ops.append(common_gates.X(cqbit))
@@ -295,7 +295,7 @@ class ControlledGate(raw_types.Gate):
 
         return protocols.CircuitDiagramInfo(
             wire_symbols=(
-                *(get_symbol(vals) for vals in self.control_values.identifier()),
+                *(get_symbol(vals) for vals in self.control_values._identifier()),
                 *sub_info.wire_symbols,
             ),
             exponent=sub_info.exponent,
@@ -321,7 +321,7 @@ class ControlledGate(raw_types.Gate):
 
     def _json_dict_(self) -> Dict[str, Any]:
         return {
-            'control_values': self.control_values.identifier(),
+            'control_values': self.control_values._identifier(),
             'control_qid_shape': self.control_qid_shape,
             'sub_gate': self.sub_gate,
         }

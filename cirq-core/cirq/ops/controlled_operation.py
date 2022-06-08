@@ -64,7 +64,7 @@ class ControlledOperation(raw_types.Operation):
             controls: The qubits that control the sub-operation.
             sub_operation: The operation that will be controlled.
             control_values: Which control qubit values to apply the sub
-                operation.  Either an object that inherets from AbstractControlValues
+                operation.  Either an object that inherits from AbstractControlValues
                 or a sequence of length `num_controls` where each
                 entry is an integer (or set of integers) corresponding to the
                 qubit value (or set of possible values) where that control is
@@ -168,7 +168,10 @@ class ControlledOperation(raw_types.Operation):
         ]
 
     def _value_equality_values_(self):
-        return (frozenset(zip(self.controls, self.control_values.identifier())), self.sub_operation)
+        return (
+            frozenset(zip(self.controls, self.control_values._identifier())),
+            self.sub_operation,
+        )
 
     def _apply_unitary_(self, args: 'protocols.ApplyUnitaryArgs') -> np.ndarray:
         n = len(self.controls)
@@ -320,7 +323,7 @@ class ControlledOperation(raw_types.Operation):
             return f"({','.join(map(str, vals))})"
 
         wire_symbols = (
-            *(get_symbol(vals) for vals in self.control_values.identifier()),
+            *(get_symbol(vals) for vals in self.control_values._identifier()),
             *sub_info.wire_symbols,
         )
         exponent_qubit_index = None
@@ -341,6 +344,6 @@ class ControlledOperation(raw_types.Operation):
     def _json_dict_(self) -> Dict[str, Any]:
         return {
             'controls': self.controls,
-            'control_values': self.control_values.identifier(),
+            'control_values': self.control_values._identifier(),
             'sub_operation': self.sub_operation,
         }
