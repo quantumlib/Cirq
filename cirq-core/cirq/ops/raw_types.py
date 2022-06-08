@@ -141,6 +141,12 @@ class Qid(metaclass=abc.ABCMeta):
             return NotImplemented
         return self._cmp_tuple() >= other._cmp_tuple()
 
+    def _circuit_diagram_info_(
+        self, args: 'cirq.CircuitDiagramInfoArgs'
+    ) -> 'cirq.CircuitDiagramInfo':
+        """Circuit symbol for qids defaults to the string representation."""
+        return protocols.CircuitDiagramInfo(wire_symbols=(str(self),))
+
 
 @functools.total_ordering
 class _QubitAsQid(Qid):
@@ -621,16 +627,21 @@ class Operation(metaclass=abc.ABCMeta):
 
     def with_classical_controls(
         self, *conditions: Union[str, 'cirq.MeasurementKey', 'cirq.Condition', sympy.Expr]
-    ) -> 'cirq.ClassicallyControlledOperation':
+    ) -> 'cirq.Operation':
         """Returns a classically controlled version of this operation.
 
         An operation that is classically controlled is executed iff all
-        conditions evaluate to True. Currently the only condition type is a
-        measurement key. A measurement key evaluates to True iff any qubit in
-        the corresponding measurement operation evaluated to a non-zero value.
+        conditions evaluate to True. Conditions can be either a measurement key
+        or a user-specified `cirq.Condition`. A measurement key evaluates to
+        True iff any qubit in the corresponding measurement operation evaluated
+        to a non-zero value; `cirq.Condition` supports more complex,
+        user-defined conditions.
 
-        The classical control will hide any tags on the existing operation,
-        since tags are considered a local attribute.
+        If no conditions are specified, returns self.
+
+        The classical control will remove any tags on the existing operation,
+        since tags are fragile, and we always opt to get rid of the tags when
+        the underlying operation is changed.
 
         Args:
             *conditions: A list of measurement keys, strings that can be parsed
@@ -638,10 +649,13 @@ class Operation(metaclass=abc.ABCMeta):
                 symbols are measurement key strings.
 
         Returns:
-            A `ClassicallyControlledOperation` wrapping the operation.
+            A `ClassicallyControlledOperation` wrapping the operation. If no conditions
+           are specified, returns self.
         """
         from cirq.ops.classically_controlled_operation import ClassicallyControlledOperation
 
+        if not conditions:
+            return self
         return ClassicallyControlledOperation(self, conditions)
 
     def without_classical_controls(self) -> 'cirq.Operation':
@@ -654,10 +668,10 @@ class Operation(metaclass=abc.ABCMeta):
         If there are no classical controls on the operation, it will return
         `self`.
 
-        Since tags are considered local, this will also remove any tags from
-        the operation (unless there are no classical controls on it). If a
-        `TaggedOperation` is under all the classical control layers, that
-        `TaggedOperation` will be returned from this function.
+        Since tags are fragile, this will also remove any tags from the operation,
+        when called on `TaggedOperation` (unless there are no classical controls on it).
+        If a `TaggedOperation` is under all the classical control layers,
+        that `TaggedOperation` will be returned from this function.
 
         Returns:
             The operation with all classical controls removed.
@@ -713,6 +727,8 @@ class TaggedOperation(Operation):
             Union[cv.AbstractControlValues, Sequence[Union[int, Collection[int]]]]
         ] = None,
     ) -> 'cirq.Operation':
+        if len(control_qubits) == 0:
+            return self
         return self.sub_operation.controlled_by(*control_qubits, control_values=control_values)
 
     @property
@@ -864,6 +880,13 @@ class TaggedOperation(Operation):
     def without_classical_controls(self) -> 'cirq.Operation':
         new_sub_operation = self.sub_operation.without_classical_controls()
         return self if new_sub_operation is self.sub_operation else new_sub_operation
+
+    def with_classical_controls(
+        self, *conditions: Union[str, 'cirq.MeasurementKey', 'cirq.Condition', sympy.Expr]
+    ) -> 'cirq.Operation':
+        if not conditions:
+            return self
+        return self.sub_operation.with_classical_controls(*conditions)
 
     def _control_keys_(self) -> AbstractSet['cirq.MeasurementKey']:
         return protocols.control_keys(self.sub_operation)

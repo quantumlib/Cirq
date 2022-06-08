@@ -54,6 +54,7 @@ NOTEBOOKS_DEPENDING_ON_UNRELEASED_FEATURES: List[str] = [
     'docs/tutorials/google/visualizing_calibration_metrics.ipynb',
     'docs/tutorials/google/xeb_calibration_example.ipynb',
     'docs/named_topologies.ipynb',
+    'docs/tutorials/educators/intro.ipynb',
 ]
 
 # By default all notebooks should be tested, however, this list contains exceptions to the rule
@@ -74,8 +75,6 @@ SKIP_NOTEBOOKS = [
     "examples/*fidelity*",
     # Also skipping stabilizer code testing.
     "examples/*stabilizer_code*",
-    # Until openfermion is upgraded, this version of Cirq throws an error
-    "docs/tutorials/educators/chemistry.ipynb",
     *NOTEBOOKS_DEPENDING_ON_UNRELEASED_FEATURES,
 ]
 
@@ -180,7 +179,7 @@ def test_notebooks_against_released_cirq(partition, notebook_path, cloned_env):
 mkdir -p out/{notebook_rel_dir}
 cd {notebook_env}
 . ./bin/activate
-pip list 
+pip list
 papermill {rewritten_notebook_path} {os.getcwd()}/{out_path}"""
     stdout, stderr, status = shell_tools.run_shell(
         cmd=cmd,

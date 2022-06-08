@@ -25,13 +25,14 @@ from cirq_google.engine import (
     abstract_processor,
     calibration,
     calibration_layer,
-    engine_sampler,
+    processor_sampler,
     util,
 )
 from cirq_google.serialization import serializable_gate_set, serializer
 from cirq_google.serialization import gate_sets as gs
 
 if TYPE_CHECKING:
+    import cirq_google as cg
     import cirq_google.engine.engine as engine_base
     import cirq_google.engine.abstract_job as abstract_job
 
@@ -105,7 +106,7 @@ class EngineProcessor(abstract_processor.AbstractProcessor):
     @util.deprecated_gate_set_parameter
     def get_sampler(
         self, gate_set: Optional[serializer.Serializer] = None
-    ) -> engine_sampler.QuantumEngineSampler:
+    ) -> 'cg.engine.ProcessorSampler':
         """Returns a sampler backed by the engine.
 
         Args:
@@ -117,9 +118,7 @@ class EngineProcessor(abstract_processor.AbstractProcessor):
             that will send circuits to the Quantum Computing Service
             when sampled.1
         """
-        return engine_sampler.QuantumEngineSampler(
-            engine=self.engine(), processor_id=self.processor_id
-        )
+        return processor_sampler.ProcessorSampler(processor=self)
 
     @util.deprecated_gate_set_parameter
     def run_batch(

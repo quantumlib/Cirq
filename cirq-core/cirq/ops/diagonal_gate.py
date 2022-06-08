@@ -18,7 +18,18 @@ The gate is used to create a (2^n)x(2^n) matrix with the diagonal elements
 passed as a list.
 """
 
-from typing import AbstractSet, Any, Iterator, List, Optional, Sequence, Tuple, TYPE_CHECKING, Union
+from typing import (
+    AbstractSet,
+    Any,
+    Dict,
+    Iterator,
+    List,
+    Optional,
+    Sequence,
+    Tuple,
+    TYPE_CHECKING,
+    Union,
+)
 
 import numpy as np
 import sympy
@@ -82,6 +93,10 @@ class DiagonalGate(raw_types.Gate):
                 has diagonal values $(e^{i x_0}, e^{i x_1}, \ldots, e^{i x_N})$.
         """
         self._diag_angles_radians: Tuple['cirq.TParamVal', ...] = tuple(diag_angles_radians)
+
+    @property
+    def diag_angles_radians(self) -> Tuple['cirq.TParamVal', ...]:
+        return self._diag_angles_radians
 
     def _num_qubits_(self):
         return int(np.log2(len(self._diag_angles_radians)))
@@ -193,6 +208,9 @@ class DiagonalGate(raw_types.Gate):
         for i, bit_flip in _gen_gray_code(n):
             decomposed_circ.extend(self._decompose_for_basis(i, bit_flip, -hat_angles[i], qubits))
         return decomposed_circ
+
+    def _json_dict_(self) -> Dict[str, Any]:
+        return protocols.obj_to_dict_helper(self, attribute_names=["diag_angles_radians"])
 
     def __repr__(self) -> str:
         return 'cirq.DiagonalGate([{}])'.format(

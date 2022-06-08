@@ -118,18 +118,37 @@ def test_simulated_backend_with_bad_local_device():
 def test_simulated_backend_descriptive_name():
     p = cg.SimulatedProcessorWithLocalDeviceRecord('rainbow')
     assert str(p) == 'rainbow-simulator'
-    assert isinstance(p.get_sampler(), cg.ValidatingSampler)
-    assert isinstance(p.get_sampler()._sampler, cirq.Simulator)
+    assert isinstance(p.get_sampler(), cg.engine.ProcessorSampler)
+
+    # The actual simulator hiding behind the indirection is
+    # p.get_sampler() -> ProcessorSampler
+    # p.get_sampler().processor._sampler -> Validating Sampler
+    # p.get_sampler().processor._sampler._sampler -> The actual simulator
+    assert isinstance(p.get_sampler().processor._sampler._sampler, cirq.Simulator)
 
     p = cg.SimulatedProcessorWithLocalDeviceRecord('rainbow', noise_strength=1e-3)
     assert str(p) == 'rainbow-depol(1.000e-03)'
-    assert isinstance(p.get_sampler()._sampler, cirq.DensityMatrixSimulator)
+    assert isinstance(p.get_sampler().processor._sampler._sampler, cirq.DensityMatrixSimulator)
 
     p = cg.SimulatedProcessorWithLocalDeviceRecord('rainbow', noise_strength=float('inf'))
     assert str(p) == 'rainbow-zeros'
-    assert isinstance(p.get_sampler()._sampler, cirq.ZerosSampler)
+    assert isinstance(p.get_sampler().processor._sampler._sampler, cirq.ZerosSampler)
 
 
 def test_sampler_equality():
     p = cg.SimulatedProcessorWithLocalDeviceRecord('rainbow')
     assert p.get_sampler().__class__ == p.get_processor().get_sampler().__class__
+
+
+def test_engine_result():
+    proc_rec = cg.SimulatedProcessorWithLocalDeviceRecord('rainbow')
+
+    proc = proc_rec.get_processor()
+    samp = proc_rec.get_sampler()
+
+    circ = cirq.Circuit(cirq.measure(cirq.GridQubit(5, 4)))
+
+    res1 = proc.run(circ)
+    assert isinstance(res1, cg.EngineResult)
+    res2 = samp.run(circ)
+    assert isinstance(res2, cg.EngineResult)

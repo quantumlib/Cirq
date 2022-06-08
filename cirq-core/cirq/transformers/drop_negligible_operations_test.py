@@ -94,3 +94,16 @@ def test_recursively_runs_inside_circuit_ops_deep():
     cirq.testing.assert_same_circuits(
         cirq.drop_negligible_operations(c_orig, context=context, atol=0.001), c_expected
     )
+
+
+def test_ignores_large_ops():
+    qnum = 20
+    qubits = cirq.LineQubit.range(qnum)
+    subcircuit = cirq.FrozenCircuit(cirq.X.on_each(*qubits))
+    circuit = cirq.Circuit(
+        cirq.CircuitOperation(subcircuit).repeat(10), cirq.measure(*qubits, key='out')
+    )
+    cirq.testing.assert_same_circuits(
+        circuit,
+        cirq.drop_negligible_operations(circuit, context=cirq.TransformerContext(deep=True)),
+    )

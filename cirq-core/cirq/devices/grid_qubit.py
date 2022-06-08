@@ -205,19 +205,25 @@ class GridQid(_BaseGridQid):
 
     @staticmethod
     def from_diagram(diagram: str, dimension: int) -> List['GridQid']:
-        r"""Parse ASCII art device layout into info about qids and
-        connectivity. As an example, the below diagram will create a list of
-        GridQid in a pyramid structure.
+        """Parse ASCII art device layout into a device.
+
+        As an example, the below diagram will create a list of GridQid in a
+        pyramid structure.
+
+
+        ```
         ---A---
         --AAA--
         -AAAAA-
         AAAAAAA
+        ```
 
-        You can use any character other than a hyphen to mark a qid. As an
-        example, the qids for the Bristlecone device could be represented by
-        the below diagram. This produces a diamond-shaped grid of qids, and
-        qids with the same letter correspond to the same readout line.
+        You can use any character other than a hyphen, period or space to mark a
+        qid. As an example, the qids for a Bristlecone device could be
+        represented by the below diagram. This produces a diamond-shaped grid of
+        qids, and qids with the same letter correspond to the same readout line.
 
+        ```
         .....AB.....
         ....ABCD....
         ...ABCDEF...
@@ -229,20 +235,22 @@ class GridQid(_BaseGridQid):
         ...GHIJKL...
         ....IJKL....
         .....KL.....
+        ```
 
         Args:
             diagram: String representing the qid layout. Each line represents
                 a row. Alphanumeric characters are assigned as qid.
                 Dots ('.'), dashes ('-'), and spaces (' ') are treated as
                 empty locations in the grid. If diagram has characters other
-                than alphanumerics, spacers, and newlines ('\n'), an error will
+                than alphanumerics, spacers, and newlines ('\\n'), an error will
                 be thrown. The top-left corner of the diagram will be have
-                coordinate (0,0).
-            dimension: The dimension of the qubits in the `GridQid`s used
+                coordinate (0, 0).
+
+            dimension: The dimension of the qubits in the `cirq.GridQid`s used
                 in this construction.
 
         Returns:
-            A list of GridQid corresponding to qids in the provided diagram
+            A list of `cirq.GridQid`s corresponding to qids in the provided diagram
 
         Raises:
             ValueError: If the input string contains an invalid character.
@@ -254,7 +262,14 @@ class GridQid(_BaseGridQid):
         return f"cirq.GridQid({self.row}, {self.col}, dimension={self.dimension})"
 
     def __str__(self) -> str:
-        return f"({self.row}, {self.col}) (d={self.dimension})"
+        return f"q({self.row}, {self.col}) (d={self.dimension})"
+
+    def _circuit_diagram_info_(
+        self, args: 'cirq.CircuitDiagramInfoArgs'
+    ) -> 'cirq.CircuitDiagramInfo':
+        return protocols.CircuitDiagramInfo(
+            wire_symbols=(f"({self.row}, {self.col}) (d={self.dimension})",)
+        )
 
     def _json_dict_(self) -> Dict[str, Any]:
         return protocols.obj_to_dict_helper(self, ['row', 'col', 'dimension'])
@@ -356,19 +371,25 @@ class GridQubit(_BaseGridQid):
 
     @staticmethod
     def from_diagram(diagram: str) -> List['GridQubit']:
-        """Parse ASCII art device layout into info about qubits and
-        connectivity. As an example, the below diagram will create a list of
+        """Parse ASCII art into device layout info.
+
+        As an example, the below diagram will create a list of
         GridQubit in a pyramid structure.
+
+        ```
         ---A---
         --AAA--
         -AAAAA-
         AAAAAAA
+        ```
 
-        You can use any character other than a hyphen to mark a qubit. As an
-        example, the qubits for the Bristlecone device could be represented by
-        the below diagram. This produces a diamond-shaped grid of qids, and
-        qids with the same letter correspond to the same readout line.
+        You can use any character other than a hyphen, period or space to mark
+        a qubit. As an example, the qubits for a Bristlecone device could be
+        represented by the below diagram. This produces a diamond-shaped grid
+        of qids, and qids with the same letter correspond to the same readout
+        line.
 
+        ```
         .....AB.....
         ....ABCD....
         ...ABCDEF...
@@ -380,13 +401,14 @@ class GridQubit(_BaseGridQid):
         ...GHIJKL...
         ....IJKL....
         .....KL.....
+        ```
 
         Args:
             diagram: String representing the qubit layout. Each line represents
                 a row. Alphanumeric characters are assigned as qid.
                 Dots ('.'), dashes ('-'), and spaces (' ') are treated as
                 empty locations in the grid. If diagram has characters other
-                than alphanumerics, spacers, and newlines ('\n'), an error will
+                than alphanumerics, spacers, and newlines ('\\n'), an error will
                 be thrown. The top-left corner of the diagram will be have
                 coordinate (0,0).
 
@@ -403,7 +425,12 @@ class GridQubit(_BaseGridQid):
         return f"cirq.GridQubit({self.row}, {self.col})"
 
     def __str__(self) -> str:
-        return f"({self.row}, {self.col})"
+        return f"q({self.row}, {self.col})"
+
+    def _circuit_diagram_info_(
+        self, args: 'cirq.CircuitDiagramInfoArgs'
+    ) -> 'cirq.CircuitDiagramInfo':
+        return protocols.CircuitDiagramInfo(wire_symbols=(f"({self.row}, {self.col})",))
 
     def _json_dict_(self) -> Dict[str, Any]:
         return protocols.obj_to_dict_helper(self, ['row', 'col'])

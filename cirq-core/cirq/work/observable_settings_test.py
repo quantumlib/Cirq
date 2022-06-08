@@ -25,7 +25,7 @@ def test_init_obs_setting():
     setting = InitObsSetting(
         init_state=cirq.KET_ZERO(q0) * cirq.KET_ZERO(q1), observable=cirq.X(q0) * cirq.Y(q1)
     )
-    assert str(setting) == '+Z(0) * +Z(1) → X(0)*Y(1)'
+    assert str(setting) == '+Z(q(0)) * +Z(q(1)) → X(q(0))*Y(q(1))'
     assert eval(repr(setting)) == setting
 
     with pytest.raises(ValueError):

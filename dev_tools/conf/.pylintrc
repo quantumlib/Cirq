@@ -45,8 +45,7 @@ enable=
     syntax-error,
     too-many-function-args,
     trailing-whitespace,
-    # Disabling until https://github.com/PyCQA/pylint/issues/3791 is fixed
-    # undefined-variable,
+    undefined-variable,
     unexpected-keyword-arg,
     unhashable-dict-key,
     unnecessary-pass,

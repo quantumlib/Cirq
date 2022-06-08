@@ -25,6 +25,9 @@ from cirq.experiments import (
 )
 from cirq.experiments.cross_entropy_benchmarking import CrossEntropyPair, SpecklePurityPair
 
+_DEPRECATION_MESSAGE = 'Use cirq.experiments.xeb_fitting.XEBCharacterizationResult instead'
+_DEPRECATION_RANDOM_CIRCUIT = 'Use cirq.experiments.random_quantum_circuit_generation instead'
+
 
 @pytest.mark.usefixtures('closefigures')
 def test_cross_entropy_benchmarking():
@@ -36,10 +39,12 @@ def test_cross_entropy_benchmarking():
 
     # Sanity check single-qubit-gate causes error
     with pytest.raises(ValueError):
-        build_entangling_layers(qubits, cirq.Z**0.91)
+        with cirq.testing.assert_deprecated(_DEPRECATION_RANDOM_CIRCUIT, deadline='v0.16'):
+            build_entangling_layers(qubits, cirq.Z**0.91)
 
     # Build a sequence of CZ gates.
-    interleaved_ops = build_entangling_layers(qubits, cirq.CZ**0.91)
+    with cirq.testing.assert_deprecated(_DEPRECATION_RANDOM_CIRCUIT, deadline='v0.16'):
+        interleaved_ops = build_entangling_layers(qubits, cirq.CZ**0.91)
 
     # Specify a set of single-qubit rotations. Pick prime numbers for the
     # exponent to avoid evolving the system into a basis state.
@@ -56,35 +61,42 @@ def test_cross_entropy_benchmarking():
     # gate. Check that the fidelities are close to 1.0 in all cases. Also,
     # check that a single XEB fidelity is returned if a single cycle number
     # is specified.
-    results_0 = cross_entropy_benchmarking(
-        simulator, qubits, num_circuits=3, repetitions=1000, cycles=range(4, 20, 5)
-    )
-    results_1 = cross_entropy_benchmarking(
-        simulator,
-        qubits,
-        num_circuits=3,
-        repetitions=1000,
-        cycles=[4, 8, 12],
-        scrambling_gates_per_cycle=single_qubit_rots,
-    )
-    results_2 = cross_entropy_benchmarking(
-        simulator,
-        qubits,
-        benchmark_ops=interleaved_ops,
-        num_circuits=3,
-        repetitions=1000,
-        cycles=[4, 8, 12],
-        scrambling_gates_per_cycle=single_qubit_rots,
-    )
-    results_3 = cross_entropy_benchmarking(
-        simulator,
-        qubits,
-        benchmark_ops=interleaved_ops,
-        num_circuits=3,
-        repetitions=1000,
-        cycles=15,
-        scrambling_gates_per_cycle=single_qubit_rots,
-    )
+
+    # Each of theese has one ideprecation for cross_entropy_benchmarking
+    # and one deprecation for CrossEntropyResult
+    with cirq.testing.assert_deprecated(_DEPRECATION_MESSAGE, deadline='v0.16', count=2):
+        results_0 = cross_entropy_benchmarking(
+            simulator, qubits, num_circuits=3, repetitions=1000, cycles=range(4, 20, 5)
+        )
+    with cirq.testing.assert_deprecated(_DEPRECATION_MESSAGE, deadline='v0.16', count=2):
+        results_1 = cross_entropy_benchmarking(
+            simulator,
+            qubits,
+            num_circuits=3,
+            repetitions=1000,
+            cycles=[4, 8, 12],
+            scrambling_gates_per_cycle=single_qubit_rots,
+        )
+    with cirq.testing.assert_deprecated(_DEPRECATION_MESSAGE, deadline='v0.16', count=2):
+        results_2 = cross_entropy_benchmarking(
+            simulator,
+            qubits,
+            benchmark_ops=interleaved_ops,
+            num_circuits=3,
+            repetitions=1000,
+            cycles=[4, 8, 12],
+            scrambling_gates_per_cycle=single_qubit_rots,
+        )
+    with cirq.testing.assert_deprecated(_DEPRECATION_MESSAGE, deadline='v0.16', count=2):
+        results_3 = cross_entropy_benchmarking(
+            simulator,
+            qubits,
+            benchmark_ops=interleaved_ops,
+            num_circuits=3,
+            repetitions=1000,
+            cycles=15,
+            scrambling_gates_per_cycle=single_qubit_rots,
+        )
     fidelities_0 = [datum.xeb_fidelity for datum in results_0.data]
     fidelities_1 = [datum.xeb_fidelity for datum in results_1.data]
     fidelities_2 = [datum.xeb_fidelity for datum in results_2.data]
@@ -100,52 +112,60 @@ def test_cross_entropy_benchmarking():
 
 
 def test_cross_entropy_result_depolarizing_models():
-    prng = np.random.RandomState(59566)
-    S = 0.8
-    p = 0.99
-    data = [
-        CrossEntropyPair(num_cycle=d, xeb_fidelity=S * p**d + prng.normal(scale=0.01))
-        for d in range(10, 211, 20)
-    ]
-    purity_data = [
-        SpecklePurityPair(num_cycle=d, purity=S * p ** (2 * d) + prng.normal(scale=0.01))
-        for d in range(10, 211, 20)
-    ]
-    result = CrossEntropyResult(data=data, repetitions=1000, purity_data=purity_data)
-    model = result.depolarizing_model()
-    purity_model = result.purity_depolarizing_model()
-    np.testing.assert_allclose(model.spam_depolarization, S, atol=1e-2)
-    np.testing.assert_allclose(model.cycle_depolarization, p, atol=1e-2)
-    np.testing.assert_allclose(purity_model.purity, p**2, atol=1e-2)
+    with cirq.testing.assert_deprecated(_DEPRECATION_MESSAGE, deadline='v0.16'):
+        prng = np.random.RandomState(59566)
+        S = 0.8
+        p = 0.99
+        data = [
+            CrossEntropyPair(num_cycle=d, xeb_fidelity=S * p**d + prng.normal(scale=0.01))
+            for d in range(10, 211, 20)
+        ]
+        purity_data = [
+            SpecklePurityPair(num_cycle=d, purity=S * p ** (2 * d) + prng.normal(scale=0.01))
+            for d in range(10, 211, 20)
+        ]
+        result = CrossEntropyResult(data=data, repetitions=1000, purity_data=purity_data)
+        model = result.depolarizing_model()
+        purity_model = result.purity_depolarizing_model()
+        np.testing.assert_allclose(model.spam_depolarization, S, atol=1e-2)
+        np.testing.assert_allclose(model.cycle_depolarization, p, atol=1e-2)
+        np.testing.assert_allclose(purity_model.purity, p**2, atol=1e-2)
 
 
 def test_cross_entropy_result_repr():
-    result1 = CrossEntropyResult(
-        data=[CrossEntropyPair(2, 0.9), CrossEntropyPair(5, 0.5)], repetitions=1000
-    )
-    result2 = CrossEntropyResult(
-        data=[CrossEntropyPair(2, 0.9), CrossEntropyPair(5, 0.5)],
-        repetitions=1000,
-        purity_data=[SpecklePurityPair(2, 0.8), SpecklePurityPair(5, 0.3)],
-    )
-    cirq.testing.assert_equivalent_repr(result1)
-    cirq.testing.assert_equivalent_repr(result2)
+    with cirq.testing.assert_deprecated(_DEPRECATION_MESSAGE, deadline='v0.16'):
+        result1 = CrossEntropyResult(
+            data=[CrossEntropyPair(2, 0.9), CrossEntropyPair(5, 0.5)], repetitions=1000
+        )
+    with cirq.testing.assert_deprecated(_DEPRECATION_MESSAGE, deadline='v0.16'):
+        result2 = CrossEntropyResult(
+            data=[CrossEntropyPair(2, 0.9), CrossEntropyPair(5, 0.5)],
+            repetitions=1000,
+            purity_data=[SpecklePurityPair(2, 0.8), SpecklePurityPair(5, 0.3)],
+        )
+    with cirq.testing.assert_deprecated(_DEPRECATION_MESSAGE, deadline='v0.16', count=6):
+        cirq.testing.assert_equivalent_repr(result1)
+        cirq.testing.assert_equivalent_repr(result2)
 
 
 def test_cross_entropy_result_dict_repr():
     pair = tuple(cirq.LineQubit.range(2))
-    result = CrossEntropyResult(
-        data=[CrossEntropyPair(2, 0.9), CrossEntropyPair(5, 0.5)], repetitions=1000
-    )
-    result_dict = CrossEntropyResultDict(results={pair: result})
-    cirq.testing.assert_equivalent_repr(result_dict)
+    with cirq.testing.assert_deprecated(_DEPRECATION_MESSAGE, deadline='v0.16'):
+        result = CrossEntropyResult(
+            data=[CrossEntropyPair(2, 0.9), CrossEntropyPair(5, 0.5)], repetitions=1000
+        )
+    with cirq.testing.assert_deprecated(_DEPRECATION_MESSAGE, deadline='v0.16'):
+        result_dict = CrossEntropyResultDict(results={pair: result})
+    with cirq.testing.assert_deprecated(_DEPRECATION_MESSAGE, deadline='v0.16', count=6):
+        cirq.testing.assert_equivalent_repr(result_dict)
 
 
 def test_cross_entropy_result_purity_model_fails_with_no_data():
-    data = [
-        CrossEntropyPair(num_cycle=2, xeb_fidelity=0.9),
-        CrossEntropyPair(num_cycle=4, xeb_fidelity=0.8),
-    ]
-    result = CrossEntropyResult(data=data, repetitions=1000)
-    with pytest.raises(ValueError):
-        _ = result.purity_depolarizing_model()
+    with cirq.testing.assert_deprecated(_DEPRECATION_MESSAGE, deadline='v0.16'):
+        data = [
+            CrossEntropyPair(num_cycle=2, xeb_fidelity=0.9),
+            CrossEntropyPair(num_cycle=4, xeb_fidelity=0.8),
+        ]
+        result = CrossEntropyResult(data=data, repetitions=1000)
+        with pytest.raises(ValueError):
+            _ = result.purity_depolarizing_model()

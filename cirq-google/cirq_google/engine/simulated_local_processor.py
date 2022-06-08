@@ -26,8 +26,10 @@ from cirq_google.engine.local_simulation_type import LocalSimulationType
 from cirq_google.engine.simulated_local_job import SimulatedLocalJob
 from cirq_google.engine.simulated_local_program import SimulatedLocalProgram
 from cirq_google.serialization.circuit_serializer import CIRCUIT_SERIALIZER
+from cirq_google.engine.processor_sampler import ProcessorSampler
 
 if TYPE_CHECKING:
+    import cirq_google as cg
     from cirq_google.serialization.serializer import Serializer
 
 VALID_LANGUAGES = [
@@ -161,7 +163,7 @@ class SimulatedLocalProcessor(AbstractLocalProcessor):
 
     @util.deprecated_gate_set_parameter
     def get_sampler(self, gate_set: Optional['Serializer'] = None) -> cirq.Sampler:
-        return self._sampler
+        return ProcessorSampler(processor=self)
 
     def supported_languages(self) -> List[str]:
         return VALID_LANGUAGES
@@ -256,7 +258,7 @@ class SimulatedLocalProcessor(AbstractLocalProcessor):
         program_labels: Optional[Dict[str, str]] = None,
         job_description: Optional[str] = None,
         job_labels: Optional[Dict[str, str]] = None,
-    ) -> cirq.Result:
+    ) -> 'cg.EngineResult':
         """Runs the supplied Circuit on this processor.
 
         Args:

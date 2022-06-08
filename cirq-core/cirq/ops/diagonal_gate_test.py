@@ -39,6 +39,10 @@ def test_consistent_protocols(gate):
     cirq.testing.assert_implements_consistent_protocols(gate)
 
 
+def test_property():
+    assert cirq.DiagonalGate([2, 3, 5, 7]).diag_angles_radians == (2, 3, 5, 7)
+
+
 @pytest.mark.parametrize('n', [1, 2, 3, 4, 5, 6, 7, 8, 9])
 def test_decomposition_unitary(n):
     diagonal_angles = np.random.randn(2**n)

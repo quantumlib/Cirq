@@ -95,8 +95,10 @@ class ConvertToNeutralAtomGates(PointOptimizer):
 
 
 def is_native_neutral_atom_op(operation: ops.Operation) -> bool:
+    """Returns true if the operation is in the default neutral atom gateset."""
     return operation in NeutralAtomGateset()
 
 
 def is_native_neutral_atom_gate(gate: ops.Gate) -> bool:
+    """Returns true if the gate is in the default neutral atom gateset."""
     return gate in NeutralAtomGateset()
