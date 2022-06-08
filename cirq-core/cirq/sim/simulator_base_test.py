@@ -22,10 +22,11 @@ import cirq
 
 
 class CountingState(cirq.qis.QuantumStateRepresentation):
-    def __init__(self, data, gate_count=0, measurement_count=0):
+    def __init__(self, data, gate_count=0, measurement_count=0, copy_count=0):
         self.data = data
         self.gate_count = gate_count
         self.measurement_count = measurement_count
+        self.copy_count = copy_count
 
     def measure(
         self, axes: Sequence[int], seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None
@@ -38,21 +39,22 @@ class CountingState(cirq.qis.QuantumStateRepresentation):
             self.data,
             self.gate_count + other.gate_count,
             self.measurement_count + other.measurement_count,
+            self.copy_count + other.copy_count,
         )
 
     def factor(
         self: 'CountingState', axes: Sequence[int], *, validate=True, atol=1e-07
     ) -> Tuple['CountingState', 'CountingState']:
-        return CountingState(self.data, self.gate_count, self.measurement_count), CountingState(
-            self.data
-        )
+        return CountingState(
+            self.data, self.gate_count, self.measurement_count, self.copy_count
+        ), CountingState(self.data)
 
     def reindex(self: 'CountingState', axes: Sequence[int]) -> 'CountingState':
-        return self.copy()
+        return CountingState(self.data, self.gate_count, self.measurement_count, self.copy_count)
 
     def copy(self, deep_copy_buffers: bool = True) -> 'CountingState':
         return CountingState(
-            data=self.data, gate_count=self.gate_count, measurement_count=self.measurement_count
+            self.data, self.gate_count, self.measurement_count, self.copy_count + 1
         )
 
 
@@ -78,6 +80,10 @@ class CountingSimulationState(cirq.SimulationState[CountingState]):
     @property
     def measurement_count(self):
         return self._state.measurement_count
+
+    @property
+    def copy_count(self):
+        return self._state.copy_count
 
 
 class SplittableCountingSimulationState(CountingSimulationState):
@@ -171,12 +177,14 @@ def test_simulate_empty_circuit():
     r = sim.simulate(cirq.Circuit())
     assert r._final_simulator_state.gate_count == 0
     assert r._final_simulator_state.measurement_count == 0
+    assert r._final_simulator_state.copy_count == 0
 
 
 def test_simulate_one_gate_circuit():
     sim = CountingSimulator()
     r = sim.simulate(cirq.Circuit(cirq.X(q0)))
     assert r._final_simulator_state.gate_count == 1
+    assert r._final_simulator_state.copy_count == 0
 
 
 def test_simulate_one_measurement_circuit():
@@ -184,6 +192,7 @@ def test_simulate_one_measurement_circuit():
     r = sim.simulate(cirq.Circuit(cirq.measure(q0)))
     assert r._final_simulator_state.gate_count == 0
     assert r._final_simulator_state.measurement_count == 1
+    assert r._final_simulator_state.copy_count == 0
 
 
 def test_empty_circuit_simulation_has_moment():
@@ -196,6 +205,7 @@ def test_noise_applied():
     sim = CountingSimulator(noise=cirq.X)
     r = sim.simulate(cirq.Circuit(cirq.X(q0)))
     assert r._final_simulator_state.gate_count == 2
+    assert r._final_simulator_state.copy_count == 0
 
 
 def test_noise_applied_measurement_gate():
@@ -203,6 +213,18 @@ def test_noise_applied_measurement_gate():
     r = sim.simulate(cirq.Circuit(cirq.measure(q0)))
     assert r._final_simulator_state.gate_count == 1
     assert r._final_simulator_state.measurement_count == 1
+    assert r._final_simulator_state.copy_count == 0
+
+
+def test_parameterized_copies_all_but_last():
+    sim = CountingSimulator()
+    n = 4
+    rs = sim.simulate_sweep(cirq.Circuit(cirq.X(q0) ** 'a'), [{'a': i} for i in range(n)])
+    for i in range(n):
+        r = rs[i]
+        assert r._final_simulator_state.gate_count == 1
+        assert r._final_simulator_state.measurement_count == 0
+        assert r._final_simulator_state.copy_count == 0 if i == n - 1 else 1
 
 
 def test_cannot_act():
@@ -382,14 +404,18 @@ def test_sweep_unparameterized_prefix_not_repeated_iff_unitary():
     op1 = TestOp(has_unitary=True)
     op2 = TestOp(has_unitary=True)
     circuit = cirq.Circuit(op1, cirq.XPowGate(exponent=sympy.Symbol('a'))(q), op2)
-    simulator.simulate_sweep(program=circuit, params=params)
+    rs = simulator.simulate_sweep(program=circuit, params=params)
+    assert rs[0]._final_simulator_state.copy_count == 1
+    assert rs[1]._final_simulator_state.copy_count == 0
     assert op1.count == 1
     assert op2.count == 2
 
     op1 = TestOp(has_unitary=False)
     op2 = TestOp(has_unitary=False)
     circuit = cirq.Circuit(op1, cirq.XPowGate(exponent=sympy.Symbol('a'))(q), op2)
-    simulator.simulate_sweep(program=circuit, params=params)
+    rs = simulator.simulate_sweep(program=circuit, params=params)
+    assert rs[0]._final_simulator_state.copy_count == 1
+    assert rs[1]._final_simulator_state.copy_count == 0
     assert op1.count == 2
     assert op2.count == 2
 
