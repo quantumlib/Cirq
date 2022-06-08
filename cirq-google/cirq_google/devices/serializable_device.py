@@ -13,7 +13,20 @@
 # limitations under the License.
 """Device object for converting from device specification protos"""
 
-from typing import Any, Callable, cast, Dict, Iterable, Optional, List, Set, Tuple, FrozenSet
+from typing import (
+    Any,
+    Callable,
+    cast,
+    Dict,
+    FrozenSet,
+    Iterable,
+    List,
+    Optional,
+    Set,
+    Tuple,
+    Type,
+    Union,
+)
 import cirq
 from cirq import _compat
 from cirq_google.serialization import serializable_gate_set
@@ -64,7 +77,7 @@ class _GateDefinition:
         return self.__dict__ == other.__dict__
 
 
-_GateOrFrozenCircuitTypes = serializable_gate_set._GateOrFrozenCircuitTypes
+_GateOrFrozenCircuitTypes = Union[Type[cirq.Gate], Type[cirq.FrozenCircuit]]
 
 
 class SerializableDevice(cirq.Device):
