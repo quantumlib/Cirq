@@ -626,9 +626,11 @@ class Operation(metaclass=abc.ABCMeta):
         """Returns a classically controlled version of this operation.
 
         An operation that is classically controlled is executed iff all
-        conditions evaluate to True. Currently the only condition type is a
-        measurement key. A measurement key evaluates to True iff any qubit in
-        the corresponding measurement operation evaluated to a non-zero value.
+        conditions evaluate to True. Conditions can be either a measurement key
+        or a user-specified `cirq.Condition`. A measurement key evaluates to
+        True iff any qubit in the corresponding measurement operation evaluated
+        to a non-zero value; `cirq.Condition` supports more complex,
+        user-defined conditions.
 
         If no conditions are specified, returns self.
 
