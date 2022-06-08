@@ -149,13 +149,12 @@ def load_sample_device_zphase(processor_id: str) -> util.ZPhaseDataType:
     with path.joinpath('devices', 'calibrations', zphase_name).open() as f:
         raw_data = json.load(f)
 
-        def to_grid_qid(qstr: str):
-            row, col = map(int, qstr.split("_"))
-            return cirq.GridQubit(row, col)
-
-        nested_data: Dict[str, Dict[str, Dict[Tuple[cirq.Qid, ...], float]]] = {
+        nested_data: util.ZPhaseDataType = {
             gate_type: {
-                angle: {(to_grid_qid(q0), to_grid_qid(q1)): vals for q0, q1, vals in triples}
+                angle: {
+                    (v2.qubit_from_proto_id(q0), v2.qubit_from_proto_id(q1)): vals
+                    for q0, q1, vals in triples
+                }
                 for angle, triples in angles.items()
             }
             for gate_type, angles in raw_data.items()
