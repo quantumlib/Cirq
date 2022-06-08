@@ -103,8 +103,8 @@ import datetime
 dt = datetime.datetime.now(tz=datetime.timezone.utc)
 ```
 
-Protobuf APIs will return "aware" `datetime` objects. JSON de-serialization will
-promote values to "aware" `datetime` objects upon deserialization. 
+Public components of Protobuf APIs will return "aware" `datetime` objects.
+JSON de-serialization will promote values to "aware" `datetime` objects upon deserialization. 
 
 Absolutely do not use `datetime.utcnow()` as explained in the warnings in the
 Python [documentation](https://docs.python.org/3/library/datetime.html).
