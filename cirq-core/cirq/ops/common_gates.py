@@ -1264,9 +1264,6 @@ class CXPowGate(eigen_gate.EigenGate):
             f'global_shift={self._global_shift!r})'
         )
 
-    def __call__(self, *qubits: 'cirq.Qid', **kwargs: 'cirq.Qid'):
-        return self.on(*qubits, **kwargs)
-
 
 def rx(rads: value.TParamVal) -> Rx:
     """Returns a gate with the matrix e^{-i X rads / 2}."""
