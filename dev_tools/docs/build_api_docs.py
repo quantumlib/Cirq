@@ -107,6 +107,29 @@ def generate_cirq():
             filter_type_checking,
         ],
         extra_docs=_doc.RECORDED_CONST_DOCS,
+        # Submodules that we do not wish to document.
+        private_map={
+            'cirq': [
+                'circuits',
+                'devices',
+                'experiments',
+                'interop',
+                'linalg',
+                'ops',
+                'optimizers',
+                'transformers',
+                'qis',
+                'sim',
+                'study',
+                'value',
+                'protocols',
+                'ion',
+                'neutral_atoms',
+                'vis',
+                'work',
+                'json_resolver_cache',
+            ]
+        },
     )
     doc_controls.decorate_all_class_attributes(
         doc_controls.do_not_doc_inheritable, networkx.DiGraph, skip=[]
