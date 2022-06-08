@@ -25,7 +25,7 @@ landing_page:
           name: menu_book
       - heading: Approximate optimization
         description: Use a quantum computer to find approximately optimal cuts in a graph.
-        path: /cirq/tutorials/qaoa
+        path: /cirq/experiments/qaoa_maxcut
         icon:
           name: menu_book
       - heading: Quantum walks

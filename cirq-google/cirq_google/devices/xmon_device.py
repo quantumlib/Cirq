@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Any, cast, Iterable, List, Optional, Set, TYPE_CHECKING, FrozenSet
+from typing import Any, cast, Iterable, List, Optional, Set, TYPE_CHECKING
 
 import cirq
 from cirq import _compat
@@ -63,10 +63,6 @@ class _XmonDeviceBase(cirq.Device):
     def metadata(self) -> cirq.GridDeviceMetadata:
         """Return the metadata for this device"""
         return self._metadata
-
-    @_compat.deprecated(fix='Use metadata.qubit_set if applicable.', deadline='v0.15')
-    def qubit_set(self) -> FrozenSet[cirq.GridQubit]:
-        return self.qubits
 
     def neighbors_of(self, qubit: cirq.GridQubit):
         """Returns the qubits that the given qubit can interact with."""
