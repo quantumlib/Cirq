@@ -14,18 +14,18 @@
 
 """Utility methods for decomposing two-qubit unitaries into FSim gates."""
 
-from typing import Sequence, Union, Any, List, Iterator, TYPE_CHECKING, Iterable, Optional
+from typing import Sequence, Union, List, Iterator, TYPE_CHECKING, Iterable, Optional
 
 import numpy as np
 
-from cirq import ops, linalg, circuits, devices
+from cirq import circuits, devices, linalg, ops, protocols
 
 if TYPE_CHECKING:
     import cirq
 
 
 def decompose_two_qubit_interaction_into_four_fsim_gates(
-    interaction: Union['cirq.Operation', 'cirq.Gate', np.ndarray, Any],
+    interaction: Union['cirq.SupportsUnitary', np.ndarray],
     *,
     fsim_gate: Union['cirq.FSimGate', 'cirq.ISwapPowGate'],
     qubits: Sequence['cirq.Qid'] = None,
@@ -58,9 +58,11 @@ def decompose_two_qubit_interaction_into_four_fsim_gates(
         qubit operations, and a global phase operation.
 
     Raises:
-        ValueError: If the `fsim_gate` has invalid angles (as specified in arg above),
-            or if the gate acts on more than two qubits.
+        ValueError: If the `fsim_gate` has invalid angles or is parameterized, or
+            if the supplied target to synthesize acts on more than two qubits.
     """
+    if protocols.is_parameterized(fsim_gate):
+        raise ValueError("FSimGate must not have parameterized values for angles.")
     if isinstance(fsim_gate, ops.ISwapPowGate):
         mapped_gate = ops.FSimGate(-fsim_gate.exponent * np.pi / 2, 0)
     else:
@@ -120,6 +122,7 @@ def _decompose_xx_yy_into_two_fsims_ignoring_single_qubit_ops(
     xi = abs(np.sin(2 * x) * np.sin(2 * y))
 
     t = fsim_gate.phi / 2
+    assert isinstance(fsim_gate.theta, float)
     kappa = np.sin(fsim_gate.theta) ** 2 - np.sin(t) ** 2
     s_sum = (eta - np.sin(t) ** 2) / kappa
     s_dif = 0.5 * xi / kappa
@@ -169,7 +172,7 @@ _B = _BGate()
 
 
 def _decompose_two_qubit_interaction_into_two_b_gates(
-    interaction: Union['cirq.Operation', 'cirq.Gate', np.ndarray, Any],
+    interaction: Union['cirq.SupportsUnitary', np.ndarray, 'cirq.KakDecomposition'],
     *,
     qubits: Sequence['cirq.Qid'],
 ) -> List['cirq.Operation']:

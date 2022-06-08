@@ -76,13 +76,6 @@ def test_device_metadata():
 
 
 @mock.patch.dict(os.environ, clear='CIRQ_TESTING')
-def test_qubit_set_deprecated():
-    d = square_device(2, 2)
-    with cirq.testing.assert_deprecated('qubit_set', deadline='v0.15'):
-        _ = d.qubit_set()
-
-
-@mock.patch.dict(os.environ, clear='CIRQ_TESTING')
 def test_init():
     d = square_device(2, 2, holes=[cirq.GridQubit(1, 1)])
     ns = cirq.Duration(nanos=1)
@@ -143,18 +136,6 @@ def test_repr():
 
 
 @mock.patch.dict(os.environ, clear='CIRQ_TESTING')
-def test_can_add_operation_into_moment():
-
-    d = square_device(2, 2)
-    q00 = cirq.GridQubit(0, 0)
-    q01 = cirq.GridQubit(0, 1)
-    q10 = cirq.GridQubit(1, 0)
-    q11 = cirq.GridQubit(1, 1)
-    m = cirq.Moment([cirq.CZ(q00, q01)])
-    assert not d.can_add_operation_into_moment(cirq.CZ(q10, q11), m)
-
-
-@mock.patch.dict(os.environ, clear='CIRQ_TESTING')
 def test_validate_moment():
 
     d = square_device(2, 2)
@@ -188,14 +169,6 @@ def test_validate_measurement_non_adjacent_qubits_ok():
             cirq.MeasurementGate(2, 'a'), (cirq.GridQubit(0, 0), cirq.GridQubit(2, 0))
         )
     )
-
-
-@mock.patch.dict(os.environ, clear='CIRQ_TESTING')
-def test_decompose_operation_deprecated():
-    d = square_device(3, 3)
-
-    with cirq.testing.assert_deprecated('decompose', deadline='v0.15'):
-        _ = d.decompose_operation(cirq.H(cirq.GridQubit(1, 1)))
 
 
 @mock.patch.dict(os.environ, clear='CIRQ_TESTING')
@@ -352,4 +325,4 @@ def test_row_and_col():
 
 @mock.patch.dict(os.environ, clear='CIRQ_TESTING')
 def test_qubit_set():
-    assert cg.Foxtail.qubit_set() == frozenset(cirq.GridQubit.rect(2, 11, 0, 0))
+    assert cg.Foxtail.metadata.qubit_set == frozenset(cirq.GridQubit.rect(2, 11, 0, 0))

@@ -505,7 +505,6 @@ def test_gate_to_operation_to_gate_round_trips():
         cirq.interop.quirk.QuirkArithmeticGate,
         # No reason given for missing json.
         # TODO(#5353): Serialize these gates.
-        cirq.PauliInteractionGate,
         cirq.ArithmeticGate,
     }
 

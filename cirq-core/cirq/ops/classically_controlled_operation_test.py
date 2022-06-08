@@ -385,7 +385,7 @@ def test_condition_removal():
     op = op.without_classical_controls()
     assert not cirq.control_keys(op)
     assert not op.classical_controls
-    assert set(map(str, op.tags)) == {'t1'}
+    assert not op.tags
 
 
 def test_qubit_mapping():

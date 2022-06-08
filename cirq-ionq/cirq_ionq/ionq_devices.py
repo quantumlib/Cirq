@@ -13,10 +13,9 @@
 # limitations under the License.
 """Devices for IonQ hardware."""
 
-from typing import AbstractSet, Sequence, Union
+from typing import Sequence, Union
 
 import cirq
-from cirq import _compat
 
 
 _VALID_GATES = cirq.Gateset(
@@ -73,10 +72,6 @@ class IonQAPIDevice(cirq.Device):
     def metadata(self) -> cirq.DeviceMetadata:
         return self._metadata
 
-    @_compat.deprecated(fix='Use metadata.qubit_set if applicable.', deadline='v0.15')
-    def qubit_set(self) -> AbstractSet['cirq.Qid']:
-        return self.qubits
-
     def validate_operation(self, operation: cirq.Operation):
         if operation.gate is None:
             raise ValueError(
@@ -89,12 +84,6 @@ class IonQAPIDevice(cirq.Device):
 
     def is_api_gate(self, operation: cirq.Operation) -> bool:
         return operation in _VALID_GATES
-
-    @_compat.deprecated(
-        fix='Use cirq_ionq.decompose_to_device operation instead.', deadline='v0.15'
-    )
-    def decompose_operation(self, operation: cirq.Operation) -> cirq.OP_TREE:
-        return decompose_to_device(operation)
 
 
 def decompose_to_device(operation: cirq.Operation, atol: float = 1e-8) -> cirq.OP_TREE:

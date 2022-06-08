@@ -310,6 +310,12 @@ def test_repr():
     cirq.testing.assert_equivalent_repr(cirq.PauliString())
 
 
+def test_repr_coefficient_of_one():
+    pauli_string = cirq.Z(cirq.LineQubit(0)) * 1
+    assert type(pauli_string) == type(eval(repr(pauli_string)))
+    cirq.testing.assert_equivalent_repr(pauli_string)
+
+
 def test_str():
     q0, q1, q2 = _make_qubits(3)
     pauli_string = cirq.PauliString({q2: cirq.X, q1: cirq.Y, q0: cirq.Z})

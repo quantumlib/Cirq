@@ -110,6 +110,11 @@ class StateVectorStepResult(
 @deprecated_class(deadline='v0.16', fix='This class is no longer used.')
 @value.value_equality(unhashable=True)
 class StateVectorSimulatorState:
+    """Object representing current state of the simulator.
+
+    Includes the state vector, qubit map, and shape information.
+    """
+
     def __init__(self, state_vector: np.ndarray, qubit_map: Dict[ops.Qid, int]) -> None:
         self.state_vector = state_vector
         self.qubit_map = qubit_map

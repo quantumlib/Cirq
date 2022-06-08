@@ -25,6 +25,7 @@ from cirq.linalg.tolerance import near_zero_mod
 
 
 def is_negligible_turn(turns: float, tolerance: float) -> bool:
+    """Returns True is the number of turns in a gate is close to zero."""
     if isinstance(turns, sympy.Expr):
         if not turns.is_constant():
             return False

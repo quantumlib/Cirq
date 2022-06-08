@@ -321,7 +321,7 @@ def _try_get_known_phased_pauli(
     elif (
         isinstance(gate, ops.PhasedXZGate)
         and not protocols.is_parameterized(gate.z_exponent)
-        and np.isclose(gate.z_exponent, 0)
+        and np.isclose(float(gate.z_exponent), 0)
     ):
         e = gate.x_exponent
         p = gate.axis_phase_exponent
@@ -336,9 +336,12 @@ def _try_get_known_z_half_turns(
     g = op.gate
     if (
         isinstance(g, ops.PhasedXZGate)
-        and np.isclose(g.x_exponent, 0)
-        and np.isclose(g.axis_phase_exponent, 0)
+        and not protocols.is_parameterized(g.x_exponent)
+        and not protocols.is_parameterized(g.axis_phase_exponent)
+        and np.isclose(float(g.x_exponent), 0)
+        and np.isclose(float(g.axis_phase_exponent), 0)
     ):
+
         h = g.z_exponent
     elif isinstance(g, ops.ZPowGate):
         h = g.exponent

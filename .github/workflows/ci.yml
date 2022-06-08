@@ -155,7 +155,7 @@ jobs:
     name: Pytest Ubuntu
     strategy:
       matrix:
-        python-version: [ '3.6', '3.7', '3.8', '3.9' ]
+        python-version: [ '3.7', '3.8', '3.9' ]
     runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v2
@@ -163,9 +163,6 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
           architecture: 'x64'
-      - name: Force old pip (3.6 only)
-        if: matrix.python-version == '3.6'
-        run: pip install pip==20.2
       - uses: actions/cache@v2
         with:
           path: ${{ env.pythonLocation }}

@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Functionality for grouping and validating Cirq Gates"""
+"""Functionality for grouping and validating Cirq gates."""
 
 import warnings
 from typing import (
@@ -49,25 +49,30 @@ class GateFamily:
     """Wrapper around gate instances/types describing a set of accepted gates.
 
     GateFamily supports initialization via
-        a) Non-parameterized instances of `cirq.Gate` (Instance Family).
-        b) Python types inheriting from `cirq.Gate` (Type Family).
+
+    - Non-parameterized instances of `cirq.Gate` (Instance Family).
+    - Python types inheriting from `cirq.Gate` (Type Family).
 
     By default, the containment checks depend on the initialization type:
-        a) Instance Family: Containment check is done via `cirq.equal_up_to_global_phase`.
-        b) Type Family: Containment check is done by type comparison.
+
+    - Instance Family: Containment check is done via `cirq.equal_up_to_global_phase`.
+    - Type Family: Containment check is done by type comparison.
 
     For example:
-        a) Instance Family:
-            >>> gate_family = cirq.GateFamily(cirq.X)
-            >>> assert cirq.X in gate_family
-            >>> assert cirq.Rx(rads=np.pi) in gate_family
-            >>> assert cirq.X ** sympy.Symbol("theta") not in gate_family
 
-        b) Type Family:
-            >>> gate_family = cirq.GateFamily(cirq.XPowGate)
-            >>> assert cirq.X in gate_family
-            >>> assert cirq.Rx(rads=np.pi) in gate_family
-            >>> assert cirq.X ** sympy.Symbol("theta") in gate_family
+    - Instance Family:
+
+        >>> gate_family = cirq.GateFamily(cirq.X)
+        >>> assert cirq.X in gate_family
+        >>> assert cirq.Rx(rads=np.pi) in gate_family
+        >>> assert cirq.X ** sympy.Symbol("theta") not in gate_family
+
+    - Type Family:
+
+        >>> gate_family = cirq.GateFamily(cirq.XPowGate)
+        >>> assert cirq.X in gate_family
+        >>> assert cirq.Rx(rads=np.pi) in gate_family
+        >>> assert cirq.X ** sympy.Symbol("theta") in gate_family
 
     As seen in the examples above, GateFamily supports containment checks for instances of both
     `cirq.Operation` and `cirq.Gate`. By default, a `cirq.Operation` instance `op` is accepted if
@@ -75,11 +80,11 @@ class GateFamily:
 
     Further constraints can be added on containment checks for `cirq.Operation` objects by setting
     `tags_to_accept` and/or `tags_to_ignore` in the GateFamily constructor. For a tagged
-    operation, the underlying gate `op.gate` will be checked for containment only if:
+    operation, the underlying gate `op.gate` will be checked for containment only if both:
 
-        * `op.tags` has no intersection with `tags_to_ignore`, and
-        * if `tags_to_accept` is not empty, then `op.tags` should have a non-empty intersection with
-            `tags_to_accept`.
+    - `op.tags` has no intersection with `tags_to_ignore`
+    - `tags_to_accept` is not empty, then `op.tags` should have a non-empty intersection with
+        `tags_to_accept`.
 
     If a `cirq.Operation` contains tags from both `tags_to_accept` and `tags_to_ignore`, it is
     rejected. Furthermore, tags cannot appear in both `tags_to_accept` and `tags_to_ignore`.
@@ -87,6 +92,7 @@ class GateFamily:
     For the purpose of tag comparisons, a `Gate` is considered as an `Operation` without tags.
 
     For example:
+
         >>> q = cirq.NamedQubit('q')
         >>> gate_family = cirq.GateFamily(cirq.ZPowGate, tags_to_accept=['accepted_tag'])
         >>> assert cirq.Z(q).with_tags('accepted_tag') in gate_family
@@ -196,9 +202,10 @@ class GateFamily:
         """Checks whether `cirq.Gate` instance `gate` belongs to this GateFamily.
 
         The default predicate depends on the gate family initialization type:
-            a) Instance Family: `cirq.equal_up_to_global_phase(gate, self.gate)`
-                                 if self._ignore_global_phase else `gate == self.gate`.
-            b) Type Family: `isinstance(gate, self.gate)`.
+
+        - Instance Family: `cirq.equal_up_to_global_phase(gate, self.gate)`
+            if self._ignore_global_phase else `gate == self.gate`.
+        - Type Family: `isinstance(gate, self.gate)`.
 
         Args:
             gate: `cirq.Gate` instance which should be checked for containment.
@@ -291,8 +298,9 @@ class Gateset:
     """Gatesets represent a collection of `cirq.GateFamily` objects.
 
     Gatesets are useful for
-        a) Describing the set of allowed gates in a human readable format
-        b) Validating a given gate / optree against the set of allowed gates
+
+    - Describing the set of allowed gates in a human-readable format.
+    - Validating a given gate / `cirq.OP_TREE` against the set of allowed gates.
 
     Gatesets rely on the underlying `cirq.GateFamily` for both description and
     validation purposes.
@@ -316,9 +324,10 @@ class Gateset:
         """Init Gateset.
 
         Accepts a list of gates, each of which should be either
-            a) `cirq.Gate` subclass
-            b) `cirq.Gate` instance
-            c) `cirq.GateFamily` instance
+
+        - `cirq.Gate` subclass
+        - `cirq.Gate` instance
+        - `cirq.GateFamily` instance
 
         `cirq.Gate` subclasses and instances are converted to the default
         `cirq.GateFamily(gate=g)` instance and thus a default name and
@@ -326,7 +335,7 @@ class Gateset:
 
         Args:
             *gates: A list of `cirq.Gate` subclasses / `cirq.Gate` instances /
-            `cirq.GateFamily` instances to initialize the Gateset.
+                `cirq.GateFamily` instances to initialize the Gateset.
             name: (Optional) Name for the Gateset. Useful for description.
             unroll_circuit_op: If True, `cirq.CircuitOperation` is recursively
                 validated by validating the underlying `cirq.Circuit`.
@@ -434,27 +443,28 @@ class Gateset:
         return Gateset(*gates, name=name, unroll_circuit_op=cast(bool, unroll_circuit_op))
 
     def __contains__(self, item: Union[raw_types.Gate, raw_types.Operation]) -> bool:
-        """Check for containment of a given Gate/Operation in this Gateset.
+        r"""Check for containment of a given Gate/Operation in this Gateset.
 
         Containment checks are handled as follows:
-            a) For Gates or Operations that have an underlying gate (i.e. op.gate is not None):
-                - Forwards the containment check to the underlying `cirq.GateFamily` objects.
-                - Examples of such operations include `cirq.GateOperations` and their controlled
-                    and tagged variants (i.e. instances of `cirq.TaggedOperation`,
-                    `cirq.ControlledOperation` where `op.gate` is not None) etc.
 
-            b) For Operations that do not have an underlying gate:
-                - Forwards the containment check to `self._validate_operation(item)`.
-                - Examples of such operations include `cirq.CircuitOperations` and their controlled
-                    and tagged variants (i.e. instances of `cirq.TaggedOperation`,
-                    `cirq.ControlledOperation` where `op.gate` is None) etc.
+        - For Gates or Operations that have an underlying gate (i.e. op.gate is not None):
+            - Forwards the containment check to the underlying `cirq.GateFamily` objects.
+            - Examples of such operations include `cirq.GateOperation`s and their controlled
+                and tagged variants (i.e. instances of `cirq.TaggedOperation`,
+                `cirq.ControlledOperation` where `op.gate` is not None) etc.
+        - For Operations that do not have an underlying gate:
+            - Forwards the containment check to `self._validate_operation(item)`.
+            - Examples of such operations include `cirq.CircuitOperation`s and their controlled
+                and tagged variants (i.e. instances of `cirq.TaggedOperation`,
+                `cirq.ControlledOperation` where `op.gate` is None) etc.
 
         The complexity of the method in terms of the number of `gates`, n, is
-            a) O(1) when any default `cirq.GateFamily` instance accepts the given item, except
-                for an Instance GateFamily trying to match an item with a different global phase.
-            b) O(n) for all other cases: matching against custom gate families, matching across
-                global phase for the default Instance GateFamily, no match against any underlying
-                gate family.
+
+        - O(1) when any default `cirq.GateFamily` instance accepts the given item, except
+            for an Instance GateFamily trying to match an item with a different global phase.
+        - O(n) for all other cases: matching against custom gate families, matching across
+            global phase for the default Instance GateFamily, no match against any underlying
+            gate family.
 
         Args:
             item: The `cirq.Gate` or `cirq.Operation` instance to check containment for.
@@ -501,12 +511,11 @@ class Gateset:
 
         The containment checks are handled as follows:
 
-        a) For any operation which has an underlying gate (i.e. `op.gate` is not None):
+        - For any operation which has an underlying gate (i.e. `op.gate` is not None):
             - Containment is checked via `self.__contains__` which further checks for containment
                 in any of the underlying gate families.
-
-        b) For all other types of operations (eg: `cirq.CircuitOperation`,
-        `cirq.GlobalPhaseOperation` etc):
+        - For all other types of operations (eg: `cirq.CircuitOperation`,
+            etc):
             - The behavior is controlled via flags passed to the constructor.
 
         Users should override this method to define custom behavior for operations that do not

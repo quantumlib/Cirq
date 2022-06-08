@@ -29,6 +29,17 @@ def test_depol_noise():
         assert isinstance(g.gate, cirq.DepolarizingChannel)
 
 
+def test_depol_noise_prepend():
+    noise_model = ccn.DepolarizingNoiseModel(depol_prob=0.005, prepend=True)
+    qubits = cirq.LineQubit.range(2)
+    moment = cirq.Moment([cirq.X(qubits[0]), cirq.Y(qubits[1])])
+    noisy_mom = noise_model.noisy_moment(moment, system_qubits=qubits)
+    assert len(noisy_mom) == 2
+    assert noisy_mom[1] == moment
+    for g in noisy_mom[0]:
+        assert isinstance(g.gate, cirq.DepolarizingChannel)
+
+
 # Composes depolarization noise with readout noise.
 def test_readout_noise_after_moment():
     program = cirq.Circuit()
@@ -79,6 +90,17 @@ def test_readout_noise_after_moment():
         ]
     )
     assert_equivalent_op_tree(true_noisy_program, noisy_circuit)
+
+
+def test_readout_noise_no_prepend():
+    noise_model = ccn.ReadoutNoiseModel(bitflip_prob=0.005, prepend=False)
+    qubits = cirq.LineQubit.range(2)
+    moment = cirq.Moment([cirq.measure(*qubits, key="meas")])
+    noisy_mom = noise_model.noisy_moment(moment, system_qubits=qubits)
+    assert len(noisy_mom) == 2
+    assert noisy_mom[0] == moment
+    for g in noisy_mom[1]:
+        assert isinstance(g.gate, cirq.BitFlipChannel)
 
 
 # Composes depolarization, damping, and readout noise (in that order).
@@ -136,6 +158,17 @@ def test_decay_noise_after_moment():
         ]
     )
     assert_equivalent_op_tree(true_noisy_program, noisy_circuit)
+
+
+def test_damped_readout_noise_no_prepend():
+    noise_model = ccn.DampedReadoutNoiseModel(decay_prob=0.005, prepend=False)
+    qubits = cirq.LineQubit.range(2)
+    moment = cirq.Moment([cirq.measure(*qubits, key="meas")])
+    noisy_mom = noise_model.noisy_moment(moment, system_qubits=qubits)
+    assert len(noisy_mom) == 2
+    assert noisy_mom[0] == moment
+    for g in noisy_mom[1]:
+        assert isinstance(g.gate, cirq.AmplitudeDampingChannel)
 
 
 # Test the aggregate noise models.
