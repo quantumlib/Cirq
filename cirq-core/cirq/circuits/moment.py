@@ -66,7 +66,7 @@ class Moment:
     """A time-slice of operations within a circuit.
 
     Grouping operations into moments is intended to be a strong suggestion to
-    whatever is scheduling operations on real hardware. Operations in the same
+    whatever is scheduling operations on real hardware. Ofperations in the same
     moment should execute at the same time (to the extent possible; not all
     operations have the same duration) and it is expected that all operations
     in a moment should be completed before beginning the next moment.
@@ -551,7 +551,7 @@ class Moment:
         diagram.force_vertical_padding_after(1, 0)
 
         # Add operations.
-        for op in self.operations:
+        for op in sorted(self.operations, key=lambda op: op.qubits):
             args = protocols.CircuitDiagramInfoArgs(
                 known_qubits=op.qubits,
                 known_qubit_count=len(op.qubits),
