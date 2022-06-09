@@ -22,7 +22,7 @@ from google.protobuf import text_format
 import cirq
 import cirq_google
 from cirq_google.api import v2
-from cirq_google.devices import grid_device, known_devices
+from cirq_google.devices import google_grid_device, known_devices
 
 
 GRID_HEIGHT = 5
@@ -30,7 +30,7 @@ GRID_HEIGHT = 5
 
 @dataclass
 class _DeviceInfo:
-    """Dataclass for device information relevant to GridDevice tests."""
+    """Dataclass for device information relevant to GoogleGridDevice tests."""
 
     grid_qubits: List[cirq.GridQubit]
     qubit_pairs: List[Tuple[cirq.GridQubit, cirq.GridQubit]]
@@ -61,7 +61,7 @@ def _create_device_spec_with_horizontal_couplings():
         qubit_pairs.append((cirq.GridQubit(row, 0), cirq.GridQubit(row, 1)))
     for row in range(int(GRID_HEIGHT / 2), GRID_HEIGHT):
         # Flip the qubit pair order for the second half of qubits
-        # to verify GridDevice properly handles pair symmetry.
+        # to verify GoogleGridDevice properly handles pair symmetry.
         qubit_pairs.append((cirq.GridQubit(row, 1), cirq.GridQubit(row, 0)))
     for pair in qubit_pairs:
         new_target = grid_targets.targets.add()
@@ -234,10 +234,10 @@ def _create_device_spec_unexpected_asymmetric_target() -> v2.device_pb2.DeviceSp
     return spec
 
 
-def test_grid_device_from_proto():
+def test_google_grid_device_from_proto():
     device_info, spec = _create_device_spec_with_horizontal_couplings()
 
-    device = cirq_google.GridDevice.from_proto(spec)
+    device = cirq_google.GoogleGridDevice.from_proto(spec)
 
     assert len(device.metadata.qubit_set) == len(device_info.grid_qubits)
     assert device.metadata.qubit_set == frozenset(device_info.grid_qubits)
@@ -249,9 +249,9 @@ def test_grid_device_from_proto():
     )
 
 
-def test_grid_device_validate_operations_positive():
+def test_google_grid_device_validate_operations_positive():
     device_info, spec = _create_device_spec_with_horizontal_couplings()
-    device = cirq_google.GridDevice.from_proto(spec)
+    device = cirq_google.GoogleGridDevice.from_proto(spec)
 
     for q in device_info.grid_qubits:
         device.validate_operation(cirq.X(q))
@@ -263,9 +263,9 @@ def test_grid_device_validate_operations_positive():
         )
 
 
-def test_grid_device_validate_operations_negative():
+def test_google_grid_device_validate_operations_negative():
     device_info, spec = _create_device_spec_with_horizontal_couplings()
-    device = cirq_google.GridDevice.from_proto(spec)
+    device = cirq_google.GoogleGridDevice.from_proto(spec)
 
     bad_qubit = cirq.GridQubit(10, 10)
     with pytest.raises(ValueError, match='Qubit not on device'):
@@ -302,22 +302,22 @@ def test_grid_device_validate_operations_negative():
         ),
     ],
 )
-def test_grid_device_invalid_device_specification(spec, error_match):
+def test_google_grid_device_invalid_device_specification(spec, error_match):
     with pytest.raises(ValueError, match=error_match):
-        cirq_google.GridDevice.from_proto(spec)
+        cirq_google.GoogleGridDevice.from_proto(spec)
 
 
-def test_grid_device_repr_json():
+def test_google_grid_device_repr_json():
     _, spec = _create_device_spec_with_horizontal_couplings()
-    device = cirq_google.GridDevice.from_proto(spec)
+    device = cirq_google.GoogleGridDevice.from_proto(spec)
 
     assert eval(repr(device)) == device
     assert cirq.read_json(json_text=cirq.to_json(device)) == device
 
 
-def test_grid_device_str_grid_qubits():
+def test_google_grid_device_str_grid_qubits():
     spec = _create_device_spec_with_all_couplings()
-    device = cirq_google.GridDevice.from_proto(spec)
+    device = cirq_google.GoogleGridDevice.from_proto(spec)
 
     assert (
         str(device)
@@ -339,9 +339,9 @@ def test_grid_device_str_grid_qubits():
 
 
 @pytest.mark.parametrize('cycle,func', [(False, str), (True, repr)])
-def test_grid_device_repr_pretty(cycle, func):
+def test_google_grid_device_repr_pretty(cycle, func):
     spec = _create_device_spec_with_all_couplings()
-    device = cirq_google.GridDevice.from_proto(spec)
+    device = cirq_google.GoogleGridDevice.from_proto(spec)
     printer = mock.Mock()
     device._repr_pretty_(printer, cycle)
     printer.text.assert_called_once_with(func(device))
@@ -372,7 +372,7 @@ def test_to_proto():
         cirq.GateFamily(cirq.ops.wait_gate.WaitGate): base_duration * 9,
     }
 
-    spec = grid_device.create_device_specification_proto(
+    spec = google_grid_device.create_device_specification_proto(
         qubits=device_info.grid_qubits,
         pairs=device_info.qubit_pairs,
         gateset=cirq.Gateset(*gate_durations.keys()),
@@ -412,7 +412,7 @@ def test_to_proto():
 )
 def test_to_proto_invalid_input(error_match, qubits, qubit_pairs, gateset, gate_durations):
     with pytest.raises(ValueError, match=error_match):
-        grid_device.create_device_specification_proto(
+        google_grid_device.create_device_specification_proto(
             qubits=qubits, pairs=qubit_pairs, gateset=gateset, gate_durations=gate_durations
         )
 
@@ -451,7 +451,7 @@ def test_to_proto_backward_compatibility():
     )
 
     # Serialize the new way
-    grid_device.create_device_specification_proto(
+    google_grid_device.create_device_specification_proto(
         qubits=device_info.grid_qubits,
         pairs=device_info.qubit_pairs,
         gateset=cirq.Gateset(*gate_durations.keys()),
@@ -461,7 +461,7 @@ def test_to_proto_backward_compatibility():
 
     # Deserialize both ways
     serializable_dev = cirq_google.SerializableDevice.from_proto(spec, [cirq_google.FSIM_GATESET])
-    grid_dev = cirq_google.GridDevice.from_proto(spec)
+    grid_dev = cirq_google.GoogleGridDevice.from_proto(spec)
 
     assert serializable_dev.metadata.qubit_set == grid_dev.metadata.qubit_set
     assert serializable_dev.metadata.qubit_pairs == grid_dev.metadata.qubit_pairs
@@ -489,14 +489,14 @@ def test_to_proto_backward_compatibility():
 
 
 def test_to_proto_empty():
-    spec = grid_device.create_device_specification_proto(
+    spec = google_grid_device.create_device_specification_proto(
         # Qubits are always expected to be set
         qubits=[cirq.GridQubit(0, i) for i in range(5)],
         pairs=[],
         gateset=cirq.Gateset(),
         gate_durations=None,
     )
-    device = cirq_google.GridDevice.from_proto(spec)
+    device = cirq_google.GoogleGridDevice.from_proto(spec)
 
     assert len(device.metadata.qubit_set) == 5
     assert len(device.metadata.qubit_pairs) == 0

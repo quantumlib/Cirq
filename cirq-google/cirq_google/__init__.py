@@ -59,7 +59,7 @@ from cirq_google.devices import (
     Bristlecone,
     Foxtail,
     GoogleNoiseProperties,
-    GridDevice,
+    GoogleGridDevice,
     NoiseModelFromGoogleNoiseProperties,
     SerializableDevice,
     Sycamore,
