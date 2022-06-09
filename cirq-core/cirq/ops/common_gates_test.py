@@ -33,9 +33,7 @@ def test_phase_insensitive_eigen_gates_consistent_protocols(eigen_gate_type):
 
 @pytest.mark.parametrize('eigen_gate_type', [cirq.CNotPowGate, cirq.HPowGate])
 def test_phase_sensitive_eigen_gates_consistent_protocols(eigen_gate_type):
-    cirq.testing.assert_eigengate_implements_consistent_protocols(
-        eigen_gate_type, ignoring_global_phase=True
-    )
+    cirq.testing.assert_eigengate_implements_consistent_protocols(eigen_gate_type)
 
 
 def test_cz_init():
@@ -740,47 +738,6 @@ def test_cnot_unitary():
             ]
         ),
     )
-
-
-def test_cnot_keyword_arguments():
-    a = cirq.NamedQubit('a')
-    b = cirq.NamedQubit('b')
-
-    eq_tester = cirq.testing.EqualsTester()
-    eq_tester.add_equality_group(cirq.CNOT(a, b), cirq.CNOT(control=a, target=b))
-    eq_tester.add_equality_group(cirq.CNOT(b, a), cirq.CNOT(control=b, target=a))
-
-
-def test_cnot_keyword_not_equal():
-    a = cirq.NamedQubit('a')
-    b = cirq.NamedQubit('b')
-
-    with pytest.raises(AssertionError):
-        eq_tester = cirq.testing.EqualsTester()
-        eq_tester.add_equality_group(cirq.CNOT(a, b), cirq.CNOT(target=a, control=b))
-
-
-def test_cnot_keyword_too_few_arguments():
-    a = cirq.NamedQubit('a')
-
-    with pytest.raises(ValueError):
-        _ = cirq.CNOT(control=a)
-
-
-def test_cnot_mixed_keyword_and_positional_arguments():
-    a = cirq.NamedQubit('a')
-    b = cirq.NamedQubit('b')
-
-    with pytest.raises(ValueError):
-        _ = cirq.CNOT(a, target=b)
-
-
-def test_cnot_unknown_keyword_argument():
-    a = cirq.NamedQubit('a')
-    b = cirq.NamedQubit('b')
-
-    with pytest.raises(ValueError):
-        _ = cirq.CNOT(target=a, controlled=b)
 
 
 def test_cnot_decompose():

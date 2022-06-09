@@ -12,9 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Any, FrozenSet, Iterable, Optional, Set, TYPE_CHECKING
+from typing import Any, Iterable, Optional, Set, TYPE_CHECKING
 import networkx as nx
-from cirq import _compat, circuits, value, devices, ops, protocols
+from cirq import circuits, value, devices, ops, protocols
 from cirq.ion import convert_to_ion_gates
 
 if TYPE_CHECKING:
@@ -77,10 +77,6 @@ class IonDevice(devices.Device):
     @property
     def metadata(self) -> devices.DeviceMetadata:
         return self._metadata
-
-    @_compat.deprecated(fix='Use metadata.qubit_set if applicable.', deadline='v0.15')
-    def qubit_set(self) -> FrozenSet['cirq.LineQubit']:
-        return self.qubits
 
     def decompose_circuit(self, circuit: circuits.Circuit) -> circuits.Circuit:
         return convert_to_ion_gates.ConvertToIonGates().convert_circuit(circuit)
