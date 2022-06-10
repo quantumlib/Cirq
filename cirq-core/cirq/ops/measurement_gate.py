@@ -12,17 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import (
-    Any,
-    Dict,
-    FrozenSet,
-    Iterable,
-    Optional,
-    Tuple,
-    Sequence,
-    TYPE_CHECKING,
-    Union,
-)
+from typing import Any, Dict, FrozenSet, Iterable, Optional, Tuple, Sequence, TYPE_CHECKING, Union
 
 import numpy as np
 
