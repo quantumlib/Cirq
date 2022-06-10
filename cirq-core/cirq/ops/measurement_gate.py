@@ -97,7 +97,7 @@ class MeasurementGate(raw_types.Gate):
         return self._invert_mask
 
     @property
-    def confusion_map(self) -> Optional[Dict[Tuple['cirq.Qid', ...], np.ndarray]]:
+    def confusion_map(self) -> Dict[Tuple[int, ...], np.ndarray]:
         return self._confusion_map
 
     def _qid_shape_(self) -> Tuple[int, ...]:
@@ -279,7 +279,7 @@ class MeasurementGate(raw_types.Gate):
         return self.key, self.invert_mask, self._qid_shape, hashable_cmap
 
     def _json_dict_(self) -> Dict[str, Any]:
-        other = {}
+        other: Dict[str, Any] = {}
         if not all(d == 2 for d in self._qid_shape):
             other['qid_shape'] = self._qid_shape
         if self.confusion_map:

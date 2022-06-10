@@ -341,7 +341,7 @@ def test_op_repr():
             b,
             key='out',
             invert_mask=(False, True),
-            confusion_map={(0,): np.array([[0, 1], [1, 0]])},
+            confusion_map={(0,): np.array([[0, 1], [1, 0]], dtype=np.int64)},
         )
     ) == (
         "cirq.measure(cirq.LineQubit(0), cirq.LineQubit(1), "
@@ -353,7 +353,7 @@ def test_op_repr():
 
 def test_repr():
     gate = cirq.MeasurementGate(
-        3, 'a', (True, False), (1, 2, 3), {(2,): np.array([[0, 1], [1, 0]])}
+        3, 'a', (True, False), (1, 2, 3), {(2,): np.array([[0, 1], [1, 0]], dtype=np.int64)}
     )
     assert repr(gate) == (
         "cirq.MeasurementGate(3, cirq.MeasurementKey(name='a'), (True, False), "
