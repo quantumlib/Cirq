@@ -67,6 +67,8 @@ def test_convert_to_cz_preserving_moment_structure():
         cirq.X(q[2]).with_classical_controls("m"),
         cirq.CZ(*q[3:]).with_classical_controls("m"),
     )
+    # Classically controlled operations are not part of the gateset, so failures should be ignored
+    # during compilation.
     c_new = cirq.optimize_for_target_gateset(
         c_orig, gateset=cirq.CZTargetGateset(), ignore_failures=True
     )
@@ -77,7 +79,7 @@ def test_convert_to_cz_preserving_moment_structure():
     cirq.testing.assert_circuits_with_terminal_measurements_are_equivalent(c_orig, c_new, atol=1e-6)
     assert all(
         (
-            all_gates_of_type(m, cirq.Gateset(cirq.AnyUnitaryGateFamily(1)))
+            all_gates_of_type(m, cirq.Gateset(cirq.PhasedXZGate))
             or all_gates_of_type(m, cirq.Gateset(cirq.CZ))
         )
         for m in c_new
@@ -89,7 +91,7 @@ def test_convert_to_cz_preserving_moment_structure():
     cirq.testing.assert_circuits_with_terminal_measurements_are_equivalent(c_orig, c_new, atol=1e-6)
     assert all(
         (
-            all_gates_of_type(m, cirq.Gateset(cirq.AnyUnitaryGateFamily(1)))
+            all_gates_of_type(m, cirq.Gateset(cirq.PhasedXZGate))
             or all_gates_of_type(m, cirq.Gateset(cirq.CZPowGate))
         )
         for m in c_new

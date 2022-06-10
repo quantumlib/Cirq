@@ -29,7 +29,9 @@ def all_gates_of_type(m: cirq.Moment, g: cirq.Gateset):
 
 def assert_optimizes(before: cirq.Circuit, expected: cirq.Circuit, **kwargs):
     cirq.testing.assert_same_circuits(
-        cirq.optimize_for_target_gateset(before, gateset=cirq.SqrtIswapTargetGateset(**kwargs)),
+        cirq.optimize_for_target_gateset(
+            before, gateset=cirq.SqrtIswapTargetGateset(**kwargs), ignore_failures=False
+        ),
         expected,
     )
 
@@ -40,6 +42,7 @@ def assert_optimization_not_broken(
     c_new = cirq.optimize_for_target_gateset(
         circuit,
         gateset=cirq.SqrtIswapTargetGateset(required_sqrt_iswap_count=required_sqrt_iswap_count),
+        ignore_failures=False,
     )
     cirq.testing.assert_circuits_with_terminal_measurements_are_equivalent(
         circuit, c_new, atol=1e-6
@@ -49,6 +52,7 @@ def assert_optimization_not_broken(
         gateset=cirq.SqrtIswapTargetGateset(
             use_sqrt_iswap_inv=True, required_sqrt_iswap_count=required_sqrt_iswap_count
         ),
+        ignore_failures=False,
     )
     cirq.testing.assert_circuits_with_terminal_measurements_are_equivalent(
         circuit, c_new, atol=1e-6
@@ -68,8 +72,11 @@ def test_convert_to_sqrt_iswap_preserving_moment_structure():
         cirq.X(q[2]).with_classical_controls("m"),
         cirq.CZ(*q[3:]).with_classical_controls("m"),
     )
-
-    c_new = cirq.optimize_for_target_gateset(c_orig, gateset=cirq.SqrtIswapTargetGateset())
+    # Classically controlled operations are not part of the gateset, so failures should be ignored
+    # during compilation.
+    c_new = cirq.optimize_for_target_gateset(
+        c_orig, gateset=cirq.SqrtIswapTargetGateset(), ignore_failures=True
+    )
 
     assert c_orig[-2:] == c_new[-2:]
     c_orig, c_new = c_orig[:-2], c_new[:-2]
@@ -77,7 +84,7 @@ def test_convert_to_sqrt_iswap_preserving_moment_structure():
     cirq.testing.assert_circuits_with_terminal_measurements_are_equivalent(c_orig, c_new, atol=1e-6)
     assert all(
         (
-            all_gates_of_type(m, cirq.Gateset(cirq.AnyUnitaryGateFamily(1)))
+            all_gates_of_type(m, cirq.Gateset(cirq.PhasedXZGate))
             or all_gates_of_type(m, cirq.Gateset(cirq.SQRT_ISWAP))
         )
         for m in c_new
@@ -89,7 +96,7 @@ def test_convert_to_sqrt_iswap_preserving_moment_structure():
     cirq.testing.assert_circuits_with_terminal_measurements_are_equivalent(c_orig, c_new, atol=1e-6)
     assert all(
         (
-            all_gates_of_type(m, cirq.Gateset(cirq.AnyUnitaryGateFamily(1)))
+            all_gates_of_type(m, cirq.Gateset(cirq.PhasedXZGate))
             or all_gates_of_type(m, cirq.Gateset(cirq.SQRT_ISWAP_INV))
         )
         for m in c_new
@@ -142,7 +149,9 @@ def test_sqrt_iswap_gateset_raises():
 def test_sqrt_iswap_gateset_eq():
     eq = cirq.testing.EqualsTester()
     eq.add_equality_group(
-        cirq.SqrtIswapTargetGateset(), cirq.SqrtIswapTargetGateset(use_sqrt_iswap_inv=False)
+        cirq.SqrtIswapTargetGateset(),
+        cirq.SqrtIswapTargetGateset(use_sqrt_iswap_inv=False),
+        cirq.SqrtIswapTargetGateset(additional_gates=[cirq.GlobalPhaseGate]),
     )
     eq.add_equality_group(
         cirq.SqrtIswapTargetGateset(atol=1e-6, required_sqrt_iswap_count=0, use_sqrt_iswap_inv=True)
@@ -150,6 +159,7 @@ def test_sqrt_iswap_gateset_eq():
     eq.add_equality_group(
         cirq.SqrtIswapTargetGateset(atol=1e-6, required_sqrt_iswap_count=3, use_sqrt_iswap_inv=True)
     )
+    eq.add_equality_group(cirq.SqrtIswapTargetGateset(additional_gates=[cirq.XPowGate]))
 
 
 @pytest.mark.parametrize(
@@ -160,7 +170,12 @@ def test_sqrt_iswap_gateset_eq():
             atol=1e-6,
             required_sqrt_iswap_count=2,
             use_sqrt_iswap_inv=True,
-            additional_gates=[cirq.XPowGate, cirq.YPowGate],
+            additional_gates=[
+                cirq.CZ,
+                cirq.XPowGate,
+                cirq.YPowGate,
+                cirq.GateFamily(cirq.ZPowGate, tags_to_accept=['test_tag']),
+            ],
         ),
         cirq.SqrtIswapTargetGateset(additional_gates=()),
     ],

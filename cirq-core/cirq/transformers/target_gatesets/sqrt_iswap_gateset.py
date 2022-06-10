@@ -26,7 +26,7 @@ if TYPE_CHECKING:
 
 
 class SqrtIswapTargetGateset(compilation_target_gateset.TwoQubitCompilationTargetGateset):
-    """Target gateset containing √iSWAP + single qubit rotations + Measurement gates.
+    """Target gateset accepting √iSWAP + single qubit rotations + measurement gates.
 
     By default, `cirq.SqrtIswapTargetGateset` will accept and compile unknown gates to
     the following universal target gateset:

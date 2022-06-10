@@ -38,15 +38,6 @@
     "additional_gates": [
       {
         "cirq_type": "GateFamily",
-        "gate": "GlobalPhaseGate",
-        "name": "Type GateFamily: cirq.ops.global_phase_op.GlobalPhaseGate",
-        "description": "Accepts `cirq.Gate` instances `g` s.t. `isinstance(g, cirq.ops.global_phase_op.GlobalPhaseGate)`",
-        "ignore_global_phase": true,
-        "tags_to_accept": [],
-        "tags_to_ignore": []
-      },
-      {
-        "cirq_type": "GateFamily",
         "gate": {
           "cirq_type": "ISwapPowGate",
           "exponent": 0.5,
@@ -54,6 +45,24 @@
         },
         "name": "Instance GateFamily: ISWAP**0.5",
         "description": "Accepts `cirq.Gate` instances `g` s.t. `g == ISWAP**0.5`",
+        "ignore_global_phase": true,
+        "tags_to_accept": [],
+        "tags_to_ignore": []
+      },
+      {
+        "cirq_type": "GateFamily",
+        "gate": "XPowGate",
+        "name": "Type GateFamily: cirq.ops.common_gates.XPowGate",
+        "description": "Accepts `cirq.Gate` instances `g` s.t. `isinstance(g, cirq.ops.common_gates.XPowGate)`",
+        "ignore_global_phase": true,
+        "tags_to_accept": [],
+        "tags_to_ignore": []
+      },
+      {
+        "cirq_type": "GateFamily",
+        "gate": "ZPowGate",
+        "name": "Type GateFamily: cirq.ops.common_gates.ZPowGate",
+        "description": "Accepts `cirq.Gate` instances `g` s.t. `isinstance(g, cirq.ops.common_gates.ZPowGate)`",
         "ignore_global_phase": true,
         "tags_to_accept": [],
         "tags_to_ignore": []
