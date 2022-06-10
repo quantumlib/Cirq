@@ -29,7 +29,7 @@ def test_wrapper_eq():
     q0, q1 = cirq.LineQubit.range(2)
     eq = cirq.testing.EqualsTester()
 
-    with cirq.testing.assert_deprecated('Use cirq.contrib.Unique', deadline='v0.16', count=4):
+    with cirq.testing.assert_deprecated('Use cirq contrib.Unique', deadline='v0.16', count=4):
         eq.add_equality_group(cirq.CircuitDag.make_node(cirq.X(q0)))
         eq.add_equality_group(cirq.CircuitDag.make_node(cirq.X(q0)))
         eq.add_equality_group(cirq.CircuitDag.make_node(cirq.Y(q0)))
@@ -37,7 +37,7 @@ def test_wrapper_eq():
 
 
 def test_wrapper_cmp():
-    with cirq.testing.assert_deprecated('Use cirq.contrib.Unique', deadline='v0.16', count=2):
+    with cirq.testing.assert_deprecated('Use cirq contrib.Unique', deadline='v0.16', count=2):
         u0 = cirq.Unique(0)
         u1 = cirq.Unique(1)
     # The ordering of Unique instances is unpredictable
@@ -53,7 +53,7 @@ def test_wrapper_cmp():
 
 
 def test_wrapper_cmp_failure():
-    with cirq.testing.assert_deprecated('Use cirq.contrib.Unique', deadline='v0.16', count=2):
+    with cirq.testing.assert_deprecated('Use cirq contrib.Unique', deadline='v0.16', count=2):
         with pytest.raises(TypeError):
             _ = object() < cirq.Unique(1)
         with pytest.raises(TypeError):
@@ -63,13 +63,13 @@ def test_wrapper_cmp_failure():
 def test_wrapper_repr():
     q0 = cirq.LineQubit(0)
 
-    with cirq.testing.assert_deprecated('Use cirq.contrib.Unique', deadline='v0.16'):
+    with cirq.testing.assert_deprecated('Use cirq contrib.Unique', deadline='v0.16'):
         node = cirq.CircuitDag.make_node(cirq.X(q0))
         assert repr(node) == 'cirq.Unique(' + str(id(node)) + ', cirq.X(cirq.LineQubit(0)))'
 
 
 def test_init():
-    with cirq.testing.assert_deprecated('Use cirq.contrib.CircuitDag', deadline='v0.16', count=1):
+    with cirq.testing.assert_deprecated('Use cirq contrib.CircuitDag', deadline='v0.16', count=1):
         dag = cirq.CircuitDag()
         assert networkx.dag.is_directed_acyclic_graph(dag)
         assert list(dag.nodes()) == []
@@ -79,7 +79,7 @@ def test_init():
 def test_append():
     q0 = cirq.LineQubit(0)
     with cirq.testing.assert_deprecated(
-        'Use cirq.contrib.CircuitDag', deadline='v0.16', count=None
+        'Use cirq contrib.CircuitDag', deadline='v0.16', count=None
     ):
         dag = cirq.CircuitDag()
         dag.append(cirq.X(q0))
@@ -92,7 +92,7 @@ def test_append():
 def test_two_identical_ops():
     q0 = cirq.LineQubit(0)
     with cirq.testing.assert_deprecated(
-        'Use cirq.contrib.CircuitDag', deadline='v0.16', count=None
+        'Use cirq contrib.CircuitDag', deadline='v0.16', count=None
     ):
         dag = cirq.CircuitDag()
         dag.append(cirq.X(q0))
@@ -110,7 +110,7 @@ def test_two_identical_ops():
 def test_from_ops():
     q0 = cirq.LineQubit(0)
     with cirq.testing.assert_deprecated(
-        'Use cirq.contrib.CircuitDag', deadline='v0.16', count=None
+        'Use cirq contrib.CircuitDag', deadline='v0.16', count=None
     ):
         dag = cirq.CircuitDag.from_ops(cirq.X(q0), cirq.Y(q0))
         assert networkx.dag.is_directed_acyclic_graph(dag)
@@ -122,7 +122,7 @@ def test_from_circuit():
     q0 = cirq.LineQubit(0)
     circuit = cirq.Circuit(cirq.X(q0), cirq.Y(q0))
     with cirq.testing.assert_deprecated(
-        'Use cirq.contrib.CircuitDag', deadline='v0.16', count=None
+        'Use cirq contrib.CircuitDag', deadline='v0.16', count=None
     ):
         dag = cirq.CircuitDag.from_circuit(circuit)
         assert networkx.dag.is_directed_acyclic_graph(dag)
@@ -133,7 +133,7 @@ def test_from_circuit():
 
 def test_to_empty_circuit():
     circuit = cirq.Circuit()
-    with cirq.testing.assert_deprecated('Use cirq.contrib.CircuitDag', deadline='v0.16'):
+    with cirq.testing.assert_deprecated('Use cirq contrib.CircuitDag', deadline='v0.16'):
         dag = cirq.CircuitDag.from_circuit(circuit)
         assert networkx.dag.is_directed_acyclic_graph(dag)
         assert circuit == dag.to_circuit()
@@ -143,7 +143,7 @@ def test_to_circuit():
     q0 = cirq.LineQubit(0)
     circuit = cirq.Circuit(cirq.X(q0), cirq.Y(q0))
     with cirq.testing.assert_deprecated(
-        'Use cirq.contrib.CircuitDag', deadline='v0.16', count=None
+        'Use cirq contrib.CircuitDag', deadline='v0.16', count=None
     ):
         dag = cirq.CircuitDag.from_circuit(circuit)
 
@@ -179,7 +179,7 @@ def test_equality():
 
     eq = cirq.testing.EqualsTester()
     with cirq.testing.assert_deprecated(
-        'Use cirq.contrib.CircuitDag', deadline='v0.16', count=None
+        'Use cirq contrib.CircuitDag', deadline='v0.16', count=None
     ):
         eq.make_equality_group(
             lambda: cirq.CircuitDag.from_circuit(circuit1),
@@ -191,7 +191,7 @@ def test_equality():
 
 def test_larger_circuit():
     with cirq.testing.assert_deprecated(
-        'Use cirq.contrib.CircuitDag', deadline='v0.16', count=None
+        'Use cirq contrib.CircuitDag', deadline='v0.16', count=None
     ):
         q0, q1, q2, q3 = [
             cirq.GridQubit(0, 5),
@@ -241,7 +241,7 @@ def test_larger_circuit():
 def test_is_maximalist(circuit):
     # This creates a number of Unique classes so the count is not consistent.
     with cirq.testing.assert_deprecated(
-        'Use cirq.contrib.CircuitDag', deadline='v0.16', count=None
+        'Use cirq contrib.CircuitDag', deadline='v0.16', count=None
     ):
         dag = cirq.CircuitDag.from_circuit(circuit)
         transitive_closure = networkx.dag.transitive_closure(dag)
@@ -266,7 +266,7 @@ def _get_circuits_and_is_blockers():
 def test_findall_nodes_until_blocked(circuit, is_blocker):
     # This creates a number of Unique classes so the count is not consistent.
     with cirq.testing.assert_deprecated(
-        'Use cirq.contrib.CircuitDag', deadline='v0.16', count=None
+        'Use cirq contrib.CircuitDag', deadline='v0.16', count=None
     ):
         dag = cirq.CircuitDag.from_circuit(circuit)
         all_nodes = list(dag.ordered_nodes())
