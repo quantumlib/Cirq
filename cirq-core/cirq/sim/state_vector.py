@@ -238,7 +238,7 @@ def measure_state_vector(
     indices: Sequence[int],
     *,  # Force keyword args
     qid_shape: Optional[Tuple[int, ...]] = None,
-    out: np.ndarray = None,
+    out: Optional[np.ndarray] = None,
     seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None,
 ) -> Tuple[List[int], np.ndarray]:
     """Performs a measurement of the state in the computational basis.
@@ -322,6 +322,8 @@ def measure_state_vector(
     out.shape = initial_shape
     out /= np.sqrt(probs[result])
 
+    assert out is not None
+    # We mutate and return out, so mypy cannot identify that the out cannot be None.
     return measurement_bits, out
 
 

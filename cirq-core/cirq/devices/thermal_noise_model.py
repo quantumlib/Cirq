@@ -17,7 +17,6 @@ import functools
 from typing import TYPE_CHECKING, Dict, List, Optional, Sequence, Set, Tuple, Union
 import numpy as np
 import sympy
-import scipy.linalg
 
 from cirq import devices, ops, protocols, qis
 from cirq._import import LazyLoader
@@ -26,6 +25,7 @@ from cirq.devices.noise_utils import PHYSICAL_GATE_TAG
 if TYPE_CHECKING:
     import cirq
 
+linalg = LazyLoader("linalg", globals(), "scipy.linalg")
 moment_module = LazyLoader("moment_module", globals(), "cirq.circuits.moment")
 
 
@@ -95,7 +95,7 @@ def _kraus_ops_from_rates(
     # Lindbladian with three Lindblad ops for the three processes
     # Note: 'time' parameter already specified implicitly through rates
     L = _lindbladian(annihilation) + _lindbladian(creation) + 2 * _lindbladian(num_op)
-    superop = scipy.linalg.expm(L.real)
+    superop = linalg.expm(L.real)
     return qis.superoperator_to_kraus(superop)
 
 
