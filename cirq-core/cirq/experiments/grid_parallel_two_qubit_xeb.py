@@ -504,7 +504,8 @@ def _get_xeb_result(
             while moment_index < 2 * depth:
                 step_result = next(step_results)
                 moment_index += 1
-            amplitudes = step_result.state_vector()
+            # copy=False is safe because state_vector_to_probabilities will copy anyways
+            amplitudes = step_result.state_vector(copy=False)
             probabilities = value.state_vector_to_probabilities(amplitudes)
             _, counts = np.unique(measurements, return_counts=True)
             empirical_probs = counts / len(measurements)

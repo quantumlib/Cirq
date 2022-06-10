@@ -140,7 +140,23 @@ def test_state_vector_trial_state_vector_is_copy():
     trial_result = cirq.StateVectorTrialResult(
         params=cirq.ParamResolver({}), measurements={}, final_simulator_state=final_simulator_state
     )
-    assert trial_result.state_vector() is not final_simulator_state.target_tensor
+    assert trial_result.state_vector(copy=True) is not final_simulator_state.target_tensor
+
+
+def test_implicit_copy_deprecated():
+    final_state_vector = np.array([0, 1], dtype=np.complex64)
+    qubit_map = {cirq.NamedQubit('a'): 0}
+    final_simulator_state = cirq.StateVectorSimulationState(
+        qubits=list(qubit_map), initial_state=final_state_vector
+    )
+    trial_result = cirq.StateVectorTrialResult(
+        params=cirq.ParamResolver({}), measurements={}, final_simulator_state=final_simulator_state
+    )
+
+    with cirq.testing.assert_deprecated(
+        "state_vector will not copy the state by default", deadline="v0.16"
+    ):
+        _ = trial_result.state_vector()
 
 
 def test_str_big():
