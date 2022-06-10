@@ -102,7 +102,7 @@ def anneal_minimize(
         trace_func(sol, temp, sol_cost, 1.0, True)
 
     while temp > temp_final:
-        for _ in range(0, repeat):
+        for _ in range(repeat):
             # Find a new solution candidate and evaluate its cost.
             cand = move_func(sol)
             cand_cost = cost_func(cand)
