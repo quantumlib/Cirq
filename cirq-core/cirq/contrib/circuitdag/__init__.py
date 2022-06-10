@@ -1,4 +1,4 @@
-# Copyright 2018 The Cirq Developers
+# Copyright 2022 The Cirq Developers
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -12,17 +12,4 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import cast
-
-from cirq import circuits, ops, protocols
-from cirq.contrib.circuitdag import CircuitDag
-
-
-def pauli_string_reorder_pred(op1: ops.Operation, op2: ops.Operation) -> bool:
-    ps1 = cast(ops.PauliStringGateOperation, op1).pauli_string
-    ps2 = cast(ops.PauliStringGateOperation, op2).pauli_string
-    return protocols.commutes(ps1, ps2)
-
-
-def pauli_string_dag_from_circuit(circuit: circuits.Circuit) -> CircuitDag:
-    return CircuitDag.from_circuit(circuit, pauli_string_reorder_pred)
+from cirq.contrib.circuitdag.circuit_dag import CircuitDag, Unique

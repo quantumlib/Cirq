@@ -23,7 +23,8 @@ import cirq.contrib.acquaintance as cca
     [
         (dag, tuple(cca.random_topological_sort(dag)))
         for dag in [
-            cirq.CircuitDag.from_circuit(cirq.testing.random_circuit(10, 10, 0.5)) for _ in range(5)
+            cirq.contrib.CircuitDag.from_circuit(cirq.testing.random_circuit(10, 10, 0.5))
+            for _ in range(5)
         ]
         for _ in range(5)
     ],
