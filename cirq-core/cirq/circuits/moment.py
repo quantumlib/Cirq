@@ -66,7 +66,7 @@ class Moment:
     """A time-slice of operations within a circuit.
 
     Grouping operations into moments is intended to be a strong suggestion to
-    whatever is scheduling operations on real hardware. Ofperations in the same
+    whatever is scheduling operations on real hardware. Operations in the same
     moment should execute at the same time (to the extent possible; not all
     operations have the same duration) and it is expected that all operations
     in a moment should be completed before beginning the next moment.
