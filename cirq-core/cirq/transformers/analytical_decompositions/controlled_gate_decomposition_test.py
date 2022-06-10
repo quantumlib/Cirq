@@ -88,6 +88,8 @@ def _test_decompose(matrix, controls_count):
         [cirq.MatrixGate(matrix).on(qubits[-1]).controlled_by(*qubits[:-1])]
     ).unitary()
 
+    # Decompose can build rather large circuits for large controls_count,
+    # so we lose a lot of precision.
     np.testing.assert_allclose(expected_matrix, result_matrix, atol=1e-5)
 
 
@@ -99,7 +101,7 @@ def test_decompose_specific_matrices():
 
 def test_decompose_random_unitary():
     np.random.seed(0)
-    for controls_count in range(0, 5):
+    for controls_count in range(0, 5):two_qubit_to_fsim
         for _ in range(10):
             _test_decompose(_random_unitary(), controls_count)
     for controls_count in range(5, 8):
