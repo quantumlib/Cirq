@@ -91,6 +91,7 @@ class Moment:
             ValueError: A qubit appears more than once.
         """
         self._operations = tuple(op_tree.flatten_to_ops(contents))
+        self._sorted_operations = tuple(sorted(self._operations, key=lambda op: op.qubits))
 
         # An internal dictionary to support efficient operation access by qubit.
         self._qubit_to_op: Dict['cirq.Qid', 'cirq.Operation'] = {}
@@ -166,6 +167,7 @@ class Moment:
         # Use private variables to facilitate a quick copy.
         m = Moment()
         m._operations = self._operations + (operation,)
+        m._sorted_operations = tuple(sorted(m._operations, key=lambda op: op.qubits))
         m._qubits = self._qubits.union(operation.qubits)
         m._qubit_to_op = {**self._qubit_to_op, **{q: operation for q in operation.qubits}}
 
@@ -203,6 +205,7 @@ class Moment:
         m._qubits = frozenset(qubits)
 
         m._operations = self._operations + flattened_contents
+        m._sorted_operations = tuple(sorted(m._operations, key=lambda op: op.qubits))
         m._measurement_key_objs = self._measurement_key_objs_().union(
             set(itertools.chain(*(protocols.measurement_key_objs(op) for op in flattened_contents)))
         )
@@ -286,26 +289,20 @@ class Moment:
         if not isinstance(other, type(self)):
             return NotImplemented
 
-        return sorted(self.operations, key=lambda op: op.qubits) == sorted(
-            other.operations, key=lambda op: op.qubits
-        )
+        return self._sorted_operations == other._sorted_operations
 
     def _approx_eq_(self, other: Any, atol: Union[int, float]) -> bool:
         """See `cirq.protocols.SupportsApproximateEquality`."""
         if not isinstance(other, type(self)):
             return NotImplemented
 
-        return protocols.approx_eq(
-            sorted(self.operations, key=lambda op: op.qubits),
-            sorted(other.operations, key=lambda op: op.qubits),
-            atol=atol,
-        )
+        return protocols.approx_eq(self._sorted_operations, other._sorted_operations, atol=atol)
 
     def __ne__(self, other) -> bool:
         return not self == other
 
     def __hash__(self):
-        return hash((Moment, tuple(sorted(self.operations, key=lambda op: op.qubits))))
+        return hash((Moment, self._sorted_operations))
 
     def __iter__(self) -> Iterator['cirq.Operation']:
         return iter(self.operations)
@@ -551,7 +548,7 @@ class Moment:
         diagram.force_vertical_padding_after(1, 0)
 
         # Add operations.
-        for op in sorted(self.operations, key=lambda op: op.qubits):
+        for op in self._sorted_operations:
             args = protocols.CircuitDiagramInfoArgs(
                 known_qubits=op.qubits,
                 known_qubit_count=len(op.qubits),
