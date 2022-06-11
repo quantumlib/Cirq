@@ -258,7 +258,7 @@ def _simplify_cnots_triplets(
             # We perform the swap which removes the pivot.
             new_idx: List[int] = (
                 # Anything strictly before the pivot that is not the CNOT to swap.
-                [idx for idx in range(0, j) if idx != prev_match_index[key]]
+                [idx for idx in range(j) if idx != prev_match_index[key]]
                 # The two swapped CNOTs.
                 + [post_match_index[key], prev_match_index[key]]
                 # Anything after the pivot that is not the CNOT to swap.
