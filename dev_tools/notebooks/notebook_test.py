@@ -37,6 +37,7 @@ SKIP_NOTEBOOKS = [
     # skipping fidelity estimation due to
     # https://github.com/quantumlib/Cirq/issues/3502
     "examples/*fidelity*",
+    # tutorials that use QCS and arent skipped due to one or more cleared output cells
     'docs/noise/qcvv/xeb_calibration_example.ipynb',
     'docs/noise/calibration_api.ipynb',
 ]
