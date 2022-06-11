@@ -127,7 +127,7 @@ class Simulator(
     def __init__(
         self,
         *,
-        dtype: Type[np.number] = np.complex64,
+        dtype: Type[np.complexfloating] = np.complex64,
         noise: 'cirq.NOISE_MODEL_LIKE' = None,
         seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None,
         split_untangled_states: bool = True,
@@ -231,7 +231,7 @@ class SparseSimulatorStep(
         self,
         sim_state: 'cirq.SimulationStateBase[cirq.StateVectorSimulationState]',
         simulator: 'cirq.Simulator' = None,
-        dtype: 'DTypeLike' = np.complex64,
+        dtype: Type[np.complexfloating] = np.complex64,
     ):
         """Results of a step of the simulator.
 

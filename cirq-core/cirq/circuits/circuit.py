@@ -998,7 +998,7 @@ class AbstractCircuit(abc.ABC):
         qubit_order: 'cirq.QubitOrderOrList' = ops.QubitOrder.DEFAULT,
         qubits_that_should_be_present: Iterable['cirq.Qid'] = (),
         ignore_terminal_measurements: bool = True,
-        dtype: Type[np.number] = np.complex128,
+        dtype: Type[np.complexfloating] = np.complex128,
     ) -> np.ndarray:
         """Converts the circuit into a unitary matrix, if possible.
 
@@ -1089,7 +1089,7 @@ class AbstractCircuit(abc.ABC):
         qubit_order: 'cirq.QubitOrderOrList' = ops.QubitOrder.DEFAULT,
         qubits_that_should_be_present: Iterable['cirq.Qid'] = (),
         ignore_terminal_measurements: Optional[bool] = None,
-        dtype: Optional[Type[np.number]] = None,
+        dtype: Optional[Type[np.complexfloating]] = None,
         param_resolver: 'cirq.ParamResolverOrSimilarType' = None,
         seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None,
     ) -> np.ndarray:
@@ -2590,7 +2590,7 @@ def _apply_unitary_circuit(
     circuit: 'cirq.AbstractCircuit',
     state: np.ndarray,
     qubits: Tuple['cirq.Qid', ...],
-    dtype: Type[np.number],
+    dtype: Type[np.complexfloating],
 ) -> np.ndarray:
     """Applies a circuit's unitary effect to the given vector or matrix.
 
