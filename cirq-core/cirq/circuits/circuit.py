@@ -419,16 +419,20 @@ class AbstractCircuit(abc.ABC):
 
         Examples:
 
-        If start_frontier is
+        If `start_frontier` is
 
-            {
-                cirq.LineQubit(0): 6,
-                cirq.LineQubit(1): 2,
-                cirq.LineQubit(2): 2
-            }
+        ```
+        {
+            cirq.LineQubit(0): 6,
+            cirq.LineQubit(1): 2,
+            cirq.LineQubit(2): 2
+        }
+        ```
 
         then the reachable wire locations in the following circuit are
         highlighted with '█' characters:
+
+        ```
 
                 0   1   2   3   4   5   6   7   8   9   10  11  12  13
             0: ───H───@─────────────────█████████████████████─@───H───
@@ -438,33 +442,42 @@ class AbstractCircuit(abc.ABC):
             2: ─────────██████@███H██─@───────@───H───@───────────────
                                       │       │
             3: ───────────────────────@───H───@───────────────────────
+        ```
 
-        And the computed end_frontier is
+        And the computed `end_frontier` is
 
-            {
-                cirq.LineQubit(0): 11,
-                cirq.LineQubit(1): 9,
-                cirq.LineQubit(2): 6,
-            }
+        ```
+        {
+            cirq.LineQubit(0): 11,
+            cirq.LineQubit(1): 9,
+            cirq.LineQubit(2): 6,
+        }
+        ```
 
         Note that the frontier indices (shown above the circuit) are
         best thought of (and shown) as happening *between* moment indices.
 
         If we specify a blocker as follows:
 
-            is_blocker=lambda: op == cirq.CZ(cirq.LineQubit(1),
-                                             cirq.LineQubit(2))
+        ```
+        is_blocker=lambda: op == cirq.CZ(cirq.LineQubit(1),
+                                         cirq.LineQubit(2))
+        ```
 
-        and use this start_frontier:
+        and use this `start_frontier`:
 
-            {
-                    cirq.LineQubit(0): 0,
-                    cirq.LineQubit(1): 0,
-                    cirq.LineQubit(2): 0,
-                    cirq.LineQubit(3): 0,
-            }
+        ```
+        {
+            cirq.LineQubit(0): 0,
+            cirq.LineQubit(1): 0,
+            cirq.LineQubit(2): 0,
+            cirq.LineQubit(3): 0,
+        }
+        ```
 
         Then this is the reachable area:
+
+        ```
 
                 0   1   2   3   4   5   6   7   8   9   10  11  12  13
             0: ─██H███@██████████████████████████████████████─@───H───
@@ -475,14 +488,18 @@ class AbstractCircuit(abc.ABC):
                                       │       │
             3: ─█████████████████████─@───H───@───────────────────────
 
-        and the computed end_frontier is:
+        ```
 
-            {
-                cirq.LineQubit(0): 11,
-                cirq.LineQubit(1): 3,
-                cirq.LineQubit(2): 3,
-                cirq.LineQubit(3): 5,
-            }
+        and the computed `end_frontier` is:
+
+        ```
+        {
+            cirq.LineQubit(0): 11,
+            cirq.LineQubit(1): 3,
+            cirq.LineQubit(2): 3,
+            cirq.LineQubit(3): 5,
+        }
+        ```
 
         Args:
             start_frontier: A starting set of reachable locations.
@@ -629,7 +646,7 @@ class AbstractCircuit(abc.ABC):
         `is_blocker` return `False` or `True`, respectively, when applied to
         the gates; `M` indicates that it doesn't matter.
 
-
+        ```
             ─(─F───F───────    ┄(─F───F─)┄┄┄┄┄
                │   │              │   │
             ─(─F───F───T─── => ┄(─F───F─)┄┄┄┄┄
@@ -667,6 +684,7 @@ class AbstractCircuit(abc.ABC):
             ───────F───F───    ┄┄┄┄┄┄┄┄┄(─F─)┄
                        │                  │
             ─(─────────F───    ┄┄┄┄┄┄┄┄┄(─F─)┄
+        ```
 
         Args:
             start_frontier: A starting set of reachable locations.
@@ -754,10 +772,17 @@ class AbstractCircuit(abc.ABC):
             yield index, gate_op, cast(_TGate, gate_op.gate)
 
     def has_measurements(self):
+        """Returns whether or not this circuit has measurements.
+
+        Returns: True if `cirq.is_measurement(self)` is True otherwise False.
+        """
         return protocols.is_measurement(self)
 
     def are_all_measurements_terminal(self) -> bool:
-        """Whether all measurement gates are at the end of the circuit."""
+        """Whether all measurement gates are at the end of the circuit.
+
+        Returns: True iff no measurement is followed by a gate.
+        """
         return self.are_all_matches_terminal(protocols.is_measurement)
 
     def are_all_matches_terminal(self, predicate: Callable[['cirq.Operation'], bool]) -> bool:
@@ -799,7 +824,10 @@ class AbstractCircuit(abc.ABC):
         return True
 
     def are_any_measurements_terminal(self) -> bool:
-        """Whether any measurement gates are at the end of the circuit."""
+        """Whether any measurement gates are at the end of the circuit.
+
+        Returns: True iff some measurements are not followed by a gate.
+        """
         return self.are_any_matches_terminal(protocols.is_measurement)
 
     def are_any_matches_terminal(self, predicate: Callable[['cirq.Operation'], bool]) -> bool:
@@ -846,15 +874,17 @@ class AbstractCircuit(abc.ABC):
         )
 
     def all_qubits(self) -> FrozenSet['cirq.Qid']:
-        """Returns the qubits acted upon by Operations in this circuit."""
+        """Returns the qubits acted upon by Operations in this circuit.
+
+        Returns: FrozenSet of `cirq.Qid` objects acted on by all operations
+            in this circuit.
+        """
         return frozenset(q for m in self.moments for q in m.qubits)
 
     def all_operations(self) -> Iterator['cirq.Operation']:
-        """Iterates over the operations applied by this circuit.
+        """Returns an iterator over the operations in the circuit.
 
-        Operations from earlier moments will be iterated over first. Operations
-        within a moment are iterated in the order they were given to the
-        moment's constructor.
+        Returns: Iterator over `cirq.Operation` elements found in this circuit.
         """
         return (op for moment in self for op in moment.operations)
 
@@ -880,6 +910,11 @@ class AbstractCircuit(abc.ABC):
     def qid_shape(
         self, qubit_order: 'cirq.QubitOrderOrList' = ops.QubitOrder.DEFAULT
     ) -> Tuple[int, ...]:
+        """Get the qubit shapes of all qubits in this circuit.
+
+        Returns: A tuple containing the dimensions (shape) of all qudits
+            found in this circuit according to `qubit_order`.
+        """
         qids = ops.QubitOrder.as_qubit_order(qubit_order).order_for(self.all_qubits())
         return protocols.qid_shape(qids)
 
@@ -887,9 +922,19 @@ class AbstractCircuit(abc.ABC):
         return {key for op in self.all_operations() for key in protocols.measurement_key_objs(op)}
 
     def _measurement_key_objs_(self) -> AbstractSet['cirq.MeasurementKey']:
+        """Returns the set of all measurement keys in this circuit.
+
+        Returns: AbstractSet of `cirq.MeasurementKey` objects that are
+            in this circuit.
+        """
         return self.all_measurement_key_objs()
 
     def all_measurement_key_names(self) -> AbstractSet[str]:
+        """Returns the set of all measurement key names in this circuit.
+
+        Returns: AbstractSet of strings that are the measurement key
+            names in this circuit.
+        """
         return {key for op in self.all_operations() for key in protocols.measurement_key_names(op)}
 
     def _measurement_key_names_(self) -> AbstractSet[str]:
@@ -1704,6 +1749,7 @@ class Circuit(AbstractCircuit):
         return self.copy()
 
     def copy(self) -> 'Circuit':
+        """Return a copy of this circuit."""
         copied_circuit = Circuit()
         copied_circuit._moments = self._moments[:]
         return copied_circuit
@@ -2188,11 +2234,10 @@ class Circuit(AbstractCircuit):
             insert_intos: A sequence of (moment_index, new_op_tree)
                 pairs indicating a moment to add new operations into.
 
-        ValueError:
-            One of the insertions collided with an existing operation.
-
-        IndexError:
-            Inserted into a moment index that doesn't exist.
+        Raises:
+            ValueError: One of the insertions collided with an existing
+                operation.
+            IndexError: Inserted into a moment index that doesn't exist.
         """
         copy = self.copy()
         for i, insertions in insert_intos:
@@ -2208,7 +2253,7 @@ class Circuit(AbstractCircuit):
         causes a new moment to be created, then the insert at "4" will actually
         occur at index 5 to account for the shift from the new moment.
 
-        All insertions are done with the strategy 'EARLIEST'.
+        All insertions are done with the strategy `cirq.InsertStrategy.EARLIEST`.
 
         When multiple inserts occur at the same index, the gates from the later
         inserts end up before the gates from the earlier inserts (exactly as if
@@ -2237,7 +2282,7 @@ class Circuit(AbstractCircuit):
         self,
         moment_or_operation_tree: Union['cirq.Moment', 'cirq.OP_TREE'],
         strategy: 'cirq.InsertStrategy' = InsertStrategy.EARLIEST,
-    ):
+    ) -> None:
         """Appends operations onto the end of the circuit.
 
         Moments within the operation tree are appended intact.

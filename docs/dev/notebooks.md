@@ -25,6 +25,12 @@ Example header:
 
 You can use [our template notebook](https://storage.googleapis.com/tensorflow_docs/Cirq/docs/_template.ipynb) to get started - please remember to change the `$$$REPLACE_WITH_TITLE$$$`, `$$$REPLACE_WITH_SITE_URL$$$` and `$$$REPLACE_WITH_NOTEBOOK_PATH$$$` placeholders.
 
+Note that notebooks can expect to have typical `pip` python packages available
+to them within colab environments, but the user may need to install them in the
+case of Jupyter notebooks.  Notebook code, especially setup code, is not
+expected to be able to run as-is outside of a notebook environment.  However,
+making code snippets portable between environments is preferable when
+feasible to do so.
 
 ## Editing the tree nav on the site: _book.yaml
 
@@ -51,7 +57,13 @@ such complicated expressions.
 ## Notebooks with external dependencies
 
 Unfortunately we have no easy way to test notebooks with external API dependencies, e.g. cirq_google's Engine API.
-These notebooks should be excluded from both tests.
+These notebooks should be excluded from both tests.  This can be done by adding
+them to `SKIP_NOTEBOOKS` within the file `dev_tools/notebooks/notebook_test.py`.
+
+External dependencies, for these purposes, are calls to external services and
+APIs, such as vendor endpoints for cloud services.  These can also include
+external downloads, such as installing packages from unknown debian
+repositories, which may be blocked for security reasons.
 
 The site that generates the outputs for notebooks also can't handle external dependencies.
 

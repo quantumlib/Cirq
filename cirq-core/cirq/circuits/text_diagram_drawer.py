@@ -303,14 +303,14 @@ class TextDiagramDrawer:
         h = self.height()
 
         # Communicate padding into block diagram.
-        for x in range(0, w - 1):
+        for x in range(w - 1):
             block_diagram.set_col_min_width(
                 x * 2 + 1,
                 # Horizontal separation looks narrow, so partials round up.
                 int(np.ceil(self.horizontal_padding.get(x, horizontal_spacing))),
             )
             block_diagram.set_col_min_width(x * 2, 1)
-        for y in range(0, h - 1):
+        for y in range(h - 1):
             block_diagram.set_row_min_height(
                 y * 2 + 1,
                 # Vertical separation looks wide, so partials round down.
