@@ -1,4 +1,4 @@
-# Copyright 2021 The Cirq Developers
+# Copyright 2022 The Cirq Developers
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -12,18 +12,4 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import functools
-from typing import Dict
-
-import cirq_ionq
-from cirq.protocols.json_serialization import ObjectFactory
-
-
-@functools.lru_cache()  # coverage: ignore
-def _class_resolver_dictionary() -> Dict[str, ObjectFactory]:  # coverage: ignore
-    return {
-        "GPIGate": cirq_ionq.GPIGate,
-        "GPI2Gate": cirq_ionq.GPI2Gate,
-        "MSGate": cirq_ionq.MSGate,
-        "IonQTargetGateset": cirq_ionq.IonQTargetGateset,
-    }
+from cirq.contrib.circuitdag.circuit_dag import CircuitDag, Unique
