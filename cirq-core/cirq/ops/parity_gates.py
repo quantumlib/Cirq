@@ -55,7 +55,7 @@ class XXPowGate(gate_features.InterchangeableQubitsGate, eigen_gate.EigenGate):
     f = e^{\frac{i \pi t}{2}}.
     $$
 
-    See also: `cirq.ion.ion_gates.MSGate` (the Mølmer–Sørensen gate), which is
+    See also: `cirq.ops.MSGate` (the Mølmer–Sørensen gate), which is
     implemented via this class.
     """
 
