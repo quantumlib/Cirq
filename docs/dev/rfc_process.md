@@ -118,6 +118,9 @@ an RFC as specified above.  Everyone benefits from a well-maintained, user
 friendly interface with a high reliability, which is the goal of having this
 RFC process.
 
+Examples of other integrations can be found on the
+[Hardware page](/cirq/hardware).
+
 There are a range of possibilities for integrating with cirq, including:
 
 *    Completely independent repository: requires the least engagement from
@@ -137,7 +140,7 @@ intermediaries for other cloud vendors.
 Several things are needed for a successful integration:
 
 *    Plan for including external dependencies (if needed).
-*    Access and authentication
+*    Access and authentication.
 *    Tutorials and guides for use of the interface (for instance,
 a Getting Started guide).
 *    `Device` implementation for validating circuits on the hardware
