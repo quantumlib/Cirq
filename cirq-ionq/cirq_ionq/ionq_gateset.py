@@ -26,12 +26,16 @@ from cirq.transformers.target_gatesets.compilation_target_gateset import (
 class IonQTargetGateset(cirq.TwoQubitCompilationTargetGateset):
     """Target gateset for compiling circuits to IonQ devices.
 
-    The gates supported by the API are
-    * `cirq.XPowGate`, `cirq.YPowGate`, `cirq.ZPowGate`
-    * `cirq.XXPowGate`, `cirq.YYPowGate`, `cirq.ZZPowGate`
-    * `cirq.CNOT`, `cirq.H`, `cirq.SWAP`
-    * `cirq.MeasurementGate`
+    The gate families accepted by this gateset are:
 
+    Type gate families:
+    *  Single-Qubit Gates: `cirq.XPowGate`, `cirq.YPowGate`, `cirq.ZPowGate`.
+    *  Two-Qubit Gates: `cirq.XXPowGate`, `cirq.YYPowGate`, `cirq.ZZPowGate`.
+    *  Measurement Gate: `cirq.MeasurementGate`.
+
+    Instance gate families:
+    *  Single-Qubit Gates: `cirq.H`.
+    *  Two-Qubit Gates: `cirq.CNOT`, `cirq.SWAP`.
     """
 
     def __init__(self, *, atol: float = 1e-8):
