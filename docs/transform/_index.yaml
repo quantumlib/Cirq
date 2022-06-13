@@ -12,3 +12,8 @@ landing_page:
         path: /cirq/transformers
         icon:
           name: menu_book
+      - heading: Custom Transformers
+        description: Write your own Transformer with decorators, primitives and decompositions.
+        path: /cirq/transform/custom_transformers
+        icon:
+          name: menu_book
