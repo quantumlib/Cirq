@@ -47,7 +47,7 @@ def create_transformer_with_kwargs(transformer: 'cirq.TRANSFORMER', **kwargs) ->
     >>>         cirq.expand_composite, no_decomp=lambda op: cirq.num_qubits(op) <= 2
     >>>     )
     >>> )
-    >>> transformers.append(cirq.create_transformer_with_kwargs(cirq.merge_k_qubit_gates, k=2))
+    >>> transformers.append(cirq.create_transformer_with_kwargs(cirq.merge_k_qubit_unitaries, k=2))
     >>> run_transformers(transformers)
 
 
@@ -59,7 +59,12 @@ def create_transformer_with_kwargs(transformer: 'cirq.TRANSFORMER', **kwargs) ->
         A `cirq.TRANSFORMER` method `transformer_with_kwargs`, s.t. executing
         `transformer_with_kwargs(circuit, context=context)` is equivalent to executing
         `transformer(circuit, context=context, **kwargs)`.
+
+    Raises:
+        SyntaxError: if **kwargs contain a 'context'.
     """
+    if 'context' in kwargs:
+        raise SyntaxError('**kwargs to be captured must not contain `context`.')
 
     def transformer_with_kwargs(
         circuit: 'cirq.AbstractCircuit', *, context: Optional['cirq.TransformerContext'] = None
