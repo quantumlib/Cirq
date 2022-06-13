@@ -31,7 +31,7 @@ def _assert_not_mirror(gate) -> None:
     trans_y = gate.transform(cirq.Y)
     trans_z = gate.transform(cirq.Z)
     right_handed = (
-        trans_x.flip ^ trans_y.flip ^ trans_z.flip ^ (trans_x.to.relative_index(trans_y.to) != 1)
+        trans_x[1] ^ trans_y[1] ^ trans_z[1] ^ (trans_x[0].relative_index(trans_y[0]) != 1)
     )
     assert right_handed, 'Mirrors'
 
@@ -40,21 +40,21 @@ def _assert_no_collision(gate) -> None:
     trans_x = gate.transform(cirq.X)
     trans_y = gate.transform(cirq.Y)
     trans_z = gate.transform(cirq.Z)
-    assert trans_x.to != trans_y.to, 'Collision'
-    assert trans_y.to != trans_z.to, 'Collision'
-    assert trans_z.to != trans_x.to, 'Collision'
+    assert trans_x[0] != trans_y[0], 'Collision'
+    assert trans_y[0] != trans_z[0], 'Collision'
+    assert trans_z[0] != trans_x[0], 'Collision'
 
 
 def _all_rotations():
     for (pauli, flip) in itertools.product(_paulis, _bools):
-        yield cirq.PauliTransform(pauli, flip)
+        yield (pauli, flip)
 
 
 def _all_rotation_pairs():
     for px, flip_x, pz, flip_z in itertools.product(_paulis, _bools, _paulis, _bools):
         if px == pz:
             continue
-        yield cirq.PauliTransform(px, flip_x), cirq.PauliTransform(pz, flip_z)
+        yield (px, flip_x), (pz, flip_z)
 
 
 def _all_clifford_gates():
@@ -82,7 +82,7 @@ def test_init_from_xz(trans_x, trans_z):
     (
         (trans1, trans2, from1)
         for trans1, trans2, from1 in itertools.product(_all_rotations(), _all_rotations(), _paulis)
-        if trans1.to != trans2.to
+        if trans1[0] != trans2[0]
     ),
 )
 def test_init_from_double_map_vs_kwargs(trans1, trans2, from1):
@@ -125,7 +125,7 @@ def test_init_from_single_map_vs_kwargs(trans, frm):
     (
         (trans, frm)
         for trans, frm in itertools.product(_all_rotations(), _paulis)
-        if trans.to != frm
+        if trans[0] != frm
     ),
 )
 def test_init_90rot_from_single(trans, frm):
@@ -140,7 +140,7 @@ def test_init_90rot_from_single(trans, frm):
         gate.merged_with(gate).merged_with(gate).merged_with(gate) == cirq.SingleQubitCliffordGate.I
     )
     # Check that flipping the transform produces the inverse rotation
-    trans_rev = cirq.PauliTransform(trans.to, not trans.flip)
+    trans_rev = (trans[0], not trans[1])
     gate_rev = cirq.SingleQubitCliffordGate.from_single_map({frm: trans_rev})
     assert gate**-1 == gate_rev
 
@@ -150,7 +150,7 @@ def test_init_90rot_from_single(trans, frm):
     (
         (trans, frm)
         for trans, frm in itertools.product(_all_rotations(), _paulis)
-        if trans.to == frm and trans.flip
+        if trans[0] == frm and trans[1]
     ),
 )
 def test_init_180rot_from_single(trans, frm):
@@ -169,7 +169,7 @@ def test_init_180rot_from_single(trans, frm):
     (
         (trans, frm)
         for trans, frm in itertools.product(_all_rotations(), _paulis)
-        if trans.to == frm and not trans.flip
+        if trans[0] == frm and not trans[1]
     ),
 )
 def test_init_ident_from_single(trans, frm):
@@ -454,30 +454,20 @@ def test_commutes_pauli(gate, pauli, half_turns):
 def test_to_clifford_tableau_util_function():
 
     tableau = cirq.ops.clifford_gate._to_clifford_tableau(
-        x_to=cirq.PauliTransform(to=cirq.X, flip=False),
-        z_to=cirq.PauliTransform(to=cirq.Z, flip=False),
+        x_to=(cirq.X, False), z_to=(cirq.Z, False)
     )
     assert tableau == cirq.CliffordTableau(num_qubits=1, initial_state=0)
 
-    tableau = cirq.ops.clifford_gate._to_clifford_tableau(
-        x_to=cirq.PauliTransform(to=cirq.X, flip=False),
-        z_to=cirq.PauliTransform(to=cirq.Z, flip=True),
-    )
+    tableau = cirq.ops.clifford_gate._to_clifford_tableau(x_to=(cirq.X, False), z_to=(cirq.Z, True))
     assert tableau == cirq.CliffordTableau(num_qubits=1, initial_state=1)
 
     tableau = cirq.ops.clifford_gate._to_clifford_tableau(
-        rotation_map={
-            cirq.X: cirq.PauliTransform(to=cirq.X, flip=False),
-            cirq.Z: cirq.PauliTransform(to=cirq.Z, flip=False),
-        }
+        rotation_map={cirq.X: (cirq.X, False), cirq.Z: (cirq.Z, False)}
     )
     assert tableau == cirq.CliffordTableau(num_qubits=1, initial_state=0)
 
     tableau = cirq.ops.clifford_gate._to_clifford_tableau(
-        rotation_map={
-            cirq.X: cirq.PauliTransform(to=cirq.X, flip=False),
-            cirq.Z: cirq.PauliTransform(to=cirq.Z, flip=True),
-        }
+        rotation_map={cirq.X: (cirq.X, False), cirq.Z: (cirq.Z, True)}
     )
     assert tableau == cirq.CliffordTableau(num_qubits=1, initial_state=1)
 
