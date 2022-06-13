@@ -32,7 +32,7 @@ def test_decompose_x():
     """Verifies correctness of multi-controlled X decomposition."""
     for total_qubits_count in range(1, 8):
         qubits = cirq.LineQubit.range(total_qubits_count)
-        for controls_count in range(0, total_qubits_count):
+        for controls_count in range(total_qubits_count):
             gates = cirq.decompose_multi_controlled_x(
                 qubits[:controls_count], qubits[controls_count], qubits[controls_count + 1 :]
             )
@@ -93,13 +93,13 @@ def _test_decompose(matrix, controls_count):
 
 def test_decompose_specific_matrices():
     for gate in [cirq.X, cirq.Y, cirq.Z, cirq.H, cirq.I, cirq.T, cirq.S]:
-        for controls_count in range(0, 7):
+        for controls_count in range(7):
             _test_decompose(cirq.unitary(gate), controls_count)
 
 
 def test_decompose_random_unitary():
     np.random.seed(0)
-    for controls_count in range(0, 5):
+    for controls_count in range(5):
         for _ in range(10):
             _test_decompose(_random_unitary(), controls_count)
     for controls_count in range(5, 8):
@@ -108,7 +108,7 @@ def test_decompose_random_unitary():
 
 def test_decompose_random_special_unitary():
     np.random.seed(0)
-    for controls_count in range(0, 5):
+    for controls_count in range(5):
         for _ in range(10):
             _test_decompose(_random_special_unitary(), controls_count)
     for controls_count in range(5, 8):
