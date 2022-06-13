@@ -280,7 +280,7 @@ class Gate(metaclass=value.ABCMetaImplementAnyOneOf):
     def wrap_in_linear_combination(
         self, coefficient: Union[complex, float, int] = 1
     ) -> 'cirq.LinearCombinationOfGates':
-        """Return a LinearCombinationOfGates with this gate.
+        """Returns a LinearCombinationOfGates with this gate.
 
         Args:
             coefficient: number coefficient to use in the resulting
@@ -341,7 +341,7 @@ class Gate(metaclass=value.ABCMetaImplementAnyOneOf):
         return self.on(*qubits)
 
     def with_probability(self, probability: 'cirq.TParamVal') -> 'cirq.Gate':
-        """Create a probabalistic channel with this gate.
+        """Creates a probabalistic channel with this gate.
 
         Args:
             probability: floating value between 0 and 1, giving the probability
@@ -367,11 +367,11 @@ class Gate(metaclass=value.ABCMetaImplementAnyOneOf):
 
         Args:
             num_controls: Total number of control qubits.
-            control_values: Which control qubit values to apply the sub
-                gate.  A sequence of length `num_controls` where each
+            control_values: Which control computational basis state to apply the
+                sub gate.  A sequence of length `num_controls` where each
                 entry is an integer (or set of integers) corresponding to the
-                qubit value (or set of possible values) where that control is
-                enabled.  When all controls are enabled, the sub gate is
+                computational basis state (or set of possible values) where that
+                control is enabled.  When all controls are enabled, the sub gate is
                 applied.  If unspecified, control values default to 1.
             control_qid_shape: The qid shape of the controls.  A tuple of the
                 expected dimension of each control qid.  Defaults to
