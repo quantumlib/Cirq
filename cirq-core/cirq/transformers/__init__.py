@@ -45,6 +45,7 @@ from cirq.transformers.heuristic_decompositions import (
 from cirq.transformers.target_gatesets import (
     CompilationTargetGateset,
     CZTargetGateset,
+    NeutralAtomGateset,
     SqrtIswapTargetGateset,
     TwoQubitCompilationTargetGateset,
 )

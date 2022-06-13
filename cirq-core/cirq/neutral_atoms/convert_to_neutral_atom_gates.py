@@ -16,7 +16,7 @@ from typing import List, Optional, TYPE_CHECKING
 from cirq import ops, protocols, transformers
 from cirq._compat import deprecated_class
 from cirq.circuits.optimization_pass import PointOptimizationSummary, PointOptimizer
-from cirq.neutral_atoms.neutral_atom_gateset import NeutralAtomGateset
+from cirq.transformers.target_gatesets.neutral_atom_gateset import NeutralAtomGateset
 
 if TYPE_CHECKING:
     import cirq

@@ -45,6 +45,7 @@ TestSpec = ModuleJsonTestSpec(
         'Linspace',
         'ListSweep',
         'NeutralAtomDevice',
+        'NeutralAtomGateset',
         'PauliSumCollector',
         'PauliSumExponential',
         'PauliTransform',

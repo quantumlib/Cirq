@@ -382,6 +382,7 @@ from cirq.transformers import (
     merge_single_qubit_gates_to_phased_x_and_z,
     merge_single_qubit_gates_to_phxz,
     merge_single_qubit_moments_to_phxz,
+    NeutralAtomGateset,
     optimize_for_target_gateset,
     parameterized_2q_op_to_sqrt_iswap_operations,
     prepare_two_qubit_state_using_cz,

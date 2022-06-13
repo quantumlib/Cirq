@@ -14,7 +14,7 @@
 import pytest
 
 import cirq
-import cirq.neutral_atoms.neutral_atom_gateset as nag
+import cirq.transformers.target_gatesets.neutral_atom_gateset as nag
 
 Q = cirq.LineQubit.range(10)
 

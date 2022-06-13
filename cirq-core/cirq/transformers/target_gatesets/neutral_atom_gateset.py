@@ -13,15 +13,17 @@
 # limitations under the License.
 from typing import List, Optional, TYPE_CHECKING
 
-from cirq import ops, protocols, transformers
+from cirq import ops, protocols
 from cirq.protocols.decompose_protocol import DecomposeResult
-
+from cirq.transformers.target_gatesets import compilation_target_gateset
+from cirq.transformers.analytical_decompositions import single_qubit_decompositions
+from cirq.transformers.analytical_decompositions import two_qubit_to_cz
 
 if TYPE_CHECKING:
     import cirq
 
 
-class NeutralAtomGateset(transformers.CompilationTargetGateset):
+class NeutralAtomGateset(compilation_target_gateset.CompilationTargetGateset):
     """A Compilation target intended for neutral atom devices.
 
     This gateset supports CNOT, CCNOT (TOFFOLI) gates, CZ,
@@ -71,10 +73,10 @@ class NeutralAtomGateset(transformers.CompilationTargetGateset):
         # Known matrix?
         mat = protocols.unitary(op, None) if len(op.qubits) <= 2 else None
         if mat is not None and len(op.qubits) == 1:
-            gates = transformers.single_qubit_matrix_to_phased_x_z(mat)
+            gates = single_qubit_decompositions.single_qubit_matrix_to_phased_x_z(mat)
             return [g.on(op.qubits[0]) for g in gates]
         if mat is not None and len(op.qubits) == 2:
-            return transformers.two_qubit_matrix_to_cz_operations(
+            return two_qubit_to_cz.two_qubit_matrix_to_cz_operations(
                 op.qubits[0], op.qubits[1], mat, allow_partial_czs=False, clean_operations=True
             )
 

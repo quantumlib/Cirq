@@ -20,7 +20,7 @@ from cirq import devices, ops, circuits, value
 from cirq.devices.grid_qubit import GridQubit
 from cirq.ops import raw_types
 from cirq.value import Duration
-from cirq.neutral_atoms.neutral_atom_gateset import NeutralAtomGateset
+from cirq.transformers.target_gatesets.neutral_atom_gateset import NeutralAtomGateset
 
 if TYPE_CHECKING:
     import cirq

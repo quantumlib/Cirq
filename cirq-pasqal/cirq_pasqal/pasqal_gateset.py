@@ -18,7 +18,7 @@ from typing import Any, Dict
 import cirq
 
 
-class PasqalGateset(cirq.neutral_atoms.NeutralAtomGateset):
+class PasqalGateset(cirq.NeutralAtomGateset):
     """A Compilation target intended for Pasqal neutral atom devices.
     This gateset supports single qubit gates that can be used
     in a parallel fashion as well as CZ.
@@ -51,9 +51,7 @@ class PasqalGateset(cirq.neutral_atoms.NeutralAtomGateset):
         # Call cirq.Gateset __init__ which is our grand-father inherited class
         # pylint doesn't like this so disable checks on this.
         # pylint: disable=bad-super-call
-        super(cirq.neutral_atoms.NeutralAtomGateset, self).__init__(
-            *gate_families, unroll_circuit_op=False
-        )
+        super(cirq.NeutralAtomGateset, self).__init__(*gate_families, unroll_circuit_op=False)
 
     def __repr__(self):
         return (

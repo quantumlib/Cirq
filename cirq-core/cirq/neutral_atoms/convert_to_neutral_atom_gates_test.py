@@ -31,9 +31,7 @@ Q = cirq.LineQubit.range(3)
     ),
 )
 def test_gates_preserved(expected: cirq.Circuit):
-    actual = cirq.optimize_for_target_gateset(
-        expected, gateset=cirq.neutral_atoms.NeutralAtomGateset()
-    )
+    actual = cirq.optimize_for_target_gateset(expected, gateset=cirq.NeutralAtomGateset())
     assert actual == expected
 
 
@@ -59,15 +57,13 @@ def test_coverage():
         op = FakeOperation(g, q).with_qubits(*q)
         circuit_ops = [cirq.Y(q[0]), cirq.ParallelGate(cirq.X, 3).on(*q)]
         c = cirq.Circuit(circuit_ops)
-        cirq.neutral_atoms.ConvertToNeutralAtomGates().optimize_circuit(c)
+        cirq.ConvertToNeutralAtomGates().optimize_circuit(c)
         assert c == cirq.Circuit(circuit_ops)
-        assert cirq.neutral_atoms.ConvertToNeutralAtomGates().convert(cirq.X.on(q[0])) == [
-            cirq.X.on(q[0])
-        ]
+        assert cirq.ConvertToNeutralAtomGates().convert(cirq.X.on(q[0])) == [cirq.X.on(q[0])]
         with pytest.raises(TypeError, match="Don't know how to work with"):
-            cirq.neutral_atoms.ConvertToNeutralAtomGates().convert(op)
-        assert not cirq.neutral_atoms.is_native_neutral_atom_op(op)
-        assert not cirq.neutral_atoms.is_native_neutral_atom_gate(g)
+            cirq.ConvertToNeutralAtomGates().convert(op)
+        assert not cirq.is_native_neutral_atom_op(op)
+        assert not cirq.is_native_neutral_atom_gate(g)
 
 
 def test_avoids_decompose_fallback_when_matrix_available_single_qubit():
@@ -81,12 +77,12 @@ def test_avoids_decompose_fallback_when_matrix_available_single_qubit():
 
     q = cirq.GridQubit(0, 0)
     c = cirq.Circuit(OtherX().on(q), OtherOtherX().on(q))
-    converted = cirq.optimize_for_target_gateset(c, gateset=cirq.neutral_atoms.NeutralAtomGateset())
+    converted = cirq.optimize_for_target_gateset(c, gateset=cirq.NeutralAtomGateset())
     cirq.testing.assert_has_diagram(converted, '(0, 0): ───PhX(1)───PhX(1)───')
     with cirq.testing.assert_deprecated(
         "Use cirq.optimize_for_target_gateset", deadline='v0.16', count=2
     ):
-        cirq.neutral_atoms.ConvertToNeutralAtomGates().optimize_circuit(c)
+        cirq.ConvertToNeutralAtomGates().optimize_circuit(c)
         cirq.testing.assert_has_diagram(c, '(0, 0): ───PhX(1)───PhX(1)───')
 
 
@@ -107,10 +103,10 @@ def test_avoids_decompose_fallback_when_matrix_available_two_qubit():
            │   │
 (0, 1): ───@───@───
 """
-    converted = cirq.optimize_for_target_gateset(c, gateset=cirq.neutral_atoms.NeutralAtomGateset())
+    converted = cirq.optimize_for_target_gateset(c, gateset=cirq.NeutralAtomGateset())
     cirq.testing.assert_has_diagram(converted, expected_diagram)
     with cirq.testing.assert_deprecated(
         "Use cirq.optimize_for_target_gateset", deadline='v0.16', count=2
     ):
-        cirq.neutral_atoms.ConvertToNeutralAtomGates().optimize_circuit(c)
+        cirq.ConvertToNeutralAtomGates().optimize_circuit(c)
         cirq.testing.assert_has_diagram(c, expected_diagram)
