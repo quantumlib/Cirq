@@ -25,6 +25,7 @@ from cirq_rigetti.aspen_device import (
     UnsupportedRigettiQCSOperation,
     UnsupportedRigettiQCSQuantumProcessor,
 )
+from cirq_rigetti.quil_input import circuit_from_quil
 
 
 # Registers the cirq_rigetti's public classes for JSON serialization.
