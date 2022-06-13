@@ -1349,7 +1349,7 @@ def test_findall_operations_until_blocked(circuit_cls):
     )
 
     # Test if all operations are blocked
-    for idx in range(0, 15):
+    for idx in range(15):
         for q in (a, b, c, d):
             assert_findall_operations_until_blocked_as_expected(
                 circuit=circuit, start_frontier={q: idx}, is_blocker=stop_if_op, expected_ops=[]

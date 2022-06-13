@@ -87,7 +87,7 @@ class StatePreparationChannel(raw_types.Gate):
         symbols = (
             [self._name]
             if self._num_qubits == 1
-            else [f'{self._name}[{i+1}]' for i in range(0, self._num_qubits)]
+            else [f'{self._name}[{i+1}]' for i in range(self._num_qubits)]
         )
         return protocols.CircuitDiagramInfo(wire_symbols=symbols)
 
