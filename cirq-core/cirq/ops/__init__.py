@@ -145,7 +145,7 @@ from cirq.ops.op_tree import (
     transform_op_tree,
 )
 
-from cirq.ops.parity_gates import XX, XXPowGate, YY, YYPowGate, ZZ, ZZPowGate
+from cirq.ops.parity_gates import XX, XXPowGate, YY, YYPowGate, ZZ, ZZPowGate, MSGate, ms
 
 from cirq.ops.pauli_gates import Pauli, X, Y, Z
 

@@ -253,6 +253,7 @@ from cirq.ops import (
     MeasurementGate,
     MutableDensePauliString,
     MutablePauliString,
+    ms,
     NamedQubit,
     NamedQid,
     OP_TREE,
@@ -667,7 +668,7 @@ from cirq.protocols import (
     with_rescoped_keys,
 )
 
-from cirq.ion import ConvertToIonGates, IonDevice, ms, two_qubit_matrix_to_ion_operations
+from cirq.ion import ConvertToIonGates, IonDevice, two_qubit_matrix_to_ion_operations
 from cirq.neutral_atoms import (
     ConvertToNeutralAtomGates,
     is_native_neutral_atom_gate,
