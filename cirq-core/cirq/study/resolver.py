@@ -50,7 +50,9 @@ class ParamResolver:
     A ParamResolver is an object that can be used to assign values for these
     variables.
 
-    ParamResolvers are hashable; their param_dict must not be mutated.
+    This class gradually constructs a fast evaluation cache as it is used to
+    resolve objects. If the `param_dict` field is modified after creation, it
+    may misbehave in unpredictable ways.
 
     Attributes:
         param_dict: A dictionary from the ParameterValue key (str) to its
@@ -69,7 +71,6 @@ class ParamResolver:
         if hasattr(self, 'param_dict'):
             return  # Already initialized. Got wrapped as part of the __new__.
 
-        self._param_hash: Optional[int] = None
         self.param_dict = cast(ParamDictType, {} if param_dict is None else param_dict)
         for key in self.param_dict:
             if isinstance(key, sympy.Expr) and not isinstance(key, sympy.Symbol):
@@ -227,11 +228,6 @@ class ParamResolver:
         self, key: Union['cirq.TParamKey', 'cirq.TParamValComplex']
     ) -> 'cirq.TParamValComplex':
         return self.value_of(key)
-
-    def __hash__(self) -> int:
-        if self._param_hash is None:
-            self._param_hash = hash(frozenset(self.param_dict.items()))
-        return self._param_hash
 
     def __eq__(self, other):
         if not isinstance(other, ParamResolver):

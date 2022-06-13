@@ -433,7 +433,6 @@ class CircuitOperation(ops.Operation):
                         self.repetitions,
                         frozenset(self.qubit_map.items()),
                         frozenset(self.measurement_key_map.items()),
-                        self.param_resolver,
                         self.parent_path,
                         tuple([] if self.repetition_ids is None else self.repetition_ids),
                         self.use_repetition_ids,
