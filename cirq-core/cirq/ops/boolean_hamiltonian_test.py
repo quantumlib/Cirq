@@ -80,7 +80,11 @@ def test_circuit(boolean_str):
 
     circuit.append(hamiltonian_gate.on(*qubits))
 
-    phi = cirq.Simulator().simulate(circuit, qubit_order=qubits, initial_state=0).state_vector()
+    phi = (
+        cirq.Simulator()
+        .simulate(circuit, qubit_order=qubits, initial_state=0)
+        .state_vector(copy=False)
+    )
     actual = np.arctan2(phi.real, phi.imag) - math.pi / 2.0 > 0.0
 
     # Compare the two:

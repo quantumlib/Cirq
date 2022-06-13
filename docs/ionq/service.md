@@ -6,13 +6,13 @@ See [Access and Authentication](access.md) for details of access.
 
 ## Service class
 
-The main entrance for accessing IonQ's API are instances of the `cirq.ionq.Service` class.
+The main entrance for accessing IonQ's API are instances of the `cirq_ionq.Service` class.
 These objects need to be initialized with an api key, see
 [Access and Authentication](access.md) for details.
 
 The basic flow of running a quantum circuit in a blocking manner is
 1. Create a circuit to run.
-1. Create a `cirq.ionq.Service` with proper authentication and endpoints.
+1. Create a `cirq_ionq.Service` with proper authentication and endpoints.
 3. Submit this circuit to run on the service and await the results of this call.
 (Or alternatively use asynchronous jobs and processing)
 4. Transform the results in a form that is most useful for your analysis.
@@ -20,7 +20,7 @@ The basic flow of running a quantum circuit in a blocking manner is
 Here is a simple example of this flow
 ```python
 import cirq
-import cirq.ionq as ionq
+import cirq_ionq as ionq
 
 # A circuit that applies a square root of NOT and then a measurement.
 qubit = cirq.LineQubit(0)
