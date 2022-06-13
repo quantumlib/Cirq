@@ -367,7 +367,7 @@ class Moment:
             not currently found in the moment.
 
         Raises:
-            ValueError: if `qubits` is not a subset of this moments qubits.
+            ValueError: if this moments' qubits are not a subset of `qubits`.
         """
         if not self.qubits.issubset(qubits):
             raise ValueError(f'{qubits} is not a superset of {self.qubits}')
