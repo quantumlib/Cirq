@@ -15,7 +15,7 @@
 from typing import cast
 
 from cirq import circuits, ops, protocols
-from cirq.contrib.circuitdag import CircuitDag
+from cirq.contrib import circuitdag
 
 
 def pauli_string_reorder_pred(op1: ops.Operation, op2: ops.Operation) -> bool:
@@ -24,5 +24,5 @@ def pauli_string_reorder_pred(op1: ops.Operation, op2: ops.Operation) -> bool:
     return protocols.commutes(ps1, ps2)
 
 
-def pauli_string_dag_from_circuit(circuit: circuits.Circuit) -> CircuitDag:
-    return CircuitDag.from_circuit(circuit, pauli_string_reorder_pred)
+def pauli_string_dag_from_circuit(circuit: circuits.Circuit) -> circuitdag.CircuitDag:
+    return circuitdag.CircuitDag.from_circuit(circuit, pauli_string_reorder_pred)

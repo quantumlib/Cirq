@@ -31,7 +31,7 @@ import networkx as nx
 
 from cirq import circuits, ops, value
 import cirq.contrib.acquaintance as cca
-from cirq.contrib.circuitdag import CircuitDag
+from cirq.contrib import circuitdag
 from cirq.contrib.routing.initialization import get_initial_mapping
 from cirq.contrib.routing.swap_network import SwapNetwork
 from cirq.contrib.routing.utils import get_time_slices, ops_are_consistent_with_device_graph
@@ -121,7 +121,7 @@ class _GreedyRouter:
             for b, d in neighbor_distances.items()
         }
 
-        self.remaining_dag = CircuitDag.from_circuit(circuit, can_reorder=can_reorder)
+        self.remaining_dag = circuitdag.CircuitDag.from_circuit(circuit, can_reorder=can_reorder)
         self.logical_qubits = list(self.remaining_dag.all_qubits())
         self.physical_qubits = list(self.device_graph.nodes)
         self.edge_sets: Dict[int, List[Sequence[QidPair]]] = {}
