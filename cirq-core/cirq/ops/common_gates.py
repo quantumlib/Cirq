@@ -274,7 +274,7 @@ class XPowGate(eigen_gate.EigenGate):
 
 
 class Rx(XPowGate):
-    """A gate with matrix $e^{-i X t/2}$ that rotates around the X axis of the Bloch sphere by $t$.
+    r"""A gate with matrix $e^{-i X t/2}$ that rotates around the X axis of the Bloch sphere by $t$.
 
     The unitary matrix of `cirq.Rx(rads=t)` is:
     $$
