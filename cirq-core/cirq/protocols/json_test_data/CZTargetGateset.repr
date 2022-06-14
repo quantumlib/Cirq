@@ -1,14 +1,6 @@
 [
-    cirq.CZTargetGateset(
-        atol=1e-06,
-        allow_partial_czs=False,
-        additional_gates=[cirq.ops.global_phase_op.GlobalPhaseGate],
-    ),
-    cirq.CZTargetGateset(
-        atol=1e-08,
-        allow_partial_czs=True,
-        additional_gates=[cirq.ops.global_phase_op.GlobalPhaseGate],
-    ),
+    cirq.CZTargetGateset(atol=1e-06, allow_partial_czs=False, additional_gates=[]),
+    cirq.CZTargetGateset(atol=1e-08, allow_partial_czs=True, additional_gates=[]),
     cirq.CZTargetGateset(
         atol=1e-06,
         allow_partial_czs=True,

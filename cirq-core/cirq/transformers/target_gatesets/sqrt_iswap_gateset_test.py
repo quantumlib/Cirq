@@ -149,9 +149,7 @@ def test_sqrt_iswap_gateset_raises():
 def test_sqrt_iswap_gateset_eq():
     eq = cirq.testing.EqualsTester()
     eq.add_equality_group(
-        cirq.SqrtIswapTargetGateset(),
-        cirq.SqrtIswapTargetGateset(use_sqrt_iswap_inv=False),
-        cirq.SqrtIswapTargetGateset(additional_gates=[cirq.GlobalPhaseGate]),
+        cirq.SqrtIswapTargetGateset(), cirq.SqrtIswapTargetGateset(use_sqrt_iswap_inv=False)
     )
     eq.add_equality_group(
         cirq.SqrtIswapTargetGateset(atol=1e-6, required_sqrt_iswap_count=0, use_sqrt_iswap_inv=True)

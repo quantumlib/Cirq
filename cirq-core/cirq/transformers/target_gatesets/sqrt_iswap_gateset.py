@@ -33,6 +33,7 @@ class SqrtIswapTargetGateset(compilation_target_gateset.TwoQubitCompilationTarge
     - `cirq.SQRT_ISWAP` / `cirq.SQRT_ISWAP_INV`: The two qubit entangling gate.
     - `cirq.PhasedXZGate`: Single qubit rotations.
     - `cirq.MeasurementGate`: Measurements.
+    - `cirq.GlobalPhaseGate`: Global phase.
 
     Optionally, users can also specify additional gates / gate families which should
     be accepted by this gateset via the `additional_gates` argument.
@@ -48,9 +49,7 @@ class SqrtIswapTargetGateset(compilation_target_gateset.TwoQubitCompilationTarge
         atol: float = 1e-8,
         required_sqrt_iswap_count: Optional[int] = None,
         use_sqrt_iswap_inv: bool = False,
-        additional_gates: Sequence[Union[Type['cirq.Gate'], 'cirq.Gate', 'cirq.GateFamily']] = (
-            ops.GlobalPhaseGate,
-        ),
+        additional_gates: Sequence[Union[Type['cirq.Gate'], 'cirq.Gate', 'cirq.GateFamily']] = (),
     ):
         """Initializes `cirq.SqrtIswapTargetGateset`
 
@@ -74,6 +73,7 @@ class SqrtIswapTargetGateset(compilation_target_gateset.TwoQubitCompilationTarge
             ops.SQRT_ISWAP_INV if use_sqrt_iswap_inv else ops.SQRT_ISWAP,
             ops.MeasurementGate,
             ops.PhasedXZGate,
+            ops.GlobalPhaseGate,
             *additional_gates,
             name='SqrtIswapInvTargetGateset' if use_sqrt_iswap_inv else 'SqrtIswapTargetGateset',
         )
@@ -110,7 +110,7 @@ class SqrtIswapTargetGateset(compilation_target_gateset.TwoQubitCompilationTarge
             f'cirq.SqrtIswapTargetGateset('
             f'atol={self.atol}, '
             f'required_sqrt_iswap_count={self.required_sqrt_iswap_count}, '
-            f'use_sqrt_iswap_inv={self.use_sqrt_iswap_inv},'
+            f'use_sqrt_iswap_inv={self.use_sqrt_iswap_inv}, '
             f'additional_gates=[{self._additional_gates_repr_str}]'
             f')'
         )
@@ -124,21 +124,18 @@ class SqrtIswapTargetGateset(compilation_target_gateset.TwoQubitCompilationTarge
         )
 
     def _json_dict_(self) -> Dict[str, Any]:
-        return {
+        d: Dict[str, Any] = {
             'atol': self.atol,
             'required_sqrt_iswap_count': self.required_sqrt_iswap_count,
             'use_sqrt_iswap_inv': self.use_sqrt_iswap_inv,
-            'additional_gates': list(self.additional_gates),
         }
+        if self.additional_gates:
+            d['additional_gates'] = list(self.additional_gates)
+        return d
 
     @classmethod
     def _from_json_dict_(
-        cls,
-        atol,
-        required_sqrt_iswap_count,
-        use_sqrt_iswap_inv,
-        additional_gates=(ops.GlobalPhaseGate,),
-        **kwargs,
+        cls, atol, required_sqrt_iswap_count, use_sqrt_iswap_inv, additional_gates=(), **kwargs
     ):
         return cls(
             atol=atol,

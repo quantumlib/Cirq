@@ -32,6 +32,7 @@ class CZTargetGateset(compilation_target_gateset.TwoQubitCompilationTargetGatese
     - `cirq.CZ` / `cirq.CZPowGate`: The two qubit entangling gate.
     - `cirq.PhasedXZGate`: Single qubit rotations.
     - `cirq.MeasurementGate`: Measurements.
+    - `cirq.GlobalPhaseGate`: Global phase.
 
     Optionally, users can also specify additional gates / gate families which should
     be accepted by this gateset via the `additional_gates` argument.
@@ -46,9 +47,7 @@ class CZTargetGateset(compilation_target_gateset.TwoQubitCompilationTargetGatese
         *,
         atol: float = 1e-8,
         allow_partial_czs: bool = False,
-        additional_gates: Sequence[Union[Type['cirq.Gate'], 'cirq.Gate', 'cirq.GateFamily']] = (
-            ops.GlobalPhaseGate,
-        ),
+        additional_gates: Sequence[Union[Type['cirq.Gate'], 'cirq.Gate', 'cirq.GateFamily']] = (),
     ) -> None:
         """Initializes CZTargetGateset
 
@@ -63,6 +62,7 @@ class CZTargetGateset(compilation_target_gateset.TwoQubitCompilationTargetGatese
             ops.CZPowGate if allow_partial_czs else ops.CZ,
             ops.MeasurementGate,
             ops.PhasedXZGate,
+            ops.GlobalPhaseGate,
             *additional_gates,
             name='CZPowTargetGateset' if allow_partial_czs else 'CZTargetGateset',
         )
@@ -99,16 +99,13 @@ class CZTargetGateset(compilation_target_gateset.TwoQubitCompilationTargetGatese
         return self.atol, self.allow_partial_czs, frozenset(self.additional_gates)
 
     def _json_dict_(self) -> Dict[str, Any]:
-        return {
-            'atol': self.atol,
-            'allow_partial_czs': self.allow_partial_czs,
-            'additional_gates': list(self.additional_gates),
-        }
+        d: Dict[str, Any] = {'atol': self.atol, 'allow_partial_czs': self.allow_partial_czs}
+        if self.additional_gates:
+            d['additional_gates'] = list(self.additional_gates)
+        return d
 
     @classmethod
-    def _from_json_dict_(
-        cls, atol, allow_partial_czs, additional_gates=(ops.GlobalPhaseGate,), **kwargs
-    ):
+    def _from_json_dict_(cls, atol, allow_partial_czs, additional_gates=(), **kwargs):
         return cls(
             atol=atol, allow_partial_czs=allow_partial_czs, additional_gates=additional_gates
         )
