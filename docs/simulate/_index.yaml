@@ -19,7 +19,7 @@ landing_page:
           name: menu_book
       - heading: Parameter Sweeps
         description: Parameterize circuits and execute them for multiple values of the parameters.
-        path: /cirq/params
+        path: /cirq/simulate/params
         icon:
           name: menu_book
       - heading: State Histograms
