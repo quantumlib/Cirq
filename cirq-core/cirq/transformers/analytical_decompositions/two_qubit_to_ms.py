@@ -23,15 +23,22 @@ from typing import Iterable, List, Optional, cast, Tuple, TYPE_CHECKING
 
 import numpy as np
 
-from cirq import ops, linalg, protocols, circuits, transformers
-from cirq.ion import ms
+from cirq import ops, linalg, protocols, circuits
+from cirq.transformers.analytical_decompositions import single_qubit_decompositions
+from cirq.transformers.merge_single_qubit_gates import merge_single_qubit_gates_to_phased_x_and_z
+from cirq.transformers.eject_z import eject_z
+from cirq.transformers.eject_phased_paulis import eject_phased_paulis
 
 if TYPE_CHECKING:
     import cirq
 
 
 def two_qubit_matrix_to_ion_operations(
-    q0: 'cirq.Qid', q1: 'cirq.Qid', mat: np.ndarray, atol: float = 1e-8
+    q0: 'cirq.Qid',
+    q1: 'cirq.Qid',
+    mat: np.ndarray,
+    atol: float = 1e-8,
+    clean_operations: bool = True,
 ) -> List[ops.Operation]:
     """Decomposes a two-qubit operation into MS/single-qubit rotation gates.
 
@@ -39,22 +46,23 @@ def two_qubit_matrix_to_ion_operations(
         q0: The first qubit being operated on.
         q1: The other qubit being operated on.
         mat: Defines the operation to apply to the pair of qubits.
-        atol: A limit on the amount of error introduced by the
-            construction.
+        atol: A limit on the amount of error introduced by the construction.
+        clean_operations: Enables optimizing resulting operation list by
+            merging operations and ejecting phased Paulis and Z operations.
 
     Returns:
         A list of operations implementing the matrix.
     """
     kak = linalg.kak_decomposition(mat, atol=atol)
     operations = _kak_decomposition_to_operations(q0, q1, kak, atol)
-    return _cleanup_operations(operations)
+    return _cleanup_operations(operations) if clean_operations else operations
 
 
-def _cleanup_operations(operations: List[ops.Operation]):
+def _cleanup_operations(operations: List[ops.Operation]) -> List['cirq.Operation']:
     circuit = circuits.Circuit(operations)
-    circuit = transformers.merge_single_qubit_gates_to_phased_x_and_z(circuit)
-    circuit = transformers.eject_phased_paulis(circuit)
-    circuit = transformers.eject_z(circuit)
+    circuit = merge_single_qubit_gates_to_phased_x_and_z(circuit)
+    circuit = eject_phased_paulis(circuit)
+    circuit = eject_z(circuit)
     circuit = circuits.Circuit(circuit.all_operations(), strategy=circuits.InsertStrategy.EARLIEST)
     return list(circuit.all_operations())
 
@@ -79,7 +87,7 @@ def _kak_decomposition_to_operations(
 
 
 def _do_single_on(u: np.ndarray, q: 'cirq.Qid', atol: float = 1e-8):
-    for gate in transformers.single_qubit_matrix_to_gates(u, atol):
+    for gate in single_qubit_decompositions.single_qubit_matrix_to_gates(u, atol):
         yield gate(q)
 
 
@@ -95,7 +103,7 @@ def _parity_interaction(
         g = cast(ops.Gate, gate)
         yield g.on(q0), g.on(q1)
 
-    yield ms(-1 * rads).on(q0, q1)
+    yield ops.ms(-1 * rads).on(q0, q1)
 
     if gate is not None:
         g = protocols.inverse(gate)

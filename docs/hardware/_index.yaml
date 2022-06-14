@@ -119,7 +119,7 @@ landing_page:
           name: menu_book
 
     - heading: Custom devices
-      description: How to write custom Device classes for quantum hardware.
+      description: How to write custom Device classes for quantum hardware. More information for vendors on integrating with cirq can be found on the RFC page.
       items:
       - heading: Neutral atom device
         description: A custom device class for a neutral atom device.

@@ -13,24 +13,11 @@
 # limitations under the License.
 """Devices for IonQ hardware."""
 
-from typing import Sequence, Union
+from typing import Sequence
+from typing import Union
 
 import cirq
-
-
-_VALID_GATES = cirq.Gateset(
-    cirq.H,
-    cirq.CNOT,
-    cirq.SWAP,
-    cirq.XPowGate,
-    cirq.YPowGate,
-    cirq.ZPowGate,
-    cirq.XXPowGate,
-    cirq.YYPowGate,
-    cirq.ZZPowGate,
-    cirq.MeasurementGate,
-    unroll_circuit_op=False,
-)
+from cirq_ionq import ionq_gateset
 
 
 class IonQAPIDevice(cirq.Device):
@@ -64,6 +51,7 @@ class IonQAPIDevice(cirq.Device):
         else:
             self.qubits = frozenset(qubits)
         self.atol = atol
+        self.gateset = ionq_gateset.IonQTargetGateset()
         self._metadata = cirq.DeviceMetadata(
             self.qubits, [(a, b) for a in self.qubits for b in self.qubits if a != b]
         )
@@ -83,9 +71,15 @@ class IonQAPIDevice(cirq.Device):
             raise ValueError(f'Operation with qubits not on the device. Qubits: {operation.qubits}')
 
     def is_api_gate(self, operation: cirq.Operation) -> bool:
-        return operation in _VALID_GATES
+        return operation in self.gateset
 
 
+@cirq._compat.deprecated(
+    deadline='v0.16',
+    fix='Use cirq.optimize_for_target_gateset(circuit, '
+    'gateset=cirq_ionq.IonQTargetGateset(atol)) '
+    'instead.',
+)
 def decompose_to_device(operation: cirq.Operation, atol: float = 1e-8) -> cirq.OP_TREE:
     """Decompose operation to ionq native operations.
 
@@ -106,40 +100,6 @@ def decompose_to_device(operation: cirq.Operation, atol: float = 1e-8) -> cirq.O
             for the ionq device.
 
     """
-    if operation in _VALID_GATES:
-        return operation
-    assert cirq.has_unitary(operation), (
-        f'Operation {operation} is not available on the IonQ API nor does it have a '
-        'unitary matrix to use to decompose it to the API.'
-    )
-    num_qubits = len(operation.qubits)
-    if num_qubits == 1:
-        return _decompose_single_qubit(operation, atol)
-    if num_qubits == 2:
-        return _decompose_two_qubit(operation)
-    raise ValueError(f'Operation {operation} not supported by IonQ API.')
-
-
-def _decompose_single_qubit(operation: cirq.Operation, atol: float) -> cirq.OP_TREE:
-    qubit = operation.qubits[0]
-    mat = cirq.unitary(operation)
-    for gate in cirq.single_qubit_matrix_to_gates(mat, atol):
-        yield gate(qubit)
-
-
-def _decompose_two_qubit(operation: cirq.Operation) -> cirq.OP_TREE:
-    """Decomposes a two qubit unitary operation into ZPOW, XPOW, and CNOT."""
-    mat = cirq.unitary(operation)
-    q0, q1 = operation.qubits
-    naive = cirq.two_qubit_matrix_to_cz_operations(q0, q1, mat, allow_partial_czs=False)
-    temp = cirq.map_operations_and_unroll(
-        cirq.Circuit(naive),
-        lambda op, _: [cirq.H(op.qubits[1]), cirq.CNOT(*op.qubits), cirq.H(op.qubits[1])]
-        if type(op.gate) == cirq.CZPowGate
-        else op,
-    )
-    temp = cirq.merge_single_qubit_gates_to_phased_x_and_z(temp)
-    # A final pass breaks up PhasedXPow into Rz, Rx.
-    yield cirq.map_operations_and_unroll(
-        temp, lambda op, _: cirq.decompose_once(op) if type(op.gate) == cirq.PhasedXPowGate else op
+    return cirq.optimize_for_target_gateset(
+        cirq.Circuit(operation), gateset=ionq_gateset.IonQTargetGateset(), ignore_failures=False
     ).all_operations()

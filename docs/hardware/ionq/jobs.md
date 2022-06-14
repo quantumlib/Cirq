@@ -3,11 +3,11 @@
 Here we detail how to run jobs on the IonQ API against the IonQ QPU and the
 IonQ simulator.
 
-In this section we assume a `cirq.ionq.Service` object has been instantiated and is
-called `service` and `cirq` and `cirq.ionq` have been imported:
+In this section we assume a `cirq_ionq.Service` object has been instantiated and is
+called `service` and `cirq` and `cirq_ionq` have been imported:
 ```python
 import cirq
-import cirq.ionq as ionq
+import cirq_ionq as ionq
 service = ionq.Service()
 ```
 See [IonQ API Service](service.md) for how to set up the service.
@@ -28,7 +28,7 @@ Here we describe these different methods.
 
 ### Via Run
 
-The first method for running is to do so via the `run` method on `cirq.ionq.Service`.
+The first method for running is to do so via the `run` method on `cirq_ionq.Service`.
 
 ```python
 qubit = cirq.LineQubit(0)
@@ -97,9 +97,9 @@ circuit = cirq.Circuit(
 job = service.create_job(circuit=circuit, target='qpu', repetitions=100)
 print(job)
 ```
-which shows that the returned object is a `cirq.ionq.Job`:
+which shows that the returned object is a `cirq_ionq.Job`:
 ```
-cirq.ionq.Job(job_id=93d111c1-0898-48b8-babe-80d182f8ad66)
+cirq_ionq.Job(job_id=93d111c1-0898-48b8-babe-80d182f8ad66)
 ```
 
 One difference between this approach and the run and sampler methods

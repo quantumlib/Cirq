@@ -44,6 +44,10 @@ The following document provides an ecosystem overview of how the various tools c
 |[Pasqal](https://quantumai.google/cirq/hardware/pasqal/getting_started)|Neutral atoms|
 |[Rigetti](https://quantumai.google/cirq/hardware/rigetti/getting_started)|Superconducting qubits|
 
+For more information for vendors about integrating with cirq,
+see our [RFC page](/cirq/dev/rfc_process#new_hardware_integrations).
+
+
 ## High performance quantum circuit simulators
 
 |Name|Main sponsor|Description|
