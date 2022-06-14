@@ -358,6 +358,7 @@ from cirq.transformers import (
     CompilationTargetGateset,
     CZTargetGateset,
     compute_cphase_exponents_for_fsim_decomposition,
+    create_transformer_with_kwargs,
     decompose_clifford_tableau_to_operations,
     decompose_cphase_into_two_fsim,
     decompose_multi_controlled_x,
