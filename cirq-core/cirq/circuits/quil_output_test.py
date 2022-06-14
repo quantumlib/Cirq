@@ -27,19 +27,21 @@ def _make_qubits(n):
 
 def test_single_gate_no_parameter():
     (q0,) = _make_qubits(1)
-    output = cirq.QuilOutput((cirq.X(q0),), (q0,))
-    assert (
-        str(output)
-        == """# Created using Cirq.
+    with cirq.testing.assert_deprecated(deadline='v1.0', count=6):
+        output = cirq.QuilOutput((cirq.X(q0),), (q0,))
+        assert (
+            str(output)
+            == """# Created using Cirq.
 
 X 0\n"""
-    )
+        )
 
 
 def test_single_gate_with_parameter():
     (q0,) = _make_qubits(1)
-    output = cirq.QuilOutput((cirq.X(q0) ** 0.5,), (q0,))
-    assert (
+    with cirq.testing.assert_deprecated(deadline='v1.0', count=6):
+        output = cirq.QuilOutput((cirq.X(q0) ** 0.5,), (q0,))
+        assert (
         str(output)
         == f"""# Created using Cirq.
 
@@ -49,8 +51,9 @@ RX({np.pi / 2}) 0\n"""
 
 def test_single_gate_named_qubit():
     q = cirq.NamedQubit('qTest')
-    output = cirq.QuilOutput((cirq.X(q),), (q,))
-    assert (
+    with cirq.testing.assert_deprecated(deadline='v1.0', count=6):
+        output = cirq.QuilOutput((cirq.X(q),), (q,))
+        assert (
         str(output)
         == """# Created using Cirq.
 
@@ -60,8 +63,9 @@ X 0\n"""
 
 def test_h_gate_with_parameter():
     (q0,) = _make_qubits(1)
-    output = cirq.QuilOutput((cirq.H(q0) ** 0.25,), (q0,))
-    assert (
+    with cirq.testing.assert_deprecated(deadline='v1.0', count=6):
+        output = cirq.QuilOutput((cirq.H(q0) ** 0.25,), (q0,))
+        assert (
         str(output)
         == f"""# Created using Cirq.
 
@@ -74,11 +78,12 @@ RY({-np.pi / 4}) 0\n"""
 def test_save_to_file(tmpdir):
     file_path = os.path.join(tmpdir, 'test.quil')
     (q0,) = _make_qubits(1)
-    output = cirq.QuilOutput((cirq.X(q0)), (q0,))
-    output.save_to_file(file_path)
-    with open(file_path, 'r') as f:
-        file_content = f.read()
-    assert (
+    with cirq.testing.assert_deprecated(deadline='v1.0', count=6):
+        output = cirq.QuilOutput((cirq.X(q0)), (q0,))
+        output.save_to_file(file_path)
+        with open(file_path, 'r') as f:
+            file_content = f.read()
+        assert (
         file_content
         == """# Created using Cirq.
 
@@ -87,8 +92,9 @@ X 0\n"""
 
 
 def test_quil_one_qubit_gate_repr():
-    gate = QuilOneQubitGate(np.array([[1, 0], [0, 1]]))
-    assert repr(gate) == (
+    with cirq.testing.assert_deprecated(deadline='v1.0', count=1):
+        gate = QuilOneQubitGate(np.array([[1, 0], [0, 1]]))
+        assert repr(gate) == (
         """cirq.circuits.quil_output.QuilOneQubitGate(matrix=
 [[1 0]
  [0 1]]
@@ -97,8 +103,9 @@ def test_quil_one_qubit_gate_repr():
 
 
 def test_quil_two_qubit_gate_repr():
-    gate = QuilTwoQubitGate(np.array([[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1]]))
-    assert repr(gate) == (
+    with cirq.testing.assert_deprecated(deadline='v1.0', count=1):
+        gate = QuilTwoQubitGate(np.array([[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1]]))
+        assert repr(gate) == (
         """cirq.circuits.quil_output.QuilTwoQubitGate(matrix=
 [[1 0 0 0]
  [0 1 0 0]
@@ -109,28 +116,31 @@ def test_quil_two_qubit_gate_repr():
 
 
 def test_quil_one_qubit_gate_eq():
-    gate = QuilOneQubitGate(np.array([[1, 0], [0, 1]]))
-    gate2 = QuilOneQubitGate(np.array([[1, 0], [0, 1]]))
-    assert cirq.approx_eq(gate, gate2, atol=1e-16)
-    gate3 = QuilOneQubitGate(np.array([[1, 0], [0, 1]]))
-    gate4 = QuilOneQubitGate(np.array([[1, 0], [0, 2]]))
-    assert not cirq.approx_eq(gate4, gate3, atol=1e-16)
+    with cirq.testing.assert_deprecated(deadline='v1.0', count=4):
+        gate = QuilOneQubitGate(np.array([[1, 0], [0, 1]]))
+        gate2 = QuilOneQubitGate(np.array([[1, 0], [0, 1]]))
+        assert cirq.approx_eq(gate, gate2, atol=1e-16)
+        gate3 = QuilOneQubitGate(np.array([[1, 0], [0, 1]]))
+        gate4 = QuilOneQubitGate(np.array([[1, 0], [0, 2]]))
+        assert not cirq.approx_eq(gate4, gate3, atol=1e-16)
 
 
 def test_quil_two_qubit_gate_eq():
-    gate = QuilTwoQubitGate(np.array([[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1]]))
-    gate2 = QuilTwoQubitGate(np.array([[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1]]))
-    assert cirq.approx_eq(gate, gate2, atol=1e-8)
-    gate3 = QuilTwoQubitGate(np.array([[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1]]))
-    gate4 = QuilTwoQubitGate(np.array([[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 2, 0], [0, 0, 0, 1]]))
-    assert not cirq.approx_eq(gate4, gate3, atol=1e-8)
+    with cirq.testing.assert_deprecated(deadline='v1.0', count=4):
+        gate = QuilTwoQubitGate(np.array([[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1]]))
+        gate2 = QuilTwoQubitGate(np.array([[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1]]))
+        assert cirq.approx_eq(gate, gate2, atol=1e-8)
+        gate3 = QuilTwoQubitGate(np.array([[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1]]))
+        gate4 = QuilTwoQubitGate(np.array([[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 2, 0], [0, 0, 0, 1]]))
+        assert not cirq.approx_eq(gate4, gate3, atol=1e-8)
 
 
 def test_quil_one_qubit_gate_output():
     (q0,) = _make_qubits(1)
-    gate = QuilOneQubitGate(np.array([[1, 0], [0, 1]]))
-    output = cirq.QuilOutput((gate.on(q0),), (q0,))
-    assert (
+    with cirq.testing.assert_deprecated(deadline='v1.0', count=7):
+        gate = QuilOneQubitGate(np.array([[1, 0], [0, 1]]))
+        output = cirq.QuilOutput((gate.on(q0),), (q0,))
+        assert (
         str(output)
         == """# Created using Cirq.
 
@@ -144,10 +154,11 @@ USERGATE1 0
 
 def test_two_quil_one_qubit_gate_output():
     (q0,) = _make_qubits(1)
-    gate = QuilOneQubitGate(np.array([[1, 0], [0, 1]]))
-    gate1 = QuilOneQubitGate(np.array([[2, 0], [0, 3]]))
-    output = cirq.QuilOutput((gate.on(q0), gate1.on(q0)), (q0,))
-    assert (
+    with cirq.testing.assert_deprecated(deadline='v1.0', count=12):
+        gate = QuilOneQubitGate(np.array([[1, 0], [0, 1]]))
+        gate1 = QuilOneQubitGate(np.array([[2, 0], [0, 3]]))
+        output = cirq.QuilOutput((gate.on(q0), gate1.on(q0)), (q0,))
+        assert (
         str(output)
         == """# Created using Cirq.
 
@@ -165,9 +176,10 @@ USERGATE2 0
 
 def test_quil_two_qubit_gate_output():
     (q0, q1) = _make_qubits(2)
-    gate = QuilTwoQubitGate(np.array([[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1]]))
-    output = cirq.QuilOutput((gate.on(q0, q1),), (q0, q1))
-    assert (
+    with cirq.testing.assert_deprecated(deadline='v1.0', count=7):
+        gate = QuilTwoQubitGate(np.array([[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1]]))
+        output = cirq.QuilOutput((gate.on(q0, q1),), (q0, q1))
+        assert (
         str(output)
         == """# Created using Cirq.
 
@@ -188,16 +200,17 @@ def test_unsupported_operation():
         qubits = (q0,)
         with_qubits = NotImplemented
 
-    output = cirq.QuilOutput((UnsupportedOperation(),), (q0,))
-    with pytest.raises(ValueError):
-        _ = str(output)
+    with cirq.testing.assert_deprecated(deadline='v1.0', count=3):
+        output = cirq.QuilOutput((UnsupportedOperation(),), (q0,))
+        with pytest.raises(ValueError):
+            _ = str(output)
 
 
 def test_i_swap_with_power():
     q0, q1 = _make_qubits(2)
-
-    output = cirq.QuilOutput((cirq.ISWAP(q0, q1) ** 0.25,), (q0, q1))
-    assert (
+    with cirq.testing.assert_deprecated(deadline='v1.0', count=6):
+        output = cirq.QuilOutput((cirq.ISWAP(q0, q1) ** 0.25,), (q0, q1))
+        assert (
         str(output)
         == f"""# Created using Cirq.
 
@@ -209,8 +222,9 @@ XY({np.pi / 4}) 0 1
 def test_all_operations():
     qubits = tuple(_make_qubits(5))
     operations = _all_operations(*qubits, include_measurements=False)
-    output = cirq.QuilOutput(operations, qubits)
-    assert (
+    with cirq.testing.assert_deprecated(deadline='v1.0', count=316):
+        output = cirq.QuilOutput(operations, qubits)
+        assert (
         str(output)
         == f"""# Created using Cirq.
 
@@ -358,14 +372,16 @@ def test_fails_on_big_unknowns():
         pass
 
     c = cirq.Circuit(UnrecognizedGate().on(*cirq.LineQubit.range(3)))
-    with pytest.raises(ValueError, match='Cannot output operation as QUIL'):
-        _ = c.to_quil()
+    with cirq.testing.assert_deprecated(deadline='v1.0', count=4):
+        with pytest.raises(ValueError, match='Cannot output operation as QUIL'):
+            _ = c.to_quil()
 
 
 def test_pauli_interaction_gate():
     (q0, q1) = _make_qubits(2)
-    output = cirq.QuilOutput(PauliInteractionGate.CZ.on(q0, q1), (q0, q1))
-    assert (
+    with cirq.testing.assert_deprecated(deadline='v1.0', count=16):
+        output = cirq.QuilOutput(PauliInteractionGate.CZ.on(q0, q1), (q0, q1))
+        assert (
         str(output)
         == """# Created using Cirq.
 
@@ -391,12 +407,13 @@ def test_equivalent_unitaries():
         cirq.CZPowGate(exponent=0.5)(q0, q1),
         cirq.ISwapPowGate(exponent=0.5)(q0, q1),
     ]
-    output = cirq.QuilOutput(operations, (q0, q1))
-    program = pyquil.Program(str(output))
-    pyquil_unitary = pyquil_simulation_tools.program_unitary(program, n_qubits=2)
-    # Qubit ordering differs between pyQuil and Cirq.
-    cirq_unitary = cirq.Circuit(cirq.SWAP(q0, q1), operations, cirq.SWAP(q0, q1)).unitary()
-    assert np.allclose(pyquil_unitary, cirq_unitary)
+    with cirq.testing.assert_deprecated(deadline='v1.0', count=22):
+        output = cirq.QuilOutput(operations, (q0, q1))
+        program = pyquil.Program(str(output))
+        pyquil_unitary = pyquil_simulation_tools.program_unitary(program, n_qubits=2)
+        # Qubit ordering differs between pyQuil and Cirq.
+        cirq_unitary = cirq.Circuit(cirq.SWAP(q0, q1), operations, cirq.SWAP(q0, q1)).unitary()
+        assert np.allclose(pyquil_unitary, cirq_unitary)
 
 
 QUIL_CPHASES_PROGRAM = """
@@ -428,30 +445,32 @@ def test_two_qubit_diagonal_gate_quil_output():
         cirq.TwoQubitDiagonalGate([0, 0, np.pi / 2, 0])(q0, q1),
         cirq.TwoQubitDiagonalGate([0, 0, 0, np.pi / 2])(q0, q1),
     ]
-    output = cirq.QuilOutput(operations, (q0, q1))
-    program = pyquil.Program(str(output))
-    assert f"\n{program.out()}" == QUIL_CPHASES_PROGRAM
+    with cirq.testing.assert_deprecated(deadline='v1.0', count=54):
+        output = cirq.QuilOutput(operations, (q0, q1))
+        program = pyquil.Program(str(output))
+        assert f"\n{program.out()}" == QUIL_CPHASES_PROGRAM
 
-    pyquil_unitary = pyquil_simulation_tools.program_unitary(program, n_qubits=2)
-    # Qubit ordering differs between pyQuil and Cirq.
-    cirq_unitary = cirq.Circuit(cirq.SWAP(q0, q1), operations, cirq.SWAP(q0, q1)).unitary()
-    assert np.allclose(pyquil_unitary, cirq_unitary)
-    # Also test non-CPHASE case, which decomposes into X/RZ/CPhase
-    operations = [cirq.TwoQubitDiagonalGate([0, 0, 0, 0])(q0, q1)]
-    output = cirq.QuilOutput(operations, (q0, q1))
-    program = pyquil.Program(str(output))
-    assert f"\n{program.out()}" == QUIL_DIAGONAL_DECOMPOSE_PROGRAM
+        pyquil_unitary = pyquil_simulation_tools.program_unitary(program, n_qubits=2)
+        # Qubit ordering differs between pyQuil and Cirq.
+        cirq_unitary = cirq.Circuit(cirq.SWAP(q0, q1), operations, cirq.SWAP(q0, q1)).unitary()
+        assert np.allclose(pyquil_unitary, cirq_unitary)
+        # Also test non-CPHASE case, which decomposes into X/RZ/CPhase
+        operations = [cirq.TwoQubitDiagonalGate([0, 0, 0, 0])(q0, q1)]
+        output = cirq.QuilOutput(operations, (q0, q1))
+        program = pyquil.Program(str(output))
+        assert f"\n{program.out()}" == QUIL_DIAGONAL_DECOMPOSE_PROGRAM
 
 
 def test_parseable_defgate_output():
     pyquil = pytest.importorskip("pyquil")
     q0, q1 = _make_qubits(2)
-    operations = [
+    with cirq.testing.assert_deprecated(deadline='v1.0', count=12):
+        operations = [
         QuilOneQubitGate(np.array([[1, 0], [0, 1]])).on(q0),
         QuilTwoQubitGate(np.array([[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1]])).on(
             q0, q1
         ),
     ]
-    output = cirq.QuilOutput(operations, (q0, q1))
-    # Just checks that we can create a pyQuil Program without crashing.
-    pyquil.Program(str(output))
+        output = cirq.QuilOutput(operations, (q0, q1))
+        # Just checks that we can create a pyQuil Program without crashing.
+        pyquil.Program(str(output))
