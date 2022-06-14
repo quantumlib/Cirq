@@ -16,8 +16,6 @@ from typing import Callable, Dict, Set, Tuple, Union
 import numpy as np
 import cirq
 from cirq import protocols, value, ops
-from cirq._compat import deprecated_class
-
 
 def to_quil_complex_format(num) -> str:
     """A function for outputting a number to a complex string in QUIL format."""
@@ -25,7 +23,7 @@ def to_quil_complex_format(num) -> str:
     return f"{cnum.real}+{cnum.imag}i"
 
 
-@deprecated_class(deadline='v1.0', fix='Use cirq_rigetti.quil_output.QuilOneQubitGate instead.')
+@cirq._compat.deprecated_class(deadline='v1.0', fix='Use cirq_rigetti.quil_output.QuilOneQubitGate instead.')
 @value.value_equality(approximate=True)
 class QuilOneQubitGate(ops.Gate):
     """A QUIL gate representing any single qubit unitary with a DEFGATE and
@@ -60,7 +58,7 @@ class QuilOneQubitGate(ops.Gate):
         return self.matrix
 
 
-@deprecated_class(deadline='v1.0', fix='Use cirq_rigetti.quil_output.QuilTwoQubitGate instead.')
+@cirq._compat.deprecated_class(deadline='v1.0', fix='Use cirq_rigetti.quil_output.QuilTwoQubitGate instead.')
 @value.value_equality(approximate=True)
 class QuilTwoQubitGate(ops.Gate):
     """A two qubit gate represented in QUIL with a DEFGATE and it's 4x4
@@ -107,7 +105,7 @@ class QuilTwoQubitGate(ops.Gate):
         return f'cirq.circuits.quil_output.QuilTwoQubitGate(matrix=\n{self.matrix}\n)'
 
 
-@deprecated_class(deadline='v1.0', fix='Use cirq_rigetti.quil_output.QuilOutput instead.')
+@cirq._compat.deprecated_class(deadline='v1.0', fix='Use cirq_rigetti.quil_output.QuilOutput instead.')
 class QuilOutput:
     """An object for passing operations and qubits then outputting them to
     QUIL format. The string representation returns the QUIL output for the
