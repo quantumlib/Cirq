@@ -13,6 +13,7 @@
 # limitations under the License.
 
 from typing import List
+import pytest
 import cirq
 from cirq.protocols.decompose_protocol import DecomposeResult
 
@@ -219,3 +220,10 @@ def test_two_qubit_compilation_replaces_only_if_2q_gate_count_is_less():
     c_expected = cirq.Circuit(cirq.X.on_each(*q), ops[-2:])
     c_new = cirq.optimize_for_target_gateset(c_orig, gateset=DummyTargetGateset())
     cirq.testing.assert_same_circuits(c_new, c_expected)
+
+
+def test_create_transformer_with_kwargs_raises():
+    with pytest.raises(SyntaxError, match="must not contain `context`"):
+        cirq.create_transformer_with_kwargs(
+            cirq.merge_k_qubit_unitaries, k=2, context=cirq.TransformerContext()
+        )
