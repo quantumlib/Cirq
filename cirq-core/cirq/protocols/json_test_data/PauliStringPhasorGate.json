@@ -8,8 +8,7 @@
     "pauli_mask": [
       1,
       2,
-      3,
-      0
+      3
     ],
     "coefficient": {
       "cirq_type": "complex",

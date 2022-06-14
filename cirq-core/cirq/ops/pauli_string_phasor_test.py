@@ -410,9 +410,8 @@ def test_str():
 
 
 def test_gate_init():
-    a = cirq.LineQubit(0)
     with pytest.raises(ValueError, match='eigenvalues'):
-        _ = cirq.PauliStringPhasorGate(1j * cirq.X(a))
+        _ = cirq.PauliStringPhasorGate(cirq.DensePauliString('X', coefficient=1j))
 
     v1 = cirq.PauliStringPhasorGate(
         cirq.DensePauliString('X', coefficient=-1), exponent_neg=0.25, exponent_pos=-0.5
@@ -590,3 +589,8 @@ def test_gate_str():
         ** -0.5
     )
     assert str(gate) == 'exp(-iπ0.25*+ZYX)'
+
+
+def test_gate_identity_deprecated():
+    with cirq.testing.assert_deprecated("remove identity", deadline="v0.16"):
+        _ = cirq.PauliStringPhasorGate(cirq.DensePauliString('XYZI', coefficient=1))

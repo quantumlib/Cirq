@@ -18,7 +18,7 @@ import numbers
 import sympy
 
 from cirq import value, protocols
-from cirq._compat import proper_repr
+from cirq._compat import deprecated_parameter, proper_repr
 from cirq.ops import (
     raw_types,
     common_gates,
@@ -185,6 +185,11 @@ class PauliStringPhasor(gate_operation.GateOperation):
         return protocols.obj_to_dict_helper(self, ['pauli_string', 'exponent_neg', 'exponent_pos'])
 
 
+def _dense_pauli_string_param_has_identity(args, kwargs):
+    dense_pauli_string = kwargs['dense_pauli_string'] if 'dense_pauli_string' in kwargs else args[1]
+    return any(x == 0 for x in dense_pauli_string.pauli_mask)
+
+
 @value.value_equality(approximate=True)
 class PauliStringPhasorGate(raw_types.Gate):
     r"""A gate that phases the eigenstates of a Pauli string.
@@ -194,6 +199,12 @@ class PauliStringPhasorGate(raw_types.Gate):
     their amplitude multiplied by e^(i pi exponent_pos).
     """
 
+    @deprecated_parameter(
+        deadline='v0.16',
+        fix='Please remove identity terms from dense_pauli_string.',
+        parameter_desc='identity containing dense_pauli_string',
+        match=_dense_pauli_string_param_has_identity,
+    )
     def __init__(
         self,
         dense_pauli_string: dps.DensePauliString,
@@ -206,6 +217,8 @@ class PauliStringPhasorGate(raw_types.Gate):
         Args:
             dense_pauli_string: The DensePauliString defining the positive and
                 negative eigenspaces that will be independently phased.
+                Starting in v0.16 this will no longer support dense pauli strings
+                with identity terms.
             exponent_neg: How much to phase vectors in the negative eigenspace,
                 in the form of the t in (-1)**t = exp(i pi t).
             exponent_pos: How much to phase vectors in the positive eigenspace,
@@ -350,6 +363,7 @@ class PauliStringPhasorGate(raw_types.Gate):
 
     def on(self, *qubits: 'cirq.Qid') -> 'cirq.PauliStringPhasor':
         """Creates a PauliStringPhasor on the qubits."""
+
         return PauliStringPhasor(
             self.dense_pauli_string.on(*qubits),
             exponent_pos=self.exponent_pos,
