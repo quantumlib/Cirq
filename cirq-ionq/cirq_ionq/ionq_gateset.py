@@ -18,9 +18,6 @@ from typing import Dict
 from typing import List
 
 import cirq
-from cirq.transformers.target_gatesets.compilation_target_gateset import (
-    _create_transformer_with_kwargs,
-)
 
 
 class IonQTargetGateset(cirq.TwoQubitCompilationTargetGateset):
@@ -85,7 +82,7 @@ class IonQTargetGateset(cirq.TwoQubitCompilationTargetGateset):
     def preprocess_transformers(self) -> List['cirq.TRANSFORMER']:
         """List of transformers which should be run before decomposing individual operations."""
         return [
-            _create_transformer_with_kwargs(
+            cirq.create_transformer_with_kwargs(
                 cirq.expand_composite, no_decomp=lambda op: cirq.num_qubits(op) <= self.num_qubits
             )
         ]
