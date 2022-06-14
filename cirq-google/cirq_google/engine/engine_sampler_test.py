@@ -19,45 +19,37 @@ import pytest
 import cirq
 import cirq_google as cg
 import cirq_google.cloud.quantum
-from cirq_google.engine.util_test import uses_async_mock
 
 
-@uses_async_mock
 @pytest.mark.parametrize('circuit', [cirq.Circuit(), cirq.FrozenCircuit()])
 def test_run_circuit(circuit):
     engine = mock.Mock()
-    engine.run_sweep_async = mock.AsyncMock()
     with cirq.testing.assert_deprecated(
         'Use cirq_google.ProcessorSampler instead.', deadline='v0.16'
     ):
         sampler = cg.QuantumEngineSampler(engine=engine, processor_id='tmp')
     params = [cirq.ParamResolver({'a': 1})]
     sampler.run_sweep(circuit, params, 5)
-    engine.run_sweep_async.assert_called_with(
+    engine.run_sweep.assert_called_with(
         params=params, processor_ids=['tmp'], program=circuit, repetitions=5
     )
 
 
-@uses_async_mock
 def test_run_engine_program():
     engine = mock.Mock()
-    engine.run_sweep_async = mock.AsyncMock()
     with cirq.testing.assert_deprecated(
         'Use cirq_google.ProcessorSampler instead.', deadline='v0.16'
     ):
         sampler = cg.QuantumEngineSampler(engine=engine, processor_id='tmp')
     program = mock.Mock(spec=cg.EngineProgram)
-    program.run_sweep_async = mock.AsyncMock()
     params = [cirq.ParamResolver({'a': 1})]
     sampler.run_sweep(program, params, 5)
-    program.run_sweep_async.assert_called_with(params=params, processor_ids=['tmp'], repetitions=5)
-    engine.run_sweep_async.assert_not_called()
+    program.run_sweep.assert_called_with(params=params, processor_ids=['tmp'], repetitions=5)
+    engine.run_sweep.assert_not_called()
 
 
-@uses_async_mock
 def test_run_batch():
     engine = mock.Mock()
-    engine.run_batch_async = mock.AsyncMock()
     with cirq.testing.assert_deprecated(
         'Use cirq_google.ProcessorSampler instead.', deadline='v0.16'
     ):
@@ -70,15 +62,13 @@ def test_run_batch():
     circuits = [circuit1, circuit2]
     params_list = [params1, params2]
     sampler.run_batch(circuits, params_list, 5)
-    engine.run_batch_async.assert_called_with(
+    engine.run_batch.assert_called_with(
         params_list=params_list, processor_ids=['tmp'], programs=circuits, repetitions=5
     )
 
 
-@uses_async_mock
 def test_run_batch_identical_repetitions():
     engine = mock.Mock()
-    engine.run_batch_async = mock.AsyncMock()
     with cirq.testing.assert_deprecated(
         'Use cirq_google.ProcessorSampler instead.', deadline='v0.16'
     ):
@@ -91,7 +81,7 @@ def test_run_batch_identical_repetitions():
     circuits = [circuit1, circuit2]
     params_list = [params1, params2]
     sampler.run_batch(circuits, params_list, [5, 5])
-    engine.run_batch_async.assert_called_with(
+    engine.run_batch.assert_called_with(
         params_list=params_list, processor_ids=['tmp'], programs=circuits, repetitions=5
     )
 
@@ -113,14 +103,11 @@ def test_run_batch_bad_number_of_repetitions():
         sampler.run_batch(circuits, params_list, [5, 5, 5])
 
 
-@uses_async_mock
 def test_run_batch_differing_repetitions():
     engine = mock.Mock()
     job = mock.Mock()
-    job.results_async = mock.AsyncMock()
-    job.results_async.return_value = []
-    engine.run_sweep_async = mock.AsyncMock()
-    engine.run_sweep_async.return_value = job
+    job.results.return_value = []
+    engine.run_sweep.return_value = job
     with cirq.testing.assert_deprecated(
         'Use cirq_google.ProcessorSampler instead.', deadline='v0.16'
     ):
@@ -134,10 +121,10 @@ def test_run_batch_differing_repetitions():
     params_list = [params1, params2]
     repetitions = [1, 2]
     sampler.run_batch(circuits, params_list, repetitions)
-    engine.run_sweep_async.assert_called_with(
+    engine.run_sweep.assert_called_with(
         params=params2, processor_ids=['tmp'], program=circuit2, repetitions=2
     )
-    engine.run_batch_async.assert_not_called()
+    engine.run_batch.assert_not_called()
 
 
 def test_engine_sampler_engine_property():

@@ -51,28 +51,26 @@ class QuantumEngineSampler(cirq.Sampler):
         self._processor_ids = [processor_id] if isinstance(processor_id, str) else processor_id
         self._engine = engine
 
-    async def run_sweep_async(
+    def run_sweep(
         self,
         program: Union[cirq.AbstractCircuit, 'cirq_google.EngineProgram'],
         params: cirq.Sweepable,
         repetitions: int = 1,
     ) -> Sequence[cirq.Result]:
         if isinstance(program, engine.EngineProgram):
-            job = await program.run_sweep_async(
+            job = program.run_sweep(
                 params=params, repetitions=repetitions, processor_ids=self._processor_ids
             )
         else:
-            job = await self._engine.run_sweep_async(
+            job = self._engine.run_sweep(
                 program=program,
                 params=params,
                 repetitions=repetitions,
                 processor_ids=self._processor_ids,
             )
-        return await job.results_async()
+        return job.results()
 
-    run_sweep = duet.sync(run_sweep_async)
-
-    async def run_batch_async(
+    def run_batch(
         self,
         programs: Sequence[cirq.AbstractCircuit],
         params_list: Optional[List[cirq.Sweepable]] = None,
@@ -96,17 +94,15 @@ class QuantumEngineSampler(cirq.Sampler):
             # All repetitions are the same so batching can be done efficiently
             if isinstance(repetitions, List):
                 repetitions = repetitions[0]
-            job = await self._engine.run_batch_async(
+            job = self._engine.run_batch(
                 programs=programs,
                 params_list=params_list,
                 repetitions=repetitions,
                 processor_ids=self._processor_ids,
             )
-            return await job.batched_results_async()
+            return job.batched_results()
         # Varying number of repetitions so no speedup
         return super().run_batch(programs, params_list, repetitions)
-
-    run_batch = duet.sync(run_batch_async)
 
     @property
     def engine(self) -> 'cirq_google.Engine':
