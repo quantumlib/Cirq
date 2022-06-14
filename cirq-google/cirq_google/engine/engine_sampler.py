@@ -14,8 +14,6 @@
 
 from typing import List, Optional, Sequence, TYPE_CHECKING, Union
 
-import duet
-
 import cirq
 from cirq_google import engine
 from cirq_google.engine import util
