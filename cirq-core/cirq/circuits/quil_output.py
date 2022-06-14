@@ -24,6 +24,7 @@ def to_quil_complex_format(num) -> str:
     cnum = complex(str(num))
     return f"{cnum.real}+{cnum.imag}i"
 
+
 @deprecated_class(deadline='v1.0', fix='Use cirq_rigetti.quil_output.QuilOneQubitGate instead.')
 @value.value_equality(approximate=True)
 class QuilOneQubitGate(ops.Gate):
@@ -57,6 +58,7 @@ class QuilOneQubitGate(ops.Gate):
 
     def _value_equality_values_(self):
         return self.matrix
+
 
 @deprecated_class(deadline='v1.0', fix='Use cirq_rigetti.quil_output.QuilTwoQubitGate instead.')
 @value.value_equality(approximate=True)

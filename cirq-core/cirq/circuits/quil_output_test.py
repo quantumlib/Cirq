@@ -42,11 +42,11 @@ def test_single_gate_with_parameter():
     with cirq.testing.assert_deprecated(deadline='v1.0', count=6):
         output = cirq.QuilOutput((cirq.X(q0) ** 0.5,), (q0,))
         assert (
-        str(output)
-        == f"""# Created using Cirq.
+            str(output)
+            == f"""# Created using Cirq.
 
 RX({np.pi / 2}) 0\n"""
-    )
+        )
 
 
 def test_single_gate_named_qubit():
@@ -54,11 +54,11 @@ def test_single_gate_named_qubit():
     with cirq.testing.assert_deprecated(deadline='v1.0', count=6):
         output = cirq.QuilOutput((cirq.X(q),), (q,))
         assert (
-        str(output)
-        == """# Created using Cirq.
+            str(output)
+            == """# Created using Cirq.
 
 X 0\n"""
-    )
+        )
 
 
 def test_h_gate_with_parameter():
@@ -66,13 +66,13 @@ def test_h_gate_with_parameter():
     with cirq.testing.assert_deprecated(deadline='v1.0', count=6):
         output = cirq.QuilOutput((cirq.H(q0) ** 0.25,), (q0,))
         assert (
-        str(output)
-        == f"""# Created using Cirq.
+            str(output)
+            == f"""# Created using Cirq.
 
 RY({np.pi / 4}) 0
 RX({np.pi / 4}) 0
 RY({-np.pi / 4}) 0\n"""
-    )
+        )
 
 
 def test_save_to_file(tmpdir):
@@ -84,35 +84,35 @@ def test_save_to_file(tmpdir):
         with open(file_path, 'r') as f:
             file_content = f.read()
         assert (
-        file_content
-        == """# Created using Cirq.
+            file_content
+            == """# Created using Cirq.
 
 X 0\n"""
-    )
+        )
 
 
 def test_quil_one_qubit_gate_repr():
     with cirq.testing.assert_deprecated(deadline='v1.0', count=1):
         gate = QuilOneQubitGate(np.array([[1, 0], [0, 1]]))
         assert repr(gate) == (
-        """cirq.circuits.quil_output.QuilOneQubitGate(matrix=
+            """cirq.circuits.quil_output.QuilOneQubitGate(matrix=
 [[1 0]
  [0 1]]
 )"""
-    )
+        )
 
 
 def test_quil_two_qubit_gate_repr():
     with cirq.testing.assert_deprecated(deadline='v1.0', count=1):
         gate = QuilTwoQubitGate(np.array([[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1]]))
         assert repr(gate) == (
-        """cirq.circuits.quil_output.QuilTwoQubitGate(matrix=
+            """cirq.circuits.quil_output.QuilTwoQubitGate(matrix=
 [[1 0 0 0]
  [0 1 0 0]
  [0 0 1 0]
  [0 0 0 1]]
 )"""
-    )
+        )
 
 
 def test_quil_one_qubit_gate_eq():
@@ -141,15 +141,15 @@ def test_quil_one_qubit_gate_output():
         gate = QuilOneQubitGate(np.array([[1, 0], [0, 1]]))
         output = cirq.QuilOutput((gate.on(q0),), (q0,))
         assert (
-        str(output)
-        == """# Created using Cirq.
+            str(output)
+            == """# Created using Cirq.
 
 DEFGATE USERGATE1:
     1.0+0.0i, 0.0+0.0i
     0.0+0.0i, 1.0+0.0i
 USERGATE1 0
 """
-    )
+        )
 
 
 def test_two_quil_one_qubit_gate_output():
@@ -159,8 +159,8 @@ def test_two_quil_one_qubit_gate_output():
         gate1 = QuilOneQubitGate(np.array([[2, 0], [0, 3]]))
         output = cirq.QuilOutput((gate.on(q0), gate1.on(q0)), (q0,))
         assert (
-        str(output)
-        == """# Created using Cirq.
+            str(output)
+            == """# Created using Cirq.
 
 DEFGATE USERGATE1:
     1.0+0.0i, 0.0+0.0i
@@ -171,7 +171,7 @@ DEFGATE USERGATE2:
     0.0+0.0i, 3.0+0.0i
 USERGATE2 0
 """
-    )
+        )
 
 
 def test_quil_two_qubit_gate_output():
@@ -180,8 +180,8 @@ def test_quil_two_qubit_gate_output():
         gate = QuilTwoQubitGate(np.array([[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1]]))
         output = cirq.QuilOutput((gate.on(q0, q1),), (q0, q1))
         assert (
-        str(output)
-        == """# Created using Cirq.
+            str(output)
+            == """# Created using Cirq.
 
 DEFGATE USERGATE1:
     1.0+0.0i, 0.0+0.0i, 0.0+0.0i, 0.0+0.0i
@@ -190,7 +190,7 @@ DEFGATE USERGATE1:
     0.0+0.0i, 0.0+0.0i, 0.0+0.0i, 1.0+0.0i
 USERGATE1 0 1
 """
-    )
+        )
 
 
 def test_unsupported_operation():
@@ -211,12 +211,12 @@ def test_i_swap_with_power():
     with cirq.testing.assert_deprecated(deadline='v1.0', count=6):
         output = cirq.QuilOutput((cirq.ISWAP(q0, q1) ** 0.25,), (q0, q1))
         assert (
-        str(output)
-        == f"""# Created using Cirq.
+            str(output)
+            == f"""# Created using Cirq.
 
 XY({np.pi / 4}) 0 1
 """
-    )
+        )
 
 
 def test_all_operations():
@@ -225,8 +225,8 @@ def test_all_operations():
     with cirq.testing.assert_deprecated(deadline='v1.0', count=316):
         output = cirq.QuilOutput(operations, qubits)
         assert (
-        str(output)
-        == f"""# Created using Cirq.
+            str(output)
+            == f"""# Created using Cirq.
 
 DECLARE m0 BIT[1]
 DECLARE m1 BIT[1]
@@ -322,7 +322,7 @@ X 2 # Inverting for following measurement
 MEASURE 2 m3[1]
 MEASURE 3 m3[2]
 """
-    )
+        )
 
 
 def _all_operations(q0, q1, q2, q3, q4, include_measurements=True):
@@ -382,12 +382,12 @@ def test_pauli_interaction_gate():
     with cirq.testing.assert_deprecated(deadline='v1.0', count=16):
         output = cirq.QuilOutput(PauliInteractionGate.CZ.on(q0, q1), (q0, q1))
         assert (
-        str(output)
-        == """# Created using Cirq.
+            str(output)
+            == """# Created using Cirq.
 
 CZ 0 1
 """
-    )
+        )
 
 
 def test_equivalent_unitaries():
@@ -466,11 +466,11 @@ def test_parseable_defgate_output():
     q0, q1 = _make_qubits(2)
     with cirq.testing.assert_deprecated(deadline='v1.0', count=12):
         operations = [
-        QuilOneQubitGate(np.array([[1, 0], [0, 1]])).on(q0),
-        QuilTwoQubitGate(np.array([[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1]])).on(
-            q0, q1
-        ),
-    ]
+            QuilOneQubitGate(np.array([[1, 0], [0, 1]])).on(q0),
+            QuilTwoQubitGate(np.array([[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1]])).on(
+                q0, q1
+            ),
+        ]
         output = cirq.QuilOutput(operations, (q0, q1))
         # Just checks that we can create a pyQuil Program without crashing.
         pyquil.Program(str(output))
