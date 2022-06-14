@@ -594,3 +594,7 @@ def test_gate_str():
 def test_gate_identity_deprecated():
     with cirq.testing.assert_deprecated("remove identity", deadline="v0.16"):
         _ = cirq.PauliStringPhasorGate(cirq.DensePauliString('XYZI', coefficient=1))
+    with cirq.testing.assert_deprecated("remove identity", deadline="v0.16"):
+        _ = cirq.PauliStringPhasorGate(
+            dense_pauli_string=cirq.DensePauliString('XYZI', coefficient=1)
+        )
