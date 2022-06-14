@@ -16,7 +16,7 @@ from typing import Any, Callable, Dict, Generic, Iterator, TypeVar, cast, TYPE_C
 import functools
 import networkx
 
-from cirq import _compat, ops
+from cirq import ops
 from cirq.circuits import circuit
 
 if TYPE_CHECKING:
@@ -25,7 +25,6 @@ if TYPE_CHECKING:
 T = TypeVar('T')
 
 
-@_compat.deprecated_class(deadline='v0.16', fix='Use cirq contrib.Unique instead.')
 @functools.total_ordering
 class Unique(Generic[T]):
     """A wrapper for a value that doesn't compare equal to other instances.
@@ -43,7 +42,7 @@ class Unique(Generic[T]):
         self.val = val
 
     def __repr__(self) -> str:
-        return f'cirq.Unique({id(self)}, {self.val!r})'
+        return f'cirq.contrib.Unique({id(self)}, {self.val!r})'
 
     def __lt__(self, other):
         if not isinstance(other, type(self)):
@@ -56,7 +55,6 @@ def _disjoint_qubits(op1: 'cirq.Operation', op2: 'cirq.Operation') -> bool:
     return not set(op1.qubits) & set(op2.qubits)
 
 
-@_compat.deprecated_class(deadline='v0.16', fix='Use cirq contrib.CircuitDag instead.')
 class CircuitDag(networkx.DiGraph):
     """A representation of a Circuit as a directed acyclic graph.
 

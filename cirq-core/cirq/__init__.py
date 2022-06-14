@@ -253,6 +253,7 @@ from cirq.ops import (
     MeasurementGate,
     MutableDensePauliString,
     MutablePauliString,
+    ms,
     NamedQubit,
     NamedQid,
     OP_TREE,
@@ -357,6 +358,7 @@ from cirq.transformers import (
     CompilationTargetGateset,
     CZTargetGateset,
     compute_cphase_exponents_for_fsim_decomposition,
+    create_transformer_with_kwargs,
     decompose_clifford_tableau_to_operations,
     decompose_cphase_into_two_fsim,
     decompose_multi_controlled_x,
@@ -667,7 +669,7 @@ from cirq.protocols import (
     with_rescoped_keys,
 )
 
-from cirq.ion import ConvertToIonGates, IonDevice, ms, two_qubit_matrix_to_ion_operations
+from cirq.ion import ConvertToIonGates, IonDevice, two_qubit_matrix_to_ion_operations
 from cirq.neutral_atoms import (
     ConvertToNeutralAtomGates,
     is_native_neutral_atom_gate,
