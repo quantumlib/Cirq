@@ -17,13 +17,12 @@ import itertools
 
 from typing import Any, Iterator, List, Optional, Sequence, Tuple, TYPE_CHECKING
 import numpy as np
-import sympy
 
 from matplotlib import pyplot as plt
 
 # this is for older systems with matplotlib <3.2 otherwise 3d projections fail
 from mpl_toolkits import mplot3d  # pylint: disable=unused-import
-from cirq import circuits, ops, protocols, study
+from cirq import circuits, ops, protocols
 
 if TYPE_CHECKING:
     import cirq
@@ -52,52 +51,6 @@ class Cliffords:
     s1: List[List[ops.Gate]]
     s1_x: List[List[ops.Gate]]
     s1_y: List[List[ops.Gate]]
-
-
-class RabiResult:
-    """Results from a Rabi oscillation experiment."""
-
-    def __init__(self, rabi_angles: Sequence[float], excited_state_probabilities: Sequence[float]):
-        """Inits RabiResult.
-
-        Args:
-            rabi_angles: The rotation angles of the qubit around the x-axis
-                of the Bloch sphere.
-            excited_state_probabilities: The corresponding probabilities that
-                the qubit is in the excited state.
-        """
-        self._rabi_angles = rabi_angles
-        self._excited_state_probs = excited_state_probabilities
-
-    @property
-    def data(self) -> Sequence[Tuple[float, float]]:
-        """Returns a sequence of tuple pairs with the first item being a Rabi
-        angle and the second item being the corresponding excited state
-        probability.
-        """
-        return [(angle, prob) for angle, prob in zip(self._rabi_angles, self._excited_state_probs)]
-
-    def plot(self, ax: Optional[plt.Axes] = None, **plot_kwargs: Any) -> plt.Axes:
-        """Plots excited state probability vs the Rabi angle (angle of rotation
-        around the x-axis).
-
-        Args:
-            ax: the plt.Axes to plot on. If not given, a new figure is created,
-                plotted on, and shown.
-            **plot_kwargs: Arguments to be passed to 'plt.Axes.plot'.
-        Returns:
-            The plt.Axes containing the plot.
-        """
-        show_plot = not ax
-        if not ax:
-            fig, ax = plt.subplots(1, 1, figsize=(8, 8))
-        ax.set_ylim([0, 1])
-        ax.plot(self._rabi_angles, self._excited_state_probs, 'ro-', **plot_kwargs)
-        ax.set_xlabel(r"Rabi Angle (Radian)")
-        ax.set_ylabel('Excited State Probability')
-        if show_plot:
-            fig.show()
-        return ax
 
 
 class RandomizedBenchMarkResult:
@@ -214,45 +167,6 @@ class TomographyResult:
         if show_plot:
             fig.show()
         return axes
-
-
-def rabi_oscillations(
-    sampler: 'cirq.Sampler',
-    qubit: 'cirq.Qid',
-    max_angle: float = 2 * np.pi,
-    *,
-    repetitions: int = 1000,
-    num_points: int = 200,
-) -> RabiResult:
-    """Runs a Rabi oscillation experiment.
-
-    Rotates a qubit around the x-axis of the Bloch sphere by a sequence of Rabi
-    angles evenly spaced between 0 and max_angle. For each rotation, repeat
-    the circuit a number of times and measure the average probability of the
-    qubit being in the |1> state.
-
-    Args:
-        sampler: The quantum engine or simulator to run the circuits.
-        qubit: The qubit under test.
-        max_angle: The final Rabi angle in radians.
-        repetitions: The number of repetitions of the circuit for each Rabi
-            angle.
-        num_points: The number of Rabi angles.
-
-    Returns:
-        A RabiResult object that stores and plots the result.
-    """
-    theta = sympy.Symbol('theta')
-    circuit = circuits.Circuit(ops.X(qubit) ** theta)
-    circuit.append(ops.measure(qubit, key='z'))
-    sweep = study.Linspace(key='theta', start=0.0, stop=max_angle / np.pi, length=num_points)
-    results = sampler.run_sweep(circuit, params=sweep, repetitions=repetitions)
-    angles = np.linspace(0.0, max_angle, num_points)
-    excited_state_probs = np.zeros(num_points)
-    for i in range(num_points):
-        excited_state_probs[i] = np.mean(results[i].measurements['z'])
-
-    return RabiResult(angles, excited_state_probs)
 
 
 def single_qubit_randomized_benchmarking(

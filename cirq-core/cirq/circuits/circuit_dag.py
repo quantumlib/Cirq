@@ -16,7 +16,7 @@ from typing import Any, Callable, Dict, Generic, Iterator, TypeVar, cast, TYPE_C
 import functools
 import networkx
 
-from cirq import ops
+from cirq import _compat, ops
 from cirq.circuits import circuit
 
 if TYPE_CHECKING:
@@ -25,6 +25,7 @@ if TYPE_CHECKING:
 T = TypeVar('T')
 
 
+@_compat.deprecated_class(deadline='v0.16', fix='Use cirq contrib.Unique instead.')
 @functools.total_ordering
 class Unique(Generic[T]):
     """A wrapper for a value that doesn't compare equal to other instances.
@@ -32,9 +33,10 @@ class Unique(Generic[T]):
     For example: 5 == 5 but Unique(5) != Unique(5).
 
     Unique is used by CircuitDag to wrap operations because nodes in a graph
-    are considered the same node if they compare equal to each other.  X(q0)
-    in one moment of a Circuit and X(q0) in another moment of the Circuit are
-    wrapped by Unique(X(q0)) so they are distinct nodes in the graph.
+    are considered the same node if they compare equal to each other.  For
+    example, `X(q0)` in one moment of a circuit, and `X(q0)` in another moment
+    of the circuit are wrapped by `cirq.Unique(X(q0))` so they are distinct
+    nodes in the graph.
     """
 
     def __init__(self, val: T) -> None:
@@ -54,6 +56,7 @@ def _disjoint_qubits(op1: 'cirq.Operation', op2: 'cirq.Operation') -> bool:
     return not set(op1.qubits) & set(op2.qubits)
 
 
+@_compat.deprecated_class(deadline='v0.16', fix='Use cirq contrib.CircuitDag instead.')
 class CircuitDag(networkx.DiGraph):
     """A representation of a Circuit as a directed acyclic graph.
 

@@ -416,7 +416,9 @@ def test_monte_carlo_on_unknown_channel():
             cirq.Circuit(Reset11To00().on(*cirq.LineQubit.range(2))), initial_state=k
         )
         np.testing.assert_allclose(
-            out.state_vector(), cirq.one_hot(index=k % 3, shape=4, dtype=np.complex64), atol=1e-8
+            out.state_vector(copy=False),
+            cirq.one_hot(index=k % 3, shape=4, dtype=np.complex64),
+            atol=1e-8,
         )
 
 
@@ -553,8 +555,25 @@ def test_deprecated_create_act_on_args():
             pass
 
     sim = DeprecatedSim()
-    with cirq.testing.assert_deprecated(deadline='v0.16'):
+    with cirq.testing.assert_deprecated(deadline='v0.16', count=2):
         sim.simulate_moment_steps(cirq.Circuit())
+
+
+def test_deprecated_qubits_param():
+    class Sim(cirq.SimulatesIntermediateState):
+        def _create_simulation_state(self, initial_state, qubits):
+            return 0
+
+        def _core_iterator(self, circuit, sim_state):
+            pass
+
+        def _create_simulator_trial_result(self):
+            pass
+
+    with cirq.testing.assert_deprecated(
+        '`qubits` parameter of `_base_iterator', deadline='v0.16', count=2
+    ):
+        Sim()._base_iterator(cirq.Circuit(), cirq.QubitOrder.explicit([]), 0)
 
 
 def test_deprecated_setters():

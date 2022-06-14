@@ -55,5 +55,5 @@ rm -rf "${docs_conf_dir}/generated"
 
 echo
 echo Index Page:
-echo "file://$(pwd)/${out_dir}/html/index.html"
+echo "file://${PWD}/${out_dir}/html/index.html"
 echo

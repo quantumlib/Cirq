@@ -24,6 +24,9 @@ def to_quil_complex_format(num) -> str:
     return f"{cnum.real}+{cnum.imag}i"
 
 
+@cirq._compat.deprecated_class(
+    deadline='v1.0', fix='Use cirq_rigetti.quil_output.QuilOneQubitGate instead.'
+)
 @value.value_equality(approximate=True)
 class QuilOneQubitGate(ops.Gate):
     """A QUIL gate representing any single qubit unitary with a DEFGATE and
@@ -58,6 +61,9 @@ class QuilOneQubitGate(ops.Gate):
         return self.matrix
 
 
+@cirq._compat.deprecated_class(
+    deadline='v1.0', fix='Use cirq_rigetti.quil_output.QuilTwoQubitGate instead.'
+)
 @value.value_equality(approximate=True)
 class QuilTwoQubitGate(ops.Gate):
     """A two qubit gate represented in QUIL with a DEFGATE and it's 4x4
@@ -104,6 +110,9 @@ class QuilTwoQubitGate(ops.Gate):
         return f'cirq.circuits.quil_output.QuilTwoQubitGate(matrix=\n{self.matrix}\n)'
 
 
+@cirq._compat.deprecated_class(
+    deadline='v1.0', fix='Use cirq_rigetti.quil_output.QuilOutput instead.'
+)
 class QuilOutput:
     """An object for passing operations and qubits then outputting them to
     QUIL format. The string representation returns the QUIL output for the

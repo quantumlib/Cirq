@@ -5,11 +5,11 @@ at a given moment of time.  The IonQ quantum computers are continuously
 calibrated, and measurements are taken of the performance of the machine
 periodically.
 
-In this section, we assume a `cirq.ionq.Service` object has been instantiated and is
-called `service` and `cirq` and `cirq.ionq` have been imported:
+In this section, we assume a `cirq_ionq.Service` object has been instantiated and is
+called `service` and `cirq` and `cirq_ionq` have been imported:
 ```python
 import cirq
-import cirq.ionq as ionq
+import cirq_ionq as ionq
 service = ionq.Service()
 ```
 See [IonQ API Service](service.md) for how to set up the service.

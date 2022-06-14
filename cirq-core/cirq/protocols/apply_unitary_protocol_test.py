@@ -422,6 +422,258 @@ def test_apply_unitaries_mixed_qid_shapes():
     )
 
 
+# fmt: off
+def test_subspace_size_2():
+    result = cirq.apply_unitary(
+        unitary_value=cirq.X,
+        args=cirq.ApplyUnitaryArgs(
+            target_tensor=cirq.eye_tensor((3,), dtype=np.complex64),
+            available_buffer=cirq.eye_tensor((3,), dtype=np.complex64),
+            axes=(0,),
+            subspaces=[(0, 1)],
+        ),
+    )
+    np.testing.assert_allclose(
+        result,
+        np.array(
+            [
+                [0, 1, 0],
+                [1, 0, 0],
+                [0, 0, 1],
+            ]
+        ),
+        atol=1e-8,
+    )
+
+    result = cirq.apply_unitary(
+        unitary_value=cirq.X,
+        args=cirq.ApplyUnitaryArgs(
+            target_tensor=cirq.eye_tensor((3,), dtype=np.complex64),
+            available_buffer=cirq.eye_tensor((3,), dtype=np.complex64),
+            axes=(0,),
+            subspaces=[(0, 2)],
+        ),
+    )
+    np.testing.assert_allclose(
+        result,
+        np.array(
+            [
+                [0, 0, 1],
+                [0, 1, 0],
+                [1, 0, 0],
+            ]
+        ),
+        atol=1e-8,
+    )
+
+    result = cirq.apply_unitary(
+        unitary_value=cirq.X,
+        args=cirq.ApplyUnitaryArgs(
+            target_tensor=cirq.eye_tensor((3,), dtype=np.complex64),
+            available_buffer=cirq.eye_tensor((3,), dtype=np.complex64),
+            axes=(0,),
+            subspaces=[(1, 2)],
+        ),
+    )
+    np.testing.assert_allclose(
+        result,
+        np.array(
+            [
+                [1, 0, 0],
+                [0, 0, 1],
+                [0, 1, 0],
+            ]
+        ),
+        atol=1e-8,
+    )
+
+    result = cirq.apply_unitary(
+        unitary_value=cirq.X,
+        args=cirq.ApplyUnitaryArgs(
+            target_tensor=cirq.eye_tensor((4,), dtype=np.complex64),
+            available_buffer=cirq.eye_tensor((4,), dtype=np.complex64),
+            axes=(0,),
+            subspaces=[(1, 2)],
+        ),
+    )
+    np.testing.assert_allclose(
+        result,
+        np.array(
+            [
+                [1, 0, 0, 0],
+                [0, 0, 1, 0],
+                [0, 1, 0, 0],
+                [0, 0, 0, 1],
+            ]
+        ),
+        atol=1e-8,
+    )
+
+
+def test_subspaces_size_3():
+    plus_one_mod_3_gate = cirq.XPowGate(dimension=3)
+
+    result = cirq.apply_unitary(
+        unitary_value=plus_one_mod_3_gate,
+        args=cirq.ApplyUnitaryArgs(
+            target_tensor=cirq.eye_tensor((3,), dtype=np.complex64),
+            available_buffer=cirq.eye_tensor((3,), dtype=np.complex64),
+            axes=(0,),
+            subspaces=[(0, 1, 2)],
+        ),
+    )
+    np.testing.assert_allclose(
+        result,
+        np.array(
+            [
+                [0, 0, 1],
+                [1, 0, 0],
+                [0, 1, 0],
+            ]
+        ),
+        atol=1e-8,
+    )
+
+    result = cirq.apply_unitary(
+        unitary_value=plus_one_mod_3_gate,
+        args=cirq.ApplyUnitaryArgs(
+            target_tensor=cirq.eye_tensor((3,), dtype=np.complex64),
+            available_buffer=cirq.eye_tensor((3,), dtype=np.complex64),
+            axes=(0,),
+            subspaces=[(2, 1, 0)],
+        ),
+    )
+    np.testing.assert_allclose(
+        result,
+        np.array(
+            [
+                [0, 1, 0],
+                [0, 0, 1],
+                [1, 0, 0],
+            ]
+        ),
+        atol=1e-8,
+    )
+
+    result = cirq.apply_unitary(
+        unitary_value=plus_one_mod_3_gate,
+        args=cirq.ApplyUnitaryArgs(
+            target_tensor=cirq.eye_tensor((4,), dtype=np.complex64),
+            available_buffer=cirq.eye_tensor((4,), dtype=np.complex64),
+            axes=(0,),
+            subspaces=[(1, 2, 3)],
+        ),
+    )
+    np.testing.assert_allclose(
+        result,
+        np.array(
+            [
+                [1, 0, 0, 0],
+                [0, 0, 0, 1],
+                [0, 1, 0, 0],
+                [0, 0, 1, 0],
+            ]
+        ),
+        atol=1e-8,
+    )
+
+
+def test_subspaces_size_1():
+    phase_gate = cirq.MatrixGate(np.array([[1j]]))
+
+    result = cirq.apply_unitary(
+        unitary_value=phase_gate,
+        args=cirq.ApplyUnitaryArgs(
+            target_tensor=cirq.eye_tensor((2,), dtype=np.complex64),
+            available_buffer=cirq.eye_tensor((2,), dtype=np.complex64),
+            axes=(0,),
+            subspaces=[(0,)],
+        ),
+    )
+    np.testing.assert_allclose(
+        result,
+        np.array(
+            [
+                [1j, 0],
+                [0,  1],
+            ]
+        ),
+        atol=1e-8,
+    )
+
+    result = cirq.apply_unitary(
+        unitary_value=phase_gate,
+        args=cirq.ApplyUnitaryArgs(
+            target_tensor=cirq.eye_tensor((2,), dtype=np.complex64),
+            available_buffer=cirq.eye_tensor((2,), dtype=np.complex64),
+            axes=(0,),
+            subspaces=[(1,)],
+        ),
+    )
+    np.testing.assert_allclose(
+        result,
+        np.array(
+            [
+                [1, 0],
+                [0, 1j],
+            ]
+        ),
+        atol=1e-8,
+    )
+
+    result = cirq.apply_unitary(
+        unitary_value=phase_gate,
+        args=cirq.ApplyUnitaryArgs(
+            target_tensor=np.array([[0, 1], [1, 0]], dtype=np.complex64),
+            available_buffer=np.zeros((2, 2), dtype=np.complex64),
+            axes=(0,),
+            subspaces=[(1,)],
+        ),
+    )
+    np.testing.assert_allclose(
+        result,
+        np.array(
+            [
+                [0,  1],
+                [1j, 0],
+            ]
+        ),
+        atol=1e-8,
+    )
+# fmt: on
+
+
+def test_invalid_subspaces():
+    with pytest.raises(ValueError, match='Subspace specified does not exist in axis'):
+        _ = cirq.ApplyUnitaryArgs(
+            target_tensor=cirq.eye_tensor((2,), dtype=np.complex64),
+            available_buffer=cirq.eye_tensor((2,), dtype=np.complex64),
+            axes=(0,),
+            subspaces=[(1, 2)],
+        )
+    with pytest.raises(ValueError, match='Subspace count does not match axis count'):
+        _ = cirq.ApplyUnitaryArgs(
+            target_tensor=cirq.eye_tensor((2,), dtype=np.complex64),
+            available_buffer=cirq.eye_tensor((2,), dtype=np.complex64),
+            axes=(0,),
+            subspaces=[(0, 1), (0, 1)],
+        )
+    with pytest.raises(ValueError, match='has zero dimensions'):
+        _ = cirq.ApplyUnitaryArgs(
+            target_tensor=cirq.eye_tensor((2,), dtype=np.complex64),
+            available_buffer=cirq.eye_tensor((2,), dtype=np.complex64),
+            axes=(0,),
+            subspaces=[()],
+        )
+    with pytest.raises(ValueError, match='does not have consistent step size'):
+        _ = cirq.ApplyUnitaryArgs(
+            target_tensor=cirq.eye_tensor((3,), dtype=np.complex64),
+            available_buffer=cirq.eye_tensor((3,), dtype=np.complex64),
+            axes=(0,),
+            subspaces=[(0, 2, 1)],
+        )
+
+
 def test_incorporate_result_not_view():
     tensor = np.zeros((2, 2))
     tensor2 = np.zeros((2, 2))

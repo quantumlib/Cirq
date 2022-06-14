@@ -19,7 +19,7 @@ from pyquil import Program
 from pyquil.simulation.tools import program_unitary
 
 from cirq import Circuit, LineQubit
-from cirq.contrib.quil_import.quil import (
+from cirq_rigetti.quil_input import (
     UndefinedQuilGate,
     UnsupportedQuilInstruction,
     circuit_from_quil,

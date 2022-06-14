@@ -11,14 +11,14 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from typing import FrozenSet, Callable, List, Sequence, Any, Union, Dict
+from typing import Callable, List, Sequence, Any, Union, Dict
 import numpy as np
 import networkx as nx
 
 import cirq
 from cirq import _compat, GridQubit, LineQubit
 from cirq.ops import NamedQubit
-from cirq_pasqal import ThreeDQubit, TwoDQubit
+from cirq_pasqal import ThreeDQubit, TwoDQubit, PasqalGateset
 
 
 @cirq.value.value_equality
@@ -63,20 +63,7 @@ class PasqalDevice(cirq.devices.Device):
                 'qubits.'.format(type(self), self.maximum_qubit_number)
             )
 
-        self.gateset = cirq.Gateset(
-            cirq.ParallelGateFamily(cirq.H),
-            cirq.ParallelGateFamily(cirq.PhasedXPowGate),
-            cirq.ParallelGateFamily(cirq.XPowGate),
-            cirq.ParallelGateFamily(cirq.YPowGate),
-            cirq.ParallelGateFamily(cirq.ZPowGate),
-            cirq.AnyIntegerPowerGateFamily(cirq.CNotPowGate),
-            cirq.AnyIntegerPowerGateFamily(cirq.CCNotPowGate),
-            cirq.AnyIntegerPowerGateFamily(cirq.CZPowGate),
-            cirq.AnyIntegerPowerGateFamily(cirq.CCZPowGate),
-            cirq.IdentityGate,
-            cirq.MeasurementGate,
-            unroll_circuit_op=False,
-        )
+        self.gateset = PasqalGateset()
         self.qubits = qubits
         self._metadata = cirq.DeviceMetadata(
             qubits, nx.from_edgelist([(a, b) for a in qubits for b in qubits if a != b])
@@ -94,10 +81,6 @@ class PasqalDevice(cirq.devices.Device):
     @property
     def metadata(self):
         return self._metadata
-
-    @_compat.deprecated(fix='Use metadata.qubit_set() if applicable.', deadline='v0.15')
-    def qubit_set(self) -> FrozenSet[cirq.Qid]:
-        return frozenset(self.qubits)
 
     def qubit_list(self):
         return [qubit for qubit in self.qubits]
@@ -211,23 +194,13 @@ class PasqalVirtualDevice(PasqalDevice):
                     'Control_radius cannot be larger than 3 times'
                     ' the minimal distance between qubits.'
                 )
-
         self.control_radius = control_radius
-        self.exclude_gateset = cirq.Gateset(
-            cirq.AnyIntegerPowerGateFamily(cirq.CNotPowGate),
-            cirq.AnyIntegerPowerGateFamily(cirq.CCNotPowGate),
-            cirq.AnyIntegerPowerGateFamily(cirq.CCZPowGate),
-        )
-        self.controlled_gateset = cirq.Gateset(
-            *self.exclude_gateset.gates, cirq.AnyIntegerPowerGateFamily(cirq.CZPowGate)
-        )
+        self.gateset = PasqalGateset(include_additional_controlled_ops=False)
+        self.controlled_gateset = cirq.Gateset(cirq.AnyIntegerPowerGateFamily(cirq.CZPowGate))
 
     @property
     def supported_qubit_type(self):
         return (ThreeDQubit, TwoDQubit, GridQubit, LineQubit)
-
-    def is_pasqal_device_op(self, op: cirq.Operation) -> bool:
-        return super().is_pasqal_device_op(op) and op not in self.exclude_gateset
 
     def validate_operation(self, operation: cirq.Operation):
         """Raises an error if the given operation is invalid on this device.
@@ -315,6 +288,9 @@ class PasqalVirtualDevice(PasqalDevice):
         return cirq.protocols.obj_to_dict_helper(self, ['control_radius', 'qubits'])
 
 
+@_compat.deprecated_class(
+    deadline='v0.16', fix='Use cirq.optimize_for_target_gateset(circuit, gateset=PasqalGateset()).'
+)
 class PasqalConverter(cirq.neutral_atoms.ConvertToNeutralAtomGates):
     """A gate converter for compatibility with Pasqal processors.
 
