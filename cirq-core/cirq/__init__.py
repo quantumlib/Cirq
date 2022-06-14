@@ -402,6 +402,7 @@ from cirq.transformers import (
     transformer,
     two_qubit_matrix_to_cz_operations,
     two_qubit_matrix_to_diagonal_and_cz_operations,
+    two_qubit_matrix_to_ion_operations,
     two_qubit_matrix_to_sqrt_iswap_operations,
     two_qubit_gate_product_tabulation,
     TwoQubitCompilationTargetGateset,
@@ -668,7 +669,7 @@ from cirq.protocols import (
     with_rescoped_keys,
 )
 
-from cirq.ion import ConvertToIonGates, IonDevice, two_qubit_matrix_to_ion_operations
+from cirq.ion import ConvertToIonGates, IonDevice
 from cirq.neutral_atoms import (
     ConvertToNeutralAtomGates,
     is_native_neutral_atom_gate,
