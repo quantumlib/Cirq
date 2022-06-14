@@ -10,7 +10,7 @@ The following document provides an ecosystem overview of how the various tools c
 
 * **Quantum Circuit Simulators:** Cirq is compatible with a number of quantum circuit simulators that can run either locally or in a distributed fashion.
 
-# Research libraries and tools 
+# Research libraries and tools
 
 ## Algorithm libraries and experiments
 
@@ -44,6 +44,10 @@ The following document provides an ecosystem overview of how the various tools c
 |[Microsoft Azure Quantum](https://quantumai.google/cirq/tutorials/azure-quantum/getting_started_ionq)|Trapped ions (Honeywell and IonQ)|
 |[Pasqal](https://quantumai.google/cirq/tutorials/pasqal/getting_started)|Neutral atoms|
 |[Rigetti](https://quantumai.google/cirq/tutorials/rigetti/getting_started)|Superconducting qubits|
+
+For more information for vendors about integrating with cirq,
+see our [RFC page](/cirq/dev/rfc_process#new_hardware_integrations).
+
 
 ## High performance quantum circuit simulators
 

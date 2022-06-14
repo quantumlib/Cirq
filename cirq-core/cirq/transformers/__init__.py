@@ -43,6 +43,7 @@ from cirq.transformers.heuristic_decompositions import (
 )
 
 from cirq.transformers.target_gatesets import (
+    create_transformer_with_kwargs,
     CompilationTargetGateset,
     CZTargetGateset,
     SqrtIswapTargetGateset,
