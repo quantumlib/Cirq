@@ -27,9 +27,9 @@ _paulis = (cirq.X, cirq.Y, cirq.Z)
 
 
 def _assert_not_mirror(gate) -> None:
-    trans_x = gate.transform(cirq.X)
-    trans_y = gate.transform(cirq.Y)
-    trans_z = gate.transform(cirq.Z)
+    trans_x = gate.pauli_tuple(cirq.X)
+    trans_y = gate.pauli_tuple(cirq.Y)
+    trans_z = gate.pauli_tuple(cirq.Z)
     right_handed = (
         trans_x[1] ^ trans_y[1] ^ trans_z[1] ^ (trans_x[0].relative_index(trans_y[0]) != 1)
     )
@@ -37,9 +37,9 @@ def _assert_not_mirror(gate) -> None:
 
 
 def _assert_no_collision(gate) -> None:
-    trans_x = gate.transform(cirq.X)
-    trans_y = gate.transform(cirq.Y)
-    trans_z = gate.transform(cirq.Z)
+    trans_x = gate.pauli_tuple(cirq.X)
+    trans_y = gate.pauli_tuple(cirq.Y)
+    trans_z = gate.pauli_tuple(cirq.Z)
     assert trans_x[0] != trans_y[0], 'Collision'
     assert trans_y[0] != trans_z[0], 'Collision'
     assert trans_z[0] != trans_x[0], 'Collision'
@@ -71,10 +71,23 @@ def test_init_value_error(pauli, flip_x, flip_z):
 @pytest.mark.parametrize('trans_x,trans_z', _all_rotation_pairs())
 def test_init_from_xz(trans_x, trans_z):
     gate = cirq.SingleQubitCliffordGate.from_xz_map(trans_x, trans_z)
-    assert gate.transform(cirq.X) == trans_x
-    assert gate.transform(cirq.Z) == trans_z
+    assert gate.pauli_tuple(cirq.X) == trans_x
+    assert gate.pauli_tuple(cirq.Z) == trans_z
     _assert_not_mirror(gate)
     _assert_no_collision(gate)
+
+
+def test_transform_deprecated():
+    gate = cirq.SingleQubitCliffordGate.from_xz_map((cirq.X, True), (cirq.Y, False))
+    with cirq.testing.assert_deprecated('pauli_tuple', deadline='v0.16', count=4):
+        assert gate.transform(cirq.X).to == cirq.X
+        assert gate.transform(cirq.Z).to == cirq.Y
+
+
+def test_dense_pauli_string():
+    gate = cirq.SingleQubitCliffordGate.from_xz_map((cirq.X, True), (cirq.Y, False))
+    assert gate.dense_pauli_string(cirq.X) == cirq.DensePauliString('X', coefficient=-1)
+    assert gate.dense_pauli_string(cirq.Z) == cirq.DensePauliString('Y')
 
 
 @pytest.mark.parametrize(
@@ -94,8 +107,8 @@ def test_init_from_double_map_vs_kwargs(trans1, trans2, from1):
     assert gate_kw == gate_map
 
     # Test initializes what was expected
-    assert gate_map.transform(from1) == trans1
-    assert gate_map.transform(from2) == trans2
+    assert gate_map.pauli_tuple(from1) == trans1
+    assert gate_map.pauli_tuple(from2) == trans2
     _assert_not_mirror(gate_map)
     _assert_no_collision(gate_map)
 
@@ -130,7 +143,7 @@ def test_init_from_single_map_vs_kwargs(trans, frm):
 )
 def test_init_90rot_from_single(trans, frm):
     gate = cirq.SingleQubitCliffordGate.from_single_map({frm: trans})
-    assert gate.transform(frm) == trans
+    assert gate.pauli_tuple(frm) == trans
     _assert_not_mirror(gate)
     _assert_no_collision(gate)
     # Check that it decomposes to one gate
@@ -155,7 +168,7 @@ def test_init_90rot_from_single(trans, frm):
 )
 def test_init_180rot_from_single(trans, frm):
     gate = cirq.SingleQubitCliffordGate.from_single_map({frm: trans})
-    assert gate.transform(frm) == trans
+    assert gate.pauli_tuple(frm) == trans
     _assert_not_mirror(gate)
     _assert_no_collision(gate)
     # Check that it decomposes to one gate
@@ -174,7 +187,7 @@ def test_init_180rot_from_single(trans, frm):
 )
 def test_init_ident_from_single(trans, frm):
     gate = cirq.SingleQubitCliffordGate.from_single_map({frm: trans})
-    assert gate.transform(frm) == trans
+    assert gate.pauli_tuple(frm) == trans
     _assert_not_mirror(gate)
     _assert_no_collision(gate)
     # Check that it decomposes to zero gates
@@ -341,7 +354,7 @@ def test_repr(gate, rep):
     ),
 )
 def test_y_rotation(gate, trans_y):
-    assert gate.transform(cirq.Y) == trans_y
+    assert gate.pauli_tuple(cirq.Y) == trans_y
 
 
 @pytest.mark.parametrize(

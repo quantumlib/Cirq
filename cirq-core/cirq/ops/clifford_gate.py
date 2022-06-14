@@ -12,18 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import (
-    Any,
-    cast,
-    Dict,
-    List,
-    NamedTuple,
-    Optional,
-    Sequence,
-    Tuple,
-    TYPE_CHECKING,
-    Union,
-)
+import dataclasses
+from typing import Any, cast, Dict, List, Optional, Sequence, Tuple, TYPE_CHECKING, Union
+
 
 import numpy as np
 
@@ -41,9 +32,12 @@ devices = LazyLoader("devices", globals(), "cirq.devices")
 sim = LazyLoader("sim", globals(), "cirq.sim")
 transformers = LazyLoader("transformers", globals(), "cirq.transformers")
 
-PauliTransform = _compat.deprecated_class(deadline='v0.16', fix='Use DensePauliString instead.')(
-    NamedTuple('PauliTransform', [('to', Pauli), ('flip', bool)])
-)
+
+@_compat.deprecated_class(deadline='v0.16', fix='Use DensePauliString instead.')
+@dataclasses.dataclass
+class PauliTransform:
+    to: Pauli
+    flip: bool
 
 
 def _to_pauli_tuple(matrix: np.ndarray) -> Optional[Tuple[Pauli, bool]]:
@@ -626,7 +620,14 @@ class SingleQubitCliffordGate(CliffordGate):
             _to_clifford_tableau(x_to=x_to, z_to=z_to)
         )
 
-    def transform(self, pauli: Pauli) -> Tuple[Pauli, bool]:
+    def pauli_tuple(self, pauli: Pauli) -> Tuple[Pauli, bool]:
+        """Returns a tuple of a Pauli operator and a boolean.
+
+        The pauli is the operator of the transform and the boolean
+        determines whether the operator should be flipped.  For instance,
+        it is True if the coefficient is -1, and False if the coefficient
+        is 1.
+        """
         x_to = self._clifford_tableau.destabilizers()[0]
         z_to = self._clifford_tableau.stabilizers()[0]
         if pauli == pauli_gates.X:
@@ -639,6 +640,18 @@ class SingleQubitCliffordGate(CliffordGate):
         # pauli_mask returns a value between 0 and 4 for [I, X, Y, Z].
         to_gate = Pauli._XYZ[to.pauli_mask[0] - 1]
         return (to_gate, bool(to.coefficient != 1.0))
+
+    def dense_pauli_string(self, pauli: Pauli) -> 'cirq.DensePauliString':
+        from cirq.ops import dense_pauli_string
+
+        pauli_tuple = self.pauli_tuple(pauli)
+        coefficient = -1 if pauli_tuple[1] else 1
+        return dense_pauli_string.DensePauliString(str(pauli_tuple[0]), coefficient=coefficient)
+
+    @_compat.deprecated(deadline='v0.16', fix='Use pauli_tuple() or dense_pauli_string() instead')
+    def transform(self, pauli: Pauli) -> PauliTransform:
+        pauli_tuple = self.pauli_tuple(pauli)
+        return PauliTransform(to=pauli_tuple[0], flip=pauli_tuple[1])
 
     def to_phased_xz_gate(self) -> phased_x_z_gate.PhasedXZGate:
         """Convert this gate to a PhasedXZGate instance.
@@ -739,7 +752,7 @@ class SingleQubitCliffordGate(CliffordGate):
         return self_then_gate == gate_then_self
 
     def commutes_with_pauli(self, pauli: Pauli) -> bool:
-        to, flip = self.transform(pauli)
+        to, flip = self.pauli_tuple(pauli)
         return to == pauli and not flip
 
     def merged_with(self, second: 'SingleQubitCliffordGate') -> 'SingleQubitCliffordGate':
@@ -764,9 +777,9 @@ class SingleQubitCliffordGate(CliffordGate):
         """Returns ((first_rotation_axis, first_rotation_quarter_turns), ...)
 
         This is a sequence of zero, one, or two rotations."""
-        x_rot = self.transform(pauli_gates.X)
-        y_rot = self.transform(pauli_gates.Y)
-        z_rot = self.transform(pauli_gates.Z)
+        x_rot = self.pauli_tuple(pauli_gates.X)
+        y_rot = self.pauli_tuple(pauli_gates.Y)
+        z_rot = self.pauli_tuple(pauli_gates.Z)
         whole_arr = (
             x_rot[0] == pauli_gates.X,
             y_rot[0] == pauli_gates.Y,
@@ -793,7 +806,7 @@ class SingleQubitCliffordGate(CliffordGate):
                 # 180 degree rotation
                 output.append((next_pauli, 2))
             # 90 degree rotation about some axis
-            if self.transform(next_pauli)[1]:
+            if self.pauli_tuple(next_pauli)[1]:
                 # Negative 90 degree rotation
                 output.append((pauli, -1))
             else:
@@ -821,9 +834,9 @@ class SingleQubitCliffordGate(CliffordGate):
         return self.merged_with(after).merged_with(self**-1)
 
     def __repr__(self) -> str:
-        x = self.transform(pauli_gates.X)
-        y = self.transform(pauli_gates.Y)
-        z = self.transform(pauli_gates.Z)
+        x = self.pauli_tuple(pauli_gates.X)
+        y = self.pauli_tuple(pauli_gates.Y)
+        z = self.pauli_tuple(pauli_gates.Z)
         x_sign = '-' if x[1] else '+'
         y_sign = '-' if y[1] else '+'
         z_sign = '-' if z[1] else '+'
