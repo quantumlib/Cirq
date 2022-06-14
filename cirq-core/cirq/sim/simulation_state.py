@@ -144,7 +144,10 @@ class SimulationState(SimulationStateBase, Generic[TState], metaclass=abc.ABCMet
         qubits: Sequence['cirq.Qid'],
         confusion_map: Dict[Tuple[int, ...], np.ndarray],
     ):
-        """Applies confusion matrices to measured results."""
+        """Applies confusion matrices to measured results.
+
+        Compare with _confuse_results in cirq-core/cirq/sim/simulator.py.
+        """
         confused = list(bits)
         dims = [q.dimension for q in qubits]
         for indices, confuser in confusion_map.items():
