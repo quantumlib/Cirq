@@ -123,6 +123,9 @@ def run(
     *,
     log_run_to_stderr: bool = True,
     abbreviate_non_option_arguments: bool = False,
+    capture_output: bool = True,
+    check: bool = True,
+    text: bool = True,
     **subprocess_run_kwargs,
 ) -> subprocess.CompletedProcess:
     """Call subprocess.run with an option to log executed command to stderr.
@@ -137,16 +140,27 @@ def run(
         abbreviate_non_option_arguments: When logging to stderr, this cuts off
             the potentially-huge tail of the command listing off e.g. hundreds
             of file paths. No effect if log_run_to_stderr is not set.
-        **subprocess_run_kwargs: Arguments passed to subprocess.run.
+        capture_output: If true, capture the stdout and stderr within the
+            returned value.  This sets the default capture_output argument
+            for the `subprocess.run` function to True.
+        check: Raise the CalledProcessError exception if this flag is
+            set and the process returns a non-zero exit code.  This sets
+            the default check argument for the `subprocess.run` to True.
+        text: Use text mode for the stdout and stderr streams from the
+            process.  This changes the default text argument to the
+            `subprocess.run` call to True.
+        **subprocess_run_kwargs: Arguments passed to `subprocess.run`.
             See `subprocess.run` for a full detail of supported arguments.
 
     Returns:
-        subprocess.CompletedProcess: The return value from subprocess.run.
+        subprocess.CompletedProcess: The return value from `subprocess.run`.
 
     Raises:
-         subprocess.CalledProcessError: The process returned a non-zero error
+        subprocess.CalledProcessError: The process returned a non-zero error
             code and the check argument was set.
     """
+    # setup our default for subprocess.run flag arguments
+    subprocess_run_kwargs.update(capture_output=capture_output, check=check, text=text)
     if log_run_to_stderr:
         cmd_desc: Tuple[str, ...] = (args,) if isinstance(args, str) else tuple(args)
         if abbreviate_non_option_arguments:
