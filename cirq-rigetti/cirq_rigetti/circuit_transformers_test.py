@@ -16,14 +16,17 @@ def test_transform_cirq_circuit_to_pyquil_program(
     """
 
     parametric_circuit, param_resolvers = parametric_circuit_with_params
-    circuit = cirq.protocols.resolve_parameters(parametric_circuit, param_resolvers[1])
-    program, _ = transformers.default(circuit=circuit)
 
-    assert (
+    circuit = cirq.protocols.resolve_parameters(parametric_circuit, param_resolvers[1])
+
+    with cirq.testing.assert_deprecated(deadline='v1.0', count=11):
+        program, _ = transformers.default(circuit=circuit)
+
+        assert (
         RX(np.pi / 2, 0) in program.instructions
     ), "executable should contain an RX(pi) 0 instruction"
-    assert DECLARE("m0") in program.instructions, "executable should declare a read out bit"
-    assert (
+        assert DECLARE("m0") in program.instructions, "executable should declare a read out bit"
+        assert (
         MEASURE(0, ("m0", 0)) in program.instructions
     ), "executable should measure the read out bit"
 
@@ -39,17 +42,18 @@ def test_transform_cirq_circuit_to_pyquil_program_with_qubit_id_map(
 
     qubit_id_map = {qubits[1]: "11", qubits[0]: "13"}
     transformer = transformers.build(qubit_id_map=qubit_id_map)
-    program, _ = transformer(circuit=bell_circuit)
+    with cirq.testing.assert_deprecated(deadline='v1.0', count=15):
+        program, _ = transformer(circuit=bell_circuit)
 
-    assert H(13) in program.instructions, "bell circuit should include Hadamard"
-    assert CNOT(13, 11) in program.instructions, "bell circuit should include CNOT"
-    assert (
+        assert H(13) in program.instructions, "bell circuit should include Hadamard"
+        assert CNOT(13, 11) in program.instructions, "bell circuit should include CNOT"
+        assert (
         DECLARE("m0", memory_size=2) in program.instructions
     ), "executable should declare a read out bit"
-    assert (
+        assert (
         MEASURE(13, ("m0", 0)) in program.instructions
     ), "executable should measure the first qubit to the first read out bit"
-    assert (
+        assert (
         MEASURE(11, ("m0", 1)) in program.instructions
     ), "executable should measure the second qubit to the second read out bit"
 
@@ -78,23 +82,24 @@ def test_transform_with_post_transformation_hooks(
     transformer = transformers.build(
         qubits=tuple(qubits), post_transformation_hooks=[reset_hook_spec, rewire_hook_spec]
     )
-    program, _ = transformer(circuit=bell_circuit)
+    with cirq.testing.assert_deprecated(deadline='v1.0', count=15):
+        program, _ = transformer(circuit=bell_circuit)
 
-    assert 1 == reset_hook_spec.call_count
-    assert Reset() in program.instructions, "hook should add reset"
+        assert 1 == reset_hook_spec.call_count
+        assert Reset() in program.instructions, "hook should add reset"
 
-    assert 1 == rewire_hook_spec.call_count
-    assert pragma in program.instructions, "hook should add pragma"
+        assert 1 == rewire_hook_spec.call_count
+        assert pragma in program.instructions, "hook should add pragma"
 
-    assert H(0) in program.instructions, "bell circuit should include Hadamard"
-    assert CNOT(0, 1) in program.instructions, "bell circuit should include CNOT"
-    assert (
+        assert H(0) in program.instructions, "bell circuit should include Hadamard"
+        assert CNOT(0, 1) in program.instructions, "bell circuit should include CNOT"
+        assert (
         DECLARE("m0", memory_size=2) in program.instructions
     ), "executable should declare a read out bit"
-    assert (
+        assert (
         MEASURE(0, ("m0", 0)) in program.instructions
     ), "executable should measure the first qubit to the first read out bit"
-    assert (
+        assert (
         MEASURE(1, ("m0", 1)) in program.instructions
     ), "executable should measure the second qubit to the second read out bit"
 
@@ -116,15 +121,16 @@ def test_transform_cirq_circuit_with_explicit_decompose(
             operations.append(cirq.I(operation.qubits[0]))
         return operations
 
-    program, _ = transformers.build(decompose_operation=decompose_operation)(circuit=circuit)
+    with cirq.testing.assert_deprecated(deadline='v1.0', count=15):
+        program, _ = transformers.build(decompose_operation=decompose_operation)(circuit=circuit)
 
-    assert (
+        assert (
         RX(np.pi / 2, 2) in program.instructions
     ), "executable should contain an RX(pi) 0 instruction"
-    assert I(0) in program.instructions, "executable should contain an I(0) instruction"
-    assert I(1) in program.instructions, "executable should contain an I(1) instruction"
-    assert I(2) in program.instructions, "executable should contain an I(2) instruction"
-    assert DECLARE("m0") in program.instructions, "executable should declare a read out bit"
-    assert (
+        assert I(0) in program.instructions, "executable should contain an I(0) instruction"
+        assert I(1) in program.instructions, "executable should contain an I(1) instruction"
+        assert I(2) in program.instructions, "executable should contain an I(2) instruction"
+        assert DECLARE("m0") in program.instructions, "executable should declare a read out bit"
+        assert (
         MEASURE(0, ("m0", 0)) in program.instructions
     ), "executable should measure the read out bit"
