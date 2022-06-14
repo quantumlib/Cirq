@@ -24,7 +24,7 @@ class TestImportChecker(CheckerTestCase):
     CHECKER_CLASS = ImportOnlyModulesChecker
 
     def test_wrong_import(self) -> None:
-        r"""Report message when no copyright notice at the beginning of a file."""
+        r"""Report a message when a non-module is imported"""
         node = parse("from cirq.devices import GridQubit")
         with self.assertAddsMessages(
             MessageTest(msg_id='import-only-modules', col_offset=0)
@@ -32,13 +32,13 @@ class TestImportChecker(CheckerTestCase):
             self.checker.process_module(node)
 
     def test_correct_import(self) -> None:
-        r"""Report message when no copyright notice at the beginning of a file."""
+        r"""Report no messages when correct import is used."""
         node = parse("from cirq import devices")
         with self.assertNoMessages():
             self.checker.process_module(node)
 
     def test_correct_import(self) -> None:
-        r"""Report message when no copyright notice at the beginning of a file."""
+        r"""Report no messages when correct import is used."""
         node = parse("import cirq")
         with self.assertNoMessages():
             self.checker.process_module(node)
