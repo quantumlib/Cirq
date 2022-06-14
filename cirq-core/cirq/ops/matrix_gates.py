@@ -159,9 +159,7 @@ class MatrixGate(raw_types.Gate):
         n_qubits = len(self._qid_shape)
         if self._name is not None:
             symbols = (
-                [self._name]
-                if n_qubits == 1
-                else [f'{self._name}[{i+1}]' for i in range(0, n_qubits)]
+                [self._name] if n_qubits == 1 else [f'{self._name}[{i+1}]' for i in range(n_qubits)]
             )
             return protocols.CircuitDiagramInfo(wire_symbols=symbols)
         main = _matrix_to_diagram_symbol(self._matrix, args)
