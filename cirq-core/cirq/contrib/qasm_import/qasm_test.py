@@ -51,6 +51,6 @@ def test_consistency_with_qasm_output_and_qiskit():
     circuit2 = circuit_from_qasm(qasm)
 
     cirq_unitary = cirq.unitary(circuit2)
-    ct.assert_allclose_up_to_global_phase(cirq_unitary, cirq.unitary(circuit1), atol=1e-8)
+    ct.assert_allclose_up_to_global_phase(cirq_unitary, cirq.unitary(circuit1), atol=1e-6)
 
     cq.assert_qiskit_parsed_qasm_consistent_with_unitary(qasm, cirq_unitary)
