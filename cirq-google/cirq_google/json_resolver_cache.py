@@ -31,11 +31,8 @@ def _class_resolver_dictionary() -> Dict[str, ObjectFactory]:
 
     import cirq_google
 
-
-
     return {
         '_NamedConstantXmonDevice': _old_xmon,
-        'Bristlecone': _old_xmon,
         'Calibration': cirq_google.Calibration,
         'CalibrationTag': cirq_google.CalibrationTag,
         'CalibrationLayer': cirq_google.CalibrationLayer,
@@ -46,7 +43,6 @@ def _class_resolver_dictionary() -> Dict[str, ObjectFactory]:
         'GateTabulation': cirq_google.GateTabulation,
         'GridDevice': cirq_google.GridDevice,
         'PhysicalZTag': cirq_google.PhysicalZTag,
-        'Foxtail': _old_xmon,
         'FSimGateFamily': cirq_google.FSimGateFamily,
         'FloquetPhasedFSimCalibrationOptions': cirq_google.FloquetPhasedFSimCalibrationOptions,
         'FloquetPhasedFSimCalibrationRequest': cirq_google.FloquetPhasedFSimCalibrationRequest,
