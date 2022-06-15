@@ -1,14 +1,12 @@
 # pylint: disable=wrong-or-nonexistent-copyright-notice
-import numpy as np
 import cirq
 
 
 def main(minimum_cliffords=5, maximum_cliffords=20, cliffords_step=5):
     """Examples of how to run various qubit characterizations.
 
-    This example shows various methods on how to characterize a qubit, including a Rabi
-    oscillation experiments, Clifford-based randomized benchmarking, and
-    state tomography.
+    This example shows various methods on how to characterize a qubit, including
+    Clifford-based randomized benchmarking and state tomography.
 
     The number of cliffords to use in a randomized benchmarking experiment
     can be varied.  For instance, setting minimum_cliffords=10,
@@ -29,10 +27,6 @@ def main(minimum_cliffords=5, maximum_cliffords=20, cliffords_step=5):
     # The two qubits to be characterized in this example.
     q_0 = cirq.GridQubit(0, 0)
     q_1 = cirq.GridQubit(0, 1)
-
-    # Measure Rabi oscillation of q_0.
-    rabi_results = cirq.experiments.rabi_oscillations(simulator, q_0, 4 * np.pi)
-    rabi_results.plot()
 
     clifford_range = range(minimum_cliffords, maximum_cliffords, cliffords_step)
 

@@ -22,26 +22,11 @@ import cirq.experiments.qubit_characterizations as ceqc
 from cirq import GridQubit
 from cirq import circuits, ops, sim
 from cirq.experiments import (
-    rabi_oscillations,
     single_qubit_randomized_benchmarking,
     two_qubit_randomized_benchmarking,
     single_qubit_state_tomography,
     two_qubit_state_tomography,
 )
-
-
-def test_rabi_oscillations():
-    # Check that the excited state population matches the ideal case within a
-    # small statistical error.
-    simulator = sim.Simulator()
-    qubit = GridQubit(0, 0)
-    results = rabi_oscillations(simulator, qubit, np.pi, repetitions=1000)
-    data = np.asarray(results.data)
-    angles = data[:, 0]
-    actual_pops = data[:, 1]
-    target_pops = 0.5 - 0.5 * np.cos(angles)
-    rms_err = np.sqrt(np.mean((target_pops - actual_pops) ** 2))
-    assert rms_err < 0.1
 
 
 def test_single_qubit_cliffords():

@@ -319,7 +319,7 @@ class CliffordTableau(StabilizerState):
         for i in range(self.n, 2 * self.n):
             string += '- ' if self.rs[i] else '+ '
 
-            for k in range(0, self.n):
+            for k in range(self.n):
                 if self.xs[i, k] & (not self.zs[i, k]):
                     string += 'X '
                 elif (not self.xs[i, k]) & self.zs[i, k]:
@@ -345,7 +345,7 @@ class CliffordTableau(StabilizerState):
             for i in [j + self.n, j]:
                 string += '- ' if self.rs[i] else '+ '
 
-                for k in range(0, self.n):
+                for k in range(self.n):
                     if self.xs[i, k] & (not self.zs[i, k]):
                         string += 'X%d' % k
                     elif (not self.xs[i, k]) & self.zs[i, k]:
@@ -516,7 +516,7 @@ class CliffordTableau(StabilizerState):
         """Returns the destabilizer generators of the state. These
         are n operators {S_1,S_2,...,S_n} such that along with the stabilizer
         generators above generate the full Pauli group on n qubits."""
-        return [self._row_to_dense_pauli(i) for i in range(0, self.n)]
+        return [self._row_to_dense_pauli(i) for i in range(self.n)]
 
     def _measure(self, q, prng: np.random.RandomState) -> int:
         """Performs a projective measurement on the q'th qubit.

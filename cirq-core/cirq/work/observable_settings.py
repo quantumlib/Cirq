@@ -14,7 +14,7 @@
 
 import dataclasses
 import numbers
-from typing import Union, Iterable, Dict, TYPE_CHECKING, ItemsView, Tuple, FrozenSet
+from typing import Union, Iterable, Dict, Optional, TYPE_CHECKING, ItemsView, Tuple, FrozenSet
 
 import sympy
 
@@ -62,7 +62,7 @@ class InitObsSetting:
         return protocols.dataclass_json_dict(self)
 
 
-def _max_weight_observable(observables: Iterable[ops.PauliString]) -> Union[None, ops.PauliString]:
+def _max_weight_observable(observables: Iterable[ops.PauliString]) -> Optional[ops.PauliString]:
     """Create a new observable that is compatible with all input observables
     and has the maximum non-identity elements.
 
@@ -89,7 +89,7 @@ def _max_weight_observable(observables: Iterable[ops.PauliString]) -> Union[None
     return ops.PauliString(qubit_pauli_map)
 
 
-def _max_weight_state(states: Iterable[value.ProductState]) -> Union[None, value.ProductState]:
+def _max_weight_state(states: Iterable[value.ProductState]) -> Optional[value.ProductState]:
     """Create a new state that is compatible with all input states
     and has the maximum weight.
 
