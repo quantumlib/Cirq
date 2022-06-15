@@ -596,7 +596,7 @@ def scatter_plot_normalized_kak_interaction_coefficients(
             kak decomposition is calculated from the `interactions`.
         atol: Per-matrix-entry absolute tolerance on equality used if the
             kak decomposition is calculated from the `interaction`s. T
-            Thisd etermines how close $k_x$  must be to π/4 to guarantee
+            This determines how close $k_x$  must be to π/4 to guarantee
             $k_z$ ≥ 0. Must be non-negative.
 
         **kwargs: Arguments forwarded into the call to `scatter` that plots the
