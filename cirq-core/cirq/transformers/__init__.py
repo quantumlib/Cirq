@@ -33,6 +33,7 @@ from cirq.transformers.analytical_decompositions import (
     three_qubit_matrix_to_operations,
     two_qubit_matrix_to_cz_operations,
     two_qubit_matrix_to_diagonal_and_cz_operations,
+    two_qubit_matrix_to_ion_operations,
     two_qubit_matrix_to_sqrt_iswap_operations,
 )
 
@@ -43,6 +44,7 @@ from cirq.transformers.heuristic_decompositions import (
 )
 
 from cirq.transformers.target_gatesets import (
+    create_transformer_with_kwargs,
     CompilationTargetGateset,
     CZTargetGateset,
     SqrtIswapTargetGateset,

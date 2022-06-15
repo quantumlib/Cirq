@@ -21,7 +21,7 @@ landing_page:
         description: Parameterize circuits and execute them for multiple values of the parameters.
         path: /cirq/params
         icon:
-          name: mnu_book
+          name: menu_book
       - heading: State Histograms
         description: Visualize the results of simulation as a histogram over basis states.
         path: /cirq/tutorials/state_histograms

@@ -5,11 +5,11 @@ for the service. In other words, not every `cirq.Circuit` that you can
 construct will be able to run on the IonQ API, either against hardware
 or on the IonQ simulator.  Here we describe the restrictions on these circuits.
 
-In this section we assume a `cirq.ionq.Service` object has been instantiated and is
-called `service` and `cirq` and `cirq.ionq` have been imported:
+In this section we assume a `cirq_ionq.Service` object has been instantiated and is
+called `service` and `cirq` and `cirq_ionq` have been imported:
 ```python
 import cirq
-import cirq.ionq as ionq
+import cirq_ionq as ionq
 service = ionq.Service()
 ```
 See [IonQ API Service](service.md) for how to set up the service.
@@ -96,7 +96,7 @@ these gates are one or two qubit gates which support the `unitary` protocol
 for the gate) there is support for compiling these into API supported gates.
 This conversion may not be optimal, but it does produce a valid API circuit.
 
-This support is given by the `cirq.ionq.IonQAPIDevice` and its
+This support is given by the `cirq_ionq.IonQAPIDevice` and its
 `decompose_operation` method.  On way to use this is to pass the device
 to a circuit, and these decompositions will be automatically applied while
 the circuit is being constructed:
