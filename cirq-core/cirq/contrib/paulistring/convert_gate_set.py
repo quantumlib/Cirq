@@ -21,8 +21,7 @@ def converted_gate_set(
     circuit: circuits.Circuit, no_clifford_gates: bool = False, atol: float = 1e-8
 ) -> circuits.Circuit:
     """Returns a new, equivalent circuit using the gate set
-    {SingleQubitCliffordGate,
-    CZ/PauliInteractionGate, PauliStringPhasor}.
+    {SingleQubitCliffordGate, CZ/PauliInteractionGate, PauliStringPhasor}.
     """
     conv_circuit = transformers.optimize_for_target_gateset(
         circuit, gateset=transformers.CZTargetGateset()
