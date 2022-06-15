@@ -209,7 +209,7 @@ class Engine(abstract_engine.AbstractEngine):
         return f'Engine(project_id={self.project_id!r})'
 
     @util.deprecated_gate_set_parameter
-    async def run_async(
+    def run(
         self,
         program: cirq.AbstractCircuit,
         program_id: Optional[str] = None,
@@ -255,25 +255,23 @@ class Engine(abstract_engine.AbstractEngine):
         Raises:
             ValueError: If no gate set is provided.
         """
-        job = await self.run_sweep_async(
-            program=program,
-            program_id=program_id,
-            job_id=job_id,
-            params=[param_resolver],
-            repetitions=repetitions,
-            processor_ids=processor_ids,
-            program_description=program_description,
-            program_labels=program_labels,
-            job_description=job_description,
-            job_labels=job_labels,
-        )
-        results = await job.results_async()
-        return results[0]
-
-    run = duet.sync(run_async)
+        return list(
+            self.run_sweep(
+                program=program,
+                program_id=program_id,
+                job_id=job_id,
+                params=[param_resolver],
+                repetitions=repetitions,
+                processor_ids=processor_ids,
+                program_description=program_description,
+                program_labels=program_labels,
+                job_description=job_description,
+                job_labels=job_labels,
+            )
+        )[0]
 
     @util.deprecated_gate_set_parameter
-    async def run_sweep_async(
+    def run_sweep(
         self,
         program: cirq.AbstractCircuit,
         program_id: Optional[str] = None,
@@ -323,10 +321,10 @@ class Engine(abstract_engine.AbstractEngine):
         Raises:
             ValueError: If no gate set is provided.
         """
-        engine_program = await self.create_program_async(
+        engine_program = self.create_program(
             program, program_id, description=program_description, labels=program_labels
         )
-        return await engine_program.run_sweep_async(
+        return engine_program.run_sweep(
             job_id=job_id,
             params=params,
             repetitions=repetitions,
@@ -335,10 +333,8 @@ class Engine(abstract_engine.AbstractEngine):
             labels=job_labels,
         )
 
-    run_sweep = duet.sync(run_sweep_async)
-
     @util.deprecated_gate_set_parameter
-    async def run_batch_async(
+    def run_batch(
         self,
         programs: Sequence[cirq.AbstractCircuit],
         program_id: Optional[str] = None,
@@ -410,7 +406,7 @@ class Engine(abstract_engine.AbstractEngine):
         engine_program = self.create_batch_program(
             programs, program_id, description=program_description, labels=program_labels
         )
-        return await engine_program.run_batch_async(
+        return engine_program.run_batch(
             job_id=job_id,
             params_list=params_list,
             repetitions=repetitions,
@@ -418,8 +414,6 @@ class Engine(abstract_engine.AbstractEngine):
             description=job_description,
             labels=job_labels,
         )
-
-    run_batch = duet.sync(run_batch_async)
 
     @util.deprecated_gate_set_parameter
     def run_calibration(
