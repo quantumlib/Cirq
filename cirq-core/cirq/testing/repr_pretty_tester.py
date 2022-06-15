@@ -60,7 +60,7 @@ def assert_repr_pretty_contains(val: Any, substr: str, cycle: bool = False):
 
     Args:
             val: The object to test.
-            text: The string that `_repr_pretty_` is expected to contain.
+            substr: The string that `_repr_pretty_` is expected to contain.
             cycle: The value of `cycle` passed to `_repr_pretty_`.  `cycle` represents whether
                 the call is made with a potential cycle. Typically one should handle the
                 `cycle` equals `True` case by returning text that does not recursively call
