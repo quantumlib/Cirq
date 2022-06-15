@@ -76,7 +76,8 @@ class TensoredConfusionMatrices:
                             the corresponding confusion matrix.
             repetitions:    The number of repetitions that were used to estimate the confusion
                             matrices.
-            timestamp:      The time the data was taken, in seconds since the epoch.
+            timestamp:      The time the data was taken, in seconds since the epoch. This will be
+                            zero for fake data (i.e. data not generated from an experiment).
 
         Raises:
             ValueError: If length of `confusion_matrices` and `measure_qubits` is different or if
