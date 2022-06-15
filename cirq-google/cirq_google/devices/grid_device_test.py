@@ -459,33 +459,37 @@ def test_to_proto_backward_compatibility():
         out=spec,
     )
 
-    # Deserialize both ways
-    serializable_dev = cirq_google.SerializableDevice.from_proto(spec, [cirq_google.FSIM_GATESET])
-    grid_dev = cirq_google.GridDevice.from_proto(spec)
+    with cirq.testing.assert_deprecated('Use cirq_google.GridDevice', deadline='v0.16', count=None):
+        # Deserialize both ways
+        serializable_dev = cirq_google.SerializableDevice.from_proto(
+            spec, [cirq_google.FSIM_GATESET]
+        )
+        grid_dev = cirq_google.GridDevice.from_proto(spec)
 
-    assert serializable_dev.metadata.qubit_set == grid_dev.metadata.qubit_set
-    assert serializable_dev.metadata.qubit_pairs == grid_dev.metadata.qubit_pairs
+        assert serializable_dev.metadata.qubit_set == grid_dev.metadata.qubit_set
+        assert serializable_dev.metadata.qubit_pairs == grid_dev.metadata.qubit_pairs
 
-    assert serializable_dev.metadata.gateset == cirq.Gateset(
-        cirq.FSimGate,
-        cirq.ISwapPowGate,
-        cirq.CZPowGate,
-        cirq.PhasedXPowGate,
-        cirq.XPowGate,
-        cirq.YPowGate,
-        cirq.ZPowGate,
-        cirq.PhasedXZGate,
-        cirq.MeasurementGate,
-        cirq.WaitGate,
-        cirq.GlobalPhaseGate,
-    )
+        assert serializable_dev.metadata.gateset == cirq.Gateset(
+            cirq.FSimGate,
+            cirq.ISwapPowGate,
+            cirq.CZPowGate,
+            cirq.PhasedXPowGate,
+            cirq.XPowGate,
+            cirq.YPowGate,
+            cirq.ZPowGate,
+            cirq.PhasedXZGate,
+            cirq.MeasurementGate,
+            cirq.WaitGate,
+            cirq.GlobalPhaseGate,
+        )
 
-    assert grid_dev.metadata.gateset == device_info.expected_gateset
-    assert (
-        tuple(grid_dev.metadata.compilation_target_gatesets) == device_info.expected_target_gatesets
-    )
+        assert grid_dev.metadata.gateset == device_info.expected_gateset
+        assert (
+            tuple(grid_dev.metadata.compilation_target_gatesets)
+            == device_info.expected_target_gatesets
+        )
 
-    assert grid_dev.metadata.gate_durations == device_info.expected_gate_durations
+        assert grid_dev.metadata.gate_durations == device_info.expected_gate_durations
 
 
 def test_to_proto_empty():
