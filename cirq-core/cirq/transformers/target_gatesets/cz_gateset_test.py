@@ -300,3 +300,24 @@ def test_unsupported_gate():
         _ = cirq.optimize_for_target_gateset(
             circuit, gateset=cirq.CZTargetGateset(), ignore_failures=False
         )
+
+
+@pytest.mark.parametrize(
+    'gateset',
+    [
+        cirq.CZTargetGateset(),
+        cirq.CZTargetGateset(
+            atol=1e-6,
+            allow_partial_czs=True,
+            additional_gates=[
+                cirq.SQRT_ISWAP,
+                cirq.XPowGate,
+                cirq.YPowGate,
+                cirq.GateFamily(cirq.ZPowGate, tags_to_accept=['test_tag']),
+            ],
+        ),
+        cirq.CZTargetGateset(additional_gates=()),
+    ],
+)
+def test_repr(gateset):
+    cirq.testing.assert_equivalent_repr(gateset)
