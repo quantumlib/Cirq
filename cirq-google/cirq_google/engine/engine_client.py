@@ -54,6 +54,12 @@ RETRYABLE_ERROR_CODES = [500, 503]
 
 
 class AsyncioExecutor:
+    """Runs asyncio coroutines in a thread, exposes the results as duet futures.
+
+    This lets us bridge between an asyncio event loop (which is what async grpc
+    code uses) and duet (which is what cirq uses for asynchrony).
+    """
+
     def __init__(self) -> None:
         loop_future: duet.AwaitableFuture[asyncio.AbstractEventLoop] = duet.AwaitableFuture()
         thread = threading.Thread(target=asyncio.run, args=(self._main(loop_future),), daemon=True)
@@ -68,7 +74,14 @@ class AsyncioExecutor:
             await asyncio.sleep(1)
 
     def submit(self, func, *args, **kw) -> duet.AwaitableFuture:
-        """Dispatch the given function to be run in a duet coroutine."""
+        """Dispatch the given function to be run in an asyncio coroutine.
+
+        Args:
+            func: asyncio function which will be run in a separate thread.
+                Will be called with *args and **kw and should return an asyncio.
+            *args: Positional args to pass to func.
+            **kw: Keyword args to pass to func.
+        """
         future = asyncio.run_coroutine_threadsafe(func(*args, **kw), self.loop)
         return duet.AwaitableFuture.wrap(future)
 
