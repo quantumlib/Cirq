@@ -26,27 +26,37 @@ def assert_implements(circuit: cirq.Circuit, target_op: cirq.Operation):
     assert sum(1 for _ in circuit.findall_operations(lambda e: len(e.qubits) > 2)) <= 6
     circuit.append(cirq.I.on_each(*target_op.qubits))
     cirq.testing.assert_allclose_up_to_global_phase(
-        cirq.unitary(circuit), cirq.unitary(target_op), atol=1e-7
+        cirq.unitary(circuit), cirq.unitary(target_op), atol=1e-5
     )
 
 
-theta = sympy.Symbol('theta')
-all_exps = np.linspace(0, 1, 10)
-q = cirq.LineQubit.range(2)
+_THETA = sympy.Symbol('theta')
+_ALL_EXPS = np.linspace(0, 1, 10)
+_QUBITS = cirq.LineQubit.range(2)
 
 
 @pytest.mark.parametrize(
     'op, theta_range',
     [
-        (cirq.CircuitOperation(cirq.FrozenCircuit(cirq.SWAP(*q), cirq.ZZ(*q) ** theta)), all_exps),
-        (cirq.CircuitOperation(cirq.FrozenCircuit(cirq.ZZ(*q) ** theta, cirq.SWAP(*q))), all_exps),
-        (cirq.PhasedISwapPowGate(exponent=1, phase_exponent=theta).on(*q), all_exps),
-        (cirq.PhasedISwapPowGate(exponent=theta, phase_exponent=0.25).on(*q), all_exps),
-        (cirq.CNOT(*q) ** theta, all_exps),
-        (cirq.CZ(*q) ** theta, all_exps),
-        (cirq.ZZ(*q) ** theta, all_exps),
-        (cirq.SWAP(*q) ** theta, [1]),
-        (cirq.ISWAP(*q) ** theta, [1]),
+        (
+            cirq.CircuitOperation(
+                cirq.FrozenCircuit(cirq.SWAP(*_QUBITS), cirq.ZZ(*_QUBITS) ** _THETA)
+            ),
+            _ALL_EXPS,
+        ),
+        (
+            cirq.CircuitOperation(
+                cirq.FrozenCircuit(cirq.ZZ(*_QUBITS) ** _THETA, cirq.SWAP(*_QUBITS))
+            ),
+            _ALL_EXPS,
+        ),
+        (cirq.PhasedISwapPowGate(exponent=1, phase_exponent=_THETA).on(*_QUBITS), _ALL_EXPS),
+        (cirq.PhasedISwapPowGate(exponent=_THETA, phase_exponent=0.25).on(*_QUBITS), _ALL_EXPS),
+        (cirq.CNOT(*_QUBITS) ** _THETA, _ALL_EXPS),
+        (cirq.CZ(*_QUBITS) ** _THETA, _ALL_EXPS),
+        (cirq.ZZ(*_QUBITS) ** _THETA, _ALL_EXPS),
+        (cirq.SWAP(*_QUBITS) ** _THETA, [1]),
+        (cirq.ISWAP(*_QUBITS) ** _THETA, [1]),
     ],
 )
 def test_known_two_qubit_op_decomposition(op, theta_range):
@@ -54,7 +64,9 @@ def test_known_two_qubit_op_decomposition(op, theta_range):
         op_resolved = cirq.resolve_parameters(op, {'theta': theta_val}, recursive=False)
         known_2q_circuit = cirq.Circuit(cg.known_2q_op_to_sycamore_operations(op_resolved))
         matrix_2q_circuit = cirq.Circuit(
-            cg.two_qubit_matrix_to_sycamore_operations(q[0], q[1], cirq.unitary(op_resolved))
+            cg.two_qubit_matrix_to_sycamore_operations(
+                _QUBITS[0], _QUBITS[1], cirq.unitary(op_resolved)
+            )
         )
         assert_implements(known_2q_circuit, op_resolved)
         assert_implements(matrix_2q_circuit, op_resolved)
@@ -63,12 +75,14 @@ def test_known_two_qubit_op_decomposition(op, theta_range):
 @pytest.mark.parametrize(
     'op',
     [
-        cirq.CircuitOperation(cirq.FrozenCircuit(cirq.SWAP(*q), cirq.ZZ(*q), cirq.SWAP(*q))),
-        cirq.X(q[0]),
-        cirq.XX(*q) ** theta,
-        cirq.FSimGate(0.25, 0.85).on(*q),
-        cirq.XX(*q),
-        cirq.YY(*q),
+        cirq.CircuitOperation(
+            cirq.FrozenCircuit(cirq.SWAP(*_QUBITS), cirq.ZZ(*_QUBITS), cirq.SWAP(*_QUBITS))
+        ),
+        cirq.X(_QUBITS[0]),
+        cirq.XX(*_QUBITS) ** _THETA,
+        cirq.FSimGate(0.25, 0.85).on(*_QUBITS),
+        cirq.XX(*_QUBITS),
+        cirq.YY(*_QUBITS),
         *[cirq.testing.random_unitary(4, random_state=1234) for _ in range(10)],
     ],
 )
@@ -76,6 +90,6 @@ def test_unknown_two_qubit_op_decomposition(op):
     assert cg.known_2q_op_to_sycamore_operations(op) is None
     if cirq.has_unitary(op) and cirq.num_qubits(op) == 2:
         matrix_2q_circuit = cirq.Circuit(
-            cg.two_qubit_matrix_to_sycamore_operations(q[0], q[1], cirq.unitary(op))
+            cg.two_qubit_matrix_to_sycamore_operations(_QUBITS[0], _QUBITS[1], cirq.unitary(op))
         )
         assert_implements(matrix_2q_circuit, op)

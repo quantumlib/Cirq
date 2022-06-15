@@ -167,7 +167,7 @@ def test_sycamore_gateset_compiles_swap_zz():
         == 3
     )
     cirq.testing.assert_circuits_with_terminal_measurements_are_equivalent(
-        circuit1, compiled_circuit1, atol=1e-7
+        circuit1, compiled_circuit1, atol=1e-5
     )
 
 
@@ -270,7 +270,7 @@ def test_zztheta_qaoa_like():
             circuit, gateset=cirq_google.SycamoreTargetGateset()
         )
         cirq.testing.assert_circuits_with_terminal_measurements_are_equivalent(
-            circuit, converted_circuit, atol=1e-8
+            circuit, converted_circuit, atol=1e-6
         )
 
 
@@ -284,7 +284,7 @@ def test_zztheta_zzpow_unsorted_qubits():
         circuit, gateset=cirq_google.SycamoreTargetGateset()
     )
     cirq.testing.assert_circuits_with_terminal_measurements_are_equivalent(
-        circuit, converted_circuit, atol=1e-8
+        circuit, converted_circuit, atol=1e-6
     )
 
 
@@ -299,7 +299,7 @@ def test_swap_zztheta():
             circuit, gateset=cirq_google.SycamoreTargetGateset()
         )
         cirq.testing.assert_circuits_with_terminal_measurements_are_equivalent(
-            circuit, converted_circuit, atol=1e-8
+            circuit, converted_circuit, atol=1e-5
         )
 
 
@@ -312,7 +312,7 @@ def test_known_two_q_operations_to_sycamore_operations_cnot():
 
     # Should be equivalent.
     cirq.testing.assert_circuits_with_terminal_measurements_are_equivalent(
-        circuit, converted_circuit, atol=1e-8
+        circuit, converted_circuit, atol=1e-6
     )
 
     # Should have decomposed into two Sycamores.
@@ -343,7 +343,7 @@ def test_convert_to_sycamore_equivalent_unitaries(gate):
         circuit, gateset=cirq_google.SycamoreTargetGateset()
     )
     cirq.testing.assert_circuits_with_terminal_measurements_are_equivalent(
-        circuit, converted_circuit, atol=1e-8
+        circuit, converted_circuit, atol=1e-6
     )
 
 
@@ -383,7 +383,7 @@ def test_supported_operation(op):
         circuit, gateset=cirq_google.SycamoreTargetGateset()
     )
     cirq.testing.assert_circuits_with_terminal_measurements_are_equivalent(
-        circuit, converted_circuit, atol=1e-8
+        circuit, converted_circuit, atol=1e-6
     )
     multi_qubit_ops = [e for e in converted_circuit.all_operations() if len(e.qubits) > 1]
     assert all(isinstance(e.gate, cirq_google.SycamoreGate) for e in multi_qubit_ops)
