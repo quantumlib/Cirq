@@ -44,7 +44,7 @@ class DummySimulationState(cirq.SimulationState):
 
 def test_measurements():
     args = DummySimulationState()
-    args.measure([cirq.LineQubit(0)], "test", [False])
+    args.measure([cirq.LineQubit(0)], "test", [False], {})
     assert args.log_of_measurement_results["test"] == [5]
 
 
