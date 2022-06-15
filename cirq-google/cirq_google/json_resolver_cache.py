@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import warnings
 import functools
 from typing import Dict
 
@@ -20,11 +21,21 @@ from cirq.protocols.json_serialization import ObjectFactory
 
 @functools.lru_cache()
 def _class_resolver_dictionary() -> Dict[str, ObjectFactory]:
+
+    def _old_xmon(*args, **kwargs):
+        warnings.warn('Attempted to json load a Bristlecone or Foxtail Device.'
+                      'These devices were removed in Cirq v0.15 and are no '
+                      'longer supported. Please update device usage to a '
+                      'supported device or downgrade your Cirq installation.')
+        return None
+
     import cirq_google
-    from cirq_google.devices.known_devices import _NamedConstantXmonDevice
+
+
 
     return {
-        '_NamedConstantXmonDevice': _NamedConstantXmonDevice,
+        '_NamedConstantXmonDevice': _old_xmon,
+        'Bristlecone': _old_xmon,
         'Calibration': cirq_google.Calibration,
         'CalibrationTag': cirq_google.CalibrationTag,
         'CalibrationLayer': cirq_google.CalibrationLayer,
@@ -35,6 +46,7 @@ def _class_resolver_dictionary() -> Dict[str, ObjectFactory]:
         'GateTabulation': cirq_google.GateTabulation,
         'GridDevice': cirq_google.GridDevice,
         'PhysicalZTag': cirq_google.PhysicalZTag,
+        'Foxtail': _old_xmon,
         'FSimGateFamily': cirq_google.FSimGateFamily,
         'FloquetPhasedFSimCalibrationOptions': cirq_google.FloquetPhasedFSimCalibrationOptions,
         'FloquetPhasedFSimCalibrationRequest': cirq_google.FloquetPhasedFSimCalibrationRequest,
