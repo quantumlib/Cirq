@@ -12,34 +12,28 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from astroid import parse
-from pylint.testutils import CheckerTestCase, MessageTest
+import astroid
+from pylint import testutils
 
-from dev_tools.import-only-modules import ImportOnlyModulesChecker
+from dev_tools import import_only_modules
 
 
-class TestImportChecker(CheckerTestCase):
+class TestImportChecker(testutils.CheckerTestCase):
     r"""Test the imports only modules checker for Pylint"""
 
-    CHECKER_CLASS = ImportOnlyModulesChecker
+    CHECKER_CLASS = import_only_modules.ImportOnlyModulesChecker
 
     def test_wrong_import(self) -> None:
         r"""Report a message when a non-module is imported"""
-        node = parse("from cirq.devices import GridQubit")
+        node = astroid.extract_node("from cirq.devices import GridQubit")
         with self.assertAddsMessages(
-            MessageTest(msg_id='import-only-modules', col_offset=0)
+            testutils.MessageTest(msg_id='import-only-modules', node=node,
+                                  line=1, col_offset=0, end_line=1, end_col_offset=34)
         ):
-            self.checker.process_module(node)
+            self.checker.visit_importfrom(node)
 
     def test_correct_import(self) -> None:
         r"""Report no messages when correct import is used."""
-        node = parse("from cirq import devices")
+        node = astroid.extract_node("from cirq import devices")
         with self.assertNoMessages():
-            self.checker.process_module(node)
-
-    def test_correct_import(self) -> None:
-        r"""Report no messages when correct import is used."""
-        node = parse("import cirq")
-        with self.assertNoMessages():
-            self.checker.process_module(node)
-
+            self.checker.visit_importfrom(node)

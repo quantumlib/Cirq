@@ -1,5 +1,5 @@
 [MASTER]
-load-plugins=pylint.extensions.docstyle,pylint.extensions.docparams,pylint_copyright_checker,import-only-modules
+load-plugins=pylint.extensions.docstyle,pylint.extensions.docparams,pylint_copyright_checker,import_only_modules
 max-line-length=100
 disable=all
 ignore-paths=cirq-google/cirq_google/cloud/.*
