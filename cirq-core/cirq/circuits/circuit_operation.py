@@ -480,10 +480,10 @@ class CircuitOperation(ops.Operation):
             repetition_ids=repetition_ids,
             use_repetition_ids=use_repetition_ids,
             repeat_until=repeat_until,
+            param_resolver=param_resolver,
             qubit_map=dict(qubit_map),
             measurement_key_map=measurement_key_map,
             parent_path=tuple(parent_path),
-            param_resolver=param_resolver,
         )
 
     # Methods for constructing a similar object with one field modified.
