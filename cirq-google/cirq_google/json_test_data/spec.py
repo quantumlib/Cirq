@@ -77,6 +77,7 @@ TestSpec = ModuleJsonTestSpec(
             'SimulatedProcessorRecord',
             'SimulatedProcessorWithLocalDeviceRecord',
             'EngineResult',
+            'GridDevice',
         ]
     },
     resolver_cache=_class_resolver_dictionary(),
