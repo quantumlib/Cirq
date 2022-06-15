@@ -28,7 +28,7 @@ import cirq_google.devices.known_devices as known_devices
 from cirq_google.api import v2
 from cirq_google.engine import util
 from cirq_google.engine.engine import EngineContext
-from cirq_google.engine.util_test import uses_async_mock
+from cirq_google.engine.test_utils import uses_async_mock
 from cirq_google.cloud import quantum
 
 

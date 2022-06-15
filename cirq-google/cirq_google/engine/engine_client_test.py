@@ -24,7 +24,7 @@ from google.protobuf.timestamp_pb2 import Timestamp
 import duet
 
 from cirq_google.engine.engine_client import EngineClient, EngineException
-from cirq_google.engine.util_test import uses_async_mock
+from cirq_google.engine.test_utils import uses_async_mock
 from cirq_google.cloud import quantum
 
 

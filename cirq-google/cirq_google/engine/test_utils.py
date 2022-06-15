@@ -17,6 +17,6 @@ import sys
 import pytest
 
 # Annotation for tests that use unittest.mock.AsyncMock, added in python 3.8.
-# Tests using AsyncMock are expected to fail in 3.6 and 3.7.
+# Tests using AsyncMock are expected to fail in earlier versions of python.
 # See: https://docs.python.org/3/library/unittest.mock.html#unittest.mock.AsyncMock
 uses_async_mock = pytest.mark.xfail(sys.version_info < (3, 8, 0), reason='')
