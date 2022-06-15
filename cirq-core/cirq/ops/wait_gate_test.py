@@ -76,6 +76,14 @@ def test_qid_shape():
         cirq.WaitGate(0, qid_shape=(2, 2), num_qubits=1)
 
 
+@pytest.mark.parametrize('num_qubits', [1, 2, 3])
+def test_resolve_parameters(num_qubits: int) -> None:
+    gate = cirq.WaitGate(duration=cirq.Duration(nanos=sympy.Symbol('t_ns')), num_qubits=num_qubits)
+    resolved = cirq.resolve_parameters(gate, {'t_ns': 10})
+    assert resolved.duration == cirq.Duration(nanos=10)
+    assert cirq.num_qubits(resolved) == num_qubits
+
+
 def test_json():
     q0, q1 = cirq.GridQubit.rect(1, 2)
     qtrit = cirq.GridQid(1, 2, dimension=3)

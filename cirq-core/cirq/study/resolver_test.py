@@ -25,6 +25,7 @@ import cirq
 @pytest.mark.parametrize(
     'val',
     [
+        None,
         3.2,
         np.float32(3.2),
         int(1),

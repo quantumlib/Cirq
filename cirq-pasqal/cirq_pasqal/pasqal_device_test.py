@@ -118,12 +118,6 @@ def test_validate_operation_errors():
         d.validate_operation(cirq.CZ.on(TwoDQubit(0, 0), TwoDQubit(2, 2)))
 
 
-def test_qubit_set_deprecated():
-    d = generic_device(3)
-    with cirq.testing.assert_deprecated('qubit_set', deadline='v0.15'):
-        _ = d.qubit_set()
-
-
 def test_metadata():
     d = generic_device(3)
     assert d.metadata.qubit_set == frozenset(

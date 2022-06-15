@@ -11,9 +11,9 @@ To use Cirq with the IonQ API, one needs an API key.  This is a random looking s
 
 Given that you have the API key, there are two ways to use these to
 get an object in python to access the API. The object that you construct to access
-the API are instances of the `cirq.ionq.Service` class. You can directly use the API key in constructing this instances of this class. Here is an example of this pattern:
+the API are instances of the `cirq_ionq.Service` class. You can directly use the API key in constructing this instances of this class. Here is an example of this pattern:
 ```python
-import cirq.ionq as ionq
+import cirq_ionq as ionq
 
 service = ionq.Service(api_key='tomyheart')
 ```
@@ -24,7 +24,7 @@ export IONQ_API_KEY=tomyheart
 ```
 In the case that you have set these environment variables, you can just perform
 ```python
-import cirq.ionq as ionq
+import cirq_ionq as ionq
 
 service = ionq.Service()
 ```

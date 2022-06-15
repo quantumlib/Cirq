@@ -105,5 +105,49 @@ While we encourage and celebrate every contributor, the bar for RFC acceptance i
 *   Failure to achieve consensus during the design review.
 *   Concerns raised during implementation (for example: inability to achieve backwards compatibility, concerns about maintenance).
 
-If this process is functioning well, RFCs are expected to fail in the earlier, rather than later stages. 
+If this process is functioning well, RFCs are expected to fail in the earlier, rather than later stages.
 An approved RFC is not a commitment to implementation on any sort of timeline. The prioritization of features depends on user interest and willingness of contributors to implement them.
+
+## New hardware integrations
+
+Several hardware vendors already have integrations with cirq.  We are not
+currently soliciting additional vendors.  However, if you are considering
+integrating with cirq, we would highly encourage you to engage with the
+cirq-maintainer team through attending the weekly cirq cync and submitting
+an RFC as specified above.  Everyone benefits from a well-maintained, user
+friendly interface with a high reliability, which is the goal of having this
+RFC process.
+
+Examples of other integrations can be found on the
+[Hardware page](/cirq/hardware).
+
+There are a range of possibilities for integrating with cirq, including:
+
+*    Completely independent repository: requires the least engagement from
+the cirq team, but also lacks the benefits of a tighter integration and
+partnership.
+*    Different repository with links or tutorials hosted on cirq:
+less coordination is needed than a hosted integration, but requires
+continuous integration on the external repository to ensure compatibility
+with new cirq versions.
+*    Integration hosted within cirq repository:  requires the highest
+amount of coordination and effort but allows a tighter integration and for
+cirq-maintainers to modify the integration code to stay in sync with an
+evolving cirq-core code base.  We generally do not accept submissions for
+this type of integration for third-party vendors that function as
+intermediaries for other cloud vendors.
+
+Several things are needed for a successful integration:
+
+*    Plan for including external dependencies (if needed).
+*    Access and authentication.
+*    Tutorials and guides for use of the interface (for instance,
+a Getting Started guide).
+*    `Device` implementation for validating circuits on the hardware
+*     Transformer for compiling circuits to the supported gates on the
+hardware (or use `cirq.optimize_for_target_gateset`)
+*    ` Sampler` interface for running circuits on the hardware service.
+*     Conisder also providing a noise model that users can use to simulate the
+device if direct access is not available.
+
+

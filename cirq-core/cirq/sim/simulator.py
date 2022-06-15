@@ -595,10 +595,11 @@ class SimulatesIntermediateState(
             possible parameter resolver.
         """
         qubit_order = ops.QubitOrder.as_qubit_order(qubit_order)
-        for param_resolver in study.to_resolvers(params):
+        resolvers = list(study.to_resolvers(params))
+        for i, param_resolver in enumerate(resolvers):
             state = (
                 initial_state.copy()
-                if isinstance(initial_state, SimulationStateBase)
+                if isinstance(initial_state, SimulationStateBase) and i < len(resolvers) - 1
                 else initial_state
             )
             all_step_results = self.simulate_moment_steps(
