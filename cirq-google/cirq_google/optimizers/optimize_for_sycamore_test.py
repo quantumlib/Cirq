@@ -38,10 +38,14 @@ def test_optimizer_output_gates_are_supported(optimizer_type, gateset):
     circuit = cirq.Circuit(
         cirq.CZ(q0, q1), cirq.X(q0) ** 0.2, cirq.Z(q1) ** 0.2, cirq.measure(q0, q1, key='m')
     )
-    new_circuit = cg.optimized_for_sycamore(circuit, optimizer_type=optimizer_type)
-    for moment in new_circuit:
-        for op in moment:
-            assert gateset.is_supported_operation(op)
+
+    with cirq.testing.assert_deprecated(
+        'Use `cirq.optimize_for_target_gateset', deadline='v0.16', count=1
+    ):
+        new_circuit = cg.optimized_for_sycamore(circuit, optimizer_type=optimizer_type)
+        for moment in new_circuit:
+            for op in moment:
+                assert gateset.is_supported_operation(op)
 
 
 @pytest.mark.parametrize('optimizer_type, gateset', _OPTIMIZERS_AND_GATESETS)
@@ -53,19 +57,26 @@ def test_optimize_large_measurement_gates(optimizer_type, gateset):
         [cirq.CZ(qubits[i], qubits[i + 1]) for i in range(1, len(qubits) - 1, 2)],
         cirq.measure(*qubits, key='m'),
     )
-    new_circuit = cg.optimized_for_sycamore(circuit, optimizer_type=optimizer_type)
-    for moment in new_circuit:
-        for op in moment:
-            assert gateset.is_supported_operation(op)
+
+    with cirq.testing.assert_deprecated(
+        'Use `cirq.optimize_for_target_gateset', deadline='v0.16', count=1
+    ):
+        new_circuit = cg.optimized_for_sycamore(circuit, optimizer_type=optimizer_type)
+        for moment in new_circuit:
+            for op in moment:
+                assert gateset.is_supported_operation(op)
 
 
 def test_invalid_input():
-    with pytest.raises(ValueError):
-        q0, q1 = cirq.LineQubit.range(2)
-        circuit = cirq.Circuit(
-            cirq.CZ(q0, q1), cirq.X(q0) ** 0.2, cirq.Z(q1) ** 0.2, cirq.measure(q0, q1, key='m')
-        )
-        _ = cg.optimized_for_sycamore(circuit, optimizer_type='for_tis_100')
+    with cirq.testing.assert_deprecated(
+        'Use `cirq.optimize_for_target_gateset', deadline='v0.16', count=1
+    ):
+        with pytest.raises(ValueError):
+            q0, q1 = cirq.LineQubit.range(2)
+            circuit = cirq.Circuit(
+                cirq.CZ(q0, q1), cirq.X(q0) ** 0.2, cirq.Z(q1) ** 0.2, cirq.measure(q0, q1, key='m')
+            )
+            _ = cg.optimized_for_sycamore(circuit, optimizer_type='for_tis_100')
 
 
 def test_tabulation():
@@ -74,31 +85,41 @@ def test_tabulation():
     circuit = cirq.Circuit(cirq.MatrixGate(u).on(q0, q1))
     np.testing.assert_allclose(u, cirq.unitary(circuit))
 
-    circuit2 = cg.optimized_for_sycamore(circuit, optimizer_type='sycamore')
-    cirq.testing.assert_allclose_up_to_global_phase(u, cirq.unitary(circuit2), atol=1e-5)
-    assert len(circuit2) == 13
-
-    # Note this is run on every commit, so it needs to be relatively quick.
-    # This requires us to use relatively loose tolerances
-    circuit3 = cg.optimized_for_sycamore(
-        circuit, optimizer_type='sycamore', tabulation_resolution=0.1
-    )
-    cirq.testing.assert_allclose_up_to_global_phase(u, cirq.unitary(circuit3), rtol=1e-1, atol=1e-1)
-    assert len(circuit3) == 7
+    with cirq.testing.assert_deprecated(
+        'Use `cirq.optimize_for_target_gateset', deadline='v0.16', count=2
+    ):
+        circuit2 = cg.optimized_for_sycamore(circuit, optimizer_type='sycamore')
+        cirq.testing.assert_allclose_up_to_global_phase(u, cirq.unitary(circuit2), atol=1e-5)
+        assert len(circuit2) == 13
+        # Note this is run on every commit, so it needs to be relatively quick.
+        # This requires us to use relatively loose tolerances
+        circuit3 = cg.optimized_for_sycamore(
+            circuit, optimizer_type='sycamore', tabulation_resolution=0.1
+        )
+        cirq.testing.assert_allclose_up_to_global_phase(
+            u, cirq.unitary(circuit3), rtol=1e-1, atol=1e-1
+        )
+        assert len(circuit3) == 7
 
 
 def test_no_tabulation():
     circuit = cirq.Circuit(cirq.X(cirq.LineQubit(0)))
-    with pytest.raises(NotImplementedError):
-        cg.optimized_for_sycamore(circuit, optimizer_type='sqrt_iswap', tabulation_resolution=0.01)
 
-    with pytest.raises(NotImplementedError):
-        cg.optimized_for_sycamore(circuit, optimizer_type='xmon', tabulation_resolution=0.01)
+    with cirq.testing.assert_deprecated(
+        'Use `cirq.optimize_for_target_gateset', deadline='v0.16', count=3
+    ):
+        with pytest.raises(NotImplementedError):
+            cg.optimized_for_sycamore(
+                circuit, optimizer_type='sqrt_iswap', tabulation_resolution=0.01
+            )
 
-    with pytest.raises(NotImplementedError):
-        cg.optimized_for_sycamore(
-            circuit, optimizer_type='xmon_partial_cz', tabulation_resolution=0.01
-        )
+        with pytest.raises(NotImplementedError):
+            cg.optimized_for_sycamore(circuit, optimizer_type='xmon', tabulation_resolution=0.01)
+
+        with pytest.raises(NotImplementedError):
+            cg.optimized_for_sycamore(
+                circuit, optimizer_type='xmon_partial_cz', tabulation_resolution=0.01
+            )
 
 
 def test_one_q_matrix_gate():
@@ -106,21 +127,25 @@ def test_one_q_matrix_gate():
     q = cirq.LineQubit(0)
     circuit0 = cirq.Circuit(cirq.MatrixGate(u).on(q))
     assert len(circuit0) == 1
-    circuit_iswap = cg.optimized_for_sycamore(circuit0, optimizer_type='sqrt_iswap')
-    assert len(circuit_iswap) == 1
-    for moment in circuit_iswap:
-        for op in moment:
-            assert cg.SQRT_ISWAP_GATESET.is_supported_operation(op)
-            # single qubit gates shared between gatesets, so:
-            assert cg.SYC_GATESET.is_supported_operation(op)
 
-    circuit_syc = cg.optimized_for_sycamore(circuit0, optimizer_type='sycamore')
-    assert len(circuit_syc) == 1
-    for moment in circuit_iswap:
-        for op in moment:
-            assert cg.SYC_GATESET.is_supported_operation(op)
-            # single qubit gates shared between gatesets, so:
-            assert cg.SQRT_ISWAP_GATESET.is_supported_operation(op)
+    with cirq.testing.assert_deprecated(
+        'Use `cirq.optimize_for_target_gateset', deadline='v0.16', count=2
+    ):
+        circuit_iswap = cg.optimized_for_sycamore(circuit0, optimizer_type='sqrt_iswap')
+        assert len(circuit_iswap) == 1
+        for moment in circuit_iswap:
+            for op in moment:
+                assert cg.SQRT_ISWAP_GATESET.is_supported_operation(op)
+                # single qubit gates shared between gatesets, so:
+                assert cg.SYC_GATESET.is_supported_operation(op)
+
+        circuit_syc = cg.optimized_for_sycamore(circuit0, optimizer_type='sycamore')
+        assert len(circuit_syc) == 1
+        for moment in circuit_iswap:
+            for op in moment:
+                assert cg.SYC_GATESET.is_supported_operation(op)
+                # single qubit gates shared between gatesets, so:
+                assert cg.SQRT_ISWAP_GATESET.is_supported_operation(op)
 
 
 @pytest.mark.parametrize(
@@ -131,20 +156,23 @@ def test_circuit_operation_conversion(optimizer_type, two_qubit_gate_type):
     q0, q1 = cirq.LineQubit.range(2)
     subcircuit = cirq.FrozenCircuit(cirq.X(q0), cirq.SWAP(q0, q1))
     circuit = cirq.Circuit(cirq.CircuitOperation(subcircuit))
-    converted_circuit = cg.optimized_for_sycamore(circuit, optimizer_type=optimizer_type)
-    # Verify that the CircuitOperation was preserved.
-    ops = list(converted_circuit.all_operations())
-    assert isinstance(ops[0], cirq.CircuitOperation)
-    # Verify that the contents of the CircuitOperation were optimized.
-    converted_subcircuit = cg.optimized_for_sycamore(
-        subcircuit.unfreeze(), optimizer_type=optimizer_type
-    )
-    assert len(
-        [*converted_subcircuit.findall_operations_with_gate_type(two_qubit_gate_type)]
-    ) == len([*ops[0].circuit.findall_operations_with_gate_type(two_qubit_gate_type)])
-    cirq.testing.assert_circuits_with_terminal_measurements_are_equivalent(
-        ops[0].circuit, converted_subcircuit, atol=1e-6
-    )
-    cirq.testing.assert_circuits_with_terminal_measurements_are_equivalent(
-        circuit, converted_circuit, atol=1e-6
-    )
+    with cirq.testing.assert_deprecated(
+        'Use `cirq.optimize_for_target_gateset', deadline='v0.16', count=2
+    ):
+        converted_circuit = cg.optimized_for_sycamore(circuit, optimizer_type=optimizer_type)
+        # Verify that the CircuitOperation was preserved.
+        ops = list(converted_circuit.all_operations())
+        assert isinstance(ops[0], cirq.CircuitOperation)
+        # Verify that the contents of the CircuitOperation were optimized.
+        converted_subcircuit = cg.optimized_for_sycamore(
+            subcircuit.unfreeze(), optimizer_type=optimizer_type
+        )
+        assert len(
+            [*converted_subcircuit.findall_operations_with_gate_type(two_qubit_gate_type)]
+        ) == len([*ops[0].circuit.findall_operations_with_gate_type(two_qubit_gate_type)])
+        cirq.testing.assert_circuits_with_terminal_measurements_are_equivalent(
+            ops[0].circuit, converted_subcircuit, atol=1e-6
+        )
+        cirq.testing.assert_circuits_with_terminal_measurements_are_equivalent(
+            circuit, converted_circuit, atol=1e-6
+        )
