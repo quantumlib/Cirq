@@ -276,7 +276,7 @@ def test_trial_result_str():
         )
         == """measurements: m=1
 output state: TensorNetwork([
-    Tensor(shape=(2,), inds=('i_0',), tags=set()),
+    Tensor(shape=(2,), inds=('i_0',), tags=oset([])),
 ])"""
     )
 
@@ -297,7 +297,7 @@ def test_trial_result_repr_pretty():
         result,
         """measurements: m=1
 output state: TensorNetwork([
-    Tensor(shape=(2,), inds=('i_0',), tags=set()),
+    Tensor(shape=(2,), inds=('i_0',), tags=oset([])),
 ])""",
     )
     cirq.testing.assert_repr_pretty(result, "cirq.MPSTrialResult(...)", cycle=True)
@@ -311,7 +311,7 @@ def test_empty_step_result():
         str(step_result)
         == """q(0)=0
 TensorNetwork([
-    Tensor(shape=(2,), inds=('i_0',), tags=set()),
+    Tensor(shape=(2,), inds=('i_0',), tags=oset([])),
 ])"""
     )
 
@@ -324,7 +324,7 @@ def test_step_result_repr_pretty():
         step_result,
         """q(0)=0
 TensorNetwork([
-    Tensor(shape=(2,), inds=('i_0',), tags=set()),
+    Tensor(shape=(2,), inds=('i_0',), tags=oset([])),
 ])""",
     )
     cirq.testing.assert_repr_pretty(step_result, "cirq.MPSSimulatorStepResult(...)", cycle=True)
@@ -394,8 +394,8 @@ def test_simulate_moment_steps_sample():
             assert (
                 str(step)
                 == """TensorNetwork([
-    Tensor(shape=(2,), inds=('i_0',), tags=set()),
-    Tensor(shape=(2,), inds=('i_1',), tags=set()),
+    Tensor(shape=(2,), inds=('i_0',), tags=oset([])),
+    Tensor(shape=(2,), inds=('i_1',), tags=oset([])),
 ])"""
             )
             samples = step.sample([q0, q1], repetitions=10)
@@ -415,8 +415,8 @@ def test_simulate_moment_steps_sample():
             assert (
                 str(step)
                 == """TensorNetwork([
-    Tensor(shape=(2, 2), inds=('i_0', 'mu_0_1'), tags=set()),
-    Tensor(shape=(2, 2), inds=('mu_0_1', 'i_1'), tags=set()),
+    Tensor(shape=(2, 2), inds=('i_0', 'mu_0_1'), tags=oset([])),
+    Tensor(shape=(2, 2), inds=('mu_0_1', 'i_1'), tags=oset([])),
 ])"""
             )
             samples = step.sample([q0, q1], repetitions=10)
