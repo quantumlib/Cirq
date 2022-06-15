@@ -79,7 +79,7 @@ def test_decompose_single_qubit_matrix_gate():
             circuit, gateset=ionq_target_gateset, ignore_failures=False
         )
         cirq.testing.assert_circuits_with_terminal_measurements_are_equivalent(
-            circuit, decomposed_circuit, atol=1e-8
+            circuit, decomposed_circuit, atol=1e-6
         )
         assert VALID_DECOMPOSED_GATES.validate(decomposed_circuit)
 
@@ -93,7 +93,7 @@ def test_decompose_two_qubit_matrix_gate():
             circuit, gateset=ionq_target_gateset, ignore_failures=False
         )
         cirq.testing.assert_circuits_with_terminal_measurements_are_equivalent(
-            circuit, decomposed_circuit, atol=1e-8
+            circuit, decomposed_circuit, atol=1e-6
         )
         assert VALID_DECOMPOSED_GATES.validate(decomposed_circuit)
 
@@ -112,7 +112,7 @@ def test_decompose_multi_qubit_cirq_gates(gate, qubits):
         circuit, gateset=ionq_target_gateset, ignore_failures=False
     )
     cirq.testing.assert_circuits_with_terminal_measurements_are_equivalent(
-        circuit, decomposed_circuit, atol=1e-8
+        circuit, decomposed_circuit, atol=1e-6
     )
     assert ionq_target_gateset.validate(decomposed_circuit)
 
@@ -128,5 +128,6 @@ def test_decompose_parameterized_operation():
         cirq.testing.assert_circuits_with_terminal_measurements_are_equivalent(
             cirq.resolve_parameters(circuit, {theta: theta_val}),
             cirq.resolve_parameters(decomposed_circuit, {theta: theta_val}),
+            atol=1e-6,
         )
     assert ionq_target_gateset.validate(decomposed_circuit)

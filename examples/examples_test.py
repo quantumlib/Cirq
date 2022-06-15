@@ -114,7 +114,9 @@ def test_example_qaoa_same_unitary():
         for use_boolean_hamiltonian_gate in [True, False]
     ]
 
-    assert cirq.allclose_up_to_global_phase(cirq.unitary(circuits[0]), cirq.unitary(circuits[1]))
+    assert cirq.allclose_up_to_global_phase(
+        cirq.unitary(circuits[0]), cirq.unitary(circuits[1]), atol=1e-6
+    )
 
 
 def test_example_runs_quantum_teleportation():
