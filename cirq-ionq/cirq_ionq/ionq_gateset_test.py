@@ -128,5 +128,6 @@ def test_decompose_parameterized_operation():
         cirq.testing.assert_circuits_with_terminal_measurements_are_equivalent(
             cirq.resolve_parameters(circuit, {theta: theta_val}),
             cirq.resolve_parameters(decomposed_circuit, {theta: theta_val}),
+            atol=1e-6,
         )
     assert ionq_target_gateset.validate(decomposed_circuit)
