@@ -360,7 +360,7 @@ def to_zphase_data(results: Iterable[PhasedFSimCalibrationResult]) -> util.ZPhas
     """
     zphase_data: util.ZPhaseDataType = {}
     for result in results:
-        gate_type = GATE_ZPHASE_CODE_PAIRS.get(result.gate, None)
+        gate_type = GATE_ZPHASE_CODE_PAIRS.get(type(result.gate))
         if gate_type is None:
             raise ValueError(
                 f"Only 'SycamoreGate' and 'ISwapPowGate' are supported, got {result.gate}"

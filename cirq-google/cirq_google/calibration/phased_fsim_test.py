@@ -632,7 +632,7 @@ def test_to_zphase_data():
             (q0, q1): PhasedFSimCharacterization(zeta=0.1, gamma=0.2),
             (q1, q2): PhasedFSimCharacterization(zeta=0.3, gamma=0.4),
         },
-        gate=cirq_google.SycamoreGate,
+        gate=cirq_google.SycamoreGate(),
         options=WITHOUT_CHI_FLOQUET_PHASED_FSIM_CHARACTERIZATION,
     )
     result_2 = PhasedFSimCalibrationResult(
@@ -640,7 +640,7 @@ def test_to_zphase_data():
             (q0, q1): PhasedFSimCharacterization(zeta=0.5, gamma=0.6),
             (q1, q2): PhasedFSimCharacterization(zeta=0.7, gamma=0.8),
         },
-        gate=cirq.ISwapPowGate,
+        gate=cirq.ISwapPowGate(),
         options=WITHOUT_CHI_FLOQUET_PHASED_FSIM_CHARACTERIZATION,
     )
     assert to_zphase_data([result_1, result_2]) == {
@@ -657,7 +657,7 @@ def test_to_zphase_data():
             (q1, q2): PhasedFSimCharacterization(zeta=0.02),
             (q2, q0): PhasedFSimCharacterization(zeta=0.03, gamma=0.04, theta=0.05),
         },
-        gate=cirq_google.SycamoreGate,
+        gate=cirq_google.SycamoreGate(),
         options=WITHOUT_CHI_FLOQUET_PHASED_FSIM_CHARACTERIZATION,
     )
     assert to_zphase_data([result_1, result_3]) == {
@@ -676,7 +676,7 @@ def test_to_zphase_unknown_gate_raises_error():
             (q0, q1): PhasedFSimCharacterization(zeta=0.1, gamma=0.2),
             (q1, q2): PhasedFSimCharacterization(zeta=0.3, gamma=0.4),
         },
-        gate=cirq.CZPowGate,
+        gate=cirq.CZPowGate(),
         options=WITHOUT_CHI_FLOQUET_PHASED_FSIM_CHARACTERIZATION,
     )
     with pytest.raises(ValueError, match="Only 'SycamoreGate' and 'ISwapPowGate' are supported"):
