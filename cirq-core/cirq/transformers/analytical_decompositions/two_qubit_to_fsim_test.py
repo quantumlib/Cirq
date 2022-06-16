@@ -83,7 +83,8 @@ def test_decompose_two_qubit_interaction_into_two_b_gates(obj: Any):
     desired_unitary = obj if isinstance(obj, np.ndarray) else cirq.unitary(obj)
     for operation in circuit.all_operations():
         assert len(operation.qubits) < 2 or operation.gate == _B
-    assert cirq.approx_eq(cirq.unitary(circuit), desired_unitary, atol=1e-6)
+    # We lose a lot of precision in the random 4 qubit gates, so this atol is higher.
+    np.testing.assert_allclose(cirq.unitary(circuit), desired_unitary, atol=3e-5)
 
 
 def test_decompose_xx_yy_into_two_fsims_ignoring_single_qubit_ops_fail():
