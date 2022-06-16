@@ -380,12 +380,15 @@ def _create_corrected_circuit(
         q1: Second qubit to operate on.
 
     Yields:
-        Operations in `program` with pre and post rotations added s.t. the resulting `cirq.OP_TREE`
+        Operations in `program` with pre- and post- rotations added s.t. the resulting
+        `cirq.OP_TREE`
         implements `target_unitary`.
     """
     # Get the local equivalents
+    # We use higher precision than normal to avoid numerical instabilities.
     b_0, b_1, a_0, a_1 = _find_local_equivalents(
-        target_unitary, program.unitary(qubit_order=cirq.QubitOrder.explicit([q0, q1]))
+        target_unitary,
+        program.unitary(qubit_order=cirq.QubitOrder.explicit([q0, q1]), dtype=np.complex128),
     )
 
     # Apply initial corrections
