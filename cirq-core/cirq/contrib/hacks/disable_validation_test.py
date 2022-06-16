@@ -28,7 +28,8 @@ def test_disable_op_validation():
     # Fails if responsibility is not accepted.
     with pytest.raises(ValueError, match='mysterious and terrible'):
         with disable_op_validation():
-            _ = cirq.H(q0, q1)
+            # This does not run - the with condition errors out first.
+            _ = cirq.H(q0, q1)  # coverage: ignore
 
     # Passes, skipping validation.
     with disable_op_validation(accept_debug_responsibility=True):
