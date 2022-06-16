@@ -302,7 +302,8 @@ def output_of(*cmd: Optional[str], **kwargs) -> str:
          subprocess.CalledProcessError: The process returned a non-zero error
             code and the `check` flag was True (default).
     """
-    result = run(cmd, log_run_to_stderr=False, stdout=subprocess.PIPE, **kwargs).stdout
+    cmdpure = [w for w in cmd if w is not None]
+    result = run(cmdpure, log_run_to_stderr=False, stdout=subprocess.PIPE, **kwargs).stdout
 
     # Strip final newline.
     if result.endswith('\n'):
