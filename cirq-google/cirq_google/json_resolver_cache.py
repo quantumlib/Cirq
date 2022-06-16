@@ -22,13 +22,14 @@ from cirq.protocols.json_serialization import ObjectFactory
 @functools.lru_cache()
 def _class_resolver_dictionary() -> Dict[str, ObjectFactory]:
     def _old_xmon(*args, **kwargs):
+        d_type = kwargs['constant']
         warnings.warn(
-            'Attempted to json load a Bristlecone or Foxtail Device.'
+            f'Attempted to json load a {d_type} Device.'
             'These devices were removed in Cirq v0.15 and are no '
             'longer supported. Please update device usage to a '
             'supported device or downgrade your Cirq installation.'
         )
-        return None
+        return str(d_type)
 
     import cirq_google
 
