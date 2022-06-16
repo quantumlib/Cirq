@@ -84,6 +84,8 @@ def defer_measurements(
         ValueError: If sympy-based classical conditions are used, or if
             conditions based on multi-qubit measurements exist. (The latter of
             these is planned to be implemented soon).
+        NotImplementedError: When attempting to defer a measurement with a
+            confusion map. (https://github.com/quantumlib/Cirq/issues/5482)
     """
 
     circuit = transformer_primitives.unroll_circuit_op(circuit, deep=True, tags_to_check=None)
@@ -95,6 +97,11 @@ def defer_measurements(
             return op
         gate = op.gate
         if isinstance(gate, ops.MeasurementGate):
+            if gate.confusion_map:
+                raise NotImplementedError(
+                    "Deferring confused measurement is not implemented, but found "
+                    f"measurement with key={gate.key} and non-empty confusion map."
+                )
             key = value.MeasurementKey.parse_serialized(gate.key)
             targets = [_MeasurementQid(key, q) for q in op.qubits]
             measurement_qubits[key] = targets
