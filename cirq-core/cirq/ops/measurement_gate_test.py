@@ -12,11 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import cast
+from typing import Any, Sequence, Union, cast
 import numpy as np
 import pytest
 
 import cirq
+from cirq.type_workarounds import NotImplementedType
 
 
 @pytest.mark.parametrize(
@@ -529,3 +530,19 @@ def test_act_on_qutrit():
     )
     cirq.act_on(m, args)
     assert args.log_of_measurement_results == {'out': [0, 0]}
+
+
+def test_act_on_no_confusion_map_deprecated():
+    class OldSimState(cirq.SimulationState[bool]):
+        def _act_on_fallback_(
+            self, action: Any, qubits: Sequence['cirq.Qid'], allow_decompose: bool = True
+        ) -> Union[bool, NotImplementedType]:
+            return NotImplemented  # coverage: ignore
+
+        def measure(self, qubits: Sequence['cirq.Qid'], key: str, invert_mask: Sequence[bool]):
+            pass
+
+    state = OldSimState(state=False)
+    m = cirq.measure(cirq.LineQubit(0), key='test')
+    with cirq.testing.assert_deprecated('confusion_map', deadline='v0.16'):
+        cirq.act_on(m, state)

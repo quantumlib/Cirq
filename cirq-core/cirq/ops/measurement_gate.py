@@ -312,7 +312,17 @@ class MeasurementGate(raw_types.Gate):
 
         if not isinstance(sim_state, SimulationState):
             return NotImplemented
-        sim_state.measure(qubits, self.key, self.full_invert_mask(), self.confusion_map)
+        try:
+            sim_state.measure(
+                qubits, self.key, self.full_invert_mask(), confusion_map=self.confusion_map
+            )
+        except TypeError as e:
+            # Ensure that the error was due to confusion_map.
+            assert any("confusion_map" in arg for arg in e.args)
+            _compat._warn_or_error(
+                "Starting in v0.16, SimulationState subclasses will be required to accept "
+                "a 'confusion_map' argument. See SimulationState.measure for details."
+            )
         return True
 
 
