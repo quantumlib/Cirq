@@ -558,6 +558,7 @@ def test_act_on_no_confusion_map_deprecated():
 
 def test_act_on_no_confusion_map_scope_limited():
     error_msg = "error from deeper in measure"
+
     class ErrorProneSimState(cirq.StateVectorSimulationState):
         def __init__(self, *args, **kwargs):
             super().__init__(*args, **kwargs)
