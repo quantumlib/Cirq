@@ -19,9 +19,6 @@ from typing import cast, Any, Dict, List, Optional, Sequence
 
 import cirq
 from cirq.protocols.decompose_protocol import DecomposeResult
-from cirq.transformers.target_gatesets.compilation_target_gateset import (
-    _create_transformer_with_kwargs,
-)
 from cirq_google import ops
 from cirq_google.transformers.analytical_decompositions import two_qubit_to_sycamore
 
@@ -137,10 +134,10 @@ class SycamoreTargetGateset(cirq.TwoQubitCompilationTargetGateset):
     @property
     def preprocess_transformers(self) -> List[cirq.TRANSFORMER]:
         return [
-            _create_transformer_with_kwargs(
+            cirq.create_transformer_with_kwargs(
                 cirq.expand_composite, no_decomp=lambda op: cirq.num_qubits(op) <= self.num_qubits
             ),
-            _create_transformer_with_kwargs(
+            cirq.create_transformer_with_kwargs(
                 merge_swap_rzz_and_2q_unitaries,
                 intermediate_result_tag=self._intermediate_result_tag,
             ),
