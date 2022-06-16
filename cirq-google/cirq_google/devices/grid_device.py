@@ -369,6 +369,10 @@ class GridDevice(cirq.Device):
     def __repr__(self) -> str:
         return f'cirq_google.GridDevice({repr(self._metadata)})'
 
+    @classmethod
+    def _json_namespace_(cls) -> str:
+        return 'cirq.google'
+
     def _json_dict_(self):
         return {'metadata': self._metadata}
 
