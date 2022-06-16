@@ -1,5 +1,5 @@
 {
-    "cirq_type": "GridDevice",
+    "cirq_type": "cirq.google.GridDevice",
     "metadata": {
         "cirq_type": "GridDeviceMetadata",
         "qubit_pairs": [

@@ -372,7 +372,7 @@ class PhasedFSimEngineSimulator(cirq.SimulatesIntermediateStateVector[cirq.Spars
 
     def final_state_vector(self, program: cirq.Circuit) -> np.ndarray:
         result = self.simulate(program)
-        return result.state_vector()
+        return result.state_vector(copy=False)
 
     def get_calibrations(
         self, requests: Sequence[PhasedFSimCalibrationRequest]

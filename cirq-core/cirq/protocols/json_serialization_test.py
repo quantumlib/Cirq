@@ -265,12 +265,6 @@ def test_fail_to_resolve():
 QUBITS = cirq.LineQubit.range(5)
 Q0, Q1, Q2, Q3, Q4 = QUBITS
 
-# TODO: Include cirq.rx in the Circuit test case file.
-# Github issue: https://github.com/quantumlib/Cirq/issues/2014
-# Note that even the following doesn't work because theta gets
-# multiplied by 1/pi:
-#   cirq.Circuit(cirq.rx(sympy.Symbol('theta')).on(Q0)),
-
 ### MODULE CONSISTENCY tests
 
 

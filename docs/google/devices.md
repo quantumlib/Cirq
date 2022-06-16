@@ -231,9 +231,13 @@ Circuits with a repetitive structure can benefit from using
 Using this type condenses the serialized representation of the circuit, which
 may help for circuits that would otherwise run into size limitations.
 
+### Parameterized Gates
+
+Circuits for Google devices could contain gates parameterized by Sympy
+expressions, but only a subset of Sympy expression types are supported:
+`sympy.Symbol`, `sympy.Add`, `sympy.Mul`, and `sympy.Pow`.
 
 ## Specific Device Layouts
-
 The following devices are provided as part of cirq and can help you get your
 circuit ready for running on hardware by verifying that you are using
 appropriate qubits.
