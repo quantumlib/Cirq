@@ -16,9 +16,15 @@ import random
 from typing import Callable, Iterable, TypeVar, cast, Sequence
 
 from cirq.circuits import InsertStrategy
-from cirq import circuits, devices, ops
+from cirq import _compat, circuits, devices, ops
 
 
+@_compat.deprecated(
+    deadline='v0.16',
+    fix=(
+        'Install ReCirq and use ' 'recirq.beyond_classical.generate_boixo_2018_beyond_classical_v2'
+    ),
+)
 def generate_boixo_2018_supremacy_circuits_v2(
     qubits: Iterable[devices.GridQubit], cz_depth: int, seed: int
 ) -> circuits.Circuit:
@@ -81,6 +87,13 @@ def generate_boixo_2018_supremacy_circuits_v2(
     return circuit
 
 
+@_compat.deprecated(
+    deadline='v0.16',
+    fix=(
+        'Install ReCirq and use '
+        'recirq.beyond_classical.generate_boixo_2018_beyond_classical_v2_grid'
+    ),
+)
 def generate_boixo_2018_supremacy_circuits_v2_grid(
     n_rows: int, n_cols: int, cz_depth: int, seed: int
 ) -> circuits.Circuit:
@@ -183,6 +196,13 @@ _bristlecone_qubits = frozenset(
 )
 
 
+@_compat.deprecated(
+    deadline='v0.16',
+    fix=(
+        'Install ReCirq and use '
+        'recirq.beyond_classical.generate_boixo_2018_beyond_classical_v2_bristlecone'
+    ),
+)
 def generate_boixo_2018_supremacy_circuits_v2_bristlecone(
     n_rows: int, cz_depth: int, seed: int
 ) -> circuits.Circuit:

@@ -30,17 +30,7 @@ from cirq.testing.devices import ValidatingTestDevice
 
 
 class _Foxy(ValidatingTestDevice):
-    def can_add_operation_into_moment(
-        self, operation: 'cirq.Operation', moment: 'cirq.Moment'
-    ) -> bool:
-        if not super().can_add_operation_into_moment(operation, moment):
-            return False
-        # a fake rule for ensuring that no two CZs are executed at the same moment.
-        # this will ensure that CZs are always in separate moments in this device
-        return not (
-            isinstance(operation.gate, ops.CZPowGate)
-            and any(isinstance(op.gate, ops.CZPowGate) for op in moment.operations)
-        )
+    pass
 
 
 FOXY = _Foxy(
@@ -1360,7 +1350,7 @@ def test_findall_operations_until_blocked(circuit_cls):
     )
 
     # Test if all operations are blocked
-    for idx in range(0, 15):
+    for idx in range(15):
         for q in (a, b, c, d):
             assert_findall_operations_until_blocked_as_expected(
                 circuit=circuit, start_frontier={q: idx}, is_blocker=stop_if_op, expected_ops=[]

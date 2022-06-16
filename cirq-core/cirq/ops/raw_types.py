@@ -140,6 +140,12 @@ class Qid(metaclass=abc.ABCMeta):
             return NotImplemented
         return self._cmp_tuple() >= other._cmp_tuple()
 
+    def _circuit_diagram_info_(
+        self, args: 'cirq.CircuitDiagramInfoArgs'
+    ) -> 'cirq.CircuitDiagramInfo':
+        """Circuit symbol for qids defaults to the string representation."""
+        return protocols.CircuitDiagramInfo(wire_symbols=(str(self),))
+
 
 @functools.total_ordering
 class _QubitAsQid(Qid):
@@ -205,7 +211,7 @@ class Gate(metaclass=value.ABCMetaImplementAnyOneOf):
         Args:
             qubits: The sequence of qubits to potentially apply the gate to.
 
-        Throws:
+        Raises:
             ValueError: The gate can't be applied to the qubits.
         """
         _validate_qid_shape(self, qubits)
@@ -215,6 +221,9 @@ class Gate(metaclass=value.ABCMetaImplementAnyOneOf):
 
         Args:
             *qubits: The collection of qubits to potentially apply the gate to.
+
+        Returns: a `cirq.Operation` which is this gate applied to the given
+            qubits.
         """
         return ops.gate_operation.GateOperation(self, list(qubits))
 
@@ -271,6 +280,16 @@ class Gate(metaclass=value.ABCMetaImplementAnyOneOf):
     def wrap_in_linear_combination(
         self, coefficient: Union[complex, float, int] = 1
     ) -> 'cirq.LinearCombinationOfGates':
+        """Returns a LinearCombinationOfGates with this gate.
+
+        Args:
+            coefficient: number coefficient to use in the resulting
+                `cirq.LinearCombinationOfGates` object.
+
+        Returns:
+            `cirq.LinearCombinationOfGates` containing self with a
+                coefficient of `coefficient`.
+        """
         return ops.linear_combinations.LinearCombinationOfGates({self: coefficient})
 
     def __add__(
@@ -322,7 +341,16 @@ class Gate(metaclass=value.ABCMetaImplementAnyOneOf):
         return self.on(*qubits)
 
     def with_probability(self, probability: 'cirq.TParamVal') -> 'cirq.Gate':
+        """Creates a probabalistic channel with this gate.
 
+        Args:
+            probability: floating value between 0 and 1, giving the probability
+                this gate is applied.
+
+        Returns:
+            `cirq.RandomGateChannel` that applies `self` with probability
+                `probability` and the identity with probability `1-p`.
+        """
         if probability == 1:
             return self
         return ops.random_gate_channel.RandomGateChannel(sub_gate=self, probability=probability)
@@ -336,16 +364,18 @@ class Gate(metaclass=value.ABCMetaImplementAnyOneOf):
         """Returns a controlled version of this gate. If no arguments are
         specified, defaults to a single qubit control.
 
-         num_controls: Total number of control qubits.
-         control_values: For which control qubit values to apply the sub
-             gate.  A sequence of length `num_controls` where each
-             entry is an integer (or set of integers) corresponding to the
-             qubit value (or set of possible values) where that control is
-             enabled.  When all controls are enabled, the sub gate is
-             applied.  If unspecified, control values default to 1.
-         control_qid_shape: The qid shape of the controls.  A tuple of the
-             expected dimension of each control qid.  Defaults to
-             `(2,) * num_controls`.  Specify this argument when using qudits.
+
+        Args:
+            num_controls: Total number of control qubits.
+            control_values: Which control computational basis state to apply the
+                sub gate.  A sequence of length `num_controls` where each
+                entry is an integer (or set of integers) corresponding to the
+                computational basis state (or set of possible values) where that
+                control is enabled.  When all controls are enabled, the sub gate is
+                applied.  If unspecified, control values default to 1.
+            control_qid_shape: The qid shape of the controls.  A tuple of the
+                expected dimension of each control qid.  Defaults to
+                `(2,) * num_controls`.  Specify this argument when using qudits.
         """
 
         if num_controls == 0:
@@ -616,16 +646,21 @@ class Operation(metaclass=abc.ABCMeta):
 
     def with_classical_controls(
         self, *conditions: Union[str, 'cirq.MeasurementKey', 'cirq.Condition', sympy.Expr]
-    ) -> 'cirq.ClassicallyControlledOperation':
+    ) -> 'cirq.Operation':
         """Returns a classically controlled version of this operation.
 
         An operation that is classically controlled is executed iff all
-        conditions evaluate to True. Currently the only condition type is a
-        measurement key. A measurement key evaluates to True iff any qubit in
-        the corresponding measurement operation evaluated to a non-zero value.
+        conditions evaluate to True. Conditions can be either a measurement key
+        or a user-specified `cirq.Condition`. A measurement key evaluates to
+        True iff any qubit in the corresponding measurement operation evaluated
+        to a non-zero value; `cirq.Condition` supports more complex,
+        user-defined conditions.
 
-        The classical control will hide any tags on the existing operation,
-        since tags are considered a local attribute.
+        If no conditions are specified, returns self.
+
+        The classical control will remove any tags on the existing operation,
+        since tags are fragile, and we always opt to get rid of the tags when
+        the underlying operation is changed.
 
         Args:
             *conditions: A list of measurement keys, strings that can be parsed
@@ -633,10 +668,13 @@ class Operation(metaclass=abc.ABCMeta):
                 symbols are measurement key strings.
 
         Returns:
-            A `ClassicallyControlledOperation` wrapping the operation.
+            A `ClassicallyControlledOperation` wrapping the operation. If no conditions
+           are specified, returns self.
         """
         from cirq.ops.classically_controlled_operation import ClassicallyControlledOperation
 
+        if not conditions:
+            return self
         return ClassicallyControlledOperation(self, conditions)
 
     def without_classical_controls(self) -> 'cirq.Operation':
@@ -649,10 +687,10 @@ class Operation(metaclass=abc.ABCMeta):
         If there are no classical controls on the operation, it will return
         `self`.
 
-        Since tags are considered local, this will also remove any tags from
-        the operation (unless there are no classical controls on it). If a
-        `TaggedOperation` is under all the classical control layers, that
-        `TaggedOperation` will be returned from this function.
+        Since tags are fragile, this will also remove any tags from the operation,
+        when called on `TaggedOperation` (unless there are no classical controls on it).
+        If a `TaggedOperation` is under all the classical control layers,
+        that `TaggedOperation` will be returned from this function.
 
         Returns:
             The operation with all classical controls removed.
@@ -706,6 +744,8 @@ class TaggedOperation(Operation):
         *control_qubits: 'cirq.Qid',
         control_values: Optional[Sequence[Union[int, Collection[int]]]] = None,
     ) -> 'cirq.Operation':
+        if len(control_qubits) == 0:
+            return self
         return self.sub_operation.controlled_by(*control_qubits, control_values=control_values)
 
     @property
@@ -857,6 +897,13 @@ class TaggedOperation(Operation):
     def without_classical_controls(self) -> 'cirq.Operation':
         new_sub_operation = self.sub_operation.without_classical_controls()
         return self if new_sub_operation is self.sub_operation else new_sub_operation
+
+    def with_classical_controls(
+        self, *conditions: Union[str, 'cirq.MeasurementKey', 'cirq.Condition', sympy.Expr]
+    ) -> 'cirq.Operation':
+        if not conditions:
+            return self
+        return self.sub_operation.with_classical_controls(*conditions)
 
     def _control_keys_(self) -> AbstractSet['cirq.MeasurementKey']:
         return protocols.control_keys(self.sub_operation)

@@ -214,7 +214,7 @@ class Job:
         if self.target().startswith('qpu'):
             repetitions = self.repetitions()
             counts = {
-                _little_endian_to_big(int(k), self.num_qubits()): int(repetitions * float(v))
+                _little_endian_to_big(int(k), self.num_qubits()): round(repetitions * float(v))
                 for k, v in self._job['data']['histogram'].items()
             }
             return results.QPUResult(

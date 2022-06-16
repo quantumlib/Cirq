@@ -55,16 +55,16 @@ def default_repetition_ids(repetitions: IntParam) -> Optional[List[str]]:
     return None
 
 
-def _full_join_string_lists(list1: Optional[List[str]], list2: Optional[List[str]]):
+def _full_join_string_lists(
+    list1: Optional[List[str]], list2: Optional[List[str]]
+) -> Optional[List[str]]:
     if list1 is None and list2 is None:
         return None  # coverage: ignore
     if list1 is None:
         return list2  # coverage: ignore
     if list2 is None:
         return list1
-    return [
-        f'{REPETITION_ID_SEPARATOR.join([first, second])}' for first in list1 for second in list2
-    ]
+    return [f'{first}{REPETITION_ID_SEPARATOR}{second}' for first in list1 for second in list2]
 
 
 @dataclasses.dataclass(frozen=True)
@@ -224,7 +224,7 @@ class CircuitOperation(ops.Operation):
         return tuple(self.qubit_map.get(q, q) for q in ordered_qubits)
 
     def _default_repetition_ids(self) -> Optional[List[str]]:
-        return default_repetition_ids(self.repetitions)
+        return default_repetition_ids(self.repetitions) if self.use_repetition_ids else None
 
     def _qid_shape_(self) -> Tuple[int, ...]:
         return tuple(q.dimension for q in self.qubits)
@@ -474,13 +474,16 @@ class CircuitOperation(ops.Operation):
         repeat_until=None,
         **kwargs,
     ):
-        return (
-            cls(circuit, use_repetition_ids=use_repetition_ids, repeat_until=repeat_until)
-            .with_qubit_mapping(dict(qubit_map))
-            .with_measurement_key_mapping(measurement_key_map)
-            .with_params(param_resolver)
-            .with_key_path(tuple(parent_path))
-            .repeat(repetitions, repetition_ids)
+        return cls(
+            circuit=circuit,
+            repetitions=repetitions,
+            repetition_ids=repetition_ids,
+            use_repetition_ids=use_repetition_ids,
+            repeat_until=repeat_until,
+            param_resolver=param_resolver,
+            qubit_map=dict(qubit_map),
+            measurement_key_map=measurement_key_map,
+            parent_path=tuple(parent_path),
         )
 
     # Methods for constructing a similar object with one field modified.
@@ -524,7 +527,8 @@ class CircuitOperation(ops.Operation):
             expected_repetition_id_length = abs(repetitions)
 
             if repetition_ids is None:
-                repetition_ids = default_repetition_ids(expected_repetition_id_length)
+                if self.use_repetition_ids:
+                    repetition_ids = default_repetition_ids(expected_repetition_id_length)
             elif len(repetition_ids) != expected_repetition_id_length:
                 raise ValueError(
                     f'Expected repetition_ids={repetition_ids} length to be '

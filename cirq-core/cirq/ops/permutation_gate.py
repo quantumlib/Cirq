@@ -23,7 +23,15 @@ if TYPE_CHECKING:
 
 @value.value_equality
 class QubitPermutationGate(raw_types.Gate):
-    """A qubit permutation gate specified by a permutation list."""
+    r"""A qubit permutation gate specified by a permutation list.
+
+    For a permutation list $[p_0, p_1,\dots,p_{n-1}]$ this gate has the unitary
+
+    $$
+    \sum_{x_0,x_1,\dots,x_{n-1} \in \{0, 1\}} |x_{p_0}, x_{p_1}, \dots, x_{p_{n-1}}\rangle
+                                              \langle x_0, x_1, \dots, x_{n-1}|
+    $$
+    """
 
     def __init__(self, permutation: Sequence[int]):
         """Create a `cirq.QubitPermutationGate`.

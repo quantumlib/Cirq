@@ -26,6 +26,8 @@ from cirq.testing.circuit_compare import (
 
 from cirq.testing.consistent_act_on import assert_all_implemented_act_on_effects_match_unitary
 
+from cirq.testing.consistent_channels import assert_consistent_channel, assert_consistent_mixture
+
 from cirq.testing.consistent_controlled_gate_op import assert_controlled_and_controlled_by_identical
 
 from cirq.testing.consistent_decomposition import (
@@ -90,6 +92,10 @@ from cirq.testing.random_circuit import (
     random_two_qubit_circuit_with_czs,
 )
 
-from cirq.testing.repr_pretty_tester import assert_repr_pretty, FakePrinter
+from cirq.testing.repr_pretty_tester import (
+    assert_repr_pretty,
+    assert_repr_pretty_contains,
+    FakePrinter,
+)
 
 from cirq.testing.sample_circuits import nonoptimal_toffoli_circuit

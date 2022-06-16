@@ -35,8 +35,8 @@ def test_eq():
 
 
 def test_str():
-    assert str(cirq.LineQubit(5)) == '5'
-    assert str(cirq.LineQid(5, dimension=3)) == '5 (d=3)'
+    assert str(cirq.LineQubit(5)) == 'q(5)'
+    assert str(cirq.LineQid(5, dimension=3)) == 'q(5) (d=3)'
 
 
 def test_repr():

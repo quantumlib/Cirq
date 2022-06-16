@@ -18,7 +18,7 @@ from typing import Any, Iterator, List, Type, TYPE_CHECKING, Union, Sequence, Op
 
 import numpy as np
 
-from cirq import ops
+from cirq import _compat, ops
 from cirq._compat import deprecated_parameter
 from cirq.sim import simulator, state_vector, state_vector_simulator, state_vector_simulation_state
 
@@ -246,7 +246,7 @@ class SparseSimulatorStep(
         self._dtype = dtype
         self._state_vector: Optional[np.ndarray] = None
 
-    def state_vector(self, copy: bool = True):
+    def state_vector(self, copy: Optional[bool] = None):
         """Return the state vector at this point in the computation.
 
         The state is returned in the computational basis with these basis
@@ -279,6 +279,12 @@ class SparseSimulatorStep(
                 parameters from the state vector and store then using False
                 can speed up simulation by eliminating a memory copy.
         """
+        if copy is None:
+            _compat._warn_or_error(
+                "Starting in v0.16, state_vector will not copy the state by default. "
+                "Explicitly set copy=True to copy the state."
+            )
+            copy = True
         if self._state_vector is None:
             self._state_vector = np.array([1])
             state = self._merged_sim_state
@@ -289,7 +295,8 @@ class SparseSimulatorStep(
         return self._state_vector.copy() if copy else self._state_vector
 
     def __repr__(self) -> str:
+        # Dtype doesn't have a good repr, so we work around by invoking __name__.
         return (
             f'cirq.SparseSimulatorStep(sim_state={self._sim_state!r},'
-            f' dtype=np.{self._dtype.__name__})'
+            f' dtype=np.{self._dtype.__name__})'  # type: ignore
         )

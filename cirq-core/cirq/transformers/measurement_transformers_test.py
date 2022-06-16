@@ -237,23 +237,23 @@ def test_diagram():
     cirq.testing.assert_has_diagram(
         deferred,
         """
-                ┌────┐
-0: ──────────────@───────X────────M('c')───
-                 │                │
-1: ──────────────┼─@──────────────M────────
-                 │ │              │
-2: ──────────────┼@┼──────────────M────────
-                 │││              │
-3: ──────────────┼┼┼@─────────────M────────
-                 ││││
-M('a', q=0): ────X┼┼┼────M('a')────────────
-                  │││    │
-M('a', q=2): ─────X┼┼────M─────────────────
-                   ││
-M('b', q=1): ──────X┼────M('b')────────────
-                    │    │
-M('b', q=3): ───────X────M─────────────────
-                └────┘
+                   ┌────┐
+0: ─────────────────@───────X────────M('c')───
+                    │                │
+1: ─────────────────┼─@──────────────M────────
+                    │ │              │
+2: ─────────────────┼@┼──────────────M────────
+                    │││              │
+3: ─────────────────┼┼┼@─────────────M────────
+                    ││││
+M('a', q=q(0)): ────X┼┼┼────M('a')────────────
+                     │││    │
+M('a', q=q(2)): ─────X┼┼────M─────────────────
+                      ││
+M('b', q=q(1)): ──────X┼────M('b')────────────
+                       │    │
+M('b', q=q(3)): ───────X────M─────────────────
+                   └────┘
 """,
         use_unicode_characters=True,
     )
@@ -283,6 +283,18 @@ def test_sympy_control():
         cirq.measure(q0, q1, key='a'), cirq.X(q1).with_classical_controls(sympy.Symbol('a'))
     )
     with pytest.raises(ValueError, match='Only KeyConditions are allowed'):
+        _ = cirq.defer_measurements(circuit)
+
+
+def test_confusion_map():
+    q0, q1 = cirq.LineQubit.range(2)
+    circuit = cirq.Circuit(
+        cirq.measure(q0, q1, key='a', confusion_map={(0,): np.array([[0.9, 0.1], [0.1, 0.9]])}),
+        cirq.X(q1).with_classical_controls('a'),
+    )
+    with pytest.raises(
+        NotImplementedError, match='Deferring confused measurement is not implemented'
+    ):
         _ = cirq.defer_measurements(circuit)
 
 

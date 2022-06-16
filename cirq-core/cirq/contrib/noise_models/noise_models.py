@@ -29,26 +29,29 @@ class DepolarizingNoiseModel(devices.NoiseModel):
     also contain gates.
     """
 
-    def __init__(self, depol_prob: float):
+    def __init__(self, depol_prob: float, prepend: bool = False):
         """A depolarizing noise model
 
         Args:
             depol_prob: Depolarizing probability.
+            prepend: If True, put noise before affected gates. Default: False.
         """
         value.validate_probability(depol_prob, 'depol prob')
         self.qubit_noise_gate = ops.DepolarizingChannel(depol_prob)
+        self._prepend = prepend
 
     def noisy_moment(self, moment: 'cirq.Moment', system_qubits: Sequence['cirq.Qid']):
         if validate_all_measurements(moment) or self.is_virtual_moment(moment):
             # coverage: ignore
             return moment
 
-        return [
+        output = [
             moment,
             circuits.Moment(
                 self.qubit_noise_gate(q).with_tags(ops.VirtualTag()) for q in system_qubits
             ),
         ]
+        return output[::-1] if self._prepend else output
 
 
 class ReadoutNoiseModel(devices.NoiseModel):
@@ -63,25 +66,28 @@ class ReadoutNoiseModel(devices.NoiseModel):
     also contain gates.
     """
 
-    def __init__(self, bitflip_prob: float):
+    def __init__(self, bitflip_prob: float, prepend: bool = True):
         """A noise model with readout error.
 
         Args:
             bitflip_prob: Probability of a bit-flip during measurement.
+            prepend: If True, put noise before affected gates. Default: True.
         """
         value.validate_probability(bitflip_prob, 'bitflip prob')
         self.readout_noise_gate = ops.BitFlipChannel(bitflip_prob)
+        self._prepend = prepend
 
     def noisy_moment(self, moment: 'cirq.Moment', system_qubits: Sequence['cirq.Qid']):
         if self.is_virtual_moment(moment):
             return moment
         if validate_all_measurements(moment):
-            return [
+            output = [
                 circuits.Moment(
                     self.readout_noise_gate(q).with_tags(ops.VirtualTag()) for q in system_qubits
                 ),
                 moment,
             ]
+            return output if self._prepend else output[::-1]
         return moment
 
 
@@ -97,25 +103,28 @@ class DampedReadoutNoiseModel(devices.NoiseModel):
     also contain gates.
     """
 
-    def __init__(self, decay_prob: float):
+    def __init__(self, decay_prob: float, prepend: bool = True):
         """A depolarizing noise model with damped readout error.
 
         Args:
             decay_prob: Probability of T1 decay during measurement.
+            prepend: If True, put noise before affected gates. Default: True.
         """
         value.validate_probability(decay_prob, 'decay_prob')
         self.readout_decay_gate = ops.AmplitudeDampingChannel(decay_prob)
+        self._prepend = prepend
 
     def noisy_moment(self, moment: 'cirq.Moment', system_qubits: Sequence['cirq.Qid']):
         if self.is_virtual_moment(moment):
             return moment
         if validate_all_measurements(moment):
-            return [
+            output = [
                 circuits.Moment(
                     self.readout_decay_gate(q).with_tags(ops.VirtualTag()) for q in system_qubits
                 ),
                 moment,
             ]
+            return output if self._prepend else output[::-1]
         return moment
 
 

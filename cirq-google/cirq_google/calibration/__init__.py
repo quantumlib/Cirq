@@ -42,6 +42,7 @@ from cirq_google.calibration.workflow import (
     make_zeta_chi_gamma_compensation_for_moments,
     make_zeta_chi_gamma_compensation_for_operations,
     prepare_floquet_characterization_for_moments,
+    prepare_characterization_for_circuits_moments,
     prepare_characterization_for_moments,
     prepare_floquet_characterization_for_moment,
     prepare_characterization_for_moment,

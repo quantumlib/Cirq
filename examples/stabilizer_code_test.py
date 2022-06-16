@@ -37,7 +37,7 @@ def encode_corrupt_correct(
         .simulate(
             circuit, qubit_order=(qubits + ancillas), initial_state=(input_val * 2 ** len(ancillas))
         )
-        .state_vector()
+        .state_vector(copy=False)
     )
 
     decoded = code.decode(qubits, ancillas, state_vector)

@@ -2,7 +2,7 @@
 
 The device specification proto defines basic layout of a device as well as the
 gate set and serialized ids that can be used.  This specification can be used
-to find out specific characteristics of though.
+to find out specific characteristics of the device.
 
 Though several standard [Google devices](devices.md) are defined for your
 convenience, specific devices may have specialized layouts particular to that

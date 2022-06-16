@@ -97,10 +97,10 @@ def test_sample_heavy_set_with_parity():
     result = cirq.ResultDict(
         params=cirq.ParamResolver({}),
         measurements={
-            '0': np.array([[1], [0]]),
-            '1': np.array([[0], [1]]),
-            '2': np.array([[1], [1]]),
-            '3': np.array([[0], [0]]),
+            'q(0)': np.array([[1], [0]]),
+            'q(1)': np.array([[0], [1]]),
+            'q(2)': np.array([[1], [1]]),
+            'q(3)': np.array([[0], [0]]),
         },
     )
     sampler.run = MagicMock(return_value=result)

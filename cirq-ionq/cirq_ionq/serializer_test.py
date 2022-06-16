@@ -258,7 +258,7 @@ def test_serialize_native_gates():
     q0, q1, q2 = cirq.LineQubit.range(3)
     gpi = GPIGate(phi=0.1).on(q0)
     gpi2 = GPI2Gate(phi=0.2).on(q1)
-    ms = MSGate(phi1=0.3, phi2=0.4).on(q1, q2)
+    ms = MSGate(phi0=0.3, phi1=0.4).on(q1, q2)
     circuit = cirq.Circuit([gpi, gpi2, ms])
     serializer = ionq.Serializer()
     result = serializer.serialize(circuit)

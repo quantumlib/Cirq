@@ -39,21 +39,31 @@ if TYPE_CHECKING:
 
 
 class SwapPowGate(gate_features.InterchangeableQubitsGate, eigen_gate.EigenGate):
-    """The SWAP gate, possibly raised to a power. Exchanges qubits.
+    r"""The SWAP gate, possibly raised to a power. Exchanges qubits.
 
     SwapPowGate()**t = SwapPowGate(exponent=t) and acts on two qubits in the
     computational basis as the matrix:
 
-        [[1, 0, 0, 0],
-         [0, g·c, -i·g·s, 0],
-         [0, -i·g·s, g·c, 0],
-         [0, 0, 0, 1]]
+    $$
+    \begin{bmatrix}
+        1 & 0 & 0 & 0 \\
+        0 & g c & -i g s & 0 \\
+        0 & -i g s & g c & 0 \\
+        0 & 0 & 0 & 1
+    \end{bmatrix}
+    $$
 
     where:
 
-        c = cos(π·t/2)
-        s = sin(π·t/2)
-        g = exp(i·π·t/2).
+    $$
+    c = \cos\left(\frac{\pi t}{2}\right)
+    $$
+    $$
+    s = \sin(\left(\frac{\pi t}{2}\right)
+    $$
+    $$
+    g = e^{\frac{i \pi t}{2}}
+    $$
 
     `cirq.SWAP`, the swap gate, is an instance of this gate at exponent=1.
     """
@@ -164,7 +174,7 @@ class SwapPowGate(gate_features.InterchangeableQubitsGate, eigen_gate.EigenGate)
 
 
 class ISwapPowGate(gate_features.InterchangeableQubitsGate, eigen_gate.EigenGate):
-    """Rotates the |01⟩ vs |10⟩ subspace of two qubits around its Bloch X-axis.
+    r"""Rotates the |01⟩ vs |10⟩ subspace of two qubits around its Bloch X-axis.
 
     When exponent=1, swaps the two qubits and phases |01⟩ and |10⟩ by i. More
     generally, this gate's matrix is defined as follows:
@@ -173,15 +183,23 @@ class ISwapPowGate(gate_features.InterchangeableQubitsGate, eigen_gate.EigenGate
 
     which is given by the matrix:
 
-        [[1, 0, 0, 0],
-         [0, c, i·s, 0],
-         [0, i·s, c, 0],
-         [0, 0, 0, 1]]
+    $$
+    \begin{bmatrix}
+        1 & 0 & 0 & 0 \\
+        0 & c & i s & 0 \\
+        0 & i s & c & 0 \\
+        0 & 0 & 0 & 1
+    \end{bmatrix}
+    $$
 
-    where:
+    where
 
-        c = cos(π·t/2)
-        s = sin(π·t/2)
+    $$
+    c = \cos\left(\frac{\pi t}{2}\right)
+    $$
+    $$
+    s = \sin\left(\frac{\pi t}{2}\right)
+    $$
 
     `cirq.ISWAP`, the swap gate that applies i to the |01⟩ and |10⟩ states,
     is an instance of this gate at exponent=1.
@@ -291,60 +309,69 @@ def riswap(rads: value.TParamVal) -> ISwapPowGate:
 SWAP = SwapPowGate()
 document(
     SWAP,
-    """The swap gate.
+    r"""The swap gate.
 
-    Matrix:
+    This gate will swap two qubits (in any basis).
 
-    ```
-        [[1, 0, 0, 0],
-         [0, 0, 1, 0],
-         [0, 1, 0, 0],
-         [0, 0, 0, 1]]
-    ```
+    The unitary matrix of this gate is:
+    $$
+        \begin{bmatrix}
+            1 & 0 & 0 & 0 \\
+            & 0 & 1 & 0 \\
+            & 1 & 0 & 0 \\
+            0 & 0 & 0 & 1
+        \end{bmatrix}
+    $$
     """,
 )
 
 ISWAP = ISwapPowGate()
 document(
     ISWAP,
-    """The iswap gate.
+    r"""The iswap gate.
 
-    Matrix:
-    ```
-        [[1, 0, 0, 0],
-         [0, 0, i, 0],
-         [0, i, 0, 0],
-         [0, 0, 0, 1]]
-    ```
+    The unitary matrix of this gate is:
+    $$
+    \begin{bmatrix}
+        1 & 0 & 0 & 0 \\
+        0 & 0 & i & 0 \\
+        0 & i & 0 & 0 \\
+        0 & 0 & 0 & 1
+    \end{bmatrix}
+    $$
     """,
 )
 
 SQRT_ISWAP = ISwapPowGate(exponent=0.5)
 document(
     SQRT_ISWAP,
-    """The square root of iswap gate.
+    r"""The square root of iswap gate.
 
-    Matrix:
-    ```
-        [[1, 0,    0,    0],
-         [0, 1/√2, i/√2, 0],
-         [0, i/√2, 1/√2, 0],
-         [0, 0,    0,    1]]
-    ```
+    The unitary matrix of this gate is:
+    $$
+        \begin{bmatrix}
+            1 & 0 & 0 & 0 \\
+            0 & \frac{1}{\sqrt{2}} & \frac{i}{\sqrt{2}} & 0 \\
+            0 & \frac{i}{\sqrt{2}} & \frac{1}{\sqrt{2}} & 0 \\
+            0 & 0 & 0 & 1
+        \end{bmatrix}
+    $$
     """,
 )
 
 SQRT_ISWAP_INV = ISwapPowGate(exponent=-0.5)
 document(
     SQRT_ISWAP_INV,
-    """The inverse square root of iswap gate.
+    r"""The inverse square root of iswap gate.
 
-    Matrix:
-    ```
-        [[1, 0,     0,     0],
-         [0, 1/√2,  -i/√2, 0],
-         [0, -i/√2, 1/√2,  0],
-         [0, 0,     0,     1]]
-    ```
+    The unitary matrix of this gate is:
+    $$
+        \begin{bmatrix}
+            1 & 0 & 0 & 0 \\
+            0 & \frac{1}{\sqrt{2}} & -\frac{i}{\sqrt{2}} & 0 \\
+            0 & -\frac{i}{\sqrt{2}} & \frac{1}{\sqrt{2}} & 0 \\
+            0 & 0 & 0 & 1
+        \end{bmatrix}
+    $$
     """,
 )

@@ -13,9 +13,8 @@
 # limitations under the License.
 """Device object for converting from device specification protos"""
 
-from typing import Any, Callable, cast, Dict, Iterable, Optional, List, Set, Tuple, Type, FrozenSet
+from typing import Any, Callable, cast, Dict, Iterable, Optional, List, Set, Tuple, Type
 import cirq
-from cirq import _compat
 from cirq_google.serialization import serializable_gate_set
 from cirq_google.api import v2
 
@@ -118,10 +117,6 @@ class SerializableDevice(cirq.Device):
     def metadata(self) -> cirq.GridDeviceMetadata:
         """Get metadata information for device."""
         return self._metadata
-
-    @_compat.deprecated(fix='Please use metadata.qubit_set if applicable.', deadline='v0.15')
-    def qubit_set(self) -> FrozenSet[cirq.Qid]:
-        return frozenset(self.qubits)
 
     @classmethod
     def from_proto(

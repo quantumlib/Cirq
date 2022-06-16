@@ -29,7 +29,7 @@ from typing import (
 
 import numpy as np
 
-from cirq import ops, value, qis
+from cirq import _compat, ops, value, qis
 from cirq._compat import deprecated_class, proper_repr
 from cirq.sim import simulator, state_vector, simulator_base
 
@@ -110,6 +110,11 @@ class StateVectorStepResult(
 @deprecated_class(deadline='v0.16', fix='This class is no longer used.')
 @value.value_equality(unhashable=True)
 class StateVectorSimulatorState:
+    """Object representing current state of the simulator.
+
+    Includes the state vector, qubit map, and shape information.
+    """
+
     def __init__(self, state_vector: np.ndarray, qubit_map: Dict[ops.Qid, int]) -> None:
         self.state_vector = state_vector
         self.qubit_map = qubit_map
@@ -163,7 +168,7 @@ class StateVectorTrialResult(
             self._final_state_vector = tensor
         return self._final_state_vector
 
-    def state_vector(self) -> np.ndarray:
+    def state_vector(self, copy: bool = None) -> np.ndarray:
         """Return the state vector at the end of the computation.
 
         The state is returned in the computational basis with these basis
@@ -189,7 +194,13 @@ class StateVectorTrialResult(
                 |  6  |   1    |   1    |   0    |
                 |  7  |   1    |   1    |   1    |
         """
-        return self.final_state_vector.copy()
+        if copy is None:
+            _compat._warn_or_error(
+                "Starting in v0.16, state_vector will not copy the state by default. "
+                "Explicitly set copy=True to copy the state."
+            )
+            copy = True
+        return self.final_state_vector.copy() if copy else self.final_state_vector
 
     def _value_equality_values_(self):
         measurements = {k: v.tolist() for k, v in sorted(self.measurements.items())}

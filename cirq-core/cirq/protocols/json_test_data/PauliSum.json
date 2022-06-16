@@ -1,0 +1,67 @@
+{
+  "cirq_type": "PauliSum",
+  "items": [
+    [
+      [
+        [
+          {
+            "cirq_type": "LineQubit",
+            "x": 0
+          },
+          {
+            "cirq_type": "_PauliX",
+            "exponent": 1.0,
+            "global_shift": 0.0
+          }
+        ],
+        [
+          {
+            "cirq_type": "LineQubit",
+            "x": 1
+          },
+          {
+            "cirq_type": "_PauliX",
+            "exponent": 1.0,
+            "global_shift": 0.0
+          }
+        ]
+      ],
+      {
+        "cirq_type": "complex",
+        "real": 1.0,
+        "imag": 0.0
+      }
+    ],
+    [
+      [
+        [
+          {
+            "cirq_type": "LineQubit",
+            "x": 0
+          },
+          {
+            "cirq_type": "_PauliY",
+            "exponent": 1.0,
+            "global_shift": 0.0
+          }
+        ],
+        [
+          {
+            "cirq_type": "LineQubit",
+            "x": 1
+          },
+          {
+            "cirq_type": "_PauliY",
+            "exponent": 1.0,
+            "global_shift": 0.0
+          }
+        ]
+      ],
+      {
+        "cirq_type": "complex",
+        "real": 0.0,
+        "imag": 1.0
+      }
+    ]
+  ]
+}

@@ -174,19 +174,19 @@ def test_bitstring_accumulator_strings(example_bsa):
     )
 
     strings_should_be = [
-        '+Z(0) * +Z(1) → X(0): 0.000 +- 0.577',
-        '+Z(0) * +Z(1) → Y(1): 0.000 +- 0.577',
-        '+Z(0) * +Z(1) → X(0)*Y(1): 0.000 +- 0.577',
+        '+Z(q(0)) * +Z(q(1)) → X(q(0)): 0.000 +- 0.577',
+        '+Z(q(0)) * +Z(q(1)) → Y(q(1)): 0.000 +- 0.577',
+        '+Z(q(0)) * +Z(q(1)) → X(q(0))*Y(q(1)): 0.000 +- 0.577',
     ]
     for setting, ssb in zip(settings, strings_should_be):
         assert example_bsa.summary_string(setting) == ssb, ssb
 
     assert (
         str(example_bsa)
-        == """Accumulator +Z(0) * +Z(1) → X(0)*Y(1); 4 repetitions
-  +Z(0) * +Z(1) → X(0)*Y(1): 0.000 +- 0.577
-  +Z(0) * +Z(1) → X(0): 0.000 +- 0.577
-  +Z(0) * +Z(1) → Y(1): 0.000 +- 0.577"""
+        == """Accumulator +Z(q(0)) * +Z(q(1)) → X(q(0))*Y(q(1)); 4 repetitions
+  +Z(q(0)) * +Z(q(1)) → X(q(0))*Y(q(1)): 0.000 +- 0.577
+  +Z(q(0)) * +Z(q(1)) → X(q(0)): 0.000 +- 0.577
+  +Z(q(0)) * +Z(q(1)) → Y(q(1)): 0.000 +- 0.577"""
     )
 
 

@@ -26,7 +26,7 @@ from cirq.ops import eigen_gate, swap_gates
 
 @value.value_equality(manual_cls=True)
 class PhasedISwapPowGate(eigen_gate.EigenGate):
-    """Fractional ISWAP conjugated by Z rotations.
+    r"""Fractional ISWAP conjugated by Z rotations.
 
     PhasedISwapPowGate with phase_exponent p and exponent t is equivalent to
     the composition
@@ -35,18 +35,26 @@ class PhasedISwapPowGate(eigen_gate.EigenGate):
 
     and is given by the matrix:
 
-        [[1, 0, 0, 0],
-         [0, c, i·s·f, 0],
-         [0, i·s·f*, c, 0],
-         [0, 0, 0, 1]]
+    $$
+    \begin{bmatrix}
+        1 & 0 & 0 & 0 \\
+        0 & c & i s f & 0 \\
+        0 & i s f^* & c & 0 \\
+        0 & 0 & 0 & 1
+    \end{bmatrix}
+    $$
 
     where:
 
-        c = cos(π·t/2)
-        s = sin(π·t/2)
-        f = exp(2πi·p)
-
-    and star indicates complex conjugate.
+    $$
+    c = \cos\left(\frac{\pi t}{2}\right)
+    $$
+    $$
+    s = \sin\left(\frac{\pi t}{2}\right)
+    $$
+    $$
+    f = e^{2 \pi p i}
+    $$
     """
 
     def __init__(

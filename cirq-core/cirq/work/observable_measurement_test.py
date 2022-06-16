@@ -90,18 +90,18 @@ def test_get_params_for_setting():
     assert all(
         x in params
         for x in [
-            '0-Xf',
-            '0-Yf',
-            '1-Xf',
-            '1-Yf',
-            '2-Xf',
-            '2-Yf',
-            '0-Xi',
-            '0-Yi',
-            '1-Xi',
-            '1-Yi',
-            '2-Xi',
-            '2-Yi',
+            'q(0)-Xf',
+            'q(0)-Yf',
+            'q(1)-Xf',
+            'q(1)-Yf',
+            'q(2)-Xf',
+            'q(2)-Yf',
+            'q(0)-Xi',
+            'q(0)-Yi',
+            'q(1)-Xi',
+            'q(1)-Yi',
+            'q(2)-Xi',
+            'q(2)-Yi',
         ]
     )
 
@@ -164,14 +164,14 @@ def test_subdivide_meas_specs():
     assert not np.any(fmspec1.flips)
 
     assert list(fmspec1.param_tuples()) == [
-        ('0-Xf', 0),
-        ('0-Yf', -0.5),
-        ('0-Xi', 0),
-        ('0-Yi', 0),
-        ('1-Xf', 0.5),
-        ('1-Yf', 0),
-        ('1-Xi', 0),
-        ('1-Yi', 0),
+        ('q(0)-Xf', 0),
+        ('q(0)-Yf', -0.5),
+        ('q(0)-Xi', 0),
+        ('q(0)-Yi', 0),
+        ('q(1)-Xf', 0.5),
+        ('q(1)-Yf', 0),
+        ('q(1)-Xi', 0),
+        ('q(1)-Yi', 0),
         ('beta', 0.123),
         ('gamma', 0.456),
     ]

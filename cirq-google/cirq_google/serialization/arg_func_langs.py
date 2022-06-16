@@ -37,7 +37,16 @@ FLOAT_ARG_LIKE = Union[float, sympy.Expr]
 
 # Types for comparing floats
 # Includes sympy types.  Needed for arg parsing.
-FLOAT_TYPES = (float, int, sympy.Integer, sympy.Float, sympy.Rational, sympy.NumberSymbol)
+FLOAT_TYPES = (
+    float,
+    int,
+    np.integer,
+    np.floating,
+    sympy.Integer,
+    sympy.Float,
+    sympy.Rational,
+    sympy.NumberSymbol,
+)
 
 # Supported function languages in order from least to most flexible.
 # Clients should use the least flexible language they can, to make it easier
@@ -181,7 +190,11 @@ def _arg_func_to_proto(
         for arg in value.args:
             arg_to_proto(arg, arg_function_language=arg_function_language, out=msg.func.args.add())
     else:
-        raise ValueError(f'Unrecognized arg type: {type(value)}')
+        raise ValueError(
+            f"Unrecognized Sympy expression type: {type(value)}."
+            " Only the following types are recognized: 'sympy.Symbol', 'sympy.Add', 'sympy.Mul',"
+            " 'sympy.Pow'."
+        )
 
 
 def float_arg_from_proto(

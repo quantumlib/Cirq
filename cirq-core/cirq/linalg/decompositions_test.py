@@ -738,7 +738,7 @@ def test_kak_vector_input_not_unitary():
 def test_kak_decompose(unitary: np.ndarray):
     kak = cirq.kak_decomposition(unitary)
     circuit = cirq.Circuit(kak._decompose_(cirq.LineQubit.range(2)))
-    np.testing.assert_allclose(cirq.unitary(circuit), unitary, atol=1e-8)
+    np.testing.assert_allclose(cirq.unitary(circuit), unitary, atol=1e-6)
     assert len(circuit) == 5
     assert len(list(circuit.all_operations())) == 8
 
@@ -746,7 +746,9 @@ def test_kak_decompose(unitary: np.ndarray):
 def test_num_two_qubit_gates_required():
     for i in range(4):
         assert (
-            cirq.num_cnots_required(cirq.testing.random_two_qubit_circuit_with_czs(i).unitary())
+            cirq.num_cnots_required(
+                cirq.testing.random_two_qubit_circuit_with_czs(i).unitary(), atol=1e-6
+            )
             == i
         )
 
@@ -759,7 +761,7 @@ def test_num_two_qubit_gates_required_invalid():
 
 
 @pytest.mark.parametrize(
-    "U",
+    "u",
     [
         cirq.testing.random_two_qubit_circuit_with_czs(3).unitary(),
         # an example where gamma(special(u))=I, so the denominator becomes 0
@@ -776,8 +778,8 @@ def test_num_two_qubit_gates_required_invalid():
         ),
     ],
 )
-def test_extract_right_diag(U):
-    assert cirq.num_cnots_required(U) == 3
-    diag = cirq.linalg.extract_right_diag(U)
+def test_extract_right_diag(u):
+    assert cirq.num_cnots_required(u) == 3
+    diag = cirq.linalg.extract_right_diag(u)
     assert cirq.is_diagonal(diag)
-    assert cirq.num_cnots_required(U @ diag) == 2
+    assert cirq.num_cnots_required(u @ diag, atol=1e-6) == 2

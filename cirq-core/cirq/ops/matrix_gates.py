@@ -37,7 +37,17 @@ three_qubit_decomposition = _import.LazyLoader(
 
 
 class MatrixGate(raw_types.Gate):
-    """A unitary qubit or qudit gate defined entirely by its matrix."""
+    r"""A unitary qubit or qudit gate defined entirely by its numpy matrix.
+
+    For example `cirq.MatrixGate(np.array([[0, 1j], [1, 0]]))` has the unitary matrix:
+
+    $$
+    \begin{bmatrix}
+        0 & i \\
+        1 & 0
+    \end{bmatrix}
+    $$
+    """
 
     def __init__(
         self,
@@ -46,7 +56,7 @@ class MatrixGate(raw_types.Gate):
         name: str = None,
         qid_shape: Optional[Iterable[int]] = None,
         unitary_check_rtol: float = 1e-5,
-        unitary_check_atol: float = 1e-8,
+        unitary_check_atol: float = 1e-6,
     ) -> None:
         """Initializes a matrix gate.
 
@@ -149,9 +159,7 @@ class MatrixGate(raw_types.Gate):
         n_qubits = len(self._qid_shape)
         if self._name is not None:
             symbols = (
-                [self._name]
-                if n_qubits == 1
-                else [f'{self._name}[{i+1}]' for i in range(0, n_qubits)]
+                [self._name] if n_qubits == 1 else [f'{self._name}[{i+1}]' for i in range(n_qubits)]
             )
             return protocols.CircuitDiagramInfo(wire_symbols=symbols)
         main = _matrix_to_diagram_symbol(self._matrix, args)

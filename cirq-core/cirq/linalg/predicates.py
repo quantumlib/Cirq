@@ -20,7 +20,7 @@ from cirq.linalg import tolerance, transformations
 from cirq import value
 
 
-def is_diagonal(matrix: np.ndarray, *, atol: float = 1e-8) -> np.bool_:
+def is_diagonal(matrix: np.ndarray, *, atol: float = 1e-8) -> bool:
     """Determines if a matrix is a approximately diagonal.
 
     A matrix is diagonal if i!=j implies m[i,j]==0.
