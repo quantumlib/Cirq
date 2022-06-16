@@ -105,7 +105,7 @@ class SimulationState(SimulationStateBase, Generic[TState], metaclass=abc.ABCMet
         qubits: Sequence['cirq.Qid'],
         key: str,
         invert_mask: Sequence[bool],
-        confusion_map: Dict[Tuple[int, ...], np.ndarray],
+        confusion_map: Optional[Dict[Tuple[int, ...], np.ndarray]] = None,
     ):
         """Measures the qubits and records to `log_of_measurement_results`.
 
@@ -123,7 +123,8 @@ class SimulationState(SimulationStateBase, Generic[TState], metaclass=abc.ABCMet
             ValueError: If a measurement key has already been logged to a key.
         """
         bits = self._perform_measurement(qubits)
-        confused = self._confuse_result(bits, qubits, confusion_map)
+        if confusion_map is not None:
+            confused = self._confuse_result(bits, qubits, confusion_map)
         corrected = [bit ^ (bit < 2 and mask) for bit, mask in zip(confused, invert_mask)]
         self._classical_data.record_measurement(
             value.MeasurementKey.parse_serialized(key), corrected, qubits
