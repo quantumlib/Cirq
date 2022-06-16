@@ -1,5 +1,3 @@
-"""temp docstring"""
-
 import astroid
 from pylint import checkers, interfaces
 from pylint.checkers import utils
@@ -49,5 +47,4 @@ class ImportOnlyModulesChecker(checkers.BaseChecker):
 
 
 def register(linter):
-    """temp docstring"""
     linter.register_checker(ImportOnlyModulesChecker(linter))
