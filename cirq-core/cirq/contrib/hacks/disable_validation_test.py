@@ -37,7 +37,9 @@ def test_disable_op_validation():
 
     # Validation is restored even on error.
     with pytest.raises(AssertionError):
-        assert False
+        with disable_op_validation(accept_debug_responsibility=True):
+            assert q0 == q1
+
     # Future developer: DO NOT REMOVE. This is NOT a duplicate!
     # It only LOOKS like a duplicate because this is a gross hack :D
     with pytest.raises(ValueError, match='Wrong number'):
