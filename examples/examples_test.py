@@ -70,7 +70,10 @@ def test_example_runs_quantum_fourier_transform():
 
 def test_example_runs_bcs_mean_field():
     pytest.importorskip("cirq_google")
-    examples.bcs_mean_field.main()
+    with cirq.testing.assert_deprecated(
+        'Use cirq.optimize_for_target_gateset', deadline='v0.16', count=None
+    ):
+        examples.bcs_mean_field.main()
 
 
 def test_example_runs_grover():
@@ -114,7 +117,9 @@ def test_example_qaoa_same_unitary():
         for use_boolean_hamiltonian_gate in [True, False]
     ]
 
-    assert cirq.allclose_up_to_global_phase(cirq.unitary(circuits[0]), cirq.unitary(circuits[1]))
+    assert cirq.allclose_up_to_global_phase(
+        cirq.unitary(circuits[0]), cirq.unitary(circuits[1]), atol=1e-6
+    )
 
 
 def test_example_runs_quantum_teleportation():
