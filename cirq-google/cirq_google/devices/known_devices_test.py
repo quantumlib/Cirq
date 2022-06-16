@@ -16,6 +16,7 @@ import pytest
 
 import cirq
 import cirq_google
+import cirq_google.experimental.ops.coupler_pulse as coupler_pulse
 import cirq_google.devices.known_devices as known_devices
 import cirq_google.serialization.common_serializers as cgc
 
@@ -451,4 +452,127 @@ valid_targets {
   }
 }
 """
+    )
+
+
+def test_sycamore():
+    q = cirq.GridQubit(0, 0)
+    valid_sycamore_gates_and_ops = [
+        cirq_google.SYC,
+        cirq.SQRT_ISWAP,
+        cirq.SQRT_ISWAP_INV,
+        cirq.X,
+        cirq.Y,
+        # Broken due to issue #5543.
+        # TODO(#5543) Uncomment
+        # cirq.Z,
+        # cirq.Z(q).with_tags(cirq_google.PhysicalZTag()),
+        coupler_pulse.CouplerPulse(hold_time=cirq.Duration(nanos=10), coupling_mhz=25.0),
+        cirq.measure(q),
+        cirq.WaitGate(cirq.Duration(millis=5)),
+    ]
+
+    assert (
+        str(cirq_google.Sycamore)
+        == """\
+                                             (0, 5)───(0, 6)
+                                             │        │
+                                             │        │
+                                    (1, 4)───(1, 5)───(1, 6)───(1, 7)
+                                    │        │        │        │
+                                    │        │        │        │
+                           (2, 3)───(2, 4)───(2, 5)───(2, 6)───(2, 7)───(2, 8)
+                           │        │        │        │        │        │
+                           │        │        │        │        │        │
+                  (3, 2)───(3, 3)───(3, 4)───(3, 5)───(3, 6)───(3, 7)───(3, 8)───(3, 9)
+                  │        │        │        │        │        │        │        │
+                  │        │        │        │        │        │        │        │
+         (4, 1)───(4, 2)───(4, 3)───(4, 4)───(4, 5)───(4, 6)───(4, 7)───(4, 8)───(4, 9)
+         │        │        │        │        │        │        │        │
+         │        │        │        │        │        │        │        │
+(5, 0)───(5, 1)───(5, 2)───(5, 3)───(5, 4)───(5, 5)───(5, 6)───(5, 7)───(5, 8)
+         │        │        │        │        │        │        │
+         │        │        │        │        │        │        │
+         (6, 1)───(6, 2)───(6, 3)───(6, 4)───(6, 5)───(6, 6)───(6, 7)
+                  │        │        │        │        │
+                  │        │        │        │        │
+                  (7, 2)───(7, 3)───(7, 4)───(7, 5)───(7, 6)
+                           │        │        │
+                           │        │        │
+                           (8, 3)───(8, 4)───(8, 5)
+                                    │
+                                    │
+                                    (9, 4)"""
+    )
+    assert all(
+        gate_or_op in cirq_google.Sycamore.metadata.gateset
+        for gate_or_op in valid_sycamore_gates_and_ops
+    )
+    assert len(cirq_google.Sycamore.metadata.gate_durations) == len(
+        cirq_google.Sycamore.metadata.gateset.gates
+    )
+    assert any(
+        isinstance(cgs, cirq_google.SycamoreTargetGateset)
+        for cgs in cirq_google.Sycamore.metadata.compilation_target_gatesets
+    )
+    assert any(
+        isinstance(cgs, cirq.SqrtIswapTargetGateset)
+        for cgs in cirq_google.Sycamore.metadata.compilation_target_gatesets
+    )
+
+
+def test_sycamore23():
+    q = cirq.GridQubit(0, 0)
+    valid_sycamore_gates_and_ops = [
+        cirq_google.SYC,
+        cirq.SQRT_ISWAP,
+        cirq.SQRT_ISWAP_INV,
+        cirq.X,
+        cirq.Y,
+        # Broken due to issue #5543.
+        # TODO(#5543) Uncomment
+        # cirq.Z,
+        # cirq.Z(q).with_tags(cirq_google.PhysicalZTag()),
+        coupler_pulse.CouplerPulse(hold_time=cirq.Duration(nanos=10), coupling_mhz=25.0),
+        cirq.measure(q),
+        cirq.WaitGate(cirq.Duration(millis=5)),
+    ]
+
+    assert (
+        str(cirq_google.Sycamore23)
+        == """\
+                  (3, 2)
+                  │
+                  │
+         (4, 1)───(4, 2)───(4, 3)
+         │        │        │
+         │        │        │
+(5, 0)───(5, 1)───(5, 2)───(5, 3)───(5, 4)
+         │        │        │        │
+         │        │        │        │
+         (6, 1)───(6, 2)───(6, 3)───(6, 4)───(6, 5)
+                  │        │        │        │
+                  │        │        │        │
+                  (7, 2)───(7, 3)───(7, 4)───(7, 5)───(7, 6)
+                           │        │        │
+                           │        │        │
+                           (8, 3)───(8, 4)───(8, 5)
+                                    │
+                                    │
+                                    (9, 4)"""
+    )
+    assert all(
+        gate_or_op in cirq_google.Sycamore23.metadata.gateset
+        for gate_or_op in valid_sycamore_gates_and_ops
+    )
+    assert len(cirq_google.Sycamore23.metadata.gate_durations) == len(
+        cirq_google.Sycamore23.metadata.gateset.gates
+    )
+    assert any(
+        isinstance(cgs, cirq_google.SycamoreTargetGateset)
+        for cgs in cirq_google.Sycamore23.metadata.compilation_target_gatesets
+    )
+    assert any(
+        isinstance(cgs, cirq.SqrtIswapTargetGateset)
+        for cgs in cirq_google.Sycamore23.metadata.compilation_target_gatesets
     )
