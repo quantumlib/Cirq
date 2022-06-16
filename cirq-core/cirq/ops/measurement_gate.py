@@ -324,6 +324,7 @@ class MeasurementGate(raw_types.Gate):
                 "Starting in v0.16, SimulationState subclasses will be required to accept "
                 "a 'confusion_map' argument. See SimulationState.measure for details."
             )
+            sim_state.measure(qubits, self.key, self.full_invert_mask())
         return True
 
 

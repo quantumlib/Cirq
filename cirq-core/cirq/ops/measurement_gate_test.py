@@ -534,19 +534,24 @@ def test_act_on_qutrit():
 
 def test_act_on_no_confusion_map_deprecated():
     class OldSimState(cirq.StateVectorSimulationState):
+        def __init__(self, *args, **kwargs):
+            super().__init__(*args, **kwargs)
+            self.measured = False
+
         def _act_on_fallback_(
             self, action: Any, qubits: Sequence['cirq.Qid'], allow_decompose: bool = True
         ) -> Union[bool, NotImplementedType]:
             return NotImplemented  # coverage: ignore
 
         def measure(self, qubits: Sequence['cirq.Qid'], key: str, invert_mask: Sequence[bool]):
-            pass
+            self.measured = True
 
     qubits = cirq.LineQubit.range(2)
     old_state = OldSimState(qubits=qubits)
     m = cirq.measure(*qubits, key='test')
     with cirq.testing.assert_deprecated('confusion_map', deadline='v0.16'):
         cirq.act_on(m, old_state)
+    assert old_state.measured
 
     # Verify that the check doesn't prevent other errors from being raised
     sv_state = cirq.StateVectorSimulationState(
