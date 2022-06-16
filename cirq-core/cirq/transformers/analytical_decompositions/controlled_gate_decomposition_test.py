@@ -46,7 +46,7 @@ def test_decompose_x():
                 *qubits[0 : controls_count + 1]
             )
             expected_matrix = circuit2.unitary()
-            assert np.allclose(expected_matrix, result_matrix)
+            assert np.allclose(expected_matrix, result_matrix, atol=1e-6)
 
 
 def _random_unitary():
@@ -88,7 +88,9 @@ def _test_decompose(matrix, controls_count):
         [cirq.MatrixGate(matrix).on(qubits[-1]).controlled_by(*qubits[:-1])]
     ).unitary()
 
-    assert np.allclose(expected_matrix, result_matrix)
+    # Decompose can build rather large circuits for large controls_count,
+    # so we lose a lot of precision.
+    np.testing.assert_allclose(expected_matrix, result_matrix, atol=1e-5)
 
 
 def test_decompose_specific_matrices():
