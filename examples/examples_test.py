@@ -70,7 +70,10 @@ def test_example_runs_quantum_fourier_transform():
 
 def test_example_runs_bcs_mean_field():
     pytest.importorskip("cirq_google")
-    examples.bcs_mean_field.main()
+    with cirq.testing.assert_deprecated(
+        'Use cirq.optimize_for_target_gateset', deadline='v0.16', count=None
+    ):
+        examples.bcs_mean_field.main()
 
 
 def test_example_runs_grover():
