@@ -397,7 +397,7 @@ class PauliString(raw_types.Operation, Generic[TKey]):
         factors = []
         if self._coefficient == -1:
             prefix = '-'
-        elif self._coefficient != 1:
+        else:
             factors.append(repr(self._coefficient))
 
         if not ordered_qubits:

@@ -387,40 +387,26 @@ class AbstractCircuit(abc.ABC):
     ) -> Dict['cirq.Qid', int]:
         """Determines how far can be reached into a circuit under certain rules.
 
-        The location L = (qubit, moment_index) is *reachable* if and only if:
+        The location L = (qubit, moment_index) is *reachable* if and only if the
+        following all hold true:
 
-            a) There is not a blocking operation covering L.
+        - There is not a blocking operation covering L.
+        -  At least one of the following holds:
+            - qubit is in start frontier and moment_index =
+                max(start_frontier[qubit], 0).
+            - There is no operation at L and prev(L) = (qubit,
+                moment_index-1) is reachable.
+            - There is an (non-blocking) operation P covering L such that
+                (q', moment_index - 1) is reachable for every q' on which P
+                acts.
 
-            AND
+        An operation in moment moment_index is blocking if at least one of the
+        following hold:
 
-            [
-                b1) qubit is in start frontier and moment_index =
-                    max(start_frontier[qubit], 0).
-
-                OR
-
-                b2) There is no operation at L and prev(L) = (qubit,
-                    moment_index-1) is reachable.
-
-                OR
-
-                b3) There is an (non-blocking) operation P covering L such that
-                    (q', moment_index - 1) is reachable for every q' on which P
-                    acts.
-            ]
-
-        An operation in moment moment_index is blocking if
-
-            a) `is_blocker` returns a truthy value.
-
-            OR
-
-            b) The operation acts on a qubit not in start_frontier.
-
-            OR
-
-            c) The operation acts on a qubit q such that start_frontier[q] >
-                moment_index.
+        - `is_blocker` returns a truthy value.
+        - The operation acts on a qubit not in start_frontier.
+        - The operation acts on a qubit q such that start_frontier[q] >
+            moment_index.
 
         In other words, the reachable region extends forward through time along
         each qubit in start_frontier until it hits a blocking operation. Any
@@ -433,12 +419,20 @@ class AbstractCircuit(abc.ABC):
 
         Examples:
 
-            If start_frontier is {
-                cirq.LineQubit(0): 6,
-                cirq.LineQubit(1): 2,
-                cirq.LineQubit(2): 2,
-            } then the reachable wire locations in the following circuit are
-            highlighted with '█' characters:
+        If `start_frontier` is
+
+        ```
+        {
+            cirq.LineQubit(0): 6,
+            cirq.LineQubit(1): 2,
+            cirq.LineQubit(2): 2
+        }
+        ```
+
+        then the reachable wire locations in the following circuit are
+        highlighted with '█' characters:
+
+        ```
 
                 0   1   2   3   4   5   6   7   8   9   10  11  12  13
             0: ───H───@─────────────────█████████████████████─@───H───
@@ -448,31 +442,42 @@ class AbstractCircuit(abc.ABC):
             2: ─────────██████@███H██─@───────@───H───@───────────────
                                       │       │
             3: ───────────────────────@───H───@───────────────────────
+        ```
 
-            And the computed end_frontier is {
-                cirq.LineQubit(0): 11,
-                cirq.LineQubit(1): 9,
-                cirq.LineQubit(2): 6,
-            }
+        And the computed `end_frontier` is
 
-            Note that the frontier indices (shown above the circuit) are
-            best thought of (and shown) as happening *between* moment indices.
+        ```
+        {
+            cirq.LineQubit(0): 11,
+            cirq.LineQubit(1): 9,
+            cirq.LineQubit(2): 6,
+        }
+        ```
 
-            If we specify a blocker as follows:
+        Note that the frontier indices (shown above the circuit) are
+        best thought of (and shown) as happening *between* moment indices.
 
-                is_blocker=lambda: op == cirq.CZ(cirq.LineQubit(1),
-                                                 cirq.LineQubit(2))
+        If we specify a blocker as follows:
 
-            and use this start_frontier:
+        ```
+        is_blocker=lambda: op == cirq.CZ(cirq.LineQubit(1),
+                                         cirq.LineQubit(2))
+        ```
 
-                {
-                    cirq.LineQubit(0): 0,
-                    cirq.LineQubit(1): 0,
-                    cirq.LineQubit(2): 0,
-                    cirq.LineQubit(3): 0,
-                }
+        and use this `start_frontier`:
 
-            Then this is the reachable area:
+        ```
+        {
+            cirq.LineQubit(0): 0,
+            cirq.LineQubit(1): 0,
+            cirq.LineQubit(2): 0,
+            cirq.LineQubit(3): 0,
+        }
+        ```
+
+        Then this is the reachable area:
+
+        ```
 
                 0   1   2   3   4   5   6   7   8   9   10  11  12  13
             0: ─██H███@██████████████████████████████████████─@───H───
@@ -483,14 +488,18 @@ class AbstractCircuit(abc.ABC):
                                       │       │
             3: ─█████████████████████─@───H───@───────────────────────
 
-            and the computed end_frontier is:
+        ```
 
-                {
-                    cirq.LineQubit(0): 11,
-                    cirq.LineQubit(1): 3,
-                    cirq.LineQubit(2): 3,
-                    cirq.LineQubit(3): 5,
-                }
+        and the computed `end_frontier` is:
+
+        ```
+        {
+            cirq.LineQubit(0): 11,
+            cirq.LineQubit(1): 3,
+            cirq.LineQubit(2): 3,
+            cirq.LineQubit(3): 5,
+        }
+        ```
 
         Args:
             start_frontier: A starting set of reachable locations.
@@ -608,39 +617,28 @@ class AbstractCircuit(abc.ABC):
     ) -> List[Tuple[int, 'cirq.Operation']]:
         """Finds all operations until a blocking operation is hit.
 
-        An operation is considered blocking if
+        An operation is considered blocking if both of the following hold:
 
-        a) It is in the 'light cone' of start_frontier.
-
-        AND
-
-        (
-
-            1) is_blocker returns a truthy value.
-
-            OR
-
-            2) It acts on a blocked qubit.
-        )
+        - It is in the 'light cone' of start_frontier.
+        - `is_blocker` returns a truthy value, or it acts on a blocked qubit
 
         Every qubit acted on by a blocking operation is thereafter itself
         blocked.
 
-
         The notion of reachability here differs from that in
         reachable_frontier_from in two respects:
 
-        1) An operation is not considered blocking only because it is in a
+        - An operation is not considered blocking only because it is in a
             moment before the start_frontier of one of the qubits on which it
             acts.
-        2) Operations that act on qubits not in start_frontier are not
+        - Operations that act on qubits not in start_frontier are not
             automatically blocking.
 
         For every (moment_index, operation) returned:
 
-        1) moment_index >= min((start_frontier[q] for q in operation.qubits
+        - moment_index >= min((start_frontier[q] for q in operation.qubits
             if q in start_frontier), default=0)
-        2) set(operation.qubits).intersection(start_frontier)
+        - set(operation.qubits).intersection(start_frontier)
 
         Below are some examples, where on the left the opening parentheses show
         `start_frontier` and on the right are the operations included (with
@@ -648,44 +646,45 @@ class AbstractCircuit(abc.ABC):
         `is_blocker` return `False` or `True`, respectively, when applied to
         the gates; `M` indicates that it doesn't matter.
 
-
-        ─(─F───F───────    ┄(─F───F─)┄┄┄┄┄
-           │   │              │   │
-        ─(─F───F───T─── => ┄(─F───F─)┄┄┄┄┄
-                   │                  ┊
-        ───────────T───    ┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄
-
-
-        ───M─────(─F───    ┄┄┄┄┄┄┄┄┄(─F─)┄┄
-           │       │          ┊       │
-        ───M───M─(─F───    ┄┄┄┄┄┄┄┄┄(─F─)┄┄
-               │        =>        ┊
-        ───────M───M───    ┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄
-                   │                  ┊
-        ───────────M───    ┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄
+        ```
+            ─(─F───F───────    ┄(─F───F─)┄┄┄┄┄
+               │   │              │   │
+            ─(─F───F───T─── => ┄(─F───F─)┄┄┄┄┄
+                       │                  ┊
+            ───────────T───    ┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄
 
 
-        ───M─(─────M───     ┄┄┄┄┄()┄┄┄┄┄┄┄┄
-           │       │           ┊       ┊
-        ───M─(─T───M───     ┄┄┄┄┄()┄┄┄┄┄┄┄┄
-               │        =>         ┊
-        ───────T───M───     ┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄
-                   │                   ┊
-        ───────────M───     ┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄
+            ───M─────(─F───    ┄┄┄┄┄┄┄┄┄(─F─)┄┄
+               │       │          ┊       │
+            ───M───M─(─F───    ┄┄┄┄┄┄┄┄┄(─F─)┄┄
+                   │        =>        ┊
+            ───────M───M───    ┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄
+                       │                  ┊
+            ───────────M───    ┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄
 
 
-        ─(─F───F───    ┄(─F───F─)┄
-           │   │    =>    │   │
-        ───F─(─F───    ┄(─F───F─)┄
+            ───M─(─────M───     ┄┄┄┄┄()┄┄┄┄┄┄┄┄
+               │       │           ┊       ┊
+            ───M─(─T───M───     ┄┄┄┄┄()┄┄┄┄┄┄┄┄
+                   │        =>         ┊
+            ───────T───M───     ┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄
+                       │                   ┊
+            ───────────M───     ┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄
 
 
-        ─(─F───────────    ┄(─F─)┄┄┄┄┄┄┄┄┄
-           │                  │
-        ───F───F───────    ┄(─F─)┄┄┄┄┄┄┄┄┄
-               │        =>        ┊
-        ───────F───F───    ┄┄┄┄┄┄┄┄┄(─F─)┄
-                   │                  │
-        ─(─────────F───    ┄┄┄┄┄┄┄┄┄(─F─)┄
+            ─(─F───F───    ┄(─F───F─)┄
+               │   │    =>    │   │
+            ───F─(─F───    ┄(─F───F─)┄
+
+
+            ─(─F───────────    ┄(─F─)┄┄┄┄┄┄┄┄┄
+               │                  │
+            ───F───F───────    ┄(─F─)┄┄┄┄┄┄┄┄┄
+                   │        =>        ┊
+            ───────F───F───    ┄┄┄┄┄┄┄┄┄(─F─)┄
+                       │                  │
+            ─(─────────F───    ┄┄┄┄┄┄┄┄┄(─F─)┄
+        ```
 
         Args:
             start_frontier: A starting set of reachable locations.
@@ -773,10 +772,17 @@ class AbstractCircuit(abc.ABC):
             yield index, gate_op, cast(_TGate, gate_op.gate)
 
     def has_measurements(self):
+        """Returns whether or not this circuit has measurements.
+
+        Returns: True if `cirq.is_measurement(self)` is True otherwise False.
+        """
         return protocols.is_measurement(self)
 
     def are_all_measurements_terminal(self) -> bool:
-        """Whether all measurement gates are at the end of the circuit."""
+        """Whether all measurement gates are at the end of the circuit.
+
+        Returns: True iff no measurement is followed by a gate.
+        """
         return self.are_all_matches_terminal(protocols.is_measurement)
 
     def are_all_matches_terminal(self, predicate: Callable[['cirq.Operation'], bool]) -> bool:
@@ -818,7 +824,10 @@ class AbstractCircuit(abc.ABC):
         return True
 
     def are_any_measurements_terminal(self) -> bool:
-        """Whether any measurement gates are at the end of the circuit."""
+        """Whether any measurement gates are at the end of the circuit.
+
+        Returns: True iff some measurements are not followed by a gate.
+        """
         return self.are_any_matches_terminal(protocols.is_measurement)
 
     def are_any_matches_terminal(self, predicate: Callable[['cirq.Operation'], bool]) -> bool:
@@ -865,15 +874,17 @@ class AbstractCircuit(abc.ABC):
         )
 
     def all_qubits(self) -> FrozenSet['cirq.Qid']:
-        """Returns the qubits acted upon by Operations in this circuit."""
+        """Returns the qubits acted upon by Operations in this circuit.
+
+        Returns: FrozenSet of `cirq.Qid` objects acted on by all operations
+            in this circuit.
+        """
         return frozenset(q for m in self.moments for q in m.qubits)
 
     def all_operations(self) -> Iterator['cirq.Operation']:
-        """Iterates over the operations applied by this circuit.
+        """Returns an iterator over the operations in the circuit.
 
-        Operations from earlier moments will be iterated over first. Operations
-        within a moment are iterated in the order they were given to the
-        moment's constructor.
+        Returns: Iterator over `cirq.Operation` elements found in this circuit.
         """
         return (op for moment in self for op in moment.operations)
 
@@ -899,6 +910,11 @@ class AbstractCircuit(abc.ABC):
     def qid_shape(
         self, qubit_order: 'cirq.QubitOrderOrList' = ops.QubitOrder.DEFAULT
     ) -> Tuple[int, ...]:
+        """Get the qubit shapes of all qubits in this circuit.
+
+        Returns: A tuple containing the dimensions (shape) of all qudits
+            found in this circuit according to `qubit_order`.
+        """
         qids = ops.QubitOrder.as_qubit_order(qubit_order).order_for(self.all_qubits())
         return protocols.qid_shape(qids)
 
@@ -906,9 +922,19 @@ class AbstractCircuit(abc.ABC):
         return {key for op in self.all_operations() for key in protocols.measurement_key_objs(op)}
 
     def _measurement_key_objs_(self) -> AbstractSet['cirq.MeasurementKey']:
+        """Returns the set of all measurement keys in this circuit.
+
+        Returns: AbstractSet of `cirq.MeasurementKey` objects that are
+            in this circuit.
+        """
         return self.all_measurement_key_objs()
 
     def all_measurement_key_names(self) -> AbstractSet[str]:
+        """Returns the set of all measurement key names in this circuit.
+
+        Returns: AbstractSet of strings that are the measurement key
+            names in this circuit.
+        """
         return {key for op in self.all_operations() for key in protocols.measurement_key_names(op)}
 
     def _measurement_key_names_(self) -> AbstractSet[str]:
@@ -972,7 +998,7 @@ class AbstractCircuit(abc.ABC):
         qubit_order: 'cirq.QubitOrderOrList' = ops.QubitOrder.DEFAULT,
         qubits_that_should_be_present: Iterable['cirq.Qid'] = (),
         ignore_terminal_measurements: bool = True,
-        dtype: Type[np.number] = np.complex128,
+        dtype: Type[np.number] = np.complex64,
     ) -> np.ndarray:
         """Converts the circuit into a unitary matrix, if possible.
 
@@ -987,11 +1013,10 @@ class AbstractCircuit(abc.ABC):
             ignore_terminal_measurements: When set, measurements at the end of
                 the circuit are ignored instead of causing the method to
                 fail.
-            dtype: The numpy dtype for the returned unitary. Defaults to
-                np.complex128. Specifying np.complex64 will run faster at the
-                cost of precision. `dtype` must be a complex np.dtype, unless
-                all operations in the circuit have unitary matrices with
-                exclusively real coefficients (e.g. an H + TOFFOLI circuit).
+            dtype: The numpy dtype for the returned unitary. `dtype` must be
+                a complex np.dtype, unless all operations in the circuit have
+                unitary matrices with exclusively real coefficients
+                (e.g. an H + TOFFOLI circuit).
 
         Returns:
             A (possibly gigantic) 2d numpy array corresponding to a matrix
@@ -1377,33 +1402,34 @@ class AbstractCircuit(abc.ABC):
                 at the same moment index.
 
         Examples:
-            >>> import cirq
-            >>> a, b, c, d = cirq.LineQubit.range(4)
-            >>> circuit1 = cirq.Circuit(cirq.H(a), cirq.CNOT(a, b))
-            >>> circuit2 = cirq.Circuit(cirq.X(c), cirq.Y(c), cirq.Z(c))
-            >>> circuit3 = cirq.Circuit(cirq.Moment(), cirq.Moment(cirq.S(d)))
-            >>> print(circuit1.zip(circuit2))
-            0: ───H───@───────
-                      │
-            1: ───────X───────
-            <BLANKLINE>
-            2: ───X───Y───Z───
-            >>> print(circuit1.zip(circuit2, circuit3))
-            0: ───H───@───────
-                      │
-            1: ───────X───────
-            <BLANKLINE>
-            2: ───X───Y───Z───
-            <BLANKLINE>
-            3: ───────S───────
-            >>> print(cirq.Circuit.zip(circuit3, circuit2, circuit1))
-            0: ───H───@───────
-                      │
-            1: ───────X───────
-            <BLANKLINE>
-            2: ───X───Y───Z───
-            <BLANKLINE>
-            3: ───────S───────
+
+        >>> import cirq
+        >>> a, b, c, d = cirq.LineQubit.range(4)
+        >>> circuit1 = cirq.Circuit(cirq.H(a), cirq.CNOT(a, b))
+        >>> circuit2 = cirq.Circuit(cirq.X(c), cirq.Y(c), cirq.Z(c))
+        >>> circuit3 = cirq.Circuit(cirq.Moment(), cirq.Moment(cirq.S(d)))
+        >>> print(circuit1.zip(circuit2))
+        0: ───H───@───────
+                  │
+        1: ───────X───────
+        <BLANKLINE>
+        2: ───X───Y───Z───
+        >>> print(circuit1.zip(circuit2, circuit3))
+        0: ───H───@───────
+                  │
+        1: ───────X───────
+        <BLANKLINE>
+        2: ───X───Y───Z───
+        <BLANKLINE>
+        3: ───────S───────
+        >>> print(cirq.Circuit.zip(circuit3, circuit2, circuit1))
+        0: ───H───@───────
+                  │
+        1: ───────X───────
+        <BLANKLINE>
+        2: ───X───Y───Z───
+        <BLANKLINE>
+        3: ───────S───────
         """
         n = max([len(c) for c in circuits], default=0)
 
@@ -1722,6 +1748,7 @@ class Circuit(AbstractCircuit):
         return self.copy()
 
     def copy(self) -> 'Circuit':
+        """Return a copy of this circuit."""
         copied_circuit = Circuit()
         copied_circuit._moments = self._moments[:]
         return copied_circuit
@@ -2206,11 +2233,10 @@ class Circuit(AbstractCircuit):
             insert_intos: A sequence of (moment_index, new_op_tree)
                 pairs indicating a moment to add new operations into.
 
-        ValueError:
-            One of the insertions collided with an existing operation.
-
-        IndexError:
-            Inserted into a moment index that doesn't exist.
+        Raises:
+            ValueError: One of the insertions collided with an existing
+                operation.
+            IndexError: Inserted into a moment index that doesn't exist.
         """
         copy = self.copy()
         for i, insertions in insert_intos:
@@ -2226,7 +2252,7 @@ class Circuit(AbstractCircuit):
         causes a new moment to be created, then the insert at "4" will actually
         occur at index 5 to account for the shift from the new moment.
 
-        All insertions are done with the strategy 'EARLIEST'.
+        All insertions are done with the strategy `cirq.InsertStrategy.EARLIEST`.
 
         When multiple inserts occur at the same index, the gates from the later
         inserts end up before the gates from the earlier inserts (exactly as if
@@ -2255,7 +2281,7 @@ class Circuit(AbstractCircuit):
         self,
         moment_or_operation_tree: Union['cirq.Moment', 'cirq.OP_TREE'],
         strategy: 'cirq.InsertStrategy' = InsertStrategy.EARLIEST,
-    ):
+    ) -> None:
         """Appends operations onto the end of the circuit.
 
         Moments within the operation tree are appended intact.

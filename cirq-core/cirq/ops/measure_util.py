@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Callable, Iterable, List, Optional, Tuple, TYPE_CHECKING, Union
+from typing import Callable, Dict, Iterable, List, overload, Optional, Tuple, TYPE_CHECKING, Union
 
 import numpy as np
 
@@ -81,10 +81,33 @@ def measure_paulistring_terms(
     return [PauliMeasurementGate([pauli_basis[q]], key=key_func(q)).on(q) for q in pauli_basis]
 
 
+# pylint: disable=function-redefined
+
+
+@overload
 def measure(
-    *target: 'cirq.Qid',
+    *target: raw_types.Qid,
     key: Optional[Union[str, 'cirq.MeasurementKey']] = None,
     invert_mask: Tuple[bool, ...] = (),
+) -> raw_types.Operation:
+    pass
+
+
+@overload
+def measure(
+    __target: Iterable[raw_types.Qid],
+    *,
+    key: Optional[Union[str, 'cirq.MeasurementKey']] = None,
+    invert_mask: Tuple[bool, ...] = (),
+) -> raw_types.Operation:
+    pass
+
+
+def measure(
+    *target,
+    key: Optional[Union[str, 'cirq.MeasurementKey']] = None,
+    invert_mask: Tuple[bool, ...] = (),
+    confusion_map: Optional[Dict[Tuple[int, ...], np.ndarray]] = None,
 ) -> raw_types.Operation:
     """Returns a single MeasurementGate applied to all the given qubits.
 
@@ -92,11 +115,17 @@ def measure(
 
     Args:
         *target: The qubits that the measurement gate should measure.
+            These can be specified as separate function arguments or
+            with a single argument for an iterable of qubits.
         key: The string key of the measurement. If this is None, it defaults
             to a comma-separated list of the target qubits' str values.
         invert_mask: A list of Truthy or Falsey values indicating whether
             the corresponding qubits should be flipped. None indicates no
             inverting should be done.
+        confusion_map: A map of qubit index sets (using indices in
+            `target`) to the 2D confusion matrix for those qubits. Indices
+            not included use the identity. Applied before invert_mask if both
+            are provided.
 
     Returns:
         An operation targeting the given qubits with a measurement.
@@ -104,7 +133,13 @@ def measure(
     Raises:
         ValueError: If the qubits are not instances of Qid.
     """
-    for qubit in target:
+    one_iterable_arg: bool = (
+        len(target) == 1
+        and isinstance(target[0], Iterable)
+        and not isinstance(target[0], (bytes, str, np.ndarray))
+    )
+    targets = tuple(target[0]) if one_iterable_arg else target
+    for qubit in targets:
         if isinstance(qubit, np.ndarray):
             raise ValueError(
                 'measure() was called a numpy ndarray. Perhaps you meant '
@@ -114,24 +149,48 @@ def measure(
             raise ValueError('measure() was called with type different than Qid.')
 
     if key is None:
-        key = _default_measurement_key(target)
-    qid_shape = protocols.qid_shape(target)
-    return MeasurementGate(len(target), key, invert_mask, qid_shape).on(*target)
+        key = _default_measurement_key(targets)
+    qid_shape = protocols.qid_shape(targets)
+    return MeasurementGate(len(targets), key, invert_mask, qid_shape, confusion_map).on(*targets)
+
+
+@overload
+def measure_each(
+    *qubits: raw_types.Qid, key_func: Callable[[raw_types.Qid], str] = str
+) -> List[raw_types.Operation]:
+    pass
+
+
+@overload
+def measure_each(
+    __qubits: Iterable[raw_types.Qid], *, key_func: Callable[[raw_types.Qid], str] = str
+) -> List[raw_types.Operation]:
+    pass
 
 
 def measure_each(
-    *qubits: 'cirq.Qid', key_func: Callable[[raw_types.Qid], str] = str
+    *qubits, key_func: Callable[[raw_types.Qid], str] = str
 ) -> List[raw_types.Operation]:
     """Returns a list of operations individually measuring the given qubits.
 
     The qubits are measured in the computational basis.
 
     Args:
-        *qubits: The qubits to measure.
+        *qubits: The qubits to measure.  These can be passed as separate
+            function arguments or as a one-argument iterable of qubits.
         key_func: Determines the key of the measurements of each qubit. Takes
             the qubit and returns the key for that qubit. Defaults to str.
 
     Returns:
         A list of operations individually measuring the given qubits.
     """
-    return [MeasurementGate(1, key_func(q), qid_shape=(q.dimension,)).on(q) for q in qubits]
+    one_iterable_arg: bool = (
+        len(qubits) == 1
+        and isinstance(qubits[0], Iterable)
+        and not isinstance(qubits[0], (bytes, str))
+    )
+    qubitsequence = qubits[0] if one_iterable_arg else qubits
+    return [MeasurementGate(1, key_func(q), qid_shape=(q.dimension,)).on(q) for q in qubitsequence]
+
+
+# pylint: enable=function-redefined

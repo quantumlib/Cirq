@@ -24,7 +24,10 @@ import cirq_google.cloud.quantum
 @pytest.mark.parametrize('circuit', [cirq.Circuit(), cirq.FrozenCircuit()])
 def test_run_circuit(circuit):
     engine = mock.Mock()
-    sampler = cg.QuantumEngineSampler(engine=engine, processor_id='tmp')
+    with cirq.testing.assert_deprecated(
+        'Use cirq_google.ProcessorSampler instead.', deadline='v0.16'
+    ):
+        sampler = cg.QuantumEngineSampler(engine=engine, processor_id='tmp')
     params = [cirq.ParamResolver({'a': 1})]
     sampler.run_sweep(circuit, params, 5)
     engine.run_sweep.assert_called_with(
@@ -34,7 +37,10 @@ def test_run_circuit(circuit):
 
 def test_run_engine_program():
     engine = mock.Mock()
-    sampler = cg.QuantumEngineSampler(engine=engine, processor_id='tmp')
+    with cirq.testing.assert_deprecated(
+        'Use cirq_google.ProcessorSampler instead.', deadline='v0.16'
+    ):
+        sampler = cg.QuantumEngineSampler(engine=engine, processor_id='tmp')
     program = mock.Mock(spec=cg.EngineProgram)
     params = [cirq.ParamResolver({'a': 1})]
     sampler.run_sweep(program, params, 5)
@@ -44,7 +50,10 @@ def test_run_engine_program():
 
 def test_run_batch():
     engine = mock.Mock()
-    sampler = cg.QuantumEngineSampler(engine=engine, processor_id='tmp')
+    with cirq.testing.assert_deprecated(
+        'Use cirq_google.ProcessorSampler instead.', deadline='v0.16'
+    ):
+        sampler = cg.QuantumEngineSampler(engine=engine, processor_id='tmp')
     a = cirq.LineQubit(0)
     circuit1 = cirq.Circuit(cirq.X(a))
     circuit2 = cirq.Circuit(cirq.Y(a))
@@ -60,7 +69,10 @@ def test_run_batch():
 
 def test_run_batch_identical_repetitions():
     engine = mock.Mock()
-    sampler = cg.QuantumEngineSampler(engine=engine, processor_id='tmp')
+    with cirq.testing.assert_deprecated(
+        'Use cirq_google.ProcessorSampler instead.', deadline='v0.16'
+    ):
+        sampler = cg.QuantumEngineSampler(engine=engine, processor_id='tmp')
     a = cirq.LineQubit(0)
     circuit1 = cirq.Circuit(cirq.X(a))
     circuit2 = cirq.Circuit(cirq.Y(a))
@@ -76,7 +88,10 @@ def test_run_batch_identical_repetitions():
 
 def test_run_batch_bad_number_of_repetitions():
     engine = mock.Mock()
-    sampler = cg.QuantumEngineSampler(engine=engine, processor_id='tmp')
+    with cirq.testing.assert_deprecated(
+        'Use cirq_google.ProcessorSampler instead.', deadline='v0.16'
+    ):
+        sampler = cg.QuantumEngineSampler(engine=engine, processor_id='tmp')
     a = cirq.LineQubit(0)
     circuit1 = cirq.Circuit(cirq.X(a))
     circuit2 = cirq.Circuit(cirq.Y(a))
@@ -93,7 +108,10 @@ def test_run_batch_differing_repetitions():
     job = mock.Mock()
     job.results.return_value = []
     engine.run_sweep.return_value = job
-    sampler = cg.QuantumEngineSampler(engine=engine, processor_id='tmp')
+    with cirq.testing.assert_deprecated(
+        'Use cirq_google.ProcessorSampler instead.', deadline='v0.16'
+    ):
+        sampler = cg.QuantumEngineSampler(engine=engine, processor_id='tmp')
     a = cirq.LineQubit(0)
     circuit1 = cirq.Circuit(cirq.X(a))
     circuit2 = cirq.Circuit(cirq.Y(a))
@@ -111,7 +129,10 @@ def test_run_batch_differing_repetitions():
 
 def test_engine_sampler_engine_property():
     engine = mock.Mock()
-    sampler = cg.QuantumEngineSampler(engine=engine, processor_id='tmp')
+    with cirq.testing.assert_deprecated(
+        'Use cirq_google.ProcessorSampler instead.', deadline='v0.16'
+    ):
+        sampler = cg.QuantumEngineSampler(engine=engine, processor_id='tmp')
     assert sampler.engine is engine
 
 

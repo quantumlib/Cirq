@@ -135,7 +135,7 @@ def decompose(
     fallback_decomposer: Optional[OpDecomposer] = None,
     keep: Optional[Callable[['cirq.Operation'], bool]] = None,
     on_stuck_raise: Union[
-        None, Exception, Callable[['cirq.Operation'], Union[None, Exception]]
+        None, Exception, Callable[['cirq.Operation'], Optional[Exception]]
     ] = _value_error_describing_bad_operation,
     preserve_structure: bool = False,
 ) -> List['cirq.Operation']:
@@ -394,7 +394,7 @@ def _decompose_preserving_structure(
     fallback_decomposer: Optional[OpDecomposer] = None,
     keep: Optional[Callable[['cirq.Operation'], bool]] = None,
     on_stuck_raise: Union[
-        None, Exception, Callable[['cirq.Operation'], Union[None, Exception]]
+        None, Exception, Callable[['cirq.Operation'], Optional[Exception]]
     ] = _value_error_describing_bad_operation,
 ) -> List['cirq.Operation']:
     """Preserves structure (e.g. subcircuits) while decomposing ops.

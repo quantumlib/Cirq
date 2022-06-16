@@ -357,7 +357,18 @@ class Moment:
         return self.__class__(op.transform_qubits(qubit_map) for op in self.operations)
 
     def expand_to(self, qubits: Iterable['cirq.Qid']) -> 'cirq.Moment':
-        """Returns self expanded to given superset of qubits by making identities explicit."""
+        """Returns self expanded to given superset of qubits by making identities explicit.
+
+        Args:
+            qubits: Iterable of `cirq.Qid`s to expand this moment to.
+
+        Returns:
+            A new `cirq.Moment` with identity operations on the new qubits
+            not currently found in the moment.
+
+        Raises:
+            ValueError: if this moments' qubits are not a subset of `qubits`.
+        """
         if not self.qubits.issubset(qubits):
             raise ValueError(f'{qubits} is not a superset of {self.qubits}')
 

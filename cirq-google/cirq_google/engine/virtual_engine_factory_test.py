@@ -101,6 +101,24 @@ def test_median_device_bad_processor():
         _ = factory.load_median_device_calibration('bad_processor')
 
 
+@pytest.mark.parametrize('processor_id', ['rainbow', 'weber'])
+def test_sample_device_zphase(processor_id):
+    zphase_data = factory.load_sample_device_zphase(processor_id)
+    assert 'sqrt_iswap' in zphase_data
+    sqrt_iswap_data = zphase_data['sqrt_iswap']
+    for angle in ['zeta', 'gamma']:
+        assert angle in sqrt_iswap_data
+        for (q0, q1), val in sqrt_iswap_data[angle].items():
+            assert isinstance(q0, cirq.Qid)
+            assert isinstance(q1, cirq.Qid)
+            assert isinstance(val, float)
+
+
+def test_device_zphase_bad_processor():
+    with pytest.raises(ValueError, match='no Z phase data is defined'):
+        _ = factory.load_sample_device_zphase('bad_processor')
+
+
 def test_create_from_proto():
 
     # Create a minimal gate specification that can handle the test.
