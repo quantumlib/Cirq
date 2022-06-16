@@ -265,4 +265,4 @@ def test_decompose_to_diagonal_and_circuit(v):
     assert cirq.is_diagonal(diagonal)
     combined_circuit = cirq.Circuit(cirq.MatrixGate(diagonal)(b, c), ops)
     circuit_unitary = combined_circuit.unitary(qubits_that_should_be_present=[b, c])
-    cirq.testing.assert_allclose_up_to_global_phase(circuit_unitary, v, atol=2e-6)
+    cirq.testing.assert_allclose_up_to_global_phase(circuit_unitary, v, atol=1e-5)
