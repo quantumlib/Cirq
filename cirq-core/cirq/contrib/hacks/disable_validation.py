@@ -30,9 +30,13 @@ def disable_op_validation(*, accept_debug_responsibility: bool = False):
 
     from cirq.ops import raw_types
 
-    token = raw_types.validate_qids.set(False)
+    temp = raw_types._validate_qid_shape
+    raw_types._validate_qid_shape = lambda *args: None
     try:
         yield None
         # ...run context...
+    except:
+        raw_types._validate_qid_shape = temp
+        raise
     finally:
-        raw_types.validate_qids.reset(token)
+        raw_types._validate_qid_shape = temp

@@ -15,7 +15,6 @@
 """Basic types defining qubits, gates, and operations."""
 
 import abc
-import contextvars
 import functools
 from typing import (
     AbstractSet,
@@ -41,10 +40,6 @@ import sympy
 from cirq import protocols, value
 from cirq._import import LazyLoader
 from cirq.type_workarounds import NotImplementedType
-
-# Controller for op validation. Refer to this file for usage:
-# cirq-core/cirq/contrib/hacks/disable_validation.py
-validate_qids: contextvars.ContextVar[bool] = contextvars.ContextVar('validate_qids', default=True)
 
 # Lazy imports to break circular dependencies.
 ops = LazyLoader("ops", globals(), "cirq.ops")
@@ -976,8 +971,6 @@ def _validate_qid_shape(val: Any, qubits: Sequence['cirq.Qid']) -> None:
     Raises:
         ValueError: The operation had qids that don't match it's qid shape.
     """
-    if not validate_qids.get():
-        return
     qid_shape = protocols.qid_shape(val)
     if len(qubits) != len(qid_shape):
         raise ValueError(
