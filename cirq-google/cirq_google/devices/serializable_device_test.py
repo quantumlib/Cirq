@@ -132,49 +132,8 @@ def test_gate_definition_equality():
     eq.add_equality_group(cirq.X)
 
 
-def test_foxtail():
-    valid_qubit1 = cirq.GridQubit(0, 0)
-    valid_qubit2 = cirq.GridQubit(1, 0)
-    valid_qubit3 = cirq.GridQubit(1, 1)
-    invalid_qubit1 = cirq.GridQubit(2, 2)
-    invalid_qubit2 = cirq.GridQubit(2, 3)
-
-    foxtail = cg.SerializableDevice.from_proto(
-        proto=cg.devices.known_devices.FOXTAIL_PROTO, gate_sets=[cg.XMON]
-    )
-    assert foxtail.metadata.qubit_set == frozenset(cirq.GridQubit.rect(2, 11, 0, 0))
-    foxtail.validate_operation(cirq.X(valid_qubit1))
-    foxtail.validate_operation(cirq.X(valid_qubit2))
-    foxtail.validate_operation(cirq.X(valid_qubit3))
-    foxtail.validate_operation(cirq.XPowGate(exponent=0.1)(valid_qubit1))
-    with pytest.raises(ValueError):
-        foxtail.validate_operation(cirq.X(invalid_qubit1))
-    with pytest.raises(ValueError):
-        foxtail.validate_operation(cirq.X(invalid_qubit2))
-    foxtail.validate_operation(cirq.CZ(valid_qubit1, valid_qubit2))
-    foxtail.validate_operation(cirq.CZ(valid_qubit2, valid_qubit1))
-    # Non-local
-    with pytest.raises(ValueError):
-        foxtail.validate_operation(cirq.CZ(valid_qubit1, valid_qubit3))
-    with pytest.raises(ValueError):
-        foxtail.validate_operation(cirq.CZ(invalid_qubit1, invalid_qubit2))
-
-    # Unsupport op
-    with pytest.raises(ValueError):
-        foxtail.validate_operation(cirq.H(invalid_qubit1))
-    with pytest.raises(ValueError):
-        foxtail.validate_operation(cirq.H(valid_qubit1))
-
-    # Measurement (any combination)
-    foxtail.validate_operation(cirq.measure(valid_qubit1))
-    foxtail.validate_operation(cirq.measure(valid_qubit1, valid_qubit2))
-    foxtail.validate_operation(cirq.measure(valid_qubit3, valid_qubit1, valid_qubit2))
-    with pytest.raises(ValueError):
-        foxtail.validate_operation(cirq.measure(invalid_qubit1))
-
-
 def test_mismatched_proto_serializer():
-    augmented_proto = copy.deepcopy(cg.devices.known_devices.FOXTAIL_PROTO)
+    augmented_proto = copy.deepcopy(cg.devices.known_devices.SYCAMORE_PROTO)
     # Remove measurement gate
     del augmented_proto.valid_gate_sets[0].valid_gates[3]
 
@@ -185,26 +144,26 @@ def test_mismatched_proto_serializer():
 
 
 def test_named_qubit():
-    augmented_proto = copy.deepcopy(cg.devices.known_devices.FOXTAIL_PROTO)
+    augmented_proto = copy.deepcopy(cg.devices.known_devices.SYCAMORE_PROTO)
     augmented_proto.valid_qubits.extend(["scooby_doo"])
-    foxtail = cg.SerializableDevice.from_proto(proto=augmented_proto, gate_sets=[cg.XMON])
-    foxtail.validate_operation(cirq.X(cirq.NamedQubit("scooby_doo")))
+    sycamore = cg.SerializableDevice.from_proto(proto=augmented_proto, gate_sets=[cg.SYC_GATESET])
+    sycamore.validate_operation(cirq.X(cirq.NamedQubit("scooby_doo")))
     with pytest.raises(ValueError):
-        foxtail.validate_operation(cirq.X(cirq.NamedQubit("scrappy_doo")))
+        sycamore.validate_operation(cirq.X(cirq.NamedQubit("scrappy_doo")))
 
 
 def test_duration_of():
     valid_qubit1 = cirq.GridQubit(0, 0)
 
-    foxtail = cg.SerializableDevice.from_proto(
-        proto=cg.devices.known_devices.FOXTAIL_PROTO, gate_sets=[cg.XMON]
+    sycamore = cg.SerializableDevice.from_proto(
+        proto=cg.devices.known_devices.SYCAMORE_PROTO, gate_sets=[cg.SYC_GATESET]
     )
 
-    assert foxtail.duration_of(cirq.X(valid_qubit1)) == cirq.Duration(nanos=15)
+    assert sycamore.duration_of(cirq.X(valid_qubit1)) == cirq.Duration(nanos=25)
 
     # Unsupported op
     with pytest.raises(ValueError):
-        assert foxtail.duration_of(cirq.H(valid_qubit1))
+        assert sycamore.duration_of(cirq.H(valid_qubit1))
 
 
 def test_asymmetric_gate():
