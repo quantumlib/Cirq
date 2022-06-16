@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Any, Sequence, Union, cast
+from typing import Any, Dict, Optional, Sequence, Tuple, Union, cast
 import numpy as np
 import pytest
 
@@ -555,15 +555,31 @@ def test_act_on_no_confusion_map_deprecated():
         cirq.act_on(m, old_state)
     assert old_state.measured
 
+
+def test_act_on_no_confusion_map_scope_limited():
+    error_msg = "error from deeper in measure"
+    class ErrorProneSimState(cirq.StateVectorSimulationState):
+        def __init__(self, *args, **kwargs):
+            super().__init__(*args, **kwargs)
+            self.measured = False
+
+        def _act_on_fallback_(
+            self, action: Any, qubits: Sequence['cirq.Qid'], allow_decompose: bool = True
+        ) -> Union[bool, NotImplementedType]:
+            return NotImplemented  # coverage: ignore
+
+        def measure(
+            self,
+            qubits: Sequence['cirq.Qid'],
+            key: str,
+            invert_mask: Sequence[bool],
+            confusion_map: Optional[Dict[Tuple[int, ...], np.ndarray]] = None,
+        ):
+            raise TypeError(error_msg)
+
     # Verify that the check doesn't prevent other errors from being raised
-    sv_state = cirq.StateVectorSimulationState(
-        available_buffer=np.empty(shape=(2, 2)),
-        qubits=qubits,
-        prng=np.random.RandomState(),
-        dtype=np.complex64,
-    )
-    m1 = cirq.measure(qubits[0], key='test')
-    m2 = cirq.measure(*qubits, key='test')
-    cirq.act_on(m1, sv_state)
-    with pytest.raises(ValueError, match='does not match'):
-        cirq.act_on(m2, sv_state)
+    qubits = cirq.LineQubit.range(2)
+    sv_state = ErrorProneSimState(qubits=qubits)
+    m = cirq.measure(*qubits, key='test')
+    with pytest.raises(TypeError, match=error_msg):
+        cirq.act_on(m, sv_state)
