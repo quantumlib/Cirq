@@ -69,7 +69,7 @@ def test_three_qubit_matrix_to_operations(u):
     operations = cirq.three_qubit_matrix_to_operations(a, b, c, u)
     final_circuit = cirq.Circuit(operations)
     final_unitary = final_circuit.unitary(qubits_that_should_be_present=[a, b, c])
-    cirq.testing.assert_allclose_up_to_global_phase(u, final_unitary, atol=1e-9)
+    cirq.testing.assert_allclose_up_to_global_phase(u, final_unitary, atol=1e-6)
     num_two_qubit_gates = len(
         [
             op
@@ -118,7 +118,7 @@ def test_cs_to_ops(theta, num_czs):
     cs = _theta_to_cs(theta)
     circuit_cs = cirq.Circuit(_cs_to_ops(a, b, c, theta))
 
-    assert_almost_equal(circuit_cs.unitary(qubits_that_should_be_present=[a, b, c]), cs, 10)
+    assert_almost_equal(circuit_cs.unitary(qubits_that_should_be_present=[a, b, c]), cs, 7)
 
     assert (
         len([cz for cz in list(circuit_cs.all_operations()) if isinstance(cz.gate, cirq.CZPowGate)])
@@ -130,7 +130,7 @@ def _theta_to_cs(theta: np.ndarray) -> np.ndarray:
     """Returns the CS matrix from the cosine sine decomposition.
 
     Args:
-        theta: the 4 angles that result from the CS decomposition
+        theta: the 4 angles that result from the CS decomposition.
     Returns:
         the CS matrix
     """
@@ -235,4 +235,4 @@ def test_two_qubit_multiplexor_to_circuit(shift_left):
     expected = block_diag(u1, u2)
     diagonal = np.kron(np.eye(2), d_ud) if d_ud is not None else np.eye(8)
     actual = cirq.Circuit(ud_ops).unitary(qubits_that_should_be_present=[a, b, c]) @ diagonal
-    cirq.testing.assert_allclose_up_to_global_phase(expected, actual, atol=1e-8)
+    cirq.testing.assert_allclose_up_to_global_phase(expected, actual, atol=1e-6)

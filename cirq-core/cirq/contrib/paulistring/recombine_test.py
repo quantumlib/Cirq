@@ -43,8 +43,11 @@ def test_move_non_clifford_into_clifford():
     _assert_no_multi_qubit_pauli_strings(c_recombined1)
     _assert_no_multi_qubit_pauli_strings(c_recombined2)
 
-    baseline_len = len(cg.optimized_for_xmon(c_orig))
-    opt_len1 = len(cg.optimized_for_xmon(c_recombined1))
-    opt_len2 = len(cg.optimized_for_xmon(c_recombined2))
-    assert opt_len1 <= baseline_len
-    assert opt_len2 <= baseline_len
+    with cirq.testing.assert_deprecated(
+        'Use cirq.optimize_for_target_gateset', deadline='v0.16', count=None
+    ):
+        baseline_len = len(cg.optimized_for_xmon(c_orig))
+        opt_len1 = len(cg.optimized_for_xmon(c_recombined1))
+        opt_len2 = len(cg.optimized_for_xmon(c_recombined2))
+        assert opt_len1 <= baseline_len
+        assert opt_len2 <= baseline_len

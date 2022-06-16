@@ -100,7 +100,13 @@ class SimulationState(SimulationStateBase, Generic[TState], metaclass=abc.ABCMet
     def prng(self) -> np.random.RandomState:
         return self._prng
 
-    def measure(self, qubits: Sequence['cirq.Qid'], key: str, invert_mask: Sequence[bool]):
+    def measure(
+        self,
+        qubits: Sequence['cirq.Qid'],
+        key: str,
+        invert_mask: Sequence[bool],
+        confusion_map: Dict[Tuple[int, ...], np.ndarray],
+    ):
         """Measures the qubits and records to `log_of_measurement_results`.
 
         Any bitmasks will be applied to the measurement record.
@@ -111,12 +117,14 @@ class SimulationState(SimulationStateBase, Generic[TState], metaclass=abc.ABCMet
                 that operations should only store results under keys they have
                 declared in a `_measurement_key_names_` method.
             invert_mask: The invert mask for the measurement.
+            confusion_map: The confusion matrices for the measurement.
 
         Raises:
             ValueError: If a measurement key has already been logged to a key.
         """
         bits = self._perform_measurement(qubits)
-        corrected = [bit ^ (bit < 2 and mask) for bit, mask in zip(bits, invert_mask)]
+        confused = self._confuse_result(bits, qubits, confusion_map)
+        corrected = [bit ^ (bit < 2 and mask) for bit, mask in zip(confused, invert_mask)]
         self._classical_data.record_measurement(
             value.MeasurementKey.parse_serialized(key), corrected, qubits
         )
@@ -129,6 +137,27 @@ class SimulationState(SimulationStateBase, Generic[TState], metaclass=abc.ABCMet
         if self._state is not None:
             return self._state.measure(self.get_axes(qubits), self.prng)
         raise NotImplementedError()
+
+    def _confuse_result(
+        self,
+        bits: List[int],
+        qubits: Sequence['cirq.Qid'],
+        confusion_map: Dict[Tuple[int, ...], np.ndarray],
+    ):
+        """Applies confusion matrices to measured results.
+
+        Compare with _confuse_results in cirq-core/cirq/sim/simulator.py.
+        """
+        confused = list(bits)
+        dims = [q.dimension for q in qubits]
+        for indices, confuser in confusion_map.items():
+            mat_dims = [dims[k] for k in indices]
+            row = value.big_endian_digits_to_int((bits[k] for k in indices), base=mat_dims)
+            new_val = self.prng.choice(len(confuser), p=confuser[row])
+            new_bits = value.big_endian_int_to_digits(new_val, base=mat_dims)
+            for i, k in enumerate(indices):
+                confused[k] = new_bits[i]
+        return confused
 
     def sample(
         self,
