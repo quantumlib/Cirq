@@ -316,13 +316,3 @@ def test_row_and_col():
     assert d.row(1) == [cirq.GridQubit(1, 0), cirq.GridQubit(1, 1)]
     assert d.row(2) == [cirq.GridQubit(2, 0), cirq.GridQubit(2, 1)]
     assert d.row(3) == []
-
-    b = cg.Bristlecone
-    assert b.col(0) == [cirq.GridQubit(5, 0)]
-    assert b.row(0) == [cirq.GridQubit(0, 5), cirq.GridQubit(0, 6)]
-    assert b.col(1) == [cirq.GridQubit(4, 1), cirq.GridQubit(5, 1), cirq.GridQubit(6, 1)]
-
-
-@mock.patch.dict(os.environ, clear='CIRQ_TESTING')
-def test_qubit_set():
-    assert cg.Foxtail.metadata.qubit_set == frozenset(cirq.GridQubit.rect(2, 11, 0, 0))
