@@ -84,7 +84,7 @@ def test_decompose_two_qubit_interaction_into_two_b_gates(obj: Any):
     for operation in circuit.all_operations():
         assert len(operation.qubits) < 2 or operation.gate == _B
     # We lose a lot of precision in the random 4 qubit gates, so this atol is higher.
-    np.testing.assert_allclose(cirq.unitary(circuit), desired_unitary, atol=3e-5)
+    np.testing.assert_allclose(cirq.unitary(circuit), desired_unitary, atol=1e-4)
 
 
 def test_decompose_xx_yy_into_two_fsims_ignoring_single_qubit_ops_fail():
@@ -117,7 +117,7 @@ def test_decompose_two_qubit_interaction_into_four_fsim_gates_equivalence(
     for operation in circuit.all_operations():
         assert len(operation.qubits) < 2 or operation.gate == fsim_gate
     assert len(circuit) <= 4 * 3 + 5
-    assert cirq.approx_eq(circuit.unitary(qubit_order=qubits), desired_unitary, atol=1e-4)
+    assert cirq.approx_eq(circuit.unitary(qubit_order=qubits), desired_unitary, atol=2e-4)
 
 
 def test_decompose_two_qubit_interaction_into_four_fsim_gates_validate():
