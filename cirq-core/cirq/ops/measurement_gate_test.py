@@ -542,7 +542,21 @@ def test_act_on_no_confusion_map_deprecated():
         def measure(self, qubits: Sequence['cirq.Qid'], key: str, invert_mask: Sequence[bool]):
             pass
 
-    state = OldSimState(state=False)
-    m = cirq.measure(cirq.LineQubit(0), key='test')
+    old_state = OldSimState(state=False)
+    qubits = cirq.LineQubit.range(2)
+    m = cirq.measure(*qubits, key='test')
     with cirq.testing.assert_deprecated('confusion_map', deadline='v0.16'):
-        cirq.act_on(m, state)
+        cirq.act_on(m, old_state)
+
+    # Verify that the check doesn't prevent other errors from being raised
+    sv_state = cirq.StateVectorSimulationState(
+        available_buffer=np.empty(shape=(2, 2)),
+        qubits=qubits,
+        prng=np.random.RandomState(),
+        dtype=np.complex64,
+    )
+    m1 = cirq.measure(qubits[0], key='test')
+    m2 = cirq.measure(*qubits, key='test')
+    cirq.act_on(m1, sv_state)
+    with pytest.raises(ValueError, match='does not match'):
+        cirq.act_on(m2, sv_state)

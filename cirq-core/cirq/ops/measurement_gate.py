@@ -318,7 +318,8 @@ class MeasurementGate(raw_types.Gate):
             )
         except TypeError as e:
             # Ensure that the error was due to confusion_map.
-            assert any("confusion_map" in arg for arg in e.args)
+            if not any("unexpected keyword argument 'confusion_map'" in arg for arg in e.args):
+                raise
             _compat._warn_or_error(
                 "Starting in v0.16, SimulationState subclasses will be required to accept "
                 "a 'confusion_map' argument. See SimulationState.measure for details."
