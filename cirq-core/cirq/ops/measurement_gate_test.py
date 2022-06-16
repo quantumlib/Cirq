@@ -543,7 +543,9 @@ def test_act_on_no_confusion_map_deprecated():
         ) -> Union[bool, NotImplementedType]:
             return NotImplemented  # coverage: ignore
 
-        def measure(self, qubits: Sequence['cirq.Qid'], key: str, invert_mask: Sequence[bool]):
+        def measure(  # type: ignore
+            self, qubits: Sequence['cirq.Qid'], key: str, invert_mask: Sequence[bool]
+        ):
             self.measured = True
 
     qubits = cirq.LineQubit.range(2)
