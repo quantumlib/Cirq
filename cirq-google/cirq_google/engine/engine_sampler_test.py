@@ -144,6 +144,6 @@ def test_get_engine_sampler_explicit_project_id():
 
 def test_get_engine_sampler():
     with mock.patch.object(cirq_google.cloud.quantum, 'QuantumEngineServiceClient', autospec=True):
-        with mock.patch('google.auth.default', lambda *args, **kwargs: (None, 'myproj')):
+        with mock.patch('google.auth.default', lambda: (None, 'myproj')):
             sampler = cg.get_engine_sampler(processor_id='hi mom')
     assert hasattr(sampler, 'run_sweep')
