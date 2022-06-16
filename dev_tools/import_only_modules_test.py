@@ -27,13 +27,15 @@ class TestImportChecker(testutils.CheckerTestCase):
         r"""Report a message when a non-module is imported"""
         node = astroid.extract_node("from cirq.devices import GridQubit")
         with self.assertAddsMessages(
-            testutils.MessageTest(msg_id='import-only-modules',
-                                  node=node,
-                                  line=1,
-                                  col_offset=0,
-                                  end_line=1,
-                                  end_col_offset=34,
-                                  args=('GridQubit', 'cirq.devices'))
+            testutils.MessageTest(
+                msg_id='import-only-modules',
+                node=node,
+                line=1,
+                col_offset=0,
+                end_line=1,
+                end_col_offset=34,
+                args=('GridQubit', 'cirq.devices')
+            )
         ):
             self.checker.visit_importfrom(node)
 

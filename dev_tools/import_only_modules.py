@@ -42,9 +42,7 @@ class ImportOnlyModulesChecker(checkers.BaseChecker):
                 imported_module.import_module(name, True)
                 # Good, we could import "name" as a module relative to the "imported_module".
             except astroid.AstroidImportError:
-                self.add_message('import-only-modules',
-                                 node=node,
-                                 args=(name, modname))
+                self.add_message('import-only-modules', node=node, args=(name, modname))
             except astroid.AstroidBuildingException:
                 # Some other error.
                 pass
