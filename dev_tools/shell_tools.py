@@ -291,7 +291,6 @@ def output_of(*cmd: Optional[str], **kwargs) -> str:
     Args:
         *cmd: Components of the command to execute, e.g. ["echo", "dog"].
             Arguments set to None are disregarded in command execution.
-
         **kwargs: Extra arguments for the shell_tools.run function, such as
             a cwd (current working directory) argument.
 
