@@ -261,7 +261,7 @@ def test_kak_decomposition_depth_partial_cz():
 )
 def test_decompose_to_diagonal_and_circuit(v):
     b, c = cirq.LineQubit.range(2)
-    diagonal, ops = two_qubit_matrix_to_diagonal_and_cz_operations(b, c, v)
+    diagonal, ops = two_qubit_matrix_to_diagonal_and_cz_operations(b, c, v, atol=1e-6)
     assert cirq.is_diagonal(diagonal)
     combined_circuit = cirq.Circuit(cirq.MatrixGate(diagonal)(b, c), ops)
     circuit_unitary = combined_circuit.unitary(qubits_that_should_be_present=[b, c])

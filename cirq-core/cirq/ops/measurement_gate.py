@@ -16,7 +16,7 @@ from typing import Any, Dict, FrozenSet, Iterable, Optional, Tuple, Sequence, TY
 
 import numpy as np
 
-from cirq import protocols, value
+from cirq import _compat, protocols, value
 from cirq.ops import raw_types
 
 if TYPE_CHECKING:
@@ -40,6 +40,7 @@ class MeasurementGate(raw_types.Gate):
         key: Union[str, 'cirq.MeasurementKey'] = '',
         invert_mask: Tuple[bool, ...] = (),
         qid_shape: Tuple[int, ...] = None,
+        confusion_map: Optional[Dict[Tuple[int, ...], np.ndarray]] = None,
     ) -> None:
         """Inits MeasurementGate.
 
@@ -52,10 +53,15 @@ class MeasurementGate(raw_types.Gate):
                 Qubits with indices past the end of the mask are not flipped.
             qid_shape: Specifies the dimension of each qid the measurement
                 applies to.  The default is 2 for every qubit.
+            confusion_map: A map of qubit index sets (using indices in the
+                operation generated from this gate) to the 2D confusion matrix
+                for those qubits. Indices not included use the identity.
+                Applied before invert_mask if both are provided.
 
         Raises:
-            ValueError: If the length of invert_mask is greater than num_qubits.
-                or if the length of qid_shape doesn't equal num_qubits.
+            ValueError: If invert_mask or confusion_map have indices
+                greater than the available qubit indices, or if the length of
+                qid_shape doesn't equal num_qubits.
         """
         if qid_shape is None:
             if num_qubits is None:
@@ -74,6 +80,9 @@ class MeasurementGate(raw_types.Gate):
         self._invert_mask = invert_mask or ()
         if self.invert_mask is not None and len(self.invert_mask) > self.num_qubits():
             raise ValueError('len(invert_mask) > num_qubits')
+        self._confusion_map = confusion_map or {}
+        if any(x >= self.num_qubits() for idx in self._confusion_map for x in idx):
+            raise ValueError('Confusion matrices have index out of bounds.')
 
     @property
     def key(self) -> str:
@@ -87,6 +96,10 @@ class MeasurementGate(raw_types.Gate):
     def invert_mask(self) -> Tuple[bool, ...]:
         return self._invert_mask
 
+    @property
+    def confusion_map(self) -> Dict[Tuple[int, ...], np.ndarray]:
+        return self._confusion_map
+
     def _qid_shape_(self) -> Tuple[int, ...]:
         return self._qid_shape
 
@@ -98,7 +111,11 @@ class MeasurementGate(raw_types.Gate):
         if key == self.key:
             return self
         return MeasurementGate(
-            self.num_qubits(), key=key, invert_mask=self.invert_mask, qid_shape=self._qid_shape
+            self.num_qubits(),
+            key=key,
+            invert_mask=self.invert_mask,
+            qid_shape=self._qid_shape,
+            confusion_map=self.confusion_map,
         )
 
     def _with_key_path_(self, path: Tuple[str, ...]):
@@ -116,14 +133,22 @@ class MeasurementGate(raw_types.Gate):
         return self.with_key(protocols.with_measurement_key_mapping(self.mkey, key_map))
 
     def with_bits_flipped(self, *bit_positions: int) -> 'MeasurementGate':
-        """Toggles whether or not the measurement inverts various outputs."""
+        """Toggles whether or not the measurement inverts various outputs.
+
+        This only affects the invert_mask, which is applied after confusion
+        matrices if any are defined.
+        """
         old_mask = self.invert_mask or ()
         n = max(len(old_mask) - 1, *bit_positions) + 1
         new_mask = [k < len(old_mask) and old_mask[k] for k in range(n)]
         for b in bit_positions:
             new_mask[b] = not new_mask[b]
         return MeasurementGate(
-            self.num_qubits(), key=self.key, invert_mask=tuple(new_mask), qid_shape=self._qid_shape
+            self.num_qubits(),
+            key=self.key,
+            invert_mask=tuple(new_mask),
+            qid_shape=self._qid_shape,
+            confusion_map=self.confusion_map,
         )
 
     def full_invert_mask(self) -> Tuple[bool, ...]:
@@ -166,12 +191,17 @@ class MeasurementGate(raw_types.Gate):
         self, args: 'cirq.CircuitDiagramInfoArgs'
     ) -> 'cirq.CircuitDiagramInfo':
         symbols = ['M'] * self.num_qubits()
+        flipped_indices = {i for i, x in enumerate(self.full_invert_mask()) if x}
+        confused_indices = {x for idxs in self.confusion_map for x in idxs}
 
-        # Show which output bits are negated.
-        if self.invert_mask:
-            for i, b in enumerate(self.invert_mask):
-                if b:
-                    symbols[i] = '!M'
+        # Show which output bits are negated and/or confused.
+        for i in range(self.num_qubits()):
+            prefix = ''
+            if i in flipped_indices:
+                prefix += '!'
+            if i in confused_indices:
+                prefix += '?'
+            symbols[i] = prefix + symbols[i]
 
         # Mention the measurement key.
         label_map = args.label_map or {}
@@ -184,7 +214,7 @@ class MeasurementGate(raw_types.Gate):
         return protocols.CircuitDiagramInfo(symbols)
 
     def _qasm_(self, args: 'cirq.QasmArgs', qubits: Tuple['cirq.Qid', ...]) -> Optional[str]:
-        if not all(d == 2 for d in self._qid_shape):
+        if self.confusion_map or not all(d == 2 for d in self._qid_shape):
             return NotImplemented
         args.validate_version('2.0')
         invert_mask = self.invert_mask
@@ -202,7 +232,7 @@ class MeasurementGate(raw_types.Gate):
     def _quil_(
         self, qubits: Tuple['cirq.Qid', ...], formatter: 'cirq.QuilFormatter'
     ) -> Optional[str]:
-        if not all(d == 2 for d in self._qid_shape):
+        if self.confusion_map or not all(d == 2 for d in self._qid_shape):
             return NotImplemented
         invert_mask = self.invert_mask
         if len(invert_mask) < len(qubits):
@@ -222,28 +252,39 @@ class MeasurementGate(raw_types.Gate):
             args.append(f'key={self.mkey!r}')
         if self.invert_mask:
             args.append(f'invert_mask={self.invert_mask!r}')
+        if self.confusion_map:
+            proper_map_str = ', '.join(
+                f"{k!r}: {_compat.proper_repr(v)}" for k, v in self.confusion_map.items()
+            )
+            args.append(f'confusion_map={{{proper_map_str}}}')
         arg_list = ', '.join(args)
         return f'cirq.measure({arg_list})'
 
     def __repr__(self):
-        qid_shape_arg = ''
+        args = [f'{self.num_qubits()!r}', f'{self.mkey!r}', f'{self.invert_mask}']
         if any(d != 2 for d in self._qid_shape):
-            qid_shape_arg = f', {self._qid_shape!r}'
-        return (
-            f'cirq.MeasurementGate('
-            f'{self.num_qubits()!r}, '
-            f'{self.mkey!r}, '
-            f'{self.invert_mask}'
-            f'{qid_shape_arg})'
-        )
+            args.append(f'qid_shape={self._qid_shape!r}')
+        if self.confusion_map:
+            proper_map_str = ', '.join(
+                f"{k!r}: {_compat.proper_repr(v)}" for k, v in self.confusion_map.items()
+            )
+            args.append(f'confusion_map={{{proper_map_str}}}')
+        return f'cirq.MeasurementGate({", ".join(args)})'
 
     def _value_equality_values_(self) -> Any:
-        return self.key, self.invert_mask, self._qid_shape
+        hashable_cmap = frozenset(
+            (idxs, tuple(v for _, v in np.ndenumerate(cmap)))
+            for idxs, cmap in self._confusion_map.items()
+        )
+        return self.key, self.invert_mask, self._qid_shape, hashable_cmap
 
     def _json_dict_(self) -> Dict[str, Any]:
-        other = {}
+        other: Dict[str, Any] = {}
         if not all(d == 2 for d in self._qid_shape):
             other['qid_shape'] = self._qid_shape
+        if self.confusion_map:
+            json_cmap = [(k, v.tolist()) for k, v in self.confusion_map.items()]
+            other['confusion_map'] = json_cmap
         return {
             'num_qubits': len(self._qid_shape),
             'key': self.key,
@@ -252,12 +293,15 @@ class MeasurementGate(raw_types.Gate):
         }
 
     @classmethod
-    def _from_json_dict_(cls, num_qubits, key, invert_mask, qid_shape=None, **kwargs):
+    def _from_json_dict_(
+        cls, num_qubits, key, invert_mask, qid_shape=None, confusion_map=None, **kwargs
+    ):
         return cls(
             num_qubits=num_qubits,
             key=value.MeasurementKey.parse_serialized(key),
             invert_mask=tuple(invert_mask),
             qid_shape=None if qid_shape is None else tuple(qid_shape),
+            confusion_map={tuple(k): np.array(v) for k, v in confusion_map or []},
         )
 
     def _has_stabilizer_effect_(self) -> Optional[bool]:
@@ -268,7 +312,7 @@ class MeasurementGate(raw_types.Gate):
 
         if not isinstance(sim_state, SimulationState):
             return NotImplemented
-        sim_state.measure(qubits, self.key, self.full_invert_mask())
+        sim_state.measure(qubits, self.key, self.full_invert_mask(), self.confusion_map)
         return True
 
 
