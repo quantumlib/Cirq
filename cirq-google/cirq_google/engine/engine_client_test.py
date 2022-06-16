@@ -12,16 +12,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """Tests for EngineClient."""
+import asyncio
 import datetime
 from unittest import mock
 
+import duet
 import pytest
 from google.api_core import exceptions
 from google.protobuf import any_pb2
 from google.protobuf.field_mask_pb2 import FieldMask
 from google.protobuf.timestamp_pb2 import Timestamp
-
-import duet
 
 from cirq_google.engine.engine_client import EngineClient, EngineException
 from cirq_google.engine.test_utils import uses_async_mock
@@ -840,11 +840,15 @@ def test_list_jobs_filters(
 
 
 class Pager:
+    """An asyncio AsyncIterator over a fixed list of results."""
+
     def __init__(self, items):
         self.items = items
 
-    def __aiter__(self):
-        return duet.aiter(self.items)
+    async def __aiter__(self):
+        for item in self.items:
+            await asyncio.sleep(0.001)
+            yield item
 
 
 @uses_async_mock
