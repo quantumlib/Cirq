@@ -35,8 +35,5 @@ def disable_op_validation(*, accept_debug_responsibility: bool = False):
     try:
         yield None
         # ...run context...
-    except:
-        raw_types._validate_qid_shape = temp
-        raise
     finally:
         raw_types._validate_qid_shape = temp
