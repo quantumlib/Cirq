@@ -15,6 +15,7 @@
 import datetime
 from typing import Dict, List, Optional, Sequence, Set, TYPE_CHECKING, Union
 
+import duet
 from google.protobuf import any_pb2
 
 import cirq
@@ -63,7 +64,7 @@ class EngineProgram(abstract_program.AbstractProgram):
         self._program = _program
         self.result_type = result_type
 
-    def run_sweep(
+    async def run_sweep_async(
         self,
         job_id: Optional[str] = None,
         params: cirq.Sweepable = None,
@@ -105,7 +106,7 @@ class EngineProgram(abstract_program.AbstractProgram):
             job_id = engine_base._make_random_id('job-')
         run_context = self.context._serialize_run_context(params, repetitions)
 
-        created_job_id, job = self.context.client.create_job(
+        created_job_id, job = await self.context.client.create_job_async(
             project_id=self.project_id,
             program_id=self.program_id,
             job_id=job_id,
@@ -118,7 +119,9 @@ class EngineProgram(abstract_program.AbstractProgram):
             self.project_id, self.program_id, created_job_id, self.context, job
         )
 
-    def run_batch(
+    run_sweep = duet.sync(run_sweep_async)
+
+    async def run_batch_async(
         self,
         job_id: Optional[str] = None,
         params_list: List[cirq.Sweepable] = None,
@@ -179,7 +182,7 @@ class EngineProgram(abstract_program.AbstractProgram):
             (params, repetitions) for params in params_list
         )
 
-        created_job_id, job = self.context.client.create_job(
+        created_job_id, job = await self.context.client.create_job_async(
             project_id=self.project_id,
             program_id=self.program_id,
             job_id=job_id,
@@ -197,7 +200,9 @@ class EngineProgram(abstract_program.AbstractProgram):
             result_type=ResultType.Batch,
         )
 
-    def run_calibration(
+    run_batch = duet.sync(run_batch_async)
+
+    async def run_calibration_async(
         self,
         job_id: Optional[str] = None,
         processor_ids: Sequence[str] = (),
@@ -241,7 +246,7 @@ class EngineProgram(abstract_program.AbstractProgram):
         # on a run context in order to succeed validation.
         run_context = v2.run_context_pb2.RunContext()
 
-        created_job_id, job = self.context.client.create_job(
+        created_job_id, job = await self.context.client.create_job_async(
             project_id=self.project_id,
             program_id=self.program_id,
             job_id=job_id,
@@ -259,7 +264,9 @@ class EngineProgram(abstract_program.AbstractProgram):
             result_type=ResultType.Batch,
         )
 
-    def run(
+    run_calibration = duet.sync(run_calibration_async)
+
+    async def run_async(
         self,
         job_id: Optional[str] = None,
         param_resolver: cirq.ParamResolver = cirq.ParamResolver({}),
@@ -286,16 +293,18 @@ class EngineProgram(abstract_program.AbstractProgram):
         Returns:
             A single Result for this run.
         """
-        return list(
-            self.run_sweep(
-                job_id=job_id,
-                params=[param_resolver],
-                repetitions=repetitions,
-                processor_ids=processor_ids,
-                description=description,
-                labels=labels,
-            )
-        )[0]
+        job = await self.run_sweep_async(
+            job_id=job_id,
+            params=[param_resolver],
+            repetitions=repetitions,
+            processor_ids=processor_ids,
+            description=description,
+            labels=labels,
+        )
+        results = await job.results_async()
+        return results[0]
+
+    run = duet.sync(run_async)
 
     def engine(self) -> 'engine_base.Engine':
         """Returns the parent Engine object.
@@ -318,13 +327,13 @@ class EngineProgram(abstract_program.AbstractProgram):
         """
         return engine_job.EngineJob(self.project_id, self.program_id, job_id, self.context)
 
-    def list_jobs(
+    async def list_jobs_async(
         self,
         created_before: Optional[Union[datetime.datetime, datetime.date]] = None,
         created_after: Optional[Union[datetime.datetime, datetime.date]] = None,
         has_labels: Optional[Dict[str, str]] = None,
         execution_states: Optional[Set[quantum.ExecutionStatus.State]] = None,
-    ):
+    ) -> Sequence[engine_job.EngineJob]:
         """Returns the list of jobs for this program.
 
         Args:
@@ -347,7 +356,7 @@ class EngineProgram(abstract_program.AbstractProgram):
                 `quantum.ExecutionStatus.State` enum for accepted values.
         """
         client = self.context.client
-        response = client.list_jobs(
+        response = await client.list_jobs_async(
             self.project_id,
             self.program_id,
             created_before=created_before,
@@ -365,6 +374,8 @@ class EngineProgram(abstract_program.AbstractProgram):
             )
             for j in response
         ]
+
+    list_jobs = duet.sync(list_jobs_async)
 
     def _inner_program(self) -> quantum.QuantumProgram:
         if self._program is None:
@@ -384,7 +395,7 @@ class EngineProgram(abstract_program.AbstractProgram):
         """Returns the description of the program."""
         return self._inner_program().description
 
-    def set_description(self, description: str) -> 'EngineProgram':
+    async def set_description_async(self, description: str) -> 'EngineProgram':
         """Sets the description of the program.
 
         Params:
@@ -393,16 +404,18 @@ class EngineProgram(abstract_program.AbstractProgram):
         Returns:
              This EngineProgram.
         """
-        self._program = self.context.client.set_program_description(
+        self._program = await self.context.client.set_program_description_async(
             self.project_id, self.program_id, description
         )
         return self
+
+    set_description = duet.sync(set_description_async)
 
     def labels(self) -> Dict[str, str]:
         """Returns the labels of the program."""
         return self._inner_program().labels
 
-    def set_labels(self, labels: Dict[str, str]) -> 'EngineProgram':
+    async def set_labels_async(self, labels: Dict[str, str]) -> 'EngineProgram':
         """Sets (overwriting) the labels for a previously created quantum
         program.
 
@@ -412,12 +425,14 @@ class EngineProgram(abstract_program.AbstractProgram):
         Returns:
              This EngineProgram.
         """
-        self._program = self.context.client.set_program_labels(
+        self._program = await self.context.client.set_program_labels_async(
             self.project_id, self.program_id, labels
         )
         return self
 
-    def add_labels(self, labels: Dict[str, str]) -> 'EngineProgram':
+    set_labels = duet.sync(set_labels_async)
+
+    async def add_labels_async(self, labels: Dict[str, str]) -> 'EngineProgram':
         """Adds new labels to a previously created quantum program.
 
         Params:
@@ -426,12 +441,14 @@ class EngineProgram(abstract_program.AbstractProgram):
         Returns:
              This EngineProgram.
         """
-        self._program = self.context.client.add_program_labels(
+        self._program = await self.context.client.add_program_labels_async(
             self.project_id, self.program_id, labels
         )
         return self
 
-    def remove_labels(self, keys: List[str]) -> 'EngineProgram':
+    add_labels = duet.sync(add_labels_async)
+
+    async def remove_labels_async(self, keys: List[str]) -> 'EngineProgram':
         """Removes labels with given keys from the labels of a previously
         created quantum program.
 
@@ -441,12 +458,14 @@ class EngineProgram(abstract_program.AbstractProgram):
         Returns:
              This EngineProgram.
         """
-        self._program = self.context.client.remove_program_labels(
+        self._program = await self.context.client.remove_program_labels_async(
             self.project_id, self.program_id, keys
         )
         return self
 
-    def get_circuit(self, program_num: Optional[int] = None) -> cirq.Circuit:
+    remove_labels = duet.sync(remove_labels_async)
+
+    async def get_circuit_async(self, program_num: Optional[int] = None) -> cirq.Circuit:
         """Returns the cirq Circuit for the Quantum Engine program. This is only
         supported if the program was created with the V2 protos.
 
@@ -459,10 +478,14 @@ class EngineProgram(abstract_program.AbstractProgram):
             The program's cirq Circuit.
         """
         if self._program is None or self._program.code is None:
-            self._program = self.context.client.get_program(self.project_id, self.program_id, True)
+            self._program = await self.context.client.get_program_async(
+                self.project_id, self.program_id, True
+            )
         return _deserialize_program(self._program.code, program_num)
 
-    def batch_size(self) -> int:
+    get_circuit = duet.sync(get_circuit_async)
+
+    async def batch_size_async(self) -> int:
         """Returns the number of programs in a batch program.
 
         Raises:
@@ -475,7 +498,9 @@ class EngineProgram(abstract_program.AbstractProgram):
         import cirq_google.engine.engine as engine_base
 
         if self._program is None or self._program.code is None:
-            self._program = self.context.client.get_program(self.project_id, self.program_id, True)
+            self._program = await self.context.client.get_program_async(
+                self.project_id, self.program_id, True
+            )
         code = self._program.code
         code_type = code.type_url[len(engine_base.TYPE_PREFIX) :]
         if code_type == 'cirq.google.api.v2.BatchProgram':
@@ -483,20 +508,26 @@ class EngineProgram(abstract_program.AbstractProgram):
             return len(batch.programs)
         raise ValueError(f'Program was not a batch program but instead was of type {code_type}.')
 
-    def delete(self, delete_jobs: bool = False) -> None:
+    batch_size = duet.sync(batch_size_async)
+
+    async def delete_async(self, delete_jobs: bool = False) -> None:
         """Deletes a previously created quantum program.
 
         Params:
             delete_jobs: If True will delete all the program's jobs, other this
                 will fail if the program contains any jobs.
         """
-        self.context.client.delete_program(
+        await self.context.client.delete_program_async(
             self.project_id, self.program_id, delete_jobs=delete_jobs
         )
 
-    def delete_job(self, job_id: str) -> None:
+    delete = duet.sync(delete_async)
+
+    async def delete_job_async(self, job_id: str) -> None:
         """Deletes the job and result, if any."""
-        self.context.client.delete_job(self.project_id, self.program_id, job_id)
+        await self.context.client.delete_job_async(self.project_id, self.program_id, job_id)
+
+    delete_job = duet.sync(delete_job_async)
 
     def __str__(self) -> str:
         return f'EngineProgram(project_id=\'{self.project_id}\', program_id=\'{self.program_id}\')'
