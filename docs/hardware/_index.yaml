@@ -117,17 +117,3 @@ landing_page:
         path: /cirq/tutorials/rigetti/getting_started
         icon:
           name: menu_book
-
-    - heading: Custom devices
-      description: How to write custom Device classes for quantum hardware. More information for vendors on integrating with cirq can be found on the RFC page.
-      items:
-      - heading: Neutral atom device
-        description: A custom device class for a neutral atom device.
-        path: /cirq/tutorials/educators/neutral_atom
-        icon:
-          name: menu_book
-      - heading: Ion device
-        description: A custom device class for an ion device.
-        path: /cirq/tutorials/educators/ion_device
-        icon:
-          name: menu_book
