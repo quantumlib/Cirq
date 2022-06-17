@@ -57,8 +57,8 @@ def default_repetition_ids(repetitions: IntParam) -> Optional[List[str]]:
 
 
 def _full_join_string_lists(
-    list1: Optional[List[str]], list2: Optional[List[str]]
-) -> Optional[List[str]]:
+    list1: Optional[Sequence[str]], list2: Optional[Sequence[str]]
+) -> Optional[Sequence[str]]:
     if list1 is None and list2 is None:
         return None  # coverage: ignore
     if list1 is None:
@@ -117,7 +117,7 @@ class CircuitOperation(ops.Operation):
         qubit_map: Optional[Dict['cirq.Qid', 'cirq.Qid']] = None,
         measurement_key_map: Optional[Dict[str, str]] = None,
         param_resolver: Optional[study.ParamResolverOrSimilarType] = None,
-        repetition_ids: Optional[List[str]] = None,
+        repetition_ids: Optional[Sequence[str]] = None,
         parent_path: Tuple[str, ...] = (),
         extern_keys: FrozenSet['cirq.MeasurementKey'] = frozenset(),
         use_repetition_ids: bool = True,
@@ -142,7 +142,7 @@ class CircuitOperation(ops.Operation):
 
         # Ensure that the circuit is invertible if the repetitions are negative.
         self._repetitions = repetitions
-        self._repetition_ids = repetition_ids
+        self._repetition_ids = None if repetition_ids is None else list(repetition_ids)
         self._use_repetition_ids = use_repetition_ids
         if isinstance(self._repetitions, float):
             if math.isclose(self._repetitions, round(self._repetitions)):
@@ -225,7 +225,7 @@ class CircuitOperation(ops.Operation):
         return self._measurement_key_map
 
     @property
-    def param_resolver(self) -> Optional[study.ParamResolverOrSimilarType]:
+    def param_resolver(self) -> study.ParamResolver:
         return self._param_resolver
 
     @property
@@ -254,7 +254,7 @@ class CircuitOperation(ops.Operation):
             'repeat_until': self.repeat_until,
         }
         kwargs.update(changes)
-        return CircuitOperation(**kwargs)
+        return CircuitOperation(**kwargs)  # type: ignore
 
     def __eq__(self, other) -> bool:
         if not isinstance(other, type(self)):
@@ -315,7 +315,7 @@ class CircuitOperation(ops.Operation):
                 self,
                 '_cached_measurement_key_objs',
                 {
-                    protocols.with_measurement_key_mapping(key, self.measurement_key_map)
+                    protocols.with_measurement_key_mapping(key, dict(self.measurement_key_map))
                     for key in circuit_keys
                 },
             )
@@ -358,7 +358,9 @@ class CircuitOperation(ops.Operation):
             if isinstance(self.repetitions, INT_CLASSES) and self.repetitions < 0:
                 circuit = circuit**-1
             if self.measurement_key_map:
-                circuit = protocols.with_measurement_key_mapping(circuit, self.measurement_key_map)
+                circuit = protocols.with_measurement_key_mapping(
+                    circuit, dict(self.measurement_key_map)
+                )
             if self.param_resolver:
                 circuit = protocols.resolve_parameters(
                     circuit, self.param_resolver, recursive=False
@@ -541,7 +543,7 @@ class CircuitOperation(ops.Operation):
     # Methods for constructing a similar object with one field modified.
 
     def repeat(
-        self, repetitions: Optional[IntParam] = None, repetition_ids: Optional[List[str]] = None
+        self, repetitions: Optional[IntParam] = None, repetition_ids: Optional[Sequence[str]] = None
     ) -> 'CircuitOperation':
         """Returns a copy of this operation repeated 'repetitions' times.
          Each repetition instance will be identified by a single repetition_id.
@@ -623,7 +625,7 @@ class CircuitOperation(ops.Operation):
         return self.replace(repetition_ids=repetition_ids)
 
     def with_qubit_mapping(
-        self, qubit_map: Union[Dict['cirq.Qid', 'cirq.Qid'], Callable[['cirq.Qid'], 'cirq.Qid']]
+        self, qubit_map: Union[Mapping['cirq.Qid', 'cirq.Qid'], Callable[['cirq.Qid'], 'cirq.Qid']]
     ) -> 'cirq.CircuitOperation':
         """Returns a copy of this operation with an updated qubit mapping.
 
@@ -683,7 +685,7 @@ class CircuitOperation(ops.Operation):
             raise ValueError(f'Expected {expected} qubits, got {len(new_qubits)}.')
         return self.with_qubit_mapping(dict(zip(self.qubits, new_qubits)))
 
-    def with_measurement_key_mapping(self, key_map: Dict[str, str]) -> 'cirq.CircuitOperation':
+    def with_measurement_key_mapping(self, key_map: Mapping[str, str]) -> 'cirq.CircuitOperation':
         """Returns a copy of this operation with an updated key mapping.
 
         Args:
@@ -717,7 +719,7 @@ class CircuitOperation(ops.Operation):
             )
         return new_op
 
-    def _with_measurement_key_mapping_(self, key_map: Dict[str, str]) -> 'cirq.CircuitOperation':
+    def _with_measurement_key_mapping_(self, key_map: Mapping[str, str]) -> 'cirq.CircuitOperation':
         return self.with_measurement_key_mapping(key_map)
 
     def with_params(

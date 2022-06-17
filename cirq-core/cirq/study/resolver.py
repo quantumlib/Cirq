@@ -31,7 +31,7 @@ ParamMappingType = Mapping['cirq.TParamKey', 'cirq.TParamValComplex']
 document(ParamDictType, """Dictionary from symbols to values.""")  # type: ignore
 document(ParamMappingType, """Immutable map from symbols to values.""")  # type: ignore
 
-ParamResolverOrSimilarType = Union['cirq.ParamResolver', ParamDictType, None]
+ParamResolverOrSimilarType = Union['cirq.ParamResolver', ParamMappingType, None]
 document(
     ParamResolverOrSimilarType,  # type: ignore
     """Something that can be used to turn parameters into values.""",
