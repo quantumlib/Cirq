@@ -110,5 +110,8 @@ def test_output_of():
     assert shell_tools.output_of('true') == ''
     with pytest.raises(subprocess.CalledProcessError):
         _ = shell_tools.output_of('false')
-    assert shell_tools.output_of('echo', 'test') == 'test'
+    assert shell_tools.output_of(['echo', 'test']) == 'test'
+    # filtering of the None arguments was removed.  check this now fails
+    with pytest.raises(TypeError):
+        _ = shell_tools.output_of(['echo', 'test', None, 'duck'])
     assert shell_tools.output_of('pwd', cwd='/tmp') in ['/tmp', '/private/tmp']

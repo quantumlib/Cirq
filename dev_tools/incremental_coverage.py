@@ -144,8 +144,9 @@ def get_incremental_uncovered_lines(
     if not os.path.isfile(abs_path):
         return []
 
+    optional_actual_commit = [] if actual_commit is None else [actual_commit]
     unified_diff_lines_str = shell_tools.output_of(
-        'git', 'diff', '--unified=0', base_commit, actual_commit, '--', abs_path
+        ['git', 'diff', '--unified=0', base_commit, *optional_actual_commit, '--', abs_path]
     )
     unified_diff_lines = [e for e in unified_diff_lines_str.split('\n') if e.strip()]
 

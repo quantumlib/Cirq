@@ -22,7 +22,7 @@ from dev_tools import shell_tools, github_repository, prepared_env
 
 def get_repo_root() -> str:
     """Get the root of the git repository the cwd is within."""
-    return shell_tools.output_of('git', 'rev-parse', '--show-toplevel')
+    return shell_tools.output_of(['git', 'rev-parse', '--show-toplevel'])
 
 
 def _git_fetch_for_comparison(
@@ -60,7 +60,7 @@ def _git_fetch_for_comparison(
             depth_str,
             log_run_to_stderr=verbose,
         )
-        actual_id = shell_tools.output_of('git', 'rev-parse', 'FETCH_HEAD')
+        actual_id = shell_tools.output_of(['git', 'rev-parse', 'FETCH_HEAD'])
 
         shell_tools.run_cmd(
             'git',
@@ -71,10 +71,10 @@ def _git_fetch_for_comparison(
             depth_str,
             log_run_to_stderr=verbose,
         )
-        base_id = shell_tools.output_of('git', 'rev-parse', 'FETCH_HEAD')
+        base_id = shell_tools.output_of(['git', 'rev-parse', 'FETCH_HEAD'])
 
         try:
-            base_id = shell_tools.output_of('git', 'merge-base', actual_id, base_id)
+            base_id = shell_tools.output_of(['git', 'merge-base', actual_id, base_id])
             break
         except subprocess.CalledProcessError:
             # No common ancestor. We need to dig deeper.
@@ -170,7 +170,7 @@ def fetch_local_files(destination_directory: str, verbose: bool) -> prepared_env
             log_run_to_stderr=verbose,
         )
 
-        cur_commit = shell_tools.output_of('git', 'rev-parse', 'HEAD')
+        cur_commit = shell_tools.output_of(['git', 'rev-parse', 'HEAD'])
 
         os.chdir(destination_directory)
         if verbose:
