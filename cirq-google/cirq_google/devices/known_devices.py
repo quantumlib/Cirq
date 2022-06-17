@@ -15,6 +15,7 @@
 from typing import Collection, Dict, Optional, Iterable, List, Set, Tuple, cast
 
 import cirq
+from cirq import _compat
 from cirq_google.api import v2
 from cirq_google.api.v2 import device_pb2
 from cirq_google.devices import grid_device
@@ -54,13 +55,14 @@ def _parse_device(s: str) -> Tuple[List[cirq.GridQubit], Dict[str, Set[cirq.Grid
     return qubits, measurement_lines
 
 
+@_compat.deprecated(deadline='v0.16', fix='This function will no longer be available.')
 def create_device_proto_from_diagram(
     ascii_grid: str,
     gate_sets: Optional[Iterable[serializable_gate_set.SerializableGateSet]] = None,
     durations_picos: Optional[Dict[str, int]] = None,
     out: Optional[device_pb2.DeviceSpecification] = None,
 ) -> device_pb2.DeviceSpecification:
-    """[Deprecated] Parse ASCIIart device layout into DeviceSpecification proto.
+    """Parse ASCIIart device layout into DeviceSpecification proto.
     This function assumes that all pairs of adjacent qubits are valid targets
     for two-qubit gates.
     Args:
@@ -266,12 +268,6 @@ _SYCAMORE_DURATIONS_PICOS = {
     'z': 0,
     'meas': 4_000_000,  # 1000 ns for readout, 3000ns for ring_down
 }
-
-
-# Deprecated
-SYCAMORE_PROTO = create_device_proto_from_diagram(
-    _SYCAMORE_GRID, [gate_sets.SQRT_ISWAP_GATESET, gate_sets.SYC_GATESET], _SYCAMORE_DURATIONS_PICOS
-)
 
 
 _SYCAMORE_GATESET = cirq.Gateset(

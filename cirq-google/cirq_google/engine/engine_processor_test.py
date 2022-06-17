@@ -330,23 +330,27 @@ def test_get_device():
 
 
 def test_default_gate_sets():
-    # Sycamore should have valid gate sets with default
-    processor = cg.EngineProcessor(
-        'a',
-        'p',
-        EngineContext(),
-        _processor=quantum.QuantumProcessor(
-            device_spec=util.pack_any(known_devices.SYCAMORE_PROTO)
-        ),
-    )
-    device = processor.get_device()
-    device.validate_operation(cirq.X(cirq.GridQubit(5, 4)))
-    # Test that a device with no standard gatesets doesn't blow up
-    processor = cg.EngineProcessor(
-        'a', 'p', EngineContext(), _processor=quantum.QuantumProcessor(device_spec=_DEVICE_SPEC)
-    )
-    device = processor.get_device()
-    assert device.qubits == [cirq.GridQubit(0, 0), cirq.GridQubit(1, 1)]
+    with cirq.testing.assert_deprecated('no longer be available', deadline='v0.16', count=1):
+        # Sycamore should have valid gate sets with default
+        sycamore_proto = known_devices.create_device_proto_from_diagram(
+            known_devices._SYCAMORE_GRID,
+            [cg.SQRT_ISWAP_GATESET, cg.SYC_GATESET],
+            known_devices._SYCAMORE_DURATIONS_PICOS,
+        )
+        processor = cg.EngineProcessor(
+            'a',
+            'p',
+            EngineContext(),
+            _processor=quantum.QuantumProcessor(device_spec=util.pack_any(sycamore_proto)),
+        )
+        device = processor.get_device()
+        device.validate_operation(cirq.X(cirq.GridQubit(5, 4)))
+        # Test that a device with no standard gatesets doesn't blow up
+        processor = cg.EngineProcessor(
+            'a', 'p', EngineContext(), _processor=quantum.QuantumProcessor(device_spec=_DEVICE_SPEC)
+        )
+        device = processor.get_device()
+        assert device.qubits == [cirq.GridQubit(0, 0), cirq.GridQubit(1, 1)]
 
 
 def test_get_missing_device():
