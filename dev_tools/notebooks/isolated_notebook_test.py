@@ -181,20 +181,20 @@ cd {notebook_env}
 . ./bin/activate
 pip list
 papermill {rewritten_notebook_path} {os.getcwd()}/{out_path}"""
-    stdout, stderr, status = shell_tools.run_shell(
-        cmd=cmd,
+    result = shell_tools.run(
+        cmd,
         log_run_to_stderr=False,
-        raise_on_fail=False,
-        out=shell_tools.TeeCapture(),
-        err=shell_tools.TeeCapture(),
+        shell=True,
+        check=False,
+        capture_output=True,
         # important to get rid of PYTHONPATH specifically, which contains
         # the Cirq repo path due to check/pytest
         env={},
     )
 
-    if status != 0:
-        print(stdout)
-        print(stderr)
+    if result.returncode != 0:
+        print(result.stdout)
+        print(result.stderr)
         pytest.fail(
             f"Notebook failure: {notebook_file}, please see {out_path} for the output "
             f"notebook (in Github Actions, you can download it from the workflow artifact"
