@@ -55,7 +55,13 @@ def _parse_device(s: str) -> Tuple[List[cirq.GridQubit], Dict[str, Set[cirq.Grid
     return qubits, measurement_lines
 
 
-@_compat.deprecated(deadline='v0.16', fix='This function will no longer be available.')
+@_compat.deprecated(
+    deadline='v0.16',
+    fix='This function will no longer be available.'
+    ' `cirq_google.grid_device.create_device_specification_proto()` can be used'
+    ' to generate a DeviceSpecification proto which matches the format expected'
+    ' by GridDevice.',
+)
 def create_device_proto_from_diagram(
     ascii_grid: str,
     gate_sets: Optional[Iterable[serializable_gate_set.SerializableGateSet]] = None,
