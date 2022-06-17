@@ -398,6 +398,16 @@ def test_serializable_device_str_named_qubits():
     assert device.__class__.__name__ in str(device)
 
 
+def test_serializable_device_gate_definitions_filter():
+    """Ignore items in gate_definitions dictionary with invalid keys."""
+    device = cg.SerializableDevice(
+        qubits=[cirq.NamedQubit('a'), cirq.NamedQubit('b')],
+        gate_definitions={cirq.FSimGate: [], cirq.NoiseModel: []},
+    )
+    # Two gates for cirq.FSimGate and the cirq.GlobalPhaseGate default
+    assert len(device.metadata.gateset.gates) == 2
+
+
 def test_sycamore23_str():
     assert (
         str(cg.Sycamore23)
