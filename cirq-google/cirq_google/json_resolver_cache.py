@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import warnings
 import functools
 from typing import Dict
 
@@ -20,11 +21,20 @@ from cirq.protocols.json_serialization import ObjectFactory
 
 @functools.lru_cache()
 def _class_resolver_dictionary() -> Dict[str, ObjectFactory]:
+    def _old_xmon(*args, **kwargs):
+        d_type = kwargs['constant']
+        warnings.warn(
+            f'Attempted to json load a {d_type} Device.'
+            'These devices were removed in Cirq v0.15 and are no '
+            'longer supported. Please update device usage to a '
+            'supported device or downgrade your Cirq installation.'
+        )
+        return str(d_type)
+
     import cirq_google
-    from cirq_google.devices.known_devices import _NamedConstantXmonDevice
 
     return {
-        '_NamedConstantXmonDevice': _NamedConstantXmonDevice,
+        '_NamedConstantXmonDevice': _old_xmon,
         'Calibration': cirq_google.Calibration,
         'CalibrationTag': cirq_google.CalibrationTag,
         'CalibrationLayer': cirq_google.CalibrationLayer,

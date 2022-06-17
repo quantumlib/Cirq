@@ -12,15 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Any, Collection, Dict, Optional, Iterable, List, Set, Tuple
+from typing import Collection, Dict, Optional, Iterable, List, Set, Tuple
 
 import cirq
-from cirq import _compat
-from cirq._doc import document
 from cirq_google.api import v2
 from cirq_google.api.v2 import device_pb2
 from cirq_google.devices.serializable_device import SerializableDevice
-from cirq_google.devices.xmon_device import _XmonDeviceBase
 from cirq_google.serialization import gate_sets, op_serializer, serializable_gate_set
 
 _2_QUBIT_TARGET_SET = "2_qubit_targets"
@@ -209,103 +206,6 @@ def populate_qubit_pairs_in_device_proto(
         new_target = grid_targets.targets.add()
         new_target.ids.extend(v2.qubit_to_proto_id(q) for q in pair)
 
-
-_FOXTAIL_GRID = """
-AAAAABBBBBB
-CCCCCCDDDDD
-"""
-
-
-class _NamedConstantXmonDevice(_XmonDeviceBase):
-    def __init__(self, constant: str, **kwargs) -> None:
-        super().__init__(**kwargs)
-        self._repr = constant
-
-    def __repr__(self) -> str:
-        return self._repr
-
-    @classmethod
-    def _from_json_dict_(cls, constant: str, **kwargs):
-        _compat._warn_or_error(
-            f'NamedConstantXmonDevice was used but is deprecated.\n'
-            f'It will be removed in cirq v0.15.\n'
-        )
-        if constant in ['cirq.google.Foxtail', 'cirq_google.Foxtail']:
-            return Foxtail
-        if constant in ['cirq.google.Bristlecone', 'cirq_google.Bristlecone']:
-            return Bristlecone
-        raise ValueError(f'Unrecognized xmon device name: {constant!r}')
-
-    def _json_dict_(self) -> Dict[str, Any]:
-        return {'constant': self._repr}
-
-
-Foxtail = _NamedConstantXmonDevice(
-    'cirq_google.Foxtail',
-    measurement_duration=cirq.Duration(nanos=4000),
-    exp_w_duration=cirq.Duration(nanos=20),
-    exp_11_duration=cirq.Duration(nanos=50),
-    qubits=_parse_device(_FOXTAIL_GRID)[0],
-)
-document(
-    Foxtail,
-    f"""72 xmon qubit device.
-
-**Qubit grid**:
-```
-{str(Foxtail)}
-```
-""",
-)
-
-# Duration dict in picoseconds
-_DURATIONS_FOR_XMON = {
-    'cz': 45_000,
-    'xy': 15_000,
-    'z': 0,
-    'meas': 4_000_000,  # 1000ns for readout, 3000ns for "ring down"
-}
-
-FOXTAIL_PROTO = create_device_proto_from_diagram(
-    _FOXTAIL_GRID, [gate_sets.XMON], _DURATIONS_FOR_XMON
-)
-
-_BRISTLECONE_GRID = """
------AB-----
-----ABCD----
----ABCDEF---
---ABCDEFGH--
--ABCDEFGHIJ-
-ABCDEFGHIJKL
--CDEFGHIJKL-
---EFGHIJKL--
----GHIJKL---
-----IJKL----
------KL-----
-"""
-
-Bristlecone = _NamedConstantXmonDevice(
-    'cirq_google.Bristlecone',
-    measurement_duration=cirq.Duration(nanos=4000),
-    exp_w_duration=cirq.Duration(nanos=20),
-    exp_11_duration=cirq.Duration(nanos=50),
-    qubits=_parse_device(_BRISTLECONE_GRID)[0],
-)
-
-document(
-    Bristlecone,
-    f"""72 xmon qubit device.
-
-**Qubit grid**:
-```
-{str(Bristlecone)}
-```
-""",
-)
-
-BRISTLECONE_PROTO = create_device_proto_from_diagram(
-    _BRISTLECONE_GRID, [gate_sets.XMON], _DURATIONS_FOR_XMON
-)
 
 _SYCAMORE_GRID = """
 -----AB---
