@@ -129,12 +129,13 @@ class CircuitOperation(ops.Operation):
         self._cached_measurement_key_objs = None
         self._cached_control_keys = None
         self._cached_mapped_single_loop = None
-        self._param_resolver = study.ParamResolver(param_resolver)
-        self._parent_path = parent_path
         self._extern_keys = extern_keys
 
         # All other fields are pseudo-private: read access is allowed via the
         # @property methods, but mutation is prohibited.
+        self._param_resolver = study.ParamResolver(param_resolver)
+        self._parent_path = parent_path
+
         self._circuit = circuit
         if not isinstance(self._circuit, circuits.FrozenCircuit):
             raise TypeError(f'Expected circuit of type FrozenCircuit, got: {type(self._circuit)!r}')
@@ -223,9 +224,13 @@ class CircuitOperation(ops.Operation):
     def measurement_key_map(self) -> Mapping[str, str]:
         return self._measurement_key_map
 
-    def get_param_dict(self) -> study.ParamMappingType:
-        """Helper method for inspecting parameters."""
-        return self._param_resolver.param_dict
+    @property
+    def param_resolver(self) -> Optional[study.ParamResolverOrSimilarType]:
+        return self._param_resolver
+
+    @property
+    def parent_path(self) -> Tuple[str, ...]:
+        return self._parent_path
 
     def base_operation(self) -> 'cirq.CircuitOperation':
         """Returns a copy of this operation with only the wrapped circuit.
@@ -241,9 +246,9 @@ class CircuitOperation(ops.Operation):
             'repetitions': self.repetitions,
             'qubit_map': self.qubit_map,
             'measurement_key_map': self.measurement_key_map,
-            'param_resolver': self._param_resolver,
+            'param_resolver': self.param_resolver,
             'repetition_ids': self.repetition_ids,
-            'parent_path': self._parent_path,
+            'parent_path': self.parent_path,
             'extern_keys': self._extern_keys,
             'use_repetition_ids': self.use_repetition_ids,
             'repeat_until': self.repeat_until,
@@ -258,10 +263,10 @@ class CircuitOperation(ops.Operation):
             self.circuit == other.circuit
             and self.qubit_map == other.qubit_map
             and self.measurement_key_map == other.measurement_key_map
-            and self._param_resolver == other._param_resolver
+            and self.param_resolver == other.param_resolver
             and self.repetitions == other.repetitions
             and self.repetition_ids == other.repetition_ids
-            and self._parent_path == other._parent_path
+            and self.parent_path == other.parent_path
             and self.use_repetition_ids == other.use_repetition_ids
             and self.repeat_until == other.repeat_until
         )
@@ -305,7 +310,7 @@ class CircuitOperation(ops.Operation):
                         for repetition_id in self.repetition_ids
                         for key in circuit_keys
                     }
-            circuit_keys = {key.with_key_path_prefix(*self._parent_path) for key in circuit_keys}
+            circuit_keys = {key.with_key_path_prefix(*self.parent_path) for key in circuit_keys}
             object.__setattr__(
                 self,
                 '_cached_measurement_key_objs',
@@ -341,7 +346,7 @@ class CircuitOperation(ops.Operation):
         yield from protocols.parameter_names(self.repetitions)
         for symbol in protocols.parameter_symbols(self.circuit):
             for name in protocols.parameter_names(
-                protocols.resolve_parameters(symbol, self._param_resolver, recursive=False)
+                protocols.resolve_parameters(symbol, self.param_resolver, recursive=False)
             ):
                 yield name
 
@@ -354,16 +359,16 @@ class CircuitOperation(ops.Operation):
                 circuit = circuit**-1
             if self.measurement_key_map:
                 circuit = protocols.with_measurement_key_mapping(circuit, self.measurement_key_map)
-            if self._param_resolver:
+            if self.param_resolver:
                 circuit = protocols.resolve_parameters(
-                    circuit, self._param_resolver, recursive=False
+                    circuit, self.param_resolver, recursive=False
                 )
             object.__setattr__(self, '_cached_mapped_single_loop', circuit)
         circuit = cast(circuits.Circuit, self._cached_mapped_single_loop)
         if repetition_id:
             circuit = protocols.with_rescoped_keys(circuit, (repetition_id,))
         return protocols.with_rescoped_keys(
-            circuit, self._parent_path, bindable_keys=self._extern_keys
+            circuit, self.parent_path, bindable_keys=self._extern_keys
         )
 
     def mapped_circuit(self, deep: bool = False) -> 'cirq.Circuit':
@@ -424,10 +429,10 @@ class CircuitOperation(ops.Operation):
             args += f'qubit_map={proper_repr(self.qubit_map)},\n'
         if self.measurement_key_map:
             args += f'measurement_key_map={proper_repr(self.measurement_key_map)},\n'
-        if self._param_resolver:
-            args += f'param_resolver={proper_repr(self._param_resolver)},\n'
-        if self._parent_path:
-            args += f'parent_path={proper_repr(self._parent_path)},\n'
+        if self.param_resolver:
+            args += f'param_resolver={proper_repr(self.param_resolver)},\n'
+        if self.parent_path:
+            args += f'parent_path={proper_repr(self.parent_path)},\n'
         if self.repetition_ids != self._default_repetition_ids():
             # Default repetition_ids need not be specified.
             args += f'repetition_ids={proper_repr(self.repetition_ids)},\n'
@@ -455,10 +460,10 @@ class CircuitOperation(ops.Operation):
             args.append(f'qubit_map={dict_str(self.qubit_map)}')
         if self.measurement_key_map:
             args.append(f'key_map={dict_str(self.measurement_key_map)}')
-        if self._param_resolver:
-            args.append(f'params={self._param_resolver.param_dict}')
-        if self._parent_path:
-            args.append(f'parent_path={self._parent_path}')
+        if self.param_resolver:
+            args.append(f'params={self.param_resolver.param_dict}')
+        if self.parent_path:
+            args.append(f'parent_path={self.parent_path}')
         if self.repetition_ids != self._default_repetition_ids():
             # Default repetition_ids need not be specified.
             args.append(f'repetition_ids={self.repetition_ids}')
@@ -481,8 +486,8 @@ class CircuitOperation(ops.Operation):
                     self.repetitions,
                     frozenset(self.qubit_map.items()),
                     frozenset(self.measurement_key_map.items()),
-                    self._param_resolver,
-                    self._parent_path,
+                    self.param_resolver,
+                    self.parent_path,
                     tuple([] if self.repetition_ids is None else self.repetition_ids),
                     self.use_repetition_ids,
                 )
@@ -497,9 +502,9 @@ class CircuitOperation(ops.Operation):
             # Pairs must be sorted to ensure consistent serialization.
             'qubit_map': sorted(self.qubit_map.items()),
             'measurement_key_map': self.measurement_key_map,
-            'param_resolver': self._param_resolver,
+            'param_resolver': self.param_resolver,
             'repetition_ids': self.repetition_ids,
-            'parent_path': self._parent_path,
+            'parent_path': self.parent_path,
         }
         if not self.use_repetition_ids:
             resp['use_repetition_ids'] = False
@@ -596,7 +601,7 @@ class CircuitOperation(ops.Operation):
         return self.replace(parent_path=path)
 
     def _with_key_path_prefix_(self, prefix: Tuple[str, ...]):
-        return self.replace(parent_path=prefix + self._parent_path)
+        return self.replace(parent_path=prefix + self.parent_path)
 
     def _with_rescoped_keys_(
         self, path: Tuple[str, ...], bindable_keys: FrozenSet['cirq.MeasurementKey']
@@ -608,7 +613,7 @@ class CircuitOperation(ops.Operation):
         # change or remove.
         bindable_keys = frozenset(k for k in bindable_keys if len(k.path) <= len(path))
         bindable_keys |= {k.with_key_path_prefix(*path) for k in self._extern_keys}
-        path += self._parent_path
+        path += self.parent_path
         return self.replace(parent_path=path, extern_keys=bindable_keys)
 
     def with_key_path(self, path: Tuple[str, ...]):
@@ -744,7 +749,7 @@ class CircuitOperation(ops.Operation):
         """
         new_params = {}
         for k in protocols.parameter_symbols(self.circuit):
-            v = self._param_resolver.value_of(k, recursive=False)
+            v = self.param_resolver.value_of(k, recursive=False)
             v = protocols.resolve_parameters(v, param_values, recursive=recursive)
             if v != k:
                 new_params[k] = v
