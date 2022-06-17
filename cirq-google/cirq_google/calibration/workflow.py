@@ -788,8 +788,6 @@ def run_calibrations(
             supported for simulation purposes is cirq_google.PhasedFSimEngineSimulator.
         processor_id: Used when sampler is cirq_google.Engine object and passed to
             cirq_google.Engine.run_calibrations method.
-        gate_set: Used when sampler is cirq_google.Engine object and passed to
-            cirq_google.Engine.run_calibrations method.
         max_layers_per_request: Maximum number of calibration requests issued to cirq.Engine at a
             single time. Defaults to 1.
         progress_func: Optional callback function that might be used to report the calibration
@@ -1183,8 +1181,6 @@ def run_floquet_characterization_for_moments(
             supported for simulation purposes is cirq_google.PhasedFSimEngineSimulator.
         processor_id: Used when sampler is cirq_google.Engine object and passed to
             cirq_google.Engine.run_calibrations method.
-        gate_set: Used when sampler is cirq_google.Engine object and passed to
-            cirq_google.Engine.run_calibrations method.
         options: Options that are applied to each characterized gate within a moment. Defaults
             to all_except_for_chi_options which is the broadest currently supported choice.
         gates_translator: Function that translates a gate to a supported FSimGate which will undergo
@@ -1256,8 +1252,6 @@ def run_zeta_chi_gamma_compensation_for_moments(
             calibrations are issued against a Google's quantum device. The only other sampler
             supported for simulation purposes is cirq_google.PhasedFSimEngineSimulator.
         processor_id: Used when sampler is cirq_google.Engine object and passed to
-            cirq_google.Engine.run_calibrations method.
-        gate_set: Used when sampler is cirq_google.Engine object and passed to
             cirq_google.Engine.run_calibrations method.
         options: Options that are applied to each characterized gate within a moment. Defaults
             to all_except_for_chi_options which is the broadest currently supported choice.
