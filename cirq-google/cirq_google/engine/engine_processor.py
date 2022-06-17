@@ -103,15 +103,8 @@ class EngineProcessor(abstract_processor.AbstractProcessor):
 
         return engine_base.Engine(self.project_id, context=self.context)
 
-    @util.deprecated_gate_set_parameter
-    def get_sampler(
-        self, gate_set: Optional[serializer.Serializer] = None
-    ) -> 'cg.engine.ProcessorSampler':
+    def get_sampler(self) -> 'cg.engine.ProcessorSampler':
         """Returns a sampler backed by the engine.
-
-        Args:
-            gate_set: A `Serializer` that determines how to serialize circuits
-            when requesting samples. If not specified, uses proto v2.5 serialization.
 
         Returns:
             A `cirq.Sampler` instance (specifically a `engine_sampler.QuantumEngineSampler`
@@ -120,7 +113,6 @@ class EngineProcessor(abstract_processor.AbstractProcessor):
         """
         return processor_sampler.ProcessorSampler(processor=self)
 
-    @util.deprecated_gate_set_parameter
     def run_batch(
         self,
         programs: Sequence[cirq.AbstractCircuit],
@@ -128,7 +120,6 @@ class EngineProcessor(abstract_processor.AbstractProcessor):
         job_id: Optional[str] = None,
         params_list: Sequence[cirq.Sweepable] = None,
         repetitions: int = 1,
-        gate_set: Optional[serializer.Serializer] = None,
         program_description: Optional[str] = None,
         program_labels: Optional[Dict[str, str]] = None,
         job_description: Optional[str] = None,
@@ -160,8 +151,6 @@ class EngineProcessor(abstract_processor.AbstractProcessor):
                 require sweeps.
             repetitions: Number of circuit repetitions to run.  Each sweep value
                 of each circuit in the batch will run with the same repetitions.
-            gate_set: The gate set used to serialize the circuit. The gate set
-                must be supported by the selected processor.
             program_description: An optional description to set on the program.
             program_labels: Optional set of labels to set on the program.
             job_description: An optional description to set on the job.
@@ -185,13 +174,11 @@ class EngineProcessor(abstract_processor.AbstractProcessor):
             job_labels=job_labels,
         )
 
-    @util.deprecated_gate_set_parameter
     def run_calibration(
         self,
         layers: List[calibration_layer.CalibrationLayer],
         program_id: Optional[str] = None,
         job_id: Optional[str] = None,
-        gate_set: Optional[serializer.Serializer] = None,
         program_description: Optional[str] = None,
         program_labels: Optional[Dict[str, str]] = None,
         job_description: Optional[str] = None,
@@ -220,8 +207,6 @@ class EngineProcessor(abstract_processor.AbstractProcessor):
                 of the format 'calibration-################YYMMDD' will be
                 generated, where # is alphanumeric and YYMMDD is the current
                 year, month, and day.
-            gate_set: The gate set used to serialize the circuit. The gate set
-                must be supported by the selected processor.
             program_description: An optional description to set on the program.
             program_labels: Optional set of labels to set on the program.
             job_description: An optional description to set on the job.
@@ -242,15 +227,13 @@ class EngineProcessor(abstract_processor.AbstractProcessor):
             job_labels=job_labels,
         )
 
-    @util.deprecated_gate_set_parameter
     def run_sweep(
         self,
-        program: cirq.Circuit,
+        program: cirq.AbstractCircuit,
         program_id: Optional[str] = None,
         job_id: Optional[str] = None,
         params: cirq.Sweepable = None,
         repetitions: int = 1,
-        gate_set: Optional[serializer.Serializer] = None,
         program_description: Optional[str] = None,
         program_labels: Optional[Dict[str, str]] = None,
         job_description: Optional[str] = None,
@@ -275,8 +258,6 @@ class EngineProcessor(abstract_processor.AbstractProcessor):
                 and day.
             params: Parameters to run with the program.
             repetitions: The number of circuit repetitions to run.
-            gate_set: The gate set used to serialize the circuit. The gate set
-                must be supported by the selected processor.
             program_description: An optional description to set on the program.
             program_labels: Optional set of labels to set on the program.
             job_description: An optional description to set on the job.
