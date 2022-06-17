@@ -21,7 +21,7 @@ from cirq_google.api.v2 import device_pb2
 from cirq_google.devices import grid_device
 from cirq_google.experimental.ops import coupler_pulse
 from cirq_google.ops import physical_z_tag, sycamore_gate
-from cirq_google.serialization import gate_sets, op_serializer, serializable_gate_set
+from cirq_google.serialization import op_serializer, serializable_gate_set
 
 _2_QUBIT_TARGET_SET = "2_qubit_targets"
 _MEAS_TARGET_SET = "meas_targets"
