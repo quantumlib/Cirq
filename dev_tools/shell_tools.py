@@ -285,12 +285,15 @@ def run_shell(
     return result
 
 
-def output_of(*cmd: Optional[str], **kwargs) -> str:
+def output_of(args: Union[str, List[str]], **kwargs) -> str:
     """Invokes a subprocess and returns its output as a string.
 
     Args:
-        *cmd: Components of the command to execute, e.g. ["echo", "dog"].
-            Arguments set to None are disregarded in command execution.
+        args: The arguments for launching the process.  This may be a list
+            or a string, for example, ["echo", "dog"] or "pwd".  The string
+            type may need to be used with ``shell=True`` to allow invocation
+            as a shell command, otherwise the string is used as a command name
+            with no arguments.
         **kwargs: Extra arguments for the shell_tools.run function, such as
             a cwd (current working directory) argument.
 
@@ -301,8 +304,7 @@ def output_of(*cmd: Optional[str], **kwargs) -> str:
          subprocess.CalledProcessError: The process returned a non-zero error
             code and the `check` flag was True (default).
     """
-    cmdpure = [w for w in cmd if w is not None]
-    result = run(cmdpure, log_run_to_stderr=False, stdout=subprocess.PIPE, **kwargs).stdout
+    result = run(args, log_run_to_stderr=False, stdout=subprocess.PIPE, **kwargs).stdout
 
     # Strip final newline.
     if result.endswith('\n'):
