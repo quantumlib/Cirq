@@ -39,7 +39,7 @@ def test_properties():
     assert op.qubits == (a, b, c)
     assert op.qubit_map == {}
     assert op.measurement_key_map == {}
-    assert op.param_resolver == cirq.ParamResolver()
+    assert op._param_resolver == cirq.ParamResolver()
     assert op.repetitions == 1
     assert op.repetition_ids is None
     # Despite having the same decomposition, these objects are not equal.
@@ -223,7 +223,7 @@ def test_with_params():
     param_dict = {z_exp: 2, x_exp: theta, sympy.Symbol('k'): sympy.Symbol('phi')}
     op_with_params = op_base.with_params(param_dict)
     assert op_with_params.base_operation() == op_base
-    assert op_with_params.param_resolver == cirq.ParamResolver(
+    assert op_with_params._param_resolver == cirq.ParamResolver(
         {
             z_exp: 2,
             x_exp: theta,
@@ -250,12 +250,12 @@ def test_recursive_params():
     outer_params = {a: a2, a2: 0, b: b2, b2: 1}
     resolved = cirq.resolve_parameters(circuitop, outer_params)
     # Combined, a->b->b2->1, and b->a->a2->0.
-    assert resolved.param_resolver.param_dict == {a: 1, b: 0}
+    assert resolved._param_resolver.param_dict == {a: 1, b: 0}
 
     # Non-recursive, so a->a2 and b->b2.
     resolved = cirq.resolve_parameters(circuitop, outer_params, recursive=False)
     # Combined, a->b->b2, and b->a->a2.
-    assert resolved.param_resolver.param_dict == {a: b2, b: a2}
+    assert resolved._param_resolver.param_dict == {a: b2, b: a2}
 
     with pytest.raises(RecursionError):
         cirq.resolve_parameters(circuitop, {a: a2, a2: a})
@@ -263,7 +263,7 @@ def test_recursive_params():
     # Non-recursive, so a->b and b->a.
     resolved = cirq.resolve_parameters(circuitop, {a: b, b: a}, recursive=False)
     # Combined, a->b->a, and b->a->b.
-    assert resolved.param_resolver.param_dict == {}
+    assert resolved._param_resolver.param_dict == {}
 
     # First example should behave like an X when simulated
     result = cirq.Simulator().simulate(cirq.Circuit(circuitop), param_resolver=outer_params)
@@ -732,8 +732,8 @@ def test_json_dict():
         'repetitions': 1,
         'qubit_map': sorted([(k, v) for k, v in op.qubit_map.items()]),
         'measurement_key_map': op.measurement_key_map,
-        'param_resolver': op.param_resolver,
-        'parent_path': op.parent_path,
+        'param_resolver': op._param_resolver,
+        'parent_path': op._parent_path,
         'repetition_ids': None,
     }
 
@@ -994,8 +994,10 @@ def test_keys_under_parent_path():
     assert cirq.measurement_key_names(op1) == {'A'}
     op2 = op1.with_key_path(('B',))
     assert cirq.measurement_key_names(op2) == {'B:A'}
-    op3 = op2.repeat(2)
-    assert cirq.measurement_key_names(op3) == {'B:0:A', 'B:1:A'}
+    op3 = cirq.with_key_path_prefix(op2, ('C',))
+    assert cirq.measurement_key_names(op3) == {'C:B:A'}
+    op4 = op3.repeat(2)
+    assert cirq.measurement_key_names(op4) == {'C:B:0:A', 'C:B:1:A'}
 
 
 def test_mapped_circuit_preserves_moments():

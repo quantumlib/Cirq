@@ -358,7 +358,7 @@ class CircuitOpSerializer(OpSerializer):
             entry.key.string_key = mk1
             entry.value.string_key = mk2
 
-        for p1, p2 in op.param_resolver.param_dict.items():
+        for p1, p2 in op.get_param_dict().items():
             entry = msg.arg_map.entries.add()
             arg_to_proto(p1, out=entry.key, arg_function_language=arg_function_language)
             if isinstance(p2, (complex, numbers.Complex)):
