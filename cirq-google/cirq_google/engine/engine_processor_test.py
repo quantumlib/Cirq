@@ -28,6 +28,7 @@ import cirq_google.devices.known_devices as known_devices
 from cirq_google.api import v2
 from cirq_google.engine import util
 from cirq_google.engine.engine import EngineContext
+from cirq_google.engine.test_utils import uses_async_mock
 from cirq_google.cloud import quantum
 
 
@@ -232,7 +233,8 @@ def test_engine_repr():
     assert 'the-processor-id' in repr(processor)
 
 
-@mock.patch('cirq_google.engine.engine_client.EngineClient.get_processor')
+@uses_async_mock
+@mock.patch('cirq_google.engine.engine_client.EngineClient.get_processor_async')
 def test_health(get_processor):
     get_processor.return_value = quantum.QuantumProcessor(health=quantum.QuantumProcessor.Health.OK)
     processor = cg.EngineProcessor(
@@ -244,7 +246,8 @@ def test_health(get_processor):
     assert processor.health() == 'OK'
 
 
-@mock.patch('cirq_google.engine.engine_client.EngineClient.get_processor')
+@uses_async_mock
+@mock.patch('cirq_google.engine.engine_client.EngineClient.get_processor_async')
 def test_expected_down_time(get_processor):
     processor = cg.EngineProcessor('a', 'p', EngineContext(), _processor=quantum.QuantumProcessor())
     assert not processor.expected_down_time()
@@ -352,7 +355,8 @@ def test_get_missing_device():
         _ = processor.get_device(gate_sets=[_GATE_SET])
 
 
-@mock.patch('cirq_google.engine.engine_client.EngineClient.list_calibrations')
+@uses_async_mock
+@mock.patch('cirq_google.engine.engine_client.EngineClient.list_calibrations_async')
 def test_list_calibrations(list_calibrations):
     list_calibrations.return_value = [_CALIBRATION]
     processor = cg.EngineProcessor('a', 'p', EngineContext())
@@ -391,7 +395,8 @@ def test_list_calibrations(list_calibrations):
     list_calibrations.assert_called_with('a', 'p', f'timestamp >= {today_midnight_timestamp}')
 
 
-@mock.patch('cirq_google.engine.engine_client.EngineClient.list_calibrations')
+@uses_async_mock
+@mock.patch('cirq_google.engine.engine_client.EngineClient.list_calibrations_async')
 def test_list_calibrations_old_params(list_calibrations):
     # Disable pylint warnings for use of deprecated parameters
     # pylint: disable=unexpected-keyword-arg
@@ -409,7 +414,8 @@ def test_list_calibrations_old_params(list_calibrations):
     list_calibrations.assert_called_with('a', 'p', 'timestamp <= 1562600000')
 
 
-@mock.patch('cirq_google.engine.engine_client.EngineClient.get_calibration')
+@uses_async_mock
+@mock.patch('cirq_google.engine.engine_client.EngineClient.get_calibration_async')
 def test_get_calibration(get_calibration):
     get_calibration.return_value = _CALIBRATION
     processor = cg.EngineProcessor('a', 'p', EngineContext())
@@ -419,7 +425,8 @@ def test_get_calibration(get_calibration):
     get_calibration.assert_called_once_with('a', 'p', 1562544000021)
 
 
-@mock.patch('cirq_google.engine.engine_client.EngineClient.get_current_calibration')
+@uses_async_mock
+@mock.patch('cirq_google.engine.engine_client.EngineClient.get_current_calibration_async')
 def test_current_calibration(get_current_calibration):
     get_current_calibration.return_value = _CALIBRATION
     processor = cg.EngineProcessor('a', 'p', EngineContext())
@@ -429,7 +436,8 @@ def test_current_calibration(get_current_calibration):
     get_current_calibration.assert_called_once_with('a', 'p')
 
 
-@mock.patch('cirq_google.engine.engine_client.EngineClient.get_current_calibration')
+@uses_async_mock
+@mock.patch('cirq_google.engine.engine_client.EngineClient.get_current_calibration_async')
 def test_missing_latest_calibration(get_current_calibration):
     get_current_calibration.return_value = None
     processor = cg.EngineProcessor('a', 'p', EngineContext())
@@ -437,7 +445,8 @@ def test_missing_latest_calibration(get_current_calibration):
     get_current_calibration.assert_called_once_with('a', 'p')
 
 
-@mock.patch('cirq_google.engine.engine_client.EngineClient.create_reservation')
+@uses_async_mock
+@mock.patch('cirq_google.engine.engine_client.EngineClient.create_reservation_async')
 def test_create_reservation(create_reservation):
     name = 'projects/proj/processors/p0/reservations/psherman-wallaby-way'
     result = quantum.QuantumReservation(
@@ -462,7 +471,8 @@ def test_create_reservation(create_reservation):
     )
 
 
-@mock.patch('cirq_google.engine.engine_client.EngineClient.delete_reservation')
+@uses_async_mock
+@mock.patch('cirq_google.engine.engine_client.EngineClient.delete_reservation_async')
 def test_delete_reservation(delete_reservation):
     name = 'projects/proj/processors/p0/reservations/rid'
     result = quantum.QuantumReservation(
@@ -477,7 +487,8 @@ def test_delete_reservation(delete_reservation):
     delete_reservation.assert_called_once_with('proj', 'p0', 'rid')
 
 
-@mock.patch('cirq_google.engine.engine_client.EngineClient.cancel_reservation')
+@uses_async_mock
+@mock.patch('cirq_google.engine.engine_client.EngineClient.cancel_reservation_async')
 def test_cancel_reservation(cancel_reservation):
     name = 'projects/proj/processors/p0/reservations/rid'
     result = quantum.QuantumReservation(
@@ -492,8 +503,9 @@ def test_cancel_reservation(cancel_reservation):
     cancel_reservation.assert_called_once_with('proj', 'p0', 'rid')
 
 
-@mock.patch('cirq_google.engine.engine_client.EngineClient.get_reservation')
-@mock.patch('cirq_google.engine.engine_client.EngineClient.delete_reservation')
+@uses_async_mock
+@mock.patch('cirq_google.engine.engine_client.EngineClient.get_reservation_async')
+@mock.patch('cirq_google.engine.engine_client.EngineClient.delete_reservation_async')
 def test_remove_reservation_delete(delete_reservation, get_reservation):
     name = 'projects/proj/processors/p0/reservations/rid'
     now = int(datetime.datetime.now().timestamp())
@@ -515,8 +527,9 @@ def test_remove_reservation_delete(delete_reservation, get_reservation):
     delete_reservation.assert_called_once_with('proj', 'p0', 'rid')
 
 
-@mock.patch('cirq_google.engine.engine_client.EngineClient.get_reservation')
-@mock.patch('cirq_google.engine.engine_client.EngineClient.cancel_reservation')
+@uses_async_mock
+@mock.patch('cirq_google.engine.engine_client.EngineClient.get_reservation_async')
+@mock.patch('cirq_google.engine.engine_client.EngineClient.cancel_reservation_async')
 def test_remove_reservation_cancel(cancel_reservation, get_reservation):
     name = 'projects/proj/processors/p0/reservations/rid'
     now = int(datetime.datetime.now().timestamp())
@@ -538,7 +551,8 @@ def test_remove_reservation_cancel(cancel_reservation, get_reservation):
     cancel_reservation.assert_called_once_with('proj', 'p0', 'rid')
 
 
-@mock.patch('cirq_google.engine.engine_client.EngineClient.get_reservation')
+@uses_async_mock
+@mock.patch('cirq_google.engine.engine_client.EngineClient.get_reservation_async')
 def test_remove_reservation_not_found(get_reservation):
     get_reservation.return_value = None
     processor = cg.EngineProcessor(
@@ -551,8 +565,9 @@ def test_remove_reservation_not_found(get_reservation):
         processor.remove_reservation('rid')
 
 
-@mock.patch('cirq_google.engine.engine_client.EngineClient.get_processor')
-@mock.patch('cirq_google.engine.engine_client.EngineClient.get_reservation')
+@uses_async_mock
+@mock.patch('cirq_google.engine.engine_client.EngineClient.get_processor_async')
+@mock.patch('cirq_google.engine.engine_client.EngineClient.get_reservation_async')
 def test_remove_reservation_failures(get_reservation, get_processor):
     name = 'projects/proj/processors/p0/reservations/rid'
     now = int(datetime.datetime.now().timestamp())
@@ -576,7 +591,8 @@ def test_remove_reservation_failures(get_reservation, get_processor):
         processor.remove_reservation('rid')
 
 
-@mock.patch('cirq_google.engine.engine_client.EngineClient.get_reservation')
+@uses_async_mock
+@mock.patch('cirq_google.engine.engine_client.EngineClient.get_reservation_async')
 def test_get_reservation(get_reservation):
     name = 'projects/proj/processors/p0/reservations/rid'
     result = quantum.QuantumReservation(
@@ -591,7 +607,8 @@ def test_get_reservation(get_reservation):
     get_reservation.assert_called_once_with('proj', 'p0', 'rid')
 
 
-@mock.patch('cirq_google.engine.engine_client.EngineClient.update_reservation')
+@uses_async_mock
+@mock.patch('cirq_google.engine.engine_client.EngineClient.update_reservation_async')
 def test_update_reservation(update_reservation):
     name = 'projects/proj/processors/p0/reservations/rid'
     result = quantum.QuantumReservation(
@@ -610,7 +627,8 @@ def test_update_reservation(update_reservation):
     )
 
 
-@mock.patch('cirq_google.engine.engine_client.EngineClient.list_reservations')
+@uses_async_mock
+@mock.patch('cirq_google.engine.engine_client.EngineClient.list_reservations_async')
 def test_list_reservation(list_reservations):
     name = 'projects/proj/processors/p0/reservations/rid'
     results = [
@@ -640,7 +658,8 @@ def test_list_reservation(list_reservations):
     )
 
 
-@mock.patch('cirq_google.engine.engine_client.EngineClient.list_time_slots')
+@uses_async_mock
+@mock.patch('cirq_google.engine.engine_client.EngineClient.list_time_slots_async')
 def test_get_schedule(list_time_slots):
     results = [
         quantum.QuantumTimeSlot(
@@ -675,7 +694,8 @@ def test_get_schedule(list_time_slots):
     )
 
 
-@mock.patch('cirq_google.engine.engine_client.EngineClient.list_time_slots')
+@uses_async_mock
+@mock.patch('cirq_google.engine.engine_client.EngineClient.list_time_slots_async')
 def test_get_schedule_filter_by_time_slot(list_time_slots):
     results = [
         quantum.QuantumTimeSlot(
@@ -735,9 +755,10 @@ def _allow_deprecated_freezegun(func):
     return wrapper
 
 
+@uses_async_mock
 @_allow_deprecated_freezegun
 @freezegun.freeze_time()
-@mock.patch('cirq_google.engine.engine_client.EngineClient.list_time_slots')
+@mock.patch('cirq_google.engine.engine_client.EngineClient.list_time_slots_async')
 def test_get_schedule_time_filter_behavior(list_time_slots):
     list_time_slots.return_value = []
     processor = cg.EngineProcessor('proj', 'p0', EngineContext())
@@ -779,9 +800,10 @@ def test_get_schedule_time_filter_behavior(list_time_slots):
     list_time_slots.assert_called_with('proj', 'p0', f'start_time < {utc_ts}')
 
 
+@uses_async_mock
 @_allow_deprecated_freezegun
 @freezegun.freeze_time()
-@mock.patch('cirq_google.engine.engine_client.EngineClient.list_reservations')
+@mock.patch('cirq_google.engine.engine_client.EngineClient.list_reservations_async')
 def test_list_reservations_time_filter_behavior(list_reservations):
     list_reservations.return_value = []
     processor = cg.EngineProcessor('proj', 'p0', EngineContext())
@@ -823,22 +845,25 @@ def test_list_reservations_time_filter_behavior(list_reservations):
     list_reservations.assert_called_with('proj', 'p0', f'start_time < {utc_ts}')
 
 
-@mock.patch('cirq_google.engine.engine_client.EngineClient')
+@uses_async_mock
+@mock.patch('cirq_google.engine.engine_client.EngineClient', autospec=True)
 def test_run_sweep_params(client):
-    client().create_program.return_value = (
+    client().create_program_async.return_value = (
         'prog',
         quantum.QuantumProgram(name='projects/proj/programs/prog'),
     )
-    client().create_job.return_value = (
+    client().create_job_async.return_value = (
         'job-id',
         quantum.QuantumJob(
             name='projects/proj/programs/prog/jobs/job-id', execution_status={'state': 'READY'}
         ),
     )
-    client().get_job.return_value = quantum.QuantumJob(
+    client().get_job_async.return_value = quantum.QuantumJob(
         execution_status={'state': 'SUCCESS'}, update_time=_to_timestamp('2019-07-09T23:39:59Z')
     )
-    client().get_job_results.return_value = quantum.QuantumResult(result=util.pack_any(_RESULTS_V2))
+    client().get_job_results_async.return_value = quantum.QuantumResult(
+        result=util.pack_any(_RESULTS_V2)
+    )
 
     processor = cg.EngineProcessor('a', 'p', EngineContext())
     job = processor.run_sweep(
@@ -855,36 +880,37 @@ def test_run_sweep_params(client):
         assert result.job_finished_time is not None
     assert results == cirq.read_json(json_text=cirq.to_json(results))
 
-    client().create_program.assert_called_once()
-    client().create_job.assert_called_once()
+    client().create_program_async.assert_called_once()
+    client().create_job_async.assert_called_once()
 
     run_context = v2.run_context_pb2.RunContext()
-    client().create_job.call_args[1]['run_context'].Unpack(run_context)
+    client().create_job_async.call_args[1]['run_context'].Unpack(run_context)
     sweeps = run_context.parameter_sweeps
     assert len(sweeps) == 2
     for i, v in enumerate([1.0, 2.0]):
         assert sweeps[i].repetitions == 1
         assert sweeps[i].sweep.sweep_function.sweeps[0].single_sweep.points.points == [v]
-    client().get_job.assert_called_once()
-    client().get_job_results.assert_called_once()
+    client().get_job_async.assert_called_once()
+    client().get_job_results_async.assert_called_once()
 
 
-@mock.patch('cirq_google.engine.engine_client.EngineClient')
+@uses_async_mock
+@mock.patch('cirq_google.engine.engine_client.EngineClient', autospec=True)
 def test_run_batch(client):
-    client().create_program.return_value = (
+    client().create_program_async.return_value = (
         'prog',
         quantum.QuantumProgram(name='projects/proj/programs/prog'),
     )
-    client().create_job.return_value = (
+    client().create_job_async.return_value = (
         'job-id',
         quantum.QuantumJob(
             name='projects/proj/programs/prog/jobs/job-id', execution_status={'state': 'READY'}
         ),
     )
-    client().get_job.return_value = quantum.QuantumJob(
+    client().get_job_async.return_value = quantum.QuantumJob(
         execution_status={'state': 'SUCCESS'}, update_time=_to_timestamp('2019-07-09T23:39:59Z')
     )
-    client().get_job_results.return_value = quantum.QuantumResult(result=_BATCH_RESULTS_V2)
+    client().get_job_results_async.return_value = quantum.QuantumResult(result=_BATCH_RESULTS_V2)
 
     processor = cg.EngineProcessor('a', 'p', EngineContext())
     job = processor.run_batch(
@@ -900,10 +926,10 @@ def test_run_batch(client):
         assert results[i].measurements == {'q': np.array([[0]], dtype='uint8')}
     for result in results:
         assert result.job_id == job.id()
-    client().create_program.assert_called_once()
-    client().create_job.assert_called_once()
+    client().create_program_async.assert_called_once()
+    client().create_job_async.assert_called_once()
     run_context = v2.batch_pb2.BatchRunContext()
-    client().create_job.call_args[1]['run_context'].Unpack(run_context)
+    client().create_job_async.call_args[1]['run_context'].Unpack(run_context)
     assert len(run_context.run_contexts) == 2
     for idx, rc in enumerate(run_context.run_contexts):
         sweeps = rc.parameter_sweeps
@@ -913,24 +939,27 @@ def test_run_batch(client):
             assert sweeps[0].sweep.single_sweep.points.points == [1.0, 2.0]
         if idx == 1:
             assert sweeps[0].sweep.single_sweep.points.points == [3.0, 4.0]
-    client().get_job.assert_called_once()
-    client().get_job_results.assert_called_once()
+    client().get_job_async.assert_called_once()
+    client().get_job_results_async.assert_called_once()
 
 
-@mock.patch('cirq_google.engine.engine_client.EngineClient')
+@uses_async_mock
+@mock.patch('cirq_google.engine.engine_client.EngineClient', autospec=True)
 def test_run_calibration(client):
-    client().create_program.return_value = (
+    client().create_program_async.return_value = (
         'prog',
         quantum.QuantumProgram(name='projects/proj/programs/prog'),
     )
-    client().create_job.return_value = (
+    client().create_job_async.return_value = (
         'job-id',
         quantum.QuantumJob(
             name='projects/proj/programs/prog/jobs/job-id', execution_status={'state': 'READY'}
         ),
     )
-    client().get_job.return_value = quantum.QuantumJob(execution_status={'state': 'SUCCESS'})
-    client().get_job_results.return_value = quantum.QuantumResult(result=_CALIBRATION_RESULTS_V2)
+    client().get_job_async.return_value = quantum.QuantumJob(execution_status={'state': 'SUCCESS'})
+    client().get_job_results_async.return_value = quantum.QuantumResult(
+        result=_CALIBRATION_RESULTS_V2
+    )
 
     q1 = cirq.GridQubit(2, 3)
     q2 = cirq.GridQubit(2, 4)
@@ -952,7 +981,7 @@ def test_run_calibration(client):
     assert results[1].error_message == 'Second success'
 
     # assert label is correct
-    client().create_job.assert_called_once_with(
+    client().create_job_async.assert_called_once_with(
         project_id='proj',
         program_id='prog',
         job_id='job-id',
@@ -963,22 +992,25 @@ def test_run_calibration(client):
     )
 
 
-@mock.patch('cirq_google.engine.engine_client.EngineClient')
+@uses_async_mock
+@mock.patch('cirq_google.engine.engine_client.EngineClient', autospec=True)
 def test_sampler(client):
-    client().create_program.return_value = (
+    client().create_program_async.return_value = (
         'prog',
         quantum.QuantumProgram(name='projects/proj/programs/prog'),
     )
-    client().create_job.return_value = (
+    client().create_job_async.return_value = (
         'job-id',
         quantum.QuantumJob(
             name='projects/proj/programs/prog/jobs/job-id', execution_status={'state': 'READY'}
         ),
     )
-    client().get_job.return_value = quantum.QuantumJob(
+    client().get_job_async.return_value = quantum.QuantumJob(
         execution_status={'state': 'SUCCESS'}, update_time=_to_timestamp('2019-07-09T23:39:59Z')
     )
-    client().get_job_results.return_value = quantum.QuantumResult(result=util.pack_any(_RESULTS_V2))
+    client().get_job_results_async.return_value = quantum.QuantumResult(
+        result=util.pack_any(_RESULTS_V2)
+    )
     processor = cg.EngineProcessor('proj', 'mysim', EngineContext())
     sampler = processor.get_sampler()
     results = sampler.run_sweep(
@@ -989,7 +1021,7 @@ def test_sampler(client):
         assert results[i].repetitions == 1
         assert results[i].params.param_dict == {'a': v}
         assert results[i].measurements == {'q': np.array([[0]], dtype='uint8')}
-    assert client().create_program.call_args[0][0] == 'proj'
+    assert client().create_program_async.call_args[0][0] == 'proj'
 
 
 def test_str():
