@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import List, Optional, Sequence, TYPE_CHECKING, Union
+from typing import Optional, Sequence, TYPE_CHECKING, Union
 
 import cirq
 from cirq_google import engine
@@ -34,7 +34,7 @@ class QuantumEngineSampler(cirq.Sampler):
         self,
         *,
         engine: 'cirq_google.Engine',
-        processor_id: Union[str, List[str]],
+        processor_id: Union[str, Sequence[str]],
         gate_set: Optional['cirq_google.serialization.Serializer'] = None,
     ):
         """Inits QuantumEngineSampler.
@@ -71,8 +71,8 @@ class QuantumEngineSampler(cirq.Sampler):
     def run_batch(
         self,
         programs: Sequence[cirq.AbstractCircuit],
-        params_list: Optional[List[cirq.Sweepable]] = None,
-        repetitions: Union[int, List[int]] = 1,
+        params_list: Optional[Sequence[cirq.Sweepable]] = None,
+        repetitions: Union[int, Sequence[int]] = 1,
     ) -> Sequence[Sequence[cirq.Result]]:
         """Runs the supplied circuits.
 
@@ -83,19 +83,13 @@ class QuantumEngineSampler(cirq.Sampler):
                circuits. That is, the `repetitions` argument must be an integer,
                or else a list with identical values.
         """
-        if isinstance(repetitions, List) and len(programs) != len(repetitions):
-            raise ValueError(
-                'len(programs) and len(repetitions) must match. '
-                f'Got {len(programs)} and {len(repetitions)}.'
-            )
-        if isinstance(repetitions, int) or len(set(repetitions)) == 1:
+        params_list, repetitions = self._normalize_batch_args(programs, params_list, repetitions)
+        if len(set(repetitions)) == 1:
             # All repetitions are the same so batching can be done efficiently
-            if isinstance(repetitions, List):
-                repetitions = repetitions[0]
             job = self._engine.run_batch(
                 programs=programs,
                 params_list=params_list,
-                repetitions=repetitions,
+                repetitions=repetitions[0],
                 processor_ids=self._processor_ids,
             )
             return job.batched_results()

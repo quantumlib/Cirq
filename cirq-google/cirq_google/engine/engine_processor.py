@@ -121,7 +121,7 @@ class EngineProcessor(abstract_processor.AbstractProcessor):
         return processor_sampler.ProcessorSampler(processor=self)
 
     @util.deprecated_gate_set_parameter
-    def run_batch(
+    async def run_batch_async(
         self,
         programs: Sequence[cirq.AbstractCircuit],
         program_id: Optional[str] = None,
@@ -173,7 +173,7 @@ class EngineProcessor(abstract_processor.AbstractProcessor):
             for a circuit are listed in the order imposed by the associated
             parameter sweep.
         """
-        return self.engine().run_batch(
+        return await self.engine().run_batch_async(
             programs=programs,
             processor_ids=[self.processor_id],
             program_id=program_id,
@@ -186,7 +186,7 @@ class EngineProcessor(abstract_processor.AbstractProcessor):
         )
 
     @util.deprecated_gate_set_parameter
-    def run_calibration(
+    async def run_calibration_async(
         self,
         layers: List[calibration_layer.CalibrationLayer],
         program_id: Optional[str] = None,
@@ -231,7 +231,7 @@ class EngineProcessor(abstract_processor.AbstractProcessor):
             An AbstractJob whose results can be retrieved by calling
             calibration_results().
         """
-        return self.engine().run_calibration(
+        return await self.engine().run_calibration_async(
             layers=layers,
             processor_id=self.processor_id,
             program_id=program_id,
@@ -243,7 +243,7 @@ class EngineProcessor(abstract_processor.AbstractProcessor):
         )
 
     @util.deprecated_gate_set_parameter
-    def run_sweep(
+    async def run_sweep_async(
         self,
         program: cirq.Circuit,
         program_id: Optional[str] = None,
@@ -285,7 +285,7 @@ class EngineProcessor(abstract_processor.AbstractProcessor):
             An AbstractJob. If this is iterated over it returns a list of
             `cirq.Result`, one for each parameter sweep.
         """
-        return self.engine().run_sweep(
+        return await self.engine().run_sweep_async(
             processor_ids=[self.processor_id],
             program=program,
             program_id=program_id,
