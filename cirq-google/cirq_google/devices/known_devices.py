@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Collection, Dict, Optional, Iterable, List, Set, Tuple
+from typing import Collection, Dict, Optional, Iterable, List, Set, Tuple, cast
 
 import cirq
 from cirq_google.api import v2
@@ -20,7 +20,7 @@ from cirq_google.api.v2 import device_pb2
 from cirq_google.devices import grid_device
 from cirq_google.experimental.ops import coupler_pulse
 from cirq_google.ops import physical_z_tag, sycamore_gate
-from cirq_google.serialization import op_serializer, serializable_gate_set
+from cirq_google.serialization import gate_sets, op_serializer, serializable_gate_set
 
 _2_QUBIT_TARGET_SET = "2_qubit_targets"
 _MEAS_TARGET_SET = "meas_targets"
@@ -108,7 +108,7 @@ def _create_grid_device_from_diagram(
     for qubit in qubits:
         for neighbor in sorted(qubit.neighbors()):
             if neighbor > qubit and neighbor in qubit_set:
-                pairs.append((qubit, neighbor))
+                pairs.append((qubit, cast(cirq.GridQubit, neighbor)))
 
     device_specification = grid_device.create_device_specification_proto(
         qubits=qubits, pairs=pairs, gateset=gateset, gate_durations=gate_durations, out=out
@@ -266,6 +266,12 @@ _SYCAMORE_DURATIONS_PICOS = {
     'z': 0,
     'meas': 4_000_000,  # 1000 ns for readout, 3000ns for ring_down
 }
+
+
+# Deprecated
+SYCAMORE_PROTO = create_device_proto_from_diagram(
+    _SYCAMORE_GRID, [gate_sets.SQRT_ISWAP_GATESET, gate_sets.SYC_GATESET], _SYCAMORE_DURATIONS_PICOS
+)
 
 
 _SYCAMORE_GATESET = cirq.Gateset(

@@ -219,35 +219,6 @@ valid_targets {
     )
 
 
-@pytest.mark.parametrize('device', [cirq_google.Sycamore, cirq_google.Sycamore23])
-def test_sycamore_devices(device):
-    q0 = cirq.GridQubit(5, 3)
-    q1 = cirq.GridQubit(5, 4)
-    syc = cirq.FSimGate(theta=np.pi / 2, phi=np.pi / 6)(q0, q1)
-    sqrt_iswap = cirq.FSimGate(theta=np.pi / 4, phi=0)(q0, q1)
-    device.validate_operation(syc)
-    device.validate_operation(sqrt_iswap)
-    assert device.duration_of(syc) == cirq.Duration(nanos=12)
-    assert device.duration_of(sqrt_iswap) == cirq.Duration(nanos=32)
-
-
-def test_sycamore_metadata():
-    assert len(cirq_google.Sycamore.metadata.qubit_pairs) == 88
-    assert len(cirq_google.Sycamore23.metadata.qubit_pairs) == 32
-    assert cirq_google.Sycamore.metadata.gateset == cirq.Gateset(
-        cirq.FSimGate,
-        cirq.ISwapPowGate,
-        cirq.PhasedXPowGate,
-        cirq.XPowGate,
-        cirq.YPowGate,
-        cirq.ZPowGate,
-        cirq.PhasedXZGate,
-        cirq.MeasurementGate,
-        cirq.WaitGate,
-        cirq.GlobalPhaseGate,
-    )
-
-
 def test_sycamore_circuitop_device():
     circuitop_gateset = cirq_google.SerializableGateSet(
         gate_set_name='circuitop_gateset',
@@ -455,26 +426,13 @@ valid_targets {
     )
 
 
-def test_sycamore():
-    q = cirq.GridQubit(0, 0)
-    valid_sycamore_gates_and_ops = [
-        cirq_google.SYC,
-        cirq.SQRT_ISWAP,
-        cirq.SQRT_ISWAP_INV,
-        cirq.X,
-        cirq.Y,
-        # Broken due to issue #5543.
-        # TODO(#5543) Uncomment
-        # cirq.Z,
-        # cirq.Z(q).with_tags(cirq_google.PhysicalZTag()),
-        coupler_pulse.CouplerPulse(hold_time=cirq.Duration(nanos=10), coupling_mhz=25.0),
-        cirq.measure(q),
-        cirq.WaitGate(cirq.Duration(millis=5)),
-    ]
-
-    assert (
-        str(cirq_google.Sycamore)
-        == """\
+@pytest.mark.parametrize(
+    'device, qubit_size, layout_str',
+    [
+        (
+            cirq_google.Sycamore,
+            88,
+            """\
                                              (0, 5)───(0, 6)
                                              │        │
                                              │        │
@@ -502,45 +460,12 @@ def test_sycamore():
                            (8, 3)───(8, 4)───(8, 5)
                                     │
                                     │
-                                    (9, 4)"""
-    )
-    assert all(
-        gate_or_op in cirq_google.Sycamore.metadata.gateset
-        for gate_or_op in valid_sycamore_gates_and_ops
-    )
-    assert len(cirq_google.Sycamore.metadata.gate_durations) == len(
-        cirq_google.Sycamore.metadata.gateset.gates
-    )
-    assert any(
-        isinstance(cgs, cirq_google.SycamoreTargetGateset)
-        for cgs in cirq_google.Sycamore.metadata.compilation_target_gatesets
-    )
-    assert any(
-        isinstance(cgs, cirq.SqrtIswapTargetGateset)
-        for cgs in cirq_google.Sycamore.metadata.compilation_target_gatesets
-    )
-
-
-def test_sycamore23():
-    q = cirq.GridQubit(0, 0)
-    valid_sycamore_gates_and_ops = [
-        cirq_google.SYC,
-        cirq.SQRT_ISWAP,
-        cirq.SQRT_ISWAP_INV,
-        cirq.X,
-        cirq.Y,
-        # Broken due to issue #5543.
-        # TODO(#5543) Uncomment
-        # cirq.Z,
-        # cirq.Z(q).with_tags(cirq_google.PhysicalZTag()),
-        coupler_pulse.CouplerPulse(hold_time=cirq.Duration(nanos=10), coupling_mhz=25.0),
-        cirq.measure(q),
-        cirq.WaitGate(cirq.Duration(millis=5)),
-    ]
-
-    assert (
-        str(cirq_google.Sycamore23)
-        == """\
+                                    (9, 4)""",
+        ),
+        (
+            cirq_google.Sycamore23,
+            32,
+            """\
                   (3, 2)
                   │
                   │
@@ -559,20 +484,61 @@ def test_sycamore23():
                            (8, 3)───(8, 4)───(8, 5)
                                     │
                                     │
-                                    (9, 4)"""
-    )
-    assert all(
-        gate_or_op in cirq_google.Sycamore23.metadata.gateset
-        for gate_or_op in valid_sycamore_gates_and_ops
-    )
-    assert len(cirq_google.Sycamore23.metadata.gate_durations) == len(
-        cirq_google.Sycamore23.metadata.gateset.gates
-    )
+                                    (9, 4)""",
+        ),
+    ],
+)
+def test_sycamore_devices(device, qubit_size, layout_str):
+    q0 = cirq.GridQubit(5, 3)
+    q1 = cirq.GridQubit(5, 4)
+    valid_sycamore_gates_and_ops = [
+        cirq_google.SYC,
+        cirq.SQRT_ISWAP,
+        cirq.SQRT_ISWAP_INV,
+        cirq.X,
+        cirq.Y,
+        # Broken due to issue #5543.
+        # TODO(#5543) Uncomment
+        # cirq.Z,
+        # cirq.Z(q0).with_tags(cirq_google.PhysicalZTag()),
+        coupler_pulse.CouplerPulse(hold_time=cirq.Duration(nanos=10), coupling_mhz=25.0),
+        cirq.measure(q0),
+        cirq.WaitGate(cirq.Duration(millis=5)),
+        # TODO(#5050) Uncomment after GlobalPhaseGate support is added.
+        # cirq.GlobalPhaseGate(-1.0),
+    ]
+    syc = cirq.FSimGate(theta=np.pi / 2, phi=np.pi / 6)(q0, q1)
+    sqrt_iswap = cirq.FSimGate(theta=np.pi / 4, phi=0)(q0, q1)
+
+    assert str(device) == layout_str
+    assert len(device.metadata.qubit_pairs) == qubit_size
+    assert all(gate_or_op in device.metadata.gateset for gate_or_op in valid_sycamore_gates_and_ops)
+    assert len(device.metadata.gate_durations) == len(device.metadata.gateset.gates)
     assert any(
         isinstance(cgs, cirq_google.SycamoreTargetGateset)
-        for cgs in cirq_google.Sycamore23.metadata.compilation_target_gatesets
+        for cgs in device.metadata.compilation_target_gatesets
     )
     assert any(
         isinstance(cgs, cirq.SqrtIswapTargetGateset)
-        for cgs in cirq_google.Sycamore23.metadata.compilation_target_gatesets
+        for cgs in device.metadata.compilation_target_gatesets
     )
+
+    device.validate_operation(syc)
+    device.validate_operation(sqrt_iswap)
+
+    assert next(
+        (
+            duration
+            for gate_family, duration in device.metadata.gate_durations.items()
+            if syc in gate_family
+        ),
+        None,
+    ) == cirq.Duration(nanos=12)
+    assert next(
+        (
+            duration
+            for gate_family, duration in device.metadata.gate_durations.items()
+            if sqrt_iswap in gate_family
+        ),
+        None,
+    ) == cirq.Duration(nanos=32)

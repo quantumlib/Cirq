@@ -59,7 +59,7 @@ def test_str_with_grid_qubits():
         ],
         gate_sets=[cg.FSIM_GATESET],
     )
-    device = cgdk.SerializableDevice.from_proto(device_proto, gate_sets=[cg.FSIM_GATESET])
+    device = cg.SerializableDevice.from_proto(device_proto, gate_sets=[cg.FSIM_GATESET])
     assert str(device) == textwrap.dedent(
         """\
         q(1, 1)───q(1, 2)   q(1, 3)
@@ -88,7 +88,7 @@ def test_metadata_correct():
     device_proto = cgdk.create_device_proto_for_qubits(
         qubits=qubits, pairs=pairs, gate_sets=[cg.FSIM_GATESET]
     )
-    device = cgdk.SerializableDevice.from_proto(device_proto, gate_sets=[cg.FSIM_GATESET])
+    device = cg.SerializableDevice.from_proto(device_proto, gate_sets=[cg.FSIM_GATESET])
     assert device.metadata.qubit_pairs == frozenset({frozenset(p) for p in pairs})
     assert device.metadata.gateset == cirq.Gateset(
         cirq.FSimGate,
