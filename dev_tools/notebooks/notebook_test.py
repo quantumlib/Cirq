@@ -63,16 +63,12 @@ def test_notebooks_against_released_cirq(notebook_path):
     cmd = f"""mkdir -p out/{notebook_rel_dir}
 papermill {rewritten_notebook_path} {out_path} {papermill_flags}"""
 
-    _, stderr, status = shell_tools.run_shell(
-        cmd=cmd,
-        log_run_to_stderr=False,
-        raise_on_fail=False,
-        out=shell_tools.TeeCapture(),
-        err=shell_tools.TeeCapture(),
+    result = shell_tools.run(
+        cmd, log_run_to_stderr=False, shell=True, check=False, capture_output=True
     )
 
-    if status != 0:
-        print(stderr)
+    if result.returncode != 0:
+        print(result.stderr)
         pytest.fail(
             f"Notebook failure: {notebook_file}, please see {out_path} for the output "
             f"notebook (in Github Actions, you can download it from the workflow artifact"
