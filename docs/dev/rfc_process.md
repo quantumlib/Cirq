@@ -110,13 +110,12 @@ An approved RFC is not a commitment to implementation on any sort of timeline. T
 
 ## New hardware integrations
 
-Several hardware vendors already have integrations with cirq.  We are not
-currently soliciting additional vendors.  However, if you are considering
-integrating with cirq, we would highly encourage you to engage with the
-cirq-maintainer team through attending the weekly cirq cync and submitting
-an RFC as specified above.  Everyone benefits from a well-maintained, user
-friendly interface with a high reliability, which is the goal of having this
-RFC process.
+Several hardware vendors already have integrations with cirq.
+If you are considering integrating with cirq, please engage with us through the
+cirq-maintainer team by attending the weekly cirq cync meeting and submitting
+an RFC to get feedback on your design proposal (as specified above). The goal of the RFC
+review process is to ensure all integrations end up with a well-maintained, user
+friendly interface with a high reliability.
 
 Examples of other integrations can be found on the
 [Hardware page](/cirq/hardware).
