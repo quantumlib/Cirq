@@ -285,24 +285,26 @@ def run_shell(
     return result
 
 
-def output_of(*cmd: Optional[str], **kwargs) -> str:
+def output_of(args: Union[str, List[str]], **kwargs) -> str:
     """Invokes a subprocess and returns its output as a string.
 
     Args:
-        *cmd: Components of the command to execute, e.g. ["echo", "dog"].
-        **kwargs: Extra arguments for asyncio.create_subprocess_shell, such as
+        args: The arguments for launching the process.  This may be a list
+            or a string, for example, ["echo", "dog"] or "pwd".  The string
+            type may need to be used with ``shell=True`` to allow invocation
+            as a shell command, otherwise the string is used as a command name
+            with no arguments.
+        **kwargs: Extra arguments for the shell_tools.run function, such as
             a cwd (current working directory) argument.
 
     Returns:
-        A (captured output, captured error output, return code) triplet. The
-        captured outputs will be None if the out or err parameters were not set
-        to an instance of TeeCapture.
+        str: The standard output of the command with the last newline removed.
 
     Raises:
          subprocess.CalledProcessError: The process returned a non-zero error
-            code and raise_on_fail was set.
+            code and the `check` flag was True (default).
     """
-    result = cast(str, run_cmd(*cmd, log_run_to_stderr=False, out=TeeCapture(), **kwargs).out)
+    result = run(args, log_run_to_stderr=False, stdout=subprocess.PIPE, **kwargs).stdout
 
     # Strip final newline.
     if result.endswith('\n'):
