@@ -105,12 +105,13 @@ def fetch_github_pull_request(
         compare_branch='master',
         verbose=verbose,
     )
+    optional_actual_commit_id = [] if result.actual_commit_id is None else [result.actual_commit_id]
     shell_tools.run(
         ['git', 'branch', *optional_quiet, 'compare_commit', result.compare_commit_id],
         log_run_to_stderr=verbose,
     )
     shell_tools.run(
-        ['git', 'checkout', *optional_quiet, '-b', 'actual_commit', result.actual_commit_id],
+        ['git', 'checkout', *optional_quiet, '-b', 'actual_commit', *optional_actual_commit_id],
         log_run_to_stderr=verbose,
     )
     return prepared_env.PreparedEnv(
@@ -168,12 +169,13 @@ def fetch_local_files(destination_directory: str, verbose: bool) -> prepared_env
     finally:
         shutil.rmtree(staging_dir, ignore_errors=True)
 
+    optional_actual_commit_id = [] if result.actual_commit_id is None else [result.actual_commit_id]
     shell_tools.run(
         ['git', 'branch', *optional_quiet, 'compare_commit', result.compare_commit_id],
         log_run_to_stderr=verbose,
     )
     shell_tools.run(
-        ['git', 'checkout', *optional_quiet, '-b', 'actual_commit', result.actual_commit_id],
+        ['git', 'checkout', *optional_quiet, '-b', 'actual_commit', *optional_actual_commit_id],
         log_run_to_stderr=verbose,
     )
     return prepared_env.PreparedEnv(
