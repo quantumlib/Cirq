@@ -38,7 +38,7 @@ import numpy as np
 import sympy
 
 from cirq import circuits, ops, protocols, value, study
-from cirq._compat import proper_repr
+from cirq._compat import cached_property, proper_repr
 
 if TYPE_CHECKING:
     import cirq
@@ -123,12 +123,8 @@ class CircuitOperation(ops.Operation):
         use_repetition_ids: bool = True,
         repeat_until: Optional['cirq.Condition'] = None,
     ):
-        # These fields are purely private: they should not be accessed
-        # from outside this class.
-        self._hash = None
-        self._cached_measurement_key_objs = None
-        self._cached_control_keys = None
-        self._cached_mapped_single_loop = None
+        # This fields is exclusively for use in decomposition. It should not be
+        # referenced outside this class.
         self._extern_keys = extern_keys
 
         # All other fields are pseudo-private: read access is allowed via the
@@ -252,8 +248,8 @@ class CircuitOperation(ops.Operation):
             'extern_keys': self._extern_keys,
             'use_repetition_ids': self.use_repetition_ids,
             'repeat_until': self.repeat_until,
+            **changes,
         }
-        kwargs.update(changes)
         return CircuitOperation(**kwargs)  # type: ignore
 
     def __eq__(self, other) -> bool:
@@ -299,42 +295,42 @@ class CircuitOperation(ops.Operation):
         if self.repeat_until or isinstance(self.repetitions, sympy.Expr):
             raise ValueError('Cannot unroll circuit due to nondeterministic repetitions')
 
-    def _measurement_key_objs_(self) -> AbstractSet['cirq.MeasurementKey']:
-        if self._cached_measurement_key_objs is None:
-            circuit_keys = protocols.measurement_key_objs(self.circuit)
-            if circuit_keys and self.use_repetition_ids:
-                self._ensure_deterministic_loop_count()
-                if self.repetition_ids is not None:
-                    circuit_keys = {
-                        key.with_key_path_prefix(repetition_id)
-                        for repetition_id in self.repetition_ids
-                        for key in circuit_keys
-                    }
-            circuit_keys = {key.with_key_path_prefix(*self.parent_path) for key in circuit_keys}
-            object.__setattr__(
-                self,
-                '_cached_measurement_key_objs',
-                {
-                    protocols.with_measurement_key_mapping(key, dict(self.measurement_key_map))
+    @cached_property
+    def _measurement_key_objs(self) -> AbstractSet['cirq.MeasurementKey']:
+        circuit_keys = protocols.measurement_key_objs(self.circuit)
+        if circuit_keys and self.use_repetition_ids:
+            self._ensure_deterministic_loop_count()
+            if self.repetition_ids is not None:
+                circuit_keys = {
+                    key.with_key_path_prefix(repetition_id)
+                    for repetition_id in self.repetition_ids
                     for key in circuit_keys
-                },
-            )
-        return self._cached_measurement_key_objs  # type: ignore
+                }
+        circuit_keys = {key.with_key_path_prefix(*self.parent_path) for key in circuit_keys}
+        return {
+            protocols.with_measurement_key_mapping(key, dict(self.measurement_key_map))
+            for key in circuit_keys
+        }
+
+    def _measurement_key_objs_(self) -> AbstractSet['cirq.MeasurementKey']:
+        return self._measurement_key_objs  # type: ignore
 
     def _measurement_key_names_(self) -> AbstractSet[str]:
         return {str(key) for key in self._measurement_key_objs_()}
 
+    @cached_property
+    def _control_keys(self) -> AbstractSet['cirq.MeasurementKey']:
+        keys = (
+            frozenset()
+            if not protocols.control_keys(self.circuit)
+            else protocols.control_keys(self._mapped_single_loop())
+        )
+        if self.repeat_until is not None:
+            keys |= frozenset(self.repeat_until.keys) - self._measurement_key_objs_()
+        return keys
+
     def _control_keys_(self) -> AbstractSet['cirq.MeasurementKey']:
-        if self._cached_control_keys is None:
-            keys = (
-                frozenset()
-                if not protocols.control_keys(self.circuit)
-                else protocols.control_keys(self._mapped_single_loop())
-            )
-            if self.repeat_until is not None:
-                keys |= frozenset(self.repeat_until.keys) - self._measurement_key_objs_()
-            object.__setattr__(self, '_cached_control_keys', keys)
-        return self._cached_control_keys  # type: ignore
+        return self._control_keys
 
     def _is_parameterized_(self) -> bool:
         return any(self._parameter_names_generator())
@@ -350,23 +346,25 @@ class CircuitOperation(ops.Operation):
             ):
                 yield name
 
+    @cached_property
+    def _mapped_any_loop(self) -> 'cirq.Circuit':
+        circuit = self.circuit.unfreeze()
+        if self.qubit_map:
+            circuit = circuit.transform_qubits(lambda q: self.qubit_map.get(q, q))
+        if isinstance(self.repetitions, INT_CLASSES) and self.repetitions < 0:
+            circuit = circuit**-1
+        if self.measurement_key_map:
+            circuit = protocols.with_measurement_key_mapping(
+                circuit, dict(self.measurement_key_map)
+            )
+        if self.param_resolver:
+            circuit = protocols.resolve_parameters(
+                circuit, self.param_resolver, recursive=False
+            )
+        return cast(circuits.Circuit, circuit)
+
     def _mapped_single_loop(self, repetition_id: Optional[str] = None) -> 'cirq.Circuit':
-        if self._cached_mapped_single_loop is None:
-            circuit = self.circuit.unfreeze()
-            if self.qubit_map:
-                circuit = circuit.transform_qubits(lambda q: self.qubit_map.get(q, q))
-            if isinstance(self.repetitions, INT_CLASSES) and self.repetitions < 0:
-                circuit = circuit**-1
-            if self.measurement_key_map:
-                circuit = protocols.with_measurement_key_mapping(
-                    circuit, dict(self.measurement_key_map)
-                )
-            if self.param_resolver:
-                circuit = protocols.resolve_parameters(
-                    circuit, self.param_resolver, recursive=False
-                )
-            object.__setattr__(self, '_cached_mapped_single_loop', circuit)
-        circuit = cast(circuits.Circuit, self._cached_mapped_single_loop)
+        circuit = self._mapped_any_loop
         if repetition_id:
             circuit = protocols.with_rescoped_keys(circuit, (repetition_id,))
         return protocols.with_rescoped_keys(
@@ -480,20 +478,22 @@ class CircuitOperation(ops.Operation):
             return circuit_msg
         return f'{circuit_msg}({", ".join(args)})'
 
-    def __hash__(self):
-        if self._hash is None:
-            self._hash = hash(
-                (
-                    self.circuit,
-                    self.repetitions,
-                    frozenset(self.qubit_map.items()),
-                    frozenset(self.measurement_key_map.items()),
-                    self.param_resolver,
-                    self.parent_path,
-                    tuple([] if self.repetition_ids is None else self.repetition_ids),
-                    self.use_repetition_ids,
-                )
+    @cached_property
+    def _hash(self):
+        return hash(
+            (
+                self.circuit,
+                self.repetitions,
+                frozenset(self.qubit_map.items()),
+                frozenset(self.measurement_key_map.items()),
+                self.param_resolver,
+                self.parent_path,
+                () if self.repetition_ids is None else tuple(self.repetition_ids),
+                self.use_repetition_ids,
             )
+        )
+
+    def __hash__(self):
         return self._hash
 
     def _json_dict_(self):
