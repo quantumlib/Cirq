@@ -19,8 +19,10 @@ import pytest
 import cirq
 import cirq_google as cg
 from cirq_google.engine.abstract_processor import AbstractProcessor
+from cirq_google.engine.test_utils import uses_async_mock
 
 
+@uses_async_mock
 @pytest.mark.parametrize('circuit', [cirq.Circuit(), cirq.FrozenCircuit()])
 def test_run_circuit(circuit):
     processor = mock.create_autospec(AbstractProcessor)
@@ -30,6 +32,7 @@ def test_run_circuit(circuit):
     processor.run_sweep_async.assert_called_with(params=params, program=circuit, repetitions=5)
 
 
+@uses_async_mock
 def test_run_batch():
     processor = mock.create_autospec(AbstractProcessor)
     sampler = cg.ProcessorSampler(processor=processor)
@@ -46,6 +49,7 @@ def test_run_batch():
     )
 
 
+@uses_async_mock
 def test_run_batch_identical_repetitions():
     processor = mock.create_autospec(AbstractProcessor)
     sampler = cg.ProcessorSampler(processor=processor)
@@ -76,6 +80,7 @@ def test_run_batch_bad_number_of_repetitions():
         sampler.run_batch(circuits, params_list, [5, 5, 5])
 
 
+@uses_async_mock
 def test_run_batch_differing_repetitions():
     processor = mock.create_autospec(AbstractProcessor)
     job = mock.Mock()
