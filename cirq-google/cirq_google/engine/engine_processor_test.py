@@ -330,12 +330,14 @@ def test_get_device():
         device.validate_operation(cirq.X(cirq.GridQubit(1, 2)))
     with pytest.raises(ValueError):
         device.validate_operation(cirq.H(cirq.GridQubit(0, 0)))
+    with pytest.raises(ValueError):
+        device.validate_operation(cirq.CZ(cirq.GridQubit(1, 1), cirq.GridQubit(2, 2)))
 
 
 def test_get_missing_device():
     processor = cg.EngineProcessor('a', 'p', EngineContext(), _processor=quantum.QuantumProcessor())
     with pytest.raises(ValueError, match='device specification'):
-        _ = processor.get_device(gate_sets=[_GATE_SET])
+        _ = processor.get_device()
 
 
 @uses_async_mock
