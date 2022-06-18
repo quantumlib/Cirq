@@ -15,7 +15,7 @@
 import asyncio
 import subprocess
 import sys
-from typing import List, Optional, Tuple, Union, IO, Any, cast, NamedTuple
+from typing import List, Optional, Tuple, Union, IO, Any, NamedTuple
 
 from collections.abc import AsyncIterable
 
@@ -163,70 +163,6 @@ def run(
             cmd_desc = abbreviate_command_arguments_after_switches(cmd_desc)
         print('run:', cmd_desc, file=sys.stderr)
     return subprocess.run(args, **subprocess_run_kwargs)
-
-
-def run_cmd(
-    *cmd: Optional[str],
-    out: Optional[Union[TeeCapture, IO[str]]] = sys.stdout,
-    err: Optional[Union[TeeCapture, IO[str]]] = sys.stderr,
-    raise_on_fail: bool = True,
-    log_run_to_stderr: bool = True,
-    abbreviate_non_option_arguments: bool = False,
-    **kwargs,
-) -> CommandOutput:
-    """Invokes a subprocess and waits for it to finish.
-
-    Args:
-        *cmd: Components of the command to execute, e.g. ["echo", "dog"].
-        out: Where to write the process' stdout. Defaults to sys.stdout. Can be
-            anything accepted by print's 'file' parameter, or None if the
-            output should be dropped, or a TeeCapture instance. If a TeeCapture
-            instance is given, the first element of the returned tuple will be
-            the captured output.
-        err: Where to write the process' stderr. Defaults to sys.stderr. Can be
-            anything accepted by print's 'file' parameter, or None if the
-            output should be dropped, or a TeeCapture instance. If a TeeCapture
-            instance is given, the second element of the returned tuple will be
-            the captured error output.
-        raise_on_fail: If the process returns a non-zero error code
-            and this flag is set, a CalledProcessError will be raised.
-            Otherwise the return code is the third element of the returned
-            tuple.
-        log_run_to_stderr: Determines whether the fact that this shell command
-            was executed is logged to sys.stderr or not.
-        abbreviate_non_option_arguments: When logging to stderr, this cuts off
-            the potentially-huge tail of the command listing off e.g. hundreds
-            of file paths. No effect if log_run_to_stderr is not set.
-        **kwargs: Extra arguments for asyncio.create_subprocess_shell, such as
-            a cwd (current working directory) argument.
-
-    Returns:
-        A (captured output, captured error output, return code) triplet. The
-        captured outputs will be None if the out or err parameters were not set
-        to an instance of TeeCapture.
-
-    Raises:
-         subprocess.CalledProcessError: The process returned a non-zero error
-            code and raise_on_fail was set.
-    """
-    kept_cmd = tuple(cast(str, e) for e in cmd if e is not None)
-    if log_run_to_stderr:
-        cmd_desc = kept_cmd
-        if abbreviate_non_option_arguments:
-            cmd_desc = abbreviate_command_arguments_after_switches(cmd_desc)
-        print('run:', cmd_desc, file=sys.stderr)
-    result = asyncio.get_event_loop().run_until_complete(
-        _async_wait_for_process(
-            asyncio.create_subprocess_exec(
-                *kept_cmd, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE, **kwargs
-            ),
-            out,
-            err,
-        )
-    )
-    if raise_on_fail and result[2]:
-        raise subprocess.CalledProcessError(result[2], kept_cmd)
-    return result
 
 
 def run_shell(
