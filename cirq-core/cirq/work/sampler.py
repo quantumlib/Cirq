@@ -184,7 +184,7 @@ class Sampler(metaclass=value.ABCMetaImplementAnyOneOf):
         return duet.run(self.run_sweep_async, program, params, repetitions)
 
     async def _run_sweep_async_impl(
-            self, program: 'cirq.AbstractCircuit', params: 'cirq.Sweepable', repetitions: int = 1
+        self, program: 'cirq.AbstractCircuit', params: 'cirq.Sweepable', repetitions: int = 1
     ) -> Sequence['cirq.Result']:
         """Implements run_sweep_async using run_sweep"""
         return self.run_sweep(program, params=params, repetitions=repetitions)

@@ -324,6 +324,7 @@ def deprecated_parameter(
 
     def decorator(func: Callable) -> Callable:
         if inspect.iscoroutinefunction(func):
+
             @functools.wraps(func)
             async def decorated_func(*args, **kwargs) -> Any:
                 return await invoke(func, *args, **kwargs)
