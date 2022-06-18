@@ -64,7 +64,7 @@ def deprecated_gate_set_parameter(func):
 
 
 def deprecated_get_device_gate_sets_parameter(param_name='gate_sets'):
-    """Decorates variations of get_device functions, which take a deprecated 'gate_sets' parameter."""
+    """Decorates get device functions, which take a deprecated 'gate_sets' parameter."""
 
     def decorator(func):
         signature = inspect.signature(func)
