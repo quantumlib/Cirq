@@ -24,7 +24,6 @@ from google.protobuf.text_format import Merge
 from google.protobuf.timestamp_pb2 import Timestamp
 import cirq
 import cirq_google as cg
-import cirq_google.devices.known_devices as known_devices
 from cirq_google.api import v2
 from cirq_google.engine import util
 from cirq_google.engine.engine import EngineContext
