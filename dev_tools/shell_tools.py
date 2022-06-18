@@ -165,62 +165,6 @@ def run(
     return subprocess.run(args, **subprocess_run_kwargs)
 
 
-def run_shell(
-    cmd: str,
-    out: Optional[Union[TeeCapture, IO[str]]] = sys.stdout,
-    err: Optional[Union[TeeCapture, IO[str]]] = sys.stderr,
-    raise_on_fail: bool = True,
-    log_run_to_stderr: bool = True,
-    **kwargs,
-) -> CommandOutput:
-    """Invokes a shell command and waits for it to finish.
-
-    Args:
-        cmd: The command line string to execute, e.g. "echo dog | cat > file".
-        out: Where to write the process' stdout. Defaults to sys.stdout. Can be
-            anything accepted by print's 'file' parameter, or None if the
-            output should be dropped, or a TeeCapture instance. If a TeeCapture
-            instance is given, the first element of the returned tuple will be
-            the captured output.
-        err: Where to write the process' stderr. Defaults to sys.stderr. Can be
-            anything accepted by print's 'file' parameter, or None if the
-            output should be dropped, or a TeeCapture instance. If a TeeCapture
-            instance is given, the second element of the returned tuple will be
-            the captured error output.
-        raise_on_fail: If the process returns a non-zero error code
-            and this flag is set, a CalledProcessError will be raised.
-            Otherwise the return code is the third element of the returned
-            tuple.
-        log_run_to_stderr: Determines whether the fact that this shell command
-            was executed is logged to sys.stderr or not.
-        **kwargs: Extra arguments for asyncio.create_subprocess_shell, such as
-            a cwd (current working directory) argument.
-
-    Returns:
-        A (captured output, captured error output, return code) triplet. The
-        captured outputs will be None if the out or err parameters were not set
-        to an instance of TeeCapture.
-
-    Raises:
-         subprocess.CalledProcessError: The process returned a non-zero error
-            code and raise_on_fail was set.
-    """
-    if log_run_to_stderr:
-        print('shell:', cmd, file=sys.stderr)
-    result = asyncio.get_event_loop().run_until_complete(
-        _async_wait_for_process(
-            asyncio.create_subprocess_shell(
-                cmd, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE, **kwargs
-            ),
-            out,
-            err,
-        )
-    )
-    if raise_on_fail and result[2]:
-        raise subprocess.CalledProcessError(result[2], cmd)
-    return result
-
-
 def output_of(args: Union[str, List[str]], **kwargs) -> str:
     """Invokes a subprocess and returns its output as a string.
 
