@@ -12,16 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import asyncio
 import subprocess
 import sys
-from typing import List, Optional, Tuple, Union, IO, Any, NamedTuple
-
-from collections.abc import AsyncIterable
-
-CommandOutput = NamedTuple(
-    "CommandOutput", [('out', Optional[str]), ('err', Optional[str]), ('exit_code', int)]
-)
+from typing import List, Tuple, Union
 
 
 BOLD = 1
@@ -43,69 +36,6 @@ def highlight(text: str, color_code: int, bold: bool = False) -> str:
         The highlighted string.
     """
     return '{}\033[{}m{}\033[0m'.format('\033[1m' if bold else '', color_code, text)
-
-
-class TeeCapture:
-    """Marker class indicating desire to capture output written to a pipe.
-
-    If out_pipe is None, the caller just wants to capture output without
-    writing it to anything in particular.
-    """
-
-    def __init__(self, out_pipe: Optional[IO[str]] = None) -> None:
-        self.out_pipe = out_pipe
-
-
-async def _async_forward(
-    async_chunks: AsyncIterable, out: Optional[Union[TeeCapture, IO[str]]]
-) -> Optional[str]:
-    """Prints/captures output from the given asynchronous iterable.
-
-    Args:
-        async_chunks: An asynchronous source of bytes or str.
-        out: Where to put the chunks.
-
-    Returns:
-        The complete captured output, or else None if the out argument wasn't a
-        TeeCapture instance.
-    """
-    capture = isinstance(out, TeeCapture)
-    out_pipe = out.out_pipe if isinstance(out, TeeCapture) else out
-
-    chunks: Optional[List[str]] = [] if capture else None
-    async for chunk in async_chunks:
-        if not isinstance(chunk, str):
-            chunk = chunk.decode()
-        if out_pipe:
-            print(chunk, file=out_pipe, end='')
-        if chunks is not None:
-            chunks.append(chunk)
-
-    return ''.join(chunks) if chunks is not None else None
-
-
-async def _async_wait_for_process(
-    future_process: Any,
-    out: Optional[Union[TeeCapture, IO[str]]] = sys.stdout,
-    err: Optional[Union[TeeCapture, IO[str]]] = sys.stderr,
-) -> CommandOutput:
-    """Awaits the creation and completion of an asynchronous process.
-
-    Args:
-        future_process: The eventually created process.
-        out: Where to write stuff emitted by the process' stdout.
-        err: Where to write stuff emitted by the process' stderr.
-
-    Returns:
-        A (captured output, captured error output, return code) triplet.
-    """
-    process = await future_process
-    future_output = _async_forward(process.stdout, out)
-    future_err_output = _async_forward(process.stderr, err)
-    output, err_output = await asyncio.gather(future_output, future_err_output)
-    await process.wait()
-
-    return CommandOutput(output, err_output, process.returncode)
 
 
 def abbreviate_command_arguments_after_switches(cmd: Tuple[str, ...]) -> Tuple[str, ...]:
