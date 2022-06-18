@@ -864,44 +864,44 @@ def test_get_engine_device(get_processor):
     device_spec = util.pack_any(
         Merge(
             """
-valid_gate_sets: [{
-    name: 'test_set',
-    valid_gates: [{
-        id: 'x',
-        number_of_qubits: 1,
-        gate_duration_picos: 1000,
-        valid_targets: ['1q_targets']
-    }]
-}],
-valid_qubits: ['0_0', '1_1'],
-valid_targets: [{
-    name: '1q_targets',
-    target_ordering: SYMMETRIC,
-    targets: [{
-        ids: ['0_0']
-    }]
-}]
+valid_qubits: "0_0"
+valid_qubits: "1_1"
+valid_qubits: "2_2"
+valid_targets {
+  name: "2_qubit_targets"
+  target_ordering: SYMMETRIC
+  targets {
+    ids: "0_0"
+    ids: "1_1"
+  }
+}
+valid_gates {
+  gate_duration_picos: 1000
+  cz {
+  }
+}
+valid_gates {
+  phased_xz {
+  }
+}
 """,
             v2.device_pb2.DeviceSpecification(),
         )
     )
 
-    gate_set = cg.SerializableGateSet(
-        gate_set_name='x_gate_set',
-        serializers=[cg.GateOpSerializer(gate_type=cirq.XPowGate, serialized_gate_id='x', args=[])],
-        deserializers=[
-            cg.GateOpDeserializer(serialized_gate_id='x', gate_constructor=cirq.XPowGate, args=[])
-        ],
-    )
-
     get_processor.return_value = quantum.QuantumProcessor(device_spec=device_spec)
-    device = cirq_google.get_engine_device('rainbow', 'project', gatesets=[gate_set])
-    assert set(device.qubits) == {cirq.GridQubit(0, 0), cirq.GridQubit(1, 1)}
-    device.validate_operation(cirq.X(cirq.GridQubit(0, 0)))
+    device = cirq_google.get_engine_device('rainbow', 'project')
+    assert device.metadata.qubit_set == frozenset(
+        [cirq.GridQubit(0, 0), cirq.GridQubit(1, 1), cirq.GridQubit(2, 2)]
+    )
+    device.validate_operation(cirq.X(cirq.GridQubit(2, 2)))
+    device.validate_operation(cirq.CZ(cirq.GridQubit(0, 0), cirq.GridQubit(1, 1)))
     with pytest.raises(ValueError):
         device.validate_operation(cirq.X(cirq.GridQubit(1, 2)))
     with pytest.raises(ValueError):
-        device.validate_operation(cirq.Y(cirq.GridQubit(0, 0)))
+        device.validate_operation(cirq.H(cirq.GridQubit(0, 0)))
+    with pytest.raises(ValueError):
+        device.validate_operation(cirq.CZ(cirq.GridQubit(1, 1), cirq.GridQubit(2, 2)))
 
 
 _CALIBRATION = quantum.QuantumCalibration(
