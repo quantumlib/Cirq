@@ -30,7 +30,7 @@ from cirq.type_workarounds import NotImplementedType
 
 import numpy as np
 
-from cirq import ops, protocols
+from cirq import ops, protocols, _compat
 
 
 if TYPE_CHECKING:
@@ -176,6 +176,14 @@ class FrozenCircuit(AbstractCircuit, protocols.SerializableByKey):
     ) -> 'cirq.FrozenCircuit':
         return self.unfreeze()._resolve_parameters_(resolver, recursive).freeze()
 
+    def rigid_concat(
+        *circuits: 'cirq.AbstractCircuit', align: Union['cirq.Alignment', str] = Alignment.LEFT
+    ) -> 'cirq.FrozenCircuit':
+        return AbstractCircuit.rigid_concat(*circuits, align=align).freeze()
+
+    rigid_concat.__doc__ = AbstractCircuit.rigid_concat.__doc__
+
+    @_compat.deprecated(deadline='v0.16', fix='Renaming to rigid_concat')
     def tetris_concat(
         *circuits: 'cirq.AbstractCircuit', align: Union['cirq.Alignment', str] = Alignment.LEFT
     ) -> 'cirq.FrozenCircuit':
