@@ -235,7 +235,7 @@ class GateOperation(raw_types.Operation):
             return getter()
         return NotImplemented
 
-    def _measurement_key_names_(self) -> Optional[AbstractSet[str]]:
+    def _measurement_key_names_(self) -> Optional[FrozenSet[str]]:
         getter = getattr(self.gate, '_measurement_key_names_', None)
         if getter is not None:
             return getter()
@@ -247,7 +247,7 @@ class GateOperation(raw_types.Operation):
             return getter()
         return NotImplemented
 
-    def _measurement_key_objs_(self) -> Optional[AbstractSet['cirq.MeasurementKey']]:
+    def _measurement_key_objs_(self) -> Optional[FrozenSet['cirq.MeasurementKey']]:
         getter = getattr(self.gate, '_measurement_key_objs_', None)
         if getter is not None:
             return getter()

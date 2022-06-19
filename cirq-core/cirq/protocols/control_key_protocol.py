@@ -13,10 +13,11 @@
 # limitations under the License.
 """Protocol for object that have control keys."""
 
-from typing import AbstractSet, Any, Iterable, TYPE_CHECKING
+from typing import Any, FrozenSet, TYPE_CHECKING
 
 from typing_extensions import Protocol
 
+from cirq import _compat
 from cirq._doc import doc_private
 from cirq.protocols import measurement_key_protocol
 
@@ -34,7 +35,7 @@ class SupportsControlKey(Protocol):
     """
 
     @doc_private
-    def _control_keys_(self) -> Iterable['cirq.MeasurementKey']:
+    def _control_keys_(self) -> FrozenSet['cirq.MeasurementKey']:
         """Return the keys for controls referenced by the receiving object.
 
         Returns:
@@ -43,7 +44,7 @@ class SupportsControlKey(Protocol):
         """
 
 
-def control_keys(val: Any) -> AbstractSet['cirq.MeasurementKey']:
+def control_keys(val: Any) -> FrozenSet['cirq.MeasurementKey']:
     """Gets the keys that the value is classically controlled by.
 
     Args:
@@ -56,12 +57,18 @@ def control_keys(val: Any) -> AbstractSet['cirq.MeasurementKey']:
     getter = getattr(val, '_control_keys_', None)
     result = NotImplemented if getter is None else getter()
     if result is not NotImplemented and result is not None:
-        return set(result)
+        if not isinstance(result, FrozenSet):
+            _compat._warn_or_error(
+                f'The _control_keys_ implementation of {type(val)} must return a'
+                f' frozenset instead of {type(result)} by v0.16.'
+            )
+            return frozenset(result)
+        return result
 
-    return set()
+    return frozenset()
 
 
-def measurement_keys_touched(val: Any) -> AbstractSet['cirq.MeasurementKey']:
+def measurement_keys_touched(val: Any) -> FrozenSet['cirq.MeasurementKey']:
     """Returns all the measurement keys used by the value.
 
     This would be the case if the value is or contains a measurement gate, or

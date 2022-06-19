@@ -111,10 +111,10 @@ class CircuitOperation(ops.Operation):
     """
 
     _hash: Optional[int] = dataclasses.field(default=None, init=False)
-    _cached_measurement_key_objs: Optional[AbstractSet['cirq.MeasurementKey']] = dataclasses.field(
+    _cached_measurement_key_objs: Optional[FrozenSet['cirq.MeasurementKey']] = dataclasses.field(
         default=None, init=False
     )
-    _cached_control_keys: Optional[AbstractSet['cirq.MeasurementKey']] = dataclasses.field(
+    _cached_control_keys: Optional[FrozenSet['cirq.MeasurementKey']] = dataclasses.field(
         default=None, init=False
     )
     _cached_mapped_single_loop: Optional['cirq.Circuit'] = dataclasses.field(
@@ -243,32 +243,34 @@ class CircuitOperation(ops.Operation):
         if self.repeat_until or isinstance(self.repetitions, sympy.Expr):
             raise ValueError('Cannot unroll circuit due to nondeterministic repetitions')
 
-    def _measurement_key_objs_(self) -> AbstractSet['cirq.MeasurementKey']:
+    def _measurement_key_objs_(self) -> FrozenSet['cirq.MeasurementKey']:
         if self._cached_measurement_key_objs is None:
             circuit_keys = protocols.measurement_key_objs(self.circuit)
             if circuit_keys and self.use_repetition_ids:
                 self._ensure_deterministic_loop_count()
                 if self.repetition_ids is not None:
-                    circuit_keys = {
+                    circuit_keys = frozenset(
                         key.with_key_path_prefix(repetition_id)
                         for repetition_id in self.repetition_ids
                         for key in circuit_keys
-                    }
-            circuit_keys = {key.with_key_path_prefix(*self.parent_path) for key in circuit_keys}
+                    )
+            circuit_keys = frozenset(
+                key.with_key_path_prefix(*self.parent_path) for key in circuit_keys
+            )
             object.__setattr__(
                 self,
                 '_cached_measurement_key_objs',
-                {
+                frozenset(
                     protocols.with_measurement_key_mapping(key, self.measurement_key_map)
                     for key in circuit_keys
-                },
+                ),
             )
         return self._cached_measurement_key_objs  # type: ignore
 
-    def _measurement_key_names_(self) -> AbstractSet[str]:
-        return {str(key) for key in self._measurement_key_objs_()}
+    def _measurement_key_names_(self) -> FrozenSet[str]:
+        return frozenset(str(key) for key in self._measurement_key_objs_())
 
-    def _control_keys_(self) -> AbstractSet['cirq.MeasurementKey']:
+    def _control_keys_(self) -> FrozenSet['cirq.MeasurementKey']:
         if self._cached_control_keys is None:
             keys = (
                 frozenset()
