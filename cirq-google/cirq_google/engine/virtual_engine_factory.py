@@ -28,8 +28,8 @@ from cirq_google.engine.simulated_local_engine import SimulatedLocalEngine
 from cirq_google.engine.simulated_local_processor import SimulatedLocalProcessor
 
 MOST_RECENT_TEMPLATES = {
-    'rainbow': 'rainbow_2021_12_10_device_spec.proto.txt',
-    'weber': 'weber_2021_12_10_device_spec.proto.txt',
+    'rainbow': 'rainbow_2021_12_10_device_spec_for_grid_device.proto.txt',
+    'weber': 'weber_2021_12_10_device_spec_for_grid_device.proto.txt',
 }
 
 MEDIAN_CALIBRATIONS = {

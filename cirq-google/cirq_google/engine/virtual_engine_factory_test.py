@@ -145,12 +145,12 @@ valid_gates {
 
 def test_create_from_template():
     engine = factory.create_noiseless_virtual_engine_from_templates(
-        'sycamore', 'weber_2021_12_10_device_spec.proto.txt'
+        'sycamore', 'weber_2021_12_10_device_spec_for_grid_device.proto.txt'
     )
     _test_processor(engine.get_processor('sycamore'))
 
     processor = factory.create_noiseless_virtual_processor_from_template(
-        'sycamore', 'weber_2021_12_10_device_spec.proto.txt'
+        'sycamore', 'weber_2021_12_10_device_spec_for_grid_device.proto.txt'
     )
     _test_processor(processor)
 
