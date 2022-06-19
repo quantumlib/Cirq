@@ -22,9 +22,8 @@ import google.protobuf.text_format as text_format
 import cirq
 from cirq_google.api import v2
 from cirq_google.engine import calibration, engine_validator, simulated_local_processor, util
-from cirq_google.devices import grid_device, serializable_device
+from cirq_google.devices import grid_device
 from cirq_google.serialization import serializable_gate_set
-from cirq_google.serialization.gate_sets import FSIM_GATESET
 from cirq_google.engine.simulated_local_engine import SimulatedLocalEngine
 from cirq_google.engine.simulated_local_processor import SimulatedLocalProcessor
 
@@ -280,8 +279,8 @@ def _create_device_spec_from_template(template_name: str) -> v2.device_pb2.Devic
     return device_spec
 
 
-def create_device_from_processor_id(processor_id: str) -> serializable_device.SerializableDevice:
-    """Generates a `cirq_google.SerializableDevice` for a given processor ID.
+def create_device_from_processor_id(processor_id: str) -> cirq.Device:
+    """Generates a `cirq.Device` for a given processor ID.
 
     Args:
         processor_id: name of the processor to simulate.
@@ -293,7 +292,7 @@ def create_device_from_processor_id(processor_id: str) -> serializable_device.Se
     if template_name is None:
         raise ValueError(f"Got processor_id={processor_id}, but no such processor is defined.")
     device_specification = _create_device_spec_from_template(template_name)
-    return serializable_device.SerializableDevice.from_proto(device_specification, [FSIM_GATESET])
+    return grid_device.GridDevice.from_proto(device_specification)
 
 
 @util.deprecated_get_device_gate_sets_parameter()
