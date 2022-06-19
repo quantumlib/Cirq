@@ -181,7 +181,7 @@ def _measurement_key_objs_from_magic_methods(
     if result is not NotImplemented and result is not None:
         if not isinstance(result, FrozenSet):
             _compat._warn_or_error(
-                f'The _control_keys_ implementation of {type(val)} must return a'
+                f'The _measurement_key_objs_ implementation of {type(val)} must return a'
                 f' frozenset instead of {type(result)} by v0.16.'
             )
             return frozenset(result)
@@ -202,7 +202,7 @@ def _measurement_key_names_from_magic_methods(val: Any) -> Optional[FrozenSet[st
     if result is not NotImplemented and result is not None:
         if not isinstance(result, FrozenSet):
             _compat._warn_or_error(
-                f'The _control_keys_ implementation of {type(val)} must return a'
+                f'The _measurement_key_names_ implementation of {type(val)} must return a'
                 f' frozenset instead of {type(result)} by v0.16.'
             )
             return frozenset(result)
