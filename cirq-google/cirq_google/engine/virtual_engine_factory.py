@@ -22,9 +22,9 @@ import google.protobuf.text_format as text_format
 import cirq
 from cirq_google.api import v2
 from cirq_google.engine import calibration, engine_validator, simulated_local_processor, util
-from cirq_google.devices import serializable_device
-from cirq_google.serialization.gate_sets import FSIM_GATESET
+from cirq_google.devices import grid_device, serializable_device
 from cirq_google.serialization import serializable_gate_set
+from cirq_google.serialization.gate_sets import FSIM_GATESET
 from cirq_google.engine.simulated_local_engine import SimulatedLocalEngine
 from cirq_google.engine.simulated_local_processor import SimulatedLocalProcessor
 
@@ -203,6 +203,7 @@ def create_noiseless_virtual_engine_from_device(
     return SimulatedLocalEngine([_create_virtual_processor_from_device(processor_id, device)])
 
 
+@util.deprecated_get_device_gate_sets_parameter()
 def create_noiseless_virtual_processor_from_proto(
     processor_id: str,
     device_specification: v2.device_pb2.DeviceSpecification,
@@ -219,17 +220,15 @@ def create_noiseless_virtual_processor_from_proto(
             in QCS.
         device_specification:  `v2.device_pb2.DeviceSpecification` proto to create
             a validating device from.
-        gate_sets: Iterable of serializers to use in the processor.  Defaults
-            to the FSIM_GATESET.
+        gate_sets: Iterable of serializers to use in the processor.
     """
-    if gate_sets is None:
-        gate_sets = [FSIM_GATESET]
 
-    device = serializable_device.SerializableDevice.from_proto(device_specification, gate_sets)
+    device = grid_device.GridDevice.from_proto(device_specification)
     processor = _create_virtual_processor_from_device(processor_id, device)
     return processor
 
 
+@util.deprecated_get_device_gate_sets_parameter()
 def create_noiseless_virtual_engine_from_proto(
     processor_ids: Union[str, List[str]],
     device_specifications: Union[
@@ -250,14 +249,11 @@ def create_noiseless_virtual_engine_from_proto(
             validating devices from.  This can be a single DeviceSpecification
             or a list of them.  There should be one DeviceSpecification for each
             processor_id.
-        gate_sets: Iterable of serializers to use in the processor.  Defaults
-            to the FSIM_GATESET.
+        gate_sets: Iterable of serializers to use in the processor.
 
     Raises:
         ValueError: if processor_ids and device_specifications are not the same length.
     """
-    if gate_sets is None:
-        gate_sets = [FSIM_GATESET]
     if isinstance(processor_ids, str):
         processor_ids = [processor_ids]
     if isinstance(device_specifications, v2.device_pb2.DeviceSpecification):
@@ -267,7 +263,7 @@ def create_noiseless_virtual_engine_from_proto(
 
     return SimulatedLocalEngine(
         processors=[
-            create_noiseless_virtual_processor_from_proto(processor_id, device_spec, gate_sets)
+            create_noiseless_virtual_processor_from_proto(processor_id, device_spec)
             for device_spec, processor_id in zip(device_specifications, processor_ids)
         ]
     )
@@ -300,6 +296,7 @@ def create_device_from_processor_id(processor_id: str) -> serializable_device.Se
     return serializable_device.SerializableDevice.from_proto(device_specification, [FSIM_GATESET])
 
 
+@util.deprecated_get_device_gate_sets_parameter()
 def create_noiseless_virtual_processor_from_template(
     processor_id: str,
     template_name: str,
@@ -313,16 +310,14 @@ def create_noiseless_virtual_processor_from_template(
             in QCS.
         template_name: File name of the device specification template, see
             cirq_google/devices/specifications for valid templates.
-        gate_sets: Iterable of serializers to use in the processor.  Defaults
-            to the FSIM_GATESET.
+        gate_sets: Iterable of serializers to use in the processor.
     """
     return create_noiseless_virtual_processor_from_proto(
-        processor_id,
-        device_specification=_create_device_spec_from_template(template_name),
-        gate_sets=gate_sets,
+        processor_id, device_specification=_create_device_spec_from_template(template_name)
     )
 
 
+@util.deprecated_get_device_gate_sets_parameter()
 def create_noiseless_virtual_engine_from_templates(
     processor_ids: Union[str, List[str]],
     template_names: Union[str, List[str]],
@@ -339,8 +334,7 @@ def create_noiseless_virtual_engine_from_templates(
             cirq_google/devices/specifications for valid templates.  There can
             be a single str for a template name or a list of strings.  Each
             template name should be matched to a single processor id.
-        gate_sets: Iterable of serializers to use in the processor.  Defaults
-            to the FSIM_GATESET.
+        gate_sets: Iterable of serializers to use in the processor.
 
     Raises:
         ValueError: if processor_ids and template_names are not the same length.
@@ -355,7 +349,7 @@ def create_noiseless_virtual_engine_from_templates(
     specifications = [
         _create_device_spec_from_template(template_name) for template_name in template_names
     ]
-    return create_noiseless_virtual_engine_from_proto(processor_ids, specifications, gate_sets)
+    return create_noiseless_virtual_engine_from_proto(processor_ids, specifications)
 
 
 def create_noiseless_virtual_engine_from_latest_templates() -> SimulatedLocalEngine:
