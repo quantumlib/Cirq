@@ -4,116 +4,95 @@ title: Hardware
 landing_page:
   nav: left
   rows:
-    - heading: Run circuits on quantum hardware
-      description: In order to run circuits on a quantum hardware device, Cirq maintains a representation of that device in software that determines if a circuit can be run on it.
+    - heading: Represent a quantum hardware device
+      description: Define the characteristics and constraints of quantum hardware devices, to support running circuits on those devices.
+      options:
+        - cards
       items:
       - heading: Devices
-        description: A data structure to represent the constraints a device imposes on runnable circuits.
+        description: Represent the constraints a device imposes on runnable circuits with the Device class.
         path: /cirq/devices
-        icon:
-          name: menu_book
+
+    - heading: Run a circuit on a hardware device
+      description: Cirq provides interfaces for running your circuits on quantum hardware provided by many different services.
 
     - heading: AQT hardware
-      description: Cirq's interface with Alpine Quantum Technologies hardware
+      description: Cirq's interface with Alpine Quantum Technologies hardware.
+      options:
+        - cards
       items:
       - heading: Access and authentication
         description: How to gain access.
         path: /cirq/aqt/access
-        icon:
-          name: menu_book
       - heading: Getting started with AQT hardware
         description: How to run your first circuit.
         path: /cirq/tutorials/aqt/getting_started
-        icon:
-          name: menu_book
 
     - heading: Azure Quantum
       description: Cirq's interface with Microsoft Azure Quantum services.
+      options:
+        - cards
       items:
       - heading: Access and authentication
         description: How to gain access.
         path: /cirq/azure-quantum/access
-        icon:
-          name: menu_book
       - heading: Getting started with Honeywell on AQT hardware
         description: How to run your first circuit on a Honeywell device.
         path: /cirq/tutorials/azure-quantum/getting_started_honeywell
-        icon:
-          name: menu_book
       - heading: Getting started with IonQ on AQT hardware
         description: How to run your first circuit on an IonQ device.
         path: /cirq/tutorials/azure-quantum/getting_started_ionq
-        icon:
-          name: menu_book
 
     - heading: IonQ hardware
       description: Cirq's interface with IonQ hardware.
+      options:
+        - cards
       items:
       - heading: Access and authentication
         description: How to gain access.
         path: /cirq/ionq/access
-        icon:
-          name: menu_book
       - heading: Getting started with IonQ hardware
         description: How to run your first circuit.
         path: /cirq/tutorials/ionq/getting_started
-        icon:
-          name: menu_book
       - heading: IonQ API Service
         description: Using the IonQ API.
         path: /cirq/ionq/service
-        icon:
-          name: menu_book
       - heading: IonQ API circuits
         description: Writing circuits for the IonQ API.
         path: /cirq/ionq/circuits
-        icon:
-          name: menu_book
       - heading: Running IonQ API jobs
         description: How to run jobs with the IonQ API.
         path: /cirq/ionq/jobs
-        icon:
-          name: menu_book
       - heading: IonQ API calibrations
         description: How to get hardware device calibration data through the IonQ API.
         path: /cirq/ionq/calibrations
-        icon:
-          name: menu_book
 
     - heading: Pasqal hardware
       description: Cirq's interface with Pasqal hardware.
+      options:
+        - cards
       items:
       - heading: Access and authentication
         description: How to gain access.
         path: /cirq/pasqal/access
-        icon:
-          name: menu_book
       - heading: Getting started with Pasqal hardware
         description: How to run your first circuit.
         path: /cirq/tutorials/pasqal/getting_started
-        icon:
-          name: menu_book
       - heading: Pasqal devices
         description: Device objects to specify Pasqal hardware.
         path: /cirq/pasqal/devices
-        icon:
-          name: menu_book
       - heading: Pasqal sampler
         description: Sampler objects to run on Pasqal hardware.
         path: /cirq/pasqal/sampler
-        icon:
-          name: menu_book
 
     - heading: Rigetti hardware
       description: Cirq's interface with Rigetti hardware.
+      options:
+        - cards
       items:
       - heading: Access and authentication
         description: How to gain access.
         path: /cirq/rigetti/access
-        icon:
-          name: menu_book
       - heading: Getting started with Rigetti hardware
         description: How to run your first circuit.
         path: /cirq/tutorials/rigetti/getting_started
-        icon:
-          name: menu_book
