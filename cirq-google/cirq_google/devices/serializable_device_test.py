@@ -47,18 +47,22 @@ _JUST_MEAS = cg.SerializableGateSet(
 
 
 def test_str_with_grid_qubits():
-    qubits = cirq.GridQubit.rect(2, 3, left=1, top=1)
-    device_proto = cgdk.create_device_proto_for_qubits(
-        qubits=qubits,
-        pairs=[
-            (qubits[0], qubits[1]),
-            (qubits[0], qubits[3]),
-            (qubits[1], qubits[4]),
-            (qubits[4], qubits[5]),
-        ],
-        gate_sets=[cg.FSIM_GATESET],
-    )
-    with cirq.testing.assert_deprecated('Use cirq_google.GridDevice', deadline='v0.16', count=2):
+    # Deprecations: cirq_google.SerializableDevice and well-known cirq_google SerializableGateSets
+    # (e.g. cirq_google.SYC_GATESET)
+    with cirq.testing.assert_deprecated(
+        'Use cirq_google.GridDevice', 'SerializableGateSet', deadline='v0.16', count=4
+    ):
+        qubits = cirq.GridQubit.rect(2, 3, left=1, top=1)
+        device_proto = cgdk.create_device_proto_for_qubits(
+            qubits=qubits,
+            pairs=[
+                (qubits[0], qubits[1]),
+                (qubits[0], qubits[3]),
+                (qubits[1], qubits[4]),
+                (qubits[4], qubits[5]),
+            ],
+            gate_sets=[cg.FSIM_GATESET],
+        )
         device = cg.SerializableDevice.from_proto(device_proto, gate_sets=[cg.FSIM_GATESET])
         assert str(device) == textwrap.dedent(
             """\
@@ -78,17 +82,20 @@ def test_repr_pretty(cycle, func):
 
 
 def test_metadata_correct():
-    qubits = cirq.GridQubit.rect(2, 3, left=1, top=1)
-    pairs = [
-        (qubits[0], qubits[1]),
-        (qubits[0], qubits[3]),
-        (qubits[1], qubits[4]),
-        (qubits[4], qubits[5]),
-    ]
-    device_proto = cgdk.create_device_proto_for_qubits(
-        qubits=qubits, pairs=pairs, gate_sets=[cg.FSIM_GATESET]
-    )
-    with cirq.testing.assert_deprecated('Use cirq_google.GridDevice', deadline='v0.16', count=2):
+    # Deprecations: cirq_google.SerializableDevice and well-known cirq_google SerializableGateSets
+    # (e.g. cirq_google.SYC_GATESET)
+    with cirq.testing.assert_deprecated('Use cirq_google.GridDevice', deadline='v0.16', count=4):
+        qubits = cirq.GridQubit.rect(2, 3, left=1, top=1)
+        pairs = [
+            (qubits[0], qubits[1]),
+            (qubits[0], qubits[3]),
+            (qubits[1], qubits[4]),
+            (qubits[4], qubits[5]),
+        ]
+        device_proto = cgdk.create_device_proto_for_qubits(
+            qubits=qubits, pairs=pairs, gate_sets=[cg.FSIM_GATESET]
+        )
+
         device = cg.SerializableDevice.from_proto(device_proto, gate_sets=[cg.FSIM_GATESET])
         assert device.metadata.qubit_pairs == frozenset({frozenset(p) for p in pairs})
         assert device.metadata.gateset == cirq.Gateset(
@@ -134,10 +141,15 @@ def test_gate_definition_equality():
 
 
 def test_mismatched_proto_serializer():
-    # Deprecations: cirq_google.SerializableDevice and
+    # Deprecations: cirq_google.SerializableDevice, well-known cirq_google SerializableGateSets
+    # (e.g. cirq_google.SYC_GATESET), and
     # cirq_google.devices.known_devices.create_device_proto_from_diagram
     with cirq.testing.assert_deprecated(
-        'Use cirq_google.GridDevice', 'no longer be available', deadline='v0.16', count=2
+        'Use cirq_google.GridDevice',
+        'SerializableGateSet',
+        'no longer be available',
+        deadline='v0.16',
+        count=5,
     ):
         augmented_proto = cgdk.create_device_proto_from_diagram(
             cgdk._SYCAMORE_GRID,
@@ -154,10 +166,15 @@ def test_mismatched_proto_serializer():
 
 
 def test_named_qubit():
-    # Deprecations: cirq_google.SerializableDevice and
+    # Deprecations: cirq_google.SerializableDevice, well-known cirq_google SerializableGateSets
+    # (e.g. cirq_google.SYC_GATESET), and
     # cirq_google.devices.known_devices.create_device_proto_from_diagram
     with cirq.testing.assert_deprecated(
-        'Use cirq_google.GridDevice', 'no longer be available', deadline='v0.16', count=3
+        'Use cirq_google.GridDevice',
+        'SerializableGateSet',
+        'no longer be available',
+        deadline='v0.16',
+        count=6,
     ):
         augmented_proto = cgdk.create_device_proto_from_diagram(
             cgdk._SYCAMORE_GRID,
@@ -174,10 +191,15 @@ def test_named_qubit():
 
 
 def test_duration_of():
-    # Deprecations: cirq_google.SerializableDevice and
+    # Deprecations: cirq_google.SerializableDevice, well-known cirq_google SerializableGateSets
+    # (e.g. cirq_google.SYC_GATESET), and
     # cirq_google.devices.known_devices.create_device_proto_from_diagram
     with cirq.testing.assert_deprecated(
-        'Use cirq_google.GridDevice', 'no longer be available', deadline='v0.16', count=3
+        'Use cirq_google.GridDevice',
+        'SerializableGateSet',
+        'no longer be available',
+        deadline='v0.16',
+        count=5,
     ):
         valid_qubit1 = cirq.GridQubit(0, 0)
 
@@ -428,10 +450,15 @@ def test_multiple_fsim_gatesets():
 
 
 def test_serializable_device_str_grid_qubits():
-    # Deprecations: cirq_google.SerializableDevice and
+    # Deprecations: cirq_google.SerializableDevice, well-known cirq_google SerializableGateSets
+    # (e.g. cirq_google.SYC_GATESET), and
     # cirq_google.devices.known_devices.create_device_proto_from_diagram
     with cirq.testing.assert_deprecated(
-        'Use cirq_google.GridDevice', 'no longer be available', deadline='v0.16', count=3
+        'Use cirq_google.GridDevice',
+        'SerializableGateSet',
+        'no longer be available',
+        deadline='v0.16',
+        count=5,
     ):
         spec = cirq_google.devices.known_devices.create_device_proto_from_diagram(
             "aa\naa", [cg.SYC_GATESET]

@@ -51,9 +51,10 @@ def test_two_qubit_gates(gate: cirq.Gate, expected_length: int):
     )
     with cirq.testing.assert_deprecated("Use cirq.optimize_for_target_gateset", deadline='v1.0'):
         cgoc.ConvertToSqrtIswapGates().optimize_circuit(converted_circuit)
-    cig.SQRT_ISWAP_GATESET.serialize(converted_circuit)
-    cig.SQRT_ISWAP_GATESET.serialize(converted_circuit_iswap)
-    cig.SQRT_ISWAP_GATESET.serialize(converted_circuit_iswap_inv)
+    with cirq.testing.assert_deprecated('SerializableGateSet', deadline='v0.16', count=None):
+        cig.SQRT_ISWAP_GATESET.serialize(converted_circuit)
+        cig.SQRT_ISWAP_GATESET.serialize(converted_circuit_iswap)
+        cig.SQRT_ISWAP_GATESET.serialize(converted_circuit_iswap_inv)
     assert len(converted_circuit) <= expected_length
     assert (
         len(converted_circuit_iswap) <= expected_length

@@ -13,6 +13,7 @@
 # limitations under the License.
 """Gate sets supported by Google's apis."""
 from cirq._doc import document
+from cirq import _compat
 from cirq_google.serialization import serializable_gate_set
 from cirq_google.serialization.common_serializers import (
     SINGLE_QUBIT_SERIALIZERS,
@@ -148,3 +149,25 @@ document(NAMED_GATESETS, """A convenience mapping from gateset names to gatesets
 GOOGLE_GATESETS = [SYC_GATESET, SQRT_ISWAP_GATESET, FSIM_GATESET, XMON]
 
 document(GOOGLE_GATESETS, """All Google gatesets""")
+
+
+_compat.deprecate_attributes(
+    __name__,
+    {
+        'EXPERIMENTAL_PULSE_GATESET': (
+            'v0.16',
+            'SerializableGateSet will no longer be supported.'
+            ' In cirq_google.GridDevice, the new representation of Google devices, the gateset of '
+            ' a device is represented as a cirq.Gateset and is available as'
+            ' GridDevice.metadata.gateset.'
+            ' Engine methods no longer require gate sets to be passed in.'
+            ' In addition, circuit serialization is replaced by cirq_google.CircuitSerializer.',
+        )
+        'GOOGLE_GATESETS': ('v0.16', 'SerializableGateSet will no longer be supported.'
+            ' In cirq_google.GridDevice, the new representation of Google devices, the gateset of '
+            ' a device is represented as a cirq.Gateset and is available as'
+            ' GridDevice.metadata.gateset.'
+            ' Engine methods no longer require gate sets to be passed in.'
+            ' In addition, circuit serialization is replaced by cirq_google.CircuitSerializer.',)
+    },
+)

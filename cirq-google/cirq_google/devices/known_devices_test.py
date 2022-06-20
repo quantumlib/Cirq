@@ -61,7 +61,12 @@ valid_targets {
 
 
 def test_multiple_gate_sets():
-    with cirq.testing.assert_deprecated('no longer be available', deadline='v0.16', count=1):
+    # Deprecations: well-known cirq_google SerializableGateSets
+    # (e.g. cirq_google.SYC_GATESET), and
+    # cirq_google.devices.known_devices.create_device_proto_from_diagram
+    with cirq.testing.assert_deprecated(
+        'SerializableGateSet', 'no longer be available', deadline='v0.16', count=2
+    ):
         halfPiGateSet = cirq_google.SerializableGateSet(
             gate_set_name='half_pi_gateset',
             serializers=[*cgc.SINGLE_QUBIT_HALF_PI_SERIALIZERS, cgc.MEASUREMENT_SERIALIZER],
@@ -221,10 +226,15 @@ valid_targets {
 
 
 def test_sycamore_circuitop_device():
-    # Deprecations: cirq_google.SerializableDevice and
+    # Deprecations: cirq_google.SerializableDevice, well-known cirq_google SerializableGateSets
+    # (e.g. cirq_google.SYC_GATESET), and
     # cirq_google.devices.known_devices.create_device_proto_from_diagram
     with cirq.testing.assert_deprecated(
-        'Use cirq_google.GridDevice', 'no longer be available', deadline='v0.16', count=3
+        'Use cirq_google.GridDevice',
+        'SerializableGateSet',
+        'no longer be available',
+        deadline='v0.16',
+        count=5,
     ):
         circuitop_gateset = cirq_google.SerializableGateSet(
             gate_set_name='circuitop_gateset',
