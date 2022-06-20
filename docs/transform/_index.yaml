@@ -8,6 +8,7 @@ landing_page:
       description: Programmatically transform a provided circuit into another one to implement any compilation or optimization process that changes a circuit.
       options:
         - cards
+      items:
       - heading: Circuit Transformers
         description: The Transformer class and contract to represent some process that changes a supplied circuit.
         path: /cirq/transformers

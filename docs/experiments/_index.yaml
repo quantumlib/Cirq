@@ -5,7 +5,12 @@ landing_page:
   nav: left
   rows:
     - heading: Experiments using quantum circuits
-      description: This is a collection of algorithms and experiments written in and using Cirq. Some are hosted in the [Cirq github repository](https://github.com/quantumlib/Cirq), and some are hosted in [ReCirq](https://github.com/quantumlib/ReCirq), a repository for research performed with Cirq.
+      description: This is a collection of algorithms and experiments written in and using Cirq. Some are hosted in the Cirq Github repository, and some are hosted in ReCirq, a repository for research performed with Cirq.
+    - buttons:
+      - label: Cirq Github
+        path: https://github.com/quantumlib/Cirq
+      - label: ReCirq Github
+        path: https://github.com/quantumlib/ReCirq
     - heading: Algorithms in Cirq
       description: Algorithms and experiments executable using only default Cirq code.
       options:
@@ -31,7 +36,5 @@ landing_page:
         path: /cirq/tutorials/hidden_linear_function
 
     - heading: ReCirq Experiments
-      description: Research experiments that use additional library code that resides in the external [ReCirq](https://github.com/quantumlib/ReCirq) repository.
-      options:
-        - cards
+      description: Research experiments that use additional library code that resides in the external ReCirq repository.
     - include: /cirq/experiments/_index_included.yaml

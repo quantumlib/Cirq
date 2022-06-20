@@ -8,9 +8,9 @@ landing_page:
       description: At the core of Cirq is the ability to construct quantum circuits. These are the methods and data structures necessary to do so.
     - heading: Circuit construction
       description: The core data structures that compose a circuit and how to use them.
-      items:
       options:
         - cards
+      items:
       - heading: Circuits
         description: Quantum circuits and how to create them.
         path: /cirq/circuits
