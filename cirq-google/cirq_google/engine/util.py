@@ -61,3 +61,25 @@ def deprecated_gate_set_parameter(func):
         or (gate_set_param.kind != inspect.Parameter.KEYWORD_ONLY and len(args) > idx),
     )
     return decorator(func)
+
+
+def deprecated_get_device_gate_sets_parameter(param_name='gate_sets'):
+    """Decorates get device functions, which take a deprecated 'gate_sets' parameter."""
+
+    def decorator(func):
+        signature = inspect.signature(func)
+        gate_sets_param = signature.parameters[param_name]
+        assert gate_sets_param.default == ()
+        idx = list(signature.parameters).index(param_name)
+
+        deprecation_decorator = cirq._compat.deprecated_parameter(
+            deadline='v0.16',
+            fix='Specifying gate_sets is no longer necessary to get a device.'
+            ' Remove the gate_sets parameter.',
+            parameter_desc=param_name,
+            match=lambda args, kwargs: param_name in kwargs
+            or (gate_sets_param.kind != inspect.Parameter.KEYWORD_ONLY and len(args) > idx),
+        )
+        return deprecation_decorator(func)
+
+    return decorator
