@@ -40,6 +40,7 @@ SKIP_NOTEBOOKS = [
     # tutorials that use QCS and arent skipped due to one or more cleared output cells
     'docs/noise/qcvv/xeb_calibration_example.ipynb',
     'docs/noise/calibration_api.ipynb',
+    'docs/noise/floquet_calibration_example.ipynb',
 ]
 
 
