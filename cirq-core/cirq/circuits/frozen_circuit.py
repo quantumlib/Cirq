@@ -176,14 +176,14 @@ class FrozenCircuit(AbstractCircuit, protocols.SerializableByKey):
     ) -> 'cirq.FrozenCircuit':
         return self.unfreeze()._resolve_parameters_(resolver, recursive).freeze()
 
-    def rigid_concat(
+    def ragged_concat(
         *circuits: 'cirq.AbstractCircuit', align: Union['cirq.Alignment', str] = Alignment.LEFT
     ) -> 'cirq.FrozenCircuit':
-        return AbstractCircuit.rigid_concat(*circuits, align=align).freeze()
+        return AbstractCircuit.ragged_concat(*circuits, align=align).freeze()
 
-    rigid_concat.__doc__ = AbstractCircuit.rigid_concat.__doc__
+    ragged_concat.__doc__ = AbstractCircuit.ragged_concat.__doc__
 
-    @_compat.deprecated(deadline='v0.16', fix='Renaming to rigid_concat')
+    @_compat.deprecated(deadline='v0.16', fix='Renaming to ragged_concat')
     def tetris_concat(
         *circuits: 'cirq.AbstractCircuit', align: Union['cirq.Alignment', str] = Alignment.LEFT
     ) -> 'cirq.FrozenCircuit':
