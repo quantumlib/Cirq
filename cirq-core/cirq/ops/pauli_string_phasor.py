@@ -75,8 +75,8 @@ class PauliStringPhasor(gate_operation.GateOperation):
             pauli_string: The PauliString defining the positive and negative
                 eigenspaces that will be independently phased.
             qubits: The qubits upon which the PauliStringPhasor acts. This
-                can be different from the qubits of `pauli_string` but if
-                it is not supplied it will use the qubits from `pauli_string`.
+                must be a superset of the qubits of `pauli_string`.
+                If None, it will use the qubits from `pauli_string`
                 The `pauli_string` contains only the non-identity component
                 of the phasor, while the qubits supplied here and not in
                 `pauli_string` are acted upon by identity. The order of
