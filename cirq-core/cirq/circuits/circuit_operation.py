@@ -23,7 +23,6 @@ from typing import (
     Callable,
     Mapping,
     Sequence,
-    cast,
     Dict,
     FrozenSet,
     Iterator,
@@ -124,6 +123,18 @@ class CircuitOperation(ops.Operation):
                 need not be defined prior to the subcircuit (but must be defined in
                 a measurement within the subcircuit). This field is incompatible
                 with repetitions or repetition_ids.
+
+        Raises:
+            TypeError: if repetitions is not an integer or sympy expression, or if
+                the provided circuit is not a FrozenCircuit.
+            ValueError: if any of the following conditions is met.
+                - Negative repetitions on non-invertible circuit
+                - Number of repetition IDs does not match repetitions
+                - Repetition IDs used with parameterized repetitions
+                - Conflicting qubit dimensions in qubit_map
+                - Measurement key map has invalid key names
+                - repeat_until used with other repetition controls
+                - Key(s) in repeat_until are not modified by circuit
         """
         # This fields is exclusively for use in decomposition. It should not be
         # referenced outside this class.
