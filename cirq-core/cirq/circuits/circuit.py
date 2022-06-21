@@ -1904,6 +1904,13 @@ class Circuit(AbstractCircuit):
 
     __hash__ = None  # type: ignore
 
+    def rigid_concat(
+        *circuits: 'cirq.AbstractCircuit', align: Union['cirq.Alignment', str] = Alignment.LEFT
+    ) -> 'cirq.Circuit':
+        return AbstractCircuit.rigid_concat(*circuits, align=align).unfreeze(copy=False)
+
+    rigid_concat.__doc__ = AbstractCircuit.rigid_concat.__doc__
+
     @_compat.deprecated(deadline='v0.16', fix='Renaming to rigid_concat')
     def tetris_concat(
         *circuits: 'cirq.AbstractCircuit', align: Union['cirq.Alignment', str] = Alignment.LEFT
