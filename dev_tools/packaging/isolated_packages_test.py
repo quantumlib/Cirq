@@ -11,7 +11,9 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
 import os
+import subprocess
 from unittest import mock
 
 import pytest
@@ -39,17 +41,16 @@ def test_isolated_packages(cloned_env, module):
     if str(module.root) != "cirq-core":
         assert f'cirq-core=={module.version}' in module.install_requires
 
-    result = shell_tools.run_cmd(
-        *f"{env}/bin/pip install ./{module.root} ./cirq-core".split(),
-        err=shell_tools.TeeCapture(),
-        raise_on_fail=False,
+    result = shell_tools.run(
+        f"{env}/bin/pip install ./{module.root} ./cirq-core".split(),
+        stderr=subprocess.PIPE,
+        check=False,
     )
-    assert result.exit_code == 0, f"Failed to install {module.name}:\n{result.err}"
+    assert result.returncode == 0, f"Failed to install {module.name}:\n{result.stderr}"
 
-    result = shell_tools.run_cmd(
-        *f"{env}/bin/pytest ./{module.root} --ignore ./cirq-core/cirq/contrib".split(),
-        out=shell_tools.TeeCapture(),
-        err=shell_tools.TeeCapture(),
-        raise_on_fail=False,
+    result = shell_tools.run(
+        f"{env}/bin/pytest ./{module.root} --ignore ./cirq-core/cirq/contrib".split(),
+        capture_output=True,
+        check=False,
     )
-    assert result.exit_code == 0, f"Failed isolated tests for {module.name}:\n{result.out}"
+    assert result.returncode == 0, f"Failed isolated tests for {module.name}:\n{result.stdout}"
