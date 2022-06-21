@@ -24,7 +24,6 @@ from google.protobuf.text_format import Merge
 from google.protobuf.timestamp_pb2 import Timestamp
 import cirq
 import cirq_google as cg
-import cirq_google.devices.known_devices as known_devices
 from cirq_google.api import v2
 from cirq_google.engine import util
 from cirq_google.engine.engine import EngineContext
@@ -75,23 +74,26 @@ _CALIBRATION = quantum.QuantumCalibration(
 _DEVICE_SPEC = util.pack_any(
     Merge(
         """
-valid_gate_sets: [{
-    name: 'test_set',
-    valid_gates: [{
-        id: 'x',
-        number_of_qubits: 1,
-        gate_duration_picos: 1000,
-        valid_targets: ['1q_targets']
-    }]
-}],
-valid_qubits: ['0_0', '1_1'],
-valid_targets: [{
-    name: '1q_targets',
-    target_ordering: SYMMETRIC,
-    targets: [{
-        ids: ['0_0']
-    }]
-}]
+valid_qubits: "0_0"
+valid_qubits: "1_1"
+valid_qubits: "2_2"
+valid_targets {
+  name: "2_qubit_targets"
+  target_ordering: SYMMETRIC
+  targets {
+    ids: "0_0"
+    ids: "1_1"
+  }
+}
+valid_gates {
+  gate_duration_picos: 1000
+  cz {
+  }
+}
+valid_gates {
+  phased_xz {
+  }
+}
 """,
         v2.device_pb2.DeviceSpecification(),
     )
@@ -294,19 +296,17 @@ def test_get_device_specification():
 
     # Construct expected device proto based on example
     expected = v2.device_pb2.DeviceSpecification()
-    gs = expected.valid_gate_sets.add()
-    gs.name = 'test_set'
-    gates = gs.valid_gates.add()
-    gates.id = 'x'
-    gates.number_of_qubits = 1
-    gates.gate_duration_picos = 1000
-    gates.valid_targets.extend(['1q_targets'])
-    expected.valid_qubits.extend(['0_0', '1_1'])
+    expected.valid_qubits.extend(['0_0', '1_1', '2_2'])
     target = expected.valid_targets.add()
-    target.name = '1q_targets'
+    target.name = '2_qubit_targets'
     target.target_ordering = v2.device_pb2.TargetSet.SYMMETRIC
     new_target = target.targets.add()
-    new_target.ids.extend(['0_0'])
+    new_target.ids.extend(['0_0', '1_1'])
+    gate = expected.valid_gates.add()
+    gate.cz.SetInParent()
+    gate.gate_duration_picos = 1000
+    gate = expected.valid_gates.add()
+    gate.phased_xz.SetInParent()
 
     processor = cg.EngineProcessor(
         'a', 'p', EngineContext(), _processor=quantum.QuantumProcessor(device_spec=_DEVICE_SPEC)
@@ -318,45 +318,24 @@ def test_get_device():
     processor = cg.EngineProcessor(
         'a', 'p', EngineContext(), _processor=quantum.QuantumProcessor(device_spec=_DEVICE_SPEC)
     )
-    device = processor.get_device(gate_sets=[_GATE_SET])
-    assert device.qubits == [cirq.GridQubit(0, 0), cirq.GridQubit(1, 1)]
-    device.validate_operation(cirq.X(cirq.GridQubit(0, 0)))
+    device = processor.get_device()
+    assert device.metadata.qubit_set == frozenset(
+        [cirq.GridQubit(0, 0), cirq.GridQubit(1, 1), cirq.GridQubit(2, 2)]
+    )
+    device.validate_operation(cirq.X(cirq.GridQubit(2, 2)))
+    device.validate_operation(cirq.CZ(cirq.GridQubit(0, 0), cirq.GridQubit(1, 1)))
     with pytest.raises(ValueError):
         device.validate_operation(cirq.X(cirq.GridQubit(1, 2)))
     with pytest.raises(ValueError):
-        device.validate_operation(cirq.Y(cirq.GridQubit(0, 0)))
-    with pytest.raises(ValueError, match='must be SerializableGateSet'):
-        processor.get_device(gate_sets=[cg.serialization.circuit_serializer.CIRCUIT_SERIALIZER])
-
-
-def test_default_gate_sets():
-    with cirq.testing.assert_deprecated('no longer be available', deadline='v0.16', count=1):
-        # Sycamore should have valid gate sets with default
-        sycamore_proto = known_devices.create_device_proto_from_diagram(
-            known_devices._SYCAMORE_GRID,
-            [cg.SQRT_ISWAP_GATESET, cg.SYC_GATESET],
-            known_devices._SYCAMORE_DURATIONS_PICOS,
-        )
-        processor = cg.EngineProcessor(
-            'a',
-            'p',
-            EngineContext(),
-            _processor=quantum.QuantumProcessor(device_spec=util.pack_any(sycamore_proto)),
-        )
-        device = processor.get_device()
-        device.validate_operation(cirq.X(cirq.GridQubit(5, 4)))
-        # Test that a device with no standard gatesets doesn't blow up
-        processor = cg.EngineProcessor(
-            'a', 'p', EngineContext(), _processor=quantum.QuantumProcessor(device_spec=_DEVICE_SPEC)
-        )
-        device = processor.get_device()
-        assert device.qubits == [cirq.GridQubit(0, 0), cirq.GridQubit(1, 1)]
+        device.validate_operation(cirq.H(cirq.GridQubit(0, 0)))
+    with pytest.raises(ValueError):
+        device.validate_operation(cirq.CZ(cirq.GridQubit(1, 1), cirq.GridQubit(2, 2)))
 
 
 def test_get_missing_device():
     processor = cg.EngineProcessor('a', 'p', EngineContext(), _processor=quantum.QuantumProcessor())
     with pytest.raises(ValueError, match='device specification'):
-        _ = processor.get_device(gate_sets=[_GATE_SET])
+        _ = processor.get_device()
 
 
 @uses_async_mock
