@@ -50,7 +50,7 @@ def test_convert_to_ion_gates():
     no_unitary_op = NoUnitary().on(q0)
     with pytest.raises(TypeError):
         convert_to_ion_gates.convert_one(no_unitary_op)
-        assert ion_gateset._decompose_single_qubit_operation(no_unitary_op, 0) is NotImplemented
+    assert ion_gateset._decompose_single_qubit_operation(no_unitary_op, 0) is NotImplemented
 
     with cirq.testing.assert_deprecated(
         "cirq_aqt.aqt_device.AQTTargetGateset", deadline='v0.16', count=None
