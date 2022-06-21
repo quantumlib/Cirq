@@ -48,7 +48,7 @@ def test_init():
 
 
 def test_qubit_order_mismatch():
-    q0, q1 = cirq.LineQubit.range(3)
+    q0, q1 = cirq.LineQubit.range(2)
     with pytest.raises(ValueError, match='are not a subset'):
         _ = cirq.PauliStringPhasor(1j * cirq.X(q0), qubits=[q1])
     with pytest.raises(ValueError, match='are not a subset'):
