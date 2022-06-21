@@ -945,11 +945,17 @@ def test_basic_time_assertions():
 def test_datetime():
     naive_dt = datetime.datetime.now()
 
-    with pytest.raises(TypeError):
-        cirq.to_json(naive_dt)
+    re_naive_dt = cirq.read_json(json_text=cirq.to_json(naive_dt))
+    assert re_naive_dt != naive_dt, 'loads in with timezone'
+    assert re_naive_dt.timestamp() == naive_dt.timestamp()
 
     utc_dt = naive_dt.astimezone(datetime.timezone.utc)
-    assert utc_dt == cirq.read_json(json_text=cirq.to_json(utc_dt))
+    re_utc_dt = cirq.read_json(json_text=cirq.to_json(utc_dt))
+    assert re_utc_dt == utc_dt
+    assert re_utc_dt == re_naive_dt
 
     pst_dt = naive_dt.astimezone(tz=datetime.timezone(offset=datetime.timedelta(hours=-8)))
-    assert utc_dt == cirq.read_json(json_text=cirq.to_json(pst_dt))
+    re_pst_dt = cirq.read_json(json_text=cirq.to_json(pst_dt))
+    assert re_pst_dt == pst_dt
+    assert re_pst_dt == utc_dt
+    assert re_pst_dt == re_naive_dt
