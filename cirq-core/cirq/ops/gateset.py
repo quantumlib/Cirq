@@ -378,7 +378,7 @@ class Gateset:
                 )
 
         for g in unique_gate_list:
-            if type(g) == GateFamily and not (g.tags_to_ignore or g.tags_to_accept):
+            if type(g) is GateFamily and not (g.tags_to_ignore or g.tags_to_accept):
                 if isinstance(g.gate, raw_types.Gate):
                     self._instance_gate_families[g.gate] = g
                 else:
