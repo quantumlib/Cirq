@@ -25,25 +25,37 @@ import cirq_google.api.v2.device_pb2 as device_pb2
 import cirq_google.devices.known_devices as cgdk
 import cirq_google.serialization.common_serializers as cgc
 
-_JUST_CZ = cg.SerializableGateSet(
-    gate_set_name='cz_gate_set',
-    serializers=[cg.GateOpSerializer(gate_type=cirq.CZPowGate, serialized_gate_id='cz', args=[])],
-    deserializers=[
-        cg.GateOpDeserializer(serialized_gate_id='cz', gate_constructor=cirq.CZPowGate, args=[])
-    ],
-)
 
-_JUST_MEAS = cg.SerializableGateSet(
-    gate_set_name='meas_gate_set',
-    serializers=[
-        cg.GateOpSerializer(gate_type=cirq.MeasurementGate, serialized_gate_id='meas', args=[])
-    ],
-    deserializers=[
-        cg.GateOpDeserializer(
-            serialized_gate_id='meas', gate_constructor=cirq.MeasurementGate, args=[]
+def _just_cz():
+    with cirq.testing.assert_deprecated('SerializableGateSet', deadline='v0.16', count=None):
+        return cg.SerializableGateSet(
+            gate_set_name='cz_gate_set',
+            serializers=[
+                cg.GateOpSerializer(gate_type=cirq.CZPowGate, serialized_gate_id='cz', args=[])
+            ],
+            deserializers=[
+                cg.GateOpDeserializer(
+                    serialized_gate_id='cz', gate_constructor=cirq.CZPowGate, args=[]
+                )
+            ],
         )
-    ],
-)
+
+
+def _just_meas():
+    with cirq.testing.assert_deprecated('SerializableGateSet', deadline='v0.16', count=None):
+        return cg.SerializableGateSet(
+            gate_set_name='meas_gate_set',
+            serializers=[
+                cg.GateOpSerializer(
+                    gate_type=cirq.MeasurementGate, serialized_gate_id='meas', args=[]
+                )
+            ],
+            deserializers=[
+                cg.GateOpDeserializer(
+                    serialized_gate_id='meas', gate_constructor=cirq.MeasurementGate, args=[]
+                )
+            ],
+        )
 
 
 def test_str_with_grid_qubits():
@@ -241,8 +253,9 @@ def test_asymmetric_gate():
     gate.id = 'cz'
     gate.valid_targets.extend(['left_to_right'])
 
+    cz_gateset = _just_cz()
     with cirq.testing.assert_deprecated('Use cirq_google.GridDevice', deadline='v0.16', count=2):
-        dev = cg.SerializableDevice.from_proto(proto=spec, gate_sets=[_JUST_CZ])
+        dev = cg.SerializableDevice.from_proto(proto=spec, gate_sets=[cz_gateset])
 
         for row in range(5):
             dev.validate_operation(cirq.CZ(cirq.GridQubit(row, 0), cirq.GridQubit(row, 1)))
@@ -265,8 +278,9 @@ def test_unconstrained_gate():
     gate.id = 'cz'
     gate.valid_targets.extend(['2_qubit_anywhere'])
 
+    cz_gateset = _just_cz()
     with cirq.testing.assert_deprecated('Use cirq_google.GridDevice', deadline='v0.16', count=2):
-        dev = cg.SerializableDevice.from_proto(proto=spec, gate_sets=[_JUST_CZ])
+        dev = cg.SerializableDevice.from_proto(proto=spec, gate_sets=[cz_gateset])
 
         valid_qubit1 = cirq.GridQubit(4, 4)
         for row in range(4):
@@ -292,8 +306,9 @@ def test_number_of_qubits_cz():
     gate.valid_targets.extend(['2_qubit_anywhere'])
     gate.number_of_qubits = 3
 
+    cz_gateset = _just_cz()
     with cirq.testing.assert_deprecated('Use cirq_google.GridDevice', deadline='v0.16', count=2):
-        dev = cg.SerializableDevice.from_proto(proto=spec, gate_sets=[_JUST_CZ])
+        dev = cg.SerializableDevice.from_proto(proto=spec, gate_sets=[cz_gateset])
 
         with pytest.raises(ValueError):
             dev.validate_operation(cirq.CZ(cirq.GridQubit(0, 0), cirq.GridQubit(0, 1)))
@@ -318,8 +333,9 @@ def test_constrained_permutations():
     gate.id = 'meas'
     gate.valid_targets.extend(['meas_on_first_line'])
 
+    meas_gateset = _just_meas()
     with cirq.testing.assert_deprecated('Use cirq_google.GridDevice', deadline='v0.16', count=2):
-        dev = cg.SerializableDevice.from_proto(proto=spec, gate_sets=[_JUST_MEAS])
+        dev = cg.SerializableDevice.from_proto(proto=spec, gate_sets=[meas_gateset])
 
         dev.validate_operation(cirq.measure(cirq.GridQubit(0, 0)))
         dev.validate_operation(cirq.measure(cirq.GridQubit(1, 0)))
@@ -352,16 +368,21 @@ def test_mixing_types():
     gate.id = 'meas'
     gate.valid_targets.extend(['subset', 'sym'])
 
+    meas_gateset = _just_meas()
     with cirq.testing.assert_deprecated('Use cirq_google.GridDevice', deadline='v0.16', count=1):
         with pytest.raises(NotImplementedError):
-            _ = cg.SerializableDevice.from_proto(proto=spec, gate_sets=[_JUST_MEAS])
+            _ = cg.SerializableDevice.from_proto(proto=spec, gate_sets=[meas_gateset])
 
 
 def test_multiple_gatesets():
-    # Deprecations: cirq_google.SerializableDevice and
+    # Deprecations: cirq_google.SerializableDevice, cirq_google.SerializableGateSet, and
     # cirq_google.devices.known_devices.create_device_proto_from_diagram
     with cirq.testing.assert_deprecated(
-        'Use cirq_google.GridDevice', 'no longer be available', deadline='v0.16', count=3
+        'Use cirq_google.GridDevice',
+        'SerializableGateSet',
+        'no longer be available',
+        deadline='v0.16',
+        count=5,
     ):
         halfPiGateSet = cirq_google.SerializableGateSet(
             gate_set_name='half_pi_gateset',
@@ -396,10 +417,14 @@ def test_half_pi_takes_half_duration():
     gate perform correctly.  In this case, we set the XPowGate to be
     half the duration of the full exponent and make sure it still works.
     """
-    # Deprecations: cirq_google.SerializableDevice and
+    # Deprecations: cirq_google.SerializableDevice, cirq_google.SerializableGateSet, and
     # cirq_google.devices.known_devices.create_device_proto_from_diagram
     with cirq.testing.assert_deprecated(
-        'Use cirq_google.GridDevice', 'no longer be available', deadline='v0.16', count=3
+        'Use cirq_google.GridDevice',
+        'SerializableGateSet',
+        'no longer be available',
+        deadline='v0.16',
+        count=4,
     ):
         half_pi_gs = cirq_google.SerializableGateSet(
             gate_set_name='half_pi',
@@ -425,10 +450,14 @@ def test_multiple_fsim_gatesets():
     gate perform correctly.  In this case, we set the XPowGate to be
     half the duration of the full exponent and make sure it still works.
     """
-    # Deprecations: cirq_google.SerializableDevice and
+    # Deprecations: cirq_google.SerializableDevice, cirq_google.SerializableGateSet, and
     # cirq_google.devices.known_devices.create_device_proto_from_diagram
     with cirq.testing.assert_deprecated(
-        'Use cirq_google.GridDevice', 'no longer be available', deadline='v0.16', count=3
+        'Use cirq_google.GridDevice',
+        'SerializableGateSet',
+        'no longer be available',
+        deadline='v0.16',
+        count=4,
     ):
         half_pi_gs = cirq_google.SerializableGateSet(
             gate_set_name='half_pi',

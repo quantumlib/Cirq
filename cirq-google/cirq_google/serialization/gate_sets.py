@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """Gate sets supported by Google's apis."""
+from typing import cast
+
 from cirq._doc import document
 from cirq import _compat
 from cirq_google.serialization import serializable_gate_set
@@ -38,85 +40,97 @@ from cirq_google.serialization.common_serializers import (
     CIRCUIT_OP_DESERIALIZER,
 )
 
-SYC_GATESET = serializable_gate_set.SerializableGateSet(
-    gate_set_name='sycamore',
-    serializers=[
-        SYC_SERIALIZER,
-        *SINGLE_QUBIT_SERIALIZERS,
-        *SINGLE_QUBIT_HALF_PI_SERIALIZERS,
-        MEASUREMENT_SERIALIZER,
-        WAIT_GATE_SERIALIZER,
-        CIRCUIT_OP_SERIALIZER,
-    ],
-    deserializers=[
-        SYC_DESERIALIZER,
-        *SINGLE_QUBIT_DESERIALIZERS,
-        *SINGLE_QUBIT_HALF_PI_DESERIALIZERS,
-        MEASUREMENT_DESERIALIZER,
-        WAIT_GATE_DESERIALIZER,
-        CIRCUIT_OP_DESERIALIZER,
-    ],
+SYC_GATESET = cast(
+    serializable_gate_set.SerializableGateSet,
+    serializable_gate_set._SerializableGateSet(
+        gate_set_name='sycamore',
+        serializers=[
+            SYC_SERIALIZER,
+            *SINGLE_QUBIT_SERIALIZERS,
+            *SINGLE_QUBIT_HALF_PI_SERIALIZERS,
+            MEASUREMENT_SERIALIZER,
+            WAIT_GATE_SERIALIZER,
+            CIRCUIT_OP_SERIALIZER,
+        ],
+        deserializers=[
+            SYC_DESERIALIZER,
+            *SINGLE_QUBIT_DESERIALIZERS,
+            *SINGLE_QUBIT_HALF_PI_DESERIALIZERS,
+            MEASUREMENT_DESERIALIZER,
+            WAIT_GATE_DESERIALIZER,
+            CIRCUIT_OP_DESERIALIZER,
+        ],
+    ),
 )
 document(SYC_GATESET, """Gate set with fsim(pi/2, pi/6) as the core 2 qubit interaction.""")
 
-SQRT_ISWAP_GATESET = serializable_gate_set.SerializableGateSet(
-    gate_set_name='sqrt_iswap',
-    serializers=[
-        *SQRT_ISWAP_SERIALIZERS,
-        *SINGLE_QUBIT_SERIALIZERS,
-        MEASUREMENT_SERIALIZER,
-        WAIT_GATE_SERIALIZER,
-        CIRCUIT_OP_SERIALIZER,
-    ],
-    deserializers=[
-        *SQRT_ISWAP_DESERIALIZERS,
-        *SINGLE_QUBIT_DESERIALIZERS,
-        MEASUREMENT_DESERIALIZER,
-        WAIT_GATE_DESERIALIZER,
-        CIRCUIT_OP_DESERIALIZER,
-    ],
+SQRT_ISWAP_GATESET = cast(
+    serializable_gate_set.SerializableGateSet,
+    serializable_gate_set._SerializableGateSet(
+        gate_set_name='sqrt_iswap',
+        serializers=[
+            *SQRT_ISWAP_SERIALIZERS,
+            *SINGLE_QUBIT_SERIALIZERS,
+            MEASUREMENT_SERIALIZER,
+            WAIT_GATE_SERIALIZER,
+            CIRCUIT_OP_SERIALIZER,
+        ],
+        deserializers=[
+            *SQRT_ISWAP_DESERIALIZERS,
+            *SINGLE_QUBIT_DESERIALIZERS,
+            MEASUREMENT_DESERIALIZER,
+            WAIT_GATE_DESERIALIZER,
+            CIRCUIT_OP_DESERIALIZER,
+        ],
+    ),
 )
 document(SQRT_ISWAP_GATESET, """Gate set with sqrt(iswap) as the core 2 qubit interaction.""")
 
 
-FSIM_GATESET = serializable_gate_set.SerializableGateSet(
-    gate_set_name='fsim',
-    serializers=[
-        *LIMITED_FSIM_SERIALIZERS,
-        *SINGLE_QUBIT_SERIALIZERS,
-        MEASUREMENT_SERIALIZER,
-        WAIT_GATE_SERIALIZER,
-        CIRCUIT_OP_SERIALIZER,
-    ],
-    deserializers=[
-        LIMITED_FSIM_DESERIALIZER,
-        *SINGLE_QUBIT_DESERIALIZERS,
-        MEASUREMENT_DESERIALIZER,
-        WAIT_GATE_DESERIALIZER,
-        CIRCUIT_OP_DESERIALIZER,
-    ],
+FSIM_GATESET = cast(
+    serializable_gate_set.SerializableGateSet,
+    serializable_gate_set._SerializableGateSet(
+        gate_set_name='fsim',
+        serializers=[
+            *LIMITED_FSIM_SERIALIZERS,
+            *SINGLE_QUBIT_SERIALIZERS,
+            MEASUREMENT_SERIALIZER,
+            WAIT_GATE_SERIALIZER,
+            CIRCUIT_OP_SERIALIZER,
+        ],
+        deserializers=[
+            LIMITED_FSIM_DESERIALIZER,
+            *SINGLE_QUBIT_DESERIALIZERS,
+            MEASUREMENT_DESERIALIZER,
+            WAIT_GATE_DESERIALIZER,
+            CIRCUIT_OP_DESERIALIZER,
+        ],
+    ),
 )
 document(FSIM_GATESET, """Gate set that combines sqrt(iswap) and syc as one fsim id.""")
 
 
-EXPERIMENTAL_PULSE_GATESET = serializable_gate_set.SerializableGateSet(
-    gate_set_name='pulse',
-    serializers=[
-        COUPLER_PULSE_SERIALIZER,
-        *LIMITED_FSIM_SERIALIZERS,
-        *SINGLE_QUBIT_SERIALIZERS,
-        MEASUREMENT_SERIALIZER,
-        WAIT_GATE_SERIALIZER,
-        CIRCUIT_OP_SERIALIZER,
-    ],
-    deserializers=[
-        COUPLER_PULSE_DESERIALIZER,
-        LIMITED_FSIM_DESERIALIZER,
-        *SINGLE_QUBIT_DESERIALIZERS,
-        MEASUREMENT_DESERIALIZER,
-        WAIT_GATE_DESERIALIZER,
-        CIRCUIT_OP_DESERIALIZER,
-    ],
+EXPERIMENTAL_PULSE_GATESET = cast(
+    serializable_gate_set.SerializableGateSet,
+    serializable_gate_set._SerializableGateSet(
+        gate_set_name='pulse',
+        serializers=[
+            COUPLER_PULSE_SERIALIZER,
+            *LIMITED_FSIM_SERIALIZERS,
+            *SINGLE_QUBIT_SERIALIZERS,
+            MEASUREMENT_SERIALIZER,
+            WAIT_GATE_SERIALIZER,
+            CIRCUIT_OP_SERIALIZER,
+        ],
+        deserializers=[
+            COUPLER_PULSE_DESERIALIZER,
+            LIMITED_FSIM_DESERIALIZER,
+            *SINGLE_QUBIT_DESERIALIZERS,
+            MEASUREMENT_DESERIALIZER,
+            WAIT_GATE_DESERIALIZER,
+            CIRCUIT_OP_DESERIALIZER,
+        ],
+    ),
 )
 document(
     EXPERIMENTAL_PULSE_GATESET,
@@ -125,20 +139,23 @@ document(
 
 
 # The xmon gate set.
-XMON = serializable_gate_set.SerializableGateSet(
-    gate_set_name='xmon',
-    serializers=[
-        *SINGLE_QUBIT_SERIALIZERS,
-        CZ_POW_SERIALIZER,
-        MEASUREMENT_SERIALIZER,
-        CIRCUIT_OP_SERIALIZER,
-    ],
-    deserializers=[
-        *SINGLE_QUBIT_DESERIALIZERS,
-        CZ_POW_DESERIALIZER,
-        MEASUREMENT_DESERIALIZER,
-        CIRCUIT_OP_DESERIALIZER,
-    ],
+XMON = cast(
+    serializable_gate_set.SerializableGateSet,
+    serializable_gate_set._SerializableGateSet(
+        gate_set_name='xmon',
+        serializers=[
+            *SINGLE_QUBIT_SERIALIZERS,
+            CZ_POW_SERIALIZER,
+            MEASUREMENT_SERIALIZER,
+            CIRCUIT_OP_SERIALIZER,
+        ],
+        deserializers=[
+            *SINGLE_QUBIT_DESERIALIZERS,
+            CZ_POW_DESERIALIZER,
+            MEASUREMENT_DESERIALIZER,
+            CIRCUIT_OP_DESERIALIZER,
+        ],
+    ),
 )
 document(XMON, """Gate set for XMON devices.""")
 
