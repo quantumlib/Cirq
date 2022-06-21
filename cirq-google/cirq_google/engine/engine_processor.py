@@ -13,14 +13,14 @@
 # limitations under the License.
 import datetime
 
-from typing import cast, Dict, Iterable, List, Optional, Sequence, TYPE_CHECKING, Union
+from typing import Dict, Iterable, List, Optional, Sequence, TYPE_CHECKING, Union
 
 from google.protobuf import any_pb2
 
 import cirq
 from cirq_google.cloud import quantum
 from cirq_google.api import v2
-from cirq_google.devices import serializable_device
+from cirq_google.devices import grid_device
 from cirq_google.engine import (
     abstract_processor,
     calibration,
@@ -28,8 +28,7 @@ from cirq_google.engine import (
     processor_sampler,
     util,
 )
-from cirq_google.serialization import serializable_gate_set, serializer
-from cirq_google.serialization import gate_sets as gs
+from cirq_google.serialization import serializer
 
 if TYPE_CHECKING:
     import cirq_google as cg
@@ -334,27 +333,18 @@ class EngineProcessor(abstract_processor.AbstractProcessor):
         else:
             return None
 
+    @util.deprecated_get_device_gate_sets_parameter()
     def get_device(self, gate_sets: Iterable[serializer.Serializer] = ()) -> cirq.Device:
         """Returns a `Device` created from the processor's device specification.
 
         This method queries the processor to retrieve the device specification,
-        which is then use to create a `serializable_gate_set.SerializableDevice` that will validate
-        that operations are supported and use the correct qubits.
+        which is then use to create a `cirq_google.GridDevice` that will
+        validate that operations are supported and use the correct qubits.
         """
         spec = self.get_device_specification()
         if not spec:
             raise ValueError('Processor does not have a device specification')
-        if not gate_sets:
-            # Default is to use all named gatesets in the device spec
-            gate_sets = []
-            for valid_gate_set in spec.valid_gate_sets:
-                if valid_gate_set.name in gs.NAMED_GATESETS:
-                    gate_sets.append(gs.NAMED_GATESETS[valid_gate_set.name])
-        if not all(isinstance(gs, serializable_gate_set.SerializableGateSet) for gs in gate_sets):
-            raise ValueError('All gate_sets must be SerializableGateSet currently.')
-        return serializable_device.SerializableDevice.from_proto(
-            spec, cast(Iterable[serializable_gate_set.SerializableGateSet], gate_sets)
-        )
+        return grid_device.GridDevice.from_proto(spec)
 
     @cirq._compat.deprecated_parameter(
         deadline='v1.0',
