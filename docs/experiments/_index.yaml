@@ -18,22 +18,22 @@ landing_page:
       items:
       - heading: Textbook Algorithms Workshop
         description: A workshop notebook with examples that covers algorithms commonly shown in quantum textbooks.
-        path: /cirq/tutorials/educators/textbook_algorithms
+        path: /cirq/experiments/textbook_algorithms
       - heading: Shor's Algorithm
         description: The famous integer factorization algorithm by Peter Shor.
-        path: /cirq/tutorials/shor
+        path: /cirq/experiments/shor
       - heading: Variational Quantum Eigensolver
         description: Compute the ground state of a Hamiltonian using the variational principle.
-        path: /cirq/tutorials/variational_algorithm
+        path: /cirq/experiments/variational_algorithm
       - heading: Quantum Walks
         description: The quantum analog of a random walk algorithm.
-        path: /cirq/tutorials/quantum_walks
+        path: /cirq/experiments/quantum_walks
       - heading: Fourier Checking
         description: Demonstrate the separation between quantum and classical computers.
-        path: /cirq/tutorials/fourier_checking
+        path: /cirq/experiments/fourier_checking
       - heading: Hidden Linear Function problem
         description: Show quantum separation with a constant depth solution.
-        path: /cirq/tutorials/hidden_linear_function
+        path: /cirq/experiments/hidden_linear_function
 
     - heading: ReCirq Experiments
       description: Research experiments that use additional library code that resides in the external ReCirq repository.

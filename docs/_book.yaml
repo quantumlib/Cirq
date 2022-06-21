@@ -32,16 +32,16 @@ upper_tabs:
       ####  FIRST STEPS  ####
       - heading: "First steps"
       - title: "Install"
-        path: /cirq/install
+        path: /cirq/start/install
       - title: "Hello Qubit Example"
-        path: /cirq/start
+        path: /cirq/start/start
       - title: "Cirq Basics"
-        path: /cirq/tutorials/basics
+        path: /cirq/start/basics
 
       ####  TEST UNDERSTANDING  ####
       - heading: "Test understanding"
       - title: "Cirq Intro Workshop"
-        path: /cirq/tutorials/educators/intro
+        path: /cirq/start/intro
 
     - name: "Build"
       contents:
@@ -50,45 +50,45 @@ upper_tabs:
       ####  CIRCUIT CONSTRUCTION  ####
       - heading: "Circuit construction"
       - title: "Circuits"
-        path: /cirq/circuits
+        path: /cirq/build/circuits
       - title: "Qubits"
-        path: /cirq/qubits
+        path: /cirq/build/qubits
       - title: "Gates and operations"
-        path: /cirq/gates
+        path: /cirq/build/gates
       - title: "Custom gates"
-        path: /cirq/custom_gates
+        path: /cirq/build/custom_gates
       - title: "Import/export circuits"
-        path: /cirq/interop
+        path: /cirq/build/interop
       ####   ADVANCED  ####
       - heading: "Advanced"
       - title: "Operators"
-        path: /cirq/operators
+        path: /cirq/build/operators
       - title: "Qudits"
-        path: /cirq/qudits
+        path: /cirq/build/qudits
       - title: "Protocols"
-        path: /cirq/protocols
+        path: /cirq/build/protocols
       - title: "Tools Ecosystem"
-        path: /cirq/ecosystem
+        path: /cirq/build/ecosystem
 
     - name: "Simulate"
       contents:
       - title: "Overview"
         path: /cirq/simulate
       - title: "Exact Simulation"
-        path: /cirq/simulation
+        path: /cirq/simulate/simulation
       - title: "Noisy Simulation"
-        path: /cirq/noisy_simulation
+        path: /cirq/simulate/noisy_simulation
       - title: "Parameter Sweeps"
-        path: /cirq/params
+        path: /cirq/simulate/params
       - title: "State Histograms"
-        path: /cirq/tutorials/state_histograms
+        path: /cirq/simulate/state_histograms
 
     - name: "Transform"
       contents:
       - title: "Overview"
         path: /cirq/transform
       - title: "Circuit Transformers"
-        path: /cirq/transformers
+        path: /cirq/transform/transformers
       - title: "Custom Transformers"
         path: /cirq/transform/custom_transformers
 
@@ -97,56 +97,56 @@ upper_tabs:
       - title: "Overview"
         path: /cirq/hardware
       - title: "Devices"
-        path: /cirq/devices
+        path: /cirq/hardware/devices
 
       ####  AQT  ####
       - heading: "AQT hardware"
       - title: "Access and authentication"
-        path: /cirq/aqt/access
+        path: /cirq/hardware/aqt/access
       - title: "Getting started with AQT hardware"
-        path: /cirq/tutorials/aqt/getting_started
+        path: /cirq/hardware/aqt/getting_started
 
       #### Azure Quantum ####
       - heading: "Azure Quantum"
       - title: "Access and authentication"
-        path: /cirq/azure-quantum/access
+        path: /cirq/hardware/azure-quantum/access
       - title: "Getting started with Honeywell on Azure Quantum"
-        path: /cirq/tutorials/azure-quantum/getting_started_honeywell
+        path: /cirq/hardware/azure-quantum/getting_started_honeywell
       - title: "Getting started with IonQ on Azure Quantum"
-        path: /cirq/tutorials/azure-quantum/getting_started_ionq
+        path: /cirq/hardware/azure-quantum/getting_started_ionq
 
       ##### IonQ ####
       - heading: "IonQ hardware"
       - title: "Access and authentication"
-        path: /cirq/ionq/access
+        path: /cirq/hardware/ionq/access
       - title: "Getting started with IonQ hardware"
-        path: /cirq/tutorials/ionq/getting_started
+        path: /cirq/hardware/ionq/getting_started
       - title: "IonQ API service"
-        path: /cirq/ionq/service
+        path: /cirq/hardware/ionq/service
       - title: "IonQ API circuits"
-        path: /cirq/ionq/circuits
+        path: /cirq/hardware/ionq/circuits
       - title: "Running IonQ API jobs"
-        path: /cirq/ionq/jobs
+        path: /cirq/hardware/ionq/jobs
       - title: "IonQ API calibrations"
-        path: /cirq/ionq/calibrations
+        path: /cirq/hardware/ionq/calibrations
 
       ####  PASQAL  ####
       - heading: "Pasqal hardware"
       - title: "Access and authentication"
-        path: /cirq/pasqal/access
+        path: /cirq/hardware/pasqal/access
       - title: "Getting started with Pasqal hardware"
-        path: /cirq/tutorials/pasqal/getting_started
+        path: /cirq/hardware/pasqal/getting_started
       - title: "Pasqal devices"
-        path: /cirq/pasqal/devices
+        path: /cirq/hardware/pasqal/devices
       - title: "Pasqal sampler"
-        path: /cirq/pasqal/sampler
+        path: /cirq/hardware/pasqal/sampler
 
       ##### RIGETTI ####
       - heading: "Rigetti hardware"
       - title: "Access and authentication"
-        path: /cirq/rigetti/access
+        path: /cirq/hardware/rigetti/access
       - title: "Getting started with Rigetti hardware"
-        path: /cirq/tutorials/rigetti/getting_started
+        path: /cirq/hardware/rigetti/getting_started
 
     - name: "Noise"
       contents:
@@ -154,27 +154,25 @@ upper_tabs:
         path: /cirq/noise
       ####  CHARACTERIZATION AND COMPENSATION  ####
       - heading: "Characterization and compensation"
-      - title: "Calibration: Overview and API"
-        path: /cirq/tutorials/google/calibration_api
+      - title: "Calibration FAQ"
+        path: /cirq/noise/calibration_faq
       - title: "Floquet Calibration"
-        path: /cirq/tutorials/google/floquet_calibration_example
+        path: /cirq/noise/floquet_calibration_example
       - title: "Cross Entropy Benchmarking (XEB)"
         style: accordion
         section:
         - title: "Cross Entropy Benchmarking Theory"
-          path: /cirq/qcvv/xeb_theory
+          path: /cirq/noise/qcvv/xeb_theory
         - title: "XEB and coherent error"
-          path: /cirq/qcvv/xeb_coherent_noise
+          path: /cirq/noise/qcvv/xeb_coherent_noise
         - title: "Parallel XEB"
-          path: /cirq/qcvv/parallel_xeb
+          path: /cirq/noise/qcvv/parallel_xeb
         - title: "XEB calibration: Example and Benchmark"
-          path: /cirq/tutorials/google/xeb_calibration_example
-      - title: "Calibration FAQ"
-        path: /cirq/google/calibration_faq
+          path: /cirq/noise/qcvv/xeb_calibration_example
       ####  VISUALIZING NOISE  ####
       - heading: "Visualizing noise"
       - title: "Heatmaps"
-        path: /cirq/tutorials/heatmaps
+        path: /cirq/noise/heatmaps
 
     - name: "Experiments"
       contents:
@@ -182,17 +180,17 @@ upper_tabs:
         path: /cirq/experiments
       - heading: "Algorithms in Cirq"
       - title: "Textbook Algorithms Workshop"
-        path: /cirq/tutorials/educators/textbook_algorithms
+        path: /cirq/experiments/textbook_algorithms
       - title: "Shor's Algorithm"
-        path: /cirq/tutorials/shor
+        path: /cirq/experiments/shor
       - title: "Variational Quantum Eigensolver"
-        path: /cirq/tutorials/variational_algorithm
+        path: /cirq/experiments/variational_algorithm
       - title: "Quantum Walks"
-        path: /cirq/tutorials/quantum_walks
+        path: /cirq/experiments/quantum_walks
       - title: "Fourier Checking"
-        path: /cirq/tutorials/fourier_checking
+        path: /cirq/experiments/fourier_checking
       - title: "Hidden Linear Function problem"
-        path: /cirq/tutorials/hidden_linear_function
+        path: /cirq/experiments/hidden_linear_function
       - heading: "Algorithms in ReCirq"
       - include: /cirq/experiments/_toc.yaml
 
@@ -221,7 +219,7 @@ upper_tabs:
       - title: "Triage process"
         path: /cirq/dev/triage
       - title: "Issues / requests / questions"
-        path: /cirq/support
+        path: /cirq/dev/support
 
     - name: "Reference"
       skip_translation: true

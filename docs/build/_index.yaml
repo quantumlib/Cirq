@@ -13,19 +13,19 @@ landing_page:
       items:
       - heading: Circuits
         description: Quantum circuits and how to create them.
-        path: /cirq/circuits
+        path: /cirq/build/circuits
       - heading: Qubits
         description: The quantum bit data structure.
-        path: /cirq/qubits
+        path: /cirq/build/qubits
       - heading: Gates and Operations
         description: Quantum gates to apply to qubits in a circuit.
-        path: /cirq/gates
+        path: /cirq/build/gates
       - heading: Custom gates
         description: Create your own gates with unitaries or decomposition.
-        path: /cirq/custom_gates
+        path: /cirq/build/custom_gates
       - heading: Import/export circuits
         description: Importing or exporting circuits into/out of Cirq.
-        path: /cirq/interop
+        path: /cirq/build/interop
 
     - heading: Advanced construction
       description: More elaborate ways to build quantum circuits.
@@ -34,13 +34,13 @@ landing_page:
       items:
       - heading: Operators
         description: Unitary operators, measurements and noise channels.
-        path: /cirq/operators
+        path: /cirq/build/operators
       - heading: Qudits
         description: Qutrits and higher dimensional quantum systems.
-        path: /cirq/qudits
+        path: /cirq/build/qudits
       - heading: Protocols
         description: Magic methods supported by Cirq's classes.
-        path: /cirq/protocols
+        path: /cirq/build/protocols
       - heading: Tools ecosystem
         description: External tools for circuit construction.
-        path: /cirq/ecosystem
+        path: /cirq/build/ecosystem

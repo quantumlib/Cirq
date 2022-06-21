@@ -11,13 +11,13 @@ landing_page:
       items:
       - heading: Exact Simulation
         description: Simulate a perfectly noiseless quantum computer.
-        path: /cirq/simulation
+        path: /cirq/simulate/simulation
       - heading: Noisy Simulation
         description: Simulate a more realistic quantum computer, subject to error and noise.
-        path: /cirq/noisy_simulation
+        path: /cirq/simulate/noisy_simulation
       - heading: Parameter Sweeps
         description: Efficiently evaluate many circuits which only differ in operation parameter values.
-        path: /cirq/params
+        path: /cirq/simulate/params
       - heading: State Histograms
         description: Visualize the results of simulation as a histogram over basis states.
-        path: /cirq/tutorials/state_histograms
+        path: /cirq/simulate/state_histograms

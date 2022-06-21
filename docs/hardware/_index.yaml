@@ -11,7 +11,7 @@ landing_page:
       items:
       - heading: Devices
         description: Represent the constraints a device imposes on runnable circuits with the Device class.
-        path: /cirq/devices
+        path: /cirq/hardware/devices
 
     - heading: Run a circuit on a hardware device
       description: Cirq provides interfaces for running your circuits on quantum hardware provided by many different services.
@@ -23,10 +23,10 @@ landing_page:
       items:
       - heading: Access and authentication
         description: How to gain access.
-        path: /cirq/aqt/access
+        path: /cirq/hardware/aqt/access
       - heading: Getting started with AQT hardware
         description: How to run your first circuit.
-        path: /cirq/tutorials/aqt/getting_started
+        path: /cirq/hardware/aqt/getting_started
 
     - heading: Azure Quantum
       description: Cirq's interface with Microsoft Azure Quantum services.
@@ -35,13 +35,13 @@ landing_page:
       items:
       - heading: Access and authentication
         description: How to gain access.
-        path: /cirq/azure-quantum/access
+        path: /cirq/hardware/azure-quantum/access
       - heading: Getting started with Honeywell on AQT hardware
         description: How to run your first circuit on a Honeywell device.
-        path: /cirq/tutorials/azure-quantum/getting_started_honeywell
+        path: /cirq/hardware/azure-quantum/getting_started_honeywell
       - heading: Getting started with IonQ on AQT hardware
         description: How to run your first circuit on an IonQ device.
-        path: /cirq/tutorials/azure-quantum/getting_started_ionq
+        path: /cirq/hardware/azure-quantum/getting_started_ionq
 
     - heading: IonQ hardware
       description: Cirq's interface with IonQ hardware.
@@ -50,22 +50,22 @@ landing_page:
       items:
       - heading: Access and authentication
         description: How to gain access.
-        path: /cirq/ionq/access
+        path: /cirq/hardware/ionq/access
       - heading: Getting started with IonQ hardware
         description: How to run your first circuit.
-        path: /cirq/tutorials/ionq/getting_started
+        path: /cirq/hardware/ionq/getting_started
       - heading: IonQ API Service
         description: Using the IonQ API.
-        path: /cirq/ionq/service
+        path: /cirq/hardware/ionq/service
       - heading: IonQ API circuits
         description: Writing circuits for the IonQ API.
-        path: /cirq/ionq/circuits
+        path: /cirq/hardware/ionq/circuits
       - heading: Running IonQ API jobs
         description: How to run jobs with the IonQ API.
-        path: /cirq/ionq/jobs
+        path: /cirq/hardware/ionq/jobs
       - heading: IonQ API calibrations
         description: How to get hardware device calibration data through the IonQ API.
-        path: /cirq/ionq/calibrations
+        path: /cirq/hardware/ionq/calibrations
 
     - heading: Pasqal hardware
       description: Cirq's interface with Pasqal hardware.
@@ -74,16 +74,16 @@ landing_page:
       items:
       - heading: Access and authentication
         description: How to gain access.
-        path: /cirq/pasqal/access
+        path: /cirq/hardware/pasqal/access
       - heading: Getting started with Pasqal hardware
         description: How to run your first circuit.
-        path: /cirq/tutorials/pasqal/getting_started
+        path: /cirq/hardware/pasqal/getting_started
       - heading: Pasqal devices
         description: Device objects to specify Pasqal hardware.
-        path: /cirq/pasqal/devices
+        path: /cirq/hardware/pasqal/devices
       - heading: Pasqal sampler
         description: Sampler objects to run on Pasqal hardware.
-        path: /cirq/pasqal/sampler
+        path: /cirq/hardware/pasqal/sampler
 
     - heading: Rigetti hardware
       description: Cirq's interface with Rigetti hardware.
@@ -92,7 +92,7 @@ landing_page:
       items:
       - heading: Access and authentication
         description: How to gain access.
-        path: /cirq/rigetti/access
+        path: /cirq/hardware/rigetti/access
       - heading: Getting started with Rigetti hardware
         description: How to run your first circuit.
-        path: /cirq/tutorials/rigetti/getting_started
+        path: /cirq/hardware/rigetti/getting_started

@@ -11,7 +11,7 @@ landing_page:
       items:
       - heading: Circuit Transformers
         description: The Transformer class and contract to represent some process that changes a supplied circuit.
-        path: /cirq/transformers
+        path: /cirq/transform/transformers
       - heading: Custom Transformers
         description: Write your own Transformer with decorators, primitives and decompositions.
         path: /cirq/transform/custom_transformers
