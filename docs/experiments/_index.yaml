@@ -5,41 +5,36 @@ landing_page:
   nav: left
   rows:
     - heading: Experiments using quantum circuits
-      description: This is a collection of algorithms and experiments written in and using Cirq. Some are hosted in Cirq, and some are hosted in ReCirq, a repository for research performed with Cirq.
+      description: This is a collection of algorithms and experiments written in and using Cirq. Some are hosted in the Cirq Github repository, and some are hosted in ReCirq, a repository for research performed with Cirq.
+    - buttons:
+      - label: Cirq Github
+        path: https://github.com/quantumlib/Cirq
+      - label: ReCirq Github
+        path: https://github.com/quantumlib/ReCirq
     - heading: Algorithms in Cirq
-      description: Algorithms and experiments executable with only default Cirq code.
+      description: Algorithms and experiments executable using only default Cirq code.
+      options:
+        - cards
       items:
       - heading: Textbook Algorithms Workshop
         description: A workshop notebook with examples that covers algorithms commonly shown in quantum textbooks.
         path: /cirq/tutorials/educators/textbook_algorithms
-        icon:
-          name: menu_book
       - heading: Shor's Algorithm
         description: The famous integer factorization algorithm by Peter Shor.
         path: /cirq/tutorials/shor
-        icon:
-          name: menu_book
       - heading: Variational Quantum Eigensolver
         description: Compute the ground state of a Hamiltonian using the variational principle.
         path: /cirq/tutorials/variational_algorithm
-        icon:
-          name: menu_book
       - heading: Quantum Walks
         description: The quantum analog of a random walk algorithm.
         path: /cirq/tutorials/quantum_walks
-        icon:
-          name: menu_book
       - heading: Fourier Checking
         description: Demonstrate the separation between quantum and classical computers.
         path: /cirq/tutorials/fourier_checking
-        icon:
-          name: menu_book
       - heading: Hidden Linear Function problem
         description: Show quantum separation with a constant depth solution.
         path: /cirq/tutorials/hidden_linear_function
-        icon:
-          name: menu_book
 
     - heading: ReCirq Experiments
-      description: Research experiments that use additional library code reside in the external ReCirq repository.
+      description: Research experiments that use additional library code that resides in the external ReCirq repository.
     - include: /cirq/experiments/_index_included.yaml

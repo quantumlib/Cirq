@@ -78,6 +78,8 @@ upper_tabs:
         path: /cirq/simulation
       - title: "Noisy Simulation"
         path: /cirq/noisy_simulation
+      - title: "Parameter Sweeps"
+        path: /cirq/params
       - title: "State Histograms"
         path: /cirq/tutorials/state_histograms
 

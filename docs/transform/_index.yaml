@@ -5,15 +5,13 @@ landing_page:
   nav: left
   rows:
     - heading: Transform a circuit
-      description: Cirq provides different ways of transforming a provided circuit, which may be necessary to prepare it to run on quantum hardware device, or to improve its reliability on a device.
+      description: Programmatically transform a provided circuit into another one to implement any compilation or optimization process that changes a circuit.
+      options:
+        - cards
       items:
       - heading: Circuit Transformers
-        description: The Transformer class to represent some process to change a supplied circuit.
+        description: The Transformer class and contract to represent some process that changes a supplied circuit.
         path: /cirq/transformers
-        icon:
-          name: menu_book
       - heading: Custom Transformers
         description: Write your own Transformer with decorators, primitives and decompositions.
         path: /cirq/transform/custom_transformers
-        icon:
-          name: menu_book
