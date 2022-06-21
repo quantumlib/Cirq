@@ -18,6 +18,7 @@ import abc
 from cirq_google.line.placement.sequence import GridQubitLineTuple
 
 if TYPE_CHECKING:
+    import cirq
     import cirq_google
 
 

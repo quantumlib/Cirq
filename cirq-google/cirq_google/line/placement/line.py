@@ -18,11 +18,12 @@ from cirq_google.line.placement.place_strategy import LinePlacementStrategy
 from cirq_google.line.placement.sequence import GridQubitLineTuple
 
 if TYPE_CHECKING:
+    import cirq
     import cirq_google
 
 
 def line_on_device(
-    device: 'cirq_google.XmonDevice',
+    device: 'cirq.Device',
     length: int,
     method: LinePlacementStrategy = greedy.GreedySequenceSearchStrategy(),
 ) -> GridQubitLineTuple:

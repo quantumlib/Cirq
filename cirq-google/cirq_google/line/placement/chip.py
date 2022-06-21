@@ -17,6 +17,7 @@ from typing import Dict, List, Tuple, TYPE_CHECKING
 import cirq
 
 if TYPE_CHECKING:
+    import cirq
     import cirq_google
 
 
@@ -72,7 +73,7 @@ def right_of(qubit: cirq.GridQubit) -> cirq.GridQubit:
 
 
 def chip_as_adjacency_list(
-    device: 'cirq_google.XmonDevice',
+    device: 'cirq.Device',
 ) -> Dict[cirq.GridQubit, List[cirq.GridQubit]]:
     """Gives adjacency list representation of a chip.
 
