@@ -291,7 +291,6 @@ def test_supported_languages():
 
 
 def test_get_device_specification():
-    # TODO(verult)
     processor = cg.EngineProcessor('a', 'p', EngineContext(), _processor=quantum.QuantumProcessor())
     assert processor.get_device_specification() is None
 
