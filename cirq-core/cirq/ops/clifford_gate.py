@@ -620,6 +620,27 @@ class SingleQubitCliffordGate(CliffordGate):
             _to_clifford_tableau(x_to=x_to, z_to=z_to)
         )
 
+    @classmethod
+    def from_unitary_with_global_phase(cls, u: np.ndarray) -> Optional[Tuple['SingleQubitCliffordGate', complex]]:
+        """Creates Clifford gate with given unitary, including global phase.
+
+        Args:
+            u: 2x2 unitary matrix of a Clifford gate.
+
+        Returns:
+            A tuple of a SingleQubitCliffordGate and a global phase, such that
+            the gate unitary (as given by `cirq.unitary`) times the global phase
+            is identical to the given unitary `u`; or `None` if `u` is not the
+            matrix of a single-qubit Clifford gate.
+        """
+        gate = cls.from_unitary(u)
+        if gate is None:
+            return None
+        # Find the entry with the largest magnitude in the input unitary, to find
+        # the global phase difference between the input unitary and the gate unitary.
+        k = max(np.ndindex(*u.shape), key=lambda t: abs(u[t]))
+        return gate, u[k] / protocols.unitary(gate)[k]
+
     def pauli_tuple(self, pauli: Pauli) -> Tuple[Pauli, bool]:
         """Returns a tuple of a Pauli operator and a boolean.
 

@@ -530,6 +530,10 @@ def test_from_unitary(clifford_gate):
     result_gate = cirq.SingleQubitCliffordGate.from_unitary(u)
     assert result_gate == clifford_gate
 
+    result_gate2, global_phase = cirq.SingleQubitCliffordGate.from_unitary_with_global_phase(u)
+    assert result_gate2 == result_gate
+    assert np.allclose(cirq.unitary(result_gate2) * global_phase, u)
+
 
 def test_from_unitary_with_phase_shift():
     u = np.exp(0.42j) * cirq.unitary(cirq.SingleQubitCliffordGate.Y_sqrt)
@@ -537,19 +541,27 @@ def test_from_unitary_with_phase_shift():
 
     assert gate == cirq.SingleQubitCliffordGate.Y_sqrt
 
+    gate2, global_phase = cirq.SingleQubitCliffordGate.from_unitary_with_global_phase(u)
+    assert gate2 == gate
+    assert np.allclose(cirq.unitary(gate2) * global_phase, u)
+
+
 
 def test_from_unitary_not_clifford():
     # Not a single-qubit gate.
     u = cirq.unitary(cirq.CNOT)
     assert cirq.SingleQubitCliffordGate.from_unitary(u) is None
+    assert cirq.SingleQubitCliffordGate.from_unitary_with_global_phase(u) is None
 
     # Not an unitary matrix.
     u = 2 * cirq.unitary(cirq.X)
     assert cirq.SingleQubitCliffordGate.from_unitary(u) is None
+    assert cirq.SingleQubitCliffordGate.from_unitary_with_global_phase(u) is None
 
     # Not a Clifford gate.
     u = cirq.unitary(cirq.T)
     assert cirq.SingleQubitCliffordGate.from_unitary(u) is None
+    assert cirq.SingleQubitCliffordGate.from_unitary_with_global_phase(u) is None
 
 
 @pytest.mark.parametrize('trans_x,trans_z', _all_rotation_pairs())
