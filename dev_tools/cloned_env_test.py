@@ -15,6 +15,7 @@
 """Tests the cloned_env fixture in conftest.py"""
 import json
 import os
+import subprocess
 from unittest import mock
 
 import pytest
@@ -34,9 +35,7 @@ def test_isolated_env_cloning(cloned_env, param):
     env = cloned_env("test_isolated", "flynt==0.64")
     assert (env / "bin" / "pip").is_file()
 
-    result = shell_tools.run_cmd(
-        *f"{env}/bin/pip list --format=json".split(), out=shell_tools.TeeCapture()
-    )
-    packages = json.loads(result.out)
+    result = shell_tools.run(f"{env}/bin/pip list --format=json".split(), stdout=subprocess.PIPE)
+    packages = json.loads(result.stdout)
     assert {"name": "flynt", "version": "0.64"} in packages
     assert {"astor", "flynt", "pip", "setuptools", "wheel"} == set(p['name'] for p in packages)

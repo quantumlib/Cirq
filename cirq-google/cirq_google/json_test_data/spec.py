@@ -77,13 +77,9 @@ TestSpec = ModuleJsonTestSpec(
             'SimulatedProcessorRecord',
             'SimulatedProcessorWithLocalDeviceRecord',
             'EngineResult',
+            'GridDevice',
         ]
     },
     resolver_cache=_class_resolver_dictionary(),
-    deprecated={
-        '_NamedConstantXmonDevice': 'v0.15',
-        'Bristlecone': 'v0.15',
-        'Foxtail': 'v0.15',
-        'GateTabulation': 'v0.16',
-    },
+    deprecated={'GateTabulation': 'v0.16'},
 )

@@ -474,13 +474,16 @@ class CircuitOperation(ops.Operation):
         repeat_until=None,
         **kwargs,
     ):
-        return (
-            cls(circuit, use_repetition_ids=use_repetition_ids, repeat_until=repeat_until)
-            .with_qubit_mapping(dict(qubit_map))
-            .with_measurement_key_mapping(measurement_key_map)
-            .with_params(param_resolver)
-            .with_key_path(tuple(parent_path))
-            .repeat(repetitions, repetition_ids)
+        return cls(
+            circuit=circuit,
+            repetitions=repetitions,
+            repetition_ids=repetition_ids,
+            use_repetition_ids=use_repetition_ids,
+            repeat_until=repeat_until,
+            param_resolver=param_resolver,
+            qubit_map=dict(qubit_map),
+            measurement_key_map=measurement_key_map,
+            parent_path=tuple(parent_path),
         )
 
     # Methods for constructing a similar object with one field modified.

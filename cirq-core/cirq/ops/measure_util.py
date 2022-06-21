@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Callable, Iterable, List, overload, Optional, Tuple, TYPE_CHECKING, Union
+from typing import Callable, Dict, Iterable, List, overload, Optional, Tuple, TYPE_CHECKING, Union
 
 import numpy as np
 
@@ -107,6 +107,7 @@ def measure(
     *target,
     key: Optional[Union[str, 'cirq.MeasurementKey']] = None,
     invert_mask: Tuple[bool, ...] = (),
+    confusion_map: Optional[Dict[Tuple[int, ...], np.ndarray]] = None,
 ) -> raw_types.Operation:
     """Returns a single MeasurementGate applied to all the given qubits.
 
@@ -121,6 +122,10 @@ def measure(
         invert_mask: A list of Truthy or Falsey values indicating whether
             the corresponding qubits should be flipped. None indicates no
             inverting should be done.
+        confusion_map: A map of qubit index sets (using indices in
+            `target`) to the 2D confusion matrix for those qubits. Indices
+            not included use the identity. Applied before invert_mask if both
+            are provided.
 
     Returns:
         An operation targeting the given qubits with a measurement.
@@ -146,7 +151,7 @@ def measure(
     if key is None:
         key = _default_measurement_key(targets)
     qid_shape = protocols.qid_shape(targets)
-    return MeasurementGate(len(targets), key, invert_mask, qid_shape).on(*targets)
+    return MeasurementGate(len(targets), key, invert_mask, qid_shape, confusion_map).on(*targets)
 
 
 @overload

@@ -15,7 +15,7 @@
 from typing import Any, Callable, Iterable, Sequence, Tuple, Union, cast, List
 
 from cirq import circuits, ops, protocols
-
+from cirq.contrib import circuitdag
 from cirq.contrib.paulistring.pauli_string_dag import (
     pauli_string_reorder_pred,
     pauli_string_dag_from_circuit,
@@ -26,7 +26,7 @@ def _sorted_best_string_placements(
     possible_nodes: Iterable[Any],
     output_ops: Sequence[ops.Operation],
     key: Callable[[Any], ops.PauliStringPhasor] = lambda node: node.val,
-) -> List[Tuple[ops.PauliStringPhasor, int, circuits.Unique[ops.PauliStringPhasor]]]:
+) -> List[Tuple[ops.PauliStringPhasor, int, circuitdag.Unique[ops.PauliStringPhasor]]]:
 
     sort_key = lambda placement: (-len(placement[0].pauli_string), placement[1])
 
@@ -65,10 +65,10 @@ def _sorted_best_string_placements(
 
 
 def move_pauli_strings_into_circuit(
-    circuit_left: Union[circuits.Circuit, circuits.CircuitDag], circuit_right: circuits.Circuit
+    circuit_left: Union[circuits.Circuit, circuitdag.CircuitDag], circuit_right: circuits.Circuit
 ) -> circuits.Circuit:
-    if isinstance(circuit_left, circuits.CircuitDag):
-        string_dag = circuits.CircuitDag(pauli_string_reorder_pred, circuit_left)
+    if isinstance(circuit_left, circuitdag.CircuitDag):
+        string_dag = circuitdag.CircuitDag(pauli_string_reorder_pred, circuit_left)
     else:
         string_dag = pauli_string_dag_from_circuit(cast(circuits.Circuit, circuit_left))
     output_ops = list(circuit_right.all_operations())
