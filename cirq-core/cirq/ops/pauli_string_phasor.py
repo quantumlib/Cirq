@@ -57,7 +57,7 @@ class PauliStringPhasor(gate_operation.GateOperation):
     their amplitude multiplied by e^(i pi exponent_pos).
 
     The class also takes a list of qubits, which can be bigger than those
-    provided acted on by `PauliString`.  Those extra qubits are assumed to be
+    acted on by the provided `PauliString`.  Those extra qubits are assumed to be
     acted upon via identity.
     """
 
