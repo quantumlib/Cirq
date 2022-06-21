@@ -506,10 +506,8 @@ def test_sycamore_devices(device, qubit_size, layout_str):
         cirq.SQRT_ISWAP_INV,
         cirq.X,
         cirq.Y,
-        # Broken due to issue #5543.
-        # TODO(#5543) Uncomment
-        # cirq.Z,
-        # cirq.Z(q0).with_tags(cirq_google.PhysicalZTag()),
+        cirq.Z,
+        cirq.Z(q0).with_tags(cirq_google.PhysicalZTag()),
         coupler_pulse.CouplerPulse(hold_time=cirq.Duration(nanos=10), coupling_mhz=25.0),
         cirq.measure(q0),
         cirq.WaitGate(cirq.Duration(millis=5)),
