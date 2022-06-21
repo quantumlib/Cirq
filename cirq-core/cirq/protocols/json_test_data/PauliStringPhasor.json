@@ -34,5 +34,15 @@
       "real": 1.0,
       "imag": 0.0
     }
-  }
+  },
+  "qubits": [
+    {
+      "cirq_type": "LineQubit",
+      "x": 0
+    },
+    {
+      "cirq_type": "LineQubit",
+      "x": 1
+    }
+  ]
 }
