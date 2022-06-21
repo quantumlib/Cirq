@@ -1453,7 +1453,7 @@ class AbstractCircuit(abc.ABC):
     def ragged_concat(
         *circuits: 'cirq.AbstractCircuit', align: Union['cirq.Alignment', str] = Alignment.LEFT
     ) -> 'cirq.AbstractCircuit':
-        """Concatenates circuits while overlapping them if possible.
+        """Concatenates circuits, overlapping them if possible due to ragged edges.
 
         Starts with the first circuit (index 0), then iterates over the other
         circuits while folding them in. To fold two circuits together, they
