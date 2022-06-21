@@ -416,3 +416,23 @@ def test_gateset_eq():
             )
         )
     )
+
+
+def test_gateset_contains_with_tags():
+    tag = "PhysicalZTag"
+    gf_accept = cirq.GateFamily(cirq.ZPowGate, tags_to_accept=[tag])
+    gf_ignore = cirq.GateFamily(cirq.ZPowGate, tags_to_ignore=[tag])
+    op = cirq.Z(q)
+    op_with_tag = cirq.Z(q).with_tags(tag)
+
+    # Only tags to ignore.
+    assert op in cirq.Gateset(gf_ignore)
+    assert op_with_tag not in cirq.Gateset(gf_ignore)
+
+    # Only tags to accept
+    assert op not in cirq.Gateset(gf_accept)
+    assert op_with_tag in cirq.Gateset(gf_accept)
+
+    # Both tags to accept and tags to ignore
+    assert op in cirq.Gateset(gf_accept, gf_ignore)
+    assert op_with_tag in cirq.Gateset(gf_accept, gf_ignore)

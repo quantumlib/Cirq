@@ -16,5 +16,44 @@
     "atol": 1e-06,
     "required_sqrt_iswap_count": 2,
     "use_sqrt_iswap_inv": true
+  },
+  {
+    "cirq_type": "SqrtIswapTargetGateset",
+    "atol": 1e-08,
+    "required_sqrt_iswap_count": null,
+    "use_sqrt_iswap_inv": false,
+    "additional_gates": [
+      {
+        "cirq_type": "GateFamily",
+        "gate": {
+          "cirq_type": "CZPowGate",
+          "exponent": 1.0,
+          "global_shift": 0.0
+        },
+        "name": "Instance GateFamily: CZ",
+        "description": "Accepts `cirq.Gate` instances `g` s.t. `g == CZ`",
+        "ignore_global_phase": true,
+        "tags_to_accept": [],
+        "tags_to_ignore": []
+      },
+      {
+        "cirq_type": "GateFamily",
+        "gate": "XPowGate",
+        "name": "Type GateFamily: cirq.ops.common_gates.XPowGate",
+        "description": "Accepts `cirq.Gate` instances `g` s.t. `isinstance(g, cirq.ops.common_gates.XPowGate)`",
+        "ignore_global_phase": true,
+        "tags_to_accept": [],
+        "tags_to_ignore": []
+      },
+      {
+        "cirq_type": "GateFamily",
+        "gate": "ZPowGate",
+        "name": "Type GateFamily: cirq.ops.common_gates.ZPowGate",
+        "description": "Accepts `cirq.Gate` instances `g` s.t. `isinstance(g, cirq.ops.common_gates.ZPowGate)`",
+        "ignore_global_phase": true,
+        "tags_to_accept": [],
+        "tags_to_ignore": []
+      }
+    ]
   }
 ]

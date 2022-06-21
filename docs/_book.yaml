@@ -146,13 +146,6 @@ upper_tabs:
       - title: "Getting started with Rigetti hardware"
         path: /cirq/hardware/rigetti/getting_started
 
-      #### CUSTOM DEVICES  ####
-      - heading: "Custom devices"
-      - title: "Neutral atom device"
-        path: /cirq/hardware/neutral_atom
-      - title: "Ion device"
-        path: /cirq/hardware/ion_device
-
     - name: "Noise"
       contents:
       - title: "Overview"

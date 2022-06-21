@@ -12,7 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import copy
 import textwrap
 import unittest.mock as mock
 
@@ -59,7 +58,7 @@ def test_str_with_grid_qubits():
         ],
         gate_sets=[cg.FSIM_GATESET],
     )
-    device = cgdk.SerializableDevice.from_proto(device_proto, gate_sets=[cg.FSIM_GATESET])
+    device = cg.SerializableDevice.from_proto(device_proto, gate_sets=[cg.FSIM_GATESET])
     assert str(device) == textwrap.dedent(
         """\
         q(1, 1)───q(1, 2)   q(1, 3)
@@ -88,7 +87,7 @@ def test_metadata_correct():
     device_proto = cgdk.create_device_proto_for_qubits(
         qubits=qubits, pairs=pairs, gate_sets=[cg.FSIM_GATESET]
     )
-    device = cgdk.SerializableDevice.from_proto(device_proto, gate_sets=[cg.FSIM_GATESET])
+    device = cg.SerializableDevice.from_proto(device_proto, gate_sets=[cg.FSIM_GATESET])
     assert device.metadata.qubit_pairs == frozenset({frozenset(p) for p in pairs})
     assert device.metadata.gateset == cirq.Gateset(
         cirq.FSimGate,
@@ -133,37 +132,53 @@ def test_gate_definition_equality():
 
 
 def test_mismatched_proto_serializer():
-    augmented_proto = copy.deepcopy(cg.devices.known_devices.SYCAMORE_PROTO)
-    # Remove measurement gate
-    del augmented_proto.valid_gate_sets[0].valid_gates[3]
+    with cirq.testing.assert_deprecated('no longer be available', deadline='v0.16', count=1):
+        augmented_proto = cgdk.create_device_proto_from_diagram(
+            cgdk._SYCAMORE_GRID,
+            [cg.SQRT_ISWAP_GATESET, cg.SYC_GATESET],
+            cgdk._SYCAMORE_DURATIONS_PICOS,
+        )
+        # Remove measurement gate
+        del augmented_proto.valid_gate_sets[0].valid_gates[3]
 
-    # Should throw value error that measurement gate is serialized
-    # but not supported by the hardware
-    with pytest.raises(ValueError):
-        _ = cg.SerializableDevice.from_proto(proto=augmented_proto, gate_sets=[cg.XMON])
+        # Should throw value error that measurement gate is serialized
+        # but not supported by the hardware
+        with pytest.raises(ValueError):
+            _ = cg.SerializableDevice.from_proto(proto=augmented_proto, gate_sets=[cg.XMON])
 
 
 def test_named_qubit():
-    augmented_proto = copy.deepcopy(cg.devices.known_devices.SYCAMORE_PROTO)
-    augmented_proto.valid_qubits.extend(["scooby_doo"])
-    sycamore = cg.SerializableDevice.from_proto(proto=augmented_proto, gate_sets=[cg.SYC_GATESET])
-    sycamore.validate_operation(cirq.X(cirq.NamedQubit("scooby_doo")))
-    with pytest.raises(ValueError):
-        sycamore.validate_operation(cirq.X(cirq.NamedQubit("scrappy_doo")))
+    with cirq.testing.assert_deprecated('no longer be available', deadline='v0.16', count=1):
+        augmented_proto = cgdk.create_device_proto_from_diagram(
+            cgdk._SYCAMORE_GRID,
+            [cg.SQRT_ISWAP_GATESET, cg.SYC_GATESET],
+            cgdk._SYCAMORE_DURATIONS_PICOS,
+        )
+        augmented_proto.valid_qubits.extend(["scooby_doo"])
+        sycamore = cg.SerializableDevice.from_proto(
+            proto=augmented_proto, gate_sets=[cg.SYC_GATESET]
+        )
+        sycamore.validate_operation(cirq.X(cirq.NamedQubit("scooby_doo")))
+        with pytest.raises(ValueError):
+            sycamore.validate_operation(cirq.X(cirq.NamedQubit("scrappy_doo")))
 
 
 def test_duration_of():
-    valid_qubit1 = cirq.GridQubit(0, 0)
+    with cirq.testing.assert_deprecated('no longer be available', deadline='v0.16', count=1):
+        valid_qubit1 = cirq.GridQubit(0, 0)
 
-    sycamore = cg.SerializableDevice.from_proto(
-        proto=cg.devices.known_devices.SYCAMORE_PROTO, gate_sets=[cg.SYC_GATESET]
-    )
+        sycamore_proto = cgdk.create_device_proto_from_diagram(
+            cgdk._SYCAMORE_GRID, [cg.SYC_GATESET], cgdk._SYCAMORE_DURATIONS_PICOS
+        )
+        sycamore = cg.SerializableDevice.from_proto(
+            proto=sycamore_proto, gate_sets=[cg.SYC_GATESET]
+        )
 
-    assert sycamore.duration_of(cirq.X(valid_qubit1)) == cirq.Duration(nanos=25)
+        assert sycamore.duration_of(cirq.X(valid_qubit1)) == cirq.Duration(nanos=25)
 
-    # Unsupported op
-    with pytest.raises(ValueError):
-        assert sycamore.duration_of(cirq.H(valid_qubit1))
+        # Unsupported op
+        with pytest.raises(ValueError):
+            assert sycamore.duration_of(cirq.H(valid_qubit1))
 
 
 def test_asymmetric_gate():
@@ -302,30 +317,33 @@ def test_mixing_types():
 
 
 def test_multiple_gatesets():
-    halfPiGateSet = cirq_google.SerializableGateSet(
-        gate_set_name='half_pi_gateset',
-        serializers=cgc.SINGLE_QUBIT_HALF_PI_SERIALIZERS,
-        deserializers=cgc.SINGLE_QUBIT_HALF_PI_DESERIALIZERS,
-    )
-    allAnglesGateSet = cirq_google.SerializableGateSet(
-        gate_set_name='all_angles_gateset',
-        serializers=cgc.SINGLE_QUBIT_SERIALIZERS,
-        deserializers=cgc.SINGLE_QUBIT_DESERIALIZERS,
-    )
-    durations_dict = {'xy_pi': 20_000, 'xy_half_pi': 20_000, 'xy': 20_000}
-    spec = cirq_google.devices.known_devices.create_device_proto_from_diagram(
-        "aa\naa", [allAnglesGateSet, halfPiGateSet], durations_dict
-    )
-    dev = cg.SerializableDevice.from_proto(proto=spec, gate_sets=[allAnglesGateSet, halfPiGateSet])
-    q0 = cirq.GridQubit(0, 0)
-    q1 = cirq.GridQubit(1, 0)
-    dev.validate_operation(cirq.X(q0))
-    dev.validate_operation(cirq.X(q1))
-    dev.validate_operation(cirq.XPowGate(exponent=0.1234)(q0))
-    dev.validate_operation(cirq.XPowGate(exponent=0.2345)(q1))
+    with cirq.testing.assert_deprecated('no longer be available', deadline='v0.16', count=1):
+        halfPiGateSet = cirq_google.SerializableGateSet(
+            gate_set_name='half_pi_gateset',
+            serializers=cgc.SINGLE_QUBIT_HALF_PI_SERIALIZERS,
+            deserializers=cgc.SINGLE_QUBIT_HALF_PI_DESERIALIZERS,
+        )
+        allAnglesGateSet = cirq_google.SerializableGateSet(
+            gate_set_name='all_angles_gateset',
+            serializers=cgc.SINGLE_QUBIT_SERIALIZERS,
+            deserializers=cgc.SINGLE_QUBIT_DESERIALIZERS,
+        )
+        durations_dict = {'xy_pi': 20_000, 'xy_half_pi': 20_000, 'xy': 20_000}
+        spec = cirq_google.devices.known_devices.create_device_proto_from_diagram(
+            "aa\naa", [allAnglesGateSet, halfPiGateSet], durations_dict
+        )
+        dev = cg.SerializableDevice.from_proto(
+            proto=spec, gate_sets=[allAnglesGateSet, halfPiGateSet]
+        )
+        q0 = cirq.GridQubit(0, 0)
+        q1 = cirq.GridQubit(1, 0)
+        dev.validate_operation(cirq.X(q0))
+        dev.validate_operation(cirq.X(q1))
+        dev.validate_operation(cirq.XPowGate(exponent=0.1234)(q0))
+        dev.validate_operation(cirq.XPowGate(exponent=0.2345)(q1))
 
-    with pytest.raises(ValueError):
-        dev.validate_operation(cirq.X(cirq.GridQubit(2, 2)))
+        with pytest.raises(ValueError):
+            dev.validate_operation(cirq.X(cirq.GridQubit(2, 2)))
 
 
 def test_half_pi_takes_half_duration():
@@ -333,23 +351,24 @@ def test_half_pi_takes_half_duration():
     gate perform correctly.  In this case, we set the XPowGate to be
     half the duration of the full exponent and make sure it still works.
     """
-    half_pi_gs = cirq_google.SerializableGateSet(
-        gate_set_name='half_pi',
-        serializers=[*cgc.SINGLE_QUBIT_HALF_PI_SERIALIZERS],
-        deserializers=[*cgc.SINGLE_QUBIT_HALF_PI_DESERIALIZERS],
-    )
-    durations_dict = {'xy_pi': 20_000, 'xy_half_pi': 10_000}
-    spec = cirq_google.devices.known_devices.create_device_proto_from_diagram(
-        "aa\naa", [half_pi_gs], durations_dict
-    )
+    with cirq.testing.assert_deprecated('no longer be available', deadline='v0.16', count=1):
+        half_pi_gs = cirq_google.SerializableGateSet(
+            gate_set_name='half_pi',
+            serializers=[*cgc.SINGLE_QUBIT_HALF_PI_SERIALIZERS],
+            deserializers=[*cgc.SINGLE_QUBIT_HALF_PI_DESERIALIZERS],
+        )
+        durations_dict = {'xy_pi': 20_000, 'xy_half_pi': 10_000}
+        spec = cirq_google.devices.known_devices.create_device_proto_from_diagram(
+            "aa\naa", [half_pi_gs], durations_dict
+        )
 
-    # The gate set defines two different serializations for PhasedXPowGate
-    device = cg.SerializableDevice.from_proto(proto=spec, gate_sets=[half_pi_gs])
-    q = cirq.GridQubit(0, 0)
-    pi = cirq.XPowGate(exponent=1.0)
-    half_pi = cirq.XPowGate(exponent=0.5)
-    assert device.duration_of(pi(q)) == cirq.Duration(picos=20_000)
-    assert device.duration_of(half_pi(q)) == cirq.Duration(picos=10_000)
+        # The gate set defines two different serializations for PhasedXPowGate
+        device = cg.SerializableDevice.from_proto(proto=spec, gate_sets=[half_pi_gs])
+        q = cirq.GridQubit(0, 0)
+        pi = cirq.XPowGate(exponent=1.0)
+        half_pi = cirq.XPowGate(exponent=0.5)
+        assert device.duration_of(pi(q)) == cirq.Duration(picos=20_000)
+        assert device.duration_of(half_pi(q)) == cirq.Duration(picos=10_000)
 
 
 def test_multiple_fsim_gatesets():
@@ -357,38 +376,40 @@ def test_multiple_fsim_gatesets():
     gate perform correctly.  In this case, we set the XPowGate to be
     half the duration of the full exponent and make sure it still works.
     """
-    half_pi_gs = cirq_google.SerializableGateSet(
-        gate_set_name='half_pi',
-        serializers=[*cgc.SINGLE_QUBIT_HALF_PI_SERIALIZERS],
-        deserializers=[*cgc.SINGLE_QUBIT_HALF_PI_DESERIALIZERS],
-    )
-    durations_dict = {'xy_pi': 20_000, 'xy_half_pi': 10_000}
-    spec = cirq_google.devices.known_devices.create_device_proto_from_diagram(
-        "aa\naa", [half_pi_gs], durations_dict
-    )
+    with cirq.testing.assert_deprecated('no longer be available', deadline='v0.16', count=1):
+        half_pi_gs = cirq_google.SerializableGateSet(
+            gate_set_name='half_pi',
+            serializers=[*cgc.SINGLE_QUBIT_HALF_PI_SERIALIZERS],
+            deserializers=[*cgc.SINGLE_QUBIT_HALF_PI_DESERIALIZERS],
+        )
+        durations_dict = {'xy_pi': 20_000, 'xy_half_pi': 10_000}
+        spec = cirq_google.devices.known_devices.create_device_proto_from_diagram(
+            "aa\naa", [half_pi_gs], durations_dict
+        )
 
-    # The gate set defines two different serializations for PhasedXPowGate
-    device = cg.SerializableDevice.from_proto(proto=spec, gate_sets=[half_pi_gs])
-    q = cirq.GridQubit(0, 0)
-    pi = cirq.XPowGate(exponent=1.0)
-    half_pi = cirq.XPowGate(exponent=0.5)
-    assert device.duration_of(pi(q)) == cirq.Duration(picos=20_000)
-    assert device.duration_of(half_pi(q)) == cirq.Duration(picos=10_000)
+        # The gate set defines two different serializations for PhasedXPowGate
+        device = cg.SerializableDevice.from_proto(proto=spec, gate_sets=[half_pi_gs])
+        q = cirq.GridQubit(0, 0)
+        pi = cirq.XPowGate(exponent=1.0)
+        half_pi = cirq.XPowGate(exponent=0.5)
+        assert device.duration_of(pi(q)) == cirq.Duration(picos=20_000)
+        assert device.duration_of(half_pi(q)) == cirq.Duration(picos=10_000)
 
 
 def test_serializable_device_str_grid_qubits():
-    spec = cirq_google.devices.known_devices.create_device_proto_from_diagram(
-        "aa\naa", [cg.SYC_GATESET]
-    )
-    device = cg.SerializableDevice.from_proto(proto=spec, gate_sets=[cg.SYC_GATESET])
-    assert (
-        str(device)
-        == """\
+    with cirq.testing.assert_deprecated('no longer be available', deadline='v0.16', count=1):
+        spec = cirq_google.devices.known_devices.create_device_proto_from_diagram(
+            "aa\naa", [cg.SYC_GATESET]
+        )
+        device = cg.SerializableDevice.from_proto(proto=spec, gate_sets=[cg.SYC_GATESET])
+        assert (
+            str(device)
+            == """\
 q(0, 0)───q(0, 1)
 │         │
 │         │
 q(1, 0)───q(1, 1)"""
-    )
+        )
 
 
 def test_serializable_device_str_named_qubits():
@@ -406,29 +427,3 @@ def test_serializable_device_gate_definitions_filter():
     )
     # Two gates for cirq.FSimGate and the cirq.GlobalPhaseGate default
     assert len(device.metadata.gateset.gates) == 2
-
-
-def test_sycamore23_str():
-    assert (
-        str(cg.Sycamore23)
-        == """\
-                    q(3, 2)
-                    │
-                    │
-          q(4, 1)───q(4, 2)───q(4, 3)
-          │         │         │
-          │         │         │
-q(5, 0)───q(5, 1)───q(5, 2)───q(5, 3)───q(5, 4)
-          │         │         │         │
-          │         │         │         │
-          q(6, 1)───q(6, 2)───q(6, 3)───q(6, 4)───q(6, 5)
-                    │         │         │         │
-                    │         │         │         │
-                    q(7, 2)───q(7, 3)───q(7, 4)───q(7, 5)───q(7, 6)
-                              │         │         │
-                              │         │         │
-                              q(8, 3)───q(8, 4)───q(8, 5)
-                                        │
-                                        │
-                                        q(9, 4)"""
-    )
