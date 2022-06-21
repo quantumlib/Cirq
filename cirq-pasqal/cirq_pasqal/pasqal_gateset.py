@@ -12,13 +12,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-from typing import Any, Dict
+from typing import List, Any, Dict
 
 
 import cirq
+from cirq.protocols.decompose_protocol import DecomposeResult
 
 
-class PasqalGateset(cirq.neutral_atoms.NeutralAtomGateset):
+class PasqalGateset(cirq.CompilationTargetGateset):
     """A Compilation target intended for Pasqal neutral atom devices.
     This gateset supports single qubit gates that can be used
     in a parallel fashion as well as CZ.
@@ -48,12 +49,43 @@ class PasqalGateset(cirq.neutral_atoms.NeutralAtomGateset):
             gate_families.append(cirq.AnyIntegerPowerGateFamily(cirq.CCNotPowGate))
             gate_families.append(cirq.AnyIntegerPowerGateFamily(cirq.CCZPowGate))
 
-        # Call cirq.Gateset __init__ which is our grand-father inherited class
-        # pylint doesn't like this so disable checks on this.
-        # pylint: disable=bad-super-call
-        super(cirq.neutral_atoms.NeutralAtomGateset, self).__init__(
-            *gate_families, unroll_circuit_op=False
-        )
+        super().__init__(*gate_families, unroll_circuit_op=False)
+
+    @property
+    def num_qubits(self) -> int:
+        """Maximum number of qubits on which a gate from this gateset can act upon."""
+        return 2
+
+    def decompose_to_target_gateset(self, op: 'cirq.Operation', moment_idx: int) -> DecomposeResult:
+        """Method to rewrite the given operation using gates from this gateset.
+
+        Args:
+            op: `cirq.Operation` to be rewritten using gates from this gateset.
+            moment_idx: Moment index where the given operation `op` occurs in a circuit.
+
+        Returns:
+            - An equivalent `cirq.OP_TREE` implementing `op` using gates from this gateset.
+            - `None` or `NotImplemented` if does not know how to decompose `op`.
+        """
+        # Known matrix?
+        mat = cirq.unitary(op, None) if len(op.qubits) <= 2 else None
+        if mat is not None and len(op.qubits) == 1:
+            gates = cirq.single_qubit_matrix_to_phased_x_z(mat)
+            return [g.on(op.qubits[0]) for g in gates]
+        if mat is not None and len(op.qubits) == 2:
+            return cirq.two_qubit_matrix_to_cz_operations(
+                op.qubits[0], op.qubits[1], mat, allow_partial_czs=False, clean_operations=True
+            )
+
+        return NotImplemented
+
+    @property
+    def preprocess_transformers(self) -> List['cirq.TRANSFORMER']:
+        return []
+
+    @property
+    def postprocess_transformers(self) -> List['cirq.TRANSFORMER']:
+        return []
 
     def __repr__(self):
         return (

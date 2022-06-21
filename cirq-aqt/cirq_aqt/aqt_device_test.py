@@ -1,4 +1,4 @@
-# Copyright 2018 The Cirq Developers
+# Copyright 2022 The Cirq Developers
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -12,12 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Neutral atom devices and gates."""
+import cirq
+import cirq_aqt
 
-from cirq.neutral_atoms.neutral_atom_devices import NeutralAtomDevice
 
-from cirq.neutral_atoms.convert_to_neutral_atom_gates import (
-    ConvertToNeutralAtomGates,
-    is_native_neutral_atom_gate,
-    is_native_neutral_atom_op,
-)
+def test_repr():
+    device = cirq_aqt.aqt_device.get_aqt_device(5)
+    cirq.testing.assert_equivalent_repr(device, setup_code='import cirq\nimport cirq_aqt\n')
