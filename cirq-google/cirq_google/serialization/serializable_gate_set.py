@@ -21,6 +21,9 @@ from cirq_google.api import v2
 from cirq_google.serialization import serializer, op_deserializer, op_serializer, arg_func_langs
 
 
+_GateOrFrozenCircuitTypes = Union[Type[cirq.Gate], Type[cirq.FrozenCircuit]]
+
+
 class SerializableGateSet(serializer.Serializer):
     """A class for serializing and deserializing programs and operations.
 
@@ -47,7 +50,7 @@ class SerializableGateSet(serializer.Serializer):
                 forms of gates or circuits into Operations.
         """
         super().__init__(gate_set_name)
-        self.serializers: Dict[Type, List[op_serializer.OpSerializer]] = {}
+        self.serializers: Dict[_GateOrFrozenCircuitTypes, List[op_serializer.OpSerializer]] = {}
         for s in serializers:
             self.serializers.setdefault(s.internal_type, []).append(s)
         self.deserializers = {d.serialized_id: d for d in deserializers}
@@ -77,7 +80,7 @@ class SerializableGateSet(serializer.Serializer):
             deserializers=[*self.deserializers.values(), *deserializers],
         )
 
-    def supported_internal_types(self) -> Tuple:
+    def supported_internal_types(self) -> Tuple[_GateOrFrozenCircuitTypes, ...]:
         return tuple(self.serializers.keys())
 
     def is_supported(self, op_tree: cirq.OP_TREE) -> bool:
@@ -194,8 +197,8 @@ class SerializableGateSet(serializer.Serializer):
             if gate_type_mro in self.serializers:
                 # Check each serializer in turn, if serializer proto returns
                 # None, then skip.
-                for serializer in self.serializers[gate_type_mro]:
-                    proto_msg = serializer.to_proto(
+                for mro_serializer in self.serializers[gate_type_mro]:
+                    proto_msg = mro_serializer.to_proto(
                         op,
                         msg,
                         arg_function_language=arg_function_language,

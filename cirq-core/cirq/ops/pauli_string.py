@@ -1223,11 +1223,11 @@ class MutablePauliString(Generic[TKey]):
                 gate = op.gate
 
                 if isinstance(gate, clifford_gate.SingleQubitCliffordGate):
-                    out = gate.transform(cast(pauli_gates.Pauli, _INT_TO_PAULI[ps[0]]))
-                    if out.flip:
+                    out = gate.pauli_tuple(cast(pauli_gates.Pauli, _INT_TO_PAULI[ps[0]]))
+                    if out[1]:
                         self.coefficient *= -1
                     self.pauli_int_dict[cast(TKey, op.qubits[0])] = PAULI_GATE_LIKE_TO_INDEX_MAP[
-                        out.to
+                        out[0]
                     ]
 
                 elif isinstance(gate, pauli_interaction_gate.PauliInteractionGate):
@@ -1482,7 +1482,7 @@ def _pass_single_clifford_gate_over(
         return False  # coverage: ignore
     if not after_to_before:
         gate **= -1
-    pauli, inv = gate.transform(pauli_map[qubit])
+    pauli, inv = gate.pauli_tuple(pauli_map[qubit])
     pauli_map[qubit] = pauli
     return inv
 

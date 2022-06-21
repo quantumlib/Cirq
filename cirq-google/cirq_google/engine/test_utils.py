@@ -1,4 +1,4 @@
-# Copyright 2018 The Cirq Developers
+# Copyright 2022 The Cirq Developers
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -12,15 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from cirq_google.devices.google_noise_properties import (
-    GoogleNoiseProperties,
-    NoiseModelFromGoogleNoiseProperties,
+import sys
+
+import pytest
+
+# Annotation for tests that use unittest.mock.AsyncMock, added in python 3.8.
+# Tests using AsyncMock are expected to fail in earlier versions of python.
+# See: https://docs.python.org/3/library/unittest.mock.html#unittest.mock.AsyncMock
+uses_async_mock = pytest.mark.xfail(
+    sys.version_info < (3, 8, 0), reason='unittest.mock.AsyncMock is only available in python 3.8+'
 )
-
-from cirq_google.devices.known_devices import Sycamore, Sycamore23
-
-from cirq_google.devices.grid_device import GridDevice
-
-from cirq_google.devices.serializable_device import SerializableDevice
-
-from cirq_google.devices.xmon_device import XmonDevice
