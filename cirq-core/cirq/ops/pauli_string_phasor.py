@@ -95,7 +95,7 @@ class PauliStringPhasor(gate_operation.GateOperation):
             if any(not any(q0 == q1 for q1 in it) for q0 in pauli_string.qubits):
                 raise ValueError(
                     f"PauliStringPhasor's pauli string qubits ({pauli_string.qubits}) "
-                    f"are not a subset of the explicit qubits ({qubits})."
+                    f"are not an ordered subset of the explicit qubits ({qubits})."
                 )
         gate = PauliStringPhasorGate(
             pauli_string.dense(qubits or pauli_string.qubits),
