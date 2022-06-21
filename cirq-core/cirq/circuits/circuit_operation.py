@@ -74,40 +74,6 @@ class CircuitOperation(ops.Operation):
     This class captures modifications to the contained circuit, such as tags
     and loops, to support more condensed serialization. Similar to
     GateOperation, this type is immutable.
-
-    Args:
-        circuit: The FrozenCircuit wrapped by this operation.
-        repetitions: How many times the circuit should be repeated. This can be
-            integer, or a sympy expression. If sympy, the expression must
-            resolve to an integer, or float within 0.001 of integer, at
-            runtime.
-        qubit_map: Remappings for qubits in the circuit.
-        measurement_key_map: Remappings for measurement keys in the circuit.
-            The keys and values should be unindexed (i.e. without repetition_ids).
-            The values cannot contain the `MEASUREMENT_KEY_SEPARATOR`.
-        param_resolver: Resolved values for parameters in the circuit.
-        repetition_ids: List of identifiers for each repetition of the
-            CircuitOperation. If populated, the length should be equal to the
-            repetitions. If not populated and abs(`repetitions`) > 1, it is
-            initialized to strings for numbers in `range(repetitions)`.
-        parent_path: A tuple of identifiers for any parent CircuitOperations
-            containing this one.
-        extern_keys: The set of measurement keys defined at extern scope. The
-            values here are used by decomposition and simulation routines to
-            cache which external measurement keys exist as possible binding
-            targets for unbound `ClassicallyControlledOperation` keys. This
-            field is not intended to be set or changed manually, and should be
-            empty in circuits that aren't in the middle of decomposition.
-        use_repetition_ids: When True, any measurement key in the subcircuit
-            will have its path prepended with the repetition id for each
-            repetition. When False, this will not happen and the measurement
-            key will be repeated.
-        repeat_until: A condition that will be tested after each iteration of
-            the subcircuit. The subcircuit will repeat until condition returns
-            True, but will always run at least once, and the measurement key
-            need not be defined prior to the subcircuit (but must be defined in
-            a measurement within the subcircuit). This field is incompatible
-            with repetitions or repetition_ids.
     """
 
     def __init__(
@@ -123,6 +89,42 @@ class CircuitOperation(ops.Operation):
         use_repetition_ids: bool = True,
         repeat_until: Optional['cirq.Condition'] = None,
     ):
+        """Initializes a CircuitOperation.
+
+        Args:
+            circuit: The FrozenCircuit wrapped by this operation.
+            repetitions: How many times the circuit should be repeated. This can be
+                integer, or a sympy expression. If sympy, the expression must
+                resolve to an integer, or float within 0.001 of integer, at
+                runtime.
+            qubit_map: Remappings for qubits in the circuit.
+            measurement_key_map: Remappings for measurement keys in the circuit.
+                The keys and values should be unindexed (i.e. without repetition_ids).
+                The values cannot contain the `MEASUREMENT_KEY_SEPARATOR`.
+            param_resolver: Resolved values for parameters in the circuit.
+            repetition_ids: List of identifiers for each repetition of the
+                CircuitOperation. If populated, the length should be equal to the
+                repetitions. If not populated and abs(`repetitions`) > 1, it is
+                initialized to strings for numbers in `range(repetitions)`.
+            parent_path: A tuple of identifiers for any parent CircuitOperations
+                containing this one.
+            extern_keys: The set of measurement keys defined at extern scope. The
+                values here are used by decomposition and simulation routines to
+                cache which external measurement keys exist as possible binding
+                targets for unbound `ClassicallyControlledOperation` keys. This
+                field is not intended to be set or changed manually, and should be
+                empty in circuits that aren't in the middle of decomposition.
+            use_repetition_ids: When True, any measurement key in the subcircuit
+                will have its path prepended with the repetition id for each
+                repetition. When False, this will not happen and the measurement
+                key will be repeated.
+            repeat_until: A condition that will be tested after each iteration of
+                the subcircuit. The subcircuit will repeat until condition returns
+                True, but will always run at least once, and the measurement key
+                need not be defined prior to the subcircuit (but must be defined in
+                a measurement within the subcircuit). This field is incompatible
+                with repetitions or repetition_ids.
+        """
         # This fields is exclusively for use in decomposition. It should not be
         # referenced outside this class.
         self._extern_keys = extern_keys
@@ -169,12 +171,12 @@ class CircuitOperation(ops.Operation):
             )
 
         # Disallow qid mapping dimension conflicts.
-        self._qubit_map = qubit_map or {}
+        self._qubit_map = dict(qubit_map or {})
         for q, q_new in self._qubit_map.items():
             if q_new.dimension != q.dimension:
                 raise ValueError(f'Qid dimension conflict.\nFrom qid: {q}\nTo qid: {q_new}')
 
-        self._measurement_key_map = measurement_key_map or {}
+        self._measurement_key_map = dict(measurement_key_map or {})
         # Disallow mapping to keys containing the `MEASUREMENT_KEY_SEPARATOR`
         for mapped_key in self._measurement_key_map.values():
             if value.MEASUREMENT_KEY_SEPARATOR in mapped_key:
@@ -313,7 +315,7 @@ class CircuitOperation(ops.Operation):
         }
 
     def _measurement_key_objs_(self) -> AbstractSet['cirq.MeasurementKey']:
-        return self._measurement_key_objs  # type: ignore
+        return self._measurement_key_objs
 
     def _measurement_key_names_(self) -> AbstractSet[str]:
         return {str(key) for key in self._measurement_key_objs_()}
@@ -358,10 +360,8 @@ class CircuitOperation(ops.Operation):
                 circuit, dict(self.measurement_key_map)
             )
         if self.param_resolver:
-            circuit = protocols.resolve_parameters(
-                circuit, self.param_resolver, recursive=False
-            )
-        return cast(circuits.Circuit, circuit)
+            circuit = protocols.resolve_parameters(circuit, self.param_resolver, recursive=False)
+        return circuit.unfreeze(copy=False)
 
     def _mapped_single_loop(self, repetition_id: Optional[str] = None) -> 'cirq.Circuit':
         circuit = self._mapped_any_loop
@@ -479,7 +479,7 @@ class CircuitOperation(ops.Operation):
         return f'{circuit_msg}({", ".join(args)})'
 
     @cached_property
-    def _hash(self):
+    def _hash(self) -> int:
         return hash(
             (
                 self.circuit,
@@ -493,7 +493,7 @@ class CircuitOperation(ops.Operation):
             )
         )
 
-    def __hash__(self):
+    def __hash__(self) -> int:
         return self._hash
 
     def _json_dict_(self):
