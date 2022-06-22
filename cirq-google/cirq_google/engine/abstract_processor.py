@@ -27,7 +27,7 @@ import cirq
 
 from cirq_google.api import v2
 from cirq_google.cloud import quantum
-from cirq_google.engine import calibration
+from cirq_google.engine import calibration, util
 
 if TYPE_CHECKING:
     import cirq_google as cg

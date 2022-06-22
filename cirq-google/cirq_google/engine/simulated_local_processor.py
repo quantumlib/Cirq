@@ -18,7 +18,7 @@ from typing import Callable, Dict, Iterable, List, Optional, Sequence, TYPE_CHEC
 import cirq
 
 from cirq_google.api import v2
-from cirq_google.engine import calibration, validating_sampler
+from cirq_google.engine import calibration, util, validating_sampler
 from cirq_google.engine.abstract_local_processor import AbstractLocalProcessor
 from cirq_google.engine.abstract_local_program import AbstractLocalProgram
 from cirq_google.engine.abstract_program import AbstractProgram
