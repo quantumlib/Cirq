@@ -168,13 +168,12 @@ class SimulatedProcessorWithLocalDeviceRecord(SimulatedProcessorRecord):
     """
 
     def _get_input_device(self) -> 'cirq.Device':
-        """Return a `cg.SerializableDevice` for the specified processor_id.
+        """Return a `cg.GridDevice` for the specified processor_id.
 
         Only 'rainbow' and 'weber' are recognized processor_ids and the device information
         may not be up-to-date, as it is completely local.
         """
 
-        gate_sets = [cg.FSIM_GATESET]
         device_spec = _create_device_spec_from_template(MOST_RECENT_TEMPLATES[self.processor_id])
-        device = cg.SerializableDevice.from_proto(device_spec, gate_sets)
+        device = cg.GridDevice.from_proto(device_spec)
         return device

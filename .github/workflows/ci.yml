@@ -1,11 +1,9 @@
 name: Continuous Integration
 
 on:
-  # Trigger the workflow on push or pull request,
-  # but only for the master branch
-  push:
-    branches:
-      - master
+  schedule:
+    # Checks out master by default.
+    - cron: '0 0 * * *'
   pull_request:
     branches:
       - master

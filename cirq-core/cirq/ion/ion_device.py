@@ -12,32 +12,55 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Any, Iterable, Optional, Set, TYPE_CHECKING
+from typing import Any, Iterable, List, Optional, Set, TYPE_CHECKING
+import numpy as np
 import networkx as nx
-from cirq import circuits, value, devices, ops, protocols
-from cirq.ion import convert_to_ion_gates
+from cirq import _compat, circuits, value, devices, ops, protocols, transformers
+from cirq.protocols.decompose_protocol import DecomposeResult
 
 if TYPE_CHECKING:
     import cirq
 
 
-def get_ion_gateset() -> ops.Gateset:
-    return ops.Gateset(
-        ops.XXPowGate,
-        ops.MeasurementGate,
-        ops.XPowGate,
-        ops.YPowGate,
-        ops.ZPowGate,
-        ops.PhasedXPowGate,
-        unroll_circuit_op=False,
-    )
+class _IonTargetGateset(transformers.TwoQubitCompilationTargetGateset):
+    def __init__(self):
+        super().__init__(
+            ops.XXPowGate,
+            ops.MeasurementGate,
+            ops.XPowGate,
+            ops.YPowGate,
+            ops.ZPowGate,
+            ops.PhasedXPowGate,
+            unroll_circuit_op=False,
+        )
+
+    def _decompose_single_qubit_operation(self, op: 'cirq.Operation', _: int) -> DecomposeResult:
+        if isinstance(op.gate, ops.HPowGate) and op.gate.exponent == 1:
+            return [ops.rx(np.pi).on(op.qubits[0]), ops.ry(-1 * np.pi / 2).on(op.qubits[0])]
+        if protocols.has_unitary(op):
+            gates = transformers.single_qubit_matrix_to_phased_x_z(protocols.unitary(op))
+            return [g.on(op.qubits[0]) for g in gates]
+        return NotImplemented
+
+    def _decompose_two_qubit_operation(self, op: 'cirq.Operation', _) -> DecomposeResult:
+        if protocols.has_unitary(op):
+            return transformers.two_qubit_matrix_to_ion_operations(
+                op.qubits[0], op.qubits[1], protocols.unitary(op)
+            )
+        return NotImplemented
+
+    @property
+    def postprocess_transformers(self) -> List['cirq.TRANSFORMER']:
+        """List of transformers which should be run after decomposing individual operations."""
+        return [transformers.drop_negligible_operations, transformers.drop_empty_moments]
 
 
 @value.value_equality
-class IonDevice(devices.Device):
-    """A device with qubits placed on a line.
+class _IonDeviceImpl(devices.Device):
+    """Shared implementation of `cirq.IonDevice` (deprecated) and `cirq_aqt.AQTDevice`.
 
-    Qubits have all-to-all connectivity.
+    This class will be removed once `cirq.IonDevice` is deprecated and removed. The implementation
+    will be moved to `cirq_aqt.AQTDevice`.
     """
 
     def __init__(
@@ -68,7 +91,7 @@ class IonDevice(devices.Device):
                 f"{set(type(qubit) for qubit in qubits)}"
             )
         self.qubits = frozenset(qubits)
-        self.gateset = get_ion_gateset()
+        self.gateset = _IonTargetGateset()
 
         graph = nx.Graph()
         graph.add_edges_from([(a, b) for a in qubits for b in qubits if a != b], directed=False)
@@ -79,7 +102,7 @@ class IonDevice(devices.Device):
         return self._metadata
 
     def decompose_circuit(self, circuit: circuits.Circuit) -> circuits.Circuit:
-        return convert_to_ion_gates.ConvertToIonGates().convert_circuit(circuit)
+        return transformers.optimize_for_target_gateset(circuit, gateset=self.gateset)
 
     def duration_of(self, operation):
         if isinstance(operation.gate, ops.XXPowGate):
@@ -122,14 +145,6 @@ class IonDevice(devices.Device):
         possibles = [devices.LineQubit(qubit.x + 1), devices.LineQubit(qubit.x - 1)]
         return [e for e in possibles if e in self.qubits]
 
-    def __repr__(self) -> str:
-        return (
-            f'IonDevice(measurement_duration={self._measurement_duration!r}, '
-            f'twoq_gates_duration={self._twoq_gates_duration!r}, '
-            f'oneq_gates_duration={self._oneq_gates_duration!r} '
-            f'qubits={sorted(self.qubits)!r})'
-        )
-
     def __str__(self) -> str:
         diagram = circuits.TextDiagramDrawer()
 
@@ -139,10 +154,6 @@ class IonDevice(devices.Device):
                 diagram.grid_line(q.x, 0, q2.x, 0)
 
         return diagram.render(horizontal_spacing=3, vertical_spacing=2, use_unicode_characters=True)
-
-    def _repr_pretty_(self, p: Any, cycle: bool):
-        """iPython (Jupyter) pretty print."""
-        p.text("IonDevice(...)" if cycle else self.__str__())
 
     def _value_equality_values_(self) -> Any:
         return (
@@ -162,3 +173,23 @@ def _verify_unique_measurement_keys(operations: Iterable[ops.Operation]):
             if key in seen:
                 raise ValueError(f'Measurement key {key} repeated')
             seen.add(key)
+
+
+@_compat.deprecated_class(deadline='v0.16', fix='Use cirq_aqt.aqt_device.AQTDevice.')
+class IonDevice(_IonDeviceImpl):
+    """A device with qubits placed on a line.
+
+    Qubits have all-to-all connectivity.
+    """
+
+    def __repr__(self) -> str:
+        return (
+            f'IonDevice(measurement_duration={self._measurement_duration!r}, '
+            f'twoq_gates_duration={self._twoq_gates_duration!r}, '
+            f'oneq_gates_duration={self._oneq_gates_duration!r} '
+            f'qubits={sorted(self.qubits)!r})'
+        )
+
+    def _repr_pretty_(self, p: Any, cycle: bool):
+        """iPython (Jupyter) pretty print."""
+        p.text("IonDevice(...)" if cycle else self.__str__())

@@ -1,12 +1,12 @@
 # Quantum Engine API
 
-Google's Quantum Computing Service provides the Quantum Engine API to execute 
-circuits on Google's quantum processor or simulator backends and 
-to access or manage the jobs, programs, reservations and calibrations. As of Cirq is 
-the only supported client for this API, using the `cirq_google.Engine` class. 
-For other use cases (e.g. from a different language), contact 
-[cirq-maintainers@googlegroups.com](mailto:cirq-maintainers@googlegroups.com) 
-with a short proposal or submit an [RFC](../dev/rfc_process.md). 
+Google's Quantum Computing Service provides the Quantum Engine API to execute
+circuits on Google's quantum processor or simulator backends and
+to access or manage the jobs, programs, reservations and calibrations. As of Cirq is
+the only supported client for this API, using the `cirq_google.Engine` class.
+For other use cases (e.g. from a different language), contact
+[cirq-maintainers@googlegroups.com](mailto:cirq-maintainers@googlegroups.com)
+with a short proposal or submit an [RFC](/cirq/dev/rfc_process.md).
 
 Note: the Quantum Engine API is not yet open for public access.
 
@@ -97,7 +97,7 @@ print(results.data)
 ## Device Specification
 
 Several public devices have been released and can be found in the `cirq_google`
-package.  These are documented further on the [Google Device](devices.md) page. 
+package.  These are documented further on the [Google Device](devices.md) page.
 
 However, you can also retrieve the device using the `get_device_specification` of an
 `Engine` object.  This is a [protocol buffer](https://developers.google.com/protocol-buffers)
@@ -148,7 +148,7 @@ Results can be retrieved in two different forms:
 
 *    `EngineJob.results()` will return a single `List` object,
 with all the sweeps of the first circuit in the batch
-followed by all the sweeps in the second circuit, and so on. 
+followed by all the sweeps in the second circuit, and so on.
 *     EngineJob.batched_results()` will return a `List` of `List`s.
 The first index will refer to the circuit run, and the second index
 will refer to the sweep result in that circuit.
@@ -274,13 +274,13 @@ historical_results = historical_job.results()
 
 If you did not save the ids, you can still find them from your
 job using the [Cloud Console](https://console.cloud.google.com/quantum/jobs) or
-by using our list methods. 
+by using our list methods.
 
 
-### Listing jobs 
+### Listing jobs
 
-To list the executions of your circuit, i.e. the jobs, you can use `cirq_google.Engine.list_jobs()`. 
-You can search in all the jobs within your project using filtering criteria on creation time, execution state and labels.  
+To list the executions of your circuit, i.e. the jobs, you can use `cirq_google.Engine.list_jobs()`.
+You can search in all the jobs within your project using filtering criteria on creation time, execution state and labels.
 
 ```python
 from cirq_google.engine.client.quantum import enums
@@ -293,13 +293,13 @@ jobs = engine.list_jobs(created_after=datetime.date(2020,9,20),
                         execution_states=[enums.ExecutionStatus.State.SUCCESS])
 for j in jobs:
    print(j.job_id, j.status(), j.create_time())
-``` 
+```
 
 ### Listing programs
 
 To list the different instances of your circuits uploaded, i.e. the programs, you can use `cirq_google.Engine.list_programs()`.
 Similar to jobs, filtering makes it possible to list programs by creation time and labels.
-With an existing `cirq_google.EngineProgram` object, you can list any jobs that were run using that program. 
+With an existing `cirq_google.EngineProgram` object, you can list any jobs that were run using that program.
 
 ```python
 from cirq_google.engine.client.quantum import enums
@@ -307,8 +307,8 @@ from cirq_google.engine.client.quantum import enums
 # Initialize the engine object
 engine = cirq_google.Engine(project_id='YOUR_PROJECT_ID')
 
-# List all the programs on the project since 2020/09/20 that have 
-# the "variational" label with any value and the "experiment" label 
+# List all the programs on the project since 2020/09/20 that have
+# the "variational" label with any value and the "experiment" label
 # with value "vqe001":
 programs = engine.list_programs(
                 created_after=datetime.date(2020,9,20),
@@ -320,5 +320,5 @@ for p in programs:
    # for example here we list the jobs under the programs that failed
    for j in p.list_jobs(execution_states=[enums.ExecutionStatus.State.FAILURE]):
      print(j.job_id, j.status())
-``` 
+```
 
