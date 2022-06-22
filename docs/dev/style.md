@@ -93,3 +93,26 @@ later in the same file.
 Using consistent wording across Cirq is important for lowering users
 cognitive load. For rule governing naming, see the 
 [nomenclature guidelines](nomenclature.md).
+
+## Datetimes
+
+Prefer using timezone-aware `datetime` objects.
+
+```python
+import datetime
+dt = datetime.datetime.now(tz=datetime.timezone.utc)
+```
+
+Public components of Protobuf APIs will return "aware" `datetime` objects.
+JSON de-serialization will promote values to "aware" `datetime` objects upon deserialization. 
+
+Comparing (or testing equality) between "naive" and "aware" `datetime` objects throws
+an exception.
+If you are implementing a class that has `datetime` member variables, delegate equality
+and comparison operators to the built-in `datetime` equality and comparison operators.
+If you're writing a function that compares `datetime` objects, you can defensively promote
+them to "aware" objects or use their `.timestamp()` properties for a comparison that will
+never throw an exception.
+
+Absolutely do not use `datetime.utcnow()` as explained in the warnings in the
+Python [documentation](https://docs.python.org/3/library/datetime.html).

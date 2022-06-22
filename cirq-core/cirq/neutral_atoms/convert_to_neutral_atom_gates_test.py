@@ -21,22 +21,6 @@ import cirq
 Q = cirq.LineQubit.range(3)
 
 
-@pytest.mark.parametrize(
-    'expected',
-    (
-        cirq.Circuit(cirq.X.on(Q[0])),
-        cirq.Circuit(cirq.Y.on(Q[0])),
-        cirq.Circuit(cirq.ParallelGate(cirq.X, 3).on(*Q)),
-        cirq.Circuit(cirq.CNOT.on(Q[0], Q[1])),
-    ),
-)
-def test_gates_preserved(expected: cirq.Circuit):
-    actual = cirq.optimize_for_target_gateset(
-        expected, gateset=cirq.neutral_atoms.NeutralAtomGateset()
-    )
-    assert actual == expected
-
-
 def test_coverage():
     with cirq.testing.assert_deprecated(
         "Use cirq.optimize_for_target_gateset", deadline='v0.16', count=5
@@ -81,8 +65,6 @@ def test_avoids_decompose_fallback_when_matrix_available_single_qubit():
 
     q = cirq.GridQubit(0, 0)
     c = cirq.Circuit(OtherX().on(q), OtherOtherX().on(q))
-    converted = cirq.optimize_for_target_gateset(c, gateset=cirq.neutral_atoms.NeutralAtomGateset())
-    cirq.testing.assert_has_diagram(converted, '(0, 0): ───PhX(1)───PhX(1)───')
     with cirq.testing.assert_deprecated(
         "Use cirq.optimize_for_target_gateset", deadline='v0.16', count=2
     ):
@@ -107,8 +89,6 @@ def test_avoids_decompose_fallback_when_matrix_available_two_qubit():
            │   │
 (0, 1): ───@───@───
 """
-    converted = cirq.optimize_for_target_gateset(c, gateset=cirq.neutral_atoms.NeutralAtomGateset())
-    cirq.testing.assert_has_diagram(converted, expected_diagram)
     with cirq.testing.assert_deprecated(
         "Use cirq.optimize_for_target_gateset", deadline='v0.16', count=2
     ):
