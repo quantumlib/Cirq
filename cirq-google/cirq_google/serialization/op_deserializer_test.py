@@ -43,11 +43,19 @@ class GateWithAttribute(cirq.testing.SingleQubitGate):
 
 
 def base_deserializer():
-    return cg.GateOpDeserializer(
-        serialized_gate_id='my_gate',
-        gate_constructor=GateWithAttribute,
-        args=[cg.DeserializingArg(serialized_name='my_val', constructor_arg_name='val')],
-    )
+    with cirq.testing.assert_deprecated('CircuitSerializer', deadline='v0.16', count=1):
+        return cg.GateOpDeserializer(
+            serialized_gate_id='my_gate',
+            gate_constructor=GateWithAttribute,
+            args=[cg.DeserializingArg(serialized_name='my_val', constructor_arg_name='val')],
+        )
+
+
+def _create_gate_op_deserializer(*, serialized_gate_id, gate_constructor, args):
+    with cirq.testing.assert_deprecated('CircuitSerializer', deadline='v0.16', count=1):
+        return cg.GateOpDeserializer(
+            serialized_gate_id=serialized_gate_id, gate_constructor=gate_constructor, args=args
+        )
 
 
 TEST_CASES = [
@@ -148,7 +156,7 @@ def test_from_proto_function_argument_not_set():
 
 
 def test_from_proto_value_func():
-    deserializer = cg.GateOpDeserializer(
+    deserializer = _create_gate_op_deserializer(
         serialized_gate_id='my_gate',
         gate_constructor=GateWithAttribute,
         args=[
@@ -170,7 +178,7 @@ def test_from_proto_value_func():
 
 
 def test_from_proto_not_required_ok():
-    deserializer = cg.GateOpDeserializer(
+    deserializer = _create_gate_op_deserializer(
         serialized_gate_id='my_gate',
         gate_constructor=GateWithAttribute,
         args=[
@@ -193,7 +201,7 @@ def test_from_proto_not_required_ok():
 
 
 def test_from_proto_missing_required_arg():
-    deserializer = cg.GateOpDeserializer(
+    deserializer = _create_gate_op_deserializer(
         serialized_gate_id='my_gate',
         gate_constructor=GateWithAttribute,
         args=[
@@ -215,7 +223,7 @@ def test_from_proto_missing_required_arg():
 
 
 def test_from_proto_required_arg_not_assigned():
-    deserializer = cg.GateOpDeserializer(
+    deserializer = _create_gate_op_deserializer(
         serialized_gate_id='my_gate',
         gate_constructor=GateWithAttribute,
         args=[
@@ -233,11 +241,13 @@ def test_from_proto_required_arg_not_assigned():
 
 
 def test_defaults():
-    deserializer = cg.GateOpDeserializer(
+    deserializer = _create_gate_op_deserializer(
         serialized_gate_id='my_gate',
         gate_constructor=GateWithAttribute,
         args=[
-            cg.DeserializingArg(serialized_name='my_val', constructor_arg_name='val', default=1.0),
+            cg.DeserializingArg(
+                serialized_name='my_val', constructor_arg_name='val', default=1.0
+            ),
             cg.DeserializingArg(
                 serialized_name='not_req',
                 constructor_arg_name='not_req',

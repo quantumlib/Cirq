@@ -27,7 +27,11 @@ import cirq_google.serialization.common_serializers as cgc
 
 
 def _just_cz():
-    with cirq.testing.assert_deprecated('SerializableGateSet', deadline='v0.16', count=None):
+    # Deprecations: cirq_google.SerializableGateSet, cirq_google.GateOpSerializer, and
+    # cirq_google.GateOpDeserializer
+    with cirq.testing.assert_deprecated(
+        'SerializableGateSet', 'CircuitSerializer', deadline='v0.16', count=None
+    ):
         return cg.SerializableGateSet(
             gate_set_name='cz_gate_set',
             serializers=[
@@ -42,7 +46,11 @@ def _just_cz():
 
 
 def _just_meas():
-    with cirq.testing.assert_deprecated('SerializableGateSet', deadline='v0.16', count=None):
+    # Deprecations: cirq_google.SerializableGateSet, cirq_google.GateOpSerializer, and
+    # cirq_google.GateOpDeserializer
+    with cirq.testing.assert_deprecated(
+        'SerializableGateSet', 'CircuitSerializer', deadline='v0.16', count=None
+    ):
         return cg.SerializableGateSet(
             gate_set_name='meas_gate_set',
             serializers=[

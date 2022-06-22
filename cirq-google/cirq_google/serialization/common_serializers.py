@@ -75,7 +75,7 @@ def _convert_physical_z(op: cirq.Operation, proto: v2.program_pb2.Operation):
 # Single qubit serializers for arbitrary rotations
 #
 SINGLE_QUBIT_SERIALIZERS = [
-    op_serializer.GateOpSerializer(
+    op_serializer._GateOpSerializer(
         gate_type=cirq.PhasedXPowGate,
         serialized_gate_id='xy',
         args=[
@@ -87,7 +87,7 @@ SINGLE_QUBIT_SERIALIZERS = [
             ),
         ],
     ),
-    op_serializer.GateOpSerializer(
+    op_serializer._GateOpSerializer(
         gate_type=cirq.XPowGate,
         serialized_gate_id='xy',
         args=[
@@ -99,7 +99,7 @@ SINGLE_QUBIT_SERIALIZERS = [
             ),
         ],
     ),
-    op_serializer.GateOpSerializer(
+    op_serializer._GateOpSerializer(
         gate_type=cirq.YPowGate,
         serialized_gate_id='xy',
         args=[
@@ -111,7 +111,7 @@ SINGLE_QUBIT_SERIALIZERS = [
             ),
         ],
     ),
-    op_serializer.GateOpSerializer(
+    op_serializer._GateOpSerializer(
         gate_type=cirq.ZPowGate,
         serialized_gate_id='z',
         args=[
@@ -125,7 +125,7 @@ SINGLE_QUBIT_SERIALIZERS = [
             ),
         ],
     ),
-    op_serializer.GateOpSerializer(
+    op_serializer._GateOpSerializer(
         gate_type=cirq.PhasedXZGate,
         serialized_gate_id='xyz',
         args=[
@@ -148,7 +148,7 @@ SINGLE_QUBIT_SERIALIZERS = [
 # Single qubit deserializers for arbitrary rotations
 #
 SINGLE_QUBIT_DESERIALIZERS = [
-    op_deserializer.GateOpDeserializer(
+    op_deserializer._GateOpDeserializer(
         serialized_gate_id='xy',
         gate_constructor=cirq.PhasedXPowGate,
         args=[
@@ -162,7 +162,7 @@ SINGLE_QUBIT_DESERIALIZERS = [
             ),
         ],
     ),
-    op_deserializer.GateOpDeserializer(
+    op_deserializer._GateOpDeserializer(
         serialized_gate_id='z',
         gate_constructor=cirq.ZPowGate,
         args=[
@@ -172,7 +172,7 @@ SINGLE_QUBIT_DESERIALIZERS = [
         ],
         op_wrapper=lambda op, proto: _convert_physical_z(op, proto),
     ),
-    op_deserializer.GateOpDeserializer(
+    op_deserializer._GateOpDeserializer(
         serialized_gate_id='xyz',
         gate_constructor=cirq.PhasedXZGate,
         args=[
@@ -195,7 +195,7 @@ SINGLE_QUBIT_DESERIALIZERS = [
 #
 # Measurement Serializer and Deserializer
 #
-MEASUREMENT_SERIALIZER = op_serializer.GateOpSerializer(
+MEASUREMENT_SERIALIZER = op_serializer._GateOpSerializer(
     gate_type=cirq.MeasurementGate,
     serialized_gate_id='meas',
     args=[
@@ -207,7 +207,7 @@ MEASUREMENT_SERIALIZER = op_serializer.GateOpSerializer(
         ),
     ],
 )
-MEASUREMENT_DESERIALIZER = op_deserializer.GateOpDeserializer(
+MEASUREMENT_DESERIALIZER = op_deserializer._GateOpDeserializer(
     serialized_gate_id='meas',
     gate_constructor=cirq.MeasurementGate,
     args=[
@@ -226,7 +226,7 @@ MEASUREMENT_DESERIALIZER = op_deserializer.GateOpDeserializer(
 # Serializers for single qubit rotations confined to half-pi increments
 #
 SINGLE_QUBIT_HALF_PI_SERIALIZERS = [
-    op_serializer.GateOpSerializer(
+    op_serializer._GateOpSerializer(
         gate_type=cirq.PhasedXPowGate,
         serialized_gate_id='xy_pi',
         args=[
@@ -238,7 +238,7 @@ SINGLE_QUBIT_HALF_PI_SERIALIZERS = [
             cast(cirq.PhasedXPowGate, op.gate).exponent, 1
         ),
     ),
-    op_serializer.GateOpSerializer(
+    op_serializer._GateOpSerializer(
         gate_type=cirq.XPowGate,
         serialized_gate_id='xy_pi',
         args=[
@@ -250,7 +250,7 @@ SINGLE_QUBIT_HALF_PI_SERIALIZERS = [
         ],
         can_serialize_predicate=lambda op: _near_mod_2(cast(cirq.XPowGate, op.gate).exponent, 1),
     ),
-    op_serializer.GateOpSerializer(
+    op_serializer._GateOpSerializer(
         gate_type=cirq.YPowGate,
         serialized_gate_id='xy_pi',
         args=[
@@ -262,7 +262,7 @@ SINGLE_QUBIT_HALF_PI_SERIALIZERS = [
         ],
         can_serialize_predicate=lambda op: _near_mod_2(cast(cirq.YPowGate, op.gate).exponent, 1),
     ),
-    op_serializer.GateOpSerializer(
+    op_serializer._GateOpSerializer(
         gate_type=cirq.XPowGate,
         serialized_gate_id='xy_half_pi',
         args=[
@@ -274,7 +274,7 @@ SINGLE_QUBIT_HALF_PI_SERIALIZERS = [
         ],
         can_serialize_predicate=lambda op: _near_mod_2(cast(cirq.XPowGate, op.gate).exponent, 0.5),
     ),
-    op_serializer.GateOpSerializer(
+    op_serializer._GateOpSerializer(
         gate_type=cirq.YPowGate,
         serialized_gate_id='xy_half_pi',
         args=[
@@ -286,7 +286,7 @@ SINGLE_QUBIT_HALF_PI_SERIALIZERS = [
         ],
         can_serialize_predicate=lambda op: _near_mod_2(cast(cirq.YPowGate, op.gate).exponent, 0.5),
     ),
-    op_serializer.GateOpSerializer(
+    op_serializer._GateOpSerializer(
         gate_type=cirq.PhasedXPowGate,
         serialized_gate_id='xy_half_pi',
         args=[
@@ -304,7 +304,7 @@ SINGLE_QUBIT_HALF_PI_SERIALIZERS = [
 # Deserializers for single qubit rotations confined to half-pi increments
 #
 SINGLE_QUBIT_HALF_PI_DESERIALIZERS = [
-    op_deserializer.GateOpDeserializer(
+    op_deserializer._GateOpDeserializer(
         serialized_gate_id='xy_pi',
         gate_constructor=cirq.PhasedXPowGate,
         args=[
@@ -318,7 +318,7 @@ SINGLE_QUBIT_HALF_PI_DESERIALIZERS = [
             ),
         ],
     ),
-    op_deserializer.GateOpDeserializer(
+    op_deserializer._GateOpDeserializer(
         serialized_gate_id='xy_half_pi',
         gate_constructor=cirq.PhasedXPowGate,
         args=[
@@ -360,7 +360,7 @@ def _add_phase_match(op: cirq.Operation, proto: v2.program_pb2.Operation):
 #
 
 # Only CZ
-CZ_SERIALIZER = op_serializer.GateOpSerializer(
+CZ_SERIALIZER = op_serializer._GateOpSerializer(
     gate_type=cirq.CZPowGate,
     serialized_gate_id='cz',
     args=[
@@ -373,7 +373,7 @@ CZ_SERIALIZER = op_serializer.GateOpSerializer(
 )
 
 # CZ to any power
-CZ_POW_SERIALIZER = op_serializer.GateOpSerializer(
+CZ_POW_SERIALIZER = op_serializer._GateOpSerializer(
     gate_type=cirq.CZPowGate,
     serialized_gate_id='cz',
     args=[
@@ -384,7 +384,7 @@ CZ_POW_SERIALIZER = op_serializer.GateOpSerializer(
     ],
 )
 
-CZ_POW_DESERIALIZER = op_deserializer.GateOpDeserializer(
+CZ_POW_DESERIALIZER = op_deserializer._GateOpDeserializer(
     serialized_gate_id='cz',
     gate_constructor=cirq.CZPowGate,
     args=[
@@ -398,7 +398,7 @@ CZ_POW_DESERIALIZER = op_deserializer.GateOpDeserializer(
 #
 # Sycamore Gate Serializer and deserializer
 #
-SYC_SERIALIZER = op_serializer.GateOpSerializer(
+SYC_SERIALIZER = op_serializer._GateOpSerializer(
     gate_type=cirq.FSimGate,
     serialized_gate_id='syc',
     args=[_phase_match_arg],
@@ -408,7 +408,7 @@ SYC_SERIALIZER = op_serializer.GateOpSerializer(
     ),
 )
 
-SYC_DESERIALIZER = op_deserializer.GateOpDeserializer(
+SYC_DESERIALIZER = op_deserializer._GateOpDeserializer(
     serialized_gate_id='syc',
     gate_constructor=lambda: cirq.FSimGate(theta=np.pi / 2, phi=np.pi / 6),
     args=[],
@@ -420,7 +420,7 @@ SYC_DESERIALIZER = op_deserializer.GateOpDeserializer(
 # (e.g. ISWAP ** 0.5)
 #
 SQRT_ISWAP_SERIALIZERS = [
-    op_serializer.GateOpSerializer(
+    op_serializer._GateOpSerializer(
         gate_type=cirq.FSimGate,
         serialized_gate_id='fsim_pi_4',
         args=[_phase_match_arg],
@@ -429,7 +429,7 @@ SQRT_ISWAP_SERIALIZERS = [
             and _near_mod_2pi(cast(cirq.FSimGate, op.gate).phi, 0)
         ),
     ),
-    op_serializer.GateOpSerializer(
+    op_serializer._GateOpSerializer(
         gate_type=cirq.ISwapPowGate,
         serialized_gate_id='fsim_pi_4',
         args=[_phase_match_arg],
@@ -437,7 +437,7 @@ SQRT_ISWAP_SERIALIZERS = [
             lambda op: _near_mod_n(cast(cirq.ISwapPowGate, op.gate).exponent, -0.5, 4)
         ),
     ),
-    op_serializer.GateOpSerializer(
+    op_serializer._GateOpSerializer(
         gate_type=cirq.FSimGate,
         serialized_gate_id='inv_fsim_pi_4',
         args=[_phase_match_arg],
@@ -446,7 +446,7 @@ SQRT_ISWAP_SERIALIZERS = [
             and _near_mod_2pi(cast(cirq.FSimGate, op.gate).phi, 0)
         ),
     ),
-    op_serializer.GateOpSerializer(
+    op_serializer._GateOpSerializer(
         gate_type=cirq.ISwapPowGate,
         serialized_gate_id='inv_fsim_pi_4',
         args=[_phase_match_arg],
@@ -457,13 +457,13 @@ SQRT_ISWAP_SERIALIZERS = [
 ]
 
 SQRT_ISWAP_DESERIALIZERS = [
-    op_deserializer.GateOpDeserializer(
+    op_deserializer._GateOpDeserializer(
         serialized_gate_id='fsim_pi_4',
         gate_constructor=lambda: cirq.FSimGate(theta=np.pi / 4, phi=0),
         args=[],
         op_wrapper=lambda op, proto: _add_phase_match(op, proto),
     ),
-    op_deserializer.GateOpDeserializer(
+    op_deserializer._GateOpDeserializer(
         serialized_gate_id='inv_fsim_pi_4',
         gate_constructor=lambda: cirq.FSimGate(theta=-np.pi / 4, phi=0),
         args=[],
@@ -496,7 +496,7 @@ _LIMITED_ISWAP_GATE_FAMILY = fsim_gate_family.FSimGateFamily(
     allow_symbols=True,
 )
 LIMITED_FSIM_SERIALIZERS = [
-    op_serializer.GateOpSerializer(
+    op_serializer._GateOpSerializer(
         gate_type=cirq.FSimGate,
         serialized_gate_id='fsim',
         args=[
@@ -510,7 +510,7 @@ LIMITED_FSIM_SERIALIZERS = [
         ],
         can_serialize_predicate=(lambda op: op in _LIMITED_FSIM_GATE_FAMILY),
     ),
-    op_serializer.GateOpSerializer(
+    op_serializer._GateOpSerializer(
         gate_type=cirq.ISwapPowGate,
         serialized_gate_id='fsim',
         args=[
@@ -527,7 +527,7 @@ LIMITED_FSIM_SERIALIZERS = [
         ],
         can_serialize_predicate=(lambda op: op in _LIMITED_ISWAP_GATE_FAMILY),
     ),
-    op_serializer.GateOpSerializer(
+    op_serializer._GateOpSerializer(
         gate_type=cirq.CZPowGate,
         serialized_gate_id='fsim',
         args=[
@@ -544,7 +544,7 @@ LIMITED_FSIM_SERIALIZERS = [
 ]
 
 
-LIMITED_FSIM_DESERIALIZER = op_deserializer.GateOpDeserializer(
+LIMITED_FSIM_DESERIALIZER = op_deserializer._GateOpDeserializer(
     serialized_gate_id='fsim',
     gate_constructor=cirq.FSimGate,
     args=[
@@ -568,7 +568,7 @@ LIMITED_FSIM_DESERIALIZER = op_deserializer.GateOpDeserializer(
 # Coupler Pulse serializer and deserializer
 #
 
-COUPLER_PULSE_SERIALIZER = op_serializer.GateOpSerializer(
+COUPLER_PULSE_SERIALIZER = op_serializer._GateOpSerializer(
     gate_type=CouplerPulse,
     serialized_gate_id='coupler_pulse',
     args=[
@@ -592,7 +592,7 @@ COUPLER_PULSE_SERIALIZER = op_serializer.GateOpSerializer(
         ),
     ],
 )
-COUPLER_PULSE_DESERIALIZER = op_deserializer.GateOpDeserializer(
+COUPLER_PULSE_DESERIALIZER = op_deserializer._GateOpDeserializer(
     serialized_gate_id='coupler_pulse',
     gate_constructor=CouplerPulse,
     args=[
@@ -626,7 +626,7 @@ COUPLER_PULSE_DESERIALIZER = op_deserializer.GateOpDeserializer(
 #
 # WaitGate serializer and deserializer
 #
-WAIT_GATE_SERIALIZER = op_serializer.GateOpSerializer(
+WAIT_GATE_SERIALIZER = op_serializer._GateOpSerializer(
     gate_type=cirq.WaitGate,
     serialized_gate_id='wait',
     args=[
@@ -637,7 +637,7 @@ WAIT_GATE_SERIALIZER = op_serializer.GateOpSerializer(
         )
     ],
 )
-WAIT_GATE_DESERIALIZER = op_deserializer.GateOpDeserializer(
+WAIT_GATE_DESERIALIZER = op_deserializer._GateOpDeserializer(
     serialized_gate_id='wait',
     gate_constructor=cirq.WaitGate,
     args=[
