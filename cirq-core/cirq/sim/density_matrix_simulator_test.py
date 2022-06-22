@@ -20,6 +20,8 @@ import numpy as np
 import pytest
 import sympy
 
+from numpy.typing import DTypeLike
+
 import cirq
 import cirq.testing
 
@@ -53,7 +55,7 @@ def test_invalid_dtype():
 
 @pytest.mark.parametrize('dtype', [np.complex64, np.complex128])
 @pytest.mark.parametrize('split', [True, False])
-def test_run_no_measurements(dtype: Type[np.number], split: bool):
+def test_run_no_measurements(dtype: DTypeLike, split: bool):
     q0, q1 = cirq.LineQubit.range(2)
     simulator = cirq.DensityMatrixSimulator(dtype=dtype, split_untangled_states=split)
 
@@ -64,7 +66,7 @@ def test_run_no_measurements(dtype: Type[np.number], split: bool):
 
 @pytest.mark.parametrize('dtype', [np.complex64, np.complex128])
 @pytest.mark.parametrize('split', [True, False])
-def test_run_no_results(dtype: Type[np.number], split: bool):
+def test_run_no_results(dtype: DTypeLike, split: bool):
     q0, q1 = cirq.LineQubit.range(2)
     simulator = cirq.DensityMatrixSimulator(dtype=dtype, split_untangled_states=split)
 
@@ -75,7 +77,7 @@ def test_run_no_results(dtype: Type[np.number], split: bool):
 
 @pytest.mark.parametrize('dtype', [np.complex64, np.complex128])
 @pytest.mark.parametrize('split', [True, False])
-def test_run_empty_circuit(dtype: Type[np.number], split: bool):
+def test_run_empty_circuit(dtype: DTypeLike, split: bool):
     simulator = cirq.DensityMatrixSimulator(dtype=dtype, split_untangled_states=split)
     with pytest.raises(ValueError, match="no measurements"):
         simulator.run(cirq.Circuit())
@@ -83,7 +85,7 @@ def test_run_empty_circuit(dtype: Type[np.number], split: bool):
 
 @pytest.mark.parametrize('dtype', [np.complex64, np.complex128])
 @pytest.mark.parametrize('split', [True, False])
-def test_run_bit_flips(dtype: Type[np.number], split: bool):
+def test_run_bit_flips(dtype: DTypeLike, split: bool):
     q0, q1 = cirq.LineQubit.range(2)
     simulator = cirq.DensityMatrixSimulator(dtype=dtype, split_untangled_states=split)
     for b0 in [0, 1]:
@@ -97,7 +99,7 @@ def test_run_bit_flips(dtype: Type[np.number], split: bool):
 
 @pytest.mark.parametrize('dtype', [np.complex64, np.complex128])
 @pytest.mark.parametrize('split', [True, False])
-def test_run_bit_flips_with_dephasing(dtype: Type[np.number], split: bool):
+def test_run_bit_flips_with_dephasing(dtype: DTypeLike, split: bool):
     q0, q1 = cirq.LineQubit.range(2)
     simulator = cirq.DensityMatrixSimulator(dtype=dtype, split_untangled_states=split)
     for b0 in [0, 1]:
@@ -111,7 +113,7 @@ def test_run_bit_flips_with_dephasing(dtype: Type[np.number], split: bool):
 
 @pytest.mark.parametrize('dtype', [np.complex64, np.complex128])
 @pytest.mark.parametrize('split', [True, False])
-def test_run_qudit_increments(dtype: Type[np.number], split: bool):
+def test_run_qudit_increments(dtype: DTypeLike, split: bool):
     q0, q1 = cirq.LineQid.for_qid_shape((3, 4))
     simulator = cirq.DensityMatrixSimulator(dtype=dtype, split_untangled_states=split)
     for b0 in [0, 1, 2]:
@@ -130,7 +132,7 @@ def test_run_qudit_increments(dtype: Type[np.number], split: bool):
 
 @pytest.mark.parametrize('dtype', [np.complex64, np.complex128])
 @pytest.mark.parametrize('split', [True, False])
-def test_run_not_channel_op(dtype: Type[np.number], split: bool):
+def test_run_not_channel_op(dtype: DTypeLike, split: bool):
     class BadOp(cirq.Operation):
         def __init__(self, qubits):
             self._qubits = qubits
@@ -152,7 +154,7 @@ def test_run_not_channel_op(dtype: Type[np.number], split: bool):
 
 @pytest.mark.parametrize('dtype', [np.complex64, np.complex128])
 @pytest.mark.parametrize('split', [True, False])
-def test_run_mixture(dtype: Type[np.number], split: bool):
+def test_run_mixture(dtype: DTypeLike, split: bool):
     q0, q1 = cirq.LineQubit.range(2)
     circuit = cirq.Circuit(cirq.bit_flip(0.5)(q0), cirq.measure(q0), cirq.measure(q1))
     simulator = cirq.DensityMatrixSimulator(dtype=dtype, split_untangled_states=split)
@@ -166,7 +168,7 @@ def test_run_mixture(dtype: Type[np.number], split: bool):
 
 @pytest.mark.parametrize('dtype', [np.complex64, np.complex128])
 @pytest.mark.parametrize('split', [True, False])
-def test_run_qudit_mixture(dtype: Type[np.number], split: bool):
+def test_run_qudit_mixture(dtype: DTypeLike, split: bool):
     q0, q1 = cirq.LineQid.for_qid_shape((3, 2))
     mixture = _TestMixture(
         [
@@ -187,7 +189,7 @@ def test_run_qudit_mixture(dtype: Type[np.number], split: bool):
 
 @pytest.mark.parametrize('dtype', [np.complex64, np.complex128])
 @pytest.mark.parametrize('split', [True, False])
-def test_run_channel(dtype: Type[np.number], split: bool):
+def test_run_channel(dtype: DTypeLike, split: bool):
     q0, q1 = cirq.LineQubit.range(2)
     circuit = cirq.Circuit(
         cirq.X(q0), cirq.amplitude_damp(0.5)(q0), cirq.measure(q0), cirq.measure(q1)
@@ -204,7 +206,7 @@ def test_run_channel(dtype: Type[np.number], split: bool):
 
 @pytest.mark.parametrize('dtype', [np.complex64, np.complex128])
 @pytest.mark.parametrize('split', [True, False])
-def test_run_decomposable_channel(dtype: Type[np.number], split: bool):
+def test_run_decomposable_channel(dtype: DTypeLike, split: bool):
     q0, q1 = cirq.LineQubit.range(2)
 
     circuit = cirq.Circuit(
@@ -225,7 +227,7 @@ def test_run_decomposable_channel(dtype: Type[np.number], split: bool):
 
 @pytest.mark.parametrize('dtype', [np.complex64, np.complex128])
 @pytest.mark.parametrize('split', [True, False])
-def test_run_qudit_channel(dtype: Type[np.number], split: bool):
+def test_run_qudit_channel(dtype: DTypeLike, split: bool):
     class TestChannel(cirq.Gate):
         def _qid_shape_(self):
             return (3,)
@@ -257,7 +259,7 @@ def test_run_qudit_channel(dtype: Type[np.number], split: bool):
 
 @pytest.mark.parametrize('dtype', [np.complex64, np.complex128])
 @pytest.mark.parametrize('split', [True, False])
-def test_run_measure_at_end_no_repetitions(dtype: Type[np.number], split: bool):
+def test_run_measure_at_end_no_repetitions(dtype: DTypeLike, split: bool):
     q0, q1 = cirq.LineQubit.range(2)
     simulator = cirq.DensityMatrixSimulator(dtype=dtype, split_untangled_states=split)
     with mock.patch.object(simulator, '_core_iterator', wraps=simulator._core_iterator) as mock_sim:
@@ -276,7 +278,7 @@ def test_run_measure_at_end_no_repetitions(dtype: Type[np.number], split: bool):
 
 @pytest.mark.parametrize('dtype', [np.complex64, np.complex128])
 @pytest.mark.parametrize('split', [True, False])
-def test_run_repetitions_measure_at_end(dtype: Type[np.number], split: bool):
+def test_run_repetitions_measure_at_end(dtype: DTypeLike, split: bool):
     q0, q1 = cirq.LineQubit.range(2)
     simulator = cirq.DensityMatrixSimulator(dtype=dtype, split_untangled_states=split)
     with mock.patch.object(simulator, '_core_iterator', wraps=simulator._core_iterator) as mock_sim:
@@ -295,7 +297,7 @@ def test_run_repetitions_measure_at_end(dtype: Type[np.number], split: bool):
 
 @pytest.mark.parametrize('dtype', [np.complex64, np.complex128])
 @pytest.mark.parametrize('split', [True, False])
-def test_run_qudits_repetitions_measure_at_end(dtype: Type[np.number], split: bool):
+def test_run_qudits_repetitions_measure_at_end(dtype: DTypeLike, split: bool):
     q0, q1 = cirq.LineQid.for_qid_shape((2, 3))
     simulator = cirq.DensityMatrixSimulator(dtype=dtype, split_untangled_states=split)
     with mock.patch.object(simulator, '_core_iterator', wraps=simulator._core_iterator) as mock_sim:
@@ -317,7 +319,7 @@ def test_run_qudits_repetitions_measure_at_end(dtype: Type[np.number], split: bo
 
 @pytest.mark.parametrize('dtype', [np.complex64, np.complex128])
 @pytest.mark.parametrize('split', [True, False])
-def test_run_measurement_not_terminal_no_repetitions(dtype: Type[np.number], split: bool):
+def test_run_measurement_not_terminal_no_repetitions(dtype: DTypeLike, split: bool):
     q0, q1 = cirq.LineQubit.range(2)
     simulator = cirq.DensityMatrixSimulator(dtype=dtype, split_untangled_states=split)
     with mock.patch.object(simulator, '_core_iterator', wraps=simulator._core_iterator) as mock_sim:
@@ -341,7 +343,7 @@ def test_run_measurement_not_terminal_no_repetitions(dtype: Type[np.number], spl
 
 @pytest.mark.parametrize('dtype', [np.complex64, np.complex128])
 @pytest.mark.parametrize('split', [True, False])
-def test_run_repetitions_measurement_not_terminal(dtype: Type[np.number], split: bool):
+def test_run_repetitions_measurement_not_terminal(dtype: DTypeLike, split: bool):
     q0, q1 = cirq.LineQubit.range(2)
     simulator = cirq.DensityMatrixSimulator(dtype=dtype, split_untangled_states=split)
     with mock.patch.object(simulator, '_core_iterator', wraps=simulator._core_iterator) as mock_sim:
@@ -365,7 +367,7 @@ def test_run_repetitions_measurement_not_terminal(dtype: Type[np.number], split:
 
 @pytest.mark.parametrize('dtype', [np.complex64, np.complex128])
 @pytest.mark.parametrize('split', [True, False])
-def test_run_qudits_repetitions_measurement_not_terminal(dtype: Type[np.number], split: bool):
+def test_run_qudits_repetitions_measurement_not_terminal(dtype: DTypeLike, split: bool):
     q0, q1 = cirq.LineQid.for_qid_shape((2, 3))
     simulator = cirq.DensityMatrixSimulator(dtype=dtype, split_untangled_states=split)
     with mock.patch.object(simulator, '_core_iterator', wraps=simulator._core_iterator) as mock_sim:
@@ -389,7 +391,7 @@ def test_run_qudits_repetitions_measurement_not_terminal(dtype: Type[np.number],
 
 @pytest.mark.parametrize('dtype', [np.complex64, np.complex128])
 @pytest.mark.parametrize('split', [True, False])
-def test_run_param_resolver(dtype: Type[np.number], split: bool):
+def test_run_param_resolver(dtype: DTypeLike, split: bool):
     q0, q1 = cirq.LineQubit.range(2)
     simulator = cirq.DensityMatrixSimulator(dtype=dtype, split_untangled_states=split)
     for b0 in [0, 1]:
@@ -409,7 +411,7 @@ def test_run_param_resolver(dtype: Type[np.number], split: bool):
 
 @pytest.mark.parametrize('dtype', [np.complex64, np.complex128])
 @pytest.mark.parametrize('split', [True, False])
-def test_run_correlations(dtype: Type[np.number], split: bool):
+def test_run_correlations(dtype: DTypeLike, split: bool):
     q0, q1 = cirq.LineQubit.range(2)
     simulator = cirq.DensityMatrixSimulator(dtype=dtype, split_untangled_states=split)
     circuit = cirq.Circuit(cirq.H(q0), cirq.CNOT(q0, q1), cirq.measure(q0, q1))
@@ -421,7 +423,7 @@ def test_run_correlations(dtype: Type[np.number], split: bool):
 
 @pytest.mark.parametrize('dtype', [np.complex64, np.complex128])
 @pytest.mark.parametrize('split', [True, False])
-def test_run_measure_multiple_qubits(dtype: Type[np.number], split: bool):
+def test_run_measure_multiple_qubits(dtype: DTypeLike, split: bool):
     q0, q1 = cirq.LineQubit.range(2)
     simulator = cirq.DensityMatrixSimulator(dtype=dtype, split_untangled_states=split)
     for b0 in [0, 1]:
@@ -433,7 +435,7 @@ def test_run_measure_multiple_qubits(dtype: Type[np.number], split: bool):
 
 @pytest.mark.parametrize('dtype', [np.complex64, np.complex128])
 @pytest.mark.parametrize('split', [True, False])
-def test_run_measure_multiple_qudits(dtype: Type[np.number], split: bool):
+def test_run_measure_multiple_qudits(dtype: DTypeLike, split: bool):
     q0, q1 = cirq.LineQid.for_qid_shape((2, 3))
     simulator = cirq.DensityMatrixSimulator(dtype=dtype, split_untangled_states=split)
     for b0 in [0, 1]:
@@ -447,7 +449,7 @@ def test_run_measure_multiple_qudits(dtype: Type[np.number], split: bool):
 
 @pytest.mark.parametrize('dtype', [np.complex64, np.complex128])
 @pytest.mark.parametrize('split', [True, False])
-def test_run_sweeps_param_resolvers(dtype: Type[np.number], split: bool):
+def test_run_sweeps_param_resolvers(dtype: DTypeLike, split: bool):
     q0, q1 = cirq.LineQubit.range(2)
     simulator = cirq.DensityMatrixSimulator(dtype=dtype, split_untangled_states=split)
     for b0 in [0, 1]:
@@ -473,7 +475,7 @@ def test_run_sweeps_param_resolvers(dtype: Type[np.number], split: bool):
 
 @pytest.mark.parametrize('dtype', [np.complex64, np.complex128])
 @pytest.mark.parametrize('split', [True, False])
-def test_simulate_no_circuit(dtype: Type[np.number], split: bool):
+def test_simulate_no_circuit(dtype: DTypeLike, split: bool):
     q0, q1 = cirq.LineQubit.range(2)
     simulator = cirq.DensityMatrixSimulator(dtype=dtype, split_untangled_states=split)
     circuit = cirq.Circuit()
@@ -486,7 +488,7 @@ def test_simulate_no_circuit(dtype: Type[np.number], split: bool):
 
 @pytest.mark.parametrize('dtype', [np.complex64, np.complex128])
 @pytest.mark.parametrize('split', [True, False])
-def test_simulate(dtype: Type[np.number], split: bool):
+def test_simulate(dtype: DTypeLike, split: bool):
     q0, q1 = cirq.LineQubit.range(2)
     simulator = cirq.DensityMatrixSimulator(dtype=dtype, split_untangled_states=split)
     circuit = cirq.Circuit(cirq.H(q0), cirq.H(q1))
@@ -497,7 +499,7 @@ def test_simulate(dtype: Type[np.number], split: bool):
 
 @pytest.mark.parametrize('dtype', [np.complex64, np.complex128])
 @pytest.mark.parametrize('split', [True, False])
-def test_simulate_qudits(dtype: Type[np.number], split: bool):
+def test_simulate_qudits(dtype: DTypeLike, split: bool):
     q0, q1 = cirq.LineQid.for_qid_shape((2, 3))
     simulator = cirq.DensityMatrixSimulator(dtype=dtype, split_untangled_states=split)
     circuit = cirq.Circuit(cirq.H(q0), cirq.XPowGate(dimension=3)(q1) ** 2)
@@ -511,7 +513,7 @@ def test_simulate_qudits(dtype: Type[np.number], split: bool):
 @pytest.mark.parametrize('dtype', [np.complex64, np.complex128])
 @pytest.mark.parametrize('split', [True, False])
 def test_reset_one_qubit_does_not_affect_partial_trace_of_other_qubits(
-    dtype: Type[np.number], split: bool
+    dtype: DTypeLike, split: bool
 ):
     q0, q1 = cirq.LineQubit.range(2)
     simulator = cirq.DensityMatrixSimulator(dtype=dtype, split_untangled_states=split)
@@ -530,7 +532,7 @@ def test_reset_one_qubit_does_not_affect_partial_trace_of_other_qubits(
         [cirq.testing.random_circuit(cirq.LineQubit.range(4), 5, 0.9) for _ in range(20)],
     ),
 )
-def test_simulate_compare_to_state_vector_simulator(dtype: Type[np.number], circuit):
+def test_simulate_compare_to_state_vector_simulator(dtype: DTypeLike, circuit):
     qubits = cirq.LineQubit.range(4)
     pure_result = (
         cirq.Simulator(dtype=dtype).simulate(circuit, qubit_order=qubits).density_matrix_of()
@@ -546,7 +548,7 @@ def test_simulate_compare_to_state_vector_simulator(dtype: Type[np.number], circ
 
 @pytest.mark.parametrize('dtype', [np.complex64, np.complex128])
 @pytest.mark.parametrize('split', [True, False])
-def test_simulate_bit_flips(dtype: Type[np.number], split: bool):
+def test_simulate_bit_flips(dtype: DTypeLike, split: bool):
     q0, q1 = cirq.LineQubit.range(2)
     simulator = cirq.DensityMatrixSimulator(dtype=dtype, split_untangled_states=split)
     for b0 in [0, 1]:
@@ -563,7 +565,7 @@ def test_simulate_bit_flips(dtype: Type[np.number], split: bool):
 
 @pytest.mark.parametrize('dtype', [np.complex64, np.complex128])
 @pytest.mark.parametrize('split', [True, False])
-def test_simulate_qudit_increments(dtype: Type[np.number], split: bool):
+def test_simulate_qudit_increments(dtype: DTypeLike, split: bool):
     q0, q1 = cirq.LineQid.for_qid_shape((2, 3))
     simulator = cirq.DensityMatrixSimulator(dtype=dtype, split_untangled_states=split)
     for b0 in [0, 1]:
@@ -583,7 +585,7 @@ def test_simulate_qudit_increments(dtype: Type[np.number], split: bool):
 
 @pytest.mark.parametrize('dtype', [np.complex64, np.complex128])
 @pytest.mark.parametrize('split', [True, False])
-def test_simulate_initial_state(dtype: Type[np.number], split: bool):
+def test_simulate_initial_state(dtype: DTypeLike, split: bool):
     q0, q1 = cirq.LineQubit.range(2)
     simulator = cirq.DensityMatrixSimulator(dtype=dtype, split_untangled_states=split)
     for b0 in [0, 1]:
@@ -597,7 +599,7 @@ def test_simulate_initial_state(dtype: Type[np.number], split: bool):
 
 @pytest.mark.parametrize('dtype', [np.complex64, np.complex128])
 @pytest.mark.parametrize('split', [True, False])
-def test_simulation_state(dtype: Type[np.number], split: bool):
+def test_simulation_state(dtype: DTypeLike, split: bool):
     q0, q1 = cirq.LineQubit.range(2)
     simulator = cirq.DensityMatrixSimulator(dtype=dtype, split_untangled_states=split)
     for b0 in [0, 1]:
@@ -624,7 +626,7 @@ def test_simulate_tps_initial_state():
 
 @pytest.mark.parametrize('dtype', [np.complex64, np.complex128])
 @pytest.mark.parametrize('split', [True, False])
-def test_simulate_initial_qudit_state(dtype: Type[np.number], split: bool):
+def test_simulate_initial_qudit_state(dtype: DTypeLike, split: bool):
     q0, q1 = cirq.LineQid.for_qid_shape((3, 4))
     simulator = cirq.DensityMatrixSimulator(dtype=dtype, split_untangled_states=split)
     for b0 in [0, 1, 2]:
@@ -644,7 +646,7 @@ def test_simulate_initial_qudit_state(dtype: Type[np.number], split: bool):
 
 @pytest.mark.parametrize('dtype', [np.complex64, np.complex128])
 @pytest.mark.parametrize('split', [True, False])
-def test_simulate_qubit_order(dtype: Type[np.number], split: bool):
+def test_simulate_qubit_order(dtype: DTypeLike, split: bool):
     q0, q1 = cirq.LineQubit.range(2)
     simulator = cirq.DensityMatrixSimulator(dtype=dtype, split_untangled_states=split)
     for b0 in [0, 1]:
@@ -658,7 +660,7 @@ def test_simulate_qubit_order(dtype: Type[np.number], split: bool):
 
 @pytest.mark.parametrize('dtype', [np.complex64, np.complex128])
 @pytest.mark.parametrize('split', [True, False])
-def test_simulate_param_resolver(dtype: Type[np.number], split: bool):
+def test_simulate_param_resolver(dtype: DTypeLike, split: bool):
     q0, q1 = cirq.LineQubit.range(2)
     simulator = cirq.DensityMatrixSimulator(dtype=dtype, split_untangled_states=split)
     for b0 in [0, 1]:
@@ -677,7 +679,7 @@ def test_simulate_param_resolver(dtype: Type[np.number], split: bool):
 
 @pytest.mark.parametrize('dtype', [np.complex64, np.complex128])
 @pytest.mark.parametrize('split', [True, False])
-def test_simulate_measure_multiple_qubits(dtype: Type[np.number], split: bool):
+def test_simulate_measure_multiple_qubits(dtype: DTypeLike, split: bool):
     q0, q1 = cirq.LineQubit.range(2)
     simulator = cirq.DensityMatrixSimulator(dtype=dtype, split_untangled_states=split)
     for b0 in [0, 1]:
@@ -689,7 +691,7 @@ def test_simulate_measure_multiple_qubits(dtype: Type[np.number], split: bool):
 
 @pytest.mark.parametrize('dtype', [np.complex64, np.complex128])
 @pytest.mark.parametrize('split', [True, False])
-def test_simulate_measure_multiple_qudits(dtype: Type[np.number], split: bool):
+def test_simulate_measure_multiple_qudits(dtype: DTypeLike, split: bool):
     q0, q1 = cirq.LineQid.for_qid_shape((2, 3))
     simulator = cirq.DensityMatrixSimulator(dtype=dtype, split_untangled_states=split)
     for b0 in [0, 1]:
@@ -703,7 +705,7 @@ def test_simulate_measure_multiple_qudits(dtype: Type[np.number], split: bool):
 
 @pytest.mark.parametrize('dtype', [np.complex64, np.complex128])
 @pytest.mark.parametrize('split', [True, False])
-def test_simulate_sweeps_param_resolver(dtype: Type[np.number], split: bool):
+def test_simulate_sweeps_param_resolver(dtype: DTypeLike, split: bool):
     q0, q1 = cirq.LineQubit.range(2)
     simulator = cirq.DensityMatrixSimulator(dtype=dtype, split_untangled_states=split)
     for b0 in [0, 1]:
@@ -730,7 +732,7 @@ def test_simulate_sweeps_param_resolver(dtype: Type[np.number], split: bool):
 
 @pytest.mark.parametrize('dtype', [np.complex64, np.complex128])
 @pytest.mark.parametrize('split', [True, False])
-def test_simulate_moment_steps(dtype: Type[np.number], split: bool):
+def test_simulate_moment_steps(dtype: DTypeLike, split: bool):
     q0, q1 = cirq.LineQubit.range(2)
     circuit = cirq.Circuit(cirq.H(q0), cirq.H(q1), cirq.H(q0), cirq.H(q1))
     simulator = cirq.DensityMatrixSimulator(dtype=dtype, split_untangled_states=split)
@@ -744,7 +746,7 @@ def test_simulate_moment_steps(dtype: Type[np.number], split: bool):
 
 @pytest.mark.parametrize('dtype', [np.complex64, np.complex128])
 @pytest.mark.parametrize('split', [True, False])
-def test_simulate_moment_steps_qudits(dtype: Type[np.number], split: bool):
+def test_simulate_moment_steps_qudits(dtype: DTypeLike, split: bool):
     q0, q1 = cirq.LineQid.for_qid_shape((2, 3))
     circuit = cirq.Circuit(
         cirq.XPowGate(dimension=2)(q0),
@@ -765,7 +767,7 @@ def test_simulate_moment_steps_qudits(dtype: Type[np.number], split: bool):
 
 @pytest.mark.parametrize('dtype', [np.complex64, np.complex128])
 @pytest.mark.parametrize('split', [True, False])
-def test_simulate_moment_steps_empty_circuit(dtype: Type[np.number], split: bool):
+def test_simulate_moment_steps_empty_circuit(dtype: DTypeLike, split: bool):
     circuit = cirq.Circuit()
     simulator = cirq.DensityMatrixSimulator(dtype=dtype, split_untangled_states=split)
     step = None
@@ -777,7 +779,7 @@ def test_simulate_moment_steps_empty_circuit(dtype: Type[np.number], split: bool
 
 @pytest.mark.parametrize('dtype', [np.complex64, np.complex128])
 @pytest.mark.parametrize('split', [True, False])
-def test_simulate_moment_steps_sample(dtype: Type[np.number], split: bool):
+def test_simulate_moment_steps_sample(dtype: DTypeLike, split: bool):
     q0, q1 = cirq.LineQubit.range(2)
     circuit = cirq.Circuit(cirq.H(q0), cirq.CNOT(q0, q1))
     simulator = cirq.DensityMatrixSimulator(dtype=dtype, split_untangled_states=split)
@@ -798,7 +800,7 @@ def test_simulate_moment_steps_sample(dtype: Type[np.number], split: bool):
 
 @pytest.mark.parametrize('dtype', [np.complex64, np.complex128])
 @pytest.mark.parametrize('split', [True, False])
-def test_simulate_moment_steps_sample_qudits(dtype: Type[np.number], split: bool):
+def test_simulate_moment_steps_sample_qudits(dtype: DTypeLike, split: bool):
     class TestGate(cirq.Gate):
         """Swaps the 2nd qid |0> and |2> states when the 1st is |1>."""
 
@@ -827,7 +829,7 @@ def test_simulate_moment_steps_sample_qudits(dtype: Type[np.number], split: bool
 
 @pytest.mark.parametrize('dtype', [np.complex64, np.complex128])
 @pytest.mark.parametrize('split', [True, False])
-def test_simulate_moment_steps_intermediate_measurement(dtype: Type[np.number], split: bool):
+def test_simulate_moment_steps_intermediate_measurement(dtype: DTypeLike, split: bool):
     q0 = cirq.LineQubit(0)
     circuit = cirq.Circuit(cirq.H(q0), cirq.measure(q0), cirq.H(q0))
     simulator = cirq.DensityMatrixSimulator(dtype=dtype, split_untangled_states=split)

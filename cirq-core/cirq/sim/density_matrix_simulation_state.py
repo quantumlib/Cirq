@@ -252,7 +252,7 @@ class DensityMatrixSimulationState(SimulationState[_BufferedDensityMatrix]):
         prng: Optional[np.random.RandomState] = None,
         qubits: Optional[Sequence['cirq.Qid']] = None,
         initial_state: Union[np.ndarray, 'cirq.STATE_VECTOR_LIKE'] = 0,
-        dtype: Type[np.number] = np.complex64,
+        dtype: 'DTypeLike' = np.complex64,
         classical_data: Optional['cirq.ClassicalDataStore'] = None,
     ):
         """Inits DensityMatrixSimulationState.
