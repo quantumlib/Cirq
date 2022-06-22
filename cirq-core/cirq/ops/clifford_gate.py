@@ -814,7 +814,7 @@ class SingleQubitCliffordGate(CliffordGate):
         result will be a sequence of zero, one, or two rotations.
 
         Note that the combined unitary effect of these rotations may
-        differ by a global phase from cirq.unitary(self).
+        differ from cirq.unitary(self) by a global phase.
         """
         x_rot = self.pauli_tuple(pauli_gates.X)
         y_rot = self.pauli_tuple(pauli_gates.Y)

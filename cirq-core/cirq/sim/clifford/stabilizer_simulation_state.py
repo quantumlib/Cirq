@@ -164,7 +164,7 @@ class StabilizerSimulationState(
             gate_and_phase = SingleQubitCliffordGate.from_unitary_with_global_phase(u)
             if gate_and_phase is not None:
                 clifford_gate, global_phase = gate_and_phase
-                # Apply rotations.
+                # Apply gates.
                 for gate in clifford_gate.decompose_gate():
                     self._strat_apply_gate(gate, qubits)
                 # Apply global phase.
