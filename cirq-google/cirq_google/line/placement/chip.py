@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Dict, List, Tuple, TYPE_CHECKING
+from typing import cast, Dict, List, Set, Tuple, TYPE_CHECKING
 
 import cirq
 
@@ -73,7 +73,7 @@ def right_of(qubit: cirq.GridQubit) -> cirq.GridQubit:
 
 
 def chip_as_adjacency_list(
-    device: 'cirq.Device',
+    device: 'cirq_google.GridDevice',
 ) -> Dict[cirq.GridQubit, List[cirq.GridQubit]]:
     """Gives adjacency list representation of a chip.
 
@@ -87,9 +87,9 @@ def chip_as_adjacency_list(
         Map from nodes to list of qubits which represent all the neighbours of
         given qubit.
     """
-    c_set = set(device.qubits)
+    c_set = cast(Set[cirq.GridQubit], device.metadata.qubit_set)
     c_adj: Dict[cirq.GridQubit, List[cirq.GridQubit]] = {}
-    for n in device.qubits:
+    for n in c_set:
         c_adj[n] = []
         for m in [above(n), left_of(n), below(n), right_of(n)]:
             if m in c_set:
