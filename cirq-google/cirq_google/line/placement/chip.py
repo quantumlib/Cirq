@@ -17,7 +17,6 @@ from typing import cast, Dict, List, Set, Tuple, TYPE_CHECKING
 import cirq
 
 if TYPE_CHECKING:
-    import cirq
     import cirq_google
 
 

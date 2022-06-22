@@ -22,7 +22,6 @@ from cirq_google.line.placement.chip import above, right_of, chip_as_adjacency_l
 from cirq_google.line.placement.sequence import GridQubitLineTuple, LineSequence
 
 if TYPE_CHECKING:
-    import cirq
     import cirq_google
 
 _STATE = Tuple[List[List[cirq.GridQubit]], Set[EDGE]]

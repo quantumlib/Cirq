@@ -24,7 +24,6 @@ from cirq_google.line.placement.sequence import GridQubitLineTuple
 
 if TYPE_CHECKING:
     from cirq_google.line.placement.sequence import LineSequence
-    import cirq
     import cirq_google
 
 

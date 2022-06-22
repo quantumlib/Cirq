@@ -18,7 +18,6 @@ from cirq_google.line.placement.place_strategy import LinePlacementStrategy
 from cirq_google.line.placement.sequence import GridQubitLineTuple
 
 if TYPE_CHECKING:
-    import cirq
     import cirq_google
 
 
