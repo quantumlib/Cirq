@@ -46,23 +46,6 @@ def unpack_any(message: any_pb2.Any, out: M) -> M:
     return out
 
 
-def deprecated_gate_set_parameter(func):
-    """Decorates a function that takes a deprecated 'gate_set' parameter."""
-    signature = inspect.signature(func)
-    gate_set_param = signature.parameters['gate_set']
-    assert gate_set_param.default is None  # Must be optional and default to None.
-    idx = list(signature.parameters).index('gate_set')
-
-    decorator = cirq._compat.deprecated_parameter(
-        deadline='v0.15',
-        fix='Remove the gate_set parameter.',
-        parameter_desc='gate_set',
-        match=lambda args, kwargs: 'gate_set' in kwargs
-        or (gate_set_param.kind != inspect.Parameter.KEYWORD_ONLY and len(args) > idx),
-    )
-    return decorator(func)
-
-
 def deprecated_get_device_gate_sets_parameter(param_name='gate_sets'):
     """Decorates get device functions, which take a deprecated 'gate_sets' parameter."""
 
