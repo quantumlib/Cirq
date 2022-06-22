@@ -15,6 +15,7 @@
 
 from typing import Any, Callable, cast, Dict, Iterable, List, Optional, Set, Tuple, Type, Union
 import cirq
+from cirq import _compat
 from cirq_google.serialization import serializable_gate_set
 from cirq_google.api import v2
 
@@ -66,6 +67,7 @@ class _GateDefinition:
 _GateOrFrozenCircuitTypes = Union[Type[cirq.Gate], Type[cirq.FrozenCircuit]]
 
 
+@_compat.deprecated_class(deadline='v0.16', fix='Use cirq_google.GridDevice instead.')
 class SerializableDevice(cirq.Device):
     """Device object generated from a device specification proto.
 
@@ -122,6 +124,11 @@ class SerializableDevice(cirq.Device):
         return self._metadata
 
     @classmethod
+    @_compat.deprecated(
+        deadline='v0.16',
+        fix='cirq_google.SerializableDevice is replaced cirq_google.GridDevice.'
+        ' Use cirq_google.GridDevice.from_proto() instead.',
+    )
     def from_proto(
         cls,
         proto: v2.device_pb2.DeviceSpecification,

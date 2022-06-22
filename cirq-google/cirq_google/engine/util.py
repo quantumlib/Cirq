@@ -69,7 +69,7 @@ def deprecated_get_device_gate_sets_parameter(param_name='gate_sets'):
     def decorator(func):
         signature = inspect.signature(func)
         gate_sets_param = signature.parameters[param_name]
-        assert gate_sets_param.default == ()
+        assert gate_sets_param.default == () or gate_sets_param.default is None
         idx = list(signature.parameters).index(param_name)
 
         deprecation_decorator = cirq._compat.deprecated_parameter(
