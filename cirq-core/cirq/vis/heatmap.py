@@ -75,11 +75,11 @@ class Heatmap:
 
     # pylint: disable=function-redefined
     @overload
-    def __init__(self, value_map: Mapping[QubitTuple, SupportsFloat], **kwargs):
+    def __init__(self, value_map: Mapping[QubitTuple, SupportsFloat], selected_qubits: Optional[QubitTuple], **kwargs):
         pass
 
     @overload
-    def __init__(self, value_map: Mapping[grid_qubit.GridQubit, SupportsFloat], **kwargs):
+    def __init__(self, value_map: Mapping[grid_qubit.GridQubit, SupportsFloat], selected_qubits: Optional[grid_qubit.GridQubit] , **kwargs):
         pass
 
     def __init__(
@@ -87,6 +87,7 @@ class Heatmap:
         value_map: Union[
             Mapping[QubitTuple, SupportsFloat], Mapping[grid_qubit.GridQubit, SupportsFloat]
         ],
+        selected_qubits: Optional[  Union[QubitTuple, grid_qubit.GridQubit] ],
         **kwargs,
     ):
         """2D qubit grid Heatmaps
@@ -117,6 +118,10 @@ class Heatmap:
                 colorbar_options: Matplotlib colorbar **kwargs, default = None,
 
 
+                edge_colors: Tuple[str], default = {'red', 'grey'}
+                linestyle: Tuple[str], default = {'solid', 'dashed'}
+                linewidths: Tuple[int], default = 4
+
                 collection_options: Matplotlib PolyCollection **kwargs, default
                                     {"cmap" : "viridis"}
                 vmin, vmax: colormap scaling floats, default = None
@@ -127,16 +132,37 @@ class Heatmap:
         self._validate_kwargs(kwargs)
         if '_config' not in self.__dict__:
             self._config: Dict[str, Any] = {}
-        self._config.update(
-            {
-                "plot_colorbar": True,
-                "colorbar_position": "right",
-                "colorbar_size": "5%",
-                "colorbar_pad": "2%",
-                "collection_options": {"cmap": "viridis"},
-                "annotation_format": ".2g",
-            }
-        )
+        if selected_qubits:
+            edge_colors = tuple('red' if q in selected_qubits else 'grey' for q in self.value_map.keys())
+            linestyle = tuple('solid' if q in selected_qubits else 'dashed' for q in self.value_map.keys())
+            linewidths = tuple(4 if q in selected_qubits else 2 for q in self.value_map.keys())
+
+            self._config.update(
+                {
+                    "plot_colorbar": True,
+                    "colorbar_position": "right",
+                    "colorbar_size": "5%",
+                    "colorbar_pad": "2%",
+                    "edge_colors": f"{edge_colors}",
+                    "linestyle": f"{linestyle}",
+                    "linewidths": f"{linewidths}",
+                    "collection_options": {"cmap": "viridis"},
+                    "annotation_format": ".2g",
+                }
+            )
+
+        else: 
+            self._config.update(
+                {
+                    "plot_colorbar": True,
+                    "colorbar_position": "right",
+                    "colorbar_size": "5%",
+                    "colorbar_pad": "2%",
+                    "collection_options": {"cmap": "viridis"},
+                    "annotation_format": ".2g",
+                }
+            )
+
         self._config.update(kwargs)
 
     def _extra_valid_kwargs(self) -> List[str]:
