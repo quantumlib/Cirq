@@ -23,3 +23,4 @@ from cirq.contrib import graph_device
 from cirq.contrib import quirk
 from cirq.contrib.qcircuit import circuit_to_latex_using_qcircuit
 from cirq.contrib import json
+from cirq.contrib.circuitdag import CircuitDag, Unique

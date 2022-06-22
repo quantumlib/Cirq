@@ -17,7 +17,7 @@
 from typing import Dict, cast, Optional, Tuple, List, Callable
 from pyquil import Program
 import cirq
-from cirq_rigetti._quil_output import RigettiQCSQuilOutput
+from cirq_rigetti.quil_output import RigettiQCSQuilOutput
 from typing_extensions import Protocol
 
 

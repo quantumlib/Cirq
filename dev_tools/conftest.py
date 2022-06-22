@@ -92,7 +92,7 @@ def cloned_env(testrun_uid, worker_id):
                 _create_base_env(base_dir, pip_install_args)
 
         clone_dir = base_temp_path / str(uuid.uuid4())
-        shell_tools.run_cmd("virtualenv-clone", str(base_dir), str(clone_dir))
+        shell_tools.run(["virtualenv-clone", str(base_dir), str(clone_dir)])
         return clone_dir
 
     def _check_for_reuse_or_recreate(env_dir: Path):
@@ -113,7 +113,7 @@ def cloned_env(testrun_uid, worker_id):
             with open(base_dir / "testrun.uid", mode="w") as f:
                 f.write(testrun_uid)
             if pip_install_args:
-                shell_tools.run_cmd(f"{base_dir}/bin/pip", "install", *pip_install_args)
+                shell_tools.run([f"{base_dir}/bin/pip", "install", *pip_install_args])
         except BaseException as ex:
             # cleanup on failure
             if base_dir.is_dir():

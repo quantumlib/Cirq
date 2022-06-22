@@ -265,12 +265,6 @@ def test_fail_to_resolve():
 QUBITS = cirq.LineQubit.range(5)
 Q0, Q1, Q2, Q3, Q4 = QUBITS
 
-# TODO: Include cirq.rx in the Circuit test case file.
-# Github issue: https://github.com/quantumlib/Cirq/issues/2014
-# Note that even the following doesn't work because theta gets
-# multiplied by 1/pi:
-#   cirq.Circuit(cirq.rx(sympy.Symbol('theta')).on(Q0)),
-
 ### MODULE CONSISTENCY tests
 
 
@@ -951,11 +945,17 @@ def test_basic_time_assertions():
 def test_datetime():
     naive_dt = datetime.datetime.now()
 
-    with pytest.raises(TypeError):
-        cirq.to_json(naive_dt)
+    re_naive_dt = cirq.read_json(json_text=cirq.to_json(naive_dt))
+    assert re_naive_dt != naive_dt, 'loads in with timezone'
+    assert re_naive_dt.timestamp() == naive_dt.timestamp()
 
     utc_dt = naive_dt.astimezone(datetime.timezone.utc)
-    assert utc_dt == cirq.read_json(json_text=cirq.to_json(utc_dt))
+    re_utc_dt = cirq.read_json(json_text=cirq.to_json(utc_dt))
+    assert re_utc_dt == utc_dt
+    assert re_utc_dt == re_naive_dt
 
     pst_dt = naive_dt.astimezone(tz=datetime.timezone(offset=datetime.timedelta(hours=-8)))
-    assert utc_dt == cirq.read_json(json_text=cirq.to_json(pst_dt))
+    re_pst_dt = cirq.read_json(json_text=cirq.to_json(pst_dt))
+    assert re_pst_dt == pst_dt
+    assert re_pst_dt == utc_dt
+    assert re_pst_dt == re_naive_dt

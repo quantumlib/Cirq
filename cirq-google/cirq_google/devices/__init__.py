@@ -17,7 +17,7 @@ from cirq_google.devices.google_noise_properties import (
     NoiseModelFromGoogleNoiseProperties,
 )
 
-from cirq_google.devices.known_devices import Bristlecone, Foxtail, Sycamore, Sycamore23
+from cirq_google.devices.known_devices import Sycamore, Sycamore23
 
 from cirq_google.devices.grid_device import GridDevice
 
