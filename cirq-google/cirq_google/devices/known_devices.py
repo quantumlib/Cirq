@@ -12,13 +12,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Collection, Dict, Optional, Iterable, List, Set, Tuple
+from typing import Collection, Dict, Optional, Iterable, List, Set, Tuple, cast
 
 import cirq
+from cirq import _compat
 from cirq_google.api import v2
 from cirq_google.api.v2 import device_pb2
-from cirq_google.devices.serializable_device import SerializableDevice
-from cirq_google.serialization import gate_sets, op_serializer, serializable_gate_set
+from cirq_google.devices import grid_device
+from cirq_google.experimental.ops import coupler_pulse
+from cirq_google.ops import physical_z_tag, sycamore_gate
+from cirq_google.serialization import op_serializer, serializable_gate_set
 
 _2_QUBIT_TARGET_SET = "2_qubit_targets"
 _MEAS_TARGET_SET = "meas_targets"
@@ -52,6 +55,13 @@ def _parse_device(s: str) -> Tuple[List[cirq.GridQubit], Dict[str, Set[cirq.Grid
     return qubits, measurement_lines
 
 
+@_compat.deprecated(
+    deadline='v0.16',
+    fix='This function will no longer be available.'
+    ' `cirq_google.grid_device.create_device_specification_proto()` can be used'
+    ' to generate a DeviceSpecification proto which matches the format expected'
+    ' by GridDevice.',
+)
 def create_device_proto_from_diagram(
     ascii_grid: str,
     gate_sets: Optional[Iterable[serializable_gate_set.SerializableGateSet]] = None,
@@ -59,10 +69,8 @@ def create_device_proto_from_diagram(
     out: Optional[device_pb2.DeviceSpecification] = None,
 ) -> device_pb2.DeviceSpecification:
     """Parse ASCIIart device layout into DeviceSpecification proto.
-
     This function assumes that all pairs of adjacent qubits are valid targets
     for two-qubit gates.
-
     Args:
         ascii_grid: ASCII version of the grid (see _parse_device for details).
         gate_sets: Gate sets that define the translation between gate ids and
@@ -81,6 +89,39 @@ def create_device_proto_from_diagram(
                 pairs.append((qubit, neighbor))
 
     return create_device_proto_for_qubits(qubits, pairs, gate_sets, durations_picos, out)
+
+
+def _create_grid_device_from_diagram(
+    ascii_grid: str,
+    gateset: cirq.Gateset,
+    gate_durations: Optional[Dict['cirq.GateFamily', 'cirq.Duration']] = None,
+    out: Optional[device_pb2.DeviceSpecification] = None,
+) -> grid_device.GridDevice:
+    """Parse ASCIIart device layout into a GridDevice instance.
+
+    This function assumes that all pairs of adjacent qubits are valid targets
+    for two-qubit gates.
+
+    Args:
+        ascii_grid: ASCII version of the grid (see _parse_device for details).
+        gateset: The device's gate set.
+        gate_durations: A map of durations for each gate in the gate set.
+        out: If given, populate this proto, otherwise create a new proto.
+    """
+    qubits, _ = _parse_device(ascii_grid)
+
+    # Create a list of all adjacent pairs on the grid for two-qubit gates.
+    qubit_set = frozenset(qubits)
+    pairs: List[Tuple[cirq.GridQubit, cirq.GridQubit]] = []
+    for qubit in qubits:
+        for neighbor in sorted(qubit.neighbors()):
+            if neighbor > qubit and neighbor in qubit_set:
+                pairs.append((qubit, cast(cirq.GridQubit, neighbor)))
+
+    device_specification = grid_device.create_device_specification_proto(
+        qubits=qubits, pairs=pairs, gateset=gateset, gate_durations=gate_durations, out=out
+    )
+    return grid_device.GridDevice.from_proto(device_specification)
 
 
 def create_device_proto_for_qubits(
@@ -220,6 +261,8 @@ ABCDEFGHI-
 ----I-----
 """
 
+
+# Deprecated: replaced by _SYCAMORE_DURATIONS
 _SYCAMORE_DURATIONS_PICOS = {
     'xy': 25_000,
     'xy_half_pi': 25_000,
@@ -232,13 +275,39 @@ _SYCAMORE_DURATIONS_PICOS = {
     'meas': 4_000_000,  # 1000 ns for readout, 3000ns for ring_down
 }
 
-SYCAMORE_PROTO = create_device_proto_from_diagram(
-    _SYCAMORE_GRID, [gate_sets.SQRT_ISWAP_GATESET, gate_sets.SYC_GATESET], _SYCAMORE_DURATIONS_PICOS
+
+_SYCAMORE_GATESET = cirq.Gateset(
+    sycamore_gate.SYC,
+    cirq.SQRT_ISWAP,
+    cirq.SQRT_ISWAP_INV,
+    cirq.PhasedXZGate,
+    # Physical Z and virtual Z gates are represented separately because they
+    # have different gate durations.
+    cirq.GateFamily(cirq.ZPowGate, tags_to_ignore=[physical_z_tag.PhysicalZTag()]),
+    cirq.GateFamily(cirq.ZPowGate, tags_to_accept=[physical_z_tag.PhysicalZTag()]),
+    coupler_pulse.CouplerPulse,
+    cirq.MeasurementGate,
+    cirq.WaitGate,
 )
 
-Sycamore = SerializableDevice.from_proto(
-    proto=SYCAMORE_PROTO, gate_sets=[gate_sets.SQRT_ISWAP_GATESET, gate_sets.SYC_GATESET]
-)
+
+_SYCAMORE_DURATIONS = {
+    cirq.GateFamily(sycamore_gate.SYC): cirq.Duration(nanos=12),
+    cirq.GateFamily(cirq.SQRT_ISWAP): cirq.Duration(nanos=32),
+    cirq.GateFamily(cirq.SQRT_ISWAP_INV): cirq.Duration(nanos=32),
+    cirq.GateFamily(cirq.ops.phased_x_z_gate.PhasedXZGate): cirq.Duration(nanos=25),
+    cirq.GateFamily(
+        cirq.ops.common_gates.ZPowGate, tags_to_ignore=[physical_z_tag.PhysicalZTag()]
+    ): cirq.Duration(nanos=0),
+    cirq.GateFamily(
+        cirq.ops.common_gates.ZPowGate, tags_to_accept=[physical_z_tag.PhysicalZTag()]
+    ): cirq.Duration(nanos=20),
+    cirq.GateFamily(cirq.ops.measurement_gate.MeasurementGate): cirq.Duration(millis=4),
+}
+
+
+Sycamore = _create_grid_device_from_diagram(_SYCAMORE_GRID, _SYCAMORE_GATESET, _SYCAMORE_DURATIONS)
+
 
 # Subset of the Sycamore grid with a reduced layout.
 _SYCAMORE23_GRID = """
@@ -254,12 +323,7 @@ ABCDE-----
 ----I-----
 """
 
-SYCAMORE23_PROTO = create_device_proto_from_diagram(
-    _SYCAMORE23_GRID,
-    [gate_sets.SQRT_ISWAP_GATESET, gate_sets.SYC_GATESET],
-    _SYCAMORE_DURATIONS_PICOS,
-)
 
-Sycamore23 = SerializableDevice.from_proto(
-    proto=SYCAMORE23_PROTO, gate_sets=[gate_sets.SQRT_ISWAP_GATESET, gate_sets.SYC_GATESET]
+Sycamore23 = _create_grid_device_from_diagram(
+    _SYCAMORE23_GRID, _SYCAMORE_GATESET, _SYCAMORE_DURATIONS
 )

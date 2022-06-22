@@ -872,6 +872,7 @@ def get_engine(project_id: Optional[str] = None) -> Engine:
     return Engine(project_id=project_id, service_args=service_args)
 
 
+@util.deprecated_get_device_gate_sets_parameter(param_name='gatesets')
 def get_engine_device(
     processor_id: str,
     project_id: Optional[str] = None,
@@ -880,11 +881,9 @@ def get_engine_device(
     """Returns a `Device` object for a given processor.
 
     This is a short-cut for creating an engine object, getting the
-    processor object, and retrieving the device.  Note that the
-    gateset is required in order to match the serialized specification
-    back into cirq objects.
+    processor object, and retrieving the device.
     """
-    return get_engine(project_id).get_processor(processor_id).get_device(gatesets)
+    return get_engine(project_id).get_processor(processor_id).get_device()
 
 
 def get_engine_calibration(
