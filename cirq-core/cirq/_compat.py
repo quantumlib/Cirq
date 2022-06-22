@@ -17,7 +17,6 @@ import contextlib
 import dataclasses
 import functools
 import importlib
-import inspect
 import os
 import re
 import sys
@@ -309,34 +308,24 @@ def deprecated_parameter(
     """
     _validate_deadline(deadline)
 
-    def invoke(func, *args, **kwargs):
-        if match(args, kwargs):
-            if rewrite is not None:
-                args, kwargs = rewrite(args, kwargs)
-
-            qualname = func.__qualname__ if func_name is None else func_name
-            _warn_or_error(
-                f'The {parameter_desc} parameter of {qualname} was used but is deprecated.\n'
-                f'It will be removed in cirq {deadline}.\n'
-                f'{fix}\n'
-            )
-        return func(*args, **kwargs)
-
     def decorator(func: Callable) -> Callable:
-        if inspect.iscoroutinefunction(func):
+        @functools.wraps(func)
+        def decorated_func(*args, **kwargs) -> Any:
+            if match(args, kwargs):
+                if rewrite is not None:
+                    args, kwargs = rewrite(args, kwargs)
 
-            @functools.wraps(func)
-            async def decorated_func(*args, **kwargs) -> Any:
-                return await invoke(func, *args, **kwargs)
+                qualname = func.__qualname__ if func_name is None else func_name
+                _warn_or_error(
+                    f'The {parameter_desc} parameter of {qualname} was '
+                    f'used but is deprecated.\n'
+                    f'It will be removed in cirq {deadline}.\n'
+                    f'{fix}\n'
+                )
 
-            return decorated_func
-        else:
+            return func(*args, **kwargs)
 
-            @functools.wraps(func)
-            def decorated_func(*args, **kwargs) -> Any:
-                return invoke(func, *args, **kwargs)
-
-            return decorated_func
+        return decorated_func
 
     return decorator
 
