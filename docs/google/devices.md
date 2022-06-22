@@ -68,14 +68,14 @@ if a moment has gates of duration 12ns, 25ns, and 32ns, the entire moment
 will take 32ns.  Qubits executing the shorter gtes will idle during the rest
 of the time.  To minimize the duration of the circuit, it is best to align
 gates of the same duration together when possible.  See the
-[best practices](./best_practices.ipynb) for more details.
+[best practices](/cirq/google/best_practices.ipynb) for more details.
 
 ## Gates supported
 
 The following lists the gates supported by Google devices.
 Please note that gate durations are subject to change as hardware is
 updated and modified, so please refer to the
-[device specification](./specification.md)
+[device specification](/cirq/google/specification.md)
 to get up-to-date information on supported gates and durations for
 specific processors.
 
@@ -85,7 +85,7 @@ This can include both incoherent as well as coherent error.
 
 Note: Gate durations are subject to change based on device or
 configuration.  To get gates durations for a specific device, see the
-[Device specification](./specification.md#gate-durations) page.  Also
+[Device specification](/cirq/google/specification.md#gate-durations) page.  Also
 note that some gates (such as Z gates or Fsim gates) have multiple
 variations that can have different durations.
 
