@@ -1450,7 +1450,7 @@ class AbstractCircuit(abc.ABC):
                 ) from ex
         return result
 
-    def ragged_concat(
+    def concat_ragged(
         *circuits: 'cirq.AbstractCircuit', align: Union['cirq.Alignment', str] = Alignment.LEFT
     ) -> 'cirq.AbstractCircuit':
         """Concatenates circuits, overlapping them if possible due to ragged edges.
@@ -1467,7 +1467,7 @@ class AbstractCircuit(abc.ABC):
             >>> a, b = cirq.LineQubit.range(2)
             >>> A = cirq.Circuit(cirq.H(a))
             >>> B = cirq.Circuit(cirq.H(b))
-            >>> f = cirq.Circuit.ragged_concat
+            >>> f = cirq.Circuit.concat_ragged
             >>> f(f(A, B), A) == f(A, f(B, A))
             False
             >>> len(f(f(f(A, B), A), B)) == len(f(f(A, f(B, A)), B))
@@ -1503,11 +1503,11 @@ class AbstractCircuit(abc.ABC):
 
         # Accumulate all the circuits into the buffer.
         for k in range(1, len(circuits)):
-            offset, n_acc = _ragged_concat_helper(offset, n_acc, buffer, circuits[k].moments, align)
+            offset, n_acc = _concat_ragged_helper(offset, n_acc, buffer, circuits[k].moments, align)
 
         return cirq.Circuit(buffer[offset : offset + n_acc])
 
-    @_compat.deprecated(deadline='v0.16', fix='Renaming to ragged_concat')
+    @_compat.deprecated(deadline='v0.16', fix='Renaming to concat_ragged')
     def tetris_concat(
         *circuits: 'cirq.AbstractCircuit', align: Union['cirq.Alignment', str] = Alignment.LEFT
     ) -> 'cirq.AbstractCircuit':
@@ -1561,7 +1561,7 @@ class AbstractCircuit(abc.ABC):
 
         # Accumulate all the circuits into the buffer.
         for k in range(1, len(circuits)):
-            offset, n_acc = _ragged_concat_helper(offset, n_acc, buffer, circuits[k].moments, align)
+            offset, n_acc = _concat_ragged_helper(offset, n_acc, buffer, circuits[k].moments, align)
 
         return cirq.Circuit(buffer[offset : offset + n_acc])
 
@@ -1691,7 +1691,7 @@ def _overlap_collision_time(
     return upper_bound
 
 
-def _ragged_concat_helper(
+def _concat_ragged_helper(
     c1_offset: int, n1: int, buf: np.ndarray, c2: Sequence['cirq.Moment'], align: 'cirq.Alignment'
 ) -> Tuple[int, int]:
     n2 = len(c2)
@@ -1904,14 +1904,14 @@ class Circuit(AbstractCircuit):
 
     __hash__ = None  # type: ignore
 
-    def ragged_concat(
+    def concat_ragged(
         *circuits: 'cirq.AbstractCircuit', align: Union['cirq.Alignment', str] = Alignment.LEFT
     ) -> 'cirq.Circuit':
-        return AbstractCircuit.ragged_concat(*circuits, align=align).unfreeze(copy=False)
+        return AbstractCircuit.concat_ragged(*circuits, align=align).unfreeze(copy=False)
 
-    ragged_concat.__doc__ = AbstractCircuit.ragged_concat.__doc__
+    concat_ragged.__doc__ = AbstractCircuit.concat_ragged.__doc__
 
-    @_compat.deprecated(deadline='v0.16', fix='Renaming to ragged_concat')
+    @_compat.deprecated(deadline='v0.16', fix='Renaming to concat_ragged')
     def tetris_concat(
         *circuits: 'cirq.AbstractCircuit', align: Union['cirq.Alignment', str] = Alignment.LEFT
     ) -> 'cirq.Circuit':

@@ -4524,33 +4524,33 @@ def test_tetris_concat_alignment_deprecated():
         )
 
 
-def test_ragged_concat():
+def test_concat_ragged():
     a, b = cirq.LineQubit.range(2)
     empty = cirq.Circuit()
 
-    assert cirq.Circuit.ragged_concat(empty, empty) == empty
-    assert cirq.Circuit.ragged_concat() == empty
-    assert empty.ragged_concat(empty) == empty
-    assert empty.ragged_concat(empty, empty) == empty
+    assert cirq.Circuit.concat_ragged(empty, empty) == empty
+    assert cirq.Circuit.concat_ragged() == empty
+    assert empty.concat_ragged(empty) == empty
+    assert empty.concat_ragged(empty, empty) == empty
 
     ha = cirq.Circuit(cirq.H(a))
     hb = cirq.Circuit(cirq.H(b))
-    assert ha.ragged_concat(hb) == ha.zip(hb)
+    assert ha.concat_ragged(hb) == ha.zip(hb)
 
-    assert ha.ragged_concat(empty) == ha
-    assert empty.ragged_concat(ha) == ha
+    assert ha.concat_ragged(empty) == ha
+    assert empty.concat_ragged(ha) == ha
 
     hac = cirq.Circuit(cirq.H(a), cirq.CNOT(a, b))
-    assert hac.ragged_concat(hb) == hac + hb
-    assert hb.ragged_concat(hac) == hb.zip(hac)
+    assert hac.concat_ragged(hb) == hac + hb
+    assert hb.concat_ragged(hac) == hb.zip(hac)
 
     zig = cirq.Circuit(cirq.H(a), cirq.CNOT(a, b), cirq.H(b))
-    assert zig.ragged_concat(zig) == cirq.Circuit(
+    assert zig.concat_ragged(zig) == cirq.Circuit(
         cirq.H(a), cirq.CNOT(a, b), cirq.Moment(cirq.H(a), cirq.H(b)), cirq.CNOT(a, b), cirq.H(b)
     )
 
     zag = cirq.Circuit(cirq.H(a), cirq.H(a), cirq.CNOT(a, b), cirq.H(b), cirq.H(b))
-    assert zag.ragged_concat(zag) == cirq.Circuit(
+    assert zag.concat_ragged(zag) == cirq.Circuit(
         cirq.H(a),
         cirq.H(a),
         cirq.CNOT(a, b),
@@ -4562,7 +4562,7 @@ def test_ragged_concat():
     )
 
     space = cirq.Circuit(cirq.Moment()) * 10
-    f = cirq.Circuit.ragged_concat
+    f = cirq.Circuit.concat_ragged
     assert len(f(space, ha)) == 10
     assert len(f(space, ha, ha, ha)) == 10
     assert len(f(space, f(ha, ha, ha))) == 10
@@ -4671,22 +4671,22 @@ def test_ragged_concat():
         )
 
     # Types.
-    v = ha.freeze().ragged_concat(empty)
+    v = ha.freeze().concat_ragged(empty)
     assert type(v) is cirq.FrozenCircuit and v == ha.freeze()
-    v = ha.ragged_concat(empty.freeze())
+    v = ha.concat_ragged(empty.freeze())
     assert type(v) is cirq.Circuit and v == ha
-    v = ha.freeze().ragged_concat(empty)
+    v = ha.freeze().concat_ragged(empty)
     assert type(v) is cirq.FrozenCircuit and v == ha.freeze()
-    v = cirq.Circuit.ragged_concat(ha, empty)
+    v = cirq.Circuit.concat_ragged(ha, empty)
     assert type(v) is cirq.Circuit and v == ha
-    v = cirq.FrozenCircuit.ragged_concat(ha, empty)
+    v = cirq.FrozenCircuit.concat_ragged(ha, empty)
     assert type(v) is cirq.FrozenCircuit and v == ha.freeze()
 
 
-def test_ragged_concat_alignment():
+def test_concat_ragged_alignment():
     a, b = cirq.LineQubit.range(2)
 
-    assert cirq.Circuit.ragged_concat(
+    assert cirq.Circuit.concat_ragged(
         cirq.Circuit(cirq.X(a)), cirq.Circuit(cirq.Y(b)) * 4, cirq.Circuit(cirq.Z(a)), align='first'
     ) == cirq.Circuit(
         cirq.Moment(cirq.X(a), cirq.Y(b)),
@@ -4695,7 +4695,7 @@ def test_ragged_concat_alignment():
         cirq.Moment(cirq.Z(a), cirq.Y(b)),
     )
 
-    assert cirq.Circuit.ragged_concat(
+    assert cirq.Circuit.concat_ragged(
         cirq.Circuit(cirq.X(a)), cirq.Circuit(cirq.Y(b)) * 4, cirq.Circuit(cirq.Z(a)), align='left'
     ) == cirq.Circuit(
         cirq.Moment(cirq.X(a), cirq.Y(b)),
@@ -4704,7 +4704,7 @@ def test_ragged_concat_alignment():
         cirq.Moment(cirq.Y(b)),
     )
 
-    assert cirq.Circuit.ragged_concat(
+    assert cirq.Circuit.concat_ragged(
         cirq.Circuit(cirq.X(a)), cirq.Circuit(cirq.Y(b)) * 4, cirq.Circuit(cirq.Z(a)), align='right'
     ) == cirq.Circuit(
         cirq.Moment(cirq.Y(b)),
