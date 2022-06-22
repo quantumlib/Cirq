@@ -278,7 +278,7 @@ class _ParamFlattener(resolver.ParamResolver):
             return out
         # Create a new symbol
         symbol = self._next_symbol(value)
-        self.param_dict[value] = symbol
+        self._param_dict[value] = symbol
         self._taken_symbols.add(symbol)
         return symbol
 
@@ -292,9 +292,9 @@ class _ParamFlattener(resolver.ParamResolver):
 
     def __repr__(self) -> str:
         if self.get_param_name == self.default_get_param_name:
-            return f'_ParamFlattener({self.param_dict!r})'
+            return f'_ParamFlattener({self._param_dict!r})'
         else:
-            return f'_ParamFlattener({self.param_dict!r}, get_param_name={self.get_param_name!r})'
+            return f'_ParamFlattener({self._param_dict!r}, get_param_name={self.get_param_name!r})'
 
     def flatten(self, val: Any) -> Any:
         """Returns a copy of `val` with any symbols or expressions replaced with
