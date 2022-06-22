@@ -87,7 +87,6 @@ def cached_method(*args: Any, maxsize: int = 128) -> Any:
     return decorator(args[0]) if args else decorator
 
 
-
 def proper_repr(value: Any) -> str:
     """Overrides sympy and numpy returning repr strings that don't parse."""
 
