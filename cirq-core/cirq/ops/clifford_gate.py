@@ -620,6 +620,29 @@ class SingleQubitCliffordGate(CliffordGate):
             _to_clifford_tableau(x_to=x_to, z_to=z_to)
         )
 
+    @classmethod
+    def from_unitary_with_global_phase(
+        cls, u: np.ndarray
+    ) -> Optional[Tuple['SingleQubitCliffordGate', complex]]:
+        """Creates Clifford gate with given unitary, including global phase.
+
+        Args:
+            u: 2x2 unitary matrix of a Clifford gate.
+
+        Returns:
+            A tuple of a SingleQubitCliffordGate and a global phase, such that
+            the gate unitary (as given by `cirq.unitary`) times the global phase
+            is identical to the given unitary `u`; or `None` if `u` is not the
+            matrix of a single-qubit Clifford gate.
+        """
+        gate = cls.from_unitary(u)
+        if gate is None:
+            return None
+        # Find the entry with the largest magnitude in the input unitary, to find
+        # the global phase difference between the input unitary and the gate unitary.
+        k = max(np.ndindex(*u.shape), key=lambda t: abs(u[t]))
+        return gate, u[k] / protocols.unitary(gate)[k]
+
     def pauli_tuple(self, pauli: Pauli) -> Tuple[Pauli, bool]:
         """Returns a tuple of a Pauli operator and a boolean.
 
@@ -730,10 +753,7 @@ class SingleQubitCliffordGate(CliffordGate):
     # Single Clifford Gate decomposition is more efficient than the general Tableau decomposition.
     def _decompose_(self, qubits: Sequence['cirq.Qid']) -> 'cirq.OP_TREE':
         (qubit,) = qubits
-        if self == SingleQubitCliffordGate.H:
-            return (common_gates.H(qubit),)
-        rotations = self.decompose_rotation()
-        return tuple(r.on(qubit) ** (qt / 2) for r, qt in rotations)
+        return tuple(gate.on(qubit) for gate in self.decompose_gate())
 
     def _commutes_(
         self, other: Any, *, atol: float = 1e-8
@@ -773,10 +793,29 @@ class SingleQubitCliffordGate(CliffordGate):
             mat = protocols.unitary(op).dot(mat)
         return mat
 
-    def decompose_rotation(self) -> Sequence[Tuple[Pauli, int]]:
-        """Returns ((first_rotation_axis, first_rotation_quarter_turns), ...)
+    def decompose_gate(self) -> Sequence['cirq.Gate']:
+        """Decomposes this clifford into a series of H and pauli rotation gates.
 
-        This is a sequence of zero, one, or two rotations."""
+        Returns:
+            A sequence of H and pauli rotation gates which are equivalent to this
+            clifford gate if applied in order. This decomposition agrees with
+            cirq.unitary(self), including global phase.
+        """
+        if self == SingleQubitCliffordGate.H:
+            return [common_gates.H]
+        rotations = self.decompose_rotation()
+        return [r ** (qt / 2) for r, qt in rotations]
+
+    def decompose_rotation(self) -> Sequence[Tuple[Pauli, int]]:
+        """Decomposes this clifford into a series of pauli rotations.
+
+        Each rotation is given as a tuple of (axis, quarter_turns),
+        where axis is a Pauli giving the axis to rotate about. The
+        result will be a sequence of zero, one, or two rotations.
+
+        Note that the combined unitary effect of these rotations may
+        differ from cirq.unitary(self) by a global phase.
+        """
         x_rot = self.pauli_tuple(pauli_gates.X)
         y_rot = self.pauli_tuple(pauli_gates.Y)
         z_rot = self.pauli_tuple(pauli_gates.Z)
