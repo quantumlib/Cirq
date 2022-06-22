@@ -21,8 +21,8 @@ To be informed of deprecations and breaking changes, subscribe to the
 
 Cirq currently supports python 3.7 and later.
 We follow numpy's schedule for python version support defined in [NEP 29](https://numpy.org/neps/nep-0029-deprecation_policy.html),
-though we may deviate from that schedule by extending support for older versions,
-if needed for compatibility with [Colab](https://colab.research.google.com/)
+though we may deviate from that schedule by extending support for older python
+versions if they are needed by [Colab](https://colab.research.google.com/)
 or internal Google systems.
 
 ## Installing on Linux
