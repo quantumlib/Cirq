@@ -49,13 +49,13 @@ def test_init():
 
 def test_qubit_order_mismatch():
     q0, q1 = cirq.LineQubit.range(2)
-    with pytest.raises(ValueError, match='are not a subset'):
+    with pytest.raises(ValueError, match='are not an ordered subset'):
         _ = cirq.PauliStringPhasor(1j * cirq.X(q0), qubits=[q1])
-    with pytest.raises(ValueError, match='are not a subset'):
+    with pytest.raises(ValueError, match='are not an ordered subset'):
         _ = cirq.PauliStringPhasor(1j * cirq.X(q0) * cirq.X(q1), qubits=[q1])
-    with pytest.raises(ValueError, match='are not a subset'):
+    with pytest.raises(ValueError, match='are not an ordered subset'):
         _ = cirq.PauliStringPhasor(1j * cirq.X(q0), qubits=[])
-    with pytest.raises(ValueError, match='are not a subset'):
+    with pytest.raises(ValueError, match='are not an ordered subset'):
         _ = cirq.PauliStringPhasor(1j * cirq.X(q0) * cirq.X(q1), qubits=[q1, q0])
 
 
@@ -124,6 +124,14 @@ def test_map_qubits():
         cirq.PauliString({q4: cirq.Z, q3: cirq.Y}), qubits=[q4, q3, q5], exponent_neg=0.1
     )
     assert before.map_qubits(qubit_map) == after
+
+
+def test_map_qubits_missing_qubits():
+    q0, q1, q2 = _make_qubits(3)
+    qubit_map = {q1: q2}
+    before = cirq.PauliStringPhasor(cirq.PauliString({q0: cirq.Z, q1: cirq.Y}), exponent_neg=0.1)
+    with pytest.raises(ValueError, match="have a key"):
+        _ = before.map_qubits(qubit_map)
 
 
 def test_pow():
@@ -447,6 +455,72 @@ def test_str():
 
     ps = cirq.PauliStringPhasor(cirq.PauliString({q0: cirq.X}, +1), qubits=[q0, q1]) ** 0.5
     assert str(ps) == '(X(q0))**0.5'
+
+
+def test_old_json():
+    """Older versions of PauliStringPhasor did not have a qubit field."""
+    old_json = """
+    {
+      "cirq_type": "PauliStringPhasor",
+      "pauli_string": {
+        "cirq_type": "PauliString",
+        "qubit_pauli_map": [
+          [
+            {
+              "cirq_type": "LineQubit",
+              "x": 0
+            },
+            {
+              "cirq_type": "_PauliX",
+              "exponent": 1.0,
+              "global_shift": 0.0
+            }
+          ],
+          [
+            {
+              "cirq_type": "LineQubit",
+              "x": 1
+            },
+            {
+              "cirq_type": "_PauliY",
+              "exponent": 1.0,
+              "global_shift": 0.0
+            }
+          ],
+          [
+            {
+              "cirq_type": "LineQubit",
+              "x": 2
+            },
+            {
+              "cirq_type": "_PauliZ",
+              "exponent": 1.0,
+              "global_shift": 0.0
+            }
+          ]
+        ],
+        "coefficient": {
+          "cirq_type": "complex",
+          "real": 1.0,
+          "imag": 0.0
+        }
+      },
+      "exponent_neg": 0.2,
+      "exponent_pos": 0.1
+    }
+    """
+    phasor = cirq.read_json(json_text=old_json)
+    assert phasor == cirq.PauliStringPhasor(
+        (
+            (1 + 0j)
+            * cirq.X(cirq.LineQubit(0))
+            * cirq.Y(cirq.LineQubit(1))
+            * cirq.Z(cirq.LineQubit(2))
+        ),
+        qubits=(cirq.LineQubit(0), cirq.LineQubit(1), cirq.LineQubit(2)),
+        exponent_neg=0.2,
+        exponent_pos=0.1,
+    )
 
 
 def test_gate_init():

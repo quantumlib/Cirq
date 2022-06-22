@@ -148,7 +148,23 @@ class PauliStringPhasor(gate_operation.GateOperation):
         return False
 
     def map_qubits(self, qubit_map: Dict[raw_types.Qid, raw_types.Qid]):
-        """Maps the qubits inside the PauliString."""
+        """Maps the qubits inside the PauliStringPhasor.
+
+        Args:
+            qubit_map: A map from the qubits in the phasor to new qubits.
+
+        Returns:
+            A new PauliStringPhasor with remapped qubits.
+
+        Raises:
+            ValueError: If the map does not contain an entry for all
+                the qubits in the phasor.
+        """
+        if not set(self.qubits) <= qubit_map.keys():
+            raise ValueError(
+                "qubit_map must have a key for every qubit in the phasors qubits. "
+                f"keys: {qubit_map.keys()} phasor qubits: {self.qubits}"
+            )
         return PauliStringPhasor(
             pauli_string=self.pauli_string.map_qubits(qubit_map),
             qubits=[qubit_map[q] for q in self.qubits],
@@ -237,6 +253,16 @@ class PauliStringPhasor(gate_operation.GateOperation):
     def _json_dict_(self):
         return protocols.obj_to_dict_helper(
             self, ['pauli_string', 'qubits', 'exponent_neg', 'exponent_pos']
+        )
+
+    @classmethod
+    def _from_json_dict_(cls, pauli_string, exponent_neg, exponent_pos, **kwargs):
+        qubits = kwargs['qubits'] if 'qubits' in kwargs else None
+        return PauliStringPhasor(
+            pauli_string=pauli_string,
+            qubits=qubits,
+            exponent_neg=exponent_neg,
+            exponent_pos=exponent_pos,
         )
 
 
