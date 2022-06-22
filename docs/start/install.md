@@ -17,6 +17,14 @@ We may change or remove parts of Cirq's API when making new releases.
 To be informed of deprecations and breaking changes, subscribe to the
 [cirq-announce google group mailing list](https://groups.google.com/forum/#!forum/cirq-announce).
 
+## Python version supprt
+
+Cirq currently supports python 3.7 and later.
+We follow numpy's schedule for python version support defined in [NEP 29](https://numpy.org/neps/nep-0029-deprecation_policy.html),
+though we may deviate from that schedule by extending support for older python
+versions if they are needed by [Colab](https://colab.research.google.com/)
+or internal Google systems.
+
 ## Installing on Linux
 
 0. Make sure you have python 3.7.0 or greater.
