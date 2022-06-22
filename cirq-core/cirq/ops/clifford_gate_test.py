@@ -546,7 +546,6 @@ def test_from_unitary_with_phase_shift():
     assert np.allclose(cirq.unitary(gate2) * global_phase, u)
 
 
-
 def test_from_unitary_not_clifford():
     # Not a single-qubit gate.
     u = cirq.unitary(cirq.CNOT)
@@ -562,6 +561,28 @@ def test_from_unitary_not_clifford():
     u = cirq.unitary(cirq.T)
     assert cirq.SingleQubitCliffordGate.from_unitary(u) is None
     assert cirq.SingleQubitCliffordGate.from_unitary_with_global_phase(u) is None
+
+
+@pytest.mark.parametrize(
+    "clifford_gate",
+    (
+        cirq.SingleQubitCliffordGate.I,
+        cirq.SingleQubitCliffordGate.H,
+        cirq.SingleQubitCliffordGate.X,
+        cirq.SingleQubitCliffordGate.Y,
+        cirq.SingleQubitCliffordGate.Z,
+        cirq.SingleQubitCliffordGate.X_sqrt,
+        cirq.SingleQubitCliffordGate.Y_sqrt,
+        cirq.SingleQubitCliffordGate.Z_sqrt,
+        cirq.SingleQubitCliffordGate.X_nsqrt,
+        cirq.SingleQubitCliffordGate.Y_nsqrt,
+        cirq.SingleQubitCliffordGate.Z_nsqrt,
+    ),
+)
+def test_decompose_gate(clifford_gate):
+    gates = clifford_gate.decompose_gate()
+    u = functools.reduce(np.dot, [np.eye(2), *(cirq.unitary(gate) for gate in reversed(gates))])
+    assert np.allclose(u, cirq.unitary(clifford_gate))  # No global phase difference.
 
 
 @pytest.mark.parametrize('trans_x,trans_z', _all_rotation_pairs())
