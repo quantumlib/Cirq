@@ -14,19 +14,18 @@
 
 import os
 import subprocess
-from typing import TYPE_CHECKING, Iterable
+from typing import Iterable
+
+import pytest
 
 from dev_tools import shell_tools
 from dev_tools.test_utils import only_on_posix
-
-if TYPE_CHECKING:
-    import pytest
 
 
 def run(
     *,
     script_file: str,
-    tmpdir_factory: 'pytest.TempdirFactory',
+    tmpdir_factory: pytest.TempdirFactory,
     arg: str = '',
     setup: str = '',
     additional_intercepts: Iterable[str] = (),
