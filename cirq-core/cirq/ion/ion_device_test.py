@@ -19,16 +19,20 @@ import pytest
 import cirq
 import cirq.ion as ci
 import cirq.testing
+import sympy.utilities.matchpy_connector
 
 
 def ion_device(chain_length: int, use_timedelta=False) -> ci.IonDevice:
     ms = 1000 * cirq.Duration(nanos=1) if not use_timedelta else timedelta(microseconds=1)
-    return ci.IonDevice(  # type: ignore
-        measurement_duration=100 * ms,  # type: ignore
-        twoq_gates_duration=200 * ms,  # type: ignore
-        oneq_gates_duration=10 * ms,  # type: ignore
-        qubits=cirq.LineQubit.range(chain_length),
-    )
+    with cirq.testing.assert_deprecated(
+        "Use cirq_aqt.aqt_device.AQTDevice", deadline='v0.16', count=None
+    ):
+        return ci.IonDevice(  # type: ignore
+            measurement_duration=100 * ms,  # type: ignore
+            twoq_gates_duration=200 * ms,  # type: ignore
+            oneq_gates_duration=10 * ms,  # type: ignore
+            qubits=cirq.LineQubit.range(chain_length),
+        )
 
 
 class NotImplementedOperation(cirq.Operation):
@@ -56,12 +60,13 @@ def test_init():
         _ = d.duration_of(cirq.I(q0))
 
     with pytest.raises(TypeError, match="NamedQubit"):
-        _ = cirq.IonDevice(
-            measurement_duration=ms,
-            twoq_gates_duration=ms,
-            oneq_gates_duration=ms,
-            qubits=[cirq.LineQubit(0), cirq.NamedQubit("a")],
-        )
+        with cirq.testing.assert_deprecated("Use cirq_aqt.aqt_device.AQTDevice", deadline='v0.16'):
+            _ = cirq.IonDevice(
+                measurement_duration=ms,
+                twoq_gates_duration=ms,
+                oneq_gates_duration=ms,
+                qubits=[cirq.LineQubit(0), cirq.NamedQubit("a")],
+            )
 
 
 def test_metadata():
@@ -178,3 +183,12 @@ def test_at():
     assert d.at(-1) is None
     assert d.at(0) == cirq.LineQubit(0)
     assert d.at(2) == cirq.LineQubit(2)
+
+
+def test_decompose_parameterized_gates():
+    theta = sympy.Symbol("theta")
+    q = cirq.LineQubit.range(2)
+    circuit = cirq.Circuit(cirq.H(q[0]) ** theta, cirq.XX(*q) ** theta)
+    d = ion_device(3)
+    assert d.gateset.validate(d.decompose_circuit(circuit))
+    assert d.gateset._decompose_two_qubit_operation(cirq.CZ(*q) ** theta, 0) is NotImplemented

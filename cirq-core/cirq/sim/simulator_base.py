@@ -26,7 +26,6 @@ from typing import (
     Optional,
     Sequence,
     Tuple,
-    Type,
     TypeVar,
     TYPE_CHECKING,
 )
@@ -50,6 +49,7 @@ from cirq.sim.simulator import (
 
 if TYPE_CHECKING:
     import cirq
+    from numpy.typing import DTypeLike
 
 
 TStepResultBase = TypeVar('TStepResultBase', bound='StepResultBase')
@@ -93,7 +93,7 @@ class SimulatorBase(
     def __init__(
         self,
         *,
-        dtype: Type[np.number] = np.complex64,
+        dtype: 'DTypeLike' = np.complex64,
         noise: 'cirq.NOISE_MODEL_LIKE' = None,
         seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None,
         split_untangled_states: bool = False,

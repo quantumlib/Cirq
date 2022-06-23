@@ -53,7 +53,6 @@ class AbstractProcessor(abc.ABC):
     This is an abstract class.  Inheritors should implement abstract methods.
     """
 
-    @util.deprecated_gate_set_parameter
     def run(
         self,
         program: cirq.Circuit,
@@ -61,7 +60,6 @@ class AbstractProcessor(abc.ABC):
         job_id: Optional[str] = None,
         param_resolver: cirq.ParamResolver = None,
         repetitions: int = 1,
-        gate_set: Optional['serializer.Serializer'] = None,
         program_description: Optional[str] = None,
         program_labels: Optional[Dict[str, str]] = None,
         job_description: Optional[str] = None,
@@ -83,8 +81,6 @@ class AbstractProcessor(abc.ABC):
                 and day.
             param_resolver: Parameters to run with the program.
             repetitions: The number of repetitions to simulate.
-            gate_set: The gate set used to serialize the circuit. The gate set
-                must be supported by the selected processor.
             program_description: An optional description to set on the program.
             program_labels: Optional set of labels to set on the program.
             job_description: An optional description to set on the job.
@@ -94,7 +90,6 @@ class AbstractProcessor(abc.ABC):
         """
 
     @abc.abstractmethod
-    @util.deprecated_gate_set_parameter
     def run_sweep(
         self,
         program: cirq.AbstractCircuit,
@@ -102,7 +97,6 @@ class AbstractProcessor(abc.ABC):
         job_id: Optional[str] = None,
         params: cirq.Sweepable = None,
         repetitions: int = 1,
-        gate_set: Optional['serializer.Serializer'] = None,
         program_description: Optional[str] = None,
         program_labels: Optional[Dict[str, str]] = None,
         job_description: Optional[str] = None,
@@ -126,8 +120,6 @@ class AbstractProcessor(abc.ABC):
                 and day.
             params: Parameters to run with the program.
             repetitions: The number of circuit repetitions to run.
-            gate_set: The gate set used to serialize the circuit. The gate set
-                must be supported by the selected processor.
             program_description: An optional description to set on the program.
             program_labels: Optional set of labels to set on the program.
             job_description: An optional description to set on the job.
@@ -138,7 +130,6 @@ class AbstractProcessor(abc.ABC):
         """
 
     @abc.abstractmethod
-    @util.deprecated_gate_set_parameter
     def run_batch(
         self,
         programs: Sequence[cirq.AbstractCircuit],
@@ -146,7 +137,6 @@ class AbstractProcessor(abc.ABC):
         job_id: Optional[str] = None,
         params_list: Sequence[cirq.Sweepable] = None,
         repetitions: int = 1,
-        gate_set: Optional['serializer.Serializer'] = None,
         program_description: Optional[str] = None,
         program_labels: Optional[Dict[str, str]] = None,
         job_description: Optional[str] = None,
@@ -178,8 +168,6 @@ class AbstractProcessor(abc.ABC):
                 require sweeps.
             repetitions: Number of circuit repetitions to run.  Each sweep value
                 of each circuit in the batch will run with the same repetitions.
-            gate_set: The gate set used to serialize the circuit. The gate set
-                must be supported by the selected processor.
             program_description: An optional description to set on the program.
             program_labels: Optional set of labels to set on the program.
             job_description: An optional description to set on the job.
@@ -193,13 +181,11 @@ class AbstractProcessor(abc.ABC):
         """
 
     @abc.abstractmethod
-    @util.deprecated_gate_set_parameter
     def run_calibration(
         self,
         layers: List['cg.CalibrationLayer'],
         program_id: Optional[str] = None,
         job_id: Optional[str] = None,
-        gate_set: Optional['serializer.Serializer'] = None,
         program_description: Optional[str] = None,
         program_labels: Optional[Dict[str, str]] = None,
         job_description: Optional[str] = None,
@@ -227,8 +213,6 @@ class AbstractProcessor(abc.ABC):
                 of the format 'calibration-################YYMMDD' will be
                 generated, where # is alphanumeric and YYMMDD is the current
                 year, month, and day.
-            gate_set: The gate set used to serialize the circuit. The gate set
-                must be supported by the selected processor.
             program_description: An optional description to set on the program.
             program_labels: Optional set of labels to set on the program.
             job_description: An optional description to set on the job.
@@ -240,15 +224,8 @@ class AbstractProcessor(abc.ABC):
         """
 
     @abc.abstractmethod
-    @util.deprecated_gate_set_parameter
-    def get_sampler(
-        self, gate_set: Optional['serializer.Serializer'] = None
-    ) -> 'cg.ProcessorSampler':
-        """Returns a sampler backed by the processor.
-
-        Args:
-            gate_set: Determines how to serialize circuits if needed.
-        """
+    def get_sampler(self) -> 'cg.ProcessorSampler':
+        """Returns a sampler backed by the processor."""
 
     @abc.abstractmethod
     def engine(self) -> Optional['abstract_engine.AbstractEngine']:
