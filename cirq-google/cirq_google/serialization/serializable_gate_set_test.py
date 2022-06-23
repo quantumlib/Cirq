@@ -142,9 +142,10 @@ def test_is_supported_circuit_operation():
 
 def test_is_supported_operation_can_serialize_predicate():
     x_deserializer = _x_deserializer()
-    # Deprecations: cirq_google.SerializableGateSet, cirq_google.GateOpSerializer
+    # Deprecations: cirq_google.SerializableGateSet, cirq_google.GateOpSerializer, and
+    # cirq_google.SerializingArg
     with cirq.testing.assert_deprecated(
-        'SerializableGateSet', 'CircuitSerializer', deadline='v0.16', count=2
+        'SerializableGateSet', 'CircuitSerializer', deadline='v0.16', count=3
     ):
         q = cirq.GridQubit(1, 2)
         serializer = cg.GateOpSerializer(
@@ -545,9 +546,10 @@ def test_serialize_deserialize_circuit_op():
 
 
 def test_multiple_serializers():
-    # Deprecations: cirq_google.SerializableGateSet, cirq_google.GateOpSerializer
+    # Deprecations: cirq_google.SerializableGateSet, cirq_google.GateOpSerializer, and
+    # cirq_google.SerializingArg
     with cirq.testing.assert_deprecated(
-        'SerializableGateSet', 'CircuitSerializer', deadline='v0.16', count=3
+        'SerializableGateSet', 'CircuitSerializer', deadline='v0.16', count=5
     ):
         serializer1 = cg.GateOpSerializer(
             gate_type=cirq.XPowGate,

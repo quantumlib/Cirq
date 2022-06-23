@@ -99,7 +99,27 @@ class OpSerializer(abc.ABC):
 
 
 @dataclass(frozen=True)
-class SerializingArg:
+class _SerializingArg:
+    """HACK: non-deprecated version of SerializingArg.
+
+    This is used by global gatesets to bypass the behavior that deprecation warnings thrown
+    during module loading fail unit tests.
+    """
+
+    serialized_name: str
+    serialized_type: Type[ARG_LIKE]
+    op_getter: Union[str, Callable[[cirq.Operation], Optional[ARG_LIKE]]]
+    required: bool = True
+    default: Any = None
+
+
+@cirq._compat.deprecated_class(
+    deadline='v0.16',
+    fix='Will no longer be used because GateOpSerializer is deprecated.'
+    ' CircuitSerializer will be the only supported circuit serializer going forward.',
+)
+@dataclass(frozen=True)
+class SerializingArg(_SerializingArg):
     """Specification of the arguments for a Gate and its serialization.
 
     Args:
@@ -115,12 +135,6 @@ class SerializingArg:
         default: default value.  avoid serializing if this is the value.
             Note that the DeserializingArg must also have this as default.
     """
-
-    serialized_name: str
-    serialized_type: Type[ARG_LIKE]
-    op_getter: Union[str, Callable[[cirq.Operation], Optional[ARG_LIKE]]]
-    required: bool = True
-    default: Any = None
 
 
 class _GateOpSerializer(OpSerializer):
