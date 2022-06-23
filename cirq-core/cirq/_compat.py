@@ -52,7 +52,7 @@ def cached_method(*, maxsize: int = 128) -> Callable[[TFunc], TFunc]:
     ...
 
 
-def cached_method(*args: Any, maxsize: int = 128) -> Any:
+def cached_method(method: Optional[TFunc] = None, *, maxsize: int = 128) -> Any:
     """Decorator that adds a per-instance LRU cache for a method.
 
     Can be applied with or without parameters to customize the underlying cache:
@@ -84,7 +84,7 @@ def cached_method(*args: Any, maxsize: int = 128) -> Any:
 
         return wrapped
 
-    return decorator(args[0]) if args else decorator
+    return decorator if method is None else decorator(method)
 
 
 def proper_repr(value: Any) -> str:
