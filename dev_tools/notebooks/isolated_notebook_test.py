@@ -55,7 +55,6 @@ NOTEBOOKS_DEPENDING_ON_UNRELEASED_FEATURES: List[str] = [
     'docs/noise/qcvv/xeb_calibration_example.ipynb',
     'docs/named_topologies.ipynb',
     'docs/representing_noise.ipynb',
-    'docs/start/intro.ipynb',
     'docs/tutorials/educators/intro.ipynb',
 ]
 
