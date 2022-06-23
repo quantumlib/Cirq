@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """A protocol for implementing high performance unitary left-multiplies."""
-
+import warnings
 from typing import Any, cast, Iterable, Optional, Sequence, Tuple, TYPE_CHECKING, TypeVar, Union
 
 import numpy as np
@@ -342,7 +342,6 @@ def apply_unitary(
         TypeError: `unitary_value` doesn't have a unitary effect and `default`
             wasn't specified.
     """
-
     # Decide on order to attempt application strategies.
     if len(args.axes) <= 4:
         strats = [
@@ -360,12 +359,15 @@ def apply_unitary(
         strats.remove(_strat_apply_unitary_from_decompose)
 
     # Try each strategy, stopping if one works.
-    for strat in strats:
-        result = strat(unitary_value, args)
-        if result is None:
-            break
-        if result is not NotImplemented:
-            return result
+    # Also catch downcasting warnings and throw an error: #2041
+    with warnings.catch_warnings():
+        warnings.filterwarnings(action="error", category=np.ComplexWarning)
+        for strat in strats:
+            result = strat(unitary_value, args)
+            if result is None:
+                break
+            if result is not NotImplemented:
+                return result
 
     # Don't know how to apply. Fallback to specified default behavior.
     if default is not RaiseTypeErrorIfNotProvided:
