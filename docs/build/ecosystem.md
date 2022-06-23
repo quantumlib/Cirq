@@ -1,6 +1,6 @@
 The following document provides an ecosystem overview of how the various tools compatible with Cirq can work together to enable quantum computing research.
 
-![image alt text](images/ecosystem.png )
+![image alt text](/cirq/images/ecosystem.png )
 
 * **Research Libraries and Tools:** Libraries and tools used for researching new quantum algorithms and designing and preparing experiments on quantum devices.
 
