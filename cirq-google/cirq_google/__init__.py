@@ -163,7 +163,50 @@ _register_resolver(_class_resolver_dictionary)
 _compat.deprecate_attributes(
     __name__,
     {
-        'Bristlecone': ('v0.15', 'Bristlecone will no longer be supported.'),
-        'Foxtail': ('v0.15', 'Foxtail will no longer be supported.'),
+        'XMON': (
+            'v0.16',
+            'SerializableGateSet will no longer be supported.'
+            ' In cirq_google.GridDevice, the new representation of Google devices, the gateset of '
+            ' a device is represented as a cirq.Gateset and is available as'
+            ' GridDevice.metadata.gateset.'
+            ' Engine methods no longer require gate sets to be passed in.'
+            ' In addition, circuit serialization is replaced by cirq_google.CircuitSerializer.',
+        ),
+        'FSIM_GATESET': (
+            'v0.16',
+            'SerializableGateSet will no longer be supported.'
+            ' In cirq_google.GridDevice, the new representation of Google devices, the gateset of '
+            ' a device is represented as a cirq.Gateset and is available as'
+            ' GridDevice.metadata.gateset.'
+            ' Engine methods no longer require gate sets to be passed in.'
+            ' In addition, circuit serialization is replaced by cirq_google.CircuitSerializer.',
+        ),
+        'SQRT_ISWAP_GATESET': (
+            'v0.16',
+            'SerializableGateSet will no longer be supported.'
+            ' In cirq_google.GridDevice, the new representation of Google devices, the gateset of '
+            ' a device is represented as a cirq.Gateset and is available as'
+            ' GridDevice.metadata.gateset.'
+            ' Engine methods no longer require gate sets to be passed in.'
+            ' In addition, circuit serialization is replaced by cirq_google.CircuitSerializer.',
+        ),
+        'SYC_GATESET': (
+            'v0.16',
+            'SerializableGateSet will no longer be supported.'
+            ' In cirq_google.GridDevice, the new representation of Google devices, the gateset of '
+            ' a device is represented as a cirq.Gateset and is available as'
+            ' GridDevice.metadata.gateset.'
+            ' Engine methods no longer require gate sets to be passed in.'
+            ' In addition, circuit serialization is replaced by cirq_google.CircuitSerializer.',
+        ),
+        'NAMED_GATESETS': (
+            'v0.16',
+            'SerializableGateSet will no longer be supported.'
+            ' In cirq_google.GridDevice, the new representation of Google devices, the gateset of '
+            ' a device is represented as a cirq.Gateset and is available as'
+            ' GridDevice.metadata.gateset.'
+            ' Engine methods no longer require gate sets to be passed in.'
+            ' In addition, circuit serialization is replaced by cirq_google.CircuitSerializer.',
+        ),
     },
 )

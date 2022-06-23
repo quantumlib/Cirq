@@ -24,15 +24,17 @@ class FakeDevice(cirq.Device):
         pass
 
 
-_OPTIMIZERS_AND_GATESETS = [
-    ('sqrt_iswap', cg.SQRT_ISWAP_GATESET),
-    ('sycamore', cg.SYC_GATESET),
-    ('xmon', cg.XMON),
-    ('xmon_partial_cz', cg.XMON),
-]
+def _optimizers_and_gatesets():
+    with cirq.testing.assert_deprecated('SerializableGateSet', deadline='v0.16', count=None):
+        return [
+            ('sqrt_iswap', cg.SQRT_ISWAP_GATESET),
+            ('sycamore', cg.SYC_GATESET),
+            ('xmon', cg.XMON),
+            ('xmon_partial_cz', cg.XMON),
+        ]
 
 
-@pytest.mark.parametrize('optimizer_type, gateset', _OPTIMIZERS_AND_GATESETS)
+@pytest.mark.parametrize('optimizer_type, gateset', _optimizers_and_gatesets())
 def test_optimizer_output_gates_are_supported(optimizer_type, gateset):
     q0, q1 = cirq.LineQubit.range(2)
     circuit = cirq.Circuit(
@@ -48,7 +50,7 @@ def test_optimizer_output_gates_are_supported(optimizer_type, gateset):
                 assert gateset.is_supported_operation(op)
 
 
-@pytest.mark.parametrize('optimizer_type, gateset', _OPTIMIZERS_AND_GATESETS)
+@pytest.mark.parametrize('optimizer_type, gateset', _optimizers_and_gatesets())
 def test_optimize_large_measurement_gates(optimizer_type, gateset):
     qubits = cirq.LineQubit.range(53)
     circuit = cirq.Circuit(
@@ -128,8 +130,11 @@ def test_one_q_matrix_gate():
     circuit0 = cirq.Circuit(cirq.MatrixGate(u).on(q))
     assert len(circuit0) == 1
 
+    # Deprecations: well-known cirq_google SerializableGateSets
+    # (e.g. cirq_google.SYC_GATESET), and
+    # cirq_google.optimized_for_sycamore
     with cirq.testing.assert_deprecated(
-        'Use `cirq.optimize_for_target_gateset', deadline='v0.16', count=2
+        'SerializableGateSet', 'Use `cirq.optimize_for_target_gateset', deadline='v0.16', count=6
     ):
         circuit_iswap = cg.optimized_for_sycamore(circuit0, optimizer_type='sqrt_iswap')
         assert len(circuit_iswap) == 1
