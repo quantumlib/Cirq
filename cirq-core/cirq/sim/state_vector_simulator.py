@@ -14,18 +14,7 @@
 """Abstract classes for simulations which keep track of state vector."""
 
 import abc
-from typing import (
-    Any,
-    Dict,
-    Iterator,
-    Sequence,
-    TYPE_CHECKING,
-    Tuple,
-    Generic,
-    TypeVar,
-    Type,
-    Optional,
-)
+from typing import Any, Dict, Iterator, Sequence, TYPE_CHECKING, Tuple, Generic, TypeVar, Optional
 
 import numpy as np
 

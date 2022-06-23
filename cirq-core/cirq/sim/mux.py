@@ -17,7 +17,7 @@
 Filename is a reference to multiplexing.
 """
 
-from typing import cast, List, Optional, Sequence, Type, TYPE_CHECKING, Union
+from typing import cast, List, Optional, Sequence, TYPE_CHECKING, Union
 
 import numpy as np
 

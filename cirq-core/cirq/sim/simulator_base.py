@@ -26,7 +26,6 @@ from typing import (
     Optional,
     Sequence,
     Tuple,
-    Type,
     TypeVar,
     TYPE_CHECKING,
 )

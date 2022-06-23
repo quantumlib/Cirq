@@ -14,7 +14,7 @@
 
 """A simulator that uses numpy's einsum for sparse matrix operations."""
 
-from typing import Any, Iterator, List, Type, TYPE_CHECKING, Union, Sequence, Optional
+from typing import Any, Iterator, List, TYPE_CHECKING, Union, Sequence, Optional
 
 import numpy as np
 
