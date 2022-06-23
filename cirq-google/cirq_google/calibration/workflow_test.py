@@ -1166,9 +1166,6 @@ def test_run_calibrations_fails_when_invalid_arguments():
         assert workflow.run_calibrations([request], engine, None)
 
     with pytest.raises(ValueError):
-        assert workflow.run_calibrations([request], engine, 'qproc', None)
-
-    with pytest.raises(ValueError):
         assert workflow.run_calibrations([request], 0, 'qproc')
 
 

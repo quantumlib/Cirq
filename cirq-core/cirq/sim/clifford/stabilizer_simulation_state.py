@@ -161,21 +161,14 @@ class StabilizerSimulationState(
             if not has_unitary(val):
                 return NotImplemented
             u = unitary(val)
-            clifford_gate = SingleQubitCliffordGate.from_unitary(u)
-            if clifford_gate is not None:
-                # Gather the effective unitary applied so as to correct for the
-                # global phase later.
-                final_unitary = np.eye(2)
-                for axis, quarter_turns in clifford_gate.decompose_rotation():
-                    gate = axis ** (quarter_turns / 2)
+            gate_and_phase = SingleQubitCliffordGate.from_unitary_with_global_phase(u)
+            if gate_and_phase is not None:
+                clifford_gate, global_phase = gate_and_phase
+                # Apply gates.
+                for gate in clifford_gate.decompose_gate():
                     self._strat_apply_gate(gate, qubits)
-                    final_unitary = np.matmul(unitary(gate), final_unitary)
-
-                # Find the entry with the largest magnitude in the input unitary.
-                k = max(np.ndindex(*u.shape), key=lambda t: abs(u[t]))
-                # Correct the global phase that wasn't conserved in the above
-                # decomposition.
-                self._state.apply_global_phase(u[k] / final_unitary[k])
+                # Apply global phase.
+                self._state.apply_global_phase(global_phase)
                 return True
 
         return NotImplemented

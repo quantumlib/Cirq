@@ -62,7 +62,6 @@ from cirq_google.devices import (
     SerializableDevice,
     Sycamore,
     Sycamore23,
-    XmonDevice,
 )
 
 from cirq_google.engine import (
