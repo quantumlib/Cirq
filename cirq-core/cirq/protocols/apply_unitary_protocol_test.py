@@ -704,3 +704,16 @@ def test_apply_unitary_args_with_axes_transposed_to_start():
     assert args.target_tensor[1, 2, 3, 4] == 1
     new_args.available_buffer[2, 4, 1, 3] = 2
     assert args.available_buffer[1, 2, 3, 4] == 2
+
+
+def test_cast_to_complex():
+    y0 = cirq.PauliString({cirq.LineQubit(0): cirq.Y})
+    state = 0.5 * np.eye(2)
+    args = cirq.ApplyUnitaryArgs(
+        target_tensor=state, available_buffer=np.zeros_like(state), axes=(0,)
+    )
+
+    with pytest.raises(
+        np.ComplexWarning, match='Casting complex values to real discards the imaginary part'
+    ):
+        cirq.apply_unitary(y0, args)

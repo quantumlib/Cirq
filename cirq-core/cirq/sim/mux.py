@@ -17,7 +17,7 @@
 Filename is a reference to multiplexing.
 """
 
-from typing import cast, List, Optional, Sequence, TYPE_CHECKING, Union
+from typing import cast, List, Optional, Sequence, Type, TYPE_CHECKING, Union
 
 import numpy as np
 
@@ -53,7 +53,7 @@ def sample(
     noise: 'cirq.NOISE_MODEL_LIKE' = None,
     param_resolver: Optional['cirq.ParamResolver'] = None,
     repetitions: int = 1,
-    dtype: 'DTypeLike' = np.complex64,
+    dtype: Type[np.complexfloating] = np.complex64,
     seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None,
 ) -> 'cirq.Result':
     """Simulates sampling from the given circuit.
@@ -108,7 +108,7 @@ def final_state_vector(
     param_resolver: 'cirq.ParamResolverOrSimilarType' = None,
     qubit_order: 'cirq.QubitOrderOrList' = ops.QubitOrder.DEFAULT,
     ignore_terminal_measurements: bool = False,
-    dtype: 'DTypeLike' = np.complex64,
+    dtype: Type[np.complexfloating] = np.complex64,
     seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None,
 ) -> 'np.ndarray':
     """Returns the state vector resulting from acting operations on a state.
@@ -178,7 +178,7 @@ def sample_sweep(
     *,
     noise: 'cirq.NOISE_MODEL_LIKE' = None,
     repetitions: int = 1,
-    dtype: 'DTypeLike' = np.complex64,
+    dtype: Type[np.complexfloating] = np.complex64,
     seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None,
 ) -> Sequence['cirq.Result']:
     """Runs the supplied Circuit, mimicking quantum hardware.
@@ -224,7 +224,7 @@ def final_density_matrix(
     initial_state: 'cirq.STATE_VECTOR_LIKE' = 0,
     param_resolver: 'cirq.ParamResolverOrSimilarType' = None,
     qubit_order: 'cirq.QubitOrderOrList' = ops.QubitOrder.DEFAULT,
-    dtype: 'DTypeLike' = np.complex64,
+    dtype: Type[np.complexfloating] = np.complex64,
     seed: Optional[Union[int, np.random.RandomState]] = None,
     ignore_measurement_results: bool = True,
 ) -> 'np.ndarray':
