@@ -486,6 +486,10 @@ class PauliSum:
             PauliSum with new_qubits replacing the previous
                 qubits.
 
+        Raises:
+            ValueError: If incorrect number of replacement qubits
+                are provided.
+
         """
         qubits = self.qubits
         if len(new_qubits) != len(qubits):
