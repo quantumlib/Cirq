@@ -154,6 +154,7 @@ class CommonCliffordGateMetaClass(value.ABCMetaImplementAnyOneOf):
             mY = (pauli_gates.Y, True)
             pZ = (pauli_gates.Z, False)
             mZ = (pauli_gates.Z, True)
+            # Order in is relied on in properties that retrieve a specific Clifford below.
             cls._all_single_qubit_cliffords = (
                 # 0: Identity
                 cls.from_clifford_tableau(_to_clifford_tableau(x_to=pX, z_to=pZ)),  # I
