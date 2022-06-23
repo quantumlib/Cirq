@@ -166,14 +166,12 @@ def test_act_using_adaptive_two_qubit_channel():
 
     def get_result(state: np.ndarray, sample: float):
         mock_prng.random.return_value = sample
-        dtype = state.dtype
-        assert isinstance(dtype, np.complexfloating)
         args = cirq.StateVectorSimulationState(
             available_buffer=np.empty_like(state),
             qubits=cirq.LineQubit.range(4),
             prng=mock_prng,
             initial_state=np.copy(state),
-            dtype=dtype,
+            dtype=cast(Type[np.complexfloating], state.dtype),
         )
         cirq.act_on(Decay11(), args, [cirq.LineQubit(1), cirq.LineQubit(3)])
         return args.target_tensor

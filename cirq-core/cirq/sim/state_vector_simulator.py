@@ -14,7 +14,18 @@
 """Abstract classes for simulations which keep track of state vector."""
 
 import abc
-from typing import Any, Dict, Iterator, Sequence, TYPE_CHECKING, Tuple, Generic, TypeVar, Optional
+from typing import (
+    Any,
+    Dict,
+    Iterator,
+    Sequence,
+    Type,
+    TYPE_CHECKING,
+    Tuple,
+    Generic,
+    TypeVar,
+    Optional,
+)
 
 import numpy as np
 
@@ -24,7 +35,6 @@ from cirq.sim import simulator, state_vector, simulator_base
 
 if TYPE_CHECKING:
     import cirq
-    from numpy.typing import DTypeLike
 
 
 TStateVectorStepResult = TypeVar('TStateVectorStepResult', bound='StateVectorStepResult')

@@ -64,7 +64,6 @@ from cirq.type_workarounds import NotImplementedType
 
 if TYPE_CHECKING:
     import cirq
-    from numpy.typing import DTypeLike
 
 
 _TGate = TypeVar('_TGate', bound='cirq.Gate')
@@ -999,11 +998,7 @@ class AbstractCircuit(abc.ABC):
         qubit_order: 'cirq.QubitOrderOrList' = ops.QubitOrder.DEFAULT,
         qubits_that_should_be_present: Iterable['cirq.Qid'] = (),
         ignore_terminal_measurements: bool = True,
-<<<<<<< HEAD
-        dtype: Type[np.complexfloating] = np.complex128,
-=======
-        dtype: 'DTypeLike' = np.complex64,
->>>>>>> master
+        dtype: Type[np.complexfloating] = np.complex64,
     ) -> np.ndarray:
         """Converts the circuit into a unitary matrix, if possible.
 
@@ -1093,11 +1088,7 @@ class AbstractCircuit(abc.ABC):
         qubit_order: 'cirq.QubitOrderOrList' = ops.QubitOrder.DEFAULT,
         qubits_that_should_be_present: Iterable['cirq.Qid'] = (),
         ignore_terminal_measurements: Optional[bool] = None,
-<<<<<<< HEAD
         dtype: Optional[Type[np.complexfloating]] = None,
-=======
-        dtype: Optional['DTypeLike'] = None,
->>>>>>> master
         param_resolver: 'cirq.ParamResolverOrSimilarType' = None,
         seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None,
     ) -> np.ndarray:
@@ -2664,11 +2655,7 @@ def _apply_unitary_circuit(
     circuit: 'cirq.AbstractCircuit',
     state: np.ndarray,
     qubits: Tuple['cirq.Qid', ...],
-<<<<<<< HEAD
     dtype: Type[np.complexfloating],
-=======
-    dtype: 'DTypeLike',
->>>>>>> master
 ) -> np.ndarray:
     """Applies a circuit's unitary effect to the given vector or matrix.
 

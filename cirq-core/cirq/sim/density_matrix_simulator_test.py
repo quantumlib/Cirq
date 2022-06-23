@@ -13,13 +13,12 @@
 # limitations under the License.
 import itertools
 import random
+from typing import Type
 from unittest import mock
 
 import numpy as np
 import pytest
 import sympy
-
-from numpy.typing import DTypeLike
 
 import cirq
 import cirq.testing
