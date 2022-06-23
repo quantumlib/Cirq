@@ -510,3 +510,11 @@ def test_to_proto_empty():
     assert len(device.metadata.qubit_pairs) == 0
     assert device.metadata.gateset == cirq.Gateset()
     assert device.metadata.gate_durations is None
+
+
+def test_grid_device_qubits():
+    _, spec = _create_device_spec_with_horizontal_couplings()
+    device = cirq_google.GridDevice.from_proto(spec)
+
+    with cirq.testing.assert_deprecated('device.qubits', deadline='v0.16'):
+        assert frozenset(device.qubits) == device.metadata.qubit_set
