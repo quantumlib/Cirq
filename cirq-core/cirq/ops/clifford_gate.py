@@ -265,7 +265,6 @@ class CommonCliffordGateMetaClass(value.ABCMetaImplementAnyOneOf):
 
 
 class CommonCliffordGates(metaclass=CommonCliffordGateMetaClass):
-
     @classmethod
     def from_clifford_tableau(cls, tableau: qis.CliffordTableau) -> 'CliffordGate':
         """Create the CliffordGate instance from Clifford Tableau.
