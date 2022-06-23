@@ -55,7 +55,7 @@ NOTEBOOKS_DEPENDING_ON_UNRELEASED_FEATURES: List[str] = [
     'docs/noise/qcvv/xeb_calibration_example.ipynb',
     'docs/named_topologies.ipynb',
     'docs/representing_noise.ipynb',
-    'docs/tutorials/educators/intro.ipynb',
+    'docs/start/intro.ipynb',
 ]
 
 # By default all notebooks should be tested, however, this list contains exceptions to the rule
