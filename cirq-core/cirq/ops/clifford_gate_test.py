@@ -14,6 +14,7 @@
 
 import functools
 import itertools
+from typing import Type
 
 import numpy as np
 import pytest
@@ -401,6 +402,31 @@ def test_known_matrix(gate, gate_equiv):
     mat = cirq.unitary(gate)
     mat_check = cirq.unitary(gate_equiv)
     assert_allclose_up_to_global_phase(mat, mat_check, rtol=1e-7, atol=1e-7)
+
+
+@pytest.mark.parametrize(
+    'name, expected_cls',
+    [
+        ('I', cirq.SingleQubitCliffordGate),
+        ('H', cirq.SingleQubitCliffordGate),
+        ('X', cirq.SingleQubitCliffordGate),
+        ('Y', cirq.SingleQubitCliffordGate),
+        ('Z', cirq.SingleQubitCliffordGate),
+        ('S', cirq.SingleQubitCliffordGate),
+        ('X_sqrt', cirq.SingleQubitCliffordGate),
+        ('X_nsqrt', cirq.SingleQubitCliffordGate),
+        ('Y_sqrt', cirq.SingleQubitCliffordGate),
+        ('Y_nsqrt', cirq.SingleQubitCliffordGate),
+        ('Z_sqrt', cirq.SingleQubitCliffordGate),
+        ('Z_nsqrt', cirq.SingleQubitCliffordGate),
+        ('CNOT', cirq.CliffordGate),
+        ('CZ', cirq.CliffordGate),
+        ('SWAP', cirq.CliffordGate),
+    ],
+)
+def test_common_clifford_types(name: str, expected_cls: Type) -> None:
+    assert isinstance(getattr(cirq.CliffordGate, name), expected_cls)
+    assert isinstance(getattr(cirq.SingleQubitCliffordGate, name), expected_cls)
 
 
 @pytest.mark.parametrize('gate', _all_clifford_gates())
