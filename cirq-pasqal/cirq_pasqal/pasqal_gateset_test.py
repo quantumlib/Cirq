@@ -76,6 +76,7 @@ def test_control_gates_not_included(op: cirq.Operation, expected: bool):
 @pytest.mark.parametrize(
     "op",
     [
+        cirq.H(Q) ** 0.5,
         cirq.X(Q),
         cirq.SWAP(Q, Q2),
         cirq.ISWAP(Q, Q2),
@@ -85,21 +86,28 @@ def test_control_gates_not_included(op: cirq.Operation, expected: bool):
         cirq.SWAP(Q, Q2).controlled_by(Q3),
     ],
 )
-def test_decomposition(op: cirq.Operation):
-    circuit = cirq.Circuit(op)
-    gs = cirq_pasqal.PasqalGateset()
-    gs2 = cirq_pasqal.PasqalGateset(include_additional_controlled_ops=False)
-    for gateset in [gs, gs2]:
-        decomposed_circuit = cirq.optimize_for_target_gateset(circuit, gateset=gateset)
-        for new_op in decomposed_circuit.all_operations():
-            assert gs.validate(new_op)
-
-
-def test_repr():
-    cirq.testing.assert_equivalent_repr(
-        cirq_pasqal.PasqalGateset(), setup_code='import cirq_pasqal'
-    )
-    cirq.testing.assert_equivalent_repr(
+@pytest.mark.parametrize(
+    "gs",
+    [
+        cirq_pasqal.PasqalGateset(),
         cirq_pasqal.PasqalGateset(include_additional_controlled_ops=False),
-        setup_code='import cirq_pasqal',
+    ],
+)
+def test_decomposition(op: cirq.Operation, gs: cirq.CompilationTargetGateset):
+    circuit = cirq.Circuit(op)
+    decomposed_circuit = cirq.optimize_for_target_gateset(
+        circuit, gateset=gs, ignore_failures=False
     )
+    gs.validate(decomposed_circuit)
+
+
+@pytest.mark.parametrize(
+    "gs",
+    [
+        cirq_pasqal.PasqalGateset(),
+        cirq_pasqal.PasqalGateset(include_additional_controlled_ops=False),
+    ],
+)
+def test_repr(gs):
+    assert gs.num_qubits == 2
+    cirq.testing.assert_equivalent_repr(gs, setup_code='import cirq_pasqal')

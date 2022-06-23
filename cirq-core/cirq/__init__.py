@@ -514,6 +514,7 @@ from cirq.study import (
     Linspace,
     ListSweep,
     ParamDictType,
+    ParamMappingType,
     ParamResolver,
     ParamResolverOrSimilarType,
     Points,
