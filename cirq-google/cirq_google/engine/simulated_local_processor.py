@@ -178,18 +178,14 @@ class SimulatedLocalProcessor(AbstractLocalProcessor):
         after_limit = created_after or datetime.datetime(datetime.MINYEAR, 1, 1)
         labels = has_labels or {}
 
-        def _labels_match(user_labels, program_labels):
-            return all(
-                (key in program_labels and program_labels[key] == labels[key]) for key in labels
-            )
+        def _labels_match(program_labels):
+            return all(program_labels.get(key) == label for key, label in labels.items())
 
-        return list(
-            filter(
-                lambda program: after_limit < program.create_time() < before_limit
-                and _labels_match(labels, program.labels()),
-                self._programs.values(),
-            )
-        )
+        return [
+            p
+            for p in self._programs.values()
+            if after_limit < p.create_time() < before_limit and _labels_match(p.labels())
+        ]
 
     def get_program(self, program_id: str) -> AbstractProgram:
         """Returns an AbstractProgram for an existing Quantum Engine program.
