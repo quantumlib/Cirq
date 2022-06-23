@@ -56,15 +56,12 @@ from cirq_google.calibration import (
 )
 
 from cirq_google.devices import (
-    Bristlecone,
-    Foxtail,
     GoogleNoiseProperties,
     GridDevice,
     NoiseModelFromGoogleNoiseProperties,
     SerializableDevice,
     Sycamore,
     Sycamore23,
-    XmonDevice,
 )
 
 from cirq_google.engine import (

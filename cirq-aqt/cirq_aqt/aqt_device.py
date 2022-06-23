@@ -218,7 +218,29 @@ class AQTSimulator:
         return result
 
 
-def get_aqt_device(num_qubits: int) -> Tuple[cirq.IonDevice, List[cirq.LineQubit]]:
+class AQTTargetGateset(cirq.ion.ion_device._IonTargetGateset):
+    pass
+
+
+class AQTDevice(cirq.ion.ion_device._IonDeviceImpl):
+    """Ion trap device with qubits having all-to-all connectivity and placed on a line."""
+
+    def __repr__(self) -> str:
+        return (
+            f'cirq_aqt.aqt_device.AQTDevice('
+            f'measurement_duration={self._measurement_duration!r}, '
+            f'twoq_gates_duration={self._twoq_gates_duration!r}, '
+            f'oneq_gates_duration={self._oneq_gates_duration!r}, '
+            f'qubits={sorted(self.qubits)!r}'
+            f')'
+        )
+
+    def _repr_pretty_(self, p: Any, cycle: bool):
+        """iPython (Jupyter) pretty print."""
+        p.text("AQTDevice(...)" if cycle else self.__str__())
+
+
+def get_aqt_device(num_qubits: int) -> Tuple[AQTDevice, List[cirq.LineQubit]]:
     """Returns an AQT ion device
 
     Args:
@@ -229,7 +251,7 @@ def get_aqt_device(num_qubits: int) -> Tuple[cirq.IonDevice, List[cirq.LineQubit
     """
     qubit_list = cirq.LineQubit.range(num_qubits)
     us = 1000 * cirq.Duration(nanos=1)
-    ion_device = cirq.IonDevice(
+    ion_device = AQTDevice(
         measurement_duration=100 * us,
         twoq_gates_duration=200 * us,
         oneq_gates_duration=10 * us,

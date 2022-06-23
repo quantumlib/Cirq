@@ -1155,9 +1155,7 @@ def test_run_calibrations_empty():
 
 def test_run_calibrations_fails_when_invalid_arguments():
     with pytest.raises(ValueError):
-        assert workflow.run_calibrations(
-            [], None, 'qproc', cirq_google.FSIM_GATESET, max_layers_per_request=0
-        )
+        assert workflow.run_calibrations([], None, 'qproc', max_layers_per_request=0)
 
     request = FloquetPhasedFSimCalibrationRequest(
         gate=SQRT_ISWAP_INV_GATE, pairs=(), options=WITHOUT_CHI_FLOQUET_PHASED_FSIM_CHARACTERIZATION
@@ -1165,13 +1163,10 @@ def test_run_calibrations_fails_when_invalid_arguments():
     engine = mock.MagicMock(spec=cirq_google.Engine)
 
     with pytest.raises(ValueError):
-        assert workflow.run_calibrations([request], engine, None, cirq_google.FSIM_GATESET)
+        assert workflow.run_calibrations([request], engine, None)
 
     with pytest.raises(ValueError):
-        assert workflow.run_calibrations([request], engine, 'qproc', None)
-
-    with pytest.raises(ValueError):
-        assert workflow.run_calibrations([request], 0, 'qproc', cirq_google.FSIM_GATESET)
+        assert workflow.run_calibrations([request], 0, 'qproc')
 
 
 def test_run_calibrations_with_simulator():

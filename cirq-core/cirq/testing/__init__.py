@@ -92,6 +92,10 @@ from cirq.testing.random_circuit import (
     random_two_qubit_circuit_with_czs,
 )
 
-from cirq.testing.repr_pretty_tester import assert_repr_pretty, FakePrinter
+from cirq.testing.repr_pretty_tester import (
+    assert_repr_pretty,
+    assert_repr_pretty_contains,
+    FakePrinter,
+)
 
 from cirq.testing.sample_circuits import nonoptimal_toffoli_circuit
