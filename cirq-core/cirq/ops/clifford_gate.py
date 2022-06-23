@@ -145,7 +145,7 @@ class CommonCliffordGateMetaClass(value.ABCMetaImplementAnyOneOf):
     """A metaclass used to lazy initialize several common Clifford Gate as class attributes."""
 
     @property
-    def all_single_qubit_cliffords(cls):
+    def all_single_qubit_cliffords(cls) - Sequence['cirq.SingleQubitCliffordGate']:
         """All 24 single-qubit Clifford gates."""
         if getattr(cls, '_all_single_qubit_cliffords', None) is None:
             pX = (pauli_gates.X, False)
@@ -154,7 +154,7 @@ class CommonCliffordGateMetaClass(value.ABCMetaImplementAnyOneOf):
             mY = (pauli_gates.Y, True)
             pZ = (pauli_gates.Z, False)
             mZ = (pauli_gates.Z, True)
-            cls._all_single_qubit_cliffords = tuple([
+            cls._all_single_qubit_cliffords = (
                 # 0: Identity
                 cls.from_clifford_tableau(_to_clifford_tableau(x_to=pX, z_to=pZ)),  # I
                 # 1..3: Paulis
@@ -185,35 +185,35 @@ class CommonCliffordGateMetaClass(value.ABCMetaImplementAnyOneOf):
                 cls.from_clifford_tableau(_to_clifford_tableau(x_to=mY, z_to=pX)),  # I-i(-X+Y-Z)
                 cls.from_clifford_tableau(_to_clifford_tableau(x_to=pY, z_to=mX)),  # I-i(-X-Y+Z)
                 cls.from_clifford_tableau(_to_clifford_tableau(x_to=pZ, z_to=pY)),  # I-i(-X-Y-Z)
-            ])
+            )
         return cls._all_single_qubit_cliffords
 
     @property
-    def I(cls):
+    def I(cls) -> 'cirq.SingleQubitCliffordGate':
         return cls.all_single_qubit_cliffords[0]
 
     @property
-    def X(cls):
+    def X(cls) -> 'cirq.SingleQubitCliffordGate':
         return cls.all_single_qubit_cliffords[1]
 
     @property
-    def Y(cls):
+    def Y(cls) -> 'cirq.SingleQubitCliffordGate':
         return cls.all_single_qubit_cliffords[2]
 
     @property
-    def Z(cls):
+    def Z(cls) -> 'cirq.SingleQubitCliffordGate':
         return cls.all_single_qubit_cliffords[3]
 
     @property
-    def H(cls):
+    def H(cls) -> 'cirq.SingleQubitCliffordGate':
         return cls.all_single_qubit_cliffords[10]
 
     @property
-    def S(cls):
+    def S(cls) -> 'cirq.SingleQubitCliffordGate':
         return cls.all_single_qubit_cliffords[6]
 
     @property
-    def CNOT(cls):
+    def CNOT(cls) -> 'cirq.CliffordGate':
         if getattr(cls, '_CNOT', None) is None:
             t = qis.CliffordTableau(num_qubits=2)
             t.xs = [[1, 1], [0, 1], [0, 0], [0, 0]]
@@ -222,7 +222,7 @@ class CommonCliffordGateMetaClass(value.ABCMetaImplementAnyOneOf):
         return cls._CNOT
 
     @property
-    def CZ(cls):
+    def CZ(cls) -> 'cirq.CliffordGate':
         if getattr(cls, '_CZ', None) is None:
             t = qis.CliffordTableau(num_qubits=2)
             t.xs = [[1, 0], [0, 1], [0, 0], [0, 0]]
@@ -231,7 +231,7 @@ class CommonCliffordGateMetaClass(value.ABCMetaImplementAnyOneOf):
         return cls._CZ
 
     @property
-    def SWAP(cls):
+    def SWAP(cls) -> 'cirq.CliffordGate':
         if getattr(cls, '_SWAP', None) is None:
             t = qis.CliffordTableau(num_qubits=2)
             t.xs = [[0, 1], [1, 0], [0, 0], [0, 0]]
@@ -240,27 +240,27 @@ class CommonCliffordGateMetaClass(value.ABCMetaImplementAnyOneOf):
         return cls._SWAP
 
     @property
-    def X_sqrt(cls):
+    def X_sqrt(cls) -> 'cirq.SingleQubitCliffordGate':
         return cls.all_single_qubit_cliffords[4]
 
     @property
-    def X_nsqrt(cls):
+    def X_nsqrt(cls) -> 'cirq.SingleQubitCliffordGate':
         return cls.all_single_qubit_cliffords[7]
 
     @property
-    def Y_sqrt(cls):
+    def Y_sqrt(cls) -> 'cirq.SingleQubitCliffordGate':
         return cls.all_single_qubit_cliffords[5]
 
     @property
-    def Y_nsqrt(cls):
+    def Y_nsqrt(cls) -> 'cirq.SingleQubitCliffordGate':
         return cls.all_single_qubit_cliffords[8]
 
     @property
-    def Z_sqrt(cls):
+    def Z_sqrt(cls) -> 'cirq.SingleQubitCliffordGate':
         return cls.all_single_qubit_cliffords[6]
 
     @property
-    def Z_nsqrt(cls):
+    def Z_nsqrt(cls) -> 'cirq.SingleQubitCliffordGate':
         return cls.all_single_qubit_cliffords[9]
 
 
