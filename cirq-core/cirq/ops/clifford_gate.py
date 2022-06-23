@@ -145,140 +145,126 @@ class CommonCliffordGateMetaClass(value.ABCMetaImplementAnyOneOf):
     """A metaclass used to lazy initialize several common Clifford Gate as class attributes."""
 
     @property
+    def all_single_qubit_cliffords(cls):
+        """All 24 single-qubit Clifford gates."""
+        if getattr(cls, '_all_single_qubit_cliffords', None) is None:
+            pX = (pauli_gates.X, False)
+            mX = (pauli_gates.X, True)
+            pY = (pauli_gates.Y, False)
+            mY = (pauli_gates.Y, True)
+            pZ = (pauli_gates.Z, False)
+            mZ = (pauli_gates.Z, True)
+            cls._all_single_qubit_cliffords = tuple([
+                # 0: Identity
+                cls.from_clifford_tableau(_to_clifford_tableau(x_to=pX, z_to=pZ)),  # I
+                # 1..3: Paulis
+                cls.from_clifford_tableau(_to_clifford_tableau(x_to=pX, z_to=mZ)),  # X
+                cls.from_clifford_tableau(_to_clifford_tableau(x_to=mX, z_to=mZ)),  # Y
+                cls.from_clifford_tableau(_to_clifford_tableau(x_to=mX, z_to=pZ)),  # Z
+                # 4..6: Square roots of Paulis
+                cls.from_clifford_tableau(_to_clifford_tableau(x_to=pX, z_to=mY)),  # I-iX
+                cls.from_clifford_tableau(_to_clifford_tableau(x_to=mZ, z_to=pX)),  # I-iY
+                cls.from_clifford_tableau(_to_clifford_tableau(x_to=pY, z_to=pZ)),  # I-iZ aka S
+                # 7..9: Negative square roots of Paulis
+                cls.from_clifford_tableau(_to_clifford_tableau(x_to=pX, z_to=pY)),  # I+iX
+                cls.from_clifford_tableau(_to_clifford_tableau(x_to=pZ, z_to=mX)),  # I+iY
+                cls.from_clifford_tableau(_to_clifford_tableau(x_to=mY, z_to=pZ)),  # I+iZ
+                # 10..15: Hadamards
+                cls.from_clifford_tableau(_to_clifford_tableau(x_to=pZ, z_to=pX)),  # Z+X aka H
+                cls.from_clifford_tableau(_to_clifford_tableau(x_to=pY, z_to=mZ)),  # X+Y
+                cls.from_clifford_tableau(_to_clifford_tableau(x_to=mX, z_to=pY)),  # Y+Z
+                cls.from_clifford_tableau(_to_clifford_tableau(x_to=mZ, z_to=mX)),  # Z-X
+                cls.from_clifford_tableau(_to_clifford_tableau(x_to=mY, z_to=mZ)),  # X-Y
+                cls.from_clifford_tableau(_to_clifford_tableau(x_to=mX, z_to=mY)),  # Y-Z
+                # 16..23: Order-3 Cliffords
+                cls.from_clifford_tableau(_to_clifford_tableau(x_to=pY, z_to=pX)),  # I-i(+X+Y+Z)
+                cls.from_clifford_tableau(_to_clifford_tableau(x_to=mZ, z_to=mY)),  # I-i(+X+Y-Z)
+                cls.from_clifford_tableau(_to_clifford_tableau(x_to=pZ, z_to=mY)),  # I-i(+X-Y+Z)
+                cls.from_clifford_tableau(_to_clifford_tableau(x_to=mY, z_to=mX)),  # I-i(+X-Y-Z)
+                cls.from_clifford_tableau(_to_clifford_tableau(x_to=mZ, z_to=pY)),  # I-i(-X+Y+Z)
+                cls.from_clifford_tableau(_to_clifford_tableau(x_to=mY, z_to=pX)),  # I-i(-X+Y-Z)
+                cls.from_clifford_tableau(_to_clifford_tableau(x_to=pY, z_to=mX)),  # I-i(-X-Y+Z)
+                cls.from_clifford_tableau(_to_clifford_tableau(x_to=pZ, z_to=pY)),  # I-i(-X-Y-Z)
+            ])
+        return cls._all_single_qubit_cliffords
+
+    @property
     def I(cls):
-        if getattr(cls, '_I', None) is None:
-            cls._I = cls._generate_clifford_from_known_gate(1, identity.I)
-        return cls._I
+        return cls.all_single_qubit_cliffords[0]
 
     @property
     def X(cls):
-        if getattr(cls, '_X', None) is None:
-            cls._X = cls._generate_clifford_from_known_gate(1, pauli_gates.X)
-        return cls._X
+        return cls.all_single_qubit_cliffords[1]
 
     @property
     def Y(cls):
-        if getattr(cls, '_Y', None) is None:
-            cls._Y = cls._generate_clifford_from_known_gate(1, pauli_gates.Y)
-        return cls._Y
+        return cls.all_single_qubit_cliffords[2]
 
     @property
     def Z(cls):
-        if getattr(cls, '_Z', None) is None:
-            cls._Z = cls._generate_clifford_from_known_gate(1, pauli_gates.Z)
-        return cls._Z
+        return cls.all_single_qubit_cliffords[3]
 
     @property
     def H(cls):
-        if getattr(cls, '_H', None) is None:
-            cls._H = cls._generate_clifford_from_known_gate(1, common_gates.H)
-        return cls._H
+        return cls.all_single_qubit_cliffords[10]
 
     @property
     def S(cls):
-        if getattr(cls, '_S', None) is None:
-            cls._S = cls._generate_clifford_from_known_gate(1, common_gates.S)
-        return cls._S
+        return cls.all_single_qubit_cliffords[6]
 
     @property
     def CNOT(cls):
         if getattr(cls, '_CNOT', None) is None:
-            cls._CNOT = cls._generate_clifford_from_known_gate(2, common_gates.CNOT)
+            t = qis.CliffordTableau(num_qubits=2)
+            t.xs = [[1, 1], [0, 1], [0, 0], [0, 0]]
+            t.zs = [[0, 0], [0, 0], [1, 0], [1, 1]]
+            cls._CNOT = cls.from_clifford_tableau(t)
         return cls._CNOT
 
     @property
     def CZ(cls):
         if getattr(cls, '_CZ', None) is None:
-            cls._CZ = cls._generate_clifford_from_known_gate(2, common_gates.CZ)
+            t = qis.CliffordTableau(num_qubits=2)
+            t.xs = [[1, 0], [0, 1], [0, 0], [0, 0]]
+            t.zs = [[0, 1], [1, 0], [1, 0], [0, 1]]
+            cls._CZ = cls.from_clifford_tableau(t)
         return cls._CZ
 
     @property
     def SWAP(cls):
         if getattr(cls, '_SWAP', None) is None:
-            cls._SWAP = cls._generate_clifford_from_known_gate(2, common_gates.SWAP)
+            t = qis.CliffordTableau(num_qubits=2)
+            t.xs = [[0, 1], [1, 0], [0, 0], [0, 0]]
+            t.zs = [[0, 0], [0, 0], [0, 1], [1, 0]]
+            cls._SWAP = cls.from_clifford_tableau(t)
         return cls._SWAP
 
     @property
     def X_sqrt(cls):
-        if getattr(cls, '_X_sqrt', None) is None:
-            # Unfortunately, due the code style, the matrix should be viewed transposed.
-            # Note xs, zs, and rs are column vector.
-            # Transformation: X -> X, Z -> -Y
-            _clifford_tableau = qis.CliffordTableau._from_json_dict_(
-                n=1, rs=[0, 1], xs=[[1], [1]], zs=[[0], [1]]
-            )
-            cls._X_sqrt = cls.from_clifford_tableau(_clifford_tableau)
-        return cls._X_sqrt
+        return cls.all_single_qubit_cliffords[4]
 
     @property
     def X_nsqrt(cls):
-        if getattr(cls, '_X_nsqrt', None) is None:
-            # Transformation: X->X, Z->Y
-            _clifford_tableau = qis.CliffordTableau._from_json_dict_(
-                n=1, rs=[0, 0], xs=[[1], [1]], zs=[[0], [1]]
-            )
-            cls._X_nsqrt = cls.from_clifford_tableau(_clifford_tableau)
-        return cls._X_nsqrt
+        return cls.all_single_qubit_cliffords[7]
 
     @property
     def Y_sqrt(cls):
-        if getattr(cls, '_Y_sqrt', None) is None:
-            # Transformation: X -> -Z,  Z -> X
-            _clifford_tableau = qis.CliffordTableau._from_json_dict_(
-                n=1, rs=[1, 0], xs=[[0], [1]], zs=[[1], [0]]
-            )
-            cls._Y_sqrt = cls.from_clifford_tableau(_clifford_tableau)
-        return cls._Y_sqrt
+        return cls.all_single_qubit_cliffords[5]
 
     @property
     def Y_nsqrt(cls):
-        if getattr(cls, '_Y_nsqrt', None) is None:
-            # Transformation: X -> Z, Z -> -X
-            _clifford_tableau = qis.CliffordTableau._from_json_dict_(
-                n=1, rs=[0, 1], xs=[[0], [1]], zs=[[1], [0]]
-            )
-            cls._Y_nsqrt = cls.from_clifford_tableau(_clifford_tableau)
-        return cls._Y_nsqrt
+        return cls.all_single_qubit_cliffords[8]
 
     @property
     def Z_sqrt(cls):
-        if getattr(cls, '_Z_sqrt', None) is None:
-            # Transformation: X -> Y, Z -> Z
-            _clifford_tableau = qis.CliffordTableau._from_json_dict_(
-                n=1, rs=[0, 0], xs=[[1], [0]], zs=[[1], [1]]
-            )
-            cls._Z_sqrt = cls.from_clifford_tableau(_clifford_tableau)
-        return cls._Z_sqrt
+        return cls.all_single_qubit_cliffords[6]
 
     @property
     def Z_nsqrt(cls):
-        if getattr(cls, '_Z_nsqrt', None) is None:
-            # Transformation: X -> -Y,  Z -> Z
-            _clifford_tableau = qis.CliffordTableau._from_json_dict_(
-                n=1, rs=[1, 0], xs=[[1], [0]], zs=[[1], [1]]
-            )
-            cls._Z_nsqrt = cls.from_clifford_tableau(_clifford_tableau)
-        return cls._Z_nsqrt
+        return cls.all_single_qubit_cliffords[9]
 
 
 class CommonCliffordGates(metaclass=CommonCliffordGateMetaClass):
-
-    # We need to use the lazy initialization of these common gates since they need to use
-    # cirq.sim, which can not be imported when
-    @classmethod
-    def _generate_clifford_from_known_gate(
-        cls, num_qubits: int, gate: raw_types.Gate
-    ) -> Union['SingleQubitCliffordGate', 'CliffordGate']:
-        qubits = devices.LineQubit.range(num_qubits)
-        t = qis.CliffordTableau(num_qubits=num_qubits)
-        args = sim.CliffordTableauSimulationState(
-            tableau=t, qubits=qubits, prng=np.random.RandomState()
-        )
-
-        protocols.act_on(gate, args, qubits, allow_decompose=False)
-        if num_qubits == 1:
-            return SingleQubitCliffordGate.from_clifford_tableau(args.tableau)
-        return CliffordGate.from_clifford_tableau(args.tableau)
 
     @classmethod
     def from_clifford_tableau(cls, tableau: qis.CliffordTableau) -> 'CliffordGate':
