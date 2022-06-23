@@ -99,7 +99,7 @@ class PauliStringPhasor(gate_operation.GateOperation):
                 )
         else:
             qubits = pauli_string.qubits
-        # Use qubits below instead of qubits or pauli_string.qubits
+        # Use qubits below instead of `qubits or pauli_string.qubits`
         gate = PauliStringPhasorGate(
             pauli_string.dense(qubits or pauli_string.qubits),
             exponent_neg=exponent_neg,
