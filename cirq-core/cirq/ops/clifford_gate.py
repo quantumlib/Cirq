@@ -145,7 +145,7 @@ class CommonCliffordGateMetaClass(value.ABCMetaImplementAnyOneOf):
     """A metaclass used to lazy initialize several common Clifford Gate as class attributes."""
 
     @property
-    def all_single_qubit_cliffords(cls) - Sequence['cirq.SingleQubitCliffordGate']:
+    def all_single_qubit_cliffords(cls) -> Sequence['cirq.SingleQubitCliffordGate']:
         """All 24 single-qubit Clifford gates."""
         if getattr(cls, '_all_single_qubit_cliffords', None) is None:
             pX = (pauli_gates.X, False)
