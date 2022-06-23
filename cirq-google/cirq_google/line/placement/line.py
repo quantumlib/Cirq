@@ -22,7 +22,7 @@ if TYPE_CHECKING:
 
 
 def line_on_device(
-    device: 'cirq_google.XmonDevice',
+    device: 'cirq_google.GridDevice',
     length: int,
     method: LinePlacementStrategy = greedy.GreedySequenceSearchStrategy(),
 ) -> GridQubitLineTuple:
