@@ -360,8 +360,8 @@ def _pauli_string_from_unit(unit: UnitPauliStringT, coefficient: Union[int, floa
 class PauliSum:
     """Represents operator defined by linear combination of PauliStrings.
 
-    Since PauliStrings store their own coefficients, this class
-    does not implement the LinearDict interface. Instead, you can
+    Since `cirq.PauliString`s store their own coefficients, this class
+    does not implement the `cirq.LinearDict` interface. Instead, you can
     add and subtract terms and then iterate over the resulting
     (simplified) expression.
 
@@ -386,12 +386,29 @@ class PauliSum:
 
     @staticmethod
     def wrap(val: PauliSumLike) -> 'PauliSum':
+        """Convert a `cirq.PauliSumLike` object to a PauliSum
+
+        Args:
+            `cirq.PauliSumLike` to convert to PauliSum.
+
+        Returns:
+            PauliSum representation of `val`.
+        """
         if isinstance(val, PauliSum):
             return val
         return PauliSum() + val
 
     @classmethod
     def from_pauli_strings(cls, terms: Union[PauliString, List[PauliString]]) -> 'PauliSum':
+        """Returns a PauliSum by combining PauliString terms.
+
+        Args:
+            terms: `cirq.PauliString` or List of `cirq.PauliString`s to use inside
+                of this PauliSum object.
+        Returns:
+            PauliSum object representing the addition of all the `cirq.PauliString`
+                terms in `terms`.
+        """
         if isinstance(terms, PauliString):
             terms = [terms]
         termdict: DefaultDict[UnitPauliStringT, value.Scalar] = defaultdict(lambda: 0)
@@ -459,6 +476,17 @@ class PauliSum:
         return tuple(sorted(qs))
 
     def with_qubits(self, *new_qubits: 'cirq.Qid') -> 'PauliSum':
+        """Return a new PauliSum on `new_qubits`.
+
+        Args:
+            *new_qubits: `cirq.Qid` objects to replace existing
+                qubit objects in this PauliSum.
+
+        Returns:
+            PauliSum with new_qubits replacing the previous
+                qubits.
+
+        """
         qubits = self.qubits
         if len(new_qubits) != len(qubits):
             raise ValueError('Incorrect number of qubits for PauliSum.')
@@ -469,12 +497,23 @@ class PauliSum:
         return PauliSum.from_pauli_strings(new_pauli_strings)
 
     def copy(self) -> 'PauliSum':
+        """Return a copy of this PauliSum.
+
+        Returns: A copy of this PauliSum.
+        """
         factory = type(self)
         return factory(self._linear_dict.copy())
 
     def matrix(self, qubits: Optional[Iterable[raw_types.Qid]] = None) -> np.ndarray:
-        """Reconstructs matrix of self from underlying Pauli operations in
-        computational basis of qubits.
+        """Get the matrix representing this PauliSum.
+
+        Args:
+            qubits: Iterable of qubits, specifying ordering to use
+                in the returned matrix. If none is provided
+                the default ordering of `self.qubits` is used.
+
+        Returns:
+            np.ndarray representing the matrix of this PauliSum expression.
 
         Raises:
             TypeError: if any of the gates in self does not provide a unitary.
