@@ -312,7 +312,7 @@ class GridDevice(cirq.Device):
         deadline='v0.16', fix='Change `device.qubits` to `device.metadata.qubit_set`.'
     )
     def qubits(self) -> List[cirq.Qid]:
-        return list(self._metadata.qubit_set)
+        return sorted(self._metadata.qubit_set)
 
     def validate_operation(self, operation: cirq.Operation) -> None:
         """Raises an exception if an operation is not valid.
