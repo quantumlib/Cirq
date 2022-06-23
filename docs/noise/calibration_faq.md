@@ -216,7 +216,7 @@ After triggering this calibration with the `cirq_google.run_calibrations` method
 is returned with a parameters field that contains the unitary parameters of all the requested gates. The object also contains
 additional execution metadata which might be useful.
 
-See also ["How to compensate for the parasitic c-phase φ angle?"](##how_to_compensate_for_the_parasitic_c-phase_φ_angle) below.
+See also ["How to compensate for the parasitic c-phase φ angle?"](#how_to_compensate_for_the_parasitic_c-phase_φ_angle) below.
 
 ## Floquet calibration fails with a message: Readout errors above the tolerance for qubit pairs (...), what can be done?
 
