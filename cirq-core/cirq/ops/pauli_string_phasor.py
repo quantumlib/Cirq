@@ -101,11 +101,9 @@ class PauliStringPhasor(gate_operation.GateOperation):
             qubits = pauli_string.qubits
         # Use qubits below instead of qubits or pauli_string.qubits
         gate = PauliStringPhasorGate(
-            pauli_string.dense(qubits or pauli_string.qubits),
-            exponent_neg=exponent_neg,
-            exponent_pos=exponent_pos,
+            pauli_string.dense(qubits), exponent_neg=exponent_neg, exponent_pos=exponent_pos
         )
-        super().__init__(gate, qubits or pauli_string.qubits)
+        super().__init__(gate, qubits)
         self._pauli_string = gate.dense_pauli_string.on(*self.qubits)
 
     @property
