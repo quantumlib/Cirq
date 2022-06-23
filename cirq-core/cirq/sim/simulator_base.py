@@ -50,6 +50,7 @@ from cirq.sim.simulator import (
 
 if TYPE_CHECKING:
     import cirq
+    from numpy.typing import DTypeLike
 
 
 TStepResultBase = TypeVar('TStepResultBase', bound='StepResultBase')

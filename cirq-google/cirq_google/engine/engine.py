@@ -29,6 +29,7 @@ import random
 import string
 from typing import Dict, Iterable, List, Optional, Sequence, Set, TypeVar, Union, TYPE_CHECKING
 
+import duet
 import google.auth
 from google.protobuf import any_pb2
 
@@ -126,16 +127,12 @@ class EngineContext:
     def _value_equality_values_(self):
         return self.proto_version, self.client
 
-    def _serialize_program(
-        self, program: cirq.AbstractCircuit, serializer: Optional[Serializer] = None
-    ) -> any_pb2.Any:
+    def _serialize_program(self, program: cirq.AbstractCircuit) -> any_pb2.Any:
         if not isinstance(program, cirq.AbstractCircuit):
             raise TypeError(f'Unrecognized program type: {type(program)}')
-        if serializer is None:
-            serializer = self.serializer
         if self.proto_version != ProtoVersion.V2:
             raise ValueError(f'invalid program proto version: {self.proto_version}')
-        return util.pack_any(serializer.serialize(program))
+        return util.pack_any(self.serializer.serialize(program))
 
     def _serialize_run_context(self, sweeps: 'cirq.Sweepable', repetitions: int) -> any_pb2.Any:
         if self.proto_version != ProtoVersion.V2:
@@ -207,7 +204,6 @@ class Engine(abstract_engine.AbstractEngine):
     def __str__(self) -> str:
         return f'Engine(project_id={self.project_id!r})'
 
-    @util.deprecated_gate_set_parameter
     def run(
         self,
         program: cirq.AbstractCircuit,
@@ -216,7 +212,6 @@ class Engine(abstract_engine.AbstractEngine):
         param_resolver: cirq.ParamResolver = cirq.ParamResolver({}),
         repetitions: int = 1,
         processor_ids: Sequence[str] = ('xmonsim',),
-        gate_set: Optional[Serializer] = None,
         program_description: Optional[str] = None,
         program_labels: Optional[Dict[str, str]] = None,
         job_description: Optional[str] = None,
@@ -241,8 +236,6 @@ class Engine(abstract_engine.AbstractEngine):
             processor_ids: The engine processors that should be candidates
                 to run the program. Only one of these will be scheduled for
                 execution.
-            gate_set: The gate set used to serialize the circuit. The gate set
-                must be supported by the selected processor.
             program_description: An optional description to set on the program.
             program_labels: Optional set of labels to set on the program.
             job_description: An optional description to set on the job.
@@ -269,7 +262,6 @@ class Engine(abstract_engine.AbstractEngine):
             )
         )[0]
 
-    @util.deprecated_gate_set_parameter
     def run_sweep(
         self,
         program: cirq.AbstractCircuit,
@@ -278,7 +270,6 @@ class Engine(abstract_engine.AbstractEngine):
         params: cirq.Sweepable = None,
         repetitions: int = 1,
         processor_ids: Sequence[str] = ('xmonsim',),
-        gate_set: Optional[Serializer] = None,
         program_description: Optional[str] = None,
         program_labels: Optional[Dict[str, str]] = None,
         job_description: Optional[str] = None,
@@ -306,8 +297,6 @@ class Engine(abstract_engine.AbstractEngine):
             processor_ids: The engine processors that should be candidates
                 to run the program. Only one of these will be scheduled for
                 execution.
-            gate_set: The gate set used to serialize the circuit. The gate set
-                must be supported by the selected processor.
             program_description: An optional description to set on the program.
             program_labels: Optional set of labels to set on the program.
             job_description: An optional description to set on the job.
@@ -332,7 +321,6 @@ class Engine(abstract_engine.AbstractEngine):
             labels=job_labels,
         )
 
-    @util.deprecated_gate_set_parameter
     def run_batch(
         self,
         programs: Sequence[cirq.AbstractCircuit],
@@ -341,7 +329,6 @@ class Engine(abstract_engine.AbstractEngine):
         params_list: List[cirq.Sweepable] = None,
         repetitions: int = 1,
         processor_ids: Sequence[str] = (),
-        gate_set: Optional[Serializer] = None,
         program_description: Optional[str] = None,
         program_labels: Optional[Dict[str, str]] = None,
         job_description: Optional[str] = None,
@@ -378,8 +365,6 @@ class Engine(abstract_engine.AbstractEngine):
             processor_ids: The engine processors that should be candidates
                 to run the program. Only one of these will be scheduled for
                 execution.
-            gate_set: The gate set used to serialize the circuit. The gate set
-                must be supported by the selected processor.
             program_description: An optional description to set on the program.
             program_labels: Optional set of labels to set on the program.
             job_description: An optional description to set on the job.
@@ -414,7 +399,6 @@ class Engine(abstract_engine.AbstractEngine):
             labels=job_labels,
         )
 
-    @util.deprecated_gate_set_parameter
     def run_calibration(
         self,
         layers: List['cirq_google.CalibrationLayer'],
@@ -422,7 +406,6 @@ class Engine(abstract_engine.AbstractEngine):
         job_id: Optional[str] = None,
         processor_id: str = None,
         processor_ids: Sequence[str] = (),
-        gate_set: Optional[Serializer] = None,
         program_description: Optional[str] = None,
         program_labels: Optional[Dict[str, str]] = None,
         job_description: Optional[str] = None,
@@ -458,8 +441,6 @@ class Engine(abstract_engine.AbstractEngine):
             processor_ids: The engine processors that should be candidates
                 to run the program. Only one of these will be scheduled for
                 execution.
-            gate_set: The gate set used to serialize the circuit. The gate set
-                must be supported by the selected processor.
             program_description: An optional description to set on the program.
             program_labels: Optional set of labels to set on the program.
             job_description: An optional description to set on the job.
@@ -492,12 +473,10 @@ class Engine(abstract_engine.AbstractEngine):
             labels=job_labels,
         )
 
-    @util.deprecated_gate_set_parameter
-    def create_program(
+    async def create_program_async(
         self,
         program: cirq.AbstractCircuit,
         program_id: Optional[str] = None,
-        gate_set: Optional[Serializer] = None,
         description: Optional[str] = None,
         labels: Optional[Dict[str, str]] = None,
     ) -> engine_program.EngineProgram:
@@ -510,8 +489,6 @@ class Engine(abstract_engine.AbstractEngine):
                 parameter is not provided, a random id of the format
                 'prog-################YYMMDD' will be generated, where # is
                 alphanumeric and YYMMDD is the current year, month, and day.
-            gate_set: The gate set used to serialize the circuit. The gate set
-                must be supported by the selected processor
             description: An optional description to set on the program.
             labels: Optional set of labels to set on the program.
 
@@ -524,10 +501,10 @@ class Engine(abstract_engine.AbstractEngine):
         if not program_id:
             program_id = _make_random_id('prog-')
 
-        new_program_id, new_program = self.context.client.create_program(
+        new_program_id, new_program = await self.context.client.create_program_async(
             self.project_id,
             program_id,
-            code=self.context._serialize_program(program, gate_set),
+            code=self.context._serialize_program(program),
             description=description,
             labels=labels,
         )
@@ -536,12 +513,12 @@ class Engine(abstract_engine.AbstractEngine):
             self.project_id, new_program_id, self.context, new_program
         )
 
-    @util.deprecated_gate_set_parameter
-    def create_batch_program(
+    create_program = duet.sync(create_program_async)
+
+    async def create_batch_program_async(
         self,
         programs: Sequence[cirq.AbstractCircuit],
         program_id: Optional[str] = None,
-        gate_set: Optional[Serializer] = None,
         description: Optional[str] = None,
         labels: Optional[Dict[str, str]] = None,
     ) -> engine_program.EngineProgram:
@@ -554,8 +531,6 @@ class Engine(abstract_engine.AbstractEngine):
                 parameter is not provided, a random id of the format
                 'prog-################YYMMDD' will be generated, where # is
                 alphanumeric and YYMMDD is the current year, month, and day.
-            gate_set: The gate set used to serialize the circuit. The gate set
-                must be supported by the selected processor
             description: An optional description to set on the program.
             labels: Optional set of labels to set on the program.
 
@@ -565,16 +540,14 @@ class Engine(abstract_engine.AbstractEngine):
         Raises:
             ValueError: If no gate set is provided.
         """
-        if not gate_set:
-            gate_set = self.context.serializer
         if not program_id:
             program_id = _make_random_id('prog-')
 
         batch = v2.batch_pb2.BatchProgram()
         for program in programs:
-            gate_set.serialize(program, msg=batch.programs.add())
+            self.context.serializer.serialize(program, msg=batch.programs.add())
 
-        new_program_id, new_program = self.context.client.create_program(
+        new_program_id, new_program = await self.context.client.create_program_async(
             self.project_id,
             program_id,
             code=util.pack_any(batch),
@@ -586,12 +559,12 @@ class Engine(abstract_engine.AbstractEngine):
             self.project_id, new_program_id, self.context, new_program, result_type=ResultType.Batch
         )
 
-    @util.deprecated_gate_set_parameter
-    def create_calibration_program(
+    create_batch_program = duet.sync(create_batch_program_async)
+
+    async def create_calibration_program_async(
         self,
         layers: List['cirq_google.CalibrationLayer'],
         program_id: Optional[str] = None,
-        gate_set: Optional[Serializer] = None,
         description: Optional[str] = None,
         labels: Optional[Dict[str, str]] = None,
     ) -> engine_program.EngineProgram:
@@ -608,8 +581,6 @@ class Engine(abstract_engine.AbstractEngine):
                 'calibration-################YYMMDD' will be generated,
                 where # is alphanumeric and YYMMDD is the current year, month,
                 and day.
-            gate_set: The gate set used to serialize the circuits in each
-                layer.  The gate set must be supported by the processor.
             description: An optional description to set on the program.
             labels: Optional set of labels to set on the program.
 
@@ -619,8 +590,6 @@ class Engine(abstract_engine.AbstractEngine):
         Raises:
             ValueError: If not gate set is given.
         """
-        if not gate_set:
-            gate_set = self.context.serializer
         if not program_id:
             program_id = _make_random_id('calibration-')
 
@@ -630,9 +599,9 @@ class Engine(abstract_engine.AbstractEngine):
             new_layer.calibration_type = layer.calibration_type
             for arg in layer.args:
                 arg_to_proto(layer.args[arg], out=new_layer.args[arg])
-            gate_set.serialize(layer.program, msg=new_layer.layer)
+            self.context.serializer.serialize(layer.program, msg=new_layer.layer)
 
-        new_program_id, new_program = self.context.client.create_program(
+        new_program_id, new_program = await self.context.client.create_program_async(
             self.project_id,
             program_id,
             code=util.pack_any(calibration),
@@ -648,6 +617,8 @@ class Engine(abstract_engine.AbstractEngine):
             result_type=ResultType.Calibration,
         )
 
+    create_calibration_program = duet.sync(create_calibration_program_async)
+
     def get_program(self, program_id: str) -> engine_program.EngineProgram:
         """Returns an EngineProgram for an existing Quantum Engine program.
 
@@ -659,7 +630,7 @@ class Engine(abstract_engine.AbstractEngine):
         """
         return engine_program.EngineProgram(self.project_id, program_id, self.context)
 
-    def list_programs(
+    async def list_programs_async(
         self,
         created_before: Optional[Union[datetime.datetime, datetime.date]] = None,
         created_after: Optional[Union[datetime.datetime, datetime.date]] = None,
@@ -681,7 +652,7 @@ class Engine(abstract_engine.AbstractEngine):
         """
 
         client = self.context.client
-        response = client.list_programs(
+        response = await client.list_programs_async(
             self.project_id,
             created_before=created_before,
             created_after=created_after,
@@ -697,7 +668,9 @@ class Engine(abstract_engine.AbstractEngine):
             for p in response
         ]
 
-    def list_jobs(
+    list_programs = duet.sync(list_programs_async)
+
+    async def list_jobs_async(
         self,
         created_before: Optional[Union[datetime.datetime, datetime.date]] = None,
         created_after: Optional[Union[datetime.datetime, datetime.date]] = None,
@@ -730,7 +703,7 @@ class Engine(abstract_engine.AbstractEngine):
                  `quantum.ExecutionStatus.State` enum for accepted values.
         """
         client = self.context.client
-        response = client.list_jobs(
+        response = await client.list_jobs_async(
             self.project_id,
             None,
             created_before=created_before,
@@ -749,7 +722,9 @@ class Engine(abstract_engine.AbstractEngine):
             for j in response
         ]
 
-    def list_processors(self) -> List[engine_processor.EngineProcessor]:
+    list_jobs = duet.sync(list_jobs_async)
+
+    async def list_processors_async(self) -> List[engine_processor.EngineProcessor]:
         """Returns a list of Processors that the user has visibility to in the
         current Engine project. The names of these processors are used to
         identify devices when scheduling jobs and gathering calibration metrics.
@@ -758,13 +733,15 @@ class Engine(abstract_engine.AbstractEngine):
             A list of EngineProcessors to access status, device and calibration
             information.
         """
-        response = self.context.client.list_processors(self.project_id)
+        response = await self.context.client.list_processors_async(self.project_id)
         return [
             engine_processor.EngineProcessor(
                 self.project_id, engine_client._ids_from_processor_name(p.name)[1], self.context, p
             )
             for p in response
         ]
+
+    list_processors = duet.sync(list_processors_async)
 
     def get_processor(self, processor_id: str) -> engine_processor.EngineProcessor:
         """Returns an EngineProcessor for a Quantum Engine processor.
@@ -778,17 +755,12 @@ class Engine(abstract_engine.AbstractEngine):
         return engine_processor.EngineProcessor(self.project_id, processor_id, self.context)
 
     @deprecated(deadline="v1.0", fix="Use get_sampler instead.")
-    @util.deprecated_gate_set_parameter
-    def sampler(
-        self, processor_id: Union[str, List[str]], gate_set: Optional[Serializer] = None
-    ) -> 'cirq_google.ProcessorSampler':
+    def sampler(self, processor_id: Union[str, List[str]]) -> 'cirq_google.ProcessorSampler':
         """Returns a sampler backed by the engine.
 
         Args:
             processor_id: String identifier, or list of string identifiers,
                 determining which processors may be used when sampling.
-            gate_set: A `Serializer` that determines how to serialize
-                 circuits when requesting samples.
 
         Returns:
             A `cirq.Sampler` instance (specifically a `engine_sampler.QuantumEngineSampler`
@@ -797,16 +769,11 @@ class Engine(abstract_engine.AbstractEngine):
         """
         return self.get_sampler(processor_id)
 
-    @util.deprecated_gate_set_parameter
-    def get_sampler(
-        self, processor_id: Union[str, List[str]], gate_set: Optional[Serializer] = None
-    ) -> 'cirq_google.ProcessorSampler':
+    def get_sampler(self, processor_id: Union[str, List[str]]) -> 'cirq_google.ProcessorSampler':
         """Returns a sampler backed by the engine.
 
         Args:
             processor_id: String identifier of which processor should be used to sample.
-            gate_set: A `Serializer` that determines how to serialize
-                 circuits when requesting samples.
 
         Returns:
             A `cirq.Sampler` instance (specifically a `engine_sampler.QuantumEngineSampler`
@@ -859,6 +826,7 @@ def get_engine(project_id: Optional[str] = None) -> Engine:
     return Engine(project_id=project_id, service_args=service_args)
 
 
+@util.deprecated_get_device_gate_sets_parameter(param_name='gatesets')
 def get_engine_device(
     processor_id: str,
     project_id: Optional[str] = None,
@@ -867,11 +835,9 @@ def get_engine_device(
     """Returns a `Device` object for a given processor.
 
     This is a short-cut for creating an engine object, getting the
-    processor object, and retrieving the device.  Note that the
-    gateset is required in order to match the serialized specification
-    back into cirq objects.
+    processor object, and retrieving the device.
     """
-    return get_engine(project_id).get_processor(processor_id).get_device(gatesets)
+    return get_engine(project_id).get_processor(processor_id).get_device()
 
 
 def get_engine_calibration(

@@ -51,9 +51,10 @@ def test_two_qubit_gates(gate: cirq.Gate, expected_length: int):
     )
     with cirq.testing.assert_deprecated("Use cirq.optimize_for_target_gateset", deadline='v1.0'):
         cgoc.ConvertToSqrtIswapGates().optimize_circuit(converted_circuit)
-    cig.SQRT_ISWAP_GATESET.serialize(converted_circuit)
-    cig.SQRT_ISWAP_GATESET.serialize(converted_circuit_iswap)
-    cig.SQRT_ISWAP_GATESET.serialize(converted_circuit_iswap_inv)
+    with cirq.testing.assert_deprecated('SerializableGateSet', deadline='v0.16', count=None):
+        cig.SQRT_ISWAP_GATESET.serialize(converted_circuit)
+        cig.SQRT_ISWAP_GATESET.serialize(converted_circuit_iswap)
+        cig.SQRT_ISWAP_GATESET.serialize(converted_circuit_iswap_inv)
     assert len(converted_circuit) <= expected_length
     assert (
         len(converted_circuit_iswap) <= expected_length
@@ -123,7 +124,7 @@ def test_cphase():
         actual = cirq.Circuit(decomposition)
         expected_unitary = cirq.unitary(expected)
         actual_unitary = cirq.unitary(actual)
-        np.testing.assert_allclose(expected_unitary, actual_unitary, atol=1e-07)
+        np.testing.assert_allclose(expected_unitary, actual_unitary, atol=1e-6)
 
 
 def test_givens_rotation():
@@ -148,7 +149,7 @@ def test_givens_rotation():
             circuit.append(cirq.IdentityGate(2).on(*qubits))
             test_unitary = cirq.unitary(circuit)
             np.testing.assert_allclose(
-                4, np.abs(np.trace(np.conjugate(np.transpose(test_unitary)) @ unitary))
+                4, np.abs(np.trace(np.conjugate(np.transpose(test_unitary)) @ unitary)), atol=1e-6
             )
 
 

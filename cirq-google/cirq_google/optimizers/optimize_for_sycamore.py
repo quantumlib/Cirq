@@ -18,6 +18,7 @@ from typing import Callable, cast, Optional, TYPE_CHECKING
 import numpy as np
 
 import cirq
+from cirq import _compat
 from cirq_google import ops as cg_ops
 from cirq_google.transformers.target_gatesets import sycamore_gateset
 
@@ -48,6 +49,17 @@ def _gate_product_tabulation_cached(
         raise NotImplementedError(f"Two qubit gate tabulation not supported for {optimizer_type}")
 
 
+@_compat.deprecated(
+    deadline='v0.16',
+    fix="""Use `cirq.optimize_for_target_gateset(circuit, gateset=<target_gateset>).`
+If `optimizer_type` is 'sqrt_iswap', `gateset=cirq.SqrtIswapTargetGateset(atol=tolerance)`.
+If `optimizer_type` is 'sycamore', `gateset=cirq_google.SycamoreTargetGateset(atol=tolerance),
+    optionally setting tabulation in the SycamoreTargetGateset constructor.
+If `optimizer_type` is 'xmon', `gateset=cirq.CZTargetGateset(atol=tolerance).
+If `optimizer_type` is 'xmon_partial_cz',
+    `gateset=cirq.CZTargetGateset(atol=tolerance, allow_partial_czs=True).
+""",
+)
 def optimized_for_sycamore(
     circuit: cirq.Circuit,
     *,

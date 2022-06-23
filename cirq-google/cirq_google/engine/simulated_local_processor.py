@@ -129,7 +129,8 @@ class SimulatedLocalProcessor(AbstractLocalProcessor):
     def get_current_calibration(self) -> Optional[calibration.Calibration]:
         return self.get_latest_calibration(int(datetime.datetime.now().timestamp()))
 
-    def get_device(self, gate_sets: Optional[Iterable['Serializer']] = None) -> cirq.Device:
+    @util.deprecated_get_device_gate_sets_parameter()
+    def get_device(self, gate_sets: Iterable['Serializer'] = ()) -> cirq.Device:
         """Returns a `Device` created from the processor's device specification.
 
         This method queries the processor to retrieve the device specification,
@@ -161,8 +162,7 @@ class SimulatedLocalProcessor(AbstractLocalProcessor):
             if earliest_timestamp_seconds <= cal[0] <= latest_timestamp_seconds
         ]
 
-    @util.deprecated_gate_set_parameter
-    def get_sampler(self, gate_set: Optional['Serializer'] = None) -> cirq.Sampler:
+    def get_sampler(self) -> ProcessorSampler:
         return ProcessorSampler(processor=self)
 
     def supported_languages(self) -> List[str]:
@@ -178,18 +178,14 @@ class SimulatedLocalProcessor(AbstractLocalProcessor):
         after_limit = created_after or datetime.datetime(datetime.MINYEAR, 1, 1)
         labels = has_labels or {}
 
-        def _labels_match(user_labels, program_labels):
-            return all(
-                (key in program_labels and program_labels[key] == labels[key]) for key in labels
-            )
+        def _labels_match(program_labels):
+            return all(program_labels.get(key) == label for key, label in labels.items())
 
-        return list(
-            filter(
-                lambda program: after_limit < program.create_time() < before_limit
-                and _labels_match(labels, program.labels()),
-                self._programs.values(),
-            )
-        )
+        return [
+            p
+            for p in self._programs.values()
+            if after_limit < p.create_time() < before_limit and _labels_match(p.labels())
+        ]
 
     def get_program(self, program_id: str) -> AbstractProgram:
         """Returns an AbstractProgram for an existing Quantum Engine program.
@@ -205,7 +201,6 @@ class SimulatedLocalProcessor(AbstractLocalProcessor):
         """
         return self._programs[program_id]
 
-    @util.deprecated_gate_set_parameter
     def run_batch(
         self,
         programs: Sequence[cirq.AbstractCircuit],
@@ -213,7 +208,6 @@ class SimulatedLocalProcessor(AbstractLocalProcessor):
         job_id: Optional[str] = None,
         params_list: Sequence[cirq.Sweepable] = None,
         repetitions: int = 1,
-        gate_set: Optional['Serializer'] = None,
         program_description: Optional[str] = None,
         program_labels: Optional[Dict[str, str]] = None,
         job_description: Optional[str] = None,
@@ -223,9 +217,7 @@ class SimulatedLocalProcessor(AbstractLocalProcessor):
             program_id = self._create_id(id_type='program')
         if job_id is None:
             job_id = self._create_id(id_type='job')
-        if gate_set is None:
-            gate_set = CIRCUIT_SERIALIZER
-        self._gate_set_validator(programs, params_list or [{}], repetitions, gate_set)
+        self._gate_set_validator(programs, params_list or [{}], repetitions, CIRCUIT_SERIALIZER)
         self._programs[program_id] = SimulatedLocalProgram(
             program_id=program_id,
             simulation_type=self._simulation_type,
@@ -245,7 +237,6 @@ class SimulatedLocalProcessor(AbstractLocalProcessor):
         self._programs[program_id].add_job(job_id, job)
         return job
 
-    @util.deprecated_gate_set_parameter
     def run(
         self,
         program: cirq.Circuit,
@@ -253,7 +244,6 @@ class SimulatedLocalProcessor(AbstractLocalProcessor):
         job_id: Optional[str] = None,
         param_resolver: Optional[cirq.ParamResolver] = None,
         repetitions: int = 1,
-        gate_set: Optional['Serializer'] = None,
         program_description: Optional[str] = None,
         program_labels: Optional[Dict[str, str]] = None,
         job_description: Optional[str] = None,
@@ -275,8 +265,6 @@ class SimulatedLocalProcessor(AbstractLocalProcessor):
                 and day.
             param_resolver: Parameters to run with the program.
             repetitions: The number of repetitions to simulate.
-            gate_set: The gate set used to serialize the circuit. The gate set
-                must be supported by the selected processor.
             program_description: An optional description to set on the program.
             program_labels: Optional set of labels to set on the program.
             job_description: An optional description to set on the job.
@@ -296,15 +284,13 @@ class SimulatedLocalProcessor(AbstractLocalProcessor):
             job_labels=job_labels,
         ).results()[0]
 
-    @util.deprecated_gate_set_parameter
     def run_sweep(
         self,
-        program: cirq.Circuit,
+        program: cirq.AbstractCircuit,
         program_id: Optional[str] = None,
         job_id: Optional[str] = None,
         params: cirq.Sweepable = None,
         repetitions: int = 1,
-        gate_set: Optional['Serializer'] = None,
         program_description: Optional[str] = None,
         program_labels: Optional[Dict[str, str]] = None,
         job_description: Optional[str] = None,
@@ -314,9 +300,7 @@ class SimulatedLocalProcessor(AbstractLocalProcessor):
             program_id = self._create_id(id_type='program')
         if job_id is None:
             job_id = self._create_id(id_type='job')
-        if gate_set is None:
-            gate_set = CIRCUIT_SERIALIZER
-        self._gate_set_validator([program], [params], repetitions, gate_set)
+        self._gate_set_validator([program], [params], repetitions, CIRCUIT_SERIALIZER)
         self._programs[program_id] = SimulatedLocalProgram(
             program_id=program_id,
             simulation_type=self._simulation_type,

@@ -20,7 +20,6 @@ TestSpec = ModuleJsonTestSpec(
         'SQRT_ISWAP_INV_PARAMETERS',
         'ALL_ANGLES_FLOQUET_PHASED_FSIM_CHARACTERIZATION',
         'WITHOUT_CHI_FLOQUET_PHASED_FSIM_CHARACTERIZATION',
-        'XmonDevice',
         'XMON',
     ],
     should_not_be_serialized=[
@@ -81,10 +80,5 @@ TestSpec = ModuleJsonTestSpec(
         ]
     },
     resolver_cache=_class_resolver_dictionary(),
-    deprecated={
-        '_NamedConstantXmonDevice': 'v0.15',
-        'Bristlecone': 'v0.15',
-        'Foxtail': 'v0.15',
-        'GateTabulation': 'v0.16',
-    },
+    deprecated={'GateTabulation': 'v0.16'},
 )

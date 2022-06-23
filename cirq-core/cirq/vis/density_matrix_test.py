@@ -55,7 +55,7 @@ def test_density_matrix_circle_rectangle_sizes(size, show_text):
     matrix = cirq.testing.random_density_matrix(size)
     ax = plot_density_matrix(matrix, show_text=show_text, title='Test Density Matrix Plot')
     # Check that the radius of all the circles in the matrix is correct
-    circles = list(filter(lambda x: isinstance(x, patches.Circle), ax.get_children()))
+    circles = [c for c in ax.get_children() if isinstance(c, patches.Circle)]
     mean_radius = np.mean([c.radius for c in circles if c.fill])
     mean_value = np.mean(np.abs(matrix))
     circles = np.array(sorted(circles, key=lambda x: (x.fill, x.center[0], -x.center[1]))).reshape(
@@ -68,12 +68,11 @@ def test_density_matrix_circle_rectangle_sizes(size, show_text):
             )
 
     # Check that all the rectangles are of the right height, and only on the diagonal elements
-    rects = list(
-        filter(
-            lambda x: isinstance(x, patches.Rectangle) and x.get_alpha() is not None,
-            ax.get_children(),
-        )
-    )
+    rects = [
+        r
+        for r in ax.get_children()
+        if isinstance(r, patches.Rectangle) and r.get_alpha() is not None
+    ]
     assert len(rects) == size
     mean_size = np.mean([r.get_height() for r in rects])
     mean_value = np.trace(np.abs(matrix)) / size
@@ -98,15 +97,14 @@ def test_density_matrix_sizes_upper_bounds(size, show_text):
     matrix = cirq.testing.random_density_matrix(size)
     ax = plot_density_matrix(matrix, show_text=show_text, title='Test Density Matrix Plot')
 
-    circles = list(filter(lambda x: isinstance(x, patches.Circle), ax.get_children()))
+    circles = [c for c in ax.get_children() if isinstance(c, patches.Circle)]
     max_radius = np.max([c.radius for c in circles if c.fill])
 
-    rects = list(
-        filter(
-            lambda x: isinstance(x, patches.Rectangle) and x.get_alpha() is not None,
-            ax.get_children(),
-        )
-    )
+    rects = [
+        r
+        for r in ax.get_children()
+        if isinstance(r, patches.Rectangle) and r.get_alpha() is not None
+    ]
     max_height = np.max([r.get_height() for r in rects])
     max_width = np.max([r.get_width() for r in rects])
 
@@ -124,7 +122,7 @@ def test_density_element_plot(value, show_rect):
         ax, 0, 0, np.abs(value), np.angle(value), show_rect=False, show_text=False
     )
     # Check that the right phase is being plotted
-    plotted_lines = list(filter(lambda x: isinstance(x, lines.Line2D), ax.get_children()))
+    plotted_lines = [c for c in ax.get_children() if isinstance(c, lines.Line2D)]
     assert len(plotted_lines) == 1
     line_position = plotted_lines[0].get_xydata()
     angle = np.arctan(
@@ -132,11 +130,9 @@ def test_density_element_plot(value, show_rect):
     )
     assert np.isclose(np.angle(value), angle)
     # Check if the circles are the right size ratio, given the value of the element
-    circles_in = list(filter(lambda x: isinstance(x, patches.Circle) and x.fill, ax.get_children()))
+    circles_in = [c for c in ax.get_children() if isinstance(c, patches.Circle) and c.fill]
     assert len(circles_in) == 1
-    circles_out = list(
-        filter(lambda x: isinstance(x, patches.Circle) and not x.fill, ax.get_children())
-    )
+    circles_out = [c for c in ax.get_children() if isinstance(c, patches.Circle) and not c.fill]
     assert len(circles_out) == 1
     assert np.isclose(circles_in[0].radius, circles_out[0].radius * np.abs(value))
     # Check the rectangle is show if show_rect is on and it's filled if we are showing
@@ -145,7 +141,7 @@ def test_density_element_plot(value, show_rect):
     # checked when counting and matching the rectangles to the diagonal circles in
     # `test_density_matrix_circle_sizes`
     if show_rect:
-        rectangles = list(filter(lambda x: isinstance(x, patches.Rectangle), ax.get_children()))
+        rectangles = [r for r in ax.get_children() if isinstance(r, patches.Rectangle)]
         assert len(rectangles) == 1
         assert rectangles[0].fill
 

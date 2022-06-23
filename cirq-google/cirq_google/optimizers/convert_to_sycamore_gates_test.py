@@ -39,7 +39,7 @@ def test_convert_to_sycamore_gates_swap_zz():
         == 3
     )
     cirq.testing.assert_circuits_with_terminal_measurements_are_equivalent(
-        circuit1, compiled_circuit1, atol=1e-7
+        circuit1, compiled_circuit1, atol=1e-5
     )
 
 
@@ -65,7 +65,7 @@ def test_single_qubit_gate():
     assert len(ops) == 1
     assert isinstance(ops[0].gate, cirq.PhasedXZGate)
     cirq.testing.assert_circuits_with_terminal_measurements_are_equivalent(
-        circuit, converted_circuit, atol=1e-8
+        circuit, converted_circuit, atol=1e-6
     )
 
 
@@ -109,7 +109,7 @@ def test_circuit_operation_conversion():
         cgoc.ConvertToSycamoreGates().optimize_circuit(reconverted_subcircuit)
     assert ops[0].circuit == reconverted_subcircuit
     cirq.testing.assert_circuits_with_terminal_measurements_are_equivalent(
-        circuit, converted_circuit, atol=1e-8
+        circuit, converted_circuit, atol=1e-6
     )
 
 
@@ -151,7 +151,7 @@ def test_unsupported_phased_iswap():
     with cirq.testing.assert_deprecated("Use cirq.optimize_for_target_gateset", deadline='v1.0'):
         cgoc.ConvertToSycamoreGates().optimize_circuit(converted_circuit)
     cirq.testing.assert_circuits_with_terminal_measurements_are_equivalent(
-        circuit, converted_circuit, atol=1e-8
+        circuit, converted_circuit, atol=1e-6
     )
 
 
@@ -225,7 +225,7 @@ def test_zztheta_qaoa_like():
             cgoc.ConvertToSycamoreGates().optimize_circuit(syc_circuit)
 
         cirq.testing.assert_allclose_up_to_global_phase(
-            cirq.unitary(cirq_circuit), cirq.unitary(syc_circuit), atol=1e-7
+            cirq.unitary(cirq_circuit), cirq.unitary(syc_circuit), atol=1e-6
         )
 
 
@@ -241,7 +241,7 @@ def test_zztheta_zzpow_unsorted_qubits():
         cgoc.ConvertToSycamoreGates().optimize_circuit(actual_circuit)
 
     cirq.testing.assert_allclose_up_to_global_phase(
-        cirq.unitary(expected_circuit), cirq.unitary(actual_circuit), atol=1e-7
+        cirq.unitary(expected_circuit), cirq.unitary(actual_circuit), atol=1e-6
     )
 
 
@@ -260,7 +260,7 @@ def test_swap_zztheta():
         ):
             cgoc.ConvertToSycamoreGates().optimize_circuit(actual_circuit)
         actual_unitary = cirq.unitary(actual_circuit)
-        cirq.testing.assert_allclose_up_to_global_phase(actual_unitary, expected_unitary, atol=1e-7)
+        cirq.testing.assert_allclose_up_to_global_phase(actual_unitary, expected_unitary, atol=1e-5)
 
 
 def test_known_two_q_operations_to_sycamore_operations_cnot():
@@ -271,7 +271,7 @@ def test_known_two_q_operations_to_sycamore_operations_cnot():
 
     # Should be equivalent.
     cirq.testing.assert_allclose_up_to_global_phase(
-        cirq.unitary(op), cirq.unitary(decomposed), atol=1e-8
+        cirq.unitary(op), cirq.unitary(decomposed), atol=1e-6
     )
 
     # Should have decomposed into two Sycamores.
@@ -303,7 +303,7 @@ def test_convert_to_sycamore_equivalent_unitaries(gate):
         converted = cgoc.ConvertToSycamoreGates().convert(operation)
     u1 = cirq.unitary(cirq.Circuit(converted))
     u2 = cirq.unitary(operation)
-    cirq.testing.assert_allclose_up_to_global_phase(u1, u2, atol=1e-8)
+    cirq.testing.assert_allclose_up_to_global_phase(u1, u2, atol=4e-6)
 
 
 def test_convert_to_sycamore_tabulation():

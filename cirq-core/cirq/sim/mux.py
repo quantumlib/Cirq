@@ -29,6 +29,7 @@ from cirq.transformers import measurement_transformers
 
 if TYPE_CHECKING:
     import cirq
+    from numpy.typing import DTypeLike
 
 CIRCUIT_LIKE = Union[circuits.Circuit, ops.Gate, ops.OP_TREE]
 document(

@@ -16,7 +16,7 @@ from typing import List, Optional, TYPE_CHECKING
 from cirq import ops, protocols, transformers
 from cirq._compat import deprecated_class
 from cirq.circuits.optimization_pass import PointOptimizationSummary, PointOptimizer
-from cirq.neutral_atoms.neutral_atom_gateset import NeutralAtomGateset
+from cirq.neutral_atoms import neutral_atom_devices
 
 if TYPE_CHECKING:
     import cirq
@@ -24,7 +24,7 @@ if TYPE_CHECKING:
 
 @deprecated_class(
     deadline='v0.16',
-    fix='Use cirq.optimize_for_target_gateset(circuit, gateset=NeutralAtomGateset()).',
+    fix='Use cirq.optimize_for_target_gateset(circuit, gateset=cirq_pasqal.PasqalGateset()).',
 )
 class ConvertToNeutralAtomGates(PointOptimizer):
     """Attempts to convert gates into native Atom gates.
@@ -52,7 +52,7 @@ class ConvertToNeutralAtomGates(PointOptimizer):
         """
         super().__init__()
         self.ignore_failures = ignore_failures
-        self.gateset = NeutralAtomGateset()
+        self.gateset = neutral_atom_devices.neutral_atom_gateset()
 
     def _convert_one(self, op: ops.Operation) -> ops.OP_TREE:
         # Known matrix?
@@ -96,9 +96,9 @@ class ConvertToNeutralAtomGates(PointOptimizer):
 
 def is_native_neutral_atom_op(operation: ops.Operation) -> bool:
     """Returns true if the operation is in the default neutral atom gateset."""
-    return operation in NeutralAtomGateset()
+    return operation in neutral_atom_devices.neutral_atom_gateset()
 
 
 def is_native_neutral_atom_gate(gate: ops.Gate) -> bool:
     """Returns true if the gate is in the default neutral atom gateset."""
-    return gate in NeutralAtomGateset()
+    return gate in neutral_atom_devices.neutral_atom_gateset()

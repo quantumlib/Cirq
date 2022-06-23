@@ -36,8 +36,7 @@ from cirq_google.calibration.phased_fsim import (
     LocalXEBPhasedFSimCalibrationRequest,
 )
 from cirq_google.calibration.xeb_wrapper import run_local_xeb_calibration
-from cirq_google.engine import AbstractProcessor, AbstractEngine, ProcessorSampler, util
-from cirq_google.serialization.serializer import Serializer
+from cirq_google.engine import AbstractProcessor, AbstractEngine, ProcessorSampler
 
 _CALIBRATION_IRRELEVANT_GATES = cirq.MeasurementGate, cirq.WaitGate
 
@@ -752,7 +751,7 @@ def _run_calibrations_via_engine(
         job = processor.run_calibration(cal_layers)
         request_results = job.calibration_results()
         results += [
-            calibration.parse_result(result, job)
+            calibration.parse_result(result, job)  # type: ignore[arg-type]
             for calibration, result in zip(calibration_requests, request_results)
         ]
         if progress_func:
@@ -772,12 +771,10 @@ def _run_local_calibrations_via_sampler(
     ]
 
 
-@util.deprecated_gate_set_parameter
 def run_calibrations(
     calibrations: Sequence[PhasedFSimCalibrationRequest],
     sampler: Union[AbstractEngine, cirq.Sampler],
     processor_id: Optional[str] = None,
-    gate_set: Optional[Serializer] = None,
     max_layers_per_request: int = 1,
     progress_func: Optional[Callable[[int, int], None]] = None,
 ) -> List[PhasedFSimCalibrationResult]:
@@ -790,8 +787,6 @@ def run_calibrations(
             calibrations are issued against a Google's quantum device. The only other sampler
             supported for simulation purposes is cirq_google.PhasedFSimEngineSimulator.
         processor_id: Used when sampler is cirq_google.Engine object and passed to
-            cirq_google.Engine.run_calibrations method.
-        gate_set: Used when sampler is cirq_google.Engine object and passed to
             cirq_google.Engine.run_calibrations method.
         max_layers_per_request: Maximum number of calibration requests issued to cirq.Engine at a
             single time. Defaults to 1.
@@ -1160,12 +1155,10 @@ class FSimPhaseCorrections:
         return cirq.Circuit(self.operations)
 
 
-@util.deprecated_gate_set_parameter
 def run_floquet_characterization_for_moments(
     circuit: cirq.Circuit,
     sampler: Union[AbstractEngine, cirq.Sampler],
     processor_id: Optional[str] = None,
-    gate_set: Optional[Serializer] = None,
     options: FloquetPhasedFSimCalibrationOptions = WITHOUT_CHI_FLOQUET_PHASED_FSIM_CHARACTERIZATION,
     gates_translator: Callable[
         [cirq.Gate], Optional[PhaseCalibratedFSimGate]
@@ -1187,8 +1180,6 @@ def run_floquet_characterization_for_moments(
             calibrations are issued against a Google's quantum device. The only other sampler
             supported for simulation purposes is cirq_google.PhasedFSimEngineSimulator.
         processor_id: Used when sampler is cirq_google.Engine object and passed to
-            cirq_google.Engine.run_calibrations method.
-        gate_set: Used when sampler is cirq_google.Engine object and passed to
             cirq_google.Engine.run_calibrations method.
         options: Options that are applied to each characterized gate within a moment. Defaults
             to all_except_for_chi_options which is the broadest currently supported choice.
@@ -1231,12 +1222,10 @@ def run_floquet_characterization_for_moments(
     return circuit_calibration, results
 
 
-@util.deprecated_gate_set_parameter
 def run_zeta_chi_gamma_compensation_for_moments(
     circuit: cirq.Circuit,
     sampler: Union[AbstractEngine, cirq.Sampler],
     processor_id: Optional[str] = None,
-    gate_set: Optional[Serializer] = None,
     options: FloquetPhasedFSimCalibrationOptions = (
         THETA_ZETA_GAMMA_FLOQUET_PHASED_FSIM_CHARACTERIZATION
     ),
@@ -1263,8 +1252,6 @@ def run_zeta_chi_gamma_compensation_for_moments(
             calibrations are issued against a Google's quantum device. The only other sampler
             supported for simulation purposes is cirq_google.PhasedFSimEngineSimulator.
         processor_id: Used when sampler is cirq_google.Engine object and passed to
-            cirq_google.Engine.run_calibrations method.
-        gate_set: Used when sampler is cirq_google.Engine object and passed to
             cirq_google.Engine.run_calibrations method.
         options: Options that are applied to each characterized gate within a moment. Defaults
             to all_except_for_chi_options which is the broadest currently supported choice.
