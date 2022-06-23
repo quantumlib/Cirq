@@ -13,7 +13,7 @@
 # limitations under the License.
 """Objects and methods for acting efficiently on a density matrix."""
 
-from typing import Any, Callable, List, Optional, Sequence, Tuple, TYPE_CHECKING, Union
+from typing import Any, Callable, List, Optional, Sequence, Tuple, Type, TYPE_CHECKING, Union
 
 import numpy as np
 
@@ -24,7 +24,6 @@ from cirq.sim.simulation_state import SimulationState, strat_act_on_from_apply_d
 
 if TYPE_CHECKING:
     import cirq
-    from numpy.typing import DTypeLike
 
 
 class _BufferedDensityMatrix(qis.QuantumStateRepresentation):
@@ -58,7 +57,7 @@ class _BufferedDensityMatrix(qis.QuantumStateRepresentation):
         *,
         initial_state: Union[np.ndarray, 'cirq.STATE_VECTOR_LIKE'] = 0,
         qid_shape: Optional[Tuple[int, ...]] = None,
-        dtype: Optional['DTypeLike'] = None,
+        dtype: Optional[Type[np.complexfloating]] = None,
         buffer: Optional[List[np.ndarray]] = None,
     ):
         """Creates a buffered density matrix with the requested state.
@@ -252,7 +251,7 @@ class DensityMatrixSimulationState(SimulationState[_BufferedDensityMatrix]):
         prng: Optional[np.random.RandomState] = None,
         qubits: Optional[Sequence['cirq.Qid']] = None,
         initial_state: Union[np.ndarray, 'cirq.STATE_VECTOR_LIKE'] = 0,
-        dtype: 'DTypeLike' = np.complex64,
+        dtype: Type[np.complexfloating] = np.complex64,
         classical_data: Optional['cirq.ClassicalDataStore'] = None,
     ):
         """Inits DensityMatrixSimulationState.
