@@ -4317,33 +4317,240 @@ def test_repr_html_escaping(circuit_cls):
     assert '|c&gt;' in circuit._repr_html_()
 
 
-def test_tetris_concat():
+def test_tetris_concat_deprecated():
     a, b = cirq.LineQubit.range(2)
     empty = cirq.Circuit()
 
-    assert cirq.Circuit.tetris_concat(empty, empty) == empty
-    assert cirq.Circuit.tetris_concat() == empty
-    assert empty.tetris_concat(empty) == empty
-    assert empty.tetris_concat(empty, empty) == empty
+    with cirq.testing.assert_deprecated('ragged', deadline='v0.16', count=None):
+        assert cirq.Circuit.tetris_concat(empty, empty) == empty
+        assert cirq.Circuit.tetris_concat() == empty
+        assert empty.tetris_concat(empty) == empty
+        assert empty.tetris_concat(empty, empty) == empty
+
+        ha = cirq.Circuit(cirq.H(a))
+        hb = cirq.Circuit(cirq.H(b))
+        assert ha.tetris_concat(hb) == ha.zip(hb)
+
+        assert ha.tetris_concat(empty) == ha
+        assert empty.tetris_concat(ha) == ha
+
+        hac = cirq.Circuit(cirq.H(a), cirq.CNOT(a, b))
+        assert hac.tetris_concat(hb) == hac + hb
+        assert hb.tetris_concat(hac) == hb.zip(hac)
+
+        zig = cirq.Circuit(cirq.H(a), cirq.CNOT(a, b), cirq.H(b))
+        assert zig.tetris_concat(zig) == cirq.Circuit(
+            cirq.H(a),
+            cirq.CNOT(a, b),
+            cirq.Moment(cirq.H(a), cirq.H(b)),
+            cirq.CNOT(a, b),
+            cirq.H(b),
+        )
+
+        zag = cirq.Circuit(cirq.H(a), cirq.H(a), cirq.CNOT(a, b), cirq.H(b), cirq.H(b))
+        assert zag.tetris_concat(zag) == cirq.Circuit(
+            cirq.H(a),
+            cirq.H(a),
+            cirq.CNOT(a, b),
+            cirq.Moment(cirq.H(a), cirq.H(b)),
+            cirq.Moment(cirq.H(a), cirq.H(b)),
+            cirq.CNOT(a, b),
+            cirq.H(b),
+            cirq.H(b),
+        )
+
+        space = cirq.Circuit(cirq.Moment()) * 10
+        f = cirq.Circuit.tetris_concat
+        assert len(f(space, ha)) == 10
+        assert len(f(space, ha, ha, ha)) == 10
+        assert len(f(space, f(ha, ha, ha))) == 10
+        assert len(f(space, ha, align='LEFT')) == 10
+        assert len(f(space, ha, ha, ha, align='RIGHT')) == 12
+        assert len(f(space, f(ha, ha, ha, align='LEFT'))) == 10
+        assert len(f(space, f(ha, ha, ha, align='RIGHT'))) == 10
+        assert len(f(space, f(ha, ha, ha), align='LEFT')) == 10
+        assert len(f(space, f(ha, ha, ha), align='RIGHT')) == 10
+
+        # L shape overlap (vary c1).
+        assert 7 == len(
+            f(
+                cirq.Circuit(cirq.CZ(a, b), [cirq.H(a)] * 5),
+                cirq.Circuit([cirq.H(b)] * 5, cirq.CZ(a, b)),
+            )
+        )
+        assert 7 == len(
+            f(
+                cirq.Circuit(cirq.CZ(a, b), [cirq.H(a)] * 4),
+                cirq.Circuit([cirq.H(b)] * 5, cirq.CZ(a, b)),
+            )
+        )
+        assert 7 == len(
+            f(
+                cirq.Circuit(cirq.CZ(a, b), [cirq.H(a)] * 1),
+                cirq.Circuit([cirq.H(b)] * 5, cirq.CZ(a, b)),
+            )
+        )
+        assert 8 == len(
+            f(
+                cirq.Circuit(cirq.CZ(a, b), [cirq.H(a)] * 6),
+                cirq.Circuit([cirq.H(b)] * 5, cirq.CZ(a, b)),
+            )
+        )
+        assert 9 == len(
+            f(
+                cirq.Circuit(cirq.CZ(a, b), [cirq.H(a)] * 7),
+                cirq.Circuit([cirq.H(b)] * 5, cirq.CZ(a, b)),
+            )
+        )
+
+        # L shape overlap (vary c2).
+        assert 7 == len(
+            f(
+                cirq.Circuit(cirq.CZ(a, b), [cirq.H(a)] * 5),
+                cirq.Circuit([cirq.H(b)] * 5, cirq.CZ(a, b)),
+            )
+        )
+        assert 7 == len(
+            f(
+                cirq.Circuit(cirq.CZ(a, b), [cirq.H(a)] * 5),
+                cirq.Circuit([cirq.H(b)] * 4, cirq.CZ(a, b)),
+            )
+        )
+        assert 7 == len(
+            f(
+                cirq.Circuit(cirq.CZ(a, b), [cirq.H(a)] * 5),
+                cirq.Circuit([cirq.H(b)] * 1, cirq.CZ(a, b)),
+            )
+        )
+        assert 8 == len(
+            f(
+                cirq.Circuit(cirq.CZ(a, b), [cirq.H(a)] * 5),
+                cirq.Circuit([cirq.H(b)] * 6, cirq.CZ(a, b)),
+            )
+        )
+        assert 9 == len(
+            f(
+                cirq.Circuit(cirq.CZ(a, b), [cirq.H(a)] * 5),
+                cirq.Circuit([cirq.H(b)] * 7, cirq.CZ(a, b)),
+            )
+        )
+
+        # When scanning sees a possible hit, continues scanning for earlier hit.
+        assert 10 == len(
+            f(
+                cirq.Circuit(
+                    cirq.Moment(),
+                    cirq.Moment(),
+                    cirq.Moment(),
+                    cirq.Moment(),
+                    cirq.Moment(),
+                    cirq.Moment(cirq.H(a)),
+                    cirq.Moment(),
+                    cirq.Moment(),
+                    cirq.Moment(cirq.H(b)),
+                ),
+                cirq.Circuit(
+                    cirq.Moment(),
+                    cirq.Moment(),
+                    cirq.Moment(),
+                    cirq.Moment(cirq.H(a)),
+                    cirq.Moment(),
+                    cirq.Moment(cirq.H(b)),
+                ),
+            )
+        )
+        # Correct tie breaker when one operation sees two possible hits.
+        for cz_order in [cirq.CZ(a, b), cirq.CZ(b, a)]:
+            assert 3 == len(
+                f(
+                    cirq.Circuit(cirq.Moment(cz_order), cirq.Moment(), cirq.Moment()),
+                    cirq.Circuit(cirq.Moment(cirq.H(a)), cirq.Moment(cirq.H(b))),
+                )
+            )
+
+        # Types.
+        v = ha.freeze().tetris_concat(empty)
+        assert type(v) is cirq.FrozenCircuit and v == ha.freeze()
+        v = ha.tetris_concat(empty.freeze())
+        assert type(v) is cirq.Circuit and v == ha
+        v = ha.freeze().tetris_concat(empty)
+        assert type(v) is cirq.FrozenCircuit and v == ha.freeze()
+        v = cirq.Circuit.tetris_concat(ha, empty)
+        assert type(v) is cirq.Circuit and v == ha
+        v = cirq.FrozenCircuit.tetris_concat(ha, empty)
+        assert type(v) is cirq.FrozenCircuit and v == ha.freeze()
+
+
+def test_tetris_concat_alignment_deprecated():
+    a, b = cirq.LineQubit.range(2)
+
+    with cirq.testing.assert_deprecated('ragged', deadline='v0.16', count=None):
+
+        assert cirq.Circuit.tetris_concat(
+            cirq.Circuit(cirq.X(a)),
+            cirq.Circuit(cirq.Y(b)) * 4,
+            cirq.Circuit(cirq.Z(a)),
+            align='first',
+        ) == cirq.Circuit(
+            cirq.Moment(cirq.X(a), cirq.Y(b)),
+            cirq.Moment(cirq.Y(b)),
+            cirq.Moment(cirq.Y(b)),
+            cirq.Moment(cirq.Z(a), cirq.Y(b)),
+        )
+
+        assert cirq.Circuit.tetris_concat(
+            cirq.Circuit(cirq.X(a)),
+            cirq.Circuit(cirq.Y(b)) * 4,
+            cirq.Circuit(cirq.Z(a)),
+            align='left',
+        ) == cirq.Circuit(
+            cirq.Moment(cirq.X(a), cirq.Y(b)),
+            cirq.Moment(cirq.Z(a), cirq.Y(b)),
+            cirq.Moment(cirq.Y(b)),
+            cirq.Moment(cirq.Y(b)),
+        )
+
+        assert cirq.Circuit.tetris_concat(
+            cirq.Circuit(cirq.X(a)),
+            cirq.Circuit(cirq.Y(b)) * 4,
+            cirq.Circuit(cirq.Z(a)),
+            align='right',
+        ) == cirq.Circuit(
+            cirq.Moment(cirq.Y(b)),
+            cirq.Moment(cirq.Y(b)),
+            cirq.Moment(cirq.Y(b)),
+            cirq.Moment(cirq.X(a), cirq.Y(b)),
+            cirq.Moment(cirq.Z(a)),
+        )
+
+
+def test_concat_ragged():
+    a, b = cirq.LineQubit.range(2)
+    empty = cirq.Circuit()
+
+    assert cirq.Circuit.concat_ragged(empty, empty) == empty
+    assert cirq.Circuit.concat_ragged() == empty
+    assert empty.concat_ragged(empty) == empty
+    assert empty.concat_ragged(empty, empty) == empty
 
     ha = cirq.Circuit(cirq.H(a))
     hb = cirq.Circuit(cirq.H(b))
-    assert ha.tetris_concat(hb) == ha.zip(hb)
+    assert ha.concat_ragged(hb) == ha.zip(hb)
 
-    assert ha.tetris_concat(empty) == ha
-    assert empty.tetris_concat(ha) == ha
+    assert ha.concat_ragged(empty) == ha
+    assert empty.concat_ragged(ha) == ha
 
     hac = cirq.Circuit(cirq.H(a), cirq.CNOT(a, b))
-    assert hac.tetris_concat(hb) == hac + hb
-    assert hb.tetris_concat(hac) == hb.zip(hac)
+    assert hac.concat_ragged(hb) == hac + hb
+    assert hb.concat_ragged(hac) == hb.zip(hac)
 
     zig = cirq.Circuit(cirq.H(a), cirq.CNOT(a, b), cirq.H(b))
-    assert zig.tetris_concat(zig) == cirq.Circuit(
+    assert zig.concat_ragged(zig) == cirq.Circuit(
         cirq.H(a), cirq.CNOT(a, b), cirq.Moment(cirq.H(a), cirq.H(b)), cirq.CNOT(a, b), cirq.H(b)
     )
 
     zag = cirq.Circuit(cirq.H(a), cirq.H(a), cirq.CNOT(a, b), cirq.H(b), cirq.H(b))
-    assert zag.tetris_concat(zag) == cirq.Circuit(
+    assert zag.concat_ragged(zag) == cirq.Circuit(
         cirq.H(a),
         cirq.H(a),
         cirq.CNOT(a, b),
@@ -4355,7 +4562,7 @@ def test_tetris_concat():
     )
 
     space = cirq.Circuit(cirq.Moment()) * 10
-    f = cirq.Circuit.tetris_concat
+    f = cirq.Circuit.concat_ragged
     assert len(f(space, ha)) == 10
     assert len(f(space, ha, ha, ha)) == 10
     assert len(f(space, f(ha, ha, ha))) == 10
@@ -4464,22 +4671,22 @@ def test_tetris_concat():
         )
 
     # Types.
-    v = ha.freeze().tetris_concat(empty)
+    v = ha.freeze().concat_ragged(empty)
     assert type(v) is cirq.FrozenCircuit and v == ha.freeze()
-    v = ha.tetris_concat(empty.freeze())
+    v = ha.concat_ragged(empty.freeze())
     assert type(v) is cirq.Circuit and v == ha
-    v = ha.freeze().tetris_concat(empty)
+    v = ha.freeze().concat_ragged(empty)
     assert type(v) is cirq.FrozenCircuit and v == ha.freeze()
-    v = cirq.Circuit.tetris_concat(ha, empty)
+    v = cirq.Circuit.concat_ragged(ha, empty)
     assert type(v) is cirq.Circuit and v == ha
-    v = cirq.FrozenCircuit.tetris_concat(ha, empty)
+    v = cirq.FrozenCircuit.concat_ragged(ha, empty)
     assert type(v) is cirq.FrozenCircuit and v == ha.freeze()
 
 
-def test_tetris_concat_alignment():
+def test_concat_ragged_alignment():
     a, b = cirq.LineQubit.range(2)
 
-    assert cirq.Circuit.tetris_concat(
+    assert cirq.Circuit.concat_ragged(
         cirq.Circuit(cirq.X(a)), cirq.Circuit(cirq.Y(b)) * 4, cirq.Circuit(cirq.Z(a)), align='first'
     ) == cirq.Circuit(
         cirq.Moment(cirq.X(a), cirq.Y(b)),
@@ -4488,7 +4695,7 @@ def test_tetris_concat_alignment():
         cirq.Moment(cirq.Z(a), cirq.Y(b)),
     )
 
-    assert cirq.Circuit.tetris_concat(
+    assert cirq.Circuit.concat_ragged(
         cirq.Circuit(cirq.X(a)), cirq.Circuit(cirq.Y(b)) * 4, cirq.Circuit(cirq.Z(a)), align='left'
     ) == cirq.Circuit(
         cirq.Moment(cirq.X(a), cirq.Y(b)),
@@ -4497,7 +4704,7 @@ def test_tetris_concat_alignment():
         cirq.Moment(cirq.Y(b)),
     )
 
-    assert cirq.Circuit.tetris_concat(
+    assert cirq.Circuit.concat_ragged(
         cirq.Circuit(cirq.X(a)), cirq.Circuit(cirq.Y(b)) * 4, cirq.Circuit(cirq.Z(a)), align='right'
     ) == cirq.Circuit(
         cirq.Moment(cirq.Y(b)),
