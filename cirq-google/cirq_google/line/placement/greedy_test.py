@@ -25,6 +25,10 @@ class FakeDevice(cirq.Device):
     def __init__(self, qubits):
         self.qubits = qubits
 
+    @property
+    def metadata(self):
+        return cirq.DeviceMetadata(self.qubits, None)
+
 
 def _create_device(qubits: Iterable[cirq.GridQubit]):
     return FakeDevice(qubits)

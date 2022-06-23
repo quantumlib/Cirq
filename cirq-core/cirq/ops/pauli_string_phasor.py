@@ -56,7 +56,7 @@ class PauliStringPhasor(gate_operation.GateOperation):
     by e^(i pi exponent_neg) while +1 eigenstates of the Pauli string will have
     their amplitude multiplied by e^(i pi exponent_pos).
 
-    The class also takes a list of qubits, which can be bigger than those
+    The class also takes a list of qubits, which can be a superset of those
     acted on by the provided `PauliString`.  Those extra qubits are assumed to be
     acted upon via identity.
     """
@@ -99,7 +99,7 @@ class PauliStringPhasor(gate_operation.GateOperation):
                 )
         else:
             qubits = pauli_string.qubits
-        # Use qubits below instead of qubits or pauli_string.qubits
+        # Use qubits below instead of `qubits or pauli_string.qubits`
         gate = PauliStringPhasorGate(
             pauli_string.dense(qubits), exponent_neg=exponent_neg, exponent_pos=exponent_pos
         )

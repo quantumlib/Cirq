@@ -23,8 +23,7 @@ from typing import Dict, List, Optional, Sequence, Set, Union
 
 import cirq
 from cirq_google.cloud import quantum
-from cirq_google.engine import abstract_job, abstract_program, abstract_processor, util
-from cirq_google.serialization import Serializer
+from cirq_google.engine import abstract_job, abstract_program, abstract_processor
 
 VALID_DATE_TYPE = Union[datetime.datetime, datetime.date]
 
@@ -125,15 +124,10 @@ class AbstractEngine(abc.ABC):
         """
 
     @abc.abstractmethod
-    @util.deprecated_gate_set_parameter
-    def get_sampler(
-        self, processor_id: Union[str, List[str]], gate_set: Optional[Serializer] = None
-    ) -> cirq.Sampler:
+    def get_sampler(self, processor_id: Union[str, List[str]]) -> cirq.Sampler:
         """Returns a sampler backed by the engine.
 
         Args:
             processor_id: String identifier, or list of string identifiers,
                 determining which processors may be used when sampling.
-            gate_set: Determines how to serialize circuits when requesting
-                samples.
         """
