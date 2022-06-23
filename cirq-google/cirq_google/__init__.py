@@ -165,7 +165,8 @@ _compat.deprecate_attributes(
     {
         'XMON': (
             'v0.16',
-            'SerializableGateSet will no longer be supported.'
+            'SerializableGateSet and associated classes (GateOpSerializer, GateOpDeserializer,'
+            ' SerializingArgs, DeserializingArgs) will no longer be supported.'
             ' In cirq_google.GridDevice, the new representation of Google devices, the gateset of '
             ' a device is represented as a cirq.Gateset and is available as'
             ' GridDevice.metadata.gateset.'
@@ -174,7 +175,8 @@ _compat.deprecate_attributes(
         ),
         'FSIM_GATESET': (
             'v0.16',
-            'SerializableGateSet will no longer be supported.'
+            'SerializableGateSet and associated classes (GateOpSerializer, GateOpDeserializer,'
+            ' SerializingArgs, DeserializingArgs) will no longer be supported.'
             ' In cirq_google.GridDevice, the new representation of Google devices, the gateset of '
             ' a device is represented as a cirq.Gateset and is available as'
             ' GridDevice.metadata.gateset.'
@@ -183,7 +185,8 @@ _compat.deprecate_attributes(
         ),
         'SQRT_ISWAP_GATESET': (
             'v0.16',
-            'SerializableGateSet will no longer be supported.'
+            'SerializableGateSet and associated classes (GateOpSerializer, GateOpDeserializer,'
+            ' SerializingArgs, DeserializingArgs) will no longer be supported.'
             ' In cirq_google.GridDevice, the new representation of Google devices, the gateset of '
             ' a device is represented as a cirq.Gateset and is available as'
             ' GridDevice.metadata.gateset.'
@@ -192,7 +195,8 @@ _compat.deprecate_attributes(
         ),
         'SYC_GATESET': (
             'v0.16',
-            'SerializableGateSet will no longer be supported.'
+            'SerializableGateSet and associated classes (GateOpSerializer, GateOpDeserializer,'
+            ' SerializingArgs, DeserializingArgs) will no longer be supported.'
             ' In cirq_google.GridDevice, the new representation of Google devices, the gateset of '
             ' a device is represented as a cirq.Gateset and is available as'
             ' GridDevice.metadata.gateset.'
@@ -201,7 +205,8 @@ _compat.deprecate_attributes(
         ),
         'NAMED_GATESETS': (
             'v0.16',
-            'SerializableGateSet will no longer be supported.'
+            'SerializableGateSet and associated classes (GateOpSerializer, GateOpDeserializer,'
+            ' SerializingArgs, DeserializingArgs) will no longer be supported.'
             ' In cirq_google.GridDevice, the new representation of Google devices, the gateset of '
             ' a device is represented as a cirq.Gateset and is available as'
             ' GridDevice.metadata.gateset.'
