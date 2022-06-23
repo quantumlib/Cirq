@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Dict, List, Optional, Set, TYPE_CHECKING
+from typing import cast, Dict, List, Optional, Set, TYPE_CHECKING
 
 import abc
 import collections
@@ -34,7 +34,7 @@ class GreedySequenceSearch:
     method.
     """
 
-    def __init__(self, device: 'cirq_google.XmonDevice', start: GridQubit) -> None:
+    def __init__(self, device: 'cirq_google.GridDevice', start: GridQubit) -> None:
         """Greedy sequence search constructor.
 
         Args:
@@ -44,10 +44,10 @@ class GreedySequenceSearch:
         Raises:
             ValueError: When start qubit is not part of a chip.
         """
-        if start not in device.qubits:
+        if start not in device.metadata.qubit_set:
             raise ValueError('Starting qubit must be a qubit on the chip')
 
-        self._c = device.qubits
+        self._c = device.metadata.qubit_set
         self._c_adj = chip_as_adjacency_list(device)
         self._start = start
         self._sequence: Optional[List[GridQubit]] = None
@@ -286,7 +286,7 @@ class GreedySequenceSearchStrategy(place_strategy.LinePlacementStrategy):
         """
         self.algorithm = algorithm
 
-    def place_line(self, device: 'cirq_google.XmonDevice', length: int) -> GridQubitLineTuple:
+    def place_line(self, device: 'cirq_google.GridDevice', length: int) -> GridQubitLineTuple:
         """Runs line sequence search.
 
         Args:
@@ -301,10 +301,10 @@ class GreedySequenceSearchStrategy(place_strategy.LinePlacementStrategy):
                         recognized.
         """
 
-        if not device.qubits:
+        if not device.metadata.qubit_set:
             return GridQubitLineTuple()
 
-        start: GridQubit = min(device.qubits)
+        start: GridQubit = cast(GridQubit, min(device.metadata.qubit_set))
         sequences: List[LineSequence] = []
         greedy_search: Dict[str, List[GreedySequenceSearch]] = {
             'minimal_connectivity': [_PickFewestNeighbors(device, start)],
