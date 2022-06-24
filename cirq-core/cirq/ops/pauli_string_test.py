@@ -310,6 +310,18 @@ def test_repr():
     cirq.testing.assert_equivalent_repr(cirq.PauliString())
 
 
+def test_repr_preserves_qubit_order():
+    q0, q1, q2 = _make_qubits(3)
+    pauli_string = cirq.PauliString({q2: cirq.X, q1: cirq.Y, q0: cirq.Z})
+    assert eval(repr(pauli_string)).qubits == pauli_string.qubits
+
+    pauli_string = cirq.PauliString(cirq.X(q2), cirq.Y(q1), cirq.Z(q0))
+    assert eval(repr(pauli_string)).qubits == pauli_string.qubits
+
+    pauli_string = cirq.PauliString(cirq.Z(q0), cirq.Y(q1), cirq.X(q2))
+    assert eval(repr(pauli_string)).qubits == pauli_string.qubits
+
+
 def test_repr_coefficient_of_one():
     pauli_string = cirq.Z(cirq.LineQubit(0)) * 1
     assert type(pauli_string) == type(eval(repr(pauli_string)))
