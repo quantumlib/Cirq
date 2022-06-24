@@ -168,7 +168,7 @@ def decompose(
             unwanted non-decomposable operation.
         preserve_structure: Prevents subcircuits (i.e. `CircuitOperation`s)
             from being decomposed, but decomposes their contents. If this is
-            True, 'intercepting_decomposer' cannot be specified.
+            True, `intercepting_decomposer` cannot be specified.
 
     Returns:
         A list of operations that the given value was decomposed into. If
