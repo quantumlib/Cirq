@@ -16,7 +16,7 @@
 This module creates Gate instances for the following gates:
     SWAP: the swap gate.
     ISWAP: a swap gate with a phase on the swapped subspace.
-    ISWAP_SQRT: the inverse of the ISWAP gate.
+    ISWAP_INV: the inverse of the ISWAP gate.
     SQRT_ISWAP: square root of the ISWAP gate.
     SQRT_ISWAP_INV: inverse square root of the ISWAP gate.
 
