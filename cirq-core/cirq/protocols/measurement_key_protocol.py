@@ -13,12 +13,13 @@
 # limitations under the License.
 """Protocol for object that have measurement keys."""
 
-from typing import Any, Dict, FrozenSet, Optional, Tuple, TYPE_CHECKING
+from typing import Any, Dict, FrozenSet, Optional, Tuple, TYPE_CHECKING, Union
 
 from typing_extensions import Protocol
 
 from cirq import value, _compat
 from cirq._doc import doc_private
+from cirq.type_workarounds import NotImplementedType
 
 if TYPE_CHECKING:
     import cirq
@@ -68,7 +69,9 @@ class SupportsMeasurementKey(Protocol):
         """
 
     @doc_private
-    def _measurement_key_objs_(self) -> FrozenSet['cirq.MeasurementKey']:
+    def _measurement_key_objs_(
+        self,
+    ) -> Union[FrozenSet['cirq.MeasurementKey'], NotImplementedType, None]:
         """Return the key objects for measurements performed by the receiving object.
 
         When a measurement occurs, either on hardware, or in a simulation,
@@ -86,7 +89,7 @@ class SupportsMeasurementKey(Protocol):
         """
 
     @doc_private
-    def _measurement_key_names_(self) -> FrozenSet[str]:
+    def _measurement_key_names_(self) -> Union[FrozenSet[str], NotImplementedType, None]:
         """Return the string keys for measurements performed by the receiving object.
 
         When a measurement occurs, either on hardware, or in a simulation,
@@ -172,7 +175,7 @@ def measurement_key_name(val: Any, default: Any = RaiseTypeErrorIfNotProvided):
 
 def _measurement_key_objs_from_magic_methods(
     val: Any,
-) -> Optional[FrozenSet['cirq.MeasurementKey']]:
+) -> Union[FrozenSet['cirq.MeasurementKey'], NotImplementedType, None]:
     """Uses the measurement key related magic methods to get the `MeasurementKey`s for this
     object."""
 
@@ -194,7 +197,9 @@ def _measurement_key_objs_from_magic_methods(
     return result
 
 
-def _measurement_key_names_from_magic_methods(val: Any) -> Optional[FrozenSet[str]]:
+def _measurement_key_names_from_magic_methods(
+    val: Any,
+) -> Union[FrozenSet[str], NotImplementedType, None]:
     """Uses the measurement key related magic methods to get the key strings for this object."""
 
     getter = getattr(val, '_measurement_key_names_', None)

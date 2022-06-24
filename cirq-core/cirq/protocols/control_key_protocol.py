@@ -13,13 +13,14 @@
 # limitations under the License.
 """Protocol for object that have control keys."""
 
-from typing import Any, FrozenSet, TYPE_CHECKING
+from typing import Any, FrozenSet, TYPE_CHECKING, Union
 
 from typing_extensions import Protocol
 
 from cirq import _compat
 from cirq._doc import doc_private
 from cirq.protocols import measurement_key_protocol
+from cirq.type_workarounds import NotImplementedType
 
 if TYPE_CHECKING:
     import cirq
@@ -35,7 +36,7 @@ class SupportsControlKey(Protocol):
     """
 
     @doc_private
-    def _control_keys_(self) -> FrozenSet['cirq.MeasurementKey']:
+    def _control_keys_(self) -> Union[FrozenSet['cirq.MeasurementKey'], NotImplementedType, None]:
         """Return the keys for controls referenced by the receiving object.
 
         Returns:
