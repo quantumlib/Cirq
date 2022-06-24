@@ -95,7 +95,10 @@ def test_decompose_xx_yy_into_two_fsims_ignoring_single_qubit_ops_fail():
         canonical_y_kak_coefficient=np.pi / 8,
     )
     np.testing.assert_allclose(
-        cirq.kak_decomposition(cirq.Circuit(c)).interaction_coefficients, [np.pi / 4, np.pi / 8, 0]
+        cirq.kak_decomposition(
+            cirq.Circuit(c).unitary(dtype=np.complex128)
+        ).interaction_coefficients,
+        [np.pi / 4, np.pi / 8, 0],
     )
 
     with pytest.raises(ValueError, match='Failed to synthesize'):

@@ -182,7 +182,7 @@ def create_device_proto_for_qubits(
                 gate = gs_proto.valid_gates.add()
                 gate.id = gate_id
 
-                if not isinstance(serializer, op_serializer.GateOpSerializer):
+                if not isinstance(serializer, op_serializer._GateOpSerializer):
                     # This implies that 'serializer' handles non-gate ops,
                     # such as CircuitOperations. No other properties apply.
                     continue
