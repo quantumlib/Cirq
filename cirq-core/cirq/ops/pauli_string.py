@@ -391,7 +391,7 @@ class PauliString(raw_types.Operation, Generic[TKey]):
             p.text(str(self))
 
     def __repr__(self) -> str:
-        ordered_qubits = sorted(self.qubits)
+        ordered_qubits = self.qubits
         prefix = ''
 
         factors = []
