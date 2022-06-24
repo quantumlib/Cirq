@@ -43,7 +43,6 @@ message Constant {
   }
 }
 
-
 // The quantum circuit, specified as a series of moments (abstract
 // slices of times with gates acting on disjoint sets of qubits).
 message Circuit {
@@ -101,8 +100,14 @@ message ScheduledOperation {
 message Language {
   // The name of the gate set being used.
   //
-  // Valid names for the gate sets can be found in cirq/google/gate_sets.py.
-  string gate_set = 1;
+  // Valid names for the gate sets can be found in
+  // cirq_google/serialization/gate_sets.py.
+  //
+  // Deprecated: A device now only supports a single gate set.
+  // Previously, the value of this field also refers to the name of the
+  // serializer for the program. Currently, the only serializer available is
+  // CircuitSerializer in cirq_google/serialization/circuit_serializer.py.
+  string gate_set = 1 [deprecated = true];
 
   // The language supported by ArgFunctions. These specifies what allowed
   // ArgFunction types there are.
@@ -176,7 +181,6 @@ message MeasurementGate {
   Arg invert_mask = 2;
 }
 
-
 // Representation of cirq.WAitGate
 message WaitGate {
   // Duration of the waiting period,
@@ -188,7 +192,7 @@ message WaitGate {
 message Operation {
   // Which gate this operation corresponds to.
   // Populated pre-v2.5+.
-  Gate gate = 1 [deprecated=true];
+  Gate gate = 1 [deprecated = true];
 
   // Each gate should populate one possible gate message
   // depending on the type desired.  Only populated in v2.5+.
@@ -207,7 +211,7 @@ message Operation {
 
   // Map from the argument name to the Argument needed to fully specify
   // the gate. Only populated pre-v2.5+.
-  map<string, Arg> args = 2 [deprecated=true];;
+  map<string, Arg> args = 2 [deprecated = true];
 
   // Which qubits the operation acts on.
   // Operations should populate one of the following two
