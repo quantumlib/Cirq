@@ -8,7 +8,7 @@ other python libraries as well.
 ## Use top-level constructs
 
 The Cirq library is designed so that important user-facing classes and objects
-are exposed at the package level.  Avoid referencing module names within cirq.
+are exposed at the package level.  Avoid referencing module names within Cirq.
 
 For instance, use `cirq.X` and **not** `cirq.ops.X`.  The second version will
 break if we rename modules or move classes around from version to version.
