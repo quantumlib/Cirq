@@ -285,6 +285,8 @@ class ISwapPowGate(gate_features.InterchangeableQubitsGate, eigen_gate.EigenGate
     def __str__(self) -> str:
         if self._exponent == 1:
             return 'ISWAP'
+        if self._exponent == -1:
+            return 'ISWAP_INV'
         return f'ISWAP**{self._exponent}'
 
     def __repr__(self) -> str:
@@ -292,6 +294,8 @@ class ISwapPowGate(gate_features.InterchangeableQubitsGate, eigen_gate.EigenGate
         if self._global_shift == 0:
             if self._exponent == 1:
                 return 'cirq.ISWAP'
+            if self._exponent == -1:
+                return 'cirq.ISWAP_INV'
             return f'(cirq.ISWAP**{e})'
         return f'cirq.ISwapPowGate(exponent={e}, global_shift={self._global_shift!r})'
 
