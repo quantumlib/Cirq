@@ -61,7 +61,7 @@ This philosophy is important for many use cases.  For instance, certain
 benchmarking algorithms rely on the fact that gate sequences will not be optimized,
 even if the circuit is nominally inefficient.
 
-Of course, cirq provides routines and functions for compilation and
+Of course, Cirq provides routines and functions for compilation and
 transformation of circuits.  Users can and should call these routines.  However,
 cirq and resulting hardware integrations should not modify the circuits without
 the user's "permission".
