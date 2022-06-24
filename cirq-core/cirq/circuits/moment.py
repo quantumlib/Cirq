@@ -16,7 +16,6 @@
 
 import itertools
 from typing import (
-    AbstractSet,
     Any,
     Callable,
     Dict,
@@ -238,8 +237,8 @@ class Moment:
             for op in self.operations
         )
 
-    def _measurement_key_names_(self) -> AbstractSet[str]:
-        return {str(key) for key in self._measurement_key_objs_()}
+    def _measurement_key_names_(self) -> FrozenSet[str]:
+        return frozenset(str(key) for key in self._measurement_key_objs_())
 
     def _measurement_key_objs_(self) -> FrozenSet['cirq.MeasurementKey']:
         if self._measurement_key_objs is None:
