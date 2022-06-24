@@ -26,7 +26,6 @@ calibration using the following pipeline:
 """
 
 from typing import Dict, Optional, Tuple, Type, TYPE_CHECKING
-import numpy as np
 
 from cirq import ops
 from cirq.devices import noise_utils
