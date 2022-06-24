@@ -74,7 +74,7 @@ def _convert_physical_z(op: cirq.Operation, proto: v2.program_pb2.Operation):
 #
 # Single qubit serializers for arbitrary rotations
 #
-SINGLE_QUBIT_SERIALIZERS = [
+_SINGLE_QUBIT_SERIALIZERS = [
     op_serializer._GateOpSerializer(
         gate_type=cirq.PhasedXPowGate,
         serialized_gate_id='xy',
@@ -186,7 +186,7 @@ SINGLE_QUBIT_SERIALIZERS = [
 #
 # Single qubit deserializers for arbitrary rotations
 #
-SINGLE_QUBIT_DESERIALIZERS = [
+_SINGLE_QUBIT_DESERIALIZERS = [
     op_deserializer._GateOpDeserializer(
         serialized_gate_id='xy',
         gate_constructor=cirq.PhasedXPowGate,
@@ -252,7 +252,7 @@ SINGLE_QUBIT_DESERIALIZERS = [
 #
 # Measurement Serializer and Deserializer
 #
-MEASUREMENT_SERIALIZER = op_serializer._GateOpSerializer(
+_MEASUREMENT_SERIALIZER = op_serializer._GateOpSerializer(
     gate_type=cirq.MeasurementGate,
     serialized_gate_id='meas',
     args=[
@@ -270,7 +270,7 @@ MEASUREMENT_SERIALIZER = op_serializer._GateOpSerializer(
         ),
     ],
 )
-MEASUREMENT_DESERIALIZER = op_deserializer._GateOpDeserializer(
+_MEASUREMENT_DESERIALIZER = op_deserializer._GateOpDeserializer(
     serialized_gate_id='meas',
     gate_constructor=cirq.MeasurementGate,
     args=[
@@ -294,7 +294,7 @@ MEASUREMENT_DESERIALIZER = op_deserializer._GateOpDeserializer(
 #
 # Serializers for single qubit rotations confined to half-pi increments
 #
-SINGLE_QUBIT_HALF_PI_SERIALIZERS = [
+_SINGLE_QUBIT_HALF_PI_SERIALIZERS = [
     op_serializer._GateOpSerializer(
         gate_type=cirq.PhasedXPowGate,
         serialized_gate_id='xy_pi',
@@ -394,7 +394,7 @@ SINGLE_QUBIT_HALF_PI_SERIALIZERS = [
 #
 # Deserializers for single qubit rotations confined to half-pi increments
 #
-SINGLE_QUBIT_HALF_PI_DESERIALIZERS = [
+_SINGLE_QUBIT_HALF_PI_DESERIALIZERS = [
     op_deserializer._GateOpDeserializer(
         serialized_gate_id='xy_pi',
         gate_constructor=cirq.PhasedXPowGate,
@@ -482,7 +482,7 @@ CZ_SERIALIZER = op_serializer._GateOpSerializer(
 )
 
 # CZ to any power
-CZ_POW_SERIALIZER = op_serializer._GateOpSerializer(
+_CZ_POW_SERIALIZER = op_serializer._GateOpSerializer(
     gate_type=cirq.CZPowGate,
     serialized_gate_id='cz',
     args=[
@@ -496,7 +496,7 @@ CZ_POW_SERIALIZER = op_serializer._GateOpSerializer(
     ],
 )
 
-CZ_POW_DESERIALIZER = op_deserializer._GateOpDeserializer(
+_CZ_POW_DESERIALIZER = op_deserializer._GateOpDeserializer(
     serialized_gate_id='cz',
     gate_constructor=cirq.CZPowGate,
     args=[
@@ -513,7 +513,7 @@ CZ_POW_DESERIALIZER = op_deserializer._GateOpDeserializer(
 #
 # Sycamore Gate Serializer and deserializer
 #
-SYC_SERIALIZER = op_serializer._GateOpSerializer(
+_SYC_SERIALIZER = op_serializer._GateOpSerializer(
     gate_type=cirq.FSimGate,
     serialized_gate_id='syc',
     args=[_phase_match_arg],
@@ -523,7 +523,7 @@ SYC_SERIALIZER = op_serializer._GateOpSerializer(
     ),
 )
 
-SYC_DESERIALIZER = op_deserializer._GateOpDeserializer(
+_SYC_DESERIALIZER = op_deserializer._GateOpDeserializer(
     serialized_gate_id='syc',
     gate_constructor=lambda: cirq.FSimGate(theta=np.pi / 2, phi=np.pi / 6),
     args=[],
@@ -534,7 +534,7 @@ SYC_DESERIALIZER = op_deserializer._GateOpDeserializer(
 # sqrt(ISWAP) serializer and deserializer
 # (e.g. ISWAP ** 0.5)
 #
-SQRT_ISWAP_SERIALIZERS = [
+_SQRT_ISWAP_SERIALIZERS = [
     op_serializer._GateOpSerializer(
         gate_type=cirq.FSimGate,
         serialized_gate_id='fsim_pi_4',
@@ -571,7 +571,7 @@ SQRT_ISWAP_SERIALIZERS = [
     ),
 ]
 
-SQRT_ISWAP_DESERIALIZERS = [
+_SQRT_ISWAP_DESERIALIZERS = [
     op_deserializer._GateOpDeserializer(
         serialized_gate_id='fsim_pi_4',
         gate_constructor=lambda: cirq.FSimGate(theta=np.pi / 4, phi=0),
@@ -610,7 +610,7 @@ _LIMITED_ISWAP_GATE_FAMILY = fsim_gate_family.FSimGateFamily(
     gate_types_to_check=[cirq.ISwapPowGate],
     allow_symbols=True,
 )
-LIMITED_FSIM_SERIALIZERS = [
+_LIMITED_FSIM_SERIALIZERS = [
     op_serializer._GateOpSerializer(
         gate_type=cirq.FSimGate,
         serialized_gate_id='fsim',
@@ -677,7 +677,7 @@ LIMITED_FSIM_SERIALIZERS = [
 ]
 
 
-LIMITED_FSIM_DESERIALIZER = op_deserializer._GateOpDeserializer(
+_LIMITED_FSIM_DESERIALIZER = op_deserializer._GateOpDeserializer(
     serialized_gate_id='fsim',
     gate_constructor=cirq.FSimGate,
     args=[
@@ -707,7 +707,7 @@ LIMITED_FSIM_DESERIALIZER = op_deserializer._GateOpDeserializer(
 # Coupler Pulse serializer and deserializer
 #
 
-COUPLER_PULSE_SERIALIZER = op_serializer._GateOpSerializer(
+_COUPLER_PULSE_SERIALIZER = op_serializer._GateOpSerializer(
     gate_type=CouplerPulse,
     serialized_gate_id='coupler_pulse',
     args=[
@@ -743,7 +743,7 @@ COUPLER_PULSE_SERIALIZER = op_serializer._GateOpSerializer(
         ),
     ],
 )
-COUPLER_PULSE_DESERIALIZER = op_deserializer._GateOpDeserializer(
+_COUPLER_PULSE_DESERIALIZER = op_deserializer._GateOpDeserializer(
     serialized_gate_id='coupler_pulse',
     gate_constructor=CouplerPulse,
     args=[
@@ -789,7 +789,7 @@ COUPLER_PULSE_DESERIALIZER = op_deserializer._GateOpDeserializer(
 #
 # WaitGate serializer and deserializer
 #
-WAIT_GATE_SERIALIZER = op_serializer._GateOpSerializer(
+_WAIT_GATE_SERIALIZER = op_serializer._GateOpSerializer(
     gate_type=cirq.WaitGate,
     serialized_gate_id='wait',
     args=[
@@ -803,7 +803,7 @@ WAIT_GATE_SERIALIZER = op_serializer._GateOpSerializer(
         )
     ],
 )
-WAIT_GATE_DESERIALIZER = op_deserializer._GateOpDeserializer(
+_WAIT_GATE_DESERIALIZER = op_deserializer._GateOpDeserializer(
     serialized_gate_id='wait',
     gate_constructor=cirq.WaitGate,
     args=[
@@ -826,3 +826,127 @@ WAIT_GATE_DESERIALIZER = op_deserializer._GateOpDeserializer(
 #
 CIRCUIT_OP_SERIALIZER = op_serializer.CircuitOpSerializer()
 CIRCUIT_OP_DESERIALIZER = op_deserializer.CircuitOpDeserializer()
+
+
+# HACK: to allow these to be used in gate_sets.py without throwing deprecation warnings during
+# module load.
+SINGLE_QUBIT_SERIALIZERS = _SINGLE_QUBIT_SERIALIZERS
+SINGLE_QUBIT_DESERIALIZERS = _SINGLE_QUBIT_DESERIALIZERS
+SINGLE_QUBIT_HALF_PI_SERIALIZERS = _SINGLE_QUBIT_HALF_PI_SERIALIZERS
+SINGLE_QUBIT_HALF_PI_DESERIALIZERS = _SINGLE_QUBIT_HALF_PI_DESERIALIZERS
+MEASUREMENT_SERIALIZER = _MEASUREMENT_SERIALIZER
+MEASUREMENT_DESERIALIZER = _MEASUREMENT_DESERIALIZER
+CZ_POW_SERIALIZER = _CZ_POW_SERIALIZER
+CZ_POW_DESERIALIZER = _CZ_POW_DESERIALIZER
+SYC_SERIALIZER = _SYC_SERIALIZER
+SYC_DESERIALIZER = _SYC_DESERIALIZER
+SQRT_ISWAP_SERIALIZERS = _SQRT_ISWAP_SERIALIZERS
+SQRT_ISWAP_DESERIALIZERS = _SQRT_ISWAP_DESERIALIZERS
+LIMITED_FSIM_SERIALIZERS = _LIMITED_FSIM_SERIALIZERS
+LIMITED_FSIM_DESERIALIZER = _LIMITED_FSIM_DESERIALIZER
+COUPLER_PULSE_SERIALIZER = _COUPLER_PULSE_SERIALIZER
+COUPLER_PULSE_DESERIALIZER = _COUPLER_PULSE_DESERIALIZER
+WAIT_GATE_SERIALIZER = _WAIT_GATE_SERIALIZER
+WAIT_GATE_DESERIALIZER = _WAIT_GATE_DESERIALIZER
+
+
+cirq._compat.deprecate_attributes(
+    __name__,
+    {
+        'SINGLE_QUBIT_SERIALIZERS': (
+            'v0.16',
+            'GateOpSerializer will no longer be available.'
+            ' CircuitSerializer will be the only supported circuit serializer going forward.',
+        ),
+        'SINGLE_QUBIT_DESERIALIZERS': (
+            'v0.16',
+            'GateOpDeserializer will no longer be available.'
+            ' CircuitSerializer will be the only supported circuit serializer going forward.',
+        ),
+        'SINGLE_QUBIT_HALF_PI_SERIALIZERS': (
+            'v0.16',
+            'GateOpSerializer will no longer be available.'
+            ' CircuitSerializer will be the only supported circuit serializer going forward.',
+        ),
+        'SINGLE_QUBIT_HALF_PI_DESERIALIZERS': (
+            'v0.16',
+            'GateOpDeserializer will no longer be available.'
+            ' CircuitSerializer will be the only supported circuit serializer going forward.',
+        ),
+        'MEASUREMENT_SERIALIZER': (
+            'v0.16',
+            'GateOpSerializer will no longer be available.'
+            ' CircuitSerializer will be the only supported circuit serializer going forward.',
+        ),
+        'MEASUREMENT_DESERIALIZER': (
+            'v0.16',
+            'GateOpDeserializer will no longer be available.'
+            ' CircuitSerializer will be the only supported circuit serializer going forward.',
+        ),
+        'CZ_SERIALIZER': (
+            'v0.16',
+            'GateOpSerializer will no longer be available.'
+            ' CircuitSerializer will be the only supported circuit serializer going forward.',
+        ),
+        'CZ_POW_SERIALIZER': (
+            'v0.16',
+            'GateOpSerializer will no longer be available.'
+            ' CircuitSerializer will be the only supported circuit serializer going forward.',
+        ),
+        'CZ_POW_DESERIALIZER': (
+            'v0.16',
+            'GateOpDeserializer will no longer be available.'
+            ' CircuitSerializer will be the only supported circuit serializer going forward.',
+        ),
+        'SYC_SERIALIZER': (
+            'v0.16',
+            'GateOpSerializer will no longer be available.'
+            ' CircuitSerializer will be the only supported circuit serializer going forward.',
+        ),
+        'SYC_DESERIALIZER': (
+            'v0.16',
+            'GateOpDeserializer will no longer be available.'
+            ' CircuitSerializer will be the only supported circuit serializer going forward.',
+        ),
+        'SQRT_ISWAP_SERIALIZERS': (
+            'v0.16',
+            'GateOpSerializer will no longer be available.'
+            ' CircuitSerializer will be the only supported circuit serializer going forward.',
+        ),
+        'SQRT_ISWAP_DESERIALIZERS': (
+            'v0.16',
+            'GateOpDeserializer will no longer be available.'
+            ' CircuitSerializer will be the only supported circuit serializer going forward.',
+        ),
+        'LIMITED_FSIM_SERIALIZERS': (
+            'v0.16',
+            'GateOpSerializer will no longer be available.'
+            ' CircuitSerializer will be the only supported circuit serializer going forward.',
+        ),
+        'LIMITED_FSIM_DESERIALIZER': (
+            'v0.16',
+            'GateOpDeserializer will no longer be available.'
+            ' CircuitSerializer will be the only supported circuit serializer going forward.',
+        ),
+        'COUPLER_PULSE_SERIALIZER': (
+            'v0.16',
+            'GateOpSerializer will no longer be available.'
+            ' CircuitSerializer will be the only supported circuit serializer going forward.',
+        ),
+        'COUPLER_PULSE_DESERIALIZER': (
+            'v0.16',
+            'GateOpDeserializer will no longer be available.'
+            ' CircuitSerializer will be the only supported circuit serializer going forward.',
+        ),
+        'WAIT_GATE_SERIALIZER': (
+            'v0.16',
+            'GateOpSerializer will no longer be available.'
+            ' CircuitSerializer will be the only supported circuit serializer going forward.',
+        ),
+        'WAIT_GATE_DESERIALIZER': (
+            'v0.16',
+            'GateOpDeserializer will no longer be available.'
+            ' CircuitSerializer will be the only supported circuit serializer going forward.',
+        ),
+    },
+)
