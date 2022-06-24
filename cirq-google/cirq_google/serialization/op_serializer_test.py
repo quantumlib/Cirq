@@ -29,6 +29,37 @@ from cirq_google.api import v2
 DEFAULT_TOKEN = 'test_tag'
 
 
+def _create_gate_op_serializer(
+    *,
+    gate_type,
+    serialized_gate_id,
+    args,
+    can_serialize_predicate=lambda x: True,
+    serialize_tokens=True,
+):
+    with cirq.testing.assert_deprecated('CircuitSerializer', deadline='v0.16', count=1):
+        return cg.GateOpSerializer(
+            gate_type=gate_type,
+            serialized_gate_id=serialized_gate_id,
+            args=args,
+            can_serialize_predicate=can_serialize_predicate,
+            serialize_tokens=serialize_tokens,
+        )
+
+
+def _create_serializing_arg(
+    *, serialized_name, serialized_type, op_getter, required=True, default=None
+):
+    with cirq.testing.assert_deprecated('CircuitSerializer', deadline='v0.16', count=1):
+        return cg.SerializingArg(
+            serialized_name=serialized_name,
+            serialized_type=serialized_type,
+            op_getter=op_getter,
+            required=required,
+            default=default,
+        )
+
+
 def op_proto(json: Dict) -> v2.program_pb2.Operation:
     op = v2.program_pb2.Operation()
     json_format.ParseDict(json, op)
@@ -105,11 +136,13 @@ TEST_CASES = (
 
 @pytest.mark.parametrize(('val_type', 'val', 'arg_value'), TEST_CASES)
 def test_to_proto_attribute(val_type, val, arg_value):
-    serializer = cg.GateOpSerializer(
+    serializer = _create_gate_op_serializer(
         gate_type=GateWithAttribute,
         serialized_gate_id='my_gate',
         args=[
-            cg.SerializingArg(serialized_name='my_val', serialized_type=val_type, op_getter='val')
+            _create_serializing_arg(
+                serialized_name='my_val', serialized_type=val_type, op_getter='val'
+            )
         ],
     )
     q = cirq.GridQubit(1, 2)
@@ -122,11 +155,13 @@ def test_to_proto_attribute(val_type, val, arg_value):
 
 @pytest.mark.parametrize(('val_type', 'val', 'arg_value'), TEST_CASES)
 def test_to_proto_property(val_type, val, arg_value):
-    serializer = cg.GateOpSerializer(
+    serializer = _create_gate_op_serializer(
         gate_type=GateWithProperty,
         serialized_gate_id='my_gate',
         args=[
-            cg.SerializingArg(serialized_name='my_val', serialized_type=val_type, op_getter='val')
+            _create_serializing_arg(
+                serialized_name='my_val', serialized_type=val_type, op_getter='val'
+            )
         ],
     )
     q = cirq.GridQubit(1, 2)
@@ -139,11 +174,13 @@ def test_to_proto_property(val_type, val, arg_value):
 
 @pytest.mark.parametrize(('val_type', 'val', 'arg_value'), TEST_CASES)
 def test_to_proto_callable(val_type, val, arg_value):
-    serializer = cg.GateOpSerializer(
+    serializer = _create_gate_op_serializer(
         gate_type=GateWithMethod,
         serialized_gate_id='my_gate',
         args=[
-            cg.SerializingArg(serialized_name='my_val', serialized_type=val_type, op_getter=get_val)
+            _create_serializing_arg(
+                serialized_name='my_val', serialized_type=val_type, op_getter=get_val
+            )
         ],
     )
     q = cirq.GridQubit(1, 2)
@@ -155,10 +192,14 @@ def test_to_proto_callable(val_type, val, arg_value):
 
 
 def test_to_proto_gate_predicate():
-    serializer = cg.GateOpSerializer(
+    serializer = _create_gate_op_serializer(
         gate_type=GateWithAttribute,
         serialized_gate_id='my_gate',
-        args=[cg.SerializingArg(serialized_name='my_val', serialized_type=float, op_getter='val')],
+        args=[
+            _create_serializing_arg(
+                serialized_name='my_val', serialized_type=float, op_getter='val'
+            )
+        ],
         can_serialize_predicate=lambda x: x.gate.val == 1,
     )
     q = cirq.GridQubit(1, 2)
@@ -169,10 +210,14 @@ def test_to_proto_gate_predicate():
 
 
 def test_to_proto_gate_mismatch():
-    serializer = cg.GateOpSerializer(
+    serializer = _create_gate_op_serializer(
         gate_type=GateWithProperty,
         serialized_gate_id='my_gate',
-        args=[cg.SerializingArg(serialized_name='my_val', serialized_type=float, op_getter='val')],
+        args=[
+            _create_serializing_arg(
+                serialized_name='my_val', serialized_type=float, op_getter='val'
+            )
+        ],
     )
     q = cirq.GridQubit(1, 2)
     with pytest.raises(ValueError, match='GateWithAttribute.*GateWithProperty'):
@@ -180,10 +225,14 @@ def test_to_proto_gate_mismatch():
 
 
 def test_to_proto_unsupported_type():
-    serializer = cg.GateOpSerializer(
+    serializer = _create_gate_op_serializer(
         gate_type=GateWithProperty,
         serialized_gate_id='my_gate',
-        args=[cg.SerializingArg(serialized_name='my_val', serialized_type=bytes, op_getter='val')],
+        args=[
+            _create_serializing_arg(
+                serialized_name='my_val', serialized_type=bytes, op_getter='val'
+            )
+        ],
     )
     q = cirq.GridQubit(1, 2)
     with pytest.raises(ValueError, match='bytes'):
@@ -191,10 +240,14 @@ def test_to_proto_unsupported_type():
 
 
 def test_to_proto_named_qubit_supported():
-    serializer = cg.GateOpSerializer(
+    serializer = _create_gate_op_serializer(
         gate_type=GateWithProperty,
         serialized_gate_id='my_gate',
-        args=[cg.SerializingArg(serialized_name='my_val', serialized_type=float, op_getter='val')],
+        args=[
+            _create_serializing_arg(
+                serialized_name='my_val', serialized_type=float, op_getter='val'
+            )
+        ],
     )
     q = cirq.NamedQubit('a')
     arg_value = 1.0
@@ -211,10 +264,14 @@ def test_to_proto_named_qubit_supported():
 
 
 def test_to_proto_line_qubit_supported():
-    serializer = cg.GateOpSerializer(
+    serializer = _create_gate_op_serializer(
         gate_type=GateWithProperty,
         serialized_gate_id='my_gate',
-        args=[cg.SerializingArg(serialized_name='my_val', serialized_type=float, op_getter='val')],
+        args=[
+            _create_serializing_arg(
+                serialized_name='my_val', serialized_type=float, op_getter='val'
+            )
+        ],
     )
     q = cirq.LineQubit('10')
     arg_value = 1.0
@@ -231,11 +288,11 @@ def test_to_proto_line_qubit_supported():
 
 
 def test_to_proto_required_but_not_present():
-    serializer = cg.GateOpSerializer(
+    serializer = _create_gate_op_serializer(
         gate_type=GateWithProperty,
         serialized_gate_id='my_gate',
         args=[
-            cg.SerializingArg(
+            _create_serializing_arg(
                 serialized_name='my_val', serialized_type=float, op_getter=lambda x: None
             )
         ],
@@ -246,10 +303,14 @@ def test_to_proto_required_but_not_present():
 
 
 def test_to_proto_no_getattr():
-    serializer = cg.GateOpSerializer(
+    serializer = _create_gate_op_serializer(
         gate_type=GateWithProperty,
         serialized_gate_id='my_gate',
-        args=[cg.SerializingArg(serialized_name='my_val', serialized_type=float, op_getter='nope')],
+        args=[
+            _create_serializing_arg(
+                serialized_name='my_val', serialized_type=float, op_getter='nope'
+            )
+        ],
     )
     q = cirq.GridQubit(1, 2)
     with pytest.raises(ValueError, match='does not have'):
@@ -257,12 +318,14 @@ def test_to_proto_no_getattr():
 
 
 def test_to_proto_not_required_ok():
-    serializer = cg.GateOpSerializer(
+    serializer = _create_gate_op_serializer(
         gate_type=GateWithProperty,
         serialized_gate_id='my_gate',
         args=[
-            cg.SerializingArg(serialized_name='my_val', serialized_type=float, op_getter='val'),
-            cg.SerializingArg(
+            _create_serializing_arg(
+                serialized_name='my_val', serialized_type=float, op_getter='val'
+            ),
+            _create_serializing_arg(
                 serialized_name='not_req',
                 serialized_type=float,
                 op_getter='not_req',
@@ -294,11 +357,13 @@ def test_to_proto_not_required_ok():
     ),
 )
 def test_to_proto_type_mismatch(val_type, val):
-    serializer = cg.GateOpSerializer(
+    serializer = _create_gate_op_serializer(
         gate_type=GateWithProperty,
         serialized_gate_id='my_gate',
         args=[
-            cg.SerializingArg(serialized_name='my_val', serialized_type=val_type, op_getter='val')
+            _create_serializing_arg(
+                serialized_name='my_val', serialized_type=val_type, op_getter='val'
+            )
         ],
     )
     q = cirq.GridQubit(1, 2)
@@ -307,10 +372,14 @@ def test_to_proto_type_mismatch(val_type, val):
 
 
 def test_can_serialize_operation_subclass():
-    serializer = cg.GateOpSerializer(
+    serializer = _create_gate_op_serializer(
         gate_type=GateWithAttribute,
         serialized_gate_id='my_gate',
-        args=[cg.SerializingArg(serialized_name='my_val', serialized_type=float, op_getter='val')],
+        args=[
+            _create_serializing_arg(
+                serialized_name='my_val', serialized_type=float, op_getter='val'
+            )
+        ],
         can_serialize_predicate=lambda x: x.gate.val == 1,
     )
     q = cirq.GridQubit(1, 1)
@@ -319,11 +388,11 @@ def test_can_serialize_operation_subclass():
 
 
 def test_defaults_not_serialized():
-    serializer = cg.GateOpSerializer(
+    serializer = _create_gate_op_serializer(
         gate_type=GateWithAttribute,
         serialized_gate_id='my_gate',
         args=[
-            cg.SerializingArg(
+            _create_serializing_arg(
                 serialized_name='my_val', serialized_type=float, default=1.0, op_getter='val'
             )
         ],
@@ -342,10 +411,14 @@ def test_defaults_not_serialized():
 
 
 def test_token_serialization():
-    serializer = cg.GateOpSerializer(
+    serializer = _create_gate_op_serializer(
         gate_type=GateWithAttribute,
         serialized_gate_id='my_gate',
-        args=[cg.SerializingArg(serialized_name='my_val', serialized_type=float, op_getter='val')],
+        args=[
+            _create_serializing_arg(
+                serialized_name='my_val', serialized_type=float, op_getter='val'
+            )
+        ],
     )
     q = cirq.GridQubit(1, 2)
     tag = cg.CalibrationTag('my_token')
@@ -372,10 +445,14 @@ TWO_CONSTANTS = [
     (([], 0, ONE_CONSTANT), (ONE_CONSTANT, 0, ONE_CONSTANT), (TWO_CONSTANTS, 1, TWO_CONSTANTS)),
 )
 def test_token_serialization_with_constant_reference(constants, expected_index, expected_constants):
-    serializer = cg.GateOpSerializer(
+    serializer = _create_gate_op_serializer(
         gate_type=GateWithAttribute,
         serialized_gate_id='my_gate',
-        args=[cg.SerializingArg(serialized_name='my_val', serialized_type=float, op_getter='val')],
+        args=[
+            _create_serializing_arg(
+                serialized_name='my_val', serialized_type=float, op_getter='val'
+            )
+        ],
     )
     # Make a local copy since we are modifying the array in-place.
     constants = copy.copy(constants)
