@@ -33,19 +33,28 @@ def measure_single_paulistring(
     pauli_observable: pauli_string.PauliString,
     key: Optional[Union[str, 'cirq.MeasurementKey']] = None,
 ) -> raw_types.Operation:
-    """Returns a single PauliMeasurementGate which measures the pauli observable
+    """Returns an operation, from `cirq.PauliMeasurementGate`, to measure the `pauli_observable`.
+
+    Note that the coefficient of `pauli_observable` will be ignored and the resulting operation
+    will measure the single pauli observable with coefficient 1. For example:
+
+    >>> q = cirq.LineQubit.range(3)
+    >>> observable = cirq.X(q[0]) * cirq.Z(q[1]) * cirq.X(q[2])
+    >>> op = cirq.measure_single_paulistring(observable)
+    >>> circuit = cirq.Circuit([cirq.H(q[0]), cirq.X(q[1]), cirq.H(q[2])], op)
+    >>> cirq.Simulator().run(circuit, repetitions=100).histogram(key=q)
 
     Args:
         pauli_observable: The `cirq.PauliString` observable to measure.
-        key: Optional `str` or `cirq.MeasurementKey` that gate should use.
-            If none provided, it defaults to a comma-separated list of the
-            target qubits' str values.
+        key: Optional `str` or `cirq.MeasurementKey` that the measurement gate
+            should use. If none provided, it defaults to a comma-separated list
+            of the target qubits' str values.
 
     Returns:
-        An operation measuring the pauli observable.
+        An operation measuring the pauli observable, with coefficient +1.
 
     Raises:
-        ValueError: if the observable is not an instance of PauliString.
+        ValueError: If the observable is not an instance of `cirq.PauliString`.
     """
     if not isinstance(pauli_observable, pauli_string.PauliString):
         raise ValueError(
@@ -59,7 +68,16 @@ def measure_single_paulistring(
 def measure_paulistring_terms(
     pauli_basis: pauli_string.PauliString, key_func: Callable[[raw_types.Qid], str] = str
 ) -> List[raw_types.Operation]:
-    """Returns a list of operations individually measuring qubits in the pauli basis.
+    """Returns a list of operations, each measuring a qubit in the desired pauli basis.
+
+    Each term in the `pauli_basis` is a `cirq.Pauli` operation, representing the pauli basis
+    in which the underlying qubit should be measurement.
+
+    >>> q = cirq.LineQubit.range(3)
+    >>> measurement_basis = cirq.X(q[0]) * cirq.Z(q[1]) * cirq.X(q[2])
+    >>> op = cirq.measure_paulistring_terms(measurement_basis)
+    >>> circuit = cirq.Circuit([cirq.H(q[0]), cirq.X(q[1]), cirq.H(q[2])], op)
+    >>> cirq.Simulator().run(circuit, repetitions=100).multi_measurement_histogram(keys=q)
 
     Args:
         pauli_basis: The `cirq.PauliString` basis in which each qubit should

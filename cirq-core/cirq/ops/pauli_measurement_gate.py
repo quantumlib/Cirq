@@ -30,10 +30,14 @@ if TYPE_CHECKING:
 
 @value.value_equality
 class PauliMeasurementGate(raw_types.Gate):
-    """A gate that measures a Pauli observable.
+    r"""A gate that measures a Pauli observable.
 
     PauliMeasurementGate contains a key used to identify results of measurement
-    and a list of Paulis which denote the observable to be measured.
+    and a list of Paulis which represent the pauli observable to be measured.
+
+    By default, a `PauliMeasurementGate` decomposes into $U M_q0 U\dagger$
+    where $U$ represents the basis change operator and $M_q0$ represents a single
+    Z-basis measurement on the first qubit.
     """
 
     def __init__(
@@ -74,10 +78,12 @@ class PauliMeasurementGate(raw_types.Gate):
 
     @property
     def key(self) -> str:
+        """The string key of the measurement, obtained via `str(self.mkey)`."""
         return str(self.mkey)
 
     @property
     def mkey(self) -> 'cirq.MeasurementKey':
+        """The `cirq.MeasurementKey` object representing the key of the measurement."""
         return self._mkey
 
     def _qid_shape_(self) -> Tuple[int, ...]:
