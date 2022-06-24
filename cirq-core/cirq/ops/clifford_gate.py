@@ -239,7 +239,7 @@ class CommonCliffordGateMetaClass(value.ABCMetaImplementAnyOneOf):
             t = qis.CliffordTableau(num_qubits=2)
             t.xs = [[1, 1], [0, 1], [0, 0], [0, 0]]
             t.zs = [[0, 0], [0, 0], [1, 0], [1, 1]]
-            cls._CNOT = cls.from_clifford_tableau(t)
+            cls._CNOT = CliffordGate.from_clifford_tableau(t)
         return cls._CNOT
 
     @property
@@ -248,7 +248,7 @@ class CommonCliffordGateMetaClass(value.ABCMetaImplementAnyOneOf):
             t = qis.CliffordTableau(num_qubits=2)
             t.xs = [[1, 0], [0, 1], [0, 0], [0, 0]]
             t.zs = [[0, 1], [1, 0], [1, 0], [0, 1]]
-            cls._CZ = cls.from_clifford_tableau(t)
+            cls._CZ = CliffordGate.from_clifford_tableau(t)
         return cls._CZ
 
     @property
@@ -257,7 +257,7 @@ class CommonCliffordGateMetaClass(value.ABCMetaImplementAnyOneOf):
             t = qis.CliffordTableau(num_qubits=2)
             t.xs = [[0, 1], [1, 0], [0, 0], [0, 0]]
             t.zs = [[0, 0], [0, 0], [0, 1], [1, 0]]
-            cls._SWAP = cls.from_clifford_tableau(t)
+            cls._SWAP = CliffordGate.from_clifford_tableau(t)
         return cls._SWAP
 
     @property
