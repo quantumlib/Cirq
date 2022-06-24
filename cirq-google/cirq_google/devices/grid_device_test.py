@@ -418,7 +418,14 @@ def test_to_proto_invalid_input(error_match, qubits, qubit_pairs, gateset, gate_
 
 
 def test_to_proto_backward_compatibility():
-    with cirq.testing.assert_deprecated('SerializableGateSet', deadline='v0.16', count=None):
+    # Deprecations: cirq_google.SerializableGateSet and
+    # cirq_google.device.known_devices.create_device_proto_for_qubits()
+    with cirq.testing.assert_deprecated(
+        'SerializableGateSet',
+        'create_device_specification_proto()` can be used',
+        deadline='v0.16',
+        count=None,
+    ):
         device_info, _ = _create_device_spec_with_horizontal_couplings()
 
         # The set of gates in gate_durations are consistent with what's generated in
