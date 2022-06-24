@@ -1,6 +1,6 @@
 # Style guidelines
 
-As mentioned in [CONTRIBUTING.md](https://github.com/quantumlib/Cirq/blob/master/CONTRIBUTING.md) we use use [pylint](https://www.pylint.org/) 
+As mentioned in [CONTRIBUTING.md](https://github.com/quantumlib/Cirq/blob/master/CONTRIBUTING.md) we use use [pylint](https://pylint.pycqa.org/)
 to check for style violations.  Pylint attempts to enforce styles in 
 [PEP 8](https://www.python.org/dev/peps/pep-0008/). To see which lint checks we enforce, see the 
 [dev_tools/conf/.pylintrc](https://github.com/quantumlib/Cirq/blob/master/dev_tools/conf/.pylintrc) file.
