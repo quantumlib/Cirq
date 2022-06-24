@@ -58,7 +58,7 @@ to the user.  Any modification or transformation to the circuit should be
 initiated by the user of the library.
 
 This philosophy is important for many use cases.  For instance, certain
-benchmarking algorithms rely on the fact that gate sequences will not be transparently optimized, even if the circuit is nominally inefficient.
+benchmarking algorithms rely on the fact that gate sequences will not be optimized, even if the circuit is nominally inefficient.
 
 Of course, cirq provides routines and functions for compilation and
 transformation of circuits.  Users can and should call these routines.  However,
@@ -73,6 +73,7 @@ the user's "permission".
     run variants of circuits.  When not possible, try using `run_batch`.  Using
     these methods gives the hardware service the most opportunity to optimize
     the execution of circuits and can result in much faster execution.
+    Read more details on the [Parameter Sweeps](/cirq/simulate/params) page.
 *   Consider defining and allocating qubits at the beginning of your code or
     function, then applying gates and circuits to those qubits.  While not
     required, this style can produce cleaner code.
