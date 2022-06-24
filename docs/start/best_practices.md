@@ -63,7 +63,7 @@ even if the circuit is nominally inefficient.
 
 Of course, Cirq provides routines and functions for compilation and
 transformation of circuits.  Users can and should call these routines.  However,
-cirq and resulting hardware integrations should not modify the circuits without
+Cirq and resulting hardware integrations should not modify the circuits without
 the user's "permission".
 
 ## Other style and performance guidelines
