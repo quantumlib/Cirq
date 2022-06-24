@@ -291,7 +291,6 @@ def is_measurement(val: Any) -> bool:
     return keys is not NotImplemented and bool(keys)
 
 
-# TODO
 def with_measurement_key_mapping(val: Any, key_map: Dict[str, str]):
     """Remaps the target's measurement keys according to the provided key_map.
 
