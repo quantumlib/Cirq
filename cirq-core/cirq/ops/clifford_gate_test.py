@@ -14,7 +14,7 @@
 
 import functools
 import itertools
-from typing import List, Type
+from typing import Tuple, Type
 
 import numpy as np
 import pytest
@@ -59,11 +59,11 @@ def _all_rotation_pairs():
 
 
 @functools.lru_cache()
-def _all_clifford_gates() -> List['cirq.SingleQubitCliffordGate']:
-    return [
+def _all_clifford_gates() -> Tuple['cirq.SingleQubitCliffordGate']:
+    return (
         cirq.SingleQubitCliffordGate.from_xz_map(trans_x, trans_z)
         for trans_x, trans_z in _all_rotation_pairs()
-    ]
+    )
 
 
 @pytest.mark.parametrize('pauli,flip_x,flip_z', itertools.product(_paulis, _bools, _bools))
