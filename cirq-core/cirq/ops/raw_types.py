@@ -820,10 +820,10 @@ class TaggedOperation(Operation):
     def _kraus_(self) -> Union[Tuple[np.ndarray], NotImplementedType]:
         return protocols.kraus(self.sub_operation, NotImplemented)
 
-    def _measurement_key_names_(self) -> AbstractSet[str]:
+    def _measurement_key_names_(self) -> FrozenSet[str]:
         return protocols.measurement_key_names(self.sub_operation)
 
-    def _measurement_key_objs_(self) -> AbstractSet['cirq.MeasurementKey']:
+    def _measurement_key_objs_(self) -> FrozenSet['cirq.MeasurementKey']:
         return protocols.measurement_key_objs(self.sub_operation)
 
     def _is_measurement_(self) -> bool:
@@ -905,7 +905,7 @@ class TaggedOperation(Operation):
             return self
         return self.sub_operation.with_classical_controls(*conditions)
 
-    def _control_keys_(self) -> AbstractSet['cirq.MeasurementKey']:
+    def _control_keys_(self) -> FrozenSet['cirq.MeasurementKey']:
         return protocols.control_keys(self.sub_operation)
 
 

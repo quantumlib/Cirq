@@ -918,26 +918,30 @@ class AbstractCircuit(abc.ABC):
         qids = ops.QubitOrder.as_qubit_order(qubit_order).order_for(self.all_qubits())
         return protocols.qid_shape(qids)
 
-    def all_measurement_key_objs(self) -> AbstractSet['cirq.MeasurementKey']:
-        return {key for op in self.all_operations() for key in protocols.measurement_key_objs(op)}
+    def all_measurement_key_objs(self) -> FrozenSet['cirq.MeasurementKey']:
+        return frozenset(
+            key for op in self.all_operations() for key in protocols.measurement_key_objs(op)
+        )
 
-    def _measurement_key_objs_(self) -> AbstractSet['cirq.MeasurementKey']:
+    def _measurement_key_objs_(self) -> FrozenSet['cirq.MeasurementKey']:
         """Returns the set of all measurement keys in this circuit.
 
-        Returns: AbstractSet of `cirq.MeasurementKey` objects that are
+        Returns: FrozenSet of `cirq.MeasurementKey` objects that are
             in this circuit.
         """
         return self.all_measurement_key_objs()
 
-    def all_measurement_key_names(self) -> AbstractSet[str]:
+    def all_measurement_key_names(self) -> FrozenSet[str]:
         """Returns the set of all measurement key names in this circuit.
 
-        Returns: AbstractSet of strings that are the measurement key
+        Returns: FrozenSet of strings that are the measurement key
             names in this circuit.
         """
-        return {key for op in self.all_operations() for key in protocols.measurement_key_names(op)}
+        return frozenset(
+            key for op in self.all_operations() for key in protocols.measurement_key_names(op)
+        )
 
-    def _measurement_key_names_(self) -> AbstractSet[str]:
+    def _measurement_key_names_(self) -> FrozenSet[str]:
         return self.all_measurement_key_names()
 
     def _with_measurement_key_mapping_(self, key_map: Dict[str, str]):
