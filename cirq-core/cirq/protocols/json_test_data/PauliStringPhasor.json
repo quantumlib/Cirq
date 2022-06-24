@@ -1,9 +1,6 @@
-{
+ {
   "cirq_type": "PauliStringPhasor",
-  "exponent_neg": 0.2,
-  "exponent_pos": 0.1,
-  "pauli_string":
-  {
+  "pauli_string": {
     "cirq_type": "PauliString",
     "qubit_pauli_map": [
       [
@@ -13,7 +10,7 @@
         },
         {
           "cirq_type": "_PauliX",
-          "exponent": 1,
+          "exponent": 1.0,
           "global_shift": 0.0
         }
       ],
@@ -24,7 +21,18 @@
         },
         {
           "cirq_type": "_PauliY",
-          "exponent": 1,
+          "exponent": 1.0,
+          "global_shift": 0.0
+        }
+      ],
+      [
+        {
+          "cirq_type": "LineQubit",
+          "x": 2
+        },
+        {
+          "cirq_type": "_PauliZ",
+          "exponent": 1.0,
           "global_shift": 0.0
         }
       ]
@@ -34,5 +42,21 @@
       "real": 1.0,
       "imag": 0.0
     }
-  }
+  },
+  "qubits": [
+    {
+      "cirq_type": "LineQubit",
+      "x": 0
+    },
+    {
+      "cirq_type": "LineQubit",
+      "x": 1
+    },
+    {
+      "cirq_type": "LineQubit",
+      "x": 2
+    }
+  ],
+  "exponent_neg": 0.2,
+  "exponent_pos": 0.1
 }

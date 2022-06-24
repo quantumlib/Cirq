@@ -124,6 +124,13 @@ def _create_grid_device_from_diagram(
     return grid_device.GridDevice.from_proto(device_specification)
 
 
+@_compat.deprecated(
+    deadline='v0.16',
+    fix='This function will no longer be available.'
+    ' `cirq_google.grid_device.create_device_specification_proto()` can be used'
+    ' to generate a DeviceSpecification proto which matches the format expected'
+    ' by GridDevice.',
+)
 def create_device_proto_for_qubits(
     qubits: Collection[cirq.Qid],
     pairs: Collection[Tuple[cirq.Qid, cirq.Qid]],

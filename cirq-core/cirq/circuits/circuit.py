@@ -64,7 +64,6 @@ from cirq.type_workarounds import NotImplementedType
 
 if TYPE_CHECKING:
     import cirq
-    from numpy.typing import DTypeLike
 
 
 _TGate = TypeVar('_TGate', bound='cirq.Gate')
@@ -919,26 +918,30 @@ class AbstractCircuit(abc.ABC):
         qids = ops.QubitOrder.as_qubit_order(qubit_order).order_for(self.all_qubits())
         return protocols.qid_shape(qids)
 
-    def all_measurement_key_objs(self) -> AbstractSet['cirq.MeasurementKey']:
-        return {key for op in self.all_operations() for key in protocols.measurement_key_objs(op)}
+    def all_measurement_key_objs(self) -> FrozenSet['cirq.MeasurementKey']:
+        return frozenset(
+            key for op in self.all_operations() for key in protocols.measurement_key_objs(op)
+        )
 
-    def _measurement_key_objs_(self) -> AbstractSet['cirq.MeasurementKey']:
+    def _measurement_key_objs_(self) -> FrozenSet['cirq.MeasurementKey']:
         """Returns the set of all measurement keys in this circuit.
 
-        Returns: AbstractSet of `cirq.MeasurementKey` objects that are
+        Returns: FrozenSet of `cirq.MeasurementKey` objects that are
             in this circuit.
         """
         return self.all_measurement_key_objs()
 
-    def all_measurement_key_names(self) -> AbstractSet[str]:
+    def all_measurement_key_names(self) -> FrozenSet[str]:
         """Returns the set of all measurement key names in this circuit.
 
-        Returns: AbstractSet of strings that are the measurement key
+        Returns: FrozenSet of strings that are the measurement key
             names in this circuit.
         """
-        return {key for op in self.all_operations() for key in protocols.measurement_key_names(op)}
+        return frozenset(
+            key for op in self.all_operations() for key in protocols.measurement_key_names(op)
+        )
 
-    def _measurement_key_names_(self) -> AbstractSet[str]:
+    def _measurement_key_names_(self) -> FrozenSet[str]:
         return self.all_measurement_key_names()
 
     def _with_measurement_key_mapping_(self, key_map: Dict[str, str]):
@@ -999,7 +1002,7 @@ class AbstractCircuit(abc.ABC):
         qubit_order: 'cirq.QubitOrderOrList' = ops.QubitOrder.DEFAULT,
         qubits_that_should_be_present: Iterable['cirq.Qid'] = (),
         ignore_terminal_measurements: bool = True,
-        dtype: 'DTypeLike' = np.complex64,
+        dtype: Type[np.complexfloating] = np.complex64,
     ) -> np.ndarray:
         """Converts the circuit into a unitary matrix, if possible.
 
@@ -1089,7 +1092,7 @@ class AbstractCircuit(abc.ABC):
         qubit_order: 'cirq.QubitOrderOrList' = ops.QubitOrder.DEFAULT,
         qubits_that_should_be_present: Iterable['cirq.Qid'] = (),
         ignore_terminal_measurements: Optional[bool] = None,
-        dtype: Optional['DTypeLike'] = None,
+        dtype: Optional[Type[np.complexfloating]] = None,
         param_resolver: 'cirq.ParamResolverOrSimilarType' = None,
         seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None,
     ) -> np.ndarray:
@@ -2656,7 +2659,7 @@ def _apply_unitary_circuit(
     circuit: 'cirq.AbstractCircuit',
     state: np.ndarray,
     qubits: Tuple['cirq.Qid', ...],
-    dtype: 'DTypeLike',
+    dtype: Type[np.complexfloating],
 ) -> np.ndarray:
     """Applies a circuit's unitary effect to the given vector or matrix.
 

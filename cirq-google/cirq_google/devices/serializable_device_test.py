@@ -67,10 +67,15 @@ def _just_meas():
 
 
 def test_str_with_grid_qubits():
-    # Deprecations: cirq_google.SerializableDevice and well-known cirq_google SerializableGateSets
-    # (e.g. cirq_google.SYC_GATESET)
+    # Deprecations: cirq_google.SerializableDevice, well-known cirq_google SerializableGateSets
+    # (e.g. cirq_google.SYC_GATESET) and
+    # cirq_google.devices.known_devices.create_device_proto_for_qubits
     with cirq.testing.assert_deprecated(
-        'Use cirq_google.GridDevice', 'SerializableGateSet', deadline='v0.16', count=4
+        'Use cirq_google.GridDevice',
+        'SerializableGateSet',
+        'create_device_specification_proto()` can be used',
+        deadline='v0.16',
+        count=5,
     ):
         qubits = cirq.GridQubit.rect(2, 3, left=1, top=1)
         device_proto = cgdk.create_device_proto_for_qubits(
@@ -102,9 +107,16 @@ def test_repr_pretty(cycle, func):
 
 
 def test_metadata_correct():
-    # Deprecations: cirq_google.SerializableDevice and well-known cirq_google SerializableGateSets
-    # (e.g. cirq_google.SYC_GATESET)
-    with cirq.testing.assert_deprecated('Use cirq_google.GridDevice', deadline='v0.16', count=4):
+    # Deprecations: cirq_google.SerializableDevice, well-known cirq_google SerializableGateSets
+    # (e.g. cirq_google.SYC_GATESET) and
+    # cirq_google.devices.known_devices.create_device_proto_for_qubits
+    with cirq.testing.assert_deprecated(
+        'Use cirq_google.GridDevice',
+        'SerializableGateSet',
+        'create_device_specification_proto()` can be used',
+        deadline='v0.16',
+        count=5,
+    ):
         qubits = cirq.GridQubit.rect(2, 3, left=1, top=1)
         pairs = [
             (qubits[0], qubits[1]),
@@ -169,7 +181,7 @@ def test_mismatched_proto_serializer():
         'SerializableGateSet',
         'no longer be available',
         deadline='v0.16',
-        count=5,
+        count=6,
     ):
         augmented_proto = cgdk.create_device_proto_from_diagram(
             cgdk._SYCAMORE_GRID,
@@ -194,7 +206,7 @@ def test_named_qubit():
         'SerializableGateSet',
         'no longer be available',
         deadline='v0.16',
-        count=6,
+        count=7,
     ):
         augmented_proto = cgdk.create_device_proto_from_diagram(
             cgdk._SYCAMORE_GRID,
@@ -219,7 +231,7 @@ def test_duration_of():
         'SerializableGateSet',
         'no longer be available',
         deadline='v0.16',
-        count=5,
+        count=6,
     ):
         valid_qubit1 = cirq.GridQubit(0, 0)
 
@@ -390,7 +402,7 @@ def test_multiple_gatesets():
         'SerializableGateSet',
         'no longer be available',
         deadline='v0.16',
-        count=5,
+        count=6,
     ):
         halfPiGateSet = cirq_google.SerializableGateSet(
             gate_set_name='half_pi_gateset',
@@ -432,7 +444,7 @@ def test_half_pi_takes_half_duration():
         'SerializableGateSet',
         'no longer be available',
         deadline='v0.16',
-        count=4,
+        count=5,
     ):
         half_pi_gs = cirq_google.SerializableGateSet(
             gate_set_name='half_pi',
@@ -465,7 +477,7 @@ def test_multiple_fsim_gatesets():
         'SerializableGateSet',
         'no longer be available',
         deadline='v0.16',
-        count=4,
+        count=5,
     ):
         half_pi_gs = cirq_google.SerializableGateSet(
             gate_set_name='half_pi',
@@ -495,7 +507,7 @@ def test_serializable_device_str_grid_qubits():
         'SerializableGateSet',
         'no longer be available',
         deadline='v0.16',
-        count=5,
+        count=6,
     ):
         spec = cirq_google.devices.known_devices.create_device_proto_from_diagram(
             "aa\naa", [cg.SYC_GATESET]
