@@ -233,11 +233,11 @@ def _twoqubitdiagonal_gate(op: cirq.Operation, formatter: QuilFormatter) -> Opti
             return formatter.format(
                 'CPHASE01({0}) {1} {2}\n', diag_angles_radians[1], op.qubits[0], op.qubits[1]
             )
-        elif diag_angles_radians != 0:
+        elif diag_angles_radians[2] != 0:
             return formatter.format(
                 'CPHASE10({0}) {1} {2}\n', diag_angles_radians[2], op.qubits[0], op.qubits[1]
             )
-        elif diag_angles_radians != 0:
+        elif diag_angles_radians[3] != 0:
             return formatter.format(
                 'CPHASE({0}) {1} {2}\n', diag_angles_radians[3], op.qubits[0], op.qubits[1]
             )
