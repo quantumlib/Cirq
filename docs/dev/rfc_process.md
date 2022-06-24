@@ -41,7 +41,7 @@ and have a discussion with the maintainers. Mention that you are willing to writ
     * Make sure to share your doc with cirq-dev@googlegroups.com for comments.
     * Link the RFC in your issue.
 4. Recruiting a sponsor:
-    * A sponsor must be a maintainer of the project or the product manager (currently Alan Ho).
+    * A sponsor must be a maintainer of the project or the product manager.
     * Write a comment in your Github issue that calls out that you are "Looking for a sponsor". A maintainer will mark the issue with a label: "rfc/needs-sponsor".
     * While it might take some time to get a maintainer to sponsor your RFC, it is essential, as the sponsor will facilitate the process for reviewing your design.
     * Tips to recruit a sponsor: 1) keep commenting on the issue weekly 2) attend Cirq Cynq and push for a sponsor.
