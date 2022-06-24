@@ -12,26 +12,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """An immutable version of the Circuit data structure."""
-from typing import (
-    TYPE_CHECKING,
-    AbstractSet,
-    FrozenSet,
-    Iterable,
-    Iterator,
-    Optional,
-    Sequence,
-    Tuple,
-    Union,
-)
-
-from cirq.circuits import AbstractCircuit, Alignment, Circuit
-from cirq.circuits.insert_strategy import InsertStrategy
-from cirq.type_workarounds import NotImplementedType
+from typing import TYPE_CHECKING, FrozenSet, Iterable, Iterator, Optional, Sequence, Tuple, Union
 
 import numpy as np
 
+from cirq import ops, protocols
+from cirq.circuits import AbstractCircuit, Alignment, Circuit
+from cirq.circuits.insert_strategy import InsertStrategy
+from cirq.type_workarounds import NotImplementedType
 from cirq import ops, protocols, _compat
-
 
 if TYPE_CHECKING:
     import cirq
@@ -70,7 +59,7 @@ class FrozenCircuit(AbstractCircuit, protocols.SerializableByKey):
         self._all_qubits: Optional[FrozenSet['cirq.Qid']] = None
         self._all_operations: Optional[Tuple[ops.Operation, ...]] = None
         self._has_measurements: Optional[bool] = None
-        self._all_measurement_key_objs: Optional[AbstractSet['cirq.MeasurementKey']] = None
+        self._all_measurement_key_objs: Optional[FrozenSet['cirq.MeasurementKey']] = None
         self._are_all_measurements_terminal: Optional[bool] = None
         self._control_keys: Optional[FrozenSet['cirq.MeasurementKey']] = None
 
@@ -118,12 +107,12 @@ class FrozenCircuit(AbstractCircuit, protocols.SerializableByKey):
             self._has_measurements = super().has_measurements()
         return self._has_measurements
 
-    def all_measurement_key_objs(self) -> AbstractSet['cirq.MeasurementKey']:
+    def all_measurement_key_objs(self) -> FrozenSet['cirq.MeasurementKey']:
         if self._all_measurement_key_objs is None:
             self._all_measurement_key_objs = super().all_measurement_key_objs()
         return self._all_measurement_key_objs
 
-    def _measurement_key_objs_(self) -> AbstractSet['cirq.MeasurementKey']:
+    def _measurement_key_objs_(self) -> FrozenSet['cirq.MeasurementKey']:
         return self.all_measurement_key_objs()
 
     def _control_keys_(self) -> FrozenSet['cirq.MeasurementKey']:
@@ -138,10 +127,10 @@ class FrozenCircuit(AbstractCircuit, protocols.SerializableByKey):
 
     # End of memoized methods.
 
-    def all_measurement_key_names(self) -> AbstractSet[str]:
-        return {str(key) for key in self.all_measurement_key_objs()}
+    def all_measurement_key_names(self) -> FrozenSet[str]:
+        return frozenset(str(key) for key in self.all_measurement_key_objs())
 
-    def _measurement_key_names_(self) -> AbstractSet[str]:
+    def _measurement_key_names_(self) -> FrozenSet[str]:
         return self.all_measurement_key_names()
 
     def __add__(self, other) -> 'cirq.FrozenCircuit':

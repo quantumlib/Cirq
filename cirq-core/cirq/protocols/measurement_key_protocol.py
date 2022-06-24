@@ -13,12 +13,13 @@
 # limitations under the License.
 """Protocol for object that have measurement keys."""
 
-from typing import AbstractSet, Any, Dict, FrozenSet, Optional, Tuple, TYPE_CHECKING
+from typing import Any, Dict, FrozenSet, Optional, Tuple, TYPE_CHECKING, Union
 
 from typing_extensions import Protocol
 
-from cirq import value
+from cirq import value, _compat
 from cirq._doc import doc_private
+from cirq.type_workarounds import NotImplementedType
 
 if TYPE_CHECKING:
     import cirq
@@ -68,7 +69,9 @@ class SupportsMeasurementKey(Protocol):
         """
 
     @doc_private
-    def _measurement_key_objs_(self) -> AbstractSet['cirq.MeasurementKey']:
+    def _measurement_key_objs_(
+        self,
+    ) -> Union[FrozenSet['cirq.MeasurementKey'], NotImplementedType, None]:
         """Return the key objects for measurements performed by the receiving object.
 
         When a measurement occurs, either on hardware, or in a simulation,
@@ -86,7 +89,7 @@ class SupportsMeasurementKey(Protocol):
         """
 
     @doc_private
-    def _measurement_key_names_(self) -> AbstractSet[str]:
+    def _measurement_key_names_(self) -> Union[FrozenSet[str], NotImplementedType, None]:
         """Return the string keys for measurements performed by the receiving object.
 
         When a measurement occurs, either on hardware, or in a simulation,
@@ -172,39 +175,53 @@ def measurement_key_name(val: Any, default: Any = RaiseTypeErrorIfNotProvided):
 
 def _measurement_key_objs_from_magic_methods(
     val: Any,
-) -> Optional[AbstractSet['cirq.MeasurementKey']]:
+) -> Union[FrozenSet['cirq.MeasurementKey'], NotImplementedType, None]:
     """Uses the measurement key related magic methods to get the `MeasurementKey`s for this
     object."""
 
     getter = getattr(val, '_measurement_key_objs_', None)
     result = NotImplemented if getter is None else getter()
     if result is not NotImplemented and result is not None:
-        return set(result)
+        if not isinstance(result, FrozenSet):
+            _compat._warn_or_error(
+                f'The _measurement_key_objs_ implementation of {type(val)} must return a'
+                f' frozenset instead of {type(result)} by v0.16.'
+            )
+            return frozenset(result)
+        return result
 
     getter = getattr(val, '_measurement_key_obj_', None)
     result = NotImplemented if getter is None else getter()
     if result is not NotImplemented and result is not None:
-        return {result}
+        return frozenset([result])
     return result
 
 
-def _measurement_key_names_from_magic_methods(val: Any) -> Optional[AbstractSet[str]]:
+def _measurement_key_names_from_magic_methods(
+    val: Any,
+) -> Union[FrozenSet[str], NotImplementedType, None]:
     """Uses the measurement key related magic methods to get the key strings for this object."""
 
     getter = getattr(val, '_measurement_key_names_', None)
     result = NotImplemented if getter is None else getter()
     if result is not NotImplemented and result is not None:
-        return set(result)
+        if not isinstance(result, FrozenSet):
+            _compat._warn_or_error(
+                f'The _measurement_key_names_ implementation of {type(val)} must return a'
+                f' frozenset instead of {type(result)} by v0.16.'
+            )
+            return frozenset(result)
+        return result
 
     getter = getattr(val, '_measurement_key_name_', None)
     result = NotImplemented if getter is None else getter()
     if result is not NotImplemented and result is not None:
-        return {result}
+        return frozenset([result])
 
     return result
 
 
-def measurement_key_objs(val: Any) -> AbstractSet['cirq.MeasurementKey']:
+def measurement_key_objs(val: Any) -> FrozenSet['cirq.MeasurementKey']:
     """Gets the measurement key objects of measurements within the given value.
 
     Args:
@@ -219,11 +236,11 @@ def measurement_key_objs(val: Any) -> AbstractSet['cirq.MeasurementKey']:
         return result
     key_strings = _measurement_key_names_from_magic_methods(val)
     if key_strings is not NotImplemented and key_strings is not None:
-        return {value.MeasurementKey.parse_serialized(key_str) for key_str in key_strings}
-    return set()
+        return frozenset(value.MeasurementKey.parse_serialized(key_str) for key_str in key_strings)
+    return frozenset()
 
 
-def measurement_key_names(val: Any) -> AbstractSet[str]:
+def measurement_key_names(val: Any) -> FrozenSet[str]:
     """Gets the measurement key strings of measurements within the given value.
 
     Args:
@@ -244,8 +261,8 @@ def measurement_key_names(val: Any) -> AbstractSet[str]:
         return result
     key_objs = _measurement_key_objs_from_magic_methods(val)
     if key_objs is not NotImplemented and key_objs is not None:
-        return {str(key_obj) for key_obj in key_objs}
-    return set()
+        return frozenset(str(key_obj) for key_obj in key_objs)
+    return frozenset()
 
 
 def _is_measurement_from_magic_method(val: Any) -> Optional[bool]:
