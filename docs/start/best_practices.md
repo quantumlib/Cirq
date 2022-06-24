@@ -31,7 +31,7 @@ In particular, attributes of `cirq.Gate`, `cirq.Operation`, `cirq.Moment`, and
 `cirq.ParamResolver` should not be modified after creation.  If these objects
 need to be modified, a new object should be created instead.
 
-Violating this priniciple could cause problems in other parts of the code.  For
+Violating this principle could cause problems in other parts of the code.  For
 instance, changing the qubits of an `cirq.Operation` could cause a `cirq.Moment`
 that contains this Operation to have two Operations with the same qubits (which
 is not allowed).
@@ -58,7 +58,8 @@ to the user.  Any modification or transformation to the circuit should be
 initiated by the user of the library.
 
 This philosophy is important for many use cases.  For instance, certain
-benchmarking algorithms rely on the fact that gate sequences will not be optimized, even if the circuit is nominally inefficient.
+benchmarking algorithms rely on the fact that gate sequences will not be optimized,
+even if the circuit is nominally inefficient.
 
 Of course, cirq provides routines and functions for compilation and
 transformation of circuits.  Users can and should call these routines.  However,
@@ -77,4 +78,3 @@ the user's "permission".
 *   Consider defining and allocating qubits at the beginning of your code or
     function, then applying gates and circuits to those qubits.  While not
     required, this style can produce cleaner code.
-
