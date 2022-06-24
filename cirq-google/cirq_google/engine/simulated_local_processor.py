@@ -27,6 +27,7 @@ from cirq_google.engine.simulated_local_job import SimulatedLocalJob
 from cirq_google.engine.simulated_local_program import SimulatedLocalProgram
 from cirq_google.serialization.circuit_serializer import CIRCUIT_SERIALIZER
 from cirq_google.engine.processor_sampler import ProcessorSampler
+from cirq_google.engine import engine_validator
 
 if TYPE_CHECKING:
     import cirq_google as cg
@@ -35,10 +36,6 @@ if TYPE_CHECKING:
 VALID_LANGUAGES = [
     'type.googleapis.com/cirq.google.api.v2.Program',
     'type.googleapis.com/cirq.google.api.v2.BatchProgram',
-]
-
-PROGRAM_VALIDATOR_TYPE = Callable[
-    [Sequence[cirq.AbstractCircuit], Sequence[cirq.Sweepable], int, 'Serializer'], None,
 ]
 
 
@@ -97,7 +94,7 @@ class SimulatedLocalProcessor(AbstractLocalProcessor):
         sampler: cirq.Sampler = cirq.Simulator(),
         device: cirq.Device = cirq.UNCONSTRAINED_DEVICE,
         validator: validating_sampler.VALIDATOR_TYPE = None,
-        program_validator: PROGRAM_VALIDATOR_TYPE = None,
+        program_validator: engine_validator.PROGRAM_VALIDATOR_TYPE = None,
         simulation_type: LocalSimulationType = LocalSimulationType.SYNCHRONOUS,
         calibrations: Optional[Dict[int, calibration.Calibration]] = None,
         **kwargs,
