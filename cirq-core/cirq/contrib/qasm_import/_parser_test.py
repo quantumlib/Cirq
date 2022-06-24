@@ -16,6 +16,8 @@ import numpy as np
 import pytest
 import sympy
 
+from typing import Callable
+
 import cirq
 import cirq.testing as ct
 from cirq import Circuit
@@ -429,7 +431,7 @@ single_qubit_gates = [
 
 
 @pytest.mark.parametrize('qasm_gate,cirq_gate', rotation_gates)
-def test_rotation_gates(qasm_gate: str, cirq_gate: cirq.Gate):
+def test_rotation_gates(qasm_gate: str, cirq_gate: Callable[[float], cirq.Gate]):
     qasm = """OPENQASM 2.0;
      include "qelib1.inc";
      qreg q[2];
