@@ -14,6 +14,7 @@
 
 import functools
 import itertools
+from typing import Type
 
 import numpy as np
 import pytest
@@ -403,6 +404,31 @@ def test_known_matrix(gate, gate_equiv):
     assert_allclose_up_to_global_phase(mat, mat_check, rtol=1e-7, atol=1e-7)
 
 
+@pytest.mark.parametrize(
+    'name, expected_cls',
+    [
+        ('I', cirq.SingleQubitCliffordGate),
+        ('H', cirq.SingleQubitCliffordGate),
+        ('X', cirq.SingleQubitCliffordGate),
+        ('Y', cirq.SingleQubitCliffordGate),
+        ('Z', cirq.SingleQubitCliffordGate),
+        ('S', cirq.SingleQubitCliffordGate),
+        ('X_sqrt', cirq.SingleQubitCliffordGate),
+        ('X_nsqrt', cirq.SingleQubitCliffordGate),
+        ('Y_sqrt', cirq.SingleQubitCliffordGate),
+        ('Y_nsqrt', cirq.SingleQubitCliffordGate),
+        ('Z_sqrt', cirq.SingleQubitCliffordGate),
+        ('Z_nsqrt', cirq.SingleQubitCliffordGate),
+        ('CNOT', cirq.CliffordGate),
+        ('CZ', cirq.CliffordGate),
+        ('SWAP', cirq.CliffordGate),
+    ],
+)
+def test_common_clifford_types(name: str, expected_cls: Type) -> None:
+    assert isinstance(getattr(cirq.CliffordGate, name), expected_cls)
+    assert isinstance(getattr(cirq.SingleQubitCliffordGate, name), expected_cls)
+
+
 @pytest.mark.parametrize('gate', _all_clifford_gates())
 def test_inverse(gate):
     assert gate == cirq.inverse(cirq.inverse(gate))
@@ -509,26 +535,15 @@ def test_text_diagram_info(gate, sym, exp):
     )
 
 
-@pytest.mark.parametrize(
-    "clifford_gate",
-    (
-        cirq.SingleQubitCliffordGate.I,
-        cirq.SingleQubitCliffordGate.H,
-        cirq.SingleQubitCliffordGate.X,
-        cirq.SingleQubitCliffordGate.Y,
-        cirq.SingleQubitCliffordGate.Z,
-        cirq.SingleQubitCliffordGate.X_sqrt,
-        cirq.SingleQubitCliffordGate.Y_sqrt,
-        cirq.SingleQubitCliffordGate.Z_sqrt,
-        cirq.SingleQubitCliffordGate.X_nsqrt,
-        cirq.SingleQubitCliffordGate.Y_nsqrt,
-        cirq.SingleQubitCliffordGate.Z_nsqrt,
-    ),
-)
+@pytest.mark.parametrize("clifford_gate", cirq.SingleQubitCliffordGate.all_single_qubit_cliffords)
 def test_from_unitary(clifford_gate):
     u = cirq.unitary(clifford_gate)
     result_gate = cirq.SingleQubitCliffordGate.from_unitary(u)
     assert result_gate == clifford_gate
+
+    result_gate2, global_phase = cirq.SingleQubitCliffordGate.from_unitary_with_global_phase(u)
+    assert result_gate2 == result_gate
+    assert np.allclose(cirq.unitary(result_gate2) * global_phase, u)
 
 
 def test_from_unitary_with_phase_shift():
@@ -537,19 +552,33 @@ def test_from_unitary_with_phase_shift():
 
     assert gate == cirq.SingleQubitCliffordGate.Y_sqrt
 
+    gate2, global_phase = cirq.SingleQubitCliffordGate.from_unitary_with_global_phase(u)
+    assert gate2 == gate
+    assert np.allclose(cirq.unitary(gate2) * global_phase, u)
+
 
 def test_from_unitary_not_clifford():
     # Not a single-qubit gate.
     u = cirq.unitary(cirq.CNOT)
     assert cirq.SingleQubitCliffordGate.from_unitary(u) is None
+    assert cirq.SingleQubitCliffordGate.from_unitary_with_global_phase(u) is None
 
     # Not an unitary matrix.
     u = 2 * cirq.unitary(cirq.X)
     assert cirq.SingleQubitCliffordGate.from_unitary(u) is None
+    assert cirq.SingleQubitCliffordGate.from_unitary_with_global_phase(u) is None
 
     # Not a Clifford gate.
     u = cirq.unitary(cirq.T)
     assert cirq.SingleQubitCliffordGate.from_unitary(u) is None
+    assert cirq.SingleQubitCliffordGate.from_unitary_with_global_phase(u) is None
+
+
+@pytest.mark.parametrize("clifford_gate", cirq.SingleQubitCliffordGate.all_single_qubit_cliffords)
+def test_decompose_gate(clifford_gate):
+    gates = clifford_gate.decompose_gate()
+    u = functools.reduce(np.dot, [np.eye(2), *(cirq.unitary(gate) for gate in reversed(gates))])
+    assert np.allclose(u, cirq.unitary(clifford_gate))  # No global phase difference.
 
 
 @pytest.mark.parametrize('trans_x,trans_z', _all_rotation_pairs())
@@ -600,12 +629,12 @@ def test_common_clifford_gate(clifford_gate, standard_gate):
     cirq.testing.assert_allclose_up_to_global_phase(u_c, u_s, atol=1e-8)
 
 
-@pytest.mark.parametrize('clifford_gate_name', ("I", "X", "Y", "Z", "H", "S", "CNOT", "CZ", "SWAP"))
-def test_common_clifford_gate_caching(clifford_gate_name):
-    cache_name = f"_{clifford_gate_name}"
+@pytest.mark.parametrize('property_name', ("all_single_qubit_cliffords", "CNOT", "CZ", "SWAP"))
+def test_common_clifford_gate_caching(property_name):
+    cache_name = f"_{property_name}"
     delattr(cirq.CliffordGate, cache_name)
     assert not hasattr(cirq.CliffordGate, cache_name)
-    _ = getattr(cirq.CliffordGate, clifford_gate_name)
+    _ = getattr(cirq.CliffordGate, property_name)
     assert hasattr(cirq.CliffordGate, cache_name)
 
 
@@ -853,3 +882,43 @@ def test_clifford_gate_act_on_ch_form():
 def test_clifford_gate_act_on_fail():
     with pytest.raises(TypeError, match="Failed to act"):
         cirq.act_on(cirq.CliffordGate.X, DummySimulationState(), qubits=())
+
+
+def test_all_single_qubit_clifford_unitaries():
+    i = np.eye(2)
+    x = np.array([[0, 1], [1, 0]])
+    y = np.array([[0, -1j], [1j, 0]])
+    z = np.diag([1, -1])
+
+    cs = [cirq.unitary(c) for c in cirq.CliffordGate.all_single_qubit_cliffords]
+
+    # Identity
+    assert cirq.equal_up_to_global_phase(cs[0], i)
+    # Paulis
+    assert cirq.equal_up_to_global_phase(cs[1], x)
+    assert cirq.equal_up_to_global_phase(cs[2], y)
+    assert cirq.equal_up_to_global_phase(cs[3], z)
+    # Square roots of Paulis
+    assert cirq.equal_up_to_global_phase(cs[4], (i - 1j * x) / np.sqrt(2))
+    assert cirq.equal_up_to_global_phase(cs[5], (i - 1j * y) / np.sqrt(2))
+    assert cirq.equal_up_to_global_phase(cs[6], (i - 1j * z) / np.sqrt(2))
+    # Negative square roots of Paulis
+    assert cirq.equal_up_to_global_phase(cs[7], (i + 1j * x) / np.sqrt(2))
+    assert cirq.equal_up_to_global_phase(cs[8], (i + 1j * y) / np.sqrt(2))
+    assert cirq.equal_up_to_global_phase(cs[9], (i + 1j * z) / np.sqrt(2))
+    # Hadamards
+    assert cirq.equal_up_to_global_phase(cs[10], (z + x) / np.sqrt(2))
+    assert cirq.equal_up_to_global_phase(cs[11], (x + y) / np.sqrt(2))
+    assert cirq.equal_up_to_global_phase(cs[12], (y + z) / np.sqrt(2))
+    assert cirq.equal_up_to_global_phase(cs[13], (z - x) / np.sqrt(2))
+    assert cirq.equal_up_to_global_phase(cs[14], (x - y) / np.sqrt(2))
+    assert cirq.equal_up_to_global_phase(cs[15], (y - z) / np.sqrt(2))
+    # Order-3 Cliffords
+    assert cirq.equal_up_to_global_phase(cs[16], (i - 1j * (x + y + z)) / 2)
+    assert cirq.equal_up_to_global_phase(cs[17], (i - 1j * (x + y - z)) / 2)
+    assert cirq.equal_up_to_global_phase(cs[18], (i - 1j * (x - y + z)) / 2)
+    assert cirq.equal_up_to_global_phase(cs[19], (i - 1j * (x - y - z)) / 2)
+    assert cirq.equal_up_to_global_phase(cs[20], (i - 1j * (-x + y + z)) / 2)
+    assert cirq.equal_up_to_global_phase(cs[21], (i - 1j * (-x + y - z)) / 2)
+    assert cirq.equal_up_to_global_phase(cs[22], (i - 1j * (-x - y + z)) / 2)
+    assert cirq.equal_up_to_global_phase(cs[23], (i - 1j * (-x - y - z)) / 2)

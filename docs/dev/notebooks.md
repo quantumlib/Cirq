@@ -21,7 +21,7 @@ We also expect a standard header to be included in all of our notebooks:
 
 Example header:
 
-![notebook header](../images/notebook_header.png)
+![notebook header](/cirq/images/notebook_header.png)
 
 You can use [our template notebook](https://storage.googleapis.com/tensorflow_docs/Cirq/docs/_template.ipynb) to get started - please remember to change the `$$$REPLACE_WITH_TITLE$$$`, `$$$REPLACE_WITH_SITE_URL$$$` and `$$$REPLACE_WITH_NOTEBOOK_PATH$$$` placeholders.
 

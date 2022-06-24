@@ -531,7 +531,7 @@ def measure_grouped_settings(
     for max_setting, param_resolver in itertools.product(
         grouped_settings.keys(), study.to_resolvers(circuit_sweep)
     ):
-        circuit_params = param_resolver.param_dict
+        circuit_params = dict(param_resolver.param_dict)
         meas_spec = _MeasurementSpec(max_setting=max_setting, circuit_params=circuit_params)
         accumulator = BitstringAccumulator(
             meas_spec=meas_spec,

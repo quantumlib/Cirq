@@ -14,7 +14,7 @@
 
 """Resolves ParameterValues to assigned values."""
 import numbers
-from typing import Any, Dict, Iterator, Optional, TYPE_CHECKING, Union, cast
+from typing import Any, Dict, Iterator, Mapping, Optional, TYPE_CHECKING, Union, cast
 
 import numpy as np
 import sympy
@@ -27,9 +27,11 @@ if TYPE_CHECKING:
 
 
 ParamDictType = Dict['cirq.TParamKey', 'cirq.TParamValComplex']
+ParamMappingType = Mapping['cirq.TParamKey', 'cirq.TParamValComplex']
 document(ParamDictType, """Dictionary from symbols to values.""")  # type: ignore
+document(ParamMappingType, """Immutable map from symbols to values.""")  # type: ignore
 
-ParamResolverOrSimilarType = Union['cirq.ParamResolver', ParamDictType, None]
+ParamResolverOrSimilarType = Union['cirq.ParamResolver', ParamMappingType, None]
 document(
     ParamResolverOrSimilarType,  # type: ignore
     """Something that can be used to turn parameters into values.""",
@@ -70,11 +72,15 @@ class ParamResolver:
             return  # Already initialized. Got wrapped as part of the __new__.
 
         self._param_hash: Optional[int] = None
-        self.param_dict = cast(ParamDictType, {} if param_dict is None else param_dict)
+        self._param_dict = cast(ParamDictType, {} if param_dict is None else param_dict)
         for key in self.param_dict:
             if isinstance(key, sympy.Expr) and not isinstance(key, sympy.Symbol):
                 raise TypeError(f'ParamResolver keys cannot be (non-symbol) formulas ({key})')
         self._deep_eval_map: ParamDictType = {}
+
+    @property
+    def param_dict(self) -> ParamMappingType:
+        return self._param_dict
 
     def value_of(
         self, value: Union['cirq.TParamKey', 'cirq.TParamValComplex'], recursive: bool = True
