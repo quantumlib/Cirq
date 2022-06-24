@@ -58,9 +58,12 @@ def _all_rotation_pairs():
         yield (px, flip_x), (pz, flip_z)
 
 
+@functools.cache
 def _all_clifford_gates():
-    for trans_x, trans_z in _all_rotation_pairs():
-        yield cirq.SingleQubitCliffordGate.from_xz_map(trans_x, trans_z)
+    return [
+        cirq.SingleQubitCliffordGate.from_xz_map(trans_x, trans_z)
+        for trans_x, trans_z in _all_rotation_pairs()
+    ]
 
 
 @pytest.mark.parametrize('pauli,flip_x,flip_z', itertools.product(_paulis, _bools, _bools))
@@ -452,9 +455,7 @@ def test_commutes_notimplemented_type():
     assert cirq.commutes(cirq.CliffordGate.X, 'X', default='default') == 'default'
 
 
-@pytest.mark.parametrize(
-    'gate,other', itertools.product(_all_clifford_gates(), _all_clifford_gates())
-)
+@pytest.mark.parametrize('gate,other', itertools.combinations(_all_clifford_gates(), r=2))
 def test_commutes_single_qubit_gate(gate, other):
     q0 = cirq.NamedQubit('q0')
     gate_op = gate(q0)
@@ -739,7 +740,7 @@ def test_multi_clifford_decompose_by_unitary():
     # Construct a random clifford gate:
     n, num_ops = 5, 20  # because we relied on unitary cannot test large-scale qubits
     gate_candidate = [cirq.X, cirq.Y, cirq.Z, cirq.H, cirq.S, cirq.CNOT, cirq.CZ]
-    for seed in range(100):
+    for seed in range(10):
         prng = np.random.RandomState(seed)
         qubits = cirq.LineQubit.range(n)
         ops = []
@@ -853,7 +854,7 @@ def test_clifford_gate_act_on_large_case():
         args1 = cirq.CliffordTableauSimulationState(tableau=t1, qubits=qubits, prng=prng)
         args2 = cirq.CliffordTableauSimulationState(tableau=t2, qubits=qubits, prng=prng)
         ops = []
-        for _ in range(num_ops):
+        for _ in range(0, num_ops, 100):
             g = prng.randint(len(gate_candidate))
             indices = (prng.randint(n),) if g < 5 else prng.choice(n, 2, replace=False)
             cirq.act_on(
