@@ -59,7 +59,7 @@ def _all_rotation_pairs():
 
 
 @functools.lru_cache()
-def _all_clifford_gates() -> Tuple['cirq.SingleQubitCliffordGate']:
+def _all_clifford_gates() -> Tuple['cirq.SingleQubitCliffordGate', ...]:
     return tuple(
         cirq.SingleQubitCliffordGate.from_xz_map(trans_x, trans_z)
         for trans_x, trans_z in _all_rotation_pairs()
