@@ -66,7 +66,27 @@ class OpDeserializer(abc.ABC):
 
 
 @dataclass(frozen=True)
-class DeserializingArg:
+class _DeserializingArg:
+    """HACK: non-deprecated version of DeserializingArg.
+
+    This is used by global gatesets to bypass the behavior that deprecation warnings thrown
+    during module loading fail unit tests.
+    """
+
+    serialized_name: str
+    constructor_arg_name: str
+    value_func: Optional[Callable[[arg_func_langs.ARG_LIKE], Any]] = None
+    required: bool = True
+    default: Any = None
+
+
+@cirq._compat.deprecated_class(
+    deadline='v0.16',
+    fix='Will no longer be used because GateOpDeserializer is deprecated.'
+    ' CircuitSerializer will be the only supported circuit serializer going forward.',
+)
+@dataclass(frozen=True)
+class DeserializingArg(_DeserializingArg):
     """Specification of the arguments to deserialize an argument to a gate.
 
     Args:
@@ -84,18 +104,12 @@ class DeserializingArg:
             arg.  If set, required is ignored.
     """
 
-    serialized_name: str
-    constructor_arg_name: str
-    value_func: Optional[Callable[[arg_func_langs.ARG_LIKE], Any]] = None
-    required: bool = True
-    default: Any = None
 
+class _GateOpDeserializer(OpDeserializer):
+    """HACK: non-deprecated version of GateOpDeserializer.
 
-class GateOpDeserializer(OpDeserializer):
-    """Describes how to deserialize a proto to a given Gate type.
-
-    Attributes:
-        serialized_gate_id: The id used when serializing the gate.
+    This is used by global gatesets to bypass the behavior that deprecation warnings thrown
+    during module loading fail unit tests.
     """
 
     def __init__(
@@ -109,25 +123,6 @@ class GateOpDeserializer(OpDeserializer):
         ] = lambda x, y: x,
         deserialize_tokens: Optional[bool] = True,
     ):
-        """Constructs a deserializer.
-
-        Args:
-            serialized_gate_id: The serialized id of the gate that is being
-                deserialized.
-            gate_constructor: A function that produces the deserialized gate
-                given arguments from args.
-            args: A list of the arguments to be read from the serialized
-                gate and the information required to use this to construct
-                the gate using the gate_constructor above.
-            num_qubits_param: Some gate constructors require that the number
-                of qubits be passed to their constructor. This is the name
-                of the parameter in the constructor for this value. If None,
-                no number of qubits is passed to the constructor.
-            op_wrapper: An optional Callable to modify the resulting
-                GateOperation, for instance, to add tags
-            deserialize_tokens: Whether to convert tokens to
-                CalibrationTags. Defaults to True.
-        """
         self._serialized_gate_id = serialized_gate_id
         self._gate_constructor = gate_constructor
         self._args = args
@@ -147,23 +142,6 @@ class GateOpDeserializer(OpDeserializer):
         constants: List[v2.program_pb2.Constant] = None,
         deserialized_constants: List[Any] = None,  # unused
     ) -> cirq.Operation:
-        """Turns a cirq_google.api.v2.Operation proto into a GateOperation.
-
-        Args:
-            proto: The proto object to be deserialized.
-            arg_function_language: The `arg_function_language` field from
-                `Program.Language`.
-            constants: The list of Constant protos referenced by constant
-                table indices in `proto`.
-            deserialized_constants: Unused in this method.
-
-        Returns:
-            The deserialized GateOperation represented by `proto`.
-
-        Raises:
-            ValueError: If the proto references a missing constants table, or a required arg is
-                missing.
-        """
         qubits = [v2.qubit_from_proto_id(q.id) for q in proto.qubits]
         args = self._args_from_proto(proto, arg_function_language=arg_function_language)
         if self._num_qubits_param is not None:
@@ -213,6 +191,90 @@ class GateOpDeserializer(OpDeserializer):
             if value is not None:
                 return_args[arg.constructor_arg_name] = value
         return return_args
+
+
+@cirq._compat.deprecated_class(
+    deadline='v0.16',
+    fix='Will no longer be supported.'
+    ' CircuitSerializer will be the only supported circuit serializer going forward.',
+)
+class GateOpDeserializer(_GateOpDeserializer):
+    """Describes how to deserialize a proto to a given Gate type.
+
+    Attributes:
+        serialized_gate_id: The id used when serializing the gate.
+    """
+
+    def __init__(
+        self,
+        serialized_gate_id: str,
+        gate_constructor: Callable,
+        args: Sequence[DeserializingArg],
+        num_qubits_param: Optional[str] = None,
+        op_wrapper: Callable[
+            [cirq.Operation, v2.program_pb2.Operation], cirq.Operation
+        ] = lambda x, y: x,
+        deserialize_tokens: Optional[bool] = True,
+    ):
+        """Constructs a deserializer.
+
+        Args:
+            serialized_gate_id: The serialized id of the gate that is being
+                deserialized.
+            gate_constructor: A function that produces the deserialized gate
+                given arguments from args.
+            args: A list of the arguments to be read from the serialized
+                gate and the information required to use this to construct
+                the gate using the gate_constructor above.
+            num_qubits_param: Some gate constructors require that the number
+                of qubits be passed to their constructor. This is the name
+                of the parameter in the constructor for this value. If None,
+                no number of qubits is passed to the constructor.
+            op_wrapper: An optional Callable to modify the resulting
+                GateOperation, for instance, to add tags
+            deserialize_tokens: Whether to convert tokens to
+                CalibrationTags. Defaults to True.
+        """
+        super().__init__(
+            serialized_gate_id,
+            gate_constructor,
+            args,
+            num_qubits_param,
+            op_wrapper,
+            deserialize_tokens,
+        )
+
+    def from_proto(
+        self,
+        proto: v2.program_pb2.Operation,
+        *,
+        arg_function_language: str = '',
+        constants: List[v2.program_pb2.Constant] = None,
+        deserialized_constants: List[Any] = None,  # unused
+    ) -> cirq.Operation:
+        """Turns a cirq_google.api.v2.Operation proto into a GateOperation.
+
+        Args:
+            proto: The proto object to be deserialized.
+            arg_function_language: The `arg_function_language` field from
+                `Program.Language`.
+            constants: The list of Constant protos referenced by constant
+                table indices in `proto`.
+            deserialized_constants: Unused in this method.
+
+        Returns:
+            The deserialized GateOperation represented by `proto`.
+
+        Raises:
+            ValueError: If the proto references a missing constants table, or a required arg is
+                missing.
+        """
+        return super().from_proto(
+            proto,
+            arg_function_language=arg_function_language,
+            constants=constants,
+            deserialized_constants=deserialized_constants,
+        )
 
 
 class CircuitOpDeserializer(OpDeserializer):
