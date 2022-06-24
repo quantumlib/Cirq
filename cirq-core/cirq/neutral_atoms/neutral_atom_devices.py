@@ -16,11 +16,10 @@ import itertools
 import collections
 from typing import Any, Iterable, cast, DefaultDict, TYPE_CHECKING
 from numpy import sqrt
-from cirq import devices, ops, circuits, value
+from cirq import _compat, devices, ops, circuits, value
 from cirq.devices.grid_qubit import GridQubit
 from cirq.ops import raw_types
 from cirq.value import Duration
-from cirq.neutral_atoms.neutral_atom_gateset import NeutralAtomGateset
 
 if TYPE_CHECKING:
     import cirq
@@ -31,6 +30,23 @@ def _subgate_if_parallel_gate(gate: 'cirq.Gate') -> 'cirq.Gate':
     return gate.sub_gate if isinstance(gate, ops.ParallelGate) else gate
 
 
+def neutral_atom_gateset(max_parallel_z=None, max_parallel_xy=None):
+    return ops.Gateset(
+        ops.AnyIntegerPowerGateFamily(ops.CNotPowGate),
+        ops.AnyIntegerPowerGateFamily(ops.CCNotPowGate),
+        ops.AnyIntegerPowerGateFamily(ops.CZPowGate),
+        ops.AnyIntegerPowerGateFamily(ops.CCZPowGate),
+        ops.ParallelGateFamily(ops.ZPowGate, max_parallel_allowed=max_parallel_z),
+        ops.ParallelGateFamily(ops.XPowGate, max_parallel_allowed=max_parallel_xy),
+        ops.ParallelGateFamily(ops.YPowGate, max_parallel_allowed=max_parallel_xy),
+        ops.ParallelGateFamily(ops.PhasedXPowGate, max_parallel_allowed=max_parallel_xy),
+        ops.MeasurementGate,
+        ops.IdentityGate,
+        unroll_circuit_op=False,
+    )
+
+
+@_compat.deprecated_class(deadline='v0.16', fix='Use cirq_pasqal.PasqalDevice().')
 @value.value_equality
 class NeutralAtomDevice(devices.Device):
     """A device with qubits placed on a grid."""
@@ -91,7 +107,7 @@ class NeutralAtomDevice(devices.Device):
             ops.AnyIntegerPowerGateFamily(ops.CCZPowGate),
             unroll_circuit_op=False,
         )
-        self.gateset = NeutralAtomGateset(max_parallel_z, max_parallel_xy)
+        self.gateset = neutral_atom_gateset(max_parallel_z, max_parallel_xy)
         for q in qubits:
             if not isinstance(q, GridQubit):
                 raise ValueError(f'Unsupported qubit type: {q!r}')

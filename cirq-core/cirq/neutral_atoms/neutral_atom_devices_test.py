@@ -25,20 +25,21 @@ def square_device(
 ) -> neutral_atoms.NeutralAtomDevice:
     us = cirq.Duration(nanos=10**3) if not use_timedelta else timedelta(microseconds=1)
     ms = cirq.Duration(nanos=10**6) if not use_timedelta else timedelta(microseconds=1000)
-    return neutral_atoms.NeutralAtomDevice(  # type: ignore
-        measurement_duration=50 * ms,  # type: ignore
-        gate_duration=100 * us,  # type: ignore
-        control_radius=1.5,
-        max_parallel_z=3,
-        max_parallel_xy=3,
-        max_parallel_c=max_controls,
-        qubits=[
-            cirq.GridQubit(row, col)
-            for col in range(width)
-            for row in range(height)
-            if cirq.GridQubit(row, col) not in holes
-        ],
-    )
+    with cirq.testing.assert_deprecated("Use cirq_pasqal.PasqalDevice", deadline='v0.16', count=2):
+        return neutral_atoms.NeutralAtomDevice(  # type: ignore
+            measurement_duration=50 * ms,  # type: ignore
+            gate_duration=100 * us,  # type: ignore
+            control_radius=1.5,
+            max_parallel_z=3,
+            max_parallel_xy=3,
+            max_parallel_c=max_controls,
+            qubits=[
+                cirq.GridQubit(row, col)
+                for col in range(width)
+                for row in range(height)
+                if cirq.GridQubit(row, col) not in holes
+            ],
+        )
 
 
 def test_init():
@@ -91,25 +92,31 @@ def test_init_errors():
     us = cirq.Duration(nanos=10**3)
     ms = cirq.Duration(nanos=10**6)
     with pytest.raises(ValueError, match="Unsupported qubit type"):
-        _ = neutral_atoms.NeutralAtomDevice(
-            measurement_duration=50 * ms,
-            gate_duration=100 * us,
-            control_radius=1.5,
-            max_parallel_z=3,
-            max_parallel_xy=3,
-            max_parallel_c=3,
-            qubits=line,
-        )
+        with cirq.testing.assert_deprecated(
+            "Use cirq_pasqal.PasqalDevice", deadline='v0.16', count=2
+        ):
+            _ = neutral_atoms.NeutralAtomDevice(
+                measurement_duration=50 * ms,
+                gate_duration=100 * us,
+                control_radius=1.5,
+                max_parallel_z=3,
+                max_parallel_xy=3,
+                max_parallel_c=3,
+                qubits=line,
+            )
     with pytest.raises(ValueError, match="max_parallel_c must be less"):
-        _ = neutral_atoms.NeutralAtomDevice(
-            measurement_duration=50 * ms,
-            gate_duration=100 * us,
-            control_radius=1.5,
-            max_parallel_z=3,
-            max_parallel_xy=3,
-            max_parallel_c=4,
-            qubits=[cirq.GridQubit(0, 0)],
-        )
+        with cirq.testing.assert_deprecated(
+            "Use cirq_pasqal.PasqalDevice", deadline='v0.16', count=1
+        ):
+            _ = neutral_atoms.NeutralAtomDevice(
+                measurement_duration=50 * ms,
+                gate_duration=100 * us,
+                control_radius=1.5,
+                max_parallel_z=3,
+                max_parallel_xy=3,
+                max_parallel_c=4,
+                qubits=[cirq.GridQubit(0, 0)],
+            )
 
 
 def test_validate_gate_errors():
@@ -201,27 +208,30 @@ def test_validate_moment_errors():
     d.validate_moment(cirq.Moment([cirq.X.on(q00), cirq.Z.on(q01)]))
     us = cirq.Duration(nanos=10**3)
     ms = cirq.Duration(nanos=10**6)
-    d2 = neutral_atoms.NeutralAtomDevice(
-        measurement_duration=50 * ms,
-        gate_duration=100 * us,
-        control_radius=1.5,
-        max_parallel_z=4,
-        max_parallel_xy=4,
-        max_parallel_c=4,
-        qubits=[cirq.GridQubit(row, col) for col in range(2) for row in range(2)],
-    )
+    with cirq.testing.assert_deprecated("Use cirq_pasqal.PasqalDevice", deadline='v0.16', count=1):
+        d2 = neutral_atoms.NeutralAtomDevice(
+            measurement_duration=50 * ms,
+            gate_duration=100 * us,
+            control_radius=1.5,
+            max_parallel_z=4,
+            max_parallel_xy=4,
+            max_parallel_c=4,
+            qubits=[cirq.GridQubit(row, col) for col in range(2) for row in range(2)],
+        )
     m = cirq.Moment([cirq.CNOT.on(q00, q01), cirq.CNOT.on(q10, q11)])
     with pytest.raises(ValueError, match="Interacting controlled operations"):
         d2.validate_moment(m)
-    d2 = neutral_atoms.NeutralAtomDevice(
-        measurement_duration=50 * ms,
-        gate_duration=100 * us,
-        control_radius=1.1,
-        max_parallel_z=6,
-        max_parallel_xy=6,
-        max_parallel_c=6,
-        qubits=[cirq.GridQubit(row, col) for col in range(5) for row in range(5)],
-    )
+
+    with cirq.testing.assert_deprecated("Use cirq_pasqal.PasqalDevice", deadline='v0.16', count=1):
+        d2 = neutral_atoms.NeutralAtomDevice(
+            measurement_duration=50 * ms,
+            gate_duration=100 * us,
+            control_radius=1.1,
+            max_parallel_z=6,
+            max_parallel_xy=6,
+            max_parallel_c=6,
+            qubits=[cirq.GridQubit(row, col) for col in range(5) for row in range(5)],
+        )
     m = cirq.Moment([cirq.CZ.on(q00, q01), cirq.CZ.on(q03, q04), cirq.CZ.on(q20, q21)])
     d2.validate_moment(m)
     m = cirq.Moment([cirq.CZ.on(q00, q01), cirq.CZ.on(q02, q03), cirq.CZ.on(q10, q11)])
@@ -250,7 +260,8 @@ def test_validate_circuit_errors():
 
 def test_repr():
     d = square_device(1, 1)
-    cirq.testing.assert_equivalent_repr(d)
+    with cirq.testing.assert_deprecated("Use cirq_pasqal.PasqalDevice", deadline='v0.16', count=3):
+        cirq.testing.assert_equivalent_repr(d)
 
 
 def test_str():
@@ -266,8 +277,9 @@ q(1, 0)───q(1, 1)
 
 
 def test_repr_pretty():
+    device = square_device(2, 2)
     cirq.testing.assert_repr_pretty(
-        square_device(2, 2),
+        device,
         """
 q(0, 0)───q(0, 1)
 │         │
@@ -275,4 +287,4 @@ q(0, 0)───q(0, 1)
 q(1, 0)───q(1, 1)
     """.strip(),
     )
-    cirq.testing.assert_repr_pretty(square_device(2, 2), "cirq.NeutralAtomDevice(...)", cycle=True)
+    cirq.testing.assert_repr_pretty(device, "cirq.NeutralAtomDevice(...)", cycle=True)

@@ -14,10 +14,17 @@
 
 import numpy as np
 
-from cirq import ops, protocols, circuits, transformers
+from cirq import _compat, ops, protocols, circuits, transformers
 from cirq.ion import ms, two_qubit_matrix_to_ion_operations, ion_device
 
 
+@_compat.deprecated_class(
+    deadline='v0.16',
+    fix='Use cirq.optimize_for_target_gateset('
+    'circuit, '
+    'gateset=cirq_aqt.aqt_device.AQTTargetGateset()'
+    ').',
+)
 class ConvertToIonGates:
     """Attempts to convert non-native gates into IonGates."""
 
@@ -30,7 +37,7 @@ class ConvertToIonGates:
         """
         super().__init__()
         self.ignore_failures = ignore_failures
-        self.gateset = ion_device.get_ion_gateset()
+        self.gateset = ion_device._IonTargetGateset()
 
     def convert_one(self, op: ops.Operation) -> ops.OP_TREE:
         """Convert a single (one- or two-qubit) operation into ion trap native gates.

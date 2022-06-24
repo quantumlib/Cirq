@@ -198,6 +198,14 @@ class GateFamily:
     def description(self) -> str:
         return self._description
 
+    @property
+    def tags_to_accept(self) -> FrozenSet[Hashable]:
+        return self._tags_to_accept
+
+    @property
+    def tags_to_ignore(self) -> FrozenSet[Hashable]:
+        return self._tags_to_ignore
+
     def _predicate(self, gate: raw_types.Gate) -> bool:
         """Checks whether `cirq.Gate` instance `gate` belongs to this GateFamily.
 
@@ -370,7 +378,7 @@ class Gateset:
                 )
 
         for g in unique_gate_list:
-            if type(g) == GateFamily:
+            if type(g) is GateFamily and not (g.tags_to_ignore or g.tags_to_accept):
                 if isinstance(g.gate, raw_types.Gate):
                     self._instance_gate_families[g.gate] = g
                 else:
