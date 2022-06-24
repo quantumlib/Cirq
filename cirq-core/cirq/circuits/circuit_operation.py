@@ -19,7 +19,6 @@ component operations in order, including any nested CircuitOperations.
 """
 import math
 from typing import (
-    AbstractSet,
     Callable,
     Mapping,
     Sequence,
@@ -309,7 +308,7 @@ class CircuitOperation(ops.Operation):
             raise ValueError('Cannot unroll circuit due to nondeterministic repetitions')
 
     @cached_property
-    def _measurement_key_objs(self) -> AbstractSet['cirq.MeasurementKey']:
+    def _measurement_key_objs(self) -> FrozenSet['cirq.MeasurementKey']:
         circuit_keys = protocols.measurement_key_objs(self.circuit)
         if circuit_keys and self.use_repetition_ids:
             self._ensure_deterministic_loop_count()
@@ -320,19 +319,19 @@ class CircuitOperation(ops.Operation):
                     for key in circuit_keys
                 }
         circuit_keys = {key.with_key_path_prefix(*self.parent_path) for key in circuit_keys}
-        return {
+        return frozenset(
             protocols.with_measurement_key_mapping(key, dict(self.measurement_key_map))
             for key in circuit_keys
-        }
+        )
 
-    def _measurement_key_objs_(self) -> AbstractSet['cirq.MeasurementKey']:
+    def _measurement_key_objs_(self) -> FrozenSet['cirq.MeasurementKey']:
         return self._measurement_key_objs
 
     def _measurement_key_names_(self) -> FrozenSet[str]:
         return frozenset(str(key) for key in self._measurement_key_objs_())
 
     @cached_property
-    def _control_keys(self) -> AbstractSet['cirq.MeasurementKey']:
+    def _control_keys(self) -> FrozenSet['cirq.MeasurementKey']:
         keys = (
             frozenset()
             if not protocols.control_keys(self.circuit)
@@ -342,13 +341,13 @@ class CircuitOperation(ops.Operation):
             keys |= frozenset(self.repeat_until.keys) - self._measurement_key_objs_()
         return keys
 
-    def _control_keys_(self) -> AbstractSet['cirq.MeasurementKey']:
+    def _control_keys_(self) -> FrozenSet['cirq.MeasurementKey']:
         return self._control_keys
 
     def _is_parameterized_(self) -> bool:
         return any(self._parameter_names_generator())
 
-    def _parameter_names_(self) -> AbstractSet[str]:
+    def _parameter_names_(self) -> FrozenSet[str]:
         return frozenset(self._parameter_names_generator())
 
     def _parameter_names_generator(self) -> Iterator[str]:
@@ -463,7 +462,7 @@ class CircuitOperation(ops.Operation):
         )
         args = []
 
-        def dict_str(d: Dict) -> str:
+        def dict_str(d: Mapping) -> str:
             pairs = [f'{k}: {v}' for k, v in sorted(d.items())]
             return '{' + ', '.join(pairs) + '}'
 
