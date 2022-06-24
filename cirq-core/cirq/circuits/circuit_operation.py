@@ -630,9 +630,27 @@ class CircuitOperation(ops.Operation):
         return self.replace(parent_path=path, extern_keys=bindable_keys)
 
     def with_key_path(self, path: Tuple[str, ...]):
+        """Alias for `cirq.with_key_path(self, path)`.
+
+        Args:
+            path: Tuple of strings representing an alternate path to assign to the measurement
+                keys in this `CircuitOperation`.
+
+        Returns:
+            A copy of this object with `parent_path=path`.
+        """
         return self._with_key_path_(path)
 
     def with_repetition_ids(self, repetition_ids: List[str]) -> 'cirq.CircuitOperation':
+        """Returns a copy of this `CircuitOperation` with the given repetition IDs.
+
+        Args:
+            repetition_ids: List of new repetition IDs to use. Must have length equal to the
+                existing number of repetitions.
+
+        Returns:
+            A copy of this object with `repetition_ids=repetition_ids`.
+        """
         return self.replace(repetition_ids=repetition_ids)
 
     def with_qubit_mapping(

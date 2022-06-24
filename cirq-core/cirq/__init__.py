@@ -604,7 +604,6 @@ from cirq.protocols import (
     JsonResolver,
     json_cirq_type,
     json_namespace,
-    json_serializable_dataclass,
     dataclass_json_dict,
     kraus,
     LabelEntity,
