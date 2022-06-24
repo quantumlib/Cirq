@@ -17,7 +17,9 @@ import pytest
 import sympy
 
 import cirq
-from cirq.protocols.act_on_protocol_test import DummySimulationState
+from cirq.protocols.act_on_protocol_test import _DummySimulationState
+from cirq.sim.clifford.clifford_tableau_simulation_state import _CliffordTableauSimulationState
+from cirq.sim.clifford.stabilizer_ch_form_simulation_state import _StabilizerChFormSimulationState
 
 H = np.array([[1, 1], [1, -1]]) * np.sqrt(0.5)
 HH = cirq.kron(H, H)
@@ -287,11 +289,11 @@ def test_h_str():
 
 def test_x_act_on_tableau():
     with pytest.raises(TypeError, match="Failed to act"):
-        cirq.act_on(cirq.X, DummySimulationState(), qubits=())
+        cirq.act_on(cirq.X, _DummySimulationState(), qubits=())
     original_tableau = cirq.CliffordTableau(num_qubits=5, initial_state=31)
     flipped_tableau = cirq.CliffordTableau(num_qubits=5, initial_state=23)
 
-    state = cirq.CliffordTableauSimulationState(
+    state = _CliffordTableauSimulationState(
         tableau=original_tableau.copy(),
         qubits=cirq.LineQubit.range(5),
         prng=np.random.RandomState(),
@@ -336,11 +338,11 @@ class MinusOnePhaseGate(cirq.testing.SingleQubitGate):
 
 def test_y_act_on_tableau():
     with pytest.raises(TypeError, match="Failed to act"):
-        cirq.act_on(cirq.Y, DummySimulationState(), qubits=())
+        cirq.act_on(cirq.Y, _DummySimulationState(), qubits=())
     original_tableau = cirq.CliffordTableau(num_qubits=5, initial_state=31)
     flipped_tableau = cirq.CliffordTableau(num_qubits=5, initial_state=23)
 
-    state = cirq.CliffordTableauSimulationState(
+    state = _CliffordTableauSimulationState(
         tableau=original_tableau.copy(),
         qubits=cirq.LineQubit.range(5),
         prng=np.random.RandomState(),
@@ -374,13 +376,13 @@ def test_y_act_on_tableau():
 
 def test_z_h_act_on_tableau():
     with pytest.raises(TypeError, match="Failed to act"):
-        cirq.act_on(cirq.Z, DummySimulationState(), qubits=())
+        cirq.act_on(cirq.Z, _DummySimulationState(), qubits=())
     with pytest.raises(TypeError, match="Failed to act"):
-        cirq.act_on(cirq.H, DummySimulationState(), qubits=())
+        cirq.act_on(cirq.H, _DummySimulationState(), qubits=())
     original_tableau = cirq.CliffordTableau(num_qubits=5, initial_state=31)
     flipped_tableau = cirq.CliffordTableau(num_qubits=5, initial_state=23)
 
-    state = cirq.CliffordTableauSimulationState(
+    state = _CliffordTableauSimulationState(
         tableau=original_tableau.copy(),
         qubits=cirq.LineQubit.range(5),
         prng=np.random.RandomState(),
@@ -427,10 +429,10 @@ def test_z_h_act_on_tableau():
 
 def test_cx_act_on_tableau():
     with pytest.raises(TypeError, match="Failed to act"):
-        cirq.act_on(cirq.CX, DummySimulationState(), qubits=())
+        cirq.act_on(cirq.CX, _DummySimulationState(), qubits=())
     original_tableau = cirq.CliffordTableau(num_qubits=5, initial_state=31)
 
-    state = cirq.CliffordTableauSimulationState(
+    state = _CliffordTableauSimulationState(
         tableau=original_tableau.copy(),
         qubits=cirq.LineQubit.range(5),
         prng=np.random.RandomState(),
@@ -471,10 +473,10 @@ def test_cx_act_on_tableau():
 
 def test_cz_act_on_tableau():
     with pytest.raises(TypeError, match="Failed to act"):
-        cirq.act_on(cirq.CZ, DummySimulationState(), qubits=())
+        cirq.act_on(cirq.CZ, _DummySimulationState(), qubits=())
     original_tableau = cirq.CliffordTableau(num_qubits=5, initial_state=31)
 
-    state = cirq.CliffordTableauSimulationState(
+    state = _CliffordTableauSimulationState(
         tableau=original_tableau.copy(),
         qubits=cirq.LineQubit.range(5),
         prng=np.random.RandomState(),
@@ -514,12 +516,12 @@ def test_cz_act_on_tableau():
 
 
 def test_cz_act_on_equivalent_to_h_cx_h_tableau():
-    state1 = cirq.CliffordTableauSimulationState(
+    state1 = _CliffordTableauSimulationState(
         tableau=cirq.CliffordTableau(num_qubits=2),
         qubits=cirq.LineQubit.range(2),
         prng=np.random.RandomState(),
     )
-    state2 = cirq.CliffordTableauSimulationState(
+    state2 = _CliffordTableauSimulationState(
         tableau=cirq.CliffordTableau(num_qubits=2),
         qubits=cirq.LineQubit.range(2),
         prng=np.random.RandomState(),
@@ -581,7 +583,7 @@ def test_act_on_ch_form(input_gate_sequence, outcome):
     else:
         assert num_qubits == 2
         qubits = cirq.LineQubit.range(2)
-    state = cirq.StabilizerChFormSimulationState(
+    state = _StabilizerChFormSimulationState(
         qubits=cirq.LineQubit.range(2),
         prng=np.random.RandomState(),
         initial_state=original_state.copy(),

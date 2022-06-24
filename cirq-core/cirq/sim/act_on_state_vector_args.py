@@ -13,9 +13,9 @@
 # limitations under the License.
 
 from cirq import _compat
-from cirq.sim.state_vector_simulation_state import StateVectorSimulationState
+from cirq.sim.state_vector_simulation_state import _StateVectorSimulationState
 
 
-@_compat.deprecated_class(deadline='v0.16', fix='Use cirq.StateVectorSimulationState instead.')
-class ActOnStateVectorArgs(StateVectorSimulationState):
+@_compat.deprecated_class(deadline='v0.16', fix='Use _StateVectorSimulationState instead.')
+class ActOnStateVectorArgs(_StateVectorSimulationState):
     pass

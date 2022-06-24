@@ -35,6 +35,7 @@ from cirq.sim import simulator, state_vector, simulator_base
 
 if TYPE_CHECKING:
     import cirq
+    from cirq.sim.state_vector_simulation_state import _StateVectorSimulationState
 
 
 TStateVectorStepResult = TypeVar('TStateVectorStepResult', bound='StateVectorStepResult')
@@ -43,7 +44,7 @@ TStateVectorStepResult = TypeVar('TStateVectorStepResult', bound='StateVectorSte
 class SimulatesIntermediateStateVector(
     Generic[TStateVectorStepResult],
     simulator_base.SimulatorBase[
-        TStateVectorStepResult, 'cirq.StateVectorTrialResult', 'cirq.StateVectorSimulationState',
+        TStateVectorStepResult, 'cirq.StateVectorTrialResult', '_StateVectorSimulationState',
     ],
     simulator.SimulatesAmplitudes,
     metaclass=abc.ABCMeta,
@@ -69,7 +70,7 @@ class SimulatesIntermediateStateVector(
         self,
         params: 'cirq.ParamResolver',
         measurements: Dict[str, np.ndarray],
-        final_simulator_state: 'cirq.SimulationStateBase[cirq.StateVectorSimulationState]',
+        final_simulator_state: 'cirq.SimulationStateBase[_StateVectorSimulationState]',
     ) -> 'cirq.StateVectorTrialResult':
         return StateVectorTrialResult(
             params=params, measurements=measurements, final_simulator_state=final_simulator_state
@@ -102,7 +103,7 @@ class SimulatesIntermediateStateVector(
 
 
 class StateVectorStepResult(
-    simulator_base.StepResultBase['cirq.StateVectorSimulationState'], metaclass=abc.ABCMeta
+    simulator_base.StepResultBase['_StateVectorSimulationState'], metaclass=abc.ABCMeta
 ):
     pass
 
@@ -137,7 +138,7 @@ class StateVectorSimulatorState:
 @value.value_equality(unhashable=True)
 class StateVectorTrialResult(
     state_vector.StateVectorMixin,
-    simulator_base.SimulationTrialResultBase['cirq.StateVectorSimulationState'],
+    simulator_base.SimulationTrialResultBase['_StateVectorSimulationState'],
 ):
     """A `SimulationTrialResult` that includes the `StateVectorMixin` methods.
 
@@ -149,7 +150,7 @@ class StateVectorTrialResult(
         self,
         params: 'cirq.ParamResolver',
         measurements: Dict[str, np.ndarray],
-        final_simulator_state: 'cirq.SimulationStateBase[cirq.StateVectorSimulationState]',
+        final_simulator_state: 'cirq.SimulationStateBase[_StateVectorSimulationState]',
     ) -> None:
         super().__init__(
             params=params,

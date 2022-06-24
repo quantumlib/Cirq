@@ -17,6 +17,7 @@ import pytest
 
 import cirq
 import cirq.testing
+from cirq.sim.clifford.stabilizer_ch_form_simulation_state import _StabilizerChFormSimulationState
 
 # TODO: This and clifford tableau need tests.
 # Github issue: https://github.com/quantumlib/Cirq/issues/3021
@@ -66,7 +67,7 @@ def test_run():
         state = cirq.StabilizerStateChForm(num_qubits=3)
         classical_data = cirq.ClassicalDataDictionaryStore()
         for op in circuit.all_operations():
-            args = cirq.StabilizerChFormSimulationState(
+            args = _StabilizerChFormSimulationState(
                 qubits=list(circuit.all_qubits()),
                 prng=np.random.RandomState(),
                 classical_data=classical_data,

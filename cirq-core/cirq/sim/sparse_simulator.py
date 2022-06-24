@@ -25,6 +25,7 @@ from cirq.sim import simulator, state_vector, state_vector_simulator, state_vect
 if TYPE_CHECKING:
     import cirq
     from numpy.typing import DTypeLike
+    from cirq.sim.state_vector_simulation_state import _StateVectorSimulationState
 
 
 class Simulator(
@@ -154,11 +155,11 @@ class Simulator(
 
     def _create_partial_simulation_state(
         self,
-        initial_state: Union['cirq.STATE_VECTOR_LIKE', 'cirq.StateVectorSimulationState'],
+        initial_state: Union['cirq.STATE_VECTOR_LIKE', '_StateVectorSimulationState'],
         qubits: Sequence['cirq.Qid'],
         classical_data: 'cirq.ClassicalDataStore',
     ):
-        """Creates the StateVectorSimulationState for a circuit.
+        """Creates the _StateVectorSimulationState for a circuit.
 
         Args:
             initial_state: The initial state for the simulation in the
@@ -170,12 +171,12 @@ class Simulator(
                 simulation.
 
         Returns:
-            StateVectorSimulationState for the circuit.
+            _StateVectorSimulationState for the circuit.
         """
-        if isinstance(initial_state, state_vector_simulation_state.StateVectorSimulationState):
+        if isinstance(initial_state, state_vector_simulation_state._StateVectorSimulationState):
             return initial_state
 
-        return state_vector_simulation_state.StateVectorSimulationState(
+        return state_vector_simulation_state._StateVectorSimulationState(
             qubits=qubits,
             prng=self._prng,
             classical_data=classical_data,
@@ -184,7 +185,7 @@ class Simulator(
         )
 
     def _create_step_result(
-        self, sim_state: 'cirq.SimulationStateBase[cirq.StateVectorSimulationState]'
+        self, sim_state: 'cirq.SimulationStateBase[_StateVectorSimulationState]'
     ):
         return SparseSimulatorStep(sim_state=sim_state, dtype=self._dtype)
 
@@ -229,7 +230,7 @@ class SparseSimulatorStep(
     )
     def __init__(
         self,
-        sim_state: 'cirq.SimulationStateBase[cirq.StateVectorSimulationState]',
+        sim_state: 'cirq.SimulationStateBase[_StateVectorSimulationState]',
         simulator: 'cirq.Simulator' = None,
         dtype: 'DTypeLike' = np.complex64,
     ):

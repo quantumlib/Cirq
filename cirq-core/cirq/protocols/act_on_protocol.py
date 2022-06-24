@@ -32,7 +32,7 @@ class SupportsActOn(Protocol):
         """Applies an action to the given argument, if it is a supported type.
 
         For example, unitary operations can implement an `_act_on_` method that
-        checks if `isinstance(sim_state, cirq.StateVectorSimulationState)` and,
+        checks if `isinstance(sim_state, _StateVectorSimulationState)` and,
         if so, apply their unitary effect to the state vector.
 
         The global `cirq.act_on` method looks for whether or not the given
@@ -64,7 +64,7 @@ class SupportsActOnQubits(Protocol):
         """Applies an action to the given argument, if it is a supported type.
 
         For example, unitary operations can implement an `_act_on_` method that
-        checks if `isinstance(sim_state, cirq.StateVectorSimulationState)` and,
+        checks if `isinstance(sim_state, _StateVectorSimulationState)` and,
         if so, apply their unitary effect to the state vector.
 
         The global `cirq.act_on` method looks for whether or not the given
@@ -110,7 +110,7 @@ def act_on(
 
     For example, the action may be a `cirq.Operation` and the state argument may
     represent the internal state of a state vector simulator (a
-    `cirq.StateVectorSimulationState`).
+    `_StateVectorSimulationState`).
 
     For non-operations, the `qubits` argument must be explicitly supplied.
 

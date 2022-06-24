@@ -20,6 +20,7 @@ import pytest
 import sympy
 
 import cirq
+from cirq.sim.state_vector_simulation_state import _StateVectorSimulationState
 
 
 def test_invalid_dtype():
@@ -752,7 +753,7 @@ def test_does_not_modify_initial_state():
 
 def test_simulator_step_state_mixin():
     qubits = cirq.LineQubit.range(2)
-    args = cirq.StateVectorSimulationState(
+    args = _StateVectorSimulationState(
         available_buffer=np.array([0, 1, 0, 0]).reshape((2, 2)),
         prng=cirq.value.parse_random_state(0),
         qubits=qubits,
@@ -770,7 +771,7 @@ def test_simulator_step_state_mixin():
 
 def test_sparse_simulator_repr():
     qubits = cirq.LineQubit.range(2)
-    args = cirq.StateVectorSimulationState(
+    args = _StateVectorSimulationState(
         available_buffer=np.array([0, 1, 0, 0]).reshape((2, 2)),
         prng=cirq.value.parse_random_state(0),
         qubits=qubits,
@@ -780,7 +781,8 @@ def test_sparse_simulator_repr():
     step = cirq.SparseSimulatorStep(sim_state=args, dtype=np.complex64)
     # No equality so cannot use cirq.testing.assert_equivalent_repr
     assert (
-        repr(step) == "cirq.SparseSimulatorStep(sim_state=cirq.StateVectorSimulationState("
+        repr(step) == "cirq.SparseSimulatorStep(sim_state="
+        "cirq.sim.state_vector_simulation_state._StateVectorSimulationState("
         "initial_state=np.array([[0j, (1+0j)], [0j, 0j]], dtype=np.complex64), "
         "qubits=(cirq.LineQubit(0), cirq.LineQubit(1)), "
         "classical_data=cirq.ClassicalDataDictionaryStore()), dtype=np.complex64)"

@@ -19,6 +19,7 @@ import sympy
 
 import cirq
 from cirq.contrib.custom_simulators.custom_state_simulator import CustomStateSimulator
+from cirq.sim.state_vector_simulation_state import _StateVectorSimulationState
 
 
 class ComputationalBasisState(cirq.qis.QuantumStateRepresentation):
@@ -45,7 +46,6 @@ class ComputationalBasisSimState(cirq.SimulationState[ComputationalBasisState]):
             i = self.qubit_map[qubits[0]]
             self._state.basis[i] = int(gate.exponent + self._state.basis[i]) % qubits[0].dimension
             return True
-        pass
 
 
 def create_test_circuit():
@@ -73,7 +73,7 @@ def test_basis_state_simulator():
 
 def test_built_in_states():
     # Verify this works for the built-in states too, you just lose the custom step/trial results.
-    sim = CustomStateSimulator(cirq.StateVectorSimulationState)
+    sim = CustomStateSimulator(_StateVectorSimulationState)
     circuit = create_test_circuit()
     r = sim.simulate(circuit)
     assert r.measurements == {'a': np.array([1]), 'b': np.array([2])}
@@ -83,7 +83,7 @@ def test_built_in_states():
 
 
 def test_product_state_mode_built_in_state():
-    sim = CustomStateSimulator(cirq.StateVectorSimulationState, split_untangled_states=True)
+    sim = CustomStateSimulator(_StateVectorSimulationState, split_untangled_states=True)
     circuit = create_test_circuit()
     r = sim.simulate(circuit)
     assert r.measurements == {'a': np.array([1]), 'b': np.array([2])}
@@ -177,7 +177,6 @@ class ComputationalBasisSimProductState(cirq.SimulationState[ComputationalBasisP
             i = self.qubit_map[qubits[0]]
             self._state.basis[i] = int(gate.exponent + self._state.basis[i]) % qubits[0].dimension
             return True
-        pass
 
 
 def test_product_state_mode():

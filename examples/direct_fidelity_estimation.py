@@ -29,7 +29,7 @@ from typing import cast, List, Optional, Tuple
 import cirq
 import duet
 import numpy as np
-from cirq.sim import clifford
+from cirq.sim.clifford.clifford_tableau_simulation_state import _CliffordTableauSimulationState
 
 
 def build_circuit() -> Tuple[cirq.Circuit, List[cirq.Qid]]:
@@ -369,9 +369,7 @@ def direct_fidelity_estimation(
     clifford_tableau = cirq.CliffordTableau(n_qubits)
     try:
         for gate in circuit.all_operations():
-            tableau_args = clifford.CliffordTableauSimulationState(
-                tableau=clifford_tableau, qubits=qubits
-            )
+            tableau_args = _CliffordTableauSimulationState(tableau=clifford_tableau, qubits=qubits)
             cirq.act_on(gate, tableau_args)
     except TypeError:
         clifford_circuit = False

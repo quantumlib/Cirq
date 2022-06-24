@@ -17,6 +17,9 @@ import numpy as np
 import pytest
 
 import cirq
+from cirq.sim.state_vector_simulation_state import _StateVectorSimulationState
+from cirq.sim.clifford.clifford_tableau_simulation_state import _CliffordTableauSimulationState
+from cirq.sim.clifford.stabilizer_ch_form_simulation_state import _StabilizerChFormSimulationState
 from cirq.type_workarounds import NotImplementedType
 
 
@@ -370,7 +373,7 @@ def test_act_on_state_vector():
         a, b, key='out', invert_mask=(True,), confusion_map={(1,): np.array([[0, 1], [1, 0]])}
     )
 
-    args = cirq.StateVectorSimulationState(
+    args = _StateVectorSimulationState(
         available_buffer=np.empty(shape=(2, 2, 2, 2, 2)),
         qubits=cirq.LineQubit.range(5),
         prng=np.random.RandomState(),
@@ -380,7 +383,7 @@ def test_act_on_state_vector():
     cirq.act_on(m, args)
     assert args.log_of_measurement_results == {'out': [1, 1]}
 
-    args = cirq.StateVectorSimulationState(
+    args = _StateVectorSimulationState(
         available_buffer=np.empty(shape=(2, 2, 2, 2, 2)),
         qubits=cirq.LineQubit.range(5),
         prng=np.random.RandomState(),
@@ -392,7 +395,7 @@ def test_act_on_state_vector():
     cirq.act_on(m, args)
     assert args.log_of_measurement_results == {'out': [1, 0]}
 
-    args = cirq.StateVectorSimulationState(
+    args = _StateVectorSimulationState(
         available_buffer=np.empty(shape=(2, 2, 2, 2, 2)),
         qubits=cirq.LineQubit.range(5),
         prng=np.random.RandomState(),
@@ -419,7 +422,7 @@ def test_act_on_clifford_tableau():
     # The below assertion does not fail since it ignores non-unitary operations
     cirq.testing.assert_all_implemented_act_on_effects_match_unitary(m)
 
-    args = cirq.CliffordTableauSimulationState(
+    args = _CliffordTableauSimulationState(
         tableau=cirq.CliffordTableau(num_qubits=5, initial_state=0),
         qubits=cirq.LineQubit.range(5),
         prng=np.random.RandomState(),
@@ -427,7 +430,7 @@ def test_act_on_clifford_tableau():
     cirq.act_on(m, args)
     assert args.log_of_measurement_results == {'out': [1, 1]}
 
-    args = cirq.CliffordTableauSimulationState(
+    args = _CliffordTableauSimulationState(
         tableau=cirq.CliffordTableau(num_qubits=5, initial_state=8),
         qubits=cirq.LineQubit.range(5),
         prng=np.random.RandomState(),
@@ -436,7 +439,7 @@ def test_act_on_clifford_tableau():
     cirq.act_on(m, args)
     assert args.log_of_measurement_results == {'out': [1, 0]}
 
-    args = cirq.CliffordTableauSimulationState(
+    args = _CliffordTableauSimulationState(
         tableau=cirq.CliffordTableau(num_qubits=5, initial_state=10),
         qubits=cirq.LineQubit.range(5),
         prng=np.random.RandomState(),
@@ -459,20 +462,20 @@ def test_act_on_stabilizer_ch_form():
     # The below assertion does not fail since it ignores non-unitary operations
     cirq.testing.assert_all_implemented_act_on_effects_match_unitary(m)
 
-    args = cirq.StabilizerChFormSimulationState(
+    args = _StabilizerChFormSimulationState(
         qubits=cirq.LineQubit.range(5), prng=np.random.RandomState(), initial_state=0
     )
     cirq.act_on(m, args)
     assert args.log_of_measurement_results == {'out': [1, 1]}
 
-    args = cirq.StabilizerChFormSimulationState(
+    args = _StabilizerChFormSimulationState(
         qubits=cirq.LineQubit.range(5), prng=np.random.RandomState(), initial_state=8
     )
 
     cirq.act_on(m, args)
     assert args.log_of_measurement_results == {'out': [1, 0]}
 
-    args = cirq.StabilizerChFormSimulationState(
+    args = _StabilizerChFormSimulationState(
         qubits=cirq.LineQubit.range(5), prng=np.random.RandomState(), initial_state=10
     )
     cirq.act_on(m, args)
@@ -495,7 +498,7 @@ def test_act_on_qutrit():
         confusion_map={(1,): np.array([[0, 1, 0], [0, 0, 1], [1, 0, 0]])},
     )
 
-    args = cirq.StateVectorSimulationState(
+    args = _StateVectorSimulationState(
         available_buffer=np.empty(shape=(3, 3, 3, 3, 3)),
         qubits=cirq.LineQid.range(5, dimension=3),
         prng=np.random.RandomState(),
@@ -507,7 +510,7 @@ def test_act_on_qutrit():
     cirq.act_on(m, args)
     assert args.log_of_measurement_results == {'out': [2, 0]}
 
-    args = cirq.StateVectorSimulationState(
+    args = _StateVectorSimulationState(
         available_buffer=np.empty(shape=(3, 3, 3, 3, 3)),
         qubits=cirq.LineQid.range(5, dimension=3),
         prng=np.random.RandomState(),
@@ -519,7 +522,7 @@ def test_act_on_qutrit():
     cirq.act_on(m, args)
     assert args.log_of_measurement_results == {'out': [2, 2]}
 
-    args = cirq.StateVectorSimulationState(
+    args = _StateVectorSimulationState(
         available_buffer=np.empty(shape=(3, 3, 3, 3, 3)),
         qubits=cirq.LineQid.range(5, dimension=3),
         prng=np.random.RandomState(),
@@ -533,7 +536,7 @@ def test_act_on_qutrit():
 
 
 def test_act_on_no_confusion_map_deprecated():
-    class OldSimState(cirq.StateVectorSimulationState):
+    class OldSimState(_StateVectorSimulationState):
         def __init__(self, *args, **kwargs):
             super().__init__(*args, **kwargs)
             self.measured = False
@@ -559,7 +562,7 @@ def test_act_on_no_confusion_map_deprecated():
 def test_act_on_no_confusion_map_scope_limited():
     error_msg = "error from deeper in measure"
 
-    class ErrorProneSimState(cirq.StateVectorSimulationState):
+    class ErrorProneSimState(_StateVectorSimulationState):
         def __init__(self, *args, **kwargs):
             super().__init__(*args, **kwargs)
             self.measured = False

@@ -23,13 +23,14 @@ from cirq.sim import simulator, density_matrix_simulation_state, simulator_base
 if TYPE_CHECKING:
     import cirq
     from numpy.typing import DTypeLike
+    from cirq.sim.density_matrix_simulation_state import _DensityMatrixSimulationState
 
 
 class DensityMatrixSimulator(
     simulator_base.SimulatorBase[
         'cirq.DensityMatrixStepResult',
         'cirq.DensityMatrixTrialResult',
-        'cirq.DensityMatrixSimulationState',
+        '_DensityMatrixSimulationState',
     ],
     simulator.SimulatesExpectationValues,
 ):
@@ -148,13 +149,11 @@ class DensityMatrixSimulator(
 
     def _create_partial_simulation_state(
         self,
-        initial_state: Union[
-            np.ndarray, 'cirq.STATE_VECTOR_LIKE', 'cirq.DensityMatrixSimulationState'
-        ],
+        initial_state: Union[np.ndarray, 'cirq.STATE_VECTOR_LIKE', '_DensityMatrixSimulationState'],
         qubits: Sequence['cirq.Qid'],
         classical_data: 'cirq.ClassicalDataStore',
-    ) -> 'cirq.DensityMatrixSimulationState':
-        """Creates the DensityMatrixSimulationState for a circuit.
+    ) -> '_DensityMatrixSimulationState':
+        """Creates the _DensityMatrixSimulationState for a circuit.
 
         Args:
             initial_state: The initial state for the simulation in the
@@ -166,12 +165,12 @@ class DensityMatrixSimulator(
                 simulation.
 
         Returns:
-            DensityMatrixSimulationState for the circuit.
+            _DensityMatrixSimulationState for the circuit.
         """
-        if isinstance(initial_state, density_matrix_simulation_state.DensityMatrixSimulationState):
+        if isinstance(initial_state, density_matrix_simulation_state._DensityMatrixSimulationState):
             return initial_state
 
-        return density_matrix_simulation_state.DensityMatrixSimulationState(
+        return density_matrix_simulation_state._DensityMatrixSimulationState(
             qubits=qubits,
             prng=self._prng,
             classical_data=classical_data,
@@ -183,7 +182,7 @@ class DensityMatrixSimulator(
         return not protocols.measurement_keys_touched(val)
 
     def _create_step_result(
-        self, sim_state: 'cirq.SimulationStateBase[cirq.DensityMatrixSimulationState]'
+        self, sim_state: 'cirq.SimulationStateBase[_DensityMatrixSimulationState]'
     ):
         return DensityMatrixStepResult(sim_state=sim_state, dtype=self._dtype)
 
@@ -191,7 +190,7 @@ class DensityMatrixSimulator(
         self,
         params: 'cirq.ParamResolver',
         measurements: Dict[str, np.ndarray],
-        final_simulator_state: 'cirq.SimulationStateBase[cirq.DensityMatrixSimulationState]',
+        final_simulator_state: 'cirq.SimulationStateBase[_DensityMatrixSimulationState]',
     ) -> 'cirq.DensityMatrixTrialResult':
         return DensityMatrixTrialResult(
             params=params, measurements=measurements, final_simulator_state=final_simulator_state
@@ -232,7 +231,7 @@ class DensityMatrixSimulator(
         return swept_evs
 
 
-class DensityMatrixStepResult(simulator_base.StepResultBase['cirq.DensityMatrixSimulationState']):
+class DensityMatrixStepResult(simulator_base.StepResultBase['_DensityMatrixSimulationState']):
     """A single step in the simulation of the DensityMatrixSimulator.
 
     Attributes:
@@ -248,7 +247,7 @@ class DensityMatrixStepResult(simulator_base.StepResultBase['cirq.DensityMatrixS
     )
     def __init__(
         self,
-        sim_state: 'cirq.SimulationStateBase[cirq.DensityMatrixSimulationState]',
+        sim_state: 'cirq.SimulationStateBase[_DensityMatrixSimulationState]',
         simulator: 'cirq.DensityMatrixSimulator' = None,
         dtype: 'DTypeLike' = np.complex64,
     ):
@@ -349,7 +348,7 @@ class DensityMatrixSimulatorState:
 @value.value_equality(unhashable=True)
 class DensityMatrixTrialResult(
     simulator_base.SimulationTrialResultBase[
-        density_matrix_simulation_state.DensityMatrixSimulationState
+        density_matrix_simulation_state._DensityMatrixSimulationState
     ]
 ):
     """A `SimulationTrialResult` for `DensityMatrixSimulator` runs.
@@ -394,7 +393,7 @@ class DensityMatrixTrialResult(
         self,
         params: 'cirq.ParamResolver',
         measurements: Dict[str, np.ndarray],
-        final_simulator_state: 'cirq.SimulationStateBase[cirq.DensityMatrixSimulationState]',
+        final_simulator_state: 'cirq.SimulationStateBase[_DensityMatrixSimulationState]',
     ) -> None:
         super().__init__(
             params=params, measurements=measurements, final_simulator_state=final_simulator_state

@@ -18,13 +18,14 @@ import numpy as np
 import pytest
 
 import cirq
+from cirq.sim.state_vector_simulation_state import _StateVectorSimulationState
 
 
 def test_default_parameter():
     dtype = np.complex64
     tensor = cirq.one_hot(shape=(2, 2, 2), dtype=np.complex64)
     qubits = cirq.LineQubit.range(3)
-    args = cirq.StateVectorSimulationState(qubits=qubits, initial_state=tensor, dtype=dtype)
+    args = _StateVectorSimulationState(qubits=qubits, initial_state=tensor, dtype=dtype)
     qid_shape = cirq.protocols.qid_shape(qubits)
     tensor = np.reshape(tensor, qid_shape)
     np.testing.assert_almost_equal(args.target_tensor, tensor)
@@ -34,7 +35,7 @@ def test_default_parameter():
 
 def test_infer_target_tensor():
     dtype = np.complex64
-    args = cirq.StateVectorSimulationState(
+    args = _StateVectorSimulationState(
         qubits=cirq.LineQubit.range(2),
         initial_state=np.array([1.0, 0.0, 0.0, 0.0], dtype=dtype),
         dtype=dtype,
@@ -44,9 +45,7 @@ def test_infer_target_tensor():
         np.array([[1.0 + 0.0j, 0.0 + 0.0j], [0.0 + 0.0j, 0.0 + 0.0j]], dtype=dtype),
     )
 
-    args = cirq.StateVectorSimulationState(
-        qubits=cirq.LineQubit.range(2), initial_state=0, dtype=dtype
-    )
+    args = _StateVectorSimulationState(qubits=cirq.LineQubit.range(2), initial_state=0, dtype=dtype)
     np.testing.assert_almost_equal(
         args.target_tensor,
         np.array([[1.0 + 0.0j, 0.0 + 0.0j], [0.0 + 0.0j, 0.0 + 0.0j]], dtype=dtype),
@@ -54,7 +53,7 @@ def test_infer_target_tensor():
 
 
 def test_shallow_copy_buffers():
-    args = cirq.StateVectorSimulationState(qubits=cirq.LineQubit.range(1), initial_state=0)
+    args = _StateVectorSimulationState(qubits=cirq.LineQubit.range(1), initial_state=0)
     copy = args.copy(deep_copy_buffers=False)
     assert copy.available_buffer is args.available_buffer
 
@@ -67,7 +66,7 @@ def test_decomposed_fallback():
         def _decompose_(self, qubits):
             yield cirq.X(*qubits)
 
-    args = cirq.StateVectorSimulationState(
+    args = _StateVectorSimulationState(
         available_buffer=np.empty((2, 2, 2), dtype=np.complex64),
         qubits=cirq.LineQubit.range(3),
         prng=np.random.RandomState(),
@@ -85,7 +84,7 @@ def test_cannot_act():
     class NoDetails:
         pass
 
-    args = cirq.StateVectorSimulationState(
+    args = _StateVectorSimulationState(
         available_buffer=np.empty((2, 2, 2), dtype=np.complex64),
         qubits=cirq.LineQubit.range(3),
         prng=np.random.RandomState(),
@@ -109,7 +108,7 @@ def test_act_using_probabilistic_single_qubit_channel():
     mock_prng = mock.Mock()
 
     mock_prng.random.return_value = 1 / 3 + 1e-6
-    args = cirq.StateVectorSimulationState(
+    args = _StateVectorSimulationState(
         available_buffer=np.empty_like(initial_state),
         qubits=cirq.LineQubit.range(4),
         prng=mock_prng,
@@ -128,7 +127,7 @@ def test_act_using_probabilistic_single_qubit_channel():
     )
 
     mock_prng.random.return_value = 1 / 3 - 1e-6
-    args = cirq.StateVectorSimulationState(
+    args = _StateVectorSimulationState(
         available_buffer=np.empty_like(initial_state),
         qubits=cirq.LineQubit.range(4),
         prng=mock_prng,
@@ -165,7 +164,7 @@ def test_act_using_adaptive_two_qubit_channel():
 
     def get_result(state: np.ndarray, sample: float):
         mock_prng.random.return_value = sample
-        args = cirq.StateVectorSimulationState(
+        args = _StateVectorSimulationState(
             available_buffer=np.empty_like(state),
             qubits=cirq.LineQubit.range(4),
             prng=mock_prng,
@@ -220,7 +219,7 @@ def test_probability_comes_up_short_results_in_fallback():
     mock_prng = mock.Mock()
     mock_prng.random.return_value = 0.9999
 
-    args = cirq.StateVectorSimulationState(
+    args = _StateVectorSimulationState(
         available_buffer=np.empty(2, dtype=np.complex64),
         qubits=cirq.LineQubit.range(1),
         prng=mock_prng,
@@ -269,7 +268,7 @@ def test_measured_mixture():
 
 
 def test_with_qubits():
-    original = cirq.StateVectorSimulationState(
+    original = _StateVectorSimulationState(
         qubits=cirq.LineQubit.range(2), initial_state=1, dtype=np.complex64
     )
     extened = original.with_qubits(cirq.LineQubit.range(2, 4))
@@ -288,7 +287,7 @@ def test_qid_shape_error():
 
 
 def test_deprecated_methods():
-    args = cirq.StateVectorSimulationState(qubits=[cirq.LineQubit(0)])
+    args = _StateVectorSimulationState(qubits=[cirq.LineQubit(0)])
     with cirq.testing.assert_deprecated('unintentionally made public', deadline='v0.16'):
         args.subspace_index([0], 0)
     with cirq.testing.assert_deprecated('unintentionally made public', deadline='v0.16'):

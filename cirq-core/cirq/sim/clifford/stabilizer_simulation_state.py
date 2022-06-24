@@ -18,8 +18,7 @@ from typing import Any, cast, Dict, Generic, List, Optional, Sequence, TYPE_CHEC
 import numpy as np
 import sympy
 
-from cirq import linalg, ops, protocols
-from cirq._compat import deprecated_parameter
+from cirq import _compat, linalg, ops, protocols
 from cirq.ops import common_gates, global_phase_op, matrix_gates, swap_gates
 from cirq.ops.clifford_gate import SingleQubitCliffordGate
 from cirq.protocols import has_unitary, num_qubits, unitary
@@ -33,18 +32,18 @@ if TYPE_CHECKING:
 TStabilizerState = TypeVar('TStabilizerState', bound='cirq.StabilizerState')
 
 
-class StabilizerSimulationState(
+class _StabilizerSimulationState(
     SimulationState[TStabilizerState], Generic[TStabilizerState], metaclass=abc.ABCMeta
 ):
     """Abstract wrapper around a stabilizer state for the act_on protocol."""
 
-    @deprecated_parameter(
+    @_compat.deprecated_parameter(
         deadline='v0.16',
         fix='Use kwargs instead of positional args',
         parameter_desc='args',
         match=lambda args, kwargs: len(args) > 1,
     )
-    @deprecated_parameter(
+    @_compat.deprecated_parameter(
         deadline='v0.16',
         fix='Replace log_of_measurement_results with'
         ' classical_data=cirq.ClassicalDataDictionaryStore(_records=logs).',
@@ -59,7 +58,7 @@ class StabilizerSimulationState(
         qubits: Optional[Sequence['cirq.Qid']] = None,
         classical_data: Optional['cirq.ClassicalDataStore'] = None,
     ):
-        """Initializes the StabilizerSimulationState.
+        """Initializes the _StabilizerSimulationState.
 
         Args:
             state: The quantum stabilizer state to use in the simulation or
@@ -181,3 +180,14 @@ class StabilizerSimulationState(
         for op in operations:
             protocols.act_on(op, self)
         return True
+
+
+@_compat.deprecated_class(
+    deadline='v0.16',
+    fix=(
+        'This class is now private. If you must use it, replace it with '
+        'cirq.sim.clifford.stabilizer_simulation_state._StabilizerSimulationState.'
+    ),
+)
+class StabilizerSimulationState(_StabilizerSimulationState):
+    pass

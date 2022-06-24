@@ -19,7 +19,9 @@ import numpy as np
 import pytest
 
 import cirq
-from cirq.protocols.act_on_protocol_test import DummySimulationState
+from cirq.protocols.act_on_protocol_test import _DummySimulationState
+from cirq.sim.clifford.clifford_tableau_simulation_state import _CliffordTableauSimulationState
+from cirq.sim.clifford.stabilizer_ch_form_simulation_state import _StabilizerChFormSimulationState
 from cirq.testing import EqualsTester, assert_allclose_up_to_global_phase
 
 _bools = (False, True)
@@ -819,10 +821,10 @@ def test_clifford_gate_act_on_small_case():
     # Note this is also covered by the `from_op_list` one, etc.
 
     qubits = cirq.LineQubit.range(5)
-    args = cirq.CliffordTableauSimulationState(
+    args = _CliffordTableauSimulationState(
         tableau=cirq.CliffordTableau(num_qubits=5), qubits=qubits, prng=np.random.RandomState()
     )
-    expected_args = cirq.CliffordTableauSimulationState(
+    expected_args = _CliffordTableauSimulationState(
         tableau=cirq.CliffordTableau(num_qubits=5), qubits=qubits, prng=np.random.RandomState()
     )
     cirq.act_on(cirq.H, expected_args, qubits=[qubits[0]], allow_decompose=False)
@@ -854,8 +856,8 @@ def test_clifford_gate_act_on_large_case():
         t1 = cirq.CliffordTableau(num_qubits=n)
         t2 = cirq.CliffordTableau(num_qubits=n)
         qubits = cirq.LineQubit.range(n)
-        args1 = cirq.CliffordTableauSimulationState(tableau=t1, qubits=qubits, prng=prng)
-        args2 = cirq.CliffordTableauSimulationState(tableau=t2, qubits=qubits, prng=prng)
+        args1 = _CliffordTableauSimulationState(tableau=t1, qubits=qubits, prng=prng)
+        args2 = _CliffordTableauSimulationState(tableau=t2, qubits=qubits, prng=prng)
         ops = []
         for _ in range(num_ops):
             g = prng.randint(len(gate_candidate))
@@ -874,7 +876,7 @@ def test_clifford_gate_act_on_ch_form():
     # Although we don't support CH_form from the _act_on_, it will fall back
     # to the decomposititon method and apply it through decomposed ops.
     # Here we run it for the coverage only.
-    args = cirq.StabilizerChFormSimulationState(
+    args = _StabilizerChFormSimulationState(
         initial_state=cirq.StabilizerStateChForm(num_qubits=2, initial_state=1),
         qubits=cirq.LineQubit.range(2),
         prng=np.random.RandomState(),
@@ -885,4 +887,4 @@ def test_clifford_gate_act_on_ch_form():
 
 def test_clifford_gate_act_on_fail():
     with pytest.raises(TypeError, match="Failed to act"):
-        cirq.act_on(cirq.CliffordGate.X, DummySimulationState(), qubits=())
+        cirq.act_on(cirq.CliffordGate.X, _DummySimulationState(), qubits=())

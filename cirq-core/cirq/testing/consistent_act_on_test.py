@@ -18,6 +18,7 @@ import numpy as np
 import pytest
 
 import cirq
+from cirq.sim.clifford.clifford_tableau_simulation_state import _CliffordTableauSimulationState
 
 
 class GoodGate(cirq.testing.SingleQubitGate):
@@ -25,7 +26,7 @@ class GoodGate(cirq.testing.SingleQubitGate):
         return np.array([[0, 1], [1, 0]])
 
     def _act_on_(self, sim_state: 'cirq.SimulationStateBase', qubits: Sequence['cirq.Qid']):
-        if isinstance(sim_state, cirq.CliffordTableauSimulationState):
+        if isinstance(sim_state, _CliffordTableauSimulationState):
             tableau = sim_state.tableau
             q = sim_state.qubit_map[qubits[0]]
             tableau.rs[:] ^= tableau.zs[:, q]
@@ -38,7 +39,7 @@ class BadGate(cirq.testing.SingleQubitGate):
         return np.array([[0, 1j], [1, 0]])
 
     def _act_on_(self, sim_state: 'cirq.SimulationStateBase', qubits: Sequence['cirq.Qid']):
-        if isinstance(sim_state, cirq.CliffordTableauSimulationState):
+        if isinstance(sim_state, _CliffordTableauSimulationState):
             tableau = sim_state.tableau
             q = sim_state.qubit_map[qubits[0]]
             tableau.rs[:] ^= tableau.zs[:, q]

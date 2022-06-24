@@ -271,7 +271,7 @@ class CommonCliffordGates(metaclass=CommonCliffordGateMetaClass):
     ) -> Union['SingleQubitCliffordGate', 'CliffordGate']:
         qubits = devices.LineQubit.range(num_qubits)
         t = qis.CliffordTableau(num_qubits=num_qubits)
-        args = sim.CliffordTableauSimulationState(
+        args = sim.clifford.clifford_tableau_simulation_state._CliffordTableauSimulationState(
             tableau=t, qubits=qubits, prng=np.random.RandomState()
         )
 
@@ -335,7 +335,7 @@ class CommonCliffordGates(metaclass=CommonCliffordGateMetaClass):
             )
 
         base_tableau = qis.CliffordTableau(len(qubit_order))
-        args = sim.clifford.CliffordTableauSimulationState(
+        args = sim.clifford.clifford_tableau_simulation_state._CliffordTableauSimulationState(
             tableau=base_tableau, qubits=qubit_order, prng=np.random.RandomState(0)  # unused
         )
         for op in operations:
@@ -449,18 +449,26 @@ class CliffordGate(raw_types.Gate, CommonCliffordGates):
         #   1. Direct act_on is O(n^3) -- two matrices multiplication
         #   2. Decomposition is O(m^3)+O(k*n^2) -- Decomposition complexity + k * One/two-qubits Ops
         # So when m << n, the decomposition is more efficient.
-        if isinstance(sim_state, sim.clifford.CliffordTableauSimulationState):
+        if isinstance(
+            sim_state,
+            sim.clifford.clifford_tableau_simulation_state._CliffordTableauSimulationState,
+        ):
             axes = sim_state.get_axes(qubits)
             # This padding is important and cannot be omitted.
             padded_tableau = _pad_tableau(self._clifford_tableau, len(sim_state.qubits), axes)
             sim_state._state = sim_state.tableau.then(padded_tableau)
             return True
 
-        if isinstance(sim_state, sim.clifford.StabilizerChFormSimulationState):  # coverage: ignore
-            # Do we know how to apply CliffordTableau on StabilizerChFormSimulationState?
+        # pylint: disable=line-too-long
+        if isinstance(  # coverage: ignore
+            sim_state,  # coverage: ignore
+            sim.clifford.stabilizer_ch_form_simulation_state._StabilizerChFormSimulationState,  # coverage: ignore
+        ):  # coverage: ignore
+            # Do we know how to apply CliffordTableau on _StabilizerChFormSimulationState?
             # It should be unlike because CliffordTableau ignores the global phase but CHForm
             # is aimed to fix that.
             return NotImplemented
+        # pylint: enable=line-too-long
 
         return NotImplemented
 
@@ -747,7 +755,7 @@ class SingleQubitCliffordGate(CliffordGate):
         sim_state: 'cirq.SimulationStateBase',  # pylint: disable=unused-argument
         qubits: Sequence['cirq.Qid'],  # pylint: disable=unused-argument
     ):
-        # TODO(#5256) Add the implementation of _act_on_ with CliffordTableauSimulationState.
+        # TODO(#5256) Add the implementation of _act_on_ with _CliffordTableauSimulationState.
         return NotImplemented
 
     # Single Clifford Gate decomposition is more efficient than the general Tableau decomposition.

@@ -16,16 +16,16 @@ from typing import Optional, Sequence, TYPE_CHECKING, Union
 
 import numpy as np
 
-from cirq._compat import proper_repr
+from cirq import _compat
 from cirq.sim.clifford import stabilizer_state_ch_form
-from cirq.sim.clifford.stabilizer_simulation_state import StabilizerSimulationState
+from cirq.sim.clifford.stabilizer_simulation_state import _StabilizerSimulationState
 
 if TYPE_CHECKING:
     import cirq
 
 
-class StabilizerChFormSimulationState(
-    StabilizerSimulationState[stabilizer_state_ch_form.StabilizerStateChForm]
+class _StabilizerChFormSimulationState(
+    _StabilizerSimulationState[stabilizer_state_ch_form.StabilizerStateChForm]
 ):
     """Wrapper around a stabilizer state in CH form for the act_on protocol."""
 
@@ -69,8 +69,20 @@ class StabilizerChFormSimulationState(
 
     def __repr__(self) -> str:
         return (
-            'cirq.StabilizerChFormSimulationState('
-            f'initial_state={proper_repr(self.state)},'
+            'cirq.sim.clifford.stabilizer_ch_form_simulation_state'
+            '._StabilizerChFormSimulationState('
+            f'initial_state={_compat.proper_repr(self.state)},'
             f' qubits={self.qubits!r},'
             f' classical_data={self.classical_data!r})'
         )
+
+
+@_compat.deprecated_class(
+    deadline='v0.16',
+    fix=(
+        'This class is now private. If you must use it, replace it with '
+        'cirq.sim.clifford.stabilizer_ch_form_simulation_state._StabilizerChFormSimulationState.'
+    ),
+)
+class StabilizerChFormSimulationState(_StabilizerChFormSimulationState):
+    pass

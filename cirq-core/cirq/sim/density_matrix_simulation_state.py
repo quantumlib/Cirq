@@ -17,8 +17,7 @@ from typing import Any, Callable, List, Optional, Sequence, Tuple, TYPE_CHECKING
 
 import numpy as np
 
-from cirq import protocols, qis, sim
-from cirq._compat import proper_repr
+from cirq import _compat, protocols, qis, sim
 from cirq.linalg import transformations
 from cirq.sim.simulation_state import SimulationState, strat_act_on_from_apply_decompose
 
@@ -237,7 +236,7 @@ class _BufferedDensityMatrix(qis.QuantumStateRepresentation):
         return True
 
 
-class DensityMatrixSimulationState(SimulationState[_BufferedDensityMatrix]):
+class _DensityMatrixSimulationState(SimulationState[_BufferedDensityMatrix]):
     """State and context for an operation acting on a density matrix.
 
     To act on this object, directly edit the `target_tensor` property, which is
@@ -255,7 +254,7 @@ class DensityMatrixSimulationState(SimulationState[_BufferedDensityMatrix]):
         dtype: Type[np.number] = np.complex64,
         classical_data: Optional['cirq.ClassicalDataStore'] = None,
     ):
-        """Inits DensityMatrixSimulationState.
+        """Inits _DensityMatrixSimulationState.
 
         Args:
             available_buffer: A workspace with the same shape and dtype as
@@ -313,8 +312,8 @@ class DensityMatrixSimulationState(SimulationState[_BufferedDensityMatrix]):
 
     def __repr__(self) -> str:
         return (
-            'cirq.DensityMatrixSimulationState('
-            f'initial_state={proper_repr(self.target_tensor)},'
+            'cirq.sim.density_matrix_simulation_state._DensityMatrixSimulationState('
+            f'initial_state={_compat.proper_repr(self.target_tensor)},'
             f' qid_shape={self.qid_shape!r},'
             f' qubits={self.qubits!r},'
             f' classical_data={self.classical_data!r})'
@@ -333,8 +332,19 @@ class DensityMatrixSimulationState(SimulationState[_BufferedDensityMatrix]):
         return self._state._qid_shape
 
 
+@_compat.deprecated_class(
+    deadline='v0.16',
+    fix=(
+        'This class is now private. If you must use it, replace it with '
+        'cirq.sim.density_matrix_simulation_state._DensityMatrixSimulationState.'
+    ),
+)
+class DensityMatrixSimulationState(_DensityMatrixSimulationState):
+    pass
+
+
 def _strat_apply_channel_to_state(
-    action: Any, args: 'cirq.DensityMatrixSimulationState', qubits: Sequence['cirq.Qid']
+    action: Any, args: '_DensityMatrixSimulationState', qubits: Sequence['cirq.Qid']
 ) -> bool:
     """Apply channel to state."""
     return True if args._state.apply_channel(action, args.get_axes(qubits)) else NotImplemented

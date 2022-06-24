@@ -13,9 +13,9 @@
 # limitations under the License.
 
 from cirq import _compat
-from cirq.sim.density_matrix_simulation_state import DensityMatrixSimulationState
+from cirq.sim.density_matrix_simulation_state import _DensityMatrixSimulationState
 
 
-@_compat.deprecated_class(deadline='v0.16', fix='Use cirq.DensityMatrixSimulationState instead.')
-class ActOnDensityMatrixArgs(DensityMatrixSimulationState):
+@_compat.deprecated_class(deadline='v0.16', fix='Use _DensityMatrixSimulationState instead.')
+class ActOnDensityMatrixArgs(_DensityMatrixSimulationState):
     pass

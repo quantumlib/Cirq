@@ -13,9 +13,9 @@
 # limitations under the License.
 
 from cirq import _compat
-from cirq.sim.clifford.stabilizer_ch_form_simulation_state import StabilizerChFormSimulationState
+from cirq.sim.clifford.stabilizer_ch_form_simulation_state import _StabilizerChFormSimulationState
 
 
-@_compat.deprecated_class(deadline='v0.16', fix='Use cirq.StabilizerChFormSimulationState instead.')
-class ActOnStabilizerCHFormArgs(StabilizerChFormSimulationState):
+@_compat.deprecated_class(deadline='v0.16', fix='Use _StabilizerChFormSimulationState instead.')
+class ActOnStabilizerCHFormArgs(_StabilizerChFormSimulationState):
     pass

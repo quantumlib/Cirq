@@ -18,7 +18,8 @@ from typing import List, TYPE_CHECKING
 import functools
 
 import numpy as np
-from cirq import ops, protocols, qis, sim
+from cirq import ops, protocols, qis
+from cirq.sim.clifford.clifford_tableau_simulation_state import _CliffordTableauSimulationState
 
 if TYPE_CHECKING:
     import cirq
@@ -26,7 +27,7 @@ if TYPE_CHECKING:
 
 def _X(
     q: int,
-    args: sim.CliffordTableauSimulationState,
+    args: _CliffordTableauSimulationState,
     operations: List[ops.Operation],
     qubits: List['cirq.Qid'],
 ):
@@ -36,7 +37,7 @@ def _X(
 
 def _Z(
     q: int,
-    args: sim.CliffordTableauSimulationState,
+    args: _CliffordTableauSimulationState,
     operations: List[ops.Operation],
     qubits: List['cirq.Qid'],
 ):
@@ -46,7 +47,7 @@ def _Z(
 
 def _Sdg(
     q: int,
-    args: sim.CliffordTableauSimulationState,
+    args: _CliffordTableauSimulationState,
     operations: List[ops.Operation],
     qubits: List['cirq.Qid'],
 ):
@@ -57,7 +58,7 @@ def _Sdg(
 
 def _H(
     q: int,
-    args: sim.CliffordTableauSimulationState,
+    args: _CliffordTableauSimulationState,
     operations: List[ops.Operation],
     qubits: List['cirq.Qid'],
 ):
@@ -68,7 +69,7 @@ def _H(
 def _CNOT(
     q1: int,
     q2: int,
-    args: sim.CliffordTableauSimulationState,
+    args: _CliffordTableauSimulationState,
     operations: List[ops.Operation],
     qubits: List['cirq.Qid'],
 ):
@@ -79,7 +80,7 @@ def _CNOT(
 def _SWAP(
     q1: int,
     q2: int,
-    args: sim.CliffordTableauSimulationState,
+    args: _CliffordTableauSimulationState,
     operations: List[ops.Operation],
     qubits: List['cirq.Qid'],
 ):
@@ -114,9 +115,7 @@ def decompose_clifford_tableau_to_operations(
 
     t: qis.CliffordTableau = clifford_tableau.copy()
     operations: List[ops.Operation] = []
-    args = sim.CliffordTableauSimulationState(
-        tableau=t, qubits=qubits, prng=np.random.RandomState()
-    )
+    args = _CliffordTableauSimulationState(tableau=t, qubits=qubits, prng=np.random.RandomState())
 
     _X_with_ops = functools.partial(_X, args=args, operations=operations, qubits=qubits)
     _Z_with_ops = functools.partial(_Z, args=args, operations=operations, qubits=qubits)

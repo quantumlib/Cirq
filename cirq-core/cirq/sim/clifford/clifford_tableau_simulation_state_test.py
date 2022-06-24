@@ -18,6 +18,7 @@ import numpy as np
 import pytest
 
 import cirq
+from cirq.sim.clifford.clifford_tableau_simulation_state import _CliffordTableauSimulationState
 
 
 def test_unitary_fallback():
@@ -33,7 +34,7 @@ def test_unitary_fallback():
             return np.array([[0, -1j], [1j, 0]])
 
     original_tableau = cirq.CliffordTableau(num_qubits=3)
-    args = cirq.CliffordTableauSimulationState(
+    args = _CliffordTableauSimulationState(
         tableau=original_tableau.copy(),
         qubits=cirq.LineQubit.range(3),
         prng=np.random.RandomState(),
@@ -42,13 +43,13 @@ def test_unitary_fallback():
     cirq.act_on(UnitaryXGate(), args, [cirq.LineQubit(1)])
     assert args.tableau == cirq.CliffordTableau(num_qubits=3, initial_state=2)
 
-    args = cirq.CliffordTableauSimulationState(
+    args = _CliffordTableauSimulationState(
         tableau=original_tableau.copy(),
         qubits=cirq.LineQubit.range(3),
         prng=np.random.RandomState(),
     )
     cirq.act_on(UnitaryYGate(), args, [cirq.LineQubit(1)])
-    expected_args = cirq.CliffordTableauSimulationState(
+    expected_args = _CliffordTableauSimulationState(
         tableau=original_tableau.copy(),
         qubits=cirq.LineQubit.range(3),
         prng=np.random.RandomState(),
@@ -64,7 +65,7 @@ def test_cannot_act():
     class NoDetailsSingleQubitGate(cirq.testing.SingleQubitGate):
         pass
 
-    args = cirq.CliffordTableauSimulationState(
+    args = _CliffordTableauSimulationState(
         tableau=cirq.CliffordTableau(num_qubits=3),
         qubits=cirq.LineQubit.range(3),
         prng=np.random.RandomState(),
@@ -78,13 +79,13 @@ def test_cannot_act():
 
 
 def test_copy():
-    args = cirq.CliffordTableauSimulationState(
+    args = _CliffordTableauSimulationState(
         tableau=cirq.CliffordTableau(num_qubits=3),
         qubits=cirq.LineQubit.range(3),
         prng=np.random.RandomState(),
     )
     args1 = args.copy()
-    assert isinstance(args1, cirq.CliffordTableauSimulationState)
+    assert isinstance(args1, _CliffordTableauSimulationState)
     assert args is not args1
     assert args.tableau is not args1.tableau
     assert args.tableau == args1.tableau

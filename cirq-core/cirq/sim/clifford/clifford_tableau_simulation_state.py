@@ -18,14 +18,15 @@ from typing import Optional, Sequence, TYPE_CHECKING
 
 import numpy as np
 
+from cirq import _compat
 from cirq.qis import clifford_tableau
-from cirq.sim.clifford.stabilizer_simulation_state import StabilizerSimulationState
+from cirq.sim.clifford.stabilizer_simulation_state import _StabilizerSimulationState
 
 if TYPE_CHECKING:
     import cirq
 
 
-class CliffordTableauSimulationState(StabilizerSimulationState[clifford_tableau.CliffordTableau]):
+class _CliffordTableauSimulationState(_StabilizerSimulationState[clifford_tableau.CliffordTableau]):
     """State and context for an operation acting on a clifford tableau."""
 
     def __init__(
@@ -35,7 +36,7 @@ class CliffordTableauSimulationState(StabilizerSimulationState[clifford_tableau.
         qubits: Optional[Sequence['cirq.Qid']] = None,
         classical_data: Optional['cirq.ClassicalDataStore'] = None,
     ):
-        """Inits CliffordTableauSimulationState.
+        """Inits _CliffordTableauSimulationState.
 
         Args:
             tableau: The CliffordTableau to act on. Operations are expected to
@@ -53,3 +54,14 @@ class CliffordTableauSimulationState(StabilizerSimulationState[clifford_tableau.
     @property
     def tableau(self) -> 'cirq.CliffordTableau':
         return self.state
+
+
+@_compat.deprecated_class(
+    deadline='v0.16',
+    fix=(
+        'This class is now private. If you must use it, replace it with '
+        'cirq.sim.clifford.clifford_tableau_simulation_state._CliffordTableauSimulationState.'
+    ),
+)
+class CliffordTableauSimulationState(_CliffordTableauSimulationState):
+    pass

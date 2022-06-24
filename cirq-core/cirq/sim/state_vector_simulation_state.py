@@ -293,7 +293,7 @@ class _BufferedStateVector(qis.QuantumStateRepresentation):
         """Gives a new state vector for the system.
 
         Typically, the new state vector should be `args.available_buffer` where
-        `args` is this `cirq.StateVectorSimulationState` instance.
+        `args` is this `_StateVectorSimulationState` instance.
 
         Args:
             new_target_tensor: The new system state. Must have the same shape
@@ -308,7 +308,7 @@ class _BufferedStateVector(qis.QuantumStateRepresentation):
         return True
 
 
-class StateVectorSimulationState(SimulationState[_BufferedStateVector]):
+class _StateVectorSimulationState(SimulationState[_BufferedStateVector]):
     """State and context for an operation acting on a state vector.
 
     There are two common ways to act on this object:
@@ -329,7 +329,7 @@ class StateVectorSimulationState(SimulationState[_BufferedStateVector]):
         dtype: Type[np.number] = np.complex64,
         classical_data: Optional['cirq.ClassicalDataStore'] = None,
     ):
-        """Inits StateVectorSimulationState.
+        """Inits _StateVectorSimulationState.
 
         Args:
             available_buffer: A workspace with the same shape and dtype as
@@ -365,7 +365,7 @@ class StateVectorSimulationState(SimulationState[_BufferedStateVector]):
         """Gives a new state vector for the system.
 
         Typically, the new state vector should be `args.available_buffer` where
-        `args` is this `cirq.StateVectorSimulationState` instance.
+        `args` is this `_StateVectorSimulationState` instance.
 
         Args:
             new_target_tensor: The new system state. Must have the same shape
@@ -456,7 +456,7 @@ class StateVectorSimulationState(SimulationState[_BufferedStateVector]):
 
     def __repr__(self) -> str:
         return (
-            'cirq.StateVectorSimulationState('
+            'cirq.sim.state_vector_simulation_state._StateVectorSimulationState('
             f'initial_state={proper_repr(self.target_tensor)},'
             f' qubits={self.qubits!r},'
             f' classical_data={self.classical_data!r})'
@@ -471,14 +471,25 @@ class StateVectorSimulationState(SimulationState[_BufferedStateVector]):
         return self._state._buffer
 
 
+@_compat.deprecated_class(
+    deadline='v0.16',
+    fix=(
+        'This class is now private. If you must use it, replace it with '
+        'cirq.sim.state_vector_simulation_state._StateVectorSimulationState.'
+    ),
+)
+class StateVectorSimulationState(_StateVectorSimulationState):
+    pass
+
+
 def _strat_act_on_state_vector_from_apply_unitary(
-    action: Any, args: 'cirq.StateVectorSimulationState', qubits: Sequence['cirq.Qid']
+    action: Any, args: '_StateVectorSimulationState', qubits: Sequence['cirq.Qid']
 ) -> bool:
     return True if args._state.apply_unitary(action, args.get_axes(qubits)) else NotImplemented
 
 
 def _strat_act_on_state_vector_from_mixture(
-    action: Any, args: 'cirq.StateVectorSimulationState', qubits: Sequence['cirq.Qid']
+    action: Any, args: '_StateVectorSimulationState', qubits: Sequence['cirq.Qid']
 ) -> bool:
     index = args._state.apply_mixture(action, args.get_axes(qubits), args.prng)
     if index is None:
@@ -490,7 +501,7 @@ def _strat_act_on_state_vector_from_mixture(
 
 
 def _strat_act_on_state_vector_from_channel(
-    action: Any, args: 'cirq.StateVectorSimulationState', qubits: Sequence['cirq.Qid']
+    action: Any, args: '_StateVectorSimulationState', qubits: Sequence['cirq.Qid']
 ) -> bool:
     index = args._state.apply_channel(action, args.get_axes(qubits), args.prng)
     if index is None:

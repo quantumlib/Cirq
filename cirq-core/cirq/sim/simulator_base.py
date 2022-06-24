@@ -472,7 +472,7 @@ class SimulationTrialResultBase(
         super().__init__(params, measurements, final_simulator_state=final_simulator_state)
         self._merged_sim_state_cache: Optional[TSimulationState] = None
 
-    def get_state_containing_qubit(self, qubit: 'cirq.Qid') -> TSimulationState:
+    def _get_state_containing_qubit(self, qubit: 'cirq.Qid') -> TSimulationState:
         """Returns the independent state space containing the qubit.
 
         Args:
@@ -482,12 +482,23 @@ class SimulationTrialResultBase(
             The state space containing the qubit."""
         return self._final_simulator_state[qubit]
 
+    @_compat.deprecated(deadline='v0.16', fix='This method is now private.')
+    def get_state_containing_qubit(self, qubit: 'cirq.Qid') -> TSimulationState:
+        """Returns the independent state space containing the qubit.
+
+        Args:
+            qubit: The qubit whose state space is required.
+
+        Returns:
+            The state space containing the qubit."""
+        return self._get_state_containing_qubit(qubit)
+
     def _get_substates(self) -> Sequence[TSimulationState]:
         state = self._final_simulator_state
         if isinstance(state, SimulationProductState):
             substates: Dict[TSimulationState, int] = {}
             for q in state.qubits:
-                substates[self.get_state_containing_qubit(q)] = 0
+                substates[self._get_state_containing_qubit(q)] = 0
             substates[state[None]] = 0
             return tuple(substates.keys())
         return [state.create_merged_state()]

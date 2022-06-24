@@ -17,6 +17,8 @@ import pytest
 import sympy
 
 import cirq
+from cirq.sim.clifford.clifford_tableau_simulation_state import _CliffordTableauSimulationState
+from cirq.sim.clifford.stabilizer_ch_form_simulation_state import _StabilizerChFormSimulationState
 
 
 def test_init():
@@ -44,7 +46,7 @@ def test_protocols():
 @pytest.mark.parametrize('phase', [1, 1j, -1])
 def test_act_on_tableau(phase):
     original_tableau = cirq.CliffordTableau(0)
-    args = cirq.CliffordTableauSimulationState(original_tableau.copy(), np.random.RandomState())
+    args = _CliffordTableauSimulationState(original_tableau.copy(), np.random.RandomState())
     cirq.act_on(cirq.global_phase_operation(phase), args, allow_decompose=False)
     assert args.tableau == original_tableau
 
@@ -52,7 +54,7 @@ def test_act_on_tableau(phase):
 @pytest.mark.parametrize('phase', [1, 1j, -1])
 def test_act_on_ch_form(phase):
     state = cirq.StabilizerStateChForm(0)
-    args = cirq.StabilizerChFormSimulationState(
+    args = _StabilizerChFormSimulationState(
         qubits=[], prng=np.random.RandomState(), initial_state=state
     )
     cirq.act_on(cirq.global_phase_operation(phase), args, allow_decompose=False)
@@ -241,7 +243,7 @@ def test_gate_protocols():
 @pytest.mark.parametrize('phase', [1, 1j, -1])
 def test_gate_act_on_tableau(phase):
     original_tableau = cirq.CliffordTableau(0)
-    args = cirq.CliffordTableauSimulationState(original_tableau.copy(), np.random.RandomState())
+    args = _CliffordTableauSimulationState(original_tableau.copy(), np.random.RandomState())
     cirq.act_on(cirq.GlobalPhaseGate(phase), args, qubits=(), allow_decompose=False)
     assert args.tableau == original_tableau
 
@@ -249,7 +251,7 @@ def test_gate_act_on_tableau(phase):
 @pytest.mark.parametrize('phase', [1, 1j, -1])
 def test_gate_act_on_ch_form(phase):
     state = cirq.StabilizerStateChForm(0)
-    args = cirq.StabilizerChFormSimulationState(
+    args = _StabilizerChFormSimulationState(
         qubits=[], prng=np.random.RandomState(), initial_state=state
     )
     cirq.act_on(cirq.GlobalPhaseGate(phase), args, qubits=(), allow_decompose=False)

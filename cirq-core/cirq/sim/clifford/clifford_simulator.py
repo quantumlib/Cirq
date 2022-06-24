@@ -37,13 +37,14 @@ import cirq
 from cirq import protocols, value
 from cirq.protocols import act_on
 from cirq.sim import clifford, simulator, simulator_base
+from cirq.sim.clifford.stabilizer_ch_form_simulation_state import _StabilizerChFormSimulationState
 
 
 class CliffordSimulator(
     simulator_base.SimulatorBase[
         'cirq.CliffordSimulatorStepResult',
         'cirq.CliffordTrialResult',
-        'cirq.StabilizerChFormSimulationState',
+        '_StabilizerChFormSimulationState',
     ]
 ):
     """An efficient simulator for Clifford circuits."""
@@ -69,10 +70,10 @@ class CliffordSimulator(
 
     def _create_partial_simulation_state(
         self,
-        initial_state: Union[int, 'cirq.StabilizerChFormSimulationState'],
+        initial_state: Union[int, '_StabilizerChFormSimulationState'],
         qubits: Sequence['cirq.Qid'],
         classical_data: 'cirq.ClassicalDataStore',
-    ) -> 'cirq.StabilizerChFormSimulationState':
+    ) -> '_StabilizerChFormSimulationState':
         """Creates the ActOnStabilizerChFormArgs for a circuit.
 
         Args:
@@ -88,10 +89,10 @@ class CliffordSimulator(
         Returns:
             ActOnStabilizerChFormArgs for the circuit.
         """
-        if isinstance(initial_state, clifford.StabilizerChFormSimulationState):
+        if isinstance(initial_state, _StabilizerChFormSimulationState):
             return initial_state
 
-        return clifford.StabilizerChFormSimulationState(
+        return _StabilizerChFormSimulationState(
             prng=self._prng,
             classical_data=classical_data,
             qubits=qubits,
@@ -99,7 +100,7 @@ class CliffordSimulator(
         )
 
     def _create_step_result(
-        self, sim_state: 'cirq.SimulationStateBase[clifford.StabilizerChFormSimulationState]'
+        self, sim_state: 'cirq.SimulationStateBase[_StabilizerChFormSimulationState]'
     ):
         return CliffordSimulatorStepResult(sim_state=sim_state)
 
@@ -107,7 +108,7 @@ class CliffordSimulator(
         self,
         params: 'cirq.ParamResolver',
         measurements: Dict[str, np.ndarray],
-        final_simulator_state: 'cirq.SimulationStateBase[cirq.StabilizerChFormSimulationState]',
+        final_simulator_state: 'cirq.SimulationStateBase[_StabilizerChFormSimulationState]',
     ):
 
         return CliffordTrialResult(
@@ -116,14 +117,14 @@ class CliffordSimulator(
 
 
 class CliffordTrialResult(
-    simulator_base.SimulationTrialResultBase['clifford.StabilizerChFormSimulationState']
+    simulator_base.SimulationTrialResultBase['_StabilizerChFormSimulationState']
 ):
     @simulator._deprecated_step_result_parameter(old_position=3)
     def __init__(
         self,
         params: 'cirq.ParamResolver',
         measurements: Dict[str, np.ndarray],
-        final_simulator_state: 'cirq.SimulationStateBase[cirq.StabilizerChFormSimulationState]',
+        final_simulator_state: 'cirq.SimulationStateBase[_StabilizerChFormSimulationState]',
     ) -> None:
         super().__init__(
             params=params, measurements=measurements, final_simulator_state=final_simulator_state
@@ -147,13 +148,11 @@ class CliffordTrialResult(
 
 
 class CliffordSimulatorStepResult(
-    simulator_base.StepResultBase['cirq.StabilizerChFormSimulationState']
+    simulator_base.StepResultBase['_StabilizerChFormSimulationState']
 ):
     """A `StepResult` that includes `StateVectorMixin` methods."""
 
-    def __init__(
-        self, sim_state: 'cirq.SimulationStateBase[clifford.StabilizerChFormSimulationState]'
-    ):
+    def __init__(self, sim_state: 'cirq.SimulationStateBase[_StabilizerChFormSimulationState]'):
         """Results of a step of the simulator.
         Attributes:
             sim_state: The qubit:SimulationState lookup for this step.
@@ -242,7 +241,7 @@ class CliffordState:
         return self.ch_form.state_vector()
 
     def apply_unitary(self, op: 'cirq.Operation'):
-        ch_form_args = clifford.StabilizerChFormSimulationState(
+        ch_form_args = _StabilizerChFormSimulationState(
             prng=np.random.RandomState(), qubits=self.qubit_map.keys(), initial_state=self.ch_form
         )
         try:
@@ -272,7 +271,7 @@ class CliffordState:
             state = self.copy()
 
         classical_data = value.ClassicalDataDictionaryStore()
-        ch_form_args = clifford.StabilizerChFormSimulationState(
+        ch_form_args = _StabilizerChFormSimulationState(
             prng=prng,
             classical_data=classical_data,
             qubits=self.qubit_map.keys(),

@@ -13,9 +13,9 @@
 # limitations under the License.
 
 from cirq import _compat
-from cirq.sim.clifford.clifford_tableau_simulation_state import CliffordTableauSimulationState
+from cirq.sim.clifford.clifford_tableau_simulation_state import _CliffordTableauSimulationState
 
 
-@_compat.deprecated_class(deadline='v0.16', fix='Use cirq.CliffordTableauSimulationState instead.')
-class ActOnCliffordTableauArgs(CliffordTableauSimulationState):
+@_compat.deprecated_class(deadline='v0.16', fix='Use _CliffordTableauSimulationState instead.')
+class ActOnCliffordTableauArgs(_CliffordTableauSimulationState):
     pass

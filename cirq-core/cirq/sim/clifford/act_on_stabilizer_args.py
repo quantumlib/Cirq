@@ -13,9 +13,9 @@
 # limitations under the License.
 
 from cirq import _compat
-from cirq.sim.clifford.stabilizer_simulation_state import StabilizerSimulationState
+from cirq.sim.clifford.stabilizer_simulation_state import _StabilizerSimulationState
 
 
-@_compat.deprecated_class(deadline='v0.16', fix='Use cirq.StabilizerSimulationState instead.')
-class ActOnStabilizerArgs(StabilizerSimulationState):
+@_compat.deprecated_class(deadline='v0.16', fix='Use _StabilizerSimulationState instead.')
+class ActOnStabilizerArgs(_StabilizerSimulationState):
     pass

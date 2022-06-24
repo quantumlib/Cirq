@@ -29,6 +29,7 @@ import numpy as np
 
 import cirq
 from cirq import value
+from cirq.sim.state_vector_simulation_state import _StateVectorSimulationState
 from cirq_google.calibration.phased_fsim import (
     FloquetPhasedFSimCalibrationRequest,
     PhaseCalibratedFSimGate,
@@ -466,10 +467,10 @@ class PhasedFSimEngineSimulator(cirq.SimulatesIntermediateStateVector[cirq.Spars
 
     def _create_partial_simulation_state(
         self,
-        initial_state: Union[int, cirq.StateVectorSimulationState],
+        initial_state: Union[int, _StateVectorSimulationState],
         qubits: Sequence[cirq.Qid],
         classical_data: cirq.ClassicalDataStore,
-    ) -> cirq.StateVectorSimulationState:
+    ) -> _StateVectorSimulationState:
         # Needs an implementation since it's abstract but will never actually be called.
         raise NotImplementedError()
 
