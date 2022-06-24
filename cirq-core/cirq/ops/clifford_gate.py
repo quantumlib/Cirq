@@ -20,7 +20,7 @@ import numpy as np
 
 from cirq import _compat, protocols, value, linalg, qis
 from cirq._import import LazyLoader
-from cirq.ops import common_gates, identity, named_qubit, raw_types, pauli_gates, phased_x_z_gate
+from cirq.ops import common_gates, named_qubit, raw_types, pauli_gates, phased_x_z_gate
 from cirq.ops.pauli_gates import Pauli
 from cirq.type_workarounds import NotImplementedType
 
