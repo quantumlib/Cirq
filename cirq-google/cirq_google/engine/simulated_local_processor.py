@@ -13,7 +13,7 @@
 # limitations under the License.
 import datetime
 
-from typing import Callable, Dict, Iterable, List, Optional, Sequence, TYPE_CHECKING, Union
+from typing import Dict, Iterable, List, Optional, Sequence, TYPE_CHECKING, Union
 
 import cirq
 
