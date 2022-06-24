@@ -11,6 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import collections
 import dataclasses
 import importlib
 import logging
@@ -21,7 +22,7 @@ import traceback
 import types
 import warnings
 from types import ModuleType
-from typing import Any, Callable, Optional
+from typing import Any, Callable, Dict, Optional, Tuple
 from importlib.machinery import ModuleSpec
 from unittest import mock
 
@@ -35,6 +36,7 @@ from _pytest.outcomes import Failed
 import cirq.testing
 from cirq._compat import (
     block_overlapping_deprecation,
+    cached_method,
     cached_property,
     proper_repr,
     dataclass_repr,
@@ -985,3 +987,33 @@ def test_cached_property():
     bar2 = foo.bar
     assert bar2 is bar
     assert foo.bar_calls == 1
+
+
+class Bar:
+    def __init__(self):
+        self.foo_calls: Dict[int, int] = collections.Counter()
+        self.bar_calls: Dict[int, int] = collections.Counter()
+
+    @cached_method
+    def foo(self, n: int) -> Tuple[int, int]:
+        self.foo_calls[n] += 1
+        return (id(self), n)
+
+    @cached_method(maxsize=1)
+    def bar(self, n: int) -> Tuple[int, int]:
+        self.bar_calls[n] += 1
+        return (id(self), 2 * n)
+
+
+def test_cached_method():
+    b = Bar()
+    assert b.foo(123) == b.foo(123) == b.foo(123) == (id(b), 123)
+    assert b.foo(234) == b.foo(234) == b.foo(234) == (id(b), 234)
+    assert b.foo_calls == {123: 1, 234: 1}
+
+    assert b.bar(123) == b.bar(123) == (id(b), 123 * 2)
+    assert b.bar_calls == {123: 1}
+    assert b.bar(234) == b.bar(234) == (id(b), 234 * 2)
+    assert b.bar_calls == {123: 1, 234: 1}
+    assert b.bar(123) == b.bar(123) == (id(b), 123 * 2)
+    assert b.bar_calls == {123: 2, 234: 1}

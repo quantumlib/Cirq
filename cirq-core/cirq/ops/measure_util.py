@@ -135,8 +135,9 @@ def measure(
         *target: The qubits that the measurement gate should measure.
             These can be specified as separate function arguments or
             with a single argument for an iterable of qubits.
-        key: The string key of the measurement. If this is None, it defaults
-            to a comma-separated list of the target qubits' str values.
+        key: Optional `str` or `cirq.MeasurementKey` that gate should use.
+            If none provided, it defaults to a comma-separated list of
+            `str(qubit)` for each of the target qubits.
         invert_mask: A list of Truthy or Falsey values indicating whether
             the corresponding qubits should be flipped. None indicates no
             inverting should be done.
