@@ -158,10 +158,10 @@ def test_non_measurement_with_key():
 def test_measurement_keys(key_method, keys):
     class MeasurementKeysGate(cirq.Gate):
         def _measurement_key_names_(self):
-            return ['a', 'b']
+            return frozenset(['a', 'b'])
 
         def _measurement_key_objs_(self):
-            return [cirq.MeasurementKey('c'), cirq.MeasurementKey('d')]
+            return frozenset([cirq.MeasurementKey('c'), cirq.MeasurementKey('d')])
 
         def num_qubits(self) -> int:
             return 1
@@ -183,7 +183,7 @@ def test_measurement_keys(key_method, keys):
 def test_measurement_key_mapping():
     class MultiKeyGate:
         def __init__(self, keys):
-            self._keys = set(keys)
+            self._keys = frozenset(keys)
 
         def _measurement_key_names_(self):
             return self._keys
@@ -220,10 +220,10 @@ def test_measurement_key_mapping():
 def test_measurement_key_path():
     class MultiKeyGate:
         def __init__(self, keys):
-            self._keys = set([cirq.MeasurementKey.parse_serialized(key) for key in keys])
+            self._keys = frozenset(cirq.MeasurementKey.parse_serialized(key) for key in keys)
 
         def _measurement_key_names_(self):
-            return {str(key) for key in self._keys}
+            return frozenset(str(key) for key in self._keys)
 
         def _with_key_path_(self, path):
             return MultiKeyGate([str(key._with_key_path_(path)) for key in self._keys])
@@ -238,3 +238,18 @@ def test_measurement_key_path():
     assert cirq.measurement_key_names(mkg_cd) == {'c:d:a', 'c:d:b'}
 
     assert cirq.with_key_path(cirq.X, ('c', 'd')) is NotImplemented
+
+
+def test_measurement_key_enumerable_deprecated():
+    class Deprecated:
+        def _measurement_key_objs_(self):
+            return [cirq.MeasurementKey('key')]
+
+        def _measurement_key_names_(self):
+            return ['key']
+
+    with cirq.testing.assert_deprecated('frozenset', deadline='v0.16'):
+        assert cirq.measurement_key_objs(Deprecated()) == {cirq.MeasurementKey('key')}
+
+    with cirq.testing.assert_deprecated('frozenset', deadline='v0.16'):
+        assert cirq.measurement_key_names(Deprecated()) == {'key'}

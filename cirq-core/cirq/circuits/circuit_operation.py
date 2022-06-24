@@ -19,7 +19,6 @@ component operations in order, including any nested CircuitOperations.
 """
 import math
 from typing import (
-    AbstractSet,
     Callable,
     Mapping,
     Sequence,
@@ -309,30 +308,32 @@ class CircuitOperation(ops.Operation):
             raise ValueError('Cannot unroll circuit due to nondeterministic repetitions')
 
     @cached_property
-    def _measurement_key_objs(self) -> AbstractSet['cirq.MeasurementKey']:
+    def _measurement_key_objs(self) -> FrozenSet['cirq.MeasurementKey']:
         circuit_keys = protocols.measurement_key_objs(self.circuit)
         if circuit_keys and self.use_repetition_ids:
             self._ensure_deterministic_loop_count()
             if self.repetition_ids is not None:
-                circuit_keys = {
+                circuit_keys = frozenset(
                     key.with_key_path_prefix(repetition_id)
                     for repetition_id in self.repetition_ids
                     for key in circuit_keys
-                }
-        circuit_keys = {key.with_key_path_prefix(*self.parent_path) for key in circuit_keys}
-        return {
+                )
+        circuit_keys = frozenset(
+            key.with_key_path_prefix(*self.parent_path) for key in circuit_keys
+        )
+        return frozenset(
             protocols.with_measurement_key_mapping(key, dict(self.measurement_key_map))
             for key in circuit_keys
-        }
+        )
 
-    def _measurement_key_objs_(self) -> AbstractSet['cirq.MeasurementKey']:
+    def _measurement_key_objs_(self) -> FrozenSet['cirq.MeasurementKey']:
         return self._measurement_key_objs
 
-    def _measurement_key_names_(self) -> AbstractSet[str]:
-        return {str(key) for key in self._measurement_key_objs_()}
+    def _measurement_key_names_(self) -> FrozenSet[str]:
+        return frozenset(str(key) for key in self._measurement_key_objs_())
 
     @cached_property
-    def _control_keys(self) -> AbstractSet['cirq.MeasurementKey']:
+    def _control_keys(self) -> FrozenSet['cirq.MeasurementKey']:
         keys = (
             frozenset()
             if not protocols.control_keys(self.circuit)
@@ -342,13 +343,13 @@ class CircuitOperation(ops.Operation):
             keys |= frozenset(self.repeat_until.keys) - self._measurement_key_objs_()
         return keys
 
-    def _control_keys_(self) -> AbstractSet['cirq.MeasurementKey']:
+    def _control_keys_(self) -> FrozenSet['cirq.MeasurementKey']:
         return self._control_keys
 
     def _is_parameterized_(self) -> bool:
         return any(self._parameter_names_generator())
 
-    def _parameter_names_(self) -> AbstractSet[str]:
+    def _parameter_names_(self) -> FrozenSet[str]:
         return frozenset(self._parameter_names_generator())
 
     def _parameter_names_generator(self) -> Iterator[str]:
@@ -463,7 +464,7 @@ class CircuitOperation(ops.Operation):
         )
         args = []
 
-        def dict_str(d: Dict) -> str:
+        def dict_str(d: Mapping) -> str:
             pairs = [f'{k}: {v}' for k, v in sorted(d.items())]
             return '{' + ', '.join(pairs) + '}'
 
@@ -630,9 +631,27 @@ class CircuitOperation(ops.Operation):
         return self.replace(parent_path=path, extern_keys=bindable_keys)
 
     def with_key_path(self, path: Tuple[str, ...]):
+        """Alias for `cirq.with_key_path(self, path)`.
+
+        Args:
+            path: Tuple of strings representing an alternate path to assign to the measurement
+                keys in this `CircuitOperation`.
+
+        Returns:
+            A copy of this object with `parent_path=path`.
+        """
         return self._with_key_path_(path)
 
     def with_repetition_ids(self, repetition_ids: List[str]) -> 'cirq.CircuitOperation':
+        """Returns a copy of this `CircuitOperation` with the given repetition IDs.
+
+        Args:
+            repetition_ids: List of new repetition IDs to use. Must have length equal to the
+                existing number of repetitions.
+
+        Returns:
+            A copy of this object with `repetition_ids=repetition_ids`.
+        """
         return self.replace(repetition_ids=repetition_ids)
 
     def with_qubit_mapping(

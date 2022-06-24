@@ -40,7 +40,6 @@ import pandas as pd
 import sympy
 from typing_extensions import Protocol
 
-from cirq._compat import deprecated, deprecated_parameter
 from cirq._doc import doc_private
 from cirq.type_workarounds import NotImplementedType
 
@@ -148,23 +147,7 @@ class HasJSONNamespace(Protocol):
         pass
 
 
-# TODO: remove once deprecated parameter goes away.
-def _obj_to_dict_helper_helper(obj: Any, attribute_names: Iterable[str]) -> Dict[str, Any]:
-    d = {}
-    for attr_name in attribute_names:
-        d[attr_name] = getattr(obj, attr_name)
-    return d
-
-
-@deprecated_parameter(
-    deadline='v0.15',
-    fix='Define obj._json_namespace_ to return namespace instead.',
-    parameter_desc='namespace',
-    match=lambda args, kwargs: 'namespace' in kwargs,
-)
-def obj_to_dict_helper(
-    obj: Any, attribute_names: Iterable[str], namespace: Optional[str] = None
-) -> Dict[str, Any]:
+def obj_to_dict_helper(obj: Any, attribute_names: Iterable[str]) -> Dict[str, Any]:
     """Construct a dictionary containing attributes from obj
 
     This is useful as a helper function in objects implementing the
@@ -178,88 +161,15 @@ def obj_to_dict_helper(
         obj: A python object with attributes to be placed in the dictionary.
         attribute_names: The names of attributes to serve as keys in the
             resultant dictionary. The values will be the attribute values.
-        namespace: An optional prefix to the value associated with the
-            key "cirq_type". The namespace name will be joined with the
-            class name via a dot (.)
     """
     d = {}
-    if namespace is not None:
-        d['cirq_type'] = f'{namespace}.' + obj.__class__.__name__
-    d.update(_obj_to_dict_helper_helper(obj, attribute_names))
+    for attr_name in attribute_names:
+        d[attr_name] = getattr(obj, attr_name)
     return d
 
 
-# Copying the Python API, whose usage of `repr` annoys pylint.
-# pylint: disable=redefined-builtin
-@deprecated(deadline='v0.15', fix='Implement _json_dict_ using cirq.dataclass_json_dict()')
-def json_serializable_dataclass(
-    _cls: Optional[Type] = None,
-    *,
-    namespace: Optional[str] = None,
-    init: bool = True,
-    repr: bool = True,
-    eq: bool = True,
-    order: bool = False,
-    unsafe_hash: bool = False,
-    frozen: bool = False,
-):
-    """Create a dataclass that supports JSON serialization.
-
-    This function defers to the ordinary ``dataclass`` decorator but appends
-    the ``_json_dict_`` protocol method which automatically determines
-    the appropriate fields from the dataclass.
-
-    Dataclasses are implemented with somewhat complex metaprogramming, and
-    tooling (PyCharm, mypy) have special cases for dealing with classes
-    decorated with @dataclass. There is very little support (and no plans for
-    support) for decorators that wrap @dataclass like this. Consider explicitly
-    defining `_json_dict_` on your dataclasses which simply
-    `return dataclass_json_dict(self)`.
-
-    Args:
-        _cls: The class to add JSON serializatin to.
-        namespace: An optional prefix to the value associated with the
-            key "cirq_type". The namespace name will be joined with the
-            class name via a dot (.)
-        init: Forwarded to the `dataclass` constructor.
-        repr: Forwarded to the `dataclass` constructor.
-        eq: Forwarded to the `dataclass` constructor.
-        order: Forwarded to the `dataclass` constructor.
-        unsafe_hash: Forwarded to the `dataclass` constructor.
-        frozen: Forwarded to the `dataclass` constructor.
-    """
-
-    def wrap(cls):
-        cls = dataclasses.dataclass(
-            cls, init=init, repr=repr, eq=eq, order=order, unsafe_hash=unsafe_hash, frozen=frozen
-        )
-
-        cls._json_namespace_ = lambda: namespace
-
-        cls._json_dict_ = lambda obj: obj_to_dict_helper(
-            obj, [f.name for f in dataclasses.fields(cls)]
-        )
-
-        return cls
-
-    # _cls is used to deduce if we're being called as
-    # @json_serializable_dataclass or @json_serializable_dataclass().
-    if _cls is None:
-        # We're called with parens.
-        return wrap
-
-    # We're called as @dataclass without parens.
-    return wrap(_cls)
-
-
 # pylint: enable=redefined-builtin
-@deprecated_parameter(
-    deadline='v0.15',
-    fix='Define obj._json_namespace_ to return namespace instead.',
-    parameter_desc='namespace',
-    match=lambda args, kwargs: 'namespace' in kwargs,
-)
-def dataclass_json_dict(obj: Any, namespace: str = None) -> Dict[str, Any]:
+def dataclass_json_dict(obj: Any) -> Dict[str, Any]:
     """Return a dictionary suitable for _json_dict_ from a dataclass.
 
     Dataclasses keep track of their relevant fields, so we can automatically generate these.
@@ -272,10 +182,7 @@ def dataclass_json_dict(obj: Any, namespace: str = None) -> Dict[str, Any]:
     dataclasses which simply `return dataclass_json_dict(self)`.
     """
     attribute_names = [f.name for f in dataclasses.fields(obj)]
-    if namespace is not None:
-        return obj_to_dict_helper(obj, attribute_names, namespace=namespace)
-    else:
-        return _obj_to_dict_helper_helper(obj, attribute_names)
+    return obj_to_dict_helper(obj, attribute_names)
 
 
 def _json_dict_with_cirq_type(obj: Any):

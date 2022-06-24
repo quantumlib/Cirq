@@ -1266,17 +1266,17 @@ class CXPowGate(eigen_gate.EigenGate):
 
 
 def rx(rads: value.TParamVal) -> Rx:
-    """Returns a gate with the matrix e^{-i X rads / 2}."""
+    """Returns a gate with the matrix $e^{-i X t / 2}$ where $t=rads$."""
     return Rx(rads=rads)
 
 
 def ry(rads: value.TParamVal) -> Ry:
-    """Returns a gate with the matrix e^{-i Y rads / 2}."""
+    """Returns a gate with the matrix $e^{-i Y t / 2}$ where $t=rads$."""
     return Ry(rads=rads)
 
 
 def rz(rads: value.TParamVal) -> Rz:
-    """Returns a gate with the matrix e^{-i Z rads / 2}."""
+    """Returns a gate with the matrix $e^{-i Z t / 2}$ where $t=rads$."""
     return Rz(rads=rads)
 
 
