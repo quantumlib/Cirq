@@ -154,21 +154,22 @@ def test_serialize_conversion(value: ARG_LIKE, proto: v2.program_pb2.Arg):
 
 
 def test_infer_language():
-    q = cirq.GridQubit(0, 0)
-    a = sympy.Symbol('a')
-    b = sympy.Symbol('b')
+    with cirq.testing.assert_deprecated('SerializableGateSet', deadline='v0.16', count=None):
+        q = cirq.GridQubit(0, 0)
+        a = sympy.Symbol('a')
+        b = sympy.Symbol('b')
 
-    c_linear = cirq.Circuit(cirq.X(q) ** (b - a))
-    packed = cirq_google.XMON.serialize(c_linear)
-    assert packed.language.arg_function_language == 'linear'
+        c_linear = cirq.Circuit(cirq.X(q) ** (b - a))
+        packed = cirq_google.XMON.serialize(c_linear)
+        assert packed.language.arg_function_language == 'linear'
 
-    c_empty = cirq.Circuit(cirq.X(q) ** b)
-    packed = cirq_google.XMON.serialize(c_empty)
-    assert packed.language.arg_function_language == ''
+        c_empty = cirq.Circuit(cirq.X(q) ** b)
+        packed = cirq_google.XMON.serialize(c_empty)
+        assert packed.language.arg_function_language == ''
 
-    c_exp = cirq.Circuit(cirq.X(q) ** (b**a))
-    packed = cirq_google.XMON.serialize(c_exp)
-    assert packed.language.arg_function_language == 'exp'
+        c_exp = cirq.Circuit(cirq.X(q) ** (b**a))
+        packed = cirq_google.XMON.serialize(c_exp)
+        assert packed.language.arg_function_language == 'exp'
 
 
 @pytest.mark.parametrize(

@@ -35,7 +35,7 @@ if TYPE_CHECKING:
     import cirq
 
 
-@deprecated_class(deadline='v0.15', fix='Use cirq.QuirkArithmeticGate')
+@deprecated_class(deadline='v0.16', fix='Use cirq.QuirkArithmeticGate')
 @value.value_equality
 class QuirkArithmeticOperation(ops.ArithmeticOperation):
     """Applies arithmetic to a target and some inputs.

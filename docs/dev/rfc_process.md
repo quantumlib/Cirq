@@ -41,7 +41,7 @@ and have a discussion with the maintainers. Mention that you are willing to writ
     * Make sure to share your doc with cirq-dev@googlegroups.com for comments.
     * Link the RFC in your issue.
 4. Recruiting a sponsor:
-    * A sponsor must be a maintainer of the project or the product manager (currently Alan Ho).
+    * A sponsor must be a maintainer of the project or the product manager.
     * Write a comment in your Github issue that calls out that you are "Looking for a sponsor". A maintainer will mark the issue with a label: "rfc/needs-sponsor".
     * While it might take some time to get a maintainer to sponsor your RFC, it is essential, as the sponsor will facilitate the process for reviewing your design.
     * Tips to recruit a sponsor: 1) keep commenting on the issue weekly 2) attend Cirq Cynq and push for a sponsor.
@@ -92,7 +92,7 @@ If you are working on new code to implement an RFC:
 *   Follow any other guidelines laid out in the [CONTRIBUTING.md](https://github.com/quantumlib/Cirq/blob/master/CONTRIBUTING.md) file in the project repo you're contributing to.
 *   Run unit tests before submitting your code.
 *   Work with the RFC sponsor to successfully land the new code. This could include PR / marketing of the new feature as well.
-*   Follow the Cirq process of deprecating code. Please refer to [\_compat.py](https://github.com/quantumlib/Cirq/blob/master/cirq/_compat.py) as an example.
+*   Follow the Cirq process of deprecating code. Please refer to [\_compat.py](https://github.com/quantumlib/Cirq/blob/master/cirq-core/cirq/_compat.py) as an example.
 
 
 ## Keeping the bar high
@@ -110,13 +110,12 @@ An approved RFC is not a commitment to implementation on any sort of timeline. T
 
 ## New hardware integrations
 
-Several hardware vendors already have integrations with cirq.  We are not
-currently soliciting additional vendors.  However, if you are considering
-integrating with cirq, we would highly encourage you to engage with the
-cirq-maintainer team through attending the weekly cirq cync and submitting
-an RFC as specified above.  Everyone benefits from a well-maintained, user
-friendly interface with a high reliability, which is the goal of having this
-RFC process.
+Several hardware vendors already have integrations with cirq.
+If you are considering integrating with cirq, please engage with us through the
+cirq-maintainer team by attending the weekly cirq cync meeting and submitting
+an RFC to get feedback on your design proposal (as specified above). The goal of the RFC
+review process is to ensure all integrations end up with a well-maintained, user
+friendly interface with a high reliability.
 
 Examples of other integrations can be found on the
 [Hardware page](/cirq/hardware).

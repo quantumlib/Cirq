@@ -21,42 +21,68 @@ import cirq
 import cirq_google as cg
 from cirq_google.api import v2
 
-X_SERIALIZER = cg.GateOpSerializer(
-    gate_type=cirq.XPowGate,
-    serialized_gate_id='x_pow',
-    args=[
-        cg.SerializingArg(serialized_name='half_turns', serialized_type=float, op_getter='exponent')
-    ],
-)
 
-X_DESERIALIZER = cg.GateOpDeserializer(
-    serialized_gate_id='x_pow',
-    gate_constructor=cirq.XPowGate,
-    args=[cg.DeserializingArg(serialized_name='half_turns', constructor_arg_name='exponent')],
-)
+def _x_serializer():
+    with cirq.testing.assert_deprecated('CircuitSerializer', deadline='v0.16', count=None):
+        return cg.GateOpSerializer(
+            gate_type=cirq.XPowGate,
+            serialized_gate_id='x_pow',
+            args=[
+                cg.SerializingArg(
+                    serialized_name='half_turns', serialized_type=float, op_getter='exponent'
+                )
+            ],
+        )
 
-Y_SERIALIZER = cg.GateOpSerializer(
-    gate_type=cirq.YPowGate,
-    serialized_gate_id='y_pow',
-    args=[
-        cg.SerializingArg(serialized_name='half_turns', serialized_type=float, op_getter='exponent')
-    ],
-)
 
-Y_DESERIALIZER = cg.GateOpDeserializer(
-    serialized_gate_id='y_pow',
-    gate_constructor=cirq.YPowGate,
-    args=[cg.DeserializingArg(serialized_name='half_turns', constructor_arg_name='exponent')],
-)
+def _x_deserializer():
+    with cirq.testing.assert_deprecated('CircuitSerializer', deadline='v0.16', count=None):
+        return cg.GateOpDeserializer(
+            serialized_gate_id='x_pow',
+            gate_constructor=cirq.XPowGate,
+            args=[
+                cg.DeserializingArg(serialized_name='half_turns', constructor_arg_name='exponent')
+            ],
+        )
+
+
+def _y_serializer():
+    with cirq.testing.assert_deprecated('CircuitSerializer', deadline='v0.16', count=None):
+        return cg.GateOpSerializer(
+            gate_type=cirq.YPowGate,
+            serialized_gate_id='y_pow',
+            args=[
+                cg.SerializingArg(
+                    serialized_name='half_turns', serialized_type=float, op_getter='exponent'
+                )
+            ],
+        )
+
+
+def _y_deserializer():
+    with cirq.testing.assert_deprecated('CircuitSerializer', deadline='v0.16', count=None):
+        return cg.GateOpDeserializer(
+            serialized_gate_id='y_pow',
+            gate_constructor=cirq.YPowGate,
+            args=[
+                cg.DeserializingArg(serialized_name='half_turns', constructor_arg_name='exponent')
+            ],
+        )
+
 
 CIRCUIT_OP_SERIALIZER = cg.CircuitOpSerializer()
 CIRCUIT_OP_DESERIALIZER = cg.CircuitOpDeserializer()
 
-MY_GATE_SET = cg.SerializableGateSet(
-    gate_set_name='my_gate_set',
-    serializers=[X_SERIALIZER, CIRCUIT_OP_SERIALIZER],
-    deserializers=[X_DESERIALIZER, CIRCUIT_OP_DESERIALIZER],
-)
+
+def _my_gate_set():
+    x_serializer = _x_serializer()
+    x_deserializer = _x_deserializer()
+    with cirq.testing.assert_deprecated('SerializableGateSet', deadline='v0.16', count=1):
+        return cg.SerializableGateSet(
+            gate_set_name='my_gate_set',
+            serializers=[x_serializer, CIRCUIT_OP_SERIALIZER],
+            deserializers=[x_deserializer, CIRCUIT_OP_DESERIALIZER],
+        )
 
 
 def op_proto(json: Dict) -> v2.program_pb2.Operation:
@@ -66,70 +92,78 @@ def op_proto(json: Dict) -> v2.program_pb2.Operation:
 
 
 def test_naming():
-    assert MY_GATE_SET.name == 'my_gate_set'
+    assert _my_gate_set().name == 'my_gate_set'
 
 
 def test_supported_internal_types():
-    assert MY_GATE_SET.supported_internal_types() == (cirq.XPowGate, cirq.FrozenCircuit)
+    assert _my_gate_set().supported_internal_types() == (cirq.XPowGate, cirq.FrozenCircuit)
 
 
 def test_is_supported():
     q0, q1 = cirq.GridQubit.rect(1, 2)
-    assert MY_GATE_SET.is_supported(cirq.Circuit(cirq.X(q0), cirq.X(q1)))
-    assert not MY_GATE_SET.is_supported(cirq.Circuit(cirq.X(q0), cirq.Z(q1)))
+    assert _my_gate_set().is_supported(cirq.Circuit(cirq.X(q0), cirq.X(q1)))
+    assert not _my_gate_set().is_supported(cirq.Circuit(cirq.X(q0), cirq.Z(q1)))
 
 
 def test_is_supported_subcircuits():
     q0, q1 = cirq.GridQubit.rect(1, 2)
-    assert MY_GATE_SET.is_supported(
+    assert _my_gate_set().is_supported(
         cirq.Circuit(cirq.X(q0), cirq.CircuitOperation(cirq.FrozenCircuit(cirq.X(q1))))
     )
-    assert not MY_GATE_SET.is_supported(
+    assert not _my_gate_set().is_supported(
         cirq.Circuit(cirq.X(q0), cirq.CircuitOperation(cirq.FrozenCircuit(cirq.Z(q1))))
     )
 
 
 def test_is_supported_operation():
     q = cirq.GridQubit(1, 1)
-    assert MY_GATE_SET.is_supported_operation(cirq.XPowGate()(q))
-    assert MY_GATE_SET.is_supported_operation(cirq.X(q))
-    assert not MY_GATE_SET.is_supported_operation(cirq.ZPowGate()(q))
+    assert _my_gate_set().is_supported_operation(cirq.XPowGate()(q))
+    assert _my_gate_set().is_supported_operation(cirq.X(q))
+    assert not _my_gate_set().is_supported_operation(cirq.ZPowGate()(q))
 
 
 def test_is_supported_circuit_operation():
     q = cirq.GridQubit(1, 1)
-    assert MY_GATE_SET.is_supported_operation(cirq.CircuitOperation(cirq.FrozenCircuit(cirq.X(q))))
-    assert MY_GATE_SET.is_supported_operation(
+    assert _my_gate_set().is_supported_operation(
+        cirq.CircuitOperation(cirq.FrozenCircuit(cirq.X(q)))
+    )
+    assert _my_gate_set().is_supported_operation(
         cirq.CircuitOperation(cirq.FrozenCircuit(cirq.X(q))).with_tags('test_tag')
     )
-    assert MY_GATE_SET.is_supported_operation(
+    assert _my_gate_set().is_supported_operation(
         cirq.CircuitOperation(
             cirq.FrozenCircuit(cirq.CircuitOperation(cirq.FrozenCircuit(cirq.X(q))))
         )
     )
-    assert not MY_GATE_SET.is_supported_operation(
+    assert not _my_gate_set().is_supported_operation(
         cirq.CircuitOperation(cirq.FrozenCircuit(cirq.Z(q)))
     )
 
 
 def test_is_supported_operation_can_serialize_predicate():
-    q = cirq.GridQubit(1, 2)
-    serializer = cg.GateOpSerializer(
-        gate_type=cirq.XPowGate,
-        serialized_gate_id='x_pow',
-        args=[
-            cg.SerializingArg(
-                serialized_name='half_turns', serialized_type=float, op_getter='exponent'
-            )
-        ],
-        can_serialize_predicate=lambda x: x.gate.exponent == 1.0,
-    )
-    gate_set = cg.SerializableGateSet(
-        gate_set_name='my_gate_set', serializers=[serializer], deserializers=[X_DESERIALIZER]
-    )
-    assert gate_set.is_supported_operation(cirq.XPowGate()(q))
-    assert not gate_set.is_supported_operation(cirq.XPowGate()(q) ** 0.5)
-    assert gate_set.is_supported_operation(cirq.X(q))
+    x_deserializer = _x_deserializer()
+    # Deprecations: cirq_google.SerializableGateSet, cirq_google.GateOpSerializer, and
+    # cirq_google.SerializingArg
+    with cirq.testing.assert_deprecated(
+        'SerializableGateSet', 'CircuitSerializer', deadline='v0.16', count=3
+    ):
+        q = cirq.GridQubit(1, 2)
+        serializer = cg.GateOpSerializer(
+            gate_type=cirq.XPowGate,
+            serialized_gate_id='x_pow',
+            args=[
+                cg.SerializingArg(
+                    serialized_name='half_turns', serialized_type=float, op_getter='exponent'
+                )
+            ],
+            can_serialize_predicate=lambda x: x.gate.exponent == 1.0,
+        )
+        gate_set = cg.SerializableGateSet(
+            gate_set_name='my_gate_set', serializers=[serializer], deserializers=[x_deserializer]
+        )
+        assert gate_set.is_supported_operation(cirq.XPowGate()(q))
+        assert not gate_set.is_supported_operation(cirq.XPowGate()(q) ** 0.5)
+        assert gate_set.is_supported_operation(cirq.X(q))
 
 
 def test_serialize_deserialize_circuit():
@@ -143,17 +177,17 @@ def test_serialize_deserialize_circuit():
             moments=[
                 v2.program_pb2.Moment(
                     operations=[
-                        X_SERIALIZER.to_proto(cirq.X(q0)),
-                        X_SERIALIZER.to_proto(cirq.X(q1)),
+                        _x_serializer().to_proto(cirq.X(q0)),
+                        _x_serializer().to_proto(cirq.X(q1)),
                     ]
                 ),
-                v2.program_pb2.Moment(operations=[X_SERIALIZER.to_proto(cirq.X(q0))]),
+                v2.program_pb2.Moment(operations=[_x_serializer().to_proto(cirq.X(q0))]),
             ],
         ),
     )
     for circuit in [circuit_base, circuit_base.freeze()]:
-        assert proto == MY_GATE_SET.serialize(circuit)
-        assert MY_GATE_SET.deserialize(proto) == circuit
+        assert proto == _my_gate_set().serialize(circuit)
+        assert _my_gate_set().deserialize(proto) == circuit
 
 
 def test_serialize_deserialize_circuit_with_tokens():
@@ -181,7 +215,7 @@ def test_serialize_deserialize_circuit_with_tokens():
             scheduling_strategy=v2.program_pb2.Circuit.MOMENT_BY_MOMENT,
             moments=[
                 v2.program_pb2.Moment(operations=[op1, op2]),
-                v2.program_pb2.Moment(operations=[X_SERIALIZER.to_proto(cirq.X(q0))]),
+                v2.program_pb2.Moment(operations=[_x_serializer().to_proto(cirq.X(q0))]),
             ],
         ),
         constants=[
@@ -189,8 +223,8 @@ def test_serialize_deserialize_circuit_with_tokens():
             v2.program_pb2.Constant(string_value='def456'),
         ],
     )
-    assert proto == MY_GATE_SET.serialize(circuit)
-    assert MY_GATE_SET.deserialize(proto) == circuit
+    assert proto == _my_gate_set().serialize(circuit)
+    assert _my_gate_set().deserialize(proto) == circuit
 
 
 def test_serialize_deserialize_circuit_with_subcircuit():
@@ -231,7 +265,7 @@ def test_serialize_deserialize_circuit_with_subcircuit():
             moments=[
                 v2.program_pb2.Moment(operations=[op1], circuit_operations=[c_op1]),
                 v2.program_pb2.Moment(
-                    operations=[X_SERIALIZER.to_proto(cirq.X(q0))], circuit_operations=[c_op2]
+                    operations=[_x_serializer().to_proto(cirq.X(q0))], circuit_operations=[c_op2]
                 ),
             ],
         ),
@@ -240,13 +274,15 @@ def test_serialize_deserialize_circuit_with_subcircuit():
             v2.program_pb2.Constant(
                 circuit_value=v2.program_pb2.Circuit(
                     scheduling_strategy=v2.program_pb2.Circuit.MOMENT_BY_MOMENT,
-                    moments=[v2.program_pb2.Moment(operations=[X_SERIALIZER.to_proto(cirq.X(q0))])],
+                    moments=[
+                        v2.program_pb2.Moment(operations=[_x_serializer().to_proto(cirq.X(q0))])
+                    ],
                 )
             ),
         ],
     )
-    assert proto == MY_GATE_SET.serialize(circuit)
-    assert MY_GATE_SET.deserialize(proto) == circuit
+    assert proto == _my_gate_set().serialize(circuit)
+    assert _my_gate_set().deserialize(proto) == circuit
 
 
 def test_deserialize_infinite_recursion_fails():
@@ -255,7 +291,7 @@ def test_deserialize_infinite_recursion_fails():
     setattr(inf_op.circuit, '_moments', tuple(cirq.Circuit(inf_op).moments))
     circuit = cirq.Circuit(inf_op)
     with pytest.raises(RecursionError):
-        _ = MY_GATE_SET.serialize(circuit)
+        _ = _my_gate_set().serialize(circuit)
 
     c_op1 = v2.program_pb2.CircuitOperation()
     c_op1.circuit_constant_index = 0
@@ -280,7 +316,7 @@ def test_deserialize_infinite_recursion_fails():
         ],
     )
     with pytest.raises(ValueError, match="Failed to deserialize circuit"):
-        _ = MY_GATE_SET.deserialize(proto)
+        _ = _my_gate_set().deserialize(proto)
 
 
 def test_deserialize_bad_operation_id():
@@ -309,7 +345,7 @@ def test_deserialize_bad_operation_id():
     with pytest.raises(
         ValueError, match='problem in moment 1 handling an operation with the following'
     ):
-        MY_GATE_SET.deserialize(proto)
+        _my_gate_set().deserialize(proto)
 
 
 def test_serialize_deserialize_empty_circuit():
@@ -321,8 +357,8 @@ def test_serialize_deserialize_empty_circuit():
             scheduling_strategy=v2.program_pb2.Circuit.MOMENT_BY_MOMENT, moments=[]
         ),
     )
-    assert proto == MY_GATE_SET.serialize(circuit)
-    assert MY_GATE_SET.deserialize(proto) == circuit
+    assert proto == _my_gate_set().serialize(circuit)
+    assert _my_gate_set().deserialize(proto) == circuit
 
 
 def test_deserialize_empty_moment():
@@ -335,12 +371,12 @@ def test_deserialize_empty_moment():
             moments=[v2.program_pb2.Moment()],
         ),
     )
-    assert MY_GATE_SET.deserialize(proto) == circuit
+    assert _my_gate_set().deserialize(proto) == circuit
 
 
 def test_serialize_unrecognized():
     with pytest.raises(NotImplementedError, match='program type'):
-        MY_GATE_SET.serialize("not quite right")
+        _my_gate_set().serialize("not quite right")
 
 
 def test_serialize_deserialize_op():
@@ -352,8 +388,8 @@ def test_serialize_deserialize_op():
             'qubits': [{'id': '1_1'}],
         }
     )
-    assert proto == MY_GATE_SET.serialize_op(cirq.XPowGate(exponent=0.125)(q0))
-    assert MY_GATE_SET.deserialize_op(proto) == cirq.XPowGate(exponent=0.125)(q0)
+    assert proto == _my_gate_set().serialize_op(cirq.XPowGate(exponent=0.125)(q0))
+    assert _my_gate_set().deserialize_op(proto) == cirq.XPowGate(exponent=0.125)(q0)
 
 
 def test_serialize_deserialize_op_with_token():
@@ -367,8 +403,8 @@ def test_serialize_deserialize_op_with_token():
         }
     )
     op = cirq.XPowGate(exponent=0.125)(q0).with_tags(cg.CalibrationTag('abc123'))
-    assert proto == MY_GATE_SET.serialize_op(op)
-    assert MY_GATE_SET.deserialize_op(proto) == op
+    assert proto == _my_gate_set().serialize_op(op)
+    assert _my_gate_set().deserialize_op(proto) == op
 
 
 def test_serialize_deserialize_op_with_constants():
@@ -382,10 +418,10 @@ def test_serialize_deserialize_op_with_constants():
         }
     )
     op = cirq.XPowGate(exponent=0.125)(q0).with_tags(cg.CalibrationTag('abc123'))
-    assert proto == MY_GATE_SET.serialize_op(op, constants=[])
+    assert proto == _my_gate_set().serialize_op(op, constants=[])
     constant = v2.program_pb2.Constant()
     constant.string_value = 'abc123'
-    assert MY_GATE_SET.deserialize_op(proto, constants=[constant]) == op
+    assert _my_gate_set().deserialize_op(proto, constants=[constant]) == op
 
 
 def test_serialize_deserialize_op_subclass():
@@ -398,8 +434,8 @@ def test_serialize_deserialize_op_subclass():
         }
     )
     # cirq.X is a subclass of XPowGate.
-    assert proto == MY_GATE_SET.serialize_op(cirq.X(q0))
-    assert MY_GATE_SET.deserialize_op(proto) == cirq.X(q0)
+    assert proto == _my_gate_set().serialize_op(cirq.X(q0))
+    assert _my_gate_set().deserialize_op(proto) == cirq.X(q0)
 
 
 def default_circuit_proto():
@@ -427,53 +463,65 @@ def test_serialize_circuit_op_errors():
 
     op = cirq.CircuitOperation(default_circuit())
     with pytest.raises(ValueError, match='CircuitOp serialization requires a constants list'):
-        MY_GATE_SET.serialize_op(op)
+        _my_gate_set().serialize_op(op)
 
     with pytest.raises(ValueError, match='CircuitOp serialization requires a constants list'):
-        MY_GATE_SET.serialize_op(op, constants=constants)
+        _my_gate_set().serialize_op(op, constants=constants)
 
     with pytest.raises(ValueError, match='CircuitOp serialization requires a constants list'):
-        MY_GATE_SET.serialize_op(op, raw_constants=raw_constants)
+        _my_gate_set().serialize_op(op, raw_constants=raw_constants)
 
-    NO_CIRCUIT_OP_GATE_SET = cg.SerializableGateSet(
-        gate_set_name='no_circuit_op_gateset',
-        serializers=[X_SERIALIZER],
-        deserializers=[X_DESERIALIZER],
-    )
-    with pytest.raises(ValueError, match='Cannot serialize CircuitOperation'):
-        NO_CIRCUIT_OP_GATE_SET.serialize_op(op, constants=constants, raw_constants=raw_constants)
+    x_serializer = _x_serializer()
+    x_deserializer = _x_deserializer()
+    with cirq.testing.assert_deprecated('SerializableGateSet', deadline='v0.16', count=1):
+        NO_CIRCUIT_OP_GATE_SET = cg.SerializableGateSet(
+            gate_set_name='no_circuit_op_gateset',
+            serializers=[x_serializer],
+            deserializers=[x_deserializer],
+        )
+        with pytest.raises(ValueError, match='Cannot serialize CircuitOperation'):
+            NO_CIRCUIT_OP_GATE_SET.serialize_op(
+                op, constants=constants, raw_constants=raw_constants
+            )
 
 
 def test_deserialize_circuit_op_errors():
-    constants = [default_circuit_proto()]
-    deserialized_constants = [default_circuit()]
+    x_serializer = _x_serializer()
+    x_deserializer = _x_deserializer()
 
-    proto = v2.program_pb2.CircuitOperation()
-    proto.circuit_constant_index = 0
-    proto.repetition_specification.repetition_count = 1
+    # Deprecations: cirq_google.SerializableGateSet, cirq_google.GateOpSerializer
+    with cirq.testing.assert_deprecated(
+        'SerializableGateSet', 'CircuitSerializer', deadline='v0.16', count=3
+    ):
+        constants = [default_circuit_proto()]
+        deserialized_constants = [default_circuit()]
 
-    NO_CIRCUIT_OP_GATE_SET = cg.SerializableGateSet(
-        gate_set_name='no_circuit_op_gateset',
-        serializers=[X_SERIALIZER],
-        deserializers=[X_DESERIALIZER],
-    )
-    with pytest.raises(ValueError, match='Unsupported deserialized of a CircuitOperation'):
-        NO_CIRCUIT_OP_GATE_SET.deserialize_op(
-            proto, constants=constants, deserialized_constants=deserialized_constants
+        proto = v2.program_pb2.CircuitOperation()
+        proto.circuit_constant_index = 0
+        proto.repetition_specification.repetition_count = 1
+
+        NO_CIRCUIT_OP_GATE_SET = cg.SerializableGateSet(
+            gate_set_name='no_circuit_op_gateset',
+            serializers=[x_serializer],
+            deserializers=[x_deserializer],
         )
+        with pytest.raises(ValueError, match='Unsupported deserialized of a CircuitOperation'):
+            NO_CIRCUIT_OP_GATE_SET.deserialize_op(
+                proto, constants=constants, deserialized_constants=deserialized_constants
+            )
 
-    BAD_CIRCUIT_DESERIALIZER = cg.GateOpDeserializer(
-        serialized_gate_id='circuit', gate_constructor=cirq.ZPowGate, args=[]
-    )
-    BAD_CIRCUIT_DESERIALIZER_GATE_SET = cg.SerializableGateSet(
-        gate_set_name='bad_circuit_gateset',
-        serializers=[CIRCUIT_OP_SERIALIZER],
-        deserializers=[BAD_CIRCUIT_DESERIALIZER],
-    )
-    with pytest.raises(ValueError, match='Expected CircuitOpDeserializer for id "circuit"'):
-        BAD_CIRCUIT_DESERIALIZER_GATE_SET.deserialize_op(
-            proto, constants=constants, deserialized_constants=deserialized_constants
+        BAD_CIRCUIT_DESERIALIZER = cg.GateOpDeserializer(
+            serialized_gate_id='circuit', gate_constructor=cirq.ZPowGate, args=[]
         )
+        BAD_CIRCUIT_DESERIALIZER_GATE_SET = cg.SerializableGateSet(
+            gate_set_name='bad_circuit_gateset',
+            serializers=[CIRCUIT_OP_SERIALIZER],
+            deserializers=[BAD_CIRCUIT_DESERIALIZER],
+        )
+        with pytest.raises(ValueError, match='Expected CircuitOpDeserializer for id "circuit"'):
+            BAD_CIRCUIT_DESERIALIZER_GATE_SET.deserialize_op(
+                proto, constants=constants, deserialized_constants=deserialized_constants
+            )
 
 
 def test_serialize_deserialize_circuit_op():
@@ -486,9 +534,11 @@ def test_serialize_deserialize_circuit_op():
     proto.repetition_specification.repetition_count = 1
 
     op = cirq.CircuitOperation(default_circuit())
-    assert proto == MY_GATE_SET.serialize_op(op, constants=constants, raw_constants=raw_constants)
+    assert proto == _my_gate_set().serialize_op(
+        op, constants=constants, raw_constants=raw_constants
+    )
     assert (
-        MY_GATE_SET.deserialize_op(
+        _my_gate_set().deserialize_op(
             proto, constants=constants, deserialized_constants=deserialized_constants
         )
         == op
@@ -496,89 +546,102 @@ def test_serialize_deserialize_circuit_op():
 
 
 def test_multiple_serializers():
-    serializer1 = cg.GateOpSerializer(
-        gate_type=cirq.XPowGate,
-        serialized_gate_id='x_pow',
-        args=[
-            cg.SerializingArg(
-                serialized_name='half_turns', serialized_type=float, op_getter='exponent'
-            )
-        ],
-        can_serialize_predicate=lambda x: x.gate.exponent != 1,
-    )
-    serializer2 = cg.GateOpSerializer(
-        gate_type=cirq.XPowGate,
-        serialized_gate_id='x',
-        args=[
-            cg.SerializingArg(
-                serialized_name='half_turns', serialized_type=float, op_getter='exponent'
-            )
-        ],
-        can_serialize_predicate=lambda x: x.gate.exponent == 1,
-    )
-    gate_set = cg.SerializableGateSet(
-        gate_set_name='my_gate_set', serializers=[serializer1, serializer2], deserializers=[]
-    )
-    q0 = cirq.GridQubit(1, 1)
-    assert gate_set.serialize_op(cirq.X(q0)).gate.id == 'x'
-    assert gate_set.serialize_op(cirq.X(q0) ** 0.5).gate.id == 'x_pow'
+    # Deprecations: cirq_google.SerializableGateSet, cirq_google.GateOpSerializer, and
+    # cirq_google.SerializingArg
+    with cirq.testing.assert_deprecated(
+        'SerializableGateSet', 'CircuitSerializer', deadline='v0.16', count=5
+    ):
+        serializer1 = cg.GateOpSerializer(
+            gate_type=cirq.XPowGate,
+            serialized_gate_id='x_pow',
+            args=[
+                cg.SerializingArg(
+                    serialized_name='half_turns', serialized_type=float, op_getter='exponent'
+                )
+            ],
+            can_serialize_predicate=lambda x: x.gate.exponent != 1,
+        )
+        serializer2 = cg.GateOpSerializer(
+            gate_type=cirq.XPowGate,
+            serialized_gate_id='x',
+            args=[
+                cg.SerializingArg(
+                    serialized_name='half_turns', serialized_type=float, op_getter='exponent'
+                )
+            ],
+            can_serialize_predicate=lambda x: x.gate.exponent == 1,
+        )
+        gate_set = cg.SerializableGateSet(
+            gate_set_name='my_gate_set', serializers=[serializer1, serializer2], deserializers=[]
+        )
+        q0 = cirq.GridQubit(1, 1)
+        assert gate_set.serialize_op(cirq.X(q0)).gate.id == 'x'
+        assert gate_set.serialize_op(cirq.X(q0) ** 0.5).gate.id == 'x_pow'
 
 
 def test_gateset_with_added_types():
-    q = cirq.GridQubit(1, 1)
-    x_gateset = cg.SerializableGateSet(
-        gate_set_name='x', serializers=[X_SERIALIZER], deserializers=[X_DESERIALIZER]
-    )
-    xy_gateset = x_gateset.with_added_types(
-        gate_set_name='xy', serializers=[Y_SERIALIZER], deserializers=[Y_DESERIALIZER]
-    )
-    assert x_gateset.name == 'x'
-    assert x_gateset.is_supported_operation(cirq.X(q))
-    assert not x_gateset.is_supported_operation(cirq.Y(q))
-    assert xy_gateset.name == 'xy'
-    assert xy_gateset.is_supported_operation(cirq.X(q))
-    assert xy_gateset.is_supported_operation(cirq.Y(q))
+    x_serializer = _x_serializer()
+    x_deserializer = _x_deserializer()
+    y_serializer = _y_serializer()
+    y_deserializer = _y_deserializer()
+    with cirq.testing.assert_deprecated('SerializableGateSet', deadline='v0.16', count=2):
+        q = cirq.GridQubit(1, 1)
+        x_gateset = cg.SerializableGateSet(
+            gate_set_name='x', serializers=[x_serializer], deserializers=[x_deserializer]
+        )
+        xy_gateset = x_gateset.with_added_types(
+            gate_set_name='xy', serializers=[y_serializer], deserializers=[y_deserializer]
+        )
+        assert x_gateset.name == 'x'
+        assert x_gateset.is_supported_operation(cirq.X(q))
+        assert not x_gateset.is_supported_operation(cirq.Y(q))
+        assert xy_gateset.name == 'xy'
+        assert xy_gateset.is_supported_operation(cirq.X(q))
+        assert xy_gateset.is_supported_operation(cirq.Y(q))
 
-    # test serialization and deserialization
-    proto = op_proto(
-        {
-            'gate': {'id': 'y_pow'},
-            'args': {'half_turns': {'arg_value': {'float_value': 0.125}}},
-            'qubits': [{'id': '1_1'}],
-        }
-    )
+        # test serialization and deserialization
+        proto = op_proto(
+            {
+                'gate': {'id': 'y_pow'},
+                'args': {'half_turns': {'arg_value': {'float_value': 0.125}}},
+                'qubits': [{'id': '1_1'}],
+            }
+        )
 
-    expected_gate = cirq.YPowGate(exponent=0.125)(cirq.GridQubit(1, 1))
-    assert xy_gateset.serialize_op(expected_gate) == proto
-    assert xy_gateset.deserialize_op(proto) == expected_gate
+        expected_gate = cirq.YPowGate(exponent=0.125)(cirq.GridQubit(1, 1))
+        assert xy_gateset.serialize_op(expected_gate) == proto
+        assert xy_gateset.deserialize_op(proto) == expected_gate
 
 
 def test_gateset_with_added_types_again():
+    x_serializer = _x_serializer()
+    x_deserializer = _x_deserializer()
     """Verify that adding a serializer twice doesn't mess anything up."""
-    q = cirq.GridQubit(2, 2)
-    x_gateset = cg.SerializableGateSet(
-        gate_set_name='x', serializers=[X_SERIALIZER], deserializers=[X_DESERIALIZER]
-    )
-    xx_gateset = x_gateset.with_added_types(
-        gate_set_name='xx', serializers=[X_SERIALIZER], deserializers=[X_DESERIALIZER]
-    )
+    with cirq.testing.assert_deprecated('SerializableGateSet', deadline='v0.16', count=2):
+        q = cirq.GridQubit(2, 2)
+        x_gateset = cg.SerializableGateSet(
+            gate_set_name='x', serializers=[x_serializer], deserializers=[x_deserializer]
+        )
+        xx_gateset = x_gateset.with_added_types(
+            gate_set_name='xx', serializers=[x_serializer], deserializers=[x_deserializer]
+        )
 
-    assert xx_gateset.name == 'xx'
-    assert xx_gateset.is_supported_operation(cirq.X(q))
-    assert not xx_gateset.is_supported_operation(cirq.Y(q))
+        assert xx_gateset.name == 'xx'
+        assert xx_gateset.is_supported_operation(cirq.X(q))
+        assert not xx_gateset.is_supported_operation(cirq.Y(q))
 
-    # test serialization and deserialization
-    proto = op_proto(
-        {
-            'gate': {'id': 'x_pow'},
-            'args': {'half_turns': {'arg_value': {'float_value': 0.125}}},
-            'qubits': [{'id': '1_1'}],
-        }
-    )
+        # test serialization and deserialization
+        proto = op_proto(
+            {
+                'gate': {'id': 'x_pow'},
+                'args': {'half_turns': {'arg_value': {'float_value': 0.125}}},
+                'qubits': [{'id': '1_1'}],
+            }
+        )
 
-    expected_gate = cirq.XPowGate(exponent=0.125)(cirq.GridQubit(1, 1))
-    assert xx_gateset.serialize_op(expected_gate) == proto
-    assert xx_gateset.deserialize_op(proto) == expected_gate
+        expected_gate = cirq.XPowGate(exponent=0.125)(cirq.GridQubit(1, 1))
+        assert xx_gateset.serialize_op(expected_gate) == proto
+        assert xx_gateset.deserialize_op(proto) == expected_gate
 
 
 def test_deserialize_op_invalid_gate():
@@ -590,19 +653,19 @@ def test_deserialize_op_invalid_gate():
         }
     )
     with pytest.raises(ValueError, match='does not have a gate'):
-        MY_GATE_SET.deserialize_op(proto)
+        _my_gate_set().deserialize_op(proto)
 
     proto = op_proto(
         {'args': {'half_turns': {'arg_value': {'float_value': 0.125}}}, 'qubits': [{'id': '1_1'}]}
     )
     with pytest.raises(ValueError, match='does not have a gate'):
-        MY_GATE_SET.deserialize_op(proto)
+        _my_gate_set().deserialize_op(proto)
 
 
 def test_deserialize_op_bad_operation_proto():
     proto = v2.program_pb2.Circuit()
     with pytest.raises(ValueError, match='Operation proto has unknown type'):
-        MY_GATE_SET.deserialize_op(proto)
+        _my_gate_set().deserialize_op(proto)
 
 
 def test_deserialize_unsupported_gate_type():
@@ -614,13 +677,13 @@ def test_deserialize_unsupported_gate_type():
         }
     )
     with pytest.raises(ValueError, match='no_pow'):
-        MY_GATE_SET.deserialize_op(proto)
+        _my_gate_set().deserialize_op(proto)
 
 
 def test_serialize_op_unsupported_type():
     q0 = cirq.GridQubit(1, 1)
     with pytest.raises(ValueError, match='YPowGate'):
-        MY_GATE_SET.serialize_op(cirq.YPowGate()(q0))
+        _my_gate_set().serialize_op(cirq.YPowGate()(q0))
 
 
 def test_serialize_op_bad_operation():
@@ -634,14 +697,14 @@ def test_serialize_op_bad_operation():
 
     null_op = NullOperation()
     with pytest.raises(ValueError, match='Operation is of an unrecognized type'):
-        MY_GATE_SET.serialize_op(null_op)
+        _my_gate_set().serialize_op(null_op)
 
 
 def test_serialize_op_bad_operation_proto():
     q0 = cirq.GridQubit(1, 1)
     msg = v2.program_pb2.Circuit()
     with pytest.raises(ValueError, match='Operation proto is of an unrecognized type'):
-        MY_GATE_SET.serialize_op(cirq.X(q0), msg)
+        _my_gate_set().serialize_op(cirq.X(q0), msg)
 
 
 def test_deserialize_invalid_gate_set():
@@ -652,11 +715,11 @@ def test_deserialize_invalid_gate_set():
         ),
     )
     with pytest.raises(ValueError, match='not_my_gate_set'):
-        MY_GATE_SET.deserialize(proto)
+        _my_gate_set().deserialize(proto)
 
     proto.language.gate_set = ''
     with pytest.raises(ValueError, match='Missing gate set'):
-        MY_GATE_SET.deserialize(proto)
+        _my_gate_set().deserialize(proto)
 
     proto = v2.program_pb2.Program(
         circuit=v2.program_pb2.Circuit(
@@ -664,7 +727,7 @@ def test_deserialize_invalid_gate_set():
         )
     )
     with pytest.raises(ValueError, match='Missing gate set'):
-        MY_GATE_SET.deserialize(proto)
+        _my_gate_set().deserialize(proto)
 
 
 def test_deserialize_no_operation():
@@ -675,4 +738,4 @@ def test_deserialize_no_operation():
         ),
     )
     with pytest.raises(ValueError, match='operation'):
-        MY_GATE_SET.deserialize(proto)
+        _my_gate_set().deserialize(proto)

@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """Simulator for density matrices that simulates noisy quantum circuits."""
-from typing import Any, Dict, TYPE_CHECKING, Tuple, Union, Sequence, Optional, List
+from typing import Any, Dict, List, Optional, Sequence, Type, TYPE_CHECKING, Tuple, Union
 
 import numpy as np
 
@@ -22,7 +22,6 @@ from cirq.sim import simulator, density_matrix_simulation_state, simulator_base
 
 if TYPE_CHECKING:
     import cirq
-    from numpy.typing import DTypeLike
 
 
 class DensityMatrixSimulator(
@@ -116,7 +115,7 @@ class DensityMatrixSimulator(
     def __init__(
         self,
         *,
-        dtype: 'DTypeLike' = np.complex64,
+        dtype: Type[np.complexfloating] = np.complex64,
         noise: 'cirq.NOISE_MODEL_LIKE' = None,
         seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None,
         split_untangled_states: bool = True,
@@ -250,7 +249,7 @@ class DensityMatrixStepResult(simulator_base.StepResultBase['cirq.DensityMatrixS
         self,
         sim_state: 'cirq.SimulationStateBase[cirq.DensityMatrixSimulationState]',
         simulator: 'cirq.DensityMatrixSimulator' = None,
-        dtype: 'DTypeLike' = np.complex64,
+        dtype: Type[np.complexfloating] = np.complex64,
     ):
         """DensityMatrixStepResult.
 

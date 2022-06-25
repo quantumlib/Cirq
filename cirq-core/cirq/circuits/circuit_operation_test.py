@@ -994,8 +994,10 @@ def test_keys_under_parent_path():
     assert cirq.measurement_key_names(op1) == {'A'}
     op2 = op1.with_key_path(('B',))
     assert cirq.measurement_key_names(op2) == {'B:A'}
-    op3 = op2.repeat(2)
-    assert cirq.measurement_key_names(op3) == {'B:0:A', 'B:1:A'}
+    op3 = cirq.with_key_path_prefix(op2, ('C',))
+    assert cirq.measurement_key_names(op3) == {'C:B:A'}
+    op4 = op3.repeat(2)
+    assert cirq.measurement_key_names(op4) == {'C:B:0:A', 'C:B:1:A'}
 
 
 def test_mapped_circuit_preserves_moments():

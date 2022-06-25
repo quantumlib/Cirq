@@ -60,7 +60,7 @@ def test_with_quilc_parametric_compilation(
 
     param_resolvers: List[Union[cirq.ParamResolver, cirq.ParamDictType]]
     if pass_dict:
-        param_resolvers = [params.param_dict for params in sweepable]
+        param_resolvers = [dict(params.param_dict) for params in sweepable]
     else:
         param_resolvers = [r for r in cirq.to_resolvers(sweepable)]
     expected_results = [

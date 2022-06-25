@@ -66,9 +66,22 @@ class ConvertToXmonGates(cirq.PointOptimizer):
         Returns:
             True if the operation is native to the xmon, false otherwise.
         """
-        from cirq_google.devices import XmonDevice
 
-        return op.gate is not None and XmonDevice.is_supported_gate(op.gate)
+        def _is_native_xmon_op(g):
+            return isinstance(
+                g,
+                (
+                    cirq.CZPowGate,
+                    cirq.XPowGate,
+                    cirq.YPowGate,
+                    cirq.PhasedXPowGate,
+                    cirq.PhasedXZGate,
+                    cirq.MeasurementGate,
+                    cirq.ZPowGate,
+                ),
+            )
+
+        return op.gate is not None and _is_native_xmon_op(op.gate)
 
     def convert(self, op: cirq.Operation) -> List[cirq.Operation]:
         def on_stuck_raise(bad):
