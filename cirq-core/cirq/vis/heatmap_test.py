@@ -334,23 +334,36 @@ def test_plot_updates_local_config():
         random_heatmap.plot(ax)
         assert ax.get_title() == original_title
 
-@pytest.mark.parametrize(
-    'position,size,pad',
-    [
-        ('right', "5%", "2%"),
-    ]
-)
-def test_my_stuff(ax, position, size, pad):
+
+def test_my_stuff(ax):
+    fig, ax = plt.subplots(figsize=(12, 10))
+
+    # edge_colors = tuple('red' if q in selected_qubits else 'grey' for q in qubits)
+    # linestyle = tuple('solid' if q in selected_qubits else 'dashed' for q in qubits)
+    # linewidths = tuple(4 if q in selected_qubits else 2 for q in qubits)
     row_col_list = ((0, 5), (8, 1), (7, 0), (13, 5), (1, 6), (3, 2), (2, 8))
     qubits = [grid_qubit.GridQubit(row, col) for (row, col) in row_col_list]
     values = np.random.random(len(qubits))
-    test_value_map = {(qubit,): value for qubit, value in zip(qubits, values)}
-    random_heatmap = heatmap.Heatmap(test_value_map, plot_colorbar=False)
-    fig1, ax1 = plt.subplots()
-    random_heatmap.plot(ax1)
-    fig2, ax2 = plt.subplots()
-    random_heatmap.plot(
-        ax2, plot_colorbar=True, colorbar_position=position, colorbar_size=size, colorbar_pad=pad
+    test_value_map = {
+        qubit: value for qubit, value in zip(qubits, values)
+    }
+
+    selected_qubits = [grid_qubit.GridQubit(0, 5), grid_qubit.GridQubit(8,1)]
+
+    edge_colors = tuple('red' if q in selected_qubits else 'grey' for q in qubits)
+    linestyle = tuple('solid' if q in selected_qubits else 'dashed' for q in qubits)
+    linewidths = tuple(4 if q in selected_qubits else 2 for q in qubits)
+
+
+    _, collection = heatmap.Heatmap(test_value_map).plot(
+        ax=ax,
+        # selected_qubits = [grid_qubit.GridQubit(0, 5), grid_qubit.GridQubit(8,1)],
+        collection_options={
+            'cmap': 'binary',
+            'linewidths': linewidths,
+            'linestyles': linestyle,
+            'edge_colors': edge_colors,
+        },
+        plot_colorbar=False,
+        annotation_format=None,
     )
-    plt.show()
-    assert(1==2)

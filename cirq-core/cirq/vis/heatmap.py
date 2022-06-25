@@ -117,13 +117,18 @@ class Heatmap:
                 colorbar_pad: str, default = '2%'
                 colorbar_options: Matplotlib colorbar **kwargs, default = None,
 
-                selected_qubits: Optional[  Union[QubitTuple, grid_qubit.GridQubit] ],
-                # edge_colors: Tuple[str], default = None 
-                # linestyle: Tuple[str], default = None 
-                # linewidths: Tuple[int], default = None 
+                selected_qubits: Union[QubitTuple, grid_qubit.GridQubit],
 
+                # I am not sure what the default value for this will be
+                # We can either have None and the tuple case when you have passed soem selected_quibts
+                # Or we can have 'grey' (etc) by default and make it 'red' when having selected_qubits
                 collection_options: Matplotlib PolyCollection **kwargs, default
-                                    {"cmap" : "viridis"}
+                                    {"cmap" : "viridis"
+                                    "edge_colors": Tuple[str], default = None, 
+                                    "linestyle": Tuple[str], default = None, 
+                                    "linewidths": Tuple[int], default = None,
+                                    } 
+}
                 vmin, vmax: colormap scaling floats, default = None
         """
         self._value_map: Mapping[QubitTuple, SupportsFloat] = {
@@ -132,33 +137,18 @@ class Heatmap:
         self._validate_kwargs(kwargs)
         if '_config' not in self.__dict__:
             self._config: Dict[str, Any] = {}
-        # if selected_qubits:
-        #     edge_colors = tuple('red' if q in selected_qubits else 'grey' for q in self.value_map.keys())
-        #     linestyle = tuple('solid' if q in selected_qubits else 'dashed' for q in self.value_map.keys())
-        #     linewidths = tuple(4 if q in selected_qubits else 2 for q in self.value_map.keys())
 
-        #     self._config.update(
-        #         {
-        #             "plot_colorbar": True,
-        #             "colorbar_position": "right",
-        #             "colorbar_size": "5%",
-        #             "colorbar_pad": "2%",
-        #             "edge_colors": f"{edge_colors}",
-        #             "linestyle": f"{linestyle}",
-        #             "linewidths": f"{linewidths}",
-        #             "collection_options": {"cmap": "viridis"},
-        #             "annotation_format": ".2g",
-        #         }
-        #     )
-
-        # else: 
         self._config.update(
             {
                 "plot_colorbar": True,
                 "colorbar_position": "right",
                 "colorbar_size": "5%",
                 "colorbar_pad": "2%",
+                "selected_qubits": "",
                 "collection_options": {"cmap": "viridis"},
+                "edge_colors": None,
+                "linestyle": None,
+                "linewidths": None,
                 "annotation_format": ".2g",
             }
         )
@@ -170,9 +160,9 @@ class Heatmap:
 
     def _validate_kwargs(self, kwargs) -> None:
         valid_colorbar_kwargs = [
+           
             "plot_colorbar",
             "colorbar_position",
-            "edge_colors",
             "colorbar_size",
             "colorbar_pad",
             "colorbar_options",
@@ -180,9 +170,8 @@ class Heatmap:
         valid_collection_kwargs = ["collection_options", "vmin", "vmax"]
         valid_heatmap_kwargs = [
             "title",
+            "selected_qubits",
             "annotation_map",
-            "linestyle",
-            "linewidths"
             "annotation_text_kwargs",
             "annotation_format",
         ]
@@ -305,7 +294,16 @@ class Heatmap:
         # Step-6: Set title
         if self._config.get("title"):
             ax.set_title(self._config["title"], fontweight='bold')
+
+        if self._config.get("selected_qubits"):
+            print("yes")
+            # self._config["collection_options"]["edge_colors"] = tuple('red' if q in self._config["selected_qubits"] else 'grey' for q in self._value_map.keys())
+
+
         return collection
+
+        
+            
 
     def plot(
         self, ax: Optional[plt.Axes] = None, **kwargs: Any
