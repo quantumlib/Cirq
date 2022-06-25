@@ -28,11 +28,11 @@ def _unitaries_allclose(circuit1, circuit2):
         (cirq.ISwapPowGate(exponent=0.5), 1),
         (cirq.ISwapPowGate(exponent=-0.5), 1),
         (cirq.FSimGate(theta=np.pi / 4, phi=0), 1),
-        *[(cirq.SwapPowGate(exponent=a), 13) for a in np.linspace(0, 2 * np.pi, 20)],
-        *[(cirq.CZPowGate(exponent=a), 8) for a in np.linspace(0, 2 * np.pi, 20)],
-        *[(cirq.ISwapPowGate(exponent=a), 5) for a in np.linspace(0, 2 * np.pi, 20)],
-        *[(cirq.CNotPowGate(exponent=a), 9) for a in np.linspace(0, 2 * np.pi, 20)],
-        *[(cirq.FSimGate(theta=a, phi=a), 13) for a in np.linspace(0, 2 * np.pi, 20)],
+        *[(cirq.SwapPowGate(exponent=a), 13) for a in np.linspace(0, 2 * np.pi, 10)],
+        *[(cirq.CZPowGate(exponent=a), 8) for a in np.linspace(0, 2 * np.pi, 10)],
+        *[(cirq.ISwapPowGate(exponent=a), 5) for a in np.linspace(0, 2 * np.pi, 10)],
+        *[(cirq.CNotPowGate(exponent=a), 9) for a in np.linspace(0, 2 * np.pi, 10)],
+        *[(cirq.FSimGate(theta=a, phi=a), 13) for a in np.linspace(0, 2 * np.pi, 10)],
     ],
 )
 def test_two_qubit_gates(gate: cirq.Gate, expected_length: int):
@@ -99,18 +99,16 @@ def test_two_qubit_gates_with_symbols(gate: cirq.Gate, expected_length: int):
     )
 
     # Check if unitaries are the same
-    for val in np.linspace(0, 2 * np.pi, 12):
+    for val in np.linspace(0, 2 * np.pi, 6):
+        resolved_original = cirq.resolve_parameters(original_circuit, {'t': val})
         assert _unitaries_allclose(
-            cirq.resolve_parameters(original_circuit, {'t': val}),
-            cirq.resolve_parameters(converted_circuit, {'t': val}),
+            resolved_original, cirq.resolve_parameters(converted_circuit, {'t': val})
         )
         assert _unitaries_allclose(
-            cirq.resolve_parameters(original_circuit, {'t': val}),
-            cirq.resolve_parameters(converted_circuit_iswap, {'t': val}),
+            resolved_original, cirq.resolve_parameters(converted_circuit_iswap, {'t': val})
         )
         assert _unitaries_allclose(
-            cirq.resolve_parameters(original_circuit, {'t': val}),
-            cirq.resolve_parameters(converted_circuit_iswap_inv, {'t': val}),
+            resolved_original, cirq.resolve_parameters(converted_circuit_iswap_inv, {'t': val})
         )
 
 
@@ -129,7 +127,7 @@ def test_cphase():
 
 def test_givens_rotation():
     """Test if the sqrt_iswap synthesis for a givens rotation is correct"""
-    thetas = np.linspace(0, 2 * np.pi, 100)
+    thetas = np.linspace(0, 2 * np.pi, 10)
     qubits = [cirq.NamedQubit('a'), cirq.NamedQubit('b')]
     for theta in thetas:
         program = cirq.Circuit(cirq.givens(theta).on(qubits[0], qubits[1]))
