@@ -22,6 +22,7 @@ from typing import (
     FrozenSet,
     Iterable,
     Iterator,
+    Mapping,
     overload,
     Optional,
     Sequence,
@@ -229,7 +230,7 @@ class Moment:
             if qubits.isdisjoint(frozenset(operation.qubits))
         )
 
-    def _with_measurement_key_mapping_(self, key_map: Dict[str, str]):
+    def _with_measurement_key_mapping_(self, key_map: Mapping[str, str]):
         return Moment(
             protocols.with_measurement_key_mapping(op, key_map)
             if protocols.measurement_keys_touched(op)

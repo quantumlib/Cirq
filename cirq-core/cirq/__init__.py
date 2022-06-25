@@ -241,6 +241,7 @@ from cirq.ops import (
     InterchangeableQubitsGate,
     ISWAP,
     ISwapPowGate,
+    ISWAP_INV,
     KrausChannel,
     LinearCombinationOfGates,
     LinearCombinationOfOperations,

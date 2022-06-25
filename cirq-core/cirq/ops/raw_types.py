@@ -26,6 +26,7 @@ from typing import (
     Hashable,
     Iterable,
     List,
+    Mapping,
     Optional,
     Sequence,
     Tuple,
@@ -733,7 +734,7 @@ class TaggedOperation(Operation):
     def with_qubits(self, *new_qubits: 'cirq.Qid'):
         return TaggedOperation(self.sub_operation.with_qubits(*new_qubits), *self._tags)
 
-    def _with_measurement_key_mapping_(self, key_map: Dict[str, str]):
+    def _with_measurement_key_mapping_(self, key_map: Mapping[str, str]):
         sub_op = protocols.with_measurement_key_mapping(self.sub_operation, key_map)
         if sub_op is NotImplemented:
             return NotImplemented

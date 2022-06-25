@@ -29,6 +29,7 @@ from typing import (
     AbstractSet,
     Any,
     Callable,
+    Mapping,
     cast,
     Dict,
     FrozenSet,
@@ -944,7 +945,7 @@ class AbstractCircuit(abc.ABC):
     def _measurement_key_names_(self) -> FrozenSet[str]:
         return self.all_measurement_key_names()
 
-    def _with_measurement_key_mapping_(self, key_map: Dict[str, str]):
+    def _with_measurement_key_mapping_(self, key_map: Mapping[str, str]):
         return self._with_sliced_moments(
             [protocols.with_measurement_key_mapping(moment, key_map) for moment in self.moments]
         )
