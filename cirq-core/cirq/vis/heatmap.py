@@ -75,11 +75,11 @@ class Heatmap:
 
     # pylint: disable=function-redefined
     @overload
-    def __init__(self, value_map: Mapping[QubitTuple, SupportsFloat], selected_qubits: Optional[QubitTuple], **kwargs):
+    def __init__(self, value_map: Mapping[QubitTuple, SupportsFloat], **kwargs):
         pass
 
     @overload
-    def __init__(self, value_map: Mapping[grid_qubit.GridQubit, SupportsFloat], selected_qubits: Optional[grid_qubit.GridQubit] , **kwargs):
+    def __init__(self, value_map: Mapping[grid_qubit.GridQubit, SupportsFloat], **kwargs):
         pass
 
     def __init__(
@@ -87,7 +87,6 @@ class Heatmap:
         value_map: Union[
             Mapping[QubitTuple, SupportsFloat], Mapping[grid_qubit.GridQubit, SupportsFloat]
         ],
-        # selected_qubits: Optional[  Union[QubitTuple, grid_qubit.GridQubit] ],
         **kwargs,
     ):
         """2D qubit grid Heatmaps
@@ -117,23 +116,24 @@ class Heatmap:
                 colorbar_pad: str, default = '2%'
                 colorbar_options: Matplotlib colorbar **kwargs, default = None,
 
-                selected_qubits: Union[QubitTuple, grid_qubit.GridQubit],
+                selected_qubits: Union[QubitTuple, grid_qubit.GridQubit], default = None,
+                "edge_colors": Tuple[str], default = None, 
+                "linestyle": Tuple[str], default = None, 
+                "linewidths": Tuple[int], default = None,
 
-                # I am not sure what the default value for this will be
-                # We can either have None and the tuple case when you have passed soem selected_quibts
-                # Or we can have 'grey' (etc) by default and make it 'red' when having selected_qubits
                 collection_options: Matplotlib PolyCollection **kwargs, default
-                                    {"cmap" : "viridis"
-                                    "edge_colors": Tuple[str], default = None, 
-                                    "linestyle": Tuple[str], default = None, 
-                                    "linewidths": Tuple[int], default = None,
-                                    } 
-}
+                                    {"cmap" : "viridis"} 
                 vmin, vmax: colormap scaling floats, default = None
         """
         self._value_map: Mapping[QubitTuple, SupportsFloat] = {
             k if isinstance(k, tuple) else (k,): v for k, v in value_map.items()
         }
+
+        self._grid_qubit_value_map: Mapping[grid_qubit.GridQubit, SupportsFloat] = {
+                     k: v for k, v in value_map.items()
+                    }
+
+
         self._validate_kwargs(kwargs)
         if '_config' not in self.__dict__:
             self._config: Dict[str, Any] = {}
@@ -144,7 +144,7 @@ class Heatmap:
                 "colorbar_position": "right",
                 "colorbar_size": "5%",
                 "colorbar_pad": "2%",
-                "selected_qubits": "",
+                "selected_qubits": None,
                 "collection_options": {"cmap": "viridis"},
                 "edge_colors": None,
                 "linestyle": None,
@@ -171,6 +171,9 @@ class Heatmap:
         valid_heatmap_kwargs = [
             "title",
             "selected_qubits",
+            "edge_colors",
+            "linestyle",
+            "linewidths"
             "annotation_map",
             "annotation_text_kwargs",
             "annotation_format",
@@ -296,8 +299,18 @@ class Heatmap:
             ax.set_title(self._config["title"], fontweight='bold')
 
         if self._config.get("selected_qubits"):
-            print("yes")
-            # self._config["collection_options"]["edge_colors"] = tuple('red' if q in self._config["selected_qubits"] else 'grey' for q in self._value_map.keys())
+            if type(self._config["selected_qubits"][0]) == grid_qubit.GridQubit:
+               
+                self._config["edge_colors"] = tuple('red' if q in self._config["selected_qubits"] else 'grey' for q in list(self._grid_qubit_value_map.keys()))
+                self._config["linestyle"] = tuple('solid' if q in self._config["selected_qubits"] else 'dashed' for q in list(self._grid_qubit_value_map.keys()))
+                self._config["linewidths"] = tuple(4 if q in self._config["selected_qubits"] else 2 for q in list(self._grid_qubit_value_map.keys()))
+
+            else:
+                self._config["edge_colors"] = tuple('red' if q in self._config["selected_qubits"] else 'grey' for q in list(self._value_map.keys()))
+                self._config["linestyle"] = tuple('solid' if q in self._config["selected_qubits"] else 'dashed' for q in list(self._value_map.keys()))
+                self._config["linewidths"] = tuple(4 if q in self._config["selected_qubits"] else 2 for q in list(self._value_map.keys()))
+
+
 
 
         return collection

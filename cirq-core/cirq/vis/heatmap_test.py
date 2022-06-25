@@ -337,33 +337,24 @@ def test_plot_updates_local_config():
 
 def test_my_stuff(ax):
     fig, ax = plt.subplots(figsize=(12, 10))
-
-    # edge_colors = tuple('red' if q in selected_qubits else 'grey' for q in qubits)
-    # linestyle = tuple('solid' if q in selected_qubits else 'dashed' for q in qubits)
-    # linewidths = tuple(4 if q in selected_qubits else 2 for q in qubits)
-    row_col_list = ((0, 5), (8, 1), (7, 0), (13, 5), (1, 6), (3, 2), (2, 8))
+    row_col_list = [(0, 5), (8, 1), (7, 0), (13, 5), (1, 6), (3, 2), (2, 8)]
     qubits = [grid_qubit.GridQubit(row, col) for (row, col) in row_col_list]
     values = np.random.random(len(qubits))
     test_value_map = {
         qubit: value for qubit, value in zip(qubits, values)
     }
+    
 
     selected_qubits = [grid_qubit.GridQubit(0, 5), grid_qubit.GridQubit(8,1)]
-
-    edge_colors = tuple('red' if q in selected_qubits else 'grey' for q in qubits)
-    linestyle = tuple('solid' if q in selected_qubits else 'dashed' for q in qubits)
-    linewidths = tuple(4 if q in selected_qubits else 2 for q in qubits)
 
 
     _, collection = heatmap.Heatmap(test_value_map).plot(
         ax=ax,
-        # selected_qubits = [grid_qubit.GridQubit(0, 5), grid_qubit.GridQubit(8,1)],
         collection_options={
             'cmap': 'binary',
-            'linewidths': linewidths,
-            'linestyles': linestyle,
-            'edge_colors': edge_colors,
         },
+        selected_qubits = [grid_qubit.GridQubit(0, 5), grid_qubit.GridQubit(8,1)],
         plot_colorbar=False,
         annotation_format=None,
     )
+    # assert(1==2)
