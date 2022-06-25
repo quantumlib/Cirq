@@ -87,7 +87,7 @@ class Heatmap:
         value_map: Union[
             Mapping[QubitTuple, SupportsFloat], Mapping[grid_qubit.GridQubit, SupportsFloat]
         ],
-        selected_qubits: Optional[  Union[QubitTuple, grid_qubit.GridQubit] ],
+        # selected_qubits: Optional[  Union[QubitTuple, grid_qubit.GridQubit] ],
         **kwargs,
     ):
         """2D qubit grid Heatmaps
@@ -117,10 +117,10 @@ class Heatmap:
                 colorbar_pad: str, default = '2%'
                 colorbar_options: Matplotlib colorbar **kwargs, default = None,
 
-
-                edge_colors: Tuple[str], default = {'red', 'grey'}
-                linestyle: Tuple[str], default = {'solid', 'dashed'}
-                linewidths: Tuple[int], default = 4
+                selected_qubits: Optional[  Union[QubitTuple, grid_qubit.GridQubit] ],
+                # edge_colors: Tuple[str], default = None 
+                # linestyle: Tuple[str], default = None 
+                # linewidths: Tuple[int], default = None 
 
                 collection_options: Matplotlib PolyCollection **kwargs, default
                                     {"cmap" : "viridis"}
@@ -132,36 +132,36 @@ class Heatmap:
         self._validate_kwargs(kwargs)
         if '_config' not in self.__dict__:
             self._config: Dict[str, Any] = {}
-        if selected_qubits:
-            edge_colors = tuple('red' if q in selected_qubits else 'grey' for q in self.value_map.keys())
-            linestyle = tuple('solid' if q in selected_qubits else 'dashed' for q in self.value_map.keys())
-            linewidths = tuple(4 if q in selected_qubits else 2 for q in self.value_map.keys())
+        # if selected_qubits:
+        #     edge_colors = tuple('red' if q in selected_qubits else 'grey' for q in self.value_map.keys())
+        #     linestyle = tuple('solid' if q in selected_qubits else 'dashed' for q in self.value_map.keys())
+        #     linewidths = tuple(4 if q in selected_qubits else 2 for q in self.value_map.keys())
 
-            self._config.update(
-                {
-                    "plot_colorbar": True,
-                    "colorbar_position": "right",
-                    "colorbar_size": "5%",
-                    "colorbar_pad": "2%",
-                    "edge_colors": f"{edge_colors}",
-                    "linestyle": f"{linestyle}",
-                    "linewidths": f"{linewidths}",
-                    "collection_options": {"cmap": "viridis"},
-                    "annotation_format": ".2g",
-                }
-            )
+        #     self._config.update(
+        #         {
+        #             "plot_colorbar": True,
+        #             "colorbar_position": "right",
+        #             "colorbar_size": "5%",
+        #             "colorbar_pad": "2%",
+        #             "edge_colors": f"{edge_colors}",
+        #             "linestyle": f"{linestyle}",
+        #             "linewidths": f"{linewidths}",
+        #             "collection_options": {"cmap": "viridis"},
+        #             "annotation_format": ".2g",
+        #         }
+        #     )
 
-        else: 
-            self._config.update(
-                {
-                    "plot_colorbar": True,
-                    "colorbar_position": "right",
-                    "colorbar_size": "5%",
-                    "colorbar_pad": "2%",
-                    "collection_options": {"cmap": "viridis"},
-                    "annotation_format": ".2g",
-                }
-            )
+        # else: 
+        self._config.update(
+            {
+                "plot_colorbar": True,
+                "colorbar_position": "right",
+                "colorbar_size": "5%",
+                "colorbar_pad": "2%",
+                "collection_options": {"cmap": "viridis"},
+                "annotation_format": ".2g",
+            }
+        )
 
         self._config.update(kwargs)
 
@@ -172,6 +172,7 @@ class Heatmap:
         valid_colorbar_kwargs = [
             "plot_colorbar",
             "colorbar_position",
+            "edge_colors",
             "colorbar_size",
             "colorbar_pad",
             "colorbar_options",
@@ -180,6 +181,8 @@ class Heatmap:
         valid_heatmap_kwargs = [
             "title",
             "annotation_map",
+            "linestyle",
+            "linewidths"
             "annotation_text_kwargs",
             "annotation_format",
         ]

@@ -333,3 +333,24 @@ def test_plot_updates_local_config():
         _, ax = plt.subplots()
         random_heatmap.plot(ax)
         assert ax.get_title() == original_title
+
+@pytest.mark.parametrize(
+    'position,size,pad',
+    [
+        ('right', "5%", "2%"),
+    ]
+)
+def test_my_stuff(ax, position, size, pad):
+    row_col_list = ((0, 5), (8, 1), (7, 0), (13, 5), (1, 6), (3, 2), (2, 8))
+    qubits = [grid_qubit.GridQubit(row, col) for (row, col) in row_col_list]
+    values = np.random.random(len(qubits))
+    test_value_map = {(qubit,): value for qubit, value in zip(qubits, values)}
+    random_heatmap = heatmap.Heatmap(test_value_map, plot_colorbar=False)
+    fig1, ax1 = plt.subplots()
+    random_heatmap.plot(ax1)
+    fig2, ax2 = plt.subplots()
+    random_heatmap.plot(
+        ax2, plot_colorbar=True, colorbar_position=position, colorbar_size=size, colorbar_pad=pad
+    )
+    plt.show()
+    assert(1==2)
