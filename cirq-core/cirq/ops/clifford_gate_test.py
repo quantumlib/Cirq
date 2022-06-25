@@ -740,13 +740,12 @@ def test_multi_clifford_decompose_by_unitary():
     # Construct a random clifford gate:
     n, num_ops = 5, 20  # because we relied on unitary cannot test large-scale qubits
     gate_candidate = [cirq.X, cirq.Y, cirq.Z, cirq.H, cirq.S, cirq.CNOT, cirq.CZ]
-    for seed in range(10):
-        prng = np.random.RandomState(seed)
+    for _ in range(10):
         qubits = cirq.LineQubit.range(n)
         ops = []
         for _ in range(num_ops):
-            g = prng.randint(len(gate_candidate))
-            indices = (prng.randint(n),) if g < 5 else prng.choice(n, 2, replace=False)
+            g = np.random.randint(len(gate_candidate))
+            indices = (np.random.randint(n),) if g < 5 else np.random.choice(n, 2, replace=False)
             ops.append(gate_candidate[g].on(*[qubits[i] for i in indices]))
         gate = cirq.CliffordGate.from_op_list(ops, qubits)
         decomposed_ops = cirq.decompose(gate.on(*qubits))
