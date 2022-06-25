@@ -18,6 +18,7 @@ import re
 from typing import (
     AbstractSet,
     Any,
+    Mapping,
     cast,
     Collection,
     Dict,
@@ -81,7 +82,7 @@ class GateOperation(raw_types.Operation):
             return self
         return new_gate.on(*self.qubits)
 
-    def _with_measurement_key_mapping_(self, key_map: Dict[str, str]):
+    def _with_measurement_key_mapping_(self, key_map: Mapping[str, str]):
         new_gate = protocols.with_measurement_key_mapping(self.gate, key_map)
         if new_gate is NotImplemented:
             return NotImplemented
@@ -235,7 +236,7 @@ class GateOperation(raw_types.Operation):
             return getter()
         return NotImplemented
 
-    def _measurement_key_names_(self) -> Optional[AbstractSet[str]]:
+    def _measurement_key_names_(self) -> Union[FrozenSet[str], NotImplementedType, None]:
         getter = getattr(self.gate, '_measurement_key_names_', None)
         if getter is not None:
             return getter()
@@ -247,7 +248,9 @@ class GateOperation(raw_types.Operation):
             return getter()
         return NotImplemented
 
-    def _measurement_key_objs_(self) -> Optional[AbstractSet['cirq.MeasurementKey']]:
+    def _measurement_key_objs_(
+        self,
+    ) -> Union[FrozenSet['cirq.MeasurementKey'], NotImplementedType, None]:
         getter = getattr(self.gate, '_measurement_key_objs_', None)
         if getter is not None:
             return getter()

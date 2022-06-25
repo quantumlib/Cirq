@@ -16,13 +16,13 @@
 
 import itertools
 from typing import (
-    AbstractSet,
     Any,
     Callable,
     Dict,
     FrozenSet,
     Iterable,
     Iterator,
+    Mapping,
     overload,
     Optional,
     Sequence,
@@ -233,7 +233,7 @@ class Moment:
             if qubits.isdisjoint(frozenset(operation.qubits))
         )
 
-    def _with_measurement_key_mapping_(self, key_map: Dict[str, str]):
+    def _with_measurement_key_mapping_(self, key_map: Mapping[str, str]):
         return Moment(
             protocols.with_measurement_key_mapping(op, key_map)
             if protocols.measurement_keys_touched(op)
@@ -241,8 +241,8 @@ class Moment:
             for op in self.operations
         )
 
-    def _measurement_key_names_(self) -> AbstractSet[str]:
-        return {str(key) for key in self._measurement_key_objs_()}
+    def _measurement_key_names_(self) -> FrozenSet[str]:
+        return frozenset(str(key) for key in self._measurement_key_objs_())
 
     def _measurement_key_objs_(self) -> FrozenSet['cirq.MeasurementKey']:
         if self._measurement_key_objs is None:

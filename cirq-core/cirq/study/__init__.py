@@ -21,7 +21,12 @@ from cirq.study.flatten_expressions import (
     flatten_with_sweep,
 )
 
-from cirq.study.resolver import ParamDictType, ParamResolver, ParamResolverOrSimilarType
+from cirq.study.resolver import (
+    ParamDictType,
+    ParamMappingType,
+    ParamResolver,
+    ParamResolverOrSimilarType,
+)
 
 from cirq.study.sweepable import Sweepable, to_resolvers, to_sweep, to_sweeps
 
