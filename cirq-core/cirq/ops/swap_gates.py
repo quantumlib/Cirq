@@ -16,6 +16,7 @@
 This module creates Gate instances for the following gates:
     SWAP: the swap gate.
     ISWAP: a swap gate with a phase on the swapped subspace.
+    ISWAP_INV: the inverse of the ISWAP gate.
     SQRT_ISWAP: square root of the ISWAP gate.
     SQRT_ISWAP_INV: inverse square root of the ISWAP gate.
 
@@ -284,6 +285,8 @@ class ISwapPowGate(gate_features.InterchangeableQubitsGate, eigen_gate.EigenGate
     def __str__(self) -> str:
         if self._exponent == 1:
             return 'ISWAP'
+        if self._exponent == -1:
+            return 'ISWAP_INV'
         return f'ISWAP**{self._exponent}'
 
     def __repr__(self) -> str:
@@ -291,6 +294,8 @@ class ISwapPowGate(gate_features.InterchangeableQubitsGate, eigen_gate.EigenGate
         if self._global_shift == 0:
             if self._exponent == 1:
                 return 'cirq.ISWAP'
+            if self._exponent == -1:
+                return 'cirq.ISWAP_INV'
             return f'(cirq.ISWAP**{e})'
         return f'cirq.ISwapPowGate(exponent={e}, global_shift={self._global_shift!r})'
 
@@ -336,6 +341,23 @@ document(
         1 & 0 & 0 & 0 \\
         0 & 0 & i & 0 \\
         0 & i & 0 & 0 \\
+        0 & 0 & 0 & 1
+    \end{bmatrix}
+    $$
+    """,
+)
+
+ISWAP_INV = ISwapPowGate(exponent=-1)
+document(
+    ISWAP_INV,
+    r"""The inverse of the iswap gate.
+
+    The unitary matrix of this gate is:
+    $$
+    \begin{bmatrix}
+        1 & 0 & 0 & 0 \\
+        0 & 0 & -i & 0 \\
+        0 & -i & 0 & 0 \\
         0 & 0 & 0 & 1
     \end{bmatrix}
     $$
