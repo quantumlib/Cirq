@@ -12,7 +12,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Any, Dict, FrozenSet, Iterable, Tuple, Sequence, TYPE_CHECKING, Union, cast
+from typing import (
+    Any,
+    Dict,
+    FrozenSet,
+    Iterable,
+    Mapping,
+    Tuple,
+    Sequence,
+    TYPE_CHECKING,
+    Union,
+    cast,
+)
 
 from cirq import protocols, value
 from cirq.ops import (
@@ -103,7 +114,7 @@ class PauliMeasurementGate(raw_types.Gate):
     ) -> 'PauliMeasurementGate':
         return self.with_key(protocols.with_rescoped_keys(self.mkey, path, bindable_keys))
 
-    def _with_measurement_key_mapping_(self, key_map: Dict[str, str]) -> 'PauliMeasurementGate':
+    def _with_measurement_key_mapping_(self, key_map: Mapping[str, str]) -> 'PauliMeasurementGate':
         return self.with_key(protocols.with_measurement_key_mapping(self.mkey, key_map))
 
     def with_observable(

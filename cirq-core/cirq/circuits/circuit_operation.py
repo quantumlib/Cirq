@@ -322,7 +322,7 @@ class CircuitOperation(ops.Operation):
             key.with_key_path_prefix(*self.parent_path) for key in circuit_keys
         )
         return frozenset(
-            protocols.with_measurement_key_mapping(key, dict(self.measurement_key_map))
+            protocols.with_measurement_key_mapping(key, self.measurement_key_map)
             for key in circuit_keys
         )
 
@@ -368,9 +368,7 @@ class CircuitOperation(ops.Operation):
         if isinstance(self.repetitions, INT_CLASSES) and self.repetitions < 0:
             circuit = circuit**-1
         if self.measurement_key_map:
-            circuit = protocols.with_measurement_key_mapping(
-                circuit, dict(self.measurement_key_map)
-            )
+            circuit = protocols.with_measurement_key_mapping(circuit, self.measurement_key_map)
         if self.param_resolver:
             circuit = protocols.resolve_parameters(circuit, self.param_resolver, recursive=False)
         return circuit.unfreeze(copy=False)
