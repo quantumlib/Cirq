@@ -273,7 +273,7 @@ def test_two_qubit_gates_with_symbols(gate: cirq.Gate):
         )  # type: ignore
     )
     # Check if unitaries are the same
-    for val in np.linspace(0, 2 * np.pi, 12):
+    for val in np.linspace(0, 2 * np.pi, 6):
         cirq.testing.assert_allclose_up_to_global_phase(
             cirq.unitary(cirq.resolve_parameters(op, {'t': val})),
             cirq.unitary(cirq.resolve_parameters(c_new_sqrt_iswap, {'t': val})),
