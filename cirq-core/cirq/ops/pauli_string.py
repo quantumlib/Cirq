@@ -107,6 +107,49 @@ document(
 
 @value.value_equality(approximate=True, manual_cls=True)
 class PauliString(raw_types.Operation, Generic[TKey]):
+    """Represents a multi-qubit pauli operator or pauli observable.
+
+    `cirq.PauliString` represents a multi-qubit pauli operator, i.e.
+    a tensor product of single qubit (non identity) pauli operations,
+    each acting on a different qubit. For  example,
+
+    - X(0) * Y(1) * Z(2): Represents a pauli string which is a tensor product of
+                          `cirq.X(q0)`, `cirq.Y(q1)` and `cirq.Z(q2)`.
+
+    `cirq.PauliString` is often used to represent:
+    - Pauli operators: Can be inserted into circuits as multi qubit operations.
+    - Pauli observables: Can be measured using either `cirq.measure_single_paulistring`/
+                        `cirq.measure_paulistring_terms`; or using the observable
+                        measurement framework in `cirq.measure_observables`.
+
+    PauliStrings can be constructed via various different ways, some examples are
+    given as follows:
+
+        >>> a, b, c = cirq.LineQubit.range(3)
+
+        >>> print(cirq.PauliString([cirq.X(a), cirq.X(a)]))
+        I
+
+        >>> print(cirq.PauliString(-1, cirq.X(a), cirq.Y(b), cirq.Z(c)))
+        -X(0)*Y(1)*Z(2)
+
+        >>> -1 * cirq.X(a) * cirq.Y(b) * cirq.Z(c)
+        -X(0) * Y(1) * Z(2)
+
+        >>> print(cirq.PauliString({a: cirq.X}, [-2, 3, cirq.Y(a)]))
+        -6j*Z(0)
+
+        >>> print(cirq.PauliString({a: cirq.I, b: cirq.X}))
+        X(1)
+
+        >>> print(cirq.PauliString({a: cirq.Y},
+        ...                        qubit_pauli_map={a: cirq.X}))
+        1j*Z(0)
+
+    Note that `cirq.PauliString`s are immutable objects. If you need a mutable version
+    of pauli strings, see `cirq.MutablePauliString`.
+    """
+
     def __init__(
         self,
         *contents: 'cirq.PAULI_STRING_LIKE',
@@ -114,46 +157,6 @@ class PauliString(raw_types.Operation, Generic[TKey]):
         coefficient: 'cirq.TParamValComplex' = 1,
     ):
         """Initializes a new `PauliString` operation.
-
-        `cirq.PauliString` represents a multi-qubit pauli operator, i.e.
-        a tensor product of single qubit (non identity) pauli operations,
-        each acting on a different qubit. For  example,
-
-        - X(0) * Y(1) * Z(2): Represents a pauli string which is a tensor product of
-                              `cirq.X(q0)`, `cirq.Y(q1)` and `cirq.Z(q2)`.
-
-        `cirq.PauliString` is often used to represent:
-        - Pauli operators: Can be inserted into circuits as multi qubit operations.
-        - Pauli observables: Can be measured using either `cirq.measure_single_paulistring`/
-                            `cirq.measure_paulistring_terms`; or using the observable
-                            measurement framework in `cirq.measure_observables`.
-
-        PauliStrings can be constructed via various different ways, some examples are
-        given as follows:
-
-            >>> a, b, c = cirq.LineQubit.range(3)
-
-            >>> print(cirq.PauliString([cirq.X(a), cirq.X(a)]))
-            I
-
-            >>> print(cirq.PauliString(-1, cirq.X(a), cirq.Y(b), cirq.Z(c)))
-            -X(0)*Y(1)*Z(2)
-
-            >>> -1 * cirq.X(a) * cirq.Y(b) * cirq.Z(c)
-            -X(0) * Y(1) * Z(2)
-
-            >>> print(cirq.PauliString({a: cirq.X}, [-2, 3, cirq.Y(a)]))
-            -6j*Z(0)
-
-            >>> print(cirq.PauliString({a: cirq.I, b: cirq.X}))
-            X(1)
-
-            >>> print(cirq.PauliString({a: cirq.Y},
-            ...                        qubit_pauli_map={a: cirq.X}))
-            1j*Z(0)
-
-        Note that `cirq.PauliString`s are immutable objects. If you need a mutable version
-        of pauli strings, see `cirq.MutablePauliString`.
 
         Args:
             *contents: A value or values to convert into a pauli string. This
@@ -224,14 +227,14 @@ class PauliString(raw_types.Operation, Generic[TKey]):
 
     # pylint: disable=function-redefined
     @overload
-    def get(self, key: Any, default: None = None) -> pauli_gates.Pauli:
+    def get(self, key: Any, default: None = None) -> Optional[pauli_gates.Pauli]:
         pass
 
     @overload
     def get(self, key: Any, default: TDefault) -> Union[pauli_gates.Pauli, TDefault]:
         pass
 
-    def get(self, key: Any, default=None):
+    def get(self, key: Any, default: TDefault = None) -> Union[pauli_gates.Pauli, TDefault, None]:
         """Returns the `cirq.Pauli` operation acting on qubit `key` or `default` if none exists."""
         return self._qubit_pauli_map.get(key, default)
 
@@ -1162,6 +1165,17 @@ class SingleQubitPauliStringGateOperation(  # type: ignore
 
 @value.value_equality(unhashable=True, manual_cls=True, approximate=True)
 class MutablePauliString(Generic[TKey]):
+    """Mutable version of `cirq.PauliString`, used mainly for efficiently mutating pauli strings.
+
+    `cirq.MutablePauliString` is a mutable version of `cirq.PauliString`, which is often
+    useful for mutating pauli strings efficiently instead of always creating a copy. Note
+    that, unlike `cirq.PauliString`, `MutablePauliString` is not a `cirq.Operation`.
+
+    It exists mainly to help mutate pauli strings efficiently and then convert back to a
+    frozen `cirq.PauliString` representation, which can then be used as operators or
+    observables.
+    """
+
     def __init__(
         self,
         *contents: 'cirq.PAULI_STRING_LIKE',
@@ -1169,14 +1183,6 @@ class MutablePauliString(Generic[TKey]):
         pauli_int_dict: Optional[Dict[TKey, int]] = None,
     ):
         """Initializes a new `MutablePauliString`.
-
-        `cirq.MutablePauliString` is a mutable version of `cirq.PauliString`, which is often
-        useful for mutating pauli strings efficiently instead of always creating a copy. Note
-        that, unlike `cirq.PauliString`, `MutablePauliString` is not a `cirq.Operation`.
-
-        It exists mainly to help mutate pauli strings efficiently and then convert back to a
-        frozen `cirq.PauliString` representation, which can then be used as operators or
-        observables.
 
         Args:
             *contents: A value or values to convert into a pauli string. This
@@ -1231,7 +1237,7 @@ class MutablePauliString(Generic[TKey]):
     def values(self) -> Iterator['cirq.Pauli']:
         """Ordered sequence of `cirq.Pauli` gates acting on `self.keys()`."""
         for v in self.pauli_int_dict.values():
-            yield cast(pauli_gates.Pauli, _INT_TO_PAULI[v])
+            yield _INT_TO_PAULI[v - 1]
 
     def __iter__(self) -> Iterator[TKey]:
         return iter(self.pauli_int_dict)
@@ -1250,11 +1256,7 @@ class MutablePauliString(Generic[TKey]):
         """
         return PauliString(
             coefficient=self.coefficient,
-            qubit_pauli_map={
-                q: cast(pauli_gates.Pauli, _INT_TO_PAULI[p])
-                for q, p in self.pauli_int_dict.items()
-                if p
-            },
+            qubit_pauli_map={q: _INT_TO_PAULI[p - 1] for q, p in self.pauli_int_dict.items() if p},
         )
 
     def mutable_copy(self) -> 'cirq.MutablePauliString':
@@ -1266,13 +1268,13 @@ class MutablePauliString(Generic[TKey]):
     def items(self) -> Iterator[Tuple[TKey, 'cirq.Pauli']]:
         """Returns (cirq.Qid, cirq.Pauli) pairs representing 1-qubit operations of pauli string."""
         for k, v in self.pauli_int_dict.items():
-            yield k, cast(pauli_gates.Pauli, _INT_TO_PAULI[v])
+            yield k, _INT_TO_PAULI[v - 1]
 
     def __contains__(self, item: Any) -> bool:
         return item in self.pauli_int_dict
 
     def __getitem__(self, item: Any) -> 'cirq.Pauli':
-        return cast(pauli_gates.Pauli, _INT_TO_PAULI[self.pauli_int_dict[item]])
+        return _INT_TO_PAULI[self.pauli_int_dict[item] - 1]
 
     def __setitem__(self, key: TKey, value: 'cirq.PAULI_GATE_LIKE'):
         value = _pauli_like_to_pauli_int(key, value)
@@ -1286,21 +1288,17 @@ class MutablePauliString(Generic[TKey]):
 
     # pylint: disable=function-redefined
     @overload
-    def get(
-        self, key: TKey, default: None = None
-    ) -> Union['cirq.Pauli', 'cirq.IdentityGate', None]:
+    def get(self, key: TKey, default: None = None) -> Union['cirq.Pauli', None]:
         pass
 
     @overload
-    def get(
-        self, key: TKey, default: TDefault
-    ) -> Union['cirq.Pauli', 'cirq.IdentityGate', TDefault]:
+    def get(self, key: TKey, default: TDefault) -> Union['cirq.Pauli', TDefault]:
         pass
 
-    def get(self, key: TKey, default=None):
+    def get(self, key: TKey, default=None) -> Union['cirq.Pauli', TDefault, None]:
         """Returns the `cirq.Pauli` operation acting on qubit `key` or `default` if none exists."""
         result = self.pauli_int_dict.get(key, None)
-        return default if result is None else _INT_TO_PAULI[result]
+        return default if result is None else _INT_TO_PAULI[result - 1]
 
     # pylint: enable=function-redefined
     def inplace_before(self, ops: 'cirq.OP_TREE') -> 'cirq.MutablePauliString':
@@ -1345,7 +1343,7 @@ class MutablePauliString(Generic[TKey]):
                 gate = op.gate
 
                 if isinstance(gate, clifford_gate.SingleQubitCliffordGate):
-                    out = gate.pauli_tuple(cast(pauli_gates.Pauli, _INT_TO_PAULI[ps[0]]))
+                    out = gate.pauli_tuple(_INT_TO_PAULI[ps[0] - 1])
                     if out[1]:
                         self.coefficient *= -1
                     self.pauli_int_dict[cast(TKey, op.qubits[0])] = PAULI_GATE_LIKE_TO_INDEX_MAP[
@@ -1354,8 +1352,8 @@ class MutablePauliString(Generic[TKey]):
 
                 elif isinstance(gate, pauli_interaction_gate.PauliInteractionGate):
                     q0, q1 = op.qubits
-                    p0 = _INT_TO_PAULI[ps[0]]
-                    p1 = _INT_TO_PAULI[ps[1]]
+                    p0 = _INT_TO_PAULI_OR_IDENTITY[ps[0]]
+                    p1 = _INT_TO_PAULI_OR_IDENTITY[ps[1]]
 
                     # Kick across Paulis that anti-commute with the controls.
                     kickback_0_to_1 = not protocols.commutes(p0, gate.pauli0)
@@ -1676,11 +1674,13 @@ PAULI_GATE_LIKE_TO_INDEX_MAP: Dict['cirq.PAULI_GATE_LIKE', int] = {
     3: 3,
 }
 
-_INT_TO_PAULI: List[Union['cirq.Pauli', 'cirq.IdentityGate']] = [_i, _x, _y, _z]
+_INT_TO_PAULI_OR_IDENTITY: List[Union['cirq.Pauli', 'cirq.IdentityGate']] = [_i, _x, _y, _z]
+_INT_TO_PAULI: List['cirq.Pauli'] = [_x, _y, _z]
+
 
 PAULI_GATE_LIKE_TO_GATE_MAP: Dict[
     'cirq.PAULI_GATE_LIKE', Union['cirq.Pauli', 'cirq.IdentityGate']
-] = {k: _INT_TO_PAULI[v] for k, v in PAULI_GATE_LIKE_TO_INDEX_MAP.items()}
+] = {k: _INT_TO_PAULI_OR_IDENTITY[v] for k, v in PAULI_GATE_LIKE_TO_INDEX_MAP.items()}
 
 
 def _pauli_like_to_pauli_int(key: Any, pauli_gate_like: PAULI_GATE_LIKE):
