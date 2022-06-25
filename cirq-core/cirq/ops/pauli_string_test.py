@@ -1496,7 +1496,7 @@ def test_conjugated_by_common_two_qubit_gates():
         cirq.CNOT,
         cirq.CZ,
         cirq.ISWAP,
-        cirq.ISWAP**-1,
+        cirq.ISWAP_INV,
         cirq.SWAP,
         cirq.XX**0.5,
         cirq.YY**0.5,
