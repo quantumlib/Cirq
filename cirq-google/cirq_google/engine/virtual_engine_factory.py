@@ -180,7 +180,7 @@ def _create_virtual_processor_from_device(
         processor_id=processor_id,
         device=device,
         validator=engine_validator.create_engine_validator(),
-        gate_set_validator=engine_validator.create_gate_set_validator(),
+        program_validator=engine_validator.create_program_validator(),
         calibrations={calibration.timestamp // 1000: calibration},
     )
 
