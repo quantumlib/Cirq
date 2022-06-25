@@ -58,7 +58,7 @@ TCls = TypeVar('TCls', bound='BaseDensePauliString')
 
 @value.value_equality(approximate=True, distinct_child_types=True)
 class BaseDensePauliString(raw_types.Gate, metaclass=abc.ABCMeta):
-    """Parent class for `DensePauliString` and `MutableDensePauliString`."""
+    """Parent class for `cirq.DensePauliString` and `cirq.MutableDensePauliString`."""
 
     I_VAL = 0
     X_VAL = 1

@@ -113,9 +113,24 @@ class PauliString(raw_types.Operation, Generic[TKey]):
         qubit_pauli_map: Optional[Dict[TKey, 'cirq.Pauli']] = None,
         coefficient: 'cirq.TParamValComplex' = 1,
     ):
-        """Initializes a new PauliString.
+        """Initializes a new `PauliString` operation.
 
-        Examples:
+        `cirq.PauliString` represents a multi-qubit pauli operator, i.e.
+        a tensor product of single qubit (non identity) pauli operations,
+        each acting on a different qubit. For  example,
+
+        - X(0) * Y(1) * Z(2): Represents a pauli string which is a tensor product of
+                              `cirq.X(q0)`, `cirq.Y(q1)` and `cirq.Z(q2)`.
+
+        `cirq.PauliString` is often used to represent:
+        - Pauli operators: Can be inserted into circuits as multi qubit operations.
+        - Pauli observables: Can be measured using either `cirq.measure_single_paulistring`/
+                            `cirq.measure_paulistring_terms`; or using the observable
+                            measurement framework in `cirq.measure_observables`.
+
+        PauliStrings can be constructed via various different ways, some examples are
+        given as follows:
+
             >>> a, b, c = cirq.LineQubit.range(3)
 
             >>> print(cirq.PauliString([cirq.X(a), cirq.X(a)]))
@@ -123,6 +138,9 @@ class PauliString(raw_types.Operation, Generic[TKey]):
 
             >>> print(cirq.PauliString(-1, cirq.X(a), cirq.Y(b), cirq.Z(c)))
             -X(0)*Y(1)*Z(2)
+
+            >>> -1 * cirq.X(a) * cirq.Y(b) * cirq.Z(c)
+            -X(0) * Y(1) * Z(2)
 
             >>> print(cirq.PauliString({a: cirq.X}, [-2, 3, cirq.Y(a)]))
             -6j*Z(0)
@@ -133,6 +151,9 @@ class PauliString(raw_types.Operation, Generic[TKey]):
             >>> print(cirq.PauliString({a: cirq.Y},
             ...                        qubit_pauli_map={a: cirq.X}))
             1j*Z(0)
+
+        Note that `cirq.PauliString`s are immutable objects. If you need a mutable version
+        of pauli strings, see `cirq.MutablePauliString`.
 
         Args:
             *contents: A value or values to convert into a pauli string. This
@@ -168,6 +189,7 @@ class PauliString(raw_types.Operation, Generic[TKey]):
 
     @property
     def coefficient(self) -> 'cirq.TParamValComplex':
+        """A scalar coefficient or symbol."""
         return self._coefficient
 
     def _value_equality_values_(self):
@@ -194,6 +216,7 @@ class PauliString(raw_types.Operation, Generic[TKey]):
         return PauliString
 
     def equal_up_to_coefficient(self, other: 'cirq.PauliString') -> bool:
+        """Returns true of `self` and `other` are equal pauli strings, ignoring the coefficient."""
         return self._qubit_pauli_map == other._qubit_pauli_map
 
     def __getitem__(self, key: TKey) -> pauli_gates.Pauli:
@@ -209,6 +232,7 @@ class PauliString(raw_types.Operation, Generic[TKey]):
         pass
 
     def get(self, key: Any, default=None):
+        """Returns the `cirq.Pauli` operation acting on qubit `key` or `default` if none exists."""
         return self._qubit_pauli_map.get(key, default)
 
     @overload
@@ -257,6 +281,7 @@ class PauliString(raw_types.Operation, Generic[TKey]):
 
     @property
     def gate(self) -> 'cirq.DensePauliString':
+        """Returns a `cirq.DensePauliString`"""
         order: List[Optional[pauli_gates.Pauli]] = [
             None,
             pauli_gates.X,
@@ -318,10 +343,12 @@ class PauliString(raw_types.Operation, Generic[TKey]):
         ]
 
     def keys(self) -> KeysView[TKey]:
+        """Returns the sequence of qubits on which this pauli string acts."""
         return self._qubit_pauli_map.keys()
 
     @property
     def qubits(self) -> Tuple[TKey, ...]:
+        """Returns a tuple of qubits on which this pauli string acts."""
         return tuple(self.keys())
 
     def _circuit_diagram_info_(self, args: 'cirq.CircuitDiagramInfoArgs') -> List[str]:
@@ -346,26 +373,45 @@ class PauliString(raw_types.Operation, Generic[TKey]):
         return symbols
 
     def with_qubits(self, *new_qubits: 'cirq.Qid') -> 'PauliString':
+        """Returns a new `PauliString` with `self.qubits` mapped to `new_qubits`.
+
+        Args:
+            new_qubits: The new qubits to replace `self.qubits` by.
+
+        Returns:
+            `PauliString` with mapped qubits.
+
+        Raises:
+            ValueError: If `len(new_qubits) != len(self.qubits)`.
+        """
+        if len(new_qubits) != len(self.qubits):
+            raise ValueError(
+                f'Number of new qubits: {len(new_qubits)} does not match '
+                f'self.qubits: {len(self.qubits)}.'
+            )
         return PauliString(
             qubit_pauli_map=dict(zip(new_qubits, (self[q] for q in self.qubits))),
             coefficient=self._coefficient,
         )
 
     def with_coefficient(self, new_coefficient: 'cirq.TParamValComplex') -> 'PauliString':
+        """Returns a new `PauliString` with `self.coefficient` replaced with `new_coefficient`."""
         return PauliString(qubit_pauli_map=dict(self._qubit_pauli_map), coefficient=new_coefficient)
 
     def values(self) -> ValuesView[pauli_gates.Pauli]:
+        """Ordered sequence of `cirq.Pauli` gates acting on `self.keys()`."""
         return self._qubit_pauli_map.values()
 
     def items(self) -> ItemsView[TKey, pauli_gates.Pauli]:
+        """Returns (cirq.Qid, cirq.Pauli) pairs representing 1-qubit operations of pauli string."""
         return self._qubit_pauli_map.items()
 
     def frozen(self) -> 'cirq.PauliString':
-        """Returns a cirq.PauliString with the same contents."""
+        """Returns a `cirq.PauliString` with the same contents."""
         return self
 
     def mutable_copy(self) -> 'cirq.MutablePauliString':
-        """Returns a new cirq.MutablePauliString with the same contents."""
+        """Returns a new `cirq.MutablePauliString` with the same contents."""
         return MutablePauliString(
             coefficient=self.coefficient,
             pauli_int_dict={
@@ -433,8 +479,8 @@ class PauliString(raw_types.Operation, Generic[TKey]):
         Args:
             qubits: Ordered collection of qubits that determine the subspace
                 in which the matrix representation of the Pauli string is to
-                be computed. Qubits absent from self.qubits are acted on by
-                the identity. Defaults to self.qubits.
+                be computed. Qubits absent from `self.qubits` are acted on by
+                the identity. Defaults to `self.qubits`.
         """
         qubits = self.qubits if qubits is None else qubits
         factors = [self.get(q, default=identity.I) for q in qubits]
@@ -678,6 +724,18 @@ class PauliString(raw_types.Operation, Generic[TKey]):
     def zip_items(
         self, other: 'cirq.PauliString[TKey]'
     ) -> Iterator[Tuple[TKey, Tuple[pauli_gates.Pauli, pauli_gates.Pauli]]]:
+        """Combines pauli operations from pauli strings in a qubit-by-qubit fashion.
+
+        For every qubit that has a `cirq.Pauli` operation acting on it in both `self` and `other`,
+        the method yields a tuple corresponding to `(qubit, (pauli_in_self, pauli_in_other))`.
+
+        Args:
+            other: The other `cirq.PauliString` to zip pauli operations with.
+
+        Returns:
+            A sequence of `(qubit, (pauli_in_self, pauli_in_other))` tuples for every `qubit`
+            that has a `cirq.Pauli` operation acting on it in both `self` and `other.
+        """
         for qubit, pauli0 in self.items():
             if qubit in other:
                 yield qubit, (pauli0, other[qubit])
@@ -685,6 +743,18 @@ class PauliString(raw_types.Operation, Generic[TKey]):
     def zip_paulis(
         self, other: 'cirq.PauliString'
     ) -> Iterator[Tuple[pauli_gates.Pauli, pauli_gates.Pauli]]:
+        """Combines pauli operations from pauli strings in a qubit-by-qubit fashion.
+
+        For every qubit that has a `cirq.Pauli` operation acting on it in both `self` and `other`,
+        the method yields a tuple corresponding to `(pauli_in_self, pauli_in_other)`.
+
+        Args:
+            other: The other `cirq.PauliString` to zip pauli operations with.
+
+        Returns:
+            A sequence of `(pauli_in_self, pauli_in_other)` tuples for every `qubit`
+            that has a `cirq.Pauli` operation acting on it in both `self` and `other.
+        """
         return (paulis for qubit, paulis in self.zip_items(other))
 
     def _commutes_(
@@ -774,11 +844,27 @@ class PauliString(raw_types.Operation, Generic[TKey]):
         return NotImplemented
 
     def map_qubits(self, qubit_map: Dict[TKey, TKeyNew]) -> 'cirq.PauliString[TKeyNew]':
+        """Replaces every qubit `q` in `self.qubits` with `qubit_map[q]`.
+
+        Args:
+            qubit_map: A map from qubits in the pauli string to new qubits.
+
+        Returns:
+            A new `PauliString` with remapped qubits.
+
+        Raises:
+            ValueError: If the map does not contain an entry for all qubits in the pauli string.
+        """
+        if not set(self.qubits) <= qubit_map.keys():
+            raise ValueError(
+                "qubit_map must have a key for every qubit in the pauli strings' qubits. "
+                f"keys: {qubit_map.keys()} pauli string qubits: {self.qubits}"
+            )
         new_qubit_pauli_map = {qubit_map[qubit]: pauli for qubit, pauli in self.items()}
         return PauliString(qubit_pauli_map=new_qubit_pauli_map, coefficient=self._coefficient)
 
     def to_z_basis_ops(self) -> Iterator[raw_types.Operation]:
-        """Returns operations to convert the qubits to the computational basis."""
+        """Returns single qubit operations to convert the qubits to the computational basis."""
         for qubit, pauli in self.items():
             yield clifford_gate.SingleQubitCliffordGate.from_single_map(
                 {pauli: (pauli_gates.Z, False)}
@@ -1017,9 +1103,9 @@ def _validate_qubit_mapping(
 class SingleQubitPauliStringGateOperation(  # type: ignore
     gate_operation.GateOperation, PauliString
 ):
-    """A Pauli operation applied to a qubit.
+    """An operation to represent single qubit pauli gates applied to a qubit.
 
-    Satisfies the contract of both GateOperation and PauliString. Relies
+    Satisfies the contract of both `cirq.GateOperation` and `cirq.PauliString`. Relies
     implicitly on the fact that PauliString({q: X}) compares as equal to
     GateOperation(X, [q]).
     """
@@ -1082,9 +1168,41 @@ class MutablePauliString(Generic[TKey]):
         coefficient: 'cirq.TParamValComplex' = 1,
         pauli_int_dict: Optional[Dict[TKey, int]] = None,
     ):
+        """Initializes a new `MutablePauliString`.
+
+        `cirq.MutablePauliString` is a mutable version of `cirq.PauliString`, which is often
+        useful for mutating pauli strings efficiently instead of always creating a copy. Note
+        that, unlike `cirq.PauliString`, `MutablePauliString` is not a `cirq.Operation`.
+
+        It exists mainly to help mutate pauli strings efficiently and then convert back to a
+        frozen `cirq.PauliString` representation, which can then be used as operators or
+        observables.
+
+        Args:
+            *contents: A value or values to convert into a pauli string. This
+                can be a number, a pauli operation, a dictionary from qubit to
+                pauli/identity gates, or collections thereof. If a list of
+                values is given, they are each individually converted and then
+                multiplied from left to right in order.
+            coefficient: Initial scalar coefficient or symbol. Defaults to 1.
+            pauli_int_dict: Initial dictionary mapping qubits to integers corresponding
+                to pauli operations. Defaults to the empty dictionary. Note that, unlike
+                dictionaries passed to contents, this dictionary must not contain values
+                corresponding to identity gates; i.e. all integer values must be between
+                [1, 3]. Further note that this argument specifies values that are logically
+                *before* factors specified in `contents`; `contents` are *right* multiplied
+                onto the values in this dictionary.
+
+        Raises:
+            ValueError: If the `pauli_int_dict` has integer values `v` not satisfying `1 <= v <= 3`.
+        """
         self.coefficient: Union[sympy.Expr, 'cirq.TParamValComplex'] = (
             coefficient if isinstance(coefficient, sympy.Expr) else complex(coefficient)
         )
+        if pauli_int_dict is not None:
+            for v in pauli_int_dict.values():
+                if not 1 <= v <= 3:
+                    raise ValueError(f"Value {v} of pauli_int_dict must be between 1 and 3.")
         self.pauli_int_dict: Dict[TKey, int] = {} if pauli_int_dict is None else pauli_int_dict
         if contents:
             self.inplace_left_multiply_by(contents)
@@ -1107,11 +1225,13 @@ class MutablePauliString(Generic[TKey]):
         return -sign
 
     def keys(self) -> AbstractSet[TKey]:
+        """Returns the sequence of qubits on which this pauli string acts."""
         return self.pauli_int_dict.keys()
 
-    def values(self) -> Iterator[Union['cirq.Pauli', 'cirq.IdentityGate']]:
+    def values(self) -> Iterator['cirq.Pauli']:
+        """Ordered sequence of `cirq.Pauli` gates acting on `self.keys()`."""
         for v in self.pauli_int_dict.values():
-            yield _INT_TO_PAULI[v]
+            yield cast(pauli_gates.Pauli, _INT_TO_PAULI[v])
 
     def __iter__(self) -> Iterator[TKey]:
         return iter(self.pauli_int_dict)
@@ -1123,10 +1243,10 @@ class MutablePauliString(Generic[TKey]):
         return bool(self.pauli_int_dict)
 
     def frozen(self) -> 'cirq.PauliString':
-        """Returns a cirq.PauliString with the same contents.
+        """Returns a `cirq.PauliString` with the same contents.
 
-        For example, this is useful because cirq.PauliString is an operation
-        whereas cirq.MutablePauliString is not.
+        For example, this is useful because `cirq.PauliString` is an operation
+        whereas `cirq.MutablePauliString` is not.
         """
         return PauliString(
             coefficient=self.coefficient,
@@ -1138,20 +1258,21 @@ class MutablePauliString(Generic[TKey]):
         )
 
     def mutable_copy(self) -> 'cirq.MutablePauliString':
-        """Returns a new cirq.MutablePauliString with the same contents."""
+        """Returns a new `cirq.MutablePauliString` with the same contents."""
         return MutablePauliString(
             coefficient=self.coefficient, pauli_int_dict=dict(self.pauli_int_dict)
         )
 
-    def items(self) -> Iterator[Tuple[TKey, Union['cirq.Pauli', 'cirq.IdentityGate']]]:
+    def items(self) -> Iterator[Tuple[TKey, 'cirq.Pauli']]:
+        """Returns (cirq.Qid, cirq.Pauli) pairs representing 1-qubit operations of pauli string."""
         for k, v in self.pauli_int_dict.items():
-            yield k, _INT_TO_PAULI[v]
+            yield k, cast(pauli_gates.Pauli, _INT_TO_PAULI[v])
 
     def __contains__(self, item: Any) -> bool:
         return item in self.pauli_int_dict
 
-    def __getitem__(self, item: Any) -> Union['cirq.Pauli', 'cirq.IdentityGate']:
-        return _INT_TO_PAULI[self.pauli_int_dict[item]]
+    def __getitem__(self, item: Any) -> 'cirq.Pauli':
+        return cast(pauli_gates.Pauli, _INT_TO_PAULI[self.pauli_int_dict[item]])
 
     def __setitem__(self, key: TKey, value: 'cirq.PAULI_GATE_LIKE'):
         value = _pauli_like_to_pauli_int(key, value)
@@ -1177,6 +1298,7 @@ class MutablePauliString(Generic[TKey]):
         pass
 
     def get(self, key: TKey, default=None):
+        """Returns the `cirq.Pauli` operation acting on qubit `key` or `default` if none exists."""
         result = self.pauli_int_dict.get(key, None)
         return default if result is None else _INT_TO_PAULI[result]
 
@@ -1364,7 +1486,7 @@ class MutablePauliString(Generic[TKey]):
     def transform_qubits(
         self, func: Callable[[TKey], TKeyNew], *, inplace: bool = False
     ) -> 'cirq.MutablePauliString[TKeyNew]':
-        """Returns a mutable pauli string with transformed qubits.
+        """Returns a `MutablePauliString` with transformed qubits.
 
         Args:
             func: The qubit transformation to apply.
