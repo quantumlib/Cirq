@@ -298,20 +298,17 @@ class Heatmap:
         if self._config.get("title"):
             ax.set_title(self._config["title"], fontweight='bold')
 
+        # Step-7: Highlight selected qubits
         if self._config.get("selected_qubits"):
             if type(self._config["selected_qubits"][0]) == grid_qubit.GridQubit:
                
-                self._config["edge_colors"] = tuple('red' if q in self._config["selected_qubits"] else 'grey' for q in list(self._grid_qubit_value_map.keys()))
-                self._config["linestyle"] = tuple('solid' if q in self._config["selected_qubits"] else 'dashed' for q in list(self._grid_qubit_value_map.keys()))
-                self._config["linewidths"] = tuple(4 if q in self._config["selected_qubits"] else 2 for q in list(self._grid_qubit_value_map.keys()))
-
+                self._config["collection_options"]["edge_colors"] = tuple('red' if q in self._config["selected_qubits"] else 'grey' for q in list(self._grid_qubit_value_map.keys()))
+                self._config["collection_options"]["linestyle"] = tuple('solid' if q in self._config["selected_qubits"] else 'dashed' for q in list(self._grid_qubit_value_map.keys()))
+                self._config["collection_options"]["linewidths"] = tuple(4 if q in self._config["selected_qubits"] else 2 for q in list(self._grid_qubit_value_map.keys()))
             else:
-                self._config["edge_colors"] = tuple('red' if q in self._config["selected_qubits"] else 'grey' for q in list(self._value_map.keys()))
-                self._config["linestyle"] = tuple('solid' if q in self._config["selected_qubits"] else 'dashed' for q in list(self._value_map.keys()))
-                self._config["linewidths"] = tuple(4 if q in self._config["selected_qubits"] else 2 for q in list(self._value_map.keys()))
-
-
-
+                self._config["collection_options"]["edge_colors"] = tuple('red' if q in self._config["selected_qubits"] else 'grey' for q in list(self._value_map.keys()))
+                self._config["collection_options"]["linestyle"] = tuple('solid' if q in self._config["selected_qubits"] else 'dashed' for q in list(self._value_map.keys()))
+                self._config["collection_options"]["linewidths"] = tuple(4 if q in self._config["selected_qubits"] else 2 for q in list(self._value_map.keys()))
 
         return collection
 

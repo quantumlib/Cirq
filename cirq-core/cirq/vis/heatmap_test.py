@@ -16,13 +16,13 @@
 import pathlib
 import string
 from tempfile import mkdtemp
+import cirq
 
 import numpy as np
 import pytest
 
 import matplotlib as mpl
 import matplotlib.pyplot as plt
-
 from cirq.devices import grid_qubit
 from cirq.vis import heatmap
 
@@ -335,7 +335,16 @@ def test_plot_updates_local_config():
         assert ax.get_title() == original_title
 
 
-def test_my_stuff(ax):
+#The best test is to see that the values inside plot() have indeed been overwritten (for those 3 keys)
+#and confirm them with the expected values they would have (red, gray, dashed, etc.)
+#Since we would get 3 tuples, I wont test the exact position of thoese words/numbers, 
+# but rather make sure that the expected ammout of 'red' and 'gray' ('dashed' and 'solid', 4 and 2) contents are there, equal to the length of selected_qubits
+#not sure how that would be done but I am worried I might have to Mock some stuff
+
+#The other test would be to see if I dont have selected_qubits 
+# the default behavious is unchanged
+
+def test_selected_qubits(ax):
     fig, ax = plt.subplots(figsize=(12, 10))
     row_col_list = [(0, 5), (8, 1), (7, 0), (13, 5), (1, 6), (3, 2), (2, 8)]
     qubits = [grid_qubit.GridQubit(row, col) for (row, col) in row_col_list]
@@ -343,18 +352,32 @@ def test_my_stuff(ax):
     test_value_map = {
         qubit: value for qubit, value in zip(qubits, values)
     }
-    
 
-    selected_qubits = [grid_qubit.GridQubit(0, 5), grid_qubit.GridQubit(8,1)]
+    test_selected_qubits = [grid_qubit.GridQubit(0, 5), grid_qubit.GridQubit(8,1)]
+
+    _, random_heatmap = heatmap.Heatmap(test_value_map, selected_qubits = test_selected_qubits ).plot(ax)
+    # _, mesh = random_heatmap.plot(ax)
+
+    print(random_heatmap.format_cursor_data("collection_options"))    
+    # Do it manually and compare it to our new functionality
+    # print(random_heatmap)
+    edge_colors = tuple('red' if q in test_selected_qubits else 'grey' for q in list(test_value_map.keys()))
+    linestyle = tuple('solid' if q in test_selected_qubits else 'dashed' for q in list(test_value_map.keys()))
+    linewidths = tuple(4 if q in test_selected_qubits else 2 for q in list(test_value_map.keys()))
 
 
-    _, collection = heatmap.Heatmap(test_value_map).plot(
+    random_heatmap_2 = heatmap.Heatmap(test_value_map ).plot(
         ax=ax,
         collection_options={
-            'cmap': 'binary',
+        'cmap': 'binary',
+        'linewidths': linewidths,
+        'edgecolors': edge_colors,
+        'linestyles': linestyle,
         },
-        selected_qubits = [grid_qubit.GridQubit(0, 5), grid_qubit.GridQubit(8,1)],
-        plot_colorbar=False,
-        annotation_format=None,
     )
-    # assert(1==2)
+    print(random_heatmap_2)
+    # assert random_heatmap._plot_on_axis(ax) == random_heatmap_2._plot_on_axis(ax)
+    
+    
+
+    assert(1==2)
