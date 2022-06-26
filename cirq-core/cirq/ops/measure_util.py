@@ -45,12 +45,16 @@ def measure_single_paulistring(
         An operation measuring the pauli observable.
 
     Raises:
-        ValueError: if the observable is not an instance of PauliString.
+        ValueError: if the observable is not an instance of PauliString or if the coefficient
+            is not +1.
     """
     if not isinstance(pauli_observable, pauli_string.PauliString):
         raise ValueError(
             f'Pauli observable {pauli_observable} should be an instance of cirq.PauliString.'
         )
+    if pauli_observable.coefficient != 1:
+        raise ValueError(f"Pauli observable {pauli_observable} must have a coefficient of +1.")
+
     if key is None:
         key = _default_measurement_key(pauli_observable)
     return PauliMeasurementGate(pauli_observable.values(), key).on(*pauli_observable.keys())
