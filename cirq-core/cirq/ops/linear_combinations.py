@@ -368,9 +368,61 @@ class PauliSum:
     Under the hood, this class is backed by a LinearDict with coefficient-less
     PauliStrings as keys. PauliStrings are reconstructed on-the-fly during
     iteration.
+
+    PauliSums can be constructed explicitly:
+
+
+    >>> a, b = cirq.GridQubit.rect(1, 2)
+    >>> sum = cirq.PauliSum()
+
+
+    or implicitly:
+
+
+    >>> a, b = cirq.GridQubit.rect(1, 2)
+    >>> psum = cirq.X(a) * cirq.X(b) + 3.0 * cirq.Y(a)
+    >>> psum
+    cirq.PauliSum(
+        cirq.LinearDict({
+            frozenset({
+                (cirq.GridQubit(0, 0), cirq.X), (cirq.GridQubit(0, 1), cirq.X)}): (1+0j),
+            frozenset({
+                (cirq.GridQubit(0, 0), cirq.Y)}): (3+0j)}
+        )
+    )
+
+
+    basic arithmetic and expectation operations are supported as well:
+
+
+    >>> a, b = cirq.GridQubit.rect(1, 2)
+    >>> psum = cirq.X(a) * cirq.X(b) + 3.0 * cirq.Y(a)
+    >>> two_psum = 2 * psum
+    >>> four_psum = two_psum + two_psum
+    >>> expectation = four_psum.expectation_from_state_vector(
+    ...     np.array([0.707106, 0, 0, 0.707106], dtype=complex),
+    ...     qubit_map={a: 0, b: 1}
+    ... )
+    >>> expectation
+    4.0
+
+
     """
 
     def __init__(self, linear_dict: Optional[value.LinearDict[UnitPauliStringT]] = None):
+        """Construct a PauliSum from a linear dictionary.
+
+        Note, the preferred method of constructing PauliSum objects is either implicitly
+        or via the `from_pauli_strings` function.
+
+        Args:
+            linear_dict: Set of  (`cirq.Qid`, `cirq.Pauli`) tuples to construct the sum
+                from.
+
+        Raises:
+            ValueError: If structure of `linear_dict` contains tuples other than the
+                form (`cirq.Qid`, `cirq.Pauli`).
+        """
         if linear_dict is None:
             linear_dict = value.LinearDict()
         if not _is_linear_dict_of_unit_pauli_string(linear_dict):
@@ -388,6 +440,16 @@ class PauliSum:
     def wrap(val: PauliSumLike) -> 'PauliSum':
         """Convert a `cirq.PauliSumLike` object to a PauliSum
 
+        Attemps to convert an existing int, float, complex, `cirq.PauliString`,
+        `cirq.PauliSum` or `cirq.SingleQubitPauliStringGateOperation` into
+        a `cirq.PauliSum` object. For example:
+
+
+        >>> my_psum = cirq.PauliSum.wrap(2.345)
+        >>> my_psum
+        cirq.PauliSum(cirq.LinearDict({frozenset(): (2.345+0j)}))
+
+
         Args:
             `cirq.PauliSumLike` to convert to PauliSum.
 
@@ -400,7 +462,7 @@ class PauliSum:
 
     @classmethod
     def from_pauli_strings(cls, terms: Union[PauliString, List[PauliString]]) -> 'PauliSum':
-        """Returns a PauliSum by combining PauliString terms.
+        """Returns a PauliSum by combining `cirq.PauliString` terms.
 
         Args:
             terms: `cirq.PauliString` or List of `cirq.PauliString`s to use inside
@@ -431,7 +493,7 @@ class PauliSum:
             qubit_map: map of string (boolean variable name) to qubit.
 
         Return:
-            The PauliString that represents the Boolean expression.
+            The PauliSum that represents the Boolean expression.
 
         Raises:
             ValueError: If `boolean_expr` is of an unsupported type.
@@ -472,6 +534,7 @@ class PauliSum:
 
     @property
     def qubits(self) -> Tuple[raw_types.Qid, ...]:
+        """The sorted list of qubits used in this PauliSum."""
         qs = {q for k in self._linear_dict.keys() for q, _ in k}
         return tuple(sorted(qs))
 
@@ -487,8 +550,7 @@ class PauliSum:
                 qubits.
 
         Raises:
-            ValueError: If incorrect number of replacement qubits
-                are provided.
+            ValueError: If len(new_qubits) != len(self.qubits).
 
         """
         qubits = self.qubits
@@ -509,12 +571,12 @@ class PauliSum:
         return factory(self._linear_dict.copy())
 
     def matrix(self, qubits: Optional[Iterable[raw_types.Qid]] = None) -> np.ndarray:
-        """Get the matrix representing this PauliSum.
+        """Returns the matrix of this PauliSum in computational basis of qubits.
 
         Args:
-            qubits: Iterable of qubits, specifying ordering to use
-                in the returned matrix. If none is provided
-                the default ordering of `self.qubits` is used.
+            qubits: Iterable of qubits, ordering to determine the computational
+                basis of qubits. If none is provided the default ordering of
+                `self.qubits` is used.
 
         Returns:
             np.ndarray representing the matrix of this PauliSum expression.
