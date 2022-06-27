@@ -13,7 +13,7 @@
 # limitations under the License.
 import datetime
 
-from typing import Callable, Dict, Iterable, List, Optional, Sequence, TYPE_CHECKING, Union
+from typing import Dict, Iterable, List, Optional, Sequence, TYPE_CHECKING, Union
 
 import cirq
 
@@ -27,6 +27,7 @@ from cirq_google.engine.simulated_local_job import SimulatedLocalJob
 from cirq_google.engine.simulated_local_program import SimulatedLocalProgram
 from cirq_google.serialization.circuit_serializer import CIRCUIT_SERIALIZER
 from cirq_google.engine.processor_sampler import ProcessorSampler
+from cirq_google.engine import engine_validator
 
 if TYPE_CHECKING:
     import cirq_google as cg
@@ -35,10 +36,6 @@ if TYPE_CHECKING:
 VALID_LANGUAGES = [
     'type.googleapis.com/cirq.google.api.v2.Program',
     'type.googleapis.com/cirq.google.api.v2.BatchProgram',
-]
-
-GATE_SET_VALIDATOR_TYPE = Callable[
-    [Sequence[cirq.AbstractCircuit], Sequence[cirq.Sweepable], int, 'Serializer'], None,
 ]
 
 
@@ -97,7 +94,7 @@ class SimulatedLocalProcessor(AbstractLocalProcessor):
         sampler: cirq.Sampler = cirq.Simulator(),
         device: cirq.Device = cirq.UNCONSTRAINED_DEVICE,
         validator: validating_sampler.VALIDATOR_TYPE = None,
-        gate_set_validator: GATE_SET_VALIDATOR_TYPE = None,
+        program_validator: engine_validator.PROGRAM_VALIDATOR_TYPE = None,
         simulation_type: LocalSimulationType = LocalSimulationType.SYNCHRONOUS,
         calibrations: Optional[Dict[int, calibration.Calibration]] = None,
         **kwargs,
@@ -106,7 +103,7 @@ class SimulatedLocalProcessor(AbstractLocalProcessor):
         self._calibrations = calibrations or {}
         self._device = device
         self._simulation_type = simulation_type
-        self._gate_set_validator = gate_set_validator or (lambda a, b, c, d: None)
+        self._program_validator = program_validator or (lambda a, b, c, d: None)
         self._validator = validator
         self._sampler = validating_sampler.ValidatingSampler(
             device=self._device, validator=self._validator, sampler=sampler
@@ -217,7 +214,7 @@ class SimulatedLocalProcessor(AbstractLocalProcessor):
             program_id = self._create_id(id_type='program')
         if job_id is None:
             job_id = self._create_id(id_type='job')
-        self._gate_set_validator(programs, params_list or [{}], repetitions, CIRCUIT_SERIALIZER)
+        self._program_validator(programs, params_list or [{}], repetitions, CIRCUIT_SERIALIZER)
         self._programs[program_id] = SimulatedLocalProgram(
             program_id=program_id,
             simulation_type=self._simulation_type,
@@ -300,7 +297,7 @@ class SimulatedLocalProcessor(AbstractLocalProcessor):
             program_id = self._create_id(id_type='program')
         if job_id is None:
             job_id = self._create_id(id_type='job')
-        self._gate_set_validator([program], [params], repetitions, CIRCUIT_SERIALIZER)
+        self._program_validator([program], [params], repetitions, CIRCUIT_SERIALIZER)
         self._programs[program_id] = SimulatedLocalProgram(
             program_id=program_id,
             simulation_type=self._simulation_type,
