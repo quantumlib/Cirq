@@ -116,6 +116,20 @@ class PauliString(raw_types.Operation, Generic[TKey]):
     - X(0) * Y(1) * Z(2): Represents a pauli string which is a tensor product of
                           `cirq.X(q0)`, `cirq.Y(q1)` and `cirq.Z(q2)`.
 
+    If more than one pauli operation acts on the same set of qubits, their composition is
+    immediately reduced to an equivalent (possibly multi-qubit) Pauli operator. Also, identity
+    operations are dropped by the `PauliString` class. For example:
+
+    >>> a, b = cirq.LineQubit.range(2)
+    >>> print(cirq.X(a) * cirq.Y(b)) # Tensor product of Pauli's acting on different qubits.
+    X(q(0))*Y(q(1))
+    >>> print(cirq.X(a) * cirq.Y(a)) # Composition is reduced to an equivalent PauliString.
+    1j*Z(q(0))
+    >>> print(cirq.X(a) * cirq.I(b)) # Identity operations are dropped by default.
+    X(q(0))
+    >>> print(cirq.PauliString()) # String representation of an "empty" PaulString is "I".
+    I
+
     `cirq.PauliString` is often used to represent:
     - Pauli operators: Can be inserted into circuits as multi qubit operations.
     - Pauli observables: Can be measured using either `cirq.measure_single_paulistring`/
