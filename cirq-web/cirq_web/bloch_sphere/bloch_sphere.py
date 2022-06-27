@@ -11,15 +11,13 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import cirq
 
 from cirq_web import widget
 
-from cirq.qis.states import bloch_vector_from_state_vector
-from cirq.qis.states import STATE_VECTOR_LIKE
-
 
 class BlochSphere(widget.Widget):
-    def __init__(self, sphere_radius: int = 5, state_vector: STATE_VECTOR_LIKE = None):
+    def __init__(self, sphere_radius: int = 5, state_vector: cirq.STATE_VECTOR_LIKE = None):
         """Initializes a BlochSphere.
 
         Also initializes it's parent class Widget with the bundle file provided.
@@ -40,7 +38,10 @@ class BlochSphere(widget.Widget):
 
         if state_vector is None:
             raise ValueError('No state vector given in BlochSphere initialization')
-        self.bloch_vector = bloch_vector_from_state_vector(state_vector, 0)
+
+        self.bloch_vector = cirq.bloch_vector_from_state_vector(
+            cirq.to_valid_state_vector(state_vector, num_qubits=1), 0
+        )
 
     def get_client_code(self) -> str:
         return f"""

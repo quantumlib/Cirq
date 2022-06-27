@@ -79,7 +79,7 @@ def _to_clifford_tableau(
     clifford_tableau.xs[1, 0] = z_to[0] in (pauli_gates.X, pauli_gates.Y)
     clifford_tableau.zs[1, 0] = z_to[0] in (pauli_gates.Y, pauli_gates.Z)
 
-    clifford_tableau.rs = (x_to[1], z_to[1])
+    clifford_tableau.rs = np.array([x_to[1], z_to[1]])
     return clifford_tableau
 
 
@@ -237,8 +237,8 @@ class CommonCliffordGateMetaClass(value.ABCMetaImplementAnyOneOf):
     def CNOT(cls) -> 'cirq.CliffordGate':
         if not hasattr(cls, '_CNOT'):
             t = qis.CliffordTableau(num_qubits=2)
-            t.xs = [[1, 1], [0, 1], [0, 0], [0, 0]]
-            t.zs = [[0, 0], [0, 0], [1, 0], [1, 1]]
+            t.xs = np.array([[1, 1], [0, 1], [0, 0], [0, 0]])
+            t.zs = np.array([[0, 0], [0, 0], [1, 0], [1, 1]])
             cls._CNOT = CliffordGate.from_clifford_tableau(t)
         return cls._CNOT
 
@@ -246,8 +246,8 @@ class CommonCliffordGateMetaClass(value.ABCMetaImplementAnyOneOf):
     def CZ(cls) -> 'cirq.CliffordGate':
         if not hasattr(cls, '_CZ'):
             t = qis.CliffordTableau(num_qubits=2)
-            t.xs = [[1, 0], [0, 1], [0, 0], [0, 0]]
-            t.zs = [[0, 1], [1, 0], [1, 0], [0, 1]]
+            t.xs = np.array([[1, 0], [0, 1], [0, 0], [0, 0]])
+            t.zs = np.array([[0, 1], [1, 0], [1, 0], [0, 1]])
             cls._CZ = CliffordGate.from_clifford_tableau(t)
         return cls._CZ
 
@@ -255,8 +255,8 @@ class CommonCliffordGateMetaClass(value.ABCMetaImplementAnyOneOf):
     def SWAP(cls) -> 'cirq.CliffordGate':
         if not hasattr(cls, '_SWAP'):
             t = qis.CliffordTableau(num_qubits=2)
-            t.xs = [[0, 1], [1, 0], [0, 0], [0, 0]]
-            t.zs = [[0, 0], [0, 0], [0, 1], [1, 0]]
+            t.xs = np.array([[0, 1], [1, 0], [0, 0], [0, 0]])
+            t.zs = np.array([[0, 0], [0, 0], [0, 1], [1, 0]])
             cls._SWAP = CliffordGate.from_clifford_tableau(t)
         return cls._SWAP
 

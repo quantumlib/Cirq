@@ -50,7 +50,8 @@ REPETITION_ID_SEPARATOR = '-'
 
 def default_repetition_ids(repetitions: IntParam) -> Optional[List[str]]:
     if isinstance(repetitions, INT_CLASSES) and abs(repetitions) != 1:
-        return [str(i) for i in range(abs(repetitions))]
+        abs_repetitions: int = abs(int(repetitions))
+        return [str(i) for i in range(abs_repetitions)]
     return None
 
 
