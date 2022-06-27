@@ -57,6 +57,16 @@ def closefigures():
     plt.close('all')
 
 
+@pytest.fixture
+def restore_random_state():
+    stock_rng_state = random.getstate()
+    numpy_rng_state = None if numpy is None else numpy.random.get_state()
+    yield
+    random.setstate(stock_rng_state)
+    if numpy_rng_state is not None:
+        numpy.random.set_state(numpy_rng_state)
+
+
 # skip seeding for unset or empty CIRQ_TESTING_RANDOM_SEED
 if numpy is not None and os.environ.get('CIRQ_TESTING_RANDOM_SEED'):
     rngseed = int(os.environ['CIRQ_TESTING_RANDOM_SEED'])
