@@ -14,11 +14,10 @@
 import numbers
 from typing import List
 
+import cirq
 import numpy as np
 import pytest
 import sympy
-
-import cirq
 from cirq.ops.dense_pauli_string import _vectorized_pauli_mul_phase
 
 
@@ -172,8 +171,8 @@ def test_mul():
     assert m('X') * m('Z') == -1j * m('Y')
     assert isinstance(f('') * f(''), f)
     assert isinstance(m('') * m(''), m)
-    with pytest.raises(TypeError):
-        _ = m('') * f('')
+    assert isinstance(m('') * f(''), m)
+    assert isinstance(f('') * m(''), m)
 
     # Different lengths.
     assert f('I') * f('III') == f('III')
@@ -490,18 +489,15 @@ def test_tensor_product():
     m = cirq.MutableDensePauliString
     assert (2 * f('XX')).tensor_product(-f('XI')) == -2 * f('XXXI')
     assert m('XX', coefficient=2).tensor_product(m('XI', coefficient=-1)) == -2 * m('XXXI')
-    with pytest.raises(TypeError):
-        assert m('XX', coefficient=2).tensor_product(-f('XI')) == -2 * f('XXXI')
+    assert m('XX', coefficient=2).tensor_product(-f('XI')) == -2 * m('XXXI')
 
 
 def test_commutes():
     f = cirq.DensePauliString
     m = cirq.MutableDensePauliString
 
-    with pytest.raises(TypeError):
-        assert cirq.commutes(f('XX'), m('ZZ'))
-    with pytest.raises(TypeError):
-        assert cirq.commutes(2 * f('XX'), m('ZZ', coefficient=3))
+    assert cirq.commutes(f('XX'), m('ZZ'))
+    assert cirq.commutes(2 * f('XX'), m('ZZ', coefficient=3))
     assert cirq.commutes(2 * f('IX'), 3 * f('IX'))
     assert not cirq.commutes(f('IX'), f('IZ'))
     assert cirq.commutes(f('IIIXII'), cirq.X(cirq.LineQubit(3)))

@@ -17,6 +17,7 @@
 import abc
 import functools
 from typing import (
+    TYPE_CHECKING,
     AbstractSet,
     Any,
     Callable,
@@ -31,13 +32,11 @@ from typing import (
     Sequence,
     Tuple,
     TypeVar,
-    TYPE_CHECKING,
     Union,
 )
 
 import numpy as np
 import sympy
-
 from cirq import protocols, value
 from cirq._import import LazyLoader
 from cirq.type_workarounds import NotImplementedType
@@ -307,19 +306,19 @@ class Gate(metaclass=value.ABCMetaImplementAnyOneOf):
             return self.wrap_in_linear_combination() - other.wrap_in_linear_combination()
         return self.wrap_in_linear_combination() - other
 
-    def __neg__(self) -> Union['Gate', 'cirq.LinearCombinationOfGates']:
+    def __neg__(self):
         return self.wrap_in_linear_combination(coefficient=-1)
 
-    def __mul__(self, other: Union[complex, float, int]) -> 'cirq.LinearCombinationOfGates':
+    def __mul__(self, other: Union[complex, float, int]):
         return self.wrap_in_linear_combination(coefficient=other)
 
-    def __rmul__(self, other: Union[complex, float, int]) -> 'cirq.LinearCombinationOfGates':
+    def __rmul__(self, other: Union[complex, float, int]):
         return self.wrap_in_linear_combination(coefficient=other)
 
-    def __truediv__(self, other: Union[complex, float, int]) -> 'cirq.LinearCombinationOfGates':
+    def __truediv__(self, other: Union[complex, float, int]):
         return self.wrap_in_linear_combination(coefficient=1 / other)
 
-    def __pow__(self, power: Union[float, int, sympy.Basic]) -> Union['Gate', NotImplementedType]:
+    def __pow__(self, power) -> Union['Gate', NotImplementedType]:
         if power == 1:
             return self
 
@@ -931,7 +930,7 @@ class _InverseCompositeGate(Gate):
         return protocols.inverse(protocols.decompose_once_with_qubits(self._original, qubits))
 
     def _has_unitary_(self):
-        from cirq import protocols, devices
+        from cirq import devices, protocols
 
         qubits = devices.LineQid.for_gate(self)
         return all(

@@ -19,8 +19,7 @@ from typing import List, Optional, Tuple, cast
 
 import numpy as np
 import sympy
-
-from cirq import ops, linalg, protocols
+from cirq import linalg, ops, protocols
 from cirq.linalg.tolerance import near_zero_mod
 
 
@@ -111,7 +110,7 @@ def single_qubit_matrix_to_gates(mat: np.ndarray, tolerance: float = 0) -> List[
             operation.
     """
     rotations = single_qubit_matrix_to_pauli_rotations(mat, tolerance)
-    return [cast(ops.SingleQubitGate, pauli ** ht) for pauli, ht in rotations]
+    return [cast(ops.SingleQubitGate, pauli**ht) for pauli, ht in rotations]
 
 
 def single_qubit_op_to_framed_phase_form(mat: np.ndarray) -> Tuple[np.ndarray, complex, complex]:
