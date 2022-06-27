@@ -28,7 +28,10 @@ from cirq_google.api import v2
 
 
 def _single_qubit_gate_set():
-    with cirq.testing.assert_deprecated('SerializableGateSet', deadline='v0.16', count=None):
+    # Deprecations: cirq_google.SerializableGateSet and common serializers.
+    with cirq.testing.assert_deprecated(
+        'SerializableGateSet', 'CircuitSerializer', deadline='v0.16', count=5
+    ):
         return cg.SerializableGateSet(
             gate_set_name='test_half_pi',
             serializers=([cgc.MEASUREMENT_SERIALIZER] + cgc.SINGLE_QUBIT_SERIALIZERS),
@@ -37,7 +40,10 @@ def _single_qubit_gate_set():
 
 
 def _half_pi_gate_set():
-    with cirq.testing.assert_deprecated('SerializableGateSet', deadline='v0.16', count=None):
+    # Deprecations: cirq_google.SerializableGateSet and common serializers.
+    with cirq.testing.assert_deprecated(
+        'SerializableGateSet', 'CircuitSerializer', deadline='v0.16', count=5
+    ):
         return cg.SerializableGateSet(
             gate_set_name='test_half_pi',
             serializers=([cgc.MEASUREMENT_SERIALIZER] + cgc.SINGLE_QUBIT_HALF_PI_SERIALIZERS),
@@ -422,7 +428,10 @@ def assert_phys_z_tag(phys_z, op):
 )
 @pytest.mark.parametrize('phys_z', [False, True])
 def test_serialize_deserialize_cz_gate(gate, exponent, phys_z):
-    with cirq.testing.assert_deprecated('SerializableGateSet', deadline='v0.16', count=None):
+    # Deprecations: cirq_google.SerializableGateSet and common serializers.
+    with cirq.testing.assert_deprecated(
+        'SerializableGateSet', 'CircuitSerializer', deadline='v0.16', count=3
+    ):
         gate_set = cg.SerializableGateSet('test', [cgc.CZ_SERIALIZER], [cgc.CZ_POW_DESERIALIZER])
         proto = op_proto(
             {
@@ -449,7 +458,10 @@ def test_serialize_deserialize_cz_gate(gate, exponent, phys_z):
 
 
 def test_cz_pow_non_integer_does_not_serialize():
-    with cirq.testing.assert_deprecated('SerializableGateSet', deadline='v0.16', count=None):
+    # Deprecations: cirq_google.SerializableGateSet and common serializers.
+    with cirq.testing.assert_deprecated(
+        'SerializableGateSet', 'CircuitSerializer', deadline='v0.16', count=3
+    ):
         gate_set = cg.SerializableGateSet('test', [cgc.CZ_SERIALIZER], [cgc.CZ_POW_DESERIALIZER])
         q1 = cirq.GridQubit(5, 4)
         q2 = cirq.GridQubit(5, 5)
@@ -458,7 +470,10 @@ def test_cz_pow_non_integer_does_not_serialize():
 
 
 def test_coupler_pulse():
-    with cirq.testing.assert_deprecated('SerializableGateSet', deadline='v0.16', count=None):
+    # Deprecations: cirq_google.SerializableGateSet and common serializers.
+    with cirq.testing.assert_deprecated(
+        'SerializableGateSet', 'CircuitSerializer', deadline='v0.16', count=3
+    ):
         gate_set = cg.SerializableGateSet(
             'test', [cgc.COUPLER_PULSE_SERIALIZER], [cgc.COUPLER_PULSE_DESERIALIZER]
         )
@@ -487,7 +502,10 @@ def test_coupler_pulse():
 
 
 def test_wait_gate():
-    with cirq.testing.assert_deprecated('SerializableGateSet', deadline='v0.16', count=None):
+    # Deprecations: cirq_google.SerializableGateSet and common serializers.
+    with cirq.testing.assert_deprecated(
+        'SerializableGateSet', 'CircuitSerializer', deadline='v0.16', count=3
+    ):
         gate_set = cg.SerializableGateSet(
             'test', [cgc.WAIT_GATE_SERIALIZER], [cgc.WAIT_GATE_DESERIALIZER]
         )
@@ -505,7 +523,10 @@ def test_wait_gate():
 
 
 def test_wait_gate_multi_qubit():
-    with cirq.testing.assert_deprecated('SerializableGateSet', deadline='v0.16', count=1):
+    # Deprecations: cirq_google.SerializableGateSet and common serializers.
+    with cirq.testing.assert_deprecated(
+        'SerializableGateSet', 'CircuitSerializer', deadline='v0.16', count=3
+    ):
         gate_set = cg.SerializableGateSet(
             'test', [cgc.WAIT_GATE_SERIALIZER], [cgc.WAIT_GATE_DESERIALIZER]
         )
@@ -552,7 +573,10 @@ def test_wait_gate_multi_qubit():
 )
 @pytest.mark.parametrize('phys_z', [False, True])
 def test_serialize_deserialize_fsim_gate(gate, theta, phi, phys_z):
-    with cirq.testing.assert_deprecated('SerializableGateSet', deadline='v0.16', count=None):
+    # Deprecations: cirq_google.SerializableGateSet and common serializers.
+    with cirq.testing.assert_deprecated(
+        'SerializableGateSet', 'CircuitSerializer', deadline='v0.16', count=3
+    ):
         gate_set = cg.SerializableGateSet(
             'test', cgc.LIMITED_FSIM_SERIALIZERS, [cgc.LIMITED_FSIM_DESERIALIZER]
         )
@@ -598,7 +622,10 @@ def test_serialize_deserialize_fsim_gate(gate, theta, phi, phys_z):
 )
 @pytest.mark.parametrize('phys_z', [False, True])
 def test_serialize_deserialize_fsim_gate_symbols(gate, theta, phi, phys_z):
-    with cirq.testing.assert_deprecated('SerializableGateSet', deadline='v0.16', count=None):
+    # Deprecations: cirq_google.SerializableGateSet and common serializers.
+    with cirq.testing.assert_deprecated(
+        'SerializableGateSet', 'CircuitSerializer', deadline='v0.16', count=3
+    ):
         gate_set = cg.SerializableGateSet(
             'test', cgc.LIMITED_FSIM_SERIALIZERS, [cgc.LIMITED_FSIM_DESERIALIZER]
         )
@@ -623,7 +650,10 @@ def test_serialize_deserialize_fsim_gate_symbols(gate, theta, phi, phys_z):
 
 @pytest.mark.parametrize('phys_z', [False, True])
 def test_serialize_deserialize_iswap_symbols(phys_z):
-    with cirq.testing.assert_deprecated('SerializableGateSet', deadline='v0.16', count=None):
+    # Deprecations: cirq_google.SerializableGateSet and common serializers.
+    with cirq.testing.assert_deprecated(
+        'SerializableGateSet', 'CircuitSerializer', deadline='v0.16', count=3
+    ):
         gate_set = cg.SerializableGateSet(
             'test', cgc.LIMITED_FSIM_SERIALIZERS, [cgc.LIMITED_FSIM_DESERIALIZER]
         )
@@ -651,7 +681,10 @@ def test_serialize_deserialize_iswap_symbols(phys_z):
     ],
 )
 def test_fsim_gate_not_allowed(gate):
-    with cirq.testing.assert_deprecated('SerializableGateSet', deadline='v0.16', count=None):
+    # Deprecations: cirq_google.SerializableGateSet and common serializers.
+    with cirq.testing.assert_deprecated(
+        'SerializableGateSet', 'CircuitSerializer', deadline='v0.16', count=3
+    ):
         q1 = cirq.GridQubit(5, 4)
         q2 = cirq.GridQubit(5, 5)
         gate_set = cg.SerializableGateSet(
