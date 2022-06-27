@@ -85,15 +85,6 @@ def _key_to_str(key: TMeasurementKey) -> str:
 class Result(abc.ABC):
     """The results of multiple executions of a circuit with fixed parameters."""
 
-    # def __new__(cls, *args, **kwargs):
-    #     if cls is Result:
-    #         _warn_or_error(
-    #             "Result constructor is deprecated and will be removed in cirq v0.15. "
-    #             "Use the ResultDict constructor instead, or another concrete subclass."
-    #         )
-    #         return ResultDict(*args, **kwargs)
-    #     return super().__new__(cls)
-
     @property
     @abc.abstractmethod
     def params(self) -> 'cirq.ParamResolver':
