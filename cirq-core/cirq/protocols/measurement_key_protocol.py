@@ -13,7 +13,7 @@
 # limitations under the License.
 """Protocol for object that have measurement keys."""
 
-from typing import Any, Dict, FrozenSet, Optional, Tuple, TYPE_CHECKING, Union
+from typing import Any, FrozenSet, Mapping, Optional, Tuple, TYPE_CHECKING, Union
 
 from typing_extensions import Protocol
 
@@ -98,7 +98,7 @@ class SupportsMeasurementKey(Protocol):
         """
 
     @doc_private
-    def _with_measurement_key_mapping_(self, key_map: Dict[str, str]):
+    def _with_measurement_key_mapping_(self, key_map: Mapping[str, str]):
         """Return a copy of this object with the measurement keys remapped.
 
         This method allows measurement keys to be reassigned at runtime.
@@ -291,7 +291,7 @@ def is_measurement(val: Any) -> bool:
     return keys is not NotImplemented and bool(keys)
 
 
-def with_measurement_key_mapping(val: Any, key_map: Dict[str, str]):
+def with_measurement_key_mapping(val: Any, key_map: Mapping[str, str]):
     """Remaps the target's measurement keys according to the provided key_map.
 
     This method can be used to reassign measurement keys at runtime, or to

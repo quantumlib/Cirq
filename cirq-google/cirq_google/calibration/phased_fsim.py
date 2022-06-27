@@ -26,6 +26,7 @@ from typing import (
     MutableMapping,
     Optional,
     Tuple,
+    Type,
     TypeVar,
     TYPE_CHECKING,
     Generic,
@@ -40,8 +41,15 @@ import pandas as pd
 import cirq
 from cirq.experiments.xeb_fitting import XEBPhasedFSimCharacterizationOptions
 from cirq_google.api import v2
-from cirq_google.engine import Calibration, CalibrationLayer, CalibrationResult, Engine, EngineJob
-from cirq_google.ops import FSimGateFamily
+from cirq_google.engine import (
+    Calibration,
+    CalibrationLayer,
+    CalibrationResult,
+    Engine,
+    EngineJob,
+    util,
+)
+from cirq_google.ops import FSimGateFamily, SycamoreGate
 
 if TYPE_CHECKING:
     import cirq_google
@@ -50,6 +58,11 @@ if TYPE_CHECKING:
 _FLOQUET_PHASED_FSIM_HANDLER_NAME = 'floquet_phased_fsim_characterization'
 _XEB_PHASED_FSIM_HANDLER_NAME = 'xeb_phased_fsim_characterization'
 _DEFAULT_XEB_CYCLE_DEPTHS = (5, 25, 50, 100, 200, 300)
+# Copied from cirq-google/cirq_google/engine/calibration_to_noise_properties.py
+GATE_ZPHASE_CODE_PAIRS: Dict[Type['cirq.Gate'], str] = {
+    SycamoreGate: 'syc',
+    cirq.ISwapPowGate: 'sqrt_iswap',
+}
 
 T = TypeVar('T')
 
@@ -329,6 +342,38 @@ class PhasedFSimCalibrationResult:
             'program_id': self.program_id,
             'job_id': self.job_id,
         }
+
+
+def to_zphase_data(results: Iterable[PhasedFSimCalibrationResult]) -> util.ZPhaseDataType:
+    """Packages a collection of results into ZPhaseDataType.
+
+    Args:
+        results: List of results to pack into ZPhaseDataType. If multiple results provide a value
+            for a given (gate, angle, qubits) tuple, only the last one will be kept.
+
+    Returns:
+        A ZPhaseDataType-formatted result representation. This can be used with the
+            calibration-to-noise pipeline for generating noise models.
+
+    Raises:
+        ValueError: if results for a gate other than Sycamore or ISwapPowGate are given.
+    """
+    zphase_data: util.ZPhaseDataType = {}
+    for result in results:
+        gate_type = GATE_ZPHASE_CODE_PAIRS.get(type(result.gate))
+        if gate_type is None:
+            raise ValueError(
+                f"Only 'SycamoreGate' and 'ISwapPowGate' are supported, got {result.gate}"
+            )
+        gate_dict = zphase_data.setdefault(gate_type, {})
+        for qubits, data in result.parameters.items():
+            for angle, value in data.asdict().items():
+                if value is None:
+                    continue
+                angle_dict = gate_dict.setdefault(angle, {})
+                angle_dict[qubits] = value
+
+    return zphase_data
 
 
 def merge_matching_results(
