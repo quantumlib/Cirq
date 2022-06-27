@@ -11,10 +11,12 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+from typing import Callable
 
 import numpy as np
 import pytest
 import sympy
+
 
 import cirq
 import cirq.testing as ct
@@ -429,7 +431,7 @@ single_qubit_gates = [
 
 
 @pytest.mark.parametrize('qasm_gate,cirq_gate', rotation_gates)
-def test_rotation_gates(qasm_gate: str, cirq_gate: cirq.Gate):
+def test_rotation_gates(qasm_gate: str, cirq_gate: Callable[[float], cirq.Gate]):
     qasm = """OPENQASM 2.0;
      include "qelib1.inc";
      qreg q[2];

@@ -18,6 +18,7 @@ import re
 from typing import (
     AbstractSet,
     Any,
+    Mapping,
     cast,
     Collection,
     Dict,
@@ -81,7 +82,7 @@ class GateOperation(raw_types.Operation):
             return self
         return new_gate.on(*self.qubits)
 
-    def _with_measurement_key_mapping_(self, key_map: Dict[str, str]):
+    def _with_measurement_key_mapping_(self, key_map: Mapping[str, str]):
         new_gate = protocols.with_measurement_key_mapping(self.gate, key_map)
         if new_gate is NotImplemented:
             return NotImplemented

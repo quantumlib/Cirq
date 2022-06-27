@@ -14,7 +14,7 @@
 
 import dataclasses
 import datetime
-from typing import Any, Dict, Iterable, List, Tuple, TYPE_CHECKING, Union
+from typing import Any, Dict, Iterable, List, Mapping, Tuple, TYPE_CHECKING, Union
 
 import numpy as np
 import sympy
@@ -107,7 +107,7 @@ class ObservableMeasuredResult:
     mean: float
     variance: float
     repetitions: int
-    circuit_params: Dict[Union[str, sympy.Expr], Union[value.Scalar, sympy.Expr]]
+    circuit_params: Mapping[Union[str, sympy.Expr], Union[value.Scalar, sympy.Expr]]
 
     def __repr__(self):
         # I wish we could use the default dataclass __repr__ but
