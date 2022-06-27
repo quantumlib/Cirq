@@ -207,5 +207,9 @@ class ClassicallyControlledOperation(raw_types.Operation):
 
     def _qasm_(self, args: 'cirq.QasmArgs') -> Optional[str]:
         args.validate_version('2.0')
-        all_keys = " && ".join(c.qasm for c in self._conditions)
-        return args.format('if ({0}) {1}', all_keys, protocols.qasm(self._sub_operation, args=args))
+        if len(self._conditions) > 1:
+            raise ValueError('QASM does not support multiple conditions.')
+        subop_qasm = protocols.qasm(self._sub_operation, args=args)
+        if not self._conditions:
+            return subop_qasm
+        return f'if ({self._conditions[0].qasm}) {subop_qasm}'
