@@ -112,7 +112,6 @@ def test_gate_consistent():
     cirq.testing.assert_implements_consistent_protocols(op)
 
 
-@pytest.mark.usefixtures('restore_random_state')
 @pytest.mark.parametrize(
     'n_bits,expected_hs',
     [
@@ -132,9 +131,7 @@ def test_gray_code_sorting(n_bits, expected_hs):
             x //= 2
         hs_template.append(tuple(sorted(h)))
 
-    for seed in range(10):
-        random.seed(seed)
-
+    for _ in range(10):
         hs = hs_template.copy()
         random.shuffle(hs)
 
