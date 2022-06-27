@@ -11,6 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import unittest.mock as mock
 from typing import Optional
 
 import numpy as np
@@ -18,6 +19,7 @@ import pytest
 import sympy
 
 import cirq
+import cirq.circuits.circuit_operation as circuit_operation
 from cirq.circuits.circuit_operation import _full_join_string_lists
 
 ALL_SIMULATORS = (cirq.Simulator(), cirq.DensityMatrixSimulator(), cirq.CliffordSimulator())
@@ -265,7 +267,7 @@ def test_recursive_params():
 
     # First example should behave like an X when simulated
     result = cirq.Simulator().simulate(cirq.Circuit(circuitop), param_resolver=outer_params)
-    assert np.allclose(result.state_vector(), [0, 1])
+    assert np.allclose(result.state_vector(copy=False), [0, 1])
 
 
 @pytest.mark.parametrize('add_measurements', [True, False])
@@ -341,9 +343,30 @@ def test_repeat_zero_times(add_measurements, use_repetition_ids, initial_reps):
         subcircuit.freeze(), repetitions=initial_reps, use_repetition_ids=use_repetition_ids
     )
     result = cirq.Simulator().simulate(cirq.Circuit(op))
-    assert np.allclose(result.state_vector(), [0, 1] if initial_reps % 2 else [1, 0])
+    assert np.allclose(result.state_vector(copy=False), [0, 1] if initial_reps % 2 else [1, 0])
     result = cirq.Simulator().simulate(cirq.Circuit(op**0))
-    assert np.allclose(result.state_vector(), [1, 0])
+    assert np.allclose(result.state_vector(copy=False), [1, 0])
+
+
+def test_no_repetition_ids():
+    def default_repetition_ids(self):
+        assert False, "Should not call default_repetition_ids"
+
+    with mock.patch.object(circuit_operation, 'default_repetition_ids', new=default_repetition_ids):
+        q = cirq.LineQubit(0)
+        op = cirq.CircuitOperation(
+            cirq.Circuit(cirq.X(q), cirq.measure(q)).freeze(),
+            repetitions=1_000_000,
+            use_repetition_ids=False,
+        )
+        assert op.repetitions == 1_000_000
+        assert op.repetition_ids is None
+        _ = repr(op)
+        _ = str(op)
+
+        op2 = op.repeat(10)
+        assert op2.repetitions == 10_000_000
+        assert op2.repetition_ids is None
 
 
 def test_parameterized_repeat():
@@ -352,13 +375,13 @@ def test_parameterized_repeat():
     assert cirq.parameter_names(op) == {'a'}
     assert not cirq.has_unitary(op)
     result = cirq.Simulator().simulate(cirq.Circuit(op), param_resolver={'a': 0})
-    assert np.allclose(result.state_vector(), [1, 0])
+    assert np.allclose(result.state_vector(copy=False), [1, 0])
     result = cirq.Simulator().simulate(cirq.Circuit(op), param_resolver={'a': 1})
-    assert np.allclose(result.state_vector(), [0, 1])
+    assert np.allclose(result.state_vector(copy=False), [0, 1])
     result = cirq.Simulator().simulate(cirq.Circuit(op), param_resolver={'a': 2})
-    assert np.allclose(result.state_vector(), [1, 0])
+    assert np.allclose(result.state_vector(copy=False), [1, 0])
     result = cirq.Simulator().simulate(cirq.Circuit(op), param_resolver={'a': -1})
-    assert np.allclose(result.state_vector(), [0, 1])
+    assert np.allclose(result.state_vector(copy=False), [0, 1])
     with pytest.raises(TypeError, match='Only integer or sympy repetitions are allowed'):
         cirq.Simulator().simulate(cirq.Circuit(op), param_resolver={'a': 1.5})
     with pytest.raises(ValueError, match='Circuit contains ops whose symbols were not specified'):
@@ -367,13 +390,13 @@ def test_parameterized_repeat():
     assert cirq.parameter_names(op) == {'a'}
     assert not cirq.has_unitary(op)
     result = cirq.Simulator().simulate(cirq.Circuit(op), param_resolver={'a': 0})
-    assert np.allclose(result.state_vector(), [1, 0])
+    assert np.allclose(result.state_vector(copy=False), [1, 0])
     result = cirq.Simulator().simulate(cirq.Circuit(op), param_resolver={'a': 1})
-    assert np.allclose(result.state_vector(), [0, 1])
+    assert np.allclose(result.state_vector(copy=False), [0, 1])
     result = cirq.Simulator().simulate(cirq.Circuit(op), param_resolver={'a': 2})
-    assert np.allclose(result.state_vector(), [1, 0])
+    assert np.allclose(result.state_vector(copy=False), [1, 0])
     result = cirq.Simulator().simulate(cirq.Circuit(op), param_resolver={'a': -1})
-    assert np.allclose(result.state_vector(), [0, 1])
+    assert np.allclose(result.state_vector(copy=False), [0, 1])
     with pytest.raises(TypeError, match='Only integer or sympy repetitions are allowed'):
         cirq.Simulator().simulate(cirq.Circuit(op), param_resolver={'a': 1.5})
     with pytest.raises(ValueError, match='Circuit contains ops whose symbols were not specified'):
@@ -382,11 +405,11 @@ def test_parameterized_repeat():
     assert cirq.parameter_names(op) == {'a', 'b'}
     assert not cirq.has_unitary(op)
     result = cirq.Simulator().simulate(cirq.Circuit(op), param_resolver={'a': 1, 'b': 1})
-    assert np.allclose(result.state_vector(), [0, 1])
+    assert np.allclose(result.state_vector(copy=False), [0, 1])
     result = cirq.Simulator().simulate(cirq.Circuit(op), param_resolver={'a': 2, 'b': 1})
-    assert np.allclose(result.state_vector(), [1, 0])
+    assert np.allclose(result.state_vector(copy=False), [1, 0])
     result = cirq.Simulator().simulate(cirq.Circuit(op), param_resolver={'a': 1, 'b': 2})
-    assert np.allclose(result.state_vector(), [1, 0])
+    assert np.allclose(result.state_vector(copy=False), [1, 0])
     with pytest.raises(TypeError, match='Only integer or sympy repetitions are allowed'):
         cirq.Simulator().simulate(cirq.Circuit(op), param_resolver={'a': 1.5, 'b': 1})
     with pytest.raises(ValueError, match='Circuit contains ops whose symbols were not specified'):
@@ -395,11 +418,11 @@ def test_parameterized_repeat():
     assert cirq.parameter_names(op) == {'a', 'b'}
     assert not cirq.has_unitary(op)
     result = cirq.Simulator().simulate(cirq.Circuit(op), param_resolver={'a': 1, 'b': 1})
-    assert np.allclose(result.state_vector(), [1, 0])
+    assert np.allclose(result.state_vector(copy=False), [1, 0])
     result = cirq.Simulator().simulate(cirq.Circuit(op), param_resolver={'a': 1.5, 'b': 1})
-    assert np.allclose(result.state_vector(), [0, 1])
+    assert np.allclose(result.state_vector(copy=False), [0, 1])
     result = cirq.Simulator().simulate(cirq.Circuit(op), param_resolver={'a': 1, 'b': 1.5})
-    assert np.allclose(result.state_vector(), [0, 1])
+    assert np.allclose(result.state_vector(copy=False), [0, 1])
     with pytest.raises(TypeError, match='Only integer or sympy repetitions are allowed'):
         cirq.Simulator().simulate(cirq.Circuit(op), param_resolver={'a': 1.5, 'b': 1.5})
     with pytest.raises(ValueError, match='Circuit contains ops whose symbols were not specified'):
@@ -971,8 +994,10 @@ def test_keys_under_parent_path():
     assert cirq.measurement_key_names(op1) == {'A'}
     op2 = op1.with_key_path(('B',))
     assert cirq.measurement_key_names(op2) == {'B:A'}
-    op3 = op2.repeat(2)
-    assert cirq.measurement_key_names(op3) == {'B:0:A', 'B:1:A'}
+    op3 = cirq.with_key_path_prefix(op2, ('C',))
+    assert cirq.measurement_key_names(op3) == {'C:B:A'}
+    op4 = op3.repeat(2)
+    assert cirq.measurement_key_names(op4) == {'C:B:0:A', 'C:B:1:A'}
 
 
 def test_mapped_circuit_preserves_moments():

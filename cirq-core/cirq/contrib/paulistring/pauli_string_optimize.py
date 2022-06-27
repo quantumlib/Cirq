@@ -15,10 +15,11 @@
 import networkx
 
 from cirq import circuits, linalg
+from cirq.contrib import circuitdag
 from cirq.contrib.paulistring.pauli_string_dag import pauli_string_dag_from_circuit
-from cirq.ops import PauliStringGateOperation
 from cirq.contrib.paulistring.recombine import move_pauli_strings_into_circuit
 from cirq.contrib.paulistring.separate import convert_and_separate_circuit
+from cirq.ops import PauliStringGateOperation
 
 
 def pauli_string_optimized_circuit(
@@ -48,7 +49,7 @@ def assert_no_multi_qubit_pauli_strings(circuit: circuits.Circuit) -> None:
             assert len(op.pauli_string) == 1, 'Multi qubit Pauli string left over'
 
 
-def merge_equal_strings(string_dag: circuits.CircuitDag) -> None:
+def merge_equal_strings(string_dag: circuitdag.CircuitDag) -> None:
     for node in tuple(string_dag.nodes()):
         if node not in string_dag.nodes():
             # Node was removed
@@ -65,7 +66,7 @@ def merge_equal_strings(string_dag: circuits.CircuitDag) -> None:
                 node.val = node.val.merged_with(other_node.val)
 
 
-def remove_negligible_strings(string_dag: circuits.CircuitDag, atol=1e-8) -> None:
+def remove_negligible_strings(string_dag: circuitdag.CircuitDag, atol=1e-8) -> None:
     for node in tuple(string_dag.nodes()):
         if linalg.all_near_zero_mod(node.val.exponent_relative, 2, atol=atol):
             string_dag.remove_node(node)

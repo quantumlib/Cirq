@@ -452,7 +452,7 @@ class SimulatesExpectationValues(metaclass=value.ABCMetaImplementAnyOneOf):
 
 
 class SimulatesFinalState(
-    Generic[TSimulationTrialResult], metaclass=value.GenericMetaImplementAnyOneOf
+    Generic[TSimulationTrialResult], metaclass=value.ABCMetaImplementAnyOneOf
 ):
     """Simulator that allows access to the simulator's final state.
 
@@ -595,10 +595,11 @@ class SimulatesIntermediateState(
             possible parameter resolver.
         """
         qubit_order = ops.QubitOrder.as_qubit_order(qubit_order)
-        for param_resolver in study.to_resolvers(params):
+        resolvers = list(study.to_resolvers(params))
+        for i, param_resolver in enumerate(resolvers):
             state = (
                 initial_state.copy()
-                if isinstance(initial_state, SimulationStateBase)
+                if isinstance(initial_state, SimulationStateBase) and i < len(resolvers) - 1
                 else initial_state
             )
             all_step_results = self.simulate_moment_steps(
@@ -655,25 +656,17 @@ class SimulatesIntermediateState(
         resolved_circuit = protocols.resolve_parameters(circuit, param_resolver)
         check_all_resolved(resolved_circuit)
         actual_initial_state = 0 if initial_state is None else initial_state
-        return self._base_iterator(resolved_circuit, qubit_order, actual_initial_state)
+        qubits = ops.QubitOrder.as_qubit_order(qubit_order).order_for(circuit.all_qubits())
+        return self._base_iterator(resolved_circuit, qubits, actual_initial_state)
 
     def _base_iterator(
-        self,
-        circuit: 'cirq.AbstractCircuit',
-        qubit_order: 'cirq.QubitOrderOrList',
-        initial_state: Any,
+        self, circuit: 'cirq.AbstractCircuit', qubits: Tuple['cirq.Qid', ...], initial_state: Any
     ) -> Iterator[TStepResult]:
         """Iterator over StepResult from Moments of a Circuit.
 
-        This is a thin wrapper around `create_act_on_args` and `_core_iterator`.
-        Overriding this method was the old way of creating a circuit iterator,
-        and this method is planned to be formally put on the deprecation path.
-        Going forward, override the aforementioned two methods in custom
-        simulators.
-
         Args:
             circuit: The circuit to simulate.
-            qubit_order: Determines the canonical ordering of the qubits. This
+            qubits: Specifies the canonical ordering of the qubits. This
                 is often used in specifying the initial state, i.e. the
                 ordering of the computational basis states.
             initial_state: The initial state for the simulation. The form of
@@ -683,7 +676,22 @@ class SimulatesIntermediateState(
         Yields:
             StepResults from simulating a Moment of the Circuit.
         """
-        qubits = ops.QubitOrder.as_qubit_order(qubit_order).order_for(circuit.all_qubits())
+        # In 0.16 (or 1.0) _base_iterator should be made abstract. Then _create_simulation_state,
+        # _create_act_on_args, and _core_iterator can all be removed from this class completely.
+        # (They were only required because of this implementation, which has been moved to
+        # SimulatorBase instead).
+        _compat._warn_or_error(
+            'Custom implementations of `cirq.SimulatesIntermediateState` should implement'
+            ' `_base_iterator` directly rather than implementing both `_create_simulation_state`'
+            ' and `_core_iterator`. The default implementation of `_base_iterator` will be removed'
+            ' in v0.16, and the method will become abstract.'
+        )
+        if not isinstance(qubits, tuple):
+            _compat._warn_or_error(
+                'The `qubits` parameter of `_base_iterator` will expect an explicit'
+                ' `Tuple[cirq.Qid, ...]` beginning in v0.16.'
+            )
+            qubits = ops.QubitOrder.as_qubit_order(qubits).order_for(circuit.all_qubits())
         sim_state = self._create_simulation_state(initial_state, qubits)
         return self._core_iterator(circuit, sim_state)
 
@@ -736,7 +744,6 @@ class SimulatesIntermediateState(
         # remove this implementation, and delete `_create_act_on_args` entirely.
         return self._create_act_on_args(initial_state, qubits)
 
-    @abc.abstractmethod
     def _core_iterator(
         self,
         circuit: 'cirq.AbstractCircuit',
@@ -758,6 +765,7 @@ class SimulatesIntermediateState(
         Yields:
             StepResults from simulating a Moment of the Circuit.
         """
+        raise NotImplementedError()
 
     @abc.abstractmethod
     def _create_simulator_trial_result(
@@ -911,10 +919,12 @@ class StepResult(Generic[TSimulatorState], metaclass=abc.ABCMeta):
             key = gate.key
             out = np.zeros(shape=(repetitions, len(op.qubits)), dtype=np.int8)
             inv_mask = gate.full_invert_mask()
+            cmap = gate.confusion_map
             for i, q in enumerate(op.qubits):
                 out[:, i] = indexed_sample[:, qubits_to_index[q]]
                 if inv_mask[i]:
                     out[:, i] ^= out[:, i] < 2
+            self._confuse_results(out, op.qubits, cmap, seed)
             if _allow_repeated:
                 if key not in results:
                     results[key] = []
@@ -926,6 +936,28 @@ class StepResult(Generic[TSimulatorState], metaclass=abc.ABCMeta):
             if not _allow_repeated
             else {k: np.array(v).swapaxes(0, 1) for k, v in results.items()}
         )
+
+    def _confuse_results(
+        self,
+        bits: np.ndarray,
+        qubits: Sequence['cirq.Qid'],
+        confusion_map: Dict[Tuple[int, ...], np.ndarray],
+        seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None,
+    ) -> None:
+        """Mutates `bits` using the confusion_map.
+
+        Compare with _confuse_result in cirq-core/cirq/sim/simulation_state.py.
+        """
+        prng = value.parse_random_state(seed)
+        for rep in bits:
+            dims = [q.dimension for q in qubits]
+            for indices, confuser in confusion_map.items():
+                mat_dims = [dims[k] for k in indices]
+                row = value.big_endian_digits_to_int((rep[k] for k in indices), base=mat_dims)
+                new_val = prng.choice(len(confuser), p=confuser[row])
+                new_bits = value.big_endian_int_to_digits(new_val, base=mat_dims)
+                for i, k in enumerate(indices):
+                    rep[k] = new_bits[i]
 
 
 # When removing this, also remove the check in simulate_sweep_iter.

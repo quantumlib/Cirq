@@ -18,6 +18,8 @@ from cirq_ionq.calibration import Calibration
 
 from cirq_ionq.ionq_devices import IonQAPIDevice, decompose_to_device
 
+from cirq_ionq.ionq_gateset import IonQTargetGateset
+
 from cirq_ionq.ionq_exceptions import (
     IonQException,
     IonQNotFoundException,

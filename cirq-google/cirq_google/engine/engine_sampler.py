@@ -16,34 +16,25 @@ from typing import List, Optional, Sequence, TYPE_CHECKING, Union
 
 import cirq
 from cirq_google import engine
-from cirq_google.engine import util
 
 if TYPE_CHECKING:
     import cirq_google
 
 
+@cirq._compat.deprecated_class(deadline='v0.16', fix='Use cirq_google.ProcessorSampler instead.')
 class QuantumEngineSampler(cirq.Sampler):
     """A sampler that samples from processors managed by the Quantum Engine.
 
     Exposes a `cirq_google.Engine` instance as a `cirq.Sampler`.
     """
 
-    @util.deprecated_gate_set_parameter
-    def __init__(
-        self,
-        *,
-        engine: 'cirq_google.Engine',
-        processor_id: Union[str, List[str]],
-        gate_set: Optional['cirq_google.serialization.Serializer'] = None,
-    ):
+    def __init__(self, *, engine: 'cirq_google.Engine', processor_id: Union[str, List[str]]):
         """Inits QuantumEngineSampler.
 
         Args:
             engine: Quantum engine instance to use.
             processor_id: String identifier, or list of string identifiers,
                 determining which processors may be used when sampling.
-            gate_set: Determines how to serialize circuits when requesting
-                samples.
         """
         self._processor_ids = [processor_id] if isinstance(processor_id, str) else processor_id
         self._engine = engine
@@ -106,15 +97,10 @@ class QuantumEngineSampler(cirq.Sampler):
         return self._engine
 
 
-@cirq._compat.deprecated_parameter(
-    deadline='v0.15',
-    fix='Remove the "gate_set_name" parameter.',
-    parameter_desc='gate_set_name',
-    match=lambda args, kwargs: 'gate_set_name' in kwargs or len(args) > 1,
-)
+@cirq._compat.deprecated(deadline='v0.16', fix='Use cirq_google.get_engine_sampler()')
 def get_engine_sampler(
     processor_id: str, gate_set_name: str = '', project_id: Optional[str] = None
-) -> 'cirq_google.QuantumEngineSampler':
+) -> cirq.Sampler:
     """Get an EngineSampler assuming some sensible defaults.
 
     This uses the environment variable GOOGLE_CLOUD_PROJECT for the Engine

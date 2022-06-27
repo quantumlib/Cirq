@@ -27,6 +27,7 @@ from cirq_google.engine import util
 from cirq_google.cloud import quantum
 from cirq_google.engine.engine import EngineContext
 from cirq_google.engine.result_type import ResultType
+from cirq_google.engine.test_utils import uses_async_mock
 
 
 _BATCH_PROGRAM_V2 = util.pack_any(
@@ -163,9 +164,10 @@ circuit {
 )
 
 
-@mock.patch('cirq_google.engine.engine_client.EngineClient.create_job')
-def test_run_sweeps_delegation(create_job):
-    create_job.return_value = ('steve', quantum.QuantumJob())
+@uses_async_mock
+@mock.patch('cirq_google.engine.engine_client.EngineClient.create_job_async')
+def test_run_sweeps_delegation(create_job_async):
+    create_job_async.return_value = ('steve', quantum.QuantumJob())
     program = cg.EngineProgram('my-proj', 'my-prog', EngineContext())
     param_resolver = cirq.ParamResolver({})
     job = program.run_sweep(
@@ -174,9 +176,10 @@ def test_run_sweeps_delegation(create_job):
     assert job._job == quantum.QuantumJob()
 
 
-@mock.patch('cirq_google.engine.engine_client.EngineClient.create_job')
-def test_run_batch_delegation(create_job):
-    create_job.return_value = ('kittens', quantum.QuantumJob())
+@uses_async_mock
+@mock.patch('cirq_google.engine.engine_client.EngineClient.create_job_async')
+def test_run_batch_delegation(create_job_async):
+    create_job_async.return_value = ('kittens', quantum.QuantumJob())
     program = cg.EngineProgram('my-meow', 'my-meow', EngineContext(), result_type=ResultType.Batch)
     resolver_list = [cirq.Points('cats', [1.0, 2.0, 3.0]), cirq.Points('cats', [4.0, 5.0, 6.0])]
     job = program.run_batch(
@@ -185,27 +188,29 @@ def test_run_batch_delegation(create_job):
     assert job._job == quantum.QuantumJob()
 
 
-@mock.patch('cirq_google.engine.engine_client.EngineClient.create_job')
-def test_run_calibration_delegation(create_job):
-    create_job.return_value = ('dogs', quantum.QuantumJob())
+@uses_async_mock
+@mock.patch('cirq_google.engine.engine_client.EngineClient.create_job_async')
+def test_run_calibration_delegation(create_job_async):
+    create_job_async.return_value = ('dogs', quantum.QuantumJob())
     program = cg.EngineProgram('woof', 'woof', EngineContext(), result_type=ResultType.Calibration)
     job = program.run_calibration(processor_ids=['lazydog'])
     assert job._job == quantum.QuantumJob()
 
 
-@mock.patch('cirq_google.engine.engine_client.EngineClient.create_job')
-def test_run_calibration_no_processors(create_job):
-    create_job.return_value = ('dogs', quantum.QuantumJob())
+@mock.patch('cirq_google.engine.engine_client.EngineClient.create_job_async')
+def test_run_calibration_no_processors(create_job_async):
+    create_job_async.return_value = ('dogs', quantum.QuantumJob())
     program = cg.EngineProgram('woof', 'woof', EngineContext(), result_type=ResultType.Calibration)
     with pytest.raises(ValueError, match='No processors specified'):
         _ = program.run_calibration(job_id='spot')
 
 
-@mock.patch('cirq_google.engine.engine_client.EngineClient.create_job')
-def test_run_batch_no_sweeps(create_job):
+@uses_async_mock
+@mock.patch('cirq_google.engine.engine_client.EngineClient.create_job_async')
+def test_run_batch_no_sweeps(create_job_async):
     # Running with no sweeps is fine. Uses program's batch size to create
     # proper empty sweeps.
-    create_job.return_value = ('kittens', quantum.QuantumJob())
+    create_job_async.return_value = ('kittens', quantum.QuantumJob())
     program = cg.EngineProgram(
         'my-meow',
         'my-meow',
@@ -216,7 +221,7 @@ def test_run_batch_no_sweeps(create_job):
     job = program.run_batch(job_id='steve', repetitions=10, processor_ids=['lazykitty'])
     assert job._job == quantum.QuantumJob()
     batch_run_context = v2.batch_pb2.BatchRunContext()
-    create_job.call_args[1]['run_context'].Unpack(batch_run_context)
+    create_job_async.call_args[1]['run_context'].Unpack(batch_run_context)
     assert len(batch_run_context.run_contexts) == 1
 
 
@@ -242,11 +247,12 @@ def test_run_in_batch_mode():
         )
 
 
-@mock.patch('cirq_google.engine.engine_client.EngineClient.get_job_results')
-@mock.patch('cirq_google.engine.engine_client.EngineClient.create_job')
-def test_run_delegation(create_job, get_results):
+@uses_async_mock
+@mock.patch('cirq_google.engine.engine_client.EngineClient.get_job_results_async')
+@mock.patch('cirq_google.engine.engine_client.EngineClient.create_job_async')
+def test_run_delegation(create_job_async, get_results_async):
     dt = datetime.datetime.now(tz=datetime.timezone.utc)
-    create_job.return_value = (
+    create_job_async.return_value = (
         'steve',
         quantum.QuantumJob(
             name='projects/a/programs/b/jobs/steve',
@@ -254,7 +260,7 @@ def test_run_delegation(create_job, get_results):
             update_time=dt,
         ),
     )
-    get_results.return_value = quantum.QuantumResult(
+    get_results_async.return_value = quantum.QuantumResult(
         result=util.pack_any(
             Merge(
                 """sweep_results: [{
@@ -297,15 +303,16 @@ def test_run_delegation(create_job, get_results):
     )
 
 
-@mock.patch('cirq_google.engine.engine_client.EngineClient.list_jobs')
-def test_list_jobs(list_jobs):
+@uses_async_mock
+@mock.patch('cirq_google.engine.engine_client.EngineClient.list_jobs_async')
+def test_list_jobs(list_jobs_async):
     job1 = quantum.QuantumJob(name='projects/proj/programs/prog1/jobs/job1')
     job2 = quantum.QuantumJob(name='projects/otherproj/programs/prog1/jobs/job2')
-    list_jobs.return_value = [job1, job2]
+    list_jobs_async.return_value = [job1, job2]
 
     ctx = EngineContext()
     result = cg.EngineProgram(project_id='proj', program_id='prog1', context=ctx).list_jobs()
-    list_jobs.assert_called_once_with(
+    list_jobs_async.assert_called_once_with(
         'proj',
         'prog1',
         created_after=None,
@@ -341,40 +348,43 @@ def test_create_time():
     )
 
 
-@mock.patch('cirq_google.engine.engine_client.EngineClient.get_program')
-def test_update_time(get_program):
+@uses_async_mock
+@mock.patch('cirq_google.engine.engine_client.EngineClient.get_program_async')
+def test_update_time(get_program_async):
     program = cg.EngineProgram('a', 'b', EngineContext())
-    get_program.return_value = quantum.QuantumProgram(
+    get_program_async.return_value = quantum.QuantumProgram(
         update_time=timestamp_pb2.Timestamp(seconds=1581515101)
     )
     assert program.update_time() == datetime.datetime(
         2020, 2, 12, 13, 45, 1, tzinfo=datetime.timezone.utc
     )
-    get_program.assert_called_once_with('a', 'b', False)
+    get_program_async.assert_called_once_with('a', 'b', False)
 
 
-@mock.patch('cirq_google.engine.engine_client.EngineClient.get_program')
-def test_description(get_program):
+@uses_async_mock
+@mock.patch('cirq_google.engine.engine_client.EngineClient.get_program_async')
+def test_description(get_program_async):
     program = cg.EngineProgram(
         'a', 'b', EngineContext(), _program=quantum.QuantumProgram(description='hello')
     )
     assert program.description() == 'hello'
 
-    get_program.return_value = quantum.QuantumProgram(description='hello')
+    get_program_async.return_value = quantum.QuantumProgram(description='hello')
     assert cg.EngineProgram('a', 'b', EngineContext()).description() == 'hello'
-    get_program.assert_called_once_with('a', 'b', False)
+    get_program_async.assert_called_once_with('a', 'b', False)
 
 
-@mock.patch('cirq_google.engine.engine_client.EngineClient.set_program_description')
-def test_set_description(set_program_description):
+@uses_async_mock
+@mock.patch('cirq_google.engine.engine_client.EngineClient.set_program_description_async')
+def test_set_description(set_program_description_async):
     program = cg.EngineProgram('a', 'b', EngineContext())
-    set_program_description.return_value = quantum.QuantumProgram(description='world')
+    set_program_description_async.return_value = quantum.QuantumProgram(description='world')
     assert program.set_description('world').description() == 'world'
-    set_program_description.assert_called_with('a', 'b', 'world')
+    set_program_description_async.assert_called_with('a', 'b', 'world')
 
-    set_program_description.return_value = quantum.QuantumProgram(description='')
+    set_program_description_async.return_value = quantum.QuantumProgram(description='')
     assert program.set_description('').description() == ''
-    set_program_description.assert_called_with('a', 'b', '')
+    set_program_description_async.assert_called_with('a', 'b', '')
 
 
 def test_labels():
@@ -384,92 +394,101 @@ def test_labels():
     assert program.labels() == {'t': '1'}
 
 
-@mock.patch('cirq_google.engine.engine_client.EngineClient.set_program_labels')
-def test_set_labels(set_program_labels):
+@uses_async_mock
+@mock.patch('cirq_google.engine.engine_client.EngineClient.set_program_labels_async')
+def test_set_labels(set_program_labels_async):
     program = cg.EngineProgram('a', 'b', EngineContext())
-    set_program_labels.return_value = quantum.QuantumProgram(labels={'a': '1', 'b': '1'})
+    set_program_labels_async.return_value = quantum.QuantumProgram(labels={'a': '1', 'b': '1'})
     assert program.set_labels({'a': '1', 'b': '1'}).labels() == {'a': '1', 'b': '1'}
-    set_program_labels.assert_called_with('a', 'b', {'a': '1', 'b': '1'})
+    set_program_labels_async.assert_called_with('a', 'b', {'a': '1', 'b': '1'})
 
-    set_program_labels.return_value = quantum.QuantumProgram()
+    set_program_labels_async.return_value = quantum.QuantumProgram()
     assert program.set_labels({}).labels() == {}
-    set_program_labels.assert_called_with('a', 'b', {})
+    set_program_labels_async.assert_called_with('a', 'b', {})
 
 
-@mock.patch('cirq_google.engine.engine_client.EngineClient.add_program_labels')
-def test_add_labels(add_program_labels):
+@uses_async_mock
+@mock.patch('cirq_google.engine.engine_client.EngineClient.add_program_labels_async')
+def test_add_labels(add_program_labels_async):
     program = cg.EngineProgram(
         'a', 'b', EngineContext(), _program=quantum.QuantumProgram(labels={})
     )
     assert program.labels() == {}
 
-    add_program_labels.return_value = quantum.QuantumProgram(labels={'a': '1'})
+    add_program_labels_async.return_value = quantum.QuantumProgram(labels={'a': '1'})
     assert program.add_labels({'a': '1'}).labels() == {'a': '1'}
-    add_program_labels.assert_called_with('a', 'b', {'a': '1'})
+    add_program_labels_async.assert_called_with('a', 'b', {'a': '1'})
 
-    add_program_labels.return_value = quantum.QuantumProgram(labels={'a': '2', 'b': '1'})
+    add_program_labels_async.return_value = quantum.QuantumProgram(labels={'a': '2', 'b': '1'})
     assert program.add_labels({'a': '2', 'b': '1'}).labels() == {'a': '2', 'b': '1'}
-    add_program_labels.assert_called_with('a', 'b', {'a': '2', 'b': '1'})
+    add_program_labels_async.assert_called_with('a', 'b', {'a': '2', 'b': '1'})
 
 
-@mock.patch('cirq_google.engine.engine_client.EngineClient.remove_program_labels')
-def test_remove_labels(remove_program_labels):
+@uses_async_mock
+@mock.patch('cirq_google.engine.engine_client.EngineClient.remove_program_labels_async')
+def test_remove_labels(remove_program_labels_async):
     program = cg.EngineProgram(
         'a', 'b', EngineContext(), _program=quantum.QuantumProgram(labels={'a': '1', 'b': '1'})
     )
     assert program.labels() == {'a': '1', 'b': '1'}
 
-    remove_program_labels.return_value = quantum.QuantumProgram(labels={'b': '1'})
+    remove_program_labels_async.return_value = quantum.QuantumProgram(labels={'b': '1'})
     assert program.remove_labels(['a']).labels() == {'b': '1'}
-    remove_program_labels.assert_called_with('a', 'b', ['a'])
+    remove_program_labels_async.assert_called_with('a', 'b', ['a'])
 
-    remove_program_labels.return_value = quantum.QuantumProgram(labels={})
+    remove_program_labels_async.return_value = quantum.QuantumProgram(labels={})
     assert program.remove_labels(['a', 'b', 'c']).labels() == {}
-    remove_program_labels.assert_called_with('a', 'b', ['a', 'b', 'c'])
+    remove_program_labels_async.assert_called_with('a', 'b', ['a', 'b', 'c'])
 
 
-@mock.patch('cirq_google.engine.engine_client.EngineClient.get_program')
-def test_get_circuit_v1(get_program):
+@uses_async_mock
+@mock.patch('cirq_google.engine.engine_client.EngineClient.get_program_async')
+def test_get_circuit_v1(get_program_async):
     program = cg.EngineProgram('a', 'b', EngineContext())
-    get_program.return_value = quantum.QuantumProgram(code=util.pack_any(v1.program_pb2.Program()))
+    get_program_async.return_value = quantum.QuantumProgram(
+        code=util.pack_any(v1.program_pb2.Program())
+    )
 
     with pytest.raises(ValueError, match='v1 Program is not supported'):
         program.get_circuit()
 
 
-@mock.patch('cirq_google.engine.engine_client.EngineClient.get_program')
-def test_get_circuit_v2(get_program):
+@uses_async_mock
+@mock.patch('cirq_google.engine.engine_client.EngineClient.get_program_async')
+def test_get_circuit_v2(get_program_async):
     circuit = cirq.Circuit(
         cirq.X(cirq.GridQubit(5, 2)) ** 0.5, cirq.measure(cirq.GridQubit(5, 2), key='result')
     )
 
     program = cg.EngineProgram('a', 'b', EngineContext())
-    get_program.return_value = quantum.QuantumProgram(code=_PROGRAM_V2)
+    get_program_async.return_value = quantum.QuantumProgram(code=_PROGRAM_V2)
     assert program.get_circuit() == circuit
-    get_program.assert_called_once_with('a', 'b', True)
+    get_program_async.assert_called_once_with('a', 'b', True)
 
 
-@mock.patch('cirq_google.engine.engine_client.EngineClient.get_program')
-def test_get_circuit_batch(get_program):
+@uses_async_mock
+@mock.patch('cirq_google.engine.engine_client.EngineClient.get_program_async')
+def test_get_circuit_batch(get_program_async):
     circuit = cirq.Circuit(
         cirq.X(cirq.GridQubit(5, 2)) ** 0.5, cirq.measure(cirq.GridQubit(5, 2), key='result')
     )
 
     program = cg.EngineProgram('a', 'b', EngineContext())
-    get_program.return_value = quantum.QuantumProgram(code=_BATCH_PROGRAM_V2)
+    get_program_async.return_value = quantum.QuantumProgram(code=_BATCH_PROGRAM_V2)
     with pytest.raises(ValueError, match='A program number must be specified'):
         program.get_circuit()
     with pytest.raises(ValueError, match='Only 1 in the batch but index 1 was specified'):
         program.get_circuit(1)
     assert program.get_circuit(0) == circuit
-    get_program.assert_called_once_with('a', 'b', True)
+    get_program_async.assert_called_once_with('a', 'b', True)
 
 
-@mock.patch('cirq_google.engine.engine_client.EngineClient.get_program')
-def test_get_batch_size(get_program):
+@uses_async_mock
+@mock.patch('cirq_google.engine.engine_client.EngineClient.get_program_async')
+def test_get_batch_size(get_program_async):
     # Has to fetch from engine if not _program specified.
     program = cg.EngineProgram('a', 'b', EngineContext(), result_type=ResultType.Batch)
-    get_program.return_value = quantum.QuantumProgram(code=_BATCH_PROGRAM_V2)
+    get_program_async.return_value = quantum.QuantumProgram(code=_BATCH_PROGRAM_V2)
     assert program.batch_size() == 1
 
     # If _program specified, uses that value.
@@ -487,7 +506,7 @@ def test_get_batch_size(get_program):
         _ = program.batch_size()
 
     with pytest.raises(ValueError, match='cirq.google.api.v2.Program'):
-        get_program.return_value = quantum.QuantumProgram(code=_PROGRAM_V2)
+        get_program_async.return_value = quantum.QuantumProgram(code=_PROGRAM_V2)
         program = cg.EngineProgram('a', 'b', EngineContext(), result_type=ResultType.Batch)
         _ = program.batch_size()
 
@@ -500,10 +519,11 @@ def mock_grpc_client():
         yield _fixture
 
 
-@mock.patch('cirq_google.engine.engine_client.EngineClient.get_program')
-def test_get_circuit_v2_unknown_gateset(get_program):
+@uses_async_mock
+@mock.patch('cirq_google.engine.engine_client.EngineClient.get_program_async')
+def test_get_circuit_v2_unknown_gateset(get_program_async):
     program = cg.EngineProgram('a', 'b', EngineContext())
-    get_program.return_value = quantum.QuantumProgram(
+    get_program_async.return_value = quantum.QuantumProgram(
         code=util.pack_any(
             v2.program_pb2.Program(language=v2.program_pb2.Language(gate_set="BAD_GATESET"))
         )
@@ -513,10 +533,11 @@ def test_get_circuit_v2_unknown_gateset(get_program):
         program.get_circuit()
 
 
-@mock.patch('cirq_google.engine.engine_client.EngineClient.get_program')
-def test_get_circuit_unsupported_program_type(get_program):
+@uses_async_mock
+@mock.patch('cirq_google.engine.engine_client.EngineClient.get_program_async')
+def test_get_circuit_unsupported_program_type(get_program_async):
     program = cg.EngineProgram('a', 'b', EngineContext())
-    get_program.return_value = quantum.QuantumProgram(
+    get_program_async.return_value = quantum.QuantumProgram(
         code=any_pb2.Any(type_url='type.googleapis.com/unknown.proto')
     )
 
@@ -524,21 +545,23 @@ def test_get_circuit_unsupported_program_type(get_program):
         program.get_circuit()
 
 
-@mock.patch('cirq_google.engine.engine_client.EngineClient.delete_program')
-def test_delete(delete_program):
+@uses_async_mock
+@mock.patch('cirq_google.engine.engine_client.EngineClient.delete_program_async')
+def test_delete(delete_program_async):
     program = cg.EngineProgram('a', 'b', EngineContext())
     program.delete()
-    delete_program.assert_called_with('a', 'b', delete_jobs=False)
+    delete_program_async.assert_called_with('a', 'b', delete_jobs=False)
 
     program.delete(delete_jobs=True)
-    delete_program.assert_called_with('a', 'b', delete_jobs=True)
+    delete_program_async.assert_called_with('a', 'b', delete_jobs=True)
 
 
-@mock.patch('cirq_google.engine.engine_client.EngineClient.delete_job')
-def test_delete_jobs(delete_job):
+@uses_async_mock
+@mock.patch('cirq_google.engine.engine_client.EngineClient.delete_job_async')
+def test_delete_jobs(delete_job_async):
     program = cg.EngineProgram('a', 'b', EngineContext())
     program.delete_job('c')
-    delete_job.assert_called_with('a', 'b', 'c')
+    delete_job_async.assert_called_with('a', 'b', 'c')
 
 
 def test_str():

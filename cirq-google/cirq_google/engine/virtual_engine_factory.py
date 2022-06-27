@@ -13,6 +13,7 @@
 # limitations under the License.
 
 """Functions to instantiate SimulatedLocalEngines to simulate various Google Devices."""
+import json
 from typing import cast, Iterable, List, Optional, Union
 import pathlib
 import time
@@ -20,16 +21,15 @@ import time
 import google.protobuf.text_format as text_format
 import cirq
 from cirq_google.api import v2
-from cirq_google.engine import calibration, engine_validator, simulated_local_processor
-from cirq_google.devices import serializable_device
-from cirq_google.serialization.gate_sets import FSIM_GATESET
+from cirq_google.engine import calibration, engine_validator, simulated_local_processor, util
+from cirq_google.devices import grid_device
 from cirq_google.serialization import serializable_gate_set
 from cirq_google.engine.simulated_local_engine import SimulatedLocalEngine
 from cirq_google.engine.simulated_local_processor import SimulatedLocalProcessor
 
 MOST_RECENT_TEMPLATES = {
-    'rainbow': 'rainbow_2021_12_10_device_spec.proto.txt',
-    'weber': 'weber_2021_12_10_device_spec.proto.txt',
+    'rainbow': 'rainbow_2021_12_10_device_spec_for_grid_device.proto.txt',
+    'weber': 'weber_2021_12_10_device_spec_for_grid_device.proto.txt',
 }
 
 MEDIAN_CALIBRATIONS = {
@@ -41,6 +41,8 @@ MEDIAN_CALIBRATION_TIMESTAMPS = {
     'rainbow': 1637058415838,  # 2021-11-16 10:26:55.838 UTC
     'weber': 1635923188204,  # 2021-11-03 07:06:28.204 UTC
 }
+
+ZPHASE_DATA = {'rainbow': 'rainbow_2021_08_26_zphase.json', 'weber': 'weber_2021_04_20_zphase.json'}
 
 METRICS_1Q = [
     'single_qubit_p00_error',
@@ -123,6 +125,42 @@ def load_median_device_calibration(processor_id: str) -> calibration.Calibration
     return cal
 
 
+def load_sample_device_zphase(processor_id: str) -> util.ZPhaseDataType:
+    """Loads sample Z phase errors for the given device.
+
+    Args:
+        processor_id: name of the processor to simulate.
+
+    Returns:
+        Z phases in the form {gate_type: {angle_type: {qubit_pair: error}}},
+        where gate_type is "syc" or "sqrt_iswap", angle_type is "zeta" or
+        "gamma", and "qubit_pair" is a tuple of qubits.
+
+    Raises:
+        ValueError: if processor_id is not a supported QCS processor.
+    """
+    zphase_name = ZPHASE_DATA.get(processor_id, None)
+    if zphase_name is None:
+        raise ValueError(
+            f"Got processor_id={processor_id}, but no Z phase data is defined for that processor."
+        )
+    path = pathlib.Path(__file__).parent.parent.resolve()
+    with path.joinpath('devices', 'calibrations', zphase_name).open() as f:
+        raw_data = json.load(f)
+
+        nested_data: util.ZPhaseDataType = {
+            gate_type: {
+                angle: {
+                    (v2.qubit_from_proto_id(q0), v2.qubit_from_proto_id(q1)): vals
+                    for q0, q1, vals in triples
+                }
+                for angle, triples in angles.items()
+            }
+            for gate_type, angles in raw_data.items()
+        }
+    return nested_data
+
+
 def _create_virtual_processor_from_device(
     processor_id: str, device: cirq.Device
 ) -> simulated_local_processor.SimulatedLocalProcessor:
@@ -142,7 +180,7 @@ def _create_virtual_processor_from_device(
         processor_id=processor_id,
         device=device,
         validator=engine_validator.create_engine_validator(),
-        gate_set_validator=engine_validator.create_gate_set_validator(),
+        program_validator=engine_validator.create_program_validator(),
         calibrations={calibration.timestamp // 1000: calibration},
     )
 
@@ -164,6 +202,7 @@ def create_noiseless_virtual_engine_from_device(
     return SimulatedLocalEngine([_create_virtual_processor_from_device(processor_id, device)])
 
 
+@util.deprecated_get_device_gate_sets_parameter()
 def create_noiseless_virtual_processor_from_proto(
     processor_id: str,
     device_specification: v2.device_pb2.DeviceSpecification,
@@ -180,17 +219,15 @@ def create_noiseless_virtual_processor_from_proto(
             in QCS.
         device_specification:  `v2.device_pb2.DeviceSpecification` proto to create
             a validating device from.
-        gate_sets: Iterable of serializers to use in the processor.  Defaults
-            to the FSIM_GATESET.
+        gate_sets: Iterable of serializers to use in the processor.
     """
-    if gate_sets is None:
-        gate_sets = [FSIM_GATESET]
 
-    device = serializable_device.SerializableDevice.from_proto(device_specification, gate_sets)
+    device = grid_device.GridDevice.from_proto(device_specification)
     processor = _create_virtual_processor_from_device(processor_id, device)
     return processor
 
 
+@util.deprecated_get_device_gate_sets_parameter()
 def create_noiseless_virtual_engine_from_proto(
     processor_ids: Union[str, List[str]],
     device_specifications: Union[
@@ -211,14 +248,11 @@ def create_noiseless_virtual_engine_from_proto(
             validating devices from.  This can be a single DeviceSpecification
             or a list of them.  There should be one DeviceSpecification for each
             processor_id.
-        gate_sets: Iterable of serializers to use in the processor.  Defaults
-            to the FSIM_GATESET.
+        gate_sets: Iterable of serializers to use in the processor.
 
     Raises:
         ValueError: if processor_ids and device_specifications are not the same length.
     """
-    if gate_sets is None:
-        gate_sets = [FSIM_GATESET]
     if isinstance(processor_ids, str):
         processor_ids = [processor_ids]
     if isinstance(device_specifications, v2.device_pb2.DeviceSpecification):
@@ -228,7 +262,7 @@ def create_noiseless_virtual_engine_from_proto(
 
     return SimulatedLocalEngine(
         processors=[
-            create_noiseless_virtual_processor_from_proto(processor_id, device_spec, gate_sets)
+            create_noiseless_virtual_processor_from_proto(processor_id, device_spec)
             for device_spec, processor_id in zip(device_specifications, processor_ids)
         ]
     )
@@ -245,8 +279,8 @@ def _create_device_spec_from_template(template_name: str) -> v2.device_pb2.Devic
     return device_spec
 
 
-def create_device_from_processor_id(processor_id: str) -> serializable_device.SerializableDevice:
-    """Generates a `cirq_google.SerializableDevice` for a given processor ID.
+def create_device_from_processor_id(processor_id: str) -> cirq.Device:
+    """Generates a `cirq.Device` for a given processor ID.
 
     Args:
         processor_id: name of the processor to simulate.
@@ -258,9 +292,10 @@ def create_device_from_processor_id(processor_id: str) -> serializable_device.Se
     if template_name is None:
         raise ValueError(f"Got processor_id={processor_id}, but no such processor is defined.")
     device_specification = _create_device_spec_from_template(template_name)
-    return serializable_device.SerializableDevice.from_proto(device_specification, [FSIM_GATESET])
+    return grid_device.GridDevice.from_proto(device_specification)
 
 
+@util.deprecated_get_device_gate_sets_parameter()
 def create_noiseless_virtual_processor_from_template(
     processor_id: str,
     template_name: str,
@@ -274,16 +309,14 @@ def create_noiseless_virtual_processor_from_template(
             in QCS.
         template_name: File name of the device specification template, see
             cirq_google/devices/specifications for valid templates.
-        gate_sets: Iterable of serializers to use in the processor.  Defaults
-            to the FSIM_GATESET.
+        gate_sets: Iterable of serializers to use in the processor.
     """
     return create_noiseless_virtual_processor_from_proto(
-        processor_id,
-        device_specification=_create_device_spec_from_template(template_name),
-        gate_sets=gate_sets,
+        processor_id, device_specification=_create_device_spec_from_template(template_name)
     )
 
 
+@util.deprecated_get_device_gate_sets_parameter()
 def create_noiseless_virtual_engine_from_templates(
     processor_ids: Union[str, List[str]],
     template_names: Union[str, List[str]],
@@ -300,8 +333,7 @@ def create_noiseless_virtual_engine_from_templates(
             cirq_google/devices/specifications for valid templates.  There can
             be a single str for a template name or a list of strings.  Each
             template name should be matched to a single processor id.
-        gate_sets: Iterable of serializers to use in the processor.  Defaults
-            to the FSIM_GATESET.
+        gate_sets: Iterable of serializers to use in the processor.
 
     Raises:
         ValueError: if processor_ids and template_names are not the same length.
@@ -316,7 +348,7 @@ def create_noiseless_virtual_engine_from_templates(
     specifications = [
         _create_device_spec_from_template(template_name) for template_name in template_names
     ]
-    return create_noiseless_virtual_engine_from_proto(processor_ids, specifications, gate_sets)
+    return create_noiseless_virtual_engine_from_proto(processor_ids, specifications)
 
 
 def create_noiseless_virtual_engine_from_latest_templates() -> SimulatedLocalEngine:

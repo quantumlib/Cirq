@@ -50,6 +50,7 @@ from cirq.sim.simulator import (
 
 if TYPE_CHECKING:
     import cirq
+    from numpy.typing import DTypeLike
 
 
 TStepResultBase = TypeVar('TStepResultBase', bound='StepResultBase')
@@ -93,7 +94,7 @@ class SimulatorBase(
     def __init__(
         self,
         *,
-        dtype: Type[np.number] = np.complex64,
+        dtype: Type[np.complexfloating] = np.complex64,
         noise: 'cirq.NOISE_MODEL_LIKE' = None,
         seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None,
         split_untangled_states: bool = False,
@@ -209,6 +210,18 @@ class SimulatorBase(
             A boolean representing whether the value can be added to the
             `_run` prefix."""
         return protocols.has_unitary(val)
+
+    def _base_iterator(
+        self, circuit: 'cirq.AbstractCircuit', qubits: Tuple['cirq.Qid', ...], initial_state: Any
+    ) -> Iterator[TStepResultBase]:
+        if not isinstance(qubits, tuple):
+            _compat._warn_or_error(
+                'The `qubits` parameter of `_base_iterator` will expect an explicit'
+                ' `Tuple[cirq.Qid, ...]` beginning in v0.16.'
+            )
+            qubits = ops.QubitOrder.as_qubit_order(qubits).order_for(circuit.all_qubits())
+        sim_state = self._create_simulation_state(initial_state, qubits)
+        return self._core_iterator(circuit, sim_state)
 
     def _core_iterator(
         self,

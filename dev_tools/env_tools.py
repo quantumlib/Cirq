@@ -51,14 +51,13 @@ def create_virtual_env(
         python_path: The python binary to use.
         verbose: When set, more progress output is produced.
     """
-    shell_tools.run_cmd(
-        'virtualenv', None if verbose else '--quiet', '-p', python_path, venv_path, out=sys.stderr
+    optional_quiet = [] if verbose else ['--quiet']
+    shell_tools.run(
+        ['virtualenv', *optional_quiet, '-p', python_path, venv_path], stdout=sys.stderr
     )
     pip_path = os.path.join(venv_path, 'bin', 'pip')
     for req_path in requirements_paths:
-        shell_tools.run_cmd(
-            pip_path, 'install', None if verbose else '--quiet', '-r', req_path, out=sys.stderr
-        )
+        shell_tools.run([pip_path, 'install', *optional_quiet, '-r', req_path], stdout=sys.stderr)
 
 
 def prepare_temporary_test_environment(

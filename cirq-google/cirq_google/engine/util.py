@@ -13,7 +13,7 @@
 # limitations under the License.
 
 import inspect
-from typing import TypeVar
+from typing import Dict, Tuple, TypeVar
 
 from google.protobuf import any_pb2
 from google.protobuf.message import Message
@@ -21,6 +21,14 @@ from google.protobuf.message import Message
 import cirq
 
 M = TypeVar('M', bound=Message)
+
+# Bundled Z phase errors in the format:
+#
+#   {gate_type: {angle_type: {qubit_pair: error}}}
+#
+# where gate_type is "syc" or "sqrt_iswap", angle_type is "zeta" or "gamma",
+# and "qubit_pair" is a tuple of qubits.
+ZPhaseDataType = Dict[str, Dict[str, Dict[Tuple[cirq.Qid, ...], float]]]
 
 
 def pack_any(message: Message) -> any_pb2.Any:
@@ -38,18 +46,23 @@ def unpack_any(message: any_pb2.Any, out: M) -> M:
     return out
 
 
-def deprecated_gate_set_parameter(func):
-    """Decorates a function that takes a deprecated 'gate_set' parameter."""
-    signature = inspect.signature(func)
-    gate_set_param = signature.parameters['gate_set']
-    assert gate_set_param.default is None  # Must be optional and default to None.
-    idx = list(signature.parameters).index('gate_set')
+def deprecated_get_device_gate_sets_parameter(param_name='gate_sets'):
+    """Decorates get device functions, which take a deprecated 'gate_sets' parameter."""
 
-    decorator = cirq._compat.deprecated_parameter(
-        deadline='v0.15',
-        fix='Remove the gate_set parameter.',
-        parameter_desc='gate_set',
-        match=lambda args, kwargs: 'gate_set' in kwargs
-        or (gate_set_param.kind != inspect.Parameter.KEYWORD_ONLY and len(args) > idx),
-    )
-    return decorator(func)
+    def decorator(func):
+        signature = inspect.signature(func)
+        gate_sets_param = signature.parameters[param_name]
+        assert gate_sets_param.default == () or gate_sets_param.default is None
+        idx = list(signature.parameters).index(param_name)
+
+        deprecation_decorator = cirq._compat.deprecated_parameter(
+            deadline='v0.16',
+            fix='Specifying gate_sets is no longer necessary to get a device.'
+            ' Remove the gate_sets parameter.',
+            parameter_desc=param_name,
+            match=lambda args, kwargs: param_name in kwargs
+            or (gate_sets_param.kind != inspect.Parameter.KEYWORD_ONLY and len(args) > idx),
+        )
+        return deprecation_decorator(func)
+
+    return decorator

@@ -121,13 +121,16 @@ class PreparedEnv:
             List[str]: File paths of changed files, relative to the git repo
                 root.
         """
+        optional_actual_commit_id = [] if self.actual_commit_id is None else [self.actual_commit_id]
         out = shell_tools.output_of(
-            'git',
-            'diff',
-            '--name-only',
-            self.compare_commit_id,
-            self.actual_commit_id,
-            '--',
+            [
+                'git',
+                'diff',
+                '--name-only',
+                self.compare_commit_id,
+                *optional_actual_commit_id,
+                '--',
+            ],
             cwd=self.destination_directory,
         )
         return [e for e in out.split('\n') if e.strip()]

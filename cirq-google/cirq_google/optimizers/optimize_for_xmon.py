@@ -15,12 +15,18 @@
 from typing import Callable, cast, TYPE_CHECKING
 
 import cirq
+from cirq import _compat
 from cirq_google.optimizers import optimized_for_sycamore
 
 if TYPE_CHECKING:
     import cirq_google
 
 
+@_compat.deprecated(
+    deadline='v0.16',
+    # pylint: disable=line-too-long
+    fix='Use cirq.optimize_for_target_gateset(circuit, gateset=cirq.CZTargetGateset(atol=tolerance, allow_partial_czs=allow_partial_czs)).',
+)
 def optimized_for_xmon(
     circuit: cirq.Circuit,
     qubit_map: Callable[[cirq.Qid], cirq.GridQubit] = lambda e: cast(cirq.GridQubit, e),

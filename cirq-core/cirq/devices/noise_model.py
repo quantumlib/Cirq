@@ -212,10 +212,20 @@ class ConstantQubitNoiseModel(NoiseModel):
     operation is given as "the noise to use" for a `NOISE_MODEL_LIKE` parameter.
     """
 
-    def __init__(self, qubit_noise_gate: 'cirq.Gate'):
+    def __init__(self, qubit_noise_gate: 'cirq.Gate', prepend: bool = False):
+        """Noise model which applies a specific gate as noise to all gates.
+
+        Args:
+            qubit_noise_gate: The "noise" gate to use.
+            prepend: If True, put noise before affected gates. Default: False.
+
+        Raises:
+            ValueError: if qubit_noise_gate is not a single-qubit gate.
+        """
         if qubit_noise_gate.num_qubits() != 1:
             raise ValueError('noise.num_qubits() != 1')
         self.qubit_noise_gate = qubit_noise_gate
+        self._prepend = prepend
 
     def _value_equality_values_(self) -> Any:
         return self.qubit_noise_gate
@@ -227,12 +237,13 @@ class ConstantQubitNoiseModel(NoiseModel):
         # Noise should not be appended to previously-added noise.
         if self.is_virtual_moment(moment):
             return moment
-        return [
+        output = [
             moment,
             moment_module.Moment(
                 [self.qubit_noise_gate(q).with_tags(ops.VirtualTag()) for q in system_qubits]
             ),
         ]
+        return output[::-1] if self._prepend else output
 
     def _json_dict_(self):
         return protocols.obj_to_dict_helper(self, ['qubit_noise_gate'])
@@ -246,6 +257,11 @@ class ConstantQubitNoiseModel(NoiseModel):
 
 class GateSubstitutionNoiseModel(NoiseModel):
     def __init__(self, substitution_func: Callable[['cirq.Operation'], 'cirq.Operation']):
+        """Noise model which replaces operations using a substitution function.
+
+        Args:
+            substitution_func: a function for replacing operations.
+        """
         self.substitution_func = substitution_func
 
     def noisy_moment(
