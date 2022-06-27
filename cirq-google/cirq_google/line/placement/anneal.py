@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Callable, List, Optional, Tuple, Set, Any, TYPE_CHECKING
+from typing import cast, Callable, List, Optional, Tuple, Set, Any, TYPE_CHECKING
 
 import numpy as np
 
@@ -30,14 +30,14 @@ _STATE = Tuple[List[List[cirq.GridQubit]], Set[EDGE]]
 class AnnealSequenceSearch:
     """Simulated annealing search heuristic."""
 
-    def __init__(self, device: 'cirq_google.XmonDevice', seed=None) -> None:
+    def __init__(self, device: 'cirq_google.GridDevice', seed=None) -> None:
         """Greedy sequence search constructor.
 
         Args:
           device: Chip description.
           seed: Optional seed value for random number generator.
         """
-        self._c = device.qubits
+        self._c = cast(Set[cirq.GridQubit], device.metadata.qubit_set)
         self._c_adj = chip_as_adjacency_list(device)
         self._rand = np.random.RandomState(seed)
 
@@ -350,7 +350,7 @@ class AnnealSequenceSearchStrategy(place_strategy.LinePlacementStrategy):
         self.trace_func = trace_func
         self.seed = seed
 
-    def place_line(self, device: 'cirq_google.XmonDevice', length: int) -> GridQubitLineTuple:
+    def place_line(self, device: 'cirq_google.GridDevice', length: int) -> GridQubitLineTuple:
         """Runs line sequence search.
 
         Args:

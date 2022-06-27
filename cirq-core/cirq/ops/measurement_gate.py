@@ -12,7 +12,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Any, Dict, FrozenSet, Iterable, Optional, Tuple, Sequence, TYPE_CHECKING, Union
+from typing import (
+    Any,
+    Dict,
+    FrozenSet,
+    Iterable,
+    Mapping,
+    Optional,
+    Tuple,
+    Sequence,
+    TYPE_CHECKING,
+    Union,
+)
 
 import numpy as np
 
@@ -129,7 +140,7 @@ class MeasurementGate(raw_types.Gate):
     ):
         return self.with_key(protocols.with_rescoped_keys(self.mkey, path, bindable_keys))
 
-    def _with_measurement_key_mapping_(self, key_map: Dict[str, str]):
+    def _with_measurement_key_mapping_(self, key_map: Mapping[str, str]):
         return self.with_key(protocols.with_measurement_key_mapping(self.mkey, key_map))
 
     def with_bits_flipped(self, *bit_positions: int) -> 'MeasurementGate':
@@ -312,7 +323,19 @@ class MeasurementGate(raw_types.Gate):
 
         if not isinstance(sim_state, SimulationState):
             return NotImplemented
-        sim_state.measure(qubits, self.key, self.full_invert_mask(), self.confusion_map)
+        try:
+            sim_state.measure(
+                qubits, self.key, self.full_invert_mask(), confusion_map=self.confusion_map
+            )
+        except TypeError as e:
+            # Ensure that the error was due to confusion_map.
+            if not any("unexpected keyword argument 'confusion_map'" in arg for arg in e.args):
+                raise
+            _compat._warn_or_error(
+                "Starting in v0.16, SimulationState subclasses will be required to accept "
+                "a 'confusion_map' argument. See SimulationState.measure for details."
+            )
+            sim_state.measure(qubits, self.key, self.full_invert_mask())
         return True
 
 

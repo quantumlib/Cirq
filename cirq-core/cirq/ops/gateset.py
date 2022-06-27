@@ -198,6 +198,14 @@ class GateFamily:
     def description(self) -> str:
         return self._description
 
+    @property
+    def tags_to_accept(self) -> FrozenSet[Hashable]:
+        return self._tags_to_accept
+
+    @property
+    def tags_to_ignore(self) -> FrozenSet[Hashable]:
+        return self._tags_to_ignore
+
     def _predicate(self, gate: raw_types.Gate) -> bool:
         """Checks whether `cirq.Gate` instance `gate` belongs to this GateFamily.
 
@@ -261,14 +269,17 @@ class GateFamily:
         )
 
     def _json_dict_(self) -> Dict[str, Any]:
-        return {
+        d: Dict[str, Any] = {
             'gate': self._gate_json(),
             'name': self.name,
             'description': self.description,
             'ignore_global_phase': self._ignore_global_phase,
-            'tags_to_accept': list(self._tags_to_accept),
-            'tags_to_ignore': list(self._tags_to_ignore),
         }
+        if self._tags_to_accept:
+            d['tags_to_accept'] = list(self._tags_to_accept)
+        if self._tags_to_ignore:
+            d['tags_to_ignore'] = list(self._tags_to_ignore)
+        return d
 
     @classmethod
     def _from_json_dict_(
@@ -370,7 +381,7 @@ class Gateset:
                 )
 
         for g in unique_gate_list:
-            if type(g) == GateFamily:
+            if type(g) is GateFamily and not (g.tags_to_ignore or g.tags_to_accept):
                 if isinstance(g.gate, raw_types.Gate):
                     self._instance_gate_families[g.gate] = g
                 else:

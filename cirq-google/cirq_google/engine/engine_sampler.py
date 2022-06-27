@@ -16,7 +16,6 @@ from typing import List, Optional, Sequence, TYPE_CHECKING, Union
 
 import cirq
 from cirq_google import engine
-from cirq_google.engine import util
 
 if TYPE_CHECKING:
     import cirq_google
@@ -29,22 +28,13 @@ class QuantumEngineSampler(cirq.Sampler):
     Exposes a `cirq_google.Engine` instance as a `cirq.Sampler`.
     """
 
-    @util.deprecated_gate_set_parameter
-    def __init__(
-        self,
-        *,
-        engine: 'cirq_google.Engine',
-        processor_id: Union[str, List[str]],
-        gate_set: Optional['cirq_google.serialization.Serializer'] = None,
-    ):
+    def __init__(self, *, engine: 'cirq_google.Engine', processor_id: Union[str, List[str]]):
         """Inits QuantumEngineSampler.
 
         Args:
             engine: Quantum engine instance to use.
             processor_id: String identifier, or list of string identifiers,
                 determining which processors may be used when sampling.
-            gate_set: Determines how to serialize circuits when requesting
-                samples.
         """
         self._processor_ids = [processor_id] if isinstance(processor_id, str) else processor_id
         self._engine = engine

@@ -97,7 +97,7 @@ def _get_param_dict(resolver: cirq.ParamResolverOrSimilarType) -> Dict[Union[str
     """
     param_dict: Dict[Union[str, sympy.Expr], Any] = {}
     if isinstance(resolver, cirq.ParamResolver):
-        param_dict = resolver.param_dict
+        param_dict = dict(resolver.param_dict)
     elif isinstance(resolver, dict):
         param_dict = resolver
     return param_dict

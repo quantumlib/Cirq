@@ -12,11 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import cast
+from typing import Any, Dict, Optional, Sequence, Tuple, Union, cast
 import numpy as np
 import pytest
 
 import cirq
+from cirq.type_workarounds import NotImplementedType
 
 
 @pytest.mark.parametrize(
@@ -529,3 +530,57 @@ def test_act_on_qutrit():
     )
     cirq.act_on(m, args)
     assert args.log_of_measurement_results == {'out': [0, 0]}
+
+
+def test_act_on_no_confusion_map_deprecated():
+    class OldSimState(cirq.StateVectorSimulationState):
+        def __init__(self, *args, **kwargs):
+            super().__init__(*args, **kwargs)
+            self.measured = False
+
+        def _act_on_fallback_(
+            self, action: Any, qubits: Sequence['cirq.Qid'], allow_decompose: bool = True
+        ) -> Union[bool, NotImplementedType]:
+            return NotImplemented  # coverage: ignore
+
+        def measure(  # type: ignore
+            self, qubits: Sequence['cirq.Qid'], key: str, invert_mask: Sequence[bool]
+        ):
+            self.measured = True
+
+    qubits = cirq.LineQubit.range(2)
+    old_state = OldSimState(qubits=qubits)
+    m = cirq.measure(*qubits, key='test')
+    with cirq.testing.assert_deprecated('confusion_map', deadline='v0.16'):
+        cirq.act_on(m, old_state)
+    assert old_state.measured
+
+
+def test_act_on_no_confusion_map_scope_limited():
+    error_msg = "error from deeper in measure"
+
+    class ErrorProneSimState(cirq.StateVectorSimulationState):
+        def __init__(self, *args, **kwargs):
+            super().__init__(*args, **kwargs)
+            self.measured = False
+
+        def _act_on_fallback_(
+            self, action: Any, qubits: Sequence['cirq.Qid'], allow_decompose: bool = True
+        ) -> Union[bool, NotImplementedType]:
+            return NotImplemented  # coverage: ignore
+
+        def measure(
+            self,
+            qubits: Sequence['cirq.Qid'],
+            key: str,
+            invert_mask: Sequence[bool],
+            confusion_map: Optional[Dict[Tuple[int, ...], np.ndarray]] = None,
+        ):
+            raise TypeError(error_msg)
+
+    # Verify that the check doesn't prevent other errors from being raised
+    qubits = cirq.LineQubit.range(2)
+    sv_state = ErrorProneSimState(qubits=qubits)
+    m = cirq.measure(*qubits, key='test')
+    with pytest.raises(TypeError, match=error_msg):
+        cirq.act_on(m, sv_state)

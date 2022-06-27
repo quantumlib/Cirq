@@ -14,6 +14,7 @@
 from typing import (
     AbstractSet,
     Any,
+    Mapping,
     cast,
     Dict,
     FrozenSet,
@@ -178,7 +179,7 @@ class ClassicallyControlledOperation(raw_types.Operation):
         return True
 
     def _with_measurement_key_mapping_(
-        self, key_map: Dict[str, str]
+        self, key_map: Mapping[str, str]
     ) -> 'ClassicallyControlledOperation':
         conditions = [protocols.with_measurement_key_mapping(c, key_map) for c in self._conditions]
         sub_operation = protocols.with_measurement_key_mapping(self._sub_operation, key_map)

@@ -146,10 +146,13 @@ class GoogleNoiseProperties(devices.SuperconductingQubitsNoiseProperties):
             replace_args['tphi_ns'] = _with_values(self.tphi_ns, tphi_ns)
         if readout_errors is not None:
             if isinstance(readout_errors, dict):
-                readout_errors = {k: np.array(v) for k, v in readout_errors.items()}
+                replace_args['readout_errors'] = _with_values(
+                    self.readout_errors, {k: np.array(v) for k, v in readout_errors.items()}
+                )
             else:
-                readout_errors = np.array(readout_errors)
-            replace_args['readout_errors'] = _with_values(self.readout_errors, readout_errors)
+                replace_args['readout_errors'] = _with_values(
+                    self.readout_errors, np.array(readout_errors)
+                )
         if gate_pauli_errors is not None:
             if isinstance(gate_pauli_errors, dict):
                 combined_pauli_errors: Dict[

@@ -13,8 +13,9 @@
 # limitations under the License.
 """Device object for converting from device specification protos"""
 
-from typing import Any, Callable, cast, Dict, Iterable, Optional, List, Set, Tuple, Type
+from typing import Any, Callable, cast, Dict, Iterable, List, Optional, Set, Tuple, Type, Union
 import cirq
+from cirq import _compat
 from cirq_google.serialization import serializable_gate_set
 from cirq_google.api import v2
 
@@ -63,6 +64,10 @@ class _GateDefinition:
         return self.__dict__ == other.__dict__
 
 
+_GateOrFrozenCircuitTypes = Union[Type[cirq.Gate], Type[cirq.FrozenCircuit]]
+
+
+@_compat.deprecated_class(deadline='v0.16', fix='Use cirq_google.GridDevice instead.')
 class SerializableDevice(cirq.Device):
     """Device object generated from a device specification proto.
 
@@ -79,7 +84,9 @@ class SerializableDevice(cirq.Device):
     """
 
     def __init__(
-        self, qubits: List[cirq.Qid], gate_definitions: Dict[Type[cirq.Gate], List[_GateDefinition]]
+        self,
+        qubits: List[cirq.Qid],
+        gate_definitions: Dict[_GateOrFrozenCircuitTypes, List[_GateDefinition]],
     ):
         """Constructor for SerializableDevice using python objects.
 
@@ -93,6 +100,7 @@ class SerializableDevice(cirq.Device):
         """
         self.qubits = qubits
         self.gate_definitions = gate_definitions
+        has_subcircuit_support: bool = cirq.FrozenCircuit in gate_definitions
         self._metadata = cirq.GridDeviceMetadata(
             qubit_pairs=[
                 (pair[0], pair[1])
@@ -103,12 +111,9 @@ class SerializableDevice(cirq.Device):
                 if len(pair) == 2 and pair[0] < pair[1]
             ],
             gateset=cirq.Gateset(
-                *[
-                    g
-                    for g in gate_definitions.keys()
-                    if isinstance(g, (cirq.Gate, type(cirq.Gate)))
-                ],
+                *(g for g in gate_definitions.keys() if issubclass(g, cirq.Gate)),
                 cirq.GlobalPhaseGate,
+                unroll_circuit_op=has_subcircuit_support,
             ),
             gate_durations=None,
         )
@@ -119,6 +124,11 @@ class SerializableDevice(cirq.Device):
         return self._metadata
 
     @classmethod
+    @_compat.deprecated(
+        deadline='v0.16',
+        fix='cirq_google.SerializableDevice is replaced cirq_google.GridDevice.'
+        ' Use cirq_google.GridDevice.from_proto() instead.',
+    )
     def from_proto(
         cls,
         proto: v2.device_pb2.DeviceSpecification,
@@ -174,7 +184,7 @@ class SerializableDevice(cirq.Device):
                 )
 
         # Loop through serializers and map gate_definitions to type
-        gates_by_type: Dict[Type[cirq.Gate], List[_GateDefinition]] = {}
+        gates_by_type: Dict[_GateOrFrozenCircuitTypes, List[_GateDefinition]] = {}
         for gate_set in gate_sets:
             for internal_type in gate_set.supported_internal_types():
                 for serializer in gate_set.serializers[internal_type]:
