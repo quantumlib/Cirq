@@ -331,7 +331,9 @@ def test_simulate_random_unitary(dtype: Type[np.complexfloating], split: bool):
             result = simulator.simulate(random_circuit, qubit_order=[q0, q1], initial_state=x)
             circuit_unitary.append(result.final_state_vector)
         np.testing.assert_almost_equal(
-            np.transpose(circuit_unitary), random_circuit.unitary(qubit_order=[q0, q1]), decimal=6
+            np.transpose(np.array(circuit_unitary)),
+            random_circuit.unitary(qubit_order=[q0, q1]),
+            decimal=6,
         )
 
 
