@@ -395,14 +395,16 @@ def test_mixing_types():
 
 
 def test_multiple_gatesets():
-    # Deprecations: cirq_google.SerializableDevice, cirq_google.SerializableGateSet, and
-    # cirq_google.devices.known_devices.create_device_proto_from_diagram
+    # Deprecations: cirq_google.SerializableDevice, cirq_google.SerializableGateSet,
+    # common serializers, and
+    # cirq_google.devices.known_devices.create_device_proto_from_diagram,
     with cirq.testing.assert_deprecated(
         'Use cirq_google.GridDevice',
         'SerializableGateSet',
+        'CircuitSerializer',
         'no longer be available',
         deadline='v0.16',
-        count=6,
+        count=10,
     ):
         halfPiGateSet = cirq_google.SerializableGateSet(
             gate_set_name='half_pi_gateset',
@@ -437,14 +439,16 @@ def test_half_pi_takes_half_duration():
     gate perform correctly.  In this case, we set the XPowGate to be
     half the duration of the full exponent and make sure it still works.
     """
-    # Deprecations: cirq_google.SerializableDevice, cirq_google.SerializableGateSet, and
-    # cirq_google.devices.known_devices.create_device_proto_from_diagram
+    # Deprecations: cirq_google.SerializableDevice, cirq_google.SerializableGateSet,
+    # common serializers, and
+    # cirq_google.devices.known_devices.create_device_proto_from_diagram,
     with cirq.testing.assert_deprecated(
         'Use cirq_google.GridDevice',
         'SerializableGateSet',
+        'CircuitSerializer',
         'no longer be available',
         deadline='v0.16',
-        count=5,
+        count=7,
     ):
         half_pi_gs = cirq_google.SerializableGateSet(
             gate_set_name='half_pi',
@@ -470,14 +474,16 @@ def test_multiple_fsim_gatesets():
     gate perform correctly.  In this case, we set the XPowGate to be
     half the duration of the full exponent and make sure it still works.
     """
-    # Deprecations: cirq_google.SerializableDevice, cirq_google.SerializableGateSet, and
-    # cirq_google.devices.known_devices.create_device_proto_from_diagram
+    # Deprecations: cirq_google.SerializableDevice, cirq_google.SerializableGateSet,
+    # common serializers, and
+    # cirq_google.devices.known_devices.create_device_proto_from_diagram,
     with cirq.testing.assert_deprecated(
         'Use cirq_google.GridDevice',
         'SerializableGateSet',
+        'CircuitSerializer',
         'no longer be available',
         deadline='v0.16',
-        count=5,
+        count=7,
     ):
         half_pi_gs = cirq_google.SerializableGateSet(
             gate_set_name='half_pi',
