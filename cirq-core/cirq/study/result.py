@@ -35,7 +35,7 @@ import numpy as np
 import pandas as pd
 
 from cirq import value, ops
-from cirq._compat import deprecated, proper_repr, _warn_or_error
+from cirq._compat import proper_repr
 from cirq.study import resolver
 
 if TYPE_CHECKING:
