@@ -330,6 +330,7 @@ def test_clifford_circuit_SHSYSHS():
     )
 
 
+@pytest.mark.usefixtures('restore_random_state')
 @pytest.mark.parametrize('split', [True, False])
 def test_clifford_circuit(split):
     (q0, q1) = (cirq.LineQubit(0), cirq.LineQubit(1))
@@ -364,6 +365,7 @@ def test_clifford_circuit(split):
     )
 
 
+@pytest.mark.usefixtures('restore_random_state')
 @pytest.mark.parametrize("qubits", [cirq.LineQubit.range(2), cirq.LineQubit.range(4)])
 @pytest.mark.parametrize('split', [True, False])
 def test_clifford_circuit_2(qubits, split):

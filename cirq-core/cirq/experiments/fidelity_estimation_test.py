@@ -56,6 +56,7 @@ def make_random_quantum_circuit(qubits: Sequence[cirq.Qid], depth: int) -> cirq.
     return circuit
 
 
+@pytest.mark.usefixtures('restore_random_state')
 @pytest.mark.parametrize(
     'depolarization, estimator',
     itertools.product(
@@ -68,7 +69,6 @@ def make_random_quantum_circuit(qubits: Sequence[cirq.Qid], depth: int) -> cirq.
     ),
 )
 def test_xeb_fidelity(depolarization, estimator):
-    prng_state = np.random.get_state()
     np.random.seed(0)
 
     fs = []
@@ -90,11 +90,9 @@ def test_xeb_fidelity(depolarization, estimator):
     expected_fidelity = 1 - depolarization
     assert np.isclose(estimated_fidelity, expected_fidelity, atol=0.04)
 
-    np.random.set_state(prng_state)
 
-
+@pytest.mark.usefixtures('restore_random_state')
 def test_linear_and_log_xeb_fidelity():
-    prng_state = np.random.get_state()
     np.random.seed(0)
 
     depolarization = 0.5
@@ -116,8 +114,6 @@ def test_linear_and_log_xeb_fidelity():
 
     assert np.isclose(np.mean(fs_log), 1 - depolarization, atol=0.01)
     assert np.isclose(np.mean(fs_lin), 1 - depolarization, atol=0.09)
-
-    np.random.set_state(prng_state)
 
 
 def test_xeb_fidelity_invalid_qubits():
@@ -145,8 +141,8 @@ def test_xeb_fidelity_tuple_input():
     assert f1 == f2
 
 
+@pytest.mark.usefixtures('restore_random_state')
 def test_least_squares_xeb_fidelity_from_expectations():
-    prng_state = np.random.get_state()
     np.random.seed(0)
 
     depolarization = 0.5
@@ -191,8 +187,6 @@ def test_least_squares_xeb_fidelity_from_expectations():
     np.testing.assert_allclose(np.sum(np.array(r_lin) ** 2), 0.0, atol=1e-2)
     np.testing.assert_allclose(np.sum(np.array(r_log) ** 2), 0.0, atol=1e-2)
 
-    np.random.set_state(prng_state)
-
 
 def test_least_squares_xeb_fidelity_from_expectations_bad_length():
     with pytest.raises(ValueError, match='1, 1, and 2'):
@@ -202,8 +196,8 @@ def test_least_squares_xeb_fidelity_from_expectations_bad_length():
             )
 
 
+@pytest.mark.usefixtures('restore_random_state')
 def test_least_squares_xeb_fidelity_from_probabilities():
-    prng_state = np.random.get_state()
     np.random.seed(0)
 
     depolarization = 0.5
@@ -246,5 +240,3 @@ def test_least_squares_xeb_fidelity_from_probabilities():
     np.testing.assert_allclose(np.sum(np.array(r_lin) ** 2), 0.0, atol=1e-2)
     np.testing.assert_allclose(np.sum(np.array(r_log_np) ** 2), 0.0, atol=1e-2)
     np.testing.assert_allclose(np.sum(np.array(r_log_math) ** 2), 0.0, atol=1e-2)
-
-    np.random.set_state(prng_state)

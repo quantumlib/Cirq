@@ -112,6 +112,7 @@ def test_gate_consistent():
     cirq.testing.assert_implements_consistent_protocols(op)
 
 
+@pytest.mark.usefixtures('restore_random_state')
 @pytest.mark.parametrize(
     'n_bits,expected_hs',
     [

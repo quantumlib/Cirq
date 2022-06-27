@@ -87,6 +87,7 @@ def test_direct_fidelity_estimation_clifford_all_trials():
         assert np.isclose(estimated_fidelity, 1.0, atol=0.01)
 
 
+@pytest.mark.usefixtures('restore_random_state')
 def test_same_pauli_traces_clifford():
     n_qubits = 4
 
