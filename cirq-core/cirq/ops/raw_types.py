@@ -292,33 +292,39 @@ class Gate(metaclass=value.ABCMetaImplementAnyOneOf):
         """
         return ops.linear_combinations.LinearCombinationOfGates({self: coefficient})
 
-    def __add__(
-        self, other: Union['Gate', 'cirq.LinearCombinationOfGates']
-    ) -> 'cirq.LinearCombinationOfGates':
+    def __add__(self, other) -> Union['cirq.LinearCombinationOfGates', 'Gate']:
         if isinstance(other, Gate):
             return self.wrap_in_linear_combination() + other.wrap_in_linear_combination()
-        return self.wrap_in_linear_combination() + other
+        if isinstance(other, cirq.LinearCombinationOfGates):
+            return self.wrap_in_linear_combination() + other
+        return NotImplemented
 
-    def __sub__(
-        self, other: Union['Gate', 'cirq.LinearCombinationOfGates']
-    ) -> 'cirq.LinearCombinationOfGates':
+    def __sub__(self, other) -> Union['cirq.LinearCombinationOfGates', 'Gate']:
         if isinstance(other, Gate):
             return self.wrap_in_linear_combination() - other.wrap_in_linear_combination()
-        return self.wrap_in_linear_combination() - other
+        if isinstance(other, cirq.LinearCombinationOfGates):
+            return self.wrap_in_linear_combination() - other
+        return NotImplemented
 
-    def __neg__(self):
+    def __neg__(self) -> Union['cirq.LinearCombinationOfGates', 'Gate']:
         return self.wrap_in_linear_combination(coefficient=-1)
 
-    def __mul__(self, other: Union[complex, float, int]):
-        return self.wrap_in_linear_combination(coefficient=other)
+    def __mul__(self, other) -> Union['cirq.LinearCombinationOfGates', 'Gate']:
+        if isinstance(other, (complex, float, int)):
+            return self.wrap_in_linear_combination(coefficient=other)
+        return NotImplemented
 
-    def __rmul__(self, other: Union[complex, float, int]):
-        return self.wrap_in_linear_combination(coefficient=other)
+    def __rmul__(self, other) -> Union['cirq.LinearCombinationOfGates', 'Gate']:
+        if isinstance(other, (complex, float, int)):
+            return self.wrap_in_linear_combination(coefficient=other)
+        return NotImplemented
 
-    def __truediv__(self, other: Union[complex, float, int]):
-        return self.wrap_in_linear_combination(coefficient=1 / other)
+    def __truediv__(self, other) -> Union['cirq.LinearCombinationOfGates', 'Gate']:
+        if isinstance(other, (complex, float, int)):
+            return self.wrap_in_linear_combination(coefficient=1 / other)
+        return NotImplemented
 
-    def __pow__(self, power) -> Union['Gate', NotImplementedType]:
+    def __pow__(self, power) -> 'Gate':
         if power == 1:
             return self
 

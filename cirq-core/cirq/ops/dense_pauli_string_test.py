@@ -490,6 +490,7 @@ def test_tensor_product():
     assert (2 * f('XX')).tensor_product(-f('XI')) == -2 * f('XXXI')
     assert m('XX', coefficient=2).tensor_product(m('XI', coefficient=-1)) == -2 * m('XXXI')
     assert m('XX', coefficient=2).tensor_product(-f('XI')) == -2 * m('XXXI')
+    assert f('XX', coefficient=2).tensor_product(-m('XI')) == -2 * m('XXXI')
 
 
 def test_commutes():

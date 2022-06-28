@@ -13,7 +13,7 @@
 # limitations under the License.
 
 import abc
-import numbers
+from lib2to3.pytree import Base
 from typing import (
     TYPE_CHECKING,
     AbstractSet,
@@ -35,7 +35,6 @@ import sympy
 from cirq import linalg, protocols, value
 from cirq._compat import proper_repr
 from cirq.ops import global_phase_op, identity, pauli_gates, pauli_string, raw_types
-from cirq.type_workarounds import NotImplementedType
 
 if TYPE_CHECKING:
     import cirq
@@ -185,7 +184,7 @@ class BaseDensePauliString(raw_types.Gate, metaclass=abc.ABCMeta):
     def __pos__(self):
         return self
 
-    def __pow__(self: TCls, power: int) -> Union[TCls, NotImplementedType]:
+    def __pow__(self: TCls, power: int) -> TCls:
         cls = type(self)
 
         if isinstance(power, int):
@@ -219,21 +218,16 @@ class BaseDensePauliString(raw_types.Gate, metaclass=abc.ABCMeta):
     def __neg__(self: TCls) -> TCls:
         return type(self)(coefficient=-self.coefficient, pauli_mask=self.pauli_mask)
 
-    def __truediv__(self: TCls, other) -> Union[TCls, NotImplementedType]:
+    def __truediv__(self: TCls, other) -> TCls:
         if isinstance(other, (sympy.Expr, int, float, complex)):
             return self.__mul__(1 / other)
 
         return NotImplemented
 
-    def __mul__(self: TCls, other):
-        cls = (
-            MutableDensePauliString
-            if isinstance(self, MutableDensePauliString)
-            or isinstance(other, MutableDensePauliString)
-            else DensePauliString
-        )
+    def __mul__(self: TCls, other) -> TCls:
+        cls = type(self)
 
-        if isinstance(other, (DensePauliString, MutableDensePauliString)):
+        if isinstance(other, BaseDensePauliString):
             max_len = max(len(self), len(other))
             min_len = min(len(self), len(other))
             new_mask = np.zeros(max_len, dtype=np.uint8)
@@ -264,7 +258,7 @@ class BaseDensePauliString(raw_types.Gate, metaclass=abc.ABCMeta):
 
         return NotImplemented
 
-    def __rmul__(self: TCls, other) -> Union[TCls, NotImplementedType]:
+    def __rmul__(self: TCls, other) -> TCls:
         if isinstance(other, (sympy.Expr, int, float, complex)):
             return self.__mul__(other)
 
@@ -280,7 +274,7 @@ class BaseDensePauliString(raw_types.Gate, metaclass=abc.ABCMeta):
 
         return NotImplemented
 
-    def tensor_product(self: TCls, other):
+    def tensor_product(self: TCls, other) -> 'BaseDensePauliString':
         """Concatenates dense pauli strings and multiplies their coefficients.
 
         Args:
@@ -293,20 +287,22 @@ class BaseDensePauliString(raw_types.Gate, metaclass=abc.ABCMeta):
         Raises:
             TypeError: If other is not of the same type than self.
         """
-        cls = (
-            MutableDensePauliString
-            if isinstance(self, MutableDensePauliString)
-            or isinstance(other, MutableDensePauliString)
-            else DensePauliString
-        )
+        if isinstance(other, BaseDensePauliString):
+            cls = (
+                MutableDensePauliString
+                if isinstance(self, MutableDensePauliString)
+                or isinstance(other, MutableDensePauliString)
+                else DensePauliString
+            )
 
-        if isinstance(other, (DensePauliString, MutableDensePauliString)):
             return cls(
                 coefficient=self.coefficient * other.coefficient,
                 pauli_mask=np.concatenate([self.pauli_mask, other.pauli_mask]),
             )
 
-        raise TypeError(f"Tensoring allowed only with objects of type {type(self)}.")
+        raise TypeError(
+            "Tensoring allowed only with objects of type DensePauliString or MutableDensePauliString."
+        )
 
     def __abs__(self: TCls) -> TCls:
         return type(self)(coefficient=abs(self.coefficient), pauli_mask=self.pauli_mask)
@@ -361,7 +357,7 @@ class BaseDensePauliString(raw_types.Gate, metaclass=abc.ABCMeta):
             f'coefficient={proper_repr(self.coefficient)})'
         )
 
-    def _commutes_(self, other: Any, *, atol: float = 1e-8) -> Union[bool, NotImplementedType]:
+    def _commutes_(self, other, *, atol: float = 1e-8) -> bool:
         if isinstance(other, BaseDensePauliString):
             n = min(len(self.pauli_mask), len(other.pauli_mask))
             phase = _vectorized_pauli_mul_phase(self.pauli_mask[:n], other.pauli_mask[:n])
@@ -421,6 +417,11 @@ class DensePauliString(BaseDensePauliString):
     If the coefficient has magnitude of 1, then this is also a `cirq.Gate`.
     """
 
+    def __mul__(self, other) -> 'DensePauliString':
+        if isinstance(other, MutableDensePauliString):
+            return NotImplemented
+        return super().__mul__(other)
+
     def frozen(self) -> 'DensePauliString':
         return self
 
@@ -475,14 +476,19 @@ class MutableDensePauliString(BaseDensePauliString):
 
         raise TypeError(f'indices must be integers or slices, not {type(key)}')
 
-    def __itruediv__(self, other) -> Union['MutableDensePauliString', NotImplementedType]:
+    def __rmul__(self, other) -> 'MutableDensePauliString':
+        if isinstance(other, DensePauliString):
+            return other.mutable_copy() * self
+        return super().__rmul__(other)
+
+    def __itruediv__(self, other) -> 'MutableDensePauliString':
         if isinstance(other, (sympy.Expr, int, float, complex)):
             return self.__imul__(1 / other)
 
         return NotImplemented
 
-    def __imul__(self, other) -> Union['MutableDensePauliString', NotImplementedType]:
-        if isinstance(other, MutableDensePauliString):
+    def __imul__(self, other) -> 'MutableDensePauliString':
+        if isinstance(other, BaseDensePauliString):
             if len(other) > len(self):
                 raise ValueError(
                     "The receiving dense pauli string is smaller than "
