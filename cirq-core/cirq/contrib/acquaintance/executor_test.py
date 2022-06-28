@@ -48,7 +48,10 @@ def test_executor_explicit():
     }
     initial_mapping = {q: i for i, q in enumerate(sorted(qubits))}
     execution_strategy = cca.GreedyExecutionStrategy(gates, initial_mapping)
-    executor = cca.StrategyExecutor(execution_strategy)
+    with cirq.testing.assert_deprecated(
+            "Use cirq.contrib.acquaintance.strategy_executor", deadline='v1.0'
+        ):
+        executor = cca.StrategyExecutor(execution_strategy)
 
     with pytest.raises(NotImplementedError):
         bad_gates = {(0,): ExampleGate(['0']), (0, 1): ExampleGate(['0', '1'])}
@@ -56,14 +59,20 @@ def test_executor_explicit():
 
     with pytest.raises(TypeError):
         bad_strategy = cirq.Circuit(cirq.X(qubits[0]))
-        executor(bad_strategy)
+        with cirq.testing.assert_deprecated(
+            "Use cirq.contrib.acquaintance.strategy_executor", deadline='v1.0'
+        ):
+            executor(bad_strategy)
 
     with pytest.raises(TypeError):
         op = cirq.X(qubits[0])
         bad_strategy = cirq.Circuit(op)
-        executor.optimization_at(bad_strategy, 0, op)
+        with cirq.testing.assert_deprecated(
+            "Use cirq.contrib.acquaintance.strategy_executor", deadline='v1.0'
+        ):
+            executor.optimization_at(bad_strategy, 0, op)
+            executor(circuit)
 
-    executor(circuit)
     expected_text_diagram = """
 0: ───0───1───╲0╱─────────────────1───3───╲0╱─────────────────3───5───╲0╱─────────────────5───7───╲0╱─────────────────
       │   │   │                   │   │   │                   │   │   │                   │   │   │

@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from argparse import ArgumentError
+from optparse import Option
 from typing import DefaultDict, Dict, Sequence, TYPE_CHECKING, Optional
 
 import abc
@@ -63,7 +65,12 @@ class ExecutionStrategy(metaclass=abc.ABCMeta):
     def __call__(self, *args, **kwargs):
         return StrategyExecutor(self)(*args, **kwargs)
 
-
+@cirq._compat.deprecated_class(
+    deadline='v1.0',
+    fix='Use cirq.contrib.acquaintance.executor.strategy_executor instead.',
+    # or shoudl it be cirq.contrib.acquaintance.strategy_executor with
+    # strategy_executor imported in __init__.py ?
+)
 class StrategyExecutor(circuits.PointOptimizer):
     """Executes an acquaintance strategy."""
 
@@ -99,6 +106,43 @@ class StrategyExecutor(circuits.PointOptimizer):
             'PermutationGate.'
         )
 
+@cirq.transformer
+def strategy_executor(
+    circuit: 'cirq.Circuit', 
+    *,
+    execution_strategy: ExecutionStrategy = None,
+    context: Optional['cirq.TransformerContext'] = None
+    ) -> None:  
+    """ Executes an acquaintance strategy"""
+
+    if execution_strategy == None: raise ArgumentError(
+        'Execution strategy cannot be None'
+    )
+
+    mapping = execution_strategy.initial_mapping.copy()
+
+    def map_func(op: 'cirq.Operation', index) -> 'cirq.OP_TREE':
+        if isinstance(op.gate, AcquaintanceOpportunityGate):
+            logical_indices = tuple(mapping[q] for q in op.qubits)
+            logical_operations = execution_strategy.get_operations(logical_indices, op.qubits)
+            clear_span = int(not execution_strategy.keep_acquaintance)
+            new_operation = logical_operations.on(*logical_indices)
+
+            return new_operation if clear_span else [op, new_operation]
+            
+        if isinstance(op, ops.GateOperation) and isinstance(op.gate, PermutationGate):
+            op.gate.update_mapping(mapping, op.qubits)
+
+        return op
+
+    expose_acquaintance_gates(circuit)
+    return cirq.map_operations(
+        circuit=circuit,
+        map_func=map_func,
+        deep=context.deep if context else False,
+        tags_to_ignore=context.tags_to_ignore if context else ()
+    )
+        
 
 class AcquaintanceOperation(ops.GateOperation):
     """Represents an a acquaintance opportunity between a particular set of
