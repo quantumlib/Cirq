@@ -88,7 +88,7 @@ def _test_decompose(matrix, controls_count):
         [cirq.MatrixGate(matrix).on(qubits[-1]).controlled_by(*qubits[:-1])]
     ).unitary()
 
-    np.testing.assert_allclose(expected_matrix, result_matrix)
+    cirq.testing.assert_allclose_up_to_global_phase(expected_matrix, result_matrix, atol=1e-8)
 
 
 def test_decompose_specific_matrices():
