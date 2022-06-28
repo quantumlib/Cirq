@@ -202,7 +202,7 @@ def test_qasm():
     qasm = cirq.qasm(circuit)
     assert (
         qasm
-        == """// Generated from Cirq v0.15.0.dev
+        == f"""// Generated from Cirq v{cirq._version.__version__}
 
 OPENQASM 2.0;
 include "qelib1.inc";
