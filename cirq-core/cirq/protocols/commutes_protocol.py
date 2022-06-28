@@ -13,7 +13,7 @@
 # limitations under the License.
 """Protocol for determining commutativity."""
 
-from typing import Any, TypeVar, Union
+from typing import Any, Optional, Union
 
 import numpy as np
 from typing_extensions import Protocol
@@ -22,13 +22,14 @@ from cirq import linalg
 from cirq._doc import doc_private
 from cirq.type_workarounds import NotImplementedType
 
-# This is a special indicator value used by the unitary method to determine
+# This is a special indicator type used by the unitary method to determine
 # whether or not the caller provided a 'default' argument.
-# It is checked for using `is`, so it won't have a false positive if the user
-# provides a different np.array([]) value.
-RaiseTypeErrorIfNotProvided = np.array([])
+# It is intended to be a singleton, user is not supposed to create more instances.
+class _TRaiseTypeErrorIfNotProvided:
+    pass
 
-TDefault = TypeVar('TDefault')
+
+RaiseTypeErrorIfNotProvided = _TRaiseTypeErrorIfNotProvided()
 
 
 class SupportsCommutes(Protocol):
@@ -78,8 +79,8 @@ def commutes(
     v2: Any,
     *,
     atol: Union[int, float] = 1e-8,
-    default: Union[bool, TDefault] = RaiseTypeErrorIfNotProvided,
-) -> Union[bool, TDefault]:
+    default: Union[bool, _TRaiseTypeErrorIfNotProvided, None] = RaiseTypeErrorIfNotProvided,
+) -> Optional[bool]:
     """Determines whether two values commute.
 
     This is determined by any one of the following techniques:
@@ -129,7 +130,7 @@ def commutes(
             break
         if result is not NotImplemented:
             return result
-    if default is not RaiseTypeErrorIfNotProvided:
+    if not isinstance(default, _TRaiseTypeErrorIfNotProvided):
         return default
     raise TypeError(
         f"Failed to determine whether or not "
@@ -148,7 +149,8 @@ def definitely_commutes(v1: Any, v2: Any, *, atol: Union[int, float] = 1e-8) -> 
         True: The two values definitely commute.
         False: The two values may or may not commute.
     """
-    return commutes(v1, v2, atol=atol, default=False)
+    result = commutes(v1, v2, atol=atol, default=False)
+    return isinstance(result, bool) and result
 
 
 def _strat_commutes_from_commutes(
