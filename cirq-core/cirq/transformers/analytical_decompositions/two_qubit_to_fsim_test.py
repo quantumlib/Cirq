@@ -94,10 +94,7 @@ def test_decompose_xx_yy_into_two_fsims_ignoring_single_qubit_ops_fail():
         canonical_y_kak_coefficient=np.pi / 8,
     )
     np.testing.assert_allclose(
-        cirq.kak_decomposition(
-            cirq.Circuit(c).unitary(dtype=np.complex128)
-        ).interaction_coefficients,
-        [np.pi / 4, np.pi / 8, 0],
+        cirq.kak_decomposition(cirq.Circuit(c)).interaction_coefficients, [np.pi / 4, np.pi / 8, 0]
     )
 
     with pytest.raises(ValueError, match='Failed to synthesize'):
@@ -119,7 +116,7 @@ def test_decompose_two_qubit_interaction_into_four_fsim_gates_equivalence(
     for operation in circuit.all_operations():
         assert len(operation.qubits) < 2 or operation.gate == fsim_gate
     assert len(circuit) <= 4 * 3 + 5
-    assert cirq.approx_eq(circuit.unitary(qubit_order=qubits), desired_unitary, atol=2e-4)
+    assert cirq.approx_eq(circuit.unitary(qubit_order=qubits), desired_unitary, atol=1e-4)
 
 
 def test_decompose_two_qubit_interaction_into_four_fsim_gates_validate():
