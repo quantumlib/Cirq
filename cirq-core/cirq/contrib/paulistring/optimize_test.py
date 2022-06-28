@@ -48,7 +48,7 @@ def test_optimize():
 
     c_opt = optimized_circuit(c_orig)
 
-    cirq.testing.assert_allclose_up_to_global_phase(c_orig.unitary(), c_opt.unitary(), atol=1e-6)
+    cirq.testing.assert_allclose_up_to_global_phase(c_orig.unitary(), c_opt.unitary(), atol=1e-7)
 
     # TODO(#5546) Fix '[Z]^1' (should be 'Z')
     cirq.testing.assert_has_diagram(
@@ -69,7 +69,7 @@ def test_optimize_large_circuit():
 
     c_opt = optimized_circuit(c_orig)
 
-    cirq.testing.assert_allclose_up_to_global_phase(c_orig.unitary(), c_opt.unitary(), atol=1e-6)
+    cirq.testing.assert_allclose_up_to_global_phase(c_orig.unitary(), c_opt.unitary(), atol=1e-7)
 
     assert (
         sum(
@@ -87,7 +87,7 @@ def test_repeat_limit():
 
     c_opt = optimized_circuit(c_orig, repeat=1)
 
-    cirq.testing.assert_allclose_up_to_global_phase(c_orig.unitary(), c_opt.unitary(), atol=1e-6)
+    cirq.testing.assert_allclose_up_to_global_phase(c_orig.unitary(), c_opt.unitary(), atol=1e-7)
 
     assert (
         sum(
