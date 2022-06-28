@@ -24,7 +24,7 @@ from cirq.ops.clifford_gate import SingleQubitCliffordGate
 if TYPE_CHECKING:
     import cirq
 
-PAULI_EIGEN_MAP: Dict[pauli_gates.Pauli, np.ndarray] = {
+PAULI_EIGEN_MAP: Dict[pauli_gates.Pauli, Tuple[np.ndarray, np.ndarray]] = {
     pauli_gates.X: (np.array([[0.5, 0.5], [0.5, 0.5]]), np.array([[0.5, -0.5], [-0.5, 0.5]])),
     pauli_gates.Y: (np.array([[0.5, -0.5j], [0.5j, 0.5]]), np.array([[0.5, 0.5j], [-0.5j, 0.5]])),
     pauli_gates.Z: (np.diag([1, 0]), np.diag([0, 1])),

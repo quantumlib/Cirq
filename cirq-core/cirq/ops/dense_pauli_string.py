@@ -470,14 +470,14 @@ class MutableDensePauliString(BaseDensePauliString):
 
     `cirq.MutableDensePauliString` is a mutable version of `cirq.DensePauliString`.
     It exists mainly to help mutate dense pauli strings efficiently, instead of always creating
-    a copy, and then convert back to a frozen `cirq.DensePauliString` representation.
+    a copy, and then converting back to a frozen `cirq.DensePauliString` representation.
 
     For example:
 
     >>> mutable_dps = cirq.MutableDensePauliString('XXZZ')
     >>> mutable_dps[:2] = 'YY' # `cirq.MutableDensePauliString` supports item assignment.
     >>> print(mutable_dps)
-    +YYZY (mutable)
+    +YYZZ (mutable)
 
     See docstrings of `cirq.DensePauliString` for more details on dense pauli strings.
     """

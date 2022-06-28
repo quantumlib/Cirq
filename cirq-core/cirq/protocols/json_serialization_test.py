@@ -99,7 +99,7 @@ def test_deprecated_cirq_type_in_json_dict():
             return HasOldJsonDict
 
     test_resolvers = [custom_resolver] + cirq.DEFAULT_RESOLVERS
-    with cirq.testing.assert_deprecated("Found 'cirq_type'", deadline='v0.15'):
+    with pytest.raises(ValueError, match="Found 'cirq_type'"):
         assert_json_roundtrip_works(HasOldJsonDict(), resolvers=test_resolvers)
 
 
