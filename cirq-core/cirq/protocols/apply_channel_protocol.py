@@ -162,7 +162,9 @@ class SupportsApplyChannel(Protocol):
 
 
 def apply_channel(
-    val: Any, args: ApplyChannelArgs, default: TDefault = RaiseTypeErrorIfNotProvided
+    val: Any,
+    args: ApplyChannelArgs,
+    default: Union[np.ndarray, TDefault] = RaiseTypeErrorIfNotProvided,
 ) -> Union[np.ndarray, TDefault]:
     """High performance evolution under a channel evolution.
 

@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from typing import cast, Type
 from unittest import mock
 
 import numpy as np
@@ -170,7 +171,7 @@ def test_act_using_adaptive_two_qubit_channel():
             qubits=cirq.LineQubit.range(4),
             prng=mock_prng,
             initial_state=np.copy(state),
-            dtype=state.dtype,
+            dtype=cast(Type[np.complexfloating], state.dtype),
         )
         cirq.act_on(Decay11(), args, [cirq.LineQubit(1), cirq.LineQubit(3)])
         return args.target_tensor

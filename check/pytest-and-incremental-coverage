@@ -72,7 +72,6 @@ source dev_tools/pypath
 
 # Run tests while producing coverage files.
 check/pytest --actually-quiet \
-             --rigetti-integration \
              --cov \
              --cov-config=dev_tools/conf/.coveragerc \
              "${PYTEST_ARGS[@]}"
