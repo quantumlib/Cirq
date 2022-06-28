@@ -13,7 +13,7 @@
 # limitations under the License.
 """A protocol for implementing high performance unitary left-multiplies."""
 import warnings
-from typing import Any, cast, Iterable, Optional, Sequence, Tuple, TYPE_CHECKING, TypeVar, Union
+from typing import Any, cast, Iterable, Optional, Sequence, Tuple, TYPE_CHECKING, Union
 
 import numpy as np
 from typing_extensions import Protocol
@@ -34,8 +34,6 @@ if TYPE_CHECKING:
 # the user provides a different np.array([]) value.
 
 RaiseTypeErrorIfNotProvided: np.ndarray = np.array([])
-
-TDefault = TypeVar('TDefault')
 
 
 class ApplyUnitaryArgs:
@@ -277,10 +275,10 @@ class SupportsConsistentApplyUnitary(Protocol):
 def apply_unitary(
     unitary_value: Any,
     args: ApplyUnitaryArgs,
-    default: Union[np.ndarray, TDefault] = RaiseTypeErrorIfNotProvided,
+    default: np.ndarray = RaiseTypeErrorIfNotProvided,
     *,
     allow_decompose: bool = True,
-) -> Union[np.ndarray, TDefault]:
+) -> np.ndarray:
     """High performance left-multiplication of a unitary effect onto a tensor.
 
     Applies the unitary effect of `unitary_value` to the tensor specified in
@@ -461,8 +459,8 @@ def apply_unitaries(
     unitary_values: Iterable[Any],
     qubits: Sequence['cirq.Qid'],
     args: Optional[ApplyUnitaryArgs] = None,
-    default: Any = RaiseTypeErrorIfNotProvided,
-) -> Optional[np.ndarray]:
+    default: np.ndarray = RaiseTypeErrorIfNotProvided,
+) -> np.ndarray:
     """Apply a series of unitaries onto a state tensor.
 
     Uses `cirq.apply_unitary` on each of the unitary values, to apply them to
@@ -514,14 +512,18 @@ def apply_unitaries(
     state = args.target_tensor
     buffer = args.available_buffer
 
+    # unique array instance to identify unusuccessful operation
+    unitary_value_not_applied: np.ndarray = np.array([])
     for op in unitary_values:
         indices = [qubit_map[q.with_dimension(1)] for q in op.qubits]
         result = apply_unitary(
-            unitary_value=op, args=ApplyUnitaryArgs(state, buffer, indices), default=None
+            unitary_value=op,
+            args=ApplyUnitaryArgs(state, buffer, indices),
+            default=unitary_value_not_applied,
         )
 
         # Handle failure.
-        if result is None:
+        if result is unitary_value_not_applied:
             if default is RaiseTypeErrorIfNotProvided:
                 raise TypeError(
                     "cirq.apply_unitaries failed. "
