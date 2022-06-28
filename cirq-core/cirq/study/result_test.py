@@ -66,20 +66,6 @@ def test_repr():
     cirq.testing.assert_equivalent_repr(v)
 
 
-def test_result_constructor_deprecation():
-    with cirq.testing.assert_deprecated("Use the ResultDict constructor", deadline="v0.15"):
-        result = cirq.Result(params=cirq.ParamResolver({}), measurements={})
-    assert result.repetitions == 0
-
-
-def test_from_single_parameter_set_deprecation():
-    with cirq.testing.assert_deprecated("Use the ResultDict constructor", deadline="v0.15"):
-        result = cirq.Result.from_single_parameter_set(
-            params=cirq.ParamResolver({}), measurements={}
-        )
-    assert result.repetitions == 0
-
-
 def test_construct_from_measurements():
     r = cirq.ResultDict(
         params=None,

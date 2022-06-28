@@ -42,7 +42,7 @@ T = TypeVar(
 
 def _exp(theta: Union[complex, sympy.Basic]):
     """Utility method to return exp(theta) using numpy or sympy, depending on the type of theta."""
-    return sympy.exp(theta) if cirq.is_parameterized(theta) else np.exp(theta)
+    return sympy.exp(theta) if cirq.is_parameterized(theta) else np.exp(cast(complex, theta))
 
 
 def _gates_to_str(gates: Iterable[Any], gettr: Callable[[Any], str] = _gate_str) -> str:
@@ -360,7 +360,7 @@ class FSimGateFamily(cirq.GateFamily):
     def _convert_to_phased_fsim(self, g: POSSIBLE_FSIM_GATES) -> Optional[cirq.PhasedFSimGate]:
         if isinstance(g, cirq.PhasedFSimGate):
             return g
-        chi = 0
+        chi = 0.0
         if isinstance(g, cirq.PhasedISwapPowGate):
             chi = g.phase_exponent * 2 * np.pi
             g = g._iswap
@@ -376,7 +376,7 @@ class FSimGateFamily(cirq.GateFamily):
         return (
             None
             if (fsim is None or not self._approx_eq_or_symbol(fsim.phi, 0))
-            else cirq.ISWAP ** (-2 * fsim.theta / np.pi)
+            else cirq.ISwapPowGate(exponent=-2 * fsim.theta / np.pi)
         )
 
     def _convert_to_phased_iswap(self, g: POSSIBLE_FSIM_GATES) -> Optional[cirq.PhasedISwapPowGate]:
@@ -400,7 +400,7 @@ class FSimGateFamily(cirq.GateFamily):
         return (
             None
             if (cg is None or not self._approx_eq_or_symbol(cg.theta, 0))
-            else cirq.CZ ** (-cg.phi / np.pi)
+            else cirq.CZPowGate(exponent=-cg.phi / np.pi)
         )
 
     def _convert_to_identity(self, g: POSSIBLE_FSIM_GATES) -> Optional[cirq.IdentityGate]:
