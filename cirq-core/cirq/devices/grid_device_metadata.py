@@ -13,7 +13,7 @@
 # limitations under the License.
 """Metadata subtype for 2D Homogenous devices."""
 
-from typing import TYPE_CHECKING, Optional, FrozenSet, Iterable, Tuple, Dict
+from typing import TYPE_CHECKING, cast, Optional, FrozenSet, Iterable, Tuple, Dict
 
 import networkx as nx
 from cirq import value
@@ -112,6 +112,15 @@ class GridDeviceMetadata(device.DeviceMetadata):
                 )
 
         self._gate_durations = gate_durations
+
+    @property
+    def qubit_set(self) -> FrozenSet['cirq.GridQubit']:
+        """Returns the set of grid qubits on the device.
+
+        Returns:
+            Frozenset of qubits on device.
+        """
+        return cast(FrozenSet['cirq.GridQubit'], super().qubit_set)
 
     @property
     def qubit_pairs(self) -> FrozenSet[FrozenSet['cirq.GridQubit']]:
