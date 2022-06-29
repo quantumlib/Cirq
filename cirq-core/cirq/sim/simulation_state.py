@@ -187,7 +187,7 @@ class SimulationState(SimulationStateBase, Generic[TState], metaclass=abc.ABCMet
         Regurns:
             A new subclass object containing the extended state space.
         """
-        new_space = type(self)(qubits=qubits)
+        new_space = type(self)(qubits=qubits)  # type: ignore
         return self.kronecker_product(new_space)
 
     def factor(
