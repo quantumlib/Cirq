@@ -120,7 +120,7 @@ class GridDeviceMetadata(device.DeviceMetadata):
         Returns:
             Frozenset of qubits on device.
         """
-        return super().qubit_set
+        return cast(FrozenSet['cirq.GridQubit'], super().qubit_set)
 
     @property
     def qubit_pairs(self) -> FrozenSet[FrozenSet['cirq.GridQubit']]:
