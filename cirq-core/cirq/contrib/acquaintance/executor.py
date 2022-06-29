@@ -13,7 +13,6 @@
 # limitations under the License.
 
 from argparse import ArgumentError
-from optparse import Option
 from typing import DefaultDict, Dict, Sequence, TYPE_CHECKING, Optional
 
 import abc
