@@ -17,7 +17,6 @@ import gzip
 import json
 import numbers
 import pathlib
-import warnings
 from typing import (
     Any,
     Callable,
@@ -188,8 +187,7 @@ def dataclass_json_dict(obj: Any) -> Dict[str, Any]:
 def _json_dict_with_cirq_type(obj: Any):
     base_dict = obj._json_dict_()
     if 'cirq_type' in base_dict:
-        # TODO: upgrade to ValueError in v0.15
-        warnings.warn(
+        raise ValueError(
             f"Found 'cirq_type': '{base_dict['cirq_type']}' in user-specified _json_dict_. "
             "'cirq_type' is now automatically generated from the class's name and its "
             "_json_namespace_ method as `cirq_type: '[<namespace>.]<class_name>'`."
@@ -201,10 +199,8 @@ def _json_dict_with_cirq_type(obj: Any):
             "For backwards compatibility, third-party classes whose old 'cirq_type' value "
             "does not match the new value must appear under BOTH values in the resolver "
             "for that package. For details on defining custom resolvers, see the "
-            "DEFAULT_RESOLVER docstring in cirq-core/cirq/protocols/json_serialization.py.",
-            DeprecationWarning,
+            "DEFAULT_RESOLVER docstring in cirq-core/cirq/protocols/json_serialization.py."
         )
-        return base_dict
     return {'cirq_type': json_cirq_type(type(obj)), **base_dict}
 
 

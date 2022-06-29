@@ -122,7 +122,7 @@ def test_cphase():
         actual = cirq.Circuit(decomposition)
         expected_unitary = cirq.unitary(expected)
         actual_unitary = cirq.unitary(actual)
-        np.testing.assert_allclose(expected_unitary, actual_unitary, atol=1e-6)
+        np.testing.assert_allclose(expected_unitary, actual_unitary, atol=1e-7)
 
 
 def test_givens_rotation():
@@ -147,7 +147,7 @@ def test_givens_rotation():
             circuit.append(cirq.IdentityGate(2).on(*qubits))
             test_unitary = cirq.unitary(circuit)
             np.testing.assert_allclose(
-                4, np.abs(np.trace(np.conjugate(np.transpose(test_unitary)) @ unitary)), atol=1e-6
+                4, np.abs(np.trace(np.conjugate(np.transpose(test_unitary)) @ unitary))
             )
 
 

@@ -215,16 +215,17 @@ def test_CX_gate():
 def test_classical_control():
     qasm = """OPENQASM 2.0;
         qreg q[2];
-        creg m_a[1];
-        measure q[0] -> m_a[0];
-        if (m_a!=0) CX q[0], q[1];
+        creg a[1];
+        measure q[0] -> a[0];
+        if (a==1) CX q[0],q[1];
     """
     parser = QasmParser()
 
     q_0 = cirq.NamedQubit('q_0')
     q_1 = cirq.NamedQubit('q_1')
     expected_circuit = cirq.Circuit(
-        cirq.measure(q_0, key='m_a_0'), cirq.CNOT(q_0, q_1).with_classical_controls('m_a_0')
+        cirq.measure(q_0, key='a_0'),
+        cirq.CNOT(q_0, q_1).with_classical_controls(sympy.Eq(sympy.Symbol('a_0'), 1)),
     )
 
     parsed_qasm = parser.parse(qasm)
@@ -234,6 +235,62 @@ def test_classical_control():
 
     ct.assert_same_circuits(parsed_qasm.circuit, expected_circuit)
     assert parsed_qasm.qregs == {'q': 2}
+
+    # Note this cannot *exactly* round-trip because the way QASM and Cirq handle measurements
+    # into classical registers is different. Cirq parses QASM classical registers into m_a_i for i
+    # in 0..bit_count. Thus the generated key has an extra "_0" at the end.
+    expected_generated_qasm = f"""// Generated from Cirq v{cirq.__version__}
+
+OPENQASM 2.0;
+include "qelib1.inc";
+
+
+// Qubits: [q_0, q_1]
+qreg q[2];
+creg m_a_0[1];
+
+
+measure q[0] -> m_a_0[0];
+if (m_a_0==1) cx q[0],q[1];
+"""
+    assert cirq.qasm(parsed_qasm.circuit) == expected_generated_qasm
+
+
+def test_classical_control_multi_bit():
+    qasm = """OPENQASM 2.0;
+        qreg q[2];
+        creg a[2];
+        measure q[0] -> a[0];
+        measure q[0] -> a[1];
+        if (a==1) CX q[0],q[1];
+    """
+    parser = QasmParser()
+
+    q_0 = cirq.NamedQubit('q_0')
+    q_1 = cirq.NamedQubit('q_1')
+
+    # Since we split the measurement into two, we also need two conditions.
+    # m_a==1 corresponds to m_a[0]==1, m_a[1]==0
+    expected_circuit = cirq.Circuit(
+        cirq.measure(q_0, key='a_0'),
+        cirq.measure(q_0, key='a_1'),
+        cirq.CNOT(q_0, q_1).with_classical_controls(
+            sympy.Eq(sympy.Symbol('a_0'), 1), sympy.Eq(sympy.Symbol('a_1'), 0)
+        ),
+    )
+
+    parsed_qasm = parser.parse(qasm)
+
+    assert parsed_qasm.supportedFormat
+    assert not parsed_qasm.qelib1Include
+
+    ct.assert_same_circuits(parsed_qasm.circuit, expected_circuit)
+    assert parsed_qasm.qregs == {'q': 2}
+
+    # Note that this will *not* round-trip, but there's no good way around that due to the
+    # difference in how Cirq and QASM do multi-bit measurements.
+    with pytest.raises(ValueError, match='QASM does not support multiple conditions'):
+        _ = cirq.qasm(parsed_qasm.circuit)
 
 
 def test_CX_gate_not_enough_args():
