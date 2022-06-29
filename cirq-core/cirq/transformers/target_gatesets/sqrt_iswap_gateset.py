@@ -14,7 +14,7 @@
 
 """Target gateset used for compiling circuits to √iSWAP + 1-q rotations + measurement gates."""
 
-from typing import Any, Dict, Optional, TYPE_CHECKING
+from typing import Any, Dict, Optional, Sequence, Type, Union, TYPE_CHECKING
 
 from cirq import ops, protocols
 from cirq.protocols.decompose_protocol import DecomposeResult
@@ -26,7 +26,22 @@ if TYPE_CHECKING:
 
 
 class SqrtIswapTargetGateset(compilation_target_gateset.TwoQubitCompilationTargetGateset):
-    """Target gateset containing √iSWAP + single qubit rotations + Measurement gates."""
+    """Target gateset accepting √iSWAP + single qubit rotations + measurement gates.
+
+    By default, `cirq.SqrtIswapTargetGateset` will accept and compile unknown gates to
+    the following universal target gateset:
+    - `cirq.SQRT_ISWAP` / `cirq.SQRT_ISWAP_INV`: The two qubit entangling gate.
+    - `cirq.PhasedXZGate`: Single qubit rotations.
+    - `cirq.MeasurementGate`: Measurements.
+    - `cirq.GlobalPhaseGate`: Global phase.
+
+    Optionally, users can also specify additional gates / gate families which should
+    be accepted by this gateset via the `additional_gates` argument.
+
+    When compiling a circuit, any unknown gate, i.e. a gate which is not accepted by
+    this gateset, will be compiled to the default gateset (i.e. `cirq.SQRT_ISWAP`/
+    `cirq.cirq.SQRT_ISWAP_INV`, `cirq.PhasedXZGate`, `cirq.MeasurementGate`).
+    """
 
     def __init__(
         self,
@@ -34,6 +49,7 @@ class SqrtIswapTargetGateset(compilation_target_gateset.TwoQubitCompilationTarge
         atol: float = 1e-8,
         required_sqrt_iswap_count: Optional[int] = None,
         use_sqrt_iswap_inv: bool = False,
+        additional_gates: Sequence[Union[Type['cirq.Gate'], 'cirq.Gate', 'cirq.GateFamily']] = (),
     ):
         """Initializes `cirq.SqrtIswapTargetGateset`
 
@@ -45,6 +61,8 @@ class SqrtIswapTargetGateset(compilation_target_gateset.TwoQubitCompilationTarge
                 synthesis of the operation requires more.
             use_sqrt_iswap_inv: If True, `cirq.SQRT_ISWAP_INV` is used as part of the gateset,
                 instead of `cirq.SQRT_ISWAP`.
+            additional_gates: Sequence of additional gates / gate families which should also
+              be "accepted" by this gateset. Defaults to `cirq.GlobalPhaseGate`.
 
         Raises:
             ValueError: If `required_sqrt_iswap_count` is specified and is not 0, 1, 2, or 3.
@@ -54,9 +72,16 @@ class SqrtIswapTargetGateset(compilation_target_gateset.TwoQubitCompilationTarge
         super().__init__(
             ops.SQRT_ISWAP_INV if use_sqrt_iswap_inv else ops.SQRT_ISWAP,
             ops.MeasurementGate,
-            ops.AnyUnitaryGateFamily(1),
+            ops.PhasedXZGate,
             ops.GlobalPhaseGate,
+            *additional_gates,
             name='SqrtIswapInvTargetGateset' if use_sqrt_iswap_inv else 'SqrtIswapTargetGateset',
+        )
+        self.additional_gates = tuple(
+            g if isinstance(g, ops.GateFamily) else ops.GateFamily(gate=g) for g in additional_gates
+        )
+        self._additional_gates_repr_str = ", ".join(
+            [ops.gateset._gate_str(g, repr) for g in additional_gates]
         )
         self.atol = atol
         self.required_sqrt_iswap_count = required_sqrt_iswap_count
@@ -85,24 +110,36 @@ class SqrtIswapTargetGateset(compilation_target_gateset.TwoQubitCompilationTarge
             f'cirq.SqrtIswapTargetGateset('
             f'atol={self.atol}, '
             f'required_sqrt_iswap_count={self.required_sqrt_iswap_count}, '
-            f'use_sqrt_iswap_inv={self.use_sqrt_iswap_inv}'
+            f'use_sqrt_iswap_inv={self.use_sqrt_iswap_inv}, '
+            f'additional_gates=[{self._additional_gates_repr_str}]'
             f')'
         )
 
     def _value_equality_values_(self) -> Any:
-        return (self.atol, self.required_sqrt_iswap_count, self.use_sqrt_iswap_inv)
+        return (
+            self.atol,
+            self.required_sqrt_iswap_count,
+            self.use_sqrt_iswap_inv,
+            frozenset(self.additional_gates),
+        )
 
     def _json_dict_(self) -> Dict[str, Any]:
-        return {
+        d: Dict[str, Any] = {
             'atol': self.atol,
             'required_sqrt_iswap_count': self.required_sqrt_iswap_count,
             'use_sqrt_iswap_inv': self.use_sqrt_iswap_inv,
         }
+        if self.additional_gates:
+            d['additional_gates'] = list(self.additional_gates)
+        return d
 
     @classmethod
-    def _from_json_dict_(cls, atol, required_sqrt_iswap_count, use_sqrt_iswap_inv, **kwargs):
+    def _from_json_dict_(
+        cls, atol, required_sqrt_iswap_count, use_sqrt_iswap_inv, additional_gates=(), **kwargs
+    ):
         return cls(
             atol=atol,
             required_sqrt_iswap_count=required_sqrt_iswap_count,
             use_sqrt_iswap_inv=use_sqrt_iswap_inv,
+            additional_gates=additional_gates,
         )

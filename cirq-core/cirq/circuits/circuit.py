@@ -29,6 +29,7 @@ from typing import (
     AbstractSet,
     Any,
     Callable,
+    Mapping,
     cast,
     Dict,
     FrozenSet,
@@ -419,16 +420,20 @@ class AbstractCircuit(abc.ABC):
 
         Examples:
 
-        If start_frontier is
+        If `start_frontier` is
 
-            {
-                cirq.LineQubit(0): 6,
-                cirq.LineQubit(1): 2,
-                cirq.LineQubit(2): 2
-            }
+        ```
+        {
+            cirq.LineQubit(0): 6,
+            cirq.LineQubit(1): 2,
+            cirq.LineQubit(2): 2
+        }
+        ```
 
         then the reachable wire locations in the following circuit are
         highlighted with '█' characters:
+
+        ```
 
                 0   1   2   3   4   5   6   7   8   9   10  11  12  13
             0: ───H───@─────────────────█████████████████████─@───H───
@@ -438,33 +443,42 @@ class AbstractCircuit(abc.ABC):
             2: ─────────██████@███H██─@───────@───H───@───────────────
                                       │       │
             3: ───────────────────────@───H───@───────────────────────
+        ```
 
-        And the computed end_frontier is
+        And the computed `end_frontier` is
 
-            {
-                cirq.LineQubit(0): 11,
-                cirq.LineQubit(1): 9,
-                cirq.LineQubit(2): 6,
-            }
+        ```
+        {
+            cirq.LineQubit(0): 11,
+            cirq.LineQubit(1): 9,
+            cirq.LineQubit(2): 6,
+        }
+        ```
 
         Note that the frontier indices (shown above the circuit) are
         best thought of (and shown) as happening *between* moment indices.
 
         If we specify a blocker as follows:
 
-            is_blocker=lambda: op == cirq.CZ(cirq.LineQubit(1),
-                                             cirq.LineQubit(2))
+        ```
+        is_blocker=lambda: op == cirq.CZ(cirq.LineQubit(1),
+                                         cirq.LineQubit(2))
+        ```
 
-        and use this start_frontier:
+        and use this `start_frontier`:
 
-            {
-                    cirq.LineQubit(0): 0,
-                    cirq.LineQubit(1): 0,
-                    cirq.LineQubit(2): 0,
-                    cirq.LineQubit(3): 0,
-            }
+        ```
+        {
+            cirq.LineQubit(0): 0,
+            cirq.LineQubit(1): 0,
+            cirq.LineQubit(2): 0,
+            cirq.LineQubit(3): 0,
+        }
+        ```
 
         Then this is the reachable area:
+
+        ```
 
                 0   1   2   3   4   5   6   7   8   9   10  11  12  13
             0: ─██H███@██████████████████████████████████████─@───H───
@@ -475,14 +489,18 @@ class AbstractCircuit(abc.ABC):
                                       │       │
             3: ─█████████████████████─@───H───@───────────────────────
 
-        and the computed end_frontier is:
+        ```
 
-            {
-                cirq.LineQubit(0): 11,
-                cirq.LineQubit(1): 3,
-                cirq.LineQubit(2): 3,
-                cirq.LineQubit(3): 5,
-            }
+        and the computed `end_frontier` is:
+
+        ```
+        {
+            cirq.LineQubit(0): 11,
+            cirq.LineQubit(1): 3,
+            cirq.LineQubit(2): 3,
+            cirq.LineQubit(3): 5,
+        }
+        ```
 
         Args:
             start_frontier: A starting set of reachable locations.
@@ -629,7 +647,7 @@ class AbstractCircuit(abc.ABC):
         `is_blocker` return `False` or `True`, respectively, when applied to
         the gates; `M` indicates that it doesn't matter.
 
-
+        ```
             ─(─F───F───────    ┄(─F───F─)┄┄┄┄┄
                │   │              │   │
             ─(─F───F───T─── => ┄(─F───F─)┄┄┄┄┄
@@ -667,6 +685,7 @@ class AbstractCircuit(abc.ABC):
             ───────F───F───    ┄┄┄┄┄┄┄┄┄(─F─)┄
                        │                  │
             ─(─────────F───    ┄┄┄┄┄┄┄┄┄(─F─)┄
+        ```
 
         Args:
             start_frontier: A starting set of reachable locations.
@@ -754,10 +773,17 @@ class AbstractCircuit(abc.ABC):
             yield index, gate_op, cast(_TGate, gate_op.gate)
 
     def has_measurements(self):
+        """Returns whether or not this circuit has measurements.
+
+        Returns: True if `cirq.is_measurement(self)` is True otherwise False.
+        """
         return protocols.is_measurement(self)
 
     def are_all_measurements_terminal(self) -> bool:
-        """Whether all measurement gates are at the end of the circuit."""
+        """Whether all measurement gates are at the end of the circuit.
+
+        Returns: True iff no measurement is followed by a gate.
+        """
         return self.are_all_matches_terminal(protocols.is_measurement)
 
     def are_all_matches_terminal(self, predicate: Callable[['cirq.Operation'], bool]) -> bool:
@@ -799,7 +825,10 @@ class AbstractCircuit(abc.ABC):
         return True
 
     def are_any_measurements_terminal(self) -> bool:
-        """Whether any measurement gates are at the end of the circuit."""
+        """Whether any measurement gates are at the end of the circuit.
+
+        Returns: True iff some measurements are not followed by a gate.
+        """
         return self.are_any_matches_terminal(protocols.is_measurement)
 
     def are_any_matches_terminal(self, predicate: Callable[['cirq.Operation'], bool]) -> bool:
@@ -846,15 +875,17 @@ class AbstractCircuit(abc.ABC):
         )
 
     def all_qubits(self) -> FrozenSet['cirq.Qid']:
-        """Returns the qubits acted upon by Operations in this circuit."""
+        """Returns the qubits acted upon by Operations in this circuit.
+
+        Returns: FrozenSet of `cirq.Qid` objects acted on by all operations
+            in this circuit.
+        """
         return frozenset(q for m in self.moments for q in m.qubits)
 
     def all_operations(self) -> Iterator['cirq.Operation']:
-        """Iterates over the operations applied by this circuit.
+        """Returns an iterator over the operations in the circuit.
 
-        Operations from earlier moments will be iterated over first. Operations
-        within a moment are iterated in the order they were given to the
-        moment's constructor.
+        Returns: Iterator over `cirq.Operation` elements found in this circuit.
         """
         return (op for moment in self for op in moment.operations)
 
@@ -880,22 +911,41 @@ class AbstractCircuit(abc.ABC):
     def qid_shape(
         self, qubit_order: 'cirq.QubitOrderOrList' = ops.QubitOrder.DEFAULT
     ) -> Tuple[int, ...]:
+        """Get the qubit shapes of all qubits in this circuit.
+
+        Returns: A tuple containing the dimensions (shape) of all qudits
+            found in this circuit according to `qubit_order`.
+        """
         qids = ops.QubitOrder.as_qubit_order(qubit_order).order_for(self.all_qubits())
         return protocols.qid_shape(qids)
 
-    def all_measurement_key_objs(self) -> AbstractSet['cirq.MeasurementKey']:
-        return {key for op in self.all_operations() for key in protocols.measurement_key_objs(op)}
+    def all_measurement_key_objs(self) -> FrozenSet['cirq.MeasurementKey']:
+        return frozenset(
+            key for op in self.all_operations() for key in protocols.measurement_key_objs(op)
+        )
 
-    def _measurement_key_objs_(self) -> AbstractSet['cirq.MeasurementKey']:
+    def _measurement_key_objs_(self) -> FrozenSet['cirq.MeasurementKey']:
+        """Returns the set of all measurement keys in this circuit.
+
+        Returns: FrozenSet of `cirq.MeasurementKey` objects that are
+            in this circuit.
+        """
         return self.all_measurement_key_objs()
 
-    def all_measurement_key_names(self) -> AbstractSet[str]:
-        return {key for op in self.all_operations() for key in protocols.measurement_key_names(op)}
+    def all_measurement_key_names(self) -> FrozenSet[str]:
+        """Returns the set of all measurement key names in this circuit.
 
-    def _measurement_key_names_(self) -> AbstractSet[str]:
+        Returns: FrozenSet of strings that are the measurement key
+            names in this circuit.
+        """
+        return frozenset(
+            key for op in self.all_operations() for key in protocols.measurement_key_names(op)
+        )
+
+    def _measurement_key_names_(self) -> FrozenSet[str]:
         return self.all_measurement_key_names()
 
-    def _with_measurement_key_mapping_(self, key_map: Dict[str, str]):
+    def _with_measurement_key_mapping_(self, key_map: Mapping[str, str]):
         return self._with_sliced_moments(
             [protocols.with_measurement_key_mapping(moment, key_map) for moment in self.moments]
         )
@@ -953,7 +1003,7 @@ class AbstractCircuit(abc.ABC):
         qubit_order: 'cirq.QubitOrderOrList' = ops.QubitOrder.DEFAULT,
         qubits_that_should_be_present: Iterable['cirq.Qid'] = (),
         ignore_terminal_measurements: bool = True,
-        dtype: Type[np.number] = np.complex128,
+        dtype: Type[np.complexfloating] = np.complex128,
     ) -> np.ndarray:
         """Converts the circuit into a unitary matrix, if possible.
 
@@ -1044,7 +1094,7 @@ class AbstractCircuit(abc.ABC):
         qubit_order: 'cirq.QubitOrderOrList' = ops.QubitOrder.DEFAULT,
         qubits_that_should_be_present: Iterable['cirq.Qid'] = (),
         ignore_terminal_measurements: Optional[bool] = None,
-        dtype: Optional[Type[np.number]] = None,
+        dtype: Type[np.complexfloating] = np.complex128,
         param_resolver: 'cirq.ParamResolverOrSimilarType' = None,
         seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None,
     ) -> np.ndarray:
@@ -1093,14 +1143,6 @@ class AbstractCircuit(abc.ABC):
                     '`ignore_terminal_measurements=True` when calling this method.'
                 )
             ignore_terminal_measurements = True
-
-        if dtype is None:
-            _compat._warn_or_error(
-                '`dtype` will default to np.complex64 in v0.16. '
-                'To use the previous default, please explicitly include '
-                '`dtype=np.complex128` when calling this method.'
-            )
-            dtype = np.complex128
 
         from cirq.sim.mux import final_state_vector
 
@@ -1406,6 +1448,64 @@ class AbstractCircuit(abc.ABC):
                 ) from ex
         return result
 
+    def concat_ragged(
+        *circuits: 'cirq.AbstractCircuit', align: Union['cirq.Alignment', str] = Alignment.LEFT
+    ) -> 'cirq.AbstractCircuit':
+        """Concatenates circuits, overlapping them if possible due to ragged edges.
+
+        Starts with the first circuit (index 0), then iterates over the other
+        circuits while folding them in. To fold two circuits together, they
+        are placed one after the other and then moved inward until just before
+        their operations would collide. If any of the circuits do not share
+        qubits and so would not collide, the starts or ends of the circuits will
+        be aligned, acording to the given align parameter.
+
+        Beware that this method is *not* associative. For example:
+
+            >>> a, b = cirq.LineQubit.range(2)
+            >>> A = cirq.Circuit(cirq.H(a))
+            >>> B = cirq.Circuit(cirq.H(b))
+            >>> f = cirq.Circuit.concat_ragged
+            >>> f(f(A, B), A) == f(A, f(B, A))
+            False
+            >>> len(f(f(f(A, B), A), B)) == len(f(f(A, f(B, A)), B))
+            False
+
+        Args:
+            *circuits: The circuits to concatenate.
+            align: When to stop when sliding the circuits together.
+                'left': Stop when the starts of the circuits align.
+                'right': Stop when the ends of the circuits align.
+                'first': Stop the first time either the starts or the ends align. Circuits
+                    are never overlapped more than needed to align their starts (in case
+                    the left circuit is smaller) or to align their ends (in case the right
+                    circuit is smaller)
+
+        Returns:
+            The concatenated and overlapped circuit.
+        """
+        if len(circuits) == 0:
+            return Circuit()
+        n_acc = len(circuits[0])
+
+        if isinstance(align, str):
+            align = Alignment[align.upper()]
+
+        # Allocate a buffer large enough to append and prepend all the circuits.
+        pad_len = sum(len(c) for c in circuits) - n_acc
+        buffer = np.zeros(shape=pad_len * 2 + n_acc, dtype=object)
+
+        # Put the initial circuit in the center of the buffer.
+        offset = pad_len
+        buffer[offset : offset + n_acc] = circuits[0].moments
+
+        # Accumulate all the circuits into the buffer.
+        for k in range(1, len(circuits)):
+            offset, n_acc = _concat_ragged_helper(offset, n_acc, buffer, circuits[k].moments, align)
+
+        return cirq.Circuit(buffer[offset : offset + n_acc])
+
+    @_compat.deprecated(deadline='v0.16', fix='Renaming to concat_ragged')
     def tetris_concat(
         *circuits: 'cirq.AbstractCircuit', align: Union['cirq.Alignment', str] = Alignment.LEFT
     ) -> 'cirq.AbstractCircuit':
@@ -1459,7 +1559,7 @@ class AbstractCircuit(abc.ABC):
 
         # Accumulate all the circuits into the buffer.
         for k in range(1, len(circuits)):
-            offset, n_acc = _tetris_concat_helper(offset, n_acc, buffer, circuits[k].moments, align)
+            offset, n_acc = _concat_ragged_helper(offset, n_acc, buffer, circuits[k].moments, align)
 
         return cirq.Circuit(buffer[offset : offset + n_acc])
 
@@ -1589,7 +1689,7 @@ def _overlap_collision_time(
     return upper_bound
 
 
-def _tetris_concat_helper(
+def _concat_ragged_helper(
     c1_offset: int, n1: int, buf: np.ndarray, c2: Sequence['cirq.Moment'], align: 'cirq.Alignment'
 ) -> Tuple[int, int]:
     n2 = len(c2)
@@ -1704,6 +1804,7 @@ class Circuit(AbstractCircuit):
         return self.copy()
 
     def copy(self) -> 'Circuit':
+        """Return a copy of this circuit."""
         copied_circuit = Circuit()
         copied_circuit._moments = self._moments[:]
         return copied_circuit
@@ -1801,6 +1902,14 @@ class Circuit(AbstractCircuit):
 
     __hash__ = None  # type: ignore
 
+    def concat_ragged(
+        *circuits: 'cirq.AbstractCircuit', align: Union['cirq.Alignment', str] = Alignment.LEFT
+    ) -> 'cirq.Circuit':
+        return AbstractCircuit.concat_ragged(*circuits, align=align).unfreeze(copy=False)
+
+    concat_ragged.__doc__ = AbstractCircuit.concat_ragged.__doc__
+
+    @_compat.deprecated(deadline='v0.16', fix='Renaming to concat_ragged')
     def tetris_concat(
         *circuits: 'cirq.AbstractCircuit', align: Union['cirq.Alignment', str] = Alignment.LEFT
     ) -> 'cirq.Circuit':
@@ -2188,11 +2297,10 @@ class Circuit(AbstractCircuit):
             insert_intos: A sequence of (moment_index, new_op_tree)
                 pairs indicating a moment to add new operations into.
 
-        ValueError:
-            One of the insertions collided with an existing operation.
-
-        IndexError:
-            Inserted into a moment index that doesn't exist.
+        Raises:
+            ValueError: One of the insertions collided with an existing
+                operation.
+            IndexError: Inserted into a moment index that doesn't exist.
         """
         copy = self.copy()
         for i, insertions in insert_intos:
@@ -2208,7 +2316,7 @@ class Circuit(AbstractCircuit):
         causes a new moment to be created, then the insert at "4" will actually
         occur at index 5 to account for the shift from the new moment.
 
-        All insertions are done with the strategy 'EARLIEST'.
+        All insertions are done with the strategy `cirq.InsertStrategy.EARLIEST`.
 
         When multiple inserts occur at the same index, the gates from the later
         inserts end up before the gates from the earlier inserts (exactly as if
@@ -2237,7 +2345,7 @@ class Circuit(AbstractCircuit):
         self,
         moment_or_operation_tree: Union['cirq.Moment', 'cirq.OP_TREE'],
         strategy: 'cirq.InsertStrategy' = InsertStrategy.EARLIEST,
-    ):
+    ) -> None:
         """Appends operations onto the end of the circuit.
 
         Moments within the operation tree are appended intact.
@@ -2545,7 +2653,7 @@ def _apply_unitary_circuit(
     circuit: 'cirq.AbstractCircuit',
     state: np.ndarray,
     qubits: Tuple['cirq.Qid', ...],
-    dtype: Type[np.number],
+    dtype: Type[np.complexfloating],
 ) -> np.ndarray:
     """Applies a circuit's unitary effect to the given vector or matrix.
 

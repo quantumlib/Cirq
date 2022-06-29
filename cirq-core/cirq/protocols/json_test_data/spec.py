@@ -185,6 +185,7 @@ TestSpec = ModuleJsonTestSpec(
         'TParamValComplex',
         'TRANSFORMER',
         'ParamDictType',
+        'ParamMappingType',
         # utility:
         'CliffordSimulator',
         'NoiseModelFromNoiseProperties',

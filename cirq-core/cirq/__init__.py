@@ -241,6 +241,7 @@ from cirq.ops import (
     InterchangeableQubitsGate,
     ISWAP,
     ISwapPowGate,
+    ISWAP_INV,
     KrausChannel,
     LinearCombinationOfGates,
     LinearCombinationOfOperations,
@@ -253,6 +254,7 @@ from cirq.ops import (
     MeasurementGate,
     MutableDensePauliString,
     MutablePauliString,
+    ms,
     NamedQubit,
     NamedQid,
     OP_TREE,
@@ -358,6 +360,7 @@ from cirq.transformers import (
     CompilationTargetGateset,
     CZTargetGateset,
     compute_cphase_exponents_for_fsim_decomposition,
+    create_transformer_with_kwargs,
     decompose_clifford_tableau_to_operations,
     decompose_cphase_into_two_fsim,
     decompose_multi_controlled_x,
@@ -402,6 +405,7 @@ from cirq.transformers import (
     transformer,
     two_qubit_matrix_to_cz_operations,
     two_qubit_matrix_to_diagonal_and_cz_operations,
+    two_qubit_matrix_to_ion_operations,
     two_qubit_matrix_to_sqrt_iswap_operations,
     two_qubit_gate_product_tabulation,
     TwoQubitCompilationTargetGateset,
@@ -512,6 +516,7 @@ from cirq.study import (
     Linspace,
     ListSweep,
     ParamDictType,
+    ParamMappingType,
     ParamResolver,
     ParamResolverOrSimilarType,
     Points,
@@ -601,7 +606,6 @@ from cirq.protocols import (
     JsonResolver,
     json_cirq_type,
     json_namespace,
-    json_serializable_dataclass,
     dataclass_json_dict,
     kraus,
     LabelEntity,
@@ -668,7 +672,7 @@ from cirq.protocols import (
     with_rescoped_keys,
 )
 
-from cirq.ion import ConvertToIonGates, IonDevice, ms, two_qubit_matrix_to_ion_operations
+from cirq.ion import ConvertToIonGates, IonDevice
 from cirq.neutral_atoms import (
     ConvertToNeutralAtomGates,
     is_native_neutral_atom_gate,

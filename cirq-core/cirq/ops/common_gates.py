@@ -1272,32 +1272,19 @@ class CXPowGate(eigen_gate.EigenGate):
             f'global_shift={self._global_shift!r})'
         )
 
-    def on(self, *args: 'cirq.Qid', **kwargs: 'cirq.Qid') -> raw_types.Operation:
-        if not kwargs:
-            return super().on(*args)
-        if not args and set(kwargs.keys()) == {'control', 'target'}:
-            return super().on(kwargs['control'], kwargs['target'])
-        raise ValueError(
-            "Expected two positional argument or else 'target' AND 'control' "
-            "keyword arguments. But got args={!r}, kwargs={!r}.".format(args, kwargs)
-        )
-
-    def __call__(self, *qubits: 'cirq.Qid', **kwargs: 'cirq.Qid'):
-        return self.on(*qubits, **kwargs)
-
 
 def rx(rads: value.TParamVal) -> Rx:
-    """Returns a gate with the matrix e^{-i X rads / 2}."""
+    """Returns a gate with the matrix $e^{-i X t / 2}$ where $t=rads$."""
     return Rx(rads=rads)
 
 
 def ry(rads: value.TParamVal) -> Ry:
-    """Returns a gate with the matrix e^{-i Y rads / 2}."""
+    """Returns a gate with the matrix $e^{-i Y t / 2}$ where $t=rads$."""
     return Ry(rads=rads)
 
 
 def rz(rads: value.TParamVal) -> Rz:
-    """Returns a gate with the matrix e^{-i Z rads / 2}."""
+    """Returns a gate with the matrix $e^{-i Z t / 2}$ where $t=rads$."""
     return Rz(rads=rads)
 
 

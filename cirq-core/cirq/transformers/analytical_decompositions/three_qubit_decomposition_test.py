@@ -130,7 +130,7 @@ def _theta_to_cs(theta: np.ndarray) -> np.ndarray:
     """Returns the CS matrix from the cosine sine decomposition.
 
     Args:
-        theta: the 4 angles that result from the CS decomposition
+        theta: the 4 angles that result from the CS decomposition.
     Returns:
         the CS matrix
     """

@@ -36,7 +36,6 @@ def test_init():
     a = cirq.LineQubit(0)
     with pytest.raises(ValueError, match='eigenvalues'):
         _ = cirq.PauliStringPhasor(1j * cirq.X(a))
-
     v1 = cirq.PauliStringPhasor(-cirq.X(a), exponent_neg=0.25, exponent_pos=-0.5)
     assert v1.pauli_string == cirq.X(a)
     assert v1.exponent_neg == -0.5
@@ -48,8 +47,20 @@ def test_init():
     assert v2.exponent_pos == -0.125
 
 
+def test_qubit_order_mismatch():
+    q0, q1 = cirq.LineQubit.range(2)
+    with pytest.raises(ValueError, match='are not an ordered subset'):
+        _ = cirq.PauliStringPhasor(1j * cirq.X(q0), qubits=[q1])
+    with pytest.raises(ValueError, match='are not an ordered subset'):
+        _ = cirq.PauliStringPhasor(1j * cirq.X(q0) * cirq.X(q1), qubits=[q1])
+    with pytest.raises(ValueError, match='are not an ordered subset'):
+        _ = cirq.PauliStringPhasor(1j * cirq.X(q0), qubits=[])
+    with pytest.raises(ValueError, match='are not an ordered subset'):
+        _ = cirq.PauliStringPhasor(1j * cirq.X(q0) * cirq.X(q1), qubits=[q1, q0])
+
+
 def test_eq_ne_hash():
-    q0, q1, q2 = _make_qubits(3)
+    q0, q1, q2, q3 = _make_qubits(4)
     eq = cirq.testing.EqualsTester()
     ps1 = cirq.X(q0) * cirq.Y(q1) * cirq.Z(q2)
     ps2 = cirq.X(q0) * cirq.Y(q1) * cirq.X(q2)
@@ -66,10 +77,11 @@ def test_eq_ne_hash():
     eq.add_equality_group(cirq.PauliStringPhasor(ps2, exponent_neg=0.5))
     eq.add_equality_group(cirq.PauliStringPhasor(-ps2, exponent_neg=-0.5))
     eq.add_equality_group(cirq.PauliStringPhasor(ps1, exponent_neg=sympy.Symbol('a')))
+    eq.add_equality_group(cirq.PauliStringPhasor(ps1, qubits=[q0, q1, q2, q3]))
 
 
 def test_equal_up_to_global_phase():
-    a, b = cirq.LineQubit.range(2)
+    a, b, c = cirq.LineQubit.range(3)
     groups = [
         [
             cirq.PauliStringPhasor(cirq.PauliString({a: cirq.X}), exponent_neg=0.25),
@@ -83,6 +95,11 @@ def test_equal_up_to_global_phase():
         [cirq.PauliStringPhasor(cirq.PauliString({a: cirq.X}))],
         [cirq.PauliStringPhasor(cirq.PauliString({a: cirq.Y}), exponent_neg=0.25)],
         [cirq.PauliStringPhasor(cirq.PauliString({a: cirq.X, b: cirq.Y}), exponent_neg=0.25)],
+        [
+            cirq.PauliStringPhasor(
+                cirq.PauliString({a: cirq.X, b: cirq.Y}), qubits=[a, b, c], exponent_neg=0.25
+            )
+        ],
     ]
     for g1 in groups:
         for e1 in g1:
@@ -93,11 +110,28 @@ def test_equal_up_to_global_phase():
 
 
 def test_map_qubits():
-    q0, q1, q2, q3 = _make_qubits(4)
+    q0, q1, q2, q3, q4, q5 = _make_qubits(6)
     qubit_map = {q1: q2, q0: q3}
     before = cirq.PauliStringPhasor(cirq.PauliString({q0: cirq.Z, q1: cirq.Y}), exponent_neg=0.1)
     after = cirq.PauliStringPhasor(cirq.PauliString({q3: cirq.Z, q2: cirq.Y}), exponent_neg=0.1)
     assert before.map_qubits(qubit_map) == after
+
+    qubit_map = {q1: q3, q0: q4, q2: q5}
+    before = cirq.PauliStringPhasor(
+        cirq.PauliString({q0: cirq.Z, q1: cirq.Y}), qubits=[q0, q1, q2], exponent_neg=0.1
+    )
+    after = cirq.PauliStringPhasor(
+        cirq.PauliString({q4: cirq.Z, q3: cirq.Y}), qubits=[q4, q3, q5], exponent_neg=0.1
+    )
+    assert before.map_qubits(qubit_map) == after
+
+
+def test_map_qubits_missing_qubits():
+    q0, q1, q2 = _make_qubits(3)
+    qubit_map = {q1: q2}
+    before = cirq.PauliStringPhasor(cirq.PauliString({q0: cirq.Z, q1: cirq.Y}), exponent_neg=0.1)
+    with pytest.raises(ValueError, match="have a key"):
+        _ = before.map_qubits(qubit_map)
 
 
 def test_pow():
@@ -108,12 +142,16 @@ def test_pow():
     with pytest.raises(TypeError, match='unsupported operand'):
         _ = p ** object()
     assert p**1 == p
+    p = cirq.PauliStringPhasor(s, qubits=[a], exponent_neg=0.25, exponent_pos=0.5)
+    assert p**0.5 == cirq.PauliStringPhasor(s, exponent_neg=0.125, exponent_pos=0.25)
 
 
 def test_consistent():
     a, b = cirq.LineQubit.range(2)
     op = np.exp(1j * np.pi / 2 * cirq.X(a) * cirq.X(b))
     cirq.testing.assert_implements_consistent_protocols(op)
+    p = cirq.PauliStringPhasor(cirq.X(a), qubits=[a], exponent_neg=0.25, exponent_pos=0.5)
+    cirq.testing.assert_implements_consistent_protocols(p)
 
 
 def test_pass_operations_over():
@@ -167,7 +205,7 @@ def test_inverse():
 
 
 def test_can_merge_with():
-    (q0,) = _make_qubits(1)
+    q0, q1 = _make_qubits(2)
 
     op1 = cirq.PauliStringPhasor(cirq.PauliString({}), exponent_neg=0.25)
     op2 = cirq.PauliStringPhasor(cirq.PauliString({}), exponent_neg=0.75)
@@ -179,6 +217,12 @@ def test_can_merge_with():
 
     op1 = cirq.PauliStringPhasor(cirq.PauliString({q0: cirq.X}, +1), exponent_neg=0.25)
     op2 = cirq.PauliStringPhasor(cirq.PauliString({q0: cirq.Y}, -1), exponent_neg=0.75)
+    assert not op1.can_merge_with(op2)
+
+    op1 = cirq.PauliStringPhasor(
+        cirq.PauliString({q0: cirq.X}, +1), qubits=[q0, q1], exponent_neg=0.25
+    )
+    op2 = cirq.PauliStringPhasor(cirq.PauliString({q0: cirq.X}, -1), exponent_neg=0.75)
     assert not op1.can_merge_with(op2)
 
 
@@ -363,16 +407,17 @@ def test_text_diagram():
             cirq.PauliString({q0: cirq.Z, q1: cirq.Y, q2: cirq.X}, -1),
             exponent_neg=sympy.Symbol('b'),
         ),
+        cirq.PauliStringPhasor(cirq.PauliString({q0: cirq.Z}), qubits=[q0, q1], exponent_neg=0.5),
     )
 
     cirq.testing.assert_has_diagram(
         circuit,
         """
-q0: ───[Z]───[Y]^0.25───[Z]───[Z]────────[Z]─────[Z]────────
+q0: ───[Z]───[Y]^0.25───[Z]───[Z]────────[Z]─────[Z]────────[Z]───────
+                        │     │          │       │          │
+q1: ────────────────────[Z]───[Y]────────[Y]─────[Y]────────[I]^0.5───
                         │     │          │       │
-q1: ────────────────────[Z]───[Y]────────[Y]─────[Y]────────
-                        │     │          │       │
-q2: ────────────────────[Z]───[X]^-0.5───[X]^a───[X]^(-b)───
+q2: ────────────────────[Z]───[X]^-0.5───[X]^a───[X]^(-b)─────────────
 """,
     )
 
@@ -407,6 +452,75 @@ def test_str():
     assert str(np.exp(0.5j * np.pi * cirq.X(q0) * cirq.Y(q1))) == 'exp(iπ0.5*X(q0)*Y(q1))'
     assert str(np.exp(-0.25j * np.pi * cirq.X(q0) * cirq.Y(q1))) == 'exp(-iπ0.25*X(q0)*Y(q1))'
     assert str(np.exp(0.5j * np.pi * cirq.PauliString())) == 'exp(iπ0.5*I)'
+
+    ps = cirq.PauliStringPhasor(cirq.PauliString({q0: cirq.X}, +1), qubits=[q0, q1]) ** 0.5
+    assert str(ps) == '(X(q0))**0.5'
+
+
+def test_old_json():
+    """Older versions of PauliStringPhasor did not have a qubit field."""
+    old_json = """
+    {
+      "cirq_type": "PauliStringPhasor",
+      "pauli_string": {
+        "cirq_type": "PauliString",
+        "qubit_pauli_map": [
+          [
+            {
+              "cirq_type": "LineQubit",
+              "x": 0
+            },
+            {
+              "cirq_type": "_PauliX",
+              "exponent": 1.0,
+              "global_shift": 0.0
+            }
+          ],
+          [
+            {
+              "cirq_type": "LineQubit",
+              "x": 1
+            },
+            {
+              "cirq_type": "_PauliY",
+              "exponent": 1.0,
+              "global_shift": 0.0
+            }
+          ],
+          [
+            {
+              "cirq_type": "LineQubit",
+              "x": 2
+            },
+            {
+              "cirq_type": "_PauliZ",
+              "exponent": 1.0,
+              "global_shift": 0.0
+            }
+          ]
+        ],
+        "coefficient": {
+          "cirq_type": "complex",
+          "real": 1.0,
+          "imag": 0.0
+        }
+      },
+      "exponent_neg": 0.2,
+      "exponent_pos": 0.1
+    }
+    """
+    phasor = cirq.read_json(json_text=old_json)
+    assert phasor == cirq.PauliStringPhasor(
+        (
+            (1 + 0j)
+            * cirq.X(cirq.LineQubit(0))
+            * cirq.Y(cirq.LineQubit(1))
+            * cirq.Z(cirq.LineQubit(2))
+        ),
+        qubits=(cirq.LineQubit(0), cirq.LineQubit(1), cirq.LineQubit(2)),
+        exponent_neg=0.2,
+        exponent_pos=0.1,
+    )
 
 
 def test_gate_init():

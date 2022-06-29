@@ -303,7 +303,7 @@ def test_convert_to_sycamore_equivalent_unitaries(gate):
         converted = cgoc.ConvertToSycamoreGates().convert(operation)
     u1 = cirq.unitary(cirq.Circuit(converted))
     u2 = cirq.unitary(operation)
-    cirq.testing.assert_allclose_up_to_global_phase(u1, u2, atol=1e-8)
+    cirq.testing.assert_allclose_up_to_global_phase(u1, u2, atol=4e-6)
 
 
 def test_convert_to_sycamore_tabulation():

@@ -190,7 +190,11 @@ def _arg_func_to_proto(
         for arg in value.args:
             arg_to_proto(arg, arg_function_language=arg_function_language, out=msg.func.args.add())
     else:
-        raise ValueError(f'Unrecognized arg type: {type(value)}')
+        raise ValueError(
+            f"Unrecognized Sympy expression type: {type(value)}."
+            " Only the following types are recognized: 'sympy.Symbol', 'sympy.Add', 'sympy.Mul',"
+            " 'sympy.Pow'."
+        )
 
 
 def float_arg_from_proto(
