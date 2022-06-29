@@ -79,8 +79,8 @@ def _ref_simulate_2q_xeb_circuit(task: Dict[str, Any]):
 
     pure_sim = cirq.Simulator()
     psi = pure_sim.simulate(tcircuit)
-    psi = psi.final_state_vector
-    pure_probs = cirq.state_vector_to_probabilities(psi)
+    psi_vector = psi.final_state_vector
+    pure_probs = cirq.state_vector_to_probabilities(psi_vector)
 
     return {'circuit_i': circuit_i, 'cycle_depth': cycle_depth, 'pure_probs': pure_probs}
 

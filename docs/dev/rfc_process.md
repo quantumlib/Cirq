@@ -41,7 +41,7 @@ and have a discussion with the maintainers. Mention that you are willing to writ
     * Make sure to share your doc with cirq-dev@googlegroups.com for comments.
     * Link the RFC in your issue.
 4. Recruiting a sponsor:
-    * A sponsor must be a maintainer of the project or the product manager (currently Alan Ho).
+    * A sponsor must be a maintainer of the project or the product manager.
     * Write a comment in your Github issue that calls out that you are "Looking for a sponsor". A maintainer will mark the issue with a label: "rfc/needs-sponsor".
     * While it might take some time to get a maintainer to sponsor your RFC, it is essential, as the sponsor will facilitate the process for reviewing your design.
     * Tips to recruit a sponsor: 1) keep commenting on the issue weekly 2) attend Cirq Cynq and push for a sponsor.
@@ -92,7 +92,7 @@ If you are working on new code to implement an RFC:
 *   Follow any other guidelines laid out in the [CONTRIBUTING.md](https://github.com/quantumlib/Cirq/blob/master/CONTRIBUTING.md) file in the project repo you're contributing to.
 *   Run unit tests before submitting your code.
 *   Work with the RFC sponsor to successfully land the new code. This could include PR / marketing of the new feature as well.
-*   Follow the Cirq process of deprecating code. Please refer to [\_compat.py](https://github.com/quantumlib/Cirq/blob/master/cirq/_compat.py) as an example.
+*   Follow the Cirq process of deprecating code. Please refer to [\_compat.py](https://github.com/quantumlib/Cirq/blob/master/cirq-core/cirq/_compat.py) as an example.
 
 
 ## Keeping the bar high

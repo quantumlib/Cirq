@@ -78,7 +78,7 @@ def commutes(
     v2: Any,
     *,
     atol: Union[int, float] = 1e-8,
-    default: TDefault = RaiseTypeErrorIfNotProvided,
+    default: Union[bool, TDefault] = RaiseTypeErrorIfNotProvided,
 ) -> Union[bool, TDefault]:
     """Determines whether two values commute.
 

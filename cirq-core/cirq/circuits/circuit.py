@@ -29,6 +29,7 @@ from typing import (
     AbstractSet,
     Any,
     Callable,
+    Mapping,
     cast,
     Dict,
     FrozenSet,
@@ -918,29 +919,33 @@ class AbstractCircuit(abc.ABC):
         qids = ops.QubitOrder.as_qubit_order(qubit_order).order_for(self.all_qubits())
         return protocols.qid_shape(qids)
 
-    def all_measurement_key_objs(self) -> AbstractSet['cirq.MeasurementKey']:
-        return {key for op in self.all_operations() for key in protocols.measurement_key_objs(op)}
+    def all_measurement_key_objs(self) -> FrozenSet['cirq.MeasurementKey']:
+        return frozenset(
+            key for op in self.all_operations() for key in protocols.measurement_key_objs(op)
+        )
 
-    def _measurement_key_objs_(self) -> AbstractSet['cirq.MeasurementKey']:
+    def _measurement_key_objs_(self) -> FrozenSet['cirq.MeasurementKey']:
         """Returns the set of all measurement keys in this circuit.
 
-        Returns: AbstractSet of `cirq.MeasurementKey` objects that are
+        Returns: FrozenSet of `cirq.MeasurementKey` objects that are
             in this circuit.
         """
         return self.all_measurement_key_objs()
 
-    def all_measurement_key_names(self) -> AbstractSet[str]:
+    def all_measurement_key_names(self) -> FrozenSet[str]:
         """Returns the set of all measurement key names in this circuit.
 
-        Returns: AbstractSet of strings that are the measurement key
+        Returns: FrozenSet of strings that are the measurement key
             names in this circuit.
         """
-        return {key for op in self.all_operations() for key in protocols.measurement_key_names(op)}
+        return frozenset(
+            key for op in self.all_operations() for key in protocols.measurement_key_names(op)
+        )
 
-    def _measurement_key_names_(self) -> AbstractSet[str]:
+    def _measurement_key_names_(self) -> FrozenSet[str]:
         return self.all_measurement_key_names()
 
-    def _with_measurement_key_mapping_(self, key_map: Dict[str, str]):
+    def _with_measurement_key_mapping_(self, key_map: Mapping[str, str]):
         return self._with_sliced_moments(
             [protocols.with_measurement_key_mapping(moment, key_map) for moment in self.moments]
         )
@@ -998,7 +1003,7 @@ class AbstractCircuit(abc.ABC):
         qubit_order: 'cirq.QubitOrderOrList' = ops.QubitOrder.DEFAULT,
         qubits_that_should_be_present: Iterable['cirq.Qid'] = (),
         ignore_terminal_measurements: bool = True,
-        dtype: Type[np.complexfloating] = np.complex64,
+        dtype: Type[np.complexfloating] = np.complex128,
     ) -> np.ndarray:
         """Converts the circuit into a unitary matrix, if possible.
 
@@ -1013,10 +1018,11 @@ class AbstractCircuit(abc.ABC):
             ignore_terminal_measurements: When set, measurements at the end of
                 the circuit are ignored instead of causing the method to
                 fail.
-            dtype: The numpy dtype for the returned unitary. `dtype` must be
-                a complex np.dtype, unless all operations in the circuit have
-                unitary matrices with exclusively real coefficients
-                (e.g. an H + TOFFOLI circuit).
+            dtype: The numpy dtype for the returned unitary. Defaults to
+                np.complex128. Specifying np.complex64 will run faster at the
+                cost of precision. `dtype` must be a complex np.dtype, unless
+                all operations in the circuit have unitary matrices with
+                exclusively real coefficients (e.g. an H + TOFFOLI circuit).
 
         Returns:
             A (possibly gigantic) 2d numpy array corresponding to a matrix
@@ -1088,7 +1094,7 @@ class AbstractCircuit(abc.ABC):
         qubit_order: 'cirq.QubitOrderOrList' = ops.QubitOrder.DEFAULT,
         qubits_that_should_be_present: Iterable['cirq.Qid'] = (),
         ignore_terminal_measurements: Optional[bool] = None,
-        dtype: Optional[Type[np.complexfloating]] = None,
+        dtype: Type[np.complexfloating] = np.complex128,
         param_resolver: 'cirq.ParamResolverOrSimilarType' = None,
         seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None,
     ) -> np.ndarray:
@@ -1137,14 +1143,6 @@ class AbstractCircuit(abc.ABC):
                     '`ignore_terminal_measurements=True` when calling this method.'
                 )
             ignore_terminal_measurements = True
-
-        if dtype is None:
-            _compat._warn_or_error(
-                '`dtype` will default to np.complex64 in v0.16. '
-                'To use the previous default, please explicitly include '
-                '`dtype=np.complex128` when calling this method.'
-            )
-            dtype = np.complex128
 
         from cirq.sim.mux import final_state_vector
 

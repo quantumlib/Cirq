@@ -12,7 +12,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import AbstractSet, cast, Dict, Iterable, Union, TYPE_CHECKING, Sequence, Iterator
+from typing import (
+    AbstractSet,
+    cast,
+    Dict,
+    Iterable,
+    Iterator,
+    Optional,
+    Sequence,
+    TYPE_CHECKING,
+    Union,
+)
+
 import numbers
 
 import sympy
@@ -35,16 +46,25 @@ if TYPE_CHECKING:
 
 @value.value_equality(approximate=True)
 class PauliStringPhasor(gate_operation.GateOperation):
-    """An operation that phases the eigenstates of a Pauli string.
+    r"""An operation that phases the eigenstates of a Pauli string.
+
+    This class takes `PauliString`, which is a sequence of non-identity
+    Pauli operators, potentially with a $\pm 1$ valued coefficient,
+    acting on qubits.
 
     The -1 eigenstates of the Pauli string will have their amplitude multiplied
     by e^(i pi exponent_neg) while +1 eigenstates of the Pauli string will have
     their amplitude multiplied by e^(i pi exponent_pos).
+
+    The class also takes a list of qubits, which can be a superset of those
+    acted on by the provided `PauliString`.  Those extra qubits are assumed to be
+    acted upon via identity.
     """
 
     def __init__(
         self,
         pauli_string: ps.PauliString,
+        qubits: Optional[Sequence['cirq.Qid']] = None,
         *,
         exponent_neg: Union[int, float, sympy.Expr] = 1,
         exponent_pos: Union[int, float, sympy.Expr] = 0,
@@ -54,20 +74,36 @@ class PauliStringPhasor(gate_operation.GateOperation):
         Args:
             pauli_string: The PauliString defining the positive and negative
                 eigenspaces that will be independently phased.
+            qubits: The qubits upon which the PauliStringPhasor acts. This
+                must be a superset of the qubits of `pauli_string`.
+                If None, it will use the qubits from `pauli_string`
+                The `pauli_string` contains only the non-identity component
+                of the phasor, while the qubits supplied here and not in
+                `pauli_string` are acted upon by identity. The order of
+                these qubits must match the order in `pauli_string`.
             exponent_neg: How much to phase vectors in the negative eigenspace,
                 in the form of the t in (-1)**t = exp(i pi t).
             exponent_pos: How much to phase vectors in the positive eigenspace,
                 in the form of the t in (-1)**t = exp(i pi t).
 
         Raises:
-            ValueError: If coefficient is not 1 or -1.
+            ValueError: If coefficient is not 1 or -1 or the qubits of
+                `pauli_string` are not a subset of `qubits`.
         """
+        if qubits is not None:
+            it = iter(qubits)
+            if any(not any(q0 == q1 for q1 in it) for q0 in pauli_string.qubits):
+                raise ValueError(
+                    f"PauliStringPhasor's pauli string qubits ({pauli_string.qubits}) "
+                    f"are not an ordered subset of the explicit qubits ({qubits})."
+                )
+        else:
+            qubits = pauli_string.qubits
+        # Use qubits below instead of `qubits or pauli_string.qubits`
         gate = PauliStringPhasorGate(
-            pauli_string.dense(pauli_string.qubits),
-            exponent_neg=exponent_neg,
-            exponent_pos=exponent_pos,
+            pauli_string.dense(qubits), exponent_neg=exponent_neg, exponent_pos=exponent_pos
         )
-        super().__init__(gate, pauli_string.qubits)
+        super().__init__(gate, qubits)
         self._pauli_string = gate.dense_pauli_string.on(*self.qubits)
 
     @property
@@ -76,17 +112,17 @@ class PauliStringPhasor(gate_operation.GateOperation):
         return cast(PauliStringPhasorGate, self._gate)
 
     @property
-    def exponent_neg(self):
+    def exponent_neg(self) -> Union[int, float, sympy.Expr]:
         """The negative exponent."""
         return self.gate.exponent_neg
 
     @property
-    def exponent_pos(self):
+    def exponent_pos(self) -> Union[int, float, sympy.Expr]:
         """The positive exponent."""
         return self.gate.exponent_pos
 
     @property
-    def pauli_string(self):
+    def pauli_string(self) -> 'cirq.PauliString':
         """The underlying pauli string."""
         return self._pauli_string
 
@@ -96,27 +132,48 @@ class PauliStringPhasor(gate_operation.GateOperation):
         return self.gate.exponent_relative
 
     def _value_equality_values_(self):
-        return (self.pauli_string, self.exponent_neg, self.exponent_pos)
+        return (self.pauli_string, self.qubits, self.exponent_neg, self.exponent_pos)
 
-    def equal_up_to_global_phase(self, other):
+    def equal_up_to_global_phase(self, other: 'PauliStringPhasor') -> bool:
         """Checks equality of two PauliStringPhasors, up to global phase."""
         if isinstance(other, PauliStringPhasor):
-            rel1 = self.exponent_relative
-            rel2 = other.exponent_relative
-            return rel1 == rel2 and self.pauli_string == other.pauli_string
+            return (
+                self.exponent_relative == other.exponent_relative
+                and self.pauli_string == other.pauli_string
+                and self.qubits == other.qubits
+            )
         return False
 
-    def map_qubits(self, qubit_map: Dict[raw_types.Qid, raw_types.Qid]):
-        """Maps the qubits inside the PauliString."""
+    def map_qubits(self, qubit_map: Dict[raw_types.Qid, raw_types.Qid]) -> 'PauliStringPhasor':
+        """Maps the qubits inside the PauliStringPhasor.
+
+        Args:
+            qubit_map: A map from the qubits in the phasor to new qubits.
+
+        Returns:
+            A new PauliStringPhasor with remapped qubits.
+
+        Raises:
+            ValueError: If the map does not contain an entry for all
+                the qubits in the phasor.
+        """
+        if not set(self.qubits) <= qubit_map.keys():
+            raise ValueError(
+                "qubit_map must have a key for every qubit in the phasors qubits. "
+                f"keys: {qubit_map.keys()} phasor qubits: {self.qubits}"
+            )
         return PauliStringPhasor(
-            self.pauli_string.map_qubits(qubit_map),
+            pauli_string=self.pauli_string.map_qubits(qubit_map),
+            qubits=[qubit_map[q] for q in self.qubits],
             exponent_neg=self.exponent_neg,
             exponent_pos=self.exponent_pos,
         )
 
     def can_merge_with(self, op: 'PauliStringPhasor') -> bool:
         """Checks whether the underlying PauliStrings can be merged."""
-        return self.pauli_string.equal_up_to_coefficient(op.pauli_string)
+        return (
+            self.pauli_string.equal_up_to_coefficient(op.pauli_string) and self.qubits == op.qubits
+        )
 
     def merged_with(self, op: 'PauliStringPhasor') -> 'PauliStringPhasor':
         """Merges two PauliStringPhasors."""
@@ -124,13 +181,21 @@ class PauliStringPhasor(gate_operation.GateOperation):
             raise ValueError(f'Cannot merge operations: {self}, {op}')
         pp = self.exponent_pos + op.exponent_pos
         pn = self.exponent_neg + op.exponent_neg
-        return PauliStringPhasor(self.pauli_string, exponent_pos=pp, exponent_neg=pn)
+        return PauliStringPhasor(
+            self.pauli_string, qubits=self.qubits, exponent_pos=pp, exponent_neg=pn
+        )
 
     def _circuit_diagram_info_(
         self, args: 'cirq.CircuitDiagramInfoArgs'
     ) -> 'cirq.CircuitDiagramInfo':
         qubits = self.qubits if args.known_qubits is None else args.known_qubits
-        syms = tuple(f'[{self.pauli_string[qubit]}]' for qubit in qubits)
+
+        def sym(qubit):
+            if qubit in self.pauli_string:
+                return f'[{self.pauli_string[qubit]}]'
+            return '[I]'
+
+        syms = tuple(sym(qubit) for qubit in qubits)
         return protocols.CircuitDiagramInfo(wire_symbols=syms, exponent=self.exponent_relative)
 
     def pass_operations_over(
@@ -170,6 +235,7 @@ class PauliStringPhasor(gate_operation.GateOperation):
     def __repr__(self) -> str:
         return (
             f'cirq.PauliStringPhasor({self.pauli_string!r}, '
+            f'qubits={self.qubits!r}, '
             f'exponent_neg={proper_repr(self.exponent_neg)}, '
             f'exponent_pos={proper_repr(self.exponent_pos)})'
         )
@@ -182,7 +248,19 @@ class PauliStringPhasor(gate_operation.GateOperation):
         return f'({self.pauli_string})**{self.exponent_relative}'
 
     def _json_dict_(self):
-        return protocols.obj_to_dict_helper(self, ['pauli_string', 'exponent_neg', 'exponent_pos'])
+        return protocols.obj_to_dict_helper(
+            self, ['pauli_string', 'qubits', 'exponent_neg', 'exponent_pos']
+        )
+
+    @classmethod
+    def _from_json_dict_(cls, pauli_string, exponent_neg, exponent_pos, **kwargs):
+        qubits = kwargs['qubits'] if 'qubits' in kwargs else None
+        return PauliStringPhasor(
+            pauli_string=pauli_string,
+            qubits=qubits,
+            exponent_neg=exponent_neg,
+            exponent_pos=exponent_pos,
+        )
 
 
 @value.value_equality(approximate=True)
@@ -234,24 +312,24 @@ class PauliStringPhasorGate(raw_types.Gate):
         return value.canonicalize_half_turns(self.exponent_neg - self.exponent_pos)
 
     @property
-    def exponent_neg(self):
+    def exponent_neg(self) -> Union[int, float, sympy.Expr]:
         """The negative exponent."""
         return self._exponent_neg
 
     @property
-    def exponent_pos(self):
+    def exponent_pos(self) -> Union[int, float, sympy.Expr]:
         """The positive exponent."""
         return self._exponent_pos
 
     @property
-    def dense_pauli_string(self):
+    def dense_pauli_string(self) -> 'cirq.DensePauliString':
         """The underlying DensePauliString."""
         return self._dense_pauli_string
 
     def _value_equality_values_(self):
         return (self.dense_pauli_string, self.exponent_neg, self.exponent_pos)
 
-    def equal_up_to_global_phase(self, other):
+    def equal_up_to_global_phase(self, other: 'cirq.PauliStringPhasorGate') -> bool:
         """Checks equality of two PauliStringPhasors, up to global phase."""
         if isinstance(other, PauliStringPhasorGate):
             rel1 = self.exponent_relative
@@ -266,7 +344,7 @@ class PauliStringPhasorGate(raw_types.Gate):
             return NotImplemented
         return PauliStringPhasorGate(self.dense_pauli_string, exponent_neg=pn, exponent_pos=pp)
 
-    def _has_unitary_(self):
+    def _has_unitary_(self) -> bool:
         return not self._is_parameterized_()
 
     def _to_z_basis_ops(self, qubits: Sequence['cirq.Qid']) -> Iterator[raw_types.Operation]:
@@ -352,6 +430,7 @@ class PauliStringPhasorGate(raw_types.Gate):
         """Creates a PauliStringPhasor on the qubits."""
         return PauliStringPhasor(
             self.dense_pauli_string.on(*qubits),
+            qubits=qubits,
             exponent_pos=self.exponent_pos,
             exponent_neg=self.exponent_neg,
         )

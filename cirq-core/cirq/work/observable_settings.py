@@ -14,7 +14,17 @@
 
 import dataclasses
 import numbers
-from typing import Union, Iterable, Dict, Optional, TYPE_CHECKING, ItemsView, Tuple, FrozenSet
+from typing import (
+    AbstractSet,
+    Mapping,
+    Union,
+    Iterable,
+    Dict,
+    Optional,
+    TYPE_CHECKING,
+    Tuple,
+    FrozenSet,
+)
 
 import sympy
 
@@ -143,7 +153,8 @@ def _fix_precision(val: Union[value.Scalar, sympy.Expr], precision) -> Union[int
 
 
 def _hashable_param(
-    param_tuples: ItemsView[Union[str, sympy.Expr], Union[value.Scalar, sympy.Expr]], precision=1e7
+    param_tuples: AbstractSet[Tuple[Union[str, sympy.Expr], Union[value.Scalar, sympy.Expr]]],
+    precision=1e7,
 ) -> FrozenSet[Tuple[str, Union[int, Tuple[int, int]]]]:
     """Hash circuit parameters using fixed precision.
 
@@ -166,7 +177,7 @@ class _MeasurementSpec:
     """
 
     max_setting: InitObsSetting
-    circuit_params: Dict[Union[str, sympy.Expr], Union[value.Scalar, sympy.Expr]]
+    circuit_params: Mapping[Union[str, sympy.Expr], Union[value.Scalar, sympy.Expr]]
 
     def __hash__(self):
         return hash((self.max_setting, _hashable_param(self.circuit_params.items())))

@@ -119,9 +119,7 @@ def test_executor_random(
     circuit.append(cca.LinearPermutationGate(num_qubits, permutation)(*qubits))
     actual_unitary = circuit.unitary()
 
-    np.testing.assert_allclose(
-        actual=actual_unitary, desired=expected_unitary, verbose=True, atol=1e-6
-    )
+    np.testing.assert_allclose(actual=actual_unitary, desired=expected_unitary, verbose=True)
 
 
 def test_acquaintance_operation():

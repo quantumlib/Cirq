@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Dict, FrozenSet, Optional, Tuple
+from typing import FrozenSet, Mapping, Optional, Tuple
 
 import dataclasses
 
@@ -122,7 +122,7 @@ class MeasurementKey:
     ):
         return self.replace(path=path + self.path)
 
-    def _with_measurement_key_mapping_(self, key_map: Dict[str, str]):
+    def _with_measurement_key_mapping_(self, key_map: Mapping[str, str]):
         if self.name not in key_map:
             return self
         return self.replace(name=key_map[self.name])

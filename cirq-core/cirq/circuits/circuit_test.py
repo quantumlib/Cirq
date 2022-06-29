@@ -2958,62 +2958,6 @@ def test_final_state_vector(circuit_cls):
 
 
 @pytest.mark.parametrize('circuit_cls', [cirq.Circuit, cirq.FrozenCircuit])
-def test_final_state_vector_deprecated_params(circuit_cls):
-    a = cirq.NamedQubit('a')
-    b = cirq.NamedQubit('b')
-    # Extra qubits.
-    cirq.testing.assert_allclose_up_to_global_phase(
-        circuit_cls().final_state_vector(ignore_terminal_measurements=False, dtype=np.complex128),
-        np.array([1]),
-        atol=1e-8,
-    )
-    with cirq.testing.assert_deprecated("Inject identity operators", deadline="v0.16"):
-        cirq.testing.assert_allclose_up_to_global_phase(
-            circuit_cls().final_state_vector(
-                qubits_that_should_be_present=[a],
-                ignore_terminal_measurements=False,
-                dtype=np.complex128,
-            ),
-            np.array([1, 0]),
-            atol=1e-8,
-        )
-    with cirq.testing.assert_deprecated("Inject identity operators", deadline="v0.16"):
-        cirq.testing.assert_allclose_up_to_global_phase(
-            circuit_cls(cirq.X(b)).final_state_vector(
-                qubits_that_should_be_present=[a],
-                ignore_terminal_measurements=False,
-                dtype=np.complex128,
-            ),
-            np.array([0, 1, 0, 0]),
-            atol=1e-8,
-        )
-
-    with cirq.testing.assert_deprecated("To drop terminal measurements", deadline="v0.16"):
-        cirq.testing.assert_allclose_up_to_global_phase(
-            circuit_cls(cirq.X(a), cirq.measure(a)).final_state_vector(dtype=np.complex128),
-            np.array([0, 1]),
-            atol=1e-8,
-        )
-
-    with cirq.testing.assert_deprecated("`dtype` will default to np.complex64", deadline="v0.16"):
-        cirq.testing.assert_allclose_up_to_global_phase(
-            circuit_cls(cirq.X(a)).final_state_vector(ignore_terminal_measurements=False),
-            np.array([0, 1]),
-            atol=1e-8,
-        )
-
-    # Non-keyword args.
-    with cirq.testing.assert_deprecated("Only use keyword arguments", deadline="v0.16"):
-        cirq.testing.assert_allclose_up_to_global_phase(
-            circuit_cls(cirq.X(a) ** 0.5).final_state_vector(
-                1, ignore_terminal_measurements=False, dtype=np.complex128
-            ),
-            np.array([1, 1j]) * np.sqrt(0.5),
-            atol=1e-8,
-        )
-
-
-@pytest.mark.parametrize('circuit_cls', [cirq.Circuit, cirq.FrozenCircuit])
 @pytest.mark.parametrize('resolve_fn', [cirq.resolve_parameters, cirq.resolve_parameters_once])
 def test_is_parameterized(circuit_cls, resolve_fn):
     a, b = cirq.LineQubit.range(2)

@@ -98,8 +98,8 @@ That's it! Now, you can follow the [Serialization guide](/cirq/dev/serialization
 To iterate through modules, you can list them by invoking `dev_tools/modules.py`.
 
 ```bash
-python dev_tools/modules.py --list
+python dev_tools/modules.py list
 ```
 
 There are different modes of listing (e.g the folder, package-path, top level package),
-you can refer to `python dev_tools/modules.py --list --help` for the most up to date features.
+you can refer to `python dev_tools/modules.py list --help` for the most up to date features.

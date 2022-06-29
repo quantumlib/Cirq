@@ -180,6 +180,7 @@ from cirq.ops.raw_types import Gate, Operation, Qid, TaggedOperation
 from cirq.ops.swap_gates import (
     ISWAP,
     ISwapPowGate,
+    ISWAP_INV,
     riswap,
     SQRT_ISWAP,
     SQRT_ISWAP_INV,
