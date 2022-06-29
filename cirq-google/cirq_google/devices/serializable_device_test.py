@@ -121,7 +121,7 @@ def test_metadata_correct():
         pairs = [
             (qubits[0], qubits[1]),
             (qubits[0], qubits[3]),
-            (qubits[1], qubits[4]),
+            (qubits[4], qubits[1]),
             (qubits[4], qubits[5]),
         ]
         device_proto = cgdk.create_device_proto_for_qubits(

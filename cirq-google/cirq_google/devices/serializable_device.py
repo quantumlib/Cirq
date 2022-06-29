@@ -108,7 +108,7 @@ class SerializableDevice(cirq.Device):
                 for gate_def in gate_defs
                 if gate_def.number_of_qubits == 2
                 for pair in gate_def.target_set
-                if len(pair) == 2 and pair[0] < pair[1]
+                if len(pair) == 2
             ],
             gateset=cirq.Gateset(
                 *(g for g in gate_definitions.keys() if issubclass(g, cirq.Gate)),
