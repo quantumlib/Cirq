@@ -12,7 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from argparse import ArgumentError
 from typing import DefaultDict, Dict, Sequence, TYPE_CHECKING, Optional
 
 import abc
