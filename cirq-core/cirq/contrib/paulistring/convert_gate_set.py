@@ -12,22 +12,25 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from cirq import circuits, transformers
+from cirq import circuits, transformers, _compat
 
-from cirq.contrib.paulistring.convert_to_pauli_string_phasors import ConvertToPauliStringPhasors
+from cirq.contrib.paulistring.clifford_target_gateset import CliffordTargetGateset
 
 
+@_compat.deprecated(
+    deadline='v0.16',
+    fix='Use cirq.optimize_for_target_gateset with cirq.contrib.paulistring.CliffordTargetGateset.',
+)
 def converted_gate_set(
     circuit: circuits.Circuit, no_clifford_gates: bool = False, atol: float = 1e-8
 ) -> circuits.Circuit:
     """Returns a new, equivalent circuit using the gate set
     {SingleQubitCliffordGate, CZ/PauliInteractionGate, PauliStringPhasor}.
     """
-    conv_circuit = transformers.optimize_for_target_gateset(
-        circuit, gateset=transformers.CZTargetGateset()
+    single_qubit_target = (
+        CliffordTargetGateset.SingleQubitTarget.PAULI_STRING_PHASORS
+        if no_clifford_gates
+        else CliffordTargetGateset.SingleQubitTarget.PAULI_STRING_PHASORS_AND_CLIFFORDS
     )
-    conv_circuit = transformers.merge_k_qubit_unitaries(conv_circuit, k=1)
-    ConvertToPauliStringPhasors(
-        ignore_failures=True, keep_clifford=not no_clifford_gates, atol=atol
-    ).optimize_circuit(conv_circuit)
-    return transformers.drop_empty_moments(conv_circuit)
+    gateset = CliffordTargetGateset(single_qubit_target=single_qubit_target, atol=atol)
+    return transformers.optimize_for_target_gateset(circuit, gateset=gateset)

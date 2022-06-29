@@ -12,18 +12,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Optional, TYPE_CHECKING
+from typing import Optional
 
-import numpy as np
-
-from cirq import ops, protocols, transformers, linalg
+from cirq.contrib.paulistring.clifford_target_gateset import _matrix_to_clifford_op
+from cirq import ops, protocols, _compat
 from cirq.circuits.circuit import Circuit
 from cirq.circuits.optimization_pass import PointOptimizationSummary, PointOptimizer
 
-if TYPE_CHECKING:
-    import cirq
 
-
+@_compat.deprecated_class(
+    deadline='v0.16',
+    fix='Use cirq.optimize_for_target_gateset with cirq.contrib.paulistring.CliffordTargetGateset.',
+)
 class ConvertToSingleQubitCliffordGates(PointOptimizer):
     """Attempts to convert single-qubit gates into single-qubit
     SingleQubitCliffordGates.
@@ -50,31 +50,6 @@ class ConvertToSingleQubitCliffordGates(PointOptimizer):
         self.ignore_failures = ignore_failures
         self.atol = atol
 
-    def _rotation_to_clifford_gate(
-        self, pauli: ops.Pauli, half_turns: float
-    ) -> ops.SingleQubitCliffordGate:
-        quarter_turns = round(half_turns * 2) % 4
-        if quarter_turns == 1:
-            return ops.SingleQubitCliffordGate.from_pauli(pauli, True)
-        if quarter_turns == 2:
-            return ops.SingleQubitCliffordGate.from_pauli(pauli)
-        if quarter_turns == 3:
-            return ops.SingleQubitCliffordGate.from_pauli(pauli, True) ** -1
-
-        return ops.SingleQubitCliffordGate.I
-
-    def _matrix_to_clifford_op(self, mat: np.ndarray, qubit: 'cirq.Qid') -> Optional[ops.Operation]:
-        rotations = transformers.single_qubit_matrix_to_pauli_rotations(mat, self.atol)
-        clifford_gate = ops.SingleQubitCliffordGate.I
-        for pauli, half_turns in rotations:
-            if linalg.all_near_zero_mod(half_turns, 0.5):
-                clifford_gate = clifford_gate.merged_with(
-                    self._rotation_to_clifford_gate(pauli, half_turns)
-                )
-            else:
-                return None
-        return clifford_gate(qubit)
-
     def _keep(self, op: ops.Operation) -> bool:
         # Don't change if it's already a SingleQubitCliffordGate
         return isinstance(op.gate, ops.SingleQubitCliffordGate)
@@ -84,7 +59,7 @@ class ConvertToSingleQubitCliffordGates(PointOptimizer):
         if len(op.qubits) == 1:
             mat = protocols.unitary(op, None)
             if mat is not None:
-                cliff_op = self._matrix_to_clifford_op(mat, op.qubits[0])
+                cliff_op = _matrix_to_clifford_op(mat, op.qubits[0], atol=self.atol)
                 if cliff_op is not None:
                     return cliff_op
 

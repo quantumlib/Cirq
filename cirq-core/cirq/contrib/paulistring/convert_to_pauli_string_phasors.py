@@ -12,18 +12,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import List, Optional, cast, TYPE_CHECKING
+from typing import Optional, cast
 
-import numpy as np
-
-from cirq import ops, protocols, linalg, transformers
+from cirq.contrib.paulistring.clifford_target_gateset import _matrix_to_pauli_string_phasors
+from cirq import ops, protocols, _compat
 from cirq.circuits.circuit import Circuit
 from cirq.circuits.optimization_pass import PointOptimizationSummary, PointOptimizer
 
-if TYPE_CHECKING:
-    import cirq
 
-
+@_compat.deprecated_class(
+    deadline='v0.16',
+    fix='Use cirq.optimize_for_target_gateset with cirq.contrib.paulistring.CliffordTargetGateset.',
+)
 class ConvertToPauliStringPhasors(PointOptimizer):
     """Attempts to convert single-qubit gates into single-qubit
     PauliStringPhasor operations.
@@ -52,28 +52,6 @@ class ConvertToPauliStringPhasors(PointOptimizer):
         self.keep_clifford = keep_clifford
         self.atol = atol
 
-    def _matrix_to_pauli_string_phasors(self, mat: np.ndarray, qubit: 'cirq.Qid') -> ops.OP_TREE:
-        rotations = transformers.single_qubit_matrix_to_pauli_rotations(mat, self.atol)
-        out_ops: List[ops.Operation] = []
-        for pauli, half_turns in rotations:
-            if self.keep_clifford and linalg.all_near_zero_mod(half_turns, 0.5):
-                cliff_gate = ops.SingleQubitCliffordGate.from_quarter_turns(
-                    pauli, round(half_turns * 2)
-                )
-                if out_ops and not isinstance(out_ops[-1], ops.PauliStringPhasor):
-                    op = cast(ops.GateOperation, out_ops[-1])
-                    gate = cast(ops.SingleQubitCliffordGate, op.gate)
-                    out_ops[-1] = gate.merged_with(cliff_gate)(qubit)
-                else:
-                    out_ops.append(cliff_gate(qubit))
-            else:
-                out_ops.append(
-                    ops.PauliStringPhasor(
-                        ops.PauliString(pauli.on(qubit)), exponent_neg=round(half_turns, 10)
-                    )
-                )
-        return out_ops
-
     def _convert_one(self, op: ops.Operation) -> ops.OP_TREE:
         # Don't change if it's already a ops.PauliStringPhasor
         if isinstance(op, ops.PauliStringPhasor):
@@ -90,7 +68,9 @@ class ConvertToPauliStringPhasors(PointOptimizer):
         if len(op.qubits) == 1:
             mat = protocols.unitary(op, None)
             if mat is not None:
-                return self._matrix_to_pauli_string_phasors(mat, op.qubits[0])
+                return _matrix_to_pauli_string_phasors(
+                    mat, op.qubits[0], keep_clifford=self.keep_clifford, atol=self.atol
+                )
 
         # Just let it be?
         if self.ignore_failures:

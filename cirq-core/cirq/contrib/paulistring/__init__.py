@@ -14,6 +14,8 @@
 
 """Methods related to optimizing and transforming PauliStrings."""
 
+from cirq.contrib.paulistring.clifford_target_gateset import CliffordTargetGateset
+
 from cirq.contrib.paulistring.convert_to_pauli_string_phasors import ConvertToPauliStringPhasors
 
 from cirq.contrib.paulistring.convert_to_clifford_gates import ConvertToSingleQubitCliffordGates
