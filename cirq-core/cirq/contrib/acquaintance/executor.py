@@ -19,8 +19,7 @@ import abc
 from collections import defaultdict
 import cirq
 
-
-from cirq import circuits, devices, ops, protocols
+from cirq import circuits, devices, ops, protocols, transformers
 
 from cirq.contrib.acquaintance.gates import AcquaintanceOpportunityGate
 from cirq.contrib.acquaintance.permutation import (
@@ -31,9 +30,6 @@ from cirq.contrib.acquaintance.permutation import (
     LogicalMapping,
 )
 from cirq.contrib.acquaintance.mutation_utils import expose_acquaintance_gates
-
-if TYPE_CHECKING:
-    import cirq
 
 
 class ExecutionStrategy(metaclass=abc.ABCMeta):
@@ -64,7 +60,15 @@ class ExecutionStrategy(metaclass=abc.ABCMeta):
         """Gets the logical operations to apply to qubits."""
 
     def __call__(self, *args, **kwargs):
+        if args[0] is None:
+            raise ValueError(
+                (
+                    "To call ExecutionStrategy, an argument of type "
+                    "'cirq.Circuit' must be passed in as the first non-keyword argument"
+                )
+            )
         return StrategyExecutor(self)(*args, **kwargs)
+        # return strategy_executor(args[0], execution_strategy=self, *args[1:], **kwargs)
 
 
 @cirq._compat.deprecated_class(
@@ -112,23 +116,39 @@ def strategy_executor(
     *,
     execution_strategy: ExecutionStrategy = None,
     context: Optional['cirq.TransformerContext'] = None,
-) -> None:
-    """Executes an acquaintance strategy"""
+) -> LogicalMapping:
+    """Executes an acquaintance strategy.
+
+    Args:
+        circuit: Input circuit to transform.
+        execution_strategy: 'ExecutionStrategy' tells what gates to
+          implement at the available acquaintance opportunities
+        context: `cirq.TransformerContext` storing common configurable
+          options for transformers.
+
+    Raises:
+        ValueError: if execution_strategy is None
+        TypeError: if execution_strategy neither an instance of
+          AcquaintanceOpportunityGate or PermutationGate
+
+    Returns:
+        mapping: LogicalMapping mapping from qubits to logical indices
+
+    """
 
     if execution_strategy is None:
-        raise ArgumentError(execution_strategy, 'Execution strategy cannot be None')
+        raise ValueError('execution_strategy cannot be None')
 
-    mapping = execution_strategy.initial_mapping.copy()
+    mapping = execution_strategy.initial_mapping
 
     def map_func(op: 'cirq.Operation', index) -> 'cirq.OP_TREE':
         if isinstance(op.gate, AcquaintanceOpportunityGate):
             logical_indices = tuple(mapping[q] for q in op.qubits)
             logical_operations = execution_strategy.get_operations(logical_indices, op.qubits)
             clear_span = int(not execution_strategy.keep_acquaintance)
-            new_operation = logical_operations.on(*logical_indices)
-            return new_operation if clear_span else [op, new_operation]
+            return logical_operations if clear_span else [op, logical_operations]
 
-        if isinstance(op, ops.GateOperation) and isinstance(op.gate, PermutationGate):
+        if isinstance(op.gate, PermutationGate):
             op.gate.update_mapping(mapping, op.qubits)
             return op
 
@@ -139,12 +159,13 @@ def strategy_executor(
         )
 
     expose_acquaintance_gates(circuit)
-    return cirq.map_operations(
+    transformers.map_operations(
         circuit=circuit,
         map_func=map_func,
         deep=context.deep if context else False,
         tags_to_ignore=context.tags_to_ignore if context else (),
     )
+    return mapping
 
 
 class AcquaintanceOperation(ops.GateOperation):
