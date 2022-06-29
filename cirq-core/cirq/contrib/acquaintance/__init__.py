@@ -22,6 +22,7 @@ from cirq.contrib.acquaintance.executor import (
     AcquaintanceOperation,
     GreedyExecutionStrategy,
     StrategyExecutor,
+    strategy_executor,
 )
 
 from cirq.contrib.acquaintance.gates import acquaint, AcquaintanceOpportunityGate, SwapNetworkGate
