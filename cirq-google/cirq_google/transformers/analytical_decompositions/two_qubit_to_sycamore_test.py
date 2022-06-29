@@ -26,7 +26,7 @@ def assert_implements(circuit: cirq.Circuit, target_op: cirq.Operation):
     assert sum(1 for _ in circuit.findall_operations(lambda e: len(e.qubits) > 2)) <= 6
     circuit.append(cirq.I.on_each(*target_op.qubits))
     cirq.testing.assert_allclose_up_to_global_phase(
-        cirq.unitary(circuit), cirq.unitary(target_op), atol=1e-5
+        cirq.unitary(circuit), cirq.unitary(target_op), atol=1e-7
     )
 
 
