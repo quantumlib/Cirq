@@ -176,7 +176,7 @@ def test_parameterize(resolve_fn, global_shift):
         np.testing.assert_allclose(
             cirq.unitary(resolved_gate(q)),
             cirq.unitary(resolve_fn(parameterized_decomposed_circuit, resolver)),
-            atol=1e-6,
+            atol=1e-8,
         )
 
     unparameterized_gate = cirq.PhasedXPowGate(

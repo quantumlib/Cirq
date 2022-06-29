@@ -811,7 +811,7 @@ def test_phase_calibrated_fsim_gate_compensated(phase_exponent: float):
                 ]
             )
         ),
-        atol=1e-6,
+        atol=1e-8,
     )
 
 
