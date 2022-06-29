@@ -782,4 +782,4 @@ def test_extract_right_diag(u):
     assert cirq.num_cnots_required(u) == 3
     diag = cirq.linalg.extract_right_diag(u)
     assert cirq.is_diagonal(diag)
-    assert cirq.num_cnots_required(u @ diag, atol=1e-6) == 2
+    assert cirq.num_cnots_required(u @ diag) == 2

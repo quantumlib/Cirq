@@ -1003,7 +1003,7 @@ class AbstractCircuit(abc.ABC):
         qubit_order: 'cirq.QubitOrderOrList' = ops.QubitOrder.DEFAULT,
         qubits_that_should_be_present: Iterable['cirq.Qid'] = (),
         ignore_terminal_measurements: bool = True,
-        dtype: Type[np.complexfloating] = np.complex64,
+        dtype: Type[np.complexfloating] = np.complex128,
     ) -> np.ndarray:
         """Converts the circuit into a unitary matrix, if possible.
 
@@ -1018,10 +1018,11 @@ class AbstractCircuit(abc.ABC):
             ignore_terminal_measurements: When set, measurements at the end of
                 the circuit are ignored instead of causing the method to
                 fail.
-            dtype: The numpy dtype for the returned unitary. `dtype` must be
-                a complex np.dtype, unless all operations in the circuit have
-                unitary matrices with exclusively real coefficients
-                (e.g. an H + TOFFOLI circuit).
+            dtype: The numpy dtype for the returned unitary. Defaults to
+                np.complex128. Specifying np.complex64 will run faster at the
+                cost of precision. `dtype` must be a complex np.dtype, unless
+                all operations in the circuit have unitary matrices with
+                exclusively real coefficients (e.g. an H + TOFFOLI circuit).
 
         Returns:
             A (possibly gigantic) 2d numpy array corresponding to a matrix
@@ -1093,7 +1094,7 @@ class AbstractCircuit(abc.ABC):
         qubit_order: 'cirq.QubitOrderOrList' = ops.QubitOrder.DEFAULT,
         qubits_that_should_be_present: Iterable['cirq.Qid'] = (),
         ignore_terminal_measurements: Optional[bool] = None,
-        dtype: Optional[Type[np.complexfloating]] = None,
+        dtype: Type[np.complexfloating] = np.complex128,
         param_resolver: 'cirq.ParamResolverOrSimilarType' = None,
         seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None,
     ) -> np.ndarray:
@@ -1142,14 +1143,6 @@ class AbstractCircuit(abc.ABC):
                     '`ignore_terminal_measurements=True` when calling this method.'
                 )
             ignore_terminal_measurements = True
-
-        if dtype is None:
-            _compat._warn_or_error(
-                '`dtype` will default to np.complex64 in v0.16. '
-                'To use the previous default, please explicitly include '
-                '`dtype=np.complex128` when calling this method.'
-            )
-            dtype = np.complex128
 
         from cirq.sim.mux import final_state_vector
 

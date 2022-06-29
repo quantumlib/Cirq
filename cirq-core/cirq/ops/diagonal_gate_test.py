@@ -54,7 +54,7 @@ def test_decomposition_unitary(n):
 
     # For large qubit counts, the decomposed circuit is rather large, so we lose a lot of
     # precision.
-    np.testing.assert_allclose(decomposed_f, expected_f, atol=5e-6)
+    np.testing.assert_allclose(decomposed_f, expected_f)
 
 
 @pytest.mark.parametrize('n', [1, 2, 3, 4])
@@ -65,7 +65,7 @@ def test_diagonal_exponent(n):
     sqrt_diagonal_gate = diagonal_gate**0.5
 
     expected_angles = [prime / 2 for prime in diagonal_angles]
-    np.testing.assert_allclose(expected_angles, sqrt_diagonal_gate._diag_angles_radians, atol=1e-6)
+    np.testing.assert_allclose(expected_angles, sqrt_diagonal_gate._diag_angles_radians, atol=1e-8)
 
     assert cirq.pow(cirq.DiagonalGate(diagonal_angles), "test", None) is None
 
@@ -80,7 +80,7 @@ def test_decomposition_diagonal_exponent(n):
     expected_f = [np.exp(1j * angle / 2) for angle in diagonal_angles]
     decomposed_f = cirq.unitary(decomposed_circ).diagonal()
 
-    np.testing.assert_allclose(decomposed_f, expected_f, atol=1e-6)
+    np.testing.assert_allclose(decomposed_f, expected_f)
 
 
 @pytest.mark.parametrize('n', [1, 2, 3, 4])
@@ -99,7 +99,7 @@ def test_decomposition_with_parameterization(n):
             resolved_op = cirq.resolve_parameters(parameterized_op, resolver)
             resolved_circuit = cirq.resolve_parameters(decomposed_circuit, resolver)
             np.testing.assert_allclose(
-                cirq.unitary(resolved_op), cirq.unitary(resolved_circuit), atol=1e-6
+                cirq.unitary(resolved_op), cirq.unitary(resolved_circuit), atol=1e-8
             )
 
 
