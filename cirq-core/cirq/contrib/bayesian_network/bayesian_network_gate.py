@@ -180,11 +180,7 @@ class BayesianNetworkGate(raw_types.Gate):
         return self._init_probs, self._arc_probs
 
     def _json_dict_(self) -> Dict[str, Any]:
-        return {
-            'cirq_type': self.__class__.__name__,
-            'init_probs': self._init_probs,
-            'arc_probs': self._arc_probs,
-        }
+        return {'init_probs': self._init_probs, 'arc_probs': self._arc_probs}
 
     @classmethod
     def _from_json_dict_(

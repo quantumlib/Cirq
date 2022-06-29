@@ -254,15 +254,15 @@ def test_kak_decomposition_depth_partial_cz():
 @pytest.mark.parametrize(
     "v",
     [
-        random_two_qubit_circuit_with_czs(3).unitary(dtype=np.complex128),
-        random_two_qubit_circuit_with_czs(2).unitary(dtype=np.complex128),
+        cirq.unitary(random_two_qubit_circuit_with_czs(3)),
+        cirq.unitary(random_two_qubit_circuit_with_czs(2)),
         np.diag(np.exp(1j * np.pi * np.random.random(4))),
     ],
 )
 def test_decompose_to_diagonal_and_circuit(v):
     b, c = cirq.LineQubit.range(2)
-    diagonal, ops = two_qubit_matrix_to_diagonal_and_cz_operations(b, c, v, atol=1e-6)
+    diagonal, ops = two_qubit_matrix_to_diagonal_and_cz_operations(b, c, v, atol=1e-8)
     assert cirq.is_diagonal(diagonal)
     combined_circuit = cirq.Circuit(cirq.MatrixGate(diagonal)(b, c), ops)
     circuit_unitary = combined_circuit.unitary(qubits_that_should_be_present=[b, c])
-    cirq.testing.assert_allclose_up_to_global_phase(circuit_unitary, v, atol=5e-5)
+    cirq.testing.assert_allclose_up_to_global_phase(circuit_unitary, v, atol=2e-6)

@@ -176,8 +176,8 @@ def test_circuit_operation_conversion(optimizer_type, two_qubit_gate_type):
             [*converted_subcircuit.findall_operations_with_gate_type(two_qubit_gate_type)]
         ) == len([*ops[0].circuit.findall_operations_with_gate_type(two_qubit_gate_type)])
         cirq.testing.assert_circuits_with_terminal_measurements_are_equivalent(
-            ops[0].circuit, converted_subcircuit, atol=1e-6
+            ops[0].circuit, converted_subcircuit, atol=1e-8
         )
         cirq.testing.assert_circuits_with_terminal_measurements_are_equivalent(
-            circuit, converted_circuit, atol=1e-6
+            circuit, converted_circuit, atol=1e-8
         )

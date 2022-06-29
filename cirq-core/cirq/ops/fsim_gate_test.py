@@ -317,7 +317,7 @@ def test_phased_fsim_from_fsim_rz(theta, phi, rz_angles_before, rz_angles_after)
         cirq.rz(rz_angles_after[0]).on(q0),
         cirq.rz(rz_angles_after[1]).on(q1),
     )
-    cirq.testing.assert_allclose_up_to_global_phase(cirq.unitary(f), cirq.unitary(c), atol=1e-6)
+    cirq.testing.assert_allclose_up_to_global_phase(cirq.unitary(f), cirq.unitary(c), atol=1e-8)
 
 
 @pytest.mark.parametrize(
