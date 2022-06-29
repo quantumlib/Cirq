@@ -48,8 +48,8 @@ def test_executor_explicit():
     }
     initial_mapping = {q: i for i, q in enumerate(sorted(qubits))}
     with cirq.testing.assert_deprecated(
-            "Use cirq.contrib.acquaintance.strategy_executor", deadline='v1.0'
-        ):
+        "Use cirq.contrib.acquaintance.strategy_executor", deadline='v1.0'
+    ):
         execution_strategy = cca.GreedyExecutionStrategy(gates, initial_mapping)
         executor = cca.StrategyExecutor(execution_strategy)
 
@@ -127,8 +127,8 @@ def test_executor_random(
 
     initial_mapping = {q: q for q in qubits}
     with cirq.testing.assert_deprecated(
-            "Use cirq.contrib.acquaintance.strategy_executor", deadline='v1.0'
-        ):
+        "Use cirq.contrib.acquaintance.strategy_executor", deadline='v1.0'
+    ):
         final_mapping = cca.GreedyExecutionStrategy(gates, initial_mapping)(circuit)
     permutation = {q.x: qq.x for q, qq in final_mapping.items()}
     circuit.append(cca.LinearPermutationGate(num_qubits, permutation)(*qubits))

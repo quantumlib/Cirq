@@ -65,12 +65,11 @@ class ExecutionStrategy(metaclass=abc.ABCMeta):
         """Gets the logical operations to apply to qubits."""
 
     def __call__(self, *args, **kwargs):
-            return StrategyExecutor(self)(*args, **kwargs)
+        return StrategyExecutor(self)(*args, **kwargs)
 
 
 @cirq._compat.deprecated_class(
-    deadline='v1.0',
-    fix='Use cirq.contrib.acquaintance.strategy_executor.',
+    deadline='v1.0', fix='Use cirq.contrib.acquaintance.strategy_executor.'
 )
 class StrategyExecutor(circuits.PointOptimizer):
     """Executes an acquaintance strategy."""
@@ -139,7 +138,7 @@ def strategy_executor(
             'are instances of AcquaintanceOpportunityGate or '
             'PermutationGate.'
         )
-       
+
     expose_acquaintance_gates(circuit)
     return cirq.map_operations(
         circuit=circuit,
