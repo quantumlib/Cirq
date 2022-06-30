@@ -372,14 +372,15 @@ def create_noiseless_virtual_engine_from_latest_templates() -> SimulatedLocalEng
     return create_noiseless_virtual_engine_from_templates(processor_ids, template_names)
 
 
-def create_noisy_virtual_engine_from_processor_id_and_simulator_class(
+def create_default_noisy_quantum_virtual_machine(
     processor_id: str, simulator_class: Type[SimulatesSamples], **kwargs
 ) -> SimulatedLocalEngine:
     """Creates a virtual engine with a noisy simulator based on a processor id.
 
     Args:
         processor_id: The string name of a processor that has available noise data.
-        simulator_class: The class of the type of simulator to be initialized.
+        simulator_class: The class of the type of simulator to be initialized. The
+            simulator class initializer needs to support the `noise` parameter.
         kwargs: Other arguments which are passed through to the simulator initializer.
             The 'noise' argument will be overwritten with a new noise model.
 
@@ -391,8 +392,7 @@ def create_noisy_virtual_engine_from_processor_id_and_simulator_class(
     calibration = load_median_device_calibration(processor_id)
     noise_properties = noise_properties_from_calibration(calibration)
     noise_model = NoiseModelFromGoogleNoiseProperties(noise_properties)
-    kwargs["noise"] = noise_model
-    simulator = simulator_class(**kwargs)
+    simulator = simulator_class(noise=noise_model, **kwargs)  # type: ignore
 
     device = create_device_from_processor_id(processor_id)
     simulated_processor = SimulatedLocalProcessor(

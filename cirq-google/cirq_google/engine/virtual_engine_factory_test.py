@@ -177,11 +177,10 @@ def test_create_from_proto_no_qubits():
         )
 
 
-def test_create_noisy_virtual_engine_from_processor_id_and_simulator_class():
+def test_create_default_noisy_quantum_virtual_machine():
     for processor_id in ["rainbow", "weber"]:
-        simulator_class = cirq.Simulator
-        engine = factory.create_noisy_virtual_engine_from_processor_id_and_simulator_class(
-            processor_id=processor_id, simulator_class=simulator_class
+        engine = factory.create_default_noisy_quantum_virtual_machine(
+            processor_id=processor_id, simulator_class=cirq.Simulator
         )
         processor = engine.get_processor(processor_id)
         bad_qubit = cirq.GridQubit(10, 10)
