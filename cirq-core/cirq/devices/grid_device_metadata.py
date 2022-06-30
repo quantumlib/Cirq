@@ -13,7 +13,7 @@
 # limitations under the License.
 """Metadata subtype for 2D Homogenous devices."""
 
-from typing import TYPE_CHECKING, Optional, FrozenSet, Iterable, Tuple, Dict
+from typing import TYPE_CHECKING, cast, Optional, FrozenSet, Iterable, Tuple, Dict
 
 import networkx as nx
 from cirq import value
@@ -29,21 +29,21 @@ class GridDeviceMetadata(device.DeviceMetadata):
 
     def __init__(
         self,
-        qubit_pairs: Iterable[Tuple['cirq.Qid', 'cirq.Qid']],
+        qubit_pairs: Iterable[Tuple['cirq.GridQubit', 'cirq.GridQubit']],
         gateset: 'cirq.Gateset',
         gate_durations: Optional[Dict['cirq.GateFamily', 'cirq.Duration']] = None,
-        all_qubits: Optional[Iterable['cirq.Qid']] = None,
+        all_qubits: Optional[Iterable['cirq.GridQubit']] = None,
         compilation_target_gatesets: Iterable['cirq.CompilationTargetGateset'] = (),
     ):
         """Create a GridDeviceMetadata object.
 
-        Create a GridDevice which has a well defined set of couplable
+        Create a grid device which has a well defined set of couplable
         qubit pairs that have the same two qubit gates available in
         both coupling directions. Gate times (if provided) are expected
         to be uniform across all qubits on the device.
 
         Args:
-            qubit_pairs: Iterable of pairs of `cirq.Qid`s representing
+            qubit_pairs: Iterable of pairs of `cirq.GridQubit`s representing
                 bi-directional couplings.
             gateset: `cirq.Gateset` indicating gates supported
                 everywhere on the device.
@@ -114,7 +114,16 @@ class GridDeviceMetadata(device.DeviceMetadata):
         self._gate_durations = gate_durations
 
     @property
-    def qubit_pairs(self) -> FrozenSet[FrozenSet['cirq.Qid']]:
+    def qubit_set(self) -> FrozenSet['cirq.GridQubit']:
+        """Returns the set of grid qubits on the device.
+
+        Returns:
+            Frozenset of qubits on device.
+        """
+        return cast(FrozenSet['cirq.GridQubit'], super().qubit_set)
+
+    @property
+    def qubit_pairs(self) -> FrozenSet[FrozenSet['cirq.GridQubit']]:
         """Returns the set of all couple-able qubits on the device.
 
         Each element in the outer frozenset is a 2-element frozenset representing a bidirectional
@@ -123,7 +132,7 @@ class GridDeviceMetadata(device.DeviceMetadata):
         return self._qubit_pairs
 
     @property
-    def isolated_qubits(self) -> FrozenSet['cirq.Qid']:
+    def isolated_qubits(self) -> FrozenSet['cirq.GridQubit']:
         """Returns the set of all isolated qubits on the device (if appliable)."""
         return self._isolated_qubits
 
