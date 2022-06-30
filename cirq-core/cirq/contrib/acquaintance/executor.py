@@ -12,13 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import DefaultDict, Dict, Sequence, Optional
+from typing import DefaultDict, Dict, Sequence, TYPE_CHECKING, Optional
 
 import abc
 from collections import defaultdict
 
-from cirq import circuits, devices, ops, protocols, transformers
-import cirq
+from cirq import circuits, devices, ops, protocols, transformers, _compat
 
 from cirq.contrib.acquaintance.gates import AcquaintanceOpportunityGate
 from cirq.contrib.acquaintance.permutation import (
@@ -29,6 +28,9 @@ from cirq.contrib.acquaintance.permutation import (
     LogicalMapping,
 )
 from cirq.contrib.acquaintance.mutation_utils import expose_acquaintance_gates
+
+if TYPE_CHECKING:
+    import cirq
 
 
 class ExecutionStrategy(metaclass=abc.ABCMeta):
@@ -59,14 +61,14 @@ class ExecutionStrategy(metaclass=abc.ABCMeta):
         """Gets the logical operations to apply to qubits."""
 
     def __call__(self, *args, **kwargs):
-        """Returns a copy of the modified circuit and the final mapping of
-        logical indices to qubits
+        """Returns the final mapping of logical indices to qubits after
+        executing an acquaintance strategy.
         """
-        if not isinstance(args[0], circuits.AbstractCircuit):
+        if len(args) < 1 or not isinstance(args[0], circuits.AbstractCircuit):
             raise ValueError(
                 (
                     "To call ExecutionStrategy, an argument of type "
-                    "'cirq.Circuit' must be passed in as the first non-keyword argument"
+                    "'cirq.AbstractCircuit' must be passed in as the first non-keyword argument"
                 )
             )
         input_circuit = args[0]
@@ -76,8 +78,8 @@ class ExecutionStrategy(metaclass=abc.ABCMeta):
         return strategy.get_mapping()
 
 
-@cirq._compat.deprecated_class(
-    deadline='v1.0', fix='Use cirq.contrib.acquaintance.strategy_executor.'
+@_compat.deprecated_class(
+    deadline='v1.0', fix='Use cirq.contrib.acquaintance.StrategyExecutorTransformer'
 )
 class StrategyExecutor(circuits.PointOptimizer):
     """Executes an acquaintance strategy."""
@@ -119,12 +121,20 @@ class StrategyExecutorTransformer:
     """Executes an acquaintance strategy."""
 
     def __init__(self, execution_strategy: ExecutionStrategy) -> None:
+        """Initializes transformer.
+
+        Raises:
+            ValueError: if execution_strategy is None.
+        """
+
+        if execution_strategy is None:
+            raise ValueError('execution_strategy cannot be None')
         self.execution_strategy = execution_strategy
         self.mapping = execution_strategy.initial_mapping.copy()
 
     def __call__(
-        self, circuit: 'cirq.Circuit', context: Optional['cirq.TransformerContext'] = None
-    ) -> circuits.AbstractCircuit:
+        self, circuit: 'cirq.AbstractCircuit', context: Optional['cirq.TransformerContext'] = None
+    ) -> circuits.Circuit:
         """Executes an acquaintance strategy using primitive map function and
           mutates initial mapping.
 
@@ -133,27 +143,20 @@ class StrategyExecutorTransformer:
             context: `cirq.TransformerContext` storing common configurable
               options for transformers.
 
-        Raises:
-            ValueError: if execution_strategy is None
-            TypeError: if execution_strategy neither an instance of
-              AcquaintanceOpportunityGate or PermutationGate
-
         Returns:
             A copy of the modified circuit after executing an acquaintance
               strategy on all instances of AcquaintanceOpportunityGate
         """
 
-        if self.execution_strategy is None:
-            raise ValueError('execution_strategy cannot be None')
         expose_acquaintance_gates(circuit)
-        return transformers.map_operations(
+        return transformers.map_operations_and_unroll(
             circuit=circuit,
             map_func=self.map_func,
             deep=context.deep if context else False,
             tags_to_ignore=context.tags_to_ignore if context else (),
         )
 
-    def get_mapping(self):
+    def get_mapping(self) -> LogicalMapping:
         return self.mapping.copy()
 
     def map_func(self, op: 'cirq.Operation', index) -> 'cirq.OP_TREE':
@@ -161,6 +164,7 @@ class StrategyExecutorTransformer:
             logical_indices = tuple(self.mapping[q] for q in op.qubits)
             logical_operations = self.execution_strategy.get_operations(logical_indices, op.qubits)
             clear_span = int(not self.execution_strategy.keep_acquaintance)
+
             return logical_operations if clear_span else [op, logical_operations]
 
         if isinstance(op.gate, PermutationGate):
