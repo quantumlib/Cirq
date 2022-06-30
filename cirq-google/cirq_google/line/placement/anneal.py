@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import cast, Callable, List, Optional, Tuple, Set, Any, TYPE_CHECKING
+from typing import Callable, List, Optional, Tuple, Set, Any, TYPE_CHECKING
 
 import numpy as np
 
@@ -37,7 +37,7 @@ class AnnealSequenceSearch:
           device: Chip description.
           seed: Optional seed value for random number generator.
         """
-        self._c = cast(Set[cirq.GridQubit], device.metadata.qubit_set)
+        self._c = device.metadata.qubit_set
         self._c_adj = chip_as_adjacency_list(device)
         self._rand = np.random.RandomState(seed)
 
