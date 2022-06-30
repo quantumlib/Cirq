@@ -59,20 +59,14 @@ def test_executor_explicit():
 
     with pytest.raises(TypeError):
         bad_strategy = cirq.Circuit(cirq.X(qubits[0]))
-        with cirq.testing.assert_deprecated(
-            "Use cirq.contrib.acquaintance.strategy_executor", deadline='v1.0'
-        ):
-            executor(bad_strategy)
+        executor(bad_strategy)
 
     with pytest.raises(TypeError):
         op = cirq.X(qubits[0])
         bad_strategy = cirq.Circuit(op)
-        with cirq.testing.assert_deprecated(
-            "Use cirq.contrib.acquaintance.strategy_executor", deadline='v1.0'
-        ):
-            executor.optimization_at(bad_strategy, 0, op)
-            executor(circuit)
+        executor.optimization_at(bad_strategy, 0, op)
 
+    executor(circuit)
     expected_text_diagram = """
 0: ───0───1───╲0╱─────────────────1───3───╲0╱─────────────────3───5───╲0╱─────────────────5───7───╲0╱─────────────────
       │   │   │                   │   │   │                   │   │   │                   │   │   │
@@ -123,7 +117,7 @@ def test_executor_random(
     expected_unitary = logical_circuit.unitary()
 
     initial_mapping = {q: q for q in qubits}
-    circuit, final_mapping = cca.GreedyExecutionStrategy(gates, initial_mapping)(circuit)
+    final_mapping = cca.GreedyExecutionStrategy(gates, initial_mapping)(circuit)
     permutation = {q.x: qq.x for q, qq in final_mapping.items()}
     circuit.append(cca.LinearPermutationGate(num_qubits, permutation)(*qubits))
     actual_unitary = circuit.unitary()

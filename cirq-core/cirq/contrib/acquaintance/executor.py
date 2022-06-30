@@ -12,13 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import DefaultDict, Dict, Sequence, TYPE_CHECKING, Optional
+from typing import DefaultDict, Dict, Sequence, Optional
 
 import abc
 from collections import defaultdict
-import cirq
 
 from cirq import circuits, devices, ops, protocols, transformers
+import cirq
 
 from cirq.contrib.acquaintance.gates import AcquaintanceOpportunityGate
 from cirq.contrib.acquaintance.permutation import (
@@ -59,15 +59,21 @@ class ExecutionStrategy(metaclass=abc.ABCMeta):
         """Gets the logical operations to apply to qubits."""
 
     def __call__(self, *args, **kwargs):
-        if args[0] is None:
+        """Returns a copy of the modified circuit and the final mapping of
+        logical indices to qubits
+        """
+        if not isinstance(args[0], circuits.AbstractCircuit):
             raise ValueError(
                 (
                     "To call ExecutionStrategy, an argument of type "
                     "'cirq.Circuit' must be passed in as the first non-keyword argument"
                 )
             )
+        input_circuit = args[0]
         strategy = StrategyExecutorTransformer(self)
-        return strategy(*args, **kwargs), strategy.get_mapping()
+        final_circuit = strategy(input_circuit, **kwargs)
+        input_circuit._moments = final_circuit._moments
+        return strategy.get_mapping()
 
 
 @cirq._compat.deprecated_class(
@@ -118,8 +124,10 @@ class StrategyExecutorTransformer:
 
     def __call__(
         self, circuit: 'cirq.Circuit', context: Optional['cirq.TransformerContext'] = None
-    ) -> 'cirq.Cirquit':
-        """
+    ) -> circuits.AbstractCircuit:
+        """Executes an acquaintance strategy using primitive map function and
+          mutates initial mapping.
+
         Args:
             circuit: Input circuit to transform.
             context: `cirq.TransformerContext` storing common configurable
@@ -131,7 +139,8 @@ class StrategyExecutorTransformer:
               AcquaintanceOpportunityGate or PermutationGate
 
         Returns:
-            mapping: LogicalMapping mapping from qubits to logical indices
+            A copy of the modified circuit after executing an acquaintance
+              strategy on all instances of AcquaintanceOpportunityGate
         """
 
         if self.execution_strategy is None:
