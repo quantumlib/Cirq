@@ -66,8 +66,8 @@ class ExecutionStrategy(metaclass=abc.ABCMeta):
                     "'cirq.Circuit' must be passed in as the first non-keyword argument"
                 )
             )
-        return StrategyExecutor(self)(*args, **kwargs)
-        # return strategy_executor(args[0], execution_strategy=self, *args[1:], **kwargs)
+        strategy = StrategyExecutorTransformer(self)
+        return strategy(*args, **kwargs), strategy.get_mapping()
 
 
 @cirq._compat.deprecated_class(
@@ -109,46 +109,53 @@ class StrategyExecutor(circuits.PointOptimizer):
         )
 
 
-@cirq.transformer
-def strategy_executor(
-    circuit: 'cirq.Circuit',
-    *,
-    execution_strategy: ExecutionStrategy = None,
-    context: Optional['cirq.TransformerContext'] = None,
-) -> LogicalMapping:
-    """Executes an acquaintance strategy.
+class StrategyExecutorTransformer:
+    """Executes an acquaintance strategy."""
 
-    Args:
-        circuit: Input circuit to transform.
-        execution_strategy: 'ExecutionStrategy' tells what gates to
-          implement at the available acquaintance opportunities
-        context: `cirq.TransformerContext` storing common configurable
-          options for transformers.
+    def __init__(self, execution_strategy: ExecutionStrategy) -> None:
+        self.execution_strategy = execution_strategy
+        self.mapping = execution_strategy.initial_mapping.copy()
 
-    Raises:
-        ValueError: if execution_strategy is None
-        TypeError: if execution_strategy neither an instance of
-          AcquaintanceOpportunityGate or PermutationGate
+    def __call__(
+        self, circuit: 'cirq.Circuit', context: Optional['cirq.TransformerContext'] = None
+    ) -> 'cirq.Cirquit':
+        """
+        Args:
+            circuit: Input circuit to transform.
+            context: `cirq.TransformerContext` storing common configurable
+              options for transformers.
 
-    Returns:
-        mapping: LogicalMapping mapping from qubits to logical indices
+        Raises:
+            ValueError: if execution_strategy is None
+            TypeError: if execution_strategy neither an instance of
+              AcquaintanceOpportunityGate or PermutationGate
 
-    """
+        Returns:
+            mapping: LogicalMapping mapping from qubits to logical indices
+        """
 
-    if execution_strategy is None:
-        raise ValueError('execution_strategy cannot be None')
+        if self.execution_strategy is None:
+            raise ValueError('execution_strategy cannot be None')
+        expose_acquaintance_gates(circuit)
+        return transformers.map_operations(
+            circuit=circuit,
+            map_func=self.map_func,
+            deep=context.deep if context else False,
+            tags_to_ignore=context.tags_to_ignore if context else (),
+        )
 
-    mapping = execution_strategy.initial_mapping
+    def get_mapping(self):
+        return self.mapping.copy()
 
-    def map_func(op: 'cirq.Operation', index) -> 'cirq.OP_TREE':
+    def map_func(self, op: 'cirq.Operation', index) -> 'cirq.OP_TREE':
         if isinstance(op.gate, AcquaintanceOpportunityGate):
-            logical_indices = tuple(mapping[q] for q in op.qubits)
-            logical_operations = execution_strategy.get_operations(logical_indices, op.qubits)
-            clear_span = int(not execution_strategy.keep_acquaintance)
+            logical_indices = tuple(self.mapping[q] for q in op.qubits)
+            logical_operations = self.execution_strategy.get_operations(logical_indices, op.qubits)
+            clear_span = int(not self.execution_strategy.keep_acquaintance)
             return logical_operations if clear_span else [op, logical_operations]
 
         if isinstance(op.gate, PermutationGate):
-            op.gate.update_mapping(mapping, op.qubits)
+            op.gate.update_mapping(self.mapping, op.qubits)
             return op
 
         raise TypeError(
@@ -156,15 +163,6 @@ def strategy_executor(
             'are instances of AcquaintanceOpportunityGate or '
             'PermutationGate.'
         )
-
-    expose_acquaintance_gates(circuit)
-    transformers.map_operations(
-        circuit=circuit,
-        map_func=map_func,
-        deep=context.deep if context else False,
-        tags_to_ignore=context.tags_to_ignore if context else (),
-    )
-    return mapping
 
 
 class AcquaintanceOperation(ops.GateOperation):
