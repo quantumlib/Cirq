@@ -176,6 +176,7 @@ def test_create_from_proto_no_qubits():
             'sycamore', cirq.UNCONSTRAINED_DEVICE
         )
 
+
 def test_create_noisy_virtual_engine_from_processor_id_and_simulator_class():
     for processor_id in ["rainbow", "weber"]:
         simulator_class = cirq.Simulator

@@ -371,6 +371,7 @@ def create_noiseless_virtual_engine_from_latest_templates() -> SimulatedLocalEng
     template_names = [MOST_RECENT_TEMPLATES[k] for k in processor_ids]
     return create_noiseless_virtual_engine_from_templates(processor_ids, template_names)
 
+
 def create_noisy_virtual_engine_from_processor_id_and_simulator_class(
     processor_id: str, simulator_class: Type[SimulatesSamples], **kwargs
 ) -> SimulatedLocalEngine:
