@@ -21,9 +21,7 @@ from cirq.contrib import circuitdag
 def pauli_string_reorder_pred(op1: ops.Operation, op2: ops.Operation) -> bool:
     ps1 = cast(ops.PauliStringGateOperation, op1).pauli_string
     ps2 = cast(ops.PauliStringGateOperation, op2).pauli_string
-    result = protocols.commutes(ps1, ps2)
-    assert result is not None, "commutes should raise exception when indeterminate"
-    return result
+    return protocols.commutes(ps1, ps2)
 
 
 def pauli_string_dag_from_circuit(circuit: circuits.Circuit) -> circuitdag.CircuitDag:
