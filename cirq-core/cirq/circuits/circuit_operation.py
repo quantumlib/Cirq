@@ -50,7 +50,8 @@ REPETITION_ID_SEPARATOR = '-'
 
 def default_repetition_ids(repetitions: IntParam) -> Optional[List[str]]:
     if isinstance(repetitions, INT_CLASSES) and abs(repetitions) != 1:
-        return [str(i) for i in range(abs(repetitions))]
+        abs_repetitions: int = abs(int(repetitions))
+        return [str(i) for i in range(abs_repetitions)]
     return None
 
 
@@ -322,7 +323,7 @@ class CircuitOperation(ops.Operation):
             key.with_key_path_prefix(*self.parent_path) for key in circuit_keys
         )
         return frozenset(
-            protocols.with_measurement_key_mapping(key, dict(self.measurement_key_map))
+            protocols.with_measurement_key_mapping(key, self.measurement_key_map)
             for key in circuit_keys
         )
 
@@ -368,9 +369,7 @@ class CircuitOperation(ops.Operation):
         if isinstance(self.repetitions, INT_CLASSES) and self.repetitions < 0:
             circuit = circuit**-1
         if self.measurement_key_map:
-            circuit = protocols.with_measurement_key_mapping(
-                circuit, dict(self.measurement_key_map)
-            )
+            circuit = protocols.with_measurement_key_mapping(circuit, self.measurement_key_map)
         if self.param_resolver:
             circuit = protocols.resolve_parameters(circuit, self.param_resolver, recursive=False)
         return circuit.unfreeze(copy=False)

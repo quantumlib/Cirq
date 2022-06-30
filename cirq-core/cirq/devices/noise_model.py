@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Any, Dict, Sequence, TYPE_CHECKING, Union, Callable
+from typing import Any, Dict, Iterable, Sequence, TYPE_CHECKING, Union, Callable
 
 from cirq import ops, protocols, value
 from cirq._import import LazyLoader
@@ -21,7 +21,6 @@ from cirq._doc import document
 moment_module = LazyLoader("moment_module", globals(), "cirq.circuits.moment")
 
 if TYPE_CHECKING:
-    from typing import Iterable
     import cirq
 
 
@@ -96,7 +95,7 @@ class NoiseModel(metaclass=value.ABCMetaImplementAnyOneOf):
         return all(ops.VirtualTag() in op.tags for op in moment)
 
     def _noisy_moments_impl_moment(
-        self, moments: 'Iterable[cirq.Moment]', system_qubits: Sequence['cirq.Qid']
+        self, moments: Iterable['cirq.Moment'], system_qubits: Sequence['cirq.Qid']
     ) -> Sequence['cirq.OP_TREE']:
         result = []
         for moment in moments:
@@ -104,7 +103,7 @@ class NoiseModel(metaclass=value.ABCMetaImplementAnyOneOf):
         return result
 
     def _noisy_moments_impl_operation(
-        self, moments: 'Iterable[cirq.Moment]', system_qubits: Sequence['cirq.Qid']
+        self, moments: Iterable['cirq.Moment'], system_qubits: Sequence['cirq.Qid']
     ) -> Sequence['cirq.OP_TREE']:
         result = []
         for moment in moments:
@@ -114,7 +113,7 @@ class NoiseModel(metaclass=value.ABCMetaImplementAnyOneOf):
     @value.alternative(requires='noisy_moment', implementation=_noisy_moments_impl_moment)
     @value.alternative(requires='noisy_operation', implementation=_noisy_moments_impl_operation)
     def noisy_moments(
-        self, moments: 'Iterable[cirq.Moment]', system_qubits: Sequence['cirq.Qid']
+        self, moments: Iterable['cirq.Moment'], system_qubits: Sequence['cirq.Qid']
     ) -> Sequence['cirq.OP_TREE']:
         """Adds possibly stateful noise to a series of moments.
 
@@ -176,13 +175,15 @@ class NoiseModel(metaclass=value.ABCMetaImplementAnyOneOf):
 class _NoNoiseModel(NoiseModel):
     """A default noise model that adds no noise."""
 
-    def noisy_moments(self, moments: 'Iterable[cirq.Moment]', system_qubits: Sequence['cirq.Qid']):
+    def noisy_moments(self, moments: Iterable['cirq.Moment'], system_qubits: Sequence['cirq.Qid']):
         return list(moments)
 
-    def noisy_moment(self, moment: 'cirq.Moment', system_qubits: Sequence['cirq.Qid']):
+    def noisy_moment(
+        self, moment: 'cirq.Moment', system_qubits: Sequence['cirq.Qid']
+    ) -> 'cirq.Moment':
         return moment
 
-    def noisy_operation(self, operation: 'cirq.Operation'):
+    def noisy_operation(self, operation: 'cirq.Operation') -> 'cirq.Operation':
         return operation
 
     def _value_equality_values_(self) -> Any:
@@ -197,10 +198,10 @@ class _NoNoiseModel(NoiseModel):
     def _json_dict_(self) -> Dict[str, Any]:
         return protocols.obj_to_dict_helper(self, [])
 
-    def _has_unitary_(self):
+    def _has_unitary_(self) -> bool:
         return True
 
-    def _has_mixture_(self):
+    def _has_mixture_(self) -> bool:
         return True
 
 
@@ -245,13 +246,13 @@ class ConstantQubitNoiseModel(NoiseModel):
         ]
         return output[::-1] if self._prepend else output
 
-    def _json_dict_(self):
+    def _json_dict_(self) -> Dict[str, Any]:
         return protocols.obj_to_dict_helper(self, ['qubit_noise_gate'])
 
-    def _has_unitary_(self):
+    def _has_unitary_(self) -> bool:
         return protocols.has_unitary(self.qubit_noise_gate)
 
-    def _has_mixture_(self):
+    def _has_mixture_(self) -> bool:
         return protocols.has_mixture(self.qubit_noise_gate)
 
 
