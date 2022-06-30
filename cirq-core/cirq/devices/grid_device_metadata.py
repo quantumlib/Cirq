@@ -13,7 +13,7 @@
 # limitations under the License.
 """Metadata subtype for 2D Homogenous devices."""
 
-from typing import TYPE_CHECKING, cast, Optional, FrozenSet, Iterable, Tuple, Dict
+from typing import TYPE_CHECKING, cast, Dict, FrozenSet, Iterable, Mapping, Optional, Tuple
 
 import networkx as nx
 from cirq import value
@@ -147,7 +147,7 @@ class GridDeviceMetadata(device.DeviceMetadata):
         return self._compilation_target_gatesets
 
     @property
-    def gate_durations(self) -> Optional[Dict['cirq.GateFamily', 'cirq.Duration']]:
+    def gate_durations(self) -> Optional[Mapping['cirq.GateFamily', 'cirq.Duration']]:
         """Get a dictionary mapping from gate family to duration for gates.
 
         To look up the duration of a specific gate instance / gate type / operation which is part of
