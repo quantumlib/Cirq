@@ -255,11 +255,26 @@ def test_grid_device_validate_operations_positive():
 
     for q in device_info.grid_qubits:
         device.validate_operation(cirq.X(q))
+        device.validate_operation(cirq.measure(q))
 
     # horizontal qubit pairs
     for i in range(GRID_HEIGHT):
         device.validate_operation(
             cirq.CZ(device_info.grid_qubits[2 * i], device_info.grid_qubits[2 * i + 1])
+        )
+        device.validate_operation(
+            cirq.measure(device_info.grid_qubits[2 * i], device_info.grid_qubits[2 * i + 1])
+        )
+
+    # Measurement across vertical qubit pairs (invalid pairs) should succeed.
+    for i in range(GRID_HEIGHT - 1):
+        device.validate_operation(
+            cirq.measure(device_info.grid_qubits[2 * i], device_info.grid_qubits[2 * (i + 1)])
+        )
+        device.validate_operation(
+            cirq.measure(
+                device_info.grid_qubits[2 * i + 1], device_info.grid_qubits[2 * (i + 1) + 1]
+            )
         )
 
 

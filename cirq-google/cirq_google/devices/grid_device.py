@@ -338,6 +338,7 @@ class GridDevice(cirq.Device):
 
         if (
             len(operation.qubits) == 2
+            and not operation in MEASUREMENT_GATE_FAMILY
             and frozenset(operation.qubits) not in self._metadata.qubit_pairs
         ):
             raise ValueError(f'Qubit pair is not valid on device: {operation.qubits!r}.')
