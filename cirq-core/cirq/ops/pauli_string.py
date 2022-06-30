@@ -501,7 +501,9 @@ class PauliString(raw_types.Operation, Generic[TKey]):
         """
         qubits = self.qubits if qubits is None else qubits
         factors = [self.get(q, default=identity.I) for q in qubits]
-        return linalg.kron(self.coefficient, *[protocols.unitary(f) for f in factors])
+        return linalg.kron(
+            cast(complex, self.coefficient), *[protocols.unitary(f) for f in factors]
+        )
 
     def _has_unitary_(self) -> bool:
         if self._is_parameterized_():
@@ -517,7 +519,7 @@ class PauliString(raw_types.Operation, Generic[TKey]):
         if not self._has_unitary_():
             return None
         if self.coefficient != 1:
-            args.target_tensor *= self.coefficient
+            args.target_tensor *= cast(complex, self.coefficient)
         return protocols.apply_unitaries([self[q].on(q) for q in self.qubits], self.qubits, args)
 
     def expectation_from_state_vector(

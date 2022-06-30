@@ -12,7 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """A no-qubit global phase operation."""
-from typing import AbstractSet, Any, Dict, Sequence, Tuple, TYPE_CHECKING, Union
+
+from typing import AbstractSet, Any, cast, Dict, Sequence, Tuple, TYPE_CHECKING, Union
 
 import numpy as np
 import sympy
@@ -89,7 +90,7 @@ class GlobalPhaseGate(raw_types.Gate):
     ) -> Union[np.ndarray, NotImplementedType]:
         if not self._has_unitary_():
             return NotImplemented
-        args.target_tensor *= self.coefficient
+        args.target_tensor *= cast(np.generic, self.coefficient)
         return args.target_tensor
 
     def _has_stabilizer_effect_(self) -> bool:
