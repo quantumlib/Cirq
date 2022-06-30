@@ -14,7 +14,7 @@
 
 from itertools import combinations
 from string import ascii_lowercase
-from typing import Sequence, Dict, Tuple, Union
+from typing import Sequence, Dict, Tuple
 
 import numpy as np
 import pytest
@@ -36,7 +36,11 @@ class ExampleGate(cirq.Gate):
         return self._wire_symbols
 
 
-def test_executor_explicit():
+@pytest.mark.parametrize(
+    'StrategyType, is_deprecated',
+    [[cca.StrategyExecutor, True], [cca.StrategyExecutorTransformer, False]],
+)
+def test_executor_explicit(StrategyType, is_deprecated):
     num_qubits = 8
     qubits = cirq.LineQubit.range(num_qubits)
     circuit = cca.complete_acquaintance_strategy(qubits, 2)
@@ -48,10 +52,20 @@ def test_executor_explicit():
     }
     initial_mapping = {q: i for i, q in enumerate(sorted(qubits))}
     execution_strategy = cca.GreedyExecutionStrategy(gates, initial_mapping)
-    with cirq.testing.assert_deprecated(
-        "Use cirq.contrib.acquaintance.StrategyExecutorTransformer", deadline='v1.0'
-    ):
-        executor = cca.StrategyExecutor(execution_strategy)
+
+    if is_deprecated:
+        with cirq.testing.assert_deprecated(
+            "Use cirq.contrib.acquaintance.StrategyExecutorTransformer", deadline='v1.0'
+        ):
+            executor = StrategyType(execution_strategy)
+            with pytest.raises(TypeError):
+                op = cirq.X(qubits[0])
+                bad_strategy = cirq.Circuit(op)
+                executor.optimization_at(bad_strategy, 0, op)
+    else:
+        with pytest.raises(ValueError):
+            executor = StrategyType(None)
+        executor = StrategyType(execution_strategy)
 
     with pytest.raises(NotImplementedError):
         bad_gates = {(0,): ExampleGate(['0']), (0, 1): ExampleGate(['0', '1'])}
@@ -61,59 +75,10 @@ def test_executor_explicit():
         bad_strategy = cirq.Circuit(cirq.X(qubits[0]))
         executor(bad_strategy)
 
-    with pytest.raises(TypeError):
-        op = cirq.X(qubits[0])
-        bad_strategy = cirq.Circuit(op)
-        executor.optimization_at(bad_strategy, 0, op)
-
-    executor(circuit)
-    expected_text_diagram = """
-0: ───0───1───╲0╱─────────────────1───3───╲0╱─────────────────3───5───╲0╱─────────────────5───7───╲0╱─────────────────
-      │   │   │                   │   │   │                   │   │   │                   │   │   │
-1: ───1───0───╱1╲───0───3───╲0╱───3───1───╱1╲───1───5───╲0╱───5───3───╱1╲───3───7───╲0╱───7───5───╱1╲───5───6───╲0╱───
-                    │   │   │                   │   │   │                   │   │   │                   │   │   │
-2: ───2───3───╲0╱───3───0───╱1╲───0───5───╲0╱───5───1───╱1╲───1───7───╲0╱───7───3───╱1╲───3───6───╲0╱───6───5───╱1╲───
-      │   │   │                   │   │   │                   │   │   │                   │   │   │
-3: ───3───2───╱1╲───2───5───╲0╱───5───0───╱1╲───0───7───╲0╱───7───1───╱1╲───1───6───╲0╱───6───3───╱1╲───3───4───╲0╱───
-                    │   │   │                   │   │   │                   │   │   │                   │   │   │
-4: ───4───5───╲0╱───5───2───╱1╲───2───7───╲0╱───7───0───╱1╲───0───6───╲0╱───6───1───╱1╲───1───4───╲0╱───4───3───╱1╲───
-      │   │   │                   │   │   │                   │   │   │                   │   │   │
-5: ───5───4───╱1╲───4───7───╲0╱───7───2───╱1╲───2───6───╲0╱───6───0───╱1╲───0───4───╲0╱───4───1───╱1╲───1───2───╲0╱───
-                    │   │   │                   │   │   │                   │   │   │                   │   │   │
-6: ───6───7───╲0╱───7───4───╱1╲───4───6───╲0╱───6───2───╱1╲───2───4───╲0╱───4───0───╱1╲───0───2───╲0╱───2───1───╱1╲───
-      │   │   │                   │   │   │                   │   │   │                   │   │   │
-7: ───7───6───╱1╲─────────────────6───4───╱1╲─────────────────4───2───╱1╲─────────────────2───0───╱1╲─────────────────
-    """.strip()
-    ct.assert_has_diagram(circuit, expected_text_diagram)
-
-
-def test_executor_transformer_explicit():
-    num_qubits = 8
-    qubits = cirq.LineQubit.range(num_qubits)
-    circuit = cca.complete_acquaintance_strategy(qubits, 2)
-
-    gates = {
-        (i, j): ExampleGate([str(k) for k in ij])
-        for ij in combinations(range(num_qubits), 2)
-        for i, j in (ij, ij[::-1])
-    }
-    initial_mapping = {q: i for i, q in enumerate(sorted(qubits))}
-    execution_strategy = cca.GreedyExecutionStrategy(gates, initial_mapping)
-    executor = cca.StrategyExecutorTransformer(execution_strategy)
-
-    with pytest.raises(NotImplementedError):
-        bad_gates = {(0,): ExampleGate(['0']), (0, 1): ExampleGate(['0', '1'])}
-        cca.GreedyExecutionStrategy(bad_gates, initial_mapping)
-
-    with pytest.raises(TypeError):
-        bad_strategy = cirq.Circuit(cirq.X(qubits[0]))
-        executor(bad_strategy)
-
-    with pytest.raises(TypeError):
-        op = cirq.X(qubits[0])
-        executor.map_func(op, 0)
-
-    circuit = executor(circuit)
+    if is_deprecated:
+        executor(circuit)
+    else:
+        circuit = executor(circuit)
     expected_text_diagram = """
 0: ───0───1───╲0╱─────────────────1───3───╲0╱─────────────────3───5───╲0╱─────────────────5───7───╲0╱─────────────────
       │   │   │                   │   │   │                   │   │   │                   │   │   │
@@ -162,8 +127,11 @@ def test_executor_random(
 
     logical_circuit = cirq.Circuit([g(*Q) for Q, g in gates.items()])
     expected_unitary = logical_circuit.unitary()
-
     initial_mapping = {q: q for q in qubits}
+
+    with pytest.raises(ValueError):
+        cca.GreedyExecutionStrategy(gates, initial_mapping)()
+
     final_mapping = cca.GreedyExecutionStrategy(gates, initial_mapping)(circuit)
     permutation = {q.x: qq.x for q, qq in final_mapping.items()}
     circuit.append(cca.LinearPermutationGate(num_qubits, permutation)(*qubits))

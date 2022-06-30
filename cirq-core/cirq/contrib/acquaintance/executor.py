@@ -64,11 +64,11 @@ class ExecutionStrategy(metaclass=abc.ABCMeta):
         """Returns the final mapping of logical indices to qubits after
         executing an acquaintance strategy.
         """
-        if len(args) < 1 or not isinstance(args[0], circuits.AbstractCircuit):
+        if len(args) < 1 or not isinstance(args[0], circuits.Circuit):
             raise ValueError(
                 (
                     "To call ExecutionStrategy, an argument of type "
-                    "'cirq.AbstractCircuit' must be passed in as the first non-keyword argument"
+                    "circuits.Circuit must be passed in as the first non-keyword argument"
                 )
             )
         input_circuit = args[0]
@@ -133,13 +133,13 @@ class StrategyExecutorTransformer:
         self.mapping = execution_strategy.initial_mapping.copy()
 
     def __call__(
-        self, circuit: 'cirq.AbstractCircuit', context: Optional['cirq.TransformerContext'] = None
+        self, circuit: circuits.Circuit, context: Optional['cirq.TransformerContext'] = None
     ) -> circuits.Circuit:
         """Executes an acquaintance strategy using primitive map function and
           mutates initial mapping.
 
         Args:
-            circuit: Input circuit to transform.
+            circuit: 'circuits.Circuit' input circuit to transform.
             context: `cirq.TransformerContext` storing common configurable
               options for transformers.
 
