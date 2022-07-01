@@ -64,18 +64,18 @@ class ExecutionStrategy(metaclass=abc.ABCMeta):
         """Returns the final mapping of logical indices to qubits after
         executing an acquaintance strategy.
         """
-        if len(args) < 1 or not isinstance(args[0], circuits.Circuit):
+        if len(args) < 1 or not isinstance(args[0], circuits.AbstractCircuit):
             raise ValueError(
                 (
                     "To call ExecutionStrategy, an argument of type "
-                    "circuits.Circuit must be passed in as the first non-keyword argument"
+                    "circuits.AbstractCircuit must be passed in as the first non-keyword argument"
                 )
             )
         input_circuit = args[0]
         strategy = StrategyExecutorTransformer(self)
         final_circuit = strategy(input_circuit, **kwargs)
         input_circuit._moments = final_circuit._moments
-        return strategy.get_mapping()
+        return strategy.mapping()
 
 
 @_compat.deprecated_class(
@@ -117,11 +117,15 @@ class StrategyExecutor(circuits.PointOptimizer):
         )
 
 
+@transformers.transformer
 class StrategyExecutorTransformer:
     """Executes an acquaintance strategy."""
 
     def __init__(self, execution_strategy: ExecutionStrategy) -> None:
         """Initializes transformer.
+
+        Args:
+            execution_strategy: The `ExecutionStrategy` to execute.
 
         Raises:
             ValueError: if execution_strategy is None.
@@ -130,16 +134,16 @@ class StrategyExecutorTransformer:
         if execution_strategy is None:
             raise ValueError('execution_strategy cannot be None')
         self.execution_strategy = execution_strategy
-        self.mapping = execution_strategy.initial_mapping.copy()
+        self._mapping = execution_strategy.initial_mapping.copy()
 
     def __call__(
-        self, circuit: circuits.Circuit, context: Optional['cirq.TransformerContext'] = None
+        self, circuit: circuits.AbstractCircuit, context: Optional['cirq.TransformerContext'] = None
     ) -> circuits.Circuit:
-        """Executes an acquaintance strategy using primitive map function and
-          mutates initial mapping.
+        """Executes an acquaintance strategy using cirq.map_operations_and_unroll and
+        mutates initial mapping.
 
         Args:
-            circuit: 'circuits.Circuit' input circuit to transform.
+            circuit: 'cirq.Circuit' input circuit to transform.
             context: `cirq.TransformerContext` storing common configurable
               options for transformers.
 
@@ -148,27 +152,30 @@ class StrategyExecutorTransformer:
               strategy on all instances of AcquaintanceOpportunityGate
         """
 
+        circuit = transformers.expand_composite(
+            circuit, no_decomp=expose_acquaintance_gates.no_decomp
+        )
         expose_acquaintance_gates(circuit)
         return transformers.map_operations_and_unroll(
             circuit=circuit,
-            map_func=self.map_func,
+            map_func=self._map_func,
             deep=context.deep if context else False,
             tags_to_ignore=context.tags_to_ignore if context else (),
         )
 
-    def get_mapping(self) -> LogicalMapping:
-        return self.mapping.copy()
+    def mapping(self) -> LogicalMapping:
+        return self._mapping
 
-    def map_func(self, op: 'cirq.Operation', index) -> 'cirq.OP_TREE':
+    def _map_func(self, op: 'cirq.Operation', index) -> 'cirq.OP_TREE':
         if isinstance(op.gate, AcquaintanceOpportunityGate):
-            logical_indices = tuple(self.mapping[q] for q in op.qubits)
+            logical_indices = tuple(self._mapping[q] for q in op.qubits)
             logical_operations = self.execution_strategy.get_operations(logical_indices, op.qubits)
             clear_span = int(not self.execution_strategy.keep_acquaintance)
 
             return logical_operations if clear_span else [op, logical_operations]
 
         if isinstance(op.gate, PermutationGate):
-            op.gate.update_mapping(self.mapping, op.qubits)
+            op.gate.update_mapping(self._mapping, op.qubits)
             return op
 
         raise TypeError(
