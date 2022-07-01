@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-from typing import List, Any, Dict
+from typing import Any, Dict, List, Type, Union
 
 
 import cirq
@@ -33,7 +33,7 @@ class PasqalGateset(cirq.CompilationTargetGateset):
     """
 
     def __init__(self, include_additional_controlled_ops: bool = True):
-        gate_families = [
+        gate_families: List[Union[Type[cirq.Gate], cirq.Gate, cirq.GateFamily]] = [
             cirq.ParallelGateFamily(cirq.H),
             cirq.ParallelGateFamily(cirq.PhasedXPowGate),
             cirq.ParallelGateFamily(cirq.XPowGate),

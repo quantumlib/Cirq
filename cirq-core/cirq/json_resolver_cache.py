@@ -108,7 +108,6 @@ def _class_resolver_dictionary() -> Dict[str, ObjectFactory]:
         'Gateset': cirq.Gateset,
         'GeneralizedAmplitudeDampingChannel': cirq.GeneralizedAmplitudeDampingChannel,
         'GlobalPhaseGate': cirq.GlobalPhaseGate,
-        'GlobalPhaseOperation': cirq.GlobalPhaseOperation,
         'GridDeviceMetadata': cirq.GridDeviceMetadata,
         'GridInteractionLayer': GridInteractionLayer,
         'GridParallelXEBMetadata': GridParallelXEBMetadata,
@@ -212,6 +211,7 @@ def _class_resolver_dictionary() -> Dict[str, ObjectFactory]:
         'SingleQubitMatrixGate': single_qubit_matrix_gate,
         'SymmetricalQidPair': _symmetricalqidpair,  # Removed in v0.15
         'TwoQubitMatrixGate': two_qubit_matrix_gate,
+        'GlobalPhaseOperation': cirq.global_phase_operation,  # Removed in v0.16
         # not a cirq class, but treated as one:
         'pandas.DataFrame': pd.DataFrame,
         'pandas.Index': pd.Index,
