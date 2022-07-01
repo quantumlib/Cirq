@@ -20,7 +20,6 @@ from cirq import ops, protocols
 from cirq.circuits import AbstractCircuit, Alignment, Circuit
 from cirq.circuits.insert_strategy import InsertStrategy
 from cirq.type_workarounds import NotImplementedType
-from cirq import ops, protocols, _compat
 
 if TYPE_CHECKING:
     import cirq
