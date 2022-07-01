@@ -29,7 +29,7 @@ TSelfGate = TypeVar('TSelfGate', bound='ArithmeticGate')
 
 
 class ArithmeticGate(Gate, metaclass=abc.ABCMeta):
-    """A helper gate for implementing reversible classical arithmetic.
+    r"""A helper gate for implementing reversible classical arithmetic.
 
     Child classes must override the `registers`, `with_registers`, and `apply`
     methods.
