@@ -75,7 +75,7 @@ class ExecutionStrategy(metaclass=abc.ABCMeta):
         strategy = StrategyExecutorTransformer(self)
         final_circuit = strategy(input_circuit, **kwargs)
         input_circuit._moments = final_circuit._moments
-        return strategy.mapping()
+        return strategy.mapping
 
 
 @_compat.deprecated_class(
@@ -155,14 +155,14 @@ class StrategyExecutorTransformer:
         circuit = transformers.expand_composite(
             circuit, no_decomp=expose_acquaintance_gates.no_decomp
         )
-        expose_acquaintance_gates(circuit)
         return transformers.map_operations_and_unroll(
             circuit=circuit,
             map_func=self._map_func,
             deep=context.deep if context else False,
             tags_to_ignore=context.tags_to_ignore if context else (),
-        )
+        ).unfreeze(copy=False)
 
+    @property
     def mapping(self) -> LogicalMapping:
         return self._mapping
 
