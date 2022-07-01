@@ -41,6 +41,7 @@ from typing import (
 import numpy as np
 import sympy
 
+import cirq
 from cirq import value, protocols, linalg, qis
 from cirq._doc import document
 from cirq._import import LazyLoader
@@ -498,12 +499,16 @@ class PauliString(raw_types.Operation, Generic[TKey]):
                 in which the matrix representation of the Pauli string is to
                 be computed. Qubits absent from `self.qubits` are acted on by
                 the identity. Defaults to `self.qubits`.
+
+        Raises:
+            NotImplementedError: If this PauliString is parameterized.
         """
         qubits = self.qubits if qubits is None else qubits
         factors = [self.get(q, default=identity.I) for q in qubits]
-        return linalg.kron(
-            cast(complex, self.coefficient), *[protocols.unitary(f) for f in factors]
-        )
+        if cirq.is_parameterized(self):
+            raise NotImplementedError('Cannot express as matrix when parameterized')
+        assert isinstance(self.coefficient, complex)
+        return linalg.kron(self.coefficient, *[protocols.unitary(f) for f in factors])
 
     def _has_unitary_(self) -> bool:
         if self._is_parameterized_():
@@ -518,8 +523,9 @@ class PauliString(raw_types.Operation, Generic[TKey]):
     def _apply_unitary_(self, args: 'protocols.ApplyUnitaryArgs'):
         if not self._has_unitary_():
             return None
+        assert isinstance(self.coefficient, complex)
         if self.coefficient != 1:
-            args.target_tensor *= cast(complex, self.coefficient)
+            args.target_tensor *= self.coefficient
         return protocols.apply_unitaries([self[q].on(q) for q in self.qubits], self.qubits, args)
 
     def expectation_from_state_vector(
