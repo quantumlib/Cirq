@@ -391,7 +391,7 @@ def create_default_noisy_quantum_virtual_machine(
 
     if simulator_class is None:
         try:
-            import qsimcirq
+            import qsimcirq #type: ignore
 
             simulator_class = qsimcirq.Simulator
         except ImportError:
