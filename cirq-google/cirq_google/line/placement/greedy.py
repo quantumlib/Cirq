@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import cast, Dict, List, Optional, Set, TYPE_CHECKING
+from typing import Dict, List, Optional, Set, TYPE_CHECKING
 
 import abc
 import collections
@@ -304,7 +304,7 @@ class GreedySequenceSearchStrategy(place_strategy.LinePlacementStrategy):
         if not device.metadata.qubit_set:
             return GridQubitLineTuple()
 
-        start: GridQubit = cast(GridQubit, min(device.metadata.qubit_set))
+        start: GridQubit = min(device.metadata.qubit_set)
         sequences: List[LineSequence] = []
         greedy_search: Dict[str, List[GreedySequenceSearch]] = {
             'minimal_connectivity': [_PickFewestNeighbors(device, start)],
