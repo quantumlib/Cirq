@@ -390,12 +390,12 @@ def create_default_noisy_quantum_virtual_machine(
     """
 
     if simulator_class is None:
-        try:  # coverage: ignore
+        try:
             import qsimcirq  # type: ignore
 
-            simulator_class = qsimcirq.Simulator
+            simulator_class = qsimcirq.Simulator  # coverage: ignore
         except ImportError:
-            simulator_class = cirq.Simulator
+            simulator_class = cirq.Simulator  # coverage: ignore
 
     calibration = load_median_device_calibration(processor_id)
     noise_properties = noise_properties_from_calibration(calibration)
