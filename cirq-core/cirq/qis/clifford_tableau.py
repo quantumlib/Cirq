@@ -160,7 +160,7 @@ class CliffordTableau(StabilizerState):
             # computation process only. It should not be exposed to external usage.
             self._rs = np.zeros(2 * self.n + 1, dtype=bool)
             for (i, val) in enumerate(
-                big_endian_int_to_digits(initial_state, digit_count=num_qubits, base=2)
+                big_endian_int_to_digits(self.initial_state, digit_count=num_qubits, base=2)
             ):
                 self._rs[self.n + i] = bool(val)
         else:

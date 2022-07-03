@@ -879,7 +879,7 @@ class SingleQubitCliffordGate(CliffordGate):
         return self.merged_with(after).merged_with(self**-1)
 
     def __repr__(self) -> str:
-        return f'cirq.SingleQubitCliffordGate(_clifford_tableau={repr(self._clifford_tableau)})'
+        return f'cirq.SingleQubitCliffordGate(_clifford_tableau={self._clifford_tableau!r})'
 
     def _circuit_diagram_info_(
         self, args: 'cirq.CircuitDiagramInfoArgs'
