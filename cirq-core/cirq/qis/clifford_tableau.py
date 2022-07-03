@@ -252,7 +252,8 @@ class CliffordTableau(StabilizerState):
 
     def __repr__(self) -> str:
         return (
-            f"cirq.CliffordTableau({self.n},rs={proper_repr(self._rs)}, "
+            f"cirq.CliffordTableau({self.n},"
+            f"rs={proper_repr(self._rs)}, "
             f"xs={proper_repr(self._xs)},"
             f"zs={proper_repr(self._zs)}, "
             f"initial_state={self.initial_state})"
