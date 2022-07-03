@@ -338,7 +338,7 @@ def test_eq_ne_and_hash():
     ),
 )
 def test_repr(gate, rep):
-    assert repr(gate) == rep
+    cirq.testing.assert_equivalent_repr(gate)
 
 
 @pytest.mark.parametrize(

@@ -13,10 +13,11 @@
 # limitations under the License.
 
 import abc
-from typing import Any, Dict, List, Sequence, TYPE_CHECKING
+from typing import Any, Dict, List, Optional, Sequence, TYPE_CHECKING
 import numpy as np
 
 from cirq import protocols
+from cirq._compat import proper_repr
 from cirq.qis import quantum_state_representation
 from cirq.value import big_endian_int_to_digits, linear_dict
 
@@ -137,7 +138,14 @@ class CliffordTableau(StabilizerState):
     an eigenoperator of the state vector with eigenvalue one: P|psi> = |psi>.
     """
 
-    def __init__(self, num_qubits, initial_state: int = 0):
+    def __init__(
+        self,
+        num_qubits,
+        initial_state: int = 0,
+        rs: Optional[np.ndarray] = None,
+        xs: Optional[np.ndarray] = None,
+        zs: Optional[np.ndarray] = None,
+    ):
         """Initializes CliffordTableau
         Args:
             num_qubits: The number of qubits in the system.
@@ -145,22 +153,32 @@ class CliffordTableau(StabilizerState):
                 state as a big endian int.
         """
         self.n = num_qubits
+        self.initial_state = initial_state
 
-        # The last row (`2n+1`-th row) is the scratch row used in _measurement
-        # computation process only. It should not be exposed to external usage.
-        self._rs = np.zeros(2 * self.n + 1, dtype=bool)
+        if rs is None:
+            # The last row (`2n+1`-th row) is the scratch row used in _measurement
+            # computation process only. It should not be exposed to external usage.
+            self._rs = np.zeros(2 * self.n + 1, dtype=bool)
+            for (i, val) in enumerate(
+                big_endian_int_to_digits(initial_state, digit_count=num_qubits, base=2)
+            ):
+                self._rs[self.n + i] = bool(val)
+        else:
+            self._rs = rs
 
-        for (i, val) in enumerate(
-            big_endian_int_to_digits(initial_state, digit_count=num_qubits, base=2)
-        ):
-            self._rs[self.n + i] = bool(val)
+        if xs is None:
+            self._xs = np.zeros((2 * self.n + 1, self.n), dtype=bool)
+            for i in range(self.n):
+                self._xs[i, i] = True
+        else:
+            self._xs = xs
 
-        self._xs = np.zeros((2 * self.n + 1, self.n), dtype=bool)
-        self._zs = np.zeros((2 * self.n + 1, self.n), dtype=bool)
-
-        for i in range(self.n):
-            self._xs[i, i] = True
-            self._zs[self.n + i, i] = True
+        if xs is None:
+            self._zs = np.zeros((2 * self.n + 1, self.n), dtype=bool)
+            for i in range(self.n):
+                self._zs[self.n + i, i] = True
+        else:
+            self._zs = zs
 
     @property
     def xs(self) -> np.ndarray:
@@ -233,8 +251,12 @@ class CliffordTableau(StabilizerState):
         return state
 
     def __repr__(self) -> str:
-        stabilizers = ", ".join([repr(stab) for stab in self.stabilizers()])
-        return f'stabilizers: [{stabilizers}]'
+        return (
+            f"cirq.CliffordTableau({self.n},rs={proper_repr(self._rs)}, "
+            f"xs={proper_repr(self._xs)},"
+            f"zs={proper_repr(self._zs)}, "
+            f"initial_state={self.initial_state})"
+        )
 
     def __str__(self) -> str:
         string = ''

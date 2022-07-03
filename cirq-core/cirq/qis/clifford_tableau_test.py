@@ -271,8 +271,7 @@ def test_str():
 
 
 def test_repr():
-    t = cirq.CliffordTableau(num_qubits=1)
-    assert repr(t) == "stabilizers: [cirq.DensePauliString('Z', coefficient=(1+0j))]"
+    cirq.testing.assert_equivalent_repr(cirq.CliffordTableau(num_qubits=1))
 
 
 def test_str_full():
