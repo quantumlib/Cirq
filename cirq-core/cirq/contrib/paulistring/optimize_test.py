@@ -50,7 +50,6 @@ def test_optimize():
 
     cirq.testing.assert_allclose_up_to_global_phase(c_orig.unitary(), c_opt.unitary(), atol=1e-7)
 
-    # TODO(#5546) Fix '[Z]^1' (should be 'Z')
     cirq.testing.assert_has_diagram(
         c_opt,
         """

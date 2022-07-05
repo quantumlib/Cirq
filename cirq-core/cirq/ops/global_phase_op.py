@@ -18,43 +18,11 @@ import numpy as np
 import sympy
 
 from cirq import value, protocols
-from cirq._compat import deprecated_class
+from cirq.ops import raw_types
 from cirq.type_workarounds import NotImplementedType
-from cirq.ops import gate_operation, raw_types
 
 if TYPE_CHECKING:
     import cirq
-
-
-@value.value_equality(approximate=True)
-@deprecated_class(deadline='v0.16', fix='Use cirq.global_phase_operation')
-class GlobalPhaseOperation(gate_operation.GateOperation):
-    def __init__(self, coefficient: value.Scalar, atol: float = 1e-8) -> None:
-        gate = GlobalPhaseGate(coefficient, atol)
-        super().__init__(gate, [])
-
-    def with_qubits(self, *new_qubits) -> 'GlobalPhaseOperation':
-        if new_qubits:
-            raise ValueError(f'{self!r} applies to 0 qubits but new_qubits={new_qubits!r}.')
-        return self
-
-    @property
-    def coefficient(self) -> value.Scalar:
-        return self.gate.coefficient  # type: ignore
-
-    @coefficient.setter
-    def coefficient(self, coefficient: value.Scalar):
-        # coverage: ignore
-        self.gate._coefficient = coefficient  # type: ignore
-
-    def __str__(self) -> str:
-        return str(self.coefficient)
-
-    def __repr__(self) -> str:
-        return f'cirq.GlobalPhaseOperation({self.coefficient!r})'
-
-    def _json_dict_(self) -> Dict[str, Any]:
-        return protocols.obj_to_dict_helper(self, ['coefficient'])
 
 
 @value.value_equality(approximate=True)
