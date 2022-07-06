@@ -13,7 +13,7 @@
 # limitations under the License.
 """ISWAPPowGate conjugated by tensor product Rz(phi) and Rz(-phi)."""
 
-from typing import AbstractSet, Any, Dict, List, Optional, Sequence, Tuple, Union
+from typing import AbstractSet, Any, cast, Dict, List, Optional, Sequence, Tuple, Union
 
 import numpy as np
 import sympy
@@ -173,7 +173,7 @@ class PhasedISwapPowGate(eigen_gate.EigenGate):
             return NotImplemented
         expansion = protocols.pauli_expansion(self._iswap)
         assert set(expansion.keys()).issubset({'II', 'XX', 'YY', 'ZZ'})
-        assert np.isclose(expansion['XX'], expansion['YY'])
+        assert np.isclose(cast(np.generic, expansion['XX']), cast(np.generic, expansion['YY']))
 
         v = (expansion['XX'] + expansion['YY']) / 2
         phase_angle = np.pi * self.phase_exponent
