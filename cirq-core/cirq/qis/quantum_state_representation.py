@@ -37,9 +37,7 @@ class QuantumStateRepresentation(metaclass=abc.ABCMeta):
         """
 
     @abc.abstractmethod
-    def measure(
-        self, axes: Sequence[int], seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE'
-    ) -> List[int]:
+    def measure(self, axes: Sequence[int], seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE') -> List[int]:
         """Measures the state.
 
         Args:
