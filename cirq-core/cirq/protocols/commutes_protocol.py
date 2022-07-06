@@ -13,7 +13,7 @@
 # limitations under the License.
 """Protocol for determining commutativity."""
 
-from typing import Any, TypeVar, Union
+from typing import Any, overload, TypeVar, Union
 
 import numpy as np
 from typing_extensions import Protocol
@@ -26,7 +26,7 @@ from cirq.type_workarounds import NotImplementedType
 # whether or not the caller provided a 'default' argument.
 # It is checked for using `is`, so it won't have a false positive if the user
 # provides a different np.array([]) value.
-RaiseTypeErrorIfNotProvided = np.array([])
+RaiseTypeErrorIfNotProvided = object()
 
 TDefault = TypeVar('TDefault')
 
@@ -73,13 +73,21 @@ class SupportsCommutes(Protocol):
         """
 
 
+@overload
+def commutes(v1: Any, v2: Any, *, atol: Union[int, float] = 1e-8) -> bool:
+    ...
+
+
+@overload
 def commutes(
-    v1: Any,
-    v2: Any,
-    *,
-    atol: Union[int, float] = 1e-8,
-    default: Union[bool, TDefault] = RaiseTypeErrorIfNotProvided,
+    v1: Any, v2: Any, *, atol: Union[int, float] = 1e-8, default: TDefault
 ) -> Union[bool, TDefault]:
+    ...
+
+
+def commutes(
+    v1: Any, v2: Any, *, atol: Union[int, float] = 1e-8, default: Any = RaiseTypeErrorIfNotProvided
+) -> Any:
     """Determines whether two values commute.
 
     This is determined by any one of the following techniques:

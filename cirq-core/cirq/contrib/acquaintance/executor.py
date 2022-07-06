@@ -17,7 +17,7 @@ from typing import DefaultDict, Dict, Sequence, TYPE_CHECKING, Optional
 import abc
 from collections import defaultdict
 
-from cirq import circuits, devices, ops, protocols
+from cirq import circuits, devices, ops, protocols, transformers, _compat
 
 from cirq.contrib.acquaintance.gates import AcquaintanceOpportunityGate
 from cirq.contrib.acquaintance.permutation import (
@@ -61,9 +61,26 @@ class ExecutionStrategy(metaclass=abc.ABCMeta):
         """Gets the logical operations to apply to qubits."""
 
     def __call__(self, *args, **kwargs):
-        return StrategyExecutor(self)(*args, **kwargs)
+        """Returns the final mapping of logical indices to qubits after
+        executing an acquaintance strategy.
+        """
+        if len(args) < 1 or not isinstance(args[0], circuits.AbstractCircuit):
+            raise ValueError(
+                (
+                    "To call ExecutionStrategy, an argument of type "
+                    "circuits.AbstractCircuit must be passed in as the first non-keyword argument"
+                )
+            )
+        input_circuit = args[0]
+        strategy = StrategyExecutorTransformer(self)
+        final_circuit = strategy(input_circuit, **kwargs)
+        input_circuit._moments = final_circuit._moments
+        return strategy.mapping
 
 
+@_compat.deprecated_class(
+    deadline='v1.0', fix='Use cirq.contrib.acquaintance.StrategyExecutorTransformer'
+)
 class StrategyExecutor(circuits.PointOptimizer):
     """Executes an acquaintance strategy."""
 
@@ -92,6 +109,74 @@ class StrategyExecutor(circuits.PointOptimizer):
         if isinstance(op, ops.GateOperation) and isinstance(op.gate, PermutationGate):
             op.gate.update_mapping(self.mapping, op.qubits)
             return None
+
+        raise TypeError(
+            'Can only execute a strategy consisting of gates that '
+            'are instances of AcquaintanceOpportunityGate or '
+            'PermutationGate.'
+        )
+
+
+@transformers.transformer
+class StrategyExecutorTransformer:
+    """Executes an acquaintance strategy."""
+
+    def __init__(self, execution_strategy: ExecutionStrategy) -> None:
+        """Initializes transformer.
+
+        Args:
+            execution_strategy: The `ExecutionStrategy` to execute.
+
+        Raises:
+            ValueError: if execution_strategy is None.
+        """
+
+        if execution_strategy is None:
+            raise ValueError('execution_strategy cannot be None')
+        self.execution_strategy = execution_strategy
+        self._mapping = execution_strategy.initial_mapping.copy()
+
+    def __call__(
+        self, circuit: circuits.AbstractCircuit, context: Optional['cirq.TransformerContext'] = None
+    ) -> circuits.Circuit:
+        """Executes an acquaintance strategy using cirq.map_operations_and_unroll and
+        mutates initial mapping.
+
+        Args:
+            circuit: 'cirq.Circuit' input circuit to transform.
+            context: `cirq.TransformerContext` storing common configurable
+              options for transformers.
+
+        Returns:
+            A copy of the modified circuit after executing an acquaintance
+              strategy on all instances of AcquaintanceOpportunityGate
+        """
+
+        circuit = transformers.expand_composite(
+            circuit, no_decomp=expose_acquaintance_gates.no_decomp
+        )
+        return transformers.map_operations_and_unroll(
+            circuit=circuit,
+            map_func=self._map_func,
+            deep=context.deep if context else False,
+            tags_to_ignore=context.tags_to_ignore if context else (),
+        ).unfreeze(copy=False)
+
+    @property
+    def mapping(self) -> LogicalMapping:
+        return self._mapping
+
+    def _map_func(self, op: 'cirq.Operation', index) -> 'cirq.OP_TREE':
+        if isinstance(op.gate, AcquaintanceOpportunityGate):
+            logical_indices = tuple(self._mapping[q] for q in op.qubits)
+            logical_operations = self.execution_strategy.get_operations(logical_indices, op.qubits)
+            clear_span = int(not self.execution_strategy.keep_acquaintance)
+
+            return logical_operations if clear_span else [op, logical_operations]
+
+        if isinstance(op.gate, PermutationGate):
+            op.gate.update_mapping(self._mapping, op.qubits)
+            return op
 
         raise TypeError(
             'Can only execute a strategy consisting of gates that '
