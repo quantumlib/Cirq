@@ -13,7 +13,7 @@
 # limitations under the License.
 
 import abc
-from typing import List, Sequence, Tuple, TYPE_CHECKING, TypeVar
+from typing import List, Optional, Sequence, Tuple, TYPE_CHECKING, TypeVar
 import numpy as np
 
 from cirq import value
@@ -37,7 +37,9 @@ class QuantumStateRepresentation(metaclass=abc.ABCMeta):
         """
 
     @abc.abstractmethod
-    def measure(self, axes: Sequence[int], seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE') -> List[int]:
+    def measure(
+        self, axes: Sequence[int], seed: Optional['cirq.RANDOM_STATE_OR_SEED_LIKE'] = None
+    ) -> List[int]:
         """Measures the state.
 
         Args:
