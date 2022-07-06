@@ -2589,7 +2589,7 @@ def _apply_unitary_circuit(
     state: np.ndarray,
     qubits: Tuple['cirq.Qid', ...],
     dtype: Type[np.complexfloating],
-) -> Optional[np.ndarray]:
+) -> np.ndarray:
     """Applies a circuit's unitary effect to the given vector or matrix.
 
     This method assumes that the caller wants to ignore measurements.
