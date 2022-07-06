@@ -15,14 +15,14 @@
 """Utility methods for combining matrices."""
 
 import functools
-from typing import Union, TYPE_CHECKING
+from typing import Union, TYPE_CHECKING, Any
 
 import numpy as np
 
 from cirq._doc import document
 
 if TYPE_CHECKING:
-    from numpy.typing import DTypeLike, ArrayLike
+    from numpy.typing import DTypeLike, ArrayLike, _64Bit
 
 
 def kron(*factors: Union[np.ndarray, complex, float], shape_len: int = 2) -> np.ndarray:
@@ -39,7 +39,7 @@ def kron(*factors: Union[np.ndarray, complex, float], shape_len: int = 2) -> np.
     Returns:
         The kronecker product of all the inputs.
     """
-    product = np.ones(shape=(1,) * shape_len)
+    product: np.ndarray[Any, np.dtype[Union[np.floating[_64Bit], np.complexfloating[Any, Any]]]] = np.ones(shape=(1,) * shape_len)
     for m in factors:
         product = np.kron(product, m)
     return np.array(product)
