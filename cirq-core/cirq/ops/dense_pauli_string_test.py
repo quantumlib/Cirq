@@ -14,11 +14,10 @@
 import numbers
 from typing import List
 
+import cirq
 import numpy as np
 import pytest
 import sympy
-
-import cirq
 from cirq.ops.dense_pauli_string import _vectorized_pauli_mul_phase
 
 
@@ -104,7 +103,6 @@ def test_immutable_eq():
 def test_eye():
     f = cirq.DensePauliString
     m = cirq.MutableDensePauliString
-    assert cirq.BaseDensePauliString.eye(4) == f('IIII')
     assert cirq.DensePauliString.eye(4) == f('IIII')
     assert cirq.MutableDensePauliString.eye(4) == m('IIII')
 
@@ -169,13 +167,12 @@ def test_mul():
     with pytest.raises(ValueError, match='other than `cirq.LineQubit'):
         _ = f('III') * cirq.X(cirq.NamedQubit('tmp'))
 
-    # Mixed types.
     m = cirq.MutableDensePauliString
-    assert m('X') * m('Z') == -1j * f('Y')
-    assert m('X') * f('Z') == -1j * f('Y')
-    assert isinstance(f('') * f(''), cirq.DensePauliString)
-    assert isinstance(m('') * m(''), cirq.DensePauliString)
-    assert isinstance(m('') * f(''), cirq.DensePauliString)
+    assert m('X') * m('Z') == -1j * m('Y')
+    assert isinstance(f('') * f(''), f)
+    assert isinstance(m('') * m(''), m)
+    assert isinstance(m('') * f(''), m)
+    assert isinstance(f('') * m(''), m)
 
     # Different lengths.
     assert f('I') * f('III') == f('III')
@@ -213,7 +210,7 @@ def test_imul():
     assert p.coefficient == 2
     assert p is p2
 
-    p *= f('X')
+    p *= m('X')
     assert p == m('XII', coefficient=2)
 
     p *= m('XY')
@@ -229,7 +226,7 @@ def test_imul():
     assert p == m('IZI')
 
     with pytest.raises(ValueError, match='smaller than'):
-        p *= f('XXXXXXXXXXXX')
+        p *= m('XXXXXXXXXXXX')
     with pytest.raises(TypeError):
         p *= object()
 
@@ -351,17 +348,26 @@ def test_one_hot():
     f = cirq.DensePauliString
     m = cirq.MutableDensePauliString
 
-    assert cirq.DensePauliString.one_hot(index=3, length=5, pauli=cirq.X) == f('IIIXI')
-    assert cirq.MutableDensePauliString.one_hot(index=3, length=5, pauli=cirq.X) == m('IIIXI')
+    assert f.one_hot(index=3, length=5, pauli=cirq.X) == f('IIIXI')
+    assert m.one_hot(index=3, length=5, pauli=cirq.X) == m('IIIXI')
 
-    assert cirq.BaseDensePauliString.one_hot(index=0, length=5, pauli='X') == f('XIIII')
-    assert cirq.BaseDensePauliString.one_hot(index=0, length=5, pauli='Y') == f('YIIII')
-    assert cirq.BaseDensePauliString.one_hot(index=0, length=5, pauli='Z') == f('ZIIII')
-    assert cirq.BaseDensePauliString.one_hot(index=0, length=5, pauli='I') == f('IIIII')
-    assert cirq.BaseDensePauliString.one_hot(index=0, length=5, pauli=cirq.X) == f('XIIII')
-    assert cirq.BaseDensePauliString.one_hot(index=0, length=5, pauli=cirq.Y) == f('YIIII')
-    assert cirq.BaseDensePauliString.one_hot(index=0, length=5, pauli=cirq.Z) == f('ZIIII')
-    assert cirq.BaseDensePauliString.one_hot(index=0, length=5, pauli=cirq.I) == f('IIIII')
+    assert f.one_hot(index=0, length=5, pauli='X') == f('XIIII')
+    assert f.one_hot(index=0, length=5, pauli='Y') == f('YIIII')
+    assert f.one_hot(index=0, length=5, pauli='Z') == f('ZIIII')
+    assert f.one_hot(index=0, length=5, pauli='I') == f('IIIII')
+    assert f.one_hot(index=0, length=5, pauli=cirq.X) == f('XIIII')
+    assert f.one_hot(index=0, length=5, pauli=cirq.Y) == f('YIIII')
+    assert f.one_hot(index=0, length=5, pauli=cirq.Z) == f('ZIIII')
+    assert f.one_hot(index=0, length=5, pauli=cirq.I) == f('IIIII')
+
+    assert m.one_hot(index=0, length=5, pauli='X') == m('XIIII')
+    assert m.one_hot(index=0, length=5, pauli='Y') == m('YIIII')
+    assert m.one_hot(index=0, length=5, pauli='Z') == m('ZIIII')
+    assert m.one_hot(index=0, length=5, pauli='I') == m('IIIII')
+    assert m.one_hot(index=0, length=5, pauli=cirq.X) == m('XIIII')
+    assert m.one_hot(index=0, length=5, pauli=cirq.Y) == m('YIIII')
+    assert m.one_hot(index=0, length=5, pauli=cirq.Z) == m('ZIIII')
+    assert m.one_hot(index=0, length=5, pauli=cirq.I) == m('IIIII')
 
     with pytest.raises(IndexError):
         _ = cirq.BaseDensePauliString.one_hot(index=50, length=5, pauli=cirq.X)
@@ -482,8 +488,9 @@ def test_tensor_product():
     f = cirq.DensePauliString
     m = cirq.MutableDensePauliString
     assert (2 * f('XX')).tensor_product(-f('XI')) == -2 * f('XXXI')
-    assert m('XX', coefficient=2).tensor_product(-f('XI')) == -2 * f('XXXI')
-    assert m('XX', coefficient=2).tensor_product(m('XI', coefficient=-1)) == -2 * f('XXXI')
+    assert m('XX', coefficient=2).tensor_product(m('XI', coefficient=-1)) == -2 * m('XXXI')
+    assert m('XX', coefficient=2).tensor_product(-f('XI')) == -2 * m('XXXI')
+    assert f('XX', coefficient=2).tensor_product(-m('XI')) == -2 * m('XXXI')
 
 
 def test_commutes():
@@ -634,7 +641,7 @@ def test_symbolic():
     t = sympy.Symbol('t')
     r = sympy.Symbol('r')
     p = cirq.MutableDensePauliString('XYZ', coefficient=t)
-    assert p * r == cirq.DensePauliString('XYZ', coefficient=t * r)
+    assert p * r == cirq.MutableDensePauliString('XYZ', coefficient=t * r)
     p *= r
     assert p == cirq.MutableDensePauliString('XYZ', coefficient=t * r)
     p /= r
