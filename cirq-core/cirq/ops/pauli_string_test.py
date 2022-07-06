@@ -1985,6 +1985,8 @@ def test_parameterization():
         pst.expectation_from_state_vector(np.array([]), {})
     with pytest.raises(NotImplementedError, match='parameterized'):
         pst.expectation_from_density_matrix(np.array([]), {})
+    with pytest.raises(NotImplementedError, match='as matrix when parameterized'):
+        pst.matrix()
     assert pst**1 == pst
     assert pst**-1 == pst.with_coefficient(1.0 / t)
     assert (-pst) ** 1 == -pst
