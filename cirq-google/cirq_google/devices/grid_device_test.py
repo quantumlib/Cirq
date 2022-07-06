@@ -277,6 +277,25 @@ def test_grid_device_validate_operations_positive():
             )
         )
 
+    # 3-qubit measurements
+    for i in range(GRID_HEIGHT - 2):
+        device.validate_operation(
+            cirq.measure(
+                device_info.grid_qubits[2 * i],
+                device_info.grid_qubits[2 * (i + 1)],
+                device_info.grid_qubits[2 * (i + 2)],
+            )
+        )
+        device.validate_operation(
+            cirq.measure(
+                device_info.grid_qubits[2 * i + 1],
+                device_info.grid_qubits[2 * (i + 1) + 1],
+                device_info.grid_qubits[2 * (i + 2) + 1],
+            )
+        )
+    # All-qubit measurement
+    device.validate_operation(cirq.measure(device_info.grid_qubits))
+
 
 def test_grid_device_validate_operations_negative():
     device_info, spec = _create_device_spec_with_horizontal_couplings()
