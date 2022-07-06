@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import abc
-from typing import Union, Tuple, List, TYPE_CHECKING, Any, Dict, Generator, Optional, cast, Iterator
+from typing import Union, Tuple, List, TYPE_CHECKING, Any, Dict, Generator, cast, Iterator
 from dataclasses import dataclass
 
 import itertools
@@ -22,10 +22,21 @@ if TYPE_CHECKING:
 
 
 class AbstractControlValues(abc.ABC):
-    """AbstractControlValues is an abstract immutable data class.
+    """AbstractControlValues is an abstract class that defines an API for
 
-    AbstractControlValues defines an API for control values and implements
-    functions common to all implementations (e.g.  comparison).
+       control values and implements functions common to all implementations
+       (e.g.  comparison).
+
+    `cirq.ControlledGate` and `cirq.ControlledOperation` are useful to augment
+    existing gates
+    and operations to have one or more control qubits. For every control qubit,
+    the set of
+    integer values for which the control should be enabled is represented by one
+    of the implementations of `cirq.AbstractControlValues`.
+    Implementations of `cirq.AbstractControlValues` can use different internal
+    representations to store control values, but they have to inherits from this
+    abstract class or one of its descendet, satisfy the public API defined here,
+    and be immutable.
     """
 
     @abc.abstractmethod
@@ -40,8 +51,10 @@ class AbstractControlValues(abc.ABC):
         """
 
     @abc.abstractmethod
-    def _expand(self) -> Iterator[Tuple[Any, ...]]:
-        """Returns the control values tracked by the object."""
+    def _expand(self) -> Iterator[Tuple[int, ...]]:
+        """Returns a plain sum of product representation of the values instead
+        of the (possibly compressed) internal representation.
+        """
 
     @abc.abstractmethod
     def diagram_repr(self) -> str:
@@ -49,7 +62,7 @@ class AbstractControlValues(abc.ABC):
 
     @abc.abstractmethod
     def _number_variables(self) -> int:
-        """Returns the control values tracked by the object."""
+        """Returns the number of variables controlled by the object."""
 
     @abc.abstractmethod
     def __len__(self) -> int:
@@ -68,7 +81,7 @@ class AbstractControlValues(abc.ABC):
         pass
 
     @abc.abstractmethod
-    def validate(self, qid_shapes: Union[Tuple[int, ...], List[int]]) -> Optional[ValueError]:
+    def validate(self, qid_shapes: Union[Tuple[int, ...], List[int]]) -> None:
         """Validates control values
 
         Validate that control values are in the half closed interval
@@ -117,7 +130,7 @@ class ProductOfSums(AbstractControlValues):
     def _identifier(self) -> Tuple[Tuple[int, ...], ...]:
         return self._internal_representation
 
-    def _expand(self) -> Iterator[Tuple[Any, ...]]:
+    def _expand(self) -> Iterator[Tuple[int, ...]]:
         """Returns the combinations tracked by the object."""
         self = cast('ProductOfSums', self)
         return itertools.product(*self._internal_representation)
@@ -134,15 +147,14 @@ class ProductOfSums(AbstractControlValues):
     def __hash__(self) -> int:
         return hash(self._internal_representation)
 
-    def validate(self, qid_shapes: Union[Tuple[int, ...], List[int]]) -> Optional[ValueError]:
+    def validate(self, qid_shapes: Union[Tuple[int, ...], List[int]]) -> None:
         for i, (vals, shape) in enumerate(zip(self._internal_representation, qid_shapes)):
             if not all(0 <= v < shape for v in vals):
                 message = (
                     f'Control values <{vals!r}> outside of range for control qubit '
                     f'number <{i}>.'
                 )
-                return ValueError(message)
-        return None
+                raise ValueError(message)
 
     def _are_ones(self) -> bool:
         return frozenset(self._internal_representation) == {(1,)}
@@ -165,11 +177,11 @@ class ProductOfSums(AbstractControlValues):
         return self._internal_representation[key]
 
     def _json_dict_(self) -> Dict[str, Any]:
-        return {
-            '_internal_representation': self._internal_representation,
-            'cirq_type': 'ProductOfSums',
-        }
+        return {'_internal_representation': self._internal_representation}
 
     def __and__(self, other: AbstractControlValues) -> 'ProductOfSums':
-        other = cast('ProductOfSums', other)
+        if not isinstance(other, ProductOfSums):
+            raise TypeError(
+                f'And operation not supported between types ProductOfSums and {type(other)}'
+            )
         return type(self)(self._internal_representation + other._internal_representation)

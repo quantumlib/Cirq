@@ -13,6 +13,7 @@
 # limitations under the License.
 
 import cirq
+import pytest
 from cirq.ops import control_values as cv
 
 
@@ -39,3 +40,9 @@ def test_and_operation():
             want = [v1 + v2 for v1 in control_vals1 for v2 in control_vals2]
             got = [c for c in control_vals1 & control_vals2]
             eq.add_equality_group(got, want)
+
+
+def test_and_supported_types():
+    CV = cv.ProductOfSums((1,))
+    with pytest.raises(TypeError):
+        _ = CV & 1

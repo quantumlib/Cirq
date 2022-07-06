@@ -108,9 +108,7 @@ class ControlledGate(raw_types.Gate):
         self._control_values = control_values
 
         # Verify control values not out of bounds
-        e = self._control_values.validate(self.control_qid_shape)
-        if e:
-            raise e
+        self._control_values.validate(self.control_qid_shape)
 
         # Flatten nested ControlledGates.
         if isinstance(sub_gate, ControlledGate):
@@ -144,6 +142,8 @@ class ControlledGate(raw_types.Gate):
             and protocols.num_qubits(self.sub_gate) == 1
             and self._qid_shape_() == (2,) * len(self._qid_shape_())
         ):
+            if not isinstance(self.control_values, cv.ProductOfSums):
+                return NotImplemented
             control_qubits = list(qubits[: self.num_controls()])
             invert_ops: List['cirq.Operation'] = []
             for cvals, cqbit in zip(
@@ -271,6 +271,8 @@ class ControlledGate(raw_types.Gate):
     def _circuit_diagram_info_(
         self, args: 'cirq.CircuitDiagramInfoArgs'
     ) -> 'cirq.CircuitDiagramInfo':
+        if not isinstance(self.control_values, cv.ProductOfSums):
+            return NotImplemented
         sub_args = protocols.CircuitDiagramInfoArgs(
             known_qubit_count=(
                 args.known_qubit_count - self.num_controls()

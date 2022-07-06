@@ -104,9 +104,7 @@ class ControlledOperation(raw_types.Operation):
         self._control_values = control_values
 
         # Verify control values not out of bounds
-        e = self._control_values.validate([q.dimension for q in controls])
-        if e:
-            raise e
+        self._control_values.validate([q.dimension for q in controls])
 
         if not isinstance(sub_operation, ControlledOperation):
             self._controls = tuple(controls)
