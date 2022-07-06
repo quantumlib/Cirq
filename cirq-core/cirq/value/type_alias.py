@@ -16,6 +16,7 @@ from typing import Union
 import sympy
 
 from cirq._doc import document
+from cirq.value import linear_dict
 
 """Supply aliases for commonly used types.
 """
@@ -27,3 +28,11 @@ TParamVal = Union[float, sympy.Basic]
 document(
     TParamVal, """A value that a parameter resolver may return for a parameter."""  # type: ignore
 )
+
+
+TParamValComplex = Union[linear_dict.Scalar, sympy.Expr]
+document(
+    TParamValComplex,
+    """A complex value that parameter resolvers may use for parameters.""",  # type: ignore
+)
+
