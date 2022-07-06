@@ -2623,9 +2623,11 @@ def _apply_unitary_circuit(
         on_stuck_raise=on_stuck,
     )
 
-    return protocols.apply_unitaries(
+    result = protocols.apply_unitaries(
         unitary_ops, qubits, protocols.ApplyUnitaryArgs(state, buffer, range(len(qubits)))
     )
+    assert result is not None, "apply_unitaries() should raise TypeError instead"
+    return result
 
 
 def _decompose_measurement_inversions(op: 'cirq.Operation') -> 'cirq.OP_TREE':
