@@ -24,6 +24,12 @@ if TYPE_CHECKING:
     import cirq
 
 
+LAYER_A = GridInteractionLayer(col_offset=0, vertical=True, stagger=True)
+LAYER_B = GridInteractionLayer(col_offset=1, vertical=True, stagger=True)
+LAYER_C = GridInteractionLayer(col_offset=1, vertical=False, stagger=True)
+LAYER_D = GridInteractionLayer(col_offset=0, vertical=False, stagger=True)
+
+
 @dataclasses.dataclass
 class GridParallelXEBMetadata:
     """Metadata for a grid parallel XEB experiment.
