@@ -256,7 +256,7 @@ class CliffordState:
     def apply_measurement(
         self,
         op: 'cirq.Operation',
-        measurements: Dict[str, List[np.ndarray]],
+        measurements: Dict[str, List[int]],
         prng: np.random.RandomState,
         collapse_state_vector=True,
     ):
