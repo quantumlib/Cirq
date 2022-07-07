@@ -13,12 +13,6 @@
 # limitations under the License.
 """Experiments and tools for characterizing quantum operations."""
 
-from cirq.experiments.google_v2_supremacy_circuit import (
-    generate_boixo_2018_supremacy_circuits_v2,
-    generate_boixo_2018_supremacy_circuits_v2_bristlecone,
-    generate_boixo_2018_supremacy_circuits_v2_grid,
-)
-
 from cirq.experiments.qubit_characterizations import (
     RandomizedBenchMarkResult,
     single_qubit_randomized_benchmarking,
@@ -28,27 +22,15 @@ from cirq.experiments.qubit_characterizations import (
     two_qubit_state_tomography,
 )
 
-from cirq.experiments.cross_entropy_benchmarking import (
-    build_entangling_layers,
-    cross_entropy_benchmarking,
-    CrossEntropyResult,
-    CrossEntropyResultDict,
-)
+from cirq.experiments.cross_entropy_benchmarking import CrossEntropyResult, CrossEntropyResultDict
 
 from cirq.experiments.fidelity_estimation import (
     hog_score_xeb_fidelity_from_probabilities,
-    least_squares_xeb_fidelity_from_expectations,
-    least_squares_xeb_fidelity_from_probabilities,
-    linear_xeb_fidelity,
     linear_xeb_fidelity_from_probabilities,
+    linear_xeb_fidelity,
     log_xeb_fidelity,
     log_xeb_fidelity_from_probabilities,
     xeb_fidelity,
-)
-
-from cirq.experiments.grid_parallel_two_qubit_xeb import (
-    collect_grid_parallel_two_qubit_xeb_data,
-    compute_grid_parallel_two_qubit_xeb_results,
 )
 
 from cirq.experiments.purity_estimation import purity_from_probabilities

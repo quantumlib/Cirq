@@ -106,7 +106,7 @@ class EngineProcessor(abstract_processor.AbstractProcessor):
         """Returns a sampler backed by the engine.
 
         Returns:
-            A `cirq.Sampler` instance (specifically a `engine_sampler.QuantumEngineSampler`
+            A `cirq.Sampler` instance (specifically a `engine_sampler.ProcessorSampler`
             that will send circuits to the Quantum Computing Service
             when sampled.1
         """

@@ -21,7 +21,6 @@ References:
 # Imports from cells are only to ensure operation reprs work correctly.
 from cirq.interop.quirk.cells import (
     QuirkArithmeticGate,
-    QuirkArithmeticOperation,
     QuirkInputRotationOperation,
     QuirkQubitPermutationGate,
 )
