@@ -154,31 +154,74 @@ class CliffordTableau(StabilizerState):
         """
         self.n = num_qubits
         self.initial_state = initial_state
+        self._rs = self._reconstruct_rs(rs)
+        self._xs = self._reconstruct_xs(xs)
+        self._zs = self._reconstruct_zs(zs)
 
+    def _reconstruct_rs(self, rs: Optional[np.ndarray]) -> np.ndarray:
         if rs is None:
             # The last row (`2n+1`-th row) is the scratch row used in _measurement
             # computation process only. It should not be exposed to external usage.
-            self._rs = np.zeros(2 * self.n + 1, dtype=bool)
+            new_rs = np.zeros(2 * self.n + 1, dtype=bool)
             for (i, val) in enumerate(
-                big_endian_int_to_digits(self.initial_state, digit_count=num_qubits, base=2)
+                big_endian_int_to_digits(self.initial_state, digit_count=self.n, base=2)
             ):
-                self._rs[self.n + i] = bool(val)
+                new_rs[self.n + i] = bool(val)
         else:
-            self._rs = rs
+            shape = rs.shape
+            if len(shape) == 1 and shape[0] == 2 * self.n and rs.dtype == np.dtype(bool):
+                new_rs = np.append(rs, np.zeros(1, dtype=bool))
+            else:
+                raise ValueError(
+                    f"The value you passed for rs is not the correct shape and/or type. "
+                    f"Please confirm that it's 1 row, of even length and of type bool"
+                )
+        return new_rs
 
+    def _reconstruct_xs(self, xs: Optional[np.ndarray]) -> np.ndarray:
         if xs is None:
-            self._xs = np.zeros((2 * self.n + 1, self.n), dtype=bool)
+            new_xs = np.zeros((2 * self.n + 1, self.n), dtype=bool)
             for i in range(self.n):
-                self._xs[i, i] = True
+                new_xs[i, i] = True
         else:
-            self._xs = xs
+            shape = xs.shape
+            if (
+                len(shape) == 2
+                and shape[0] == 2 * self.n
+                and shape[1] == self.n
+                and xs.dtype == np.dtype(bool)
+            ):
+                new_xs = np.append(xs, np.zeros((1, self.n), dtype=bool), axis=0)
+            else:
+                raise ValueError(
+                    f"The value you passed for xs is not the correct shape and/or type. "
+                    f"Please confirm that it's 2*num_qubits rows, num_qubits columns, "
+                    f"and of type bool."
+                )
+        return new_xs
 
-        if xs is None:
-            self._zs = np.zeros((2 * self.n + 1, self.n), dtype=bool)
+    def _reconstruct_zs(self, zs: Optional[np.ndarray]) -> np.ndarray:
+
+        if zs is None:
+            new_zs = np.zeros((2 * self.n + 1, self.n), dtype=bool)
             for i in range(self.n):
-                self._zs[self.n + i, i] = True
+                new_zs[self.n + i, i] = True
         else:
-            self._zs = zs
+            shape = zs.shape
+            if (
+                len(shape) == 2
+                and shape[0] == 2 * self.n
+                and shape[1] == self.n
+                and zs.dtype == np.dtype(bool)
+            ):
+                new_zs = np.append(zs, np.zeros((1, self.n), dtype=bool), axis=0)
+            else:
+                raise ValueError(
+                    f"The value you passed for zs is not the correct shape and/or type. "
+                    f"Please confirm that it's 2*num_qubits rows,num_qubits columns, "
+                    f"and of type bool."
+                )
+        return new_zs
 
     @property
     def xs(self) -> np.ndarray:
@@ -253,9 +296,9 @@ class CliffordTableau(StabilizerState):
     def __repr__(self) -> str:
         return (
             f"cirq.CliffordTableau({self.n},"
-            f"rs={proper_repr(self._rs)}, "
-            f"xs={proper_repr(self._xs)},"
-            f"zs={proper_repr(self._zs)}, "
+            f"rs={proper_repr(np.delete(self._rs, len(self._rs)-1))}, "
+            f"xs={proper_repr(np.delete(self._xs, len(self._xs)-1, axis=0))},"
+            f"zs={proper_repr(np.delete(self._zs, len(self._zs)-1, axis=0))}, "
             f"initial_state={self.initial_state})"
         )
 
