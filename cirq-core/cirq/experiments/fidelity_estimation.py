@@ -12,11 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """Estimation of fidelity associated with experimental circuit executions."""
-from typing import Callable, List, Mapping, Optional, Sequence, Tuple, cast
+from typing import Callable, Mapping, Optional, Sequence
 
 import numpy as np
 
-from cirq import _compat
 from cirq.circuits import Circuit
 from cirq.ops import QubitOrder, QubitOrderOrList
 from cirq.sim import final_state_vector

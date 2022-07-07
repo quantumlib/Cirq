@@ -12,24 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import (
-    Any,
-    Dict,
-    Iterable,
-    List,
-    Mapping,
-    NamedTuple,
-    Optional,
-    Sequence,
-    Set,
-    TYPE_CHECKING,
-    Tuple,
-    Union,
-)
+from typing import Any, Dict, List, Mapping, NamedTuple, Optional, Sequence, TYPE_CHECKING, Tuple
 import dataclasses
 import numpy as np
 from matplotlib import pyplot as plt
-from cirq import _compat, _import, circuits, devices, ops, protocols, sim, value, work
+from cirq import _compat, _import, protocols
 
 if TYPE_CHECKING:
     import cirq
