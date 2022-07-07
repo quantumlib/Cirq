@@ -69,7 +69,9 @@ class MixedUnitaryChannel(raw_types.Gate):
             return False
         if not np.allclose([m[0] for m in self._mixture], [m[0] for m in other._mixture]):
             return False
-        return np.allclose([m[1] for m in self._mixture], [m[1] for m in other._mixture])
+        return np.allclose(
+            np.asarray([m[1] for m in self._mixture]), np.asarray([m[1] for m in other._mixture])
+        )
 
     def num_qubits(self) -> int:
         return self._num_qubits
