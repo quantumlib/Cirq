@@ -1013,10 +1013,10 @@ def _deprecated_step_result_parameter(
 class SimulationTrialResult(Generic[TSimulatorState]):
     """Results of a simulation by a SimulatesFinalState.
 
-    Unlike Result these results contain the final simulator_state of the
-    system. This simulator_state is dependent on the simulation implementation
-    and may be, for example, the state vector or the density matrix of the
-    system.
+    Unlike `cirq.Result`, a SimulationTrialResult contains the final
+    simulator_state of the system. This simulator_state is dependent on the
+    simulation implementation and may be, for example, the state vector
+    or the density matrix of the system.
 
     Attributes:
         params: A ParamResolver of settings used for this result.
