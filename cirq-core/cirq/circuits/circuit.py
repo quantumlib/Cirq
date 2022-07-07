@@ -1054,7 +1054,6 @@ class AbstractCircuit(abc.ABC):
         state = qis.eye_tensor(qid_shape, dtype=dtype)
 
         result = _apply_unitary_circuit(self, state, qs, dtype)
-        assert result is not None
         return result.reshape((side_len, side_len))
 
     def _has_superoperator_(self) -> bool:
