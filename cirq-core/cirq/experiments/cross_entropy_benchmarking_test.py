@@ -12,103 +12,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import matplotlib.pyplot as plt
 import numpy as np
 import pytest
 import cirq
 
-from cirq.experiments import (
-    CrossEntropyResult,
-    CrossEntropyResultDict,
-    cross_entropy_benchmarking,
-    build_entangling_layers,
-)
+from cirq.experiments import CrossEntropyResult, CrossEntropyResultDict
 from cirq.experiments.cross_entropy_benchmarking import CrossEntropyPair, SpecklePurityPair
 
 _DEPRECATION_MESSAGE = 'Use cirq.experiments.xeb_fitting.XEBCharacterizationResult instead'
 _DEPRECATION_RANDOM_CIRCUIT = 'Use cirq.experiments.random_quantum_circuit_generation instead'
-
-
-@pytest.mark.usefixtures('closefigures')
-def test_cross_entropy_benchmarking():
-    # Check that the fidelities returned from a four-qubit XEB simulation are
-    # close to 1 (deviations from 1 is expected due to finite number of
-    # measurements).
-    simulator = cirq.Simulator()
-    qubits = cirq.GridQubit.square(2)
-
-    # Sanity check single-qubit-gate causes error
-    with pytest.raises(ValueError):
-        with cirq.testing.assert_deprecated(_DEPRECATION_RANDOM_CIRCUIT, deadline='v0.16'):
-            build_entangling_layers(qubits, cirq.Z**0.91)
-
-    # Build a sequence of CZ gates.
-    with cirq.testing.assert_deprecated(_DEPRECATION_RANDOM_CIRCUIT, deadline='v0.16'):
-        interleaved_ops = build_entangling_layers(qubits, cirq.CZ**0.91)
-
-    # Specify a set of single-qubit rotations. Pick prime numbers for the
-    # exponent to avoid evolving the system into a basis state.
-    single_qubit_rots = [
-        [cirq.X**0.37],
-        [cirq.Y**0.73, cirq.X**0.53],
-        [cirq.Z**0.61, cirq.X**0.43],
-        [cirq.Y**0.19],
-    ]
-
-    # Simulate XEB using the default single-qubit gate set without two-qubit
-    # gates, XEB using the specified single-qubit gate set without two-qubit
-    # gates, and XEB using the specified single-qubit gate set with two-qubit
-    # gate. Check that the fidelities are close to 1.0 in all cases. Also,
-    # check that a single XEB fidelity is returned if a single cycle number
-    # is specified.
-
-    # Each of theese has one ideprecation for cross_entropy_benchmarking
-    # and one deprecation for CrossEntropyResult
-    with cirq.testing.assert_deprecated(_DEPRECATION_MESSAGE, deadline='v0.16', count=2):
-        results_0 = cross_entropy_benchmarking(
-            simulator, qubits, num_circuits=3, repetitions=1000, cycles=range(4, 20, 5)
-        )
-    with cirq.testing.assert_deprecated(_DEPRECATION_MESSAGE, deadline='v0.16', count=2):
-        results_1 = cross_entropy_benchmarking(
-            simulator,
-            qubits,
-            num_circuits=3,
-            repetitions=1000,
-            cycles=[4, 8, 12],
-            scrambling_gates_per_cycle=single_qubit_rots,
-        )
-    with cirq.testing.assert_deprecated(_DEPRECATION_MESSAGE, deadline='v0.16', count=2):
-        results_2 = cross_entropy_benchmarking(
-            simulator,
-            qubits,
-            benchmark_ops=interleaved_ops,
-            num_circuits=3,
-            repetitions=1000,
-            cycles=[4, 8, 12],
-            scrambling_gates_per_cycle=single_qubit_rots,
-        )
-    with cirq.testing.assert_deprecated(_DEPRECATION_MESSAGE, deadline='v0.16', count=2):
-        results_3 = cross_entropy_benchmarking(
-            simulator,
-            qubits,
-            benchmark_ops=interleaved_ops,
-            num_circuits=3,
-            repetitions=1000,
-            cycles=15,
-            scrambling_gates_per_cycle=single_qubit_rots,
-        )
-    fidelities_0 = [datum.xeb_fidelity for datum in results_0.data]
-    fidelities_1 = [datum.xeb_fidelity for datum in results_1.data]
-    fidelities_2 = [datum.xeb_fidelity for datum in results_2.data]
-    fidelities_3 = [datum.xeb_fidelity for datum in results_3.data]
-    assert np.isclose(np.mean(fidelities_0), 1.0, atol=0.1)
-    assert np.isclose(np.mean(fidelities_1), 1.0, atol=0.1)
-    assert np.isclose(np.mean(fidelities_2), 1.0, atol=0.1)
-    assert len(fidelities_3) == 1
-
-    # Sanity test that plot runs.
-    ax = plt.subplot()
-    results_1.plot(ax)
 
 
 def test_cross_entropy_result_depolarizing_models():
@@ -156,6 +68,7 @@ def test_cross_entropy_result_dict_repr():
         )
     with cirq.testing.assert_deprecated(_DEPRECATION_MESSAGE, deadline='v0.16'):
         result_dict = CrossEntropyResultDict(results={pair: result})
+        assert len(result_dict) == 1
     with cirq.testing.assert_deprecated(_DEPRECATION_MESSAGE, deadline='v0.16', count=6):
         cirq.testing.assert_equivalent_repr(result_dict)
 
