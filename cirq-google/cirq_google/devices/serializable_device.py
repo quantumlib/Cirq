@@ -101,15 +101,22 @@ class SerializableDevice(cirq.Device):
         self.qubits = qubits
         self.gate_definitions = gate_definitions
         has_subcircuit_support: bool = cirq.FrozenCircuit in gate_definitions
+
         self._metadata = cirq.GridDeviceMetadata(
-            qubit_pairs=[
-                (pair[0], pair[1])
-                for gate_defs in gate_definitions.values()
-                for gate_def in gate_defs
-                if gate_def.number_of_qubits == 2
-                for pair in gate_def.target_set
-                if len(pair) == 2 and pair[0] < pair[1]
-            ],
+            qubit_pairs=cast(
+                List[Tuple[cirq.GridQubit, cirq.GridQubit]],
+                [
+                    (pair[0], pair[1])
+                    for gate_defs in gate_definitions.values()
+                    for gate_def in gate_defs
+                    if gate_def.number_of_qubits == 2
+                    for pair in gate_def.target_set
+                    if len(pair) == 2
+                    and pair[0] < pair[1]
+                    and isinstance(pair[0], cirq.GridQubit)
+                    and isinstance(pair[1], cirq.GridQubit)
+                ],
+            ),
             gateset=cirq.Gateset(
                 *(g for g in gate_definitions.keys() if issubclass(g, cirq.Gate)),
                 cirq.GlobalPhaseGate,

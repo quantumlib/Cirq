@@ -67,6 +67,9 @@ def sample(
             `numpy.complex64` or `numpy.complex128`.
             Favors speed over precision by default, i.e. uses `numpy.complex64`.
         seed: The random seed to use for this simulator.
+
+    Returns:
+        A `cirq.Result` object containing the requested measurement samples.
     """
     noise_model = devices.NoiseModel.from_noise_model_like(noise)
 

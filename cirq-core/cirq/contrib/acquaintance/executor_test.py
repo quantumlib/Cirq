@@ -36,7 +36,11 @@ class ExampleGate(cirq.Gate):
         return self._wire_symbols
 
 
-def test_executor_explicit():
+@pytest.mark.parametrize(
+    'StrategyType, is_deprecated',
+    [[cca.StrategyExecutor, True], [cca.StrategyExecutorTransformer, False]],
+)
+def test_executor_explicit(StrategyType, is_deprecated):
     num_qubits = 8
     qubits = cirq.LineQubit.range(num_qubits)
     circuit = cca.complete_acquaintance_strategy(qubits, 2)
@@ -48,7 +52,20 @@ def test_executor_explicit():
     }
     initial_mapping = {q: i for i, q in enumerate(sorted(qubits))}
     execution_strategy = cca.GreedyExecutionStrategy(gates, initial_mapping)
-    executor = cca.StrategyExecutor(execution_strategy)
+
+    if is_deprecated:
+        with cirq.testing.assert_deprecated(
+            "Use cirq.contrib.acquaintance.StrategyExecutorTransformer", deadline='v1.0'
+        ):
+            executor = StrategyType(execution_strategy)
+            with pytest.raises(TypeError):
+                op = cirq.X(qubits[0])
+                bad_strategy = cirq.Circuit(op)
+                executor.optimization_at(bad_strategy, 0, op)
+    else:
+        with pytest.raises(ValueError):
+            executor = StrategyType(None)
+        executor = StrategyType(execution_strategy)
 
     with pytest.raises(NotImplementedError):
         bad_gates = {(0,): ExampleGate(['0']), (0, 1): ExampleGate(['0', '1'])}
@@ -58,12 +75,10 @@ def test_executor_explicit():
         bad_strategy = cirq.Circuit(cirq.X(qubits[0]))
         executor(bad_strategy)
 
-    with pytest.raises(TypeError):
-        op = cirq.X(qubits[0])
-        bad_strategy = cirq.Circuit(op)
-        executor.optimization_at(bad_strategy, 0, op)
-
-    executor(circuit)
+    if is_deprecated:
+        executor(circuit)
+    else:
+        circuit = executor(circuit)
     expected_text_diagram = """
 0: ───0───1───╲0╱─────────────────1───3───╲0╱─────────────────3───5───╲0╱─────────────────5───7───╲0╱─────────────────
       │   │   │                   │   │   │                   │   │   │                   │   │   │
@@ -112,8 +127,11 @@ def test_executor_random(
 
     logical_circuit = cirq.Circuit([g(*Q) for Q, g in gates.items()])
     expected_unitary = logical_circuit.unitary()
-
     initial_mapping = {q: q for q in qubits}
+
+    with pytest.raises(ValueError):
+        cca.GreedyExecutionStrategy(gates, initial_mapping)()
+
     final_mapping = cca.GreedyExecutionStrategy(gates, initial_mapping)(circuit)
     permutation = {q.x: qq.x for q, qq in final_mapping.items()}
     circuit.append(cca.LinearPermutationGate(num_qubits, permutation)(*qubits))
