@@ -13,7 +13,7 @@
 # limitations under the License.
 """Metadata subtype for 2D Homogenous devices."""
 
-from typing import TYPE_CHECKING, cast, Optional, FrozenSet, Iterable, Tuple, Dict
+from typing import TYPE_CHECKING, cast, FrozenSet, Iterable, Mapping, Optional, Tuple
 
 import networkx as nx
 from cirq import value
@@ -31,7 +31,7 @@ class GridDeviceMetadata(device.DeviceMetadata):
         self,
         qubit_pairs: Iterable[Tuple['cirq.GridQubit', 'cirq.GridQubit']],
         gateset: 'cirq.Gateset',
-        gate_durations: Optional[Dict['cirq.GateFamily', 'cirq.Duration']] = None,
+        gate_durations: Optional[Mapping['cirq.GateFamily', 'cirq.Duration']] = None,
         all_qubits: Optional[Iterable['cirq.GridQubit']] = None,
         compilation_target_gatesets: Iterable['cirq.CompilationTargetGateset'] = (),
     ):
@@ -147,7 +147,7 @@ class GridDeviceMetadata(device.DeviceMetadata):
         return self._compilation_target_gatesets
 
     @property
-    def gate_durations(self) -> Optional[Dict['cirq.GateFamily', 'cirq.Duration']]:
+    def gate_durations(self) -> Optional[Mapping['cirq.GateFamily', 'cirq.Duration']]:
         """Get a dictionary mapping from gate family to duration for gates.
 
         To look up the duration of a specific gate instance / gate type / operation which is part of

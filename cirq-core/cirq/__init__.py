@@ -230,7 +230,6 @@ from cirq.ops import (
     GeneralizedAmplitudeDampingChannel,
     givens,
     GlobalPhaseGate,
-    GlobalPhaseOperation,
     global_phase_operation,
     H,
     HPowGate,

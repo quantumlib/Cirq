@@ -360,17 +360,79 @@ def _pauli_string_from_unit(unit: UnitPauliStringT, coefficient: Union[int, floa
 class PauliSum:
     """Represents operator defined by linear combination of PauliStrings.
 
-    Since PauliStrings store their own coefficients, this class
-    does not implement the LinearDict interface. Instead, you can
+    Since `cirq.PauliString`s store their own coefficients, this class
+    does not implement the `cirq.LinearDict` interface. Instead, you can
     add and subtract terms and then iterate over the resulting
     (simplified) expression.
 
     Under the hood, this class is backed by a LinearDict with coefficient-less
     PauliStrings as keys. PauliStrings are reconstructed on-the-fly during
     iteration.
+
+    PauliSums can be constructed explicitly:
+
+
+    >>> a, b = cirq.GridQubit.rect(1, 2)
+    >>> psum = cirq.PauliSum.from_pauli_strings([
+    ...     cirq.PauliString(-1, cirq.X(a), cirq.Y(b)),
+    ...     cirq.PauliString(2, cirq.Z(a), cirq.Z(b)),
+    ...     cirq.PauliString(0.5, cirq.Y(a), cirq.Y(b))
+    ... ])
+    >>> print(psum)
+    -1.000*X(q(0))*Y(q(1))+2.000*Z(q(0))*Z(q(1))+0.500*Y(q(0))*Y(q(1))
+
+
+    or implicitly:
+
+
+    >>> a, b = cirq.GridQubit.rect(1, 2)
+    >>> psum = cirq.X(a) * cirq.X(b) + 3.0 * cirq.Y(a)
+    >>> psum
+    cirq.PauliSum(
+        cirq.LinearDict({
+            frozenset({
+                (cirq.GridQubit(0, 0), cirq.X), (cirq.GridQubit(0, 1), cirq.X)}): (1+0j),
+            frozenset({
+                (cirq.GridQubit(0, 0), cirq.Y)}): (3+0j)}
+        )
+    )
+
+
+    basic arithmetic and expectation operations are supported as well:
+
+
+    >>> a, b = cirq.GridQubit.rect(1, 2)
+    >>> psum = cirq.X(a) * cirq.X(b) + 3.0 * cirq.Y(a)
+    >>> two_psum = 2 * psum
+    >>> four_psum = two_psum + two_psum
+    >>> print(four_psum)
+    4.000*X(q(0, 0))*X(q(0, 1))+12.000*Y(q(0, 0))
+
+
+    >>> expectation = four_psum.expectation_from_state_vector(
+    ...     np.array([0.707106, 0, 0, 0.707106], dtype=complex),
+    ...     qubit_map={a: 0, b: 1}
+    ... )
+    >>> expectation
+    4.0
+
+
     """
 
     def __init__(self, linear_dict: Optional[value.LinearDict[UnitPauliStringT]] = None):
+        """Construct a PauliSum from a linear dictionary.
+
+        Note, the preferred method of constructing PauliSum objects is either implicitly
+        or via the `from_pauli_strings` function.
+
+        Args:
+            linear_dict: Set of  (`cirq.Qid`, `cirq.Pauli`) tuples to construct the sum
+                from.
+
+        Raises:
+            ValueError: If structure of `linear_dict` contains tuples other than the
+                form (`cirq.Qid`, `cirq.Pauli`).
+        """
         if linear_dict is None:
             linear_dict = value.LinearDict()
         if not _is_linear_dict_of_unit_pauli_string(linear_dict):
@@ -386,12 +448,39 @@ class PauliSum:
 
     @staticmethod
     def wrap(val: PauliSumLike) -> 'PauliSum':
+        """Convert a `cirq.PauliSumLike` object to a PauliSum
+
+        Attemps to convert an existing int, float, complex, `cirq.PauliString`,
+        `cirq.PauliSum` or `cirq.SingleQubitPauliStringGateOperation` into
+        a `cirq.PauliSum` object. For example:
+
+
+        >>> my_psum = cirq.PauliSum.wrap(2.345)
+        >>> my_psum
+        cirq.PauliSum(cirq.LinearDict({frozenset(): (2.345+0j)}))
+
+
+        Args:
+            `cirq.PauliSumLike` to convert to PauliSum.
+
+        Returns:
+            PauliSum representation of `val`.
+        """
         if isinstance(val, PauliSum):
             return val
         return PauliSum() + val
 
     @classmethod
     def from_pauli_strings(cls, terms: Union[PauliString, List[PauliString]]) -> 'PauliSum':
+        """Returns a PauliSum by combining `cirq.PauliString` terms.
+
+        Args:
+            terms: `cirq.PauliString` or List of `cirq.PauliString`s to use inside
+                of this PauliSum object.
+        Returns:
+            PauliSum object representing the addition of all the `cirq.PauliString`
+                terms in `terms`.
+        """
         if isinstance(terms, PauliString):
             terms = [terms]
         termdict: DefaultDict[UnitPauliStringT, value.Scalar] = defaultdict(lambda: 0)
@@ -414,7 +503,7 @@ class PauliSum:
             qubit_map: map of string (boolean variable name) to qubit.
 
         Return:
-            The PauliString that represents the Boolean expression.
+            The PauliSum that represents the Boolean expression.
 
         Raises:
             ValueError: If `boolean_expr` is of an unsupported type.
@@ -455,10 +544,25 @@ class PauliSum:
 
     @property
     def qubits(self) -> Tuple[raw_types.Qid, ...]:
+        """The sorted list of qubits used in this PauliSum."""
         qs = {q for k in self._linear_dict.keys() for q, _ in k}
         return tuple(sorted(qs))
 
     def with_qubits(self, *new_qubits: 'cirq.Qid') -> 'PauliSum':
+        """Return a new PauliSum on `new_qubits`.
+
+        Args:
+            *new_qubits: `cirq.Qid` objects to replace existing
+                qubit objects in this PauliSum.
+
+        Returns:
+            PauliSum with new_qubits replacing the previous
+                qubits.
+
+        Raises:
+            ValueError: If len(new_qubits) != len(self.qubits).
+
+        """
         qubits = self.qubits
         if len(new_qubits) != len(qubits):
             raise ValueError('Incorrect number of qubits for PauliSum.')
@@ -469,12 +573,25 @@ class PauliSum:
         return PauliSum.from_pauli_strings(new_pauli_strings)
 
     def copy(self) -> 'PauliSum':
+        """Return a copy of this PauliSum.
+
+        Returns: A copy of this PauliSum.
+        """
         factory = type(self)
         return factory(self._linear_dict.copy())
 
     def matrix(self, qubits: Optional[Iterable[raw_types.Qid]] = None) -> np.ndarray:
-        """Reconstructs matrix of self from underlying Pauli operations in
-        computational basis of qubits.
+        """Returns the matrix of this PauliSum in computational basis of qubits.
+
+        Args:
+            qubits: Ordered collection of qubits that determine the subspace
+                in which the matrix representation of the Pauli sum is to
+                be computed. If none is provided the default ordering of
+                `self.qubits` is used.  Qubits present in `qubits` but absent from
+                `self.qubits` are acted on by the identity.
+
+        Returns:
+            np.ndarray representing the matrix of this PauliSum expression.
 
         Raises:
             TypeError: if any of the gates in self does not provide a unitary.
