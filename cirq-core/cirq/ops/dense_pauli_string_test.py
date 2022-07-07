@@ -173,10 +173,11 @@ def test_mul():
     m = cirq.MutableDensePauliString
     assert m('X') * m('Z') == -1j * m('Y')
     assert m('X') * f('Z') == -1j * m('Y')
+    assert f('X') * m('Z') == -1j * m('Y')
     assert isinstance(f('') * f(''), cirq.DensePauliString)
     assert isinstance(m('') * m(''), cirq.MutableDensePauliString)
     assert isinstance(m('') * f(''), cirq.MutableDensePauliString)
-    assert isinstance(f('') * m(''), cirq.DensePauliString)
+    assert isinstance(f('') * m(''), cirq.MutableDensePauliString)
 
     # Different lengths.
     assert f('I') * f('III') == f('III')

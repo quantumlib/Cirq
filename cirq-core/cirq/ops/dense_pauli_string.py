@@ -253,6 +253,8 @@ class BaseDensePauliString(raw_types.Gate, metaclass=abc.ABCMeta):
     def __mul__(self, other):
         concrete_class = type(self)
         if isinstance(other, BaseDensePauliString):
+            if isinstance(other, MutableDensePauliString):
+                concrete_class = MutableDensePauliString
             max_len = max(len(self.pauli_mask), len(other.pauli_mask))
             min_len = min(len(self.pauli_mask), len(other.pauli_mask))
             new_mask = np.zeros(max_len, dtype=np.uint8)
