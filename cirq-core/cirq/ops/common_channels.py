@@ -544,7 +544,7 @@ def generalized_amplitude_damp(p: float, gamma: float) -> GeneralizedAmplitudeDa
 
 @value.value_equality
 class AmplitudeDampingChannel(raw_types.Gate):
-    """Dampen qubit amplitudes through dissipation.
+    r"""Dampen qubit amplitudes through dissipation.
 
     This channel models the effect of energy dissipation to the
     surrounding environment.  The probability of
