@@ -14,4 +14,4 @@
 
 """Define version number here, read it from setup.py automatically"""
 
-__version__ = "0.15.0.dev"
+__version__ = "0.16.0.dev"

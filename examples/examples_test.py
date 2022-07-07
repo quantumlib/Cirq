@@ -118,7 +118,7 @@ def test_example_qaoa_same_unitary():
     ]
 
     assert cirq.allclose_up_to_global_phase(
-        cirq.unitary(circuits[0]), cirq.unitary(circuits[1]), atol=1e-6
+        cirq.unitary(circuits[0]), cirq.unitary(circuits[1]), atol=1e-8
     )
 
 

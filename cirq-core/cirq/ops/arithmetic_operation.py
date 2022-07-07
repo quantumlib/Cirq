@@ -29,9 +29,9 @@ if TYPE_CHECKING:
 TSelf = TypeVar('TSelf', bound='ArithmeticOperation')
 
 
-@deprecated_class(deadline='v0.15', fix='Use cirq.ArithmeticGate')
+@deprecated_class(deadline='v0.16', fix='Use cirq.ArithmeticGate')
 class ArithmeticOperation(Operation, metaclass=abc.ABCMeta):
-    """A helper class for implementing reversible classical arithmetic.
+    r"""A helper class for implementing reversible classical arithmetic.
 
     Child classes must override the `registers`, `with_registers`, and `apply`
     methods.

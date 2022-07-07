@@ -89,6 +89,7 @@ def get_grid_moments(
     )
 
 
+@cirq._compat.deprecated_class(deadline='v0.16', fix="Use cirq.merge_k_qubit_unitaries")
 class MergeNQubitGates(cirq.PointOptimizer):
     """Optimizes runs of adjacent unitary n-qubit operations."""
 
@@ -131,14 +132,14 @@ def simplify_expectation_value_circuit(circuit_sand: cirq.Circuit):
     things for you.
     """
     n_op = sum(1 for _ in circuit_sand.all_operations())
+    circuit = circuit_sand.copy()
     while True:
-        MergeNQubitGates(n_qubits=1).optimize_circuit(circuit_sand)
-        circuit_sand = cirq.drop_negligible_operations(circuit_sand, atol=1e-6)
-        MergeNQubitGates(n_qubits=2).optimize_circuit(circuit_sand)
-        circuit_sand = cirq.drop_empty_moments(circuit_sand)
-        new_n_op = sum(1 for _ in circuit_sand.all_operations())
-
-        if new_n_op < n_op:
-            n_op = new_n_op
-        else:
-            return
+        circuit = cirq.merge_k_qubit_unitaries(circuit, k=1)
+        circuit = cirq.drop_negligible_operations(circuit, atol=1e-6)
+        circuit = cirq.merge_k_qubit_unitaries(circuit, k=2)
+        circuit = cirq.drop_empty_moments(circuit)
+        new_n_op = sum(1 for _ in circuit.all_operations())
+        if new_n_op >= n_op:
+            break
+        n_op = new_n_op
+    circuit_sand._moments = circuit._moments

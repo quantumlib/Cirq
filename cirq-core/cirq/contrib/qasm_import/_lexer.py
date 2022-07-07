@@ -32,7 +32,7 @@ class QasmLexer:
         'measure': 'MEASURE',
         'if': 'IF',
         '->': 'ARROW',
-        '!=': 'NE',
+        '==': 'EQ',
     }
 
     tokens = ['FORMAT_SPEC', 'NUMBER', 'NATURAL_NUMBER', 'QELIBINC', 'ID', 'PI'] + list(
@@ -103,8 +103,8 @@ class QasmLexer:
         """->"""
         return t
 
-    def t_NE(self, t):
-        """!="""
+    def t_EQ(self, t):
+        """=="""
         return t
 
     def t_ID(self, t):

@@ -37,6 +37,8 @@ upper_tabs:
         path: /cirq/start/start
       - title: "Cirq Basics"
         path: /cirq/start/basics
+      - title: "Best Practices"
+        path: /cirq/start/best_practices
 
       ####  TEST UNDERSTANDING  ####
       - heading: "Test understanding"

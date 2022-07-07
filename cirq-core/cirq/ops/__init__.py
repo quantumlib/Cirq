@@ -95,7 +95,7 @@ from cirq.ops.gateset import GateFamily, Gateset
 
 from cirq.ops.identity import I, identity_each, IdentityGate
 
-from cirq.ops.global_phase_op import GlobalPhaseGate, GlobalPhaseOperation, global_phase_operation
+from cirq.ops.global_phase_op import GlobalPhaseGate, global_phase_operation
 
 from cirq.ops.kraus_channel import KrausChannel
 
@@ -180,6 +180,7 @@ from cirq.ops.raw_types import Gate, Operation, Qid, TaggedOperation
 from cirq.ops.swap_gates import (
     ISWAP,
     ISwapPowGate,
+    ISWAP_INV,
     riswap,
     SQRT_ISWAP,
     SQRT_ISWAP_INV,

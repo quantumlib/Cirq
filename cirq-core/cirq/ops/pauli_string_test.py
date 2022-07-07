@@ -310,6 +310,18 @@ def test_repr():
     cirq.testing.assert_equivalent_repr(cirq.PauliString())
 
 
+def test_repr_preserves_qubit_order():
+    q0, q1, q2 = _make_qubits(3)
+    pauli_string = cirq.PauliString({q2: cirq.X, q1: cirq.Y, q0: cirq.Z})
+    assert eval(repr(pauli_string)).qubits == pauli_string.qubits
+
+    pauli_string = cirq.PauliString(cirq.X(q2), cirq.Y(q1), cirq.Z(q0))
+    assert eval(repr(pauli_string)).qubits == pauli_string.qubits
+
+    pauli_string = cirq.PauliString(cirq.Z(q0), cirq.Y(q1), cirq.X(q2))
+    assert eval(repr(pauli_string)).qubits == pauli_string.qubits
+
+
 def test_repr_coefficient_of_one():
     pauli_string = cirq.Z(cirq.LineQubit(0)) * 1
     assert type(pauli_string) == type(eval(repr(pauli_string)))
@@ -575,6 +587,13 @@ def test_map_qubits():
     assert ps1.map_qubits(qubit_map) == ps2
 
 
+def test_map_qubits_raises():
+    q = cirq.LineQubit.range(3)
+    pauli_string = cirq.X(q[0]) * cirq.Y(q[1]) * cirq.Z(q[2])
+    with pytest.raises(ValueError, match='must have a key for every qubit'):
+        pauli_string.map_qubits({q[0]: q[1]})
+
+
 def test_to_z_basis_ops():
     x0 = np.array([1, 1]) / np.sqrt(2)
     x1 = np.array([1, -1]) / np.sqrt(2)
@@ -747,6 +766,13 @@ def test_with_qubits():
     for q in new_qubits:
         assert new_pauli_string[q] == cirq.Pauli.by_index(q.x)
     assert new_pauli_string.coefficient == -1
+
+
+def test_with_qubits_raises():
+    q = cirq.LineQubit.range(3)
+    pauli_string = cirq.X(q[0]) * cirq.Y(q[1]) * cirq.Z(q[2])
+    with pytest.raises(ValueError, match='does not match'):
+        pauli_string.with_qubits(q[:2])
 
 
 def test_with_coefficient():
@@ -1484,7 +1510,7 @@ def test_conjugated_by_common_two_qubit_gates():
         cirq.CNOT,
         cirq.CZ,
         cirq.ISWAP,
-        cirq.ISWAP**-1,
+        cirq.ISWAP_INV,
         cirq.SWAP,
         cirq.XX**0.5,
         cirq.YY**0.5,
@@ -1608,6 +1634,12 @@ def test_circuit_diagram_info():
 
 
 # pylint: enable=line-too-long
+
+
+def test_mutable_pauli_string_init_raises():
+    q = cirq.LineQubit.range(3)
+    with pytest.raises(ValueError, match='must be between 1 and 3'):
+        _ = cirq.MutablePauliString(pauli_int_dict={q[0]: 0, q[1]: 1, q[2]: 2})
 
 
 def test_mutable_pauli_string_equality():
@@ -1953,6 +1985,8 @@ def test_parameterization():
         pst.expectation_from_state_vector(np.array([]), {})
     with pytest.raises(NotImplementedError, match='parameterized'):
         pst.expectation_from_density_matrix(np.array([]), {})
+    with pytest.raises(NotImplementedError, match='as matrix when parameterized'):
+        pst.matrix()
     assert pst**1 == pst
     assert pst**-1 == pst.with_coefficient(1.0 / t)
     assert (-pst) ** 1 == -pst

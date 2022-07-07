@@ -14,7 +14,7 @@
 
 """A simulator that uses numpy's einsum for sparse matrix operations."""
 
-from typing import Any, Iterator, List, TYPE_CHECKING, Union, Sequence, Optional
+from typing import Any, Iterator, List, TYPE_CHECKING, Union, Sequence, Type, Optional
 
 import numpy as np
 
@@ -24,7 +24,6 @@ from cirq.sim import simulator, state_vector, state_vector_simulator, state_vect
 
 if TYPE_CHECKING:
     import cirq
-    from numpy.typing import DTypeLike
 
 
 class Simulator(
@@ -127,7 +126,7 @@ class Simulator(
     def __init__(
         self,
         *,
-        dtype: 'DTypeLike' = np.complex64,
+        dtype: Type[np.complexfloating] = np.complex64,
         noise: 'cirq.NOISE_MODEL_LIKE' = None,
         seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None,
         split_untangled_states: bool = True,
@@ -231,7 +230,7 @@ class SparseSimulatorStep(
         self,
         sim_state: 'cirq.SimulationStateBase[cirq.StateVectorSimulationState]',
         simulator: 'cirq.Simulator' = None,
-        dtype: 'DTypeLike' = np.complex64,
+        dtype: Type[np.complexfloating] = np.complex64,
     ):
         """Results of a step of the simulator.
 

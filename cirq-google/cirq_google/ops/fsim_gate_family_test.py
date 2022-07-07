@@ -14,6 +14,8 @@
 
 """Tests for Common Gate Families used in cirq-google"""
 
+from typing import List, Union
+
 import pytest
 import sympy
 import numpy as np
@@ -79,11 +81,13 @@ VALID_ISWAP_GATES = [
     *VALID_IDENTITY,
 ]
 
+P_VALUES: List[Union[float, sympy.Expr]] = [np.pi / 4, 0.01, THETA, PHI]
+
 VALID_PHASED_ISWAP_GATES = [
     (cirq.PhasedISwapPowGate(exponent=0.1, phase_exponent=PHI), {PHI: 0.24}),
     *[
         (cirq.PhasedFSimGate.from_fsim_rz(THETA, PHI, (-p, p), (p, -p)), {THETA: tv, PHI: pv})
-        for p in [np.pi / 4, 0.01, THETA, PHI]
+        for p in P_VALUES
         for tv, pv in [(0.4, 0), (-0.1, 2 * np.pi)]
     ],
     *VALID_ISWAP_GATES[1:],

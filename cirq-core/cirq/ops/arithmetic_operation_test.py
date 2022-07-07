@@ -100,7 +100,7 @@ def test_arithmetic_operation_apply_unitary():
         def apply(self, target_value, input_value):
             return target_value + input_value
 
-    with cirq.testing.assert_deprecated(deadline='v0.15', count=8):
+    with cirq.testing.assert_deprecated(deadline='v0.16', count=8):
         inc2 = Add(cirq.LineQubit.range(2), 1)
         np.testing.assert_allclose(cirq.unitary(inc2), shift_matrix(4, 1), atol=1e-8)
 
@@ -208,7 +208,7 @@ def test_arithmetic_operation_qubits():
         def apply(self, target_value, input_value):
             raise NotImplementedError()
 
-    with cirq.testing.assert_deprecated(deadline='v0.15', count=4):
+    with cirq.testing.assert_deprecated(deadline='v0.16', count=4):
         q0, q1, q2, q3, q4, q5 = cirq.LineQubit.range(6)
         op = Three([q0], [], [q4, q5])
         assert op.qubits == (q0, q4, q5)
@@ -238,7 +238,7 @@ def test_reshape_referencing():
         def with_registers(self, *new_registers):
             raise NotImplementedError()
 
-    with cirq.testing.assert_deprecated(deadline='v0.15'):
+    with cirq.testing.assert_deprecated(deadline='v0.16'):
         state = np.ones(4, dtype=np.complex64) / 2
         output = cirq.final_state_vector(cirq.Circuit(Op1()), initial_state=state)
         np.testing.assert_allclose(state, output)
