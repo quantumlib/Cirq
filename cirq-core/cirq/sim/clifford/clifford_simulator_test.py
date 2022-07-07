@@ -540,7 +540,7 @@ def test_invalid_apply_measurement():
     state = cirq.CliffordState(qubit_map={q0: 0})
     measurements = {}
     with pytest.raises(TypeError, match='only supports cirq.MeasurementGate'):
-        _ = state.apply_measurement(cirq.H(q0), measurements, np.random.RandomState())
+        state.apply_measurement(cirq.H(q0), measurements, np.random.RandomState())
     assert measurements == {}
 
 
@@ -548,7 +548,7 @@ def test_valid_apply_measurement():
     q0 = cirq.LineQubit(0)
     state = cirq.CliffordState(qubit_map={q0: 0}, initial_state=1)
     measurements = {}
-    _ = state.apply_measurement(cirq.measure(q0), measurements, np.random.RandomState())
+    state.apply_measurement(cirq.measure(q0), measurements, np.random.RandomState())
     assert measurements == {'q(0)': [1]}
 
 
