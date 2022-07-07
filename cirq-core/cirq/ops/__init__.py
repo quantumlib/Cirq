@@ -14,7 +14,7 @@
 """Gates (unitary and non-unitary), operations, base types, and gate sets.
 """
 
-from cirq.ops.arithmetic_operation import ArithmeticGate, ArithmeticOperation
+from cirq.ops.arithmetic_operation import ArithmeticGate
 
 from cirq.ops.clifford_gate import CliffordGate, PauliTransform, SingleQubitCliffordGate
 

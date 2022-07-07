@@ -186,7 +186,6 @@ from cirq.ops import (
     AnyIntegerPowerGateFamily,
     AnyUnitaryGateFamily,
     ArithmeticGate,
-    ArithmeticOperation,
     asymmetric_depolarize,
     AsymmetricDepolarizingChannel,
     BaseDensePauliString,
