@@ -197,24 +197,6 @@ def process_results(
     return data
 
 
-class SwapPermutationReplacer(cirq.PointOptimizer):
-    """Replaces SwapPermutationGates with their underlying implementation
-    gate."""
-
-    def __init__(self):
-        super().__init__()
-
-    def optimization_at(
-        self, circuit: cirq.Circuit, index: int, op: cirq.Operation
-    ) -> Optional[cirq.PointOptimizationSummary]:
-        if isinstance(op.gate, cirq.contrib.acquaintance.SwapPermutationGate):
-            new_ops = op.gate.swap_gate.on(*op.qubits)
-            return cirq.PointOptimizationSummary(
-                clear_span=1, clear_qubits=op.qubits, new_operations=new_ops
-            )
-        return None  # Don't make changes to other gates.
-
-
 def compile_circuit(
     circuit: cirq.Circuit,
     *,
@@ -296,7 +278,15 @@ def compile_circuit(
     mapping = swap_networks[0].final_mapping()
     # Replace the PermutationGates with regular gates, so we don't proliferate
     # the routing implementation details to the compiler and the device itself.
-    SwapPermutationReplacer().optimize_circuit(routed_circuit)
+
+    def replace_swap_permutation_gate(op: 'cirq.Operation', _):
+        if isinstance(op.gate, cirq.contrib.acquaintance.SwapPermutationGate):
+            return [op.gate.swap_gate.on(*op.qubits)]
+        return op
+
+    routed_circuit = cirq.map_operations_and_unroll(
+        routed_circuit, map_func=replace_swap_permutation_gate
+    )
 
     if not compiler:
         return CompilationResult(circuit=routed_circuit, mapping=mapping, parity_map=parity_map)
@@ -307,7 +297,7 @@ def compile_circuit(
     # as well, we allow this to be passed in. This compiler is not allowed to
     # change the order of the qubits.
     return CompilationResult(
-        circuit=compiler(swap_networks[0].circuit), mapping=mapping, parity_map=parity_map
+        circuit=compiler(routed_circuit), mapping=mapping, parity_map=parity_map
     )
 
 

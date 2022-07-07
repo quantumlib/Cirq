@@ -606,11 +606,11 @@ def _decomp_3sqrt_iswap_matrices(
     if ieq1:
         if ieq2:
             # Non-canonical Weyl coordinates for the single sqrt-iSWAP
-            x1, y1, z1 = 0, np.pi / 8, -np.pi / 8
+            x1, y1, z1 = 0.0, np.pi / 8, -np.pi / 8
         else:
-            x1, y1, z1 = 0, np.pi / 8, np.pi / 8
+            x1, y1, z1 = 0.0, np.pi / 8, np.pi / 8
     else:
-        x1, y1, z1 = -np.pi / 8, np.pi / 8, 0
+        x1, y1, z1 = -np.pi / 8, np.pi / 8, 0.0
     # Non-canonical Weyl coordinates for the two sqrt-iSWAP decomposition
     x2, y2, z2 = x - x1, y - y1, z - z1
 
