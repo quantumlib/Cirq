@@ -431,7 +431,7 @@ def two_qubit_state_tomography(
 
     # Stores all 27 measured probabilities (P_00, P_01, P_10 after 9
     # different basis rotations).
-    probs = np.array([])
+    probs: np.ndarray = np.array([])
 
     rots = [ops.X**0, ops.X**0.5, ops.Y**0.5]
 

@@ -13,7 +13,7 @@
 # limitations under the License.
 
 import abc
-from typing import Any, Dict, List, Sequence, TYPE_CHECKING
+from typing import Any, Dict, List, Optional, Sequence, TYPE_CHECKING
 import numpy as np
 
 from cirq import protocols
@@ -441,7 +441,7 @@ class CliffordTableau(StabilizerState):
         generators above generate the full Pauli group on n qubits."""
         return [self._row_to_dense_pauli(i) for i in range(self.n)]
 
-    def _measure(self, q, prng: np.random.RandomState) -> int:
+    def _measure(self, q, prng: np.random.RandomState = np.random) -> int:
         """Performs a projective measurement on the q'th qubit.
 
         Returns: the result (0 or 1) of the measurement.
@@ -583,6 +583,6 @@ class CliffordTableau(StabilizerState):
         pass
 
     def measure(
-        self, axes: Sequence[int], seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None
+        self, axes: Sequence[int], seed: Optional['cirq.RANDOM_STATE_OR_SEED_LIKE'] = None
     ) -> List[int]:
         return [self._measure(axis, seed) for axis in axes]
