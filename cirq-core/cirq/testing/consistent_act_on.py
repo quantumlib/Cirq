@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Any, Optional
+from typing import Any, cast, Optional, Type
 
 import numpy as np
 
@@ -46,12 +46,15 @@ def state_vector_has_stabilizer(state_vector: np.ndarray, stabilizer: DensePauli
     """
 
     qubits = LineQubit.range(protocols.num_qubits(stabilizer))
+    complex_dtype: Type[np.complexfloating] = np.complex64
+    if np.issubdtype(state_vector.dtype, np.complexfloating):
+        complex_dtype = cast(Type[np.complexfloating], state_vector.dtype)
     args = state_vector_simulation_state.StateVectorSimulationState(
         available_buffer=np.empty_like(state_vector),
         qubits=qubits,
         prng=np.random.RandomState(),
         initial_state=state_vector.copy(),
-        dtype=state_vector.dtype,
+        dtype=complex_dtype,
     )
     protocols.act_on(stabilizer, args, qubits)
     return np.allclose(args.target_tensor, state_vector)
