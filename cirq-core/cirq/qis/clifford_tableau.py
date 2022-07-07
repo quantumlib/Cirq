@@ -154,14 +154,15 @@ class CliffordTableau(StabilizerState):
         """
         self.n = num_qubits
         self.initial_state = initial_state
+        # _reconstruct_* adds the last row (`2n+1`-th row) to the input arrays,
+        # which is the scratch row used in _measurement
+        # computation process only. It should not be exposed to external usage.
         self._rs = self._reconstruct_rs(rs)
         self._xs = self._reconstruct_xs(xs)
         self._zs = self._reconstruct_zs(zs)
 
     def _reconstruct_rs(self, rs: Optional[np.ndarray]) -> np.ndarray:
         if rs is None:
-            # The last row (`2n+1`-th row) is the scratch row used in _measurement
-            # computation process only. It should not be exposed to external usage.
             new_rs = np.zeros(2 * self.n + 1, dtype=bool)
             for (i, val) in enumerate(
                 big_endian_int_to_digits(self.initial_state, digit_count=self.n, base=2)
