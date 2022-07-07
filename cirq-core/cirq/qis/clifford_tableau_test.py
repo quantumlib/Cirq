@@ -55,8 +55,8 @@ def test_tableau_initial_state_string(num_qubits):
             assert splitted_represent_string[n] == expected_string
 
 
-def test_tableau_ivalid_initial_state():
-    with pytest.raises(ValueError, match="1 row, of even length and of type bool."):
+def test_tableau_invalid_initial_state():
+    with pytest.raises(ValueError, match="2*num_qubits columns and of type bool."):
         cirq.CliffordTableau(1, rs=np.zeros(1, dtype=bool))
 
     with pytest.raises(
