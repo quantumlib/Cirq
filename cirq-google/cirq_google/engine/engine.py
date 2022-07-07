@@ -826,10 +826,7 @@ def get_engine(project_id: Optional[str] = None) -> Engine:
     return Engine(project_id=project_id, service_args=service_args)
 
 
-def get_engine_device(
-    processor_id: str,
-    project_id: Optional[str] = None,
-) -> cirq.Device:
+def get_engine_device(processor_id: str, project_id: Optional[str] = None) -> cirq.Device:
     """Returns a `Device` object for a given processor.
 
     This is a short-cut for creating an engine object, getting the

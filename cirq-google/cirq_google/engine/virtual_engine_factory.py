@@ -206,8 +206,7 @@ def create_noiseless_virtual_engine_from_device(
 
 
 def create_noiseless_virtual_processor_from_proto(
-    processor_id: str,
-    device_specification: v2.device_pb2.DeviceSpecification,
+    processor_id: str, device_specification: v2.device_pb2.DeviceSpecification
 ) -> SimulatedLocalProcessor:
     """Creates a simulated local processor from a device specification proto.
 
@@ -295,8 +294,7 @@ def create_device_from_processor_id(processor_id: str) -> cirq.Device:
 
 
 def create_noiseless_virtual_processor_from_template(
-    processor_id: str,
-    template_name: str,
+    processor_id: str, template_name: str
 ) -> SimulatedLocalProcessor:
     """Creates a simulated local processor from a device specification template.
 
@@ -314,8 +312,7 @@ def create_noiseless_virtual_processor_from_template(
 
 
 def create_noiseless_virtual_engine_from_templates(
-    processor_ids: Union[str, List[str]],
-    template_names: Union[str, List[str]],
+    processor_ids: Union[str, List[str]], template_names: Union[str, List[str]]
 ) -> SimulatedLocalEngine:
     """Creates a noiseless virtual engine object from a device specification template.
 
