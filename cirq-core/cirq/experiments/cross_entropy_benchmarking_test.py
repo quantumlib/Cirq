@@ -17,10 +17,7 @@ import numpy as np
 import pytest
 import cirq
 
-from cirq.experiments import (
-    CrossEntropyResult,
-    CrossEntropyResultDict,
-)
+from cirq.experiments import CrossEntropyResult, CrossEntropyResultDict
 from cirq.experiments.cross_entropy_benchmarking import CrossEntropyPair, SpecklePurityPair
 
 _DEPRECATION_MESSAGE = 'Use cirq.experiments.xeb_fitting.XEBCharacterizationResult instead'

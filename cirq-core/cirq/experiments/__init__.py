@@ -22,10 +22,7 @@ from cirq.experiments.qubit_characterizations import (
     two_qubit_state_tomography,
 )
 
-from cirq.experiments.cross_entropy_benchmarking import (
-    CrossEntropyResult,
-    CrossEntropyResultDict,
-)
+from cirq.experiments.cross_entropy_benchmarking import CrossEntropyResult, CrossEntropyResultDict
 
 from cirq.experiments.fidelity_estimation import (
     hog_score_xeb_fidelity_from_probabilities,
