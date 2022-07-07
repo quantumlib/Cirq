@@ -175,7 +175,7 @@ class CliffordTableau(StabilizerState):
             else:
                 raise ValueError(
                     f"The value you passed for rs is not the correct shape and/or type. "
-                    f"Please confirm that it's 1 row, of even length and of type bool"
+                    f"Please confirm that it's 1 row, of even length and of type bool."
                 )
         return new_rs
 
