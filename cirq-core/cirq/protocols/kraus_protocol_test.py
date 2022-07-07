@@ -14,7 +14,7 @@
 
 """Tests for kraus_protocol.py."""
 
-from typing import Iterable, Sequence, Tuple
+from typing import Iterable, List, Sequence, Tuple
 
 import numpy as np
 import pytest
@@ -22,7 +22,7 @@ import pytest
 import cirq
 
 
-LOCAL_DEFAULT = [np.array([])]
+LOCAL_DEFAULT: List[np.ndarray] = [np.array([])]
 
 
 def test_kraus_no_methods():
