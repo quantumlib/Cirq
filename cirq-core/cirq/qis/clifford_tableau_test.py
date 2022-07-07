@@ -54,6 +54,7 @@ def test_tableau_initial_state_string(num_qubits):
             expected_string = sign + 'I ' * n + 'Z ' + 'I ' * (num_qubits - n - 1)
             assert splitted_represent_string[n] == expected_string
 
+
 def test_tableau_imvalid_initial_state():
     with pytest.raises(ValueError, match="1 row, of even length and of type bool"):
         cirq.CliffordTableau(1, rs=np.zeros(1, dtype=bool))
@@ -63,6 +64,7 @@ def test_tableau_imvalid_initial_state():
 
     with pytest.raises(ValueError, match="2*num_qubits rows, num_qubits columns, and of type bool"):
         cirq.CliffordTableau(1, zs=np.zeros(1, dtype=bool))
+
 
 def test_stabilizers():
     # Note: the stabilizers are not unique for one state. We just use the one
