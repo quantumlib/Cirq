@@ -373,7 +373,13 @@ class PauliSum:
 
 
     >>> a, b = cirq.GridQubit.rect(1, 2)
-    >>> sum = cirq.PauliSum()
+    >>> psum = cirq.PauliSum.from_pauli_strings([
+    ...     cirq.PauliString(-1, cirq.X(a), cirq.Y(b)),
+    ...     cirq.PauliString(2, cirq.Z(a), cirq.Z(b)),
+    ...     cirq.PauliString(0.5, cirq.Y(a), cirq.Y(b))
+    ... ])
+    >>> print(psum)
+    -1.000*X(q(0))*Y(q(1))+2.000*Z(q(0))*Z(q(1))+0.500*Y(q(0))*Y(q(1))
 
 
     or implicitly:
@@ -399,6 +405,10 @@ class PauliSum:
     >>> psum = cirq.X(a) * cirq.X(b) + 3.0 * cirq.Y(a)
     >>> two_psum = 2 * psum
     >>> four_psum = two_psum + two_psum
+    >>> print(four_psum)
+    4.000*X(q(0, 0))*X(q(0, 1))+12.000*Y(q(0, 0))
+
+
     >>> expectation = four_psum.expectation_from_state_vector(
     ...     np.array([0.707106, 0, 0, 0.707106], dtype=complex),
     ...     qubit_map={a: 0, b: 1}
@@ -574,9 +584,11 @@ class PauliSum:
         """Returns the matrix of this PauliSum in computational basis of qubits.
 
         Args:
-            qubits: Iterable of qubits, ordering to determine the computational
-                basis of qubits. If none is provided the default ordering of
-                `self.qubits` is used.
+            qubits: Ordered collection of qubits that determine the subspace
+                in which the matrix representation of the Pauli sum is to
+                be computed. If none is provided the default ordering of
+                `self.qubits` is used.  Qubits present in `qubits` but absent from
+                `self.qubits` are acted on by the identity.
 
         Returns:
             np.ndarray representing the matrix of this PauliSum expression.
