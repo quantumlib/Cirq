@@ -37,7 +37,7 @@ def test_optimize():
     c_opt = pauli_string_optimized_circuit(c_orig)
 
     cirq.testing.assert_allclose_up_to_global_phase(
-        c_orig.unitary(), c_expected.unitary(), atol=1e-6
+        c_orig.unitary(), c_expected.unitary(), atol=1e-7
     )
 
     cirq.testing.assert_has_diagram(
@@ -81,4 +81,4 @@ def test_optimize_large_circuit():
 
     c_opt = pauli_string_optimized_circuit(c_orig)
 
-    cirq.testing.assert_allclose_up_to_global_phase(c_orig.unitary(), c_opt.unitary(), atol=1e-6)
+    cirq.testing.assert_allclose_up_to_global_phase(c_orig.unitary(), c_opt.unitary(), atol=1e-7)
