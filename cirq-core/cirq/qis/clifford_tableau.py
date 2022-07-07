@@ -218,7 +218,7 @@ class CliffordTableau(StabilizerState):
             else:
                 raise ValueError(
                     f"The value you passed for zs is not the correct shape and/or type. "
-                    f"Please confirm that it's 2*num_qubits rows,num_qubits columns, "
+                    f"Please confirm that it's 2*num_qubits rows, num_qubits columns, "
                     f"and of type bool."
                 )
         return new_zs
