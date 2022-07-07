@@ -28,12 +28,12 @@ Note that if you are using PyCharm, you might have to Restart & Invalidate Cache
 
 ```bash
     docker build -t cirq --target cirq_stable .
-    docker run -it cirq python -c "import cirq_google; print(cirq_google.Foxtail)"
+    docker run -it cirq python -c "import cirq_google; print(cirq_google.Sycamore23)"
 ```
 
 ```bash
     docker build -t cirq_pre --target cirq_pre_release .
-    docker run -it cirq_pre python -c "import cirq_google; print(cirq_google.Foxtail)"
+    docker run -it cirq_pre python -c "import cirq_google; print(cirq_google.Sycamore23)"
 ```
 
 If you want to contribute changes to Cirq, you will instead want to fork the repository and submit pull requests from your fork.
@@ -84,6 +84,9 @@ At this point your local git master should be synced with the master from the ma
 
 
 ## Setting up an environment
+
+These instructions are primarily for linux-based environments that use the apt
+package manager. 
 
 0. First clone the repository, if you have not already done so.
 See the previous section for instructions.
