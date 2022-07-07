@@ -763,7 +763,7 @@ class Engine(abstract_engine.AbstractEngine):
                 determining which processors may be used when sampling.
 
         Returns:
-            A `cirq.Sampler` instance (specifically a `engine_sampler.QuantumEngineSampler`
+            A `cirq.Sampler` instance (specifically a `engine_sampler.ProcessorSampler`
             that will send circuits to the Quantum Computing Service
             when sampled.
         """
@@ -776,7 +776,7 @@ class Engine(abstract_engine.AbstractEngine):
             processor_id: String identifier of which processor should be used to sample.
 
         Returns:
-            A `cirq.Sampler` instance (specifically a `engine_sampler.QuantumEngineSampler`
+            A `cirq.Sampler` instance (specifically a `engine_sampler.ProcessorSampler`
             that will send circuits to the Quantum Computing Service
             when sampled.
 
