@@ -68,7 +68,7 @@ def test_cross_entropy_result_dict_repr():
         )
     with cirq.testing.assert_deprecated(_DEPRECATION_MESSAGE, deadline='v0.16'):
         result_dict = CrossEntropyResultDict(results={pair: result})
-        assert len(result_dict) == 2
+        assert len(result_dict) == 1
     with cirq.testing.assert_deprecated(_DEPRECATION_MESSAGE, deadline='v0.16', count=6):
         cirq.testing.assert_equivalent_repr(result_dict)
 
