@@ -21,7 +21,7 @@ from cirq.interop.quirk.cells.composite_cell import CompositeCell
 
 from cirq.interop.quirk.cells.qubit_permutation_cells import QuirkQubitPermutationGate
 
-from cirq.interop.quirk.cells.arithmetic_cells import QuirkArithmeticGate, QuirkArithmeticOperation
+from cirq.interop.quirk.cells.arithmetic_cells import QuirkArithmeticGate
 
 from cirq.interop.quirk.cells.input_rotation_cells import QuirkInputRotationOperation
 
