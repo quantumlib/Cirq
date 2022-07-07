@@ -21,13 +21,13 @@ methods.
 import abc
 import datetime
 
-from typing import Dict, Iterable, List, Optional, Sequence, TYPE_CHECKING, Union
+from typing import Dict, List, Optional, Sequence, TYPE_CHECKING, Union
 
 import cirq
 
 from cirq_google.api import v2
 from cirq_google.cloud import quantum
-from cirq_google.engine import calibration, util
+from cirq_google.engine import calibration
 
 if TYPE_CHECKING:
     import cirq_google as cg

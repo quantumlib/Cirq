@@ -27,7 +27,7 @@ import datetime
 import enum
 import random
 import string
-from typing import Dict, Iterable, List, Optional, Sequence, Set, TypeVar, Union, TYPE_CHECKING
+from typing import Dict, List, Optional, Sequence, Set, TypeVar, Union, TYPE_CHECKING
 
 import duet
 import google.auth
@@ -47,7 +47,7 @@ from cirq_google.engine import (
 )
 from cirq_google.cloud import quantum
 from cirq_google.engine.result_type import ResultType
-from cirq_google.serialization import CIRCUIT_SERIALIZER, SerializableGateSet, Serializer
+from cirq_google.serialization import CIRCUIT_SERIALIZER, Serializer
 from cirq_google.serialization.arg_func_langs import arg_to_proto
 
 if TYPE_CHECKING:

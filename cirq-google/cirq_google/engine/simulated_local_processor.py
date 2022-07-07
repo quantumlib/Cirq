@@ -13,12 +13,12 @@
 # limitations under the License.
 import datetime
 
-from typing import Dict, Iterable, List, Optional, Sequence, TYPE_CHECKING, Union
+from typing import Dict, List, Optional, Sequence, TYPE_CHECKING, Union
 
 import cirq
 
 from cirq_google.api import v2
-from cirq_google.engine import calibration, util, validating_sampler
+from cirq_google.engine import calibration, validating_sampler
 from cirq_google.engine.abstract_local_processor import AbstractLocalProcessor
 from cirq_google.engine.abstract_local_program import AbstractLocalProgram
 from cirq_google.engine.abstract_program import AbstractProgram
