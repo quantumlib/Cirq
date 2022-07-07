@@ -1,115 +1,18 @@
-# pylint: disable=wrong-or-nonexistent-copyright-notice
-import os
-import numpy as np
-import cirq
-from cirq.experiments import (
-    collect_grid_parallel_two_qubit_xeb_data,
-    compute_grid_parallel_two_qubit_xeb_results,
-)
+# Copyright 2022 The Cirq Developers
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     https://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
 from cirq.experiments.grid_parallel_two_qubit_xeb import GridParallelXEBMetadata, LAYER_A, LAYER_B
-
-ALIGNED_HORIZONTAL = cirq.experiments.GridInteractionLayer(
-    col_offset=0, vertical=False, stagger=False
-)
-ALIGNED_VERTICAL = cirq.experiments.GridInteractionLayer(col_offset=0, vertical=True, stagger=False)
-
-
-_DEPRECATION_MESSAGE = 'Use cirq.experiments.xeb_fitting.XEBCharacterizationResult instead'
-_DEPRECATION_RECIRQ = 'Use recirq.benchmarks.xeb.collect_grid_parallel_two_qubit_xeb_data instead.'
-
-
-def test_estimate_parallel_two_qubit_xeb_fidelity_on_grid_no_noise(tmpdir):
-    # No noise, fidelities should be close to 1
-    base_dir = os.path.abspath(tmpdir)
-    qubits = cirq.GridQubit.square(2)
-    two_qubit_gate = cirq.ISWAP**0.5
-    cycles = [5, 10, 15]
-    with cirq.testing.assert_deprecated(_DEPRECATION_RECIRQ, deadline='v0.16'):
-        data_collection_id = collect_grid_parallel_two_qubit_xeb_data(
-            sampler=cirq.Simulator(seed=34310, split_untangled_states=False),
-            qubits=qubits,
-            two_qubit_gate=two_qubit_gate,
-            num_circuits=2,
-            repetitions=1_000,
-            cycles=cycles,
-            layers=(ALIGNED_HORIZONTAL, ALIGNED_VERTICAL),
-            seed=43435,
-            num_workers=1,
-            base_dir=base_dir,
-        )
-    with cirq.testing.assert_deprecated(_DEPRECATION_MESSAGE, deadline='v0.16', count=6):
-        results = compute_grid_parallel_two_qubit_xeb_results(data_collection_id, base_dir=base_dir)
-
-    assert len(results) == 4
-    for result in results.values():
-        depolarizing_model = result.depolarizing_model()
-        np.testing.assert_allclose(depolarizing_model.cycle_depolarization, 1.0, atol=1e-2)
-        purity_depolarizing_model = result.purity_depolarizing_model()
-        np.testing.assert_allclose(
-            depolarizing_model.cycle_depolarization,
-            purity_depolarizing_model.cycle_depolarization,
-            atol=3e-2,
-        )
-
-
-def test_estimate_parallel_two_qubit_xeb_fidelity_on_grid_depolarizing(tmpdir):
-    # With depolarizing probability e
-    base_dir = os.path.abspath(tmpdir)
-    qubits = cirq.GridQubit.square(2)
-    two_qubit_gate = cirq.ISWAP**0.5
-    cycles = [5, 10, 15]
-    e = 0.01
-    with cirq.testing.assert_deprecated(_DEPRECATION_MESSAGE, deadline='v0.16', count=7):
-        data_collection_id = collect_grid_parallel_two_qubit_xeb_data(
-            sampler=cirq.DensityMatrixSimulator(
-                noise=cirq.depolarize(e), seed=65008, split_untangled_states=False
-            ),
-            qubits=qubits,
-            two_qubit_gate=two_qubit_gate,
-            num_circuits=2,
-            repetitions=1_000,
-            cycles=cycles,
-            layers=(ALIGNED_HORIZONTAL, ALIGNED_VERTICAL),
-            seed=np.random.RandomState(14948),
-            num_workers=1,
-            base_dir=base_dir,
-        )
-        results = compute_grid_parallel_two_qubit_xeb_results(
-            data_collection_id, num_processors=4, base_dir=base_dir
-        )
-
-    assert len(results) == 4
-    for result in results.values():
-        depolarizing_model = result.depolarizing_model()
-        purity_depolarizing_model = result.purity_depolarizing_model()
-        cycle_pauli_error = (1 - depolarizing_model.cycle_depolarization) * 15 / 16
-        purity_error = (1 - purity_depolarizing_model.cycle_depolarization) * 15 / 16
-        np.testing.assert_allclose(1 - cycle_pauli_error, (1 - e) ** 4, atol=1e-2)
-        np.testing.assert_allclose(1 - purity_error, (1 - e) ** 4, atol=5e-2)
-
-
-def test_estimate_parallel_two_qubit_xeb_fidelity_on_grid_concurrent(tmpdir):
-    # Use multiple threads during data collection
-    base_dir = os.path.abspath(tmpdir)
-    qubits = cirq.GridQubit.square(2)
-    two_qubit_gate = cirq.ISWAP**0.5
-    cycles = [5, 10, 15]
-    with cirq.testing.assert_deprecated(_DEPRECATION_MESSAGE, deadline='v0.16', count=7):
-        data_collection_id = collect_grid_parallel_two_qubit_xeb_data(
-            sampler=cirq.Simulator(seed=34310),
-            qubits=qubits,
-            two_qubit_gate=two_qubit_gate,
-            num_circuits=2,
-            repetitions=1_000,
-            cycles=cycles,
-            layers=(ALIGNED_HORIZONTAL, ALIGNED_VERTICAL),
-            seed=43435,
-            num_workers=4,
-            base_dir=base_dir,
-        )
-        results = compute_grid_parallel_two_qubit_xeb_results(data_collection_id, base_dir=base_dir)
-
-        assert len(results) == 4
+import cirq
 
 
 def test_grid_parallel_xeb_metadata_repr():

@@ -544,7 +544,7 @@ class LocalXEBPhasedFSimCalibrationOptions(XEBPhasedFSimCalibrationOptions):
     These "Local" options (corresponding to `LocalXEBPhasedFSimCalibrationRequest`) instruct
     `cirq_google.run_calibrations` to execute XEB analysis locally (not via the quantum
     engine). As such, `run_calibrations` can work with any `cirq.Sampler`, not just
-    `QuantumEngineSampler`.
+    `ProcessorSampler`.
 
     Args:
         n_library_circuits: The number of distinct, two-qubit random circuits to use in our
@@ -864,7 +864,7 @@ class LocalXEBPhasedFSimCalibrationRequest(PhasedFSimCalibrationRequest):
     A "Local" request (corresponding to `LocalXEBPhasedFSimCalibrationOptions`) instructs
     `cirq_google.run_calibrations` to execute XEB analysis locally (not via the quantum
     engine). As such, `run_calibrations` can work with any `cirq.Sampler`, not just
-    `QuantumEngineSampler`.
+    `ProcessorSampler`.
 
     Attributes:
         options: local-XEB-specific characterization options.
