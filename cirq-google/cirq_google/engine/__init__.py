@@ -67,8 +67,6 @@ from cirq_google.engine.runtime_estimator import (
     estimate_run_sweep_time,
 )
 
-from cirq_google.engine.engine_sampler import QuantumEngineSampler
-
 from cirq_google.engine.validating_sampler import ValidatingSampler
 
 from cirq_google.engine.virtual_engine_factory import (
