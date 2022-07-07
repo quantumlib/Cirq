@@ -205,11 +205,9 @@ def create_noiseless_virtual_engine_from_device(
     return SimulatedLocalEngine([_create_virtual_processor_from_device(processor_id, device)])
 
 
-@util.deprecated_get_device_gate_sets_parameter()
 def create_noiseless_virtual_processor_from_proto(
     processor_id: str,
     device_specification: v2.device_pb2.DeviceSpecification,
-    gate_sets: Optional[Iterable[serializable_gate_set.SerializableGateSet]] = None,
 ) -> SimulatedLocalProcessor:
     """Creates a simulated local processor from a device specification proto.
 
@@ -230,13 +228,11 @@ def create_noiseless_virtual_processor_from_proto(
     return processor
 
 
-@util.deprecated_get_device_gate_sets_parameter()
 def create_noiseless_virtual_engine_from_proto(
     processor_ids: Union[str, List[str]],
     device_specifications: Union[
         v2.device_pb2.DeviceSpecification, List[v2.device_pb2.DeviceSpecification]
     ],
-    gate_sets: Optional[Iterable[serializable_gate_set.SerializableGateSet]] = None,
 ) -> SimulatedLocalEngine:
     """Creates a noiseless virtual engine object from a device specification proto.
 
@@ -298,11 +294,9 @@ def create_device_from_processor_id(processor_id: str) -> cirq.Device:
     return grid_device.GridDevice.from_proto(device_specification)
 
 
-@util.deprecated_get_device_gate_sets_parameter()
 def create_noiseless_virtual_processor_from_template(
     processor_id: str,
     template_name: str,
-    gate_sets: Optional[Iterable[serializable_gate_set.SerializableGateSet]] = None,
 ) -> SimulatedLocalProcessor:
     """Creates a simulated local processor from a device specification template.
 
@@ -319,11 +313,9 @@ def create_noiseless_virtual_processor_from_template(
     )
 
 
-@util.deprecated_get_device_gate_sets_parameter()
 def create_noiseless_virtual_engine_from_templates(
     processor_ids: Union[str, List[str]],
     template_names: Union[str, List[str]],
-    gate_sets: Optional[Iterable[serializable_gate_set.SerializableGateSet]] = None,
 ) -> SimulatedLocalEngine:
     """Creates a noiseless virtual engine object from a device specification template.
 

@@ -314,8 +314,7 @@ class EngineProcessor(abstract_processor.AbstractProcessor):
         else:
             return None
 
-    @util.deprecated_get_device_gate_sets_parameter()
-    def get_device(self, gate_sets: Iterable[serializer.Serializer] = ()) -> cirq.Device:
+    def get_device(self) -> cirq.Device:
         """Returns a `Device` created from the processor's device specification.
 
         This method queries the processor to retrieve the device specification,

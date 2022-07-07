@@ -826,11 +826,9 @@ def get_engine(project_id: Optional[str] = None) -> Engine:
     return Engine(project_id=project_id, service_args=service_args)
 
 
-@util.deprecated_get_device_gate_sets_parameter(param_name='gatesets')
 def get_engine_device(
     processor_id: str,
     project_id: Optional[str] = None,
-    gatesets: Iterable[SerializableGateSet] = (),
 ) -> cirq.Device:
     """Returns a `Device` object for a given processor.
 
