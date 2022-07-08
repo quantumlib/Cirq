@@ -63,7 +63,7 @@ def _class_resolver_dictionary() -> Dict[str, ObjectFactory]:
 
     def _cross_entropy_result_dict(
         results: List[Tuple[List['cirq.Qid'], Dict[str, Any]]], **kwargs
-    ) -> Dict[Tuple['cirq.Qid', 'cirq.Qid'], Any]:
+    ) -> Dict[Tuple['cirq.Qid', ...], Any]:
         return {tuple(qubits): result for qubits, result in results}
 
     def _parallel_gate_op(gate, qubits):
