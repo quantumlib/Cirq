@@ -22,21 +22,19 @@ if TYPE_CHECKING:
 
 
 class AbstractControlValues(abc.ABC):
-    """AbstractControlValues is an abstract class that defines an API for
+    """Abstract base class defining the API for control values.
 
-       control values and implements functions common to all implementations
-       (e.g.  comparison).
+    `AbstractControlValues` is an abstract class that defines the API for control values
+    and implements functions common to all implementations (e.g.  comparison).
 
     `cirq.ControlledGate` and `cirq.ControlledOperation` are useful to augment
-    existing gates
-    and operations to have one or more control qubits. For every control qubit,
-    the set of
-    integer values for which the control should be enabled is represented by one
-    of the implementations of `cirq.AbstractControlValues`.
+    existing gates and operations to have one or more control qubits. For every
+    control qubit, the set of integer values for which the control should be enabled
+    is represented by one of the implementations of `cirq.AbstractControlValues`.
+
     Implementations of `cirq.AbstractControlValues` can use different internal
-    representations to store control values, but they have to inherits from this
-    abstract class or one of its descendet, satisfy the public API defined here,
-    and be immutable.
+    representations to store control values, but they must satisfy the public API
+    defined here and be immutable.
     """
 
     @abc.abstractmethod
@@ -52,9 +50,7 @@ class AbstractControlValues(abc.ABC):
 
     @abc.abstractmethod
     def _expand(self) -> Iterator[Tuple[int, ...]]:
-        """Returns a plain sum of product representation of the values instead
-        of the (possibly compressed) internal representation.
-        """
+        """Expands the (possibly compressed) internal representation into a sum of products representation."""  # pylint: disable=line-too-long
 
     @abc.abstractmethod
     def diagram_repr(self) -> str:
@@ -104,7 +100,6 @@ class AbstractControlValues(abc.ABC):
 
     def __iter__(self) -> Generator[Tuple[int, ...], None, None]:
         for assignment in self._expand():
-            assignment = cast(Tuple[int, ...], assignment)
             yield assignment
 
     def __eq__(self, other) -> bool:

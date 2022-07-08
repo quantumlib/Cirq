@@ -46,3 +46,9 @@ def test_and_supported_types():
     CV = cv.ProductOfSums((1,))
     with pytest.raises(TypeError):
         _ = CV & 1
+
+
+def test_repr():
+    product_of_sums_data = [((1,),), ((0, 1), (1,)), (((0, 1), (1, 0)))]
+    for t in map(cv.ProductOfSums, product_of_sums_data):
+        cirq.testing.assert_equivalent_repr(t)
