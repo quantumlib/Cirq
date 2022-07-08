@@ -526,54 +526,8 @@ def test_missing_iter_definitions():
 
 def test_trial_result_initializer():
     resolver = cirq.ParamResolver()
-    step = mock.Mock(cirq.StepResultBase)
-    step._simulator_state.return_value = 1
     state = 3
     x = SimulationTrialResult(resolver, {}, state)
     assert x._final_simulator_state == 3
     x = SimulationTrialResult(resolver, {}, final_simulator_state=state)
     assert x._final_simulator_state == 3
-
-
-def test_deprecated_create_act_on_args():
-    class DeprecatedSim(cirq.SimulatesIntermediateState):
-        def _create_act_on_args(self, initial_state, qubits):
-            return 0
-
-        def _core_iterator(self, circuit, sim_state):
-            pass
-
-        def _create_simulator_trial_result(self):
-            pass
-
-    sim = DeprecatedSim()
-    with cirq.testing.assert_deprecated(deadline='v0.16', count=2):
-        sim.simulate_moment_steps(cirq.Circuit())
-
-
-def test_deprecated_qubits_param():
-    class Sim(cirq.SimulatesIntermediateState):
-        def _create_simulation_state(self, initial_state, qubits):
-            return 0
-
-        def _core_iterator(self, circuit, sim_state):
-            pass
-
-        def _create_simulator_trial_result(self):
-            pass
-
-    with cirq.testing.assert_deprecated(
-        '`qubits` parameter of `_base_iterator', deadline='v0.16', count=2
-    ):
-        Sim()._base_iterator(cirq.Circuit(), cirq.QubitOrder.explicit([]), 0)
-
-
-def test_deprecated_setters():
-    step = FakeStepResult()
-    result = cirq.SimulationTrialResult(cirq.ParamResolver(), {}, 0)
-    with cirq.testing.assert_deprecated(deadline='v0.16'):
-        step.measurements = {}
-    with cirq.testing.assert_deprecated(deadline='v0.16'):
-        result.measurements = {}
-    with cirq.testing.assert_deprecated(deadline='v0.16'):
-        result.params = cirq.ParamResolver()
