@@ -25,7 +25,7 @@ import numpy as np
 import quimb.tensor as qtn
 
 from cirq import devices, protocols, qis, value
-from cirq.sim import simulator, simulator_base
+from cirq.sim import simulator_base
 from cirq.sim.simulation_state import SimulationState
 
 if TYPE_CHECKING:
@@ -142,7 +142,6 @@ class MPSSimulator(
 class MPSTrialResult(simulator_base.SimulationTrialResultBase['MPSState']):
     """A single trial reult"""
 
-    @simulator._deprecated_step_result_parameter(old_position=3)
     def __init__(
         self,
         params: 'cirq.ParamResolver',
