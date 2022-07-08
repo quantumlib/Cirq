@@ -51,7 +51,7 @@ def _class_resolver_dictionary() -> Dict[str, ObjectFactory]:
             matrix = np.array(matrix, dtype=np.complex128)
         return cirq.MatrixGate(matrix, qid_shape=(2, 2))
 
-    def _cross_entropy_result(data, repetitions, **kwargs):
+    def _cross_entropy_result(data, repetitions, **kwargs) -> Dict[str, Any]:
         purity_data = kwargs.get('purity_data', None)
         if purity_data is not None:
             purity_data = [(d, f) for d, f in purity_data]
@@ -63,7 +63,7 @@ def _class_resolver_dictionary() -> Dict[str, ObjectFactory]:
 
     def _cross_entropy_result_dict(
         results: List[Tuple[List['cirq.Qid'], Dict[str, Any]]], **kwargs
-    ) -> 'CrossEntropyResultDict':
+    ) -> Dict[Tuple['cirq.Qid', 'cirq.Qid'], Any]:
         return {tuple(qubits): result for qubits, result in results}
 
     def _parallel_gate_op(gate, qubits):
