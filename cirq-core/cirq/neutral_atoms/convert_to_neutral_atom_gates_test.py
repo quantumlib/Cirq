@@ -46,4 +46,5 @@ Q, Q2, Q3 = cirq.LineQubit.range(3)
 )
 def test_gateset(op: cirq.Operation, expected: bool):
     assert cirq.is_native_neutral_atom_op(op) == expected
-    assert cirq.is_native_neutral_atom_gate(op.gate) == expected
+    if op.gate is not None:
+        assert cirq.is_native_neutral_atom_gate(op.gate) == expected
