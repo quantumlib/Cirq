@@ -16,7 +16,7 @@ from typing import Any, Sequence, TYPE_CHECKING, Union
 
 from typing_extensions import Protocol
 
-from cirq import _compat, ops
+from cirq import ops
 from cirq._doc import doc_private
 from cirq.type_workarounds import NotImplementedType
 
@@ -86,19 +86,6 @@ class SupportsActOnQubits(Protocol):
         """
 
 
-def _fix_deprecated_args(args, kwargs):
-    kwargs['sim_state'] = kwargs['args']
-    del kwargs['args']
-    return args, kwargs
-
-
-@_compat.deprecated_parameter(
-    deadline='v0.16',
-    fix='Change argument name to `sim_state`',
-    parameter_desc='args',
-    match=lambda args, kwargs: 'args' in kwargs,
-    rewrite=_fix_deprecated_args,
-)
 def act_on(
     action: Any,
     sim_state: 'cirq.SimulationStateBase',

@@ -1,5 +1,18 @@
-# pylint: disable=wrong-or-nonexistent-copyright-notice
-from typing import Optional, Iterator
+# Copyright 2022 The Cirq Developers
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     https://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+from typing import Iterator
 
 import networkx as nx
 
@@ -87,37 +100,6 @@ def get_grid_moments(
             get_neighbor=lambda row, col: (row + 1, col),
         )
     )
-
-
-@cirq._compat.deprecated_class(deadline='v0.16', fix="Use cirq.merge_k_qubit_unitaries")
-class MergeNQubitGates(cirq.PointOptimizer):
-    """Optimizes runs of adjacent unitary n-qubit operations."""
-
-    def __init__(self, *, n_qubits: int):
-        super().__init__()
-        self.n_qubits = n_qubits
-
-    def optimization_at(
-        self, circuit: cirq.Circuit, index: int, op: cirq.Operation
-    ) -> Optional[cirq.PointOptimizationSummary]:
-        if len(op.qubits) != self.n_qubits:
-            return None
-
-        frontier = {q: index for q in op.qubits}
-        op_list = circuit.findall_operations_until_blocked(
-            frontier, is_blocker=lambda next_op: next_op.qubits != op.qubits
-        )
-        if len(op_list) <= 1:
-            return None
-        operations = [op for idx, op in op_list]
-        indices = [idx for idx, op in op_list]
-        matrix = cirq.linalg.dot(*(cirq.unitary(op) for op in operations[::-1]))
-
-        return cirq.PointOptimizationSummary(
-            clear_span=max(indices) + 1 - index,
-            clear_qubits=op.qubits,
-            new_operations=[cirq.MatrixGate(matrix).on(*op.qubits)],
-        )
 
 
 def simplify_expectation_value_circuit(circuit_sand: cirq.Circuit):

@@ -110,15 +110,10 @@ from cirq.experiments import (
     estimate_parallel_single_qubit_readout_errors,
     estimate_single_qubit_readout_errors,
     hog_score_xeb_fidelity_from_probabilities,
-    least_squares_xeb_fidelity_from_expectations,
-    least_squares_xeb_fidelity_from_probabilities,
     linear_xeb_fidelity,
     linear_xeb_fidelity_from_probabilities,
     log_xeb_fidelity,
     log_xeb_fidelity_from_probabilities,
-    generate_boixo_2018_supremacy_circuits_v2,
-    generate_boixo_2018_supremacy_circuits_v2_bristlecone,
-    generate_boixo_2018_supremacy_circuits_v2_grid,
     measure_confusion_matrix,
     xeb_fidelity,
 )
@@ -186,7 +181,6 @@ from cirq.ops import (
     AnyIntegerPowerGateFamily,
     AnyUnitaryGateFamily,
     ArithmeticGate,
-    ArithmeticOperation,
     asymmetric_depolarize,
     AsymmetricDepolarizingChannel,
     BaseDensePauliString,
@@ -450,13 +444,6 @@ from cirq.qis import (
 )
 
 from cirq.sim import (
-    ActOnArgs,
-    ActOnArgsContainer,
-    ActOnCliffordTableauArgs,
-    ActOnDensityMatrixArgs,
-    ActOnStabilizerCHFormArgs,
-    ActOnStabilizerArgs,
-    ActOnStateVectorArgs,
     CIRCUIT_LIKE,
     CliffordSimulator,
     CliffordState,
@@ -465,14 +452,12 @@ from cirq.sim import (
     CliffordTrialResult,
     DensityMatrixSimulationState,
     DensityMatrixSimulator,
-    DensityMatrixSimulatorState,
     DensityMatrixStepResult,
     DensityMatrixTrialResult,
     measure_density_matrix,
     measure_state_vector,
     final_density_matrix,
     final_state_vector,
-    OperationTarget,
     sample,
     sample_density_matrix,
     sample_state_vector,
@@ -497,7 +482,6 @@ from cirq.sim import (
     StabilizerStateChForm,
     StateVectorMixin,
     StateVectorSimulationState,
-    StateVectorSimulatorState,
     StateVectorStepResult,
     StateVectorTrialResult,
     StepResult,
@@ -707,20 +691,5 @@ _register_resolver(_class_resolver_dictionary)
 # contrib's json resolver cache depends on cirq.DEFAULT_RESOLVER
 
 from cirq import contrib
-
-# deprecate cirq.ops and related attributes
-
-from cirq import _compat
-
-_compat.deprecated_submodule(
-    new_module_name='cirq.circuits.moment',
-    old_parent='cirq.ops',
-    old_child='moment',
-    deadline='v0.16',
-    create_attribute=True,
-)
-
-ops.Moment = Moment  # type: ignore
-_compat.deprecate_attributes('cirq.ops', {'Moment': ('v0.16', 'Use cirq.circuits.Moment instead')})
 
 # pylint: enable=wrong-import-position

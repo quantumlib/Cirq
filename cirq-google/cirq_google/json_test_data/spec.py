@@ -49,7 +49,6 @@ TestSpec = ModuleJsonTestSpec(
         'PerQubitDepolarizingWithDampedReadoutNoiseModel',
         'SerializingArg',
         'THETA_ZETA_GAMMA_FLOQUET_PHASED_FSIM_CHARACTERIZATION',
-        'QuantumEngineSampler',
         'ProcessorSampler',
         'ValidatingSampler',
         'CouldNotPlaceError',
