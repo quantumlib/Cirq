@@ -655,7 +655,6 @@ from cirq.protocols import (
     with_rescoped_keys,
 )
 
-from cirq.ion import IonDevice
 from cirq.neutral_atoms import (
     ConvertToNeutralAtomGates,
     is_native_neutral_atom_gate,
