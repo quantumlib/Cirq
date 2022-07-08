@@ -1003,7 +1003,7 @@ class AbstractCircuit(abc.ABC):
         qubit_order: 'cirq.QubitOrderOrList' = ops.QubitOrder.DEFAULT,
         qubits_that_should_be_present: Iterable['cirq.Qid'] = (),
         ignore_terminal_measurements: bool = True,
-        dtype: Type[np.complexfloating] = np.complex64,
+        dtype: Type[np.complexfloating] = np.complex128,
     ) -> np.ndarray:
         """Converts the circuit into a unitary matrix, if possible.
 
@@ -1018,10 +1018,11 @@ class AbstractCircuit(abc.ABC):
             ignore_terminal_measurements: When set, measurements at the end of
                 the circuit are ignored instead of causing the method to
                 fail.
-            dtype: The numpy dtype for the returned unitary. `dtype` must be
-                a complex np.dtype, unless all operations in the circuit have
-                unitary matrices with exclusively real coefficients
-                (e.g. an H + TOFFOLI circuit).
+            dtype: The numpy dtype for the returned unitary. Defaults to
+                np.complex128. Specifying np.complex64 will run faster at the
+                cost of precision. `dtype` must be a complex np.dtype, unless
+                all operations in the circuit have unitary matrices with
+                exclusively real coefficients (e.g. an H + TOFFOLI circuit).
 
         Returns:
             A (possibly gigantic) 2d numpy array corresponding to a matrix
@@ -1093,7 +1094,7 @@ class AbstractCircuit(abc.ABC):
         qubit_order: 'cirq.QubitOrderOrList' = ops.QubitOrder.DEFAULT,
         qubits_that_should_be_present: Iterable['cirq.Qid'] = (),
         ignore_terminal_measurements: Optional[bool] = None,
-        dtype: Optional[Type[np.complexfloating]] = None,
+        dtype: Type[np.complexfloating] = np.complex128,
         param_resolver: 'cirq.ParamResolverOrSimilarType' = None,
         seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None,
     ) -> np.ndarray:
@@ -1142,14 +1143,6 @@ class AbstractCircuit(abc.ABC):
                     '`ignore_terminal_measurements=True` when calling this method.'
                 )
             ignore_terminal_measurements = True
-
-        if dtype is None:
-            _compat._warn_or_error(
-                '`dtype` will default to np.complex64 in v0.16. '
-                'To use the previous default, please explicitly include '
-                '`dtype=np.complex128` when calling this method.'
-            )
-            dtype = np.complex128
 
         from cirq.sim.mux import final_state_vector
 
@@ -1473,64 +1466,6 @@ class AbstractCircuit(abc.ABC):
             >>> A = cirq.Circuit(cirq.H(a))
             >>> B = cirq.Circuit(cirq.H(b))
             >>> f = cirq.Circuit.concat_ragged
-            >>> f(f(A, B), A) == f(A, f(B, A))
-            False
-            >>> len(f(f(f(A, B), A), B)) == len(f(f(A, f(B, A)), B))
-            False
-
-        Args:
-            *circuits: The circuits to concatenate.
-            align: When to stop when sliding the circuits together.
-                'left': Stop when the starts of the circuits align.
-                'right': Stop when the ends of the circuits align.
-                'first': Stop the first time either the starts or the ends align. Circuits
-                    are never overlapped more than needed to align their starts (in case
-                    the left circuit is smaller) or to align their ends (in case the right
-                    circuit is smaller)
-
-        Returns:
-            The concatenated and overlapped circuit.
-        """
-        if len(circuits) == 0:
-            return Circuit()
-        n_acc = len(circuits[0])
-
-        if isinstance(align, str):
-            align = Alignment[align.upper()]
-
-        # Allocate a buffer large enough to append and prepend all the circuits.
-        pad_len = sum(len(c) for c in circuits) - n_acc
-        buffer = np.zeros(shape=pad_len * 2 + n_acc, dtype=object)
-
-        # Put the initial circuit in the center of the buffer.
-        offset = pad_len
-        buffer[offset : offset + n_acc] = circuits[0].moments
-
-        # Accumulate all the circuits into the buffer.
-        for k in range(1, len(circuits)):
-            offset, n_acc = _concat_ragged_helper(offset, n_acc, buffer, circuits[k].moments, align)
-
-        return cirq.Circuit(buffer[offset : offset + n_acc])
-
-    @_compat.deprecated(deadline='v0.16', fix='Renaming to concat_ragged')
-    def tetris_concat(
-        *circuits: 'cirq.AbstractCircuit', align: Union['cirq.Alignment', str] = Alignment.LEFT
-    ) -> 'cirq.AbstractCircuit':
-        """Concatenates circuits while overlapping them if possible.
-
-        Starts with the first circuit (index 0), then iterates over the other
-        circuits while folding them in. To fold two circuits together, they
-        are placed one after the other and then moved inward until just before
-        their operations would collide. If any of the circuits do not share
-        qubits and so would not collide, the starts or ends of the circuits will
-        be aligned, acording to the given align parameter.
-
-        Beware that this method is *not* associative. For example:
-
-            >>> a, b = cirq.LineQubit.range(2)
-            >>> A = cirq.Circuit(cirq.H(a))
-            >>> B = cirq.Circuit(cirq.H(b))
-            >>> f = cirq.Circuit.tetris_concat
             >>> f(f(A, B), A) == f(A, f(B, A))
             False
             >>> len(f(f(f(A, B), A), B)) == len(f(f(A, f(B, A)), B))
@@ -1915,14 +1850,6 @@ class Circuit(AbstractCircuit):
         return AbstractCircuit.concat_ragged(*circuits, align=align).unfreeze(copy=False)
 
     concat_ragged.__doc__ = AbstractCircuit.concat_ragged.__doc__
-
-    @_compat.deprecated(deadline='v0.16', fix='Renaming to concat_ragged')
-    def tetris_concat(
-        *circuits: 'cirq.AbstractCircuit', align: Union['cirq.Alignment', str] = Alignment.LEFT
-    ) -> 'cirq.Circuit':
-        return AbstractCircuit.tetris_concat(*circuits, align=align).unfreeze(copy=False)
-
-    tetris_concat.__doc__ = AbstractCircuit.tetris_concat.__doc__
 
     def zip(
         *circuits: 'cirq.AbstractCircuit', align: Union['cirq.Alignment', str] = Alignment.LEFT
@@ -2696,9 +2623,11 @@ def _apply_unitary_circuit(
         on_stuck_raise=on_stuck,
     )
 
-    return protocols.apply_unitaries(
+    result = protocols.apply_unitaries(
         unitary_ops, qubits, protocols.ApplyUnitaryArgs(state, buffer, range(len(qubits)))
     )
+    assert result is not None, "apply_unitaries() should raise TypeError instead"
+    return result
 
 
 def _decompose_measurement_inversions(op: 'cirq.Operation') -> 'cirq.OP_TREE':

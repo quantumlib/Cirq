@@ -14,7 +14,7 @@
 """Gates (unitary and non-unitary), operations, base types, and gate sets.
 """
 
-from cirq.ops.arithmetic_operation import ArithmeticGate, ArithmeticOperation
+from cirq.ops.arithmetic_operation import ArithmeticGate
 
 from cirq.ops.clifford_gate import CliffordGate, PauliTransform, SingleQubitCliffordGate
 
@@ -95,7 +95,7 @@ from cirq.ops.gateset import GateFamily, Gateset
 
 from cirq.ops.identity import I, identity_each, IdentityGate
 
-from cirq.ops.global_phase_op import GlobalPhaseGate, GlobalPhaseOperation, global_phase_operation
+from cirq.ops.global_phase_op import GlobalPhaseGate, global_phase_operation
 
 from cirq.ops.kraus_channel import KrausChannel
 
@@ -209,3 +209,5 @@ from cirq.ops.two_qubit_diagonal_gate import TwoQubitDiagonalGate
 from cirq.ops.wait_gate import wait, WaitGate
 
 from cirq.ops.state_preparation_channel import StatePreparationChannel
+
+from cirq.ops.control_values import AbstractControlValues, ProductOfSums

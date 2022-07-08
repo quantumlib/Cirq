@@ -11,11 +11,3 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
-from cirq import _compat
-from cirq.sim.state_vector_simulation_state import StateVectorSimulationState
-
-
-@_compat.deprecated_class(deadline='v0.16', fix='Use cirq.StateVectorSimulationState instead.')
-class ActOnStateVectorArgs(StateVectorSimulationState):
-    pass

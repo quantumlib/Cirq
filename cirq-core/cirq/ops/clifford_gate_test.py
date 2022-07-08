@@ -329,16 +329,22 @@ def test_eq_ne_and_hash():
 
 
 @pytest.mark.parametrize(
-    'gate,rep',
+    'gate',
     (
-        (cirq.SingleQubitCliffordGate.I, 'cirq.SingleQubitCliffordGate(X:+X, Y:+Y, Z:+Z)'),
-        (cirq.SingleQubitCliffordGate.H, 'cirq.SingleQubitCliffordGate(X:+Z, Y:-Y, Z:+X)'),
-        (cirq.SingleQubitCliffordGate.X, 'cirq.SingleQubitCliffordGate(X:+X, Y:-Y, Z:-Z)'),
-        (cirq.SingleQubitCliffordGate.X_sqrt, 'cirq.SingleQubitCliffordGate(X:+X, Y:+Z, Z:-Y)'),
+        cirq.SingleQubitCliffordGate.I,
+        cirq.SingleQubitCliffordGate.H,
+        cirq.SingleQubitCliffordGate.X,
+        cirq.SingleQubitCliffordGate.X_sqrt,
     ),
 )
-def test_repr(gate, rep):
-    assert repr(gate) == rep
+def test_repr_gate(gate):
+    cirq.testing.assert_equivalent_repr(gate)
+
+
+def test_repr_operation():
+    cirq.testing.assert_equivalent_repr(
+        cirq.SingleQubitCliffordGate.from_pauli(cirq.Z).on(cirq.LineQubit(2))
+    )
 
 
 @pytest.mark.parametrize(

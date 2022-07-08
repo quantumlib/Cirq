@@ -25,7 +25,7 @@ def square_device(
 ) -> neutral_atoms.NeutralAtomDevice:
     us = cirq.Duration(nanos=10**3) if not use_timedelta else timedelta(microseconds=1)
     ms = cirq.Duration(nanos=10**6) if not use_timedelta else timedelta(microseconds=1000)
-    with cirq.testing.assert_deprecated("Use cirq_pasqal.PasqalDevice", deadline='v0.16', count=2):
+    with cirq.testing.assert_deprecated("Use cirq_pasqal.PasqalDevice", deadline='v0.16'):
         return neutral_atoms.NeutralAtomDevice(  # type: ignore
             measurement_duration=50 * ms,  # type: ignore
             gate_duration=100 * us,  # type: ignore
@@ -92,9 +92,7 @@ def test_init_errors():
     us = cirq.Duration(nanos=10**3)
     ms = cirq.Duration(nanos=10**6)
     with pytest.raises(ValueError, match="Unsupported qubit type"):
-        with cirq.testing.assert_deprecated(
-            "Use cirq_pasqal.PasqalDevice", deadline='v0.16', count=2
-        ):
+        with cirq.testing.assert_deprecated("Use cirq_pasqal.PasqalDevice", deadline='v0.16'):
             _ = neutral_atoms.NeutralAtomDevice(
                 measurement_duration=50 * ms,
                 gate_duration=100 * us,

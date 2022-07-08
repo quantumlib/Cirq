@@ -113,9 +113,7 @@ class KeyCondition(Condition):
 
     @property
     def qasm(self):
-        if self.index != -1:
-            raise NotImplementedError('Only most recent measurement at key can be used for QASM.')
-        return f'm_{self.key}!=0'
+        raise ValueError('QASM is defined only for SympyConditions of type key == constant.')
 
 
 @dataclasses.dataclass(frozen=True)
@@ -162,4 +160,8 @@ class SympyCondition(Condition):
 
     @property
     def qasm(self):
-        raise NotImplementedError()
+        if isinstance(self.expr, sympy.Equality):
+            if isinstance(self.expr.lhs, sympy.Symbol) and isinstance(self.expr.rhs, sympy.Integer):
+                # Measurements get prepended with "m_", so the condition needs to be too.
+                return f'm_{self.expr.lhs}=={self.expr.rhs}'
+        raise ValueError('QASM is defined only for SympyConditions of type key == constant.')

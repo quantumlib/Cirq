@@ -51,7 +51,6 @@ def test_parameterized_decompose():
         np.testing.assert_allclose(
             cirq.unitary(cirq.resolve_parameters(parameterized_op, resolver)),
             cirq.unitary(cirq.resolve_parameters(decomposed_circuit, resolver)),
-            atol=1e-6,
         )
 
 

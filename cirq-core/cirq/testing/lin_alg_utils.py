@@ -164,7 +164,7 @@ def assert_allclose_up_to_global_phase(
     rtol: float = 1e-7,
     atol: float,  # Require atol to be specified
     equal_nan: bool = True,
-    err_msg: Optional[str] = '',
+    err_msg: str = '',
     verbose: bool = True,
 ) -> None:
     """Checks if a ~= b * exp(i t) for some t.

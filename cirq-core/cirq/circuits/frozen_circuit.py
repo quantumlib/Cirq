@@ -20,7 +20,6 @@ from cirq import ops, protocols
 from cirq.circuits import AbstractCircuit, Alignment, Circuit
 from cirq.circuits.insert_strategy import InsertStrategy
 from cirq.type_workarounds import NotImplementedType
-from cirq import ops, protocols, _compat
 
 if TYPE_CHECKING:
     import cirq
@@ -171,14 +170,6 @@ class FrozenCircuit(AbstractCircuit, protocols.SerializableByKey):
         return AbstractCircuit.concat_ragged(*circuits, align=align).freeze()
 
     concat_ragged.__doc__ = AbstractCircuit.concat_ragged.__doc__
-
-    @_compat.deprecated(deadline='v0.16', fix='Renaming to concat_ragged')
-    def tetris_concat(
-        *circuits: 'cirq.AbstractCircuit', align: Union['cirq.Alignment', str] = Alignment.LEFT
-    ) -> 'cirq.FrozenCircuit':
-        return AbstractCircuit.tetris_concat(*circuits, align=align).freeze()
-
-    tetris_concat.__doc__ = AbstractCircuit.tetris_concat.__doc__
 
     def zip(
         *circuits: 'cirq.AbstractCircuit', align: Union['cirq.Alignment', str] = Alignment.LEFT
