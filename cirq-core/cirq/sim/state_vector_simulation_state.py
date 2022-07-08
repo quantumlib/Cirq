@@ -53,7 +53,7 @@ class _BufferedStateVector(qis.QuantumStateRepresentation):
         initial_state: Union[np.ndarray, 'cirq.STATE_VECTOR_LIKE'] = 0,
         qid_shape: Optional[Tuple[int, ...]] = None,
         dtype: Optional[Type[np.complexfloating]] = None,
-        buffer: Optional[List[np.ndarray]] = None,
+        buffer: Optional[np.ndarray] = None,
     ):
         """Initializes the object with the inputs.
 
