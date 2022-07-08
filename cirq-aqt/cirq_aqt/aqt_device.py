@@ -235,16 +235,21 @@ class AQTTargetGateset(transformers.TwoQubitCompilationTargetGateset):
             unroll_circuit_op=False,
         )
 
+    # TODO(#5698) Complete code coverage and remove coverage-ignore labels below
+
     def _decompose_single_qubit_operation(self, op: 'cirq.Operation', _: int) -> DecomposeResult:
         if isinstance(op.gate, ops.HPowGate) and op.gate.exponent == 1:
+            # coverage: ignore
             return [ops.rx(np.pi).on(op.qubits[0]), ops.ry(-1 * np.pi / 2).on(op.qubits[0])]
         if protocols.has_unitary(op):
+            # coverage: ignore
             gates = transformers.single_qubit_matrix_to_phased_x_z(protocols.unitary(op))
             return [g.on(op.qubits[0]) for g in gates]
         return NotImplemented
 
     def _decompose_two_qubit_operation(self, op: 'cirq.Operation', _) -> DecomposeResult:
         if protocols.has_unitary(op):
+            # coverage: ignore
             return transformers.two_qubit_matrix_to_ion_operations(
                 op.qubits[0], op.qubits[1], protocols.unitary(op)
             )
