@@ -644,7 +644,7 @@ class PauliString(raw_types.Operation, Generic[TKey]):
         *,
         atol: float = 1e-7,
         check_preconditions: bool = True,
-    ) -> float:
+    ) -> np.ndarray:
         r"""Evaluate the expectation of this PauliString given a density matrix.
 
         Compute the expectation value of this PauliString with respect to an
@@ -716,7 +716,7 @@ class PauliString(raw_types.Operation, Generic[TKey]):
 
     def _expectation_from_density_matrix_no_validation(
         self, state: np.ndarray, qubit_map: Mapping[TKey, int]
-    ) -> float:
+    ) -> np.ndarray:
         """Evaluate the expectation of this PauliString given a density matrix.
 
         This method does not provide input validation. See
