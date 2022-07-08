@@ -346,8 +346,8 @@ class Gate(metaclass=value.ABCMetaImplementAnyOneOf):
         """Creates a probabalistic channel with this gate.
 
         Args:
-            probability: floating value between 0 and 1, giving the probability
-                this gate is applied.
+            probability: floating point value between 0 and 1, giving the
+                probability this gate is applied.
 
         Returns:
             `cirq.RandomGateChannel` that applies `self` with probability
@@ -583,8 +583,8 @@ class Operation(metaclass=abc.ABCMeta):
         """Creates a probabalistic channel with this operation.
 
         Args:
-            probability: floating value between 0 and 1, giving the probability
-                this operation is applied.
+            probability: floating point value between 0 and 1, giving the
+                probability this gate is applied.
 
         Returns:
             `cirq.RandomGateChannel` that applies `self` with probability
