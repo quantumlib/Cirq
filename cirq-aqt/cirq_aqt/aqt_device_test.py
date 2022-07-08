@@ -91,6 +91,15 @@ def test_init_timedelta():
 
 
 def test_repr():
+    d = aqt_device(3)
+    assert repr(d) == (
+        "cirq_aqt.aqt_device.AQTDevice("
+        "measurement_duration=cirq.Duration(micros=100), "
+        "twoq_gates_duration=cirq.Duration(micros=200), "
+        "oneq_gates_duration=cirq.Duration(micros=10), "
+        "qubits=[cirq.LineQubit(0), cirq.LineQubit(1), "
+        "cirq.LineQubit(2)])"
+    )
     device = cirq_aqt.aqt_device.get_aqt_device(5)
     cirq.testing.assert_equivalent_repr(device, setup_code='import cirq\nimport cirq_aqt\n')
 
