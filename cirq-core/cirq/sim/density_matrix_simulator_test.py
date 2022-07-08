@@ -940,59 +940,6 @@ def test_simulate_expectation_values_qubit_order(dtype):
     assert cirq.approx_eq(result_flipped[0], 3, atol=1e-6)
 
 
-def test_density_matrix_simulator_state_eq_deprecated():
-    with cirq.testing.assert_deprecated('no longer used', deadline='v0.16', count=4):
-        q0, q1 = cirq.LineQubit.range(2)
-        eq = cirq.testing.EqualsTester()
-        eq.add_equality_group(
-            cirq.DensityMatrixSimulatorState(
-                density_matrix=np.ones((2, 2)) * 0.5, qubit_map={q0: 0}
-            ),
-            cirq.DensityMatrixSimulatorState(
-                density_matrix=np.ones((2, 2)) * 0.5, qubit_map={q0: 0}
-            ),
-        )
-        eq.add_equality_group(
-            cirq.DensityMatrixSimulatorState(density_matrix=np.eye(2) * 0.5, qubit_map={q0: 0})
-        )
-        eq.add_equality_group(
-            cirq.DensityMatrixSimulatorState(
-                density_matrix=np.eye(2) * 0.5, qubit_map={q0: 0, q1: 1}
-            )
-        )
-
-
-def test_density_matrix_simulator_state_qid_shape():
-    with cirq.testing.assert_deprecated('no longer used', deadline='v0.16', count=2):
-        q0, q1 = cirq.LineQubit.range(2)
-        assert cirq.qid_shape(
-            cirq.DensityMatrixSimulatorState(
-                density_matrix=np.ones((4, 4)) / 4, qubit_map={q0: 0, q1: 1}
-            )
-        ) == (2, 2)
-        q0, q1 = cirq.LineQid.for_qid_shape((3, 4))
-        assert cirq.qid_shape(
-            cirq.DensityMatrixSimulatorState(
-                density_matrix=np.ones((12, 12)) / 12, qubit_map={q0: 0, q1: 1}
-            )
-        ) == (3, 4)
-
-
-def test_density_matrix_simulator_state_repr():
-    with cirq.testing.assert_deprecated('no longer used', deadline='v0.16'):
-        q0 = cirq.LineQubit(0)
-        assert (
-            repr(
-                cirq.DensityMatrixSimulatorState(
-                    density_matrix=np.ones((2, 2)) * 0.5, qubit_map={q0: 0}
-                )
-            )
-            == "cirq.DensityMatrixSimulatorState(density_matrix="
-            "np.array([[0.5, 0.5], [0.5, 0.5]]), "
-            "qubit_map={cirq.LineQubit(0): 0})"
-        )
-
-
 def test_density_matrix_step_result_repr():
     q0 = cirq.LineQubit(0)
     assert (

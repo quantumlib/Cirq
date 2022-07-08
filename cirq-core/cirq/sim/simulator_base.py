@@ -33,8 +33,7 @@ from typing import (
 
 import numpy as np
 
-from cirq import _compat, devices, ops, protocols, study, value
-from cirq.sim import simulator
+from cirq import devices, ops, protocols, study, value
 from cirq.sim.simulation_product_state import SimulationProductState
 from cirq.sim.simulation_state import TSimulationState
 from cirq.sim.simulation_state_base import SimulationStateBase
@@ -50,8 +49,6 @@ from cirq.sim.simulator import (
 
 if TYPE_CHECKING:
     import cirq
-    from numpy.typing import DTypeLike
-
 
 TStepResultBase = TypeVar('TStepResultBase', bound='StepResultBase')
 
@@ -118,34 +115,7 @@ class SimulatorBase(
     def noise(self) -> 'cirq.NoiseModel':
         return self._noise
 
-    @noise.setter  # type: ignore
-    @_compat.deprecated(
-        deadline="v0.16",
-        fix="The mutators of this class are deprecated, instantiate a new object instead.",
-    )
-    def noise(self, noise: 'cirq.NoiseModel'):
-        self._noise = noise
-
-    def _create_partial_act_on_args(
-        self,
-        initial_state: Any,
-        qubits: Sequence['cirq.Qid'],
-        classical_data: 'cirq.ClassicalDataStore',
-    ) -> TSimulationState:
-        """Creates an instance of the TSimulationState class for the simulator.
-
-        It represents the supplied qubits initialized to the provided state.
-
-        Args:
-            initial_state: The initial state to represent. An integer state is
-                understood to be a pure state. Other state representations are
-                simulator-dependent.
-            qubits: The sequence of qubits to represent.
-            classical_data: The shared classical data container for this
-                simulation.
-        """
-        raise NotImplementedError()
-
+    @abc.abstractmethod
     def _create_partial_simulation_state(
         self,
         initial_state: Any,
@@ -164,17 +134,6 @@ class SimulatorBase(
             classical_data: The shared classical data container for this
                 simulation.
         """
-        _compat._warn_or_error(
-            '`_create_partial_act_on_args` has been renamed to `_create_partial_simulation_state`'
-            ' in the SimulatorBase class, so simulators need to rename that method'
-            f' implementation as well before v0.16. {type(self)}'
-            ' has no `_create_partial_simulation_state` method, so falling back to'
-            ' `_create_partial_act_on_args`. This fallback functionality will be removed in v0.16.'
-        )
-        # When cleaning this up in v0.16, mark `_create_partial_simulation_state` as
-        # @abc.abstractmethod, remove this implementation, and delete `_create_partial_act_on_args`
-        # entirely.
-        return self._create_partial_act_on_args(initial_state, qubits, classical_data)
 
     @abc.abstractmethod
     def _create_step_result(
@@ -214,12 +173,6 @@ class SimulatorBase(
     def _base_iterator(
         self, circuit: 'cirq.AbstractCircuit', qubits: Tuple['cirq.Qid', ...], initial_state: Any
     ) -> Iterator[TStepResultBase]:
-        if not isinstance(qubits, tuple):
-            _compat._warn_or_error(
-                'The `qubits` parameter of `_base_iterator` will expect an explicit'
-                ' `Tuple[cirq.Qid, ...]` beginning in v0.16.'
-            )
-            qubits = ops.QubitOrder.as_qubit_order(qubits).order_for(circuit.all_qubits())
         sim_state = self._create_simulation_state(initial_state, qubits)
         return self._core_iterator(circuit, sim_state)
 
@@ -452,7 +405,6 @@ class SimulationTrialResultBase(
 ):
     """A base class for trial results."""
 
-    @simulator._deprecated_step_result_parameter(old_position=3)
     def __init__(
         self,
         params: study.ParamResolver,

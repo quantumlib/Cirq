@@ -36,7 +36,7 @@ import numpy as np
 import cirq
 from cirq import protocols, value
 from cirq.protocols import act_on
-from cirq.sim import clifford, simulator, simulator_base
+from cirq.sim import clifford, simulator_base
 
 
 class CliffordSimulator(
@@ -73,7 +73,7 @@ class CliffordSimulator(
         qubits: Sequence['cirq.Qid'],
         classical_data: 'cirq.ClassicalDataStore',
     ) -> 'cirq.StabilizerChFormSimulationState':
-        """Creates the ActOnStabilizerChFormArgs for a circuit.
+        """Creates the StabilizerChFormSimulationState for a circuit.
 
         Args:
             initial_state: The initial state for the simulation in the
@@ -86,7 +86,7 @@ class CliffordSimulator(
                 simulation.
 
         Returns:
-            ActOnStabilizerChFormArgs for the circuit.
+            StabilizerChFormSimulationState for the circuit.
         """
         if isinstance(initial_state, clifford.StabilizerChFormSimulationState):
             return initial_state
@@ -118,7 +118,6 @@ class CliffordSimulator(
 class CliffordTrialResult(
     simulator_base.SimulationTrialResultBase['clifford.StabilizerChFormSimulationState']
 ):
-    @simulator._deprecated_step_result_parameter(old_position=3)
     def __init__(
         self,
         params: 'cirq.ParamResolver',
