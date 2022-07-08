@@ -19,6 +19,7 @@ For example: some gates are reversible, some have known matrices, etc.
 
 import abc
 
+
 class InterchangeableQubitsGate(metaclass=abc.ABCMeta):
     """Indicates operations should be equal under some qubit permutations."""
 
