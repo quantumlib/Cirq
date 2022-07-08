@@ -14,7 +14,7 @@
 """Methods for resolving JSON types during serialization."""
 import datetime
 import functools
-from typing import Dict, TYPE_CHECKING
+from typing import Any, Dict, List, Tuple, TYPE_CHECKING
 
 from cirq.protocols.json_serialization import ObjectFactory
 
@@ -30,7 +30,7 @@ def _class_resolver_dictionary() -> Dict[str, ObjectFactory]:
     import pandas as pd
     import numpy as np
     from cirq.devices.noise_model import _NoNoiseModel
-    from cirq.experiments import CrossEntropyResult, CrossEntropyResultDict, GridInteractionLayer
+    from cirq.experiments import GridInteractionLayer
     from cirq.experiments.grid_parallel_two_qubit_xeb import GridParallelXEBMetadata
 
     def _boolean_hamiltonian_gate_op(qubit_map, boolean_strs, theta):
@@ -50,6 +50,21 @@ def _class_resolver_dictionary() -> Dict[str, ObjectFactory]:
         if not isinstance(matrix, np.ndarray):
             matrix = np.array(matrix, dtype=np.complex128)
         return cirq.MatrixGate(matrix, qid_shape=(2, 2))
+
+    def _cross_entropy_result(data, repetitions, **kwargs):
+        purity_data = kwargs.get('purity_data', None)
+        if purity_data is not None:
+            purity_data = [(d, f) for d, f in purity_data]
+        return {
+            'data': [(d, f) for d, f in data],
+            'repetitions': repetitions,
+            'purity_data': purity_data,
+        }
+
+    def _cross_entropy_result_dict(
+        results: List[Tuple[List['cirq.Qid'], Dict[str, Any]]], **kwargs
+    ) -> 'CrossEntropyResultDict':
+        return {tuple(qubits): result for qubits, result in results}
 
     def _parallel_gate_op(gate, qubits):
         return cirq.parallel_gate_op(gate, *qubits)
@@ -90,8 +105,6 @@ def _class_resolver_dictionary() -> Dict[str, ObjectFactory]:
         'ConstantQubitNoiseModel': cirq.ConstantQubitNoiseModel,
         'ControlledGate': cirq.ControlledGate,
         'ControlledOperation': cirq.ControlledOperation,
-        'CrossEntropyResult': CrossEntropyResult,
-        'CrossEntropyResultDict': CrossEntropyResultDict,
         'CSwapGate': cirq.CSwapGate,
         'CXPowGate': cirq.CXPowGate,
         'CZPowGate': cirq.CZPowGate,
@@ -206,6 +219,8 @@ def _class_resolver_dictionary() -> Dict[str, ObjectFactory]:
         'ZZPowGate': cirq.ZZPowGate,
         # Old types, only supported for backwards-compatibility
         'BooleanHamiltonian': _boolean_hamiltonian_gate_op,  # Removed in v0.15
+        'CrossEntropyResult': _cross_entropy_result,  # Removed in v0.16
+        'CrossEntropyResultDict': _cross_entropy_result_dict,  # Removed in v0.16
         'IdentityOperation': _identity_operation_from_dict,
         'ParallelGateOperation': _parallel_gate_op,  # Removed in v0.14
         'SingleQubitMatrixGate': single_qubit_matrix_gate,
