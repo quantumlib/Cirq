@@ -93,7 +93,6 @@ TestSpec = ModuleJsonTestSpec(
         'AlignLeft',
         'AlignRight',
         'ConvertToCzAndSingleGates',
-        'ConvertToIonGates',
         'ConvertToNeutralAtomGates',
         'DropEmptyMoments',
         'DropNegligible',
