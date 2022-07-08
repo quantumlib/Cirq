@@ -126,10 +126,3 @@ def test_decompose():
     args = cirq.StabilizerSimulationState(state=state, qubits=[q0])
     assert args._strat_decompose(XContainer(), [q0]) is True
     state.apply_x.assert_called_with(0, 1.0, 0.0)
-
-
-def test_deprecated():
-    with cirq.testing.assert_deprecated('log_of_measurement_results', deadline='v0.16', count=2):
-        _ = cirq.StabilizerSimulationState(state=0, log_of_measurement_results={})
-    with cirq.testing.assert_deprecated('positional', deadline='v0.16'):
-        _ = cirq.StabilizerSimulationState(0)
