@@ -55,6 +55,21 @@ def test_tableau_initial_state_string(num_qubits):
             assert splitted_represent_string[n] == expected_string
 
 
+def test_tableau_invalid_initial_state():
+    with pytest.raises(ValueError, match="2*num_qubits columns and of type bool."):
+        cirq.CliffordTableau(1, rs=np.zeros(1, dtype=bool))
+
+    with pytest.raises(
+        ValueError, match="2*num_qubits rows, num_qubits columns, and of type bool."
+    ):
+        cirq.CliffordTableau(1, xs=np.zeros(1, dtype=bool))
+
+    with pytest.raises(
+        ValueError, match="2*num_qubits rows, num_qubits columns, and of type bool."
+    ):
+        cirq.CliffordTableau(1, zs=np.zeros(1, dtype=bool))
+
+
 def test_stabilizers():
     # Note: the stabilizers are not unique for one state. We just use the one
     # produced by the tableau algorithm.
@@ -271,8 +286,7 @@ def test_str():
 
 
 def test_repr():
-    t = cirq.CliffordTableau(num_qubits=1)
-    assert repr(t) == "stabilizers: [cirq.DensePauliString('Z', coefficient=(1+0j))]"
+    cirq.testing.assert_equivalent_repr(cirq.CliffordTableau(num_qubits=1))
 
 
 def test_str_full():
