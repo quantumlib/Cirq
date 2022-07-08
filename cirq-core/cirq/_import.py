@@ -198,7 +198,7 @@ class LazyLoader(ModuleType):
             name: The full qualified name of the module.
         """
         self._local_name = local_name
-        self._parent_module_globals = parent_module_globals
+        self._parent_module_globals = dict(parent_module_globals)
         self._module = None
         super().__init__(name)
 

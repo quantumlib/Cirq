@@ -21,6 +21,7 @@ from cirq import circuits, ops, protocols, _import
 from cirq.protocols.decompose_protocol import DecomposeResult
 from cirq.transformers import merge_k_qubit_gates, merge_single_qubit_gates
 
+
 drop_empty_moments = _import.LazyLoader('drop_empty_moments', globals(), 'cirq.transformers')
 drop_negligible = _import.LazyLoader('drop_negligible_operations', globals(), 'cirq.transformers')
 expand_composite = _import.LazyLoader('expand_composite', globals(), 'cirq.transformers')
@@ -37,16 +38,18 @@ def create_transformer_with_kwargs(transformer: 'cirq.TRANSFORMER', **kwargs) ->
     capture keyword arguments of a transformer before passing them as an argument to an API that
     expects `cirq.TRANSFORMER`. For example:
 
-    >>> def run_transformers(transformers: List[cirq.TRANSFORMER]):
-    >>>     for transformer in transformers:
-    >>>         transformer(circuit, context=context)
-    >>>
-    >>> transformers: List[cirq.TRANSFORMER] = []
+    >>> def run_transformers(transformers: 'List[cirq.TRANSFORMER]'):
+    ...     circuit = cirq.Circuit(cirq.X(cirq.q(0)))
+    ...     context = cirq.TransformerContext()
+    ...     for transformer in transformers:
+    ...         transformer(circuit, context=context)
+    ...
+    >>> transformers: 'List[cirq.TRANSFORMER]' = []
     >>> transformers.append(
-    >>>     cirq.create_transformer_with_kwargs(
-    >>>         cirq.expand_composite, no_decomp=lambda op: cirq.num_qubits(op) <= 2
-    >>>     )
-    >>> )
+    ...     cirq.create_transformer_with_kwargs(
+    ...         cirq.expand_composite, no_decomp=lambda op: cirq.num_qubits(op) <= 2
+    ...     )
+    ... )
     >>> transformers.append(cirq.create_transformer_with_kwargs(cirq.merge_k_qubit_unitaries, k=2))
     >>> run_transformers(transformers)
 
