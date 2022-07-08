@@ -1026,7 +1026,6 @@ class SimulationTrialResult(Generic[TSimulatorState]):
             measurement gate.)
     """
 
-    @_deprecated_step_result_parameter()
     def __init__(
         self,
         params: 'cirq.ParamResolver',
