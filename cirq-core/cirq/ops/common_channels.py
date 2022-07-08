@@ -46,9 +46,9 @@ class AsymmetricDepolarizingChannel(raw_types.Gate):
 
         This channel evolves a density matrix via
 
-            $$
-            \sum_i p_i Pi \rho Pi
-            $$
+        $$
+        \sum_i p_i Pi \rho Pi
+        $$
 
         where i varies from 0 to 4**n-1 and Pi represents n-qubit Pauli operator
         (including identity). The input $\rho$ is the density matrix before the
@@ -215,9 +215,9 @@ def asymmetric_depolarize(
 
         This channel evolves a density matrix via
 
-            $$
-            \sum_i p_i Pi \rho Pi
-            $$
+        $$
+        \sum_i p_i Pi \rho Pi
+        $$
 
         where i varies from 0 to 4**n-1 and Pi represents n-qubit Pauli operator
         (including identity). The input $\rho$ is the density matrix before the
@@ -262,9 +262,9 @@ class DepolarizingChannel(raw_types.Gate):
 
         This channel evolves a density matrix via
 
-            $$
-            \rho \rightarrow (1 - p) \rho + p / (4**n - 1) \sum _i P_i \rho P_i
-            $$
+        $$
+        \rho \rightarrow (1 - p) \rho + p / (4**n - 1) \sum _i P_i \rho P_i
+        $$
 
         where $P_i$ are the $4^n - 1$ Pauli gates (excluding the identity).
 
@@ -361,9 +361,9 @@ def depolarize(p: float, n_qubits: int = 1) -> DepolarizingChannel:
 
     This channel evolves a density matrix via
 
-        $$
-        \rho \rightarrow (1 - p) \rho + p / (4**n - 1) \sum _i P_i \rho P_i
-        $$
+    $$
+    \rho \rightarrow (1 - p) \rho + p / (4**n - 1) \sum _i P_i \rho P_i
+    $$
 
     where $P_i$ are the $4^n - 1$ Pauli gates (excluding the identity).
 
@@ -401,38 +401,38 @@ class GeneralizedAmplitudeDampingChannel(raw_types.Gate):
 
         This channel evolves a density matrix via
 
-            $$
-            \rho \rightarrow M_0 \rho M_0^\dagger
-                           + M_1 \rho M_1^\dagger
-                           + M_2 \rho M_2^\dagger
-                           + M_3 \rho M_3^\dagger
-            $$
+        $$
+        \rho \rightarrow M_0 \rho M_0^\dagger
+                       + M_1 \rho M_1^\dagger
+                       + M_2 \rho M_2^\dagger
+                       + M_3 \rho M_3^\dagger
+        $$
 
         With
 
-            $$
-            \begin{aligned}
-            M_0 =& \sqrt{p} \begin{bmatrix}
-                                1 & 0  \\
-                                0 & \sqrt{1 - \gamma}
-                            \end{bmatrix}
-            \\
-            M_1 =& \sqrt{p} \begin{bmatrix}
-                                0 & \sqrt{\gamma} \\
-                                0 & 0
-                           \end{bmatrix}
-            \\
-            M_2 =& \sqrt{1-p} \begin{bmatrix}
-                                \sqrt{1-\gamma} & 0 \\
-                                 0 & 1
-                              \end{bmatrix}
-            \\
-            M_3 =& \sqrt{1-p} \begin{bmatrix}
-                                 0 & 0 \\
-                                 \sqrt{\gamma} & 0
-                             \end{bmatrix}
-            \end{aligned}
-            $$
+        $$
+        \begin{aligned}
+        M_0 =& \sqrt{p} \begin{bmatrix}
+                            1 & 0  \\
+                            0 & \sqrt{1 - \gamma}
+                        \end{bmatrix}
+        \\
+        M_1 =& \sqrt{p} \begin{bmatrix}
+                            0 & \sqrt{\gamma} \\
+                            0 & 0
+                       \end{bmatrix}
+        \\
+        M_2 =& \sqrt{1-p} \begin{bmatrix}
+                            \sqrt{1-\gamma} & 0 \\
+                             0 & 1
+                          \end{bmatrix}
+        \\
+        M_3 =& \sqrt{1-p} \begin{bmatrix}
+                             0 & 0 \\
+                             \sqrt{\gamma} & 0
+                         \end{bmatrix}
+        \end{aligned}
+        $$
 
         Args:
             p: the probability of the environment being not excited
@@ -502,36 +502,36 @@ def generalized_amplitude_damp(p: float, gamma: float) -> GeneralizedAmplitudeDa
 
     This channel evolves a density matrix via:
 
-        $$
-        \rho \rightarrow M_0 \rho M_0^\dagger + M_1 \rho M_1^\dagger
-              + M_2 \rho M_2^\dagger + M_3 \rho M_3^\dagger
-        $$
+    $$
+    \rho \rightarrow M_0 \rho M_0^\dagger + M_1 \rho M_1^\dagger
+          + M_2 \rho M_2^\dagger + M_3 \rho M_3^\dagger
+    $$
 
     With:
 
-        $$
-        \begin{aligned}
-        M_0 =& \sqrt{p} \begin{bmatrix}
-                            1 & 0  \\
-                            0 & \sqrt{1 - \gamma}
-                       \end{bmatrix}
-        \\
-        M_1 =& \sqrt{p} \begin{bmatrix}
-                            0 & \sqrt{\gamma} \\
-                            0 & 0
-                       \end{bmatrix}
-        \\
-        M_2 =& \sqrt{1-p} \begin{bmatrix}
-                            \sqrt{1-\gamma} & 0 \\
-                             0 & 1
-                          \end{bmatrix}
-        \\
-        M_3 =& \sqrt{1-p} \begin{bmatrix}
-                             0 & 0 \\
-                             \sqrt{\gamma} & 0
-                         \end{bmatrix}
-        \end{aligned}
-        $$
+    $$
+    \begin{aligned}
+    M_0 =& \sqrt{p} \begin{bmatrix}
+                        1 & 0  \\
+                        0 & \sqrt{1 - \gamma}
+                   \end{bmatrix}
+    \\
+    M_1 =& \sqrt{p} \begin{bmatrix}
+                        0 & \sqrt{\gamma} \\
+                        0 & 0
+                   \end{bmatrix}
+    \\
+    M_2 =& \sqrt{1-p} \begin{bmatrix}
+                        \sqrt{1-\gamma} & 0 \\
+                         0 & 1
+                      \end{bmatrix}
+    \\
+    M_3 =& \sqrt{1-p} \begin{bmatrix}
+                         0 & 0 \\
+                         \sqrt{\gamma} & 0
+                     \end{bmatrix}
+    \end{aligned}
+    $$
 
     Args:
         gamma: the probability of the interaction being dissipative.
@@ -559,25 +559,25 @@ class AmplitudeDampingChannel(raw_types.Gate):
 
         This channel evolves a density matrix as follows:
 
-            $$
-            \rho \rightarrow M_0 \rho M_0^\dagger + M_1 \rho M_1^\dagger
-            $$
+        $$
+        \rho \rightarrow M_0 \rho M_0^\dagger + M_1 \rho M_1^\dagger
+        $$
 
         With:
 
-            $$
-            \begin{aligned}
-            M_0 =& \begin{bmatrix}
-                    1 & 0  \\
-                    0 & \sqrt{1 - \gamma}
-                  \end{bmatrix}
-            \\
-            M_1 =& \begin{bmatrix}
-                    0 & \sqrt{\gamma} \\
-                    0 & 0
-                  \end{bmatrix}
-            \end{aligned}
-            $$
+        $$
+        \begin{aligned}
+        M_0 =& \begin{bmatrix}
+                1 & 0  \\
+                0 & \sqrt{1 - \gamma}
+              \end{bmatrix}
+        \\
+        M_1 =& \begin{bmatrix}
+                0 & \sqrt{\gamma} \\
+                0 & 0
+              \end{bmatrix}
+        \end{aligned}
+        $$
 
         Args:
             gamma: the probability of the interaction being dissipative.
@@ -631,25 +631,25 @@ def amplitude_damp(gamma: float) -> AmplitudeDampingChannel:
 
     This channel evolves a density matrix via:
 
-        $$
-        \rho \rightarrow M_0 \rho M_0^\dagger + M_1 \rho M_1^\dagger
-        $$
+    $$
+    \rho \rightarrow M_0 \rho M_0^\dagger + M_1 \rho M_1^\dagger
+    $$
 
     With:
 
-        $$
-        \begin{aligned}
-        M_0 =& \begin{bmatrix}
-                1 & 0  \\
-                0 & \sqrt{1 - \gamma}
-              \end{bmatrix}
-        \\
-        M_1 =& \begin{bmatrix}
-                0 & \sqrt{\gamma} \\
-                0 & 0
-              \end{bmatrix}
-        \end{aligned}
-        $$
+    $$
+    \begin{aligned}
+    M_0 =& \begin{bmatrix}
+            1 & 0  \\
+            0 & \sqrt{1 - \gamma}
+          \end{bmatrix}
+    \\
+    M_1 =& \begin{bmatrix}
+            0 & \sqrt{\gamma} \\
+            0 & 0
+          \end{bmatrix}
+    \end{aligned}
+    $$
 
     Args:
         gamma: the probability of the interaction being dissipative.
@@ -675,25 +675,25 @@ class ResetChannel(raw_types.Gate):
 
         This channel evolves a density matrix as follows:
 
-            $$
-            \rho \rightarrow M_0 \rho M_0^\dagger + M_1 \rho M_1^\dagger
-            $$
+        $$
+        \rho \rightarrow M_0 \rho M_0^\dagger + M_1 \rho M_1^\dagger
+        $$
 
         With:
 
-            $$
-            \begin{aligned}
-            M_0 =& \begin{bmatrix}
-                    1 & 0  \\
-                    0 & 0
-                  \end{bmatrix}
-            \\
-            M_1 =& \begin{bmatrix}
-                    0 & 1 \\
-                    0 & 0
-                  \end{bmatrix}
-            \end{aligned}
-            $$
+        $$
+        \begin{aligned}
+        M_0 =& \begin{bmatrix}
+                1 & 0  \\
+                0 & 0
+              \end{bmatrix}
+        \\
+        M_1 =& \begin{bmatrix}
+                0 & 1 \\
+                0 & 0
+              \end{bmatrix}
+        \end{aligned}
+        $$
 
         Args:
             dimension: Specify this argument when resetting a qudit.  There will
@@ -788,25 +788,25 @@ class PhaseDampingChannel(raw_types.Gate):
 
         This channel evolves a density matrix via:
 
-            $$
-            \rho \rightarrow M_0 \rho M_0^\dagger + M_1 \rho M_1^\dagger
-            $$
+        $$
+        \rho \rightarrow M_0 \rho M_0^\dagger + M_1 \rho M_1^\dagger
+        $$
 
         With:
 
-            $$
-            \begin{aligned}
-            M_0 =& \begin{bmatrix}
-                    1 & 0 \\
-                    0 & \sqrt{1 - \gamma}
-                  \end{bmatrix}
-            \\
-            M_1 =& \begin{bmatrix}
-                    0 & 0 \\
-                    0 & \sqrt{\gamma}
-                  \end{bmatrix}
-            \end{aligned}
-            $$
+        $$
+        \begin{aligned}
+        M_0 =& \begin{bmatrix}
+                1 & 0 \\
+                0 & \sqrt{1 - \gamma}
+              \end{bmatrix}
+        \\
+        M_1 =& \begin{bmatrix}
+                0 & 0 \\
+                0 & \sqrt{\gamma}
+              \end{bmatrix}
+        \end{aligned}
+        $$
 
         Args:
             gamma: The damping constant.
@@ -860,25 +860,25 @@ def phase_damp(gamma: float) -> PhaseDampingChannel:
 
     This channel evolves a density matrix via:
 
-        $$
-        \rho \rightarrow M_0 \rho M_0^\dagger + M_1 \rho M_1^\dagger
-        $$
+    $$
+    \rho \rightarrow M_0 \rho M_0^\dagger + M_1 \rho M_1^\dagger
+    $$
 
     With:
 
-        $$
-        \begin{aligned}
-        M_0 =& \begin{bmatrix}
-                1 & 0  \\
-                0 & \sqrt{1 - \gamma}
-              \end{bmatrix}
-        \\
-        M_1 =& \begin{bmatrix}
-                0 & 0 \\
-                0 & \sqrt{\gamma}
-              \end{bmatrix}
-        \end{aligned}
-        $$
+    $$
+    \begin{aligned}
+    M_0 =& \begin{bmatrix}
+            1 & 0  \\
+            0 & \sqrt{1 - \gamma}
+          \end{bmatrix}
+    \\
+    M_1 =& \begin{bmatrix}
+            0 & 0 \\
+            0 & \sqrt{\gamma}
+          \end{bmatrix}
+    \end{aligned}
+    $$
 
     Args:
         gamma: The damping constant.
@@ -900,25 +900,25 @@ class PhaseFlipChannel(raw_types.Gate):
 
         This channel evolves a density matrix via:
 
-            $$
-            \rho \rightarrow M_0 \rho M_0^\dagger + M_1 \rho M_1^\dagger
-            $$
+        $$
+        \rho \rightarrow M_0 \rho M_0^\dagger + M_1 \rho M_1^\dagger
+        $$
 
         With:
 
-            $$
-            \begin{aligned}
-            M_0 =& \sqrt{1 - p} \begin{bmatrix}
-                                1 & 0  \\
-                                0 & 1
-                            \end{bmatrix}
-            \\
-            M_1 =& \sqrt{p} \begin{bmatrix}
-                                1 & 0 \\
-                                0 & -1
-                            \end{bmatrix}
-            \end{aligned}
-            $$
+        $$
+        \begin{aligned}
+        M_0 =& \sqrt{1 - p} \begin{bmatrix}
+                            1 & 0  \\
+                            0 & 1
+                        \end{bmatrix}
+        \\
+        M_1 =& \sqrt{p} \begin{bmatrix}
+                            1 & 0 \\
+                            0 & -1
+                        \end{bmatrix}
+        \end{aligned}
+        $$
 
         Args:
             p: the probability of a phase flip.
@@ -977,25 +977,25 @@ def _phase_flip(p: float) -> PhaseFlipChannel:
 
     This channel evolves a density matrix via:
 
-        $$
-        \rho \rightarrow M_0 \rho M_0^\dagger + M_1 \rho M_1^\dagger
-        $$
+    $$
+    \rho \rightarrow M_0 \rho M_0^\dagger + M_1 \rho M_1^\dagger
+    $$
 
     With:
 
-        $$
-        \begin{aligned}
-        M_0 =& \sqrt{p} \begin{bmatrix}
-                            1 & 0  \\
-                            0 & 1
-                       \end{bmatrix}
-        \\
-        M_1 =& \sqrt{1-p} \begin{bmatrix}
-                            1 & 0 \\
-                            0 & -1
-                         \end{bmatrix}
-        \end{aligned}
-        $$
+    $$
+    \begin{aligned}
+    M_0 =& \sqrt{p} \begin{bmatrix}
+                        1 & 0  \\
+                        0 & 1
+                   \end{bmatrix}
+    \\
+    M_1 =& \sqrt{1-p} \begin{bmatrix}
+                        1 & 0 \\
+                        0 & -1
+                     \end{bmatrix}
+    \end{aligned}
+    $$
 
     Args:
         p: the probability of a phase flip.
@@ -1013,25 +1013,25 @@ def phase_flip(p: Optional[float] = None) -> Union[common_gates.ZPowGate, PhaseF
 
     This channel evolves a density matrix via:
 
-        $$
-        \rho \rightarrow M_0 \rho M_0^\dagger + M_1 \rho M_1^\dagger
-        $$
+    $$
+    \rho \rightarrow M_0 \rho M_0^\dagger + M_1 \rho M_1^\dagger
+    $$
 
     With:
 
-        $$
-        \begin{aligned}
-        M_0 =& \sqrt{p} \begin{bmatrix}
-                            1 & 0  \\
-                            0 & 1
-                       \end{bmatrix}
-        \\
-        M_1 =& \sqrt{1-p} \begin{bmatrix}
-                            1 & 0 \\
-                            0 & -1
-                         \end{bmatrix}
-        \end{aligned}
-        $$
+    $$
+    \begin{aligned}
+    M_0 =& \sqrt{p} \begin{bmatrix}
+                        1 & 0  \\
+                        0 & 1
+                   \end{bmatrix}
+    \\
+    M_1 =& \sqrt{1-p} \begin{bmatrix}
+                        1 & 0 \\
+                        0 & -1
+                     \end{bmatrix}
+    \end{aligned}
+    $$
 
     Args:
         p: the probability of a phase flip.
@@ -1056,25 +1056,25 @@ class BitFlipChannel(raw_types.Gate):
 
         This channel evolves a density matrix via:
 
-            $$
-            \rho \rightarrow M_0 \rho M_0^\dagger + M_1 \rho M_1^\dagger
-            $$
+        $$
+        \rho \rightarrow M_0 \rho M_0^\dagger + M_1 \rho M_1^\dagger
+        $$
 
         With:
 
-            $$
-            \begin{aligned}
-            M_0 =& \sqrt{1 - p} \begin{bmatrix}
-                                1 & 0  \\
-                                0 & 1
-                           \end{bmatrix}
-            \\
-            M_1 =& \sqrt{p} \begin{bmatrix}
-                                0 & 1 \\
-                                1 & 0
-                             \end{bmatrix}
-            \end{aligned}
-            $$
+        $$
+        \begin{aligned}
+        M_0 =& \sqrt{1 - p} \begin{bmatrix}
+                            1 & 0  \\
+                            0 & 1
+                       \end{bmatrix}
+        \\
+        M_1 =& \sqrt{p} \begin{bmatrix}
+                            0 & 1 \\
+                            1 & 0
+                         \end{bmatrix}
+        \end{aligned}
+        $$
 
         Args:
             p: the probability of a bit flip.
@@ -1128,25 +1128,25 @@ def _bit_flip(p: float) -> BitFlipChannel:
 
     This channel evolves a density matrix via:
 
-        $$
-        \rho \rightarrow M_0 \rho M_0^\dagger + M_1 \rho M_1^\dagger
-        $$
+    $$
+    \rho \rightarrow M_0 \rho M_0^\dagger + M_1 \rho M_1^\dagger
+    $$
 
     With:
 
-        $$
-        \begin{aligned}
-        M_0 =& \sqrt{p} \begin{bmatrix}
-                            1 & 0 \\
-                            0 & 1
-                       \end{bmatrix}
-        \\
-        M_1 =& \sqrt{1-p} \begin{bmatrix}
-                            0 & 1 \\
-                            1 & -0
-                         \end{bmatrix}
-        \end{aligned}
-        $$
+    $$
+    \begin{aligned}
+    M_0 =& \sqrt{p} \begin{bmatrix}
+                        1 & 0 \\
+                        0 & 1
+                   \end{bmatrix}
+    \\
+    M_1 =& \sqrt{1-p} \begin{bmatrix}
+                        0 & 1 \\
+                        1 & -0
+                     \end{bmatrix}
+    \end{aligned}
+    $$
 
     Args:
         p: the probability of a bit flip.
@@ -1164,25 +1164,25 @@ def bit_flip(p: Optional[float] = None) -> Union[common_gates.XPowGate, BitFlipC
 
     This channel evolves a density matrix via
 
-        $$
-        \rho \rightarrow M_0 \rho M_0^\dagger + M_1 \rho M_1^\dagger
-        $$
+    $$
+    \rho \rightarrow M_0 \rho M_0^\dagger + M_1 \rho M_1^\dagger
+    $$
 
     With
 
-        $$
-        \begin{aligned}
-        M_0 =& \sqrt{p} \begin{bmatrix}
-                            1 & 0 \\
-                            0 & 1
-                       \end{bmatrix}
-        \\
-        M_1 =& \sqrt{1-p} \begin{bmatrix}
-                            0 & 1 \\
-                            1 & -0
-                         \end{bmatrix}
-        \end{aligned}
-        $$
+    $$
+    \begin{aligned}
+    M_0 =& \sqrt{p} \begin{bmatrix}
+                        1 & 0 \\
+                        0 & 1
+                   \end{bmatrix}
+    \\
+    M_1 =& \sqrt{1-p} \begin{bmatrix}
+                        0 & 1 \\
+                        1 & -0
+                     \end{bmatrix}
+    \end{aligned}
+    $$
 
     Args:
         p: the probability of a bit flip.
