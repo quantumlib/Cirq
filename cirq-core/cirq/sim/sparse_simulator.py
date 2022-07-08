@@ -236,7 +236,7 @@ class SparseSimulatorStep(
         self._dtype = dtype
         self._state_vector: Optional[np.ndarray] = None
 
-    def state_vector(self, copy: Optional[bool] = None):
+    def state_vector(self, copy: bool = False):
         """Return the state vector at this point in the computation.
 
         The state is returned in the computational basis with these basis
@@ -269,12 +269,6 @@ class SparseSimulatorStep(
                 parameters from the state vector and store then using False
                 can speed up simulation by eliminating a memory copy.
         """
-        if copy is None:
-            _compat._warn_or_error(
-                "Starting in v0.16, state_vector will not copy the state by default. "
-                "Explicitly set copy=True to copy the state."
-            )
-            copy = True
         if self._state_vector is None:
             self._state_vector = np.array([1])
             state = self._merged_sim_state
