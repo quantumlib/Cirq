@@ -19,7 +19,6 @@ from typing import Any, Iterator, List, TYPE_CHECKING, Union, Sequence, Type, Op
 import numpy as np
 
 from cirq import _compat, ops
-from cirq._compat import deprecated_parameter
 from cirq.sim import simulator, state_vector, state_vector_simulator, state_vector_simulation_state
 
 if TYPE_CHECKING:
@@ -220,23 +219,15 @@ class SparseSimulatorStep(
 ):
     """A `StepResult` that includes `StateVectorMixin` methods."""
 
-    @deprecated_parameter(
-        deadline='v0.16',
-        fix='Remove parameter `simulator` as it is no longer used.',
-        parameter_desc='simulator',
-        match=lambda args, kwargs: 'simulator' in kwargs or len(args) > 2,
-    )
     def __init__(
         self,
         sim_state: 'cirq.SimulationStateBase[cirq.StateVectorSimulationState]',
-        simulator: 'cirq.Simulator' = None,
         dtype: Type[np.complexfloating] = np.complex64,
     ):
         """Results of a step of the simulator.
 
         Args:
             sim_state: The qubit:SimulationState lookup for this step.
-            simulator: The simulator used to create this.
             dtype: The `numpy.dtype` used by the simulation. One of
                 `numpy.complex64` or `numpy.complex128`.
         """

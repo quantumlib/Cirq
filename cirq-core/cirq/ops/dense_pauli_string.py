@@ -24,6 +24,7 @@ from typing import (
     Iterator,
     List,
     Optional,
+    overload,
     Sequence,
     Tuple,
     Type,
@@ -45,9 +46,8 @@ if TYPE_CHECKING:
 
 # Order is important! Index equals numeric value.
 PAULI_CHARS = 'IXYZ'
-PAULI_GATES: List['cirq.Gate'] = [
-    # mypy false positive "Cannot determine type of 'I'"
-    identity.I,  # type: ignore
+PAULI_GATES: List[Union['cirq.Pauli', 'cirq.IdentityGate']] = [
+    identity.I,
     pauli_gates.X,
     pauli_gates.Y,
     pauli_gates.Z,
@@ -58,7 +58,27 @@ TCls = TypeVar('TCls', bound='BaseDensePauliString')
 
 @value.value_equality(approximate=True, distinct_child_types=True)
 class BaseDensePauliString(raw_types.Gate, metaclass=abc.ABCMeta):
-    """Parent class for `cirq.DensePauliString` and `cirq.MutableDensePauliString`."""
+    """Parent class for `cirq.DensePauliString` and `cirq.MutableDensePauliString`.
+
+    `cirq.BaseDensePauliString` is an abstract base class, which is used to implement
+    `cirq.DensePauliString` and `cirq.MutableDensePauliString`. The non-mutable version
+    is used as the corresponding gate for `cirq.PauliString` operation and the mutable
+    version is mainly used for efficiently manipulating dense pauli strings.
+
+    See the docstrings of `cirq.DensePauliString` and `cirq.MutableDensePauliString` for more
+    details.
+
+    Examples:
+    >>> print(cirq.DensePauliString('XXIY'))
+    +XXIY
+
+    >>> print(cirq.MutableDensePauliString('IZII', coefficient=-1))
+    -IZII (mutable)
+
+    >>> print(cirq.DensePauliString([0, 1, 2, 3],
+    ...                             coefficient=sympy.Symbol('t')))
+    t*IXYZ
+    """
 
     I_VAL = 0
     X_VAL = 1
@@ -69,7 +89,7 @@ class BaseDensePauliString(raw_types.Gate, metaclass=abc.ABCMeta):
         self,
         pauli_mask: Union[Iterable['cirq.PAULI_GATE_LIKE'], np.ndarray],
         *,
-        coefficient: Union[sympy.Expr, int, float, 'cirq.TParamValComplex'] = 1,
+        coefficient: 'cirq.TParamValComplex' = 1,
     ):
         """Initializes a new dense pauli string.
 
@@ -84,17 +104,6 @@ class BaseDensePauliString(raw_types.Gate, metaclass=abc.ABCMeta):
                 instead of being copied.
             coefficient: A complex number. Usually +1, -1, 1j, or -1j but other
                 values are supported.
-
-        Examples:
-            >>> print(cirq.DensePauliString('XXIY'))
-            +XXIY
-
-            >>> print(cirq.MutableDensePauliString('IZII', coefficient=-1))
-            -IZII (mutable)
-
-            >>> print(cirq.DensePauliString([0, 1, 2, 3],
-            ...                             coefficient=sympy.Symbol('t')))
-            t*IXYZ
         """
         self._pauli_mask = _as_pauli_mask(pauli_mask)
         self._coefficient: Union[complex, sympy.Expr] = (
@@ -106,10 +115,12 @@ class BaseDensePauliString(raw_types.Gate, metaclass=abc.ABCMeta):
 
     @property
     def pauli_mask(self) -> np.ndarray:
+        """A 1-dimensional uint8 numpy array giving a specification of Pauli gates to use."""
         return self._pauli_mask
 
     @property
     def coefficient(self) -> Union[sympy.Expr, complex]:
+        """A complex coefficient or symbol."""
         return self._coefficient
 
     def _json_dict_(self) -> Dict[str, Any]:
@@ -147,28 +158,31 @@ class BaseDensePauliString(raw_types.Gate, metaclass=abc.ABCMeta):
         concrete_cls = cast(Callable, DensePauliString if cls is BaseDensePauliString else cls)
         return concrete_cls(pauli_mask=np.zeros(length, dtype=np.uint8))
 
-    def _num_qubits_(self):
+    def _num_qubits_(self) -> int:
         return len(self)
 
-    def _has_unitary_(self):
+    def _has_unitary_(self) -> bool:
         return not self._is_parameterized_() and (abs(abs(self.coefficient) - 1) < 1e-8)
 
-    def _unitary_(self):
+    def _unitary_(self) -> Union[np.ndarray, NotImplementedType]:
         if not self._has_unitary_():
             return NotImplemented
         return self.coefficient * linalg.kron(
             *[protocols.unitary(PAULI_GATES[p]) for p in self.pauli_mask]
         )
 
-    def _apply_unitary_(self, args):
+    def _apply_unitary_(self, args) -> Union[np.ndarray, None, NotImplementedType]:
         if not self._has_unitary_():
             return NotImplemented
         from cirq import devices
 
         qubits = devices.LineQubit.range(len(self))
-        return protocols.apply_unitaries(self._decompose_(qubits), qubits, args)
+        decomposed_ops = cast(Iterable['cirq.OP_TREE'], self._decompose_(qubits))
+        return protocols.apply_unitaries(decomposed_ops, qubits, args)
 
-    def _decompose_(self, qubits):
+    def _decompose_(
+        self, qubits: Sequence['cirq.Qid']
+    ) -> Union[NotImplementedType, 'cirq.OP_TREE']:
         if not self._has_unitary_():
             return NotImplemented
         result = [PAULI_GATES[p].on(q) for p, q in zip(self.pauli_mask, qubits) if p]
@@ -190,17 +204,26 @@ class BaseDensePauliString(raw_types.Gate, metaclass=abc.ABCMeta):
     def __pos__(self):
         return self
 
-    def __pow__(self, power):
+    def __pow__(self: TCls, power: Union[int, float]) -> Union[NotImplementedType, TCls]:
+        concrete_class = type(self)
         if isinstance(power, int):
             i_group = [1, +1j, -1, -1j]
             if self.coefficient in i_group:
-                coef = i_group[i_group.index(self.coefficient) * power % 4]
+                coef = i_group[i_group.index(cast(int, self.coefficient)) * power % 4]
             else:
                 coef = self.coefficient**power
             if power % 2 == 0:
-                return coef * DensePauliString.eye(len(self))
-            return DensePauliString(coefficient=coef, pauli_mask=self.pauli_mask)
+                return concrete_class.eye(len(self)).__mul__(coef)
+            return concrete_class(coefficient=coef, pauli_mask=self.pauli_mask)
         return NotImplemented
+
+    @overload
+    def __getitem__(self: TCls, item: int) -> Union['cirq.Pauli', 'cirq.IdentityGate']:
+        pass
+
+    @overload
+    def __getitem__(self: TCls, item: slice) -> TCls:
+        pass
 
     def __getitem__(self, item):
         if isinstance(item, int):
@@ -211,15 +234,15 @@ class BaseDensePauliString(raw_types.Gate, metaclass=abc.ABCMeta):
 
         raise TypeError(f'indices must be integers or slices, not {type(item)}')
 
-    def __iter__(self) -> Iterator['cirq.Gate']:
+    def __iter__(self) -> Iterator[Union['cirq.Pauli', 'cirq.IdentityGate']]:
         for i in range(len(self)):
             yield self[i]
 
-    def __len__(self):
+    def __len__(self) -> int:
         return len(self.pauli_mask)
 
     def __neg__(self):
-        return DensePauliString(coefficient=-self.coefficient, pauli_mask=self.pauli_mask)
+        return type(self)(coefficient=-self.coefficient, pauli_mask=self.pauli_mask)
 
     def __truediv__(self, other):
         if isinstance(other, (sympy.Basic, numbers.Number)):
@@ -228,7 +251,10 @@ class BaseDensePauliString(raw_types.Gate, metaclass=abc.ABCMeta):
         return NotImplemented
 
     def __mul__(self, other):
+        concrete_class = type(self)
         if isinstance(other, BaseDensePauliString):
+            if isinstance(other, MutableDensePauliString):
+                concrete_class = MutableDensePauliString
             max_len = max(len(self.pauli_mask), len(other.pauli_mask))
             min_len = min(len(self.pauli_mask), len(other.pauli_mask))
             new_mask = np.zeros(max_len, dtype=np.uint8)
@@ -237,7 +263,7 @@ class BaseDensePauliString(raw_types.Gate, metaclass=abc.ABCMeta):
             tweak = _vectorized_pauli_mul_phase(
                 self.pauli_mask[:min_len], other.pauli_mask[:min_len]
             )
-            return DensePauliString(
+            return concrete_class(
                 pauli_mask=new_mask, coefficient=self.coefficient * other.coefficient * tweak
             )
 
@@ -245,14 +271,14 @@ class BaseDensePauliString(raw_types.Gate, metaclass=abc.ABCMeta):
             new_coef = protocols.mul(self.coefficient, other, default=None)
             if new_coef is None:
                 return NotImplemented
-            return DensePauliString(pauli_mask=self.pauli_mask, coefficient=new_coef)
+            return concrete_class(pauli_mask=self.pauli_mask, coefficient=new_coef)
 
         split = _attempt_value_to_pauli_index(other)
         if split is not None:
             p, i = split
             mask = np.copy(self.pauli_mask)
             mask[i] ^= p
-            return DensePauliString(
+            return concrete_class(
                 pauli_mask=mask,
                 coefficient=self.coefficient * _vectorized_pauli_mul_phase(self.pauli_mask[i], p),
             )
@@ -268,14 +294,14 @@ class BaseDensePauliString(raw_types.Gate, metaclass=abc.ABCMeta):
             p, i = split
             mask = np.copy(self.pauli_mask)
             mask[i] ^= p
-            return DensePauliString(
+            return type(self)(
                 pauli_mask=mask,
                 coefficient=self.coefficient * _vectorized_pauli_mul_phase(p, self.pauli_mask[i]),
             )
 
         return NotImplemented
 
-    def tensor_product(self, other: 'BaseDensePauliString') -> 'DensePauliString':
+    def tensor_product(self: TCls, other: 'BaseDensePauliString') -> TCls:
         """Concatenates dense pauli strings and multiplies their coefficients.
 
         Args:
@@ -285,13 +311,13 @@ class BaseDensePauliString(raw_types.Gate, metaclass=abc.ABCMeta):
             A dense pauli string with the concatenation of the paulis from the
             two input pauli strings, and the product of their coefficients.
         """
-        return DensePauliString(
+        return type(self)(
             coefficient=self.coefficient * other.coefficient,
             pauli_mask=np.concatenate([self.pauli_mask, other.pauli_mask]),
         )
 
-    def __abs__(self):
-        return DensePauliString(coefficient=abs(self.coefficient), pauli_mask=self.pauli_mask)
+    def __abs__(self: TCls) -> TCls:
+        return type(self)(coefficient=abs(self.coefficient), pauli_mask=self.pauli_mask)
 
     def on(self, *qubits: 'cirq.Qid') -> 'cirq.PauliString':
         return self.sparse(qubits)
@@ -392,17 +418,36 @@ class BaseDensePauliString(raw_types.Gate, metaclass=abc.ABCMeta):
 class DensePauliString(BaseDensePauliString):
     """An immutable string of Paulis, like `XIXY`, with a coefficient.
 
-    This represents a Pauli operator acting on qubits.
+    A `DensePauliString` represents a multi-qubit pauli operator, i.e. a tensor product of single
+    qubits Pauli gates (including the `cirq.IdentityGate`), each of which would act on a
+    different qubit. When applied on qubits, a `DensePauliString` results in `cirq.PauliString`
+    as an operation.
 
-    For example, `cirq.MutableDensePauliString("XXY")` represents a
-    three qubit operation that acts with `X` on the first two qubits, and
-    `Y` on the last.
+    Note that `cirq.PauliString` only stores a tensor product of non-identity `cirq.Pauli`
+    operations whereas `cirq.DensePauliString` also supports storing the `cirq.IdentityGate`.
 
-    This can optionally take a coefficient, for example,
-    `cirq.MutableDensePauliString("XX", 3)`, which represents 3 times
-    the operator acting on X on two qubits.
+    For example,
 
-    If the coefficient has magnitude of 1, then this is also a `cirq.Gate`.
+    >>> dps = cirq.DensePauliString('XXIY')
+    >>> print(dps) # 4 qubit pauli operator with 'X' on first 2 qubits, 'I' on 3rd and 'Y' on 4th.
+    +XXIY
+    >>> ps = dps.on(*cirq.LineQubit.range(4)) # When applied on qubits, we get a `cirq.PauliString`.
+    >>> print(ps) # Note that `cirq.PauliString` only preserves non-identity operations.
+    X(q(0))*X(q(1))*Y(q(3))
+
+    This can optionally take a coefficient, for example:
+
+    >>> dps = cirq.DensePauliString("XX", coefficient=3)
+    >>> print(dps) # Represents 3 times the operator XX acting on two qubits.
+    (3+0j)*XX
+    >>> print(dps.on(*cirq.LineQubit.range(2))) # Coefficient is propagated to `cirq.PauliString`.
+    (3+0j)*X(q(0))*X(q(1))
+
+    If the coefficient has magnitude of 1, the resulting operator is a unitary and thus is
+    also a `cirq.Gate`.
+
+    Note that `DensePauliString` is an immutable object. If you need a mutable version of
+    dense pauli strings, see `cirq.MutableDensePauliString`.
     """
 
     def frozen(self) -> 'DensePauliString':
@@ -425,18 +470,33 @@ class DensePauliString(BaseDensePauliString):
 class MutableDensePauliString(BaseDensePauliString):
     """A mutable string of Paulis, like `XIXY`, with a coefficient.
 
-    This represents a Pauli operator acting on qubits.
+    `cirq.MutableDensePauliString` is a mutable version of `cirq.DensePauliString`.
+    It exists mainly to help mutate dense pauli strings efficiently, instead of always creating
+    a copy, and then converting back to a frozen `cirq.DensePauliString` representation.
 
-    For example, `cirq.MutableDensePauliString("XXY")` represents a
-    three qubit operation that acts with `X` on the first two qubits, and
-    `Y` on the last.
+    For example:
 
-    This can optionally take a coefficient, for example,
-    `cirq.MutableDensePauliString("XX", 3)`, which represents 3 times
-    the operator acting on X on two qubits.
+    >>> mutable_dps = cirq.MutableDensePauliString('XXZZ')
+    >>> mutable_dps[:2] = 'YY' # `cirq.MutableDensePauliString` supports item assignment.
+    >>> print(mutable_dps)
+    +YYZZ (mutable)
 
-    If the coefficient has magnitude of 1, then this is also a `cirq.Gate`.
+    See docstrings of `cirq.DensePauliString` for more details on dense pauli strings.
     """
+
+    @overload
+    def __setitem__(
+        self: 'MutableDensePauliString', key: int, value: 'cirq.PAULI_GATE_LIKE'
+    ) -> 'MutableDensePauliString':
+        pass
+
+    @overload
+    def __setitem__(
+        self: 'MutableDensePauliString',
+        key: slice,
+        value: Union[Iterable['cirq.PAULI_GATE_LIKE'], np.ndarray, BaseDensePauliString],
+    ) -> 'MutableDensePauliString':
+        pass
 
     def __setitem__(self, key, value):
         if isinstance(key, int):
@@ -557,7 +617,7 @@ def _as_pauli_mask(val: Union[Iterable['cirq.PAULI_GATE_LIKE'], np.ndarray]) -> 
     return np.array([_pauli_index(v) for v in val], dtype=np.uint8)
 
 
-def _attempt_value_to_pauli_index(v: Any) -> Optional[Tuple[int, int]]:
+def _attempt_value_to_pauli_index(v: 'cirq.Operation') -> Optional[Tuple[int, int]]:
     if not isinstance(v, raw_types.Operation):
         return None
 

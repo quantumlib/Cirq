@@ -15,7 +15,6 @@
 from typing import (
     AbstractSet,
     Any,
-    cast,
     Collection,
     Dict,
     List,
@@ -29,7 +28,7 @@ from typing import (
 import numpy as np
 
 from cirq import protocols, value, _import
-from cirq.ops import raw_types, controlled_operation as cop, matrix_gates
+from cirq.ops import raw_types, controlled_operation as cop, matrix_gates, control_values as cv
 from cirq.type_workarounds import NotImplementedType
 
 if TYPE_CHECKING:
@@ -53,7 +52,9 @@ class ControlledGate(raw_types.Gate):
         self,
         sub_gate: 'cirq.Gate',
         num_controls: int = None,
-        control_values: Optional[Sequence[Union[int, Collection[int]]]] = None,
+        control_values: Optional[
+            Union[cv.AbstractControlValues, Sequence[Union[int, Collection[int]]]]
+        ] = None,
         control_qid_shape: Optional[Sequence[int]] = None,
     ) -> None:
         """Initializes the controlled gate. If no arguments are specified for
@@ -63,7 +64,8 @@ class ControlledGate(raw_types.Gate):
             sub_gate: The gate to add a control qubit to.
             num_controls: Total number of control qubits.
             control_values: For which control qubit values to apply the sub
-                gate.  A sequence of length `num_controls` where each
+                gate.  Either an object that inherits from AbstractControlValues
+                or a sequence of length `num_controls` where each
                 entry is an integer (or set of integers) corresponding to the
                 qubit value (or set of possible values) where that control is
                 enabled.  When all controls are enabled, the sub gate is
@@ -97,22 +99,21 @@ class ControlledGate(raw_types.Gate):
         self._control_qid_shape = tuple(control_qid_shape)
 
         # Convert to sorted tuples
-        self._control_values = cast(
-            Tuple[Tuple[int, ...], ...],
-            tuple((val,) if isinstance(val, int) else tuple(sorted(val)) for val in control_values),
-        )
-        # Verify control values not out of bounds
-        for i, (val, dimension) in enumerate(zip(self.control_values, self.control_qid_shape)):
-            if not all(0 <= v < dimension for v in val):
-                raise ValueError(
-                    'Control values <{!r}> outside of range for control qubit '
-                    'number <{!r}>.'.format(val, i)
+        if not isinstance(control_values, cv.AbstractControlValues):
+            control_values = cv.ProductOfSums(
+                tuple(
+                    (val,) if isinstance(val, int) else tuple(sorted(val)) for val in control_values
                 )
+            )
+        self._control_values = control_values
+
+        # Verify control values not out of bounds
+        self._control_values.validate(self.control_qid_shape)
 
         # Flatten nested ControlledGates.
         if isinstance(sub_gate, ControlledGate):
             self._sub_gate = sub_gate.sub_gate  # type: ignore
-            self._control_values += sub_gate.control_values
+            self._control_values = self._control_values & sub_gate.control_values
             self._control_qid_shape += sub_gate.control_qid_shape
         else:
             self._sub_gate = sub_gate
@@ -122,7 +123,7 @@ class ControlledGate(raw_types.Gate):
         return self._control_qid_shape
 
     @property
-    def control_values(self) -> Tuple[Tuple[int, ...], ...]:
+    def control_values(self) -> cv.AbstractControlValues:
         return self._control_values
 
     @property
@@ -141,9 +142,13 @@ class ControlledGate(raw_types.Gate):
             and protocols.num_qubits(self.sub_gate) == 1
             and self._qid_shape_() == (2,) * len(self._qid_shape_())
         ):
+            if not isinstance(self.control_values, cv.ProductOfSums):
+                return NotImplemented
             control_qubits = list(qubits[: self.num_controls()])
             invert_ops: List['cirq.Operation'] = []
-            for cvals, cqbit in zip(self.control_values, qubits[: self.num_controls()]):
+            for cvals, cqbit in zip(
+                self.control_values._identifier(), qubits[: self.num_controls()]
+            ):
                 if set(cvals) == {0}:
                     invert_ops.append(common_gates.X(cqbit))
                 elif set(cvals) == {0, 1}:
@@ -159,7 +164,7 @@ class ControlledGate(raw_types.Gate):
             )
             kwargs = {
                 'num_controls': self.num_controls() + 1,
-                'control_values': self.control_values + (1,),
+                'control_values': self.control_values & cv.ProductOfSums(((1,),)),
                 'control_qid_shape': self.control_qid_shape + (2,),
             }
             controlled_z = (
@@ -266,6 +271,8 @@ class ControlledGate(raw_types.Gate):
     def _circuit_diagram_info_(
         self, args: 'cirq.CircuitDiagramInfoArgs'
     ) -> 'cirq.CircuitDiagramInfo':
+        if not isinstance(self.control_values, cv.ProductOfSums):
+            return NotImplemented
         sub_args = protocols.CircuitDiagramInfoArgs(
             known_qubit_count=(
                 args.known_qubit_count - self.num_controls()
@@ -290,31 +297,20 @@ class ControlledGate(raw_types.Gate):
 
         return protocols.CircuitDiagramInfo(
             wire_symbols=(
-                *(get_symbol(vals) for vals in self.control_values),
+                *(get_symbol(vals) for vals in self.control_values._identifier()),
                 *sub_info.wire_symbols,
             ),
             exponent=sub_info.exponent,
         )
 
     def __str__(self) -> str:
-        if set(self.control_values) == {(1,)}:
-
-            def get_prefix(control_vals):
-                return 'C'
-
-        else:
-
-            def get_prefix(control_vals):
-                control_vals_str = ''.join(map(str, sorted(control_vals)))
-                return f'C{control_vals_str}'
-
-        return ''.join(map(get_prefix, self.control_values)) + str(self.sub_gate)
+        return self.control_values.diagram_repr() + str(self.sub_gate)
 
     def __repr__(self) -> str:
-        if self.num_controls() == 1 and self.control_values == ((1,),):
+        if self.num_controls() == 1 and self.control_values._are_ones():
             return f'cirq.ControlledGate(sub_gate={self.sub_gate!r})'
 
-        if all(vals == (1,) for vals in self.control_values) and set(self.control_qid_shape) == {2}:
+        if self.control_values._are_ones() and set(self.control_qid_shape) == {2}:
             return (
                 f'cirq.ControlledGate(sub_gate={self.sub_gate!r}, '
                 f'num_controls={self.num_controls()!r})'
@@ -327,7 +323,7 @@ class ControlledGate(raw_types.Gate):
 
     def _json_dict_(self) -> Dict[str, Any]:
         return {
-            'control_values': self.control_values,
+            'control_values': self.control_values._identifier(),
             'control_qid_shape': self.control_qid_shape,
             'sub_gate': self.sub_gate,
         }

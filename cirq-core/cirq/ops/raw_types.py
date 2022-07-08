@@ -41,6 +41,7 @@ import sympy
 from cirq import protocols, value
 from cirq._import import LazyLoader
 from cirq.type_workarounds import NotImplementedType
+from cirq.ops import control_values as cv
 
 # Lazy imports to break circular dependencies.
 ops = LazyLoader("ops", globals(), "cirq.ops")
@@ -359,7 +360,9 @@ class Gate(metaclass=value.ABCMetaImplementAnyOneOf):
     def controlled(
         self,
         num_controls: int = None,
-        control_values: Optional[Sequence[Union[int, Collection[int]]]] = None,
+        control_values: Optional[
+            Union[cv.AbstractControlValues, Sequence[Union[int, Collection[int]]]]
+        ] = None,
         control_qid_shape: Optional[Tuple[int, ...]] = None,
     ) -> 'Gate':
         """Returns a controlled version of this gate. If no arguments are
@@ -555,7 +558,9 @@ class Operation(metaclass=abc.ABCMeta):
     def controlled_by(
         self,
         *control_qubits: 'cirq.Qid',
-        control_values: Optional[Sequence[Union[int, Collection[int]]]] = None,
+        control_values: Optional[
+            Union[cv.AbstractControlValues, Sequence[Union[int, Collection[int]]]]
+        ] = None,
     ) -> 'cirq.Operation':
         """Returns a controlled version of this operation. If no control_qubits
            are specified, returns self.
@@ -743,7 +748,9 @@ class TaggedOperation(Operation):
     def controlled_by(
         self,
         *control_qubits: 'cirq.Qid',
-        control_values: Optional[Sequence[Union[int, Collection[int]]]] = None,
+        control_values: Optional[
+            Union[cv.AbstractControlValues, Sequence[Union[int, Collection[int]]]]
+        ] = None,
     ) -> 'cirq.Operation':
         if len(control_qubits) == 0:
             return self

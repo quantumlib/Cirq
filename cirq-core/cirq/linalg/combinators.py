@@ -39,7 +39,7 @@ def kron(*factors: Union[np.ndarray, complex, float], shape_len: int = 2) -> np.
     Returns:
         The kronecker product of all the inputs.
     """
-    product = np.ones(shape=(1,) * shape_len)
+    product: np.ndarray = np.ones(shape=(1,) * shape_len)
     for m in factors:
         product = np.kron(product, m)
     return np.array(product)
