@@ -12,7 +12,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Any, Dict, List, Mapping, NamedTuple, Optional, Sequence, TYPE_CHECKING, Tuple
+from typing import (
+    Any,
+    Dict,
+    List,
+    Mapping,
+    NamedTuple,
+    Optional,
+    Sequence,
+    TYPE_CHECKING,
+    Tuple,
+    Union,
+)
 import dataclasses
 import numpy as np
 from matplotlib import pyplot as plt
@@ -208,7 +219,9 @@ class CrossEntropyResult:
         return f'cirq.experiments.CrossEntropyResult({args})'
 
 
-def _fit_exponential_decay(x: Sequence[int], y: Sequence[float]) -> Tuple[np.ndarray, np.ndarray]:
+def _fit_exponential_decay(
+    x: Union[Sequence[int], np.ndarray], y: Union[Sequence[float], np.ndarray]
+) -> Tuple[np.ndarray, np.ndarray]:
     """Fit an exponential model y = S * p**x using nonlinear least squares.
 
     Args:

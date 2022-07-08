@@ -1592,7 +1592,7 @@ class AbstractCircuit(abc.ABC):
 
 
 def _overlap_collision_time(
-    c1: Sequence['cirq.Moment'], c2: Sequence['cirq.Moment'], align: 'cirq.Alignment'
+    c1: np.ndarray, c2: Sequence['cirq.Moment'], align: 'cirq.Alignment'
 ) -> int:
     # Tracks the first used moment index for each qubit in c2.
     # Tracks the complementary last used moment index for each qubit in c1.

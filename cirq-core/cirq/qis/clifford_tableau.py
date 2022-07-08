@@ -19,7 +19,7 @@ import numpy as np
 from cirq import protocols
 from cirq._compat import proper_repr
 from cirq.qis import quantum_state_representation
-from cirq.value import big_endian_int_to_digits, linear_dict
+from cirq.value import big_endian_int_to_digits, linear_dict, random_state
 
 if TYPE_CHECKING:
     import cirq
@@ -509,11 +509,14 @@ class CliffordTableau(StabilizerState):
         generators above generate the full Pauli group on n qubits."""
         return [self._row_to_dense_pauli(i) for i in range(self.n)]
 
-    def _measure(self, q, prng: np.random.RandomState = np.random) -> int:
+    def _measure(self, q, prng: Optional[np.random.RandomState] = None) -> int:
         """Performs a projective measurement on the q'th qubit.
 
         Returns: the result (0 or 1) of the measurement.
         """
+        real_prng: np.random.RandomState = (
+            random_state.parse_random_state(np.random) if prng is None else prng
+        )
         is_commuting = True
         for i in range(self.n, 2 * self.n):
             if self.xs[i, q]:
@@ -544,7 +547,7 @@ class CliffordTableau(StabilizerState):
 
         self.zs[p, q] = True
 
-        self.rs[p] = bool(prng.randint(2))
+        self.rs[p] = bool(real_prng.randint(2))
 
         return int(self.rs[p])
 

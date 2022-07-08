@@ -226,7 +226,7 @@ class _BufferedStateVector(qis.QuantumStateRepresentation):
         ]
         p = prng.random()
         weight = None
-        fallback_weight = 0
+        fallback_weight = np.float64(0)
         fallback_weight_index = 0
         index = None
         for index in range(len(kraus_tensors)):

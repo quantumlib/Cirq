@@ -589,7 +589,7 @@ class CircuitOperation(ops.Operation):
                 # As CircuitOperation is immutable, this can safely return the original.
                 return self
 
-            expected_repetition_id_length = abs(repetitions)
+            expected_repetition_id_length: int = np.abs(repetitions)
 
             if repetition_ids is None:
                 if self.use_repetition_ids:

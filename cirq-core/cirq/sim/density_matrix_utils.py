@@ -68,7 +68,6 @@ def sample_density_matrix(
         qid_shape = (2,) * num_qubits
     else:
         _validate_density_matrix_qid_shape(density_matrix, qid_shape)
-        num_qubits = len(qid_shape)
     meas_shape = _indices_shape(qid_shape, indices)
 
     if repetitions == 0 or len(indices) == 0:
@@ -139,15 +138,18 @@ def measure_density_matrix(
         qid_shape = (2,) * num_qubits
     else:
         _validate_density_matrix_qid_shape(density_matrix, qid_shape)
-        num_qubits = len(qid_shape)
     meas_shape = _indices_shape(qid_shape, indices)
+
+    def _copy_density_matrix_to_out(density_matrix: np.ndarray, out: np.ndarray) -> np.ndarray:
+        np.copyto(dst=out, src=density_matrix)
+        return out
 
     arrout: np.ndarray = (
         np.copy(density_matrix)
         if out is None
         else density_matrix
         if out is density_matrix
-        else (np.copyto(dst=out, src=density_matrix), out)[-1]
+        else _copy_density_matrix_to_out(density_matrix, out)
     )
 
     if len(indices) == 0:
