@@ -18,7 +18,7 @@ from typing import Any, Iterator, List, TYPE_CHECKING, Union, Sequence, Type, Op
 
 import numpy as np
 
-from cirq import _compat, ops
+from cirq import ops
 from cirq.sim import simulator, state_vector, state_vector_simulator, state_vector_simulation_state
 
 if TYPE_CHECKING:
