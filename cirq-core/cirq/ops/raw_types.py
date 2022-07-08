@@ -580,18 +580,18 @@ class Operation(metaclass=abc.ABCMeta):
         return ops.controlled_operation.ControlledOperation(control_qubits, self, control_values)
 
     def with_probability(self, probability: 'cirq.TParamVal') -> 'cirq.Operation':
-        """Creates a channel which applies this operation with the given probability.
+        """Creates a probabalistic channel with this operation.
 
         Args:
-            probability: The chance of applying the operation this method was
-                called on. Probabilities should be in the range [0, 1].
+            probability: floating value between 0 and 1, giving the probability
+                this operation is applied.
 
         Returns:
-            A `cirq.RandomGateChannel` which has a `probability` chance of
-                applying the operation this method was called on.
+            `cirq.RandomGateChannel` that applies `self` with probability
+                `probability` and the identity with probability `1-p`.
 
         Raises:
-            NotImplementedError: if called on an Operation that lacks a gate.
+            NotImplementedError: if called on an operation that lacks a gate.
         """
         gate = self.gate
         if gate is None:
