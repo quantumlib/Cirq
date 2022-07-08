@@ -35,7 +35,7 @@ from typing import (
 import numpy as np
 
 from cirq import protocols, value
-from cirq.ops import raw_types, gate_features
+from cirq.ops import raw_types, gate_features, control_values as cv
 from cirq.type_workarounds import NotImplementedType
 
 if TYPE_CHECKING:
@@ -352,7 +352,9 @@ class GateOperation(raw_types.Operation):
     def controlled_by(
         self,
         *control_qubits: 'cirq.Qid',
-        control_values: Optional[Sequence[Union[int, Collection[int]]]] = None,
+        control_values: Optional[
+            Union[cv.AbstractControlValues, Sequence[Union[int, Collection[int]]]]
+        ] = None,
     ) -> 'cirq.Operation':
         if len(control_qubits) == 0:
             return self
