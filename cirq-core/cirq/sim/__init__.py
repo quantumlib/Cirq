@@ -14,18 +14,7 @@
 
 """Classes for circuit simulators and base implementations of these classes."""
 
-from cirq.sim.act_on_args import ActOnArgs
-
-from cirq.sim.act_on_args_container import ActOnArgsContainer
-
-from cirq.sim.act_on_density_matrix_args import ActOnDensityMatrixArgs
-
-from cirq.sim.act_on_state_vector_args import ActOnStateVectorArgs
-
 from cirq.sim.clifford import (
-    ActOnCliffordTableauArgs,
-    ActOnStabilizerArgs,
-    ActOnStabilizerCHFormArgs,
     CliffordSimulator,
     CliffordSimulatorStepResult,
     CliffordState,
@@ -41,7 +30,6 @@ from cirq.sim.density_matrix_simulation_state import DensityMatrixSimulationStat
 
 from cirq.sim.density_matrix_simulator import (
     DensityMatrixSimulator,
-    DensityMatrixSimulatorState,
     DensityMatrixStepResult,
     DensityMatrixTrialResult,
 )
@@ -55,8 +43,6 @@ from cirq.sim.mux import (
     sample,
     sample_sweep,
 )
-
-from cirq.sim.operation_target import OperationTarget
 
 from cirq.sim.simulation_product_state import SimulationProductState
 
@@ -84,7 +70,6 @@ from cirq.sim.state_vector_simulation_state import StateVectorSimulationState
 
 from cirq.sim.state_vector_simulator import (
     SimulatesIntermediateStateVector,
-    StateVectorSimulatorState,
     StateVectorStepResult,
     StateVectorTrialResult,
 )

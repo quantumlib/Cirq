@@ -17,7 +17,7 @@ from typing import Any, FrozenSet, Mapping, Optional, Tuple, TYPE_CHECKING, Unio
 
 from typing_extensions import Protocol
 
-from cirq import value, _compat
+from cirq import value
 from cirq._doc import doc_private
 from cirq.type_workarounds import NotImplementedType
 
@@ -182,12 +182,6 @@ def _measurement_key_objs_from_magic_methods(
     getter = getattr(val, '_measurement_key_objs_', None)
     result = NotImplemented if getter is None else getter()
     if result is not NotImplemented and result is not None:
-        if not isinstance(result, FrozenSet):
-            _compat._warn_or_error(
-                f'The _measurement_key_objs_ implementation of {type(val)} must return a'
-                f' frozenset instead of {type(result)} by v0.16.'
-            )
-            return frozenset(result)
         return result
 
     getter = getattr(val, '_measurement_key_obj_', None)
@@ -205,12 +199,6 @@ def _measurement_key_names_from_magic_methods(
     getter = getattr(val, '_measurement_key_names_', None)
     result = NotImplemented if getter is None else getter()
     if result is not NotImplemented and result is not None:
-        if not isinstance(result, FrozenSet):
-            _compat._warn_or_error(
-                f'The _measurement_key_names_ implementation of {type(val)} must return a'
-                f' frozenset instead of {type(result)} by v0.16.'
-            )
-            return frozenset(result)
         return result
 
     getter = getattr(val, '_measurement_key_name_', None)

@@ -20,6 +20,7 @@ import sympy
 
 import cirq
 from cirq.type_workarounds import NotImplementedType
+from cirq.ops import AbstractControlValues
 
 
 class GateUsingWorkspaceForApplyUnitary(cirq.testing.SingleQubitGate):
@@ -596,3 +597,51 @@ def test_controlled_mixture():
     c_yes = cirq.ControlledGate(sub_gate=cirq.phase_flip(0.25), num_controls=1)
     assert cirq.has_mixture(c_yes)
     assert cirq.approx_eq(cirq.mixture(c_yes), [(0.75, np.eye(4)), (0.25, cirq.unitary(cirq.CZ))])
+
+
+class MockControlValues(AbstractControlValues):
+    def __and__(self, other):
+        pass
+
+    def _expand(self):
+        pass
+
+    def diagram_repr(self):
+        pass
+
+    def _number_variables(self):
+        pass
+
+    def __len__(self):
+        return 1
+
+    def _identifier(self):
+        pass
+
+    def __hash__(self):
+        pass
+
+    def __repr__(self):
+        pass
+
+    def validate(self, shapes):
+        pass
+
+    def _are_ones(self):
+        pass
+
+    def _json_dict_(self):
+        pass
+
+    def __getitem__(self, idx):
+        pass
+
+
+def test_decompose_applies_only_to_ProductOfSums():
+    g = cirq.ControlledGate(cirq.X, control_values=MockControlValues())
+    assert g._decompose_(None) is NotImplemented
+
+
+def test_circuit_diagram_info_applies_only_to_ProductOfSums():
+    g = cirq.ControlledGate(cirq.X, control_values=MockControlValues())
+    assert g._circuit_diagram_info_(None) is NotImplemented
