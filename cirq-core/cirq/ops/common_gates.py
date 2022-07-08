@@ -70,8 +70,9 @@ def _pi(rads):
 class XPowGate(eigen_gate.EigenGate):
     r"""A gate that rotates around the X axis of the Bloch sphere.
 
-    The unitary matrix of `cirq.XPowGate(exponent=t)` is:
+    The unitary matrix of `cirq.XPowGate(exponent=t, global_shift=s)` is:
     $$
+    e^{i \pi s t}
     \begin{bmatrix}
       e^{i \pi t /2} \cos(\pi t) & -i e^{i \pi t /2} \sin(\pi t) \\
       -i e^{i \pi t /2} \sin(\pi t) & e^{i \pi t /2} \cos(\pi t)
@@ -96,15 +97,15 @@ class XPowGate(eigen_gate.EigenGate):
 
         Args:
             exponent: The t in gate**t. Determines how much the eigenvalues of
-                the gate are scaled by. For example, eigenvectors phased by -1
+                the gate are phased by. For example, eigenvectors phased by -1
                 when `gate**1` is applied will gain a relative phase of
                 e^{i pi exponent} when `gate**exponent` is applied (relative to
                 eigenvectors unaffected by `gate**1`).
             global_shift: Offsets the eigenvalues of the gate at exponent=1.
                 In effect, this controls a global phase factor on the gate's
-                unitary matrix. The factor is:
+                unitary matrix. The factor for global_shift=s is:
 
-                    exp(i * pi * global_shift * exponent)
+                    exp(i * pi * s * t)
 
                 For example, `cirq.X**t` uses a `global_shift` of 0 but
                 `cirq.rx(t)` uses a `global_shift` of -0.5, which is why
@@ -525,8 +526,9 @@ class Ry(YPowGate):
 class ZPowGate(eigen_gate.EigenGate):
     r"""A gate that rotates around the Z axis of the Bloch sphere.
 
-    The unitary matrix of `cirq.ZPowGate(exponent=t)` is:
+    The unitary matrix of `cirq.ZPowGate(exponent=t, global_shift=s)` is:
     $$
+        e^{i \pi s t}
         \begin{bmatrix}
             1 & 0 \\
             0 & e^{i \pi t}
@@ -551,15 +553,15 @@ class ZPowGate(eigen_gate.EigenGate):
 
         Args:
             exponent: The t in gate**t. Determines how much the eigenvalues of
-                the gate are scaled by. For example, eigenvectors phased by -1
+                the gate are phased by. For example, eigenvectors phased by -1
                 when `gate**1` is applied will gain a relative phase of
                 e^{i pi exponent} when `gate**exponent` is applied (relative to
                 eigenvectors unaffected by `gate**1`).
             global_shift: Offsets the eigenvalues of the gate at exponent=1.
                 In effect, this controls a global phase factor on the gate's
-                unitary matrix. The factor is:
+                unitary matrix. The factor for global_shift=s is:
 
-                    exp(i * pi * global_shift * exponent)
+                    exp(i * pi * s * t)
 
                 For example, `cirq.X**t` uses a `global_shift` of 0 but
                 `cirq.rx(t)` uses a `global_shift` of -0.5, which is why
