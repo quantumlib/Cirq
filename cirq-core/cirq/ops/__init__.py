@@ -209,3 +209,5 @@ from cirq.ops.two_qubit_diagonal_gate import TwoQubitDiagonalGate
 from cirq.ops.wait_gate import wait, WaitGate
 
 from cirq.ops.state_preparation_channel import StatePreparationChannel
+
+from cirq.ops.control_values import AbstractControlValues, ProductOfSums
