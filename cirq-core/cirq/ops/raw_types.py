@@ -589,6 +589,9 @@ class Operation(metaclass=abc.ABCMeta):
         Returns:
             A `cirq.RandomGateChannel` which has a `probability` chance of
                 applying the operation this method was called on.
+
+        Raises:
+            NotImplementedError: if called on an Operation that lacks a gate.
         """
         gate = self.gate
         if gate is None:
