@@ -14,7 +14,7 @@
 """Methods for resolving JSON types during serialization."""
 import datetime
 import functools
-from typing import Any, Dict, List, NamedTuple, Optional, Tuple, TYPE_CHECKING
+from typing import Dict, List, NamedTuple, Optional, Tuple, TYPE_CHECKING
 
 from cirq.protocols.json_serialization import ObjectFactory
 
@@ -79,7 +79,7 @@ def _class_resolver_dictionary() -> Dict[str, ObjectFactory]:
         )
 
     def _cross_entropy_result_dict(
-        results: List[Tuple[List['cirq.Qid'], Dict[str, Any]]], **kwargs
+        results: List[Tuple[List['cirq.Qid'], CrossEntropyResult]], **kwargs
     ) -> CrossEntropyResultDict:
         return CrossEntropyResultDict(results={tuple(qubits): result for qubits, result in results})
 
