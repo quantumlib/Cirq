@@ -14,7 +14,7 @@
 """Methods for resolving JSON types during serialization."""
 import datetime
 import functools
-from typing import Any, Dict, List, NamedTuple, Tuple, TYPE_CHECKING
+from typing import Any, Dict, List, NamedTuple, Optional, Tuple, TYPE_CHECKING
 
 from cirq.protocols.json_serialization import ObjectFactory
 
@@ -26,6 +26,14 @@ if TYPE_CHECKING:
 # Needed for backwards compatible named tuples of CrossEntropyResult
 CrossEntropyPair = NamedTuple('CrossEntropyPair', [('num_cycle', int), ('xeb_fidelity', float)])
 SpecklePurityPair = NamedTuple('SpecklePurityPair', [('num_cycle', int), ('purity', float)])
+CrossEntropyResult = NamedTuple(
+    'CrossEntropyResult',
+    [
+        ('data', List[CrossEntropyPair]),
+        ('repetitions', int),
+        ('purity_data', Optional[List[SpecklePurityPair]]),
+    ],
+)
 
 
 @functools.lru_cache()
@@ -60,11 +68,11 @@ def _class_resolver_dictionary() -> Dict[str, ObjectFactory]:
         purity_data = kwargs.get('purity_data', None)
         if purity_data is not None:
             purity_data = [SpecklePurityPair(d, f) for d, f in purity_data]
-        return {
-            'data': [CrossEntropyPair(d, f) for d, f in data],
-            'repetitions': repetitions,
-            'purity_data': purity_data,
-        }
+        return CrossEntropyResult(
+            data=[CrossEntropyPair(d, f) for d, f in data],
+            repetitions=repetitions,
+            purity_data=purity_data,
+        )
 
     def _cross_entropy_result_dict(
         results: List[Tuple[List['cirq.Qid'], Dict[str, Any]]], **kwargs
