@@ -19,6 +19,7 @@ from typing import Any, Dict, List, NamedTuple, Optional, Tuple, TYPE_CHECKING
 from cirq.protocols.json_serialization import ObjectFactory
 
 if TYPE_CHECKING:
+    import cirq
     import cirq.ops.pauli_gates
     import cirq.devices.unconstrained_device
 
@@ -33,6 +34,9 @@ CrossEntropyResult = NamedTuple(
         ('repetitions', int),
         ('purity_data', Optional[List[SpecklePurityPair]]),
     ],
+)
+CrossEntropyResultDict = NamedTuple(
+    'CrossEntropyResultDict', [('results', Dict[Tuple['cirq.Qid', ...], CrossEntropyResult])]
 )
 
 
@@ -64,7 +68,7 @@ def _class_resolver_dictionary() -> Dict[str, ObjectFactory]:
             matrix = np.array(matrix, dtype=np.complex128)
         return cirq.MatrixGate(matrix, qid_shape=(2, 2))
 
-    def _cross_entropy_result(data, repetitions, **kwargs) -> Dict[str, Any]:
+    def _cross_entropy_result(data, repetitions, **kwargs) -> CrossEntropyResult:
         purity_data = kwargs.get('purity_data', None)
         if purity_data is not None:
             purity_data = [SpecklePurityPair(d, f) for d, f in purity_data]
@@ -76,8 +80,8 @@ def _class_resolver_dictionary() -> Dict[str, ObjectFactory]:
 
     def _cross_entropy_result_dict(
         results: List[Tuple[List['cirq.Qid'], Dict[str, Any]]], **kwargs
-    ) -> Dict[Tuple['cirq.Qid', ...], Any]:
-        return {tuple(qubits): result for qubits, result in results}
+    ) -> CrossEntropyResultDict:
+        return CrossEntropyResultDict(results={tuple(qubits): result for qubits, result in results})
 
     def _parallel_gate_op(gate, qubits):
         return cirq.parallel_gate_op(gate, *qubits)
