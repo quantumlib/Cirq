@@ -26,7 +26,6 @@ calibration using the following pipeline:
 """
 
 from typing import Dict, Optional, Tuple, Type, TYPE_CHECKING
-import numpy as np
 
 from cirq import ops
 from cirq.devices import noise_utils
@@ -165,9 +164,7 @@ def noise_properties_from_calibration(
     # 4. Extract readout fidelity for all qubits.
     p00 = _unpack_1q_from_calibration('single_qubit_p00_error', calibration)
     p11 = _unpack_1q_from_calibration('single_qubit_p11_error', calibration)
-    readout_errors = {
-        q: np.array([p00.get(q, 0), p11.get(q, 0)]) for q in set(p00.keys()) | set(p11.keys())
-    }
+    readout_errors = {q: [p00.get(q, 0), p11.get(q, 0)] for q in set(p00.keys()) | set(p11.keys())}
 
     # 5. Extract entangling angle errors.
     fsim_errors = {}

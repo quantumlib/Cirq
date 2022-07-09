@@ -23,7 +23,7 @@ def test_toffoli_separate():
     c_left, c_right = convert_and_separate_circuit(circuit)
 
     cirq.testing.assert_allclose_up_to_global_phase(
-        circuit.unitary(), (c_left + c_right).unitary(), atol=1e-6
+        circuit.unitary(), (c_left + c_right).unitary(), atol=1e-7
     )
 
     assert all(isinstance(op, cirq.PauliStringPhasor) for op in c_left.all_operations())

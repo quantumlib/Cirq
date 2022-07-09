@@ -18,7 +18,7 @@ import cirq
 def test_control_key():
     class Named:
         def _control_keys_(self):
-            return [cirq.MeasurementKey('key')]
+            return frozenset([cirq.MeasurementKey('key')])
 
     class NoImpl:
         def _control_keys_(self):

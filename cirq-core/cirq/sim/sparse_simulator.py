@@ -14,17 +14,15 @@
 
 """A simulator that uses numpy's einsum for sparse matrix operations."""
 
-from typing import Any, Iterator, List, Type, TYPE_CHECKING, Union, Sequence, Optional
+from typing import Any, Iterator, List, TYPE_CHECKING, Union, Sequence, Type, Optional
 
 import numpy as np
 
 from cirq import _compat, ops
-from cirq._compat import deprecated_parameter
 from cirq.sim import simulator, state_vector, state_vector_simulator, state_vector_simulation_state
 
 if TYPE_CHECKING:
     import cirq
-    from numpy.typing import DTypeLike
 
 
 class Simulator(
@@ -127,7 +125,7 @@ class Simulator(
     def __init__(
         self,
         *,
-        dtype: Type[np.number] = np.complex64,
+        dtype: Type[np.complexfloating] = np.complex64,
         noise: 'cirq.NOISE_MODEL_LIKE' = None,
         seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None,
         split_untangled_states: bool = True,
@@ -221,23 +219,15 @@ class SparseSimulatorStep(
 ):
     """A `StepResult` that includes `StateVectorMixin` methods."""
 
-    @deprecated_parameter(
-        deadline='v0.16',
-        fix='Remove parameter `simulator` as it is no longer used.',
-        parameter_desc='simulator',
-        match=lambda args, kwargs: 'simulator' in kwargs or len(args) > 2,
-    )
     def __init__(
         self,
         sim_state: 'cirq.SimulationStateBase[cirq.StateVectorSimulationState]',
-        simulator: 'cirq.Simulator' = None,
-        dtype: 'DTypeLike' = np.complex64,
+        dtype: Type[np.complexfloating] = np.complex64,
     ):
         """Results of a step of the simulator.
 
         Args:
             sim_state: The qubit:SimulationState lookup for this step.
-            simulator: The simulator used to create this.
             dtype: The `numpy.dtype` used by the simulation. One of
                 `numpy.complex64` or `numpy.complex128`.
         """

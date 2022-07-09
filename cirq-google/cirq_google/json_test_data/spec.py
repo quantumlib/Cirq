@@ -20,7 +20,6 @@ TestSpec = ModuleJsonTestSpec(
         'SQRT_ISWAP_INV_PARAMETERS',
         'ALL_ANGLES_FLOQUET_PHASED_FSIM_CHARACTERIZATION',
         'WITHOUT_CHI_FLOQUET_PHASED_FSIM_CHARACTERIZATION',
-        'XmonDevice',
         'XMON',
     ],
     should_not_be_serialized=[
@@ -50,7 +49,6 @@ TestSpec = ModuleJsonTestSpec(
         'PerQubitDepolarizingWithDampedReadoutNoiseModel',
         'SerializingArg',
         'THETA_ZETA_GAMMA_FLOQUET_PHASED_FSIM_CHARACTERIZATION',
-        'QuantumEngineSampler',
         'ProcessorSampler',
         'ValidatingSampler',
         'CouldNotPlaceError',

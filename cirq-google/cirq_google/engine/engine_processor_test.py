@@ -100,15 +100,6 @@ valid_gates {
 )
 
 
-_GATE_SET = cg.SerializableGateSet(
-    gate_set_name='x_gate_set',
-    serializers=[cg.GateOpSerializer(gate_type=cirq.XPowGate, serialized_gate_id='x', args=[])],
-    deserializers=[
-        cg.GateOpDeserializer(serialized_gate_id='x', gate_constructor=cirq.XPowGate, args=[])
-    ],
-)
-
-
 _CIRCUIT = cirq.Circuit(
     cirq.X(cirq.GridQubit(5, 2)) ** 0.5, cirq.measure(cirq.GridQubit(5, 2), key='result')
 )

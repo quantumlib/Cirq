@@ -26,6 +26,7 @@ from typing import (
     Hashable,
     Iterable,
     List,
+    Mapping,
     Optional,
     Sequence,
     Tuple,
@@ -40,6 +41,7 @@ import sympy
 from cirq import protocols, value
 from cirq._import import LazyLoader
 from cirq.type_workarounds import NotImplementedType
+from cirq.ops import control_values as cv
 
 # Lazy imports to break circular dependencies.
 ops = LazyLoader("ops", globals(), "cirq.ops")
@@ -190,8 +192,7 @@ class Gate(metaclass=value.ABCMetaImplementAnyOneOf):
 
     Gates operate on a certain number of qubits. All implementations of gate
     must implement the `num_qubits` method declaring how many qubits they
-    act on. The gate feature classes `SingleQubitGate` and `TwoQubitGate`
-    can be used to avoid writing this boilerplate.
+    act on.
 
     Linear combinations of gates can be created by adding gates together and
     multiplying them by scalars.
@@ -344,8 +345,8 @@ class Gate(metaclass=value.ABCMetaImplementAnyOneOf):
         """Creates a probabalistic channel with this gate.
 
         Args:
-            probability: floating value between 0 and 1, giving the probability
-                this gate is applied.
+            probability: floating point value between 0 and 1, giving the
+                probability this gate is applied.
 
         Returns:
             `cirq.RandomGateChannel` that applies `self` with probability
@@ -358,7 +359,9 @@ class Gate(metaclass=value.ABCMetaImplementAnyOneOf):
     def controlled(
         self,
         num_controls: int = None,
-        control_values: Optional[Sequence[Union[int, Collection[int]]]] = None,
+        control_values: Optional[
+            Union[cv.AbstractControlValues, Sequence[Union[int, Collection[int]]]]
+        ] = None,
         control_qid_shape: Optional[Tuple[int, ...]] = None,
     ) -> 'Gate':
         """Returns a controlled version of this gate. If no arguments are
@@ -554,7 +557,9 @@ class Operation(metaclass=abc.ABCMeta):
     def controlled_by(
         self,
         *control_qubits: 'cirq.Qid',
-        control_values: Optional[Sequence[Union[int, Collection[int]]]] = None,
+        control_values: Optional[
+            Union[cv.AbstractControlValues, Sequence[Union[int, Collection[int]]]]
+        ] = None,
     ) -> 'cirq.Operation':
         """Returns a controlled version of this operation. If no control_qubits
            are specified, returns self.
@@ -574,6 +579,19 @@ class Operation(metaclass=abc.ABCMeta):
         return ops.controlled_operation.ControlledOperation(control_qubits, self, control_values)
 
     def with_probability(self, probability: 'cirq.TParamVal') -> 'cirq.Operation':
+        """Creates a probabalistic channel with this operation.
+
+        Args:
+            probability: floating point value between 0 and 1, giving the
+                probability this gate is applied.
+
+        Returns:
+            `cirq.RandomGateChannel` that applies `self` with probability
+                `probability` and the identity with probability `1-p`.
+
+        Raises:
+            NotImplementedError: if called on an operation that lacks a gate.
+        """
         gate = self.gate
         if gate is None:
             raise NotImplementedError("with_probability on gateless operation.")
@@ -733,7 +751,7 @@ class TaggedOperation(Operation):
     def with_qubits(self, *new_qubits: 'cirq.Qid'):
         return TaggedOperation(self.sub_operation.with_qubits(*new_qubits), *self._tags)
 
-    def _with_measurement_key_mapping_(self, key_map: Dict[str, str]):
+    def _with_measurement_key_mapping_(self, key_map: Mapping[str, str]):
         sub_op = protocols.with_measurement_key_mapping(self.sub_operation, key_map)
         if sub_op is NotImplemented:
             return NotImplemented
@@ -742,7 +760,9 @@ class TaggedOperation(Operation):
     def controlled_by(
         self,
         *control_qubits: 'cirq.Qid',
-        control_values: Optional[Sequence[Union[int, Collection[int]]]] = None,
+        control_values: Optional[
+            Union[cv.AbstractControlValues, Sequence[Union[int, Collection[int]]]]
+        ] = None,
     ) -> 'cirq.Operation':
         if len(control_qubits) == 0:
             return self
@@ -820,10 +840,10 @@ class TaggedOperation(Operation):
     def _kraus_(self) -> Union[Tuple[np.ndarray], NotImplementedType]:
         return protocols.kraus(self.sub_operation, NotImplemented)
 
-    def _measurement_key_names_(self) -> AbstractSet[str]:
+    def _measurement_key_names_(self) -> FrozenSet[str]:
         return protocols.measurement_key_names(self.sub_operation)
 
-    def _measurement_key_objs_(self) -> AbstractSet['cirq.MeasurementKey']:
+    def _measurement_key_objs_(self) -> FrozenSet['cirq.MeasurementKey']:
         return protocols.measurement_key_objs(self.sub_operation)
 
     def _is_measurement_(self) -> bool:
@@ -905,7 +925,7 @@ class TaggedOperation(Operation):
             return self
         return self.sub_operation.with_classical_controls(*conditions)
 
-    def _control_keys_(self) -> AbstractSet['cirq.MeasurementKey']:
+    def _control_keys_(self) -> FrozenSet['cirq.MeasurementKey']:
         return protocols.control_keys(self.sub_operation)
 
 

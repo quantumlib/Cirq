@@ -175,3 +175,19 @@ def test_create_from_proto_no_qubits():
         _ = factory.create_noiseless_virtual_engine_from_device(
             'sycamore', cirq.UNCONSTRAINED_DEVICE
         )
+
+
+def test_create_default_noisy_quantum_virtual_machine():
+    for processor_id in ["rainbow", "weber"]:
+        engine = factory.create_default_noisy_quantum_virtual_machine(
+            processor_id=processor_id, simulator_class=cirq.Simulator
+        )
+        processor = engine.get_processor(processor_id)
+        bad_qubit = cirq.GridQubit(10, 10)
+        circuit = cirq.Circuit(cirq.X(bad_qubit), cirq.measure(bad_qubit))
+        with pytest.raises(ValueError, match='Qubit not on device'):
+            _ = processor.run(circuit, repetitions=100)
+        good_qubit = cirq.GridQubit(5, 4)
+        circuit = cirq.Circuit(cirq.H(good_qubit), cirq.measure(good_qubit))
+        with pytest.raises(ValueError, match='.* contains a gate which is not supported.'):
+            _ = processor.run(circuit, repetitions=100)

@@ -217,5 +217,5 @@ def test_merge_single_qubit_moments_to_phxz_deep():
     context = cirq.TransformerContext(tags_to_ignore=["ignore"], deep=True)
     c_new = cirq.merge_single_qubit_moments_to_phxz(c_orig, context=context)
     cirq.testing.assert_allclose_up_to_global_phase(
-        c_new.unitary(), c_expected.unitary(), atol=1e-6
+        c_new.unitary(), c_expected.unitary(), atol=1e-7
     )

@@ -56,7 +56,7 @@ class MatrixGate(raw_types.Gate):
         name: str = None,
         qid_shape: Optional[Iterable[int]] = None,
         unitary_check_rtol: float = 1e-5,
-        unitary_check_atol: float = 1e-6,
+        unitary_check_atol: float = 1e-8,
     ) -> None:
         """Initializes a matrix gate.
 

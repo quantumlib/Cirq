@@ -24,10 +24,11 @@ from cirq_google.serialization import serializer, op_deserializer, op_serializer
 _GateOrFrozenCircuitTypes = Union[Type[cirq.Gate], Type[cirq.FrozenCircuit]]
 
 
-class SerializableGateSet(serializer.Serializer):
-    """A class for serializing and deserializing programs and operations.
+class _SerializableGateSet(serializer.Serializer):
+    """HACK: non-deprecated version of SerializableGateSet.
 
-    This class is for cirq_google.api.v2 protos.
+    This is used by global gatesets to bypass the behavior that deprecation warnings thrown
+    during module loading fail unit tests.
     """
 
     def __init__(
@@ -36,19 +37,6 @@ class SerializableGateSet(serializer.Serializer):
         serializers: Iterable[op_serializer.OpSerializer],
         deserializers: Iterable[op_deserializer.OpDeserializer],
     ):
-        """Construct the gate set.
-
-        Args:
-            gate_set_name: The name used to identify the gate set.
-            serializers: The OpSerializers to use for serialization.
-                Multiple serializers for a given gate type are allowed and
-                will be checked for a given type in the order specified here.
-                This allows for a given gate type to be serialized into
-                different serialized form depending on the parameters of the
-                gate.
-            deserializers: The OpDeserializers to convert serialized
-                forms of gates or circuits into Operations.
-        """
         super().__init__(gate_set_name)
         self.serializers: Dict[_GateOrFrozenCircuitTypes, List[op_serializer.OpSerializer]] = {}
         for s in serializers:
@@ -62,14 +50,6 @@ class SerializableGateSet(serializer.Serializer):
         serializers: Iterable[op_serializer.OpSerializer] = (),
         deserializers: Iterable[op_deserializer.OpDeserializer] = (),
     ) -> 'SerializableGateSet':
-        """Creates a new gateset with additional (de)serializers.
-
-        Args:
-            gate_set_name: Optional new name of the gateset. If not given, use
-                the same name as this gateset.
-            serializers: Serializers to add to those in this gateset.
-            deserializers: Deserializers to add to those in this gateset.
-        """
         # Iterate over all serializers in this gateset.
         curr_serializers = (
             serializer for serializers in self.serializers.values() for serializer in serializers
@@ -491,3 +471,261 @@ class SerializableGateSet(serializer.Serializer):
             )
         ret = cirq.Circuit(result)
         return ret
+
+
+@cirq._compat.deprecated_class(
+    deadline='v0.16',
+    fix='SerializableGateSet will no longer be supported.'
+    ' In cirq_google.GridDevice, the new representation of Google devices, the gateset of a device'
+    ' is represented as a cirq.Gateset and is available as GridDevice.metadata.gateset.'
+    ' Engine methods no longer require gate sets to be passed in.'
+    ' In addition, circuit serialization is replaced by cirq_google.CircuitSerializer.',
+)
+class SerializableGateSet(_SerializableGateSet):
+    """A class for serializing and deserializing programs and operations.
+
+    This class is for cirq_google.api.v2 protos.
+    """
+
+    def __init__(
+        self,
+        gate_set_name: str,
+        serializers: Iterable[op_serializer.OpSerializer],
+        deserializers: Iterable[op_deserializer.OpDeserializer],
+    ):
+        """Construct the gate set.
+
+        Args:
+            gate_set_name: The name used to identify the gate set.
+            serializers: The OpSerializers to use for serialization.
+                Multiple serializers for a given gate type are allowed and
+                will be checked for a given type in the order specified here.
+                This allows for a given gate type to be serialized into
+                different serialized form depending on the parameters of the
+                gate.
+            deserializers: The OpDeserializers to convert serialized
+                forms of gates or circuits into Operations.
+        """
+        super().__init__(gate_set_name, serializers, deserializers)
+
+    def with_added_types(
+        self,
+        *,
+        gate_set_name: Optional[str] = None,
+        serializers: Iterable[op_serializer.OpSerializer] = (),
+        deserializers: Iterable[op_deserializer.OpDeserializer] = (),
+    ) -> 'SerializableGateSet':
+        """Creates a new gateset with additional (de)serializers.
+
+        Args:
+            gate_set_name: Optional new name of the gateset. If not given, use
+                the same name as this gateset.
+            serializers: Serializers to add to those in this gateset.
+            deserializers: Deserializers to add to those in this gateset.
+        """
+        return super().with_added_types(
+            gate_set_name=gate_set_name, serializers=serializers, deserializers=deserializers
+        )
+
+    def is_supported(self, op_tree: cirq.OP_TREE) -> bool:
+        """Whether the given object contains only supported operations."""
+        return super().is_supported(op_tree)
+
+    def is_supported_operation(self, op: cirq.Operation) -> bool:
+        """Whether or not the given gate can be serialized by this gate set."""
+        return super().is_supported_operation(op)
+
+    def serialize(
+        self,
+        program: cirq.AbstractCircuit,
+        msg: Optional[v2.program_pb2.Program] = None,
+        *,
+        arg_function_language: Optional[str] = None,
+        use_constants: Optional[bool] = True,
+    ) -> v2.program_pb2.Program:
+        """Serialize a Circuit to cirq_google.api.v2.Program proto.
+
+        Args:
+            program: The Circuit to serialize.
+            msg: An optional proto object to populate with the serialization
+                results.
+            arg_function_language: The `arg_function_language` field from
+                `Program.Language`.
+            use_constants: Whether to use constants in serialization. This is
+                required to be True for serializing CircuitOperations.
+
+        Raises:
+            NotImplementedError: If the program type is not supported.
+        """
+        return super().serialize(
+            program, msg, arg_function_language=arg_function_language, use_constants=use_constants
+        )
+
+    def serialize_op(
+        self,
+        op: cirq.Operation,
+        msg: Union[None, v2.program_pb2.Operation, v2.program_pb2.CircuitOperation] = None,
+        **kwargs,
+    ) -> Union[v2.program_pb2.Operation, v2.program_pb2.CircuitOperation]:
+        """Disambiguation for operation serialization."""
+        return super().serialize_op(op, msg, **kwargs)
+
+    def serialize_gate_op(
+        self,
+        op: cirq.Operation,
+        msg: Optional[v2.program_pb2.Operation] = None,
+        *,
+        arg_function_language: Optional[str] = '',
+        constants: Optional[List[v2.program_pb2.Constant]] = None,
+        raw_constants: Optional[Dict[Any, int]] = None,
+    ) -> v2.program_pb2.Operation:
+        """Serialize an Operation to cirq_google.api.v2.Operation proto.
+
+        Args:
+            op: The operation to serialize.
+            msg: An optional proto object to populate with the serialization
+                results.
+            arg_function_language: The `arg_function_language` field from
+                `Program.Language`.
+            constants: The list of previously-serialized Constant protos.
+            raw_constants: A map raw objects to their respective indices in
+                `constants`.
+
+        Returns:
+            The cirq.google.api.v2.Operation proto.
+
+        Raises:
+            ValueError: If the op cannot be serialized.
+        """
+        return super().serialize_gate_op(
+            op,
+            msg,
+            arg_function_language=arg_function_language,
+            constants=constants,
+            raw_constants=raw_constants,
+        )
+
+    def serialize_circuit_op(
+        self,
+        op: cirq.Operation,
+        msg: Optional[v2.program_pb2.CircuitOperation] = None,
+        *,
+        arg_function_language: Optional[str] = '',
+        constants: Optional[List[v2.program_pb2.Constant]] = None,
+        raw_constants: Optional[Dict[Any, int]] = None,
+    ) -> Union[v2.program_pb2.Operation, v2.program_pb2.CircuitOperation]:
+        """Serialize a CircuitOperation to cirq.google.api.v2.CircuitOperation proto.
+
+        Args:
+            op: The circuit operation to serialize.
+            msg: An optional proto object to populate with the serialization
+                results.
+            arg_function_language: The `arg_function_language` field from
+                `Program.Language`.
+            constants: The list of previously-serialized Constant protos.
+            raw_constants: A map raw objects to their respective indices in
+                `constants`.
+
+        Returns:
+            The cirq.google.api.v2.CircuitOperation proto.
+
+        Raises:
+            ValueError: If one of `constants` or `raw_constants` is None, or the circuit operation
+                cannot be serialized.
+        """
+        return super().serialize_circuit_op(
+            op,
+            msg,
+            arg_function_language=arg_function_language,
+            constants=constants,
+            raw_constants=raw_constants,
+        )
+
+    def deserialize(self, proto: v2.program_pb2.Program) -> cirq.Circuit:
+        """Deserialize a Circuit from a cirq_google.api.v2.Program.
+
+        Args:
+            proto: A dictionary representing a cirq_google.api.v2.Program proto.
+
+        Returns:
+            The deserialized Circuit.
+
+        Raises:
+            ValueError: If the given proto has no language specified or it mismatched the
+                name specified for this serializable gate set.
+            NotImplementedError: If the program does not contain a circuit or schedule.
+        """
+        return super().deserialize(proto)
+
+    def deserialize_op(
+        self,
+        operation_proto: Union[v2.program_pb2.Operation, v2.program_pb2.CircuitOperation,],
+        **kwargs,
+    ) -> cirq.Operation:
+        """Disambiguation for operation deserialization."""
+        return super().deserialize_op(operation_proto, **kwargs)
+
+    def deserialize_gate_op(
+        self,
+        operation_proto: v2.program_pb2.Operation,
+        *,
+        arg_function_language: str = '',
+        constants: Optional[List[v2.program_pb2.Constant]] = None,
+        deserialized_constants: Optional[List[Any]] = None,
+    ) -> cirq.Operation:
+        """Deserialize an Operation from a cirq_google.api.v2.Operation.
+
+        Args:
+            operation_proto: A dictionary representing a
+                cirq.google.api.v2.Operation proto.
+            arg_function_language: The `arg_function_language` field from
+                `Program.Language`.
+            constants: The list of Constant protos referenced by constant
+                table indices in `proto`.
+            deserialized_constants: The deserialized contents of `constants`.
+                cirq_google.api.v2.Operation proto.
+
+        Returns:
+            The deserialized Operation.
+
+        Raises:
+            ValueError: If the gate cannot be deserialized.
+        """
+        return super().deserialize_gate_op(
+            operation_proto,
+            arg_function_language=arg_function_language,
+            constants=constants,
+            deserialized_constants=deserialized_constants,
+        )
+
+    def deserialize_circuit_op(
+        self,
+        operation_proto: v2.program_pb2.CircuitOperation,
+        *,
+        arg_function_language: str = '',
+        constants: Optional[List[v2.program_pb2.Constant]] = None,
+        deserialized_constants: Optional[List[Any]] = None,
+    ) -> cirq.CircuitOperation:
+        """Deserialize a CircuitOperation from a cirq.google.api.v2.CircuitOperation.
+
+        Args:
+            operation_proto: A dictionary representing a
+                cirq.google.api.v2.CircuitOperation proto.
+            arg_function_language: The `arg_function_language` field from
+                `Program.Language`.
+            constants: The list of Constant protos referenced by constant
+                table indices in `proto`.
+            deserialized_constants: The deserialized contents of `constants`.
+
+        Returns:
+            The deserialized CircuitOperation.
+
+        Raises:
+            ValueError: If the deserializer does not support deserializing `CircuitOperation`.
+        """
+        return super().deserialize_circuit_op(
+            operation_proto,
+            arg_function_language=arg_function_language,
+            constants=constants,
+            deserialized_constants=deserialized_constants,
+        )
