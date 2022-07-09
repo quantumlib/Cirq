@@ -140,17 +140,14 @@ def measure_density_matrix(
         _validate_density_matrix_qid_shape(density_matrix, qid_shape)
     meas_shape = _indices_shape(qid_shape, indices)
 
-    def _copy_density_matrix_to_out(density_matrix: np.ndarray, out: np.ndarray) -> np.ndarray:
+    arrout: np.ndarray
+    if out is None:
+        arrout = np.copy(density_matrix)
+    elif out is density_matrix:
+        arrout = density_matrix
+    else:
         np.copyto(dst=out, src=density_matrix)
-        return out
-
-    arrout: np.ndarray = (
-        np.copy(density_matrix)
-        if out is None
-        else density_matrix
-        if out is density_matrix
-        else _copy_density_matrix_to_out(density_matrix, out)
-    )
+        arrout = out
 
     if len(indices) == 0:
         return ([], arrout)

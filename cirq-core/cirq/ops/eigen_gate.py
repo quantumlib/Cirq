@@ -331,7 +331,6 @@ class EigenGate(raw_types.Gate):
         if protocols.is_parameterized(self._exponent):
             return None
         angles = np.pi * (np.array(self._eigen_shifts()) * self._exponent % 2)
-        print(type(angles))
         return protocols.trace_distance_from_angle_list(angles)
 
     def _has_unitary_(self) -> bool:

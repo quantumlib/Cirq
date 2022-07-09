@@ -59,9 +59,7 @@ def random_qubit_unitary(
         rng: Random number generator to be used in sampling. Default is
             numpy.random.
     """
-    real_rng: np.random.RandomState = (
-        random_state.parse_random_state(np.random) if rng is None else rng
-    )
+    real_rng = random_state.parse_random_state(rng)
 
     theta = np.arcsin(np.sqrt(real_rng.rand(*shape)))
     phi_d = real_rng.rand(*shape) * np.pi * 2

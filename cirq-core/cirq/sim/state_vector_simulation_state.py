@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """Objects and methods for acting efficiently on a state vector."""
-
+import numbers
 from typing import Any, Callable, List, Optional, Sequence, Tuple, Type, TYPE_CHECKING, Union
 
 import numpy as np
@@ -225,13 +225,12 @@ class _BufferedStateVector(qis.QuantumStateRepresentation):
             e.reshape(shape * 2).astype(self._state_vector.dtype) for e in kraus_operators
         ]
         p = prng.random()
-        weight = None
-        fallback_weight = np.float64(0)
+        fallback_weight = 0.0
         fallback_weight_index = 0
-        index = None
+
         for index in range(len(kraus_tensors)):
             prepare_into_buffer(index)
-            weight = np.linalg.norm(self._buffer) ** 2
+            weight = float(np.linalg.norm(self._buffer) ** 2)
 
             if weight > fallback_weight:
                 fallback_weight_index = index

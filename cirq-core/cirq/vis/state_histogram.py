@@ -94,11 +94,9 @@ def plot_state_histogram(
     else:
         values = np.array(data)
     values_range = np.arange(len(values))
-    _ = (
-        ax.bar(values_range, values, tick_label=values_range)
-        if tick_label is None
-        else ax.bar(values_range, values, tick_label=tick_label)
-    )
+    if tick_label is None:
+        tick_label = [str(i) for i in range(len(values))]
+    ax.bar(np.arange(len(values)), values, tick_label=tick_label)
     ax.set_xlabel(xlabel)
     ax.set_ylabel(ylabel)
     ax.set_title(title)

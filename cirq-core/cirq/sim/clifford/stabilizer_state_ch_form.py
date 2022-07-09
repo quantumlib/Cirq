@@ -236,20 +236,17 @@ class StabilizerStateChForm(qis.StabilizerState):
 
         return arr
 
-    def _measure(self, q, prng: Optional[np.random.RandomState] = None) -> int:
+    def _measure(self, q, prng: np.random.RandomState) -> int:
         """Measures the q'th qubit.
 
         Reference: Section 4.1 "Simulating measurements"
 
         Returns: Computational basis measurement as 0 or 1.
         """
-        real_prng: np.random.RandomState = (
-            random_state.parse_random_state(np.random) if prng is None else prng
-        )
         w = self.s.copy()
         for i, v_i in enumerate(self.v):
             if v_i == 1:
-                w[i] = bool(real_prng.randint(2))
+                w[i] = bool(prng.randint(2))
         x_i = sum(w & self.G[q, :]) % 2
         # Project the state to the above measurement outcome.
         self.project_Z(q, x_i)
@@ -391,7 +388,7 @@ class StabilizerStateChForm(qis.StabilizerState):
     def measure(
         self, axes: Sequence[int], seed: Optional['cirq.RANDOM_STATE_OR_SEED_LIKE'] = None
     ) -> List[int]:
-        return [self._measure(axis, seed) for axis in axes]
+        return [self._measure(axis, random_state.parse_random_state(seed)) for axis in axes]
 
 
 def _phase(exponent, global_shift):
