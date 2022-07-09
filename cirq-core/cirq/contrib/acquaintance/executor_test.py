@@ -36,11 +36,7 @@ class ExampleGate(cirq.Gate):
         return self._wire_symbols
 
 
-@pytest.mark.parametrize(
-    'StrategyType, is_deprecated',
-    [[cca.StrategyExecutor, True], [cca.StrategyExecutorTransformer, False]],
-)
-def test_executor_explicit(StrategyType, is_deprecated):
+def test_executor_explicit():
     num_qubits = 8
     qubits = cirq.LineQubit.range(num_qubits)
     circuit = cca.complete_acquaintance_strategy(qubits, 2)
@@ -53,19 +49,9 @@ def test_executor_explicit(StrategyType, is_deprecated):
     initial_mapping = {q: i for i, q in enumerate(sorted(qubits))}
     execution_strategy = cca.GreedyExecutionStrategy(gates, initial_mapping)
 
-    if is_deprecated:
-        with cirq.testing.assert_deprecated(
-            "Use cirq.contrib.acquaintance.StrategyExecutorTransformer", deadline='v1.0'
-        ):
-            executor = StrategyType(execution_strategy)
-            with pytest.raises(TypeError):
-                op = cirq.X(qubits[0])
-                bad_strategy = cirq.Circuit(op)
-                executor.optimization_at(bad_strategy, 0, op)
-    else:
-        with pytest.raises(ValueError):
-            executor = StrategyType(None)
-        executor = StrategyType(execution_strategy)
+    with pytest.raises(ValueError):
+        executor = cca.StrategyExecutorTransformer(None)
+    executor = cca.StrategyExecutorTransformer(execution_strategy)
 
     with pytest.raises(NotImplementedError):
         bad_gates = {(0,): ExampleGate(['0']), (0, 1): ExampleGate(['0', '1'])}
@@ -75,10 +61,7 @@ def test_executor_explicit(StrategyType, is_deprecated):
         bad_strategy = cirq.Circuit(cirq.X(qubits[0]))
         executor(bad_strategy)
 
-    if is_deprecated:
-        executor(circuit)
-    else:
-        circuit = executor(circuit)
+    circuit = executor(circuit)
     expected_text_diagram = """
 0: ───0───1───╲0╱─────────────────1───3───╲0╱─────────────────3───5───╲0╱─────────────────5───7───╲0╱─────────────────
       │   │   │                   │   │   │                   │   │   │                   │   │   │

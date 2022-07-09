@@ -286,11 +286,3 @@ def test_with_qubits():
 def test_qid_shape_error():
     with pytest.raises(ValueError, match="qid_shape must be provided"):
         cirq.sim.state_vector_simulation_state._BufferedStateVector.create(initial_state=0)
-
-
-def test_deprecated_methods():
-    args = cirq.StateVectorSimulationState(qubits=[cirq.LineQubit(0)])
-    with cirq.testing.assert_deprecated('unintentionally made public', deadline='v0.16'):
-        args.subspace_index([0], 0)
-    with cirq.testing.assert_deprecated('unintentionally made public', deadline='v0.16'):
-        args.swap_target_tensor_for(np.array([]))
