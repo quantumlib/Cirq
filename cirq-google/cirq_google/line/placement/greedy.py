@@ -273,6 +273,10 @@ class _PickLargestArea(GreedySequenceSearch):
 class GreedySequenceSearchStrategy(place_strategy.LinePlacementStrategy):
     """Greedy search method for linear sequence of qubits on a chip.
 
+    """
+
+    def __init__(self, algorithm: str = 'best') -> None:
+    """
     Args:
         algorithm: Greedy algorithm to be used. Available options are:
          -  `best`:  runs all heuristics and chooses the best result,
@@ -281,8 +285,6 @@ class GreedySequenceSearchStrategy(place_strategy.LinePlacementStrategy):
          -  `minimal_connectivity`: on every step takes the qubit with
         minimal number of unassigned neighbouring qubits.
     """
-
-    def __init__(self, algorithm: str = 'best') -> None:
         self.algorithm = algorithm
 
     def place_line(self, device: 'cirq_google.GridDevice', length: int) -> GridQubitLineTuple:
