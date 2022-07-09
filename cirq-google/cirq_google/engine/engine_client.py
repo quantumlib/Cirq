@@ -102,15 +102,15 @@ class EngineClient:
         verbose: Optional[bool] = None,
         max_retry_delay_seconds: int = 3600,  # 1 hour
     ) -> None:
-    """
-    Args:
-        service_args: A dictionary of arguments that can be used to
-            configure options on the underlying gRPC client.
-        verbose: Suppresses stderr messages when set to False. Default is
-            true.
-        max_retry_delay_seconds: The maximum number of seconds to retry when
-            a retryable error code is returned.
-    """
+        """
+        Args:
+            service_args: A dictionary of arguments that can be used to
+                configure options on the underlying gRPC client.
+            verbose: Suppresses stderr messages when set to False. Default is
+                true.
+            max_retry_delay_seconds: The maximum number of seconds to retry when
+                a retryable error code is returned.
+        """
         self.max_retry_delay_seconds = max_retry_delay_seconds
         if verbose is None:
             verbose = True
