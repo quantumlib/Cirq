@@ -14,7 +14,7 @@
 """Methods for resolving JSON types during serialization."""
 import datetime
 import functools
-from typing import Any, Dict, List, Tuple, TYPE_CHECKING
+from typing import Any, Dict, List, NamedTuple, Tuple, TYPE_CHECKING
 
 from cirq.protocols.json_serialization import ObjectFactory
 
