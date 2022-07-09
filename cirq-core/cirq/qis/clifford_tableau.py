@@ -651,6 +651,6 @@ class CliffordTableau(StabilizerState):
         pass
 
     def measure(
-        self, axes: Sequence[int], seed: Optional['cirq.RANDOM_STATE_OR_SEED_LIKE'] = None
+        self, axes: Sequence[int], seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None
     ) -> List[int]:
         return [self._measure(axis, random_state.parse_random_state(seed)) for axis in axes]
