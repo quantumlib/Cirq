@@ -879,16 +879,7 @@ class SingleQubitCliffordGate(CliffordGate):
         return self.merged_with(after).merged_with(self**-1)
 
     def __repr__(self) -> str:
-        x = self.pauli_tuple(pauli_gates.X)
-        y = self.pauli_tuple(pauli_gates.Y)
-        z = self.pauli_tuple(pauli_gates.Z)
-        x_sign = '-' if x[1] else '+'
-        y_sign = '-' if y[1] else '+'
-        z_sign = '-' if z[1] else '+'
-        return (
-            f'cirq.SingleQubitCliffordGate(X:{x_sign}{x[0]!s}, '
-            f'Y:{y_sign}{y[0]!s}, Z:{z_sign}{z[0]!s})'
-        )
+        return f'cirq.CliffordGate.from_clifford_tableau({self.clifford_tableau!r})'
 
     def _circuit_diagram_info_(
         self, args: 'cirq.CircuitDiagramInfoArgs'

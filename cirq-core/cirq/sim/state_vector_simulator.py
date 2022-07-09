@@ -14,23 +14,12 @@
 """Abstract classes for simulations which keep track of state vector."""
 
 import abc
-from typing import (
-    Any,
-    Dict,
-    Iterator,
-    Sequence,
-    Type,
-    TYPE_CHECKING,
-    Tuple,
-    Generic,
-    TypeVar,
-    Optional,
-)
+from typing import Any, Dict, Iterator, Sequence, Type, TYPE_CHECKING, Generic, TypeVar, Optional
 
 import numpy as np
 
 from cirq import _compat, ops, value, qis
-from cirq._compat import deprecated_class, proper_repr
+from cirq._compat import proper_repr
 from cirq.sim import simulator, state_vector, simulator_base
 
 if TYPE_CHECKING:
@@ -105,33 +94,6 @@ class StateVectorStepResult(
     simulator_base.StepResultBase['cirq.StateVectorSimulationState'], metaclass=abc.ABCMeta
 ):
     pass
-
-
-@deprecated_class(deadline='v0.16', fix='This class is no longer used.')
-@value.value_equality(unhashable=True)
-class StateVectorSimulatorState:
-    """Object representing current state of the simulator.
-
-    Includes the state vector, qubit map, and shape information.
-    """
-
-    def __init__(self, state_vector: np.ndarray, qubit_map: Dict[ops.Qid, int]) -> None:
-        self.state_vector = state_vector
-        self.qubit_map = qubit_map
-        self._qid_shape = simulator._qubit_map_to_shape(qubit_map)
-
-    def _qid_shape_(self) -> Tuple[int, ...]:
-        return self._qid_shape
-
-    def __repr__(self) -> str:
-        return (
-            'cirq.StateVectorSimulatorState('
-            f'state_vector=np.{self.state_vector!r}, '
-            f'qubit_map={self.qubit_map!r})'
-        )
-
-    def _value_equality_values_(self) -> Any:
-        return self.state_vector.tolist(), self.qubit_map
 
 
 @value.value_equality(unhashable=True)
