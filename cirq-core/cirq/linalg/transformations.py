@@ -189,7 +189,7 @@ def targeted_conjugate_about(
 
     More specifically, this computes:
 
-    $$i
+    $$
     \sum tensor_{i_0,...,i_{r-1},j_0,...,j_{r-1}} *
         target_{k_0,...,k_{r-1},l_0,...,l_{r-1}} *
         tensor_{m_0,...,m_{r-1},n_0,...,n_{r-1}}^*
