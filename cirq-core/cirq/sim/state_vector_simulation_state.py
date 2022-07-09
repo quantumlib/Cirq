@@ -12,7 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """Objects and methods for acting efficiently on a state vector."""
-import numbers
 from typing import Any, Callable, List, Optional, Sequence, Tuple, Type, TYPE_CHECKING, Union
 
 import numpy as np
