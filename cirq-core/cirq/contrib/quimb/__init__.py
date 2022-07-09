@@ -12,11 +12,7 @@ from cirq.contrib.quimb.density_matrix import (
     circuit_to_density_matrix_tensors,
 )
 
-from cirq.contrib.quimb.grid_circuits import (
-    simplify_expectation_value_circuit,
-    MergeNQubitGates,
-    get_grid_moments,
-)
+from cirq.contrib.quimb.grid_circuits import simplify_expectation_value_circuit, get_grid_moments
 
 from cirq.contrib.quimb.mps_simulator import (
     MPSOptions,
