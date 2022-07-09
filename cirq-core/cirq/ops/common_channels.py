@@ -58,7 +58,7 @@ class AsymmetricDepolarizingChannel(raw_types.Gate):
         tol: float = 1e-8,
     ) -> None:
         r"""The asymmetric depolarizing channel.
-        
+
         Args:
             p_x: The probability that a Pauli X and no other gate occurs.
             p_y: The probability that a Pauli Y and no other gate occurs.
