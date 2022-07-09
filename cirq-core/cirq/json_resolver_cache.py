@@ -23,6 +23,11 @@ if TYPE_CHECKING:
     import cirq.devices.unconstrained_device
 
 
+# Needed for backwards compatible named tuples of CrossEntropyResult
+CrossEntropyPair = NamedTuple('CrossEntropyPair', [('num_cycle', int), ('xeb_fidelity', float)])
+SpecklePurityPair = NamedTuple('SpecklePurityPair', [('num_cycle', int), ('purity', float)])
+
+
 @functools.lru_cache()
 def _class_resolver_dictionary() -> Dict[str, ObjectFactory]:
     import cirq
@@ -54,9 +59,9 @@ def _class_resolver_dictionary() -> Dict[str, ObjectFactory]:
     def _cross_entropy_result(data, repetitions, **kwargs) -> Dict[str, Any]:
         purity_data = kwargs.get('purity_data', None)
         if purity_data is not None:
-            purity_data = [(d, f) for d, f in purity_data]
+            purity_data = [SpecklePurityPair(d, f) for d, f in purity_data]
         return {
-            'data': [(d, f) for d, f in data],
+            'data': [CrossEntropyPair(d, f) for d, f in data],
             'repetitions': repetitions,
             'purity_data': purity_data,
         }
