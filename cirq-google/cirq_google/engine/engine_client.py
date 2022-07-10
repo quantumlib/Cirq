@@ -102,7 +102,8 @@ class EngineClient:
         verbose: Optional[bool] = None,
         max_retry_delay_seconds: int = 3600,  # 1 hour
     ) -> None:
-        """
+        """Constructs a client for the Quantum Engine API.
+
         Args:
             service_args: A dictionary of arguments that can be used to
                 configure options on the underlying gRPC client.

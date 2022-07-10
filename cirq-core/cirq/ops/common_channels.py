@@ -268,7 +268,8 @@ class DepolarizingChannel(raw_types.Gate):
     """
 
     def __init__(self, p: float, n_qubits: int = 1) -> None:
-        """
+        """Constructs a depolarization channel on several qubits.
+
         Args:
             p: The probability that one of the Pauli gates is applied. Each of
                 the Pauli gates is applied independently with probability
@@ -576,7 +577,8 @@ class AmplitudeDampingChannel(raw_types.Gate):
     """
 
     def __init__(self, gamma: float) -> None:
-        """
+        """Construct an amplitude damping channel.
+
         Args:
             gamma: the probability of the interaction being dissipative.
 
@@ -689,7 +691,8 @@ class ResetChannel(raw_types.Gate):
     """
 
     def __init__(self, dimension: int = 2) -> None:
-        """
+        """Construct channel that resets to the zero state.
+
         Args:
             dimension: Specify this argument when resetting a qudit.  There will
                 be `dimension` number of dimension by dimension matrices
@@ -801,7 +804,8 @@ class PhaseDampingChannel(raw_types.Gate):
     """
 
     def __init__(self, gamma: float) -> None:
-        """
+        """Construct a channel that dampens qubit phase.
+
         Args:
             gamma: The damping constant.
         Raises:
@@ -910,7 +914,7 @@ class PhaseFlipChannel(raw_types.Gate):
     """
 
     def __init__(self, p: float) -> None:
-        """
+        """Construct a channel that probabilistically flips the sign of the phase.
         Args:
             p: the probability of a phase flip.
 
@@ -1066,7 +1070,7 @@ class BitFlipChannel(raw_types.Gate):
     """
 
     def __init__(self, p: float) -> None:
-        """
+        """Construct a channel that probabilistically flips a qubit.
 
         Args:
             p: the probability of a bit flip.

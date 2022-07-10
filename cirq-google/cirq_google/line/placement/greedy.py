@@ -274,7 +274,8 @@ class GreedySequenceSearchStrategy(place_strategy.LinePlacementStrategy):
     """Greedy search method for linear sequence of qubits on a chip."""
 
     def __init__(self, algorithm: str = 'best') -> None:
-        """
+        """Constructs a greedy search strategy object.
+
         Args:
             algorithm: Greedy algorithm to be used. Available options are:
              -  `best`:  runs all heuristics and chooses the best result,
