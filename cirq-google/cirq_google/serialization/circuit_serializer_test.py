@@ -38,7 +38,7 @@ def op_proto(json: Dict) -> v2.program_pb2.Operation:
 def circuit_proto(json: Dict, qubits: List[str]):
     constants = [v2.program_pb2.Constant(qubit=v2.program_pb2.Qubit(id=q)) for q in qubits]
     return v2.program_pb2.Program(
-        language=v2.program_pb2.Language(arg_function_language='exp', gate_set='my_gate_set'),
+        language=v2.program_pb2.Language(arg_function_language='exp'),
         circuit=v2.program_pb2.Circuit(
             scheduling_strategy=v2.program_pb2.Circuit.MOMENT_BY_MOMENT,
             moments=[v2.program_pb2.Moment(operations=[op_proto(json)])],
@@ -260,7 +260,7 @@ def test_serialize_deserialize_ops(op, op_proto):
     # Serialize / Deserializer circuit with single operation
     circuit = cirq.Circuit(op)
     circuit_proto = v2.program_pb2.Program(
-        language=v2.program_pb2.Language(arg_function_language='exp', gate_set='my_gate_set'),
+        language=v2.program_pb2.Language(arg_function_language='exp'),
         circuit=v2.program_pb2.Circuit(
             scheduling_strategy=v2.program_pb2.Circuit.MOMENT_BY_MOMENT,
             moments=[v2.program_pb2.Moment(operations=[op_proto])],
@@ -278,7 +278,7 @@ def test_serialize_deserialize_circuit():
     circuit = cirq.Circuit(cirq.X(q0), cirq.X(q1), cirq.X(q0))
 
     proto = v2.program_pb2.Program(
-        language=v2.program_pb2.Language(arg_function_language='exp', gate_set='my_gate_set'),
+        language=v2.program_pb2.Language(arg_function_language='exp'),
         circuit=v2.program_pb2.Circuit(
             scheduling_strategy=v2.program_pb2.Circuit.MOMENT_BY_MOMENT,
             moments=[
@@ -347,7 +347,7 @@ def test_serialize_deserialize_circuit_with_tokens():
     op_q0_tag2.token_constant_index = 3
 
     proto = v2.program_pb2.Program(
-        language=v2.program_pb2.Language(arg_function_language='exp', gate_set='my_gate_set'),
+        language=v2.program_pb2.Language(arg_function_language='exp'),
         circuit=v2.program_pb2.Circuit(
             scheduling_strategy=v2.program_pb2.Circuit.MOMENT_BY_MOMENT,
             moments=[
@@ -371,7 +371,7 @@ def test_deserialize_circuit_with_token_strings():
     """Supporting token strings for backwards compatibility."""
     serializer = cg.CircuitSerializer('my_gate_set')
     proto = v2.program_pb2.Program(
-        language=v2.program_pb2.Language(arg_function_language='exp', gate_set='my_gate_set'),
+        language=v2.program_pb2.Language(arg_function_language='exp'),
         circuit=v2.program_pb2.Circuit(
             scheduling_strategy=v2.program_pb2.Circuit.MOMENT_BY_MOMENT,
             moments=[
@@ -433,7 +433,7 @@ def test_serialize_deserialize_circuit_with_subcircuit():
     qmap.value.id = '2_5'
 
     proto = v2.program_pb2.Program(
-        language=v2.program_pb2.Language(arg_function_language='exp', gate_set='my_gate_set'),
+        language=v2.program_pb2.Language(arg_function_language='exp'),
         circuit=v2.program_pb2.Circuit(
             scheduling_strategy=v2.program_pb2.Circuit.MOMENT_BY_MOMENT,
             moments=[
@@ -462,7 +462,7 @@ def test_serialize_deserialize_empty_circuit():
     circuit = cirq.Circuit()
 
     proto = v2.program_pb2.Program(
-        language=v2.program_pb2.Language(arg_function_language='exp', gate_set='my_gate_set'),
+        language=v2.program_pb2.Language(arg_function_language='exp'),
         circuit=v2.program_pb2.Circuit(
             scheduling_strategy=v2.program_pb2.Circuit.MOMENT_BY_MOMENT, moments=[]
         ),
@@ -476,7 +476,7 @@ def test_deserialize_empty_moment():
     circuit = cirq.Circuit([cirq.Moment()])
 
     proto = v2.program_pb2.Program(
-        language=v2.program_pb2.Language(arg_function_language='', gate_set='my_gate_set'),
+        language=v2.program_pb2.Language(arg_function_language=''),
         circuit=v2.program_pb2.Circuit(
             scheduling_strategy=v2.program_pb2.Circuit.MOMENT_BY_MOMENT,
             moments=[v2.program_pb2.Moment()],
@@ -544,7 +544,7 @@ def test_deserialize_unsupported_gate_type():
         }
     )
     proto = v2.program_pb2.Program(
-        language=v2.program_pb2.Language(arg_function_language='', gate_set='my_gate_set'),
+        language=v2.program_pb2.Language(arg_function_language=''),
         circuit=v2.program_pb2.Circuit(
             scheduling_strategy=v2.program_pb2.Circuit.MOMENT_BY_MOMENT,
             moments=[v2.program_pb2.Moment(operations=[operation_proto])],
@@ -578,34 +578,9 @@ def test_serialize_op_bad_operation():
         serializer.serialize(cirq.Circuit(null_op))
 
 
-def test_deserialize_invalid_gate_set():
-    serializer = cg.CircuitSerializer('my_gate_set')
-    proto = v2.program_pb2.Program(
-        language=v2.program_pb2.Language(gate_set='not_my_gate_set'),
-        circuit=v2.program_pb2.Circuit(
-            scheduling_strategy=v2.program_pb2.Circuit.MOMENT_BY_MOMENT, moments=[]
-        ),
-    )
-    with pytest.raises(ValueError, match='not_my_gate_set'):
-        serializer.deserialize(proto)
-
-    proto.language.gate_set = ''
-    with pytest.raises(ValueError, match='Missing gate set'):
-        serializer.deserialize(proto)
-
-    proto = v2.program_pb2.Program(
-        circuit=v2.program_pb2.Circuit(
-            scheduling_strategy=v2.program_pb2.Circuit.MOMENT_BY_MOMENT, moments=[]
-        )
-    )
-    with pytest.raises(ValueError, match='Missing gate set'):
-        serializer.deserialize(proto)
-
-
 def test_deserialize_schedule_not_supported():
     serializer = cg.CircuitSerializer('my_gate_set')
     proto = v2.program_pb2.Program(
-        language=v2.program_pb2.Language(gate_set='my_gate_set'),
         schedule=v2.program_pb2.Schedule(
             scheduled_operations=[v2.program_pb2.ScheduledOperation(start_time_picos=0)]
         ),

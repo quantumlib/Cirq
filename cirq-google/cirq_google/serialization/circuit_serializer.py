@@ -69,7 +69,6 @@ class CircuitSerializer(serializer.Serializer):
         raw_constants: Dict[Any, int] = {}
         if msg is None:
             msg = v2.program_pb2.Program()
-        msg.language.gate_set = self.name
         msg.language.arg_function_language = (
             arg_function_language or arg_func_langs.MOST_PERMISSIVE_LANGUAGE
         )
@@ -314,19 +313,9 @@ class CircuitSerializer(serializer.Serializer):
             The deserialized Circuit
 
         Raises:
-            ValueError: If the given proto has no language or the langauge gate set mismatches
-                that specified in as the name of this serialized gate set. Also if deserializing
-                a schedule is attempted.
+            ValueError: If deserializing a schedule is attempted.
             NotImplementedError: If the program proto does not contain a circuit or schedule.
         """
-        if not proto.HasField('language') or not proto.language.gate_set:
-            raise ValueError('Missing gate set specification.')
-        if proto.language.gate_set != self.name:
-            raise ValueError(
-                'Gate set in proto was {} but expected {}'.format(
-                    proto.language.gate_set, self.name
-                )
-            )
         which = proto.WhichOneof('program')
         arg_func_language = (
             proto.language.arg_function_language or arg_func_langs.MOST_PERMISSIVE_LANGUAGE
