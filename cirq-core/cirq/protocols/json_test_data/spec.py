@@ -116,7 +116,6 @@ TestSpec = ModuleJsonTestSpec(
         'Device',
         'InterchangeableQubitsGate',
         'Pauli',
-        'SingleQubitGate',
         'ABCMetaImplementAnyOneOf',
         'SimulatesAmplitudes',
         'SimulatesExpectationValues',
