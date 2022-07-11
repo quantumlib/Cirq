@@ -93,13 +93,16 @@ _INT_TYPE = Union[int, np.integer]
 
 
 class Alignment(enum.Enum):
-    """Alignment option for combining/zipping two circuits together."""
+    """Alignment option for combining/zipping two circuits together.
 
-    # Stop when left ends are lined up.
+    Args:
+        LEFT: Stop when left ends are lined up.
+        RIGHT: Stop when right ends are lined up.
+        FIRST: Stop the first time left ends are lined up or right ends are lined up.
+    """
+
     LEFT = 1
-    # Stop when right ends are lined up.
     RIGHT = 2
-    # Stop the first time left ends are lined up or right ends are lined up.
     FIRST = 3
 
     def __repr__(self) -> str:
