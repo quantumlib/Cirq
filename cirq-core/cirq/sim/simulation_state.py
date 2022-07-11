@@ -186,7 +186,11 @@ class SimulationState(SimulationStateBase, Generic[TState], metaclass=abc.ABCMet
         Regurns:
             A new subclass object containing the extended state space.
         """
+        # FIXME: SimulationState.__init__ requires the `state` argument, but
+        # it is not accepted by subclasses, e.g., by StateVectorSimulationState.
+        # pylint: disable=missing-kwoa
         new_space = type(self)(qubits=qubits)  # type: ignore
+        # pylint: enable=missing-kwoa
         return self.kronecker_product(new_space)
 
     def factor(
