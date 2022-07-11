@@ -26,7 +26,6 @@ EigenGate.
 """
 
 from typing import Optional, Tuple, TYPE_CHECKING, List
-import string
 
 import numpy as np
 import sympy
@@ -151,13 +150,6 @@ class SwapPowGate(gate_features.InterchangeableQubitsGate, eigen_gate.EigenGate)
             return None  # Don't have an equivalent gate in QASM
         args.validate_version('2.0')
         return args.format('swap {0},{1};\n', qubits[0], qubits[1])
-
-    def _quil_(self, qubits: Tuple['cirq.Qid', ...], formatter: string.Formatter) -> Optional[str]:
-        if self._exponent % 2 == 1:
-            return formatter.format('SWAP {0} {1}\n', qubits[0], qubits[1])
-        return formatter.format(
-            'PSWAP({0}) {1} {2}\n', self._exponent * np.pi, qubits[0], qubits[1]
-        )
 
     def __str__(self) -> str:
         if self._exponent == 1:
@@ -297,11 +289,6 @@ class ISwapPowGate(gate_features.InterchangeableQubitsGate, eigen_gate.EigenGate
                 return 'cirq.ISWAP_INV'
             return f'(cirq.ISWAP**{e})'
         return f'cirq.ISwapPowGate(exponent={e}, global_shift={self._global_shift!r})'
-
-    def _quil_(self, qubits: Tuple['cirq.Qid', ...], formatter: string.Formatter) -> str:
-        if self._exponent == 1:
-            return formatter.format('ISWAP {0} {1}\n', qubits[0], qubits[1])
-        return formatter.format('XY({0}) {1} {2}\n', self._exponent * np.pi, qubits[0], qubits[1])
 
 
 def riswap(rads: value.TParamVal) -> ISwapPowGate:

@@ -393,6 +393,9 @@ class EigenGate(raw_types.Gate):
     def _json_dict_(self) -> Dict[str, Any]:
         return protocols.obj_to_dict_helper(self, ['exponent', 'global_shift'])
 
+    def _measurement_key_objs_(self):
+        return frozenset()
+
 
 def _lcm(vals: Iterable[int]) -> int:
     t = 1
