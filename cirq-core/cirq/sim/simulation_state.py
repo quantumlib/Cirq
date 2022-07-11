@@ -82,7 +82,7 @@ class SimulationState(SimulationStateBase, Generic[TState], metaclass=abc.ABCMet
         qubits: Sequence['cirq.Qid'],
         key: str,
         invert_mask: Sequence[bool],
-        confusion_map: Optional[Dict[Tuple[int, ...], np.ndarray]] = None,
+        confusion_map: Dict[Tuple[int, ...], np.ndarray],
     ):
         """Measures the qubits and records to `log_of_measurement_results`.
 
@@ -100,8 +100,7 @@ class SimulationState(SimulationStateBase, Generic[TState], metaclass=abc.ABCMet
             ValueError: If a measurement key has already been logged to a key.
         """
         bits = self._perform_measurement(qubits)
-        if confusion_map is not None:
-            confused = self._confuse_result(bits, qubits, confusion_map)
+        confused = self._confuse_result(bits, qubits, confusion_map)
         corrected = [bit ^ (bit < 2 and mask) for bit, mask in zip(confused, invert_mask)]
         self._classical_data.record_measurement(
             value.MeasurementKey.parse_serialized(key), corrected, qubits
@@ -184,10 +183,15 @@ class SimulationState(SimulationStateBase, Generic[TState], metaclass=abc.ABCMet
         Args:
             qubits: The qubits to be added to the state space.
 
-        Regurns:
+        Returns:
             A new subclass object containing the extended state space.
         """
+        # TODO(#5721): Fix inconsistent usage of the `state` argument in the
+        # SimulationState base (required) and in its derived classes (unknown
+        # in StateVectorSimulationState), then remove the pylint filter below.
+        # pylint: disable=missing-kwoa
         new_space = type(self)(qubits=qubits)  # type: ignore
+        # pylint: enable=missing-kwoa
         return self.kronecker_product(new_space)
 
     def factor(
