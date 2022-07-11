@@ -367,7 +367,6 @@ class Gate(metaclass=value.ABCMetaImplementAnyOneOf):
         """Returns a controlled version of this gate. If no arguments are
         specified, defaults to a single qubit control.
 
-
         Args:
             num_controls: Total number of control qubits.
             control_values: Which control computational basis state to apply the
@@ -379,6 +378,11 @@ class Gate(metaclass=value.ABCMetaImplementAnyOneOf):
             control_qid_shape: The qid shape of the controls.  A tuple of the
                 expected dimension of each control qid.  Defaults to
                 `(2,) * num_controls`.  Specify this argument when using qudits.
+
+        Returns:
+            A `cirq.Gate` representing `self` controlled by the given control values
+                and qubits. This is a `cirq.ControlledGate` in the base
+                implementation, but subclasses may return a different gate type.
         """
 
         if num_controls == 0:
