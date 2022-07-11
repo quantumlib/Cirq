@@ -66,10 +66,6 @@ class NoiseModelFromNoiseProperties(devices.NoiseModel):
         """
         return False
 
-    @_compat.deprecated(deadline='v0.16', fix='Use is_virtual instead.')
-    def virtual_predicate(self, op: 'cirq.Operation') -> bool:
-        return self.is_virtual(op)
-
     def noisy_moments(
         self, moments: Iterable['cirq.Moment'], system_qubits: Sequence['cirq.Qid']
     ) -> Sequence['cirq.OP_TREE']:
