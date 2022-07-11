@@ -1237,8 +1237,7 @@ def run_zeta_chi_gamma_compensation_for_moments(
     progress_func: Optional[Callable[[int, int], None]] = None,
     permit_mixed_moments: bool = False,
 ) -> Tuple[CircuitWithCalibration, List[PhasedFSimCalibrationResult]]:
-    """Compensates circuit against errors in zeta, chi and gamma angles by running calibrations on
-    the engine.
+    """Compensates circuit for errors in zeta, chi and gamma angles by running on the engine.
 
     The method calls prepare_floquet_characterization_for_moments to extract moments to
     characterize, run_calibrations to characterize them and

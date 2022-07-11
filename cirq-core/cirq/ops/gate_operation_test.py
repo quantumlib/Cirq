@@ -496,8 +496,6 @@ def test_gate_to_operation_to_gate_round_trips():
         cirq.transformers.analytical_decompositions.two_qubit_to_fsim._BGate,
         cirq.ops.raw_types._InverseCompositeGate,
         cirq.circuits.qasm_output.QasmTwoQubitGate,
-        cirq.circuits.quil_output.QuilTwoQubitGate,
-        cirq.circuits.quil_output.QuilOneQubitGate,
         cirq.ops.MSGate,
         # Interop gates
         cirq.interop.quirk.QuirkQubitPermutationGate,
