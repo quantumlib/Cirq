@@ -172,7 +172,7 @@ def final_state_vector(
         param_resolver=param_resolver,
     )
 
-    return result.state_vector(copy=False)
+    return result.state_vector()
 
 
 def sample_sweep(
