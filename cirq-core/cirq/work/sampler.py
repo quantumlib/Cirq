@@ -289,7 +289,7 @@ class Sampler(metaclass=value.ABCMetaImplementAnyOneOf):
     ) -> Sequence[Sequence['cirq.Result']]:
         """Runs the supplied circuits.
 
-        This is an asynchronous version of `run_batch`.
+        This is an asynchronous version of `run_batch`; see full docs there.
         """
         params_list, repetitions = self._normalize_batch_args(programs, params_list, repetitions)
         return [
