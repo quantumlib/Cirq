@@ -158,6 +158,7 @@ def _class_resolver_dictionary() -> Dict[str, ObjectFactory]:
         'PhasedXPowGate': cirq.PhasedXPowGate,
         'PhasedXZGate': cirq.PhasedXZGate,
         'ProductState': cirq.ProductState,
+        'ProductOfSums': cirq.ProductOfSums,
         'ProjectorString': cirq.ProjectorString,
         'ProjectorSum': cirq.ProjectorSum,
         'QasmUGate': cirq.circuits.qasm_output.QasmUGate,

@@ -278,6 +278,7 @@ from cirq.ops import (
     PhasedXZGate,
     PhaseFlipChannel,
     StatePreparationChannel,
+    ProductOfSums,
     ProjectorString,
     ProjectorSum,
     RandomGateChannel,
@@ -300,7 +301,6 @@ from cirq.ops import (
     rz,
     S,
     SingleQubitCliffordGate,
-    SingleQubitGate,
     SingleQubitPauliStringGateOperation,
     SQRT_ISWAP,
     SQRT_ISWAP_INV,
@@ -443,13 +443,6 @@ from cirq.qis import (
 )
 
 from cirq.sim import (
-    ActOnArgs,
-    ActOnArgsContainer,
-    ActOnCliffordTableauArgs,
-    ActOnDensityMatrixArgs,
-    ActOnStabilizerCHFormArgs,
-    ActOnStabilizerArgs,
-    ActOnStateVectorArgs,
     CIRCUIT_LIKE,
     CliffordSimulator,
     CliffordState,
@@ -458,14 +451,12 @@ from cirq.sim import (
     CliffordTrialResult,
     DensityMatrixSimulationState,
     DensityMatrixSimulator,
-    DensityMatrixSimulatorState,
     DensityMatrixStepResult,
     DensityMatrixTrialResult,
     measure_density_matrix,
     measure_state_vector,
     final_density_matrix,
     final_state_vector,
-    OperationTarget,
     sample,
     sample_density_matrix,
     sample_state_vector,
@@ -490,7 +481,6 @@ from cirq.sim import (
     StabilizerStateChForm,
     StateVectorMixin,
     StateVectorSimulationState,
-    StateVectorSimulatorState,
     StateVectorStepResult,
     StateVectorTrialResult,
     StepResult,
@@ -700,20 +690,5 @@ _register_resolver(_class_resolver_dictionary)
 # contrib's json resolver cache depends on cirq.DEFAULT_RESOLVER
 
 from cirq import contrib
-
-# deprecate cirq.ops and related attributes
-
-from cirq import _compat
-
-_compat.deprecated_submodule(
-    new_module_name='cirq.circuits.moment',
-    old_parent='cirq.ops',
-    old_child='moment',
-    deadline='v0.16',
-    create_attribute=True,
-)
-
-ops.Moment = Moment  # type: ignore
-_compat.deprecate_attributes('cirq.ops', {'Moment': ('v0.16', 'Use cirq.circuits.Moment instead')})
 
 # pylint: enable=wrong-import-position

@@ -469,15 +469,16 @@ def test_state_copy():
 
 
 def test_simulation_state_initializer():
+    expected_classical_data = cirq.ClassicalDataDictionaryStore(
+        _records={cirq.MeasurementKey('test'): [(4,)]}
+    )
     s = ccq.mps_simulator.MPSState(
         qubits=(cirq.LineQubit(0),),
         prng=np.random.RandomState(0),
-        classical_data=cirq.ClassicalDataDictionaryStore(
-            _records={cirq.MeasurementKey('test'): [(4,)]}
-        ),
+        classical_data=expected_classical_data,
     )
     assert s.qubits == (cirq.LineQubit(0),)
-    assert s.log_of_measurement_results == {'test': [4]}
+    assert s.classical_data == expected_classical_data
 
 
 def test_act_on_gate():
@@ -488,13 +489,3 @@ def test_act_on_gate():
         args.state_vector().reshape((2, 2, 2)),
         cirq.one_hot(index=(0, 1, 0), shape=(2, 2, 2), dtype=np.complex64),
     )
-
-
-def test_deprecated():
-    prng = np.random.RandomState(0)
-    with cirq.testing.assert_deprecated('log_of_measurement_results', deadline='0.16', count=2):
-        _ = ccq.mps_simulator.MPSState(
-            qubits=cirq.LineQubit.range(3), prng=prng, log_of_measurement_results={}
-        )
-    with cirq.testing.assert_deprecated('positional', deadline='0.16'):
-        _ = ccq.mps_simulator.MPSState(cirq.LineQubit.range(3), prng=prng)
