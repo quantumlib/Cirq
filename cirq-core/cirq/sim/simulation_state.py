@@ -183,7 +183,7 @@ class SimulationState(SimulationStateBase, Generic[TState], metaclass=abc.ABCMet
         Args:
             qubits: The qubits to be added to the state space.
 
-        Regurns:
+        Returns:
             A new subclass object containing the extended state space.
         """
         # TODO(#5721): Fix inconsistent usage of the `state` argument in the
