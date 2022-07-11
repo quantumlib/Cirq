@@ -26,7 +26,6 @@ from typing import (
     TYPE_CHECKING,
     Union,
 )
-import string
 
 import numpy as np
 import sympy
@@ -169,16 +168,6 @@ class CCZPowGate(gate_features.InterchangeableQubitsGate, eigen_gate.EigenGate):
             args.format('h {0};\n', qubits[2]),
             args.format('ccx {0},{1},{2};\n', qubits[0], qubits[1], qubits[2]),
             args.format('h {0};\n', qubits[2]),
-        ]
-        return ''.join(lines)
-
-    def _quil_(self, qubits: Tuple['cirq.Qid', ...], formatter: string.Formatter) -> Optional[str]:
-        if self._exponent != 1:
-            return None
-        lines = [
-            formatter.format('H {0}\n', qubits[2]),
-            formatter.format('CCNOT {0} {1} {2}\n', qubits[0], qubits[1], qubits[2]),
-            formatter.format('H {0}\n', qubits[2]),
         ]
         return ''.join(lines)
 
@@ -494,11 +483,6 @@ class CCXPowGate(gate_features.InterchangeableQubitsGate, eigen_gate.EigenGate):
         args.validate_version('2.0')
         return args.format('ccx {0},{1},{2};\n', qubits[0], qubits[1], qubits[2])
 
-    def _quil_(self, qubits: Tuple['cirq.Qid', ...], formatter: string.Formatter) -> Optional[str]:
-        if self._exponent != 1:
-            return None
-        return formatter.format('CCNOT {0} {1} {2}\n', qubits[0], qubits[1], qubits[2])
-
     def __repr__(self) -> str:
         if self._global_shift == 0:
             if self._exponent == 1:
@@ -673,9 +657,6 @@ class CSwapGate(gate_features.InterchangeableQubitsGate, raw_types.Gate):
     def _qasm_(self, args: 'cirq.QasmArgs', qubits: Tuple['cirq.Qid', ...]) -> Optional[str]:
         args.validate_version('2.0')
         return args.format('cswap {0},{1},{2};\n', qubits[0], qubits[1], qubits[2])
-
-    def _quil_(self, qubits: Tuple['cirq.Qid', ...], formatter: string.Formatter) -> Optional[str]:
-        return formatter.format('CSWAP {0} {1} {2}\n', qubits[0], qubits[1], qubits[2])
 
     def _value_equality_values_(self):
         return ()

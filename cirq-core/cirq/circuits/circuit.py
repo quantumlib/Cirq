@@ -1076,24 +1076,11 @@ class AbstractCircuit(abc.ABC):
             circuit_superoperator = moment_superoperator @ circuit_superoperator
         return circuit_superoperator
 
-    @_compat.deprecated_parameter(
-        deadline='v0.16',
-        fix='Inject identity operators to include untouched qubits.',
-        parameter_desc='qubits_that_should_be_present',
-        match=lambda args, kwargs: 'qubits_that_should_be_present' in kwargs,
-    )
-    @_compat.deprecated_parameter(
-        deadline='v0.16',
-        fix='Only use keyword arguments.',
-        parameter_desc='positional args',
-        match=lambda args, kwargs: len(args) > 1,
-    )
     def final_state_vector(
         self,
         *,
         initial_state: 'cirq.STATE_VECTOR_LIKE' = 0,
         qubit_order: 'cirq.QubitOrderOrList' = ops.QubitOrder.DEFAULT,
-        qubits_that_should_be_present: Iterable['cirq.Qid'] = (),
         ignore_terminal_measurements: bool = False,
         dtype: Type[np.complexfloating] = np.complex128,
         param_resolver: 'cirq.ParamResolverOrSimilarType' = None,
@@ -1138,9 +1125,8 @@ class AbstractCircuit(abc.ABC):
         """
         from cirq.sim.mux import final_state_vector
 
-        program = Circuit(cirq.I(q) for q in qubits_that_should_be_present) + self
         return final_state_vector(
-            program,
+            self,
             initial_state=initial_state,
             param_resolver=param_resolver,
             qubit_order=qubit_order,
