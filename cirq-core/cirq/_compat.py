@@ -17,6 +17,7 @@ import contextlib
 import dataclasses
 import functools
 import importlib
+import inspect
 import os
 import re
 import sys
@@ -67,7 +68,19 @@ def cached_method(method: Optional[TFunc] = None, *, maxsize: int = 128) -> Any:
     """
 
     def decorator(func):
-        cache_name = f'_{func.__name__}_cache'
+        cache_name = _method_cache_name(func)
+        signature = inspect.signature(func)
+
+        if len(signature.parameters) == 1:
+            # Optimization in the case where the method takes no arguments other than `self`.
+
+            @functools.wraps(func)
+            def wrapped_no_args(self):
+                if not hasattr(self, cache_name):
+                    object.__setattr__(self, cache_name, func(self))
+                return getattr(self, cache_name)
+
+            return wrapped_no_args
 
         @functools.wraps(func)
         def wrapped(self, *args, **kwargs):
@@ -85,6 +98,11 @@ def cached_method(method: Optional[TFunc] = None, *, maxsize: int = 128) -> Any:
         return wrapped
 
     return decorator if method is None else decorator(method)
+
+
+def _method_cache_name(func: Callable) -> str:
+    # Use single-underscore prefix to avoid name mangling (for tests).
+    return f'_method_cache_{func.__name__}'
 
 
 def proper_repr(value: Any) -> str:

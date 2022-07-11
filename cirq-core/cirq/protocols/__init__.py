@@ -103,7 +103,6 @@ from cirq.protocols.qasm import (
     SupportsQasmWithArgs,
     SupportsQasmWithArgsAndQubits,
 )
-from cirq.protocols.quil import quil, QuilFormatter
 from cirq.protocols.trace_distance_bound import (
     SupportsTraceDistanceBound,
     trace_distance_bound,

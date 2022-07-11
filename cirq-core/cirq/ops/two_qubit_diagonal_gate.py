@@ -17,6 +17,7 @@ The gate is used to create a 4x4 matrix with the diagonal elements
 passed as a list.
 """
 
+import string
 from typing import AbstractSet, Any, Dict, Tuple, Optional, Sequence, TYPE_CHECKING
 import numpy as np
 import sympy
@@ -141,9 +142,7 @@ class TwoQubitDiagonalGate(raw_types.Gate):
     def _json_dict_(self) -> Dict[str, Any]:
         return protocols.obj_to_dict_helper(self, attribute_names=["diag_angles_radians"])
 
-    def _quil_(
-        self, qubits: Tuple['cirq.Qid', ...], formatter: 'cirq.QuilFormatter'
-    ) -> Optional[str]:
+    def _quil_(self, qubits: Tuple['cirq.Qid', ...], formatter: string.Formatter) -> Optional[str]:
         if np.count_nonzero(self._diag_angles_radians) == 1:
             if self._diag_angles_radians[0] != 0:
                 return formatter.format(
