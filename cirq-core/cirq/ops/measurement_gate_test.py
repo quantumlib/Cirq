@@ -159,19 +159,6 @@ def test_qudit_measure_qasm():
     )
 
 
-def test_qudit_measure_quil():
-    q0 = cirq.LineQid(0, 3)
-    qubit_id_map = {q0: '0'}
-    with cirq.testing.assert_deprecated(deadline='v1.0', count=3):
-        assert (
-            cirq.quil(
-                cirq.measure(q0, key='a'),
-                formatter=cirq.QuilFormatter(qubit_id_map=qubit_id_map, measurement_id_map={}),
-            )
-            is None
-        )
-
-
 def test_confused_measure_qasm():
     q0 = cirq.LineQubit(0)
     assert (
@@ -182,19 +169,6 @@ def test_confused_measure_qasm():
         )
         == 'not implemented'
     )
-
-
-def test_confused_measure_quil():
-    q0 = cirq.LineQubit(0)
-    qubit_id_map = {q0: '0'}
-    with cirq.testing.assert_deprecated(deadline='v1.0', count=3):
-        assert (
-            cirq.quil(
-                cirq.measure(q0, key='a', confusion_map={(0,): np.array([[0, 1], [1, 0]])}),
-                formatter=cirq.QuilFormatter(qubit_id_map=qubit_id_map, measurement_id_map={}),
-            )
-            is None
-        )
 
 
 def test_measurement_gate_diagram():

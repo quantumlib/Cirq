@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import string
 from typing import (
     Any,
     Dict,
@@ -240,9 +241,7 @@ class MeasurementGate(raw_types.Gate):
                 lines.append(args.format('x {0};  // Undo the inversion\n', qubit))
         return ''.join(lines)
 
-    def _quil_(
-        self, qubits: Tuple['cirq.Qid', ...], formatter: 'cirq.QuilFormatter'
-    ) -> Optional[str]:
+    def _quil_(self, qubits: Tuple['cirq.Qid', ...], formatter: string.Formatter) -> Optional[str]:
         if self.confusion_map or not all(d == 2 for d in self._qid_shape):
             return NotImplemented
         invert_mask = self.invert_mask

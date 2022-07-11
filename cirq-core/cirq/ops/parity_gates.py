@@ -14,6 +14,8 @@
 
 """Quantum gates that phase with respect to product-of-pauli observables."""
 
+
+import string
 from typing import Any, Dict, List, Optional, Tuple, Union, TYPE_CHECKING
 
 import numpy as np
@@ -116,9 +118,7 @@ class XXPowGate(gate_features.InterchangeableQubitsGate, eigen_gate.EigenGate):
             wire_symbols=('XX', 'XX'), exponent=self._diagram_exponent(args)
         )
 
-    def _quil_(
-        self, qubits: Tuple['cirq.Qid', ...], formatter: 'cirq.QuilFormatter'
-    ) -> Optional[str]:
+    def _quil_(self, qubits: Tuple['cirq.Qid', ...], formatter: string.Formatter) -> Optional[str]:
         if self._exponent == 1:
             return formatter.format('X {0}\nX {1}\n', qubits[0], qubits[1])
         return formatter.format(
@@ -233,9 +233,7 @@ class YYPowGate(gate_features.InterchangeableQubitsGate, eigen_gate.EigenGate):
             wire_symbols=('YY', 'YY'), exponent=self._diagram_exponent(args)
         )
 
-    def _quil_(
-        self, qubits: Tuple['cirq.Qid', ...], formatter: 'cirq.QuilFormatter'
-    ) -> Optional[str]:
+    def _quil_(self, qubits: Tuple['cirq.Qid', ...], formatter: string.Formatter) -> Optional[str]:
         if self._exponent == 1:
             return formatter.format('Y {0}\nY {1}\n', qubits[0], qubits[1])
 
@@ -322,9 +320,7 @@ class ZZPowGate(gate_features.InterchangeableQubitsGate, eigen_gate.EigenGate):
 
         return args.target_tensor
 
-    def _quil_(
-        self, qubits: Tuple['cirq.Qid', ...], formatter: 'cirq.QuilFormatter'
-    ) -> Optional[str]:
+    def _quil_(self, qubits: Tuple['cirq.Qid', ...], formatter: string.Formatter) -> Optional[str]:
         if self._exponent == 1:
             return formatter.format('Z {0}\nZ {1}\n', qubits[0], qubits[1])
 

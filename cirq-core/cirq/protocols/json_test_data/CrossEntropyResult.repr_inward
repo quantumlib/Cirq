@@ -1,0 +1,1 @@
+[cirq.json_resolver_cache.CrossEntropyResult(data=[(2, 0.9), (4, 0.5)], repetitions=1000, purity_data=None), cirq.json_resolver_cache.CrossEntropyResult(data=[(2, 0.9), (4, 0.5)], repetitions=1000, purity_data=[(2, 0.8), (4, 0.3)])]
