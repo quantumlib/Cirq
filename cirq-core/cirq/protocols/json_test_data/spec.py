@@ -43,10 +43,8 @@ TestSpec = ModuleJsonTestSpec(
         'LinearCombinationOfOperations',
         'Linspace',
         'ListSweep',
-        'NeutralAtomDevice',
         'PauliSumCollector',
         'PauliSumExponential',
-        'PauliTransform',
         'PeriodicValue',
         'PointOptimizationSummary',
         'Points',
@@ -55,8 +53,6 @@ TestSpec = ModuleJsonTestSpec(
         'QasmOutput',
         'QuantumState',
         'QubitOrder',
-        'QuilFormatter',
-        'QuilOutput',
         'SimulationTrialResult',
         'SimulationTrialResultBase',
         'SparseSimulatorStep',
@@ -94,7 +90,6 @@ TestSpec = ModuleJsonTestSpec(
         'AlignRight',
         'ConvertToCzAndSingleGates',
         'ConvertToIonGates',
-        'ConvertToNeutralAtomGates',
         'DropEmptyMoments',
         'DropNegligible',
         'EjectPhasedPaulis',
@@ -103,7 +98,6 @@ TestSpec = ModuleJsonTestSpec(
         'MEASUREMENT_KEY_SEPARATOR',
         'MergeInteractions',
         'MergeInteractionsToSqrtIswap',
-        'MergeSingleQubitGates',
         'PointOptimizer',
         'SynchronizeTerminalMeasurements',
         # Transformers
@@ -183,7 +177,7 @@ TestSpec = ModuleJsonTestSpec(
         'Unique',
         'DEFAULT_RESOLVERS',
     ],
-    deprecated={'CrossEntropyResult': 'v0.16', 'CrossEntropyResultDict': 'v0.16'},
+    deprecated={},
     tested_elsewhere=[
         # SerializableByKey does not follow common serialization rules.
         # It is tested separately in test_context_serialization.
