@@ -57,7 +57,7 @@ class StateVectorMixin:
         return self._qid_shape
 
     @abc.abstractmethod
-    def state_vector(self, copy: Optional[bool] = False) -> np.ndarray:
+    def state_vector(self, copy: bool = False) -> np.ndarray:
         """Return the state vector (wave function).
 
         The vector is returned in the computational basis with these basis
@@ -101,9 +101,7 @@ class StateVectorMixin:
         Returns:
             A pretty string consisting of a sum of computational basis kets
             and non-zero floats of the specified accuracy."""
-        return qis.dirac_notation(
-            self.state_vector(copy=False), decimals, qid_shape=self._qid_shape
-        )
+        return qis.dirac_notation(self.state_vector(), decimals, qid_shape=self._qid_shape)
 
     def density_matrix_of(self, qubits: List['cirq.Qid'] = None) -> np.ndarray:
         r"""Returns the density matrix of the state.
@@ -139,7 +137,7 @@ class StateVectorMixin:
                 corresponding to the state.
         """
         return qis.density_matrix_from_state_vector(
-            self.state_vector(copy=False),
+            self.state_vector(),
             [self.qubit_map[q] for q in qubits] if qubits is not None else None,
             qid_shape=self._qid_shape,
         )
@@ -164,7 +162,7 @@ class StateVectorMixin:
                 corresponding to the state.
         """
         return qis.bloch_vector_from_state_vector(
-            self.state_vector(copy=False), self.qubit_map[qubit], qid_shape=self._qid_shape
+            self.state_vector(), self.qubit_map[qubit], qid_shape=self._qid_shape
         )
 
 

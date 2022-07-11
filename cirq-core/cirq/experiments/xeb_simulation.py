@@ -65,8 +65,7 @@ class _Simulate_2q_XEB_Circuit:
             if cycle_depth not in cycle_depths:
                 continue
 
-            # copy=False is safe because state_vector_to_probabilities will copy anyways
-            psi = step_result.state_vector(copy=False)
+            psi = step_result.state_vector()
             pure_probs = value.state_vector_to_probabilities(psi)
 
             records += [
