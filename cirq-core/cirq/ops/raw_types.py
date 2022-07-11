@@ -378,7 +378,7 @@ class Gate(metaclass=value.ABCMetaImplementAnyOneOf):
             control_qid_shape: The qid shape of the controls.  A tuple of the
                 expected dimension of each control qid.  Defaults to
                 `(2,) * num_controls`.  Specify this argument when using qudits.
-        
+
         Returns:
             A `cirq.Gate` representing `self` controlled by the given control values
                 and qubits. This is a `cirq.ControlledGate` in the base

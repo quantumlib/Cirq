@@ -229,7 +229,7 @@ class XPowGate(eigen_gate.EigenGate):
             control_qid_shape: The qid shape of the controls.  A tuple of the
                 expected dimension of each control qid.  Defaults to
                 `(2,) * num_controls`.  Specify this argument when using qudits.
-        
+
         Returns:
             A `cirq.ControlledGate` (or `cirq.CXPowGate` if possible) representing
                 `self` controlled by the given control values and qubits.
@@ -686,7 +686,7 @@ class ZPowGate(eigen_gate.EigenGate):
             control_qid_shape: The qid shape of the controls.  A tuple of the
                 expected dimension of each control qid.  Defaults to
                 `(2,) * num_controls`.  Specify this argument when using qudits.
-        
+
         Returns:
             A `cirq.ControlledGate` (or `cirq.CZPowGate` if possible) representing
                 `self` controlled by the given control values and qubits.
@@ -1138,7 +1138,7 @@ class CZPowGate(gate_features.InterchangeableQubitsGate, eigen_gate.EigenGate):
             control_qid_shape: The qid shape of the controls.  A tuple of the
                 expected dimension of each control qid.  Defaults to
                 `(2,) * num_controls`.  Specify this argument when using qudits.
-        
+
         Returns:
             A `cirq.ControlledGate` (or `cirq.CCZPowGate` if possible) representing
                 `self` controlled by the given control values and qubits.
@@ -1344,7 +1344,7 @@ class CXPowGate(eigen_gate.EigenGate):
             control_qid_shape: The qid shape of the controls.  A tuple of the
                 expected dimension of each control qid.  Defaults to
                 `(2,) * num_controls`.  Specify this argument when using qudits.
-        
+
         Returns:
             A `cirq.ControlledGate` (or `cirq.CCXPowGate` if possible) representing
                 `self` controlled by the given control values and qubits.
