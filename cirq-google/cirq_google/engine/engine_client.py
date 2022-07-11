@@ -88,10 +88,12 @@ class AsyncioExecutor:
 
 
 class EngineClient:
-    """Client for the Quantum Engine API that deals with the engine protos and
-    the gRPC client but not cirq protos or objects. All users are likely better
-    served by using the Engine, EngineProgram, EngineJob, EngineProcessor, and
-    Calibration objects instead of using this directly.
+    """Client for the Quantum Engine API handling protos and gRPC client.
+
+    This is the client for the Quantum Engine API that deals with the engine protos
+    and the gRPC client but not cirq protos or objects. All users are likely better
+    served by using the `Engine`, `EngineProgram`, `EngineJob`, `EngineProcessor`, and
+    `Calibration` objects instead of using this directly.
     """
 
     def __init__(
@@ -100,7 +102,7 @@ class EngineClient:
         verbose: Optional[bool] = None,
         max_retry_delay_seconds: int = 3600,  # 1 hour
     ) -> None:
-        """Engine service client.
+        """Constructs a client for the Quantum Engine API.
 
         Args:
             service_args: A dictionary of arguments that can be used to
