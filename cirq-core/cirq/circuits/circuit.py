@@ -57,7 +57,6 @@ from cirq.circuits._bucket_priority_queue import BucketPriorityQueue
 from cirq.circuits.circuit_operation import CircuitOperation
 from cirq.circuits.insert_strategy import InsertStrategy
 from cirq.circuits.qasm_output import QasmOutput
-from cirq.circuits.quil_output import QuilOutput
 from cirq.circuits.text_diagram_drawer import TextDiagramDrawer
 from cirq.circuits.moment import Moment
 from cirq.protocols import circuit_diagram_info_protocol
@@ -1320,12 +1319,6 @@ class AbstractCircuit(abc.ABC):
             precision=precision,
             version='2.0',
         )
-
-    def _to_quil_output(
-        self, qubit_order: 'cirq.QubitOrderOrList' = ops.QubitOrder.DEFAULT
-    ) -> 'cirq.QuilOutput':
-        qubits = ops.QubitOrder.as_qubit_order(qubit_order).order_for(self.all_qubits())
-        return QuilOutput(operations=self.all_operations(), qubits=qubits)
 
     def to_qasm(
         self,
