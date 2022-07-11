@@ -338,9 +338,6 @@ class GateOperation(raw_types.Operation):
     def _qasm_(self, args: 'protocols.QasmArgs') -> Optional[str]:
         return protocols.qasm(self.gate, args=args, qubits=self.qubits, default=None)
 
-    def _quil_(self, formatter: string.Formatter) -> Optional[str]:
-        return protocols.quil(self.gate, qubits=self.qubits, formatter=formatter)
-
     def _equal_up_to_global_phase_(
         self, other: Any, atol: Union[int, float] = 1e-8
     ) -> Union[NotImplementedType, bool]:
