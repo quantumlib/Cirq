@@ -32,18 +32,11 @@ class CircuitSerializer(serializer.Serializer):
     to the `serialize()` method of the class, which will produce a
     `Program` proto.  Likewise, the `deserialize` method will produce
     a `cirq.Circuit` object from a `Program` proto.
-
-    This class is more performant than the previous `SerializableGateSet`
-    at the cost of some extendability.
     """
 
-    def __init__(self, gate_set_name: str):
-        """Construct the circuit serializer object.
-
-        Args:
-            gate_set_name: The name used to identify the gate set.
-        """
-        super().__init__(gate_set_name)
+    def __init__(self):
+        """Construct the circuit serializer object."""
+        super().__init__(gate_set_name='v2_5')
 
     def serialize(
         self,
@@ -608,4 +601,4 @@ class CircuitSerializer(serializer.Serializer):
         )
 
 
-CIRCUIT_SERIALIZER = CircuitSerializer('v2_5')
+CIRCUIT_SERIALIZER = CircuitSerializer()
