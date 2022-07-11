@@ -192,8 +192,7 @@ class Gate(metaclass=value.ABCMetaImplementAnyOneOf):
 
     Gates operate on a certain number of qubits. All implementations of gate
     must implement the `num_qubits` method declaring how many qubits they
-    act on. The gate feature classes `SingleQubitGate` and `TwoQubitGate`
-    can be used to avoid writing this boilerplate.
+    act on.
 
     Linear combinations of gates can be created by adding gates together and
     multiplying them by scalars.
@@ -346,8 +345,8 @@ class Gate(metaclass=value.ABCMetaImplementAnyOneOf):
         """Creates a probabalistic channel with this gate.
 
         Args:
-            probability: floating value between 0 and 1, giving the probability
-                this gate is applied.
+            probability: floating point value between 0 and 1, giving the
+                probability this gate is applied.
 
         Returns:
             `cirq.RandomGateChannel` that applies `self` with probability
@@ -580,6 +579,19 @@ class Operation(metaclass=abc.ABCMeta):
         return ops.controlled_operation.ControlledOperation(control_qubits, self, control_values)
 
     def with_probability(self, probability: 'cirq.TParamVal') -> 'cirq.Operation':
+        """Creates a probabalistic channel with this operation.
+
+        Args:
+            probability: floating point value between 0 and 1, giving the
+                probability this gate is applied.
+
+        Returns:
+            `cirq.RandomGateChannel` that applies `self` with probability
+                `probability` and the identity with probability `1-p`.
+
+        Raises:
+            NotImplementedError: if called on an operation that lacks a gate.
+        """
         gate = self.gate
         if gate is None:
             raise NotImplementedError("with_probability on gateless operation.")

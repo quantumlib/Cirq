@@ -87,7 +87,7 @@ from cirq.ops.fourier_transform import PhaseGradientGate, qft, QuantumFourierTra
 
 from cirq.ops.fsim_gate import FSimGate, PhasedFSimGate
 
-from cirq.ops.gate_features import InterchangeableQubitsGate, SingleQubitGate
+from cirq.ops.gate_features import InterchangeableQubitsGate
 
 from cirq.ops.gate_operation import GateOperation
 
