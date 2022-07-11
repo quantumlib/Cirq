@@ -186,8 +186,9 @@ class SimulationState(SimulationStateBase, Generic[TState], metaclass=abc.ABCMet
         Regurns:
             A new subclass object containing the extended state space.
         """
-        # FIXME: SimulationState.__init__ requires the `state` argument, but
-        # it is not accepted by subclasses, e.g., by StateVectorSimulationState.
+        # TODO(#5721): Fix inconsistent usage of the `state` argument in the
+        # SimulationState base (required) and in its derived classes (unknown
+        # in StateVectorSimulationState), then remove the pylint filter below.
         # pylint: disable=missing-kwoa
         new_space = type(self)(qubits=qubits)  # type: ignore
         # pylint: enable=missing-kwoa
