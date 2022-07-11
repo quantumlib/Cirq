@@ -12,81 +12,39 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import numpy as np
 import pytest
 
 import cirq
 
 
-Q = cirq.LineQubit.range(3)
+Q, Q2, Q3 = cirq.LineQubit.range(3)
 
 
-def test_coverage():
-    with cirq.testing.assert_deprecated(
-        "Use cirq.optimize_for_target_gateset", deadline='v0.16', count=3
-    ):
-        q = cirq.LineQubit.range(3)
-        g = cirq.testing.ThreeQubitGate()
-
-        class FakeOperation(cirq.Operation):
-            def __init__(self, gate, qubits):
-                self._gate = gate
-                self._qubits = qubits
-
-            @property
-            def qubits(self):
-                return self._qubits
-
-            def with_qubits(self, *new_qubits):
-                return FakeOperation(self._gate, new_qubits)
-
-        op = FakeOperation(g, q).with_qubits(*q)
-        circuit_ops = [cirq.Y(q[0]), cirq.ParallelGate(cirq.X, 3).on(*q)]
-        c = cirq.Circuit(circuit_ops)
-        cirq.neutral_atoms.ConvertToNeutralAtomGates().optimize_circuit(c)
-        assert c == cirq.Circuit(circuit_ops)
-        assert cirq.neutral_atoms.ConvertToNeutralAtomGates().convert(cirq.X.on(q[0])) == [
-            cirq.X.on(q[0])
-        ]
-        with pytest.raises(TypeError, match="Don't know how to work with"):
-            cirq.neutral_atoms.ConvertToNeutralAtomGates().convert(op)
-        assert not cirq.neutral_atoms.is_native_neutral_atom_op(op)
-        assert not cirq.neutral_atoms.is_native_neutral_atom_gate(g)
-
-
-def test_avoids_decompose_fallback_when_matrix_available_single_qubit():
-    class OtherX(cirq.testing.SingleQubitGate):
-        def _unitary_(self) -> np.ndarray:
-            return np.array([[0, 1], [1, 0]])
-
-    class OtherOtherX(cirq.testing.SingleQubitGate):
-        def _decompose_(self, qubits):
-            return OtherX().on(*qubits)
-
-    q = cirq.GridQubit(0, 0)
-    c = cirq.Circuit(OtherX().on(q), OtherOtherX().on(q))
-    with cirq.testing.assert_deprecated("Use cirq.optimize_for_target_gateset", deadline='v0.16'):
-        cirq.neutral_atoms.ConvertToNeutralAtomGates().optimize_circuit(c)
-        cirq.testing.assert_has_diagram(c, '(0, 0): ───PhX(1)───PhX(1)───')
-
-
-def test_avoids_decompose_fallback_when_matrix_available_two_qubit():
-    class OtherCZ(cirq.testing.TwoQubitGate):
-        def _unitary_(self) -> np.ndarray:
-            return np.array([[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, -1]])
-
-    class OtherOtherCZ(cirq.testing.TwoQubitGate):
-        def _decompose_(self, qubits):
-            return OtherCZ().on(*qubits)
-
-    q00 = cirq.GridQubit(0, 0)
-    q01 = cirq.GridQubit(0, 1)
-    c = cirq.Circuit(OtherCZ().on(q00, q01), OtherOtherCZ().on(q00, q01))
-    expected_diagram = """
-(0, 0): ───@───@───
-           │   │
-(0, 1): ───@───@───
-"""
-    with cirq.testing.assert_deprecated("Use cirq.optimize_for_target_gateset", deadline='v0.16'):
-        cirq.neutral_atoms.ConvertToNeutralAtomGates().optimize_circuit(c)
-        cirq.testing.assert_has_diagram(c, expected_diagram)
+@pytest.mark.parametrize(
+    "op,expected",
+    [
+        (cirq.H(Q), False),
+        (cirq.HPowGate(exponent=0.5)(Q), False),
+        (cirq.PhasedXPowGate(exponent=0.25, phase_exponent=0.125)(Q), True),
+        (cirq.XPowGate(exponent=0.5)(Q), True),
+        (cirq.YPowGate(exponent=0.25)(Q), True),
+        (cirq.ZPowGate(exponent=0.125)(Q), True),
+        (cirq.CZPowGate(exponent=0.5)(Q, Q2), False),
+        (cirq.CZ(Q, Q2), True),
+        (cirq.CNOT(Q, Q2), True),
+        (cirq.SWAP(Q, Q2), False),
+        (cirq.ISWAP(Q, Q2), False),
+        (cirq.CCNOT(Q, Q2, Q3), True),
+        (cirq.CCZ(Q, Q2, Q3), True),
+        (cirq.ParallelGate(cirq.X, num_copies=3)(Q, Q2, Q3), True),
+        (cirq.ParallelGate(cirq.Y, num_copies=3)(Q, Q2, Q3), True),
+        (cirq.ParallelGate(cirq.Z, num_copies=3)(Q, Q2, Q3), True),
+        (cirq.X(Q).controlled_by(Q2, Q3), True),
+        (cirq.Z(Q).controlled_by(Q2, Q3), True),
+        (cirq.ZPowGate(exponent=0.5)(Q).controlled_by(Q2, Q3), False),
+    ],
+)
+def test_gateset(op: cirq.Operation, expected: bool):
+    assert cirq.is_native_neutral_atom_op(op) == expected
+    if op.gate is not None:
+        assert cirq.is_native_neutral_atom_gate(op.gate) == expected
