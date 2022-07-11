@@ -81,14 +81,12 @@ def compute_heavy_set(circuit: cirq.Circuit) -> List[int]:
     # output is defined in terms of probabilities, where our wave function is in
     # terms of amplitudes. We convert it by using the Born rule: squaring each
     # amplitude and taking their absolute value
-    median = np.median(np.abs(results.state_vector(copy=False) ** 2))
+    median = np.median(np.abs(results.state_vector() ** 2))
 
     # The output wave function is a vector from the result value (big-endian) to
     # the probability of that bit-string. Return all of the bit-string
     # values that have a probability greater than the median.
-    return [
-        idx for idx, amp in enumerate(results.state_vector(copy=False)) if np.abs(amp**2) > median
-    ]
+    return [idx for idx, amp in enumerate(results.state_vector()) if np.abs(amp**2) > median]
 
 
 @dataclass

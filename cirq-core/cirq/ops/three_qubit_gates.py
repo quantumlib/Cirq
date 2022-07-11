@@ -411,7 +411,6 @@ class CCXPowGate(gate_features.InterchangeableQubitsGate, eigen_gate.EigenGate):
 
     $$
     \begin{bmatrix}
-
         1 & & & & & & & \\
         & 1 & & & & & & \\
         & & 1 & & & & & \\
