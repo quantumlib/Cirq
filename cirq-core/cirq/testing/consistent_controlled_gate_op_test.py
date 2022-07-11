@@ -19,6 +19,7 @@ import pytest
 import numpy as np
 
 import cirq
+from cirq.ops import control_values as cv
 
 
 class GoodGate(cirq.EigenGate, cirq.testing.SingleQubitGate):
@@ -31,7 +32,9 @@ class BadGateOperation(cirq.GateOperation):
     def controlled_by(
         self,
         *control_qubits: 'cirq.Qid',
-        control_values: Optional[Sequence[Union[int, Collection[int]]]] = None,
+        control_values: Optional[
+            Union[cv.AbstractControlValues, Sequence[Union[int, Collection[int]]]]
+        ] = None,
     ) -> 'cirq.Operation':
         return cirq.ControlledOperation(control_qubits, self, control_values)
 
@@ -47,7 +50,9 @@ class BadGate(cirq.EigenGate, cirq.testing.SingleQubitGate):
     def controlled(
         self,
         num_controls: int = None,
-        control_values: Optional[Sequence[Union[int, Collection[int]]]] = None,
+        control_values: Optional[
+            Union[cv.AbstractControlValues, Sequence[Union[int, Collection[int]]]]
+        ] = None,
         control_qid_shape: Optional[Tuple[int, ...]] = None,
     ) -> 'cirq.Gate':
         ret = super().controlled(num_controls, control_values, control_qid_shape)

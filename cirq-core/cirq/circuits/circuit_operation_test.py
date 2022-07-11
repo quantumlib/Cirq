@@ -20,6 +20,7 @@ import sympy
 
 import cirq
 import cirq.circuits.circuit_operation as circuit_operation
+from cirq import _compat
 from cirq.circuits.circuit_operation import _full_join_string_lists
 
 ALL_SIMULATORS = (cirq.Simulator(), cirq.DensityMatrixSimulator(), cirq.CliffordSimulator())
@@ -90,10 +91,11 @@ def test_is_measurement_memoization():
     a = cirq.LineQubit(0)
     circuit = cirq.FrozenCircuit(cirq.measure(a, key='m'))
     c_op = cirq.CircuitOperation(circuit)
-    assert circuit._has_measurements is None
-    # Memoize `_has_measurements` in the circuit.
+    cache_name = _compat._method_cache_name(circuit._is_measurement_)
+    assert not hasattr(circuit, cache_name)
+    # Memoize `_is_measurement_` in the circuit.
     assert cirq.is_measurement(c_op)
-    assert circuit._has_measurements is True
+    assert hasattr(circuit, cache_name)
 
 
 def test_invalid_measurement_keys():

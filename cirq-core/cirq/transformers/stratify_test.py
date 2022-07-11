@@ -16,11 +16,6 @@ import pytest
 import cirq
 
 
-def test_deprecated_submodule():
-    with cirq.testing.assert_deprecated("Use cirq.transformers.stratify instead", deadline="v0.16"):
-        _ = cirq.optimizers.stratify.stratified_circuit
-
-
 def test_stratified_circuit_classifier_types():
     a, b, c, d = cirq.LineQubit.range(4)
 

@@ -469,15 +469,16 @@ def test_state_copy():
 
 
 def test_simulation_state_initializer():
+    expected_classical_data = cirq.ClassicalDataDictionaryStore(
+        _records={cirq.MeasurementKey('test'): [(4,)]}
+    )
     s = ccq.mps_simulator.MPSState(
         qubits=(cirq.LineQubit(0),),
         prng=np.random.RandomState(0),
-        classical_data=cirq.ClassicalDataDictionaryStore(
-            _records={cirq.MeasurementKey('test'): [(4,)]}
-        ),
+        classical_data=expected_classical_data,
     )
     assert s.qubits == (cirq.LineQubit(0),)
-    assert s.log_of_measurement_results == {'test': [4]}
+    assert s.classical_data == expected_classical_data
 
 
 def test_act_on_gate():
