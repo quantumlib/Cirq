@@ -74,7 +74,6 @@ from cirq.circuits import (
     PointOptimizationSummary,
     PointOptimizer,
     QasmOutput,
-    QuilOutput,
     TextDiagramDrawer,
     Unique,
 )
@@ -267,7 +266,6 @@ from cirq.ops import (
     PauliSum,
     PauliSumExponential,
     PauliSumLike,
-    PauliTransform,
     phase_damp,
     phase_flip,
     PhaseDampingChannel,
@@ -301,7 +299,6 @@ from cirq.ops import (
     rz,
     S,
     SingleQubitCliffordGate,
-    SingleQubitGate,
     SingleQubitPauliStringGateOperation,
     SQRT_ISWAP,
     SQRT_ISWAP_INV,
@@ -608,8 +605,6 @@ from cirq.protocols import (
     qasm,
     QasmArgs,
     qid_shape,
-    quil,
-    QuilFormatter,
     read_json_gzip,
     read_json,
     resolve_parameters,
@@ -655,12 +650,7 @@ from cirq.protocols import (
     with_rescoped_keys,
 )
 
-from cirq.neutral_atoms import (
-    ConvertToNeutralAtomGates,
-    is_native_neutral_atom_gate,
-    is_native_neutral_atom_op,
-    NeutralAtomDevice,
-)
+from cirq.neutral_atoms import is_native_neutral_atom_gate, is_native_neutral_atom_op
 
 from cirq.vis import (
     Heatmap,
