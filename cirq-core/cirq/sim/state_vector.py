@@ -108,23 +108,22 @@ class StateVectorMixin:
     def density_matrix_of(self, qubits: List['cirq.Qid'] = None) -> np.ndarray:
         r"""Returns the density matrix of the state.
 
-        Calculate the density matrix for the system on the list, qubits.
+        Calculate the density matrix for the system on the qubits provided.
         Any qubits not in the list that are present in self.state_vector() will
-        be traced out. If qubits is None the full density matrix for
+        be traced out. If qubits is None, the full density matrix for
         self.state_vector() is returned, given self.state_vector() follows
         standard Kronecker convention of numpy.kron.
 
-        For example:
-        self.state_vector() = np.array([1/np.sqrt(2), 1/np.sqrt(2)],
-            dtype=np.complex64)
-        qubits = None
-        gives us
-            $$
-            \rho = \begin{bmatrix}
-                        0.5 & 0.5 \\
-                        0.5 & 0.5
-                    \end{bmatrix}
-            $$
+        For example, if `self.state_vector()` returns
+        `np.array([1/np.sqrt(2), 1/np.sqrt(2)], dtype=np.complex64)`,
+        then `density_matrix_of(qubits = None)` gives us
+
+        $$
+        \rho = \begin{bmatrix}
+                    0.5 & 0.5 \\
+                    0.5 & 0.5
+                \end{bmatrix}
+        $$
 
         Args:
             qubits: list containing qubit IDs that you would like
