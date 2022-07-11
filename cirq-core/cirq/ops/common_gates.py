@@ -36,6 +36,7 @@ from typing import (
     TYPE_CHECKING,
     Union,
 )
+import string
 
 import numpy as np
 import sympy
@@ -255,9 +256,7 @@ class XPowGate(eigen_gate.EigenGate):
                 return args.format('sxdg {0};\n', qubits[0])
         return args.format('rx({0:half_turns}) {1};\n', self._exponent, qubits[0])
 
-    def _quil_(
-        self, qubits: Tuple['cirq.Qid', ...], formatter: 'cirq.QuilFormatter'
-    ) -> Optional[str]:
+    def _quil_(self, qubits: Tuple['cirq.Qid', ...], formatter: string.Formatter) -> Optional[str]:
         if self._exponent == 1 and self._global_shift != -0.5:
             return formatter.format('X {0}\n', qubits[0])
         return formatter.format('RX({0}) {1}\n', self._exponent * np.pi, qubits[0])
@@ -437,9 +436,7 @@ class YPowGate(eigen_gate.EigenGate):
 
         return args.format('ry({0:half_turns}) {1};\n', self._exponent, qubits[0])
 
-    def _quil_(
-        self, qubits: Tuple['cirq.Qid', ...], formatter: 'cirq.QuilFormatter'
-    ) -> Optional[str]:
+    def _quil_(self, qubits: Tuple['cirq.Qid', ...], formatter: string.Formatter) -> Optional[str]:
         if self._exponent == 1 and self.global_shift != -0.5:
             return formatter.format('Y {0}\n', qubits[0])
         return formatter.format('RY({0}) {1}\n', self._exponent * np.pi, qubits[0])
@@ -731,9 +728,7 @@ class ZPowGate(eigen_gate.EigenGate):
                 return args.format('tdg {0};\n', qubits[0])
         return args.format('rz({0:half_turns}) {1};\n', self._exponent, qubits[0])
 
-    def _quil_(
-        self, qubits: Tuple['cirq.Qid', ...], formatter: 'cirq.QuilFormatter'
-    ) -> Optional[str]:
+    def _quil_(self, qubits: Tuple['cirq.Qid', ...], formatter: string.Formatter) -> Optional[str]:
         if self._exponent == 1 and self.global_shift != -0.5:
             return formatter.format('Z {0}\n', qubits[0])
         return formatter.format('RZ({0}) {1}\n', self._exponent * np.pi, qubits[0])
@@ -945,9 +940,7 @@ class HPowGate(eigen_gate.EigenGate):
             qubits[0],
         )
 
-    def _quil_(
-        self, qubits: Tuple['cirq.Qid', ...], formatter: 'cirq.QuilFormatter'
-    ) -> Optional[str]:
+    def _quil_(self, qubits: Tuple['cirq.Qid', ...], formatter: string.Formatter) -> Optional[str]:
         if self._exponent == 1:
             return formatter.format('H {0}\n', qubits[0])
         return formatter.format(
@@ -1111,9 +1104,7 @@ class CZPowGate(gate_features.InterchangeableQubitsGate, eigen_gate.EigenGate):
         args.validate_version('2.0')
         return args.format('cz {0},{1};\n', qubits[0], qubits[1])
 
-    def _quil_(
-        self, qubits: Tuple['cirq.Qid', ...], formatter: 'cirq.QuilFormatter'
-    ) -> Optional[str]:
+    def _quil_(self, qubits: Tuple['cirq.Qid', ...], formatter: string.Formatter) -> Optional[str]:
         if self._exponent == 1:
             return formatter.format('CZ {0} {1}\n', qubits[0], qubits[1])
         return formatter.format(
@@ -1295,9 +1286,7 @@ class CXPowGate(eigen_gate.EigenGate):
         args.validate_version('2.0')
         return args.format('cx {0},{1};\n', qubits[0], qubits[1])
 
-    def _quil_(
-        self, qubits: Tuple['cirq.Qid', ...], formatter: 'cirq.QuilFormatter'
-    ) -> Optional[str]:
+    def _quil_(self, qubits: Tuple['cirq.Qid', ...], formatter: string.Formatter) -> Optional[str]:
         if self._exponent == 1:
             return formatter.format('CNOT {0} {1}\n', qubits[0], qubits[1])
         return None
