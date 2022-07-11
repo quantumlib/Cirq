@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 from typing import AbstractSet, Any, Dict, Optional, Tuple, TYPE_CHECKING, Union
+import string
 
 import sympy
 
@@ -132,7 +133,7 @@ class WaitGate(raw_types.Gate):
     def _value_equality_values_(self) -> Any:
         return self.duration
 
-    def _quil_(self, qubits: Tuple['cirq.Qid', ...], formatter: 'cirq.QuilFormatter'):
+    def _quil_(self, qubits: Tuple['cirq.Qid', ...], formatter: string.Formatter):
         return 'WAIT\n'
 
 
