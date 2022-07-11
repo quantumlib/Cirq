@@ -44,7 +44,7 @@ import cirq
 from cirq import protocols, value
 from cirq._compat import proper_repr
 from cirq._doc import document
-from cirq.ops import controlled_gate, eigen_gate, gate_features, raw_types
+from cirq.ops import controlled_gate, eigen_gate, gate_features, raw_types, control_values as cv
 
 from cirq.type_workarounds import NotImplementedType
 
@@ -70,8 +70,9 @@ def _pi(rads):
 class XPowGate(eigen_gate.EigenGate):
     r"""A gate that rotates around the X axis of the Bloch sphere.
 
-    The unitary matrix of `cirq.XPowGate(exponent=t)` is:
+    The unitary matrix of `cirq.XPowGate(exponent=t, global_shift=s)` is:
     $$
+    e^{i \pi s t}
     \begin{bmatrix}
       e^{i \pi t /2} \cos(\pi t) & -i e^{i \pi t /2} \sin(\pi t) \\
       -i e^{i \pi t /2} \sin(\pi t) & e^{i \pi t /2} \cos(\pi t)
@@ -92,6 +93,30 @@ class XPowGate(eigen_gate.EigenGate):
     def __init__(
         self, *, exponent: value.TParamVal = 1.0, global_shift: float = 0.0, dimension: int = 2
     ):
+        """Initialize an XPowGate.
+
+        Args:
+            exponent: The t in gate**t. Determines how much the eigenvalues of
+                the gate are phased by. For example, eigenvectors phased by -1
+                when `gate**1` is applied will gain a relative phase of
+                e^{i pi exponent} when `gate**exponent` is applied (relative to
+                eigenvectors unaffected by `gate**1`).
+            global_shift: Offsets the eigenvalues of the gate at exponent=1.
+                In effect, this controls a global phase factor on the gate's
+                unitary matrix. The factor for global_shift=s is:
+
+                    exp(i * pi * s * t)
+
+                For example, `cirq.X**t` uses a `global_shift` of 0 but
+                `cirq.rx(t)` uses a `global_shift` of -0.5, which is why
+                `cirq.unitary(cirq.rx(pi))` equals -iX instead of X.
+            dimension: Qudit dimension of this gate. For qu*b*its (the default),
+                this is set to 2.
+
+        Raises:
+            ValueError: If the supplied exponent is a complex number with an
+                imaginary component.
+        """
         super().__init__(exponent=exponent, global_shift=global_shift)
         self._dimension = dimension
 
@@ -159,7 +184,9 @@ class XPowGate(eigen_gate.EigenGate):
     def controlled(
         self,
         num_controls: int = None,
-        control_values: Optional[Sequence[Union[int, Collection[int]]]] = None,
+        control_values: Optional[
+            Union[cv.AbstractControlValues, Sequence[Union[int, Collection[int]]]]
+        ] = None,
         control_qid_shape: Optional[Tuple[int, ...]] = None,
     ) -> raw_types.Gate:
         """Returns a controlled `XPowGate`, using a `CXPowGate` where possible.
@@ -501,8 +528,9 @@ class Ry(YPowGate):
 class ZPowGate(eigen_gate.EigenGate):
     r"""A gate that rotates around the Z axis of the Bloch sphere.
 
-    The unitary matrix of `cirq.ZPowGate(exponent=t)` is:
+    The unitary matrix of `cirq.ZPowGate(exponent=t, global_shift=s)` is:
     $$
+        e^{i \pi s t}
         \begin{bmatrix}
             1 & 0 \\
             0 & e^{i \pi t}
@@ -523,6 +551,30 @@ class ZPowGate(eigen_gate.EigenGate):
     def __init__(
         self, *, exponent: value.TParamVal = 1.0, global_shift: float = 0.0, dimension: int = 2
     ):
+        """Initialize a ZPowGate.
+
+        Args:
+            exponent: The t in gate**t. Determines how much the eigenvalues of
+                the gate are phased by. For example, eigenvectors phased by -1
+                when `gate**1` is applied will gain a relative phase of
+                e^{i pi exponent} when `gate**exponent` is applied (relative to
+                eigenvectors unaffected by `gate**1`).
+            global_shift: Offsets the eigenvalues of the gate at exponent=1.
+                In effect, this controls a global phase factor on the gate's
+                unitary matrix. The factor for global_shift=s is:
+
+                    exp(i * pi * s * t)
+
+                For example, `cirq.X**t` uses a `global_shift` of 0 but
+                `cirq.rx(t)` uses a `global_shift` of -0.5, which is why
+                `cirq.unitary(cirq.rx(pi))` equals -iX instead of X.
+            dimension: Qudit dimension of this gate. For qu*b*its (the default),
+                this is set to 2.
+
+        Raises:
+            ValueError: If the supplied exponent is a complex number with an
+                imaginary component.
+        """
         super().__init__(exponent=exponent, global_shift=global_shift)
         self._dimension = dimension
 
@@ -566,7 +618,9 @@ class ZPowGate(eigen_gate.EigenGate):
     def controlled(
         self,
         num_controls: int = None,
-        control_values: Optional[Sequence[Union[int, Collection[int]]]] = None,
+        control_values: Optional[
+            Union[cv.AbstractControlValues, Sequence[Union[int, Collection[int]]]]
+        ] = None,
         control_qid_shape: Optional[Tuple[int, ...]] = None,
     ) -> raw_types.Gate:
         """Returns a controlled `ZPowGate`, using a `CZPowGate` where possible.
@@ -998,7 +1052,9 @@ class CZPowGate(gate_features.InterchangeableQubitsGate, eigen_gate.EigenGate):
     def controlled(
         self,
         num_controls: int = None,
-        control_values: Optional[Sequence[Union[int, Collection[int]]]] = None,
+        control_values: Optional[
+            Union[cv.AbstractControlValues, Sequence[Union[int, Collection[int]]]]
+        ] = None,
         control_qid_shape: Optional[Tuple[int, ...]] = None,
     ) -> raw_types.Gate:
         """Returns a controlled `CZPowGate`, using a `CCZPowGate` where possible.
@@ -1187,7 +1243,9 @@ class CXPowGate(eigen_gate.EigenGate):
     def controlled(
         self,
         num_controls: int = None,
-        control_values: Optional[Sequence[Union[int, Collection[int]]]] = None,
+        control_values: Optional[
+            Union[cv.AbstractControlValues, Sequence[Union[int, Collection[int]]]]
+        ] = None,
         control_qid_shape: Optional[Tuple[int, ...]] = None,
     ) -> raw_types.Gate:
         """Returns a controlled `CXPowGate`, using a `CCXPowGate` where possible.

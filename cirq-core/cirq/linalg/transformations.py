@@ -187,10 +187,13 @@ def targeted_conjugate_about(
     is a contraction between the given indices (indices for first $\cdot$,
     conj_indices for second $\cdot$).
 
-    More specifically this computes
-        $\sum tensor_{i_0,...,i_{r-1},j_0,...,j_{r-1}} *
+    More specifically, this computes:
+
+    $$
+    \sum tensor_{i_0,...,i_{r-1},j_0,...,j_{r-1}} *
         target_{k_0,...,k_{r-1},l_0,...,l_{r-1}} *
-        tensor_{m_0,...,m_{r-1},n_0,...,n_{r-1}}^*$
+        tensor_{m_0,...,m_{r-1},n_0,...,n_{r-1}}^*
+    $$
 
     where the sum is over indices where $j_s$ = $k_s$ and $s$ is in `indices`
     and $l_s$ = $m_s$ and s is in `conj_indices`.
@@ -212,7 +215,7 @@ def targeted_conjugate_about(
             buffer is used. Must have the same shape as target.
 
     Returns:
-        The result the conjugation.
+        The result of the conjugation, as a numpy array.
     """
     conj_indices = conj_indices or [i + target.ndim // 2 for i in indices]
     first_multiply = targeted_left_multiply(tensor, target, indices, out=buffer)
@@ -230,28 +233,30 @@ def apply_matrix_to_slices(
     *,
     out: Optional[np.ndarray] = None,
 ) -> np.ndarray:
-    """Left-multiplies an NxN matrix onto N slices of a numpy array.
+    r"""Left-multiplies an NxN matrix onto N slices of a numpy array.
 
-    Example:
-        The 4x4 matrix of a fractional SWAP gate can be expressed as
+    One example is that the 4x4 matrix of a fractional SWAP gate can be expressed as
 
-           [ 1       ]
-           [   X**t  ]
-           [       1 ]
+    $$
+    \begin{bmatrix}
+      1 & & \\
+        & X**t & \\
+        & & 1 \\
+    \end{bmatrix}
 
-        Where X is the 2x2 Pauli X gate and t is the power of the swap with t=1
-        being a full swap. X**t is a power of the Pauli X gate's matrix.
-        Applying the fractional swap is equivalent to applying a fractional X
-        within the inner 2x2 subspace; the rest of the matrix is identity. This
-        can be expressed using `apply_matrix_to_slices` as follows:
+    Where X is the 2x2 Pauli X gate and t is the power of the swap with t=1
+    being a full swap. X**t is a power of the Pauli X gate's matrix.
+    Applying the fractional swap is equivalent to applying a fractional X
+    within the inner 2x2 subspace; the rest of the matrix is identity. This
+    can be expressed using `apply_matrix_to_slices` as follows:
 
-            def fractional_swap(target):
-                assert target.shape == (4,)
-                return apply_matrix_to_slices(
-                    target=target,
-                    matrix=cirq.unitary(cirq.X**t),
-                    slices=[1, 2]
-                )
+        def fractional_swap(target):
+            assert target.shape == (4,)
+            return apply_matrix_to_slices(
+                target=target,
+                matrix=cirq.unitary(cirq.X**t),
+                slices=[1, 2]
+            )
 
     Args:
         target: The input array with slices that need to be left-multiplied.
