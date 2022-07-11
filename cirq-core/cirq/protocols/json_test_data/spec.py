@@ -103,7 +103,6 @@ TestSpec = ModuleJsonTestSpec(
         'MEASUREMENT_KEY_SEPARATOR',
         'MergeInteractions',
         'MergeInteractionsToSqrtIswap',
-        'MergeSingleQubitGates',
         'PointOptimizer',
         'SynchronizeTerminalMeasurements',
         # Transformers
