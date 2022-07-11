@@ -14,7 +14,6 @@
 """IdentityGate."""
 
 from typing import Any, Dict, Optional, Tuple, TYPE_CHECKING, Sequence
-import string
 
 import numpy as np
 import sympy
@@ -134,9 +133,6 @@ class IdentityGate(raw_types.Gate):
     def _qasm_(self, args: 'cirq.QasmArgs', qubits: Tuple['cirq.Qid', ...]) -> Optional[str]:
         args.validate_version('2.0')
         return ''.join([args.format('id {0};\n', qubit) for qubit in qubits])
-
-    def _quil_(self, qubits: Tuple['cirq.Qid', ...], formatter: string.Formatter) -> Optional[str]:
-        return ''.join(formatter.format('I {0}\n', qubit) for qubit in qubits)
 
     @classmethod
     def _from_json_dict_(cls, num_qubits, qid_shape=None, **kwargs):
