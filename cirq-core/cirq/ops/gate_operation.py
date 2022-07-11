@@ -15,7 +15,6 @@
 """Basic types defining qubits, gates, and operations."""
 
 import re
-import string
 from typing import (
     AbstractSet,
     Any,
