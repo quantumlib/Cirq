@@ -267,7 +267,6 @@ from cirq.ops import (
     PauliSum,
     PauliSumExponential,
     PauliSumLike,
-    PauliTransform,
     phase_damp,
     phase_flip,
     PhaseDampingChannel,

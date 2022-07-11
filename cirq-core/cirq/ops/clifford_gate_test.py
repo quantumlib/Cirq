@@ -81,13 +81,6 @@ def test_init_from_xz(trans_x, trans_z):
     _assert_no_collision(gate)
 
 
-def test_transform_deprecated():
-    gate = cirq.SingleQubitCliffordGate.from_xz_map((cirq.X, True), (cirq.Y, False))
-    with cirq.testing.assert_deprecated('pauli_tuple', deadline='v0.16', count=4):
-        assert gate.transform(cirq.X).to == cirq.X
-        assert gate.transform(cirq.Z).to == cirq.Y
-
-
 def test_dense_pauli_string():
     gate = cirq.SingleQubitCliffordGate.from_xz_map((cirq.X, True), (cirq.Y, False))
     assert gate.dense_pauli_string(cirq.X) == cirq.DensePauliString('X', coefficient=-1)
