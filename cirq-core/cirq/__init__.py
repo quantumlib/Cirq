@@ -654,12 +654,7 @@ from cirq.protocols import (
 )
 
 from cirq.ion import ConvertToIonGates, IonDevice
-from cirq.neutral_atoms import (
-    ConvertToNeutralAtomGates,
-    is_native_neutral_atom_gate,
-    is_native_neutral_atom_op,
-    NeutralAtomDevice,
-)
+from cirq.neutral_atoms import is_native_neutral_atom_gate, is_native_neutral_atom_op
 
 from cirq.vis import (
     Heatmap,
