@@ -31,8 +31,8 @@ if TYPE_CHECKING:
 class AsymmetricDepolarizingChannel(raw_types.Gate):
     r"""A channel that depolarizes asymmetrically along different directions.
 
-    This channel applies one of 4**n disjoint possibilities: nothing (the
-    identity channel) or one of the 4**n - 1 pauli gates.
+    This channel applies one of $4^n$ disjoint possibilities: nothing (the
+    identity channel) or one of the $4^n - 1$ pauli gates.
 
     This channel evolves a density matrix via
 
@@ -40,7 +40,7 @@ class AsymmetricDepolarizingChannel(raw_types.Gate):
         \sum_i p_i Pi \rho Pi
     $$
 
-    where i varies from 0 to 4**n-1 and Pi represents n-qubit Pauli operator
+    where i varies from 0 to $4^n-1$ and Pi represents n-qubit Pauli operator
     (including identity). The input $\rho$ is the density matrix before the
     depolarization.
 
@@ -211,8 +211,8 @@ def asymmetric_depolarize(
 ) -> AsymmetricDepolarizingChannel:
     r"""Returns an `AsymmetricDepolarizingChannel` with the given parameters.
 
-    This channel applies one of 4**n disjoint possibilities: nothing (the
-    identity channel) or one of the 4**n - 1 pauli gates.
+    This channel applies one of $4^n$ disjoint possibilities: nothing (the
+    identity channel) or one of the $4^n - 1$ pauli gates.
 
     This channel evolves a density matrix via
 
@@ -220,7 +220,7 @@ def asymmetric_depolarize(
     \sum_i p_i Pi \rho Pi
     $$
 
-    where i varies from 0 to 4**n-1 and Pi represents n-qubit Pauli operator
+    where i varies from 0 to $4^n-1$ and Pi represents n-qubit Pauli operator
     (including identity). The input $\rho$ is the density matrix before the
     depolarization.
 
@@ -250,10 +250,10 @@ def asymmetric_depolarize(
 class DepolarizingChannel(raw_types.Gate):
     r"""A channel that depolarizes one or several qubits.
 
-    This channel applies one of 4**n disjoint possibilities: nothing (the
-    identity channel) or one of the 4**n - 1 pauli gates. The disjoint
+    This channel applies one of $4^n$ disjoint possibilities: nothing (the
+    identity channel) or one of the $4^n - 1$ pauli gates. The disjoint
     probabilities of the non-identity Pauli gates are all the same,
-    p / (4**n - 1), and the identity is done with probability 1 - p. The
+    $p / (4^n - 1)$, and the identity is done with probability $1 - p$. The
     supplied probability must be a valid probability or else this
     constructor will raise a ValueError.
 
@@ -261,7 +261,7 @@ class DepolarizingChannel(raw_types.Gate):
     This channel evolves a density matrix via
 
     $$
-    \rho \rightarrow (1 - p) \rho + p / (4**n - 1) \sum _i P_i \rho P_i
+    \rho \rightarrow (1 - p) \rho + p / (4^n - 1) \sum _i P_i \rho P_i
     $$
 
     where $P_i$ are the $4^n - 1$ Pauli gates (excluding the identity).
@@ -273,7 +273,7 @@ class DepolarizingChannel(raw_types.Gate):
         Args:
             p: The probability that one of the Pauli gates is applied. Each of
                 the Pauli gates is applied independently with probability
-                p / (4**n - 1).
+                $p / (4^n - 1)$.
             n_qubits: the number of qubits.
 
         Raises:
@@ -333,7 +333,7 @@ class DepolarizingChannel(raw_types.Gate):
         """The probability that one of the Pauli gates is applied.
 
         Each of the Pauli gates is applied independently with probability
-        p / (4**n_qubits - 1).
+        $p / (4^n_qubits - 1)$.
         """
         return self._p
 
@@ -354,17 +354,17 @@ class DepolarizingChannel(raw_types.Gate):
 def depolarize(p: float, n_qubits: int = 1) -> DepolarizingChannel:
     r"""Returns a DepolarizingChannel with given probability of error.
 
-    This channel applies one of 4**n disjoint possibilities: nothing (the
-    identity channel) or one of the 4**n - 1 pauli gates. The disjoint
+    This channel applies one of $4^n$ disjoint possibilities: nothing (the
+    identity channel) or one of the $4^n - 1$ pauli gates. The disjoint
     probabilities of the non-identity Pauli gates are all the same,
-    p / (4**n - 1), and the identity is done with probability 1 - p. The
+    $p / (4^n - 1)$, and the identity is done with probability 1 - p. The
     supplied probability must be a valid probability or else this constructor
     will raise a ValueError.
 
     This channel evolves a density matrix via
 
     $$
-    \rho \rightarrow (1 - p) \rho + p / (4**n - 1) \sum _i P_i \rho P_i
+    \rho \rightarrow (1 - p) \rho + p / (4^n - 1) \sum _i P_i \rho P_i
     $$
 
     where $P_i$ are the $4^n - 1$ Pauli gates (excluding the identity).
@@ -372,7 +372,7 @@ def depolarize(p: float, n_qubits: int = 1) -> DepolarizingChannel:
     Args:
         p: The probability that one of the Pauli gates is applied. Each of
             the Pauli gates is applied independently with probability
-            p / (4**n - 1).
+            $p / (4^n - 1)$.
         n_qubits: The number of qubits.
 
     Raises:
