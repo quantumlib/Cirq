@@ -303,6 +303,9 @@ def parse(args):
 
 
 def main(argv: List[str]):
+    if argv == []:
+        # If no arguments are given, print the help/usage info.
+        argv = ['--help']
     args = parse(argv)
     # args.func is where we store the function to be called for a given subparser
     # e.g. it is list_modules for the `list` subcommand
