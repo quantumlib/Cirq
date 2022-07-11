@@ -132,7 +132,7 @@ class Moment:
         Returns:
             Whether this moment has operations involving the qubits.
         """
-        return bool(set(qubits) & self.qubits)
+        return not self._qubits.isdisjoint(qubits)
 
     def operation_at(self, qubit: raw_types.Qid) -> Optional['cirq.Operation']:
         """Returns the operation on a certain qubit for the moment.
