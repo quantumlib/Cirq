@@ -25,8 +25,7 @@ import numpy as np
 import quimb.tensor as qtn
 
 from cirq import devices, protocols, qis, value
-from cirq._compat import deprecated_parameter
-from cirq.sim import simulator, simulator_base
+from cirq.sim import simulator_base
 from cirq.sim.simulation_state import SimulationState
 
 if TYPE_CHECKING:
@@ -143,7 +142,6 @@ class MPSSimulator(
 class MPSTrialResult(simulator_base.SimulationTrialResultBase['MPSState']):
     """A single trial reult"""
 
-    @simulator._deprecated_step_result_parameter(old_position=3)
     def __init__(
         self,
         params: 'cirq.ParamResolver',
@@ -563,27 +561,14 @@ class _MPSHandler(qis.QuantumStateRepresentation):
 class MPSState(SimulationState[_MPSHandler]):
     """A state of the MPS simulation."""
 
-    @deprecated_parameter(
-        deadline='v0.16',
-        fix='Use kwargs instead of positional args',
-        parameter_desc='args',
-        match=lambda args, kwargs: len(args) > 1,
-    )
-    @deprecated_parameter(
-        deadline='v0.16',
-        fix='Replace log_of_measurement_results with'
-        ' classical_data=cirq.ClassicalDataDictionaryStore(_records=logs).',
-        parameter_desc='log_of_measurement_results',
-        match=lambda args, kwargs: 'log_of_measurement_results' in kwargs,
-    )
     def __init__(
         self,
+        *,
         qubits: Sequence['cirq.Qid'],
         prng: np.random.RandomState,
         simulation_options: MPSOptions = MPSOptions(),
         grouping: Optional[Dict['cirq.Qid', int]] = None,
         initial_state: int = 0,
-        log_of_measurement_results: Dict[str, Any] = None,
         classical_data: 'cirq.ClassicalDataStore' = None,
     ):
         """Creates and MPSState
@@ -596,8 +581,6 @@ class MPSState(SimulationState[_MPSHandler]):
             simulation_options: Numerical options for the simulation.
             grouping: How to group qubits together, if None all are individual.
             initial_state: An integer representing the initial state.
-            log_of_measurement_results: A mutable object that measurements are
-                being recorded into.
             classical_data: The shared classical data container for this
                 simulation.
 
@@ -614,16 +597,7 @@ class MPSState(SimulationState[_MPSHandler]):
             simulation_options=simulation_options,
             grouping={qubit_map[k]: v for k, v in final_grouping.items()},
         )
-        if log_of_measurement_results is not None:
-            super().__init__(
-                state=state,
-                prng=prng,
-                qubits=qubits,
-                log_of_measurement_results=log_of_measurement_results,
-                classical_data=classical_data,
-            )
-        else:
-            super().__init__(state=state, prng=prng, qubits=qubits, classical_data=classical_data)
+        super().__init__(state=state, prng=prng, qubits=qubits, classical_data=classical_data)
 
     def i_str(self, i: int) -> str:
         # Returns the index name for the i'th qid.

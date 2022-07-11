@@ -27,12 +27,3 @@ def test_control_key():
     assert cirq.control_keys(Named()) == {cirq.MeasurementKey('key')}
     assert not cirq.control_keys(NoImpl())
     assert not cirq.control_keys(5)
-
-
-def test_control_key_enumerable_deprecated():
-    class Deprecated:
-        def _control_keys_(self):
-            return [cirq.MeasurementKey('key')]
-
-    with cirq.testing.assert_deprecated('frozenset', deadline='v0.16'):
-        assert cirq.control_keys(Deprecated()) == {cirq.MeasurementKey('key')}

@@ -81,13 +81,6 @@ def test_init_from_xz(trans_x, trans_z):
     _assert_no_collision(gate)
 
 
-def test_transform_deprecated():
-    gate = cirq.SingleQubitCliffordGate.from_xz_map((cirq.X, True), (cirq.Y, False))
-    with cirq.testing.assert_deprecated('pauli_tuple', deadline='v0.16', count=4):
-        assert gate.transform(cirq.X).to == cirq.X
-        assert gate.transform(cirq.Z).to == cirq.Y
-
-
 def test_dense_pauli_string():
     gate = cirq.SingleQubitCliffordGate.from_xz_map((cirq.X, True), (cirq.Y, False))
     assert gate.dense_pauli_string(cirq.X) == cirq.DensePauliString('X', coefficient=-1)
@@ -329,16 +322,22 @@ def test_eq_ne_and_hash():
 
 
 @pytest.mark.parametrize(
-    'gate,rep',
+    'gate',
     (
-        (cirq.SingleQubitCliffordGate.I, 'cirq.SingleQubitCliffordGate(X:+X, Y:+Y, Z:+Z)'),
-        (cirq.SingleQubitCliffordGate.H, 'cirq.SingleQubitCliffordGate(X:+Z, Y:-Y, Z:+X)'),
-        (cirq.SingleQubitCliffordGate.X, 'cirq.SingleQubitCliffordGate(X:+X, Y:-Y, Z:-Z)'),
-        (cirq.SingleQubitCliffordGate.X_sqrt, 'cirq.SingleQubitCliffordGate(X:+X, Y:+Z, Z:-Y)'),
+        cirq.SingleQubitCliffordGate.I,
+        cirq.SingleQubitCliffordGate.H,
+        cirq.SingleQubitCliffordGate.X,
+        cirq.SingleQubitCliffordGate.X_sqrt,
     ),
 )
-def test_repr(gate, rep):
-    assert repr(gate) == rep
+def test_repr_gate(gate):
+    cirq.testing.assert_equivalent_repr(gate)
+
+
+def test_repr_operation():
+    cirq.testing.assert_equivalent_repr(
+        cirq.SingleQubitCliffordGate.from_pauli(cirq.Z).on(cirq.LineQubit(2))
+    )
 
 
 @pytest.mark.parametrize(

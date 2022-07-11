@@ -11,12 +11,12 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from typing import Callable, List, Sequence, Any, Union, Dict
+from typing import Sequence, Any, Union, Dict
 import numpy as np
 import networkx as nx
 
 import cirq
-from cirq import _compat, GridQubit, LineQubit
+from cirq import GridQubit, LineQubit
 from cirq.ops import NamedQubit
 from cirq_pasqal import ThreeDQubit, TwoDQubit, PasqalGateset
 
@@ -286,32 +286,3 @@ class PasqalVirtualDevice(PasqalDevice):
 
     def _json_dict_(self) -> Dict[str, Any]:
         return cirq.protocols.obj_to_dict_helper(self, ['control_radius', 'qubits'])
-
-
-@_compat.deprecated_class(
-    deadline='v0.16', fix='Use cirq.optimize_for_target_gateset(circuit, gateset=PasqalGateset()).'
-)
-class PasqalConverter(cirq.neutral_atoms.ConvertToNeutralAtomGates):
-    """A gate converter for compatibility with Pasqal processors.
-
-    Modified version of ConvertToNeutralAtomGates, where a new 'convert' method
-    'pasqal_convert' takes the 'keep' function as an input.
-    """
-
-    def pasqal_convert(
-        self, op: cirq.Operation, keep: Callable[[cirq.Operation], bool]
-    ) -> List[cirq.Operation]:
-        def on_stuck_raise(bad):
-            return TypeError(
-                "Don't know how to work with {!r}. "
-                "It isn't a native PasqalDevice operation, "
-                "a 1 or 2 qubit gate with a known unitary, "
-                "or composite.".format(bad)
-            )
-
-        return cirq.protocols.decompose(
-            op,
-            keep=keep,
-            intercepting_decomposer=self._convert_one,
-            on_stuck_raise=None if self.ignore_failures else on_stuck_raise,
-        )

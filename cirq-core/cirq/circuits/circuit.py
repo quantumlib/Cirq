@@ -57,7 +57,6 @@ from cirq.circuits._bucket_priority_queue import BucketPriorityQueue
 from cirq.circuits.circuit_operation import CircuitOperation
 from cirq.circuits.insert_strategy import InsertStrategy
 from cirq.circuits.qasm_output import QasmOutput
-from cirq.circuits.quil_output import QuilOutput
 from cirq.circuits.text_diagram_drawer import TextDiagramDrawer
 from cirq.circuits.moment import Moment
 from cirq.protocols import circuit_diagram_info_protocol
@@ -93,13 +92,16 @@ _INT_TYPE = Union[int, np.integer]
 
 
 class Alignment(enum.Enum):
-    """Alignment option for combining/zipping two circuits together."""
+    """Alignment option for combining/zipping two circuits together.
 
-    # Stop when left ends are lined up.
+    Args:
+        LEFT: Stop when left ends are lined up.
+        RIGHT: Stop when right ends are lined up.
+        FIRST: Stop the first time left ends are lined up or right ends are lined up.
+    """
+
     LEFT = 1
-    # Stop when right ends are lined up.
     RIGHT = 2
-    # Stop the first time left ends are lined up or right ends are lined up.
     FIRST = 3
 
     def __repr__(self) -> str:
@@ -1074,26 +1076,12 @@ class AbstractCircuit(abc.ABC):
             circuit_superoperator = moment_superoperator @ circuit_superoperator
         return circuit_superoperator
 
-    @_compat.deprecated_parameter(
-        deadline='v0.16',
-        fix='Inject identity operators to include untouched qubits.',
-        parameter_desc='qubits_that_should_be_present',
-        match=lambda args, kwargs: 'qubits_that_should_be_present' in kwargs,
-    )
-    @_compat.deprecated_parameter(
-        deadline='v0.16',
-        fix='Only use keyword arguments.',
-        parameter_desc='positional args',
-        match=lambda args, kwargs: len(args) > 1,
-    )
     def final_state_vector(
         self,
-        # TODO(v0.16): Force kwargs and match order found in:
-        # cirq-core/cirq/sim/mux.py:final_state_vector
+        *,
         initial_state: 'cirq.STATE_VECTOR_LIKE' = 0,
         qubit_order: 'cirq.QubitOrderOrList' = ops.QubitOrder.DEFAULT,
-        qubits_that_should_be_present: Iterable['cirq.Qid'] = (),
-        ignore_terminal_measurements: Optional[bool] = None,
+        ignore_terminal_measurements: bool = False,
         dtype: Type[np.complexfloating] = np.complex128,
         param_resolver: 'cirq.ParamResolverOrSimilarType' = None,
         seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None,
@@ -1117,7 +1105,7 @@ class AbstractCircuit(abc.ABC):
                 regardless when generating the matrix.
             ignore_terminal_measurements: When set, measurements at the end of
                 the circuit are ignored instead of causing the method to
-                fail.
+                fail. Defaults to False.
             dtype: The `numpy.dtype` used by the simulation. Typically one of
                 `numpy.complex64` or `numpy.complex128`.
             param_resolver: Parameters to run with the program.
@@ -1135,20 +1123,10 @@ class AbstractCircuit(abc.ABC):
             ValueError: If the program doesn't have a well defined final state
                 because it has non-unitary gates.
         """
-        if ignore_terminal_measurements is None:
-            if self.has_measurements():
-                _compat._warn_or_error(
-                    '`ignore_terminal_measurements` will default to False in v0.16. '
-                    'To drop terminal measurements, please explicitly include '
-                    '`ignore_terminal_measurements=True` when calling this method.'
-                )
-            ignore_terminal_measurements = True
-
         from cirq.sim.mux import final_state_vector
 
-        program = Circuit(cirq.I(q) for q in qubits_that_should_be_present) + self
         return final_state_vector(
-            program,
+            self,
             initial_state=initial_state,
             param_resolver=param_resolver,
             qubit_order=qubit_order,
@@ -1318,12 +1296,6 @@ class AbstractCircuit(abc.ABC):
             version='2.0',
         )
 
-    def _to_quil_output(
-        self, qubit_order: 'cirq.QubitOrderOrList' = ops.QubitOrder.DEFAULT
-    ) -> 'cirq.QuilOutput':
-        qubits = ops.QubitOrder.as_qubit_order(qubit_order).order_for(self.all_qubits())
-        return QuilOutput(operations=self.all_operations(), qubits=qubits)
-
     def to_qasm(
         self,
         header: Optional[str] = None,
@@ -1341,9 +1313,6 @@ class AbstractCircuit(abc.ABC):
         """
 
         return str(self._to_qasm_output(header, precision, qubit_order))
-
-    def to_quil(self, qubit_order: 'cirq.QubitOrderOrList' = ops.QubitOrder.DEFAULT) -> str:
-        return str(self._to_quil_output(qubit_order))
 
     def save_qasm(
         self,
