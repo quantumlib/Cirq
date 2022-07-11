@@ -197,13 +197,14 @@ class XPowGate(eigen_gate.EigenGate):
         this is possible.
 
         The conditions for the override to occur are:
-            * The `global_shift` of the `XPowGate` is 0.
-            * The `control_values` and `control_qid_shape` are compatible with
-                the `CXPowGate`:
-                * The last value of `control_qid_shape` is a qubit.
-                * The last value of `control_values` corresponds to the
-                    control being satisfied if that last qubit is 1 and
-                    not satisfied if the last qubit is 0.
+
+        * The `global_shift` of the `XPowGate` is 0.
+        * The `control_values` and `control_qid_shape` are compatible with
+            the `CXPowGate`:
+            * The last value of `control_qid_shape` is a qubit.
+            * The last value of `control_values` corresponds to the
+                control being satisfied if that last qubit is 1 and
+                not satisfied if the last qubit is 0.
 
         If these conditions are met, then the returned object is a `CXPowGate`
         or, in the case that there is more than one controlled qudit, a
@@ -215,6 +216,22 @@ class XPowGate(eigen_gate.EigenGate):
 
         If the above conditions are not met, a `ControlledGate` of this
         gate will be returned.
+
+        Args:
+            num_controls: Total number of control qubits.
+            control_values: Which control computational basis state to apply the
+                sub gate.  A sequence of length `num_controls` where each
+                entry is an integer (or set of integers) corresponding to the
+                computational basis state (or set of possible values) where that
+                control is enabled.  When all controls are enabled, the sub gate is
+                applied.  If unspecified, control values default to 1.
+            control_qid_shape: The qid shape of the controls.  A tuple of the
+                expected dimension of each control qid.  Defaults to
+                `(2,) * num_controls`.  Specify this argument when using qudits.
+
+        Returns:
+            A `cirq.ControlledGate` (or `cirq.CXPowGate` if possible) representing
+                `self` controlled by the given control values and qubits.
         """
         result = super().controlled(num_controls, control_values, control_qid_shape)
         if (
@@ -309,6 +326,11 @@ class Rx(XPowGate):
     """
 
     def __init__(self, *, rads: value.TParamVal):
+        """Initialize an Rx (`cirq.XPowGate`).
+
+        Args:
+            rads: Radians to rotate about the X axis of the Bloch sphere.
+        """
         self._rads = rads
         super().__init__(exponent=rads / _pi(rads), global_shift=-0.5)
 
@@ -478,6 +500,11 @@ class Ry(YPowGate):
     """
 
     def __init__(self, *, rads: value.TParamVal):
+        """Initialize an Ry (`cirq.YPowGate`).
+
+        Args:
+            rads: Radians to rotate about the Y axis of the Bloch sphere.
+        """
         self._rads = rads
         super().__init__(exponent=rads / _pi(rads), global_shift=-0.5)
 
@@ -617,13 +644,14 @@ class ZPowGate(eigen_gate.EigenGate):
         this is possible.
 
         The conditions for the override to occur are:
-            * The `global_shift` of the `ZPowGate` is 0.
-            * The `control_values` and `control_qid_shape` are compatible with
-                the `CZPowGate`:
-                * The last value of `control_qid_shape` is a qubit.
-                * The last value of `control_values` corresponds to the
-                    control being satisfied if that last qubit is 1 and
-                    not satisfied if the last qubit is 0.
+
+        * The `global_shift` of the `ZPowGate` is 0.
+        * The `control_values` and `control_qid_shape` are compatible with
+            the `CZPowGate`:
+            * The last value of `control_qid_shape` is a qubit.
+            * The last value of `control_values` corresponds to the
+                control being satisfied if that last qubit is 1 and
+                not satisfied if the last qubit is 0.
 
         If these conditions are met, then the returned object is a `CZPowGate`
         or, in the case that there is more than one controlled qudit, a
@@ -635,6 +663,22 @@ class ZPowGate(eigen_gate.EigenGate):
 
         If the above conditions are not met, a `ControlledGate` of this
         gate will be returned.
+
+        Args:
+            num_controls: Total number of control qubits.
+            control_values: Which control computational basis state to apply the
+                sub gate.  A sequence of length `num_controls` where each
+                entry is an integer (or set of integers) corresponding to the
+                computational basis state (or set of possible values) where that
+                control is enabled.  When all controls are enabled, the sub gate is
+                applied.  If unspecified, control values default to 1.
+            control_qid_shape: The qid shape of the controls.  A tuple of the
+                expected dimension of each control qid.  Defaults to
+                `(2,) * num_controls`.  Specify this argument when using qudits.
+
+        Returns:
+            A `cirq.ControlledGate` (or `cirq.CZPowGate` if possible) representing
+                `self` controlled by the given control values and qubits.
         """
         result = super().controlled(num_controls, control_values, control_qid_shape)
         if (
@@ -783,6 +827,11 @@ class Rz(ZPowGate):
     """
 
     def __init__(self, *, rads: value.TParamVal):
+        """Initialize an Rz (`cirq.ZPowGate`).
+
+        Args:
+            rads: Radians to rotate about the Z axis of the Bloch sphere.
+        """
         self._rads = rads
         super().__init__(exponent=rads / _pi(rads), global_shift=-0.5)
 
@@ -1031,13 +1080,14 @@ class CZPowGate(gate_features.InterchangeableQubitsGate, eigen_gate.EigenGate):
         this is possible.
 
         The conditions for the override to occur are:
-            * The `global_shift` of the `CZPowGate` is 0.
-            * The `control_values` and `control_qid_shape` are compatible with
-                the `CCZPowGate`:
-                * The last value of `control_qid_shape` is a qubit.
-                * The last value of `control_values` corresponds to the
-                    control being satisfied if that last qubit is 1 and
-                    not satisfied if the last qubit is 0.
+
+        * The `global_shift` of the `CZPowGate` is 0.
+        * The `control_values` and `control_qid_shape` are compatible with
+            the `CCZPowGate`:
+            * The last value of `control_qid_shape` is a qubit.
+            * The last value of `control_values` corresponds to the
+                control being satisfied if that last qubit is 1 and
+                not satisfied if the last qubit is 0.
 
         If these conditions are met, then the returned object is a `CCZPowGate`
         or, in the case that there is more than one controlled qudit, a
@@ -1049,6 +1099,22 @@ class CZPowGate(gate_features.InterchangeableQubitsGate, eigen_gate.EigenGate):
 
         If the above conditions are not met, a `ControlledGate` of this
         gate will be returned.
+
+        Args:
+            num_controls: Total number of control qubits.
+            control_values: Which control computational basis state to apply the
+                sub gate.  A sequence of length `num_controls` where each
+                entry is an integer (or set of integers) corresponding to the
+                computational basis state (or set of possible values) where that
+                control is enabled.  When all controls are enabled, the sub gate is
+                applied.  If unspecified, control values default to 1.
+            control_qid_shape: The qid shape of the controls.  A tuple of the
+                expected dimension of each control qid.  Defaults to
+                `(2,) * num_controls`.  Specify this argument when using qudits.
+
+        Returns:
+            A `cirq.ControlledGate` (or `cirq.CCZPowGate` if possible) representing
+                `self` controlled by the given control values and qubits.
         """
         result = super().controlled(num_controls, control_values, control_qid_shape)
         if (
@@ -1213,13 +1279,14 @@ class CXPowGate(eigen_gate.EigenGate):
         this is possible.
 
         The conditions for the override to occur are:
-            * The `global_shift` of the `CXPowGate` is 0.
-            * The `control_values` and `control_qid_shape` are compatible with
-                the `CCXPowGate`:
-                * The last value of `control_qid_shape` is a qubit.
-                * The last value of `control_values` corresponds to the
-                    control being satisfied if that last qubit is 1 and
-                    not satisfied if the last qubit is 0.
+
+        * The `global_shift` of the `CXPowGate` is 0.
+        * The `control_values` and `control_qid_shape` are compatible with
+            the `CCXPowGate`:
+            * The last value of `control_qid_shape` is a qubit.
+            * The last value of `control_values` corresponds to the
+                control being satisfied if that last qubit is 1 and
+                not satisfied if the last qubit is 0.
 
         If these conditions are met, then the returned object is a `CCXPowGate`
         or, in the case that there is more than one controlled qudit, a
@@ -1231,6 +1298,22 @@ class CXPowGate(eigen_gate.EigenGate):
 
         If the above conditions are not met, a `ControlledGate` of this
         gate will be returned.
+
+        Args:
+            num_controls: Total number of control qubits.
+            control_values: Which control computational basis state to apply the
+                sub gate.  A sequence of length `num_controls` where each
+                entry is an integer (or set of integers) corresponding to the
+                computational basis state (or set of possible values) where that
+                control is enabled.  When all controls are enabled, the sub gate is
+                applied.  If unspecified, control values default to 1.
+            control_qid_shape: The qid shape of the controls.  A tuple of the
+                expected dimension of each control qid.  Defaults to
+                `(2,) * num_controls`.  Specify this argument when using qudits.
+
+        Returns:
+            A `cirq.ControlledGate` (or `cirq.CCXPowGate` if possible) representing
+                `self` controlled by the given control values and qubits.
         """
         result = super().controlled(num_controls, control_values, control_qid_shape)
         if (
