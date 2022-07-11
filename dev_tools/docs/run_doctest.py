@@ -47,7 +47,13 @@ class Doctest:
         self.test_globals = test_globals
 
     def run(self) -> doctest.TestResults:
-        return doctest.testmod(self.mod, globs=self.test_globals, report=False, verbose=False)
+        return doctest.testmod(
+            self.mod,
+            globs=self.test_globals,
+            report=False,
+            verbose=False,
+            optionflags=doctest.ELLIPSIS,
+        )
 
 
 def run_tests(
@@ -112,11 +118,18 @@ def load_tests(
         try_print = lambda *args, **kwargs: None
     if include_modules:
         import cirq
+        import cirq_google
         import numpy
         import sympy
         import pandas
 
-        base_globals = {'cirq': cirq, 'np': numpy, 'sympy': sympy, 'pd': pandas}
+        base_globals = {
+            'cirq': cirq,
+            'cirq_google': cirq_google,
+            'np': numpy,
+            'pd': pandas,
+            'sympy': sympy,
+        }
     else:
         base_globals = {}
 
@@ -209,10 +222,14 @@ def main():
     quiet = len(sys.argv) >= 2 and sys.argv[1] == '-q'
 
     file_names = glob.glob('cirq**/cirq**/**/*.py', recursive=True)
+    assert file_names
     # Remove the engine client code.
-    file_names = [
-        f for f in file_names if not f.startswith('cirq-google/cirq_google/engine/client/')
+    excluded = [
+        'cirq-google/cirq_google/engine/client/',
+        'cirq-google/cirq_google/cloud/',
+        'cirq-google/cirq_google/api',
     ]
+    file_names = [f for f in file_names if not any(f.startswith(x) for x in excluded)]
     failed, attempted = run_tests(
         file_names, include_modules=True, include_local=False, quiet=quiet
     )
