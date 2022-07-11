@@ -12,18 +12,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import textwrap
 import unittest.mock as mock
 
 import pytest
 
 import cirq
-import cirq_google
 import cirq_google as cg
 import cirq_google.api.v2 as v2
 import cirq_google.api.v2.device_pb2 as device_pb2
-import cirq_google.devices.known_devices as cgdk
-import cirq_google.serialization.common_serializers as cgc
 
 
 def _just_cz():

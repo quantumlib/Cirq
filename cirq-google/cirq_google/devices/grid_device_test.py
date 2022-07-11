@@ -22,7 +22,7 @@ from google.protobuf import text_format
 import cirq
 import cirq_google
 from cirq_google.api import v2
-from cirq_google.devices import grid_device, known_devices
+from cirq_google.devices import grid_device
 
 
 GRID_HEIGHT = 5

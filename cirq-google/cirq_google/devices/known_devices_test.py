@@ -17,8 +17,6 @@ import pytest
 import cirq
 import cirq_google
 import cirq_google.experimental.ops.coupler_pulse as coupler_pulse
-import cirq_google.devices.known_devices as known_devices
-import cirq_google.serialization.common_serializers as cgc
 
 
 def test_sycamore_grid_layout():
