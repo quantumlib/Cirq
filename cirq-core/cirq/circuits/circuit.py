@@ -1709,7 +1709,95 @@ class Circuit(AbstractCircuit):
         """
         self._moments: List['cirq.Moment'] = []
         with _compat.block_overlapping_deprecation('.*'):
-            self.append(contents, strategy=strategy)
+            if strategy == InsertStrategy.EARLIEST:
+                self._load_contents_with_earliest_strategy(contents)
+            else:
+                self.append(contents, strategy=strategy)
+
+    def _load_contents_with_earliest_strategy(self, contents: 'cirq.OP_TREE'):
+        """Optimized algorithm to load contents quickly.
+
+        The default algorithm appends operations one-at-a-time, letting them
+        fall back until they encounter a moment they cannot commute with. This
+        is slow because it requires re-checking for conflicts at each moment.
+
+        Here, we instead keep track of the greatest moment that contains each
+        qubit, measurement key, and control key, and append the operation to
+        the moment after the maximum of these. This avoids having to check each
+        moment.
+
+        Args:
+            contents: The initial list of moments and operations defining the
+                circuit. You can also pass in operations, lists of operations,
+                or generally anything meeting the `cirq.OP_TREE` contract.
+                Non-moment entries will be inserted according to the EARLIEST
+                insertion strategy.
+        """
+        # These are dicts from the qubit/key to the greatest moment index that has it. It is safe
+        # to default to `-1`, as that is interpreted as meaning the zeroth index onward does not
+        # have this value.
+        qubit_indexes: Dict['cirq.Qid', int] = defaultdict(lambda: -1)
+        mkey_indexes: Dict['cirq.MeasurementKey', int] = defaultdict(lambda: -1)
+        ckey_indexes: Dict['cirq.MeasurementKey', int] = defaultdict(lambda: -1)
+
+        # We also maintain the dict from moment index to moments/ops that go into it, for use when
+        # building the actual moments at the end.
+        op_lists_by_index: Dict[int, List['cirq.Operation']] = defaultdict(list)
+        moments_by_index: Dict[int, 'cirq.Moment'] = {}
+
+        # For keeping track of length of the circuit thus far.
+        length = 0
+
+        # "mop" means current moment-or-operation
+        for mop in ops.flatten_to_ops_or_moments(contents):
+            mop_qubits = mop.qubits
+            mop_mkeys = protocols.measurement_key_objs(mop)
+            mop_ckeys = protocols.control_keys(mop)
+
+            # Both branches define `i`, the moment index at which to place the mop.
+            if isinstance(mop, Moment):
+                # We always append moment to the end, to be consistent with `self.append`
+                i = length
+                moments_by_index[i] = mop
+            else:
+                # Initially we define `i` as the greatest moment index that has a conflict. `-1` is
+                # the initial conflict, and we search for larger ones. Once we get the largest one,
+                # we increment i by 1 to set the placement index.
+                i = -1
+
+                # Look for the maximum conflict; i.e. a moment that has a qubit the same as one of
+                # this op's qubits, that has a measurement or control key the same as one of this
+                # op's measurement keys, or that has a measurement key the same as one of this op's
+                # control keys. (Control keys alone can commute past each other). The `ifs` are
+                # logically unnecessary but seem to make this slightly faster.
+                if mop_qubits:
+                    i = max(i, *[qubit_indexes[q] for q in mop_qubits])
+                if mop_mkeys:
+                    i = max(i, *[mkey_indexes[k] for k in mop_mkeys])
+                    i = max(i, *[ckey_indexes[k] for k in mop_mkeys])
+                if mop_ckeys:
+                    i = max(i, *[mkey_indexes[k] for k in mop_ckeys])
+                i += 1
+                op_lists_by_index[i].append(mop)
+
+            # Update our dicts with data from the latest mop placement. Note `i` will always be
+            # greater than the existing value for all of these, by construction, so there is no
+            # need to do a `max(i, existing)`.
+            for q in mop_qubits:
+                qubit_indexes[q] = i
+            for k in mop_mkeys:
+                mkey_indexes[k] = i
+            for k in mop_ckeys:
+                ckey_indexes[k] = i
+            length = max(length, i + 1)
+
+        # Finally, once everything is placed, we can construct and append the actual moments for
+        # each index.
+        for i in range(length):
+            if i in moments_by_index:
+                self._moments.append(moments_by_index[i].with_operations(op_lists_by_index[i]))
+            else:
+                self._moments.append(Moment(op_lists_by_index[i]))
 
     def __copy__(self) -> 'cirq.Circuit':
         return self.copy()
@@ -1888,11 +1976,11 @@ class Circuit(AbstractCircuit):
             moment = self._moments[k]
             if moment.operates_on(op_qubits):
                 return last_available
-            moment_measurement_keys = protocols.measurement_key_objs(moment)
+            moment_measurement_keys = moment._measurement_key_objs_()
             if (
                 not op_measurement_keys.isdisjoint(moment_measurement_keys)
                 or not op_control_keys.isdisjoint(moment_measurement_keys)
-                or not protocols.control_keys(moment).isdisjoint(op_measurement_keys)
+                or not moment._control_keys_().isdisjoint(op_measurement_keys)
             ):
                 return last_available
             if self._can_add_op_at(k, op):
@@ -1973,14 +2061,9 @@ class Circuit(AbstractCircuit):
         Raises:
             ValueError: Bad insertion strategy.
         """
-        moments_and_operations = list(
-            ops.flatten_to_ops_or_moments(
-                ops.transform_op_tree(moment_or_operation_tree, preserve_moments=True)
-            )
-        )
         # limit index to 0..len(self._moments), also deal with indices smaller 0
         k = max(min(index if index >= 0 else len(self._moments) + index, len(self._moments)), 0)
-        for moment_or_op in moments_and_operations:
+        for moment_or_op in ops.flatten_to_ops_or_moments(moment_or_operation_tree):
             if isinstance(moment_or_op, Moment):
                 self._moments.insert(k, moment_or_op)
                 k += 1
