@@ -417,47 +417,6 @@ def test_to_proto_invalid_input(error_match, qubits, qubit_pairs, gateset, gate_
         )
 
 
-def test_to_proto_backward_compatibility():
-    device_info, _ = _create_device_spec_with_horizontal_couplings()
-
-    # The set of gates in gate_durations are consistent with what's generated in
-    # _create_device_spec_with_horizontal_couplings()
-    base_duration = cirq.Duration(picos=1_000)
-    gate_durations = {
-        cirq.GateFamily(cirq_google.SYC): base_duration * 0,
-        cirq.GateFamily(cirq.SQRT_ISWAP): base_duration * 1,
-        cirq.GateFamily(cirq.SQRT_ISWAP_INV): base_duration * 2,
-        cirq.GateFamily(cirq.CZ): base_duration * 3,
-        cirq.GateFamily(cirq.ops.phased_x_z_gate.PhasedXZGate): base_duration * 4,
-        cirq.GateFamily(
-            cirq.ops.common_gates.ZPowGate, tags_to_ignore=[cirq_google.PhysicalZTag()]
-        ): base_duration
-        * 5,
-        cirq.GateFamily(
-            cirq.ops.common_gates.ZPowGate, tags_to_accept=[cirq_google.PhysicalZTag()]
-        ): base_duration
-        * 6,
-        cirq.GateFamily(cirq_google.experimental.ops.coupler_pulse.CouplerPulse): base_duration * 7,
-        cirq.GateFamily(cirq.ops.measurement_gate.MeasurementGate): base_duration * 8,
-        cirq.GateFamily(cirq.ops.wait_gate.WaitGate): base_duration * 9,
-    }
-
-    # Serialize the new way
-    spec = grid_device.create_device_specification_proto(
-        qubits=device_info.grid_qubits,
-        pairs=device_info.qubit_pairs,
-        gateset=cirq.Gateset(*gate_durations.keys()),
-        gate_durations=gate_durations,
-    )
-    grid_dev = cirq_google.GridDevice.from_proto(spec)
-
-    assert grid_dev.metadata.gateset == device_info.expected_gateset
-    assert (
-        tuple(grid_dev.metadata.compilation_target_gatesets) == device_info.expected_target_gatesets
-    )
-    assert grid_dev.metadata.gate_durations == device_info.expected_gate_durations
-
-
 def test_to_proto_empty():
     spec = grid_device.create_device_specification_proto(
         # Qubits are always expected to be set
