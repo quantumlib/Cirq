@@ -34,12 +34,6 @@ from cirq.optimizers.merge_interactions import MergeInteractions
 
 from cirq.optimizers.merge_interactions_to_sqrt_iswap import MergeInteractionsToSqrtIswap
 
-from cirq.optimizers.merge_single_qubit_gates import (
-    merge_single_qubit_gates_into_phased_x_z,
-    merge_single_qubit_gates_into_phxz,
-    MergeSingleQubitGates,
-)
-
 from cirq.optimizers.synchronize_terminal_measurements import SynchronizeTerminalMeasurements
 
 from cirq.transformers.analytical_decompositions import (
