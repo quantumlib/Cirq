@@ -68,8 +68,7 @@ def cached_method(method: Optional[TFunc] = None, *, maxsize: int = 128) -> Any:
     """
 
     def decorator(func):
-        cache_name = f'_{func.__name__}_cache'
-
+        cache_name = _method_cache_name(func)
         signature = inspect.signature(func)
 
         if len(signature.parameters) == 1:
@@ -99,6 +98,11 @@ def cached_method(method: Optional[TFunc] = None, *, maxsize: int = 128) -> Any:
         return wrapped
 
     return decorator if method is None else decorator(method)
+
+
+def _method_cache_name(func: Callable) -> str:
+    # Use single-underscore prefix to avoid name mangling (for tests).
+    return f'_method_cache_{func.__name__}'
 
 
 def proper_repr(value: Any) -> str:
