@@ -129,7 +129,7 @@ class NamedQubit(_BaseNamedQid):
 
     @staticmethod
     def range(*args, prefix: str) -> List['NamedQubit']:
-        """Returns a range of ``NamedQubit``\\s.
+        r"""Returns a range of `cirq.NamedQubit`s.
 
         The range returned starts with the prefix, and followed by a qubit for
         each number in the range, e.g.:
