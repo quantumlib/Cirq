@@ -255,13 +255,6 @@ class XPowGate(eigen_gate.EigenGate):
                 return args.format('sxdg {0};\n', qubits[0])
         return args.format('rx({0:half_turns}) {1};\n', self._exponent, qubits[0])
 
-    def _quil_(
-        self, qubits: Tuple['cirq.Qid', ...], formatter: 'cirq.QuilFormatter'
-    ) -> Optional[str]:
-        if self._exponent == 1 and self._global_shift != -0.5:
-            return formatter.format('X {0}\n', qubits[0])
-        return formatter.format('RX({0}) {1}\n', self._exponent * np.pi, qubits[0])
-
     @property
     def phase_exponent(self):
         return 0.0
@@ -436,13 +429,6 @@ class YPowGate(eigen_gate.EigenGate):
             return args.format('y {0};\n', qubits[0])
 
         return args.format('ry({0:half_turns}) {1};\n', self._exponent, qubits[0])
-
-    def _quil_(
-        self, qubits: Tuple['cirq.Qid', ...], formatter: 'cirq.QuilFormatter'
-    ) -> Optional[str]:
-        if self._exponent == 1 and self.global_shift != -0.5:
-            return formatter.format('Y {0}\n', qubits[0])
-        return formatter.format('RY({0}) {1}\n', self._exponent * np.pi, qubits[0])
 
     @property
     def phase_exponent(self):
@@ -731,13 +717,6 @@ class ZPowGate(eigen_gate.EigenGate):
                 return args.format('tdg {0};\n', qubits[0])
         return args.format('rz({0:half_turns}) {1};\n', self._exponent, qubits[0])
 
-    def _quil_(
-        self, qubits: Tuple['cirq.Qid', ...], formatter: 'cirq.QuilFormatter'
-    ) -> Optional[str]:
-        if self._exponent == 1 and self.global_shift != -0.5:
-            return formatter.format('Z {0}\n', qubits[0])
-        return formatter.format('RZ({0}) {1}\n', self._exponent * np.pi, qubits[0])
-
     def __str__(self) -> str:
         if self._global_shift == 0:
             if self._exponent == 0.25:
@@ -945,19 +924,6 @@ class HPowGate(eigen_gate.EigenGate):
             qubits[0],
         )
 
-    def _quil_(
-        self, qubits: Tuple['cirq.Qid', ...], formatter: 'cirq.QuilFormatter'
-    ) -> Optional[str]:
-        if self._exponent == 1:
-            return formatter.format('H {0}\n', qubits[0])
-        return formatter.format(
-            'RY({0}) {3}\nRX({1}) {3}\nRY({2}) {3}\n',
-            0.25 * np.pi,
-            self._exponent * np.pi,
-            -0.25 * np.pi,
-            qubits[0],
-        )
-
     def _has_stabilizer_effect_(self) -> Optional[bool]:
         if self._is_parameterized_():
             return None
@@ -1110,15 +1076,6 @@ class CZPowGate(gate_features.InterchangeableQubitsGate, eigen_gate.EigenGate):
             return None  # Don't have an equivalent gate in QASM
         args.validate_version('2.0')
         return args.format('cz {0},{1};\n', qubits[0], qubits[1])
-
-    def _quil_(
-        self, qubits: Tuple['cirq.Qid', ...], formatter: 'cirq.QuilFormatter'
-    ) -> Optional[str]:
-        if self._exponent == 1:
-            return formatter.format('CZ {0} {1}\n', qubits[0], qubits[1])
-        return formatter.format(
-            'CPHASE({0}) {1} {2}\n', self._exponent * np.pi, qubits[0], qubits[1]
-        )
 
     def _has_stabilizer_effect_(self) -> Optional[bool]:
         if self._is_parameterized_():
@@ -1294,13 +1251,6 @@ class CXPowGate(eigen_gate.EigenGate):
             return None  # Don't have an equivalent gate in QASM
         args.validate_version('2.0')
         return args.format('cx {0},{1};\n', qubits[0], qubits[1])
-
-    def _quil_(
-        self, qubits: Tuple['cirq.Qid', ...], formatter: 'cirq.QuilFormatter'
-    ) -> Optional[str]:
-        if self._exponent == 1:
-            return formatter.format('CNOT {0} {1}\n', qubits[0], qubits[1])
-        return None
 
     def _has_stabilizer_effect_(self) -> Optional[bool]:
         if self._is_parameterized_():

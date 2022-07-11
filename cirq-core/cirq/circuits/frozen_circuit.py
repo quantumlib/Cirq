@@ -12,11 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """An immutable version of the Circuit data structure."""
-from typing import TYPE_CHECKING, FrozenSet, Iterable, Iterator, Optional, Sequence, Tuple, Union
+from typing import TYPE_CHECKING, FrozenSet, Iterable, Iterator, Sequence, Tuple, Union
 
 import numpy as np
 
-from cirq import ops, protocols
+from cirq import protocols, _compat
 from cirq.circuits import AbstractCircuit, Alignment, Circuit
 from cirq.circuits.insert_strategy import InsertStrategy
 from cirq.type_workarounds import NotImplementedType
@@ -51,17 +51,6 @@ class FrozenCircuit(AbstractCircuit, protocols.SerializableByKey):
         base = Circuit(contents, strategy=strategy)
         self._moments = tuple(base.moments)
 
-        # These variables are memoized when first requested.
-        self._num_qubits: Optional[int] = None
-        self._unitary: Optional[Union[np.ndarray, NotImplementedType]] = None
-        self._qid_shape: Optional[Tuple[int, ...]] = None
-        self._all_qubits: Optional[FrozenSet['cirq.Qid']] = None
-        self._all_operations: Optional[Tuple[ops.Operation, ...]] = None
-        self._has_measurements: Optional[bool] = None
-        self._all_measurement_key_objs: Optional[FrozenSet['cirq.MeasurementKey']] = None
-        self._are_all_measurements_terminal: Optional[bool] = None
-        self._control_keys: Optional[FrozenSet['cirq.MeasurementKey']] = None
-
     @property
     def moments(self) -> Sequence['cirq.Moment']:
         return self._moments
@@ -69,63 +58,52 @@ class FrozenCircuit(AbstractCircuit, protocols.SerializableByKey):
     def __hash__(self):
         return hash((self.moments,))
 
-    # Memoized methods for commonly-retrieved properties.
-
+    @_compat.cached_method
     def _num_qubits_(self) -> int:
-        if self._num_qubits is None:
-            self._num_qubits = len(self.all_qubits())
-        return self._num_qubits
+        return len(self.all_qubits())
 
+    @_compat.cached_method
     def _qid_shape_(self) -> Tuple[int, ...]:
-        if self._qid_shape is None:
-            self._qid_shape = super()._qid_shape_()
-        return self._qid_shape
+        return super()._qid_shape_()
 
+    @_compat.cached_method
     def _unitary_(self) -> Union[np.ndarray, NotImplementedType]:
-        if self._unitary is None:
-            self._unitary = super()._unitary_()
-        return self._unitary
+        return super()._unitary_()
 
+    @_compat.cached_method
     def _is_measurement_(self) -> bool:
-        if self._has_measurements is None:
-            self._has_measurements = protocols.is_measurement(self.unfreeze())
-        return self._has_measurements
+        return protocols.is_measurement(self.unfreeze())
 
+    @_compat.cached_method
     def all_qubits(self) -> FrozenSet['cirq.Qid']:
-        if self._all_qubits is None:
-            self._all_qubits = super().all_qubits()
-        return self._all_qubits
+        return super().all_qubits()
+
+    @_compat.cached_property
+    def _all_operations(self) -> Tuple['cirq.Operation', ...]:
+        return tuple(super().all_operations())
 
     def all_operations(self) -> Iterator['cirq.Operation']:
-        if self._all_operations is None:
-            self._all_operations = tuple(super().all_operations())
         return iter(self._all_operations)
 
     def has_measurements(self) -> bool:
-        if self._has_measurements is None:
-            self._has_measurements = super().has_measurements()
-        return self._has_measurements
+        return self._is_measurement_()
 
+    @_compat.cached_method
     def all_measurement_key_objs(self) -> FrozenSet['cirq.MeasurementKey']:
-        if self._all_measurement_key_objs is None:
-            self._all_measurement_key_objs = super().all_measurement_key_objs()
-        return self._all_measurement_key_objs
+        return super().all_measurement_key_objs()
 
     def _measurement_key_objs_(self) -> FrozenSet['cirq.MeasurementKey']:
         return self.all_measurement_key_objs()
 
+    @_compat.cached_method
     def _control_keys_(self) -> FrozenSet['cirq.MeasurementKey']:
-        if self._control_keys is None:
-            self._control_keys = super()._control_keys_()
-        return self._control_keys
+        return super()._control_keys_()
 
+    @_compat.cached_method
     def are_all_measurements_terminal(self) -> bool:
-        if self._are_all_measurements_terminal is None:
-            self._are_all_measurements_terminal = super().are_all_measurements_terminal()
-        return self._are_all_measurements_terminal
+        return super().are_all_measurements_terminal()
 
-    # End of memoized methods.
-
+    @_compat.cached_method
     def all_measurement_key_names(self) -> FrozenSet[str]:
         return frozenset(str(key) for key in self.all_measurement_key_objs())
 

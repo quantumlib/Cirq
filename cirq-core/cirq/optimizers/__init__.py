@@ -36,8 +36,6 @@ from cirq.optimizers.merge_interactions_to_sqrt_iswap import MergeInteractionsTo
 
 from cirq.optimizers.synchronize_terminal_measurements import SynchronizeTerminalMeasurements
 
-from cirq.transformers.stratify import stratified_circuit
-
 from cirq.transformers.analytical_decompositions import (
     compute_cphase_exponents_for_fsim_decomposition,
     decompose_cphase_into_two_fsim,
@@ -123,14 +121,6 @@ _compat.deprecated_submodule(
     new_module_name="cirq.transformers.analytical_decompositions.two_qubit_to_sqrt_iswap",
     old_parent="cirq.optimizers",
     old_child="two_qubit_to_sqrt_iswap",
-    deadline="v0.16",
-    create_attribute=True,
-)
-
-_compat.deprecated_submodule(
-    new_module_name="cirq.transformers.stratify",
-    old_parent="cirq.optimizers",
-    old_child="stratify",
     deadline="v0.16",
     create_attribute=True,
 )
