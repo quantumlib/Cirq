@@ -46,7 +46,6 @@ TestSpec = ModuleJsonTestSpec(
         'NeutralAtomDevice',
         'PauliSumCollector',
         'PauliSumExponential',
-        'PauliTransform',
         'PeriodicValue',
         'PointOptimizationSummary',
         'Points',

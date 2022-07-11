@@ -16,7 +16,7 @@
 
 from cirq.ops.arithmetic_operation import ArithmeticGate
 
-from cirq.ops.clifford_gate import CliffordGate, PauliTransform, SingleQubitCliffordGate
+from cirq.ops.clifford_gate import CliffordGate, SingleQubitCliffordGate
 
 from cirq.ops.dense_pauli_string import (
     BaseDensePauliString,
