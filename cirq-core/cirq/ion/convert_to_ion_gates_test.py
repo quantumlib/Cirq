@@ -96,7 +96,7 @@ def test_convert_to_ion_circuit():
     q0 = cirq.LineQubit(0)
     q1 = cirq.LineQubit(1)
     us = cirq.Duration(nanos=1000)
-    with cirq.testing.assert_deprecated("cirq_aqt.aqt_device.AQTDevice", deadline='v0.16', count=2):
+    with cirq.testing.assert_deprecated("cirq_aqt.aqt_device.AQTDevice", deadline='v0.16'):
         ion_device = cirq.IonDevice(us, us, us, [q0, q1])
     with cirq.testing.assert_deprecated(
         "cirq_aqt.aqt_device.AQTTargetGateset", deadline='v0.16', count=None

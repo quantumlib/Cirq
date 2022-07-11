@@ -145,17 +145,20 @@ class Engine(abstract_engine.AbstractEngine):
 
     This class has methods for creating programs and jobs that execute on
     Quantum Engine:
-        create_program
-        run
-        run_sweep
-        run_batch
+
+    *   create_program
+    *   run
+    *   run_sweep
+    *   run_batch
 
     Another set of methods return information about programs and jobs that
     have been previously created on the Quantum Engine, as well as metadata
     about available processors:
-        get_program
-        list_processors
-        get_processor
+
+    *   get_program
+    *   list_processors
+    *   get_processor
+
     """
 
     def __init__(
@@ -763,7 +766,7 @@ class Engine(abstract_engine.AbstractEngine):
                 determining which processors may be used when sampling.
 
         Returns:
-            A `cirq.Sampler` instance (specifically a `engine_sampler.QuantumEngineSampler`
+            A `cirq.Sampler` instance (specifically a `engine_sampler.ProcessorSampler`
             that will send circuits to the Quantum Computing Service
             when sampled.
         """
@@ -776,7 +779,7 @@ class Engine(abstract_engine.AbstractEngine):
             processor_id: String identifier of which processor should be used to sample.
 
         Returns:
-            A `cirq.Sampler` instance (specifically a `engine_sampler.QuantumEngineSampler`
+            A `cirq.Sampler` instance (specifically a `engine_sampler.ProcessorSampler`
             that will send circuits to the Quantum Computing Service
             when sampled.
 

@@ -17,7 +17,7 @@ from typing import Any, Dict, Generic, Iterator, List, Mapping, Optional, Sequen
 
 import numpy as np
 
-from cirq import _compat, ops, protocols, value
+from cirq import ops, protocols, value
 from cirq.sim.simulation_state import TSimulationState
 from cirq.sim.simulation_state_base import SimulationStateBase
 
@@ -25,24 +25,11 @@ if TYPE_CHECKING:
     import cirq
 
 
-def _fix_deprecated_args(args, kwargs):
-    kwargs['sim_states'] = kwargs['args']
-    del kwargs['args']
-    return args, kwargs
-
-
 class SimulationProductState(
     Generic[TSimulationState], SimulationStateBase[TSimulationState], abc.Mapping
 ):
     """A container for a `Qid`-to-`SimulationState` dictionary."""
 
-    @_compat.deprecated_parameter(
-        deadline='v0.16',
-        fix='Change argument name to `sim_states`',
-        parameter_desc='args',
-        match=lambda args, kwargs: 'args' in kwargs,
-        rewrite=_fix_deprecated_args,
-    )
     def __init__(
         self,
         sim_states: Dict[Optional['cirq.Qid'], TSimulationState],
@@ -69,11 +56,6 @@ class SimulationProductState(
 
     @property
     def sim_states(self) -> Mapping[Optional['cirq.Qid'], TSimulationState]:
-        return self._sim_states
-
-    @property  # type: ignore
-    @_compat.deprecated(deadline='v0.16', fix='Use `sim_states` instead.')
-    def args(self) -> Mapping[Optional['cirq.Qid'], TSimulationState]:
         return self._sim_states
 
     @property

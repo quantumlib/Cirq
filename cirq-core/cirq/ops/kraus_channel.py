@@ -66,7 +66,7 @@ class KrausChannel(raw_types.Gate):
             return NotImplemented
         if self._key != other._key:
             return False
-        return np.allclose(self._kraus_ops, other._kraus_ops)
+        return np.allclose(np.asarray(self._kraus_ops), np.asarray(other._kraus_ops))
 
     def num_qubits(self) -> int:
         return self._num_qubits

@@ -140,25 +140,3 @@ class TwoQubitDiagonalGate(raw_types.Gate):
 
     def _json_dict_(self) -> Dict[str, Any]:
         return protocols.obj_to_dict_helper(self, attribute_names=["diag_angles_radians"])
-
-    def _quil_(
-        self, qubits: Tuple['cirq.Qid', ...], formatter: 'cirq.QuilFormatter'
-    ) -> Optional[str]:
-        if np.count_nonzero(self._diag_angles_radians) == 1:
-            if self._diag_angles_radians[0] != 0:
-                return formatter.format(
-                    'CPHASE00({0}) {1} {2}\n', self._diag_angles_radians[0], qubits[0], qubits[1]
-                )
-            elif self._diag_angles_radians[1] != 0:
-                return formatter.format(
-                    'CPHASE01({0}) {1} {2}\n', self._diag_angles_radians[1], qubits[0], qubits[1]
-                )
-            elif self._diag_angles_radians[2] != 0:
-                return formatter.format(
-                    'CPHASE10({0}) {1} {2}\n', self._diag_angles_radians[2], qubits[0], qubits[1]
-                )
-            elif self._diag_angles_radians[3] != 0:
-                return formatter.format(
-                    'CPHASE({0}) {1} {2}\n', self._diag_angles_radians[3], qubits[0], qubits[1]
-                )
-        return None
