@@ -287,9 +287,9 @@ class Sampler(metaclass=value.ABCMetaImplementAnyOneOf):
         params_list: Optional[Sequence['cirq.Sweepable']] = None,
         repetitions: Union[int, Sequence[int]] = 1,
     ) -> Sequence[Sequence['cirq.Result']]:
-        """Runs the supplied circuits.
+        """Runs the supplied circuits asynchronously.
 
-        This is an asynchronous version of `run_batch`; see full docs there.
+        See docs for `cirq.Sampler.run_batch`.
         """
         params_list, repetitions = self._normalize_batch_args(programs, params_list, repetitions)
         return [
