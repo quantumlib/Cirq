@@ -30,7 +30,7 @@ def assert_optimizes(optimized: cirq.AbstractCircuit, expected: cirq.AbstractCir
     cirq.testing.assert_same_circuits(optimized, expected)
 
 
-def test_merge_single_qubit_gates_into_phased_x_z():
+def test_merge_single_qubit_gates_to_phased_x_and_z():
     a, b = cirq.LineQubit.range(2)
     c = cirq.Circuit(
         cirq.X(a),
@@ -54,7 +54,7 @@ def test_merge_single_qubit_gates_into_phased_x_z():
     )
 
 
-def test_merge_single_qubit_gates_into_phased_x_z_deep():
+def test_merge_single_qubit_gates_to_phased_x_and_z_deep():
     a = cirq.NamedQubit("a")
     c_nested = cirq.FrozenCircuit(cirq.H(a), cirq.Z(a), cirq.H(a).with_tags("ignore"))
     c_nested_merged = cirq.FrozenCircuit(
@@ -85,7 +85,7 @@ def _phxz(a: float, x: float, z: float):
     return cirq.PhasedXZGate(axis_phase_exponent=a, x_exponent=x, z_exponent=z)
 
 
-def test_merge_single_qubit_gates_into_phxz():
+def test_merge_single_qubit_gates_to_phxz():
     a, b = cirq.LineQubit.range(2)
     c = cirq.Circuit(
         cirq.X(a),
@@ -109,7 +109,7 @@ def test_merge_single_qubit_gates_into_phxz():
     )
 
 
-def test_merge_single_qubit_gates_into_phxz_deep():
+def test_merge_single_qubit_gates_to_phxz_deep():
     a = cirq.NamedQubit("a")
     c_nested = cirq.FrozenCircuit(cirq.H(a), cirq.Z(a), cirq.H(a).with_tags("ignore"))
     c_nested_merged = cirq.FrozenCircuit(_phxz(-0.5, 0.5, 0).on(a), cirq.H(a).with_tags("ignore"))
@@ -217,5 +217,5 @@ def test_merge_single_qubit_moments_to_phxz_deep():
     context = cirq.TransformerContext(tags_to_ignore=["ignore"], deep=True)
     c_new = cirq.merge_single_qubit_moments_to_phxz(c_orig, context=context)
     cirq.testing.assert_allclose_up_to_global_phase(
-        c_new.unitary(), c_expected.unitary(), atol=1e-6
+        c_new.unitary(), c_expected.unitary(), atol=1e-7
     )

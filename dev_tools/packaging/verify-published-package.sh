@@ -86,7 +86,7 @@ for PYTHON_VERSION in python3; do
 
     # Check that code runs without dev deps.
     echo Checking that code executes
-    "${tmp_dir}/${PYTHON_VERSION}/bin/python" -c "import cirq_google; print(cirq_google.Foxtail)"
+    "${tmp_dir}/${PYTHON_VERSION}/bin/python" -c "import cirq_google; print(cirq_google.Sycamore)"
     "${tmp_dir}/${PYTHON_VERSION}/bin/python" -c "import cirq; print(cirq.Circuit(cirq.CZ(*cirq.LineQubit.range(2))))"
 
     # Install pytest + dev deps.

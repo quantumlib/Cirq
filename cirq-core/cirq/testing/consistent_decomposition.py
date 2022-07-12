@@ -43,10 +43,10 @@ def assert_decompose_is_consistent_with_unitary(val: Any, ignoring_global_phase:
     actual = circuits.Circuit(dec).unitary(qubit_order=qubits)
 
     if ignoring_global_phase:
-        lin_alg_utils.assert_allclose_up_to_global_phase(actual, expected, atol=1e-6)
+        lin_alg_utils.assert_allclose_up_to_global_phase(actual, expected, atol=1e-8)
     else:
         # coverage: ignore
-        np.testing.assert_allclose(actual, expected, atol=1e-6)
+        np.testing.assert_allclose(actual, expected, atol=1e-8)
 
 
 def _known_gate_with_no_decomposition(val: Any):

@@ -198,7 +198,7 @@ class SimulatedLocalProcessor(AbstractLocalProcessor):
         """
         return self._programs[program_id]
 
-    def run_batch(
+    async def run_batch_async(
         self,
         programs: Sequence[cirq.AbstractCircuit],
         program_id: Optional[str] = None,
@@ -234,54 +234,7 @@ class SimulatedLocalProcessor(AbstractLocalProcessor):
         self._programs[program_id].add_job(job_id, job)
         return job
 
-    def run(
-        self,
-        program: cirq.Circuit,
-        program_id: Optional[str] = None,
-        job_id: Optional[str] = None,
-        param_resolver: Optional[cirq.ParamResolver] = None,
-        repetitions: int = 1,
-        program_description: Optional[str] = None,
-        program_labels: Optional[Dict[str, str]] = None,
-        job_description: Optional[str] = None,
-        job_labels: Optional[Dict[str, str]] = None,
-    ) -> 'cg.EngineResult':
-        """Runs the supplied Circuit on this processor.
-
-        Args:
-            program: The Circuit to execute. If a circuit is
-                provided, a moment by moment schedule will be used.
-            program_id: A user-provided identifier for the program. This must
-                be unique within the Google Cloud project being used. If this
-                parameter is not provided, a random id of the format
-                'prog-################YYMMDD' will be generated, where # is
-                alphanumeric and YYMMDD is the current year, month, and day.
-            job_id: Job identifier to use. If this is not provided, a random id
-                of the format 'job-################YYMMDD' will be generated,
-                where # is alphanumeric and YYMMDD is the current year, month,
-                and day.
-            param_resolver: Parameters to run with the program.
-            repetitions: The number of repetitions to simulate.
-            program_description: An optional description to set on the program.
-            program_labels: Optional set of labels to set on the program.
-            job_description: An optional description to set on the job.
-            job_labels: Optional set of labels to set on the job.
-        Returns:
-            A single Result for this run.
-        """
-        return self.run_sweep(
-            program=program,
-            program_id=program_id,
-            job_id=job_id,
-            params=[param_resolver or cirq.ParamResolver({})],
-            repetitions=repetitions,
-            program_description=program_description,
-            program_labels=program_labels,
-            job_description=job_description,
-            job_labels=job_labels,
-        ).results()[0]
-
-    def run_sweep(
+    async def run_sweep_async(
         self,
         program: cirq.AbstractCircuit,
         program_id: Optional[str] = None,
@@ -317,5 +270,5 @@ class SimulatedLocalProcessor(AbstractLocalProcessor):
         self._programs[program_id].add_job(job_id, job)
         return job
 
-    def run_calibration(self, *args, **kwargs):
+    async def run_calibration_async(self, *args, **kwargs):
         raise NotImplementedError

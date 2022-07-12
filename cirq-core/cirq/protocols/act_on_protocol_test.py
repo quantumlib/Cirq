@@ -96,9 +96,3 @@ def test_qubits_should_be_defined_for_operations():
     state = DummySimulationState()
     with pytest.raises(ValueError, match='Calls to act_on should'):
         cirq.act_on(cirq.KrausChannel([np.array([[1, 0], [0, 0]])]), state, qubits=None)
-
-
-def test_args_deprecated():
-    args = DummySimulationState(fallback_result=True)
-    with cirq.testing.assert_deprecated(deadline='v0.16'):
-        cirq.act_on(action=op, args=args)  # pylint: disable=no-value-for-parameter

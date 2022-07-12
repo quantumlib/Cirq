@@ -17,7 +17,6 @@ from typing import Any, FrozenSet, TYPE_CHECKING, Union
 
 from typing_extensions import Protocol
 
-from cirq import _compat
 from cirq._doc import doc_private
 from cirq.protocols import measurement_key_protocol
 from cirq.type_workarounds import NotImplementedType
@@ -58,12 +57,6 @@ def control_keys(val: Any) -> FrozenSet['cirq.MeasurementKey']:
     getter = getattr(val, '_control_keys_', None)
     result = NotImplemented if getter is None else getter()
     if result is not NotImplemented and result is not None:
-        if not isinstance(result, FrozenSet):
-            _compat._warn_or_error(
-                f'The _control_keys_ implementation of {type(val)} must return a'
-                f' frozenset instead of {type(result)} by v0.16.'
-            )
-            return frozenset(result)
         return result
 
     return frozenset()
