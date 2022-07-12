@@ -22,7 +22,7 @@ noise models to produce a single noise model which replicates device noise.
 import abc
 from typing import Iterable, Sequence, TYPE_CHECKING, List
 
-from cirq import _compat, _import, ops, protocols, devices
+from cirq import _import, ops, protocols, devices
 from cirq.devices.noise_utils import PHYSICAL_GATE_TAG
 
 circuits = _import.LazyLoader("circuits", globals(), "cirq.circuits.circuit")
@@ -65,10 +65,6 @@ class NoiseModelFromNoiseProperties(devices.NoiseModel):
             True if `op` is virtual.
         """
         return False
-
-    @_compat.deprecated(deadline='v0.16', fix='Use is_virtual instead.')
-    def virtual_predicate(self, op: 'cirq.Operation') -> bool:
-        return self.is_virtual(op)
 
     def noisy_moments(
         self, moments: Iterable['cirq.Moment'], system_qubits: Sequence['cirq.Qid']

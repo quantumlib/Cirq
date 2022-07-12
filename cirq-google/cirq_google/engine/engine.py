@@ -145,17 +145,20 @@ class Engine(abstract_engine.AbstractEngine):
 
     This class has methods for creating programs and jobs that execute on
     Quantum Engine:
-        create_program
-        run
-        run_sweep
-        run_batch
+
+    *   create_program
+    *   run
+    *   run_sweep
+    *   run_batch
 
     Another set of methods return information about programs and jobs that
     have been previously created on the Quantum Engine, as well as metadata
     about available processors:
-        get_program
-        list_processors
-        get_processor
+
+    *   get_program
+    *   list_processors
+    *   get_processor
+
     """
 
     def __init__(
