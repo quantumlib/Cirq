@@ -14,7 +14,7 @@
 """A helper for jobs that have been created on the Quantum Engine."""
 import datetime
 
-from typing import Dict, Iterator, List, Optional, overload, Sequence, Tuple, TYPE_CHECKING
+from typing import Dict, List, Optional, Sequence, Tuple, TYPE_CHECKING
 
 import duet
 from google.protobuf import any_pb2
@@ -274,8 +274,6 @@ class EngineJob(abstract_job.AbstractJob):
             raise ValueError('batched_results called for a non-batch result.')
         return self._batched_results
 
-    batched_results = duet.sync(batched_results_async)
-
     async def results_async(self) -> Sequence[EngineResult]:
         """Returns the job results, blocking until the job is complete."""
         import cirq_google.engine.engine as engine_base
@@ -302,8 +300,6 @@ class EngineJob(abstract_job.AbstractJob):
             else:
                 raise ValueError(f'invalid result proto version: {result_type}')
         return self._results
-
-    results = duet.sync(results_async)
 
     async def _await_result_async(self) -> quantum.QuantumResult:
         async with duet.timeout_scope(self.context.timeout):
@@ -344,8 +340,6 @@ class EngineJob(abstract_job.AbstractJob):
             self._calibration_results = cal_results
         return self._calibration_results
 
-    calibration_results = duet.sync(calibration_results_async)
-
     def _get_job_results_v1(self, result: v1.program_pb2.Result) -> Sequence[EngineResult]:
         # coverage: ignore
         job_id = self.id()
@@ -385,26 +379,6 @@ class EngineJob(abstract_job.AbstractJob):
         self, results: v2.batch_pb2.BatchResult
     ) -> Sequence[Sequence[EngineResult]]:
         return [self._get_job_results_v2(result) for result in results.results]
-
-    def __iter__(self) -> Iterator[cirq.Result]:
-        return iter(self.results())
-
-    # pylint: disable=function-redefined
-    @overload
-    def __getitem__(self, item: int) -> cirq.Result:
-        pass
-
-    @overload
-    def __getitem__(self, item: slice) -> Sequence[cirq.Result]:
-        pass
-
-    def __getitem__(self, item):
-        return self.results()[item]
-
-    # pylint: enable=function-redefined
-
-    def __len__(self) -> int:
-        return len(self.results())
 
     def __str__(self) -> str:
         return (

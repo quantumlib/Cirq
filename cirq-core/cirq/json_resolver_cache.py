@@ -153,6 +153,8 @@ def _class_resolver_dictionary() -> Dict[str, ObjectFactory]:
         'LineQubit': cirq.LineQubit,
         'LineQid': cirq.LineQid,
         'LineTopology': cirq.LineTopology,
+        'Linspace': cirq.Linspace,
+        'ListSweep': cirq.ListSweep,
         'MatrixGate': cirq.MatrixGate,
         'MixedUnitaryChannel': cirq.MixedUnitaryChannel,
         'MeasurementKey': cirq.MeasurementKey,
@@ -187,6 +189,8 @@ def _class_resolver_dictionary() -> Dict[str, ObjectFactory]:
         'PhasedISwapPowGate': cirq.PhasedISwapPowGate,
         'PhasedXPowGate': cirq.PhasedXPowGate,
         'PhasedXZGate': cirq.PhasedXZGate,
+        'Points': cirq.Points,
+        'Product': cirq.Product,
         'ProductState': cirq.ProductState,
         'ProductOfSums': cirq.ProductOfSums,
         'ProjectorString': cirq.ProjectorString,
@@ -219,6 +223,7 @@ def _class_resolver_dictionary() -> Dict[str, ObjectFactory]:
         'TwoQubitDiagonalGate': cirq.TwoQubitDiagonalGate,
         'TwoQubitGateTabulation': cirq.TwoQubitGateTabulation,
         '_UnconstrainedDevice': cirq.devices.unconstrained_device._UnconstrainedDevice,
+        '_Unit': cirq.study.sweeps._Unit,
         'VarianceStoppingCriteria': cirq.work.VarianceStoppingCriteria,
         'VirtualTag': cirq.VirtualTag,
         'WaitGate': cirq.WaitGate,
@@ -233,6 +238,7 @@ def _class_resolver_dictionary() -> Dict[str, ObjectFactory]:
         'YPowGate': cirq.YPowGate,
         'YYPowGate': cirq.YYPowGate,
         '_ZEigenState': cirq.value.product_state._ZEigenState,  # type: ignore
+        'Zip': cirq.Zip,
         'ZPowGate': cirq.ZPowGate,
         'ZZPowGate': cirq.ZZPowGate,
         # Old types, only supported for backwards-compatibility
