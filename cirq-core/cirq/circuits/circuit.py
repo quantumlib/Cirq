@@ -57,7 +57,6 @@ from cirq.circuits._bucket_priority_queue import BucketPriorityQueue
 from cirq.circuits.circuit_operation import CircuitOperation
 from cirq.circuits.insert_strategy import InsertStrategy
 from cirq.circuits.qasm_output import QasmOutput
-from cirq.circuits.quil_output import QuilOutput
 from cirq.circuits.text_diagram_drawer import TextDiagramDrawer
 from cirq.circuits.moment import Moment
 from cirq.protocols import circuit_diagram_info_protocol
@@ -93,13 +92,16 @@ _INT_TYPE = Union[int, np.integer]
 
 
 class Alignment(enum.Enum):
-    """Alignment option for combining/zipping two circuits together."""
+    """Alignment option for combining/zipping two circuits together.
 
-    # Stop when left ends are lined up.
+    Args:
+        LEFT: Stop when left ends are lined up.
+        RIGHT: Stop when right ends are lined up.
+        FIRST: Stop the first time left ends are lined up or right ends are lined up.
+    """
+
     LEFT = 1
-    # Stop when right ends are lined up.
     RIGHT = 2
-    # Stop the first time left ends are lined up or right ends are lined up.
     FIRST = 3
 
     def __repr__(self) -> str:
@@ -1074,26 +1076,12 @@ class AbstractCircuit(abc.ABC):
             circuit_superoperator = moment_superoperator @ circuit_superoperator
         return circuit_superoperator
 
-    @_compat.deprecated_parameter(
-        deadline='v0.16',
-        fix='Inject identity operators to include untouched qubits.',
-        parameter_desc='qubits_that_should_be_present',
-        match=lambda args, kwargs: 'qubits_that_should_be_present' in kwargs,
-    )
-    @_compat.deprecated_parameter(
-        deadline='v0.16',
-        fix='Only use keyword arguments.',
-        parameter_desc='positional args',
-        match=lambda args, kwargs: len(args) > 1,
-    )
     def final_state_vector(
         self,
-        # TODO(v0.16): Force kwargs and match order found in:
-        # cirq-core/cirq/sim/mux.py:final_state_vector
+        *,
         initial_state: 'cirq.STATE_VECTOR_LIKE' = 0,
         qubit_order: 'cirq.QubitOrderOrList' = ops.QubitOrder.DEFAULT,
-        qubits_that_should_be_present: Iterable['cirq.Qid'] = (),
-        ignore_terminal_measurements: Optional[bool] = None,
+        ignore_terminal_measurements: bool = False,
         dtype: Type[np.complexfloating] = np.complex128,
         param_resolver: 'cirq.ParamResolverOrSimilarType' = None,
         seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None,
@@ -1117,7 +1105,7 @@ class AbstractCircuit(abc.ABC):
                 regardless when generating the matrix.
             ignore_terminal_measurements: When set, measurements at the end of
                 the circuit are ignored instead of causing the method to
-                fail.
+                fail. Defaults to False.
             dtype: The `numpy.dtype` used by the simulation. Typically one of
                 `numpy.complex64` or `numpy.complex128`.
             param_resolver: Parameters to run with the program.
@@ -1135,20 +1123,10 @@ class AbstractCircuit(abc.ABC):
             ValueError: If the program doesn't have a well defined final state
                 because it has non-unitary gates.
         """
-        if ignore_terminal_measurements is None:
-            if self.has_measurements():
-                _compat._warn_or_error(
-                    '`ignore_terminal_measurements` will default to False in v0.16. '
-                    'To drop terminal measurements, please explicitly include '
-                    '`ignore_terminal_measurements=True` when calling this method.'
-                )
-            ignore_terminal_measurements = True
-
         from cirq.sim.mux import final_state_vector
 
-        program = Circuit(cirq.I(q) for q in qubits_that_should_be_present) + self
         return final_state_vector(
-            program,
+            self,
             initial_state=initial_state,
             param_resolver=param_resolver,
             qubit_order=qubit_order,
@@ -1318,12 +1296,6 @@ class AbstractCircuit(abc.ABC):
             version='2.0',
         )
 
-    def _to_quil_output(
-        self, qubit_order: 'cirq.QubitOrderOrList' = ops.QubitOrder.DEFAULT
-    ) -> 'cirq.QuilOutput':
-        qubits = ops.QubitOrder.as_qubit_order(qubit_order).order_for(self.all_qubits())
-        return QuilOutput(operations=self.all_operations(), qubits=qubits)
-
     def to_qasm(
         self,
         header: Optional[str] = None,
@@ -1341,9 +1313,6 @@ class AbstractCircuit(abc.ABC):
         """
 
         return str(self._to_qasm_output(header, precision, qubit_order))
-
-    def to_quil(self, qubit_order: 'cirq.QubitOrderOrList' = ops.QubitOrder.DEFAULT) -> str:
-        return str(self._to_quil_output(qubit_order))
 
     def save_qasm(
         self,
@@ -1740,7 +1709,95 @@ class Circuit(AbstractCircuit):
         """
         self._moments: List['cirq.Moment'] = []
         with _compat.block_overlapping_deprecation('.*'):
-            self.append(contents, strategy=strategy)
+            if strategy == InsertStrategy.EARLIEST:
+                self._load_contents_with_earliest_strategy(contents)
+            else:
+                self.append(contents, strategy=strategy)
+
+    def _load_contents_with_earliest_strategy(self, contents: 'cirq.OP_TREE'):
+        """Optimized algorithm to load contents quickly.
+
+        The default algorithm appends operations one-at-a-time, letting them
+        fall back until they encounter a moment they cannot commute with. This
+        is slow because it requires re-checking for conflicts at each moment.
+
+        Here, we instead keep track of the greatest moment that contains each
+        qubit, measurement key, and control key, and append the operation to
+        the moment after the maximum of these. This avoids having to check each
+        moment.
+
+        Args:
+            contents: The initial list of moments and operations defining the
+                circuit. You can also pass in operations, lists of operations,
+                or generally anything meeting the `cirq.OP_TREE` contract.
+                Non-moment entries will be inserted according to the EARLIEST
+                insertion strategy.
+        """
+        # These are dicts from the qubit/key to the greatest moment index that has it. It is safe
+        # to default to `-1`, as that is interpreted as meaning the zeroth index onward does not
+        # have this value.
+        qubit_indexes: Dict['cirq.Qid', int] = defaultdict(lambda: -1)
+        mkey_indexes: Dict['cirq.MeasurementKey', int] = defaultdict(lambda: -1)
+        ckey_indexes: Dict['cirq.MeasurementKey', int] = defaultdict(lambda: -1)
+
+        # We also maintain the dict from moment index to moments/ops that go into it, for use when
+        # building the actual moments at the end.
+        op_lists_by_index: Dict[int, List['cirq.Operation']] = defaultdict(list)
+        moments_by_index: Dict[int, 'cirq.Moment'] = {}
+
+        # For keeping track of length of the circuit thus far.
+        length = 0
+
+        # "mop" means current moment-or-operation
+        for mop in ops.flatten_to_ops_or_moments(contents):
+            mop_qubits = mop.qubits
+            mop_mkeys = protocols.measurement_key_objs(mop)
+            mop_ckeys = protocols.control_keys(mop)
+
+            # Both branches define `i`, the moment index at which to place the mop.
+            if isinstance(mop, Moment):
+                # We always append moment to the end, to be consistent with `self.append`
+                i = length
+                moments_by_index[i] = mop
+            else:
+                # Initially we define `i` as the greatest moment index that has a conflict. `-1` is
+                # the initial conflict, and we search for larger ones. Once we get the largest one,
+                # we increment i by 1 to set the placement index.
+                i = -1
+
+                # Look for the maximum conflict; i.e. a moment that has a qubit the same as one of
+                # this op's qubits, that has a measurement or control key the same as one of this
+                # op's measurement keys, or that has a measurement key the same as one of this op's
+                # control keys. (Control keys alone can commute past each other). The `ifs` are
+                # logically unnecessary but seem to make this slightly faster.
+                if mop_qubits:
+                    i = max(i, *[qubit_indexes[q] for q in mop_qubits])
+                if mop_mkeys:
+                    i = max(i, *[mkey_indexes[k] for k in mop_mkeys])
+                    i = max(i, *[ckey_indexes[k] for k in mop_mkeys])
+                if mop_ckeys:
+                    i = max(i, *[mkey_indexes[k] for k in mop_ckeys])
+                i += 1
+                op_lists_by_index[i].append(mop)
+
+            # Update our dicts with data from the latest mop placement. Note `i` will always be
+            # greater than the existing value for all of these, by construction, so there is no
+            # need to do a `max(i, existing)`.
+            for q in mop_qubits:
+                qubit_indexes[q] = i
+            for k in mop_mkeys:
+                mkey_indexes[k] = i
+            for k in mop_ckeys:
+                ckey_indexes[k] = i
+            length = max(length, i + 1)
+
+        # Finally, once everything is placed, we can construct and append the actual moments for
+        # each index.
+        for i in range(length):
+            if i in moments_by_index:
+                self._moments.append(moments_by_index[i].with_operations(op_lists_by_index[i]))
+            else:
+                self._moments.append(Moment(op_lists_by_index[i]))
 
     def __copy__(self) -> 'cirq.Circuit':
         return self.copy()
@@ -1919,11 +1976,11 @@ class Circuit(AbstractCircuit):
             moment = self._moments[k]
             if moment.operates_on(op_qubits):
                 return last_available
-            moment_measurement_keys = protocols.measurement_key_objs(moment)
+            moment_measurement_keys = moment._measurement_key_objs_()
             if (
                 not op_measurement_keys.isdisjoint(moment_measurement_keys)
                 or not op_control_keys.isdisjoint(moment_measurement_keys)
-                or not protocols.control_keys(moment).isdisjoint(op_measurement_keys)
+                or not moment._control_keys_().isdisjoint(op_measurement_keys)
             ):
                 return last_available
             if self._can_add_op_at(k, op):
@@ -2004,14 +2061,9 @@ class Circuit(AbstractCircuit):
         Raises:
             ValueError: Bad insertion strategy.
         """
-        moments_and_operations = list(
-            ops.flatten_to_ops_or_moments(
-                ops.transform_op_tree(moment_or_operation_tree, preserve_moments=True)
-            )
-        )
         # limit index to 0..len(self._moments), also deal with indices smaller 0
         k = max(min(index if index >= 0 else len(self._moments) + index, len(self._moments)), 0)
-        for moment_or_op in moments_and_operations:
+        for moment_or_op in ops.flatten_to_ops_or_moments(moment_or_operation_tree):
             if isinstance(moment_or_op, Moment):
                 self._moments.insert(k, moment_or_op)
                 k += 1

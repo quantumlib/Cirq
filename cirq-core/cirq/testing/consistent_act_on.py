@@ -76,7 +76,7 @@ def assert_all_implemented_act_on_effects_match_unitary(
         assert_tableau_implemented: asserts that protocols.act_on() works with
           val and CliffordTableauSimulationState inputs.
         assert_ch_form_implemented: asserts that protocols.act_on() works with
-          val and ActOnStabilizerStateChFormArgs inputs.
+          val and StabilizerChFormSimulationState inputs.
     """
 
     # pylint: disable=unused-variable
