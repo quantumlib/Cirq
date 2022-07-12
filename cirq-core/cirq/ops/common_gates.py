@@ -1138,7 +1138,7 @@ class CZPowGate(gate_features.InterchangeableQubitsGate, eigen_gate.EigenGate):
         )
 
     def _qasm_(self, args: 'cirq.QasmArgs', qubits: Tuple['cirq.Qid', ...]) -> Optional[str]:
-        if self._exponent != 1:
+        if self._exponent % 2 != 1:
             return None  # Don't have an equivalent gate in QASM
         args.validate_version('2.0')
         return args.format('cz {0},{1};\n', qubits[0], qubits[1])
@@ -1330,7 +1330,7 @@ class CXPowGate(eigen_gate.EigenGate):
         return result
 
     def _qasm_(self, args: 'cirq.QasmArgs', qubits: Tuple['cirq.Qid', ...]) -> Optional[str]:
-        if self._exponent != 1:
+        if self._exponent % 2 != 1:
             return None  # Don't have an equivalent gate in QASM
         args.validate_version('2.0')
         return args.format('cx {0},{1};\n', qubits[0], qubits[1])

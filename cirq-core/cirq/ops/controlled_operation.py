@@ -207,7 +207,7 @@ class ControlledOperation(raw_types.Operation):
             gate = self.sub_operation.gate
             if (
                 isinstance(gate, eigen_gate.EigenGate)
-                and gate.exponent == 1
+                and gate.exponent % 2 == 1
                 and gate.global_shift == 0
             ):
                 instr = None

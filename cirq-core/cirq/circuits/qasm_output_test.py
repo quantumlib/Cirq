@@ -298,12 +298,17 @@ def _all_operations(q0, q1, q2, q3, q4, include_measurements=True):
         cirq.Rz(rads=np.pi / 2)(q0),
         cirq.Rz(rads=np.pi / 4)(q0),
         cirq.CZ(q0, q1),
+        cirq.CZ(q0, q1) ** -1,
         cirq.CZ(q0, q1) ** 0.25,  # Requires 2-qubit decomposition
         cirq.CNOT(q0, q1),
+        cirq.CNOT(q0, q1) ** -1,
         cirq.CNOT(q0, q1) ** 0.5,  # Requires 2-qubit decomposition
         cirq.ControlledGate(cirq.Y)(q0, q1),
+        cirq.ControlledGate(cirq.Y)(q0, q1) ** -1,
         cirq.ControlledGate(cirq.H)(q0, q1),
+        cirq.ControlledGate(cirq.H)(q0, q1) ** -1,
         cirq.SWAP(q0, q1),
+        cirq.SWAP(q0, q1) ** -1,
         cirq.SWAP(q0, q1) ** 0.75,  # Requires 2-qubit decomposition
         cirq.CCZ(q0, q1, q2),
         cirq.CCX(q0, q1, q2),
@@ -404,6 +409,7 @@ rz(pi*1.0) q[0];
 rz(pi*0.5) q[0];
 rz(pi*0.25) q[0];
 cz q[0],q[1];
+cz q[0],q[1];
 
 // Gate: CZ**0.25
 u3(pi*0.5,pi*1.0,pi*0.75) q[0];
@@ -419,6 +425,7 @@ cx q[0],q[1];
 u3(pi*0.5,pi*0.375,0) q[0];
 u3(pi*0.5,pi*0.875,0) q[1];
 
+cx q[0],q[1];
 cx q[0],q[1];
 
 // Gate: CNOT**0.5
@@ -438,7 +445,10 @@ u3(pi*0.5,pi*0.5,pi*1.0) q[1];
 ry(pi*0.5) q[1];
 
 cy q[0],q[1];
+cy q[0],q[1];
 ch q[0],q[1];
+ch q[0],q[1];
+swap q[0],q[1];
 swap q[0],q[1];
 
 // Gate: SWAP**0.75
