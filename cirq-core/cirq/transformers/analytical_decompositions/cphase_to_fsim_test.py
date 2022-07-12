@@ -21,15 +21,6 @@ import sympy
 
 import cirq
 
-ALLOW_DEPRECATION_IN_TEST = 'ALLOW_DEPRECATION_IN_TEST'
-
-
-def test_deprecated_submodule():
-    with cirq.testing.assert_deprecated(
-        "Use cirq.transformers.analytical_decompositions.cphase_to_fsim instead", deadline="v0.16"
-    ):
-        _ = cirq.optimizers.cphase_to_fsim.decompose_cphase_into_two_fsim
-
 
 def test_symbols():
     with pytest.raises(ValueError, match='Symbolic arguments'):
