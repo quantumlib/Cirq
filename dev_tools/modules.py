@@ -183,7 +183,7 @@ def _parse_module(folder: Path) -> Dict[str, Any]:
 
     orig_setup = setuptools.setup
     cwd = os.getcwd()
-    sys.path.append(cwd)
+    sys.path.insert(0, cwd)
 
     def setup(**kwargs):
         setup_args.update(kwargs)
