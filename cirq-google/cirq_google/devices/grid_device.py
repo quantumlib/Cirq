@@ -38,7 +38,7 @@ MEASUREMENT_GATE_FAMILY = cirq.GateFamily(cirq.MeasurementGate)
 WAIT_GATE_FAMILY = cirq.GateFamily(cirq.WaitGate)
 
 # Families of gates which can be applied to any subset of valid qubits.
-_SUBSET_PERMUTATION_GATE_FAMILIES = [MEASUREMENT_GATE_FAMILY, WAIT_GATE_FAMILY]
+_VARIADIC_GATE_FAMILIES = [MEASUREMENT_GATE_FAMILY, WAIT_GATE_FAMILY]
 
 
 def _validate_device_specification(proto: v2.device_pb2.DeviceSpecification) -> None:
@@ -341,7 +341,7 @@ class GridDevice(cirq.Device):
 
         if (
             len(operation.qubits) == 2
-            and not any(operation in gf for gf in _SUBSET_PERMUTATION_GATE_FAMILIES)
+            and not any(operation in gf for gf in _VARIADIC_GATE_FAMILIES)
             and frozenset(operation.qubits) not in self._metadata.qubit_pairs
         ):
             raise ValueError(f'Qubit pair is not valid on device: {operation.qubits!r}.')

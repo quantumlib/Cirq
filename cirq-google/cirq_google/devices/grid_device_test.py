@@ -253,7 +253,7 @@ def test_grid_device_validate_operations_positive():
     device_info, spec = _create_device_spec_with_horizontal_couplings()
     device = cirq_google.GridDevice.from_proto(spec)
     # Gates that can be applied to any subset of valid qubits
-    subset_permutation_gates = [cirq.measure, cirq.WaitGate(cirq.Duration(nanos=1), num_qubits=2)]
+    variadic_gates = [cirq.measure, cirq.WaitGate(cirq.Duration(nanos=1), num_qubits=2)]
 
     for q in device_info.grid_qubits:
         device.validate_operation(cirq.X(q))
@@ -264,7 +264,7 @@ def test_grid_device_validate_operations_positive():
         device.validate_operation(
             cirq.CZ(device_info.grid_qubits[2 * i], device_info.grid_qubits[2 * i + 1])
         )
-        for gate in subset_permutation_gates:
+        for gate in variadic_gates:
             device.validate_operation(
                 gate(device_info.grid_qubits[2 * i], device_info.grid_qubits[2 * i + 1])
             )
@@ -277,7 +277,7 @@ def test_grid_device_validate_operations_positive():
         lambda num_qubits: cirq.WaitGate(cirq.Duration(nanos=1), num_qubits=num_qubits),
     ],
 )
-def test_grid_device_validate_operations_subset_permutation_gates_positive(gate_func):
+def test_grid_device_validate_operations_variadic_gates_positive(gate_func):
     device_info, spec = _create_device_spec_with_horizontal_couplings()
     device = cirq_google.GridDevice.from_proto(spec)
 
@@ -291,7 +291,7 @@ def test_grid_device_validate_operations_subset_permutation_gates_positive(gate_
             gate_func(2)(device_info.grid_qubits[2 * i], device_info.grid_qubits[2 * i + 1])
         )
 
-    # Subset permutation gates across vertical qubit pairs (uncoupled pairs) should succeed.
+    # Variadic gates across vertical qubit pairs (uncoupled pairs) should succeed.
     for i in range(GRID_HEIGHT - 1):
         device.validate_operation(
             gate_func(2)(device_info.grid_qubits[2 * i], device_info.grid_qubits[2 * (i + 1)])
