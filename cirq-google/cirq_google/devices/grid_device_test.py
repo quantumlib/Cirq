@@ -22,7 +22,7 @@ from google.protobuf import text_format
 import cirq
 import cirq_google
 from cirq_google.api import v2
-from cirq_google.devices import grid_device, known_devices
+from cirq_google.devices import grid_device
 
 
 GRID_HEIGHT = 5
@@ -415,92 +415,6 @@ def test_to_proto_invalid_input(error_match, qubits, qubit_pairs, gateset, gate_
         grid_device.create_device_specification_proto(
             qubits=qubits, pairs=qubit_pairs, gateset=gateset, gate_durations=gate_durations
         )
-
-
-def test_to_proto_backward_compatibility():
-    # Deprecations: cirq_google.SerializableGateSet and
-    # cirq_google.device.known_devices.create_device_proto_for_qubits()
-    with cirq.testing.assert_deprecated(
-        'SerializableGateSet',
-        'create_device_specification_proto()` can be used',
-        deadline='v0.16',
-        count=None,
-    ):
-        device_info, _ = _create_device_spec_with_horizontal_couplings()
-
-        # The set of gates in gate_durations are consistent with what's generated in
-        # _create_device_spec_with_horizontal_couplings()
-        base_duration = cirq.Duration(picos=1_000)
-        gate_durations = {
-            cirq.GateFamily(cirq_google.SYC): base_duration * 0,
-            cirq.GateFamily(cirq.SQRT_ISWAP): base_duration * 1,
-            cirq.GateFamily(cirq.SQRT_ISWAP_INV): base_duration * 2,
-            cirq.GateFamily(cirq.CZ): base_duration * 3,
-            cirq.GateFamily(cirq.ops.phased_x_z_gate.PhasedXZGate): base_duration * 4,
-            cirq.GateFamily(
-                cirq.ops.common_gates.ZPowGate, tags_to_ignore=[cirq_google.PhysicalZTag()]
-            ): base_duration
-            * 5,
-            cirq.GateFamily(
-                cirq.ops.common_gates.ZPowGate, tags_to_accept=[cirq_google.PhysicalZTag()]
-            ): base_duration
-            * 6,
-            cirq.GateFamily(cirq_google.experimental.ops.coupler_pulse.CouplerPulse): base_duration
-            * 7,
-            cirq.GateFamily(cirq.ops.measurement_gate.MeasurementGate): base_duration * 8,
-            cirq.GateFamily(cirq.ops.wait_gate.WaitGate): base_duration * 9,
-        }
-
-        # Serialize the old way
-        spec = known_devices.create_device_proto_for_qubits(
-            device_info.grid_qubits,
-            device_info.qubit_pairs,
-            [cirq_google.FSIM_GATESET],
-            known_devices._SYCAMORE_DURATIONS_PICOS,
-        )
-
-        # Serialize the new way
-        grid_device.create_device_specification_proto(
-            qubits=device_info.grid_qubits,
-            pairs=device_info.qubit_pairs,
-            gateset=cirq.Gateset(*gate_durations.keys()),
-            gate_durations=gate_durations,
-            out=spec,
-        )
-
-        with cirq.testing.assert_deprecated(
-            'Use cirq_google.GridDevice', deadline='v0.16', count=None
-        ):
-            # Deserialize both ways
-            serializable_dev = cirq_google.SerializableDevice.from_proto(
-                spec, [cirq_google.FSIM_GATESET]
-            )
-            grid_dev = cirq_google.GridDevice.from_proto(spec)
-
-            assert serializable_dev.metadata.qubit_set == grid_dev.metadata.qubit_set
-            assert serializable_dev.metadata.qubit_pairs == grid_dev.metadata.qubit_pairs
-
-            assert serializable_dev.metadata.gateset == cirq.Gateset(
-                cirq.FSimGate,
-                cirq.ISwapPowGate,
-                cirq.CZPowGate,
-                cirq.PhasedXPowGate,
-                cirq.XPowGate,
-                cirq.YPowGate,
-                cirq.ZPowGate,
-                cirq.PhasedXZGate,
-                cirq.MeasurementGate,
-                cirq.WaitGate,
-                cirq.GlobalPhaseGate,
-            )
-
-            assert grid_dev.metadata.gateset == device_info.expected_gateset
-            assert (
-                tuple(grid_dev.metadata.compilation_target_gatesets)
-                == device_info.expected_target_gatesets
-            )
-
-            assert grid_dev.metadata.gate_durations == device_info.expected_gate_durations
 
 
 def test_to_proto_empty():

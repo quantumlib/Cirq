@@ -30,6 +30,7 @@ from typing import (
     Any,
     Callable,
     Mapping,
+    MutableSequence,
     cast,
     Dict,
     FrozenSet,
@@ -1462,7 +1463,7 @@ class AbstractCircuit(abc.ABC):
 
         # Allocate a buffer large enough to append and prepend all the circuits.
         pad_len = sum(len(c) for c in circuits) - n_acc
-        buffer = np.zeros(shape=pad_len * 2 + n_acc, dtype=object)
+        buffer: MutableSequence['cirq.Moment'] = [cirq.Moment()] * (pad_len * 2 + n_acc)
 
         # Put the initial circuit in the center of the buffer.
         offset = pad_len
@@ -1601,7 +1602,11 @@ def _overlap_collision_time(
 
 
 def _concat_ragged_helper(
-    c1_offset: int, n1: int, buf: np.ndarray, c2: Sequence['cirq.Moment'], align: 'cirq.Alignment'
+    c1_offset: int,
+    n1: int,
+    buf: MutableSequence['cirq.Moment'],
+    c2: Sequence['cirq.Moment'],
+    align: 'cirq.Alignment',
 ) -> Tuple[int, int]:
     n2 = len(c2)
     shift = _overlap_collision_time(buf[c1_offset : c1_offset + n1], c2, align)
@@ -2369,7 +2374,7 @@ class Circuit(AbstractCircuit):
         return Circuit(resolved_moments)
 
     @property
-    def moments(self):
+    def moments(self) -> Sequence['cirq.Moment']:
         return self._moments
 
     def with_noise(self, noise: 'cirq.NOISE_MODEL_LIKE') -> 'cirq.Circuit':
