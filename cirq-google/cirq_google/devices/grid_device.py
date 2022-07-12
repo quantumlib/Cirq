@@ -39,19 +39,32 @@ from cirq_google.devices import known_devices
 from cirq_google.experimental import ops as experimental_ops
 
 
-SYC_GATE_FAMILY = cirq.GateFamily(ops.SYC)
-SQRT_ISWAP_GATE_FAMILY = cirq.GateFamily(cirq.SQRT_ISWAP)
-SQRT_ISWAP_INV_GATE_FAMILY = cirq.GateFamily(cirq.SQRT_ISWAP_INV)
-CZ_GATE_FAMILY = cirq.GateFamily(cirq.CZ)
-PHASED_XZ_GATE_FAMILY = cirq.GateFamily(cirq.PhasedXZGate)
-VIRTUAL_ZPOW_GATE_FAMILY = cirq.GateFamily(cirq.ZPowGate, tags_to_ignore=[ops.PhysicalZTag()])
-PHYSICAL_ZPOW_GATE_FAMILY = cirq.GateFamily(cirq.ZPowGate, tags_to_accept=[ops.PhysicalZTag()])
-COUPLER_PULSE_GATE_FAMILY = cirq.GateFamily(experimental_ops.CouplerPulse)
-MEASUREMENT_GATE_FAMILY = cirq.GateFamily(cirq.MeasurementGate)
-WAIT_GATE_FAMILY = cirq.GateFamily(cirq.WaitGate)
+_SYC_GATE_FAMILY = cirq.GateFamily(ops.SYC)
+_SYC_FSIM_GATE_FAMILY = ops.FSimGateFamily(gates_to_accept=[ops.SYC])
+_SQRT_ISWAP_GATE_FAMILY = cirq.GateFamily(cirq.SQRT_ISWAP)
+_SQRT_ISWAP_FSIM_GATE_FAMILY = ops.FSimGateFamily(gates_to_accept=[cirq.SQRT_ISWAP])
+_SQRT_ISWAP_INV_GATE_FAMILY = cirq.GateFamily(cirq.SQRT_ISWAP_INV)
+_SQRT_ISWAP_INV_FSIM_GATE_FAMILY = ops.FSimGateFamily(gates_to_accept=[cirq.SQRT_ISWAP_INV])
+_CZ_GATE_FAMILY = cirq.GateFamily(cirq.CZ)
+_CZ_FSIM_GATE_FAMILY = ops.FSimGateFamily(gates_to_accept=[cirq.CZ])
+_PHASED_XZ_GATE_FAMILY = cirq.GateFamily(cirq.PhasedXZGate)
+_VIRTUAL_ZPOW_GATE_FAMILY = cirq.GateFamily(cirq.ZPowGate, tags_to_ignore=[ops.PhysicalZTag()])
+_PHYSICAL_ZPOW_GATE_FAMILY = cirq.GateFamily(cirq.ZPowGate, tags_to_accept=[ops.PhysicalZTag()])
+_COUPLER_PULSE_GATE_FAMILY = cirq.GateFamily(experimental_ops.CouplerPulse)
+_MEASUREMENT_GATE_FAMILY = cirq.GateFamily(cirq.MeasurementGate)
+_WAIT_GATE_FAMILY = cirq.GateFamily(cirq.WaitGate)
+
+# TODO(#5050) Add GlobalPhaseGate
+_CZ_TARGET_GATES = [_CZ_FSIM_GATE_FAMILY, _PHASED_XZ_GATE_FAMILY, _MEASUREMENT_GATE_FAMILY]
+_SYC_TARGET_GATES = [_SYC_FSIM_GATE_FAMILY, _PHASED_XZ_GATE_FAMILY, _MEASUREMENT_GATE_FAMILY]
+_SQRT_ISWAP_TARGET_GATES = [
+    _SQRT_ISWAP_FSIM_GATE_FAMILY,
+    _PHASED_XZ_GATE_FAMILY,
+    _MEASUREMENT_GATE_FAMILY,
+]
 
 # Families of gates which can be applied to any subset of valid qubits.
-_VARIADIC_GATE_FAMILIES = [MEASUREMENT_GATE_FAMILY, WAIT_GATE_FAMILY]
+_VARIADIC_GATE_FAMILIES = [_MEASUREMENT_GATE_FAMILY, _WAIT_GATE_FAMILY]
 
 
 def _validate_device_specification(proto: v2.device_pb2.DeviceSpecification) -> None:
@@ -115,13 +128,13 @@ def _build_gateset_and_gate_durations(
         cirq_gates: List[Union[Type[cirq.Gate], cirq.Gate, cirq.GateFamily]] = []
 
         if gate_name == 'syc':
-            cirq_gates = [ops.FSimGateFamily(gates_to_accept=[ops.SYC])]
+            cirq_gates = [_SYC_FSIM_GATE_FAMILY]
         elif gate_name == 'sqrt_iswap':
-            cirq_gates = [ops.FSimGateFamily(gates_to_accept=[cirq.SQRT_ISWAP])]
+            cirq_gates = [_SQRT_ISWAP_FSIM_GATE_FAMILY]
         elif gate_name == 'sqrt_iswap_inv':
-            cirq_gates = [ops.FSimGateFamily(gates_to_accept=[cirq.SQRT_ISWAP_INV])]
+            cirq_gates = [_SQRT_ISWAP_INV_FSIM_GATE_FAMILY]
         elif gate_name == 'cz':
-            cirq_gates = [ops.FSimGateFamily(gates_to_accept=[cirq.CZ])]
+            cirq_gates = [_CZ_FSIM_GATE_FAMILY]
         elif gate_name == 'phased_xz':
             cirq_gates = [cirq.PhasedXZGate, cirq.XPowGate, cirq.YPowGate, cirq.PhasedXPowGate]
         elif gate_name == 'virtual_zpow':
@@ -161,26 +174,27 @@ def _build_gateset_and_gate_durations(
 def _build_compilation_target_gatesets(
     gateset: cirq.Gateset,
 ) -> Sequence[cirq.CompilationTargetGateset]:
-    """Detects compilation target gatesets based on what gates are inside the gateset.
+    """Detects compilation target gatesets based on what gates are inside the gateset."""
 
-    If a device contains gates which yield multiple compilation target gatesets, the user can only
-    choose one target gateset to compile to. For example, a device may contain both SYC and
-    SQRT_ISWAP gates which yield two separate target gatesets, but a circuit can only be compiled to
-    either SYC or SQRT_ISWAP for its two-qubit gates, not both.
-
-    TODO(#5050) when cirq-google CompilationTargetGateset subclasses are implemented, mention that
-    gates which are part of the gateset but not the compilation target gateset are untouched when
-    compiled.
-    """
-
+    # Include a particular target gateset if the device's gateset contains all required gates of
+    # the target gateset.
+    # Set all remaining gates in the device's gateset as `additional_gates` so that they are not
+    # decomposed in the transformation process.
     target_gatesets: List[cirq.CompilationTargetGateset] = []
-    if cirq.CZ in gateset:
-        target_gatesets.append(transformers.GoogleCZTargetGateset())
-    if ops.SYC in gateset:
-        target_gatesets.append(transformers.SycamoreTargetGateset())
-    if cirq.SQRT_ISWAP in gateset:
+    if all(gate_family in gateset.gates for gate_family in _CZ_TARGET_GATES):
         target_gatesets.append(
-            cirq.SqrtIswapTargetGateset(use_sqrt_iswap_inv=cirq.SQRT_ISWAP_INV in gateset)
+            transformers.GoogleCZTargetGateset(
+                additional_gates=(list(gateset.gates - set(_CZ_TARGET_GATES)))
+            )
+        )
+    if all(gate_family in gateset.gates for gate_family in _SYC_TARGET_GATES):
+        # TODO(#5050) SycamoreTargetGateset additional gates
+        target_gatesets.append(transformers.SycamoreTargetGateset())
+    if all(gate_family in gateset.gates for gate_family in _SQRT_ISWAP_TARGET_GATES):
+        target_gatesets.append(
+            cirq.SqrtIswapTargetGateset(
+                additional_gates=(list(gateset.gates - set(_SQRT_ISWAP_TARGET_GATES)))
+            )
         )
 
     return tuple(target_gatesets)
@@ -275,11 +289,18 @@ class GridDevice(cirq.Device):
         >>> print(circuit)
         (5, 1): ───PhXZ(a=0,x=1,z=0)───
 
-    A note about CompilationTargetGatesets:
+    Notes about CompilationTargetGatesets:
 
-    A circuit which contains `cirq.WaitGate`s will be dropped if it is transformed using
-    CompilationTargetGatesets generated by GridDevice. To better control circuit timing, insert
-    WaitGates after the circuit has been transformed.
+    * If a device contains gates which yield multiple compilation target gatesets, the user can only
+      choose one target gateset to compile to. For example, a device may contain both SYC and
+      SQRT_ISWAP gates which yield two separate target gatesets, but a circuit can only be compiled
+      to either SYC or SQRT_ISWAP for its two-qubit gates, not both.
+    * For a given compilation target gateset, gates which are part of the device's gateset but not
+      the target gateset are not decomposed. However, they may still be merged with other gates in
+      the circuit.
+    * A circuit which contains `cirq.WaitGate`s will be dropped if it is transformed using
+      CompilationTargetGatesets generated by GridDevice. To better control circuit timing, insert
+      WaitGates after the circuit has been transformed.
 
     Notes for cirq_google internal implementation:
 
@@ -433,25 +454,25 @@ class GridDevice(cirq.Device):
 def _set_gate_in_gate_spec(
     gate_spec: v2.device_pb2.GateSpecification, gate_family: cirq.GateFamily
 ) -> None:
-    if gate_family == SYC_GATE_FAMILY:
+    if gate_family == _SYC_GATE_FAMILY:
         gate_spec.syc.SetInParent()
-    elif gate_family == SQRT_ISWAP_GATE_FAMILY:
+    elif gate_family == _SQRT_ISWAP_GATE_FAMILY:
         gate_spec.sqrt_iswap.SetInParent()
-    elif gate_family == SQRT_ISWAP_INV_GATE_FAMILY:
+    elif gate_family == _SQRT_ISWAP_INV_GATE_FAMILY:
         gate_spec.sqrt_iswap_inv.SetInParent()
-    elif gate_family == CZ_GATE_FAMILY:
+    elif gate_family == _CZ_GATE_FAMILY:
         gate_spec.cz.SetInParent()
-    elif gate_family == PHASED_XZ_GATE_FAMILY:
+    elif gate_family == _PHASED_XZ_GATE_FAMILY:
         gate_spec.phased_xz.SetInParent()
-    elif gate_family == VIRTUAL_ZPOW_GATE_FAMILY:
+    elif gate_family == _VIRTUAL_ZPOW_GATE_FAMILY:
         gate_spec.virtual_zpow.SetInParent()
-    elif gate_family == PHYSICAL_ZPOW_GATE_FAMILY:
+    elif gate_family == _PHYSICAL_ZPOW_GATE_FAMILY:
         gate_spec.physical_zpow.SetInParent()
-    elif gate_family == COUPLER_PULSE_GATE_FAMILY:
+    elif gate_family == _COUPLER_PULSE_GATE_FAMILY:
         gate_spec.coupler_pulse.SetInParent()
-    elif gate_family == MEASUREMENT_GATE_FAMILY:
+    elif gate_family == _MEASUREMENT_GATE_FAMILY:
         gate_spec.meas.SetInParent()
-    elif gate_family == WAIT_GATE_FAMILY:
+    elif gate_family == _WAIT_GATE_FAMILY:
         gate_spec.wait.SetInParent()
     else:
         raise ValueError(f'Unrecognized gate {gate_family}.')

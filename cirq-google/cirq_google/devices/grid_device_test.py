@@ -129,9 +129,43 @@ def _create_device_spec_with_horizontal_couplings():
     }
 
     expected_target_gatesets = (
-        cirq.CZTargetGateset(),
+        cirq_google.GoogleCZTargetGateset(
+            additional_gates=[
+                cirq_google.FSimGateFamily(gates_to_accept=[cirq_google.SYC]),
+                cirq_google.FSimGateFamily(gates_to_accept=[cirq.SQRT_ISWAP]),
+                cirq_google.FSimGateFamily(gates_to_accept=[cirq.SQRT_ISWAP_INV]),
+                cirq.ops.common_gates.XPowGate,
+                cirq.ops.common_gates.YPowGate,
+                cirq.ops.phased_x_gate.PhasedXPowGate,
+                cirq.GateFamily(
+                    cirq.ops.common_gates.ZPowGate, tags_to_ignore=[cirq_google.PhysicalZTag()]
+                ),
+                cirq.GateFamily(
+                    cirq.ops.common_gates.ZPowGate, tags_to_accept=[cirq_google.PhysicalZTag()]
+                ),
+                cirq_google.experimental.ops.coupler_pulse.CouplerPulse,
+                cirq.ops.wait_gate.WaitGate,
+            ]
+        ),
         cirq_google.SycamoreTargetGateset(),
-        cirq.SqrtIswapTargetGateset(use_sqrt_iswap_inv=True),
+        cirq.SqrtIswapTargetGateset(
+            additional_gates=[
+                cirq_google.FSimGateFamily(gates_to_accept=[cirq_google.SYC]),
+                cirq_google.FSimGateFamily(gates_to_accept=[cirq.SQRT_ISWAP_INV]),
+                cirq_google.FSimGateFamily(gates_to_accept=[cirq.CZ]),
+                cirq.ops.common_gates.XPowGate,
+                cirq.ops.common_gates.YPowGate,
+                cirq.ops.phased_x_gate.PhasedXPowGate,
+                cirq.GateFamily(
+                    cirq.ops.common_gates.ZPowGate, tags_to_ignore=[cirq_google.PhysicalZTag()]
+                ),
+                cirq.GateFamily(
+                    cirq.ops.common_gates.ZPowGate, tags_to_accept=[cirq_google.PhysicalZTag()]
+                ),
+                cirq_google.experimental.ops.coupler_pulse.CouplerPulse,
+                cirq.ops.wait_gate.WaitGate,
+            ]
+        ),
     )
 
     return (
