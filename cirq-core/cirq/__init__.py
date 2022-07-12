@@ -327,11 +327,7 @@ from cirq.ops import (
     ZZPowGate,
 )
 
-from cirq.optimizers import (
-    AlignLeft,
-    AlignRight,
-    ConvertToCzAndSingleGates,
-)
+from cirq.optimizers import AlignLeft, AlignRight, ConvertToCzAndSingleGates
 
 from cirq.transformers import (
     align_left,
