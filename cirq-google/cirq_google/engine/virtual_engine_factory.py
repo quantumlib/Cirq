@@ -393,7 +393,7 @@ def create_default_noisy_quantum_virtual_machine(
         try:  # coverage: ignore
             import qsimcirq  # type: ignore
 
-            simulator_class = qsimcirq.Simulator  # coverage: ignore
+            simulator_class = qsimcirq.QSimSimulator  # coverage: ignore
         except ImportError:
             simulator_class = cirq.Simulator  # coverage: ignore
 
