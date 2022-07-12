@@ -26,7 +26,6 @@ TestSpec = ModuleJsonTestSpec(
     not_yet_serializable=[
         'Alignment',
         'AxisAngleDecomposition',
-        'CircuitDag',
         'CircuitDiagramInfo',
         'CircuitDiagramInfoArgs',
         'CircuitSampleJob',
@@ -163,7 +162,6 @@ TestSpec = ModuleJsonTestSpec(
         'NoiseModelFromNoiseProperties',
         'Simulator',
         'StabilizerSampler',
-        'Unique',
         'DEFAULT_RESOLVERS',
     ],
     deprecated={},
