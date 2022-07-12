@@ -165,7 +165,7 @@ def main():
     bog_circuit = cirq.Circuit(
         bogoliubov_trans(upper_qubits[i], lower_qubits[i], bog_theta[i]) for i in range(n_site)
     )
-    bog_circuit = cirq.optimize_for_target_gateset(bog_circuit, gateset=cirq.CZTargetGateset)
+    bog_circuit = cirq.optimize_for_target_gateset(bog_circuit, gateset=cirq.CZTargetGateset())
     print('Circuit for the Bogoliubov transformation:')
     print(bog_circuit.to_text_diagram(transpose=True), '\n')
 
@@ -174,7 +174,9 @@ def main():
     fourier_circuit_spin_up = cirq.Circuit(
         fermi_fourier_trans_inverse_4(upper_qubits), strategy=cirq.InsertStrategy.EARLIEST
     )
-    fourier_circuit_spin_up = cirq.optimize_for_target_gateset(fourier_circuit_spin_up, gateset=cirq.CZTargetGateset)
+    fourier_circuit_spin_up = cirq.optimize_for_target_gateset(
+        fourier_circuit_spin_up, gateset=cirq.CZTargetGateset()
+    )
     print(fourier_circuit_spin_up.to_text_diagram(transpose=True), '\n')
 
     # The inverse fermionic Fourier transformation on the spin-down states
@@ -182,7 +184,9 @@ def main():
     fourier_circuit_spin_down = cirq.Circuit(
         fermi_fourier_trans_inverse_conjugate_4(lower_qubits), strategy=cirq.InsertStrategy.EARLIEST
     )
-    fourier_circuit_spin_down = cirq.optimize_for_target_gateset(fourier_circuit_spin_down, gateset=cirq.CZTargetGateset)
+    fourier_circuit_spin_down = cirq.optimize_for_target_gateset(
+        fourier_circuit_spin_down, gateset=cirq.CZTargetGateset()
+    )
     print(fourier_circuit_spin_down.to_text_diagram(transpose=True))
 
 
