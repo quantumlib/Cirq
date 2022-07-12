@@ -42,7 +42,6 @@ from cirq import (
     # Core
     circuits,
     # Optimize and run
-    optimizers,
     work,
     sim,
     vis,
@@ -66,7 +65,6 @@ from cirq.circuits import (
     AbstractCircuit,
     Alignment,
     Circuit,
-    CircuitDag,
     CircuitOperation,
     FrozenCircuit,
     InsertStrategy,
@@ -75,7 +73,6 @@ from cirq.circuits import (
     PointOptimizer,
     QasmOutput,
     TextDiagramDrawer,
-    Unique,
 )
 
 from cirq.devices import (
@@ -326,8 +323,6 @@ from cirq.ops import (
     ZZ,
     ZZPowGate,
 )
-
-from cirq.optimizers import AlignLeft, AlignRight, ConvertToCzAndSingleGates
 
 from cirq.transformers import (
     align_left,

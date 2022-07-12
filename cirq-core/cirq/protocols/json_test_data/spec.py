@@ -26,7 +26,6 @@ TestSpec = ModuleJsonTestSpec(
     not_yet_serializable=[
         'Alignment',
         'AxisAngleDecomposition',
-        'CircuitDag',
         'CircuitDiagramInfo',
         'CircuitDiagramInfoArgs',
         'CircuitSampleJob',
@@ -85,9 +84,6 @@ TestSpec = ModuleJsonTestSpec(
         'TwoQubitCompilationTargetGateset',
         # Circuit optimizers are function-like. Only attributes
         # are ignore_failures, tolerance, and other feature flags
-        'AlignLeft',
-        'AlignRight',
-        'ConvertToCzAndSingleGates',
         'MEASUREMENT_KEY_SEPARATOR',
         'PointOptimizer',
         # Transformers
@@ -164,7 +160,6 @@ TestSpec = ModuleJsonTestSpec(
         'NoiseModelFromNoiseProperties',
         'Simulator',
         'StabilizerSampler',
-        'Unique',
         'DEFAULT_RESOLVERS',
     ],
     deprecated={},
