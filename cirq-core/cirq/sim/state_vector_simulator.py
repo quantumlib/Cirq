@@ -18,7 +18,7 @@ from typing import Any, Dict, Iterator, Sequence, Type, TYPE_CHECKING, Generic, 
 
 import numpy as np
 
-from cirq import _compat, ops, value, qis
+from cirq import ops, value, qis
 from cirq._compat import proper_repr
 from cirq.sim import simulator, state_vector, simulator_base
 
@@ -130,7 +130,7 @@ class StateVectorTrialResult(
             self._final_state_vector = tensor
         return self._final_state_vector
 
-    def state_vector(self, copy: bool = None) -> np.ndarray:
+    def state_vector(self, copy: bool = False) -> np.ndarray:
         """Return the state vector at the end of the computation.
 
         The state is returned in the computational basis with these basis
@@ -155,13 +155,14 @@ class StateVectorTrialResult(
                 |  5  |   1    |   0    |   1    |
                 |  6  |   1    |   1    |   0    |
                 |  7  |   1    |   1    |   1    |
+
+        Args:
+            copy: If True, the returned state vector will be a copy of that
+            stored by the object. This is potentially expensive for large
+            state vectors, but prevents mutation of the object state, e.g. for
+            operating on intermediate states of a circuit.
+            Defaults to False.
         """
-        if copy is None:
-            _compat._warn_or_error(
-                "Starting in v0.16, state_vector will not copy the state by default. "
-                "Explicitly set copy=True to copy the state."
-            )
-            copy = True
         return self.final_state_vector.copy() if copy else self.final_state_vector
 
     def _value_equality_values_(self):

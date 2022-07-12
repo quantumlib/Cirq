@@ -105,22 +105,24 @@ class AnyIntegerPowerGateFamily(gateset.GateFamily):
 
 
 class ParallelGateFamily(gateset.GateFamily):
-    """GateFamily which accepts instances of `cirq.ParallelGate` and it's sub_gate.
+    """GateFamily which accepts instances of `cirq.ParallelGate` and its sub_gate.
 
     ParallelGateFamily is useful for description and validation of scenarios where multiple
     copies of a unitary gate can act in parallel. `cirq.ParallelGate` is used to express
     such a gate with a corresponding unitary `sub_gate` that acts in parallel.
 
-    ParallelGateFamily supports initialization via
-        a) Gate Instance that can be applied in parallel.
-        b) Gate Type whose instances can be applied in parallel.
+    ParallelGateFamily supports initialization via:
+
+    *    Gate Instances that can be applied in parallel.
+    *    Gate Types whose instances can be applied in parallel.
 
     In both the cases, the users can specify an additional parameter `max_parallel_allowed` which
     is used to verify the maximum number of qubits on which any given gate instance can act on.
 
-    To verify containment of a given `cirq.Gate` instance `g`, the gate family verfies that
-        a) `cirq.num_qubits(g)` <= `max_parallel_allowed` if `max_parallel_allowed` is not None.
-        b) `g` or `g.sub_gate` (if `g` is an instance of `cirq.ParallelGate`) is an accepted gate
+    To verify containment of a given `cirq.Gate` instance `g`, the gate family verfies that:
+
+    *    `cirq.num_qubits(g)` <= `max_parallel_allowed` if `max_parallel_allowed` is not None.
+    *    `g` or `g.sub_gate` (if `g` is an instance of `cirq.ParallelGate`) is an accepted gate
             based on type or instance checks depending on the initialization gate type.
     """
 

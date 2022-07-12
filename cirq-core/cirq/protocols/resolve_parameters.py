@@ -150,7 +150,7 @@ def resolve_parameters(
     Returns:
         a gate or operation of the same type, but with all Symbols
         replaced with floats or terminal symbols according to the
-        given ParamResolver. If `val` has no `_resolve_parameters_`
+        given `cirq.ParamResolver`. If `val` has no `_resolve_parameters_`
         method or if it returns NotImplemented, `val` itself is returned.
         Note that in some cases, such as when directly resolving a sympy
         Symbol, the return type could differ from the input type; however,

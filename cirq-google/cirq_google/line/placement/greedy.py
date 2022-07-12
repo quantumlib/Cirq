@@ -274,15 +274,15 @@ class GreedySequenceSearchStrategy(place_strategy.LinePlacementStrategy):
     """Greedy search method for linear sequence of qubits on a chip."""
 
     def __init__(self, algorithm: str = 'best') -> None:
-        """Initializes greedy sequence search strategy.
+        """Constructs a greedy search strategy object.
 
         Args:
             algorithm: Greedy algorithm to be used. Available options are:
-                best - runs all heuristics and chooses the best result,
-                largest_area - on every step takes the qubit which has
-                connection with the largest number of unassigned qubits, and
-                minimal_connectivity - on every step takes the qubit with
-                minimal number of unassigned neighbouring qubits.
+             -  `best`:  runs all heuristics and chooses the best result,
+             -  `largest_area`:  on every step takes the qubit which has
+            connection with the largest number of unassigned qubits, and
+             -  `minimal_connectivity`: on every step takes the qubit with
+            minimal number of unassigned neighbouring qubits.
         """
         self.algorithm = algorithm
 

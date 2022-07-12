@@ -430,9 +430,7 @@ def test_monte_carlo_on_unknown_channel():
             cirq.Circuit(Reset11To00().on(*cirq.LineQubit.range(2))), initial_state=k
         )
         np.testing.assert_allclose(
-            out.state_vector(copy=False),
-            cirq.one_hot(index=k % 3, shape=4, dtype=np.complex64),
-            atol=1e-8,
+            out.state_vector(), cirq.one_hot(index=k % 3, shape=4, dtype=np.complex64), atol=1e-8
         )
 
 
