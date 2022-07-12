@@ -16,4 +16,4 @@
 
 num_rounds = 1000->num_rounds = 2
 N = 128->N = 4
-samples = 1000->samples = 2
+number_of_functions_to_try = 1000->number_of_functions_to_try = 2
