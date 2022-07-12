@@ -13,12 +13,12 @@
 # limitations under the License.
 import datetime
 
-from typing import Dict, Iterable, List, Optional, Sequence, TYPE_CHECKING, Union
+from typing import Dict, List, Optional, Sequence, TYPE_CHECKING, Union
 
 import cirq
 
 from cirq_google.api import v2
-from cirq_google.engine import calibration, util, validating_sampler
+from cirq_google.engine import calibration, validating_sampler
 from cirq_google.engine.abstract_local_processor import AbstractLocalProcessor
 from cirq_google.engine.abstract_local_program import AbstractLocalProgram
 from cirq_google.engine.abstract_program import AbstractProgram
@@ -126,8 +126,7 @@ class SimulatedLocalProcessor(AbstractLocalProcessor):
     def get_current_calibration(self) -> Optional[calibration.Calibration]:
         return self.get_latest_calibration(int(datetime.datetime.now().timestamp()))
 
-    @util.deprecated_get_device_gate_sets_parameter()
-    def get_device(self, gate_sets: Iterable['Serializer'] = ()) -> cirq.Device:
+    def get_device(self) -> cirq.Device:
         """Returns a `Device` created from the processor's device specification.
 
         This method queries the processor to retrieve the device specification,
