@@ -128,10 +128,10 @@ class SimulatedLocalProcessor(AbstractLocalProcessor):
 
     @util.deprecated_get_device_gate_sets_parameter()
     def get_device(self, gate_sets: Iterable['Serializer'] = ()) -> cirq.Device:
-        """Returns a `Device` created from the processor's device specification.
+        """Returns a `cirq.Device` created from the processor's device specification.
 
         This method queries the processor to retrieve the device specification,
-        which is then use to create a `Device` that will validate
+        which is then use to create a `cirq.Device` that will validate
         that operations are supported and use the correct qubits.
         """
         return self._device
