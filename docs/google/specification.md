@@ -90,7 +90,7 @@ are not captured by the hard requirements above.
 
 For instance, "Do not apply two CZ gates in a row."
 
-## Serializable Devices
+## Conversion to cirq.Device
 
 The `cirq_google.GridDevice` class allows someone to take this
 device specification and turn it into a `cirq.Device` that can be used to
