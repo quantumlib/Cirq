@@ -20,7 +20,7 @@ arbitrary connectivity. For more information see:
 
 [https://iopscience.iop.org/article/10.1088/1367-2630/15/12/123012/meta](https://iopscience.iop.org/article/10.1088/1367-2630/15/12/123012/meta){:.external}
 
-The native gate set consists of the local gates: X,Y, and XX entangling gates
+The native gate set consists of the local gates: X, Y, and XX entangling gates
 """
 
 import json
@@ -226,12 +226,16 @@ class AQTSimulator:
 class AQTTargetGateset(cirq.TwoQubitCompilationTargetGateset):
     """Target gateset accepting XXPowGate + X/Y/Z/PhX single qubit rotations + measurement gates.
 
-    By default, `cirq_aqt.AQTTargetGateset` will accept and compile unknown gates to
-    the following universal target gateset:
+    By default, `cirq_aqt.AQTTargetGateset` will accept and compile unknown
+    gates to the following universal target gateset:
+
     - `cirq.XXPowGate`: The two qubit entangling gate.
-    - `cirq.XPowGate`,`cirq.YPowGate`,`cirq.ZPowGate`,`cirq.PhasedXPowGate`: Single qubit rotations.
+    - `cirq.XPowGate`, `cirq.YPowGate`, `cirq.ZPowGate`,
+      `cirq.PhasedXPowGate`: Single qubit rotations.
     - `cirq.MeasurementGate`: Measurements.
     """
+
+    def __init__(self):
         super().__init__(
             ops.XXPowGate,
             ops.MeasurementGate,
