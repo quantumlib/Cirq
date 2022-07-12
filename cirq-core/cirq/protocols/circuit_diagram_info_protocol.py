@@ -274,7 +274,7 @@ class CircuitDiagramInfoArgs:
             return '0'
         if radians == -np.pi:
             return '-' + unit
-        if self.precision is not None:
+        if self.precision is not None and not isinstance(radians, sympy.Basic):
             quantity = self.format_real(radians / np.pi)
             return quantity + unit
         return repr(radians)

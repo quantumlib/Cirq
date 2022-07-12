@@ -12,13 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import dataclasses
 from typing import Any, cast, Dict, List, Optional, Sequence, Tuple, TYPE_CHECKING, Union
 
 
 import numpy as np
 
-from cirq import _compat, protocols, value, linalg, qis
+from cirq import protocols, value, linalg, qis
 from cirq._import import LazyLoader
 from cirq.ops import common_gates, named_qubit, raw_types, pauli_gates, phased_x_z_gate
 from cirq.ops.pauli_gates import Pauli
@@ -33,15 +32,8 @@ sim = LazyLoader("sim", globals(), "cirq.sim")
 transformers = LazyLoader("transformers", globals(), "cirq.transformers")
 
 
-@_compat.deprecated_class(deadline='v0.16', fix='Use DensePauliString instead.')
-@dataclasses.dataclass
-class PauliTransform:
-    to: Pauli
-    flip: bool
-
-
 def _to_pauli_tuple(matrix: np.ndarray) -> Optional[Tuple[Pauli, bool]]:
-    """Converts matrix to PauliTransform.
+    """Converts matrix to Pauli gate.
 
     If matrix is not ±Pauli matrix, returns None.
     """
@@ -676,11 +668,6 @@ class SingleQubitCliffordGate(CliffordGate):
         pauli_tuple = self.pauli_tuple(pauli)
         coefficient = -1 if pauli_tuple[1] else 1
         return dense_pauli_string.DensePauliString(str(pauli_tuple[0]), coefficient=coefficient)
-
-    @_compat.deprecated(deadline='v0.16', fix='Use pauli_tuple() or dense_pauli_string() instead')
-    def transform(self, pauli: Pauli) -> PauliTransform:
-        pauli_tuple = self.pauli_tuple(pauli)
-        return PauliTransform(to=pauli_tuple[0], flip=pauli_tuple[1])
 
     def to_phased_xz_gate(self) -> phased_x_z_gate.PhasedXZGate:
         """Convert this gate to a PhasedXZGate instance.

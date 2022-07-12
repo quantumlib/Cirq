@@ -28,16 +28,6 @@ from cirq.transformers.analytical_decompositions.two_qubit_to_fsim import (
     _B,
 )
 
-ALLOW_DEPRECATION_IN_TEST = 'ALLOW_DEPRECATION_IN_TEST'
-
-
-def test_deprecated_submodule():
-    with cirq.testing.assert_deprecated(
-        "Use cirq.transformers.analytical_decompositions.two_qubit_to_fsim instead",
-        deadline="v0.16",
-    ):
-        _ = cirq.optimizers.two_qubit_to_fsim.decompose_two_qubit_interaction_into_four_fsim_gates
-
 
 UNITARY_OBJS = [
     cirq.IdentityGate(2),
