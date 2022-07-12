@@ -25,12 +25,13 @@ class FakeDevice(cirq.Device):
 
 
 def _optimizers_and_gatesets():
-    return [
-        ('sqrt_iswap', cg.SQRT_ISWAP_GATESET),
-        ('sycamore', cg.SYC_GATESET),
-        ('xmon', cg.XMON),
-        ('xmon_partial_cz', cg.XMON),
-    ]
+    with cirq.testing.assert_deprecated('SerializableGateSet', deadline='v0.16', count=None):
+        return [
+            ('sqrt_iswap', cg.SQRT_ISWAP_GATESET),
+            ('sycamore', cg.SYC_GATESET),
+            ('xmon', cg.XMON),
+            ('xmon_partial_cz', cg.XMON),
+        ]
 
 
 @pytest.mark.parametrize('optimizer_type, gateset', _optimizers_and_gatesets())

@@ -174,6 +174,7 @@ def exec_tests(
     failed, attempted = 0, 0
     error_messages = []
     for test in tests:
+        print(test.file_name)
         out = OutputCapture()
         with out:
             r = test.run()

@@ -19,12 +19,13 @@ import abc
 
 from cirq import circuits, ops, protocols, _import
 from cirq.protocols.decompose_protocol import DecomposeResult
-from cirq.transformers import merge_k_qubit_gates, merge_single_qubit_gates
-
-
-drop_empty_moments = _import.LazyLoader('drop_empty_moments', globals(), 'cirq.transformers')
-drop_negligible = _import.LazyLoader('drop_negligible_operations', globals(), 'cirq.transformers')
-expand_composite = _import.LazyLoader('expand_composite', globals(), 'cirq.transformers')
+from cirq.transformers import (
+    drop_empty_moments,
+    drop_negligible_operations,
+    expand_composite,
+    merge_k_qubit_gates,
+    merge_single_qubit_gates,
+)
 
 if TYPE_CHECKING:
     import cirq
@@ -150,7 +151,7 @@ class CompilationTargetGateset(ops.Gateset, metaclass=abc.ABCMeta):
         """List of transformers which should be run after decomposing individual operations."""
         return [
             merge_single_qubit_gates.merge_single_qubit_moments_to_phxz,
-            drop_negligible.drop_negligible_operations,
+            drop_negligible_operations.drop_negligible_operations,
             drop_empty_moments.drop_empty_moments,
         ]
 
