@@ -21,7 +21,6 @@ from cirq.contrib.acquaintance.devices import get_acquaintance_size, Unconstrain
 from cirq.contrib.acquaintance.executor import (
     AcquaintanceOperation,
     GreedyExecutionStrategy,
-    StrategyExecutor,
     StrategyExecutorTransformer,
 )
 

@@ -16,7 +16,7 @@
 
 from cirq.ops.arithmetic_operation import ArithmeticGate
 
-from cirq.ops.clifford_gate import CliffordGate, PauliTransform, SingleQubitCliffordGate
+from cirq.ops.clifford_gate import CliffordGate, SingleQubitCliffordGate
 
 from cirq.ops.dense_pauli_string import (
     BaseDensePauliString,
@@ -87,7 +87,7 @@ from cirq.ops.fourier_transform import PhaseGradientGate, qft, QuantumFourierTra
 
 from cirq.ops.fsim_gate import FSimGate, PhasedFSimGate
 
-from cirq.ops.gate_features import InterchangeableQubitsGate, SingleQubitGate
+from cirq.ops.gate_features import InterchangeableQubitsGate
 
 from cirq.ops.gate_operation import GateOperation
 
@@ -209,3 +209,5 @@ from cirq.ops.two_qubit_diagonal_gate import TwoQubitDiagonalGate
 from cirq.ops.wait_gate import wait, WaitGate
 
 from cirq.ops.state_preparation_channel import StatePreparationChannel
+
+from cirq.ops.control_values import AbstractControlValues, ProductOfSums

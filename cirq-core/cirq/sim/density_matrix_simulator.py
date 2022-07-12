@@ -12,12 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """Simulator for density matrices that simulates noisy quantum circuits."""
-from typing import Any, Dict, List, Optional, Sequence, Type, TYPE_CHECKING, Tuple, Union
+from typing import Any, Dict, List, Optional, Sequence, Type, TYPE_CHECKING, Union
 
 import numpy as np
 
 from cirq import ops, protocols, study, value
-from cirq._compat import deprecated_class, deprecated_parameter, proper_repr
+from cirq._compat import proper_repr
 from cirq.sim import simulator, density_matrix_simulation_state, simulator_base
 
 if TYPE_CHECKING:
@@ -239,23 +239,15 @@ class DensityMatrixStepResult(simulator_base.StepResultBase['cirq.DensityMatrixS
             results, ordered by the qubits that the measurement operates on.
     """
 
-    @deprecated_parameter(
-        deadline='v0.16',
-        fix='Remove parameter `simulator` as it is no longer used.',
-        parameter_desc='simulator',
-        match=lambda args, kwargs: 'simulator' in kwargs or len(args) > 2,
-    )
     def __init__(
         self,
         sim_state: 'cirq.SimulationStateBase[cirq.DensityMatrixSimulationState]',
-        simulator: 'cirq.DensityMatrixSimulator' = None,
         dtype: Type[np.complexfloating] = np.complex64,
     ):
         """DensityMatrixStepResult.
 
         Args:
             sim_state: The qubit:SimulationState lookup for this step.
-            simulator: The simulator used to create this.
             dtype: The `numpy.dtype` used by the simulation. One of
                 `numpy.complex64` or `numpy.complex128`.
         """
@@ -315,36 +307,6 @@ class DensityMatrixStepResult(simulator_base.StepResultBase['cirq.DensityMatrixS
         )
 
 
-@deprecated_class(deadline='v0.16', fix='This class is no longer used.')
-@value.value_equality(unhashable=True)
-class DensityMatrixSimulatorState:
-    """The simulator state for DensityMatrixSimulator
-
-    Args:
-        density_matrix: The density matrix of the simulation.
-        qubit_map: A map from qid to index used to define the
-            ordering of the basis in density_matrix.
-    """
-
-    def __init__(self, density_matrix: np.ndarray, qubit_map: Dict['cirq.Qid', int]) -> None:
-        self.density_matrix = density_matrix
-        self.qubit_map = qubit_map
-        self._qid_shape = simulator._qubit_map_to_shape(qubit_map)
-
-    def _qid_shape_(self) -> Tuple[int, ...]:
-        return self._qid_shape
-
-    def _value_equality_values_(self) -> Any:
-        return self.density_matrix.tolist(), self.qubit_map
-
-    def __repr__(self) -> str:
-        return (
-            'cirq.DensityMatrixSimulatorState('
-            f'density_matrix=np.array({self.density_matrix.tolist()!r}), '
-            f'qubit_map={self.qubit_map!r})'
-        )
-
-
 @value.value_equality(unhashable=True)
 class DensityMatrixTrialResult(
     simulator_base.SimulationTrialResultBase[
@@ -388,7 +350,6 @@ class DensityMatrixTrialResult(
             trial finishes.
     """
 
-    @simulator._deprecated_step_result_parameter(old_position=3)
     def __init__(
         self,
         params: 'cirq.ParamResolver',

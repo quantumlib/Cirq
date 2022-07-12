@@ -99,7 +99,7 @@ class EigenGate(raw_types.Gate):
 
         Args:
             exponent: The t in gate**t. Determines how much the eigenvalues of
-                the gate are scaled by. For example, eigenvectors phased by -1
+                the gate are phased by. For example, eigenvectors phased by -1
                 when `gate**1` is applied will gain a relative phase of
                 e^{i pi exponent} when `gate**exponent` is applied (relative to
                 eigenvectors unaffected by `gate**1`).
@@ -392,6 +392,9 @@ class EigenGate(raw_types.Gate):
 
     def _json_dict_(self) -> Dict[str, Any]:
         return protocols.obj_to_dict_helper(self, ['exponent', 'global_shift'])
+
+    def _measurement_key_objs_(self):
+        return frozenset()
 
 
 def _lcm(vals: Iterable[int]) -> int:
