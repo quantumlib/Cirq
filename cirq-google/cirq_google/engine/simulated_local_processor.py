@@ -131,7 +131,7 @@ class SimulatedLocalProcessor(AbstractLocalProcessor):
         """Returns a `Device` created from the processor's device specification.
 
         This method queries the processor to retrieve the device specification,
-        which is then use to create a `SerializableDevice` that will validate
+        which is then use to create a `Device` that will validate
         that operations are supported and use the correct qubits.
         """
         return self._device

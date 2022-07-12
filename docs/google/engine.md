@@ -105,7 +105,7 @@ message that contains information about the qubits on the device, the
 connectivity, and the supported gates.
 
 This proto can be queried directly to get information about the device or can be transformed
-into a `cirq.Device` by using `cirq_google.SerializableDevice.from_proto()` that will
+into a `cirq.Device` by using `cirq_google.GridDevice.from_proto()` that will
 enforce constraints imposed by the hardware.
 
 See the [Device Specification](specification.md) page for more information on

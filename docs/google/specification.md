@@ -92,14 +92,9 @@ For instance, "Do not apply two CZ gates in a row."
 
 ## Serializable Devices
 
-The `cirq_google.SerializableDevice` class allows someone to take this
+The `cirq_google.GridDevice` class allows someone to take this
 device specification and turn it into a `cirq.Device` that can be used to
 verify a circuit.
-
-The `cirq_google.SerializableDevice` combines a `DeviceSpecification` protocol
-buffer (defining the device) with a `SerializableGateSet` (that defines the
-translation from serialized id to cirq) to produce a `cirq.Device` that can
-be used to validate a circuit.
 
 The following example illustrates retrieving the device specification live
 from the engine and then using it to validate a circuit.
@@ -113,8 +108,7 @@ engine = cg.Engine(project_id='your_project_id',
                    proto_version=cirq_google.ProtoVersion.V2)
 
 # Replace the processor id to get the device with that id.
-device = engine.get_processor('processor_id').get_device(
-  gate_sets=[cg.gate_sets.SQRT_ISWAP_GATESET])
+device = engine.get_processor('processor_id').get_device()
 
 q0, q1 = cirq.LineQubit.range(2)
 
