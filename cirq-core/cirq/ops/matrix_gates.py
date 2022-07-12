@@ -20,7 +20,7 @@ import numpy as np
 
 from cirq import linalg, protocols, _import
 from cirq._compat import proper_repr
-from cirq.ops import raw_types
+from cirq.ops import raw_types, phased_x_z_gate
 
 if TYPE_CHECKING:
     import cirq
@@ -165,6 +165,14 @@ class MatrixGate(raw_types.Gate):
         main = _matrix_to_diagram_symbol(self._matrix, args)
         rest = [f'#{i+1}' for i in range(1, n_qubits)]
         return protocols.CircuitDiagramInfo(wire_symbols=[main, *rest])
+
+    def _qasm_(self, args: 'cirq.QasmArgs', qubits: Tuple['cirq.Qid', ...]) -> Optional[str]:
+        args.validate_version('2.0')
+        if self._qid_shape == (2,):
+            return protocols.qasm(
+                phased_x_z_gate.PhasedXZGate.from_matrix(self._matrix), args=args, qubits=qubits
+            )
+        return None
 
     def __hash__(self) -> int:
         vals = tuple(v for _, v in np.ndenumerate(self._matrix))
