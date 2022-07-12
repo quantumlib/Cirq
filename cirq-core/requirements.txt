@@ -3,7 +3,7 @@
 # functools.cached_property was introduced in python 3.8
 backports.cached_property~=1.0.1; python_version < '3.8'
 
-duet~=0.2.6
+duet~=0.2.7
 matplotlib~=3.0
 networkx~=2.4
 numpy~=1.16
