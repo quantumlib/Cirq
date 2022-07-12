@@ -327,19 +327,7 @@ from cirq.ops import (
     ZZPowGate,
 )
 
-from cirq.optimizers import (
-    AlignLeft,
-    AlignRight,
-    ConvertToCzAndSingleGates,
-    DropEmptyMoments,
-    DropNegligible,
-    EjectPhasedPaulis,
-    EjectZ,
-    ExpandComposite,
-    MergeInteractions,
-    MergeInteractionsToSqrtIswap,
-    SynchronizeTerminalMeasurements,
-)
+from cirq.optimizers import AlignLeft, AlignRight, ConvertToCzAndSingleGates
 
 from cirq.transformers import (
     align_left,

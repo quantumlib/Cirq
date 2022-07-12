@@ -18,23 +18,7 @@ from cirq.optimizers.align_left import AlignLeft
 
 from cirq.optimizers.align_right import AlignRight
 
-from cirq.optimizers.drop_empty_moments import DropEmptyMoments
-
-from cirq.optimizers.drop_negligible import DropNegligible
-
 from cirq.optimizers.convert_to_cz_and_single_gates import ConvertToCzAndSingleGates
-
-from cirq.optimizers.eject_phased_paulis import EjectPhasedPaulis
-
-from cirq.optimizers.eject_z import EjectZ
-
-from cirq.optimizers.expand_composite import ExpandComposite
-
-from cirq.optimizers.merge_interactions import MergeInteractions
-
-from cirq.optimizers.merge_interactions_to_sqrt_iswap import MergeInteractionsToSqrtIswap
-
-from cirq.optimizers.synchronize_terminal_measurements import SynchronizeTerminalMeasurements
 
 from cirq.transformers.analytical_decompositions import (
     compute_cphase_exponents_for_fsim_decomposition,
