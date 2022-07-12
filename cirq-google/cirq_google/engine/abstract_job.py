@@ -16,6 +16,8 @@
 import abc
 from typing import Dict, Iterator, List, Optional, overload, Sequence, Tuple, TYPE_CHECKING
 
+import duet
+
 import cirq
 from cirq_google.cloud import quantum
 from cirq_google.engine.engine_result import EngineResult
@@ -162,7 +164,7 @@ class AbstractJob(abc.ABC):
         """Deletes the job and result, if any."""
 
     @abc.abstractmethod
-    def batched_results(self) -> Sequence[Sequence[EngineResult]]:
+    async def batched_results_async(self) -> Sequence[Sequence[EngineResult]]:
         """Returns the job results, blocking until the job is complete.
 
         This method is intended for batched jobs.  Instead of flattening
@@ -170,16 +172,22 @@ class AbstractJob(abc.ABC):
         for each circuit in the batch.
         """
 
-    @abc.abstractmethod
-    def results(self) -> Sequence[EngineResult]:
-        """Returns the job results, blocking until the job is complete."""
+    batched_results = duet.sync(batched_results_async)
 
     @abc.abstractmethod
-    def calibration_results(self) -> Sequence['calibration_result.CalibrationResult']:
+    async def results_async(self) -> Sequence[EngineResult]:
+        """Returns the job results, blocking until the job is complete."""
+
+    results = duet.sync(results_async)
+
+    @abc.abstractmethod
+    async def calibration_results_async(self) -> Sequence['calibration_result.CalibrationResult']:
         """Returns the results of a run_calibration() call.
 
         This function will fail if any other type of results were returned.
         """
+
+    calibration_results = duet.sync(calibration_results_async)
 
     def __iter__(self) -> Iterator[cirq.Result]:
         yield from self.results()

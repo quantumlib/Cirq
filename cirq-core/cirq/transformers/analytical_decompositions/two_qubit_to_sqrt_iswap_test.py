@@ -19,16 +19,6 @@ import pytest
 import cirq
 import sympy
 
-ALLOW_DEPRECATION_IN_TEST = 'ALLOW_DEPRECATION_IN_TEST'
-
-
-def test_deprecated_submodule():
-    with cirq.testing.assert_deprecated(
-        "Use cirq.transformers.analytical_decompositions.two_qubit_to_sqrt_iswap instead",
-        deadline="v0.16",
-    ):
-        _ = cirq.optimizers.two_qubit_to_sqrt_iswap.two_qubit_matrix_to_sqrt_iswap_operations
-
 
 def random_unitary(seed):
     return cirq.testing.random_unitary(4, random_state=seed)
