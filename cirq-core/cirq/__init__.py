@@ -65,6 +65,7 @@ from cirq.circuits import (
     AbstractCircuit,
     Alignment,
     Circuit,
+    CircuitOperation,
     FrozenCircuit,
     InsertStrategy,
     Moment,
@@ -72,7 +73,6 @@ from cirq.circuits import (
     PointOptimizer,
     QasmOutput,
     TextDiagramDrawer,
-    Unique,
 )
 
 from cirq.devices import (
