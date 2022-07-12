@@ -71,31 +71,32 @@ class EigenGate(raw_types.Gate):
     eigenvalue i and a part with eigenvalue -i, then EigenGate allows this
     functionality to be unambiguously specified via the _eigen_components
     method.
+
+    The eigenvalue of each eigenspace of a gate is computed by:
+
+    1. Starting with an angle in half turns as returned by the gate's
+        ``_eigen_components`` method:
+
+                θ
+
+    2. Shifting the angle by `global_shift`:
+
+                θ + s
+
+    3. Scaling the angle by `exponent`:
+
+                (θ + s) * e
+
+    4. Converting from half turns to a complex number on the unit circle:
+
+                exp(i * pi * (θ + s) * e)
+
     """
 
     def __init__(
         self, *, exponent: value.TParamVal = 1.0, global_shift: float = 0.0  # Forces keyword args.
     ) -> None:
         """Initializes the parameters used to compute the gate's matrix.
-
-        The eigenvalue of each eigenspace of a gate is computed by
-
-        1. Starting with an angle in half turns as returned by the gate's
-        ``_eigen_components`` method:
-
-                θ
-
-        2. Shifting the angle by `global_shift`:
-
-                θ + s
-
-        3. Scaling the angle by `exponent`:
-
-                (θ + s) * e
-
-        4. Converting from half turns to a complex number on the unit circle:
-
-                exp(i * pi * (θ + s) * e)
 
         Args:
             exponent: The t in gate**t. Determines how much the eigenvalues of

@@ -12,9 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import List, Optional, Sequence, TYPE_CHECKING, Union, cast
+from typing import Optional, Sequence, TYPE_CHECKING, Union, cast
 
 import cirq
+import duet
 
 if TYPE_CHECKING:
     import cirq_google as cg
@@ -31,17 +32,21 @@ class ProcessorSampler(cirq.Sampler):
         """
         self._processor = processor
 
-    def run_sweep(
+    async def run_sweep_async(
         self, program: 'cirq.AbstractCircuit', params: cirq.Sweepable, repetitions: int = 1
     ) -> Sequence['cg.EngineResult']:
-        job = self._processor.run_sweep(program=program, params=params, repetitions=repetitions)
-        return job.results()
+        job = await self._processor.run_sweep_async(
+            program=program, params=params, repetitions=repetitions
+        )
+        return await job.results_async()
 
-    def run_batch(
+    run_sweep = duet.sync(run_sweep_async)
+
+    async def run_batch_async(
         self,
         programs: Sequence[cirq.AbstractCircuit],
-        params_list: Optional[List[cirq.Sweepable]] = None,
-        repetitions: Union[int, List[int]] = 1,
+        params_list: Optional[Sequence[cirq.Sweepable]] = None,
+        repetitions: Union[int, Sequence[int]] = 1,
     ) -> Sequence[Sequence['cg.EngineResult']]:
         """Runs the supplied circuits.
 
@@ -52,24 +57,20 @@ class ProcessorSampler(cirq.Sampler):
                circuits. That is, the `repetitions` argument must be an integer,
                or else a list with identical values.
         """
-        if isinstance(repetitions, List) and len(programs) != len(repetitions):
-            raise ValueError(
-                'len(programs) and len(repetitions) must match. '
-                f'Got {len(programs)} and {len(repetitions)}.'
-            )
-        if isinstance(repetitions, int) or len(set(repetitions)) == 1:
+        params_list, repetitions = self._normalize_batch_args(programs, params_list, repetitions)
+        if len(set(repetitions)) == 1:
             # All repetitions are the same so batching can be done efficiently
-            if isinstance(repetitions, List):
-                repetitions = repetitions[0]
-            job = self._processor.run_batch(
-                programs=programs, params_list=params_list, repetitions=repetitions
+            job = await self._processor.run_batch_async(
+                programs=programs, params_list=params_list, repetitions=repetitions[0]
             )
-            return job.batched_results()
+            return await job.batched_results_async()
         # Varying number of repetitions so no speedup
         return cast(
             Sequence[Sequence['cg.EngineResult']],
-            super().run_batch(programs, params_list, repetitions),
+            await super().run_batch_async(programs, params_list, repetitions),
         )
+
+    run_batch = duet.sync(run_batch_async)
 
     @property
     def processor(self) -> 'cg.engine.AbstractProcessor':
