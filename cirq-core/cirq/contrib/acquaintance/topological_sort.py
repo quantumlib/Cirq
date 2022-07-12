@@ -19,6 +19,7 @@ from typing import Any, Callable, cast, Iterable, TYPE_CHECKING
 import networkx
 
 from cirq import ops
+from cirq.contrib.circuitdag import CircuitDag
 
 if TYPE_CHECKING:
     import cirq
