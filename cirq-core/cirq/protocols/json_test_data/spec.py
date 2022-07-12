@@ -86,20 +86,9 @@ TestSpec = ModuleJsonTestSpec(
         'TwoQubitCompilationTargetGateset',
         # Circuit optimizers are function-like. Only attributes
         # are ignore_failures, tolerance, and other feature flags
-        'AlignLeft',
-        'AlignRight',
-        'ConvertToCzAndSingleGates',
         'ConvertToIonGates',
-        'DropEmptyMoments',
-        'DropNegligible',
-        'EjectPhasedPaulis',
-        'EjectZ',
-        'ExpandComposite',
         'MEASUREMENT_KEY_SEPARATOR',
-        'MergeInteractions',
-        'MergeInteractionsToSqrtIswap',
         'PointOptimizer',
-        'SynchronizeTerminalMeasurements',
         # Transformers
         'TransformerLogger',
         'TransformerContext',

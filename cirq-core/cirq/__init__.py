@@ -42,7 +42,6 @@ from cirq import (
     # Core
     circuits,
     # Optimize and run
-    optimizers,
     work,
     sim,
     vis,
@@ -325,20 +324,6 @@ from cirq.ops import (
     ZPowGate,
     ZZ,
     ZZPowGate,
-)
-
-from cirq.optimizers import (
-    AlignLeft,
-    AlignRight,
-    ConvertToCzAndSingleGates,
-    DropEmptyMoments,
-    DropNegligible,
-    EjectPhasedPaulis,
-    EjectZ,
-    ExpandComposite,
-    MergeInteractions,
-    MergeInteractionsToSqrtIswap,
-    SynchronizeTerminalMeasurements,
 )
 
 from cirq.transformers import (
