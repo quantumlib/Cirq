@@ -25,7 +25,7 @@ if TYPE_CHECKING:
 
 
 def is_topologically_sorted(
-    dag: 'cirq.CircuitDag',
+    dag: 'cirq.contrib.CircuitDag',
     operations: 'cirq.OP_TREE',
     equals: Callable[[ops.Operation, ops.Operation], bool] = operator.eq,
 ) -> bool:
