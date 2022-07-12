@@ -91,7 +91,6 @@ TestSpec = ModuleJsonTestSpec(
         'ConvertToCzAndSingleGates',
         'ConvertToIonGates',
         'MEASUREMENT_KEY_SEPARATOR',
-        'MergeSingleQubitGates',
         'PointOptimizer',
         # Transformers
         'TransformerLogger',

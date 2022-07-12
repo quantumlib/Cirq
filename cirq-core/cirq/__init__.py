@@ -331,9 +331,6 @@ from cirq.optimizers import (
     AlignLeft,
     AlignRight,
     ConvertToCzAndSingleGates,
-    merge_single_qubit_gates_into_phased_x_z,
-    merge_single_qubit_gates_into_phxz,
-    MergeSingleQubitGates,
 )
 
 from cirq.transformers import (

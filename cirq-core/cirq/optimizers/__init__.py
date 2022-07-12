@@ -20,12 +20,6 @@ from cirq.optimizers.align_right import AlignRight
 
 from cirq.optimizers.convert_to_cz_and_single_gates import ConvertToCzAndSingleGates
 
-from cirq.optimizers.merge_single_qubit_gates import (
-    merge_single_qubit_gates_into_phased_x_z,
-    merge_single_qubit_gates_into_phxz,
-    MergeSingleQubitGates,
-)
-
 from cirq.transformers.analytical_decompositions import (
     compute_cphase_exponents_for_fsim_decomposition,
     decompose_cphase_into_two_fsim,
