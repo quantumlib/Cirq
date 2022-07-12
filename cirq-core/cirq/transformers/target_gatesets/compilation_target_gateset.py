@@ -17,15 +17,10 @@
 from typing import Optional, List, Hashable, TYPE_CHECKING
 import abc
 
-from cirq import circuits, ops, protocols, _import
+from cirq import circuits, ops, protocols, transformers
 from cirq.protocols.decompose_protocol import DecomposeResult
-from cirq.transformers import (
-    drop_empty_moments,
-    drop_negligible_operations,
-    expand_composite,
-    merge_k_qubit_gates,
-    merge_single_qubit_gates,
-)
+from cirq.transformers import merge_k_qubit_gates, merge_single_qubit_gates
+
 
 if TYPE_CHECKING:
     import cirq
@@ -136,7 +131,7 @@ class CompilationTargetGateset(ops.Gateset, metaclass=abc.ABCMeta):
         """List of transformers which should be run before decomposing individual operations."""
         return [
             create_transformer_with_kwargs(
-                expand_composite.expand_composite,
+                transformers.expand_composite,
                 no_decomp=lambda op: protocols.num_qubits(op) <= self.num_qubits,
             ),
             create_transformer_with_kwargs(
@@ -151,8 +146,8 @@ class CompilationTargetGateset(ops.Gateset, metaclass=abc.ABCMeta):
         """List of transformers which should be run after decomposing individual operations."""
         return [
             merge_single_qubit_gates.merge_single_qubit_moments_to_phxz,
-            drop_negligible_operations.drop_negligible_operations,
-            drop_empty_moments.drop_empty_moments,
+            transformers.drop_negligible_operations,
+            transformers.drop_empty_moments,
         ]
 
 
