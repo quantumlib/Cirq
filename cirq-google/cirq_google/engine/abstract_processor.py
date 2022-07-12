@@ -20,7 +20,7 @@ methods.
 
 import abc
 import datetime
-from typing import Dict, Iterable, List, Optional, Sequence, TYPE_CHECKING, Union
+from typing import Dict, List, Optional, Sequence, TYPE_CHECKING, Union
 
 import duet
 
