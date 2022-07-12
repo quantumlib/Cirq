@@ -558,17 +558,6 @@ def test_simulate_moment_steps(dtype: Type[np.complexfloating], split: bool):
             np.testing.assert_almost_equal(step.state_vector(copy=True), np.array([1, 0, 0, 0]))
 
 
-def test_simulate_moment_steps_implicit_copy_deprecated():
-    q0 = cirq.LineQubit(0)
-    simulator = cirq.Simulator()
-    steps = list(simulator.simulate_moment_steps(cirq.Circuit(cirq.X(q0))))
-
-    with cirq.testing.assert_deprecated(
-        "state_vector will not copy the state by default", deadline="v0.16"
-    ):
-        _ = steps[0].state_vector()
-
-
 @pytest.mark.parametrize('dtype', [np.complex64, np.complex128])
 @pytest.mark.parametrize('split', [True, False])
 def test_simulate_moment_steps_empty_circuit(dtype: Type[np.complexfloating], split: bool):
@@ -726,8 +715,8 @@ def test_allocates_new_state():
 
     initial_state = np.array([np.sqrt(0.5), np.sqrt(0.5)], dtype=np.complex64)
     result = simulator.simulate(circuit, initial_state=initial_state)
-    np.testing.assert_array_almost_equal(result.state_vector(copy=False), initial_state)
-    assert not initial_state is result.state_vector(copy=False)
+    np.testing.assert_array_almost_equal(result.state_vector(), initial_state)
+    assert not initial_state is result.state_vector()
 
 
 def test_does_not_modify_initial_state():
@@ -751,7 +740,7 @@ def test_does_not_modify_initial_state():
     result = simulator.simulate(circuit, initial_state=initial_state)
     np.testing.assert_array_almost_equal(np.array([1, 0], dtype=np.complex64), initial_state)
     np.testing.assert_array_almost_equal(
-        result.state_vector(copy=False), np.array([0, 1], dtype=np.complex64)
+        result.state_vector(), np.array([0, 1], dtype=np.complex64)
     )
 
 
@@ -803,7 +792,7 @@ def test_simulates_composite():
     np.testing.assert_allclose(
         c.final_state_vector(ignore_terminal_measurements=False, dtype=np.complex64), expected
     )
-    np.testing.assert_allclose(cirq.Simulator().simulate(c).state_vector(copy=False), expected)
+    np.testing.assert_allclose(cirq.Simulator().simulate(c).state_vector(), expected)
 
 
 def test_simulate_measurement_inversions():
@@ -820,7 +809,7 @@ def test_works_on_pauli_string_phasor():
     a, b = cirq.LineQubit.range(2)
     c = cirq.Circuit(np.exp(0.5j * np.pi * cirq.X(a) * cirq.X(b)))
     sim = cirq.Simulator()
-    result = sim.simulate(c).state_vector(copy=False)
+    result = sim.simulate(c).state_vector()
     np.testing.assert_allclose(result.reshape(4), np.array([0, 0, 0, 1j]), atol=1e-8)
 
 
@@ -828,7 +817,7 @@ def test_works_on_pauli_string():
     a, b = cirq.LineQubit.range(2)
     c = cirq.Circuit(cirq.X(a) * cirq.X(b))
     sim = cirq.Simulator()
-    result = sim.simulate(c).state_vector(copy=False)
+    result = sim.simulate(c).state_vector()
     np.testing.assert_allclose(result.reshape(4), np.array([0, 0, 0, 1]), atol=1e-8)
 
 
@@ -1325,7 +1314,7 @@ def test_state_vector_copy():
     vectors = []
     copy_of_vectors = []
     for step in sim.simulate_moment_steps(circuit):
-        state_vector = step.state_vector(copy=False)
+        state_vector = step.state_vector()
         vectors.append(state_vector)
         copy_of_vectors.append(state_vector.copy())
     assert any(not np.array_equal(x, y) for x, y in zip(vectors, copy_of_vectors))
@@ -1338,9 +1327,9 @@ def test_final_state_vector_is_not_last_object():
     initial_state = np.array([1, 0], dtype=np.complex64)
     circuit = cirq.Circuit(cirq.wait(q))
     result = sim.simulate(circuit, initial_state=initial_state)
-    assert result.state_vector(copy=False) is not initial_state
-    assert not np.shares_memory(result.state_vector(copy=False), initial_state)
-    np.testing.assert_equal(result.state_vector(copy=False), initial_state)
+    assert result.state_vector() is not initial_state
+    assert not np.shares_memory(result.state_vector(), initial_state)
+    np.testing.assert_equal(result.state_vector(), initial_state)
 
 
 def test_deterministic_gate_noise():
