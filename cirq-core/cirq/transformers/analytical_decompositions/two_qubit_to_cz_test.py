@@ -27,15 +27,6 @@ from cirq.transformers.analytical_decompositions.two_qubit_to_cz import (
 )
 from cirq.testing import random_two_qubit_circuit_with_czs
 
-ALLOW_DEPRECATION_IN_TEST = 'ALLOW_DEPRECATION_IN_TEST'
-
-
-def test_deprecated_submodule():
-    with cirq.testing.assert_deprecated(
-        "Use cirq.transformers.analytical_decompositions.two_qubit_to_cz instead", deadline="v0.16"
-    ):
-        _ = cirq.optimizers.two_qubit_decompositions.two_qubit_matrix_to_cz_operations
-
 
 @pytest.mark.parametrize(
     'rad,expected',

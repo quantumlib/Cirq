@@ -13,10 +13,11 @@
 # limitations under the License.
 """An implementation of AbstractJob that uses in-memory constructs
 and a provided sampler to execute circuits."""
+import concurrent.futures
 import datetime
 from typing import cast, List, Optional, Sequence, Tuple
 
-import concurrent.futures
+import duet
 
 import cirq
 from cirq_google.cloud import quantum
@@ -87,7 +88,7 @@ class SimulatedLocalJob(AbstractLocalJob):
             # If asynchronous mode, just kick off a new task and move on.
             self._thread = concurrent.futures.ThreadPoolExecutor(max_workers=1)
             try:
-                self._future = self._thread.submit(self._execute_results)
+                self._future = duet.AwaitableFuture.wrap(self._thread.submit(self._execute_results))
             finally:
                 # We only expect the one future to run in this thread,
                 # So we can call shutdown immediately, which will
@@ -113,7 +114,7 @@ class SimulatedLocalJob(AbstractLocalJob):
         self.program().delete_job(self.id())
         self._state = quantum.ExecutionStatus.State.STATE_UNSPECIFIED
 
-    def batched_results(self) -> Sequence[Sequence[EngineResult]]:
+    async def batched_results_async(self) -> Sequence[Sequence[EngineResult]]:
         """Returns the job results, blocking until the job is complete.
 
         This method is intended for batched jobs.  Instead of flattening
@@ -123,7 +124,7 @@ class SimulatedLocalJob(AbstractLocalJob):
         if self._type == LocalSimulationType.SYNCHRONOUS:
             return self._execute_results()
         elif self._type == LocalSimulationType.ASYNCHRONOUS:
-            return self._future.result()
+            return await self._future
         else:
             raise ValueError('Unsupported simulation type {self._type}')
 
@@ -155,16 +156,16 @@ class SimulatedLocalJob(AbstractLocalJob):
             self._state = quantum.ExecutionStatus.State.FAILURE
             raise e
 
-    def results(self) -> Sequence[EngineResult]:
+    async def results_async(self) -> Sequence[EngineResult]:
         """Returns the job results, blocking until the job is complete."""
         if self._type == LocalSimulationType.SYNCHRONOUS:
             return _flatten_results(self._execute_results())
         elif self._type == LocalSimulationType.ASYNCHRONOUS:
-            return _flatten_results(self._future.result())
+            return _flatten_results(await self._future)
         else:
             raise ValueError('Unsupported simulation type {self._type}')
 
-    def calibration_results(self) -> Sequence[CalibrationResult]:
+    async def calibration_results_async(self) -> Sequence[CalibrationResult]:
         """Returns the results of a run_calibration() call.
 
         This function will fail if any other type of results were returned.

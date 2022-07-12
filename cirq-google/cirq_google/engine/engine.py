@@ -265,7 +265,7 @@ class Engine(abstract_engine.AbstractEngine):
             )
         )[0]
 
-    def run_sweep(
+    async def run_sweep_async(
         self,
         program: cirq.AbstractCircuit,
         program_id: Optional[str] = None,
@@ -312,10 +312,10 @@ class Engine(abstract_engine.AbstractEngine):
         Raises:
             ValueError: If no gate set is provided.
         """
-        engine_program = self.create_program(
+        engine_program = await self.create_program_async(
             program, program_id, description=program_description, labels=program_labels
         )
-        return engine_program.run_sweep(
+        return await engine_program.run_sweep_async(
             job_id=job_id,
             params=params,
             repetitions=repetitions,
@@ -324,7 +324,9 @@ class Engine(abstract_engine.AbstractEngine):
             labels=job_labels,
         )
 
-    def run_batch(
+    run_sweep = duet.sync(run_sweep_async)
+
+    async def run_batch_async(
         self,
         programs: Sequence[cirq.AbstractCircuit],
         program_id: Optional[str] = None,
@@ -390,10 +392,10 @@ class Engine(abstract_engine.AbstractEngine):
             raise ValueError('Number of circuits and sweeps must match')
         if not processor_ids:
             raise ValueError('Processor id must be specified.')
-        engine_program = self.create_batch_program(
+        engine_program = await self.create_batch_program_async(
             programs, program_id, description=program_description, labels=program_labels
         )
-        return engine_program.run_batch(
+        return await engine_program.run_batch_async(
             job_id=job_id,
             params_list=params_list,
             repetitions=repetitions,
@@ -402,7 +404,9 @@ class Engine(abstract_engine.AbstractEngine):
             labels=job_labels,
         )
 
-    def run_calibration(
+    run_batch = duet.sync(run_batch_async)
+
+    async def run_calibration_async(
         self,
         layers: List['cirq_google.CalibrationLayer'],
         program_id: Optional[str] = None,
@@ -466,15 +470,17 @@ class Engine(abstract_engine.AbstractEngine):
             processor_ids = [processor_id]
         if job_labels is None:
             job_labels = {'calibration': ''}
-        engine_program = self.create_calibration_program(
+        engine_program = await self.create_calibration_program_async(
             layers, program_id, description=program_description, labels=program_labels
         )
-        return engine_program.run_calibration(
+        return await engine_program.run_calibration_async(
             job_id=job_id,
             processor_ids=processor_ids,
             description=job_description,
             labels=job_labels,
         )
+
+    run_calibration = duet.sync(run_calibration_async)
 
     async def create_program_async(
         self,
