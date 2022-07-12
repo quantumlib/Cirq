@@ -86,7 +86,7 @@ class NoiseModelFromNoiseProperties(devices.NoiseModel):
             split_measure_moments.append(circuits.Moment(split_measure_ops))
 
         # Append PHYSICAL_GATE_TAG to non-virtual ops in the input circuit,
-        # using `self.virtual_predicate` to determine virtuality.
+        # using `self.is_virtual` to determine virtuality.
         new_moments = []
         for moment in split_measure_moments:
             virtual_ops = {op for op in moment if self.is_virtual(op)}
