@@ -222,7 +222,7 @@ class PhasedFSimGate(gate_features.InterchangeableQubitsGate, raw_types.Gate):
     \begin{bmatrix}
         1 & 0 & 0 & 0 \\
         0 & e^{-i \gamma - i \zeta} \cos(\theta) & -i e^{-i \gamma + i\chi} \sin(\theta) & 0 \\
-        0 & -i e^{-i \gamma - i \chi}\sin(\theta) & e^{-i \gamma + i \zeta}\cos(\theta) & 0 \\
+        0 & -i e^{-i \gamma - i \chi} \sin(\theta) & e^{-i \gamma + i \zeta} \cos(\theta) & 0 \\
         0 & 0 & 0 & e^{-2i \gamma - i \phi}
     \end{bmatrix}
     $$
