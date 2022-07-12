@@ -13,6 +13,7 @@
 # limitations under the License.
 import itertools
 import os
+import time
 from collections import defaultdict
 from random import randint, random, sample, randrange
 from typing import Iterator, Optional, Tuple, TYPE_CHECKING
@@ -4644,3 +4645,18 @@ global phase:   0.5π
                 └────────┘
     """,
     )
+
+
+def test_create_speed():
+    # Added in https://github.com/quantumlib/Cirq/pull/5332
+    # Previously this took ~30s to run. Now it should take ~150ms. However the coverage test can
+    # run this slowly, so allowing 2 sec to account for things like that. Feel free to increase the
+    # buffer time or delete the test entirely if it ends up causing flakes.
+    qs = 100
+    moments = 500
+    xs = [cirq.X(cirq.LineQubit(i)) for i in range(qs)]
+    opa = [xs[i] for i in range(qs) for _ in range(moments)]
+    t = time.perf_counter()
+    c = cirq.Circuit(opa)
+    assert len(c) == moments
+    assert time.perf_counter() - t < 2
