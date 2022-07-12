@@ -13,13 +13,13 @@
 # limitations under the License.
 """Abstract base class for things sampling quantum circuits."""
 
-import abc
 import collections
 from typing import Dict, FrozenSet, List, Optional, Sequence, Tuple, TYPE_CHECKING, Union
 
+import duet
 import pandas as pd
 
-from cirq import ops, protocols, study
+from cirq import ops, protocols, study, value
 from cirq.work.observable_measurement import (
     measure_observables,
     RepetitionsStoppingCriteria,
@@ -31,7 +31,7 @@ if TYPE_CHECKING:
     import cirq
 
 
-class Sampler(metaclass=abc.ABCMeta):
+class Sampler(metaclass=value.ABCMetaImplementAnyOneOf):
     """Something capable of sampling quantum circuits. Simulator or hardware."""
 
     def run(
@@ -177,7 +177,19 @@ class Sampler(metaclass=abc.ABCMeta):
 
         return pd.concat(results)
 
-    @abc.abstractmethod
+    def _run_sweep_impl(
+        self, program: 'cirq.AbstractCircuit', params: 'cirq.Sweepable', repetitions: int = 1
+    ) -> Sequence['cirq.Result']:
+        """Implements run_sweep using run_sweep_async"""
+        return duet.run(self.run_sweep_async, program, params, repetitions)
+
+    async def _run_sweep_async_impl(
+        self, program: 'cirq.AbstractCircuit', params: 'cirq.Sweepable', repetitions: int = 1
+    ) -> Sequence['cirq.Result']:
+        """Implements run_sweep_async using run_sweep"""
+        return self.run_sweep(program, params=params, repetitions=repetitions)
+
+    @value.alternative(requires='run_sweep_async', implementation=_run_sweep_impl)
     def run_sweep(
         self, program: 'cirq.AbstractCircuit', params: 'cirq.Sweepable', repetitions: int = 1
     ) -> Sequence['cirq.Result']:
@@ -200,6 +212,7 @@ class Sampler(metaclass=abc.ABCMeta):
             Result list for this run; one for each possible parameter resolver.
         """
 
+    @value.alternative(requires='run_sweep', implementation=_run_sweep_async_impl)
     async def run_sweep_async(
         self, program: 'cirq.AbstractCircuit', params: 'cirq.Sweepable', repetitions: int = 1
     ) -> Sequence['cirq.Result']:
@@ -217,13 +230,12 @@ class Sampler(metaclass=abc.ABCMeta):
         Returns:
             Result list for this run; one for each possible parameter resolver.
         """
-        return self.run_sweep(program, params=params, repetitions=repetitions)
 
     def run_batch(
         self,
         programs: Sequence['cirq.AbstractCircuit'],
-        params_list: Optional[List['cirq.Sweepable']] = None,
-        repetitions: Union[int, List[int]] = 1,
+        params_list: Optional[Sequence['cirq.Sweepable']] = None,
+        repetitions: Union[int, Sequence[int]] = 1,
     ) -> Sequence[Sequence['cirq.Result']]:
         """Runs the supplied circuits.
 
@@ -263,6 +275,34 @@ class Sampler(metaclass=abc.ABCMeta):
             ValueError: If length of `programs` is not equal to the length
                 of `params_list` or the length of `repetitions`.
         """
+        params_list, repetitions = self._normalize_batch_args(programs, params_list, repetitions)
+        return [
+            self.run_sweep(circuit, params=params, repetitions=repetitions)
+            for circuit, params, repetitions in zip(programs, params_list, repetitions)
+        ]
+
+    async def run_batch_async(
+        self,
+        programs: Sequence['cirq.AbstractCircuit'],
+        params_list: Optional[Sequence['cirq.Sweepable']] = None,
+        repetitions: Union[int, Sequence[int]] = 1,
+    ) -> Sequence[Sequence['cirq.Result']]:
+        """Runs the supplied circuits.
+
+        This is an asynchronous version of `run_batch`; see full docs there.
+        """
+        params_list, repetitions = self._normalize_batch_args(programs, params_list, repetitions)
+        return [
+            await self.run_sweep_async(circuit, params=params, repetitions=repetitions)
+            for circuit, params, repetitions in zip(programs, params_list, repetitions)
+        ]
+
+    def _normalize_batch_args(
+        self,
+        programs: Sequence['cirq.AbstractCircuit'],
+        params_list: Optional[Sequence['cirq.Sweepable']] = None,
+        repetitions: Union[int, Sequence[int]] = 1,
+    ) -> Tuple[Sequence['cirq.Sweepable'], Sequence[int]]:
         if params_list is None:
             params_list = [None] * len(programs)
         if len(programs) != len(params_list):
@@ -277,10 +317,7 @@ class Sampler(metaclass=abc.ABCMeta):
                 'len(programs) and len(repetitions) must match. '
                 f'Got {len(programs)} and {len(repetitions)}.'
             )
-        return [
-            self.run_sweep(circuit, params=params, repetitions=repetitions)
-            for circuit, params, repetitions in zip(programs, params_list, repetitions)
-        ]
+        return params_list, repetitions
 
     def sample_expectation_values(
         self,

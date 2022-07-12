@@ -82,15 +82,13 @@ class MockJob(AbstractJob):
     def delete(self) -> None:
         pass
 
-    def batched_results(self):
+    async def batched_results_async(self):
         pass
 
-    def results(self):
-        return list(
-            cirq.ResultDict(params={}, measurements={'a': np.asarray([t])}) for t in range(5)
-        )
+    async def results_async(self):
+        return [cirq.ResultDict(params={}, measurements={'a': np.asarray([t])}) for t in range(5)]
 
-    def calibration_results(self):
+    async def calibration_results_async(self):
         pass
 
 

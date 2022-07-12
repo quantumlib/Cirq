@@ -59,6 +59,42 @@ async def test_sampler_async_fail():
         await FailingSampler().run_sweep_async(cirq.Circuit(), repetitions=1, params=None)
 
 
+def test_run_sweep_impl():
+    """Test run_sweep implemented in terms of run_sweep_async."""
+
+    class AsyncSampler(cirq.Sampler):
+        async def run_sweep_async(self, program, params, repetitions: int = 1):
+            await duet.sleep(0.001)
+            return cirq.Simulator().run_sweep(program, params, repetitions)
+
+    results = AsyncSampler().run_sweep(
+        cirq.Circuit(cirq.measure(cirq.GridQubit(0, 0), key='m')),
+        cirq.Linspace('foo', 0, 1, 10),
+        repetitions=10,
+    )
+    assert len(results) == 10
+    for result in results:
+        np.testing.assert_equal(result.records['m'], np.zeros((10, 1, 1)))
+
+
+@duet.sync
+async def test_run_sweep_async_impl():
+    """Test run_sweep_async implemented in terms of run_sweep."""
+
+    class SyncSampler(cirq.Sampler):
+        def run_sweep(self, program, params, repetitions: int = 1):
+            return cirq.Simulator().run_sweep(program, params, repetitions)
+
+    results = await SyncSampler().run_sweep_async(
+        cirq.Circuit(cirq.measure(cirq.GridQubit(0, 0), key='m')),
+        cirq.Linspace('foo', 0, 1, 10),
+        repetitions=10,
+    )
+    assert len(results) == 10
+    for result in results:
+        np.testing.assert_equal(result.records['m'], np.zeros((10, 1, 1)))
+
+
 def test_sampler_sample_multiple_params():
     a, b = cirq.LineQubit.range(2)
     s = sympy.Symbol('s')
