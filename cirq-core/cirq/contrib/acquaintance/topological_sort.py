@@ -19,14 +19,13 @@ from typing import Any, Callable, cast, Iterable, TYPE_CHECKING
 import networkx
 
 from cirq import ops
-from cirq.contrib.circuitdag import CircuitDag
 
 if TYPE_CHECKING:
     import cirq
 
 
 def is_topologically_sorted(
-    dag: 'cirq.CircuitDag',
+    dag: 'cirq.contrib.CircuitDag',
     operations: 'cirq.OP_TREE',
     equals: Callable[[ops.Operation, ops.Operation], bool] = operator.eq,
 ) -> bool:
