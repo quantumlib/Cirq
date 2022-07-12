@@ -65,8 +65,6 @@ from cirq.circuits import (
     AbstractCircuit,
     Alignment,
     Circuit,
-    CircuitDag,
-    CircuitOperation,
     FrozenCircuit,
     InsertStrategy,
     Moment,
