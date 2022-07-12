@@ -16,8 +16,6 @@ import pytest
 import cirq
 
 VALID_INITIAL_STATES = [
-    np.array([1, 0, 0, 0]),
-    np.array([0, 1, 0, 0]),
     np.array([1 / np.sqrt(2), -1 / np.sqrt(2), 0, 0]),
     *[np.concatenate([cirq.testing.random_superposition(2), np.zeros(2)]) for _ in range(3)],
 ]
@@ -37,7 +35,7 @@ INVALID_INITIAL_STATES = [
         )
     ),
 )
-@pytest.mark.parametrize('unitary_matrix', [cirq.testing.random_unitary(4) for _ in range(10)])
+@pytest.mark.parametrize('unitary_matrix', [cirq.testing.random_unitary(4) for _ in range(5)])
 @pytest.mark.parametrize('allow_partial_czs', [True, False])
 def test_two_qubit_matrix_to_cz_isometry(
     initial_state, is_valid, unitary_matrix, allow_partial_czs
