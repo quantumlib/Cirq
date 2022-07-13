@@ -71,7 +71,7 @@ def _rotation_matrix(angle: float) -> np.ndarray:
 
 
 def deconstruct_single_qubit_matrix_into_angles(mat: np.ndarray) -> Tuple[float, float, float]:
-    """Breaks down a 2x2 unitary into more useful ZYZ angle parameters.
+    r"""Breaks down a 2x2 unitary into more useful ZYZ angle parameters.
 
     Given a unitary U, this function returns three angles: $\phi_0, \phi_1, \phi_2$,
     such that:  $U = Z^{\phi_0 / \pi} Y^{\phi_1 / \pi} Z^{\phi_2 / \pi}$.

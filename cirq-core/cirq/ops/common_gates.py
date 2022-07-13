@@ -1372,7 +1372,7 @@ def rz(rads: value.TParamVal) -> Rz:
 
 
 def cphase(rads: value.TParamVal) -> CZPowGate:
-    """Returns a cphase gate with phase of `rad` radians.
+    r"""Returns a cphase gate with phase of `rad` radians.
 
     Returns a gate with the unitary matrix:
 
