@@ -33,62 +33,46 @@ from cirq_google.engine.test_utils import uses_async_mock
 _BATCH_PROGRAM_V2 = util.pack_any(
     Merge(
         """programs { language {
-  gate_set: "xmon"
+  gate_set: "v2_5"
+  arg_function_language: "exp"
 }
 circuit {
   scheduling_strategy: MOMENT_BY_MOMENT
   moments {
     operations {
-      gate {
-        id: "xy"
-      }
-      args {
-        key: "axis_half_turns"
-        value {
-          arg_value {
-            float_value: 0.0
-          }
+      qubit_constant_index: 0
+      phasedxpowgate {
+        phase_exponent {
+          float_value: 0.0
         }
-      }
-      args {
-        key: "half_turns"
-        value {
-          arg_value {
-            float_value: 0.5
-          }
+        exponent {
+          float_value: 0.5
         }
-      }
-      qubits {
-        id: "5_2"
       }
     }
   }
   moments {
     operations {
-      gate {
-        id: "meas"
-      }
-      args {
-        key: "invert_mask"
-        value {
+      qubit_constant_index: 0
+      measurementgate {
+        key {
+          arg_value {
+            string_value: "result"
+          }
+        }
+        invert_mask {
           arg_value {
             bool_values {
             }
           }
         }
       }
-      args {
-        key: "key"
-        value {
-          arg_value {
-            string_value: "result"
-          }
-        }
-      }
-      qubits {
-        id: "5_2"
-      }
     }
+  }
+}
+constants {
+  qubit {
+    id: "5_2"
   }
 }
 }
@@ -100,62 +84,46 @@ circuit {
 _PROGRAM_V2 = util.pack_any(
     Merge(
         """language {
-  gate_set: "xmon"
+  gate_set: "v2_5"
+  arg_function_language: "exp"
 }
 circuit {
   scheduling_strategy: MOMENT_BY_MOMENT
   moments {
     operations {
-      gate {
-        id: "xy"
-      }
-      args {
-        key: "axis_half_turns"
-        value {
-          arg_value {
-            float_value: 0.0
-          }
+      qubit_constant_index: 0
+      phasedxpowgate {
+        phase_exponent {
+          float_value: 0.0
         }
-      }
-      args {
-        key: "half_turns"
-        value {
-          arg_value {
-            float_value: 0.5
-          }
+        exponent {
+          float_value: 0.5
         }
-      }
-      qubits {
-        id: "5_2"
       }
     }
   }
   moments {
     operations {
-      gate {
-        id: "meas"
-      }
-      args {
-        key: "invert_mask"
-        value {
+      qubit_constant_index: 0
+      measurementgate {
+        key {
+          arg_value {
+            string_value: "result"
+          }
+        }
+        invert_mask {
           arg_value {
             bool_values {
             }
           }
         }
       }
-      args {
-        key: "key"
-        value {
-          arg_value {
-            string_value: "result"
-          }
-        }
-      }
-      qubits {
-        id: "5_2"
-      }
     }
+  }
+}
+constants {
+  qubit {
+    id: "5_2"
   }
 }
 """,
