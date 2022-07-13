@@ -180,3 +180,80 @@ class ProductOfSums(AbstractControlValues):
                 f'And operation not supported between types ProductOfSums and {type(other)}'
             )
         return type(self)(self._internal_representation + other._internal_representation)
+
+
+@dataclass(frozen=True, eq=False)
+class SumOfProducts(AbstractControlValues):
+    """SumOfProducts represents control values in a form of a list or products.
+
+    SumOfProducts allows the creation of control values combinations that
+    can't be factored as the product of independent expressions (e.g. XOR)
+
+
+    Examples:
+        xor = SumOfProducts(((0, 1), (1, 0)))   # xor of two bits.
+        nand =  SumOfProducts(((0, 0), (0, 1), (1, 0))) # nand of two bits
+    """
+
+    _internal_representation: Tuple[Tuple[int, ...], ...]
+
+    def _identifier(self) -> Tuple[Tuple[int, ...], ...]:
+        return self._internal_representation
+
+    def _expand(self) -> Iterator[Tuple[int, ...]]:
+        """Returns the combinations tracked by the object."""
+        self = cast('SumOfProducts', self)
+        for c in self._internal_representation:
+            yield c
+
+    def __repr__(self) -> str:
+        return f'cirq.SumOfProducts({str(self._identifier())})'
+
+    def _number_variables(self) -> int:
+        return len(self._internal_representation[0])
+
+    def __len__(self) -> int:
+        return self._number_variables()
+
+    def __hash__(self) -> int:
+        return hash(self._internal_representation)
+
+    def validate(self, qid_shapes: Union[Tuple[int, ...], List[int]]) -> None:
+        for vals in self._internal_representation:
+            if len(qid_shapes) != len(vals):
+                raise ValueError(
+                    f'number of values in product {vals} doesn\'t  equal number'
+                    f' of qubits(={len(qid_shapes)})'
+                )
+
+            for i, v in enumerate(vals):
+                if not (0 <= v and v < qid_shapes[i]):
+                    raise ValueError(
+                        f'Control values <{v}> in combination {vals} is outside'
+                        f' of range for control qubit number <{i}>.'
+                    )
+
+    def _are_ones(self) -> bool:
+        return frozenset(self._internal_representation) == {(1,) * self._number_variables()}
+
+    def diagram_repr(self) -> str:
+        return NotImplemented
+
+    def __getitem__(
+        self, key: Union[int, slice]
+    ) -> Union['AbstractControlValues', Tuple[int, ...]]:
+        return NotImplemented
+
+    def _json_dict_(self) -> Dict[str, Any]:
+        return {'_internal_representation': self._internal_representation}
+
+    def __and__(self, other: AbstractControlValues) -> 'SumOfProducts':
+        if not isinstance(other, SumOfProducts):
+            raise TypeError(
+                f'And operation not supported between types SumOfProducts and {type(other)}'
+            )
+        combined = map(
+            lambda p: tuple(itertools.chain(*p)),
+            itertools.product(self._internal_representation, other._internal_representation),
+        )
+        return SumOfProducts(tuple(combined))
