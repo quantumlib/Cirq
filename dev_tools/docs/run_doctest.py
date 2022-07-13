@@ -227,7 +227,7 @@ def main():
     excluded = [
         'cirq-google/cirq_google/engine/client/',
         'cirq-google/cirq_google/cloud/',
-        'cirq-google/cirq_google/api',
+        'cirq-google/cirq_google/api/',
     ]
     file_names = [
         f
