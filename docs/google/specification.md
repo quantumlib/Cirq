@@ -111,9 +111,10 @@ engine = cg.Engine(project_id='your_project_id',
 device = engine.get_processor('processor_id').get_device()
 
 q0, q1 = cirq.LineQubit.range(2)
+circuit = cirq.Circuit(cirq.CZ(q0, q1))
 
-# Raises a ValueError, since this is not a supported gate.
-cirq.Circuit(cirq.CZ(q0,q1), device=device)
+# Raises a ValueError, since CZ is not a supported gate.
+device.validate_circuit(circuit)
 ```
 
 Note that, if network traffic is undesired, the `DeviceSpecification` can
