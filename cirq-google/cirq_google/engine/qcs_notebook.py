@@ -110,7 +110,13 @@ def get_qcs_objects_for_notebook(
         device = Sycamore
         signed_in = False
 
-    return QCSObjectsForNotebook(device=device, sampler=sampler, signed_in=signed_in, project_id=project_id, processor_id=processor_id)
+    return QCSObjectsForNotebook(
+        device=device,
+        sampler=sampler,
+        signed_in=signed_in,
+        project_id=project_id,
+        processor_id=processor_id,
+    )
 
 
 # pylint: enable=missing-raises-doc
