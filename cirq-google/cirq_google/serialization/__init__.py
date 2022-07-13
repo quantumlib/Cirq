@@ -32,5 +32,3 @@ from cirq_google.serialization.op_serializer import (
 )
 
 from cirq_google.serialization.serializer import Serializer
-
-from cirq_google.serialization.serializable_gate_set import SerializableGateSet

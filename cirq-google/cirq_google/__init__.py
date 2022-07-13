@@ -117,7 +117,6 @@ from cirq_google.serialization import (
     GateOpSerializer,
     Serializer,
     SerializingArg,
-    SerializableGateSet,
 )
 
 from cirq_google.workflow import (
