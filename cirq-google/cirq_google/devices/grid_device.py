@@ -308,15 +308,6 @@ class GridDevice(cirq.Device):
         """Get metadata information for the device."""
         return self._metadata
 
-    # Some user code using SerializableDevices gets the qubit list via `device.qubits`.
-    # This is a stopgap solution to prevent user breakage with the change to GridDevice.
-    @property  # type: ignore
-    @cirq._compat.deprecated(
-        deadline='v0.16', fix='Change `device.qubits` to `device.metadata.qubit_set`.'
-    )
-    def qubits(self) -> List[cirq.Qid]:
-        return sorted(self._metadata.qubit_set)
-
     def validate_operation(self, operation: cirq.Operation) -> None:
         """Raises an exception if an operation is not valid.
 

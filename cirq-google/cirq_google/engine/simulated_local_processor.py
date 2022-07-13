@@ -127,10 +127,10 @@ class SimulatedLocalProcessor(AbstractLocalProcessor):
         return self.get_latest_calibration(int(datetime.datetime.now().timestamp()))
 
     def get_device(self) -> cirq.Device:
-        """Returns a `Device` created from the processor's device specification.
+        """Returns a `cirq.Device` created from the processor's device specification.
 
         This method queries the processor to retrieve the device specification,
-        which is then use to create a `SerializableDevice` that will validate
+        which is then use to create a `cirq.Device` that will validate
         that operations are supported and use the correct qubits.
         """
         return self._device
