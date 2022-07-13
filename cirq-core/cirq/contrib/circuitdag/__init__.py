@@ -12,4 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""Tools for representing a Circuit as a directed acyclic graph."""
+
 from cirq.contrib.circuitdag.circuit_dag import CircuitDag, Unique

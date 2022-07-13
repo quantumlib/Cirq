@@ -38,8 +38,11 @@ def q(*args: Union[int, str]) -> Union['cirq.LineQubit', 'cirq.GridQubit', 'cirq
 
     This is shorthand for constructing qubit ids of common types:
     >>> cirq.q(1) == cirq.LineQubit(1)
+    True
     >>> cirq.q(1, 2) == cirq.GridQubit(1, 2)
+    True
     >>> cirq.q("foo") == cirq.NamedQubit("foo")
+    True
 
     Note that arguments should be treated as positional only, even
     though this is only enforceable in python 3.8 or later.
