@@ -20,5 +20,3 @@ from cirq_google.devices.google_noise_properties import (
 from cirq_google.devices.known_devices import Sycamore, Sycamore23
 
 from cirq_google.devices.grid_device import GridDevice
-
-from cirq_google.devices.serializable_device import SerializableDevice

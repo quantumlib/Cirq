@@ -20,14 +20,14 @@ methods.
 
 import abc
 import datetime
-from typing import Dict, Iterable, List, Optional, Sequence, TYPE_CHECKING, Union
+from typing import Dict, List, Optional, Sequence, TYPE_CHECKING, Union
 
 import duet
 
 import cirq
 from cirq_google.api import v2
 from cirq_google.cloud import quantum
-from cirq_google.engine import calibration, util
+from cirq_google.engine import calibration
 
 if TYPE_CHECKING:
     import cirq_google as cg
@@ -282,8 +282,7 @@ class AbstractProcessor(abc.ABC):
         """
 
     @abc.abstractmethod
-    @util.deprecated_get_device_gate_sets_parameter()
-    def get_device(self, gate_sets: Iterable['serializer.Serializer'] = ()) -> cirq.Device:
+    def get_device(self) -> cirq.Device:
         """Returns a `Device` created from the processor's device specification.
 
         This method queries the processor to retrieve the device specification,

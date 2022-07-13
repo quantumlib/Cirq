@@ -13,7 +13,7 @@
 # limitations under the License.
 import datetime
 
-from typing import Dict, Iterable, List, Optional, Sequence, TYPE_CHECKING, Union
+from typing import Dict, List, Optional, Sequence, TYPE_CHECKING, Union
 
 from google.protobuf import any_pb2
 
@@ -28,7 +28,6 @@ from cirq_google.engine import (
     processor_sampler,
     util,
 )
-from cirq_google.serialization import serializer
 
 if TYPE_CHECKING:
     import cirq_google as cg
@@ -314,8 +313,7 @@ class EngineProcessor(abstract_processor.AbstractProcessor):
         else:
             return None
 
-    @util.deprecated_get_device_gate_sets_parameter()
-    def get_device(self, gate_sets: Iterable[serializer.Serializer] = ()) -> cirq.Device:
+    def get_device(self) -> cirq.Device:
         """Returns a `Device` created from the processor's device specification.
 
         This method queries the processor to retrieve the device specification,
