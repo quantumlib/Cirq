@@ -25,6 +25,7 @@ from cirq_google import (
     PhasedFSimCharacterization,
     get_engine,
 )
+from cirq_google.engine import create_noiseless_virtual_engine_from_latest_templates
 
 
 @dataclasses.dataclass
@@ -34,17 +35,14 @@ class QCSObjectsForNotebook:
     signed_in: bool
     processor_id: Optional[str]
     project_id: Optional[str]
-
-    @property
-    def is_simulator(self):
-        return isinstance(self.sampler, PhasedFSimEngineSimulator)
+    is_simulator: bool
 
 
 # Disable missing-raises-doc lint check, since pylint gets confused
 # by exceptions that are raised and caught within this function.
 # pylint: disable=missing-raises-doc
 def get_qcs_objects_for_notebook(
-    project_id: Optional[str] = None, processor_id: Optional[str] = None
+    project_id: Optional[str] = None, processor_id: Optional[str] = None, virtual=False
 ) -> QCSObjectsForNotebook:  # pragma: nocover
     """Authenticates on Google Cloud, can return a Device and Simulator.
 
@@ -55,6 +53,8 @@ def get_qcs_objects_for_notebook(
             personal project IDs in shared code.
         processor_id: Engine processor ID (from Cloud console or
             ``Engine.list_processors``).
+        virtual: If set to True, will create a noisy virtual Engine instead.
+            This is useful for testing and simulation.
 
     Returns:
         An instance of DeviceSamplerInfo.
@@ -63,8 +63,7 @@ def get_qcs_objects_for_notebook(
     # Check for Google Application Default Credentials and run
     # interactive login if the notebook is executed in Colab. In
     # case the notebook is executed in Jupyter notebook or other
-    # IPython runtimes, no interactive login is provided, it is
-    # assumed that the `GOOGLE_APPLICATION_CREDENTIALS` env var is
+
     # set or `gcloud auth application-default login` was executed
     # already. For more information on using Application Default Credentials
     # see https://cloud.google.com/docs/authentication/production
@@ -84,7 +83,12 @@ def get_qcs_objects_for_notebook(
     # Attempt to connect to the Quantum Engine API, and use a simulator if unable to connect.
     sampler: Union[PhasedFSimEngineSimulator, ProcessorSampler]
     try:
-        engine = get_engine(project_id)
+        if virtual:
+            engine = create_noiseless_virtual_engine_from_latest_templates()
+            is_simulator = True
+        else:
+            engine = get_engine(project_id)
+            is_simulator = False
         if processor_id:
             processor = engine.get_processor(processor_id)
         else:
@@ -96,10 +100,10 @@ def get_qcs_objects_for_notebook(
             print(f"Available processors: {[p.processor_id for p in processors]}")
             print(f"Using processor: {processor.processor_id}")
         if not project_id:
-            project_id = processor.project_id
+            project_id = getattr(processor, 'project_id', getattr(processor, '_project_name', None))
         device = processor.get_device()
         sampler = processor.get_sampler()
-        signed_in = True
+        signed_in = not virtual
     except Exception as exc:
         print(f"Unable to connect to quantum engine: {exc}")
         print("Using a noisy simulator.")
@@ -107,6 +111,7 @@ def get_qcs_objects_for_notebook(
             mean=SQRT_ISWAP_INV_PARAMETERS,
             sigma=PhasedFSimCharacterization(theta=0.01, zeta=0.10, chi=0.01, gamma=0.10, phi=0.02),
         )
+        is_simulator = True
         device = Sycamore
         signed_in = False
 
@@ -116,6 +121,7 @@ def get_qcs_objects_for_notebook(
         signed_in=signed_in,
         project_id=project_id,
         processor_id=processor_id,
+        is_simulator=is_simulator,
     )
 
 

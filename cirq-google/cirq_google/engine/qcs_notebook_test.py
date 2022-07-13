@@ -17,13 +17,23 @@ from cirq_google.engine.qcs_notebook import get_qcs_objects_for_notebook
 
 
 def test_get_device_sampler():
-    result = get_qcs_objects_for_notebook('not_a_valid_project_name')
+    result = get_qcs_objects_for_notebook(virtual=True)
     assert isinstance(result.device, cg.GridDevice)
     assert not result.signed_in
-    assert isinstance(result.sampler, cg.PhasedFSimEngineSimulator)
+    assert isinstance(result.sampler, cg.ProcessorSampler)
     assert result.is_simulator
+    assert result.processor_id == 'rainbow'
+    assert result.project_id == 'fake_project'
+
+    result = get_qcs_objects_for_notebook(processor_id='weber', virtual=True)
+    assert isinstance(result.device, cg.GridDevice)
+    assert not result.signed_in
+    assert isinstance(result.sampler, cg.ProcessorSampler)
+    assert result.is_simulator
+    assert result.processor_id == 'weber'
+    assert result.project_id == 'fake_project'
 
     # Note: if running locally with application default credentials,
-    # you actually will be signed_in
-    result = get_qcs_objects_for_notebook("", "")
+    # you actually will be signed_in, so it may not be a simulator
+    result = get_qcs_objects_for_notebook()
     assert isinstance(result.device, cg.GridDevice)
