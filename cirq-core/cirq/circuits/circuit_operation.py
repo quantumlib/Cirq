@@ -20,13 +20,14 @@ component operations in order, including any nested CircuitOperations.
 import math
 from typing import (
     Callable,
-    Mapping,
-    Sequence,
+    cast,
     Dict,
     FrozenSet,
     Iterator,
     List,
+    Mapping,
     Optional,
+    Sequence,
     Tuple,
     TYPE_CHECKING,
     Union,
@@ -790,4 +791,6 @@ class CircuitOperation(ops.Operation):
         self, resolver: 'cirq.ParamResolver', recursive: bool
     ) -> 'cirq.CircuitOperation':
         resolved = self.with_params(resolver.param_dict, recursive)
-        return resolved.replace(repetitions=resolver.value_of(self.repetitions, recursive))
+        return resolved.replace(
+            repetitions=resolver.value_of(cast(float, self.repetitions), recursive)
+        )
