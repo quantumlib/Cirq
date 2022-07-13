@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""Functions for calling the calibration API and characterizing qubits."""
+
 from cirq_google.calibration.engine_simulator import PhasedFSimEngineSimulator
 
 from cirq_google.calibration.phased_fsim import (
