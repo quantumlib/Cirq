@@ -55,8 +55,19 @@ class FrozenCircuit(AbstractCircuit, protocols.SerializableByKey):
     def moments(self) -> Sequence['cirq.Moment']:
         return self._moments
 
-    def __hash__(self):
+    @_compat.cached_method
+    def __hash__(self) -> int:
+        # Explicitly cached for performance
         return hash((self.moments,))
+
+    def __getstate__(self):
+        # Don't save hash when pickling; see #3777.
+        state = self.__dict__
+        hash_cache = _compat._method_cache_name(self.__hash__)
+        if hash_cache in state:
+            state = state.copy()
+            del state[hash_cache]
+        return state
 
     @_compat.cached_method
     def _num_qubits_(self) -> int:

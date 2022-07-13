@@ -39,14 +39,10 @@ TestSpec = ModuleJsonTestSpec(
         'KakDecomposition',
         'LinearCombinationOfGates',
         'LinearCombinationOfOperations',
-        'Linspace',
-        'ListSweep',
         'PauliSumCollector',
         'PauliSumExponential',
         'PeriodicValue',
         'PointOptimizationSummary',
-        'Points',
-        'Product',
         'QasmArgs',
         'QasmOutput',
         'QuantumState',
@@ -58,10 +54,8 @@ TestSpec = ModuleJsonTestSpec(
         'TextDiagramDrawer',
         'Timestamp',
         'TwoQubitGateTabulationResult',
-        'UnitSweep',
         'StateVectorTrialResult',
         'ZerosSampler',
-        'Zip',
     ],
     should_not_be_serialized=[
         # Heatmaps
@@ -103,6 +97,7 @@ TestSpec = ModuleJsonTestSpec(
         'SimulatesFinalState',
         'StateVectorStepResult',
         'StepResultBase',
+        'UnitSweep',
         'NamedTopology',
         # protocols:
         'HasJSONNamespace',
