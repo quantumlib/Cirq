@@ -84,6 +84,8 @@ upper_tabs:
         path: /cirq/simulate/params
       - title: "State Histograms"
         path: /cirq/simulate/state_histograms
+      - title: "Observables and PauliStrings"
+        path: /cirq/simulate/pauli_observables
 
     - name: "Transform"
       contents:
