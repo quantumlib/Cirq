@@ -41,6 +41,11 @@ docs/api_docs
 # Ignore Bazel files
 /bazel-*
 
+# Ignore Emacs backup & checkpoint files
+*~
+.\#*
+\#*#
+
 # Default pycharm virtual env
 .venv/
 
