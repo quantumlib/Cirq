@@ -37,6 +37,9 @@ COUPLER_PULSE_GATE_FAMILY = cirq.GateFamily(experimental_ops.CouplerPulse)
 MEASUREMENT_GATE_FAMILY = cirq.GateFamily(cirq.MeasurementGate)
 WAIT_GATE_FAMILY = cirq.GateFamily(cirq.WaitGate)
 
+# Families of gates which can be applied to any subset of valid qubits.
+_VARIADIC_GATE_FAMILIES = [MEASUREMENT_GATE_FAMILY, WAIT_GATE_FAMILY]
+
 
 def _validate_device_specification(proto: v2.device_pb2.DeviceSpecification) -> None:
     """Raises a ValueError if the `DeviceSpecification` proto is invalid."""
@@ -336,15 +339,6 @@ class GridDevice(cirq.Device):
         """Get metadata information for the device."""
         return self._metadata
 
-    # Some user code using SerializableDevices gets the qubit list via `device.qubits`.
-    # This is a stopgap solution to prevent user breakage with the change to GridDevice.
-    @property  # type: ignore
-    @cirq._compat.deprecated(
-        deadline='v0.16', fix='Change `device.qubits` to `device.metadata.qubit_set`.'
-    )
-    def qubits(self) -> List[cirq.Qid]:
-        return sorted(self._metadata.qubit_set)
-
     def validate_operation(self, operation: cirq.Operation) -> None:
         """Raises an exception if an operation is not valid.
 
@@ -369,6 +363,7 @@ class GridDevice(cirq.Device):
 
         if (
             len(operation.qubits) == 2
+            and not any(operation in gf for gf in _VARIADIC_GATE_FAMILIES)
             and frozenset(operation.qubits) not in self._metadata.qubit_pairs
         ):
             raise ValueError(f'Qubit pair is not valid on device: {operation.qubits!r}.')

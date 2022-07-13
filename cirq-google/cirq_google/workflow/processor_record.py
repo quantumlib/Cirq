@@ -106,7 +106,7 @@ class SimulatedProcessorRecord(ProcessorRecord):
         )
 
     def _get_input_device(self) -> 'cirq.Device':
-        """Return a `cg.SerializableDevice` for the specified processor_id.
+        """Return a `cirq.Device` for the specified processor_id.
 
         This method presumes the GOOGLE_CLOUD_PROJECT environment
         variable is set to establish a connection to the cloud service.

@@ -14,7 +14,6 @@ TestSpec = ModuleJsonTestSpec(
         'SYC_GATESET',
         'Sycamore',
         'Sycamore23',
-        'SerializableDevice',
         'SerializableGateSet',
         'SQRT_ISWAP_GATESET',
         'SQRT_ISWAP_INV_PARAMETERS',
