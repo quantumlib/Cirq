@@ -32,6 +32,8 @@ class QCSObjectsForNotebook:
     device: cirq.Device
     sampler: Union[PhasedFSimEngineSimulator, ProcessorSampler]
     signed_in: bool
+    processor_id: Optional[str]
+    project_id: Optional[str]
 
     @property
     def is_simulator(self):
@@ -90,8 +92,11 @@ def get_qcs_objects_for_notebook(
             if not processors:
                 raise ValueError("No processors available.")
             processor = processors[0]
+            processor_id = processor.processor_id
             print(f"Available processors: {[p.processor_id for p in processors]}")
             print(f"Using processor: {processor.processor_id}")
+        if not project_id:
+            project_id = processor.project_id
         device = processor.get_device()
         sampler = processor.get_sampler()
         signed_in = True
@@ -105,7 +110,7 @@ def get_qcs_objects_for_notebook(
         device = Sycamore
         signed_in = False
 
-    return QCSObjectsForNotebook(device=device, sampler=sampler, signed_in=signed_in)
+    return QCSObjectsForNotebook(device=device, sampler=sampler, signed_in=signed_in, project_id=project_id, processor_id=processor_id)
 
 
 # pylint: enable=missing-raises-doc
