@@ -173,27 +173,6 @@ class SimulationState(SimulationStateBase, Generic[TState], metaclass=abc.ABCMet
         args._set_qubits(self.qubits + other.qubits)
         return args
 
-    def with_qubits(self: TSelf, qubits) -> TSelf:
-        """Extend current state space with added qubits.
-
-        The state of the added qubits is the default value set in the
-        subclasses. A new state space is created as the Kronecker product of
-        the original one and the added one.
-
-        Args:
-            qubits: The qubits to be added to the state space.
-
-        Returns:
-            A new subclass object containing the extended state space.
-        """
-        # TODO(#5721): Fix inconsistent usage of the `state` argument in the
-        # SimulationState base (required) and in its derived classes (unknown
-        # in StateVectorSimulationState), then remove the pylint filter below.
-        # pylint: disable=missing-kwoa
-        new_space = type(self)(qubits=qubits)  # type: ignore
-        # pylint: enable=missing-kwoa
-        return self.kronecker_product(new_space)
-
     def factor(
         self: TSelf, qubits: Sequence['cirq.Qid'], *, validate=True, atol=1e-07, inplace=False
     ) -> Tuple[TSelf, TSelf]:

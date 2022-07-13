@@ -19,8 +19,6 @@ import sympy
 import cirq
 import cirq_ionq as ionq
 
-from .ionq_native_gates import GPIGate, GPI2Gate, MSGate
-
 
 def test_serialize_empty_circuit_invalid():
     empty = cirq.Circuit()
@@ -256,9 +254,9 @@ def test_serialize_measurement_gate_split_across_dict():
 
 def test_serialize_native_gates():
     q0, q1, q2 = cirq.LineQubit.range(3)
-    gpi = GPIGate(phi=0.1).on(q0)
-    gpi2 = GPI2Gate(phi=0.2).on(q1)
-    ms = MSGate(phi0=0.3, phi1=0.4).on(q1, q2)
+    gpi = ionq.GPIGate(phi=0.1).on(q0)
+    gpi2 = ionq.GPI2Gate(phi=0.2).on(q1)
+    ms = ionq.MSGate(phi0=0.3, phi1=0.4).on(q1, q2)
     circuit = cirq.Circuit([gpi, gpi2, ms])
     serializer = ionq.Serializer()
     result = serializer.serialize(circuit)

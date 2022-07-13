@@ -1372,7 +1372,20 @@ def rz(rads: value.TParamVal) -> Rz:
 
 
 def cphase(rads: value.TParamVal) -> CZPowGate:
-    """Returns a gate with the matrix diag(1, 1, 1, e^{i rads}."""
+    r"""Returns a cphase gate with phase of `rad` radians.
+
+    Returns a gate with the unitary matrix:
+
+    $$
+    \begin{bmatrix}
+        1 & 0 & 0 & 0 \\
+        0 & 1 & 0 & 0 \\
+        0 & 0 & 1 & 0 \\
+        0 & 0 & 0 & e^{i rads} \\
+    \end{bmatrix}
+    $$
+
+    """
     return CZPowGate(exponent=rads / _pi(rads))
 
 
