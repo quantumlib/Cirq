@@ -239,25 +239,25 @@ class TRANSFORMER(Protocol):
     specified for each keyword argument. A transformer could be a function, for example:
 
     >>> def convert_to_cz(
-    >>>    circuit: cirq.AbstractCircuit,
-    >>>    *,
-    >>>    context: Optional[cirq.TransformerContext] = None,
-    >>>    atol: float = 1e-8,
-    >>> ) -> cirq.Circuit:
-    >>>     ...
+    ...     circuit: cirq.AbstractCircuit,
+    ...     *,
+    ...     context: 'Optional[cirq.TransformerContext]' = None,
+    ...     atol: float = 1e-8,
+    ... ) -> cirq.Circuit:
+    ...     ...
 
     Or it could be a class that implements `__call__` with the same API, for example:
 
     >>> class ConvertToSqrtISwaps:
-    >>>    def __init__(self):
-    >>>        ...
-    >>>    def __call__(
-    >>>        self,
-    >>>        circuit: cirq.AbstractCircuit,
-    >>>        *,
-    >>>        context: Optional[cirq.TransformerContext] = None,
-    >>>    ) -> cirq.AbstractCircuit:
-    >>>        ...
+    ...     def __init__(self):
+    ...         ...
+    ...     def __call__(
+    ...         self,
+    ...         circuit: cirq.AbstractCircuit,
+    ...         *,
+    ...         context: 'Optional[cirq.TransformerContext]' = None,
+    ...      ) -> cirq.AbstractCircuit:
+    ...         ...
     """
 
     def __call__(
@@ -300,38 +300,38 @@ def transformer(cls_or_func: Any = None, *, add_deep_support: bool = False) -> A
     modifying the input circuit. A transformer could be a function, for example:
 
     >>> @cirq.transformer
-    >>> def convert_to_cz(
-    >>>    circuit: cirq.AbstractCircuit, *, context: Optional[cirq.TransformerContext] = None
-    >>> ) -> cirq.Circuit:
-    >>>    ...
+    ... def convert_to_cz(
+    ...    circuit: cirq.AbstractCircuit, *, context: 'Optional[cirq.TransformerContext]' = None
+    ... ) -> cirq.Circuit:
+    ...    ...
 
     Or it could be a class that implements `__call__` with the same API, for example:
 
     >>> @cirq.transformer
-    >>> class ConvertToSqrtISwaps:
-    >>>    def __init__(self):
-    >>>        ...
-    >>>    def __call__(
-    >>>        self,
-    >>>        circuit: cirq.AbstractCircuit,
-    >>>        *,
-    >>>        context: Optional[cirq.TransformerContext] = None,
-    >>>    ) -> cirq.Circuit:
-    >>>        ...
+    ... class ConvertToSqrtISwaps:
+    ...    def __init__(self):
+    ...        ...
+    ...    def __call__(
+    ...        self,
+    ...        circuit: cirq.AbstractCircuit,
+    ...        *,
+    ...        context: 'Optional[cirq.TransformerContext]' = None,
+    ...    ) -> cirq.Circuit:
+    ...        ...
 
     Note that transformers which take additional parameters as `**kwargs`, with default values
     specified for each keyword argument, are also supported. For example:
 
     >>> @cirq.transformer
-    >>> def convert_to_sqrt_iswap(
-    >>>     circuit: cirq.AbstractCircuit,
-    >>>     *,
-    >>>     context: Optional[cirq.TransformerContext] = None,
-    >>>     atol: float = 1e-8,
-    >>>     sqrt_iswap_gate: cirq.ISwapPowGate = cirq.SQRT_ISWAP_INV,
-    >>>     cleanup_operations: bool = True,
-    >>> ) -> cirq.Circuit:
-    >>>     pass
+    ... def convert_to_sqrt_iswap(
+    ...     circuit: cirq.AbstractCircuit,
+    ...     *,
+    ...     context: 'Optional[cirq.TransformerContext]' = None,
+    ...     atol: float = 1e-8,
+    ...     sqrt_iswap_gate: cirq.ISwapPowGate = cirq.SQRT_ISWAP_INV,
+    ...     cleanup_operations: bool = True,
+    ... ) -> cirq.Circuit:
+    ...     pass
 
     Args:
         cls_or_func: The callable class or function to be decorated.
