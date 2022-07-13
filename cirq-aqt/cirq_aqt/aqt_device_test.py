@@ -19,7 +19,6 @@ import pytest
 import cirq
 import cirq_aqt
 import cirq_aqt.aqt_device as cad
-import cirq.testing
 import sympy.utilities.matchpy_connector
 
 
@@ -53,7 +52,7 @@ def test_init():
     assert d.duration_of(cirq.Z(q0)) == 10 * ms
     assert d.duration_of(cirq.measure(q0)) == 100 * ms
     assert d.duration_of(cirq.measure(q0, q1)) == 100 * ms
-    assert d.duration_of(cirq.ops.XX(q0, q1)) == 200 * ms
+    assert d.duration_of(cirq.XX(q0, q1)) == 200 * ms
     with pytest.raises(ValueError, match="Unsupported gate type"):
         _ = d.duration_of(cirq.I(q0))
 
@@ -85,7 +84,7 @@ def test_init_timedelta():
     assert d.duration_of(cirq.Z(q0)) == 10 * ms
     assert d.duration_of(cirq.measure(q0)) == 100 * ms
     assert d.duration_of(cirq.measure(q0, q1)) == 100 * ms
-    assert d.duration_of(cirq.ops.XX(q0, q1)) == 200 * ms
+    assert d.duration_of(cirq.XX(q0, q1)) == 200 * ms
     with pytest.raises(ValueError):
         _ = d.duration_of(cirq.testing.SingleQubitGate().on(q0))
 

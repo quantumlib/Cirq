@@ -30,7 +30,6 @@ import networkx as nx
 import numpy as np
 
 import cirq
-from cirq import circuits, devices, ops, protocols, transformers, value
 from cirq.protocols.decompose_protocol import DecomposeResult
 
 gate_dict = {'X': cirq.X, 'Y': cirq.Y, 'Z': cirq.Z, 'MS': cirq.XX, 'R': cirq.PhasedXPowGate}
@@ -237,43 +236,43 @@ class AQTTargetGateset(cirq.TwoQubitCompilationTargetGateset):
 
     def __init__(self):
         super().__init__(
-            ops.XXPowGate,
-            ops.MeasurementGate,
-            ops.XPowGate,
-            ops.YPowGate,
-            ops.ZPowGate,
-            ops.PhasedXPowGate,
+            cirq.XXPowGate,
+            cirq.MeasurementGate,
+            cirq.XPowGate,
+            cirq.YPowGate,
+            cirq.ZPowGate,
+            cirq.PhasedXPowGate,
             unroll_circuit_op=False,
         )
 
     # TODO(#5698) Complete code coverage and remove coverage-ignore labels below
 
     def _decompose_single_qubit_operation(self, op: 'cirq.Operation', _: int) -> DecomposeResult:
-        if isinstance(op.gate, ops.HPowGate) and op.gate.exponent == 1:
+        if isinstance(op.gate, cirq.HPowGate) and op.gate.exponent == 1:
             # coverage: ignore
-            return [ops.rx(np.pi).on(op.qubits[0]), ops.ry(-1 * np.pi / 2).on(op.qubits[0])]
-        if protocols.has_unitary(op):
+            return [cirq.rx(np.pi).on(op.qubits[0]), cirq.ry(-1 * np.pi / 2).on(op.qubits[0])]
+        if cirq.has_unitary(op):
             # coverage: ignore
-            gates = transformers.single_qubit_matrix_to_phased_x_z(protocols.unitary(op))
+            gates = cirq.single_qubit_matrix_to_phased_x_z(cirq.unitary(op))
             return [g.on(op.qubits[0]) for g in gates]
         return NotImplemented
 
     def _decompose_two_qubit_operation(self, op: 'cirq.Operation', _) -> DecomposeResult:
-        if protocols.has_unitary(op):
+        if cirq.has_unitary(op):
             # coverage: ignore
-            return transformers.two_qubit_matrix_to_ion_operations(
-                op.qubits[0], op.qubits[1], protocols.unitary(op)
+            return cirq.two_qubit_matrix_to_ion_operations(
+                op.qubits[0], op.qubits[1], cirq.unitary(op)
             )
         return NotImplemented
 
     @property
     def postprocess_transformers(self) -> List['cirq.TRANSFORMER']:
         """List of transformers which should be run after decomposing individual operations."""
-        return [transformers.drop_negligible_operations, transformers.drop_empty_moments]
+        return [cirq.drop_negligible_operations, cirq.drop_empty_moments]
 
 
-@value.value_equality
-class AQTDevice(devices.Device):
+@cirq.value_equality
+class AQTDevice(cirq.Device):
     """Ion trap device with qubits having all-to-all connectivity and placed on a line."""
 
     def __init__(
@@ -281,7 +280,7 @@ class AQTDevice(devices.Device):
         measurement_duration: 'cirq.DURATION_LIKE',
         twoq_gates_duration: 'cirq.DURATION_LIKE',
         oneq_gates_duration: 'cirq.DURATION_LIKE',
-        qubits: Iterable[devices.LineQubit],
+        qubits: Iterable[cirq.LineQubit],
     ) -> None:
         """Initializes the description of an ion trap device.
 
@@ -295,10 +294,10 @@ class AQTDevice(devices.Device):
         Raises:
             TypeError: If not all the qubits supplied are `cirq.LineQubit`s.
         """
-        self._measurement_duration = value.Duration(measurement_duration)
-        self._twoq_gates_duration = value.Duration(twoq_gates_duration)
-        self._oneq_gates_duration = value.Duration(oneq_gates_duration)
-        if not all(isinstance(qubit, devices.LineQubit) for qubit in qubits):
+        self._measurement_duration = cirq.Duration(measurement_duration)
+        self._twoq_gates_duration = cirq.Duration(twoq_gates_duration)
+        self._oneq_gates_duration = cirq.Duration(oneq_gates_duration)
+        if not all(isinstance(qubit, cirq.LineQubit) for qubit in qubits):
             raise TypeError(
                 "All qubits were not of type cirq.LineQubit, instead were "
                 f"{set(type(qubit) for qubit in qubits)}"
@@ -308,54 +307,54 @@ class AQTDevice(devices.Device):
 
         graph = nx.Graph()
         graph.add_edges_from([(a, b) for a in qubits for b in qubits if a != b], directed=False)
-        self._metadata = devices.DeviceMetadata(self.qubits, graph)
+        self._metadata = cirq.DeviceMetadata(self.qubits, graph)
 
     @property
-    def metadata(self) -> devices.DeviceMetadata:
+    def metadata(self) -> cirq.DeviceMetadata:
         return self._metadata
 
-    def decompose_circuit(self, circuit: circuits.Circuit) -> circuits.Circuit:
-        return transformers.optimize_for_target_gateset(circuit, gateset=self.gateset)
+    def decompose_circuit(self, circuit: cirq.Circuit) -> cirq.Circuit:
+        return cirq.optimize_for_target_gateset(circuit, gateset=self.gateset)
 
     def duration_of(self, operation):
-        if isinstance(operation.gate, ops.XXPowGate):
+        if isinstance(operation.gate, cirq.XXPowGate):
             return self._twoq_gates_duration
         if isinstance(
-            operation.gate, (ops.XPowGate, ops.YPowGate, ops.ZPowGate, ops.PhasedXPowGate)
+            operation.gate, (cirq.XPowGate, cirq.YPowGate, cirq.ZPowGate, cirq.PhasedXPowGate)
         ):
             return self._oneq_gates_duration
-        if isinstance(operation.gate, ops.MeasurementGate):
+        if isinstance(operation.gate, cirq.MeasurementGate):
             return self._measurement_duration
         raise ValueError(f'Unsupported gate type: {operation!r}')
 
-    def validate_gate(self, gate: ops.Gate):
+    def validate_gate(self, gate: cirq.Gate):
         if gate not in self.gateset:
             raise ValueError(f'Unsupported gate type: {gate!r}')
 
     def validate_operation(self, operation):
-        if not isinstance(operation, ops.GateOperation):
+        if not isinstance(operation, cirq.GateOperation):
             raise ValueError(f'Unsupported operation: {operation!r}')
 
         self.validate_gate(operation.gate)
 
         for q in operation.qubits:
-            if not isinstance(q, devices.LineQubit):
+            if not isinstance(q, cirq.LineQubit):
                 raise ValueError(f'Unsupported qubit type: {q!r}')
             if q not in self.qubits:
                 raise ValueError(f'Qubit not on device: {q!r}')
 
-    def validate_circuit(self, circuit: circuits.AbstractCircuit):
+    def validate_circuit(self, circuit: cirq.AbstractCircuit):
         super().validate_circuit(circuit)
         _verify_unique_measurement_keys(circuit.all_operations())
 
-    def at(self, position: int) -> Optional[devices.LineQubit]:
+    def at(self, position: int) -> Optional[cirq.LineQubit]:
         """Returns the qubit at the given position, if there is one, else None."""
-        q = devices.LineQubit(position)
+        q = cirq.LineQubit(position)
         return q if q in self.qubits else None
 
-    def neighbors_of(self, qubit: devices.LineQubit) -> Iterable[devices.LineQubit]:
+    def neighbors_of(self, qubit: cirq.LineQubit) -> Iterable[cirq.LineQubit]:
         """Returns the qubits that the given qubit can interact with."""
-        possibles = [devices.LineQubit(qubit.x + 1), devices.LineQubit(qubit.x - 1)]
+        possibles = [cirq.LineQubit(qubit.x + 1), cirq.LineQubit(qubit.x - 1)]
         return [e for e in possibles if e in self.qubits]
 
     def _value_equality_values_(self) -> Any:
@@ -367,7 +366,7 @@ class AQTDevice(devices.Device):
         )
 
     def __str__(self) -> str:
-        diagram = circuits.TextDiagramDrawer()
+        diagram = cirq.TextDiagramDrawer()
 
         for q in self.qubits:
             diagram.write(q.x, 0, str(q))
@@ -423,12 +422,12 @@ def get_default_noise_dict() -> Dict[str, Any]:
     return default_noise_dict
 
 
-def _verify_unique_measurement_keys(operations: Iterable[ops.Operation]):
+def _verify_unique_measurement_keys(operations: Iterable[cirq.Operation]):
     seen: Set[str] = set()
     for op in operations:
-        if isinstance(op.gate, ops.MeasurementGate):
+        if isinstance(op.gate, cirq.MeasurementGate):
             meas = op.gate
-            key = protocols.measurement_key_name(meas)
+            key = cirq.measurement_key_name(meas)
             if key in seen:
                 raise ValueError(f'Measurement key {key} repeated')
             seen.add(key)
