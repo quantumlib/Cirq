@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""Devices and Noise models for publicly known Google devices."""
+
 from cirq_google.devices.google_noise_properties import (
     GoogleNoiseProperties,
     NoiseModelFromGoogleNoiseProperties,

@@ -59,10 +59,7 @@ class SharedRuntimeInfo:
         return 'cirq.google'
 
     def _json_dict_(self) -> Dict[str, Any]:
-        d = dataclass_json_dict(self)
-        # TODO (gh-4699): serialize `device` as well once SerializableDevice is serializable.
-        del d['device']
-        return d
+        return dataclass_json_dict(self)
 
     def __repr__(self) -> str:
         return _compat.dataclass_repr(self, namespace='cirq_google')
