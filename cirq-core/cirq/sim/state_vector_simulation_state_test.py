@@ -269,20 +269,6 @@ def test_measured_mixture():
     assert results.histogram(key='flip') == results.histogram(key='m')
 
 
-def test_with_qubits():
-    original = cirq.StateVectorSimulationState(
-        qubits=cirq.LineQubit.range(2), initial_state=1, dtype=np.complex64
-    )
-    extened = original.with_qubits(cirq.LineQubit.range(2, 4))
-    np.testing.assert_almost_equal(
-        extened.target_tensor,
-        cirq.state_vector_kronecker_product(
-            np.array([[0.0 + 0.0j, 1.0 + 0.0j], [0.0 + 0.0j, 0.0 + 0.0j]], dtype=np.complex64),
-            np.array([[1.0 + 0.0j, 0.0 + 0.0j], [0.0 + 0.0j, 0.0 + 0.0j]], dtype=np.complex64),
-        ),
-    )
-
-
 def test_qid_shape_error():
     with pytest.raises(ValueError, match="qid_shape must be provided"):
         cirq.sim.state_vector_simulation_state._BufferedStateVector.create(initial_state=0)
