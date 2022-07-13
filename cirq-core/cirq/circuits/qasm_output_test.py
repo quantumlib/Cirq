@@ -298,7 +298,6 @@ def _all_operations(q0, q1, q2, q3, q4, include_measurements=True):
         cirq.Rz(rads=np.pi / 2)(q0),
         cirq.Rz(rads=np.pi / 4)(q0),
         cirq.MatrixGate(cirq.unitary(cirq.H) @ cirq.unitary(cirq.T)).on(q0),
-        cirq.MatrixGate(cirq.unitary(cirq.SWAP))(q0, q1),
         cirq.CZ(q0, q1),
         cirq.CZ(q0, q1) ** 0.25,  # Requires 2-qubit decomposition
         cirq.CNOT(q0, q1),
@@ -406,23 +405,6 @@ rz(pi*1.0) q[0];
 rz(pi*0.5) q[0];
 rz(pi*0.25) q[0];
 u3(pi*1.5,pi*1.0,pi*0.25) q[0];
-
-// Gate: [[1.+0.j 0.+0.j 0.+0.j 0.+0.j]
- // [0.+0.j 0.+0.j 1.+0.j 0.+0.j]
- // [0.+0.j 1.+0.j 0.+0.j 0.+0.j]
- // [0.+0.j 0.+0.j 0.+0.j 1.+0.j]]
-u2(pi*-0.5, pi*0.5) q[0];
-u2(0, 0) q[1];
-cz q[0],q[1];
-u2(pi*0.5, pi*-0.5) q[0];
-u2(pi*-1.0, pi*1.0) q[1];
-cz q[0],q[1];
-u2(pi*-0.5, pi*0.5) q[0];
-u2(0, 0) q[1];
-cz q[0],q[1];
-sdg q[0];
-rz(pi*-1.5) q[1];
-
 cz q[0],q[1];
 
 // Gate: CZ**0.25
