@@ -1383,6 +1383,7 @@ def cphase(rads: value.TParamVal) -> CZPowGate:
         0 & 0 & 1 & 0 \\
         0 & 0 & 0 & e^{i rads} \\
     \end{bmatrix}
+    $$
 
     """
     return CZPowGate(exponent=rads / _pi(rads))

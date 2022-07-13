@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Transformers for compiling to Google-specific Sycamore gate."""
+"""Transformers for compiling to Google-specific gates, such as Sycamore."""
 
 from cirq_google.transformers.analytical_decompositions import (
     known_2q_op_to_sycamore_operations,
