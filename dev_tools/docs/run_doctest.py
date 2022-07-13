@@ -174,7 +174,6 @@ def exec_tests(
     failed, attempted = 0, 0
     error_messages = []
     for test in tests:
-        print(test.file_name)
         out = OutputCapture()
         with out:
             r = test.run()
@@ -230,7 +229,11 @@ def main():
         'cirq-google/cirq_google/cloud/',
         'cirq-google/cirq_google/api',
     ]
-    file_names = [f for f in file_names if not any(f.startswith(x) for x in excluded)]
+    file_names = [
+        f
+        for f in file_names
+        if not (any(f.startswith(x) for x in excluded) or f.endswith("_test.py"))
+    ]
     failed, attempted = run_tests(
         file_names, include_modules=True, include_local=False, quiet=quiet
     )
@@ -238,9 +241,7 @@ def main():
     if failed != 0:
         print(
             shell_tools.highlight(
-                'Failed: {} failed, {} passed, {} total'.format(
-                    failed, attempted - failed, attempted
-                ),
+                f'Failed: {failed} failed, {attempted - failed} passed, {attempted} total',
                 shell_tools.RED,
             )
         )
