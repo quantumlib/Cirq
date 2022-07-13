@@ -252,15 +252,74 @@ def test_grid_device_from_proto():
 def test_grid_device_validate_operations_positive():
     device_info, spec = _create_device_spec_with_horizontal_couplings()
     device = cirq_google.GridDevice.from_proto(spec)
+    # Gates that can be applied to any subset of valid qubits
+    variadic_gates = [cirq.measure, cirq.WaitGate(cirq.Duration(nanos=1), num_qubits=2)]
 
     for q in device_info.grid_qubits:
         device.validate_operation(cirq.X(q))
+        device.validate_operation(cirq.measure(q))
 
     # horizontal qubit pairs
     for i in range(GRID_HEIGHT):
         device.validate_operation(
             cirq.CZ(device_info.grid_qubits[2 * i], device_info.grid_qubits[2 * i + 1])
         )
+        for gate in variadic_gates:
+            device.validate_operation(
+                gate(device_info.grid_qubits[2 * i], device_info.grid_qubits[2 * i + 1])
+            )
+
+
+@pytest.mark.parametrize(
+    'gate_func',
+    [
+        lambda _: cirq.measure,
+        lambda num_qubits: cirq.WaitGate(cirq.Duration(nanos=1), num_qubits=num_qubits),
+    ],
+)
+def test_grid_device_validate_operations_variadic_gates_positive(gate_func):
+    device_info, spec = _create_device_spec_with_horizontal_couplings()
+    device = cirq_google.GridDevice.from_proto(spec)
+
+    # Single qubit operations
+    for q in device_info.grid_qubits:
+        device.validate_operation(gate_func(1)(q))
+
+    # horizontal qubit pairs (coupled)
+    for i in range(GRID_HEIGHT):
+        device.validate_operation(
+            gate_func(2)(device_info.grid_qubits[2 * i], device_info.grid_qubits[2 * i + 1])
+        )
+
+    # Variadic gates across vertical qubit pairs (uncoupled pairs) should succeed.
+    for i in range(GRID_HEIGHT - 1):
+        device.validate_operation(
+            gate_func(2)(device_info.grid_qubits[2 * i], device_info.grid_qubits[2 * (i + 1)])
+        )
+        device.validate_operation(
+            gate_func(2)(
+                device_info.grid_qubits[2 * i + 1], device_info.grid_qubits[2 * (i + 1) + 1]
+            )
+        )
+
+    # 3-qubit measurements
+    for i in range(GRID_HEIGHT - 2):
+        device.validate_operation(
+            gate_func(3)(
+                device_info.grid_qubits[2 * i],
+                device_info.grid_qubits[2 * (i + 1)],
+                device_info.grid_qubits[2 * (i + 2)],
+            )
+        )
+        device.validate_operation(
+            gate_func(3)(
+                device_info.grid_qubits[2 * i + 1],
+                device_info.grid_qubits[2 * (i + 1) + 1],
+                device_info.grid_qubits[2 * (i + 2) + 1],
+            )
+        )
+    # All-qubit measurement
+    device.validate_operation(gate_func(len(device_info.grid_qubits))(*device_info.grid_qubits))
 
 
 def test_grid_device_validate_operations_negative():
