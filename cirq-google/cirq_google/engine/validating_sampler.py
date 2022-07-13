@@ -11,12 +11,12 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from typing import Callable, List, Optional, Sequence, Union
+from typing import Callable, Optional, Sequence, Union
 
 import cirq
 
 VALIDATOR_TYPE = Callable[
-    [Sequence[cirq.AbstractCircuit], Sequence[cirq.Sweepable], Union[int, List[int]]], None
+    [Sequence[cirq.AbstractCircuit], Sequence[cirq.Sweepable], Union[int, Sequence[int]]], None
 ]
 
 
@@ -49,8 +49,8 @@ class ValidatingSampler(cirq.Sampler):
     def _validate_circuit(
         self,
         circuits: Sequence[cirq.AbstractCircuit],
-        sweeps: List[cirq.Sweepable],
-        repetitions: Union[int, List[int]],
+        sweeps: Sequence[cirq.Sweepable],
+        repetitions: Union[int, Sequence[int]],
     ):
         if self._device:
             for circuit in circuits:
@@ -67,10 +67,9 @@ class ValidatingSampler(cirq.Sampler):
     def run_batch(
         self,
         programs: Sequence[cirq.AbstractCircuit],
-        params_list: Optional[List[cirq.Sweepable]] = None,
-        repetitions: Union[int, List[int]] = 1,
+        params_list: Optional[Sequence[cirq.Sweepable]] = None,
+        repetitions: Union[int, Sequence[int]] = 1,
     ) -> Sequence[Sequence[cirq.Result]]:
-        if params_list is None:
-            params_list = [None] * len(programs)
+        params_list, repetitions = self._normalize_batch_args(programs, params_list, repetitions)
         self._validate_circuit(programs, params_list, repetitions)
         return self._sampler.run_batch(programs, params_list, repetitions)

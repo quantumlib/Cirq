@@ -30,6 +30,7 @@ import collections
 import itertools
 import sympy
 
+from cirq import protocols
 from cirq._doc import document
 from cirq.study import resolver
 
@@ -196,6 +197,9 @@ class _Unit(Sweep):
     def __repr__(self) -> str:
         return 'cirq.UnitSweep'
 
+    def _json_dict_(self) -> Dict[str, Any]:
+        return {}
+
 
 UnitSweep = _Unit()
 document(UnitSweep, """The singleton sweep with no parameters.""")
@@ -261,6 +265,13 @@ class Product(Sweep):
             factor_strs.append(factor_str)
         return ' * '.join(factor_strs)
 
+    def _json_dict_(self) -> Dict[str, Any]:
+        return protocols.obj_to_dict_helper(self, ['factors'])
+
+    @classmethod
+    def _from_json_dict_(cls, factors, **kwargs):
+        return Product(*factors)
+
 
 class Zip(Sweep):
     """Zip product (direct sum) of one or more sweeps.
@@ -310,6 +321,13 @@ class Zip(Sweep):
         if not self.sweeps:
             return 'Zip()'
         return ' + '.join(str(s) if isinstance(s, Product) else repr(s) for s in self.sweeps)
+
+    def _json_dict_(self) -> Dict[str, Any]:
+        return protocols.obj_to_dict_helper(self, ['sweeps'])
+
+    @classmethod
+    def _from_json_dict_(cls, sweeps, **kwargs):
+        return Zip(*sweeps)
 
 
 class SingleSweep(Sweep):
@@ -364,6 +382,9 @@ class Points(SingleSweep):
     def __repr__(self) -> str:
         return f'cirq.Points({self.key!r}, {self.points!r})'
 
+    def _json_dict_(self) -> Dict[str, Any]:
+        return protocols.obj_to_dict_helper(self, ["key", "points"])
+
 
 class Linspace(SingleSweep):
     """A simple sweep over linearly-spaced values."""
@@ -398,6 +419,9 @@ class Linspace(SingleSweep):
             f'cirq.Linspace({self.key!r}, start={self.start!r}, '
             f'stop={self.stop!r}, length={self.length!r})'
         )
+
+    def _json_dict_(self) -> Dict[str, Any]:
+        return protocols.obj_to_dict_helper(self, ["key", "start", "stop", "length"])
 
 
 class ListSweep(Sweep):
@@ -443,6 +467,9 @@ class ListSweep(Sweep):
 
     def __repr__(self) -> str:
         return f'cirq.ListSweep({self.resolver_list!r})'
+
+    def _json_dict_(self) -> Dict[str, Any]:
+        return protocols.obj_to_dict_helper(self, ["resolver_list"])
 
 
 def _params_without_symbols(resolver: resolver.ParamResolver) -> Params:

@@ -21,6 +21,7 @@
   "shared_runtime_info": {
     "cirq_type": "cirq.google.SharedRuntimeInfo",
     "run_id": "my run",
+    "device": null,
     "run_start_time": {
       "cirq_type": "datetime.datetime",
       "timestamp": 1651091275.571572
