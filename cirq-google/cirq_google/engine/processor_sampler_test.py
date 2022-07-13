@@ -18,19 +18,23 @@ import pytest
 
 import cirq
 import cirq_google as cg
+from cirq_google.engine.abstract_processor import AbstractProcessor
+from cirq_google.engine.test_utils import uses_async_mock
 
 
+@uses_async_mock
 @pytest.mark.parametrize('circuit', [cirq.Circuit(), cirq.FrozenCircuit()])
 def test_run_circuit(circuit):
-    processor = mock.Mock()
+    processor = mock.create_autospec(AbstractProcessor)
     sampler = cg.ProcessorSampler(processor=processor)
     params = [cirq.ParamResolver({'a': 1})]
     sampler.run_sweep(circuit, params, 5)
-    processor.run_sweep.assert_called_with(params=params, program=circuit, repetitions=5)
+    processor.run_sweep_async.assert_called_with(params=params, program=circuit, repetitions=5)
 
 
+@uses_async_mock
 def test_run_batch():
-    processor = mock.Mock()
+    processor = mock.create_autospec(AbstractProcessor)
     sampler = cg.ProcessorSampler(processor=processor)
     a = cirq.LineQubit(0)
     circuit1 = cirq.Circuit(cirq.X(a))
@@ -40,13 +44,14 @@ def test_run_batch():
     circuits = [circuit1, circuit2]
     params_list = [params1, params2]
     sampler.run_batch(circuits, params_list, 5)
-    processor.run_batch.assert_called_with(
+    processor.run_batch_async.assert_called_with(
         params_list=params_list, programs=circuits, repetitions=5
     )
 
 
+@uses_async_mock
 def test_run_batch_identical_repetitions():
-    processor = mock.Mock()
+    processor = mock.create_autospec(AbstractProcessor)
     sampler = cg.ProcessorSampler(processor=processor)
     a = cirq.LineQubit(0)
     circuit1 = cirq.Circuit(cirq.X(a))
@@ -56,13 +61,13 @@ def test_run_batch_identical_repetitions():
     circuits = [circuit1, circuit2]
     params_list = [params1, params2]
     sampler.run_batch(circuits, params_list, [5, 5])
-    processor.run_batch.assert_called_with(
+    processor.run_batch_async.assert_called_with(
         params_list=params_list, programs=circuits, repetitions=5
     )
 
 
 def test_run_batch_bad_number_of_repetitions():
-    processor = mock.Mock()
+    processor = mock.create_autospec(AbstractProcessor)
     sampler = cg.ProcessorSampler(processor=processor)
     a = cirq.LineQubit(0)
     circuit1 = cirq.Circuit(cirq.X(a))
@@ -75,8 +80,9 @@ def test_run_batch_bad_number_of_repetitions():
         sampler.run_batch(circuits, params_list, [5, 5, 5])
 
 
+@uses_async_mock
 def test_run_batch_differing_repetitions():
-    processor = mock.Mock()
+    processor = mock.create_autospec(AbstractProcessor)
     job = mock.Mock()
     job.results.return_value = []
     processor.run_sweep.return_value = job
@@ -90,12 +96,12 @@ def test_run_batch_differing_repetitions():
     params_list = [params1, params2]
     repetitions = [1, 2]
     sampler.run_batch(circuits, params_list, repetitions)
-    processor.run_sweep.assert_called_with(params=params2, program=circuit2, repetitions=2)
-    processor.run_batch.assert_not_called()
+    processor.run_sweep_async.assert_called_with(params=params2, program=circuit2, repetitions=2)
+    processor.run_batch_async.assert_not_called()
 
 
 def test_processor_sampler_processor_property():
-    processor = mock.Mock()
+    processor = mock.create_autospec(AbstractProcessor)
     sampler = cg.ProcessorSampler(processor=processor)
     assert sampler.processor is processor
 

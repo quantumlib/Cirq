@@ -13,6 +13,7 @@
 # limitations under the License.
 
 from typing import Union
+
 import sympy
 
 from cirq._doc import document

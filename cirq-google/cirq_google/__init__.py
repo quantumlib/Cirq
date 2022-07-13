@@ -59,7 +59,6 @@ from cirq_google.devices import (
     GoogleNoiseProperties,
     GridDevice,
     NoiseModelFromGoogleNoiseProperties,
-    SerializableDevice,
     Sycamore,
     Sycamore23,
 )
@@ -74,7 +73,6 @@ from cirq_google.engine import (
     EngineProcessor,
     EngineResult,
     ProtoVersion,
-    QuantumEngineSampler,
     ProcessorSampler,
     ValidatingSampler,
     get_engine,

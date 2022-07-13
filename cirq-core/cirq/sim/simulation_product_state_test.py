@@ -269,11 +269,3 @@ def test_field_getters():
     state = create_container(qs2)
     assert state.sim_states.keys() == set(qs2) | {None}
     assert state.split_untangled_states
-
-
-def test_deprecated_args():
-    state = create_container(qs2)
-    with cirq.testing.assert_deprecated(deadline='v0.16'):
-        _ = state.args
-    with cirq.testing.assert_deprecated(deadline='v0.16'):
-        _ = cirq.SimulationProductState(args={}, qubits=[], split_untangled_states=False)

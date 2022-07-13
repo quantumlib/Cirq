@@ -240,23 +240,6 @@ class MeasurementGate(raw_types.Gate):
                 lines.append(args.format('x {0};  // Undo the inversion\n', qubit))
         return ''.join(lines)
 
-    def _quil_(
-        self, qubits: Tuple['cirq.Qid', ...], formatter: 'cirq.QuilFormatter'
-    ) -> Optional[str]:
-        if self.confusion_map or not all(d == 2 for d in self._qid_shape):
-            return NotImplemented
-        invert_mask = self.invert_mask
-        if len(invert_mask) < len(qubits):
-            invert_mask = invert_mask + (False,) * (len(qubits) - len(invert_mask))
-        lines = []
-        for i, (qubit, inv) in enumerate(zip(qubits, invert_mask)):
-            if inv:
-                lines.append(
-                    formatter.format('X {0} # Inverting for following measurement\n', qubit)
-                )
-            lines.append(formatter.format('MEASURE {0} {1:meas}[{2}]\n', qubit, self.key, i))
-        return ''.join(lines)
-
     def _op_repr_(self, qubits: Sequence['cirq.Qid']) -> str:
         args = list(repr(q) for q in qubits)
         if self.key != _default_measurement_key(qubits):
@@ -323,19 +306,7 @@ class MeasurementGate(raw_types.Gate):
 
         if not isinstance(sim_state, SimulationState):
             return NotImplemented
-        try:
-            sim_state.measure(
-                qubits, self.key, self.full_invert_mask(), confusion_map=self.confusion_map
-            )
-        except TypeError as e:
-            # Ensure that the error was due to confusion_map.
-            if not any("unexpected keyword argument 'confusion_map'" in arg for arg in e.args):
-                raise
-            _compat._warn_or_error(
-                "Starting in v0.16, SimulationState subclasses will be required to accept "
-                "a 'confusion_map' argument. See SimulationState.measure for details."
-            )
-            sim_state.measure(qubits, self.key, self.full_invert_mask())
+        sim_state.measure(qubits, self.key, self.full_invert_mask(), self.confusion_map)
         return True
 
 

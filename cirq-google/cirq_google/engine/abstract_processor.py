@@ -20,14 +20,14 @@ methods.
 
 import abc
 import datetime
+from typing import Dict, List, Optional, Sequence, TYPE_CHECKING, Union
 
-from typing import Dict, Iterable, List, Optional, Sequence, TYPE_CHECKING, Union
+import duet
 
 import cirq
-
 from cirq_google.api import v2
 from cirq_google.cloud import quantum
-from cirq_google.engine import calibration, util
+from cirq_google.engine import calibration
 
 if TYPE_CHECKING:
     import cirq_google as cg
@@ -53,7 +53,7 @@ class AbstractProcessor(abc.ABC):
     This is an abstract class.  Inheritors should implement abstract methods.
     """
 
-    def run(
+    async def run_async(
         self,
         program: cirq.Circuit,
         program_id: Optional[str] = None,
@@ -88,9 +88,23 @@ class AbstractProcessor(abc.ABC):
         Returns:
             A single Result for this run.
         """
+        job = await self.run_sweep_async(
+            program=program,
+            program_id=program_id,
+            job_id=job_id,
+            params=[param_resolver or cirq.ParamResolver({})],
+            repetitions=repetitions,
+            program_description=program_description,
+            program_labels=program_labels,
+            job_description=job_description,
+            job_labels=job_labels,
+        )
+        return job.results()[0]
+
+    run = duet.sync(run_async)
 
     @abc.abstractmethod
-    def run_sweep(
+    async def run_sweep_async(
         self,
         program: cirq.AbstractCircuit,
         program_id: Optional[str] = None,
@@ -129,8 +143,10 @@ class AbstractProcessor(abc.ABC):
             `cirq.Result`, one for each parameter sweep.
         """
 
+    run_sweep = duet.sync(run_sweep_async)
+
     @abc.abstractmethod
-    def run_batch(
+    async def run_batch_async(
         self,
         programs: Sequence[cirq.AbstractCircuit],
         program_id: Optional[str] = None,
@@ -180,8 +196,10 @@ class AbstractProcessor(abc.ABC):
             parameter sweep.
         """
 
+    run_batch = duet.sync(run_batch_async)
+
     @abc.abstractmethod
-    def run_calibration(
+    async def run_calibration_async(
         self,
         layers: List['cg.CalibrationLayer'],
         program_id: Optional[str] = None,
@@ -223,6 +241,8 @@ class AbstractProcessor(abc.ABC):
             calibration_results().
         """
 
+    run_calibration = duet.sync(run_calibration_async)
+
     @abc.abstractmethod
     def get_sampler(self) -> 'cg.ProcessorSampler':
         """Returns a sampler backed by the processor."""
@@ -262,8 +282,7 @@ class AbstractProcessor(abc.ABC):
         """
 
     @abc.abstractmethod
-    @util.deprecated_get_device_gate_sets_parameter()
-    def get_device(self, gate_sets: Iterable['serializer.Serializer'] = ()) -> cirq.Device:
+    def get_device(self) -> cirq.Device:
         """Returns a `Device` created from the processor's device specification.
 
         This method queries the processor to retrieve the device specification,

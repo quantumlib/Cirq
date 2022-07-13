@@ -13,7 +13,7 @@
 # limitations under the License.
 import datetime
 
-from typing import Dict, Iterable, List, Optional, Sequence, TYPE_CHECKING, Union
+from typing import Dict, List, Optional, Sequence, TYPE_CHECKING, Union
 
 from google.protobuf import any_pb2
 
@@ -28,7 +28,6 @@ from cirq_google.engine import (
     processor_sampler,
     util,
 )
-from cirq_google.serialization import serializer
 
 if TYPE_CHECKING:
     import cirq_google as cg
@@ -106,13 +105,13 @@ class EngineProcessor(abstract_processor.AbstractProcessor):
         """Returns a sampler backed by the engine.
 
         Returns:
-            A `cirq.Sampler` instance (specifically a `engine_sampler.QuantumEngineSampler`
+            A `cirq.Sampler` instance (specifically a `engine_sampler.ProcessorSampler`
             that will send circuits to the Quantum Computing Service
             when sampled.1
         """
         return processor_sampler.ProcessorSampler(processor=self)
 
-    def run_batch(
+    async def run_batch_async(
         self,
         programs: Sequence[cirq.AbstractCircuit],
         program_id: Optional[str] = None,
@@ -161,7 +160,7 @@ class EngineProcessor(abstract_processor.AbstractProcessor):
             for a circuit are listed in the order imposed by the associated
             parameter sweep.
         """
-        return self.engine().run_batch(
+        return await self.engine().run_batch_async(
             programs=programs,
             processor_ids=[self.processor_id],
             program_id=program_id,
@@ -173,7 +172,7 @@ class EngineProcessor(abstract_processor.AbstractProcessor):
             job_labels=job_labels,
         )
 
-    def run_calibration(
+    async def run_calibration_async(
         self,
         layers: List[calibration_layer.CalibrationLayer],
         program_id: Optional[str] = None,
@@ -215,7 +214,7 @@ class EngineProcessor(abstract_processor.AbstractProcessor):
             An AbstractJob whose results can be retrieved by calling
             calibration_results().
         """
-        return self.engine().run_calibration(
+        return await self.engine().run_calibration_async(
             layers=layers,
             processor_id=self.processor_id,
             program_id=program_id,
@@ -226,7 +225,7 @@ class EngineProcessor(abstract_processor.AbstractProcessor):
             job_labels=job_labels,
         )
 
-    def run_sweep(
+    async def run_sweep_async(
         self,
         program: cirq.AbstractCircuit,
         program_id: Optional[str] = None,
@@ -265,7 +264,7 @@ class EngineProcessor(abstract_processor.AbstractProcessor):
             An AbstractJob. If this is iterated over it returns a list of
             `cirq.Result`, one for each parameter sweep.
         """
-        return self.engine().run_sweep(
+        return await self.engine().run_sweep_async(
             processor_ids=[self.processor_id],
             program=program,
             program_id=program_id,
@@ -314,8 +313,7 @@ class EngineProcessor(abstract_processor.AbstractProcessor):
         else:
             return None
 
-    @util.deprecated_get_device_gate_sets_parameter()
-    def get_device(self, gate_sets: Iterable[serializer.Serializer] = ()) -> cirq.Device:
+    def get_device(self) -> cirq.Device:
         """Returns a `Device` created from the processor's device specification.
 
         This method queries the processor to retrieve the device specification,

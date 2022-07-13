@@ -18,7 +18,7 @@ import pytest
 
 import cirq
 
-m0 = np.array([])
+m0: np.ndarray = np.array([])
 # yapf: disable
 # X on one qubit
 m1 = np.array([[0, 1],

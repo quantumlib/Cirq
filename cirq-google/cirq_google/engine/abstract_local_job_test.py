@@ -41,13 +41,13 @@ class NothingJob(AbstractLocalJob):
     def delete(self) -> None:
         pass
 
-    def batched_results(self) -> Sequence[Sequence[EngineResult]]:
+    async def batched_results_async(self) -> Sequence[Sequence[EngineResult]]:
         return []  # coverage: ignore
 
-    def results(self) -> Sequence[EngineResult]:
+    async def results_async(self) -> Sequence[EngineResult]:
         return []  # coverage: ignore
 
-    def calibration_results(self) -> Sequence[CalibrationResult]:
+    async def calibration_results_async(self) -> Sequence[CalibrationResult]:
         return []  # coverage: ignore
 
 

@@ -19,7 +19,7 @@ import abc
 
 import numpy as np
 
-from cirq import ops, protocols
+from cirq import _compat, ops, protocols
 
 if TYPE_CHECKING:
     import cirq
@@ -294,23 +294,19 @@ class GridQubit(_BaseGridQid):
         cirq.GridQubit(5, 4)
     """
 
-    def __init__(self, row: int, col: int):
-        super().__init__(row, col)
-        self._hash = super().__hash__()
-
     def __getstate__(self):
         # Don't save hash when pickling; see #3777.
-        state = self.__dict__.copy()
-        del state['_hash']
+        state = self.__dict__
+        hash_key = _compat._method_cache_name(self.__hash__)
+        if hash_key in state:
+            state = state.copy()
+            del state[hash_key]
         return state
 
-    def __setstate__(self, state):
-        self.__dict__.update(state)
-        self._hash = super().__hash__()
-
-    def __hash__(self):
+    @_compat.cached_method
+    def __hash__(self) -> int:
         # Explicitly cached for performance (vs delegating to Qid).
-        return self._hash
+        return super().__hash__()
 
     def __eq__(self, other):
         # Explicitly implemented for performance (vs delegating to Qid).

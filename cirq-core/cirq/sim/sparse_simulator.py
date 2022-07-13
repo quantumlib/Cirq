@@ -18,8 +18,7 @@ from typing import Any, Iterator, List, TYPE_CHECKING, Union, Sequence, Type, Op
 
 import numpy as np
 
-from cirq import _compat, ops
-from cirq._compat import deprecated_parameter
+from cirq import ops
 from cirq.sim import simulator, state_vector, state_vector_simulator, state_vector_simulation_state
 
 if TYPE_CHECKING:
@@ -220,23 +219,15 @@ class SparseSimulatorStep(
 ):
     """A `StepResult` that includes `StateVectorMixin` methods."""
 
-    @deprecated_parameter(
-        deadline='v0.16',
-        fix='Remove parameter `simulator` as it is no longer used.',
-        parameter_desc='simulator',
-        match=lambda args, kwargs: 'simulator' in kwargs or len(args) > 2,
-    )
     def __init__(
         self,
         sim_state: 'cirq.SimulationStateBase[cirq.StateVectorSimulationState]',
-        simulator: 'cirq.Simulator' = None,
         dtype: Type[np.complexfloating] = np.complex64,
     ):
         """Results of a step of the simulator.
 
         Args:
             sim_state: The qubit:SimulationState lookup for this step.
-            simulator: The simulator used to create this.
             dtype: The `numpy.dtype` used by the simulation. One of
                 `numpy.complex64` or `numpy.complex128`.
         """
@@ -245,7 +236,7 @@ class SparseSimulatorStep(
         self._dtype = dtype
         self._state_vector: Optional[np.ndarray] = None
 
-    def state_vector(self, copy: Optional[bool] = None):
+    def state_vector(self, copy: bool = False):
         """Return the state vector at this point in the computation.
 
         The state is returned in the computational basis with these basis
@@ -278,12 +269,6 @@ class SparseSimulatorStep(
                 parameters from the state vector and store then using False
                 can speed up simulation by eliminating a memory copy.
         """
-        if copy is None:
-            _compat._warn_or_error(
-                "Starting in v0.16, state_vector will not copy the state by default. "
-                "Explicitly set copy=True to copy the state."
-            )
-            copy = True
         if self._state_vector is None:
             self._state_vector = np.array([1])
             state = self._merged_sim_state

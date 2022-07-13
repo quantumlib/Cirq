@@ -31,6 +31,7 @@ from cirq.transformers.analytical_decompositions import (
     single_qubit_matrix_to_phxz,
     single_qubit_op_to_framed_phase_form,
     three_qubit_matrix_to_operations,
+    two_qubit_matrix_to_cz_isometry,
     two_qubit_matrix_to_cz_operations,
     two_qubit_matrix_to_diagonal_and_cz_operations,
     two_qubit_matrix_to_ion_operations,

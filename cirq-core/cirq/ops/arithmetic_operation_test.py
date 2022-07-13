@@ -85,47 +85,6 @@ def test_the_tests():
     )
 
 
-def test_arithmetic_operation_apply_unitary():
-    class Add(cirq.ArithmeticOperation):
-        def __init__(self, target_register, input_register):
-            self.target_register = target_register
-            self.input_register = input_register
-
-        def registers(self):
-            return self.target_register, self.input_register
-
-        def with_registers(self, *new_registers):
-            raise NotImplementedError()
-
-        def apply(self, target_value, input_value):
-            return target_value + input_value
-
-    with cirq.testing.assert_deprecated(deadline='v0.16', count=8):
-        inc2 = Add(cirq.LineQubit.range(2), 1)
-        np.testing.assert_allclose(cirq.unitary(inc2), shift_matrix(4, 1), atol=1e-8)
-
-        dec3 = Add(cirq.LineQubit.range(3), -1)
-        np.testing.assert_allclose(cirq.unitary(dec3), shift_matrix(8, -1), atol=1e-8)
-
-        add3from2 = Add(cirq.LineQubit.range(3), cirq.LineQubit.range(2))
-        np.testing.assert_allclose(cirq.unitary(add3from2), adder_matrix(8, 4), atol=1e-8)
-
-        add2from3 = Add(cirq.LineQubit.range(2), cirq.LineQubit.range(3))
-        np.testing.assert_allclose(cirq.unitary(add2from3), adder_matrix(4, 8), atol=1e-8)
-
-        with pytest.raises(ValueError, match='affected by the gate'):
-            _ = cirq.unitary(Add(1, cirq.LineQubit.range(2)))
-
-        with pytest.raises(ValueError, match='affected by the gate'):
-            _ = cirq.unitary(Add(1, 1))
-
-        np.testing.assert_allclose(cirq.unitary(Add(1, 0)), np.eye(1))
-
-        cirq.testing.assert_has_consistent_apply_unitary(
-            Add(cirq.LineQubit.range(2), cirq.LineQubit.range(2))
-        )
-
-
 def test_arithmetic_gate_apply_unitary():
     class Add(cirq.ArithmeticGate):
         def __init__(
@@ -190,55 +149,3 @@ def test_arithmetic_gate_apply_unitary():
 
     with pytest.raises(ValueError, match='Wrong shape of qids'):
         _ = Add(1, [2, 3]).on(*qubits[2])
-
-
-def test_arithmetic_operation_qubits():
-    class Three(cirq.ArithmeticOperation):
-        def __init__(self, a, b, c):
-            self.a = a
-            self.b = b
-            self.c = c
-
-        def registers(self):
-            return self.a, self.b, self.c
-
-        def with_registers(self, *new_registers):
-            return Three(*new_registers)
-
-        def apply(self, target_value, input_value):
-            raise NotImplementedError()
-
-    with cirq.testing.assert_deprecated(deadline='v0.16', count=4):
-        q0, q1, q2, q3, q4, q5 = cirq.LineQubit.range(6)
-        op = Three([q0], [], [q4, q5])
-        assert op.qubits == (q0, q4, q5)
-        assert op.registers() == ([q0], [], [q4, q5])
-
-        op2 = op.with_qubits(q2, q4, q1)
-        assert op2.qubits == (q2, q4, q1)
-        assert op2.registers() == ([q2], [], [q4, q1])
-
-        op3 = op.with_registers([q0, q1, q3], [q5], 1)
-        assert op3.qubits == (q0, q1, q3, q5)
-        assert op3.registers() == ([q0, q1, q3], [q5], 1)
-
-        op4 = op3.with_qubits(q0, q1, q2, q3)
-        assert op4.registers() == ([q0, q1, q2], [q3], 1)
-        assert op4.qubits == (q0, q1, q2, q3)
-
-
-def test_reshape_referencing():
-    class Op1(cirq.ArithmeticOperation):
-        def apply(self, *register_values: int):
-            return register_values[0] + 1
-
-        def registers(self):
-            return [cirq.LineQubit.range(2)[::-1]]
-
-        def with_registers(self, *new_registers):
-            raise NotImplementedError()
-
-    with cirq.testing.assert_deprecated(deadline='v0.16'):
-        state = np.ones(4, dtype=np.complex64) / 2
-        output = cirq.final_state_vector(cirq.Circuit(Op1()), initial_state=state)
-        np.testing.assert_allclose(state, output)
