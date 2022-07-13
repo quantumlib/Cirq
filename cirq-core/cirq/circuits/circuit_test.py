@@ -4653,7 +4653,8 @@ def test_create_speed():
     # run this slowly, so allowing 2 sec to account for things like that. Feel free to increase the
     # buffer time or delete the test entirely if it ends up causing flakes.
     #
-    # After several tiny overtime failures in the GitHub CI Pytest MacOS (3.7)
+    # Updated in https://github.com/quantumlib/Cirq/pull/5756
+    # After several tiny overtime failures of the GitHub CI Pytest MacOS (3.7)
     # the timeout was increased to 4 sec.  A more thorough investigation or test
     # removal should be considered if this continues to time out.
     qs = 100
