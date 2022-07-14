@@ -3,4 +3,4 @@
 # This bundles protoc 3.14.0, which we use for generating proto code.
 grpcio-tools~=1.36.0
 
-mypy-protobuf==2.5
+mypy-protobuf==1.10
