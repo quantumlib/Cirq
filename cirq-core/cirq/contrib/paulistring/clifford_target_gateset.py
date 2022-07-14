@@ -23,17 +23,6 @@ if TYPE_CHECKING:
     import cirq
 
 
-def _rotation_to_clifford_gate(pauli: ops.Pauli, half_turns: float) -> ops.SingleQubitCliffordGate:
-    quarter_turns = round(half_turns * 2) % 4
-    if quarter_turns == 1:
-        return ops.SingleQubitCliffordGate.from_pauli(pauli, True)
-    if quarter_turns == 2:
-        return ops.SingleQubitCliffordGate.from_pauli(pauli)
-    if quarter_turns == 3:
-        return ops.SingleQubitCliffordGate.from_pauli(pauli, True) ** -1
-    return ops.SingleQubitCliffordGate.I
-
-
 def _matrix_to_clifford_op(
     mat: np.ndarray, qubit: 'cirq.Qid', *, atol: float
 ) -> Union[ops.Operation, NotImplementedType]:
@@ -41,7 +30,12 @@ def _matrix_to_clifford_op(
     clifford_gate = ops.SingleQubitCliffordGate.I
     for pauli, half_turns in rotations:
         if linalg.all_near_zero_mod(half_turns, 0.5):
-            clifford_gate = clifford_gate.merged_with(_rotation_to_clifford_gate(pauli, half_turns))
+            quarter_turns = round(half_turns * 2) % 4
+            # quarter_turns will always be 1-sqrt(pauli) / 2-pauli / 3-sqrt(pauli) ** -1.
+            clifford_gate = clifford_gate.merged_with(
+                ops.SingleQubitCliffordGate.from_pauli(pauli, sqrt=bool(quarter_turns % 2))
+                ** (1 - 2 * int(quarter_turns == 3))
+            )
         else:
             return NotImplemented
     return clifford_gate(qubit)
@@ -146,11 +140,14 @@ class CliffordTargetGateset(transformers.TwoQubitCompilationTargetGateset):
     @property
     def postprocess_transformers(self) -> List['cirq.TRANSFORMER']:
         """List of transformers which should be run after decomposing individual operations."""
+
+        def rewriter(o: 'cirq.CircuitOperation'):
+            result = self._decompose_single_qubit_operation(o, -1)
+            return o.circuit.all_operations() if result is NotImplemented else result
+
         return [
             transformers.create_transformer_with_kwargs(
-                transformers.merge_k_qubit_unitaries,
-                k=1,
-                rewriter=lambda o: self._decompose_single_qubit_operation(o, -1),
+                transformers.merge_k_qubit_unitaries, k=1, rewriter=rewriter
             ),
             transformers.drop_negligible_operations,
             transformers.drop_empty_moments,
