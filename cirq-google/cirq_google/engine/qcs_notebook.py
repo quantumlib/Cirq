@@ -119,9 +119,9 @@ def get_qcs_objects_for_notebook(
             print("Using a noisy simulator.")
             virtual = True
     if virtual:
-            engine = create_noiseless_virtual_engine_from_latest_templates()
-            signed_in = False
-            is_simulator = True
+        engine = create_noiseless_virtual_engine_from_latest_templates()
+        signed_in = False
+        is_simulator = True
 
     if processor_id:
         processor = engine.get_processor(processor_id)
