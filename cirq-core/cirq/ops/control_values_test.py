@@ -40,6 +40,17 @@ def test_init_SumOfProducts():
         got = {c for c in cv.SumOfProducts(control_values)}
         eq.add_equality_group(got, want)
 
+    with pytest.raises(ValueError):
+        _ = cv.SumOfProducts([])
+
+    # size mismatch
+    with pytest.raises(ValueError):
+        _ = cv.SumOfProducts([[1], [1, 0]])
+
+    # can't have duplicates
+    with pytest.raises(ValueError):
+        _ = cv.SumOfProducts([[1, 0], [0, 1], [1, 0]])
+
 
 def test_and_operation():
     eq = cirq.testing.EqualsTester()
@@ -84,8 +95,7 @@ def test_repr():
     for t in map(cv.ProductOfSums, product_of_sums_data):
         cirq.testing.assert_equivalent_repr(t)
 
-    sum_of_products_data = [((1,),), ((0, 1)), ((0, 0), (0, 1), (1, 0))]
-
+    sum_of_products_data = [((1,),), ((0, 1),), ((0, 0), (0, 1), (1, 0))]
     for t in map(cv.SumOfProducts, sum_of_products_data):
         cirq.testing.assert_equivalent_repr(t)
 
@@ -123,7 +133,17 @@ def test_are_ones():
         assert c._are_ones() == want
 
 
-def test_sum_of_products_unsupported():
-    c = cv.SumOfProducts(((1,),))
-    assert c.diagram_repr() == NotImplemented
-    assert c[0] == NotImplemented
+def test_sum_of_products_diagram():
+    c = cv.SumOfProducts(((1, 0), (0, 1)))
+    assert c.diagram_repr() == '10,01'
+
+
+def test_sum_of_products_getitem():
+    data = [((1,),), ((0, 1),), ((0, 0), (0, 1), (1, 0)), ((1, 1, 1, 1),)]
+    for vals in data:
+        c = cv.SumOfProducts(vals)
+        for i in range(len(vals)):
+            assert c[i] == vals[i]
+        for i in range(len(vals)):
+            for j in range(i + 1, len(vals)):
+                assert c[i:j] == cv.SumOfProducts(vals[i:j])

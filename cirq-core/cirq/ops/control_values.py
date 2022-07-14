@@ -184,18 +184,49 @@ class ProductOfSums(AbstractControlValues):
 
 @dataclass(frozen=True, eq=False)
 class SumOfProducts(AbstractControlValues):
-    """SumOfProducts represents control values in a form of a list or products.
+    """Represents control values as a union of n-bit tuples.
 
-    SumOfProducts allows the creation of control values combinations that
-    can't be factored as the product of independent expressions (e.g. XOR)
+    `SumOfProducts` representation describes the control values as a union
+    of n-bit tuples, where each n-bit tuple represents an allowed assignment
+    of bits for which the control should be activated. This expanded
+    representation allows us to create control values combinations which
+    cannot be factored as a `ProductOfSums` representation.
 
+    For example:
 
-    Examples:
-        xor = SumOfProducts(((0, 1), (1, 0)))   # xor of two bits.
-        nand =  SumOfProducts(((0, 0), (0, 1), (1, 0))) # nand of two bits
+    1) `(|00><00| + |11><11|) X + (|01><01| + |10><10|) I` represents an
+        operator which flips the third qubit if the first two qubits
+        are `00` or `11`, and does nothing otherwise.
+        This can be constructed as
+        >>> xor_control_values = cirq.SumOfProducts(((0, 0), (1, 1)))
+        >>> q0, q1, q2 = cirq.LineQubit.range(3)
+        >>> cirq.X(q2).controlled_by(q0, q1, control_values=xor_control_values)
+
+    2) `(|00><00| + |01><01| + |10><10|) X + (|11><11|) I` represents an
+        operators which flips the third qubit if the `nand` of first two
+        qubits is `1` (i.e. first two qubits are either `00`, `01` or `10`),
+        and does nothing otherwise. This can be constructed as:
+
+        >>> nand_control_values = cirq.SumOfProducts(((0, 0), (0, 1), (1, 0)))
+        >>> q0, q1, q2 = cirq.LineQubit.range(3)
+        >>> cirq.X(q2).controlled_by(q0, q1, control_values=nand_control_values)
     """
 
     _internal_representation: Tuple[Tuple[int, ...], ...]
+
+    def __post_init__(self):
+        if not len(self._internal_representation):
+            raise ValueError('SumOfProducts can\'t be empty.')
+        num_qubits = len(self._internal_representation[0])
+        for p in self._internal_representation:
+            if len(p) != num_qubits:
+                raise ValueError(
+                    f'size mismatch between different products of {self._internal_representation}'
+                )
+        if len(self._internal_representation) != len(
+            set(map(tuple, self._internal_representation))
+        ):
+            raise ValueError('SumOfProducts can\'t have duplicate products.')
 
     def _identifier(self) -> Tuple[Tuple[int, ...], ...]:
         return self._internal_representation
@@ -203,8 +234,7 @@ class SumOfProducts(AbstractControlValues):
     def _expand(self) -> Iterator[Tuple[int, ...]]:
         """Returns the combinations tracked by the object."""
         self = cast('SumOfProducts', self)
-        for c in self._internal_representation:
-            yield c
+        return iter(self._internal_representation)
 
     def __repr__(self) -> str:
         return f'cirq.SumOfProducts({str(self._identifier())})'
@@ -237,12 +267,14 @@ class SumOfProducts(AbstractControlValues):
         return frozenset(self._internal_representation) == {(1,) * self._number_variables()}
 
     def diagram_repr(self) -> str:
-        return NotImplemented
+        return ','.join(map(lambda p: ''.join(map(str, p)), self._internal_representation))
 
     def __getitem__(
         self, key: Union[int, slice]
     ) -> Union['AbstractControlValues', Tuple[int, ...]]:
-        return NotImplemented
+        if isinstance(key, slice):
+            return SumOfProducts(self._internal_representation[key])
+        return self._internal_representation[key]
 
     def _json_dict_(self) -> Dict[str, Any]:
         return {'_internal_representation': self._internal_representation}
