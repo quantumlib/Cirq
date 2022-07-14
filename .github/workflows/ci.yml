@@ -65,19 +65,6 @@ jobs:
         run: pip install -r dev_tools/requirements/mypy.env.txt
       - name: Type check
         run: check/mypy
-  mypy-next:
-    name: Type check (next)
-    runs-on: ubuntu-20.04
-    steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-python@v1
-        with:
-          python-version: '3.8'
-          architecture: 'x64'
-      - name: Install mypy
-        run: pip install -r dev_tools/requirements/mypy.env.txt
-      - name: Type check (for logging only)
-        run: check/mypy --next || true
   changed_files:
     name: Changed files test
     runs-on: ubuntu-20.04
