@@ -153,24 +153,6 @@ def test_serialize_conversion(value: ARG_LIKE, proto: v2.program_pb2.Arg):
     assert packed == proto
 
 
-def test_infer_language():
-    q = cirq.GridQubit(0, 0)
-    a = sympy.Symbol('a')
-    b = sympy.Symbol('b')
-
-    c_linear = cirq.Circuit(cirq.X(q) ** (b - a))
-    packed = cirq_google.CIRCUIT_SERIALIZER.serialize(c_linear)
-    assert packed.language.arg_function_language == 'linear'
-
-    c_empty = cirq.Circuit(cirq.X(q) ** b)
-    packed = cirq_google.CIRCUIT_SERIALIZER.serialize(c_empty)
-    assert packed.language.arg_function_language == ''
-
-    c_exp = cirq.Circuit(cirq.X(q) ** (b**a))
-    packed = cirq_google.CIRCUIT_SERIALIZER.serialize(c_exp)
-    assert packed.language.arg_function_language == 'exp'
-
-
 @pytest.mark.parametrize(
     'value,proto',
     [
