@@ -167,6 +167,7 @@ jobs:
           key: ${{ env.pythonLocation }}-${{ hashFiles('setup.py') }}-${{ hashFiles('dev-requirements.txt') }}
       - name: Install requirements
         run: |
+          pip install wheel
           pip install --upgrade --upgrade-strategy eager -r dev_tools/requirements/dev.env.txt
       - name: Run Quil dependencies
         run: docker-compose -f cirq-rigetti/docker-compose.test.yaml up -d
@@ -220,7 +221,9 @@ jobs:
           path: ${{ env.pythonLocation }}
           key: ${{ env.pythonLocation }}-${{ hashFiles('setup.py') }}-${{ hashFiles('dev-requirements.txt') }}
       - name: Install requirements
-        run: pip install --upgrade --upgrade-strategy eager -r dev_tools/requirements/dev.env.txt
+        run: |
+          pip install wheel
+          pip install --upgrade --upgrade-strategy eager -r dev_tools/requirements/dev.env.txt
       - name: Run Quil dependencies
         run: docker-compose -f cirq-rigetti/docker-compose.test.yaml up -d
       - name: Coverage check
@@ -244,7 +247,9 @@ jobs:
           path: ${{ env.pythonLocation }}
           key: ${{ env.pythonLocation }}-${{ hashFiles('setup.py') }}-${{ hashFiles('dev-requirements.txt') }}
       - name: Install requirements
-        run: pip install --upgrade --upgrade-strategy eager -r dev_tools/requirements/no-contrib.env.txt
+        run: |
+          pip install wheel
+          pip install --upgrade --upgrade-strategy eager -r dev_tools/requirements/no-contrib.env.txt
       - name: Pytest Windows
         run: |
           source dev_tools/pypath
@@ -267,7 +272,9 @@ jobs:
           path: ${{ env.pythonLocation }}
           key: ${{ env.pythonLocation }}-${{ hashFiles('setup.py') }}-${{ hashFiles('dev-requirements.txt') }}
       - name: Install requirements
-        run: pip install --upgrade --upgrade-strategy eager -r dev_tools/requirements/no-contrib.env.txt
+        run: |
+          pip install wheel
+          pip install --upgrade --upgrade-strategy eager -r dev_tools/requirements/no-contrib.env.txt
       - name: Pytest check
         run: check/pytest -n auto --ignore=cirq-core/cirq/contrib
   notebooks-stable:
