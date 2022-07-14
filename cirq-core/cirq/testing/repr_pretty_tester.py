@@ -21,10 +21,11 @@ class FakePrinter:
 
     Can be used in tests to test a classes `_repr_pretty_` method:
 
-    >>> p = FakePrinter()
-    >>> s = object_under_test._repr_pretty(p, cycle=False)
+    >>> p = cirq.testing.FakePrinter()
+    >>> object_under_test = cirq.ResultDict(params=None, measurements={'x': np.array([[0, 1]] )})
+    >>> s = object_under_test._repr_pretty_(p, cycle=False)
     >>> p.text_pretty
-    'my pretty_text'
+    'x=0, 1'
 
     Prefer to use `assert_repr_pretty` below.
     """
