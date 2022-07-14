@@ -101,7 +101,8 @@ def get_qcs_objects_for_notebook(
             print("Getting OAuth2 credentials.")
             print("Press enter after entering the verification code.")
             try:
-                auth.authenticate_user(clear_output=False)
+                a = auth.authenticate_user(clear_output=False)
+                print(a)
                 print("Authentication complete.")
             except Exception as exc:
                 print(f"Authentication failed: {exc}")
