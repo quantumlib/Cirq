@@ -23,7 +23,6 @@ from typing import (
     Iterable,
     List,
     Optional,
-    Sequence,
     Set,
     Tuple,
     TYPE_CHECKING,
@@ -637,7 +636,7 @@ def scatter_plot_normalized_kak_interaction_coefficients(
         ax = fig.add_subplot(1, 1, 1, projection='3d')
 
     def coord_transform(
-        pts: Sequence[Tuple[float, float, float]]
+        pts: Union[List[Tuple[int, int, int]], np.ndarray]
     ) -> Tuple[Iterable[float], Iterable[float], Iterable[float]]:
         if len(pts) == 0:
             return [], [], []

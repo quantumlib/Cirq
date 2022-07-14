@@ -352,5 +352,4 @@ def _probs(state: np.ndarray, indices: Sequence[int], qid_shape: Tuple[int, ...]
         probs = np.sum(probs, axis=tuple(range(1, len(probs.shape))))
 
     # To deal with rounding issues, ensure that the probabilities sum to 1.
-    probs /= np.sum(probs)
-    return probs
+    return probs / np.sum(probs)
