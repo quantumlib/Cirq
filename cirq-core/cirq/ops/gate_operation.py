@@ -18,6 +18,7 @@ import re
 from typing import (
     AbstractSet,
     Any,
+    Mapping,
     cast,
     Collection,
     Dict,
@@ -34,7 +35,7 @@ from typing import (
 import numpy as np
 
 from cirq import protocols, value
-from cirq.ops import raw_types, gate_features
+from cirq.ops import raw_types, gate_features, control_values as cv
 from cirq.type_workarounds import NotImplementedType
 
 if TYPE_CHECKING:
@@ -81,7 +82,7 @@ class GateOperation(raw_types.Operation):
             return self
         return new_gate.on(*self.qubits)
 
-    def _with_measurement_key_mapping_(self, key_map: Dict[str, str]):
+    def _with_measurement_key_mapping_(self, key_map: Mapping[str, str]):
         new_gate = protocols.with_measurement_key_mapping(self.gate, key_map)
         if new_gate is NotImplemented:
             return NotImplemented
@@ -235,7 +236,7 @@ class GateOperation(raw_types.Operation):
             return getter()
         return NotImplemented
 
-    def _measurement_key_names_(self) -> Optional[AbstractSet[str]]:
+    def _measurement_key_names_(self) -> Union[FrozenSet[str], NotImplementedType, None]:
         getter = getattr(self.gate, '_measurement_key_names_', None)
         if getter is not None:
             return getter()
@@ -247,7 +248,9 @@ class GateOperation(raw_types.Operation):
             return getter()
         return NotImplemented
 
-    def _measurement_key_objs_(self) -> Optional[AbstractSet['cirq.MeasurementKey']]:
+    def _measurement_key_objs_(
+        self,
+    ) -> Union[FrozenSet['cirq.MeasurementKey'], NotImplementedType, None]:
         getter = getattr(self.gate, '_measurement_key_objs_', None)
         if getter is not None:
             return getter()
@@ -334,9 +337,6 @@ class GateOperation(raw_types.Operation):
     def _qasm_(self, args: 'protocols.QasmArgs') -> Optional[str]:
         return protocols.qasm(self.gate, args=args, qubits=self.qubits, default=None)
 
-    def _quil_(self, formatter: 'protocols.QuilFormatter') -> Optional[str]:
-        return protocols.quil(self.gate, qubits=self.qubits, formatter=formatter)
-
     def _equal_up_to_global_phase_(
         self, other: Any, atol: Union[int, float] = 1e-8
     ) -> Union[NotImplementedType, bool]:
@@ -349,7 +349,9 @@ class GateOperation(raw_types.Operation):
     def controlled_by(
         self,
         *control_qubits: 'cirq.Qid',
-        control_values: Optional[Sequence[Union[int, Collection[int]]]] = None,
+        control_values: Optional[
+            Union[cv.AbstractControlValues, Sequence[Union[int, Collection[int]]]]
+        ] = None,
     ) -> 'cirq.Operation':
         if len(control_qubits) == 0:
             return self

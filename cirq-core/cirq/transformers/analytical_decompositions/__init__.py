@@ -50,6 +50,10 @@ from cirq.transformers.analytical_decompositions.two_qubit_to_fsim import (
     decompose_two_qubit_interaction_into_four_fsim_gates,
 )
 
+from cirq.transformers.analytical_decompositions.two_qubit_to_ms import (
+    two_qubit_matrix_to_ion_operations,
+)
+
 from cirq.transformers.analytical_decompositions.two_qubit_to_sqrt_iswap import (
     parameterized_2q_op_to_sqrt_iswap_operations,
     two_qubit_matrix_to_sqrt_iswap_operations,
@@ -58,4 +62,8 @@ from cirq.transformers.analytical_decompositions.two_qubit_to_sqrt_iswap import 
 from cirq.transformers.analytical_decompositions.two_qubit_state_preparation import (
     prepare_two_qubit_state_using_cz,
     prepare_two_qubit_state_using_sqrt_iswap,
+)
+
+from cirq.transformers.analytical_decompositions.single_to_two_qubit_isometry import (
+    two_qubit_matrix_to_cz_isometry,
 )

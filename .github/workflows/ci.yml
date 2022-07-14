@@ -1,11 +1,9 @@
 name: Continuous Integration
 
 on:
-  # Trigger the workflow on push or pull request,
-  # but only for the master branch
-  push:
-    branches:
-      - master
+  schedule:
+    # Checks out master by default.
+    - cron: '0 0 * * *'
   pull_request:
     branches:
       - master
@@ -226,7 +224,7 @@ jobs:
       - name: Run Quil dependencies
         run: docker-compose -f cirq-rigetti/docker-compose.test.yaml up -d
       - name: Coverage check
-        run: check/pytest-and-incremental-coverage -n auto
+        run: check/pytest-and-incremental-coverage -n auto --rigetti-integration
       - name: Stop Quil dependencies
         run: docker-compose -f cirq-rigetti/docker-compose.test.yaml down
   windows:

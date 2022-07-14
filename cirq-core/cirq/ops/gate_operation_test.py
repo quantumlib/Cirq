@@ -488,6 +488,7 @@ def test_gate_to_operation_to_gate_round_trips():
 
     skip_classes = {
         # Abstract or private parent classes.
+        cirq.ArithmeticGate,
         cirq.BaseDensePauliString,
         cirq.EigenGate,
         cirq.Pauli,
@@ -495,25 +496,14 @@ def test_gate_to_operation_to_gate_round_trips():
         cirq.transformers.analytical_decompositions.two_qubit_to_fsim._BGate,
         cirq.ops.raw_types._InverseCompositeGate,
         cirq.circuits.qasm_output.QasmTwoQubitGate,
-        cirq.circuits.quil_output.QuilTwoQubitGate,
-        cirq.circuits.quil_output.QuilOneQubitGate,
-        cirq.ion.ion_gates.MSGate,
-        # Gate features.
-        cirq.SingleQubitGate,
+        cirq.ops.MSGate,
         # Interop gates
         cirq.interop.quirk.QuirkQubitPermutationGate,
         cirq.interop.quirk.QuirkArithmeticGate,
-        # No reason given for missing json.
-        # TODO(#5353): Serialize these gates.
-        cirq.ArithmeticGate,
     }
 
-    # Gates that do not satisfy the contract.
-    # TODO(#5167): Fix this case.
-    exceptions = {cirq.PauliStringPhasorGate}
-
     skipped = set()
-    for gate_cls in gate_subclasses - exceptions:
+    for gate_cls in gate_subclasses:
         filename = test_module_spec.test_data_path.joinpath(f"{gate_cls.__name__}.json")
         if pathlib.Path(filename).is_file():
             gates = cirq.read_json(filename)

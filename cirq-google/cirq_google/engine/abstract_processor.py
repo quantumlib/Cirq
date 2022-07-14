@@ -20,14 +20,14 @@ methods.
 
 import abc
 import datetime
+from typing import Dict, List, Optional, Sequence, TYPE_CHECKING, Union
 
-from typing import Dict, Iterable, List, Optional, Sequence, TYPE_CHECKING, Union
+import duet
 
 import cirq
-
 from cirq_google.api import v2
 from cirq_google.cloud import quantum
-from cirq_google.engine import calibration, util
+from cirq_google.engine import calibration
 
 if TYPE_CHECKING:
     import cirq_google as cg
@@ -53,15 +53,13 @@ class AbstractProcessor(abc.ABC):
     This is an abstract class.  Inheritors should implement abstract methods.
     """
 
-    @util.deprecated_gate_set_parameter
-    def run(
+    async def run_async(
         self,
         program: cirq.Circuit,
         program_id: Optional[str] = None,
         job_id: Optional[str] = None,
         param_resolver: cirq.ParamResolver = None,
         repetitions: int = 1,
-        gate_set: Optional['serializer.Serializer'] = None,
         program_description: Optional[str] = None,
         program_labels: Optional[Dict[str, str]] = None,
         job_description: Optional[str] = None,
@@ -83,8 +81,6 @@ class AbstractProcessor(abc.ABC):
                 and day.
             param_resolver: Parameters to run with the program.
             repetitions: The number of repetitions to simulate.
-            gate_set: The gate set used to serialize the circuit. The gate set
-                must be supported by the selected processor.
             program_description: An optional description to set on the program.
             program_labels: Optional set of labels to set on the program.
             job_description: An optional description to set on the job.
@@ -92,17 +88,29 @@ class AbstractProcessor(abc.ABC):
         Returns:
             A single Result for this run.
         """
+        job = await self.run_sweep_async(
+            program=program,
+            program_id=program_id,
+            job_id=job_id,
+            params=[param_resolver or cirq.ParamResolver({})],
+            repetitions=repetitions,
+            program_description=program_description,
+            program_labels=program_labels,
+            job_description=job_description,
+            job_labels=job_labels,
+        )
+        return job.results()[0]
+
+    run = duet.sync(run_async)
 
     @abc.abstractmethod
-    @util.deprecated_gate_set_parameter
-    def run_sweep(
+    async def run_sweep_async(
         self,
         program: cirq.AbstractCircuit,
         program_id: Optional[str] = None,
         job_id: Optional[str] = None,
         params: cirq.Sweepable = None,
         repetitions: int = 1,
-        gate_set: Optional['serializer.Serializer'] = None,
         program_description: Optional[str] = None,
         program_labels: Optional[Dict[str, str]] = None,
         job_description: Optional[str] = None,
@@ -126,8 +134,6 @@ class AbstractProcessor(abc.ABC):
                 and day.
             params: Parameters to run with the program.
             repetitions: The number of circuit repetitions to run.
-            gate_set: The gate set used to serialize the circuit. The gate set
-                must be supported by the selected processor.
             program_description: An optional description to set on the program.
             program_labels: Optional set of labels to set on the program.
             job_description: An optional description to set on the job.
@@ -137,16 +143,16 @@ class AbstractProcessor(abc.ABC):
             `cirq.Result`, one for each parameter sweep.
         """
 
+    run_sweep = duet.sync(run_sweep_async)
+
     @abc.abstractmethod
-    @util.deprecated_gate_set_parameter
-    def run_batch(
+    async def run_batch_async(
         self,
         programs: Sequence[cirq.AbstractCircuit],
         program_id: Optional[str] = None,
         job_id: Optional[str] = None,
         params_list: Sequence[cirq.Sweepable] = None,
         repetitions: int = 1,
-        gate_set: Optional['serializer.Serializer'] = None,
         program_description: Optional[str] = None,
         program_labels: Optional[Dict[str, str]] = None,
         job_description: Optional[str] = None,
@@ -178,8 +184,6 @@ class AbstractProcessor(abc.ABC):
                 require sweeps.
             repetitions: Number of circuit repetitions to run.  Each sweep value
                 of each circuit in the batch will run with the same repetitions.
-            gate_set: The gate set used to serialize the circuit. The gate set
-                must be supported by the selected processor.
             program_description: An optional description to set on the program.
             program_labels: Optional set of labels to set on the program.
             job_description: An optional description to set on the job.
@@ -192,14 +196,14 @@ class AbstractProcessor(abc.ABC):
             parameter sweep.
         """
 
+    run_batch = duet.sync(run_batch_async)
+
     @abc.abstractmethod
-    @util.deprecated_gate_set_parameter
-    def run_calibration(
+    async def run_calibration_async(
         self,
         layers: List['cg.CalibrationLayer'],
         program_id: Optional[str] = None,
         job_id: Optional[str] = None,
-        gate_set: Optional['serializer.Serializer'] = None,
         program_description: Optional[str] = None,
         program_labels: Optional[Dict[str, str]] = None,
         job_description: Optional[str] = None,
@@ -227,8 +231,6 @@ class AbstractProcessor(abc.ABC):
                 of the format 'calibration-################YYMMDD' will be
                 generated, where # is alphanumeric and YYMMDD is the current
                 year, month, and day.
-            gate_set: The gate set used to serialize the circuit. The gate set
-                must be supported by the selected processor.
             program_description: An optional description to set on the program.
             program_labels: Optional set of labels to set on the program.
             job_description: An optional description to set on the job.
@@ -239,16 +241,11 @@ class AbstractProcessor(abc.ABC):
             calibration_results().
         """
 
-    @abc.abstractmethod
-    @util.deprecated_gate_set_parameter
-    def get_sampler(
-        self, gate_set: Optional['serializer.Serializer'] = None
-    ) -> 'cg.ProcessorSampler':
-        """Returns a sampler backed by the processor.
+    run_calibration = duet.sync(run_calibration_async)
 
-        Args:
-            gate_set: Determines how to serialize circuits if needed.
-        """
+    @abc.abstractmethod
+    def get_sampler(self) -> 'cg.ProcessorSampler':
+        """Returns a sampler backed by the processor."""
 
     @abc.abstractmethod
     def engine(self) -> Optional['abstract_engine.AbstractEngine']:
@@ -285,7 +282,7 @@ class AbstractProcessor(abc.ABC):
         """
 
     @abc.abstractmethod
-    def get_device(self, gate_sets: Iterable['serializer.Serializer'] = ()) -> cirq.Device:
+    def get_device(self) -> cirq.Device:
         """Returns a `Device` created from the processor's device specification.
 
         This method queries the processor to retrieve the device specification,

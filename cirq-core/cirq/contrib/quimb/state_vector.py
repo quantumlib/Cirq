@@ -76,7 +76,7 @@ def circuit_to_tensors(
 
     for moment in circuit.moments:
         for op in moment.operations:
-            assert op.gate._has_unitary_()
+            assert cirq.has_unitary(op.gate)
             start_inds = [f'i{qubit_frontier[q]}_q{q}' for q in op.qubits]
             for q in op.qubits:
                 qubit_frontier[q] += 1

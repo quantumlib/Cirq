@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""Tools for representing a device as an edge-labelled graph."""
+
 from cirq.contrib.graph_device.hypergraph import UndirectedHypergraph
 
 from cirq.contrib.graph_device.graph_device import (

@@ -29,6 +29,7 @@ from cirq.transformers import measurement_transformers
 
 if TYPE_CHECKING:
     import cirq
+    from numpy.typing import DTypeLike
 
 CIRCUIT_LIKE = Union[circuits.Circuit, ops.Gate, ops.OP_TREE]
 document(
@@ -52,7 +53,7 @@ def sample(
     noise: 'cirq.NOISE_MODEL_LIKE' = None,
     param_resolver: Optional['cirq.ParamResolver'] = None,
     repetitions: int = 1,
-    dtype: Type[np.number] = np.complex64,
+    dtype: Type[np.complexfloating] = np.complex64,
     seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None,
 ) -> 'cirq.Result':
     """Simulates sampling from the given circuit.
@@ -66,6 +67,9 @@ def sample(
             `numpy.complex64` or `numpy.complex128`.
             Favors speed over precision by default, i.e. uses `numpy.complex64`.
         seed: The random seed to use for this simulator.
+
+    Returns:
+        A `cirq.Result` object containing the requested measurement samples.
     """
     noise_model = devices.NoiseModel.from_noise_model_like(noise)
 
@@ -107,7 +111,7 @@ def final_state_vector(
     param_resolver: 'cirq.ParamResolverOrSimilarType' = None,
     qubit_order: 'cirq.QubitOrderOrList' = ops.QubitOrder.DEFAULT,
     ignore_terminal_measurements: bool = False,
-    dtype: Type[np.number] = np.complex64,
+    dtype: Type[np.complexfloating] = np.complex64,
     seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None,
 ) -> 'np.ndarray':
     """Returns the state vector resulting from acting operations on a state.
@@ -168,7 +172,7 @@ def final_state_vector(
         param_resolver=param_resolver,
     )
 
-    return result.state_vector(copy=False)
+    return result.state_vector()
 
 
 def sample_sweep(
@@ -177,7 +181,7 @@ def sample_sweep(
     *,
     noise: 'cirq.NOISE_MODEL_LIKE' = None,
     repetitions: int = 1,
-    dtype: Type[np.number] = np.complex64,
+    dtype: Type[np.complexfloating] = np.complex64,
     seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None,
 ) -> Sequence['cirq.Result']:
     """Runs the supplied Circuit, mimicking quantum hardware.
@@ -223,7 +227,7 @@ def final_density_matrix(
     initial_state: 'cirq.STATE_VECTOR_LIKE' = 0,
     param_resolver: 'cirq.ParamResolverOrSimilarType' = None,
     qubit_order: 'cirq.QubitOrderOrList' = ops.QubitOrder.DEFAULT,
-    dtype: Type[np.number] = np.complex64,
+    dtype: Type[np.complexfloating] = np.complex64,
     seed: Optional[Union[int, np.random.RandomState]] = None,
     ignore_measurement_results: bool = True,
 ) -> 'np.ndarray':

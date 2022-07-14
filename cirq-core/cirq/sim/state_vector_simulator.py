@@ -14,23 +14,12 @@
 """Abstract classes for simulations which keep track of state vector."""
 
 import abc
-from typing import (
-    Any,
-    Dict,
-    Iterator,
-    Sequence,
-    TYPE_CHECKING,
-    Tuple,
-    Generic,
-    TypeVar,
-    Type,
-    Optional,
-)
+from typing import Any, Dict, Iterator, Sequence, Type, TYPE_CHECKING, Generic, TypeVar, Optional
 
 import numpy as np
 
-from cirq import _compat, ops, value, qis
-from cirq._compat import deprecated_class, proper_repr
+from cirq import ops, value, qis
+from cirq._compat import proper_repr
 from cirq.sim import simulator, state_vector, simulator_base
 
 if TYPE_CHECKING:
@@ -56,7 +45,7 @@ class SimulatesIntermediateStateVector(
     def __init__(
         self,
         *,
-        dtype: Type[np.number] = np.complex64,
+        dtype: Type[np.complexfloating] = np.complex64,
         noise: 'cirq.NOISE_MODEL_LIKE' = None,
         seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None,
         split_untangled_states: bool = False,
@@ -107,33 +96,6 @@ class StateVectorStepResult(
     pass
 
 
-@deprecated_class(deadline='v0.16', fix='This class is no longer used.')
-@value.value_equality(unhashable=True)
-class StateVectorSimulatorState:
-    """Object representing current state of the simulator.
-
-    Includes the state vector, qubit map, and shape information.
-    """
-
-    def __init__(self, state_vector: np.ndarray, qubit_map: Dict[ops.Qid, int]) -> None:
-        self.state_vector = state_vector
-        self.qubit_map = qubit_map
-        self._qid_shape = simulator._qubit_map_to_shape(qubit_map)
-
-    def _qid_shape_(self) -> Tuple[int, ...]:
-        return self._qid_shape
-
-    def __repr__(self) -> str:
-        return (
-            'cirq.StateVectorSimulatorState('
-            f'state_vector=np.{self.state_vector!r}, '
-            f'qubit_map={self.qubit_map!r})'
-        )
-
-    def _value_equality_values_(self) -> Any:
-        return self.state_vector.tolist(), self.qubit_map
-
-
 @value.value_equality(unhashable=True)
 class StateVectorTrialResult(
     state_vector.StateVectorMixin,
@@ -168,7 +130,7 @@ class StateVectorTrialResult(
             self._final_state_vector = tensor
         return self._final_state_vector
 
-    def state_vector(self, copy: bool = None) -> np.ndarray:
+    def state_vector(self, copy: bool = False) -> np.ndarray:
         """Return the state vector at the end of the computation.
 
         The state is returned in the computational basis with these basis
@@ -193,13 +155,14 @@ class StateVectorTrialResult(
                 |  5  |   1    |   0    |   1    |
                 |  6  |   1    |   1    |   0    |
                 |  7  |   1    |   1    |   1    |
+
+        Args:
+            copy: If True, the returned state vector will be a copy of that
+            stored by the object. This is potentially expensive for large
+            state vectors, but prevents mutation of the object state, e.g. for
+            operating on intermediate states of a circuit.
+            Defaults to False.
         """
-        if copy is None:
-            _compat._warn_or_error(
-                "Starting in v0.16, state_vector will not copy the state by default. "
-                "Explicitly set copy=True to copy the state."
-            )
-            copy = True
         return self.final_state_vector.copy() if copy else self.final_state_vector
 
     def _value_equality_values_(self):

@@ -14,13 +14,11 @@ TestSpec = ModuleJsonTestSpec(
         'SYC_GATESET',
         'Sycamore',
         'Sycamore23',
-        'SerializableDevice',
         'SerializableGateSet',
         'SQRT_ISWAP_GATESET',
         'SQRT_ISWAP_INV_PARAMETERS',
         'ALL_ANGLES_FLOQUET_PHASED_FSIM_CHARACTERIZATION',
         'WITHOUT_CHI_FLOQUET_PHASED_FSIM_CHARACTERIZATION',
-        'XmonDevice',
         'XMON',
     ],
     should_not_be_serialized=[
@@ -50,7 +48,6 @@ TestSpec = ModuleJsonTestSpec(
         'PerQubitDepolarizingWithDampedReadoutNoiseModel',
         'SerializingArg',
         'THETA_ZETA_GAMMA_FLOQUET_PHASED_FSIM_CHARACTERIZATION',
-        'QuantumEngineSampler',
         'ProcessorSampler',
         'ValidatingSampler',
         'CouldNotPlaceError',
@@ -77,13 +74,9 @@ TestSpec = ModuleJsonTestSpec(
             'SimulatedProcessorRecord',
             'SimulatedProcessorWithLocalDeviceRecord',
             'EngineResult',
+            'GridDevice',
         ]
     },
     resolver_cache=_class_resolver_dictionary(),
-    deprecated={
-        '_NamedConstantXmonDevice': 'v0.15',
-        'Bristlecone': 'v0.15',
-        'Foxtail': 'v0.15',
-        'GateTabulation': 'v0.16',
-    },
+    deprecated={'GateTabulation': 'v0.16'},
 )

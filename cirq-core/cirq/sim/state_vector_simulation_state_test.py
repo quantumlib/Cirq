@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from typing import cast, Type
 from unittest import mock
 
 import numpy as np
@@ -170,7 +171,7 @@ def test_act_using_adaptive_two_qubit_channel():
             qubits=cirq.LineQubit.range(4),
             prng=mock_prng,
             initial_state=np.copy(state),
-            dtype=state.dtype,
+            dtype=cast(Type[np.complexfloating], state.dtype),
         )
         cirq.act_on(Decay11(), args, [cirq.LineQubit(1), cirq.LineQubit(3)])
         return args.target_tensor
@@ -268,28 +269,6 @@ def test_measured_mixture():
     assert results.histogram(key='flip') == results.histogram(key='m')
 
 
-def test_with_qubits():
-    original = cirq.StateVectorSimulationState(
-        qubits=cirq.LineQubit.range(2), initial_state=1, dtype=np.complex64
-    )
-    extened = original.with_qubits(cirq.LineQubit.range(2, 4))
-    np.testing.assert_almost_equal(
-        extened.target_tensor,
-        cirq.state_vector_kronecker_product(
-            np.array([[0.0 + 0.0j, 1.0 + 0.0j], [0.0 + 0.0j, 0.0 + 0.0j]], dtype=np.complex64),
-            np.array([[1.0 + 0.0j, 0.0 + 0.0j], [0.0 + 0.0j, 0.0 + 0.0j]], dtype=np.complex64),
-        ),
-    )
-
-
 def test_qid_shape_error():
     with pytest.raises(ValueError, match="qid_shape must be provided"):
         cirq.sim.state_vector_simulation_state._BufferedStateVector.create(initial_state=0)
-
-
-def test_deprecated_methods():
-    args = cirq.StateVectorSimulationState(qubits=[cirq.LineQubit(0)])
-    with cirq.testing.assert_deprecated('unintentionally made public', deadline='v0.16'):
-        args.subspace_index([0], 0)
-    with cirq.testing.assert_deprecated('unintentionally made public', deadline='v0.16'):
-        args.swap_target_tensor_for(np.array([]))

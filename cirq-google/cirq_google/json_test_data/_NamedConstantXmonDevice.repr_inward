@@ -1,4 +1,4 @@
 [
-cirq_google.Foxtail,
-cirq_google.Bristlecone,
+'cirq.google.Foxtail',
+'cirq.google.Bristlecone',
 ]

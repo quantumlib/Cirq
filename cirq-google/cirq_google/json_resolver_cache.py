@@ -12,6 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""Module for use in exporting cirq-google objects in JSON."""
+
+import warnings
 import functools
 from typing import Dict
 
@@ -20,11 +23,20 @@ from cirq.protocols.json_serialization import ObjectFactory
 
 @functools.lru_cache()
 def _class_resolver_dictionary() -> Dict[str, ObjectFactory]:
+    def _old_xmon(*args, **kwargs):
+        d_type = kwargs['constant']
+        warnings.warn(
+            f'Attempted to json load a {d_type} Device.'
+            'These devices were removed in Cirq v0.15 and are no '
+            'longer supported. Please update device usage to a '
+            'supported device or downgrade your Cirq installation.'
+        )
+        return str(d_type)
+
     import cirq_google
-    from cirq_google.devices.known_devices import _NamedConstantXmonDevice
 
     return {
-        '_NamedConstantXmonDevice': _NamedConstantXmonDevice,
+        '_NamedConstantXmonDevice': _old_xmon,
         'Calibration': cirq_google.Calibration,
         'CalibrationTag': cirq_google.CalibrationTag,
         'CalibrationLayer': cirq_google.CalibrationLayer,
@@ -33,7 +45,6 @@ def _class_resolver_dictionary() -> Dict[str, ObjectFactory]:
         'GoogleNoiseProperties': cirq_google.GoogleNoiseProperties,
         'SycamoreGate': cirq_google.SycamoreGate,
         'GateTabulation': cirq_google.GateTabulation,
-        'GridDevice': cirq_google.GridDevice,
         'PhysicalZTag': cirq_google.PhysicalZTag,
         'FSimGateFamily': cirq_google.FSimGateFamily,
         'FloquetPhasedFSimCalibrationOptions': cirq_google.FloquetPhasedFSimCalibrationOptions,
@@ -67,4 +78,5 @@ def _class_resolver_dictionary() -> Dict[str, ObjectFactory]:
         'cirq.google.HardcodedQubitPlacer': cirq_google.HardcodedQubitPlacer,
         # pylint: enable=line-too-long
         'cirq.google.EngineResult': cirq_google.EngineResult,
+        'cirq.google.GridDevice': cirq_google.GridDevice,
     }

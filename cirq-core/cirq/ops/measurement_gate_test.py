@@ -40,6 +40,11 @@ def test_measure_init(num_qubits):
     )
     assert cirq.MeasurementGate(num_qubits, 'a', invert_mask=(True,)).invert_mask == (True,)
     assert cirq.qid_shape(cirq.MeasurementGate(num_qubits, 'a')) == (2,) * num_qubits
+    cmap = {(0,): np.array([[0, 1], [1, 0]])}
+    assert cirq.MeasurementGate(num_qubits, 'a', confusion_map=cmap).confusion_map == cmap
+
+
+def test_measure_init_num_qubit_agnostic():
     assert cirq.qid_shape(cirq.MeasurementGate(3, 'a', qid_shape=(1, 2, 3))) == (1, 2, 3)
     assert cirq.qid_shape(cirq.MeasurementGate(key='a', qid_shape=(1, 2, 3))) == (1, 2, 3)
     with pytest.raises(ValueError, match='len.* >'):
@@ -48,6 +53,8 @@ def test_measure_init(num_qubits):
         cirq.MeasurementGate(5, 'a', qid_shape=(1, 2))
     with pytest.raises(ValueError, match='valid string'):
         cirq.MeasurementGate(2, qid_shape=(1, 2), key=None)
+    with pytest.raises(ValueError, match='Confusion matrices have index out of bounds'):
+        cirq.MeasurementGate(1, 'a', confusion_map={(1,): np.array([[0, 1], [1, 0]])})
     with pytest.raises(ValueError, match='Specify either'):
         cirq.MeasurementGate()
 
@@ -68,9 +75,13 @@ def test_measurement_eq():
         lambda: cirq.MeasurementGate(1, 'a'),
         lambda: cirq.MeasurementGate(1, 'a', invert_mask=()),
         lambda: cirq.MeasurementGate(1, 'a', qid_shape=(2,)),
+        lambda: cirq.MeasurementGate(1, 'a', confusion_map={}),
     )
     eq.add_equality_group(cirq.MeasurementGate(1, 'a', invert_mask=(True,)))
     eq.add_equality_group(cirq.MeasurementGate(1, 'a', invert_mask=(False,)))
+    eq.add_equality_group(
+        cirq.MeasurementGate(1, 'a', confusion_map={(0,): np.array([[0, 1], [1, 0]])})
+    )
     eq.add_equality_group(cirq.MeasurementGate(1, 'b'))
     eq.add_equality_group(cirq.MeasurementGate(2, 'a'))
     eq.add_equality_group(
@@ -147,15 +158,15 @@ def test_qudit_measure_qasm():
     )
 
 
-def test_qudit_measure_quil():
-    q0 = cirq.LineQid(0, 3)
-    qubit_id_map = {q0: '0'}
+def test_confused_measure_qasm():
+    q0 = cirq.LineQubit(0)
     assert (
-        cirq.quil(
-            cirq.measure(q0, key='a'),
-            formatter=cirq.QuilFormatter(qubit_id_map=qubit_id_map, measurement_id_map={}),
+        cirq.qasm(
+            cirq.measure(q0, key='a', confusion_map={(0,): np.array([[0, 1], [1, 0]])}),
+            args=cirq.QasmArgs(),
+            default='not implemented',
         )
-        is None
+        == 'not implemented'
     )
 
 
@@ -199,6 +210,26 @@ b: ───M───
 a: ───!M───
       │
 b: ───M────
+""",
+    )
+    cirq.testing.assert_has_diagram(
+        cirq.Circuit(cirq.measure(a, b, confusion_map={(1,): np.array([[0, 1], [1, 0]])})),
+        """
+a: ───M────
+      │
+b: ───?M───
+""",
+    )
+    cirq.testing.assert_has_diagram(
+        cirq.Circuit(
+            cirq.measure(
+                a, b, invert_mask=(False, True), confusion_map={(1,): np.array([[0, 1], [1, 0]])}
+            )
+        ),
+        """
+a: ───M─────
+      │
+b: ───!?M───
 """,
     )
     cirq.testing.assert_has_diagram(
@@ -280,11 +311,37 @@ def test_op_repr():
         "key=cirq.MeasurementKey(name='out'), "
         "invert_mask=(False, True))"
     )
+    assert repr(
+        cirq.measure(
+            a,
+            b,
+            key='out',
+            invert_mask=(False, True),
+            confusion_map={(0,): np.array([[0, 1], [1, 0]], dtype=np.int64)},
+        )
+    ) == (
+        "cirq.measure(cirq.LineQubit(0), cirq.LineQubit(1), "
+        "key=cirq.MeasurementKey(name='out'), "
+        "invert_mask=(False, True), "
+        "confusion_map={(0,): np.array([[0, 1], [1, 0]], dtype=np.int64)})"
+    )
+
+
+def test_repr():
+    gate = cirq.MeasurementGate(
+        3, 'a', (True, False), (1, 2, 3), {(2,): np.array([[0, 1], [1, 0]], dtype=np.int64)}
+    )
+    assert repr(gate) == (
+        "cirq.MeasurementGate(3, cirq.MeasurementKey(name='a'), (True, False), "
+        "qid_shape=(1, 2, 3), confusion_map={(2,): np.array([[0, 1], [1, 0]], dtype=np.int64)})"
+    )
 
 
 def test_act_on_state_vector():
     a, b = [cirq.LineQubit(3), cirq.LineQubit(1)]
-    m = cirq.measure(a, b, key='out', invert_mask=(True,))
+    m = cirq.measure(
+        a, b, key='out', invert_mask=(True,), confusion_map={(1,): np.array([[0, 1], [1, 0]])}
+    )
 
     args = cirq.StateVectorSimulationState(
         available_buffer=np.empty(shape=(2, 2, 2, 2, 2)),
@@ -294,7 +351,7 @@ def test_act_on_state_vector():
         dtype=np.complex64,
     )
     cirq.act_on(m, args)
-    assert args.log_of_measurement_results == {'out': [1, 0]}
+    assert args.log_of_measurement_results == {'out': [1, 1]}
 
     args = cirq.StateVectorSimulationState(
         available_buffer=np.empty(shape=(2, 2, 2, 2, 2)),
@@ -306,7 +363,7 @@ def test_act_on_state_vector():
         dtype=np.complex64,
     )
     cirq.act_on(m, args)
-    assert args.log_of_measurement_results == {'out': [1, 1]}
+    assert args.log_of_measurement_results == {'out': [1, 0]}
 
     args = cirq.StateVectorSimulationState(
         available_buffer=np.empty(shape=(2, 2, 2, 2, 2)),
@@ -320,16 +377,18 @@ def test_act_on_state_vector():
     cirq.act_on(m, args)
     datastore = cast(cirq.ClassicalDataDictionaryStore, args.classical_data)
     out = cirq.MeasurementKey('out')
-    assert args.log_of_measurement_results == {'out': [0, 1]}
-    assert datastore.records[out] == [(0, 1)]
+    assert args.log_of_measurement_results == {'out': [0, 0]}
+    assert datastore.records[out] == [(0, 0)]
     cirq.act_on(m, args)
-    assert args.log_of_measurement_results == {'out': [0, 1]}
-    assert datastore.records[out] == [(0, 1), (0, 1)]
+    assert args.log_of_measurement_results == {'out': [0, 0]}
+    assert datastore.records[out] == [(0, 0), (0, 0)]
 
 
 def test_act_on_clifford_tableau():
     a, b = [cirq.LineQubit(3), cirq.LineQubit(1)]
-    m = cirq.measure(a, b, key='out', invert_mask=(True,))
+    m = cirq.measure(
+        a, b, key='out', invert_mask=(True,), confusion_map={(1,): np.array([[0, 1], [1, 0]])}
+    )
     # The below assertion does not fail since it ignores non-unitary operations
     cirq.testing.assert_all_implemented_act_on_effects_match_unitary(m)
 
@@ -339,7 +398,7 @@ def test_act_on_clifford_tableau():
         prng=np.random.RandomState(),
     )
     cirq.act_on(m, args)
-    assert args.log_of_measurement_results == {'out': [1, 0]}
+    assert args.log_of_measurement_results == {'out': [1, 1]}
 
     args = cirq.CliffordTableauSimulationState(
         tableau=cirq.CliffordTableau(num_qubits=5, initial_state=8),
@@ -348,7 +407,7 @@ def test_act_on_clifford_tableau():
     )
 
     cirq.act_on(m, args)
-    assert args.log_of_measurement_results == {'out': [1, 1]}
+    assert args.log_of_measurement_results == {'out': [1, 0]}
 
     args = cirq.CliffordTableauSimulationState(
         tableau=cirq.CliffordTableau(num_qubits=5, initial_state=10),
@@ -358,16 +417,18 @@ def test_act_on_clifford_tableau():
     cirq.act_on(m, args)
     datastore = cast(cirq.ClassicalDataDictionaryStore, args.classical_data)
     out = cirq.MeasurementKey('out')
-    assert args.log_of_measurement_results == {'out': [0, 1]}
-    assert datastore.records[out] == [(0, 1)]
+    assert args.log_of_measurement_results == {'out': [0, 0]}
+    assert datastore.records[out] == [(0, 0)]
     cirq.act_on(m, args)
-    assert args.log_of_measurement_results == {'out': [0, 1]}
-    assert datastore.records[out] == [(0, 1), (0, 1)]
+    assert args.log_of_measurement_results == {'out': [0, 0]}
+    assert datastore.records[out] == [(0, 0), (0, 0)]
 
 
 def test_act_on_stabilizer_ch_form():
     a, b = [cirq.LineQubit(3), cirq.LineQubit(1)]
-    m = cirq.measure(a, b, key='out', invert_mask=(True,))
+    m = cirq.measure(
+        a, b, key='out', invert_mask=(True,), confusion_map={(1,): np.array([[0, 1], [1, 0]])}
+    )
     # The below assertion does not fail since it ignores non-unitary operations
     cirq.testing.assert_all_implemented_act_on_effects_match_unitary(m)
 
@@ -375,14 +436,14 @@ def test_act_on_stabilizer_ch_form():
         qubits=cirq.LineQubit.range(5), prng=np.random.RandomState(), initial_state=0
     )
     cirq.act_on(m, args)
-    assert args.log_of_measurement_results == {'out': [1, 0]}
+    assert args.log_of_measurement_results == {'out': [1, 1]}
 
     args = cirq.StabilizerChFormSimulationState(
         qubits=cirq.LineQubit.range(5), prng=np.random.RandomState(), initial_state=8
     )
 
     cirq.act_on(m, args)
-    assert args.log_of_measurement_results == {'out': [1, 1]}
+    assert args.log_of_measurement_results == {'out': [1, 0]}
 
     args = cirq.StabilizerChFormSimulationState(
         qubits=cirq.LineQubit.range(5), prng=np.random.RandomState(), initial_state=10
@@ -390,16 +451,22 @@ def test_act_on_stabilizer_ch_form():
     cirq.act_on(m, args)
     datastore = cast(cirq.ClassicalDataDictionaryStore, args.classical_data)
     out = cirq.MeasurementKey('out')
-    assert args.log_of_measurement_results == {'out': [0, 1]}
-    assert datastore.records[out] == [(0, 1)]
+    assert args.log_of_measurement_results == {'out': [0, 0]}
+    assert datastore.records[out] == [(0, 0)]
     cirq.act_on(m, args)
-    assert args.log_of_measurement_results == {'out': [0, 1]}
-    assert datastore.records[out] == [(0, 1), (0, 1)]
+    assert args.log_of_measurement_results == {'out': [0, 0]}
+    assert datastore.records[out] == [(0, 0), (0, 0)]
 
 
 def test_act_on_qutrit():
     a, b = [cirq.LineQid(3, dimension=3), cirq.LineQid(1, dimension=3)]
-    m = cirq.measure(a, b, key='out', invert_mask=(True,))
+    m = cirq.measure(
+        a,
+        b,
+        key='out',
+        invert_mask=(True,),
+        confusion_map={(1,): np.array([[0, 1, 0], [0, 0, 1], [1, 0, 0]])},
+    )
 
     args = cirq.StateVectorSimulationState(
         available_buffer=np.empty(shape=(3, 3, 3, 3, 3)),
@@ -411,7 +478,7 @@ def test_act_on_qutrit():
         dtype=np.complex64,
     )
     cirq.act_on(m, args)
-    assert args.log_of_measurement_results == {'out': [2, 2]}
+    assert args.log_of_measurement_results == {'out': [2, 0]}
 
     args = cirq.StateVectorSimulationState(
         available_buffer=np.empty(shape=(3, 3, 3, 3, 3)),
@@ -423,7 +490,7 @@ def test_act_on_qutrit():
         dtype=np.complex64,
     )
     cirq.act_on(m, args)
-    assert args.log_of_measurement_results == {'out': [2, 1]}
+    assert args.log_of_measurement_results == {'out': [2, 2]}
 
     args = cirq.StateVectorSimulationState(
         available_buffer=np.empty(shape=(3, 3, 3, 3, 3)),
@@ -435,4 +502,4 @@ def test_act_on_qutrit():
         dtype=np.complex64,
     )
     cirq.act_on(m, args)
-    assert args.log_of_measurement_results == {'out': [0, 2]}
+    assert args.log_of_measurement_results == {'out': [0, 0]}

@@ -16,9 +16,9 @@ from typing import Dict
 
 
 class VirtualTag:
-    """A TaggedOperation tag indicating that the operation is virtual.
+    """A `cirq.TaggedOperation` tag indicating that the operation is virtual.
 
-    Virtual operations are one that do not correspond to some physical signal sent
+    Virtual operations are ones that do not correspond to some physical signal sent
     to the quantum computer. An example of such an operation is a Z rotation gates
     where the gate is not enacted in the circuit, but instead is tracked in software.
     Another example is noise that has been added to a gate to make it appear as

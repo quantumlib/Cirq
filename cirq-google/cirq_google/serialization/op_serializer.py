@@ -99,7 +99,27 @@ class OpSerializer(abc.ABC):
 
 
 @dataclass(frozen=True)
-class SerializingArg:
+class _SerializingArg:
+    """HACK: non-deprecated version of SerializingArg.
+
+    This is used by global gatesets to bypass the behavior that deprecation warnings thrown
+    during module loading fail unit tests.
+    """
+
+    serialized_name: str
+    serialized_type: Type[ARG_LIKE]
+    op_getter: Union[str, Callable[[cirq.Operation], Optional[ARG_LIKE]]]
+    required: bool = True
+    default: Any = None
+
+
+@cirq._compat.deprecated_class(
+    deadline='v0.16',
+    fix='Will no longer be used because GateOpSerializer is deprecated.'
+    ' CircuitSerializer will be the only supported circuit serializer going forward.',
+)
+@dataclass(frozen=True)
+class SerializingArg(_SerializingArg):
     """Specification of the arguments for a Gate and its serialization.
 
     Args:
@@ -116,21 +136,12 @@ class SerializingArg:
             Note that the DeserializingArg must also have this as default.
     """
 
-    serialized_name: str
-    serialized_type: Type[ARG_LIKE]
-    op_getter: Union[str, Callable[[cirq.Operation], Optional[ARG_LIKE]]]
-    required: bool = True
-    default: Any = None
 
+class _GateOpSerializer(OpSerializer):
+    """HACK: non-deprecated version of GateOpSerializer.
 
-class GateOpSerializer(OpSerializer):
-    """Describes how to serialize a GateOperation for a given Gate type.
-
-    Attributes:
-        gate_type: The type of the gate that can be serialized.
-        serialized_gate_id: The id used when serializing the gate.
-        serialize_tokens: Whether to convert CalibrationTags into tokens
-            on the Operation proto.  Defaults to True.
+    This is used by global gatesets to bypass the behavior that deprecation warnings thrown
+    during module loading fail unit tests.
     """
 
     def __init__(
@@ -142,22 +153,6 @@ class GateOpSerializer(OpSerializer):
         can_serialize_predicate: Callable[[cirq.Operation], bool] = lambda x: True,
         serialize_tokens: Optional[bool] = True,
     ):
-        """Construct the serializer.
-
-        Args:
-            gate_type: The type of the gate that is being serialized.
-            serialized_gate_id: The string id of the gate when serialized.
-            args: A list of specification of the arguments to the gate when
-                serializing, including how to get this information from the
-                gate of the given gate type.
-            can_serialize_predicate: Sometimes an Operation can only be
-                serialized for particular parameters. This predicate will be
-                checked before attempting to serialize the Operation. If the
-                predicate is False, serialization will result in a None value.
-                Default value is a lambda that always returns True.
-            serialize_tokens: Whether to convert calibration tags into tokens
-                on the Operation proto.
-        """
         self._gate_type = gate_type
         self._serialized_gate_id = serialized_gate_id
         self._args = args
@@ -181,12 +176,6 @@ class GateOpSerializer(OpSerializer):
         return self._can_serialize_predicate
 
     def can_serialize_operation(self, op: cirq.Operation) -> bool:
-        """Whether the given operation can be serialized by this serializer.
-
-        This checks that the gate is a subclass of the gate type for this
-        serializer, and that the gate returns true for
-        `can_serializer_predicate` called on the gate.
-        """
         supported_gate_type = self._gate_type in type(op.gate).mro()
         return supported_gate_type and super().can_serialize_operation(op)
 
@@ -199,11 +188,6 @@ class GateOpSerializer(OpSerializer):
         constants: List[v2.program_pb2.Constant] = None,
         raw_constants: Dict[Any, int] = None,
     ) -> Optional[v2.program_pb2.Operation]:
-        """Returns the cirq_google.api.v2.Operation message as a proto dict.
-
-        Note that this function may modify the constant list if it adds
-        tokens to the circuit's constant table.
-        """
 
         gate = op.gate
         if not isinstance(gate, self.internal_type):
@@ -287,6 +271,86 @@ class GateOpSerializer(OpSerializer):
                     arg.serialized_name, arg.serialized_type, type(value)
                 )
             )
+
+
+@cirq._compat.deprecated_class(
+    deadline='v0.16',
+    fix='Will no longer be supported.'
+    ' CircuitSerializer will be the only supported circuit serializer going forward.',
+)
+class GateOpSerializer(_GateOpSerializer):
+    """Describes how to serialize a GateOperation for a given Gate type.
+
+    Attributes:
+        gate_type: The type of the gate that can be serialized.
+        serialized_gate_id: The id used when serializing the gate.
+        serialize_tokens: Whether to convert CalibrationTags into tokens
+            on the Operation proto.  Defaults to True.
+    """
+
+    def __init__(
+        self,
+        *,
+        gate_type: Type[Gate],
+        serialized_gate_id: str,
+        args: List[SerializingArg],
+        can_serialize_predicate: Callable[[cirq.Operation], bool] = lambda x: True,
+        serialize_tokens: Optional[bool] = True,
+    ):
+        """Construct the serializer.
+
+        Args:
+            gate_type: The type of the gate that is being serialized.
+            serialized_gate_id: The string id of the gate when serialized.
+            args: A list of specification of the arguments to the gate when
+                serializing, including how to get this information from the
+                gate of the given gate type.
+            can_serialize_predicate: Sometimes an Operation can only be
+                serialized for particular parameters. This predicate will be
+                checked before attempting to serialize the Operation. If the
+                predicate is False, serialization will result in a None value.
+                Default value is a lambda that always returns True.
+            serialize_tokens: Whether to convert calibration tags into tokens
+                on the Operation proto.
+        """
+        super().__init__(
+            gate_type=gate_type,
+            serialized_gate_id=serialized_gate_id,
+            args=args,
+            can_serialize_predicate=can_serialize_predicate,
+            serialize_tokens=serialize_tokens,
+        )
+
+    def can_serialize_operation(self, op: cirq.Operation) -> bool:
+        """Whether the given operation can be serialized by this serializer.
+
+        This checks that the gate is a subclass of the gate type for this
+        serializer, and that the gate returns true for
+        `can_serializer_predicate` called on the gate.
+        """
+        return super().can_serialize_operation(op)
+
+    def to_proto(
+        self,
+        op: cirq.Operation,
+        msg: Optional[v2.program_pb2.Operation] = None,
+        *,
+        arg_function_language: Optional[str] = '',
+        constants: List[v2.program_pb2.Constant] = None,
+        raw_constants: Dict[Any, int] = None,
+    ) -> Optional[v2.program_pb2.Operation]:
+        """Returns the cirq_google.api.v2.Operation message as a proto dict.
+
+        Note that this function may modify the constant list if it adds
+        tokens to the circuit's constant table.
+        """
+        return super().to_proto(
+            op,
+            msg,
+            arg_function_language=arg_function_language,
+            constants=constants,
+            raw_constants=raw_constants,
+        )
 
 
 class CircuitOpSerializer(OpSerializer):

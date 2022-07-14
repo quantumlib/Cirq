@@ -13,13 +13,12 @@
 # limitations under the License.
 
 import abc
-from typing import Any, cast, Dict, Generic, List, Optional, Sequence, TYPE_CHECKING, TypeVar, Union
+from typing import Any, cast, Generic, Optional, Sequence, TYPE_CHECKING, TypeVar, Union
 
 import numpy as np
 import sympy
 
 from cirq import linalg, ops, protocols
-from cirq._compat import deprecated_parameter
 from cirq.ops import common_gates, global_phase_op, matrix_gates, swap_gates
 from cirq.ops.clifford_gate import SingleQubitCliffordGate
 from cirq.protocols import has_unitary, num_qubits, unitary
@@ -38,24 +37,11 @@ class StabilizerSimulationState(
 ):
     """Abstract wrapper around a stabilizer state for the act_on protocol."""
 
-    @deprecated_parameter(
-        deadline='v0.16',
-        fix='Use kwargs instead of positional args',
-        parameter_desc='args',
-        match=lambda args, kwargs: len(args) > 1,
-    )
-    @deprecated_parameter(
-        deadline='v0.16',
-        fix='Replace log_of_measurement_results with'
-        ' classical_data=cirq.ClassicalDataDictionaryStore(_records=logs).',
-        parameter_desc='log_of_measurement_results',
-        match=lambda args, kwargs: 'log_of_measurement_results' in kwargs,
-    )
     def __init__(
         self,
+        *,
         state: TStabilizerState,
         prng: Optional[np.random.RandomState] = None,
-        log_of_measurement_results: Optional[Dict[str, List[int]]] = None,
         qubits: Optional[Sequence['cirq.Qid']] = None,
         classical_data: Optional['cirq.ClassicalDataStore'] = None,
     ):
@@ -69,21 +55,10 @@ class StabilizerSimulationState(
             qubits: Determines the canonical ordering of the qubits. This
                 is often used in specifying the initial state, i.e. the
                 ordering of the computational basis states.
-            log_of_measurement_results: A mutable object that measurements are
-                being recorded into.
             classical_data: The shared classical data container for this
                 simulation.
         """
-        if log_of_measurement_results is not None:
-            super().__init__(
-                state=state,
-                prng=prng,
-                qubits=qubits,
-                log_of_measurement_results=log_of_measurement_results,
-                classical_data=classical_data,
-            )
-        else:
-            super().__init__(state=state, prng=prng, qubits=qubits, classical_data=classical_data)
+        super().__init__(state=state, prng=prng, qubits=qubits, classical_data=classical_data)
 
     @property
     def state(self) -> TStabilizerState:
@@ -161,21 +136,14 @@ class StabilizerSimulationState(
             if not has_unitary(val):
                 return NotImplemented
             u = unitary(val)
-            clifford_gate = SingleQubitCliffordGate.from_unitary(u)
-            if clifford_gate is not None:
-                # Gather the effective unitary applied so as to correct for the
-                # global phase later.
-                final_unitary = np.eye(2)
-                for axis, quarter_turns in clifford_gate.decompose_rotation():
-                    gate = axis ** (quarter_turns / 2)
+            gate_and_phase = SingleQubitCliffordGate.from_unitary_with_global_phase(u)
+            if gate_and_phase is not None:
+                clifford_gate, global_phase = gate_and_phase
+                # Apply gates.
+                for gate in clifford_gate.decompose_gate():
                     self._strat_apply_gate(gate, qubits)
-                    final_unitary = np.matmul(unitary(gate), final_unitary)
-
-                # Find the entry with the largest magnitude in the input unitary.
-                k = max(np.ndindex(*u.shape), key=lambda t: abs(u[t]))
-                # Correct the global phase that wasn't conserved in the above
-                # decomposition.
-                self._state.apply_global_phase(u[k] / final_unitary[k])
+                # Apply global phase.
+                self._state.apply_global_phase(global_phase)
                 return True
 
         return NotImplemented

@@ -14,7 +14,7 @@
 
 from typing import Tuple, cast
 
-from cirq import ops, circuits
+from cirq import circuits, ops, protocols
 from cirq.contrib.paulistring.convert_gate_set import converted_gate_set
 
 
@@ -77,9 +77,9 @@ def clifford_optimized_circuit(circuit: circuits.Circuit, atol: float = 1e-8) ->
         for pauli, quarter_turns in reversed(
             cast(ops.SingleQubitCliffordGate, cliff_op.gate).decompose_rotation()
         ):
-            trans = remaining_cliff_gate.transform(pauli)
-            pauli = trans.to
-            quarter_turns *= -1 if trans.flip else 1
+            trans = remaining_cliff_gate.pauli_tuple(pauli)
+            pauli = trans[0]
+            quarter_turns *= -1 if trans[1] else 1
             string_op = ops.PauliStringPhasor(
                 ops.PauliString(pauli(cliff_op.qubits[0])), exponent_neg=quarter_turns / 2
             )
@@ -87,10 +87,13 @@ def clifford_optimized_circuit(circuit: circuits.Circuit, atol: float = 1e-8) ->
             merge_i, merge_op, num_passed = find_merge_point(start_i, string_op, quarter_turns == 2)
             assert merge_i > start_i
             assert len(merge_op.pauli_string) == 1, 'PauliString length != 1'
+            assert not protocols.is_parameterized(merge_op.pauli_string)
+            coefficient = merge_op.pauli_string.coefficient
+            assert isinstance(coefficient, complex)
 
             qubit, pauli = next(iter(merge_op.pauli_string.items()))
             quarter_turns = round(merge_op.exponent_relative * 2)
-            quarter_turns *= int(merge_op.pauli_string.coefficient.real)
+            quarter_turns *= int(coefficient.real)
             quarter_turns %= 4
             part_cliff_gate = ops.SingleQubitCliffordGate.from_quarter_turns(pauli, quarter_turns)
 
