@@ -173,11 +173,9 @@ def _build_compilation_target_gatesets(
     compiled.
     """
 
-    # TODO(#5050) Subclass core CompilationTargetGatesets in cirq-google.
-
     target_gatesets: List[cirq.CompilationTargetGateset] = []
     if cirq.CZ in gateset:
-        target_gatesets.append(cirq.CZTargetGateset())
+        target_gatesets.append(transformers.GoogleCZTargetGateset())
     if ops.SYC in gateset:
         target_gatesets.append(transformers.SycamoreTargetGateset())
     if cirq.SQRT_ISWAP in gateset:
