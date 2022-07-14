@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from unittest.mock import Mock, call
+import unittest.mock as mock
 
 import numpy as np
 import sympy
@@ -22,7 +22,7 @@ import cirq
 
 def test_apply_gate():
     q0, q1 = cirq.LineQubit.range(2)
-    state = Mock()
+    state = mock.Mock()
     args = cirq.StabilizerSimulationState(state=state, qubits=[q0, q1])
 
     assert args._strat_apply_gate(cirq.X, [q0]) is True
@@ -78,11 +78,11 @@ def test_apply_gate():
 
     state.reset_mock()
     assert args._strat_apply_gate(cirq.SWAP, [q0, q1]) is True
-    state.apply_cx.assert_has_calls([call(0, 1), call(1, 0, 1.0, 0.0), call(0, 1)])
+    state.apply_cx.assert_has_calls([mock.call(0, 1), mock.call(1, 0, 1.0, 0.0), mock.call(0, 1)])
 
     state.reset_mock()
     assert args._strat_apply_gate(cirq.SwapPowGate(exponent=2, global_shift=1.3), [q0, q1]) is True
-    state.apply_cx.assert_has_calls([call(0, 1), call(1, 0, 2.0, 1.3), call(0, 1)])
+    state.apply_cx.assert_has_calls([mock.call(0, 1), mock.call(1, 0, 2.0, 1.3), mock.call(0, 1)])
 
     state.reset_mock()
     assert args._strat_apply_gate(cirq.BitFlipChannel(0.5), [q0]) == NotImplemented
@@ -91,7 +91,7 @@ def test_apply_gate():
 
 def test_apply_mixture():
     q0 = cirq.LineQubit(0)
-    state = Mock()
+    state = mock.Mock()
     args = cirq.StabilizerSimulationState(state=state, qubits=[q0])
 
     for _ in range(100):
@@ -102,7 +102,7 @@ def test_apply_mixture():
 
 def test_act_from_single_qubit_decompose():
     q0 = cirq.LineQubit(0)
-    state = Mock()
+    state = mock.Mock()
     args = cirq.StabilizerSimulationState(state=state, qubits=[q0])
     assert (
         args._strat_act_from_single_qubit_decompose(
@@ -122,7 +122,7 @@ def test_decompose():
             pass
 
     q0 = cirq.LineQubit(0)
-    state = Mock()
+    state = mock.Mock()
     args = cirq.StabilizerSimulationState(state=state, qubits=[q0])
     assert args._strat_decompose(XContainer(), [q0]) is True
     state.apply_x.assert_called_with(0, 1.0, 0.0)
