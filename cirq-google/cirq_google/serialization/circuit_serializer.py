@@ -22,6 +22,8 @@ from cirq_google.ops import PhysicalZTag
 from cirq_google.ops.calibration_tag import CalibrationTag
 from cirq_google.serialization import serializer, op_deserializer, op_serializer, arg_func_langs
 
+_SERIALIZER_NAME = 'v2_5'
+
 
 class CircuitSerializer(serializer.Serializer):
     """A class for serializing and deserializing programs and operations.
@@ -32,18 +34,12 @@ class CircuitSerializer(serializer.Serializer):
     to the `serialize()` method of the class, which will produce a
     `Program` proto.  Likewise, the `deserialize` method will produce
     a `cirq.Circuit` object from a `Program` proto.
-
-    This class is more performant than the previous `SerializableGateSet`
-    at the cost of some extendability.
     """
 
-    def __init__(self, gate_set_name: str):
-        """Construct the circuit serializer object.
-
-        Args:
-            gate_set_name: The name used to identify the gate set.
-        """
-        super().__init__(gate_set_name)
+    def __init__(self):
+        """Construct the circuit serializer object."""
+        # "v2.5" refers to the most current v2.Program proto format.
+        super().__init__(gate_set_name=_SERIALIZER_NAME)
 
     def serialize(
         self,
@@ -619,4 +615,4 @@ class CircuitSerializer(serializer.Serializer):
         )
 
 
-CIRCUIT_SERIALIZER = CircuitSerializer('v2_5')
+CIRCUIT_SERIALIZER = CircuitSerializer()
