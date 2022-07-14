@@ -331,8 +331,7 @@ def _probs(state: np.ndarray, indices: Sequence[int], qid_shape: Tuple[int, ...]
     if len(indices) == len(qid_shape):
         # We're measuring every qudit, so no need for fancy indexing
         probs = np.abs(tensor) ** 2
-        probs = np.transpose(probs, indices)
-        probs = np.reshape(probs, np.prod(probs.shape, dtype=np.int64))
+        probs = np.transpose(probs, indices).flatten()
     else:
         # Fancy indexing required
         meas_shape = tuple(qid_shape[i] for i in indices)
