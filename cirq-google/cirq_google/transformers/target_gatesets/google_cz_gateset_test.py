@@ -74,7 +74,7 @@ def test_eject_z_enabled(before, expected):
     after = cirq.optimize_for_target_gateset(
         before,
         gateset=cirq_google.GoogleCZTargetGateset(
-            eject_z=True,
+            eject_paulis=True,
             additional_gates=[
                 cirq.GateFamily(cirq.ZPowGate, tags_to_ignore=[cirq_google.PhysicalZTag()]),
                 cirq.GateFamily(cirq.ZPowGate, tags_to_accept=[cirq_google.PhysicalZTag()]),
@@ -90,7 +90,7 @@ def test_eject_z_enabled(before, expected):
     [
         cirq_google.GoogleCZTargetGateset(),
         cirq_google.GoogleCZTargetGateset(
-            atol=1e-6, eject_z=True, additional_gates=[cirq.SQRT_ISWAP, cirq.XPowGate]
+            atol=1e-6, eject_paulis=True, additional_gates=[cirq.SQRT_ISWAP, cirq.XPowGate]
         ),
         cirq_google.GoogleCZTargetGateset(additional_gates=()),
     ],

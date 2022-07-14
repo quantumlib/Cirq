@@ -2,13 +2,13 @@
     {
         "cirq_type": "cirq.google.GoogleCZTargetGateset",
         "atol": 1e-08,
-        "eject_z": false,
+        "eject_paulis": false,
         "additional_gates": []
     },
     {
         "cirq_type": "cirq.google.GoogleCZTargetGateset",
         "atol": 1e-06,
-        "eject_z": true,
+        "eject_paulis": true,
         "additional_gates": [
             {
                 "cirq_type": "GateFamily",

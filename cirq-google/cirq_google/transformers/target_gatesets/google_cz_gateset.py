@@ -22,20 +22,22 @@ class GoogleCZTargetGateset(cirq.CZTargetGateset):
     def __init__(
         self,
         atol: float = 1e-8,
-        eject_z: bool = False,
+        eject_paulis: bool = False,
         additional_gates: Sequence[Union[Type[cirq.Gate], cirq.Gate, cirq.GateFamily]] = (),
     ):
         """Initializes GoogleCZTargetGateset.
 
         Args:
             atol: A limit on the amount of absolute error introduced by the transformation.
-            eject_z: Whether to enable the `cirq.eject_z` postprocess transformer. Do not enable
-             this if the circuit contains gates with `cirq_google.PhysicalZTag`. Defaults to False.
+            eject_paulis: Whether to enable postprocess transformers `cirq.eject_z` and
+             `cirq.eject_phased_paulis`. Do not enable this if the circuit contains gates with
+             `cirq_google.PhysicalZTag` as the tag will be erased by these transformers. Defaults to
+             False.
             additional_gates: Sequence of additional gates / gate families which should also
               be "accepted" by this gateset. This is empty by default.
         """
         super().__init__(atol=atol, allow_partial_czs=False, additional_gates=additional_gates)
-        self.eject_z = eject_z
+        self.eject_paulis = eject_paulis
         self._additional_gates_repr_str = ", ".join(
             [cirq.ops.gateset._gate_str(g, repr) for g in additional_gates]
         )
@@ -44,23 +46,26 @@ class GoogleCZTargetGateset(cirq.CZTargetGateset):
     def postprocess_transformers(self) -> List[cirq.TRANSFORMER]:
         """List of transformers which should be run after decomposing individual operations.
 
-        Adds `cirq.eject_phased_paulis` and `cirq.eject_z` (if enabled) in addition to
-        postprocess_transformers already available in `cirq.CompilationTargetGateset`.
+        If `eject_paulis` is enabled in the constructor, adds `cirq.eject_phased_paulis` and
+        `cirq.eject_z` in addition to postprocess_transformers already available in
+        `cirq.CompilationTargetGateset`.
         """
         transformers: List[cirq.TRANSFORMER] = [
             cirq.create_transformer_with_kwargs(
                 cirq.merge_single_qubit_moments_to_phxz, atol=self.atol
             ),
-            cirq.create_transformer_with_kwargs(cirq.eject_phased_paulis, atol=self.atol),
             cirq.create_transformer_with_kwargs(cirq.drop_negligible_operations, atol=self.atol),
             cirq.drop_empty_moments,
         ]
 
-        if self.eject_z:
+        if self.eject_paulis:
             return (
-                transformers[:2]
-                + [cirq.create_transformer_with_kwargs(cirq.eject_z, atol=self.atol)]
-                + transformers[2:]
+                transformers[:1]
+                + [
+                    cirq.create_transformer_with_kwargs(cirq.eject_phased_paulis, atol=self.atol),
+                    cirq.create_transformer_with_kwargs(cirq.eject_z, atol=self.atol),
+                ]
+                + transformers[1:]
             )
         return transformers
 
@@ -68,13 +73,13 @@ class GoogleCZTargetGateset(cirq.CZTargetGateset):
         return (
             'cirq_google.GoogleCZTargetGateset('
             f'atol={self.atol}, '
-            f'eject_z={self.eject_z}, '
+            f'eject_paulis={self.eject_paulis}, '
             f'additional_gates=[{self._additional_gates_repr_str}]'
             ')'
         )
 
     def _value_equality_values_(self) -> Any:
-        return self.atol, self.eject_z, frozenset(self.additional_gates)
+        return self.atol, self.eject_paulis, frozenset(self.additional_gates)
 
     @classmethod
     def _json_namespace_(cls) -> str:
@@ -83,10 +88,10 @@ class GoogleCZTargetGateset(cirq.CZTargetGateset):
     def _json_dict_(self) -> Dict[str, Any]:
         return {
             'atol': self.atol,
-            'eject_z': self.eject_z,
+            'eject_paulis': self.eject_paulis,
             'additional_gates': list(self.additional_gates),
         }
 
     @classmethod
-    def _from_json_dict_(cls, atol, eject_z, additional_gates, **kwargs):
-        return cls(atol=atol, eject_z=eject_z, additional_gates=additional_gates)
+    def _from_json_dict_(cls, atol, eject_paulis, additional_gates, **kwargs):
+        return cls(atol=atol, eject_paulis=eject_paulis, additional_gates=additional_gates)
