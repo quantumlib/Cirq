@@ -84,6 +84,18 @@ upper_tabs:
         path: /cirq/simulate/params
       - title: "State Histograms"
         path: /cirq/simulate/state_histograms
+      - heading: "Quantum Virtual Machine"
+      - title: "Quantum Virtual Machine"
+        path: /cirq/simulate/quantum_virtual_machine
+      - title: "QVM Creation Template"
+        path: /cirq/simulate/qvm_builder_code
+      - title: "QVM Basic Example"
+        path: /cirq/simulate/qvm_basic_example
+      - title: "QVM Stabilizer Example"
+        path: /cirq/simulate/qvm_stabilizer_example
+      - title: "Virtual Engine Interface"
+        path: /cirq/simulate/virtual_engine_interface
+
 
     - name: "Transform"
       contents:
@@ -100,6 +112,8 @@ upper_tabs:
         path: /cirq/hardware
       - title: "Devices"
         path: /cirq/hardware/devices
+      - title: "Qubit Picking"
+        path: /cirq/hardware/qubit_picking
 
       ####  AQT  ####
       - heading: "AQT hardware"
