@@ -373,6 +373,7 @@ from cirq.transformers import (
     TransformerLogger,
     three_qubit_matrix_to_operations,
     transformer,
+    two_qubit_matrix_to_cz_isometry,
     two_qubit_matrix_to_cz_operations,
     two_qubit_matrix_to_diagonal_and_cz_operations,
     two_qubit_matrix_to_ion_operations,
@@ -630,7 +631,6 @@ from cirq.protocols import (
     with_rescoped_keys,
 )
 
-from cirq.ion import ConvertToIonGates, IonDevice
 from cirq.neutral_atoms import is_native_neutral_atom_gate, is_native_neutral_atom_op
 
 from cirq.vis import (

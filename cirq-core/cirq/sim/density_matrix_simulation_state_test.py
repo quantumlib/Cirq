@@ -73,20 +73,6 @@ def test_cannot_act():
         cirq.act_on(NoDetails(), args, qubits=())
 
 
-def test_with_qubits():
-    original = cirq.DensityMatrixSimulationState(
-        qubits=cirq.LineQubit.range(1), initial_state=1, dtype=np.complex64
-    )
-    extened = original.with_qubits(cirq.LineQubit.range(1, 2))
-    np.testing.assert_almost_equal(
-        extened.target_tensor,
-        cirq.density_matrix_kronecker_product(
-            np.array([[0, 0], [0, 1]], dtype=np.complex64),
-            np.array([[1, 0], [0, 0]], dtype=np.complex64),
-        ),
-    )
-
-
 def test_qid_shape_error():
     with pytest.raises(ValueError, match="qid_shape must be provided"):
         cirq.sim.density_matrix_simulation_state._BufferedDensityMatrix.create(initial_state=0)
