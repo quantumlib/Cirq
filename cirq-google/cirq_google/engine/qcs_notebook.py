@@ -13,38 +13,55 @@
 # limitations under the License.
 
 import dataclasses
-from typing import Union, Optional
+from typing import Optional
 
 import cirq
 
-from cirq_google import (
-    PhasedFSimEngineSimulator,
-    ProcessorSampler,
-    Sycamore,
-    SQRT_ISWAP_INV_PARAMETERS,
-    PhasedFSimCharacterization,
-    get_engine,
+from cirq_google import ProcessorSampler, get_engine
+from cirq_google.engine import (
+    AbstractEngine,
+    AbstractProcessor,
+    create_noiseless_virtual_engine_from_latest_templates,
 )
-from cirq_google.engine import create_noiseless_virtual_engine_from_latest_templates
 
 
 @dataclasses.dataclass
 class QCSObjectsForNotebook:
+    """All the objects you might need to run a notbook with QCS.
+
+    Contains an (Abstract) Engine, Processor, Device, and Sampler,
+    as well as associated meta-data signed_in, processor_id, and project_id.
+
+    This removes the need for boiler plate in notebooks, and provides a
+    central place to handle the various environments (testing vs production),
+    (stand-alone vs colab vs jupyter).
+    """
+
+    engine: AbstractEngine
+    processor: AbstractProcessor
     device: cirq.Device
-    sampler: Union[PhasedFSimEngineSimulator, ProcessorSampler]
+    sampler: ProcessorSampler
     signed_in: bool
     processor_id: Optional[str]
     project_id: Optional[str]
     is_simulator: bool
 
 
-# Disable missing-raises-doc lint check, since pylint gets confused
-# by exceptions that are raised and caught within this function.
-# pylint: disable=missing-raises-doc
 def get_qcs_objects_for_notebook(
     project_id: Optional[str] = None, processor_id: Optional[str] = None, virtual=False
-) -> QCSObjectsForNotebook:  # pragma: nocover
-    """Authenticates on Google Cloud, can return a Device and Simulator.
+) -> QCSObjectsForNotebook:
+    """Authenticates on Google Cloud and returns Engine related objects.
+
+    This function will authenticate to Google Cloud and attempt to
+    instantiate an Engine object.  If it does not succeed, it will instead
+    return a virtual AbstractEngine that is backed by a noisy simulator.
+    This function is designed for maximum versatility and
+    to work in colab notebooks, as a stand-alone, and in tests.
+
+    Note that, if you are using this to connect to QCS and do not care about
+    the added versatility, you may want to use `cirq_google.get_engine()` or
+    `cirq_google.Engine()` instead to guarantee the use of a production instance
+    and to avoid accidental use of a noisy simulator.
 
     Args:
         project_id: Optional explicit Google Cloud project id. Otherwise,
@@ -57,13 +74,17 @@ def get_qcs_objects_for_notebook(
             This is useful for testing and simulation.
 
     Returns:
-        An instance of DeviceSamplerInfo.
+        An instance of QCSObjectsForNotebook which contains all the objects .
+
+    Raises:
+        ValueError: if processor_id is not specified and no processors are available.
     """
 
     # Check for Google Application Default Credentials and run
     # interactive login if the notebook is executed in Colab. In
     # case the notebook is executed in Jupyter notebook or other
-
+    # IPython runtimes, no interactive login is provided, it is
+    # assumed that the `GOOGLE_APPLICATION_CREDENTIALS` env var is
     # set or `gcloud auth application-default login` was executed
     # already. For more information on using Application Default Credentials
     # see https://cloud.google.com/docs/authentication/production
@@ -81,41 +102,38 @@ def get_qcs_objects_for_notebook(
             print(f"Authentication failed: {exc}")
 
     # Attempt to connect to the Quantum Engine API, and use a simulator if unable to connect.
-    sampler: Union[PhasedFSimEngineSimulator, ProcessorSampler]
-    try:
-        if virtual:
-            engine = create_noiseless_virtual_engine_from_latest_templates()
-            is_simulator = True
-        else:
-            engine = get_engine(project_id)
-            is_simulator = False
-        if processor_id:
-            processor = engine.get_processor(processor_id)
-        else:
-            processors = engine.list_processors()
-            if not processors:
-                raise ValueError("No processors available.")
-            processor = processors[0]
-            processor_id = processor.processor_id
-            print(f"Available processors: {[p.processor_id for p in processors]}")
-            print(f"Using processor: {processor.processor_id}")
-        if not project_id:
-            project_id = getattr(processor, 'project_id', getattr(processor, '_project_name', None))
-        device = processor.get_device()
-        sampler = processor.get_sampler()
-        signed_in = not virtual
-    except Exception as exc:
-        print(f"Unable to connect to quantum engine: {exc}")
-        print("Using a noisy simulator.")
-        sampler = PhasedFSimEngineSimulator.create_with_random_gaussian_sqrt_iswap(
-            mean=SQRT_ISWAP_INV_PARAMETERS,
-            sigma=PhasedFSimCharacterization(theta=0.01, zeta=0.10, chi=0.01, gamma=0.10, phi=0.02),
-        )
-        is_simulator = True
-        device = Sycamore
+    if virtual:
+        engine: AbstractEngine = create_noiseless_virtual_engine_from_latest_templates()
         signed_in = False
-
+        is_simulator = True
+    else:
+        try:
+            engine = get_engine(project_id)
+            signed_in = True
+            is_simulator = False
+        except Exception as exc:
+            print(f"Unable to connect to quantum engine: {exc}")
+            print("Using a noisy simulator.")
+            engine = create_noiseless_virtual_engine_from_latest_templates()
+            signed_in = False
+            is_simulator = True
+    if processor_id:
+        processor = engine.get_processor(processor_id)
+    else:
+        processors = engine.list_processors()
+        if not processors:
+            raise ValueError("No processors available.")
+        processor = processors[0]
+        processor_id = processor.processor_id
+        print(f"Available processors: {[p.processor_id for p in processors]}")
+        print(f"Using processor: {processor.processor_id}")
+    if not project_id:
+        project_id = getattr(processor, 'project_id', None)
+    device = processor.get_device()
+    sampler = processor.get_sampler()
     return QCSObjectsForNotebook(
+        engine=engine,
+        processor=processor,
         device=device,
         sampler=sampler,
         signed_in=signed_in,
@@ -123,6 +141,3 @@ def get_qcs_objects_for_notebook(
         processor_id=processor_id,
         is_simulator=is_simulator,
     )
-
-
-# pylint: enable=missing-raises-doc
