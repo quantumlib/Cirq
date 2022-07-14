@@ -18,11 +18,12 @@
 Given a Calibration "cal", a user can simulate noise approximating that
 calibration using the following pipeline:
 
-    >>> noise_props = cg.noise_properties_from_calibration(cal)
-    >>> noise_model = cg.NoiseModelFromGoogleNoiseProperties(noise_props)
+    >>> cal = cirq_google.engine.load_median_device_calibration("rainbow")
+    >>> noise_props = cirq_google.engine.noise_properties_from_calibration(cal)
+    >>> noise_model = cirq_google.NoiseModelFromGoogleNoiseProperties(noise_props)
     >>> simulator = cirq.Simulator(noise=noise_model)
+    >>> circuit = cirq.Circuit(cirq.X(cirq.GridQubit(5, 2)))
     >>> result = simulator.simulate(circuit)
-    # 'result' contains the simulation results
 """
 
 from typing import Dict, Optional, Tuple, Type, TYPE_CHECKING
@@ -98,8 +99,10 @@ def noise_properties_from_calibration(
 
     To manually override noise properties, call `with_params` on the output:
 
-        >>> noise_props = noise_properties_from_calibration(cal).with_params(gate_times_ns=37)
-        # noise_props with all gate durations set to 37ns.
+        >>> cal = cirq_google.engine.load_median_device_calibration("rainbow")
+        >>> # noise_props with all gate durations set to 37ns.
+        >>> noise_props = cirq_google.engine.noise_properties_from_calibration(cal).with_params(
+        ...     gate_times_ns=37)
 
     See `cirq_google.GoogleNoiseProperties` for details.
 
