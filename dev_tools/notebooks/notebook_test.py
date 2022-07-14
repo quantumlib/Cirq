@@ -31,7 +31,6 @@ SKIP_NOTEBOOKS = [
     "**/aqt/*.ipynb",
     "**/azure-quantum/*.ipynb",
     "**/ionq/*.ipynb",
-    "**/google/*.ipynb",
     "**/pasqal/*.ipynb",
     "**/rigetti/*.ipynb",
     # skipping fidelity estimation due to
