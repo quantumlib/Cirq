@@ -13,7 +13,7 @@
 # limitations under the License.
 
 import dataclasses
-from typing import Optional
+from typing import List, Optional, Union
 
 import cirq
 
@@ -21,7 +21,9 @@ from cirq_google import ProcessorSampler, get_engine
 from cirq_google.engine import (
     AbstractEngine,
     AbstractProcessor,
+    AbstractLocalProcessor,
     create_noiseless_virtual_engine_from_latest_templates,
+    EngineProcessor,
 )
 
 
@@ -120,7 +122,9 @@ def get_qcs_objects_for_notebook(
     if processor_id:
         processor = engine.get_processor(processor_id)
     else:
-        processors = engine.list_processors()
+        # All of these are either local processors or engine processors
+        # Either way, tell mypy they have a processor_id field.
+        processors: List[Union[AbstractLocalProcessor, EngineProcessor]] = engine.list_processors()
         if not processors:
             raise ValueError("No processors available.")
         processor = processors[0]
