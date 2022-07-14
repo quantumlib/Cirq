@@ -21,32 +21,22 @@ import cirq_google
 _qa, _qb = cirq.NamedQubit('a'), cirq.NamedQubit('b')
 
 
-def test_eject_phased_paulis():
-    before = cirq.Circuit(cirq.PhasedXPowGate(phase_exponent=0.125).on(_qa), cirq.CZ(_qa, _qb))
-    expected = cirq.Circuit(
-        cirq.Z(_qb), (cirq.CZ**-1)(_qa, _qb), cirq.PhasedXPowGate(phase_exponent=0.125).on(_qa)
-    )
-
-    after = cirq.optimize_for_target_gateset(
-        before, gateset=cirq_google.GoogleCZTargetGateset(), ignore_failures=False
-    )
-    cirq.testing.assert_same_circuits(after, expected)
-
-
 @pytest.mark.parametrize(
     'before',
     [
         cirq.Circuit(cirq.Z(_qa) ** 0.5, cirq.CZ(_qa, _qb)),
         cirq.Circuit(cirq.Z(_qa).with_tags(cirq_google.PhysicalZTag()) ** 0.5, cirq.CZ(_qa, _qb)),
+        cirq.Circuit(cirq.PhasedXPowGate(phase_exponent=0.125).on(_qa), cirq.CZ(_qa, _qb)),
     ],
 )
-def test_eject_z_disabled(before):
+def test_eject_paulis_disabled(before):
     after = cirq.optimize_for_target_gateset(
         before,
         gateset=cirq_google.GoogleCZTargetGateset(
             additional_gates=[
                 cirq.GateFamily(cirq.ZPowGate, tags_to_ignore=[cirq_google.PhysicalZTag()]),
                 cirq.GateFamily(cirq.ZPowGate, tags_to_accept=[cirq_google.PhysicalZTag()]),
+                cirq.PhasedXPowGate,
             ]
         ),
         ignore_failures=False,
@@ -68,9 +58,17 @@ def test_eject_z_disabled(before):
             ),
             cirq.Circuit(cirq.CZ(_qa, _qb), cirq.Z(_qa) ** 0.5),
         ),
+        (
+            cirq.Circuit(cirq.PhasedXPowGate(phase_exponent=0.125).on(_qa), cirq.CZ(_qa, _qb)),
+            cirq.Circuit(
+                (cirq.CZ**-1)(_qa, _qb),
+                cirq.PhasedXPowGate(phase_exponent=0.125).on(_qa),
+                cirq.Z(_qb),
+            ),
+        ),
     ],
 )
-def test_eject_z_enabled(before, expected):
+def test_eject_paulis_enabled(before, expected):
     after = cirq.optimize_for_target_gateset(
         before,
         gateset=cirq_google.GoogleCZTargetGateset(
@@ -78,6 +76,7 @@ def test_eject_z_enabled(before, expected):
             additional_gates=[
                 cirq.GateFamily(cirq.ZPowGate, tags_to_ignore=[cirq_google.PhysicalZTag()]),
                 cirq.GateFamily(cirq.ZPowGate, tags_to_accept=[cirq_google.PhysicalZTag()]),
+                cirq.PhasedXPowGate,
             ],
         ),
         ignore_failures=False,
