@@ -13,7 +13,7 @@
 # limitations under the License.
 
 import dataclasses
-from typing import List, Optional, Union
+from typing import cast, Optional, Sequence, Union
 
 import cirq
 
@@ -124,13 +124,15 @@ def get_qcs_objects_for_notebook(
     else:
         # All of these are either local processors or engine processors
         # Either way, tell mypy they have a processor_id field.
-        processors: List[Union[AbstractLocalProcessor, EngineProcessor]] = engine.list_processors()
+        processors = cast(
+            Sequence[Union[EngineProcessor, AbstractLocalProcessor]], engine.list_processors()
+        )
         if not processors:
             raise ValueError("No processors available.")
         processor = processors[0]
         processor_id = processor.processor_id
         print(f"Available processors: {[p.processor_id for p in processors]}")
-        print(f"Using processor: {processor.processor_id}")
+        print(f"Using processor: {processor_id}")
     if not project_id:
         project_id = getattr(processor, 'project_id', None)
     device = processor.get_device()
