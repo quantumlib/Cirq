@@ -697,9 +697,11 @@ def dirac_notation(
 
     For example:
 
-        state_vector = np.array([1/np.sqrt(2), 1/np.sqrt(2)],
+    >>> state_vector = np.array([1/np.sqrt(2), 1/np.sqrt(2)],
                                 dtype=np.complex64)
-        print(dirac_notation(state_vector)) -> 0.71|0⟩ + 0.71|1⟩
+    >>> print(dirac_notation(state_vector))
+    0.71|0⟩ + 0.71|1⟩
+
 
     Args:
         state_vector: A sequence representing a state vector in which
