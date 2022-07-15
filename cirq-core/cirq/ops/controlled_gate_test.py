@@ -633,9 +633,6 @@ class MockControlValues(AbstractControlValues):
     def _json_dict_(self):
         pass
 
-    def __getitem__(self, idx):
-        pass
-
 
 def test_decompose_applies_only_to_ProductOfSums():
     g = cirq.ControlledGate(cirq.X, control_values=MockControlValues())

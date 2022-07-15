@@ -123,10 +123,9 @@ class Check(metaclass=abc.ABCMeta):
             A CheckResult instance.
         """
         env.report_status_to_github('pending', 'Running...', self.context())
-        chosen_env = cast(env_tools.PreparedEnv, env)
-        os.chdir(cast(str, chosen_env.destination_directory))
+        os.chdir(cast(str, env.destination_directory))
 
-        result = self.run(chosen_env, verbose, previous_failures)
+        result = self.run(env, verbose, previous_failures)
 
         if result.unexpected_error is not None:
             env.report_status_to_github('error', 'Unexpected error.', self.context())

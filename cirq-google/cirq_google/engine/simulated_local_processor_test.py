@@ -218,9 +218,17 @@ def test_additional_validation():
         _ = proc.get_sampler().run_sweep(circuit, params=sweep, repetitions=100)
 
 
+def test_device_specification():
+    proc = SimulatedLocalProcessor(processor_id='test_proc')
+    assert proc.get_device_specification() is None
+    device_spec = v2.device_pb2.DeviceSpecification()
+    device_spec.valid_qubits.append('q0_0')
+    device_spec.valid_qubits.append('q0_1')
+    proc = SimulatedLocalProcessor(processor_id='test_proc', device_specification=device_spec)
+    assert proc.get_device_specification() == device_spec
+
+
 def test_unsupported():
     proc = SimulatedLocalProcessor(processor_id='test_proc')
-    with pytest.raises(NotImplementedError):
-        _ = proc.get_device_specification()
     with pytest.raises(NotImplementedError):
         _ = proc.run_calibration()
