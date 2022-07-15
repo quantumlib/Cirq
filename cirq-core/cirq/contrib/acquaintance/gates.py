@@ -289,7 +289,7 @@ class SwapNetworkGate(PermutationGate):
             None
             if self.acquaintance_size is None
             else (
-                lambda op: qubit_to_position[min(op.qubits, key=qubit_to_position.get)]
+                lambda op: min(qubit_to_position[q] for q in op.qubits)
                 % self.acquaintance_size
             )
         )

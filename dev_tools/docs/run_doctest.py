@@ -209,6 +209,8 @@ def import_file(file_path: str) -> ModuleType:
     mod_name = 'cirq_doctest_module'
     # Find and create the module
     spec = importlib.util.spec_from_file_location(mod_name, file_path)
+    if spec is None:
+        raise ValueError(f'Unable to find module spec: mod_name={mod_name}, file_path={file_path}')
     mod = importlib.util.module_from_spec(spec)
     # Run the code in the module (but not with __name__ == '__main__')
     sys.modules[mod_name] = mod

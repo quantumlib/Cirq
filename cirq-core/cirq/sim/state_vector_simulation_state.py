@@ -400,7 +400,9 @@ class StateVectorSimulationState(SimulationState[_BufferedStateVector]):
 def _strat_act_on_state_vector_from_apply_unitary(
     action: Any, args: 'cirq.StateVectorSimulationState', qubits: Sequence['cirq.Qid']
 ) -> bool:
-    return True if args._state.apply_unitary(action, args.get_axes(qubits)) else NotImplemented
+    if not args._state.apply_unitary(action, args.get_axes(qubits)):
+        return NotImplemented
+    return True
 
 
 def _strat_act_on_state_vector_from_mixture(
