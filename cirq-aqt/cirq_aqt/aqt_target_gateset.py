@@ -46,21 +46,16 @@ class AQTTargetGateset(cirq.TwoQubitCompilationTargetGateset):
             unroll_circuit_op=False,
         )
 
-    # TODO(#5698) Complete code coverage and remove coverage-ignore labels below
-
     def _decompose_single_qubit_operation(self, op: 'cirq.Operation', _: int) -> DecomposeResult:
         if isinstance(op.gate, cirq.HPowGate) and op.gate.exponent == 1:
-            # coverage: ignore
             return [cirq.rx(np.pi).on(op.qubits[0]), cirq.ry(-1 * np.pi / 2).on(op.qubits[0])]
         if cirq.has_unitary(op):
-            # coverage: ignore
             gates = cirq.single_qubit_matrix_to_phased_x_z(cirq.unitary(op))
             return [g.on(op.qubits[0]) for g in gates]
         return NotImplemented
 
     def _decompose_two_qubit_operation(self, op: 'cirq.Operation', _) -> DecomposeResult:
         if cirq.has_unitary(op):
-            # coverage: ignore
             return cirq.two_qubit_matrix_to_ion_operations(
                 op.qubits[0], op.qubits[1], cirq.unitary(op)
             )
