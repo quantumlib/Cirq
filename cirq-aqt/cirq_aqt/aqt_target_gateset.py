@@ -47,11 +47,18 @@ class AQTTargetGateset(cirq.TwoQubitCompilationTargetGateset):
         )
 
     def _decompose_single_qubit_operation(self, op: 'cirq.Operation', _: int) -> DecomposeResult:
-        if isinstance(op.gate, cirq.HPowGate) and op.gate.exponent == 1:
-            return [cirq.rx(np.pi).on(op.qubits[0]), cirq.ry(-1 * np.pi / 2).on(op.qubits[0])]
-        if cirq.has_unitary(op):
-            gates = cirq.single_qubit_matrix_to_phased_x_z(cirq.unitary(op))
-            return [g.on(op.qubits[0]) for g in gates]
+        # unwrap tagged and circuit operations to get the actual operation
+        opu = op.untagged
+        opu = (
+            next(opu.circuit.all_operations())
+            if isinstance(opu, cirq.CircuitOperation) and len(opu.circuit) == 1
+            else opu
+        )
+        if isinstance(opu.gate, cirq.HPowGate) and opu.gate.exponent == 1:
+            return [cirq.rx(np.pi).on(opu.qubits[0]), cirq.ry(-1 * np.pi / 2).on(opu.qubits[0])]
+        if cirq.has_unitary(opu):
+            gates = cirq.single_qubit_matrix_to_phased_x_z(cirq.unitary(opu))
+            return [g.on(opu.qubits[0]) for g in gates]
         return NotImplemented
 
     def _decompose_two_qubit_operation(self, op: 'cirq.Operation', _) -> DecomposeResult:

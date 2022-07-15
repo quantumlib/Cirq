@@ -56,7 +56,6 @@ def test_gateset(op: cirq.Operation, expected: bool):
     assert gs.validate(cirq.Circuit(op)) == expected
 
 
-@pytest.mark.xfail(reason='HPowGate not identified when wrapped')
 def test_decompose_single_qubit_operation():
     gs = aqt_target_gateset.AQTTargetGateset()
     tgoph = gs.decompose_to_target_gateset(cirq.H(Q), 0)
