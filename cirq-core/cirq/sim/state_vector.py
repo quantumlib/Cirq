@@ -41,8 +41,7 @@ class StateVectorMixin:
             *args: Passed on to the class that this is mixed in with.
             **kwargs: Passed on to the class that this is mixed in with.
         """
-        # Reason for 'type: ignore': https://github.com/python/mypy/issues/5887
-        super().__init__(*args, **kwargs)  # type: ignore
+        super().__init__(*args, **kwargs)
         self._qubit_map = qubit_map or {}
         qid_shape = simulator._qubit_map_to_shape(self._qubit_map)
         self._qid_shape = None if qubit_map is None else qid_shape

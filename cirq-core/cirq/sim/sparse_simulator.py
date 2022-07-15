@@ -282,5 +282,5 @@ class SparseSimulatorStep(
         # Dtype doesn't have a good repr, so we work around by invoking __name__.
         return (
             f'cirq.SparseSimulatorStep(sim_state={self._sim_state!r},'
-            f' dtype=np.{self._dtype.__name__})'  # type: ignore
+            f' dtype=np.{self._dtype.__name__})'
         )

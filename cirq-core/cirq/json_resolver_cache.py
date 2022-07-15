@@ -232,13 +232,13 @@ def _class_resolver_dictionary() -> Dict[str, ObjectFactory]:
         # pylint: disable=line-too-long
         'XEBPhasedFSimCharacterizationOptions': cirq.experiments.XEBPhasedFSimCharacterizationOptions,
         # pylint: enable=line-too-long
-        '_XEigenState': cirq.value.product_state._XEigenState,  # type: ignore
+        '_XEigenState': cirq.value.product_state._XEigenState,
         'XPowGate': cirq.XPowGate,
         'XXPowGate': cirq.XXPowGate,
-        '_YEigenState': cirq.value.product_state._YEigenState,  # type: ignore
+        '_YEigenState': cirq.value.product_state._YEigenState,
         'YPowGate': cirq.YPowGate,
         'YYPowGate': cirq.YYPowGate,
-        '_ZEigenState': cirq.value.product_state._ZEigenState,  # type: ignore
+        '_ZEigenState': cirq.value.product_state._ZEigenState,
         'Zip': cirq.Zip,
         'ZPowGate': cirq.ZPowGate,
         'ZZPowGate': cirq.ZZPowGate,

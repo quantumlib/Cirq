@@ -28,13 +28,12 @@ if TYPE_CHECKING:
 
 ParamDictType = Dict['cirq.TParamKey', 'cirq.TParamValComplex']
 ParamMappingType = Mapping['cirq.TParamKey', 'cirq.TParamValComplex']
-document(ParamDictType, """Dictionary from symbols to values.""")  # type: ignore
-document(ParamMappingType, """Immutable map from symbols to values.""")  # type: ignore
+document(ParamDictType, """Dictionary from symbols to values.""")
+document(ParamMappingType, """Immutable map from symbols to values.""")
 
 ParamResolverOrSimilarType = Union['cirq.ParamResolver', ParamMappingType, None]
 document(
-    ParamResolverOrSimilarType,  # type: ignore
-    """Something that can be used to turn parameters into values.""",
+    ParamResolverOrSimilarType, """Something that can be used to turn parameters into values."""
 )
 
 # Used to mark values that are being resolved recursively to detect loops.
@@ -186,7 +185,7 @@ class ParamResolver:
             elif sympy.im(v):
                 # Technically, this should not return complex, but changing
                 # type signature to complex would cause many cascading issues
-                return complex(v)  # type: ignore[return-value]
+                return complex(v)
             else:
                 return float(v)
 
@@ -216,7 +215,7 @@ class ParamResolver:
         new_dict.update({k: self.value_of(k, recursive) for k in self})  # type: ignore[misc]
         new_dict.update(
             {k: resolver.value_of(v, recursive) for k, v in new_dict.items()}  # type: ignore[misc]
-        )  # type: ignore[misc]
+        )
         if recursive and self.param_dict:
             new_resolver = ParamResolver(cast(ParamDictType, new_dict))
             # Resolve down to single-step mappings.
