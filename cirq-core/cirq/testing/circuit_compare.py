@@ -15,7 +15,6 @@ from typing import Any, Dict, Iterable, List, Optional, Sequence, Union
 
 from collections import defaultdict
 import itertools
-import math
 import random
 
 import numpy as np
@@ -296,7 +295,7 @@ def assert_has_consistent_apply_unitary(val: Any, *, atol: float = 1e-8) -> None
     # If you applied a unitary, it should match the one you say you have.
     if actual is not None:
         assert expected is not None
-        n = math.prod([2, *qid_shape])
+        n = np.product([2, *qid_shape])
         np.testing.assert_allclose(actual.reshape(n, n), expected, atol=atol)
 
 
