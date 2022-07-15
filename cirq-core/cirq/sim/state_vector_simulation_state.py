@@ -364,7 +364,7 @@ class StateVectorSimulationState(SimulationState[_BufferedStateVector]):
             _strat_act_on_state_vector_from_channel,
         ]
         if allow_decompose:
-            strats.append(strat_act_on_from_apply_decompose)  # type: ignore
+            strats.append(strat_act_on_from_apply_decompose)
 
         # Try each strategy, stopping if one works.
         for strat in strats:

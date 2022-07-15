@@ -216,7 +216,6 @@ def tdd_to_svg(
         t += f'<line x1="{x}" x2="{x}" y1="{y1}" y2="{y2}" stroke="black" stroke-width="3" />'
 
     for (xi, yi), v in tdd.entries.items():
-        xi = cast(int, xi)
         yi = yi_map[yi]
 
         x = col_starts[xi] + col_widths[xi] / 2

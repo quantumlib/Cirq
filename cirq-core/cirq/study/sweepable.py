@@ -62,7 +62,7 @@ def to_sweeps(sweepable: Sweepable) -> List[Sweep]:
                 DeprecationWarning,
                 stacklevel=2,
             )
-        product_sweep = dict_to_product_sweep(sweepable)  # type: ignore[arg-type]
+        product_sweep = dict_to_product_sweep(sweepable)
         return [_resolver_to_sweep(resolver) for resolver in product_sweep]
     if isinstance(sweepable, Iterable) and not isinstance(sweepable, str):
         return [sweep for item in sweepable for sweep in to_sweeps(item)]  # type: ignore[arg-type]
