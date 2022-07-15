@@ -1020,7 +1020,7 @@ def test_commutes():
 
 
 def test_moment_diagram():
-    a, b, c, d = cirq.GridQubit.rect(2, 2)
+    a, _, c, d = cirq.GridQubit.rect(2, 2)
     m = cirq.Moment(cirq.CZ(a, d), cirq.X(c).with_classical_controls('m'))
     assert (
         str(m).strip()
