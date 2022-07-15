@@ -27,15 +27,6 @@ from cirq.transformers.analytical_decompositions.two_qubit_to_cz import (
 )
 from cirq.testing import random_two_qubit_circuit_with_czs
 
-ALLOW_DEPRECATION_IN_TEST = 'ALLOW_DEPRECATION_IN_TEST'
-
-
-def test_deprecated_submodule():
-    with cirq.testing.assert_deprecated(
-        "Use cirq.transformers.analytical_decompositions.two_qubit_to_cz instead", deadline="v0.16"
-    ):
-        _ = cirq.optimizers.two_qubit_decompositions.two_qubit_matrix_to_cz_operations
-
 
 @pytest.mark.parametrize(
     'rad,expected',
@@ -261,7 +252,7 @@ def test_kak_decomposition_depth_partial_cz():
 )
 def test_decompose_to_diagonal_and_circuit(v):
     b, c = cirq.LineQubit.range(2)
-    diagonal, ops = two_qubit_matrix_to_diagonal_and_cz_operations(b, c, v)
+    diagonal, ops = two_qubit_matrix_to_diagonal_and_cz_operations(b, c, v, atol=1e-8)
     assert cirq.is_diagonal(diagonal)
     combined_circuit = cirq.Circuit(cirq.MatrixGate(diagonal)(b, c), ops)
     circuit_unitary = combined_circuit.unitary(qubits_that_should_be_present=[b, c])

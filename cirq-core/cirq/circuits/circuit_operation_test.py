@@ -20,6 +20,7 @@ import sympy
 
 import cirq
 import cirq.circuits.circuit_operation as circuit_operation
+from cirq import _compat
 from cirq.circuits.circuit_operation import _full_join_string_lists
 
 ALL_SIMULATORS = (cirq.Simulator(), cirq.DensityMatrixSimulator(), cirq.CliffordSimulator())
@@ -90,10 +91,11 @@ def test_is_measurement_memoization():
     a = cirq.LineQubit(0)
     circuit = cirq.FrozenCircuit(cirq.measure(a, key='m'))
     c_op = cirq.CircuitOperation(circuit)
-    assert circuit._has_measurements is None
-    # Memoize `_has_measurements` in the circuit.
+    cache_name = _compat._method_cache_name(circuit._is_measurement_)
+    assert not hasattr(circuit, cache_name)
+    # Memoize `_is_measurement_` in the circuit.
     assert cirq.is_measurement(c_op)
-    assert circuit._has_measurements is True
+    assert hasattr(circuit, cache_name)
 
 
 def test_invalid_measurement_keys():
@@ -994,8 +996,10 @@ def test_keys_under_parent_path():
     assert cirq.measurement_key_names(op1) == {'A'}
     op2 = op1.with_key_path(('B',))
     assert cirq.measurement_key_names(op2) == {'B:A'}
-    op3 = op2.repeat(2)
-    assert cirq.measurement_key_names(op3) == {'B:0:A', 'B:1:A'}
+    op3 = cirq.with_key_path_prefix(op2, ('C',))
+    assert cirq.measurement_key_names(op3) == {'C:B:A'}
+    op4 = op3.repeat(2)
+    assert cirq.measurement_key_names(op4) == {'C:B:0:A', 'C:B:1:A'}
 
 
 def test_mapped_circuit_preserves_moments():

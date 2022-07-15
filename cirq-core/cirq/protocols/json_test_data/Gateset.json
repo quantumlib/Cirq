@@ -7,9 +7,7 @@
         "gate": "YPowGate",
         "name": "Type GateFamily: cirq.ops.common_gates.YPowGate",
         "description": "Accepts `cirq.Gate` instances `g` s.t. `isinstance(g, cirq.ops.common_gates.YPowGate)`",
-        "ignore_global_phase": true,
-        "tags_to_accept": [],
-        "tags_to_ignore": []
+        "ignore_global_phase": true
       },
       {
         "cirq_type": "AnyUnitaryGateFamily",
@@ -24,9 +22,7 @@
         },
         "name": "Instance GateFamily: X",
         "description": "Accepts `cirq.Gate` instances `g` s.t. `g == X`",
-        "ignore_global_phase": true,
-        "tags_to_accept": [],
-        "tags_to_ignore": []
+        "ignore_global_phase": true
       }
     ],
     "name": null,
@@ -44,18 +40,14 @@
         },
         "name": "Instance GateFamily: X",
         "description": "Accepts `cirq.Gate` instances `g` s.t. `g == X`",
-        "ignore_global_phase": true,
-        "tags_to_accept": [],
-        "tags_to_ignore": []
+        "ignore_global_phase": true
       },
       {
         "cirq_type": "GateFamily",
         "gate": "YPowGate",
         "name": "Type GateFamily: cirq.ops.common_gates.YPowGate",
         "description": "Accepts `cirq.Gate` instances `g` s.t. `isinstance(g, cirq.ops.common_gates.YPowGate)`",
-        "ignore_global_phase": true,
-        "tags_to_accept": [],
-        "tags_to_ignore": []
+        "ignore_global_phase": true
       },
       {
         "cirq_type": "AnyUnitaryGateFamily",

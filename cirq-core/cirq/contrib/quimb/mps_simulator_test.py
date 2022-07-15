@@ -266,19 +266,12 @@ def test_trial_result_str():
         prng=value.parse_random_state(0),
         simulation_options=ccq.mps_simulator.MPSOptions(),
     )
-    assert (
-        str(
-            ccq.mps_simulator.MPSTrialResult(
-                params=cirq.ParamResolver({}),
-                measurements={'m': np.array([[1]])},
-                final_simulator_state=final_simulator_state,
-            )
-        )
-        == """measurements: m=1
-output state: TensorNetwork([
-    Tensor(shape=(2,), inds=('i_0',), tags=set()),
-])"""
+    result = ccq.mps_simulator.MPSTrialResult(
+        params=cirq.ParamResolver({}),
+        measurements={'m': np.array([[1]])},
+        final_simulator_state=final_simulator_state,
     )
+    assert 'output state: TensorNetwork' in str(result)
 
 
 def test_trial_result_repr_pretty():
@@ -293,13 +286,7 @@ def test_trial_result_repr_pretty():
         measurements={'m': np.array([[1]])},
         final_simulator_state=final_simulator_state,
     )
-    cirq.testing.assert_repr_pretty(
-        result,
-        """measurements: m=1
-output state: TensorNetwork([
-    Tensor(shape=(2,), inds=('i_0',), tags=set()),
-])""",
-    )
+    cirq.testing.assert_repr_pretty_contains(result, 'output state: TensorNetwork')
     cirq.testing.assert_repr_pretty(result, "cirq.MPSTrialResult(...)", cycle=True)
 
 
@@ -307,26 +294,14 @@ def test_empty_step_result():
     q0 = cirq.LineQubit(0)
     sim = ccq.mps_simulator.MPSSimulator()
     step_result = next(sim.simulate_moment_steps(cirq.Circuit(cirq.measure(q0))))
-    assert (
-        str(step_result)
-        == """q(0)=0
-TensorNetwork([
-    Tensor(shape=(2,), inds=('i_0',), tags=set()),
-])"""
-    )
+    assert 'TensorNetwork' in str(step_result)
 
 
 def test_step_result_repr_pretty():
     q0 = cirq.LineQubit(0)
     sim = ccq.mps_simulator.MPSSimulator()
     step_result = next(sim.simulate_moment_steps(cirq.Circuit(cirq.measure(q0))))
-    cirq.testing.assert_repr_pretty(
-        step_result,
-        """q(0)=0
-TensorNetwork([
-    Tensor(shape=(2,), inds=('i_0',), tags=set()),
-])""",
-    )
+    cirq.testing.assert_repr_pretty_contains(step_result, 'TensorNetwork')
     cirq.testing.assert_repr_pretty(step_result, "cirq.MPSSimulatorStepResult(...)", cycle=True)
 
 
@@ -391,13 +366,8 @@ def test_simulate_moment_steps_sample():
                 step._simulator_state().to_numpy(),
                 np.asarray([1.0 / math.sqrt(2), 0.0, 1.0 / math.sqrt(2), 0.0]),
             )
-            assert (
-                str(step)
-                == """TensorNetwork([
-    Tensor(shape=(2,), inds=('i_0',), tags=set()),
-    Tensor(shape=(2,), inds=('i_1',), tags=set()),
-])"""
-            )
+            # There are two "Tensor()" copies in the string.
+            assert len(str(step).split('Tensor(')) == 3
             samples = step.sample([q0, q1], repetitions=10)
             for sample in samples:
                 assert np.array_equal(sample, [True, False]) or np.array_equal(
@@ -412,13 +382,8 @@ def test_simulate_moment_steps_sample():
                 step._simulator_state().to_numpy(),
                 np.asarray([1.0 / math.sqrt(2), 0.0, 0.0, 1.0 / math.sqrt(2)]),
             )
-            assert (
-                str(step)
-                == """TensorNetwork([
-    Tensor(shape=(2, 2), inds=('i_0', 'mu_0_1'), tags=set()),
-    Tensor(shape=(2, 2), inds=('mu_0_1', 'i_1'), tags=set()),
-])"""
-            )
+            # There are two "Tensor()" copies in the string.
+            assert len(str(step).split('Tensor(')) == 3
             samples = step.sample([q0, q1], repetitions=10)
             for sample in samples:
                 assert np.array_equal(sample, [True, True]) or np.array_equal(
@@ -504,15 +469,16 @@ def test_state_copy():
 
 
 def test_simulation_state_initializer():
+    expected_classical_data = cirq.ClassicalDataDictionaryStore(
+        _records={cirq.MeasurementKey('test'): [(4,)]}
+    )
     s = ccq.mps_simulator.MPSState(
         qubits=(cirq.LineQubit(0),),
         prng=np.random.RandomState(0),
-        classical_data=cirq.ClassicalDataDictionaryStore(
-            _records={cirq.MeasurementKey('test'): [(4,)]}
-        ),
+        classical_data=expected_classical_data,
     )
     assert s.qubits == (cirq.LineQubit(0),)
-    assert s.log_of_measurement_results == {'test': [4]}
+    assert s.classical_data == expected_classical_data
 
 
 def test_act_on_gate():
@@ -523,13 +489,3 @@ def test_act_on_gate():
         args.state_vector().reshape((2, 2, 2)),
         cirq.one_hot(index=(0, 1, 0), shape=(2, 2, 2), dtype=np.complex64),
     )
-
-
-def test_deprecated():
-    prng = np.random.RandomState(0)
-    with cirq.testing.assert_deprecated('log_of_measurement_results', deadline='0.16', count=2):
-        _ = ccq.mps_simulator.MPSState(
-            qubits=cirq.LineQubit.range(3), prng=prng, log_of_measurement_results={}
-        )
-    with cirq.testing.assert_deprecated('positional', deadline='0.16'):
-        _ = ccq.mps_simulator.MPSState(cirq.LineQubit.range(3), prng=prng)

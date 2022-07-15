@@ -1,5 +1,5 @@
 # pylint: disable=wrong-or-nonexistent-copyright-notice
-from typing import Any, Dict, FrozenSet, Iterable, Tuple, TYPE_CHECKING, Union
+from typing import Any, Dict, FrozenSet, Iterable, Mapping, Tuple, TYPE_CHECKING, Union
 import numpy as np
 
 from cirq import linalg, protocols, value
@@ -66,7 +66,7 @@ class KrausChannel(raw_types.Gate):
             return NotImplemented
         if self._key != other._key:
             return False
-        return np.allclose(self._kraus_ops, other._kraus_ops)
+        return np.allclose(np.asarray(self._kraus_ops), np.asarray(other._kraus_ops))
 
     def num_qubits(self) -> int:
         return self._num_qubits
@@ -84,7 +84,7 @@ class KrausChannel(raw_types.Gate):
             return NotImplemented
         return self._key
 
-    def _with_measurement_key_mapping_(self, key_map: Dict[str, str]):
+    def _with_measurement_key_mapping_(self, key_map: Mapping[str, str]):
         if self._key is None:
             return NotImplemented
         if self._key not in key_map:

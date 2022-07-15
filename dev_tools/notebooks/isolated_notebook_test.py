@@ -44,17 +44,18 @@ NOTEBOOKS_DEPENDING_ON_UNRELEASED_FEATURES: List[str] = [
     # Hardcoded qubit placement
     'docs/google/qubit-placement.ipynb',
     # get_qcs_objects_for_notebook
-    'docs/tutorials/google/calibration_api.ipynb',
+    'docs/noise/calibration_api.ipynb',
     'docs/tutorials/google/colab.ipynb',
     'docs/tutorials/google/identifying_hardware_changes.ipynb',
     'docs/tutorials/google/echoes.ipynb',
-    'docs/tutorials/google/floquet_calibration_example.ipynb',
+    'docs/noise/floquet_calibration_example.ipynb',
     'docs/tutorials/google/spin_echoes.ipynb',
     'docs/tutorials/google/start.ipynb',
     'docs/tutorials/google/visualizing_calibration_metrics.ipynb',
-    'docs/tutorials/google/xeb_calibration_example.ipynb',
+    'docs/noise/qcvv/xeb_calibration_example.ipynb',
     'docs/named_topologies.ipynb',
-    'docs/tutorials/educators/intro.ipynb',
+    'docs/representing_noise.ipynb',
+    'docs/start/intro.ipynb',
 ]
 
 # By default all notebooks should be tested, however, this list contains exceptions to the rule
@@ -181,20 +182,20 @@ cd {notebook_env}
 . ./bin/activate
 pip list
 papermill {rewritten_notebook_path} {os.getcwd()}/{out_path}"""
-    stdout, stderr, status = shell_tools.run_shell(
-        cmd=cmd,
+    result = shell_tools.run(
+        cmd,
         log_run_to_stderr=False,
-        raise_on_fail=False,
-        out=shell_tools.TeeCapture(),
-        err=shell_tools.TeeCapture(),
+        shell=True,
+        check=False,
+        capture_output=True,
         # important to get rid of PYTHONPATH specifically, which contains
         # the Cirq repo path due to check/pytest
         env={},
     )
 
-    if status != 0:
-        print(stdout)
-        print(stderr)
+    if result.returncode != 0:
+        print(result.stdout)
+        print(result.stderr)
         pytest.fail(
             f"Notebook failure: {notebook_file}, please see {out_path} for the output "
             f"notebook (in Github Actions, you can download it from the workflow artifact"

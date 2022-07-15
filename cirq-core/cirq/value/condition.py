@@ -14,7 +14,7 @@
 
 import abc
 import dataclasses
-from typing import Dict, Tuple, TYPE_CHECKING, FrozenSet
+from typing import Mapping, Tuple, TYPE_CHECKING, FrozenSet
 
 import sympy
 
@@ -47,7 +47,7 @@ class Condition(abc.ABC):
     def qasm(self):
         """Returns the qasm of this condition."""
 
-    def _with_measurement_key_mapping_(self, key_map: Dict[str, str]) -> 'cirq.Condition':
+    def _with_measurement_key_mapping_(self, key_map: Mapping[str, str]) -> 'cirq.Condition':
         condition = self
         for k in self.keys:
             condition = condition.replace_key(k, mkp.with_measurement_key_mapping(k, key_map))
@@ -113,9 +113,7 @@ class KeyCondition(Condition):
 
     @property
     def qasm(self):
-        if self.index != -1:
-            raise NotImplementedError('Only most recent measurement at key can be used for QASM.')
-        return f'm_{self.key}!=0'
+        raise ValueError('QASM is defined only for SympyConditions of type key == constant.')
 
 
 @dataclasses.dataclass(frozen=True)
@@ -162,4 +160,8 @@ class SympyCondition(Condition):
 
     @property
     def qasm(self):
-        raise NotImplementedError()
+        if isinstance(self.expr, sympy.Equality):
+            if isinstance(self.expr.lhs, sympy.Symbol) and isinstance(self.expr.rhs, sympy.Integer):
+                # Measurements get prepended with "m_", so the condition needs to be too.
+                return f'm_{self.expr.lhs}=={self.expr.rhs}'
+        raise ValueError('QASM is defined only for SympyConditions of type key == constant.')

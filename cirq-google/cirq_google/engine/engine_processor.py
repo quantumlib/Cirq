@@ -13,14 +13,14 @@
 # limitations under the License.
 import datetime
 
-from typing import cast, Dict, Iterable, List, Optional, Sequence, TYPE_CHECKING, Union
+from typing import Dict, List, Optional, Sequence, TYPE_CHECKING, Union
 
 from google.protobuf import any_pb2
 
 import cirq
 from cirq_google.cloud import quantum
 from cirq_google.api import v2
-from cirq_google.devices import serializable_device
+from cirq_google.devices import grid_device
 from cirq_google.engine import (
     abstract_processor,
     calibration,
@@ -28,8 +28,6 @@ from cirq_google.engine import (
     processor_sampler,
     util,
 )
-from cirq_google.serialization import serializable_gate_set, serializer
-from cirq_google.serialization import gate_sets as gs
 
 if TYPE_CHECKING:
     import cirq_google as cg
@@ -103,32 +101,23 @@ class EngineProcessor(abstract_processor.AbstractProcessor):
 
         return engine_base.Engine(self.project_id, context=self.context)
 
-    @util.deprecated_gate_set_parameter
-    def get_sampler(
-        self, gate_set: Optional[serializer.Serializer] = None
-    ) -> 'cg.engine.ProcessorSampler':
+    def get_sampler(self) -> 'cg.engine.ProcessorSampler':
         """Returns a sampler backed by the engine.
 
-        Args:
-            gate_set: A `Serializer` that determines how to serialize circuits
-            when requesting samples. If not specified, uses proto v2.5 serialization.
-
         Returns:
-            A `cirq.Sampler` instance (specifically a `engine_sampler.QuantumEngineSampler`
+            A `cirq.Sampler` instance (specifically a `engine_sampler.ProcessorSampler`
             that will send circuits to the Quantum Computing Service
             when sampled.1
         """
         return processor_sampler.ProcessorSampler(processor=self)
 
-    @util.deprecated_gate_set_parameter
-    def run_batch(
+    async def run_batch_async(
         self,
         programs: Sequence[cirq.AbstractCircuit],
         program_id: Optional[str] = None,
         job_id: Optional[str] = None,
         params_list: Sequence[cirq.Sweepable] = None,
         repetitions: int = 1,
-        gate_set: Optional[serializer.Serializer] = None,
         program_description: Optional[str] = None,
         program_labels: Optional[Dict[str, str]] = None,
         job_description: Optional[str] = None,
@@ -160,8 +149,6 @@ class EngineProcessor(abstract_processor.AbstractProcessor):
                 require sweeps.
             repetitions: Number of circuit repetitions to run.  Each sweep value
                 of each circuit in the batch will run with the same repetitions.
-            gate_set: The gate set used to serialize the circuit. The gate set
-                must be supported by the selected processor.
             program_description: An optional description to set on the program.
             program_labels: Optional set of labels to set on the program.
             job_description: An optional description to set on the job.
@@ -173,7 +160,7 @@ class EngineProcessor(abstract_processor.AbstractProcessor):
             for a circuit are listed in the order imposed by the associated
             parameter sweep.
         """
-        return self.engine().run_batch(
+        return await self.engine().run_batch_async(
             programs=programs,
             processor_ids=[self.processor_id],
             program_id=program_id,
@@ -185,13 +172,11 @@ class EngineProcessor(abstract_processor.AbstractProcessor):
             job_labels=job_labels,
         )
 
-    @util.deprecated_gate_set_parameter
-    def run_calibration(
+    async def run_calibration_async(
         self,
         layers: List[calibration_layer.CalibrationLayer],
         program_id: Optional[str] = None,
         job_id: Optional[str] = None,
-        gate_set: Optional[serializer.Serializer] = None,
         program_description: Optional[str] = None,
         program_labels: Optional[Dict[str, str]] = None,
         job_description: Optional[str] = None,
@@ -220,8 +205,6 @@ class EngineProcessor(abstract_processor.AbstractProcessor):
                 of the format 'calibration-################YYMMDD' will be
                 generated, where # is alphanumeric and YYMMDD is the current
                 year, month, and day.
-            gate_set: The gate set used to serialize the circuit. The gate set
-                must be supported by the selected processor.
             program_description: An optional description to set on the program.
             program_labels: Optional set of labels to set on the program.
             job_description: An optional description to set on the job.
@@ -231,7 +214,7 @@ class EngineProcessor(abstract_processor.AbstractProcessor):
             An AbstractJob whose results can be retrieved by calling
             calibration_results().
         """
-        return self.engine().run_calibration(
+        return await self.engine().run_calibration_async(
             layers=layers,
             processor_id=self.processor_id,
             program_id=program_id,
@@ -242,15 +225,13 @@ class EngineProcessor(abstract_processor.AbstractProcessor):
             job_labels=job_labels,
         )
 
-    @util.deprecated_gate_set_parameter
-    def run_sweep(
+    async def run_sweep_async(
         self,
-        program: cirq.Circuit,
+        program: cirq.AbstractCircuit,
         program_id: Optional[str] = None,
         job_id: Optional[str] = None,
         params: cirq.Sweepable = None,
         repetitions: int = 1,
-        gate_set: Optional[serializer.Serializer] = None,
         program_description: Optional[str] = None,
         program_labels: Optional[Dict[str, str]] = None,
         job_description: Optional[str] = None,
@@ -275,8 +256,6 @@ class EngineProcessor(abstract_processor.AbstractProcessor):
                 and day.
             params: Parameters to run with the program.
             repetitions: The number of circuit repetitions to run.
-            gate_set: The gate set used to serialize the circuit. The gate set
-                must be supported by the selected processor.
             program_description: An optional description to set on the program.
             program_labels: Optional set of labels to set on the program.
             job_description: An optional description to set on the job.
@@ -285,7 +264,7 @@ class EngineProcessor(abstract_processor.AbstractProcessor):
             An AbstractJob. If this is iterated over it returns a list of
             `cirq.Result`, one for each parameter sweep.
         """
-        return self.engine().run_sweep(
+        return await self.engine().run_sweep_async(
             processor_ids=[self.processor_id],
             program=program,
             program_id=program_id,
@@ -334,27 +313,17 @@ class EngineProcessor(abstract_processor.AbstractProcessor):
         else:
             return None
 
-    def get_device(self, gate_sets: Iterable[serializer.Serializer] = ()) -> cirq.Device:
+    def get_device(self) -> cirq.Device:
         """Returns a `Device` created from the processor's device specification.
 
         This method queries the processor to retrieve the device specification,
-        which is then use to create a `serializable_gate_set.SerializableDevice` that will validate
-        that operations are supported and use the correct qubits.
+        which is then use to create a `cirq_google.GridDevice` that will
+        validate that operations are supported and use the correct qubits.
         """
         spec = self.get_device_specification()
         if not spec:
             raise ValueError('Processor does not have a device specification')
-        if not gate_sets:
-            # Default is to use all named gatesets in the device spec
-            gate_sets = []
-            for valid_gate_set in spec.valid_gate_sets:
-                if valid_gate_set.name in gs.NAMED_GATESETS:
-                    gate_sets.append(gs.NAMED_GATESETS[valid_gate_set.name])
-        if not all(isinstance(gs, serializable_gate_set.SerializableGateSet) for gs in gate_sets):
-            raise ValueError('All gate_sets must be SerializableGateSet currently.')
-        return serializable_device.SerializableDevice.from_proto(
-            spec, cast(Iterable[serializable_gate_set.SerializableGateSet], gate_sets)
-        )
+        return grid_device.GridDevice.from_proto(spec)
 
     @cirq._compat.deprecated_parameter(
         deadline='v1.0',

@@ -1,4 +1,18 @@
 [
-    cirq.CZTargetGateset(atol=1e-06, allow_partial_czs=False),
-    cirq.CZTargetGateset(atol=1e-08, allow_partial_czs=True),
+    cirq.CZTargetGateset(atol=1e-06, allow_partial_czs=False, additional_gates=[]),
+    cirq.CZTargetGateset(atol=1e-08, allow_partial_czs=True, additional_gates=[]),
+    cirq.CZTargetGateset(
+        atol=1e-06,
+        allow_partial_czs=True,
+        additional_gates=[
+            (cirq.ISWAP**0.5),
+            cirq.ops.common_gates.XPowGate,
+            cirq.GateFamily(
+                gate=cirq.ops.common_gates.ZPowGate,
+                ignore_global_phase=True,
+                tags_to_accept=frozenset(),
+                tags_to_ignore=frozenset(),
+            ),
+        ],
+    ),
 ]

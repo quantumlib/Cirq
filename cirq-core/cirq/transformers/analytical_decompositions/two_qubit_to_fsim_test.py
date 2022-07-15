@@ -28,16 +28,6 @@ from cirq.transformers.analytical_decompositions.two_qubit_to_fsim import (
     _B,
 )
 
-ALLOW_DEPRECATION_IN_TEST = 'ALLOW_DEPRECATION_IN_TEST'
-
-
-def test_deprecated_submodule():
-    with cirq.testing.assert_deprecated(
-        "Use cirq.transformers.analytical_decompositions.two_qubit_to_fsim instead",
-        deadline="v0.16",
-    ):
-        _ = cirq.optimizers.two_qubit_to_fsim.decompose_two_qubit_interaction_into_four_fsim_gates
-
 
 UNITARY_OBJS = [
     cirq.IdentityGate(2),
@@ -83,7 +73,7 @@ def test_decompose_two_qubit_interaction_into_two_b_gates(obj: Any):
     desired_unitary = obj if isinstance(obj, np.ndarray) else cirq.unitary(obj)
     for operation in circuit.all_operations():
         assert len(operation.qubits) < 2 or operation.gate == _B
-    assert cirq.approx_eq(cirq.unitary(circuit), desired_unitary, atol=1e-6)
+    np.testing.assert_allclose(cirq.unitary(circuit), desired_unitary, atol=1e-6)
 
 
 def test_decompose_xx_yy_into_two_fsims_ignoring_single_qubit_ops_fail():

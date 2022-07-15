@@ -13,15 +13,20 @@
 # limitations under the License.
 import functools
 import operator
-from typing import Any, Callable, cast, Dict, Iterable, List, Optional, Sequence, Union
+from typing import Any, Callable, cast, Dict, Iterable, List, Optional, Union, TYPE_CHECKING
 
 import numpy as np
+import sympy
 from ply import yacc
 
 from cirq import ops, Circuit, NamedQubit, CX
 from cirq.circuits.qasm_output import QasmUGate
 from cirq.contrib.qasm_import._lexer import QasmLexer
 from cirq.contrib.qasm_import.exception import QasmException
+
+
+if TYPE_CHECKING:
+    import cirq
 
 
 class Qasm:
@@ -114,7 +119,10 @@ class QasmGateStatement:
         # used as arguments, we generate reg_size GateOperations via iterating
         # through each qubit of the registers 0 to n-1 and use the same one
         # qubit from the "single-qubit registers" for each operation.
-        op_qubits = cast(Sequence[Sequence[ops.Qid]], functools.reduce(np.broadcast, args))
+        op_qubits = functools.reduce(
+            cast(Callable[[List['cirq.Qid'], List['cirq.Qid']], List['cirq.Qid']], np.broadcast),
+            args,
+        )
         for qubits in op_qubits:
             if isinstance(qubits, ops.Qid):
                 yield final_gate.on(qubits)
@@ -496,11 +504,19 @@ class QasmParser:
         ]
 
     # if operations
-    # if : IF '(' carg NE NATURAL_NUMBER ')' ID qargs
+    # if : IF '(' carg EQ NATURAL_NUMBER ')' ID qargs
 
     def p_if(self, p):
-        """if : IF '(' carg NE NATURAL_NUMBER ')' gate_op"""
-        p[0] = [ops.ClassicallyControlledOperation(conditions=p[3], sub_operation=tuple(p[7])[0])]
+        """if : IF '(' carg EQ NATURAL_NUMBER ')' gate_op"""
+        # We have to split the register into bits (since that's what measurement does above),
+        # and create one condition per bit, checking against that part of the binary value.
+        conditions = []
+        for i, key in enumerate(p[3]):
+            v = (p[5] >> i) & 1
+            conditions.append(sympy.Eq(sympy.Symbol(key), v))
+        p[0] = [
+            ops.ClassicallyControlledOperation(conditions=conditions, sub_operation=tuple(p[7])[0])
+        ]
 
     def p_error(self, p):
         if p is None:

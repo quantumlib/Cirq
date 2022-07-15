@@ -13,6 +13,8 @@
 # limitations under the License.
 import pytest
 import numpy as np
+import google.protobuf.text_format as text_format
+
 import cirq
 import cirq_google as cg
 import cirq_google.api.v2 as v2
@@ -101,20 +103,39 @@ def test_median_device_bad_processor():
         _ = factory.load_median_device_calibration('bad_processor')
 
 
+@pytest.mark.parametrize('processor_id', ['rainbow', 'weber'])
+def test_sample_device_zphase(processor_id):
+    zphase_data = factory.load_sample_device_zphase(processor_id)
+    assert 'sqrt_iswap' in zphase_data
+    sqrt_iswap_data = zphase_data['sqrt_iswap']
+    for angle in ['zeta', 'gamma']:
+        assert angle in sqrt_iswap_data
+        for (q0, q1), val in sqrt_iswap_data[angle].items():
+            assert isinstance(q0, cirq.Qid)
+            assert isinstance(q1, cirq.Qid)
+            assert isinstance(val, float)
+
+
+def test_device_zphase_bad_processor():
+    with pytest.raises(ValueError, match='no Z phase data is defined'):
+        _ = factory.load_sample_device_zphase('bad_processor')
+
+
 def test_create_from_proto():
 
     # Create a minimal gate specification that can handle the test.
-    device_spec = v2.device_pb2.DeviceSpecification()
-    device_spec.valid_qubits.extend(['5_4'])
-    gs = device_spec.valid_gate_sets.add()
-    gs.name = 'fsim'
-    gs.valid_gates.add().id = 'fsim'
-    gs.valid_gates.add().id = 'xyz'
-    gs.valid_gates.add().id = 'xy'
-    gs.valid_gates.add().id = 'z'
-    gs.valid_gates.add().id = 'meas'
-    gs.valid_gates.add().id = 'wait'
-    gs.valid_gates.add().id = 'circuit'
+    device_spec = text_format.Merge(
+        """
+valid_qubits: "5_4"
+valid_gates {
+  phased_xz {}
+}
+valid_gates {
+  meas {}
+}
+""",
+        v2.device_pb2.DeviceSpecification(),
+    )
     engine = factory.create_noiseless_virtual_engine_from_proto('sycamore', device_spec)
     _test_processor(engine.get_processor('sycamore'))
 
@@ -124,12 +145,12 @@ def test_create_from_proto():
 
 def test_create_from_template():
     engine = factory.create_noiseless_virtual_engine_from_templates(
-        'sycamore', 'weber_2021_12_10_device_spec.proto.txt'
+        'sycamore', 'weber_2021_12_10_device_spec_for_grid_device.proto.txt'
     )
     _test_processor(engine.get_processor('sycamore'))
 
     processor = factory.create_noiseless_virtual_processor_from_template(
-        'sycamore', 'weber_2021_12_10_device_spec.proto.txt'
+        'sycamore', 'weber_2021_12_10_device_spec_for_grid_device.proto.txt'
     )
     _test_processor(processor)
 
@@ -154,3 +175,19 @@ def test_create_from_proto_no_qubits():
         _ = factory.create_noiseless_virtual_engine_from_device(
             'sycamore', cirq.UNCONSTRAINED_DEVICE
         )
+
+
+def test_create_default_noisy_quantum_virtual_machine():
+    for processor_id in ["rainbow", "weber"]:
+        engine = factory.create_default_noisy_quantum_virtual_machine(
+            processor_id=processor_id, simulator_class=cirq.Simulator
+        )
+        processor = engine.get_processor(processor_id)
+        bad_qubit = cirq.GridQubit(10, 10)
+        circuit = cirq.Circuit(cirq.X(bad_qubit), cirq.measure(bad_qubit))
+        with pytest.raises(ValueError, match='Qubit not on device'):
+            _ = processor.run(circuit, repetitions=100)
+        good_qubit = cirq.GridQubit(5, 4)
+        circuit = cirq.Circuit(cirq.H(good_qubit), cirq.measure(good_qubit))
+        with pytest.raises(ValueError, match='.* contains a gate which is not supported.'):
+            _ = processor.run(circuit, repetitions=100)

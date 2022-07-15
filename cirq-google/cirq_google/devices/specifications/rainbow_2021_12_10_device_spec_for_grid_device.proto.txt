@@ -1,0 +1,201 @@
+valid_qubits: "3_2"
+valid_qubits: "4_1"
+valid_qubits: "4_2"
+valid_qubits: "4_3"
+valid_qubits: "5_0"
+valid_qubits: "5_1"
+valid_qubits: "5_2"
+valid_qubits: "5_3"
+valid_qubits: "5_4"
+valid_qubits: "6_1"
+valid_qubits: "6_2"
+valid_qubits: "6_3"
+valid_qubits: "6_4"
+valid_qubits: "6_5"
+valid_qubits: "7_2"
+valid_qubits: "7_3"
+valid_qubits: "7_4"
+valid_qubits: "7_5"
+valid_qubits: "7_6"
+valid_qubits: "8_3"
+valid_qubits: "8_4"
+valid_qubits: "8_5"
+valid_qubits: "9_4"
+valid_targets {
+  name: "2_qubit_targets"
+  target_ordering: SYMMETRIC
+  targets {
+    ids: "3_2"
+    ids: "4_2"
+  }
+  targets {
+    ids: "4_1"
+    ids: "4_2"
+  }
+  targets {
+    ids: "4_1"
+    ids: "5_1"
+  }
+  targets {
+    ids: "4_2"
+    ids: "4_3"
+  }
+  targets {
+    ids: "4_2"
+    ids: "5_2"
+  }
+  targets {
+    ids: "4_3"
+    ids: "5_3"
+  }
+  targets {
+    ids: "5_0"
+    ids: "5_1"
+  }
+  targets {
+    ids: "5_1"
+    ids: "5_2"
+  }
+  targets {
+    ids: "5_1"
+    ids: "6_1"
+  }
+  targets {
+    ids: "5_2"
+    ids: "5_3"
+  }
+  targets {
+    ids: "5_2"
+    ids: "6_2"
+  }
+  targets {
+    ids: "5_3"
+    ids: "5_4"
+  }
+  targets {
+    ids: "5_3"
+    ids: "6_3"
+  }
+  targets {
+    ids: "5_4"
+    ids: "6_4"
+  }
+  targets {
+    ids: "6_1"
+    ids: "6_2"
+  }
+  targets {
+    ids: "6_2"
+    ids: "6_3"
+  }
+  targets {
+    ids: "6_2"
+    ids: "7_2"
+  }
+  targets {
+    ids: "6_3"
+    ids: "6_4"
+  }
+  targets {
+    ids: "6_3"
+    ids: "7_3"
+  }
+  targets {
+    ids: "6_4"
+    ids: "6_5"
+  }
+  targets {
+    ids: "6_4"
+    ids: "7_4"
+  }
+  targets {
+    ids: "6_5"
+    ids: "7_5"
+  }
+  targets {
+    ids: "7_2"
+    ids: "7_3"
+  }
+  targets {
+    ids: "7_3"
+    ids: "7_4"
+  }
+  targets {
+    ids: "7_3"
+    ids: "8_3"
+  }
+  targets {
+    ids: "7_4"
+    ids: "7_5"
+  }
+  targets {
+    ids: "7_4"
+    ids: "8_4"
+  }
+  targets {
+    ids: "7_5"
+    ids: "7_6"
+  }
+  targets {
+    ids: "7_5"
+    ids: "8_5"
+  }
+  targets {
+    ids: "8_3"
+    ids: "8_4"
+  }
+  targets {
+    ids: "8_4"
+    ids: "8_5"
+  }
+  targets {
+    ids: "8_4"
+    ids: "9_4"
+  }
+}
+valid_gates {
+  coupler_pulse {
+  }
+}
+valid_gates {
+  cz {
+  }
+}
+valid_gates {
+  gate_duration_picos: 4000000000
+  meas {
+  }
+}
+valid_gates {
+  gate_duration_picos: 25000
+  phased_xz {
+  }
+}
+valid_gates {
+  gate_duration_picos: 20000
+  physical_zpow {
+  }
+}
+valid_gates {
+  gate_duration_picos: 32000
+  sqrt_iswap {
+  }
+}
+valid_gates {
+  gate_duration_picos: 32000
+  sqrt_iswap_inv {
+  }
+}
+valid_gates {
+  gate_duration_picos: 12000
+  syc {
+  }
+}
+valid_gates {
+  virtual_zpow {
+  }
+}
+valid_gates {
+  wait {
+  }
+}

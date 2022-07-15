@@ -68,7 +68,6 @@ def sample_density_matrix(
         qid_shape = (2,) * num_qubits
     else:
         _validate_density_matrix_qid_shape(density_matrix, qid_shape)
-        num_qubits = len(qid_shape)
     meas_shape = _indices_shape(qid_shape, indices)
 
     if repetitions == 0 or len(indices) == 0:
@@ -94,7 +93,7 @@ def measure_density_matrix(
     density_matrix: np.ndarray,
     indices: Sequence[int],
     qid_shape: Optional[Tuple[int, ...]] = None,
-    out: np.ndarray = None,
+    out: Optional[np.ndarray] = None,
     seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None,
 ) -> Tuple[List[int], np.ndarray]:
     """Performs a measurement of the density matrix in the computational basis.
@@ -139,16 +138,19 @@ def measure_density_matrix(
         qid_shape = (2,) * num_qubits
     else:
         _validate_density_matrix_qid_shape(density_matrix, qid_shape)
-        num_qubits = len(qid_shape)
     meas_shape = _indices_shape(qid_shape, indices)
 
+    arrout: np.ndarray
+    if out is None:
+        arrout = np.copy(density_matrix)
+    elif out is density_matrix:
+        arrout = density_matrix
+    else:
+        np.copyto(dst=out, src=density_matrix)
+        arrout = out
+
     if len(indices) == 0:
-        if out is None:
-            out = np.copy(density_matrix)
-        elif out is not density_matrix:
-            np.copyto(dst=out, src=density_matrix)
-        return ([], out)
-        # Final else: if out is matrix then matrix will be modified in place.
+        return ([], arrout)
 
     prng = value.parse_random_state(seed)
 
@@ -169,21 +171,15 @@ def measure_density_matrix(
     # Remove ellipses from last element of
     mask[result_slice * 2] = False
 
-    if out is None:
-        out = np.copy(density_matrix)
-    elif out is not density_matrix:
-        np.copyto(dst=out, src=density_matrix)
-    # Final else: if out is matrix then matrix will be modified in place.
-
     # Potentially reshape to tensor, and then set masked values to 0.
-    out.shape = qid_shape * 2
-    out[mask] = 0
+    arrout.shape = qid_shape * 2
+    arrout[mask] = 0
 
     # Restore original shape (if necessary) and renormalize.
-    out.shape = initial_shape
-    out /= probs[result]
+    arrout.shape = initial_shape
+    arrout /= probs[result]
 
-    return measurement_bits, out
+    return measurement_bits, arrout
 
 
 def _probs(
@@ -200,7 +196,7 @@ def _probs(
         # We're measuring every qudit, so no need for fancy indexing
         probs = np.abs(tensor)
         probs = np.transpose(probs, indices)
-        probs = np.reshape(probs, np.prod(probs.shape, dtype=np.int64))
+        probs = probs.reshape(-1)
     else:
         # Fancy indexing required
         meas_shape = tuple(qid_shape[i] for i in indices)

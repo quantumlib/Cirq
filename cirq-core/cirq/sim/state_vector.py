@@ -57,7 +57,7 @@ class StateVectorMixin:
         return self._qid_shape
 
     @abc.abstractmethod
-    def state_vector(self) -> np.ndarray:
+    def state_vector(self, copy: bool = False) -> np.ndarray:
         """Return the state vector (wave function).
 
         The vector is returned in the computational basis with these basis
@@ -83,6 +83,12 @@ class StateVectorMixin:
                 |  6  |   1    |   1    |   0    |
                 |  7  |   1    |   1    |   1    |
 
+        Args:
+            copy: If True, the returned state vector will be a copy of that
+            stored by the object. This is potentially expensive for large
+            state vectors, but prevents mutation of the object state, e.g. for
+            operating on intermediate states of a circuit.
+            Defaults to False.
         """
         raise NotImplementedError()
 
@@ -100,23 +106,22 @@ class StateVectorMixin:
     def density_matrix_of(self, qubits: List['cirq.Qid'] = None) -> np.ndarray:
         r"""Returns the density matrix of the state.
 
-        Calculate the density matrix for the system on the list, qubits.
+        Calculate the density matrix for the system on the qubits provided.
         Any qubits not in the list that are present in self.state_vector() will
-        be traced out. If qubits is None the full density matrix for
+        be traced out. If qubits is None, the full density matrix for
         self.state_vector() is returned, given self.state_vector() follows
         standard Kronecker convention of numpy.kron.
 
-        For example:
-        self.state_vector() = np.array([1/np.sqrt(2), 1/np.sqrt(2)],
-            dtype=np.complex64)
-        qubits = None
-        gives us
-            $$
-            \rho = \begin{bmatrix}
-                        0.5 & 0.5 \\
-                        0.5 & 0.5
-                    \end{bmatrix}
-            $$
+        For example, if `self.state_vector()` returns
+        `np.array([1/np.sqrt(2), 1/np.sqrt(2)], dtype=np.complex64)`,
+        then `density_matrix_of(qubits = None)` gives us
+
+        $$
+        \rho = \begin{bmatrix}
+                    0.5 & 0.5 \\
+                    0.5 & 0.5
+                \end{bmatrix}
+        $$
 
         Args:
             qubits: list containing qubit IDs that you would like
@@ -327,7 +332,7 @@ def _probs(state: np.ndarray, indices: Sequence[int], qid_shape: Tuple[int, ...]
         # We're measuring every qudit, so no need for fancy indexing
         probs = np.abs(tensor) ** 2
         probs = np.transpose(probs, indices)
-        probs = np.reshape(probs, np.prod(probs.shape, dtype=np.int64))
+        probs = probs.reshape(-1)
     else:
         # Fancy indexing required
         meas_shape = tuple(qid_shape[i] for i in indices)
@@ -347,5 +352,4 @@ def _probs(state: np.ndarray, indices: Sequence[int], qid_shape: Tuple[int, ...]
         probs = np.sum(probs, axis=tuple(range(1, len(probs.shape))))
 
     # To deal with rounding issues, ensure that the probabilities sum to 1.
-    probs /= np.sum(probs)
-    return probs
+    return probs / np.sum(probs)

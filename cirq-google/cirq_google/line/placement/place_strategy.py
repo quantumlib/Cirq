@@ -29,7 +29,7 @@ class LinePlacementStrategy(metaclass=abc.ABCMeta):
     """
 
     @abc.abstractmethod
-    def place_line(self, device: 'cirq_google.XmonDevice', length: int) -> GridQubitLineTuple:
+    def place_line(self, device: 'cirq_google.GridDevice', length: int) -> GridQubitLineTuple:
         """Runs line sequence search.
 
         Args:

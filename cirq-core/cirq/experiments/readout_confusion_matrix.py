@@ -76,7 +76,8 @@ class TensoredConfusionMatrices:
                             the corresponding confusion matrix.
             repetitions:    The number of repetitions that were used to estimate the confusion
                             matrices.
-            timestamp:      The time the data was taken, in seconds since the epoch.
+            timestamp:      The time the data was taken, in seconds since the epoch. This will be
+                            zero for fake data (i.e. data not generated from an experiment).
 
         Raises:
             ValueError: If length of `confusion_matrices` and `measure_qubits` is different or if
@@ -113,6 +114,34 @@ class TensoredConfusionMatrices:
         if sum(len(q) for q in self._measure_qubits) != len(self._qubits):
             raise ValueError(f"Repeated qubits not allowed in measure_qubits: {measure_qubits}.")
 
+    @classmethod
+    def from_measurement(
+        cls, gate: ops.MeasurementGate, qubits: Sequence['cirq.Qid']
+    ) -> 'TensoredConfusionMatrices':
+        """Generates TCM for the confusion map in a MeasurementGate.
+
+        This ignores any invert_mask defined for the gate - it only replicates the confusion map.
+
+        Args:
+            gate: the MeasurementGate to match.
+            qubits: qubits the gate is applied to.
+
+        Returns:
+            TensoredConfusionMatrices matching the confusion map of the given gate.
+
+        Raises:
+            ValueError: if the gate has no confusion map.
+        """
+        if not gate.confusion_map:
+            raise ValueError(f"Measurement has no confusion matrices: {gate}")
+        confusion_matrices = []
+        ordered_qubits = []
+        for indices, cm in gate.confusion_map.items():
+            confusion_matrices.append(cm)
+            ordered_qubits.append(tuple(qubits[idx] for idx in indices))
+        # Use zero for reps/timestamp to mark fake data.
+        return cls(confusion_matrices, ordered_qubits, repetitions=0, timestamp=0)
+
     @property
     def repetitions(self) -> int:
         """The number of repetitions that were used to estimate the confusion matrices."""
@@ -146,9 +175,11 @@ class TensoredConfusionMatrices:
     def _confusion_matrix(self, qubits: Sequence['cirq.Qid']) -> np.ndarray:
         ein_input = []
         for qs, cm in zip(self.measure_qubits, self.confusion_matrices):
-            ein_input += [cm.reshape((2, 2) * len(qs)), self._get_vars(qs)]
+            ein_input.extend([cm.reshape((2, 2) * len(qs)), self._get_vars(qs)])
         ein_out = self._get_vars(qubits)
-        ret = np.einsum(*ein_input, ein_out).reshape((2 ** len(qubits),) * 2)
+
+        # TODO(#5757): remote type ignore when numpy has proper override signature.
+        ret = np.einsum(*ein_input, ein_out).reshape((2 ** len(qubits),) * 2)  # type: ignore
         return ret / ret.sum(axis=1)
 
     def confusion_matrix(self, qubits: Optional[Sequence['cirq.Qid']] = None) -> np.ndarray:
