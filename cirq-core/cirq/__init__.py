@@ -42,7 +42,6 @@ from cirq import (
     # Core
     circuits,
     # Optimize and run
-    optimizers,
     work,
     sim,
     vis,
@@ -66,7 +65,6 @@ from cirq.circuits import (
     AbstractCircuit,
     Alignment,
     Circuit,
-    CircuitDag,
     CircuitOperation,
     FrozenCircuit,
     InsertStrategy,
@@ -75,7 +73,6 @@ from cirq.circuits import (
     PointOptimizer,
     QasmOutput,
     TextDiagramDrawer,
-    Unique,
 )
 
 from cirq.devices import (
@@ -327,8 +324,6 @@ from cirq.ops import (
     ZZPowGate,
 )
 
-from cirq.optimizers import AlignLeft, AlignRight, ConvertToCzAndSingleGates
-
 from cirq.transformers import (
     align_left,
     align_right,
@@ -378,6 +373,7 @@ from cirq.transformers import (
     TransformerLogger,
     three_qubit_matrix_to_operations,
     transformer,
+    two_qubit_matrix_to_cz_isometry,
     two_qubit_matrix_to_cz_operations,
     two_qubit_matrix_to_diagonal_and_cz_operations,
     two_qubit_matrix_to_ion_operations,
@@ -635,7 +631,6 @@ from cirq.protocols import (
     with_rescoped_keys,
 )
 
-from cirq.ion import ConvertToIonGates, IonDevice
 from cirq.neutral_atoms import is_native_neutral_atom_gate, is_native_neutral_atom_op
 
 from cirq.vis import (

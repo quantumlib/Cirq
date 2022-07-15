@@ -26,7 +26,6 @@ TestSpec = ModuleJsonTestSpec(
     not_yet_serializable=[
         'Alignment',
         'AxisAngleDecomposition',
-        'CircuitDag',
         'CircuitDiagramInfo',
         'CircuitDiagramInfoArgs',
         'CircuitSampleJob',
@@ -37,18 +36,13 @@ TestSpec = ModuleJsonTestSpec(
         'DensityMatrixTrialResult',
         'ExpressionMap',
         'InsertStrategy',
-        'IonDevice',
         'KakDecomposition',
         'LinearCombinationOfGates',
         'LinearCombinationOfOperations',
-        'Linspace',
-        'ListSweep',
         'PauliSumCollector',
         'PauliSumExponential',
         'PeriodicValue',
         'PointOptimizationSummary',
-        'Points',
-        'Product',
         'QasmArgs',
         'QasmOutput',
         'QuantumState',
@@ -60,10 +54,8 @@ TestSpec = ModuleJsonTestSpec(
         'TextDiagramDrawer',
         'Timestamp',
         'TwoQubitGateTabulationResult',
-        'UnitSweep',
         'StateVectorTrialResult',
         'ZerosSampler',
-        'Zip',
     ],
     should_not_be_serialized=[
         # Heatmaps
@@ -86,10 +78,6 @@ TestSpec = ModuleJsonTestSpec(
         'TwoQubitCompilationTargetGateset',
         # Circuit optimizers are function-like. Only attributes
         # are ignore_failures, tolerance, and other feature flags
-        'AlignLeft',
-        'AlignRight',
-        'ConvertToCzAndSingleGates',
-        'ConvertToIonGates',
         'MEASUREMENT_KEY_SEPARATOR',
         'PointOptimizer',
         # Transformers
@@ -109,6 +97,7 @@ TestSpec = ModuleJsonTestSpec(
         'SimulatesFinalState',
         'StateVectorStepResult',
         'StepResultBase',
+        'UnitSweep',
         'NamedTopology',
         # protocols:
         'HasJSONNamespace',
@@ -166,7 +155,6 @@ TestSpec = ModuleJsonTestSpec(
         'NoiseModelFromNoiseProperties',
         'Simulator',
         'StabilizerSampler',
-        'Unique',
         'DEFAULT_RESOLVERS',
     ],
     deprecated={},

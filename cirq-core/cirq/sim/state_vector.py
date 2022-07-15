@@ -332,7 +332,7 @@ def _probs(state: np.ndarray, indices: Sequence[int], qid_shape: Tuple[int, ...]
         # We're measuring every qudit, so no need for fancy indexing
         probs = np.abs(tensor) ** 2
         probs = np.transpose(probs, indices)
-        probs = np.reshape(probs, np.prod(probs.shape, dtype=np.int64))
+        probs = probs.reshape(-1)
     else:
         # Fancy indexing required
         meas_shape = tuple(qid_shape[i] for i in indices)
@@ -352,5 +352,4 @@ def _probs(state: np.ndarray, indices: Sequence[int], qid_shape: Tuple[int, ...]
         probs = np.sum(probs, axis=tuple(range(1, len(probs.shape))))
 
     # To deal with rounding issues, ensure that the probabilities sum to 1.
-    probs /= np.sum(probs)
-    return probs
+    return probs / np.sum(probs)

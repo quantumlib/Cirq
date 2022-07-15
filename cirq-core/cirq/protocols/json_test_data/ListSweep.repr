@@ -1,0 +1,1 @@
+cirq.ListSweep([cirq.ParamResolver({'a': 0.1}), cirq.ParamResolver({'b': 0.2})])
