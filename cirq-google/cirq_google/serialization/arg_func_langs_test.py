@@ -18,7 +18,6 @@ import sympy
 
 from google.protobuf import json_format
 
-import cirq
 import cirq_google
 from cirq_google.serialization.arg_func_langs import (
     arg_from_proto,
@@ -151,25 +150,6 @@ def test_serialize_conversion(value: ARG_LIKE, proto: v2.program_pb2.Arg):
         use_integers_for_enums=True,
     )
     assert packed == proto
-
-
-def test_infer_language():
-    with cirq.testing.assert_deprecated('SerializableGateSet', deadline='v0.16', count=None):
-        q = cirq.GridQubit(0, 0)
-        a = sympy.Symbol('a')
-        b = sympy.Symbol('b')
-
-        c_linear = cirq.Circuit(cirq.X(q) ** (b - a))
-        packed = cirq_google.XMON.serialize(c_linear)
-        assert packed.language.arg_function_language == 'linear'
-
-        c_empty = cirq.Circuit(cirq.X(q) ** b)
-        packed = cirq_google.XMON.serialize(c_empty)
-        assert packed.language.arg_function_language == ''
-
-        c_exp = cirq.Circuit(cirq.X(q) ** (b**a))
-        packed = cirq_google.XMON.serialize(c_exp)
-        assert packed.language.arg_function_language == 'exp'
 
 
 @pytest.mark.parametrize(
