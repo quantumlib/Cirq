@@ -202,7 +202,7 @@ class SumOfProducts(AbstractControlValues):
         This can be constructed as
         >>> xor_control_values = cirq.SumOfProducts(((0, 0), (1, 1)))
         >>> q0, q1, q2 = cirq.LineQubit.range(3)
-        >>> xor_cop cirq.X(q2).controlled_by(q0, q1, control_values=xor_control_values)
+        >>> xor_cop = cirq.X(q2).controlled_by(q0, q1, control_values=xor_control_values)
 
     2) `(|00><00| + |01><01| + |10><10|) X + (|11><11|) I` represents an
         operators which flips the third qubit if the `nand` of first two
