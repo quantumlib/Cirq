@@ -91,15 +91,6 @@ from cirq_google.line import (
 
 from cirq_google.ops import CalibrationTag, FSimGateFamily, PhysicalZTag, SycamoreGate, SYC
 
-from cirq_google.optimizers import (
-    ConvertToXmonGates,
-    ConvertToSqrtIswapGates,
-    ConvertToSycamoreGates,
-    GateTabulation,
-    optimized_for_sycamore,
-    optimized_for_xmon,
-)
-
 from cirq_google.transformers import (
     known_2q_op_to_sycamore_operations,
     two_qubit_matrix_to_sycamore_operations,
