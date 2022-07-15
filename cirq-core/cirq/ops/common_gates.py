@@ -231,29 +231,27 @@ class XPowGate(eigen_gate.EigenGate):
 
         Returns:
             A `cirq.ControlledGate` (or `cirq.CXPowGate` if possible) representing
-                `self` controlled by the given control values and qubits.
+                control_values = cv.ProductOfSums`self` controlled by the given control values and qubits.
         """
-        result = super().controlled(num_controls, control_values, control_qid_shape)
-        if not isinstance(control_values, cv.AbstractControlValues):
+        if control_values and not isinstance(control_values, cv.AbstractControlValues):
             control_values = cv.ProductOfSums(
                 tuple(
                     (val,) if isinstance(val, int) else tuple(sorted(val)) for val in control_values
                 )
             )
-        if isinstance(control_values, cv.ProductOfSums):
-            if (
-                self._global_shift == 0
-                and isinstance(result, controlled_gate.ControlledGate)
-                and result.control_values[-1] == (1,)
-                and result.control_qid_shape[-1] == 2
-            ):
-                return cirq.CXPowGate(
-                    exponent=self._exponent, global_shift=self._global_shift
-                ).controlled(
-                    result.num_controls() - 1,
-                    result.control_values[:-1],
-                    result.control_qid_shape[:-1],
-                )
+        result = super().controlled(num_controls, control_values, control_qid_shape)
+        if (
+            self._global_shift == 0
+            and isinstance(result, controlled_gate.ControlledGate)
+            and isinstance(result.control_values, cv.ProductOfSums)
+            and result.control_values[-1] == (1,)
+            and result.control_qid_shape[-1] == 2
+        ):
+            return cirq.CXPowGate(
+                exponent=self._exponent, global_shift=self._global_shift
+            ).controlled(
+                result.num_controls() - 1, result.control_values[:-1], result.control_qid_shape[:-1]
+            )
         return result
 
     def _pauli_expansion_(self) -> value.LinearDict[str]:
@@ -689,27 +687,25 @@ class ZPowGate(eigen_gate.EigenGate):
             A `cirq.ControlledGate` (or `cirq.CZPowGate` if possible) representing
                 `self` controlled by the given control values and qubits.
         """
-        result = super().controlled(num_controls, control_values, control_qid_shape)
-        if not isinstance(control_values, cv.AbstractControlValues):
+        if control_values and not isinstance(control_values, cv.AbstractControlValues):
             control_values = cv.ProductOfSums(
                 tuple(
                     (val,) if isinstance(val, int) else tuple(sorted(val)) for val in control_values
                 )
             )
-        if isinstance(control_values, cv.ProductOfSums):
-            if (
-                self._global_shift == 0
-                and isinstance(result, controlled_gate.ControlledGate)
-                and result.control_values[-1] == (1,)
-                and result.control_qid_shape[-1] == 2
-            ):
-                return cirq.CZPowGate(
-                    exponent=self._exponent, global_shift=self._global_shift
-                ).controlled(
-                    result.num_controls() - 1,
-                    result.control_values[:-1],
-                    result.control_qid_shape[:-1],
-                )
+        result = super().controlled(num_controls, control_values, control_qid_shape)
+        if (
+            self._global_shift == 0
+            and isinstance(result, controlled_gate.ControlledGate)
+            and isinstance(result.control_values, cv.ProductOfSums)
+            and result.control_values[-1] == (1,)
+            and result.control_qid_shape[-1] == 2
+        ):
+            return cirq.CZPowGate(
+                exponent=self._exponent, global_shift=self._global_shift
+            ).controlled(
+                result.num_controls() - 1, result.control_values[:-1], result.control_qid_shape[:-1]
+            )
         return result
 
     def _qid_shape_(self) -> Tuple[int, ...]:
@@ -1134,27 +1130,25 @@ class CZPowGate(gate_features.InterchangeableQubitsGate, eigen_gate.EigenGate):
             A `cirq.ControlledGate` (or `cirq.CCZPowGate` if possible) representing
                 `self` controlled by the given control values and qubits.
         """
-        result = super().controlled(num_controls, control_values, control_qid_shape)
-        if not isinstance(control_values, cv.AbstractControlValues):
+        if control_values and not isinstance(control_values, cv.AbstractControlValues):
             control_values = cv.ProductOfSums(
                 tuple(
                     (val,) if isinstance(val, int) else tuple(sorted(val)) for val in control_values
                 )
             )
-        if isinstance(control_values, cv.ProductOfSums):
-            if (
-                self._global_shift == 0
-                and isinstance(result, controlled_gate.ControlledGate)
-                and result.control_values[-1] == (1,)
-                and result.control_qid_shape[-1] == 2
-            ):
-                return cirq.CCZPowGate(
-                    exponent=self._exponent, global_shift=self._global_shift
-                ).controlled(
-                    result.num_controls() - 1,
-                    result.control_values[:-1],
-                    result.control_qid_shape[:-1],
-                )
+        result = super().controlled(num_controls, control_values, control_qid_shape)
+        if (
+            self._global_shift == 0
+            and isinstance(result, controlled_gate.ControlledGate)
+            and isinstance(result.control_values, cv.ProductOfSums)
+            and result.control_values[-1] == (1,)
+            and result.control_qid_shape[-1] == 2
+        ):
+            return cirq.CCZPowGate(
+                exponent=self._exponent, global_shift=self._global_shift
+            ).controlled(
+                result.num_controls() - 1, result.control_values[:-1], result.control_qid_shape[:-1]
+            )
         return result
 
     def _circuit_diagram_info_(
@@ -1342,27 +1336,25 @@ class CXPowGate(eigen_gate.EigenGate):
             A `cirq.ControlledGate` (or `cirq.CCXPowGate` if possible) representing
                 `self` controlled by the given control values and qubits.
         """
-        result = super().controlled(num_controls, control_values, control_qid_shape)
-        if not isinstance(control_values, cv.AbstractControlValues):
+        if control_values and not isinstance(control_values, cv.AbstractControlValues):
             control_values = cv.ProductOfSums(
                 tuple(
                     (val,) if isinstance(val, int) else tuple(sorted(val)) for val in control_values
                 )
             )
-        if isinstance(control_values, cv.ProductOfSums):
-            if (
-                self._global_shift == 0
-                and isinstance(result, controlled_gate.ControlledGate)
-                and result.control_values[-1] == (1,)
-                and result.control_qid_shape[-1] == 2
-            ):
-                return cirq.CCXPowGate(
-                    exponent=self._exponent, global_shift=self._global_shift
-                ).controlled(
-                    result.num_controls() - 1,
-                    result.control_values[:-1],
-                    result.control_qid_shape[:-1],
-                )
+        result = super().controlled(num_controls, control_values, control_qid_shape)
+        if (
+            self._global_shift == 0
+            and isinstance(result, controlled_gate.ControlledGate)
+            and isinstance(result.control_values, cv.ProductOfSums)
+            and result.control_values[-1] == (1,)
+            and result.control_qid_shape[-1] == 2
+        ):
+            return cirq.CCXPowGate(
+                exponent=self._exponent, global_shift=self._global_shift
+            ).controlled(
+                result.num_controls() - 1, result.control_values[:-1], result.control_qid_shape[:-1]
+            )
         return result
 
     def _qasm_(self, args: 'cirq.QasmArgs', qubits: Tuple['cirq.Qid', ...]) -> Optional[str]:
