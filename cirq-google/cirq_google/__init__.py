@@ -111,12 +111,8 @@ from cirq_google.serialization import (
     CIRCUIT_SERIALIZER,
     CircuitSerializer,
     CircuitOpDeserializer,
-    DeserializingArg,
-    GateOpDeserializer,
     CircuitOpSerializer,
-    GateOpSerializer,
     Serializer,
-    SerializingArg,
 )
 
 from cirq_google.workflow import (
