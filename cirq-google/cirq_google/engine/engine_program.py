@@ -24,18 +24,10 @@ from cirq_google.cloud import quantum
 from cirq_google.engine.result_type import ResultType
 from cirq_google.api import v2
 from cirq_google.engine import engine_job
-from cirq_google.serialization import gate_sets
+from cirq_google.serialization import circuit_serializer
 
 if TYPE_CHECKING:
     import cirq_google.engine.engine as engine_base
-
-
-_GOOGLE_GATESETS = [
-    gate_sets.SYC_GATESET,
-    gate_sets.SQRT_ISWAP_GATESET,
-    gate_sets.FSIM_GATESET,
-    gate_sets.XMON,
-]
 
 
 class EngineProgram(abstract_program.AbstractProgram):
@@ -563,13 +555,6 @@ def _deserialize_program(code: any_pb2.Any, program_num: Optional[int] = None) -
 
         program = batch.programs[program_num]
     if program is not None:
-        # TODO(#5050) Move to CircuitSerializer
-        gate_set_map = {g.name: g for g in _GOOGLE_GATESETS}
-        if program.language.gate_set not in gate_set_map:
-            raise ValueError(
-                f'Unknown gateset {program.language.gate_set}. '
-                f'Supported gatesets: {list(gate_set_map.keys())}.'
-            )
-        return gate_set_map[program.language.gate_set].deserialize(program)
+        return circuit_serializer.CIRCUIT_SERIALIZER.deserialize(program)
 
     raise ValueError(f'unsupported program type: {code_type}')
