@@ -69,15 +69,12 @@ class TestCopyrightChecker(CheckerTestCase):
         ):
             self.checker.process_module(node)
 
-    @pytest.mark.parametrize('prefix', [
-        "",
-        "#!/usr/bin/env python\n",
-        "#!/usr/bin/env/python\n\n",
-    ])
+    @pytest.mark.parametrize('prefix', ["", "#!/usr/bin/env python\n", "#!/usr/bin/env/python\n\n"])
     def test_correct_copyright(self, prefix: str) -> None:
         """Do not report a message when the correct copyright notice is shown."""
         node = parse(
-            prefix + """# Copyright 2020 The Cirq Developers
+            prefix
+            + """# Copyright 2020 The Cirq Developers
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
