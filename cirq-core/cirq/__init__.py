@@ -301,6 +301,7 @@ from cirq.ops import (
     SQRT_ISWAP_INV,
     SWAP,
     SwapPowGate,
+    SumOfProducts,
     T,
     TaggedOperation,
     ThreeQubitDiagonalGate,

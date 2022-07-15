@@ -419,7 +419,9 @@ def direct_fidelity_estimation(
         measured_pauli_traces = pauli_traces
     else:
         # Otherwise, randomly sample as per probability.
-        measured_pauli_traces = np.random.choice(pauli_traces, size=len(pauli_traces), p=p).tolist()
+        measured_pauli_traces = np.random.choice(
+            pauli_traces, size=len(pauli_traces), p=p  # type: ignore[arg-type]
+        ).tolist()
 
     trial_results: List[Result] = []
     for pauli_trace in measured_pauli_traces:

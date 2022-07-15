@@ -32,8 +32,8 @@ import cirq
         np.int32(45),
         np.float64(6.3),
         np.int32(2),
-        np.complex64(1j),
-        np.complex128(2j),
+        np.complex64(1j),  # type: ignore[arg-type]
+        np.complex128(2j),  # type: ignore[arg-type]
         complex(1j),
         fractions.Fraction(3, 2),
     ],

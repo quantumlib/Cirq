@@ -294,9 +294,9 @@ def assert_has_consistent_apply_unitary(val: Any, *, atol: float = 1e-8) -> None
 
     # If you applied a unitary, it should match the one you say you have.
     if actual is not None:
-        np.testing.assert_allclose(
-            actual.reshape((np.prod((2,) + qid_shape, dtype=np.int64),) * 2), expected, atol=atol
-        )
+        assert expected is not None
+        n = np.product([2, *qid_shape])
+        np.testing.assert_allclose(actual.reshape(n, n), expected, atol=atol)
 
 
 def _assert_apply_unitary_works_when_axes_transposed(val: Any, *, atol: float = 1e-8) -> None:
