@@ -22,6 +22,9 @@ from cirq_google.ops import PhysicalZTag
 from cirq_google.ops.calibration_tag import CalibrationTag
 from cirq_google.serialization import serializer, op_deserializer, op_serializer, arg_func_langs
 
+# The name used in program.proto to identify the serializer as CircuitSerializer.
+# "v2.5" refers to the most current v2.Program proto format.
+# CircuitSerializer is the dedicated serializer for the v2.5 format.
 _SERIALIZER_NAME = 'v2_5'
 
 
@@ -38,7 +41,6 @@ class CircuitSerializer(serializer.Serializer):
 
     def __init__(self):
         """Construct the circuit serializer object."""
-        # "v2.5" refers to the most current v2.Program proto format.
         super().__init__(gate_set_name=_SERIALIZER_NAME)
 
     def serialize(
