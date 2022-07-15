@@ -729,7 +729,7 @@ def to_json_gzip(
             actually_a_file.write(json_str)
             return None
 
-    gzip_data = gzip.compress(bytes(json_str, encoding='utf-8'))  # type: ignore
+    gzip_data = gzip.compress(bytes(json_str, encoding='utf-8'))
     if file_or_fn is None:
         return gzip_data
 

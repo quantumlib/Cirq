@@ -225,7 +225,7 @@ class _ParamFlattener(resolver.ParamResolver):
         # TODO: Support complex values for typing below.
         symbol_params: resolver.ParamDictType = {
             _ensure_not_str(param): _ensure_not_str(val)  # type: ignore[misc]
-            for param, val in params.items()  # type: ignore[misc]
+            for param, val in params.items()
         }
         super().__init__(symbol_params)
         if get_param_name is None:

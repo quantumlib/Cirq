@@ -18,15 +18,15 @@ from typing import Awaitable, Callable, Dict, Optional, Sequence, Tuple, Union
 
 from google.api_core import gapic_v1
 from google.api_core import grpc_helpers_async
-from google.auth import credentials as ga_credentials   # type: ignore
-from google.auth.transport.grpc import SslCredentials  # type: ignore
+from google.auth import credentials as ga_credentials
+from google.auth.transport.grpc import SslCredentials
 
 import grpc                        # type: ignore
 from grpc.experimental import aio  # type: ignore
 
 from cirq_google.cloud.quantum_v1alpha1.types import engine
 from cirq_google.cloud.quantum_v1alpha1.types import quantum
-from google.protobuf import empty_pb2  # type: ignore
+from google.protobuf import empty_pb2
 from .base import QuantumEngineServiceTransport, DEFAULT_CLIENT_INFO
 from .grpc import QuantumEngineServiceGrpcTransport
 

@@ -79,7 +79,7 @@ MODULE_TEST_SPECS = _get_testspecs_for_modules()
 def test_deprecated_cirq_type_in_json_dict():
     class HasOldJsonDict:
         # Required for testing serialization of non-cirq objects.
-        __module__ = 'test.noncirq.namespace'  # type: ignore
+        __module__ = 'test.noncirq.namespace'
 
         def __eq__(self, other):
             return isinstance(other, HasOldJsonDict)

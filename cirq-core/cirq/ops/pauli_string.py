@@ -78,7 +78,7 @@ PAULI_STRING_LIKE = Union[
     Iterable,  # of PAULI_STRING_LIKE, but mypy doesn't do recursive types yet.
 ]
 document(
-    PAULI_STRING_LIKE,  # type: ignore
+    PAULI_STRING_LIKE,
     """A `cirq.PauliString` or a value that can easily be converted into one.
 
     Complex numbers turn into the coefficient of an empty Pauli string.
@@ -94,7 +94,7 @@ document(
 
 PAULI_GATE_LIKE = Union['cirq.Pauli', 'cirq.IdentityGate', str, int,]
 document(
-    PAULI_GATE_LIKE,  # type: ignore
+    PAULI_GATE_LIKE,
     """An object that can be interpreted as a Pauli gate.
 
     Allowed values are:
@@ -1715,4 +1715,4 @@ def _pauli_like_to_pauli_int(key: Any, pauli_gate_like: PAULI_GATE_LIKE):
             f"But the value isn't in "
             f"{set(PAULI_GATE_LIKE_TO_INDEX_MAP.keys())!r}"
         )
-    return cast(int, pauli_int)
+    return pauli_int
