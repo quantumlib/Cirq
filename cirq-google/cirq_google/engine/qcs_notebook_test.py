@@ -90,6 +90,14 @@ def test_get_qcs_objects_for_notebook_mocked_engine_succeeds(engine_mock):
 
 
 @mock.patch('cirq_google.engine.qcs_notebook.get_engine')
+def test_get_qcs_objects_for_notebook_no_processors(engine_mock):
+    fake_engine = cg.engine.SimulatedLocalEngine([])
+    engine_mock.return_value = fake_engine
+    with pytest.raises(ValueError, match='processors'):
+        _ = get_qcs_objects_for_notebook()
+
+
+@mock.patch('cirq_google.engine.qcs_notebook.get_engine')
 def test_get_qcs_objects_for_notebook_auth_succeeds(engine_mock):
     # force google.colab to import
     auth_mock = mock.Mock()
