@@ -677,13 +677,14 @@ def density_matrix_from_state_vector(
     sum_inds = np.array(range(n_qubits))
     sum_inds[indices] += n_qubits
 
+    # TODO(#5757): remote type ignore when numpy has proper override signature.
     rho = np.einsum(
         state_vector,
         list(range(n_qubits)),
         np.conj(state_vector),
-        sum_inds.tolist(),
-        indices + sum_inds[indices].tolist(),
-    )
+        cast(List, sum_inds.tolist()),
+        indices + cast(List, sum_inds[indices].tolist()),
+    )  # type: ignore
     new_shape = np.prod([shape[i] for i in indices], dtype=np.int64)
 
     return rho.reshape((new_shape, new_shape))
