@@ -4,7 +4,7 @@ https://arxiv.org/abs/1811.12926.
 """
 
 from dataclasses import dataclass
-from typing import Optional, List, cast, Callable, Dict, Tuple, Set, Any
+from typing import Optional, List, Callable, Dict, Tuple, Set, Any
 
 import networkx as nx
 import numpy as np
@@ -75,7 +75,7 @@ def compute_heavy_set(circuit: cirq.Circuit) -> List[int]:
     # Classically compute the probabilities of each output bit-string through
     # simulation.
     simulator = cirq.Simulator()
-    results = cast(cirq.StateVectorTrialResult, simulator.simulate(program=circuit))
+    results = simulator.simulate(program=circuit)
 
     # Compute the median probability of the output bit-strings. Note that heavy
     # output is defined in terms of probabilities, where our wave function is in
