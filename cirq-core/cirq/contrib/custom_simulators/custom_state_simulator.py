@@ -88,4 +88,4 @@ class CustomStateSimulator(
     ) -> TSimulationState:
         return self.state_type(
             initial_state=initial_state, qubits=qubits, classical_data=classical_data
-        )
+        )  # type: ignore[call-arg]
