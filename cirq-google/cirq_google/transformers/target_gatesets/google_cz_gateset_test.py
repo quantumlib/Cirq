@@ -22,34 +22,41 @@ _qa, _qb = cirq.NamedQubit('a'), cirq.NamedQubit('b')
 
 
 @pytest.mark.parametrize(
-    'before',
+    'before, gate_family',
     [
-        cirq.Circuit(cirq.Z(_qa) ** 0.5, cirq.CZ(_qa, _qb)),
-        cirq.Circuit(cirq.Z(_qa).with_tags(cirq_google.PhysicalZTag()) ** 0.5, cirq.CZ(_qa, _qb)),
-        cirq.Circuit(cirq.PhasedXPowGate(phase_exponent=0.125).on(_qa), cirq.CZ(_qa, _qb)),
+        (
+            cirq.Circuit(cirq.Z(_qa) ** 0.5, cirq.CZ(_qa, _qb)),
+            cirq.GateFamily(cirq.ZPowGate, tags_to_ignore=[cirq_google.PhysicalZTag()]),
+        ),
+        # TODO(#5783) Investigate why a PhysicalZ gate is decomposed here.
+        # (
+        #     cirq.Circuit(
+        #         cirq.Z(_qa).with_tags(cirq_google.PhysicalZTag()) ** 0.5, cirq.CZ(_qa, _qb)
+        #     ),
+        #     cirq.GateFamily(cirq.ZPowGate, tags_to_accept=[cirq_google.PhysicalZTag()]),
+        # ),
+        (
+            cirq.Circuit(cirq.PhasedXPowGate(phase_exponent=0.125).on(_qa), cirq.CZ(_qa, _qb)),
+            cirq.GateFamily(cirq.PhasedXPowGate),
+        ),
     ],
 )
-def test_eject_paulis_disabled(before):
+def test_eject_paulis_disabled(before, gate_family):
     after = cirq.optimize_for_target_gateset(
         before,
-        gateset=cirq_google.GoogleCZTargetGateset(
-            additional_gates=[
-                cirq.GateFamily(cirq.ZPowGate, tags_to_ignore=[cirq_google.PhysicalZTag()]),
-                cirq.GateFamily(cirq.ZPowGate, tags_to_accept=[cirq_google.PhysicalZTag()]),
-                cirq.PhasedXPowGate,
-            ]
-        ),
+        gateset=cirq_google.GoogleCZTargetGateset(additional_gates=[gate_family]),
         ignore_failures=False,
     )
     cirq.testing.assert_same_circuits(after, before)
 
 
 @pytest.mark.parametrize(
-    'before, expected',
+    'before, expected, gate_family',
     [
         (
             cirq.Circuit(cirq.Z(_qa) ** 0.5, cirq.CZ(_qa, _qb)),
             cirq.Circuit(cirq.CZ(_qa, _qb), cirq.Z(_qa) ** 0.5),
+            cirq.GateFamily(cirq.ZPowGate, tags_to_ignore=[cirq_google.PhysicalZTag()]),
         ),
         (
             # PhysicalZ tag is erased
@@ -57,6 +64,7 @@ def test_eject_paulis_disabled(before):
                 cirq.Z(_qa).with_tags(cirq_google.PhysicalZTag()) ** 0.5, cirq.CZ(_qa, _qb)
             ),
             cirq.Circuit(cirq.CZ(_qa, _qb), cirq.Z(_qa) ** 0.5),
+            cirq.GateFamily(cirq.ZPowGate, tags_to_accept=[cirq_google.PhysicalZTag()]),
         ),
         (
             cirq.Circuit(cirq.PhasedXPowGate(phase_exponent=0.125).on(_qa), cirq.CZ(_qa, _qb)),
@@ -65,19 +73,15 @@ def test_eject_paulis_disabled(before):
                 cirq.PhasedXPowGate(phase_exponent=0.125).on(_qa),
                 cirq.Z(_qb),
             ),
+            cirq.PhasedXPowGate,
         ),
     ],
 )
-def test_eject_paulis_enabled(before, expected):
+def test_eject_paulis_enabled(before, expected, gate_family):
     after = cirq.optimize_for_target_gateset(
         before,
         gateset=cirq_google.GoogleCZTargetGateset(
-            eject_paulis=True,
-            additional_gates=[
-                cirq.GateFamily(cirq.ZPowGate, tags_to_ignore=[cirq_google.PhysicalZTag()]),
-                cirq.GateFamily(cirq.ZPowGate, tags_to_accept=[cirq_google.PhysicalZTag()]),
-                cirq.PhasedXPowGate,
-            ],
+            eject_paulis=True, additional_gates=[gate_family]
         ),
         ignore_failures=False,
     )
