@@ -698,7 +698,7 @@ def dirac_notation(
     For example:
 
     >>> state_vector = np.array([1/np.sqrt(2), 1/np.sqrt(2)], dtype=np.complex64)
-    >>> print(criq.dirac_notation(state_vector))
+    >>> print(cirq.dirac_notation(state_vector))
     0.71|0⟩ + 0.71|1⟩
 
 
