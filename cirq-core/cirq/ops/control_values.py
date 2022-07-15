@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import abc
-from typing import Union, Tuple, List, TYPE_CHECKING, Any, Dict, Generator, cast, Iterator
+from typing import Union, Tuple, List, TYPE_CHECKING, Any, Dict, Generator, cast, Iterator, Optional
 from dataclasses import dataclass
 
 import itertools
@@ -53,7 +53,7 @@ class AbstractControlValues(abc.ABC):
         """Expands the (possibly compressed) internal representation into a sum of products representation."""  # pylint: disable=line-too-long
 
     @abc.abstractmethod
-    def diagram_repr(self) -> str:
+    def diagram_repr(self, label: Optional[str] = None) -> str:
         """Returns a string representation to be used in circuit diagrams."""
 
     @abc.abstractmethod
@@ -154,7 +154,9 @@ class ProductOfSums(AbstractControlValues):
     def _are_ones(self) -> bool:
         return frozenset(self._internal_representation) == {(1,)}
 
-    def diagram_repr(self) -> str:
+    def diagram_repr(self, label: Optional[str] = None) -> str:
+        if label:
+            return label
         if self._are_ones():
             return 'C' * self._number_variables()
 
@@ -200,7 +202,7 @@ class SumOfProducts(AbstractControlValues):
         This can be constructed as
         >>> xor_control_values = cirq.SumOfProducts(((0, 0), (1, 1)))
         >>> q0, q1, q2 = cirq.LineQubit.range(3)
-        >>> cirq.X(q2).controlled_by(q0, q1, control_values=xor_control_values)
+        >>> xor_cop cirq.X(q2).controlled_by(q0, q1, control_values=xor_control_values)
 
     2) `(|00><00| + |01><01| + |10><10|) X + (|11><11|) I` represents an
         operators which flips the third qubit if the `nand` of first two
@@ -209,7 +211,7 @@ class SumOfProducts(AbstractControlValues):
 
         >>> nand_control_values = cirq.SumOfProducts(((0, 0), (0, 1), (1, 0)))
         >>> q0, q1, q2 = cirq.LineQubit.range(3)
-        >>> cirq.X(q2).controlled_by(q0, q1, control_values=nand_control_values)
+        >>> nan_cop = cirq.X(q2).controlled_by(q0, q1, control_values=nand_control_values)
     """
 
     _internal_representation: Tuple[Tuple[int, ...], ...]
@@ -266,7 +268,9 @@ class SumOfProducts(AbstractControlValues):
     def _are_ones(self) -> bool:
         return frozenset(self._internal_representation) == {(1,) * self._number_variables()}
 
-    def diagram_repr(self) -> str:
+    def diagram_repr(self, label: Optional[str] = None) -> str:
+        if label:
+            return label
         return ','.join(map(lambda p: ''.join(map(str, p)), self._internal_representation))
 
     def __getitem__(

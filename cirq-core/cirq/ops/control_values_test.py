@@ -133,9 +133,13 @@ def test_are_ones():
         assert c._are_ones() == want
 
 
-def test_sum_of_products_diagram():
+def test_diagram_repr():
     c = cv.SumOfProducts(((1, 0), (0, 1)))
     assert c.diagram_repr() == '10,01'
+
+    assert c.diagram_repr('xor') == 'xor'
+
+    assert cv.ProductOfSums(((1,), (0,))).diagram_repr('10') == '10'
 
 
 def test_sum_of_products_getitem():
