@@ -30,7 +30,7 @@ class Device(metaclass=abc.ABCMeta):
     This interface is split into two parts: validation and
     exploration.  The primary responsibility of this class
     is to validate circuits (ie. can this device execute the
-    circuit as-is?).  The secondary responsibiliy of the class
+    circuit as-is?).  The secondary responsibility of the class
     is to provide additional information about the device
     such as the qubits on the device and their connectivity.
     These 'exploratory' attributes are all contained within
