@@ -13,97 +13,21 @@
 # limitations under the License.
 
 import abc
-from typing import Any, Dict, List, Sequence, Tuple, TYPE_CHECKING, TypeVar
+from typing import Any, Dict, List, Optional, Sequence, TYPE_CHECKING
 import numpy as np
 
-from cirq import protocols, value
-from cirq.value import big_endian_int_to_digits, linear_dict
+from cirq import protocols
+from cirq._compat import proper_repr
+from cirq.qis import quantum_state_representation
+from cirq.value import big_endian_int_to_digits, linear_dict, random_state
 
 if TYPE_CHECKING:
     import cirq
 
-TSelf = TypeVar('TSelf', bound='QuantumStateRepresentation')
 
-
-class QuantumStateRepresentation(metaclass=abc.ABCMeta):
-    @abc.abstractmethod
-    def copy(self: TSelf, deep_copy_buffers: bool = True) -> TSelf:
-        """Creates a copy of the object.
-        Args:
-            deep_copy_buffers: If True, buffers will also be deep-copied.
-            Otherwise the copy will share a reference to the original object's
-            buffers.
-        Returns:
-            A copied instance.
-        """
-
-    @abc.abstractmethod
-    def measure(
-        self, axes: Sequence[int], seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None
-    ) -> List[int]:
-        """Measures the state.
-
-        Args:
-            axes: The axes to measure.
-            seed: The random number seed to use.
-        Returns:
-            The measurements in order.
-        """
-
-    def sample(
-        self,
-        axes: Sequence[int],
-        repetitions: int = 1,
-        seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None,
-    ) -> np.ndarray:
-        """Samples the state. Subclasses can override with more performant method.
-
-        Args:
-            axes: The axes to sample.
-            repetitions: The number of samples to make.
-            seed: The random number seed to use.
-        Returns:
-            The samples in order.
-        """
-        prng = value.parse_random_state(seed)
-        measurements = []
-        for _ in range(repetitions):
-            state = self.copy()
-            measurements.append(state.measure(axes, prng))
-        return np.array(measurements, dtype=np.uint8)
-
-    def kron(self: TSelf, other: TSelf) -> TSelf:
-        """Joins two state spaces together."""
-        raise NotImplementedError()
-
-    def factor(
-        self: TSelf, axes: Sequence[int], *, validate=True, atol=1e-07
-    ) -> Tuple[TSelf, TSelf]:
-        """Splits two state spaces after a measurement or reset."""
-        raise NotImplementedError()
-
-    def reindex(self: TSelf, axes: Sequence[int]) -> TSelf:
-        """Physically reindexes the state by the new basis.
-        Args:
-            axes: The desired axis order.
-        Returns:
-            The state with qubit order transposed and underlying representation
-            updated.
-        """
-        raise NotImplementedError()
-
-    @property
-    def supports_factor(self) -> bool:
-        """Subclasses that allow factorization should override this."""
-        return False
-
-    @property
-    def can_represent_mixed_states(self) -> bool:
-        """Subclasses that can represent mixed states should override this."""
-        return False
-
-
-class StabilizerState(QuantumStateRepresentation, metaclass=abc.ABCMeta):
+class StabilizerState(
+    quantum_state_representation.QuantumStateRepresentation, metaclass=abc.ABCMeta
+):
     """Interface for quantum stabilizer state representations.
 
     This interface is used for CliffordTableau and StabilizerChForm quantum
@@ -214,7 +138,14 @@ class CliffordTableau(StabilizerState):
     an eigenoperator of the state vector with eigenvalue one: P|psi> = |psi>.
     """
 
-    def __init__(self, num_qubits, initial_state: int = 0):
+    def __init__(
+        self,
+        num_qubits,
+        initial_state: int = 0,
+        rs: Optional[np.ndarray] = None,
+        xs: Optional[np.ndarray] = None,
+        zs: Optional[np.ndarray] = None,
+    ):
         """Initializes CliffordTableau
         Args:
             num_qubits: The number of qubits in the system.
@@ -222,22 +153,77 @@ class CliffordTableau(StabilizerState):
                 state as a big endian int.
         """
         self.n = num_qubits
-
-        # The last row (`2n+1`-th row) is the scratch row used in _measurement
+        self.initial_state = initial_state
+        # _reconstruct_* adds the last row (`2n+1`-th row) to the input arrays,
+        # which is the scratch row used in _measurement
         # computation process only. It should not be exposed to external usage.
-        self._rs = np.zeros(2 * self.n + 1, dtype=bool)
+        self._rs = self._reconstruct_rs(rs)
+        self._xs = self._reconstruct_xs(xs)
+        self._zs = self._reconstruct_zs(zs)
 
-        for (i, val) in enumerate(
-            big_endian_int_to_digits(initial_state, digit_count=num_qubits, base=2)
-        ):
-            self._rs[self.n + i] = bool(val)
+    def _reconstruct_rs(self, rs: Optional[np.ndarray]) -> np.ndarray:
+        if rs is None:
+            new_rs = np.zeros(2 * self.n + 1, dtype=bool)
+            for (i, val) in enumerate(
+                big_endian_int_to_digits(self.initial_state, digit_count=self.n, base=2)
+            ):
+                new_rs[self.n + i] = bool(val)
+        else:
+            shape = rs.shape
+            if len(shape) == 1 and shape[0] == 2 * self.n and rs.dtype == np.dtype(bool):
+                new_rs = np.append(rs, np.zeros(1, dtype=bool))
+            else:
+                raise ValueError(
+                    f"The value you passed for rs is not the correct shape and/or type. "
+                    f"Please confirm that it's a single row with 2*num_qubits columns "
+                    f"and of type bool."
+                )
+        return new_rs
 
-        self._xs = np.zeros((2 * self.n + 1, self.n), dtype=bool)
-        self._zs = np.zeros((2 * self.n + 1, self.n), dtype=bool)
+    def _reconstruct_xs(self, xs: Optional[np.ndarray]) -> np.ndarray:
+        if xs is None:
+            new_xs = np.zeros((2 * self.n + 1, self.n), dtype=bool)
+            for i in range(self.n):
+                new_xs[i, i] = True
+        else:
+            shape = xs.shape
+            if (
+                len(shape) == 2
+                and shape[0] == 2 * self.n
+                and shape[1] == self.n
+                and xs.dtype == np.dtype(bool)
+            ):
+                new_xs = np.append(xs, np.zeros((1, self.n), dtype=bool), axis=0)
+            else:
+                raise ValueError(
+                    f"The value you passed for xs is not the correct shape and/or type. "
+                    f"Please confirm that it's 2*num_qubits rows, num_qubits columns, "
+                    f"and of type bool."
+                )
+        return new_xs
 
-        for i in range(self.n):
-            self._xs[i, i] = True
-            self._zs[self.n + i, i] = True
+    def _reconstruct_zs(self, zs: Optional[np.ndarray]) -> np.ndarray:
+
+        if zs is None:
+            new_zs = np.zeros((2 * self.n + 1, self.n), dtype=bool)
+            for i in range(self.n):
+                new_zs[self.n + i, i] = True
+        else:
+            shape = zs.shape
+            if (
+                len(shape) == 2
+                and shape[0] == 2 * self.n
+                and shape[1] == self.n
+                and zs.dtype == np.dtype(bool)
+            ):
+                new_zs = np.append(zs, np.zeros((1, self.n), dtype=bool), axis=0)
+            else:
+                raise ValueError(
+                    f"The value you passed for zs is not the correct shape and/or type. "
+                    f"Please confirm that it's 2*num_qubits rows, num_qubits columns, "
+                    f"and of type bool."
+                )
+        return new_zs
 
     @property
     def xs(self) -> np.ndarray:
@@ -310,8 +296,13 @@ class CliffordTableau(StabilizerState):
         return state
 
     def __repr__(self) -> str:
-        stabilizers = ", ".join([repr(stab) for stab in self.stabilizers()])
-        return f'stabilizers: [{stabilizers}]'
+        return (
+            f"cirq.CliffordTableau({self.n},"
+            f"rs={proper_repr(np.delete(self._rs, len(self._rs)-1))}, "
+            f"xs={proper_repr(np.delete(self._xs, len(self._xs)-1, axis=0))},"
+            f"zs={proper_repr(np.delete(self._zs, len(self._zs)-1, axis=0))}, "
+            f"initial_state={self.initial_state})"
+        )
 
     def __str__(self) -> str:
         string = ''
@@ -319,7 +310,7 @@ class CliffordTableau(StabilizerState):
         for i in range(self.n, 2 * self.n):
             string += '- ' if self.rs[i] else '+ '
 
-            for k in range(0, self.n):
+            for k in range(self.n):
                 if self.xs[i, k] & (not self.zs[i, k]):
                     string += 'X '
                 elif (not self.xs[i, k]) & self.zs[i, k]:
@@ -345,7 +336,7 @@ class CliffordTableau(StabilizerState):
             for i in [j + self.n, j]:
                 string += '- ' if self.rs[i] else '+ '
 
-                for k in range(0, self.n):
+                for k in range(self.n):
                     if self.xs[i, k] & (not self.zs[i, k]):
                         string += 'X%d' % k
                     elif (not self.xs[i, k]) & self.zs[i, k]:
@@ -516,7 +507,7 @@ class CliffordTableau(StabilizerState):
         """Returns the destabilizer generators of the state. These
         are n operators {S_1,S_2,...,S_n} such that along with the stabilizer
         generators above generate the full Pauli group on n qubits."""
-        return [self._row_to_dense_pauli(i) for i in range(0, self.n)]
+        return [self._row_to_dense_pauli(i) for i in range(self.n)]
 
     def _measure(self, q, prng: np.random.RandomState) -> int:
         """Performs a projective measurement on the q'th qubit.
@@ -662,4 +653,4 @@ class CliffordTableau(StabilizerState):
     def measure(
         self, axes: Sequence[int], seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None
     ) -> List[int]:
-        return [self._measure(axis, seed) for axis in axes]
+        return [self._measure(axis, random_state.parse_random_state(seed)) for axis in axes]

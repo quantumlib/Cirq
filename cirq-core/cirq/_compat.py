@@ -17,13 +17,14 @@ import contextlib
 import dataclasses
 import functools
 import importlib
+import inspect
 import os
 import re
 import sys
 import traceback
 import warnings
 from types import ModuleType
-from typing import Any, Callable, Optional, Dict, Tuple, Type, Set
+from typing import Any, Callable, Dict, Optional, overload, Set, Tuple, Type, TypeVar
 
 import numpy as np
 import pandas as pd
@@ -37,6 +38,71 @@ try:
     from functools import cached_property  # pylint: disable=unused-import
 except ImportError:
     from backports.cached_property import cached_property  # type: ignore[no-redef]
+
+
+TFunc = TypeVar('TFunc', bound=Callable)
+
+
+@overload
+def cached_method(__func: TFunc) -> TFunc:
+    ...
+
+
+@overload
+def cached_method(*, maxsize: int = 128) -> Callable[[TFunc], TFunc]:
+    ...
+
+
+def cached_method(method: Optional[TFunc] = None, *, maxsize: int = 128) -> Any:
+    """Decorator that adds a per-instance LRU cache for a method.
+
+    Can be applied with or without parameters to customize the underlying cache:
+
+        @cached_method
+        def foo(self, name: str) -> int:
+            ...
+
+        @cached_method(maxsize=1000)
+        def bar(self, name: str) -> int:
+            ...
+    """
+
+    def decorator(func):
+        cache_name = _method_cache_name(func)
+        signature = inspect.signature(func)
+
+        if len(signature.parameters) == 1:
+            # Optimization in the case where the method takes no arguments other than `self`.
+
+            @functools.wraps(func)
+            def wrapped_no_args(self):
+                if not hasattr(self, cache_name):
+                    object.__setattr__(self, cache_name, func(self))
+                return getattr(self, cache_name)
+
+            return wrapped_no_args
+
+        @functools.wraps(func)
+        def wrapped(self, *args, **kwargs):
+            cached = getattr(self, cache_name, None)
+            if cached is None:
+
+                @functools.lru_cache(maxsize=maxsize)
+                def cached_func(*args, **kwargs):
+                    return func(self, *args, **kwargs)
+
+                object.__setattr__(self, cache_name, cached_func)
+                cached = cached_func
+            return cached(*args, **kwargs)
+
+        return wrapped
+
+    return decorator if method is None else decorator(method)
+
+
+def _method_cache_name(func: Callable) -> str:
+    # Use single-underscore prefix to avoid name mangling (for tests).
+    return f'_method_cache_{func.__name__}'
 
 
 def proper_repr(value: Any) -> str:

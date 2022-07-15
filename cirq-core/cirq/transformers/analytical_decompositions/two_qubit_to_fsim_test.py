@@ -18,6 +18,7 @@ from typing import Any
 
 import numpy as np
 import pytest
+import sympy
 
 import cirq
 from cirq.transformers.analytical_decompositions.two_qubit_to_fsim import (
@@ -26,16 +27,6 @@ from cirq.transformers.analytical_decompositions.two_qubit_to_fsim import (
     _sticky_0_to_1,
     _B,
 )
-
-ALLOW_DEPRECATION_IN_TEST = 'ALLOW_DEPRECATION_IN_TEST'
-
-
-def test_deprecated_submodule():
-    with cirq.testing.assert_deprecated(
-        "Use cirq.transformers.analytical_decompositions.two_qubit_to_fsim instead",
-        deadline="v0.16",
-    ):
-        _ = cirq.optimizers.two_qubit_to_fsim.decompose_two_qubit_interaction_into_four_fsim_gates
 
 
 UNITARY_OBJS = [
@@ -82,7 +73,7 @@ def test_decompose_two_qubit_interaction_into_two_b_gates(obj: Any):
     desired_unitary = obj if isinstance(obj, np.ndarray) else cirq.unitary(obj)
     for operation in circuit.all_operations():
         assert len(operation.qubits) < 2 or operation.gate == _B
-    assert cirq.approx_eq(cirq.unitary(circuit), desired_unitary, atol=1e-6)
+    np.testing.assert_allclose(cirq.unitary(circuit), desired_unitary, atol=1e-6)
 
 
 def test_decompose_xx_yy_into_two_fsims_ignoring_single_qubit_ops_fail():
@@ -115,7 +106,7 @@ def test_decompose_two_qubit_interaction_into_four_fsim_gates_equivalence(
     for operation in circuit.all_operations():
         assert len(operation.qubits) < 2 or operation.gate == fsim_gate
     assert len(circuit) <= 4 * 3 + 5
-    assert cirq.approx_eq(circuit.unitary(qubit_order=qubits), desired_unitary, atol=1e-6)
+    assert cirq.approx_eq(circuit.unitary(qubit_order=qubits), desired_unitary, atol=1e-4)
 
 
 def test_decompose_two_qubit_interaction_into_four_fsim_gates_validate():
@@ -132,6 +123,9 @@ def test_decompose_two_qubit_interaction_into_four_fsim_gates_validate():
         cirq.decompose_two_qubit_interaction_into_four_fsim_gates(
             np.eye(4), fsim_gate=iswap, qubits=cirq.LineQubit.range(3)
         )
+    with pytest.raises(ValueError, match='parameterized'):
+        fsim = cirq.FSimGate(theta=np.pi / 2, phi=sympy.Symbol("x"))
+        cirq.decompose_two_qubit_interaction_into_four_fsim_gates(np.eye(4), fsim_gate=fsim)
 
 
 def test_decompose_two_qubit_interaction_into_four_fsim_gates():

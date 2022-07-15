@@ -155,7 +155,10 @@ class SupportsApplyMixture(Protocol):
 
 
 def apply_mixture(
-    val: Any, args: ApplyMixtureArgs, *, default: TDefault = RaiseTypeErrorIfNotProvided
+    val: Any,
+    args: ApplyMixtureArgs,
+    *,
+    default: Union[np.ndarray, TDefault] = RaiseTypeErrorIfNotProvided,
 ) -> Union[np.ndarray, TDefault]:
     """High performance evolution under a mixture of unitaries evolution.
 
@@ -357,9 +360,7 @@ def _apply_unitary_from_matrix_strat(
     return args.target_tensor
 
 
-def _mixture_strat(
-    val: Any, args: 'ApplyMixtureArgs', is_density_matrix: bool
-) -> Optional[np.ndarray]:
+def _mixture_strat(val: Any, args: 'ApplyMixtureArgs', is_density_matrix: bool) -> np.ndarray:
     """Attempt to use unitary matrices in _mixture_ and return the result."""
     args.out_buffer[:] = 0
     np.copyto(dst=args.auxiliary_buffer1, src=args.target_tensor)

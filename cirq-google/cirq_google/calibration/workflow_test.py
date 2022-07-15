@@ -1006,10 +1006,14 @@ def test_run_calibrations():
     job = cirq_google.engine.EngineJob('project_id', 'program_id', 'job_id', None)
     job._calibration_results = [result]
 
-    engine = mock.MagicMock(spec=cirq_google.Engine)
-    engine.run_calibration.return_value = job
+    processor = mock.MagicMock(spec=cirq_google.engine.SimulatedLocalProcessor)
+    processor.processor_id = 'qproc'
+    engine = cirq_google.engine.SimulatedLocalEngine([processor])
+    processor.engine.return_value = engine
+    processor.run_calibration.return_value = job
+    progress_calls = []
 
-    sampler = cirq_google.QuantumEngineSampler(engine=engine, processor_id='qproc')
+    sampler = cirq_google.ProcessorSampler(processor=processor)
 
     progress_calls = []
 
@@ -1105,9 +1109,11 @@ def test_run_characterization_with_engine():
     job = cirq_google.engine.EngineJob('project_id', 'program_id', 'job_id', None)
     job._calibration_results = [result]
 
-    engine = mock.MagicMock(spec=cirq_google.Engine)
-    engine.run_calibration.return_value = job
-
+    processor = mock.MagicMock(spec=cirq_google.engine.SimulatedLocalProcessor)
+    processor.processor_id = 'qproc'
+    engine = cirq_google.engine.SimulatedLocalEngine([processor])
+    processor.engine.return_value = engine
+    processor.run_calibration.return_value = job
     progress_calls = []
 
     def progress(step: int, steps: int) -> None:
@@ -1149,9 +1155,7 @@ def test_run_calibrations_empty():
 
 def test_run_calibrations_fails_when_invalid_arguments():
     with pytest.raises(ValueError):
-        assert workflow.run_calibrations(
-            [], None, 'qproc', cirq_google.FSIM_GATESET, max_layers_per_request=0
-        )
+        assert workflow.run_calibrations([], None, 'qproc', max_layers_per_request=0)
 
     request = FloquetPhasedFSimCalibrationRequest(
         gate=SQRT_ISWAP_INV_GATE, pairs=(), options=WITHOUT_CHI_FLOQUET_PHASED_FSIM_CHARACTERIZATION
@@ -1159,13 +1163,10 @@ def test_run_calibrations_fails_when_invalid_arguments():
     engine = mock.MagicMock(spec=cirq_google.Engine)
 
     with pytest.raises(ValueError):
-        assert workflow.run_calibrations([request], engine, None, cirq_google.FSIM_GATESET)
+        assert workflow.run_calibrations([request], engine, None)
 
     with pytest.raises(ValueError):
-        assert workflow.run_calibrations([request], engine, 'qproc', None)
-
-    with pytest.raises(ValueError):
-        assert workflow.run_calibrations([request], 0, 'qproc', cirq_google.FSIM_GATESET)
+        assert workflow.run_calibrations([request], 0, 'qproc')
 
 
 def test_run_calibrations_with_simulator():
@@ -1267,8 +1268,11 @@ def test_run_floquet_characterization_for_moments():
         )
     ]
 
-    engine = mock.MagicMock(spec=cirq_google.Engine)
-    engine.run_calibration.return_value = job
+    processor = mock.MagicMock(spec=cirq_google.engine.SimulatedLocalProcessor)
+    processor.processor_id = 'qproc'
+    engine = cirq_google.engine.SimulatedLocalEngine([processor])
+    processor.engine.return_value = engine
+    processor.run_calibration.return_value = job
 
     circuit_with_calibration, requests = workflow.run_floquet_characterization_for_moments(
         circuit, engine, 'qproc', options=options
@@ -1657,9 +1661,7 @@ def test_run_zeta_chi_gamma_calibration_for_moments_no_chi() -> None:
     )
 
 
-_MOCK_ENGINE_SAMPLER = mock.MagicMock(
-    spec=cirq_google.QuantumEngineSampler, _processor_ids=['my_fancy_processor'], _gate_set='test'
-)
+_MOCK_ENGINE_SAMPLER = mock.MagicMock(spec=cirq_google.ProcessorSampler)
 
 
 @pytest.mark.parametrize('sampler_engine', [cirq.Simulator, _MOCK_ENGINE_SAMPLER])

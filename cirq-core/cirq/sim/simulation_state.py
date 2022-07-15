@@ -31,7 +31,6 @@ from typing import (
 import numpy as np
 
 from cirq import protocols, value
-from cirq._compat import _warn_or_error, deprecated, deprecated_parameter
 from cirq.protocols.decompose_protocol import _try_decompose_into_operations_and_qubits
 from cirq.sim.simulation_state_base import SimulationStateBase
 
@@ -45,26 +44,13 @@ if TYPE_CHECKING:
 class SimulationState(SimulationStateBase, Generic[TState], metaclass=abc.ABCMeta):
     """State and context for an operation acting on a state tensor."""
 
-    @deprecated_parameter(
-        deadline='v0.16',
-        fix='Use kwargs instead of positional args',
-        parameter_desc='args',
-        match=lambda args, kwargs: len(args) > 1,
-    )
-    @deprecated_parameter(
-        deadline='v0.16',
-        fix='Replace log_of_measurement_results with'
-        ' classical_data=cirq.ClassicalDataDictionaryStore(_records=logs).',
-        parameter_desc='log_of_measurement_results',
-        match=lambda args, kwargs: 'log_of_measurement_results' in kwargs,
-    )
     def __init__(
         self,
+        *,
+        state: TState,
         prng: Optional[np.random.RandomState] = None,
         qubits: Optional[Sequence['cirq.Qid']] = None,
-        log_of_measurement_results: Optional[Dict[str, List[int]]] = None,
         classical_data: Optional['cirq.ClassicalDataStore'] = None,
-        state: Optional[TState] = None,
     ):
         """Inits SimulationState.
 
@@ -74,33 +60,30 @@ class SimulationState(SimulationStateBase, Generic[TState], metaclass=abc.ABCMet
             qubits: Determines the canonical ordering of the qubits. This
                 is often used in specifying the initial state, i.e. the
                 ordering of the computational basis states.
-            log_of_measurement_results: A mutable object that measurements are
-                being recorded into.
             classical_data: The shared classical data container for this
                 simulation.
             state: The underlying quantum state of the simulation.
         """
         if qubits is None:
             qubits = ()
-        classical_data = classical_data or value.ClassicalDataDictionaryStore(
-            _records={
-                value.MeasurementKey.parse_serialized(k): [tuple(v)]
-                for k, v in (log_of_measurement_results or {}).items()
-            }
-        )
+        classical_data = classical_data or value.ClassicalDataDictionaryStore()
         super().__init__(qubits=qubits, classical_data=classical_data)
         if prng is None:
             prng = cast(np.random.RandomState, np.random)
         self._prng = prng
-        self._state = cast(TState, state)
-        if state is None:
-            _warn_or_error('This function will require a valid `state` input in cirq v0.16.')
+        self._state = state
 
     @property
     def prng(self) -> np.random.RandomState:
         return self._prng
 
-    def measure(self, qubits: Sequence['cirq.Qid'], key: str, invert_mask: Sequence[bool]):
+    def measure(
+        self,
+        qubits: Sequence['cirq.Qid'],
+        key: str,
+        invert_mask: Sequence[bool],
+        confusion_map: Dict[Tuple[int, ...], np.ndarray],
+    ):
         """Measures the qubits and records to `log_of_measurement_results`.
 
         Any bitmasks will be applied to the measurement record.
@@ -111,12 +94,14 @@ class SimulationState(SimulationStateBase, Generic[TState], metaclass=abc.ABCMet
                 that operations should only store results under keys they have
                 declared in a `_measurement_key_names_` method.
             invert_mask: The invert mask for the measurement.
+            confusion_map: The confusion matrices for the measurement.
 
         Raises:
             ValueError: If a measurement key has already been logged to a key.
         """
         bits = self._perform_measurement(qubits)
-        corrected = [bit ^ (bit < 2 and mask) for bit, mask in zip(bits, invert_mask)]
+        confused = self._confuse_result(bits, qubits, confusion_map)
+        corrected = [bit ^ (bit < 2 and mask) for bit, mask in zip(confused, invert_mask)]
         self._classical_data.record_measurement(
             value.MeasurementKey.parse_serialized(key), corrected, qubits
         )
@@ -129,6 +114,27 @@ class SimulationState(SimulationStateBase, Generic[TState], metaclass=abc.ABCMet
         if self._state is not None:
             return self._state.measure(self.get_axes(qubits), self.prng)
         raise NotImplementedError()
+
+    def _confuse_result(
+        self,
+        bits: List[int],
+        qubits: Sequence['cirq.Qid'],
+        confusion_map: Dict[Tuple[int, ...], np.ndarray],
+    ):
+        """Applies confusion matrices to measured results.
+
+        Compare with _confuse_results in cirq-core/cirq/sim/simulator.py.
+        """
+        confused = list(bits)
+        dims = [q.dimension for q in qubits]
+        for indices, confuser in confusion_map.items():
+            mat_dims = [dims[k] for k in indices]
+            row = value.big_endian_digits_to_int((bits[k] for k in indices), base=mat_dims)
+            new_val = self.prng.choice(len(confuser), p=confuser[row])
+            new_bits = value.big_endian_int_to_digits(new_val, base=mat_dims)
+            for i, k in enumerate(indices):
+                confused[k] = new_bits[i]
+        return confused
 
     def sample(
         self,
@@ -153,23 +159,8 @@ class SimulationState(SimulationStateBase, Generic[TState], metaclass=abc.ABCMet
         """
         args = copy.copy(self)
         args._classical_data = self._classical_data.copy()
-        if self._state is not None:
-            args._state = self._state.copy(deep_copy_buffers=deep_copy_buffers)
-        else:
-            _warn_or_error(
-                'Pass a `QuantumStateRepresentation` into the `SimulationState` constructor.'
-                ' The `_on_` overrides will be removed in cirq v0.16.'
-            )
-            self._on_copy(args, deep_copy_buffers)
+        args._state = self._state.copy(deep_copy_buffers=deep_copy_buffers)
         return args
-
-    @deprecated(
-        deadline='v0.16',
-        fix='Pass a `QuantumStateRepresentation` into the `SimulationState` constructor.',
-    )
-    def _on_copy(self: TSelf, args: TSelf, deep_copy_buffers: bool = True):
-        """Subclasses should implement this with any additional state copy
-        functionality."""
 
     def create_merged_state(self: TSelf) -> TSelf:
         """Creates a final merged state."""
@@ -178,40 +169,9 @@ class SimulationState(SimulationStateBase, Generic[TState], metaclass=abc.ABCMet
     def kronecker_product(self: TSelf, other: TSelf, *, inplace=False) -> TSelf:
         """Joins two state spaces together."""
         args = self if inplace else copy.copy(self)
-        if self._state is not None and other._state is not None:
-            args._state = self._state.kron(other._state)
-        else:
-            _warn_or_error(
-                'Pass a `QuantumStateRepresentation` into the `SimulationState` constructor.'
-                ' The `_on_` overrides will be removed in cirq v0.16.'
-            )
-            self._on_kronecker_product(other, args)
+        args._state = self._state.kron(other._state)
         args._set_qubits(self.qubits + other.qubits)
         return args
-
-    @deprecated(
-        deadline='v0.16',
-        fix='Pass a `QuantumStateRepresentation` into the `SimulationState` constructor.',
-    )
-    def _on_kronecker_product(self: TSelf, other: TSelf, target: TSelf):
-        """Subclasses should implement this with any additional state product
-        functionality, if supported."""
-
-    def with_qubits(self: TSelf, qubits) -> TSelf:
-        """Extend current state space with added qubits.
-
-        The state of the added qubits is the default value set in the
-        subclasses. A new state space is created as the Kronecker product of
-        the original one and the added one.
-
-        Args:
-            qubits: The qubits to be added to the state space.
-
-        Regurns:
-            A new subclass object containing the extended state space.
-        """
-        new_space = type(self)(qubits=qubits)
-        return self.kronecker_product(new_space)
 
     def factor(
         self: TSelf, qubits: Sequence['cirq.Qid'], *, validate=True, atol=1e-07, inplace=False
@@ -219,16 +179,9 @@ class SimulationState(SimulationStateBase, Generic[TState], metaclass=abc.ABCMet
         """Splits two state spaces after a measurement or reset."""
         extracted = copy.copy(self)
         remainder = self if inplace else copy.copy(self)
-        if self._state is not None:
-            e, r = self._state.factor(self.get_axes(qubits), validate=validate, atol=atol)
-            extracted._state = e
-            remainder._state = r
-        else:
-            _warn_or_error(
-                'Pass a `QuantumStateRepresentation` into the `SimulationState` constructor.'
-                ' The `_on_` overrides will be removed in cirq v0.16.'
-            )
-            self._on_factor(qubits, extracted, remainder, validate, atol)
+        e, r = self._state.factor(self.get_axes(qubits), validate=validate, atol=atol)
+        extracted._state = e
+        remainder._state = r
         extracted._set_qubits(qubits)
         remainder._set_qubits([q for q in self.qubits if q not in qubits])
         return extracted, remainder
@@ -237,21 +190,6 @@ class SimulationState(SimulationStateBase, Generic[TState], metaclass=abc.ABCMet
     def allows_factoring(self):
         """Subclasses that allow factorization should override this."""
         return self._state.supports_factor if self._state is not None else False
-
-    @deprecated(
-        deadline='v0.16',
-        fix='Pass a `QuantumStateRepresentation` into the `SimulationState` constructor.',
-    )
-    def _on_factor(
-        self: TSelf,
-        qubits: Sequence['cirq.Qid'],
-        extracted: TSelf,
-        remainder: TSelf,
-        validate=True,
-        atol=1e-07,
-    ):
-        """Subclasses should implement this with any additional state factor
-        functionality, if supported."""
 
     def transpose_to_qubit_order(
         self: TSelf, qubits: Sequence['cirq.Qid'], *, inplace=False
@@ -272,29 +210,9 @@ class SimulationState(SimulationStateBase, Generic[TState], metaclass=abc.ABCMet
         if len(self.qubits) != len(qubits) or set(qubits) != set(self.qubits):
             raise ValueError(f'Qubits do not match. Existing: {self.qubits}, provided: {qubits}')
         args = self if inplace else copy.copy(self)
-        if self._state is not None:
-            args._state = self._state.reindex(self.get_axes(qubits))
-        else:
-            _warn_or_error(
-                'Pass a `QuantumStateRepresentation` into the `SimulationState` constructor.'
-                ' The `_on_` overrides will be removed in cirq v0.16.'
-            )
-            self._on_transpose_to_qubit_order(qubits, args)
+        args._state = self._state.reindex(self.get_axes(qubits))
         args._set_qubits(qubits)
         return args
-
-    @deprecated(
-        deadline='v0.16',
-        fix='Pass a `QuantumStateRepresentation` into the `SimulationState` constructor.',
-    )
-    def _on_transpose_to_qubit_order(self: TSelf, qubits: Sequence['cirq.Qid'], target: TSelf):
-        """Subclasses should implement this with any additional state transpose
-        functionality, if supported."""
-
-    @property  # type: ignore
-    @deprecated(deadline='v0.16', fix='Remove this call, it always returns False.')
-    def ignore_measurement_results(self) -> bool:
-        return False
 
     @property
     def qubits(self) -> Tuple['cirq.Qid', ...]:

@@ -21,7 +21,7 @@ import sympy
 import cirq
 from cirq.devices import line_qubit
 from cirq.ops import common_gates, parity_gates
-from .ionq_native_gates import GPIGate, GPI2Gate, MSGate
+from cirq_ionq.ionq_native_gates import GPIGate, GPI2Gate, MSGate
 
 _NATIVE_GATES = cirq.Gateset(
     GPIGate, GPI2Gate, MSGate, cirq.MeasurementGate, unroll_circuit_op=False

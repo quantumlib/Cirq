@@ -14,7 +14,17 @@
 
 import dataclasses
 import numbers
-from typing import Union, Iterable, Dict, TYPE_CHECKING, ItemsView, Tuple, FrozenSet
+from typing import (
+    AbstractSet,
+    Mapping,
+    Union,
+    Iterable,
+    Dict,
+    Optional,
+    TYPE_CHECKING,
+    Tuple,
+    FrozenSet,
+)
 
 import sympy
 
@@ -62,7 +72,7 @@ class InitObsSetting:
         return protocols.dataclass_json_dict(self)
 
 
-def _max_weight_observable(observables: Iterable[ops.PauliString]) -> Union[None, ops.PauliString]:
+def _max_weight_observable(observables: Iterable[ops.PauliString]) -> Optional[ops.PauliString]:
     """Create a new observable that is compatible with all input observables
     and has the maximum non-identity elements.
 
@@ -89,7 +99,7 @@ def _max_weight_observable(observables: Iterable[ops.PauliString]) -> Union[None
     return ops.PauliString(qubit_pauli_map)
 
 
-def _max_weight_state(states: Iterable[value.ProductState]) -> Union[None, value.ProductState]:
+def _max_weight_state(states: Iterable[value.ProductState]) -> Optional[value.ProductState]:
     """Create a new state that is compatible with all input states
     and has the maximum weight.
 
@@ -143,7 +153,8 @@ def _fix_precision(val: Union[value.Scalar, sympy.Expr], precision) -> Union[int
 
 
 def _hashable_param(
-    param_tuples: ItemsView[Union[str, sympy.Expr], Union[value.Scalar, sympy.Expr]], precision=1e7
+    param_tuples: AbstractSet[Tuple[Union[str, sympy.Expr], Union[value.Scalar, sympy.Expr]]],
+    precision=1e7,
 ) -> FrozenSet[Tuple[str, Union[int, Tuple[int, int]]]]:
     """Hash circuit parameters using fixed precision.
 
@@ -166,7 +177,7 @@ class _MeasurementSpec:
     """
 
     max_setting: InitObsSetting
-    circuit_params: Dict[Union[str, sympy.Expr], Union[value.Scalar, sympy.Expr]]
+    circuit_params: Mapping[Union[str, sympy.Expr], Union[value.Scalar, sympy.Expr]]
 
     def __hash__(self):
         return hash((self.max_setting, _hashable_param(self.circuit_params.items())))

@@ -21,7 +21,7 @@ import os
 import pathlib
 import sys
 import warnings
-from typing import ClassVar, Dict, List, Optional, Tuple, Type
+from typing import Dict, List, Optional, Tuple, Type
 from unittest import mock
 
 import networkx as nx
@@ -99,70 +99,8 @@ def test_deprecated_cirq_type_in_json_dict():
             return HasOldJsonDict
 
     test_resolvers = [custom_resolver] + cirq.DEFAULT_RESOLVERS
-    with cirq.testing.assert_deprecated("Found 'cirq_type'", deadline='v0.15'):
+    with pytest.raises(ValueError, match="Found 'cirq_type'"):
         assert_json_roundtrip_works(HasOldJsonDict(), resolvers=test_resolvers)
-
-
-def test_deprecated_obj_to_dict_helper_namespace():
-    class HasOldJsonDict:
-        # Required for testing serialization of non-cirq objects.
-        __module__ = 'test.noncirq.namespace'  # type: ignore
-
-        def __init__(self, x):
-            self.x = x
-
-        def __eq__(self, other):
-            return isinstance(other, HasOldJsonDict) and other.x == self.x
-
-        def _json_dict_(self):
-            return json_serialization.obj_to_dict_helper(
-                self, ['x'], namespace='test.noncirq.namespace'
-            )
-
-        @classmethod
-        def _from_json_dict_(cls, x, **kwargs):
-            return cls(x)
-
-    with pytest.raises(ValueError, match='not a Cirq type'):
-        _ = cirq.json_cirq_type(HasOldJsonDict)
-
-    def custom_resolver(name):
-        if name == 'test.noncirq.namespace.HasOldJsonDict':
-            return HasOldJsonDict
-
-    test_resolvers = [custom_resolver] + cirq.DEFAULT_RESOLVERS
-    with cirq.testing.assert_deprecated(
-        "Found 'cirq_type'", 'Define obj._json_namespace_', deadline='v0.15', count=3
-    ):
-        assert_json_roundtrip_works(HasOldJsonDict(1), resolvers=test_resolvers)
-
-
-def test_deprecated_dataclass_json_dict_namespace():
-    @dataclasses.dataclass
-    class HasOldJsonDict:
-        # Required for testing serialization of non-cirq objects.
-        __module__: ClassVar = 'test.noncirq.namespace'  # type: ignore
-        x: int
-
-        def _json_dict_(self):
-            return json_serialization.dataclass_json_dict(self, namespace='test.noncirq.namespace')
-
-        @classmethod
-        def _from_json_dict_(cls, x, **kwargs):
-            return cls(x)
-
-    with pytest.raises(ValueError, match='not a Cirq type'):
-        _ = cirq.json_cirq_type(HasOldJsonDict)
-
-    def custom_resolver(name):
-        if name == 'test.noncirq.namespace.HasOldJsonDict':
-            return HasOldJsonDict
-
-    test_resolvers = [custom_resolver] + cirq.DEFAULT_RESOLVERS
-    with cirq.testing.assert_deprecated(
-        "Found 'cirq_type'", 'Define obj._json_namespace_', deadline='v0.15', count=5
-    ):
-        assert_json_roundtrip_works(HasOldJsonDict(1), resolvers=test_resolvers)
 
 
 def test_line_qubit_roundtrip():
@@ -264,12 +202,6 @@ def test_fail_to_resolve():
 
 QUBITS = cirq.LineQubit.range(5)
 Q0, Q1, Q2, Q3, Q4 = QUBITS
-
-# TODO: Include cirq.rx in the Circuit test case file.
-# Github issue: https://github.com/quantumlib/Cirq/issues/2014
-# Note that even the following doesn't work because theta gets
-# multiplied by 1/pi:
-#   cirq.Circuit(cirq.rx(sympy.Symbol('theta')).on(Q0)),
 
 ### MODULE CONSISTENCY tests
 
@@ -835,59 +767,6 @@ def test_pathlib_paths(tmpdir):
     assert cirq.read_json_gzip(gzip_path) == cirq.X
 
 
-def test_json_serializable_dataclass():
-    with cirq.testing.assert_deprecated(
-        "Implement _json_dict_ using cirq.dataclass_json_dict()", deadline="v0.15"
-    ):
-
-        @cirq.json_serializable_dataclass
-        class MyDC:
-            q: cirq.LineQubit
-            desc: str
-
-    my_dc = MyDC(cirq.LineQubit(4), 'hi mom')
-
-    def custom_resolver(name):
-        if name == 'MyDC':
-            return MyDC
-
-    assert_json_roundtrip_works(
-        my_dc,
-        text_should_be="\n".join(
-            [
-                '{',
-                '  "cirq_type": "MyDC",',
-                '  "q": {',
-                '    "cirq_type": "LineQubit",',
-                '    "x": 4',
-                '  },',
-                '  "desc": "hi mom"',
-                '}',
-            ]
-        ),
-        resolvers=[custom_resolver] + cirq.DEFAULT_RESOLVERS,
-    )
-
-
-def test_json_serializable_dataclass_parenthesis():
-    with cirq.testing.assert_deprecated(
-        "Implement _json_dict_ using cirq.dataclass_json_dict()", deadline="v0.15"
-    ):
-
-        @cirq.json_serializable_dataclass()
-        class MyDC:
-            q: cirq.LineQubit
-            desc: str
-
-    def custom_resolver(name):
-        if name == 'MyDC':
-            return MyDC
-
-    my_dc = MyDC(cirq.LineQubit(4), 'hi mom')
-
-    assert_json_roundtrip_works(my_dc, resolvers=[custom_resolver] + cirq.DEFAULT_RESOLVERS)
-
-
 def test_dataclass_json_dict():
     @dataclasses.dataclass(frozen=True)
     class MyDC:
@@ -904,26 +783,6 @@ def test_dataclass_json_dict():
     my_dc = MyDC(cirq.LineQubit(4), 'hi mom')
 
     assert_json_roundtrip_works(my_dc, resolvers=[custom_resolver, *cirq.DEFAULT_RESOLVERS])
-
-
-def test_json_serializable_dataclass_namespace():
-    with cirq.testing.assert_deprecated(
-        "Implement _json_dict_ using cirq.dataclass_json_dict()", deadline="v0.15"
-    ):
-
-        @cirq.json_serializable_dataclass(namespace='cirq.experiments')
-        class QuantumVolumeParams:
-            width: int
-            depth: int
-            circuit_i: int
-
-    qvp = QuantumVolumeParams(width=5, depth=5, circuit_i=0)
-
-    def custom_resolver(name):
-        if name == 'cirq.experiments.QuantumVolumeParams':
-            return QuantumVolumeParams
-
-    assert_json_roundtrip_works(qvp, resolvers=[custom_resolver] + cirq.DEFAULT_RESOLVERS)
 
 
 def test_numpy_values():
@@ -951,11 +810,17 @@ def test_basic_time_assertions():
 def test_datetime():
     naive_dt = datetime.datetime.now()
 
-    with pytest.raises(TypeError):
-        cirq.to_json(naive_dt)
+    re_naive_dt = cirq.read_json(json_text=cirq.to_json(naive_dt))
+    assert re_naive_dt != naive_dt, 'loads in with timezone'
+    assert re_naive_dt.timestamp() == naive_dt.timestamp()
 
     utc_dt = naive_dt.astimezone(datetime.timezone.utc)
-    assert utc_dt == cirq.read_json(json_text=cirq.to_json(utc_dt))
+    re_utc_dt = cirq.read_json(json_text=cirq.to_json(utc_dt))
+    assert re_utc_dt == utc_dt
+    assert re_utc_dt == re_naive_dt
 
     pst_dt = naive_dt.astimezone(tz=datetime.timezone(offset=datetime.timedelta(hours=-8)))
-    assert utc_dt == cirq.read_json(json_text=cirq.to_json(pst_dt))
+    re_pst_dt = cirq.read_json(json_text=cirq.to_json(pst_dt))
+    assert re_pst_dt == pst_dt
+    assert re_pst_dt == utc_dt
+    assert re_pst_dt == re_naive_dt

@@ -16,13 +16,13 @@
 
 import itertools
 from typing import (
-    AbstractSet,
     Any,
     Callable,
     Dict,
     FrozenSet,
     Iterable,
     Iterator,
+    Mapping,
     overload,
     Optional,
     Sequence,
@@ -91,6 +91,7 @@ class Moment:
             ValueError: A qubit appears more than once.
         """
         self._operations = tuple(op_tree.flatten_to_ops(contents))
+        self._sorted_operations: Optional[Tuple['cirq.Operation', ...]] = None
 
         # An internal dictionary to support efficient operation access by qubit.
         self._qubit_to_op: Dict['cirq.Qid', 'cirq.Operation'] = {}
@@ -131,7 +132,7 @@ class Moment:
         Returns:
             Whether this moment has operations involving the qubits.
         """
-        return bool(set(qubits) & self.qubits)
+        return not self._qubits.isdisjoint(qubits)
 
     def operation_at(self, qubit: raw_types.Qid) -> Optional['cirq.Operation']:
         """Returns the operation on a certain qubit for the moment.
@@ -166,6 +167,7 @@ class Moment:
         # Use private variables to facilitate a quick copy.
         m = Moment()
         m._operations = self._operations + (operation,)
+        m._sorted_operations = None
         m._qubits = self._qubits.union(operation.qubits)
         m._qubit_to_op = {**self._qubit_to_op, **{q: operation for q in operation.qubits}}
 
@@ -203,6 +205,7 @@ class Moment:
         m._qubits = frozenset(qubits)
 
         m._operations = self._operations + flattened_contents
+        m._sorted_operations = None
         m._measurement_key_objs = self._measurement_key_objs_().union(
             set(itertools.chain(*(protocols.measurement_key_objs(op) for op in flattened_contents)))
         )
@@ -230,7 +233,7 @@ class Moment:
             if qubits.isdisjoint(frozenset(operation.qubits))
         )
 
-    def _with_measurement_key_mapping_(self, key_map: Dict[str, str]):
+    def _with_measurement_key_mapping_(self, key_map: Mapping[str, str]):
         return Moment(
             protocols.with_measurement_key_mapping(op, key_map)
             if protocols.measurement_keys_touched(op)
@@ -238,8 +241,8 @@ class Moment:
             for op in self.operations
         )
 
-    def _measurement_key_names_(self) -> AbstractSet[str]:
-        return {str(key) for key in self._measurement_key_objs_()}
+    def _measurement_key_names_(self) -> FrozenSet[str]:
+        return frozenset(str(key) for key in self._measurement_key_objs_())
 
     def _measurement_key_objs_(self) -> FrozenSet['cirq.MeasurementKey']:
         if self._measurement_key_objs is None:
@@ -254,6 +257,11 @@ class Moment:
                 k for op in self.operations for k in protocols.control_keys(op)
             )
         return self._control_keys
+
+    def _sorted_operations_(self) -> Tuple['cirq.Operation', ...]:
+        if self._sorted_operations is None:
+            self._sorted_operations = tuple(sorted(self._operations, key=lambda op: op.qubits))
+        return self._sorted_operations
 
     def _with_key_path_(self, path: Tuple[str, ...]):
         return Moment(
@@ -286,9 +294,7 @@ class Moment:
         if not isinstance(other, type(self)):
             return NotImplemented
 
-        return sorted(self.operations, key=lambda op: op.qubits) == sorted(
-            other.operations, key=lambda op: op.qubits
-        )
+        return self._sorted_operations_() == other._sorted_operations_()
 
     def _approx_eq_(self, other: Any, atol: Union[int, float]) -> bool:
         """See `cirq.protocols.SupportsApproximateEquality`."""
@@ -296,16 +302,14 @@ class Moment:
             return NotImplemented
 
         return protocols.approx_eq(
-            sorted(self.operations, key=lambda op: op.qubits),
-            sorted(other.operations, key=lambda op: op.qubits),
-            atol=atol,
+            self._sorted_operations_(), other._sorted_operations_(), atol=atol
         )
 
     def __ne__(self, other) -> bool:
         return not self == other
 
     def __hash__(self):
-        return hash((Moment, tuple(sorted(self.operations, key=lambda op: op.qubits))))
+        return hash((Moment, self._sorted_operations_()))
 
     def __iter__(self) -> Iterator['cirq.Operation']:
         return iter(self.operations)
@@ -357,7 +361,18 @@ class Moment:
         return self.__class__(op.transform_qubits(qubit_map) for op in self.operations)
 
     def expand_to(self, qubits: Iterable['cirq.Qid']) -> 'cirq.Moment':
-        """Returns self expanded to given superset of qubits by making identities explicit."""
+        """Returns self expanded to given superset of qubits by making identities explicit.
+
+        Args:
+            qubits: Iterable of `cirq.Qid`s to expand this moment to.
+
+        Returns:
+            A new `cirq.Moment` with identity operations on the new qubits
+            not currently found in the moment.
+
+        Raises:
+            ValueError: if this moments' qubits are not a subset of `qubits`.
+        """
         if not self.qubits.issubset(qubits):
             raise ValueError(f'{qubits} is not a superset of {self.qubits}')
 
@@ -551,7 +566,7 @@ class Moment:
         diagram.force_vertical_padding_after(1, 0)
 
         # Add operations.
-        for op in self.operations:
+        for op in self._sorted_operations_():
             args = protocols.CircuitDiagramInfoArgs(
                 known_qubits=op.qubits,
                 known_qubit_count=len(op.qubits),

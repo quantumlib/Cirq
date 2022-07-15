@@ -71,6 +71,26 @@ class EigenGate(raw_types.Gate):
     eigenvalue i and a part with eigenvalue -i, then EigenGate allows this
     functionality to be unambiguously specified via the _eigen_components
     method.
+
+    The eigenvalue of each eigenspace of a gate is computed by:
+
+    1. Starting with an angle in half turns as returned by the gate's
+        ``_eigen_components`` method:
+
+                θ
+
+    2. Shifting the angle by `global_shift`:
+
+                θ + s
+
+    3. Scaling the angle by `exponent`:
+
+                (θ + s) * e
+
+    4. Converting from half turns to a complex number on the unit circle:
+
+                exp(i * pi * (θ + s) * e)
+
     """
 
     def __init__(
@@ -78,28 +98,9 @@ class EigenGate(raw_types.Gate):
     ) -> None:
         """Initializes the parameters used to compute the gate's matrix.
 
-        The eigenvalue of each eigenspace of a gate is computed by
-
-        1. Starting with an angle in half turns as returned by the gate's
-        ``_eigen_components`` method:
-
-                θ
-
-        2. Shifting the angle by `global_shift`:
-
-                θ + s
-
-        3. Scaling the angle by `exponent`:
-
-                (θ + s) * e
-
-        4. Converting from half turns to a complex number on the unit circle:
-
-                exp(i * pi * (θ + s) * e)
-
         Args:
             exponent: The t in gate**t. Determines how much the eigenvalues of
-                the gate are scaled by. For example, eigenvectors phased by -1
+                the gate are phased by. For example, eigenvectors phased by -1
                 when `gate**1` is applied will gain a relative phase of
                 e^{i pi exponent} when `gate**exponent` is applied (relative to
                 eigenvectors unaffected by `gate**1`).
@@ -392,6 +393,9 @@ class EigenGate(raw_types.Gate):
 
     def _json_dict_(self) -> Dict[str, Any]:
         return protocols.obj_to_dict_helper(self, ['exponent', 'global_shift'])
+
+    def _measurement_key_objs_(self):
+        return frozenset()
 
 
 def _lcm(vals: Iterable[int]) -> int:

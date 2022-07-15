@@ -23,6 +23,8 @@ message DeviceSpecification {
   // Any programs with ids not in this list will be rejected.
   // If empty, all qubit values are allowed (e.g. in a simulator)
   // Only grid qubits are supported. Strings must be in the form '<int>_<int>'.
+  // Single-qubit gates can be applied to all qubits.
+  // Measurement and wait gates can be applied to all subset of qubits.
   repeated string valid_qubits = 2;
 
   // A list of targets that gates can use.
@@ -41,25 +43,19 @@ message GateSpecification {
   // specified as an integer number of picoseconds.
   int64 gate_duration_picos = 1;
 
-  // Valid targets that this gate can use.
-  // Values in this list correspond to the name of the TargetSet
-  // If unset, all combinations of `DeviceSpecification.valid_qubits` are
-  // allowed.
-  repeated string valid_targets = 2;
-
   // This specifies the gate type and gate parameter constraints for this
   // device gate.
   oneof gate {
-    Sycamore syc = 3;
-    SqrtISwap sqrt_iswap = 4;
-    SqrtISwapInv sqrt_iswap_inv = 5;
-    CZ cz = 6;
-    PhasedXZ phased_xz = 7;
-    VirtualZPow virtual_zpow = 8;
-    PhysicalZPow physical_zpow = 9;
-    CouplerPulse coupler_pulse = 10;
-    Measurement meas = 11;
-    Wait wait = 12;
+    Sycamore syc = 2;
+    SqrtISwap sqrt_iswap = 3;
+    SqrtISwapInv sqrt_iswap_inv = 4;
+    CZ cz = 5;
+    PhasedXZ phased_xz = 6;
+    VirtualZPow virtual_zpow = 7;
+    PhysicalZPow physical_zpow = 8;
+    CouplerPulse coupler_pulse = 9;
+    Measurement meas = 10;
+    Wait wait = 11;
   }
 
   // Gate types available to Google devices.
@@ -146,18 +142,22 @@ message TargetSet {
     UNSPECIFIED = 0;
 
     // Symmetric gates, any id order within each target is valid.
+    // Two-qubit gates can be applied to all two-element targets in a TargetSet
+    // of this type.
     SYMMETRIC = 1;
 
     // Asymmetric gates, the order of ids in each target is important.
     // Only the order specified in each target is valid.
-    ASYMMETRIC = 2;
+    // Deprecated: Unused
+    ASYMMETRIC = 2 [deprecated = true];
 
     // All targets in this TargetSet should contain only a single qubit id.
     // Gates using this TargetSet can be applied to any subset of these targets
     // in any order.
     // For example, this could be the case for measurement gates that can
     // measure any subset of qubits at once.
-    SUBSET_PERMUTATION = 3;
+    // Deprecated: Measurement gate can be applied to all subset of qubits.
+    SUBSET_PERMUTATION = 3 [deprecated = true];
   }
 
   // The name of the target list.

@@ -26,6 +26,7 @@ from typing import (
     Hashable,
     Iterable,
     List,
+    Mapping,
     Optional,
     Sequence,
     Tuple,
@@ -40,6 +41,7 @@ import sympy
 from cirq import protocols, value
 from cirq._import import LazyLoader
 from cirq.type_workarounds import NotImplementedType
+from cirq.ops import control_values as cv
 
 # Lazy imports to break circular dependencies.
 ops = LazyLoader("ops", globals(), "cirq.ops")
@@ -190,8 +192,7 @@ class Gate(metaclass=value.ABCMetaImplementAnyOneOf):
 
     Gates operate on a certain number of qubits. All implementations of gate
     must implement the `num_qubits` method declaring how many qubits they
-    act on. The gate feature classes `SingleQubitGate` and `TwoQubitGate`
-    can be used to avoid writing this boilerplate.
+    act on.
 
     Linear combinations of gates can be created by adding gates together and
     multiplying them by scalars.
@@ -211,7 +212,7 @@ class Gate(metaclass=value.ABCMetaImplementAnyOneOf):
         Args:
             qubits: The sequence of qubits to potentially apply the gate to.
 
-        Throws:
+        Raises:
             ValueError: The gate can't be applied to the qubits.
         """
         _validate_qid_shape(self, qubits)
@@ -221,6 +222,9 @@ class Gate(metaclass=value.ABCMetaImplementAnyOneOf):
 
         Args:
             *qubits: The collection of qubits to potentially apply the gate to.
+
+        Returns: a `cirq.Operation` which is this gate applied to the given
+            qubits.
         """
         return ops.gate_operation.GateOperation(self, list(qubits))
 
@@ -277,6 +281,16 @@ class Gate(metaclass=value.ABCMetaImplementAnyOneOf):
     def wrap_in_linear_combination(
         self, coefficient: Union[complex, float, int] = 1
     ) -> 'cirq.LinearCombinationOfGates':
+        """Returns a LinearCombinationOfGates with this gate.
+
+        Args:
+            coefficient: number coefficient to use in the resulting
+                `cirq.LinearCombinationOfGates` object.
+
+        Returns:
+            `cirq.LinearCombinationOfGates` containing self with a
+                coefficient of `coefficient`.
+        """
         return ops.linear_combinations.LinearCombinationOfGates({self: coefficient})
 
     def __add__(
@@ -328,7 +342,16 @@ class Gate(metaclass=value.ABCMetaImplementAnyOneOf):
         return self.on(*qubits)
 
     def with_probability(self, probability: 'cirq.TParamVal') -> 'cirq.Gate':
+        """Creates a probabalistic channel with this gate.
 
+        Args:
+            probability: floating point value between 0 and 1, giving the
+                probability this gate is applied.
+
+        Returns:
+            `cirq.RandomGateChannel` that applies `self` with probability
+                `probability` and the identity with probability `1-p`.
+        """
         if probability == 1:
             return self
         return ops.random_gate_channel.RandomGateChannel(sub_gate=self, probability=probability)
@@ -336,22 +359,30 @@ class Gate(metaclass=value.ABCMetaImplementAnyOneOf):
     def controlled(
         self,
         num_controls: int = None,
-        control_values: Optional[Sequence[Union[int, Collection[int]]]] = None,
+        control_values: Optional[
+            Union[cv.AbstractControlValues, Sequence[Union[int, Collection[int]]]]
+        ] = None,
         control_qid_shape: Optional[Tuple[int, ...]] = None,
     ) -> 'Gate':
         """Returns a controlled version of this gate. If no arguments are
         specified, defaults to a single qubit control.
 
-         num_controls: Total number of control qubits.
-         control_values: For which control qubit values to apply the sub
-             gate.  A sequence of length `num_controls` where each
-             entry is an integer (or set of integers) corresponding to the
-             qubit value (or set of possible values) where that control is
-             enabled.  When all controls are enabled, the sub gate is
-             applied.  If unspecified, control values default to 1.
-         control_qid_shape: The qid shape of the controls.  A tuple of the
-             expected dimension of each control qid.  Defaults to
-             `(2,) * num_controls`.  Specify this argument when using qudits.
+        Args:
+            num_controls: Total number of control qubits.
+            control_values: Which control computational basis state to apply the
+                sub gate.  A sequence of length `num_controls` where each
+                entry is an integer (or set of integers) corresponding to the
+                computational basis state (or set of possible values) where that
+                control is enabled.  When all controls are enabled, the sub gate is
+                applied.  If unspecified, control values default to 1.
+            control_qid_shape: The qid shape of the controls.  A tuple of the
+                expected dimension of each control qid.  Defaults to
+                `(2,) * num_controls`.  Specify this argument when using qudits.
+
+        Returns:
+            A `cirq.Gate` representing `self` controlled by the given control values
+                and qubits. This is a `cirq.ControlledGate` in the base
+                implementation, but subclasses may return a different gate type.
         """
 
         if num_controls == 0:
@@ -530,7 +561,9 @@ class Operation(metaclass=abc.ABCMeta):
     def controlled_by(
         self,
         *control_qubits: 'cirq.Qid',
-        control_values: Optional[Sequence[Union[int, Collection[int]]]] = None,
+        control_values: Optional[
+            Union[cv.AbstractControlValues, Sequence[Union[int, Collection[int]]]]
+        ] = None,
     ) -> 'cirq.Operation':
         """Returns a controlled version of this operation. If no control_qubits
            are specified, returns self.
@@ -550,6 +583,19 @@ class Operation(metaclass=abc.ABCMeta):
         return ops.controlled_operation.ControlledOperation(control_qubits, self, control_values)
 
     def with_probability(self, probability: 'cirq.TParamVal') -> 'cirq.Operation':
+        """Creates a probabalistic channel with this operation.
+
+        Args:
+            probability: floating point value between 0 and 1, giving the
+                probability this gate is applied.
+
+        Returns:
+            `cirq.RandomGateChannel` that applies `self` with probability
+                `probability` and the identity with probability `1-p`.
+
+        Raises:
+            NotImplementedError: if called on an operation that lacks a gate.
+        """
         gate = self.gate
         if gate is None:
             raise NotImplementedError("with_probability on gateless operation.")
@@ -626,9 +672,11 @@ class Operation(metaclass=abc.ABCMeta):
         """Returns a classically controlled version of this operation.
 
         An operation that is classically controlled is executed iff all
-        conditions evaluate to True. Currently the only condition type is a
-        measurement key. A measurement key evaluates to True iff any qubit in
-        the corresponding measurement operation evaluated to a non-zero value.
+        conditions evaluate to True. Conditions can be either a measurement key
+        or a user-specified `cirq.Condition`. A measurement key evaluates to
+        True iff any qubit in the corresponding measurement operation evaluated
+        to a non-zero value; `cirq.Condition` supports more complex,
+        user-defined conditions.
 
         If no conditions are specified, returns self.
 
@@ -707,7 +755,7 @@ class TaggedOperation(Operation):
     def with_qubits(self, *new_qubits: 'cirq.Qid'):
         return TaggedOperation(self.sub_operation.with_qubits(*new_qubits), *self._tags)
 
-    def _with_measurement_key_mapping_(self, key_map: Dict[str, str]):
+    def _with_measurement_key_mapping_(self, key_map: Mapping[str, str]):
         sub_op = protocols.with_measurement_key_mapping(self.sub_operation, key_map)
         if sub_op is NotImplemented:
             return NotImplemented
@@ -716,7 +764,9 @@ class TaggedOperation(Operation):
     def controlled_by(
         self,
         *control_qubits: 'cirq.Qid',
-        control_values: Optional[Sequence[Union[int, Collection[int]]]] = None,
+        control_values: Optional[
+            Union[cv.AbstractControlValues, Sequence[Union[int, Collection[int]]]]
+        ] = None,
     ) -> 'cirq.Operation':
         if len(control_qubits) == 0:
             return self
@@ -794,10 +844,10 @@ class TaggedOperation(Operation):
     def _kraus_(self) -> Union[Tuple[np.ndarray], NotImplementedType]:
         return protocols.kraus(self.sub_operation, NotImplemented)
 
-    def _measurement_key_names_(self) -> AbstractSet[str]:
+    def _measurement_key_names_(self) -> FrozenSet[str]:
         return protocols.measurement_key_names(self.sub_operation)
 
-    def _measurement_key_objs_(self) -> AbstractSet['cirq.MeasurementKey']:
+    def _measurement_key_objs_(self) -> FrozenSet['cirq.MeasurementKey']:
         return protocols.measurement_key_objs(self.sub_operation)
 
     def _is_measurement_(self) -> bool:
@@ -879,7 +929,7 @@ class TaggedOperation(Operation):
             return self
         return self.sub_operation.with_classical_controls(*conditions)
 
-    def _control_keys_(self) -> AbstractSet['cirq.MeasurementKey']:
+    def _control_keys_(self) -> FrozenSet['cirq.MeasurementKey']:
         return protocols.control_keys(self.sub_operation)
 
 
