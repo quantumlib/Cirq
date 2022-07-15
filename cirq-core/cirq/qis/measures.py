@@ -262,7 +262,8 @@ def von_neumann_entropy(
     r"""Calculates the von Neumann entropy of a quantum state in bits.
 
     The Von Neumann entropy is defined as $ - trace( \rho ln \rho)$, for
-    a density matrix $\rho$.
+    a density matrix $\rho$.  This gives the amount of entropy in 'ebits'
+    (bits of bipartite entanglement).
 
     If `state` is a square matrix, it is assumed to be a density matrix rather
     than a (pure) state tensor.
