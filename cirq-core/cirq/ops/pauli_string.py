@@ -1427,7 +1427,7 @@ class MutablePauliString(Generic[TKey]):
             and not isinstance(other, linear_combinations.PauliSum)
         ):
             if sign == +1:
-                other = reversed(list(other))
+                other = iter(reversed(list(other)))
             for item in other:
                 if self._imul_helper(cast(PAULI_STRING_LIKE, item), sign) is NotImplemented:
                     return NotImplemented
