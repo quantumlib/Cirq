@@ -319,8 +319,6 @@ def test_pytest_changed_files_branch_selection(tmpdir_factory):
         tmpdir_factory=tmpdir_factory,
         setup='mkdir alt\n'
         'cd alt\n'
-        'export GIT_CONFIG_GLOBAL=/dev/null\n'
-        'export GIT_CONFIG_SYSTEM=/dev/null\n'
         'git init --quiet --initial-branch master\n'
         'git config --local user.name \'Me\'\n'
         'git config --local user.email \'<>\'\n'
