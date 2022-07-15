@@ -231,7 +231,7 @@ class XPowGate(eigen_gate.EigenGate):
 
         Returns:
             A `cirq.ControlledGate` (or `cirq.CXPowGate` if possible) representing
-                control_values = cv.ProductOfSums`self` controlled by the given control values and qubits.
+                `self` controlled by the given control values and qubits.
         """
         if control_values and not isinstance(control_values, cv.AbstractControlValues):
             control_values = cv.ProductOfSums(
