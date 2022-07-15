@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-
 # Copyright 2019 The Cirq Developers
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -13,8 +12,8 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""
-Runs python doctest on all python source files in the cirq directory.
+
+"""Runs python doctest on all python source files in the cirq directory.
 
 See also:
     https://docs.python.org/3/library/doctest.html
@@ -109,6 +108,7 @@ def load_tests(
         include_local: If True, the file under test is imported as a python
             module (only if the file extension is .py) and all globals defined
             in the file may be used by the snippets.
+        quiet: If True, suppress console output.
 
     Returns: A list of `Doctest` objects.
     """
@@ -161,6 +161,7 @@ def exec_tests(
 
     Args:
         tests: The tests to run
+        quiet: If True, suppress console output.
 
     Returns: A tuple containing the results (# failures, # attempts) and a list
         of the error outputs from each failing test.
@@ -205,6 +206,9 @@ def import_file(file_path: str) -> ModuleType:
         file_path: The file to import.
 
     Returns: The imported module.
+
+    Raises:
+        ValueError: if unable to import the given file.
     """
     mod_name = 'cirq_doctest_module'
     # Find and create the module
