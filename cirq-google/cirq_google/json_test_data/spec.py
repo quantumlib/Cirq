@@ -23,9 +23,6 @@ TestSpec = ModuleJsonTestSpec(
         'CircuitSerializer',
         'CIRCUIT_SERIALIZER',
         'CircuitWithCalibration',
-        'ConvertToSqrtIswapGates',
-        'ConvertToSycamoreGates',
-        'ConvertToXmonGates',
         'Engine',
         'EngineJob',
         'EngineProcessor',
@@ -68,5 +65,5 @@ TestSpec = ModuleJsonTestSpec(
         ]
     },
     resolver_cache=_class_resolver_dictionary(),
-    deprecated={'GateTabulation': 'v0.16'},
+    deprecated={},
 )
