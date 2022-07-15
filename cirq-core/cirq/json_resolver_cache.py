@@ -213,6 +213,7 @@ def _class_resolver_dictionary() -> Dict[str, ObjectFactory]:
         'SqrtIswapTargetGateset': cirq.SqrtIswapTargetGateset,
         'StabilizerStateChForm': cirq.StabilizerStateChForm,
         'StatePreparationChannel': cirq.StatePreparationChannel,
+        'SumOfProducts': cirq.SumOfProducts,
         'SwapPowGate': cirq.SwapPowGate,
         'SympyCondition': cirq.SympyCondition,
         'TaggedOperation': cirq.TaggedOperation,
