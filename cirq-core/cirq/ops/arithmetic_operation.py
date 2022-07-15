@@ -85,8 +85,7 @@ class ArithmeticGate(Gate, metaclass=abc.ABCMeta):
        before_in  before_out  after_in  after_out
     0          2           3         2          5
 
-
-"""
+    """
 
     @abc.abstractmethod
     def registers(self) -> Sequence[Union[int, Sequence[int]]]:
