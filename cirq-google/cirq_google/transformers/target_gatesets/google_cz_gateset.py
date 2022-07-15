@@ -17,7 +17,13 @@ import cirq
 
 
 class GoogleCZTargetGateset(cirq.CZTargetGateset):
-    """CZTargetGateset implementation tailored to Google devices."""
+    """`cirq.CZTargetGateset` implementation tailored to Google devices.
+
+    In addition to features available from `cirq.CZTargetGateset`, `GoogleCZTargetGateset` contains
+    a flag, `eject_paulis`, to enable the postprocess transformers `cirq.eject_phased_paulis` and
+    `cirq.eject_z`, which will push X, Y, Z, PhasedX, and certain PhasedXZ gates to the end of the
+    circuit.
+    """
 
     def __init__(
         self,
