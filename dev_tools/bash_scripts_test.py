@@ -59,7 +59,8 @@ def run(
     cmd = r"""
 dir=$(git rev-parse --show-toplevel)
 cd {}
-git init --quiet --initial-branch master
+mkdir empty-templates
+git init --template=empty-templates --quiet --initial-branch master
 git config --local user.name 'Me'
 git config --local user.email '<>'
 git commit -m init --allow-empty --quiet --no-gpg-sign
@@ -317,7 +318,8 @@ def test_pytest_changed_files_branch_selection(tmpdir_factory):
         tmpdir_factory=tmpdir_factory,
         setup='mkdir alt\n'
         'cd alt\n'
-        'git init --quiet --initial-branch master\n'
+        'mkdir empty-templates\n'
+        'git init --template=empty-templates --quiet --initial-branch master\n'
         'git config --local user.name \'Me\'\n'
         'git config --local user.email \'<>\'\n'
         'git commit -m tes --quiet --allow-empty --no-gpg-sign\n'
