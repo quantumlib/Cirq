@@ -30,9 +30,8 @@ class GoogleCZTargetGateset(cirq.CZTargetGateset):
         Args:
             atol: A limit on the amount of absolute error introduced by the transformation.
             eject_paulis: Whether to enable postprocess transformers `cirq.eject_z` and
-             `cirq.eject_phased_paulis`. Do not enable this if the circuit contains gates with
-             `cirq_google.PhysicalZTag` as the tag will be erased by these transformers. Defaults to
-             False.
+             `cirq.eject_phased_paulis`. If enabled, these transformers will remove tags (e.g.
+             `cirq_google.PhysicalZTag`) from single-qubit Pauli operations. Defaults to False.
             additional_gates: Sequence of additional gates / gate families which should also
               be "accepted" by this gateset. This is empty by default.
         """
