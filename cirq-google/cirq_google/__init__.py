@@ -111,18 +111,8 @@ from cirq_google.serialization import (
     CIRCUIT_SERIALIZER,
     CircuitSerializer,
     CircuitOpDeserializer,
-    DeserializingArg,
-    GateOpDeserializer,
     CircuitOpSerializer,
-    GateOpSerializer,
     Serializer,
-    SerializingArg,
-    SerializableGateSet,
-    XMON,
-    FSIM_GATESET,
-    SQRT_ISWAP_GATESET,
-    SYC_GATESET,
-    NAMED_GATESETS,
 )
 
 from cirq_google.workflow import (
