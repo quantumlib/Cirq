@@ -161,7 +161,10 @@ def is_cptp(*, kraus_ops: Sequence[np.ndarray], rtol: float = 1e-5, atol: float 
         atol: The absolute tolerance on equality.
     """
     sum_ndarray = cast(np.ndarray, sum(matrix.T.conj() @ matrix for matrix in kraus_ops))
-    return np.allclose(sum_ndarray, np.eye(*sum_ndarray.shape), rtol=rtol, atol=atol)
+    # Explicitly pull out shapes and don't use tuple to avoid confusing numpy type overrides.
+    return np.allclose(
+        sum_ndarray, np.eye(sum_ndarray.shape[0], sum_ndarray.shape[1]), rtol=rtol, atol=atol
+    )
 
 
 def matrix_commutes(

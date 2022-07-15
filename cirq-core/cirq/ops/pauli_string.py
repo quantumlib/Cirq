@@ -41,6 +41,7 @@ from typing import (
 import numpy as np
 import sympy
 
+import cirq
 from cirq import value, protocols, linalg, qis
 from cirq._doc import document
 from cirq._import import LazyLoader
@@ -145,20 +146,20 @@ class PauliString(raw_types.Operation, Generic[TKey]):
         I
 
         >>> print(cirq.PauliString(-1, cirq.X(a), cirq.Y(b), cirq.Z(c)))
-        -X(0)*Y(1)*Z(2)
+        -X(q(0))*Y(q(1))*Z(q(2))
 
-        >>> -1 * cirq.X(a) * cirq.Y(b) * cirq.Z(c)
-        -X(0) * Y(1) * Z(2)
+        >>> print(-1 * cirq.X(a) * cirq.Y(b) * cirq.Z(c))
+        -X(q(0))*Y(q(1))*Z(q(2))
 
         >>> print(cirq.PauliString({a: cirq.X}, [-2, 3, cirq.Y(a)]))
-        -6j*Z(0)
+        -6j*Z(q(0))
 
         >>> print(cirq.PauliString({a: cirq.I, b: cirq.X}))
-        X(1)
+        X(q(1))
 
         >>> print(cirq.PauliString({a: cirq.Y},
         ...                        qubit_pauli_map={a: cirq.X}))
-        1j*Z(0)
+        1j*Z(q(0))
 
     Note that `cirq.PauliString`s are immutable objects. If you need a mutable version
     of pauli strings, see `cirq.MutablePauliString`.
@@ -498,9 +499,15 @@ class PauliString(raw_types.Operation, Generic[TKey]):
                 in which the matrix representation of the Pauli string is to
                 be computed. Qubits absent from `self.qubits` are acted on by
                 the identity. Defaults to `self.qubits`.
+
+        Raises:
+            NotImplementedError: If this PauliString is parameterized.
         """
         qubits = self.qubits if qubits is None else qubits
         factors = [self.get(q, default=identity.I) for q in qubits]
+        if cirq.is_parameterized(self):
+            raise NotImplementedError('Cannot express as matrix when parameterized')
+        assert isinstance(self.coefficient, complex)
         return linalg.kron(self.coefficient, *[protocols.unitary(f) for f in factors])
 
     def _has_unitary_(self) -> bool:
@@ -516,6 +523,7 @@ class PauliString(raw_types.Operation, Generic[TKey]):
     def _apply_unitary_(self, args: 'protocols.ApplyUnitaryArgs'):
         if not self._has_unitary_():
             return None
+        assert isinstance(self.coefficient, complex)
         if self.coefficient != 1:
             args.target_tensor *= self.coefficient
         return protocols.apply_unitaries([self[q].on(q) for q in self.qubits], self.qubits, args)
@@ -736,7 +744,8 @@ class PauliString(raw_types.Operation, Generic[TKey]):
 
         while any(result.shape):
             result = np.trace(result, axis1=0, axis2=len(result.shape) // 2)
-        return result * self.coefficient
+
+        return float(result * self.coefficient)
 
     def zip_items(
         self, other: 'cirq.PauliString[TKey]'
@@ -966,11 +975,11 @@ class PauliString(raw_types.Operation, Generic[TKey]):
         Examples:
             >>> a, b = cirq.LineQubit.range(2)
             >>> print(cirq.X(a).conjugated_by(cirq.CZ(a, b)))
-            X(0)*Z(1)
+            X(q(0))*Z(q(1))
             >>> print(cirq.X(a).conjugated_by(cirq.S(a)))
-            -Y(0)
+            -Y(q(0))
             >>> print(cirq.X(a).conjugated_by([cirq.H(a), cirq.CNOT(a, b)]))
-            Z(0)*X(1)
+            Z(q(0))*X(q(1))
 
         Returns:
             The Pauli string conjugated by the given Clifford operation.

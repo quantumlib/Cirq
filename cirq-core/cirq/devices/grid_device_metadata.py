@@ -13,7 +13,7 @@
 # limitations under the License.
 """Metadata subtype for 2D Homogenous devices."""
 
-from typing import TYPE_CHECKING, cast, Optional, FrozenSet, Iterable, Tuple, Dict
+from typing import TYPE_CHECKING, cast, FrozenSet, Iterable, Mapping, Optional, Tuple
 
 import networkx as nx
 from cirq import value
@@ -31,7 +31,7 @@ class GridDeviceMetadata(device.DeviceMetadata):
         self,
         qubit_pairs: Iterable[Tuple['cirq.GridQubit', 'cirq.GridQubit']],
         gateset: 'cirq.Gateset',
-        gate_durations: Optional[Dict['cirq.GateFamily', 'cirq.Duration']] = None,
+        gate_durations: Optional[Mapping['cirq.GateFamily', 'cirq.Duration']] = None,
         all_qubits: Optional[Iterable['cirq.GridQubit']] = None,
         compilation_target_gatesets: Iterable['cirq.CompilationTargetGateset'] = (),
     ):
@@ -147,22 +147,27 @@ class GridDeviceMetadata(device.DeviceMetadata):
         return self._compilation_target_gatesets
 
     @property
-    def gate_durations(self) -> Optional[Dict['cirq.GateFamily', 'cirq.Duration']]:
+    def gate_durations(self) -> Optional[Mapping['cirq.GateFamily', 'cirq.Duration']]:
         """Get a dictionary mapping from gate family to duration for gates.
 
         To look up the duration of a specific gate instance / gate type / operation which is part of
         the device's gateset, you can search for its corresponding GateFamily. For example:
 
-        >>> my_op = cirq.Z
+        >>> gateset = cirq.Gateset(cirq.ZPowGate)
+        >>> durations = {cirq.GateFamily(cirq.ZPowGate): cirq.Duration(nanos=1)}
+        >>> grid_device_metadata = cirq.GridDeviceMetadata((), gateset, durations)
+        >>>
+        >>> my_gate = cirq.Z
         >>> gate_durations = grid_device_metadata.gate_durations
-        >>> op_duration = None
+        >>> gate_duration = None
         >>> for gate_family in gate_durations:
-        ...     if my_op in gate_family:
-        ...         op_duration = gate_durations[gate_family]
+        ...     if my_gate in gate_family:
+        ...         gate_duration = gate_durations[gate_family]
         ...
-        >>> print(op_duration)
+        >>> print(gate_duration)
         1 ns
         """
+
         return self._gate_durations
 
     def _value_equality_values_(self):

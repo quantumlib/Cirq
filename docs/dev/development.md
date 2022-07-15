@@ -28,12 +28,12 @@ Note that if you are using PyCharm, you might have to Restart & Invalidate Cache
 
 ```bash
     docker build -t cirq --target cirq_stable .
-    docker run -it cirq python -c "import cirq_google; print(cirq_google.Foxtail)"
+    docker run -it cirq python -c "import cirq_google; print(cirq_google.Sycamore23)"
 ```
 
 ```bash
     docker build -t cirq_pre --target cirq_pre_release .
-    docker run -it cirq_pre python -c "import cirq_google; print(cirq_google.Foxtail)"
+    docker run -it cirq_pre python -c "import cirq_google; print(cirq_google.Sycamore23)"
 ```
 
 If you want to contribute changes to Cirq, you will instead want to fork the repository and submit pull requests from your fork.
@@ -85,6 +85,9 @@ At this point your local git master should be synced with the master from the ma
 
 ## Setting up an environment
 
+These instructions are primarily for linux-based environments that use the apt
+package manager. 
+
 0. First clone the repository, if you have not already done so.
 See the previous section for instructions.
 
@@ -122,13 +125,13 @@ See the previous section for instructions.
 3. Check that the tests pass.
 
     ```bash
-    pytest .
+    ./check/pytest .
     ```
 
 4. (**OPTIONAL**) include your development copy of cirq and its subpackages in your python path.
 
     ```bash
-    ./dev_tools/pypath
+    source dev_tools/pypath
     ```
     
     or add it to the python path, but only in the virtualenv by first listing the modules
@@ -382,7 +385,7 @@ python dev_tools/requirements/reqs.py dev_tools/requirements/dev.env.txt
 4. Run [dev_tools/packaging/produce-package.sh](https://github.com/quantumlib/Cirq/blob/master/dev_tools/packaging/produce-package.sh) to produce pypi artifacts.
 
     ```bash
-    dev_tools/packaging/produce-package.sh dist
+    ./dev_tools/packaging/produce-package.sh dist
     ```
 
     The output files will be placed in the directory `dist/`.

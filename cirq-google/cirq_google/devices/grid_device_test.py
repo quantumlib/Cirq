@@ -22,7 +22,7 @@ from google.protobuf import text_format
 import cirq
 import cirq_google
 from cirq_google.api import v2
-from cirq_google.devices import grid_device, known_devices
+from cirq_google.devices import grid_device
 
 
 GRID_HEIGHT = 5
@@ -252,15 +252,74 @@ def test_grid_device_from_proto():
 def test_grid_device_validate_operations_positive():
     device_info, spec = _create_device_spec_with_horizontal_couplings()
     device = cirq_google.GridDevice.from_proto(spec)
+    # Gates that can be applied to any subset of valid qubits
+    variadic_gates = [cirq.measure, cirq.WaitGate(cirq.Duration(nanos=1), num_qubits=2)]
 
     for q in device_info.grid_qubits:
         device.validate_operation(cirq.X(q))
+        device.validate_operation(cirq.measure(q))
 
     # horizontal qubit pairs
     for i in range(GRID_HEIGHT):
         device.validate_operation(
             cirq.CZ(device_info.grid_qubits[2 * i], device_info.grid_qubits[2 * i + 1])
         )
+        for gate in variadic_gates:
+            device.validate_operation(
+                gate(device_info.grid_qubits[2 * i], device_info.grid_qubits[2 * i + 1])
+            )
+
+
+@pytest.mark.parametrize(
+    'gate_func',
+    [
+        lambda _: cirq.measure,
+        lambda num_qubits: cirq.WaitGate(cirq.Duration(nanos=1), num_qubits=num_qubits),
+    ],
+)
+def test_grid_device_validate_operations_variadic_gates_positive(gate_func):
+    device_info, spec = _create_device_spec_with_horizontal_couplings()
+    device = cirq_google.GridDevice.from_proto(spec)
+
+    # Single qubit operations
+    for q in device_info.grid_qubits:
+        device.validate_operation(gate_func(1)(q))
+
+    # horizontal qubit pairs (coupled)
+    for i in range(GRID_HEIGHT):
+        device.validate_operation(
+            gate_func(2)(device_info.grid_qubits[2 * i], device_info.grid_qubits[2 * i + 1])
+        )
+
+    # Variadic gates across vertical qubit pairs (uncoupled pairs) should succeed.
+    for i in range(GRID_HEIGHT - 1):
+        device.validate_operation(
+            gate_func(2)(device_info.grid_qubits[2 * i], device_info.grid_qubits[2 * (i + 1)])
+        )
+        device.validate_operation(
+            gate_func(2)(
+                device_info.grid_qubits[2 * i + 1], device_info.grid_qubits[2 * (i + 1) + 1]
+            )
+        )
+
+    # 3-qubit measurements
+    for i in range(GRID_HEIGHT - 2):
+        device.validate_operation(
+            gate_func(3)(
+                device_info.grid_qubits[2 * i],
+                device_info.grid_qubits[2 * (i + 1)],
+                device_info.grid_qubits[2 * (i + 2)],
+            )
+        )
+        device.validate_operation(
+            gate_func(3)(
+                device_info.grid_qubits[2 * i + 1],
+                device_info.grid_qubits[2 * (i + 1) + 1],
+                device_info.grid_qubits[2 * (i + 2) + 1],
+            )
+        )
+    # All-qubit measurement
+    device.validate_operation(gate_func(len(device_info.grid_qubits))(*device_info.grid_qubits))
 
 
 def test_grid_device_validate_operations_negative():
@@ -417,92 +476,6 @@ def test_to_proto_invalid_input(error_match, qubits, qubit_pairs, gateset, gate_
         )
 
 
-def test_to_proto_backward_compatibility():
-    # Deprecations: cirq_google.SerializableGateSet and
-    # cirq_google.device.known_devices.create_device_proto_for_qubits()
-    with cirq.testing.assert_deprecated(
-        'SerializableGateSet',
-        'create_device_specification_proto()` can be used',
-        deadline='v0.16',
-        count=None,
-    ):
-        device_info, _ = _create_device_spec_with_horizontal_couplings()
-
-        # The set of gates in gate_durations are consistent with what's generated in
-        # _create_device_spec_with_horizontal_couplings()
-        base_duration = cirq.Duration(picos=1_000)
-        gate_durations = {
-            cirq.GateFamily(cirq_google.SYC): base_duration * 0,
-            cirq.GateFamily(cirq.SQRT_ISWAP): base_duration * 1,
-            cirq.GateFamily(cirq.SQRT_ISWAP_INV): base_duration * 2,
-            cirq.GateFamily(cirq.CZ): base_duration * 3,
-            cirq.GateFamily(cirq.ops.phased_x_z_gate.PhasedXZGate): base_duration * 4,
-            cirq.GateFamily(
-                cirq.ops.common_gates.ZPowGate, tags_to_ignore=[cirq_google.PhysicalZTag()]
-            ): base_duration
-            * 5,
-            cirq.GateFamily(
-                cirq.ops.common_gates.ZPowGate, tags_to_accept=[cirq_google.PhysicalZTag()]
-            ): base_duration
-            * 6,
-            cirq.GateFamily(cirq_google.experimental.ops.coupler_pulse.CouplerPulse): base_duration
-            * 7,
-            cirq.GateFamily(cirq.ops.measurement_gate.MeasurementGate): base_duration * 8,
-            cirq.GateFamily(cirq.ops.wait_gate.WaitGate): base_duration * 9,
-        }
-
-        # Serialize the old way
-        spec = known_devices.create_device_proto_for_qubits(
-            device_info.grid_qubits,
-            device_info.qubit_pairs,
-            [cirq_google.FSIM_GATESET],
-            known_devices._SYCAMORE_DURATIONS_PICOS,
-        )
-
-        # Serialize the new way
-        grid_device.create_device_specification_proto(
-            qubits=device_info.grid_qubits,
-            pairs=device_info.qubit_pairs,
-            gateset=cirq.Gateset(*gate_durations.keys()),
-            gate_durations=gate_durations,
-            out=spec,
-        )
-
-        with cirq.testing.assert_deprecated(
-            'Use cirq_google.GridDevice', deadline='v0.16', count=None
-        ):
-            # Deserialize both ways
-            serializable_dev = cirq_google.SerializableDevice.from_proto(
-                spec, [cirq_google.FSIM_GATESET]
-            )
-            grid_dev = cirq_google.GridDevice.from_proto(spec)
-
-            assert serializable_dev.metadata.qubit_set == grid_dev.metadata.qubit_set
-            assert serializable_dev.metadata.qubit_pairs == grid_dev.metadata.qubit_pairs
-
-            assert serializable_dev.metadata.gateset == cirq.Gateset(
-                cirq.FSimGate,
-                cirq.ISwapPowGate,
-                cirq.CZPowGate,
-                cirq.PhasedXPowGate,
-                cirq.XPowGate,
-                cirq.YPowGate,
-                cirq.ZPowGate,
-                cirq.PhasedXZGate,
-                cirq.MeasurementGate,
-                cirq.WaitGate,
-                cirq.GlobalPhaseGate,
-            )
-
-            assert grid_dev.metadata.gateset == device_info.expected_gateset
-            assert (
-                tuple(grid_dev.metadata.compilation_target_gatesets)
-                == device_info.expected_target_gatesets
-            )
-
-            assert grid_dev.metadata.gate_durations == device_info.expected_gate_durations
-
-
 def test_to_proto_empty():
     spec = grid_device.create_device_specification_proto(
         # Qubits are always expected to be set
@@ -517,11 +490,3 @@ def test_to_proto_empty():
     assert len(device.metadata.qubit_pairs) == 0
     assert device.metadata.gateset == cirq.Gateset()
     assert device.metadata.gate_durations is None
-
-
-def test_grid_device_qubits():
-    device_info, spec = _create_device_spec_with_horizontal_couplings()
-    device = cirq_google.GridDevice.from_proto(spec)
-
-    with cirq.testing.assert_deprecated('device.qubits', deadline='v0.16'):
-        assert device.qubits == device_info.grid_qubits

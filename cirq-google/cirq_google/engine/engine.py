@@ -27,7 +27,7 @@ import datetime
 import enum
 import random
 import string
-from typing import Dict, Iterable, List, Optional, Sequence, Set, TypeVar, Union, TYPE_CHECKING
+from typing import Dict, List, Optional, Sequence, Set, TypeVar, Union, TYPE_CHECKING
 
 import duet
 import google.auth
@@ -47,7 +47,7 @@ from cirq_google.engine import (
 )
 from cirq_google.cloud import quantum
 from cirq_google.engine.result_type import ResultType
-from cirq_google.serialization import CIRCUIT_SERIALIZER, SerializableGateSet, Serializer
+from cirq_google.serialization import CIRCUIT_SERIALIZER, Serializer
 from cirq_google.serialization.arg_func_langs import arg_to_proto
 
 if TYPE_CHECKING:
@@ -145,17 +145,20 @@ class Engine(abstract_engine.AbstractEngine):
 
     This class has methods for creating programs and jobs that execute on
     Quantum Engine:
-        create_program
-        run
-        run_sweep
-        run_batch
+
+    *   create_program
+    *   run
+    *   run_sweep
+    *   run_batch
 
     Another set of methods return information about programs and jobs that
     have been previously created on the Quantum Engine, as well as metadata
     about available processors:
-        get_program
-        list_processors
-        get_processor
+
+    *   get_program
+    *   list_processors
+    *   get_processor
+
     """
 
     def __init__(
@@ -262,7 +265,7 @@ class Engine(abstract_engine.AbstractEngine):
             )
         )[0]
 
-    def run_sweep(
+    async def run_sweep_async(
         self,
         program: cirq.AbstractCircuit,
         program_id: Optional[str] = None,
@@ -309,10 +312,10 @@ class Engine(abstract_engine.AbstractEngine):
         Raises:
             ValueError: If no gate set is provided.
         """
-        engine_program = self.create_program(
+        engine_program = await self.create_program_async(
             program, program_id, description=program_description, labels=program_labels
         )
-        return engine_program.run_sweep(
+        return await engine_program.run_sweep_async(
             job_id=job_id,
             params=params,
             repetitions=repetitions,
@@ -321,7 +324,9 @@ class Engine(abstract_engine.AbstractEngine):
             labels=job_labels,
         )
 
-    def run_batch(
+    run_sweep = duet.sync(run_sweep_async)
+
+    async def run_batch_async(
         self,
         programs: Sequence[cirq.AbstractCircuit],
         program_id: Optional[str] = None,
@@ -387,10 +392,10 @@ class Engine(abstract_engine.AbstractEngine):
             raise ValueError('Number of circuits and sweeps must match')
         if not processor_ids:
             raise ValueError('Processor id must be specified.')
-        engine_program = self.create_batch_program(
+        engine_program = await self.create_batch_program_async(
             programs, program_id, description=program_description, labels=program_labels
         )
-        return engine_program.run_batch(
+        return await engine_program.run_batch_async(
             job_id=job_id,
             params_list=params_list,
             repetitions=repetitions,
@@ -399,7 +404,9 @@ class Engine(abstract_engine.AbstractEngine):
             labels=job_labels,
         )
 
-    def run_calibration(
+    run_batch = duet.sync(run_batch_async)
+
+    async def run_calibration_async(
         self,
         layers: List['cirq_google.CalibrationLayer'],
         program_id: Optional[str] = None,
@@ -463,15 +470,17 @@ class Engine(abstract_engine.AbstractEngine):
             processor_ids = [processor_id]
         if job_labels is None:
             job_labels = {'calibration': ''}
-        engine_program = self.create_calibration_program(
+        engine_program = await self.create_calibration_program_async(
             layers, program_id, description=program_description, labels=program_labels
         )
-        return engine_program.run_calibration(
+        return await engine_program.run_calibration_async(
             job_id=job_id,
             processor_ids=processor_ids,
             description=job_description,
             labels=job_labels,
         )
+
+    run_calibration = duet.sync(run_calibration_async)
 
     async def create_program_async(
         self,
@@ -763,7 +772,7 @@ class Engine(abstract_engine.AbstractEngine):
                 determining which processors may be used when sampling.
 
         Returns:
-            A `cirq.Sampler` instance (specifically a `engine_sampler.QuantumEngineSampler`
+            A `cirq.Sampler` instance (specifically a `engine_sampler.ProcessorSampler`
             that will send circuits to the Quantum Computing Service
             when sampled.
         """
@@ -776,7 +785,7 @@ class Engine(abstract_engine.AbstractEngine):
             processor_id: String identifier of which processor should be used to sample.
 
         Returns:
-            A `cirq.Sampler` instance (specifically a `engine_sampler.QuantumEngineSampler`
+            A `cirq.Sampler` instance (specifically a `engine_sampler.ProcessorSampler`
             that will send circuits to the Quantum Computing Service
             when sampled.
 
@@ -826,12 +835,7 @@ def get_engine(project_id: Optional[str] = None) -> Engine:
     return Engine(project_id=project_id, service_args=service_args)
 
 
-@util.deprecated_get_device_gate_sets_parameter(param_name='gatesets')
-def get_engine_device(
-    processor_id: str,
-    project_id: Optional[str] = None,
-    gatesets: Iterable[SerializableGateSet] = (),
-) -> cirq.Device:
+def get_engine_device(processor_id: str, project_id: Optional[str] = None) -> cirq.Device:
     """Returns a `Device` object for a given processor.
 
     This is a short-cut for creating an engine object, getting the

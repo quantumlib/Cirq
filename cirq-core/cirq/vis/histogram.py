@@ -92,7 +92,7 @@ def integrated_histogram(
 
     if not show_zero:
         bin_values = np.linspace(0, 1, n + 1)
-        parameter_values = sorted(np.concatenate(([0], float_data)))
+        parameter_values = sorted(np.concatenate((np.array([0]), np.array(float_data))))
     else:
         bin_values = np.linspace(0, 1, n)
         parameter_values = sorted(float_data)
