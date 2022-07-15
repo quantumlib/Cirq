@@ -76,7 +76,7 @@ def fidelity(
     validate: bool = True,
     atol: float = 1e-7,
 ) -> float:
-    """Fidelity of two quantum states.
+    r"""Fidelity of two quantum states.
 
     The fidelity of two density matrices ρ and σ is defined as:
 
