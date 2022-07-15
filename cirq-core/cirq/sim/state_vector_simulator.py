@@ -126,7 +126,7 @@ class StateVectorTrialResult(
         if self._final_state_vector is None:
             tensor = self._get_merged_sim_state().target_tensor
             if tensor.ndim > 1:
-                tensor = tensor.reshape(np.prod(tensor.shape))
+                tensor = tensor.reshape(-1)
             self._final_state_vector = tensor
         return self._final_state_vector
 
