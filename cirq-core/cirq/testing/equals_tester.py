@@ -157,7 +157,7 @@ class _TestsForNotImplemented:
 
     def __eq__(self, other: object) -> bool:
         if other is not self.other:
-            return NotImplemented
+            return NotImplemented  # coverage: ignore
         return True
 
 
