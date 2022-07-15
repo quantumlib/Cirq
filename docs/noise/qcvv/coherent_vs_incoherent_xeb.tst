@@ -16,6 +16,6 @@
 
 n_circuits = 10->n_circuits = 2
 max_depth = 100->max_depth = 12
-repetitions=10_000->repetitions=100
+repetitions=1000->repetitions=100
 xatol=1e-3->xatol=10
 fatol=1e-3->fatol=10
