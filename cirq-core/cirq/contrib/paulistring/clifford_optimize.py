@@ -14,14 +14,16 @@
 
 from typing import Tuple, cast
 
-from cirq import circuits, ops, protocols
-from cirq.contrib.paulistring.convert_gate_set import converted_gate_set
+from cirq import circuits, ops, protocols, transformers
+from cirq.contrib.paulistring.clifford_target_gateset import CliffordTargetGateset
 
 
 def clifford_optimized_circuit(circuit: circuits.Circuit, atol: float = 1e-8) -> circuits.Circuit:
     # Convert to a circuit with SingleQubitCliffordGates,
     # CZs and other ignored gates
-    c_cliff = converted_gate_set(circuit, no_clifford_gates=False, atol=atol)
+    c_cliff = transformers.optimize_for_target_gateset(
+        circuit, gateset=CliffordTargetGateset(atol=atol)
+    )
 
     all_ops = list(c_cliff.all_operations())
 

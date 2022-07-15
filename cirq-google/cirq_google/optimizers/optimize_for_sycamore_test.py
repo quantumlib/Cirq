@@ -24,51 +24,6 @@ class FakeDevice(cirq.Device):
         pass
 
 
-def _optimizers_and_gatesets():
-    with cirq.testing.assert_deprecated('SerializableGateSet', deadline='v0.16', count=None):
-        return [
-            ('sqrt_iswap', cg.SQRT_ISWAP_GATESET),
-            ('sycamore', cg.SYC_GATESET),
-            ('xmon', cg.XMON),
-            ('xmon_partial_cz', cg.XMON),
-        ]
-
-
-@pytest.mark.parametrize('optimizer_type, gateset', _optimizers_and_gatesets())
-def test_optimizer_output_gates_are_supported(optimizer_type, gateset):
-    q0, q1 = cirq.LineQubit.range(2)
-    circuit = cirq.Circuit(
-        cirq.CZ(q0, q1), cirq.X(q0) ** 0.2, cirq.Z(q1) ** 0.2, cirq.measure(q0, q1, key='m')
-    )
-
-    with cirq.testing.assert_deprecated(
-        'Use `cirq.optimize_for_target_gateset', deadline='v0.16', count=1
-    ):
-        new_circuit = cg.optimized_for_sycamore(circuit, optimizer_type=optimizer_type)
-        for moment in new_circuit:
-            for op in moment:
-                assert gateset.is_supported_operation(op)
-
-
-@pytest.mark.parametrize('optimizer_type, gateset', _optimizers_and_gatesets())
-def test_optimize_large_measurement_gates(optimizer_type, gateset):
-    qubits = cirq.LineQubit.range(53)
-    circuit = cirq.Circuit(
-        cirq.X.on_each(qubits),
-        [cirq.CZ(qubits[i], qubits[i + 1]) for i in range(0, len(qubits) - 1, 2)],
-        [cirq.CZ(qubits[i], qubits[i + 1]) for i in range(1, len(qubits) - 1, 2)],
-        cirq.measure(*qubits, key='m'),
-    )
-
-    with cirq.testing.assert_deprecated(
-        'Use `cirq.optimize_for_target_gateset', deadline='v0.16', count=1
-    ):
-        new_circuit = cg.optimized_for_sycamore(circuit, optimizer_type=optimizer_type)
-        for moment in new_circuit:
-            for op in moment:
-                assert gateset.is_supported_operation(op)
-
-
 def test_invalid_input():
     with cirq.testing.assert_deprecated(
         'Use `cirq.optimize_for_target_gateset', deadline='v0.16', count=1
@@ -122,35 +77,6 @@ def test_no_tabulation():
             cg.optimized_for_sycamore(
                 circuit, optimizer_type='xmon_partial_cz', tabulation_resolution=0.01
             )
-
-
-def test_one_q_matrix_gate():
-    u = cirq.testing.random_special_unitary(2)
-    q = cirq.LineQubit(0)
-    circuit0 = cirq.Circuit(cirq.MatrixGate(u).on(q))
-    assert len(circuit0) == 1
-
-    # Deprecations: well-known cirq_google SerializableGateSets
-    # (e.g. cirq_google.SYC_GATESET), and
-    # cirq_google.optimized_for_sycamore
-    with cirq.testing.assert_deprecated(
-        'SerializableGateSet', 'Use `cirq.optimize_for_target_gateset', deadline='v0.16', count=6
-    ):
-        circuit_iswap = cg.optimized_for_sycamore(circuit0, optimizer_type='sqrt_iswap')
-        assert len(circuit_iswap) == 1
-        for moment in circuit_iswap:
-            for op in moment:
-                assert cg.SQRT_ISWAP_GATESET.is_supported_operation(op)
-                # single qubit gates shared between gatesets, so:
-                assert cg.SYC_GATESET.is_supported_operation(op)
-
-        circuit_syc = cg.optimized_for_sycamore(circuit0, optimizer_type='sycamore')
-        assert len(circuit_syc) == 1
-        for moment in circuit_iswap:
-            for op in moment:
-                assert cg.SYC_GATESET.is_supported_operation(op)
-                # single qubit gates shared between gatesets, so:
-                assert cg.SQRT_ISWAP_GATESET.is_supported_operation(op)
 
 
 @pytest.mark.parametrize(

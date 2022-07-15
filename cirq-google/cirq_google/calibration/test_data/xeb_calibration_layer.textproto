@@ -1,33 +1,56 @@
 calibration_type: "xeb_phased_fsim_characterization"
 layer {
   language {
-    gate_set: "sqrt_iswap"
+    gate_set: "v2_5"
+    arg_function_language: "exp"
   }
   circuit {
     scheduling_strategy: MOMENT_BY_MOMENT
     moments {
       operations {
-        gate {
-          id: "fsim_pi_4"
-        }
-        qubits {
-          id: "0_0"
-        }
-        qubits {
-          id: "0_1"
+        qubit_constant_index: 0
+        qubit_constant_index: 1
+        fsimgate {
+          theta {
+            float_value: 0.7853981852531433
+          }
+          phi {
+            float_value: 0.0
+          }
         }
       }
       operations {
-        gate {
-          id: "fsim_pi_4"
-        }
-        qubits {
-          id: "0_2"
-        }
-        qubits {
-          id: "0_3"
+        qubit_constant_index: 2
+        qubit_constant_index: 3
+        fsimgate {
+          theta {
+            float_value: 0.7853981852531433
+          }
+          phi {
+            float_value: 0.0
+          }
         }
       }
+    }
+  }
+  constants {
+    qubit {
+      id: "0_0"
+    }
+  }
+  constants {
+    qubit {
+      id: "0_1"
+    }
+  }
+  constants {
+    qubit {
+      id: "0_2"
+    }
+  }
+  constants {
+    qubit {
+      id: "0_3"
     }
   }
 }

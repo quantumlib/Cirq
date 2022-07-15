@@ -125,7 +125,7 @@ class LinearDict(Generic[TVector], MutableMapping[TVector, Scalar]):
 
     def clean(self: 'TSelf', *, atol: float = 1e-9) -> 'TSelf':
         """Remove terms with coefficients of absolute value atol or less."""
-        negligible = [v for v, c in self._terms.items() if abs(c) <= atol]
+        negligible = [v for v, c in self._terms.items() if abs(c) <= atol]  # type: ignore[operator]
         for v in negligible:
             del self._terms[v]
         return self
