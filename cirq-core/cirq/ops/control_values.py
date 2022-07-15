@@ -92,12 +92,6 @@ class AbstractControlValues(abc.ABC):
     def _json_dict_(self) -> Dict[str, Any]:
         pass
 
-    @abc.abstractmethod
-    def __getitem__(
-        self, key: Union[slice, int]
-    ) -> Union['AbstractControlValues', Tuple[int, ...]]:
-        pass
-
     def __iter__(self) -> Generator[Tuple[int, ...], None, None]:
         for assignment in self._expand():
             yield assignment
@@ -176,7 +170,9 @@ class ProductOfSums(AbstractControlValues):
     def _json_dict_(self) -> Dict[str, Any]:
         return {'_internal_representation': self._internal_representation}
 
-    def __and__(self, other: AbstractControlValues) -> 'ProductOfSums':
+    def __and__(self, other: AbstractControlValues) -> AbstractControlValues:
+        if isinstance(other, SumOfProducts):
+            return SumOfProducts(tuple(p for p in self)) & other
         if not isinstance(other, ProductOfSums):
             raise TypeError(
                 f'And operation not supported between types ProductOfSums and {type(other)}'
@@ -273,17 +269,12 @@ class SumOfProducts(AbstractControlValues):
             return label
         return ','.join(map(lambda p: ''.join(map(str, p)), self._internal_representation))
 
-    def __getitem__(
-        self, key: Union[int, slice]
-    ) -> Union['AbstractControlValues', Tuple[int, ...]]:
-        if isinstance(key, slice):
-            return SumOfProducts(self._internal_representation[key])
-        return self._internal_representation[key]
-
     def _json_dict_(self) -> Dict[str, Any]:
         return {'_internal_representation': self._internal_representation}
 
     def __and__(self, other: AbstractControlValues) -> 'SumOfProducts':
+        if isinstance(other, ProductOfSums):
+            other = SumOfProducts(tuple(p for p in other))
         if not isinstance(other, SumOfProducts):
             raise TypeError(
                 f'And operation not supported between types SumOfProducts and {type(other)}'

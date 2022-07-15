@@ -73,15 +73,14 @@ def test_and_operation():
             got = [c for c in control_vals1 & control_vals2]
             eq.add_equality_group(got, want)
 
-    with pytest.raises(TypeError):
-        pos = cv.ProductOfSums(product_of_sums_data[0])
-        sop = cv.SumOfProducts(sum_of_products_data[0])
-        _ = pos & sop
+    pos = cv.ProductOfSums(((1,), (0,)))
+    sop = cv.SumOfProducts(((1, 0), (0, 1)))
+    assert tuple(p for p in pos & sop) == ((1, 0, 1, 0), (1, 0, 0, 1))
+
+    assert tuple(p for p in sop & pos) == ((1, 0, 1, 0), (0, 1, 1, 0))
 
     with pytest.raises(TypeError):
-        pos = cv.ProductOfSums(product_of_sums_data[0])
-        sop = cv.SumOfProducts(sum_of_products_data[0])
-        _ = sop & pos
+        _ = sop & 1
 
 
 def test_and_supported_types():
@@ -140,14 +139,3 @@ def test_diagram_repr():
     assert c.diagram_repr('xor') == 'xor'
 
     assert cv.ProductOfSums(((1,), (0,))).diagram_repr('10') == '10'
-
-
-def test_sum_of_products_getitem():
-    data = [((1,),), ((0, 1),), ((0, 0), (0, 1), (1, 0)), ((1, 1, 1, 1),)]
-    for vals in data:
-        c = cv.SumOfProducts(vals)
-        for i in range(len(vals)):
-            assert c[i] == vals[i]
-        for i in range(len(vals)):
-            for j in range(i + 1, len(vals)):
-                assert c[i:j] == cv.SumOfProducts(vals[i:j])

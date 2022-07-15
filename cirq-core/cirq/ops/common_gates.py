@@ -234,8 +234,11 @@ class XPowGate(eigen_gate.EigenGate):
                 `self` controlled by the given control values and qubits.
         """
         result = super().controlled(num_controls, control_values, control_qid_shape)
+        if not isinstance(control_values, cv.AbstractControlValues):
+            control_values = cv.ProductOfSums(control_values)
         if (
             self._global_shift == 0
+            and isinstance(control_values, cv.ProductOfSums)
             and isinstance(result, controlled_gate.ControlledGate)
             and result.control_values[-1] == (1,)
             and result.control_qid_shape[-1] == 2
@@ -681,8 +684,11 @@ class ZPowGate(eigen_gate.EigenGate):
                 `self` controlled by the given control values and qubits.
         """
         result = super().controlled(num_controls, control_values, control_qid_shape)
+        if not isinstance(control_values, cv.AbstractControlValues):
+            control_values = cv.ProductOfSums(control_values)
         if (
             self._global_shift == 0
+            and isinstance(control_values, cv.ProductOfSums)
             and isinstance(result, controlled_gate.ControlledGate)
             and result.control_values[-1] == (1,)
             and result.control_qid_shape[-1] == 2
@@ -1117,8 +1123,11 @@ class CZPowGate(gate_features.InterchangeableQubitsGate, eigen_gate.EigenGate):
                 `self` controlled by the given control values and qubits.
         """
         result = super().controlled(num_controls, control_values, control_qid_shape)
+        if not isinstance(control_values, cv.AbstractControlValues):
+            control_values = cv.ProductOfSums(control_values)
         if (
             self._global_shift == 0
+            and isinstance(control_values, cv.ProductOfSums)
             and isinstance(result, controlled_gate.ControlledGate)
             and result.control_values[-1] == (1,)
             and result.control_qid_shape[-1] == 2
@@ -1316,8 +1325,11 @@ class CXPowGate(eigen_gate.EigenGate):
                 `self` controlled by the given control values and qubits.
         """
         result = super().controlled(num_controls, control_values, control_qid_shape)
+        if not isinstance(control_values, cv.AbstractControlValues):
+            control_values = cv.ProductOfSums(control_values)
         if (
             self._global_shift == 0
+            and isinstance(control_values, cv.ProductOfSums)
             and isinstance(result, controlled_gate.ControlledGate)
             and result.control_values[-1] == (1,)
             and result.control_qid_shape[-1] == 2
