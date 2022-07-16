@@ -40,19 +40,22 @@ from cirq_google.experimental import ops as experimental_ops
 
 
 _SYC_GATE_FAMILY = cirq.GateFamily(ops.SYC)
-_SYC_FSIM_GATE_FAMILY = ops.FSimGateFamily(gates_to_accept=[ops.SYC])
 _SQRT_ISWAP_GATE_FAMILY = cirq.GateFamily(cirq.SQRT_ISWAP)
-_SQRT_ISWAP_FSIM_GATE_FAMILY = ops.FSimGateFamily(gates_to_accept=[cirq.SQRT_ISWAP])
 _SQRT_ISWAP_INV_GATE_FAMILY = cirq.GateFamily(cirq.SQRT_ISWAP_INV)
-_SQRT_ISWAP_INV_FSIM_GATE_FAMILY = ops.FSimGateFamily(gates_to_accept=[cirq.SQRT_ISWAP_INV])
 _CZ_GATE_FAMILY = cirq.GateFamily(cirq.CZ)
-_CZ_FSIM_GATE_FAMILY = ops.FSimGateFamily(gates_to_accept=[cirq.CZ])
 _PHASED_XZ_GATE_FAMILY = cirq.GateFamily(cirq.PhasedXZGate)
 _VIRTUAL_ZPOW_GATE_FAMILY = cirq.GateFamily(cirq.ZPowGate, tags_to_ignore=[ops.PhysicalZTag()])
 _PHYSICAL_ZPOW_GATE_FAMILY = cirq.GateFamily(cirq.ZPowGate, tags_to_accept=[ops.PhysicalZTag()])
 _COUPLER_PULSE_GATE_FAMILY = cirq.GateFamily(experimental_ops.CouplerPulse)
 _MEASUREMENT_GATE_FAMILY = cirq.GateFamily(cirq.MeasurementGate)
 _WAIT_GATE_FAMILY = cirq.GateFamily(cirq.WaitGate)
+
+
+_SYC_FSIM_GATE_FAMILY = ops.FSimGateFamily(gates_to_accept=[ops.SYC])
+_SQRT_ISWAP_FSIM_GATE_FAMILY = ops.FSimGateFamily(gates_to_accept=[cirq.SQRT_ISWAP])
+_SQRT_ISWAP_INV_FSIM_GATE_FAMILY = ops.FSimGateFamily(gates_to_accept=[cirq.SQRT_ISWAP_INV])
+_CZ_FSIM_GATE_FAMILY = ops.FSimGateFamily(gates_to_accept=[cirq.CZ])
+
 
 # TODO(#5050) Add GlobalPhaseGate
 _CZ_TARGET_GATES = [_CZ_FSIM_GATE_FAMILY, _PHASED_XZ_GATE_FAMILY, _MEASUREMENT_GATE_FAMILY]
