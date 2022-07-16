@@ -49,7 +49,7 @@ def merge_single_qubit_gates_to_phased_x_and_z(
     def rewriter(op: 'cirq.CircuitOperation') -> 'cirq.OP_TREE':
         u = protocols.unitary(op)
         if protocols.num_qubits(op) < 1:
-            return ops.GlobalPhaseGate(u).on()
+            return ops.GlobalPhaseGate(u[0, 0]).on()
         return [
             g(op.qubits[0])
             for g in single_qubit_decompositions.single_qubit_matrix_to_phased_x_z(u, atol)
@@ -85,7 +85,7 @@ def merge_single_qubit_gates_to_phxz(
     def rewriter(op: 'cirq.CircuitOperation') -> 'cirq.OP_TREE':
         u = protocols.unitary(op)
         if protocols.num_qubits(op) < 1:
-            return ops.GlobalPhaseGate(u).on()
+            return ops.GlobalPhaseGate(u[0, 0]).on()
         gate = single_qubit_decompositions.single_qubit_matrix_to_phxz(u, atol)
         return gate(op.qubits[0]) if gate else []
 
