@@ -88,8 +88,7 @@ def _parity_interaction(
         return
 
     if gate is not None:
-        g = cast(ops.Gate, gate)
-        yield g.on(q0), g.on(q1)
+        yield gate.on(q0), gate.on(q1)
 
     yield ops.ms(-1 * rads).on(q0, q1)
 

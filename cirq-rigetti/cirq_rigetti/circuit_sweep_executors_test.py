@@ -167,9 +167,7 @@ def test_invalid_pyquil_region_measurement(
     ) -> Tuple[Program, Dict[str, str]]:
         return program, {cirq_key: f'{cirq_key}-doesnt-exist' for cirq_key in measurement_id_map}
 
-    transformer = circuit_transformers.build(
-        post_transformation_hooks=[broken_hook]  # type: ignore
-    )
+    transformer = circuit_transformers.build(post_transformation_hooks=[broken_hook])
 
     with pytest.raises(ValueError):
         _ = executors.with_quilc_compilation_and_cirq_parameter_resolution(

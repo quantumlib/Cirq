@@ -154,7 +154,7 @@ def _parse_formula_using_token_map(
         a = vals.pop()
         # Note: vals seems to be _HangingToken
         # func operates on _ResolvedTokens. Ignoring type issues for now.
-        vals.append(cast(_HangingNode, op).func(a, b))  # type: ignore[arg-type]
+        vals.append(op.func(a, b))  # type: ignore[arg-type]
 
     def close_paren() -> None:
         while True:
@@ -176,10 +176,7 @@ def _parse_formula_using_token_map(
         # Implied multiplication?
         mul = cast(_CustomQuirkOperationToken, token_map["*"])
         if could_be_binary and token != ")":
-            if (
-                not isinstance(token, _CustomQuirkOperationToken)
-                or cast(_CustomQuirkOperationToken, token).binary_action is None
-            ):
+            if not isinstance(token, _CustomQuirkOperationToken) or token.binary_action is None:
                 burn_ops(mul.priority)
                 ops.append(
                     _HangingNode(

@@ -28,7 +28,7 @@ if TYPE_CHECKING:
 
 DURATION_LIKE = Union[None, datetime.timedelta, 'cirq.Duration']
 document(
-    DURATION_LIKE,  # type: ignore
+    DURATION_LIKE,
     """A `cirq.Duration` or value that can trivially converted to one.
 
     A `datetime.timedelta` is a `cirq.DURATION_LIKE`. It is converted while
