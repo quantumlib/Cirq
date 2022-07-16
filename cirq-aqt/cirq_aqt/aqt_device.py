@@ -263,7 +263,7 @@ class AQTDevice(cirq.Device):
         )
 
     @property
-    def metadata(self) -> cirq.DeviceMetadata:
+    def metadata(self) -> aqt_device_metadata.AQTDeviceMetadata:
         return self._metadata
 
     def validate_gate(self, gate: cirq.Gate):

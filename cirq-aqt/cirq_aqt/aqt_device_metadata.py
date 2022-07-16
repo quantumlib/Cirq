@@ -47,16 +47,16 @@ class AQTDeviceMetadata(cirq.DeviceMetadata):
         graph.add_edges_from([(a, b) for a in qubits for b in qubits if a != b], directed=False)
         super().__init__(qubits, graph)
         self._gateset = aqt_target_gateset.AQTTargetGateset()
-        self._measurement_duration = measurement_duration
-        self._twoq_gates_duration = twoq_gates_duration
-        self._oneq_gates_duration = oneq_gates_duration
+        self._measurement_duration = cirq.Duration(measurement_duration)
+        self._twoq_gates_duration = cirq.Duration(twoq_gates_duration)
+        self._oneq_gates_duration = cirq.Duration(oneq_gates_duration)
         self._gate_durations = {
-            cirq.GateFamily(cirq.MeasurementGate): measurement_duration,
-            cirq.GateFamily(cirq.XXPowGate): twoq_gates_duration,
-            cirq.GateFamily(cirq.XPowGate): oneq_gates_duration,
-            cirq.GateFamily(cirq.YPowGate): oneq_gates_duration,
-            cirq.GateFamily(cirq.ZPowGate): oneq_gates_duration,
-            cirq.GateFamily(cirq.PhasedXPowGate): oneq_gates_duration,
+            cirq.GateFamily(cirq.MeasurementGate): self._measurement_duration,
+            cirq.GateFamily(cirq.XXPowGate): self._twoq_gates_duration,
+            cirq.GateFamily(cirq.XPowGate): self._oneq_gates_duration,
+            cirq.GateFamily(cirq.YPowGate): self._oneq_gates_duration,
+            cirq.GateFamily(cirq.ZPowGate): self._oneq_gates_duration,
+            cirq.GateFamily(cirq.PhasedXPowGate): self._oneq_gates_duration,
         }
         assert not self._gateset.gates.symmetric_difference(self._gate_durations.keys()), (
             "AQTDeviceMetadata.gate_durations must have the same Gates " "as AQTTargetGateset."
