@@ -2,7 +2,6 @@
 
 import pytest
 
-import cirq
 from examples.advanced import quantum_volume
 
 
