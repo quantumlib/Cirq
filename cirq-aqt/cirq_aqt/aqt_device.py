@@ -292,12 +292,7 @@ class AQTDevice(cirq.Device):
         return q if q in self.qubits else None
 
     def _value_equality_values_(self) -> Any:
-        return (
-            self.metadata.measurement_duration,
-            self.metadata.twoq_gates_duration,
-            self.metadata.oneq_gates_duration,
-            self.qubits,
-        )
+        return (self.metadata, self.qubits)
 
     def __str__(self) -> str:
         diagram = cirq.TextDiagramDrawer()
