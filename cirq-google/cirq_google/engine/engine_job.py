@@ -302,7 +302,7 @@ class EngineJob(abstract_job.AbstractJob):
         return self._results
 
     async def _await_result_async(self) -> quantum.QuantumResult:
-        async with duet.timeout_scope(self.context.timeout):
+        async with duet.timeout_scope(self.context.timeout):  # type: ignore[arg-type]
             while True:
                 job = await self._refresh_job_async()
                 if job.execution_status.state in TERMINAL_STATES:

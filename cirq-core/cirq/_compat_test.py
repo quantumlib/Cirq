@@ -367,7 +367,7 @@ def test_deprecated_class():
 
 
 def _from_parent_import_deprecated():
-    from cirq.testing._compat_test_data import fake_a  # type: ignore
+    from cirq.testing._compat_test_data import fake_a
 
     assert fake_a.MODULE_A_ATTRIBUTE == 'module_a'
 
@@ -379,7 +379,7 @@ def _import_deprecated_assert_sub():
 
 
 def _from_deprecated_import_sub():
-    from cirq.testing._compat_test_data.fake_a import module_b  # type: ignore
+    from cirq.testing._compat_test_data.fake_a import module_b
 
     assert module_b.MODULE_B_ATTRIBUTE == 'module_b'
 
@@ -450,7 +450,7 @@ def _import_multiple_deprecated():
     from cirq.testing._compat_test_data.module_a.module_b import module_c
 
     assert module_c.MODULE_C_ATTRIBUTE == 'module_c'
-    from cirq.testing._compat_test_data.fake_a.module_b import module_c  # type: ignore
+    from cirq.testing._compat_test_data.fake_a.module_b import module_c
 
     assert module_c.MODULE_C_ATTRIBUTE == 'module_c'
     from cirq.testing._compat_test_data.fake_b import module_c  # type: ignore
@@ -531,7 +531,7 @@ def _repeated_import_path():
 
     # pylint: disable=line-too-long
     from cirq.testing._compat_test_data.repeated_child.cirq.testing._compat_test_data.repeated_child import (  # type: ignore
-        child,  # type: ignore
+        child,
     )
 
     assert child.CHILD_ATTRIBUTE == 'child'
@@ -798,7 +798,7 @@ def _test_broken_module_2_inner():
             match="missing_module cannot be imported. The typical reasons",
         ):
             # note that this passes
-            from cirq.testing._compat_test_data import broken_ref  # type: ignore
+            from cirq.testing._compat_test_data import broken_ref
 
             # but when you try to use it
             broken_ref.something()

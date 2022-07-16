@@ -352,11 +352,6 @@ class AQTDevice(cirq.Device):
         q = cirq.LineQubit(position)
         return q if q in self.qubits else None
 
-    def neighbors_of(self, qubit: cirq.LineQubit) -> Iterable[cirq.LineQubit]:
-        """Returns the qubits that the given qubit can interact with."""
-        possibles = [cirq.LineQubit(qubit.x + 1), cirq.LineQubit(qubit.x - 1)]
-        return [e for e in possibles if e in self.qubits]
-
     def _value_equality_values_(self) -> Any:
         return (
             self._measurement_duration,
@@ -370,7 +365,7 @@ class AQTDevice(cirq.Device):
 
         for q in self.qubits:
             diagram.write(q.x, 0, str(q))
-            for q2 in self.neighbors_of(q):
+            for q2 in q.neighbors(self.qubits):
                 diagram.grid_line(q.x, 0, q2.x, 0)
 
         return diagram.render(horizontal_spacing=3, vertical_spacing=2, use_unicode_characters=True)

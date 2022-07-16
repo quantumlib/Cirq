@@ -45,7 +45,6 @@ class ComputationalBasisSimState(cirq.SimulationState[ComputationalBasisState]):
             i = self.qubit_map[qubits[0]]
             self._state.basis[i] = int(gate.exponent + self._state.basis[i]) % qubits[0].dimension
             return True
-        pass
 
 
 def create_test_circuit():
@@ -177,7 +176,6 @@ class ComputationalBasisSimProductState(cirq.SimulationState[ComputationalBasisP
             i = self.qubit_map[qubits[0]]
             self._state.basis[i] = int(gate.exponent + self._state.basis[i]) % qubits[0].dimension
             return True
-        pass
 
 
 def test_product_state_mode():

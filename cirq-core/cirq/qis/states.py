@@ -38,7 +38,7 @@ STATE_VECTOR_LIKE = Union[
     # Product state object
     'cirq.ProductState',
 ]
-document(STATE_VECTOR_LIKE, """An object representing a state vector.""")  # type: ignore
+document(STATE_VECTOR_LIKE, """An object representing a state vector.""")
 
 QUANTUM_STATE_LIKE = Union[
     # state vector
@@ -48,7 +48,7 @@ QUANTUM_STATE_LIKE = Union[
     # quantum state object
     'cirq.QuantumState',
 ]
-document(QUANTUM_STATE_LIKE, """An object representing a quantum state.""")  # type: ignore
+document(QUANTUM_STATE_LIKE, """An object representing a quantum state.""")
 
 
 class QuantumState:
