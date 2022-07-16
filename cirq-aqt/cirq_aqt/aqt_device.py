@@ -30,7 +30,7 @@ import networkx as nx
 import numpy as np
 
 import cirq
-from cirq.protocols.decompose_protocol import DecomposeResult
+from cirq_aqt import aqt_target_gateset
 
 gate_dict = {'X': cirq.X, 'Y': cirq.Y, 'Z': cirq.Z, 'MS': cirq.XX, 'R': cirq.PhasedXPowGate}
 
@@ -222,55 +222,6 @@ class AQTSimulator:
         return result
 
 
-class AQTTargetGateset(cirq.TwoQubitCompilationTargetGateset):
-    """Target gateset accepting XXPowGate + X/Y/Z/PhX single qubit rotations + measurement gates.
-
-    By default, `cirq_aqt.AQTTargetGateset` will accept and compile unknown
-    gates to the following universal target gateset:
-
-    - `cirq.XXPowGate`: The two qubit entangling gate.
-    - `cirq.XPowGate`, `cirq.YPowGate`, `cirq.ZPowGate`,
-      `cirq.PhasedXPowGate`: Single qubit rotations.
-    - `cirq.MeasurementGate`: Measurements.
-    """
-
-    def __init__(self):
-        super().__init__(
-            cirq.XXPowGate,
-            cirq.MeasurementGate,
-            cirq.XPowGate,
-            cirq.YPowGate,
-            cirq.ZPowGate,
-            cirq.PhasedXPowGate,
-            unroll_circuit_op=False,
-        )
-
-    # TODO(#5698) Complete code coverage and remove coverage-ignore labels below
-
-    def _decompose_single_qubit_operation(self, op: 'cirq.Operation', _: int) -> DecomposeResult:
-        if isinstance(op.gate, cirq.HPowGate) and op.gate.exponent == 1:
-            # coverage: ignore
-            return [cirq.rx(np.pi).on(op.qubits[0]), cirq.ry(-1 * np.pi / 2).on(op.qubits[0])]
-        if cirq.has_unitary(op):
-            # coverage: ignore
-            gates = cirq.single_qubit_matrix_to_phased_x_z(cirq.unitary(op))
-            return [g.on(op.qubits[0]) for g in gates]
-        return NotImplemented
-
-    def _decompose_two_qubit_operation(self, op: 'cirq.Operation', _) -> DecomposeResult:
-        if cirq.has_unitary(op):
-            # coverage: ignore
-            return cirq.two_qubit_matrix_to_ion_operations(
-                op.qubits[0], op.qubits[1], cirq.unitary(op)
-            )
-        return NotImplemented
-
-    @property
-    def postprocess_transformers(self) -> List['cirq.TRANSFORMER']:
-        """List of transformers which should be run after decomposing individual operations."""
-        return [cirq.drop_negligible_operations, cirq.drop_empty_moments]
-
-
 @cirq.value_equality
 class AQTDevice(cirq.Device):
     """Ion trap device with qubits having all-to-all connectivity and placed on a line."""
@@ -303,7 +254,7 @@ class AQTDevice(cirq.Device):
                 f"{set(type(qubit) for qubit in qubits)}"
             )
         self.qubits = frozenset(qubits)
-        self.gateset = AQTTargetGateset()
+        self.gateset = aqt_target_gateset.AQTTargetGateset()
 
         graph = nx.Graph()
         graph.add_edges_from([(a, b) for a in qubits for b in qubits if a != b], directed=False)
