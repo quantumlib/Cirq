@@ -247,9 +247,7 @@ class CliffordState:
         try:
             act_on(op, ch_form_args)
         except TypeError:
-            raise ValueError(
-                f'{str(op.gate)} cannot be run with Clifford simulator.'
-            )  # type: ignore
+            raise ValueError(f'{op.gate} cannot be run with Clifford simulator.')
         return
 
     def apply_measurement(

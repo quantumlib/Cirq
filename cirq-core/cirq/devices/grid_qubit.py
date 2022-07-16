@@ -24,7 +24,7 @@ from cirq import _compat, ops, protocols
 if TYPE_CHECKING:
     import cirq
 
-TSelf = TypeVar('TSelf', bound='_BaseGridQid')  # type: ignore
+TSelf = TypeVar('TSelf', bound='_BaseGridQid')
 
 
 @functools.total_ordering  # type: ignore

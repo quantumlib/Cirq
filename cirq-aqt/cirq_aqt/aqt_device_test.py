@@ -24,7 +24,7 @@ import sympy.utilities.matchpy_connector
 
 def aqt_device(chain_length: int, use_timedelta=False) -> cad.AQTDevice:
     ms = 1000 * cirq.Duration(nanos=1) if not use_timedelta else timedelta(microseconds=1)
-    return cad.AQTDevice(  # type: ignore
+    return cad.AQTDevice(
         measurement_duration=100 * ms,  # type: ignore
         twoq_gates_duration=200 * ms,  # type: ignore
         oneq_gates_duration=10 * ms,  # type: ignore
