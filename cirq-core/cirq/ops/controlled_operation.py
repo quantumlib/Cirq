@@ -176,7 +176,11 @@ class ControlledOperation(raw_types.Operation):
         sub_n = len(args.axes) - n
         sub_axes = args.axes[n:]
         for control_vals in self.control_values:
-            active = (..., *(slice(v, v + 1) for v in control_vals), *(slice(None),) * sub_n)
+            active: Tuple[Union['ellipsis', slice], ...] = (
+                ...,
+                *(slice(v, v + 1) for v in control_vals),
+                *(slice(None),) * sub_n,
+            )
             target_view = args.target_tensor[active]
             buffer_view = args.available_buffer[active]
             result = protocols.apply_unitary(

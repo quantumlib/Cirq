@@ -38,34 +38,32 @@ def _big_circuit(num_cycles: int) -> cirq.Circuit:
 
 
 def test_validate_gate_set():
-    with cirq.testing.assert_deprecated('SerializableGateSet', deadline='v0.16', count=None):
-        circuit = _big_circuit(4)
+    circuit = _big_circuit(4)
 
+    engine_validator.validate_program(
+        [circuit] * 5, [{}] * 5, 1000, cg.CIRCUIT_SERIALIZER, max_size=30000
+    )
+
+    with pytest.raises(RuntimeError, match='Program too long'):
         engine_validator.validate_program(
-            [circuit] * 5, [{}] * 5, 1000, cg.FSIM_GATESET, max_size=100000
+            [circuit] * 10, [{}] * 10, 1000, cg.CIRCUIT_SERIALIZER, max_size=30000
         )
 
-        with pytest.raises(RuntimeError, match='Program too long'):
-            engine_validator.validate_program(
-                [circuit] * 10, [{}] * 10, 1000, cg.FSIM_GATESET, max_size=100000
-            )
-
-        with pytest.raises(RuntimeError, match='Program too long'):
-            engine_validator.validate_program(
-                [circuit] * 5, [{}] * 5, 1000, cg.FSIM_GATESET, max_size=10000
-            )
+    with pytest.raises(RuntimeError, match='Program too long'):
+        engine_validator.validate_program(
+            [circuit] * 5, [{}] * 5, 1000, cg.CIRCUIT_SERIALIZER, max_size=10000
+        )
 
 
 def test_create_gate_set_validator():
-    with cirq.testing.assert_deprecated('SerializableGateSet', deadline='v0.16', count=None):
-        circuit = _big_circuit(4)
+    circuit = _big_circuit(4)
 
-        smaller_size_validator = engine_validator.create_program_validator(max_size=30000)
-        smaller_size_validator([circuit] * 2, [{}] * 2, 1000, cg.FSIM_GATESET)
-        with pytest.raises(RuntimeError, match='Program too long'):
-            smaller_size_validator([circuit] * 5, [{}] * 5, 1000, cg.FSIM_GATESET)
-        larger_size_validator = engine_validator.create_program_validator(max_size=500000)
-        larger_size_validator([circuit] * 10, [{}] * 10, 1000, cg.FSIM_GATESET)
+    smaller_size_validator = engine_validator.create_program_validator(max_size=10000)
+    smaller_size_validator([circuit] * 2, [{}] * 2, 1000, cg.CIRCUIT_SERIALIZER)
+    with pytest.raises(RuntimeError, match='Program too long'):
+        smaller_size_validator([circuit] * 5, [{}] * 5, 1000, cg.CIRCUIT_SERIALIZER)
+    larger_size_validator = engine_validator.create_program_validator(max_size=500000)
+    larger_size_validator([circuit] * 10, [{}] * 10, 1000, cg.CIRCUIT_SERIALIZER)
 
 
 def test_validate_for_engine():

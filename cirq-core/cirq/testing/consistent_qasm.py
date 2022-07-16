@@ -113,7 +113,7 @@ def assert_qiskit_parsed_qasm_consistent_with_unitary(qasm, unitary):
     try:
         # We don't want to require qiskit as a dependency but
         # if Qiskit is installed, test QASM output against it.
-        import qiskit  # type: ignore
+        import qiskit
     except ImportError:
         return
 

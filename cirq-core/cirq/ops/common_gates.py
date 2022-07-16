@@ -233,10 +233,17 @@ class XPowGate(eigen_gate.EigenGate):
             A `cirq.ControlledGate` (or `cirq.CXPowGate` if possible) representing
                 `self` controlled by the given control values and qubits.
         """
+        if control_values and not isinstance(control_values, cv.AbstractControlValues):
+            control_values = cv.ProductOfSums(
+                tuple(
+                    (val,) if isinstance(val, int) else tuple(sorted(val)) for val in control_values
+                )
+            )
         result = super().controlled(num_controls, control_values, control_qid_shape)
         if (
             self._global_shift == 0
             and isinstance(result, controlled_gate.ControlledGate)
+            and isinstance(result.control_values, cv.ProductOfSums)
             and result.control_values[-1] == (1,)
             and result.control_qid_shape[-1] == 2
         ):
@@ -680,10 +687,17 @@ class ZPowGate(eigen_gate.EigenGate):
             A `cirq.ControlledGate` (or `cirq.CZPowGate` if possible) representing
                 `self` controlled by the given control values and qubits.
         """
+        if control_values and not isinstance(control_values, cv.AbstractControlValues):
+            control_values = cv.ProductOfSums(
+                tuple(
+                    (val,) if isinstance(val, int) else tuple(sorted(val)) for val in control_values
+                )
+            )
         result = super().controlled(num_controls, control_values, control_qid_shape)
         if (
             self._global_shift == 0
             and isinstance(result, controlled_gate.ControlledGate)
+            and isinstance(result.control_values, cv.ProductOfSums)
             and result.control_values[-1] == (1,)
             and result.control_qid_shape[-1] == 2
         ):
@@ -1116,10 +1130,17 @@ class CZPowGate(gate_features.InterchangeableQubitsGate, eigen_gate.EigenGate):
             A `cirq.ControlledGate` (or `cirq.CCZPowGate` if possible) representing
                 `self` controlled by the given control values and qubits.
         """
+        if control_values and not isinstance(control_values, cv.AbstractControlValues):
+            control_values = cv.ProductOfSums(
+                tuple(
+                    (val,) if isinstance(val, int) else tuple(sorted(val)) for val in control_values
+                )
+            )
         result = super().controlled(num_controls, control_values, control_qid_shape)
         if (
             self._global_shift == 0
             and isinstance(result, controlled_gate.ControlledGate)
+            and isinstance(result.control_values, cv.ProductOfSums)
             and result.control_values[-1] == (1,)
             and result.control_qid_shape[-1] == 2
         ):
@@ -1315,10 +1336,17 @@ class CXPowGate(eigen_gate.EigenGate):
             A `cirq.ControlledGate` (or `cirq.CCXPowGate` if possible) representing
                 `self` controlled by the given control values and qubits.
         """
+        if control_values and not isinstance(control_values, cv.AbstractControlValues):
+            control_values = cv.ProductOfSums(
+                tuple(
+                    (val,) if isinstance(val, int) else tuple(sorted(val)) for val in control_values
+                )
+            )
         result = super().controlled(num_controls, control_values, control_qid_shape)
         if (
             self._global_shift == 0
             and isinstance(result, controlled_gate.ControlledGate)
+            and isinstance(result.control_values, cv.ProductOfSums)
             and result.control_values[-1] == (1,)
             and result.control_qid_shape[-1] == 2
         ):
@@ -1372,7 +1400,20 @@ def rz(rads: value.TParamVal) -> Rz:
 
 
 def cphase(rads: value.TParamVal) -> CZPowGate:
-    """Returns a gate with the matrix diag(1, 1, 1, e^{i rads}."""
+    r"""Returns a cphase gate with phase of `rad` radians.
+
+    Returns a gate with the unitary matrix:
+
+    $$
+    \begin{bmatrix}
+        1 & 0 & 0 & 0 \\
+        0 & 1 & 0 & 0 \\
+        0 & 0 & 1 & 0 \\
+        0 & 0 & 0 & e^{i rads} \\
+    \end{bmatrix}
+    $$
+
+    """
     return CZPowGate(exponent=rads / _pi(rads))
 
 

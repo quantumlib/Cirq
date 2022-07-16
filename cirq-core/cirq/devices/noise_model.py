@@ -283,7 +283,7 @@ document(
 
 NOISE_MODEL_LIKE = Union[None, 'cirq.NoiseModel', 'cirq.Gate']
 document(
-    NOISE_MODEL_LIKE,  # type: ignore
+    NOISE_MODEL_LIKE,
     """A `cirq.NoiseModel` or a value that can be trivially converted into one.
 
     `None` is a `NOISE_MODEL_LIKE`. It will be replaced by the `cirq.NO_NOISE`

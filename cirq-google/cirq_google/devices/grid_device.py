@@ -14,7 +14,20 @@
 
 """Device object representing Google devices with a grid qubit layout."""
 
-from typing import Any, Collection, Dict, List, Optional, Sequence, Set, Tuple, Type, Union, cast
+from typing import (
+    Any,
+    Collection,
+    Dict,
+    List,
+    Mapping,
+    Optional,
+    Sequence,
+    Set,
+    Tuple,
+    Type,
+    Union,
+    cast,
+)
 import re
 import warnings
 
@@ -89,7 +102,7 @@ def _validate_device_specification(proto: v2.device_pb2.DeviceSpecification) -> 
 
 def _build_gateset_and_gate_durations(
     proto: v2.device_pb2.DeviceSpecification,
-) -> Tuple[cirq.Gateset, Dict[cirq.GateFamily, cirq.Duration]]:
+) -> Tuple[cirq.Gateset, Mapping[cirq.GateFamily, cirq.Duration]]:
     """Extracts gate set and gate duration information from the given DeviceSpecification proto."""
 
     gates_list: List[Union[Type[cirq.Gate], cirq.Gate, cirq.GateFamily]] = []
@@ -188,50 +201,81 @@ class GridDevice(cirq.Device):
 
     Example use cases:
 
-        * Get an instance of a Google grid device.
-        >>> device = cirq_google.get_engine().get_processor('processor_name').get_device()
+        Get an instance of a Google grid device.
+        >>> device = cirq_google.engine.create_device_from_processor_id("rainbow")
 
-        * Print the grid layout of the device.
+        Print the grid layout of the device.
         >>> print(device)
+                          (3, 2)
+                          │
+                          │
+                 (4, 1)───(4, 2)───(4, 3)
+                 │        │        │
+                 │        │        │
+        (5, 0)───(5, 1)───(5, 2)───(5, 3)───(5, 4)
+                 │        │        │        │
+                 │        │        │        │
+                 (6, 1)───(6, 2)───(6, 3)───(6, 4)───(6, 5)
+                          │        │        │        │
+                          │        │        │        │
+                          (7, 2)───(7, 3)───(7, 4)───(7, 5)───(7, 6)
+                                   │        │        │
+                                   │        │        │
+                                   (8, 3)───(8, 4)───(8, 5)
+                                            │
+                                            │
+                                            (9, 4)
 
-        * Determine whether a circuit can be run on the device.
+        Determine whether a circuit can be run on the device.
+        >>> circuit = cirq.Circuit(cirq.X(cirq.q(5, 1)))
         >>> device.validate_circuit(circuit)  # Raises a ValueError if the circuit is invalid.
 
-        * Determine whether an operation can be run on the device.
+        Determine whether an operation can be run on the device.
+        >>> operation = cirq.X(cirq.q(5, 1))
         >>> device.validate_operation(operation)  # Raises a ValueError if the operation is invalid.
 
-        * Get the `cirq.Gateset` containing valid gates for the device, and inspect the full list
-          of valid gates.
+        Get the `cirq.Gateset` containing valid gates for the device, and inspect the full list
+        of valid gates.
         >>> gateset = device.metadata.gateset
         >>> print(gateset)
+        Gateset:...
 
-        * Determine whether a gate is available on the device.
+        Determine whether a gate is available on the device.
+        >>> gate = cirq.X
         >>> gate in device.metadata.gateset
+        True
 
         * Get a collection of valid qubits on the device.
         >>> device.metadata.qubit_set
+        frozenset({...cirq.GridQubit(6, 4)...})
 
         * Get a collection of valid qubit pairs for two-qubit gates.
         >>> device.metadata.qubit_pairs
+        frozenset({...})
 
         * Get a collection of isolated qubits, i.e. qubits which are not part of any qubit pair.
         >>> device.metadata.isolated_qubits
+        frozenset()
 
         * Get a collection of approximate gate durations for every gate supported by the device.
         >>> device.metadata.gate_durations
+        {...cirq.Duration...}
 
         * Get a collection of valid CompilationTargetGatesets for the device, which can be used to
           transform a circuit to one which only contains gates from a native target gateset
           supported by the device.
         >>> device.metadata.compilation_target_gatesets
+        (...cirq.CZTargetGateset...)
 
         * Assuming valid CompilationTargetGatesets exist for the device, select the first one and
           use it to transform a circuit to one which only contains gates from a native target
           gateset supported by the device.
-        >>> cirq.optimize_for_target_gateset(
-                circuit,
-                gateset=device.metadata.compilation_target_gatesets[0]
-            )
+        >>> circuit = cirq.optimize_for_target_gateset(
+        ...     circuit,
+        ...     gateset=device.metadata.compilation_target_gatesets[0]
+        ... )
+        >>> print(circuit)
+        (5, 1): ───PhXZ(a=0,x=1,z=0)───
 
     A note about CompilationTargetGatesets:
 
@@ -307,15 +351,6 @@ class GridDevice(cirq.Device):
     def metadata(self) -> cirq.GridDeviceMetadata:
         """Get metadata information for the device."""
         return self._metadata
-
-    # Some user code using SerializableDevices gets the qubit list via `device.qubits`.
-    # This is a stopgap solution to prevent user breakage with the change to GridDevice.
-    @property  # type: ignore
-    @cirq._compat.deprecated(
-        deadline='v0.16', fix='Change `device.qubits` to `device.metadata.qubit_set`.'
-    )
-    def qubits(self) -> List[cirq.Qid]:
-        return sorted(self._metadata.qubit_set)
 
     def validate_operation(self, operation: cirq.Operation) -> None:
         """Raises an exception if an operation is not valid.
@@ -429,7 +464,7 @@ def create_device_specification_proto(
     qubits: Collection[cirq.GridQubit],
     pairs: Collection[Tuple[cirq.GridQubit, cirq.GridQubit]],
     gateset: cirq.Gateset,
-    gate_durations: Optional[Dict['cirq.GateFamily', 'cirq.Duration']] = None,
+    gate_durations: Optional[Mapping['cirq.GateFamily', 'cirq.Duration']] = None,
     out: Optional[v2.device_pb2.DeviceSpecification] = None,
 ) -> v2.device_pb2.DeviceSpecification:
     """Serializes the given device information into a DeviceSpecification proto.

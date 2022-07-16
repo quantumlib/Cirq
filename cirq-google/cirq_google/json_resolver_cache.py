@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""Module for use in exporting cirq-google objects in JSON."""
+
 import warnings
 import functools
 from typing import Dict

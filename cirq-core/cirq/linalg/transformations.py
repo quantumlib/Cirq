@@ -151,6 +151,7 @@ def targeted_left_multiply(
 
     all_indices = set(input_indices + data_indices + tuple(output_indices))
 
+    # TODO(#5757): remote type ignore when numpy has proper override signature.
     return np.einsum(
         left_matrix,
         input_indices,
@@ -164,7 +165,7 @@ def targeted_left_multiply(
         # And this is workaround for *another* bug!
         # Supposed to be able to just say 'old=old'.
         **({'out': out} if out is not None else {}),
-    )
+    )  # type: ignore
 
 
 def targeted_conjugate_about(
@@ -291,10 +292,10 @@ def apply_matrix_to_slices(
 
     # Apply operation.
     for i, s_i in enumerate(slices):
-        out[s_i] *= matrix[i, i]
+        out[s_i] *= matrix[i, i]  # type: ignore[index]
         for j, s_j in enumerate(slices):
             if i != j:
-                out[s_i] += target[s_j] * matrix[i, j]
+                out[s_i] += target[s_j] * matrix[i, j]  # type: ignore[index]
 
     return out
 
@@ -333,7 +334,8 @@ def partial_trace(tensor: np.ndarray, keep_indices: Sequence[int]) -> np.ndarray
     keep_map = dict(zip(keep_indices, sorted(keep_indices)))
     left_indices = [keep_map[i] if i in keep_set else i for i in range(ndim)]
     right_indices = [ndim + i if i in keep_set else i for i in left_indices]
-    return np.einsum(tensor, left_indices + right_indices)
+    # TODO(#5757): remote type ignore when numpy has proper override signature.
+    return np.einsum(tensor, left_indices + right_indices)  # type: ignore
 
 
 class EntangledStateError(ValueError):
@@ -480,7 +482,7 @@ def sub_state_vector(
         for k in range(1 << len(other_qubits))
     ]
     # The coherence measure is computed using unnormalized candidates.
-    best_candidate = max(candidates, key=lambda c: np.linalg.norm(c, 2))
+    best_candidate = max(candidates, key=lambda c: float(np.linalg.norm(c, 2)))
     best_candidate = best_candidate / np.linalg.norm(best_candidate)
     left = np.conj(best_candidate.reshape((keep_dims,))).T
     coherence_measure = sum([abs(np.dot(left, c.reshape((keep_dims,)))) ** 2 for c in candidates])

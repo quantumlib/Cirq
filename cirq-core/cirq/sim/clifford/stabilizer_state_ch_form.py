@@ -119,7 +119,7 @@ class StabilizerStateChForm(qis.StabilizerState):
             * 2 ** (-sum(self.v) / 2)
             * 1j**mu
             * (-1) ** sum(self.v & u & self.s)
-            * np.all(self.v | (u == self.s))
+            * bool(np.all(self.v | (u == self.s)))
         )
 
     def state_vector(self) -> np.ndarray:

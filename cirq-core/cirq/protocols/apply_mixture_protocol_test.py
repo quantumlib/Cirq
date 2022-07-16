@@ -52,6 +52,7 @@ def assert_apply_mixture_returns(
     else:
         assert result is not out_buf
 
+    assert expected_result is not None
     np.testing.assert_array_almost_equal(result, expected_result)
 
 

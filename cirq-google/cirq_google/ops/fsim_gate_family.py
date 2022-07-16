@@ -93,17 +93,17 @@ class FSimGateFamily(cirq.GateFamily):
     gates in `gates_to_accept`, possibly accepting parameterized instances (assuming correct
     parameter value would be filled in during parameter resolution) based on `allow_symbols`:
     >>> gf = cirq_google.FSimGateFamily(
-    >>>     gates_to_accept=[cirq.SQRT_ISWAP, cirq.CZPowGate, cirq_google.SYC],
-    >>>     gate_types_to_check=[cirq.FSimGate],
-    >>>     allow_symbols=True,
-    >>> )
+    ...     gates_to_accept=[cirq.SQRT_ISWAP, cirq.CZPowGate, cirq_google.SYC],
+    ...     gate_types_to_check=[cirq.FSimGate],
+    ...     allow_symbols=True,
+    ... )
     >>> theta, phi = sympy.Symbol("theta"), sympy.Symbol("phi")
     >>> assert cirq.FSimGate(theta, phi) in gf # Assumes correct theta/phi will be substituted.
     >>> assert cirq_google.SYC in gf # SYC
     >>> assert cirq.FSimGate(0, np.pi / 2) in gf # CZPowGate
     >>> assert cirq.FSimGate(-np.pi / 4, phi) in gf # SQRT_ISWAP
     >>> assert cirq.FSimGate(-np.pi / 8, phi) not in gf # No value of `phi` would make it equal to
-    >>>                                                 # any gate/gate type in `gates_to_accept`.
+    ...                                                 # any gate/gate type in `gates_to_accept`.
     >>> assert cirq.CZ ** 0.25 not in gf # CZPowGate not in gate_types_to_check
     >>> assert cirq.SQRT_ISWAP not in gf # ISwapPowGate not in gate_types_to_check
     """
@@ -245,7 +245,7 @@ class FSimGateFamily(cirq.GateFamily):
     def _get_value_equality_values(self, g: POSSIBLE_FSIM_GATES) -> Any:
         # TODO: Remove condition once https://github.com/quantumlib/Cirq/issues/4585 is fixed.
         if type(g) == cirq.PhasedISwapPowGate:
-            return (g.phase_exponent, *g._iswap._value_equality_values_())  # type: ignore
+            return (g.phase_exponent, *g._iswap._value_equality_values_())
         return g._value_equality_values_()
 
     def _get_value_equality_values_cls(self, g: POSSIBLE_FSIM_GATES) -> Any:

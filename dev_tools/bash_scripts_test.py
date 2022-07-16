@@ -57,6 +57,8 @@ def run(
         f.writelines(script_lines)
 
     cmd = r"""
+export GIT_CONFIG_GLOBAL=/dev/null
+export GIT_CONFIG_SYSTEM=/dev/null
 dir=$(git rev-parse --show-toplevel)
 cd {}
 git init --quiet --initial-branch master

@@ -50,7 +50,7 @@ PauliSumLike = Union[
     int, float, complex, PauliString, 'PauliSum', pauli_string.SingleQubitPauliStringGateOperation
 ]
 document(
-    PauliSumLike,  # type: ignore
+    PauliSumLike,
     """Any value that can be easily translated into a sum of Pauli products.
     """,
 )
@@ -379,7 +379,7 @@ class PauliSum:
     ...     cirq.PauliString(0.5, cirq.Y(a), cirq.Y(b))
     ... ])
     >>> print(psum)
-    -1.000*X(q(0))*Y(q(1))+2.000*Z(q(0))*Z(q(1))+0.500*Y(q(0))*Y(q(1))
+    -1.000*X(q(0, 0))*Y(q(0, 1))+2.000*Z(q(0, 0))*Z(q(0, 1))+0.500*Y(q(0, 0))*Y(q(0, 1))
 
 
     or implicitly:
@@ -387,16 +387,8 @@ class PauliSum:
 
     >>> a, b = cirq.GridQubit.rect(1, 2)
     >>> psum = cirq.X(a) * cirq.X(b) + 3.0 * cirq.Y(a)
-    >>> psum
-    cirq.PauliSum(
-        cirq.LinearDict({
-            frozenset({
-                (cirq.GridQubit(0, 0), cirq.X), (cirq.GridQubit(0, 1), cirq.X)}): (1+0j),
-            frozenset({
-                (cirq.GridQubit(0, 0), cirq.Y)}): (3+0j)}
-        )
-    )
-
+    >>> print(psum)
+    1.000*X(q(0, 0))*X(q(0, 1))+3.000*Y(q(0, 0))
 
     basic arithmetic and expectation operations are supported as well:
 
@@ -413,10 +405,8 @@ class PauliSum:
     ...     np.array([0.707106, 0, 0, 0.707106], dtype=complex),
     ...     qubit_map={a: 0, b: 1}
     ... )
-    >>> expectation
-    4.0
-
-
+    >>> print(f'{expectation:.1f}')
+    4.0+0.0j
     """
 
     def __init__(self, linear_dict: Optional[value.LinearDict[UnitPauliStringT]] = None):

@@ -148,7 +148,7 @@ class ParallelGateFamily(gateset.GateFamily):
         if isinstance(gate, parallel_gate.ParallelGate):
             if not max_parallel_allowed:
                 max_parallel_allowed = protocols.num_qubits(gate)
-            gate = cast(parallel_gate.ParallelGate, gate).sub_gate
+            gate = gate.sub_gate
         self._max_parallel_allowed = max_parallel_allowed
         super().__init__(gate, name=name, description=description)
 

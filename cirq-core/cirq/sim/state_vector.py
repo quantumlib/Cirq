@@ -41,8 +41,7 @@ class StateVectorMixin:
             *args: Passed on to the class that this is mixed in with.
             **kwargs: Passed on to the class that this is mixed in with.
         """
-        # Reason for 'type: ignore': https://github.com/python/mypy/issues/5887
-        super().__init__(*args, **kwargs)  # type: ignore
+        super().__init__(*args, **kwargs)
         self._qubit_map = qubit_map or {}
         qid_shape = simulator._qubit_map_to_shape(self._qubit_map)
         self._qid_shape = None if qubit_map is None else qid_shape
@@ -332,7 +331,7 @@ def _probs(state: np.ndarray, indices: Sequence[int], qid_shape: Tuple[int, ...]
         # We're measuring every qudit, so no need for fancy indexing
         probs = np.abs(tensor) ** 2
         probs = np.transpose(probs, indices)
-        probs = np.reshape(probs, np.prod(probs.shape, dtype=np.int64))
+        probs = probs.reshape(-1)
     else:
         # Fancy indexing required
         meas_shape = tuple(qid_shape[i] for i in indices)
@@ -352,5 +351,4 @@ def _probs(state: np.ndarray, indices: Sequence[int], qid_shape: Tuple[int, ...]
         probs = np.sum(probs, axis=tuple(range(1, len(probs.shape))))
 
     # To deal with rounding issues, ensure that the probabilities sum to 1.
-    probs /= np.sum(probs)
-    return probs
+    return probs / np.sum(probs)

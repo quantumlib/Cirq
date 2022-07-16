@@ -153,16 +153,21 @@ class GridDeviceMetadata(device.DeviceMetadata):
         To look up the duration of a specific gate instance / gate type / operation which is part of
         the device's gateset, you can search for its corresponding GateFamily. For example:
 
-        >>> my_op = cirq.Z
+        >>> gateset = cirq.Gateset(cirq.ZPowGate)
+        >>> durations = {cirq.GateFamily(cirq.ZPowGate): cirq.Duration(nanos=1)}
+        >>> grid_device_metadata = cirq.GridDeviceMetadata((), gateset, durations)
+        >>>
+        >>> my_gate = cirq.Z
         >>> gate_durations = grid_device_metadata.gate_durations
-        >>> op_duration = None
+        >>> gate_duration = None
         >>> for gate_family in gate_durations:
-        ...     if my_op in gate_family:
-        ...         op_duration = gate_durations[gate_family]
+        ...     if my_gate in gate_family:
+        ...         gate_duration = gate_durations[gate_family]
         ...
-        >>> print(op_duration)
+        >>> print(gate_duration)
         1 ns
         """
+
         return self._gate_durations
 
     def _value_equality_values_(self):

@@ -22,7 +22,37 @@ if TYPE_CHECKING:
 
 
 class Device(metaclass=abc.ABCMeta):
-    """Hardware constraints for validating circuits."""
+    """Hardware constraints for validating circuits.
+
+    This class is an interface for representing constraints and
+    structures of quantum hardware devices.
+
+    This interface is split into two parts: validation and
+    exploration.  The primary responsibility of this class
+    is to validate circuits (ie. can this device execute the
+    circuit as-is?).  The secondary responsibility of the class
+    is to provide additional information about the device
+    such as the qubits on the device and their connectivity.
+    These 'exploratory' attributes are all contained within
+    the `metadata` attribute.
+
+    Implementors of this class should, at minimum, define
+    the `validate_operation` method.  If the device has more
+    global constraints (such as not allowing adjacent operations
+    or having a maximum depth), then `validate_moment` and
+    `validate_circuit` can also be defined.  If not specified,
+    these methods default to calling `validate_operation` on each
+    operation in each moment.
+
+    Optionally, implementors may implement a `metadata` function
+    that contains information about the device.  It is recommended
+    (but not required) to specify the qubits and connectivity
+    using a `cirq.DeviceMetadata` object.   This class can also be
+    sub-classed to give more detailed information, such as gate
+    durations, gate sets, compilation targets,
+    vendor-specific information, and other attributes.
+
+    """
 
     @property
     def metadata(self) -> Optional['DeviceMetadata']:

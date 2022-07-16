@@ -78,7 +78,7 @@ PAULI_STRING_LIKE = Union[
     Iterable,  # of PAULI_STRING_LIKE, but mypy doesn't do recursive types yet.
 ]
 document(
-    PAULI_STRING_LIKE,  # type: ignore
+    PAULI_STRING_LIKE,
     """A `cirq.PauliString` or a value that can easily be converted into one.
 
     Complex numbers turn into the coefficient of an empty Pauli string.
@@ -94,7 +94,7 @@ document(
 
 PAULI_GATE_LIKE = Union['cirq.Pauli', 'cirq.IdentityGate', str, int,]
 document(
-    PAULI_GATE_LIKE,  # type: ignore
+    PAULI_GATE_LIKE,
     """An object that can be interpreted as a Pauli gate.
 
     Allowed values are:
@@ -146,20 +146,20 @@ class PauliString(raw_types.Operation, Generic[TKey]):
         I
 
         >>> print(cirq.PauliString(-1, cirq.X(a), cirq.Y(b), cirq.Z(c)))
-        -X(0)*Y(1)*Z(2)
+        -X(q(0))*Y(q(1))*Z(q(2))
 
-        >>> -1 * cirq.X(a) * cirq.Y(b) * cirq.Z(c)
-        -X(0) * Y(1) * Z(2)
+        >>> print(-1 * cirq.X(a) * cirq.Y(b) * cirq.Z(c))
+        -X(q(0))*Y(q(1))*Z(q(2))
 
         >>> print(cirq.PauliString({a: cirq.X}, [-2, 3, cirq.Y(a)]))
-        -6j*Z(0)
+        -6j*Z(q(0))
 
         >>> print(cirq.PauliString({a: cirq.I, b: cirq.X}))
-        X(1)
+        X(q(1))
 
         >>> print(cirq.PauliString({a: cirq.Y},
         ...                        qubit_pauli_map={a: cirq.X}))
-        1j*Z(0)
+        1j*Z(q(0))
 
     Note that `cirq.PauliString`s are immutable objects. If you need a mutable version
     of pauli strings, see `cirq.MutablePauliString`.
@@ -975,11 +975,11 @@ class PauliString(raw_types.Operation, Generic[TKey]):
         Examples:
             >>> a, b = cirq.LineQubit.range(2)
             >>> print(cirq.X(a).conjugated_by(cirq.CZ(a, b)))
-            X(0)*Z(1)
+            X(q(0))*Z(q(1))
             >>> print(cirq.X(a).conjugated_by(cirq.S(a)))
-            -Y(0)
+            -Y(q(0))
             >>> print(cirq.X(a).conjugated_by([cirq.H(a), cirq.CNOT(a, b)]))
-            Z(0)*X(1)
+            Z(q(0))*X(q(1))
 
         Returns:
             The Pauli string conjugated by the given Clifford operation.
@@ -1427,7 +1427,7 @@ class MutablePauliString(Generic[TKey]):
             and not isinstance(other, linear_combinations.PauliSum)
         ):
             if sign == +1:
-                other = reversed(list(other))
+                other = iter(reversed(list(other)))
             for item in other:
                 if self._imul_helper(cast(PAULI_STRING_LIKE, item), sign) is NotImplemented:
                     return NotImplemented
@@ -1715,4 +1715,4 @@ def _pauli_like_to_pauli_int(key: Any, pauli_gate_like: PAULI_GATE_LIKE):
             f"But the value isn't in "
             f"{set(PAULI_GATE_LIKE_TO_INDEX_MAP.keys())!r}"
         )
-    return cast(int, pauli_int)
+    return pauli_int
