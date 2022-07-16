@@ -28,13 +28,12 @@ _qa, _qb = cirq.NamedQubit('a'), cirq.NamedQubit('b')
             cirq.Circuit(cirq.Z(_qa) ** 0.5, cirq.CZ(_qa, _qb)),
             cirq.GateFamily(cirq.ZPowGate, tags_to_ignore=[cirq_google.PhysicalZTag()]),
         ),
-        # TODO(#5783) Investigate why a PhysicalZ gate is decomposed here.
-        # (
-        #     cirq.Circuit(
-        #         cirq.Z(_qa).with_tags(cirq_google.PhysicalZTag()) ** 0.5, cirq.CZ(_qa, _qb)
-        #     ),
-        #     cirq.GateFamily(cirq.ZPowGate, tags_to_accept=[cirq_google.PhysicalZTag()]),
-        # ),
+        (
+            cirq.Circuit(
+                (cirq.Z**0.5)(_qa).with_tags(cirq_google.PhysicalZTag()), cirq.CZ(_qa, _qb)
+            ),
+            cirq.GateFamily(cirq.ZPowGate, tags_to_accept=[cirq_google.PhysicalZTag()]),
+        ),
         (
             cirq.Circuit(cirq.PhasedXPowGate(phase_exponent=0.125).on(_qa), cirq.CZ(_qa, _qb)),
             cirq.GateFamily(cirq.PhasedXPowGate),
