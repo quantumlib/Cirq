@@ -28,6 +28,7 @@ import examples.shor
 import examples.simon_algorithm
 import examples.superdense_coding
 import examples.swap_networks
+import examples.two_qubit_gate_compilation
 from examples.shors_code import OneQubitShorsCode
 
 
@@ -304,3 +305,9 @@ def test_example_qec_single_qubit():
     sim2 = cirq.DensityMatrixSimulator()
     result2 = sim2.run(my_circuit2, repetitions=1)
     assert result2.measurements['q(0)'] == [[1]]
+
+
+@pytest.mark.usefixtures('closefigures')
+def test_two_qubit_gate_compilation_example():
+    plt.switch_backend('agg')
+    examples.two_qubit_gate_compilation.main(samples=10, max_infidelity=0.3)
