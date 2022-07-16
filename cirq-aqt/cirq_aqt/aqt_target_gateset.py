@@ -50,7 +50,7 @@ class AQTTargetGateset(cirq.TwoQubitCompilationTargetGateset):
         # unwrap tagged and circuit operations to get the actual operation
         opu = op.untagged
         opu = (
-            next(opu.circuit.all_operations())
+            next(opu.circuit.all_operations()).untagged
             if isinstance(opu, cirq.CircuitOperation) and len(opu.circuit) == 1
             else opu
         )
