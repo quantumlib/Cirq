@@ -19,7 +19,6 @@ import pytest
 import cirq
 import cirq_aqt
 import cirq_aqt.aqt_device as cad
-import sympy.utilities.matchpy_connector
 
 
 def aqt_device(chain_length: int, use_timedelta=False) -> cad.AQTDevice:
@@ -49,15 +48,12 @@ def test_init():
     q2 = cirq.LineQubit(2)
 
     assert d.qubits == {q0, q1, q2}
-    assert d.duration_of(cirq.Z(q0)) == 10 * ms
-    assert d.duration_of(cirq.measure(q0)) == 100 * ms
-    assert d.duration_of(cirq.measure(q0, q1)) == 100 * ms
-    assert d.duration_of(cirq.XX(q0, q1)) == 200 * ms
-    with pytest.raises(ValueError, match="Unsupported gate type"):
-        _ = d.duration_of(cirq.I(q0))
+    assert d.metadata.twoq_gates_duration == 200 * ms
+    assert d.metadata.oneq_gates_duration == 10 * ms
+    assert d.metadata.measurement_duration == 100 * ms
 
     with pytest.raises(TypeError, match="NamedQubit"):
-        _ = cad.AQTDevice(
+        cad.AQTDevice(
             measurement_duration=ms,
             twoq_gates_duration=ms,
             oneq_gates_duration=ms,
@@ -81,12 +77,9 @@ def test_init_timedelta():
     q2 = cirq.LineQubit(2)
 
     assert d.qubits == {q0, q1, q2}
-    assert d.duration_of(cirq.Z(q0)) == 10 * ms
-    assert d.duration_of(cirq.measure(q0)) == 100 * ms
-    assert d.duration_of(cirq.measure(q0, q1)) == 100 * ms
-    assert d.duration_of(cirq.XX(q0, q1)) == 200 * ms
-    with pytest.raises(ValueError):
-        _ = d.duration_of(cirq.testing.SingleQubitGate().on(q0))
+    assert d.metadata.twoq_gates_duration == 200 * ms
+    assert d.metadata.oneq_gates_duration == 10 * ms
+    assert d.metadata.measurement_duration == 100 * ms
 
 
 def test_repr():
@@ -180,12 +173,3 @@ def test_at():
     assert d.at(-1) is None
     assert d.at(0) == cirq.LineQubit(0)
     assert d.at(2) == cirq.LineQubit(2)
-
-
-def test_decompose_parameterized_gates():
-    theta = sympy.Symbol("theta")
-    q = cirq.LineQubit.range(2)
-    circuit = cirq.Circuit(cirq.H(q[0]) ** theta, cirq.XX(*q) ** theta)
-    d = aqt_device(3)
-    assert d.gateset.validate(d.decompose_circuit(circuit))
-    assert d.gateset._decompose_two_qubit_operation(cirq.CZ(*q) ** theta, 0) is NotImplemented
