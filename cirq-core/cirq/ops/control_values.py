@@ -41,12 +41,10 @@ class AbstractControlValues(abc.ABC):
     @abc.abstractmethod
     def validate(self, qid_shapes: Sequence[int]) -> None:
         """Validates that all control values for ith qubit are in range [0, qid_shaped[i])"""
-        pass
 
     @abc.abstractmethod
     def expand(self) -> 'SumOfProducts':
         """Returns an expanded `cirq.SumOfProduct` representation of this control values."""
-        pass
 
     @property
     @abc.abstractmethod
@@ -57,24 +55,20 @@ class AbstractControlValues(abc.ABC):
         and `cirq.ProductOfSums(((1,),) * num_controls)`
 
         """
-        pass
 
     @abc.abstractmethod
     def _num_qubits_(self) -> int:
         """Returns the number of qubits for which control values are stored by this object."""
-        pass
 
     @abc.abstractmethod
     def _json_dict_(self) -> Dict[str, Any]:
         """Returns a dictionary used for serializing this object."""
-        pass
 
     @abc.abstractmethod
     def _circuit_diagram_info_(
         self, args: 'cirq.CircuitDiagramInfoArgs'
     ) -> 'cirq.CircuitDiagramInfo':
         """Returns information used to draw this object in circuit diagrams."""
-        pass
 
     @abc.abstractmethod
     def __iter__(self) -> Iterator[Tuple[int, ...]]:
@@ -82,11 +76,11 @@ class AbstractControlValues(abc.ABC):
 
         Note: Be careful that the terms iterated upon by this iterator will have different
         meaning based on the implementation. For example:
-        >>> print(*cirq.ProductOfSums((0, 1), (0,)))
+        >>> print(*cirq.ProductOfSums([(0, 1), (0,)]))
         (0, 1) (0,)
-        >>> print(*cirq.SumOfProducts((0, 0), (1, 0)))
+        >>> print(*cirq.SumOfProducts([(0, 0), (1, 0)]))
+        (0, 0) (1, 0)
         """
-        pass
 
     def _value_equality_values_(self) -> Any:
         """Returns True iff self and other represent the same configurations.
@@ -97,10 +91,7 @@ class AbstractControlValues(abc.ABC):
         Returns:
             boolean whether the two objects are equivalent or not.
         """
-        return tuple(sorted(v for v in self.expand()))
-        # if not isinstance(other, AbstractControlValues):
-        #     other = ProductOfSums(other)
-        # return sorted(v for v in self.expand()) == sorted(v for v in other.expand())
+        return tuple(v for v in self.expand())
 
     def __and__(self, other: 'AbstractControlValues') -> 'AbstractControlValues':
         """Sets self to be the cartesian product of all combinations in self x other.
@@ -178,7 +169,7 @@ class ProductOfSums(AbstractControlValues):
         return ''.join(get_prefix(t) for t in self._internal_representation)
 
     def _json_dict_(self) -> Dict[str, Any]:
-        return {'_internal_representation': self._internal_representation}
+        return {"data": self._internal_representation}
 
     def __and__(self, other: AbstractControlValues) -> AbstractControlValues:
         if isinstance(other, ProductOfSums):

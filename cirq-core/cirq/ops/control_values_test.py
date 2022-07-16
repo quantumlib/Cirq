@@ -84,7 +84,7 @@ def test_validate():
 
 @pytest.mark.parametrize('data', [((1,),), ((0, 1),), ((0, 0), (0, 1), (1, 0))])
 def test_sum_of_products_num_qubits(data):
-    cirq.num_qubits(cv.SumOfProducts(data)) == len(data)
+    assert cirq.num_qubits(cv.SumOfProducts(data)) == len(data[0])
 
 
 @pytest.mark.parametrize(
@@ -102,7 +102,7 @@ def test_is_trivial(data, is_trivial):
 
 def test_sum_of_products_str():
     c = cv.SumOfProducts(((1, 0), (0, 1)))
-    str(c) == 'C_10_01'
+    assert str(c) == 'C_01_10'
 
     c = cv.SumOfProducts(((1, 0), (0, 1)), name="xor")
-    str(c) == 'C_xor'
+    assert str(c) == 'C_xor'

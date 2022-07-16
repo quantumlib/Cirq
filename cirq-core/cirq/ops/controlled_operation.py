@@ -207,7 +207,7 @@ class ControlledOperation(raw_types.Operation):
         if (
             hasattr(self._sub_operation, "gate")
             and len(self._controls) == 1
-            and self._control_values == ((1,),)
+            and self.control_values == cv.ProductOfSums(((1,),))
         ):
             gate = self.sub_operation.gate
             if (
