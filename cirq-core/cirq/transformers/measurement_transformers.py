@@ -121,7 +121,7 @@ def defer_measurements(
                     if len(qs) != 1:
                         all_values = itertools.product(*[range(q.dimension) for q in qs])
                         anything_but_all_zeros = tuple(itertools.islice(all_values, 1, None))
-                        control_values = ops.SumOfProducts(anything_but_all_zeros)
+                        control_values: Any = ops.SumOfProducts(anything_but_all_zeros)
                     else:
                         control_values = range(1, qs[0].dimension)
                     new_op = new_op.controlled_by(*qs, control_values=control_values)
