@@ -59,6 +59,10 @@ def default_props(system_qubits: List[cirq.Qid], qubit_pairs: List[Tuple[cirq.Qi
 
 
 class TestNoiseProperties(SuperconductingQubitsNoiseProperties):
+
+    # tell pytest there are no test methods here
+    __test__ = False
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
