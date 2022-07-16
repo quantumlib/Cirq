@@ -14,23 +14,50 @@
 
 """Tests for AQTDeviceMetadata."""
 
+from typing import List
+
+import pytest
+
 import cirq
 from cirq_aqt.aqt_device_metadata import AQTDeviceMetadata
 from cirq_aqt.aqt_target_gateset import AQTTargetGateset
 
 
-def test_aqtdevice_metadata():
-    qubits = cirq.LineQubit.range(5)
-    metadata = AQTDeviceMetadata(qubits)
+@pytest.fixture
+def qubits() -> List[cirq.LineQubit]:
+    return cirq.LineQubit.range(5)
+
+
+@pytest.fixture
+def metadata(qubits) -> AQTDeviceMetadata:
+    return AQTDeviceMetadata(
+        qubits=qubits,
+        measurement_duration=cirq.Duration(millis=100),
+        twoq_gates_duration=cirq.Duration(millis=200),
+        oneq_gates_duration=cirq.Duration(millis=10),
+    )
+
+
+def test_aqtdevice_metadata(metadata, qubits):
     assert metadata.qubit_set == frozenset(qubits)
     assert set(qubits) == set(metadata.nx_graph.nodes())
     edges = metadata.nx_graph.edges()
     assert len(edges) == 10
     assert all(q0 != q1 for q0, q1 in edges)
     assert AQTTargetGateset() == metadata.gateset
+    assert len(metadata.gate_durations) == 6
 
 
-def test_repr():
-    qubits = cirq.LineQubit.range(3)
-    metadata = AQTDeviceMetadata(qubits)
+def test_aqtdevice_duration_of(metadata, qubits):
+    q0, q1 = qubits[:2]
+    ms = cirq.Duration(millis=1)
+    assert metadata.duration_of(cirq.Z(q0)) == 10 * ms
+    assert metadata.duration_of(cirq.measure(q0)) == 100 * ms
+    assert metadata.duration_of(cirq.measure(q0, q1)) == 100 * ms
+    assert metadata.duration_of(cirq.XX(q0, q1)) == 200 * ms
+    with pytest.raises(ValueError, match="Unsupported gate type"):
+        metadata.duration_of(cirq.I(q0))
+
+
+def test_repr(metadata):
     cirq.testing.assert_equivalent_repr(metadata, setup_code='import cirq\nimport cirq_aqt\n')
