@@ -14,7 +14,20 @@
 
 """Device object representing Google devices with a grid qubit layout."""
 
-from typing import Any, Collection, Dict, List, Mapping, Optional, Sequence, Set, Tuple, Type, Union, cast
+from typing import (
+    Any,
+    Collection,
+    Dict,
+    List,
+    Mapping,
+    Optional,
+    Sequence,
+    Set,
+    Tuple,
+    Type,
+    Union,
+    cast,
+)
 import re
 import warnings
 
