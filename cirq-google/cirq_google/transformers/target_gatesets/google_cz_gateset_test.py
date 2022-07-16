@@ -53,16 +53,16 @@ def test_eject_paulis_disabled(before, gate_family):
     'before, expected, gate_family',
     [
         (
-            cirq.Circuit(cirq.Z(_qa) ** 0.5, cirq.CZ(_qa, _qb)),
-            cirq.Circuit(cirq.CZ(_qa, _qb), cirq.Z(_qa) ** 0.5),
+            cirq.Circuit(cirq.Z(_qa) ** 0.75, cirq.CZ(_qa, _qb)),
+            cirq.Circuit(cirq.CZ(_qa, _qb), cirq.Z(_qa) ** 0.75),
             cirq.GateFamily(cirq.ZPowGate, tags_to_ignore=[cirq_google.PhysicalZTag()]),
         ),
         (
             # PhysicalZ tag is erased
             cirq.Circuit(
-                cirq.Z(_qa).with_tags(cirq_google.PhysicalZTag()) ** 0.5, cirq.CZ(_qa, _qb)
+                (cirq.Z**0.75)(_qa).with_tags(cirq_google.PhysicalZTag()), cirq.CZ(_qa, _qb)
             ),
-            cirq.Circuit(cirq.CZ(_qa, _qb), cirq.Z(_qa) ** 0.5),
+            cirq.Circuit(cirq.CZ(_qa, _qb), cirq.Z(_qa) ** 0.75),
             cirq.GateFamily(cirq.ZPowGate, tags_to_accept=[cirq_google.PhysicalZTag()]),
         ),
         (
