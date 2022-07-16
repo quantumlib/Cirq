@@ -1,0 +1,77 @@
+[
+  {
+    "cirq_type": "ControlledOperation",
+    "controls": [
+      {
+        "cirq_type": "LineQubit",
+        "x": 0
+      },
+      {
+        "cirq_type": "LineQubit",
+        "x": 1
+      }
+    ],
+    "control_values": {
+      "cirq_type": "ProductOfSums",
+      "data": [
+        [
+          0
+        ],
+        [
+          1
+        ]
+      ]
+    },
+    "sub_operation": {
+      "cirq_type": "SingleQubitPauliStringGateOperation",
+      "pauli": {
+        "cirq_type": "_PauliY",
+        "exponent": 1.0,
+        "global_shift": 0.0
+      },
+      "qubit": {
+        "cirq_type": "NamedQubit",
+        "name": "target"
+      }
+    }
+  },
+  {
+    "cirq_type": "ControlledOperation",
+    "controls": [
+      {
+        "cirq_type": "LineQubit",
+        "x": 0
+      },
+      {
+        "cirq_type": "LineQubit",
+        "x": 1
+      }
+    ],
+    "control_values": {
+      "cirq_type": "SumOfProducts",
+      "data": [
+        [
+          0,
+          1
+        ],
+        [
+          1,
+          0
+        ]
+      ],
+      "name": "xor"
+    },
+    "sub_operation": {
+      "cirq_type": "SingleQubitPauliStringGateOperation",
+      "pauli": {
+        "cirq_type": "_PauliY",
+        "exponent": 1.0,
+        "global_shift": 0.0
+      },
+      "qubit": {
+        "cirq_type": "NamedQubit",
+        "name": "target"
+      }
+    }
+  }
+]
