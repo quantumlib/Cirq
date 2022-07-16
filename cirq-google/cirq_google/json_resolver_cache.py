@@ -19,6 +19,9 @@ import functools
 from typing import Dict
 
 from cirq.protocols.json_serialization import ObjectFactory
+from cirq.transformers.heuristic_decompositions.two_qubit_gate_tabulation import (
+    TwoQubitGateTabulation,
+)
 
 
 @functools.lru_cache()
@@ -44,7 +47,8 @@ def _class_resolver_dictionary() -> Dict[str, ObjectFactory]:
         'CouplerPulse': cirq_google.experimental.CouplerPulse,
         'GoogleNoiseProperties': cirq_google.GoogleNoiseProperties,
         'SycamoreGate': cirq_google.SycamoreGate,
-        'GateTabulation': cirq_google.GateTabulation,
+        # cirq_google.GateTabulation has been removed and replaced by cirq.TwoQubitGateTabulation.
+        'GateTabulation': TwoQubitGateTabulation,
         'PhysicalZTag': cirq_google.PhysicalZTag,
         'FSimGateFamily': cirq_google.FSimGateFamily,
         'FloquetPhasedFSimCalibrationOptions': cirq_google.FloquetPhasedFSimCalibrationOptions,
