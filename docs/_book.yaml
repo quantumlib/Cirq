@@ -165,8 +165,8 @@ upper_tabs:
         section:
         - title: "Cross Entropy Benchmarking Theory"
           path: /cirq/noise/qcvv/xeb_theory
-        - title: "XEB and coherent error"
-          path: /cirq/noise/qcvv/xeb_coherent_noise
+        - title: "Coherent vs incoherent noise with XEB"
+          path: /cirq/noise/qcvv/coherent_vs_incoherent_xeb
         - title: "Parallel XEB"
           path: /cirq/noise/qcvv/parallel_xeb
         - title: "XEB calibration: Example and Benchmark"

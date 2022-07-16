@@ -669,7 +669,7 @@ def unroll_circuit_op_greedy_frontier(
                 continue
             if any(frontier[q] > idx for q in op.qubits):
                 continue
-            op_untagged = cast(circuits.CircuitOperation, op.untagged)
+            op_untagged = op.untagged
             if deep:
                 op_untagged = op_untagged.replace(
                     circuit=unroll_circuit_op_greedy_frontier(

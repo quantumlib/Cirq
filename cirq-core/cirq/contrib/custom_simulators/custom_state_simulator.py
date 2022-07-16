@@ -26,15 +26,11 @@ if TYPE_CHECKING:
 class CustomStateStepResult(sim.StepResultBase[TSimulationState], Generic[TSimulationState]):
     """The step result provided by `CustomStateSimulator.simulate_moment_steps`."""
 
-    pass
-
 
 class CustomStateTrialResult(
     sim.SimulationTrialResultBase[TSimulationState], Generic[TSimulationState]
 ):
     """The trial result provided by `CustomStateSimulator.simulate`."""
-
-    pass
 
 
 class CustomStateSimulator(
@@ -88,4 +84,4 @@ class CustomStateSimulator(
     ) -> TSimulationState:
         return self.state_type(
             initial_state=initial_state, qubits=qubits, classical_data=classical_data
-        )
+        )  # type: ignore[call-arg]

@@ -336,4 +336,6 @@ def _strat_apply_channel_to_state(
     action: Any, args: 'cirq.DensityMatrixSimulationState', qubits: Sequence['cirq.Qid']
 ) -> bool:
     """Apply channel to state."""
-    return True if args._state.apply_channel(action, args.get_axes(qubits)) else NotImplemented
+    if not args._state.apply_channel(action, args.get_axes(qubits)):
+        return NotImplemented
+    return True

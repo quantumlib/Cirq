@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import abc
-from typing import Union, Tuple, List, TYPE_CHECKING, Any, Dict, Generator, cast, Iterator, Optional
+from typing import Union, Tuple, List, TYPE_CHECKING, Any, Dict, Generator, Iterator, Optional
 from dataclasses import dataclass
 
 import itertools
@@ -121,7 +121,6 @@ class ProductOfSums(AbstractControlValues):
 
     def _expand(self) -> Iterator[Tuple[int, ...]]:
         """Returns the combinations tracked by the object."""
-        self = cast('ProductOfSums', self)
         return itertools.product(*self._internal_representation)
 
     def __repr__(self) -> str:
@@ -231,7 +230,6 @@ class SumOfProducts(AbstractControlValues):
 
     def _expand(self) -> Iterator[Tuple[int, ...]]:
         """Returns the combinations tracked by the object."""
-        self = cast('SumOfProducts', self)
         return iter(self._internal_representation)
 
     def __repr__(self) -> str:

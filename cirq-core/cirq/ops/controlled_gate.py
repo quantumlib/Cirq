@@ -112,7 +112,7 @@ class ControlledGate(raw_types.Gate):
 
         # Flatten nested ControlledGates.
         if isinstance(sub_gate, ControlledGate):
-            self._sub_gate = sub_gate.sub_gate  # type: ignore
+            self._sub_gate = sub_gate.sub_gate
             self._control_values = self._control_values & sub_gate.control_values
             self._control_qid_shape += sub_gate.control_qid_shape
         else:
