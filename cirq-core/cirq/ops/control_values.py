@@ -12,15 +12,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import abc
-from typing import Union, Tuple, List, TYPE_CHECKING, Any, Dict, Generator, Iterator, Optional
-from dataclasses import dataclass
-
+from typing import Tuple, TYPE_CHECKING, Any, Dict, Iterator, Optional, Sequence, Union
 import itertools
+
+from cirq import protocols, value
 
 if TYPE_CHECKING:
     import cirq
 
 
+@value.value_equality
 class AbstractControlValues(abc.ABC):
     """Abstract base class defining the API for control values.
 
@@ -38,6 +39,69 @@ class AbstractControlValues(abc.ABC):
     """
 
     @abc.abstractmethod
+    def validate(self, qid_shapes: Sequence[int]) -> None:
+        """Validates that all control values for ith qubit are in range [0, qid_shaped[i])"""
+        pass
+
+    @abc.abstractmethod
+    def expand(self) -> 'SumOfProducts':
+        """Returns an expanded `cirq.SumOfProduct` representation of this control values."""
+        pass
+
+    @property
+    @abc.abstractmethod
+    def is_trivial(self) -> bool:
+        """Returns True iff each controlled variable is activated only for value 1.
+
+        This configuration is equivalent to `cirq.SumOfProducts(((1,) * num_controls))`
+        and `cirq.ProductOfSums(((1,),) * num_controls)`
+
+        """
+        pass
+
+    @abc.abstractmethod
+    def _num_qubits_(self) -> int:
+        """Returns the number of qubits for which control values are stored by this object."""
+        pass
+
+    @abc.abstractmethod
+    def _json_dict_(self) -> Dict[str, Any]:
+        """Returns a dictionary used for serializing this object."""
+        pass
+
+    @abc.abstractmethod
+    def _circuit_diagram_info_(
+        self, args: 'cirq.CircuitDiagramInfoArgs'
+    ) -> 'cirq.CircuitDiagramInfo':
+        """Returns information used to draw this object in circuit diagrams."""
+        pass
+
+    @abc.abstractmethod
+    def __iter__(self) -> Iterator[Tuple[int, ...]]:
+        """Iterator on internal representation of control values used by the derived classes.
+
+        Note: Be careful that the terms iterated upon by this iterator will have different
+        meaning based on the implementation. For example:
+        >>> print(*cirq.ProductOfSums((0, 1), (0,)))
+        (0, 1) (0,)
+        >>> print(*cirq.SumOfProducts((0, 0), (1, 0)))
+        """
+        pass
+
+    def _value_equality_values_(self) -> Any:
+        """Returns True iff self and other represent the same configurations.
+
+        Args:
+            other: A AbstractControlValues object.
+
+        Returns:
+            boolean whether the two objects are equivalent or not.
+        """
+        return tuple(sorted(v for v in self.expand()))
+        # if not isinstance(other, AbstractControlValues):
+        #     other = ProductOfSums(other)
+        # return sorted(v for v in self.expand()) == sorted(v for v in other.expand())
+
     def __and__(self, other: 'AbstractControlValues') -> 'AbstractControlValues':
         """Sets self to be the cartesian product of all combinations in self x other.
 
@@ -47,95 +111,42 @@ class AbstractControlValues(abc.ABC):
         Returns:
           An object that represents the cartesian product of the two inputs.
         """
-
-    @abc.abstractmethod
-    def _expand(self) -> Iterator[Tuple[int, ...]]:
-        """Expands the (possibly compressed) internal representation into a sum of products representation."""  # pylint: disable=line-too-long
-
-    @abc.abstractmethod
-    def diagram_repr(self, label: Optional[str] = None) -> str:
-        """Returns a string representation to be used in circuit diagrams."""
-
-    @abc.abstractmethod
-    def _number_variables(self) -> int:
-        """Returns the number of variables controlled by the object."""
-
-    @abc.abstractmethod
-    def __len__(self) -> int:
-        pass
-
-    @abc.abstractmethod
-    def _identifier(self) -> Any:
-        """Returns the internal representation of the object."""
-
-    @abc.abstractmethod
-    def __hash__(self) -> int:
-        pass
-
-    @abc.abstractmethod
-    def __repr__(self) -> str:
-        pass
-
-    @abc.abstractmethod
-    def validate(self, qid_shapes: Union[Tuple[int, ...], List[int]]) -> None:
-        """Validates control values
-
-        Validate that control values are in the half closed interval
-        [0, qid_shapes) for each qubit.
-        """
-
-    @abc.abstractmethod
-    def _are_ones(self) -> bool:
-        """Checks whether all control values are equal to 1."""
-
-    @abc.abstractmethod
-    def _json_dict_(self) -> Dict[str, Any]:
-        pass
-
-    def __iter__(self) -> Generator[Tuple[int, ...], None, None]:
-        for assignment in self._expand():
-            yield assignment
-
-    def __eq__(self, other) -> bool:
-        """Returns True iff self and other represent the same configurations.
-
-        Args:
-            other: A AbstractControlValues object.
-
-        Returns:
-            boolean whether the two objects are equivalent or not.
-        """
-        if not isinstance(other, AbstractControlValues):
-            other = ProductOfSums(other)
-        return sorted(v for v in self) == sorted(v for v in other)
+        return SumOfProducts(
+            tuple(x + y for (x, y) in itertools.product(self.expand(), other.expand()))
+        )
 
 
-@dataclass(frozen=True, eq=False)
 class ProductOfSums(AbstractControlValues):
     """ProductOfSums represents control values in a form of a cartesian product of tuples."""
 
-    _internal_representation: Tuple[Tuple[int, ...], ...]
+    def __init__(self, data: Sequence[Sequence[int]]):
+        self._internal_representation = tuple(tuple(frozenset(cv)) for cv in data)
+        self._is_trivial = self._internal_representation == ((1,),) * len(
+            self._internal_representation
+        )
 
-    def _identifier(self) -> Tuple[Tuple[int, ...], ...]:
-        return self._internal_representation
+    @property
+    def is_trivial(self) -> bool:
+        return self._is_trivial
 
-    def _expand(self) -> Iterator[Tuple[int, ...]]:
-        """Returns the combinations tracked by the object."""
-        return itertools.product(*self._internal_representation)
+    def __iter__(self) -> Iterator[Tuple[int, ...]]:
+        return iter(self._internal_representation)
+
+    def expand(self) -> 'SumOfProducts':
+        return SumOfProducts(tuple(itertools.product(*self._internal_representation)))
 
     def __repr__(self) -> str:
-        return f'cirq.ProductOfSums({str(self._identifier())})'
+        return f'cirq.ProductOfSums({str(self._internal_representation)})'
 
-    def _number_variables(self) -> int:
+    def _num_qubits_(self) -> int:
         return len(self._internal_representation)
 
-    def __len__(self) -> int:
-        return self._number_variables()
+    def __getitem__(self, key: Union[int, slice]) -> Union['ProductOfSums', Tuple[int, ...]]:
+        if isinstance(key, slice):
+            return ProductOfSums(self._internal_representation[key])
+        return self._internal_representation[key]
 
-    def __hash__(self) -> int:
-        return hash(self._internal_representation)
-
-    def validate(self, qid_shapes: Union[Tuple[int, ...], List[int]]) -> None:
+    def validate(self, qid_shapes: Sequence[int]) -> None:
         for i, (vals, shape) in enumerate(zip(self._internal_representation, qid_shapes)):
             if not all(0 <= v < shape for v in vals):
                 message = (
@@ -144,42 +155,37 @@ class ProductOfSums(AbstractControlValues):
                 )
                 raise ValueError(message)
 
-    def _are_ones(self) -> bool:
-        return frozenset(self._internal_representation) == {(1,)}
+    def _circuit_diagram_info_(
+        self, args: 'cirq.CircuitDiagramInfoArgs'
+    ) -> 'cirq.CircuitDiagramInfo':
+        """Returns a string representation to be used in circuit diagrams."""
 
-    def diagram_repr(self, label: Optional[str] = None) -> str:
-        if label:
-            return label
-        if self._are_ones():
-            return 'C' * self._number_variables()
+        def get_symbol(vals):
+            return '@' if tuple(vals) == (1,) else f"({','.join(map(str, vals))})"
+
+        return protocols.CircuitDiagramInfo(
+            wire_symbols=[get_symbol(t) for t in self._internal_representation]
+        )
+
+    def __str__(self) -> str:
+        if self.is_trivial:
+            return 'C' * self._num_qubits_()
 
         def get_prefix(control_vals):
             control_vals_str = ''.join(map(str, sorted(control_vals)))
             return f'C{control_vals_str}'
 
-        return ''.join(map(get_prefix, self._internal_representation))
-
-    def __getitem__(
-        self, key: Union[int, slice]
-    ) -> Union['AbstractControlValues', Tuple[int, ...]]:
-        if isinstance(key, slice):
-            return ProductOfSums(self._internal_representation[key])
-        return self._internal_representation[key]
+        return ''.join(get_prefix(t) for t in self._internal_representation)
 
     def _json_dict_(self) -> Dict[str, Any]:
         return {'_internal_representation': self._internal_representation}
 
     def __and__(self, other: AbstractControlValues) -> AbstractControlValues:
-        if isinstance(other, SumOfProducts):
-            return SumOfProducts(tuple(p for p in self)) & other
-        if not isinstance(other, ProductOfSums):
-            raise TypeError(
-                f'And operation not supported between types ProductOfSums and {type(other)}'
-            )
-        return type(self)(self._internal_representation + other._internal_representation)
+        if isinstance(other, ProductOfSums):
+            return ProductOfSums(self._internal_representation + other._internal_representation)
+        return super().__and__(other)
 
 
-@dataclass(frozen=True, eq=False)
 class SumOfProducts(AbstractControlValues):
     """Represents control values as a union of n-bit tuples.
 
@@ -209,76 +215,76 @@ class SumOfProducts(AbstractControlValues):
         >>> nan_cop = cirq.X(q2).controlled_by(q0, q1, control_values=nand_control_values)
     """
 
-    _internal_representation: Tuple[Tuple[int, ...], ...]
-
-    def __post_init__(self):
+    def __init__(self, data: Sequence[Sequence[int]], *, name: Optional[str] = None):
+        self._internal_representation = tuple(sorted(set(tuple(cv) for cv in data)))
+        self._name = name
         if not len(self._internal_representation):
-            raise ValueError('SumOfProducts can\'t be empty.')
+            raise ValueError("SumOfProducts can't be empty.")
         num_qubits = len(self._internal_representation[0])
-        for p in self._internal_representation:
-            if len(p) != num_qubits:
-                raise ValueError(
-                    f'size mismatch between different products of {self._internal_representation}'
-                )
-        if len(self._internal_representation) != len(
-            set(map(tuple, self._internal_representation))
-        ):
-            raise ValueError('SumOfProducts can\'t have duplicate products.')
+        if not all(len(p) == num_qubits for p in self._internal_representation):
+            raise ValueError(
+                f'Each term of {self._internal_representation} should be of length {num_qubits}.'
+            )
+        self._is_trivial = self._internal_representation == (
+            (1,) * len(self._internal_representation[0]),
+        )
 
-    def _identifier(self) -> Tuple[Tuple[int, ...], ...]:
-        return self._internal_representation
+    @property
+    def is_trivial(self) -> bool:
+        return self._is_trivial
 
-    def _expand(self) -> Iterator[Tuple[int, ...]]:
+    def expand(self) -> 'SumOfProducts':
+        return self
+
+    def __iter__(self) -> Iterator[Tuple[int, ...]]:
         """Returns the combinations tracked by the object."""
         return iter(self._internal_representation)
 
-    def __repr__(self) -> str:
-        return f'cirq.SumOfProducts({str(self._identifier())})'
+    def _circuit_diagram_info_(
+        self, args: 'cirq.CircuitDiagramInfoArgs'
+    ) -> 'cirq.CircuitDiagramInfo':
+        """Returns a string representation to be used in circuit diagrams."""
+        if self._name is not None:
+            wire_symbols = ['@'] * self._num_qubits_()
+            wire_symbols[-1] = f'@({self._name})'
+            return protocols.CircuitDiagramInfo(wire_symbols=wire_symbols)
 
-    def _number_variables(self) -> int:
+        wire_symbols = [''] * self._num_qubits_()
+        for term in self._internal_representation:
+            for q_i, q_val in enumerate(term):
+                wire_symbols[q_i] = wire_symbols[q_i] + str(q_val)
+        wire_symbols = [f'@({s})' for s in wire_symbols]
+        return protocols.CircuitDiagramInfo(wire_symbols=wire_symbols)
+
+    def __repr__(self) -> str:
+        name = '' if self._name is None else f', name="{self._name}"'
+        return f'cirq.SumOfProducts({self._internal_representation!s} {name})'
+
+    def __str__(self) -> str:
+        suffix = (
+            self._name
+            if self._name is not None
+            else '_'.join(''.join(str(v) for v in t) for t in self._internal_representation)
+        )
+        return f'C_{suffix}'
+
+    def _num_qubits_(self) -> int:
         return len(self._internal_representation[0])
 
-    def __len__(self) -> int:
-        return self._number_variables()
+    def validate(self, qid_shapes: Sequence[int]) -> None:
+        if len(qid_shapes) != self._num_qubits_():
+            raise ValueError(
+                f'Length of qid_shapes: {qid_shapes} should be equal to self._num_qubits_():'
+                f' {self._num_qubits_()}'
+            )
 
-    def __hash__(self) -> int:
-        return hash(self._internal_representation)
-
-    def validate(self, qid_shapes: Union[Tuple[int, ...], List[int]]) -> None:
-        for vals in self._internal_representation:
-            if len(qid_shapes) != len(vals):
-                raise ValueError(
-                    f'number of values in product {vals} doesn\'t  equal number'
-                    f' of qubits(={len(qid_shapes)})'
-                )
-
-            for i, v in enumerate(vals):
-                if not (0 <= v and v < qid_shapes[i]):
+        for product in self._internal_representation:
+            for q_i, q_val in enumerate(product):
+                if not (0 <= q_val < qid_shapes[q_i]):
                     raise ValueError(
-                        f'Control values <{v}> in combination {vals} is outside'
-                        f' of range for control qubit number <{i}>.'
+                        f'Control value <{q_val}> in combination {product} is outside'
+                        f' of range [0, {qid_shapes[q_i]}) for control qubit number <{q_i}>.'
                     )
 
-    def _are_ones(self) -> bool:
-        return frozenset(self._internal_representation) == {(1,) * self._number_variables()}
-
-    def diagram_repr(self, label: Optional[str] = None) -> str:
-        if label:
-            return label
-        return ','.join(map(lambda p: ''.join(map(str, p)), self._internal_representation))
-
     def _json_dict_(self) -> Dict[str, Any]:
-        return {'_internal_representation': self._internal_representation}
-
-    def __and__(self, other: AbstractControlValues) -> 'SumOfProducts':
-        if isinstance(other, ProductOfSums):
-            other = SumOfProducts(tuple(p for p in other))
-        if not isinstance(other, SumOfProducts):
-            raise TypeError(
-                f'And operation not supported between types SumOfProducts and {type(other)}'
-            )
-        combined = map(
-            lambda p: tuple(itertools.chain(*p)),
-            itertools.product(self._internal_representation, other._internal_representation),
-        )
-        return SumOfProducts(tuple(combined))
+        return {'data': self._internal_representation, 'name': self._name}
