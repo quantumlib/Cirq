@@ -22,7 +22,7 @@ from cirq import ops, protocols
 if TYPE_CHECKING:
     import cirq
 
-TSelf = TypeVar('TSelf', bound='_BaseLineQid')  # type: ignore
+TSelf = TypeVar('TSelf', bound='_BaseLineQid')
 
 
 @functools.total_ordering  # type: ignore

@@ -76,11 +76,13 @@ def fidelity(
     validate: bool = True,
     atol: float = 1e-7,
 ) -> float:
-    """Fidelity of two quantum states.
+    r"""Fidelity of two quantum states.
 
-    The fidelity of two density matrices ρ and σ is defined as
+    The fidelity of two density matrices ρ and σ is defined as:
 
-        trace(sqrt(sqrt(ρ) σ sqrt(ρ)))^2.
+    $$
+        trace(\sqrt{\sqrt{\rho} \hspace{0.5em} \sigma \sqrt{\rho}})^2
+    $$
 
     The given states can be state vectors or density matrices.
 
@@ -92,7 +94,7 @@ def fidelity(
         atol: Absolute numerical tolerance to use for validation.
 
     Returns:
-        The fidelity.
+        The value of the fidelity, as a float.
 
     Raises:
         ValueError: The qid shape of the given states was not specified and
@@ -257,7 +259,11 @@ def von_neumann_entropy(
     validate: bool = True,
     atol: float = 1e-7,
 ) -> float:
-    """Calculates the von Neumann entropy of a quantum state in bits.
+    r"""Calculates the von Neumann entropy of a quantum state in bits.
+
+    The Von Neumann entropy is defined as $ - trace( \rho ln \rho)$, for
+    a density matrix $\rho$.  This gives the amount of entropy in 'ebits'
+    (bits of bipartite entanglement).
 
     If `state` is a square matrix, it is assumed to be a density matrix rather
     than a (pure) state tensor.
@@ -273,6 +279,9 @@ def von_neumann_entropy(
 
     Raises:
         ValueError: Invalid quantum state.
+
+    References:
+        https://en.wikipedia.org/wiki/Von_Neumann_entropy
     """
     if isinstance(state, QuantumState) and state._is_density_matrix():
         state = state.data

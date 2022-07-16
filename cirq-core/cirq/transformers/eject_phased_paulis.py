@@ -287,7 +287,7 @@ def _double_cross_over_cz(
     """
     t = cast(value.TParamVal, _try_get_known_cz_half_turns(op))
     for q in op.qubits:
-        held_w_phases[q] = cast(value.TParamVal, held_w_phases[q]) + t / 2
+        held_w_phases[q] += t / 2
     return op
 
 

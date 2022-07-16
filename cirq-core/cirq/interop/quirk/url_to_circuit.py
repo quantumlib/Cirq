@@ -235,7 +235,7 @@ def quirk_json_to_circuit(
 
     # Remap qubits if requested.
     if qubits is not None:
-        qs = cast(Sequence['cirq.Qid'], qubits)
+        qs = qubits
 
         def map_qubit(qubit: 'cirq.Qid') -> 'cirq.Qid':
             q = cast(devices.LineQubit, qubit)

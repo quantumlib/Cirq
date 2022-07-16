@@ -292,10 +292,10 @@ def apply_matrix_to_slices(
 
     # Apply operation.
     for i, s_i in enumerate(slices):
-        out[s_i] *= matrix[i, i]
+        out[s_i] *= matrix[i, i]  # type: ignore[index]
         for j, s_j in enumerate(slices):
             if i != j:
-                out[s_i] += target[s_j] * matrix[i, j]
+                out[s_i] += target[s_j] * matrix[i, j]  # type: ignore[index]
 
     return out
 
@@ -482,7 +482,7 @@ def sub_state_vector(
         for k in range(1 << len(other_qubits))
     ]
     # The coherence measure is computed using unnormalized candidates.
-    best_candidate = max(candidates, key=lambda c: np.linalg.norm(c, 2))
+    best_candidate = max(candidates, key=lambda c: float(np.linalg.norm(c, 2)))
     best_candidate = best_candidate / np.linalg.norm(best_candidate)
     left = np.conj(best_candidate.reshape((keep_dims,))).T
     coherence_measure = sum([abs(np.dot(left, c.reshape((keep_dims,)))) ** 2 for c in candidates])
