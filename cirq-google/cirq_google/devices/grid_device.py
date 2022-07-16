@@ -39,6 +39,7 @@ from cirq_google.devices import known_devices
 from cirq_google.experimental import ops as experimental_ops
 
 
+# Gate family constants used in various parts of GridDevice logic.
 _SYC_GATE_FAMILY = cirq.GateFamily(ops.SYC)
 _SQRT_ISWAP_GATE_FAMILY = cirq.GateFamily(cirq.SQRT_ISWAP)
 _SQRT_ISWAP_INV_GATE_FAMILY = cirq.GateFamily(cirq.SQRT_ISWAP_INV)
@@ -50,7 +51,6 @@ _COUPLER_PULSE_GATE_FAMILY = cirq.GateFamily(experimental_ops.CouplerPulse)
 _MEASUREMENT_GATE_FAMILY = cirq.GateFamily(cirq.MeasurementGate)
 _WAIT_GATE_FAMILY = cirq.GateFamily(cirq.WaitGate)
 
-
 _SYC_FSIM_GATE_FAMILY = ops.FSimGateFamily(gates_to_accept=[ops.SYC])
 _SQRT_ISWAP_FSIM_GATE_FAMILY = ops.FSimGateFamily(gates_to_accept=[cirq.SQRT_ISWAP])
 _SQRT_ISWAP_INV_FSIM_GATE_FAMILY = ops.FSimGateFamily(gates_to_accept=[cirq.SQRT_ISWAP_INV])
@@ -58,13 +58,17 @@ _CZ_FSIM_GATE_FAMILY = ops.FSimGateFamily(gates_to_accept=[cirq.CZ])
 
 
 # TODO(#5050) Add GlobalPhaseGate
+# Target gates of `cirq_google.GoogleCZTargetGateset`.
 _CZ_TARGET_GATES = [_CZ_FSIM_GATE_FAMILY, _PHASED_XZ_GATE_FAMILY, _MEASUREMENT_GATE_FAMILY]
+# Target gates of `cirq_google.SycamoreTargetGateset`.
 _SYC_TARGET_GATES = [_SYC_FSIM_GATE_FAMILY, _PHASED_XZ_GATE_FAMILY, _MEASUREMENT_GATE_FAMILY]
+# Target gates of `cirq.SqrtIswapTargetGateset`
 _SQRT_ISWAP_TARGET_GATES = [
     _SQRT_ISWAP_FSIM_GATE_FAMILY,
     _PHASED_XZ_GATE_FAMILY,
     _MEASUREMENT_GATE_FAMILY,
 ]
+
 
 # Families of gates which can be applied to any subset of valid qubits.
 _VARIADIC_GATE_FAMILIES = [_MEASUREMENT_GATE_FAMILY, _WAIT_GATE_FAMILY]
@@ -141,9 +145,9 @@ def _build_gateset_and_gate_durations(
         elif gate_name == 'phased_xz':
             cirq_gates = [cirq.PhasedXZGate, cirq.XPowGate, cirq.YPowGate, cirq.PhasedXPowGate]
         elif gate_name == 'virtual_zpow':
-            cirq_gates = [cirq.GateFamily(cirq.ZPowGate, tags_to_ignore=[ops.PhysicalZTag()])]
+            cirq_gates = [_VIRTUAL_ZPOW_GATE_FAMILY]
         elif gate_name == 'physical_zpow':
-            cirq_gates = [cirq.GateFamily(cirq.ZPowGate, tags_to_accept=[ops.PhysicalZTag()])]
+            cirq_gates = [_PHYSICAL_ZPOW_GATE_FAMILY]
         elif gate_name == 'coupler_pulse':
             cirq_gates = [experimental_ops.CouplerPulse]
         elif gate_name == 'meas':
