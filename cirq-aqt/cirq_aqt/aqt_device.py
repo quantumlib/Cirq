@@ -11,6 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
 """Current device parameters for the AQT/UIBK ion trap device
 
 The device is based on a linear calcium ion string with
@@ -30,7 +31,7 @@ import networkx as nx
 import numpy as np
 
 import cirq
-from cirq_aqt import aqt_target_gateset
+from cirq_aqt import aqt_device_metadata
 
 gate_dict = {'X': cirq.X, 'Y': cirq.Y, 'Z': cirq.Z, 'MS': cirq.XX, 'R': cirq.PhasedXPowGate}
 
@@ -245,41 +246,28 @@ class AQTDevice(cirq.Device):
         Raises:
             TypeError: If not all the qubits supplied are `cirq.LineQubit`s.
         """
-        self._measurement_duration = cirq.Duration(measurement_duration)
-        self._twoq_gates_duration = cirq.Duration(twoq_gates_duration)
-        self._oneq_gates_duration = cirq.Duration(oneq_gates_duration)
         if not all(isinstance(qubit, cirq.LineQubit) for qubit in qubits):
             raise TypeError(
                 "All qubits were not of type cirq.LineQubit, instead were "
                 f"{set(type(qubit) for qubit in qubits)}"
             )
         self.qubits = frozenset(qubits)
-        self.gateset = aqt_target_gateset.AQTTargetGateset()
 
         graph = nx.Graph()
         graph.add_edges_from([(a, b) for a in qubits for b in qubits if a != b], directed=False)
-        self._metadata = cirq.DeviceMetadata(self.qubits, graph)
+        self._metadata = aqt_device_metadata.AQTDeviceMetadata(
+            qubits=self.qubits,
+            measurement_duration=measurement_duration,
+            twoq_gates_duration=twoq_gates_duration,
+            oneq_gates_duration=oneq_gates_duration,
+        )
 
     @property
-    def metadata(self) -> cirq.DeviceMetadata:
+    def metadata(self) -> aqt_device_metadata.AQTDeviceMetadata:
         return self._metadata
 
-    def decompose_circuit(self, circuit: cirq.Circuit) -> cirq.Circuit:
-        return cirq.optimize_for_target_gateset(circuit, gateset=self.gateset)
-
-    def duration_of(self, operation):
-        if isinstance(operation.gate, cirq.XXPowGate):
-            return self._twoq_gates_duration
-        if isinstance(
-            operation.gate, (cirq.XPowGate, cirq.YPowGate, cirq.ZPowGate, cirq.PhasedXPowGate)
-        ):
-            return self._oneq_gates_duration
-        if isinstance(operation.gate, cirq.MeasurementGate):
-            return self._measurement_duration
-        raise ValueError(f'Unsupported gate type: {operation!r}')
-
     def validate_gate(self, gate: cirq.Gate):
-        if gate not in self.gateset:
+        if gate not in self.metadata.gateset:
             raise ValueError(f'Unsupported gate type: {gate!r}')
 
     def validate_operation(self, operation):
@@ -304,12 +292,7 @@ class AQTDevice(cirq.Device):
         return q if q in self.qubits else None
 
     def _value_equality_values_(self) -> Any:
-        return (
-            self._measurement_duration,
-            self._twoq_gates_duration,
-            self._oneq_gates_duration,
-            self.qubits,
-        )
+        return (self.metadata, self.qubits)
 
     def __str__(self) -> str:
         diagram = cirq.TextDiagramDrawer()
@@ -324,9 +307,9 @@ class AQTDevice(cirq.Device):
     def __repr__(self) -> str:
         return (
             f'cirq_aqt.aqt_device.AQTDevice('
-            f'measurement_duration={self._measurement_duration!r}, '
-            f'twoq_gates_duration={self._twoq_gates_duration!r}, '
-            f'oneq_gates_duration={self._oneq_gates_duration!r}, '
+            f'measurement_duration={self.metadata.measurement_duration!r}, '
+            f'twoq_gates_duration={self.metadata.twoq_gates_duration!r}, '
+            f'oneq_gates_duration={self.metadata.oneq_gates_duration!r}, '
             f'qubits={sorted(self.qubits)!r}'
             f')'
         )

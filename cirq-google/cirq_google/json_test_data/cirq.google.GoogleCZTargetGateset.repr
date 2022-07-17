@@ -1,0 +1,4 @@
+[
+	cirq_google.GoogleCZTargetGateset(atol=1e-08, eject_paulis=False, additional_gates=[]),
+	cirq_google.GoogleCZTargetGateset(atol=1e-06, eject_paulis=True, additional_gates=[(cirq.ISWAP**0.5), cirq.ops.common_gates.XPowGate])
+]
