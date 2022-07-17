@@ -130,7 +130,8 @@ def test_init_validation():
         },
     )
     assert test_props.expected_gates() == (
-        ExampleNoiseProperties.single_qubit_gates() | ExampleNoiseProperties.symmetric_two_qubit_gates()
+        ExampleNoiseProperties.single_qubit_gates()
+        | ExampleNoiseProperties.symmetric_two_qubit_gates()
     )
 
     # All errors are ignored if validation is disabled.
