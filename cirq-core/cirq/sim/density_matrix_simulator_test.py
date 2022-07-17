@@ -952,7 +952,7 @@ def test_density_matrix_step_result_repr():
         )
         == "cirq.DensityMatrixStepResult(sim_state=cirq.DensityMatrixSimulationState("
         "initial_state=np.array([[(0.5+0j), (0.5+0j)], [(0.5+0j), (0.5+0j)]], dtype=np.complex64), "
-        "qid_shape=(2,), qubits=(cirq.LineQubit(0),), "
+        "qubits=(cirq.LineQubit(0),), "
         "classical_data=cirq.ClassicalDataDictionaryStore()), dtype=np.complex64)"
     )
 
