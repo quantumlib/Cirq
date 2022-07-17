@@ -94,6 +94,7 @@ from cirq_google.ops import CalibrationTag, FSimGateFamily, PhysicalZTag, Sycamo
 from cirq_google.transformers import (
     known_2q_op_to_sycamore_operations,
     two_qubit_matrix_to_sycamore_operations,
+    GoogleCZTargetGateset,
     SycamoreTargetGateset,
 )
 
