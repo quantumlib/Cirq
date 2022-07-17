@@ -247,7 +247,6 @@ class DensityMatrixSimulationState(SimulationState[_BufferedDensityMatrix]):
         self,
         *,
         available_buffer: Optional[List[np.ndarray]] = None,
-        qid_shape: Optional[Tuple[int, ...]] = None,
         prng: Optional[np.random.RandomState] = None,
         qubits: Optional[Sequence['cirq.Qid']] = None,
         initial_state: Union[np.ndarray, 'cirq.STATE_VECTOR_LIKE'] = 0,
@@ -264,7 +263,6 @@ class DensityMatrixSimulationState(SimulationState[_BufferedDensityMatrix]):
             qubits: Determines the canonical ordering of the qubits. This
                 is often used in specifying the initial state, i.e. the
                 ordering of the computational basis states.
-            qid_shape: The shape of the target tensor.
             prng: The pseudo random number generator to use for probabilistic
                 effects.
             initial_state: The initial state for the simulation in the
