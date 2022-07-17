@@ -495,6 +495,11 @@ def create_device_specification_proto(
 ) -> v2.device_pb2.DeviceSpecification:
     """Serializes the given device information into a DeviceSpecification proto.
 
+    This function does not serialize a `GridDevice`. Instead, it only takes a subset of device
+    information sufficient to populate the `DeviceSpecification` proto. This reduces the complexity
+    of constructing `DeviceSpecification` and `GridDevice` on server side by requiring only the bare
+    essential device information.
+
     Args:
         qubits: Collection of qubits available on the device.
         pairs: Collection of bidirectional qubit couplings available on the device.
