@@ -62,6 +62,7 @@ TestSpec = ModuleJsonTestSpec(
             'SimulatedProcessorWithLocalDeviceRecord',
             'EngineResult',
             'GridDevice',
+            'GoogleCZTargetGateset',
         ]
     },
     resolver_cache=_class_resolver_dictionary(),
