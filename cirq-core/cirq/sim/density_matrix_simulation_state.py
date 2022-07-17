@@ -312,7 +312,6 @@ class DensityMatrixSimulationState(SimulationState[_BufferedDensityMatrix]):
         return (
             'cirq.DensityMatrixSimulationState('
             f'initial_state={proper_repr(self.target_tensor)},'
-            f' qid_shape={self.qid_shape!r},'
             f' qubits={self.qubits!r},'
             f' classical_data={self.classical_data!r})'
         )
