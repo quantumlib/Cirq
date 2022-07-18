@@ -29,7 +29,6 @@ from cirq.transformers import measurement_transformers
 
 if TYPE_CHECKING:
     import cirq
-    from numpy.typing import DTypeLike
 
 CIRCUIT_LIKE = Union[circuits.Circuit, ops.Gate, ops.OP_TREE]
 document(
@@ -112,7 +111,7 @@ def final_state_vector(
     ignore_terminal_measurements: bool = False,
     dtype: Type[np.complexfloating] = np.complex64,
     seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None,
-) -> 'np.ndarray':
+) -> np.ndarray:
     """Returns the state vector resulting from acting operations on a state.
 
     By default the input state is the computational basis zero state, in which
