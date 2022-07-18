@@ -14,4 +14,6 @@
 
 """`cirq.CompilationTargetGateset` implementations for cirq_google gatesets and devices."""
 
+from cirq_google.transformers.target_gatesets.google_cz_gateset import GoogleCZTargetGateset
+
 from cirq_google.transformers.target_gatesets.sycamore_gateset import SycamoreTargetGateset

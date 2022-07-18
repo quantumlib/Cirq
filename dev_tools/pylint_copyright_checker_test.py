@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import pytest
 from astroid import parse
 from pylint.testutils import CheckerTestCase, MessageTest
 
@@ -68,10 +69,12 @@ class TestCopyrightChecker(CheckerTestCase):
         ):
             self.checker.process_module(node)
 
-    def test_correct_copyright(self) -> None:
-        r"""Do not report a message when the correct copyright notice is shown."""
+    @pytest.mark.parametrize('prefix', ["", "#!/usr/bin/env python\n", "#!/usr/bin/env/python\n\n"])
+    def test_correct_copyright(self, prefix: str) -> None:
+        """Do not report a message when the correct copyright notice is shown."""
         node = parse(
-            """# Copyright 2020 The Cirq Developers
+            prefix
+            + """# Copyright 2020 The Cirq Developers
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.

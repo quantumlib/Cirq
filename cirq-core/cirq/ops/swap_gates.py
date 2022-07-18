@@ -60,7 +60,7 @@ class SwapPowGate(gate_features.InterchangeableQubitsGate, eigen_gate.EigenGate)
     c = \cos\left(\frac{\pi t}{2}\right)
     $$
     $$
-    s = \sin(\left(\frac{\pi t}{2}\right)
+    s = \sin\left(\frac{\pi t}{2}\right)
     $$
     $$
     g = e^{\frac{i \pi t}{2}}

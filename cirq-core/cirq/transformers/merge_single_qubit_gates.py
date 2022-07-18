@@ -16,7 +16,7 @@
 
 from typing import Optional, TYPE_CHECKING
 
-from cirq import protocols, circuits
+from cirq import circuits, ops, protocols
 from cirq.transformers.analytical_decompositions import single_qubit_decompositions
 from cirq.transformers import transformer_api, transformer_primitives, merge_k_qubit_gates
 
@@ -47,11 +47,12 @@ def merge_single_qubit_gates_to_phased_x_and_z(
     """
 
     def rewriter(op: 'cirq.CircuitOperation') -> 'cirq.OP_TREE':
+        u = protocols.unitary(op)
+        if protocols.num_qubits(op) == 0:
+            return ops.GlobalPhaseGate(u[0, 0]).on()
         return [
             g(op.qubits[0])
-            for g in single_qubit_decompositions.single_qubit_matrix_to_phased_x_z(
-                protocols.unitary(op), atol
-            )
+            for g in single_qubit_decompositions.single_qubit_matrix_to_phased_x_z(u, atol)
         ]
 
     return merge_k_qubit_gates.merge_k_qubit_unitaries(
@@ -82,7 +83,10 @@ def merge_single_qubit_gates_to_phxz(
     """
 
     def rewriter(op: 'cirq.CircuitOperation') -> 'cirq.OP_TREE':
-        gate = single_qubit_decompositions.single_qubit_matrix_to_phxz(protocols.unitary(op), atol)
+        u = protocols.unitary(op)
+        if protocols.num_qubits(op) == 0:
+            return ops.GlobalPhaseGate(u[0, 0]).on()
+        gate = single_qubit_decompositions.single_qubit_matrix_to_phxz(u, atol)
         return gate(op.qubits[0]) if gate else []
 
     return merge_k_qubit_gates.merge_k_qubit_unitaries(

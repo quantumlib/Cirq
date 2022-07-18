@@ -14,7 +14,20 @@
 
 """Device object representing Google devices with a grid qubit layout."""
 
-from typing import Any, Collection, Dict, List, Optional, Sequence, Set, Tuple, Type, Union, cast
+from typing import (
+    Any,
+    Collection,
+    Dict,
+    List,
+    Mapping,
+    Optional,
+    Sequence,
+    Set,
+    Tuple,
+    Type,
+    Union,
+    cast,
+)
 import re
 import warnings
 
@@ -89,7 +102,7 @@ def _validate_device_specification(proto: v2.device_pb2.DeviceSpecification) -> 
 
 def _build_gateset_and_gate_durations(
     proto: v2.device_pb2.DeviceSpecification,
-) -> Tuple[cirq.Gateset, Dict[cirq.GateFamily, cirq.Duration]]:
+) -> Tuple[cirq.Gateset, Mapping[cirq.GateFamily, cirq.Duration]]:
     """Extracts gate set and gate duration information from the given DeviceSpecification proto."""
 
     gates_list: List[Union[Type[cirq.Gate], cirq.Gate, cirq.GateFamily]] = []
@@ -451,7 +464,7 @@ def create_device_specification_proto(
     qubits: Collection[cirq.GridQubit],
     pairs: Collection[Tuple[cirq.GridQubit, cirq.GridQubit]],
     gateset: cirq.Gateset,
-    gate_durations: Optional[Dict['cirq.GateFamily', 'cirq.Duration']] = None,
+    gate_durations: Optional[Mapping['cirq.GateFamily', 'cirq.Duration']] = None,
     out: Optional[v2.device_pb2.DeviceSpecification] = None,
 ) -> v2.device_pb2.DeviceSpecification:
     """Serializes the given device information into a DeviceSpecification proto.

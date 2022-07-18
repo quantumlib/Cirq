@@ -50,7 +50,7 @@ PauliSumLike = Union[
     int, float, complex, PauliString, 'PauliSum', pauli_string.SingleQubitPauliStringGateOperation
 ]
 document(
-    PauliSumLike,  # type: ignore
+    PauliSumLike,
     """Any value that can be easily translated into a sum of Pauli products.
     """,
 )

@@ -55,7 +55,7 @@ class OpTree(Protocol):
 
 OP_TREE = Union[Operation, OpTree]
 document(
-    OP_TREE,  # type: ignore
+    OP_TREE,
     """An operation or nested collections of operations.
 
     Here are some examples of things that can be given to a method that takes a
