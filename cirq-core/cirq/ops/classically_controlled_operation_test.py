@@ -1017,3 +1017,19 @@ def test_commutes():
     assert not cirq.commutes(
         cirq.X(q0).with_classical_controls('a'), cirq.H(q0).with_classical_controls('a')
     )
+
+
+def test_moment_diagram():
+    a, _, c, d = cirq.GridQubit.rect(2, 2)
+    m = cirq.Moment(cirq.CZ(a, d), cirq.X(c).with_classical_controls('m'))
+    assert (
+        str(m).strip()
+        == """
+  ╷ 0                 1
+╶─┼─────────────────────
+0 │ @─────────────────┐
+  │                   │
+1 │ X(conditions=[m]) @
+  │
+    """.strip()
+    )
