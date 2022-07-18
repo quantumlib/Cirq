@@ -59,15 +59,15 @@ def test_init_product_of_sums():
 def test_init_sum_of_products():
     eq = cirq.testing.EqualsTester()
     # 0. Trivial case of 1 control and 1 qubit
-    eq.add_equality_group(cirq.SumOfProducts([1]), cirq.SumOfProducts(((1,),)))
-    eq.add_equality_group(cirq.SumOfProducts([0]), cirq.SumOfProducts(((0,),)))
+    eq.add_equality_group(cirq.SumOfProducts([[1]]), cirq.SumOfProducts(((1,),)))
+    eq.add_equality_group(cirq.SumOfProducts([[0]]), cirq.SumOfProducts(((0,),)))
     # 1. Multiple controls for 1 qubit.
     #   - Duplicates and Permutation across different terms is ignored.
     eq.add_equality_group(
-        cirq.SumOfProducts([0, 1, 2], name="custom name"),
+        cirq.SumOfProducts([[0], [1], [2]], name="custom name"),
         cirq.SumOfProducts([[0], [1], [2]], name="name does not matter"),
-        cirq.SumOfProducts([2, 0, 1]),
-        cirq.SumOfProducts([0, 0, 2, 2, 1, 1]),
+        cirq.SumOfProducts([[2], [0], [1]]),
+        cirq.SumOfProducts([[0], [0], [2], [2], [1], [1]]),
     )
     # 2. Multiple qubits, each with 1 control.
     #   - The number of different "terms" in this case is just 1; since each term corresponds
@@ -91,22 +91,22 @@ def test_equality_across_types():
     eq = cirq.testing.EqualsTester()
     # Trivial case of 1 control and 1 qubit
     eq.add_equality_group(
-        cirq.SumOfProducts([1]),
+        cirq.SumOfProducts([[1]]),
         cirq.ProductOfSums([1]),
         cirq.SumOfProducts(((1,),)),
         cirq.ProductOfSums(((1,),)),
     )
     # Note that instances of `AbstractControlValues` will not compare equal to corresponding
     # expanded tuples used in their internal representation (i.e. `tuple(control_values)`).
-    eq.add_equality_group(((1,),), tuple(cirq.ProductOfSums([1])), tuple(cirq.SumOfProducts([1])))
+    eq.add_equality_group(((1,),), tuple(cirq.ProductOfSums([1])), tuple(cirq.SumOfProducts([[1]])))
     # Multiple controls for 1 qubit.
-    eq.add_equality_group(cirq.SumOfProducts([0, 1, 2]), cirq.ProductOfSums([[0, 1, 2]]))
+    eq.add_equality_group(cirq.SumOfProducts([[0], [1], [2]]), cirq.ProductOfSums([[0, 1, 2]]))
     # Multiple qubits, each with 1 control
     eq.add_equality_group(cirq.ProductOfSums([0, 1, 2]), cirq.SumOfProducts([[0, 1, 2]]))
     # Expanded tuples of unequal `SumOfProducts` and `ProductOfSums` can be equal.
     eq.add_equality_group(
         ((0,), (1,), (2,)),
-        tuple(cirq.SumOfProducts([0, 1, 2])),
+        tuple(cirq.SumOfProducts([[0], [1], [2]])),
         tuple(cirq.ProductOfSums([0, 1, 2])),
     )
     eq.add_equality_group(
@@ -126,13 +126,13 @@ def test_and_operation():
 
     eq.add_equality_group(
         cirq.ProductOfSums([0]) & cirq.ProductOfSums([1]),
-        cirq.ProductOfSums([0]) & cirq.SumOfProducts([1]),
-        cirq.SumOfProducts([0]) & cirq.ProductOfSums([1]),
+        cirq.ProductOfSums([0]) & cirq.SumOfProducts([[1]]),
+        cirq.SumOfProducts([[0]]) & cirq.ProductOfSums([1]),
         cirq.ProductOfSums([0, 1]),
         cirq.SumOfProducts([[0, 1]]),
     )
     eq.add_equality_group(
-        cirq.ProductOfSums([1]) & cirq.SumOfProducts([0]), cirq.ProductOfSums([1, 0])
+        cirq.ProductOfSums([1]) & cirq.SumOfProducts([[0]]), cirq.ProductOfSums([1, 0])
     )
 
     eq.add_equality_group(
@@ -178,10 +178,10 @@ def test_or_operation():
 
     eq.add_equality_group(
         cirq.ProductOfSums([0]) | cirq.ProductOfSums([1]),
-        cirq.ProductOfSums([1]) | cirq.SumOfProducts([0]),
-        cirq.SumOfProducts([0]) | cirq.ProductOfSums([1]),
+        cirq.ProductOfSums([1]) | cirq.SumOfProducts([[0]]),
+        cirq.SumOfProducts([[0]]) | cirq.ProductOfSums([1]),
         cirq.ProductOfSums([[0, 1]]),
-        cirq.SumOfProducts([1, 0]),
+        cirq.SumOfProducts([[1], [0]]),
     )
 
     eq.add_equality_group(
@@ -208,7 +208,7 @@ def test_or_operation():
             cirq.SumOfProducts,
         ],
         [cirq.ProductOfSums([0, 1]), cirq.ProductOfSums([1]), None],
-        [cirq.SumOfProducts([0, 1, 2]), cirq.SumOfProducts([[1, 0]]), None],
+        [cirq.SumOfProducts([[0], [1], [2]]), cirq.SumOfProducts([[1, 0]]), None],
     ],
 )
 def test_or_operation_acts_on_same_qubits(cv1, cv2, expected_type):
@@ -283,3 +283,63 @@ def test_sum_of_products_str():
 
     c = cirq.SumOfProducts(((1, 0), (0, 1)), name="xor")
     assert str(c) == 'C_xor'
+
+
+def test_control_values_diagrams():
+    q = cirq.LineQubit.range(3)
+    ccx = cirq.X(q[0]).controlled_by(*q[1:])
+    ccx_sop = cirq.X(q[0]).controlled_by(*q[1:], control_values=cirq.SumOfProducts([[1, 1]]))
+    cirq.testing.assert_has_diagram(
+        cirq.Circuit(ccx, ccx_sop),
+        """
+0: ───X───X───
+      │   │
+1: ───@───@───
+      │   │
+2: ───@───@───
+""",
+    )
+    c0c1x = cirq.X(q[0]).controlled_by(*q[1:], control_values=[0, 1])
+    c0c1x_sop = cirq.X(q[0]).controlled_by(*q[1:], control_values=cirq.SumOfProducts([[0, 1]]))
+    cirq.testing.assert_has_diagram(
+        cirq.Circuit(c0c1x, c0c1x_sop),
+        """
+0: ───X─────X─────
+      │     │
+1: ───(0)───(0)───
+      │     │
+2: ───@─────@─────
+""",
+    )
+
+    c01c2x = cirq.X(q[0]).controlled_by(*q[1:], control_values=[[0, 1], 1])
+    c01c2x_sop = cirq.X(q[0]).controlled_by(
+        *q[1:], control_values=cirq.SumOfProducts([[0, 1], [1, 1]])
+    )
+    cirq.testing.assert_has_diagram(
+        cirq.Circuit(c01c2x, c01c2x_sop),
+        """
+0: ───X───────X───────
+      │       │
+1: ───(0,1)───@(01)───
+      │       │
+2: ───@───────@(11)───
+""",
+    )
+
+    xor_sop = cirq.X(q[0]).controlled_by(
+        *q[1:], control_values=cirq.SumOfProducts([[0, 1], [1, 0]])
+    )
+    xor_named_sop = cirq.X(q[0]).controlled_by(
+        *q[1:], control_values=cirq.SumOfProducts([[0, 1], [1, 0]], name="xor")
+    )
+    cirq.testing.assert_has_diagram(
+        cirq.Circuit(xor_sop, xor_named_sop),
+        """
+0: ───X───────X────────
+      │       │
+1: ───@(01)───@────────
+      │       │
+2: ───@(10)───@(xor)───
+        """,
+    )

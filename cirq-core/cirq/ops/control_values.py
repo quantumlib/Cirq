@@ -241,9 +241,9 @@ class SumOfProducts(AbstractControlValues):
         >>> nand_cop = cirq.X(q2).controlled_by(q0, q1, control_values=nand_control_values)
     """
 
-    def __init__(self, data: Sequence[Union[int, Collection[int]]], *, name: Optional[str] = None):
+    def __init__(self, data: Collection[Sequence[int]], *, name: Optional[str] = None):
         self._conjunctions: Tuple[Tuple[int, ...], ...] = tuple(
-            sorted(set((cv,) if isinstance(cv, int) else tuple(cv) for cv in data))
+            sorted(set(tuple(cv) for cv in data))
         )
         self._name = name
         if not len(self._conjunctions):
@@ -271,6 +271,12 @@ class SumOfProducts(AbstractControlValues):
             wire_symbols = ['@'] * self._num_qubits_()
             wire_symbols[-1] = f'@({self._name})'
             return protocols.CircuitDiagramInfo(wire_symbols=wire_symbols)
+
+        if len(self._conjunctions) == 1:
+            # Use a simpler diagram if there's only 1 term.
+            return protocols.CircuitDiagramInfo(
+                wire_symbols=["@" if x == 1 else f"({x})" for x in self._conjunctions[0]]
+            )
 
         wire_symbols = [''] * self._num_qubits_()
         for term in self._conjunctions:
