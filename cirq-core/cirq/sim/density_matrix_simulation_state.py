@@ -274,8 +274,8 @@ class DensityMatrixSimulationState(SimulationState[_BufferedDensityMatrix]):
                 simulation.
 
         Raises:
-            ValueError: The dimension of `target_tensor` is not divisible by 2
-                and `qid_shape` is not provided.
+            ValueError: If `initial_state` is provided as integer, but `qubits`
+                is not provided.
         """
         state = _BufferedDensityMatrix.create(
             initial_state=initial_state,
