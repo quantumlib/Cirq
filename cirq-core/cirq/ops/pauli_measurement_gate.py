@@ -46,8 +46,8 @@ class PauliMeasurementGate(raw_types.Gate):
     PauliMeasurementGate contains a key used to identify results of measurement
     and a list of Paulis which represent the pauli observable to be measured.
 
-    By default, a `PauliMeasurementGate` decomposes into $U M_q0 U\dagger$
-    where $U$ represents the basis change operator and $M_q0$ represents a single
+    By default, a `PauliMeasurementGate` decomposes into $U M_{q0} U\dagger$
+    where $U$ represents the basis change operator and $M_{q0}$ represents a single
     Z-basis measurement on the first qubit.
     """
 

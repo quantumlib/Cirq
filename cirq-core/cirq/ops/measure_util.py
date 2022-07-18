@@ -33,7 +33,7 @@ def measure_single_paulistring(
     pauli_observable: pauli_string.PauliString,
     key: Optional[Union[str, 'cirq.MeasurementKey']] = None,
 ) -> raw_types.Operation:
-    """Returns an operation, from `cirq.PauliMeasurementGate`, to measure the `pauli_observable`.
+    """Returns an operation, using `cirq.PauliMeasurementGate`, to measure the `pauli_observable`.
 
     Note that the coefficient of `pauli_observable` will be ignored and the resulting operation
     will measure the single pauli observable with coefficient 1. For example:
@@ -42,7 +42,8 @@ def measure_single_paulistring(
     >>> observable = cirq.X(q[0]) * cirq.Z(q[1]) * cirq.X(q[2])
     >>> op = cirq.measure_single_paulistring(observable)
     >>> circuit = cirq.Circuit([cirq.H(q[0]), cirq.X(q[1]), cirq.H(q[2])], op)
-    >>> cirq.Simulator().run(circuit, repetitions=100).histogram(key=q)
+    >>> print(cirq.Simulator().run(circuit, repetitions=100).histogram(key=q))
+    Counter({1: 100})
 
     Args:
         pauli_observable: The `cirq.PauliString` observable to measure.
