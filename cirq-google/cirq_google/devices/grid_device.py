@@ -284,7 +284,7 @@ class GridDevice(cirq.Device):
           transform a circuit to one which only contains gates from a native target gateset
           supported by the device.
         >>> device.metadata.compilation_target_gatesets
-        (...cirq.CZTargetGateset...)
+        (...cirq_google.GoogleCZTargetGateset...)
 
         * Assuming valid CompilationTargetGatesets exist for the device, select the first one and
           use it to transform a circuit to one which only contains gates from a native target
