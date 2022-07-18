@@ -81,11 +81,7 @@ class ControlledOperation(raw_types.Operation):
         if control_values is None:
             control_values = ((1,),) * len(controls)
         if not isinstance(control_values, cv.AbstractControlValues):
-            control_values = cv.ProductOfSums(
-                tuple(
-                    (val,) if isinstance(val, int) else tuple(sorted(val)) for val in control_values
-                )
-            )
+            control_values = cv.ProductOfSums(control_values)
 
         if protocols.num_qubits(control_values) != len(controls):
             raise ValueError('cirq.num_qubits(control_values) != len(controls)')

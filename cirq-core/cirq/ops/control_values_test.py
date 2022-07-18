@@ -18,6 +18,7 @@ from cirq.ops import control_values as cv
 
 
 def test_init_sum_of_products_raises():
+    # data shouldn't be empty.
     with pytest.raises(ValueError):
         _ = cv.SumOfProducts([])
 
@@ -26,36 +27,135 @@ def test_init_sum_of_products_raises():
         _ = cv.SumOfProducts([[1], [1, 0]])
 
 
-#
-# def test_and_operation():
-#     eq = cirq.testing.EqualsTester()
-#     product_of_sums_data = [((1,),), ((0, 1), (1,)), (((0, 1), (1, 0)))]
-#     for control_values1 in product_of_sums_data:
-#         for control_values2 in product_of_sums_data:
-#             control_vals1 = cv.ProductOfSums(control_values1)
-#             control_vals2 = cv.ProductOfSums(control_values2)
-#             want = [v1 + v2 for v1 in control_vals1 for v2 in control_vals2]
-#             got = [c for c in control_vals1 & control_vals2]
-#             eq.add_equality_group(got, want)
-#
-#     sum_of_products_data = [((1,),), ((0, 1),), ((0, 0), (0, 1), (1, 0))]
-#     eq = cirq.testing.EqualsTester()
-#     for control_values1 in sum_of_products_data:
-#         for control_values2 in sum_of_products_data:
-#             control_vals1 = cv.SumOfProducts(control_values1)
-#             control_vals2 = cv.SumOfProducts(control_values2)
-#             want = [v1 + v2 for v1 in control_vals1 for v2 in control_vals2]
-#             got = [c for c in control_vals1 & control_vals2]
-#             eq.add_equality_group(got, want)
-#
-#     pos = cv.ProductOfSums(((1,), (0,)))
-#     sop = cv.SumOfProducts(((1, 0), (0, 1)))
-#     assert tuple(p for p in pos & sop) == ((1, 0, 1, 0), (1, 0, 0, 1))
-#
-#     assert tuple(p for p in sop & pos) == ((1, 0, 1, 0), (0, 1, 1, 0))
-#
-#     with pytest.raises(TypeError):
-#         _ = sop & 1
+def test_init_product_of_sums():
+    eq = cirq.testing.EqualsTester()
+    # 0. Trivial case of 1 control and 1 qubit.
+    eq.add_equality_group(cv.ProductOfSums([1]), cv.ProductOfSums(((1,),)))
+    eq.add_equality_group(cv.ProductOfSums([0]), cv.ProductOfSums(((0,),)))
+    # 1. Multiple controls for 1 qubit.
+    #   - The number of different "terms" in this case is just 1; since each term corresponds
+    #     to a specific qubit.
+    eq.add_equality_group(cv.ProductOfSums([[0, 1, 2]]), cv.ProductOfSums(((0, 1, 2),)))
+    # 2. Multiple qubits, each with 1 control.
+    #   - Duplicates within qubit control values are ignored.
+    #   - Supports initialization by Sequence[int] and Sequence[Collection[int]].
+    #   - Duplicates and Permutation across qubit control value groups leads to different objects.
+    eq.add_equality_group(
+        cv.ProductOfSums([0, 1, 2]),
+        cv.ProductOfSums([[0, 0], [1, 1], [2, 2]]),
+        cv.ProductOfSums([[0], [1], [2]]),
+    )
+    eq.add_equality_group([0, 0, 1, 1, 2, 2])
+    eq.add_equality_group([2, 0, 1])
+    # 3. Multiple controls and multiple qubits.
+    #   - Permutations within qubit control value groups leads to same objects.
+    eq.add_equality_group(
+        cv.ProductOfSums([(0, 1), (1, 2)]),
+        cv.ProductOfSums([(1, 0), (2, 1)]),
+        cv.ProductOfSums([[0, 1], (2, 1)]),
+    )
+    eq.add_equality_group([(1, 2), (0, 1)])
+
+
+def test_init_sum_of_products():
+    eq = cirq.testing.EqualsTester()
+    # 0. Trivial case of 1 control and 1 qubit
+    eq.add_equality_group(cv.SumOfProducts([1]), cv.SumOfProducts(((1,),)))
+    eq.add_equality_group(cv.SumOfProducts([0]), cv.SumOfProducts(((0,),)))
+    # 1. Multiple controls for 1 qubit.
+    #   - Duplicates and Permutation across different terms is ignored.
+    eq.add_equality_group(
+        cv.SumOfProducts([0, 1, 2], name="custom name"),
+        cv.SumOfProducts([[0], [1], [2]], name="name does not matter"),
+        cv.SumOfProducts([2, 0, 1]),
+        cv.SumOfProducts([0, 0, 2, 2, 1, 1]),
+    )
+    # 2. Multiple qubits, each with 1 control.
+    #   - The number of different "terms" in this case is just 1; since each term corresponds
+    #     to a valid control combination.
+    #   - Duplicates and Permutations within a term are not ignored, since they correspond to
+    #     different control configuration.
+    eq.add_equality_group(cv.SumOfProducts([[0, 1, 2]]), cv.SumOfProducts([(0, 1, 2)]))
+    eq.add_equality_group(cv.SumOfProducts([[1, 0, 2]]))
+    eq.add_equality_group(cv.SumOfProducts([(0, 2, 1)]))
+    eq.add_equality_group(cv.SumOfProducts([[0, 0, 1, 1, 2, 2]]))
+    # 3. Multiple qubits, multiple controls.
+    eq.add_equality_group(
+        cv.SumOfProducts([(0, 1), (0, 2), (1, 1), (1, 2)]),
+        cv.SumOfProducts([(1, 2), (0, 2), (0, 1), (1, 1)]),
+        cv.SumOfProducts([(1, 2), (1, 2), (0, 2), (0, 2), (1, 1), (0, 1)]),
+    )
+    eq.add_equality_group(cv.SumOfProducts([(1, 0), (2, 0), (1, 1), (2, 1)]))
+
+
+def test_equality_across_types():
+    eq = cirq.testing.EqualsTester()
+    # Trivial case of 1 control and 1 qubit
+    eq.add_equality_group(
+        cv.SumOfProducts([1]),
+        cv.ProductOfSums([1]),
+        cv.SumOfProducts(((1,),)),
+        cv.ProductOfSums(((1,),)),
+    )
+    # Note that instances of `AbstractControlValues` will not compare equal to corresponding
+    # expanded tuples used in their internal representation (i.e. `tuple(control_values)`).
+    eq.add_equality_group(((1,),), tuple(cv.ProductOfSums([1])), tuple(cv.SumOfProducts([1])))
+    # Multiple controls for 1 qubit.
+    eq.add_equality_group(cv.SumOfProducts([0, 1, 2]), cv.ProductOfSums([[0, 1, 2]]))
+    # Multiple qubits, each with 1 control
+    eq.add_equality_group(cv.ProductOfSums([0, 1, 2]), cv.SumOfProducts([[0, 1, 2]]))
+    # Expanded tuples of unequal `SumOfProducts` and `ProductOfSums` can be equal.
+    eq.add_equality_group(
+        ((0,), (1,), (2,)), tuple(cv.SumOfProducts([0, 1, 2])), tuple(cv.ProductOfSums([0, 1, 2]))
+    )
+    eq.add_equality_group(
+        ((0, 1, 2),), tuple(cv.ProductOfSums([[0, 1, 2]])), tuple(cv.SumOfProducts([[0, 1, 2]]))
+    )
+    # Multiple qubits, multiple controls.
+    eq.add_equality_group(
+        cv.ProductOfSums([(0, 1), (1, 2), 1]),
+        cv.SumOfProducts([(0, 1, 1), (0, 2, 1), (1, 1, 1), (1, 2, 1)]),
+    )
+    eq.add_equality_group(cv.SumOfProducts([(0, 1), (1, 0)]))  # xor control
+    eq.add_equality_group(cv.ProductOfSums([(0, 1), (1, 0)]))  # or control
+
+
+def test_and_operation():
+    eq = cirq.testing.EqualsTester()
+
+    eq.add_equality_group(
+        cv.ProductOfSums([0]) & cv.ProductOfSums([1]),
+        cv.ProductOfSums([0]) & cv.SumOfProducts([1]),
+        cv.SumOfProducts([0]) & cv.ProductOfSums([1]),
+        cv.ProductOfSums([0, 1]),
+        cv.SumOfProducts([[0, 1]]),
+    )
+    eq.add_equality_group(cv.ProductOfSums([1]) & cv.SumOfProducts([0]), cv.ProductOfSums([1, 0]))
+
+    eq.add_equality_group(
+        cv.ProductOfSums([[0, 1]]) & cv.ProductOfSums([1]),
+        cv.SumOfProducts([[0], [1]]) & cv.ProductOfSums([1]),
+        cv.ProductOfSums([[0, 1], [1]]),
+        cv.SumOfProducts([[0, 1], [1, 1]]),
+    )
+
+    eq.add_equality_group(
+        cv.ProductOfSums([0, 1]) & cv.ProductOfSums([0]),
+        cv.ProductOfSums([0]) & cv.ProductOfSums([1, 0]),
+    )
+
+    eq.add_equality_group(
+        cv.SumOfProducts([(0, 0), (1, 1)]) & cv.ProductOfSums([0, 1]),
+        cv.SumOfProducts([(0, 0), (1, 1)]) & cv.ProductOfSums([0]) & cv.ProductOfSums([1]),
+        cv.SumOfProducts([(0, 0, 0, 1), (1, 1, 0, 1)]),
+    )
+
+    eq.add_equality_group(
+        cv.SumOfProducts([(0, 1), (1, 0)]) & cv.SumOfProducts([(0, 0), (0, 1), (1, 0)]),
+        cv.SumOfProducts(
+            [(0, 1, 0, 0), (0, 1, 0, 1), (0, 1, 1, 0), (1, 0, 0, 0), (1, 0, 0, 1), (1, 0, 1, 0)]
+        ),
+    )
 
 
 @pytest.mark.parametrize('data', [((1,),), ((0, 1), (1,)), [(0, 1), (1, 0)]])
@@ -64,12 +164,12 @@ def test_product_of_sums_repr(data):
 
 
 @pytest.mark.parametrize('data', [((1,),), ((0, 1),), ((0, 0), (0, 1), (1, 0))])
-def test_sum_of_products(data):
+def test_sum_of_products_repr(data):
     cirq.testing.assert_equivalent_repr(cirq.SumOfProducts(data))
     cirq.testing.assert_equivalent_repr(cirq.SumOfProducts(data, name="CustomName"))
 
 
-def test_validate():
+def test_sum_of_products_validate():
     control_val = cv.SumOfProducts(((1, 2), (0, 1)))
 
     _ = control_val.validate([2, 3])
@@ -96,8 +196,21 @@ def test_sum_of_products_num_qubits(data):
         [((1, 1, 1, 1),), True],
     ],
 )
-def test_is_trivial(data, is_trivial):
+def test_sum_of_products_is_trivial(data, is_trivial):
     assert cv.SumOfProducts(data).is_trivial == is_trivial
+
+
+@pytest.mark.parametrize(
+    'data, is_trivial',
+    [[((1,),), True], [((0, 1),), False], [([2], [1], [2]), False], [([1], [1], [1], [1]), True]],
+)
+def test_product_of_sum_is_trivial(data, is_trivial):
+    assert cv.ProductOfSums(data).is_trivial == is_trivial
+
+
+def test_product_of_sums_str():
+    c = cv.ProductOfSums([(0, 1), 1, 0, (0, 2)])
+    assert str(c) == 'C01C1C0C02'
 
 
 def test_sum_of_products_str():

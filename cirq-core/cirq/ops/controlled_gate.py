@@ -96,11 +96,7 @@ class ControlledGate(raw_types.Gate):
 
         # Convert to `cv.ProductOfSums` if input is a tuple of control values for each qubit.
         if not isinstance(control_values, cv.AbstractControlValues):
-            control_values = cv.ProductOfSums(
-                tuple(
-                    (val,) if isinstance(val, int) else tuple(sorted(val)) for val in control_values
-                )
-            )
+            control_values = cv.ProductOfSums(control_values)
 
         if num_controls != protocols.num_qubits(control_values):
             raise ValueError('cirq.num_qubits(control_values) != num_controls')

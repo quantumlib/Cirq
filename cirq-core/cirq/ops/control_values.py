@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import abc
-from typing import Tuple, TYPE_CHECKING, Any, Dict, Iterator, Optional, Sequence, Union
+from typing import Collection, Tuple, TYPE_CHECKING, Any, Dict, Iterator, Optional, Sequence, Union
 import itertools
 
 from cirq import protocols, value
@@ -83,14 +83,6 @@ class AbstractControlValues(abc.ABC):
         """
 
     def _value_equality_values_(self) -> Any:
-        """Returns True iff self and other represent the same configurations.
-
-        Args:
-            other: A AbstractControlValues object.
-
-        Returns:
-            boolean whether the two objects are equivalent or not.
-        """
         return tuple(v for v in self.expand())
 
     def __and__(self, other: 'AbstractControlValues') -> 'AbstractControlValues':
@@ -110,8 +102,10 @@ class AbstractControlValues(abc.ABC):
 class ProductOfSums(AbstractControlValues):
     """ProductOfSums represents control values in a form of a cartesian product of tuples."""
 
-    def __init__(self, data: Sequence[Sequence[int]]):
-        self._internal_representation = tuple(tuple(frozenset(cv)) for cv in data)
+    def __init__(self, data: Sequence[Union[int, Collection[int]]]):
+        self._internal_representation = tuple(
+            (cv,) if isinstance(cv, int) else tuple(sorted(frozenset(cv))) for cv in data
+        )
         self._is_trivial = self._internal_representation == ((1,),) * len(
             self._internal_representation
         )
@@ -203,11 +197,13 @@ class SumOfProducts(AbstractControlValues):
 
         >>> nand_control_values = cirq.SumOfProducts(((0, 0), (0, 1), (1, 0)))
         >>> q0, q1, q2 = cirq.LineQubit.range(3)
-        >>> nan_cop = cirq.X(q2).controlled_by(q0, q1, control_values=nand_control_values)
+        >>> nand_cop = cirq.X(q2).controlled_by(q0, q1, control_values=nand_control_values)
     """
 
-    def __init__(self, data: Sequence[Sequence[int]], *, name: Optional[str] = None):
-        self._internal_representation = tuple(sorted(set(tuple(cv) for cv in data)))
+    def __init__(self, data: Sequence[Union[int, Collection[int]]], *, name: Optional[str] = None):
+        self._internal_representation = tuple(
+            sorted(frozenset((cv,) if isinstance(cv, int) else tuple(cv) for cv in data))
+        )
         self._name = name
         if not len(self._internal_representation):
             raise ValueError("SumOfProducts can't be empty.")
