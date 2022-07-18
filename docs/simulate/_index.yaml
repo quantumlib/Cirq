@@ -39,5 +39,5 @@ landing_page:
         description: Run a device-ready circuit on a QVM with default settings.
         path: /cirq/simulate/qvm_builder_code
       - heading: Virtual Engine Interface
-        description: A virtual version of the Engine interface used with hardware.
+        description: Details on the virtual version of the hardware Engine API and how to use it.
         path: /cirq/simulate/virtual_engine_interface
