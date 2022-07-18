@@ -524,3 +524,23 @@ def test_to_proto_empty():
     assert len(device.metadata.qubit_pairs) == 0
     assert device.metadata.gateset == cirq.Gateset()
     assert device.metadata.gate_durations is None
+
+
+def test_to_proto_fsim_gate_family():
+    """Verifies that FSimGateFamilies are serialized correctly."""
+
+    gateset = cirq.Gateset(
+        cirq_google.FSimGateFamily(gates_to_accept=[cirq_google.SYC]),
+        cirq_google.FSimGateFamily(gates_to_accept=[cirq.SQRT_ISWAP]),
+        cirq_google.FSimGateFamily(gates_to_accept=[cirq.SQRT_ISWAP_INV]),
+        cirq_google.FSimGateFamily(gates_to_accept=[cirq.CZ]),
+    )
+
+    spec = grid_device.create_device_specification_proto(
+        qubits=[cirq.GridQubit(0, 0)], pairs=(), gateset=gateset
+    )
+
+    assert any(gate_spec.HasField('syc') for gate_spec in spec.valid_gates)
+    assert any(gate_spec.HasField('sqrt_iswap') for gate_spec in spec.valid_gates)
+    assert any(gate_spec.HasField('sqrt_iswap_inv') for gate_spec in spec.valid_gates)
+    assert any(gate_spec.HasField('cz') for gate_spec in spec.valid_gates)

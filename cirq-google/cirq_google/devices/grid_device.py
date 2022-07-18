@@ -461,13 +461,16 @@ class GridDevice(cirq.Device):
 def _set_gate_in_gate_spec(
     gate_spec: v2.device_pb2.GateSpecification, gate_family: cirq.GateFamily
 ) -> None:
-    if gate_family == _SYC_GATE_FAMILY:
+    if gate_family == _SYC_GATE_FAMILY or gate_family == _SYC_FSIM_GATE_FAMILY:
         gate_spec.syc.SetInParent()
-    elif gate_family == _SQRT_ISWAP_GATE_FAMILY:
+    elif gate_family == _SQRT_ISWAP_GATE_FAMILY or gate_family == _SQRT_ISWAP_FSIM_GATE_FAMILY:
         gate_spec.sqrt_iswap.SetInParent()
-    elif gate_family == _SQRT_ISWAP_INV_GATE_FAMILY:
+    elif (
+        gate_family == _SQRT_ISWAP_INV_GATE_FAMILY
+        or gate_family == _SQRT_ISWAP_INV_FSIM_GATE_FAMILY
+    ):
         gate_spec.sqrt_iswap_inv.SetInParent()
-    elif gate_family == _CZ_GATE_FAMILY:
+    elif gate_family == _CZ_GATE_FAMILY or gate_family == _CZ_FSIM_GATE_FAMILY:
         gate_spec.cz.SetInParent()
     elif gate_family == _PHASED_XZ_GATE_FAMILY:
         gate_spec.phased_xz.SetInParent()
