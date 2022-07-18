@@ -23,15 +23,10 @@ from cirq.value import linear_dict
 """
 
 TParamKey = Union[str, sympy.Expr]
-document(TParamKey, """A parameter that a parameter resolver may map to a value.""")  # type: ignore
+document(TParamKey, """A parameter that a parameter resolver may map to a value.""")
 
 TParamVal = Union[float, sympy.Expr]
-document(
-    TParamVal, """A value that a parameter resolver may return for a parameter."""  # type: ignore
-)
+document(TParamVal, """A value that a parameter resolver may return for a parameter.""")
 
 TParamValComplex = Union[linear_dict.Scalar, sympy.Expr]
-document(
-    TParamValComplex,
-    """A complex value that parameter resolvers may use for parameters.""",  # type: ignore
-)
+document(TParamValComplex, """A complex value that parameter resolvers may use for parameters.""")

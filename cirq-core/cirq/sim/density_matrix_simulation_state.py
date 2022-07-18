@@ -247,7 +247,6 @@ class DensityMatrixSimulationState(SimulationState[_BufferedDensityMatrix]):
         self,
         *,
         available_buffer: Optional[List[np.ndarray]] = None,
-        qid_shape: Optional[Tuple[int, ...]] = None,
         prng: Optional[np.random.RandomState] = None,
         qubits: Optional[Sequence['cirq.Qid']] = None,
         initial_state: Union[np.ndarray, 'cirq.STATE_VECTOR_LIKE'] = 0,
@@ -264,7 +263,6 @@ class DensityMatrixSimulationState(SimulationState[_BufferedDensityMatrix]):
             qubits: Determines the canonical ordering of the qubits. This
                 is often used in specifying the initial state, i.e. the
                 ordering of the computational basis states.
-            qid_shape: The shape of the target tensor.
             prng: The pseudo random number generator to use for probabilistic
                 effects.
             initial_state: The initial state for the simulation in the
@@ -276,8 +274,8 @@ class DensityMatrixSimulationState(SimulationState[_BufferedDensityMatrix]):
                 simulation.
 
         Raises:
-            ValueError: The dimension of `target_tensor` is not divisible by 2
-                and `qid_shape` is not provided.
+            ValueError: If `initial_state` is provided as integer, but `qubits`
+                is not provided.
         """
         state = _BufferedDensityMatrix.create(
             initial_state=initial_state,
@@ -314,7 +312,6 @@ class DensityMatrixSimulationState(SimulationState[_BufferedDensityMatrix]):
         return (
             'cirq.DensityMatrixSimulationState('
             f'initial_state={proper_repr(self.target_tensor)},'
-            f' qid_shape={self.qid_shape!r},'
             f' qubits={self.qubits!r},'
             f' classical_data={self.classical_data!r})'
         )
@@ -336,4 +333,6 @@ def _strat_apply_channel_to_state(
     action: Any, args: 'cirq.DensityMatrixSimulationState', qubits: Sequence['cirq.Qid']
 ) -> bool:
     """Apply channel to state."""
-    return True if args._state.apply_channel(action, args.get_axes(qubits)) else NotImplemented
+    if not args._state.apply_channel(action, args.get_axes(qubits)):
+        return NotImplemented
+    return True

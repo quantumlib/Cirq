@@ -72,7 +72,7 @@ class StabilizerSimulationState(
             strats.append(self._strat_decompose)
             strats.append(self._strat_act_from_single_qubit_decompose)
         for strat in strats:
-            result = strat(action, qubits)  # type: ignore
+            result = strat(action, qubits)
             if result is True:
                 return True
             assert result is NotImplemented, str(result)

@@ -93,7 +93,7 @@ If you have a circuit with gates outside of the API native gates, you will
 need to convert these gates into the native gates.  For the case in which
 these gates are one or two qubit gates which support the `unitary` protocol
 (i.e. which support calling `cirq.unitary` on the gate produces the unitary
-for the gate) there is support for compiling these into API supported gates.
+for the gate), there is support for compiling these into API supported gates.
 This conversion may not be optimal, but it does produce a valid API circuit.
 
 This support is given by the `cirq_ionq.IonQAPIDevice` and its

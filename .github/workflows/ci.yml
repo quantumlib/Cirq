@@ -65,19 +65,6 @@ jobs:
         run: pip install -r dev_tools/requirements/mypy.env.txt
       - name: Type check
         run: check/mypy
-  mypy-next:
-    name: Type check (next)
-    runs-on: ubuntu-20.04
-    steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-python@v1
-        with:
-          python-version: '3.8'
-          architecture: 'x64'
-      - name: Install mypy
-        run: pip install -r dev_tools/requirements/mypy.env.txt
-      - name: Type check (for logging only)
-        run: check/mypy --next || true
   changed_files:
     name: Changed files test
     runs-on: ubuntu-20.04
@@ -153,7 +140,7 @@ jobs:
     name: Pytest Ubuntu
     strategy:
       matrix:
-        python-version: [ '3.7', '3.8', '3.9' ]
+        python-version: [ '3.7', '3.8', '3.9', '3.10' ]
     runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v2
@@ -167,6 +154,7 @@ jobs:
           key: ${{ env.pythonLocation }}-${{ hashFiles('setup.py') }}-${{ hashFiles('dev-requirements.txt') }}
       - name: Install requirements
         run: |
+          pip install wheel
           pip install --upgrade --upgrade-strategy eager -r dev_tools/requirements/dev.env.txt
       - name: Run Quil dependencies
         run: docker-compose -f cirq-rigetti/docker-compose.test.yaml up -d
@@ -220,7 +208,9 @@ jobs:
           path: ${{ env.pythonLocation }}
           key: ${{ env.pythonLocation }}-${{ hashFiles('setup.py') }}-${{ hashFiles('dev-requirements.txt') }}
       - name: Install requirements
-        run: pip install --upgrade --upgrade-strategy eager -r dev_tools/requirements/dev.env.txt
+        run: |
+          pip install wheel
+          pip install --upgrade --upgrade-strategy eager -r dev_tools/requirements/dev.env.txt
       - name: Run Quil dependencies
         run: docker-compose -f cirq-rigetti/docker-compose.test.yaml up -d
       - name: Coverage check
@@ -231,7 +221,7 @@ jobs:
     name: Pytest Windows
     strategy:
       matrix:
-        python-version: [ '3.7', '3.8', '3.9' ]
+        python-version: [ '3.7', '3.8', '3.9', '3.10' ]
     runs-on: windows-2019
     steps:
       - uses: actions/checkout@v2
@@ -244,7 +234,9 @@ jobs:
           path: ${{ env.pythonLocation }}
           key: ${{ env.pythonLocation }}-${{ hashFiles('setup.py') }}-${{ hashFiles('dev-requirements.txt') }}
       - name: Install requirements
-        run: pip install --upgrade --upgrade-strategy eager -r dev_tools/requirements/no-contrib.env.txt
+        run: |
+          pip install wheel
+          pip install --upgrade --upgrade-strategy eager -r dev_tools/requirements/no-contrib.env.txt
       - name: Pytest Windows
         run: |
           source dev_tools/pypath
@@ -254,7 +246,7 @@ jobs:
     name: Pytest MacOS
     strategy:
       matrix:
-        python-version: [ '3.7', '3.8', '3.9' ]
+        python-version: [ '3.7', '3.8', '3.9', '3.10' ]
     runs-on: macos-10.15
     steps:
       - uses: actions/checkout@v2
@@ -267,7 +259,9 @@ jobs:
           path: ${{ env.pythonLocation }}
           key: ${{ env.pythonLocation }}-${{ hashFiles('setup.py') }}-${{ hashFiles('dev-requirements.txt') }}
       - name: Install requirements
-        run: pip install --upgrade --upgrade-strategy eager -r dev_tools/requirements/no-contrib.env.txt
+        run: |
+          pip install wheel
+          pip install --upgrade --upgrade-strategy eager -r dev_tools/requirements/no-contrib.env.txt
       - name: Pytest check
         run: check/pytest -n auto --ignore=cirq-core/cirq/contrib
   notebooks-stable:
