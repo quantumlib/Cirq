@@ -1,0 +1,5 @@
+{
+  "data": [[1, 0], [1, 2]],
+  "name": "custom_name",
+  "cirq_type": "SumOfProducts"
+}

@@ -17,7 +17,7 @@
 Filename is a reference to multiplexing.
 """
 
-from typing import cast, List, Optional, Sequence, Type, TYPE_CHECKING, Union
+from typing import List, Optional, Sequence, Type, TYPE_CHECKING, Union
 
 import numpy as np
 
@@ -29,11 +29,10 @@ from cirq.transformers import measurement_transformers
 
 if TYPE_CHECKING:
     import cirq
-    from numpy.typing import DTypeLike
 
 CIRCUIT_LIKE = Union[circuits.Circuit, ops.Gate, ops.OP_TREE]
 document(
-    CIRCUIT_LIKE,  # type: ignore
+    CIRCUIT_LIKE,
     """A `circuits.Circuit` or a value that can be trivially converted into it:
         a gate, an operation, and a list or tree of operations.
     """,
@@ -92,7 +91,6 @@ def sample(
 
 
 def _to_circuit(program: 'cirq.CIRCUIT_LIKE') -> 'cirq.Circuit':
-    result = None
     if isinstance(program, circuits.Circuit):
         # No change needed.
         result = program
@@ -101,7 +99,7 @@ def _to_circuit(program: 'cirq.CIRCUIT_LIKE') -> 'cirq.Circuit':
     else:
         # It should be an OP_TREE.
         result = circuits.Circuit(program)
-    return cast('cirq.Circuit', result)
+    return result
 
 
 def final_state_vector(
@@ -113,7 +111,7 @@ def final_state_vector(
     ignore_terminal_measurements: bool = False,
     dtype: Type[np.complexfloating] = np.complex64,
     seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None,
-) -> 'np.ndarray':
+) -> np.ndarray:
     """Returns the state vector resulting from acting operations on a state.
 
     By default the input state is the computational basis zero state, in which
@@ -274,7 +272,7 @@ def final_density_matrix(
     if not protocols.has_unitary(circuit_like):
         can_do_unitary_simulation = False
     if isinstance(circuit_like, circuits.Circuit):
-        if cast(circuits.Circuit, circuit_like).has_measurements():
+        if circuit_like.has_measurements():
             # Including terminal measurements.
             can_do_unitary_simulation = False
     if noise_model != devices.NO_NOISE:

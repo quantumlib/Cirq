@@ -86,7 +86,7 @@ def test_controlled_operation_init():
     assert c.controls == (cb,)
     assert c.qubits == (cb, q)
     assert c == c.with_qubits(cb, q)
-    assert c.control_values == ((1,),)
+    assert c.control_values == cirq.SumOfProducts(((1,),))
     assert cirq.qid_shape(c) == (2, 2)
 
     c = cirq.ControlledOperation([cb], v, control_values=[0])
@@ -94,7 +94,7 @@ def test_controlled_operation_init():
     assert c.controls == (cb,)
     assert c.qubits == (cb, q)
     assert c == c.with_qubits(cb, q)
-    assert c.control_values == ((0,),)
+    assert c.control_values == cirq.SumOfProducts(((0,),))
     assert cirq.qid_shape(c) == (2, 2)
 
     c = cirq.ControlledOperation([cb.with_dimension(3)], v)
@@ -102,10 +102,10 @@ def test_controlled_operation_init():
     assert c.controls == (cb.with_dimension(3),)
     assert c.qubits == (cb.with_dimension(3), q)
     assert c == c.with_qubits(cb.with_dimension(3), q)
-    assert c.control_values == ((1,),)
+    assert c.control_values == cirq.SumOfProducts(((1,),))
     assert cirq.qid_shape(c) == (3, 2)
 
-    with pytest.raises(ValueError, match=r'len\(control_values\) != len\(controls\)'):
+    with pytest.raises(ValueError, match=r'cirq\.num_qubits\(control_values\) != len\(controls\)'):
         _ = cirq.ControlledOperation([cb], v, control_values=[1, 1])
     with pytest.raises(ValueError, match='Control values .*outside of range'):
         _ = cirq.ControlledOperation([cb], v, control_values=[2])

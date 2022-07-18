@@ -640,7 +640,7 @@ def scatter_plot_normalized_kak_interaction_coefficients(
     ) -> Tuple[Iterable[float], Iterable[float], Iterable[float]]:
         if len(pts) == 0:
             return [], [], []
-        xs, ys, zs = zip(*pts)
+        xs, ys, zs = np.transpose(pts)
         return xs, zs, ys
 
     if include_frame:

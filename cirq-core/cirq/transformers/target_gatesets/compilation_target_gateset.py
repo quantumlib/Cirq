@@ -68,11 +68,7 @@ def create_transformer_with_kwargs(transformer: 'cirq.TRANSFORMER', **kwargs) ->
     def transformer_with_kwargs(
         circuit: 'cirq.AbstractCircuit', *, context: Optional['cirq.TransformerContext'] = None
     ) -> 'cirq.AbstractCircuit':
-        # Need to ignore mypy type because `cirq.TRANSFORMER` is a callable protocol which only
-        # accepts circuit and context; and doesn't expect additional keyword arguments. Note
-        # that transformers with additional keyword arguments with a default value do satisfy the
-        # `cirq.TRANSFORMER` API.
-        return transformer(circuit, context=context, **kwargs)  # type: ignore
+        return transformer(circuit, context=context, **kwargs)
 
     return transformer_with_kwargs
 

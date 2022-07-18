@@ -14,9 +14,9 @@
 
 from typing import Tuple
 
-from cirq import ops, circuits
+from cirq import ops, circuits, transformers
 
-from cirq.contrib.paulistring.convert_gate_set import converted_gate_set
+from cirq.contrib.paulistring.clifford_target_gateset import CliffordTargetGateset
 
 
 def convert_and_separate_circuit(
@@ -43,7 +43,14 @@ def convert_and_separate_circuit(
         given circuit contains measurements.
 
     """
-    circuit = converted_gate_set(circuit, no_clifford_gates=not leave_cliffords, atol=atol)
+    single_qubit_target = (
+        CliffordTargetGateset.SingleQubitTarget.PAULI_STRING_PHASORS_AND_CLIFFORDS
+        if leave_cliffords
+        else CliffordTargetGateset.SingleQubitTarget.PAULI_STRING_PHASORS
+    )
+    circuit = transformers.optimize_for_target_gateset(
+        circuit, gateset=CliffordTargetGateset(atol=atol, single_qubit_target=single_qubit_target)
+    )
     return pauli_string_half(circuit), regular_half(circuit)
 
 
