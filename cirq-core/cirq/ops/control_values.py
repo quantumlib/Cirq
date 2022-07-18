@@ -15,7 +15,7 @@ import abc
 from typing import Collection, Tuple, TYPE_CHECKING, Any, Dict, Iterator, Optional, Sequence, Union
 import itertools
 
-from cirq import protocols, value
+from cirq import protocols, value, _compat
 
 if TYPE_CHECKING:
     import cirq
@@ -133,7 +133,7 @@ class AbstractControlValues(abc.ABC):
             raise ValueError(
                 f"Control values {self} and {other} must act on equal number of qubits"
             )
-        return SumOfProducts(tuple(x for x in [*self.expand(), *other.expand()]))
+        return SumOfProducts((*self.expand(), *other.expand()))
 
 
 class ProductOfSums(AbstractControlValues):
@@ -141,13 +141,12 @@ class ProductOfSums(AbstractControlValues):
 
     def __init__(self, data: Sequence[Union[int, Collection[int]]]):
         self._qubit_sums: Tuple[Tuple[int, ...], ...] = tuple(
-            (cv,) if isinstance(cv, int) else tuple(sorted(frozenset(cv))) for cv in data
+            (cv,) if isinstance(cv, int) else tuple(sorted(set(cv))) for cv in data
         )
-        self._is_trivial = self._qubit_sums == ((1,),) * len(self._qubit_sums)
 
-    @property
+    @_compat.cached_property
     def is_trivial(self) -> bool:
-        return self._is_trivial
+        return self._qubit_sums == ((1,),) * self._num_qubits_()
 
     def __iter__(self) -> Iterator[Tuple[int, ...]]:
         return iter(self._qubit_sums)
@@ -243,27 +242,26 @@ class SumOfProducts(AbstractControlValues):
     """
 
     def __init__(self, data: Sequence[Union[int, Collection[int]]], *, name: Optional[str] = None):
-        self._conjugations: Tuple[Tuple[int, ...], ...] = tuple(
-            sorted(frozenset((cv,) if isinstance(cv, int) else tuple(cv) for cv in data))
+        self._conjunctions: Tuple[Tuple[int, ...], ...] = tuple(
+            sorted(set((cv,) if isinstance(cv, int) else tuple(cv) for cv in data))
         )
         self._name = name
-        if not len(self._conjugations):
+        if not len(self._conjunctions):
             raise ValueError("SumOfProducts can't be empty.")
-        num_qubits = len(self._conjugations[0])
-        if not all(len(p) == num_qubits for p in self._conjugations):
-            raise ValueError(f'Each term of {self._conjugations} should be of length {num_qubits}.')
-        self._is_trivial = self._conjugations == ((1,) * len(self._conjugations[0]),)
+        num_qubits = len(self._conjunctions[0])
+        if not all(len(p) == num_qubits for p in self._conjunctions):
+            raise ValueError(f'Each term of {self._conjunctions} should be of length {num_qubits}.')
 
-    @property
+    @_compat.cached_property
     def is_trivial(self) -> bool:
-        return self._is_trivial
+        return self._conjunctions == ((1,) * self._num_qubits_(),)
 
     def expand(self) -> 'SumOfProducts':
         return self
 
     def __iter__(self) -> Iterator[Tuple[int, ...]]:
         """Returns the combinations tracked by the object."""
-        return iter(self._conjugations)
+        return iter(self._conjunctions)
 
     def _circuit_diagram_info_(
         self, args: 'cirq.CircuitDiagramInfoArgs'
@@ -275,7 +273,7 @@ class SumOfProducts(AbstractControlValues):
             return protocols.CircuitDiagramInfo(wire_symbols=wire_symbols)
 
         wire_symbols = [''] * self._num_qubits_()
-        for term in self._conjugations:
+        for term in self._conjunctions:
             for q_i, q_val in enumerate(term):
                 wire_symbols[q_i] = wire_symbols[q_i] + str(q_val)
         wire_symbols = [f'@({s})' for s in wire_symbols]
@@ -283,18 +281,18 @@ class SumOfProducts(AbstractControlValues):
 
     def __repr__(self) -> str:
         name = '' if self._name is None else f', name="{self._name}"'
-        return f'cirq.SumOfProducts({self._conjugations!s} {name})'
+        return f'cirq.SumOfProducts({self._conjunctions!s} {name})'
 
     def __str__(self) -> str:
         suffix = (
             self._name
             if self._name is not None
-            else '_'.join(''.join(str(v) for v in t) for t in self._conjugations)
+            else '_'.join(''.join(str(v) for v in t) for t in self._conjunctions)
         )
         return f'C_{suffix}'
 
     def _num_qubits_(self) -> int:
-        return len(self._conjugations[0])
+        return len(self._conjunctions[0])
 
     def validate(self, qid_shapes: Sequence[int]) -> None:
         if len(qid_shapes) != self._num_qubits_():
@@ -303,7 +301,7 @@ class SumOfProducts(AbstractControlValues):
                 f' {self._num_qubits_()}'
             )
 
-        for product in self._conjugations:
+        for product in self._conjunctions:
             for q_i, q_val in enumerate(product):
                 if not (0 <= q_val < qid_shapes[q_i]):
                     raise ValueError(
@@ -312,4 +310,4 @@ class SumOfProducts(AbstractControlValues):
                     )
 
     def _json_dict_(self) -> Dict[str, Any]:
-        return {'data': self._conjugations, 'name': self._name}
+        return {'data': self._conjunctions, 'name': self._name}
