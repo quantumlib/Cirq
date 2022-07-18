@@ -4,7 +4,7 @@ https://arxiv.org/abs/1811.12926.
 """
 
 from dataclasses import dataclass
-from typing import Optional, List, cast, Callable, Dict, Tuple, Set, Any
+from typing import Optional, List, Callable, Dict, Tuple, Set, Any
 
 import networkx as nx
 import numpy as np
@@ -75,20 +75,18 @@ def compute_heavy_set(circuit: cirq.Circuit) -> List[int]:
     # Classically compute the probabilities of each output bit-string through
     # simulation.
     simulator = cirq.Simulator()
-    results = cast(cirq.StateVectorTrialResult, simulator.simulate(program=circuit))
+    results = simulator.simulate(program=circuit)
 
     # Compute the median probability of the output bit-strings. Note that heavy
     # output is defined in terms of probabilities, where our wave function is in
     # terms of amplitudes. We convert it by using the Born rule: squaring each
     # amplitude and taking their absolute value
-    median = np.median(np.abs(results.state_vector(copy=False) ** 2))
+    median = np.median(np.abs(results.state_vector() ** 2))
 
     # The output wave function is a vector from the result value (big-endian) to
     # the probability of that bit-string. Return all of the bit-string
     # values that have a probability greater than the median.
-    return [
-        idx for idx, amp in enumerate(results.state_vector(copy=False)) if np.abs(amp**2) > median
-    ]
+    return [idx for idx, amp in enumerate(results.state_vector()) if np.abs(amp**2) > median]
 
 
 @dataclass
@@ -197,24 +195,6 @@ def process_results(
     return data
 
 
-class SwapPermutationReplacer(cirq.PointOptimizer):
-    """Replaces SwapPermutationGates with their underlying implementation
-    gate."""
-
-    def __init__(self):
-        super().__init__()
-
-    def optimization_at(
-        self, circuit: cirq.Circuit, index: int, op: cirq.Operation
-    ) -> Optional[cirq.PointOptimizationSummary]:
-        if isinstance(op.gate, cirq.contrib.acquaintance.SwapPermutationGate):
-            new_ops = op.gate.swap_gate.on(*op.qubits)
-            return cirq.PointOptimizationSummary(
-                clear_span=1, clear_qubits=op.qubits, new_operations=new_ops
-            )
-        return None  # Don't make changes to other gates.
-
-
 def compile_circuit(
     circuit: cirq.Circuit,
     *,
@@ -296,7 +276,15 @@ def compile_circuit(
     mapping = swap_networks[0].final_mapping()
     # Replace the PermutationGates with regular gates, so we don't proliferate
     # the routing implementation details to the compiler and the device itself.
-    SwapPermutationReplacer().optimize_circuit(routed_circuit)
+
+    def replace_swap_permutation_gate(op: 'cirq.Operation', _):
+        if isinstance(op.gate, cirq.contrib.acquaintance.SwapPermutationGate):
+            return [op.gate.swap_gate.on(*op.qubits)]
+        return op
+
+    routed_circuit = cirq.map_operations_and_unroll(
+        routed_circuit, map_func=replace_swap_permutation_gate
+    )
 
     if not compiler:
         return CompilationResult(circuit=routed_circuit, mapping=mapping, parity_map=parity_map)
@@ -307,7 +295,7 @@ def compile_circuit(
     # as well, we allow this to be passed in. This compiler is not allowed to
     # change the order of the qubits.
     return CompilationResult(
-        circuit=compiler(swap_networks[0].circuit), mapping=mapping, parity_map=parity_map
+        circuit=compiler(routed_circuit), mapping=mapping, parity_map=parity_map
     )
 
 

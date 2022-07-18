@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""Utilities for picking out a line of GridQubits from a device."""
+
 from cirq_google.line.placement import (
     AnnealSequenceSearchStrategy,
     GreedySequenceSearchStrategy,

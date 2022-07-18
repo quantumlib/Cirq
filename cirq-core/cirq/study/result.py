@@ -35,7 +35,7 @@ import numpy as np
 import pandas as pd
 
 from cirq import value, ops
-from cirq._compat import deprecated, proper_repr, _warn_or_error
+from cirq._compat import proper_repr
 from cirq.study import resolver
 
 if TYPE_CHECKING:
@@ -84,15 +84,6 @@ def _key_to_str(key: TMeasurementKey) -> str:
 
 class Result(abc.ABC):
     """The results of multiple executions of a circuit with fixed parameters."""
-
-    def __new__(cls, *args, **kwargs):
-        if cls is Result:
-            _warn_or_error(
-                "Result constructor is deprecated and will be removed in cirq v0.15. "
-                "Use the ResultDict constructor instead, or another concrete subclass."
-            )
-            return ResultDict(*args, **kwargs)
-        return super().__new__(cls)
 
     @property
     @abc.abstractmethod
@@ -153,29 +144,6 @@ class Result(abc.ABC):
         dtype = object if any(bs.shape[1] > 63 for _, bs in measurements.items()) else np.int64
         return pd.DataFrame(converted_dict, dtype=dtype)
 
-    @staticmethod
-    @deprecated(
-        deadline="v0.15",
-        fix="The static method from_single_parameter_set is deprecated. "
-        "Use the ResultDict constructor instead.",
-    )
-    def from_single_parameter_set(
-        *,  # Forces keyword args.
-        params: resolver.ParamResolver,
-        measurements: Mapping[str, np.ndarray],
-    ) -> 'cirq.Result':
-        """Packages runs of a single parameterized circuit into a Result.
-
-        Args:
-            params: A ParamResolver of settings used for this result.
-            measurements: A dictionary from measurement gate key to measurement
-                results. The value for each key is a 2-D array of booleans,
-                with the first index running over the repetitions, and the
-                second index running over the qubits for the corresponding
-                measurements.
-        """
-        return ResultDict(params=params, measurements=measurements)
-
     @property
     def repetitions(self) -> int:
         if not self.records:
@@ -183,8 +151,7 @@ class Result(abc.ABC):
         # Get the length quickly from one of the keyed results.
         return len(next(iter(self.records.values())))
 
-    # Reason for 'type: ignore': https://github.com/python/mypy/issues/5273
-    def multi_measurement_histogram(  # type: ignore
+    def multi_measurement_histogram(
         self,
         *,  # Forces keyword args.
         keys: Iterable[TMeasurementKey],
@@ -243,8 +210,7 @@ class Result(abc.ABC):
             c[fold_func(sample)] += 1
         return c
 
-    # Reason for 'type: ignore': https://github.com/python/mypy/issues/5273
-    def histogram(  # type: ignore
+    def histogram(
         self,
         *,  # Forces keyword args.
         key: TMeasurementKey,

@@ -33,7 +33,7 @@ from cirq.type_workarounds import NotImplementedType
 # Sequence[np.ndarray] to ensure the method has the correct type signature in
 # that case. It is checked for using `is`, so it won't have a false positive
 # if the user provides a different (np.array([]),) value.
-RaiseTypeErrorIfNotProvided = (np.array([]),)
+RaiseTypeErrorIfNotProvided: Tuple[np.ndarray] = (np.array([]),)
 
 
 TDefault = TypeVar('TDefault')

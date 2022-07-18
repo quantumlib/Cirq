@@ -201,9 +201,7 @@ def test_execute(tmpdir, rt_config):
         run_id=run_id, base_data_dir=tmpdir
     ).load(base_data_dir=tmpdir)
 
-    # TODO(gh-4699): Don't null-out device once it's serializable.
     assert isinstance(returned_exegroup_result.shared_runtime_info.device, cirq.Device)
-    returned_exegroup_result.shared_runtime_info.device = None
 
     assert returned_exegroup_result == exegroup_result
     assert manual_exegroup_result == exegroup_result

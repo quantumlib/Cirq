@@ -1,1 +1,2 @@
-cirq.ControlledOperation(controls=(cirq.LineQubit(0), cirq.LineQubit(1)), sub_operation=cirq.Y.on(cirq.NamedQubit('target')), control_values=((0,), (1,)))
+[cirq.ControlledOperation(sub_operation=cirq.Y(cirq.NamedQubit('target')),control_values=cirq.ProductOfSums(((0,), (1,))),controls=(cirq.LineQubit(0), cirq.LineQubit(1))), cirq.ControlledOperation(sub_operation=cirq.Y(cirq.NamedQubit('target')),control_values=cirq.SumOfProducts(((0, 1), (1, 0)) , name="xor"),controls=(cirq.LineQubit(0), cirq.LineQubit(1)))]
+

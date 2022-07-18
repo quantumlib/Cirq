@@ -14,13 +14,30 @@
 """Methods for resolving JSON types during serialization."""
 import datetime
 import functools
-from typing import Dict, TYPE_CHECKING
+from typing import Dict, List, NamedTuple, Optional, Tuple, TYPE_CHECKING
 
 from cirq.protocols.json_serialization import ObjectFactory
 
 if TYPE_CHECKING:
+    import cirq
     import cirq.ops.pauli_gates
     import cirq.devices.unconstrained_device
+
+
+# Needed for backwards compatible named tuples of CrossEntropyResult
+CrossEntropyPair = NamedTuple('CrossEntropyPair', [('num_cycle', int), ('xeb_fidelity', float)])
+SpecklePurityPair = NamedTuple('SpecklePurityPair', [('num_cycle', int), ('purity', float)])
+CrossEntropyResult = NamedTuple(
+    'CrossEntropyResult',
+    [
+        ('data', List[CrossEntropyPair]),
+        ('repetitions', int),
+        ('purity_data', Optional[List[SpecklePurityPair]]),
+    ],
+)
+CrossEntropyResultDict = NamedTuple(
+    'CrossEntropyResultDict', [('results', Dict[Tuple['cirq.Qid', ...], CrossEntropyResult])]
+)
 
 
 @functools.lru_cache()
@@ -30,7 +47,7 @@ def _class_resolver_dictionary() -> Dict[str, ObjectFactory]:
     import pandas as pd
     import numpy as np
     from cirq.devices.noise_model import _NoNoiseModel
-    from cirq.experiments import CrossEntropyResult, CrossEntropyResultDict, GridInteractionLayer
+    from cirq.experiments import GridInteractionLayer
     from cirq.experiments.grid_parallel_two_qubit_xeb import GridParallelXEBMetadata
 
     def _boolean_hamiltonian_gate_op(qubit_map, boolean_strs, theta):
@@ -50,6 +67,21 @@ def _class_resolver_dictionary() -> Dict[str, ObjectFactory]:
         if not isinstance(matrix, np.ndarray):
             matrix = np.array(matrix, dtype=np.complex128)
         return cirq.MatrixGate(matrix, qid_shape=(2, 2))
+
+    def _cross_entropy_result(data, repetitions, **kwargs) -> CrossEntropyResult:
+        purity_data = kwargs.get('purity_data', None)
+        if purity_data is not None:
+            purity_data = [SpecklePurityPair(d, f) for d, f in purity_data]
+        return CrossEntropyResult(
+            data=[CrossEntropyPair(d, f) for d, f in data],
+            repetitions=repetitions,
+            purity_data=purity_data,
+        )
+
+    def _cross_entropy_result_dict(
+        results: List[Tuple[List['cirq.Qid'], CrossEntropyResult]], **kwargs
+    ) -> CrossEntropyResultDict:
+        return CrossEntropyResultDict(results={tuple(qubits): result for qubits, result in results})
 
     def _parallel_gate_op(gate, qubits):
         return cirq.parallel_gate_op(gate, *qubits)
@@ -90,8 +122,6 @@ def _class_resolver_dictionary() -> Dict[str, ObjectFactory]:
         'ConstantQubitNoiseModel': cirq.ConstantQubitNoiseModel,
         'ControlledGate': cirq.ControlledGate,
         'ControlledOperation': cirq.ControlledOperation,
-        'CrossEntropyResult': CrossEntropyResult,
-        'CrossEntropyResultDict': CrossEntropyResultDict,
         'CSwapGate': cirq.CSwapGate,
         'CXPowGate': cirq.CXPowGate,
         'CZPowGate': cirq.CZPowGate,
@@ -108,7 +138,6 @@ def _class_resolver_dictionary() -> Dict[str, ObjectFactory]:
         'Gateset': cirq.Gateset,
         'GeneralizedAmplitudeDampingChannel': cirq.GeneralizedAmplitudeDampingChannel,
         'GlobalPhaseGate': cirq.GlobalPhaseGate,
-        'GlobalPhaseOperation': cirq.GlobalPhaseOperation,
         'GridDeviceMetadata': cirq.GridDeviceMetadata,
         'GridInteractionLayer': GridInteractionLayer,
         'GridParallelXEBMetadata': GridParallelXEBMetadata,
@@ -124,6 +153,8 @@ def _class_resolver_dictionary() -> Dict[str, ObjectFactory]:
         'LineQubit': cirq.LineQubit,
         'LineQid': cirq.LineQid,
         'LineTopology': cirq.LineTopology,
+        'Linspace': cirq.Linspace,
+        'ListSweep': cirq.ListSweep,
         'MatrixGate': cirq.MatrixGate,
         'MixedUnitaryChannel': cirq.MixedUnitaryChannel,
         'MeasurementKey': cirq.MeasurementKey,
@@ -158,7 +189,10 @@ def _class_resolver_dictionary() -> Dict[str, ObjectFactory]:
         'PhasedISwapPowGate': cirq.PhasedISwapPowGate,
         'PhasedXPowGate': cirq.PhasedXPowGate,
         'PhasedXZGate': cirq.PhasedXZGate,
+        'Points': cirq.Points,
+        'Product': cirq.Product,
         'ProductState': cirq.ProductState,
+        'ProductOfSums': cirq.ProductOfSums,
         'ProjectorString': cirq.ProjectorString,
         'ProjectorSum': cirq.ProjectorSum,
         'QasmUGate': cirq.circuits.qasm_output.QasmUGate,
@@ -179,6 +213,7 @@ def _class_resolver_dictionary() -> Dict[str, ObjectFactory]:
         'SqrtIswapTargetGateset': cirq.SqrtIswapTargetGateset,
         'StabilizerStateChForm': cirq.StabilizerStateChForm,
         'StatePreparationChannel': cirq.StatePreparationChannel,
+        'SumOfProducts': cirq.SumOfProducts,
         'SwapPowGate': cirq.SwapPowGate,
         'SympyCondition': cirq.SympyCondition,
         'TaggedOperation': cirq.TaggedOperation,
@@ -189,6 +224,7 @@ def _class_resolver_dictionary() -> Dict[str, ObjectFactory]:
         'TwoQubitDiagonalGate': cirq.TwoQubitDiagonalGate,
         'TwoQubitGateTabulation': cirq.TwoQubitGateTabulation,
         '_UnconstrainedDevice': cirq.devices.unconstrained_device._UnconstrainedDevice,
+        '_Unit': cirq.study.sweeps._Unit,
         'VarianceStoppingCriteria': cirq.work.VarianceStoppingCriteria,
         'VirtualTag': cirq.VirtualTag,
         'WaitGate': cirq.WaitGate,
@@ -196,22 +232,26 @@ def _class_resolver_dictionary() -> Dict[str, ObjectFactory]:
         # pylint: disable=line-too-long
         'XEBPhasedFSimCharacterizationOptions': cirq.experiments.XEBPhasedFSimCharacterizationOptions,
         # pylint: enable=line-too-long
-        '_XEigenState': cirq.value.product_state._XEigenState,  # type: ignore
+        '_XEigenState': cirq.value.product_state._XEigenState,
         'XPowGate': cirq.XPowGate,
         'XXPowGate': cirq.XXPowGate,
-        '_YEigenState': cirq.value.product_state._YEigenState,  # type: ignore
+        '_YEigenState': cirq.value.product_state._YEigenState,
         'YPowGate': cirq.YPowGate,
         'YYPowGate': cirq.YYPowGate,
-        '_ZEigenState': cirq.value.product_state._ZEigenState,  # type: ignore
+        '_ZEigenState': cirq.value.product_state._ZEigenState,
+        'Zip': cirq.Zip,
         'ZPowGate': cirq.ZPowGate,
         'ZZPowGate': cirq.ZZPowGate,
         # Old types, only supported for backwards-compatibility
         'BooleanHamiltonian': _boolean_hamiltonian_gate_op,  # Removed in v0.15
+        'CrossEntropyResult': _cross_entropy_result,  # Removed in v0.16
+        'CrossEntropyResultDict': _cross_entropy_result_dict,  # Removed in v0.16
         'IdentityOperation': _identity_operation_from_dict,
         'ParallelGateOperation': _parallel_gate_op,  # Removed in v0.14
         'SingleQubitMatrixGate': single_qubit_matrix_gate,
         'SymmetricalQidPair': _symmetricalqidpair,  # Removed in v0.15
         'TwoQubitMatrixGate': two_qubit_matrix_gate,
+        'GlobalPhaseOperation': cirq.global_phase_operation,  # Removed in v0.16
         # not a cirq class, but treated as one:
         'pandas.DataFrame': pd.DataFrame,
         'pandas.Index': pd.Index,

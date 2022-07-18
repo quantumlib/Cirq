@@ -315,7 +315,6 @@ class OctagonalQubit(cirq.ops.Qid):
         """
         if type(other) != OctagonalQubit:
             raise TypeError("can only measure distance from other Octagonal qubits")
-        other = cast(OctagonalQubit, other)
         return sqrt((self.x - other.x) ** 2 + (self.y - other.y) ** 2 + (self.z - other.z) ** 2)
 
     @property
@@ -427,7 +426,6 @@ class AspenQubit(OctagonalQubit):
         """
         if type(other) != AspenQubit:
             raise TypeError("can only measure distance from other Aspen qubits")
-        other = cast(AspenQubit, other)
         return sqrt((self.x - other.x) ** 2 + (self.y - other.y) ** 2 + (self.z - other.z) ** 2)
 
     def to_grid_qubit(self) -> cirq.GridQubit:

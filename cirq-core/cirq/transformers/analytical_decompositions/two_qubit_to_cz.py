@@ -57,7 +57,7 @@ def two_qubit_matrix_to_cz_operations(
     kak = linalg.kak_decomposition(mat, atol=atol)
     operations = _kak_decomposition_to_operations(q0, q1, kak, allow_partial_czs, atol=atol)
     if clean_operations:
-        return _cleanup_operations(operations)
+        return cleanup_operations(operations)
     return operations
 
 
@@ -159,7 +159,7 @@ def _xx_yy_zz_interaction_via_full_czs(
     yield ops.H(q1)
 
 
-def _cleanup_operations(operations: Sequence[ops.Operation]):
+def cleanup_operations(operations: Sequence[ops.Operation]):
     circuit = circuits.Circuit(operations)
     circuit = merge_single_qubit_gates_to_phased_x_and_z(circuit)
     circuit = eject_phased_paulis(circuit)
@@ -217,8 +217,7 @@ def _parity_interaction(
 
     h = rads * -2 / np.pi
     if gate is not None:
-        g = cast(ops.Gate, gate)
-        yield g.on(q0), g.on(q1)
+        yield gate.on(q0), gate.on(q1)
 
     # If rads is ±pi/4 radians within tolerance, single full-CZ suffices.
     if _is_trivial_angle(rads, atol):

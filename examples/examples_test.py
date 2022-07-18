@@ -28,6 +28,7 @@ import examples.shor
 import examples.simon_algorithm
 import examples.superdense_coding
 import examples.swap_networks
+import examples.two_qubit_gate_compilation
 from examples.shors_code import OneQubitShorsCode
 
 
@@ -69,11 +70,7 @@ def test_example_runs_quantum_fourier_transform():
 
 
 def test_example_runs_bcs_mean_field():
-    pytest.importorskip("cirq_google")
-    with cirq.testing.assert_deprecated(
-        'Use cirq.optimize_for_target_gateset', deadline='v0.16', count=None
-    ):
-        examples.bcs_mean_field.main()
+    examples.bcs_mean_field.main()
 
 
 def test_example_runs_grover():
@@ -118,7 +115,7 @@ def test_example_qaoa_same_unitary():
     ]
 
     assert cirq.allclose_up_to_global_phase(
-        cirq.unitary(circuits[0]), cirq.unitary(circuits[1]), atol=1e-6
+        cirq.unitary(circuits[0]), cirq.unitary(circuits[1]), atol=1e-8
     )
 
 
@@ -308,3 +305,9 @@ def test_example_qec_single_qubit():
     sim2 = cirq.DensityMatrixSimulator()
     result2 = sim2.run(my_circuit2, repetitions=1)
     assert result2.measurements['q(0)'] == [[1]]
+
+
+@pytest.mark.usefixtures('closefigures')
+def test_two_qubit_gate_compilation_example():
+    plt.switch_backend('agg')
+    examples.two_qubit_gate_compilation.main(samples=10, max_infidelity=0.3)

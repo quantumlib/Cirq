@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""Devices and Noise models for publicly known Google devices."""
+
 from cirq_google.devices.google_noise_properties import (
     GoogleNoiseProperties,
     NoiseModelFromGoogleNoiseProperties,
@@ -20,5 +22,3 @@ from cirq_google.devices.google_noise_properties import (
 from cirq_google.devices.known_devices import Sycamore, Sycamore23
 
 from cirq_google.devices.grid_device import GridDevice
-
-from cirq_google.devices.serializable_device import SerializableDevice

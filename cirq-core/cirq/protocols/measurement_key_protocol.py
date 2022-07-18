@@ -13,11 +13,11 @@
 # limitations under the License.
 """Protocol for object that have measurement keys."""
 
-from typing import Any, Dict, FrozenSet, Optional, Tuple, TYPE_CHECKING, Union
+from typing import Any, FrozenSet, Mapping, Optional, Tuple, TYPE_CHECKING, Union
 
 from typing_extensions import Protocol
 
-from cirq import value, _compat
+from cirq import value
 from cirq._doc import doc_private
 from cirq.type_workarounds import NotImplementedType
 
@@ -98,7 +98,7 @@ class SupportsMeasurementKey(Protocol):
         """
 
     @doc_private
-    def _with_measurement_key_mapping_(self, key_map: Dict[str, str]):
+    def _with_measurement_key_mapping_(self, key_map: Mapping[str, str]):
         """Return a copy of this object with the measurement keys remapped.
 
         This method allows measurement keys to be reassigned at runtime.
@@ -182,12 +182,6 @@ def _measurement_key_objs_from_magic_methods(
     getter = getattr(val, '_measurement_key_objs_', None)
     result = NotImplemented if getter is None else getter()
     if result is not NotImplemented and result is not None:
-        if not isinstance(result, FrozenSet):
-            _compat._warn_or_error(
-                f'The _measurement_key_objs_ implementation of {type(val)} must return a'
-                f' frozenset instead of {type(result)} by v0.16.'
-            )
-            return frozenset(result)
         return result
 
     getter = getattr(val, '_measurement_key_obj_', None)
@@ -205,12 +199,6 @@ def _measurement_key_names_from_magic_methods(
     getter = getattr(val, '_measurement_key_names_', None)
     result = NotImplemented if getter is None else getter()
     if result is not NotImplemented and result is not None:
-        if not isinstance(result, FrozenSet):
-            _compat._warn_or_error(
-                f'The _measurement_key_names_ implementation of {type(val)} must return a'
-                f' frozenset instead of {type(result)} by v0.16.'
-            )
-            return frozenset(result)
         return result
 
     getter = getattr(val, '_measurement_key_name_', None)
@@ -291,7 +279,7 @@ def is_measurement(val: Any) -> bool:
     return keys is not NotImplemented and bool(keys)
 
 
-def with_measurement_key_mapping(val: Any, key_map: Dict[str, str]):
+def with_measurement_key_mapping(val: Any, key_map: Mapping[str, str]):
     """Remaps the target's measurement keys according to the provided key_map.
 
     This method can be used to reassign measurement keys at runtime, or to

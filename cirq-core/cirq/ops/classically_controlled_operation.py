@@ -14,7 +14,7 @@
 from typing import (
     AbstractSet,
     Any,
-    cast,
+    Mapping,
     Dict,
     FrozenSet,
     List,
@@ -84,7 +84,7 @@ class ClassicallyControlledOperation(raw_types.Operation):
                 c = value.KeyCondition(c)
             if isinstance(c, sympy.Basic):
                 c = value.SympyCondition(c)
-            conds.append(cast('cirq.Condition', c))
+            conds.append(c)
         self._conditions: Tuple['cirq.Condition', ...] = tuple(conds)
         self._sub_operation: 'cirq.Operation' = sub_operation
 
@@ -149,9 +149,13 @@ class ClassicallyControlledOperation(raw_types.Operation):
         sub_info = protocols.circuit_diagram_info(self._sub_operation, sub_args, None)
         if sub_info is None:
             return NotImplemented  # coverage: ignore
-        control_count = len({k for c in self._conditions for k in c.keys})
-        wire_symbols = sub_info.wire_symbols + ('^',) * control_count
-        if any(not isinstance(c, value.KeyCondition) for c in self._conditions):
+        control_label_count = 0
+        if args.label_map is not None:
+            control_label_count = len({k for c in self._conditions for k in c.keys})
+        wire_symbols = sub_info.wire_symbols + ('^',) * control_label_count
+        if control_label_count == 0 or any(
+            not isinstance(c, value.KeyCondition) for c in self._conditions
+        ):
             wire_symbols = (
                 wire_symbols[0]
                 + '(conditions=['
@@ -160,9 +164,9 @@ class ClassicallyControlledOperation(raw_types.Operation):
             ) + wire_symbols[1:]
         exponent_qubit_index = None
         if sub_info.exponent_qubit_index is not None:
-            exponent_qubit_index = sub_info.exponent_qubit_index + control_count
+            exponent_qubit_index = sub_info.exponent_qubit_index + control_label_count
         elif sub_info.exponent is not None:
-            exponent_qubit_index = control_count
+            exponent_qubit_index = control_label_count
         return protocols.CircuitDiagramInfo(
             wire_symbols=wire_symbols,
             exponent=sub_info.exponent,
@@ -178,7 +182,7 @@ class ClassicallyControlledOperation(raw_types.Operation):
         return True
 
     def _with_measurement_key_mapping_(
-        self, key_map: Dict[str, str]
+        self, key_map: Mapping[str, str]
     ) -> 'ClassicallyControlledOperation':
         conditions = [protocols.with_measurement_key_mapping(c, key_map) for c in self._conditions]
         sub_operation = protocols.with_measurement_key_mapping(self._sub_operation, key_map)
@@ -206,5 +210,9 @@ class ClassicallyControlledOperation(raw_types.Operation):
 
     def _qasm_(self, args: 'cirq.QasmArgs') -> Optional[str]:
         args.validate_version('2.0')
-        all_keys = " && ".join(c.qasm for c in self._conditions)
-        return args.format('if ({0}) {1}', all_keys, protocols.qasm(self._sub_operation, args=args))
+        if len(self._conditions) > 1:
+            raise ValueError('QASM does not support multiple conditions.')
+        subop_qasm = protocols.qasm(self._sub_operation, args=args)
+        if not self._conditions:
+            return subop_qasm
+        return f'if ({self._conditions[0].qasm}) {subop_qasm}'

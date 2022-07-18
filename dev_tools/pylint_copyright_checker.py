@@ -70,10 +70,29 @@ class CopyrightChecker(BaseChecker):
             b'# limitations under the License.',
         ]
         with node.stream() as stream:
-            for expected_line, (lineno, line) in zip(golden, enumerate(stream)):
+
+            def skip_shebang(stream):
+                """Skip shebang line if present, and blank lines between shebang and content."""
+                lines = iter(enumerate(stream))
+                try:
+                    lineno, line = next(lines)
+                except StopIteration:
+                    return
+                if line.startswith(b'#!'):
+                    # skip shebang and blank lines
+                    for lineno, line in lines:
+                        if line.strip():
+                            yield lineno, line
+                            break
+                else:
+                    # no shebang
+                    yield lineno, line
+                yield from lines
+
+            for expected_line, (i, (lineno, line)) in zip(golden, enumerate(skip_shebang(stream))):
                 for expected_char, (colno, char) in zip(expected_line, enumerate(line)):
                     # The text needs to be same as the template except for the year.
-                    if expected_char != char and not (lineno == 0 and 14 <= colno <= 15):
+                    if expected_char != char and not (i == 0 and 14 <= colno <= 15):
                         self.add_message(
                             "wrong-or-nonexistent-copyright-notice",
                             line=lineno + 1,

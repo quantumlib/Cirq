@@ -12,11 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import itertools
 from typing import (
     AbstractSet,
     Any,
-    cast,
     Collection,
     Dict,
     List,
@@ -37,6 +35,7 @@ from cirq.ops import (
     gate_operation,
     matrix_gates,
     raw_types,
+    control_values as cv,
 )
 from cirq.type_workarounds import NotImplementedType
 
@@ -55,7 +54,9 @@ class ControlledOperation(raw_types.Operation):
         self,
         controls: Sequence['cirq.Qid'],
         sub_operation: 'cirq.Operation',
-        control_values: Optional[Sequence[Union[int, Collection[int]]]] = None,
+        control_values: Optional[
+            Union[cv.AbstractControlValues, Sequence[Union[int, Collection[int]]]]
+        ] = None,
     ):
         """Initializes the controlled operation.
 
@@ -63,7 +64,8 @@ class ControlledOperation(raw_types.Operation):
             controls: The qubits that control the sub-operation.
             sub_operation: The operation that will be controlled.
             control_values: Which control qubit values to apply the sub
-                operation.  A sequence of length `num_controls` where each
+                operation.  Either an object that inherits from AbstractControlValues
+                or a sequence of length `num_controls` where each
                 entry is an integer (or set of integers) corresponding to the
                 qubit value (or set of possible values) where that control is
                 enabled.  When all controls are enabled, the sub gate is
@@ -78,8 +80,11 @@ class ControlledOperation(raw_types.Operation):
         controlled_gate._validate_sub_object(sub_operation)
         if control_values is None:
             control_values = ((1,),) * len(controls)
-        if len(control_values) != len(controls):
-            raise ValueError('len(control_values) != len(controls)')
+        if not isinstance(control_values, cv.AbstractControlValues):
+            control_values = cv.ProductOfSums(control_values)
+
+        if protocols.num_qubits(control_values) != len(controls):
+            raise ValueError('cirq.num_qubits(control_values) != len(controls)')
 
         # Verify qubits control qubits unique
         control_set = set(controls)
@@ -93,16 +98,10 @@ class ControlledOperation(raw_types.Operation):
             overlap = control_set.intersection(sub_operation.qubits)
             raise ValueError(f'Sub-op and controls share qubits {[str(x) for x in overlap]}.')
 
-        # Convert to sorted tuples
-        self._control_values = cast(
-            Tuple[Tuple[int, ...], ...],
-            tuple((val,) if isinstance(val, int) else tuple(sorted(val)) for val in control_values),
-        )
+        self._control_values = control_values
 
         # Verify control values not out of bounds
-        for q, val in zip(controls, self.control_values):
-            if not all(0 <= v < q.dimension for v in val):
-                raise ValueError(f'Control values <{val!r}> outside of range for qubit <{q!r}>.')
+        self._control_values.validate([q.dimension for q in controls])
 
         if not isinstance(sub_operation, ControlledOperation):
             self._controls = tuple(controls)
@@ -111,14 +110,14 @@ class ControlledOperation(raw_types.Operation):
             # Auto-flatten nested controlled operations.
             self._controls = tuple(controls) + sub_operation.controls
             self._sub_operation = sub_operation.sub_operation
-            self._control_values += sub_operation.control_values
+            self._control_values = self._control_values & sub_operation.control_values
 
     @property
     def controls(self) -> Tuple['cirq.Qid', ...]:
         return self._controls
 
     @property
-    def control_values(self) -> Tuple[Tuple[int, ...], ...]:
+    def control_values(self) -> cv.AbstractControlValues:
         return self._control_values
 
     @property
@@ -164,14 +163,21 @@ class ControlledOperation(raw_types.Operation):
         ]
 
     def _value_equality_values_(self):
-        return (frozenset(zip(self.controls, self.control_values)), self.sub_operation)
+        sorted_controls, expanded_cvals = tuple(
+            zip(*sorted(zip(self.controls, zip(*self.control_values.expand()))))
+        )
+        return sorted_controls, tuple(expanded_cvals), self.sub_operation
 
     def _apply_unitary_(self, args: 'protocols.ApplyUnitaryArgs') -> np.ndarray:
         n = len(self.controls)
         sub_n = len(args.axes) - n
         sub_axes = args.axes[n:]
-        for control_vals in itertools.product(*self.control_values):
-            active = (..., *(slice(v, v + 1) for v in control_vals), *(slice(None),) * sub_n)
+        for control_vals in self.control_values.expand():
+            active: Tuple[Union['ellipsis', slice], ...] = (
+                ...,
+                *(slice(v, v + 1) for v in control_vals),
+                *(slice(None),) * sub_n,
+            )
             target_view = args.target_tensor[active]
             buffer_view = args.available_buffer[active]
             result = protocols.apply_unitary(
@@ -197,7 +203,7 @@ class ControlledOperation(raw_types.Operation):
         if (
             hasattr(self._sub_operation, "gate")
             and len(self._controls) == 1
-            and self._control_values == ((1,),)
+            and self.control_values == cv.ProductOfSums(((1,),))
         ):
             gate = self.sub_operation.gate
             if (
@@ -224,7 +230,7 @@ class ControlledOperation(raw_types.Operation):
         sub_n = len(qid_shape) - len(self.controls)
         tensor = qis.eye_tensor(qid_shape, dtype=sub_matrix.dtype)
         sub_tensor = sub_matrix.reshape(qid_shape[len(self.controls) :] * 2)
-        for control_vals in itertools.product(*self.control_values):
+        for control_vals in self.control_values.expand():
             active = (*(v for v in control_vals), *(slice(None),) * sub_n) * 2
             tensor[active] = sub_tensor
         return tensor.reshape((np.prod(qid_shape, dtype=np.int64).item(),) * 2)
@@ -245,18 +251,7 @@ class ControlledOperation(raw_types.Operation):
         return [(p, self._extend_matrix(m)) for p, m in sub_mixture]
 
     def __str__(self) -> str:
-        if set(self.control_values) == {(1,)}:
-
-            def get_prefix(control_vals):
-                return 'C'
-
-        else:
-
-            def get_prefix(control_vals):
-                control_vals_str = ''.join(map(str, sorted(control_vals)))
-                return f'C{control_vals_str}'
-
-        prefix = ''.join(map(get_prefix, self.control_values))
+        prefix = str(self.control_values)
         if isinstance(self.sub_operation, gate_operation.GateOperation):
             qubits = ', '.join(map(str, self.qubits))
             return f'{prefix}{self.sub_operation.gate}({qubits})'
@@ -265,7 +260,7 @@ class ControlledOperation(raw_types.Operation):
 
     def __repr__(self):
         if all(q.dimension == 2 for q in self.controls):
-            if self.control_values == ((1,) * len(self.controls),):
+            if self.control_values.is_trivial:
                 if self == self.sub_operation.controlled_by(*self.controls):
                     qubit_args = ', '.join(repr(q) for q in self.controls)
                     return f'{self.sub_operation!r}.controlled_by({qubit_args})'
@@ -321,21 +316,19 @@ class ControlledOperation(raw_types.Operation):
         if sub_info is None:
             return NotImplemented
 
-        def get_symbol(vals):
-            if tuple(vals) == (1,):
-                return '@'
-            return f"({','.join(map(str, vals))})"
+        cv_info = protocols.circuit_diagram_info(self.control_values)
 
-        wire_symbols = (*(get_symbol(vals) for vals in self.control_values), *sub_info.wire_symbols)
+        wire_symbols = (*cv_info.wire_symbols, *sub_info.wire_symbols)
         exponent_qubit_index = None
+        num_controls = protocols.num_qubits(self.control_values)
         if sub_info.exponent_qubit_index is not None:
-            exponent_qubit_index = sub_info.exponent_qubit_index + len(self.control_values)
+            exponent_qubit_index = sub_info.exponent_qubit_index + num_controls
         elif sub_info.exponent is not None:
             # For a multi-qubit `sub_operation`, if the `exponent_qubit_index` is None, the qubit
             # on which the exponent gets drawn in the controlled case (smallest ordered qubit of
             # sub_operation) can be different from the uncontrolled case (lexicographically largest
             # qubit of sub_operation). See tests for example.
-            exponent_qubit_index = len(self.control_values)
+            exponent_qubit_index = num_controls
         return protocols.CircuitDiagramInfo(
             wire_symbols=wire_symbols,
             exponent=sub_info.exponent,

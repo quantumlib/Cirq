@@ -14,7 +14,7 @@
 
 import functools
 import itertools
-from typing import Type
+from typing import Tuple, Type
 
 import numpy as np
 import pytest
@@ -58,9 +58,12 @@ def _all_rotation_pairs():
         yield (px, flip_x), (pz, flip_z)
 
 
-def _all_clifford_gates():
-    for trans_x, trans_z in _all_rotation_pairs():
-        yield cirq.SingleQubitCliffordGate.from_xz_map(trans_x, trans_z)
+@functools.lru_cache()
+def _all_clifford_gates() -> Tuple['cirq.SingleQubitCliffordGate', ...]:
+    return tuple(
+        cirq.SingleQubitCliffordGate.from_xz_map(trans_x, trans_z)
+        for trans_x, trans_z in _all_rotation_pairs()
+    )
 
 
 @pytest.mark.parametrize('pauli,flip_x,flip_z', itertools.product(_paulis, _bools, _bools))
@@ -76,13 +79,6 @@ def test_init_from_xz(trans_x, trans_z):
     assert gate.pauli_tuple(cirq.Z) == trans_z
     _assert_not_mirror(gate)
     _assert_no_collision(gate)
-
-
-def test_transform_deprecated():
-    gate = cirq.SingleQubitCliffordGate.from_xz_map((cirq.X, True), (cirq.Y, False))
-    with cirq.testing.assert_deprecated('pauli_tuple', deadline='v0.16', count=4):
-        assert gate.transform(cirq.X).to == cirq.X
-        assert gate.transform(cirq.Z).to == cirq.Y
 
 
 def test_dense_pauli_string():
@@ -326,16 +322,22 @@ def test_eq_ne_and_hash():
 
 
 @pytest.mark.parametrize(
-    'gate,rep',
+    'gate',
     (
-        (cirq.SingleQubitCliffordGate.I, 'cirq.SingleQubitCliffordGate(X:+X, Y:+Y, Z:+Z)'),
-        (cirq.SingleQubitCliffordGate.H, 'cirq.SingleQubitCliffordGate(X:+Z, Y:-Y, Z:+X)'),
-        (cirq.SingleQubitCliffordGate.X, 'cirq.SingleQubitCliffordGate(X:+X, Y:-Y, Z:-Z)'),
-        (cirq.SingleQubitCliffordGate.X_sqrt, 'cirq.SingleQubitCliffordGate(X:+X, Y:+Z, Z:-Y)'),
+        cirq.SingleQubitCliffordGate.I,
+        cirq.SingleQubitCliffordGate.H,
+        cirq.SingleQubitCliffordGate.X,
+        cirq.SingleQubitCliffordGate.X_sqrt,
     ),
 )
-def test_repr(gate, rep):
-    assert repr(gate) == rep
+def test_repr_gate(gate):
+    cirq.testing.assert_equivalent_repr(gate)
+
+
+def test_repr_operation():
+    cirq.testing.assert_equivalent_repr(
+        cirq.SingleQubitCliffordGate.from_pauli(cirq.Z).on(cirq.LineQubit(2))
+    )
 
 
 @pytest.mark.parametrize(
@@ -452,9 +454,7 @@ def test_commutes_notimplemented_type():
     assert cirq.commutes(cirq.CliffordGate.X, 'X', default='default') == 'default'
 
 
-@pytest.mark.parametrize(
-    'gate,other', itertools.product(_all_clifford_gates(), _all_clifford_gates())
-)
+@pytest.mark.parametrize('gate,other', itertools.combinations(_all_clifford_gates(), r=2))
 def test_commutes_single_qubit_gate(gate, other):
     q0 = cirq.NamedQubit('q0')
     gate_op = gate(q0)
@@ -739,13 +739,12 @@ def test_multi_clifford_decompose_by_unitary():
     # Construct a random clifford gate:
     n, num_ops = 5, 20  # because we relied on unitary cannot test large-scale qubits
     gate_candidate = [cirq.X, cirq.Y, cirq.Z, cirq.H, cirq.S, cirq.CNOT, cirq.CZ]
-    for seed in range(100):
-        prng = np.random.RandomState(seed)
+    for _ in range(10):
         qubits = cirq.LineQubit.range(n)
         ops = []
         for _ in range(num_ops):
-            g = prng.randint(len(gate_candidate))
-            indices = (prng.randint(n),) if g < 5 else prng.choice(n, 2, replace=False)
+            g = np.random.randint(len(gate_candidate))
+            indices = (np.random.randint(n),) if g < 5 else np.random.choice(n, 2, replace=False)
             ops.append(gate_candidate[g].on(*[qubits[i] for i in indices]))
         gate = cirq.CliffordGate.from_op_list(ops, qubits)
         decomposed_ops = cirq.decompose(gate.on(*qubits))
@@ -853,7 +852,7 @@ def test_clifford_gate_act_on_large_case():
         args1 = cirq.CliffordTableauSimulationState(tableau=t1, qubits=qubits, prng=prng)
         args2 = cirq.CliffordTableauSimulationState(tableau=t2, qubits=qubits, prng=prng)
         ops = []
-        for _ in range(num_ops):
+        for _ in range(0, num_ops, 100):
             g = prng.randint(len(gate_candidate))
             indices = (prng.randint(n),) if g < 5 else prng.choice(n, 2, replace=False)
             cirq.act_on(

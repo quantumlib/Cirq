@@ -23,7 +23,6 @@ from typing import (
     Iterable,
     List,
     Optional,
-    Sequence,
     Set,
     Tuple,
     TYPE_CHECKING,
@@ -71,7 +70,14 @@ def _rotation_matrix(angle: float) -> np.ndarray:
 
 
 def deconstruct_single_qubit_matrix_into_angles(mat: np.ndarray) -> Tuple[float, float, float]:
-    """Breaks down a 2x2 unitary into more useful ZYZ angle parameters.
+    r"""Breaks down a 2x2 unitary into ZYZ angle parameters.
+
+    Given a unitary U, this function returns three angles: $\phi_0, \phi_1, \phi_2$,
+    such that:  $U = Z^{\phi_2 / \pi} Y^{\phi_1 / \pi} Z^{\phi_0/ \pi}$
+    for the Pauli matrices Y and Z.  That is, phasing around Z by $\phi_0$ radians,
+    then rotating around Y by $\phi_1$ radians, and then phasing again by
+    $\phi_2$ radians will produce the same effect as the original unitary.
+    (Note that the matrices are applied right to left.)
 
     Args:
         mat: The 2x2 unitary matrix to break down.
@@ -549,8 +555,6 @@ def scatter_plot_normalized_kak_interaction_coefficients(
     *,
     include_frame: bool = True,
     ax: Optional[plt.Axes] = None,
-    rtol: float = 1e-5,
-    atol: float = 1e-6,
     **kwargs,
 ):
     r"""Plots the interaction coefficients of many two-qubit operations.
@@ -592,12 +596,6 @@ def scatter_plot_normalized_kak_interaction_coefficients(
             wireframe. Defaults to `True`.
         ax: A matplotlib 3d axes object to plot into. If not specified, a new
             figure is created, plotted, and shown.
-        rtol: Per-matrix-entry relative tolerance on equality used if the
-            kak decomposition is calculated from the `interactions`.
-        atol: Per-matrix-entry absolute tolerance on equality used if the
-            kak decomposition is calculated from the `interaction`s. T
-            This determines how close $k_x$  must be to π/4 to guarantee
-            $k_z$ ≥ 0. Must be non-negative.
 
         **kwargs: Arguments forwarded into the call to `scatter` that plots the
             points. Working arguments include color `c='blue'`, scale `s=2`,
@@ -638,11 +636,11 @@ def scatter_plot_normalized_kak_interaction_coefficients(
         ax = fig.add_subplot(1, 1, 1, projection='3d')
 
     def coord_transform(
-        pts: Sequence[Tuple[float, float, float]]
+        pts: Union[List[Tuple[int, int, int]], np.ndarray]
     ) -> Tuple[Iterable[float], Iterable[float], Iterable[float]]:
         if len(pts) == 0:
             return [], [], []
-        xs, ys, zs = zip(*pts)
+        xs, ys, zs = np.transpose(pts)
         return xs, zs, ys
 
     if include_frame:
@@ -671,7 +669,7 @@ def scatter_plot_normalized_kak_interaction_coefficients(
     else:
         interactions_extracted = [interactions]
 
-    points = kak_vector(interactions_extracted, rtol=rtol, atol=atol) * 4 / np.pi
+    points = kak_vector(interactions_extracted) * 4 / np.pi
 
     ax.scatter(*coord_transform(points), **kwargs)
     ax.set_xlim(0, +1)
@@ -819,7 +817,7 @@ def kak_decomposition(
     ],
     *,
     rtol: float = 1e-5,
-    atol: float = 1e-6,
+    atol: float = 1e-8,
     check_preconditions: bool = True,
 ) -> KakDecomposition:
     """Decomposes a 2-qubit unitary into 1-qubit ops and XX/YY/ZZ interactions.
@@ -955,7 +953,7 @@ def kak_vector(
 
     if check_preconditions:
         actual = np.einsum('...ba,...bc', unitary.conj(), unitary) - np.eye(4)
-        if not np.allclose(np.zeros_like(actual), actual, rtol=rtol, atol=atol):
+        if not np.allclose(actual, np.zeros_like(actual), rtol=rtol, atol=atol):
             raise ValueError(
                 'Input must correspond to a 4x4 unitary matrix or tensor of '
                 f'unitary matrices. Received input:\n{unitary}'

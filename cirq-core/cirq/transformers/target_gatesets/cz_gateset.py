@@ -56,7 +56,7 @@ class CZTargetGateset(compilation_target_gateset.TwoQubitCompilationTargetGatese
             allow_partial_czs: If set, all powers of the form `cirq.CZ**t`, and not just
              `cirq.CZ`, are part of this gateset.
             additional_gates: Sequence of additional gates / gate families which should also
-              be "accepted" by this gateset. Defaults to `cirq.GlobalPhaseGate`.
+              be "accepted" by this gateset. This is empty by default.
         """
         super().__init__(
             ops.CZPowGate if allow_partial_czs else ops.CZ,

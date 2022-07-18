@@ -17,7 +17,7 @@ import numpy as np
 
 import cirq
 from cirq import protocols, qis, value
-from cirq.value import big_endian_int_to_digits
+from cirq.value import big_endian_int_to_digits, random_state
 
 
 @value.value_equality
@@ -119,7 +119,7 @@ class StabilizerStateChForm(qis.StabilizerState):
             * 2 ** (-sum(self.v) / 2)
             * 1j**mu
             * (-1) ** sum(self.v & u & self.s)
-            * np.all(self.v | (u == self.s))
+            * bool(np.all(self.v | (u == self.s)))
         )
 
     def state_vector(self) -> np.ndarray:
@@ -388,7 +388,7 @@ class StabilizerStateChForm(qis.StabilizerState):
     def measure(
         self, axes: Sequence[int], seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None
     ) -> List[int]:
-        return [self._measure(axis, seed) for axis in axes]
+        return [self._measure(axis, random_state.parse_random_state(seed)) for axis in axes]
 
 
 def _phase(exponent, global_shift):

@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Any, TypeVar, Optional, Sequence
+from typing import Any, TypeVar, Optional, Sequence, Union
 
 import numpy as np
 from typing_extensions import Protocol
@@ -106,10 +106,10 @@ def _strat_distance_from_unitary(val: Any) -> Optional[float]:
             return 0.0
         return squared**0.5
 
-    return trace_distance_from_angle_list(np.angle(np.linalg.eigvals(u)))
+    return trace_distance_from_angle_list(np.angle(np.linalg.eigvals(u)))  # type: ignore[arg-type]
 
 
-def trace_distance_from_angle_list(angle_list: Sequence[float]) -> float:
+def trace_distance_from_angle_list(angle_list: Union[Sequence[float], np.ndarray]) -> float:
     """Given a list of arguments of the eigenvalues of a unitary matrix,
     calculates the trace distance bound of the unitary effect.
 

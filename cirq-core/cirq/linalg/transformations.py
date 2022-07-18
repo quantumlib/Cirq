@@ -151,6 +151,7 @@ def targeted_left_multiply(
 
     all_indices = set(input_indices + data_indices + tuple(output_indices))
 
+    # TODO(#5757): remove type ignore when numpy has proper override signature.
     return np.einsum(
         left_matrix,
         input_indices,
@@ -164,7 +165,7 @@ def targeted_left_multiply(
         # And this is workaround for *another* bug!
         # Supposed to be able to just say 'old=old'.
         **({'out': out} if out is not None else {}),
-    )
+    )  # type: ignore
 
 
 def targeted_conjugate_about(
@@ -187,10 +188,13 @@ def targeted_conjugate_about(
     is a contraction between the given indices (indices for first $\cdot$,
     conj_indices for second $\cdot$).
 
-    More specifically this computes
-        $\sum tensor_{i_0,...,i_{r-1},j_0,...,j_{r-1}} *
+    More specifically, this computes:
+
+    $$
+    \sum tensor_{i_0,...,i_{r-1},j_0,...,j_{r-1}} *
         target_{k_0,...,k_{r-1},l_0,...,l_{r-1}} *
-        tensor_{m_0,...,m_{r-1},n_0,...,n_{r-1}}^*$
+        tensor_{m_0,...,m_{r-1},n_0,...,n_{r-1}}^*
+    $$
 
     where the sum is over indices where $j_s$ = $k_s$ and $s$ is in `indices`
     and $l_s$ = $m_s$ and s is in `conj_indices`.
@@ -212,7 +216,7 @@ def targeted_conjugate_about(
             buffer is used. Must have the same shape as target.
 
     Returns:
-        The result the conjugation.
+        The result of the conjugation, as a numpy array.
     """
     conj_indices = conj_indices or [i + target.ndim // 2 for i in indices]
     first_multiply = targeted_left_multiply(tensor, target, indices, out=buffer)
@@ -230,28 +234,30 @@ def apply_matrix_to_slices(
     *,
     out: Optional[np.ndarray] = None,
 ) -> np.ndarray:
-    """Left-multiplies an NxN matrix onto N slices of a numpy array.
+    r"""Left-multiplies an NxN matrix onto N slices of a numpy array.
 
-    Example:
-        The 4x4 matrix of a fractional SWAP gate can be expressed as
+    One example is that the 4x4 matrix of a fractional SWAP gate can be expressed as
 
-           [ 1       ]
-           [   X**t  ]
-           [       1 ]
+    $$
+    \begin{bmatrix}
+      1 & & \\
+        & X**t & \\
+        & & 1 \\
+    \end{bmatrix}
 
-        Where X is the 2x2 Pauli X gate and t is the power of the swap with t=1
-        being a full swap. X**t is a power of the Pauli X gate's matrix.
-        Applying the fractional swap is equivalent to applying a fractional X
-        within the inner 2x2 subspace; the rest of the matrix is identity. This
-        can be expressed using `apply_matrix_to_slices` as follows:
+    Where X is the 2x2 Pauli X gate and t is the power of the swap with t=1
+    being a full swap. X**t is a power of the Pauli X gate's matrix.
+    Applying the fractional swap is equivalent to applying a fractional X
+    within the inner 2x2 subspace; the rest of the matrix is identity. This
+    can be expressed using `apply_matrix_to_slices` as follows:
 
-            def fractional_swap(target):
-                assert target.shape == (4,)
-                return apply_matrix_to_slices(
-                    target=target,
-                    matrix=cirq.unitary(cirq.X**t),
-                    slices=[1, 2]
-                )
+        def fractional_swap(target):
+            assert target.shape == (4,)
+            return apply_matrix_to_slices(
+                target=target,
+                matrix=cirq.unitary(cirq.X**t),
+                slices=[1, 2]
+            )
 
     Args:
         target: The input array with slices that need to be left-multiplied.
@@ -286,10 +292,10 @@ def apply_matrix_to_slices(
 
     # Apply operation.
     for i, s_i in enumerate(slices):
-        out[s_i] *= matrix[i, i]
+        out[s_i] *= matrix[i, i]  # type: ignore[index]
         for j, s_j in enumerate(slices):
             if i != j:
-                out[s_i] += target[s_j] * matrix[i, j]
+                out[s_i] += target[s_j] * matrix[i, j]  # type: ignore[index]
 
     return out
 
@@ -328,7 +334,8 @@ def partial_trace(tensor: np.ndarray, keep_indices: Sequence[int]) -> np.ndarray
     keep_map = dict(zip(keep_indices, sorted(keep_indices)))
     left_indices = [keep_map[i] if i in keep_set else i for i in range(ndim)]
     right_indices = [ndim + i if i in keep_set else i for i in left_indices]
-    return np.einsum(tensor, left_indices + right_indices)
+    # TODO(#5757): remove type ignore when numpy has proper override signature.
+    return np.einsum(tensor, left_indices + right_indices)  # type: ignore
 
 
 class EntangledStateError(ValueError):
@@ -475,7 +482,7 @@ def sub_state_vector(
         for k in range(1 << len(other_qubits))
     ]
     # The coherence measure is computed using unnormalized candidates.
-    best_candidate = max(candidates, key=lambda c: np.linalg.norm(c, 2))
+    best_candidate = max(candidates, key=lambda c: float(np.linalg.norm(c, 2)))
     best_candidate = best_candidate / np.linalg.norm(best_candidate)
     left = np.conj(best_candidate.reshape((keep_dims,))).T
     coherence_measure = sum([abs(np.dot(left, c.reshape((keep_dims,)))) ** 2 for c in candidates])

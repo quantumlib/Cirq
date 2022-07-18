@@ -20,13 +20,14 @@ component operations in order, including any nested CircuitOperations.
 import math
 from typing import (
     Callable,
-    Mapping,
-    Sequence,
+    cast,
     Dict,
     FrozenSet,
     Iterator,
     List,
+    Mapping,
     Optional,
+    Sequence,
     Tuple,
     TYPE_CHECKING,
     Union,
@@ -50,7 +51,8 @@ REPETITION_ID_SEPARATOR = '-'
 
 def default_repetition_ids(repetitions: IntParam) -> Optional[List[str]]:
     if isinstance(repetitions, INT_CLASSES) and abs(repetitions) != 1:
-        return [str(i) for i in range(abs(repetitions))]
+        abs_repetitions: int = abs(int(repetitions))
+        return [str(i) for i in range(abs_repetitions)]
     return None
 
 
@@ -77,7 +79,7 @@ class CircuitOperation(ops.Operation):
     def __init__(
         self,
         circuit: 'cirq.FrozenCircuit',
-        repetitions: int = 1,
+        repetitions: INT_TYPE = 1,
         qubit_map: Optional[Dict['cirq.Qid', 'cirq.Qid']] = None,
         measurement_key_map: Optional[Dict[str, str]] = None,
         param_resolver: Optional[study.ParamResolverOrSimilarType] = None,
@@ -322,7 +324,7 @@ class CircuitOperation(ops.Operation):
             key.with_key_path_prefix(*self.parent_path) for key in circuit_keys
         )
         return frozenset(
-            protocols.with_measurement_key_mapping(key, dict(self.measurement_key_map))
+            protocols.with_measurement_key_mapping(key, self.measurement_key_map)
             for key in circuit_keys
         )
 
@@ -368,9 +370,7 @@ class CircuitOperation(ops.Operation):
         if isinstance(self.repetitions, INT_CLASSES) and self.repetitions < 0:
             circuit = circuit**-1
         if self.measurement_key_map:
-            circuit = protocols.with_measurement_key_mapping(
-                circuit, dict(self.measurement_key_map)
-            )
+            circuit = protocols.with_measurement_key_mapping(circuit, self.measurement_key_map)
         if self.param_resolver:
             circuit = protocols.resolve_parameters(circuit, self.param_resolver, recursive=False)
         return circuit.unfreeze(copy=False)
@@ -590,7 +590,7 @@ class CircuitOperation(ops.Operation):
                 # As CircuitOperation is immutable, this can safely return the original.
                 return self
 
-            expected_repetition_id_length = abs(repetitions)
+            expected_repetition_id_length: int = np.abs(repetitions)
 
             if repetition_ids is None:
                 if self.use_repetition_ids:
@@ -791,4 +791,8 @@ class CircuitOperation(ops.Operation):
         self, resolver: 'cirq.ParamResolver', recursive: bool
     ) -> 'cirq.CircuitOperation':
         resolved = self.with_params(resolver.param_dict, recursive)
-        return resolved.replace(repetitions=resolver.value_of(self.repetitions, recursive))
+        # repetitions can resolve to a float, but this is ok since constructor converts to
+        # nearby int.
+        return resolved.replace(
+            repetitions=resolver.value_of(cast('cirq.TParamVal', self.repetitions), recursive)
+        )

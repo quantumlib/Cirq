@@ -11,7 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-import pytest
 
 import cirq
 from cirq.contrib.paulistring import (
@@ -28,7 +27,6 @@ def _assert_no_multi_qubit_pauli_strings(circuit: cirq.Circuit) -> None:
 
 
 def test_move_non_clifford_into_clifford():
-    cg = pytest.importorskip("cirq_google")
     q0, q1, q2 = cirq.LineQubit.range(3)
     c_orig = cirq.testing.nonoptimal_toffoli_circuit(q0, q1, q2)
 
@@ -43,11 +41,9 @@ def test_move_non_clifford_into_clifford():
     _assert_no_multi_qubit_pauli_strings(c_recombined1)
     _assert_no_multi_qubit_pauli_strings(c_recombined2)
 
-    with cirq.testing.assert_deprecated(
-        'Use cirq.optimize_for_target_gateset', deadline='v0.16', count=None
-    ):
-        baseline_len = len(cg.optimized_for_xmon(c_orig))
-        opt_len1 = len(cg.optimized_for_xmon(c_recombined1))
-        opt_len2 = len(cg.optimized_for_xmon(c_recombined2))
-        assert opt_len1 <= baseline_len
-        assert opt_len2 <= baseline_len
+    gateset = cirq.CZTargetGateset()
+    baseline_len = len(cirq.optimize_for_target_gateset(c_orig, gateset=gateset))
+    opt_len1 = len(cirq.optimize_for_target_gateset(c_recombined1, gateset=gateset))
+    opt_len2 = len(cirq.optimize_for_target_gateset(c_recombined2, gateset=gateset))
+    assert opt_len1 <= baseline_len
+    assert opt_len2 <= baseline_len

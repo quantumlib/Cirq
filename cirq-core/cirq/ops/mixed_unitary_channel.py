@@ -1,5 +1,5 @@
 # pylint: disable=wrong-or-nonexistent-copyright-notice
-from typing import Any, Dict, FrozenSet, Iterable, Tuple, TYPE_CHECKING, Union
+from typing import Any, Dict, FrozenSet, Iterable, Mapping, Tuple, TYPE_CHECKING, Union
 import numpy as np
 
 from cirq import linalg, protocols, value
@@ -69,7 +69,9 @@ class MixedUnitaryChannel(raw_types.Gate):
             return False
         if not np.allclose([m[0] for m in self._mixture], [m[0] for m in other._mixture]):
             return False
-        return np.allclose([m[1] for m in self._mixture], [m[1] for m in other._mixture])
+        return np.allclose(
+            np.asarray([m[1] for m in self._mixture]), np.asarray([m[1] for m in other._mixture])
+        )
 
     def num_qubits(self) -> int:
         return self._num_qubits
@@ -87,7 +89,7 @@ class MixedUnitaryChannel(raw_types.Gate):
             return NotImplemented
         return self._key
 
-    def _with_measurement_key_mapping_(self, key_map: Dict[str, str]):
+    def _with_measurement_key_mapping_(self, key_map: Mapping[str, str]):
         if self._key is None:
             return NotImplemented
         if self._key not in key_map:

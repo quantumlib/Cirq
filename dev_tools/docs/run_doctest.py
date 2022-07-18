@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-
 # Copyright 2019 The Cirq Developers
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -13,8 +12,8 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""
-Runs python doctest on all python source files in the cirq directory.
+
+"""Runs python doctest on all python source files in the cirq directory.
 
 See also:
     https://docs.python.org/3/library/doctest.html
@@ -47,7 +46,13 @@ class Doctest:
         self.test_globals = test_globals
 
     def run(self) -> doctest.TestResults:
-        return doctest.testmod(self.mod, globs=self.test_globals, report=False, verbose=False)
+        return doctest.testmod(
+            self.mod,
+            globs=self.test_globals,
+            report=False,
+            verbose=False,
+            optionflags=doctest.ELLIPSIS,
+        )
 
 
 def run_tests(
@@ -103,6 +108,7 @@ def load_tests(
         include_local: If True, the file under test is imported as a python
             module (only if the file extension is .py) and all globals defined
             in the file may be used by the snippets.
+        quiet: If True, suppress console output.
 
     Returns: A list of `Doctest` objects.
     """
@@ -112,11 +118,18 @@ def load_tests(
         try_print = lambda *args, **kwargs: None
     if include_modules:
         import cirq
+        import cirq_google
         import numpy
         import sympy
         import pandas
 
-        base_globals = {'cirq': cirq, 'np': numpy, 'sympy': sympy, 'pd': pandas}
+        base_globals = {
+            'cirq': cirq,
+            'cirq_google': cirq_google,
+            'np': numpy,
+            'pd': pandas,
+            'sympy': sympy,
+        }
     else:
         base_globals = {}
 
@@ -148,6 +161,7 @@ def exec_tests(
 
     Args:
         tests: The tests to run
+        quiet: If True, suppress console output.
 
     Returns: A tuple containing the results (# failures, # attempts) and a list
         of the error outputs from each failing test.
@@ -192,10 +206,15 @@ def import_file(file_path: str) -> ModuleType:
         file_path: The file to import.
 
     Returns: The imported module.
+
+    Raises:
+        ValueError: if unable to import the given file.
     """
     mod_name = 'cirq_doctest_module'
     # Find and create the module
     spec = importlib.util.spec_from_file_location(mod_name, file_path)
+    if spec is None:
+        raise ValueError(f'Unable to find module spec: mod_name={mod_name}, file_path={file_path}')
     mod = importlib.util.module_from_spec(spec)
     # Run the code in the module (but not with __name__ == '__main__')
     sys.modules[mod_name] = mod
@@ -208,9 +227,19 @@ def import_file(file_path: str) -> ModuleType:
 def main():
     quiet = len(sys.argv) >= 2 and sys.argv[1] == '-q'
 
-    file_names = glob.glob('cirq/**/*.py', recursive=True)
+    file_names = glob.glob('cirq**/cirq**/**/*.py', recursive=True)
+    assert file_names
     # Remove the engine client code.
-    file_names = [f for f in file_names if not f.startswith('cirq/google/engine/client/')]
+    excluded = [
+        'cirq-google/cirq_google/engine/client/',
+        'cirq-google/cirq_google/cloud/',
+        'cirq-google/cirq_google/api/',
+    ]
+    file_names = [
+        f
+        for f in file_names
+        if not (any(f.startswith(x) for x in excluded) or f.endswith("_test.py"))
+    ]
     failed, attempted = run_tests(
         file_names, include_modules=True, include_local=False, quiet=quiet
     )
@@ -218,9 +247,7 @@ def main():
     if failed != 0:
         print(
             shell_tools.highlight(
-                'Failed: {} failed, {} passed, {} total'.format(
-                    failed, attempted - failed, attempted
-                ),
+                f'Failed: {failed} failed, {attempted - failed} passed, {attempted} total',
                 shell_tools.RED,
             )
         )

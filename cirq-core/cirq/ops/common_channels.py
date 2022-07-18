@@ -29,7 +29,25 @@ if TYPE_CHECKING:
 
 @value.value_equality
 class AsymmetricDepolarizingChannel(raw_types.Gate):
-    """A channel that depolarizes asymmetrically along different directions."""
+    r"""A channel that depolarizes asymmetrically along different directions.
+
+    This channel applies one of $4^n$ disjoint possibilities: nothing (the
+    identity channel) or one of the $4^n - 1$ pauli gates.
+
+    This channel evolves a density matrix via
+
+    $$
+        \sum_i p_i Pi \rho Pi
+    $$
+
+    where i varies from 0 to $4^n-1$ and Pi represents n-qubit Pauli operator
+    (including identity). The input $\rho$ is the density matrix before the
+    depolarization.
+
+    Note: prior to Cirq v0.14, this class contained `num_qubits` as a property.
+    This violates the contract of `cirq.Gate` so it was removed.  One can
+    instead get the number of qubits by calling the method `num_qubits`.
+    """
 
     def __init__(
         self,
@@ -40,23 +58,6 @@ class AsymmetricDepolarizingChannel(raw_types.Gate):
         tol: float = 1e-8,
     ) -> None:
         r"""The asymmetric depolarizing channel.
-
-        This channel applies one of 4**n disjoint possibilities: nothing (the
-        identity channel) or one of the 4**n - 1 pauli gates.
-
-        This channel evolves a density matrix via
-
-            $$
-            \sum_i p_i Pi \rho Pi
-            $$
-
-        where i varies from 0 to 4**n-1 and Pi represents n-qubit Pauli operator
-        (including identity). The input $\rho$ is the density matrix before the
-        depolarization.
-
-        Note: prior to Cirq v0.14, this class contained `num_qubits` as a property.
-        This violates the contract of `cirq.Gate` so it was removed.  One can
-        instead get the number of qubits by calling the method `num_qubits`.
 
         Args:
             p_x: The probability that a Pauli X and no other gate occurs.
@@ -208,36 +209,36 @@ def asymmetric_depolarize(
     error_probabilities: Optional[Dict[str, float]] = None,
     tol: float = 1e-8,
 ) -> AsymmetricDepolarizingChannel:
-    r"""Returns a AsymmetricDepolarizingChannel with given parameter.
+    r"""Returns an `AsymmetricDepolarizingChannel` with the given parameters.
 
-        This channel applies one of 4**n disjoint possibilities: nothing (the
-        identity channel) or one of the 4**n - 1 pauli gates.
+    This channel applies one of $4^n$ disjoint possibilities: nothing (the
+    identity channel) or one of the $4^n - 1$ pauli gates.
 
-        This channel evolves a density matrix via
+    This channel evolves a density matrix via
 
-            $$
-            \sum_i p_i Pi \rho Pi
-            $$
+    $$
+    \sum_i p_i Pi \rho Pi
+    $$
 
-        where i varies from 0 to 4**n-1 and Pi represents n-qubit Pauli operator
-        (including identity). The input $\rho$ is the density matrix before the
-        depolarization.
+    where i varies from 0 to $4^n-1$ and Pi represents n-qubit Pauli operator
+    (including identity). The input $\rho$ is the density matrix before the
+    depolarization.
 
-        Args:
-            p_x: The probability that a Pauli X and no other gate occurs.
-            p_y: The probability that a Pauli Y and no other gate occurs.
-            p_z: The probability that a Pauli Z and no other gate occurs.
-            error_probabilities: Dictionary of string (Pauli operator) to its
-                probability. If the identity is missing from the list, it will
-                be added so that the total probability mass is 1.
-            tol: The tolerance used making sure the total probability mass is
-                equal to 1.
+    Args:
+        p_x: The probability that a Pauli X and no other gate occurs.
+        p_y: The probability that a Pauli Y and no other gate occurs.
+        p_z: The probability that a Pauli Z and no other gate occurs.
+        error_probabilities: Dictionary of string (Pauli operator) to its
+            probability. If the identity is missing from the list, it will
+            be added so that the total probability mass is 1.
+        tol: The tolerance used making sure the total probability mass is
+            equal to 1.
 
-        Examples of calls:
-            * Single qubit: AsymmetricDepolarizingChannel(0.2, 0.1, 0.3)
-            * Single qubit: AsymmetricDepolarizingChannel(p_z=0.3)
-            * Two qubits: AsymmetricDepolarizingChannel(
-                                error_probabilities={'XX': 0.2})
+    Examples of calls:
+
+    *     Single qubit: `AsymmetricDepolarizingChannel(0.2, 0.1, 0.3)`
+    *     Single qubit: `AsymmetricDepolarizingChannel(p_z=0.3)`
+    *     Two qubits: `AsymmetricDepolarizingChannel(error_probabilities={'XX': 0.2})`
 
     Raises:
         ValueError: if the args or the sum of the args are not probabilities.
@@ -247,31 +248,32 @@ def asymmetric_depolarize(
 
 @value.value_equality
 class DepolarizingChannel(raw_types.Gate):
-    """A channel that depolarizes one or several qubits."""
+    r"""A channel that depolarizes one or several qubits.
+
+    This channel applies one of $4^n$ disjoint possibilities: nothing (the
+    identity channel) or one of the $4^n - 1$ pauli gates. The disjoint
+    probabilities of the non-identity Pauli gates are all the same,
+    $p / (4^n - 1)$, and the identity is done with probability $1 - p$. The
+    supplied probability must be a valid probability or else this
+    constructor will raise a ValueError.
+
+
+    This channel evolves a density matrix via
+
+    $$
+    \rho \rightarrow (1 - p) \rho + p / (4^n - 1) \sum _i P_i \rho P_i
+    $$
+
+    where $P_i$ are the $4^n - 1$ Pauli gates (excluding the identity).
+    """
 
     def __init__(self, p: float, n_qubits: int = 1) -> None:
-        r"""The symmetric depolarizing channel.
-
-        This channel applies one of 4**n disjoint possibilities: nothing (the
-        identity channel) or one of the 4**n - 1 pauli gates. The disjoint
-        probabilities of the non-identity Pauli gates are all the same,
-        p / (4**n - 1), and the identity is done with probability 1 - p. The
-        supplied probability must be a valid probability or else this
-        constructor will raise a ValueError.
-
-
-        This channel evolves a density matrix via
-
-            $$
-            \rho \rightarrow (1 - p) \rho + p / (4**n - 1) \sum _i P_i \rho P_i
-            $$
-
-        where $P_i$ are the $4^n - 1$ Pauli gates (excluding the identity).
+        """Constructs a depolarization channel on several qubits.
 
         Args:
             p: The probability that one of the Pauli gates is applied. Each of
                 the Pauli gates is applied independently with probability
-                p / (4**n - 1).
+                $p / (4^n - 1)$.
             n_qubits: the number of qubits.
 
         Raises:
@@ -331,7 +333,7 @@ class DepolarizingChannel(raw_types.Gate):
         """The probability that one of the Pauli gates is applied.
 
         Each of the Pauli gates is applied independently with probability
-        p / (4**n_qubits - 1).
+        $p / (4^n_qubits - 1)$.
         """
         return self._p
 
@@ -352,25 +354,25 @@ class DepolarizingChannel(raw_types.Gate):
 def depolarize(p: float, n_qubits: int = 1) -> DepolarizingChannel:
     r"""Returns a DepolarizingChannel with given probability of error.
 
-    This channel applies one of 4**n disjoint possibilities: nothing (the
-    identity channel) or one of the 4**n - 1 pauli gates. The disjoint
+    This channel applies one of $4^n$ disjoint possibilities: nothing (the
+    identity channel) or one of the $4^n - 1$ pauli gates. The disjoint
     probabilities of the non-identity Pauli gates are all the same,
-    p / (4**n - 1), and the identity is done with probability 1 - p. The
+    $p / (4^n - 1)$, and the identity is done with probability 1 - p. The
     supplied probability must be a valid probability or else this constructor
     will raise a ValueError.
 
     This channel evolves a density matrix via
 
-        $$
-        \rho \rightarrow (1 - p) \rho + p / (4**n - 1) \sum _i P_i \rho P_i
-        $$
+    $$
+    \rho \rightarrow (1 - p) \rho + p / (4^n - 1) \sum _i P_i \rho P_i
+    $$
 
     where $P_i$ are the $4^n - 1$ Pauli gates (excluding the identity).
 
     Args:
         p: The probability that one of the Pauli gates is applied. Each of
             the Pauli gates is applied independently with probability
-            p / (4**n - 1).
+            $p / (4^n - 1)$.
         n_qubits: The number of qubits.
 
     Raises:
@@ -381,58 +383,58 @@ def depolarize(p: float, n_qubits: int = 1) -> DepolarizingChannel:
 
 @value.value_equality
 class GeneralizedAmplitudeDampingChannel(raw_types.Gate):
-    """Dampen qubit amplitudes through non ideal dissipation.
+    r"""Dampen qubit amplitudes through non ideal dissipation.
 
     This channel models the effect of energy dissipation into the environment
     as well as the environment depositing energy into the system.
+
+    Construct a channel to model energy dissipation into the environment
+    as well as the environment depositing energy into the system. The
+    probabilities with which the energy exchange occur are given by `gamma`,
+    and the probability of the environment being not excited is given by
+    `p`.
+
+    The stationary state of this channel is the diagonal density matrix
+    with probability `p` of being |0⟩ and probability `1-p` of being |1⟩.
+
+    This channel evolves a density matrix via
+
+    $$
+    \rho \rightarrow M_0 \rho M_0^\dagger
+                       + M_1 \rho M_1^\dagger
+                       + M_2 \rho M_2^\dagger
+                       + M_3 \rho M_3^\dagger
+    $$
+
+    With
+
+    $$
+    \begin{aligned}
+    M_0 =& \sqrt{p} \begin{bmatrix}
+                        1 & 0  \\
+                        0 & \sqrt{1 - \gamma}
+                    \end{bmatrix}
+    \\
+    M_1 =& \sqrt{p} \begin{bmatrix}
+                        0 & \sqrt{\gamma} \\
+                        0 & 0
+                   \end{bmatrix}
+    \\
+    M_2 =& \sqrt{1-p} \begin{bmatrix}
+                        \sqrt{1-\gamma} & 0 \\
+                         0 & 1
+                      \end{bmatrix}
+    \\
+    M_3 =& \sqrt{1-p} \begin{bmatrix}
+                         0 & 0 \\
+                         \sqrt{\gamma} & 0
+                     \end{bmatrix}
+    \end{aligned}
+    $$
     """
 
     def __init__(self, p: float, gamma: float) -> None:
         r"""The generalized amplitude damping channel.
-
-        Construct a channel to model energy dissipation into the environment
-        as well as the environment depositing energy into the system. The
-        probabilities with which the energy exchange occur are given by `gamma`,
-        and the probability of the environment being not excited is given by
-        `p`.
-
-        The stationary state of this channel is the diagonal density matrix
-        with probability `p` of being |0⟩ and probability `1-p` of being |1⟩.
-
-        This channel evolves a density matrix via
-
-            $$
-            \rho \rightarrow M_0 \rho M_0^\dagger
-                           + M_1 \rho M_1^\dagger
-                           + M_2 \rho M_2^\dagger
-                           + M_3 \rho M_3^\dagger
-            $$
-
-        With
-
-            $$
-            \begin{aligned}
-            M_0 =& \sqrt{p} \begin{bmatrix}
-                                1 & 0  \\
-                                0 & \sqrt{1 - \gamma}
-                            \end{bmatrix}
-            \\
-            M_1 =& \sqrt{p} \begin{bmatrix}
-                                0 & \sqrt{\gamma} \\
-                                0 & 0
-                           \end{bmatrix}
-            \\
-            M_2 =& \sqrt{1-p} \begin{bmatrix}
-                                \sqrt{1-\gamma} & 0 \\
-                                 0 & 1
-                              \end{bmatrix}
-            \\
-            M_3 =& \sqrt{1-p} \begin{bmatrix}
-                                 0 & 0 \\
-                                 \sqrt{\gamma} & 0
-                             \end{bmatrix}
-            \end{aligned}
-            $$
 
         Args:
             p: the probability of the environment being not excited
@@ -502,36 +504,36 @@ def generalized_amplitude_damp(p: float, gamma: float) -> GeneralizedAmplitudeDa
 
     This channel evolves a density matrix via:
 
-        $$
-        \rho \rightarrow M_0 \rho M_0^\dagger + M_1 \rho M_1^\dagger
-              + M_2 \rho M_2^\dagger + M_3 \rho M_3^\dagger
-        $$
+    $$
+    \rho \rightarrow M_0 \rho M_0^\dagger + M_1 \rho M_1^\dagger
+          + M_2 \rho M_2^\dagger + M_3 \rho M_3^\dagger
+    $$
 
     With:
 
-        $$
-        \begin{aligned}
-        M_0 =& \sqrt{p} \begin{bmatrix}
-                            1 & 0  \\
-                            0 & \sqrt{1 - \gamma}
-                       \end{bmatrix}
-        \\
-        M_1 =& \sqrt{p} \begin{bmatrix}
-                            0 & \sqrt{\gamma} \\
-                            0 & 0
-                       \end{bmatrix}
-        \\
-        M_2 =& \sqrt{1-p} \begin{bmatrix}
-                            \sqrt{1-\gamma} & 0 \\
-                             0 & 1
-                          \end{bmatrix}
-        \\
-        M_3 =& \sqrt{1-p} \begin{bmatrix}
-                             0 & 0 \\
-                             \sqrt{\gamma} & 0
-                         \end{bmatrix}
-        \end{aligned}
-        $$
+    $$
+    \begin{aligned}
+    M_0 =& \sqrt{p} \begin{bmatrix}
+                        1 & 0  \\
+                        0 & \sqrt{1 - \gamma}
+                   \end{bmatrix}
+    \\
+    M_1 =& \sqrt{p} \begin{bmatrix}
+                        0 & \sqrt{\gamma} \\
+                        0 & 0
+                   \end{bmatrix}
+    \\
+    M_2 =& \sqrt{1-p} \begin{bmatrix}
+                        \sqrt{1-\gamma} & 0 \\
+                         0 & 1
+                      \end{bmatrix}
+    \\
+    M_3 =& \sqrt{1-p} \begin{bmatrix}
+                         0 & 0 \\
+                         \sqrt{\gamma} & 0
+                     \end{bmatrix}
+    \end{aligned}
+    $$
 
     Args:
         gamma: the probability of the interaction being dissipative.
@@ -545,45 +547,43 @@ def generalized_amplitude_damp(p: float, gamma: float) -> GeneralizedAmplitudeDa
 
 @value.value_equality
 class AmplitudeDampingChannel(raw_types.Gate):
-    """Dampen qubit amplitudes through dissipation.
+    r"""Dampen qubit amplitudes through dissipation.
 
     This channel models the effect of energy dissipation to the
-    surrounding environment.
+    surrounding environment.  The probability of
+    energy exchange occurring is given by gamma.
+
+    This channel evolves a density matrix as follows:
+
+    $$
+    \rho \rightarrow M_0 \rho M_0^\dagger + M_1 \rho M_1^\dagger
+    $$
+
+    With:
+
+    $$
+    \begin{aligned}
+    M_0 =& \begin{bmatrix}
+            1 & 0  \\
+            0 & \sqrt{1 - \gamma}
+          \end{bmatrix}
+    \\
+    M_1 =& \begin{bmatrix}
+            0 & \sqrt{\gamma} \\
+            0 & 0
+          \end{bmatrix}
+    \end{aligned}
+    $$
     """
 
     def __init__(self, gamma: float) -> None:
-        r"""The amplitude damping channel.
-
-        Construct a channel that dissipates energy. The probability of
-        energy exchange occurring is given by gamma.
-
-        This channel evolves a density matrix as follows:
-
-            $$
-            \rho \rightarrow M_0 \rho M_0^\dagger + M_1 \rho M_1^\dagger
-            $$
-
-        With:
-
-            $$
-            \begin{aligned}
-            M_0 =& \begin{bmatrix}
-                    1 & 0  \\
-                    0 & \sqrt{1 - \gamma}
-                  \end{bmatrix}
-            \\
-            M_1 =& \begin{bmatrix}
-                    0 & \sqrt{\gamma} \\
-                    0 & 0
-                  \end{bmatrix}
-            \end{aligned}
-            $$
+        """Construct an amplitude damping channel.
 
         Args:
             gamma: the probability of the interaction being dissipative.
 
         Raises:
-            ValueError: is gamma is not a valid probability.
+            ValueError: if gamma is not a valid probability.
         """
         self._gamma = value.validate_probability(gamma, 'gamma')
         self._delegate = GeneralizedAmplitudeDampingChannel(1.0, self._gamma)
@@ -631,25 +631,25 @@ def amplitude_damp(gamma: float) -> AmplitudeDampingChannel:
 
     This channel evolves a density matrix via:
 
-        $$
-        \rho \rightarrow M_0 \rho M_0^\dagger + M_1 \rho M_1^\dagger
-        $$
+    $$
+    \rho \rightarrow M_0 \rho M_0^\dagger + M_1 \rho M_1^\dagger
+    $$
 
     With:
 
-        $$
-        \begin{aligned}
-        M_0 =& \begin{bmatrix}
-                1 & 0  \\
-                0 & \sqrt{1 - \gamma}
-              \end{bmatrix}
-        \\
-        M_1 =& \begin{bmatrix}
-                0 & \sqrt{\gamma} \\
-                0 & 0
-              \end{bmatrix}
-        \end{aligned}
-        $$
+    $$
+    \begin{aligned}
+    M_0 =& \begin{bmatrix}
+            1 & 0  \\
+            0 & \sqrt{1 - \gamma}
+          \end{bmatrix}
+    \\
+    M_1 =& \begin{bmatrix}
+            0 & \sqrt{\gamma} \\
+            0 & 0
+          \end{bmatrix}
+    \end{aligned}
+    $$
 
     Args:
         gamma: the probability of the interaction being dissipative.
@@ -662,38 +662,36 @@ def amplitude_damp(gamma: float) -> AmplitudeDampingChannel:
 
 @value.value_equality
 class ResetChannel(raw_types.Gate):
-    """Reset a qubit back to its |0⟩ state.
+    r"""Reset a qubit back to its |0⟩ state.
 
     The reset channel is equivalent to performing an unobserved measurement
     which then controls a bit flip onto the targeted qubit.
+
+    This channel evolves a density matrix as follows:
+
+    $$
+    \rho \rightarrow M_0 \rho M_0^\dagger + M_1 \rho M_1^\dagger
+    $$
+
+    With:
+
+    $$
+    \begin{aligned}
+    M_0 =& \begin{bmatrix}
+            1 & 0  \\
+            0 & 0
+          \end{bmatrix}
+    \\
+    M_1 =& \begin{bmatrix}
+            0 & 1 \\
+            0 & 0
+          \end{bmatrix}
+    \end{aligned}
+    $$
     """
 
     def __init__(self, dimension: int = 2) -> None:
-        r"""The reset channel.
-
-        Construct a channel that resets the qubit.
-
-        This channel evolves a density matrix as follows:
-
-            $$
-            \rho \rightarrow M_0 \rho M_0^\dagger + M_1 \rho M_1^\dagger
-            $$
-
-        With:
-
-            $$
-            \begin{aligned}
-            M_0 =& \begin{bmatrix}
-                    1 & 0  \\
-                    0 & 0
-                  \end{bmatrix}
-            \\
-            M_1 =& \begin{bmatrix}
-                    0 & 1 \\
-                    0 & 0
-                  \end{bmatrix}
-            \end{aligned}
-            $$
+        """Construct channel that resets to the zero state.
 
         Args:
             dimension: Specify this argument when resetting a qudit.  There will
@@ -764,53 +762,52 @@ class ResetChannel(raw_types.Gate):
 
 
 def reset(qubit: 'cirq.Qid') -> raw_types.Operation:
-    """Returns a `ResetChannel` on the given qubit."""
+    """Returns a `cirq.ResetChannel` on the given qubit."""
     return ResetChannel(qubit.dimension).on(qubit)
 
 
 def reset_each(*qubits: 'cirq.Qid') -> List[raw_types.Operation]:
-    """Returns a list of `ResetChannel` instances on the given qubits."""
+    """Returns a list of `cirq.ResetChannel` instances on the given qubits."""
     return [ResetChannel(q.dimension).on(q) for q in qubits]
 
 
 @value.value_equality
 class PhaseDampingChannel(raw_types.Gate):
-    """Dampen qubit phase.
+    r"""Dampen qubit phase.
 
     This channel models phase damping which is the loss of quantum
     information without the loss of energy.
+
+    Construct a channel that enacts a phase damping constant gamma.
+
+    This channel evolves a density matrix via:
+
+    $$
+    \rho \rightarrow M_0 \rho M_0^\dagger + M_1 \rho M_1^\dagger
+    $$
+
+    With:
+
+    $$
+    \begin{aligned}
+    M_0 =& \begin{bmatrix}
+            1 & 0 \\
+            0 & \sqrt{1 - \gamma}
+          \end{bmatrix}
+    \\
+    M_1 =& \begin{bmatrix}
+            0 & 0 \\
+            0 & \sqrt{\gamma}
+          \end{bmatrix}
+    \end{aligned}
+    $$
     """
 
     def __init__(self, gamma: float) -> None:
-        r"""The phase damping channel.
-
-        Construct a channel that enacts a phase damping constant gamma.
-
-        This channel evolves a density matrix via:
-
-            $$
-            \rho \rightarrow M_0 \rho M_0^\dagger + M_1 \rho M_1^\dagger
-            $$
-
-        With:
-
-            $$
-            \begin{aligned}
-            M_0 =& \begin{bmatrix}
-                    1 & 0 \\
-                    0 & \sqrt{1 - \gamma}
-                  \end{bmatrix}
-            \\
-            M_1 =& \begin{bmatrix}
-                    0 & 0 \\
-                    0 & \sqrt{\gamma}
-                  \end{bmatrix}
-            \end{aligned}
-            $$
+        """Construct a channel that dampens qubit phase.
 
         Args:
             gamma: The damping constant.
-
         Raises:
             ValueError: if gamma is not a valid probability.
         """
@@ -860,25 +857,25 @@ def phase_damp(gamma: float) -> PhaseDampingChannel:
 
     This channel evolves a density matrix via:
 
-        $$
-        \rho \rightarrow M_0 \rho M_0^\dagger + M_1 \rho M_1^\dagger
-        $$
+    $$
+    \rho \rightarrow M_0 \rho M_0^\dagger + M_1 \rho M_1^\dagger
+    $$
 
     With:
 
-        $$
-        \begin{aligned}
-        M_0 =& \begin{bmatrix}
-                1 & 0  \\
-                0 & \sqrt{1 - \gamma}
-              \end{bmatrix}
-        \\
-        M_1 =& \begin{bmatrix}
-                0 & 0 \\
-                0 & \sqrt{\gamma}
-              \end{bmatrix}
-        \end{aligned}
-        $$
+    $$
+    \begin{aligned}
+    M_0 =& \begin{bmatrix}
+            1 & 0  \\
+            0 & \sqrt{1 - \gamma}
+          \end{bmatrix}
+    \\
+    M_1 =& \begin{bmatrix}
+            0 & 0 \\
+            0 & \sqrt{\gamma}
+          \end{bmatrix}
+    \end{aligned}
+    $$
 
     Args:
         gamma: The damping constant.
@@ -891,35 +888,33 @@ def phase_damp(gamma: float) -> PhaseDampingChannel:
 
 @value.value_equality
 class PhaseFlipChannel(raw_types.Gate):
-    """Probabilistically flip the sign of the phase of a qubit."""
+    r"""Probabilistically flip the sign of the phase of a qubit.
+
+    This channel evolves a density matrix via:
+
+    $$
+    \rho \rightarrow M_0 \rho M_0^\dagger + M_1 \rho M_1^\dagger
+    $$
+
+    With:
+
+    $$
+    \begin{aligned}
+    M_0 =& \sqrt{1 - p} \begin{bmatrix}
+                        1 & 0  \\
+                        0 & 1
+                    \end{bmatrix}
+    \\
+    M_1 =& \sqrt{p} \begin{bmatrix}
+                        1 & 0 \\
+                        0 & -1
+                    \end{bmatrix}
+    \end{aligned}
+    $$
+    """
 
     def __init__(self, p: float) -> None:
-        r"""The phase flip channel.
-
-        Construct a channel to flip the phase with probability p.
-
-        This channel evolves a density matrix via:
-
-            $$
-            \rho \rightarrow M_0 \rho M_0^\dagger + M_1 \rho M_1^\dagger
-            $$
-
-        With:
-
-            $$
-            \begin{aligned}
-            M_0 =& \sqrt{1 - p} \begin{bmatrix}
-                                1 & 0  \\
-                                0 & 1
-                            \end{bmatrix}
-            \\
-            M_1 =& \sqrt{p} \begin{bmatrix}
-                                1 & 0 \\
-                                0 & -1
-                            \end{bmatrix}
-            \end{aligned}
-            $$
-
+        """Construct a channel that probabilistically flips the sign of the phase.
         Args:
             p: the probability of a phase flip.
 
@@ -977,25 +972,25 @@ def _phase_flip(p: float) -> PhaseFlipChannel:
 
     This channel evolves a density matrix via:
 
-        $$
-        \rho \rightarrow M_0 \rho M_0^\dagger + M_1 \rho M_1^\dagger
-        $$
+    $$
+    \rho \rightarrow M_0 \rho M_0^\dagger + M_1 \rho M_1^\dagger
+    $$
 
     With:
 
-        $$
-        \begin{aligned}
-        M_0 =& \sqrt{p} \begin{bmatrix}
-                            1 & 0  \\
-                            0 & 1
-                       \end{bmatrix}
-        \\
-        M_1 =& \sqrt{1-p} \begin{bmatrix}
-                            1 & 0 \\
-                            0 & -1
-                         \end{bmatrix}
-        \end{aligned}
-        $$
+    $$
+    \begin{aligned}
+    M_0 =& \sqrt{p} \begin{bmatrix}
+                        1 & 0  \\
+                        0 & 1
+                   \end{bmatrix}
+    \\
+    M_1 =& \sqrt{1-p} \begin{bmatrix}
+                        1 & 0 \\
+                        0 & -1
+                     \end{bmatrix}
+    \end{aligned}
+    $$
 
     Args:
         p: the probability of a phase flip.
@@ -1013,25 +1008,25 @@ def phase_flip(p: Optional[float] = None) -> Union[common_gates.ZPowGate, PhaseF
 
     This channel evolves a density matrix via:
 
-        $$
-        \rho \rightarrow M_0 \rho M_0^\dagger + M_1 \rho M_1^\dagger
-        $$
+    $$
+    \rho \rightarrow M_0 \rho M_0^\dagger + M_1 \rho M_1^\dagger
+    $$
 
     With:
 
-        $$
-        \begin{aligned}
-        M_0 =& \sqrt{p} \begin{bmatrix}
-                            1 & 0  \\
-                            0 & 1
-                       \end{bmatrix}
-        \\
-        M_1 =& \sqrt{1-p} \begin{bmatrix}
-                            1 & 0 \\
-                            0 & -1
-                         \end{bmatrix}
-        \end{aligned}
-        $$
+    $$
+    \begin{aligned}
+    M_0 =& \sqrt{p} \begin{bmatrix}
+                        1 & 0  \\
+                        0 & 1
+                   \end{bmatrix}
+    \\
+    M_1 =& \sqrt{1-p} \begin{bmatrix}
+                        1 & 0 \\
+                        0 & -1
+                     \end{bmatrix}
+    \end{aligned}
+    $$
 
     Args:
         p: the probability of a phase flip.
@@ -1047,34 +1042,35 @@ def phase_flip(p: Optional[float] = None) -> Union[common_gates.ZPowGate, PhaseF
 
 @value.value_equality
 class BitFlipChannel(raw_types.Gate):
-    r"""Probabilistically flip a qubit from 1 to 0 state or vice versa."""
+    r"""Probabilistically flip a qubit from 1 to 0 state or vice versa.
+
+    Construct a channel that flips a qubit with probability p.
+
+    This channel evolves a density matrix via:
+
+    $$
+        \rho \rightarrow M_0 \rho M_0^\dagger + M_1 \rho M_1^\dagger
+    $$
+
+    With:
+
+    $$
+    \begin{aligned}
+        M_0 =& \sqrt{1 - p} \begin{bmatrix}
+                            1 & 0  \\
+                            0 & 1
+                       \end{bmatrix}
+        \\
+        M_1 =& \sqrt{p} \begin{bmatrix}
+                            0 & 1 \\
+                            1 & 0
+                         \end{bmatrix}
+        \end{aligned}
+    $$
+    """
 
     def __init__(self, p: float) -> None:
-        r"""The bit flip channel.
-
-        Construct a channel that flips a qubit with probability p.
-
-        This channel evolves a density matrix via:
-
-            $$
-            \rho \rightarrow M_0 \rho M_0^\dagger + M_1 \rho M_1^\dagger
-            $$
-
-        With:
-
-            $$
-            \begin{aligned}
-            M_0 =& \sqrt{1 - p} \begin{bmatrix}
-                                1 & 0  \\
-                                0 & 1
-                           \end{bmatrix}
-            \\
-            M_1 =& \sqrt{p} \begin{bmatrix}
-                                0 & 1 \\
-                                1 & 0
-                             \end{bmatrix}
-            \end{aligned}
-            $$
+        """Construct a channel that probabilistically flips a qubit.
 
         Args:
             p: the probability of a bit flip.
@@ -1128,25 +1124,25 @@ def _bit_flip(p: float) -> BitFlipChannel:
 
     This channel evolves a density matrix via:
 
-        $$
-        \rho \rightarrow M_0 \rho M_0^\dagger + M_1 \rho M_1^\dagger
-        $$
+    $$
+    \rho \rightarrow M_0 \rho M_0^\dagger + M_1 \rho M_1^\dagger
+    $$
 
     With:
 
-        $$
-        \begin{aligned}
-        M_0 =& \sqrt{p} \begin{bmatrix}
-                            1 & 0 \\
-                            0 & 1
-                       \end{bmatrix}
-        \\
-        M_1 =& \sqrt{1-p} \begin{bmatrix}
-                            0 & 1 \\
-                            1 & -0
-                         \end{bmatrix}
-        \end{aligned}
-        $$
+    $$
+    \begin{aligned}
+    M_0 =& \sqrt{p} \begin{bmatrix}
+                        1 & 0 \\
+                        0 & 1
+                   \end{bmatrix}
+    \\
+    M_1 =& \sqrt{1-p} \begin{bmatrix}
+                        0 & 1 \\
+                        1 & -0
+                     \end{bmatrix}
+    \end{aligned}
+    $$
 
     Args:
         p: the probability of a bit flip.
@@ -1164,25 +1160,25 @@ def bit_flip(p: Optional[float] = None) -> Union[common_gates.XPowGate, BitFlipC
 
     This channel evolves a density matrix via
 
-        $$
-        \rho \rightarrow M_0 \rho M_0^\dagger + M_1 \rho M_1^\dagger
-        $$
+    $$
+    \rho \rightarrow M_0 \rho M_0^\dagger + M_1 \rho M_1^\dagger
+    $$
 
     With
 
-        $$
-        \begin{aligned}
-        M_0 =& \sqrt{p} \begin{bmatrix}
-                            1 & 0 \\
-                            0 & 1
-                       \end{bmatrix}
-        \\
-        M_1 =& \sqrt{1-p} \begin{bmatrix}
-                            0 & 1 \\
-                            1 & -0
-                         \end{bmatrix}
-        \end{aligned}
-        $$
+    $$
+    \begin{aligned}
+    M_0 =& \sqrt{p} \begin{bmatrix}
+                        1 & 0 \\
+                        0 & 1
+                   \end{bmatrix}
+    \\
+    M_1 =& \sqrt{1-p} \begin{bmatrix}
+                        0 & 1 \\
+                        1 & -0
+                     \end{bmatrix}
+    \end{aligned}
+    $$
 
     Args:
         p: the probability of a bit flip.

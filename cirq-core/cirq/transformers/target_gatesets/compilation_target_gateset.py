@@ -17,13 +17,10 @@
 from typing import Optional, List, Hashable, TYPE_CHECKING
 import abc
 
-from cirq import circuits, ops, protocols, _import
+from cirq import circuits, ops, protocols, transformers
 from cirq.protocols.decompose_protocol import DecomposeResult
 from cirq.transformers import merge_k_qubit_gates, merge_single_qubit_gates
 
-drop_empty_moments = _import.LazyLoader('drop_empty_moments', globals(), 'cirq.transformers')
-drop_negligible = _import.LazyLoader('drop_negligible_operations', globals(), 'cirq.transformers')
-expand_composite = _import.LazyLoader('expand_composite', globals(), 'cirq.transformers')
 
 if TYPE_CHECKING:
     import cirq
@@ -37,16 +34,18 @@ def create_transformer_with_kwargs(transformer: 'cirq.TRANSFORMER', **kwargs) ->
     capture keyword arguments of a transformer before passing them as an argument to an API that
     expects `cirq.TRANSFORMER`. For example:
 
-    >>> def run_transformers(transformers: List[cirq.TRANSFORMER]):
-    >>>     for transformer in transformers:
-    >>>         transformer(circuit, context=context)
-    >>>
-    >>> transformers: List[cirq.TRANSFORMER] = []
+    >>> def run_transformers(transformers: 'List[cirq.TRANSFORMER]'):
+    ...     circuit = cirq.Circuit(cirq.X(cirq.q(0)))
+    ...     context = cirq.TransformerContext()
+    ...     for transformer in transformers:
+    ...         transformer(circuit, context=context)
+    ...
+    >>> transformers: 'List[cirq.TRANSFORMER]' = []
     >>> transformers.append(
-    >>>     cirq.create_transformer_with_kwargs(
-    >>>         cirq.expand_composite, no_decomp=lambda op: cirq.num_qubits(op) <= 2
-    >>>     )
-    >>> )
+    ...     cirq.create_transformer_with_kwargs(
+    ...         cirq.expand_composite, no_decomp=lambda op: cirq.num_qubits(op) <= 2
+    ...     )
+    ... )
     >>> transformers.append(cirq.create_transformer_with_kwargs(cirq.merge_k_qubit_unitaries, k=2))
     >>> run_transformers(transformers)
 
@@ -69,11 +68,7 @@ def create_transformer_with_kwargs(transformer: 'cirq.TRANSFORMER', **kwargs) ->
     def transformer_with_kwargs(
         circuit: 'cirq.AbstractCircuit', *, context: Optional['cirq.TransformerContext'] = None
     ) -> 'cirq.AbstractCircuit':
-        # Need to ignore mypy type because `cirq.TRANSFORMER` is a callable protocol which only
-        # accepts circuit and context; and doesn't expect additional keyword arguments. Note
-        # that transformers with additional keyword arguments with a default value do satisfy the
-        # `cirq.TRANSFORMER` API.
-        return transformer(circuit, context=context, **kwargs)  # type: ignore
+        return transformer(circuit, context=context, **kwargs)
 
     return transformer_with_kwargs
 
@@ -132,7 +127,7 @@ class CompilationTargetGateset(ops.Gateset, metaclass=abc.ABCMeta):
         """List of transformers which should be run before decomposing individual operations."""
         return [
             create_transformer_with_kwargs(
-                expand_composite.expand_composite,
+                transformers.expand_composite,
                 no_decomp=lambda op: protocols.num_qubits(op) <= self.num_qubits,
             ),
             create_transformer_with_kwargs(
@@ -147,8 +142,8 @@ class CompilationTargetGateset(ops.Gateset, metaclass=abc.ABCMeta):
         """List of transformers which should be run after decomposing individual operations."""
         return [
             merge_single_qubit_gates.merge_single_qubit_moments_to_phxz,
-            drop_negligible.drop_negligible_operations,
-            drop_empty_moments.drop_empty_moments,
+            transformers.drop_negligible_operations,
+            transformers.drop_empty_moments,
         ]
 
 

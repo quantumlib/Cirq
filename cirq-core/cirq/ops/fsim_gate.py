@@ -11,7 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""Defines the fermionic simulation gate family.
+"""Defines the fermionic simulation gate.
 
 This is the family of two-qubit gates that preserve excitations (number of ON
 qubits), ignoring single-qubit gates and global phase. For example, when using
@@ -54,7 +54,7 @@ def _half_pi_mod_pi(param: 'cirq.TParamVal') -> bool:
 
 @value.value_equality(approximate=True)
 class FSimGate(gate_features.InterchangeableQubitsGate, raw_types.Gate):
-    r"""Fermionic simulation gate family.
+    r"""Fermionic simulation gate.
 
     Contains all two qubit interactions that preserve excitations, up to
     single-qubit rotations and global phase.
@@ -221,8 +221,8 @@ class PhasedFSimGate(gate_features.InterchangeableQubitsGate, raw_types.Gate):
     $$
     \begin{bmatrix}
         1 & 0 & 0 & 0 \\
-        0 & e^{-i \gamma - i \zeta} & -i e^{-i \gamma + i\chi} & 0 \\
-        0 & -i e^{-i \gamma - i \chi} & e^{-i \gamma + i \zeta} & 0 \\
+        0 & e^{-i \gamma - i \zeta} \cos(\theta) & -i e^{-i \gamma + i\chi} \sin(\theta) & 0 \\
+        0 & -i e^{-i \gamma - i \chi} \sin(\theta) & e^{-i \gamma + i \zeta} \cos(\theta) & 0 \\
         0 & 0 & 0 & e^{-2i \gamma - i \phi}
     \end{bmatrix}
     $$

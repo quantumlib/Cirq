@@ -1012,9 +1012,9 @@ def _make_zeta_chi_gamma_compensation(
             for index, operations in enumerate(
                 itertools.zip_longest(*decompositions, fillvalue=())
             ):
-                if index == moment_to_calibration_index:
-                    operations += tuple(other)
-                compensated += cirq.Moment(operations)
+                compensated += cirq.Moment(
+                    operations, other if index == moment_to_calibration_index else ()
+                )
             compensated_moment_to_calibration += decompositions_moment_to_calibration
         elif other:
             compensated += cirq.Moment(other)
@@ -1237,8 +1237,7 @@ def run_zeta_chi_gamma_compensation_for_moments(
     progress_func: Optional[Callable[[int, int], None]] = None,
     permit_mixed_moments: bool = False,
 ) -> Tuple[CircuitWithCalibration, List[PhasedFSimCalibrationResult]]:
-    """Compensates circuit against errors in zeta, chi and gamma angles by running calibrations on
-    the engine.
+    """Compensates circuit for errors in zeta, chi and gamma angles by running on the engine.
 
     The method calls prepare_floquet_characterization_for_moments to extract moments to
     characterize, run_calibrations to characterize them and

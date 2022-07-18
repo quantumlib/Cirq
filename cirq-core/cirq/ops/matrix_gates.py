@@ -14,13 +14,13 @@
 
 """Quantum gates defined by a matrix."""
 
-from typing import Any, cast, Dict, Iterable, Optional, Tuple, TYPE_CHECKING
+from typing import Any, Dict, Iterable, Optional, Tuple, TYPE_CHECKING
 
 import numpy as np
 
 from cirq import linalg, protocols, _import
 from cirq._compat import proper_repr
-from cirq.ops import raw_types
+from cirq.ops import raw_types, phased_x_z_gate
 
 if TYPE_CHECKING:
     import cirq
@@ -56,7 +56,7 @@ class MatrixGate(raw_types.Gate):
         name: str = None,
         qid_shape: Optional[Iterable[int]] = None,
         unitary_check_rtol: float = 1e-5,
-        unitary_check_atol: float = 1e-6,
+        unitary_check_atol: float = 1e-8,
     ) -> None:
         """Initializes a matrix gate.
 
@@ -115,8 +115,7 @@ class MatrixGate(raw_types.Gate):
     def __pow__(self, exponent: Any) -> 'MatrixGate':
         if not isinstance(exponent, (int, float)):
             return NotImplemented
-        e = cast(float, exponent)
-        new_mat = linalg.map_eigenvalues(self._matrix, lambda b: b**e)
+        new_mat = linalg.map_eigenvalues(self._matrix, lambda b: b**exponent)
         return MatrixGate(new_mat, qid_shape=self._qid_shape)
 
     def _phase_by_(self, phase_turns: float, qubit_index: int) -> 'MatrixGate':
@@ -165,6 +164,14 @@ class MatrixGate(raw_types.Gate):
         main = _matrix_to_diagram_symbol(self._matrix, args)
         rest = [f'#{i+1}' for i in range(1, n_qubits)]
         return protocols.CircuitDiagramInfo(wire_symbols=[main, *rest])
+
+    def _qasm_(self, args: 'cirq.QasmArgs', qubits: Tuple['cirq.Qid', ...]) -> Optional[str]:
+        args.validate_version('2.0')
+        if self._qid_shape == (2,):
+            return protocols.qasm(
+                phased_x_z_gate.PhasedXZGate.from_matrix(self._matrix), args=args, qubits=qubits
+            )
+        return None
 
     def __hash__(self) -> int:
         vals = tuple(v for _, v in np.ndenumerate(self._matrix))

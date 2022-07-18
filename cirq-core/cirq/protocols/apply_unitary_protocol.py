@@ -277,7 +277,7 @@ class SupportsConsistentApplyUnitary(Protocol):
 def apply_unitary(
     unitary_value: Any,
     args: ApplyUnitaryArgs,
-    default: TDefault = RaiseTypeErrorIfNotProvided,
+    default: Union[np.ndarray, TDefault] = RaiseTypeErrorIfNotProvided,
     *,
     allow_decompose: bool = True,
 ) -> Union[np.ndarray, TDefault]:

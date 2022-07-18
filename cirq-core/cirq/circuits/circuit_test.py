@@ -13,6 +13,7 @@
 # limitations under the License.
 import itertools
 import os
+import time
 from collections import defaultdict
 from random import randint, random, sample, randrange
 from typing import Iterator, Optional, Tuple, TYPE_CHECKING
@@ -2661,7 +2662,7 @@ def test_compare_circuits_superoperator_to_simulation(circuit, initial_state):
     """Compares action of circuit superoperator and circuit simulation."""
     assert circuit._has_superoperator_()
     superoperator = circuit._superoperator_()
-    vectorized_initial_state = np.reshape(initial_state, np.prod(initial_state.shape))
+    vectorized_initial_state = initial_state.reshape(-1)
     vectorized_final_state = superoperator @ vectorized_initial_state
     actual_state = np.reshape(vectorized_final_state, initial_state.shape)
 
@@ -2953,62 +2954,6 @@ def test_final_state_vector(circuit_cls):
                 dtype=dt,
             ),
             np.array([0, 1]),
-            atol=1e-8,
-        )
-
-
-@pytest.mark.parametrize('circuit_cls', [cirq.Circuit, cirq.FrozenCircuit])
-def test_final_state_vector_deprecated_params(circuit_cls):
-    a = cirq.NamedQubit('a')
-    b = cirq.NamedQubit('b')
-    # Extra qubits.
-    cirq.testing.assert_allclose_up_to_global_phase(
-        circuit_cls().final_state_vector(ignore_terminal_measurements=False, dtype=np.complex128),
-        np.array([1]),
-        atol=1e-8,
-    )
-    with cirq.testing.assert_deprecated("Inject identity operators", deadline="v0.16"):
-        cirq.testing.assert_allclose_up_to_global_phase(
-            circuit_cls().final_state_vector(
-                qubits_that_should_be_present=[a],
-                ignore_terminal_measurements=False,
-                dtype=np.complex128,
-            ),
-            np.array([1, 0]),
-            atol=1e-8,
-        )
-    with cirq.testing.assert_deprecated("Inject identity operators", deadline="v0.16"):
-        cirq.testing.assert_allclose_up_to_global_phase(
-            circuit_cls(cirq.X(b)).final_state_vector(
-                qubits_that_should_be_present=[a],
-                ignore_terminal_measurements=False,
-                dtype=np.complex128,
-            ),
-            np.array([0, 1, 0, 0]),
-            atol=1e-8,
-        )
-
-    with cirq.testing.assert_deprecated("To drop terminal measurements", deadline="v0.16"):
-        cirq.testing.assert_allclose_up_to_global_phase(
-            circuit_cls(cirq.X(a), cirq.measure(a)).final_state_vector(dtype=np.complex128),
-            np.array([0, 1]),
-            atol=1e-8,
-        )
-
-    with cirq.testing.assert_deprecated("`dtype` will default to np.complex64", deadline="v0.16"):
-        cirq.testing.assert_allclose_up_to_global_phase(
-            circuit_cls(cirq.X(a)).final_state_vector(ignore_terminal_measurements=False),
-            np.array([0, 1]),
-            atol=1e-8,
-        )
-
-    # Non-keyword args.
-    with cirq.testing.assert_deprecated("Only use keyword arguments", deadline="v0.16"):
-        cirq.testing.assert_allclose_up_to_global_phase(
-            circuit_cls(cirq.X(a) ** 0.5).final_state_vector(
-                1, ignore_terminal_measurements=False, dtype=np.complex128
-            ),
-            np.array([1, 1j]) * np.sqrt(0.5),
             atol=1e-8,
         )
 
@@ -4317,213 +4262,6 @@ def test_repr_html_escaping(circuit_cls):
     assert '|c&gt;' in circuit._repr_html_()
 
 
-def test_tetris_concat_deprecated():
-    a, b = cirq.LineQubit.range(2)
-    empty = cirq.Circuit()
-
-    with cirq.testing.assert_deprecated('ragged', deadline='v0.16', count=None):
-        assert cirq.Circuit.tetris_concat(empty, empty) == empty
-        assert cirq.Circuit.tetris_concat() == empty
-        assert empty.tetris_concat(empty) == empty
-        assert empty.tetris_concat(empty, empty) == empty
-
-        ha = cirq.Circuit(cirq.H(a))
-        hb = cirq.Circuit(cirq.H(b))
-        assert ha.tetris_concat(hb) == ha.zip(hb)
-
-        assert ha.tetris_concat(empty) == ha
-        assert empty.tetris_concat(ha) == ha
-
-        hac = cirq.Circuit(cirq.H(a), cirq.CNOT(a, b))
-        assert hac.tetris_concat(hb) == hac + hb
-        assert hb.tetris_concat(hac) == hb.zip(hac)
-
-        zig = cirq.Circuit(cirq.H(a), cirq.CNOT(a, b), cirq.H(b))
-        assert zig.tetris_concat(zig) == cirq.Circuit(
-            cirq.H(a),
-            cirq.CNOT(a, b),
-            cirq.Moment(cirq.H(a), cirq.H(b)),
-            cirq.CNOT(a, b),
-            cirq.H(b),
-        )
-
-        zag = cirq.Circuit(cirq.H(a), cirq.H(a), cirq.CNOT(a, b), cirq.H(b), cirq.H(b))
-        assert zag.tetris_concat(zag) == cirq.Circuit(
-            cirq.H(a),
-            cirq.H(a),
-            cirq.CNOT(a, b),
-            cirq.Moment(cirq.H(a), cirq.H(b)),
-            cirq.Moment(cirq.H(a), cirq.H(b)),
-            cirq.CNOT(a, b),
-            cirq.H(b),
-            cirq.H(b),
-        )
-
-        space = cirq.Circuit(cirq.Moment()) * 10
-        f = cirq.Circuit.tetris_concat
-        assert len(f(space, ha)) == 10
-        assert len(f(space, ha, ha, ha)) == 10
-        assert len(f(space, f(ha, ha, ha))) == 10
-        assert len(f(space, ha, align='LEFT')) == 10
-        assert len(f(space, ha, ha, ha, align='RIGHT')) == 12
-        assert len(f(space, f(ha, ha, ha, align='LEFT'))) == 10
-        assert len(f(space, f(ha, ha, ha, align='RIGHT'))) == 10
-        assert len(f(space, f(ha, ha, ha), align='LEFT')) == 10
-        assert len(f(space, f(ha, ha, ha), align='RIGHT')) == 10
-
-        # L shape overlap (vary c1).
-        assert 7 == len(
-            f(
-                cirq.Circuit(cirq.CZ(a, b), [cirq.H(a)] * 5),
-                cirq.Circuit([cirq.H(b)] * 5, cirq.CZ(a, b)),
-            )
-        )
-        assert 7 == len(
-            f(
-                cirq.Circuit(cirq.CZ(a, b), [cirq.H(a)] * 4),
-                cirq.Circuit([cirq.H(b)] * 5, cirq.CZ(a, b)),
-            )
-        )
-        assert 7 == len(
-            f(
-                cirq.Circuit(cirq.CZ(a, b), [cirq.H(a)] * 1),
-                cirq.Circuit([cirq.H(b)] * 5, cirq.CZ(a, b)),
-            )
-        )
-        assert 8 == len(
-            f(
-                cirq.Circuit(cirq.CZ(a, b), [cirq.H(a)] * 6),
-                cirq.Circuit([cirq.H(b)] * 5, cirq.CZ(a, b)),
-            )
-        )
-        assert 9 == len(
-            f(
-                cirq.Circuit(cirq.CZ(a, b), [cirq.H(a)] * 7),
-                cirq.Circuit([cirq.H(b)] * 5, cirq.CZ(a, b)),
-            )
-        )
-
-        # L shape overlap (vary c2).
-        assert 7 == len(
-            f(
-                cirq.Circuit(cirq.CZ(a, b), [cirq.H(a)] * 5),
-                cirq.Circuit([cirq.H(b)] * 5, cirq.CZ(a, b)),
-            )
-        )
-        assert 7 == len(
-            f(
-                cirq.Circuit(cirq.CZ(a, b), [cirq.H(a)] * 5),
-                cirq.Circuit([cirq.H(b)] * 4, cirq.CZ(a, b)),
-            )
-        )
-        assert 7 == len(
-            f(
-                cirq.Circuit(cirq.CZ(a, b), [cirq.H(a)] * 5),
-                cirq.Circuit([cirq.H(b)] * 1, cirq.CZ(a, b)),
-            )
-        )
-        assert 8 == len(
-            f(
-                cirq.Circuit(cirq.CZ(a, b), [cirq.H(a)] * 5),
-                cirq.Circuit([cirq.H(b)] * 6, cirq.CZ(a, b)),
-            )
-        )
-        assert 9 == len(
-            f(
-                cirq.Circuit(cirq.CZ(a, b), [cirq.H(a)] * 5),
-                cirq.Circuit([cirq.H(b)] * 7, cirq.CZ(a, b)),
-            )
-        )
-
-        # When scanning sees a possible hit, continues scanning for earlier hit.
-        assert 10 == len(
-            f(
-                cirq.Circuit(
-                    cirq.Moment(),
-                    cirq.Moment(),
-                    cirq.Moment(),
-                    cirq.Moment(),
-                    cirq.Moment(),
-                    cirq.Moment(cirq.H(a)),
-                    cirq.Moment(),
-                    cirq.Moment(),
-                    cirq.Moment(cirq.H(b)),
-                ),
-                cirq.Circuit(
-                    cirq.Moment(),
-                    cirq.Moment(),
-                    cirq.Moment(),
-                    cirq.Moment(cirq.H(a)),
-                    cirq.Moment(),
-                    cirq.Moment(cirq.H(b)),
-                ),
-            )
-        )
-        # Correct tie breaker when one operation sees two possible hits.
-        for cz_order in [cirq.CZ(a, b), cirq.CZ(b, a)]:
-            assert 3 == len(
-                f(
-                    cirq.Circuit(cirq.Moment(cz_order), cirq.Moment(), cirq.Moment()),
-                    cirq.Circuit(cirq.Moment(cirq.H(a)), cirq.Moment(cirq.H(b))),
-                )
-            )
-
-        # Types.
-        v = ha.freeze().tetris_concat(empty)
-        assert type(v) is cirq.FrozenCircuit and v == ha.freeze()
-        v = ha.tetris_concat(empty.freeze())
-        assert type(v) is cirq.Circuit and v == ha
-        v = ha.freeze().tetris_concat(empty)
-        assert type(v) is cirq.FrozenCircuit and v == ha.freeze()
-        v = cirq.Circuit.tetris_concat(ha, empty)
-        assert type(v) is cirq.Circuit and v == ha
-        v = cirq.FrozenCircuit.tetris_concat(ha, empty)
-        assert type(v) is cirq.FrozenCircuit and v == ha.freeze()
-
-
-def test_tetris_concat_alignment_deprecated():
-    a, b = cirq.LineQubit.range(2)
-
-    with cirq.testing.assert_deprecated('ragged', deadline='v0.16', count=None):
-
-        assert cirq.Circuit.tetris_concat(
-            cirq.Circuit(cirq.X(a)),
-            cirq.Circuit(cirq.Y(b)) * 4,
-            cirq.Circuit(cirq.Z(a)),
-            align='first',
-        ) == cirq.Circuit(
-            cirq.Moment(cirq.X(a), cirq.Y(b)),
-            cirq.Moment(cirq.Y(b)),
-            cirq.Moment(cirq.Y(b)),
-            cirq.Moment(cirq.Z(a), cirq.Y(b)),
-        )
-
-        assert cirq.Circuit.tetris_concat(
-            cirq.Circuit(cirq.X(a)),
-            cirq.Circuit(cirq.Y(b)) * 4,
-            cirq.Circuit(cirq.Z(a)),
-            align='left',
-        ) == cirq.Circuit(
-            cirq.Moment(cirq.X(a), cirq.Y(b)),
-            cirq.Moment(cirq.Z(a), cirq.Y(b)),
-            cirq.Moment(cirq.Y(b)),
-            cirq.Moment(cirq.Y(b)),
-        )
-
-        assert cirq.Circuit.tetris_concat(
-            cirq.Circuit(cirq.X(a)),
-            cirq.Circuit(cirq.Y(b)) * 4,
-            cirq.Circuit(cirq.Z(a)),
-            align='right',
-        ) == cirq.Circuit(
-            cirq.Moment(cirq.Y(b)),
-            cirq.Moment(cirq.Y(b)),
-            cirq.Moment(cirq.Y(b)),
-            cirq.Moment(cirq.X(a), cirq.Y(b)),
-            cirq.Moment(cirq.Z(a)),
-        )
-
-
 def test_concat_ragged():
     a, b = cirq.LineQubit.range(2)
     empty = cirq.Circuit()
@@ -4907,3 +4645,23 @@ global phase:   0.5π
                 └────────┘
     """,
     )
+
+
+def test_create_speed():
+    # Added in https://github.com/quantumlib/Cirq/pull/5332
+    # Previously this took ~30s to run. Now it should take ~150ms. However the coverage test can
+    # run this slowly, so allowing 2 sec to account for things like that. Feel free to increase the
+    # buffer time or delete the test entirely if it ends up causing flakes.
+    #
+    # Updated in https://github.com/quantumlib/Cirq/pull/5756
+    # After several tiny overtime failures of the GitHub CI Pytest MacOS (3.7)
+    # the timeout was increased to 4 sec.  A more thorough investigation or test
+    # removal should be considered if this continues to time out.
+    qs = 100
+    moments = 500
+    xs = [cirq.X(cirq.LineQubit(i)) for i in range(qs)]
+    opa = [xs[i] for i in range(qs) for _ in range(moments)]
+    t = time.perf_counter()
+    c = cirq.Circuit(opa)
+    assert len(c) == moments
+    assert time.perf_counter() - t < 4

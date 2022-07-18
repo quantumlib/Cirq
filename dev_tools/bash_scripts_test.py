@@ -57,6 +57,8 @@ def run(
         f.writelines(script_lines)
 
     cmd = r"""
+export GIT_CONFIG_GLOBAL=/dev/null
+export GIT_CONFIG_SYSTEM=/dev/null
 dir=$(git rev-parse --show-toplevel)
 cd {}
 git init --quiet --initial-branch master
@@ -347,7 +349,7 @@ def test_pytest_and_incremental_coverage_branch_selection(tmpdir_factory):
     assert result.returncode == 0
     assert result.stdout == (
         'INTERCEPTED check/pytest '
-        '--actually-quiet --rigetti-integration --cov '
+        '--actually-quiet --cov '
         '--cov-config=dev_tools/conf/.coveragerc\n'
         'The annotate command will be removed in a future version.\n'
         'Get in touch if you still use it: ned@nedbatchelder.com\n'
@@ -374,7 +376,7 @@ def test_pytest_and_incremental_coverage_branch_selection(tmpdir_factory):
     assert result.returncode == 0
     assert result.stdout == (
         'INTERCEPTED check/pytest '
-        '--actually-quiet --rigetti-integration --cov '
+        '--actually-quiet --cov '
         '--cov-config=dev_tools/conf/.coveragerc\n'
         'The annotate command will be removed in a future version.\n'
         'Get in touch if you still use it: ned@nedbatchelder.com\n'
@@ -393,7 +395,7 @@ def test_pytest_and_incremental_coverage_branch_selection(tmpdir_factory):
     assert result.returncode == 0
     assert result.stdout == (
         'INTERCEPTED check/pytest '
-        '--actually-quiet --rigetti-integration --cov '
+        '--actually-quiet --cov '
         '--cov-config=dev_tools/conf/.coveragerc\n'
         'The annotate command will be removed in a future version.\n'
         'Get in touch if you still use it: ned@nedbatchelder.com\n'
@@ -412,7 +414,7 @@ def test_pytest_and_incremental_coverage_branch_selection(tmpdir_factory):
     assert result.returncode == 0
     assert result.stdout == (
         'INTERCEPTED check/pytest '
-        '--actually-quiet --rigetti-integration --cov '
+        '--actually-quiet --cov '
         '--cov-config=dev_tools/conf/.coveragerc\n'
         'The annotate command will be removed in a future version.\n'
         'Get in touch if you still use it: ned@nedbatchelder.com\n'
@@ -431,7 +433,7 @@ def test_pytest_and_incremental_coverage_branch_selection(tmpdir_factory):
     assert result.returncode == 0
     assert result.stdout == (
         'INTERCEPTED check/pytest '
-        '--actually-quiet --rigetti-integration --cov '
+        '--actually-quiet --cov '
         '--cov-config=dev_tools/conf/.coveragerc\n'
         'The annotate command will be removed in a future version.\n'
         'Get in touch if you still use it: ned@nedbatchelder.com\n'
@@ -462,7 +464,7 @@ def test_pytest_and_incremental_coverage_branch_selection(tmpdir_factory):
     assert result.returncode == 0
     assert result.stdout == (
         'INTERCEPTED check/pytest '
-        '--actually-quiet --rigetti-integration --cov '
+        '--actually-quiet --cov '
         '--cov-config=dev_tools/conf/.coveragerc\n'
         'The annotate command will be removed in a future version.\n'
         'Get in touch if you still use it: ned@nedbatchelder.com\n'
@@ -481,7 +483,7 @@ def test_pytest_and_incremental_coverage_branch_selection(tmpdir_factory):
     assert result.returncode == 0
     assert result.stdout == (
         'INTERCEPTED check/pytest '
-        '--actually-quiet --rigetti-integration --cov '
+        '--actually-quiet --cov '
         '--cov-config=dev_tools/conf/.coveragerc\n'
         'The annotate command will be removed in a future version.\n'
         'Get in touch if you still use it: ned@nedbatchelder.com\n'
@@ -507,7 +509,7 @@ def test_pytest_and_incremental_coverage_branch_selection(tmpdir_factory):
     assert result.returncode == 0
     assert result.stdout.startswith(
         'INTERCEPTED check/pytest '
-        '--actually-quiet --rigetti-integration --cov '
+        '--actually-quiet --cov '
         '--cov-config=dev_tools/conf/.coveragerc\n'
         'The annotate command will be removed in a future version.\n'
         'Get in touch if you still use it: ned@nedbatchelder.com\n'

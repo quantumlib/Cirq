@@ -38,7 +38,7 @@ STATE_VECTOR_LIKE = Union[
     # Product state object
     'cirq.ProductState',
 ]
-document(STATE_VECTOR_LIKE, """An object representing a state vector.""")  # type: ignore
+document(STATE_VECTOR_LIKE, """An object representing a state vector.""")
 
 QUANTUM_STATE_LIKE = Union[
     # state vector
@@ -48,7 +48,7 @@ QUANTUM_STATE_LIKE = Union[
     # quantum state object
     'cirq.QuantumState',
 ]
-document(QUANTUM_STATE_LIKE, """An object representing a quantum state.""")  # type: ignore
+document(QUANTUM_STATE_LIKE, """An object representing a quantum state.""")
 
 
 class QuantumState:
@@ -677,13 +677,14 @@ def density_matrix_from_state_vector(
     sum_inds = np.array(range(n_qubits))
     sum_inds[indices] += n_qubits
 
+    # TODO(#5757): remove type ignore when numpy has proper override signature.
     rho = np.einsum(
         state_vector,
         list(range(n_qubits)),
         np.conj(state_vector),
-        sum_inds.tolist(),
-        indices + sum_inds[indices].tolist(),
-    )
+        cast(List, sum_inds.tolist()),
+        indices + cast(List, sum_inds[indices].tolist()),
+    )  # type: ignore
     new_shape = np.prod([shape[i] for i in indices], dtype=np.int64)
 
     return rho.reshape((new_shape, new_shape))
@@ -696,9 +697,10 @@ def dirac_notation(
 
     For example:
 
-        state_vector = np.array([1/np.sqrt(2), 1/np.sqrt(2)],
-                                dtype=np.complex64)
-        print(dirac_notation(state_vector)) -> 0.71|0⟩ + 0.71|1⟩
+    >>> state_vector = np.array([1/np.sqrt(2), 1/np.sqrt(2)], dtype=np.complex64)
+    >>> print(cirq.dirac_notation(state_vector))
+    0.71|0⟩ + 0.71|1⟩
+
 
     Args:
         state_vector: A sequence representing a state vector in which
