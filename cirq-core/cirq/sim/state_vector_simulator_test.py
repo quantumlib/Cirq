@@ -135,6 +135,17 @@ def test_state_vector_trial_state_vector_is_copy():
     assert trial_result.state_vector(copy=True) is not final_simulator_state.target_tensor
 
 
+def test_state_vector_trial_result_no_qubits():
+    initial_state = np.array([1], dtype=np.complex64)
+    final_simulator_state = cirq.StateVectorSimulationState(qubits=[], initial_state=initial_state)
+    trial_result = cirq.StateVectorTrialResult(
+        params=cirq.ParamResolver({}), measurements={}, final_simulator_state=final_simulator_state
+    )
+    state_vector = trial_result.state_vector()
+    assert state_vector.shape == (1,)
+    assert np.array_equal(state_vector, initial_state)
+
+
 def test_str_big():
     qs = cirq.LineQubit.range(10)
     final_simulator_state = cirq.StateVectorSimulationState(
