@@ -125,19 +125,22 @@ class AbstractControlValues(abc.ABC):
         Returns:
           An instance of `AbstractControlValues` that represents the union of control values
           represented by `self` and `other`.
+
+        Raises:
+            ValueError: If `cirq.num_qubits(self) != cirq.num_qubits(other)`.
         """
         if protocols.num_qubits(self) != protocols.num_qubits(other):
             raise ValueError(
                 f"Control values {self} and {other} must act on equal number of qubits"
             )
-        return SumOfProducts(x for x in [*self.expand(), *other.expand()])
+        return SumOfProducts(tuple(x for x in [*self.expand(), *other.expand()]))
 
 
 class ProductOfSums(AbstractControlValues):
     """Represents control values as N OR (sum) clauses, each of which applies to one qubit."""
 
     def __init__(self, data: Sequence[Union[int, Collection[int]]]):
-        self._qubit_sums = tuple(
+        self._qubit_sums: Tuple[Tuple[int, ...], ...] = tuple(
             (cv,) if isinstance(cv, int) else tuple(sorted(frozenset(cv))) for cv in data
         )
         self._is_trivial = self._qubit_sums == ((1,),) * len(self._qubit_sums)
@@ -206,7 +209,7 @@ class ProductOfSums(AbstractControlValues):
                 f"Control values {self} and {other} must act on equal number of qubits"
             )
         if isinstance(other, ProductOfSums):
-            return ProductOfSums(x + y for x, y in zip(self._qubit_sums, other._qubit_sums))
+            return ProductOfSums(tuple(x + y for x, y in zip(self._qubit_sums, other._qubit_sums)))
         return super().__or__(other)
 
 
@@ -240,7 +243,7 @@ class SumOfProducts(AbstractControlValues):
     """
 
     def __init__(self, data: Sequence[Union[int, Collection[int]]], *, name: Optional[str] = None):
-        self._conjugations = tuple(
+        self._conjugations: Tuple[Tuple[int, ...], ...] = tuple(
             sorted(frozenset((cv,) if isinstance(cv, int) else tuple(cv) for cv in data))
         )
         self._name = name
