@@ -191,7 +191,7 @@ def _build_compilation_target_gatesets(
     if all(gate_family in gateset.gates for gate_family in _CZ_TARGET_GATES):
         target_gatesets.append(
             transformers.GoogleCZTargetGateset(
-                additional_gates=(list(gateset.gates - set(_CZ_TARGET_GATES)))
+                additional_gates=list(gateset.gates - set(_CZ_TARGET_GATES))
             )
         )
     if all(gate_family in gateset.gates for gate_family in _SYC_TARGET_GATES):
@@ -200,7 +200,7 @@ def _build_compilation_target_gatesets(
     if all(gate_family in gateset.gates for gate_family in _SQRT_ISWAP_TARGET_GATES):
         target_gatesets.append(
             cirq.SqrtIswapTargetGateset(
-                additional_gates=(list(gateset.gates - set(_SQRT_ISWAP_TARGET_GATES)))
+                additional_gates=list(gateset.gates - set(_SQRT_ISWAP_TARGET_GATES))
             )
         )
 
@@ -488,7 +488,7 @@ def _set_gate_in_gate_spec(
         raise ValueError(f'Unrecognized gate {gate_family}.')
 
 
-def create_device_specification_proto(
+def _create_device_specification_proto(
     *,
     qubits: Collection[cirq.GridQubit],
     pairs: Collection[Tuple[cirq.GridQubit, cirq.GridQubit]],
@@ -497,6 +497,8 @@ def create_device_specification_proto(
     out: Optional[v2.device_pb2.DeviceSpecification] = None,
 ) -> v2.device_pb2.DeviceSpecification:
     """Serializes the given device information into a DeviceSpecification proto.
+
+    EXPERIMENTAL: DeviceSpecification serialization API may change.
 
     This function does not serialize a `GridDevice`. Instead, it only takes a subset of device
     information sufficient to populate the `DeviceSpecification` proto. This reduces the complexity

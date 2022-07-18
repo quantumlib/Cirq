@@ -465,7 +465,7 @@ def test_to_proto():
         cirq.GateFamily(cirq.ops.wait_gate.WaitGate): base_duration * 9,
     }
 
-    spec = grid_device.create_device_specification_proto(
+    spec = grid_device._create_device_specification_proto(
         qubits=device_info.grid_qubits,
         pairs=device_info.qubit_pairs,
         gateset=cirq.Gateset(*gate_durations.keys()),
@@ -505,13 +505,13 @@ def test_to_proto():
 )
 def test_to_proto_invalid_input(error_match, qubits, qubit_pairs, gateset, gate_durations):
     with pytest.raises(ValueError, match=error_match):
-        grid_device.create_device_specification_proto(
+        grid_device._create_device_specification_proto(
             qubits=qubits, pairs=qubit_pairs, gateset=gateset, gate_durations=gate_durations
         )
 
 
 def test_to_proto_empty():
-    spec = grid_device.create_device_specification_proto(
+    spec = grid_device._create_device_specification_proto(
         # Qubits are always expected to be set
         qubits=[cirq.GridQubit(0, i) for i in range(5)],
         pairs=[],
@@ -536,7 +536,7 @@ def test_to_proto_fsim_gate_family():
         cirq_google.FSimGateFamily(gates_to_accept=[cirq.CZ]),
     )
 
-    spec = grid_device.create_device_specification_proto(
+    spec = grid_device._create_device_specification_proto(
         qubits=[cirq.GridQubit(0, 0)], pairs=(), gateset=gateset
     )
 
