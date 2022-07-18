@@ -83,6 +83,7 @@ def measure_paulistring_terms(
     >>> op = cirq.measure_paulistring_terms(measurement_basis)
     >>> circuit = cirq.Circuit([cirq.H(q[0]), cirq.X(q[1]), cirq.H(q[2])], op)
     >>> cirq.Simulator().run(circuit, repetitions=100).multi_measurement_histogram(keys=q)
+    Counter({(0, 1, 0): 100})
 
     Args:
         pauli_basis: The `cirq.PauliString` basis in which each qubit should
