@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Any, cast, Dict, List, Optional, Sequence, Tuple, TYPE_CHECKING, Union
+from typing import Any, Dict, List, Optional, Sequence, Tuple, TYPE_CHECKING, Union
 
 
 import numpy as np
@@ -90,7 +90,7 @@ def _validate_map_input(
 ) -> Dict[Pauli, Tuple[Pauli, bool]]:
     if pauli_map_to is None:
         xyz_to = {pauli_gates.X: x_to, pauli_gates.Y: y_to, pauli_gates.Z: z_to}
-        pauli_map_to = {cast(Pauli, p): trans for p, trans in xyz_to.items() if trans is not None}
+        pauli_map_to = {p: trans for p, trans in xyz_to.items() if trans is not None}
     elif x_to is not None or y_to is not None or z_to is not None:
         raise ValueError(
             '{} can take either pauli_map_to or a combination'
@@ -531,9 +531,7 @@ class SingleQubitCliffordGate(CliffordGate):
             trans_to2 = trans_from
             flip2 = not flip
         rotation_map[trans_from2] = (trans_to2, flip2)
-        return SingleQubitCliffordGate.from_double_map(
-            cast(Dict[Pauli, Tuple[Pauli, bool]], rotation_map)
-        )
+        return SingleQubitCliffordGate.from_double_map(rotation_map)
 
     @staticmethod
     def from_double_map(
