@@ -82,15 +82,24 @@ class ControlledGate(raw_types.Gate):
         _validate_sub_object(sub_gate)
         if num_controls is None:
             if control_values is not None:
-                num_controls = len(control_values)
+                num_controls = (
+                    control_values._num_qubits_()
+                    if isinstance(control_values, cv.AbstractControlValues)
+                    else len(control_values)
+                )
             elif control_qid_shape is not None:
                 num_controls = len(control_qid_shape)
             else:
                 num_controls = 1
         if control_values is None:
             control_values = ((1,),) * num_controls
-        if num_controls != len(control_values):
-            raise ValueError('len(control_values) != num_controls')
+
+        # Convert to `cv.ProductOfSums` if input is a tuple of control values for each qubit.
+        if not isinstance(control_values, cv.AbstractControlValues):
+            control_values = cv.ProductOfSums(control_values)
+
+        if num_controls != protocols.num_qubits(control_values):
+            raise ValueError('cirq.num_qubits(control_values) != num_controls')
 
         if control_qid_shape is None:
             control_qid_shape = (2,) * num_controls
@@ -98,13 +107,6 @@ class ControlledGate(raw_types.Gate):
             raise ValueError('len(control_qid_shape) != num_controls')
         self._control_qid_shape = tuple(control_qid_shape)
 
-        # Convert to sorted tuples
-        if not isinstance(control_values, cv.AbstractControlValues):
-            control_values = cv.ProductOfSums(
-                tuple(
-                    (val,) if isinstance(val, int) else tuple(sorted(val)) for val in control_values
-                )
-            )
         self._control_values = control_values
 
         # Verify control values not out of bounds
@@ -141,14 +143,11 @@ class ControlledGate(raw_types.Gate):
             protocols.has_unitary(self.sub_gate)
             and protocols.num_qubits(self.sub_gate) == 1
             and self._qid_shape_() == (2,) * len(self._qid_shape_())
+            and isinstance(self.control_values, cv.ProductOfSums)
         ):
-            if not isinstance(self.control_values, cv.ProductOfSums):
-                return NotImplemented
             control_qubits = list(qubits[: self.num_controls()])
             invert_ops: List['cirq.Operation'] = []
-            for cvals, cqbit in zip(
-                self.control_values._identifier(), qubits[: self.num_controls()]
-            ):
+            for cvals, cqbit in zip(self.control_values, qubits[: self.num_controls()]):
                 if set(cvals) == {0}:
                     invert_ops.append(common_gates.X(cqbit))
                 elif set(cvals) == {0, 1}:
@@ -271,8 +270,6 @@ class ControlledGate(raw_types.Gate):
     def _circuit_diagram_info_(
         self, args: 'cirq.CircuitDiagramInfoArgs'
     ) -> 'cirq.CircuitDiagramInfo':
-        if not isinstance(self.control_values, cv.ProductOfSums):
-            return NotImplemented
         sub_args = protocols.CircuitDiagramInfoArgs(
             known_qubit_count=(
                 args.known_qubit_count - self.num_controls()
@@ -290,27 +287,20 @@ class ControlledGate(raw_types.Gate):
         if sub_info is None:
             return NotImplemented
 
-        def get_symbol(vals):
-            if tuple(vals) == (1,):
-                return '@'
-            return f"({','.join(map(str, vals))})"
+        cv_info = protocols.circuit_diagram_info(self.control_values)
 
         return protocols.CircuitDiagramInfo(
-            wire_symbols=(
-                *(get_symbol(vals) for vals in self.control_values._identifier()),
-                *sub_info.wire_symbols,
-            ),
-            exponent=sub_info.exponent,
+            wire_symbols=(*cv_info.wire_symbols, *sub_info.wire_symbols), exponent=sub_info.exponent
         )
 
     def __str__(self) -> str:
-        return self.control_values.diagram_repr() + str(self.sub_gate)
+        return str(self.control_values) + str(self.sub_gate)
 
     def __repr__(self) -> str:
-        if self.num_controls() == 1 and self.control_values._are_ones():
+        if self.num_controls() == 1 and self.control_values.is_trivial:
             return f'cirq.ControlledGate(sub_gate={self.sub_gate!r})'
 
-        if self.control_values._are_ones() and set(self.control_qid_shape) == {2}:
+        if self.control_values.is_trivial and set(self.control_qid_shape) == {2}:
             return (
                 f'cirq.ControlledGate(sub_gate={self.sub_gate!r}, '
                 f'num_controls={self.num_controls()!r})'
@@ -323,7 +313,7 @@ class ControlledGate(raw_types.Gate):
 
     def _json_dict_(self) -> Dict[str, Any]:
         return {
-            'control_values': self.control_values._identifier(),
+            'control_values': self.control_values,
             'control_qid_shape': self.control_qid_shape,
             'sub_gate': self.sub_gate,
         }

@@ -178,7 +178,7 @@ class TensoredConfusionMatrices:
             ein_input.extend([cm.reshape((2, 2) * len(qs)), self._get_vars(qs)])
         ein_out = self._get_vars(qubits)
 
-        # TODO(#5757): remote type ignore when numpy has proper override signature.
+        # TODO(#5757): remove type ignore when numpy has proper override signature.
         ret = np.einsum(*ein_input, ein_out).reshape((2 ** len(qubits),) * 2)  # type: ignore
         return ret / ret.sum(axis=1)
 
