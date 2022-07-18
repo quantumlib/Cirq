@@ -151,8 +151,7 @@ class Result(abc.ABC):
         # Get the length quickly from one of the keyed results.
         return len(next(iter(self.records.values())))
 
-    # Reason for 'type: ignore': https://github.com/python/mypy/issues/5273
-    def multi_measurement_histogram(  # type: ignore
+    def multi_measurement_histogram(
         self,
         *,  # Forces keyword args.
         keys: Iterable[TMeasurementKey],
@@ -211,8 +210,7 @@ class Result(abc.ABC):
             c[fold_func(sample)] += 1
         return c
 
-    # Reason for 'type: ignore': https://github.com/python/mypy/issues/5273
-    def histogram(  # type: ignore
+    def histogram(
         self,
         *,  # Forces keyword args.
         key: TMeasurementKey,

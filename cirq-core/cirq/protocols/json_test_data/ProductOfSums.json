@@ -1,4 +1,12 @@
 {
-  "_internal_representation": [[1], [1, 2]],
-  "cirq_type": "ProductOfSums"
+  "cirq_type": "ProductOfSums",
+  "data": [
+    [
+      1
+    ],
+    [
+      1,
+      2
+    ]
+  ]
 }

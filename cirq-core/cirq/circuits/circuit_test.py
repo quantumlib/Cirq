@@ -2662,7 +2662,7 @@ def test_compare_circuits_superoperator_to_simulation(circuit, initial_state):
     """Compares action of circuit superoperator and circuit simulation."""
     assert circuit._has_superoperator_()
     superoperator = circuit._superoperator_()
-    vectorized_initial_state = np.reshape(initial_state, np.prod(initial_state.shape))
+    vectorized_initial_state = initial_state.reshape(-1)
     vectorized_final_state = superoperator @ vectorized_initial_state
     actual_state = np.reshape(vectorized_final_state, initial_state.shape)
 
@@ -4652,6 +4652,11 @@ def test_create_speed():
     # Previously this took ~30s to run. Now it should take ~150ms. However the coverage test can
     # run this slowly, so allowing 2 sec to account for things like that. Feel free to increase the
     # buffer time or delete the test entirely if it ends up causing flakes.
+    #
+    # Updated in https://github.com/quantumlib/Cirq/pull/5756
+    # After several tiny overtime failures of the GitHub CI Pytest MacOS (3.7)
+    # the timeout was increased to 4 sec.  A more thorough investigation or test
+    # removal should be considered if this continues to time out.
     qs = 100
     moments = 500
     xs = [cirq.X(cirq.LineQubit(i)) for i in range(qs)]
@@ -4659,4 +4664,4 @@ def test_create_speed():
     t = time.perf_counter()
     c = cirq.Circuit(opa)
     assert len(c) == moments
-    assert time.perf_counter() - t < 2
+    assert time.perf_counter() - t < 4

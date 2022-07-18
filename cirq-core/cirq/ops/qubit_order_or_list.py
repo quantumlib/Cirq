@@ -25,7 +25,7 @@ from cirq.ops import qubit_order, raw_types
 
 QubitOrderOrList = Union[qubit_order.QubitOrder, Iterable[raw_types.Qid]]
 document(
-    QubitOrderOrList,  # type: ignore
+    QubitOrderOrList,
     """Specifies a qubit ordering.
 
     The ordering can either be specified by an iterable (such as a list) with

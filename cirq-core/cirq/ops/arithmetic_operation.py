@@ -40,51 +40,51 @@ class ArithmeticGate(Gate, metaclass=abc.ABCMeta):
     the registers and the apply function of the child class.
 
     Examples:
-    ```
 
-        >>> class Add(cirq.ArithmeticGate):
-        ...     def __init__(
-        ...         self,
-        ...         target_register: [int, Sequence[int]],
-        ...         input_register: Union[int, Sequence[int]],
-        ...     ):
-        ...         self.target_register = target_register
-        ...         self.input_register = input_register
-        ...
-        ...     def registers(self) -> Sequence[Union[int, Sequence[int]]]:
-        ...         return self.target_register, self.input_register
-        ...
-        ...     def with_registers(self, *new_registers: Union[int, Sequence[int]]) -> TSelfGate:
-        ...         return Add(*new_registers)
-        ...
-        ...     def apply(self, *register_values: int) -> Union[int, Iterable[int]]:
-        ...         return sum(register_values)
-        >>> cirq.unitary(
-        ...     Add(target_register=[2, 2],
-        ...         input_register=1).on(*cirq.LineQubit.range(2))
-        ... ).astype(np.int32)
-        array([[0, 0, 0, 1],
-               [1, 0, 0, 0],
-               [0, 1, 0, 0],
-               [0, 0, 1, 0]], dtype=int32)
-        >>> c = cirq.Circuit(
-        ...    cirq.X(cirq.LineQubit(3)),
-        ...    cirq.X(cirq.LineQubit(2)),
-        ...    cirq.X(cirq.LineQubit(6)),
-        ...    cirq.measure(*cirq.LineQubit.range(4, 8), key='before:in'),
-        ...    cirq.measure(*cirq.LineQubit.range(4), key='before:out'),
-        ...
-        ...    Add(target_register=[2] * 4,
-        ...        input_register=[2] * 4).on(*cirq.LineQubit.range(8)),
-        ...
-        ...    cirq.measure(*cirq.LineQubit.range(4, 8), key='after:in'),
-        ...    cirq.measure(*cirq.LineQubit.range(4), key='after:out'),
-        ... )
-        >>> cirq.sample(c).data
-           before:in  before:out  after:in  after:out
-        0          2           3         2          5
+    >>> class Add(cirq.ArithmeticGate):
+    ...     def __init__(
+    ...         self,
+    ...         target_register: '[int, Sequence[int]]',
+    ...         input_register: 'Union[int, Sequence[int]]',
+    ...     ):
+    ...         self.target_register = target_register
+    ...         self.input_register = input_register
+    ...
+    ...     def registers(self) -> 'Sequence[Union[int, Sequence[int]]]':
+    ...         return self.target_register, self.input_register
+    ...
+    ...     def with_registers(
+    ...         self, *new_registers: 'Union[int, Sequence[int]]'
+    ...     ) -> 'TSelfGate':
+    ...         return Add(*new_registers)
+    ...
+    ...     def apply(self, *register_values: int) -> 'Union[int, Iterable[int]]':
+    ...         return sum(register_values)
+    >>> cirq.unitary(
+    ...     Add(target_register=[2, 2],
+    ...         input_register=1).on(*cirq.LineQubit.range(2))
+    ... ).astype(np.int32)
+    array([[0, 0, 0, 1],
+           [1, 0, 0, 0],
+           [0, 1, 0, 0],
+           [0, 0, 1, 0]], dtype=int32)
+    >>> c = cirq.Circuit(
+    ...    cirq.X(cirq.LineQubit(3)),
+    ...    cirq.X(cirq.LineQubit(2)),
+    ...    cirq.X(cirq.LineQubit(6)),
+    ...    cirq.measure(*cirq.LineQubit.range(4, 8), key='before_in'),
+    ...    cirq.measure(*cirq.LineQubit.range(4), key='before_out'),
+    ...
+    ...    Add(target_register=[2] * 4,
+    ...        input_register=[2] * 4).on(*cirq.LineQubit.range(8)),
+    ...
+    ...    cirq.measure(*cirq.LineQubit.range(4, 8), key='after_in'),
+    ...    cirq.measure(*cirq.LineQubit.range(4), key='after_out'),
+    ... )
+    >>> cirq.sample(c).data
+       before_in  before_out  after_in  after_out
+    0          2           3         2          5
 
-    ```
     """
 
     @abc.abstractmethod

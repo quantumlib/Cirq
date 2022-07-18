@@ -225,6 +225,31 @@ def test_multi_qubit_measurements():
     )
 
 
+def test_multi_qubit_control():
+    q0, q1, q2 = cirq.LineQubit.range(3)
+    circuit = cirq.Circuit(
+        cirq.measure(q0, q1, key='a'),
+        cirq.X(q2).with_classical_controls('a'),
+        cirq.measure(q2, key='b'),
+    )
+    assert_equivalent_to_deferred(circuit)
+    deferred = cirq.defer_measurements(circuit)
+    q_ma0 = _MeasurementQid('a', q0)
+    q_ma1 = _MeasurementQid('a', q1)
+    cirq.testing.assert_same_circuits(
+        deferred,
+        cirq.Circuit(
+            cirq.CX(q0, q_ma0),
+            cirq.CX(q1, q_ma1),
+            cirq.X(q2).controlled_by(
+                q_ma0, q_ma1, control_values=cirq.SumOfProducts(((0, 1), (1, 0), (1, 1)))
+            ),
+            cirq.measure(q_ma0, q_ma1, key='a'),
+            cirq.measure(q2, key='b'),
+        ),
+    )
+
+
 def test_diagram():
     q0, q1, q2, q3 = cirq.LineQubit.range(4)
     circuit = cirq.Circuit(
@@ -268,13 +293,6 @@ def test_repr():
     test_repr(_MeasurementQid('a', cirq.NamedQid('x', 4)))
     test_repr(_MeasurementQid('a', cirq.GridQubit(2, 3)))
     test_repr(_MeasurementQid('0:1:a', cirq.LineQid(9, 4)))
-
-
-def test_multi_qubit_control():
-    q0, q1 = cirq.LineQubit.range(2)
-    circuit = cirq.Circuit(cirq.measure(q0, q1, key='a'), cirq.X(q1).with_classical_controls('a'))
-    with pytest.raises(ValueError, match='Only single qubit conditions are allowed'):
-        _ = cirq.defer_measurements(circuit)
 
 
 def test_sympy_control():

@@ -20,13 +20,14 @@ component operations in order, including any nested CircuitOperations.
 import math
 from typing import (
     Callable,
-    Mapping,
-    Sequence,
+    cast,
     Dict,
     FrozenSet,
     Iterator,
     List,
+    Mapping,
     Optional,
+    Sequence,
     Tuple,
     TYPE_CHECKING,
     Union,
@@ -78,7 +79,7 @@ class CircuitOperation(ops.Operation):
     def __init__(
         self,
         circuit: 'cirq.FrozenCircuit',
-        repetitions: int = 1,
+        repetitions: INT_TYPE = 1,
         qubit_map: Optional[Dict['cirq.Qid', 'cirq.Qid']] = None,
         measurement_key_map: Optional[Dict[str, str]] = None,
         param_resolver: Optional[study.ParamResolverOrSimilarType] = None,
@@ -790,4 +791,8 @@ class CircuitOperation(ops.Operation):
         self, resolver: 'cirq.ParamResolver', recursive: bool
     ) -> 'cirq.CircuitOperation':
         resolved = self.with_params(resolver.param_dict, recursive)
-        return resolved.replace(repetitions=resolver.value_of(self.repetitions, recursive))
+        # repetitions can resolve to a float, but this is ok since constructor converts to
+        # nearby int.
+        return resolved.replace(
+            repetitions=resolver.value_of(cast('cirq.TParamVal', self.repetitions), recursive)
+        )

@@ -23,11 +23,8 @@ from typing import Iterable, List, Optional, cast, Tuple, TYPE_CHECKING
 
 import numpy as np
 
-from cirq import ops, linalg, protocols, circuits
-from cirq.transformers.analytical_decompositions import single_qubit_decompositions
-from cirq.transformers.merge_single_qubit_gates import merge_single_qubit_gates_to_phased_x_and_z
-from cirq.transformers.eject_z import eject_z
-from cirq.transformers.eject_phased_paulis import eject_phased_paulis
+from cirq import ops, linalg, protocols
+from cirq.transformers.analytical_decompositions import single_qubit_decompositions, two_qubit_to_cz
 
 if TYPE_CHECKING:
     import cirq
@@ -55,16 +52,7 @@ def two_qubit_matrix_to_ion_operations(
     """
     kak = linalg.kak_decomposition(mat, atol=atol)
     operations = _kak_decomposition_to_operations(q0, q1, kak, atol)
-    return _cleanup_operations(operations) if clean_operations else operations
-
-
-def _cleanup_operations(operations: List[ops.Operation]) -> List['cirq.Operation']:
-    circuit = circuits.Circuit(operations)
-    circuit = merge_single_qubit_gates_to_phased_x_and_z(circuit)
-    circuit = eject_phased_paulis(circuit)
-    circuit = eject_z(circuit)
-    circuit = circuits.Circuit(circuit.all_operations(), strategy=circuits.InsertStrategy.EARLIEST)
-    return list(circuit.all_operations())
+    return two_qubit_to_cz.cleanup_operations(operations) if clean_operations else operations
 
 
 def _kak_decomposition_to_operations(
@@ -100,8 +88,7 @@ def _parity_interaction(
         return
 
     if gate is not None:
-        g = cast(ops.Gate, gate)
-        yield g.on(q0), g.on(q1)
+        yield gate.on(q0), gate.on(q1)
 
     yield ops.ms(-1 * rads).on(q0, q1)
 

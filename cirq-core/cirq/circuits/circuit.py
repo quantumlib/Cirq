@@ -2073,7 +2073,7 @@ class Circuit(AbstractCircuit):
                 self._moments.insert(k, moment_or_op)
                 k += 1
             else:
-                op = cast(ops.Operation, moment_or_op)
+                op = moment_or_op
                 p = self._pick_or_create_inserted_op_moment_index(k, op, strategy)
                 while p >= len(self._moments):
                     self._moments.append(Moment())

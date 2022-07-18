@@ -15,7 +15,7 @@
 
 import cirq
 
-from cirq.contrib.paulistring import converted_gate_set, pauli_string_optimized_circuit
+from cirq.contrib.paulistring import pauli_string_optimized_circuit, CliffordTargetGateset
 
 
 def test_optimize():
@@ -23,7 +23,7 @@ def test_optimize():
     c_orig = cirq.Circuit(
         cirq.X(q0) ** 0.25, cirq.H(q0), cirq.CZ(q0, q1), cirq.H(q0), cirq.X(q0) ** 0.125
     )
-    c_expected = converted_gate_set(
+    c_expected = cirq.optimize_for_target_gateset(
         cirq.Circuit(
             cirq.Y(q0) ** -0.5,
             cirq.CZ(q0, q1),
@@ -31,7 +31,9 @@ def test_optimize():
             cirq.X(q0) ** 0.5,
             cirq.Z(q0) ** 0.5,
         ),
-        no_clifford_gates=True,
+        gateset=CliffordTargetGateset(
+            single_qubit_target=CliffordTargetGateset.SingleQubitTarget.PAULI_STRING_PHASORS
+        ),
     )
 
     c_opt = pauli_string_optimized_circuit(c_orig)

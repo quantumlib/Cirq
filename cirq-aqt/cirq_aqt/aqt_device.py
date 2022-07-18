@@ -11,6 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
 """Current device parameters for the AQT/UIBK ion trap device
 
 The device is based on a linear calcium ion string with
@@ -20,13 +21,17 @@ arbitrary connectivity. For more information see:
 
 [https://iopscience.iop.org/article/10.1088/1367-2630/15/12/123012/meta](https://iopscience.iop.org/article/10.1088/1367-2630/15/12/123012/meta){:.external}
 
-The native gate set consists of the local gates: X,Y, and XX entangling gates
+The native gate set consists of the local gates: X, Y, and XX entangling gates
 """
 
 import json
-from typing import Any, cast, Dict, Optional, Sequence, List, Tuple, Union
+from typing import Any, cast, Dict, Iterable, List, Optional, Sequence, Set, Tuple, Union
+
+import networkx as nx
 import numpy as np
+
 import cirq
+from cirq_aqt import aqt_device_metadata
 
 gate_dict = {'X': cirq.X, 'Y': cirq.Y, 'Z': cirq.Z, 'MS': cirq.XX, 'R': cirq.PhasedXPowGate}
 
@@ -218,19 +223,93 @@ class AQTSimulator:
         return result
 
 
-class AQTTargetGateset(cirq.ion.ion_device._IonTargetGateset):
-    pass
-
-
-class AQTDevice(cirq.ion.ion_device._IonDeviceImpl):
+@cirq.value_equality
+class AQTDevice(cirq.Device):
     """Ion trap device with qubits having all-to-all connectivity and placed on a line."""
+
+    def __init__(
+        self,
+        measurement_duration: 'cirq.DURATION_LIKE',
+        twoq_gates_duration: 'cirq.DURATION_LIKE',
+        oneq_gates_duration: 'cirq.DURATION_LIKE',
+        qubits: Iterable[cirq.LineQubit],
+    ) -> None:
+        """Initializes the description of an ion trap device.
+
+        Args:
+            measurement_duration: The maximum duration of a measurement.
+            twoq_gates_duration: The maximum duration of a two qubit operation.
+            oneq_gates_duration: The maximum duration of a single qubit
+            operation.
+            qubits: Qubits on the device, identified by their x location.
+
+        Raises:
+            TypeError: If not all the qubits supplied are `cirq.LineQubit`s.
+        """
+        if not all(isinstance(qubit, cirq.LineQubit) for qubit in qubits):
+            raise TypeError(
+                "All qubits were not of type cirq.LineQubit, instead were "
+                f"{set(type(qubit) for qubit in qubits)}"
+            )
+        self.qubits = frozenset(qubits)
+
+        graph = nx.Graph()
+        graph.add_edges_from([(a, b) for a in qubits for b in qubits if a != b], directed=False)
+        self._metadata = aqt_device_metadata.AQTDeviceMetadata(
+            qubits=self.qubits,
+            measurement_duration=measurement_duration,
+            twoq_gates_duration=twoq_gates_duration,
+            oneq_gates_duration=oneq_gates_duration,
+        )
+
+    @property
+    def metadata(self) -> aqt_device_metadata.AQTDeviceMetadata:
+        return self._metadata
+
+    def validate_gate(self, gate: cirq.Gate):
+        if gate not in self.metadata.gateset:
+            raise ValueError(f'Unsupported gate type: {gate!r}')
+
+    def validate_operation(self, operation):
+        if not isinstance(operation, cirq.GateOperation):
+            raise ValueError(f'Unsupported operation: {operation!r}')
+
+        self.validate_gate(operation.gate)
+
+        for q in operation.qubits:
+            if not isinstance(q, cirq.LineQubit):
+                raise ValueError(f'Unsupported qubit type: {q!r}')
+            if q not in self.qubits:
+                raise ValueError(f'Qubit not on device: {q!r}')
+
+    def validate_circuit(self, circuit: cirq.AbstractCircuit):
+        super().validate_circuit(circuit)
+        _verify_unique_measurement_keys(circuit.all_operations())
+
+    def at(self, position: int) -> Optional[cirq.LineQubit]:
+        """Returns the qubit at the given position, if there is one, else None."""
+        q = cirq.LineQubit(position)
+        return q if q in self.qubits else None
+
+    def _value_equality_values_(self) -> Any:
+        return (self.metadata, self.qubits)
+
+    def __str__(self) -> str:
+        diagram = cirq.TextDiagramDrawer()
+
+        for q in self.qubits:
+            diagram.write(q.x, 0, str(q))
+            for q2 in q.neighbors(self.qubits):
+                diagram.grid_line(q.x, 0, q2.x, 0)
+
+        return diagram.render(horizontal_spacing=3, vertical_spacing=2, use_unicode_characters=True)
 
     def __repr__(self) -> str:
         return (
             f'cirq_aqt.aqt_device.AQTDevice('
-            f'measurement_duration={self._measurement_duration!r}, '
-            f'twoq_gates_duration={self._twoq_gates_duration!r}, '
-            f'oneq_gates_duration={self._oneq_gates_duration!r}, '
+            f'measurement_duration={self.metadata.measurement_duration!r}, '
+            f'twoq_gates_duration={self.metadata.twoq_gates_duration!r}, '
+            f'oneq_gates_duration={self.metadata.oneq_gates_duration!r}, '
             f'qubits={sorted(self.qubits)!r}'
             f')'
         )
@@ -247,7 +326,7 @@ def get_aqt_device(num_qubits: int) -> Tuple[AQTDevice, List[cirq.LineQubit]]:
         num_qubits: number of qubits
 
     Returns:
-         A tuple of IonDevice and qubit_list
+         A tuple of AQTDevice and qubit_list
     """
     qubit_list = cirq.LineQubit.range(num_qubits)
     us = 1000 * cirq.Duration(nanos=1)
@@ -270,3 +349,14 @@ def get_default_noise_dict() -> Dict[str, Any]:
         'crosstalk': 0.03,
     }
     return default_noise_dict
+
+
+def _verify_unique_measurement_keys(operations: Iterable[cirq.Operation]):
+    seen: Set[str] = set()
+    for op in operations:
+        if isinstance(op.gate, cirq.MeasurementGate):
+            meas = op.gate
+            key = cirq.measurement_key_name(meas)
+            if key in seen:
+                raise ValueError(f'Measurement key {key} repeated')
+            seen.add(key)

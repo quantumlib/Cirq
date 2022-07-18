@@ -23,7 +23,6 @@ from typing import (
     Iterable,
     List,
     Optional,
-    Sequence,
     Set,
     Tuple,
     TYPE_CHECKING,
@@ -71,7 +70,14 @@ def _rotation_matrix(angle: float) -> np.ndarray:
 
 
 def deconstruct_single_qubit_matrix_into_angles(mat: np.ndarray) -> Tuple[float, float, float]:
-    """Breaks down a 2x2 unitary into more useful ZYZ angle parameters.
+    r"""Breaks down a 2x2 unitary into ZYZ angle parameters.
+
+    Given a unitary U, this function returns three angles: $\phi_0, \phi_1, \phi_2$,
+    such that:  $U = Z^{\phi_2 / \pi} Y^{\phi_1 / \pi} Z^{\phi_0/ \pi}$
+    for the Pauli matrices Y and Z.  That is, phasing around Z by $\phi_0$ radians,
+    then rotating around Y by $\phi_1$ radians, and then phasing again by
+    $\phi_2$ radians will produce the same effect as the original unitary.
+    (Note that the matrices are applied right to left.)
 
     Args:
         mat: The 2x2 unitary matrix to break down.
@@ -630,11 +636,11 @@ def scatter_plot_normalized_kak_interaction_coefficients(
         ax = fig.add_subplot(1, 1, 1, projection='3d')
 
     def coord_transform(
-        pts: Sequence[Tuple[float, float, float]]
+        pts: Union[List[Tuple[int, int, int]], np.ndarray]
     ) -> Tuple[Iterable[float], Iterable[float], Iterable[float]]:
         if len(pts) == 0:
             return [], [], []
-        xs, ys, zs = zip(*pts)
+        xs, ys, zs = np.transpose(pts)
         return xs, zs, ys
 
     if include_frame:

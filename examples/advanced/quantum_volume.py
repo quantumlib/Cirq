@@ -1,3 +1,4 @@
+# pylint: disable=wrong-or-nonexistent-copyright-notice
 """Tool to run the Quantum Volume benchmark defined by IBM in
 https://arxiv.org/abs/1811.12926. By default, this runs on the Bristlecone
 device.
@@ -36,11 +37,15 @@ def main(*, num_qubits: int, depth: int, num_circuits: int, seed: int, routes: i
         depth: Pass-through to calculate_quantum_volume
         num_circuits: Pass-through to calculate_quantum_volume
         seed: Pass-through to calculate_quantum_volume
+        routes: Pass-through to calculate_quantum_volume as routing_attempts
 
     Returns: Pass-through from calculate_quantum_volume.
     """
     device = cirq_google.Sycamore
-    compiler = lambda circuit: cirq_google.optimized_for_xmon(circuit=circuit)
+    # compiler = lambda circuit: cirq_google.optimized_for_xmon(circuit=circuit)
+    compiler = lambda circuit: cirq.optimize_for_target_gateset(
+        circuit, gateset=cirq.CZTargetGateset()
+    )
     noisy = cirq.DensityMatrixSimulator(
         noise=cirq.ConstantQubitNoiseModel(qubit_noise_gate=cirq.DepolarizingChannel(p=0.005))
     )
