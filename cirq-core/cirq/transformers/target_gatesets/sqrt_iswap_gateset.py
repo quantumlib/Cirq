@@ -62,7 +62,7 @@ class SqrtIswapTargetGateset(compilation_target_gateset.TwoQubitCompilationTarge
             use_sqrt_iswap_inv: If True, `cirq.SQRT_ISWAP_INV` is used as part of the gateset,
                 instead of `cirq.SQRT_ISWAP`.
             additional_gates: Sequence of additional gates / gate families which should also
-              be "accepted" by this gateset. Defaults to `cirq.GlobalPhaseGate`.
+              be "accepted" by this gateset. This is empty by default.
 
         Raises:
             ValueError: If `required_sqrt_iswap_count` is specified and is not 0, 1, 2, or 3.
