@@ -56,6 +56,8 @@ NOTEBOOKS_DEPENDING_ON_UNRELEASED_FEATURES: List[str] = [
     'docs/named_topologies.ipynb',
     'docs/representing_noise.ipynb',
     'docs/start/intro.ipynb',
+    'docs/simulate/qvm_builder_code.ipynb',
+    'docs/simulate/qvm_stabilizer_example.ipynb',
 ]
 
 # By default all notebooks should be tested, however, this list contains exceptions to the rule
