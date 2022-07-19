@@ -21,9 +21,6 @@ landing_page:
       - heading: State Histograms
         description: Visualize the results of simulation as a histogram over basis states.
         path: /cirq/simulate/state_histograms
-      - heading: Observables and PauliStrings
-        description: Build and measure observables from sums and products of Pauli operators.
-        path: /cirq/simulate/pauli_observables
 
     - heading: Quantum Virtual Machine
       description: Run circuits on a virtual version of quantum hardware, complete with an identical interface and noisy simulation that mimics hardware devices.

@@ -65,6 +65,8 @@ upper_tabs:
       - heading: "Advanced"
       - title: "Operators"
         path: /cirq/build/operators
+      - title: "Observables and PauliStrings"
+        path: /cirq/build/pauli_observables
       - title: "Qudits"
         path: /cirq/build/qudits
       - title: "Protocols"
@@ -84,8 +86,6 @@ upper_tabs:
         path: /cirq/simulate/params
       - title: "State Histograms"
         path: /cirq/simulate/state_histograms
-      - title: "Observables and PauliStrings"
-        path: /cirq/simulate/pauli_observables
 
       - heading: "Quantum Virtual Machine"
       - title: "Quantum Virtual Machine"
@@ -170,6 +170,8 @@ upper_tabs:
       contents:
       - title: "Overview"
         path: /cirq/noise
+      - title: "Representing Noise"
+        path: /cirq/noise/representing_noise
       ####  CHARACTERIZATION AND COMPENSATION  ####
       - heading: "Characterization and compensation"
       - title: "Calibration FAQ"
