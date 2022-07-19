@@ -76,6 +76,8 @@ SKIP_NOTEBOOKS = [
     "examples/*fidelity*",
     # Also skipping stabilizer code testing.
     "examples/*stabilizer_code*",
+    # An intentionally empty/template code notebook.
+    "docs/simulate/qvm_builder_code.ipynb",
     *NOTEBOOKS_DEPENDING_ON_UNRELEASED_FEATURES,
 ]
 

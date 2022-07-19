@@ -15,6 +15,12 @@ landing_page:
 
     - heading: Run a circuit on a hardware device
       description: Cirq provides interfaces for running your circuits on quantum hardware provided by many different services.
+      options:
+        - cards
+      items:
+      - heading: Qubit Picking
+        description: Information to help you pick good qubits for running your circuit on a hardware or hardware-like device.
+        path: /cirq/hardware/qubit_picking
 
     - heading: AQT hardware
       description: Cirq's interface with Alpine Quantum Technologies hardware.
