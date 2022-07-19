@@ -35,6 +35,9 @@ landing_page:
       - heading: Operators
         description: Unitary operators, measurements and noise channels.
         path: /cirq/build/operators
+      - heading: Observables and PauliStrings
+        description: Build and measure observables from sums and products of Pauli operators.
+        path: /cirq/build/pauli_observables
       - heading: Qudits
         description: Qutrits and higher dimensional quantum systems.
         path: /cirq/build/qudits
