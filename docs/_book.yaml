@@ -170,6 +170,8 @@ upper_tabs:
       contents:
       - title: "Overview"
         path: /cirq/noise
+      - title: "Representing Noise"
+        path: /cirq/noise/representing_noise
       ####  CHARACTERIZATION AND COMPENSATION  ####
       - heading: "Characterization and compensation"
       - title: "Calibration FAQ"
