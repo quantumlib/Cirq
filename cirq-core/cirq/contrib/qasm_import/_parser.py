@@ -83,7 +83,8 @@ class QasmGateStatement:
         if len(args) != self.num_args:
             raise QasmException(
                 "{} only takes {} arg(s) (qubits and/or registers), "
-                "got: {}, at line {}".format(self.qasm_gate, self.num_args, len(args), lineno)
+                "got: {}, at line {}".format(
+                    self.qasm_gate, self.num_args, len(args), lineno)
             )
 
     def _validate_params(self, params: List[float], lineno: int):
@@ -109,7 +110,8 @@ class QasmGateStatement:
         # the actual gate we'll apply the arguments to might be a parameterized
         # or non-parameterized gate
         final_gate: ops.Gate = (
-            self.cirq_gate if isinstance(self.cirq_gate, ops.Gate) else self.cirq_gate(params)
+            self.cirq_gate if isinstance(
+                self.cirq_gate, ops.Gate) else self.cirq_gate(params)
         )
         # OpenQASM gates can be applied on single qubits and qubit registers.
         # We represent single qubits as registers of size 1.
@@ -120,14 +122,16 @@ class QasmGateStatement:
         # through each qubit of the registers 0 to n-1 and use the same one
         # qubit from the "single-qubit registers" for each operation.
         op_qubits = functools.reduce(
-            cast(Callable[[List['cirq.Qid'], List['cirq.Qid']], List['cirq.Qid']], np.broadcast),
+            cast(Callable[[List['cirq.Qid'], List['cirq.Qid']],
+                 List['cirq.Qid']], np.broadcast),
             args,
         )
         for qubits in op_qubits:
             if isinstance(qubits, ops.Qid):
                 yield final_gate.on(qubits)
             elif len(np.unique(qubits)) < len(qubits):
-                raise QasmException(f"Overlapping qubits in arguments at line {lineno}")
+                raise QasmException(
+                    f"Overlapping qubits in arguments at line {lineno}")
             else:
                 yield final_gate.on(*qubits)
 
@@ -201,6 +205,12 @@ class QasmParser:
         'id': QasmGateStatement(
             qasm_gate='id', cirq_gate=ops.IdentityGate(1), num_params=0, num_args=1
         ),
+        'p': QasmGateStatement(
+            qasm_gate='p',
+            cirq_gate=(lambda params: QasmUGate(0, 0, params[0] / np.pi)),
+            num_params=1,
+            num_args=1,
+        ),
         'u1': QasmGateStatement(
             qasm_gate='u1',
             cirq_gate=(lambda params: QasmUGate(0, 0, params[0] / np.pi)),
@@ -209,7 +219,8 @@ class QasmParser:
         ),
         'u2': QasmGateStatement(
             qasm_gate='u2',
-            cirq_gate=(lambda params: QasmUGate(0.5, params[0] / np.pi, params[1] / np.pi)),
+            cirq_gate=(lambda params: QasmUGate(
+                0.5, params[0] / np.pi, params[1] / np.pi)),
             num_params=2,
             num_args=1,
         ),
@@ -225,7 +236,8 @@ class QasmParser:
             num_args=1,
             cirq_gate=(
                 lambda params: QasmUGate(
-                    params[0] / np.pi, (params[1] / np.pi) - 0.5, (-params[1] / np.pi) + 0.5
+                    params[0] / np.pi, (params[1] / np.pi) -
+                    0.5, (-params[1] / np.pi) + 0.5
                 )
             ),
         ),
@@ -266,7 +278,8 @@ class QasmParser:
     def p_qasm_format_only(self, p):
         """qasm : format"""
         self.supported_format = True
-        p[0] = Qasm(self.supported_format, self.qelibinc, self.qregs, self.cregs, self.circuit)
+        p[0] = Qasm(self.supported_format, self.qelibinc,
+                    self.qregs, self.cregs, self.circuit)
 
     def p_qasm_no_format_specified_error(self, p):
         """qasm : QELIBINC
@@ -277,11 +290,13 @@ class QasmParser:
     def p_qasm_include(self, p):
         """qasm : qasm QELIBINC"""
         self.qelibinc = True
-        p[0] = Qasm(self.supported_format, self.qelibinc, self.qregs, self.cregs, self.circuit)
+        p[0] = Qasm(self.supported_format, self.qelibinc,
+                    self.qregs, self.cregs, self.circuit)
 
     def p_qasm_circuit(self, p):
         """qasm : qasm circuit"""
-        p[0] = Qasm(self.supported_format, self.qelibinc, self.qregs, self.cregs, p[2])
+        p[0] = Qasm(self.supported_format, self.qelibinc,
+                    self.qregs, self.cregs, p[2])
 
     def p_format(self, p):
         """format : FORMAT_SPEC"""
@@ -319,9 +334,11 @@ class QasmParser:
         | CREG ID '[' NATURAL_NUMBER ']' ';'"""
         name, length = p[2], p[4]
         if name in self.qregs.keys() or name in self.cregs.keys():
-            raise QasmException(f"{name} is already defined at line {p.lineno(2)}")
+            raise QasmException(
+                f"{name} is already defined at line {p.lineno(2)}")
         if length == 0:
-            raise QasmException(f"Illegal, zero-length register '{name}' at line {p.lineno(4)}")
+            raise QasmException(
+                f"Illegal, zero-length register '{name}' at line {p.lineno(4)}")
         if p[1] == "qreg":
             self.qregs[name] = length
         else:
@@ -382,7 +399,8 @@ class QasmParser:
         """expr : ID '(' expr ')'"""
         func = p[1]
         if func not in self.functions.keys():
-            raise QasmException(f"Function not recognized: '{func}' at line {p.lineno(1)}")
+            raise QasmException(
+                f"Function not recognized: '{func}' at line {p.lineno(1)}")
         p[0] = self.functions[func](p[3])
 
     def p_expr_unary(self, p):
@@ -427,7 +445,8 @@ class QasmParser:
         """qarg : ID"""
         reg = p[1]
         if reg not in self.qregs.keys():
-            raise QasmException(f'Undefined quantum register "{reg}" at line {p.lineno(1)}')
+            raise QasmException(
+                f'Undefined quantum register "{reg}" at line {p.lineno(1)}')
         qubits = []
         for idx in range(self.qregs[reg]):
             arg_name = self.make_name(idx, reg)
@@ -443,7 +462,8 @@ class QasmParser:
         """carg : ID"""
         reg = p[1]
         if reg not in self.cregs.keys():
-            raise QasmException(f'Undefined classical register "{reg}" at line {p.lineno(1)}')
+            raise QasmException(
+                f'Undefined classical register "{reg}" at line {p.lineno(1)}')
 
         p[0] = [self.make_name(idx, reg) for idx in range(self.cregs[reg])]
 
@@ -456,7 +476,8 @@ class QasmParser:
         idx = p[3]
         arg_name = self.make_name(idx, reg)
         if reg not in self.qregs.keys():
-            raise QasmException(f'Undefined quantum register "{reg}" at line {p.lineno(1)}')
+            raise QasmException(
+                f'Undefined quantum register "{reg}" at line {p.lineno(1)}')
         size = self.qregs[reg]
         if idx >= size:
             raise QasmException(
@@ -474,7 +495,8 @@ class QasmParser:
         idx = p[3]
         arg_name = self.make_name(idx, reg)
         if reg not in self.cregs.keys():
-            raise QasmException(f'Undefined classical register "{reg}" at line {p.lineno(1)}')
+            raise QasmException(
+                f'Undefined classical register "{reg}" at line {p.lineno(1)}')
 
         size = self.cregs[reg]
         if idx >= size:
@@ -515,7 +537,8 @@ class QasmParser:
             v = (p[5] >> i) & 1
             conditions.append(sympy.Eq(sympy.Symbol(key), v))
         p[0] = [
-            ops.ClassicallyControlledOperation(conditions=conditions, sub_operation=tuple(p[7])[0])
+            ops.ClassicallyControlledOperation(
+                conditions=conditions, sub_operation=tuple(p[7])[0])
         ]
 
     def p_error(self, p):
@@ -544,7 +567,8 @@ at line {p.lineno}, column {self.find_column(p)}"""
 
     def debug_context(self, p):
         debug_start = max(self.qasm.rfind('\n', 0, p.lexpos) + 1, p.lexpos - 5)
-        debug_end = min(self.qasm.find('\n', p.lexpos, p.lexpos + 5), p.lexpos + 5)
+        debug_end = min(self.qasm.find(
+            '\n', p.lexpos, p.lexpos + 5), p.lexpos + 5)
 
         return (
             "..."
