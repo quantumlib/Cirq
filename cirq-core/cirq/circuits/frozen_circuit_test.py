@@ -21,6 +21,21 @@ import pytest
 import cirq
 
 
+def test_from_moments():
+    a, b, c, d = cirq.LineQubit.range(4)
+    assert cirq.FrozenCircuit.from_moments(
+        [cirq.X(a), cirq.Y(b)],
+        [cirq.X(c)],
+        [],
+        cirq.Z(d),
+    ) == cirq.FrozenCircuit(
+        cirq.Moment(cirq.X(a), cirq.Y(b)),
+        cirq.Moment(cirq.X(c)),
+        cirq.Moment(),
+        cirq.Moment(cirq.Z(d)),
+    )
+
+
 def test_freeze_and_unfreeze():
     a, b = cirq.LineQubit.range(2)
     c = cirq.Circuit(cirq.X(a), cirq.H(b))

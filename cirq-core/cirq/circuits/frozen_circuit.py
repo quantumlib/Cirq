@@ -12,13 +12,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """An immutable version of the Circuit data structure."""
-from typing import TYPE_CHECKING, FrozenSet, Iterable, Iterator, Sequence, Tuple, Union
+from typing import cast, FrozenSet, Iterable, Iterator, Sequence, Tuple, TYPE_CHECKING, Union
 
 import numpy as np
 
 from cirq import protocols, _compat
 from cirq.circuits import AbstractCircuit, Alignment, Circuit
 from cirq.circuits.insert_strategy import InsertStrategy
+from cirq.circuits.moment import Moment
 from cirq.type_workarounds import NotImplementedType
 
 if TYPE_CHECKING:
@@ -48,8 +49,22 @@ class FrozenCircuit(AbstractCircuit, protocols.SerializableByKey):
                 from `contents`, this determines how the operations are packed
                 together.
         """
-        base = Circuit(contents, strategy=strategy)
-        self._moments = tuple(base.moments)
+        if len(contents) == 1 and isinstance(contents[0], AbstractCircuit):
+            moments = contents[0].moments
+        elif all(isinstance(item, Moment) for item in contents):
+            moments = cast(Sequence[Moment], contents)
+        else:
+            moments = Circuit(*contents, strategy=strategy).moments
+        self._moments: Tuple[Moment] = tuple(moments)
+
+    @classmethod
+    def from_moments(cls, *moments: 'cirq.OP_TREE') -> 'FrozenCircuit':
+        """Create a frozen circuit from moments.
+
+        Args:
+            *moments: Op tree for each moment.
+        """
+        return Circuit.from_moments(*moments).freeze()
 
     @property
     def moments(self) -> Sequence['cirq.Moment']:

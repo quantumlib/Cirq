@@ -1712,12 +1712,26 @@ class Circuit(AbstractCircuit):
                 together. This option does not affect later insertions into the
                 circuit.
         """
-        self._moments: List['cirq.Moment'] = []
-        with _compat.block_overlapping_deprecation('.*'):
-            if strategy == InsertStrategy.EARLIEST:
-                self._load_contents_with_earliest_strategy(contents)
-            else:
-                self.append(contents, strategy=strategy)
+        self._moments: List[Moment] = []
+        if len(contents) == 1 and isinstance(contents[0], AbstractCircuit):
+            self._moments.extend(contents[0].moments)
+        elif all(isinstance(item, Moment) for item in contents):
+            self._moments.extend(cast(Iterable[Moment], contents))
+        else:
+            with _compat.block_overlapping_deprecation('.*'):
+                if strategy == InsertStrategy.EARLIEST:
+                    self._load_contents_with_earliest_strategy(contents)
+                else:
+                    self.append(contents, strategy=strategy)
+
+    @classmethod
+    def from_moments(cls, *moments: 'cirq.OP_TREE') -> 'Circuit':
+        """Create a circuit from moments.
+
+        Args:
+            *moments: Op tree for each moment.
+        """
+        return cls(Moment(moment) for moment in moments)
 
     def _load_contents_with_earliest_strategy(self, contents: 'cirq.OP_TREE'):
         """Optimized algorithm to load contents quickly.
