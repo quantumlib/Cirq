@@ -64,7 +64,7 @@ class FrozenCircuit(AbstractCircuit, protocols.SerializableByKey):
         Args:
             *moments: Op tree for each moment.
         """
-        return Circuit.from_moments(*moments).freeze()
+        return cls(*(Moment(moment) for moment in moments))
 
     @property
     def moments(self) -> Sequence['cirq.Moment']:
