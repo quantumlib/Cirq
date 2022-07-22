@@ -150,7 +150,9 @@ class AbstractCircuit(abc.ABC):
         Args:
             *moments: Op tree for each moment.
         """
-        return cls._from_moments(Moment(moment) for moment in moments)
+        return cls._from_moments(
+            moment if isinstance(moment, Moment) else Moment(moment) for moment in moments
+        )
 
     @classmethod
     @abc.abstractmethod
@@ -970,9 +972,7 @@ class AbstractCircuit(abc.ABC):
         )
 
     def _with_key_path_(self, path: Tuple[str, ...]):
-        return self._from_moments(
-            protocols.with_key_path(moment, path) for moment in self.moments
-        )
+        return self._from_moments(protocols.with_key_path(moment, path) for moment in self.moments)
 
     def _with_key_path_prefix_(self, prefix: Tuple[str, ...]):
         return self._from_moments(
@@ -1568,9 +1568,7 @@ class AbstractCircuit(abc.ABC):
         # the qubits from one factor belong to a specific independent qubit set.
         # This makes it possible to create independent circuits based on these
         # moments.
-        return (
-            self._from_moments(m[qubits] for m in self.moments) for qubits in qubit_factors
-        )
+        return (self._from_moments(m[qubits] for m in self.moments) for qubits in qubit_factors)
 
     def _control_keys_(self) -> FrozenSet['cirq.MeasurementKey']:
         controls = frozenset(k for op in self.all_operations() for k in protocols.control_keys(op))
