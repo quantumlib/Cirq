@@ -55,7 +55,7 @@ class FrozenCircuit(AbstractCircuit, protocols.SerializableByKey):
             moments = cast(Sequence[Moment], contents)
         else:
             moments = Circuit(*contents, strategy=strategy).moments
-        self._moments: Tuple[Moment] = tuple(moments)
+        self._moments: Tuple[Moment, ...] = tuple(moments)
 
     @classmethod
     def from_moments(cls, *moments: 'cirq.OP_TREE') -> 'FrozenCircuit':
@@ -64,7 +64,9 @@ class FrozenCircuit(AbstractCircuit, protocols.SerializableByKey):
         Args:
             *moments: Op tree for each moment.
         """
-        return cls(*(Moment(moment) for moment in moments))
+        new_circuit = FrozenCircuit()
+        new_circuit._moments = tuple(Moment(moment) for moment in moments)
+        return new_circuit
 
     @property
     def moments(self) -> Sequence['cirq.Moment']:

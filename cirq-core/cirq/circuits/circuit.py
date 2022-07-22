@@ -1731,7 +1731,9 @@ class Circuit(AbstractCircuit):
         Args:
             *moments: Op tree for each moment.
         """
-        return cls(*(Moment(moment) for moment in moments))
+        new_circuit = Circuit()
+        new_circuit._moments = list(Moment(moment) for moment in moments)
+        return new_circuit
 
     def _load_contents_with_earliest_strategy(self, contents: 'cirq.OP_TREE'):
         """Optimized algorithm to load contents quickly.
