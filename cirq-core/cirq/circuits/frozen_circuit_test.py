@@ -28,11 +28,13 @@ def test_from_moments():
         [cirq.X(c)],
         [],
         cirq.Z(d),
+        [cirq.measure(a, b, key='ab'), cirq.measure(c, d, key='cd')],
     ) == cirq.FrozenCircuit(
         cirq.Moment(cirq.X(a), cirq.Y(b)),
         cirq.Moment(cirq.X(c)),
         cirq.Moment(),
         cirq.Moment(cirq.Z(d)),
+        cirq.Moment(cirq.measure(a, b, key='ab'), cirq.measure(c, d, key='cd')),
     )
 
 
