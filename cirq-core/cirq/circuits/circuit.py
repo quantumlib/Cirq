@@ -157,6 +157,10 @@ class AbstractCircuit(abc.ABC):
     def _from_moments(cls: Type[CIRCUIT_TYPE], moments: Iterable['cirq.Moment']) -> CIRCUIT_TYPE:
         """Create a circuit from moments.
 
+        This must be implemented by subclasses. It provides a more efficient way
+        to construct a circuit instance since we already have the moments and so
+        can skip the analysis required to implement various insert strategies.
+
         Args:
             moments: Moments of the circuit.
         """
