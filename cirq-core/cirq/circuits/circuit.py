@@ -1733,11 +1733,6 @@ class Circuit(AbstractCircuit):
 
     @classmethod
     def _from_moments(cls, moments: Iterable['cirq.Moment']) -> 'Circuit':
-        """Create a circuit from moments.
-
-        Args:
-            *moments: Op tree for each moment.
-        """
         new_circuit = Circuit()
         new_circuit._moments[:] = moments
         return new_circuit
