@@ -3,4 +3,4 @@ import cirq_rigetti
 
 
 def test_version():
-    assert cirq_rigetti.__version__ == "0.16.0.dev"
+    assert cirq_rigetti.__version__ == "1.1.0.dev"
