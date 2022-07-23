@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """An immutable version of the Circuit data structure."""
-from typing import TYPE_CHECKING, FrozenSet, Iterable, Iterator, Sequence, Tuple, Union
+from typing import FrozenSet, Iterable, Iterator, Sequence, Tuple, TYPE_CHECKING, Union
 
 import numpy as np
 
@@ -50,6 +50,12 @@ class FrozenCircuit(AbstractCircuit, protocols.SerializableByKey):
         """
         base = Circuit(contents, strategy=strategy)
         self._moments = tuple(base.moments)
+
+    @classmethod
+    def _from_moments(cls, moments: Iterable['cirq.Moment']) -> 'FrozenCircuit':
+        new_circuit = FrozenCircuit()
+        new_circuit._moments = tuple(moments)
+        return new_circuit
 
     @property
     def moments(self) -> Sequence['cirq.Moment']:
@@ -142,11 +148,6 @@ class FrozenCircuit(AbstractCircuit, protocols.SerializableByKey):
             return (self.unfreeze() ** other).freeze()
         except:
             return NotImplemented
-
-    def _with_sliced_moments(self, moments: Iterable['cirq.Moment']) -> 'FrozenCircuit':
-        new_circuit = FrozenCircuit()
-        new_circuit._moments = tuple(moments)
-        return new_circuit
 
     def _resolve_parameters_(
         self, resolver: 'cirq.ParamResolver', recursive: bool
