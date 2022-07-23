@@ -286,6 +286,16 @@ def test_append_control_key_subcircuit():
     assert len(c) == 1
 
 
+def test_measurement_key_paths():
+    a = cirq.LineQubit(0)
+    circuit1 = cirq.Circuit(cirq.measure(a, key='A'))
+    assert cirq.measurement_key_names(circuit1) == {'A'}
+    circuit2 = cirq.with_key_path(circuit1, ('B',))
+    assert cirq.measurement_key_names(circuit2) == {'B:A'}
+    circuit3 = cirq.with_key_path_prefix(circuit2, ('C',))
+    assert cirq.measurement_key_names(circuit3) == {'C:B:A'}
+
+
 def test_append_moments():
     a = cirq.NamedQubit('a')
     b = cirq.NamedQubit('b')
