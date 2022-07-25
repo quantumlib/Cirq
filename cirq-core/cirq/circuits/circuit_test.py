@@ -70,6 +70,23 @@ class _MomentAndOpTypeValidatingDeviceType(cirq.Device):
 moment_and_op_type_validating_device = _MomentAndOpTypeValidatingDeviceType()
 
 
+def test_from_moments():
+    a, b, c, d = cirq.LineQubit.range(4)
+    assert cirq.Circuit.from_moments(
+        [cirq.X(a), cirq.Y(b)],
+        [cirq.X(c)],
+        [],
+        cirq.Z(d),
+        [cirq.measure(a, b, key='ab'), cirq.measure(c, d, key='cd')],
+    ) == cirq.Circuit(
+        cirq.Moment(cirq.X(a), cirq.Y(b)),
+        cirq.Moment(cirq.X(c)),
+        cirq.Moment(),
+        cirq.Moment(cirq.Z(d)),
+        cirq.Moment(cirq.measure(a, b, key='ab'), cirq.measure(c, d, key='cd')),
+    )
+
+
 def test_alignment():
     assert repr(cirq.Alignment.LEFT) == 'cirq.Alignment.LEFT'
     assert repr(cirq.Alignment.RIGHT) == 'cirq.Alignment.RIGHT'
@@ -267,6 +284,16 @@ def test_append_control_key_subcircuit():
         ).with_measurement_key_mapping({'b': 'a'})
     )
     assert len(c) == 1
+
+
+def test_measurement_key_paths():
+    a = cirq.LineQubit(0)
+    circuit1 = cirq.Circuit(cirq.measure(a, key='A'))
+    assert cirq.measurement_key_names(circuit1) == {'A'}
+    circuit2 = cirq.with_key_path(circuit1, ('B',))
+    assert cirq.measurement_key_names(circuit2) == {'B:A'}
+    circuit3 = cirq.with_key_path_prefix(circuit2, ('C',))
+    assert cirq.measurement_key_names(circuit3) == {'C:B:A'}
 
 
 def test_append_moments():

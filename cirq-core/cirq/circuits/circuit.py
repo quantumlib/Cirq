@@ -143,6 +143,30 @@ class AbstractCircuit(abc.ABC):
     *   get_independent_qubit_sets
     """
 
+    @classmethod
+    def from_moments(cls: Type[CIRCUIT_TYPE], *moments: 'cirq.OP_TREE') -> CIRCUIT_TYPE:
+        """Create a circuit from moment op trees.
+
+        Args:
+            *moments: Op tree for each moment.
+        """
+        return cls._from_moments(
+            moment if isinstance(moment, Moment) else Moment(moment) for moment in moments
+        )
+
+    @classmethod
+    @abc.abstractmethod
+    def _from_moments(cls: Type[CIRCUIT_TYPE], moments: Iterable['cirq.Moment']) -> CIRCUIT_TYPE:
+        """Create a circuit from moments.
+
+        This must be implemented by subclasses. It provides a more efficient way
+        to construct a circuit instance since we already have the moments and so
+        can skip the analysis required to implement various insert strategies.
+
+        Args:
+            moments: Moments of the circuit.
+        """
+
     @property
     @abc.abstractmethod
     def moments(self) -> Sequence['cirq.Moment']:
@@ -225,8 +249,7 @@ class AbstractCircuit(abc.ABC):
 
     def __getitem__(self, key):
         if isinstance(key, slice):
-            sliced_moments = self.moments[key]
-            return self._with_sliced_moments(sliced_moments)
+            return self._from_moments(self.moments[key])
         if hasattr(key, '__index__'):
             return self.moments[key]
         if isinstance(key, tuple):
@@ -239,16 +262,11 @@ class AbstractCircuit(abc.ABC):
                 return selected_moments[qubit_idx]
             if isinstance(qubit_idx, ops.Qid):
                 qubit_idx = [qubit_idx]
-            sliced_moments = [moment[qubit_idx] for moment in selected_moments]
-            return self._with_sliced_moments(sliced_moments)
+            return self._from_moments(moment[qubit_idx] for moment in selected_moments)
 
         raise TypeError('__getitem__ called with key not of type slice, int, or tuple.')
 
     # pylint: enable=function-redefined
-
-    @abc.abstractmethod
-    def _with_sliced_moments(self: CIRCUIT_TYPE, moments: Iterable['cirq.Moment']) -> CIRCUIT_TYPE:
-        """Helper method for constructing circuits from __getitem__."""
 
     def __str__(self) -> str:
         return self.to_text_diagram()
@@ -909,7 +927,7 @@ class AbstractCircuit(abc.ABC):
             """Apply func to expand each op into a circuit, then zip up the circuits."""
             return Circuit.zip(*[Circuit(func(op)) for op in moment])
 
-        return self._with_sliced_moments(m for moment in self for m in map_moment(moment))
+        return self._from_moments(m for moment in self for m in map_moment(moment))
 
     def qid_shape(
         self, qubit_order: 'cirq.QubitOrderOrList' = ops.QubitOrder.DEFAULT
@@ -949,18 +967,16 @@ class AbstractCircuit(abc.ABC):
         return self.all_measurement_key_names()
 
     def _with_measurement_key_mapping_(self, key_map: Mapping[str, str]):
-        return self._with_sliced_moments(
-            [protocols.with_measurement_key_mapping(moment, key_map) for moment in self.moments]
+        return self._from_moments(
+            protocols.with_measurement_key_mapping(moment, key_map) for moment in self.moments
         )
 
     def _with_key_path_(self, path: Tuple[str, ...]):
-        return self._with_sliced_moments(
-            [protocols.with_key_path(moment, path) for moment in self.moments]
-        )
+        return self._from_moments(protocols.with_key_path(moment, path) for moment in self.moments)
 
     def _with_key_path_prefix_(self, prefix: Tuple[str, ...]):
-        return self._with_sliced_moments(
-            [protocols.with_key_path_prefix(moment, prefix) for moment in self.moments]
+        return self._from_moments(
+            protocols.with_key_path_prefix(moment, prefix) for moment in self.moments
         )
 
     def _with_rescoped_keys_(
@@ -971,7 +987,7 @@ class AbstractCircuit(abc.ABC):
             new_moment = protocols.with_rescoped_keys(moment, path, bindable_keys)
             moments.append(new_moment)
             bindable_keys |= protocols.measurement_key_objs(new_moment)
-        return self._with_sliced_moments(moments)
+        return self._from_moments(moments)
 
     def _qid_shape_(self) -> Tuple[int, ...]:
         return self.qid_shape()
@@ -1552,9 +1568,7 @@ class AbstractCircuit(abc.ABC):
         # the qubits from one factor belong to a specific independent qubit set.
         # This makes it possible to create independent circuits based on these
         # moments.
-        return (
-            self._with_sliced_moments([m[qubits] for m in self.moments]) for qubits in qubit_factors
-        )
+        return (self._from_moments(m[qubits] for m in self.moments) for qubits in qubit_factors)
 
     def _control_keys_(self) -> FrozenSet['cirq.MeasurementKey']:
         controls = frozenset(k for op in self.all_operations() for k in protocols.control_keys(op))
@@ -1719,6 +1733,12 @@ class Circuit(AbstractCircuit):
             else:
                 self.append(contents, strategy=strategy)
 
+    @classmethod
+    def _from_moments(cls, moments: Iterable['cirq.Moment']) -> 'Circuit':
+        new_circuit = Circuit()
+        new_circuit._moments[:] = moments
+        return new_circuit
+
     def _load_contents_with_earliest_strategy(self, contents: 'cirq.OP_TREE'):
         """Optimized algorithm to load contents quickly.
 
@@ -1812,11 +1832,6 @@ class Circuit(AbstractCircuit):
         copied_circuit = Circuit()
         copied_circuit._moments = self._moments[:]
         return copied_circuit
-
-    def _with_sliced_moments(self, moments: Iterable['cirq.Moment']) -> 'Circuit':
-        new_circuit = Circuit()
-        new_circuit._moments = list(moments)
-        return new_circuit
 
     # pylint: disable=function-redefined
     @overload
