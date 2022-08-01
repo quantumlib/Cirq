@@ -396,9 +396,9 @@ class YPowGate(eigen_gate.EigenGate):
     written as X**a Z**b for a,b=0,1,...,d-1. For a qubit, there is only one
     "mixed" operator: XZ, conventionally denoted -iY. However, when d > 2 there
     are (d-1)*(d-1) > 1 such "mixed" operators (still ignoring the global phase).
-    Due to this ambiguity, qudit Y gate is not well defined. Instead, for qudits
-    the "mixed" operators are generally not referred to by name, but instead are
-    specified in terms of X and Z.
+    Due to this ambiguity, qudit Y gate is not well defined. The "mixed" operators
+    for qudits are generally not referred to by name, but instead are specified in
+    terms of X and Z.
     """
 
     def _num_qubits_(self) -> int:
