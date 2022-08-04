@@ -19,7 +19,7 @@ from collections import defaultdict
 import numpy as np
 
 from cirq import ops, protocols
-from cirq.transformers import transformer_api, transformer_primitives
+from cirq.transformers import transformer_api
 from cirq.transformers.analytical_decompositions import single_qubit_decompositions
 
 if TYPE_CHECKING:
@@ -68,9 +68,11 @@ def eject_z(
     Returns:
         Copy of the transformed input circuit.
     """
+    context = context or transformer_api.TransformerContext()
+
     # Tracks qubit phases (in half turns; multiply by pi to get radians).
     qubit_phase: Dict[ops.Qid, float] = defaultdict(lambda: 0)
-    tags_to_ignore = set(context.tags_to_ignore) if context else set()
+    tags_to_ignore = set(context.tags_to_ignore)
     phased_xz_replacements: Dict[Tuple[int, ops.Operation], ops.PhasedXZGate] = {}
     last_phased_xz_op: Dict[ops.Qid, Optional[Tuple[int, ops.Operation]]] = defaultdict(
         lambda: None
@@ -137,9 +139,9 @@ def eject_z(
             last_phased_xz_op[qubit] = (moment_index, phased_op)
         return phased_op
 
-    circuit = transformer_primitives.map_operations(circuit, map_func).unfreeze(copy=False)
+    circuit = context.reset().map_operations(circuit, map_func).unfreeze(copy=False)
     circuit.append(dump_tracked_phase(qubit_phase.keys()))
     circuit.batch_replace(
         (m, op, g.on(*op.qubits)) for (m, op), g in phased_xz_replacements.items()
     )
-    return transformer_primitives.unroll_circuit_op(circuit)
+    return context.reset().unroll_circuit_op(circuit)

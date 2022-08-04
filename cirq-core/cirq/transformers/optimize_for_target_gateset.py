@@ -18,7 +18,7 @@ from typing import Optional, Callable, Hashable, Sequence, TYPE_CHECKING
 
 from cirq import circuits
 from cirq.protocols import decompose_protocol as dp
-from cirq.transformers import transformer_api, transformer_primitives
+from cirq.transformers import transformer_api
 
 if TYPE_CHECKING:
     import cirq
@@ -87,12 +87,8 @@ def _decompose_operations_to_target_gateset(
             ),
         )
 
-    return transformer_primitives.map_operations_and_unroll(
-        circuit,
-        map_func,
-        tags_to_ignore=context.tags_to_ignore if context else (),
-        deep=context.deep if context else False,
-    ).unfreeze(copy=False)
+    context = context or transformer_api.TransformerContext()
+    return context.map_operations_and_unroll(circuit, map_func).unfreeze(copy=False)
 
 
 @transformer_api.transformer

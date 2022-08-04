@@ -28,6 +28,7 @@ from typing import (
     List,
     overload,
     Optional,
+    Sequence,
     Type,
     TYPE_CHECKING,
     TypeVar,
@@ -36,6 +37,8 @@ from typing import (
 from typing_extensions import Protocol
 
 from cirq import circuits
+from cirq.circuits.circuit import CIRCUIT_TYPE
+from cirq.transformers import transformer_primitives
 
 if TYPE_CHECKING:
     import cirq
@@ -226,6 +229,147 @@ class TransformerContext:
     logger: TransformerLogger = NoOpTransformerLogger()
     tags_to_ignore: Tuple[Hashable, ...] = ()
     deep: bool = False
+
+    def reset(self) -> 'cirq.TransformerContext':
+        """Returns a new context with all attributes except the logger set to their defaults."""
+        return TransformerContext().replace(logger=self.logger)
+
+    def replace(
+        self,
+        *,
+        logger: Optional[TransformerLogger] = None,
+        tags_to_ignore: Optional[Tuple[Hashable, ...]] = None,
+        deep: Optional[bool] = None,
+    ) -> 'cirq.TransformerContext':
+        return TransformerContext(
+            logger=self.logger if logger is None else logger,
+            tags_to_ignore=self.tags_to_ignore if tags_to_ignore is None else tags_to_ignore,
+            deep=self.deep if deep is None else deep,
+        )
+
+    def map_moments(
+        self,
+        circuit: CIRCUIT_TYPE,
+        map_func: Callable[
+            [circuits.Moment, int], Union[circuits.Moment, Sequence[circuits.Moment]]
+        ],
+    ) -> CIRCUIT_TYPE:
+        return transformer_primitives.map_moments(
+            circuit, map_func, deep=self.deep, tags_to_ignore=self.tags_to_ignore
+        )
+
+    def map_operations(
+        self,
+        circuit: CIRCUIT_TYPE,
+        map_func: Callable[['cirq.Operation', int], 'cirq.OP_TREE'],
+        *,
+        raise_if_add_qubits=True,
+    ) -> CIRCUIT_TYPE:
+        return transformer_primitives.map_operations(
+            circuit,
+            map_func,
+            deep=self.deep,
+            tags_to_ignore=self.tags_to_ignore,
+            raise_if_add_qubits=raise_if_add_qubits,
+        )
+
+    def map_operations_and_unroll(
+        self,
+        circuit: CIRCUIT_TYPE,
+        map_func: Callable[['cirq.Operation', int], 'cirq.OP_TREE'],
+        *,
+        raise_if_add_qubits=True,
+    ) -> CIRCUIT_TYPE:
+        return transformer_primitives.map_operations_and_unroll(
+            circuit,
+            map_func,
+            deep=self.deep,
+            tags_to_ignore=self.tags_to_ignore,
+            raise_if_add_qubits=raise_if_add_qubits,
+        )
+
+    def merge_operations(
+        self,
+        circuit: CIRCUIT_TYPE,
+        merge_func: Callable[['cirq.Operation', 'cirq.Operation'], Optional['cirq.Operation']],
+    ) -> CIRCUIT_TYPE:
+        return transformer_primitives.merge_operations(
+            circuit, merge_func, deep=self.deep, tags_to_ignore=self.tags_to_ignore
+        )
+
+    def merge_operations_to_circuit_op(
+        self,
+        circuit: CIRCUIT_TYPE,
+        can_merge: Callable[[Sequence['cirq.Operation'], Sequence['cirq.Operation']], bool],
+        *,
+        merged_circuit_op_tag: str = "Merged connected component",
+    ) -> CIRCUIT_TYPE:
+        return transformer_primitives.merge_operations_to_circuit_op(
+            circuit,
+            can_merge,
+            deep=self.deep,
+            tags_to_ignore=self.tags_to_ignore,
+            merged_circuit_op_tag=merged_circuit_op_tag,
+        )
+
+    def merge_k_qubit_unitaries_to_circuit_op(
+        self, circuit: CIRCUIT_TYPE, k: int, *, merged_circuit_op_tag: Optional[str] = None
+    ) -> CIRCUIT_TYPE:
+        return transformer_primitives.merge_k_qubit_unitaries_to_circuit_op(
+            circuit,
+            k,
+            deep=self.deep,
+            tags_to_ignore=self.tags_to_ignore,
+            merged_circuit_op_tag=merged_circuit_op_tag,
+        )
+
+    def merge_moments(
+        self,
+        circuit: CIRCUIT_TYPE,
+        merge_func: Callable[[circuits.Moment, circuits.Moment], Optional[circuits.Moment]],
+    ) -> CIRCUIT_TYPE:
+        return transformer_primitives.merge_moments(
+            circuit, merge_func, deep=self.deep, tags_to_ignore=self.tags_to_ignore
+        )
+
+    def unroll_circuit_op(
+        self,
+        circuit: CIRCUIT_TYPE,
+        *,
+        tags_to_check: Optional[Sequence[Hashable]] = (
+            transformer_primitives.MAPPED_CIRCUIT_OP_TAG,
+        ),
+    ) -> CIRCUIT_TYPE:
+        return transformer_primitives.unroll_circuit_op(
+            circuit, deep=self.deep, tags_to_check=tags_to_check
+        )
+
+    def unroll_circuit_op_greedy_earliest(
+        self,
+        circuit: CIRCUIT_TYPE,
+        *,
+        tags_to_check: Optional[Sequence[Hashable]] = (
+            transformer_primitives.MAPPED_CIRCUIT_OP_TAG,
+        ),
+    ) -> CIRCUIT_TYPE:
+        return transformer_primitives.unroll_circuit_op_greedy_earliest(
+            circuit, deep=self.deep, tags_to_check=tags_to_check
+        )
+
+    def unroll_circuit_op_greedy_frontier(
+        self,
+        circuit: CIRCUIT_TYPE,
+        *,
+        tags_to_check: Optional[Sequence[Hashable]] = (
+            transformer_primitives.MAPPED_CIRCUIT_OP_TAG,
+        ),
+    ) -> CIRCUIT_TYPE:
+        return transformer_primitives.unroll_circuit_op_greedy_frontier(
+            circuit, deep=self.deep, tags_to_check=tags_to_check
+        )
+
+    def toggle_tags(self, circuit: CIRCUIT_TYPE, tags: Sequence[Hashable]) -> CIRCUIT_TYPE:
+        return transformer_primitives.toggle_tags(circuit, tags, deep=self.deep)
 
 
 class TRANSFORMER(Protocol):

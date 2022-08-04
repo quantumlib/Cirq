@@ -15,7 +15,7 @@
 """Transformer pass that removes empty moments from a circuit."""
 
 from typing import Optional, TYPE_CHECKING
-from cirq.transformers import transformer_api, transformer_primitives
+from cirq.transformers import transformer_api
 
 if TYPE_CHECKING:
     import cirq
@@ -36,9 +36,4 @@ def drop_empty_moments(
     """
     if context is None:
         context = transformer_api.TransformerContext()
-    return transformer_primitives.map_moments(
-        circuit.unfreeze(False),
-        lambda m, _: m if m else [],
-        deep=context.deep,
-        tags_to_ignore=context.tags_to_ignore,
-    )
+    return context.map_moments(circuit.unfreeze(False), lambda m, _: m if m else [])

@@ -112,16 +112,11 @@ class StrategyExecutorTransformer:
             A copy of the modified circuit after executing an acquaintance
               strategy on all instances of AcquaintanceOpportunityGate
         """
-
+        context = context or transformers.TransformerContext(deep=False)
         circuit = transformers.expand_composite(
             circuit, no_decomp=expose_acquaintance_gates.no_decomp
         )
-        return transformers.map_operations_and_unroll(
-            circuit=circuit,
-            map_func=self._map_func,
-            deep=context.deep if context else False,
-            tags_to_ignore=context.tags_to_ignore if context else (),
-        ).unfreeze(copy=False)
+        return context.map_operations_and_unroll(circuit, self._map_func).unfreeze(copy=False)
 
     @property
     def mapping(self) -> LogicalMapping:

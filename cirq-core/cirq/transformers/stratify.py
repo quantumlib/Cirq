@@ -18,7 +18,7 @@ import itertools
 from typing import TYPE_CHECKING, Type, Callable, Optional, Union, Iterable, Sequence, List, Tuple
 
 from cirq import ops, circuits, _import
-from cirq.transformers import transformer_api, transformer_primitives
+from cirq.transformers import transformer_api
 
 drop_empty_moments = _import.LazyLoader('drop_empty_moments', globals(), 'cirq.transformers')
 
@@ -130,7 +130,7 @@ def _stratify_circuit(
                     break
         return [circuits.Moment(op_list) for op_list in stratified_ops]
 
-    stratified_circuit = transformer_primitives.map_moments(circuit, map_func).unfreeze(copy=False)
+    stratified_circuit = context.reset().map_moments(circuit, map_func).unfreeze(copy=False)
     assert len(stratified_circuit) == len(circuit) * num_categories
 
     # Try to move operations to the left to reduce circuit depth, preserving stratification.

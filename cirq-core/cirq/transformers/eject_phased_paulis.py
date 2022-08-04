@@ -19,7 +19,7 @@ import sympy
 import numpy as np
 
 from cirq import circuits, ops, value, protocols
-from cirq.transformers import transformer_api, transformer_primitives
+from cirq.transformers import transformer_api
 from cirq.transformers.analytical_decompositions import single_qubit_decompositions
 
 if TYPE_CHECKING:
@@ -56,8 +56,9 @@ def eject_phased_paulis(
     Returns:
           Copy of the transformed input circuit.
     """
+    context = context or transformer_api.TransformerContext()
     held_w_phases: Dict[ops.Qid, value.TParamVal] = {}
-    tags_to_ignore = set(context.tags_to_ignore) if context else set()
+    tags_to_ignore = set(context.tags_to_ignore)
 
     def map_func(op: 'cirq.Operation', _: int) -> 'cirq.OP_TREE':
         # Dump if `op` marked with a no compile tag.
@@ -99,7 +100,7 @@ def eject_phased_paulis(
 
     # Map operations and put anything that's still held at the end of the circuit.
     return circuits.Circuit(
-        transformer_primitives.map_operations_and_unroll(circuit, map_func),
+        context.reset().map_operations_and_unroll(circuit, map_func),
         _dump_held(held_w_phases.keys(), held_w_phases),
     )
 

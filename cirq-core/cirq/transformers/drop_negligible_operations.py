@@ -16,7 +16,7 @@
 
 from typing import Optional, TYPE_CHECKING
 from cirq import protocols
-from cirq.transformers import transformer_api, transformer_primitives
+from cirq.transformers import transformer_api
 
 if TYPE_CHECKING:
     import cirq
@@ -43,8 +43,7 @@ def drop_negligible_operations(
     Returns:
           Copy of the transformed input circuit.
     """
-    if context is None:
-        context = transformer_api.TransformerContext()
+    context = context or transformer_api.TransformerContext()
 
     def map_func(op: 'cirq.Operation', _: int) -> 'cirq.OP_TREE':
         return (
@@ -55,6 +54,4 @@ def drop_negligible_operations(
             else []
         )
 
-    return transformer_primitives.map_operations(
-        circuit, map_func, tags_to_ignore=context.tags_to_ignore, deep=context.deep
-    ).unfreeze(copy=False)
+    return context.map_operations(circuit, map_func).unfreeze(copy=False)

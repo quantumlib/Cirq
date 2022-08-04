@@ -17,7 +17,7 @@
 from typing import cast, Optional, Callable, TYPE_CHECKING
 
 from cirq import ops, protocols, circuits
-from cirq.transformers import transformer_api, transformer_primitives
+from cirq.transformers import transformer_api
 
 if TYPE_CHECKING:
     import cirq
@@ -26,17 +26,15 @@ if TYPE_CHECKING:
 def _rewrite_merged_k_qubit_unitaries(
     circuit: 'cirq.AbstractCircuit',
     *,
-    context: Optional['cirq.TransformerContext'] = None,
+    context: 'cirq.TransformerContext',
     k: int = 0,
     rewriter: Optional[Callable[['cirq.CircuitOperation'], 'cirq.OP_TREE']] = None,
     merged_circuit_op_tag: str = "_merged_k_qubit_unitaries_component",
 ) -> 'cirq.Circuit':
-    deep = context.deep if context else False
-
     def map_func(op: 'cirq.Operation', _) -> 'cirq.OP_TREE':
         op_untagged = op.untagged
         if (
-            deep
+            context.deep
             and isinstance(op_untagged, circuits.CircuitOperation)
             and merged_circuit_op_tag not in op.tags
         ):
@@ -59,9 +57,11 @@ def _rewrite_merged_k_qubit_unitaries(
             )
         return ops.MatrixGate(protocols.unitary(op)).on(*op.qubits)
 
-    return transformer_primitives.map_operations_and_unroll(
-        circuit, map_func, tags_to_ignore=context.tags_to_ignore if context else ()
-    ).unfreeze(copy=False)
+    return (
+        context.replace(deep=False)
+        .map_operations_and_unroll(circuit, map_func)
+        .unfreeze(copy=False)
+    )
 
 
 @transformer_api.transformer
@@ -95,12 +95,9 @@ def merge_k_qubit_unitaries(
     if k <= 0:
         raise ValueError(f"k should be greater than or equal to 1. Found {k}.")
     merged_circuit_op_tag = "_merged_k_qubit_unitaries_component"
-    circuit = transformer_primitives.merge_k_qubit_unitaries_to_circuit_op(
-        circuit,
-        k=k,
-        tags_to_ignore=context.tags_to_ignore if context else (),
-        merged_circuit_op_tag=merged_circuit_op_tag,
-        deep=context.deep if context else False,
+    context = context or transformer_api.TransformerContext()
+    circuit = context.merge_k_qubit_unitaries_to_circuit_op(
+        circuit, k=k, merged_circuit_op_tag=merged_circuit_op_tag
     )
     return _rewrite_merged_k_qubit_unitaries(
         circuit,

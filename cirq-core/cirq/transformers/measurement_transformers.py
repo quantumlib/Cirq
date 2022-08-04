@@ -16,7 +16,7 @@ import itertools
 from typing import Any, Dict, List, Optional, TYPE_CHECKING, Union
 
 from cirq import ops, protocols, value
-from cirq.transformers import transformer_api, transformer_primitives
+from cirq.transformers import transformer_api
 from cirq.transformers.synchronize_terminal_measurements import find_terminal_measurements
 
 if TYPE_CHECKING:
@@ -86,8 +86,8 @@ def defer_measurements(
         NotImplementedError: When attempting to defer a measurement with a
             confusion map. (https://github.com/quantumlib/Cirq/issues/5482)
     """
-
-    circuit = transformer_primitives.unroll_circuit_op(circuit, deep=True, tags_to_check=None)
+    context = context or transformer_api.TransformerContext()
+    circuit = context.reset().replace(deep=True).unroll_circuit_op(circuit, tags_to_check=None)
     terminal_measurements = {op for _, op in find_terminal_measurements(circuit)}
     measurement_qubits: Dict['cirq.MeasurementKey', List['_MeasurementQid']] = {}
 
@@ -128,12 +128,11 @@ def defer_measurements(
             return new_op
         return op
 
-    circuit = transformer_primitives.map_operations_and_unroll(
-        circuit=circuit,
-        map_func=defer,
-        tags_to_ignore=context.tags_to_ignore if context else (),
-        raise_if_add_qubits=False,
-    ).unfreeze()
+    circuit = (
+        context.replace(deep=False)
+        .map_operations_and_unroll(circuit, defer, raise_if_add_qubits=False)
+        .unfreeze()
+    )
     for k, qubits in measurement_qubits.items():
         circuit.append(ops.measure(*qubits, key=k))
     return circuit
@@ -176,10 +175,8 @@ def dephase_measurements(
             raise ValueError('Use cirq.defer_measurements first to remove classical controls.')
         return op
 
-    ignored = () if context is None else context.tags_to_ignore
-    return transformer_primitives.map_operations(
-        circuit, dephase, deep=context.deep if context else True, tags_to_ignore=ignored
-    ).unfreeze()
+    context = context or transformer_api.TransformerContext(deep=True)
+    return context.map_operations(circuit, dephase).unfreeze()
 
 
 @transformer_api.transformer
@@ -207,8 +204,8 @@ def drop_terminal_measurements(
         ValueError: if the circuit contains non-terminal measurements, or if
             the provided context has`deep=False`.
     """
-
-    if context is None or not context.deep:
+    context = context or transformer_api.TransformerContext()
+    if not context.deep:
         raise ValueError(
             'Context has `deep=False`, but `deep=True` is required to drop terminal measurements.'
         )
@@ -223,7 +220,4 @@ def drop_terminal_measurements(
             ]
         return op
 
-    ignored = () if context is None else context.tags_to_ignore
-    return transformer_primitives.map_operations(
-        circuit, flip_inversion, deep=context.deep if context else True, tags_to_ignore=ignored
-    ).unfreeze()
+    return context.map_operations(circuit, flip_inversion).unfreeze()
