@@ -94,7 +94,7 @@ def test_ionq_client_create_job(mock_post):
     mock_post.return_value.json.return_value = {'foo': 'bar'}
 
     client = ionq.ionq_client._IonQClient(remote_host='http://example.com', api_key='to_my_heart')
-    program = ionq.SerializedProgram(body={'job': 'mine'}, metadata={'a': '0,1'}, settings={})
+    program = ionq.SerializedProgram(body={'job': 'mine'}, metadata={'a': '0,1'}, settings={'aaa': 'bb'})
     response = client.create_job(
         serialized_program=program, repetitions=200, target='qpu', name='bacon'
     )
@@ -105,8 +105,9 @@ def test_ionq_client_create_job(mock_post):
         'lang': 'json',
         'body': {'job': 'mine'},
         'name': 'bacon',
+        'metadata': {'a': '0,1', 'shots': '200'},
+        'settings': {'aaa': 'bb'},
         'shots': '200',
-        'metadata': {'shots': '200', 'a': '0,1'},
     }
     expected_headers = {'Authorization': 'apiKey to_my_heart', 'Content-Type': 'application/json'}
     mock_post.assert_called_with(
