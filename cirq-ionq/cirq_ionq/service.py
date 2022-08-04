@@ -37,6 +37,7 @@ class Service:
         default_target: str = None,
         api_version='v0.1',
         max_retry_seconds: int = 3600,
+        job_settings: Optional[dict] = None,
         verbose=False,
     ):
         """Creates the Service to access IonQ's API.
@@ -55,6 +56,8 @@ class Service:
                 'simulator'.
             api_version: Version of the api. Defaults to 'v0.1'.
             max_retry_seconds: The number of seconds to retry calls for. Defaults to one hour.
+            job_settings: A dictionary of settings which can override behavior for circuits when
+                run on IonQ hardware.
             verbose: Whether to print to stdio and stderr on retriable errors.
 
         Raises:
@@ -64,6 +67,7 @@ class Service:
         self.remote_host = (
             remote_host or os.getenv('IONQ_REMOTE_HOST') or f'https://api.ionq.co/{api_version}'
         )
+        self.job_settings = job_settings or {}
         self.api_key = api_key or os.getenv('IONQ_API_KEY')
         if not self.api_key:
             raise EnvironmentError(
@@ -148,7 +152,9 @@ class Service:
         Raises:
             IonQException: If there was an error accessing the API.
         """
-        serialized_program = serializer.Serializer().serialize(circuit)
+        serialized_program = serializer.Serializer().serialize(
+            circuit, job_settings=self.job_settings
+        )
         result = self._client.create_job(
             serialized_program=serialized_program, repetitions=repetitions, target=target, name=name
         )

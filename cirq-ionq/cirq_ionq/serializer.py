@@ -35,10 +35,13 @@ class SerializedProgram:
     Attributes:
         body: A dictionary which containts the number of qubits and the serialized circuit
             minus the measurements.
+        settings: A dictionary of settings which can override behavior for this circuit when
+            run on IonQ hardware.
         metadata: A dictionary whose keys store information about the measurements in the circuit.
     """
 
     body: dict
+    settings: dict
     metadata: dict
 
 
@@ -75,7 +78,9 @@ class Serializer:
             MSGate: self._serialize_ms_gate,
         }
 
-    def serialize(self, circuit: cirq.AbstractCircuit) -> SerializedProgram:
+    def serialize(
+        self, circuit: cirq.AbstractCircuit, job_settings: Optional[dict] = None
+    ) -> SerializedProgram:
         """Serialize the given circuit.
 
         Raises:
@@ -97,7 +102,7 @@ class Serializer:
         }
         metadata = self._serialize_measurements(op for op in serialized_ops if op['gate'] == 'meas')
 
-        return SerializedProgram(body=body, metadata=metadata)
+        return SerializedProgram(body=body, metadata=metadata, settings=(job_settings or {}))
 
     def _validate_circuit(self, circuit: cirq.AbstractCircuit):
         if len(circuit) == 0:
