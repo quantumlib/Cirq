@@ -157,6 +157,9 @@ class SimulatesAmplitudes(metaclass=value.ABCMetaImplementAnyOneOf):
                 as an integer array where each integer is formed from measured
                 qubit values according to `qubit_order` from most to least
                 significant qubit, i.e. in big-endian ordering.
+                Binary literals should be input with the prefix 0b or 0B. 
+	        For example, 0010 should be input as 0b0010 or 0B0010.
+
             param_resolver: Parameters to run with the program.
             qubit_order: Determines the canonical ordering of the qubits. This
                 is often used in specifying the initial state, i.e. the
@@ -215,6 +218,8 @@ class SimulatesAmplitudes(metaclass=value.ABCMetaImplementAnyOneOf):
                 as an integer array where each integer is formed from measured
                 qubit values according to `qubit_order` from most to least
                 significant qubit, i.e. in big-endian ordering.
+                Binary literals should be input with the prefix 0b or 0B. 
+	        For example, 0010 should be input as 0b0010 or 0B0010.
             params: Parameters to run with the program.
             qubit_order: Determines the canonical ordering of the qubits. This
                 is often used in specifying the initial state, i.e. the
