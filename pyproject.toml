@@ -19,3 +19,4 @@ filterwarnings = [
     "error:`np.long` is a deprecated alias:DeprecationWarning:(cirq|<string>)",
     "error:`np.unicode` is a deprecated alias:DeprecationWarning:(cirq|<string>)",
 ]
+log_cli = true
