@@ -2083,7 +2083,7 @@ class Circuit(AbstractCircuit):
         """
         # limit index to 0..len(self._moments), also deal with indices smaller 0
         k = max(min(index if index >= 0 else len(self._moments) + index, len(self._moments)), 0)
-        for moment_or_op in ops.flatten_to_ops_or_moments(moment_or_operation_tree):
+        for moment_or_op in list(ops.flatten_to_ops_or_moments(moment_or_operation_tree)):
             if isinstance(moment_or_op, Moment):
                 self._moments.insert(k, moment_or_op)
                 k += 1
