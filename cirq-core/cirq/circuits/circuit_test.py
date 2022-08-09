@@ -187,6 +187,12 @@ def test_append_single():
     c.append([cirq.X(a)])
     assert c == cirq.Circuit([cirq.Moment([cirq.X(a)])])
 
+    c = cirq.Circuit(cirq.H(a))
+    c.append(c)
+    assert c == cirq.Circuit(
+        [cirq.Moment(cirq.H(cirq.NamedQubit('a'))), cirq.Moment(cirq.H(cirq.NamedQubit('a')))]
+    )
+
 
 def test_append_control_key():
     q0, q1, q2 = cirq.LineQubit.range(3)
