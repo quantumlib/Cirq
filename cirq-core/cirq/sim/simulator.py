@@ -156,7 +156,7 @@ class SimulatesAmplitudes(metaclass=value.ABCMetaImplementAnyOneOf):
             bitstrings: The bitstrings whose amplitudes are desired, input
                 as an integer array where each integer is formed from measured
                 qubit values according to `qubit_order` from most to least
-                significant qubit, i.e. in big-endian ordering. If inputting 
+                significant qubit, i.e. in big-endian ordering. If inputting
                 a binary literal add the prefix 0b or 0B.
                 For example: 0010 can be input as 0b0010, 0B0010, 2, 0x2, etc.
             param_resolver: Parameters to run with the program.
