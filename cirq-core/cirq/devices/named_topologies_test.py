@@ -85,6 +85,9 @@ def test_line_topology():
     assert LineTopology(2).n_nodes == 2
     assert LineTopology(2).graph.number_of_nodes() == 2
 
+    mapping = topo.nodes_to_linequbits(offset=3)
+    assert all(isinstance(q, cirq.LineQubit) and q >= cirq.LineQubit(0) for q in mapping.values())
+
     cirq.testing.assert_equivalent_repr(topo)
 
 
