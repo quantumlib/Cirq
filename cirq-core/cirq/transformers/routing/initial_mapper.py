@@ -21,10 +21,11 @@ if TYPE_CHECKING:
 
 class AbstractInitialMapper(metaclass=abc.ABCMeta):
     """Base class for creating custom initial mapping strategies."""
+
     @abc.abstractmethod
     def initial_mapping(self) -> Dict['cirq.Qid', 'cirq.Qid']:
         """Gets the initial mapping of logical qubits onto physical qubits.
-        
+
         Returns:
           qubit_map: the initial mapping from logical to physical qubits
         """
