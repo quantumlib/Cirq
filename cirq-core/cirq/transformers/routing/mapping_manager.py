@@ -12,29 +12,30 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Dict, TYPE_CHECKING
+from typing import Dict, Sequence, TYPE_CHECKING
+from cirq._compat import cached_method
 import networkx as nx
 
-from cirq import ops, protocols
+from cirq import protocols
 
 if TYPE_CHECKING:
     import cirq
 
 
 class MappingManager:
-    """Class that keeps track of the mapping of logical to physical qubits and provides
-    convenience methods for distance queries on the physical qubits.
+    """Class that keeps track of the mapping of logical to physical qubits.
 
-    Qubit variables with the characer 'p' preppended to them are physical and qubits with  the
-    character 'l' preppended to them are logical qubits.
+    Convenience methods that over distance and mapping queries of the physical qubits are also
+    provided. All such public methods of this class expect logical qubits.
     """
 
-    def __init__(self, device_graph: nx.Graph, initial_mapping: Dict[ops.Qid, ops.Qid]) -> None:
+    def __init__(
+        self, device_graph: nx.Graph, initial_mapping: Dict['cirq.Qid', 'cirq.Qid']
+    ) -> None:
         """Initializes MappingManager.
 
         Args:
             device_graph: connectivity graph of qubits in the hardware device.
-            circuit_graph: connectivity graph of the qubits in the input circuit.
             initial_mapping: the initial mapping of logical (keys) to physical qubits (values).
         """
         self.device_graph = device_graph
@@ -44,23 +45,22 @@ class MappingManager:
         self._shortest_paths_matrix = dict(nx.all_pairs_shortest_path(self._induced_subgraph))
 
     @property
-    def map(self) -> Dict[ops.Qid, ops.Qid]:
+    def map(self) -> Dict['cirq.Qid', 'cirq.Qid']:
         """The mapping of logical qubits (keys) to physical qubits (values)."""
         return self._map
 
     @property
-    def inverse_map(self) -> Dict[ops.Qid, ops.Qid]:
+    def inverse_map(self) -> Dict['cirq.Qid', 'cirq.Qid']:
         """The mapping of physical qubits (keys) to logical qubits (values)."""
         return self._inverse_map
 
     @property
     def induced_subgraph(self) -> nx.Graph:
-        """The device_graph induced on the physical qubits that are mapped to."""
+        """The induced subgraph on the set of physical qubits which are part of `self.map`."""
         return self._induced_subgraph
 
-    def dist_on_device(self, lq1: ops.Qid, lq2: ops.Qid) -> int:
-        """Finds shortest path distance path between the corresponding physical qubits for logical
-        qubits q1 and q2 on the device.
+    def dist_on_device(self, lq1: 'cirq.Qid', lq2: 'cirq.Qid') -> int:
+        """Finds distance between logical qubits q1 and q2 on the device.
 
         Args:
             lq1: the first logical qubit.
@@ -69,9 +69,13 @@ class MappingManager:
         Returns:
             The shortest path distance.
         """
-        return len(self._shortest_paths_matrix[self._map[lq1]][self._map[lq2]]) - 1
+        return self._physical_dist_on_device(self._map[lq1], self._map[lq2])
 
-    def can_execute(self, op: ops.Operation) -> bool:
+    @cached_method
+    def _physical_dist_on_device(self, pq1: 'cirq.Qid', pq2: 'cirq.Qid'):
+        return len(nx.shortest_path(self._induced_subgraph, pq1, pq2)) - 1
+
+    def can_execute(self, op: 'cirq.Operation') -> bool:
         """Finds whether the given operation can be executed on the device.
 
         Args:
@@ -82,23 +86,30 @@ class MappingManager:
         """
         return protocols.num_qubits(op) < 2 or self.dist_on_device(*op.qubits) == 1
 
-    def apply_swap(self, lq1: ops.Qid, lq2: ops.Qid) -> None:
+    def apply_swap(self, lq1: 'cirq.Qid', lq2: 'cirq.Qid') -> None:
         """Swaps two logical qubits in the map and in the inverse map.
 
         Args:
             lq1: the first logical qubit.
             lq2: the second logical qubit.
+
+        Raises:
+            ValueError: whenever lq1 and lq2 are no adjacent on the device.
         """
+        if self.dist_on_device(lq1, lq2) > 1:
+            raise ValueError(
+                f"q1: {lq1} and q2: {lq2} are not adjacent on the device. Cannot swap them."
+            )
+
+        pq1, pq2 = self._map[lq1], self._map[lq2]
         self._map[lq1], self._map[lq2] = self._map[lq2], self._map[lq1]
 
-        pq1 = self._map[lq1]
-        pq2 = self._map[lq2]
         self._inverse_map[pq1], self._inverse_map[pq2] = (
             self._inverse_map[pq2],
             self._inverse_map[pq1],
         )
 
-    def mapped_op(self, op: ops.Operation) -> ops.Operation:
+    def mapped_op(self, op: 'cirq.Operation') -> 'cirq.Operation':
         """Transforms the given operation with the qubits in self._map.
 
         Args:
@@ -108,6 +119,6 @@ class MappingManager:
             The same operation on corresponding physical qubits."""
         return op.transform_qubits(self._map)
 
-    def shortest_path(self, lq1: ops.Qid, lq2: ops.Qid):
+    def shortest_path(self, lq1: 'cirq.Qid', lq2: 'cirq.Qid') -> Sequence['cirq.Qid']:
         """Find that shortest path between two logical qubits on the device given their mapping."""
         return self._shortest_paths_matrix[self._map[lq1]][self._map[lq2]]

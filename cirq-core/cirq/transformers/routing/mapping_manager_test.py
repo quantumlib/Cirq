@@ -12,13 +12,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import networkx as nx
 from networkx.utils.misc import graphs_equal
+import pytest
+import networkx as nx
 
 import cirq
 
 
-def test_mapping_manager():
+def construct_device_graph_and_mapping():
     device_graph = nx.Graph(
         [
             (cirq.NamedQubit("a"), cirq.NamedQubit("b")),
@@ -35,9 +36,13 @@ def test_mapping_manager():
         q[2]: cirq.NamedQubit("c"),
         q[4]: cirq.NamedQubit("d"),
     }
+    return device_graph, initial_mapping, q
+
+
+def test_induced_subgraph():
+    device_graph, initial_mapping, _ = construct_device_graph_and_mapping()
     mm = cirq.transformers.routing.MappingManager(device_graph, initial_mapping)
 
-    # test correct induced subgraph
     expected_induced_subgraph = nx.Graph(
         [
             (cirq.NamedQubit("a"), cirq.NamedQubit("b")),
@@ -47,9 +52,37 @@ def test_mapping_manager():
     )
     assert graphs_equal(mm.induced_subgraph, expected_induced_subgraph)
 
-    # test mapped_op
-    mapped_one_three = mm.mapped_op(cirq.CNOT(q[1], q[3]))
-    assert mapped_one_three.qubits == (cirq.NamedQubit("a"), cirq.NamedQubit("b"))
+
+def test_mapped_op():
+    device_graph, initial_mapping, q = construct_device_graph_and_mapping()
+    mm = cirq.transformers.routing.MappingManager(device_graph, initial_mapping)
+
+    assert mm.mapped_op(cirq.CNOT(q[1], q[3])).qubits == (
+        cirq.NamedQubit("a"),
+        cirq.NamedQubit("b"),
+    )
+    # does not fail if qubits non-adjacent
+    assert mm.mapped_op(cirq.CNOT(q[3], q[4])).qubits == (
+        cirq.NamedQubit("b"),
+        cirq.NamedQubit("d"),
+    )
+
+    # correctly changes mapped qubits when swapped
+    mm.apply_swap(q[2], q[3])
+    assert mm.mapped_op(cirq.CNOT(q[1], q[2])).qubits == (
+        cirq.NamedQubit("a"),
+        cirq.NamedQubit("b"),
+    )
+    # does not fial if qubits non-adjacent
+    assert mm.mapped_op(cirq.CNOT(q[1], q[3])).qubits == (
+        cirq.NamedQubit("a"),
+        cirq.NamedQubit("c"),
+    )
+
+
+def test_distance_on_device_and_can_execute():
+    device_graph, initial_mapping, q = construct_device_graph_and_mapping()
+    mm = cirq.transformers.routing.MappingManager(device_graph, initial_mapping)
 
     # adjacent qubits have distance 1 and are thus executable
     assert mm.dist_on_device(q[1], q[3]) == 1
@@ -62,32 +95,48 @@ def test_mapping_manager():
     # 'dist_on_device' does not use cirq.NamedQubit("e") to find shorter shortest path
     assert mm.dist_on_device(q[1], q[4]) == 3
 
-    # after swapping q[2] and q[3], qubits adjacent to q[2] are now adjacent to q[3] and vice-versa
-    mm.apply_swap(q[3], q[2])
-    assert mm.dist_on_device(q[1], q[2]) == 1
-    assert mm.can_execute(cirq.CNOT(q[1], q[2]))
+    # distance changes after applying swap
+    mm.apply_swap(q[2], q[3])
     assert mm.dist_on_device(q[1], q[3]) == 2
     assert mm.can_execute(cirq.CNOT(q[1], q[3])) is False
-    # the swapped qubits are still executable
-    assert mm.can_execute(cirq.CNOT(q[2], q[3]))
+    assert mm.dist_on_device(q[1], q[2]) == 1
+    assert mm.can_execute(cirq.CNOT(q[1], q[2]))
+
     # distance between other qubits doesn't change
     assert mm.dist_on_device(q[1], q[4]) == 3
-    # test applying swaps to inverse map is correct
-    assert mm.inverse_map == {v: k for k, v in mm.map.items()}
-    # test mapped_op after switching qubits
-    mapped_one_two = mm.mapped_op(cirq.CNOT(q[1], q[2]))
-    assert mapped_one_two.qubits == (cirq.NamedQubit("a"), cirq.NamedQubit("b"))
 
-    # apply same swap and test shortest path for a couple pairs
-    mm.apply_swap(q[3], q[2])
+
+def test_apply_swap():
+    device_graph, initial_mapping, q = construct_device_graph_and_mapping()
+    mm = cirq.transformers.routing.MappingManager(device_graph, initial_mapping)
+
+    # swapping non-adjacent qubits raises error
+    with pytest.raises(ValueError):
+        mm.apply_swap(q[1], q[2])
+
+    # applying swap on same qubit does nothing
+    map_before_swap = mm.map.copy()
+    mm.apply_swap(q[1], q[1])
+    assert map_before_swap == mm.map
+
+    # applying same swap twice does nothing
+    mm.apply_swap(q[1], q[3])
+    mm.apply_swap(q[1], q[3])
+    assert map_before_swap == mm.map
+
+    # qubits in inverse map get swapped correctly
+    assert mm.inverse_map == {v: k for k, v in mm.map.items()}
+
+
+def test_shortest_path():
+    device_graph, initial_mapping, q = construct_device_graph_and_mapping()
+    mm = cirq.transformers.routing.MappingManager(device_graph, initial_mapping)
+
     assert mm.shortest_path(q[1], q[2]) == [
         cirq.NamedQubit("a"),
         cirq.NamedQubit("b"),
         cirq.NamedQubit("c"),
     ]
-    assert mm.shortest_path(q[2], q[3]) == [cirq.NamedQubit("c"), cirq.NamedQubit("b")]
-    assert mm.shortest_path(q[1], q[3]) == [cirq.NamedQubit("a"), cirq.NamedQubit("b")]
-
     shortest_one_to_four = [
         cirq.NamedQubit("a"),
         cirq.NamedQubit("b"),
@@ -95,6 +144,11 @@ def test_mapping_manager():
         cirq.NamedQubit("d"),
     ]
     assert mm.shortest_path(q[1], q[4]) == shortest_one_to_four
-
     # shortest path on symmetric qubit reverses the list
     assert mm.shortest_path(q[4], q[1]) == shortest_one_to_four[::-1]
+
+    # swapping doesn't change shortest paths involving other qubits
+    mm.apply_swap(q[3], q[2])
+    assert mm.shortest_path(q[1], q[4]) == shortest_one_to_four
+    # swapping changes shortest paths involving the swapped qubits
+    assert mm.shortest_path(q[1], q[2]) == [cirq.NamedQubit("a"), cirq.NamedQubit("b")]
