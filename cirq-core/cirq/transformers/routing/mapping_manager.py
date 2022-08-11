@@ -116,7 +116,7 @@ class MappingManager:
 
     def shortest_path(self, lq1: 'cirq.Qid', lq2: 'cirq.Qid') -> Sequence['cirq.Qid']:
         """Find that shortest path between two logical qubits on the device given their mapping."""
-        return self._physical_shortest_path[self._map[lq1]][self._map[lq2]]
+        return self._physical_shortest_path(self._map[lq1], self._map[lq2])
 
     @cached_method
     def _physical_shortest_path(self, pq1: 'cirq.Qid', pq2: 'cirq.Qid') -> Sequence['cirq.Qid']:
