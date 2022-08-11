@@ -42,7 +42,6 @@ class MappingManager:
         self._map = initial_mapping.copy()
         self._inverse_map = {v: k for k, v in self._map.items()}
         self._induced_subgraph = nx.induced_subgraph(self.device_graph, self._map.values())
-        self._shortest_paths_matrix = dict(nx.all_pairs_shortest_path(self._induced_subgraph))
 
     @property
     def map(self) -> Dict['cirq.Qid', 'cirq.Qid']:
