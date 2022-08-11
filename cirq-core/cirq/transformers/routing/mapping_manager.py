@@ -68,8 +68,7 @@ class MappingManager:
         Returns:
             The shortest path distance.
         """
-        return len(self._physical_shortest_path(self._map[lq1], self._map[lq2]))-1
-
+        return len(self._physical_shortest_path(self._map[lq1], self._map[lq2])) - 1
 
     def can_execute(self, op: 'cirq.Operation') -> bool:
         """Finds whether the given operation can be executed on the device.
