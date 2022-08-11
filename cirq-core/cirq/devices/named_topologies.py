@@ -146,7 +146,7 @@ class LineTopology(NamedTopology):
         """Return a mapping from graph nodes to `cirq.LineQubit`
 
         Args:
-            offset: Offset integer position of the resultant LineQubits by this amount.
+            offset: Offset integer positions of the resultant LineQubits by this amount.
         """
         return dict(enumerate(LineQubit.range(offset, offset + self.n_nodes)))
 
