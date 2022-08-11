@@ -12,8 +12,19 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Routing utilities in Cirq."""
+from typing import TYPE_CHECKING, Dict
+import abc
 
-from cirq.transformers.routing.mapping_manager import MappingManager
-from cirq.transformers.routing.initial_mapper import AbstractInitialMapper
-from cirq.transformers.routing.line_initial_mapper import LineInitialMapper
+if TYPE_CHECKING:
+    import cirq
+
+
+class AbstractInitialMapper(metaclass=abc.ABCMeta):
+    """Base class for creating custom initial mapping strategies."""
+    @abc.abstractmethod
+    def initial_mapping(self) -> Dict['cirq.Qid', 'cirq.Qid']:
+        """Gets the initial mapping of logical qubits onto physical qubits.
+        
+        Returns:
+          qubit_map: the initial mapping from logical to physical qubits
+        """

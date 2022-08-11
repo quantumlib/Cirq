@@ -11,9 +11,3 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
-"""Routing utilities in Cirq."""
-
-from cirq.transformers.routing.mapping_manager import MappingManager
-from cirq.transformers.routing.initial_mapper import AbstractInitialMapper
-from cirq.transformers.routing.line_initial_mapper import LineInitialMapper
