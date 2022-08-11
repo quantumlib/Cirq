@@ -25,8 +25,8 @@ if TYPE_CHECKING:
 class MappingManager:
     """Class that keeps track of the mapping of logical to physical qubits.
 
-    Convenience methods that over distance and mapping queries of the physical qubits are also
-    provided. All such public methods of this class expect logical qubits.
+    Convenience methods over distance and mapping queries of the physical qubits are also provided.
+    All such public methods of this class expect logical qubits.
     """
 
     def __init__(
