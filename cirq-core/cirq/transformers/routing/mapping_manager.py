@@ -125,7 +125,7 @@ class MappingManager:
             lq2: the second logical qubit.
 
         Returns:
-            a sequence of logical qubits on the shortest path from lq1 to lq2.
+            A sequence of logical qubits on the shortest path from lq1 to lq2.
         """
         physical_shortest_path = self._physical_shortest_path(self._map[lq1], self._map[lq2])
         return [self._inverse_map[pq] for pq in physical_shortest_path]
