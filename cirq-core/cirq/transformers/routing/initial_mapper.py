@@ -24,8 +24,8 @@ class AbstractInitialMapper(metaclass=abc.ABCMeta):
 
     @abc.abstractmethod
     def initial_mapping(self) -> Dict['cirq.Qid', 'cirq.Qid']:
-        """Gets the initial mapping of logical qubits onto physical qubits.
+        """Maps the logical qubits of a circuit onto physical qubits on a device.
 
         Returns:
-          qubit_map: the initial mapping from logical to physical qubits
+          qubit_map: the initial mapping of logical qubits to physical qubits.
         """
