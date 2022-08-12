@@ -13,7 +13,7 @@
 # limitations under the License.
 
 import itertools
-from typing import Any, Dict, List, Optional, TYPE_CHECKING, Union
+from typing import Any, Dict, List, Optional, Sequence, TYPE_CHECKING, Union
 
 from cirq import ops, protocols, value
 from cirq.transformers import transformer_api, transformer_primitives
@@ -123,8 +123,34 @@ def defer_measurements(
                         anything_but_all_zeros = tuple(itertools.islice(all_values, 1, None))
                         control_values = ops.SumOfProducts(anything_but_all_zeros)
                     new_op = new_op.controlled_by(*qs, control_values=control_values)
+                elif isinstance(c, value.SympyCondition):
+                    all_values = itertools.product(
+                        *[
+                            tuple(
+                                itertools.product(
+                                    *[range(q.dimension) for q in measurement_qubits[k]]
+                                )
+                            )
+                            for k in c.keys
+                        ]
+                    )
+
+                    def matches(digits_list: Sequence[Sequence[int]]) -> bool:
+                        replacements = {
+                            str(k): value.big_endian_digits_to_int(
+                                digits, base=[q.dimension for q in measurement_qubits[k]]
+                            )
+                            for k, digits in zip(c.keys, digits_list)
+                        }
+                        return bool(c.expr.subs(replacements))
+
+                    matching_values = [v for v in all_values if matches(v)]
+                    matching_controls = [[i for j in k for i in j] for k in matching_values]
+                    qs = tuple(q for k in c.keys for q in measurement_qubits[k])
+                    control_values = ops.SumOfProducts(matching_controls)
+                    new_op = new_op.controlled_by(*qs, control_values=control_values)
                 else:
-                    raise ValueError('Only KeyConditions are allowed.')
+                    raise ValueError('Only KeyConditions and SympyConditions are allowed.')
             return new_op
         return op
 
