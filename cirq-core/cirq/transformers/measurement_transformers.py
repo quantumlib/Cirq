@@ -147,7 +147,7 @@ def defer_measurements(
 
                     matching_values = [v for v in all_values if matches(v)]
                     matching_controls = [[i for j in k for i in j] for k in matching_values]
-                    qs = tuple(q for k in c.keys for q in measurement_qubits[k])
+                    qs = [q for k in c.keys for q in measurement_qubits[k]]
                     control_values = ops.SumOfProducts(matching_controls)
                     new_op = new_op.controlled_by(*qs, control_values=control_values)
                 else:
