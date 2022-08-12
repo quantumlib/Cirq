@@ -59,7 +59,7 @@ class MappingManager:
         return self._induced_subgraph
 
     def dist_on_device(self, lq1: 'cirq.Qid', lq2: 'cirq.Qid') -> int:
-        """Finds distance between logical qubits q1 and q2 on the device.
+        """Finds distance between logical qubits 'lq1' and 'lq2' on the device.
 
         Args:
             lq1: the first logical qubit.
@@ -71,18 +71,19 @@ class MappingManager:
         return len(self._physical_shortest_path(self._map[lq1], self._map[lq2])) - 1
 
     def can_execute(self, op: 'cirq.Operation') -> bool:
-        """Finds whether the given operation can be executed on the device.
+        """Finds whether the given operation acts on qubits that are adjacent on the device.
 
         Args:
             op: an operation on logical qubits.
 
         Returns:
-            Whether the given operation is executable on the device.
+            True, if physical qubits corresponding to logical qubits `op.qubits` are adjacent on
+            the device.
         """
         return protocols.num_qubits(op) < 2 or self.dist_on_device(*op.qubits) == 1
 
     def apply_swap(self, lq1: 'cirq.Qid', lq2: 'cirq.Qid') -> None:
-        """Swaps two logical qubits in the map and in the inverse map.
+        """Updates the mapping to simulate inserting a swap operation between `lq1` and `lq2`.
 
         Args:
             lq1: the first logical qubit.
@@ -115,7 +116,7 @@ class MappingManager:
         return op.transform_qubits(self._map)
 
     def shortest_path(self, lq1: 'cirq.Qid', lq2: 'cirq.Qid') -> Sequence['cirq.Qid']:
-        """Find that shortest path between two logical qubits on the device given their mapping."""
+        """Find the shortest path between two logical qubits on the device given their mapping."""
         return self._physical_shortest_path(self._map[lq1], self._map[lq2])
 
     @cached_method
