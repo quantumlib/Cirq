@@ -17,6 +17,9 @@ import networkx as nx
 
 from cirq import circuits, routing
 
+if TYPE_CHECKING:
+    import cirq
+
 
 class LineInitialMapper(routing.AbstractInitialMapper):
     """Maps disjoint lines of logical qubits onto lines of physical qubits."""
@@ -56,6 +59,7 @@ class LineInitialMapper(routing.AbstractInitialMapper):
             ):
                 circuit_graph.add_edge(*op.qubits, edge_order=edge_order)
                 edge_order += 1
+
         # make cycles into paths by removing last edge that was added
         found = True
         while found:
