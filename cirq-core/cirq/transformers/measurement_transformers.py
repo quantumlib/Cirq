@@ -142,7 +142,8 @@ def defer_measurements(
                             )
                             for k, digits in zip(c.keys, digits_list)
                         }
-                        return bool(c.expr.subs(replacements))
+                        # ignore typing because c is SympyCondition
+                        return bool(c.expr.subs(replacements))  # type: ignore
 
                     matching_values = [v for v in all_values if matches(v)]
                     matching_controls = [[i for j in k for i in j] for k in matching_values]
