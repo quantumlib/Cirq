@@ -13,7 +13,7 @@
 # limitations under the License.
 
 import itertools
-from typing import Any, Dict, List, Optional, Sequence, TYPE_CHECKING, Union
+from typing import Any, Dict, Iterable, List, Mapping, Optional, TYPE_CHECKING, Union
 
 from cirq import ops, protocols, value
 from cirq.transformers import transformer_api, transformer_primitives
@@ -82,7 +82,6 @@ def defer_measurements(
         A circuit with equivalent logic, but all measurements at the end of the
         circuit.
     Raises:
-        ValueError: If custom classical conditions classes are used.
         NotImplementedError: When attempting to defer a measurement with a
             confusion map. (https://github.com/quantumlib/Cirq/issues/5482)
     """
@@ -112,46 +111,24 @@ def defer_measurements(
         elif op.classical_controls:
             new_op = op.without_classical_controls()
             for c in op.classical_controls:
-                if isinstance(c, value.KeyCondition):
-                    if c.key not in measurement_qubits:
-                        raise ValueError(f'Deferred measurement for key={c.key} not found.')
-                    qs = measurement_qubits[c.key]
-                    if len(qs) == 1:
-                        control_values: Any = range(1, qs[0].dimension)
-                    else:
-                        all_values = itertools.product(*[range(q.dimension) for q in qs])
-                        anything_but_all_zeros = tuple(itertools.islice(all_values, 1, None))
-                        control_values = ops.SumOfProducts(anything_but_all_zeros)
-                    new_op = new_op.controlled_by(*qs, control_values=control_values)
-                elif isinstance(c, value.SympyCondition):
-                    all_values = itertools.product(
-                        *[
-                            tuple(
-                                itertools.product(
-                                    *[range(q.dimension) for q in measurement_qubits[k]]
-                                )
-                            )
-                            for k in c.keys
-                        ]
-                    )
-
-                    def matches(digits_list: Sequence[Sequence[int]]) -> bool:
-                        replacements = {
-                            str(k): value.big_endian_digits_to_int(
-                                digits, base=[q.dimension for q in measurement_qubits[k]]
-                            )
-                            for k, digits in zip(c.keys, digits_list)
-                        }
-                        # ignore typing because c is SympyCondition
-                        return bool(c.expr.subs(replacements))  # type: ignore
-
-                    matching_values = [v for v in all_values if matches(v)]
-                    matching_controls = [[i for j in k for i in j] for k in matching_values]
-                    qs = [q for k in c.keys for q in measurement_qubits[k]]
-                    control_values = ops.SumOfProducts(matching_controls)
-                    new_op = new_op.controlled_by(*qs, control_values=control_values)
+                missing_keys = [k for k in c.keys if k not in measurement_qubits]
+                if missing_keys:
+                    raise ValueError(f'Deferred measurement for key={missing_keys[0]} not found.')
+                qs = [q for k in c.keys for q in measurement_qubits[k]]
+                if isinstance(c, value.KeyCondition) and len(qs) == 1:
+                    # Convenience: control_values=range(...) renders more nicely.
+                    new_op = new_op.controlled_by(*qs, control_values=range(1, qs[0].dimension))
                 else:
-                    raise ValueError('Only KeyConditions and SympyConditions are allowed.')
+                    # Try every option against the condition, and the ones that work are the
+                    # control values for the new op.
+                    datastores = _all_possible_values(c.keys, measurement_qubits)
+                    compatible_datastores = [store for store in datastores if c.resolve(store)]
+                    products = [
+                        [i for k in c.keys for i in store.records[k][0]]
+                        for store in compatible_datastores
+                    ]
+                    control_values = ops.SumOfProducts(products)
+                    new_op = new_op.controlled_by(*qs, control_values=control_values)
             return new_op
         return op
 
@@ -164,6 +141,22 @@ def defer_measurements(
     for k, qubits in measurement_qubits.items():
         circuit.append(ops.measure(*qubits, key=k))
     return circuit
+
+
+def _all_possible_values(
+    keys: Iterable['cirq.MeasurementKey'],
+    measurement_qubits: Mapping['cirq.MeasurementKey', Iterable['cirq.Qid']],
+) -> Iterable['cirq.ClassicalDataStoreReader']:
+    """The full product of possible DatsStores for the keys and qubits."""
+    all_values = itertools.product(
+        *[
+            tuple(itertools.product(*[range(q.dimension) for q in measurement_qubits[k]]))
+            for k in keys
+        ]
+    )
+    for sequences in all_values:
+        lookup = {k: [sequence] for k, sequence in zip(keys, sequences)}
+        yield value.ClassicalDataDictionaryStore(_records=lookup)
 
 
 @transformer_api.transformer
