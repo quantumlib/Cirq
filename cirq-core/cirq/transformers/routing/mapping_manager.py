@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""Manages the mapping from logical to physical qubits during a routing procedure."""
+
 from typing import Dict, Sequence, TYPE_CHECKING
 from cirq._compat import cached_method
 import networkx as nx
@@ -23,7 +25,7 @@ if TYPE_CHECKING:
 
 
 class MappingManager:
-    """Class that keeps track of the mapping of logical to physical qubits.
+    """Class that manages the mapping from logical to physical qubits.
 
     Convenience methods over distance and mapping queries of the physical qubits are also provided.
     All such public methods of this class expect logical qubits.
@@ -116,8 +118,17 @@ class MappingManager:
         return op.transform_qubits(self._map)
 
     def shortest_path(self, lq1: 'cirq.Qid', lq2: 'cirq.Qid') -> Sequence['cirq.Qid']:
-        """Find the shortest path between two logical qubits on the device given their mapping."""
-        return self._physical_shortest_path(self._map[lq1], self._map[lq2])
+        """Find the shortest path between two logical qubits on the device given their mapping.
+
+        Args:
+            lq1: the first logical qubit.
+            lq2: the second logical qubit.
+
+        Returns:
+            a sequence of logical qubits on the shortest path from lq1 to lq2.
+        """
+        physical_shortest_path = self._physical_shortest_path(self._map[lq1], self._map[lq2])
+        return [self._inverse_map[pq] for pq in physical_shortest_path]
 
     @cached_method
     def _physical_shortest_path(self, pq1: 'cirq.Qid', pq2: 'cirq.Qid') -> Sequence['cirq.Qid']:
