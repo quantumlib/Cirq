@@ -61,7 +61,6 @@ class LineInitialMapper(routing.AbstractInitialMapper):
             ):
                 circuit_graph.add_edge(*op.qubits, edge_order=edge_order)
                 edge_order += 1
-        # make cycles into paths by removing last edge that was added
         found = True
         while found:
             try:
@@ -97,7 +96,7 @@ class LineInitialMapper(routing.AbstractInitialMapper):
         physical_center = nx.center(self.device_graph)[0]
 
         def next_physical(current_physical: 'cirq.Qid') -> 'cirq.Qid':
-            # map the first logical qubit to the center physical qubit fof the device graph
+            # map the first logical qubit to the center physical qubit of the device graph
             if (
                 current_physical == physical_center
                 and self.device_graph.nodes[current_physical]["mapped"] is False
@@ -115,18 +114,15 @@ class LineInitialMapper(routing.AbstractInitialMapper):
             # small lines by finding nearest available qubit to the physical center
             return self._closest_unmapped_qubit(physical_center)
 
-        # initialize all nodes in device graph to be unmapped
         for x in self.device_graph.nodes:
             self.device_graph.nodes[x]["mapped"] = False
 
-        # start by mapping onto the center of the device graph
         current_physical = physical_center
         for logical_cc in nx.connected_components(self.circuit_graph):
-            # ignore isolated logical qubits for now, will map them later.
             if len(logical_cc) == 1:
                 continue
 
-            # start by mapping logical line from one of its endpoints.
+            # start by mapping a logical line from one of its endpoints.
             logical_endpoint = next(q for q in logical_cc if self.circuit_graph.degree(q) == 1)
 
             current_physical = next_physical(current_physical)
@@ -136,7 +132,7 @@ class LineInitialMapper(routing.AbstractInitialMapper):
                 self._map[current_logical[0]] = current_physical
                 current_physical = next_physical(current_physical)
                 last_logical = current_logical
-            # have to manually map the last one
+            # map the last one
             self._map[last_logical[1][0]] = current_physical
             self.device_graph.nodes[current_physical]["mapped"] = True
 
@@ -144,9 +140,8 @@ class LineInitialMapper(routing.AbstractInitialMapper):
         return self._map
 
     def _map_remaining_qubits(self) -> None:
-        """Maps logical qubits in 'self.circuit_graph' that are isolated."""
-        # first, map logical qubits that interact in 'self.circuit' but have missing edges in
-        # 'self.circuit_graph'
+        # map logical qubits that interact in 'self.circuit' but have missing edges in the circuit
+        # graph
         for op in self.circuit.all_operations():
             if len(op.qubits) == 2:
                 q1, q2 = op.qubits
@@ -154,14 +149,13 @@ class LineInitialMapper(routing.AbstractInitialMapper):
                     physical = self._closest_unmapped_qubit(self._map[q2])
                     self._map[q1] = physical
                     self.device_graph.nodes[physical]["mapped"] = True
-                # both cannot be unmapped
+                # 'elif' because at least one must be mapped already
                 elif q2 not in self._map.keys():
                     physical = self._closest_unmapped_qubit(self._map[q1])
                     self._map[q2] = physical
                     self.device_graph.nodes[physical]["mapped"] = True
 
-        # then map logical qubits that don't interact with any other logical qubits in
-        # 'self.circuit'
+        # map logical qubits that don't interact with any other logical qubits in the circuit
         for isolated_qubit in (q for q in self.circuit_graph.nodes if q not in self._map):
             physical = self._closest_unmapped_qubit(self._map[next(iter(self._map))])
             self._map[isolated_qubit] = physical
