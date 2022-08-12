@@ -14,7 +14,7 @@
 
 """Concrete implementation of AbstractInitialMapper that places lines of qubits onto the device."""
 
-from typing import Dict, TYPE_CHECKING
+from typing import Dict, Optional, TYPE_CHECKING
 import networkx as nx
 
 from cirq import circuits
@@ -37,7 +37,7 @@ class LineInitialMapper(routing.AbstractInitialMapper):
         self.device_graph = device_graph
         self.circuit = circuit
         self.circuit_graph = self._make_circuit_graph()
-        self._map = {}
+        self._map: Dict['cirq.Qid', 'cirq.Qid'] = {}
 
     def _make_circuit_graph(self) -> nx.Graph:
         """Creates a (potentially incomplete) qubit connectivity graph of the circuit.
@@ -96,45 +96,47 @@ class LineInitialMapper(routing.AbstractInitialMapper):
         physical_center = nx.center(self.device_graph)[0]
 
         def next_physical(current_physical: 'cirq.Qid') -> 'cirq.Qid':
-            # map the first logical qubit to the center physical qubit of the device graph
-            if (
-                current_physical == physical_center
-                and self.device_graph.nodes[current_physical]["mapped"] is False
-            ):
+            # use current physical if last logical line ended before mapping to it.
+            if self.device_graph.nodes[current_physical]["mapped"] is False:
                 return current_physical
             # else greedily map to highest degree neighbor that that is available
             sorted_neighbors = sorted(
                 self.device_graph.neighbors(current_physical),
                 key=lambda x: self.device_graph.degree(x),
             )
-            for neighbor in sorted_neighbors:
+            for neighbor in reversed(sorted_neighbors):
                 if self.device_graph.nodes[neighbor]["mapped"] is False:
                     return neighbor
             # if cannot map onto one long line of physical qubits, then break down into multiple
             # small lines by finding nearest available qubit to the physical center
             return self._closest_unmapped_qubit(physical_center)
 
-        for x in self.device_graph.nodes:
-            self.device_graph.nodes[x]["mapped"] = False
+        def next_logical(current_logical: 'cirq.Qid') -> Optional['cirq.Qid']:
+            for neighbor in self.circuit_graph.neighbors(current_logical):
+                if self.circuit_graph.nodes[neighbor]["mapped"] is False:
+                    return neighbor
+            return None
+
+        for pq in self.device_graph.nodes:
+            self.device_graph.nodes[pq]["mapped"] = False
+        for lq in self.circuit_graph.nodes:
+            self.circuit_graph.nodes[lq]["mapped"] = False
 
         current_physical = physical_center
         for logical_cc in nx.connected_components(self.circuit_graph):
             if len(logical_cc) == 1:
                 continue
 
-            # start by mapping a logical line from one of its endpoints.
-            logical_endpoint = next(q for q in logical_cc if self.circuit_graph.degree(q) == 1)
-
             current_physical = next_physical(current_physical)
-            last_logical = None
-            for current_logical in nx.bfs_successors(self.circuit_graph, source=logical_endpoint):
+            # start by mapping a logical line from one of its endpoints.
+            current_logical = next(q for q in logical_cc if self.circuit_graph.degree(q) == 1)
+
+            while current_logical is not None:
                 self.device_graph.nodes[current_physical]["mapped"] = True
-                self._map[current_logical[0]] = current_physical
+                self.circuit_graph.nodes[current_logical]["mapped"] = True
+                self._map[current_logical] = current_physical
                 current_physical = next_physical(current_physical)
-                last_logical = current_logical
-            # map the last one
-            self._map[last_logical[1][0]] = current_physical
-            self.device_graph.nodes[current_physical]["mapped"] = True
+                current_logical = next_logical(current_logical)
 
         self._map_remaining_qubits()
         return self._map
@@ -171,7 +173,7 @@ class LineInitialMapper(routing.AbstractInitialMapper):
             the closest available physical qubit to 'source'.
 
         Raises:
-            ValueError if there are no available qubits left on the device.
+            ValueError: if there are no available qubits left on the device.
 
         """
         for _, successors in nx.bfs_successors(self.device_graph, source):
