@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from unittest import mock
+
 import numpy as np
 import pytest
 import sympy
@@ -367,6 +369,15 @@ def test_repr():
     test_repr(_MeasurementQid('a', cirq.NamedQid('x', 4)))
     test_repr(_MeasurementQid('a', cirq.GridQubit(2, 3)))
     test_repr(_MeasurementQid('0:1:a', cirq.LineQid(9, 4)))
+
+
+def test_custom_control():
+    q0, q1 = cirq.LineQubit.range(2)
+    circuit = cirq.Circuit(
+        cirq.measure(q0, q1, key='a'), cirq.X(q1).with_classical_controls(mock.MagicMock())
+    )
+    with pytest.raises(ValueError, match='Only KeyConditions and SympyConditions are allowed'):
+        _ = cirq.defer_measurements(circuit)
 
 
 def test_confusion_map():
