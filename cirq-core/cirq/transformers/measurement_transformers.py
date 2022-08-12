@@ -82,7 +82,7 @@ def defer_measurements(
         A circuit with equivalent logic, but all measurements at the end of the
         circuit.
     Raises:
-        ValueError: If sympy-based classical conditions are used.
+        ValueError: If custom classical conditions classes are used.
         NotImplementedError: When attempting to defer a measurement with a
             confusion map. (https://github.com/quantumlib/Cirq/issues/5482)
     """
