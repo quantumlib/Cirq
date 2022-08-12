@@ -132,23 +132,14 @@ def test_shortest_path():
     device_graph, initial_mapping, q = construct_device_graph_and_mapping()
     mm = cirq.transformers.routing.MappingManager(device_graph, initial_mapping)
 
-    assert mm.shortest_path(q[1], q[2]) == [
-        cirq.NamedQubit("a"),
-        cirq.NamedQubit("b"),
-        cirq.NamedQubit("c"),
-    ]
-    shortest_one_to_four = [
-        cirq.NamedQubit("a"),
-        cirq.NamedQubit("b"),
-        cirq.NamedQubit("c"),
-        cirq.NamedQubit("d"),
-    ]
-    assert mm.shortest_path(q[1], q[4]) == shortest_one_to_four
+    one_to_four = [q[1], q[3], q[2], q[4]]
+    assert mm.shortest_path(q[1], q[2]) == one_to_four[:3]
+    assert mm.shortest_path(q[1], q[4]) == one_to_four
     # shortest path on symmetric qubit reverses the list
-    assert mm.shortest_path(q[4], q[1]) == shortest_one_to_four[::-1]
+    assert mm.shortest_path(q[4], q[1]) == one_to_four[::-1]
 
-    # swapping doesn't change shortest paths involving other qubits
-    mm.apply_swap(q[3], q[2])
-    assert mm.shortest_path(q[1], q[4]) == shortest_one_to_four
     # swapping changes shortest paths involving the swapped qubits
-    assert mm.shortest_path(q[1], q[2]) == [cirq.NamedQubit("a"), cirq.NamedQubit("b")]
+    mm.apply_swap(q[3], q[2])
+    one_to_four[1], one_to_four[2] = one_to_four[2], one_to_four[1]
+    assert mm.shortest_path(q[1], q[4]) == one_to_four
+    assert mm.shortest_path(q[1], q[2]) == [q[1], q[2]]
