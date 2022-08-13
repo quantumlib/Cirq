@@ -121,8 +121,10 @@ def defer_measurements(
                 else:
                     # Try every option against the condition, and the ones that work are the
                     # control values for the new op.
-                    datastores = _all_possible_values(c.keys, measurement_qubits)
+                    datastores = _all_possible_datastore_states(c.keys, measurement_qubits)
                     compatible_datastores = [store for store in datastores if c.resolve(store)]
+
+                    # Rearrange these into the format expected by SumOfProducts
                     products = [
                         [i for k in c.keys for i in store.records[k][0]]
                         for store in compatible_datastores
@@ -143,17 +145,32 @@ def defer_measurements(
     return circuit
 
 
-def _all_possible_values(
+def _all_possible_datastore_states(
     keys: Iterable['cirq.MeasurementKey'],
     measurement_qubits: Mapping['cirq.MeasurementKey', Iterable['cirq.Qid']],
 ) -> Iterable['cirq.ClassicalDataStoreReader']:
-    """The full product of possible DatsStores for the keys and qubits."""
+    """The full product of possible DatsStores states for the given keys."""
+    # First we get the list of all possible values. So if we have a key mapped to qubits of shape
+    # (2, 2) and a key mapped to a qutrit, the possible measurement values are:
+    # [((0, 0), (0,)),
+    #  ((0, 0), (1,)),
+    #  ((0, 0), (2,)),
+    #  ((0, 1), (0,)),
+    #  ((0, 1), (1,)),
+    #  ((0, 1), (2,)),
+    #  ((1, 0), (0,)),
+    #  ((1, 0), (1,)),
+    #  ((1, 0), (2,)),
+    #  ((1, 1), (0,)),
+    #  ((1, 1), (1,)),
+    #  ((1, 1), (2,))]
     all_values = itertools.product(
         *[
             tuple(itertools.product(*[range(q.dimension) for q in measurement_qubits[k]]))
             for k in keys
         ]
     )
+    # Then we create the ClassicalDataDictionaryStore for each of the above.
     for sequences in all_values:
         lookup = {k: [sequence] for k, sequence in zip(keys, sequences)}
         yield value.ClassicalDataDictionaryStore(_records=lookup)
