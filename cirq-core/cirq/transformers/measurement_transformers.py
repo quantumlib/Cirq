@@ -115,22 +115,22 @@ def defer_measurements(
                 if missing_keys:
                     raise ValueError(f'Deferred measurement for key={missing_keys[0]} not found.')
                 qs = [q for k in c.keys for q in measurement_qubits[k]]
-                if isinstance(c, value.KeyCondition) and len(qs) == 1:
-                    # Convenience: control_values=range(...) renders more nicely.
-                    new_op = new_op.controlled_by(*qs, control_values=range(1, qs[0].dimension))
-                else:
-                    # Try every option against the condition, and the ones that work are the
-                    # control values for the new op.
-                    datastores = _all_possible_datastore_states(c.keys, measurement_qubits)
-                    compatible_datastores = [store for store in datastores if c.resolve(store)]
+                # Try every option against the condition, and the ones that work are the
+                # control values for the new op.
+                datastores = _all_possible_datastore_states(c.keys, measurement_qubits)
+                compatible_datastores = [store for store in datastores if c.resolve(store)]
 
-                    # Rearrange these into the format expected by SumOfProducts
-                    products = [
-                        [i for k in c.keys for i in store.records[k][0]]
-                        for store in compatible_datastores
-                    ]
+                # Rearrange these into the format expected by SumOfProducts
+                products = [
+                    [i for k in c.keys for i in store.records[k][0]]
+                    for store in compatible_datastores
+                ]
+                if len(qs) == 1:
+                    # Convenience: this renders more nicely than SumOfProducts.
+                    control_values: Any = [[x[0] for x in products]]
+                else:
                     control_values = ops.SumOfProducts(products)
-                    new_op = new_op.controlled_by(*qs, control_values=control_values)
+                new_op = new_op.controlled_by(*qs, control_values=control_values)
             return new_op
         return op
 

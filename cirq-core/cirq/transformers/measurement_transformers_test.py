@@ -73,7 +73,7 @@ def test_sympy_control():
         deferred,
         cirq.Circuit(
             cirq.CX(q0, q_ma),
-            cirq.ControlledOperation([q_ma], cirq.X(q1), cirq.SumOfProducts([[1]])),
+            cirq.CX(q_ma, q1),
             cirq.measure(q_ma, key='a'),
             cirq.measure(q1, key='b'),
         ),
