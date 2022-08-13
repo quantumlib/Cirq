@@ -18,7 +18,7 @@ import networkx as nx
 import cirq
 
 
-class GridTestingDevice(cirq.Device):
+class RoutingTestingDevice(cirq.Device):
     def __init__(self, metadata: cirq.DeviceMetadata) -> None:
         self._metadata = metadata
 
@@ -31,14 +31,14 @@ class GridTestingDevice(cirq.Device):
             if q not in self._metadata.qubit_set:
                 raise ValueError(f'Qubit not on device: {q!r}.')
 
-        #TODO: update if stattement so it doesn't use qubit_pairs
         if (
             len(operation.qubits) == 2
-            and frozenset(operation.qubits) not in self._metadata.qubit_pairs
+            and operation.qubits[0] not in self._metadata.nx_graph[operation.qubits[1]]
         ):
             raise ValueError(f'Qubit pair is not valid on device: {operation.qubits!r}.')
+    
 
-def construct_grid_device(d: int) -> GridTestingDevice:
+def construct_grid_device(d: int) -> RoutingTestingDevice:
     qubits = (cirq.GridQubit(i,j) for i in range(d) for j in range(d))
 
     nx_graph = nx.Graph()
@@ -48,4 +48,13 @@ def construct_grid_device(d: int) -> GridTestingDevice:
     nx_graph.add_edges_from(col_edges)
 
     metadata = cirq.DeviceMetadata(qubits, nx_graph)
-    return GridTestingDevice(metadata)
+    return RoutingTestingDevice(metadata)
+
+def construct_ring_device(d: int) -> RoutingTestingDevice:
+    qubits = cirq.LineQubit.range(d)
+    nx_graph = nx.Graph()
+    edges = [(qubits[i % d], qubits[(i+1) % d]) for i in range(d)]
+    nx_graph.add_edges_from(edges)
+
+    metadata = cirq.DeviceMetadata(qubits, nx_graph)
+    return RoutingTestingDevice(metadata)

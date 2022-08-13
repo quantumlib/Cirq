@@ -14,9 +14,12 @@
 
 from typing import Optional
 import networkx as nx
+import matplotlib.pyplot as plt
 
 import cirq
-from cirq.transformers.routing import construct_grid_device
+from cirq.transformers.routing import construct_grid_device, construct_ring_device
 
 def test_simple():
-    device = construct_grid_device(7)
+    grid_device = construct_grid_device(7)
+    ring_device = construct_ring_device(49)
+
