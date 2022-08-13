@@ -11,3 +11,12 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
+from typing import Optional
+import networkx as nx
+
+import cirq
+from cirq.transformers.routing import construct_grid_device
+
+def test_simple():
+    device = construct_grid_device(7)
