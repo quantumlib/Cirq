@@ -117,8 +117,8 @@ def defer_measurements(
                     raise ValueError(f'Deferred measurement for key={missing_keys[0]} not found.')
                 qs = [q for k in c.keys for q in measurement_qubits[k]]
 
-                # Try every option against the condition, and the ones that work are the
-                # control values for the new op.
+                # Try every possible datastore state against the condition, and the ones that work
+                # are the control values for the new op.
                 datastores = _all_possible_datastore_states(c.keys, measurement_qubits)
                 compatible_datastores = [store for store in datastores if c.resolve(store)]
 
