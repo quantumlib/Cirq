@@ -22,4 +22,4 @@ def test_identity_initial_mapper():
     initial_mapper = IdentityInitialMapper(input_map)
 
     assert input_map == initial_mapper.initial_mapping()
-    cirq.testing.assert_equivalent_repr(initial_mapper, setup_code='import cirq') == initial_mapper
+    cirq.testing.assert_equivalent_repr(initial_mapper, setup_code='import cirq')
