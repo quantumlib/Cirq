@@ -15,8 +15,11 @@
 """Routing utilities in Cirq."""
 
 from cirq.transformers.routing.mapping_manager import MappingManager
+<<<<<<< HEAD
 from cirq.transformers.routing.initial_mapper import AbstractInitialMapper
 from cirq.transformers.routing.line_initial_mapper import LineInitialMapper
 from cirq.transformers.routing.testing_devices import (
     construct_grid_device,
 )
+=======
+>>>>>>> master
