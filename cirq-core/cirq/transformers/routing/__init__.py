@@ -18,7 +18,5 @@ from cirq.transformers.routing.mapping_manager import MappingManager
 from cirq.transformers.routing.initial_mapper import AbstractInitialMapper
 from cirq.transformers.routing.line_initial_mapper import LineInitialMapper
 from cirq.transformers.routing.testing_devices import (
-    GridTestingDevice,
     construct_grid_device,
-    construct_ring_device,
 )

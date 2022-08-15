@@ -36,25 +36,20 @@ class RoutingTestingDevice(cirq.Device):
             and operation.qubits[0] not in self._metadata.nx_graph[operation.qubits[1]]
         ):
             raise ValueError(f'Qubit pair is not valid on device: {operation.qubits!r}.')
-    
+
 
 def construct_grid_device(d: int) -> RoutingTestingDevice:
-    qubits = (cirq.GridQubit(i,j) for i in range(d) for j in range(d))
+    qubits = (cirq.GridQubit(i, j) for i in range(d) for j in range(d))
 
     nx_graph = nx.Graph()
-    row_edges = [(cirq.GridQubit(i,j), cirq.GridQubit(i,j+1)) for i in range(d) for j in range(d-1)]
-    col_edges = [(cirq.GridQubit(i,j), cirq.GridQubit(i+1,j)) for j in range(d) for i in range(d-1)]
+    row_edges = [
+        (cirq.GridQubit(i, j), cirq.GridQubit(i, j + 1)) for i in range(d) for j in range(d - 1)
+    ]
+    col_edges = [
+        (cirq.GridQubit(i, j), cirq.GridQubit(i + 1, j)) for j in range(d) for i in range(d - 1)
+    ]
     nx_graph.add_edges_from(row_edges)
     nx_graph.add_edges_from(col_edges)
-
-    metadata = cirq.DeviceMetadata(qubits, nx_graph)
-    return RoutingTestingDevice(metadata)
-
-def construct_ring_device(d: int) -> RoutingTestingDevice:
-    qubits = cirq.LineQubit.range(d)
-    nx_graph = nx.Graph()
-    edges = [(qubits[i % d], qubits[(i+1) % d]) for i in range(d)]
-    nx_graph.add_edges_from(edges)
 
     metadata = cirq.DeviceMetadata(qubits, nx_graph)
     return RoutingTestingDevice(metadata)
