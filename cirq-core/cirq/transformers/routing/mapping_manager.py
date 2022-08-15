@@ -19,11 +19,13 @@ from cirq._compat import cached_method
 import networkx as nx
 
 from cirq import protocols
+from cirq.value import value_equality
 
 if TYPE_CHECKING:
     import cirq
 
 
+@value_equality
 class MappingManager:
     """Class that manages the mapping from logical to physical qubits.
 
@@ -133,3 +135,13 @@ class MappingManager:
     @cached_method
     def _physical_shortest_path(self, pq1: 'cirq.Qid', pq2: 'cirq.Qid') -> Sequence['cirq.Qid']:
         return nx.shortest_path(self._induced_subgraph, pq1, pq2)
+
+    def __str__(self) -> str:
+        return str(repr(self._map))
+
+    def __repr__(self) -> str:
+        graph_repr = f'nx.Graph({dict(self.device_graph.adjacency())})'
+        return f'cirq.MappingManager({graph_repr}, {str(repr(self._map))})'
+
+    def _value_equality_values_(self):
+        return dict(self.device_graph.adjacency()), self._map
