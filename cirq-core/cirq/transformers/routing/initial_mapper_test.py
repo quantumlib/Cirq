@@ -12,7 +12,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Routing utilities in Cirq."""
+import cirq
 
-from cirq.transformers.routing.mapping_manager import MappingManager
-from cirq.transformers.routing.initial_mapper import AbstractInitialMapper, IdentityInitialMapper
+from cirq import IdentityInitialMapper
+
+
+def test_identity_initial_mapper():
+    input_map = {cirq.NamedQubit(str(i)):cirq.NamedQubit(str(-i)) for i in range(1,6)}
+    initial_mapper = IdentityInitialMapper(input_map)
+
+    assert input_map == initial_mapper.initial_mapping()
+    cirq.testing.assert_equivalent_repr(initial_mapper, setup_code='import cirq') == initial_mapper
