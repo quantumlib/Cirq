@@ -42,8 +42,8 @@ class AbstractInitialMapper(metaclass=abc.ABCMeta):
 class IdentityInitialMapper(AbstractInitialMapper):
     """Initial Mapper class takes a hard-coded mapping and returns it."""
 
-    def __init__(self, map: Dict['cirq.Qid', 'cirq.Qid']) -> None:
-        self._map = map
+    def __init__(self, _map: Dict['cirq.Qid', 'cirq.Qid']) -> None:
+        self._map = _map
 
     def initial_mapping(self) -> Dict['cirq.Qid', 'cirq.Qid']:
         """Takes a hard-coded initial mapping and returns it.
