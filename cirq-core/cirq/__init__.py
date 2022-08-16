@@ -345,7 +345,7 @@ from cirq.transformers import (
     eject_phased_paulis,
     eject_z,
     expand_composite,
-    IdentityInitialMapper,
+    HardCodedInitialMapper,
     is_negligible_turn,
     MappingManager,
     map_moments,
