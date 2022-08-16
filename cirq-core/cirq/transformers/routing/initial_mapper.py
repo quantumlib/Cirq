@@ -15,13 +15,12 @@
 from typing import TYPE_CHECKING, Dict
 import abc
 
-from cirq.value import value_equality
+from cirq import value
 
 if TYPE_CHECKING:
     import cirq
 
 
-@value_equality
 class AbstractInitialMapper(metaclass=abc.ABCMeta):
     """Base class for creating custom initial mapping strategies.
 
@@ -45,13 +44,8 @@ class AbstractInitialMapper(metaclass=abc.ABCMeta):
           qubit_map: the initial mapping of logical qubits to physical qubits.
         """
 
-    def __str__(self) -> str:
-        return f'{self.initial_mapping()}'
 
-    def _value_equality_values_(self):
-        return self.initial_mapping()
-
-
+@value.value_equality
 class HardCodedInitialMapper(AbstractInitialMapper):
     """Initial Mapper class takes a hard-coded mapping and returns it."""
 
@@ -59,12 +53,18 @@ class HardCodedInitialMapper(AbstractInitialMapper):
         self._map = _map
 
     def initial_mapping(self) -> Dict['cirq.Qid', 'cirq.Qid']:
-        """Takes a hard-coded initial mapping and returns it.
+        """Returns the hard-coded initial mapping.
 
         Returns:
             the hard-codded initial mapping.
         """
         return self._map
 
+    def _value_equality_values_(self):
+        return tuple(sorted(self._map.items()))
+
+    def __str__(self) -> str:
+        return f'{self._map}'
+
     def __repr__(self) -> str:
-        return f'cirq.HardCodedInitialMapper({self.initial_mapping()})'
+        return f'cirq.HardCodedInitialMapper({self._map})'
