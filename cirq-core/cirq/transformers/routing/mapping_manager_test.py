@@ -149,3 +149,12 @@ def test_repr():
     device_graph, initial_mapping, _ = construct_device_graph_and_mapping()
     mm = cirq.MappingManager(device_graph, initial_mapping)
     cirq.testing.assert_equivalent_repr(mm, setup_code='import cirq\nimport networkx as nx')
+
+
+def test_str():
+    device_graph, initial_mapping, _ = construct_device_graph_and_mapping()
+    mm = cirq.MappingManager(device_graph, initial_mapping)
+    assert (
+        str(mm)
+        == f'Device graph adjacency: {dict(device_graph.adjacency())}\nMap: {initial_mapping}'
+    )
