@@ -14,7 +14,7 @@
 
 """Manages the mapping from logical to physical qubits during a routing procedure."""
 
-from typing import Dict, Sequence, Any, TYPE_CHECKING
+from typing import Dict, Sequence, TYPE_CHECKING
 from cirq._compat import cached_method
 import networkx as nx
 
