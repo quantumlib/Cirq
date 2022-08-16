@@ -24,6 +24,7 @@ if TYPE_CHECKING:
 
 class RoutingTestingDevice(devices.Device):
     """Testing device to be used only for testing qubit connectivity in routing procedures."""
+
     def __init__(self, metadata: devices.DeviceMetadata) -> None:
         self._metadata = metadata
 
@@ -51,12 +52,12 @@ def construct_grid_device(d: int) -> RoutingTestingDevice:
         (devices.GridQubit(i, j), devices.GridQubit(i, j + 1))
         for i in range(d)
         for j in range(d - 1)
-        ]
+    ]
     col_edges = [
         (devices.GridQubit(i, j), devices.GridQubit(i + 1, j))
         for j in range(d)
         for i in range(d - 1)
-        ]
+    ]
     nx_graph.add_edges_from(row_edges)
     nx_graph.add_edges_from(col_edges)
 
