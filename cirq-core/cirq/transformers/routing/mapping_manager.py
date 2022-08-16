@@ -15,17 +15,15 @@
 """Manages the mapping from logical to physical qubits during a routing procedure."""
 
 from typing import Dict, Sequence, TYPE_CHECKING
-from cirq._compat import cached_method
 import networkx as nx
 
-from cirq import protocols
-from cirq.value import value_equality
+from cirq import protocols, value, _compat
 
 if TYPE_CHECKING:
     import cirq
 
 
-@value_equality
+@value.value_equality
 class MappingManager:
     """Class that manages the mapping from logical to physical qubits.
 
@@ -43,7 +41,6 @@ class MappingManager:
             initial_mapping: the initial mapping of logical (keys) to physical qubits (values).
         """
         self.device_graph = device_graph
-        self.graph_adjacency = dict(self.device_graph.adjacency())
         self._map = initial_mapping.copy()
         self._inverse_map = {v: k for k, v in self._map.items()}
         self._induced_subgraph = nx.induced_subgraph(self.device_graph, self._map.values())
@@ -133,15 +130,21 @@ class MappingManager:
         physical_shortest_path = self._physical_shortest_path(self._map[lq1], self._map[lq2])
         return [self._inverse_map[pq] for pq in physical_shortest_path]
 
-    @cached_method
+    @_compat.cached_method
     def _physical_shortest_path(self, pq1: 'cirq.Qid', pq2: 'cirq.Qid') -> Sequence['cirq.Qid']:
         return nx.shortest_path(self._induced_subgraph, pq1, pq2)
 
     def _value_equality_values_(self):
-        return self.graph_adjacency, self._map
+        graph_equality = (
+            tuple(sorted(self.device_graph.nodes)),
+            tuple(sorted(self.device_graph.edges)),
+            nx.is_directed(self.device_graph),
+        )
+        map_equality = tuple(sorted(self._map.items()))
+        return (graph_equality, map_equality)
 
     def __str__(self) -> str:
-        return f'Device graph adjacency: {self.graph_adjacency}\nMap: {self._map}'
+        return f'Device graph adjacency: {dict(self.device_graph.adjacency())}\nMap: {self._map}'
 
     def __repr__(self) -> str:
-        return f'cirq.MappingManager(nx.Graph({self.graph_adjacency}), {self._map})'
+        return f'cirq.MappingManager(nx.Graph({dict(self.device_graph.adjacency())}), {self._map})'
