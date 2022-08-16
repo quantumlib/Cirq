@@ -14,13 +14,11 @@
 
 import cirq
 
-from cirq import IdentityInitialMapper
-
 
 def test_identity_initial_mapper():
     input_map = {cirq.NamedQubit(str(i)): cirq.NamedQubit(str(-i)) for i in range(1, 6)}
-    initial_mapper = IdentityInitialMapper(input_map)
+    initial_mapper = cirq.HardCodedInitialMapper(input_map)
 
     assert input_map == initial_mapper.initial_mapping()
-    assert str(initial_mapper) == f'Logical to physical qubits: {input_map}'
-    cirq.testing.assert_equivalent_repr(initial_mapper, setup_code='import cirq')
+    assert str(initial_mapper) == f'{input_map}'
+    cirq.testing.assert_equivalent_repr(initial_mapper)
