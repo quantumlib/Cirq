@@ -167,7 +167,7 @@ def test_value_equality():
     equals_tester.add_equality_group(mm, mm_edge_order)
 
     # same as 'device_graph' but with directed edges (DiGraph)
-    digraph = nx.DiGraph(
+    device_digraph = nx.DiGraph(
         [
             (cirq.NamedQubit("a"), cirq.NamedQubit("b")),
             (cirq.NamedQubit("b"), cirq.NamedQubit("c")),
@@ -176,7 +176,7 @@ def test_value_equality():
             (cirq.NamedQubit("e"), cirq.NamedQubit("d")),
         ]
     )
-    mm_digraph = cirq.MappingManager(digraph, initial_mapping)
+    mm_digraph = cirq.MappingManager(device_digraph, initial_mapping)
     equals_tester.add_equality_group(mm_digraph)
 
     # same as 'device_graph' but with an added isolated node
@@ -204,6 +204,18 @@ def test_repr():
     device_graph, initial_mapping, _ = construct_device_graph_and_mapping()
     mm = cirq.MappingManager(device_graph, initial_mapping)
     cirq.testing.assert_equivalent_repr(mm, setup_code='import cirq\nimport networkx as nx')
+
+    device_digraph = nx.DiGraph(
+        [
+            (cirq.NamedQubit("a"), cirq.NamedQubit("b")),
+            (cirq.NamedQubit("b"), cirq.NamedQubit("c")),
+            (cirq.NamedQubit("c"), cirq.NamedQubit("d")),
+            (cirq.NamedQubit("a"), cirq.NamedQubit("e")),
+            (cirq.NamedQubit("e"), cirq.NamedQubit("d")),
+        ]
+    )
+    mm_digraph = cirq.MappingManager(device_digraph, initial_mapping)
+    cirq.testing.assert_equivalent_repr(mm_digraph, setup_code='import cirq\nimport networkx as nx')
 
 
 def test_str():

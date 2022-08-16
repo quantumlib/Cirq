@@ -135,11 +135,18 @@ class MappingManager:
         return nx.shortest_path(self._induced_subgraph, pq1, pq2)
 
     def _value_equality_values_(self):
-        graph_equality = (
-            tuple(sorted(self.device_graph.nodes)),
-            tuple(sorted(tuple(sorted(edge)) for edge in self.device_graph.edges)),
-            nx.is_directed(self.device_graph),
-        )
+        if nx.is_directed(self.device_graph):
+            graph_equality = (
+                tuple(sorted(self.device_graph.nodes)),
+                tuple(sorted(self.device_graph.edges)),
+                True,
+            )
+        else:
+            graph_equality = (
+                tuple(sorted(self.device_graph.nodes)),
+                tuple(sorted(tuple(sorted(edge)) for edge in self.device_graph.edges)),
+                False,
+            )
         map_equality = tuple(sorted(self._map.items()))
         return (graph_equality, map_equality)
 
@@ -147,4 +154,7 @@ class MappingManager:
         return self.__repr__()
 
     def __repr__(self) -> str:
-        return f'cirq.MappingManager(nx.Graph({dict(self.device_graph.adjacency())}), {self._map})'
+        graph_type = 'nx.DiGraph' if nx.is_directed(self.device_graph) else 'nx.Graph'
+        return (
+            f'cirq.MappingManager({graph_type}({dict(self.device_graph.adjacency())}), {self._map})'
+        )
