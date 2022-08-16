@@ -137,14 +137,14 @@ class MappingManager:
     def _value_equality_values_(self):
         graph_equality = (
             tuple(sorted(self.device_graph.nodes)),
-            tuple(sorted(self.device_graph.edges)),
+            tuple(sorted(tuple(sorted(edge)) for edge in self.device_graph.edges)),
             nx.is_directed(self.device_graph),
         )
         map_equality = tuple(sorted(self._map.items()))
         return (graph_equality, map_equality)
 
     def __str__(self) -> str:
-        return f'Device graph adjacency: {dict(self.device_graph.adjacency())}\nMap: {self._map}'
+        return self.__repr__()
 
     def __repr__(self) -> str:
         return f'cirq.MappingManager(nx.Graph({dict(self.device_graph.adjacency())}), {self._map})'
