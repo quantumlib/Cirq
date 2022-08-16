@@ -44,7 +44,12 @@ from cirq.transformers.heuristic_decompositions import (
     two_qubit_gate_product_tabulation,
 )
 
-from cirq.transformers.routing import MappingManager, HardCodedInitialMapper, AbstractInitialMapper
+from cirq.transformers.routing import (
+    MappingManager,
+    HardCodedInitialMapper,
+    AbstractInitialMapper,
+    LineInitialMapper,
+)
 
 from cirq.transformers.target_gatesets import (
     create_transformer_with_kwargs,
