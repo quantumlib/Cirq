@@ -33,20 +33,25 @@ class AbstractInitialMapper(metaclass=abc.ABCMeta):
         """
 
     def __str__(self) -> str:
-        return str(repr(self.initial_mapping()))
+        return f'Logical to physical qubits: {self.initial_mapping()}'
 
     def _value_equality_values_(self):
         return self.initial_mapping()
 
 
 class IdentityInitialMapper(AbstractInitialMapper):
-    """Initial Mapper that takes a hard-coded mapping and returns it."""
+    """Initial Mapper class takes a hard-coded mapping and returns it."""
 
     def __init__(self, map: Dict['cirq.Qid', 'cirq.Qid']) -> None:
         self._map = map
 
     def initial_mapping(self) -> Dict['cirq.Qid', 'cirq.Qid']:
+        """Takes a hard-coded initial mapping and returns it.
+
+        Returns:
+            the hard-codded initial mapping.
+        """
         return self._map
 
     def __repr__(self) -> str:
-        return f'cirq.IdentityInitialMapper({self.__str__()})'
+        return f'cirq.IdentityInitialMapper({self.initial_mapping()})'
