@@ -145,6 +145,59 @@ def test_shortest_path():
     assert mm.shortest_path(q[1], q[2]) == [q[1], q[2]]
 
 
+def test_value_equality():
+    equals_tester = cirq.testing.EqualsTester()
+    device_graph, initial_mapping, q = construct_device_graph_and_mapping()
+
+    mm = cirq.MappingManager(device_graph, initial_mapping)
+
+    # same as 'device_graph' but with different insertion order of edges
+    diff_edge_order = nx.Graph(
+        [
+            (cirq.NamedQubit("a"), cirq.NamedQubit("b")),
+            (cirq.NamedQubit("e"), cirq.NamedQubit("d")),
+            (cirq.NamedQubit("c"), cirq.NamedQubit("d")),
+            (cirq.NamedQubit("a"), cirq.NamedQubit("e")),
+            (cirq.NamedQubit("b"), cirq.NamedQubit("c")),
+        ]
+    )
+    mm_edge_order = cirq.MappingManager(device_graph, initial_mapping)
+    equals_tester.add_equality_group(mm, mm_edge_order)
+
+    # same as 'device_graph' but with directed edges (DiGraph)
+    digraph = nx.DiGraph(
+        [
+            (cirq.NamedQubit("a"), cirq.NamedQubit("b")),
+            (cirq.NamedQubit("b"), cirq.NamedQubit("c")),
+            (cirq.NamedQubit("c"), cirq.NamedQubit("d")),
+            (cirq.NamedQubit("a"), cirq.NamedQubit("e")),
+            (cirq.NamedQubit("e"), cirq.NamedQubit("d")),
+        ]
+    )
+    mm_digraph = cirq.MappingManager(digraph, initial_mapping)
+    equals_tester.add_equality_group(mm_digraph)
+
+    # same as 'device_graph' but with an added isolated node
+    isolated_vertex_graph = nx.Graph(
+        [
+            (cirq.NamedQubit("a"), cirq.NamedQubit("b")),
+            (cirq.NamedQubit("b"), cirq.NamedQubit("c")),
+            (cirq.NamedQubit("c"), cirq.NamedQubit("d")),
+            (cirq.NamedQubit("a"), cirq.NamedQubit("e")),
+            (cirq.NamedQubit("e"), cirq.NamedQubit("d")),
+        ]
+    )
+    isolated_vertex_graph.add_node(cirq.NamedQubit("z"))
+    mm = cirq.MappingManager(isolated_vertex_graph, initial_mapping)
+    equals_tester.add_equality_group(isolated_vertex_graph)
+
+    # mapping manager with same initial graph and initial mapping as 'mm' but with different
+    # current state
+    mm_with_swap = cirq.MappingManager(device_graph, initial_mapping)
+    mm_with_swap.apply_swap(q[1], q[3])
+    equals_tester.add_equality_group(mm_with_swap)
+
+
 def test_repr():
     device_graph, initial_mapping, _ = construct_device_graph_and_mapping()
     mm = cirq.MappingManager(device_graph, initial_mapping)
