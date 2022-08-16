@@ -328,6 +328,7 @@ from cirq.ops import (
 from cirq.transformers import (
     align_left,
     align_right,
+    AbstractInitialMapper,
     CompilationTargetGateset,
     CZTargetGateset,
     compute_cphase_exponents_for_fsim_decomposition,

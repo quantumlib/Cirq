@@ -41,7 +41,7 @@ def construct_device_graph_and_mapping():
 
 def test_induced_subgraph():
     device_graph, initial_mapping, _ = construct_device_graph_and_mapping()
-    mm = cirq.transformers.routing.MappingManager(device_graph, initial_mapping)
+    mm = cirq.MappingManager(device_graph, initial_mapping)
 
     expected_induced_subgraph = nx.Graph(
         [
@@ -55,7 +55,7 @@ def test_induced_subgraph():
 
 def test_mapped_op():
     device_graph, initial_mapping, q = construct_device_graph_and_mapping()
-    mm = cirq.transformers.routing.MappingManager(device_graph, initial_mapping)
+    mm = cirq.MappingManager(device_graph, initial_mapping)
 
     assert mm.mapped_op(cirq.CNOT(q[1], q[3])).qubits == (
         cirq.NamedQubit("a"),
@@ -82,7 +82,7 @@ def test_mapped_op():
 
 def test_distance_on_device_and_can_execute():
     device_graph, initial_mapping, q = construct_device_graph_and_mapping()
-    mm = cirq.transformers.routing.MappingManager(device_graph, initial_mapping)
+    mm = cirq.MappingManager(device_graph, initial_mapping)
 
     # adjacent qubits have distance 1 and are thus executable
     assert mm.dist_on_device(q[1], q[3]) == 1
@@ -108,7 +108,7 @@ def test_distance_on_device_and_can_execute():
 
 def test_apply_swap():
     device_graph, initial_mapping, q = construct_device_graph_and_mapping()
-    mm = cirq.transformers.routing.MappingManager(device_graph, initial_mapping)
+    mm = cirq.MappingManager(device_graph, initial_mapping)
 
     # swapping non-adjacent qubits raises error
     with pytest.raises(ValueError):
@@ -130,7 +130,7 @@ def test_apply_swap():
 
 def test_shortest_path():
     device_graph, initial_mapping, q = construct_device_graph_and_mapping()
-    mm = cirq.transformers.routing.MappingManager(device_graph, initial_mapping)
+    mm = cirq.MappingManager(device_graph, initial_mapping)
 
     one_to_four = [q[1], q[3], q[2], q[4]]
     assert mm.shortest_path(q[1], q[2]) == one_to_four[:3]
@@ -143,3 +143,18 @@ def test_shortest_path():
     one_to_four[1], one_to_four[2] = one_to_four[2], one_to_four[1]
     assert mm.shortest_path(q[1], q[4]) == one_to_four
     assert mm.shortest_path(q[1], q[2]) == [q[1], q[2]]
+
+
+def test_repr():
+    device_graph, initial_mapping, _ = construct_device_graph_and_mapping()
+    mm = cirq.MappingManager(device_graph, initial_mapping)
+    cirq.testing.assert_equivalent_repr(mm, setup_code='import cirq\nimport networkx as nx')
+
+
+def test_str():
+    device_graph, initial_mapping, _ = construct_device_graph_and_mapping()
+    mm = cirq.MappingManager(device_graph, initial_mapping)
+    assert (
+        str(mm)
+        == f'Device graph adjacency: {dict(device_graph.adjacency())}\nMap: {initial_mapping}'
+    )
