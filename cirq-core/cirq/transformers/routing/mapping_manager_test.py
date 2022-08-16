@@ -161,7 +161,9 @@ def test_value_equality():
             (cirq.NamedQubit("b"), cirq.NamedQubit("c")),
         ]
     )
-    mm_edge_order = cirq.MappingManager(device_graph, initial_mapping)
+    mm_edge_order = cirq.MappingManager(diff_edge_order, initial_mapping)
+    # print(mm._value_equality_values_())
+    # print(mm_edge_order._value_equality_values_())
     equals_tester.add_equality_group(mm, mm_edge_order)
 
     # same as 'device_graph' but with directed edges (DiGraph)
@@ -209,5 +211,5 @@ def test_str():
     mm = cirq.MappingManager(device_graph, initial_mapping)
     assert (
         str(mm)
-        == f'Device graph adjacency: {dict(device_graph.adjacency())}\nMap: {initial_mapping}'
+        == f'cirq.MappingManager(nx.Graph({dict(device_graph.adjacency())}), {initial_mapping})'
     )
