@@ -218,7 +218,7 @@ class LineInitialMapper(routing.AbstractInitialMapper):
     # by MappingManager too (and likely subsequent initial mapping strategies)? Particularly,
     # since there is no good way of representating a graph using a hashable object, the
     # 'graph_equality' bit here can become standard or we can file an issue for it.
-    def _value_equality_values_(self) -> None:
+    def _value_equality_values_(self):
         """Two LineInitialMapper(s) are equal if they execute on the same device graph."""
         if nx.is_directed(self.device_graph):
             return (

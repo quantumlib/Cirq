@@ -41,7 +41,7 @@ def test_line_breaking_on_grid_device():
     #   -if # of physical qubits <= # of logical qubits then strategy should succeed
 
     step_circuit = construct_step_circuit(49)
-    device = cirq.testing.construct_grid_device(7)
+    device = cirq.testing.construct_square_device(7)
     device_graph = device.metadata.nx_graph
     mapper = cirq.LineInitialMapper(device_graph)
     mapping = mapper.initial_mapping(step_circuit)
@@ -64,7 +64,7 @@ def test_line_breaking_on_grid_device():
 def test_small_circuit_on_grid_device():
     circuit = construct_small_circuit()
 
-    device_graph = cirq.testing.construct_grid_device(7).metadata.nx_graph
+    device_graph = cirq.testing.construct_square_device(7).metadata.nx_graph
     mapper = cirq.LineInitialMapper(device_graph)
     mapping = mapper.initial_mapping(circuit)
 
@@ -97,7 +97,7 @@ def test_random_circuits_grid_device(
     c_orig = cirq.testing.random_circuit(
         qubits=qubits, n_moments=n_moments, op_density=op_density, random_state=random_state
     )
-    device = cirq.testing.construct_grid_device(7)
+    device = cirq.testing.construct_square_device(7)
     device_graph = device.metadata.nx_graph
     mapper = cirq.LineInitialMapper(device_graph)
     mapping = mapper.initial_mapping(c_orig)
@@ -116,24 +116,40 @@ def test_value_equality():
     small_circuit = construct_small_circuit()
     step_circuit = construct_step_circuit(5)
 
-    # undirected case
-    mapper_one = cirq.LineInitialMapper(cirq.testing.construct_grid_device(7).metadata.nx_graph)
+    # undirected
+    mapper_one = cirq.LineInitialMapper(cirq.testing.construct_square_device(7).metadata.nx_graph)
     mapper_one.initial_mapping(small_circuit)
-    mapper_two = cirq.LineInitialMapper(cirq.testing.construct_grid_device(7).metadata.nx_graph)
+    mapper_two = cirq.LineInitialMapper(cirq.testing.construct_square_device(7).metadata.nx_graph)
     mapper_one.initial_mapping(step_circuit)
     equals_tester.add_equality_group(mapper_one, mapper_two)
 
-    mapper_three = cirq.LineInitialMapper(cirq.testing.construct_grid_device(6).metadata.nx_graph)
+    mapper_three = cirq.LineInitialMapper(cirq.testing.construct_square_device(6).metadata.nx_graph)
+    equals_tester.add_equality_group(mapper_three)
+
+    # directed
+    mapper_one = cirq.LineInitialMapper(
+        cirq.testing.construct_ring_device(7, directed=True).metadata.nx_graph
+    )
+    mapper_one.initial_mapping(small_circuit)
+    mapper_two = cirq.LineInitialMapper(
+        cirq.testing.construct_ring_device(7, directed=True).metadata.nx_graph
+    )
+    mapper_two.initial_mapping(step_circuit)
+    equals_tester.add_equality_group(mapper_one, mapper_two)
+
+    mapper_three = cirq.LineInitialMapper(
+        cirq.testing.construct_ring_device(6, directed=True).metadata.nx_graph
+    )
     equals_tester.add_equality_group(mapper_three)
 
 
 def test_str():
-    device_graph = cirq.testing.construct_grid_device(7).metadata.nx_graph
+    device_graph = cirq.testing.construct_square_device(7).metadata.nx_graph
     mapper = cirq.LineInitialMapper(device_graph)
     assert str(mapper) == f'cirq.LineInitialMapper(nx.Graph({dict(device_graph.adjacency())}))'
 
 
 def test_repr():
-    device_graph = cirq.testing.construct_grid_device(7).metadata.nx_graph
+    device_graph = cirq.testing.construct_square_device(7).metadata.nx_graph
     mapper = cirq.LineInitialMapper(device_graph)
     cirq.testing.assert_equivalent_repr(mapper, setup_code='import cirq\nimport networkx as nx')
