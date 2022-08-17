@@ -37,14 +37,11 @@ class RoutingTestingDevice(devices.Device):
             if q not in self._metadata.qubit_set:
                 raise ValueError(f'Qubit not on device: {q!r}.')
 
-        if (
-            len(operation.qubits) == 2
-            and operation.qubits[0] not in self._metadata.nx_graph[operation.qubits[1]]
-        ):
+        if len(operation.qubits) == 2 and operation.qubits not in self._metadata.nx_graph.edges:
             raise ValueError(f'Qubit pair is not valid on device: {operation.qubits!r}.')
 
 
-def construct_grid_device(d: int) -> RoutingTestingDevice:
+def construct_square_device(d: int) -> RoutingTestingDevice:
     qubits = devices.GridQubit.square(d)
 
     nx_graph = nx.Graph()
@@ -60,6 +57,19 @@ def construct_grid_device(d: int) -> RoutingTestingDevice:
     ]
     nx_graph.add_edges_from(row_edges)
     nx_graph.add_edges_from(col_edges)
+
+    metadata = devices.DeviceMetadata(qubits, nx_graph)
+    return RoutingTestingDevice(metadata)
+
+
+def construct_ring_device(d: int, directed: bool = False) -> RoutingTestingDevice:
+    qubits = devices.LineQubit.range(d)
+    if directed:
+        nx_graph = nx.DiGraph()
+    else:
+        nx_graph = nx.Graph()
+    edges = [(qubits[i % d], qubits[(i + 1) % d]) for i in range(d)]
+    nx_graph.add_edges_from(edges)
 
     metadata = devices.DeviceMetadata(qubits, nx_graph)
     return RoutingTestingDevice(metadata)
