@@ -194,4 +194,5 @@ class LineInitialMapper(routing.AbstractInitialMapper):
         return self.__repr__()
 
     def __repr__(self):
-        return f'cirq.LineInitialMapper(nx.Graph({dict(self.device_graph.adjacency())}), {repr(self.circuit)})'
+        adj_dict = dict(self.device_graph.adjacency())
+        return f'cirq.LineInitialMapper(nx.Graph({adj_dict}), {repr(self.circuit)})'
