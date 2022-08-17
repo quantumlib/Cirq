@@ -37,8 +37,11 @@ class AbstractInitialMapper(metaclass=abc.ABCMeta):
     """
 
     @abc.abstractmethod
-    def initial_mapping(self) -> Dict['cirq.Qid', 'cirq.Qid']:
+    def initial_mapping(self, circuit: 'cirq.AbstractCircuit') -> Dict['cirq.Qid', 'cirq.Qid']:
         """Maps the logical qubits of a circuit onto physical qubits on a device.
+
+        Args:
+            circuit: the input circuit with logical qubits.
 
         Returns:
           qubit_map: the initial mapping of logical qubits to physical qubits.
@@ -52,8 +55,11 @@ class HardCodedInitialMapper(AbstractInitialMapper):
     def __init__(self, _map: Dict['cirq.Qid', 'cirq.Qid']) -> None:
         self._map = _map
 
-    def initial_mapping(self) -> Dict['cirq.Qid', 'cirq.Qid']:
+    def initial_mapping(self, circuit: 'cirq.AbstractCircuit') -> Dict['cirq.Qid', 'cirq.Qid']:
         """Returns the hard-coded initial mapping.
+
+        Args:
+            circuit: the input circuit with logical qubits.
 
         Returns:
             the hard-codded initial mapping.
