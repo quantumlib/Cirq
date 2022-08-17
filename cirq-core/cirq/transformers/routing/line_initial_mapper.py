@@ -14,7 +14,6 @@
 
 """Concrete implementation of AbstractInitialMapper that places lines of qubits onto the device."""
 
-from re import X
 from typing import Dict, Optional, TYPE_CHECKING
 import networkx as nx
 
