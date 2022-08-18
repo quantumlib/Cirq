@@ -161,7 +161,11 @@ class MappingManager:
 
     def __repr__(self) -> str:
         graph_type = type(self.device_graph).__name__
-        return f'cirq.MappingManager(nx.{graph_type}({dict(self.device_graph.adjacency())}), {self._map})'
+        return (
+            f'cirq.MappingManager('
+            f'nx.{graph_type}({dict(self.device_graph.adjacency())}),'
+            f' {self._map})'
+        )
 
     def _json_dict_(self) -> Dict[str, Any]:
         device_graph_payload = nx.readwrite.json_graph.node_link_data(self.device_graph)
