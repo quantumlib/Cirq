@@ -14,7 +14,7 @@
 
 """Manages the mapping from logical to physical qubits during a routing procedure."""
 
-from typing import Dict, Sequence, TYPE_CHECKING
+from typing import Dict, Sequence, Iterable, Tuple, Any, TYPE_CHECKING
 import networkx as nx
 
 from cirq import protocols, value, _compat
@@ -154,7 +154,20 @@ class MappingManager:
         return self.__repr__()
 
     def __repr__(self) -> str:
-        graph_type = 'nx.DiGraph' if nx.is_directed(self.device_graph) else 'nx.Graph'
+        graph_name = f'nx.{type(self.device_graph).__name__}'
         return (
-            f'cirq.MappingManager({graph_type}({dict(self.device_graph.adjacency())}), {self._map})'
+            f'cirq.MappingManager({graph_name}({dict(self.device_graph.adjacency())}), {self._map})'
         )
+
+    def _json_dict_(self) -> Dict[str, Any]:
+        device_graph_payload = nx.readwrite.json_graph.node_link_data(self.device_graph)
+        map_payload = sorted(list(self._map.items()))
+        return {'device_graph': device_graph_payload, 'initial_map': map_payload}
+
+    @classmethod
+    def _from_json_dict_(
+        cls, initial_map: Iterable[Tuple['cirq.Qid', 'cirq.Qid']], device_graph: nx.Graph, **kwargs
+    ):
+        device_graph_obj = nx.readwrite.json_graph.node_link_graph(device_graph)
+        initial_map_dict = {k: v for k, v in initial_map}
+        return cls(device_graph_obj, initial_map_dict)

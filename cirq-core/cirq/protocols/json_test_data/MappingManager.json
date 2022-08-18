@@ -1,0 +1,134 @@
+{
+  "cirq_type": "MappingManager",
+  "device_graph": {
+    "directed": false,
+    "multigraph": false,
+    "graph": {},
+    "nodes": [
+      {
+        "id": {
+          "cirq_type": "NamedQubit",
+          "name": "a"
+        }
+      },
+      {
+        "id": {
+          "cirq_type": "NamedQubit",
+          "name": "b"
+        }
+      },
+      {
+        "id": {
+          "cirq_type": "NamedQubit",
+          "name": "c"
+        }
+      },
+      {
+        "id": {
+          "cirq_type": "NamedQubit",
+          "name": "d"
+        }
+      },
+      {
+        "id": {
+          "cirq_type": "NamedQubit",
+          "name": "e"
+        }
+      }
+    ],
+    "links": [
+      {
+        "source": {
+          "cirq_type": "NamedQubit",
+          "name": "a"
+        },
+        "target": {
+          "cirq_type": "NamedQubit",
+          "name": "b"
+        }
+      },
+      {
+        "source": {
+          "cirq_type": "NamedQubit",
+          "name": "a"
+        },
+        "target": {
+          "cirq_type": "NamedQubit",
+          "name": "e"
+        }
+      },
+      {
+        "source": {
+          "cirq_type": "NamedQubit",
+          "name": "b"
+        },
+        "target": {
+          "cirq_type": "NamedQubit",
+          "name": "c"
+        }
+      },
+      {
+        "source": {
+          "cirq_type": "NamedQubit",
+          "name": "c"
+        },
+        "target": {
+          "cirq_type": "NamedQubit",
+          "name": "d"
+        }
+      },
+      {
+        "source": {
+          "cirq_type": "NamedQubit",
+          "name": "d"
+        },
+        "target": {
+          "cirq_type": "NamedQubit",
+          "name": "e"
+        }
+      }
+    ]
+  },
+  "initial_map": [
+    [
+      {
+        "cirq_type": "LineQubit",
+        "x": 1
+      },
+      {
+        "cirq_type": "NamedQubit",
+        "name": "a"
+      }
+    ],
+    [
+      {
+        "cirq_type": "LineQubit",
+        "x": 2
+      },
+      {
+        "cirq_type": "NamedQubit",
+        "name": "c"
+      }
+    ],
+    [
+      {
+        "cirq_type": "LineQubit",
+        "x": 3
+      },
+      {
+        "cirq_type": "NamedQubit",
+        "name": "b"
+      }
+    ],
+    [
+      {
+        "cirq_type": "LineQubit",
+        "x": 4
+      },
+      {
+        "cirq_type": "NamedQubit",
+        "name": "d"
+      }
+    ]
+  ]
+}
