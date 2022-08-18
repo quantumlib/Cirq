@@ -83,9 +83,8 @@ TestSpec = ModuleJsonTestSpec(
         # Transformers
         'TransformerLogger',
         'TransformerContext',
-        # Routing classes
-        'MappingManager',
-        'HardCodedInitialMapper',
+        # Abstract base case for creating initialm mapping strategyes for routing.
+        'AbstractInitialMapper',
         # global objects
         'CONTROL_TAG',
         'PAULI_BASIS',
