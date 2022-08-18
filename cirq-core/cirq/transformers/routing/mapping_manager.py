@@ -166,16 +166,3 @@ class MappingManager:
             f'nx.{graph_type}({dict(self.device_graph.adjacency())}),'
             f' {self._map})'
         )
-
-    def _json_dict_(self) -> Dict[str, Any]:
-        device_graph_payload = nx.readwrite.json_graph.node_link_data(self.device_graph)
-        map_payload = sorted(list(self._map.items()))
-        return {'device_graph': device_graph_payload, 'initial_map': map_payload}
-
-    @classmethod
-    def _from_json_dict_(
-        cls, initial_map: Iterable[Tuple['cirq.Qid', 'cirq.Qid']], device_graph: nx.Graph, **kwargs
-    ):
-        device_graph_obj = nx.readwrite.json_graph.node_link_graph(device_graph)
-        initial_map_dict = {k: v for k, v in initial_map}
-        return cls(device_graph_obj, initial_map_dict)

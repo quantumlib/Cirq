@@ -224,10 +224,3 @@ def test_str():
         str(mm)
         == f'cirq.MappingManager(nx.Graph({dict(device_graph.adjacency())}), {initial_mapping})'
     )
-
-
-def test_json():
-    device_graph, initial_mapping, _ = construct_device_graph_and_mapping()
-    mm = cirq.MappingManager(device_graph, initial_mapping)
-    str_rep = cirq.to_json(mm)
-    assert mm == cirq.read_json(json_text=str_rep)
