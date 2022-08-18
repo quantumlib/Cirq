@@ -36,11 +36,24 @@ class MappingManager:
     ) -> None:
         """Initializes MappingManager.
 
+        Sorts the nodes and edges in the device graph to guarantee graph equality. If undirected,
+        also sorts the nodes within each edge.
+
         Args:
             device_graph: connectivity graph of qubits in the hardware device.
             initial_mapping: the initial mapping of logical (keys) to physical qubits (values).
         """
-        self.device_graph = device_graph
+        if nx.is_directed(device_graph):
+            self.device_graph = nx.DiGraph()
+            self.device_graph.add_nodes_from(sorted(list(device_graph.nodes(data=True))))
+            self.device_graph.add_edges_from(sorted(list(device_graph.edges)))
+        else:
+            self.device_graph = nx.Graph()
+            self.device_graph.add_nodes_from(sorted(list(device_graph.nodes(data=True))))
+            self.device_graph.add_edges_from(
+                sorted(list(sorted(edge) for edge in device_graph.edges))
+            )
+
         self._map = initial_mapping.copy()
         self._inverse_map = {v: k for k, v in self._map.items()}
         self._induced_subgraph = nx.induced_subgraph(self.device_graph, self._map.values())
@@ -135,18 +148,11 @@ class MappingManager:
         return nx.shortest_path(self._induced_subgraph, pq1, pq2)
 
     def _value_equality_values_(self):
-        if nx.is_directed(self.device_graph):
-            graph_equality = (
-                tuple(sorted(self.device_graph.nodes)),
-                tuple(sorted(self.device_graph.edges)),
-                True,
-            )
-        else:
-            graph_equality = (
-                tuple(sorted(self.device_graph.nodes)),
-                tuple(sorted(tuple(sorted(edge)) for edge in self.device_graph.edges)),
-                False,
-            )
+        graph_equality = (
+            tuple(self.device_graph.nodes),
+            tuple(self.device_graph.edges),
+            nx.is_directed(self.device_graph),
+        )
         map_equality = tuple(sorted(self._map.items()))
         return (graph_equality, map_equality)
 
