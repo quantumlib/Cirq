@@ -35,13 +35,13 @@ def test_grid_device():
 def test_grid_op_validation():
     device = cirq.testing.construct_grid_device(5, 7)
 
-    with pytest.raises(ValueError, match="Qubit not on device"):
+    with pytest.raises(ValueError, match="Qubits not on device"):
         device.validate_operation(cirq.X(cirq.NamedQubit("a")))
-    with pytest.raises(ValueError, match="Qubit not on device"):
+    with pytest.raises(ValueError, match="Qubits not on device"):
         device.validate_operation(cirq.CNOT(cirq.NamedQubit("a"), cirq.GridQubit(0, 0)))
-    with pytest.raises(ValueError, match="Qubit not on device"):
+    with pytest.raises(ValueError, match="Qubits not on device"):
         device.validate_operation(cirq.CNOT(cirq.GridQubit(5, 4), cirq.GridQubit(4, 4)))
-    with pytest.raises(ValueError, match="Qubit not on device"):
+    with pytest.raises(ValueError, match="Qubits not on device"):
         device.validate_operation(cirq.CNOT(cirq.GridQubit(4, 7), cirq.GridQubit(4, 6)))
 
     with pytest.raises(ValueError, match="Qubit pair is not valid on device"):
@@ -50,7 +50,9 @@ def test_grid_op_validation():
         device.validate_operation(cirq.CNOT(cirq.GridQubit(2, 0), cirq.GridQubit(0, 0)))
 
     device.validate_operation(cirq.CNOT(cirq.GridQubit(0, 0), cirq.GridQubit(0, 1)))
+    device.validate_operation(cirq.CNOT(cirq.GridQubit(0, 1), cirq.GridQubit(0, 0)))
     device.validate_operation(cirq.CNOT(cirq.GridQubit(1, 0), cirq.GridQubit(0, 0)))
+    device.validate_operation(cirq.CNOT(cirq.GridQubit(0, 0), cirq.GridQubit(1, 0)))
 
 
 def test_ring_device():
@@ -75,9 +77,9 @@ def test_ring_op_validation():
     directed_device = cirq.testing.construct_ring_device(5, directed=True)
     undirected_device = cirq.testing.construct_ring_device(5, directed=False)
 
-    with pytest.raises(ValueError, match="Qubit not on device"):
+    with pytest.raises(ValueError, match="Qubits not on device"):
         directed_device.validate_operation(cirq.X(cirq.LineQubit(5)))
-    with pytest.raises(ValueError, match="Qubit not on device"):
+    with pytest.raises(ValueError, match="Qubits not on device"):
         undirected_device.validate_operation(cirq.X(cirq.LineQubit(5)))
 
     with pytest.raises(ValueError, match="Qubit pair is not valid on device"):
@@ -90,10 +92,27 @@ def test_ring_op_validation():
     directed_device.validate_operation(cirq.CNOT(cirq.LineQubit(0), cirq.LineQubit(1)))
 
 
+def test_allowed_multi_qubit_gates():
+    device = cirq.testing.construct_ring_device(5)
+
+    device.validate_operation(cirq.measure(cirq.LineQubit(0)))
+    device.validate_operation(cirq.measure(cirq.LineQubit.range(2)))
+    device.validate_operation(cirq.measure(cirq.LineQubit.range(3)))
+
+    with pytest.raises(
+        ValueError, match=f"Gate {cirq.CCNOT!r} is not supported on more than 2 qubits."
+    ):
+        device.validate_operation(cirq.CCNOT(*cirq.LineQubit.range(3)))
+
+    device.validate_operation(cirq.CNOT(*cirq.LineQubit.range(2)))
+
+
 def test_namedqubit_device():
-    nx_graph = nx.star_graph(10)
+    # 4-star graph
+    nx_graph = nx.Graph([("a", "b"), ("a", "c"), ("a", "d")])
+
     device = cirq.testing.RoutingTestingDevice(nx_graph)
     relabeled_graph = device.metadata.nx_graph
-    qubit_set = {cirq.NamedQubit(str(n)) for n in range(11)}
+    qubit_set = {cirq.NamedQubit(n) for n in "abcd"}
     assert set(relabeled_graph.nodes) == qubit_set
     assert nx.is_isomorphic(nx_graph, relabeled_graph)
