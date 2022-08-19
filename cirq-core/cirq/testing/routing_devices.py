@@ -13,9 +13,8 @@
 # limitations under the License.
 """Provides test devices that can validate circuits during a routing procedure."""
 
-from typing import Optional, TYPE_CHECKING
+from typing import Hashable, Optional, Dict, TYPE_CHECKING
 
-from importlib_metadata import metadata
 import networkx as nx
 
 from cirq import devices, ops
@@ -28,6 +27,7 @@ class RoutingTestingDevice(devices.Device):
     """Testing device to be used only for testing qubit connectivity in routing procedures."""
 
     def __init__(self, nx_graph: nx.Graph, qubit_type: str = 'NamedQubit') -> None:
+        relabeling_map: Dict[Hashable, 'cirq.Qid'] = {}
         if qubit_type == 'GridQubit':
             relabeling_map = {old: devices.GridQubit(*old) for old in nx_graph}
         elif qubit_type == 'LineQubit':
