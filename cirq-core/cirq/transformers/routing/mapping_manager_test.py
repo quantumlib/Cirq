@@ -162,8 +162,6 @@ def test_value_equality():
         ]
     )
     mm_edge_order = cirq.MappingManager(diff_edge_order, initial_mapping)
-    # print(mm._value_equality_values_())
-    # print(mm_edge_order._value_equality_values_())
     equals_tester.add_equality_group(mm, mm_edge_order)
 
     # same as 'device_graph' but with directed edges (DiGraph)
