@@ -99,7 +99,7 @@ from cirq.testing.repr_pretty_tester import (
 )
 
 from cirq.testing.routing_devices import (
-    construct_square_device,
+    construct_grid_device,
     construct_ring_device,
     RoutingTestingDevice,
 )
