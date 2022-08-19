@@ -44,6 +44,8 @@ from cirq.transformers.heuristic_decompositions import (
     two_qubit_gate_product_tabulation,
 )
 
+from cirq.transformers.routing import MappingManager
+
 from cirq.transformers.target_gatesets import (
     create_transformer_with_kwargs,
     CompilationTargetGateset,

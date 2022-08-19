@@ -346,6 +346,7 @@ from cirq.transformers import (
     eject_z,
     expand_composite,
     is_negligible_turn,
+    MappingManager,
     map_moments,
     map_operations,
     map_operations_and_unroll,

@@ -83,6 +83,8 @@ TestSpec = ModuleJsonTestSpec(
         # Transformers
         'TransformerLogger',
         'TransformerContext',
+        # Routing utilities
+        'MappingManager',
         # global objects
         'CONTROL_TAG',
         'PAULI_BASIS',
