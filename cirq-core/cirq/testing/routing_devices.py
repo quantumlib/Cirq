@@ -18,7 +18,7 @@ from typing import Optional, TYPE_CHECKING
 from importlib_metadata import metadata
 import networkx as nx
 
-from cirq import devices
+from cirq import devices, ops
 
 if TYPE_CHECKING:
     import cirq
@@ -33,7 +33,7 @@ class RoutingTestingDevice(devices.Device):
         elif qubit_type == 'LineQubit':
             relabeling_map = {old: devices.LineQubit(old) for old in nx_graph}
         else:
-            relabeling_map = {old: devices.NamedQubit(old) for old in nx_graph}
+            relabeling_map = {old: ops.NamedQubit(str(old)) for old in nx_graph}
 
         # Relabel nodes in-place.
         nx.relabel_nodes(nx_graph, relabeling_map, copy=False)
@@ -63,4 +63,5 @@ def construct_ring_device(l: int, directed: bool = False) -> RoutingTestingDevic
         nx_graph = nx.cycle_graph(l, create_using=nx.DiGraph)
     else:
         nx_graph = nx.cycle_graph(l)
+
     return RoutingTestingDevice(nx_graph, qubit_type="LineQubit")
