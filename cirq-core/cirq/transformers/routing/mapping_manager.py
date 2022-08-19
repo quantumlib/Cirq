@@ -156,9 +156,6 @@ class MappingManager:
         map_equality = tuple(sorted(self._map.items()))
         return (graph_equality, map_equality)
 
-    def __str__(self) -> str:
-        return self.__repr__()
-
     def __repr__(self) -> str:
         graph_type = type(self.device_graph).__name__
         return (
