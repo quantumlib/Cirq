@@ -41,7 +41,7 @@ def test_line_breaking_on_grid_device():
     #   -if # of physical qubits <= # of logical qubits then strategy should succeed
 
     step_circuit = construct_step_circuit(49)
-    device = cirq.testing.construct_square_device(7)
+    device = cirq.testing.construct_grid_device(7, 7)
     device_graph = device.metadata.nx_graph
     mapper = cirq.LineInitialMapper(device_graph)
     mapping = mapper.initial_mapping(step_circuit)
@@ -64,28 +64,28 @@ def test_line_breaking_on_grid_device():
 def test_small_circuit_on_grid_device():
     circuit = construct_small_circuit()
 
-    device_graph = cirq.testing.construct_square_device(7).metadata.nx_graph
+    device_graph = cirq.testing.construct_grid_device(7, 7).metadata.nx_graph
     mapper = cirq.LineInitialMapper(device_graph)
     mapping = mapper.initial_mapping(circuit)
 
     assert nx.center(device_graph)[0] == cirq.GridQubit(3, 3)
     mapped_circuit = circuit.transform_qubits(mapping)
-    diagram = """(3, 2): ───────────X───
-
-(3, 3): ───@───────────
-           │
-(4, 2): ───┼───────@───
-           │       │
-(4, 3): ───X───X───X───
+    diagram = """(2, 4): ───────@───────
                │
-(5, 3): ───────@───────"""
+(3, 2): ───────┼───X───
+               │
+(3, 3): ───@───┼───────
+           │   │
+(3, 4): ───X───X───X───
+                   │
+(4, 4): ───────────@───"""
     cirq.testing.assert_has_diagram(mapped_circuit, diagram)
 
 
 @pytest.mark.parametrize(
     "qubits, n_moments, op_density, random_state",
     [
-        (10 * size, 20 * size, density, seed)
+        (5 * size, 20 * size, density, seed)
         for size in range(1, 3)
         for seed in range(10)
         for density in [0.4, 0.5, 0.6]
@@ -97,7 +97,7 @@ def test_random_circuits_grid_device(
     c_orig = cirq.testing.random_circuit(
         qubits=qubits, n_moments=n_moments, op_density=op_density, random_state=random_state
     )
-    device = cirq.testing.construct_square_device(7)
+    device = cirq.testing.construct_grid_device(7, 7)
     device_graph = device.metadata.nx_graph
     mapper = cirq.LineInitialMapper(device_graph)
     mapping = mapper.initial_mapping(c_orig)
@@ -117,13 +117,15 @@ def test_value_equality():
     step_circuit = construct_step_circuit(5)
 
     # undirected
-    mapper_one = cirq.LineInitialMapper(cirq.testing.construct_square_device(7).metadata.nx_graph)
+    mapper_one = cirq.LineInitialMapper(cirq.testing.construct_grid_device(7, 7).metadata.nx_graph)
     mapper_one.initial_mapping(small_circuit)
-    mapper_two = cirq.LineInitialMapper(cirq.testing.construct_square_device(7).metadata.nx_graph)
+    mapper_two = cirq.LineInitialMapper(cirq.testing.construct_grid_device(7, 7).metadata.nx_graph)
     mapper_one.initial_mapping(step_circuit)
     equals_tester.add_equality_group(mapper_one, mapper_two)
 
-    mapper_three = cirq.LineInitialMapper(cirq.testing.construct_square_device(6).metadata.nx_graph)
+    mapper_three = cirq.LineInitialMapper(
+        cirq.testing.construct_grid_device(7, 6).metadata.nx_graph
+    )
     equals_tester.add_equality_group(mapper_three)
 
     # directed
@@ -144,12 +146,12 @@ def test_value_equality():
 
 
 def test_str():
-    device_graph = cirq.testing.construct_square_device(7).metadata.nx_graph
+    device_graph = cirq.testing.construct_grid_device(7, 7).metadata.nx_graph
     mapper = cirq.LineInitialMapper(device_graph)
     assert str(mapper) == f'cirq.LineInitialMapper(nx.Graph({dict(device_graph.adjacency())}))'
 
 
 def test_repr():
-    device_graph = cirq.testing.construct_square_device(7).metadata.nx_graph
+    device_graph = cirq.testing.construct_grid_device(7, 7).metadata.nx_graph
     mapper = cirq.LineInitialMapper(device_graph)
     cirq.testing.assert_equivalent_repr(mapper, setup_code='import cirq\nimport networkx as nx')
