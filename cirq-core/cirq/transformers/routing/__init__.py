@@ -14,4 +14,4 @@
 
 """Routing utilities in Cirq."""
 
-from cirq.transformers.routing.initial_mapper import AbstractInitialMapper, HardCodedInitialMapper
+from cirq.transformers.routing.initial_mapper import AbstractInitialMapper, HardCodedInitialMapper, MappingManager
