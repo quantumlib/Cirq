@@ -13,7 +13,7 @@
 # limitations under the License.
 """Provides test devices that can validate circuits during a routing procedure."""
 
-from typing import Dict, TYPE_CHECKING
+from typing import TYPE_CHECKING
 
 import networkx as nx
 
