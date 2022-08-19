@@ -14,6 +14,8 @@
 """Provides test devices that can validate circuits during a routing procedure."""
 
 from typing import Optional, TYPE_CHECKING
+
+from importlib_metadata import metadata
 import networkx as nx
 
 from cirq import devices
@@ -25,8 +27,18 @@ if TYPE_CHECKING:
 class RoutingTestingDevice(devices.Device):
     """Testing device to be used only for testing qubit connectivity in routing procedures."""
 
-    def __init__(self, metadata: devices.DeviceMetadata) -> None:
-        self._metadata = metadata
+    def __init__(self, nx_graph: nx.Graph, qubit_type: str = 'NamedQubit') -> None:
+        if qubit_type == 'GridQubit':
+            relabeling_map = {old: devices.GridQubit(*old) for old in nx_graph}
+        elif qubit_type == 'LineQubit':
+            relabeling_map = {old: devices.LineQubit(old) for old in nx_graph}
+        else:
+            relabeling_map = {old: devices.NamedQubit(old) for old in nx_graph}
+
+        # Relabel nodes in-place.
+        nx.relabel_nodes(nx_graph, relabeling_map, copy=False)
+
+        self._metadata = devices.DeviceMetadata(relabeling_map.values(), nx_graph)
 
     @property
     def metadata(self) -> Optional[devices.DeviceMetadata]:
@@ -41,35 +53,14 @@ class RoutingTestingDevice(devices.Device):
             raise ValueError(f'Qubit pair is not valid on device: {operation.qubits!r}.')
 
 
-def construct_square_device(d: int) -> RoutingTestingDevice:
-    qubits = devices.GridQubit.square(d)
-
-    nx_graph = nx.Graph()
-    row_edges = [
-        (devices.GridQubit(i, j), devices.GridQubit(i, j + 1))
-        for i in range(d)
-        for j in range(d - 1)
-    ]
-    col_edges = [
-        (devices.GridQubit(i, j), devices.GridQubit(i + 1, j))
-        for j in range(d)
-        for i in range(d - 1)
-    ]
-    nx_graph.add_edges_from(row_edges)
-    nx_graph.add_edges_from(col_edges)
-
-    metadata = devices.DeviceMetadata(qubits, nx_graph)
-    return RoutingTestingDevice(metadata)
+def construct_grid_device(m: int, n: int) -> RoutingTestingDevice:
+    return RoutingTestingDevice(nx.grid_2d_graph(m, n), qubit_type="GridQubit")
 
 
-def construct_ring_device(d: int, directed: bool = False) -> RoutingTestingDevice:
-    qubits = devices.LineQubit.range(d)
+def construct_ring_device(l: int, directed: bool = False) -> RoutingTestingDevice:
     if directed:
-        nx_graph = nx.DiGraph()
+        # If create_using is directed, the direction is in increasing order.
+        nx_graph = nx.cycle_graph(l, create_using=nx.DiGraph)
     else:
-        nx_graph = nx.Graph()
-    edges = [(qubits[i % d], qubits[(i + 1) % d]) for i in range(d)]
-    nx_graph.add_edges_from(edges)
-
-    metadata = devices.DeviceMetadata(qubits, nx_graph)
-    return RoutingTestingDevice(metadata)
+        nx_graph = nx.cycle_graph(l)
+    return RoutingTestingDevice(nx_graph, qubit_type="LineQubit")

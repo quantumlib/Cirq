@@ -16,16 +16,20 @@ import networkx as nx
 import cirq
 
 
-def test_square_device():
-    device = cirq.testing.construct_square_device(5)
-    device_graph = device.metadata.nx_graph
+def test_grid_device():
+    square_device = cirq.testing.construct_grid_device(5, 5)
+    square_device_graph = square_device.metadata.nx_graph
+    assert all(q in square_device_graph.nodes for q in cirq.GridQubit.square(5))
+    assert nx.is_isomorphic(nx.grid_2d_graph(5, 5), square_device_graph)
 
-    assert all(q in device_graph.nodes for q in cirq.GridQubit.square(5))
-    assert nx.is_isomorphic(nx.grid_2d_graph(5, 5), device_graph)
+    rect_device = cirq.testing.construct_grid_device(5, 7)
+    rect_device_graph = rect_device.metadata.nx_graph
+    assert all(q in rect_device_graph.nodes for q in cirq.GridQubit.rect(5, 7))
+    assert nx.is_isomorphic(nx.grid_2d_graph(5, 7), rect_device_graph)
 
 
-def test_square_op_validation():
-    device = cirq.testing.construct_square_device(5)
+def test_grid_op_validation():
+    device = cirq.testing.construct_grid_device(5, 7)
 
     with pytest.raises(ValueError, match="Qubit not on device"):
         device.validate_operation(cirq.X(cirq.NamedQubit("a")))
@@ -33,6 +37,8 @@ def test_square_op_validation():
         device.validate_operation(cirq.CNOT(cirq.NamedQubit("a"), cirq.GridQubit(0, 0)))
     with pytest.raises(ValueError, match="Qubit not on device"):
         device.validate_operation(cirq.CNOT(cirq.GridQubit(5, 4), cirq.GridQubit(4, 4)))
+    with pytest.raises(ValueError, match="Qubit not on device"):
+        device.validate_operation(cirq.CNOT(cirq.GridQubit(4, 7), cirq.GridQubit(4, 6)))
 
     with pytest.raises(ValueError, match="Qubit pair is not valid on device"):
         device.validate_operation(cirq.CNOT(cirq.GridQubit(0, 0), cirq.GridQubit(0, 2)))
@@ -44,11 +50,15 @@ def test_square_op_validation():
 
 
 def test_ring_device():
-    device = cirq.testing.construct_ring_device(5)
-    device_graph = device.metadata.nx_graph
+    undirected_device = cirq.testing.construct_ring_device(5)
+    undirected_device_graph = undirected_device.metadata.nx_graph
+    assert all(q in undirected_device_graph.nodes for q in cirq.LineQubit.range(5))
+    assert nx.is_isomorphic(nx.cycle_graph(5), undirected_device_graph)
 
-    assert all(q in device_graph.nodes for q in cirq.LineQubit.range(5))
-    assert nx.is_isomorphic(nx.cycle_graph(5), device_graph)
+    directed_device = cirq.testing.construct_ring_device(5, directed=True)
+    directed_device_graph = directed_device.metadata.nx_graph
+    assert all(q in directed_device_graph.nodes for q in cirq.LineQubit.range(5))
+    assert nx.is_isomorphic(nx.cycle_graph(5, create_using=nx.DiGraph), directed_device_graph)
 
 
 def test_ring_op_validation():
