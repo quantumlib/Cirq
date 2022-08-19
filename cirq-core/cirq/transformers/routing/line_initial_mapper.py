@@ -34,7 +34,18 @@ class LineInitialMapper(routing.AbstractInitialMapper):
         Args:
             device_graph: device graph
         """
-        self.device_graph = device_graph
+        # TODO: Tanuj, should this logic be done instead at the beginning of the routing transformer
+        # so that we don't have to repeat it for each InitialMapper and for the MappingManager?
+        if nx.is_directed(device_graph):
+            self.device_graph = nx.DiGraph()
+            self.device_graph.add_nodes_from(sorted(list(device_graph.nodes(data=True))))
+            self.device_graph.add_edges_from(sorted(list(device_graph.edges)))
+        else:
+            self.device_graph = nx.Graph()
+            self.device_graph.add_nodes_from(sorted(list(device_graph.nodes(data=True))))
+            self.device_graph.add_edges_from(
+                sorted(list(sorted(edge) for edge in device_graph.edges))
+            )
 
     def _make_circuit_graph(self, circuit: 'cirq.AbstractCircuit') -> nx.Graph:
         """Creates a (potentially incomplete) qubit connectivity graph of the circuit.
@@ -213,28 +224,14 @@ class LineInitialMapper(routing.AbstractInitialMapper):
                     return successor
         raise ValueError("No available physical qubits left on the device.")
 
-    # Tanuj, should this be made a helper method somewhere since it is the same code being used
-    # by MappingManager too (and likely subsequent initial mapping strategies)? Particularly,
-    # since there is no good way of representating a graph using a hashable object, the
-    # 'graph_equality' bit here can become standard or we can file an issue for it.
     def _value_equality_values_(self):
-        """Two LineInitialMapper(s) are equal if they execute on the same device graph."""
-        if nx.is_directed(self.device_graph):
-            return (
-                tuple(sorted(self.device_graph.nodes)),
-                tuple(sorted(self.device_graph.edges)),
-                True,
-            )
+        """Two LineInitialMappers are equal if they execute on the same device graph."""
         return (
-            tuple(sorted(self.device_graph.nodes)),
-            tuple(sorted(tuple(sorted(edge)) for edge in self.device_graph.edges)),
-            False,
+            tuple(self.device_graph.nodes),
+            tuple(self.device_graph.edges),
+            nx.is_directed(self.device_graph),
         )
 
-    def __str__(self):
-        return self.__repr__()
-
     def __repr__(self):
-        adj_dict = dict(self.device_graph.adjacency())
-        graph_type = 'nx.DiGraph' if nx.is_directed(self.device_graph) else 'nx.Graph'
-        return f'cirq.LineInitialMapper({graph_type}({adj_dict}))'
+        graph_type = type(self.device_graph).__name__
+        return f'cirq.LineInitialMapper(nx.{graph_type}({dict(self.device_graph.adjacency())}))'

@@ -70,15 +70,15 @@ def test_small_circuit_on_grid_device():
 
     assert nx.center(device_graph)[0] == cirq.GridQubit(3, 3)
     mapped_circuit = circuit.transform_qubits(mapping)
-    diagram = """(2, 4): ───────@───────
+    diagram = """(2, 3): ───────────X───
+
+(3, 3): ───@───────────
+           │
+(4, 2): ───┼───────@───
+           │       │
+(4, 3): ───X───X───X───
                │
-(3, 2): ───────┼───X───
-               │
-(3, 3): ───@───┼───────
-           │   │
-(3, 4): ───X───X───X───
-                   │
-(4, 4): ───────────@───"""
+(5, 3): ───────@───────"""
     cirq.testing.assert_has_diagram(mapped_circuit, diagram)
 
 
@@ -143,12 +143,6 @@ def test_value_equality():
         cirq.testing.construct_ring_device(6, directed=True).metadata.nx_graph
     )
     equals_tester.add_equality_group(mapper_three)
-
-
-def test_str():
-    device_graph = cirq.testing.construct_grid_device(7, 7).metadata.nx_graph
-    mapper = cirq.LineInitialMapper(device_graph)
-    assert str(mapper) == f'cirq.LineInitialMapper(nx.Graph({dict(device_graph.adjacency())}))'
 
 
 def test_repr():
