@@ -44,9 +44,9 @@ def test_grid_op_validation():
     with pytest.raises(ValueError, match="Qubits not on device"):
         device.validate_operation(cirq.CNOT(cirq.GridQubit(4, 7), cirq.GridQubit(4, 6)))
 
-    with pytest.raises(ValueError, match="Qubit pair is not valid on device"):
+    with pytest.raises(ValueError, match="Qubit pair is not a valid edge on device"):
         device.validate_operation(cirq.CNOT(cirq.GridQubit(0, 0), cirq.GridQubit(0, 2)))
-    with pytest.raises(ValueError, match="Qubit pair is not valid on device"):
+    with pytest.raises(ValueError, match="Qubit pair is not a valid edge on device"):
         device.validate_operation(cirq.CNOT(cirq.GridQubit(2, 0), cirq.GridQubit(0, 0)))
 
     device.validate_operation(cirq.CNOT(cirq.GridQubit(0, 0), cirq.GridQubit(0, 1)))
@@ -82,9 +82,9 @@ def test_ring_op_validation():
     with pytest.raises(ValueError, match="Qubits not on device"):
         undirected_device.validate_operation(cirq.X(cirq.LineQubit(5)))
 
-    with pytest.raises(ValueError, match="Qubit pair is not valid on device"):
+    with pytest.raises(ValueError, match="Qubit pair is not a valid edge on device"):
         undirected_device.validate_operation(cirq.CNOT(cirq.LineQubit(0), cirq.LineQubit(2)))
-    with pytest.raises(ValueError, match="Qubit pair is not valid on device"):
+    with pytest.raises(ValueError, match="Qubit pair is not a valid edge on device"):
         directed_device.validate_operation(cirq.CNOT(cirq.LineQubit(1), cirq.LineQubit(0)))
 
     undirected_device.validate_operation(cirq.CNOT(cirq.LineQubit(0), cirq.LineQubit(1)))
@@ -95,13 +95,11 @@ def test_ring_op_validation():
 def test_allowed_multi_qubit_gates():
     device = cirq.testing.construct_ring_device(5)
 
-    device.validate_operation(cirq.measure(cirq.LineQubit(0)))
-    device.validate_operation(cirq.measure(cirq.LineQubit.range(2)))
-    device.validate_operation(cirq.measure(cirq.LineQubit.range(3)))
+    device.validate_operation(cirq.MeasurementGate(1).on(cirq.LineQubit(0)))
+    device.validate_operation(cirq.MeasurementGate(2).on(*cirq.LineQubit.range(2)))
+    device.validate_operation(cirq.MeasurementGate(3).on(*cirq.LineQubit.range(3)))
 
-    with pytest.raises(
-        ValueError, match=f"Gate {cirq.CCNOT!r} is not supported on more than 2 qubits."
-    ):
+    with pytest.raises(ValueError, match=f"Unsupported operation"):
         device.validate_operation(cirq.CCNOT(*cirq.LineQubit.range(3)))
 
     device.validate_operation(cirq.CNOT(*cirq.LineQubit.range(2)))
