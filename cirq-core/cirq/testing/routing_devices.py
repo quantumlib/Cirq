@@ -46,11 +46,16 @@ class RoutingTestingDevice(devices.Device):
         if len(operation.qubits) > 1:
             if len(operation.qubits) == 2:
                 if operation.qubits not in self._metadata.nx_graph.edges:
-                    raise ValueError(f'Qubit pair is not valid on device: {operation.qubits!r}.')
+                    raise ValueError(
+                        f'Qubit pair is not a valid edge on device: {operation.qubits!r}.'
+                    )
                 return
 
-            if operation not in ops.GateFamily(ops.MeasurementGate):
-                raise ValueError(f'Gate {operation.gate!r} is not supported on more than 2 qubits.')
+            if not isinstance(operation.gate, ops.MeasurementGate):
+                raise ValueError(
+                    f'Unsupported operation: {operation}. '
+                    f'Routing device only supports 1 / 2 qubit operations.'
+                )
 
 
 def construct_grid_device(m: int, n: int) -> RoutingTestingDevice:
