@@ -177,8 +177,7 @@ class Heatmap:
             "annotation_format",
         ]
         valid_kwargs = (
-            ["selected_qubits"]
-            + valid_colorbar_kwargs
+            valid_colorbar_kwargs
             + valid_collection_kwargs
             + valid_heatmap_kwargs
             + self._extra_valid_kwargs()
@@ -189,7 +188,6 @@ class Heatmap:
 
     def update_config(self, **kwargs) -> 'Heatmap':
         """Add/Modify **kwargs args passed during initialisation."""
-        # return kwargs
         self._validate_kwargs(kwargs)
         self._config.update(kwargs)
         return self
@@ -264,14 +262,15 @@ class Heatmap:
             ax.text(x, y, annotation, **text_kwargs)
 
     def _highlight_selected_qubits(self) -> None:
-        if self._config.get("selected_qubits") is not None:
-            # if type(self._config["selected_qubits"][0]) == grid_qubit.GridQubit:
+        # print("LIST:", list(self._grid_qubit_value_map.keys()))
 
-            self._config["collection_options"]["edge_colors"] = tuple(
+        if self._config.get("selected_qubits") is not None:
+
+            self._config["collection_options"]["edgecolors"] = tuple(
                 'red' if q in self._config["selected_qubits"] else 'grey'
                 for q in list(self._grid_qubit_value_map.keys())
             )
-            self._config["collection_options"]["linestyle"] = tuple(
+            self._config["collection_options"]["linestyles"] = tuple(
                 'solid' if q in self._config["selected_qubits"] else 'dashed'
                 for q in list(self._grid_qubit_value_map.keys())
             )
@@ -279,12 +278,11 @@ class Heatmap:
                 4 if q in self._config["selected_qubits"] else 2
                 for q in list(self._grid_qubit_value_map.keys())
             )
-            # else:
-            #     self._config["collection_options"]["edge_colors"] = tuple('red' if q in self._config["selected_qubits"] else 'grey' for q in list(self._value_map.keys()))
-            #     self._config["collection_options"]["linestyle"] = tuple('solid' if q in self._config["selected_qubits"] else 'dashed' for q in list(self._value_map.keys()))
-            #     self._config["collection_options"]["linewidths"] = tuple(4 if q in self._config["selected_qubits"] else 2 for q in list(self._value_map.keys()))
+        else:
+            return
 
     def _plot_on_axis(self, ax: plt.Axes) -> mpl_collections.Collection:
+        self._highlight_selected_qubits()
         # Step-1: Convert value_map to a list of polygons to plot.
         polygon_list = self._get_polygon_units()
         collection: mpl_collections.Collection = mpl_collections.PolyCollection(
@@ -320,8 +318,7 @@ class Heatmap:
             ax.set_title(self._config["title"], fontweight='bold')
 
         # Step-7: Highlight selected qubits
-        self._config.get("selected_qubits")
-        # self._highlight_selected_qubits()
+
         return collection
 
     def plot(
@@ -339,14 +336,17 @@ class Heatmap:
             is plotted on. ``collection`` is the collection of paths drawn and filled.
         """
         show_plot = not ax
-        print(kwargs)
         if not ax:
             fig, ax = plt.subplots(figsize=(8, 8))
         original_config = copy.deepcopy(self._config)
         self.update_config(**kwargs)
+
         collection = self._plot_on_axis(ax)
+        # self.update_config(**kwargs)
+        plt.savefig("mygraph.png")
         if show_plot:
             fig.show()
+
         self._config = original_config
         return (ax, collection)
 

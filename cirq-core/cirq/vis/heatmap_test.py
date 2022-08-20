@@ -343,8 +343,13 @@ def test_plot_updates_local_config():
 
 #The other test would be to see if I dont have selected_qubits 
 # the default behavious is unchanged
+    
+from unittest.mock import patch 
+import pytest 
+import matplotlib.pyplot as plt 
 
-def test_selected_qubits(ax):
+
+def test_selected_qubits():
     fig, ax = plt.subplots(figsize=(12, 10))
     row_col_list = [(0, 5), (8, 1), (7, 0), (13, 5), (1, 6), (3, 2), (2, 8)]
     qubits = [grid_qubit.GridQubit(row, col) for (row, col) in row_col_list]
@@ -355,29 +360,22 @@ def test_selected_qubits(ax):
 
     test_selected_qubits = [grid_qubit.GridQubit(0, 5), grid_qubit.GridQubit(8,1)]
 
-    _, random_heatmap = heatmap.Heatmap(test_value_map, selected_qubits = test_selected_qubits ).plot(ax)
+    # _, random_heatmap = heatmap.Heatmap(test_value_map ).plot(ax)
     # _, mesh = random_heatmap.plot(ax)
 
-    print(random_heatmap.format_cursor_data("collection_options"))    
+    # print(random_heatmap.format_cursor_data("collection_options"))    
     # Do it manually and compare it to our new functionality
     # print(random_heatmap)
     edge_colors = tuple('red' if q in test_selected_qubits else 'grey' for q in list(test_value_map.keys()))
     linestyle = tuple('solid' if q in test_selected_qubits else 'dashed' for q in list(test_value_map.keys()))
     linewidths = tuple(4 if q in test_selected_qubits else 2 for q in list(test_value_map.keys()))
-
-
+   
     random_heatmap_2 = heatmap.Heatmap(test_value_map ).plot(
         ax=ax,
         collection_options={
         'cmap': 'binary',
-        'linewidths': linewidths,
-        'edgecolors': edge_colors,
-        'linestyles': linestyle,
         },
+        selected_qubits = test_selected_qubits
     )
-    print(random_heatmap_2)
-    # assert random_heatmap._plot_on_axis(ax) == random_heatmap_2._plot_on_axis(ax)
+    assert 1==2
     
-    
-
-    assert(1==2)
