@@ -86,6 +86,7 @@ TestSpec = ModuleJsonTestSpec(
         # Routing utilities
         'HardCodedInitialMapper',
         'MappingManager',
+        'RouteCQC',
         # global objects
         'CONTROL_TAG',
         'PAULI_BASIS',
