@@ -98,4 +98,10 @@ from cirq.testing.repr_pretty_tester import (
     FakePrinter,
 )
 
+from cirq.testing.routing_devices import (
+    construct_grid_device,
+    construct_ring_device,
+    RoutingTestingDevice,
+)
+
 from cirq.testing.sample_circuits import nonoptimal_toffoli_circuit
