@@ -14,7 +14,6 @@
 
 """Concrete implementation of AbstractInitialMapper that places lines of qubits onto the device."""
 
-from audioop import reverse
 from typing import Dict, List, Set, TYPE_CHECKING
 import networkx as nx
 
