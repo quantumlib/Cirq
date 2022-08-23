@@ -51,6 +51,7 @@ def test_line_breaking_on_grid_device():
     assert set(mapping.keys()) == set(step_circuit.all_qubits())
 
     # the first two moments are executable
+    print(mapped_circuit)
     device.validate_circuit(mapped_circuit[:2])
 
     # the induced graph of the device on the physical qubits in the map is connected
