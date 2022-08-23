@@ -126,6 +126,7 @@ class LineInitialMapper(AbstractInitialMapper):
         qubit_map: Dict['cirq.Qid', 'cirq.Qid'] = {}
         circuit_graph = self._make_circuit_graph(circuit)
         physical_center = nx.center(self.device_graph)[0]
+        print(f'circuit_graph: {circuit_graph}')
 
         def next_physical(current_physical: 'cirq.Qid') -> 'cirq.Qid':
             # Greedily map to highest degree neighbor that that is available
@@ -149,6 +150,7 @@ class LineInitialMapper(AbstractInitialMapper):
                 break
 
             for lq in logical_line:
+                print(f'current physical: {pq}')
                 self.mapped_physicals.add(pq)
                 qubit_map[lq] = pq
                 # Edge case: if mapping n qubits on an n-qubit device should not call next_physical
@@ -160,6 +162,7 @@ class LineInitialMapper(AbstractInitialMapper):
             lq = circuit_graph[i][0]
             partner = qubit_map[self.partners[lq]] if lq in self.partners else physical_center
             pq = self._closest_unmapped_qubit(partner)
+            print(f'current (isolated) physical: {pq}')
             self.mapped_physicals.add(pq)
             qubit_map[lq] = pq
 
