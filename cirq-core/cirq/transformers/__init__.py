@@ -47,6 +47,7 @@ from cirq.transformers.heuristic_decompositions import (
 from cirq.transformers.routing import (
     AbstractInitialMapper,
     HardCodedInitialMapper,
+    LineInitialMapper,
     MappingManager,
     RouteCQC,
 )

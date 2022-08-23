@@ -85,6 +85,7 @@ TestSpec = ModuleJsonTestSpec(
         'TransformerContext',
         # Routing utilities
         'HardCodedInitialMapper',
+        'LineInitialMapper',
         'MappingManager',
         'RouteCQC',
         # global objects
