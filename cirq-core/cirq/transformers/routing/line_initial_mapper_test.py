@@ -45,7 +45,6 @@ def test_line_breaking_on_grid_device():
     device_graph = device.metadata.nx_graph
     mapper = cirq.LineInitialMapper(device_graph)
     mapping = mapper.initial_mapping(step_circuit)
-    mapped_circuit = step_circuit.transform_qubits(mapping)
 
     # all qubits in the input circuit are placed on the device
     assert set(mapping.keys()) == set(step_circuit.all_qubits())
@@ -98,7 +97,6 @@ def test_random_circuits_grid_device(
     device_graph = device.metadata.nx_graph
     mapper = cirq.LineInitialMapper(device_graph)
     mapping = mapper.initial_mapping(c_orig)
-    mapped_circuit = c_orig.transform_qubits(mapping)
 
     assert set(mapping.keys()) == set(c_orig.all_qubits())
     assert nx.is_connected(nx.induced_subgraph(device_graph, mapping.values()))
