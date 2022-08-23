@@ -70,17 +70,15 @@ def test_small_circuit_on_grid_device():
 
     assert nx.center(device_graph)[0] == cirq.GridQubit(3, 3)
     mapped_circuit = circuit.transform_qubits(mapping)
-    diagram = """                   ┌──┐
-(2, 1): ────────────@─────
-                    │
-(2, 2): ───────@────┼─────
-               │    │
-(2, 3): ───────┼────┼X────
-               │    │
-(3, 2): ───X───X────X─────
+    diagram = """(2, 2): ───@───────────
            │
-(3, 3): ───@──────────────
-                   └──┘   """
+(2, 3): ───┼───────X───
+           │
+(3, 2): ───X───X───X───
+               │   │
+(3, 3): ───────@───┼───
+                   │
+(4, 2): ───────────@───"""
     cirq.testing.assert_has_diagram(mapped_circuit, diagram)
 
 
@@ -104,10 +102,6 @@ def test_random_circuits_grid_device(
     mapper = cirq.LineInitialMapper(device_graph)
     mapping = mapper.initial_mapping(c_orig)
     c_mapped = c_orig.transform_qubits(mapping)
-
-    print("\n", c_orig, sep="")
-    print(mapping)
-    print(c_mapped)
 
     assert set(mapping.keys()) == set(c_orig.all_qubits())
 

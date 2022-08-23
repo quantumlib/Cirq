@@ -14,6 +14,7 @@
 
 """Concrete implementation of AbstractInitialMapper that places lines of qubits onto the device."""
 
+from audioop import reverse
 from typing import Dict, List, Set, TYPE_CHECKING
 import networkx as nx
 
@@ -72,21 +73,32 @@ class LineInitialMapper(AbstractInitialMapper):
             if q1 not in self.partners:
                 self.partners[q1] = q0
 
-            if not (degree_lt_two(q0) and degree_lt_two(q0) and c0 != c1):
+            if not (degree_lt_two(q0) and degree_lt_two(q1) and c0 != c1):
                 continue
 
-            # Make sure c0 is the index of the largest component.
+            # Make sure c0/q0 are for the largest component.
             if len(circuit_graph[c0]) < len(circuit_graph[c1]):
                 c0, c1, q0, q1 = c1, c0, q1, q0
 
-            # TODO: optimize this
+            # copy smaller component into larger one.
             if circuit_graph[c0][0] == q0:
-                circuit_graph[c0] = circuit_graph[c0][::-1]
-            if circuit_graph[c1][-1] == q1:
-                circuit_graph[c1] = circuit_graph[c1][::-1]
-            for q in circuit_graph[c1]:
-                circuit_graph[c0].append(q)
-                component_id[q] = c0
+                if circuit_graph[c1][0] == q1:
+                    for q in circuit_graph[c1]:
+                        circuit_graph[c0].insert(0, q)
+                        component_id[q] = c0
+                else:
+                    for q in reversed(circuit_graph[c1]):
+                        circuit_graph[c0].insert(0, q)
+                        component_id[q] = c0
+            else:
+                if circuit_graph[c1][0] == q1:
+                    for q in circuit_graph[c1]:
+                        circuit_graph[c0].append(q)
+                        component_id[q] = c0
+                else:
+                    for q in reversed(circuit_graph[c1]):
+                        circuit_graph[c0].append(q)
+                        component_id[q] = c0
 
         return sorted([circuit_graph[c] for c in set(component_id.values())], key=len, reverse=True)
 
@@ -114,7 +126,6 @@ class LineInitialMapper(AbstractInitialMapper):
         """
         qubit_map: Dict['cirq.Qid', 'cirq.Qid'] = {}
         circuit_graph = self._make_circuit_graph(circuit)
-        print(circuit_graph)
         physical_center = nx.center(self.device_graph)[0]
 
         def next_physical(current_physical: 'cirq.Qid') -> 'cirq.Qid':
@@ -132,10 +143,10 @@ class LineInitialMapper(AbstractInitialMapper):
             return self._closest_unmapped_qubit(physical_center)
 
         pq = physical_center
-        isolated_idx = len(circuit_graph)
+        first_isolated_idx = len(circuit_graph)
         for idx, logical_line in enumerate(circuit_graph):
             if len(logical_line) == 1:
-                isolated_idx = idx
+                first_isolated_idx = idx
                 break
 
             for lq in logical_line:
@@ -146,12 +157,12 @@ class LineInitialMapper(AbstractInitialMapper):
                 if len(circuit.all_qubits()) != len(self.mapped_physicals):
                     pq = next_physical(pq)
 
-        for i in range(isolated_idx, len(circuit_graph)):
+        for i in range(first_isolated_idx, len(circuit_graph)):
             lq = circuit_graph[i][0]
             partner = qubit_map[self.partners[lq]] if lq in self.partners else physical_center
-            physical = self._closest_unmapped_qubit(partner)
-            self.mapped_physicals.add(physical)
-            qubit_map[lq] = physical
+            pq = self._closest_unmapped_qubit(partner)
+            self.mapped_physicals.add(pq)
+            qubit_map[lq] = pq
 
         return qubit_map
 
