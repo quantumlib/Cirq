@@ -70,15 +70,17 @@ def test_small_circuit_on_grid_device():
 
     assert nx.center(device_graph)[0] == cirq.GridQubit(3, 3)
     mapped_circuit = circuit.transform_qubits(mapping)
-    diagram = """(2, 3): ───────────X───
-
-(3, 3): ───@───────────
+    diagram = """                   ┌──┐
+(2, 1): ────────────@─────
+                    │
+(2, 2): ───────@────┼─────
+               │    │
+(2, 3): ───────┼────┼X────
+               │    │
+(3, 2): ───X───X────X─────
            │
-(4, 2): ───┼───────@───
-           │       │
-(4, 3): ───X───X───X───
-               │
-(5, 3): ───────@───────"""
+(3, 3): ───@──────────────
+                   └──┘   """
     cirq.testing.assert_has_diagram(mapped_circuit, diagram)
 
 
@@ -103,46 +105,15 @@ def test_random_circuits_grid_device(
     mapping = mapper.initial_mapping(c_orig)
     c_mapped = c_orig.transform_qubits(mapping)
 
+    print("\n", c_orig, sep="")
+    print(mapping)
+    print(c_mapped)
+
     assert set(mapping.keys()) == set(c_orig.all_qubits())
 
     device.validate_circuit(c_mapped[:2])
 
     assert nx.is_connected(nx.induced_subgraph(device_graph, mapping.values()))
-
-
-def test_value_equality():
-    equals_tester = cirq.testing.EqualsTester()
-
-    small_circuit = construct_small_circuit()
-    step_circuit = construct_step_circuit(5)
-
-    # undirected
-    mapper_one = cirq.LineInitialMapper(cirq.testing.construct_grid_device(7, 7).metadata.nx_graph)
-    mapper_one.initial_mapping(small_circuit)
-    mapper_two = cirq.LineInitialMapper(cirq.testing.construct_grid_device(7, 7).metadata.nx_graph)
-    mapper_one.initial_mapping(step_circuit)
-    equals_tester.add_equality_group(mapper_one, mapper_two)
-
-    mapper_three = cirq.LineInitialMapper(
-        cirq.testing.construct_grid_device(7, 6).metadata.nx_graph
-    )
-    equals_tester.add_equality_group(mapper_three)
-
-    # directed
-    mapper_one = cirq.LineInitialMapper(
-        cirq.testing.construct_ring_device(7, directed=True).metadata.nx_graph
-    )
-    mapper_one.initial_mapping(small_circuit)
-    mapper_two = cirq.LineInitialMapper(
-        cirq.testing.construct_ring_device(7, directed=True).metadata.nx_graph
-    )
-    mapper_two.initial_mapping(step_circuit)
-    equals_tester.add_equality_group(mapper_one, mapper_two)
-
-    mapper_three = cirq.LineInitialMapper(
-        cirq.testing.construct_ring_device(6, directed=True).metadata.nx_graph
-    )
-    equals_tester.add_equality_group(mapper_three)
 
 
 def test_repr():

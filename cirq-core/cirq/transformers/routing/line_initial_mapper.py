@@ -14,18 +14,17 @@
 
 """Concrete implementation of AbstractInitialMapper that places lines of qubits onto the device."""
 
-from typing import Dict, Optional, TYPE_CHECKING
+from typing import Dict, List, Set, TYPE_CHECKING
 import networkx as nx
 
-from cirq import value, _compat
-from cirq.transformers import routing
+from cirq.transformers.routing import AbstractInitialMapper
+from cirq import protocols
 
 if TYPE_CHECKING:
     import cirq
 
 
-@value.value_equality
-class LineInitialMapper(routing.AbstractInitialMapper):
+class LineInitialMapper(AbstractInitialMapper):
     """Places logical qubits in the circuit onto physical qubits on the device."""
 
     def __init__(self, device_graph: nx.Graph) -> None:
@@ -34,55 +33,62 @@ class LineInitialMapper(routing.AbstractInitialMapper):
         Args:
             device_graph: device graph
         """
-        # TODO: Tanuj, should this logic be done instead at the beginning of the routing transformer
-        # so that we don't have to repeat it for each InitialMapper and for the MappingManager?
-        if nx.is_directed(device_graph):
-            self.device_graph = nx.DiGraph()
-            self.device_graph.add_nodes_from(sorted(list(device_graph.nodes(data=True))))
-            self.device_graph.add_edges_from(sorted(list(device_graph.edges)))
-        else:
-            self.device_graph = nx.Graph()
-            self.device_graph.add_nodes_from(sorted(list(device_graph.nodes(data=True))))
-            self.device_graph.add_edges_from(
-                sorted(list(sorted(edge) for edge in device_graph.edges))
-            )
+        self.device_graph = device_graph
+        self.mapped_physicals: Set['cirq.Qid'] = set()
+        self.partners: Dict['cirq.Qid', 'cirq.Qid'] = {}
 
-    def _make_circuit_graph(self, circuit: 'cirq.AbstractCircuit') -> nx.Graph:
+    def _make_circuit_graph(self, circuit: 'cirq.AbstractCircuit') -> List[List['cirq.Qid']]:
         """Creates a (potentially incomplete) qubit connectivity graph of the circuit.
 
-        Iterates over the moments circuit from left to right drawing edges between logical qubits
-        that:
-            (1) have degree < 2, and
-            (2) that are involved in a 2-qubit operation in the current moment.
-        At this point the graph is forest of paths and/or simple cycles. For each simple cycle, make
-        it a path by removing the last edge that was added to it.
+        Iterates over moments in the circuit from left to right and adds edges between logical
+        qubits if the logical qubit pair l1 and l2
+            (1) have degree < 2,
+            (2) are involved in a 2-qubit operation in the current moment, and
+            (3) adding such an edge will not produce a cycle in the graph.
 
         Args:
             circuit: the input circuit with logical qubits
 
         Returns:
-            The (potentially incomplete) qubit connectivity graph of the circuit.
+            The (potentially incomplete) qubit connectivity graph of the circuit, which is
+                guaranteed to be a forest of line graphs.
         """
-        circuit_graph = nx.Graph()
-        edge_order = 0
+        circuit_graph: List[List['cirq.Qid']] = [[q] for q in sorted(circuit.all_qubits())]
+        component_id: Dict['cirq.Qid', int] = {q[0]: i for i, q in enumerate(circuit_graph)}
+
+        def degree_lt_two(q: 'cirq.Qid'):
+            return any(circuit_graph[component_id[q]][i] == q for i in [-1, 0])
+
         for op in circuit.all_operations():
-            circuit_graph.add_nodes_from(op.qubits)
-            if len(op.qubits) == 2 and all(
-                circuit_graph.degree[op.qubits[i]] < 2 for i in range(2)
-            ):
-                circuit_graph.add_edge(*op.qubits, edge_order=edge_order)
-                edge_order += 1
-        found = True
-        while found:
-            try:
-                cycle = nx.find_cycle(circuit_graph)
-                edge_to_remove = max(
-                    cycle, key=lambda x: circuit_graph.edges[x[0], x[1]]['edge_order']
-                )
-                circuit_graph.remove_edge(*edge_to_remove)
-            except nx.exception.NetworkXNoCycle:
-                found = False
-        return circuit_graph
+            if protocols.num_qubits(op) != 2:
+                continue
+
+            q0, q1 = op.qubits
+            c0, c1 = component_id[q0], component_id[q1]
+
+            # Keep track of partners for mapping isolated qubits later.
+            if q0 not in self.partners:
+                self.partners[q0] = q1
+            if q1 not in self.partners:
+                self.partners[q1] = q0
+
+            if not (degree_lt_two(q0) and degree_lt_two(q0) and c0 != c1):
+                continue
+
+            # Make sure c0 is the index of the largest component.
+            if len(circuit_graph[c0]) < len(circuit_graph[c1]):
+                c0, c1, q0, q1 = c1, c0, q1, q0
+            
+            #TODO: optimize this
+            if circuit_graph[c0][0] == q0:
+                circuit_graph[c0] = circuit_graph[c0][::-1]
+            if circuit_graph[c1][-1] == q1:
+                circuit_graph[c1] = circuit_graph[c1][::-1]
+            for q in circuit_graph[c1]:
+                circuit_graph[c0].append(q)
+                component_id[q] = c0
+
+        return sorted([circuit_graph[c] for c in set(component_id.values())], key=len, reverse=True)
 
     def initial_mapping(self, circuit: 'cirq.AbstractCircuit') -> Dict['cirq.Qid', 'cirq.Qid']:
         """Maps disjoint lines of logical qubits onto lines of physical qubits.
@@ -96,21 +102,8 @@ class LineInitialMapper(routing.AbstractInitialMapper):
             (ii)  Find another high degree vertex in G near the center.
             (iii) Map the second line segment
             (iv)  etc.
-
-        Args:
-            circuit: the input circuit with logical qubits
-
-        Returns:
-            a dictionary that maps logical qubits in the circuit (keys) to physical qubits on the
-            device (values).
-        """
-        return self._initial_mapping(circuit.freeze())
-
-    @_compat.cached_method
-    def _initial_mapping(self, circuit: 'cirq.FrozenCircuit') -> Dict['cirq.Qid', 'cirq.Qid']:
-        """Maps disjoint lines of logical qubits onto lines of physical qubits.
-
-        Helper for 'initial_mapping' that takes a (hashable) frozen circuit to cache the result.
+        A line is split by mapping the next logical qubit to the nearest available physical qubit
+        to the center of the device graph.
 
         Args:
             circuit: the input circuit with logical qubits
@@ -121,90 +114,46 @@ class LineInitialMapper(routing.AbstractInitialMapper):
         """
         qubit_map: Dict['cirq.Qid', 'cirq.Qid'] = {}
         circuit_graph = self._make_circuit_graph(circuit)
+        print(circuit_graph)
         physical_center = nx.center(self.device_graph)[0]
 
         def next_physical(current_physical: 'cirq.Qid') -> 'cirq.Qid':
-            # use current physical if last logical line ended before mapping to it.
-            if self.device_graph.nodes[current_physical]["mapped"] is False:
-                return current_physical
-            # else greedily map to highest degree neighbor that that is available
+            # Greedily map to highest degree neighbor that that is available
             sorted_neighbors = sorted(
                 self.device_graph.neighbors(current_physical),
                 key=lambda x: self.device_graph.degree(x),
+                reverse=True
             )
-            for neighbor in reversed(sorted_neighbors):
-                if self.device_graph.nodes[neighbor]["mapped"] is False:
+            for neighbor in sorted_neighbors:
+                if neighbor not in self.mapped_physicals:
                     return neighbor
-            # if cannot map onto one long line of physical qubits, then break down into multiple
+            # If cannot map onto one long line of physical qubits, then break down into multiple
             # small lines by finding nearest available qubit to the physical center
             return self._closest_unmapped_qubit(physical_center)
 
-        def next_logical(current_logical: 'cirq.Qid') -> Optional['cirq.Qid']:
-            for neighbor in circuit_graph.neighbors(current_logical):
-                if circuit_graph.nodes[neighbor]["mapped"] is False:
-                    return neighbor
-            return None
+        pq = physical_center
+        isolated_idx = len(circuit_graph)
+        for idx, logical_line in enumerate(circuit_graph):
+            if len(logical_line) == 1:
+                isolated_idx = idx
+                break
 
-        for pq in self.device_graph.nodes:
-            self.device_graph.nodes[pq]["mapped"] = False
-        for lq in circuit_graph.nodes:
-            circuit_graph.nodes[lq]["mapped"] = False
+            for lq in logical_line:
+                self.mapped_physicals.add(pq)
+                qubit_map[lq] = pq
+                # Edge case: if mapping n qubits on an n-qubit device should not call next_physical
+                # when finished mapping the last logical qubit else will raise an error 
+                if len(circuit.all_qubits()) != len(self.mapped_physicals):
+                    pq = next_physical(pq)
 
-        current_physical = physical_center
-        for logical_cc in nx.connected_components(circuit_graph):
-            if len(logical_cc) == 1:
-                continue
-            # logical_cc is a set, make it a sorted list to guarantee deterministic behavior
-            logical_cc = sorted(logical_cc)
+        for i in range(isolated_idx, len(circuit_graph)):
+            lq = circuit_graph[i][0]
+            partner = qubit_map[self.partners[lq]] if lq in self.partners else physical_center
+            physical = self._closest_unmapped_qubit(partner)
+            self.mapped_physicals.add(physical)
+            qubit_map[lq] = physical
 
-            current_physical = next_physical(current_physical)
-            # start by mapping a logical line from one of its endpoints.
-            current_logical = next(q for q in logical_cc if circuit_graph.degree(q) == 1)
-
-            while current_logical is not None:
-                self.device_graph.nodes[current_physical]["mapped"] = True
-                circuit_graph.nodes[current_logical]["mapped"] = True
-                qubit_map[current_logical] = current_physical
-                current_logical = next_logical(current_logical)
-                if current_logical is not None:
-                    current_physical = next_physical(current_physical)
-
-        self._map_remaining_qubits(circuit, circuit_graph, qubit_map)
         return qubit_map
-
-    def _map_remaining_qubits(
-        self,
-        circuit: 'cirq.AbstractCircuit',
-        circuit_graph: nx.Graph,
-        qubit_map: Dict['cirq.Qid', 'cirq.Qid'],
-    ) -> None:
-        """Maps remaining qubits that are not incident to edges in the circuit_graph.
-
-        First maps logical qubits that interact in circuit but have missing edges in the circuit
-        graph. Then maps logical qubits that don't interact with any other logical qubits in the
-        circuit.
-
-        Args:
-            circuit_graph: the (potentially incomplete) qubit connectivity graph of the circuit.
-            qubit_map: the mapping of logical to physical qubits done so far.
-        """
-        for op in circuit.all_operations():
-            if len(op.qubits) == 2:
-                q1, q2 = op.qubits
-                if q1 not in qubit_map.keys():
-                    physical = self._closest_unmapped_qubit(qubit_map[q2])
-                    qubit_map[q1] = physical
-                    self.device_graph.nodes[physical]["mapped"] = True
-                # 'elif' because at least one must be mapped already
-                elif q2 not in qubit_map.keys():
-                    physical = self._closest_unmapped_qubit(qubit_map[q1])
-                    qubit_map[q2] = physical
-                    self.device_graph.nodes[physical]["mapped"] = True
-
-        for isolated_qubit in (q for q in circuit_graph.nodes if q not in qubit_map):
-            physical = self._closest_unmapped_qubit(qubit_map[next(iter(qubit_map))])
-            qubit_map[isolated_qubit] = physical
-            self.device_graph.nodes[physical]["mapped"] = True
 
     def _closest_unmapped_qubit(self, source: 'cirq.Qid') -> 'cirq.Qid':
         """Finds the closest available neighbor to a physical qubit 'source' on the device.
@@ -220,17 +169,12 @@ class LineInitialMapper(routing.AbstractInitialMapper):
         """
         for _, successors in nx.bfs_successors(self.device_graph, source):
             for successor in successors:
-                if self.device_graph.nodes[successor]["mapped"] is False:
+                if successor not in self.mapped_physicals:
                     return successor
         raise ValueError("No available physical qubits left on the device.")
 
-    def _value_equality_values_(self):
-        """Two LineInitialMappers are equal if they execute on the same device graph."""
-        return (
-            tuple(self.device_graph.nodes),
-            tuple(self.device_graph.edges),
-            nx.is_directed(self.device_graph),
-        )
+    def __eq__(self, other) -> bool:
+        return nx.utils.graphs_equal(self.device_graph, other.device_graph)
 
     def __repr__(self):
         graph_type = type(self.device_graph).__name__

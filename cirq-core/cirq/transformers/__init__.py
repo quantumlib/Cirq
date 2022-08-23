@@ -46,10 +46,10 @@ from cirq.transformers.heuristic_decompositions import (
 
 
 from cirq.transformers.routing import (
-    MappingManager,
-    HardCodedInitialMapper,
     AbstractInitialMapper,
+    HardCodedInitialMapper,
     LineInitialMapper,
+    MappingManager,
 )
 
 from cirq.transformers.target_gatesets import (
