@@ -78,8 +78,8 @@ class LineInitialMapper(AbstractInitialMapper):
             # Make sure c0 is the index of the largest component.
             if len(circuit_graph[c0]) < len(circuit_graph[c1]):
                 c0, c1, q0, q1 = c1, c0, q1, q0
-            
-            #TODO: optimize this
+
+            # TODO: optimize this
             if circuit_graph[c0][0] == q0:
                 circuit_graph[c0] = circuit_graph[c0][::-1]
             if circuit_graph[c1][-1] == q1:
@@ -122,7 +122,7 @@ class LineInitialMapper(AbstractInitialMapper):
             sorted_neighbors = sorted(
                 self.device_graph.neighbors(current_physical),
                 key=lambda x: self.device_graph.degree(x),
-                reverse=True
+                reverse=True,
             )
             for neighbor in sorted_neighbors:
                 if neighbor not in self.mapped_physicals:
@@ -142,7 +142,7 @@ class LineInitialMapper(AbstractInitialMapper):
                 self.mapped_physicals.add(pq)
                 qubit_map[lq] = pq
                 # Edge case: if mapping n qubits on an n-qubit device should not call next_physical
-                # when finished mapping the last logical qubit else will raise an error 
+                # when finished mapping the last logical qubit else will raise an error
                 if len(circuit.all_qubits()) != len(self.mapped_physicals):
                     pq = next_physical(pq)
 
