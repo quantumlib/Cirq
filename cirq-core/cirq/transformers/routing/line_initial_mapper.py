@@ -149,6 +149,7 @@ class LineInitialMapper(AbstractInitialMapper):
 
             for lq in logical_line:
                 self.mapped_physicals.add(pq)
+                print(f'physical: {pq}')
                 qubit_map[lq] = pq
                 # Edge case: if mapping n qubits on an n-qubit device should not call next_physical
                 # when finished mapping the last logical qubit else will raise an error
@@ -159,6 +160,7 @@ class LineInitialMapper(AbstractInitialMapper):
             lq = circuit_graph[i][0]
             partner = qubit_map[self.partners[lq]] if lq in self.partners else physical_center
             pq = self._closest_unmapped_qubit(partner)
+            print(f'physical: {pq}')
             self.mapped_physicals.add(pq)
             qubit_map[lq] = pq
 
