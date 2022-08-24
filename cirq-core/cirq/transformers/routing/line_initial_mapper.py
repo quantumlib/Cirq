@@ -33,7 +33,16 @@ class LineInitialMapper(AbstractInitialMapper):
         Args:
             device_graph: device graph
         """
-        self.device_graph = device_graph
+        if nx.is_directed(device_graph):
+            self.device_graph = nx.DiGraph()
+            self.device_graph.add_nodes_from(sorted(list(device_graph.nodes(data=True))))
+            self.device_graph.add_edges_from(sorted(list(device_graph.edges)))
+        else:
+            self.device_graph = nx.Graph()
+            self.device_graph.add_nodes_from(sorted(list(device_graph.nodes(data=True))))
+            self.device_graph.add_edges_from(
+                sorted(list(sorted(edge) for edge in device_graph.edges))
+            )
         self.mapped_physicals: Set['cirq.Qid'] = set()
         self.partners: Dict['cirq.Qid', 'cirq.Qid'] = {}
 
@@ -129,9 +138,10 @@ class LineInitialMapper(AbstractInitialMapper):
 
         def next_physical(current_physical: 'cirq.Qid') -> 'cirq.Qid':
             # Greedily map to highest degree neighbor that that is available
-            neighbors = sorted(self.device_graph.neighbors(current_physical))
             sorted_neighbors = sorted(
-                neighbors, key=lambda x: self.device_graph.degree(x), reverse=True
+                self.device_graph.neighbors(current_physical),
+                key=lambda x: self.device_graph.degree(x),
+                reverse=True
             )
             for neighbor in sorted_neighbors:
                 if neighbor not in self.mapped_physicals:
