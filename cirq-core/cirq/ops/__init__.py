@@ -188,7 +188,7 @@ from cirq.ops.swap_gates import (
     SwapPowGate,
 )
 
-from cirq.ops.tags import VirtualTag
+from cirq.ops.tags import VirtualTag, _InsertedSwapTag
 
 from cirq.ops.three_qubit_gates import (
     CCNOT,

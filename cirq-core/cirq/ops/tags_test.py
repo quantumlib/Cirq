@@ -24,3 +24,14 @@ def test_virtual_tag():
 
     cirq.testing.assert_equivalent_repr(tag1)
     cirq.testing.assert_equivalent_repr(tag2)
+
+
+def test_swap_tag():
+    tag1 = cirq.ops._InsertedSwapTag()
+    tag2 = cirq.ops._InsertedSwapTag()
+
+    assert tag1 == tag2
+    assert str(tag1) == str(tag2) == '<r>'
+
+    cirq.testing.assert_equivalent_repr(tag1)
+    cirq.testing.assert_equivalent_repr(tag2)

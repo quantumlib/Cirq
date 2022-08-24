@@ -12,19 +12,21 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Implementation of the routing algorithm in arxiv:1902.08091."""
+"""Heuristic qubit routing algorithm based on arxiv:1902.08091."""
 
+from typing import Dict, List, Optional, Set, Tuple, TYPE_CHECKING
+from itertools import combinations
 import networkx as nx
 
-from typing import List, Tuple, Dict, Optional, TYPE_CHECKING
-from itertools import combinations
-from cirq import circuits, devices, ops, protocols, transformers
+from cirq import circuits, devices, ops, protocols
+from cirq.transformers import transformer_api, transformer_primitives
+from cirq.transformers.routing import mapping_manager, line_initial_mapper
 
 if TYPE_CHECKING:
     import cirq
 
 
-@transformers.transformer
+@transformer_api.transformer
 class RouteCQC:
     """Transformer class that implements a circuit routing algorithm.
 
@@ -53,7 +55,6 @@ class RouteCQC:
 
         if nx.is_directed(device.metadata.nx_graph):
             raise ValueError("Device graph must be undirected")
-        self.device = device
         self.device_graph = device.metadata.nx_graph
         self.circuit_graph = None
         self.initial_mapping = None
@@ -63,8 +64,9 @@ class RouteCQC:
         self,
         circuit: 'cirq.AbstractCircuit',
         *,
-        max_search_radius: int = 10,
+        max_search_radius: int = 5,
         preserve_moment_strucutre: bool = False,
+        tag_inserted_swaps: bool = False,
         initial_mapper: Optional['cirq.AbstractInitialMapper'] = None,
         context: Optional['cirq.TransformerContext'] = None,
     ) -> 'cirq.AbstractCircuit':
@@ -90,18 +92,18 @@ class RouteCQC:
 
         # 0. Handle CircuitOperations by unrolling them.
         if context is not None and context.deep == True:
-            circuit = transformers.unroll_circuit_op(circuit, deep=True)
+            circuit = transformer_primitives.unroll_circuit_op(circuit, deep=True)
         if not all(protocols.num_qubits(op) <= 2 for op in circuit.all_operations()):
             raise ValueError("Input circuit must only have ops that act on 1 or 2 qubits.")
 
         # 1. Do the initial mapping of logical to physical qubits.
-        # TODO: change this to default to LineInitialMapper once #5831 is merged.
-        assert initial_mapper is not None
-        self.initial_mapping = initial_mapper.initial_mapping()
+        if initial_mapper is None:
+            initial_mapper = line_initial_mapper.LineInitialMapper(self.device_graph)
+        self.initial_mapping = initial_mapper.initial_mapping(circuit)
 
         # 2. Construct a mapping manager that implicitly keeps track of this mapping and provides
         # convinience methods over the image of the map on the device graph.
-        self.mm = transformers.MappingManager(self.device_graph, self.initial_mapping)
+        self.mm = mapping_manager.MappingManager(self.device_graph, self.initial_mapping)
 
         # 3. Get timesteps and single-qubit operations.
         timesteps, single_qubit_ops = self._get_timesteps_and_single_qubit_ops(
@@ -109,7 +111,9 @@ class RouteCQC:
         )
 
         # 4. Do the routing and save the routed circuit as a list of moments.
-        routed_ops = self._route(timesteps, single_qubit_ops, max_search_radius)
+        routed_ops = self._route(
+            timesteps, single_qubit_ops, max_search_radius, tag_inserted_swaps=tag_inserted_swaps
+        )
 
         # 5. Return the routed circuit by packing each inner list of ops as densely as posslbe and
         # preserving outer moment structure.
@@ -121,9 +125,10 @@ class RouteCQC:
         *,
         max_search_radius: int = 10,
         preserve_moment_strucutre: bool = False,
+        tag_inserted_swaps: bool = False,
         initial_mapper: Optional['cirq.AbstractInitialMapper'] = None,
         context: Optional['cirq.TransformerContext'] = None,
-    ) -> Tuple['cirq.AbstractCircuit', Dict['cirq.Qid', 'cirq.Qid']]:
+    ) -> Tuple['cirq.AbstractCircuit', Dict['cirq.Qid', 'cirq.Qid'], Dict['cirq.Qid', 'cirq.Qid']]:
         """Transforms the given circuit to make it executable on the device.
 
         Since routing doesn't necessarily modify any specific operation and only adds swaps
@@ -148,11 +153,11 @@ class RouteCQC:
             circuit,
             max_search_radius=max_search_radius,
             preserve_moment_strucutre=preserve_moment_strucutre,
+            tag_inserted_swaps=tag_inserted_swaps,
             initial_mapper=initial_mapper,
             context=context,
         )
-        final_map = {k: self.mm.map[v] for k, v in self.initial_mapping.items()}
-        return routed_circuit, final_map
+        return routed_circuit, self.initial_mapping, self.mm.map
 
     def _get_timesteps_and_single_qubit_ops(
         self, circuit: 'cirq.AbstractCircuit', preserve_moment_structure: bool
@@ -169,18 +174,22 @@ class RouteCQC:
                 single_qubit_operations[moment_index].append(op)
                 return []
 
-            reduced_circuit = transformers.map_operations(circuit, map_func=map_func_preserving)
+            reduced_circuit = transformer_primitives.map_operations(
+                circuit, map_func=map_func_preserving
+            )
             return [list(moment.operations) for moment in reduced_circuit], single_qubit_operations
 
         reduced_circuit = circuits.Circuit()
 
-        def map_func_not_preserving(op: 'cirq.Operation', moment_index: int):
+        def map_func_not_preserving(op: 'cirq.Operation', _: int):
             timestep_index = reduced_circuit.earliest_available_moment(op)
             if protocols.num_qubits(op) == 2:
                 reduced_circuit.append(op)
             return op.with_tags(timestep_index)
 
-        circuit_with_tags = transformers.map_operations(circuit, map_func=map_func_not_preserving)
+        circuit_with_tags = transformer_primitives.map_operations(
+            circuit, map_func=map_func_not_preserving
+        )
         single_qubit_operations = [[] for i in range(len(reduced_circuit) + 1)]
         for op in circuit_with_tags.all_operations():
             if protocols.num_qubits(op) == 1:
@@ -193,6 +202,7 @@ class RouteCQC:
         timesteps: List[List['cirq.Operation']],
         single_qubit_ops: List[List['cirq.Operation']],
         max_search_radius: int,
+        tag_inserted_swaps: bool = False,
     ) -> List[List['cirq.Operation']]:
         """Main routing procedure that creates the routed circuit, inserts the user's gates in it,
         and inserts the necessary swaps.
@@ -221,6 +231,7 @@ class RouteCQC:
             routed_ops[idx].extend([self.mm.mapped_op(op) for op in single_qubit_ops[idx]])
 
             process_executable_ops(idx)
+            inserted_swaps: Set[Tuple[Tuple['cirq.Qid', 'cirq.Qid'], ...]] = set()
             while len(timesteps[idx]) != 0:
                 sigma = self._initial_candidate_swaps(timesteps[idx])
                 for s in range(idx, min(max_search_radius + idx, len(timesteps))):
@@ -231,10 +242,17 @@ class RouteCQC:
                 if len(sigma) > 1 and idx + max_search_radius <= len(timesteps):
                     chosen_swaps = self._symmetry_swap_pair(timesteps, idx, max_search_radius)
                 else:
-                    chosen_swaps = [sigma[0][0]]
+                    chosen_swaps = tuple([sigma[0][0]])
+
+                if chosen_swaps in inserted_swaps:
+                    chosen_swaps = self._symmetry_brute_force(timesteps, idx)
+                inserted_swap.add(chosen_swaps)
 
                 for swap in chosen_swaps:
-                    routed_ops[idx].append(self.mm.mapped_op(ops.SWAP(*swap).with_tags('s')))
+                    inserted_swap = self.mm.mapped_op(ops.SWAP(*swap))
+                    if tag_inserted_swaps:
+                        inserted_swap.with_tags(ops._InsertedSwapTag)
+                    routed_ops[idx].append(inserted_swap)
                     self.mm.apply_swap(*swap)
                 process_executable_ops(idx)
 
@@ -258,7 +276,7 @@ class RouteCQC:
 
     def _symmetry_swap_pair(
         self, timesteps: List[List['cirq.Operation']], idx: int, max_search_radius: int
-    ) -> List[Tuple['cirq.Qid', 'cirq.Qid']]:
+    ) -> Tuple[Tuple['cirq.Qid', 'cirq.Qid'], ...]:
         """Computes cost function with pairs of candidate swaps that act on disjoint qubits."""
         pair_sigma = self._disjoint_qubit_combinations(
             self._initial_candidate_swaps(timesteps[idx])
@@ -271,11 +289,11 @@ class RouteCQC:
         if len(pair_sigma) > 1 and idx + max_search_radius <= len(timesteps):
             return self._symmetry_brute_force(timesteps, idx)
         chosen_swap_pair = pair_sigma[0]
-        return [chosen_swap_pair[0], chosen_swap_pair[1]]
+        return tuple([chosen_swap_pair[0], chosen_swap_pair[1]])
 
     def _symmetry_brute_force(
         self, timesteps: List[List['cirq.Operation']], idx: int
-    ) -> List[Tuple['cirq.Qid', 'cirq.Qid']]:
+    ) -> Tuple[Tuple['cirq.Qid', 'cirq.Qid']]:
         """Inserts SWAPS along the shortest path of the qubits that are the farthest."""
         qubits = max(
             [(op.qubits, self.mm.dist_on_device(*op.qubits)) for op in timesteps[idx]],
@@ -283,7 +301,7 @@ class RouteCQC:
         )[0]
         path = self.mm.shortest_path(*qubits)
         q1 = self.mm.inverse_map[path[0]]
-        return [(q1, path[i + 1]) for i in range(len(path) - 2)]
+        return tuple([(q1, path[i + 1]) for i in range(len(path) - 2)])
 
     def _initial_candidate_swaps(
         self, timestep_ops: List['cirq.Operation']
