@@ -130,6 +130,7 @@ class LineInitialMapper(AbstractInitialMapper):
 
         def next_physical(current_physical: 'cirq.Qid') -> 'cirq.Qid':
             # Greedily map to highest degree neighbor that that is available
+            print(f'neighbors: {list(self.device_graph.neighbors(current_physical))}')
             sorted_neighbors = sorted(
                 self.device_graph.neighbors(current_physical),
                 key=lambda x: self.device_graph.degree(x),
