@@ -131,9 +131,7 @@ class LineInitialMapper(AbstractInitialMapper):
             # Greedily map to highest degree neighbor that that is available
             neighbors = sorted(self.device_graph.neighbors(current_physical))
             sorted_neighbors = sorted(
-                neighbors,
-                key=lambda x: self.device_graph.degree(x),
-                reverse=True,
+                neighbors, key=lambda x: self.device_graph.degree(x), reverse=True
             )
             for neighbor in sorted_neighbors:
                 if neighbor not in self.mapped_physicals:

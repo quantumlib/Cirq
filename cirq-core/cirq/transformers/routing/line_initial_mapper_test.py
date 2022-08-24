@@ -66,15 +66,15 @@ def test_small_circuit_on_grid_device():
 
     assert nx.center(device_graph)[0] == cirq.GridQubit(3, 3)
     mapped_circuit = circuit.transform_qubits(mapping)
-    diagram = """(2, 2): ───@───────────
+    diagram = """(1, 3): ───@───────────
            │
-(2, 3): ───┼───────X───
-           │
-(3, 2): ───X───X───X───
-               │   │
-(3, 3): ───────@───┼───
-                   │
-(4, 2): ───────────@───"""
+(2, 2): ───┼───────@───
+           │       │
+(2, 3): ───X───X───X───
+               │
+(3, 2): ───────┼───X───
+               │
+(3, 3): ───────@───────"""
     cirq.testing.assert_has_diagram(mapped_circuit, diagram)
 
 
