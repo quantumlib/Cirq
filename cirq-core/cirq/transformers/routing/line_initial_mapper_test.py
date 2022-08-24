@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from this import d
 import networkx as nx
 import pytest
 
@@ -45,13 +46,9 @@ def test_line_breaking_on_grid_device():
     device_graph = device.metadata.nx_graph
     mapper = cirq.LineInitialMapper(device_graph)
     mapping = mapper.initial_mapping(step_circuit)
-    mapped_circuit = step_circuit.transform_qubits(mapping)
 
     # all qubits in the input circuit are placed on the device
     assert set(mapping.keys()) == set(step_circuit.all_qubits())
-
-    # the first two moments are executable
-    device.validate_circuit(mapped_circuit[:2])
 
     # the induced graph of the device on the physical qubits in the map is connected
     assert nx.is_connected(nx.induced_subgraph(device_graph, mapping.values()))
@@ -63,23 +60,41 @@ def test_line_breaking_on_grid_device():
 
 def test_small_circuit_on_grid_device():
     circuit = construct_small_circuit()
-
     device_graph = cirq.testing.construct_grid_device(7, 7).metadata.nx_graph
     mapper = cirq.LineInitialMapper(device_graph)
     mapping = mapper.initial_mapping(circuit)
 
-    assert nx.center(device_graph)[0] == cirq.GridQubit(3, 3)
+    assert mapper.center == cirq.GridQubit(3, 3)
+
+    expected_circuit = cirq.Circuit(
+        [
+            cirq.Moment(cirq.CNOT(cirq.GridQubit(1, 3), cirq.GridQubit(2, 3))),
+            cirq.Moment(cirq.CNOT(cirq.GridQubit(3, 3), cirq.GridQubit(2, 3))),
+            cirq.Moment(
+                cirq.CNOT(cirq.GridQubit(2, 2), cirq.GridQubit(2, 3)), cirq.X(cirq.GridQubit(3, 2))
+            ),
+        ]
+    )
+    cirq.testing.assert_same_circuits(circuit.transform_qubits(mapping), expected_circuit)
+
+
+def test_small_circuit_on_ring_device():
+    circuit = construct_small_circuit()
+    device_graph = cirq.testing.construct_ring_device(10, directed=True).metadata.nx_graph
+
+    mapper = cirq.LineInitialMapper(device_graph)
+    mapping = mapper.initial_mapping(circuit)
     mapped_circuit = circuit.transform_qubits(mapping)
-    diagram = """(2, 2): ───@───────────
-           │
-(2, 3): ───┼───────X───
-           │
-(3, 2): ───X───X───X───
-               │   │
-(3, 3): ───────@───┼───
-                   │
-(4, 2): ───────────@───"""
-    cirq.testing.assert_has_diagram(mapped_circuit, diagram)
+    assert mapper.center == cirq.LineQubit(0)
+
+    expected_circuit = cirq.Circuit(
+        [
+            cirq.Moment(cirq.CNOT(cirq.LineQubit(2), cirq.LineQubit(1))),
+            cirq.Moment(cirq.CNOT(cirq.LineQubit(0), cirq.LineQubit(1))),
+            cirq.Moment(cirq.CNOT(cirq.LineQubit(3), cirq.LineQubit(1)), cirq.X(cirq.LineQubit(4))),
+        ]
+    )
+    cirq.testing.assert_same_circuits(circuit.transform_qubits(mapping), expected_circuit)
 
 
 @pytest.mark.parametrize(
@@ -101,12 +116,8 @@ def test_random_circuits_grid_device(
     device_graph = device.metadata.nx_graph
     mapper = cirq.LineInitialMapper(device_graph)
     mapping = mapper.initial_mapping(c_orig)
-    c_mapped = c_orig.transform_qubits(mapping)
 
     assert set(mapping.keys()) == set(c_orig.all_qubits())
-
-    device.validate_circuit(c_mapped[:2])
-
     assert nx.is_connected(nx.induced_subgraph(device_graph, mapping.values()))
 
 
