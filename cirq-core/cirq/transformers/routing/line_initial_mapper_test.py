@@ -12,7 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from this import d
 import networkx as nx
 import pytest
 
@@ -84,7 +83,6 @@ def test_small_circuit_on_ring_device():
 
     mapper = cirq.LineInitialMapper(device_graph)
     mapping = mapper.initial_mapping(circuit)
-    mapped_circuit = circuit.transform_qubits(mapping)
     assert mapper.center == cirq.LineQubit(0)
 
     expected_circuit = cirq.Circuit(

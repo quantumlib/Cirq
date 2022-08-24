@@ -14,16 +14,16 @@
 
 """Concrete implementation of AbstractInitialMapper that places lines of qubits onto the device.
 
-This is the default placement strategy used in the CQC router. 
+This is the default placement strategy used in the CQC router.
 
 It first creates a partial connectivity graph between logical qubits in the given circuit and then
 maps these logical qubits on physical qubits on the device by starting at the center of the device
-and greedily choosing the highest degree neighbor. 
+and greedily choosing the highest degree neighbor.
 
 If some logical qubits are unampped after this first procedure then there are two cases:
     (1) These unmammep logical qubits do interact in the circuit with some other logical partner.
     In this case we map such a qubit to the nearest available physical qubit on the device to the
-    one that its partner was mapped to. 
+    one that its partner was mapped to.
 
     (2) These unampped logical qubits only have single qubit operations on them (i.e they do not
     interact with any other logical qubit at any point in the circuit). In this case we map them to
@@ -31,9 +31,9 @@ If some logical qubits are unampped after this first procedure then there are tw
 """
 
 from typing import Deque, Dict, List, Set, TYPE_CHECKING
+from collections import deque
 import networkx as nx
 
-from collections import deque
 from cirq.transformers.routing import initial_mapper
 from cirq import protocols, value
 
