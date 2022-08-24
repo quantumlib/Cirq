@@ -82,7 +82,7 @@ class LineInitialMapper(initial_mapper.AbstractInitialMapper):
         self.mapped_physicals: Set['cirq.Qid'] = set()
         self.partners: Dict['cirq.Qid', 'cirq.Qid'] = {}
 
-    def _make_circuit_graph(self, circuit: 'cirq.AbstractCircuit') -> List[List['cirq.Qid']]:
+    def _make_circuit_graph(self, circuit: 'cirq.AbstractCircuit') -> List[Deque['cirq.Qid']]:
         """Creates a (potentially incomplete) qubit connectivity graph of the circuit.
 
         Iterates over moments in the circuit from left to right and adds edges between logical
