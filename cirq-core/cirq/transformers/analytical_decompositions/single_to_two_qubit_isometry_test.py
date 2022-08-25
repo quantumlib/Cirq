@@ -62,7 +62,7 @@ def test_two_qubit_matrix_to_cz_isometry(
 
     assert (
         cirq.allclose_up_to_global_phase(
-            original_final_state_vector, decomposed_final_state_vector, atol=1e-5
+            original_final_state_vector, decomposed_final_state_vector, atol=1e-6
         )
         is is_valid
     )
