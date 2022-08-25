@@ -12,8 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# TODO: add test for reusing linemapper instance with two different circuits
-
 import networkx as nx
 import pytest
 
