@@ -142,6 +142,14 @@ class LineTopology(NamedTopology):
         g2 = nx.relabel_nodes(self.graph, {n: (n, 1) for n in self.graph.nodes})
         return draw_gridlike(g2, ax=ax, tilted=tilted, **kwargs)
 
+    def nodes_to_linequbits(self, offset: int = 0) -> Dict[int, 'cirq.LineQubit']:
+        """Return a mapping from graph nodes to `cirq.LineQubit`
+
+        Args:
+            offset: Offset integer positions of the resultant LineQubits by this amount.
+        """
+        return dict(enumerate(LineQubit.range(offset, offset + self.n_nodes)))
+
     def _json_dict_(self) -> Dict[str, Any]:
         return dataclass_json_dict(self)
 
@@ -240,8 +248,8 @@ class TiltedSquareLattice(NamedTopology):
         """Return a mapping from graph nodes to `cirq.GridQubit`
 
         Args:
-            offset: Offest row and column indices of the resultant GridQubits by this amount.
-                The offest positions the top-left node in the `draw(tilted=False)` frame.
+            offset: Offset row and column indices of the resultant GridQubits by this amount.
+                The offset positions the top-left node in the `draw(tilted=False)` frame.
         """
         return {(r, c): GridQubit(r, c) + offset for r, c in self.graph.nodes}
 
