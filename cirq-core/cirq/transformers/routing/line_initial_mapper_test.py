@@ -35,9 +35,54 @@ def construct_step_circuit(k: int):
     return cirq.Circuit([cirq.CNOT(q[i], q[i + 1]) for i in range(k - 1)])
 
 
-def test_line_breaking_on_grid_device():
+def construct_valid_circuit():
+    return cirq.Circuit(
+        [
+            cirq.Moment(
+                cirq.CNOT(cirq.NamedQubit('3'), cirq.NamedQubit('9')),
+                cirq.CNOT(cirq.NamedQubit('8'), cirq.NamedQubit('12')),
+            ),
+            cirq.Moment(
+                cirq.CNOT(cirq.NamedQubit('10'), cirq.NamedQubit('11')),
+                cirq.CNOT(cirq.NamedQubit('8'), cirq.NamedQubit('12')),
+                cirq.CNOT(cirq.NamedQubit('14'), cirq.NamedQubit('6')),
+                cirq.CNOT(cirq.NamedQubit('5'), cirq.NamedQubit('4')),
+            ),
+            cirq.Moment(
+                cirq.CNOT(cirq.NamedQubit('8'), cirq.NamedQubit('2')),
+                cirq.CNOT(cirq.NamedQubit('3'), cirq.NamedQubit('9')),
+                cirq.CNOT(cirq.NamedQubit('6'), cirq.NamedQubit('0')),
+                cirq.CNOT(cirq.NamedQubit('14'), cirq.NamedQubit('10')),
+            ),
+            cirq.Moment(
+                cirq.CNOT(cirq.NamedQubit('14'), cirq.NamedQubit('6')),
+                cirq.CNOT(cirq.NamedQubit('1'), cirq.NamedQubit('4')),
+            ),
+            cirq.Moment(
+                cirq.CNOT(cirq.NamedQubit('8'), cirq.NamedQubit('12')),
+                cirq.CNOT(cirq.NamedQubit('14'), cirq.NamedQubit('10')),
+            ),
+        ]
+    )
+
+
+def test_valid_circuit():
+    # Any circuit with a (full connectivity) graph of disjoint lines should be directly
+    # executable after mapping a a supporting device topology without the need for inserting
+    # any swaps.
+    circuit = construct_valid_circuit()
+    device = cirq.testing.construct_grid_device(7, 7)
+    device_graph = device.metadata.nx_graph
+    mapper = cirq.LineInitialMapper(device_graph)
+    mapping = mapper.initial_mapping(circuit)
+    mapped_circuit = circuit.transform_qubits(mapping)
+    device.validate_circuit(mapped_circuit)
+
+
+def test_long_line_on_grid_device():
     # tests
-    #   -if strategy is able to map into several small lines if fails to map onto one long line
+    #   -if strategy is able to map a single long line onto the device whenever the device topology
+    #   supports it (i.e. is Hamiltonian)
     #   -if # of physical qubits <= # of logical qubits then strategy should succeed
 
     step_circuit = construct_step_circuit(49)
@@ -51,6 +96,10 @@ def test_line_breaking_on_grid_device():
 
     # the induced graph of the device on the physical qubits in the map is connected
     assert nx.is_connected(nx.induced_subgraph(device_graph, mapping.values()))
+
+    # step_circuit s an example of a valid circuit (should not require any swaps after initial
+    # mapping)
+    device.validate_circuit(step_circuit.transform_qubits(mapping))
 
     step_circuit = construct_step_circuit(50)
     with pytest.raises(ValueError, match="No available physical qubits left on the device"):
