@@ -162,7 +162,9 @@ class BaseDensePauliString(raw_types.Gate, metaclass=abc.ABCMeta):
         return len(self)
 
     def _has_unitary_(self) -> bool:
-        return not self._is_parameterized_() and (abs(abs(self.coefficient) - 1) < 1e-8)
+        if self._is_parameterized_():
+            return False
+        return abs(1 - abs(cast(complex, self.coefficient))) < 1e-8
 
     def _unitary_(self) -> Union[np.ndarray, NotImplementedType]:
         if not self._has_unitary_():
@@ -208,10 +210,11 @@ class BaseDensePauliString(raw_types.Gate, metaclass=abc.ABCMeta):
         concrete_class = type(self)
         if isinstance(power, int):
             i_group = [1, +1j, -1, -1j]
-            if self.coefficient in i_group:
-                coef = i_group[i_group.index(cast(int, self.coefficient)) * power % 4]
-            else:
-                coef = self.coefficient**power
+            coef = (
+                i_group[i_group.index(cast(complex, self.coefficient)) * power % 4]
+                if self.coefficient in i_group
+                else self.coefficient**power
+            )
             if power % 2 == 0:
                 return concrete_class.eye(len(self)).__mul__(coef)
             return concrete_class(coefficient=coef, pauli_mask=self.pauli_mask)
@@ -317,7 +320,11 @@ class BaseDensePauliString(raw_types.Gate, metaclass=abc.ABCMeta):
         )
 
     def __abs__(self: TCls) -> TCls:
-        return type(self)(coefficient=abs(self.coefficient), pauli_mask=self.pauli_mask)
+        coef = self.coefficient
+        return type(self)(
+            coefficient=sympy.Abs(coef) if isinstance(coef, sympy.Expr) else abs(coef),
+            pauli_mask=self.pauli_mask,
+        )
 
     def on(self, *qubits: 'cirq.Qid') -> 'cirq.PauliString':
         return self.sparse(qubits)
