@@ -30,7 +30,7 @@ If some logical qubits are unampped after this first procedure then there are tw
     the nearest available neighbor to the center of the device.
 """
 
-from typing import Deque, Dict, List, Optional, Set, Tuple, TYPE_CHECKING
+from typing import Deque, Dict, List, Set, Tuple, TYPE_CHECKING
 from collections import deque
 import networkx as nx
 
@@ -102,36 +102,37 @@ class LineInitialMapper(initial_mapper.AbstractInitialMapper):
         component_id: Dict['cirq.Qid', int] = {q[0]: i for i, q in enumerate(circuit_graph)}
         partners: Dict['cirq.Qid', 'cirq.Qid'] = {}
 
-        def pos_in_deque(q: 'cirq.Qid') -> Optional[int]:
-            for i in [0, -1]:
-                if circuit_graph[component_id[q]][i] == q:
-                    return i
-            return None
+        def degree_lt_two(q: 'cirq.Qid'):
+            return any(circuit_graph[component_id[q]][i] == q for i in [-1, 0])
 
         for op in circuit.all_operations():
             if protocols.num_qubits(op) != 2:
                 continue
 
             q0, q1 = op.qubits
-
+            c0, c1 = component_id[q0], component_id[q1]
             # Keep track of partners for mapping isolated qubits later.
             partners[q0] = partners[q0] if q0 in partners else q1
             partners[q1] = partners[q1] if q1 in partners else q0
 
-            # Find component IDs and positions in the paths.
-            c0, c1 = component_id[q0], component_id[q1]
-            pos0, pos1 = pos_in_deque(q0), pos_in_deque(q1)
-            if pos0 is None or pos1 is None or c0 == c1:
+            if not (degree_lt_two(q0) and degree_lt_two(q1) and c0 != c1):
                 continue
 
             # Make sure c0/q0 are for the largest component.
             if len(circuit_graph[c0]) < len(circuit_graph[c1]):
-                c0, q0, pos0, c1, q1, pos1 = c1, q1, pos1, c0, q0, pos0
+                c0, c1, q0, q1 = c1, c0, q1, q0
 
             # copy smaller component into larger one.
-            c1_iter = reversed(circuit_graph[c1]) if pos1 == -1 else iter(circuit_graph[c1])
-            for q in c1_iter:
-                circuit_graph[c0].insert(pos0, q)
+            c1_order = (
+                reversed(circuit_graph[c1])
+                if circuit_graph[c1][-1] == q1
+                else iter(circuit_graph[c1])
+            )
+            for q in c1_order:
+                if circuit_graph[c0][0] == q0:
+                    circuit_graph[c0].appendleft(q)
+                else:
+                    circuit_graph[c0].append(q)
                 component_id[q] = c0
 
         graph = sorted(
