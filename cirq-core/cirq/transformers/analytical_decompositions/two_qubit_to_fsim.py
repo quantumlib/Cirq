@@ -14,7 +14,7 @@
 
 """Utility methods for decomposing two-qubit unitaries into FSim gates."""
 
-from typing import Sequence, Union, List, Iterator, TYPE_CHECKING, Iterable, Optional
+from typing import cast, Sequence, Union, List, Iterator, TYPE_CHECKING, Iterable, Optional
 
 import numpy as np
 
@@ -67,9 +67,10 @@ def decompose_two_qubit_interaction_into_four_fsim_gates(
         mapped_gate = ops.FSimGate(-fsim_gate.exponent * np.pi / 2, 0)
     else:
         mapped_gate = fsim_gate
-    if not 3 / 8 * np.pi <= abs(mapped_gate.theta) <= 5 / 8 * np.pi:
+    theta, phi = cast(float, mapped_gate.theta), cast(float, mapped_gate.phi)
+    if not 3 / 8 * np.pi <= abs(theta) <= 5 / 8 * np.pi:
         raise ValueError('Must have 3π/8 ≤ |fsim_gate.theta| ≤ 5π/8')
-    if abs(mapped_gate.phi) > np.pi / 4:
+    if abs(phi) > np.pi / 4:
         raise ValueError('Must have abs(fsim_gate.phi) ≤ π/4')
     if qubits is None:
         if isinstance(interaction, ops.Operation):
