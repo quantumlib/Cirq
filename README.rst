@@ -23,14 +23,14 @@ Installation and Documentation
 
 Cirq documentation is available at `quantumai.google/cirq <https://quantumai.google/cirq>`_.
 
-Documentation for the latest **pre-release** version of cirq (tracks the repository's master branch; what you get if you ``pip install --pre cirq``), is available at `here <https://quantumai.google/reference/python/cirq/all_symbols?version=nightly>`__.
+Documentation for the latest **pre-release** version of cirq (tracks the repository's master branch; what you get if you ``pip install --pre cirq``), is available `here <https://quantumai.google/reference/python/cirq/all_symbols?version=nightly>`__.
 
-Documentation for the latest **stable** version of cirq (what you get if you ``pip install cirq``) is available at `here <https://quantumai.google/reference/python/cirq/all_symbols>`__.
+Documentation for the latest **stable** version of cirq (what you get if you ``pip install cirq``) is available `here <https://quantumai.google/reference/python/cirq/all_symbols>`__.
 
 
-- `Installation <https://quantumai.google/cirq/install>`_
+- `Installation <https://quantumai.google/cirq/start/install>`_
 - `Documentation <https://quantumai.google/cirq>`_
-- `Tutorials <https://quantumai.google/cirq/tutorials>`_
+- `Tutorials <https://quantumai.google/cirq/build>`_
 
 For a comprehensive list all of the interactive Jupyter Notebooks in our repo (including the ones not yet published to the site) open our repo in `Colab <https://colab.research.google.com/github/quantumlib/Cirq>`_.
 
@@ -120,15 +120,5 @@ For machine learning enthusiasts, `Tensorflow Quantum <https://github.com/tensor
 For a powerful quantum circuit simulator that integrates well with Cirq, we recommend looking at `qsim <https://github.com/quantumlib/qsim>`__.
 
 Finally, `ReCirq <https://github.com/quantumlib/ReCirq>`__ contains real world experiments using Cirq.
-
-
-Alpha Disclaimer
-----------------
-
-**Cirq is currently in alpha.**
-We may change or remove parts of Cirq's API when making new releases.
-To be informed of deprecations and breaking changes, subscribe to the
-`cirq-announce google group mailing list <https://groups.google.com/forum/#!forum/cirq-announce>`__.
-
 
 Cirq is not an official Google product. Copyright 2019 The Cirq Developers

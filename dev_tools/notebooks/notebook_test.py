@@ -41,6 +41,7 @@ SKIP_NOTEBOOKS = [
     'docs/noise/qcvv/xeb_calibration_example.ipynb',
     'docs/noise/calibration_api.ipynb',
     'docs/noise/floquet_calibration_example.ipynb',
+    # shouldn't have outputs generated for style reasons
     'docs/simulate/qvm_builder_code.ipynb',
 ]
 

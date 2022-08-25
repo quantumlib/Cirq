@@ -10,13 +10,6 @@ If you want to create a development environment, see the [development page](/cir
 
 ---
 
-## Alpha disclaimer
-
-**Cirq is currently in alpha.**
-We may change or remove parts of Cirq's API when making new releases.
-To be informed of deprecations and breaking changes, subscribe to the
-[cirq-announce google group mailing list](https://groups.google.com/forum/#!forum/cirq-announce).
-
 ## Python version supprt
 
 Cirq currently supports python 3.7 and later.
