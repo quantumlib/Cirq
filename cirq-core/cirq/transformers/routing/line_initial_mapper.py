@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Maps logical to physical qubits by greedily placing lines of logical qubits on the device. 
+"""Maps logical to physical qubits by greedily placing lines of logical qubits on the device.
 
 This is the default placement strategy used in the CQC router.
 
@@ -113,8 +113,8 @@ class LineInitialMapper(initial_mapper.AbstractInitialMapper):
             c0, c1 = component_id[q0], component_id[q1]
 
             # Keep track of partners for mapping isolated qubits later.
-            partners[c0] = partners[c0] if c0 in partners else q1
-            partners[c1] = partners[c1] if c1 in partners else q0
+            partners[q0] = partners[q0] if q0 in partners else q1
+            partners[q1] = partners[q1] if q1 in partners else q0
 
             if not (degree_lt_two(q0) and degree_lt_two(q1) and c0 != c1):
                 continue
@@ -193,7 +193,7 @@ class LineInitialMapper(initial_mapper.AbstractInitialMapper):
         return qubit_map
 
     def _closest_unmapped_qubit(
-        self, source: 'cirq.Qid', mapped_physicals: Dict['cirq.Qid', 'cirq.Qid']
+        self, source: 'cirq.Qid', mapped_physicals: Set['cirq.Qid']
     ) -> 'cirq.Qid':
         """Finds the closest available neighbor to a physical qubit 'source' on the device.
 

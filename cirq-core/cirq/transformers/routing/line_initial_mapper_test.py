@@ -72,7 +72,7 @@ def test_small_circuit_on_grid_device():
             cirq.Moment(cirq.CNOT(cirq.GridQubit(1, 3), cirq.GridQubit(2, 3))),
             cirq.Moment(cirq.CNOT(cirq.GridQubit(3, 3), cirq.GridQubit(2, 3))),
             cirq.Moment(
-                cirq.CNOT(cirq.GridQubit(3, 2), cirq.GridQubit(2, 3)), cirq.X(cirq.GridQubit(3, 4))
+                cirq.CNOT(cirq.GridQubit(2, 2), cirq.GridQubit(2, 3)), cirq.X(cirq.GridQubit(2, 4))
             ),
         ]
     )
