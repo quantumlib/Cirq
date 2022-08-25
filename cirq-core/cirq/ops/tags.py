@@ -62,8 +62,5 @@ class _InsertedSwapTag:
     def __repr__(self) -> str:
         return 'cirq._InsertedSwapTag()'
 
-    def _json_dict_(self) -> Dict[str, str]:
-        return {}
-
     def __hash__(self):
         return hash(_InsertedSwapTag)

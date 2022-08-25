@@ -18,6 +18,11 @@ from timeit import default_timer as timer
 import cirq
 import pytest
 
+# add tests for
+#   circuit with CircuitOp(s)
+#   preserve_moment_structure = True
+#   circuit that is alrady executable
+#   circuit that is empty
 
 def assert_same_unitary(
     c_orig,
@@ -51,7 +56,7 @@ def assert_same_unitary(
     [
         (8 , size, op_density, seed)
         for size in [50, 100, 500]
-        for seed in range(10)
+        for seed in range(3)
         for op_density in [0.3, 0.5, 0.7]
     ],
 )
@@ -64,27 +69,90 @@ def test_route_small_circuit_random(n_qubits, n_moments, op_density, seed):
     c_routed, initial_mapping, final_mapping = router.route_circuit(c_orig)
 
     device.validate_circuit(c_routed)
-
     assert_same_unitary(c_orig, c_routed, initial_mapping, final_mapping)
 
 
-# @pytest.mark.parametrize(
-#     "n_qubits, n_moments, op_density, seed",
-#     [
-#         (100 , size, op_density, seed)
-#         for size in [50, 100]
-#         for seed in range(1)
-#         for op_density in [0.3, 0.5, 0.7]
-#     ],
-# )
-# def test_route_large_circuit_random(n_qubits, n_moments, op_density, seed):
-#     c_orig = cirq.testing.random_circuit(
-#         qubits=n_qubits, n_moments=n_moments, op_density=op_density, random_state=seed
-#     )
-#     print(len(list(c_orig.all_operations())))
-#     device = cirq.testing.construct_grid_device(10, 10)
-#     start = timer()
-#     router = cirq.RouteCQC(device)
-#     router(c_orig)
-#     end = timer()
-#     print(end - start)
+def test_high_qubit_count():
+    c_orig = cirq.testing.random_circuit(
+        qubits=54,
+        n_moments=500,
+        op_density=0.4,
+        random_state=0,
+    ) 
+    device = cirq.testing.construct_grid_device(7, 8)
+    router = cirq.RouteCQC(device)
+    c_routed = router(c_orig)
+    device.validate_circuit(c_routed)
+
+
+def construct_valid_circuit():
+    return cirq.Circuit([
+        cirq.Moment(
+            cirq.X(cirq.NamedQubit('2')),
+            cirq.X(cirq.NamedQubit('11')),
+            cirq.X(cirq.NamedQubit('1')),
+            cirq.X(cirq.NamedQubit('13')),
+            cirq.X(cirq.NamedQubit('0')),
+            cirq.X(cirq.NamedQubit('14')),
+            cirq.X(cirq.NamedQubit('6')),
+            cirq.CNOT(cirq.NamedQubit('3'), cirq.NamedQubit('9')),
+            cirq.CNOT(cirq.NamedQubit('8'), cirq.NamedQubit('12')),
+            cirq.X(cirq.NamedQubit('7')),
+            cirq.X(cirq.NamedQubit('4')),
+            cirq.X(cirq.NamedQubit('15')),
+        ),
+        cirq.Moment(
+            cirq.X(cirq.NamedQubit('2')),
+            cirq.X(cirq.NamedQubit('9')),
+            cirq.X(cirq.NamedQubit('3')),
+            cirq.X(cirq.NamedQubit('1')),
+            cirq.CNOT(cirq.NamedQubit('10'), cirq.NamedQubit('11')),
+            cirq.CNOT(cirq.NamedQubit('8'), cirq.NamedQubit('12')),
+            cirq.CNOT(cirq.NamedQubit('14'), cirq.NamedQubit('6')),
+            cirq.CNOT(cirq.NamedQubit('5'), cirq.NamedQubit('4')),
+            cirq.X(cirq.NamedQubit('15')),
+        ),
+        cirq.Moment(
+            cirq.X(cirq.NamedQubit('1')),
+            cirq.X(cirq.NamedQubit('12')),
+            cirq.CNOT(cirq.NamedQubit('8'), cirq.NamedQubit('2')),
+            cirq.CNOT(cirq.NamedQubit('3'), cirq.NamedQubit('9')),
+            cirq.CNOT(cirq.NamedQubit('6'), cirq.NamedQubit('0')),
+            cirq.CNOT(cirq.NamedQubit('14'), cirq.NamedQubit('10')),
+        ),
+        cirq.Moment(
+            cirq.X(cirq.NamedQubit('10')),
+            cirq.CNOT(cirq.NamedQubit('8'), cirq.NamedQubit('12')),
+            cirq.CNOT(cirq.NamedQubit('14'), cirq.NamedQubit('6')),
+            cirq.CNOT(cirq.NamedQubit('1'), cirq.NamedQubit('4')),
+            cirq.X(cirq.NamedQubit('9')),
+            cirq.X(cirq.NamedQubit('0')),
+        ),
+        cirq.Moment(
+            cirq.X(cirq.NamedQubit('1')),
+            cirq.X(cirq.NamedQubit('6')),
+            cirq.CNOT(cirq.NamedQubit('8'), cirq.NamedQubit('12')),
+            cirq.CNOT(cirq.NamedQubit('14'), cirq.NamedQubit('10')),
+        ),
+    ])
+
+
+def test_empty_and_executable():
+    device = cirq.testing.construct_grid_device(5, 5)
+    empty_circuit = cirq.Circuit(cirq.Moment() for i in range(10))
+    valid_circuit = construct_valid_circuit()
+    print(valid_circuit)
+    # device.validate_circuit(empty_circuit)
+    # device.validate_circuit(valid_circuit)
+
+    # router = cirq.RouteCQC(device)
+    # empty_circuit_routed, imap_empty, fmap_empty = router(empty_circuit)
+    # valid_circuit_routed, imap_valid, fmap_routed = router(valid_circuit)
+
+    # device.validate_circuit(empty_circuit_routed)
+    # device.validate_circuit(valid_circuit_routed)
+    # assert_same_unitary(empty_circuit, empty_circuit_routed, imap_empty, fmap_empty)
+    # assert_same_unitary(valid_circuit, valid_circuit_routed, imap_valid, fmap_routed)
+    # assert len(list(empty_circuit.all_operations())) == len(list(empty_circuit_routed.all_operations()))
+    # assert len(list(valid_circuit.all_operations())) == len(list(valid_circuit_routed.all_operations()))
+
