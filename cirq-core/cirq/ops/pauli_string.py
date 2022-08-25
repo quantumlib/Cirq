@@ -513,7 +513,7 @@ class PauliString(raw_types.Operation, Generic[TKey]):
     def _has_unitary_(self) -> bool:
         if self._is_parameterized_():
             return False
-        return abs(1 - abs(self.coefficient)) < 1e-6
+        return abs(1 - abs(cast(complex, self.coefficient))) < 1e-6
 
     def _unitary_(self) -> Optional[np.ndarray]:
         if not self._has_unitary_():
