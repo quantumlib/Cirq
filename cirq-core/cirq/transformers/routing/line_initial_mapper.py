@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Concrete implementation of AbstractInitialMapper that places lines of qubits onto the device.
+"""Maps logical to physical qubits by greedily placing lines of logical qubits on the device. 
 
 This is the default placement strategy used in the CQC router.
 
@@ -30,7 +30,7 @@ If some logical qubits are unampped after this first procedure then there are tw
     the nearest available neighbor to the center of the device.
 """
 
-from typing import Deque, Dict, List, Set, TYPE_CHECKING
+from typing import Deque, Dict, List, Set, Tuple, TYPE_CHECKING
 from collections import deque
 import networkx as nx
 
@@ -57,7 +57,7 @@ class LineInitialMapper(initial_mapper.AbstractInitialMapper):
     A line is split by mapping the next logical qubit to the nearest available physical qubit
     to the center of the device graph.
 
-    The expected runtime of this strategy is O(m logn + n^2) where m is the # of operationss in the
+    The expected runtime of this strategy is O(m logn + n^2) where m is the # of operations in the
     given circuit and n is the number of qubits. The first term corresponds to the runtime of
     'make_circuit_graph()' and the second for 'initial_mapping()'.
     """
@@ -79,10 +79,10 @@ class LineInitialMapper(initial_mapper.AbstractInitialMapper):
                 sorted(list(sorted(edge) for edge in device_graph.edges))
             )
         self.center = nx.center(self.device_graph)[0]
-        self.mapped_physicals: Set['cirq.Qid'] = set()
-        self.partners: Dict['cirq.Qid', 'cirq.Qid'] = {}
 
-    def _make_circuit_graph(self, circuit: 'cirq.AbstractCircuit') -> List[Deque['cirq.Qid']]:
+    def _make_circuit_graph(
+        self, circuit: 'cirq.AbstractCircuit'
+    ) -> Tuple[List[Deque['cirq.Qid']], Dict['cirq.Qid', 'cirq.Qid']]:
         """Creates a (potentially incomplete) qubit connectivity graph of the circuit.
 
         Iterates over moments in the circuit from left to right and adds edges between logical
@@ -100,6 +100,7 @@ class LineInitialMapper(initial_mapper.AbstractInitialMapper):
         """
         circuit_graph: List[Deque['cirq.Qid']] = [deque([q]) for q in sorted(circuit.all_qubits())]
         component_id: Dict['cirq.Qid', int] = {q[0]: i for i, q in enumerate(circuit_graph)}
+        partners: Dict['cirq.Qid', 'cirq.Qid'] = {}
 
         def degree_lt_two(q: 'cirq.Qid'):
             return any(circuit_graph[component_id[q]][i] == q for i in [-1, 0])
@@ -112,10 +113,8 @@ class LineInitialMapper(initial_mapper.AbstractInitialMapper):
             c0, c1 = component_id[q0], component_id[q1]
 
             # Keep track of partners for mapping isolated qubits later.
-            if q0 not in self.partners:
-                self.partners[q0] = q1
-            if q1 not in self.partners:
-                self.partners[q1] = q0
+            partners[c0] = partners[c0] if c0 in partners else q1
+            partners[c1] = partners[c1] if c1 in partners else q0
 
             if not (degree_lt_two(q0) and degree_lt_two(q1) and c0 != c1):
                 continue
@@ -137,7 +136,10 @@ class LineInitialMapper(initial_mapper.AbstractInitialMapper):
                     circuit_graph[c0].append(q)
                 component_id[q] = c0
 
-        return sorted([circuit_graph[c] for c in set(component_id.values())], key=len, reverse=True)
+        graph = sorted(
+            [circuit_graph[c] for c in set(component_id.values())], key=len, reverse=True
+        )
+        return graph, partners
 
     def initial_mapping(self, circuit: 'cirq.AbstractCircuit') -> Dict['cirq.Qid', 'cirq.Qid']:
         """Maps disjoint lines of logical qubits onto lines of physical qubits.
@@ -149,49 +151,50 @@ class LineInitialMapper(initial_mapper.AbstractInitialMapper):
             a dictionary that maps logical qubits in the circuit (keys) to physical qubits on the
             device (values).
         """
+        mapped_physicals: Set['cirq.Qid'] = set()
         qubit_map: Dict['cirq.Qid', 'cirq.Qid'] = {}
-        circuit_graph = self._make_circuit_graph(circuit)
-        self.center = nx.center(self.device_graph)[0]
+        circuit_graph, partners = self._make_circuit_graph(circuit)
 
-        def next_physical(current_physical: 'cirq.Qid') -> 'cirq.Qid':
-            # Greedily map to highest degree neighbor that that is available
-            sorted_neighbors = sorted(
-                self.device_graph.neighbors(current_physical),
-                key=lambda x: self.device_graph.degree(x),
-                reverse=True,
-            )
-            for neighbor in sorted_neighbors:
-                if neighbor not in self.mapped_physicals:
-                    return neighbor
-            # If cannot map onto one long line of physical qubits, then break down into multiple
-            # small lines by finding nearest available qubit to the physical center
-            return self._closest_unmapped_qubit(self.center)
+        def next_physical(
+            current_physical: 'cirq.Qid', partner: 'cirq.Qid', isolated: bool = False
+        ) -> 'cirq.Qid':
+            # Greedily map to highest degree neighbor that is available
+            if not isolated:
+                sorted_neighbors = sorted(
+                    self.device_graph.neighbors(current_physical),
+                    key=lambda x: self.device_graph.degree(x),
+                    reverse=True,
+                )
+                for neighbor in sorted_neighbors:
+                    if neighbor not in mapped_physicals:
+                        return neighbor
+                # If cannot map onto one long line of physical qubits, then break down into multiple
+                # small lines by finding nearest available qubit to the physical center
+            return self._closest_unmapped_qubit(partner, mapped_physicals)
 
         pq = self.center
-        first_isolated_idx = len(circuit_graph)
-        for idx, logical_line in enumerate(circuit_graph):
-            if len(logical_line) == 1:
-                first_isolated_idx = idx
-                break
-
-            for lq in logical_line:
-                self.mapped_physicals.add(pq)
+        for i, logical_line in enumerate(circuit_graph):
+            for j, lq in enumerate(logical_line):
+                mapped_physicals.add(pq)
                 qubit_map[lq] = pq
-                # Edge case: if mapping n qubits on an n-qubit device should not call next_physical
-                # when finished mapping the last logical qubit else will raise an error
-                if len(circuit.all_qubits()) != len(self.mapped_physicals):
-                    pq = next_physical(pq)
 
-        for i in range(first_isolated_idx, len(circuit_graph)):
-            lq = circuit_graph[i][0]
-            partner = qubit_map[self.partners[lq]] if lq in self.partners else self.center
-            pq = self._closest_unmapped_qubit(partner)
-            self.mapped_physicals.add(pq)
-            qubit_map[lq] = pq
+                if j < len(logical_line) - 1:
+                    pq = next_physical(pq, self.center)
+
+                # Edge case: if mapping n qubits on an n-qubit device should not call next_physical
+                # when finished mapping the last logical qubit else will raise an error.
+                elif i < len(circuit_graph) - 1:
+                    if len(circuit_graph[i + 1]) > 1:
+                        pq = next_physical(pq, self.center)
+                    else:
+                        partner = qubit_map[partners[lq]] if lq in partners else self.center
+                        pq = next_physical(pq, partner, isolated=True)
 
         return qubit_map
 
-    def _closest_unmapped_qubit(self, source: 'cirq.Qid') -> 'cirq.Qid':
+    def _closest_unmapped_qubit(
+        self, source: 'cirq.Qid', mapped_physicals: Dict['cirq.Qid', 'cirq.Qid']
+    ) -> 'cirq.Qid':
         """Finds the closest available neighbor to a physical qubit 'source' on the device.
 
         Args:
@@ -205,7 +208,7 @@ class LineInitialMapper(initial_mapper.AbstractInitialMapper):
         """
         for _, successors in nx.bfs_successors(self.device_graph, source):
             for successor in successors:
-                if successor not in self.mapped_physicals:
+                if successor not in mapped_physicals:
                     return successor
         raise ValueError("No available physical qubits left on the device.")
 
