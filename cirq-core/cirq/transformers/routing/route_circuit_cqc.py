@@ -25,6 +25,10 @@ from cirq.transformers.routing import mapping_manager, line_initial_mapper
 if TYPE_CHECKING:
     import cirq
 
+# TODO: add print function with mapping indices
+# TODO: debug why brute force is never called (not covered in tests)
+# TODO: add __str__, __repr__, and (maybe) _equality_value_equality_
+
 
 @transformer_api.transformer
 class RouteCQC:
@@ -243,8 +247,10 @@ class RouteCQC:
                     chosen_swaps = self._symmetry_swap_pair(timesteps, idx, max_search_radius)
                 else:
                     chosen_swaps = tuple([sigma[0][0]])
+                    # print(f'regular swap: {chosen_swaps}')
 
                 if chosen_swaps in inserted_swaps:
+                    # print('nevermind, previous not chosen')
                     chosen_swaps = self._symmetry_brute_force(timesteps, idx)
                 inserted_swaps.add(chosen_swaps)
 
@@ -289,6 +295,7 @@ class RouteCQC:
         if len(pair_sigma) > 1 and idx + max_search_radius <= len(timesteps):
             return self._symmetry_brute_force(timesteps, idx)
         chosen_swap_pair = pair_sigma[0]
+        # print(f'symmetry swap: {chosen_swap_pair}')
         return tuple([chosen_swap_pair[0], chosen_swap_pair[1]])
 
     def _symmetry_brute_force(
@@ -301,7 +308,9 @@ class RouteCQC:
         )[0]
         path = self.mm.shortest_path(*qubits)
         q1 = path[0]
-        return tuple([(q1, path[i + 1]) for i in range(len(path) - 2)])
+        ret = tuple([(q1, path[i + 1]) for i in range(len(path) - 2)])
+        # print(f'brute force swap: {ret}')
+        return ret
 
     def _initial_candidate_swaps(
         self, timestep_ops: List['cirq.Operation']
