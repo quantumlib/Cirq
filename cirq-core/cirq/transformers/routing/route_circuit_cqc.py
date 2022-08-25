@@ -56,9 +56,9 @@ class RouteCQC:
         if nx.is_directed(device.metadata.nx_graph):
             raise ValueError("Device graph must be undirected")
         self.device_graph = device.metadata.nx_graph
-        self.circuit_graph = None
-        self.initial_mapping = None
-        self.mm = None
+        # self.circuit_graph = None
+        # self.initial_mapping = None
+        # self.mm = None
 
     def __call__(
         self,
@@ -246,7 +246,7 @@ class RouteCQC:
 
                 if chosen_swaps in inserted_swaps:
                     chosen_swaps = self._symmetry_brute_force(timesteps, idx)
-                inserted_swap.add(chosen_swaps)
+                inserted_swaps.add(chosen_swaps)
 
                 for swap in chosen_swaps:
                     inserted_swap = self.mm.mapped_op(ops.SWAP(*swap))
@@ -300,7 +300,7 @@ class RouteCQC:
             key=lambda x: x[1],
         )[0]
         path = self.mm.shortest_path(*qubits)
-        q1 = self.mm.inverse_map[path[0]]
+        q1 = path[0]
         return tuple([(q1, path[i + 1]) for i in range(len(path) - 2)])
 
     def _initial_candidate_swaps(
@@ -334,8 +334,3 @@ class RouteCQC:
         for swap in swaps:
             self.mm.apply_swap(*swap)
         return max(shortest_path_lengths)
-
-    @property
-    def initial_mapping(self) -> Dict['cirq.Qid', 'cirq.Qid']:
-        """The initial mapping from qubits in given circuit to qubits in the routed circuit"""
-        return self.initial_mapping

@@ -14,6 +14,7 @@
 
 from typing import Dict
 
+from timeit import default_timer as timer
 import cirq
 import pytest
 
@@ -23,8 +24,9 @@ def assert_same_unitary(
     c_routed,
     imap: Dict['cirq.Qid', 'cirq.Qid'],
     fmap: Dict['cirq.Qid', 'cirq.Qid']):
+
     inverse_fmap = {v: k for k, v in fmap.items()}
-    final_to_initial_mapping = compose(inverse_fmap, imap)
+    final_to_initial_mapping = {k: imap[inverse_fmap[k]] for k in inverse_fmap}
     sorted_grid_qubits = sorted(c_routed.all_qubits())
     if final_to_initial_mapping:
         x, y = zip(*sorted(final_to_initial_mapping.items(), key=lambda x: x[1]))
@@ -47,20 +49,42 @@ def assert_same_unitary(
 @pytest.mark.parametrize(
     "n_qubits, n_moments, op_density, seed",
     [
-        (5 * size, 10 * size, op_density, seed)
-        for size in range(1, 4)
+        (8 , size, op_density, seed)
+        for size in [50, 100, 500]
         for seed in range(10)
-        for op_density in [0.4, 0.5, 0.6]
+        for op_density in [0.3, 0.5, 0.7]
     ],
 )
-def test_route_circuit_random(n_qubits, n_moments, op_density, seed):
+def test_route_small_circuit_random(n_qubits, n_moments, op_density, seed):
     c_orig = cirq.testing.random_circuit(
         qubits=n_qubits, n_moments=n_moments, op_density=op_density, random_state=seed
     )
     device = cirq.testing.construct_grid_device(4, 4)
     router = cirq.RouteCQC(device)
-    # c_routed, final_mapping = router.route_circuit(c_orig)
+    c_routed, initial_mapping, final_mapping = router.route_circuit(c_orig)
 
-    # device.validate_circuit(c_routed)
+    device.validate_circuit(c_routed)
 
-    # assert_same_unitary(c_orig, router.route_circuit(c_orig))
+    assert_same_unitary(c_orig, c_routed, initial_mapping, final_mapping)
+
+
+# @pytest.mark.parametrize(
+#     "n_qubits, n_moments, op_density, seed",
+#     [
+#         (100 , size, op_density, seed)
+#         for size in [50, 100]
+#         for seed in range(1)
+#         for op_density in [0.3, 0.5, 0.7]
+#     ],
+# )
+# def test_route_large_circuit_random(n_qubits, n_moments, op_density, seed):
+#     c_orig = cirq.testing.random_circuit(
+#         qubits=n_qubits, n_moments=n_moments, op_density=op_density, random_state=seed
+#     )
+#     print(len(list(c_orig.all_operations())))
+#     device = cirq.testing.construct_grid_device(10, 10)
+#     start = timer()
+#     router = cirq.RouteCQC(device)
+#     router(c_orig)
+#     end = timer()
+#     print(end - start)
