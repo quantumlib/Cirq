@@ -37,6 +37,7 @@ import pandas as pd
 from cirq import value, ops
 from cirq._compat import proper_repr
 from cirq.study import resolver
+from cirq.value import big_endian_int_to_bits
 
 if TYPE_CHECKING:
     import cirq
@@ -201,13 +202,16 @@ class Result(abc.ABC):
             A counter indicating how often measurements sampled various
             results.
         """
-        fixed_keys = tuple(_key_to_str(key) for key in keys)
-        samples: Iterable[Any] = zip(*(self.measurements[sub_key] for sub_key in fixed_keys))
-        if len(fixed_keys) == 0:
-            samples = [()] * self.repetitions
+        fixed_keys = list(_key_to_str(key) for key in keys)
+
+        data_grouped = self.data.groupby(fixed_keys, as_index=False).size()
+
         c: collections.Counter = collections.Counter()
-        for sample in samples:
-            c[fold_func(sample)] += 1
+        for row_id in range(len(data_grouped)):
+            row = data_grouped.iloc[row_id]
+            sample = tuple(np.array(big_endian_int_to_bits(row[key]), dtype=bool)
+                           for key in fixed_keys)
+            c[fold_func(sample)] += row['size']
         return c
 
     def histogram(
