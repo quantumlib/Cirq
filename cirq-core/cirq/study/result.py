@@ -202,11 +202,11 @@ class Result(abc.ABC):
             A counter indicating how often measurements sampled various
             results.
         """
+        fixed_keys = [_key_to_str(key) for key in keys]
         c: collections.Counter = collections.Counter()
-        if len(keys) == 0:
+        if len(fixed_keys) == 0:
             c[None] += self.repetitions
             return c
-        fixed_keys = list(_key_to_str(key) for key in keys)
         bit_counts = [self.measurements[key].shape[1] for key in fixed_keys]
         data_grouped = self.data.groupby(fixed_keys, as_index=False).size()
         for row_id in data_grouped.index:
