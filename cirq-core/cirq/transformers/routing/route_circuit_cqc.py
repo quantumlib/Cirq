@@ -60,9 +60,9 @@ class RouteCQC:
         if nx.is_directed(device.metadata.nx_graph):
             raise ValueError("Device graph must be undirected")
         self.device_graph = device.metadata.nx_graph
-        # self.circuit_graph = None
-        # self.initial_mapping = None
-        # self.mm = None
+        self.circuit_graph = None
+        self.initial_mapping = None
+        self.mm = None
 
     def __call__(
         self,
@@ -339,7 +339,7 @@ class RouteCQC:
         """Computes the cost function for the given list of swaps over the current timestep ops."""
         for swap in swaps:
             self.mm.apply_swap(*swap)
-        shortest_path_lengths = [self.mm.dist_on_device(*op.qubits) for op in timestep_ops]
+        max_cost = max(self.mm.dist_on_device(*op.qubits) for op in timestep_ops)
         for swap in swaps:
             self.mm.apply_swap(*swap)
-        return max(shortest_path_lengths)
+        return max_cost

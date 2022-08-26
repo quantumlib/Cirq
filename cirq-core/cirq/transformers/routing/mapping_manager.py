@@ -16,8 +16,9 @@
 
 from typing import Dict, Sequence, TYPE_CHECKING
 import networkx as nx
+import numpy as np
 
-from cirq import protocols, value, _compat
+from cirq import protocols, value
 
 if TYPE_CHECKING:
     import cirq
@@ -43,6 +44,7 @@ class MappingManager:
             device_graph: connectivity graph of qubits in the hardware device.
             initial_mapping: the initial mapping of logical (keys) to physical qubits (values).
         """
+        # make sure edge insertion order is the same amongst equivalent graphs.
         if nx.is_directed(device_graph):
             self.device_graph = nx.DiGraph()
             self.device_graph.add_nodes_from(sorted(list(device_graph.nodes(data=True))))
@@ -54,9 +56,20 @@ class MappingManager:
                 sorted(list(sorted(edge) for edge in device_graph.edges))
             )
 
+        # initialize map (and inverse map for efficient lookups).
         self._map = initial_mapping.copy()
         self._inverse_map = {v: k for k, v in self._map.items()}
         self._induced_subgraph = nx.induced_subgraph(self.device_graph, self._map.values())
+
+        # get distance and predecessor matrix and convert to np.array for efficient lookups
+        # and path reconstruction.
+        self._qubit_to_int = {
+            old: idx for idx, old in enumerate(sorted(self._induced_subgraph.nodes))
+        }
+        self._int_to_qubit = {v: k for k, v in self._qubit_to_int.items()}
+        pre, dist = nx.floyd_warshall_predecessor_and_distance(self._induced_subgraph)
+        self._predecessors = self._to_int_nparray(pre, pre=True)
+        self._distances = self._to_int_nparray(dist)
 
     @property
     def map(self) -> Dict['cirq.Qid', 'cirq.Qid']:
@@ -83,7 +96,10 @@ class MappingManager:
         Returns:
             The shortest path distance.
         """
-        return len(self._physical_shortest_path(self._map[lq1], self._map[lq2])) - 1
+        source = self._qubit_to_int[self._map[lq1]]
+        target = self._qubit_to_int[self._map[lq2]]
+        dist = self._distances[source, target]
+        return int(dist) if dist is not np.inf else dist
 
     def can_execute(self, op: 'cirq.Operation') -> bool:
         """Finds whether the given operation acts on qubits that are adjacent on the device.
@@ -140,12 +156,48 @@ class MappingManager:
         Returns:
             A sequence of logical qubits on the shortest path from lq1 to lq2.
         """
-        physical_shortest_path = self._physical_shortest_path(self._map[lq1], self._map[lq2])
-        return [self._inverse_map[pq] for pq in physical_shortest_path]
+        source, target = self._qubit_to_int[self._map[lq1]], self._qubit_to_int[self._map[lq2]]
+        return [self._inverse_map[pq] for pq in self._reconstruct_path(source, target)]
 
-    @_compat.cached_method
-    def _physical_shortest_path(self, pq1: 'cirq.Qid', pq2: 'cirq.Qid') -> Sequence['cirq.Qid']:
-        return nx.shortest_path(self._induced_subgraph, pq1, pq2)
+    def _to_int_nparray(
+        self, qubit_matrix: Dict['cirq.Qid', Dict['cirq.Qid', int]], pre=False
+    ) -> np.array:
+        n = len(self._induced_subgraph)
+        int_nparray = np.full((n, n), np.inf, dtype=float)
+
+        # zeros on diagonal
+        for q1 in qubit_matrix:
+            val = self._qubit_to_int[q1] if pre else 0
+            int_nparray[self._qubit_to_int[q1], self._qubit_to_int[q1]] = val
+
+        for q1 in qubit_matrix:
+            for q2 in qubit_matrix[q1]:
+                val = self._qubit_to_int[qubit_matrix[q1][q2]] if pre else qubit_matrix[q1][q2]
+                int_nparray[self._qubit_to_int[q1], self._qubit_to_int[q2]] = val
+        return int_nparray
+
+    def _reconstruct_path(self, source: int, target: int) -> Sequence['cirq.Qid']:
+        if source == target:
+            return []
+
+        prev = self._predecessors[source]
+        if prev[target] == np.inf:
+            raise ValueError(
+                f"There is no path between {self._int_to_qubit[source]}"
+                f", and {self._int_to_qubit[target]}."
+            )
+        curr = int(prev[target])
+
+        path = [self._int_to_qubit[target], self._int_to_qubit[curr]]
+        while curr != source:
+            if prev[curr] == np.inf:
+                raise ValueError(
+                    f"There is no path between {self._int_to_qubit[source]}"
+                    f", and {self._int_to_qubit[target]}."
+                )
+            curr = int(prev[curr])
+            path.append(self._int_to_qubit[curr])
+        return list(reversed(path))
 
     def _value_equality_values_(self):
         graph_equality = (

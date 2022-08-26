@@ -13,7 +13,6 @@
 # limitations under the License.
 
 import cirq
-import collections
 
 
 def test_virtual_tag():
@@ -33,7 +32,7 @@ def test_swap_tag():
 
     assert tag1 == tag2
     assert str(tag1) == str(tag2) == '<r>'
-    assert isinstance(tag1, collections.Hashable)
+    assert hash(tag1) == hash(tag2)
 
     cirq.testing.assert_equivalent_repr(tag1)
     cirq.testing.assert_equivalent_repr(tag2)
