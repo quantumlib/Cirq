@@ -212,11 +212,12 @@ class Result(abc.ABC):
         data_grouped = self.data.groupby(fixed_keys, as_index=False).size()
 
         c: collections.Counter = collections.Counter()
-        for row_id in range(len(data_grouped)):
-            row = data_grouped.iloc[row_id]
-            sample = tuple(np.array(big_endian_int_to_bits(row[key], bit_count=bit_count),
-                                    dtype=bool)
-                           for key, bit_count in zip(fixed_keys, bit_counts))
+        for row_id in data_grouped.index:
+            row = data_grouped.loc[row_id]
+            sample = tuple(
+                np.array(big_endian_int_to_bits(row[key], bit_count=bit_count), dtype=bool)
+                for key, bit_count in zip(fixed_keys, bit_counts)
+            )
             c[fold_func(sample)] += row['size']
         return c
 
