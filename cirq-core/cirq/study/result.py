@@ -202,15 +202,21 @@ class Result(abc.ABC):
             A counter indicating how often measurements sampled various
             results.
         """
+        if len(keys) == 0:
+            c: collections.Counter = collections.Counter()
+            c[None] += self.repetitions
+            return c
         fixed_keys = list(_key_to_str(key) for key in keys)
+        bit_counts = [self.measurements[key].shape[1] for key in fixed_keys]
 
         data_grouped = self.data.groupby(fixed_keys, as_index=False).size()
 
         c: collections.Counter = collections.Counter()
         for row_id in range(len(data_grouped)):
             row = data_grouped.iloc[row_id]
-            sample = tuple(np.array(big_endian_int_to_bits(row[key]), dtype=bool)
-                           for key in fixed_keys)
+            sample = tuple(np.array(big_endian_int_to_bits(row[key], bit_count=bit_count),
+                                    dtype=bool)
+                           for key, bit_count in zip(fixed_keys, bit_counts))
             c[fold_func(sample)] += row['size']
         return c
 
