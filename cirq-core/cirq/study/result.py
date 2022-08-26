@@ -202,8 +202,8 @@ class Result(abc.ABC):
             A counter indicating how often measurements sampled various
             results.
         """
+        c: collections.Counter = collections.Counter()
         if len(keys) == 0:
-            c: collections.Counter = collections.Counter()
             c[None] += self.repetitions
             return c
         fixed_keys = list(_key_to_str(key) for key in keys)
@@ -211,7 +211,6 @@ class Result(abc.ABC):
 
         data_grouped = self.data.groupby(fixed_keys, as_index=False).size()
 
-        c: collections.Counter = collections.Counter()
         for row_id in data_grouped.index:
             row = data_grouped.loc[row_id]
             sample = tuple(
