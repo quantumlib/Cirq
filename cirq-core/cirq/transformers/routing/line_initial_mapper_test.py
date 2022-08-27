@@ -119,7 +119,7 @@ def test_small_circuit_on_grid_device():
             cirq.Moment(cirq.CNOT(cirq.GridQubit(1, 3), cirq.GridQubit(2, 3))),
             cirq.Moment(cirq.CNOT(cirq.GridQubit(3, 3), cirq.GridQubit(2, 3))),
             cirq.Moment(
-                cirq.CNOT(cirq.GridQubit(2, 2), cirq.GridQubit(2, 3)), cirq.X(cirq.GridQubit(2, 4))
+                cirq.CNOT(cirq.GridQubit(2, 2), cirq.GridQubit(2, 3)), cirq.X(cirq.GridQubit(3, 2))
             ),
         ]
     )
@@ -144,12 +144,16 @@ def test_small_circuit_on_ring_device():
     cirq.testing.assert_same_circuits(circuit.transform_qubits(mapping), expected_circuit)
 
 
+glob_device_graph = cirq.testing.construct_grid_device(7, 7).metadata.nx_graph
+glob_mapper = cirq.LineInitialMapper(glob_device_graph)
+
+
 @pytest.mark.parametrize(
     "qubits, n_moments, op_density, random_state",
     [
         (5 * size, 20 * size, density, seed)
         for size in range(1, 3)
-        for seed in range(10)
+        for seed in range(3)
         for density in [0.4, 0.5, 0.6]
     ],
 )
@@ -159,19 +163,16 @@ def test_random_circuits_grid_device(
     c_orig = cirq.testing.random_circuit(
         qubits=qubits, n_moments=n_moments, op_density=op_density, random_state=random_state
     )
-    device = cirq.testing.construct_grid_device(7, 7)
-    device_graph = device.metadata.nx_graph
-    mapper = cirq.LineInitialMapper(device_graph)
-    mapping = mapper.initial_mapping(c_orig)
+    mapping = glob_mapper.initial_mapping(c_orig)
 
     assert len(set(mapping.values())) == len(mapping.values())
     assert set(mapping.keys()) == set(c_orig.all_qubits())
-    assert nx.is_connected(nx.induced_subgraph(device_graph, mapping.values()))
+    assert nx.is_connected(nx.induced_subgraph(glob_device_graph, mapping.values()))
 
 
 @pytest.mark.parametrize(
     "qubits, n_moments, op_density, random_state",
-    [(49, size, 0.5, seed) for size in [50, 100] for seed in range(3)],
+    [(30, size, 0.5, seed) for size in [50, 100] for seed in range(2)],
 )
 def test_large_random_circuits_grid_device(
     qubits: int, n_moments: int, op_density: float, random_state: int
@@ -179,35 +180,11 @@ def test_large_random_circuits_grid_device(
     c_orig = cirq.testing.random_circuit(
         qubits=qubits, n_moments=n_moments, op_density=op_density, random_state=random_state
     )
-    device = cirq.testing.construct_grid_device(7, 7)
-    device_graph = device.metadata.nx_graph
-    mapper = cirq.LineInitialMapper(device_graph)
-    mapping = mapper.initial_mapping(c_orig)
+    mapping = glob_mapper.initial_mapping(c_orig)
 
     assert len(set(mapping.values())) == len(mapping.values())
     assert set(mapping.keys()) == set(c_orig.all_qubits())
-    assert nx.is_connected(nx.induced_subgraph(device_graph, mapping.values()))
-
-
-def test_two_circuits_same_instance():
-    circ0, circ1 = (
-        cirq.testing.random_circuit(qubits=25, n_moments=50, op_density=0.6, random_state=i)
-        for i in [0, 1]
-    )
-    device = cirq.testing.construct_grid_device(7, 7)
-    device_graph = device.metadata.nx_graph
-    mapper = cirq.LineInitialMapper(device_graph)
-
-    mapping0 = mapper.initial_mapping(circ0)
-    mapping1 = mapper.initial_mapping(circ1)
-
-    assert len(set(mapping0.values())) == len(mapping0.values())
-    assert set(mapping0.keys()) == set(circ0.all_qubits())
-    assert nx.is_connected(nx.induced_subgraph(device_graph, mapping0.values()))
-
-    assert len(set(mapping1.values())) == len(mapping1.values())
-    assert set(mapping1.keys()) == set(circ1.all_qubits())
-    assert nx.is_connected(nx.induced_subgraph(device_graph, mapping1.values()))
+    assert nx.is_connected(nx.induced_subgraph(glob_device_graph, mapping.values()))
 
 
 def test_repr():

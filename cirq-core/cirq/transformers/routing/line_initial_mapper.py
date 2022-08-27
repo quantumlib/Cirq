@@ -157,6 +157,9 @@ class LineInitialMapper(initial_mapper.AbstractInitialMapper):
         def next_physical(
             current_physical: 'cirq.Qid', partner: 'cirq.Qid', isolated: bool = False
         ) -> 'cirq.Qid':
+            # Handle the first physical qubit getting mapped.
+            if current_physical not in mapped_physicals:
+                return current_physical
             # Greedily map to highest degree neighbor that is available
             if not isolated:
                 sorted_neighbors = sorted(
@@ -172,22 +175,15 @@ class LineInitialMapper(initial_mapper.AbstractInitialMapper):
             return self._closest_unmapped_qubit(partner, mapped_physicals)
 
         pq = self.center
-        for i, logical_line in enumerate(circuit_graph):
-            for j, lq in enumerate(logical_line):
+        for logical_line in circuit_graph:
+            for lq in logical_line:
+                is_isolated = len(logical_line) == 1
+                partner = (
+                    qubit_map[partners[lq]] if (lq in partners and is_isolated) else self.center
+                )
+                pq = next_physical(pq, partner, isolated=is_isolated)
                 mapped_physicals.add(pq)
                 qubit_map[lq] = pq
-
-                if j < len(logical_line) - 1:
-                    pq = next_physical(pq, self.center)
-
-                # Edge case: if mapping n qubits on an n-qubit device should not call next_physical
-                # when finished mapping the last logical qubit else will raise an error.
-                elif i < len(circuit_graph) - 1:
-                    if len(circuit_graph[i + 1]) > 1:
-                        pq = next_physical(pq, self.center)
-                    else:
-                        partner = qubit_map[partners[lq]] if lq in partners else self.center
-                        pq = next_physical(pq, partner, isolated=True)
 
         return qubit_map
 
