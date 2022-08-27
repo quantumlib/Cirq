@@ -76,12 +76,12 @@ def test_route_small_circuit_random(n_qubits, n_moments, op_density, seed):
     assert_same_unitary(c_orig, c_routed, initial_mapping, final_mapping)
 
 
-# def test_high_qubit_count():
-#     c_orig = cirq.testing.random_circuit(qubits=45, n_moments=350, op_density=0.4, random_state=0)
-#     device = cirq.testing.construct_grid_device(7, 7)
-#     router = cirq.RouteCQC(device)
-#     c_routed = router(c_orig)
-#     device.validate_circuit(c_routed)
+def test_high_qubit_count():
+    c_orig = cirq.testing.random_circuit(qubits=45, n_moments=350, op_density=0.4, random_state=0)
+    device = cirq.testing.construct_grid_device(7, 7)
+    router = cirq.RouteCQC(device)
+    c_routed = router(c_orig)
+    device.validate_circuit(c_routed)
 
 
 def test_empty_circuit():

@@ -68,7 +68,7 @@ class RouteCQC:
         self,
         circuit: 'cirq.AbstractCircuit',
         *,
-        max_search_radius: int = 5,
+        max_search_radius: int = 8,
         preserve_moment_strucutre: bool = False,
         tag_inserted_swaps: bool = False,
         initial_mapper: Optional['cirq.AbstractInitialMapper'] = None,
@@ -235,7 +235,6 @@ class RouteCQC:
             routed_ops[idx].extend([self.mm.mapped_op(op) for op in single_qubit_ops[idx]])
 
             process_executable_ops(idx)
-            inserted_swaps: Set[Tuple[Tuple['cirq.Qid', 'cirq.Qid'], ...]] = set()
             while len(timesteps[idx]) != 0:
                 sigma = self._initial_candidate_swaps(timesteps[idx])
                 for s in range(idx, min(max_search_radius + idx, len(timesteps))):
@@ -246,13 +245,7 @@ class RouteCQC:
                 if len(sigma) > 1 and idx + max_search_radius <= len(timesteps):
                     chosen_swaps = self._symmetry_swap_pair(timesteps, idx, max_search_radius)
                 else:
-                    chosen_swaps = tuple([sigma[0][0]])
-                    # print(f'regular swap: {chosen_swaps}')
-
-                if chosen_swaps in inserted_swaps:
-                    # print('nevermind, previous not chosen')
-                    chosen_swaps = self._symmetry_brute_force(timesteps, idx)
-                inserted_swaps.add(chosen_swaps)
+                    chosen_swaps = (sigma[0][0],)
 
                 for swap in chosen_swaps:
                     inserted_swap = self.mm.mapped_op(ops.SWAP(*swap))
@@ -295,7 +288,6 @@ class RouteCQC:
         if len(pair_sigma) > 1 and idx + max_search_radius <= len(timesteps):
             return self._symmetry_brute_force(timesteps, idx)
         chosen_swap_pair = pair_sigma[0]
-        # print(f'symmetry swap: {chosen_swap_pair}')
         return tuple([chosen_swap_pair[0], chosen_swap_pair[1]])
 
     def _symmetry_brute_force(
@@ -309,7 +301,6 @@ class RouteCQC:
         path = self.mm.shortest_path(*qubits)
         q1 = path[0]
         ret = tuple([(q1, path[i + 1]) for i in range(len(path) - 2)])
-        # print(f'brute force swap: {ret}')
         return ret
 
     def _initial_candidate_swaps(
@@ -330,8 +321,17 @@ class RouteCQC:
         Given a list of candidate swaps find a subset that leads to a minimal longest shortest path
         between any paired qubits in the curernt timestep.
         """
-        costs = {swap: self._cost(swap, timestep_ops) for swap in candidate_swaps}
-        return [swap for swap in costs.keys() if costs[swap] == min(costs.values())]
+        costs = {}
+        for swap in candidate_swaps:
+            costs[swap] = self._cost(swap, timestep_ops)
+        shortest_longest_paths = [
+            swap for swap in costs if costs[swap][0] == min([v[0] for v in costs.values()])
+        ]
+        return [
+            swap
+            for swap in shortest_longest_paths
+            if costs[swap][1] == min([costs[swap][1] for swap in shortest_longest_paths])
+        ]
 
     def _cost(
         self, swaps: Tuple[Tuple['cirq.Qid', 'cirq.Qid'], ...], timestep_ops: List['cirq.Operation']
@@ -339,7 +339,12 @@ class RouteCQC:
         """Computes the cost function for the given list of swaps over the current timestep ops."""
         for swap in swaps:
             self.mm.apply_swap(*swap)
-        max_cost = max(self.mm.dist_on_device(*op.qubits) for op in timestep_ops)
+        max_length, sum_length = 0, 0
+        for op in timestep_ops:
+            # need to add this if statement because future timesteps may still have 1-qubit ops
+            q1, q2 = op.qubits[0], op.qubits[1]
+            max_length = max(max_length, self.mm.dist_on_device(q1, q2))
+            sum_length += self.mm.dist_on_device(q1, q2)
         for swap in swaps:
             self.mm.apply_swap(*swap)
-        return max_cost
+        return (max_length, sum_length)
