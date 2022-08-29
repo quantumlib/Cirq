@@ -47,9 +47,9 @@ class VirtualTag:
 
 class RoutingSwapTag:
     """A 'cirq.TaggedOperation' tag indicated that the operation is an inserted SWAP.
-    An InsertedSwapTag is meant to be used internally to distinguish SWAP operations that are
-    inserted during a routing procedure and SWAP operations that are part of the original circuit
-    before routing.
+
+    A RoutingSwapTag is meant to be used to distinguish SWAP operations that are inserted during
+    a routing procedure and SWAP operations that are part of the original circuit before routing.
     """
 
     def __eq__(self, other):
