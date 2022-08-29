@@ -287,6 +287,7 @@ from cirq.ops import (
     reset,
     reset_each,
     ResetChannel,
+    RoutingSwapTag,
     riswap,
     Rx,
     Ry,
