@@ -212,6 +212,8 @@ upper_tabs:
       - title: "Hidden Linear Function problem"
         path: /cirq/experiments/hidden_linear_function
       - heading: "Algorithms in ReCirq"
+      - title: "Overview"
+        path: /cirq/experiments#recirq-experiments
       - include: /cirq/experiments/_toc.yaml
 
     - name: "Contribute"
