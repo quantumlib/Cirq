@@ -16,3 +16,4 @@
 
 from cirq.transformers.routing.initial_mapper import AbstractInitialMapper, HardCodedInitialMapper
 from cirq.transformers.routing.mapping_manager import MappingManager
+from cirq.transformers.routing.line_initial_mapper import LineInitialMapper
