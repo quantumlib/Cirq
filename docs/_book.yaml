@@ -198,7 +198,7 @@ upper_tabs:
       contents:
       - title: "Overview"
         path: /cirq/experiments
-      - heading: "Algorithms in Cirq"
+      - heading: "Algorithms in base Cirq"
       - title: "Textbook Algorithms Workshop"
         path: /cirq/experiments/textbook_algorithms
       - title: "Shor's Algorithm"
@@ -211,7 +211,6 @@ upper_tabs:
         path: /cirq/experiments/fourier_checking
       - title: "Hidden Linear Function problem"
         path: /cirq/experiments/hidden_linear_function
-      - heading: "Algorithms in ReCirq"
       - include: /cirq/experiments/_toc.yaml
 
     - name: "Contribute"
