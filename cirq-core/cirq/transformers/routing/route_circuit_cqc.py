@@ -18,16 +18,12 @@ from typing import Dict, List, Optional, Set, Tuple, TYPE_CHECKING
 from itertools import combinations
 import networkx as nx
 
-from cirq import circuits, devices, ops, protocols
+from cirq import circuits, ops, protocols
 from cirq.transformers import transformer_api, transformer_primitives
 from cirq.transformers.routing import mapping_manager, line_initial_mapper
 
 if TYPE_CHECKING:
     import cirq
-
-# TODO: add print function with mapping indices
-# TODO: debug why brute force is never called (not covered in tests)
-# TODO: add __str__, __repr__, and (maybe) _equality_value_equality_
 
 
 @transformer_api.transformer
@@ -54,15 +50,12 @@ class RouteCQC:
                     mapping. Repeat from (i).
     """
 
-    def __init__(self, device: devices.Device):
+    def __init__(self, device_graph: nx.Graph):
         """Initializes the circuit routing transformer."""
 
-        if nx.is_directed(device.metadata.nx_graph):
+        if nx.is_directed(device_graph):
             raise ValueError("Device graph must be undirected")
-        self.device_graph = device.metadata.nx_graph
-        self.circuit_graph = None
-        self.initial_mapping = None
-        self.mm = None
+        self.device_graph = device_graph
 
     def __call__(
         self,
@@ -103,11 +96,11 @@ class RouteCQC:
         # 1. Do the initial mapping of logical to physical qubits.
         if initial_mapper is None:
             initial_mapper = line_initial_mapper.LineInitialMapper(self.device_graph)
-        self.initial_mapping = initial_mapper.initial_mapping(circuit)
+        self._initial_mapping = initial_mapper.initial_mapping(circuit)
 
         # 2. Construct a mapping manager that implicitly keeps track of this mapping and provides
         # convinience methods over the image of the map on the device graph.
-        self.mm = mapping_manager.MappingManager(self.device_graph, self.initial_mapping)
+        self._mm = mapping_manager.MappingManager(self.device_graph, self._initial_mapping)
 
         # 3. Get timesteps and single-qubit operations.
         timesteps, single_qubit_ops = self._get_timesteps_and_single_qubit_ops(
@@ -161,7 +154,7 @@ class RouteCQC:
             initial_mapper=initial_mapper,
             context=context,
         )
-        return routed_circuit, self.initial_mapping, self.mm.map
+        return routed_circuit, self._initial_mapping, self._mm.map
 
     def _get_timesteps_and_single_qubit_ops(
         self, circuit: 'cirq.AbstractCircuit', preserve_moment_structure: bool
@@ -223,8 +216,8 @@ class RouteCQC:
         def process_executable_ops(idx: int):
             unexecutable_ops = []
             for op in timesteps[idx]:
-                if self.mm.can_execute(op):
-                    routed_ops[idx].append(self.mm.mapped_op(op))
+                if self._mm.can_execute(op):
+                    routed_ops[idx].append(self._mm.mapped_op(op))
                 else:
                     unexecutable_ops.append(op)
             timesteps[idx] = unexecutable_ops
@@ -232,9 +225,11 @@ class RouteCQC:
         routed_ops: List[List['cirq.Operation']] = [[] for i in range(len(timesteps) + 1)]
         for idx in range(len(timesteps)):
             # add single qubit ops the current output moment.
-            routed_ops[idx].extend([self.mm.mapped_op(op) for op in single_qubit_ops[idx]])
+            routed_ops[idx].extend([self._mm.mapped_op(op) for op in single_qubit_ops[idx]])
 
             process_executable_ops(idx)
+
+            seen: Set[Tuple[Tuple['cirq.Qid', cirq.Qid], ...]] = set()
             while len(timesteps[idx]) != 0:
                 sigma = self._initial_candidate_swaps(timesteps[idx])
                 for s in range(idx, min(max_search_radius + idx, len(timesteps))):
@@ -245,21 +240,24 @@ class RouteCQC:
                 if len(sigma) > 1 and idx + max_search_radius <= len(timesteps):
                     chosen_swaps = self._symmetry_swap_pair(timesteps, idx, max_search_radius)
                 else:
-                    chosen_swaps = (sigma[0][0],)
+                    chosen_swaps = sigma[0]
+
+                if chosen_swaps in seen:
+                    chosen_swaps = self._symmetry_brute_force(timesteps, idx)
+                else:
+                    seen.add(chosen_swaps)
 
                 for swap in chosen_swaps:
-                    inserted_swap = self.mm.mapped_op(ops.SWAP(*swap))
+                    inserted_swap = self._mm.mapped_op(ops.SWAP(*swap))
                     if tag_inserted_swaps:
-                        inserted_swap.with_tags(ops._InsertedSwapTag)
+                        inserted_swap.with_tags(ops.RoutingSwapTag())
                     routed_ops[idx].append(inserted_swap)
-                    self.mm.apply_swap(*swap)
+                    self._mm.apply_swap(*swap)
                 process_executable_ops(idx)
 
-        # edge case: there may be a single qubit gate that act on the same qubit as a 2-qubit gate
-        # in the last moment of the circuit
-        routed_ops[len(timesteps)].extend(
-            self.mm.mapped_op(op) for op in single_qubit_ops[len(timesteps)]
-        )
+        # edge case: single qubit gates may appear in moments after all 2-qubit gates
+        for i in range(len(timesteps), len(single_qubit_ops)):
+            routed_ops.append([self._mm.mapped_op(op) for op in single_qubit_ops[i]])
 
         return routed_ops
 
@@ -288,28 +286,29 @@ class RouteCQC:
         if len(pair_sigma) > 1 and idx + max_search_radius <= len(timesteps):
             return self._symmetry_brute_force(timesteps, idx)
         chosen_swap_pair = pair_sigma[0]
-        return tuple([chosen_swap_pair[0], chosen_swap_pair[1]])
+        return (chosen_swap_pair[0], chosen_swap_pair[1])
 
     def _symmetry_brute_force(
         self, timesteps: List[List['cirq.Operation']], idx: int
     ) -> Tuple[Tuple['cirq.Qid', 'cirq.Qid']]:
         """Inserts SWAPS along the shortest path of the qubits that are the farthest."""
         qubits = max(
-            [(op.qubits, self.mm.dist_on_device(*op.qubits)) for op in timesteps[idx]],
+            [(op.qubits, self._mm.dist_on_device(*op.qubits)) for op in timesteps[idx]],
             key=lambda x: x[1],
         )[0]
-        path = self.mm.shortest_path(*qubits)
+        path = self._mm.shortest_path(*qubits)
         q1 = path[0]
-        ret = tuple([(q1, path[i + 1]) for i in range(len(path) - 2)])
-        return ret
+        return tuple([(q1, path[i + 1]) for i in range(len(path) - 2)])
 
     def _initial_candidate_swaps(
         self, timestep_ops: List['cirq.Operation']
     ) -> List[Tuple[Tuple['cirq.Qid', 'cirq.Qid'], ...]]:
         """Finds all feasible SWAPs between qubits involved in 2-qubit operations."""
-        physical_qubits = set(self.mm.map[op.qubits[i]] for op in timestep_ops for i in range(2))
-        physical_swaps = self.mm.induced_subgraph.edges(nbunch=physical_qubits)
-        return [((self.mm.inverse_map[q1], self.mm.inverse_map[q2]),) for q1, q2 in physical_swaps]
+        physical_qubits = set(self._mm.map[op.qubits[i]] for op in timestep_ops for i in range(2))
+        physical_swaps = self._mm.induced_subgraph.edges(nbunch=physical_qubits)
+        return [
+            ((self._mm.inverse_map[q1], self._mm.inverse_map[q2]),) for q1, q2 in physical_swaps
+        ]
 
     def _next_candidate_swaps(
         self,
@@ -335,16 +334,22 @@ class RouteCQC:
 
     def _cost(
         self, swaps: Tuple[Tuple['cirq.Qid', 'cirq.Qid'], ...], timestep_ops: List['cirq.Operation']
-    ) -> int:
+    ) -> Tuple[int, int]:
         """Computes the cost function for the given list of swaps over the current timestep ops."""
         for swap in swaps:
-            self.mm.apply_swap(*swap)
+            self._mm.apply_swap(*swap)
         max_length, sum_length = 0, 0
         for op in timestep_ops:
             # need to add this if statement because future timesteps may still have 1-qubit ops
             q1, q2 = op.qubits[0], op.qubits[1]
-            max_length = max(max_length, self.mm.dist_on_device(q1, q2))
-            sum_length += self.mm.dist_on_device(q1, q2)
+            max_length = max(max_length, self._mm.dist_on_device(q1, q2))
+            sum_length += self._mm.dist_on_device(q1, q2)
         for swap in swaps:
-            self.mm.apply_swap(*swap)
+            self._mm.apply_swap(*swap)
         return (max_length, sum_length)
+
+    def __eq__(self, other) -> str:
+        return nx.utils.graphs_equal(self.device_graph, other.device_graph)
+
+    def __repr__(self) -> str:
+        return f'cirq.RouteCQC(nx.Graph({dict(self.device_graph.adjacency())}))'

@@ -172,7 +172,6 @@ from cirq.linalg import (
 )
 
 from cirq.ops import (
-    _InsertedSwapTag,
     amplitude_damp,
     AmplitudeDampingChannel,
     AnyIntegerPowerGateFamily,
