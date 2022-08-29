@@ -1,14 +1,14 @@
 {
-    // See https://asv.readthedocs.io/en/stable/asv.conf.json.html for documentation.
     "version": 1,
     "project": "Cirq",
     "project_url": "https://quantumai.google/cirq",
     "repo": ".",
+    "repo_subdir": "cirq-core/",
     "branches": ["master"],
     "dvcs": "git",
     "environment_type": "virtualenv",
     "show_commit_url": "https://github.com/quantumlib/Cirq/commit/",
-    "pythons": ["3.7", "3.8"],
+    "pythons": ["3.8"],
     "benchmark_dir": "benchmarks",
     "env_dir": ".asv/env",
     "results_dir": ".asv/results",
