@@ -19,36 +19,6 @@ import cirq
 import pytest
 
 
-def assert_same_unitary(
-    c_orig, c_routed, imap: Dict['cirq.Qid', 'cirq.Qid'], fmap: Dict['cirq.Qid', 'cirq.Qid']
-):
-    def isIdentityMap(_map: Dict['cirq.Qid', 'cirq.Qid']) -> bool:
-        for k in _map:
-            if _map[k] != k:
-                return False
-        return True
-
-    inverse_fmap = {v: k for k, v in fmap.items()}
-    final_to_initial_mapping = {k: imap[inverse_fmap[k]] for k in inverse_fmap}
-    sorted_grid_qubits = sorted(c_routed.all_qubits())
-    if not isIdentityMap(imap) or imap != fmap:
-        x, y = zip(*sorted(final_to_initial_mapping.items(), key=lambda x: x[1]))
-        perm = [*range(len(sorted_grid_qubits))]
-        for i, q in enumerate(sorted_grid_qubits):
-            index = y.index(x[i])
-            perm[index] = i
-        c_routed.append(cirq.QubitPermutationGate(perm).on(*sorted_grid_qubits))
-
-        _, grid_order = zip(*sorted(list(imap.items()), key=lambda x: x[0]))
-        cirq.testing.assert_allclose_up_to_global_phase(
-            c_orig.unitary(), c_routed.unitary(qubit_order=grid_order), atol=1e-8
-        )
-    else:
-        cirq.testing.assert_allclose_up_to_global_phase(
-            c_orig.unitary(), c_routed.unitary(), atol=1e-8
-        )
-
-
 @pytest.mark.parametrize(
     "n_qubits, n_moments, op_density, seed",
     [
@@ -74,8 +44,6 @@ def test_route_small_circuit_random(n_qubits, n_moments, op_density, seed):
 
     device.validate_circuit(c_routed_preserved)
     device.validate_circuit(c_routed_efficient)
-    assert_same_unitary(c_orig, c_routed_preserved, imap_preserved, fmap_preserved)
-    assert_same_unitary(c_orig, c_routed_efficient, imap_efficient, fmap_efficient)
 
 
 def test_high_qubit_count():
@@ -143,7 +111,6 @@ def test_empty_circuit():
     empty_circuit_routed, imap_empty, fmap_empty = router.route_circuit(empty_circuit)
 
     device.validate_circuit(empty_circuit_routed)
-    assert_same_unitary(empty_circuit, empty_circuit_routed, imap_empty, fmap_empty)
     assert len(list(empty_circuit.all_operations())) == len(
         list(empty_circuit_routed.all_operations())
     )
@@ -164,7 +131,6 @@ def test_already_valid_circuit():
     )
 
     device.validate_circuit(valid_circuit_routed)
-    assert_same_unitary(valid_circuit, valid_circuit_routed, imap_valid, fmap_valid)
     assert len(list(valid_circuit.all_operations())) == len(
         list(valid_circuit_routed.all_operations())
     )
