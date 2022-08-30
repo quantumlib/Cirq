@@ -220,6 +220,48 @@ def _first_differing_moment_index(
     return None  # coverage: ignore
 
 
+def assert_circuits_have_same_unitary_up_to_permutation(
+    actual: circuits.Circuit,
+    expected: circuits.Circuit,
+    imap: Optional[Dict[ops.Qid, ops.Qid]] = None,
+    fmap: Optional[Dict[ops.Qid, ops.Qid]] = None,
+) -> None:
+    """Asserts two circuits have the same unitary up to an initial and final permuation of qubits.
+
+    Args:
+        actual: A circuit computed by some code under test.
+        expected: The circuit that should have been computed.
+        imap: the permutation of qubits at the beginning of the actual circuit.
+        fmap: the permutation of qubits at the end of the actual circuit.
+
+    Raises:
+        ValueError: if the initial and final permuations map to different qubits.
+    """
+
+    if (
+        (imap is None and fmap is not None)
+        or (fmap is None and imap is not None)
+        or (imap is not None and fmap is not None and set(fmap.values()) != set(imap.values()))
+    ):
+        raise ValueError("The initial and final permuation must map to the same qubits.")
+
+    if imap is not None and fmap is not None:
+        inverse_fmap = {v: k for k, v in fmap.items()}
+        fmap_to_imap = {k: imap[inverse_fmap[k]] for k in inverse_fmap}
+        device_qubits, permutation_qubits = zip(*sorted(fmap_to_imap.items(), key=lambda x: x[0]))
+        permutation = [device_qubits.index(q) for q in permutation_qubits]
+        actual.append(ops.QubitPermutationGate(list(permutation)).on(*device_qubits))
+
+        _, initial_order = zip(*sorted(imap.items(), key=lambda x: x[0]))
+        lin_alg_utils.assert_allclose_up_to_global_phase(
+            expected.unitary(), actual.unitary(qubit_order=initial_order), atol=1e-8
+        )
+    else:
+        lin_alg_utils.assert_allclose_up_to_global_phase(
+            expected.unitary(), actual.unitary(), atol=1e-8
+        )
+
+
 def assert_has_diagram(
     actual: Union[circuits.AbstractCircuit, circuits.Moment], desired: str, **kwargs
 ) -> None:

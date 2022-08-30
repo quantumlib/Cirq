@@ -190,6 +190,66 @@ def test_assert_same_circuits():
         )
 
 
+def test_assert_circuits_have_same_unitary_up_to_permutation():
+    expected = cirq.Circuit(
+        [
+            cirq.Moment(cirq.CNOT(cirq.NamedQubit('3'), cirq.NamedQubit('2'))),
+            cirq.Moment(
+                cirq.CNOT(cirq.NamedQubit('0'), cirq.NamedQubit('2')), cirq.X(cirq.NamedQubit('3'))
+            ),
+            cirq.Moment(
+                cirq.CNOT(cirq.NamedQubit('3'), cirq.NamedQubit('0')),
+                cirq.CNOT(cirq.NamedQubit('2'), cirq.NamedQubit('1')),
+            ),
+        ]
+    )
+    actual = cirq.Circuit(
+        [
+            cirq.Moment(cirq.CNOT(cirq.GridQubit(3, 4), cirq.GridQubit(4, 4))),
+            cirq.Moment(
+                cirq.X(cirq.GridQubit(3, 4)), cirq.CNOT(cirq.GridQubit(5, 4), cirq.GridQubit(4, 4))
+            ),
+            cirq.Moment(cirq.CNOT(cirq.GridQubit(4, 4), cirq.GridQubit(4, 3))),
+            cirq.Moment(cirq.SWAP(cirq.GridQubit(5, 4), cirq.GridQubit(4, 4))),
+            cirq.Moment(cirq.CNOT(cirq.GridQubit(3, 4), cirq.GridQubit(4, 4))),
+        ]
+    )
+
+    imap = {
+        cirq.NamedQubit('3'): cirq.GridQubit(3, 4),
+        cirq.NamedQubit('2'): cirq.GridQubit(4, 4),
+        cirq.NamedQubit('0'): cirq.GridQubit(5, 4),
+        cirq.NamedQubit('1'): cirq.GridQubit(4, 3),
+    }
+    fmap = {
+        cirq.NamedQubit('3'): cirq.GridQubit(3, 4),
+        cirq.NamedQubit('2'): cirq.GridQubit(5, 4),
+        cirq.NamedQubit('0'): cirq.GridQubit(4, 4),
+        cirq.NamedQubit('1'): cirq.GridQubit(4, 3),
+    }
+    cirq.testing.assert_circuits_have_same_unitary_up_to_permutation(
+        actual, expected, imap=imap, fmap=fmap
+    )
+    cirq.testing.assert_circuits_have_same_unitary_up_to_permutation(actual, actual)
+
+    with pytest.raises(ValueError):
+        cirq.testing.assert_circuits_have_same_unitary_up_to_permutation(
+            actual, expected, imap=imap
+        )
+    bad_fmap = {
+        cirq.NamedQubit('3'): cirq.GridQubit(3, 4),
+        cirq.NamedQubit('2'): cirq.GridQubit(5, 4),
+        cirq.NamedQubit('0'): cirq.GridQubit(4, 4),
+        cirq.NamedQubit('1'): cirq.GridQubit(8, 3),
+    }
+    with pytest.raises(
+        ValueError, match="The initial and final permuation must map to the same qubits."
+    ):
+        cirq.testing.assert_circuits_have_same_unitary_up_to_permutation(
+            actual, expected, imap=imap, fmap=bad_fmap
+        )
+
+
 def test_assert_has_diagram():
     a, b = cirq.LineQubit.range(2)
     circuit = cirq.Circuit(cirq.CNOT(a, b))
