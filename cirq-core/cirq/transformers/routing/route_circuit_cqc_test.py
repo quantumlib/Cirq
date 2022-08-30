@@ -91,8 +91,8 @@ def test_multi_qubit_gate_inputs():
 def test_directed_device():
     device = cirq.testing.construct_ring_device(10, directed=True)
     device_graph = device.metadata.nx_graph
-    with pytest.raises(ValueError, match="Device graph must be undirected"):
-        router = cirq.RouteCQC(device_graph)
+    with pytest.raises(ValueError, match="Device graph must be undirected."):
+        cirq.RouteCQC(device_graph)
 
 
 def test_empty_circuit():

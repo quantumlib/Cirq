@@ -14,7 +14,7 @@
 
 """Heuristic qubit routing algorithm based on arxiv:1902.08091."""
 
-from typing import Dict, List, Optional, Set, Tuple, TYPE_CHECKING
+from typing import List, Optional, Set, Tuple, TYPE_CHECKING
 from itertools import combinations
 import networkx as nx
 
@@ -54,7 +54,7 @@ class RouteCQC:
         """Initializes the circuit routing transformer."""
 
         if nx.is_directed(device_graph):
-            raise ValueError("Device graph must be undirected")
+            raise ValueError("Device graph must be undirected.")
         self.device_graph = device_graph
 
     def __call__(
