@@ -12,9 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from nis import match
-from typing import Dict
-
 import cirq
 import pytest
 
@@ -35,13 +32,8 @@ def test_route_small_circuit_random(n_qubits, n_moments, op_density, seed):
     device = cirq.testing.construct_grid_device(4, 4)
     device_graph = device.metadata.nx_graph
     router = cirq.RouteCQC(device_graph)
-    c_routed_preserved, imap_preserved, fmap_preserved = router.route_circuit(
-        c_orig, tag_inserted_swaps=True, preserve_moment_strucutre=True
-    )
-    c_routed_efficient, imap_efficient, fmap_efficient = router.route_circuit(
-        c_orig, tag_inserted_swaps=True, preserve_moment_strucutre=False
-    )
-
+    c_routed_preserved = router(c_orig, tag_inserted_swaps=True, preserve_moment_structure=True)
+    c_routed_efficient = router(c_orig, tag_inserted_swaps=True, preserve_moment_structure=False)
     device.validate_circuit(c_routed_preserved)
     device.validate_circuit(c_routed_efficient)
 
@@ -108,7 +100,7 @@ def test_empty_circuit():
     device_graph = device.metadata.nx_graph
     empty_circuit = cirq.Circuit()
     router = cirq.RouteCQC(device_graph)
-    empty_circuit_routed, imap_empty, fmap_empty = router.route_circuit(empty_circuit)
+    empty_circuit_routed = router(empty_circuit)
 
     device.validate_circuit(empty_circuit_routed)
     assert len(list(empty_circuit.all_operations())) == len(
@@ -126,9 +118,7 @@ def test_already_valid_circuit():
         {cirq.LineQubit(i): cirq.LineQubit(i) for i in range(10)}
     )
     router = cirq.RouteCQC(device_graph)
-    valid_circuit_routed, imap_valid, fmap_valid = router.route_circuit(
-        valid_circuit, initial_mapper=hard_coded_mapper
-    )
+    valid_circuit_routed = router(valid_circuit, initial_mapper=hard_coded_mapper)
 
     device.validate_circuit(valid_circuit_routed)
     assert len(list(valid_circuit.all_operations())) == len(

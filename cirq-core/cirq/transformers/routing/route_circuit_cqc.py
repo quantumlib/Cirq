@@ -62,7 +62,7 @@ class RouteCQC:
         circuit: 'cirq.AbstractCircuit',
         *,
         max_search_radius: int = 8,
-        preserve_moment_strucutre: bool = False,
+        preserve_moment_structure: bool = False,
         tag_inserted_swaps: bool = False,
         initial_mapper: Optional['cirq.AbstractInitialMapper'] = None,
         context: Optional['cirq.TransformerContext'] = None,
@@ -79,16 +79,21 @@ class RouteCQC:
                 convergence.
             preverse_moment_structure: whether or not the transfomer should preserve the given
                 moment structure of 'circuit'.
+            tag_inserted_swaps: whether or not a RoutingSwapTag should be attched to inserted swap
+                operations.
             initial_mapper: an initial mapping strategy (placement) of logical qubits in the
                 circuit onto physical qubits on the device.
             context: transformer context storing common configurable options for transformers.
 
         Returns:
             The routed circuit executable on the harware with the same unitary as 'circuit'.
+
+        Raises:
+            ValueError: if circuit has operations that act on 3 or more qubits.
         """
 
         # 0. Handle CircuitOperations by unrolling them.
-        if context is not None and context.deep == True:
+        if context is not None and context.deep is True:
             circuit = transformer_primitives.unroll_circuit_op(circuit, deep=True)
         if not all(protocols.num_qubits(op) <= 2 for op in circuit.all_operations()):
             raise ValueError("Input circuit must only have ops that act on 1 or 2 qubits.")
@@ -104,7 +109,7 @@ class RouteCQC:
 
         # 3. Get timesteps and single-qubit operations.
         timesteps, single_qubit_ops = self._get_timesteps_and_single_qubit_ops(
-            circuit, preserve_moment_strucutre
+            circuit, preserve_moment_structure
         )
 
         # 4. Do the routing and save the routed circuit as a list of moments.
@@ -116,46 +121,6 @@ class RouteCQC:
         # preserving outer moment structure.
         return circuits.Circuit(circuits.Circuit(m) for m in routed_ops)
 
-    def route_circuit(
-        self,
-        circuit: 'cirq.AbstractCircuit',
-        *,
-        max_search_radius: int = 10,
-        preserve_moment_strucutre: bool = False,
-        tag_inserted_swaps: bool = False,
-        initial_mapper: Optional['cirq.AbstractInitialMapper'] = None,
-        context: Optional['cirq.TransformerContext'] = None,
-    ) -> Tuple['cirq.AbstractCircuit', Dict['cirq.Qid', 'cirq.Qid'], Dict['cirq.Qid', 'cirq.Qid']]:
-        """Transforms the given circuit to make it executable on the device.
-
-        Since routing doesn't necessarily modify any specific operation and only adds swaps
-        before /after operations to ensure the circuit can be executed, tagging operations with
-        tags from context.tags_to_ignore will have no impact on the routing procedure.
-
-        Args:
-            circuit: the input circuit to be transformed.
-            max_search_radius: the maximum number of times the cost function can be iterated for
-                convergence.
-            preverse_moment_structure: whether or not the transfomer should preserve the given
-                moment structure of 'circuit'.
-            initial_mapper: an initial mapping strategy (placement) of logical qubits in the
-                circuit onto physical qubits on the device.
-            context: transformer context storing common configurable options for transformers.
-
-        Returns:
-            The routed circuit executable on the harware with the same unitary as 'circuit'.
-            The final mapping of logical qubits in 'circuit' to physical qubits on the device.
-        """
-        routed_circuit = self.__call__(
-            circuit,
-            max_search_radius=max_search_radius,
-            preserve_moment_strucutre=preserve_moment_strucutre,
-            tag_inserted_swaps=tag_inserted_swaps,
-            initial_mapper=initial_mapper,
-            context=context,
-        )
-        return routed_circuit, self._initial_mapping, self._mm.map
-
     def _get_timesteps_and_single_qubit_ops(
         self, circuit: 'cirq.AbstractCircuit', preserve_moment_structure: bool
     ) -> Tuple[List[List['cirq.Operation']], List[List['cirq.Operation']]]:
@@ -163,18 +128,23 @@ class RouteCQC:
         timestep they are to be inserting in."""
 
         if preserve_moment_structure:
-            single_qubit_operations = [[] for i in range(len(circuit))]
+            single_qubit_ops_preserve: List[List['cirq.Operation']] = [
+                [] for i in range(len(circuit))
+            ]
 
-            def map_func_preserving(op: 'cirq.Operations', moment_index: int):
+            def map_func_preserving(op: 'cirq.Operation', moment_index: int):
                 if protocols.num_qubits(op) == 2:
                     return op
-                single_qubit_operations[moment_index].append(op)
+                single_qubit_ops_preserve[moment_index].append(op)
                 return []
 
-            reduced_circuit = transformer_primitives.map_operations(
+            reduced_circuit_preserve = transformer_primitives.map_operations(
                 circuit, map_func=map_func_preserving
             )
-            return [list(moment.operations) for moment in reduced_circuit], single_qubit_operations
+            return (
+                [list(moment.operations) for moment in reduced_circuit_preserve],
+                single_qubit_ops_preserve,
+            )
 
         reduced_circuit = circuits.Circuit()
 
@@ -187,9 +157,11 @@ class RouteCQC:
         circuit_with_tags = transformer_primitives.map_operations(
             circuit, map_func=map_func_not_preserving
         )
-        single_qubit_operations = [[] for i in range(len(reduced_circuit) + 1)]
+        single_qubit_operations: List[List['cirq.Operation']] = [
+            [] for i in range(len(reduced_circuit) + 1)
+        ]
         for op in circuit_with_tags.all_operations():
-            if protocols.num_qubits(op) == 1:
+            if protocols.num_qubits(op) == 1 and isinstance(op.tags[-1], int):
                 timestep_index = op.tags[-1]
                 single_qubit_operations[timestep_index].append(op)
         return [list(moment.operations) for moment in reduced_circuit], single_qubit_operations
@@ -262,9 +234,9 @@ class RouteCQC:
         return routed_ops
 
     def _disjoint_qubit_combinations(
-        self, single_candidates: List[Tuple[Tuple['cirq.Qid', 'cirq.Qid'], ...]]
+        self, candidates: List[Tuple[Tuple['cirq.Qid', 'cirq.Qid'], ...]]
     ) -> List[Tuple[Tuple['cirq.Qid', 'cirq.Qid'], ...]]:
-        single_candidates = [x[0] for x in single_candidates]
+        single_candidates = [x[0] for x in candidates]
         return [
             pair
             for pair in combinations(single_candidates, 2)
@@ -290,7 +262,7 @@ class RouteCQC:
 
     def _symmetry_brute_force(
         self, timesteps: List[List['cirq.Operation']], idx: int
-    ) -> Tuple[Tuple['cirq.Qid', 'cirq.Qid']]:
+    ) -> Tuple[Tuple['cirq.Qid', 'cirq.Qid'], ...]:
         """Inserts SWAPS along the shortest path of the qubits that are the farthest."""
         qubits = max(
             [(op.qubits, self._mm.dist_on_device(*op.qubits)) for op in timesteps[idx]],
@@ -348,7 +320,7 @@ class RouteCQC:
             self._mm.apply_swap(*swap)
         return (max_length, sum_length)
 
-    def __eq__(self, other) -> str:
+    def __eq__(self, other) -> bool:
         return nx.utils.graphs_equal(self.device_graph, other.device_graph)
 
     def __repr__(self) -> str:
