@@ -1441,12 +1441,12 @@ def test_measurement_preserves_phase(split: bool):
     c1, c2, t = cirq.LineQubit.range(3)
     circuit = cirq.Circuit(
         cirq.H(t),
-        cirq.measure(t, key="t"),
-        cirq.CZ(c1, c2).with_classical_controls("t"),
+        cirq.measure(t, key='t'),
+        cirq.CZ(c1, c2).with_classical_controls('t'),
         cirq.reset(t),
     )
     simulator = cirq.Simulator(split_untangled_states=split)
     # Run enough times that both options of |110> - |111> are likely measured.
     for _ in range(20):
         result = simulator.simulate(circuit, initial_state=(1, 1, 1), qubit_order=(c1, c2, t))
-        assert result.dirac_notation() == "|110⟩"
+        assert result.dirac_notation() == '|110⟩'
