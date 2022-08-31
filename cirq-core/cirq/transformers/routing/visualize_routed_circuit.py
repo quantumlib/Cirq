@@ -43,6 +43,9 @@ def routed_circuit_with_mapping(
             RoutingSwapTag.
         initial_map: the initial mapping from logical to physical qubits. If this is not specified
             then the identity mapping of the qubits in routed_circuit will be used as initial_map.
+
+    Raises:
+        ValueError: if a non-SWAP gate is tagged with a RoutingSwapTag.
     """
     all_qubits = sorted(routed_circuit.all_qubits())
     qdict = {q: q for q in all_qubits}
@@ -58,7 +61,11 @@ def routed_circuit_with_mapping(
     for m in routed_circuit:
         swap_in_moment = False
         for op in m:
-            if ops.RoutingSwapTag() in op.tags and type(op.gate) == ops.swap_gates.SwapPowGate:
+            if ops.RoutingSwapTag() in op.tags:
+                if type(op.gate) != ops.swap_gates.SwapPowGate:
+                    raise ValueError(
+                        "Invalid circuit. A non-SWAP gate cannot be tagged a RoutingSwapTag."
+                    )
                 swap_in_moment = True
                 q1, q2 = op.qubits
                 qdict[q1], qdict[q2] = qdict[q2], qdict[q1]

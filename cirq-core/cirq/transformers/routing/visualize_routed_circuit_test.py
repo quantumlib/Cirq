@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import pytest
 import cirq
 
 
@@ -42,6 +43,17 @@ def test_routed_circuit_with_mapping_simple():
       │      │
 1: ───q(1)───×───"""
     cirq.testing.assert_has_diagram(cirq.routed_circuit_with_mapping(circuit), expected_diagram)
+
+    circuit = cirq.Circuit(
+        [
+            cirq.Moment(cirq.X(q[0]).with_tags(cirq.RoutingSwapTag())),
+            cirq.Moment(cirq.SWAP(q[0], q[1])),
+        ]
+    )
+    with pytest.raises(
+        ValueError, match="Invalid circuit. A non-SWAP gate cannot be tagged a RoutingSwapTag."
+    ):
+        cirq.routed_circuit_with_mapping(circuit)
 
 
 def test_routed_circuit_with_mapping_multi_swaps():
