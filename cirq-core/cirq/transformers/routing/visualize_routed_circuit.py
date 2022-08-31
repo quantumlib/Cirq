@@ -56,15 +56,19 @@ def routed_circuit_with_mapping(
         )
     )
     for m in routed_circuit:
-        # Find the mapping at after this moment
+        swap_in_moment = False
         for op in m:
-            if ops.RoutingSwapTag() in op.tags:
+            if ops.RoutingSwapTag() in op.tags and type(op.gate) == ops.swap_gates.SwapPowGate:
+                swap_in_moment = True
                 q1, q2 = op.qubits
                 qdict[q1], qdict[q2] = qdict[q2], qdict[q1]
+
         ret_circuit.append(m)
-        ret_circuit.append(
-            _SwapPrintGate(tuple(zip(qdict.values(), [inverse_map[x] for x in qdict.values()]))).on(
-                *all_qubits
+        if swap_in_moment:
+            ret_circuit.append(
+                _SwapPrintGate(
+                    tuple(zip(qdict.values(), [inverse_map[x] for x in qdict.values()]))
+                ).on(*all_qubits)
             )
-        )
+
     return ret_circuit
