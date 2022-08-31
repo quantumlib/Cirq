@@ -12,7 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 from typing import Set
-import numpy as np
 
 import cirq
 
@@ -56,7 +55,9 @@ def rotated_surface_code_memory_z_cycle(
     yield cirq.Moment(cirq.measure_each(*x_measure_qubits, *z_measure_qubits))
 
 
-def surface_code_circuit(distance: int, num_rounds: int) -> cirq.Circuit:
+def surface_code_circuit(
+    distance: int, num_rounds: int, moment_by_moment: bool = True
+) -> cirq.Circuit:
     data_qubits, z_measure_qubits, x_measure_qubits = get_qubits(distance)
     x_order = [(1, 1), (1, -1), (-1, 1), (-1, -1)]
     z_order = [(1, 1), (-1, 1), (1, -1), (-1, -1)]
@@ -65,9 +66,14 @@ def surface_code_circuit(distance: int, num_rounds: int) -> cirq.Circuit:
             data_qubits, x_measure_qubits, z_measure_qubits, x_order, z_order
         )
     )
-    return cirq.Circuit(
-        surface_code_cycle * num_rounds, cirq.Moment(cirq.measure_each(*data_qubits))
-    )
+    if moment_by_moment:
+        return cirq.Circuit(
+            surface_code_cycle * num_rounds, cirq.Moment(cirq.measure_each(*data_qubits))
+        )
+    else:
+        return cirq.Circuit(
+            [*surface_code_cycle.all_operations()] * num_rounds, cirq.measure_each(*data_qubits)
+        )
 
 
 class SurfaceCode_Rotated_Memory_Z:
@@ -75,17 +81,23 @@ class SurfaceCode_Rotated_Memory_Z:
     params = [*range(3, 26, 2)]
     param_names = ["distance"]
 
-    def time_surface_code_circuit_construction(self, distance: int) -> None:
+    def time_circuit_construction_moment_by_moment(self, distance: int) -> None:
         """Benchmark circuit construction for Rotated Bottom-Z Surface code."""
         _ = surface_code_circuit(distance, distance * distance)
 
-    def track_surface_code_circuit_operation_count(self, distance: int) -> int:
+    def time_circuit_construction_operations_by_operation(self, distance: int) -> None:
+        """Benchmark circuit construction for Rotated Bottom-Z Surface code."""
+        _ = surface_code_circuit(distance, distance * distance, False)
+
+    def track_circuit_operation_count(self, distance: int) -> int:
         """Benchmark operation count for Rotated Bottom-Z Surface code."""
         circuit = surface_code_circuit(distance, distance * distance)
         return sum(1 for _ in circuit.all_operations())
 
-
-SurfaceCode_Rotated_Memory_Z.track_surface_code_circuit_operation_count.unit = "Operation count"
+    def track_circuit_depth(self, distance: int) -> int:
+        """Benchmark operation count for Rotated Bottom-Z Surface code."""
+        circuit = surface_code_circuit(distance, distance * distance)
+        return len(circuit)
 
 
 class NDCircuit:
