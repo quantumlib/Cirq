@@ -1448,8 +1448,5 @@ def test_measurement_preserves_phase(split: bool):
     simulator = cirq.Simulator(split_untangled_states=split)
     # Run enough times that both options of |110> - |111> are likely measured.
     for _ in range(20):
-        for step in simulator.simulate_moment_steps(
-            circuit, initial_state=(1, 1, 1), qubit_order=(c1, c2, t)
-        ):
-            pass
-        assert step.dirac_notation() == "|110⟩"
+        result = simulator.simulate(circuit, initial_state=(1, 1, 1), qubit_order=(c1, c2, t))
+        assert result.dirac_notation() == "|110⟩"
