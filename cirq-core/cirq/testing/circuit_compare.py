@@ -223,7 +223,7 @@ def _first_differing_moment_index(
 def assert_circuits_have_same_unitary_given_final_permutation(
     actual: circuits.Circuit, expected: circuits.Circuit, qubit_map: Dict[ops.Qid, ops.Qid]
 ) -> None:
-    """Asserts two circuits have the same unitary up to a inal permuation of qubits.
+    """Asserts two circuits have the same unitary up to a final permuation of qubits.
 
     Args:
         actual: A circuit computed by some code under test.
@@ -231,8 +231,7 @@ def assert_circuits_have_same_unitary_given_final_permutation(
         qubit_map: the permutation of qubits from the beginning to the end of the circuit.
 
     Raises:
-        ValueError: if 'qubit_map' is not a mapping from the qubits in the circuit 'acutal' to
-            themselves.
+        ValueError: if 'qubit_map' is not a mapping from the qubits in 'actual' to themselves.
     """
     if any(not set(qs).issubset(actual.all_qubits()) for qs in zip(*tuple(qubit_map.items()))):
         raise ValueError(
