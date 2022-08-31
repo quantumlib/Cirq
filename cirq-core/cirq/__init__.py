@@ -287,6 +287,7 @@ from cirq.ops import (
     reset,
     reset_each,
     ResetChannel,
+    RoutingSwapTag,
     riswap,
     Rx,
     Ry,
@@ -326,6 +327,7 @@ from cirq.ops import (
 )
 
 from cirq.transformers import (
+    AbstractInitialMapper,
     align_left,
     align_right,
     CompilationTargetGateset,
@@ -345,7 +347,10 @@ from cirq.transformers import (
     eject_phased_paulis,
     eject_z,
     expand_composite,
+    HardCodedInitialMapper,
     is_negligible_turn,
+    LineInitialMapper,
+    MappingManager,
     map_moments,
     map_operations,
     map_operations_and_unroll,
