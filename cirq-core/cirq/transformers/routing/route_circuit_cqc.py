@@ -25,16 +25,14 @@ from cirq.transformers.routing import mapping_manager, line_initial_mapper
 if TYPE_CHECKING:
     import cirq
 
+QidPair = Tuple['cirq.Qid', 'cirq.Qid']
 
-def disjoint_pair_qubit_pair_combinations(
-    qubit_pairs: List[Tuple['cirq.Qid', 'cirq.Qid']]
-) -> List[Tuple[Tuple['cirq.Qid', 'cirq.Qid'], ...]]:
+
+def disjoint_pair_qubit_pair_combinations(qubit_pairs: List[QidPair]) -> List[Tuple[QidPair, ...]]:
     """Gets disjoint pair combinations of qubits pairs.
 
-    For example:
-
-        >>> disjoint_pair_qubit_pair_combinations([(q(1), q(2)), (q(3), q(4)), (q(2), q(5))])
-        >>> Returns [((q(1), q(2)), (q(3), q(4))), ((q(3), q(4)), (q(2), q(5)))].
+    E.g. `disjoint_pair_qubit_pair_combinations([(q(1), q(2)), (q(3), q(4)), (q(2), q(5))])`
+    should return `[((q(1), q(2)), (q(3), q(4))), ((q(3), q(4)), (q(2), q(5)))]`.
 
     Args:
         qubit_pairs: list of qubit pairs to be combined.
@@ -77,12 +75,12 @@ class RouteCQC:
     For example:
 
         >>> import cirq_google as cg
-        >>> circuit = cirq.testing.random_circuit(5, 10, 0.6)
-        >>> router = cirq.RouteCQC(cg.Sycamore)
-
-        >>> routed_circuit = router(circuit)
-        or
-        >>> routed_circuit, placement_map, swap_map = router.route_circuit(circuit)
+        >>> circ = cirq.testing.random_circuit(5, 10, 0.6)
+        >>> device = cg.Sycamore
+        >>> router = cirq.RouteCQC(device.metadata.nx_graph)
+        >>> rcirc = router(circ)
+        >>> fcirc = cirq.optimize_for_target_gateset(rcirc, gateset = cg.SycamoreTargetGateset())
+        >>> device.validate_circuit(fcirc)
 
     `circuit.transform_qubits(placement_map)` is unitarily equivalent to `routed_circuit` after
     permuting its qubits by `swap_map`.
@@ -315,7 +313,7 @@ class RouteCQC:
             seen: Set[Tuple[Tuple['cirq.Qid', cirq.Qid], ...]] = set()
 
             while len(two_qubit_ops[idx]) != 0:
-                sigma: List[Tuple[Tuple['cirq.Qid', 'cirq.Qid'], ...]] = [
+                sigma: List[Tuple[QidPair, ...]] = [
                     (swap,) for swap in self._initial_candidate_swaps(two_qubit_ops[idx])
                 ]
                 for s in range(idx, min(max_search_radius + idx, len(two_qubit_ops))):
@@ -323,10 +321,11 @@ class RouteCQC:
                         break
                     sigma = self._next_candidate_swaps(sigma, two_qubit_ops[s])
 
-                if len(sigma) > 1 and idx + max_search_radius <= len(two_qubit_ops):
-                    chosen_swaps = self._symmetry_swap_pair(two_qubit_ops, idx, max_search_radius)
-                else:
-                    chosen_swaps = sigma[0]
+                chosen_swaps: Tuple[QidPair, ...] = (
+                    self._symmetry_swap_pair(two_qubit_ops, idx, max_search_radius)
+                    if len(sigma) > 1 and idx + max_search_radius <= len(two_qubit_ops)
+                    else sigma[0]
+                )
 
                 if chosen_swaps in seen:
                     chosen_swaps = self._symmetry_brute_force(two_qubit_ops, idx)
@@ -345,7 +344,7 @@ class RouteCQC:
 
     def _symmetry_swap_pair(
         self, two_qubit_ops: List[List['cirq.Operation']], idx: int, max_search_radius: int
-    ) -> Tuple[Tuple['cirq.Qid', 'cirq.Qid'], ...]:
+    ) -> Tuple[QidPair, ...]:
         """Computes cost function with pairs of candidate swaps that act on disjoint qubits."""
         pair_sigma = disjoint_pair_qubit_pair_combinations(
             self._initial_candidate_swaps(two_qubit_ops[idx])
@@ -362,7 +361,7 @@ class RouteCQC:
 
     def _symmetry_brute_force(
         self, two_qubit_ops: List[List['cirq.Operation']], idx: int
-    ) -> Tuple[Tuple['cirq.Qid', 'cirq.Qid'], ...]:
+    ) -> Tuple[QidPair, ...]:
         """Inserts SWAPS along the shortest path of the qubits that are the farthest."""
         qubits = max(
             [(op.qubits, self._mm.dist_on_device(*op.qubits)) for op in two_qubit_ops[idx]],
@@ -372,19 +371,15 @@ class RouteCQC:
         q1 = path[0]
         return tuple([(q1, path[i + 1]) for i in range(len(path) - 2)])
 
-    def _initial_candidate_swaps(
-        self, timestep_ops: List['cirq.Operation']
-    ) -> List[Tuple['cirq.Qid', 'cirq.Qid']]:
+    def _initial_candidate_swaps(self, timestep_ops: List['cirq.Operation']) -> List[QidPair]:
         """Finds all feasible SWAPs between qubits involved in 2-qubit operations."""
         physical_qubits = (self._mm.map[op.qubits[i]] for op in timestep_ops for i in range(2))
         physical_swaps = self._mm.induced_subgraph.edges(nbunch=physical_qubits)
         return [(self._mm.inverse_map[q1], self._mm.inverse_map[q2]) for q1, q2 in physical_swaps]
 
     def _next_candidate_swaps(
-        self,
-        candidate_swaps: List[Tuple[Tuple['cirq.Qid', 'cirq.Qid'], ...]],
-        timestep_ops: List['cirq.Operation'],
-    ) -> List[Tuple[Tuple['cirq.Qid', 'cirq.Qid'], ...]]:
+        self, candidate_swaps: List[Tuple[QidPair, ...]], timestep_ops: List['cirq.Operation']
+    ) -> List[Tuple[QidPair, ...]]:
         """Iterates the heuristic function.
 
         Given a list of candidate swaps find a subset that leads to a minimal longest shortest path
@@ -403,7 +398,7 @@ class RouteCQC:
         ]
 
     def _cost(
-        self, swaps: Tuple[Tuple['cirq.Qid', 'cirq.Qid'], ...], timestep_ops: List['cirq.Operation']
+        self, swaps: Tuple[QidPair, ...], timestep_ops: List['cirq.Operation']
     ) -> Tuple[int, int]:
         """Computes the cost function for the given list of swaps over the current timestep ops."""
         for swap in swaps:
