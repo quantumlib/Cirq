@@ -267,14 +267,15 @@ class RouteCQC:
                     if preserve_moment_structure
                     else two_qubit_circuit.earliest_available_moment(op)
                 )
+                single_qubit_ops.extend([] for _ in range(timestep + 1 - len(single_qubit_ops)))
+                two_qubit_circuit.append(circuits.Moment() for _ in range(timestep + 1 - len(two_qubit_circuit)))
                 if protocols.num_qubits(op) == 2 and not isinstance(op.gate, ops.MeasurementGate):
-                    two_qubit_circuit.insert(timestep, op, circuits.InsertStrategy.INLINE)
+                    two_qubit_circuit[timestep] = two_qubit_circuit[timestep].with_operation(op)
                 else:
-                    single_qubit_ops.extend([] for _ in range(timestep + 1 - len(single_qubit_ops)))
                     single_qubit_ops[timestep].append(op)
         two_qubit_ops = [list(m) for m in two_qubit_circuit]
-        two_qubit_ops.extend([] for _ in range(len(single_qubit_ops) - len(two_qubit_ops)))
-        single_qubit_ops.extend([] for _ in range(len(two_qubit_ops) - len(single_qubit_ops)))
+        # two_qubit_ops.extend([] for _ in range(len(single_qubit_ops) - len(two_qubit_ops)))
+        # single_qubit_ops.extend([] for _ in range(len(two_qubit_ops) - len(single_qubit_ops)))
         return two_qubit_ops, single_qubit_ops
 
     def _route(

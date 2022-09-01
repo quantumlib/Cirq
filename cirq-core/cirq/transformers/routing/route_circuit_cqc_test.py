@@ -15,6 +15,7 @@
 import cirq
 import pytest
 
+# add test for 'preserve_moment_structure`=True works as intended`
 
 def test_directed_device():
     device = cirq.testing.construct_ring_device(10, directed=True)
