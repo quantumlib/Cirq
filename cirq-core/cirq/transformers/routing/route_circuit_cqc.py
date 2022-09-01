@@ -56,10 +56,10 @@ class RouteCQC:
 
     The algorithm proceeds as follows:
 
-    1. Computes the timesteps of the circuit: considering operations in the given circuit from
-        beginning to end, the next timestep is a maximal set of 2-qubit operations that act on
-        disjoint qubits. It is 'maximal' because any 2-qubit gate's qubits in the next timestep
-        must intersect with the qubits that are acted on in the current timestep.
+    1. Computes the timesteps (two_qubit_ops) of the circuit: considering operations in the given
+        circuit from beginning to end, the next timestep is a maximal set of 2-qubit operations
+        that act on disjoint qubits. It is 'maximal' because any 2-qubit gate's qubits in the next
+        timestep must intersect with the qubits that are acted on in the current timestep.
 
     2. Places the logical qubits in the input circuit onto some input device by using an
         initial mapper (`cirq.LineInitialMapper` by default).
@@ -69,7 +69,7 @@ class RouteCQC:
             1. Remove any single qubit gate and executable 2-qubit gate in the current
                 timestep and add it to the output routed circuit.
             2. If there aren't any gates left in the current timestep, move on to the next.
-            3. If there are gates remaining in the current timesteps, consider a set of
+            3. If there are gates remaining in the current timestep, consider a set of
                 candidate swaps on them and rank them based on a heuristic cost function. Pick
                 the swap that minimises the cost and use it to update our logical to physical
                 mapping. Repeat from 3.1.
@@ -119,9 +119,9 @@ class RouteCQC:
         tags from context.tags_to_ignore will have no impact on the routing procedure.
 
         If `preserve_moment_structure` is True then the moments of `circuit` will be used as the
-        timesteps of this circuit. This means that the moments in between inserted swap will retain
-        their structure. If `preserve_moment_structure` is False no such guarantee is given but the
-        algorithm generally performs better in this case.
+        two_qubit_ops of this circuit. This means that the moments in between inserted swap will
+        retain their structure. If `preserve_moment_structure` is False no such guarantee is given
+        but the algorithm generally performs better in this case.
 
         This transformer assumes that all multi-qubit operations have been decomposed into 2-qubit
         operations and will raise an error if `circuit` a n-qubit operation where n > 2. If
@@ -178,9 +178,9 @@ class RouteCQC:
         tags from context.tags_to_ignore will have no impact on the routing procedure.
 
         If `preserve_moment_structure` is True then the moments of `circuit` will be used as the
-        timesteps of this circuit. This means that the moments in between inserted swap will retain
-        their structure. If `preserve_moment_structure` is False no such guarantee is given but the
-        algorithm generally performs better in this case.
+        two_qubit_ops of this circuit. This means that the moments in between inserted swap will
+        retain their structure. If `preserve_moment_structure` is False no such guarantee is given
+        but the algorithm generally performs better in this case.
 
         This transformer assumes that all multi-qubit operations have been decomposed into 2-qubit
         operations and will raise an error if `circuit` a n-qubit operation where n > 2. If
@@ -230,74 +230,58 @@ class RouteCQC:
         # convinience methods over the image of the map on the device graph.
         self._mm = mapping_manager.MappingManager(self.device_graph, initial_mapping)
 
-        # 3. Get timesteps and single-qubit operations.
-        timesteps, single_qubit_ops = self._get_timesteps_and_single_qubit_ops(
+        # 3. Get two_qubit_ops and single-qubit operations.
+        two_qubit_ops, single_qubit_ops = self._get_two_qubit_ops_and_single_qubit_ops(
             circuit, preserve_moment_structure
         )
 
         # 4. Do the routing and save the routed circuit as a list of moments.
         routed_ops = self._route(
-            timesteps, single_qubit_ops, max_search_radius, tag_inserted_swaps=tag_inserted_swaps
+            two_qubit_ops, max_search_radius, tag_inserted_swaps=tag_inserted_swaps
         )
 
-        # 5. Return the routed circuit by packing each inner list of ops as densely as posslbe and
-        # preserving outer moment structure.
+        # 5. Add the single qubit operations back.
+        for idx, operations in enumerate(single_qubit_ops):
+            routed_ops[idx].extend([self._mm.mapped_op(op) for op in operations])
+
+        # 6. Return the routed circuit by packing each inner list of ops as densely as posslbe and
+        # preserving outer moment structure. Also return initial map and swap permutation map.
         return (
             circuits.Circuit(circuits.Circuit(m) for m in routed_ops),
             initial_mapping,
             {initial_mapping[k]: v for k, v in self._mm.map.items()},
         )
 
-    def _get_timesteps_and_single_qubit_ops(
+    def _get_two_qubit_ops_and_single_qubit_ops(
         self, circuit: 'cirq.AbstractCircuit', preserve_moment_structure: bool
     ) -> Tuple[List[List['cirq.Operation']], List[List['cirq.Operation']]]:
-        """Gets the timesteps of the circuit and the the corresponding single-qubit operations."""
-        if preserve_moment_structure:
-            single_qubit_ops_preserve: List[List['cirq.Operation']] = [
-                [] for i in range(len(circuit))
-            ]
+        """Gets the single and two qubit operations of the circuit.
 
-            def map_func_preserving(op: 'cirq.Operation', moment_index: int):
+        By construction, single-qubit operations are inserted after two-qubit operations when
+        reinserting in the routed circuit.
+        """
+        two_qubit_circuit = circuits.Circuit()
+        single_qubit_ops: List[List[cirq.Operation]] = []
+        for moment_index, moment in enumerate(circuit):
+            for op in moment:
+                timestep = (
+                    moment_index
+                    if preserve_moment_structure
+                    else two_qubit_circuit.earliest_available_moment(op)
+                )
                 if protocols.num_qubits(op) == 2 and not isinstance(op.gate, ops.MeasurementGate):
-                    return op
-                single_qubit_ops_preserve[moment_index].append(op)
-                return []
-
-            reduced_circuit_preserve = transformer_primitives.map_operations(
-                circuit, map_func=map_func_preserving
-            )
-            return (
-                [list(moment.operations) for moment in reduced_circuit_preserve],
-                single_qubit_ops_preserve,
-            )
-
-        reduced_circuit = circuits.Circuit()
-
-        def map_func_not_preserving(op: 'cirq.Operation', _: int):
-            timestep_index = reduced_circuit.earliest_available_moment(op)
-            if protocols.num_qubits(op) == 2 and not isinstance(op.gate, ops.MeasurementGate):
-                reduced_circuit.append(op)
-            return op.with_tags(timestep_index)
-
-        circuit_with_tags = transformer_primitives.map_operations(
-            circuit, map_func=map_func_not_preserving
-        )
-        single_qubit_operations: List[List['cirq.Operation']] = [
-            [] for i in range(len(reduced_circuit) + 1)
-        ]
-        for op in circuit_with_tags.all_operations():
-            if (
-                protocols.num_qubits(op) != 2 or isinstance(op.gate, ops.MeasurementGate)
-            ) and isinstance(op.tags[-1], int):
-                timestep_index = op.tags[-1]
-                user_tags = op.tags[:-1]
-                single_qubit_operations[timestep_index].append(op.untagged.with_tags(*user_tags))
-        return [list(moment.operations) for moment in reduced_circuit], single_qubit_operations
+                    two_qubit_circuit.insert(timestep, op, circuits.InsertStrategy.INLINE)
+                else:
+                    single_qubit_ops.extend([] for _ in range(timestep + 1 - len(single_qubit_ops)))
+                    single_qubit_ops[timestep].append(op)
+        two_qubit_ops = [list(m) for m in two_qubit_circuit]
+        two_qubit_ops.extend([] for _ in range(len(single_qubit_ops) - len(two_qubit_ops)))
+        single_qubit_ops.extend([] for _ in range(len(two_qubit_ops) - len(single_qubit_ops)))
+        return two_qubit_ops, single_qubit_ops
 
     def _route(
         self,
-        timesteps: List[List['cirq.Operation']],
-        single_qubit_ops: List[List['cirq.Operation']],
+        two_qubit_ops: List[List['cirq.Operation']],
         max_search_radius: int,
         tag_inserted_swaps: bool = False,
     ) -> List[List['cirq.Operation']]:
@@ -305,9 +289,11 @@ class RouteCQC:
         and inserts the necessary swaps.
 
         Args:
-          timesteps: the circuit's timesteps as defined by the paper
+          two_qubit_ops: the circuit's timesteps as defined by the paper
           max_search_radius: the maximum number of times the cost function can be iterated for
             convergence.
+        tag_inserted_swaps: whether or not a RoutingSwapTag should be attched to inserted swap
+            operations.
 
         Returns:
           a list of lists corresponding to moments of the routed circuit
@@ -315,37 +301,35 @@ class RouteCQC:
 
         def process_executable_ops(idx: int):
             unexecutable_ops = []
-            for op in timesteps[idx]:
+            for op in two_qubit_ops[idx]:
                 if self._mm.can_execute(op):
                     routed_ops[idx].append(self._mm.mapped_op(op))
                 else:
                     unexecutable_ops.append(op)
-            timesteps[idx] = unexecutable_ops
+            two_qubit_ops[idx] = unexecutable_ops
 
-        routed_ops: List[List['cirq.Operation']] = [[] for i in range(len(timesteps) + 1)]
-        for idx in range(len(timesteps)):
-            # add single qubit ops the current output moment.
-            routed_ops[idx].extend([self._mm.mapped_op(op) for op in single_qubit_ops[idx]])
+        routed_ops: List[List['cirq.Operation']] = [[] for i in range(len(two_qubit_ops))]
+        for idx in range(len(two_qubit_ops)):
 
             process_executable_ops(idx)
-
             seen: Set[Tuple[Tuple['cirq.Qid', cirq.Qid], ...]] = set()
-            while len(timesteps[idx]) != 0:
+
+            while len(two_qubit_ops[idx]) != 0:
                 sigma: List[Tuple[Tuple['cirq.Qid', 'cirq.Qid'], ...]] = [
-                    (swap,) for swap in self._initial_candidate_swaps(timesteps[idx])
+                    (swap,) for swap in self._initial_candidate_swaps(two_qubit_ops[idx])
                 ]
-                for s in range(idx, min(max_search_radius + idx, len(timesteps))):
+                for s in range(idx, min(max_search_radius + idx, len(two_qubit_ops))):
                     if len(sigma) <= 1:
                         break
-                    sigma = self._next_candidate_swaps(sigma, timesteps[s])
+                    sigma = self._next_candidate_swaps(sigma, two_qubit_ops[s])
 
-                if len(sigma) > 1 and idx + max_search_radius <= len(timesteps):
-                    chosen_swaps = self._symmetry_swap_pair(timesteps, idx, max_search_radius)
+                if len(sigma) > 1 and idx + max_search_radius <= len(two_qubit_ops):
+                    chosen_swaps = self._symmetry_swap_pair(two_qubit_ops, idx, max_search_radius)
                 else:
                     chosen_swaps = sigma[0]
 
                 if chosen_swaps in seen:
-                    chosen_swaps = self._symmetry_brute_force(timesteps, idx)
+                    chosen_swaps = self._symmetry_brute_force(two_qubit_ops, idx)
                 else:
                     seen.add(chosen_swaps)
 
@@ -357,35 +341,31 @@ class RouteCQC:
                     self._mm.apply_swap(*swap)
                 process_executable_ops(idx)
 
-        # edge case: single qubit gates may appear in moments after all 2-qubit gates
-        for i in range(len(timesteps), len(single_qubit_ops)):
-            routed_ops.append([self._mm.mapped_op(op) for op in single_qubit_ops[i]])
-
         return routed_ops
 
     def _symmetry_swap_pair(
-        self, timesteps: List[List['cirq.Operation']], idx: int, max_search_radius: int
+        self, two_qubit_ops: List[List['cirq.Operation']], idx: int, max_search_radius: int
     ) -> Tuple[Tuple['cirq.Qid', 'cirq.Qid'], ...]:
         """Computes cost function with pairs of candidate swaps that act on disjoint qubits."""
         pair_sigma = disjoint_pair_qubit_pair_combinations(
-            self._initial_candidate_swaps(timesteps[idx])
+            self._initial_candidate_swaps(two_qubit_ops[idx])
         )
-        for s in range(idx, min(max_search_radius + idx, len(timesteps))):
+        for s in range(idx, min(max_search_radius + idx, len(two_qubit_ops))):
             if len(pair_sigma) <= 1:
                 break
-            pair_sigma = self._next_candidate_swaps(pair_sigma, timesteps[s])
+            pair_sigma = self._next_candidate_swaps(pair_sigma, two_qubit_ops[s])
 
-        if len(pair_sigma) > 1 and idx + max_search_radius <= len(timesteps):
-            return self._symmetry_brute_force(timesteps, idx)
+        if len(pair_sigma) > 1 and idx + max_search_radius <= len(two_qubit_ops):
+            return self._symmetry_brute_force(two_qubit_ops, idx)
         chosen_swap_pair = pair_sigma[0]
         return (chosen_swap_pair[0], chosen_swap_pair[1])
 
     def _symmetry_brute_force(
-        self, timesteps: List[List['cirq.Operation']], idx: int
+        self, two_qubit_ops: List[List['cirq.Operation']], idx: int
     ) -> Tuple[Tuple['cirq.Qid', 'cirq.Qid'], ...]:
         """Inserts SWAPS along the shortest path of the qubits that are the farthest."""
         qubits = max(
-            [(op.qubits, self._mm.dist_on_device(*op.qubits)) for op in timesteps[idx]],
+            [(op.qubits, self._mm.dist_on_device(*op.qubits)) for op in two_qubit_ops[idx]],
             key=lambda x: x[1],
         )[0]
         path = self._mm.shortest_path(*qubits)
@@ -430,7 +410,6 @@ class RouteCQC:
             self._mm.apply_swap(*swap)
         max_length, sum_length = 0, 0
         for op in timestep_ops:
-            # need to add this if statement because future timesteps may still have 1-qubit ops
             q1, q2 = op.qubits[0], op.qubits[1]
             max_length = max(max_length, self._mm.dist_on_device(q1, q2))
             sum_length += self._mm.dist_on_device(q1, q2)

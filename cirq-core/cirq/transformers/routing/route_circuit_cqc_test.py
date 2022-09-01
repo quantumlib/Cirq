@@ -15,8 +15,6 @@
 import cirq
 import pytest
 
-# add better test for preserve_moment_structure after refactoring _get_timesteps() function
-
 
 def test_directed_device():
     device = cirq.testing.construct_ring_device(10, directed=True)
@@ -126,9 +124,8 @@ def test_circuit_with_non_unitary_and_global_phase():
         [
             cirq.Moment(cirq.CNOT(q[0], q[1]), cirq.global_phase_operation(-1)),
             cirq.Moment(cirq.CNOT(q[1], q[2])),
-            cirq.Moment(cirq.depolarize(0.1).on(q[1])),
             cirq.Moment(cirq.SWAP(q[0], q[1])),
-            cirq.Moment(cirq.depolarize(0.1, 2).on(q[1], q[2])),
+            cirq.Moment(cirq.depolarize(0.1, 2).on(q[1], q[2]), cirq.depolarize(0.1).on(q[0])),
         ]
     )
     cirq.testing.assert_same_circuits(routed_circuit, expected)
@@ -144,6 +141,7 @@ def test_circuit_with_tagged_ops():
             cirq.Moment(cirq.CNOT(q[1], q[2])),
             cirq.Moment(cirq.CNOT(q[0], q[2]).with_tags("u")),
             cirq.Moment(cirq.X(q[0]).with_tags("u")),
+            cirq.Moment(cirq.X(q[0]).with_tags("u")),
         ]
     )
     hard_coded_mapper = cirq.HardCodedInitialMapper({q[i]: q[i] for i in range(3)})
@@ -155,6 +153,7 @@ def test_circuit_with_tagged_ops():
             cirq.Moment(cirq.CNOT(q[1], q[2])),
             cirq.Moment(cirq.SWAP(q[0], q[1])),
             cirq.Moment(cirq.TaggedOperation(cirq.CNOT(q[1], q[2]), 'u')),
+            cirq.Moment(cirq.TaggedOperation(cirq.X(q[1]), 'u')),
             cirq.Moment(cirq.TaggedOperation(cirq.X(q[1]), 'u')),
         ]
     )
