@@ -190,6 +190,38 @@ def test_assert_same_circuits():
         )
 
 
+def test_assert_circuits_have_same_unitary_given_final_permutation():
+    expected = cirq.Circuit(
+        [
+            cirq.Moment(
+                cirq.CNOT(cirq.NamedQubit('2'), cirq.NamedQubit('1')),
+                cirq.CNOT(cirq.NamedQubit('3'), cirq.NamedQubit('0')),
+            )
+        ]
+    )
+    actual = cirq.Circuit(
+        [
+            cirq.Moment(cirq.CNOT(cirq.NamedQubit('2'), cirq.NamedQubit('1'))),
+            cirq.Moment(cirq.SWAP(cirq.NamedQubit('0'), cirq.NamedQubit('2'))),
+            cirq.Moment(cirq.SWAP(cirq.NamedQubit('0'), cirq.NamedQubit('1'))),
+            cirq.Moment(cirq.CNOT(cirq.NamedQubit('3'), cirq.NamedQubit('2'))),
+        ]
+    )
+    qubit_map = {
+        cirq.NamedQubit('0'): cirq.NamedQubit('2'),
+        cirq.NamedQubit('1'): cirq.NamedQubit('0'),
+        cirq.NamedQubit('2'): cirq.NamedQubit('1'),
+    }
+    cirq.testing.assert_circuits_have_same_unitary_given_final_permutation(
+        actual, expected, qubit_map
+    )
+    qubit_map.update({cirq.NamedQubit('3'): cirq.NamedQubit('5')})
+    with pytest.raises(ValueError, match="The dictionary 'qubit_map' must"):
+        cirq.testing.assert_circuits_have_same_unitary_given_final_permutation(
+            actual, expected, qubit_map=qubit_map
+        )
+
+
 def test_assert_has_diagram():
     a, b = cirq.LineQubit.range(2)
     circuit = cirq.Circuit(cirq.CNOT(a, b))

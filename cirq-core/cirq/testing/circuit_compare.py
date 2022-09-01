@@ -220,6 +220,35 @@ def _first_differing_moment_index(
     return None  # coverage: ignore
 
 
+def assert_circuits_have_same_unitary_given_final_permutation(
+    actual: circuits.Circuit, expected: circuits.Circuit, qubit_map: Dict[ops.Qid, ops.Qid]
+) -> None:
+    """Asserts two circuits have the same unitary up to a final permuation of qubits.
+
+    Args:
+        actual: A circuit computed by some code under test.
+        expected: The circuit that should have been computed.
+        qubit_map: the permutation of qubits from the beginning to the end of the circuit.
+
+    Raises:
+        ValueError: if 'qubit_map' is not a mapping from the qubits in 'actual' to themselves.
+    """
+    if any(not set(qs).issubset(actual.all_qubits()) for qs in zip(*tuple(qubit_map.items()))):
+        raise ValueError(
+            f"The dictionary 'qubit_map' must be a mapping of the qubits in the circuit 'actual'"
+            f" to themselves."
+        )
+
+    inverse_qubit_perm = {v: k for k, v in qubit_map.items()}
+    sorted_qubits, initial_qubits = zip(*sorted(inverse_qubit_perm.items(), key=lambda x: x[0]))
+    inverse_permutation = [sorted_qubits.index(q) for q in initial_qubits]
+    actual.append(ops.QubitPermutationGate(list(inverse_permutation)).on(*sorted_qubits))
+
+    lin_alg_utils.assert_allclose_up_to_global_phase(
+        expected.unitary(), actual.unitary(), atol=1e-8
+    )
+
+
 def assert_has_diagram(
     actual: Union[circuits.AbstractCircuit, circuits.Moment], desired: str, **kwargs
 ) -> None:
