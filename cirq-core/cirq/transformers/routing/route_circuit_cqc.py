@@ -14,7 +14,7 @@
 
 """Heuristic qubit routing algorithm based on arxiv:1902.08091."""
 
-from typing import List, Optional, Set, Tuple, TYPE_CHECKING
+from typing import Dict, List, Optional, Set, Tuple, TYPE_CHECKING
 from itertools import combinations
 import networkx as nx
 
@@ -26,32 +26,77 @@ if TYPE_CHECKING:
     import cirq
 
 
+def disjoint_pair_qubit_pair_combinations(
+    qubit_pairs: List[Tuple['cirq.Qid', 'cirq.Qid']]
+) -> List[Tuple[Tuple['cirq.Qid', 'cirq.Qid'], ...]]:
+    """Gets disjoint pair combinations of qubits pairs.
+
+    For example:
+
+        >>> disjoint_pair_qubit_pair_combinations([(q(1), q(2)), (q(3), q(4)), (q(2), q(5))])
+        >>> Returns [((q(1), q(2)), (q(3), q(4))), ((q(3), q(4)), (q(2), q(5)))].
+
+    Args:
+        qubit_pairs: list of qubit pairs to be combined.
+
+    Returns:
+        All 2-combinations between qubit pairs that are disjoint.
+
+    """
+    return [
+        pair
+        for pair in combinations(qubit_pairs, 2)
+        if set(q for q in pair[0]).isdisjoint(set(q for q in pair[1]))
+    ]
+
+
 @transformer_api.transformer
 class RouteCQC:
     """Transformer class that implements a circuit routing algorithm.
 
     The algorithm proceeds as follows:
-        (1) Compute the timesteps of the circuit: considering operations in the given circuit from
-            beginning to end, the next timestep is a maximal set of 2-qubit operations that act on
-            disjoint qubits. It is 'maximal' because any 2-qubit gate's qubits in the next timestep
-            must intersect with the qubits that are acted on in the current timestep.
 
-        (2) Places the logical qubits in the input circuit onto some input device by using an
-            initial mapper (LineInitialMapper by default).
+    1. Computes the timesteps of the circuit: considering operations in the given circuit from
+        beginning to end, the next timestep is a maximal set of 2-qubit operations that act on
+        disjoint qubits. It is 'maximal' because any 2-qubit gate's qubits in the next timestep
+        must intersect with the qubits that are acted on in the current timestep.
 
-        (3) Insert necessary swaps to ensure all 2-qubit gates are executable on the device by
-            traversing the timesteps from left to right while:
-                (i) Removing any single qubit gate and executable 2-qubit gate in the current
-                    timestep and add it to the output routed circuit.
-               (ii) If there aren't any gates left in the current timestep, move on to the next.
-              (iii) If there are gates remaining in the current timesteps, consider a set of
-                    candidate swaps on them and rank them based on a heuristic cost function. Pick
-                    the swap that minimises the cost and use it to update our logical to physical
-                    mapping. Repeat from (i).
+    2. Places the logical qubits in the input circuit onto some input device by using an
+        initial mapper (`cirq.LineInitialMapper` by default).
+
+    3. Insert necessary swaps to ensure all 2-qubit gates are executable on the device by
+        traversing the timesteps from left to right and for each timestep:
+            1. Remove any single qubit gate and executable 2-qubit gate in the current
+                timestep and add it to the output routed circuit.
+            2. If there aren't any gates left in the current timestep, move on to the next.
+            3. If there are gates remaining in the current timesteps, consider a set of
+                candidate swaps on them and rank them based on a heuristic cost function. Pick
+                the swap that minimises the cost and use it to update our logical to physical
+                mapping. Repeat from 3.1.
+
+    For example:
+
+        >>> import cirq_google as cg
+        >>> circuit = cirq.testing.random_circuit(5, 10, 0.6)
+        >>> router = cirq.RouteCQC(cg.Sycamore)
+
+        >>> routed_circuit = router(circuit)
+        or
+        >>> routed_circuit, placement_map, swap_map = router.route_circuit(circuit)
+
+    `circuit.transform_qubits(placement_map)` is unitarily equivalent to `routed_circuit` after
+    permuting its qubits by `swap_map`.
     """
 
     def __init__(self, device_graph: nx.Graph):
-        """Initializes the circuit routing transformer."""
+        """Initializes the circuit routing transformer.
+
+        Args:
+            device_graph: The connectivity graph of physical qubits.
+
+        Raises:
+            ValueError: if `device_graph` is a directed graph.
+        """
 
         if nx.is_directed(device_graph):
             raise ValueError("Device graph must be undirected.")
@@ -70,15 +115,86 @@ class RouteCQC:
         """Transforms the given circuit to make it executable on the device.
 
         Since routing doesn't necessarily modify any specific operation and only adds swaps
-        before /after operations to ensure the circuit can be executed, tagging operations with
+        before / after operations to ensure the circuit can be executed, tagging operations with
         tags from context.tags_to_ignore will have no impact on the routing procedure.
+
+        If `preserve_moment_structure` is True then the moments of `circuit` will be used as the
+        timesteps of this circuit. This means that the moments in between inserted swap will retain
+        their structure. If `preserve_moment_structure` is False no such guarantee is given but the
+        algorithm generally performs better in this case.
+
+        This transformer assumes that all multi-qubit operations have been decomposed into 2-qubit
+        operations and will raise an error if `circuit` a n-qubit operation where n > 2. If
+        `circuit` contains `cirq.CircuitOperation`s and `context.deep` is True then they are first
+        unrolled before proceeding. If `context.deep` is False or `context` is None then any
+        `cirq.CircuitOperation` that acts on more than 2-qubits will also raise an error.
 
         Args:
             circuit: the input circuit to be transformed.
             max_search_radius: the maximum number of times the cost function can be iterated for
-                convergence.
-            preverse_moment_structure: whether or not the transfomer should preserve the given
-                moment structure of 'circuit'.
+                convergence. If the cost function is iterated `max_search_radius` number of times
+                without converging then symmetry breaking is used.
+            preserve_moment_structure: whether or not the transfomer should preserve the given
+                moment structure of `circuit`.
+            tag_inserted_swaps: whether or not a `cirq.RoutingSwapTag` should be attached to
+                inserted swap operations.
+            initial_mapper: an initial mapping strategy (placement) of logical qubits in the
+                circuit onto physical qubits on the device. If not provided, defaults to an
+                instance of `cirq.LineInitialMapper`.
+            context: transformer context storing common configurable options for transformers.
+
+        Returns:
+            The routed circuit, which is equivalent to original circuit upto a final qubit
+                permutation and where each 2-qubit operation is between adjacent qubits in the
+                `device_graph`.
+
+        Raises:
+            ValueError: if circuit has operations that act on 3 or more qubits.
+        """
+        routed_circuit, _, _ = self.route_circuit(
+            circuit=circuit,
+            max_search_radius=max_search_radius,
+            preserve_moment_structure=preserve_moment_structure,
+            tag_inserted_swaps=tag_inserted_swaps,
+            initial_mapper=initial_mapper,
+            context=context,
+        )
+        return routed_circuit
+
+    def route_circuit(
+        self,
+        circuit: 'cirq.AbstractCircuit',
+        *,
+        max_search_radius: int = 8,
+        preserve_moment_structure: bool = False,
+        tag_inserted_swaps: bool = False,
+        initial_mapper: Optional['cirq.AbstractInitialMapper'] = None,
+        context: Optional['cirq.TransformerContext'] = None,
+    ) -> Tuple['cirq.AbstractCircuit', Dict['cirq.Qid', 'cirq.Qid'], Dict['cirq.Qid', 'cirq.Qid']]:
+        """Transforms the given circuit to make it executable on the device.
+
+        Since routing doesn't necessarily modify any specific operation and only adds swaps
+        before / after operations to ensure the circuit can be executed, tagging operations with
+        tags from context.tags_to_ignore will have no impact on the routing procedure.
+
+        If `preserve_moment_structure` is True then the moments of `circuit` will be used as the
+        timesteps of this circuit. This means that the moments in between inserted swap will retain
+        their structure. If `preserve_moment_structure` is False no such guarantee is given but the
+        algorithm generally performs better in this case.
+
+        This transformer assumes that all multi-qubit operations have been decomposed into 2-qubit
+        operations and will raise an error if `circuit` a n-qubit operation where n > 2. If
+        `circuit` contains `cirq.CircuitOperation`s and `context.deep` is True then they are first
+        unrolled before proceeding. If `context.deep` is False or `context` is None then any
+        `cirq.CircuitOperation` that acts on more than 2-qubits will also raise an error.
+
+        Args:
+            circuit: the input circuit to be transformed.
+            max_search_radius: the maximum number of times the cost function can be iterated for
+                convergence. If the cost function is iterated `max_search_radius` number of times
+                without converging then symmetry breaking is used.
+            preserve_moment_structure: whether or not the transfomer should preserve the given
+                moment structure of `circuit`.
             tag_inserted_swaps: whether or not a RoutingSwapTag should be attched to inserted swap
                 operations.
             initial_mapper: an initial mapping strategy (placement) of logical qubits in the
@@ -86,7 +202,11 @@ class RouteCQC:
             context: transformer context storing common configurable options for transformers.
 
         Returns:
-            The routed circuit executable on the harware with the same unitary as 'circuit'.
+            The routed circuit executable on the harware with the same unitary as `circuit`.
+            The initial mapping from logical to physical qubits used as part of the routing
+                procedure.
+            The mapping from physical qubits before inserting swaps to physical qubits after
+                inserting swaps.
 
         Raises:
             ValueError: if circuit has operations that act on 3 or more qubits.
@@ -101,11 +221,11 @@ class RouteCQC:
         # 1. Do the initial mapping of logical to physical qubits.
         if initial_mapper is None:
             initial_mapper = line_initial_mapper.LineInitialMapper(self.device_graph)
-        self._initial_mapping = initial_mapper.initial_mapping(circuit)
+        initial_mapping = initial_mapper.initial_mapping(circuit)
 
         # 2. Construct a mapping manager that implicitly keeps track of this mapping and provides
         # convinience methods over the image of the map on the device graph.
-        self._mm = mapping_manager.MappingManager(self.device_graph, self._initial_mapping)
+        self._mm = mapping_manager.MappingManager(self.device_graph, initial_mapping)
 
         # 3. Get timesteps and single-qubit operations.
         timesteps, single_qubit_ops = self._get_timesteps_and_single_qubit_ops(
@@ -119,14 +239,16 @@ class RouteCQC:
 
         # 5. Return the routed circuit by packing each inner list of ops as densely as posslbe and
         # preserving outer moment structure.
-        return circuits.Circuit(circuits.Circuit(m) for m in routed_ops)
+        return (
+            circuits.Circuit(circuits.Circuit(m) for m in routed_ops),
+            initial_mapping,
+            {initial_mapping[k]: v for k, v in self._mm.map.items()},
+        )
 
     def _get_timesteps_and_single_qubit_ops(
         self, circuit: 'cirq.AbstractCircuit', preserve_moment_structure: bool
     ) -> Tuple[List[List['cirq.Operation']], List[List['cirq.Operation']]]:
-        """Returns the timesteps of the circuit and the single-qubit operations tagged with the
-        timestep they are to be inserting in."""
-
+        """Gets the timesteps of the circuit and the the corresponding single-qubit operations."""
         if preserve_moment_structure:
             single_qubit_ops_preserve: List[List['cirq.Operation']] = [
                 [] for i in range(len(circuit))
@@ -203,7 +325,9 @@ class RouteCQC:
 
             seen: Set[Tuple[Tuple['cirq.Qid', cirq.Qid], ...]] = set()
             while len(timesteps[idx]) != 0:
-                sigma = self._initial_candidate_swaps(timesteps[idx])
+                sigma: List[Tuple[Tuple['cirq.Qid', 'cirq.Qid'], ...]] = [
+                    (swap,) for swap in self._initial_candidate_swaps(timesteps[idx])
+                ]
                 for s in range(idx, min(max_search_radius + idx, len(timesteps))):
                     if len(sigma) <= 1:
                         break
@@ -222,7 +346,7 @@ class RouteCQC:
                 for swap in chosen_swaps:
                     inserted_swap = self._mm.mapped_op(ops.SWAP(*swap))
                     if tag_inserted_swaps:
-                        inserted_swap.with_tags(ops.RoutingSwapTag())
+                        inserted_swap = inserted_swap.with_tags(ops.RoutingSwapTag())
                     routed_ops[idx].append(inserted_swap)
                     self._mm.apply_swap(*swap)
                 process_executable_ops(idx)
@@ -233,21 +357,11 @@ class RouteCQC:
 
         return routed_ops
 
-    def _disjoint_qubit_combinations(
-        self, candidates: List[Tuple[Tuple['cirq.Qid', 'cirq.Qid'], ...]]
-    ) -> List[Tuple[Tuple['cirq.Qid', 'cirq.Qid'], ...]]:
-        single_candidates = [x[0] for x in candidates]
-        return [
-            pair
-            for pair in combinations(single_candidates, 2)
-            if set(q for q in pair[0]).isdisjoint(set(q for q in pair[1]))
-        ]
-
     def _symmetry_swap_pair(
         self, timesteps: List[List['cirq.Operation']], idx: int, max_search_radius: int
     ) -> Tuple[Tuple['cirq.Qid', 'cirq.Qid'], ...]:
         """Computes cost function with pairs of candidate swaps that act on disjoint qubits."""
-        pair_sigma = self._disjoint_qubit_combinations(
+        pair_sigma = disjoint_pair_qubit_pair_combinations(
             self._initial_candidate_swaps(timesteps[idx])
         )
         for s in range(idx, min(max_search_radius + idx, len(timesteps))):
@@ -274,13 +388,11 @@ class RouteCQC:
 
     def _initial_candidate_swaps(
         self, timestep_ops: List['cirq.Operation']
-    ) -> List[Tuple[Tuple['cirq.Qid', 'cirq.Qid'], ...]]:
+    ) -> List[Tuple['cirq.Qid', 'cirq.Qid']]:
         """Finds all feasible SWAPs between qubits involved in 2-qubit operations."""
         physical_qubits = set(self._mm.map[op.qubits[i]] for op in timestep_ops for i in range(2))
         physical_swaps = self._mm.induced_subgraph.edges(nbunch=physical_qubits)
-        return [
-            ((self._mm.inverse_map[q1], self._mm.inverse_map[q2]),) for q1, q2 in physical_swaps
-        ]
+        return [(self._mm.inverse_map[q1], self._mm.inverse_map[q2]) for q1, q2 in physical_swaps]
 
     def _next_candidate_swaps(
         self,

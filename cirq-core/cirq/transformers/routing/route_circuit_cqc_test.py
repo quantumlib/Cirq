@@ -124,6 +124,7 @@ def test_already_valid_circuit():
     assert len(list(valid_circuit.all_operations())) == len(
         list(valid_circuit_routed.all_operations())
     )
+    # TODO: add assert same cirucits using cirq.testing.assert_same_circuits
 
 
 def test_repr():
