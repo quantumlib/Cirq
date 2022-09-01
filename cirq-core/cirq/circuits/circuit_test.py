@@ -70,6 +70,23 @@ class _MomentAndOpTypeValidatingDeviceType(cirq.Device):
 moment_and_op_type_validating_device = _MomentAndOpTypeValidatingDeviceType()
 
 
+def test_from_moments():
+    a, b, c, d = cirq.LineQubit.range(4)
+    assert cirq.Circuit.from_moments(
+        [cirq.X(a), cirq.Y(b)],
+        [cirq.X(c)],
+        [],
+        cirq.Z(d),
+        [cirq.measure(a, b, key='ab'), cirq.measure(c, d, key='cd')],
+    ) == cirq.Circuit(
+        cirq.Moment(cirq.X(a), cirq.Y(b)),
+        cirq.Moment(cirq.X(c)),
+        cirq.Moment(),
+        cirq.Moment(cirq.Z(d)),
+        cirq.Moment(cirq.measure(a, b, key='ab'), cirq.measure(c, d, key='cd')),
+    )
+
+
 def test_alignment():
     assert repr(cirq.Alignment.LEFT) == 'cirq.Alignment.LEFT'
     assert repr(cirq.Alignment.RIGHT) == 'cirq.Alignment.RIGHT'
@@ -170,6 +187,12 @@ def test_append_single():
     c.append([cirq.X(a)])
     assert c == cirq.Circuit([cirq.Moment([cirq.X(a)])])
 
+    c = cirq.Circuit(cirq.H(a))
+    c.append(c)
+    assert c == cirq.Circuit(
+        [cirq.Moment(cirq.H(cirq.NamedQubit('a'))), cirq.Moment(cirq.H(cirq.NamedQubit('a')))]
+    )
+
 
 def test_append_control_key():
     q0, q1, q2 = cirq.LineQubit.range(3)
@@ -267,6 +290,16 @@ def test_append_control_key_subcircuit():
         ).with_measurement_key_mapping({'b': 'a'})
     )
     assert len(c) == 1
+
+
+def test_measurement_key_paths():
+    a = cirq.LineQubit(0)
+    circuit1 = cirq.Circuit(cirq.measure(a, key='A'))
+    assert cirq.measurement_key_names(circuit1) == {'A'}
+    circuit2 = cirq.with_key_path(circuit1, ('B',))
+    assert cirq.measurement_key_names(circuit2) == {'B:A'}
+    circuit3 = cirq.with_key_path_prefix(circuit2, ('C',))
+    assert cirq.measurement_key_names(circuit3) == {'C:B:A'}
 
 
 def test_append_moments():
@@ -2662,7 +2695,7 @@ def test_compare_circuits_superoperator_to_simulation(circuit, initial_state):
     """Compares action of circuit superoperator and circuit simulation."""
     assert circuit._has_superoperator_()
     superoperator = circuit._superoperator_()
-    vectorized_initial_state = np.reshape(initial_state, np.prod(initial_state.shape))
+    vectorized_initial_state = initial_state.reshape(-1)
     vectorized_final_state = superoperator @ vectorized_initial_state
     actual_state = np.reshape(vectorized_final_state, initial_state.shape)
 

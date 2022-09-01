@@ -78,7 +78,7 @@ PAULI_STRING_LIKE = Union[
     Iterable,  # of PAULI_STRING_LIKE, but mypy doesn't do recursive types yet.
 ]
 document(
-    PAULI_STRING_LIKE,  # type: ignore
+    PAULI_STRING_LIKE,
     """A `cirq.PauliString` or a value that can easily be converted into one.
 
     Complex numbers turn into the coefficient of an empty Pauli string.
@@ -94,7 +94,7 @@ document(
 
 PAULI_GATE_LIKE = Union['cirq.Pauli', 'cirq.IdentityGate', str, int,]
 document(
-    PAULI_GATE_LIKE,  # type: ignore
+    PAULI_GATE_LIKE,
     """An object that can be interpreted as a Pauli gate.
 
     Allowed values are:
@@ -513,7 +513,7 @@ class PauliString(raw_types.Operation, Generic[TKey]):
     def _has_unitary_(self) -> bool:
         if self._is_parameterized_():
             return False
-        return abs(1 - abs(self.coefficient)) < 1e-6
+        return abs(1 - abs(cast(complex, self.coefficient))) < 1e-6
 
     def _unitary_(self) -> Optional[np.ndarray]:
         if not self._has_unitary_():
@@ -745,7 +745,7 @@ class PauliString(raw_types.Operation, Generic[TKey]):
         while any(result.shape):
             result = np.trace(result, axis1=0, axis2=len(result.shape) // 2)
 
-        return float(result * self.coefficient)
+        return float(np.real(result * self.coefficient))
 
     def zip_items(
         self, other: 'cirq.PauliString[TKey]'
@@ -1427,7 +1427,7 @@ class MutablePauliString(Generic[TKey]):
             and not isinstance(other, linear_combinations.PauliSum)
         ):
             if sign == +1:
-                other = reversed(list(other))
+                other = iter(reversed(list(other)))
             for item in other:
                 if self._imul_helper(cast(PAULI_STRING_LIKE, item), sign) is NotImplemented:
                     return NotImplemented
@@ -1715,4 +1715,4 @@ def _pauli_like_to_pauli_int(key: Any, pauli_gate_like: PAULI_GATE_LIKE):
             f"But the value isn't in "
             f"{set(PAULI_GATE_LIKE_TO_INDEX_MAP.keys())!r}"
         )
-    return cast(int, pauli_int)
+    return pauli_int

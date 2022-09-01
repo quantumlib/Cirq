@@ -114,7 +114,9 @@ def random_circuit(
         free_qubits = set(qubits)
         while len(free_qubits) >= max_arity:
             gate, arity = gate_arity_pairs[prng.randint(num_gates)]
-            op_qubits = prng.choice(sorted(free_qubits), size=arity, replace=False)
+            op_qubits = prng.choice(
+                sorted(free_qubits), size=arity, replace=False  # type: ignore[arg-type]
+            )
             free_qubits.difference_update(op_qubits)
             if prng.rand() <= op_density:
                 operations.append(gate(*op_qubits))

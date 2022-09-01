@@ -188,7 +188,7 @@ from cirq.ops.swap_gates import (
     SwapPowGate,
 )
 
-from cirq.ops.tags import VirtualTag
+from cirq.ops.tags import RoutingSwapTag, VirtualTag
 
 from cirq.ops.three_qubit_gates import (
     CCNOT,
@@ -210,4 +210,4 @@ from cirq.ops.wait_gate import wait, WaitGate
 
 from cirq.ops.state_preparation_channel import StatePreparationChannel
 
-from cirq.ops.control_values import AbstractControlValues, ProductOfSums
+from cirq.ops.control_values import AbstractControlValues, ProductOfSums, SumOfProducts

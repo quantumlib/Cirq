@@ -233,10 +233,17 @@ class XPowGate(eigen_gate.EigenGate):
             A `cirq.ControlledGate` (or `cirq.CXPowGate` if possible) representing
                 `self` controlled by the given control values and qubits.
         """
+        if control_values and not isinstance(control_values, cv.AbstractControlValues):
+            control_values = cv.ProductOfSums(
+                tuple(
+                    (val,) if isinstance(val, int) else tuple(sorted(val)) for val in control_values
+                )
+            )
         result = super().controlled(num_controls, control_values, control_qid_shape)
         if (
             self._global_shift == 0
             and isinstance(result, controlled_gate.ControlledGate)
+            and isinstance(result.control_values, cv.ProductOfSums)
             and result.control_values[-1] == (1,)
             and result.control_qid_shape[-1] == 2
         ):
@@ -382,6 +389,16 @@ class YPowGate(eigen_gate.EigenGate):
     parameter when initializing.
 
     `cirq.Y`, the Pauli Y gate, is an instance of this gate at `exponent=1`.
+
+    Unlike `cirq.XPowGate` and `cirq.ZPowGate`, this gate has no generalization
+    to qudits and hence does not take the dimension argument. Ignoring the
+    global phase all generalized Pauli operators on a d-level system may be
+    written as X**a Z**b for a,b=0,1,...,d-1. For a qubit, there is only one
+    "mixed" operator: XZ, conventionally denoted -iY. However, when d > 2 there
+    are (d-1)*(d-1) > 1 such "mixed" operators (still ignoring the global phase).
+    Due to this ambiguity, qudit Y gate is not well defined. The "mixed" operators
+    for qudits are generally not referred to by name, but instead are specified in
+    terms of X and Z.
     """
 
     def _num_qubits_(self) -> int:
@@ -680,10 +697,17 @@ class ZPowGate(eigen_gate.EigenGate):
             A `cirq.ControlledGate` (or `cirq.CZPowGate` if possible) representing
                 `self` controlled by the given control values and qubits.
         """
+        if control_values and not isinstance(control_values, cv.AbstractControlValues):
+            control_values = cv.ProductOfSums(
+                tuple(
+                    (val,) if isinstance(val, int) else tuple(sorted(val)) for val in control_values
+                )
+            )
         result = super().controlled(num_controls, control_values, control_qid_shape)
         if (
             self._global_shift == 0
             and isinstance(result, controlled_gate.ControlledGate)
+            and isinstance(result.control_values, cv.ProductOfSums)
             and result.control_values[-1] == (1,)
             and result.control_qid_shape[-1] == 2
         ):
@@ -1116,10 +1140,17 @@ class CZPowGate(gate_features.InterchangeableQubitsGate, eigen_gate.EigenGate):
             A `cirq.ControlledGate` (or `cirq.CCZPowGate` if possible) representing
                 `self` controlled by the given control values and qubits.
         """
+        if control_values and not isinstance(control_values, cv.AbstractControlValues):
+            control_values = cv.ProductOfSums(
+                tuple(
+                    (val,) if isinstance(val, int) else tuple(sorted(val)) for val in control_values
+                )
+            )
         result = super().controlled(num_controls, control_values, control_qid_shape)
         if (
             self._global_shift == 0
             and isinstance(result, controlled_gate.ControlledGate)
+            and isinstance(result.control_values, cv.ProductOfSums)
             and result.control_values[-1] == (1,)
             and result.control_qid_shape[-1] == 2
         ):
@@ -1315,10 +1346,17 @@ class CXPowGate(eigen_gate.EigenGate):
             A `cirq.ControlledGate` (or `cirq.CCXPowGate` if possible) representing
                 `self` controlled by the given control values and qubits.
         """
+        if control_values and not isinstance(control_values, cv.AbstractControlValues):
+            control_values = cv.ProductOfSums(
+                tuple(
+                    (val,) if isinstance(val, int) else tuple(sorted(val)) for val in control_values
+                )
+            )
         result = super().controlled(num_controls, control_values, control_qid_shape)
         if (
             self._global_shift == 0
             and isinstance(result, controlled_gate.ControlledGate)
+            and isinstance(result.control_values, cv.ProductOfSums)
             and result.control_values[-1] == (1,)
             and result.control_qid_shape[-1] == 2
         ):

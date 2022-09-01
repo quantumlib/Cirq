@@ -403,7 +403,7 @@ class CircuitOperation(ops.Operation):
             if self.repetition_ids is not None
             and self.use_repetition_ids
             and protocols.is_measurement(self.circuit)
-            else self._mapped_single_loop() * abs(self.repetitions)
+            else self._mapped_single_loop() * cast(IntParam, abs(self.repetitions))
         )
         if deep:
             circuit = circuit.map_operations(

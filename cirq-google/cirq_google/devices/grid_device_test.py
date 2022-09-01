@@ -129,9 +129,43 @@ def _create_device_spec_with_horizontal_couplings():
     }
 
     expected_target_gatesets = (
-        cirq.CZTargetGateset(),
+        cirq_google.GoogleCZTargetGateset(
+            additional_gates=[
+                cirq_google.FSimGateFamily(gates_to_accept=[cirq_google.SYC]),
+                cirq_google.FSimGateFamily(gates_to_accept=[cirq.SQRT_ISWAP]),
+                cirq_google.FSimGateFamily(gates_to_accept=[cirq.SQRT_ISWAP_INV]),
+                cirq.ops.common_gates.XPowGate,
+                cirq.ops.common_gates.YPowGate,
+                cirq.ops.phased_x_gate.PhasedXPowGate,
+                cirq.GateFamily(
+                    cirq.ops.common_gates.ZPowGate, tags_to_ignore=[cirq_google.PhysicalZTag()]
+                ),
+                cirq.GateFamily(
+                    cirq.ops.common_gates.ZPowGate, tags_to_accept=[cirq_google.PhysicalZTag()]
+                ),
+                cirq_google.experimental.ops.coupler_pulse.CouplerPulse,
+                cirq.ops.wait_gate.WaitGate,
+            ]
+        ),
         cirq_google.SycamoreTargetGateset(),
-        cirq.SqrtIswapTargetGateset(use_sqrt_iswap_inv=True),
+        cirq.SqrtIswapTargetGateset(
+            additional_gates=[
+                cirq_google.FSimGateFamily(gates_to_accept=[cirq_google.SYC]),
+                cirq_google.FSimGateFamily(gates_to_accept=[cirq.SQRT_ISWAP_INV]),
+                cirq_google.FSimGateFamily(gates_to_accept=[cirq.CZ]),
+                cirq.ops.common_gates.XPowGate,
+                cirq.ops.common_gates.YPowGate,
+                cirq.ops.phased_x_gate.PhasedXPowGate,
+                cirq.GateFamily(
+                    cirq.ops.common_gates.ZPowGate, tags_to_ignore=[cirq_google.PhysicalZTag()]
+                ),
+                cirq.GateFamily(
+                    cirq.ops.common_gates.ZPowGate, tags_to_accept=[cirq_google.PhysicalZTag()]
+                ),
+                cirq_google.experimental.ops.coupler_pulse.CouplerPulse,
+                cirq.ops.wait_gate.WaitGate,
+            ]
+        ),
     )
 
     return (
@@ -431,7 +465,7 @@ def test_to_proto():
         cirq.GateFamily(cirq.ops.wait_gate.WaitGate): base_duration * 9,
     }
 
-    spec = grid_device.create_device_specification_proto(
+    spec = grid_device._create_device_specification_proto(
         qubits=device_info.grid_qubits,
         pairs=device_info.qubit_pairs,
         gateset=cirq.Gateset(*gate_durations.keys()),
@@ -471,13 +505,13 @@ def test_to_proto():
 )
 def test_to_proto_invalid_input(error_match, qubits, qubit_pairs, gateset, gate_durations):
     with pytest.raises(ValueError, match=error_match):
-        grid_device.create_device_specification_proto(
+        grid_device._create_device_specification_proto(
             qubits=qubits, pairs=qubit_pairs, gateset=gateset, gate_durations=gate_durations
         )
 
 
 def test_to_proto_empty():
-    spec = grid_device.create_device_specification_proto(
+    spec = grid_device._create_device_specification_proto(
         # Qubits are always expected to be set
         qubits=[cirq.GridQubit(0, i) for i in range(5)],
         pairs=[],
@@ -490,3 +524,23 @@ def test_to_proto_empty():
     assert len(device.metadata.qubit_pairs) == 0
     assert device.metadata.gateset == cirq.Gateset()
     assert device.metadata.gate_durations is None
+
+
+def test_to_proto_fsim_gate_family():
+    """Verifies that FSimGateFamilies are serialized correctly."""
+
+    gateset = cirq.Gateset(
+        cirq_google.FSimGateFamily(gates_to_accept=[cirq_google.SYC]),
+        cirq_google.FSimGateFamily(gates_to_accept=[cirq.SQRT_ISWAP]),
+        cirq_google.FSimGateFamily(gates_to_accept=[cirq.SQRT_ISWAP_INV]),
+        cirq_google.FSimGateFamily(gates_to_accept=[cirq.CZ]),
+    )
+
+    spec = grid_device._create_device_specification_proto(
+        qubits=[cirq.GridQubit(0, 0)], pairs=(), gateset=gateset
+    )
+
+    assert any(gate_spec.HasField('syc') for gate_spec in spec.valid_gates)
+    assert any(gate_spec.HasField('sqrt_iswap') for gate_spec in spec.valid_gates)
+    assert any(gate_spec.HasField('sqrt_iswap_inv') for gate_spec in spec.valid_gates)
+    assert any(gate_spec.HasField('cz') for gate_spec in spec.valid_gates)

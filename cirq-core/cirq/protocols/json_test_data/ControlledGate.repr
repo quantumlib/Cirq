@@ -1,1 +1,2 @@
-cirq.ControlledGate(sub_gate=cirq.Y, control_values=((0,), (1,)),control_qid_shape=(3, 2))
+[cirq.ControlledGate(sub_gate=cirq.Y, control_values=cirq.ProductOfSums(((0,), (1,))),control_qid_shape=(3, 2)), cirq.ControlledGate(sub_gate=cirq.Y, control_values=cirq.SumOfProducts(((0, 1), (1, 0)) , name="xor"),control_qid_shape=(3, 2))]
+

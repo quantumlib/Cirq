@@ -21,3 +21,24 @@ landing_page:
       - heading: State Histograms
         description: Visualize the results of simulation as a histogram over basis states.
         path: /cirq/simulate/state_histograms
+
+    - heading: Quantum Virtual Machine
+      description: Run circuits on a virtual version of quantum hardware, complete with an identical interface and noisy simulation that mimics hardware devices.
+      options:
+        - cards
+      items:
+      - heading: Quantum Virtual Machine
+        description: Build and use a QVM with a virtual Engine and realistic noise model.
+        path: /cirq/simulate/quantum_virtual_machine
+      - heading: QVM Circuit Preparation
+        description: Prepare and run a circuit on a QVM in detail.
+        path: /cirq/simulate/qvm_basic_example
+      - heading: QVM Stabilizer Example
+        description: Run a stabilizer circuit on QVMs representing different devices and different noise.
+        path: /cirq/simulate/qvm_stabilizer_example
+      - heading: QVM Creation Template
+        description: Run a device-ready circuit on a QVM with default settings.
+        path: /cirq/simulate/qvm_builder_code
+      - heading: Virtual Engine Interface
+        description: Details on the virtual version of the hardware Engine API and how to use it.
+        path: /cirq/simulate/virtual_engine_interface

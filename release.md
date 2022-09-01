@@ -1,7 +1,6 @@
 # Versioning and Releases
 
-Cirq is currently (as of May 2020) alpha, and so has a MAJOR version
-of 0. Below is info on how we version releases, and how the releases
+Below is info on how we version releases, and how the releases
 themselves are created. Note that development is done on the `master`
 branch, so if you want to use a more stable version you should use one
 of the [releases](https://github.com/quantumlib/Cirq/releases) or
@@ -12,15 +11,46 @@ latest commit to master can be installed with `pip install --pre cirq`.
 
 We follow [semantic versioning](https://semver.org/) for labeling our
 releases.  Versions are labeled MAJOR.MINOR.PATCH where each of these
-is a numerical value. The rules for versions changes are:
-* Before MAJOR becomes 1, updates to MINOR can and will make changes to
-public facing apis and interfaces.
-* After MAJOR becomes 1, updates that break the public facing api
-or interface need to update MAJOR version.
-* MINOR updates have to be backwards compatible (after MAJOR>=1).
-* PATCH updates are for bug fixes.
+is a numerical value. The following guarantees are provided:
 
-Versions based on unreleased branches of master will be suffixed with ".dev".
+1. All packages released at the same time from the Cirq repository will share
+   the same [Semantic Versioning 2.0.0](https://semver.org/) number.
+   1. Packages may have different version numbers in the future, at which point
+      this policy will be updated.
+2. Libraries in the `cirq-core` directory (with the exception of
+   `cirq-core/cirq/contrib`) adhere to the guarantees outlined in the Semantic
+   Versioning specification. In summary: “Bug fixes not affecting the API
+   increment the patch version, backwards compatible API additions/changes
+   increment the minor version, and backwards incompatible API changes increment
+   the major version.”
+3. The contrib directory (at `cirq-core/cirq/contrib`) follows Semantic
+   Versioning except the MINOR version increment policy: releases with MINOR
+   version increments may contain backward-incompatible functionality changes to
+   its public API.
+   1. May be changed to strictly follow Semantic Versioning in the future, at
+      which point this policy will be updated.
+4. Cirq vendor directories (`cirq-aqt`, `cirq-google`, `cirq-ionq`, etc.) follow
+   Semantic Versioning except the MINOR version increment policy: each vendor
+   directory has a separate policy on whether MINOR version increments provide
+   backward-compatibility guarantees, as described in `version_policy.md` in the
+   respective directory.
+   1. If `version_policy.md` does not exist in a particular vendor directory,
+      MINOR version increments may contain backward-incompatible functionality
+      changes to its public API.
+   2. For each vendor directory, version policies may be modified to strictly
+      follow Semantic Versioning in the future.
+5. Versions based on unreleased branches of master will be suffixed with ".dev".
+
+The rules for version changes are:
+* Increment the PATCH version if all changes are bug fixes only.
+* Increment the MINOR version if changes contain functionalities which are
+  backward-compatible, or if a vendor directory or `contrib` contains
+  backward-incompatible changes and the policy for the directory allows
+  backward-incompatible changes for a minor version increment.
+
+A major version increment process has not been established. Until then,
+backward-incompatible changes are not allowed for `cirq-core` and vendor
+directories that prohibit them for a minor version increment.
 
 ## Releases
 
@@ -34,6 +64,10 @@ in a release branch with a version tag (vX.X.X).  Then, master will be updated
 to the next minor version.  This can always be found in the
 [version file](cirq/_version.py).
 
+### Release Schedule
+Releases are made on an as-needed basis determined by Cirq maintainers. All Cirq
+packages (including vendor packages such as `cirq-aqt`) are released at the same
+time.
 
 ## Before you release: flush the deprecation backlog
 
@@ -192,6 +226,8 @@ checking the history of the init files. `git diff <previous version>..HEAD cirq-
 You can get the contributing authors for the release by running:
 `git log <previous version>..HEAD --pretty="%an" | sort | uniq | sed ':a;N;$!ba;s/\n/, /g'`
 
+### cirq-google Changelog
+Add cirq-google release notes to `cirq-google/CHANGELOG.md` following the [changelog format](https://keepachangelog.com/en/1.0.0/)
 
 ### Release to prod pypi
 

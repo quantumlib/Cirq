@@ -722,18 +722,18 @@ class Operation(metaclass=abc.ABCMeta):
 
 @value.value_equality
 class TaggedOperation(Operation):
-    """Operation annotated with a set of Tags.
+    """Operation annotated with a set of tags.
 
     These Tags can be used for special processing.  TaggedOperations
-    can be initialized with using Operation.with_tags(tag)
-    or by using TaggedOperation(op, tag).
+    can be initialized with using `Operation.with_tags(tag)`
+    or by using `TaggedOperation(op, tag)`.
 
     Tags added can be of any type, but they should be Hashable in order
     to allow equality checking.  If you wish to serialize operations into
     JSON, you should restrict yourself to only use objects that have a JSON
     serialization.
 
-    See Operation.with_tags() for more information on intended usage.
+    See `Operation.with_tags()` for more information on intended usage.
     """
 
     def __init__(self, sub_operation: 'cirq.Operation', *tags: Hashable):

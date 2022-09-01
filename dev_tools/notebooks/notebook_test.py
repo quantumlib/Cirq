@@ -45,6 +45,8 @@ SKIP_NOTEBOOKS = [
     # temporary: need to fix QVM metrics and device spec
     'docs/tutorials/google/spin_echoes.ipynb',
     'docs/tutorials/google/visualizing_calibration_metrics.ipynb',
+    # shouldn't have outputs generated for style reasons
+    'docs/simulate/qvm_builder_code.ipynb',
 ]
 
 
