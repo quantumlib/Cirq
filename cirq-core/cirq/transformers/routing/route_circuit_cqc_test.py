@@ -15,6 +15,15 @@
 import cirq
 import pytest
 
+# add better test for preserve_moment_structure after refactoring _get_timesteps() function
+
+
+def test_directed_device():
+    device = cirq.testing.construct_ring_device(10, directed=True)
+    device_graph = device.metadata.nx_graph
+    with pytest.raises(ValueError, match="Device graph must be undirected."):
+        cirq.RouteCQC(device_graph)
+
 
 @pytest.mark.parametrize(
     "n_qubits, n_moments, op_density, seed",
@@ -88,11 +97,85 @@ def test_multi_qubit_gate_inputs():
     device.validate_circuit(c_routed)
 
 
-def test_directed_device():
-    device = cirq.testing.construct_ring_device(10, directed=True)
+def test_circuit_with_measurement_gates():
+    device = cirq.testing.construct_ring_device(3)
     device_graph = device.metadata.nx_graph
-    with pytest.raises(ValueError, match="Device graph must be undirected."):
-        cirq.RouteCQC(device_graph)
+    q = cirq.LineQubit.range(3)
+    circuit = cirq.Circuit(cirq.MeasurementGate(2).on(q[0], q[2]), cirq.MeasurementGate(3).on(*q))
+    hard_coded_mapper = cirq.HardCodedInitialMapper({q[i]: q[i] for i in range(3)})
+    router = cirq.RouteCQC(device_graph)
+    routed_circuit = router(circuit, initial_mapper=hard_coded_mapper)
+    cirq.testing.assert_same_circuits(routed_circuit, circuit)
+
+
+def test_circuit_with_non_unitary_and_global_phase():
+    device = cirq.testing.construct_ring_device(4)
+    device_graph = device.metadata.nx_graph
+    q = cirq.LineQubit.range(3)
+    circuit = cirq.Circuit(
+        [
+            cirq.Moment(cirq.CNOT(q[0], q[1]), cirq.global_phase_operation(-1)),
+            cirq.Moment(cirq.CNOT(q[1], q[2])),
+            cirq.Moment(cirq.depolarize(0.1, 2).on(q[0], q[2]), cirq.depolarize(0.1).on(q[1])),
+        ]
+    )
+    hard_coded_mapper = cirq.HardCodedInitialMapper({q[i]: q[i] for i in range(3)})
+    router = cirq.RouteCQC(device_graph)
+    routed_circuit = router(circuit, initial_mapper=hard_coded_mapper)
+    expected = cirq.Circuit(
+        [
+            cirq.Moment(cirq.CNOT(q[0], q[1]), cirq.global_phase_operation(-1)),
+            cirq.Moment(cirq.CNOT(q[1], q[2])),
+            cirq.Moment(cirq.depolarize(0.1).on(q[1])),
+            cirq.Moment(cirq.SWAP(q[0], q[1])),
+            cirq.Moment(cirq.depolarize(0.1, 2).on(q[1], q[2])),
+        ]
+    )
+    cirq.testing.assert_same_circuits(routed_circuit, expected)
+
+
+def test_circuit_with_tagged_ops():
+    device = cirq.testing.construct_ring_device(4)
+    device_graph = device.metadata.nx_graph
+    q = cirq.LineQubit.range(3)
+    circuit = cirq.Circuit(
+        [
+            cirq.Moment(cirq.CNOT(q[0], q[1]).with_tags("u")),
+            cirq.Moment(cirq.CNOT(q[1], q[2])),
+            cirq.Moment(cirq.CNOT(q[0], q[2]).with_tags("u")),
+            cirq.Moment(cirq.X(q[0]).with_tags("u")),
+        ]
+    )
+    hard_coded_mapper = cirq.HardCodedInitialMapper({q[i]: q[i] for i in range(3)})
+    router = cirq.RouteCQC(device_graph)
+    routed_circuit = router(circuit, initial_mapper=hard_coded_mapper)
+    expected = cirq.Circuit(
+        [
+            cirq.Moment(cirq.TaggedOperation(cirq.CNOT(q[0], q[1]), 'u')),
+            cirq.Moment(cirq.CNOT(q[1], q[2])),
+            cirq.Moment(cirq.SWAP(q[0], q[1])),
+            cirq.Moment(cirq.TaggedOperation(cirq.CNOT(q[1], q[2]), 'u')),
+            cirq.Moment(cirq.TaggedOperation(cirq.X(q[1]), 'u')),
+        ]
+    )
+    cirq.testing.assert_same_circuits(routed_circuit, expected)
+
+
+def test_already_valid_circuit():
+    device = cirq.testing.construct_ring_device(10)
+    device_graph = device.metadata.nx_graph
+    circuit = cirq.Circuit(
+        [cirq.Moment(cirq.CNOT(cirq.LineQubit(i), cirq.LineQubit(i + 1))) for i in range(9)],
+        cirq.X(cirq.LineQubit(1)),
+    )
+    hard_coded_mapper = cirq.HardCodedInitialMapper(
+        {cirq.LineQubit(i): cirq.LineQubit(i) for i in range(10)}
+    )
+    router = cirq.RouteCQC(device_graph)
+    routed_circuit = router(circuit, initial_mapper=hard_coded_mapper)
+
+    device.validate_circuit(routed_circuit)
+    cirq.testing.assert_same_circuits(routed_circuit, circuit)
 
 
 def test_empty_circuit():
@@ -106,25 +189,6 @@ def test_empty_circuit():
     assert len(list(empty_circuit.all_operations())) == len(
         list(empty_circuit_routed.all_operations())
     )
-
-
-def test_already_valid_circuit():
-    device = cirq.testing.construct_ring_device(10)
-    device_graph = device.metadata.nx_graph
-    valid_circuit = cirq.Circuit(
-        cirq.Moment(cirq.CNOT(cirq.LineQubit(i), cirq.LineQubit(i + 1))) for i in range(9)
-    )
-    hard_coded_mapper = cirq.HardCodedInitialMapper(
-        {cirq.LineQubit(i): cirq.LineQubit(i) for i in range(10)}
-    )
-    router = cirq.RouteCQC(device_graph)
-    valid_circuit_routed = router(valid_circuit, initial_mapper=hard_coded_mapper)
-
-    device.validate_circuit(valid_circuit_routed)
-    assert len(list(valid_circuit.all_operations())) == len(
-        list(valid_circuit_routed.all_operations())
-    )
-    # TODO: add assert same cirucits using cirq.testing.assert_same_circuits
 
 
 def test_repr():

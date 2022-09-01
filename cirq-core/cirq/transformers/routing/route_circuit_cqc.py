@@ -215,7 +215,10 @@ class RouteCQC:
         # 0. Handle CircuitOperations by unrolling them.
         if context is not None and context.deep is True:
             circuit = transformer_primitives.unroll_circuit_op(circuit, deep=True)
-        if not all(protocols.num_qubits(op) <= 2 for op in circuit.all_operations()):
+        if any(
+            protocols.num_qubits(op) > 2 and not isinstance(op.gate, ops.MeasurementGate)
+            for op in circuit.all_operations()
+        ):
             raise ValueError("Input circuit must only have ops that act on 1 or 2 qubits.")
 
         # 1. Do the initial mapping of logical to physical qubits.
@@ -255,7 +258,7 @@ class RouteCQC:
             ]
 
             def map_func_preserving(op: 'cirq.Operation', moment_index: int):
-                if protocols.num_qubits(op) == 2:
+                if protocols.num_qubits(op) == 2 and not isinstance(op.gate, ops.MeasurementGate):
                     return op
                 single_qubit_ops_preserve[moment_index].append(op)
                 return []
@@ -272,7 +275,7 @@ class RouteCQC:
 
         def map_func_not_preserving(op: 'cirq.Operation', _: int):
             timestep_index = reduced_circuit.earliest_available_moment(op)
-            if protocols.num_qubits(op) == 2:
+            if protocols.num_qubits(op) == 2 and not isinstance(op.gate, ops.MeasurementGate):
                 reduced_circuit.append(op)
             return op.with_tags(timestep_index)
 
@@ -283,9 +286,12 @@ class RouteCQC:
             [] for i in range(len(reduced_circuit) + 1)
         ]
         for op in circuit_with_tags.all_operations():
-            if protocols.num_qubits(op) == 1 and isinstance(op.tags[-1], int):
+            if (
+                protocols.num_qubits(op) != 2 or isinstance(op.gate, ops.MeasurementGate)
+            ) and isinstance(op.tags[-1], int):
                 timestep_index = op.tags[-1]
-                single_qubit_operations[timestep_index].append(op)
+                user_tags = op.tags[:-1]
+                single_qubit_operations[timestep_index].append(op.untagged.with_tags(*user_tags))
         return [list(moment.operations) for moment in reduced_circuit], single_qubit_operations
 
     def _route(
@@ -390,7 +396,7 @@ class RouteCQC:
         self, timestep_ops: List['cirq.Operation']
     ) -> List[Tuple['cirq.Qid', 'cirq.Qid']]:
         """Finds all feasible SWAPs between qubits involved in 2-qubit operations."""
-        physical_qubits = set(self._mm.map[op.qubits[i]] for op in timestep_ops for i in range(2))
+        physical_qubits = (self._mm.map[op.qubits[i]] for op in timestep_ops for i in range(2))
         physical_swaps = self._mm.induced_subgraph.edges(nbunch=physical_qubits)
         return [(self._mm.inverse_map[q1], self._mm.inverse_map[q2]) for q1, q2 in physical_swaps]
 
