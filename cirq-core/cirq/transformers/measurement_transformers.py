@@ -246,8 +246,8 @@ class _ModAdd(ops.ArithmeticGate):
     def with_registers(self, *new_registers) -> '_ModAdd':
         raise NotImplementedError()
 
-    def apply(self, input_value, target_value) -> Tuple[int, int]:
-        return input_value, target_value + input_value
+    def apply(self, *register_values: int) -> Tuple[int, int]:
+        return register_values[0], sum(register_values)
 
     def _value_equality_values_(self) -> int:
         return self._dimension
