@@ -122,7 +122,7 @@ class SimulationProductState(
             gate_opt, (ops.ResetChannel, ops.MeasurementGate)
         ):
             for q in qubits:
-                if op_args.allows_factoring:
+                if op_args.allows_factoring and len(op_args.qubits) > 1:
                     q_args, op_args = op_args.factor((q,), validate=False)
                     self._sim_states[q] = q_args
 
