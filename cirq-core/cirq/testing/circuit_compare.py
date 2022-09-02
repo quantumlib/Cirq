@@ -221,7 +221,9 @@ def _first_differing_moment_index(
 
 
 def assert_circuits_have_same_unitary_given_final_permutation(
-    actual: circuits.Circuit, expected: circuits.Circuit, qubit_map: Dict[ops.Qid, ops.Qid]
+    actual: circuits.AbstractCircuit,
+    expected: circuits.AbstractCircuit,
+    qubit_map: Dict[ops.Qid, ops.Qid],
 ) -> None:
     """Asserts two circuits have the same unitary up to a final permuation of qubits.
 
@@ -232,20 +234,23 @@ def assert_circuits_have_same_unitary_given_final_permutation(
 
     Raises:
         ValueError: if 'qubit_map' is not a mapping from the qubits in 'actual' to themselves.
+        ValueError: if 'qubit_map' does not have the same set of keys and values.
     """
-    if any(not set(qs).issubset(actual.all_qubits()) for qs in zip(*tuple(qubit_map.items()))):
+    if set(qubit_map.keys()) != set(qubit_map.values()):
+        raise ValueError("'qubit_map' must have the same set of of keys and values.")
+
+    if not set(qubit_map.keys()).issubset(actual.all_qubits()):
         raise ValueError(
-            f"The dictionary 'qubit_map' must be a mapping of the qubits in the circuit 'actual'"
-            f" to themselves."
+            f"'qubit_map' must be a mapping of the qubits in the circuit 'actual' to themselves."
         )
 
-    inverse_qubit_perm = {v: k for k, v in qubit_map.items()}
-    sorted_qubits, initial_qubits = zip(*sorted(inverse_qubit_perm.items(), key=lambda x: x[0]))
+    actual_cp = actual.unfreeze()
+    initial_qubits, sorted_qubits = zip(*sorted(qubit_map.items(), key=lambda x: x[1]))
     inverse_permutation = [sorted_qubits.index(q) for q in initial_qubits]
-    actual.append(ops.QubitPermutationGate(list(inverse_permutation)).on(*sorted_qubits))
+    actual_cp.append(ops.QubitPermutationGate(list(inverse_permutation)).on(*sorted_qubits))
 
     lin_alg_utils.assert_allclose_up_to_global_phase(
-        expected.unitary(), actual.unitary(), atol=1e-8
+        expected.unitary(), actual_cp.unitary(), atol=1e-8
     )
 
 
