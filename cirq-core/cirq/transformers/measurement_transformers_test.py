@@ -17,7 +17,7 @@ import pytest
 import sympy
 
 import cirq
-from cirq.transformers.measurement_transformers import _cx, _MeasurementQid
+from cirq.transformers.measurement_transformers import _mod_add, _MeasurementQid
 
 
 def assert_equivalent_to_deferred(circuit: cirq.Circuit):
@@ -71,7 +71,7 @@ def test_qudits():
     cirq.testing.assert_same_circuits(
         deferred,
         cirq.Circuit(
-            _cx(3)(q0, q_ma),
+            _mod_add(q0, q_ma),
             cirq.XPowGate(dimension=3).on(q1).controlled_by(q_ma, control_values=[[1, 2]]),
             cirq.measure(q_ma, key='a'),
             cirq.measure(q1, key='b'),

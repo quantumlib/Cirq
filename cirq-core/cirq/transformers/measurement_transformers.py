@@ -13,7 +13,7 @@
 # limitations under the License.
 
 import itertools
-from typing import Any, Dict, List, Optional, TYPE_CHECKING, Union
+from typing import Any, Dict, List, Optional, Tuple, TYPE_CHECKING, Union
 
 from cirq import ops, protocols, value
 from cirq.transformers import transformer_api, transformer_primitives
@@ -104,7 +104,7 @@ def defer_measurements(
             key = value.MeasurementKey.parse_serialized(gate.key)
             targets = [_MeasurementQid(key, q) for q in op.qubits]
             measurement_qubits[key] = targets
-            cxs = [_cx(q.dimension).on(q, target) for q, target in zip(op.qubits, targets)]
+            cxs = [_mod_add(q, target) for q, target in zip(op.qubits, targets)]
             xs = [ops.X(targets[i]) for i, b in enumerate(gate.full_invert_mask()) if b]
             return cxs + xs
         elif protocols.is_measurement(op):
@@ -230,7 +230,7 @@ def drop_terminal_measurements(
 
 
 @value.value_equality
-class _Add(ops.ArithmeticGate):
+class _ModAdd(ops.ArithmeticGate):
     """Adds two qudits of the same dimension.
 
     Operates on two qudits by modular addition:
@@ -240,21 +240,24 @@ class _Add(ops.ArithmeticGate):
     def __init__(self, dimension: int):
         self._dimension = dimension
 
-    def registers(self):
+    def registers(self) -> Tuple[Tuple[int], Tuple[int]]:
         return (self._dimension,), (self._dimension,)
 
-    def with_registers(self, *new_registers):
+    def with_registers(self, *new_registers) -> '_ModAdd':
         raise NotImplementedError()
 
-    def apply(self, input_value, target_value):
+    def apply(self, input_value, target_value) -> Tuple[int, int]:
         return input_value, target_value + input_value
 
-    def _value_equality_values_(self):
+    def _value_equality_values_(self) -> int:
         return self._dimension
 
 
-def _cx(dimension: int):
+def _mod_add(source: 'cirq.Qid', target: 'cirq.Qid') -> 'cirq.Operation':
     # We can use an Add gate in the qudit case, since the ancilla qudit corresponding to the
     # measurement is always zero, so "adding" the measured qudit to it sets the ancilla qudit to
     # the same state.
-    return ops.CX if dimension == 2 else _Add(dimension)
+    assert source.dimension == target.dimension
+    if source.dimension == 2:
+        return ops.CX(source, target)
+    return _ModAdd(source.dimension).on(source, target)

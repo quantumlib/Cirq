@@ -494,7 +494,7 @@ def test_gate_to_operation_to_gate_round_trips():
         cirq.Pauli,
         # Private gates.
         cirq.transformers.analytical_decompositions.two_qubit_to_fsim._BGate,
-        cirq.transformers.measurement_transformers._Add,
+        cirq.transformers.measurement_transformers._ModAdd,
         cirq.ops.raw_types._InverseCompositeGate,
         cirq.circuits.qasm_output.QasmTwoQubitGate,
         cirq.ops.MSGate,
