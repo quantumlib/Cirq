@@ -15,8 +15,6 @@
 import itertools
 from typing import Any, Dict, List, Optional, TYPE_CHECKING, Union
 
-import numpy as np
-
 from cirq import ops, protocols, value
 from cirq.transformers import transformer_api, transformer_primitives
 from cirq.transformers.synchronize_terminal_measurements import find_terminal_measurements
@@ -231,50 +229,33 @@ def drop_terminal_measurements(
     ).unfreeze()
 
 
-class _CX(ops.Gate):
-    """A CX gate generalized for qudits.
+@value.value_equality
+class _Add(ops.ArithmeticGate):
+    """Adds two qudits of the same dimension.
 
-    This represents a Controlled-NOT gate for qudits, in the following sense. If the target is
-    zero, then it becomes the value of the control. If the target is equal to the control, then
-    it becomes zero. All other cases do not affect the target. The first rule is the only one
-    required for measurement-deferral purposes: the ancilla qudit representing the creg is always
-    zero at the time of measurement. The remaining rules are for symmetry.
+    Operates on two qudits by modular addition:
 
-    |k0> -> |kk>
-    |kk> -> |k0>
-    |kj> -> |kj> otherwise
-
-    The unitary is formed directly from these rules, thus fully defining behavior in the presence
-    of superposition and entanglement. This definition preserves 2D CX behavior, such as
-    CX∘CX == I, and CX∘XC∘CX == SWAP.
-
-    Note that this is explicitly different from a controlled multidimensional X gate. This is easy
-    to see, in that the latter is a STEP gate, allowing the qudit value to increase by at most one.
-    For this gate however, the target qudit can jump from zero to any value, depending on the
-    control.
-
-    Note also that the 2D definition of CX follows as a special case.
-    """
+    |a,b> -> |a,a+b mod d>"""
 
     def __init__(self, dimension: int):
-        self._dimension = dimension
+        self._target_register = (dimension,)
+        self._input_register = (dimension,)
 
-    def _qid_shape_(self):
-        return self._dimension, self._dimension
+    def registers(self):
+        return self._input_register, self._target_register
 
-    def _unitary_(self):
-        u = np.zeros((self._dimension**2, self._dimension**2))
-        for i in range(self._dimension):
-            for j in range(self._dimension):
-                offset = i * self._dimension
-                row = offset + j
-                col = offset + 0 if i == j else i if j == 0 else j
-                u[row, col] = 1
-        return u
+    def with_registers(self, *new_registers):
+        raise NotImplementedError()
 
-    def __eq__(self, other):
-        return isinstance(other, _CX) and other._dimension == self._dimension
+    def apply(self, input_value, target_value):
+        return input_value, target_value + input_value
+
+    def _value_equality_values_(self):
+        return self.registers()
 
 
 def _cx(dimension: int):
-    return ops.CX if dimension == 2 else _CX(dimension)
+    # We can use an Add gate in the qudit case, since the ancilla qudit corresponding to the
+    # measurement is always zero, so "adding" the measured qudit to it sets the ancilla qudit to
+    # the same state.
+    return ops.CX if dimension == 2 else _Add(dimension)
