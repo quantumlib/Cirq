@@ -15,6 +15,8 @@
 import itertools
 from typing import Any, Dict, List, Optional, TYPE_CHECKING, Union
 
+import numpy as np
+
 from cirq import ops, protocols, value
 from cirq.transformers import transformer_api, transformer_primitives
 from cirq.transformers.synchronize_terminal_measurements import find_terminal_measurements
@@ -46,7 +48,7 @@ class _MeasurementQid(ops.Qid):
         return self._qid.dimension
 
     def _comparison_key(self) -> Any:
-        return (str(self._key), self._qid._comparison_key())
+        return str(self._key), self._qid._comparison_key()
 
     def __str__(self) -> str:
         return f"M('{self._key}', q={self._qid})"
@@ -104,7 +106,7 @@ def defer_measurements(
             key = value.MeasurementKey.parse_serialized(gate.key)
             targets = [_MeasurementQid(key, q) for q in op.qubits]
             measurement_qubits[key] = targets
-            cxs = [ops.CX(q, target) for q, target in zip(op.qubits, targets)]
+            cxs = [_cx(q.dimension).on(q, target) for q, target in zip(op.qubits, targets)]
             xs = [ops.X(targets[i]) for i, b in enumerate(gate.full_invert_mask()) if b]
             return cxs + xs
         elif protocols.is_measurement(op):
@@ -117,7 +119,7 @@ def defer_measurements(
                         raise ValueError(f'Deferred measurement for key={c.key} not found.')
                     qs = measurement_qubits[c.key]
                     if len(qs) == 1:
-                        control_values: Any = range(1, qs[0].dimension)
+                        control_values: Any = [range(1, qs[0].dimension)]
                     else:
                         all_values = itertools.product(*[range(q.dimension) for q in qs])
                         anything_but_all_zeros = tuple(itertools.islice(all_values, 1, None))
@@ -227,3 +229,52 @@ def drop_terminal_measurements(
     return transformer_primitives.map_operations(
         circuit, flip_inversion, deep=context.deep if context else True, tags_to_ignore=ignored
     ).unfreeze()
+
+
+class _CX(ops.Gate):
+    """A CX gate generalized for qudits.
+
+    This represents a Controlled-NOT gate for qudits, in the following sense. If the target is
+    zero, then it becomes the value of the control. If the target is equal to the control, then
+    it becomes zero. All other cases do not affect the target. The first rule is the only one
+    required for measurement-deferral purposes: the ancilla qudit representing the creg is always
+    zero at the time of measurement. The remaining rules are for symmetry.
+
+    |k0> -> |kk>
+    |kk> -> |k0>
+    |kj> -> |kj> otherwise
+
+    The unitary is formed directly from these rules, thus fully defining behavior in the presence
+    of superposition and entanglement. This definition preserves 2D CX behavior, such as
+    CX∘CX == I, and CX∘XC∘CX == SWAP.
+
+    Note that this is explicitly different from a controlled multidimensional X gate. This is easy
+    to see, in that the latter is a STEP gate, allowing the qudit value to increase by at most one.
+    For this gate however, the target qudit can jump from zero to any value, depending on the
+    control.
+
+    Note also that the 2D definition of CX follows as a special case.
+    """
+
+    def __init__(self, dimension: int):
+        self._dimension = dimension
+
+    def _qid_shape_(self):
+        return self._dimension, self._dimension
+
+    def _unitary_(self):
+        u = np.zeros((self._dimension**2, self._dimension**2))
+        for i in range(self._dimension):
+            for j in range(self._dimension):
+                offset = i * self._dimension
+                row = offset + j
+                col = offset + 0 if i == j else i if j == 0 else j
+                u[row, col] = 1
+        return u
+
+    def __eq__(self, other):
+        return isinstance(other, _CX) and other._dimension == self._dimension
+
+
+def _cx(dimension: int):
+    return ops.CX if dimension == 2 else _CX(dimension)
