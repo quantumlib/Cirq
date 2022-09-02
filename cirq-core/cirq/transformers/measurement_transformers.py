@@ -238,11 +238,10 @@ class _Add(ops.ArithmeticGate):
     |a,b> -> |a,a+b mod d>"""
 
     def __init__(self, dimension: int):
-        self._target_register = (dimension,)
-        self._input_register = (dimension,)
+        self._dimension = dimension
 
     def registers(self):
-        return self._input_register, self._target_register
+        return (self._dimension,), (self._dimension,)
 
     def with_registers(self, *new_registers):
         raise NotImplementedError()
@@ -251,7 +250,7 @@ class _Add(ops.ArithmeticGate):
         return input_value, target_value + input_value
 
     def _value_equality_values_(self):
-        return self.registers()
+        return self._dimension
 
 
 def _cx(dimension: int):
