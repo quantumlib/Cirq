@@ -613,3 +613,22 @@ def test_default_tolerance():
     # Here, we do NOT specify the default tolerance. It is merely to check that the default value
     # is reasonable.
     cirq.sub_state_vector(final_state_vector, [0])
+
+
+@pytest.mark.parametrize('state_1', [0, 1])
+@pytest.mark.parametrize('state_2', [0, 1])
+def test_factor_state_vector(state_1: int, state_2: int):
+    # Kron two state vectors and apply a phase. Factoring should produce the expected results.
+    n = 12
+    for i in range(n):
+        phase = np.exp(2 * np.pi * 1j * i / n)
+        a = cirq.to_valid_state_vector(state_1, 1)
+        b = cirq.to_valid_state_vector(state_2, 1)
+        c = cirq.linalg.transformations.state_vector_kronecker_product(a, b) * phase
+        a1, b1 = cirq.linalg.transformations.factor_state_vector(c, [0], validate=True)
+        c1 = cirq.linalg.transformations.state_vector_kronecker_product(a1, b1)
+        assert np.allclose(c, c1)
+
+        # All phase goes into a1, and b1 is just the dephased state vector
+        assert np.allclose(a1, a * phase)
+        assert np.allclose(b1, b)
