@@ -27,10 +27,6 @@ if TYPE_CHECKING:
 
 QidPair = Tuple['cirq.Qid', 'cirq.Qid']
 
-# TODO: change the flow of symmetry breaking strategies in _route() by using `apply_unitaryprotocol`
-# as a template
-# TODO: change type of initial_canddiate_swaps return value
-
 
 def disjoint_nc2_combinations(qubit_pairs: List[QidPair]) -> List[Tuple[QidPair, ...]]:
     """Gets disjoint pair combinations of qubits pairs.
@@ -280,9 +276,7 @@ class RouteCQC:
           a list of lists corresponding to moments of the routed circuit
         """
 
-        strats = [self._iterate_single_swap_strategy, self._iterate_swap_pair_strategy]
-
-        def process_executable_ops(idx: int):
+        def process_executable_two_qubit_ops(idx: int):
             unexecutable_ops = []
             for op in two_qubit_ops[idx]:
                 if self._mm.can_execute(op):
@@ -291,16 +285,20 @@ class RouteCQC:
                     unexecutable_ops.append(op)
             two_qubit_ops[idx] = unexecutable_ops
 
-        routed_ops: List[List['cirq.Operation']] = [[] for i in range(len(two_qubit_ops))]
-        for idx in range(len(two_qubit_ops)):
-            # Add single-qubit ops
-            routed_ops[idx].extend([self._mm.mapped_op(op) for op in single_qubit_ops[idx]])
+        strats = [self._iterate_single_swap_strategy, self._iterate_swap_pair_strategy]
+        routed_ops: List[List['cirq.Operation']] = list()
 
-            process_executable_ops(idx)
+        for idx in range(len(two_qubit_ops)):
+            # Add single-qubit ops with qubits given byh the current mapping
+            routed_ops.append([self._mm.mapped_op(op) for op in single_qubit_ops[idx]])
+
+            process_executable_two_qubit_ops(idx)
+
+            # swaps applied in the current timestep thus far. This ensures the same swaps
+            # don't get executed twice in the same timestep.
             seen: Set[Tuple[Tuple['cirq.Qid', cirq.Qid], ...]] = set()
 
             while len(two_qubit_ops[idx]) != 0:
-
                 chosen_swaps: Optional[Tuple[QidPair, ...]] = None
                 for strat in strats:
                     chosen_swaps = strat(two_qubit_ops, idx, max_search_radius)
@@ -318,7 +316,8 @@ class RouteCQC:
                         inserted_swap = inserted_swap.with_tags(ops.RoutingSwapTag())
                     routed_ops[idx].append(inserted_swap)
                     self._mm.apply_swap(*swap)
-                process_executable_ops(idx)
+
+                process_executable_two_qubit_ops(idx)
 
         return routed_ops
 
@@ -333,8 +332,7 @@ class RouteCQC:
         """
         furthest_op = max(two_qubit_ops[idx], key=lambda op: self._mm.dist_on_device(*op.qubits))
         path = self._mm.shortest_path(*furthest_op.qubits)
-        q1 = path[0]
-        return tuple([(q1, path[i + 1]) for i in range(len(path) - 2)])
+        return tuple([(path[0], path[i + 1]) for i in range(len(path) - 2)])
 
     def _iterate_swap_pair_strategy(
         self, two_qubit_ops: List[List['cirq.Operation']], idx: int, max_search_radius: int
@@ -397,13 +395,13 @@ class RouteCQC:
             self._mm.apply_swap(*swap)
         max_length, sum_length = 0, 0
         for op in timestep_ops:
-            q1, q2 = op.qubits[0], op.qubits[1]
+            q1, q2 = op.qubits
             dist = self._mm.dist_on_device(q1, q2)
             max_length = max(max_length, dist)
             sum_length += dist
         for swap in swaps:
             self._mm.apply_swap(*swap)
-        return (max_length, sum_length)
+        return max_length, sum_length
 
     def __eq__(self, other) -> bool:
         return nx.utils.graphs_equal(self.device_graph, other.device_graph)
