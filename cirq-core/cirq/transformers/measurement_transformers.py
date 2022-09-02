@@ -253,6 +253,7 @@ class _ConfusionChannel(ops.Gate):
       [sqrt(0.2), 0]],
      [[0,         0],
       [0, sqrt(0.9)]]]"""
+
     def __init__(self, confusion_map: np.ndarray, shape: Sequence[int]):
         kraus = []
         R, C = confusion_map.shape

@@ -320,6 +320,9 @@ def test_confusion_map():
     # 10K samples would take a long time if we had not deferred the measurements, as we'd have to
     # run 10K simulations. Here with DM simulator it's 100ms.
     result = sim.sample(deferred, repetitions=10_000)
+
+    # This should be 5_000 due to the H, then 1_000 more due to 0's flipping to 1's with p=0.2, and
+    # then 500 less due to 1's flipping to 0's with p=0.1, so 5_500.
     assert 5_100 <= np.sum(result['a']) <= 5_900
     assert np.all(result['a'] == result['b'])
 
