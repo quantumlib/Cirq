@@ -232,7 +232,6 @@ def drop_terminal_measurements(
     ).unfreeze()
 
 
-@value.value_equality
 class _ConfusionChannel(ops.Gate):
     """The quantum equivalent of a confusion matrix.
 
@@ -272,9 +271,3 @@ class _ConfusionChannel(ops.Gate):
 
     def _kraus_(self) -> Tuple[np.ndarray, ...]:
         return self._kraus
-
-    def _has_kraus_(self) -> bool:
-        return True
-
-    def _value_equality_values_(self):
-        return self._kraus, self._shape
