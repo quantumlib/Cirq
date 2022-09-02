@@ -307,13 +307,21 @@ def test_sympy_control():
 def test_confusion_map():
     q0, q1 = cirq.LineQubit.range(2)
     circuit = cirq.Circuit(
-        cirq.measure(q0, q1, key='a', confusion_map={(0,): np.array([[0.9, 0.1], [0.1, 0.9]])}),
+        cirq.H(q0),
+        cirq.measure(q0, key='a', confusion_map={(0,): np.array([[0.8, 0.2], [0.1, 0.9]])}),
         cirq.X(q1).with_classical_controls('a'),
+        cirq.measure(q1, key='b'),
     )
-    with pytest.raises(
-        NotImplementedError, match='Deferring confused measurement is not implemented'
-    ):
-        _ = cirq.defer_measurements(circuit)
+    deferred = cirq.defer_measurements(circuit)
+
+    # We use DM simulator because the deferred circuit has channels
+    sim = cirq.DensityMatrixSimulator()
+
+    # 10K samples would take a long time if we had not deferred the measurements, as we'd have to
+    # run 10K simulations. Here with DM simulator it's 100ms.
+    result = sim.sample(deferred, repetitions=10_000)
+    assert 5_100 <= np.sum(result['a']) <= 5_900
+    assert np.all(result['a'] == result['b'])
 
 
 def test_dephase():

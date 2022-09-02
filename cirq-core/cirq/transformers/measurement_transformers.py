@@ -13,7 +13,9 @@
 # limitations under the License.
 
 import itertools
-from typing import Any, Dict, List, Optional, TYPE_CHECKING, Union
+from typing import Any, Dict, List, Optional, Sequence, Tuple, TYPE_CHECKING, Union
+
+import numpy as np
 
 from cirq import ops, protocols, value
 from cirq.transformers import transformer_api, transformer_primitives
@@ -96,17 +98,18 @@ def defer_measurements(
             return op
         gate = op.gate
         if isinstance(gate, ops.MeasurementGate):
-            if gate.confusion_map:
-                raise NotImplementedError(
-                    "Deferring confused measurement is not implemented, but found "
-                    f"measurement with key={gate.key} and non-empty confusion map."
-                )
             key = value.MeasurementKey.parse_serialized(gate.key)
             targets = [_MeasurementQid(key, q) for q in op.qubits]
             measurement_qubits[key] = targets
             cxs = [ops.CX(q, target) for q, target in zip(op.qubits, targets)]
+            confusions = [
+                _ConfusionChannel(m, [op.qubits[i].dimension for i in indexes]).on(
+                    *[targets[i] for i in indexes]
+                )
+                for indexes, m in gate.confusion_map.items()
+            ]
             xs = [ops.X(targets[i]) for i, b in enumerate(gate.full_invert_mask()) if b]
-            return cxs + xs
+            return cxs + confusions + xs
         elif protocols.is_measurement(op):
             return [defer(op, None) for op in protocols.decompose_once(op)]
         elif op.classical_controls:
@@ -227,3 +230,50 @@ def drop_terminal_measurements(
     return transformer_primitives.map_operations(
         circuit, flip_inversion, deep=context.deep if context else True, tags_to_ignore=ignored
     ).unfreeze()
+
+
+@value.value_equality
+class _ConfusionChannel(ops.Gate):
+    """The quantum equivalent of a confusion matrix.
+
+    For a classical confusion matrix, the quantum equivalent is a Kraus channel can be calculated
+    by transposing the matrix, square-rooting each term, and forming a Kraus sequence of each term
+    individually and the rest zeroed out. For example,
+
+    [[0.8, 0.2],
+     [0.1, 0.9]]
+
+    can be represented as
+
+    [[[sqrt(0.8), 0],
+      [0,         0]],
+     [[0, sqrt(0.1)],
+      [0,         0]],
+     [[0,         0],
+      [sqrt(0.2), 0]],
+     [[0,         0],
+      [0, sqrt(0.9)]]]"""
+    def __init__(self, confusion_map: np.ndarray, shape: Sequence[int]):
+        kraus = []
+        R, C = confusion_map.shape
+        for r in range(R):
+            for c in range(C):
+                v = confusion_map[r, c]
+                if v != 0:
+                    m = np.zeros(confusion_map.shape)
+                    m[c, r] = np.sqrt(v)
+                    kraus.append(m)
+        self._shape = tuple(shape)
+        self._kraus = tuple(kraus)
+
+    def _qid_shape_(self) -> Tuple[int, ...]:
+        return self._shape
+
+    def _kraus_(self) -> Tuple[np.ndarray, ...]:
+        return self._kraus
+
+    def _has_kraus_(self) -> bool:
+        return True
+
+    def _value_equality_values_(self):
+        return self._kraus, self._shape
