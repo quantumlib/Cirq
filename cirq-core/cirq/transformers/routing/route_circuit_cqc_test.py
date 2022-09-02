@@ -15,7 +15,6 @@
 import cirq
 import pytest
 
-# add test for 'preserve_moment_structure`=True works as intended`
 
 def test_directed_device():
     device = cirq.testing.construct_ring_device(10, directed=True)
@@ -29,7 +28,7 @@ def test_directed_device():
     [
         (8, size, op_density, seed)
         for size in [50, 100]
-        for seed in range(2)
+        for seed in range(3)
         for op_density in [0.3, 0.5, 0.7]
     ],
 )
@@ -40,10 +39,21 @@ def test_route_small_circuit_random(n_qubits, n_moments, op_density, seed):
     device = cirq.testing.construct_grid_device(4, 4)
     device_graph = device.metadata.nx_graph
     router = cirq.RouteCQC(device_graph)
-    c_routed_preserved = router(c_orig, tag_inserted_swaps=True, preserve_moment_structure=True)
-    c_routed_efficient = router(c_orig, tag_inserted_swaps=True, preserve_moment_structure=False)
-    device.validate_circuit(c_routed_preserved)
-    device.validate_circuit(c_routed_efficient)
+    c_routed, imap, fmap = router.route_circuit(
+        c_orig, tag_inserted_swaps=True, preserve_moment_structure=False
+    )
+    c_routedpres, imappres, fmappres = router.route_circuit(
+        c_orig, tag_inserted_swaps=True, preserve_moment_structure=True
+    )
+    device.validate_circuit(c_routedpres)
+    device.validate_circuit(c_routed)
+
+    cirq.testing.assert_circuits_have_same_unitary_given_final_permutation(
+        c_routed, c_orig.transform_qubits(imap), fmap
+    )
+    cirq.testing.assert_circuits_have_same_unitary_given_final_permutation(
+        c_routedpres, c_orig.transform_qubits(imappres), fmappres
+    )
 
 
 def test_high_qubit_count():
@@ -125,8 +135,9 @@ def test_circuit_with_non_unitary_and_global_phase():
         [
             cirq.Moment(cirq.CNOT(q[0], q[1]), cirq.global_phase_operation(-1)),
             cirq.Moment(cirq.CNOT(q[1], q[2])),
+            cirq.Moment(cirq.depolarize(0.1).on(q[1])),
             cirq.Moment(cirq.SWAP(q[0], q[1])),
-            cirq.Moment(cirq.depolarize(0.1, 2).on(q[1], q[2]), cirq.depolarize(0.1).on(q[0])),
+            cirq.Moment(cirq.depolarize(0.1, 2).on(q[1], q[2])),
         ]
     )
     cirq.testing.assert_same_circuits(routed_circuit, expected)

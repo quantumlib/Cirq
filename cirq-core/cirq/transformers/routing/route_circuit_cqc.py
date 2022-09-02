@@ -27,6 +27,9 @@ if TYPE_CHECKING:
 
 QidPair = Tuple['cirq.Qid', 'cirq.Qid']
 
+# TODO: change the flow of symmetry breaking strategies in _route() by using `apply_unitaryprotocol`
+# as a template
+
 
 def disjoint_pair_qubit_pair_combinations(qubit_pairs: List[QidPair]) -> List[Tuple[QidPair, ...]]:
     """Gets disjoint pair combinations of qubits pairs.
@@ -235,14 +238,13 @@ class RouteCQC:
 
         # 4. Do the routing and save the routed circuit as a list of moments.
         routed_ops = self._route(
-            two_qubit_ops, max_search_radius, tag_inserted_swaps=tag_inserted_swaps
+            two_qubit_ops,
+            single_qubit_ops,
+            max_search_radius,
+            tag_inserted_swaps=tag_inserted_swaps,
         )
 
-        # 5. Add the single qubit operations back.
-        for idx, operations in enumerate(single_qubit_ops):
-            routed_ops[idx].extend([self._mm.mapped_op(op) for op in operations])
-
-        # 6. Return the routed circuit by packing each inner list of ops as densely as posslbe and
+        # 5. Return the routed circuit by packing each inner list of ops as densely as posslbe and
         # preserving outer moment structure. Also return initial map and swap permutation map.
         return (
             circuits.Circuit(circuits.Circuit(m) for m in routed_ops),
@@ -268,19 +270,20 @@ class RouteCQC:
                     else two_qubit_circuit.earliest_available_moment(op)
                 )
                 single_qubit_ops.extend([] for _ in range(timestep + 1 - len(single_qubit_ops)))
-                two_qubit_circuit.append(circuits.Moment() for _ in range(timestep + 1 - len(two_qubit_circuit)))
+                two_qubit_circuit.append(
+                    circuits.Moment() for _ in range(timestep + 1 - len(two_qubit_circuit))
+                )
                 if protocols.num_qubits(op) == 2 and not isinstance(op.gate, ops.MeasurementGate):
                     two_qubit_circuit[timestep] = two_qubit_circuit[timestep].with_operation(op)
                 else:
                     single_qubit_ops[timestep].append(op)
         two_qubit_ops = [list(m) for m in two_qubit_circuit]
-        # two_qubit_ops.extend([] for _ in range(len(single_qubit_ops) - len(two_qubit_ops)))
-        # single_qubit_ops.extend([] for _ in range(len(two_qubit_ops) - len(single_qubit_ops)))
         return two_qubit_ops, single_qubit_ops
 
     def _route(
         self,
         two_qubit_ops: List[List['cirq.Operation']],
+        single_qubit_ops: List[List['cirq.Operation']],
         max_search_radius: int,
         tag_inserted_swaps: bool = False,
     ) -> List[List['cirq.Operation']]:
@@ -309,6 +312,8 @@ class RouteCQC:
 
         routed_ops: List[List['cirq.Operation']] = [[] for i in range(len(two_qubit_ops))]
         for idx in range(len(two_qubit_ops)):
+            # Add single-qubit ops
+            routed_ops[idx].extend([self._mm.mapped_op(op) for op in single_qubit_ops[idx]])
 
             process_executable_ops(idx)
             seen: Set[Tuple[Tuple['cirq.Qid', cirq.Qid], ...]] = set()
@@ -320,7 +325,7 @@ class RouteCQC:
                 for s in range(idx, min(max_search_radius + idx, len(two_qubit_ops))):
                     if len(sigma) <= 1:
                         break
-                    sigma = self._next_candidate_swaps(sigma, two_qubit_ops[s])
+                    sigma = self._get_next_swaps_with_min_cost(sigma, two_qubit_ops[s])
 
                 chosen_swaps: Tuple[QidPair, ...] = (
                     self._symmetry_swap_pair(two_qubit_ops, idx, max_search_radius)
@@ -353,7 +358,7 @@ class RouteCQC:
         for s in range(idx, min(max_search_radius + idx, len(two_qubit_ops))):
             if len(pair_sigma) <= 1:
                 break
-            pair_sigma = self._next_candidate_swaps(pair_sigma, two_qubit_ops[s])
+            pair_sigma = self._get_next_swaps_with_min_cost(pair_sigma, two_qubit_ops[s])
 
         if len(pair_sigma) > 1 and idx + max_search_radius <= len(two_qubit_ops):
             return self._symmetry_brute_force(two_qubit_ops, idx)
@@ -363,7 +368,12 @@ class RouteCQC:
     def _symmetry_brute_force(
         self, two_qubit_ops: List[List['cirq.Operation']], idx: int
     ) -> Tuple[QidPair, ...]:
-        """Inserts SWAPS along the shortest path of the qubits that are the farthest."""
+        """Inserts SWAPS along the shortest path of the qubits that are the farthest.
+
+        Since swaps along the shortest path are being executed one after the other, in order
+        to achieve the physical swaps (M[q1], M[q2]), (M[q2], M[q3]), ..., (M[q_{i-1}], M[q_i]),
+        we must execute the logical swaps (q1, q2), (q1, q3), ..., (q_1, qi).
+        """
         qubits = max(
             [(op.qubits, self._mm.dist_on_device(*op.qubits)) for op in two_qubit_ops[idx]],
             key=lambda x: x[1],
@@ -378,7 +388,7 @@ class RouteCQC:
         physical_swaps = self._mm.induced_subgraph.edges(nbunch=physical_qubits)
         return [(self._mm.inverse_map[q1], self._mm.inverse_map[q2]) for q1, q2 in physical_swaps]
 
-    def _next_candidate_swaps(
+    def _get_next_swaps_with_min_cost(
         self, candidate_swaps: List[Tuple[QidPair, ...]], timestep_ops: List['cirq.Operation']
     ) -> List[Tuple[QidPair, ...]]:
         """Iterates the heuristic function.
@@ -389,14 +399,8 @@ class RouteCQC:
         costs = {}
         for swap in candidate_swaps:
             costs[swap] = self._cost(swap, timestep_ops)
-        shortest_longest_paths = [
-            swap for swap in costs if costs[swap][0] == min([v[0] for v in costs.values()])
-        ]
-        return [
-            swap
-            for swap in shortest_longest_paths
-            if costs[swap][1] == min([costs[swap][1] for swap in shortest_longest_paths])
-        ]
+        _, min_cost = min(costs.items(), key=lambda x: x[1])
+        return [swap for swap, cost in costs.items() if cost == min_cost]
 
     def _cost(
         self, swaps: Tuple[QidPair, ...], timestep_ops: List['cirq.Operation']
@@ -407,8 +411,9 @@ class RouteCQC:
         max_length, sum_length = 0, 0
         for op in timestep_ops:
             q1, q2 = op.qubits[0], op.qubits[1]
-            max_length = max(max_length, self._mm.dist_on_device(q1, q2))
-            sum_length += self._mm.dist_on_device(q1, q2)
+            dist = self._mm.dist_on_device(q1, q2)
+            max_length = max(max_length, dist)
+            sum_length += dist
         for swap in swaps:
             self._mm.apply_swap(*swap)
         return (max_length, sum_length)
