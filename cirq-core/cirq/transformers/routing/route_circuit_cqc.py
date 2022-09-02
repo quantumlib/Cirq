@@ -14,7 +14,7 @@
 
 """Heuristic qubit routing algorithm based on arxiv:1902.08091."""
 
-from typing import Dict, List, Optional, Set, Tuple, TYPE_CHECKING
+from typing import Any, Dict, List, Optional, Set, Tuple, TYPE_CHECKING
 from itertools import combinations
 import networkx as nx
 
@@ -210,13 +210,14 @@ class RouteCQC:
 
         # 2. Construct a mapping manager that implicitly keeps track of this mapping and provides
         # convinience methods over the image of the map on the device graph.
-        self._mm = mapping_manager.MappingManager(self.device_graph, initial_mapping)
+        mm = mapping_manager.MappingManager(self.device_graph, initial_mapping)
 
         # 3. Get two_qubit_ops and single-qubit operations.
         two_qubit_ops, single_qubit_ops = self._get_two_qubit_ops_and_single_qubit_ops(circuit)
 
         # 4. Do the routing and save the routed circuit as a list of moments.
         routed_ops = self._route(
+            mm,
             two_qubit_ops,
             single_qubit_ops,
             max_search_radius,
@@ -228,11 +229,12 @@ class RouteCQC:
         return (
             circuits.Circuit(circuits.Circuit(m) for m in routed_ops),
             initial_mapping,
-            {initial_mapping[k]: v for k, v in self._mm.map.items()},
+            {initial_mapping[k]: v for k, v in mm.map.items()},
         )
 
+    @classmethod
     def _get_two_qubit_ops_and_single_qubit_ops(
-        self, circuit: 'cirq.AbstractCircuit'
+        cls, circuit: 'cirq.AbstractCircuit'
     ) -> Tuple[List[List['cirq.Operation']], List[List['cirq.Operation']]]:
         """Gets the single and two qubit operations of the circuit.
 
@@ -255,8 +257,10 @@ class RouteCQC:
         two_qubit_ops = [list(m) for m in two_qubit_circuit]
         return two_qubit_ops, single_qubit_ops
 
+    @classmethod
     def _route(
-        self,
+        cls,
+        mm: mapping_manager.MappingManager,
         two_qubit_ops: List[List['cirq.Operation']],
         single_qubit_ops: List[List['cirq.Operation']],
         max_search_radius: int,
@@ -279,18 +283,18 @@ class RouteCQC:
         def process_executable_two_qubit_ops(idx: int):
             unexecutable_ops = []
             for op in two_qubit_ops[idx]:
-                if self._mm.can_execute(op):
-                    routed_ops[idx].append(self._mm.mapped_op(op))
+                if mm.can_execute(op):
+                    routed_ops[idx].append(mm.mapped_op(op))
                 else:
                     unexecutable_ops.append(op)
             two_qubit_ops[idx] = unexecutable_ops
 
-        strats = [self._iterate_single_swap_strategy, self._iterate_swap_pair_strategy]
+        strats = [cls._iterate_single_swap_strategy, cls._iterate_swap_pair_strategy]
         routed_ops: List[List['cirq.Operation']] = list()
 
         for idx in range(len(two_qubit_ops)):
             # Add single-qubit ops with qubits given byh the current mapping
-            routed_ops.append([self._mm.mapped_op(op) for op in single_qubit_ops[idx]])
+            routed_ops.append([mm.mapped_op(op) for op in single_qubit_ops[idx]])
 
             process_executable_two_qubit_ops(idx)
 
@@ -301,28 +305,32 @@ class RouteCQC:
             while len(two_qubit_ops[idx]) != 0:
                 chosen_swaps: Optional[Tuple[QidPair, ...]] = None
                 for strat in strats:
-                    chosen_swaps = strat(two_qubit_ops, idx, max_search_radius)
+                    chosen_swaps = strat(mm, two_qubit_ops, idx, max_search_radius)
                     if chosen_swaps is not None:
                         break
 
                 if chosen_swaps is None or chosen_swaps in seen:
-                    chosen_swaps = self._brute_force_strategy(two_qubit_ops, idx)
+                    chosen_swaps = cls._brute_force_strategy(mm, two_qubit_ops, idx)
                 else:
                     seen.add(chosen_swaps)
 
                 for swap in chosen_swaps:
-                    inserted_swap = self._mm.mapped_op(ops.SWAP(*swap))
+                    inserted_swap = mm.mapped_op(ops.SWAP(*swap))
                     if tag_inserted_swaps:
                         inserted_swap = inserted_swap.with_tags(ops.RoutingSwapTag())
                     routed_ops[idx].append(inserted_swap)
-                    self._mm.apply_swap(*swap)
+                    mm.apply_swap(*swap)
 
                 process_executable_two_qubit_ops(idx)
 
         return routed_ops
 
+    @classmethod
     def _brute_force_strategy(
-        self, two_qubit_ops: List[List['cirq.Operation']], idx: int
+        cls,
+        mm: mapping_manager.MappingManager,
+        two_qubit_ops: List[List['cirq.Operation']],
+        idx: int,
     ) -> Tuple[QidPair, ...]:
         """Inserts SWAPS along the shortest path of the qubits that are the farthest.
 
@@ -330,28 +338,40 @@ class RouteCQC:
         to achieve the physical swaps (M[q1], M[q2]), (M[q2], M[q3]), ..., (M[q_{i-1}], M[q_i]),
         we must execute the logical swaps (q1, q2), (q1, q3), ..., (q_1, qi).
         """
-        furthest_op = max(two_qubit_ops[idx], key=lambda op: self._mm.dist_on_device(*op.qubits))
-        path = self._mm.shortest_path(*furthest_op.qubits)
+        furthest_op = max(two_qubit_ops[idx], key=lambda op: mm.dist_on_device(*op.qubits))
+        path = mm.shortest_path(*furthest_op.qubits)
         return tuple([(path[0], path[i + 1]) for i in range(len(path) - 2)])
 
+    @classmethod
     def _iterate_swap_pair_strategy(
-        self, two_qubit_ops: List[List['cirq.Operation']], idx: int, max_search_radius: int
+        cls,
+        mm: mapping_manager.MappingManager,
+        two_qubit_ops: List[List['cirq.Operation']],
+        idx: int,
+        max_search_radius: int,
     ) -> Optional[Tuple[QidPair, ...]]:
         """Computes cost function with pairs of candidate swaps that act on disjoint qubits."""
-        pair_sigma = disjoint_nc2_combinations(self._initial_candidate_swaps(two_qubit_ops[idx]))
-        return self._iterate_swaps(two_qubit_ops, idx, max_search_radius, pair_sigma)
+        pair_sigma = disjoint_nc2_combinations(cls._initial_candidate_swaps(mm, two_qubit_ops[idx]))
+        return cls._iterate_swaps(mm, two_qubit_ops, idx, max_search_radius, pair_sigma)
 
+    @classmethod
     def _iterate_single_swap_strategy(
-        self, two_qubit_ops: List[List['cirq.Operation']], idx: int, max_search_radius: int
+        cls,
+        mm: mapping_manager.MappingManager,
+        two_qubit_ops: List[List['cirq.Operation']],
+        idx: int,
+        max_search_radius: int,
     ) -> Optional[Tuple[QidPair, ...]]:
         """Computes cost function with list of single candidate swaps."""
         sigma: List[Tuple[QidPair, ...]] = [
-            (swap,) for swap in self._initial_candidate_swaps(two_qubit_ops[idx])
+            (swap,) for swap in cls._initial_candidate_swaps(mm, two_qubit_ops[idx])
         ]
-        return self._iterate_swaps(two_qubit_ops, idx, max_search_radius, sigma)
+        return cls._iterate_swaps(mm, two_qubit_ops, idx, max_search_radius, sigma)
 
+    @classmethod
     def _iterate_swaps(
-        self,
+        cls,
+        mm: mapping_manager.MappingManager,
         two_qubit_ops: List[List['cirq.Operation']],
         idx: int,
         max_search_radius: int,
@@ -361,20 +381,27 @@ class RouteCQC:
         for s in range(idx, min(max_search_radius + idx, len(two_qubit_ops))):
             if len(sigma) <= 1:
                 break
-            sigma = self._get_next_swaps_with_min_cost(sigma, two_qubit_ops[s])
+            sigma = cls._get_next_swaps_with_min_cost(mm, sigma, two_qubit_ops[s])
 
         return (
             None if len(sigma) > 1 and idx + max_search_radius <= len(two_qubit_ops) else sigma[0]
         )
 
-    def _initial_candidate_swaps(self, timestep_ops: List['cirq.Operation']) -> List[QidPair]:
+    @classmethod
+    def _initial_candidate_swaps(
+        cls, mm: mapping_manager.MappingManager, two_qubit_ops: List['cirq.Operation']
+    ) -> List[QidPair]:
         """Finds all feasible SWAPs between qubits involved in 2-qubit operations."""
-        physical_qubits = (self._mm.map[op.qubits[i]] for op in timestep_ops for i in range(2))
-        physical_swaps = self._mm.induced_subgraph.edges(nbunch=physical_qubits)
-        return [(self._mm.inverse_map[q1], self._mm.inverse_map[q2]) for q1, q2 in physical_swaps]
+        physical_qubits = (mm.map[op.qubits[i]] for op in two_qubit_ops for i in range(2))
+        physical_swaps = mm.induced_subgraph.edges(nbunch=physical_qubits)
+        return [(mm.inverse_map[q1], mm.inverse_map[q2]) for q1, q2 in physical_swaps]
 
+    @classmethod
     def _get_next_swaps_with_min_cost(
-        self, candidate_swaps: List[Tuple[QidPair, ...]], timestep_ops: List['cirq.Operation']
+        cls,
+        mm: mapping_manager.MappingManager,
+        candidate_swaps: List[Tuple[QidPair, ...]],
+        two_qubit_ops: List['cirq.Operation'],
     ) -> List[Tuple[QidPair, ...]]:
         """Iterates the heuristic function.
 
@@ -383,24 +410,32 @@ class RouteCQC:
         """
         costs = {}
         for swaps in candidate_swaps:
-            costs[swaps] = self._cost(swaps, timestep_ops)
+            costs[swaps] = cls._cost(mm, swaps, two_qubit_ops)
         _, min_cost = min(costs.items(), key=lambda x: x[1])
         return [swaps for swaps, cost in costs.items() if cost == min_cost]
 
+    @classmethod
     def _cost(
-        self, swaps: Tuple[QidPair, ...], timestep_ops: List['cirq.Operation']
-    ) -> Tuple[int, int]:
-        """Computes the cost function for the given list of swaps over the current timestep ops."""
+        cls,
+        mm: mapping_manager.MappingManager,
+        swaps: Tuple[QidPair, ...],
+        two_qubit_ops: List['cirq.Operation'],
+    ) -> Any:
+        """Computes the cost function for the given list of swaps over the current timestep ops.
+
+        To use this transformer with a different cost function, create a new subclass that derives
+        from `RouteCQC` and override this method.
+        """
         for swap in swaps:
-            self._mm.apply_swap(*swap)
+            mm.apply_swap(*swap)
         max_length, sum_length = 0, 0
-        for op in timestep_ops:
+        for op in two_qubit_ops:
             q1, q2 = op.qubits
-            dist = self._mm.dist_on_device(q1, q2)
+            dist = mm.dist_on_device(q1, q2)
             max_length = max(max_length, dist)
             sum_length += dist
         for swap in swaps:
-            self._mm.apply_swap(*swap)
+            mm.apply_swap(*swap)
         return max_length, sum_length
 
     def __eq__(self, other) -> bool:
