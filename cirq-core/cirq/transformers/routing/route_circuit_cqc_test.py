@@ -39,20 +39,10 @@ def test_route_small_circuit_random(n_qubits, n_moments, op_density, seed):
     device = cirq.testing.construct_grid_device(4, 4)
     device_graph = device.metadata.nx_graph
     router = cirq.RouteCQC(device_graph)
-    c_routed, imap, fmap = router.route_circuit(
-        c_orig, tag_inserted_swaps=True, preserve_moment_structure=False
-    )
-    c_routedpres, imappres, fmappres = router.route_circuit(
-        c_orig, tag_inserted_swaps=True, preserve_moment_structure=True
-    )
-    device.validate_circuit(c_routedpres)
+    c_routed, imap, swap_map = router.route_circuit(c_orig, tag_inserted_swaps=True)
     device.validate_circuit(c_routed)
-
     cirq.testing.assert_circuits_have_same_unitary_given_final_permutation(
-        c_routed, c_orig.transform_qubits(imap), fmap
-    )
-    cirq.testing.assert_circuits_have_same_unitary_given_final_permutation(
-        c_routedpres, c_orig.transform_qubits(imappres), fmappres
+        c_routed, c_orig.transform_qubits(imap), swap_map
     )
 
 
