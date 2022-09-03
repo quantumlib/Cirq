@@ -865,7 +865,7 @@ def kak_decomposition(
     # Recover pieces.
     a1, a0 = so4_to_magic_su2s(left.T, atol=atol, rtol=rtol, check_preconditions=False)
     b1, b0 = so4_to_magic_su2s(right.T, atol=atol, rtol=rtol, check_preconditions=False)
-    w, x, y, z = (KAK_GAMMA @ np.vstack(np.angle(d))).flatten()
+    w, x, y, z = (KAK_GAMMA @ np.angle(d).reshape(-1, 1)).flatten()
     g = np.exp(1j * w)
 
     # Canonicalize.
