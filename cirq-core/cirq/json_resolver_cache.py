@@ -204,6 +204,7 @@ def _class_resolver_dictionary() -> Dict[str, ObjectFactory]:
         'ResetChannel': cirq.ResetChannel,
         'Result': cirq.ResultDict,  # Keep support for Cirq < 0.14.
         'ResultDict': cirq.ResultDict,
+        'RoutingSwapTag': cirq.RoutingSwapTag,
         'Rx': cirq.Rx,
         'Ry': cirq.Ry,
         'Rz': cirq.Rz,
@@ -213,6 +214,7 @@ def _class_resolver_dictionary() -> Dict[str, ObjectFactory]:
         'SqrtIswapTargetGateset': cirq.SqrtIswapTargetGateset,
         'StabilizerStateChForm': cirq.StabilizerStateChForm,
         'StatePreparationChannel': cirq.StatePreparationChannel,
+        'SumOfProducts': cirq.SumOfProducts,
         'SwapPowGate': cirq.SwapPowGate,
         'SympyCondition': cirq.SympyCondition,
         'TaggedOperation': cirq.TaggedOperation,
@@ -231,13 +233,13 @@ def _class_resolver_dictionary() -> Dict[str, ObjectFactory]:
         # pylint: disable=line-too-long
         'XEBPhasedFSimCharacterizationOptions': cirq.experiments.XEBPhasedFSimCharacterizationOptions,
         # pylint: enable=line-too-long
-        '_XEigenState': cirq.value.product_state._XEigenState,  # type: ignore
+        '_XEigenState': cirq.value.product_state._XEigenState,
         'XPowGate': cirq.XPowGate,
         'XXPowGate': cirq.XXPowGate,
-        '_YEigenState': cirq.value.product_state._YEigenState,  # type: ignore
+        '_YEigenState': cirq.value.product_state._YEigenState,
         'YPowGate': cirq.YPowGate,
         'YYPowGate': cirq.YYPowGate,
-        '_ZEigenState': cirq.value.product_state._ZEigenState,  # type: ignore
+        '_ZEigenState': cirq.value.product_state._ZEigenState,
         'Zip': cirq.Zip,
         'ZPowGate': cirq.ZPowGate,
         'ZZPowGate': cirq.ZZPowGate,

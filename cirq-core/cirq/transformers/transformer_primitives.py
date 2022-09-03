@@ -112,9 +112,10 @@ def map_operations(
     raise_if_add_qubits=True,
     tags_to_ignore: Sequence[Hashable] = (),
 ) -> CIRCUIT_TYPE:
-    """Applies local transformations on operations, by calling `map_func(op)` for each op.
+    """Applies local transformations, by calling `map_func(op, moment_index)` for each operation.
 
-    By default, the function assumes `issubset(qubit_set(map_func(op)), op.qubits)` is True.
+    By default, the function assumes `issubset(qubit_set(map_func(op, moment_index)), op.qubits)` is
+    True.
 
     Args:
         circuit: Input circuit to apply the transformations on. The input circuit is not mutated.
@@ -125,14 +126,14 @@ def map_operations(
             subsequently be used to unroll the mapped circuit operation.
         deep: If true, `map_func` will be recursively applied to circuits wrapped inside
             any circuit operations contained within `circuit`.
-        raise_if_add_qubits: Set to True by default. If True, raises ValueError if `map_func(op)`
-            adds operations on qubits outside of `op.qubits`.
+        raise_if_add_qubits: Set to True by default. If True, raises ValueError if
+            `map_func(op, idx)` adds operations on qubits outside of `op.qubits`.
         tags_to_ignore: Sequence of tags which should be ignored while applying `map_func` on
             tagged operations -- i.e. `map_func(op, idx)` will be called only for operations that
             satisfy `set(op.tags).isdisjoint(tags_to_ignore)`.
 
     Raises:
-          ValueError if `issubset(qubit_set(map_func(op)), op.qubits) is False` and
+          ValueError if `issubset(qubit_set(map_func(op, idx)), op.qubits) is False` and
             `raise_if_add_qubits is True`.
 
     Returns:
@@ -180,8 +181,8 @@ def map_operations_and_unroll(
         map_func: Mapping function from (cirq.Operation, moment_index) to a cirq.OP_TREE.
         deep: If true, `map_func` will be recursively applied to circuits wrapped inside
             any circuit operations contained within `circuit`.
-        raise_if_add_qubits: Set to True by default. If True, raises ValueError if `map_func(op)`
-            adds operations on qubits outside of `op.qubits`.
+        raise_if_add_qubits: Set to True by default. If True, raises ValueError if
+            `map_func(op, idx)` adds operations on qubits outside `op.qubits`.
         tags_to_ignore: Sequence of tags which should be ignored while applying `map_func` on
             tagged operations -- i.e. `map_func(op, idx)` will be called only for operations that
             satisfy `set(op.tags).isdisjoint(tags_to_ignore)`.
@@ -669,7 +670,7 @@ def unroll_circuit_op_greedy_frontier(
                 continue
             if any(frontier[q] > idx for q in op.qubits):
                 continue
-            op_untagged = cast(circuits.CircuitOperation, op.untagged)
+            op_untagged = op.untagged
             if deep:
                 op_untagged = op_untagged.replace(
                     circuit=unroll_circuit_op_greedy_frontier(

@@ -62,6 +62,8 @@ def _known_gate_with_no_decomposition(val: Any):
             return True
         if val.control_qid_shape != (2,) * val.num_controls():
             return True
+        if isinstance(val.control_values, ops.SumOfProducts):
+            return True
         return _known_gate_with_no_decomposition(val.sub_gate)
     return False
 

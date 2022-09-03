@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import itertools
 from typing import Any, Dict, List, Optional, TYPE_CHECKING, Union
 
 from cirq import ops, protocols, value
@@ -81,9 +82,7 @@ def defer_measurements(
         A circuit with equivalent logic, but all measurements at the end of the
         circuit.
     Raises:
-        ValueError: If sympy-based classical conditions are used, or if
-            conditions based on multi-qubit measurements exist. (The latter of
-            these is planned to be implemented soon).
+        ValueError: If sympy-based classical conditions are used.
         NotImplementedError: When attempting to defer a measurement with a
             confusion map. (https://github.com/quantumlib/Cirq/issues/5482)
     """
@@ -111,23 +110,22 @@ def defer_measurements(
         elif protocols.is_measurement(op):
             return [defer(op, None) for op in protocols.decompose_once(op)]
         elif op.classical_controls:
-            controls = []
+            new_op = op.without_classical_controls()
             for c in op.classical_controls:
                 if isinstance(c, value.KeyCondition):
                     if c.key not in measurement_qubits:
                         raise ValueError(f'Deferred measurement for key={c.key} not found.')
-                    qubits = measurement_qubits[c.key]
-                    if len(qubits) != 1:
-                        # TODO: Multi-qubit conditions require
-                        # https://github.com/quantumlib/Cirq/issues/4512
-                        # Remember to update docstring above once this works.
-                        raise ValueError('Only single qubit conditions are allowed.')
-                    controls.extend(qubits)
+                    qs = measurement_qubits[c.key]
+                    if len(qs) == 1:
+                        control_values: Any = range(1, qs[0].dimension)
+                    else:
+                        all_values = itertools.product(*[range(q.dimension) for q in qs])
+                        anything_but_all_zeros = tuple(itertools.islice(all_values, 1, None))
+                        control_values = ops.SumOfProducts(anything_but_all_zeros)
+                    new_op = new_op.controlled_by(*qs, control_values=control_values)
                 else:
                     raise ValueError('Only KeyConditions are allowed.')
-            return op.without_classical_controls().controlled_by(
-                *controls, control_values=[tuple(range(1, q.dimension)) for q in controls]
-            )
+            return new_op
         return op
 
     circuit = transformer_primitives.map_operations_and_unroll(

@@ -245,7 +245,7 @@ class FSimGateFamily(cirq.GateFamily):
     def _get_value_equality_values(self, g: POSSIBLE_FSIM_GATES) -> Any:
         # TODO: Remove condition once https://github.com/quantumlib/Cirq/issues/4585 is fixed.
         if type(g) == cirq.PhasedISwapPowGate:
-            return (g.phase_exponent, *g._iswap._value_equality_values_())  # type: ignore
+            return (g.phase_exponent, *g._iswap._value_equality_values_())
         return g._value_equality_values_()
 
     def _get_value_equality_values_cls(self, g: POSSIBLE_FSIM_GATES) -> Any:

@@ -15,7 +15,7 @@
 
 import datetime
 import os
-from typing import cast, Optional, Sequence
+from typing import Optional, Sequence
 
 import cirq
 from cirq_ionq import calibration, ionq_client, job, results, sampler, serializer
@@ -108,11 +108,9 @@ class Service:
         result = self.create_job(resolved_circuit, repetitions, name, target).results()
         if isinstance(result, results.QPUResult):
             return result.to_cirq_result(params=cirq.ParamResolver(param_resolver))
-        else:
-            sim_result = cast(results.SimulatorResult, result)
-            # pylint: disable=unexpected-keyword-arg
-            return sim_result.to_cirq_result(params=cirq.ParamResolver(param_resolver), seed=seed)
-            # pylint: enable=unexpected-keyword-arg
+        # pylint: disable=unexpected-keyword-arg
+        return result.to_cirq_result(params=cirq.ParamResolver(param_resolver), seed=seed)
+        # pylint: enable=unexpected-keyword-arg
 
     def sampler(self, target: Optional[str] = None, seed: cirq.RANDOM_STATE_OR_SEED_LIKE = None):
         """Returns a `cirq.Sampler` object for accessing the sampler interface.

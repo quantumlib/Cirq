@@ -1,8 +1,8 @@
+# pylint: disable=wrong-or-nonexistent-copyright-notice
 """Tests for the Quantum Volume benchmarker."""
 
 import pytest
 
-import cirq
 from examples.advanced import quantum_volume
 
 
@@ -11,10 +11,7 @@ def test_main_loop():
     # Keep test from taking a long time by lowering repetitions.
     pytest.importorskip("cirq_google")
     args = '--num_qubits 5 --depth 5 --num_circuits 1  --routes 3'.split()
-    with cirq.testing.assert_deprecated(
-        'Use cirq.optimize_for_target_gateset', deadline='v0.16', count=None
-    ):
-        quantum_volume.main(**quantum_volume.parse_arguments(args))
+    quantum_volume.main(**quantum_volume.parse_arguments(args))
 
 
 def test_parse_args():

@@ -5,13 +5,13 @@ landing_page:
   nav: left
   rows:
     - heading: Experiments using quantum circuits
-      description: This is a collection of algorithms and experiments written in and using Cirq. Some are hosted in the Cirq Github repository, and some are hosted in ReCirq, a repository for research performed with Cirq.
+      description: This is a collection of algorithms and experiments written in and using Cirq. A couple of them use only base Cirq, but the rest use additional code stored in ReCirq, a Github repository for research code that uses and builds upon Cirq.
     - buttons:
       - label: Cirq Github
         path: https://github.com/quantumlib/Cirq
       - label: ReCirq Github
         path: https://github.com/quantumlib/ReCirq
-    - heading: Algorithms in Cirq
+    - heading: Algorithms in base Cirq
       description: Algorithms and experiments executable using only default Cirq code.
       options:
         - cards

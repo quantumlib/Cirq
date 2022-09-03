@@ -45,6 +45,6 @@ def assert_consistent_resolve_parameters(val: Any):
             name: sympy.Symbol(name + '_CONSISTENCY_TEST') for name in names
         }
         param_dict.update({sympy.Symbol(name + '_CONSISTENCY_TEST'): 0 for name in names})
-        resolver = cirq.ParamResolver(param_dict)  # type:ignore
+        resolver = cirq.ParamResolver(param_dict)
         resolved = cirq.resolve_parameters_once(val, resolver)
         assert cirq.parameter_names(resolved) == set(name + '_CONSISTENCY_TEST' for name in names)

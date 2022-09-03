@@ -15,7 +15,6 @@ from typing import (
     AbstractSet,
     Any,
     Mapping,
-    cast,
     Dict,
     FrozenSet,
     List,
@@ -85,7 +84,7 @@ class ClassicallyControlledOperation(raw_types.Operation):
                 c = value.KeyCondition(c)
             if isinstance(c, sympy.Basic):
                 c = value.SympyCondition(c)
-            conds.append(cast('cirq.Condition', c))
+            conds.append(c)
         self._conditions: Tuple['cirq.Condition', ...] = tuple(conds)
         self._sub_operation: 'cirq.Operation' = sub_operation
 
@@ -150,9 +149,13 @@ class ClassicallyControlledOperation(raw_types.Operation):
         sub_info = protocols.circuit_diagram_info(self._sub_operation, sub_args, None)
         if sub_info is None:
             return NotImplemented  # coverage: ignore
-        control_count = len({k for c in self._conditions for k in c.keys})
-        wire_symbols = sub_info.wire_symbols + ('^',) * control_count
-        if any(not isinstance(c, value.KeyCondition) for c in self._conditions):
+        control_label_count = 0
+        if args.label_map is not None:
+            control_label_count = len({k for c in self._conditions for k in c.keys})
+        wire_symbols = sub_info.wire_symbols + ('^',) * control_label_count
+        if control_label_count == 0 or any(
+            not isinstance(c, value.KeyCondition) for c in self._conditions
+        ):
             wire_symbols = (
                 wire_symbols[0]
                 + '(conditions=['
@@ -161,9 +164,9 @@ class ClassicallyControlledOperation(raw_types.Operation):
             ) + wire_symbols[1:]
         exponent_qubit_index = None
         if sub_info.exponent_qubit_index is not None:
-            exponent_qubit_index = sub_info.exponent_qubit_index + control_count
+            exponent_qubit_index = sub_info.exponent_qubit_index + control_label_count
         elif sub_info.exponent is not None:
-            exponent_qubit_index = control_count
+            exponent_qubit_index = control_label_count
         return protocols.CircuitDiagramInfo(
             wire_symbols=wire_symbols,
             exponent=sub_info.exponent,
