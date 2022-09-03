@@ -360,7 +360,7 @@ def test_multi_qubit_confusion_map():
     assert 2_600 <= np.sum(result['b']) <= 3_400
 
     # Try a deterministic one: initial state is 3, which the confusion map sends to 2 with p=1.
-    deferred.insert(0, [cirq.X(q0), cirq.X(q1)])
+    deferred.insert(0, cirq.X.on_each(q0, q1))
     result = sim.sample(deferred, repetitions=100)
     assert np.sum(result['a']) == 200
     assert np.sum(result['b']) == 100
