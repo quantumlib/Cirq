@@ -28,19 +28,23 @@ from dev_tools.notebooks import filter_notebooks, list_all_notebooks, rewrite_no
 
 SKIP_NOTEBOOKS = [
     # skipping vendor notebooks as we don't have auth sorted out
-    "**/aqt/*.ipynb",
-    "**/azure-quantum/*.ipynb",
-    "**/ionq/*.ipynb",
-    "**/google/*.ipynb",
-    "**/pasqal/*.ipynb",
-    "**/rigetti/*.ipynb",
+    '**/aqt/*.ipynb',
+    '**/azure-quantum/*.ipynb',
+    '**/ionq/*.ipynb',
+    '**/pasqal/*.ipynb',
+    '**/rigetti/*.ipynb',
     # skipping fidelity estimation due to
     # https://github.com/quantumlib/Cirq/issues/3502
-    "examples/*fidelity*",
+    'examples/*fidelity*',
     # tutorials that use QCS and arent skipped due to one or more cleared output cells
+    'docs/tutorials/google/identifying_hardware_changes.ipynb',
+    'docs/tutorials/google/echoes.ipynb',
     'docs/noise/qcvv/xeb_calibration_example.ipynb',
     'docs/noise/calibration_api.ipynb',
     'docs/noise/floquet_calibration_example.ipynb',
+    # temporary: need to fix QVM metrics and device spec
+    'docs/tutorials/google/spin_echoes.ipynb',
+    'docs/tutorials/google/visualizing_calibration_metrics.ipynb',
     # shouldn't have outputs generated for style reasons
     'docs/simulate/qvm_builder_code.ipynb',
 ]
