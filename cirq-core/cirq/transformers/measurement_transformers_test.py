@@ -327,6 +327,45 @@ def test_confusion_map():
     assert np.all(result['a'] == result['b'])
 
 
+def test_multi_qubit_confusion_map():
+    q0, q1, q2 = cirq.LineQubit.range(3)
+    circuit = cirq.Circuit(
+        cirq.measure(
+            q0,
+            q1,
+            key='a',
+            confusion_map={
+                (0, 1): np.array(
+                    [
+                        [0.7, 0.1, 0.1, 0.1],
+                        [0.1, 0.6, 0.1, 0.2],
+                        [0.2, 0.2, 0.5, 0.1],
+                        [0.0, 0.0, 1.0, 0.0],
+                    ]
+                )
+            },
+        ),
+        cirq.X(q2).with_classical_controls('a'),
+        cirq.measure(q2, key='b'),
+    )
+    deferred = cirq.defer_measurements(circuit)
+    sim = cirq.DensityMatrixSimulator()
+    result = sim.sample(deferred, repetitions=10_000)
+
+    # The initial state is zero, so the first measurement will confuse by the first line in the
+    # map, giving 7000 0's, 1000 1's, 1000 2's, and 1000 3's, for a sum of 6000 on average.
+    assert 5_600 <= np.sum(result['a']) <= 6_400
+
+    # The measurement will be non-zero 3000 times on average.
+    assert 2_600 <= np.sum(result['b']) <= 3_400
+
+    # Try a deterministic one: initial state is 3, which the confusion map sends to 2 with p=1.
+    deferred.insert(0, [cirq.X(q0), cirq.X(q1)])
+    result = sim.sample(deferred, repetitions=100)
+    assert np.sum(result['a']) == 200
+    assert np.sum(result['b']) == 100
+
+
 def test_dephase():
     q0, q1 = cirq.LineQubit.range(2)
     circuit = cirq.Circuit(
