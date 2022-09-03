@@ -150,6 +150,7 @@ class QuirkInputRotationOperation(ops.Operation):
         control_max = np.prod([q.dimension for q in self.register], dtype=np.int64).item()
 
         for i in range(control_max):
+            assert isinstance(self.base_operation, cirq.GateOperation)
             operation = self.base_operation ** (self.exponent_sign * i / control_max)
             control_index = linalg.slice_for_qubits_equal_to(control_axes, big_endian_qureg_value=i)
             sub_args = cirq.ApplyUnitaryArgs(
