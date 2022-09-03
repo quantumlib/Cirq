@@ -589,12 +589,12 @@ def factor_state_vector(
     slices1 = (slice(None),) * n_axes + pivot[n_axes:]
     slices2 = pivot[:n_axes] + (slice(None),) * (t1.ndim - n_axes)
     extracted = t1[slices1]
-    extracted = extracted / np.sum(abs(extracted) ** 2) ** 0.5
+    extracted = extracted / np.linalg.norm(extracted)
     remainder = t1[slices2]
-    remainder = remainder / np.sum(abs(remainder) ** 2) ** 0.5
+    remainder = remainder / (np.linalg.norm(remainder) * t1[pivot] / abs(t1[pivot]))
     if validate:
         t2 = state_vector_kronecker_product(extracted, remainder)
-        if not predicates.allclose_up_to_global_phase(t2, t1, atol=atol):
+        if not np.allclose(t2, t1, atol=atol):
             if not np.isclose(np.linalg.norm(t1), 1):
                 raise ValueError('Input state must be normalized.')
             raise EntangledStateError('The tensor cannot be factored by the requested axes')
