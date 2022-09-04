@@ -250,6 +250,35 @@ def test_multi_qubit_control():
     )
 
 
+@pytest.mark.parametrize('index', [-2, -1, 0, 1])
+def test_repeated(index: int):
+    q0, q1 = cirq.LineQubit.range(2)
+    circuit = cirq.Circuit(
+        cirq.measure(q0, key='a'),
+        cirq.X(q0),
+        cirq.measure(q0, key='a'),
+        cirq.X(q1).with_classical_controls(cirq.KeyCondition(cirq.MeasurementKey('a'), index)),
+        cirq.measure(q1, key='b'),
+    )
+    assert_equivalent_to_deferred(circuit)
+    deferred = cirq.defer_measurements(circuit)
+    q_ma = _MeasurementQid('a', q0)
+    q_ma1 = _MeasurementQid('a', q0, 1)
+    q_used = q_ma if index % 2 == 0 else q_ma1
+    cirq.testing.assert_same_circuits(
+        deferred,
+        cirq.Circuit(
+            cirq.CX(q0, q_ma),
+            cirq.X(q0),
+            cirq.CX(q0, q_ma1),
+            cirq.Moment(cirq.CX(q_used, q1)),
+            cirq.measure(q_ma, key='a'),
+            cirq.measure(q_ma1, key='a'),
+            cirq.measure(q1, key='b'),
+        ),
+    )
+
+
 def test_diagram():
     q0, q1, q2, q3 = cirq.LineQubit.range(4)
     circuit = cirq.Circuit(
@@ -262,23 +291,23 @@ def test_diagram():
     cirq.testing.assert_has_diagram(
         deferred,
         """
-                   ┌────┐
-0: ─────────────────@───────X────────M('c')───
-                    │                │
-1: ─────────────────┼─@──────────────M────────
-                    │ │              │
-2: ─────────────────┼@┼──────────────M────────
-                    │││              │
-3: ─────────────────┼┼┼@─────────────M────────
-                    ││││
-M('a', q=q(0)): ────X┼┼┼────M('a')────────────
-                     │││    │
-M('a', q=q(2)): ─────X┼┼────M─────────────────
-                      ││
-M('b', q=q(1)): ──────X┼────M('b')────────────
-                       │    │
-M('b', q=q(3)): ───────X────M─────────────────
-                   └────┘
+                      ┌────┐
+0: ────────────────────@───────X────────M('c')───
+                       │                │
+1: ────────────────────┼─@──────────────M────────
+                       │ │              │
+2: ────────────────────┼@┼──────────────M────────
+                       │││              │
+3: ────────────────────┼┼┼@─────────────M────────
+                       ││││
+M('a[0]', q=q(0)): ────X┼┼┼────M('a')────────────
+                        │││    │
+M('a[0]', q=q(2)): ─────X┼┼────M─────────────────
+                         ││
+M('b[0]', q=q(1)): ──────X┼────M('b')────────────
+                          │    │
+M('b[0]', q=q(3)): ───────X────M─────────────────
+                      └────┘
 """,
         use_unicode_characters=True,
     )

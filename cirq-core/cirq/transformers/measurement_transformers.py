@@ -13,6 +13,7 @@
 # limitations under the License.
 
 import itertools
+from collections import defaultdict
 from typing import Any, Dict, List, Optional, TYPE_CHECKING, Union
 
 from cirq import ops, protocols, value
@@ -29,7 +30,7 @@ class _MeasurementQid(ops.Qid):
     Exactly one qubit will be created per qubit in the measurement gate.
     """
 
-    def __init__(self, key: Union[str, 'cirq.MeasurementKey'], qid: 'cirq.Qid'):
+    def __init__(self, key: Union[str, 'cirq.MeasurementKey'], qid: 'cirq.Qid', index: int = 0):
         """Initializes the qubit.
 
         Args:
@@ -37,22 +38,24 @@ class _MeasurementQid(ops.Qid):
             qid: One qubit that is being measured. Each deferred measurement
                 should create one new _MeasurementQid per qubit being measured
                 by that gate.
+            index: For repeated measurement keys, this represents the index of that measurement.
         """
         self._key = value.MeasurementKey.parse_serialized(key) if isinstance(key, str) else key
         self._qid = qid
+        self._index = index
 
     @property
     def dimension(self) -> int:
         return self._qid.dimension
 
     def _comparison_key(self) -> Any:
-        return (str(self._key), self._qid._comparison_key())
+        return str(self._key), self._index, self._qid._comparison_key()
 
     def __str__(self) -> str:
-        return f"M('{self._key}', q={self._qid})"
+        return f"M('{self._key}[{self._index}]', q={self._qid})"
 
     def __repr__(self) -> str:
-        return f'_MeasurementQid({self._key!r}, {self._qid!r})'
+        return f'_MeasurementQid({self._key!r}, {self._qid!r}, {self._index})'
 
 
 @transformer_api.transformer
@@ -89,7 +92,9 @@ def defer_measurements(
 
     circuit = transformer_primitives.unroll_circuit_op(circuit, deep=True, tags_to_check=None)
     terminal_measurements = {op for _, op in find_terminal_measurements(circuit)}
-    measurement_qubits: Dict['cirq.MeasurementKey', List['_MeasurementQid']] = {}
+    measurement_qubits: Dict['cirq.MeasurementKey', List[List['_MeasurementQid']]] = defaultdict(
+        list
+    )
 
     def defer(op: 'cirq.Operation', _) -> 'cirq.OP_TREE':
         if op in terminal_measurements:
@@ -102,8 +107,8 @@ def defer_measurements(
                     f"measurement with key={gate.key} and non-empty confusion map."
                 )
             key = value.MeasurementKey.parse_serialized(gate.key)
-            targets = [_MeasurementQid(key, q) for q in op.qubits]
-            measurement_qubits[key] = targets
+            targets = [_MeasurementQid(key, q, len(measurement_qubits[key])) for q in op.qubits]
+            measurement_qubits[key].append(targets)
             cxs = [ops.CX(q, target) for q, target in zip(op.qubits, targets)]
             xs = [ops.X(targets[i]) for i, b in enumerate(gate.full_invert_mask()) if b]
             return cxs + xs
@@ -115,7 +120,10 @@ def defer_measurements(
                 if isinstance(c, value.KeyCondition):
                     if c.key not in measurement_qubits:
                         raise ValueError(f'Deferred measurement for key={c.key} not found.')
-                    qs = measurement_qubits[c.key]
+                    index = c.index if c.index >= 0 else len(measurement_qubits[c.key]) + c.index
+                    if index < 0 or index >= len(measurement_qubits[c.key]):
+                        raise ValueError(f'Invalid index for {c}')
+                    qs = measurement_qubits[c.key][index]
                     if len(qs) == 1:
                         control_values: Any = range(1, qs[0].dimension)
                     else:
@@ -134,8 +142,9 @@ def defer_measurements(
         tags_to_ignore=context.tags_to_ignore if context else (),
         raise_if_add_qubits=False,
     ).unfreeze()
-    for k, qubits in measurement_qubits.items():
-        circuit.append(ops.measure(*qubits, key=k))
+    for k, qubits_list in measurement_qubits.items():
+        for qubits in qubits_list:
+            circuit.append(ops.measure(*qubits, key=k))
     return circuit
 
 
