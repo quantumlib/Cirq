@@ -109,31 +109,29 @@ def defer_measurements(
         elif protocols.is_measurement(op):
             return [defer(op, None) for op in protocols.decompose_once(op)]
         elif op.classical_controls:
-            new_op = op.without_classical_controls()
-            for c in op.classical_controls:
-                # Convert to a quantum control
-                missing_keys = [k for k in c.keys if k not in measurement_qubits]
-                if missing_keys:
-                    raise ValueError(f'Deferred measurement for key={missing_keys[0]} not found.')
-                qs = [q for k in c.keys for q in measurement_qubits[k]]
+            # Convert to a quantum control
+            keys = set(key for c in op.classical_controls for key in c.keys)
+            missing_keys = [key for key in keys if key not in measurement_qubits]
+            if missing_keys:
+                raise ValueError(f'Deferred measurement for key={missing_keys[0]} not found.')
+            qs = [q for key in keys for q in measurement_qubits[key]]
 
-                # Try every possible datastore state against the condition, and the ones that work
-                # are the control values for the new op.
-                datastores = _all_possible_datastore_states(c.keys, measurement_qubits)
-                compatible_datastores = [store for store in datastores if c.resolve(store)]
+            # Try every possible datastore state against the condition, and the ones that work
+            # are the control values for the new op.
+            datastores = _all_possible_datastore_states(keys, measurement_qubits)
+            compatible_datastores = [
+                store
+                for store in datastores
+                if all(c.resolve(store) for c in op.classical_controls)
+            ]
 
-                # Rearrange these into the format expected by SumOfProducts
-                products = [
-                    [i for k in c.keys for i in store.records[k][0]]
-                    for store in compatible_datastores
-                ]
-                if len(qs) == 1:
-                    # Convenience: this renders more nicely than SumOfProducts.
-                    control_values: Any = [[x[0] for x in products]]
-                else:
-                    control_values = ops.SumOfProducts(products)
-                new_op = new_op.controlled_by(*qs, control_values=control_values)
-            return new_op
+            # Rearrange these into the format expected by SumOfProducts
+            products = [
+                [i for key in keys for i in store.records[key][0]]
+                for store in compatible_datastores
+            ]
+            control_values = ops.SumOfProducts(products)
+            return op.without_classical_controls().controlled_by(*qs, control_values=control_values)
         return op
 
     circuit = transformer_primitives.map_operations_and_unroll(
