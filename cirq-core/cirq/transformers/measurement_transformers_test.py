@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import re
+
 import numpy as np
 import pytest
 import sympy
@@ -202,7 +204,9 @@ def test_nocompile_context_leaves_invalid_circuit():
         cirq.X(q1).with_classical_controls('a'),
         cirq.measure(q1, key='b'),
     )
-    with pytest.raises(ValueError, match='Deferred measurement for key=a not found'):
+    with pytest.raises(
+        ValueError, match=re.escape("Deferred measurement for keys ['a'] not found")
+    ):
         _ = cirq.defer_measurements(
             circuit, context=cirq.TransformerContext(tags_to_ignore=('nocompile',))
         )

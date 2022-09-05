@@ -111,9 +111,9 @@ def defer_measurements(
         elif op.classical_controls:
             # Convert to a quantum control
             keys = set(key for c in op.classical_controls for key in c.keys)
-            missing_keys = [key for key in keys if key not in measurement_qubits]
+            missing_keys = [str(key) for key in keys if key not in measurement_qubits]
             if missing_keys:
-                raise ValueError(f'Deferred measurement for key={missing_keys[0]} not found.')
+                raise ValueError(f'Deferred measurement for keys {missing_keys} not found.')
             qs = [q for key in keys for q in measurement_qubits[key]]
 
             # Try every possible datastore state against the condition, and the ones that work
