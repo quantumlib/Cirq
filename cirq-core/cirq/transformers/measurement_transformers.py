@@ -17,7 +17,7 @@ from typing import Any, Dict, List, Optional, Sequence, Tuple, TYPE_CHECKING, Un
 
 import numpy as np
 
-from cirq import ops, protocols, value
+from cirq import linalg, ops, protocols, value
 from cirq.transformers import transformer_api, transformer_primitives
 from cirq.transformers.synchronize_terminal_measurements import find_terminal_measurements
 
@@ -256,6 +256,10 @@ class _ConfusionChannel(ops.Gate):
     def __init__(self, confusion_map: np.ndarray, shape: Sequence[int]):
         kraus = []
         R, C = confusion_map.shape
+        if R != C:
+            raise ValueError('Confusion map must be square.')
+        if R != np.prod(shape):
+            raise ValueError('Confusion map size does not match qubit shape.')
         for r in range(R):
             for c in range(C):
                 v = confusion_map[r, c]
@@ -263,6 +267,8 @@ class _ConfusionChannel(ops.Gate):
                     m = np.zeros(confusion_map.shape)
                     m[c, r] = np.sqrt(v)
                     kraus.append(m)
+        if not linalg.is_cptp(kraus_ops=kraus):
+            raise ValueError('Confusion map has invalid probabilities.')
         self._shape = tuple(shape)
         self._kraus = tuple(kraus)
 
