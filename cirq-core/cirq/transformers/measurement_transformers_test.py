@@ -250,7 +250,7 @@ def test_multi_qubit_control():
     )
 
 
-@pytest.mark.parametrize('index', [-2, -1, 0, 1])
+@pytest.mark.parametrize('index', [-3, -2, -1, 0, 1, 2])
 def test_repeated(index: int):
     q0, q1 = cirq.LineQubit.range(2)
     circuit = cirq.Circuit(
@@ -260,11 +260,15 @@ def test_repeated(index: int):
         cirq.X(q1).with_classical_controls(cirq.KeyCondition(cirq.MeasurementKey('a'), index)),
         cirq.measure(q1, key='b'),
     )
+    if index in [-3, 2]:
+        with pytest.raises(ValueError, match='Invalid index'):
+            _ = cirq.defer_measurements(circuit)
+        return
     assert_equivalent_to_deferred(circuit)
     deferred = cirq.defer_measurements(circuit)
     q_ma = _MeasurementQid('a', q0)
     q_ma1 = _MeasurementQid('a', q0, 1)
-    q_used = q_ma if index % 2 == 0 else q_ma1
+    q_used = q_ma if index in [0, -2] else q_ma1
     cirq.testing.assert_same_circuits(
         deferred,
         cirq.Circuit(
