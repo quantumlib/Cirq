@@ -265,7 +265,9 @@ class _ConfusionChannel(ops.Gate):
     sum(KR @ DM @ KR^T) = [[0.8a + 0.1b, 0          ],
                            [0,           0.2a + 0.9b]]
 
-    This generalizes cleanly to n-dimensional measurements as well.
+    Thus in a deferred measurement scenario, applying this channel to the ancilla qubit will model
+    the noise distribution that would have been caused by the confusion matrix. The math
+    generalizes cleanly to n-dimensional measurements as well.
     """
 
     def __init__(self, confusion_map: np.ndarray, shape: Sequence[int]):
