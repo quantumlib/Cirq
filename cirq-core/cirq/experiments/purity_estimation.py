@@ -58,4 +58,4 @@ def purity_from_probabilities(
     """
     D = hilbert_space_dimension
     porter_thomas_variance = (D - 1) / (D + 1) / D**2
-    return np.var(probabilities) / porter_thomas_variance
+    return np.var(probabilities).item() / porter_thomas_variance
