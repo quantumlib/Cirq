@@ -244,7 +244,7 @@ class _ConfusionChannel(ops.Gate):
 
     This operates on a classical measurement probability distribution as
 
-    [a, b] @ M = [0.8a + 0.1b, 0.2a + 0.0b].
+    [a, b] @ M = [0.8a + 0.1b, 0.2a + 0.9b].
 
     This is equivalent to the following Kraus representation operating on a diagonal of a density
     matrix:
@@ -262,7 +262,7 @@ class _ConfusionChannel(ops.Gate):
            [0, sqrt(0.9)]]]
 
     KR @ DM @ KR^T = [[0.8a + 0.1b, 0          ],
-                      [0,           0.2a + 0.0b]]
+                      [0,           0.2a + 0.9b]]
     """
 
     def __init__(self, confusion_map: np.ndarray, shape: Sequence[int]):
