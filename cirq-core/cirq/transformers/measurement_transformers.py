@@ -237,33 +237,49 @@ class _ConfusionChannel(ops.Gate):
 
     For a classical confusion matrix, the quantum equivalent is a Kraus channel can be calculated
     by transposing the matrix, square-rooting each term, and forming a Kraus sequence of each term
-    individually and the rest zeroed out. For example,
+    individually and the rest zeroed out. For example, consider the confusion matrix.
 
-    [[0.8, 0.2],
-     [0.1, 0.9]]
+    M = [[0.8, 0.2],
+         [0.1, 0.9]]
 
-    can be represented as
+    This operates on a classical measurement probability distribution as
 
-    [[[sqrt(0.8), 0],
-      [0,         0]],
-     [[0, sqrt(0.1)],
-      [0,         0]],
-     [[0,         0],
-      [sqrt(0.2), 0]],
-     [[0,         0],
-      [0, sqrt(0.9)]]]"""
+    [a, b] @ M = [0.8a + 0.1b, 0.2a + 0.0b].
+
+    This is equivalent to the following Kraus representation operating on a diagonal of a density
+    matrix:
+
+    DM = [[a, 0],
+          [0, b]]
+
+    KR = [[[sqrt(0.8), 0],
+           [0,         0]],
+          [[0, sqrt(0.1)],
+           [0,         0]],
+          [[0,         0],
+           [sqrt(0.2), 0]],
+          [[0,         0],
+           [0, sqrt(0.9)]]]
+
+    KR @ DM @ KR^T = [[0.8a + 0.1b, 0          ],
+                      [0,           0.2a + 0.0b]]
+    """
 
     def __init__(self, confusion_map: np.ndarray, shape: Sequence[int]):
-        kraus = []
-        R, C = confusion_map.shape
-        if R != C:
+        if confusion_map.ndim != 2:
+            raise ValueError('Confusion map must be 2D.')
+        row_count, col_count = confusion_map.shape
+        if row_count != col_count:
             raise ValueError('Confusion map must be square.')
-        if R != np.prod(shape):
+        if row_count != np.prod(shape):
             raise ValueError('Confusion map size does not match qubit shape.')
-        for r in range(R):
-            for c in range(C):
+        kraus = []
+        for r in range(row_count):
+            for c in range(col_count):
                 v = confusion_map[r, c]
-                if v != 0:
+                if v < 0:
+                    raise ValueError('Confusion map has negative probabilities.')
+                if v > 0:
                     m = np.zeros(confusion_map.shape)
                     m[c, r] = np.sqrt(v)
                     kraus.append(m)
