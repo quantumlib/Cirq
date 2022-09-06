@@ -239,18 +239,19 @@ class _ConfusionChannel(ops.Gate):
     by transposing the matrix, square-rooting each term, and forming a Kraus sequence of each term
     individually and the rest zeroed out. For example, consider the confusion matrix.
 
-    M = [[0.8, 0.2],
-         [0.1, 0.9]]
+    CM = [[0.8, 0.2],
+          [0.1, 0.9]]
 
-    This operates on a classical measurement probability distribution as
+    If `a` and `b (= 1-a)` are probabilities of two possible classical states for a measurement,
+    the confusion matrix operates on those probabilities as
 
-    [a, b] @ M = [0.8a + 0.1b, 0.2a + 0.9b].
+    [a, b] @ CM = [0.8a + 0.1b, 0.2a + 0.9b].
 
     This is equivalent to the following Kraus representation operating on a diagonal of a density
     matrix:
 
-    DM = [[a, 0],
-          [0, b]]
+    DM = [[a, ?],
+          [?, b]]
 
     KR = [[[sqrt(0.8), 0],
            [0,         0]],
@@ -261,8 +262,10 @@ class _ConfusionChannel(ops.Gate):
           [[0,         0],
            [0, sqrt(0.9)]]]
 
-    KR @ DM @ KR^T = [[0.8a + 0.1b, 0          ],
-                      [0,           0.2a + 0.9b]]
+    sum(KR @ DM @ KR^T) = [[0.8a + 0.1b, 0          ],
+                           [0,           0.2a + 0.9b]]
+
+    This generalizes cleanly to n-dimensional measurements as well.
     """
 
     def __init__(self, confusion_map: np.ndarray, shape: Sequence[int]):
