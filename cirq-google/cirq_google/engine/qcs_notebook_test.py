@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import sys
 import unittest.mock as mock
 import pytest
 
@@ -95,3 +96,39 @@ def test_get_qcs_objects_for_notebook_no_processors(engine_mock):
     engine_mock.return_value = fake_engine
     with pytest.raises(ValueError, match='processors'):
         _ = get_qcs_objects_for_notebook()
+
+
+@mock.patch.dict('sys.modules', {'google.colab': mock.Mock()})
+@mock.patch('cirq_google.engine.qcs_notebook.get_engine')
+def test_get_qcs_objects_for_notebook_auth_succeeds(engine_mock):
+    fake_processor = cg.engine.SimulatedLocalProcessor(
+        processor_id='tester', project_name='mock_project', device=cg.Sycamore
+    )
+    fake_engine = cg.engine.SimulatedLocalEngine([fake_processor])
+    engine_mock.return_value = fake_engine
+    result = get_qcs_objects_for_notebook()
+    _assert_correct_types(result)
+    assert result.signed_in
+    assert not result.is_simulator
+    assert result.project_id == 'mock_project'
+    assert len(result.device.metadata.qubit_set) == 54
+
+
+@mock.patch.dict('sys.modules', {'google.colab': mock.Mock()})
+@mock.patch('cirq_google.engine.qcs_notebook.get_engine')
+def test_get_qcs_objects_for_notebook_auth_fails(engine_mock):
+    auth_mock = sys.modules['google.colab']
+
+    auth_mock.auth.authenticate_user = mock.Mock(side_effect=Exception('mock auth failure'))
+    fake_processor = cg.engine.SimulatedLocalProcessor(
+        processor_id='tester', project_name='mock_project', device=cg.Sycamore
+    )
+    fake_engine = cg.engine.SimulatedLocalEngine([fake_processor])
+    engine_mock.return_value = fake_engine
+    result = get_qcs_objects_for_notebook()
+
+    # Auth failed, default to simulator
+    _assert_correct_types(result)
+    assert not result.signed_in
+    assert result.is_simulator
+    assert result.project_id == 'fake_project'
