@@ -171,9 +171,7 @@ class EngineClient:
                 message = err.message
                 # Raise RuntimeError for exceptions that are not retryable.
                 # Otherwise, pass through to retry.
-                err_code: Union[None, int, enum.Enum] = err.code
-                err_code_int = err_code.value if isinstance(err_code, enum.Enum) else err_code
-                if err_code_int not in RETRYABLE_ERROR_CODES:
+                if err.code not in RETRYABLE_ERROR_CODES:
                     raise EngineException(message) from err
 
             if current_delay > self.max_retry_delay_seconds:
