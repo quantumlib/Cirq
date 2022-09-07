@@ -85,7 +85,8 @@ class SimulatesIntermediateStateVector(
         trial_result_iter = self.simulate_sweep_iter(program, params, qubit_order)
 
         yield from (
-            trial_result.final_state_vector[bitstrings] for trial_result in trial_result_iter
+            trial_result.final_state_vector[bitstrings].tolist()
+            for trial_result in trial_result_iter
         )
 
 
