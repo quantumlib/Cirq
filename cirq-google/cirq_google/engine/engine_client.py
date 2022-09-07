@@ -14,7 +14,6 @@
 
 import asyncio
 import datetime
-import enum
 import sys
 import threading
 from typing import (
