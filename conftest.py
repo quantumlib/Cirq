@@ -12,17 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import os
-import random
-
 import pytest
-
-# allow CI execution of isolated_packages_test.py without numpy
-try:
-    import numpy
-except ImportError:
-    # coverage: ignore
-    numpy = None
 
 
 def pytest_configure(config):
