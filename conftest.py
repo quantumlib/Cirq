@@ -55,10 +55,3 @@ def closefigures():
 
     yield
     plt.close('all')
-
-
-# skip seeding for unset or empty CIRQ_TESTING_RANDOM_SEED
-if numpy is not None and os.environ.get('CIRQ_TESTING_RANDOM_SEED'):
-    rngseed = int(os.environ['CIRQ_TESTING_RANDOM_SEED'])
-    random.seed(rngseed)
-    numpy.random.seed(rngseed)
