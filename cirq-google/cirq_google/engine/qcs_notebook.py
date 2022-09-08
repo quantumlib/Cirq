@@ -134,7 +134,12 @@ def get_qcs_objects_for_notebook(
         )
         if not processors:
             raise ValueError("No processors available.")
-        processor = processors[0]
+        if virtual:
+            processor = processors[0]
+        else:
+            if not any(p.health() == 'OK' for p in processors):
+                raise ValueError("No healthy processors available.")
+            processor = next(p for p in processors if p.health() == 'OK')
         processor_id = processor.processor_id
         print(f"Available processors: {[p.processor_id for p in processors]}")
         print(f"Using processor: {processor_id}")

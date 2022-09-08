@@ -62,6 +62,8 @@ def test_get_qcs_objects_for_notebook_mocked_engine_succeeds(engine_mock):
     fake_processor = cg.engine.SimulatedLocalProcessor(
         processor_id='tester', project_name='mock_project', device=cg.Sycamore
     )
+    # Should not be used as default processor since it is down.
+    fake_processor.health = mock.MagicMock(return_value='DOWN')
     fake_processor2 = cg.engine.SimulatedLocalProcessor(
         processor_id='tester23', project_name='mock_project', device=cg.Sycamore23
     )
@@ -73,13 +75,15 @@ def test_get_qcs_objects_for_notebook_mocked_engine_succeeds(engine_mock):
     assert result.signed_in
     assert not result.is_simulator
     assert result.project_id == 'mock_project'
-    assert len(result.device.metadata.qubit_set) == 54
+    assert result.processor_id == 'tester23'
+    assert len(result.device.metadata.qubit_set) == 23
 
     result = get_qcs_objects_for_notebook(processor_id='tester')
     _assert_correct_types(result)
     assert result.signed_in
     assert not result.is_simulator
     assert result.project_id == 'mock_project'
+    assert result.processor_id == 'tester'
     assert len(result.device.metadata.qubit_set) == 54
 
     result = get_qcs_objects_for_notebook(processor_id='tester23')
@@ -87,6 +91,7 @@ def test_get_qcs_objects_for_notebook_mocked_engine_succeeds(engine_mock):
     assert result.signed_in
     assert not result.is_simulator
     assert result.project_id == 'mock_project'
+    assert result.processor_id == 'tester23'
     assert len(result.device.metadata.qubit_set) == 23
 
 
@@ -132,3 +137,20 @@ def test_get_qcs_objects_for_notebook_auth_fails(engine_mock):
     assert not result.signed_in
     assert result.is_simulator
     assert result.project_id == 'fake_project'
+
+
+@mock.patch('cirq_google.engine.qcs_notebook.get_engine')
+def test_get_qcs_objects_for_notebook_no_healthy_processors(engine_mock):
+    fake_processor = cg.engine.SimulatedLocalProcessor(
+        processor_id='tester', project_name='mock_project', device=cg.Sycamore
+    )
+    fake_processor.health = mock.MagicMock(return_value='DOWN')
+    fake_processor2 = cg.engine.SimulatedLocalProcessor(
+        processor_id='tester23', project_name='mock_project', device=cg.Sycamore23
+    )
+    fake_processor2.health = mock.MagicMock(return_value='INACTIVE')
+    fake_engine = cg.engine.SimulatedLocalEngine([fake_processor, fake_processor2])
+    engine_mock.return_value = fake_engine
+
+    with pytest.raises(ValueError, match='healthy processors'):
+        _ = get_qcs_objects_for_notebook()
