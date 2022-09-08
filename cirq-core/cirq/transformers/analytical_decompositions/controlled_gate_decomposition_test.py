@@ -88,7 +88,6 @@ def test_decompose_specific_matrices():
 
 
 def test_decompose_random_unitary():
-    np.random.seed(0)
     for controls_count in range(5):
         for _ in range(10):
             _test_decompose(_random_unitary(), controls_count)
@@ -97,7 +96,6 @@ def test_decompose_random_unitary():
 
 
 def test_decompose_random_special_unitary():
-    np.random.seed(0)
     for controls_count in range(5):
         for _ in range(10):
             _test_decompose(_random_special_unitary(), controls_count)
@@ -112,7 +110,6 @@ def _decomposition_size(U, controls_count):
 
 
 def test_decompose_size_special_unitary():
-    np.random.seed(0)
     u = _random_special_unitary()
     assert _decomposition_size(u, 0) == (1, 0, 0)
     assert _decomposition_size(u, 1) == (3, 2, 0)
@@ -125,7 +122,6 @@ def test_decompose_size_special_unitary():
 
 
 def test_decompose_size_unitary():
-    np.random.seed(0)
     u = _random_unitary()
     assert _decomposition_size(u, 0) == (1, 0, 0)
     assert _decomposition_size(u, 1) == (4, 2, 0)
