@@ -18,7 +18,7 @@ import cirq
 class RouteCQC:
     params = [[10, 25, 50, 75, 100], [10, 50, 100, 250, 500, 1000], [0.5], [10]]
     param_names = ["qubits", "depth", "op_density", "grid_device_size"]
-    timeout = 180  # Increase timeout to 3 minutes instead of default 60 seconds.
+    timeout = 300  # Increase timeout to 5 minutes instead of default 60 seconds.
 
     def setup(self, qubits: int, depth: int, op_density: float, grid_device_size: int):
         gate_domain = {cirq.CNOT: 2, cirq.X: 1}
