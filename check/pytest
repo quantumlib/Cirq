@@ -16,6 +16,9 @@ cd "$(dirname "${BASH_SOURCE[0]}")"
 cd "$(git rev-parse --show-toplevel)"
 
 PYTEST_ARGS=()
+# TODO(juhas) - remove this after fixing order-related test failures
+PYTEST_ARGS+=("--randomly-dont-reorganize")
+
 PARALLEL=""
 for arg in "$@"; do
     if [[ "${arg}" == "-n" ]]; then
