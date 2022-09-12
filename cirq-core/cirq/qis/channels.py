@@ -50,11 +50,9 @@ def kraus_to_choi(kraus_operators: Sequence[np.ndarray]) -> np.ndarray:
         Choi matrix of the channel specified by kraus_operators.
     """
     d = np.prod(kraus_operators[0].shape, dtype=np.int64)
-    c = np.zeros((d, d), dtype=np.complex128)
-    for k in kraus_operators:
-        v = np.reshape(k, d)
-        c += np.outer(v, v.conj())
-    return c
+    choi_rank = len(kraus_operators)
+    k = np.reshape(kraus_operators, (choi_rank, d))
+    return np.einsum('bi,bj->ij', k, k.conj())
 
 
 def choi_to_kraus(choi: np.ndarray, atol: float = 1e-10) -> Sequence[np.ndarray]:
@@ -105,7 +103,8 @@ def choi_to_kraus(choi: np.ndarray, atol: float = 1e-10) -> Sequence[np.ndarray]
 
     w = np.maximum(w, 0)
     u = np.sqrt(w) * v
-    return [k.reshape(d, d) for k in u.T if np.linalg.norm(k) > atol]
+    keep = np.linalg.norm(u.T, axis=-1) > atol
+    return [k.reshape(d, d) for k, keep_i in zip(u.T, keep) if keep_i]
 
 
 def kraus_to_superoperator(kraus_operators: Sequence[np.ndarray]) -> np.ndarray:
@@ -140,10 +139,9 @@ def kraus_to_superoperator(kraus_operators: Sequence[np.ndarray]) -> np.ndarray:
         Superoperator matrix of the channel specified by kraus_operators.
     """
     d_out, d_in = kraus_operators[0].shape
-    m = np.zeros((d_out * d_out, d_in * d_in), dtype=np.complex128)
-    for k in kraus_operators:
-        m += np.kron(k, k.conj())
-    return m
+    ops_arr = np.asarray(kraus_operators)
+    m = np.einsum('bij,bkl->ikjl', ops_arr, ops_arr.conj())
+    return m.reshape((d_out * d_out, d_in * d_in))
 
 
 def superoperator_to_kraus(superoperator: np.ndarray, atol: float = 1e-10) -> Sequence[np.ndarray]:
