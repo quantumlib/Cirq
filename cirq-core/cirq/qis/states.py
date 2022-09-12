@@ -684,7 +684,7 @@ def density_matrix_from_state_vector(
         np.conj(state_vector),
         cast(List, sum_inds.tolist()),
         indices + cast(List, sum_inds[indices].tolist()),
-    )  # type: ignore
+    )
     new_shape = np.prod([shape[i] for i in indices], dtype=np.int64)
 
     return rho.reshape((new_shape, new_shape))

@@ -480,7 +480,6 @@ def test_parses_single_qubit_gate(gate):
     itertools.product(_all_clifford_gates(), _paulis, (1.0, 0.25, 0.5, -0.5)),
 )
 def test_commutes_pauli(gate, pauli, half_turns):
-    # TODO(#4328) cirq.X**1 should be _PauliX instead of XPowGate
     pauli_gate = pauli if half_turns == 1 else pauli**half_turns
     q0 = cirq.NamedQubit('q0')
     mat = cirq.Circuit(gate(q0), pauli_gate(q0)).unitary()
