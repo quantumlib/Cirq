@@ -50,9 +50,9 @@ def kraus_to_choi(kraus_operators: Sequence[np.ndarray]) -> np.ndarray:
         Choi matrix of the channel specified by kraus_operators.
     """
     d = np.prod(kraus_operators[0].shape, dtype=np.int64)
-    k = np.asarray(kraus_operators)
-    flat_ops = k.reshape((-1, d))
-    return np.einsum('bi,bj->ij', flat_ops, flat_ops.conj())
+    choi_rank = len(kraus_operators)
+    k = np.reshape(kraus_operators, (choi_rank, d))
+    return np.einsum('bi,bj->ij', k, k.conj())
 
 
 def choi_to_kraus(choi: np.ndarray, atol: float = 1e-10) -> Sequence[np.ndarray]:
