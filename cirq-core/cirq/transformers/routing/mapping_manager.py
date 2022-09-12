@@ -17,7 +17,7 @@
 from typing import Dict, Sequence, TYPE_CHECKING
 import networkx as nx
 
-from cirq import protocols, value, _compat
+from cirq import protocols, value
 
 if TYPE_CHECKING:
     import cirq
@@ -43,6 +43,7 @@ class MappingManager:
             device_graph: connectivity graph of qubits in the hardware device.
             initial_mapping: the initial mapping of logical (keys) to physical qubits (values).
         """
+        # make sure edge insertion order is the same amongst equivalent graphs.
         if nx.is_directed(device_graph):
             self.device_graph = nx.DiGraph()
             self.device_graph.add_nodes_from(sorted(list(device_graph.nodes(data=True))))
@@ -57,6 +58,9 @@ class MappingManager:
         self._map = initial_mapping.copy()
         self._inverse_map = {v: k for k, v in self._map.items()}
         self._induced_subgraph = nx.induced_subgraph(self.device_graph, self._map.values())
+        self._predecessors, self._distances = nx.floyd_warshall_predecessor_and_distance(
+            self._induced_subgraph
+        )
 
     @property
     def map(self) -> Dict['cirq.Qid', 'cirq.Qid']:
@@ -83,7 +87,7 @@ class MappingManager:
         Returns:
             The shortest path distance.
         """
-        return len(self._physical_shortest_path(self._map[lq1], self._map[lq2])) - 1
+        return self._distances[self._map[lq1]][self._map[lq2]]
 
     def can_execute(self, op: 'cirq.Operation') -> bool:
         """Finds whether the given operation acts on qubits that are adjacent on the device.
@@ -140,12 +144,10 @@ class MappingManager:
         Returns:
             A sequence of logical qubits on the shortest path from lq1 to lq2.
         """
-        physical_shortest_path = self._physical_shortest_path(self._map[lq1], self._map[lq2])
-        return [self._inverse_map[pq] for pq in physical_shortest_path]
-
-    @_compat.cached_method
-    def _physical_shortest_path(self, pq1: 'cirq.Qid', pq2: 'cirq.Qid') -> Sequence['cirq.Qid']:
-        return nx.shortest_path(self._induced_subgraph, pq1, pq2)
+        return [
+            self._inverse_map[pq]
+            for pq in nx.reconstruct_path(self._map[lq1], self._map[lq2], self._predecessors)
+        ]
 
     def _value_equality_values_(self):
         graph_equality = (
