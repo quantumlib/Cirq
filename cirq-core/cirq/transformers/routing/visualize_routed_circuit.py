@@ -53,11 +53,12 @@ def routed_circuit_with_mapping(
         initial_map = qdict.copy()
     inverse_map = {v: k for k, v in initial_map.items()}
 
-    ret_circuit = circuits.Circuit(
-        _SwapPrintGate(tuple(zip(qdict.values(), [inverse_map[x] for x in qdict.values()]))).on(
-            *all_qubits
-        )
-    )
+    def swap_print_moment():
+        return _SwapPrintGate(
+            tuple(zip(qdict.values(), [inverse_map[x] for x in qdict.values()]))
+        ).on(*all_qubits)
+
+    ret_circuit = circuits.Circuit(swap_print_moment())
     for m in routed_circuit:
         swap_in_moment = False
         for op in m:
@@ -72,10 +73,6 @@ def routed_circuit_with_mapping(
 
         ret_circuit.append(m)
         if swap_in_moment:
-            ret_circuit.append(
-                _SwapPrintGate(
-                    tuple(zip(qdict.values(), [inverse_map[x] for x in qdict.values()]))
-                ).on(*all_qubits)
-            )
+            ret_circuit.append(swap_print_moment())
 
     return ret_circuit
