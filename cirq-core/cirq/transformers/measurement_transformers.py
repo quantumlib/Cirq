@@ -114,14 +114,12 @@ def defer_measurements(
             for key in keys:
                 if key not in measurement_qubits:
                     raise ValueError(f'Deferred measurement for key={key} not found.')
-            qs = [q for key in keys for q in measurement_qubits[key]]
 
             # Try every possible datastore state against the condition, and the ones that work
             # are the control values for the new op.
-            datastores = _all_possible_datastore_states(keys, measurement_qubits)
             compatible_datastores = [
                 store
-                for store in datastores
+                for store in _all_possible_datastore_states(keys, measurement_qubits)
                 if all(c.resolve(store) for c in op.classical_controls)
             ]
 
@@ -131,6 +129,7 @@ def defer_measurements(
                 for store in compatible_datastores
             ]
             control_values = ops.SumOfProducts(products)
+            qs = [q for key in keys for q in measurement_qubits[key]]
             return op.without_classical_controls().controlled_by(*qs, control_values=control_values)
         return op
 
