@@ -28,7 +28,7 @@ if TYPE_CHECKING:
 QidIntPair = Tuple[int, int]
 
 
-def disjoint_nc2_combinations(
+def _disjoint_nc2_combinations(
     qubit_pairs: Sequence[QidIntPair],
 ) -> List[Tuple[QidIntPair, QidIntPair]]:
     """Gets disjoint pair combinations of qubits pairs.
@@ -36,7 +36,7 @@ def disjoint_nc2_combinations(
     For example:
 
         >>> q = [*range(5)]
-        >>> disjoint_swaps = cirq.transformers.routing.route_circuit_cqc.disjoint_nc2_combinations(
+        >>> disjoint_swaps = cirq.transformers.routing.route_circuit_cqc._disjoint_nc2_combinations(
         ...     [(q[0], q[1]), (q[2], q[3]), (q[1], q[4])]
         ... )
         >>> disjoint_swaps == [((q[0], q[1]), (q[2], q[3])), ((q[2], q[3]), (q[1], q[4]))]
@@ -302,7 +302,7 @@ class RouteCQC:
             unexecutable_ops: List['cirq.Operation'] = []
             unexecutable_ops_ints: List[QidIntPair] = []
             for op, op_ints in zip(two_qubit_ops[timestep], two_qubit_ops_ints[timestep]):
-                if mm.can_execute(*op_ints):
+                if mm.is_adjacent(*op_ints):
                     routed_ops[timestep].append(mm.mapped_op(op))
                 else:
                     unexecutable_ops.append(op)
@@ -370,7 +370,7 @@ class RouteCQC:
         lookahead_radius: int,
     ) -> Optional[Tuple[QidIntPair, ...]]:
         """Computes cost function with pairs of candidate swaps that act on disjoint qubits."""
-        pair_sigma = disjoint_nc2_combinations(
+        pair_sigma = _disjoint_nc2_combinations(
             cls._initial_candidate_swaps(mm, two_qubit_ops_ints[timestep])
         )
         return cls._choose_optimal_swap(

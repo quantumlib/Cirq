@@ -146,7 +146,7 @@ class MappingManager:
         """
         return self._distances[self.logical_to_physical[lq1]][self.logical_to_physical[lq2]]
 
-    def can_execute(self, lq1: int, lq2: int) -> bool:
+    def is_adjacent(self, lq1: int, lq2: int) -> bool:
         """Finds whether logical qubits `lq1` and `lq2` are adjacent on the device.
 
         Args:

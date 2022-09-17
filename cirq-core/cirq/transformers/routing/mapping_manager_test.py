@@ -83,18 +83,18 @@ def test_mapped_op():
     )
 
 
-def test_distance_on_device_and_can_execute():
+def test_distance_on_device_and_is_adjacent():
     device_graph, initial_mapping, q = construct_device_graph_and_mapping()
     mm = cirq.MappingManager(device_graph, initial_mapping)
     q_int = [mm.logical_qid_to_int[q[i]] if q[i] in initial_mapping else -1 for i in range(len(q))]
 
     # adjacent qubits have distance 1 and are thus executable
     assert mm.dist_on_device(q_int[1], q_int[3]) == 1
-    assert mm.can_execute(q_int[1], q_int[3])
+    assert mm.is_adjacent(q_int[1], q_int[3])
 
     # non-adjacent qubits with distance > 1 are not executable
     assert mm.dist_on_device(q_int[1], q_int[2]) == 2
-    assert mm.can_execute(q_int[1], q_int[2]) is False
+    assert mm.is_adjacent(q_int[1], q_int[2]) is False
 
     # 'dist_on_device' does not use cirq.NamedQubit("e") to find shorter shortest path
     assert mm.dist_on_device(q_int[1], q_int[4]) == 3
@@ -102,9 +102,9 @@ def test_distance_on_device_and_can_execute():
     # distance changes after applying swap
     mm.apply_swap(q_int[2], q_int[3])
     assert mm.dist_on_device(q_int[1], q_int[3]) == 2
-    assert mm.can_execute(q_int[1], q_int[3]) is False
+    assert mm.is_adjacent(q_int[1], q_int[3]) is False
     assert mm.dist_on_device(q_int[1], q_int[2]) == 1
-    assert mm.can_execute(q_int[1], q_int[2])
+    assert mm.is_adjacent(q_int[1], q_int[2])
 
     # distance between other qubits doesn't change
     assert mm.dist_on_device(q_int[1], q_int[4]) == 3
