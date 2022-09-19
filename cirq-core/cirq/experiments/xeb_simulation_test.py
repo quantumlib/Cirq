@@ -135,12 +135,9 @@ def test_incremental_simulate(multiprocess):
     else:
         pool = None
 
-    start = time.perf_counter()
     df_ref = _ref_simulate_2q_xeb_circuits(circuits=circuits, cycle_depths=cycle_depths, pool=pool)
-    end1 = time.perf_counter()
 
     df = simulate_2q_xeb_circuits(circuits=circuits, cycle_depths=cycle_depths, pool=pool)
-    end2 = time.perf_counter()
     if pool is not None:
         pool.terminate()
     pd.testing.assert_frame_equal(df_ref, df)
