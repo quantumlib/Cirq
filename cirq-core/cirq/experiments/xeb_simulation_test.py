@@ -12,7 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import multiprocessing
-import time
 from typing import Dict, Any, Optional
 from typing import Sequence
 
