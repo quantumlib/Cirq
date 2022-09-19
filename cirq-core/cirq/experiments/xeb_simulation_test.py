@@ -143,8 +143,6 @@ def test_incremental_simulate(multiprocess):
     end2 = time.perf_counter()
     if pool is not None:
         pool.terminate()
-    print("\nnew:", end2 - end1, "old:", end1 - start)
-
     pd.testing.assert_frame_equal(df_ref, df)
 
     # Use below for approximate equality, if e.g. you're using qsim:
