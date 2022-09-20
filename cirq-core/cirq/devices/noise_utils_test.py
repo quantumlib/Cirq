@@ -46,8 +46,6 @@ def test_op_identifier_subtypes():
 
 def test_op_id_str():
     op_id = OpIdentifier(cirq.XPowGate, cirq.LineQubit(0))
-    print(op_id)
-    print(repr(op_id))
     assert str(op_id) == "<class 'cirq.ops.common_gates.XPowGate'>(cirq.LineQubit(0),)"
     assert repr(op_id) == (
         "cirq.devices.noise_utils.OpIdentifier(cirq.ops.common_gates.XPowGate, cirq.LineQubit(0))"
