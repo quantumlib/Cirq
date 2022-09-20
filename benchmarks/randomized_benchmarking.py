@@ -23,6 +23,15 @@ def dot(*args: np.ndarray) -> np.ndarray:
 
 
 class SingleQubitRandomizedBenchmarking:
+    """Benchmarks circuit construction time for single qubit randomized benchmarking circuits.
+
+    Given a combination of `depth`, `num_qubits` and `num_circuits`, the benchmark constructs
+    `num_circuits` different circuits, each spanning `num_qubits` and containing `depth` moments.
+    Each moment of the circuit contains a single qubit clifford operation for each qubit.
+
+    Thus, the generated circuits have `depth * num_qubits` single qubit clifford operations.
+    """
+
     params = [[1, 10, 50, 100, 250, 500, 1000], [100], [20]]
     param_names = ["depth", "num_qubits", "num_circuits"]
     timeout = 600  # Change timeout to 10 minutes instead of default 60 seconds.
