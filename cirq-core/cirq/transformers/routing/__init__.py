@@ -18,3 +18,4 @@ from cirq.transformers.routing.initial_mapper import AbstractInitialMapper, Hard
 from cirq.transformers.routing.mapping_manager import MappingManager
 from cirq.transformers.routing.line_initial_mapper import LineInitialMapper
 from cirq.transformers.routing.route_circuit_cqc import RouteCQC
+from cirq.transformers.routing.visualize_routed_circuit import routed_circuit_with_mapping

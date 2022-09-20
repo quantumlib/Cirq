@@ -50,12 +50,15 @@ def test_induced_subgraph():
             (cirq.NamedQubit("c"), cirq.NamedQubit("d")),
         ]
     )
-    assert graphs_equal(mm.induced_subgraph, expected_induced_subgraph)
+    assert graphs_equal(
+        mm.induced_subgraph_int, nx.relabel_nodes(expected_induced_subgraph, mm.physical_qid_to_int)
+    )
 
 
 def test_mapped_op():
     device_graph, initial_mapping, q = construct_device_graph_and_mapping()
     mm = cirq.MappingManager(device_graph, initial_mapping)
+    q_int = [mm.logical_qid_to_int[q[i]] if q[i] in initial_mapping else -1 for i in range(len(q))]
 
     assert mm.mapped_op(cirq.CNOT(q[1], q[3])).qubits == (
         cirq.NamedQubit("a"),
@@ -68,7 +71,7 @@ def test_mapped_op():
     )
 
     # correctly changes mapped qubits when swapped
-    mm.apply_swap(q[2], q[3])
+    mm.apply_swap(q_int[2], q_int[3])
     assert mm.mapped_op(cirq.CNOT(q[1], q[2])).qubits == (
         cirq.NamedQubit("a"),
         cirq.NamedQubit("b"),
@@ -80,146 +83,70 @@ def test_mapped_op():
     )
 
 
-def test_distance_on_device_and_can_execute():
+def test_distance_on_device_and_is_adjacent():
     device_graph, initial_mapping, q = construct_device_graph_and_mapping()
     mm = cirq.MappingManager(device_graph, initial_mapping)
+    q_int = [mm.logical_qid_to_int[q[i]] if q[i] in initial_mapping else -1 for i in range(len(q))]
 
     # adjacent qubits have distance 1 and are thus executable
-    assert mm.dist_on_device(q[1], q[3]) == 1
-    assert mm.can_execute(cirq.CNOT(q[1], q[3]))
+    assert mm.dist_on_device(q_int[1], q_int[3]) == 1
+    assert mm.is_adjacent(q_int[1], q_int[3])
 
     # non-adjacent qubits with distance > 1 are not executable
-    assert mm.dist_on_device(q[1], q[2]) == 2
-    assert mm.can_execute(cirq.CNOT(q[1], q[2])) is False
+    assert mm.dist_on_device(q_int[1], q_int[2]) == 2
+    assert mm.is_adjacent(q_int[1], q_int[2]) is False
 
     # 'dist_on_device' does not use cirq.NamedQubit("e") to find shorter shortest path
-    assert mm.dist_on_device(q[1], q[4]) == 3
+    assert mm.dist_on_device(q_int[1], q_int[4]) == 3
 
     # distance changes after applying swap
-    mm.apply_swap(q[2], q[3])
-    assert mm.dist_on_device(q[1], q[3]) == 2
-    assert mm.can_execute(cirq.CNOT(q[1], q[3])) is False
-    assert mm.dist_on_device(q[1], q[2]) == 1
-    assert mm.can_execute(cirq.CNOT(q[1], q[2]))
+    mm.apply_swap(q_int[2], q_int[3])
+    assert mm.dist_on_device(q_int[1], q_int[3]) == 2
+    assert mm.is_adjacent(q_int[1], q_int[3]) is False
+    assert mm.dist_on_device(q_int[1], q_int[2]) == 1
+    assert mm.is_adjacent(q_int[1], q_int[2])
 
     # distance between other qubits doesn't change
-    assert mm.dist_on_device(q[1], q[4]) == 3
+    assert mm.dist_on_device(q_int[1], q_int[4]) == 3
 
 
 def test_apply_swap():
     device_graph, initial_mapping, q = construct_device_graph_and_mapping()
     mm = cirq.MappingManager(device_graph, initial_mapping)
+    q_int = [mm.logical_qid_to_int[q[i]] if q[i] in initial_mapping else -1 for i in range(len(q))]
 
     # swapping non-adjacent qubits raises error
     with pytest.raises(ValueError):
-        mm.apply_swap(q[1], q[2])
+        mm.apply_swap(q_int[1], q_int[2])
 
     # applying swap on same qubit does nothing
-    map_before_swap = mm.map.copy()
-    mm.apply_swap(q[1], q[1])
-    assert map_before_swap == mm.map
+    logical_to_physical_before_swap = mm.logical_to_physical.copy()
+    mm.apply_swap(q_int[1], q_int[1])
+    assert all(logical_to_physical_before_swap == mm.logical_to_physical)
 
     # applying same swap twice does nothing
-    mm.apply_swap(q[1], q[3])
-    mm.apply_swap(q[1], q[3])
-    assert map_before_swap == mm.map
+    mm.apply_swap(q_int[1], q_int[3])
+    mm.apply_swap(q_int[1], q_int[3])
+    assert all(logical_to_physical_before_swap == mm.logical_to_physical)
 
     # qubits in inverse map get swapped correctly
-    assert mm.inverse_map == {v: k for k, v in mm.map.items()}
+    for i in range(len(mm.logical_to_physical)):
+        assert mm.logical_to_physical[mm.physical_to_logical[i]] == i
+        assert mm.physical_to_logical[mm.logical_to_physical[i]] == i
 
 
 def test_shortest_path():
     device_graph, initial_mapping, q = construct_device_graph_and_mapping()
     mm = cirq.MappingManager(device_graph, initial_mapping)
-
-    one_to_four = [q[1], q[3], q[2], q[4]]
-    assert mm.shortest_path(q[1], q[2]) == one_to_four[:3]
-    assert mm.shortest_path(q[1], q[4]) == one_to_four
+    q_int = [mm.logical_qid_to_int[q[i]] if q[i] in initial_mapping else -1 for i in range(len(q))]
+    one_to_four = [q_int[1], q_int[3], q_int[2], q_int[4]]
+    assert all(mm.shortest_path(q_int[1], q_int[2]) == one_to_four[:3])
+    assert all(mm.shortest_path(q_int[1], q_int[4]) == one_to_four)
     # shortest path on symmetric qubit reverses the list
-    assert mm.shortest_path(q[4], q[1]) == one_to_four[::-1]
+    assert all(mm.shortest_path(q_int[4], q_int[1]) == one_to_four[::-1])
 
     # swapping changes shortest paths involving the swapped qubits
-    mm.apply_swap(q[3], q[2])
+    mm.apply_swap(q_int[3], q_int[2])
     one_to_four[1], one_to_four[2] = one_to_four[2], one_to_four[1]
-    assert mm.shortest_path(q[1], q[4]) == one_to_four
-    assert mm.shortest_path(q[1], q[2]) == [q[1], q[2]]
-
-
-def test_value_equality():
-    equals_tester = cirq.testing.EqualsTester()
-    device_graph, initial_mapping, q = construct_device_graph_and_mapping()
-
-    mm = cirq.MappingManager(device_graph, initial_mapping)
-
-    # same as 'device_graph' but with different insertion order of edges
-    diff_edge_order = nx.Graph(
-        [
-            (cirq.NamedQubit("a"), cirq.NamedQubit("b")),
-            (cirq.NamedQubit("e"), cirq.NamedQubit("d")),
-            (cirq.NamedQubit("c"), cirq.NamedQubit("d")),
-            (cirq.NamedQubit("a"), cirq.NamedQubit("e")),
-            (cirq.NamedQubit("b"), cirq.NamedQubit("c")),
-        ]
-    )
-    mm_edge_order = cirq.MappingManager(diff_edge_order, initial_mapping)
-    equals_tester.add_equality_group(mm, mm_edge_order)
-
-    # same as 'device_graph' but with directed edges (DiGraph)
-    device_digraph = nx.DiGraph(
-        [
-            (cirq.NamedQubit("a"), cirq.NamedQubit("b")),
-            (cirq.NamedQubit("b"), cirq.NamedQubit("c")),
-            (cirq.NamedQubit("c"), cirq.NamedQubit("d")),
-            (cirq.NamedQubit("a"), cirq.NamedQubit("e")),
-            (cirq.NamedQubit("e"), cirq.NamedQubit("d")),
-        ]
-    )
-    mm_digraph = cirq.MappingManager(device_digraph, initial_mapping)
-    equals_tester.add_equality_group(mm_digraph)
-
-    # same as 'device_graph' but with an added isolated node
-    isolated_vertex_graph = nx.Graph(
-        [
-            (cirq.NamedQubit("a"), cirq.NamedQubit("b")),
-            (cirq.NamedQubit("b"), cirq.NamedQubit("c")),
-            (cirq.NamedQubit("c"), cirq.NamedQubit("d")),
-            (cirq.NamedQubit("a"), cirq.NamedQubit("e")),
-            (cirq.NamedQubit("e"), cirq.NamedQubit("d")),
-        ]
-    )
-    isolated_vertex_graph.add_node(cirq.NamedQubit("z"))
-    mm = cirq.MappingManager(isolated_vertex_graph, initial_mapping)
-    equals_tester.add_equality_group(isolated_vertex_graph)
-
-    # mapping manager with same initial graph and initial mapping as 'mm' but with different
-    # current state
-    mm_with_swap = cirq.MappingManager(device_graph, initial_mapping)
-    mm_with_swap.apply_swap(q[1], q[3])
-    equals_tester.add_equality_group(mm_with_swap)
-
-
-def test_repr():
-    device_graph, initial_mapping, _ = construct_device_graph_and_mapping()
-    mm = cirq.MappingManager(device_graph, initial_mapping)
-    cirq.testing.assert_equivalent_repr(mm, setup_code='import cirq\nimport networkx as nx')
-
-    device_digraph = nx.DiGraph(
-        [
-            (cirq.NamedQubit("a"), cirq.NamedQubit("b")),
-            (cirq.NamedQubit("b"), cirq.NamedQubit("c")),
-            (cirq.NamedQubit("c"), cirq.NamedQubit("d")),
-            (cirq.NamedQubit("a"), cirq.NamedQubit("e")),
-            (cirq.NamedQubit("e"), cirq.NamedQubit("d")),
-        ]
-    )
-    mm_digraph = cirq.MappingManager(device_digraph, initial_mapping)
-    cirq.testing.assert_equivalent_repr(mm_digraph, setup_code='import cirq\nimport networkx as nx')
-
-
-def test_str():
-    device_graph, initial_mapping, _ = construct_device_graph_and_mapping()
-    mm = cirq.MappingManager(device_graph, initial_mapping)
-    assert (
-        str(mm)
-        == f'cirq.MappingManager(nx.Graph({dict(device_graph.adjacency())}), {initial_mapping})'
-    )
+    assert all(mm.shortest_path(q_int[1], q_int[4]) == one_to_four)
+    assert all(mm.shortest_path(q_int[1], q_int[2]) == [q_int[1], q_int[2]])
