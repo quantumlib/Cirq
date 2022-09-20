@@ -3,6 +3,7 @@
 pytest
 pytest-asyncio
 pytest-cov
+pytest-randomly
 # Notebook >=6.4.8 + coverage > 6.2 hangs CI: https://github.com/quantumlib/Cirq/issues/4897
 coverage<=6.2
 

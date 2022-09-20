@@ -71,8 +71,7 @@ fi
 source dev_tools/pypath
 
 # Run tests while producing coverage files.
-check/pytest --actually-quiet \
-             --cov \
+check/pytest --cov \
              --cov-config=dev_tools/conf/.coveragerc \
              "${PYTEST_ARGS[@]}"
 pytest_result=$?

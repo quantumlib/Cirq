@@ -135,7 +135,8 @@ jobs:
       - name: Install dependencies
         run: pip install -r dev_tools/requirements/isolated-base.env.txt
       - name: Test each module in isolation
-        run: pytest -n auto -m slow dev_tools/packaging/isolated_packages_test.py
+        # TODO(#5870) - remove --randomly-dont-reorganize after fixing order-related test failures
+        run: pytest --randomly-dont-reorganize -n auto -m slow dev_tools/packaging/isolated_packages_test.py
   pytest:
     name: Pytest Ubuntu
     strategy:
@@ -159,7 +160,7 @@ jobs:
       - name: Run Quil dependencies
         run: docker-compose -f cirq-rigetti/docker-compose.test.yaml up -d
       - name: Pytest check
-        run: check/pytest -n auto --ignore=cirq-core/cirq/contrib --actually-quiet --rigetti-integration
+        run: check/pytest -n auto --ignore=cirq-core/cirq/contrib --rigetti-integration
       - name: Stop Quil dependencies
         run: docker-compose -f cirq-rigetti/docker-compose.test.yaml down
   build_docs:
@@ -240,7 +241,7 @@ jobs:
       - name: Pytest Windows
         run: |
           source dev_tools/pypath
-          check/pytest -n auto --ignore=cirq-core/cirq/contrib --actually-quiet
+          check/pytest -n auto --ignore=cirq-core/cirq/contrib
         shell: bash
   macos:
     name: Pytest MacOS
