@@ -1,1 +1,1 @@
-tensorflow-docs@git+https://github.com/tensorflow/docs@3a6a7a3322de8620f0031ae3a0a4b62e40d1d7f2
+tensorflow-docs@https://github.com/tensorflow/docs/tarball/3a6a7a3322de8620f0031ae3a0a4b62e40d1d7f2
