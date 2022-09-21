@@ -77,7 +77,4 @@ fi
 
 source dev_tools/pypath
 
-: ${CIRQ_TESTING_RANDOM_SEED=$(git log -1 --pretty="%ct")}
-export CIRQ_TESTING_RANDOM_SEED
-
 pytest ${rest} "${changed[@]}"

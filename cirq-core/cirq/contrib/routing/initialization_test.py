@@ -39,8 +39,9 @@ def test_initialization_reproducible_with_seed(seed):
     eq.add_equality_group(*mappings)
 
 
-@pytest.mark.parametrize('graph_seed,state', [(random.randint(0, 2**32), np.random.get_state())])
-def test_initialization_with_no_seed(graph_seed, state):
+def test_initialization_with_no_seed():
+    graph_seed = random.randint(0, 2**32)
+    state = np.random.get_state()
     mappings = []
     for _ in range(3):
         np.random.set_state(state)

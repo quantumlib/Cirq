@@ -4486,6 +4486,13 @@ def test_concat_ragged_alignment():
     )
 
 
+def test_freeze_not_relocate_moments():
+    q = cirq.q(0)
+    c = cirq.Circuit(cirq.X(q), cirq.measure(q))
+    f = c.freeze()
+    assert [mc is fc for mc, fc in zip(c, f)] == [True, True]
+
+
 def test_factorize_one_factor():
     circuit = cirq.Circuit()
     q0, q1, q2 = cirq.LineQubit.range(3)

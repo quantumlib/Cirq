@@ -6,7 +6,3 @@ node_modules/
 
 # Coverage testing information
 .nyc_output/
-
-# Extras
-build/
-
