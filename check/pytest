@@ -4,9 +4,7 @@
 # Runs pytest on the repository.
 #
 # Usage:
-#     check/pytest [--actually-quiet] [--flags for pytest] [file-paths-relative-to-repo-root]
-#
-# The --actually-quiet argument filters out any progress output from pytest.
+#     check/pytest [--flags for pytest] [file-paths-relative-to-repo-root]
 #
 # You may specify pytest flags and specific files to test. The file paths
 # must be relative to the repository root. If no files are specified, everything
@@ -18,17 +16,15 @@ cd "$(dirname "${BASH_SOURCE[0]}")"
 cd "$(git rev-parse --show-toplevel)"
 
 PYTEST_ARGS=()
-ACTUALLY_QUIET=""
+# TODO(#5870) - remove this after fixing order-related test failures
+PYTEST_ARGS+=("--randomly-dont-reorganize")
+
 PARALLEL=""
 for arg in "$@"; do
-    if [[ "${arg}" == "--actually-quiet" ]]; then
-        ACTUALLY_QUIET=1
-    else
-        if [[ "${arg}" == "-n" ]]; then
-            PARALLEL=1
-        fi
-        PYTEST_ARGS+=("${arg}")
+    if [[ "${arg}" == "-n" ]]; then
+	PARALLEL=1
     fi
+    PYTEST_ARGS+=("${arg}")
 done
 
 if [ -z "${PARALLEL}" ]; then
@@ -41,18 +37,8 @@ if [ "$PYTHON_VERSION" -lt "37" ]; then
   PYTEST_ARGS+=("--ignore=cirq-rigetti")
 fi
 
-: ${CIRQ_TESTING_RANDOM_SEED=$(git log -1 --pretty="%ct")}
-export CIRQ_TESTING_RANDOM_SEED
-
-if [ -z "${ACTUALLY_QUIET}" ]; then
-    pytest "${PYTEST_ARGS[@]}"
-    RESULT=$?
-else
-    # Filter out lines like "...F....x...      [ 42%]", with coloring.
-    pytest -q --color=yes "${PYTEST_ARGS[@]}" |
-        perl -nle'print if not m{^(.\[0m)?[\.FEsx]+(.\[36m)?\s+\[\s*\d+%\](.\[0m)?$}'
-    RESULT=${PIPESTATUS[0]}
-fi
+pytest "${PYTEST_ARGS[@]}"
+RESULT=$?
 
 if [ "$RESULT" = 5 ]; then
   echo "[exit 5] No tests collected, but ignored."

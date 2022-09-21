@@ -250,14 +250,14 @@ def _validate_num_qubits(density_matrix: np.ndarray) -> int:
     """
     shape = density_matrix.shape
     half_index = len(shape) // 2
-    row_size = np.prod(shape[:half_index], dtype=np.int64) if len(shape) != 0 else 0
-    col_size = np.prod(shape[half_index:], dtype=np.int64) if len(shape) != 0 else 0
+    row_size = np.prod(shape[:half_index]).item() if shape else 0
+    col_size = np.prod(shape[half_index:]).item() if shape else 0
     if row_size != col_size:
         raise ValueError(f'Matrix was not square. Shape was {shape}')
     if row_size & (row_size - 1):
         raise ValueError(
             'Matrix could not be shaped into a square matrix with dimensions '
-            'not a power of two. Shape was {}'.format(shape)
+            'that are a power of two. Shape was {}'.format(shape)
         )
     if len(shape) > 2 and not np.allclose(shape, 2):
         raise ValueError(

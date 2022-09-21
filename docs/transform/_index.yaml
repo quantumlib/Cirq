@@ -15,3 +15,6 @@ landing_page:
       - heading: Custom Transformers
         description: Write your own Transformer with decorators, primitives and decompositions.
         path: /cirq/transform/custom_transformers
+      - heading: Routing as a Transformer
+        description: Qubit Routing utilities for easily executing circuits on hardware.
+        path: /cirq/transform/routing_transformer
