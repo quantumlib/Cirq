@@ -11,5 +11,4 @@
 cd "$(dirname "${BASH_SOURCE[0]}")"
 cd "$(git rev-parse --show-toplevel)"
 
-export ASV_PYTHONPATH="$(git rev-parse --show-toplevel)/examples"
 asv run "$@"

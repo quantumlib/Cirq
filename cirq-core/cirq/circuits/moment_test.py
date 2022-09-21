@@ -467,6 +467,7 @@ def test_add():
 
     assert m1 + [[[[cirq.Y(b)]]]] == cirq.Moment(cirq.X(a), cirq.Y(b))
     assert m1 + [] == m1
+    assert m1 + [] is m1
 
 
 def test_sub():
@@ -703,7 +704,6 @@ def test_kraus():
     m = cirq.Moment(cirq.CNOT(a, b))
     assert cirq.has_kraus(m)
     k = cirq.kraus(m)
-    print(k[0])
     assert len(k) == 1
     assert np.allclose(k[0], np.array([[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 0, 1], [0, 0, 1, 0]]))
 
