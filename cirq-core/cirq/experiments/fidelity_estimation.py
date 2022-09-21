@@ -60,7 +60,7 @@ def linear_xeb_fidelity_from_probabilities(
         Estimate of fidelity associated with an experimental realization
         of a quantum circuit.
     """
-    return hilbert_space_dimension * np.mean(probabilities) - 1
+    return hilbert_space_dimension * np.mean(probabilities).item() - 1
 
 
 def log_xeb_fidelity_from_probabilities(
@@ -175,7 +175,7 @@ def xeb_fidelity(
         ValueError: Circuit is inconsistent with qubit order or one of the
             bitstrings is inconsistent with the number of qubits.
     """
-    dim = np.prod(circuit.qid_shape(), dtype=np.int64)
+    dim = np.prod(circuit.qid_shape()).item()
 
     if isinstance(bitstrings, tuple):
         bitstrings = list(bitstrings)
@@ -190,9 +190,9 @@ def xeb_fidelity(
     if amplitudes is None:
         output_state = final_state_vector(circuit, qubit_order=qubit_order)
         output_probabilities = state_vector_to_probabilities(output_state)
-        bitstring_probabilities = output_probabilities[bitstrings]
+        bitstring_probabilities = output_probabilities[bitstrings].tolist()
     else:
-        bitstring_probabilities = np.abs([amplitudes[bitstring] for bitstring in bitstrings]) ** 2
+        bitstring_probabilities = [abs(amplitudes[bitstring]) ** 2 for bitstring in bitstrings]
     return estimator(dim, bitstring_probabilities)
 
 

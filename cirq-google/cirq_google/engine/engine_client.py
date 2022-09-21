@@ -170,7 +170,7 @@ class EngineClient:
                 message = err.message
                 # Raise RuntimeError for exceptions that are not retryable.
                 # Otherwise, pass through to retry.
-                if err.code.value not in RETRYABLE_ERROR_CODES:
+                if err.code not in RETRYABLE_ERROR_CODES:
                     raise EngineException(message) from err
 
             if current_delay > self.max_retry_delay_seconds:

@@ -127,9 +127,7 @@ def test_gray_code_sorting(n_bits, expected_hs):
             x //= 2
         hs_template.append(tuple(sorted(h)))
 
-    for seed in range(10):
-        random.seed(seed)
-
+    for _ in range(10):
         hs = hs_template.copy()
         random.shuffle(hs)
 

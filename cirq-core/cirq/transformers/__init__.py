@@ -50,6 +50,7 @@ from cirq.transformers.routing import (
     LineInitialMapper,
     MappingManager,
     RouteCQC,
+    routed_circuit_with_mapping,
 )
 
 from cirq.transformers.target_gatesets import (

@@ -106,7 +106,7 @@ def _strat_distance_from_unitary(val: Any) -> Optional[float]:
             return 0.0
         return squared**0.5
 
-    return trace_distance_from_angle_list(np.angle(np.linalg.eigvals(u)))  # type: ignore[arg-type]
+    return trace_distance_from_angle_list(np.angle(np.linalg.eigvals(u)))
 
 
 def trace_distance_from_angle_list(angle_list: Union[Sequence[float], np.ndarray]) -> float:
