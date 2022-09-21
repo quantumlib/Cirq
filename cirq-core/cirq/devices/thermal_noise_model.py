@@ -188,17 +188,17 @@ class ThermalNoiseModel(devices.NoiseModel):
             heat_rate_GHz: single number (units GHz) specifying heating rate,
                 either per qubit, or global value for all.
                 Given a rate gh, the Lindblad op will be sqrt(gh)*a^dag
-                (where a is annihilation), so that the heating Lindbldian is
+                (where a is annihilation), so that the heating Lindbladian is
                 gh(a^dag • a - 0.5{a*a^dag, •}).
             cool_rate_GHz: single number (units GHz) specifying cooling rate,
                 either per qubit, or global value for all.
                 Given a rate gc, the Lindblad op will be sqrt(gc)*a
-                so that the cooling Lindbldian is gc(a • a^dag - 0.5{n, •})
+                so that the cooling Lindbladian is gc(a • a^dag - 0.5{n, •})
                 This number is equivalent to 1/T1.
             dephase_rate_GHz: single number (units GHz) specifying dephasing
                 rate, either per qubit, or global value for all.
                 Given a rate gd, Lindblad op will be sqrt(2*gd)*n where
-                n = a^dag * a, so that the dephasing Lindbldian is
+                n = a^dag * a, so that the dephasing Lindbladian is
                 2 * gd * (n • n - 0.5{n^2, •}).
                 This number is equivalent to 1/Tphi.
             require_physical_tag: whether to only apply noise to operations

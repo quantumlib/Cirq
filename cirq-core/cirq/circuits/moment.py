@@ -192,6 +192,9 @@ class Moment:
         """
         flattened_contents = tuple(op_tree.flatten_to_ops(contents))
 
+        if not flattened_contents:
+            return self
+
         m = Moment()
         # Use private variables to facilitate a quick copy.
         m._qubit_to_op = self._qubit_to_op.copy()
