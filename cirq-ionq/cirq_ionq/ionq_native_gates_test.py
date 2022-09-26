@@ -82,7 +82,7 @@ def test_gpi_inverse(phase):
     gate = ionq.GPIGate(phi=phase)
     mat = cirq.protocols.unitary(gate)
 
-    gate_inverse = gate ** -1
+    gate_inverse = gate**-1
     mat_inverse = cirq.protocols.unitary(gate_inverse)
 
     numpy.testing.assert_array_almost_equal(mat.dot(mat_inverse), numpy.identity(2))
@@ -94,7 +94,7 @@ def test_gpi2_inverse(phase):
     gate = ionq.GPI2Gate(phi=phase)
     mat = cirq.protocols.unitary(gate)
 
-    gate_inverse = gate ** -1
+    gate_inverse = gate**-1
     mat_inverse = cirq.protocols.unitary(gate_inverse)
 
     numpy.testing.assert_array_almost_equal(mat.dot(mat_inverse), numpy.identity(2))
@@ -108,7 +108,7 @@ def test_ms_inverse(phases):
     gate = ionq.MSGate(phi0=phases[0], phi1=phases[1])
     mat = cirq.protocols.unitary(gate)
 
-    gate_inverse = gate ** -1
+    gate_inverse = gate**-1
     mat_inverse = cirq.protocols.unitary(gate_inverse)
 
     numpy.testing.assert_array_almost_equal(mat.dot(mat_inverse), numpy.identity(4))
