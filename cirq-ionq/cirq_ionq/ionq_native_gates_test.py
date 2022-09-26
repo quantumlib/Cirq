@@ -76,39 +76,69 @@ def test_ms_unitary(phases):
     numpy.testing.assert_array_almost_equal(mat.dot(mat.conj().T), numpy.identity(4))
 
 
-@pytest.mark.parametrize("phase", [0, 0.1, 0.4, math.pi / 2, math.pi, 2 * math.pi])
-def test_gpi_inverse(phase):
+@pytest.mark.parametrize(
+    "gate,target,phases",
+    [
+        (ionq.GPIGate, numpy.identity(2), {"phi": p})
+        for p in [0, 0.1, 0.4, math.pi / 2, math.pi, 2 * math.pi]
+    ]
+    + [
+        (ionq.GPI2Gate, numpy.identity(2), {"phi": p})
+        for p in [0, 0.1, 0.4, math.pi / 2, math.pi, 2 * math.pi]
+    ]
+    + [
+        (ionq.MSGate, numpy.identity(4), {"phi0": p0, "phi1": p1})
+        for p0, p1 in [
+            (0, 1),
+            (0.1, 1),
+            (0.4, 1),
+            (math.pi / 2, 0),
+            (0, math.pi),
+            (0.1, 2 * math.pi),
+        ]
+    ],
+)
+def test_gate_inverse(gate, target, phases):
     """Tests that the inverse of GPI gate is correct."""
-    gate = ionq.GPIGate(phi=phase)
-    mat = cirq.protocols.unitary(gate)
+    gate_bound = gate(**phases)
+    mat = cirq.protocols.unitary(gate_bound)
+    mat_inverse = cirq.protocols.unitary(gate_bound**-1)
 
-    gate_inverse = gate**-1
-    mat_inverse = cirq.protocols.unitary(gate_inverse)
-
-    numpy.testing.assert_array_almost_equal(mat.dot(mat_inverse), numpy.identity(2))
-
-
-@pytest.mark.parametrize("phase", [0, 0.1, 0.4, math.pi / 2, math.pi, 2 * math.pi])
-def test_gpi2_inverse(phase):
-    """Tests that the inverse of GPI2 gate is correct."""
-    gate = ionq.GPI2Gate(phi=phase)
-    mat = cirq.protocols.unitary(gate)
-
-    gate_inverse = gate**-1
-    mat_inverse = cirq.protocols.unitary(gate_inverse)
-
-    numpy.testing.assert_array_almost_equal(mat.dot(mat_inverse), numpy.identity(2))
+    numpy.testing.assert_array_almost_equal(mat.dot(mat_inverse), target)
 
 
 @pytest.mark.parametrize(
-    "phases", [(0, 1), (0.1, 1), (0.4, 1), (math.pi / 2, 0), (0, math.pi), (0.1, 2 * math.pi)]
+    "gate,phases",
+    [(ionq.GPIGate, {"phi": p}) for p in [0, 0.1, 0.4, math.pi / 2, math.pi, 2 * math.pi]]
+    + [(ionq.GPI2Gate, {"phi": p}) for p in [0, 0.1, 0.4, math.pi / 2, math.pi, 2 * math.pi]]
+    + [
+        (ionq.MSGate, {"phi0": p0, "phi1": p1})
+        for p0, p1 in [
+            (0, 1),
+            (0.1, 1),
+            (0.4, 1),
+            (math.pi / 2, 0),
+            (0, math.pi),
+            (0.1, 2 * math.pi),
+        ]
+    ],
 )
-def test_ms_inverse(phases):
-    """Tests that the inverse of MS gate is correct."""
-    gate = ionq.MSGate(phi0=phases[0], phi1=phases[1])
-    mat = cirq.protocols.unitary(gate)
+def test_gate_power1(gate, phases):
+    """Tests that the inverse of GPI gate is correct."""
+    gate_bound = gate(**phases)
+    mat = cirq.protocols.unitary(gate_bound)
+    mat_power1 = cirq.protocols.unitary(gate_bound**1)
 
-    gate_inverse = gate**-1
-    mat_inverse = cirq.protocols.unitary(gate_inverse)
+    numpy.testing.assert_array_almost_equal(mat, mat_power1)
 
-    numpy.testing.assert_array_almost_equal(mat.dot(mat_inverse), numpy.identity(4))
+
+@pytest.mark.parametrize(
+    "gate,power",
+    [(ionq.GPIGate(phi=0.1), power) for power in [-2, -0.5, 0, 0.5, 2]]
+    + [(ionq.GPI2Gate(phi=0.1), power) for power in [-2, -0.5, 0, 0.5, 2]]
+    + [(ionq.MSGate(phi0=0.1, phi1=0.2), power) for power in [-2, -0.5, 0, 0.5, 2]],
+)
+def test_gate_power_not_implement(gate, power):
+    """Tests that the inverse of GPI gate is correct."""
+    with pytest.raises(TypeError):
+        gate**power
