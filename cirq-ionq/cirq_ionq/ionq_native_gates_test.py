@@ -99,7 +99,7 @@ def test_ms_unitary(phases):
     ],
 )
 def test_gate_inverse(gate, target, phases):
-    """Tests that the inverse of GPI gate is correct."""
+    """Tests that the inverse of natives gate are correct."""
     gate_bound = gate(**phases)
     mat = cirq.protocols.unitary(gate_bound)
     mat_inverse = cirq.protocols.unitary(gate_bound**-1)
@@ -124,7 +124,7 @@ def test_gate_inverse(gate, target, phases):
     ],
 )
 def test_gate_power1(gate, phases):
-    """Tests that the inverse of GPI gate is correct."""
+    """Tests that power=1 for native gates are correct."""
     gate_bound = gate(**phases)
     mat = cirq.protocols.unitary(gate_bound)
     mat_power1 = cirq.protocols.unitary(gate_bound**1)
@@ -138,7 +138,7 @@ def test_gate_power1(gate, phases):
     + [(ionq.GPI2Gate(phi=0.1), power) for power in [-2, -0.5, 0, 0.5, 2]]
     + [(ionq.MSGate(phi0=0.1, phi1=0.2), power) for power in [-2, -0.5, 0, 0.5, 2]],
 )
-def test_gate_power_not_implement(gate, power):
-    """Tests that the inverse of GPI gate is correct."""
+def test_gate_power_not_implemented(gate, power):
+    """Tests that any power other than 1 and -1 is not implemented."""
     with pytest.raises(TypeError):
         gate**power
