@@ -3,7 +3,7 @@ from typing import Iterator
 import pytest
 import httpx
 import httpcore
-from httpcore._types import URL, Headers
+from httpcore._models import HeadersAsSequence
 from cirq_rigetti import get_rigetti_qcs_service, RigettiQCSService
 
 
@@ -28,8 +28,8 @@ def test_rigetti_qcs_service_api_call():
         def request(
             self,
             method: bytes,
-            url: URL,
-            headers: Headers = None,
+            url: httpcore.URL,
+            headers: HeadersAsSequence = None,
             stream: httpcore.SyncByteStream = None,
             ext: dict = None,
         ):
