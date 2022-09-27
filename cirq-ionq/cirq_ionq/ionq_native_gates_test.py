@@ -83,11 +83,11 @@ def test_ms_unitary(phases):
         for p in [0, 0.1, 0.4, math.pi / 2, math.pi, 2 * math.pi]
     ]
     + [
-        (ionq.GPI2Gate, numpy.identity(2), {"phi": p}) # type: ignore
+        (ionq.GPI2Gate, numpy.identity(2), {"phi": p})  # type: ignore
         for p in [0, 0.1, 0.4, math.pi / 2, math.pi, 2 * math.pi]
     ]
     + [
-        (ionq.MSGate, numpy.identity(4), {"phi0": p0, "phi1": p1}) # type: ignore
+        (ionq.MSGate, numpy.identity(4), {"phi0": p0, "phi1": p1})  # type: ignore
         for p0, p1 in [
             (0, 1),
             (0.1, 1),
@@ -110,9 +110,12 @@ def test_gate_inverse(gate, target, phases):
 @pytest.mark.parametrize(
     "gate,phases",
     [(ionq.GPIGate, {"phi": p}) for p in [0, 0.1, 0.4, math.pi / 2, math.pi, 2 * math.pi]]
-    + [(ionq.GPI2Gate, {"phi": p}) for p in [0, 0.1, 0.4, math.pi / 2, math.pi, 2 * math.pi]] # type: ignore
     + [
-        (ionq.MSGate, {"phi0": p0, "phi1": p1}) # type: ignore
+        (ionq.GPI2Gate, {"phi": p})  # type: ignore
+        for p in [0, 0.1, 0.4, math.pi / 2, math.pi, 2 * math.pi]
+    ]
+    + [
+        (ionq.MSGate, {"phi0": p0, "phi1": p1})  # type: ignore
         for p0, p1 in [
             (0, 1),
             (0.1, 1),
@@ -135,8 +138,8 @@ def test_gate_power1(gate, phases):
 @pytest.mark.parametrize(
     "gate,power",
     [(ionq.GPIGate(phi=0.1), power) for power in [-2, -0.5, 0, 0.5, 2]]
-    + [(ionq.GPI2Gate(phi=0.1), power) for power in [-2, -0.5, 0, 0.5, 2]] # type: ignore
-    + [(ionq.MSGate(phi0=0.1, phi1=0.2), power) for power in [-2, -0.5, 0, 0.5, 2]], # type: ignore
+    + [(ionq.GPI2Gate(phi=0.1), power) for power in [-2, -0.5, 0, 0.5, 2]]  # type: ignore
+    + [(ionq.MSGate(phi0=0.1, phi1=0.2), power) for power in [-2, -0.5, 0, 0.5, 2]],  # type: ignore
 )
 def test_gate_power_not_implemented(gate, power):
     """Tests that any power other than 1 and -1 is not implemented."""
