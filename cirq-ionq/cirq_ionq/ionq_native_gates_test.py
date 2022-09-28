@@ -20,6 +20,29 @@ import pytest
 
 import cirq_ionq as ionq
 
+PARAMS_FOR_VALID_GATE_POWER = [
+    (ionq.GPIGate, {"phi": 0}),
+    (ionq.GPIGate, {"phi": 0.1}),
+    (ionq.GPIGate, {"phi": 0.4}),
+    (ionq.GPIGate, {"phi": math.pi / 2}),
+    (ionq.GPIGate, {"phi": math.pi}),
+    (ionq.GPIGate, {"phi": 2 * math.pi}),
+    (ionq.GPI2Gate, {"phi": 0}),
+    (ionq.GPI2Gate, {"phi": 0.1}),
+    (ionq.GPI2Gate, {"phi": 0.4}),
+    (ionq.GPI2Gate, {"phi": math.pi / 2}),
+    (ionq.GPI2Gate, {"phi": math.pi}),
+    (ionq.GPI2Gate, {"phi": 2 * math.pi}),
+    (ionq.MSGate, {"phi0": 0, "phi1": 1}),
+    (ionq.MSGate, {"phi0": 0.1, "phi1": 1}),
+    (ionq.MSGate, {"phi0": 0.4, "phi1": 1}),
+    (ionq.MSGate, {"phi0": math.pi / 2, "phi1": 0}),
+    (ionq.MSGate, {"phi0": 0, "phi1": math.pi}),
+    (ionq.MSGate, {"phi0": 0.1, "phi1": 2 * math.pi}),
+]
+
+INVALID_GATE_POWER = [-2, -0.5, 0, 0.5, 2]
+
 
 @pytest.mark.parametrize(
     "gate,nqubits,diagram",
@@ -76,25 +99,7 @@ def test_ms_unitary(phases):
     numpy.testing.assert_array_almost_equal(mat.dot(mat.conj().T), numpy.identity(4))
 
 
-@pytest.mark.parametrize(
-    "gate,phases",
-    [(ionq.GPIGate, {"phi": p}) for p in [0, 0.1, 0.4, math.pi / 2, math.pi, 2 * math.pi]]
-    + [
-        (ionq.GPI2Gate, {"phi": p})  # type: ignore
-        for p in [0, 0.1, 0.4, math.pi / 2, math.pi, 2 * math.pi]
-    ]
-    + [
-        (ionq.MSGate, {"phi0": p0, "phi1": p1})  # type: ignore
-        for p0, p1 in [
-            (0, 1),
-            (0.1, 1),
-            (0.4, 1),
-            (math.pi / 2, 0),
-            (0, math.pi),
-            (0.1, 2 * math.pi),
-        ]
-    ],
-)
+@pytest.mark.parametrize("gate,phases", PARAMS_FOR_VALID_GATE_POWER)
 def test_gate_inverse(gate, phases):
     """Tests that the inverse of natives gate are correct."""
     gate_bound = gate(**phases)
@@ -105,25 +110,7 @@ def test_gate_inverse(gate, phases):
     numpy.testing.assert_array_almost_equal(mat.dot(mat_inverse), numpy.identity(num_qubits))
 
 
-@pytest.mark.parametrize(
-    "gate,phases",
-    [(ionq.GPIGate, {"phi": p}) for p in [0, 0.1, 0.4, math.pi / 2, math.pi, 2 * math.pi]]
-    + [
-        (ionq.GPI2Gate, {"phi": p})  # type: ignore
-        for p in [0, 0.1, 0.4, math.pi / 2, math.pi, 2 * math.pi]
-    ]
-    + [
-        (ionq.MSGate, {"phi0": p0, "phi1": p1})  # type: ignore
-        for p0, p1 in [
-            (0, 1),
-            (0.1, 1),
-            (0.4, 1),
-            (math.pi / 2, 0),
-            (0, math.pi),
-            (0.1, 2 * math.pi),
-        ]
-    ],
-)
+@pytest.mark.parametrize("gate,phases", PARAMS_FOR_VALID_GATE_POWER)
 def test_gate_power1(gate, phases):
     """Tests that power=1 for native gates are correct."""
     gate_bound = gate(**phases)
@@ -135,9 +122,11 @@ def test_gate_power1(gate, phases):
 
 @pytest.mark.parametrize(
     "gate,power",
-    [(ionq.GPIGate(phi=0.1), power) for power in [-2, -0.5, 0, 0.5, 2]]
-    + [(ionq.GPI2Gate(phi=0.1), power) for power in [-2, -0.5, 0, 0.5, 2]]  # type: ignore
-    + [(ionq.MSGate(phi0=0.1, phi1=0.2), power) for power in [-2, -0.5, 0, 0.5, 2]],  # type: ignore
+    [
+        *[(ionq.GPIGate(phi=0.1), power) for power in INVALID_GATE_POWER],
+        *[(ionq.GPI2Gate(phi=0.1), power) for power in INVALID_GATE_POWER],
+        *[(ionq.MSGate(phi0=0.1, phi1=0.2), power) for power in INVALID_GATE_POWER],
+    ],
 )
 def test_gate_power_not_implemented(gate, power):
     """Tests that any power other than 1 and -1 is not implemented."""
