@@ -20,27 +20,16 @@ import pytest
 
 import cirq_ionq as ionq
 
-PARAMS_FOR_VALID_GATE_POWER = [
-    (ionq.GPIGate, {"phi": 0}),
-    (ionq.GPIGate, {"phi": 0.1}),
-    (ionq.GPIGate, {"phi": 0.4}),
-    (ionq.GPIGate, {"phi": math.pi / 2}),
-    (ionq.GPIGate, {"phi": math.pi}),
-    (ionq.GPIGate, {"phi": 2 * math.pi}),
-    (ionq.GPI2Gate, {"phi": 0}),
-    (ionq.GPI2Gate, {"phi": 0.1}),
-    (ionq.GPI2Gate, {"phi": 0.4}),
-    (ionq.GPI2Gate, {"phi": math.pi / 2}),
-    (ionq.GPI2Gate, {"phi": math.pi}),
-    (ionq.GPI2Gate, {"phi": 2 * math.pi}),
-    (ionq.MSGate, {"phi0": 0, "phi1": 1}),
-    (ionq.MSGate, {"phi0": 0.1, "phi1": 1}),
-    (ionq.MSGate, {"phi0": 0.4, "phi1": 1}),
-    (ionq.MSGate, {"phi0": math.pi / 2, "phi1": 0}),
-    (ionq.MSGate, {"phi0": 0, "phi1": math.pi}),
-    (ionq.MSGate, {"phi0": 0.1, "phi1": 2 * math.pi}),
-]
 
+PARAMS_FOR_ONE_ANGLE_GATE = [0, 0.1, 0.4, math.pi / 2, math.pi, 2 * math.pi]
+PARAMS_FOR_TWO_ANGLE_GATE = [
+    (0, 1),
+    (0.1, 1),
+    (0.4, 1),
+    (math.pi / 2, 0),
+    (0, math.pi),
+    (0.1, 2 * math.pi),
+]
 INVALID_GATE_POWER = [-2, -0.5, 0, 0.5, 2]
 
 
@@ -99,23 +88,35 @@ def test_ms_unitary(phases):
     numpy.testing.assert_array_almost_equal(mat.dot(mat.conj().T), numpy.identity(4))
 
 
-@pytest.mark.parametrize("gate,phases", PARAMS_FOR_VALID_GATE_POWER)
-def test_gate_inverse(gate, phases):
+@pytest.mark.parametrize(
+    "gate",
+    [
+        *[ionq.GPIGate(phi=angle) for angle in PARAMS_FOR_ONE_ANGLE_GATE],
+        *[ionq.GPI2Gate(phi=angle) for angle in PARAMS_FOR_ONE_ANGLE_GATE],
+        *[ionq.MSGate(phi0=angles[0], phi1=angles[1]) for angles in PARAMS_FOR_TWO_ANGLE_GATE],
+    ],
+)
+def test_gate_inverse(gate):
     """Tests that the inverse of natives gate are correct."""
-    gate_bound = gate(**phases)
-    mat = cirq.protocols.unitary(gate_bound)
-    mat_inverse = cirq.protocols.unitary(gate_bound**-1)
+    mat = cirq.protocols.unitary(gate)
+    mat_inverse = cirq.protocols.unitary(gate**-1)
     num_qubits = mat.shape[0]
 
     numpy.testing.assert_array_almost_equal(mat.dot(mat_inverse), numpy.identity(num_qubits))
 
 
-@pytest.mark.parametrize("gate,phases", PARAMS_FOR_VALID_GATE_POWER)
-def test_gate_power1(gate, phases):
+@pytest.mark.parametrize(
+    "gate",
+    [
+        *[ionq.GPIGate(phi=angle) for angle in PARAMS_FOR_ONE_ANGLE_GATE],
+        *[ionq.GPI2Gate(phi=angle) for angle in PARAMS_FOR_ONE_ANGLE_GATE],
+        *[ionq.MSGate(phi0=angles[0], phi1=angles[1]) for angles in PARAMS_FOR_TWO_ANGLE_GATE],
+    ],
+)
+def test_gate_power1(gate):
     """Tests that power=1 for native gates are correct."""
-    gate_bound = gate(**phases)
-    mat = cirq.protocols.unitary(gate_bound)
-    mat_power1 = cirq.protocols.unitary(gate_bound**1)
+    mat = cirq.protocols.unitary(gate)
+    mat_power1 = cirq.protocols.unitary(gate**1)
 
     numpy.testing.assert_array_almost_equal(mat, mat_power1)
 
