@@ -100,9 +100,9 @@ def test_gate_inverse(gate):
     """Tests that the inverse of natives gate are correct."""
     mat = cirq.protocols.unitary(gate)
     mat_inverse = cirq.protocols.unitary(gate**-1)
-    num_qubits = mat.shape[0]
+    dim = mat.shape[0]
 
-    numpy.testing.assert_array_almost_equal(mat.dot(mat_inverse), numpy.identity(num_qubits))
+    numpy.testing.assert_array_almost_equal(mat.dot(mat_inverse), numpy.identity(dim))
 
 
 @pytest.mark.parametrize(
