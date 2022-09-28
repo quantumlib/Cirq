@@ -77,17 +77,14 @@ def test_ms_unitary(phases):
 
 
 @pytest.mark.parametrize(
-    "gate,target,phases",
-    [
-        (ionq.GPIGate, numpy.identity(2), {"phi": p})
+    "gate,phases",
+    [(ionq.GPIGate, {"phi": p}) for p in [0, 0.1, 0.4, math.pi / 2, math.pi, 2 * math.pi]]
+    + [
+        (ionq.GPI2Gate, {"phi": p})  # type: ignore
         for p in [0, 0.1, 0.4, math.pi / 2, math.pi, 2 * math.pi]
     ]
     + [
-        (ionq.GPI2Gate, numpy.identity(2), {"phi": p})  # type: ignore
-        for p in [0, 0.1, 0.4, math.pi / 2, math.pi, 2 * math.pi]
-    ]
-    + [
-        (ionq.MSGate, numpy.identity(4), {"phi0": p0, "phi1": p1})  # type: ignore
+        (ionq.MSGate, {"phi0": p0, "phi1": p1})  # type: ignore
         for p0, p1 in [
             (0, 1),
             (0.1, 1),
@@ -98,13 +95,14 @@ def test_ms_unitary(phases):
         ]
     ],
 )
-def test_gate_inverse(gate, target, phases):
+def test_gate_inverse(gate, phases):
     """Tests that the inverse of natives gate are correct."""
     gate_bound = gate(**phases)
     mat = cirq.protocols.unitary(gate_bound)
     mat_inverse = cirq.protocols.unitary(gate_bound**-1)
+    num_qubits = mat.shape[0]
 
-    numpy.testing.assert_array_almost_equal(mat.dot(mat_inverse), target)
+    numpy.testing.assert_array_almost_equal(mat.dot(mat_inverse), numpy.identity(num_qubits))
 
 
 @pytest.mark.parametrize(
