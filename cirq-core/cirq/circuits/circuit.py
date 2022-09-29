@@ -1741,11 +1741,15 @@ class Circuit(AbstractCircuit):
                 circuit.
         """
         self._moments: List['cirq.Moment'] = []
+        flattened_contents = tuple(ops.flatten_to_ops_or_moments(contents))
+        if all(isinstance(c, Moment) for c in flattened_contents):
+            self._moments[:] = cast(Iterable[Moment], flattened_contents)
+            return
         with _compat.block_overlapping_deprecation('.*'):
             if strategy == InsertStrategy.EARLIEST:
-                self._load_contents_with_earliest_strategy(contents)
+                self._load_contents_with_earliest_strategy(flattened_contents)
             else:
-                self.append(contents, strategy=strategy)
+                self.append(flattened_contents, strategy=strategy)
 
     @classmethod
     def _from_moments(cls, moments: Iterable['cirq.Moment']) -> 'Circuit':
