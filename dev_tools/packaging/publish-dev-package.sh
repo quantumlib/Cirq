@@ -62,7 +62,7 @@ if [[ "${EXPECTED_VERSION}" != *dev* ]]; then
   echo -e "\033[31mExpected version must include 'dev'.\033[0m"
   exit 1
 fi
-ACTUAL_VERSION_LINE=$(cat "${PROJECT_NAME}/_version.py" | tail -n 1)
+ACTUAL_VERSION_LINE=$(tail -n 1 "${PROJECT_NAME}/_version.py")
 if [ "${ACTUAL_VERSION_LINE}" != '__version__ = "'"${EXPECTED_VERSION}"'"' ]; then
   echo -e "\033[31mExpected version (${EXPECTED_VERSION}) didn't match the one in ${PROJECT_NAME}/_version.py (${ACTUAL_VERSION_LINE}).\033[0m"
   exit 1
