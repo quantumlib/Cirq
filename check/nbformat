@@ -36,7 +36,7 @@ FORMAT_CMD="python3 -m tensorflow_docs.tools.nbfmt --indent=1"
 # Test the notebooks
 unformatted=$($FORMAT_CMD --test docs 2>&1 | grep "\- docs" || true)
 needed_changes=0
-if [ ! -z "${unformatted}" ]; then
+if [ -n "${unformatted}" ]; then
     needed_changes=1
     if (( only_print == 0 )); then
         $FORMAT_CMD docs

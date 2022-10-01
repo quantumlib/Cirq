@@ -30,7 +30,7 @@ topdir="$(git -C "${thisdir}" rev-parse --show-toplevel)" || exit $?
 cd "${topdir}" || exit $?
 
 # Figure out which revision to compare against.
-if [ ! -z "$1" ] && [[ $1 != -* ]]; then
+if [ -n "$1" ] && [[ $1 != -* ]]; then
     if [ "$(git cat-file -t $1 2> /dev/null)" != "commit" ]; then
         echo -e "\033[31mNo revision '$1'.\033[0m" >&2
         exit 1
