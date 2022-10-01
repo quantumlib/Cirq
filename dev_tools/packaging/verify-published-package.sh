@@ -72,8 +72,6 @@ trap "{ rm -rf ${tmp_dir}; }" EXIT
 # Test python 3 versions.
 for PYTHON_VERSION in python3; do
     # Prepare.
-    CORE_DEPS_FILE="${REPO_ROOT}/cirq-core/requirements.txt"
-    GOOGLE_DEPS_FILE="${REPO_ROOT}/cirq-google/requirements.txt"
     CONTRIB_DEPS_FILE="${REPO_ROOT}/cirq-core/cirq/contrib/requirements.txt"
     DEV_DEPS_FILE="${REPO_ROOT}/dev_tools/requirements/deps/dev-tools.txt"
 
