@@ -299,7 +299,7 @@ def apply_matrix_to_slices(
         for j, s_j in enumerate(slices):
             if i != j:
                 if matrix[i, j] == 1:
-                    out[s_i] += target[s_j]
+                    out[s_i] += target[s_j]  # type: ignore[index]
                 elif matrix[i, j] != 0:
                     out[s_i] += target[s_j] * matrix[i, j]  # type: ignore[index]
 
