@@ -112,7 +112,8 @@ tmp_package_dir=$(mktemp -d "/tmp/publish-dev-package_package.XXXXXXXXXXXXXXXX")
 trap '{ rm -rf "${tmp_package_dir}"; }' EXIT
 
 # Configure to push to a pre-release package of cirq.
-export CIRQ_PRE_RELEASE_VERSION=$(dev_tools/packaging/generate-dev-version-id.sh)
+export CIRQ_PRE_RELEASE_VERSION
+CIRQ_PRE_RELEASE_VERSION=$(dev_tools/packaging/generate-dev-version-id.sh)
 
 # Produce packages.
 dev_tools/packaging/produce-package.sh "${tmp_package_dir}" "${UPLOAD_VERSION}"
