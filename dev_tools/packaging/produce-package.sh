@@ -46,7 +46,7 @@ if [ -n "$(git status --short)" ]; then
     echo -e "\033[31mWARNING: You have uncommitted changes. They won't be included in the package.\033[0m"
 fi
 tmp_git_dir=$(mktemp -d "/tmp/produce-package-git.XXXXXXXXXXXXXXXX")
-trap "{ rm -rf ${tmp_git_dir}; }" EXIT
+trap '{ rm -rf "${tmp_git_dir}"; }' EXIT
 cd "${tmp_git_dir}"
 git init --quiet
 git fetch "${repo_dir}" HEAD --quiet --depth=1

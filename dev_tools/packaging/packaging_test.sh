@@ -24,7 +24,7 @@ set -e
 
 # Temporary workspace.
 tmp_dir=$(mktemp -d)
-trap "{ rm -rf ${tmp_dir}; }" EXIT
+trap '{ rm -rf "${tmp_dir}"; }' EXIT
 
 # New virtual environment
 echo "Working in a fresh virtualenv at ${tmp_dir}/env"

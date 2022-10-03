@@ -109,7 +109,7 @@ cd "$(git rev-parse --show-toplevel)"
 
 # Temporary workspace.
 tmp_package_dir=$(mktemp -d "/tmp/publish-dev-package_package.XXXXXXXXXXXXXXXX")
-trap "{ rm -rf ${tmp_package_dir}; }" EXIT
+trap '{ rm -rf "${tmp_package_dir}"; }' EXIT
 
 # Configure to push to a pre-release package of cirq.
 export CIRQ_PRE_RELEASE_VERSION=$(dev_tools/packaging/generate-dev-version-id.sh)
