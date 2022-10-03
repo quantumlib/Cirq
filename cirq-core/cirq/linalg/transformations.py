@@ -153,8 +153,7 @@ def targeted_left_multiply(
         for i in range(k):
             source_slices[target_axes[i]] = slice(index[k + i], index[k + i] + 1)
             target_slices[target_axes[i]] = slice(index[i], index[i] + 1)
-        proj = right_target[tuple(source_slices)]  # type: ignore
-        out[tuple(target_slices)] = proj * left_matrix[index]  # type: ignore
+        out[tuple(target_slices)] = right_target[tuple(source_slices)] * left_matrix[index]
         return out
 
     work_indices = tuple(range(k))
