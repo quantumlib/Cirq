@@ -86,12 +86,14 @@ class ParameterizedResult(google___protobuf___message___Message):
 
 class MeasurementResult(google___protobuf___message___Message):
     key = ... # type: typing___Text
+    instances = ... # type: int
 
     @property
     def qubit_measurement_results(self) -> google___protobuf___internal___containers___RepeatedCompositeFieldContainer[QubitMeasurementResult]: ...
 
     def __init__(self,
         key : typing___Optional[typing___Text] = None,
+        instances : typing___Optional[int] = None,
         qubit_measurement_results : typing___Optional[typing___Iterable[QubitMeasurementResult]] = None,
         ) -> None: ...
     @classmethod
@@ -99,9 +101,9 @@ class MeasurementResult(google___protobuf___message___Message):
     def MergeFrom(self, other_msg: google___protobuf___message___Message) -> None: ...
     def CopyFrom(self, other_msg: google___protobuf___message___Message) -> None: ...
     if sys.version_info >= (3,):
-        def ClearField(self, field_name: typing_extensions___Literal[u"key",u"qubit_measurement_results"]) -> None: ...
+        def ClearField(self, field_name: typing_extensions___Literal[u"instances",u"key",u"qubit_measurement_results"]) -> None: ...
     else:
-        def ClearField(self, field_name: typing_extensions___Literal[b"key",b"qubit_measurement_results"]) -> None: ...
+        def ClearField(self, field_name: typing_extensions___Literal[b"instances",b"key",b"qubit_measurement_results"]) -> None: ...
 
 class QubitMeasurementResult(google___protobuf___message___Message):
     results = ... # type: bytes
