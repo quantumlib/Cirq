@@ -141,6 +141,21 @@ def targeted_left_multiply(
 
     k = len(target_axes)
     d = len(right_target.shape)
+    nonzeros = np.flatnonzero(left_matrix)
+    if len(nonzeros) == 1:
+        index = np.unravel_index(nonzeros[0], left_matrix.shape)
+        if out is None:
+            out = np.zeros_like(right_target)
+        else:
+            out[...] = 0
+        source_slices = [slice(None)] * d
+        target_slices = [slice(None)] * d
+        for i in range(k):
+            source_slices[target_axes[i]] = slice(index[k + i], index[k + i] + 1)
+            target_slices[target_axes[i]] = slice(index[i], index[i] + 1)
+        out[target_slices] = right_target[source_slices] * left_matrix[index]
+        return out
+
     work_indices = tuple(range(k))
     data_indices = tuple(range(k, k + d))
     used_data_indices = tuple(data_indices[q] for q in target_axes)
