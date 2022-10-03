@@ -69,7 +69,7 @@ if [ "${ACTUAL_VERSION_LINE}" != '__version__ = "'"${EXPECTED_VERSION}"'"' ]; th
 fi
 
 if [ -z "${PROD_SWITCH}" ] || [ "${PROD_SWITCH}" = "--test" ]; then
-    PYPI_REPOSITORY_FLAG="--repository-url=https://test.pypi.org/legacy/"
+    PYPI_REPOSITORY_FLAG=( "--repository-url=https://test.pypi.org/legacy/" )
     PYPI_REPO_NAME="TEST"
     USERNAME="${TEST_TWINE_USERNAME}"
     PASSWORD="${TEST_TWINE_PASSWORD}"
@@ -82,7 +82,7 @@ if [ -z "${PROD_SWITCH}" ] || [ "${PROD_SWITCH}" = "--test" ]; then
       exit 1
     fi
 elif [ "${PROD_SWITCH}" = "--prod" ]; then
-    PYPI_REPOSITORY_FLAG=''
+    PYPI_REPOSITORY_FLAG=( )
     PYPI_REPO_NAME="PROD"
     USERNAME="${PROD_TWINE_USERNAME}"
     PASSWORD="${PROD_TWINE_PASSWORD}"
@@ -116,6 +116,6 @@ export CIRQ_PRE_RELEASE_VERSION=$(dev_tools/packaging/generate-dev-version-id.sh
 
 # Produce packages.
 dev_tools/packaging/produce-package.sh "${tmp_package_dir}" "${UPLOAD_VERSION}"
-twine upload --username="${USERNAME}" --password="${PASSWORD}" ${PYPI_REPOSITORY_FLAG} "${tmp_package_dir}/*"
+twine upload --username="${USERNAME}" --password="${PASSWORD}" "${PYPI_REPOSITORY_FLAG[@]}" "${tmp_package_dir}/*"
 
 echo -e "\033[32mUploaded package with version ${UPLOAD_VERSION} to ${PYPI_REPO_NAME} pypi repository\033[0m"

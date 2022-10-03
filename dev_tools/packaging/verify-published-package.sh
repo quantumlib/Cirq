@@ -88,7 +88,7 @@ for PYTHON_VERSION in python3; do
     "${tmp_dir}/${PYTHON_VERSION}/bin/python" -c "import cirq; print(cirq.Circuit(cirq.CZ(*cirq.LineQubit.range(2))))"
 
     # Install pytest + dev deps.
-    "${tmp_dir}/${PYTHON_VERSION}/bin/pip" install -r ${DEV_DEPS_FILE}
+    "${tmp_dir}/${PYTHON_VERSION}/bin/pip" install -r "${DEV_DEPS_FILE}"
 
     # Run tests.
     PY_VER=$(ls "${tmp_dir}/${PYTHON_VERSION}/lib")

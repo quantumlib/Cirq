@@ -45,7 +45,7 @@ for arg in "$@"; do
     elif [[ "${arg}" == "--apply-format-changes" ]]; then
         apply_arg="--apply"
     elif [ -z "${rev}" ]; then
-        if [ "$(git cat-file -t ${arg} 2> /dev/null)" != "commit" ]; then
+        if [ "$(git cat-file -t "${arg}" 2> /dev/null)" != "commit" ]; then
             echo -e "\033[31mNo revision '${arg}'.\033[0m" >&2
             exit 1
         fi

@@ -65,7 +65,7 @@ CIRQ_MODULES=$(env PYTHONPATH=. python dev_tools/modules.py list --mode folder -
 
 for m in $CIRQ_MODULES; do
   echo "processing $m/setup.py..."
-  cd $m
+  cd "$m"
   python3 setup.py -q bdist_wheel -d "${out_dir}"
   cd ..
 done

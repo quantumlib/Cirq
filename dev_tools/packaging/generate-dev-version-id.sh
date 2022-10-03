@@ -42,7 +42,7 @@ cd "${repo_dir}"
 PROJECT_NAME=cirq-core/cirq
 
 ACTUAL_VERSION_LINE=$(tail -n 1 "${PROJECT_NAME}/_version.py")
-ACTUAL_VERSION=$(echo $ACTUAL_VERSION_LINE | cut -d'"' -f 2)
+ACTUAL_VERSION=$(echo "$ACTUAL_VERSION_LINE" | cut -d'"' -f 2)
 
 if [[ ${ACTUAL_VERSION} == *"dev" ]]; then
   echo "${ACTUAL_VERSION}$(date "+%Y%m%d%H%M%S")"
