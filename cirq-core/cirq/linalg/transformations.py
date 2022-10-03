@@ -143,6 +143,8 @@ def targeted_left_multiply(
     d = len(right_target.shape)
     nonzeros = np.flatnonzero(left_matrix)
     if len(nonzeros) == 1:
+        # This is just moving a slice from one place to another with everything else zeros, and an
+        # optional rescale. More efficient to operate on slices directly than do a full einsum.
         index = np.unravel_index(nonzeros[0], left_matrix.shape)
         if out is None:
             out = np.zeros_like(right_target)
@@ -153,7 +155,10 @@ def targeted_left_multiply(
         for i in range(k):
             source_slices[target_axes[i]] = index[k + i]
             target_slices[target_axes[i]] = index[i]
-        out[tuple(target_slices)] = right_target[tuple(source_slices)] * left_matrix[index]
+        sleis = right_target[tuple(source_slices)]
+        if left_matrix[index] != 1:
+            sleis *= left_matrix[index]
+        out[tuple(target_slices)] = sleis
         return out
 
     work_indices = tuple(range(k))
