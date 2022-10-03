@@ -192,7 +192,7 @@ def test_targeted_conjugate_simple():
         np.array([1, 2, 3, 4,
                   5, 6, 7, 8,
                   9, 10, 11, 12,
-                  13, 14, 15, 16], dtype=np.complex),
+                  13, 14, 15, 16], dtype=complex),
         (2,) * 4
     )
     expected = np.reshape(
