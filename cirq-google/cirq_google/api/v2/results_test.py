@@ -180,8 +180,7 @@ def test_results_to_proto_sweep_repetitions():
     trial_results = [
         [
             cirq.ResultDict(
-                params=cirq.ParamResolver({'i': 0}),
-                records={'foo': np.array([[[0]]], dtype=bool)},
+                params=cirq.ParamResolver({'i': 0}), records={'foo': np.array([[[0]]], dtype=bool)}
             ),
             cirq.ResultDict(
                 params=cirq.ParamResolver({'i': 1}),
@@ -196,7 +195,11 @@ def test_results_to_proto_sweep_repetitions():
 def test_results_from_proto_qubit_ordering():
     measurements = [
         v2.MeasureInfo(
-            'foo', [q(0, 0), q(0, 1), q(1, 1)], instances=1, invert_mask=[False, False, False], tags=[]
+            'foo',
+            [q(0, 0), q(0, 1), q(1, 1)],
+            instances=1,
+            invert_mask=[False, False, False],
+            tags=[],
         )
     ]
     proto = v2.result_pb2.Result()
@@ -236,7 +239,11 @@ def test_results_from_proto_qubit_ordering():
 def test_results_from_proto_duplicate_qubit():
     measurements = [
         v2.MeasureInfo(
-            'foo', [q(0, 0), q(0, 1), q(1, 1)], instances=1, invert_mask=[False, False, False], tags=[]
+            'foo',
+            [q(0, 0), q(0, 1), q(1, 1)],
+            instances=1,
+            invert_mask=[False, False, False],
+            tags=[],
         )
     ]
     proto = v2.result_pb2.Result()

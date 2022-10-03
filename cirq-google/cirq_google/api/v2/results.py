@@ -11,7 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from typing import cast, Dict, Hashable, Iterable, Iterator, List, Optional, Sequence, Set
+from typing import cast, Dict, Hashable, Iterable, List, Optional, Sequence
 from collections import Counter, OrderedDict
 import dataclasses
 import numpy as np
@@ -204,8 +204,6 @@ def _trial_sweep_from_proto(
             shape = (msg.repetitions, instances, len(qubit_results))
             records[mr.key] = np.array(ordered_results).transpose().reshape(shape)
         trial_sweep.append(
-            cirq.ResultDict(
-                params=cirq.ParamResolver(dict(pr.params.assignments)), records=records
-            )
+            cirq.ResultDict(params=cirq.ParamResolver(dict(pr.params.assignments)), records=records)
         )
     return trial_sweep
