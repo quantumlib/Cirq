@@ -14,7 +14,7 @@
 
 """Utility methods for transforming matrices or vectors."""
 
-from typing import Tuple, Optional, Sequence, List, Union
+from typing import Any, List, Optional, Sequence, Tuple, Union
 
 import numpy as np
 
@@ -148,11 +148,11 @@ def targeted_left_multiply(
             out = np.zeros_like(right_target)
         else:
             out[...] = 0
-        source_slices = [slice(None)] * d
-        target_slices = [slice(None)] * d
+        source_slices: List[Any] = [slice(None)] * d
+        target_slices: List[Any] = [slice(None)] * d
         for i in range(k):
-            source_slices[target_axes[i]] = slice(index[k + i], index[k + i] + 1)
-            target_slices[target_axes[i]] = slice(index[i], index[i] + 1)
+            source_slices[target_axes[i]] = index[k + i]
+            target_slices[target_axes[i]] = index[i]
         out[tuple(target_slices)] = right_target[tuple(source_slices)] * left_matrix[index]
         return out
 
