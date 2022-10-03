@@ -30,7 +30,7 @@ landing_page:
       - heading: Quantum Virtual Machine
         description: Build and use a QVM with a virtual Engine and realistic noise model.
         path: /cirq/simulate/quantum_virtual_machine
-      - heading: QVM Circuit Preparation
+      - heading: QVM Basic Example
         description: Prepare and run a circuit on a QVM in detail.
         path: /cirq/simulate/qvm_basic_example
       - heading: QVM Stabilizer Example
