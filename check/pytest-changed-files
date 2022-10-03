@@ -33,14 +33,14 @@ topdir="$(git -C "${thisdir}" rev-parse --show-toplevel)" || exit $?
 cd "${topdir}" || exit $?
 
 # Figure out which branch to compare against.
-rest=$@
+rest=( "$@" )
 if [ -n "$1" ] && [[ $1 != -* ]]; then
     if [ "$(git cat-file -t "$1" 2> /dev/null)" != "commit" ]; then
         echo -e "\033[31mNo revision '$1'.\033[0m" >&2
         exit 1
     fi
     rev=$1
-    rest=${@:2}
+    rest=( "${@:2}" )
 elif [ "$(git cat-file -t upstream/master 2> /dev/null)" == "commit" ]; then
     rev=upstream/master
 elif [ "$(git cat-file -t origin/master 2> /dev/null)" == "commit" ]; then
@@ -78,4 +78,4 @@ fi
 
 source dev_tools/pypath
 
-pytest ${rest} "${changed[@]}"
+pytest "${rest[@]}" "${changed[@]}"
