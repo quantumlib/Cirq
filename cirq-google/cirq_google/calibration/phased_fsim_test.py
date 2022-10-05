@@ -269,6 +269,7 @@ def test_xeb_to_calibration_layer():
     layer_str = str(new_layer)
     # Fix precision issues
     layer_str = re.sub(r'0.004999\d+', '0.005', layer_str)
+    layer_str = re.sub(r'\b0.78539818\d*', '0.7853982', layer_str)
     assert layer_str == desired_textproto
 
 
