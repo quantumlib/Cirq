@@ -22,7 +22,8 @@
 ################################################################################
 
 # Get the working directory to the repo root.
-cd "$(dirname "${BASH_SOURCE[0]}")"
-cd "$(git rev-parse --show-toplevel)"
+thisdir="$(dirname "${BASH_SOURCE[0]}")" || exit $?
+topdir="$(git -C "${thisdir}" rev-parse --show-toplevel)" || exit $?
+cd "${topdir}" || exit $?
 
 check/npm run coverage "$@"
