@@ -236,8 +236,8 @@ class _ConfusionChannel(ops.Gate):
     r"""The quantum equivalent of a confusion matrix.
 
     For a classical confusion matrix, the quantum equivalent is a channel that can be calculated
-    by transposing the matrix, square-rooting each term, and forming a Kraus sequence of each term
-    individually and the rest zeroed out. For example, consider the confusion matrix
+    by transposing the matrix, taking the square root of each term, and forming a Kraus sequence
+    of each term individually and the rest zeroed out. For example, consider the confusion matrix
 
     $$
     \begin{aligned}
