@@ -233,37 +233,83 @@ def drop_terminal_measurements(
 
 
 class _ConfusionChannel(ops.Gate):
-    """The quantum equivalent of a confusion matrix.
+    r"""The quantum equivalent of a confusion matrix.
 
     For a classical confusion matrix, the quantum equivalent is a Kraus channel can be calculated
     by transposing the matrix, square-rooting each term, and forming a Kraus sequence of each term
-    individually and the rest zeroed out. For example, consider the confusion matrix.
+    individually and the rest zeroed out. For example, consider the confusion matrix
 
-    CM = [[0.8, 0.2],
-          [0.1, 0.9]]
+    $$
+    \begin{aligned}
+    M_C =& \begin{bmatrix}
+               0.8 & 0.2  \\
+               0.1 & 0.9
+           \end{bmatrix}
+    \end{aligned}
+    $$
 
-    If `a` and `b (= 1-a)` are probabilities of two possible classical states for a measurement,
+    If $a$ and $b (= 1-a)$ are probabilities of two possible classical states for a measurement,
     the confusion matrix operates on those probabilities as
 
-    [a, b] @ CM = [0.8a + 0.1b, 0.2a + 0.9b].
+    $$
+    (a, b) M_C = (0.8a + 0.1b, 0.2a + 0.9b)
+    $$
 
     This is equivalent to the following Kraus representation operating on a diagonal of a density
     matrix:
 
-    DM = [[a, ?],
-          [?, b]]
-
-    KR = [[[sqrt(0.8), 0],
-           [0,         0]],
-          [[0, sqrt(0.1)],
-           [0,         0]],
-          [[0,         0],
-           [sqrt(0.2), 0]],
-          [[0,         0],
-           [0, sqrt(0.9)]]]
-
-    sum(KR @ DM @ KR^T) = [[0.8a + 0.1b, 0          ],
-                           [0,           0.2a + 0.9b]]
+    $$
+    \begin{aligned}
+    M_0 =& \begin{bmatrix}
+               \sqrt{0.8} & 0  \\
+               0 & 0
+           \end{bmatrix}
+    \\
+    M_1 =& \begin{bmatrix}
+               0 & \sqrt{0.1} \\
+               0 & 0
+           \end{bmatrix}
+    \\
+    M_2 =&  \begin{bmatrix}
+               0 & 0 \\
+               \sqrt{0.2} & 0
+            \end{bmatrix}
+    \\
+    M_3 =&  \begin{bmatrix}
+               0 & 0 \\
+               0 & \sqrt{0.9}
+            \end{bmatrix}
+    \end{aligned}
+    \\
+    $$
+    Then for
+    $$
+    \begin{aligned}
+    \rho =& \begin{bmatrix}
+               a & ?  \\
+               ? & b
+           \end{bmatrix}
+    \end{aligned}
+    \\
+    \\
+    $$
+    the evolution of
+    $$
+    \rho \rightarrow M_0 \rho M_0^\dagger
+                       + M_1 \rho M_1^\dagger
+                       + M_2 \rho M_2^\dagger
+                       + M_3 \rho M_3^\dagger
+    $$
+    gives the result
+    $$
+    \begin{aligned}
+    \rho =& \begin{bmatrix}
+               0.8a + 0.1b & 0  \\
+               0 & 0.2a + 0.9b
+           \end{bmatrix}
+    \end{aligned}
+    \\
+    $$
 
     Thus in a deferred measurement scenario, applying this channel to the ancilla qubit will model
     the noise distribution that would have been caused by the confusion matrix. The math
