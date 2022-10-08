@@ -327,6 +327,18 @@ def test_confusion_map():
     assert np.all(result['a'] == result['b'])
 
 
+def test_confusion_map_invert_mask_ordering():
+    q0 = cirq.LineQubit(0)
+    # Confusion map operates sets the measurement to zero, and the invert mask changes it to one.
+    # If these are run out of order then the result would be zero.
+    circuit = cirq.Circuit(
+        cirq.measure(
+            q0, key='a', confusion_map={(0,): np.array([[1, 0], [1, 0]])}, invert_mask=(1,)
+        )
+    )
+    assert_equivalent_to_deferred(circuit)
+
+
 def test_multi_qubit_confusion_map():
     q0, q1, q2 = cirq.LineQubit.range(3)
     circuit = cirq.Circuit(
