@@ -330,16 +330,16 @@ def test_confusion_map():
 def test_confusion_map_density_matrix():
     q0 = cirq.LineQubit(0)
     circuit = cirq.Circuit(
-        cirq.measure(q0, key='a', confusion_map={(0,): np.array([[0, 1], [0, 1]])}), cirq.I(q0)
+        cirq.measure(q0, key='a', confusion_map={(0,): np.array([[0.8, 0.2], [0.6, 0.4]])}),
+        cirq.I(q0),
     )
-    assert_equivalent_to_deferred(circuit)
     deferred = cirq.defer_measurements(circuit)
     rho = cirq.final_density_matrix(deferred)
-    # The ancilla will be flipped to one but the original qubit should still be zero. Depending on
-    # qubit ordering, the density matrix will be one_hot at (1, 1) or (2, 2).
-    assert np.allclose(rho, cirq.one_hot(shape=(4, 4), index=(1, 1), dtype=complex)) or np.allclose(
-        rho, cirq.one_hot(shape=(4, 4), index=(2, 2), dtype=complex)
-    )
+    # The ancilla will be flipped with p=0.2 but the original qubit should still be zero.
+    expected = np.zeros(shape=(4, 4), dtype=complex)
+    expected[0, 0] = 0.8
+    expected[1, 1] = 0.2
+    assert np.allclose(rho, expected)
 
 
 def test_confusion_map_invert_mask_ordering():
