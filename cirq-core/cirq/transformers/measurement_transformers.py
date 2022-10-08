@@ -235,7 +235,7 @@ def drop_terminal_measurements(
 class _ConfusionChannel(ops.Gate):
     r"""The quantum equivalent of a confusion matrix.
 
-    For a classical confusion matrix, the quantum equivalent is a Kraus channel can be calculated
+    For a classical confusion matrix, the quantum equivalent is a channel that can be calculated
     by transposing the matrix, square-rooting each term, and forming a Kraus sequence of each term
     individually and the rest zeroed out. For example, consider the confusion matrix
 
