@@ -329,23 +329,24 @@ def test_confusion_map():
 
 def test_confusion_map_density_matrix():
     q0, q1 = cirq.LineQubit.range(2)
-    p = 0.1  # probability of q0 flip
-    q = 1 - p  # probability not to flip
-    confusion = [[0.8, 0.2], [0.6, 0.4]]
+    p_q0 = 0.3  # probability to measure 1 for q0
+    confusion = np.array([[0.8, 0.2], [0.1, 0.9]])
     circuit = cirq.Circuit(
-        cirq.X(q0) ** (np.arcsin(np.sqrt(p)) * 2 / np.pi),  # unitary flip with probability p
-        cirq.measure(q0, key='a', confusion_map={(0,): np.array(confusion)}),
+        # Rotate q0 such that the probability to measure 1 is p_q0
+        cirq.X(q0) ** (np.arcsin(np.sqrt(p_q0)) * 2 / np.pi),
+        cirq.measure(q0, key='a', confusion_map={(0,): confusion}),
         cirq.X(q1).with_classical_controls('a'),
     )
     deferred = cirq.defer_measurements(circuit)
-    order = (q0, q1, _MeasurementQid('a', q0))
-    rho = cirq.final_density_matrix(deferred, qubit_order=order).reshape((2,) * 6)
+    q_order = (q0, q1, _MeasurementQid('a', q0))
+    rho = cirq.final_density_matrix(deferred, qubit_order=q_order).reshape((2,) * 6)
 
-    # q0 density matrix should be a diagonal with the flip probabilities [q, p].
-    assert np.allclose(cirq.partial_trace(rho, [0]), np.diag([q, p]))
+    # q0 density matrix should be a diagonal with the probabilities [1-p, p].
+    q0_probs = [1 - p_q0, p_q0]
+    assert np.allclose(cirq.partial_trace(rho, [0]), np.diag(q0_probs))
 
     # q1 and the ancilla should both be the q1 probs matmul the confusion matrix.
-    expected = np.diag(np.array([q, p]) @ confusion)
+    expected = np.diag(q0_probs @ confusion)
     assert np.allclose(cirq.partial_trace(rho, [1]), expected)
     assert np.allclose(cirq.partial_trace(rho, [2]), expected)
 
