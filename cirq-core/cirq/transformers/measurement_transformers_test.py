@@ -353,7 +353,7 @@ def test_confusion_map_density_matrix():
 
 def test_confusion_map_invert_mask_ordering():
     q0 = cirq.LineQubit(0)
-    # Confusion map operates sets the measurement to zero, and the invert mask changes it to one.
+    # Confusion map sets the measurement to zero, and the invert mask changes it to one.
     # If these are run out of order then the result would be zero.
     circuit = cirq.Circuit(
         cirq.measure(
