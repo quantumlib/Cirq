@@ -26,12 +26,13 @@
 ################################################################################
 
 # Get the working directory to the repo root.
-cd "$(dirname "${BASH_SOURCE[0]}")"
-cd "$(git rev-parse --show-toplevel)"
+thisdir="$(dirname "${BASH_SOURCE[0]}")" || exit $?
+topdir="$(git -C "${thisdir}" rev-parse --show-toplevel)" || exit $?
+cd "${topdir}" || exit $?
 
 # Figure out which revision to compare against.
-if [ ! -z "$1" ] && [[ $1 != -* ]]; then
-    if [ "$(git cat-file -t $1 2> /dev/null)" != "commit" ]; then
+if [ -n "$1" ] && [[ $1 != -* ]]; then
+    if [ "$(git cat-file -t "$1" 2> /dev/null)" != "commit" ]; then
         echo -e "\033[31mNo revision '$1'.\033[0m" >&2
         exit 1
     fi
@@ -63,7 +64,7 @@ dev_tools/build-protos.sh
 # but the error logic will still work.
 uncommitted=$(git status --porcelain 2>/dev/null | grep -E "^?? cirq-google" | cut -d " " -f 3)
 
-if [[ ! -z "$uncommitted" ]]; then
+if [[ -n "$uncommitted" ]]; then
     echo -e "\033[31mERROR: Uncommitted generated files found! Please generate and commit these files using dev_tools/build-protos.sh:\033[0m"
     for generated in $uncommitted
     do

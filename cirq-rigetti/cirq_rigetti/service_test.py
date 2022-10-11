@@ -1,9 +1,7 @@
 # pylint: disable=wrong-or-nonexistent-copyright-notice
-from typing import Iterator
+from typing import Optional, Iterator
 import pytest
 import httpx
-import httpcore
-from httpcore._types import URL, Headers
 from cirq_rigetti import get_rigetti_qcs_service, RigettiQCSService
 
 
@@ -20,20 +18,13 @@ def test_rigetti_qcs_service_api_call():
     """test that `RigettiQCSService` will use a custom defined client when the
     user specifies one to make an API call."""
 
-    class Response(httpcore.SyncByteStream):
-        def __iter__(self) -> Iterator[bytes]:
+    class Response(httpx.Response):
+        def iter_bytes(self, chunk_size: Optional[int] = None) -> Iterator[bytes]:
             yield b"{\"quantumProcessors\": [{\"id\": \"Aspen-8\"}]}"  # pragma: nocover
 
-    class Transport(httpcore.SyncHTTPTransport):
-        def request(
-            self,
-            method: bytes,
-            url: URL,
-            headers: Headers = None,
-            stream: httpcore.SyncByteStream = None,
-            ext: dict = None,
-        ):
-            return 200, [('Content-Type', 'application/json')], Response(), {}
+    class Transport(httpx.BaseTransport):
+        def handle_request(self, request: httpx.Request) -> httpx.Response:
+            return Response(200)
 
     client = httpx.Client(base_url="https://mock.api.qcs.rigetti.com", transport=Transport())
 

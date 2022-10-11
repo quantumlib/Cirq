@@ -1284,6 +1284,20 @@ class AbstractCircuit(abc.ABC):
     def _parameter_names_(self) -> AbstractSet[str]:
         return {name for op in self.all_operations() for name in protocols.parameter_names(op)}
 
+    def _resolve_parameters_(
+        self: CIRCUIT_TYPE, resolver: 'cirq.ParamResolver', recursive: bool
+    ) -> CIRCUIT_TYPE:
+        changed = False
+        resolved_moments: List['cirq.Moment'] = []
+        for moment in self:
+            resolved_moment = protocols.resolve_parameters(moment, resolver, recursive)
+            if resolved_moment is not moment:
+                changed = True
+            resolved_moments.append(resolved_moment)
+        if not changed:
+            return self
+        return self._from_moments(resolved_moments)
+
     def _qasm_(self) -> str:
         return self.to_qasm()
 
@@ -1727,11 +1741,15 @@ class Circuit(AbstractCircuit):
                 circuit.
         """
         self._moments: List['cirq.Moment'] = []
+        flattened_contents = tuple(ops.flatten_to_ops_or_moments(contents))
+        if all(isinstance(c, Moment) for c in flattened_contents):
+            self._moments[:] = cast(Iterable[Moment], flattened_contents)
+            return
         with _compat.block_overlapping_deprecation('.*'):
             if strategy == InsertStrategy.EARLIEST:
-                self._load_contents_with_earliest_strategy(contents)
+                self._load_contents_with_earliest_strategy(flattened_contents)
             else:
-                self.append(contents, strategy=strategy)
+                self.append(flattened_contents, strategy=strategy)
 
     @classmethod
     def _from_moments(cls, moments: Iterable['cirq.Moment']) -> 'Circuit':
@@ -2377,17 +2395,6 @@ class Circuit(AbstractCircuit):
             if 0 <= k < len(self._moments):
                 self._moments[k] = self._moments[k].without_operations_touching(qubits)
 
-    def _resolve_parameters_(
-        self, resolver: 'cirq.ParamResolver', recursive: bool
-    ) -> 'cirq.Circuit':
-        resolved_moments = []
-        for moment in self:
-            resolved_operations = _resolve_operations(moment.operations, resolver, recursive)
-            new_moment = Moment(resolved_operations)
-            resolved_moments.append(new_moment)
-
-        return Circuit(resolved_moments)
-
     @property
     def moments(self) -> Sequence['cirq.Moment']:
         return self._moments
@@ -2439,15 +2446,6 @@ def _pick_inserted_ops_moment_indices(
             frontier[q] = max(frontier[q], op_start + 1)
 
     return moment_indices, frontier
-
-
-def _resolve_operations(
-    operations: Iterable['cirq.Operation'], param_resolver: 'cirq.ParamResolver', recursive: bool
-) -> List['cirq.Operation']:
-    resolved_operations: List['cirq.Operation'] = []
-    for op in operations:
-        resolved_operations.append(protocols.resolve_parameters(op, param_resolver, recursive))
-    return resolved_operations
 
 
 def _get_moment_annotations(moment: 'cirq.Moment') -> Iterator['cirq.Operation']:
