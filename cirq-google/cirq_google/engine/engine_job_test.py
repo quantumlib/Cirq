@@ -28,7 +28,7 @@ from cirq_google.engine.engine import EngineContext
 from cirq_google.engine.test_utils import uses_async_mock
 
 
-@pytest.fixture(scope='session', autouse=True)
+@pytest.fixture(scope='module', autouse=True)
 def mock_grpc_client():
     with mock.patch(
         'cirq_google.engine.engine_client.quantum.QuantumEngineServiceClient'

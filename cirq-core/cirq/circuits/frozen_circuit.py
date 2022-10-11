@@ -149,11 +149,6 @@ class FrozenCircuit(AbstractCircuit, protocols.SerializableByKey):
         except:
             return NotImplemented
 
-    def _resolve_parameters_(
-        self, resolver: 'cirq.ParamResolver', recursive: bool
-    ) -> 'cirq.FrozenCircuit':
-        return self.unfreeze()._resolve_parameters_(resolver, recursive).freeze()
-
     def concat_ragged(
         *circuits: 'cirq.AbstractCircuit', align: Union['cirq.Alignment', str] = Alignment.LEFT
     ) -> 'cirq.FrozenCircuit':

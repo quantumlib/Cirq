@@ -25,8 +25,9 @@ for arg in "$@"; do
 done
 
 # Get the working directory to the repo root.
-cd "$(dirname "${BASH_SOURCE[0]}")"
-cd "$(git rev-parse --show-toplevel)"
+thisdir="$(dirname "${BASH_SOURCE[0]}")" || exit $?
+topdir="$(git -C "${thisdir}" rev-parse --show-toplevel)" || exit $?
+cd "${topdir}" || exit $?
 
 pip show tensorflow-docs > /dev/null || exit 1
 
@@ -35,7 +36,7 @@ FORMAT_CMD="python3 -m tensorflow_docs.tools.nbfmt --indent=1"
 # Test the notebooks
 unformatted=$($FORMAT_CMD --test docs 2>&1 | grep "\- docs" || true)
 needed_changes=0
-if [ ! -z "${unformatted}" ]; then
+if [ -n "${unformatted}" ]; then
     needed_changes=1
     if (( only_print == 0 )); then
         $FORMAT_CMD docs

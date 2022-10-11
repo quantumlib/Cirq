@@ -62,14 +62,14 @@ if [[ "${EXPECTED_VERSION}" != *dev* ]]; then
   echo -e "\033[31mExpected version must include 'dev'.\033[0m"
   exit 1
 fi
-ACTUAL_VERSION_LINE=$(cat "${PROJECT_NAME}/_version.py" | tail -n 1)
+ACTUAL_VERSION_LINE=$(tail -n 1 "${PROJECT_NAME}/_version.py")
 if [ "${ACTUAL_VERSION_LINE}" != '__version__ = "'"${EXPECTED_VERSION}"'"' ]; then
   echo -e "\033[31mExpected version (${EXPECTED_VERSION}) didn't match the one in ${PROJECT_NAME}/_version.py (${ACTUAL_VERSION_LINE}).\033[0m"
   exit 1
 fi
 
 if [ -z "${PROD_SWITCH}" ] || [ "${PROD_SWITCH}" = "--test" ]; then
-    PYPI_REPOSITORY_FLAG="--repository-url=https://test.pypi.org/legacy/"
+    PYPI_REPOSITORY_FLAG=( "--repository-url=https://test.pypi.org/legacy/" )
     PYPI_REPO_NAME="TEST"
     USERNAME="${TEST_TWINE_USERNAME}"
     PASSWORD="${TEST_TWINE_PASSWORD}"
@@ -82,7 +82,7 @@ if [ -z "${PROD_SWITCH}" ] || [ "${PROD_SWITCH}" = "--test" ]; then
       exit 1
     fi
 elif [ "${PROD_SWITCH}" = "--prod" ]; then
-    PYPI_REPOSITORY_FLAG=''
+    PYPI_REPOSITORY_FLAG=( )
     PYPI_REPO_NAME="PROD"
     USERNAME="${PROD_TWINE_USERNAME}"
     PASSWORD="${PROD_TWINE_PASSWORD}"
@@ -109,13 +109,14 @@ cd "$(git rev-parse --show-toplevel)"
 
 # Temporary workspace.
 tmp_package_dir=$(mktemp -d "/tmp/publish-dev-package_package.XXXXXXXXXXXXXXXX")
-trap "{ rm -rf ${tmp_package_dir}; }" EXIT
+trap '{ rm -rf "${tmp_package_dir}"; }' EXIT
 
 # Configure to push to a pre-release package of cirq.
-export CIRQ_PRE_RELEASE_VERSION=$(dev_tools/packaging/generate-dev-version-id.sh)
+export CIRQ_PRE_RELEASE_VERSION
+CIRQ_PRE_RELEASE_VERSION=$(dev_tools/packaging/generate-dev-version-id.sh)
 
 # Produce packages.
 dev_tools/packaging/produce-package.sh "${tmp_package_dir}" "${UPLOAD_VERSION}"
-twine upload --username="${USERNAME}" --password="${PASSWORD}" ${PYPI_REPOSITORY_FLAG} "${tmp_package_dir}/*"
+twine upload --username="${USERNAME}" --password="${PASSWORD}" "${PYPI_REPOSITORY_FLAG[@]}" "${tmp_package_dir}/*"
 
 echo -e "\033[32mUploaded package with version ${UPLOAD_VERSION} to ${PYPI_REPO_NAME} pypi repository\033[0m"

@@ -276,7 +276,7 @@ def test_make_random_id():
     assert random_id != random_id2
 
 
-@pytest.fixture(scope='session', autouse=True)
+@pytest.fixture(scope='module', autouse=True)
 def mock_grpc_client_async():
     with mock.patch(
         'cirq_google.engine.engine_client.quantum.QuantumEngineServiceAsyncClient', autospec=True
