@@ -3041,6 +3041,23 @@ def test_resolve_parameters(circuit_cls, resolve_fn):
 
 @pytest.mark.parametrize('circuit_cls', [cirq.Circuit, cirq.FrozenCircuit])
 @pytest.mark.parametrize('resolve_fn', [cirq.resolve_parameters, cirq.resolve_parameters_once])
+def test_resolve_parameters_no_change(circuit_cls, resolve_fn):
+    a, b = cirq.LineQubit.range(2)
+    circuit = circuit_cls(cirq.CZ(a, b), cirq.X(a), cirq.Y(b))
+    resolved_circuit = resolve_fn(circuit, cirq.ParamResolver({'u': 0.1, 'v': 0.3, 'w': 0.2}))
+    assert resolved_circuit is circuit
+
+    circuit = circuit_cls(
+        cirq.CZ(a, b) ** sympy.Symbol('u'),
+        cirq.X(a) ** sympy.Symbol('v'),
+        cirq.Y(b) ** sympy.Symbol('w'),
+    )
+    resolved_circuit = resolve_fn(circuit, cirq.ParamResolver({}))
+    assert resolved_circuit is circuit
+
+
+@pytest.mark.parametrize('circuit_cls', [cirq.Circuit, cirq.FrozenCircuit])
+@pytest.mark.parametrize('resolve_fn', [cirq.resolve_parameters, cirq.resolve_parameters_once])
 def test_parameter_names(circuit_cls, resolve_fn):
     a, b = cirq.LineQubit.range(2)
     circuit = circuit_cls(

@@ -12,7 +12,7 @@ layer {
         qubit_constant_index: 1
         fsimgate {
           theta {
-            float_value: 0.7853981852531433
+            float_value: 0.75
           }
           phi {
             float_value: 0.0
@@ -24,7 +24,7 @@ layer {
         qubit_constant_index: 3
         fsimgate {
           theta {
-            float_value: 0.7853981852531433
+            float_value: 0.75
           }
           phi {
             float_value: 0.0
@@ -106,7 +106,7 @@ args {
   key: "fatol"
   value {
     arg_value {
-      float_value: 0.005
+      float_value: 0.0078125
     }
   }
 }
@@ -130,7 +130,7 @@ args {
   key: "xatol"
   value {
     arg_value {
-      float_value: 0.005
+      float_value: 0.0078125
     }
   }
 }

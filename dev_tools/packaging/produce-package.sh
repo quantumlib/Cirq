@@ -42,16 +42,16 @@ repo_dir=$(git rev-parse --show-toplevel)
 cd "${repo_dir}"
 
 # Make a clean copy of HEAD, without files ignored by git (but potentially kept by setup.py).
-if [ ! -z "$(git status --short)" ]; then
+if [ -n "$(git status --short)" ]; then
     echo -e "\033[31mWARNING: You have uncommitted changes. They won't be included in the package.\033[0m"
 fi
 tmp_git_dir=$(mktemp -d "/tmp/produce-package-git.XXXXXXXXXXXXXXXX")
-trap "{ rm -rf ${tmp_git_dir}; }" EXIT
+trap '{ rm -rf "${tmp_git_dir}"; }' EXIT
 cd "${tmp_git_dir}"
 git init --quiet
 git fetch "${repo_dir}" HEAD --quiet --depth=1
 git checkout FETCH_HEAD -b work --quiet
-if [ ! -z "${SPECIFIED_VERSION}" ]; then
+if [ -n "${SPECIFIED_VERSION}" ]; then
     CIRQ_PACKAGES=$(env PYTHONPATH=. python dev_tools/modules.py list --mode package-path)
     for PROJECT_NAME in $CIRQ_PACKAGES; do
       echo '__version__ = "'"${SPECIFIED_VERSION}"'"' > "${tmp_git_dir}/${PROJECT_NAME}/_version.py"
@@ -65,7 +65,7 @@ CIRQ_MODULES=$(env PYTHONPATH=. python dev_tools/modules.py list --mode folder -
 
 for m in $CIRQ_MODULES; do
   echo "processing $m/setup.py..."
-  cd $m
+  cd "$m"
   python3 setup.py -q bdist_wheel -d "${out_dir}"
   cd ..
 done

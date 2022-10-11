@@ -26,7 +26,7 @@ check/ts-build
 # Find the changed bundle.js files, if any
 untracked=$(git status --porcelain 2>/dev/null | grep "cirq-web/cirq_ts/dist/" | cut -d " " -f 3)
 
-if [[ ! -z "$untracked" ]]; then
+if [[ -n "$untracked" ]]; then
     echo -e "\033[31mERROR: Uncommitted changes to bundle file(s) found! Please commit these files:\033[0m"
     for generated in $untracked
     do
