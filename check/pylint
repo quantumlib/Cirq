@@ -8,10 +8,12 @@
 ################################################################################
 
 # Get the working directory to the repo root.
-cd "$(dirname "${BASH_SOURCE[0]}")"
-cd "$(git rev-parse --show-toplevel)"
+thisdir="$(dirname "${BASH_SOURCE[0]}")" || exit $?
+topdir="$(git -C "${thisdir}" rev-parse --show-toplevel)" || exit $?
+cd "${topdir}" || exit $?
 
-CIRQ_MODULES=$(env PYTHONPATH=. python dev_tools/modules.py list --mode package-path)
+read -r -a CIRQ_MODULES < \
+    <(env PYTHONPATH=. python dev_tools/modules.py list --mode package-path)
 
 # Add dev_tools to $PYTHONPATH so that pylint can find custom checkers
-env PYTHONPATH=dev_tools pylint --jobs=0 --rcfile=dev_tools/conf/.pylintrc "$@" $CIRQ_MODULES dev_tools examples
+env PYTHONPATH=dev_tools pylint --jobs=0 --rcfile=dev_tools/conf/.pylintrc "$@" "${CIRQ_MODULES[@]}" dev_tools examples

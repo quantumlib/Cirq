@@ -17,19 +17,19 @@ import pytest
 import sympy
 
 import cirq
-from cirq.transformers.measurement_transformers import _MeasurementQid
+from cirq.transformers.measurement_transformers import _mod_add, _MeasurementQid
 
 
 def assert_equivalent_to_deferred(circuit: cirq.Circuit):
     qubits = list(circuit.all_qubits())
     sim = cirq.Simulator()
     num_qubits = len(qubits)
-    for i in range(2**num_qubits):
-        bits = cirq.big_endian_int_to_bits(i, bit_count=num_qubits)
+    dimensions = [q.dimension for q in qubits]
+    for i in range(np.prod(dimensions)):
+        bits = cirq.big_endian_int_to_digits(i, base=dimensions)
         modified = cirq.Circuit()
         for j in range(num_qubits):
-            if bits[j]:
-                modified.append(cirq.X(qubits[j]))
+            modified.append(cirq.XPowGate(dimension=qubits[j].dimension)(qubits[j]) ** bits[j])
         modified.append(circuit)
         deferred = cirq.defer_measurements(modified)
         result = sim.simulate(modified)
@@ -52,6 +52,27 @@ def test_basic():
         cirq.Circuit(
             cirq.CX(q0, q_ma),
             cirq.CX(q_ma, q1),
+            cirq.measure(q_ma, key='a'),
+            cirq.measure(q1, key='b'),
+        ),
+    )
+
+
+def test_qudits():
+    q0, q1 = cirq.LineQid.range(2, dimension=3)
+    circuit = cirq.Circuit(
+        cirq.measure(q0, key='a'),
+        cirq.XPowGate(dimension=3).on(q1).with_classical_controls('a'),
+        cirq.measure(q1, key='b'),
+    )
+    assert_equivalent_to_deferred(circuit)
+    deferred = cirq.defer_measurements(circuit)
+    q_ma = _MeasurementQid('a', q0)
+    cirq.testing.assert_same_circuits(
+        deferred,
+        cirq.Circuit(
+            _mod_add(q0, q_ma),
+            cirq.XPowGate(dimension=3).on(q1).controlled_by(q_ma, control_values=[[1, 2]]),
             cirq.measure(q_ma, key='a'),
             cirq.measure(q1, key='b'),
         ),

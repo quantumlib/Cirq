@@ -48,9 +48,8 @@ def test_isolated_packages(cloned_env, module):
     )
     assert result.returncode == 0, f"Failed to install {module.name}:\n{result.stderr}"
 
-    # TODO(#5870) - remove --randomly-dont-reorganize after fixing order-related test failures
     result = shell_tools.run(
-        f"{env}/bin/pytest --randomly-dont-reorganize ./{module.root} --ignore ./cirq-core/cirq/contrib".split(),
+        f"{env}/bin/pytest ./{module.root} --ignore ./cirq-core/cirq/contrib".split(),
         capture_output=True,
         check=False,
     )
