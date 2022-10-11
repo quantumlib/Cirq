@@ -382,4 +382,4 @@ def _mod_add(source: 'cirq.Qid', target: 'cirq.Qid') -> 'cirq.Operation':
     # We can use a ModAdd gate in the qudit case, since the ancilla qudit corresponding to the
     # measurement is always zero, so "adding" the measured qudit to it sets the ancilla qudit to
     # the same state, which is the quantum equivalent to a measurement onto a creg.
-    return _ModAdd(source.dimension).on(source, target)\
+    return _ModAdd(source.dimension).on(source, target)
