@@ -67,43 +67,41 @@ REPO_ROOT="$(git rev-parse --show-toplevel)"
 # Temporary workspace.
 tmp_dir=$(mktemp -d "/tmp/verify-published-package.XXXXXXXXXXXXXXXX")
 cd "${tmp_dir}"
-trap "{ rm -rf ${tmp_dir}; }" EXIT
+trap '{ rm -rf "${tmp_dir}"; }' EXIT
 
-# Test python 3 versions.
-for PYTHON_VERSION in python3; do
-    # Prepare.
-    CORE_DEPS_FILE="${REPO_ROOT}/cirq-core/requirements.txt"
-    GOOGLE_DEPS_FILE="${REPO_ROOT}/cirq-google/requirements.txt"
-    CONTRIB_DEPS_FILE="${REPO_ROOT}/cirq-core/cirq/contrib/requirements.txt"
-    DEV_DEPS_FILE="${REPO_ROOT}/dev_tools/requirements/deps/dev-tools.txt"
+# Test installation from published package
+PYTHON_VERSION=python3
 
-    echo -e "\n\033[32m${PYTHON_VERSION}\033[0m"
-    echo "Working in a fresh virtualenv at ${tmp_dir}/${PYTHON_VERSION}"
-    virtualenv --quiet "--python=/usr/bin/${PYTHON_VERSION}" "${tmp_dir}/${PYTHON_VERSION}"
+# Prepare.
+CONTRIB_DEPS_FILE="${REPO_ROOT}/cirq-core/cirq/contrib/requirements.txt"
+DEV_DEPS_FILE="${REPO_ROOT}/dev_tools/requirements/deps/dev-tools.txt"
 
-    echo Installing "${PYPI_PROJECT_NAME}==${PROJECT_VERSION} from ${PYPI_REPO_NAME} pypi"
-    "${tmp_dir}/${PYTHON_VERSION}/bin/pip" install --quiet ${PIP_FLAGS} "${PYPI_PROJECT_NAME}==${PROJECT_VERSION}" --extra-index-url https://pypi.python.org/simple
+echo -e "\n\033[32m${PYTHON_VERSION}\033[0m"
+echo "Working in a fresh virtualenv at ${tmp_dir}/${PYTHON_VERSION}"
+virtualenv --quiet "--python=/usr/bin/${PYTHON_VERSION}" "${tmp_dir}/${PYTHON_VERSION}"
 
-    # Check that code runs without dev deps.
-    echo Checking that code executes
-    "${tmp_dir}/${PYTHON_VERSION}/bin/python" -c "import cirq_google; print(cirq_google.Sycamore)"
-    "${tmp_dir}/${PYTHON_VERSION}/bin/python" -c "import cirq; print(cirq.Circuit(cirq.CZ(*cirq.LineQubit.range(2))))"
+echo Installing "${PYPI_PROJECT_NAME}==${PROJECT_VERSION} from ${PYPI_REPO_NAME} pypi"
+"${tmp_dir}/${PYTHON_VERSION}/bin/pip" install --quiet ${PIP_FLAGS} "${PYPI_PROJECT_NAME}==${PROJECT_VERSION}" --extra-index-url https://pypi.python.org/simple
 
-    # Install pytest + dev deps.
-    "${tmp_dir}/${PYTHON_VERSION}/bin/pip" install -r ${DEV_DEPS_FILE}
+# Check that code runs without dev deps.
+echo Checking that code executes
+"${tmp_dir}/${PYTHON_VERSION}/bin/python" -c "import cirq_google; print(cirq_google.Sycamore)"
+"${tmp_dir}/${PYTHON_VERSION}/bin/python" -c "import cirq; print(cirq.Circuit(cirq.CZ(*cirq.LineQubit.range(2))))"
 
-    # Run tests.
-    PY_VER=$(ls "${tmp_dir}/${PYTHON_VERSION}/lib")
-    echo Running cirq tests
-    cirq_dir="${tmp_dir}/${PYTHON_VERSION}/lib/${PY_VER}/site-packages/${PROJECT_NAME}"
-    "${tmp_dir}/${PYTHON_VERSION}/bin/pytest" --quiet --disable-pytest-warnings --ignore="${cirq_dir}/contrib" "${cirq_dir}"
+# Install pytest + dev deps.
+"${tmp_dir}/${PYTHON_VERSION}/bin/pip" install -r "${DEV_DEPS_FILE}"
 
-    echo "Installing contrib dependencies"
-    "${tmp_dir}/${PYTHON_VERSION}/bin/pip" install --quiet -r "${CONTRIB_DEPS_FILE}"
+# Run tests.
+PY_VER=$(ls "${tmp_dir}/${PYTHON_VERSION}/lib")
+echo Running cirq tests
+cirq_dir="${tmp_dir}/${PYTHON_VERSION}/lib/${PY_VER}/site-packages/${PROJECT_NAME}"
+"${tmp_dir}/${PYTHON_VERSION}/bin/pytest" --quiet --disable-pytest-warnings --ignore="${cirq_dir}/contrib" "${cirq_dir}"
 
-    echo "Running contrib tests"
-    "${tmp_dir}/${PYTHON_VERSION}/bin/pytest" --quiet --disable-pytest-warnings "${cirq_dir}/contrib"
-done
+echo "Installing contrib dependencies"
+"${tmp_dir}/${PYTHON_VERSION}/bin/pip" install --quiet -r "${CONTRIB_DEPS_FILE}"
+
+echo "Running contrib tests"
+"${tmp_dir}/${PYTHON_VERSION}/bin/pytest" --quiet --disable-pytest-warnings "${cirq_dir}/contrib"
 
 echo
 echo -e '\033[32mVERIFIED\033[0m'
