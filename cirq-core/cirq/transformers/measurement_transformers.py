@@ -13,7 +13,7 @@
 # limitations under the License.
 
 import itertools
-from typing import Any, Dict, List, Optional, TYPE_CHECKING, Union
+from typing import Any, Dict, List, Optional, Tuple, TYPE_CHECKING, Union
 
 from cirq import ops, protocols, value
 from cirq.transformers import transformer_api, transformer_primitives
@@ -46,7 +46,7 @@ class _MeasurementQid(ops.Qid):
         return self._qid.dimension
 
     def _comparison_key(self) -> Any:
-        return (str(self._key), self._qid._comparison_key())
+        return str(self._key), self._qid._comparison_key()
 
     def __str__(self) -> str:
         return f"M('{self._key}', q={self._qid})"
@@ -104,7 +104,7 @@ def defer_measurements(
             key = value.MeasurementKey.parse_serialized(gate.key)
             targets = [_MeasurementQid(key, q) for q in op.qubits]
             measurement_qubits[key] = targets
-            cxs = [ops.CX(q, target) for q, target in zip(op.qubits, targets)]
+            cxs = [_mod_add(q, target) for q, target in zip(op.qubits, targets)]
             xs = [ops.X(targets[i]) for i, b in enumerate(gate.full_invert_mask()) if b]
             return cxs + xs
         elif protocols.is_measurement(op):
@@ -117,7 +117,7 @@ def defer_measurements(
                         raise ValueError(f'Deferred measurement for key={c.key} not found.')
                     qs = measurement_qubits[c.key]
                     if len(qs) == 1:
-                        control_values: Any = range(1, qs[0].dimension)
+                        control_values: Any = [range(1, qs[0].dimension)]
                     else:
                         all_values = itertools.product(*[range(q.dimension) for q in qs])
                         anything_but_all_zeros = tuple(itertools.islice(all_values, 1, None))
@@ -227,3 +227,38 @@ def drop_terminal_measurements(
     return transformer_primitives.map_operations(
         circuit, flip_inversion, deep=context.deep if context else True, tags_to_ignore=ignored
     ).unfreeze()
+
+
+@value.value_equality
+class _ModAdd(ops.ArithmeticGate):
+    """Adds two qudits of the same dimension.
+
+    Operates on two qudits by modular addition:
+
+    |a,b> -> |a,a+b mod d>"""
+
+    def __init__(self, dimension: int):
+        self._dimension = dimension
+
+    def registers(self) -> Tuple[Tuple[int], Tuple[int]]:
+        return (self._dimension,), (self._dimension,)
+
+    def with_registers(self, *new_registers) -> '_ModAdd':
+        raise NotImplementedError()
+
+    def apply(self, *register_values: int) -> Tuple[int, int]:
+        return register_values[0], sum(register_values)
+
+    def _value_equality_values_(self) -> int:
+        return self._dimension
+
+
+def _mod_add(source: 'cirq.Qid', target: 'cirq.Qid') -> 'cirq.Operation':
+    assert source.dimension == target.dimension
+    if source.dimension == 2:
+        # Use a CX gate in 2D case for simplicity.
+        return ops.CX(source, target)
+    # We can use a ModAdd gate in the qudit case, since the ancilla qudit corresponding to the
+    # measurement is always zero, so "adding" the measured qudit to it sets the ancilla qudit to
+    # the same state, which is the quantum equivalent to a measurement onto a creg.
+    return _ModAdd(source.dimension).on(source, target)
