@@ -379,7 +379,8 @@ def test_confusion_map_invert_mask_ordering():
     circuit = cirq.Circuit(
         cirq.measure(
             q0, key='a', confusion_map={(0,): np.array([[1, 0], [1, 0]])}, invert_mask=(1,)
-        )
+        ),
+        cirq.I(q0),
     )
     assert_equivalent_to_deferred(circuit)
 
@@ -392,6 +393,7 @@ def test_confusion_map_qudits():
         cirq.measure(
             q0, key='a', confusion_map={(0,): np.array([[0, 0, 1], [0, 0, 1], [0, 0, 1]])}
         ),
+        cirq.IdentityGate(qid_shape=(3,)).on(q0),
     )
     assert_equivalent_to_deferred(circuit)
 
