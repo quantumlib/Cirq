@@ -101,6 +101,27 @@ def test_sympy_control():
     )
 
 
+def test_sympy_qudits():
+    q0, q1 = cirq.LineQid.range(2, dimension=3)
+    circuit = cirq.Circuit(
+        cirq.measure(q0, key='a'),
+        cirq.XPowGate(dimension=3).on(q1).with_classical_controls(sympy.Symbol('a')),
+        cirq.measure(q1, key='b'),
+    )
+    assert_equivalent_to_deferred(circuit)
+    deferred = cirq.defer_measurements(circuit)
+    q_ma = _MeasurementQid('a', q0)
+    cirq.testing.assert_same_circuits(
+        deferred,
+        cirq.Circuit(
+            _mod_add(q0, q_ma),
+            cirq.XPowGate(dimension=3).on(q1).controlled_by(q_ma, control_values=[[1, 2]]),
+            cirq.measure(q_ma, key='a'),
+            cirq.measure(q1, key='b'),
+        ),
+    )
+
+
 def test_sympy_control_complex():
     q0, q1, q2 = cirq.LineQubit.range(3)
     circuit = cirq.Circuit(
