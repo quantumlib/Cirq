@@ -384,6 +384,18 @@ def test_confusion_map_invert_mask_ordering():
     assert_equivalent_to_deferred(circuit)
 
 
+def test_confusion_map_qudits():
+    q0 = cirq.LineQid(0, dimension=3)
+    # First op takes q0 to superposed state, then confusion map measures 2 regardless.
+    circuit = cirq.Circuit(
+        cirq.XPowGate(dimension=3).on(q0) ** 1.3,
+        cirq.measure(
+            q0, key='a', confusion_map={(0,): np.array([[0, 0, 1], [0, 0, 1], [0, 0, 1]])}
+        ),
+    )
+    assert_equivalent_to_deferred(circuit)
+
+
 def test_multi_qubit_confusion_map():
     q0, q1, q2 = cirq.LineQubit.range(3)
     circuit = cirq.Circuit(
