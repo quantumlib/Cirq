@@ -341,6 +341,7 @@ class _ConfusionChannel(ops.Gate):
         if not linalg.is_cptp(kraus_ops=kraus):
             raise ValueError('Confusion map has invalid probabilities.')
         self._shape = tuple(shape)
+        self._confusion_map = confusion_map.copy()
         self._kraus = tuple(kraus)
 
     def _qid_shape_(self) -> Tuple[int, ...]:
@@ -348,6 +349,24 @@ class _ConfusionChannel(ops.Gate):
 
     def _kraus_(self) -> Tuple[np.ndarray, ...]:
         return self._kraus
+
+    def _apply_channel_(self, args: 'cirq.ApplyChannelArgs'):
+        import cirq.linalg.transformations as tr
+        onehots = []
+        p = np.prod(self._shape)
+        for component in range(p ** 2):
+            index = np.unravel_index(component, self._shape * 2)
+            slices = []
+            k = len(args.left_axes)
+            for i in range(k):
+                s1 = tr._OneHotSlice(axis=args.left_axes[i], source_index=index[i], dest_index=index[i + k])
+                s2 = tr._OneHotSlice(axis=args.right_axes[i], source_index=index[i], dest_index=index[i + k])
+                slices.extend([s1, s2])
+            onehot = tr._OneHotArgs(slices=tuple(slices), scale=self._confusion_map.flat[component])
+            onehots.append(onehot)
+        tr._multiply_by_onehots(onehots, args.target_tensor, out=args.auxiliary_buffer0)
+        np.copyto(dst=args.target_tensor, src=args.auxiliary_buffer0)
+        return args.target_tensor
 
 
 @value.value_equality

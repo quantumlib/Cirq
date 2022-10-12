@@ -14,7 +14,8 @@
 
 """Utility methods for transforming matrices or vectors."""
 
-from typing import Tuple, Optional, Sequence, List, Union
+from typing import Any, Tuple, Optional, Sequence, List, Union
+import dataclasses
 
 import numpy as np
 
@@ -166,6 +167,42 @@ def targeted_left_multiply(
         # Supposed to be able to just say 'old=old'.
         **({'out': out} if out is not None else {}),
     )  # type: ignore
+
+
+@dataclasses.dataclass
+class _OneHotSlice:
+    axis: int
+    source_index: int
+    dest_index: int
+
+
+@dataclasses.dataclass
+class _OneHotArgs:
+    slices: Tuple[_OneHotSlice, ...]
+    scale: np.complex
+
+
+def _multiply_by_onehots(
+    onehots: Sequence[_OneHotArgs],
+    source: np.ndarray,
+    out: np.ndarray,
+) -> np.ndarray:
+    if out is source:
+        raise ValueError('out is target')
+
+    d = len(source.shape)
+    out[...] = 0
+    for onehot in onehots:
+        source_slice: List[Any] = [slice(None)] * d
+        target_slice: List[Any] = [slice(None)] * d
+        for sleis in onehot.slices:
+            source_slice[sleis.axis] = sleis.source_index
+            target_slice[sleis.axis] = sleis.dest_index
+        source_data = source[source_slice].copy()
+        if onehot.scale != 1:
+            source_data *= onehot.scale
+        out[target_slice] += source_data
+    return out
 
 
 def targeted_conjugate_about(
