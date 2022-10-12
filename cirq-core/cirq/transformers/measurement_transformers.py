@@ -18,6 +18,7 @@ from typing import Any, Dict, List, Optional, Sequence, Tuple, TYPE_CHECKING, Un
 import numpy as np
 
 from cirq import linalg, ops, protocols, value
+from cirq.linalg import transformations
 from cirq.transformers import transformer_api, transformer_primitives
 from cirq.transformers.synchronize_terminal_measurements import find_terminal_measurements
 
@@ -351,25 +352,26 @@ class _ConfusionChannel(ops.Gate):
         return self._kraus
 
     def _apply_channel_(self, args: 'cirq.ApplyChannelArgs'):
-        import cirq.linalg.transformations as tr
-
-        onehots = []
-        p = np.prod(self._shape)
-        for component in range(p**2):
-            index = np.unravel_index(component, self._shape * 2)
+        configs = []
+        for i in range(np.prod(self._shape) ** 2):
+            scale = self._confusion_map.flat[i]
+            if scale == 0:
+                continue
+            index: Any = np.unravel_index(i, self._shape * 2)
             slices = []
-            k = len(args.left_axes)
-            for i in range(k):
-                s1 = tr._OneHotSlice(
-                    axis=args.left_axes[i], source_index=index[i], dest_index=index[i + k]
+            axis_count = len(args.left_axes)
+            for j in range(axis_count):
+                s1 = transformations._SliceConfig(
+                    axis=args.left_axes[j], source_index=index[j], dest_index=index[j + axis_count]
                 )
-                s2 = tr._OneHotSlice(
-                    axis=args.right_axes[i], source_index=index[i], dest_index=index[i + k]
+                s2 = transformations._SliceConfig(
+                    axis=args.right_axes[j], source_index=index[j], dest_index=index[j + axis_count]
                 )
                 slices.extend([s1, s2])
-            onehot = tr._OneHotArgs(slices=tuple(slices), scale=self._confusion_map.flat[component])
-            onehots.append(onehot)
-        tr._multiply_by_onehots(onehots, args.target_tensor, out=args.out_buffer)
+            configs.append(
+                transformations._CutMoveRescaleSlicesArgs(slices=tuple(slices), scale=scale)
+            )
+        transformations._cut_move_rescale_slices(configs, args.target_tensor, out=args.out_buffer)
         return args.out_buffer
 
 

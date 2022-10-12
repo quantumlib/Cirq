@@ -170,32 +170,32 @@ def targeted_left_multiply(
 
 
 @dataclasses.dataclass
-class _OneHotSlice:
+class _SliceConfig:
     axis: int
     source_index: int
     dest_index: int
 
 
 @dataclasses.dataclass
-class _OneHotArgs:
-    slices: Tuple[_OneHotSlice, ...]
-    scale: np.complex
+class _CutMoveRescaleSlicesArgs:
+    slices: Tuple[_SliceConfig, ...]
+    scale: complex
 
 
-def _multiply_by_onehots(
-    onehots: Sequence[_OneHotArgs], source: np.ndarray, out: np.ndarray
+def _cut_move_rescale_slices(
+    args: Sequence[_CutMoveRescaleSlicesArgs], source: np.ndarray, out: np.ndarray
 ) -> np.ndarray:
     d = len(source.shape)
     out[...] = 0
-    for onehot in onehots:
+    for arg in args:
         source_slice: List[Any] = [slice(None)] * d
         target_slice: List[Any] = [slice(None)] * d
-        for sleis in onehot.slices:
+        for sleis in arg.slices:
             source_slice[sleis.axis] = sleis.source_index
             target_slice[sleis.axis] = sleis.dest_index
         source_data = source[tuple(source_slice)]
-        if onehot.scale != 1:
-            source_data = source_data * onehot.scale
+        if arg.scale != 1:
+            source_data = source_data * arg.scale
         out[tuple(target_slice)] += source_data
     return out
 
