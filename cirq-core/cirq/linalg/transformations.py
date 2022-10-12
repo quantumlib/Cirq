@@ -193,9 +193,9 @@ def _multiply_by_onehots(
         for sleis in onehot.slices:
             source_slice[sleis.axis] = sleis.source_index
             target_slice[sleis.axis] = sleis.dest_index
-        source_data = source[tuple(source_slice)].copy()
+        source_data = source[tuple(source_slice)]
         if onehot.scale != 1:
-            source_data *= onehot.scale
+            source_data = source_data * onehot.scale
         out[tuple(target_slice)] += source_data
     return out
 
