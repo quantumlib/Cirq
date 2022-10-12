@@ -13,9 +13,11 @@
 # limitations under the License.
 
 import itertools
-from typing import Any, Dict, List, Optional, Tuple, TYPE_CHECKING, Union
+from typing import Any, Dict, List, Optional, Sequence, Tuple, TYPE_CHECKING, Union
 
-from cirq import ops, protocols, value
+import numpy as np
+
+from cirq import linalg, ops, protocols, value
 from cirq.transformers import transformer_api, transformer_primitives
 from cirq.transformers.synchronize_terminal_measurements import find_terminal_measurements
 
@@ -96,17 +98,19 @@ def defer_measurements(
             return op
         gate = op.gate
         if isinstance(gate, ops.MeasurementGate):
-            if gate.confusion_map:
-                raise NotImplementedError(
-                    "Deferring confused measurement is not implemented, but found "
-                    f"measurement with key={gate.key} and non-empty confusion map."
-                )
             key = value.MeasurementKey.parse_serialized(gate.key)
             targets = [_MeasurementQid(key, q) for q in op.qubits]
             measurement_qubits[key] = targets
             cxs = [_mod_add(q, target) for q, target in zip(op.qubits, targets)]
+            confusions = [
+                _ConfusionChannel(m, [op.qubits[i].dimension for i in indexes]).on(
+                    *[targets[i] for i in indexes]
+                )
+                for indexes, m in gate.confusion_map.items()
+            ]
+            cxs = [_mod_add(q, target) for q, target in zip(op.qubits, targets)]
             xs = [ops.X(targets[i]) for i, b in enumerate(gate.full_invert_mask()) if b]
-            return cxs + xs
+            return cxs + confusions + xs
         elif protocols.is_measurement(op):
             return [defer(op, None) for op in protocols.decompose_once(op)]
         elif op.classical_controls:
@@ -227,6 +231,123 @@ def drop_terminal_measurements(
     return transformer_primitives.map_operations(
         circuit, flip_inversion, deep=context.deep if context else True, tags_to_ignore=ignored
     ).unfreeze()
+
+
+class _ConfusionChannel(ops.Gate):
+    r"""The quantum equivalent of a confusion matrix.
+
+    This gate performs a complete dephasing of the input qubits, and then confuses the remaining
+    diagonal components per the input confusion matrix.
+
+    For a classical confusion matrix, the quantum equivalent is a channel that can be calculated
+    by transposing the matrix, taking the square root of each term, and forming a Kraus sequence
+    of each term individually and the rest zeroed out. For example, consider the confusion matrix
+
+    $$
+    \begin{aligned}
+    M_C =& \begin{bmatrix}
+               0.8 & 0.2  \\
+               0.1 & 0.9
+           \end{bmatrix}
+    \end{aligned}
+    $$
+
+    If $a$ and $b (= 1-a)$ are probabilities of two possible classical states for a measurement,
+    the confusion matrix operates on those probabilities as
+
+    $$
+    (a, b) M_C = (0.8a + 0.1b, 0.2a + 0.9b)
+    $$
+
+    This is equivalent to the following Kraus representation operating on a diagonal of a density
+    matrix:
+
+    $$
+    \begin{aligned}
+    M_0 =& \begin{bmatrix}
+               \sqrt{0.8} & 0  \\
+               0 & 0
+           \end{bmatrix}
+    \\
+    M_1 =& \begin{bmatrix}
+               0 & \sqrt{0.1} \\
+               0 & 0
+           \end{bmatrix}
+    \\
+    M_2 =&  \begin{bmatrix}
+               0 & 0 \\
+               \sqrt{0.2} & 0
+            \end{bmatrix}
+    \\
+    M_3 =&  \begin{bmatrix}
+               0 & 0 \\
+               0 & \sqrt{0.9}
+            \end{bmatrix}
+    \end{aligned}
+    \\
+    $$
+    Then for
+    $$
+    \begin{aligned}
+    \rho =& \begin{bmatrix}
+               a & ?  \\
+               ? & b
+           \end{bmatrix}
+    \end{aligned}
+    \\
+    \\
+    $$
+    the evolution of
+    $$
+    \rho \rightarrow M_0 \rho M_0^\dagger
+                       + M_1 \rho M_1^\dagger
+                       + M_2 \rho M_2^\dagger
+                       + M_3 \rho M_3^\dagger
+    $$
+    gives the result
+    $$
+    \begin{aligned}
+    \rho =& \begin{bmatrix}
+               0.8a + 0.1b & 0  \\
+               0 & 0.2a + 0.9b
+           \end{bmatrix}
+    \end{aligned}
+    \\
+    $$
+
+    Thus in a deferred measurement scenario, applying this channel to the ancilla qubit will model
+    the noise distribution that would have been caused by the confusion matrix. The math
+    generalizes cleanly to n-dimensional measurements as well.
+    """
+
+    def __init__(self, confusion_map: np.ndarray, shape: Sequence[int]):
+        if confusion_map.ndim != 2:
+            raise ValueError('Confusion map must be 2D.')
+        row_count, col_count = confusion_map.shape
+        if row_count != col_count:
+            raise ValueError('Confusion map must be square.')
+        if row_count != np.prod(shape):
+            raise ValueError('Confusion map size does not match qubit shape.')
+        kraus = []
+        for r in range(row_count):
+            for c in range(col_count):
+                v = confusion_map[r, c]
+                if v < 0:
+                    raise ValueError('Confusion map has negative probabilities.')
+                if v > 0:
+                    m = np.zeros(confusion_map.shape)
+                    m[c, r] = np.sqrt(v)
+                    kraus.append(m)
+        if not linalg.is_cptp(kraus_ops=kraus):
+            raise ValueError('Confusion map has invalid probabilities.')
+        self._shape = tuple(shape)
+        self._kraus = tuple(kraus)
+
+    def _qid_shape_(self) -> Tuple[int, ...]:
+        return self._shape
+
+    def _kraus_(self) -> Tuple[np.ndarray, ...]:
+        return self._kraus
 
 
 @value.value_equality

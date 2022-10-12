@@ -328,12 +328,150 @@ def test_sympy_control():
 def test_confusion_map():
     q0, q1 = cirq.LineQubit.range(2)
     circuit = cirq.Circuit(
-        cirq.measure(q0, q1, key='a', confusion_map={(0,): np.array([[0.9, 0.1], [0.1, 0.9]])}),
+        cirq.H(q0),
+        cirq.measure(q0, key='a', confusion_map={(0,): np.array([[0.8, 0.2], [0.1, 0.9]])}),
+        cirq.X(q1).with_classical_controls('a'),
+        cirq.measure(q1, key='b'),
+    )
+    deferred = cirq.defer_measurements(circuit)
+
+    # We use DM simulator because the deferred circuit has channels
+    sim = cirq.DensityMatrixSimulator()
+
+    # 10K samples would take a long time if we had not deferred the measurements, as we'd have to
+    # run 10K simulations. Here with DM simulator it's 100ms.
+    result = sim.sample(deferred, repetitions=10_000)
+
+    # This should be 5_000 due to the H, then 1_000 more due to 0's flipping to 1's with p=0.2, and
+    # then 500 less due to 1's flipping to 0's with p=0.1, so 5_500.
+    assert 5_100 <= np.sum(result['a']) <= 5_900
+    assert np.all(result['a'] == result['b'])
+
+
+def test_confusion_map_density_matrix():
+    q0, q1 = cirq.LineQubit.range(2)
+    p_q0 = 0.3  # probability to measure 1 for q0
+    confusion = np.array([[0.8, 0.2], [0.1, 0.9]])
+    circuit = cirq.Circuit(
+        # Rotate q0 such that the probability to measure 1 is p_q0
+        cirq.X(q0) ** (np.arcsin(np.sqrt(p_q0)) * 2 / np.pi),
+        cirq.measure(q0, key='a', confusion_map={(0,): confusion}),
         cirq.X(q1).with_classical_controls('a'),
     )
-    with pytest.raises(
-        NotImplementedError, match='Deferring confused measurement is not implemented'
-    ):
+    deferred = cirq.defer_measurements(circuit)
+    q_order = (q0, q1, _MeasurementQid('a', q0))
+    rho = cirq.final_density_matrix(deferred, qubit_order=q_order).reshape((2,) * 6)
+
+    # q0 density matrix should be a diagonal with the probabilities [1-p, p].
+    q0_probs = [1 - p_q0, p_q0]
+    assert np.allclose(cirq.partial_trace(rho, [0]), np.diag(q0_probs))
+
+    # q1 and the ancilla should both be the q1 probs matmul the confusion matrix.
+    expected = np.diag(q0_probs @ confusion)
+    assert np.allclose(cirq.partial_trace(rho, [1]), expected)
+    assert np.allclose(cirq.partial_trace(rho, [2]), expected)
+
+
+def test_confusion_map_invert_mask_ordering():
+    q0 = cirq.LineQubit(0)
+    # Confusion map sets the measurement to zero, and the invert mask changes it to one.
+    # If these are run out of order then the result would be zero.
+    circuit = cirq.Circuit(
+        cirq.measure(
+            q0, key='a', confusion_map={(0,): np.array([[1, 0], [1, 0]])}, invert_mask=(1,)
+        ),
+        cirq.I(q0),
+    )
+    assert_equivalent_to_deferred(circuit)
+
+
+def test_confusion_map_qudits():
+    q0 = cirq.LineQid(0, dimension=3)
+    # First op takes q0 to superposed state, then confusion map measures 2 regardless.
+    circuit = cirq.Circuit(
+        cirq.XPowGate(dimension=3).on(q0) ** 1.3,
+        cirq.measure(
+            q0, key='a', confusion_map={(0,): np.array([[0, 0, 1], [0, 0, 1], [0, 0, 1]])}
+        ),
+        cirq.IdentityGate(qid_shape=(3,)).on(q0),
+    )
+    assert_equivalent_to_deferred(circuit)
+
+
+def test_multi_qubit_confusion_map():
+    q0, q1, q2 = cirq.LineQubit.range(3)
+    circuit = cirq.Circuit(
+        cirq.measure(
+            q0,
+            q1,
+            key='a',
+            confusion_map={
+                (0, 1): np.array(
+                    [
+                        [0.7, 0.1, 0.1, 0.1],
+                        [0.1, 0.6, 0.1, 0.2],
+                        [0.2, 0.2, 0.5, 0.1],
+                        [0.0, 0.0, 1.0, 0.0],
+                    ]
+                )
+            },
+        ),
+        cirq.X(q2).with_classical_controls('a'),
+        cirq.measure(q2, key='b'),
+    )
+    deferred = cirq.defer_measurements(circuit)
+    sim = cirq.DensityMatrixSimulator()
+    result = sim.sample(deferred, repetitions=10_000)
+
+    # The initial state is zero, so the first measurement will confuse by the first line in the
+    # map, giving 7000 0's, 1000 1's, 1000 2's, and 1000 3's, for a sum of 6000 on average.
+    assert 5_600 <= np.sum(result['a']) <= 6_400
+
+    # The measurement will be non-zero 3000 times on average.
+    assert 2_600 <= np.sum(result['b']) <= 3_400
+
+    # Try a deterministic one: initial state is 3, which the confusion map sends to 2 with p=1.
+    deferred.insert(0, cirq.X.on_each(q0, q1))
+    result = sim.sample(deferred, repetitions=100)
+    assert np.sum(result['a']) == 200
+    assert np.sum(result['b']) == 100
+
+
+def test_confusion_map_errors():
+    q0, q1 = cirq.LineQubit.range(2)
+    circuit = cirq.Circuit(
+        cirq.measure(q0, key='a', confusion_map={(0,): np.array([1])}),
+        cirq.X(q1).with_classical_controls('a'),
+    )
+    with pytest.raises(ValueError, match='map must be 2D'):
+        _ = cirq.defer_measurements(circuit)
+    circuit = cirq.Circuit(
+        cirq.measure(q0, key='a', confusion_map={(0,): np.array([[0.7, 0.3]])}),
+        cirq.X(q1).with_classical_controls('a'),
+    )
+    with pytest.raises(ValueError, match='map must be square'):
+        _ = cirq.defer_measurements(circuit)
+    circuit = cirq.Circuit(
+        cirq.measure(
+            q0,
+            key='a',
+            confusion_map={(0,): np.array([[0.7, 0.1, 0.2], [0.1, 0.6, 0.3], [0.2, 0.2, 0.6]])},
+        ),
+        cirq.X(q1).with_classical_controls('a'),
+    )
+    with pytest.raises(ValueError, match='size does not match'):
+        _ = cirq.defer_measurements(circuit)
+    circuit = cirq.Circuit(
+        cirq.measure(q0, key='a', confusion_map={(0,): np.array([[-1, 2], [0, 1]])}),
+        cirq.X(q1).with_classical_controls('a'),
+    )
+    with pytest.raises(ValueError, match='negative probabilities'):
+        _ = cirq.defer_measurements(circuit)
+    circuit = cirq.Circuit(
+        cirq.measure(q0, key='a', confusion_map={(0,): np.array([[0.3, 0.3], [0.3, 0.3]])}),
+        cirq.X(q1).with_classical_controls('a'),
+    )
+    with pytest.raises(ValueError, match='invalid probabilities'):
         _ = cirq.defer_measurements(circuit)
 
 
