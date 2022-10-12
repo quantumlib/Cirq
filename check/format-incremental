@@ -32,8 +32,9 @@
 ################################################################################
 
 # Get the working directory to the repo root.
-cd "$(dirname "${BASH_SOURCE[0]}")"
-cd "$(git rev-parse --show-toplevel)"
+thisdir="$(dirname "${BASH_SOURCE[0]}")" || exit $?
+topdir="$(git -C "${thisdir}" rev-parse --show-toplevel)" || exit $?
+cd "${topdir}" || exit $?
 
 
 # Parse arguments.
@@ -46,7 +47,7 @@ for arg in "$@"; do
     elif [[ "${arg}" == "--all" ]]; then
         only_changed=0
     elif [ -z "${rev}" ]; then
-        if [ "$(git cat-file -t ${arg} 2> /dev/null)" != "commit" ]; then
+        if [ "$(git cat-file -t "${arg}" 2> /dev/null)" != "commit" ]; then
             echo -e "\033[31mNo revision '${arg}'.\033[0m" >&2
             exit 1
         fi
@@ -82,7 +83,7 @@ if (( only_changed == 1 )); then
 
     # Get the modified, added and moved python files.
     IFS=$'\n' read -r -d '' -a format_files < \
-        <(git diff --name-only --diff-filter=MAR ${rev} -- '*.py' ':(exclude)cirq-google/cirq_google/cloud/*' ':(exclude)*_pb2.py')
+        <(git diff --name-only --diff-filter=MAR "${rev}" -- '*.py' ':(exclude)cirq-google/cirq_google/cloud/*' ':(exclude)*_pb2.py')
 else
     echo -e "Formatting all python files." >&2
     IFS=$'\n' read -r -d '' -a format_files < \

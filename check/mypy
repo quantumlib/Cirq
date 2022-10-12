@@ -8,15 +8,17 @@
 ################################################################################
 
 # Get the working directory to the repo root.
-cd "$(dirname "${BASH_SOURCE[0]}")"
-cd "$(git rev-parse --show-toplevel)"
+thisdir="$(dirname "${BASH_SOURCE[0]}")" || exit $?
+topdir="$(git -C "${thisdir}" rev-parse --show-toplevel)" || exit $?
+cd "${topdir}" || exit $?
 
 CONFIG_FILE='mypy.ini'
 
-CIRQ_PACKAGES=$(env PYTHONPATH=. python dev_tools/modules.py list --mode package-path)
+read -r -a CIRQ_PACKAGES < \
+    <(env PYTHONPATH=. python dev_tools/modules.py list --mode package-path)
 
 echo -e -n "\033[31m"
-mypy --config-file=dev_tools/conf/$CONFIG_FILE "$@" $CIRQ_PACKAGES dev_tools examples
+mypy --config-file=dev_tools/conf/$CONFIG_FILE "$@" "${CIRQ_PACKAGES[@]}" dev_tools examples
 result=$?
 echo -e -n "\033[0m"
 
