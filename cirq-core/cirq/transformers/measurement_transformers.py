@@ -364,9 +364,8 @@ class _ConfusionChannel(ops.Gate):
                 slices.extend([s1, s2])
             onehot = tr._OneHotArgs(slices=tuple(slices), scale=self._confusion_map.flat[component])
             onehots.append(onehot)
-        tr._multiply_by_onehots(onehots, args.target_tensor, out=args.auxiliary_buffer0)
-        np.copyto(dst=args.target_tensor, src=args.auxiliary_buffer0)
-        return args.target_tensor
+        tr._multiply_by_onehots(onehots, args.target_tensor, out=args.out_buffer)
+        return args.out_buffer
 
 
 @value.value_equality
