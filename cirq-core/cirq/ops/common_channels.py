@@ -734,6 +734,17 @@ class ResetChannel(raw_types.Gate):
         channel[:, 0, :] = np.eye(self._dimension)
         return channel
 
+    def _apply_channel_(self, args: 'cirq.ApplyChannelArgs'):
+        import cirq.linalg.transformations as tr
+        onehots = []
+        for i in range(self._dimension):
+            s1 = tr._OneHotSlice(axis=args.left_axes[0], source_index=i, dest_index=0)
+            s2 = tr._OneHotSlice(axis=args.right_axes[0], source_index=i, dest_index=0)
+            onehots.append(tr._OneHotArgs(slices=(s1, s2), scale=1))
+        tr._multiply_by_onehots(onehots, args.target_tensor, out=args.auxiliary_buffer0)
+        np.copyto(dst=args.target_tensor, src=args.auxiliary_buffer0)
+        return args.target_tensor
+
     def _has_kraus_(self) -> bool:
         return True
 
