@@ -237,6 +237,8 @@ upper_tabs:
         path: /cirq/dev/modules
       - title: "Serialization guidelines"
         path: /cirq/dev/serialization
+      - title: "Version compatibility"
+        path: /cirq/dev/versions
       - title: "Triage process"
         path: /cirq/dev/triage
       - title: "Issues / requests / questions"
