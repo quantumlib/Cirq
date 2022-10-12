@@ -185,9 +185,6 @@ class _OneHotArgs:
 def _multiply_by_onehots(
     onehots: Sequence[_OneHotArgs], source: np.ndarray, out: np.ndarray
 ) -> np.ndarray:
-    if out is source:
-        raise ValueError('out is target')
-
     d = len(source.shape)
     out[...] = 0
     for onehot in onehots:
