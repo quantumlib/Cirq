@@ -368,9 +368,7 @@ class _ConfusionChannel(ops.Gate):
                     axis=args.right_axes[j], source_index=index[j], dest_index=index[j + axis_count]
                 )
                 slices.extend([s1, s2])
-            configs.append(
-                transformations._BuildFromSlicesArgs(slices=tuple(slices), scale=scale)
-            )
+            configs.append(transformations._BuildFromSlicesArgs(slices=tuple(slices), scale=scale))
         transformations._build_from_slices(configs, args.target_tensor, out=args.out_buffer)
         return args.out_buffer
 
