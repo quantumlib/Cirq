@@ -177,13 +177,13 @@ class _SliceConfig:
 
 
 @dataclasses.dataclass
-class _CutMoveRescaleSlicesArgs:
+class _BuildFromSlicesArgs:
     slices: Tuple[_SliceConfig, ...]
     scale: complex
 
 
-def _cut_move_rescale_slices(
-    args: Sequence[_CutMoveRescaleSlicesArgs], source: np.ndarray, out: np.ndarray
+def _build_from_slices(
+    args: Sequence[_BuildFromSlicesArgs], source: np.ndarray, out: np.ndarray
 ) -> np.ndarray:
     d = len(source.shape)
     out[...] = 0

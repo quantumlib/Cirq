@@ -369,9 +369,9 @@ class _ConfusionChannel(ops.Gate):
                 )
                 slices.extend([s1, s2])
             configs.append(
-                transformations._CutMoveRescaleSlicesArgs(slices=tuple(slices), scale=scale)
+                transformations._BuildFromSlicesArgs(slices=tuple(slices), scale=scale)
             )
-        transformations._cut_move_rescale_slices(configs, args.target_tensor, out=args.out_buffer)
+        transformations._build_from_slices(configs, args.target_tensor, out=args.out_buffer)
         return args.out_buffer
 
 

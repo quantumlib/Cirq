@@ -739,8 +739,8 @@ class ResetChannel(raw_types.Gate):
         for i in range(self._dimension):
             s1 = transformations._SliceConfig(axis=args.left_axes[0], source_index=i, dest_index=0)
             s2 = transformations._SliceConfig(axis=args.right_axes[0], source_index=i, dest_index=0)
-            configs.append(transformations._CutMoveRescaleSlicesArgs(slices=(s1, s2), scale=1))
-        transformations._cut_move_rescale_slices(configs, args.target_tensor, out=args.out_buffer)
+            configs.append(transformations._BuildFromSlicesArgs(slices=(s1, s2), scale=1))
+        transformations._build_from_slices(configs, args.target_tensor, out=args.out_buffer)
         return args.out_buffer
 
     def _has_kraus_(self) -> bool:
@@ -830,6 +830,17 @@ class PhaseDampingChannel(raw_types.Gate):
             np.array([[1.0, 0.0], [0.0, np.sqrt(1.0 - self._gamma)]]),
             np.array([[0.0, 0.0], [0.0, np.sqrt(self._gamma)]]),
         )
+
+    def _apply_channel_(self, args: 'cirq.ApplyChannelArgs'):
+        if self._gamma != 1:
+            return NotImplemented
+        configs = []
+        for i in range(2):
+            s1 = transformations._SliceConfig(axis=args.left_axes[0], source_index=i, dest_index=i)
+            s2 = transformations._SliceConfig(axis=args.right_axes[0], source_index=i, dest_index=i)
+            configs.append(transformations._BuildFromSlicesArgs(slices=(s1, s2), scale=1))
+        transformations._build_from_slices(configs, args.target_tensor, out=args.out_buffer)
+        return args.out_buffer
 
     def _has_kraus_(self) -> bool:
         return True
