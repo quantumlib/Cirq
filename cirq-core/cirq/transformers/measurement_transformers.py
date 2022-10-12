@@ -352,15 +352,20 @@ class _ConfusionChannel(ops.Gate):
 
     def _apply_channel_(self, args: 'cirq.ApplyChannelArgs'):
         import cirq.linalg.transformations as tr
+
         onehots = []
         p = np.prod(self._shape)
-        for component in range(p ** 2):
+        for component in range(p**2):
             index = np.unravel_index(component, self._shape * 2)
             slices = []
             k = len(args.left_axes)
             for i in range(k):
-                s1 = tr._OneHotSlice(axis=args.left_axes[i], source_index=index[i], dest_index=index[i + k])
-                s2 = tr._OneHotSlice(axis=args.right_axes[i], source_index=index[i], dest_index=index[i + k])
+                s1 = tr._OneHotSlice(
+                    axis=args.left_axes[i], source_index=index[i], dest_index=index[i + k]
+                )
+                s2 = tr._OneHotSlice(
+                    axis=args.right_axes[i], source_index=index[i], dest_index=index[i + k]
+                )
                 slices.extend([s1, s2])
             onehot = tr._OneHotArgs(slices=tuple(slices), scale=self._confusion_map.flat[component])
             onehots.append(onehot)

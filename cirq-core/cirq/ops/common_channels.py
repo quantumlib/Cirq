@@ -736,6 +736,7 @@ class ResetChannel(raw_types.Gate):
 
     def _apply_channel_(self, args: 'cirq.ApplyChannelArgs'):
         import cirq.linalg.transformations as tr
+
         onehots = []
         for i in range(self._dimension):
             s1 = tr._OneHotSlice(axis=args.left_axes[0], source_index=i, dest_index=0)
