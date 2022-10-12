@@ -14,8 +14,8 @@
 
 """Utility methods for transforming matrices or vectors."""
 
-from typing import Any, Tuple, Optional, Sequence, List, Union
 import dataclasses
+from typing import Any, List, Optional, Sequence, Tuple, Union
 
 import numpy as np
 
