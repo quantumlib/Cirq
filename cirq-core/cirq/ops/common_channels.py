@@ -825,6 +825,19 @@ class PhaseDampingChannel(raw_types.Gate):
     def _num_qubits_(self) -> int:
         return 1
 
+    def _apply_channel_(self, args: 'cirq.ApplyChannelArgs'):
+        if self._gamma == 0:
+            return args.target_tensor
+        if self._gamma != 1:
+            return NotImplemented
+        configs = []
+        for i in range(2):
+            s1 = transformations._SliceConfig(axis=args.left_axes[0], source_index=i, dest_index=i)
+            s2 = transformations._SliceConfig(axis=args.right_axes[0], source_index=i, dest_index=i)
+            configs.append(transformations._BuildFromSlicesArgs(slices=(s1, s2), scale=1))
+        transformations._build_from_slices(configs, args.target_tensor, out=args.out_buffer)
+        return args.out_buffer
+
     def _kraus_(self) -> Iterable[np.ndarray]:
         return (
             np.array([[1.0, 0.0], [0.0, np.sqrt(1.0 - self._gamma)]]),
