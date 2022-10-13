@@ -640,6 +640,9 @@ def factor_density_matrix(
         t2 = transpose_density_matrix_to_axis_order(t1, product_axes)
         if not np.allclose(t2, t, atol=atol):
             raise ValueError('The tensor cannot be factored by the requested axes')
+    # Tweak this to avoid rounding error propagation
+    extracted /= np.trace(extracted)
+    remainder /= np.trace(remainder)
     return extracted, remainder
 
 
