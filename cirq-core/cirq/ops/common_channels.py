@@ -20,8 +20,8 @@ from typing import Any, Dict, Iterable, List, Optional, Sequence, Tuple, Union, 
 import numpy as np
 
 from cirq import protocols, value
+from cirq.linalg import transformations
 from cirq.ops import raw_types, common_gates, pauli_gates, identity
-
 
 if TYPE_CHECKING:
     import cirq
@@ -734,6 +734,19 @@ class ResetChannel(raw_types.Gate):
         channel[:, 0, :] = np.eye(self._dimension)
         return channel
 
+    def _apply_channel_(self, args: 'cirq.ApplyChannelArgs'):
+        configs = []
+        for i in range(self._dimension):
+            s1 = transformations._SliceConfig(
+                axis=args.left_axes[0], source_index=i, target_index=0
+            )
+            s2 = transformations._SliceConfig(
+                axis=args.right_axes[0], source_index=i, target_index=0
+            )
+            configs.append(transformations._BuildFromSlicesArgs(slices=(s1, s2), scale=1))
+        transformations._build_from_slices(configs, args.target_tensor, out=args.out_buffer)
+        return args.out_buffer
+
     def _has_kraus_(self) -> bool:
         return True
 
@@ -815,6 +828,23 @@ class PhaseDampingChannel(raw_types.Gate):
 
     def _num_qubits_(self) -> int:
         return 1
+
+    def _apply_channel_(self, args: 'cirq.ApplyChannelArgs'):
+        if self._gamma == 0:
+            return args.target_tensor
+        if self._gamma != 1:
+            return NotImplemented
+        configs = []
+        for i in range(2):
+            s1 = transformations._SliceConfig(
+                axis=args.left_axes[0], source_index=i, target_index=i
+            )
+            s2 = transformations._SliceConfig(
+                axis=args.right_axes[0], source_index=i, target_index=i
+            )
+            configs.append(transformations._BuildFromSlicesArgs(slices=(s1, s2), scale=1))
+        transformations._build_from_slices(configs, args.target_tensor, out=args.out_buffer)
+        return args.out_buffer
 
     def _kraus_(self) -> Iterable[np.ndarray]:
         return (
