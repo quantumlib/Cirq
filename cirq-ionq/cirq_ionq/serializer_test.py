@@ -267,7 +267,7 @@ def test_serialize_native_gates():
             'circuit': [
                 {'gate': 'gpi', 'target': 0, 'phase': 0.1},
                 {'gate': 'gpi2', 'target': 1, 'phase': 0.2},
-                {'gate': 'ms', 'targets': [1, 2], 'phases': [0.3, 0.4]},
+                {'gate': 'ms', 'targets': [1, 2], 'phases': [0.3, 0.4], 'angle': 0.25},
             ],
         },
         metadata={},
