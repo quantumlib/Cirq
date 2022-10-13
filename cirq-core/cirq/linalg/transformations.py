@@ -187,8 +187,7 @@ def _build_from_slices(
 ) -> np.ndarray:
     """Populates `out` from the desired slices of `source`.
 
-    This function is useful for optimizing multiplying a state by one or more one-hot matrices,
-    as is common when working with Kraus components. It is more efficient than using an einsum.
+    This function is best described by example.
 
     For instance in 3*3*3 3D space, one could take a cube array, take all the horizontal slices,
     and add them up into the top slice leaving everything else zero. If the vertical axis was 1,
@@ -222,6 +221,9 @@ def _build_from_slices(
             source,
             out,
         )
+
+    This function is useful for optimizing multiplying a state by one or more one-hot matrices,
+    as is common when working with Kraus components. It is more efficient than using an einsum.
 
     Args:
         args: The list of slice configurations to sum up into the output.
