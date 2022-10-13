@@ -362,10 +362,14 @@ class _ConfusionChannel(ops.Gate):
             axis_count = len(args.left_axes)
             for j in range(axis_count):
                 s1 = transformations._SliceConfig(
-                    axis=args.left_axes[j], source_index=index[j], dest_index=index[j + axis_count]
+                    axis=args.left_axes[j],
+                    source_index=index[j],
+                    target_index=index[j + axis_count],
                 )
                 s2 = transformations._SliceConfig(
-                    axis=args.right_axes[j], source_index=index[j], dest_index=index[j + axis_count]
+                    axis=args.right_axes[j],
+                    source_index=index[j],
+                    target_index=index[j + axis_count],
                 )
                 slices.extend([s1, s2])
             configs.append(transformations._BuildFromSlicesArgs(slices=tuple(slices), scale=scale))

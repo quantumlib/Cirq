@@ -173,7 +173,7 @@ def targeted_left_multiply(
 class _SliceConfig:
     axis: int
     source_index: int
-    dest_index: int
+    target_index: int
 
 
 @dataclasses.dataclass
@@ -240,11 +240,8 @@ def _build_from_slices(
         target_slice: List[Any] = [slice(None)] * d
         for sleis in arg.slices:
             source_slice[sleis.axis] = sleis.source_index
-            target_slice[sleis.axis] = sleis.dest_index
-        source_data = source[tuple(source_slice)]
-        if arg.scale != 1:
-            source_data = source_data * arg.scale
-        out[tuple(target_slice)] += source_data
+            target_slice[sleis.axis] = sleis.target_index
+        out[tuple(target_slice)] += arg.scale * source[tuple(source_slice)]
     return out
 
 

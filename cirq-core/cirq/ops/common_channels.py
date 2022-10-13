@@ -737,8 +737,12 @@ class ResetChannel(raw_types.Gate):
     def _apply_channel_(self, args: 'cirq.ApplyChannelArgs'):
         configs = []
         for i in range(self._dimension):
-            s1 = transformations._SliceConfig(axis=args.left_axes[0], source_index=i, dest_index=0)
-            s2 = transformations._SliceConfig(axis=args.right_axes[0], source_index=i, dest_index=0)
+            s1 = transformations._SliceConfig(
+                axis=args.left_axes[0], source_index=i, target_index=0
+            )
+            s2 = transformations._SliceConfig(
+                axis=args.right_axes[0], source_index=i, target_index=0
+            )
             configs.append(transformations._BuildFromSlicesArgs(slices=(s1, s2), scale=1))
         transformations._build_from_slices(configs, args.target_tensor, out=args.out_buffer)
         return args.out_buffer
@@ -832,8 +836,12 @@ class PhaseDampingChannel(raw_types.Gate):
             return NotImplemented
         configs = []
         for i in range(2):
-            s1 = transformations._SliceConfig(axis=args.left_axes[0], source_index=i, dest_index=i)
-            s2 = transformations._SliceConfig(axis=args.right_axes[0], source_index=i, dest_index=i)
+            s1 = transformations._SliceConfig(
+                axis=args.left_axes[0], source_index=i, target_index=i
+            )
+            s2 = transformations._SliceConfig(
+                axis=args.right_axes[0], source_index=i, target_index=i
+            )
             configs.append(transformations._BuildFromSlicesArgs(slices=(s1, s2), scale=1))
         transformations._build_from_slices(configs, args.target_tensor, out=args.out_buffer)
         return args.out_buffer
