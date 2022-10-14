@@ -211,6 +211,14 @@ class GateOperation(raw_types.Operation):
             return getter()
         return NotImplemented
 
+    def _apply_channel_(
+        self, args: 'protocols.ApplyChannelArgs'
+    ) -> Union[np.ndarray, None, NotImplementedType]:
+        getter = getattr(self.gate, '_apply_channel_', None)
+        if getter is not None:
+            return getter(args)
+        return NotImplemented
+
     def _has_kraus_(self) -> bool:
         getter = getattr(self.gate, '_has_kraus_', None)
         if getter is not None:
