@@ -183,10 +183,10 @@ class MSGate(cirq.Gate):
 
     $$
     \begin{bmatrix}
-        cos{\theta} & 0 & 0 & -i*e^{-i*2*\pi(\phi_0+\phi_1)}*sin{\theta} \\
-        0 & cos{\theta} & -i*e^{-i*2*\pi(\phi_0-\phi_1)}*sin{\theta} & 0 \\
-        0 & -i*e^{i*2*\pi(\phi_0-\phi_1)}*sin(\theta) & cos{\theta} & 0 \\
-        -i*e^{i*2*\pi(\phi_0+\phi_1)}*sin{\theta} & 0 & 0 & cos{\theta}
+        cos{\theta/2} & 0 & 0 & -i*e^{-i*2*\pi(\phi_0+\phi_1)}*sin{\theta/2} \\
+        0 & cos{\theta/2} & -i*e^{-i*2*\pi(\phi_0-\phi_1)}*sin{\theta/2} & 0 \\
+        0 & -i*e^{i*2*\pi(\phi_0-\phi_1)}*sin(\theta/2) & cos{\theta/2} & 0 \\
+        -i*e^{i*2*\pi(\phi_0+\phi_1)}*sin{\theta/2} & 0 & 0 & cos{\theta/2}
     \end{bmatrix}
     $$
 
@@ -202,8 +202,8 @@ class MSGate(cirq.Gate):
         theta = self.theta
         phi0 = self.phi0
         phi1 = self.phi1
-        diag = np.cos(2 * math.pi * theta)
-        sin = np.sin(2 * math.pi * theta)
+        diag = np.cos(math.pi * theta)
+        sin = np.sin(math.pi * theta)
 
         return np.array(
             [
