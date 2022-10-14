@@ -71,8 +71,7 @@ fi
 source dev_tools/pypath
 
 # Run tests while producing coverage files.
-check/pytest --actually-quiet \
-             --cov \
+check/pytest --cov \
              --cov-config=dev_tools/conf/.coveragerc \
              "${PYTEST_ARGS[@]}"
 pytest_result=$?
@@ -80,7 +79,7 @@ pytest_result=$?
 
 # assume successful cover_result in case coverage is not run
 cover_result=0
-if (( $ANALYZE_COV )); then
+if (( ANALYZE_COV )); then
     # Convert to .py,cover files.
     coverage annotate
 
@@ -93,7 +92,7 @@ if (( $ANALYZE_COV )); then
 fi
 
 # Report result.
-if (( ${pytest_result} || ${cover_result} )); then
+if (( pytest_result || cover_result )); then
     exit 1
 fi
 exit 0

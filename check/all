@@ -31,8 +31,9 @@
 ################################################################################
 
 # Get the working directory to the repo root.
-cd "$(dirname "${BASH_SOURCE[0]}")"
-cd "$(git rev-parse --show-toplevel)"
+thisdir="$(dirname "${BASH_SOURCE[0]}")" || exit $?
+topdir="$(git -C "${thisdir}" rev-parse --show-toplevel)" || exit $?
+cd "${topdir}" || exit $?
 
 # Parse arguments.
 apply_arg=""
@@ -44,7 +45,7 @@ for arg in "$@"; do
     elif [[ "${arg}" == "--apply-format-changes" ]]; then
         apply_arg="--apply"
     elif [ -z "${rev}" ]; then
-        if [ "$(git cat-file -t ${arg} 2> /dev/null)" != "commit" ]; then
+        if [ "$(git cat-file -t "${arg}" 2> /dev/null)" != "commit" ]; then
             echo -e "\033[31mNo revision '${arg}'.\033[0m" >&2
             exit 1
         fi

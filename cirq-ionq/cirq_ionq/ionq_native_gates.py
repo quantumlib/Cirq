@@ -70,6 +70,15 @@ class GPIGate(cirq.Gate):
     ) -> Union[str, 'protocols.CircuitDiagramInfo']:
         return protocols.CircuitDiagramInfo(wire_symbols=(f'GPI({self.phase!r})',))
 
+    def __pow__(self, power):
+        if power == 1:
+            return self
+
+        if power == -1:
+            return self
+
+        return NotImplemented
+
 
 GPI = GPIGate(phi=0)
 document(
@@ -136,6 +145,15 @@ class GPI2Gate(cirq.Gate):
 
     def _value_equality_values_(self) -> Any:
         return self.phi
+
+    def __pow__(self, power):
+        if power == 1:
+            return self
+
+        if power == -1:
+            return GPI2Gate(phi=self.phi + 0.5)
+
+        return NotImplemented
 
 
 GPI2 = GPI2Gate(phi=0)
@@ -218,6 +236,15 @@ class MSGate(cirq.Gate):
 
     def _value_equality_values_(self) -> Any:
         return (self.phi0, self.phi1)
+
+    def __pow__(self, power):
+        if power == 1:
+            return self
+
+        if power == -1:
+            return MSGate(phi0=self.phi0 + 0.5, phi1=self.phi1)
+
+        return NotImplemented
 
 
 MS = MSGate(phi0=0, phi1=0)

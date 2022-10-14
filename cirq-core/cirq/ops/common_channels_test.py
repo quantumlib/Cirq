@@ -529,6 +529,13 @@ def test_reset_each():
             assert op.qubits == (qubits[i],)
 
 
+def test_reset_consistency():
+    two_d_chan = cirq.ResetChannel()
+    cirq.testing.assert_has_consistent_apply_channel(two_d_chan)
+    three_d_chan = cirq.ResetChannel(dimension=3)
+    cirq.testing.assert_has_consistent_apply_channel(three_d_chan)
+
+
 def test_phase_damping_channel():
     d = cirq.phase_damp(0.3)
     np.testing.assert_almost_equal(
@@ -583,6 +590,15 @@ def test_phase_damping_channel_text_diagram():
     assert cirq.circuit_diagram_info(pd, args=no_precision) == cirq.CircuitDiagramInfo(
         wire_symbols=('PD(0.1000009)',)
     )
+
+
+def test_phase_damp_consistency():
+    full_damp = cirq.PhaseDampingChannel(gamma=1)
+    cirq.testing.assert_has_consistent_apply_channel(full_damp)
+    partial_damp = cirq.PhaseDampingChannel(gamma=0.5)
+    cirq.testing.assert_has_consistent_apply_channel(partial_damp)
+    no_damp = cirq.PhaseDampingChannel(gamma=0)
+    cirq.testing.assert_has_consistent_apply_channel(no_damp)
 
 
 def test_phase_flip_channel():
