@@ -188,7 +188,9 @@ def _all_possible_datastore_states(
     # Then we create the ClassicalDataDictionaryStore for each of the above.
     for sequences in all_values:
         lookup = {k: [sequence] for k, sequence in zip(keys, sequences)}
-        yield value.ClassicalDataDictionaryStore(_records=lookup)
+        yield value.ClassicalDataDictionaryStore(
+            _records=lookup, _measured_qubits={k: [tuple(measurement_qubits[k])] for k in keys}
+        )
 
 
 @transformer_api.transformer
