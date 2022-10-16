@@ -119,14 +119,13 @@ def defer_measurements(
                 )
                 for indexes, m in gate.confusion_map.items()
             ]
-            cxs = [_mod_add(q, target) for q, target in zip(op.qubits, targets)]
             xs = [ops.X(targets[i]) for i, b in enumerate(gate.full_invert_mask()) if b]
             return cxs + confusions + xs
         elif protocols.is_measurement(op):
             return [defer(op, None) for op in protocols.decompose_once(op)]
         elif op.classical_controls:
             # Convert to a quantum control
-            keys = set(key for c in op.classical_controls for key in c.keys)
+            keys = sorted(set(key for c in op.classical_controls for key in c.keys))
             for key in keys:
                 if key not in measurement_qubits:
                     raise ValueError(f'Deferred measurement for key={key} not found.')
