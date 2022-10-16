@@ -13,6 +13,7 @@
 # limitations under the License.
 
 import itertools
+from collections import defaultdict
 from typing import (
     Any,
     Dict,
@@ -43,7 +44,7 @@ class _MeasurementQid(ops.Qid):
     Exactly one qubit will be created per qubit in the measurement gate.
     """
 
-    def __init__(self, key: Union[str, 'cirq.MeasurementKey'], qid: 'cirq.Qid'):
+    def __init__(self, key: Union[str, 'cirq.MeasurementKey'], qid: 'cirq.Qid', index: int = 0):
         """Initializes the qubit.
 
         Args:
@@ -51,22 +52,24 @@ class _MeasurementQid(ops.Qid):
             qid: One qubit that is being measured. Each deferred measurement
                 should create one new _MeasurementQid per qubit being measured
                 by that gate.
+            index: For repeated measurement keys, this represents the index of that measurement.
         """
         self._key = value.MeasurementKey.parse_serialized(key) if isinstance(key, str) else key
         self._qid = qid
+        self._index = index
 
     @property
     def dimension(self) -> int:
         return self._qid.dimension
 
     def _comparison_key(self) -> Any:
-        return str(self._key), self._qid._comparison_key()
+        return str(self._key), self._index, self._qid._comparison_key()
 
     def __str__(self) -> str:
-        return f"M('{self._key}', q={self._qid})"
+        return f"M('{self._key}[{self._index}]', q={self._qid})"
 
     def __repr__(self) -> str:
-        return f'_MeasurementQid({self._key!r}, {self._qid!r})'
+        return f'_MeasurementQid({self._key!r}, {self._qid!r}, {self._index})'
 
 
 @transformer_api.transformer
@@ -102,7 +105,9 @@ def defer_measurements(
 
     circuit = transformer_primitives.unroll_circuit_op(circuit, deep=True, tags_to_check=None)
     terminal_measurements = {op for _, op in find_terminal_measurements(circuit)}
-    measurement_qubits: Dict['cirq.MeasurementKey', List['_MeasurementQid']] = {}
+    measurement_qubits: Dict['cirq.MeasurementKey', List[List['_MeasurementQid']]] = defaultdict(
+        list
+    )
 
     def defer(op: 'cirq.Operation', _) -> 'cirq.OP_TREE':
         if op in terminal_measurements:
@@ -110,8 +115,8 @@ def defer_measurements(
         gate = op.gate
         if isinstance(gate, ops.MeasurementGate):
             key = value.MeasurementKey.parse_serialized(gate.key)
-            targets = [_MeasurementQid(key, q) for q in op.qubits]
-            measurement_qubits[key] = targets
+            targets = [_MeasurementQid(key, q, len(measurement_qubits[key])) for q in op.qubits]
+            measurement_qubits[key].append(targets)
             cxs = [_mod_add(q, target) for q, target in zip(op.qubits, targets)]
             confusions = [
                 _ConfusionChannel(m, [op.qubits[i].dimension for i in indexes]).on(
@@ -125,8 +130,18 @@ def defer_measurements(
             return [defer(op, None) for op in protocols.decompose_once(op)]
         elif op.classical_controls:
             # Convert to a quantum control
-            keys = sorted(set(key for c in op.classical_controls for key in c.keys))
-            for key in keys:
+            kis = sorted(
+                set(
+                    ki
+                    for c in op.classical_controls
+                    for ki in (
+                        [(c.key, c.index)]
+                        if isinstance(c, value.KeyCondition)
+                        else [(k, -1) for k in c.keys]
+                    )
+                )
+            )
+            for key, _ in kis:
                 if key not in measurement_qubits:
                     raise ValueError(f'Deferred measurement for key={key} not found.')
 
@@ -134,17 +149,16 @@ def defer_measurements(
             # are the control values for the new op.
             compatible_datastores = [
                 store
-                for store in _all_possible_datastore_states(keys, measurement_qubits)
+                for store in _all_possible_datastore_states(kis, measurement_qubits)
                 if all(c.resolve(store) for c in op.classical_controls)
             ]
 
             # Rearrange these into the format expected by SumOfProducts
             products = [
-                [i for key in keys for i in store.records[key][0]]
-                for store in compatible_datastores
+                [i for k, j in kis for i in store.records[k][j]] for store in compatible_datastores
             ]
             control_values = ops.SumOfProducts(products)
-            qs = [q for key in keys for q in measurement_qubits[key]]
+            qs = [q for k, i in kis for q in measurement_qubits[k][i]]
             return op.without_classical_controls().controlled_by(*qs, control_values=control_values)
         return op
 
@@ -154,14 +168,15 @@ def defer_measurements(
         tags_to_ignore=context.tags_to_ignore if context else (),
         raise_if_add_qubits=False,
     ).unfreeze()
-    for k, qubits in measurement_qubits.items():
-        circuit.append(ops.measure(*qubits, key=k))
+    for k, qubits_list in measurement_qubits.items():
+        for qubits in qubits_list:
+            circuit.append(ops.measure(*qubits, key=k))
     return circuit
 
 
 def _all_possible_datastore_states(
-    keys: Iterable['cirq.MeasurementKey'],
-    measurement_qubits: Mapping['cirq.MeasurementKey', Iterable['cirq.Qid']],
+    kis: Iterable[Tuple['cirq.MeasurementKey', int]],
+    measurement_qubits: Mapping['cirq.MeasurementKey', Sequence[Sequence['cirq.Qid']]],
 ) -> Iterable['cirq.ClassicalDataStoreReader']:
     """The full product of possible DatsStores states for the given keys."""
     # First we get the list of all possible values. So if we have a key mapped to qubits of shape
@@ -180,15 +195,17 @@ def _all_possible_datastore_states(
     #  ((1, 1), (2,))]
     all_values = itertools.product(
         *[
-            tuple(itertools.product(*[range(q.dimension) for q in measurement_qubits[k]]))
-            for k in keys
+            tuple(itertools.product(*[range(q.dimension) for q in measurement_qubits[k][i]]))
+            for k, i in kis
         ]
     )
     # Then we create the ClassicalDataDictionaryStore for each of the above.
     for sequences in all_values:
-        lookup = {k: [sequence] for k, sequence in zip(keys, sequences)}
+        lookup = {k: [None] * len(v) for k, v in measurement_qubits.items()}
+        for (k, i), sequence in zip(kis, sequences):
+            lookup[k][i] = sequence
         yield value.ClassicalDataDictionaryStore(
-            _records=lookup, _measured_qubits={k: [tuple(measurement_qubits[k])] for k in keys}
+            _records=lookup, _measured_qubits=measurement_qubits
         )
 
 
