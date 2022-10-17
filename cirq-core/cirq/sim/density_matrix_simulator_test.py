@@ -1513,6 +1513,7 @@ def test_stability_of_trace():
     dm = sim.simulate(qc).final_density_matrix
     dm1 = sim.simulate(qc * 100).final_density_matrix
     np.testing.assert_allclose(dm, dm1)
+    assert np.trace(dm1) == 1
 
 
 def test_separated_states_str_does_not_merge():
