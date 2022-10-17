@@ -42,7 +42,7 @@ class NoiseModel(metaclass=value.ABCMetaImplementAnyOneOf):
 
     @classmethod
     def from_noise_model_like(cls, noise: 'cirq.NOISE_MODEL_LIKE') -> 'cirq.NoiseModel':
-        """Transforms an object into a noise model if umambiguously possible.
+        """Transforms an object into a noise model if unambiguously possible.
 
         Args:
             noise: `None`, a `cirq.NoiseModel`, or a single qubit operation.

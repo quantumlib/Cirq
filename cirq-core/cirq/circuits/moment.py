@@ -16,12 +16,14 @@
 
 import itertools
 from typing import (
+    AbstractSet,
     Any,
     Callable,
     Dict,
     FrozenSet,
     Iterable,
     Iterator,
+    List,
     Mapping,
     overload,
     Optional,
@@ -192,6 +194,9 @@ class Moment:
         """
         flattened_contents = tuple(op_tree.flatten_to_ops(contents))
 
+        if not flattened_contents:
+            return self
+
         m = Moment()
         # Use private variables to facilitate a quick copy.
         m._qubit_to_op = self._qubit_to_op.copy()
@@ -232,6 +237,26 @@ class Moment:
             for operation in self.operations
             if qubits.isdisjoint(frozenset(operation.qubits))
         )
+
+    def _is_parameterized_(self) -> bool:
+        return any(protocols.is_parameterized(op) for op in self)
+
+    def _parameter_names_(self) -> AbstractSet[str]:
+        return {name for op in self for name in protocols.parameter_names(op)}
+
+    def _resolve_parameters_(
+        self, resolver: 'cirq.ParamResolver', recursive: bool
+    ) -> 'cirq.Moment':
+        changed = False
+        resolved_ops: List['cirq.Operation'] = []
+        for op in self:
+            resolved_op = protocols.resolve_parameters(op, resolver, recursive)
+            if resolved_op != op:
+                changed = True
+            resolved_ops.append(resolved_op)
+        if not changed:
+            return self
+        return Moment(resolved_ops)
 
     def _with_measurement_key_mapping_(self, key_map: Mapping[str, str]):
         return Moment(

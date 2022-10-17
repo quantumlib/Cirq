@@ -80,5 +80,4 @@ def test_swap_network_str():
                                            │           │                                     │           │
 (4, 0): ───q(4)────────q(4)─────────q(4)───ZZ───q(4)───╱1╲───q(2)────────q(2)─────────q(2)───ZZ───q(2)───╱1╲───q(0)────────q(0)─────────q(0)───
     """.strip()
-    print(actual_str)
     assert actual_str == expected_str

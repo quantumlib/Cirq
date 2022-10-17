@@ -111,7 +111,6 @@ def test_same_pauli_traces_clifford():
                     ),
                 ]
 
-        np.random.seed(0)
         noise = NoiseOnLastQubitOnly()
         noisy_simulator = cirq.DensityMatrixSimulator(noise=noise)
 

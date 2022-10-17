@@ -107,6 +107,8 @@ upper_tabs:
         path: /cirq/transform/transformers
       - title: "Custom Transformers"
         path: /cirq/transform/custom_transformers
+      - title: "Routing as a Transformer"
+        path: /cirq/transform/routing_transformer
 
     - name: "Hardware"
       contents:
@@ -235,6 +237,8 @@ upper_tabs:
         path: /cirq/dev/modules
       - title: "Serialization guidelines"
         path: /cirq/dev/serialization
+      - title: "Version compatibility"
+        path: /cirq/dev/versions
       - title: "Triage process"
         path: /cirq/dev/triage
       - title: "Issues / requests / questions"

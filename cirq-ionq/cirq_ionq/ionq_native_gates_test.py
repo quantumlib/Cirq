@@ -21,6 +21,18 @@ import pytest
 import cirq_ionq as ionq
 
 
+PARAMS_FOR_ONE_ANGLE_GATE = [0, 0.1, 0.4, math.pi / 2, math.pi, 2 * math.pi]
+PARAMS_FOR_TWO_ANGLE_GATE = [
+    (0, 1),
+    (0.1, 1),
+    (0.4, 1),
+    (math.pi / 2, 0),
+    (0, math.pi),
+    (0.1, 2 * math.pi),
+]
+INVALID_GATE_POWER = [-2, -0.5, 0, 0.5, 2]
+
+
 @pytest.mark.parametrize(
     "gate,nqubits,diagram",
     [
@@ -74,3 +86,50 @@ def test_ms_unitary(phases):
 
     mat = cirq.protocols.unitary(gate)
     numpy.testing.assert_array_almost_equal(mat.dot(mat.conj().T), numpy.identity(4))
+
+
+@pytest.mark.parametrize(
+    "gate",
+    [
+        *[ionq.GPIGate(phi=angle) for angle in PARAMS_FOR_ONE_ANGLE_GATE],
+        *[ionq.GPI2Gate(phi=angle) for angle in PARAMS_FOR_ONE_ANGLE_GATE],
+        *[ionq.MSGate(phi0=angles[0], phi1=angles[1]) for angles in PARAMS_FOR_TWO_ANGLE_GATE],
+    ],
+)
+def test_gate_inverse(gate):
+    """Tests that the inverse of natives gate are correct."""
+    mat = cirq.protocols.unitary(gate)
+    mat_inverse = cirq.protocols.unitary(gate**-1)
+    dim = mat.shape[0]
+
+    numpy.testing.assert_array_almost_equal(mat.dot(mat_inverse), numpy.identity(dim))
+
+
+@pytest.mark.parametrize(
+    "gate",
+    [
+        *[ionq.GPIGate(phi=angle) for angle in PARAMS_FOR_ONE_ANGLE_GATE],
+        *[ionq.GPI2Gate(phi=angle) for angle in PARAMS_FOR_ONE_ANGLE_GATE],
+        *[ionq.MSGate(phi0=angles[0], phi1=angles[1]) for angles in PARAMS_FOR_TWO_ANGLE_GATE],
+    ],
+)
+def test_gate_power1(gate):
+    """Tests that power=1 for native gates are correct."""
+    mat = cirq.protocols.unitary(gate)
+    mat_power1 = cirq.protocols.unitary(gate**1)
+
+    numpy.testing.assert_array_almost_equal(mat, mat_power1)
+
+
+@pytest.mark.parametrize(
+    "gate,power",
+    [
+        *[(ionq.GPIGate(phi=0.1), power) for power in INVALID_GATE_POWER],
+        *[(ionq.GPI2Gate(phi=0.1), power) for power in INVALID_GATE_POWER],
+        *[(ionq.MSGate(phi0=0.1, phi1=0.2), power) for power in INVALID_GATE_POWER],
+    ],
+)
+def test_gate_power_not_implemented(gate, power):
+    """Tests that any power other than 1 and -1 is not implemented."""
+    with pytest.raises(TypeError):
+        _ = gate**power

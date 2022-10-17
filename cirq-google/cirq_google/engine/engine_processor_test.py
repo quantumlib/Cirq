@@ -207,7 +207,7 @@ _CALIBRATION_RESULTS_V2 = util.pack_any(
 )
 
 
-@pytest.fixture(scope='session', autouse=True)
+@pytest.fixture(scope='module', autouse=True)
 def mock_grpc_client():
     with mock.patch(
         'cirq_google.engine.engine_client.quantum.QuantumEngineServiceClient'

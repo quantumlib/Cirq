@@ -4,9 +4,7 @@
 # Runs pytest on the repository.
 #
 # Usage:
-#     check/pytest [--actually-quiet] [--flags for pytest] [file-paths-relative-to-repo-root]
-#
-# The --actually-quiet argument filters out any progress output from pytest.
+#     check/pytest [--flags for pytest] [file-paths-relative-to-repo-root]
 #
 # You may specify pytest flags and specific files to test. The file paths
 # must be relative to the repository root. If no files are specified, everything
@@ -14,45 +12,18 @@
 ################################################################################
 
 # Get the working directory to the repo root.
-cd "$(dirname "${BASH_SOURCE[0]}")"
-cd "$(git rev-parse --show-toplevel)"
+thisdir="$(dirname "${BASH_SOURCE[0]}")" || exit $?
+topdir="$(git -C "${thisdir}" rev-parse --show-toplevel)" || exit $?
+cd "${topdir}" || exit $?
 
-PYTEST_ARGS=()
-ACTUALLY_QUIET=""
-PARALLEL=""
-for arg in "$@"; do
-    if [[ "${arg}" == "--actually-quiet" ]]; then
-        ACTUALLY_QUIET=1
-    else
-        if [[ "${arg}" == "-n" ]]; then
-            PARALLEL=1
-        fi
-        PYTEST_ARGS+=("${arg}")
-    fi
-done
-
-if [ -z "${PARALLEL}" ]; then
-    PYTEST_ARGS+=("-n=auto")
-fi
+# Run in parallel by default.  Pass the `-n0` option for a single-process run.
+# (the last `-n` option wins)
+PYTEST_ARGS=( "-n=auto" "$@" )
 
 source dev_tools/pypath
-PYTHON_VERSION=$(python -V 2>&1 | sed 's/.* \([0-9]\).\([0-9]\).*/\1\2/')
-if [ "$PYTHON_VERSION" -lt "37" ]; then
-  PYTEST_ARGS+=("--ignore=cirq-rigetti")
-fi
 
-: ${CIRQ_TESTING_RANDOM_SEED=$(git log -1 --pretty="%ct")}
-export CIRQ_TESTING_RANDOM_SEED
-
-if [ -z "${ACTUALLY_QUIET}" ]; then
-    pytest "${PYTEST_ARGS[@]}"
-    RESULT=$?
-else
-    # Filter out lines like "...F....x...      [ 42%]", with coloring.
-    pytest -q --color=yes "${PYTEST_ARGS[@]}" |
-        perl -nle'print if not m{^(.\[0m)?[\.FEsx]+(.\[36m)?\s+\[\s*\d+%\](.\[0m)?$}'
-    RESULT=${PIPESTATUS[0]}
-fi
+pytest "${PYTEST_ARGS[@]}"
+RESULT=$?
 
 if [ "$RESULT" = 5 ]; then
   echo "[exit 5] No tests collected, but ignored."

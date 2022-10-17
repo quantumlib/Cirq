@@ -12,7 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import os
-import re
 
 from typing import cast
 from unittest import mock
@@ -223,12 +222,14 @@ def test_floquet_to_calibration_layer_with_measure_qubits():
 
 def test_xeb_to_calibration_layer():
     q_00, q_01, q_02, q_03 = [cirq.GridQubit(0, index) for index in range(4)]
-    gate = cirq.FSimGate(theta=np.pi / 4, phi=0.0)
+    gate = cirq.FSimGate(theta=0.75, phi=0.0)
     request = XEBPhasedFSimCalibrationRequest(
         gate=gate,
         pairs=((q_00, q_01), (q_02, q_03)),
         options=XEBPhasedFSimCalibrationOptions(
             n_library_circuits=22,
+            fatol=0.0078125,
+            xatol=0.0078125,
             fsim_options=XEBPhasedFSimCharacterizationOptions(
                 characterize_theta=True,
                 characterize_zeta=True,
@@ -246,8 +247,8 @@ def test_xeb_to_calibration_layer():
             'n_library_circuits': 22,
             'n_combinations': 10,
             'cycle_depths': '5_25_50_100_200_300',
-            'fatol': 5e-3,
-            'xatol': 5e-3,
+            'fatol': 0.0078125,
+            'xatol': 0.0078125,
             'characterize_theta': True,
             'characterize_zeta': True,
             'characterize_chi': False,
@@ -267,8 +268,6 @@ def test_xeb_to_calibration_layer():
         desired_textproto = f.read()
 
     layer_str = str(new_layer)
-    # Fix precision issues
-    layer_str = re.sub(r'0.004999\d+', '0.005', layer_str)
     assert layer_str == desired_textproto
 
 
