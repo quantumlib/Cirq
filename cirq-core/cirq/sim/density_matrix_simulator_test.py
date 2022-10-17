@@ -1508,10 +1508,11 @@ def test_large_untangled_okay():
 
 def test_stability_of_trace():
     q0, q1 = cirq.LineQubit.range(2)
-    qc = cirq.Circuit(cirq.CX(q1, q0), cirq.H(q1), cirq.measure(q1))
+    qc = cirq.Circuit(cirq.H(q1), cirq.CX(q1, q0), cirq.reset(q1))
     sim = cirq.DensityMatrixSimulator()
-    dm = sim.simulate(qc * 100).final_density_matrix
-    assert np.trace(dm) == 1
+    dm = sim.simulate(qc).final_density_matrix
+    dm1 = sim.simulate(qc * 100).final_density_matrix
+    np.testing.assert_allclose(dm, dm1)
 
 
 def test_separated_states_str_does_not_merge():
