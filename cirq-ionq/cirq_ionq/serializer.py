@@ -205,7 +205,7 @@ class Serializer:
         return {'gate': 'gpi2', 'target': targets[0], 'phase': gate.phase}
 
     def _serialize_ms_gate(self, gate: MSGate, targets: Sequence[int]) -> Optional[dict]:
-        return {'gate': 'ms', 'targets': targets, 'phases': gate.phases}
+        return {'gate': 'ms', 'targets': targets, 'phases': gate.phases, 'angle': gate.theta}
 
     def _serialize_cnot_pow_gate(
         self, gate: cirq.CNotPowGate, targets: Sequence[int]
