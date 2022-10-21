@@ -48,10 +48,10 @@
 
 
 # Get the working directory to the repo root.
-cd "$(dirname "${BASH_SOURCE[0]}")"
-repo_dir=$(git rev-parse --show-toplevel)
-cd "${repo_dir}"
+thisdir="$(dirname "${BASH_SOURCE[0]}")" || exit $?
+repo_dir="$(git -C "${thisdir}" rev-parse --show-toplevel)" || exit $?
+cd "${repo_dir}" || exit $?
 
 # Do the thing.
 export PYTHONPATH=${repo_dir}
-python3 ${repo_dir}/dev_tools/pr_monitor.py "$@"
+python3 "${repo_dir}/dev_tools/pr_monitor.py" "$@"
