@@ -88,7 +88,20 @@ def test_find_measurements_fill_mask():
     _check_measurement(m, 'k', [q(0, 0), q(0, 1), q(0, 2)], 1, [False, True, False])
 
 
-def test_find_measurements_duplicate_keys():
+def test_find_measurements_repeated_keys():
+    circuit = cirq.Circuit(
+        cirq.measure(q(0, 0), q(0, 1), key='k'),
+        cirq.measure(q(0, 1), q(0, 2), key='j'),
+        cirq.measure(q(0, 0), q(0, 1), key='k'),
+    )
+    measurements = v2.find_measurements(circuit)
+
+    assert len(measurements) == 2
+    _check_measurement(measurements[0], 'k', [q(0, 0), q(0, 1)], 2)
+    _check_measurement(measurements[1], 'j', [q(0, 1), q(0, 2)], 1)
+
+
+def test_find_measurements_incompatible_repeated_keys():
     circuit = cirq.Circuit()
     circuit.append(cirq.measure(q(0, 0), q(0, 1), key='k'))
     circuit.append(cirq.measure(q(0, 1), q(0, 2), key='k'))
@@ -173,6 +186,61 @@ def test_results_to_proto():
             np.testing.assert_array_equal(
                 trial_result.measurements['foo'], expected_trial_result.measurements['foo']
             )
+
+
+def test_results_to_proto_repeated_keys():
+    measurements = [
+        v2.MeasureInfo('foo', [q(0, 0)], instances=2, invert_mask=[False], tags=[]),
+        v2.MeasureInfo('bar', [q(0, 0)], instances=1, invert_mask=[False], tags=[]),
+    ]
+    trial_results = [
+        [
+            cirq.ResultDict(
+                params=cirq.ParamResolver({'i': 0}),
+                records={
+                    'foo': np.array([[[0], [0]], [[0], [1]], [[0], [0]], [[0], [1]]], dtype=bool),
+                    'bar': np.array([[[0]], [[1]], [[1]], [[0]]], dtype=bool),
+                },
+            ),
+            cirq.ResultDict(
+                params=cirq.ParamResolver({'i': 1}),
+                records={
+                    'foo': np.array([[[0], [0]], [[0], [1]], [[0], [1]], [[0], [0]]], dtype=bool),
+                    'bar': np.array([[[0]], [[1]], [[1]], [[0]]], dtype=bool),
+                },
+            ),
+        ],
+        [
+            cirq.ResultDict(
+                params=cirq.ParamResolver({'i': 0}),
+                records={
+                    'foo': np.array([[[0], [0]], [[0], [1]], [[0], [0]], [[0], [1]]], dtype=bool),
+                    'bar': np.array([[[0]], [[1]], [[1]], [[0]]], dtype=bool),
+                },
+            ),
+            cirq.ResultDict(
+                params=cirq.ParamResolver({'i': 1}),
+                records={
+                    'foo': np.array([[[0], [0]], [[0], [1]], [[0], [1]], [[0], [0]]], dtype=bool),
+                    'bar': np.array([[[0]], [[1]], [[1]], [[0]]], dtype=bool),
+                },
+            ),
+        ],
+    ]
+    proto = v2.results_to_proto(trial_results, measurements)
+    assert isinstance(proto, v2.result_pb2.Result)
+    assert len(proto.sweep_results) == 2
+    deserialized = v2.results_from_proto(proto, measurements)
+    assert len(deserialized) == 2
+    for sweep_results, expected in zip(deserialized, trial_results):
+        assert len(sweep_results) == len(expected)
+        for trial_result, expected_trial_result in zip(sweep_results, expected):
+            assert trial_result.params == expected_trial_result.params
+            assert trial_result.repetitions == expected_trial_result.repetitions
+            for key in ['foo', 'bar']:
+                np.testing.assert_array_equal(
+                    trial_result.records[key], expected_trial_result.records[key]
+                )
 
 
 def test_results_to_proto_sweep_repetitions():

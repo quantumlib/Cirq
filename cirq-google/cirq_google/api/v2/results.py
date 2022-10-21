@@ -31,6 +31,7 @@ class MeasureInfo:
         instances: The number of times a given key occurs in a circuit.
         invert_mask: a list of booleans describing whether the results should
             be flipped for each of the qubits in the qubits field.
+        tags: Tags applied to this measurement gate.
     """
 
     key: str
@@ -54,7 +55,6 @@ def find_measurements(program: cirq.AbstractCircuit) -> List[MeasureInfo]:
         raise NotImplementedError(f'Unrecognized program type: {type(program)}')
 
     measurements: Dict[str, MeasureInfo] = {}
-    instances: Dict[str, int] = Counter()
     for moment in program:
         for op in moment:
             if isinstance(op.gate, cirq.MeasurementGate):
@@ -68,12 +68,14 @@ def find_measurements(program: cirq.AbstractCircuit) -> List[MeasureInfo]:
                 prev_m = measurements.get(m.key)
                 if prev_m is None:
                     measurements[m.key] = m
-                elif m != prev_m:
-                    raise ValueError(f"Incompatible repeated keys: {m} != {prev_m}")
-                instances[m.key] += 1
-    # Update instance counts for each measurement.
-    for k, m in measurements.items():
-        m.instances = instances[k]
+                else:
+                    if (
+                        m.qubits != prev_m.qubits
+                        or m.invert_mask != prev_m.invert_mask
+                        or m.tags != prev_m.tags
+                    ):
+                        raise ValueError(f"Incompatible repeated keys: {m}, {prev_m}")
+                    prev_m.instances += 1
     return list(measurements.values())
 
 
