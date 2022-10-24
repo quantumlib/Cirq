@@ -304,6 +304,55 @@ def test_results_from_proto_qubit_ordering():
     )
 
 
+def test_results_from_proto_repeated_keys():
+    measurements = [
+        v2.MeasureInfo(
+            'foo',
+            [q(0, 0), q(0, 1), q(1, 1)],
+            instances=4,
+            invert_mask=[False, False, False],
+            tags=[],
+        )
+    ]
+    proto = v2.result_pb2.Result()
+    sr = proto.sweep_results.add()
+    sr.repetitions = 8
+    pr = sr.parameterized_results.add()
+    pr.params.assignments.update({'i': 1})
+    mr = pr.measurement_results.add()
+    mr.key = 'foo'
+    mr.instances = 4
+    for qubit, results in [
+        (q(0, 0), [0b1111_0000, 0b1101_0010, 0b1011_0100, 0b0111_1000]),
+        (q(0, 1), [0b1100_1100, 0b1110_1110, 0b1000_1000, 0b0100_0100]),
+        (q(1, 1), [0b1010_1010, 0b1000_1000, 0b1110_1110, 0b0010_0010]),
+    ]:
+        qmr = mr.qubit_measurement_results.add()
+        qmr.qubit.id = v2.qubit_to_proto_id(qubit)
+        qmr.results = bytes(results)
+
+    trial_results = v2.results_from_proto(proto, measurements)
+    trial = trial_results[0][0]
+    assert trial.params == cirq.ParamResolver({'i': 1})
+    assert trial.repetitions == 8
+    np.testing.assert_array_equal(
+        trial.records['foo'],
+        np.array(
+            [
+                [[0, 0, 0], [0, 0, 1], [0, 1, 0], [0, 1, 1]],
+                [[1, 0, 0], [1, 0, 1], [1, 1, 0], [1, 1, 1]],
+                [[0, 0, 0], [1, 1, 0], [0, 1, 0], [0, 1, 1]],
+                [[1, 0, 0], [0, 1, 0], [1, 1, 0], [1, 1, 1]],
+                [[0, 0, 0], [0, 0, 1], [1, 0, 1], [0, 1, 1]],
+                [[1, 0, 0], [1, 0, 1], [0, 0, 1], [1, 1, 1]],
+                [[0, 0, 0], [0, 0, 1], [0, 1, 0], [1, 0, 0]],
+                [[1, 0, 0], [1, 0, 1], [1, 1, 0], [0, 0, 0]],
+            ],
+            dtype=bool,
+        ),
+    )
+
+
 def test_results_from_proto_duplicate_qubit():
     measurements = [
         v2.MeasureInfo(
