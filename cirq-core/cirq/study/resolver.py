@@ -14,6 +14,7 @@
 
 """Resolves ParameterValues to assigned values."""
 import numbers
+import warnings
 from typing import Any, cast, Dict, Iterator, Mapping, Optional, TYPE_CHECKING, Union
 
 import numpy as np
@@ -179,7 +180,11 @@ class ParamResolver:
         if not recursive:
             # Resolves one step at a time. For example:
             # a.subs({a: b, b: c}) == b
-            v = value.subs(self.param_dict, simultaneous=True)
+            try:
+                v = value.subs(self.param_dict, simultaneous=True)
+            except sympy.SympifyError:
+                warnings.warn(f'Could not resolve parameter {value}')
+                return value
             if v.free_symbols:
                 return v
             elif sympy.im(v):
