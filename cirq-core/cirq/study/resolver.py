@@ -183,8 +183,9 @@ class ParamResolver:
             try:
                 v = value.subs(self.param_dict, simultaneous=True)
             except sympy.SympifyError:
-                warnings.warn(f'Could not resolve parameter {value}')
-                return value
+                # Lines will be covered in sympy 1.12+
+                warnings.warn(f'Could not resolve parameter {value}')  # coverage: ignore
+                return value  # coverage: ignore
             if v.free_symbols:
                 return v
             elif sympy.im(v):
