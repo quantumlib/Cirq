@@ -154,7 +154,9 @@ class AsymmetricDepolarizingChannel(raw_types.Gate):
             ]
         else:
             error_probabilities = [f"{pauli}:{p}" for pauli, p in self._error_probabilities.items()]
-        return f"A({', '.join(error_probabilities)})"
+        return [f"A({', '.join(error_probabilities)})"] + [
+            f'({i})' for i in range(1, self._num_qubits)
+        ]
 
     @property
     def p_i(self) -> float:
