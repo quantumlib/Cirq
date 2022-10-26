@@ -14,7 +14,6 @@
 
 """Resolves ParameterValues to assigned values."""
 import numbers
-import warnings
 from typing import Any, cast, Dict, Iterator, Mapping, Optional, TYPE_CHECKING, Union
 
 import numpy as np
@@ -60,6 +59,7 @@ class ParamResolver:
 
     Raises:
         TypeError if formulas are passed as keys.
+        ValueError if the resulting value cannot be interpreted.
     """
 
     def __new__(cls, param_dict: 'cirq.ParamResolverOrSimilarType' = None):
