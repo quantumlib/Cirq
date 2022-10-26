@@ -182,10 +182,11 @@ class ParamResolver:
             # a.subs({a: b, b: c}) == b
             try:
                 v = value.subs(self.param_dict, simultaneous=True)
-            except sympy.SympifyError:  # coverage: ignore
+            except sympy.SympifyError as e:  # coverage: ignore
                 # Lines will be covered in sympy 1.12+
-                warnings.warn(f'Could not resolve parameter {value}')  # coverage: ignore
-                return value  # coverage: ignore
+                raise ValueError(
+                    f'Could not resolve parameter {value}, underlying error {e}'
+                )  # coverage: ignore
             if v.free_symbols:
                 return v
             elif sympy.im(v):

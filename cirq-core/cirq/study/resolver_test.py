@@ -244,8 +244,10 @@ def test_custom_resolved_value():
     c = sympy.Symbol('c')
     r = cirq.ParamResolver({a: foo, b: bar, c: baz})
     assert r.value_of(a) is foo
-    assert r.value_of(b) is b
     assert r.value_of(c) == 'Baz'
+
+    with pytest.raises(ValueError, match='Could not resolve parameter b'):
+        _ = r.value_of(b)
 
 
 def test_compose():
