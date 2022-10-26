@@ -1,6 +1,6 @@
 {
     "version": 1,
-     "project": "Cirq",
+    "project": "Cirq",
     "project_url": "https://quantumai.google/cirq",
     "repo": ".",
     "repo_subdir": "cirq-core/",
