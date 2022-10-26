@@ -59,7 +59,6 @@ class ParamResolver:
 
     Raises:
         TypeError if formulas are passed as keys.
-        ValueError if the resulting value cannot be interpreted.
     """
 
     def __new__(cls, param_dict: 'cirq.ParamResolverOrSimilarType' = None):
@@ -113,6 +112,7 @@ class ParamResolver:
         Raises:
             RecursionError: If the ParamResolver detects a loop in recursive
                 resolution.
+            ValueError: If the resulting value cannot be interpreted.
         """
 
         # Input is a pass through type, no resolution needed: return early
