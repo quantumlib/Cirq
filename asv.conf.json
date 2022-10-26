@@ -1,6 +1,6 @@
 {
     "version": 1,
-    "project": "Cirq",
+     "project": "Cirq",
     "project_url": "https://quantumai.google/cirq",
     "repo": ".",
     "repo_subdir": "cirq-core/",
@@ -14,4 +14,5 @@
     "results_dir": ".asv/results",
     "html_dir": ".asv/html",
     "hash_length": 8,
+    "install_command": ["pip install --pre cirq"],
 }
