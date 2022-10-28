@@ -143,22 +143,22 @@ def test_coupler_pulse_resolution(gate, resolver, expected):
     'gate, param_names',
     [
         (
-                coupler_pulse.CouplerPulse(
-                    hold_time=cirq.Duration(nanos=sympy.Symbol('t_ns')), coupling_mhz=10
-                ),
-                {'t_ns'},
+            coupler_pulse.CouplerPulse(
+                hold_time=cirq.Duration(nanos=sympy.Symbol('t_ns')), coupling_mhz=10
+            ),
+            {'t_ns'},
         ),
         (
-                coupler_pulse.CouplerPulse(
-                    hold_time=cirq.Duration(nanos=50), coupling_mhz=sympy.Symbol('g')
-                ),
-                {'g'},
+            coupler_pulse.CouplerPulse(
+                hold_time=cirq.Duration(nanos=50), coupling_mhz=sympy.Symbol('g')
+            ),
+            {'g'},
         ),
         (
-                coupler_pulse.CouplerPulse(
-                    hold_time=cirq.Duration(nanos=sympy.Symbol('t_ns')), coupling_mhz=sympy.Symbol('g')
-                ),
-                {'g', 't_ns'},
+            coupler_pulse.CouplerPulse(
+                hold_time=cirq.Duration(nanos=sympy.Symbol('t_ns')), coupling_mhz=sympy.Symbol('g')
+            ),
+            {'g', 't_ns'},
         ),
     ],
 )
@@ -169,29 +169,24 @@ def test_coupler_pulse_parameter_names(gate, param_names):
 @pytest.mark.parametrize(
     'gate, is_parameterized',
     [
+        (coupler_pulse.CouplerPulse(hold_time=cirq.Duration(nanos=50), coupling_mhz=10), False),
         (
-                coupler_pulse.CouplerPulse(
-                    hold_time=cirq.Duration(nanos=50), coupling_mhz=10
-                ),
-                False,
+            coupler_pulse.CouplerPulse(
+                hold_time=cirq.Duration(nanos=sympy.Symbol('t_ns')), coupling_mhz=10
+            ),
+            True,
         ),
         (
-                coupler_pulse.CouplerPulse(
-                    hold_time=cirq.Duration(nanos=sympy.Symbol('t_ns')), coupling_mhz=10
-                ),
-                True,
+            coupler_pulse.CouplerPulse(
+                hold_time=cirq.Duration(nanos=50), coupling_mhz=sympy.Symbol('g')
+            ),
+            True,
         ),
         (
-                coupler_pulse.CouplerPulse(
-                    hold_time=cirq.Duration(nanos=50), coupling_mhz=sympy.Symbol('g')
-                ),
-                True,
-        ),
-        (
-                coupler_pulse.CouplerPulse(
-                    hold_time=cirq.Duration(nanos=sympy.Symbol('t_ns')), coupling_mhz=sympy.Symbol('g')
-                ),
-                True,
+            coupler_pulse.CouplerPulse(
+                hold_time=cirq.Duration(nanos=sympy.Symbol('t_ns')), coupling_mhz=sympy.Symbol('g')
+            ),
+            True,
         ),
     ],
 )

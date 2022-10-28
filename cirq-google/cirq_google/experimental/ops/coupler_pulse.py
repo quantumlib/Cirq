@@ -17,6 +17,7 @@ from typing import AbstractSet, Any, Optional, Tuple
 import numpy as np
 
 import cirq
+from cirq._compat import proper_repr
 
 
 @cirq.value_equality(approximate=True)
@@ -78,10 +79,10 @@ class CouplerPulse(cirq.ops.Gate):
     def __repr__(self) -> str:
         return (
             'cirq_google.experimental.ops.coupler_pulse.'
-            + f'CouplerPulse(hold_time={self.hold_time!r}, '
-            + f'coupling_mhz={self.coupling_mhz}, '
-            + f'rise_time={self.rise_time!r}, '
-            + f'padding_time={self.padding_time!r})'
+            + f'CouplerPulse(hold_time={proper_repr(self.hold_time)}, '
+            + f'coupling_mhz={proper_repr(self.coupling_mhz)}, '
+            + f'rise_time={proper_repr(self.rise_time)}, '
+            + f'padding_time={proper_repr(self.padding_time)})'
         )
 
     def __str__(self) -> str:
@@ -95,9 +96,9 @@ class CouplerPulse(cirq.ops.Gate):
     def _is_parameterized_(self) -> bool:
         return (
             cirq.is_parameterized(self.hold_time)
+            or cirq.is_parameterized(self.coupling_mhz)
             or cirq.is_parameterized(self.rise_time)
             or cirq.is_parameterized(self.padding_time)
-            or cirq.is_parameterized(self.coupling_mhz)
         )
 
     def _parameter_names_(self: Any) -> AbstractSet[str]:
