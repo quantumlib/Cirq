@@ -180,13 +180,12 @@ class ParamResolver:
         if not recursive:
             # Resolves one step at a time. For example:
             # a.subs({a: b, b: c}) == b
-            try:
-                v = value.subs(self.param_dict, simultaneous=True)
-            except sympy.SympifyError as e:  # coverage: ignore
-                # Lines will be covered in sympy 1.12+
-                raise ValueError(
-                    f'Could not resolve parameter {value}, underlying error {e}'
-                )  # coverage: ignore
+            #
+            # Note that a sympy.SympifyError here likely means
+            # that one of the expressions was not parsable by sympy
+            # (such as a function returning NotImplemented)
+            v = value.subs(self.param_dict, simultaneous=True)
+
             if v.free_symbols:
                 return v
             elif sympy.im(v):
