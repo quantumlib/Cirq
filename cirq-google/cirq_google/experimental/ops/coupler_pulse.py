@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Any, Optional, Tuple
+from typing import AbstractSet, Any, Optional, Tuple
 
 import numpy as np
 
@@ -90,6 +90,32 @@ class CouplerPulse(cirq.ops.Gate):
             + f'coupling_mhz={self.coupling_mhz}, '
             + f'rise_time={self.rise_time}, '
             + f'padding_time={self.padding_time})'
+        )
+
+    def _is_parameterized_(self) -> bool:
+        return (
+            cirq.is_parameterized(self.hold_time)
+            or cirq.is_parameterized(self.rise_time)
+            or cirq.is_parameterized(self.padding_time)
+            or cirq.is_parameterized(self.coupling_mhz)
+        )
+
+    def _parameter_names_(self: Any) -> AbstractSet[str]:
+        return (
+            cirq.parameter_names(self.hold_time)
+            | cirq.parameter_names(self.coupling_mhz)
+            | cirq.parameter_names(self.rise_time)
+            | cirq.parameter_names(self.padding_time)
+        )
+
+    def _resolve_parameters_(
+        self, resolver: cirq.ParamResolverOrSimilarType, recursive: bool
+    ) -> 'CouplerPulse':
+        return CouplerPulse(
+            hold_time=cirq.resolve_parameters(self.hold_time, resolver, recursive=recursive),
+            coupling_mhz=cirq.resolve_parameters(self.coupling_mhz, resolver, recursive=recursive),
+            rise_time=cirq.resolve_parameters(self.rise_time, resolver, recursive=recursive),
+            padding_time=cirq.resolve_parameters(self.padding_time, resolver, recursive=recursive),
         )
 
     def _value_equality_values_(self) -> Any:
