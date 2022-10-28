@@ -19,10 +19,6 @@ import numpy as np
 import cirq
 
 
-_MIN_DURATION = cirq.Duration(nanos=0)
-_MAX_DURATION = cirq.Duration(nanos=200)
-
-
 @cirq.value_equality(approximate=True)
 class CouplerPulse(cirq.ops.Gate):
     r"""Tunable pulse for entangling adjacent qubits.
@@ -67,27 +63,11 @@ class CouplerPulse(cirq.ops.Gate):
             rise_time: Width of the rising (or falling) action of the trapezoidal pulse.
             padding_time: Symmetric padding around the coupler pulse.
 
-        Raises:
-            ValueError: If any time is negative or if the total pulse is too long.
         """
-        if hold_time < _MIN_DURATION:
-            raise ValueError(f'hold_time must be greater than {_MIN_DURATION}')
-        if padding_time < _MIN_DURATION:
-            raise ValueError(f'padding_time must be greater than {_MIN_DURATION}')
-        if rise_time < _MIN_DURATION:
-            raise ValueError(f'rise_time must be greater than {_MIN_DURATION}')
-
         self.hold_time = hold_time
         self.coupling_mhz = coupling_mhz
         self.rise_time = rise_time or cirq.Duration(nanos=8)
         self.padding_time = padding_time or cirq.Duration(nanos=2.5)
-
-        total_time = hold_time + 2 * self.rise_time + 2 * self.padding_time
-        if total_time > _MAX_DURATION:
-            raise ValueError(
-                f'Total time of coupler pulse ({total_time}) '
-                f'cannot be greater than {_MAX_DURATION}'
-            )
 
     def num_qubits(self) -> int:
         return 2
