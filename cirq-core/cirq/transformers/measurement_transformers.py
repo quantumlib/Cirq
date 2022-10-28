@@ -143,7 +143,7 @@ def defer_measurements(
                 [i for key in keys for i in store.records[key][0]]
                 for store in compatible_datastores
             ]
-            control_values = ops.SumOfProducts(products)
+            control_values = products[0] if len(products) == 1 else ops.SumOfProducts(products)
             qs = [q for key in keys for q in measurement_qubits[key]]
             return op.without_classical_controls().controlled_by(*qs, control_values=control_values)
         return op
