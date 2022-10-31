@@ -166,7 +166,7 @@ class CommonCliffordGateMetaClass(value.ABCMetaImplementAnyOneOf):
                     _to_clifford_tableau(x_to=x_to, z_to=z_to)
                 )
 
-            # Order in is relied on in properties that retrieve a specific Clifford below.
+            # Order matters: it's relied upon in properties that retrieve a specific Clifford below.
             cls._all_single_qubit_cliffords = (
                 # 0: Identity
                 from_xz(x_to=pX, z_to=pZ),  # I

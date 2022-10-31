@@ -144,13 +144,7 @@ def defer_measurements(
                 for store in compatible_datastores
             ]
 
-            # Special optimization for single-value conditions
-            # Remove after https://github.com/quantumlib/Cirq/pull/5873
-            control_values = (
-                ops.ProductOfSums(products[0])
-                if len(products) == 1
-                else ops.SumOfProducts(products)
-            )
+            control_values = ops.SumOfProducts(products)
             qs = [q for key in keys for q in measurement_qubits[key]]
             return op.without_classical_controls().controlled_by(*qs, control_values=control_values)
         return op
