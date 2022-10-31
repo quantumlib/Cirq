@@ -121,12 +121,9 @@ def defer_measurements(
                     if c.key not in measurement_qubits:
                         raise ValueError(f'Deferred measurement for key={c.key} not found.')
                     qs = measurement_qubits[c.key]
-                    if len(qs) == 1:
-                        control_values: Any = [range(1, qs[0].dimension)]
-                    else:
-                        all_values = itertools.product(*[range(q.dimension) for q in qs])
-                        anything_but_all_zeros = tuple(itertools.islice(all_values, 1, None))
-                        control_values = ops.SumOfProducts(anything_but_all_zeros)
+                    all_values = itertools.product(*[range(q.dimension) for q in qs])
+                    anything_but_all_zeros = tuple(itertools.islice(all_values, 1, None))
+                    control_values = ops.SumOfProducts(anything_but_all_zeros)
                     new_op = new_op.controlled_by(*qs, control_values=control_values)
                 else:
                     raise ValueError('Only KeyConditions are allowed.')
