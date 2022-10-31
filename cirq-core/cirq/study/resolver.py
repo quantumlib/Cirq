@@ -112,6 +112,7 @@ class ParamResolver:
         Raises:
             RecursionError: If the ParamResolver detects a loop in recursive
                 resolution.
+            sympy.SympifyError: If the resulting value cannot be interpreted.
         """
 
         # Input is a pass through type, no resolution needed: return early
@@ -179,7 +180,12 @@ class ParamResolver:
         if not recursive:
             # Resolves one step at a time. For example:
             # a.subs({a: b, b: c}) == b
+            #
+            # Note that a sympy.SympifyError here likely means
+            # that one of the expressions was not parsable by sympy
+            # (such as a function returning NotImplemented)
             v = value.subs(self.param_dict, simultaneous=True)
+
             if v.free_symbols:
                 return v
             elif sympy.im(v):

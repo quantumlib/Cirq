@@ -227,25 +227,31 @@ def test_custom_resolved_value():
         def _resolved_value_(self):
             return self
 
-    class Bar:
-        def _resolved_value_(self):
-            return NotImplemented
-
     class Baz:
         def _resolved_value_(self):
             return 'Baz'
 
     foo = Foo()
-    bar = Bar()
     baz = Baz()
 
     a = sympy.Symbol('a')
-    b = sympy.Symbol('b')
-    c = sympy.Symbol('c')
-    r = cirq.ParamResolver({a: foo, b: bar, c: baz})
+    b = sympy.Symbol('c')
+    r = cirq.ParamResolver({a: foo, b: baz})
     assert r.value_of(a) is foo
-    assert r.value_of(b) is b
-    assert r.value_of(c) == 'Baz'
+    assert r.value_of(b) == 'Baz'
+
+
+@pytest.mark.xfail(reason='this test requires sympy 1.12', strict=True)
+def test_custom_value_not_implemented():
+    class Bar:
+        def _resolved_value_(self):
+            return NotImplemented
+
+    b = sympy.Symbol('b')
+    bar = Bar()
+    r = cirq.ParamResolver({b: bar})
+    with pytest.raises(sympy.SympifyError):
+        _ = r.value_of(b)
 
 
 def test_compose():
