@@ -116,7 +116,10 @@ class MatrixGate(raw_types.Gate):
         if not isinstance(exponent, (int, float)):
             return NotImplemented
         new_mat = linalg.map_eigenvalues(self._matrix, lambda b: b**exponent)
-        return MatrixGate(new_mat, qid_shape=self._qid_shape)
+        if self._name is not None:    
+            return MatrixPowerGate(new_mat, name = f'{self._name}^{exponent}', qid_shape=self._qid_shape)
+        else:
+            return MatrixPowerGate(new_mat, qid_shape=self._qid_shape)
 
     def _phase_by_(self, phase_turns: float, qubit_index: int) -> 'MatrixGate':
         if not isinstance(phase_turns, (int, float)):
