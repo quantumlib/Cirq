@@ -55,53 +55,54 @@ def flatten(val: Any) -> Tuple[Any, 'ExpressionMap']:
         are described above.
 
     Examples:
-        >>> qubit = cirq.LineQubit(0)
-        >>> a = sympy.Symbol('a')
-        >>> circuit = cirq.Circuit(
-        ...     cirq.X(qubit) ** (a/4),
-        ...     cirq.Y(qubit) ** (1-a/2),
-        ... )
-        >>> print(circuit)
-        0: ───X^(a/4)───Y^(1 - a/2)───
 
-        >>> sweep = cirq.Linspace(a, start=0, stop=3, length=4)
-        >>> print(cirq.ListSweep(sweep))
-        Sweep:
-        {'a': 0.0}
-        {'a': 1.0}
-        {'a': 2.0}
-        {'a': 3.0}
+    >>> qubit = cirq.LineQubit(0)
+    >>> a = sympy.Symbol('a')
+    >>> circuit = cirq.Circuit(
+    ...     cirq.X(qubit) ** (a/4),
+    ...     cirq.Y(qubit) ** (1-a/2),
+    ... )
+    >>> print(circuit)
+    0: ───X^(a/4)───Y^(1 - a/2)───
 
-        >>> c_flat, expr_map = cirq.flatten(circuit)
-        >>> print(c_flat)
-        0: ───X^(<a/4>)───Y^(<1 - a/2>)───
-        >>> expr_map
-        cirq.ExpressionMap({a/4: <a/4>, 1 - a/2: <1 - a/2>})
+    >>> sweep = cirq.Linspace(a, start=0, stop=3, length=4)
+    >>> print(cirq.ListSweep(sweep))
+    Sweep:
+    {'a': 0.0}
+    {'a': 1.0}
+    {'a': 2.0}
+    {'a': 3.0}
 
-        >>> new_sweep = expr_map.transform_sweep(sweep)
-        >>> print(new_sweep)
-        Sweep:
-        {'<a/4>': 0.0, '<1 - a/2>': 1.0}
-        {'<a/4>': 0.25, '<1 - a/2>': 0.5}
-        {'<a/4>': 0.5, '<1 - a/2>': 0.0}
-        {'<a/4>': 0.75, '<1 - a/2>': -0.5}
+    >>> c_flat, expr_map = cirq.flatten(circuit)
+    >>> print(c_flat)
+    0: ───X^(<a/4>)───Y^(<1 - a/2>)───
+    >>> expr_map
+    cirq.ExpressionMap({a/4: <a/4>, 1 - a/2: <1 - a/2>})
 
-        >>> for params in sweep:  # Original
-        ...     print(circuit,
-        ...           '=>',
-        ...           cirq.resolve_parameters(circuit, params))
-        0: ───X^(a/4)───Y^(1 - a/2)─── => 0: ───X^0───Y───
-        0: ───X^(a/4)───Y^(1 - a/2)─── => 0: ───X^0.25───Y^0.5───
-        0: ───X^(a/4)───Y^(1 - a/2)─── => 0: ───X^0.5───Y^0───
-        0: ───X^(a/4)───Y^(1 - a/2)─── => 0: ───X^0.75───Y^-0.5───
+    >>> new_sweep = expr_map.transform_sweep(sweep)
+    >>> print(new_sweep)
+    Sweep:
+    {'<a/4>': 0.0, '<1 - a/2>': 1.0}
+    {'<a/4>': 0.25, '<1 - a/2>': 0.5}
+    {'<a/4>': 0.5, '<1 - a/2>': 0.0}
+    {'<a/4>': 0.75, '<1 - a/2>': -0.5}
 
-        >>> for params in new_sweep:  # Flattened
-        ...     print(c_flat, '=>', end=' ')
-        ...     print(cirq.resolve_parameters(c_flat, params))
-        0: ───X^(<a/4>)───Y^(<1 - a/2>)─── => 0: ───X^0───Y───
-        0: ───X^(<a/4>)───Y^(<1 - a/2>)─── => 0: ───X^0.25───Y^0.5───
-        0: ───X^(<a/4>)───Y^(<1 - a/2>)─── => 0: ───X^0.5───Y^0───
-        0: ───X^(<a/4>)───Y^(<1 - a/2>)─── => 0: ───X^0.75───Y^-0.5───
+    >>> for params in sweep:  # Original
+    ...     print(circuit,
+    ...           '=>',
+    ...           cirq.resolve_parameters(circuit, params))
+    0: ───X^(a/4)───Y^(1 - a/2)─── => 0: ───X^0───Y───
+    0: ───X^(a/4)───Y^(1 - a/2)─── => 0: ───X^0.25───Y^0.5───
+    0: ───X^(a/4)───Y^(1 - a/2)─── => 0: ───X^0.5───Y^0───
+    0: ───X^(a/4)───Y^(1 - a/2)─── => 0: ───X^0.75───Y^-0.5───
+
+    >>> for params in new_sweep:  # Flattened
+    ...     print(c_flat, '=>', end=' ')
+    ...     print(cirq.resolve_parameters(c_flat, params))
+    0: ───X^(<a/4>)───Y^(<1 - a/2>)─── => 0: ───X^0───Y───
+    0: ───X^(<a/4>)───Y^(<1 - a/2>)─── => 0: ───X^0.25───Y^0.5───
+    0: ───X^(<a/4>)───Y^(<1 - a/2>)─── => 0: ───X^0.5───Y^0───
+    0: ───X^(<a/4>)───Y^(<1 - a/2>)─── => 0: ───X^0.75───Y^-0.5───
     """
     flattener = _ParamFlattener()
     val_flat = flattener.flatten(val)
