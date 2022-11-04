@@ -14,18 +14,7 @@
 
 import itertools
 from collections import defaultdict
-from typing import (
-    Any,
-    Dict,
-    Iterable,
-    List,
-    Mapping,
-    Optional,
-    Sequence,
-    Tuple,
-    TYPE_CHECKING,
-    Union,
-)
+from typing import Any, Dict, Iterable, List, Optional, Sequence, Tuple, TYPE_CHECKING, Union
 
 import numpy as np
 
@@ -105,7 +94,7 @@ def defer_measurements(
 
     circuit = transformer_primitives.unroll_circuit_op(circuit, deep=True, tags_to_check=None)
     terminal_measurements = {op for _, op in find_terminal_measurements(circuit)}
-    measurement_qubits: Dict['cirq.MeasurementKey', List[List['_MeasurementQid']]] = defaultdict(
+    measurement_qubits: Dict['cirq.MeasurementKey', List[Tuple['_MeasurementQid']]] = defaultdict(
         list
     )
 
@@ -116,7 +105,7 @@ def defer_measurements(
         if isinstance(gate, ops.MeasurementGate):
             key = value.MeasurementKey.parse_serialized(gate.key)
             targets = [_MeasurementQid(key, q, len(measurement_qubits[key])) for q in op.qubits]
-            measurement_qubits[key].append(targets)
+            measurement_qubits[key].append(tuple(targets))
             cxs = [_mod_add(q, target) for q, target in zip(op.qubits, targets)]
             confusions = [
                 _ConfusionChannel(m, [op.qubits[i].dimension for i in indexes]).on(
@@ -159,7 +148,8 @@ def defer_measurements(
 
             # Rearrange these into the format expected by SumOfProducts
             products = [
-                [i for k, j in keys for i in store.records[k][j]] for store in compatible_datastores
+                [val for k, i in keys for val in store.records[k][i]]
+                for store in compatible_datastores
             ]
             control_values = ops.SumOfProducts(products)
             qs = [q for k, i in keys for q in measurement_qubits[k][i]]
@@ -179,8 +169,8 @@ def defer_measurements(
 
 
 def _all_possible_datastore_states(
-    kis: Iterable[Tuple['cirq.MeasurementKey', int]],
-    measurement_qubits: Mapping['cirq.MeasurementKey', Sequence[Sequence['cirq.Qid']]],
+    keys: Iterable[Tuple['cirq.MeasurementKey', int]],
+    measurement_qubits: Dict['cirq.MeasurementKey', List[Tuple['cirq.Qid', ...]]],
 ) -> Iterable['cirq.ClassicalDataStoreReader']:
     """The cartesian product of all possible DataStore states for the given keys."""
     # First we get the list of all possible values. So if we have a key mapped to qubits of shape
@@ -200,13 +190,15 @@ def _all_possible_datastore_states(
     all_values = itertools.product(
         *[
             tuple(itertools.product(*[range(q.dimension) for q in measurement_qubits[k][i]]))
-            for k, i in kis
+            for k, i in keys
         ]
     )
     # Then we create the ClassicalDataDictionaryStore for each of the above.
     for sequences in all_values:
-        lookup = {k: [None] * len(v) for k, v in measurement_qubits.items()}
-        for (k, i), sequence in zip(kis, sequences):
+        lookup: Dict['cirq.MeasurementKey', List[Tuple[int, ...]]] = {}
+        for (k, i), sequence in zip(keys, sequences):
+            if k not in lookup:
+                lookup[k] = [sequence] * len(measurement_qubits[k])
             lookup[k][i] = sequence
         yield value.ClassicalDataDictionaryStore(
             _records=lookup, _measured_qubits=measurement_qubits
