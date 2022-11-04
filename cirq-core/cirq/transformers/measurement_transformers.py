@@ -94,9 +94,9 @@ def defer_measurements(
 
     circuit = transformer_primitives.unroll_circuit_op(circuit, deep=True, tags_to_check=None)
     terminal_measurements = {op for _, op in find_terminal_measurements(circuit)}
-    measurement_qubits: Dict[
-        'cirq.MeasurementKey', List[Tuple['_MeasurementQid', ...]]
-    ] = defaultdict(list)
+    measurement_qubits: Dict['cirq.MeasurementKey', List[Tuple['cirq.Qid', ...]]] = defaultdict(
+        list
+    )
 
     def defer(op: 'cirq.Operation', _) -> 'cirq.OP_TREE':
         if op in terminal_measurements:
