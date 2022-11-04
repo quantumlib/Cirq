@@ -195,10 +195,10 @@ def _all_possible_datastore_states(
     )
     # Then we create the ClassicalDataDictionaryStore for each of the above.
     for sequences in all_values:
-        lookup: Dict['cirq.MeasurementKey', List[Tuple[int, ...]]] = {}
+        lookup: Dict['cirq.MeasurementKey', List[Tuple[int, ...]]] = {
+            k: [()] * len(v) for k, v in measurement_qubits.items()
+        }
         for (k, i), sequence in zip(keys, sequences):
-            if k not in lookup:
-                lookup[k] = [sequence] * len(measurement_qubits[k])
             lookup[k][i] = sequence
         yield value.ClassicalDataDictionaryStore(
             _records=lookup, _measured_qubits=measurement_qubits
