@@ -55,6 +55,7 @@ class MatrixGate(raw_types.Gate):
         *,
         name: str = None,
         qid_shape: Optional[Iterable[int]] = None,
+        unitary_check: bool = True,
         unitary_check_rtol: float = 1e-5,
         unitary_check_atol: float = 1e-8,
     ) -> None:
@@ -66,6 +67,8 @@ class MatrixGate(raw_types.Gate):
             qid_shape: The shape of state tensor that the matrix applies to.
                 If not specified, this value is inferred by assuming that the
                 matrix is supposed to apply to qubits.
+            unitary_check: If True, check that the supplied matrix is unitary up to the
+                given tolerances.
             unitary_check_rtol: The relative tolerance for checking whether the supplied matrix
                 is unitary. See `cirq.is_unitary`.
             unitary_check_atol: The absolute tolerance for checking whether the supplied matrix
@@ -88,19 +91,26 @@ class MatrixGate(raw_types.Gate):
                 )
             qid_shape = (2,) * n
 
+        m = int(np.prod(qid_shape, dtype=np.int64))
+        if matrix.shape != (m, m):
+            raise ValueError(
+                'Wrong matrix shape for qid_shape.\n'
+                f'Matrix shape: {matrix.shape}\n'
+                f'qid_shape: {qid_shape}\n'
+            )
+
+        if unitary_check and not linalg.is_unitary(
+            matrix, rtol=unitary_check_rtol, atol=unitary_check_atol
+        ):
+            raise ValueError(f'Not a unitary matrix: {matrix}')
+
         self._matrix = matrix
         self._qid_shape = tuple(qid_shape)
         self._name = name
-        m = int(np.prod(self._qid_shape, dtype=np.int64))
-        if self._matrix.shape != (m, m):
-            raise ValueError(
-                'Wrong matrix shape for qid_shape.\n'
-                f'Matrix shape: {self._matrix.shape}\n'
-                f'qid_shape: {self._qid_shape}\n'
-            )
 
-        if not linalg.is_unitary(matrix, rtol=unitary_check_rtol, atol=unitary_check_atol):
-            raise ValueError(f'Not a unitary matrix: {self._matrix}')
+    def with_name(self, name: str) -> 'MatrixGate':
+        """Creates a new MatrixGate with the same matrix and a new name."""
+        return MatrixGate(self._matrix, name=name, qid_shape=self._qid_shape, unitary_check=False)
 
     def _json_dict_(self) -> Dict[str, Any]:
         return {'matrix': self._matrix.tolist(), 'qid_shape': self._qid_shape}
