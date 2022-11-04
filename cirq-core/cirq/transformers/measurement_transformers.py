@@ -187,21 +187,28 @@ def _all_possible_datastore_states(
     #  ((1, 1), (0,)),
     #  ((1, 1), (1,)),
     #  ((1, 1), (2,))]
-    all_values = itertools.product(
+    all_possible_measurements = itertools.product(
         *[
             tuple(itertools.product(*[range(q.dimension) for q in measurement_qubits[k][i]]))
             for k, i in keys
         ]
     )
-    # Then we create the ClassicalDataDictionaryStore for each of the above.
-    for sequences in all_values:
-        lookup: Dict['cirq.MeasurementKey', List[Tuple[int, ...]]] = {
-            k: [()] * len(v) for k, v in measurement_qubits.items()
+    # Then we create the ClassicalDataDictionaryStore for each of the above. A `measurement_list`
+    # is a single row of the above example, and can be zipped with `keys`.
+    for measurement_list in all_possible_measurements:
+        # Initialize a set of measurement records for this iteration. This will have the same shape
+        # as `measurement_qubits` but zeros for all measurements.
+        records = {
+            key: [(0,) * len(qubits) for qubits in qubits_list]
+            for key, qubits_list in measurement_qubits.items()
         }
-        for (k, i), sequence in zip(keys, sequences):
-            lookup[k][i] = sequence
+        # Set the measurement values from the current row of the above, for each key/index we care
+        # about.
+        for (k, i), measurement in zip(keys, measurement_list):
+            records[k][i] = measurement
+        # Finally yield this sample to the consumer.
         yield value.ClassicalDataDictionaryStore(
-            _records=lookup, _measured_qubits=measurement_qubits
+            _records=records, _measured_qubits=measurement_qubits
         )
 
 

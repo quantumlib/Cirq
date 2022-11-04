@@ -449,9 +449,9 @@ def test_multi_qubit_control():
 def test_repeated(index: int):
     q0, q1 = cirq.LineQubit.range(2)
     circuit = cirq.Circuit(
-        cirq.measure(q0, key='a'),
+        cirq.measure(q0, key='a'),  # The control measurement when `index` is 0 or -2
         cirq.X(q0),
-        cirq.measure(q0, key='a'),
+        cirq.measure(q0, key='a'),  # The control measurement when `index` is 1 or -1
         cirq.X(q1).with_classical_controls(cirq.KeyCondition(cirq.MeasurementKey('a'), index)),
         cirq.measure(q1, key='b'),
     )
@@ -461,16 +461,17 @@ def test_repeated(index: int):
         return
     assert_equivalent_to_deferred(circuit)
     deferred = cirq.defer_measurements(circuit)
-    q_ma = _MeasurementQid('a', q0)
-    q_ma1 = _MeasurementQid('a', q0, 1)
-    q_used = q_ma if index in [0, -2] else q_ma1
+    q_ma = _MeasurementQid('a', q0)  # The ancilla qubit created for the first `a` measurement
+    q_ma1 = _MeasurementQid('a', q0, 1)  # The ancilla qubit created for the second `a` measurement
+    # The ancilla used for control should match the measurement used for control above.
+    q_expected_control = q_ma if index in [0, -2] else q_ma1
     cirq.testing.assert_same_circuits(
         deferred,
         cirq.Circuit(
             cirq.CX(q0, q_ma),
             cirq.X(q0),
             cirq.CX(q0, q_ma1),
-            cirq.Moment(cirq.CX(q_used, q1)),
+            cirq.Moment(cirq.CX(q_expected_control, q1)),
             cirq.measure(q_ma, key='a'),
             cirq.measure(q_ma1, key='a'),
             cirq.measure(q1, key='b'),
