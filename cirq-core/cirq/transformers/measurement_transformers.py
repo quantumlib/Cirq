@@ -149,8 +149,8 @@ def defer_measurements(
                 if index >= len(measurement_qubits[key]) or index < -len(measurement_qubits[key]):
                     raise ValueError(f'Invalid index for {key}')
 
-            # Try every possible datastore state against the condition, and the ones that work
-            # are the control values for the new op.
+            # Try every possible datastore state (exponential in the number of keys) against the
+            # condition, and the ones that work are the control values for the new op.
             compatible_datastores = [
                 store
                 for store in _all_possible_datastore_states(keys, measurement_qubits)
@@ -182,7 +182,7 @@ def _all_possible_datastore_states(
     kis: Iterable[Tuple['cirq.MeasurementKey', int]],
     measurement_qubits: Mapping['cirq.MeasurementKey', Sequence[Sequence['cirq.Qid']]],
 ) -> Iterable['cirq.ClassicalDataStoreReader']:
-    """The full product of possible DatsStores states for the given keys."""
+    """The cartesian product of all possible DataStore states for the given keys."""
     # First we get the list of all possible values. So if we have a key mapped to qubits of shape
     # (2, 2) and a key mapped to a qutrit, the possible measurement values are:
     # [((0, 0), (0,)),
