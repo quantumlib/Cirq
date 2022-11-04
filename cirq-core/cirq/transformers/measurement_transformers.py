@@ -14,7 +14,18 @@
 
 import itertools
 from collections import defaultdict
-from typing import Any, Dict, List, Optional, Sequence, Tuple, TYPE_CHECKING, Union
+from typing import (
+    Any,
+    Dict,
+    Iterable,
+    List,
+    Mapping,
+    Optional,
+    Sequence,
+    Tuple,
+    TYPE_CHECKING,
+    Union,
+)
 
 import numpy as np
 
@@ -88,7 +99,6 @@ def defer_measurements(
         A circuit with equivalent logic, but all measurements at the end of the
         circuit.
     Raises:
-        ValueError: If sympy-based classical conditions are used.
         NotImplementedError: When attempting to defer a measurement with a
             confusion map. (https://github.com/quantumlib/Cirq/issues/5482)
     """
@@ -114,28 +124,46 @@ def defer_measurements(
                 )
                 for indexes, m in gate.confusion_map.items()
             ]
-            cxs = [_mod_add(q, target) for q, target in zip(op.qubits, targets)]
             xs = [ops.X(targets[i]) for i, b in enumerate(gate.full_invert_mask()) if b]
             return cxs + confusions + xs
         elif protocols.is_measurement(op):
             return [defer(op, None) for op in protocols.decompose_once(op)]
         elif op.classical_controls:
-            new_op = op.without_classical_controls()
-            for c in op.classical_controls:
-                if isinstance(c, value.KeyCondition):
-                    if c.key not in measurement_qubits:
-                        raise ValueError(f'Deferred measurement for key={c.key} not found.')
-                    index = c.index if c.index >= 0 else len(measurement_qubits[c.key]) + c.index
-                    if index < 0 or index >= len(measurement_qubits[c.key]):
-                        raise ValueError(f'Invalid index for {c}')
-                    qs = measurement_qubits[c.key][index]
-                    all_values = itertools.product(*[range(q.dimension) for q in qs])
-                    anything_but_all_zeros = tuple(itertools.islice(all_values, 1, None))
-                    control_values = ops.SumOfProducts(anything_but_all_zeros)
-                    new_op = new_op.controlled_by(*qs, control_values=control_values)
-                else:
-                    raise ValueError('Only KeyConditions are allowed.')
-            return new_op
+            # Convert to a quantum control
+
+            # First create a sorted set of the indexed keys for this control.
+            keys = sorted(
+                set(
+                    indexed_key
+                    for condition in op.classical_controls
+                    for indexed_key in (
+                        [(condition.key, condition.index)]
+                        if isinstance(condition, value.KeyCondition)
+                        else [(k, -1) for k in condition.keys]
+                    )
+                )
+            )
+            for key, index in keys:
+                if key not in measurement_qubits:
+                    raise ValueError(f'Deferred measurement for key={key} not found.')
+                if index >= len(measurement_qubits[key]) or index < -len(measurement_qubits[key]):
+                    raise ValueError(f'Invalid index for {key}')
+
+            # Try every possible datastore state against the condition, and the ones that work
+            # are the control values for the new op.
+            compatible_datastores = [
+                store
+                for store in _all_possible_datastore_states(keys, measurement_qubits)
+                if all(c.resolve(store) for c in op.classical_controls)
+            ]
+
+            # Rearrange these into the format expected by SumOfProducts
+            products = [
+                [i for k, j in keys for i in store.records[k][j]] for store in compatible_datastores
+            ]
+            control_values = ops.SumOfProducts(products)
+            qs = [q for k, i in keys for q in measurement_qubits[k][i]]
+            return op.without_classical_controls().controlled_by(*qs, control_values=control_values)
         return op
 
     circuit = transformer_primitives.map_operations_and_unroll(
@@ -148,6 +176,41 @@ def defer_measurements(
         for qubits in qubits_list:
             circuit.append(ops.measure(*qubits, key=k))
     return circuit
+
+
+def _all_possible_datastore_states(
+    kis: Iterable[Tuple['cirq.MeasurementKey', int]],
+    measurement_qubits: Mapping['cirq.MeasurementKey', Sequence[Sequence['cirq.Qid']]],
+) -> Iterable['cirq.ClassicalDataStoreReader']:
+    """The full product of possible DatsStores states for the given keys."""
+    # First we get the list of all possible values. So if we have a key mapped to qubits of shape
+    # (2, 2) and a key mapped to a qutrit, the possible measurement values are:
+    # [((0, 0), (0,)),
+    #  ((0, 0), (1,)),
+    #  ((0, 0), (2,)),
+    #  ((0, 1), (0,)),
+    #  ((0, 1), (1,)),
+    #  ((0, 1), (2,)),
+    #  ((1, 0), (0,)),
+    #  ((1, 0), (1,)),
+    #  ((1, 0), (2,)),
+    #  ((1, 1), (0,)),
+    #  ((1, 1), (1,)),
+    #  ((1, 1), (2,))]
+    all_values = itertools.product(
+        *[
+            tuple(itertools.product(*[range(q.dimension) for q in measurement_qubits[k][i]]))
+            for k, i in kis
+        ]
+    )
+    # Then we create the ClassicalDataDictionaryStore for each of the above.
+    for sequences in all_values:
+        lookup = {k: [None] * len(v) for k, v in measurement_qubits.items()}
+        for (k, i), sequence in zip(kis, sequences):
+            lookup[k][i] = sequence
+        yield value.ClassicalDataDictionaryStore(
+            _records=lookup, _measured_qubits=measurement_qubits
+        )
 
 
 @transformer_api.transformer
