@@ -13,21 +13,21 @@
 # limitations under the License.
 """IdentityGate."""
 
-from typing import Any, Dict, Optional, Tuple, TYPE_CHECKING, Sequence
+from typing import Any, Dict, List, Optional, Tuple, TYPE_CHECKING, Sequence
 
 import numpy as np
 import sympy
 
 from cirq import protocols, value
 from cirq._doc import document
-from cirq.ops import raw_types
+from cirq.ops import raw_types, eigen_gate
 
 if TYPE_CHECKING:
     import cirq
 
 
 @value.value_equality
-class IdentityGate(raw_types.Gate):
+class IdentityGate(eigen_gate.EigenGate):
     """A Gate that perform no operation on qubits.
 
     The unitary matrix of this gate is a diagonal matrix with all 1s on the
@@ -37,7 +37,12 @@ class IdentityGate(raw_types.Gate):
     """
 
     def __init__(
-        self, num_qubits: Optional[int] = None, qid_shape: Optional[Tuple[int, ...]] = None
+        self,
+        num_qubits: Optional[int] = None,
+        qid_shape: Optional[Tuple[int, ...]] = None,
+        *,
+        exponent: value.TParamVal = 1.0,
+        global_shift: float = 0.0,
     ) -> None:
         """Inits IdentityGate.
 
@@ -51,9 +56,10 @@ class IdentityGate(raw_types.Gate):
                 neither `num_qubits` or `qid_shape` is supplied.
 
         """
+        super().__init__(exponent=exponent, global_shift=global_shift)
         if qid_shape is None:
             if num_qubits is None:
-                raise ValueError('Specify either the num_qubits or qid_shape argument.')
+                num_qubits = 1
             qid_shape = (2,) * num_qubits
         elif num_qubits is None:
             num_qubits = len(qid_shape)
@@ -63,6 +69,12 @@ class IdentityGate(raw_types.Gate):
 
     def _act_on_(self, sim_state: 'cirq.SimulationStateBase', qubits: Sequence['cirq.Qid']):
         return True
+
+    def _eigen_components(self) -> List[Tuple[float, np.ndarray]]:
+        if self._qid_shape != (2,):
+            raise NotImplementedError()
+
+        return [(0, np.array([[1, 0], [0, 0]])), (0, np.array([[0, 0], [0, 1]]))]
 
     def _qid_shape_(self) -> Tuple[int, ...]:
         return self._qid_shape

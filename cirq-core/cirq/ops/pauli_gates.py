@@ -117,14 +117,16 @@ class _PauliX(Pauli, common_gates.XPowGate):
     ) -> Union['cirq.XPowGate', '_PauliX', 'cirq.IdentityGate']:
         return (
             self
-            if exponent % 2 == 1
+            if isinstance(exponent, int) and exponent % 2 == 1
             else identity.I
-            if exponent % 2 == 0
+            if isinstance(exponent, int) and exponent % 2 == 0
             else common_gates.XPowGate(exponent=exponent)
         )
 
-    def _with_exponent(self: '_PauliX', exponent: 'cirq.TParamVal') -> 'cirq.XPowGate':
-        return common_gates.XPowGate(exponent=exponent)
+    def _with_exponent(
+        self: '_PauliX', exponent: 'cirq.TParamVal'
+    ) -> Union['cirq.XPowGate', '_PauliX', 'cirq.IdentityGate']:
+        return self**exponent
 
     @classmethod
     def _from_json_dict_(cls, exponent, global_shift, **kwargs):
@@ -149,14 +151,16 @@ class _PauliY(Pauli, common_gates.YPowGate):
     ) -> Union['cirq.YPowGate', '_PauliY', 'cirq.IdentityGate']:
         return (
             self
-            if exponent % 2 == 1
+            if isinstance(exponent, int) and exponent % 2 == 1
             else identity.I
-            if exponent % 2 == 0
+            if isinstance(exponent, int) and exponent % 2 == 0
             else common_gates.YPowGate(exponent=exponent)
         )
 
-    def _with_exponent(self: '_PauliY', exponent: 'cirq.TParamVal') -> 'cirq.YPowGate':
-        return common_gates.YPowGate(exponent=exponent)
+    def _with_exponent(
+        self: '_PauliY', exponent: 'cirq.TParamVal'
+    ) -> Union['cirq.YPowGate', '_PauliY', 'cirq.IdentityGate']:
+        return self**exponent
 
     @classmethod
     def _from_json_dict_(cls, exponent, global_shift, **kwargs):
@@ -181,14 +185,16 @@ class _PauliZ(Pauli, common_gates.ZPowGate):
     ) -> Union['cirq.ZPowGate', '_PauliZ', 'cirq.IdentityGate']:
         return (
             self
-            if exponent % 2 == 1
+            if isinstance(exponent, int) and exponent % 2 == 1
             else identity.I
-            if exponent % 2 == 0
+            if isinstance(exponent, int) and exponent % 2 == 0
             else common_gates.ZPowGate(exponent=exponent)
         )
 
-    def _with_exponent(self: '_PauliZ', exponent: 'cirq.TParamVal') -> 'cirq.ZPowGate':
-        return common_gates.ZPowGate(exponent=exponent)
+    def _with_exponent(
+        self: '_PauliZ', exponent: 'cirq.TParamVal'
+    ) -> Union['cirq.ZPowGate', '_PauliZ', 'cirq.IdentityGate']:
+        return self**exponent
 
     @classmethod
     def _from_json_dict_(cls, exponent, global_shift, **kwargs):
