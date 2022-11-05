@@ -112,11 +112,19 @@ class _PauliX(Pauli, common_gates.XPowGate):
         Pauli.__init__(self, index=0, name='X')
         common_gates.XPowGate.__init__(self, exponent=1.0)
 
-    def __pow__(self: '_PauliX', exponent: 'cirq.TParamVal') -> common_gates.XPowGate:
-        return common_gates.XPowGate(exponent=exponent) if exponent != 1 else _PauliX()
+    def __pow__(
+        self: '_PauliX', exponent: 'cirq.TParamVal'
+    ) -> Union['cirq.XPowGate', '_PauliX', 'cirq.IdentityGate']:
+        return (
+            self
+            if exponent % 2 == 1
+            else identity.I
+            if exponent % 2 == 0
+            else common_gates.XPowGate(exponent=exponent)
+        )
 
-    def _with_exponent(self: '_PauliX', exponent: 'cirq.TParamVal') -> common_gates.XPowGate:
-        return self.__pow__(exponent)
+    def _with_exponent(self: '_PauliX', exponent: 'cirq.TParamVal') -> 'cirq.XPowGate':
+        return common_gates.XPowGate(exponent=exponent)
 
     @classmethod
     def _from_json_dict_(cls, exponent, global_shift, **kwargs):
@@ -136,11 +144,19 @@ class _PauliY(Pauli, common_gates.YPowGate):
         Pauli.__init__(self, index=1, name='Y')
         common_gates.YPowGate.__init__(self, exponent=1.0)
 
-    def __pow__(self: '_PauliY', exponent: 'cirq.TParamVal') -> common_gates.YPowGate:
-        return common_gates.YPowGate(exponent=exponent) if exponent != 1 else _PauliY()
+    def __pow__(
+        self: '_PauliY', exponent: 'cirq.TParamVal'
+    ) -> Union['cirq.YPowGate', '_PauliY', 'cirq.IdentityGate']:
+        return (
+            self
+            if exponent % 2 == 1
+            else identity.I
+            if exponent % 2 == 0
+            else common_gates.YPowGate(exponent=exponent)
+        )
 
-    def _with_exponent(self: '_PauliY', exponent: 'cirq.TParamVal') -> common_gates.YPowGate:
-        return self.__pow__(exponent)
+    def _with_exponent(self: '_PauliY', exponent: 'cirq.TParamVal') -> 'cirq.YPowGate':
+        return common_gates.YPowGate(exponent=exponent)
 
     @classmethod
     def _from_json_dict_(cls, exponent, global_shift, **kwargs):
@@ -160,11 +176,19 @@ class _PauliZ(Pauli, common_gates.ZPowGate):
         Pauli.__init__(self, index=2, name='Z')
         common_gates.ZPowGate.__init__(self, exponent=1.0)
 
-    def __pow__(self: '_PauliZ', exponent: 'cirq.TParamVal') -> common_gates.ZPowGate:
-        return common_gates.ZPowGate(exponent=exponent) if exponent != 1 else _PauliZ()
+    def __pow__(
+        self: '_PauliZ', exponent: 'cirq.TParamVal'
+    ) -> Union['cirq.ZPowGate', '_PauliZ', 'cirq.IdentityGate']:
+        return (
+            self
+            if exponent % 2 == 1
+            else identity.I
+            if exponent % 2 == 0
+            else common_gates.ZPowGate(exponent=exponent)
+        )
 
-    def _with_exponent(self: '_PauliZ', exponent: 'cirq.TParamVal') -> common_gates.ZPowGate:
-        return self.__pow__(exponent)
+    def _with_exponent(self: '_PauliZ', exponent: 'cirq.TParamVal') -> 'cirq.ZPowGate':
+        return common_gates.ZPowGate(exponent=exponent)
 
     @classmethod
     def _from_json_dict_(cls, exponent, global_shift, **kwargs):
