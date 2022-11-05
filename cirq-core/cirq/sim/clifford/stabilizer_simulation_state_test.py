@@ -30,7 +30,7 @@ def test_apply_gate():
 
     state.reset_mock()
     assert args._strat_apply_gate(cirq.X**2, [q0]) is True
-    state.apply_x.assert_called_with(0, 2.0, 0.0)
+    state.apply_x.assert_not_called()
 
     state.reset_mock()
     assert args._strat_apply_gate(cirq.X ** sympy.Symbol('t'), [q0]) is NotImplemented

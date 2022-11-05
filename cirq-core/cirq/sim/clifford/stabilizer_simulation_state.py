@@ -19,7 +19,7 @@ import numpy as np
 import sympy
 
 from cirq import linalg, ops, protocols
-from cirq.ops import common_gates, global_phase_op, matrix_gates, swap_gates
+from cirq.ops import common_gates, global_phase_op, identity, matrix_gates, swap_gates
 from cirq.ops.clifford_gate import SingleQubitCliffordGate
 from cirq.protocols import has_unitary, num_qubits, unitary
 from cirq.sim.simulation_state import SimulationState
@@ -95,7 +95,9 @@ class StabilizerSimulationState(
         gate = val.gate if isinstance(val, ops.Operation) else val
         axes = self.get_axes(qubits)
         exponent = cast(float, getattr(gate, 'exponent', None))
-        if isinstance(gate, common_gates.XPowGate):
+        if isinstance(gate, identity.IdentityGate):
+            pass
+        elif isinstance(gate, common_gates.XPowGate):
             self._state.apply_x(axes[0], exponent, gate.global_shift)
         elif isinstance(gate, common_gates.YPowGate):
             self._state.apply_y(axes[0], exponent, gate.global_shift)

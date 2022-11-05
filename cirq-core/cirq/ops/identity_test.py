@@ -30,8 +30,8 @@ def test_identity_init(num_qubits):
     assert cirq.qid_shape(cirq.IdentityGate(qid_shape=(1, 2, 3))) == (1, 2, 3)
     with pytest.raises(ValueError, match='len.* !='):
         cirq.IdentityGate(5, qid_shape=(1, 2))
-    with pytest.raises(ValueError, match='Specify either'):
-        cirq.IdentityGate()
+    assert cirq.IdentityGate().num_qubits() == 1
+    assert cirq.qid_shape(cirq.IdentityGate()) == (2,)
 
 
 def test_identity_on_each():

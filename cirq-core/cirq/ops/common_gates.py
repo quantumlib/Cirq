@@ -302,10 +302,8 @@ class XPowGate(eigen_gate.EigenGate):
         return f'XPowGate(exponent={self._exponent}, global_shift={self._global_shift!r})'
 
     def __repr__(self) -> str:
-        if self._global_shift == 0 and self._dimension == 2:
-            if self._exponent == 1:
-                return 'cirq.X'
-            return f'(cirq.X**{proper_repr(self._exponent)})'
+        if self._global_shift == 0 and self._dimension == 2 and self._exponent == 1:
+            return 'cirq.X'
         args = []
         if self._exponent != 1:
             args.append(f'exponent={proper_repr(self._exponent)}')
@@ -492,10 +490,8 @@ class YPowGate(eigen_gate.EigenGate):
         return f'YPowGate(exponent={self._exponent}, global_shift={self._global_shift!r})'
 
     def __repr__(self) -> str:
-        if self._global_shift == 0:
-            if self._exponent == 1:
-                return 'cirq.Y'
-            return f'(cirq.Y**{proper_repr(self._exponent)})'
+        if self._global_shift == 0 and self._exponent == 1:
+            return 'cirq.Y'
         return 'cirq.YPowGate(exponent={}, global_shift={!r})'.format(
             proper_repr(self._exponent), self._global_shift
         )
@@ -812,7 +808,6 @@ class ZPowGate(eigen_gate.EigenGate):
                 return '(cirq.S**-1)'
             if self._exponent == 1:
                 return 'cirq.Z'
-            return f'(cirq.Z**{proper_repr(self._exponent)})'
         args = []
         if self._exponent != 1:
             args.append(f'exponent={proper_repr(self._exponent)}')
