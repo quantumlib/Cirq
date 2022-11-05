@@ -71,10 +71,7 @@ class IdentityGate(eigen_gate.EigenGate):
         return True
 
     def _eigen_components(self) -> List[Tuple[float, np.ndarray]]:
-        if self._qid_shape != (2,):
-            raise NotImplementedError()
-
-        return [(0, np.array([[1, 0], [0, 0]])), (0, np.array([[0, 0], [0, 1]]))]
+        return [(0, np.identity(np.prod(self._qid_shape, dtype=np.int64).item()))]
 
     def _qid_shape_(self) -> Tuple[int, ...]:
         return self._qid_shape
