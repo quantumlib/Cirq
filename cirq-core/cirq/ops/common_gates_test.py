@@ -103,7 +103,6 @@ def test_z_init():
 
     # Canonicalizes exponent for equality, but keeps the inner details.
     assert cirq.Z**0.5 != cirq.Z**-0.5
-    assert (cirq.Z**-1) ** 0.5 == cirq.Z**-0.5
     assert cirq.Z**-1 == cirq.Z
 
 
@@ -239,7 +238,6 @@ def test_rot_gates_eq():
     ]
     for gate in gates:
         eq.add_equality_group(gate(3.5), gate(-0.5))
-        eq.make_equality_group(lambda: gate(0))
         eq.make_equality_group(lambda: gate(0.5))
 
     eq.add_equality_group(cirq.XPowGate(), cirq.XPowGate(exponent=1), cirq.X)
