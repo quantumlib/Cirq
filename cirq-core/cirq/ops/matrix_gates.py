@@ -91,22 +91,21 @@ class MatrixGate(raw_types.Gate):
                 )
             qid_shape = (2,) * n
 
-        m = int(np.prod(qid_shape, dtype=np.int64))
-        if matrix.shape != (m, m):
+        self._matrix = matrix
+        self._qid_shape = tuple(qid_shape)
+        self._name = name
+        m = int(np.prod(self._qid_shape, dtype=np.int64))
+        if self._matrix.shape != (m, m):
             raise ValueError(
                 'Wrong matrix shape for qid_shape.\n'
-                f'Matrix shape: {matrix.shape}\n'
-                f'qid_shape: {qid_shape}\n'
+                f'Matrix shape: {self._matrix.shape}\n'
+                f'qid_shape: {self._qid_shape}\n'
             )
 
         if unitary_check and not linalg.is_unitary(
             matrix, rtol=unitary_check_rtol, atol=unitary_check_atol
         ):
             raise ValueError(f'Not a unitary matrix: {matrix}')
-
-        self._matrix = matrix
-        self._qid_shape = tuple(qid_shape)
-        self._name = name
 
     def with_name(self, name: str) -> 'MatrixGate':
         """Creates a new MatrixGate with the same matrix and a new name."""
