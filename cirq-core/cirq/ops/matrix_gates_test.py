@@ -272,13 +272,13 @@ Bar[2]─┼──────Bar[1]
 
 
 def test_with_name():
-    gate = cirq.MatrixGate(cirq.unitary(cirq.Z ** 0.25))
+    gate = cirq.MatrixGate(cirq.unitary(cirq.Z**0.25))
     T = gate.with_name('T')
-    S = (T ** 2).with_name('S')
+    S = (T**2).with_name('S')
     assert T._name == 'T'
     np.testing.assert_allclose(cirq.unitary(T), cirq.unitary(gate))
     assert S._name == 'S'
-    np.testing.assert_allclose(cirq.unitary(S), cirq.unitary(T ** 2))
+    np.testing.assert_allclose(cirq.unitary(S), cirq.unitary(T**2))
 
 
 def test_str_executes():
