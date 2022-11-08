@@ -68,7 +68,9 @@ class MatrixGate(raw_types.Gate):
                 If not specified, this value is inferred by assuming that the
                 matrix is supposed to apply to qubits.
             unitary_check: If True, check that the supplied matrix is unitary up to the
-                given tolerances.
+                given tolerances. This should only be disabled if the matrix has already been
+                checked for unitarity, in which case we get a slight performance improvement by
+                not checking again.
             unitary_check_rtol: The relative tolerance for checking whether the supplied matrix
                 is unitary. See `cirq.is_unitary`.
             unitary_check_atol: The absolute tolerance for checking whether the supplied matrix
