@@ -74,8 +74,8 @@ class XPowGate(eigen_gate.EigenGate):
     $$
     e^{i \pi s t}
     \begin{bmatrix}
-      e^{i \pi t /2} \cos(\pi t) & -i e^{i \pi t /2} \sin(\pi t) \\
-      -i e^{i \pi t /2} \sin(\pi t) & e^{i \pi t /2} \cos(\pi t)
+      e^{i \pi t /2} \cos(\pi t /2) & -i e^{i \pi t /2} \sin(\pi t /2) \\
+      -i e^{i \pi t /2} \sin(\pi t /2) & e^{i \pi t /2} \cos(\pi t /2)
     \end{bmatrix}
     $$
 
