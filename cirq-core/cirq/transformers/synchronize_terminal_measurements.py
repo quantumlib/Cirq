@@ -55,7 +55,7 @@ def find_terminal_measurements(
         seen_control_keys |= protocols.control_keys(moment)
         if not open_qubits:
             break
-    return terminal_measurements
+    return list(set(terminal_measurements))
 
 
 @transformer_api.transformer(add_deep_support=True)
