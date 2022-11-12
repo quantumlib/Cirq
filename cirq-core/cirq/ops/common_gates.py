@@ -72,10 +72,10 @@ class XPowGate(eigen_gate.EigenGate):
 
     The unitary matrix of `cirq.XPowGate(exponent=t, global_shift=s)` is:
     $$
-    e^{i \pi s t}
+    e^{i \pi t (s + 1/2)}
     \begin{bmatrix}
-      e^{i \pi t /2} \cos(\pi t) & -i e^{i \pi t /2} \sin(\pi t) \\
-      -i e^{i \pi t /2} \sin(\pi t) & e^{i \pi t /2} \cos(\pi t)
+      \cos(\pi t /2) & -i \sin(\pi t /2) \\
+      -i \sin(\pi t /2) & \cos(\pi t /2)
     \end{bmatrix}
     $$
 

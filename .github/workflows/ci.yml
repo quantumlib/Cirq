@@ -123,6 +123,15 @@ jobs:
         run: pip install -r dev_tools/requirements/deps/tensorflow-docs.txt
       - name: Doc check
         run: check/nbformat
+  shellcheck:
+    name: Shell check
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+      - name: Run shellcheck
+        run: check/shellcheck
   isolated-modules:
     name: Isolated pytest Ubuntu
     runs-on: ubuntu-20.04
