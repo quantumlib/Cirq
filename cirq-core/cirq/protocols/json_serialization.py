@@ -584,8 +584,8 @@ def to_json(
     obj: Any,
     file_or_fn: Union[None, IO, pathlib.Path, str] = None,
     *,
-    indent: int = 2,
-    separators: Tuple[str, str] = None,
+    indent: Optional[int] = 2,
+    separators: Optional[Tuple[str, str]] = None,
     cls: Type[json.JSONEncoder] = CirqEncoder,
 ) -> Optional[str]:
     """Write a JSON file containing a representation of obj.
