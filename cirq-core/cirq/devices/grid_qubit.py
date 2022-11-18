@@ -27,7 +27,7 @@ if TYPE_CHECKING:
 TSelf = TypeVar('TSelf', bound='_BaseGridQid')
 
 
-@functools.total_ordering
+@functools.total_ordering  # type: ignore
 class _BaseGridQid(ops.Qid):
     """The Base class for `GridQid` and `GridQubit`."""
 

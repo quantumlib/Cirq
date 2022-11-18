@@ -25,7 +25,7 @@ if TYPE_CHECKING:
 TSelf = TypeVar('TSelf', bound='_BaseLineQid')
 
 
-@functools.total_ordering
+@functools.total_ordering  # type: ignore
 class _BaseLineQid(ops.Qid):
     """The base class for `LineQid` and `LineQubit`."""
 

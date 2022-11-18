@@ -247,7 +247,7 @@ class PauliString(raw_types.Operation, Generic[TKey]):
         return self._qubit_pauli_map.get(key, default)
 
     @overload
-    def __mul__(
+    def __mul__(  # type: ignore
         self, other: 'cirq.PauliString[TKeyOther]'
     ) -> 'cirq.PauliString[Union[TKey, TKeyOther]]':
         pass
