@@ -255,7 +255,7 @@ def test_run_mixture(dtype: Type[np.complexfloating], split: bool):
     simulator = cirq.Simulator(dtype=dtype, split_untangled_states=split)
     circuit = cirq.Circuit(cirq.bit_flip(0.5)(q0), cirq.measure(q0))
     result = simulator.run(circuit, repetitions=100)
-    assert 20 < sum(result.measurements['q(0)'])[0] < 80  # type: ignore
+    assert 20 < sum(result.measurements['q(0)'])[0] < 80
 
 
 @pytest.mark.parametrize('dtype', [np.complex64, np.complex128])

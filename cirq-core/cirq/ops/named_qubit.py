@@ -24,7 +24,7 @@ if TYPE_CHECKING:
 TSelf = TypeVar('TSelf', bound='_BaseNamedQid')
 
 
-@functools.total_ordering  # type: ignore
+@functools.total_ordering
 class _BaseNamedQid(raw_types.Qid):
     """The base class for `NamedQid` and `NamedQubit`."""
 
