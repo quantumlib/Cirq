@@ -552,7 +552,7 @@ def _create_device_specification_proto(
         gate_specs.append(gate_spec)
 
     # Sort by gate name to keep valid_gates stable.
-    out.valid_gates.extend(sorted(gate_specs, key=lambda s: s.WhichOneof('gate')))
+    out.valid_gates.extend(sorted(gate_specs, key=lambda s: str(s.WhichOneof('gate'))))
 
     _validate_device_specification(out)
 

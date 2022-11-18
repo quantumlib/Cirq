@@ -34,7 +34,7 @@ class CalibrationResult:
     These defaults will converted to `None` by the API client.
     """
 
-    code: 'calibration_pb2.CalibrationLayerCode'
+    code: 'calibration_pb2.CalibrationLayerCode.ValueType'
     error_message: Optional[str]
     token: Optional[str]
     valid_until: Optional[datetime.datetime]
@@ -43,7 +43,7 @@ class CalibrationResult:
     @classmethod
     def _from_json_dict_(
         cls,
-        code: 'calibration_pb2.CalibrationLayerCode',
+        code: 'calibration_pb2.CalibrationLayerCode.ValueType',
         error_message: Optional[str],
         token: Optional[str],
         utc_valid_until: float,
