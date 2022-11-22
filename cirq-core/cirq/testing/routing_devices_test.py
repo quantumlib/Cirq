@@ -99,7 +99,7 @@ def test_allowed_multi_qubit_gates():
     device.validate_operation(cirq.MeasurementGate(2).on(*cirq.LineQubit.range(2)))
     device.validate_operation(cirq.MeasurementGate(3).on(*cirq.LineQubit.range(3)))
 
-    with pytest.raises(ValueError, match=f"Unsupported operation"):
+    with pytest.raises(ValueError, match="Unsupported operation"):
         device.validate_operation(cirq.CCNOT(*cirq.LineQubit.range(3)))
 
     device.validate_operation(cirq.CNOT(*cirq.LineQubit.range(2)))

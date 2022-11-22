@@ -241,7 +241,7 @@ def assert_circuits_have_same_unitary_given_final_permutation(
 
     if not set(qubit_map.keys()).issubset(actual.all_qubits()):
         raise ValueError(
-            f"'qubit_map' must be a mapping of the qubits in the circuit 'actual' to themselves."
+            "'qubit_map' must be a mapping of the qubits in the circuit 'actual' to themselves."
         )
 
     actual_cp = actual.unfreeze()
