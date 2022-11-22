@@ -106,7 +106,7 @@ def get_qcs_objects_for_notebook(
                 print("Authentication complete.")
             except Exception as exc:
                 print(f"Authentication failed: {exc}")
-                print(f"Using virtual engine instead.")
+                print("Using virtual engine instead.")
                 virtual = True
 
     if not virtual:
