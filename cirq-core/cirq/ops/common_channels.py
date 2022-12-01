@@ -195,13 +195,33 @@ class AsymmetricDepolarizingChannel(raw_types.Gate):
         return protocols.obj_to_dict_helper(self, ['error_probabilities'])
 
     def _approx_eq_(self, other: Any, atol: float) -> bool:
-        return (
-            self._num_qubits == other._num_qubits
-            and np.isclose(self.p_i, other.p_i, atol=atol).item()
-            and np.isclose(self.p_x, other.p_x, atol=atol).item()
-            and np.isclose(self.p_y, other.p_y, atol=atol).item()
-            and np.isclose(self.p_z, other.p_z, atol=atol).item()
-        )
+        is_equal = True
+
+        if self._num_qubits == other._num_qubits:
+            if self._num_qubits > 1 and other._num_qubits > 1:
+                for gate in self.error_probabilities:
+                    if gate not in other.error_probabilities:
+                        is_equal = False
+                        break
+                    else:
+                        if not np.isclose(
+                            self.error_probabilities.get(gate),
+                            other.error_probabilities.get(gate),
+                            atol=atol,
+                        ).item():
+                            is_equal = False
+                            break
+            else:
+                is_equal = (
+                    self._num_qubits == other._num_qubits
+                    and np.isclose(self.p_i, other.p_i, atol=atol).item()
+                    and np.isclose(self.p_x, other.p_x, atol=atol).item()
+                    and np.isclose(self.p_y, other.p_y, atol=atol).item()
+                    and np.isclose(self.p_z, other.p_z, atol=atol).item()
+                )
+        else:
+            is_equal = False
+        return is_equal
 
 
 def asymmetric_depolarize(
