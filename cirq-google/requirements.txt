@@ -1,3 +1,8 @@
 google-api-core[grpc] >= 1.14.0, < 2.0.0dev
+
+# restrict grpcio-status dependency of google-api-core to versions
+# that allow protobuf 3.  Version 1.49 requires protobuf 4.
+grpcio-status < 1.49.0
+
 proto-plus >= 1.20.0
 protobuf >= 3.15.0, < 4
