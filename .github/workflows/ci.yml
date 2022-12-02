@@ -171,6 +171,20 @@ jobs:
         run: check/pytest -n auto --ignore=cirq-core/cirq/contrib --rigetti-integration
       - name: Stop Quil dependencies
         run: docker-compose -f cirq-rigetti/docker-compose.test.yaml down
+  pip-compile:
+    name: Check consistency of requirements
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-python@v1
+        with:
+          python-version: '3.8'
+          architecture: 'x64'
+      - name: Install requirements
+        run: pip install pip-tools
+      - name: Test dependencies with pip-compile
+        run: |
+          pip-compile --resolver=backtracking dev_tools/requirements/deps/cirq-all.txt -o-
   build_docs:
     name: Build docs
     runs-on: ubuntu-20.04
