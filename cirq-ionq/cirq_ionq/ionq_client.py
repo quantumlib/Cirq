@@ -348,7 +348,7 @@ class _IonQClient:
         json = {'limit': batch_size}
         token: Optional[str] = None
         results: List[Dict[str, Any]] = []
-        while True and len(results) < limit:
+        while len(results) < limit:
             full_params = params.copy()
             if token:
                 full_params['next'] = token
