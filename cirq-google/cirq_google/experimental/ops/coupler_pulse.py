@@ -89,7 +89,7 @@ class CouplerPulse(cirq.ops.Gate):
             + f'coupling_mhz={proper_repr(self.coupling_mhz)}, '
             + f'rise_time={proper_repr(self.rise_time)}, '
             + f'padding_time={proper_repr(self.padding_time)})'
-             f'qubits_detune_MHz={proper_repr(self.qubits_detune_MHz)})'
+            + f'qubits_detune_MHz={proper_repr(self.qubits_detune_MHz)})'
         )
 
     def __str__(self) -> str:
@@ -98,7 +98,7 @@ class CouplerPulse(cirq.ops.Gate):
             + f'coupling_mhz={self.coupling_mhz}, '
             + f'rise_time={self.rise_time}, '
             + f'padding_time={self.padding_time}), '
-            + f'detuning={self.qubits_detune_MHz!r})'
+            + f'detuning={self.qubits_detune_MHz})'
         )
 
     def _is_parameterized_(self) -> bool:
