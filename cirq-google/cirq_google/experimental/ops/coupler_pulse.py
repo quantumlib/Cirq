@@ -57,8 +57,8 @@ class CouplerPulse(cirq.ops.Gate):
         coupling_mhz: cirq.TParamVal,
         rise_time: Optional[cirq.Duration] = cirq.Duration(nanos=8),
         padding_time: Optional[cirq.Duration] = cirq.Duration(nanos=2.5),
-        q0_detune_MHz: Optional[cirq.TParamVal]=0.0,
-        q1_detune_MHz: Optional[cirq.TParamVal]=0.0,
+        q0_detune_MHz: cirq.TParamVal = 0.0,
+        q1_detune_MHz: cirq.TParamVal = 0.0,
         
     ):
         """Inits CouplerPulse.
