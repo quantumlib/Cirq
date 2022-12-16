@@ -102,8 +102,8 @@ class CouplerPulse(cirq.ops.Gate):
             f'CouplerPulse(hold_time={self.hold_time}, '
             + f'coupling_mhz={self.coupling_mhz}, '
             + f'rise_time={self.rise_time}, '
-            + f'padding_time={self.padding_time}), '
-            + f'detuning={self.q0_detune_MHz}), '
+            + f'padding_time={self.padding_time}, '
+            + f'detuning={self.q0_detune_MHz}, '
             + f'detuning={self.q1_detune_MHz})'
         )
 
