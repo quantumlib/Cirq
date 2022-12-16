@@ -51,7 +51,7 @@ def _verify_reps(
             total_reps += len(list(cirq.to_resolvers(sweep))) * repetitions
     if total_reps > max_repetitions:
         raise RuntimeError(
-            f'No requested processors currently support the number of requested total repetitions.'
+            'No requested processors currently support the number of requested total repetitions.'
         )
 
 
