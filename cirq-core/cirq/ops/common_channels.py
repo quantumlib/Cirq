@@ -37,10 +37,10 @@ class AsymmetricDepolarizingChannel(raw_types.Gate):
     This channel evolves a density matrix via
 
     $$
-        \sum_i p_i Pi \rho Pi
+    \sum_i p_i P_i \rho P_i
     $$
 
-    where i varies from 0 to $4^n-1$ and Pi represents n-qubit Pauli operator
+    where i varies from $0$ to $4^n-1$ and $P_i$ represents n-qubit Pauli operator
     (including identity). The input $\rho$ is the density matrix before the
     depolarization.
 
@@ -217,10 +217,10 @@ def asymmetric_depolarize(
     This channel evolves a density matrix via
 
     $$
-    \sum_i p_i Pi \rho Pi
+    \sum_i p_i P_i \rho P_i
     $$
 
-    where i varies from 0 to $4^n-1$ and Pi represents n-qubit Pauli operator
+    where i varies from $0$ to $4^n-1$ and $P_i$ represents n-qubit Pauli operator
     (including identity). The input $\rho$ is the density matrix before the
     depolarization.
 
@@ -1079,7 +1079,7 @@ class BitFlipChannel(raw_types.Gate):
     This channel evolves a density matrix via:
 
     $$
-        \rho \rightarrow M_0 \rho M_0^\dagger + M_1 \rho M_1^\dagger
+    \rho \rightarrow M_0 \rho M_0^\dagger + M_1 \rho M_1^\dagger
     $$
 
     With:
