@@ -139,7 +139,9 @@ class AsymmetricDepolarizingChannel(raw_types.Gate):
     def __str__(self) -> str:
         return 'asymmetric_depolarize(' + f"error_probabilities={self._error_probabilities})"
 
-    def _circuit_diagram_info_(self, args: 'protocols.CircuitDiagramInfoArgs') -> str:
+    def _circuit_diagram_info_(
+        self, args: 'protocols.CircuitDiagramInfoArgs'
+    ) -> Union[str, Iterable[str]]:
         if self._num_qubits == 1:
             if args.precision is not None:
                 return (
@@ -198,6 +200,7 @@ class AsymmetricDepolarizingChannel(raw_types.Gate):
         self_keys, self_values = zip(*sorted(self.error_probabilities.items()))
         other_keys, other_values = zip(*sorted(other.error_probabilities.items()))
         return self_keys == other_keys and protocols.approx_eq(self_values, other_values, atol=atol)
+
 
 def asymmetric_depolarize(
     p_x: Optional[float] = None,
