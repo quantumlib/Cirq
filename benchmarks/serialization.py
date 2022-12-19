@@ -15,9 +15,13 @@
 import cirq
 
 
-def _human_size(num_bytes: int, units=(' bytes', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB')):
+def _human_size(num_bytes: int, mod: int = 0, units=(' bytes', 'KB', 'MB', 'GB', 'TB', 'PB')):
     """Returns a human readable string representation of bytes"""
-    return f'{num_bytes}{units[0]}' if num_bytes < 1024 else _human_size(num_bytes >> 10, units[1:])
+    return (
+        f'{num_bytes}.{mod}{units[0]}'
+        if num_bytes < 1024
+        else _human_size(num_bytes >> 10, num_bytes % 1024, units[1:])
+    )
 
 
 class SerializeLargeExpandedCircuits:
