@@ -271,6 +271,16 @@ Bar[2]─┼──────Bar[1]
     assert expected_vertical == c.to_text_diagram(transpose=True).strip()
 
 
+def test_with_name():
+    gate = cirq.MatrixGate(cirq.unitary(cirq.Z**0.25))
+    T = gate.with_name('T')
+    S = (T**2).with_name('S')
+    assert T._name == 'T'
+    np.testing.assert_allclose(cirq.unitary(T), cirq.unitary(gate))
+    assert S._name == 'S'
+    np.testing.assert_allclose(cirq.unitary(S), cirq.unitary(T**2))
+
+
 def test_str_executes():
     assert '1' in str(cirq.MatrixGate(np.eye(2)))
     assert '0' in str(cirq.MatrixGate(np.eye(4)))

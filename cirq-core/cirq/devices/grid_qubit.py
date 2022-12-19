@@ -134,14 +134,12 @@ class GridQid(_BaseGridQid):
     New GridQid can be constructed by adding or subtracting tuples or numpy
     arrays
 
-        >>> cirq.GridQid(2, 3, dimension=2) + (3, 1)
-        cirq.GridQid(5, 4, dimension=2)
-
-        >>> cirq.GridQid(2, 3, dimension=2) - (1, 2)
-        cirq.GridQid(1, 1, dimension=2)
-
-        >>> cirq.GridQid(2, 3, dimension=2) + np.array([3, 1], dtype=int)
-        cirq.GridQid(5, 4, dimension=2)
+    >>> cirq.GridQid(2, 3, dimension=2) + (3, 1)
+    cirq.GridQid(5, 4, dimension=2)
+    >>> cirq.GridQid(2, 3, dimension=2) - (1, 2)
+    cirq.GridQid(1, 1, dimension=2)
+    >>> cirq.GridQid(2, 3, dimension=2) + np.array([3, 1], dtype=int)
+    cirq.GridQid(5, 4, dimension=2)
     """
 
     def __init__(self, row: int, col: int, *, dimension: int) -> None:
@@ -284,14 +282,12 @@ class GridQubit(_BaseGridQid):
 
     New GridQubits can be constructed by adding or subtracting tuples
 
-        >>> cirq.GridQubit(2, 3) + (3, 1)
-        cirq.GridQubit(5, 4)
-
-        >>> cirq.GridQubit(2, 3) - (1, 2)
-        cirq.GridQubit(1, 1)
-
-        >>> cirq.GridQubit(2, 3,) + np.array([3, 1], dtype=int)
-        cirq.GridQubit(5, 4)
+    >>> cirq.GridQubit(2, 3) + (3, 1)
+    cirq.GridQubit(5, 4)
+    >>> cirq.GridQubit(2, 3) - (1, 2)
+    cirq.GridQubit(1, 1)
+    >>> cirq.GridQubit(2, 3,) + np.array([3, 1], dtype=int)
+    cirq.GridQubit(5, 4)
     """
 
     def __getstate__(self):

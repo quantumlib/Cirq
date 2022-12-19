@@ -85,7 +85,7 @@ class TensoredConfusionMatrices:
                         pattern.
         """
         if len(measure_qubits) == 0:
-            raise ValueError(f"measure_qubits cannot be empty.")
+            raise ValueError("measure_qubits cannot be empty.")
         if isinstance(confusion_matrices, np.ndarray):
             confusion_matrices = [confusion_matrices]
         measure_qubits = cast(

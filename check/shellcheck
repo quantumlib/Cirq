@@ -1,0 +1,71 @@
+#!/usr/bin/env bash
+
+###############################################################################
+# Execute shellcheck for all shell scripts in this repository
+#
+# Usage:
+#     check/shellcheck [--dry-run] [shellcheck-arguments]
+#
+# Use the '--dry-run' option to print out the shellcheck command line without
+# running it.  This displays all shell script files found in the repository.
+#
+################################################################################
+
+# Change working directory to the repository root.
+thisdir="$(dirname "${BASH_SOURCE[0]}")" || exit $?
+topdir="$(git -C "${thisdir}" rev-parse --show-toplevel)" || exit $?
+cd "${topdir}" || exit $?
+
+# Process command line arguments
+opt_dry_run=0
+typeset -a shellcheck_options
+typeset -a our_shell_scripts
+
+for arg in "$@"; do
+    if [[ "${arg}" == "--dry-run" ]]; then
+        opt_dry_run=1
+    else
+        shellcheck_options+=( "${arg}" )
+    fi
+done
+
+# Find all shell scripts in this repository.
+IFS=$'\n' read -r -d '' -a our_shell_scripts < \
+    <(git ls-files -z -- \
+        ':(exclude)*.'{py,json,json_inward,repr,repr_inward,ipynb,txt,md} \
+        ':(exclude)*.'{yaml,ts,tst,rst,pyi,cfg} | \
+        xargs -0 file | grep -i 'shell script' | cut -d: -f1)
+
+# Verify our_shell_scripts array - require it must contain files below.
+typeset -a required_shell_scripts
+required_shell_scripts=(
+    # items below must be sorted
+    check/all
+    check/doctest
+    check/format-incremental
+    check/mypy
+    check/nbformat
+    check/pylint
+    check/pytest
+    dev_tools/pypath
+)
+
+scripts_not_found="$(comm -13 \
+    <(printf "%s\n" "${our_shell_scripts[@]}") \
+    <(printf "%s\n" "${required_shell_scripts[@]}") )"
+
+if [[ -n "${scripts_not_found}" ]]; then
+    echo "Identification of shell scripts failed - files not found:" >&2
+    printf "\n%s\n\n" "${scripts_not_found}" >&2
+    echo "Please fix $0." >&2
+    exit 2
+fi
+
+# Ready to run here.
+if (( opt_dry_run )); then
+    printf '%s ' '>>' 'shellcheck' "${shellcheck_options[@]}"
+    printf '\\\n  %s ' "${our_shell_scripts[@]}"
+    printf '\\\n;\n'
+else
+    shellcheck "${shellcheck_options[@]}" "${our_shell_scripts[@]}"
+fi

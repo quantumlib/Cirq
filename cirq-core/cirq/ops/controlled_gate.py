@@ -80,6 +80,11 @@ class ControlledGate(raw_types.Gate):
                 bounds, or if the sub_gate is not a unitary or mixture.
         """
         _validate_sub_object(sub_gate)
+
+        # Simplify a single SumOfProducts
+        if isinstance(control_values, cv.SumOfProducts) and len(control_values._conjunctions) == 1:
+            control_values = control_values._conjunctions[0]
+
         if num_controls is None:
             if control_values is not None:
                 num_controls = (
