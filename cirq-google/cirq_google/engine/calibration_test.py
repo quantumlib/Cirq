@@ -16,6 +16,7 @@ import datetime
 import pytest
 
 import matplotlib as mpl
+import matplotlib.pyplot as plt
 from google.protobuf.text_format import Merge
 
 import cirq
@@ -194,7 +195,7 @@ def test_calibration_heatmap():
 @pytest.mark.usefixtures('closefigures')
 def test_calibration_plot_histograms():
     calibration = cg.Calibration(_CALIBRATION_DATA)
-    _, ax = mpl.pyplot.subplots(1, 1)
+    _, ax = plt.subplots(1, 1)
     calibration.plot_histograms(['t1', 'two_qubit_xeb'], ax, labels=['T1', 'XEB'])
     assert len(ax.get_lines()) == 4
 
