@@ -14,7 +14,9 @@
 
 import inspect
 import os
+
 import matplotlib.pyplot as plt
+import pytest
 
 
 def pytest_configure(config):
@@ -30,3 +32,9 @@ def pytest_pyfunc_call(pyfuncitem):
             f'{pyfuncitem._obj.__name__} is a bare async function. '
             f'It should be decorated with "@duet.sync".'
         )
+
+
+@pytest.fixture
+def closefigures():
+    yield
+    plt.close('all')
