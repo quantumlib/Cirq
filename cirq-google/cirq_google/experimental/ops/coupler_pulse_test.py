@@ -123,8 +123,8 @@ def test_coupler_pulse_json_deserialization_defaults_on_missing_fields():
 
     deserialized = cirq.read_json(json_text=json_text)
 
-    assert(deserialized == gate)
-    assert(deserialized.q0_detune_mhz == 0.0)
+    assert deserialized == gate
+    assert deserialized.q0_detune_mhz == 0.0
 
 
 def test_coupler_pulse_circuit_diagram():
