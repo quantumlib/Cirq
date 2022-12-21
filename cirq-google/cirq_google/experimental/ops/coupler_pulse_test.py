@@ -100,6 +100,33 @@ def test_coupler_pulse_str_repr():
     )
 
 
+def test_coupler_pulse_json_deserialization_defaults_on_missing_fields():
+    gate = coupler_pulse.CouplerPulse(
+        hold_time=cirq.Duration(nanos=10), coupling_mhz=25.0, rise_time=cirq.Duration(nanos=18)
+    )
+    json_text = """{
+       "cirq_type": "CouplerPulse",
+       "hold_time": {
+         "cirq_type": "Duration",
+         "picos": 10000
+       },
+       "coupling_mhz": 25.0,
+       "rise_time": {
+         "cirq_type": "Duration",
+         "picos": 18000
+       },
+       "padding_time": {
+         "cirq_type": "Duration",
+         "picos": 2500.0
+       }
+    }"""
+
+    deserialized = cirq.read_json(json_text=json_text)
+
+    assert(deserialized == gate)
+    assert(deserialized.q0_detune_mhz == 0.0)
+
+
 def test_coupler_pulse_circuit_diagram():
     a, b = cirq.LineQubit.range(2)
     gate = coupler_pulse.CouplerPulse(
