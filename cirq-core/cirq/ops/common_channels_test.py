@@ -529,6 +529,13 @@ def test_reset_each():
             assert op.qubits == (qubits[i],)
 
 
+def test_reset_consistency():
+    two_d_chan = cirq.ResetChannel()
+    cirq.testing.assert_has_consistent_apply_channel(two_d_chan)
+    three_d_chan = cirq.ResetChannel(dimension=3)
+    cirq.testing.assert_has_consistent_apply_channel(three_d_chan)
+
+
 def test_phase_damping_channel():
     d = cirq.phase_damp(0.3)
     np.testing.assert_almost_equal(
@@ -583,6 +590,15 @@ def test_phase_damping_channel_text_diagram():
     assert cirq.circuit_diagram_info(pd, args=no_precision) == cirq.CircuitDiagramInfo(
         wire_symbols=('PD(0.1000009)',)
     )
+
+
+def test_phase_damp_consistency():
+    full_damp = cirq.PhaseDampingChannel(gamma=1)
+    cirq.testing.assert_has_consistent_apply_channel(full_damp)
+    partial_damp = cirq.PhaseDampingChannel(gamma=0.5)
+    cirq.testing.assert_has_consistent_apply_channel(partial_damp)
+    no_damp = cirq.PhaseDampingChannel(gamma=0)
+    cirq.testing.assert_has_consistent_apply_channel(no_damp)
 
 
 def test_phase_flip_channel():
@@ -789,6 +805,38 @@ def test_multi_asymmetric_depolarizing_channel_repr():
     )
 
 
+def test_multi_asymmetric_depolarizing_eq():
+    a = cirq.asymmetric_depolarize(error_probabilities={'I': 0.8, 'X': 0.2})
+    b = cirq.asymmetric_depolarize(error_probabilities={'II': 0.8, 'XX': 0.2})
+
+    assert not cirq.approx_eq(a, b)
+
+    a = cirq.asymmetric_depolarize(error_probabilities={'II': 0.8, 'XX': 0.2})
+    b = cirq.asymmetric_depolarize(error_probabilities={'II': 2 / 3, 'XX': 1 / 3})
+
+    assert not cirq.approx_eq(a, b)
+
+    a = cirq.asymmetric_depolarize(error_probabilities={'II': 2 / 3, 'ZZ': 1 / 3})
+    b = cirq.asymmetric_depolarize(error_probabilities={'II': 2 / 3, 'XX': 1 / 3})
+
+    assert not cirq.approx_eq(a, b)
+
+    a = cirq.asymmetric_depolarize(0.1, 0.2)
+    b = cirq.asymmetric_depolarize(error_probabilities={'II': 2 / 3, 'XX': 1 / 3})
+
+    assert not cirq.approx_eq(a, b)
+
+    a = cirq.asymmetric_depolarize(error_probabilities={'II': 0.667, 'XX': 0.333})
+    b = cirq.asymmetric_depolarize(error_probabilities={'II': 2 / 3, 'XX': 1 / 3})
+
+    assert cirq.approx_eq(a, b, atol=1e-3)
+
+    a = cirq.asymmetric_depolarize(error_probabilities={'II': 0.667, 'XX': 0.333})
+    b = cirq.asymmetric_depolarize(error_probabilities={'XX': 1 / 3, 'II': 2 / 3})
+
+    assert cirq.approx_eq(a, b, atol=1e-3)
+
+
 def test_multi_asymmetric_depolarizing_channel_str():
     assert str(cirq.asymmetric_depolarize(error_probabilities={'II': 0.8, 'XX': 0.2})) == (
         "asymmetric_depolarize(error_probabilities={'II': 0.8, 'XX': 0.2})"
@@ -798,16 +846,16 @@ def test_multi_asymmetric_depolarizing_channel_str():
 def test_multi_asymmetric_depolarizing_channel_text_diagram():
     a = cirq.asymmetric_depolarize(error_probabilities={'II': 2 / 3, 'XX': 1 / 3})
     assert cirq.circuit_diagram_info(a, args=no_precision) == cirq.CircuitDiagramInfo(
-        wire_symbols=('A(II:0.6666666666666666, XX:0.3333333333333333)',)
+        wire_symbols=('A(II:0.6666666666666666, XX:0.3333333333333333)', '(1)')
     )
     assert cirq.circuit_diagram_info(a, args=round_to_6_prec) == cirq.CircuitDiagramInfo(
-        wire_symbols=('A(II:0.666667, XX:0.333333)',)
+        wire_symbols=('A(II:0.666667, XX:0.333333)', '(1)')
     )
     assert cirq.circuit_diagram_info(a, args=round_to_2_prec) == cirq.CircuitDiagramInfo(
-        wire_symbols=('A(II:0.67, XX:0.33)',)
+        wire_symbols=('A(II:0.67, XX:0.33)', '(1)')
     )
     assert cirq.circuit_diagram_info(a, args=no_precision) == cirq.CircuitDiagramInfo(
-        wire_symbols=('A(II:0.6666666666666666, XX:0.3333333333333333)',)
+        wire_symbols=('A(II:0.6666666666666666, XX:0.3333333333333333)', '(1)')
     )
 
 

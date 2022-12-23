@@ -20,8 +20,8 @@ from typing import Any, Dict, Iterable, List, Optional, Sequence, Tuple, Union, 
 import numpy as np
 
 from cirq import protocols, value
+from cirq.linalg import transformations
 from cirq.ops import raw_types, common_gates, pauli_gates, identity
-
 
 if TYPE_CHECKING:
     import cirq
@@ -37,10 +37,10 @@ class AsymmetricDepolarizingChannel(raw_types.Gate):
     This channel evolves a density matrix via
 
     $$
-        \sum_i p_i Pi \rho Pi
+    \sum_i p_i P_i \rho P_i
     $$
 
-    where i varies from 0 to $4^n-1$ and Pi represents n-qubit Pauli operator
+    where i varies from $0$ to $4^n-1$ and $P_i$ represents n-qubit Pauli operator
     (including identity). The input $\rho$ is the density matrix before the
     depolarization.
 
@@ -139,7 +139,9 @@ class AsymmetricDepolarizingChannel(raw_types.Gate):
     def __str__(self) -> str:
         return 'asymmetric_depolarize(' + f"error_probabilities={self._error_probabilities})"
 
-    def _circuit_diagram_info_(self, args: 'protocols.CircuitDiagramInfoArgs') -> str:
+    def _circuit_diagram_info_(
+        self, args: 'protocols.CircuitDiagramInfoArgs'
+    ) -> Union[str, Iterable[str]]:
         if self._num_qubits == 1:
             if args.precision is not None:
                 return (
@@ -154,7 +156,9 @@ class AsymmetricDepolarizingChannel(raw_types.Gate):
             ]
         else:
             error_probabilities = [f"{pauli}:{p}" for pauli, p in self._error_probabilities.items()]
-        return f"A({', '.join(error_probabilities)})"
+        return [f"A({', '.join(error_probabilities)})"] + [
+            f'({i})' for i in range(1, self._num_qubits)
+        ]
 
     @property
     def p_i(self) -> float:
@@ -193,13 +197,9 @@ class AsymmetricDepolarizingChannel(raw_types.Gate):
         return protocols.obj_to_dict_helper(self, ['error_probabilities'])
 
     def _approx_eq_(self, other: Any, atol: float) -> bool:
-        return (
-            self._num_qubits == other._num_qubits
-            and np.isclose(self.p_i, other.p_i, atol=atol).item()
-            and np.isclose(self.p_x, other.p_x, atol=atol).item()
-            and np.isclose(self.p_y, other.p_y, atol=atol).item()
-            and np.isclose(self.p_z, other.p_z, atol=atol).item()
-        )
+        self_keys, self_values = zip(*sorted(self.error_probabilities.items()))
+        other_keys, other_values = zip(*sorted(other.error_probabilities.items()))
+        return self_keys == other_keys and protocols.approx_eq(self_values, other_values, atol=atol)
 
 
 def asymmetric_depolarize(
@@ -217,10 +217,10 @@ def asymmetric_depolarize(
     This channel evolves a density matrix via
 
     $$
-    \sum_i p_i Pi \rho Pi
+    \sum_i p_i P_i \rho P_i
     $$
 
-    where i varies from 0 to $4^n-1$ and Pi represents n-qubit Pauli operator
+    where i varies from $0$ to $4^n-1$ and $P_i$ represents n-qubit Pauli operator
     (including identity). The input $\rho$ is the density matrix before the
     depolarization.
 
@@ -734,6 +734,19 @@ class ResetChannel(raw_types.Gate):
         channel[:, 0, :] = np.eye(self._dimension)
         return channel
 
+    def _apply_channel_(self, args: 'cirq.ApplyChannelArgs'):
+        configs = []
+        for i in range(self._dimension):
+            s1 = transformations._SliceConfig(
+                axis=args.left_axes[0], source_index=i, target_index=0
+            )
+            s2 = transformations._SliceConfig(
+                axis=args.right_axes[0], source_index=i, target_index=0
+            )
+            configs.append(transformations._BuildFromSlicesArgs(slices=(s1, s2), scale=1))
+        transformations._build_from_slices(configs, args.target_tensor, out=args.out_buffer)
+        return args.out_buffer
+
     def _has_kraus_(self) -> bool:
         return True
 
@@ -815,6 +828,23 @@ class PhaseDampingChannel(raw_types.Gate):
 
     def _num_qubits_(self) -> int:
         return 1
+
+    def _apply_channel_(self, args: 'cirq.ApplyChannelArgs'):
+        if self._gamma == 0:
+            return args.target_tensor
+        if self._gamma != 1:
+            return NotImplemented
+        configs = []
+        for i in range(2):
+            s1 = transformations._SliceConfig(
+                axis=args.left_axes[0], source_index=i, target_index=i
+            )
+            s2 = transformations._SliceConfig(
+                axis=args.right_axes[0], source_index=i, target_index=i
+            )
+            configs.append(transformations._BuildFromSlicesArgs(slices=(s1, s2), scale=1))
+        transformations._build_from_slices(configs, args.target_tensor, out=args.out_buffer)
+        return args.out_buffer
 
     def _kraus_(self) -> Iterable[np.ndarray]:
         return (
@@ -1049,7 +1079,7 @@ class BitFlipChannel(raw_types.Gate):
     This channel evolves a density matrix via:
 
     $$
-        \rho \rightarrow M_0 \rho M_0^\dagger + M_1 \rho M_1^\dagger
+    \rho \rightarrow M_0 \rho M_0^\dagger + M_1 \rho M_1^\dagger
     $$
 
     With:

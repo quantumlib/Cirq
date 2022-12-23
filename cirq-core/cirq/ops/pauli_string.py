@@ -140,26 +140,19 @@ class PauliString(raw_types.Operation, Generic[TKey]):
     PauliStrings can be constructed via various different ways, some examples are
     given as follows:
 
-        >>> a, b, c = cirq.LineQubit.range(3)
-
-        >>> print(cirq.PauliString([cirq.X(a), cirq.X(a)]))
-        I
-
-        >>> print(cirq.PauliString(-1, cirq.X(a), cirq.Y(b), cirq.Z(c)))
-        -X(q(0))*Y(q(1))*Z(q(2))
-
-        >>> print(-1 * cirq.X(a) * cirq.Y(b) * cirq.Z(c))
-        -X(q(0))*Y(q(1))*Z(q(2))
-
-        >>> print(cirq.PauliString({a: cirq.X}, [-2, 3, cirq.Y(a)]))
-        -6j*Z(q(0))
-
-        >>> print(cirq.PauliString({a: cirq.I, b: cirq.X}))
-        X(q(1))
-
-        >>> print(cirq.PauliString({a: cirq.Y},
-        ...                        qubit_pauli_map={a: cirq.X}))
-        1j*Z(q(0))
+    >>> a, b, c = cirq.LineQubit.range(3)
+    >>> print(cirq.PauliString([cirq.X(a), cirq.X(a)]))
+    I
+    >>> print(cirq.PauliString(-1, cirq.X(a), cirq.Y(b), cirq.Z(c)))
+    -X(q(0))*Y(q(1))*Z(q(2))
+    >>> print(-1 * cirq.X(a) * cirq.Y(b) * cirq.Z(c))
+    -X(q(0))*Y(q(1))*Z(q(2))
+    >>> print(cirq.PauliString({a: cirq.X}, [-2, 3, cirq.Y(a)]))
+    -6j*Z(q(0))
+    >>> print(cirq.PauliString({a: cirq.I, b: cirq.X}))
+    X(q(1))
+    >>> print(cirq.PauliString({a: cirq.Y}, qubit_pauli_map={a: cirq.X}))
+    1j*Z(q(0))
 
     Note that `cirq.PauliString`s are immutable objects. If you need a mutable version
     of pauli strings, see `cirq.MutablePauliString`.
