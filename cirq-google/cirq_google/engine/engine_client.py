@@ -87,6 +87,7 @@ class AsyncioExecutor:
         return duet.AwaitableFuture.wrap(future)
 
     _instance = None
+
     @classmethod
     def instance(cls):
         return AsyncioExecutor._instance if AsyncioExecutor._instance else cls()
