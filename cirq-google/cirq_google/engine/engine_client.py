@@ -86,6 +86,11 @@ class AsyncioExecutor:
         future = asyncio.run_coroutine_threadsafe(func(*args, **kw), self.loop)
         return duet.AwaitableFuture.wrap(future)
 
+    _instance = None
+    @classmethod
+    def instance(cls):
+        return AsyncioExecutor._instance if AsyncioExecutor._instance else cls()
+
 
 class EngineClient:
     """Client for the Quantum Engine API handling protos and gRPC client.
@@ -123,10 +128,8 @@ class EngineClient:
         self._service_args = service_args
 
     @cached_property
-    def _executor() -> AsyncioExecutor:
-        # GRPC clients must share the same thread due to
-        # https://github.com/grpc/grpc/issues/25364.
-        return AsyncioExecutor()
+    def _executor(self) -> AsyncioExecutor:
+        return AsyncioExecutor.instance()
 
     @cached_property
     def grpc_client(self) -> quantum.QuantumEngineServiceAsyncClient:
@@ -138,7 +141,7 @@ class EngineClient:
                 warnings.simplefilter('ignore')
                 return quantum.QuantumEngineServiceAsyncClient(**self._service_args)
 
-        return _executor.submit(make_client).result()
+        return self._executor.submit(make_client).result()
 
     async def _send_request_async(self, func: Callable[[_M], Awaitable[_R]], request: _M) -> _R:
         """Sends a request by invoking an asyncio callable."""
@@ -167,7 +170,7 @@ class EngineClient:
 
         while True:
             try:
-                return await _executor.submit(func, request)
+                return await self._executor.submit(func, request)
             except GoogleAPICallError as err:
                 message = err.message
                 # Raise RuntimeError for exceptions that are not retryable.
