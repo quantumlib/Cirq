@@ -123,7 +123,9 @@ class EngineClient:
         self._service_args = service_args
 
     @cached_property
-    def _executor(self) -> AsyncioExecutor:
+    def _executor() -> AsyncioExecutor:
+        # GRPC clients must share the same thread due to
+        # https://github.com/grpc/grpc/issues/25364.
         return AsyncioExecutor()
 
     @cached_property
