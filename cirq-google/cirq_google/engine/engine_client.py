@@ -138,7 +138,7 @@ class EngineClient:
                 warnings.simplefilter('ignore')
                 return quantum.QuantumEngineServiceAsyncClient(**self._service_args)
 
-        return self._executor.submit(make_client).result()
+        return _executor.submit(make_client).result()
 
     async def _send_request_async(self, func: Callable[[_M], Awaitable[_R]], request: _M) -> _R:
         """Sends a request by invoking an asyncio callable."""
@@ -167,7 +167,7 @@ class EngineClient:
 
         while True:
             try:
-                return await self._executor.submit(func, request)
+                return await _executor.submit(func, request)
             except GoogleAPICallError as err:
                 message = err.message
                 # Raise RuntimeError for exceptions that are not retryable.
