@@ -40,24 +40,7 @@ from dev_tools.notebooks import list_all_notebooks, filter_notebooks, rewrite_no
 # note that these notebooks are still tested in dev_tools/notebook_test.py
 # Please, always indicate in comments the feature used for easier bookkeeping.
 
-NOTEBOOKS_DEPENDING_ON_UNRELEASED_FEATURES: List[str] = [
-    # Hardcoded qubit placement
-    'docs/google/qubit-placement.ipynb',
-    # get_qcs_objects_for_notebook
-    'docs/noise/calibration_api.ipynb',
-    'docs/tutorials/google/colab.ipynb',
-    'docs/tutorials/google/identifying_hardware_changes.ipynb',
-    'docs/tutorials/google/echoes.ipynb',
-    'docs/noise/floquet_calibration_example.ipynb',
-    'docs/tutorials/google/spin_echoes.ipynb',
-    'docs/tutorials/google/start.ipynb',
-    'docs/tutorials/google/visualizing_calibration_metrics.ipynb',
-    'docs/noise/qcvv/xeb_calibration_example.ipynb',
-    'docs/named_topologies.ipynb',
-    'docs/start/intro.ipynb',
-    # Circuit routing
-    'docs/transform/routing_transformer.ipynb',
-]
+NOTEBOOKS_DEPENDING_ON_UNRELEASED_FEATURES: List[str] = []
 
 # By default all notebooks should be tested, however, this list contains exceptions to the rule
 # please always add a reason for skipping.
