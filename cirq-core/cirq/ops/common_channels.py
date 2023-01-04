@@ -1010,15 +1010,15 @@ def _phase_flip(p: float) -> PhaseFlipChannel:
 
     $$
     \begin{aligned}
-    M_0 =& \sqrt{p} \begin{bmatrix}
+    M_0 =& \sqrt{1 - p} \begin{bmatrix}
                         1 & 0  \\
                         0 & 1
-                   \end{bmatrix}
+                    \end{bmatrix}
     \\
-    M_1 =& \sqrt{1-p} \begin{bmatrix}
+    M_1 =& \sqrt{p} \begin{bmatrix}
                         1 & 0 \\
                         0 & -1
-                     \end{bmatrix}
+                    \end{bmatrix}
     \end{aligned}
     $$
 
@@ -1046,15 +1046,15 @@ def phase_flip(p: Optional[float] = None) -> Union[common_gates.ZPowGate, PhaseF
 
     $$
     \begin{aligned}
-    M_0 =& \sqrt{p} \begin{bmatrix}
+    M_0 =& \sqrt{1 - p} \begin{bmatrix}
                         1 & 0  \\
                         0 & 1
-                   \end{bmatrix}
+                    \end{bmatrix}
     \\
-    M_1 =& \sqrt{1-p} \begin{bmatrix}
+    M_1 =& \sqrt{p} \begin{bmatrix}
                         1 & 0 \\
                         0 & -1
-                     \end{bmatrix}
+                    \end{bmatrix}
     \end{aligned}
     $$
 
@@ -1162,14 +1162,14 @@ def _bit_flip(p: float) -> BitFlipChannel:
 
     $$
     \begin{aligned}
-    M_0 =& \sqrt{p} \begin{bmatrix}
+    M_0 =& \sqrt{1-p} \begin{bmatrix}
                         1 & 0 \\
                         0 & 1
                    \end{bmatrix}
     \\
-    M_1 =& \sqrt{1-p} \begin{bmatrix}
+    M_1 =& \sqrt{p} \begin{bmatrix}
                         0 & 1 \\
-                        1 & -0
+                        1 & 0
                      \end{bmatrix}
     \end{aligned}
     $$
@@ -1198,14 +1198,14 @@ def bit_flip(p: Optional[float] = None) -> Union[common_gates.XPowGate, BitFlipC
 
     $$
     \begin{aligned}
-    M_0 =& \sqrt{p} \begin{bmatrix}
+    M_0 =& \sqrt{1-p} \begin{bmatrix}
                         1 & 0 \\
                         0 & 1
                    \end{bmatrix}
     \\
-    M_1 =& \sqrt{1-p} \begin{bmatrix}
+    M_1 =& \sqrt{p} \begin{bmatrix}
                         0 & 1 \\
-                        1 & -0
+                        1 & 0
                      \end{bmatrix}
     \end{aligned}
     $$
