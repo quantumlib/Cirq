@@ -128,8 +128,9 @@ class EngineClient:
 
         self._service_args = service_args
 
-    @cached_property
     def _executor(self) -> AsyncioExecutor:
+        # We must re-use a single Executor due to multi-threading issues in gRPC
+        # clients: https://github.com/grpc/grpc/issues/25364.
         return AsyncioExecutor.instance()
 
     @cached_property
