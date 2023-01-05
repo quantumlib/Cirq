@@ -86,18 +86,45 @@ def test_coupler_pulse_str_repr():
         hold_time=cirq.Duration(nanos=10), coupling_mhz=25.0, rise_time=cirq.Duration(nanos=18)
     )
     assert (
-        str(gate)
-        == 'CouplerPulse(hold_time=10 ns, coupling_mhz=25.0, '
-        + 'rise_time=18 ns, padding_time=2500.0 ps)'
+        str(gate) == 'CouplerPulse(hold_time=10 ns, coupling_mhz=25.0, '
+        'rise_time=18 ns, padding_time=2500.0 ps, q0_detune_mhz=0.0, q1_detune_mhz=0.0)'
     )
     assert (
-        repr(gate)
-        == 'cirq_google.experimental.ops.coupler_pulse.CouplerPulse('
-        + 'hold_time=cirq.Duration(nanos=10), '
-        + 'coupling_mhz=25.0, '
-        + 'rise_time=cirq.Duration(nanos=18), '
-        + 'padding_time=cirq.Duration(picos=2500.0))'
+        repr(gate) == 'cirq_google.experimental.ops.coupler_pulse.CouplerPulse('
+        'hold_time=cirq.Duration(nanos=10), '
+        'coupling_mhz=25.0, '
+        'rise_time=cirq.Duration(nanos=18), '
+        'padding_time=cirq.Duration(picos=2500.0), '
+        'q0_detune_mhz=0.0, '
+        'q1_detune_mhz=0.0)'
     )
+
+
+def test_coupler_pulse_json_deserialization_defaults_on_missing_fields():
+    gate = coupler_pulse.CouplerPulse(
+        hold_time=cirq.Duration(nanos=10), coupling_mhz=25.0, rise_time=cirq.Duration(nanos=18)
+    )
+    json_text = """{
+       "cirq_type": "CouplerPulse",
+       "hold_time": {
+         "cirq_type": "Duration",
+         "picos": 10000
+       },
+       "coupling_mhz": 25.0,
+       "rise_time": {
+         "cirq_type": "Duration",
+         "picos": 18000
+       },
+       "padding_time": {
+         "cirq_type": "Duration",
+         "picos": 2500.0
+       }
+    }"""
+
+    deserialized = cirq.read_json(json_text=json_text)
+
+    assert deserialized == gate
+    assert deserialized.q0_detune_mhz == 0.0
 
 
 def test_coupler_pulse_circuit_diagram():
