@@ -90,7 +90,9 @@ class AsyncioExecutor:
 
     @classmethod
     def instance(cls):
-        return AsyncioExecutor._instance if AsyncioExecutor._instance else cls()
+        if cls._instance is None:
+            cls._instance = cls()
+        return cls._instance
 
 
 class EngineClient:
