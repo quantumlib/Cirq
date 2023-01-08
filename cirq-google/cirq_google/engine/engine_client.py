@@ -86,6 +86,14 @@ class AsyncioExecutor:
         future = asyncio.run_coroutine_threadsafe(func(*args, **kw), self.loop)
         return duet.AwaitableFuture.wrap(future)
 
+    _instance = None
+
+    @classmethod
+    def instance(cls):
+        if cls._instance is None:
+            cls._instance = cls()
+        return cls._instance
+
 
 class EngineClient:
     """Client for the Quantum Engine API handling protos and gRPC client.
@@ -122,9 +130,11 @@ class EngineClient:
 
         self._service_args = service_args
 
-    @cached_property
+    @property
     def _executor(self) -> AsyncioExecutor:
-        return AsyncioExecutor()
+        # We must re-use a single Executor due to multi-threading issues in gRPC
+        # clients: https://github.com/grpc/grpc/issues/25364.
+        return AsyncioExecutor.instance()
 
     @cached_property
     def grpc_client(self) -> quantum.QuantumEngineServiceAsyncClient:
