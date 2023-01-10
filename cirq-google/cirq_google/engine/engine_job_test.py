@@ -13,6 +13,7 @@
 # limitations under the License.
 
 import datetime
+import duet
 from unittest import mock
 import pytest
 
@@ -565,6 +566,21 @@ def test_results_getitem(get_job_results):
     assert str(job[1]) == 'q=1010'
     with pytest.raises(IndexError):
         _ = job[2]
+
+
+def test_results_future():
+    qjob = quantum.QuantumJob(
+        execution_status=quantum.ExecutionStatus(state=quantum.ExecutionStatus.State.SUCCESS),
+        update_time=UPDATE_TIME,
+    )
+    result_future = duet.AwaitableFuture()
+    result_future.try_set_result(RESULTS)
+
+    job = cg.EngineJob('a', 'b', 'steve', EngineContext(), _job=qjob, result_future=result_future)
+    data = job.results()
+    assert len(data) == 2
+    assert str(data[0]) == 'q=0110'
+    assert str(data[1]) == 'q=1010'
 
 
 @uses_async_mock

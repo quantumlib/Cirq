@@ -15,6 +15,7 @@
 import datetime
 from unittest import mock
 
+import duet
 import pytest
 import numpy as np
 from google.protobuf import any_pb2, timestamp_pb2
@@ -133,15 +134,18 @@ constants {
 
 
 @uses_async_mock
-@mock.patch('cirq_google.engine.engine_client.EngineClient.create_job_async')
-def test_run_sweeps_delegation(create_job_async):
-    create_job_async.return_value = ('steve', quantum.QuantumJob())
+# @mock.patch('cirq_google.engine.engine_client.EngineClient.create_job_async')
+@mock.patch('cirq_google.engine.engine_client.EngineClient.create_job_and_get_result_async')
+def test_run_sweeps_delegation(create_job_and_get_result_async):
+    result_future = duet.AwaitableFuture()
+    result_future.try_set_result('fluffykitty')
+    create_job_and_get_result_async.return_value = result_future
     program = cg.EngineProgram('my-proj', 'my-prog', EngineContext())
     param_resolver = cirq.ParamResolver({})
     job = program.run_sweep(
         job_id='steve', repetitions=10, params=param_resolver, processor_ids=['mine']
     )
-    assert job._job == quantum.QuantumJob()
+    assert job._result_future == result_future
 
 
 @uses_async_mock
@@ -216,19 +220,26 @@ def test_run_in_batch_mode():
 
 
 @uses_async_mock
-@mock.patch('cirq_google.engine.engine_client.EngineClient.get_job_results_async')
-@mock.patch('cirq_google.engine.engine_client.EngineClient.create_job_async')
-def test_run_delegation(create_job_async, get_results_async):
+# @mock.patch('cirq_google.engine.engine_client.EngineClient.get_job_results_async')
+@mock.patch('cirq_google.engine.engine_client.EngineClient.get_job_async')
+@mock.patch('cirq_google.engine.engine_client.EngineClient.create_job_and_get_result')
+def test_run_delegation(create_job_and_get_result, get_job_async):
     dt = datetime.datetime.now(tz=datetime.timezone.utc)
-    create_job_async.return_value = (
-        'steve',
-        quantum.QuantumJob(
-            name='projects/a/programs/b/jobs/steve',
-            execution_status=quantum.ExecutionStatus(state=quantum.ExecutionStatus.State.SUCCESS),
-            update_time=dt,
-        ),
+    # create_job_async.return_value = (
+    #     'steve',
+    #     quantum.QuantumJob(
+    #         name='projects/a/programs/b/jobs/steve',
+    #         execution_status=quantum.ExecutionStatus(state=quantum.ExecutionStatus.State.SUCCESS),
+    #         update_time=dt,
+    #     ),
+    # )
+
+    get_job_async.return_value = quantum.QuantumJob(
+        name='projects/a/programs/b/jobs/steve',
+        execution_status=quantum.ExecutionStatus(state=quantum.ExecutionStatus.State.SUCCESS),
+        update_time=dt,
     )
-    get_results_async.return_value = quantum.QuantumResult(
+    result = quantum.QuantumResult(
         result=util.pack_any(
             Merge(
                 """sweep_results: [{
@@ -256,6 +267,9 @@ def test_run_delegation(create_job_async, get_results_async):
             )
         )
     )
+    result_future = duet.AwaitableFuture()
+    result_future.try_set_result(result)
+    create_job_and_get_result.return_value = result_future
 
     program = cg.EngineProgram('a', 'b', EngineContext())
     param_resolver = cirq.ParamResolver({})

@@ -35,10 +35,13 @@ import duet
 import proto
 from google.api_core.exceptions import GoogleAPICallError, NotFound
 from google.protobuf import any_pb2, field_mask_pb2
+from google.protobuf.text_format import Merge
 from google.protobuf.timestamp_pb2 import Timestamp
 
 from cirq._compat import cached_property
+from cirq_google.api import v2
 from cirq_google.cloud import quantum
+from cirq_google.engine import util
 
 _M = TypeVar('_M', bound=proto.Message)
 _R = TypeVar('_R')
@@ -277,7 +280,7 @@ class EngineClient:
             val = _date_or_time_to_filter_expr('created_before', created_before)
             filters.append(f"create_time <= {val}")
         if has_labels is not None:
-            for (k, v) in has_labels.items():
+            for k, v in has_labels.items():
                 filters.append(f"labels.{k}:{v}")
         request = quantum.ListQuantumProgramsRequest(
             parent=_project_name(project_id), filter=" AND ".join(filters)
@@ -480,6 +483,72 @@ class EngineClient:
 
     create_job = duet.sync(create_job_async)
 
+    def create_job_and_get_result(
+        self,
+        project_id: str,
+        program_id: str,
+        job_id: Optional[str],
+        processor_ids: Sequence[str],
+        run_context: any_pb2.Any,
+        priority: Optional[int] = None,
+        description: Optional[str] = None,
+        labels: Optional[Dict[str, str]] = None,
+    ) -> duet.AwaitableFuture[quantum.QuantumResult]:
+
+        # TODO(verult) real implementation
+        result_future: duet.AwaitableFuture[quantum.QuantumResult] = duet.AwaitableFuture()
+        parent = _job_name_from_ids(project_id, program_id, job_id)
+
+        quantum_result = quantum.QuantumResult(
+            parent=parent,
+            result=util.pack_any(
+                Merge(
+                    """
+sweep_results: [{
+        repetitions: 4,
+        parameterized_results: [{
+            params: {
+                assignments: {
+                    key: 'a'
+                    value: 1
+                }
+            },
+            measurement_results: {
+                key: 'q'
+                qubit_measurement_results: [{
+                  qubit: {
+                    id: '1_1'
+                  }
+                  results: '\006'
+                }]
+            }
+        },{
+            params: {
+                assignments: {
+                    key: 'a'
+                    value: 2
+                }
+            },
+            measurement_results: {
+                key: 'q'
+                qubit_measurement_results: [{
+                  qubit: {
+                    id: '1_1'
+                  }
+                  results: '\005'
+                }]
+            }
+        }]
+    }]
+""",
+                    v2.result_pb2.Result(),
+                )
+            ),
+        )
+
+        result_future.try_set_result(quantum_result)
+        return result_future
+
     async def list_jobs_async(
         self,
         project_id: str,
@@ -528,7 +597,7 @@ class EngineClient:
             val = _date_or_time_to_filter_expr('created_before', created_before)
             filters.append(f"create_time <= {val}")
         if has_labels is not None:
-            for (k, v) in has_labels.items():
+            for k, v in has_labels.items():
                 filters.append(f"labels.{k}:{v}")
         if execution_states is not None:
             state_filter = []

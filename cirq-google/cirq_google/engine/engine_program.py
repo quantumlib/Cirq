@@ -106,7 +106,16 @@ class EngineProgram(abstract_program.AbstractProgram):
             job_id = engine_base._make_random_id('job-')
         run_context = self.context._serialize_run_context(params, repetitions)
 
-        created_job_id, job = await self.context.client.create_job_async(
+        # created_job_id, job = await self.context.client.create_job_async(
+        #     project_id=self.project_id,
+        #     program_id=self.program_id,
+        #     job_id=job_id,
+        #     processor_ids=processor_ids,
+        #     run_context=run_context,
+        #     description=description,
+        #     labels=labels,
+        # )
+        result_future = self.context.client.create_job_and_get_result(
             project_id=self.project_id,
             program_id=self.program_id,
             job_id=job_id,
@@ -116,7 +125,7 @@ class EngineProgram(abstract_program.AbstractProgram):
             labels=labels,
         )
         return engine_job.EngineJob(
-            self.project_id, self.program_id, created_job_id, self.context, job
+            self.project_id, self.program_id, job_id, self.context, result_future=result_future
         )
 
     run_sweep = duet.sync(run_sweep_async)
@@ -182,6 +191,7 @@ class EngineProgram(abstract_program.AbstractProgram):
             (params, repetitions) for params in params_list
         )
 
+        # TODO(verult) migrate to streaming
         created_job_id, job = await self.context.client.create_job_async(
             project_id=self.project_id,
             program_id=self.program_id,
@@ -246,6 +256,7 @@ class EngineProgram(abstract_program.AbstractProgram):
         # on a run context in order to succeed validation.
         run_context = v2.run_context_pb2.RunContext()
 
+        # TODO(verult) migrate to streaming
         created_job_id, job = await self.context.client.create_job_async(
             project_id=self.project_id,
             program_id=self.program_id,

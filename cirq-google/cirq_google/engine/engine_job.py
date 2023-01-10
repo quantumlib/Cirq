@@ -69,6 +69,7 @@ class EngineJob(abstract_job.AbstractJob):
         context: 'engine_base.EngineContext',
         _job: Optional[quantum.QuantumJob] = None,
         result_type: ResultType = ResultType.Program,
+        result_future: Optional[duet.AwaitableFuture[quantum.QuantumResult]] = None,
     ) -> None:
         """A job submitted to the engine.
 
@@ -90,6 +91,7 @@ class EngineJob(abstract_job.AbstractJob):
         self._calibration_results: Optional[Sequence[CalibrationResult]] = None
         self._batched_results: Optional[Sequence[Sequence[EngineResult]]] = None
         self.result_type = result_type
+        self._result_future = result_future
 
     def id(self) -> str:
         """Returns the job id."""
@@ -301,17 +303,23 @@ class EngineJob(abstract_job.AbstractJob):
                 raise ValueError(f'invalid result proto version: {result_type}')
         return self._results
 
-    async def _await_result_async(self) -> quantum.QuantumResult:
-        async with duet.timeout_scope(self.context.timeout):  # type: ignore[arg-type]
-            while True:
-                job = await self._refresh_job_async()
-                if job.execution_status.state in TERMINAL_STATES:
-                    break
-                await duet.sleep(0.5)
-        _raise_on_failure(job)
-        response = await self.context.client.get_job_results_async(
-            self.project_id, self.program_id, self.job_id
-        )
+    async def _await_result_async(self) -> any_pb2.Any:
+        if self._result_future is not None:
+            print("DEBUG: Awaiting result future...")
+            response = await self._result_future
+        else:
+            async with duet.timeout_scope(self.context.timeout):  # type: ignore[arg-type]
+                while True:
+                    print("DEBUG: Refreshing job...")
+                    job = await self._refresh_job_async()
+                    if job.execution_status.state in TERMINAL_STATES:
+                        break
+                    await duet.sleep(0.5)
+            _raise_on_failure(job)
+            response = await self.context.client.get_job_results_async(
+                self.project_id, self.program_id, self.job_id
+            )
+
         return response.result
 
     async def calibration_results_async(self) -> Sequence[CalibrationResult]:
@@ -366,7 +374,9 @@ class EngineJob(abstract_job.AbstractJob):
     def _get_job_results_v2(self, result: v2.result_pb2.Result) -> Sequence[EngineResult]:
         sweep_results = v2.results_from_proto(result)
         job_id = self.id()
+        # HACK(verult) temporarily commented out to get manual test working. Will need this call to get job stats in reality.
         job_finished = self.update_time()
+        # job_finished = datetime.datetime.now()
 
         # Flatten to single list to match to sampler api.
         return [
