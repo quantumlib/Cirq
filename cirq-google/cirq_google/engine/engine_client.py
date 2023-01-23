@@ -22,6 +22,7 @@ from typing import (
     Awaitable,
     Callable,
     Dict,
+    Generic,
     List,
     Optional,
     Sequence,
@@ -145,7 +146,7 @@ class EngineClient:
         # TODO(verult) Retry stream if stream is broken.
 
         # Machinery for handling QuantunRumStream bidi streaming RPC.
-        self._request_queue = duet.AsyncCollector[quantum.QuantumRunStreamRequest]()
+        self._request_queue = _ThreadSafeAsyncCollector[quantum.QuantumRunStreamRequest]()
         self._response_listener = _ResponseListener()
         self._msg_id_generator = _MessageIdGenerator()
 
@@ -189,8 +190,8 @@ class EngineClient:
                 logging.warning('Client stream loop: Got a response, notifying listeners')
                 self._response_listener.notify(resp)
 
-        # GRPC client instantiation is a blocking call waiting for an execution inside the event
-        # loop of AsyncioExecutor to complete.
+        # GRPC client instantiation waits for an execution inside the event loop of AsyncioExecutor
+        # to complete.
         # This ensures the client is instantiated before submitting to the AsyncioExecutor another
         # task which uses the client, in order to avoid a deadlock.
         client = self.grpc_client
@@ -200,9 +201,9 @@ class EngineClient:
         """Sends a request by invoking an asyncio callable."""
         return await self._run_retry_async(func, request)
 
-    async def _send_quantum_run_stream_request_async(
+    def _send_quantum_run_stream_request_async(
         self, request: quantum.QuantumRunStreamRequest
-    ) -> quantum.QuantumRunStreamResponse:
+    ) -> duet.AwaitableFuture[quantum.QuantumResult]:
         # - If not running already, spawn task to
         #   1. Call quantum_run_stream with request iterator,
         #   2. listen to response iterator
@@ -217,15 +218,20 @@ class EngineClient:
 
         logger.warning('Client: Inside _send_quantum_run_stream_request_async')
 
-        async def run_stream_request():
-            logger.warning('Client: Adding request to queue...')
-            self._request_queue.add(request)
-            logger.warning('Client: Added request to queue, waiting for response...')
-            # TODO(verult) This should be called in duet scope instead.
-            await self._response_listener.listen_for(request.message_id)
-            logger.warning('Client: Got response')
+        logger.warning('Client: Adding request to queue...')
+        self._request_queue.add(request)  # TODO(verult) use thread-safe data structure
+        logger.warning('Client: Added request to queue, waiting for response...')
+        return self._response_listener.listen_for(request.message_id)
 
-        return await self._executor.submit(run_stream_request)
+        # async def run_stream_request():
+        #     logger.warning('Client: Adding request to queue...')
+        #     self._request_queue.add(request)
+        #     logger.warning('Client: Added request to queue, waiting for response...')
+        #     # TODO(verult) This should be called in duet scope instead.
+        #     await self._response_listener.listen_for(request.message_id)
+        #     logger.warning('Client: Got response')
+
+        # return await self._executor.submit(run_stream_request)
 
     async def _send_list_request_async(
         self, func: Callable[[_M], Awaitable[AsyncIterable[_R]]], request: _M
@@ -352,7 +358,7 @@ class EngineClient:
             val = _date_or_time_to_filter_expr('created_before', created_before)
             filters.append(f"create_time <= {val}")
         if has_labels is not None:
-            for (k, v) in has_labels.items():
+            for k, v in has_labels.items():
                 filters.append(f"labels.{k}:{v}")
         request = quantum.ListQuantumProgramsRequest(
             parent=_project_name(project_id), filter=" AND ".join(filters)
@@ -555,7 +561,7 @@ class EngineClient:
 
     create_job = duet.sync(create_job_async)
 
-    async def create_job_and_get_results_async(
+    def create_job_and_get_results(
         self,
         project_id: str,
         program_id: str,
@@ -604,10 +610,11 @@ class EngineClient:
             parent=_project_name(project_id),
             create_quantum_job=job_request,
         )
-        stream_response = await self._send_quantum_run_stream_request_async(stream_request)
-        return stream_response.result  # TODO(verult) handle error cases
+        return self._send_quantum_run_stream_request_async(
+            stream_request
+        )  # TODO(verult) handle error cases
 
-    create_job_and_get_results = duet.sync(create_job_and_get_results_async)
+    # create_job_and_get_results = duet.sync(create_job_and_get_results_async)
 
     async def list_jobs_async(
         self,
@@ -657,7 +664,7 @@ class EngineClient:
             val = _date_or_time_to_filter_expr('created_before', created_before)
             filters.append(f"create_time <= {val}")
         if has_labels is not None:
-            for (k, v) in has_labels.items():
+            for k, v in has_labels.items():
                 filters.append(f"labels.{k}:{v}")
         if execution_states is not None:
             state_filter = []
@@ -1213,16 +1220,20 @@ class _ResponseListener:
 
     def __init__(self):
         self._response_futures: Dict[
-            str, duet.AwaitableFuture[quantum.QuantumRunStreamResponse]
-        ] = {}  # key: message ID
+            str, duet.AwaitableFuture[quantum.QuantumResult]
+        ] = {}  # key: message ID. TODO(verult) Switch to job key
 
-    async def listen_for(self, message_id: str) -> quantum.QuantumRunStreamResponse:
+    def listen_for(self, message_id: str) -> duet.AwaitableFuture[quantum.QuantumResult]:
         """TODO"""
-        response_future = duet.AwaitableFuture[quantum.QuantumRunStreamResponse]()
+
+        def unregister(unused: duet.AwaitableFuture[quantum.QuantumResult]):
+            del self._response_futures[message_id]
+
+        response_future = duet.AwaitableFuture[quantum.QuantumResult]()
+        response_future.add_done_callback(unregister)
         self._response_futures[message_id] = response_future
-        response = await response_future
-        del self._response_futures[message_id]
-        return response
+        logger.warning("ResponseListener: Registered response future for message ID %s", message_id)
+        return response_future
 
     def notify(self, response: QuantumRunStreamResponse):
         """TODO"""
@@ -1231,7 +1242,42 @@ class _ResponseListener:
             return  # TODO(verult) handle
 
         # TODO(verult) Set exception instead if response is not a result?
-        self._response_futures[message_id].try_set_result(response)
+        logger.warning("ResponseListener: Notifying Response: %s", response)
+        self._response_futures[message_id].try_set_result(response.result)
+
+
+T = TypeVar("T")
+
+
+class _ThreadSafeAsyncCollector(duet.AsyncCollector, Generic[T]):
+    """Thread-safe version of duet.AsyncCollector.
+
+    This implementation simply locks the entire data structure for each
+    read/write operation.
+
+    TODO consider advanced locking
+    """
+
+    def __init__(self):
+        super().__init__()
+        self.lock = threading.Lock()
+
+    def add(self, value: T) -> None:
+        with self.lock:
+            super().add(value)
+
+    def done(self) -> None:
+        with self.lock:
+            super().done()
+
+    def error(self, error: Exception) -> None:
+        with self.lock:
+            super().error(error)
+
+    async def __anext__(self) -> T:
+        # TODO(verult) this implementation creates a deadlock when super().__anext__() awaits.
+        with self.lock:
+            await super().__anext__()
 
 
 def _project_name(project_id: str) -> str:

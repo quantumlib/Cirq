@@ -55,19 +55,18 @@ class _FakeQuantumRunStream:
         self, requests: AsyncIterator[engine.QuantumRunStreamRequest] = None, **kwargs
     ) -> AsyncIterable[engine.QuantumRunStreamResponse]:
         logger.warning('Server: Got quantum_run_stream call')
+        logger.warning('foo')
+        logger.warning('Response length: %s', len(self._response_list))
 
-        async def run_async():
-            async def run_async_iterator():
-                logger.warning('Server: Waiting for requests...')
-                async for _ in requests:
-                    logger.warning('Server: Got a request, yielding response next')
-                    self.request_count += 1
-                    yield self._response_list.pop(0)
+        async def run_async_iterator():
+            logger.warning('Server: Waiting for requests...')
+            async for _ in requests:
+                logger.warning('Server: Got a request, yielding response next')
+                self.request_count += 1
+                yield self._response_list.pop(0)
 
-            await asyncio.sleep(0.0001)
-            return run_async_iterator
-
-        return await run_async()
+        await asyncio.sleep(0.0001)
+        return run_async_iterator()
 
 
 @uses_async_mock
@@ -538,10 +537,15 @@ def test_create_job_and_get_results(client_constructor):
     mock_responses = [quantum.QuantumRunStreamResponse(message_id='0', result=expected_result)]
     fake_client.set_response_list(mock_responses)
 
+    async def run():
+        return await client.create_job_and_get_results(
+            'proj', 'prog', 'job0', ['processor0'], run_context, 10, 'A job', labels
+        )
+
     client.start_streams()
-    actual_result = client.create_job_and_get_results(
-        'proj', 'prog', 'job0', ['processor0'], run_context, 10, 'A job', labels
-    )
+    actual_result = duet.sync(run)()
+
+    # TODO(verult) test that response listener message IDs are being deleted
 
     assert actual_result == expected_result
     assert fake_client.request_count == 1
