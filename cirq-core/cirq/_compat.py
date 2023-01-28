@@ -138,9 +138,7 @@ def proper_repr(value: Any) -> str:
         return Printer().doprint(value)
 
     if isinstance(value, np.ndarray):
-        if np.issubdtype(value.dtype, np.datetime64):
-            return f'np.array({value.tolist()!r}, dtype=np.{value.dtype!r})'
-        return f'np.array({value.tolist()!r}, dtype=np.{value.dtype})'
+        return f'np.array({value.tolist()!r}, dtype=np.{value.dtype!r})'
 
     if isinstance(value, pd.MultiIndex):
         return f'pd.MultiIndex.from_tuples({repr(list(value))}, names={repr(list(value.names))})'
