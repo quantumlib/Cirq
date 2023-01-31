@@ -17,7 +17,6 @@ from typing import Callable, Dict, Iterable, List, overload, Optional, Tuple, TY
 import numpy as np
 
 from cirq import protocols
-from cirq._doc import document
 from cirq.ops import raw_types, pauli_string
 from cirq.ops.measurement_gate import MeasurementGate
 from cirq.ops.pauli_measurement_gate import PauliMeasurementGate
@@ -116,7 +115,8 @@ def measure(
 ) -> raw_types.Operation:
     """Returns a single MeasurementGate applied to all the given qubits.
 
-    The qubits are measured in the computational basis.
+    The qubits are measured in the computational basis. This can also be
+    used with the alias `cirq.M`.
 
     Args:
         *target: The qubits that the measurement gate should measure.
@@ -161,7 +161,6 @@ def measure(
 
 
 M = measure
-document(M, """Alias for cirq.measure""")
 
 
 @overload
