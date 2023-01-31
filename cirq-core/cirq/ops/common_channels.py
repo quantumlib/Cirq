@@ -20,6 +20,7 @@ from typing import Any, Dict, Iterable, List, Optional, Sequence, Tuple, Union, 
 import numpy as np
 
 from cirq import protocols, value
+from cirq._doc import document
 from cirq.linalg import transformations
 from cirq.ops import raw_types, common_gates, pauli_gates, identity
 
@@ -777,6 +778,10 @@ class ResetChannel(raw_types.Gate):
 def reset(qubit: 'cirq.Qid') -> raw_types.Operation:
     """Returns a `cirq.ResetChannel` on the given qubit."""
     return ResetChannel(qubit.dimension).on(qubit)
+
+
+R = reset
+document(R, """Alias for cirq.reset""")
 
 
 def reset_each(*qubits: 'cirq.Qid') -> List[raw_types.Operation]:

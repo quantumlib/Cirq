@@ -17,6 +17,7 @@ from typing import Callable, Dict, Iterable, List, overload, Optional, Tuple, TY
 import numpy as np
 
 from cirq import protocols
+from cirq._doc import document
 from cirq.ops import raw_types, pauli_string
 from cirq.ops.measurement_gate import MeasurementGate
 from cirq.ops.pauli_measurement_gate import PauliMeasurementGate
@@ -157,6 +158,10 @@ def measure(
         key = _default_measurement_key(targets)
     qid_shape = protocols.qid_shape(targets)
     return MeasurementGate(len(targets), key, invert_mask, qid_shape, confusion_map).on(*targets)
+
+
+M = measure
+document(M, """Alias for cirq.measure""")
 
 
 @overload
