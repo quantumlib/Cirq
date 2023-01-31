@@ -115,7 +115,8 @@ def measure(
 ) -> raw_types.Operation:
     """Returns a single MeasurementGate applied to all the given qubits.
 
-    The qubits are measured in the computational basis.
+    The qubits are measured in the computational basis. This can also be
+    used with the alias `cirq.M`.
 
     Args:
         *target: The qubits that the measurement gate should measure.
@@ -157,6 +158,9 @@ def measure(
         key = _default_measurement_key(targets)
     qid_shape = protocols.qid_shape(targets)
     return MeasurementGate(len(targets), key, invert_mask, qid_shape, confusion_map).on(*targets)
+
+
+M = measure
 
 
 @overload
