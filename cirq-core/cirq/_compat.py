@@ -15,6 +15,8 @@
 """Workarounds for compatibility issues between versions and libraries."""
 import contextlib
 import dataclasses
+
+import contextvars
 import functools
 import importlib
 import inspect
@@ -31,8 +33,17 @@ import pandas as pd
 import sympy
 import sympy.printing.repr
 
+from cirq._doc import document
+
 ALLOW_DEPRECATION_IN_TEST = 'ALLOW_DEPRECATION_IN_TEST'
 
+__cirq_debug__ = contextvars.ContextVar('__cirq_debug__', default=__debug__)
+document(
+    __cirq_debug__,
+    "A cirq specific flag which can be used to conditionally turn off all validations across Cirq "
+    "to boost performance in production mode. Defaults to python's built-in constant __debug__. "
+    "The flag is implemented as a `ContextVar` and is thread safe.",
+)
 
 try:
     from functools import cached_property  # pylint: disable=unused-import
