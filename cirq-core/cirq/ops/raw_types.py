@@ -280,7 +280,7 @@ class Gate(metaclass=value.ABCMetaImplementAnyOneOf):
                 for op in (
                     self.on_each(*q)
                     if isinstance(q, Iterable) and not isinstance(q, str)
-                    else [self.on(cast(cirq.Qid, q))]
+                    else [self.on(cast('cirq.Qid', q))]
                 )
             ]
 
