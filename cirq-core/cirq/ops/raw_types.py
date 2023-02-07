@@ -17,6 +17,7 @@
 import abc
 import functools
 from typing import (
+    cast,
     AbstractSet,
     Any,
     Callable,
@@ -274,10 +275,13 @@ class Gate(metaclass=value.ABCMetaImplementAnyOneOf):
 
         if __cirq_debug__.get() is False:
             return [
-                self.on_each(*q)
-                if isinstance(q, Iterable) and not isinstance(q, str)
-                else self.on(q)
+                op
                 for q in targets
+                for op in (
+                    self.on_each(*q)
+                    if isinstance(q, Iterable) and not isinstance(q, str)
+                    else [self.on(cast(cirq.Qid, q))]
+                )
             ]
 
         for target in targets:
