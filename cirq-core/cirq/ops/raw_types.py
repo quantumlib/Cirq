@@ -273,7 +273,7 @@ class Gate(metaclass=value.ABCMetaImplementAnyOneOf):
                 operations = [self.on(*target) for target in iterator]
             return operations
 
-        if __cirq_debug__.get() is False:
+        if not __cirq_debug__.get():
             return [
                 op
                 for q in targets

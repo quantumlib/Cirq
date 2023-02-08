@@ -16,7 +16,7 @@
 
 from cirq import _import
 
-from cirq._compat import __cirq_debug__
+from cirq._compat import __cirq_debug__, with_debug
 
 # A module can only depend on modules imported earlier in this list of modules
 # at import time.  Pytest will fail otherwise (enforced by
