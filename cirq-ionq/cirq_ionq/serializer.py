@@ -40,6 +40,7 @@ class SerializedProgram:
 
     body: dict
     metadata: dict
+    error_mitigation: Optional[dict] = None
 
 
 class Serializer:
@@ -75,7 +76,7 @@ class Serializer:
             MSGate: self._serialize_ms_gate,
         }
 
-    def serialize(self, circuit: cirq.AbstractCircuit) -> SerializedProgram:
+    def serialize(self, circuit: cirq.AbstractCircuit, error_mitigation: Optional[dict] = None) -> SerializedProgram:
         """Serialize the given circuit.
 
         Raises:
@@ -97,7 +98,7 @@ class Serializer:
         }
         metadata = self._serialize_measurements(op for op in serialized_ops if op['gate'] == 'meas')
 
-        return SerializedProgram(body=body, metadata=metadata)
+        return SerializedProgram(body=body, metadata=metadata, error_mitigation=error_mitigation)
 
     def _validate_circuit(self, circuit: cirq.AbstractCircuit):
         if len(circuit) == 0:

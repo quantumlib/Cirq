@@ -29,11 +29,11 @@ def test_sampler_qpu():
         'qubits': '1',
         'target': 'qpu',
         'metadata': {'shots': 4, 'measurement0': f'a{chr(31)}0'},
-        'data': {'histogram': {'0': '0.25', '1': '0.75'}},
     }
 
     job = ionq.Job(client=mock_service, job_dict=job_dict)
     mock_service.create_job.return_value = job
+    mock_service.get_results.return_value = {'0': '0.25', '1': '0.75'}
 
     sampler = ionq.Sampler(service=mock_service, target='qpu')
     q0 = cirq.LineQubit(0)
@@ -53,11 +53,11 @@ def test_sampler_simulator():
         'qubits': '1',
         'target': 'simulator',
         'metadata': {'shots': 4, 'measurement0': f'a{chr(31)}0'},
-        'data': {'histogram': {'0': '0.25', '1': '0.75'}},
     }
 
     job = ionq.Job(client=mock_service, job_dict=job_dict)
     mock_service.create_job.return_value = job
+    mock_service.get_results.return_value = {'0': '0.25', '1': '0.75'}
 
     sampler = ionq.Sampler(service=mock_service, target='simulator', seed=10)
     q0 = cirq.LineQubit(0)
@@ -79,7 +79,6 @@ def test_sampler_multiple_jobs():
         'qubits': '1',
         'target': 'qpu',
         'metadata': {'shots': 4, 'measurement0': f'a{chr(31)}0'},
-        'data': {'histogram': {'0': '0.25', '1': '0.75'}},
     }
     job_dict1 = {
         'id': '1',
@@ -87,12 +86,15 @@ def test_sampler_multiple_jobs():
         'qubits': '1',
         'target': 'qpu',
         'metadata': {'shots': 4, 'measurement0': f'a{chr(31)}0'},
-        'data': {'histogram': {'0': '0.5', '1': '0.5'}},
     }
 
     job0 = ionq.Job(client=mock_service, job_dict=job_dict0)
     job1 = ionq.Job(client=mock_service, job_dict=job_dict1)
     mock_service.create_job.side_effect = [job0, job1]
+    mock_service.get_results.side_effect = [
+        {'0': '0.25', '1': '0.75'},
+        {'0': '0.5', '1': '0.5'}
+    ]
 
     sampler = ionq.Sampler(service=mock_service, timeout_seconds=10, target='qpu')
     q0 = cirq.LineQubit(0)

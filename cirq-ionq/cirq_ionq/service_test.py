@@ -39,9 +39,9 @@ def test_service_run(target, expected_results):
         'target': target,
         'metadata': {'shots': '4', 'measurement0': f'a{chr(31)}0'},
         'qubits': '1',
-        'data': {'histogram': {'0': '0.25', '1': '0.75'}},
         'status': 'completed',
     }
+    mock_client.get_results.return_value = {'0': '0.25', '1': '0.75'}
     service._client = mock_client
 
     a = sympy.Symbol('a')
@@ -72,10 +72,10 @@ def test_sampler():
         'qubits': '1',
         'target': 'qpu',
         'metadata': {'shots': 4, 'measurement0': f'a{chr(31)}0'},
-        'data': {'histogram': {'0': '0.25', '1': '0.75'}},
     }
     mock_client.create_job.return_value = job_dict
     mock_client.get_job.return_value = job_dict
+    mock_client.get_results.return_value = {'0': '0.25', '1': '0.75'}
 
     sampler = service.sampler(target='qpu', seed=10)
 
@@ -179,4 +179,4 @@ def test_service_no_param_or_env_variable():
 
 def test_service_no_url_default():
     service = ionq.Service(api_key='tomyheart')
-    assert service.remote_host == 'https://api.ionq.co/v0.1'
+    assert service.remote_host == 'https://api.ionq.co/v0.3'
