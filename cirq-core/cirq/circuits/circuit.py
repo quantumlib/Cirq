@@ -573,12 +573,14 @@ class AbstractCircuit(abc.ABC):
             continue_past = (
                 cur_op is not None and active.issuperset(cur_op.qubits) and not is_blocker(cur_op)
             )
-            for q in cur_op.qubits:
-                if continue_past:
+            if continue_past:
+                for q in cur_op.qubits:
                     enqueue_next(q, cur_moment + 1)
-                elif q in active:
-                    end_frontier[q] = cur_moment
-                    active.remove(q)
+            else:
+                for q in cur_op.qubits:
+                    if q in active:
+                        end_frontier[q] = cur_moment
+                        active.remove(q)
 
         return end_frontier
 
