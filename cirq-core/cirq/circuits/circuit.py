@@ -1861,9 +1861,8 @@ class Circuit(AbstractCircuit):
         pass
 
     def __setitem__(self, key, value):
-        if isinstance(key, int):
-            if not isinstance(value, Moment):
-                raise TypeError('Can only assign Moments into Circuits.')
+        if isinstance(key, int) and not isinstance(value, Moment):
+            raise TypeError('Can only assign Moments into Circuits.')
 
         if isinstance(key, slice):
             value = list(value)
@@ -2595,8 +2594,7 @@ def _get_global_phase_and_tags_for_op(op: 'cirq.Operation') -> Tuple[Optional[co
     elif isinstance(op.untagged, CircuitOperation):
         op_phase, op_tags = _get_global_phase_and_tags_for_ops(op.untagged.circuit.all_operations())
         return op_phase, list(op.tags) + op_tags
-    else:
-        return None, []
+    return None, []
 
 
 def _get_global_phase_and_tags_for_ops(op_list: Any) -> Tuple[Optional[complex], List[Any]]:
