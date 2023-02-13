@@ -324,7 +324,7 @@ class XPowGate(eigen_gate.EigenGate):
         return protocols.obj_to_dict_helper(self, ['exponent', 'global_shift', 'dimension'])
 
     def _value_equality_values_(self):
-        return self._exponent, self._global_shift, self._dimension
+        return self._canonical_exponent, self._global_shift, self._dimension
 
 class Rx(XPowGate):
     r"""A gate with matrix $e^{-i X t/2}$ that rotates around the X axis of the Bloch sphere by $t$.
@@ -851,7 +851,7 @@ class ZPowGate(eigen_gate.EigenGate):
         return protocols.obj_to_dict_helper(self, ['exponent', 'global_shift', 'dimension'])
 
     def _value_equality_values_(self):
-        return self._exponent, self._global_shift, self._dimension
+        return self._canonical_exponent, self._global_shift, self._dimension
 
 
 class Rz(ZPowGate):
