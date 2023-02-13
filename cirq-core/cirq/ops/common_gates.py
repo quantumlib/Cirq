@@ -120,6 +120,10 @@ class XPowGate(eigen_gate.EigenGate):
         super().__init__(exponent=exponent, global_shift=global_shift)
         self._dimension = dimension
 
+    @property
+    def dimension(self) -> value.TParamVal:
+        return self._dimension
+
     def _num_qubits_(self) -> int:
         return 1
 
@@ -316,6 +320,11 @@ class XPowGate(eigen_gate.EigenGate):
         all_args = ', '.join(args)
         return f'cirq.XPowGate({all_args})'
 
+    def _json_dict_(self) -> Dict[str, Any]:
+        return protocols.obj_to_dict_helper(self, ['exponent', 'global_shift', 'dimension'])
+
+    def _value_equality_values_(self):
+        return self._exponent, self._global_shift, self._dimension
 
 class Rx(XPowGate):
     r"""A gate with matrix $e^{-i X t/2}$ that rotates around the X axis of the Bloch sphere by $t$.
@@ -608,6 +617,10 @@ class ZPowGate(eigen_gate.EigenGate):
         super().__init__(exponent=exponent, global_shift=global_shift)
         self._dimension = dimension
 
+    @property
+    def dimension(self) -> value.TParamVal:
+        return self._dimension
+
     def _num_qubits_(self) -> int:
         return 1
 
@@ -833,6 +846,12 @@ class ZPowGate(eigen_gate.EigenGate):
         if not isinstance(other.gate, (ZPowGate, CZPowGate, ZZPowGate)):
             return NotImplemented
         return True
+
+    def _json_dict_(self) -> Dict[str, Any]:
+        return protocols.obj_to_dict_helper(self, ['exponent', 'global_shift', 'dimension'])
+
+    def _value_equality_values_(self):
+        return self._exponent, self._global_shift, self._dimension
 
 
 class Rz(ZPowGate):

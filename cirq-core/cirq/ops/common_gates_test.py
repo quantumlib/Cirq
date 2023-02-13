@@ -1100,6 +1100,7 @@ def test_approx_eq():
 
 def test_xpow_dim_3():
     x = cirq.XPowGate(dimension=3)
+    assert cirq.X != x
     # fmt: off
     expected = [
         [0, 0, 1],
@@ -1127,6 +1128,7 @@ def test_xpow_dim_3():
 
 def test_xpow_dim_4():
     x = cirq.XPowGate(dimension=4)
+    assert cirq.X != x
     # fmt: off
     expected = [
         [0, 0, 0, 1],
@@ -1159,6 +1161,7 @@ def test_zpow_dim_3():
     L = np.exp(2 * np.pi * 1j / 3)
     L2 = L**2
     z = cirq.ZPowGate(dimension=3)
+    assert cirq.Z != z
     # fmt: off
     expected = [
         [1, 0, 0],
@@ -1209,6 +1212,7 @@ def test_zpow_dim_3():
 
 def test_zpow_dim_4():
     z = cirq.ZPowGate(dimension=4)
+    assert cirq.Z != z
     # fmt: off
     expected = [
         [1, 0, 0, 0],
@@ -1297,3 +1301,11 @@ def test_wrong_dims():
 
     with pytest.raises(ValueError, match='Wrong shape'):
         _ = cirq.Z.on(cirq.LineQid(0, dimension=3))
+
+def test_json():
+    dimension = 3
+    x3 = cirq.XPowGate(dimension=dimension)
+    assert cirq.read_json(json_text=cirq.to_json(x3))._dimension == dimension
+
+    z3 = cirq.ZPowGate(dimension=dimension)
+    assert cirq.read_json(json_text=cirq.to_json(z3))._dimension == dimension
