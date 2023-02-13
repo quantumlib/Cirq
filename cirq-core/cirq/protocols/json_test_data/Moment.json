@@ -6,6 +6,7 @@
         "cirq_type": "SingleQubitPauliStringGateOperation",
         "pauli": {
           "cirq_type": "_PauliX",
+          "dimension": 2,
           "exponent": 1,
           "global_shift": 0.0
         },
@@ -30,6 +31,7 @@
         "cirq_type": "SingleQubitPauliStringGateOperation",
         "pauli": {
           "cirq_type": "_PauliZ",
+          "dimension": 2,
           "exponent": 1,
           "global_shift": 0.0
         },

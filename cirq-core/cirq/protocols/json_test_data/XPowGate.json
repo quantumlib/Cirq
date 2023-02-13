@@ -1,5 +1,6 @@
 {
   "cirq_type": "XPowGate",
+  "dimension": 2,
   "exponent": 0.123,
   "global_shift": 0.0
 }
