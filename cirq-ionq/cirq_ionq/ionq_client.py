@@ -26,7 +26,7 @@ import cirq_ionq
 from cirq_ionq import ionq_exceptions
 
 
-RETRIABLE_STATUS_CODES = {requests.codes.internal_server_error, requests.codes.service_unavailable}
+RETRIABLE_STATUS_CODES = {requests.codes.internal_server_error, requests.codes.bad_gateway, requests.codes.service_unavailable}
 
 
 def _is_retriable(code):
