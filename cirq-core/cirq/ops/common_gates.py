@@ -326,6 +326,7 @@ class XPowGate(eigen_gate.EigenGate):
     def _value_equality_values_(self):
         return self._canonical_exponent, self._global_shift, self._dimension
 
+
 class Rx(XPowGate):
     r"""A gate with matrix $e^{-i X t/2}$ that rotates around the X axis of the Bloch sphere by $t$.
 
