@@ -40,6 +40,7 @@ RETRIABLE_STATUS_CODES = {
     *list(range(520, 530)),
 }
 
+
 def _is_retriable(code, method):
     return code in RETRIABLE_STATUS_CODES or (method == "GET" and code in RETRIABLE_FOR_GETS)
 
