@@ -252,7 +252,7 @@ def test_ionq_client_get_job_retry_409(mock_get):
     response2 = mock.MagicMock()
     mock_get.side_effect = [response1, response2]
     response1.ok = False
-    response1.status_code = requests.codes.aborted
+    response1.status_code = requests.codes.conflict
 
     client = ionq.ionq_client._IonQClient(remote_host='http://example.com', api_key='to_my_heart')
     response = client.get_job(job_id='job_id')
