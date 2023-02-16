@@ -14,9 +14,8 @@
 
 """Workarounds for compatibility issues between versions and libraries."""
 import contextlib
-import dataclasses
-
 import contextvars
+import dataclasses
 import functools
 import importlib
 import inspect
