@@ -14,6 +14,7 @@
 
 """Workarounds for compatibility issues between versions and libraries."""
 import contextlib
+import contextvars
 import dataclasses
 import functools
 import importlib
@@ -24,14 +25,40 @@ import sys
 import traceback
 import warnings
 from types import ModuleType
-from typing import Any, Callable, Dict, Optional, overload, Set, Tuple, Type, TypeVar
+from typing import Any, Callable, Dict, Iterator, Optional, overload, Set, Tuple, Type, TypeVar
 
 import numpy as np
 import pandas as pd
 import sympy
 import sympy.printing.repr
 
+from cirq._doc import document
+
 ALLOW_DEPRECATION_IN_TEST = 'ALLOW_DEPRECATION_IN_TEST'
+
+__cirq_debug__ = contextvars.ContextVar('__cirq_debug__', default=__debug__)
+document(
+    __cirq_debug__,
+    "A cirq specific flag which can be used to conditionally turn off all validations across Cirq "
+    "to boost performance in production mode. Defaults to python's built-in constant __debug__. "
+    "The flag is implemented as a `ContextVar` and is thread safe.",
+)
+
+
+@contextlib.contextmanager
+def with_debug(value: bool) -> Iterator[None]:
+    """Sets the value of global constant `cirq.__cirq_debug__` within the context.
+
+    If `__cirq_debug__` is set to False, all validations in Cirq are disabled to optimize
+    performance. Users should use the `cirq.with_debug` context manager instead of manually
+    mutating the value of `__cirq_debug__` flag. On exit, the context manager resets the
+    value of `__cirq_debug__` flag to what it was before entering the context manager.
+    """
+    token = __cirq_debug__.set(value)
+    try:
+        yield
+    finally:
+        __cirq_debug__.reset(token)
 
 
 try:
