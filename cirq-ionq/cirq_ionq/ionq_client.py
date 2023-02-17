@@ -169,6 +169,7 @@ class _IonQClient:
 
         Args:
             job_id: The UUID of the job (returned when the job was created).
+            aggregation: The aggregation method for symmetrized jobs
 
         Returns:
             The json body of the response as a dict.
@@ -184,7 +185,9 @@ class _IonQClient:
             params["aggregation"] = aggregation
 
         def request():
-            return requests.get(f'{self.url}/jobs/{job_id}/results', params=params, headers=self.headers)
+            return requests.get(
+                f'{self.url}/jobs/{job_id}/results', params=params, headers=self.headers
+            )
 
         return self._make_request(request, {}).json()
 

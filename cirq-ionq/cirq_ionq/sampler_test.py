@@ -91,10 +91,7 @@ def test_sampler_multiple_jobs():
     job0 = ionq.Job(client=mock_service, job_dict=job_dict0)
     job1 = ionq.Job(client=mock_service, job_dict=job_dict1)
     mock_service.create_job.side_effect = [job0, job1]
-    mock_service.get_results.side_effect = [
-        {'0': '0.25', '1': '0.75'},
-        {'0': '0.5', '1': '0.5'}
-    ]
+    mock_service.get_results.side_effect = [{'0': '0.25', '1': '0.75'}, {'0': '0.5', '1': '0.5'}]
 
     sampler = ionq.Sampler(service=mock_service, timeout_seconds=10, target='qpu')
     q0 = cirq.LineQubit(0)

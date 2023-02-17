@@ -107,7 +107,9 @@ class Service:
             A `cirq.Result` for running the circuit.
         """
         resolved_circuit = cirq.resolve_parameters(circuit, param_resolver)
-        result = self.create_job(resolved_circuit, repetitions, name, target, error_mitigation).results()
+        result = self.create_job(
+            resolved_circuit, repetitions, name, target, error_mitigation
+        ).results()
         if isinstance(result, results.QPUResult):
             return result.to_cirq_result(params=cirq.ParamResolver(param_resolver))
         # pylint: disable=unexpected-keyword-arg

@@ -76,7 +76,9 @@ class Serializer:
             MSGate: self._serialize_ms_gate,
         }
 
-    def serialize(self, circuit: cirq.AbstractCircuit, error_mitigation: Optional[dict] = None) -> SerializedProgram:
+    def serialize(
+        self, circuit: cirq.AbstractCircuit, error_mitigation: Optional[dict] = None
+    ) -> SerializedProgram:
         """Serialize the given circuit.
 
         Raises:
