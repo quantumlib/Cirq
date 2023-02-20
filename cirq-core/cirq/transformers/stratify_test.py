@@ -411,5 +411,5 @@ def test_surface_code_cycle_stratifies_without_growing():
 def test_unclassified_ops():
     op = cirq.X(cirq.q(0))
     classifiers = []
-    with pytest.raises(NameError, match='not identified by any classifier'):
+    with pytest.raises(ValueError, match='not identified by any classifier'):
         cirq.transformers.stratify._get_op_class(op, classifiers)
