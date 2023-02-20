@@ -117,7 +117,7 @@ def _stratify_circuit(
     new_moments: List[List['cirq.Operation']] = []
 
     # Keep track of the earliest time index that can accomodate a new operation on a given qubit.
-    qubit_time_index = {qubit: 0 for qubit in circuit.all_qubits()}
+    min_time_index = {qubit: 0 for qubit in circuit.all_qubits()}
     measurement_time_index: Dict['cirq.MeasurementKey', int] = {}
 
     # The minimum time index for operations with a tag in context.tags_to_ignore.
@@ -132,7 +132,7 @@ def _stratify_circuit(
 
             # Get the index of the earliest moment that can accomodate this operation,
             # and identify the "class" of this operation (by index).
-            min_time_index_for_op = max(qubit_time_index[qubit] + 1 for qubit in op.qubits)
+            min_time_index_for_op = max(min_time_index[qubit] for qubit in op.qubits)
             # If this op relies on any measurement keys, it must come after the measurements.
             for key in protocols.control_keys(op):
                 min_time_index_for_op = max(min_time_index_for_op, measurement_time_index[key] + 1)
@@ -161,7 +161,7 @@ def _stratify_circuit(
         # Move the operations into their assigned moments.
         for op, time_index in op_time_indices.items():
             for qubit in op.qubits:
-                qubit_time_index[qubit] = time_index
+                min_time_index[qubit] = time_index + 1
             if time_index >= len(new_moments):
                 new_moments += [[] for _ in range(num_classes)]
             new_moments[time_index].append(op)
