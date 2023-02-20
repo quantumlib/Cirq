@@ -224,17 +224,17 @@ def test_stratify_respects_no_compile_operations():
     )
     expected = cirq.Circuit(
         [
+            cirq.Moment(cirq.Z(cirq.LineQubit(4))),
+            cirq.Moment(cirq.ISWAP(cirq.LineQubit(3), cirq.LineQubit(4))),
             cirq.Moment(
                 cirq.TaggedOperation(cirq.X(cirq.LineQubit(0)), 'nocompile'),
                 cirq.TaggedOperation(cirq.ISWAP(cirq.LineQubit(1), cirq.LineQubit(2)), 'nocompile'),
             ),
-            cirq.Moment(cirq.X(cirq.LineQubit(0))),
-            cirq.Moment(cirq.Z(cirq.LineQubit(4))),
             cirq.Moment(
-                cirq.ISWAP(cirq.LineQubit(3), cirq.LineQubit(4)),
-                cirq.ISWAP(cirq.LineQubit(0), cirq.LineQubit(1)),
+                cirq.X(cirq.LineQubit(0)),
+                cirq.X(cirq.LineQubit(3)),
             ),
-            cirq.Moment(cirq.X(cirq.LineQubit(3))),
+            cirq.Moment(cirq.ISWAP(cirq.LineQubit(0), cirq.LineQubit(1))),
         ]
     )
     cirq.testing.assert_has_diagram(
@@ -254,15 +254,15 @@ def test_stratify_respects_no_compile_operations():
     cirq.testing.assert_has_diagram(
         expected,
         '''
-0: ───X['nocompile']───────X───────iSwap───────
-                                   │
-1: ───iSwap['nocompile']───────────iSwap───────
-      │
-2: ───iSwap────────────────────────────────────
+0: ───────────────X['nocompile']───────X───iSwap───
+                                           │
+1: ───────────────iSwap['nocompile']───────iSwap───
+                  │
+2: ───────────────iSwap────────────────────────────
 
-3: ────────────────────────────────iSwap───X───
-                                   │
-4: ────────────────────────────Z───iSwap───────
+3: ───────iSwap────────────────────────X───────────
+          │
+4: ───Z───iSwap────────────────────────────────────
 ''',
     )
     cirq.testing.assert_same_circuits(
