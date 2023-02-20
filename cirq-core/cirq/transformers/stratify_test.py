@@ -230,10 +230,7 @@ def test_stratify_respects_no_compile_operations():
                 cirq.TaggedOperation(cirq.X(cirq.LineQubit(0)), 'nocompile'),
                 cirq.TaggedOperation(cirq.ISWAP(cirq.LineQubit(1), cirq.LineQubit(2)), 'nocompile'),
             ),
-            cirq.Moment(
-                cirq.X(cirq.LineQubit(0)),
-                cirq.X(cirq.LineQubit(3)),
-            ),
+            cirq.Moment(cirq.X(cirq.LineQubit(0)), cirq.X(cirq.LineQubit(3))),
             cirq.Moment(cirq.ISWAP(cirq.LineQubit(0), cirq.LineQubit(1))),
         ]
     )
