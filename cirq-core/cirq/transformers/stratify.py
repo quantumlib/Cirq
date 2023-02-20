@@ -116,9 +116,12 @@ def _stratify_circuit(
     num_classes = len(classifiers) + 1  # include one "extra" category for ignored operations
     new_moments: List[List['cirq.Operation']] = []
 
-    # Keep track of the the latest time index addressing a qubit, or containing a measurement key.
+    # Keep track of the the latest time index addressing a qubit.
     qubit_time_index = {qubit: -1 for qubit in circuit.all_qubits()}
+
+    # Keep track of the latest time index addressing a measurement/control key.
     measurement_time_index: Dict['cirq.MeasurementKey', int] = {}
+    control_time_index: Dict['cirq.MeasurementKey', int] = {}
 
     # The minimum time index for operations with a tag in context.tags_to_ignore.
     min_time_index_for_ignored_op = 0
@@ -130,12 +133,18 @@ def _stratify_circuit(
         for op in moment:
             ignored_op = any(tag in op.tags for tag in context.tags_to_ignore)
 
-            # Get the index of the earliest moment that can accomodate this operation,
-            # and identify the "class" of this operation (by index).
+            # Get the earliest time index that can accomodate this op, based on its qubits.
             min_time_index_for_op = max(qubit_time_index[qubit] + 1 for qubit in op.qubits)
-            # If this op relies on any measurement keys, it must come after the measurements.
-            for key in protocols.control_keys(op):
-                min_time_index_for_op = max(min_time_index_for_op, measurement_time_index[key] + 1)
+
+            # Check for any blocking control or measurement operations.
+            for key in protocols.control_keys(op) & measurement_time_index.keys():
+                time_index = measurement_time_index[key]
+                min_time_index_for_op = max(min_time_index_for_op, time_index + 1)
+            for key in protocols.measurement_key_objs(op) & control_time_index.keys():
+                time_index = control_time_index[key]
+                min_time_index_for_op = max(min_time_index_for_op, time_index + 1)
+
+            # Identify the "class" of this operation (by index).
             if ignored_op:
                 min_time_index_for_op = max(min_time_index_for_op, min_time_index_for_ignored_op)
                 op_class = len(classifiers)
@@ -166,9 +175,11 @@ def _stratify_circuit(
                 new_moments += [[] for _ in range(num_classes)]
             new_moments[time_index].append(op)
 
-            # If this op involves any measurements, record when the measurements occur.
+            # Record any control or measurement keys.
             for key in protocols.measurement_key_objs(op):
                 measurement_time_index[key] = time_index
+            for key in protocols.control_keys(op):
+                control_time_index[key] = time_index
 
     return circuits.Circuit(circuits.Moment(moment) for moment in new_moments if moment)
 
