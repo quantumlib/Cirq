@@ -174,9 +174,9 @@ def _get_classifiers(
     - Exhaustive, meaning every operation in the circuit is classified by at least one classifier.
     - Minimal, meaning unused classifiers are forgotten.
     """
-    # Convert all categories into classifiers.
-    # Make the list of classifiers exhaustive by including a catchall "trivial" classifier.
-    classifiers = [_category_to_classifier(cat) for cat in categories] + [_trivial_classifier]
+    # Convert all categories into classifiers, and make the list exhaustive by adding a dummy
+    # classifier for otherwise unclassified ops.
+    classifiers = [_category_to_classifier(cat) for cat in categories] + [_dummy_classifier]
 
     # Figure out which classes are actually used in the circuit.
     class_is_used = [False for _ in classifiers]
@@ -213,19 +213,21 @@ def _category_to_classifier(category) -> Classifier:
         )
 
 
-def _trivial_classifier(op: 'cirq.Operation') -> bool:
-    """Trivial classifier, for "completing" a collection of classifiers and making it exhaustive."""
-    return True
+def _dummy_classifier(op: 'cirq.Operation') -> bool:
+    """Dummy classifier, used to "complete" a collection of classifiers and make it exhaustive."""
+    pass
 
 
 def _get_op_class(op: 'cirq.Operation', classifiers: Sequence[Classifier]) -> int:
     """Get the "class" of an operator, by index."""
     for class_index, classifier in enumerate(classifiers):
-        if classifier is _trivial_classifier:
-            trivial_classifier_index = class_index
+        if classifier is _dummy_classifier:
+            dummy_classifier_index = class_index
         elif classifier(op):
             return class_index
+    # If we got this far, the operation did not match any "actual" classifier,
+    # so return the index of the dummy classifer.
     try:
-        return trivial_classifier_index
+        return dummy_classifier_index
     except NameError:
         raise ValueError(f"operation {op} not identified by any classifier")
