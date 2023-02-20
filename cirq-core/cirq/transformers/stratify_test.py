@@ -409,3 +409,10 @@ def test_surface_code_cycle_stratifies_without_growing():
     # https://github.com/quantumlib/Cirq/pull/2772/ for some discussion on
     # this, as well as a more optimal but much more complex and slow solution.
     assert len(stratified) == 9
+
+
+def test_unclassified_ops():
+    op = cirq.X(cirq.q(0))
+    classifiers = []
+    with pytest.raises(NameError, match='not identified by any classifier'):
+        _get_op_class(op, classifiers)

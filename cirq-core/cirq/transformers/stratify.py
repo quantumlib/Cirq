@@ -230,4 +230,4 @@ def _get_op_class(op: 'cirq.Operation', classifiers: Sequence[Classifier]) -> in
     try:
         return dummy_classifier_index
     except NameError:
-        raise ValueError(f"operation {op} not identified by any classifier")
+        raise ValueError(f"Operation {op} not identified by any classifier")
