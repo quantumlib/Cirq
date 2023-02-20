@@ -17,7 +17,7 @@
 import itertools
 from typing import TYPE_CHECKING, Type, Callable, Optional, Union, Iterable, Sequence, List
 
-from cirq import ops, circuits, _import
+from cirq import ops, circuits, protocols, _import
 from cirq.transformers import transformer_api
 
 drop_empty_moments = _import.LazyLoader('drop_empty_moments', globals(), 'cirq.transformers')
@@ -117,7 +117,8 @@ def _stratify_circuit(
     new_moments: List[List['cirq.Operation']] = []
 
     # Keep track of the earliest time index that can accomodate a new operation on a given qubit.
-    min_time_index = {qubit: 0 for qubit in circuit.all_qubits()}
+    qubit_time_index = {qubit: 0 for qubit in circuit.all_qubits()}
+    measurement_time_index: Dict['cirq.MeasurementKey', int] = {}
 
     # The minimum time index for operations with a tag in context.tags_to_ignore.
     min_time_index_for_ignored_op = 0
@@ -131,7 +132,10 @@ def _stratify_circuit(
 
             # Get the index of the earliest moment that can accomodate this operation,
             # and identify the "class" of this operation (by index).
-            min_time_index_for_op = max(min_time_index[qubit] for qubit in op.qubits)
+            min_time_index_for_op = max(qubit_time_index[qubit] + 1 for qubit in op.qubits)
+            # If this op relies on any measurement keys, it must come after the measurements.
+            for key in protocols.control_keys(op):
+                min_time_index_for_op = max(min_time_index_for_op, measurement_time_index[key] + 1)
             if ignored_op:
                 min_time_index_for_op = max(min_time_index_for_op, min_time_index_for_ignored_op)
                 op_class = len(classifiers)
@@ -157,10 +161,14 @@ def _stratify_circuit(
         # Move the operations into their assigned moments.
         for op, time_index in op_time_indices.items():
             for qubit in op.qubits:
-                min_time_index[qubit] = time_index + 1
+                qubit_time_index[qubit] = time_index
             if time_index >= len(new_moments):
                 new_moments += [[] for _ in range(num_classes)]
             new_moments[time_index].append(op)
+
+            # If this op involves any measurements, record when the measurements occur.
+            for key in protocols.measurement_key_objs(op):
+                measurement_time_index[key] = time_index
 
     return circuits.Circuit(circuits.Moment(moment) for moment in new_moments if moment)
 
