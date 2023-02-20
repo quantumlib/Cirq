@@ -412,4 +412,4 @@ def test_unclassified_ops():
     op = cirq.X(cirq.q(0))
     classifiers = []
     with pytest.raises(NameError, match='not identified by any classifier'):
-        cirq.transformers.stratify.stratified_circuit._get_op_class(op, classifiers)
+        cirq.transformers.stratify._get_op_class(op, classifiers)
