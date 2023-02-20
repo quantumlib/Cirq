@@ -135,6 +135,8 @@ def _stratify_circuit(
 
             # Get the earliest time index that can accomodate this op, based on its qubits.
             min_time_index_for_op = max(qubit_time_index[qubit] + 1 for qubit in op.qubits)
+            if ignored_op:
+                min_time_index_for_op = max(min_time_index_for_op, min_time_index_for_ignored_op)
 
             # Check for any blocking control or measurement operations.
             for key in protocols.control_keys(op) & measurement_time_index.keys():
@@ -146,7 +148,6 @@ def _stratify_circuit(
 
             # Identify the "class" of this operation (by index).
             if ignored_op:
-                min_time_index_for_op = max(min_time_index_for_op, min_time_index_for_ignored_op)
                 op_class = len(classifiers)
             else:
                 op_class = _get_op_class(op, classifiers)
@@ -163,9 +164,10 @@ def _stratify_circuit(
                 op_time_indices[op] = time_index
 
         # Assign ignored operations to the same moment.
-        for op in ignored_ops:
-            op_time_indices[op] = min_time_index_for_ignored_op
-        min_time_index_for_ignored_op += 1
+        if ignored_ops:
+            for op in ignored_ops:
+                op_time_indices[op] = min_time_index_for_ignored_op
+            min_time_index_for_ignored_op += 1
 
         # Move the operations into their assigned moments.
         for op, time_index in op_time_indices.items():
