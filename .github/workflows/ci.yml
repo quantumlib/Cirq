@@ -347,6 +347,7 @@ jobs:
     runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v2
+      - uses: actions/setup-node@v2
         with:
           node-version: '14.16.1'
       - name: Check node version
