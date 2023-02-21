@@ -335,8 +335,8 @@ jobs:
     name: Bundle file consistency
     runs-on: ubuntu-20.04
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-node@v3
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v2
         with:
           node-version: '14.16.1'
       - name: Install npm
@@ -347,8 +347,8 @@ jobs:
     name: Typescript lint check
     runs-on: ubuntu-20.04
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-node@v3
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v2
         with:
           node-version: '14.16.1'
       - name: Install npm
@@ -359,8 +359,8 @@ jobs:
     name: Typescript tests
     runs-on: ubuntu-20.04
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-node@v3
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v2
         with:
           node-version: '14.16.1'
       - name: Install npm dependencies
@@ -373,8 +373,8 @@ jobs:
     name: Typescript tests coverage
     runs-on: ubuntu-20.04
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-node@v3
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v2
         with:
           node-version: '14.16.1'
       - name: Install npm dependencies
