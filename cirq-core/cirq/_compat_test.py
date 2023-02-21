@@ -51,6 +51,16 @@ from cirq._compat import (
 )
 
 
+def test_with_debug():
+    assert cirq.__cirq_debug__.get()
+    with cirq.with_debug(False):
+        assert not cirq.__cirq_debug__.get()
+        with cirq.with_debug(True):
+            assert cirq.__cirq_debug__.get()
+        assert not cirq.__cirq_debug__.get()
+    assert cirq.__cirq_debug__.get()
+
+
 def test_proper_repr():
     v = sympy.Symbol('t') * 3
     v2 = eval(proper_repr(v))

@@ -17,6 +17,7 @@
 import abc
 import functools
 from typing import (
+    cast,
     AbstractSet,
     Any,
     Callable,
@@ -40,6 +41,7 @@ import sympy
 
 from cirq import protocols, value
 from cirq._import import LazyLoader
+from cirq._compat import __cirq_debug__
 from cirq.type_workarounds import NotImplementedType
 from cirq.ops import control_values as cv
 
@@ -215,7 +217,8 @@ class Gate(metaclass=value.ABCMetaImplementAnyOneOf):
         Raises:
             ValueError: The gate can't be applied to the qubits.
         """
-        _validate_qid_shape(self, qubits)
+        if __cirq_debug__.get():
+            _validate_qid_shape(self, qubits)
 
     def on(self, *qubits: Qid) -> 'Operation':
         """Returns an application of this gate to the given qubits.
@@ -254,18 +257,32 @@ class Gate(metaclass=value.ABCMetaImplementAnyOneOf):
                     raise TypeError(f'{targets[0]} object is not iterable.')
                 t0 = list(targets[0])
                 iterator = [t0] if t0 and isinstance(t0[0], Qid) else t0
-            for target in iterator:
-                if not isinstance(target, Sequence):
-                    raise ValueError(
-                        f'Inputs to multi-qubit gates must be Sequence[Qid].'
-                        f' Type: {type(target)}'
-                    )
-                if not all(isinstance(x, Qid) for x in target):
-                    raise ValueError(f'All values in sequence should be Qids, but got {target}')
-                if len(target) != self._num_qubits_():
-                    raise ValueError(f'Expected {self._num_qubits_()} qubits, got {target}')
-                operations.append(self.on(*target))
+            if __cirq_debug__.get():
+                for target in iterator:
+                    if not isinstance(target, Sequence):
+                        raise ValueError(
+                            f'Inputs to multi-qubit gates must be Sequence[Qid].'
+                            f' Type: {type(target)}'
+                        )
+                    if not all(isinstance(x, Qid) for x in target):
+                        raise ValueError(f'All values in sequence should be Qids, but got {target}')
+                    if len(target) != self._num_qubits_():
+                        raise ValueError(f'Expected {self._num_qubits_()} qubits, got {target}')
+                    operations.append(self.on(*target))
+            else:
+                operations = [self.on(*target) for target in iterator]
             return operations
+
+        if not __cirq_debug__.get():
+            return [
+                op
+                for q in targets
+                for op in (
+                    self.on_each(*q)
+                    if isinstance(q, Iterable) and not isinstance(q, str)
+                    else [self.on(cast('cirq.Qid', q))]
+                )
+            ]
 
         for target in targets:
             if isinstance(target, Qid):
@@ -617,7 +634,8 @@ class Operation(metaclass=abc.ABCMeta):
         Raises:
             ValueError: The operation had qids that don't match it's qid shape.
         """
-        _validate_qid_shape(self, qubits)
+        if __cirq_debug__.get():
+            _validate_qid_shape(self, qubits)
 
     def _commutes_(
         self, other: Any, *, atol: float = 1e-8
