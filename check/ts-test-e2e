@@ -28,9 +28,12 @@ thisdir="$(dirname "${BASH_SOURCE[0]}")" || exit $?
 topdir="$(git -C "${thisdir}" rev-parse --show-toplevel)" || exit $?
 cd "${topdir}" || exit $?
 
-# TODO(pavoljuhas,#12306)
+# TODO(pavoljuhas,#5998)
 echo "DB - run check/npm version"
 check/npm version
 echo "DB - done check/npm version"
+echo "DB - run ldd ~/.config/puppeteer/.../chrome"
+ldd ~/.cache/puppeteer/chrome/linux-1083080/chrome-linux/chrome || true
+echo "DB - done ldd ~/.config/puppeteer/.../chrome"
 
 check/npm run test-e2e "$@"
