@@ -47,12 +47,10 @@ def quantum_shannon_decomposition(qubits : list , U : np.ndarray, ops = None):
         1. _msb_demuxer
         2. _multiplexed_cossin
         3. _msb_demuxer
-        
-    
+   
     Returns:
         List of 2-qubit and 1-qubit operations from the set
            { CNOT, rz, ry, ZPowGate }
-    
     
     """
 
