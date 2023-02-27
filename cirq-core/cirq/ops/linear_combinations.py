@@ -839,12 +839,12 @@ class PauliSum:
         if exponent == 0:
             return PauliSum(value.LinearDict({frozenset(): 1 + 0j}))
         if exponent > 0:
-            remainder = PauliSum()
-            while(exponent > 0):
-                if(exponent&1):
+            remainder = PauliSum.from_pauli_strings([PauliString(coefficient=1)])
+            while exponent > 0:
+                if exponent & 1:
                     remainder = remainder * self
                 self = self * self
-                exponent = exponent>>1
+                exponent = exponent >> 1
             return remainder
         return NotImplemented
 
