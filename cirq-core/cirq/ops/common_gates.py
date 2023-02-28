@@ -321,7 +321,10 @@ class XPowGate(eigen_gate.EigenGate):
         return f'cirq.XPowGate({all_args})'
 
     def _json_dict_(self) -> Dict[str, Any]:
-        return protocols.obj_to_dict_helper(self, ['exponent', 'global_shift', 'dimension'])
+        d = protocols.obj_to_dict_helper(self, ['exponent', 'global_shift'])
+        if self.dimension != 2:
+            d['dimension'] = self.dimension
+        return d
 
     def _value_equality_values_(self):
         return self._canonical_exponent, self._global_shift, self._dimension
@@ -849,7 +852,10 @@ class ZPowGate(eigen_gate.EigenGate):
         return True
 
     def _json_dict_(self) -> Dict[str, Any]:
-        return protocols.obj_to_dict_helper(self, ['exponent', 'global_shift', 'dimension'])
+        d = protocols.obj_to_dict_helper(self, ['exponent', 'global_shift'])
+        if self.dimension != 2:
+            d['dimension'] = self.dimension
+        return d
 
     def _value_equality_values_(self):
         return self._canonical_exponent, self._global_shift, self._dimension
