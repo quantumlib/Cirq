@@ -17,7 +17,6 @@
         "cirq_type": "GateFamily",
         "gate": {
           "cirq_type": "_PauliX",
-          "dimension": 2,
           "exponent": 1.0,
           "global_shift": 0.0
         },
@@ -36,7 +35,6 @@
         "cirq_type": "GateFamily",
         "gate": {
           "cirq_type": "_PauliX",
-          "dimension": 2,
           "exponent": 1.0,
           "global_shift": 0.0
         },

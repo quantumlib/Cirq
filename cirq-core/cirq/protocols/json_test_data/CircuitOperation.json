@@ -134,7 +134,6 @@
                 "cirq_type": "GateOperation",
                 "gate": {
                   "cirq_type": "ZPowGate",
-                  "dimension": 2,
                   "exponent": 0.5,
                   "global_shift": 0.0
                 },
@@ -163,7 +162,6 @@
                 "cirq_type": "GateOperation",
                 "gate": {
                   "cirq_type": "XPowGate",
-                  "dimension": 2,
                   "exponent": {
                     "cirq_type": "sympy.Symbol",
                     "name": "theta"

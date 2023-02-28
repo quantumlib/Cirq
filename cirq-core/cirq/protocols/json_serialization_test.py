@@ -609,8 +609,7 @@ def test_to_from_strings():
     x_json_text = """{
   "cirq_type": "_PauliX",
   "exponent": 1.0,
-  "global_shift": 0.0,
-  "dimension": 2
+  "global_shift": 0.0
 }"""
     assert cirq.to_json(cirq.X) == x_json_text
     assert cirq.read_json(json_text=x_json_text) == cirq.X
