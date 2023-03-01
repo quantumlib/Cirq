@@ -112,7 +112,7 @@ class Qid(metaclass=abc.ABCMeta):
         return (type(self).__name__, repr(type(self)), self._comparison_key(), self.dimension)
 
     @cached_method
-    def __hash__(self):
+    def __hash__(self) -> int:
         return hash((Qid, self._comparison_key()))
 
     def __eq__(self, other):
