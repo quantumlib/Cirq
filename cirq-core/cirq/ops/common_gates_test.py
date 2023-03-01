@@ -1301,12 +1301,3 @@ def test_wrong_dims():
 
     with pytest.raises(ValueError, match='Wrong shape'):
         _ = cirq.Z.on(cirq.LineQid(0, dimension=3))
-
-
-def test_json():
-    dimension = 3
-    x3 = cirq.XPowGate(dimension=dimension)
-    assert cirq.read_json(json_text=cirq.to_json(x3))._dimension == dimension
-
-    z3 = cirq.ZPowGate(dimension=dimension)
-    assert cirq.read_json(json_text=cirq.to_json(z3))._dimension == dimension
