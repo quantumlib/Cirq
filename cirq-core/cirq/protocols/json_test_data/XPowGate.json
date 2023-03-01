@@ -1,5 +1,13 @@
-{
-  "cirq_type": "XPowGate",
-  "exponent": 0.123,
-  "global_shift": 0.0
-}
+[
+  {
+    "cirq_type": "XPowGate",
+    "exponent": 0.123,
+    "global_shift": 0.0
+  },
+  {
+    "cirq_type": "XPowGate",
+    "exponent": 0.123,
+    "global_shift": 0.0,
+    "dimension": 3
+  }
+]
