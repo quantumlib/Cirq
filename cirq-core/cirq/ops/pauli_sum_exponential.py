@@ -78,6 +78,9 @@ class PauliSumExponential:
     def with_qubits(self, *new_qubits: 'cirq.Qid') -> 'PauliSumExponential':
         return PauliSumExponential(self._pauli_sum.with_qubits(*new_qubits), self._exponent)
 
+    def _is_parameterized_(self) -> bool:
+        return protocols.is_parameterized(self._exponent)
+
     def _resolve_parameters_(
         self, resolver: 'cirq.ParamResolver', recursive: bool
     ) -> 'PauliSumExponential':

@@ -41,7 +41,7 @@ import sympy
 
 from cirq import protocols, value
 from cirq._import import LazyLoader
-from cirq._compat import __cirq_debug__
+from cirq._compat import __cirq_debug__, cached_method
 from cirq.type_workarounds import NotImplementedType
 from cirq.ops import control_values as cv
 
@@ -111,6 +111,7 @@ class Qid(metaclass=abc.ABCMeta):
     def _cmp_tuple(self):
         return (type(self).__name__, repr(type(self)), self._comparison_key(), self.dimension)
 
+    @cached_method
     def __hash__(self):
         return hash((Qid, self._comparison_key()))
 
@@ -505,6 +506,7 @@ class Operation(metaclass=abc.ABCMeta):
         """
         return len(self.qubits)
 
+    @cached_method
     def _qid_shape_(self) -> Tuple[int, ...]:
         return protocols.qid_shape(self.qubits)
 
@@ -839,6 +841,7 @@ class TaggedOperation(Operation):
     ) -> Union[np.ndarray, None, NotImplementedType]:
         return protocols.apply_unitary(self.sub_operation, args, default=None)
 
+    @cached_method
     def _has_unitary_(self) -> bool:
         return protocols.has_unitary(self.sub_operation)
 
@@ -850,30 +853,36 @@ class TaggedOperation(Operation):
     ) -> Union[bool, NotImplementedType, None]:
         return protocols.commutes(self.sub_operation, other, atol=atol)
 
+    @cached_method
     def _has_mixture_(self) -> bool:
         return protocols.has_mixture(self.sub_operation)
 
     def _mixture_(self) -> Sequence[Tuple[float, Any]]:
         return protocols.mixture(self.sub_operation, NotImplemented)
 
+    @cached_method
     def _has_kraus_(self) -> bool:
         return protocols.has_kraus(self.sub_operation)
 
     def _kraus_(self) -> Union[Tuple[np.ndarray], NotImplementedType]:
         return protocols.kraus(self.sub_operation, NotImplemented)
 
+    @cached_method
     def _measurement_key_names_(self) -> FrozenSet[str]:
         return protocols.measurement_key_names(self.sub_operation)
 
+    @cached_method
     def _measurement_key_objs_(self) -> FrozenSet['cirq.MeasurementKey']:
         return protocols.measurement_key_objs(self.sub_operation)
 
+    @cached_method
     def _is_measurement_(self) -> bool:
         sub = getattr(self.sub_operation, "_is_measurement_", None)
         if sub is not None:
             return sub()
         return NotImplemented
 
+    @cached_method
     def _is_parameterized_(self) -> bool:
         return protocols.is_parameterized(self.sub_operation) or any(
             protocols.is_parameterized(tag) for tag in self.tags
@@ -885,6 +894,7 @@ class TaggedOperation(Operation):
             return sub(sim_state)
         return NotImplemented
 
+    @cached_method
     def _parameter_names_(self) -> AbstractSet[str]:
         tag_params = {name for tag in self.tags for name in protocols.parameter_names(tag)}
         return protocols.parameter_names(self.sub_operation) | tag_params
@@ -909,6 +919,7 @@ class TaggedOperation(Operation):
             ) + sub_op_info.wire_symbols[1:]
         return sub_op_info
 
+    @cached_method
     def _trace_distance_bound_(self) -> float:
         return protocols.trace_distance_bound(self.sub_operation)
 
@@ -980,9 +991,11 @@ class _InverseCompositeGate(Gate):
             for op in protocols.decompose_once_with_qubits(self._original, qubits)
         )
 
+    @cached_method
     def _is_parameterized_(self) -> bool:
         return protocols.is_parameterized(self._original)
 
+    @cached_method
     def _parameter_names_(self) -> AbstractSet[str]:
         return protocols.parameter_names(self._original)
 

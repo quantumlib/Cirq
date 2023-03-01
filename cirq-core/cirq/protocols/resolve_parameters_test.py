@@ -35,7 +35,7 @@ def test_resolve_parameters(resolve_fn):
             self.parameter = var
 
         def _is_parameterized_(self) -> bool:
-            return self.parameter == 0
+            return self.parameter != 0
 
         def _resolve_parameters_(self, resolver: ParamResolver, recursive: bool):
             self.parameter = resolver.value_of(self.parameter, recursive)
@@ -43,8 +43,8 @@ def test_resolve_parameters(resolve_fn):
 
     assert not cirq.is_parameterized(NoMethod())
     assert not cirq.is_parameterized(ReturnsNotImplemented())
-    assert not cirq.is_parameterized(SimpleParameterSwitch('a'))
-    assert cirq.is_parameterized(SimpleParameterSwitch(0))
+    assert cirq.is_parameterized(SimpleParameterSwitch('a'))
+    assert not cirq.is_parameterized(SimpleParameterSwitch(0))
 
     ni = ReturnsNotImplemented()
     d = {'a': 0}
