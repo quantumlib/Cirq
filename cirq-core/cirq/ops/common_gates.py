@@ -327,7 +327,10 @@ class XPowGate(eigen_gate.EigenGate):
         return d
 
     def _value_equality_values_(self):
-        return self._canonical_exponent, self._global_shift, self._dimension
+        return (*super()._value_equality_values_(), self._dimension)
+
+    def _value_equality_approximate_values_(self):
+        return (*super()._value_equality_approximate_values_(), self._dimension)
 
 
 class Rx(XPowGate):
@@ -858,7 +861,10 @@ class ZPowGate(eigen_gate.EigenGate):
         return d
 
     def _value_equality_values_(self):
-        return self._canonical_exponent, self._global_shift, self._dimension
+        return (*super()._value_equality_values_(), self._dimension)
+
+    def _value_equality_approximate_values_(self):
+        return (*super()._value_equality_approximate_values_(), self._dimension)
 
 
 class Rz(ZPowGate):
