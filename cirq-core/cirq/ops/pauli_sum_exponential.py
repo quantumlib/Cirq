@@ -16,7 +16,7 @@ from typing import Any, Iterator, Tuple, Union, TYPE_CHECKING
 import numpy as np
 import sympy
 
-from cirq import linalg, protocols, value
+from cirq import linalg, protocols, value, _compat
 from cirq.ops import linear_combinations, pauli_string_phasor
 
 if TYPE_CHECKING:
@@ -78,6 +78,10 @@ class PauliSumExponential:
     def with_qubits(self, *new_qubits: 'cirq.Qid') -> 'PauliSumExponential':
         return PauliSumExponential(self._pauli_sum.with_qubits(*new_qubits), self._exponent)
 
+    @_compat.cached_method
+    def _is_parameterized_(self) -> bool:
+        return protocols.is_parameterized(self._exponent)
+
     def _resolve_parameters_(
         self, resolver: 'cirq.ParamResolver', recursive: bool
     ) -> 'PauliSumExponential':
@@ -109,6 +113,7 @@ class PauliSumExponential:
             ret = np.kron(ret, protocols.unitary(pauli_string_exp))
         return ret
 
+    @_compat.cached_method
     def _has_unitary_(self) -> bool:
         return linalg.is_unitary(self.matrix())
 
