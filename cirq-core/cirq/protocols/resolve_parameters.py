@@ -178,7 +178,7 @@ def resolve_parameters(
         return cast(T, type(val)(resolve_parameters(e, param_resolver, recursive) for e in val))
 
     is_parameterized = getattr(val, '_is_parameterized_', None)
-    if is_parameterized is not None and is_parameterized() is False:
+    if is_parameterized is not None and not is_parameterized():
         return val
 
     getter = getattr(val, '_resolve_parameters_', None)
