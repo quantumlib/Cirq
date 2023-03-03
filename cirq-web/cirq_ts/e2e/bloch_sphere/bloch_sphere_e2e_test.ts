@@ -17,7 +17,6 @@ import {expect} from 'chai';
 import pixelmatch from 'pixelmatch';
 import * as fs from 'fs';
 import * as PNG from 'pngjs';
-import * as temp from 'temp';
 import * as path from 'path';
 
 /**
@@ -118,7 +117,10 @@ describe('Bloch sphere', () => {
         {threshold: 0.1}
       );
 
-      fs.writeFileSync(path.join(__dirname, 'bloch_sphere_diff.png'), PNG.PNG.sync.write(diff));
+      fs.writeFileSync(
+        path.join(__dirname, 'bloch_sphere_diff.png'),
+        PNG.PNG.sync.write(diff)
+      );
       expect(pixels).to.equal(0);
     });
   });
