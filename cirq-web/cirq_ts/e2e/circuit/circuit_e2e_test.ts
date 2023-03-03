@@ -14,8 +14,8 @@
 
 import puppeteer from 'puppeteer';
 import {expect} from 'chai';
-import {readFileSync} from 'fs';
 import pixelmatch from 'pixelmatch';
+import * as fs from 'fs';
 import * as PNG from 'pngjs';
 import * as temp from 'temp';
 import * as path from 'path';
@@ -27,7 +27,7 @@ import * as path from 'path';
 
 // Due to the path, reading the file will only work by running this file in the same directory
 // as the package.json file.
-const bundleString = readFileSync('dist/circuit.bundle.js');
+const bundleString = fs.readFileSync('dist/circuit.bundle.js');
 function htmlContent(clientCode: string) {
   return `
     <!doctype html>
@@ -45,12 +45,10 @@ function htmlContent(clientCode: string) {
     `;
 }
 
-// Automatically track and cleanup files on exit
-temp.track();
 
 describe('Circuit', () => {
-  temp.mkdir('tmp', (err, dirPath) => {
-    const outputPath = path.join(dirPath, 'circuit.png');
+  fs.mkdir(path.join(__dirname), () => {
+    const outputPath = path.join(__dirname, 'circuit_actual.png');
 
     before(async () => {
       const browser = await puppeteer.launch({args: ['--app']});
@@ -89,9 +87,9 @@ describe('Circuit', () => {
 
     it('with limited gates matches the gold copy', () => {
       const expected = PNG.PNG.sync.read(
-        readFileSync('e2e/circuit/circuit_expected.png')
+        fs.readFileSync('e2e/circuit/circuit_expected.png')
       );
-      const actual = PNG.PNG.sync.read(readFileSync(outputPath));
+      const actual = PNG.PNG.sync.read(fs.readFileSync(outputPath));
       const {width, height} = expected;
       const diff = new PNG.PNG({width, height});
 
@@ -104,6 +102,7 @@ describe('Circuit', () => {
         {threshold: 0.1}
       );
 
+      fs.writeFileSync(path.join(__dirname, 'circuit_diff.png'), PNG.PNG.sync.write(diff));
       expect(pixels).to.equal(0);
     });
   });
