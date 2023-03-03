@@ -52,7 +52,10 @@ describe('Bloch sphere', () => {
   // Create the temporary directory first, then run everything.
   fs.mkdir(path.join(__dirname), () => {
     const outputPath = path.join(__dirname, 'bloch_sphere_actual.png');
-    const newVectorOutputPath = path.join(__dirname, 'bloch_sphere_vec.png');
+    const newVectorOutputPath = path.join(
+      __dirname,
+      'bloch_sphere_vec_actual.png'
+    );
 
     before(async () => {
       // Opens a headless browser with the generated HTML file and takes a screenshot.
