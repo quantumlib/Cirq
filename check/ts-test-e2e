@@ -37,3 +37,21 @@ ldd ~/.cache/puppeteer/chrome/linux-1083080/chrome-linux/chrome || true
 echo "DB - done ldd ~/.config/puppeteer/.../chrome"
 
 check/npm run test-e2e "$@"
+
+f="cirq-web/cirq_ts/e2e/bloch_sphere/bloch_sphere_actual.png"
+md5sum $f
+echo "%BEGIN $f"
+base64 -i $f
+echo "%END $f"
+
+f="cirq-web/cirq_ts/e2e/bloch_sphere/bloch_sphere_vec_actual.png"
+md5sum $f
+echo "%BEGIN $f"
+base64 -i $f
+echo "%END $f"
+
+f="cirq-web/cirq_ts/e2e/circuit/circuit_actual.png"
+md5sum $f
+echo "%BEGIN $f"
+base64 -i $f
+echo "%END $f"
