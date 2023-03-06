@@ -388,3 +388,25 @@ def test_matrixgate_unitary_tolerance():
     # very low atol -> the check never converges
     with pytest.raises(ValueError):
         _ = cirq.MatrixGate(np.array([[0.707, 0.707], [-0.707, 0.707]]), unitary_check_rtol=1e-10)
+
+
+def test_matrixgate_name_serialization():
+    # https://github.com/quantumlib/Cirq/issues/5999
+
+    # Test name serialization
+    gate1 = cirq.MatrixGate(np.eye(2), name='test_name')
+    gate_after_serialization1 = cirq.read_json(json_text=cirq.to_json(gate1))
+    assert gate1._name == 'test_name'
+    assert gate_after_serialization1._name == 'test_name'
+
+    # Test name backwards compatibility
+    gate2 = cirq.MatrixGate(np.eye(2))
+    gate_after_serialization2 = cirq.read_json(json_text=cirq.to_json(gate2))
+    assert gate2._name is None
+    assert gate_after_serialization2._name is None
+
+    # Test empty name
+    gate3 = cirq.MatrixGate(np.eye(2), name='')
+    gate_after_serialization3 = cirq.read_json(json_text=cirq.to_json(gate3))
+    assert gate3._name == ''
+    assert gate_after_serialization3._name == ''
