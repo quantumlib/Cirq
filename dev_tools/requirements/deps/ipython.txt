@@ -1,3 +1,1 @@
-# https://github.com/ipython/ipython/issues/12941
-ipython==7.31.1; python_version >= '3.7'
-ipython; python_version < '3.7'
+ipython>=7.34.0
