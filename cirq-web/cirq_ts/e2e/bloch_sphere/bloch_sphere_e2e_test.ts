@@ -17,6 +17,7 @@ import {expect} from 'chai';
 import {readFileSync} from 'fs';
 import pixelmatch from 'pixelmatch';
 import * as PNG from 'pngjs';
+import * as temp from 'temp';
 import * as path from 'path';
 
 /**
