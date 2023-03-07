@@ -14,8 +14,8 @@
 
 import puppeteer from 'puppeteer';
 import {expect} from 'chai';
+import {readFileSync} from 'fs';
 import pixelmatch from 'pixelmatch';
-import * as fs from 'fs';
 import * as PNG from 'pngjs';
 import * as path from 'path';
 
@@ -26,7 +26,7 @@ import * as path from 'path';
 
 // Due to the path, reading the file will only work by running this file in the same directory
 // as the package.json file.
-const bundleString = fs.readFileSync('dist/bloch_sphere.bundle.js');
+const bundleString = readFileSync('dist/bloch_sphere.bundle.js');
 function htmlContent(clientCode: string) {
   return `
     <!doctype html>
@@ -48,14 +48,14 @@ function htmlContent(clientCode: string) {
  * Testing to see if they look the same.
  */
 
+// Automatically track and cleanup files on exit
+temp.track();
+
 describe('Bloch sphere', () => {
   // Create the temporary directory first, then run everything.
-  fs.mkdir(path.join(__dirname), () => {
-    const outputPath = path.join(__dirname, 'bloch_sphere_actual.png');
-    const newVectorOutputPath = path.join(
-      __dirname,
-      'bloch_sphere_vec_actual.png'
-    );
+  temp.mkdir('tmp', (err, dirPath) => {
+    const outputPath = path.join(dirPath, 'bloch_sphere.png');
+    const newVectorOutputPath = path.join(dirPath, 'bloch_sphere_vec.png');
 
     before(async () => {
       // Opens a headless browser with the generated HTML file and takes a screenshot.
@@ -72,9 +72,9 @@ describe('Bloch sphere', () => {
 
     it('with no vector matches the gold PNG', () => {
       const expected = PNG.PNG.sync.read(
-        fs.readFileSync('e2e/bloch_sphere/bloch_sphere_expected.png')
+        readFileSync('e2e/bloch_sphere/bloch_sphere_expected.png')
       );
-      const actual = PNG.PNG.sync.read(fs.readFileSync(outputPath));
+      const actual = PNG.PNG.sync.read(readFileSync(outputPath));
       const {width, height} = expected;
       const diff = new PNG.PNG({width, height});
 
@@ -105,9 +105,9 @@ describe('Bloch sphere', () => {
 
     it('with custom statevector matches the gold PNG', () => {
       const expected = PNG.PNG.sync.read(
-        fs.readFileSync('e2e/bloch_sphere/bloch_sphere_expected_custom.png')
+        readFileSync('e2e/bloch_sphere/bloch_sphere_expected_custom.png')
       );
-      const actual = PNG.PNG.sync.read(fs.readFileSync(newVectorOutputPath));
+      const actual = PNG.PNG.sync.read(readFileSync(newVectorOutputPath));
       const {width, height} = expected;
       const diff = new PNG.PNG({width, height});
 
@@ -120,10 +120,6 @@ describe('Bloch sphere', () => {
         {threshold: 0.1}
       );
 
-      fs.writeFileSync(
-        path.join(__dirname, 'bloch_sphere_diff.png'),
-        PNG.PNG.sync.write(diff)
-      );
       expect(pixels).to.equal(0);
     });
   });
