@@ -6,7 +6,12 @@ backports.cached_property~=1.0.1; python_version < '3.8'
 duet~=0.2.7
 matplotlib~=3.0
 networkx~=2.4
-numpy>=1.16,<1.24
+
+# Here we temporarily bump-up to numpy-1.24 for sake of CI testing
+# TODO(#5991) - revert this change before merge
+# numpy>=1.16,<1.24
+numpy==1.24.2
+
 pandas
 sortedcontainers~=2.0
 scipy
