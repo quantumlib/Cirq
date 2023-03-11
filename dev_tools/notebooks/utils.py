@@ -69,7 +69,7 @@ def rewrite_notebook(notebook_path):
 
         * Lines in this file without `->` are ignored.
 
-        * Lines in this file with `->` are split into two (if there are mulitple `->` it is an
+        * Lines in this file with `->` are split into two (if there are multiple `->` it is an
         error). The first of these is compiled into a pattern match, via `re.compile`, and
         the second is the replacement for that match.
 
@@ -82,8 +82,9 @@ def rewrite_notebook(notebook_path):
     It is the responsibility of the caller of this method to delete the new file.
 
     Returns:
-        Tuple of a file descriptor and the file path for the rewritten file.  If no `.tst` file
-        was found, then the file descriptor is None and the path is `notebook_path`.
+        The file path for the rewritten file.  If no `.tst` file was found,
+        return the input `notebook_path` as the notebook was not changed.
+        Otherwise return a new path created in the temporary directory.
 
     Raises:
         AssertionError: If there are multiple `->` per line, or not all of the replacements
@@ -91,7 +92,7 @@ def rewrite_notebook(notebook_path):
     """
     notebook_test_path = os.path.splitext(notebook_path)[0] + '.tst'
     if not os.path.exists(notebook_test_path):
-        return None, notebook_path
+        return notebook_path
 
     # Get the rewrite rules.
     patterns = []
@@ -104,8 +105,8 @@ def rewrite_notebook(notebook_path):
 
     used_patterns = set()
     with open(notebook_path, 'r') as original_file:
-        new_file_descriptor, new_file_path = tempfile.mkstemp(suffix='.ipynb')
-        with open(new_file_path, 'w') as new_file:
+        with tempfile.NamedTemporaryFile(mode='w', suffix='.ipynb', delete=False) as new_file:
+            new_file_path = new_file.name
             for line in original_file:
                 new_line = line
                 for pattern, replacement in patterns:
@@ -120,4 +121,4 @@ def rewrite_notebook(notebook_path):
         f'{set(x for x, _ in patterns) - used_patterns}'
     )
 
-    return new_file_descriptor, new_file_path
+    return new_file_path

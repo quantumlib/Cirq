@@ -177,7 +177,7 @@ def test_notebooks_against_released_cirq(partition, notebook_path, cloned_env):
 
     notebook_file = os.path.basename(notebook_path)
 
-    rewritten_notebook_descriptor, rewritten_notebook_path = rewrite_notebook(notebook_path)
+    rewritten_notebook_path = rewrite_notebook(notebook_path)
 
     cmd = f"""
 mkdir -p out/{notebook_rel_dir}
@@ -208,9 +208,6 @@ papermill {rewritten_notebook_path} {os.getcwd()}/{out_path}"""
             f"instead of `pip install cirq` to this notebook, and exclude it from "
             f"dev_tools/notebooks/isolated_notebook_test.py."
         )
-
-    if rewritten_notebook_descriptor:
-        os.close(rewritten_notebook_descriptor)
 
 
 @pytest.mark.parametrize("notebook_path", NOTEBOOKS_DEPENDING_ON_UNRELEASED_FEATURES)
