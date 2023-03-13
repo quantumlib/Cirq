@@ -105,23 +105,24 @@ def rewrite_notebook(notebook_path):
 
     used_patterns = set()
     with open(notebook_path, 'r') as original_file:
-        with tempfile.NamedTemporaryFile(mode='w', suffix='.ipynb', delete=False) as new_file:
-            new_file_path = new_file.name
-            for line in original_file:
-                new_line = line
-                for pattern, replacement in patterns:
-                    new_line = pattern.sub(replacement, new_line)
-                    if new_line != line:
-                        used_patterns.add(pattern)
-                        break
-                new_file.write(new_line)
+        lines = original_file.readlines()
+    for i, line in enumerate(lines):
+        for pattern, replacement in patterns:
+            new_line = pattern.sub(replacement, line)
+            if new_line != line:
+                lines[i] = new_line
+                used_patterns.add(pattern)
+                break
 
     assert len(patterns) == len(used_patterns), (
         'Not all patterns where used. Patterns not used: '
         f'{set(x for x, _ in patterns) - used_patterns}'
     )
 
-    return new_file_path
+    with tempfile.NamedTemporaryFile(mode='w', suffix='-rewrite.ipynb', delete=False) as new_file:
+        new_file.writelines(lines)
+
+    return new_file.name
 
 
 def remove_if_temporary_notebook(notebook_path: str):
