@@ -34,6 +34,7 @@ def write_test_data(ipynb_txt, tst_txt):
     return directory, ipynb_path
 
 
+@pytest.mark.xfail(reason='notebook files not cleaned', strict=True)
 def test_rewrite_notebook():
     directory, ipynb_path = write_test_data('d = 5\nd = 4', 'd = 5->d = 3')
 
@@ -45,8 +46,10 @@ def test_rewrite_notebook():
         assert rewritten == 'd = 3\nd = 4'
 
     shutil.rmtree(directory)
+    assert not os.path.exists(path)
 
 
+@pytest.mark.xfail(reason='notebook files not cleaned', strict=True)
 def test_rewrite_notebook_multiple():
     directory, ipynb_path = write_test_data('d = 5\nd = 4', 'd = 5->d = 3\nd = 4->d = 1')
 
@@ -57,8 +60,10 @@ def test_rewrite_notebook_multiple():
         assert rewritten == 'd = 3\nd = 1'
 
     shutil.rmtree(directory)
+    assert not os.path.exists(path)
 
 
+@pytest.mark.xfail(reason='notebook files not cleaned', strict=True)
 def test_rewrite_notebook_ignore_non_seperator_lines():
     directory, ipynb_path = write_test_data('d = 5\nd = 4', 'd = 5->d = 3\n# comment')
 
@@ -69,6 +74,7 @@ def test_rewrite_notebook_ignore_non_seperator_lines():
         assert rewritten == 'd = 3\nd = 4'
 
     shutil.rmtree(directory)
+    assert not os.path.exists(path)
 
 
 def test_rewrite_notebook_no_tst_file():
@@ -81,6 +87,7 @@ def test_rewrite_notebook_no_tst_file():
 
     assert path == ipynb_path
 
+    assert os.path.exists(ipynb_path)
     shutil.rmtree(directory)
 
 
