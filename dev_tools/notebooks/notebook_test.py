@@ -21,6 +21,7 @@
 
 import os
 import sys
+import tempfile
 
 import pytest
 
@@ -69,9 +70,24 @@ def require_packages_not_changed():
     assert not packages_changed
 
 
+@pytest.fixture(scope='module')
+def env_with_temporary_pip_target():
+    """Setup system environment that tells pip to install packages to a temporary directory."""
+    with tempfile.TemporaryDirectory(suffix='-notebook-site-packages') as tmpdirname:
+        pythonpath = (
+            f'{tmpdirname}{os.pathsep}{os.environ["PYTHONPATH"]}'
+            if 'PYTHONPATH' in os.environ
+            else tmpdirname
+        )
+        env = {**os.environ, 'PYTHONPATH': pythonpath, 'PIP_TARGET': tmpdirname}
+        yield env
+
+
 @pytest.mark.slow
 @pytest.mark.parametrize("notebook_path", filter_notebooks(list_all_notebooks(), SKIP_NOTEBOOKS))
-def test_notebooks_against_released_cirq(notebook_path, require_packages_not_changed):
+def test_notebooks_against_released_cirq(
+    notebook_path, require_packages_not_changed, env_with_temporary_pip_target
+):
     """Test that jupyter notebooks execute.
 
     In order to speed up the execution of these tests an auxiliary file may be supplied which
@@ -92,7 +108,12 @@ def test_notebooks_against_released_cirq(notebook_path, require_packages_not_cha
 papermill {rewritten_notebook_path} {out_path} {papermill_flags}"""
 
     result = shell_tools.run(
-        cmd, log_run_to_stderr=False, shell=True, check=False, capture_output=True
+        cmd,
+        log_run_to_stderr=False,
+        shell=True,
+        check=False,
+        capture_output=True,
+        env=env_with_temporary_pip_target,
     )
 
     if result.returncode != 0:
