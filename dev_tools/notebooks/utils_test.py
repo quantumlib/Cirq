@@ -34,7 +34,6 @@ def write_test_data(ipynb_txt, tst_txt):
     return directory, ipynb_path
 
 
-@pytest.mark.xfail(reason='notebook files not cleaned', strict=True)
 def test_rewrite_notebook():
     directory, ipynb_path = write_test_data('d = 5\nd = 4', 'd = 5->d = 3')
 
@@ -46,10 +45,10 @@ def test_rewrite_notebook():
         assert rewritten == 'd = 3\nd = 4'
 
     shutil.rmtree(directory)
+    dt.remove_if_temporary_notebook(path)
     assert not os.path.exists(path)
 
 
-@pytest.mark.xfail(reason='notebook files not cleaned', strict=True)
 def test_rewrite_notebook_multiple():
     directory, ipynb_path = write_test_data('d = 5\nd = 4', 'd = 5->d = 3\nd = 4->d = 1')
 
@@ -60,10 +59,10 @@ def test_rewrite_notebook_multiple():
         assert rewritten == 'd = 3\nd = 1'
 
     shutil.rmtree(directory)
+    dt.remove_if_temporary_notebook(path)
     assert not os.path.exists(path)
 
 
-@pytest.mark.xfail(reason='notebook files not cleaned', strict=True)
 def test_rewrite_notebook_ignore_non_seperator_lines():
     directory, ipynb_path = write_test_data('d = 5\nd = 4', 'd = 5->d = 3\n# comment')
 
@@ -74,6 +73,7 @@ def test_rewrite_notebook_ignore_non_seperator_lines():
         assert rewritten == 'd = 3\nd = 4'
 
     shutil.rmtree(directory)
+    dt.remove_if_temporary_notebook(path)
     assert not os.path.exists(path)
 
 
@@ -85,9 +85,10 @@ def test_rewrite_notebook_no_tst_file():
 
     path = dt.rewrite_notebook(ipynb_path)
 
+    # verify clean up is skipped when files are not rewritten
     assert path == ipynb_path
-
-    assert os.path.exists(ipynb_path)
+    dt.remove_if_temporary_notebook(path)
+    assert os.path.exists(path)
     shutil.rmtree(directory)
 
 
