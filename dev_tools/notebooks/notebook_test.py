@@ -24,7 +24,12 @@ import os
 import pytest
 
 from dev_tools import shell_tools
-from dev_tools.notebooks import filter_notebooks, list_all_notebooks, rewrite_notebook
+from dev_tools.notebooks import (
+    filter_notebooks,
+    list_all_notebooks,
+    rewrite_notebook,
+    remove_if_temporary_notebook,
+)
 
 SKIP_NOTEBOOKS = [
     # skipping vendor notebooks as we don't have auth sorted out
@@ -83,3 +88,4 @@ papermill {rewritten_notebook_path} {out_path} {papermill_flags}"""
             f"notebook (in Github Actions, you can download it from the workflow artifact"
             f" 'notebook-outputs')"
         )
+    remove_if_temporary_notebook(rewritten_notebook_path)
