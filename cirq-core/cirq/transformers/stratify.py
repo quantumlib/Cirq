@@ -74,7 +74,7 @@ def stratified_circuit(
             context=context or transformer_api.TransformerContext(),
         )
         if len(solution) < len(shortest_circuit):
-            shortest_circuit = circuit
+            shortest_circuit = solution
 
         # Do the same thing, except this time in reverse. This helps for some
         # circuits because it inserts operations at the end instead of at the
@@ -85,7 +85,7 @@ def stratified_circuit(
             context=context or transformer_api.TransformerContext(),
         )[::-1]
         if len(solution) < len(shortest_circuit):
-            shortest_circuit = circuit
+            shortest_circuit = solution
 
     return shortest_circuit
 
