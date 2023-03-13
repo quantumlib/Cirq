@@ -140,7 +140,8 @@ def _stratify_circuit(
                 min_time_index_for_op = max(min_time_index_for_op, min_time_index_for_ignored_op)
 
             # Check for any blocking control or measurement operations.
-            for key in protocols.control_keys(op) & measurement_time_index.keys():
+            measurement_blockers = protocols.control_keys(op) | protocols.measurement_key_objs(op)
+            for key in measurement_blockers & measurement_time_index.keys():
                 time_index = measurement_time_index[key]
                 min_time_index_for_op = max(min_time_index_for_op, time_index + 1)
             for key in protocols.measurement_key_objs(op) & control_time_index.keys():
