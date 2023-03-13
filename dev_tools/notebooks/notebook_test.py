@@ -20,6 +20,7 @@
 # tests ensure that notebooks are still working with the latest version of cirq.
 
 import os
+import sys
 
 import pytest
 
@@ -50,9 +51,27 @@ SKIP_NOTEBOOKS = [
 ]
 
 
+@pytest.fixture
+def require_packages_not_changed():
+    """Verify notebook test does not change packages in the Python test environment.
+
+    Raise AssertionError if any of the pre-existing packages get removed or modified.
+    """
+    # TODO: remove this after deprecation of Python 3.7
+    if sys.version_info < (3, 8, 0):
+        return
+    import importlib.metadata
+
+    packages_before = set((d.name, d.version) for d in importlib.metadata.distributions())
+    yield
+    packages_after = set((d.name, d.version) for d in importlib.metadata.distributions())
+    packages_changed = packages_before.difference(packages_after)
+    assert not packages_changed
+
+
 @pytest.mark.slow
 @pytest.mark.parametrize("notebook_path", filter_notebooks(list_all_notebooks(), SKIP_NOTEBOOKS))
-def test_notebooks_against_released_cirq(notebook_path):
+def test_notebooks_against_released_cirq(notebook_path, require_packages_not_changed):
     """Test that jupyter notebooks execute.
 
     In order to speed up the execution of these tests an auxiliary file may be supplied which
