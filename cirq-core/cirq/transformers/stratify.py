@@ -61,12 +61,11 @@ def stratified_circuit(
     Returns:
         A copy of the original circuit, but with re-arranged operations.
     """
-
     # Normalize categories into classifier functions.
     classifiers = _get_classifiers(circuit, categories)
 
     # Try the algorithm with each permutation of the classifiers.
-    shortest_circuit = circuit
+    shortest_circuit = circuits.Circuit(circuit)
     reversed_circuit = circuit[::-1]
     for ordered_classifiers in itertools.permutations(classifiers):
         solution = _stratify_circuit(
