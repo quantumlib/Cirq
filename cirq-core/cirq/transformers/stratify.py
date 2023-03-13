@@ -66,7 +66,6 @@ def stratified_circuit(
     classifiers = _get_classifiers(circuit, categories)
 
     # Try the algorithm with each permutation of the classifiers.
-    smallest_depth = len(circuit)
     shortest_circuit = circuit
     reversed_circuit = circuit[::-1]
     for ordered_classifiers in itertools.permutations(classifiers):
@@ -75,7 +74,7 @@ def stratified_circuit(
             classifiers=ordered_classifiers,
             context=context or transformer_api.TransformerContext(),
         )
-        if len(solution) < shortest_circuit:
+        if len(solution) < len(shortest_circuit):
             shortest_circuit = circuit
 
         # Do the same thing, except this time in reverse. This helps for some
@@ -86,7 +85,7 @@ def stratified_circuit(
             classifiers=ordered_classifiers,
             context=context or transformer_api.TransformerContext(),
         )[::-1]
-        if len(solution) < shortest_circuit:
+        if len(solution) < len(shortest_circuit):
             shortest_circuit = circuit
 
     return shortest_circuit
