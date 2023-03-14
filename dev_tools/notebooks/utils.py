@@ -120,19 +120,3 @@ def rewrite_notebook(notebook_path):
         new_file.writelines(lines)
 
     return new_file.name
-
-
-def remove_if_temporary_notebook(notebook_path: str):
-    """Delete temporary notebook if written by `rewrite_notebook`.
-
-    Do nothing if the specified notebook is not in the temporary directory
-    or if its filename does not end in '-rewrite.ipynb'
-
-    Use this to safely clean up notebooks created by `rewrite_notebook`.
-    """
-    if (
-        notebook_path.endswith('-rewrite.ipynb')
-        and os.path.isfile(notebook_path)
-        and os.path.dirname(notebook_path) == tempfile.gettempdir()
-    ):
-        os.remove(notebook_path)

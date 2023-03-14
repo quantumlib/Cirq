@@ -12,9 +12,4 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from dev_tools.notebooks.utils import (
-    filter_notebooks,
-    list_all_notebooks,
-    remove_if_temporary_notebook,
-    rewrite_notebook,
-)
+from dev_tools.notebooks.utils import filter_notebooks, list_all_notebooks, rewrite_notebook

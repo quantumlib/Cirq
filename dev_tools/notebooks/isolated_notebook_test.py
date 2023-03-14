@@ -33,12 +33,7 @@ from typing import Set, List
 import pytest
 
 from dev_tools import shell_tools
-from dev_tools.notebooks import (
-    list_all_notebooks,
-    filter_notebooks,
-    rewrite_notebook,
-    remove_if_temporary_notebook,
-)
+from dev_tools.notebooks import list_all_notebooks, filter_notebooks, rewrite_notebook
 
 # these notebooks rely on features that are not released yet
 # after every release we should raise a PR and empty out this list
@@ -213,7 +208,7 @@ papermill {rewritten_notebook_path} {os.getcwd()}/{out_path}"""
             f"instead of `pip install cirq` to this notebook, and exclude it from "
             f"dev_tools/notebooks/isolated_notebook_test.py."
         )
-    remove_if_temporary_notebook(rewritten_notebook_path)
+    os.remove(rewritten_notebook_path)
 
 
 @pytest.mark.parametrize("notebook_path", NOTEBOOKS_DEPENDING_ON_UNRELEASED_FEATURES)

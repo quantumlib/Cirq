@@ -45,8 +45,7 @@ def test_rewrite_notebook():
         rewritten = f.read()
         assert rewritten == 'd = 3\nd = 4'
 
-    dt.remove_if_temporary_notebook(path)
-    assert not os.path.exists(path)
+    os.remove(path)
     shutil.rmtree(directory)
 
 
@@ -59,8 +58,7 @@ def test_rewrite_notebook_multiple():
         rewritten = f.read()
         assert rewritten == 'd = 3\nd = 1'
 
-    dt.remove_if_temporary_notebook(path)
-    assert not os.path.exists(path)
+    os.remove(path)
     shutil.rmtree(directory)
 
 
@@ -73,8 +71,7 @@ def test_rewrite_notebook_ignore_non_seperator_lines():
         rewritten = f.read()
         assert rewritten == 'd = 3\nd = 4'
 
-    dt.remove_if_temporary_notebook(path)
-    assert not os.path.exists(path)
+    os.remove(path)
     shutil.rmtree(directory)
 
 
@@ -88,8 +85,7 @@ def test_rewrite_notebook_no_tst_file():
     assert path != ipynb_path
     assert filecmp.cmp(path, ipynb_path)
 
-    dt.remove_if_temporary_notebook(path)
-
+    os.remove(path)
     shutil.rmtree(directory)
 
 
