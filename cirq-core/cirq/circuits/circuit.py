@@ -1776,12 +1776,10 @@ class Circuit(AbstractCircuit):
                 Non-moment entries will be inserted according to the EARLIEST
                 insertion strategy.
         """
-        # These are dicts from the qubit/key to the greatest moment index that has it. It is safe
-        # to default to `-1`, as that is interpreted as meaning the zeroth index onward does not
-        # have this value.
-        qubit_indices: Dict['cirq.Qid', int] = defaultdict(lambda: -1)
-        mkey_indices: Dict['cirq.MeasurementKey', int] = defaultdict(lambda: -1)
-        ckey_indices: Dict['cirq.MeasurementKey', int] = defaultdict(lambda: -1)
+        # These are dicts from the qubit/key to the greatest moment index that has it.
+        qubit_indices: Dict['cirq.Qid', int] = {}
+        mkey_indices: Dict['cirq.MeasurementKey', int] = {}
+        ckey_indices: Dict['cirq.MeasurementKey', int] = {}
 
         # We also maintain the dict from moment index to moments/ops that go into it, for use when
         # building the actual moments at the end.
