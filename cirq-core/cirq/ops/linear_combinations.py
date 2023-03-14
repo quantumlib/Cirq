@@ -839,10 +839,9 @@ class PauliSum:
         if exponent == 0:
             return PauliSum(value.LinearDict({frozenset(): 1 + 0j}))
         if exponent > 0:
-            base = self.copy()
-            answer = self.copy() 
+            answer = self.copy()
             for _ in range(exponent - 1):
-                answer *= base
+                answer *= self
             return answer
         return NotImplemented
 
