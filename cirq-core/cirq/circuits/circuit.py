@@ -2750,9 +2750,9 @@ def get_earliest_accommodating_moment_index(
 
     Args:
         operation: The operation in question.
-        qubit_indexes: A dictionary mapping qubits to the latest moments that address them.
-        mkey_indexes: A dictionary mapping measureent keys to the latest moments that address them.
-        ckey_indexes: A dictionary mapping control keys to the latest moments that address them.
+        qubit_indices: A dictionary mapping qubits to the latest moments that address them.
+        mkey_indices: A dictionary mapping measureent keys to the latest moments that address them.
+        ckey_indices: A dictionary mapping control keys to the latest moments that address them.
 
     Returns:
         The integer index of the earliest moment that can accomodate the given operation.
