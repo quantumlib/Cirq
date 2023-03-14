@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import filecmp
 import os
 import shutil
 import tempfile
@@ -84,11 +85,10 @@ def test_rewrite_notebook_no_tst_file():
         f.write('d = 5\nd = 4')
 
     path = dt.rewrite_notebook(ipynb_path)
+    assert path != ipynb_path
+    assert filecmp.cmp(path, ipynb_path)
 
-    # verify clean up is skipped when files are not rewritten
-    assert path == ipynb_path
     dt.remove_if_temporary_notebook(path)
-    assert os.path.exists(path)
 
     shutil.rmtree(directory)
 

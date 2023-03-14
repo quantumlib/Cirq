@@ -82,23 +82,20 @@ def rewrite_notebook(notebook_path):
     It is the responsibility of the caller of this method to delete the new file.
 
     Returns:
-        The file path for the rewritten file.  If no `.tst` file was found,
-        return the input `notebook_path` as the notebook was not changed.
-        Otherwise return a new path created in the temporary directory.
+        The absolute path to the rewritten file in temporary directory.
+        If no `.tst` file exists the new file is a copy of the input notebook.
 
     Raises:
         AssertionError: If there are multiple `->` per line, or not all of the replacements
             are used.
     """
-    notebook_test_path = os.path.splitext(notebook_path)[0] + '.tst'
-    if not os.path.exists(notebook_test_path):
-        return notebook_path
-
     # Get the rewrite rules.
     patterns = []
-    with open(notebook_test_path, 'r') as f:
-        for line in f:
-            if '->' in line:
+    notebook_test_path = os.path.splitext(notebook_path)[0] + '.tst'
+    if os.path.exists(notebook_test_path):
+        with open(notebook_test_path, 'r') as f:
+            pattern_lines = (line for line in f if '->' in line)
+            for line in pattern_lines:
                 parts = line.rstrip().split('->')
                 assert len(parts) == 2, f'Replacement lines may only contain one -> but was {line}'
                 patterns.append((re.compile(parts[0]), parts[1]))
