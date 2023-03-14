@@ -133,17 +133,15 @@ def _stratify_circuit(
         op_time_indices = {}
         for op in moment:
 
-            # Get the earliest time index that can accomodate this op, based on its qubits.
-            min_time_index_for_op = max(qubit_time_index[qubit] + 1 for qubit in op.qubits)
-
-            # Check for any blocking control or measurement operations.
+            # Identify the latest time index that *cannot* accomodate this op.
+            latest_conflicting_time_index = max(qubit_time_index[qubit] for qubit in op.qubits)
             measurement_blockers = protocols.control_keys(op) | protocols.measurement_key_objs(op)
             for key in measurement_blockers & measurement_time_index.keys():
                 time_index = measurement_time_index[key]
-                min_time_index_for_op = max(min_time_index_for_op, time_index + 1)
+                latest_conflicting_time_index = max(latest_conflicting_time_index, time_index)
             for key in protocols.measurement_key_objs(op) & control_time_index.keys():
                 time_index = control_time_index[key]
-                min_time_index_for_op = max(min_time_index_for_op, time_index + 1)
+                latest_conflicting_time_index = max(latest_conflicting_time_index, time_index)
 
             # Identify the "class" of this operation (by index).
             ignored_op = any(tag in op.tags for tag in context.tags_to_ignore)
@@ -152,9 +150,12 @@ def _stratify_circuit(
             else:
                 op_class = len(classifiers)
                 ignored_ops.append(op)
-                min_time_index_for_op = max(min_time_index_for_op, last_ignored_ops_time_index + 1)
+                latest_conflicting_time_index = max(
+                    latest_conflicting_time_index, last_ignored_ops_time_index
+                )
 
             # Identify the time index to place this operation into.
+            min_time_index_for_op = latest_conflicting_time_index + 1
             time_index = (min_time_index_for_op // num_classes) * num_classes + op_class
             if time_index < min_time_index_for_op:
                 time_index += num_classes
