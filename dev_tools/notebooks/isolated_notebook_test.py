@@ -104,6 +104,8 @@ PACKAGES = [
     # https://github.com/networkx/networkx/issues/4718 pinned networkx 2.5.1 to 4.4.2
     # however, jupyter brings in 5.0.6
     'decorator<5',
+    # TODO(#5967): allow numpy-1.24 when it is supported in Cirq and numba
+    'numpy>=1.16,<1.24',
 ]
 
 
