@@ -125,19 +125,16 @@ def _stratify_circuit(
     control_time_index: Dict['cirq.MeasurementKey', int] = {}
 
     # The minimum time index for operations with a tag in context.tags_to_ignore.
-    min_time_index_for_ignored_op = 0
+    last_ignored_ops_time_index = 0
 
     for moment in circuit:
         # Identify the new time indices that operations should be moved into.
         ignored_ops = []
         op_time_indices = {}
         for op in moment:
-            ignored_op = any(tag in op.tags for tag in context.tags_to_ignore)
 
             # Get the earliest time index that can accomodate this op, based on its qubits.
             min_time_index_for_op = max(qubit_time_index[qubit] + 1 for qubit in op.qubits)
-            if ignored_op:
-                min_time_index_for_op = max(min_time_index_for_op, min_time_index_for_ignored_op)
 
             # Check for any blocking control or measurement operations.
             measurement_blockers = protocols.control_keys(op) | protocols.measurement_key_objs(op)
@@ -149,27 +146,25 @@ def _stratify_circuit(
                 min_time_index_for_op = max(min_time_index_for_op, time_index + 1)
 
             # Identify the "class" of this operation (by index).
-            if ignored_op:
-                op_class = len(classifiers)
-            else:
+            ignored_op = any(tag in op.tags for tag in context.tags_to_ignore)
+            if not ignored_op:
                 op_class = _get_op_class(op, classifiers)
+            else:
+                op_class = len(classifiers)
+                ignored_ops.append(op)
+                min_time_index_for_op = max(min_time_index_for_op, last_ignored_ops_time_index + 1)
 
             # Identify the time index to place this operation into.
             time_index = (min_time_index_for_op // num_classes) * num_classes + op_class
             if time_index < min_time_index_for_op:
                 time_index += num_classes
-
-            if ignored_op:
-                ignored_ops.append(op)
-                min_time_index_for_ignored_op = max(min_time_index_for_ignored_op, time_index)
-            else:
-                op_time_indices[op] = time_index
+            op_time_indices[op] = time_index
 
         # Assign ignored operations to the same moment.
         if ignored_ops:
+            last_ignored_ops_time_index = max(op_time_indices[op] for op in ignored_ops)
             for op in ignored_ops:
-                op_time_indices[op] = min_time_index_for_ignored_op
-            min_time_index_for_ignored_op += 1
+                op_time_indices[op] = last_ignored_ops_time_index
 
         # Move the operations into their assigned moments.
         for op, time_index in op_time_indices.items():
