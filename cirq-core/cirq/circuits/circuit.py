@@ -1803,7 +1803,7 @@ class Circuit(AbstractCircuit):
                 i = length
                 moments_by_index[i] = mop
             else:
-                i = get_earliest_accomodating_moment_index(
+                i = get_earliest_accommodating_moment_index(
                     mop, qubit_indices, mkey_indices, ckey_indices
                 )
                 op_lists_by_index[i].append(mop)
@@ -2740,7 +2740,7 @@ def _group_until_different(items: Iterable[_TIn], key: Callable[[_TIn], _TKey], 
     return ((k, [val(i) for i in v]) for (k, v) in itertools.groupby(items, key))
 
 
-def get_earliest_accomodating_moment_index(
+def get_earliest_accommodating_moment_index(
     operation: 'cirq.Operation',
     qubit_indices: Dict['cirq.Qid', int],
     mkey_indices: Dict['cirq.MeasurementKey', int],

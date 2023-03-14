@@ -131,8 +131,8 @@ def _stratify_circuit(
         op_time_indices = {}
         for op in moment:
 
-            # Identify the earliest moment that can accomodate this op.
-            min_time_index_for_op = circuits.circuit.get_earliest_accomodating_moment_index(
+            # Identify the earliest moment that can accommodate this op.
+            min_time_index_for_op = circuits.circuit.get_earliest_accommodating_moment_index(
                 op, qubit_time_index, measurement_time_index, control_time_index
             )
 
