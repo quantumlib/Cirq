@@ -19,6 +19,7 @@ from typing import Optional, Sequence
 
 import cirq
 from cirq_ionq import calibration, ionq_client, job, results, sampler, serializer
+from cirq_ionq.ionq_native_gates import GPIGate, GPI2Gate, MSGate
 
 
 class Service:
@@ -62,7 +63,8 @@ class Service:
                 This is actually an EnvironmentError which is equal to an OSError.
         """
         self.remote_host = (
-            remote_host or os.getenv('IONQ_REMOTE_HOST') or f'https://api.ionq.co/{api_version}'
+            remote_host or os.getenv(
+                'IONQ_REMOTE_HOST') or f'https://api.ionq.co/{api_version}'
         )
         self.api_key = api_key or os.getenv('IONQ_API_KEY')
         if not self.api_key:
@@ -86,7 +88,8 @@ class Service:
         repetitions: int,
         name: Optional[str] = None,
         target: Optional[str] = None,
-        param_resolver: cirq.ParamResolverOrSimilarType = cirq.ParamResolver({}),
+        param_resolver: cirq.ParamResolverOrSimilarType = cirq.ParamResolver({
+        }),
         seed: cirq.RANDOM_STATE_OR_SEED_LIKE = None,
     ) -> cirq.Result:
         """Run the given circuit on the IonQ API.
@@ -104,13 +107,35 @@ class Service:
         Returns:
             A `cirq.Result` for running the circuit.
         """
+        transpiled_circuit = self.to_native_gates(circuit)
         resolved_circuit = cirq.resolve_parameters(circuit, param_resolver)
-        result = self.create_job(resolved_circuit, repetitions, name, target).results()
+        result = self.create_job(
+            resolved_circuit, repetitions, name, target).results()
         if isinstance(result, results.QPUResult):
             return result.to_cirq_result(params=cirq.ParamResolver(param_resolver))
         # pylint: disable=unexpected-keyword-arg
         return result.to_cirq_result(params=cirq.ParamResolver(param_resolver), seed=seed)
         # pylint: enable=unexpected-keyword-arg
+
+    def to_native_gates(self, circuit: cirq.Circuit):
+        """Converts a `cirq.Circuit` to IonQ native gates.
+
+        Args:
+            circuit: The circuit to transpile.
+
+        Returns:
+            A `cirq.Circuit` that uses native gates.
+        """
+        # Transpile the circuit into the native basis
+        native_circuit = cirq.optimize_for_target_gateset(
+            circuit,
+            gateset=cirq.Gateset.from_ops(
+                GPIGate(),
+                GPI2Gate(),
+                MSGate()
+            )
+        )
+        return native_circuit
 
     def sampler(self, target: Optional[str] = None, seed: cirq.RANDOM_STATE_OR_SEED_LIKE = None):
         """Returns a `cirq.Sampler` object for accessing the sampler interface.
@@ -189,7 +214,8 @@ class Service:
         Raises:
             IonQException: If there was an error accessing the API.
         """
-        job_dicts = self._client.list_jobs(status=status, limit=limit, batch_size=batch_size)
+        job_dicts = self._client.list_jobs(
+            status=status, limit=limit, batch_size=batch_size)
         return tuple(job.Job(client=self._client, job_dict=job_dict) for job_dict in job_dicts)
 
     def get_current_calibration(self) -> calibration.Calibration:
