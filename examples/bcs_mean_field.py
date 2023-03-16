@@ -144,7 +144,7 @@ def main():
     n_site = 4
     # Number of fermions
     n_fermi = 4
-    # Hopping strength between neighboring sites
+    # Hopping strength between neighbouring sites
     t = 1.0
     # On-site interaction strength. It has to be negative (attractive) for the
     # BCS theory to work.
@@ -158,7 +158,7 @@ def main():
     print('Quantum circuits to prepare the BCS meanfield state.')
     print('Number of sites = ', n_site)
     print('Number of fermions = ', n_fermi)
-    print('Tunneling strength = ', t)
+    print('Tunnelling strength = ', t)
     print('On-site interaction strength = ', u)
     print('Superconducting gap = ', delta, '\n')
 
@@ -303,7 +303,7 @@ def bcs_parameters(n_site, n_fermi, u, t):
         n_site: the number of sites in the Hubbard model
         n_fermi: the number of fermions
         u: the interaction strength
-        t: the tunneling strength
+        t: the tunnelling strength
 
     Returns:
         float delta, List[float] bog_theta
