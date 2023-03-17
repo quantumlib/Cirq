@@ -151,6 +151,29 @@ def test_op_validate():
         op2.validate_args([cirq.LineQid(1, 2), cirq.LineQid(1, 2)])
 
 
+def test_disable_op_validation():
+    q0, q1 = cirq.LineQubit.range(2)
+    h_op = cirq.H(q0)
+
+    # Fails normally.
+    with pytest.raises(ValueError, match='Wrong number'):
+        _ = cirq.H(q0, q1)
+    with pytest.raises(ValueError, match='Wrong number'):
+        h_op.validate_args([q0, q1])
+
+    # Passes, skipping validation.
+    with cirq.with_debug(False):
+        op = cirq.H(q0, q1)
+        assert op.qubits == (q0, q1)
+        h_op.validate_args([q0, q1])
+
+    # Fails again when validation is re-enabled.
+    with pytest.raises(ValueError, match='Wrong number'):
+        _ = cirq.H(q0, q1)
+    with pytest.raises(ValueError, match='Wrong number'):
+        h_op.validate_args([q0, q1])
+
+
 def test_default_validation_and_inverse():
     class TestGate(cirq.Gate):
         def _num_qubits_(self):
@@ -787,6 +810,10 @@ def test_single_qubit_gate_validates_on_each():
     test_non_qubits = [str(i) for i in range(3)]
     with pytest.raises(ValueError):
         _ = g.on_each(*test_non_qubits)
+
+    with cirq.with_debug(False):
+        assert g.on_each(*test_non_qubits)[0].qubits == ('0',)
+
     with pytest.raises(ValueError):
         _ = g.on_each(*test_non_qubits)
 
@@ -853,6 +880,10 @@ def test_on_each_two_qubits():
         g.on_each([(a,)])
     with pytest.raises(ValueError, match='Expected 2 qubits'):
         g.on_each([(a, b, a)])
+
+    with cirq.with_debug(False):
+        assert g.on_each([(a, b, a)])[0].qubits == (a, b, a)
+
     with pytest.raises(ValueError, match='Expected 2 qubits'):
         g.on_each(zip([a, a]))
     with pytest.raises(ValueError, match='Expected 2 qubits'):
