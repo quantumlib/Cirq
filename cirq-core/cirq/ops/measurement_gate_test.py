@@ -337,7 +337,8 @@ def test_repr():
     )
     assert repr(gate) == (
         "cirq.MeasurementGate(3, cirq.MeasurementKey(name='a'), (True, False), "
-        "qid_shape=(1, 2, 3), confusion_map={(2,): np.array([[0, 1], [1, 0]], dtype=np.dtype('int64'))})"
+        "qid_shape=(1, 2, 3), "
+        "confusion_map={(2,): np.array([[0, 1], [1, 0]], dtype=np.dtype('int64'))})"
     )
 
 
