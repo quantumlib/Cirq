@@ -835,7 +835,7 @@ class PauliSum:
 
     def __pow__(self, exponent: int):
         if not isinstance(exponent, numbers.Integral):
-            return NotImplemented
+            return NotImplemented 
         if exponent == 0:
             return PauliSum(value.LinearDict({frozenset(): 1 + 0j}))
         if exponent > 0:
