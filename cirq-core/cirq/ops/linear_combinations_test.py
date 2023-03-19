@@ -1156,9 +1156,13 @@ def test_pauli_sum_pow():
     for psum in [psum1, psum2, psum3, psum4]:
         assert cirq.approx_eq(psum**0, identity)
 
-    # tests for exponents greater than two for both even and odd 
+    # tests for exponents greater than two for both even and odd
     psum5 = cirq.Z(q0) * cirq.Z(q1) + cirq.Z(q2) + cirq.Z(q3)
-    assert psum5 * psum5 * psum5 * psum5 * psum5 == psum5**5 
+    correctresult = psum5.copy()
+    for e in range(1,9):
+        powfunctionresult = psum5**e
+        assert correctresult == powfunctionresult
+        correctresult *= psum5
 
     psum6 = cirq.X(q0) * cirq.Y(q1) + cirq.Z(q2) + cirq.X(q3)
     assert psum6 * psum6 * psum6 * psum6 * psum6 * psum6 * psum6 * psum6 == psum6**8
@@ -1167,6 +1171,7 @@ def test_pauli_sum_pow():
     psum7 = cirq.X(q0) * cirq.Y(q1) + cirq.Z(q2)
     psum7copy = psum7.copy()
     psum7raised5 = psum7**5
+    assert psum7raised5 == psum7 * psum7 * psum7 * psum7 * psum7
     assert psum7copy == psum7
 
 # Using the entries of table 1 of https://arxiv.org/abs/1804.09130 as golden values.
