@@ -67,7 +67,7 @@ def test_notebooks_against_released_cirq(notebook_path):
     notebook_file = os.path.basename(notebook_path)
     notebook_rel_dir = os.path.dirname(os.path.relpath(notebook_path, "."))
     out_path = f"out/{notebook_rel_dir}/{notebook_file[:-6]}.out.ipynb"
-    rewritten_notebook_descriptor, rewritten_notebook_path = rewrite_notebook(notebook_path)
+    rewritten_notebook_path = rewrite_notebook(notebook_path)
     papermill_flags = "--no-request-save-on-cell-execute --autosave-cell-every 0"
     cmd = f"""mkdir -p out/{notebook_rel_dir}
 papermill {rewritten_notebook_path} {out_path} {papermill_flags}"""
@@ -83,6 +83,4 @@ papermill {rewritten_notebook_path} {out_path} {papermill_flags}"""
             f"notebook (in Github Actions, you can download it from the workflow artifact"
             f" 'notebook-outputs')"
         )
-
-    if rewritten_notebook_descriptor:
-        os.close(rewritten_notebook_descriptor)
+    os.remove(rewritten_notebook_path)
