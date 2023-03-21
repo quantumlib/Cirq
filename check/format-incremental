@@ -112,16 +112,8 @@ if (( only_print == 1 )); then
     args+=("--check" "--diff")
 fi
 
-# Warn users about bug in black: https://github.com/psf/black/issues/1629
-# Once that is fixed upstream, we can just do:
-# black "${args[@]}" "${format_files[@]}"
-# exit $?
-LOGS="$(black "${args[@]}" "${format_files[@]}" 2>&1)"
+black "${args[@]}" "${format_files[@]}"
 BLACKSTATUS=$?
-echo "${LOGS}"
-if [[ "$BLACKSTATUS" == "123" && "$LOGS" =~ ^.*"INTERNAL ERROR: Black produced different code on the second pass of the formatter.".*$ ]]; then
-  echo -e "\033[31mWarning, it seems we ran into https://github.com/psf/black/issues/1629. Typically, this can be fixed by adding a trailing comma. If you get stuck, please file a cirq issue on github.\033[0m"
-fi
 
 if [[ "$FLYNTSTATUS" != "0" || "$BLACKSTATUS" != "0"  ]]; then
   exit 1
