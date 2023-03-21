@@ -13,7 +13,7 @@
 # limitations under the License.
 
 import functools
-from typing import Any, Dict, Iterable, List, Optional, Sequence, Set, TypeVar, TYPE_CHECKING
+from typing import Any, Dict, Iterable, List, Optional, Sequence, Set, TypeVar, TYPE_CHECKING, Union
 
 import abc
 
@@ -69,7 +69,7 @@ class _BaseLineQid(ops.Qid):
     def _with_x(self: TSelf, x: int) -> TSelf:
         """Returns a qubit with the same type but a different value of `x`."""
 
-    def __add__(self: TSelf, other: int) -> TSelf:
+    def __add__(self: TSelf, other: Union[int, TSelf]) -> TSelf:
         if isinstance(other, _BaseLineQid):
             if self.dimension != other.dimension:
                 raise TypeError(
@@ -81,7 +81,7 @@ class _BaseLineQid(ops.Qid):
             raise TypeError(f"Can only add ints and {type(self).__name__}. Instead was {other}")
         return self._with_x(self.x + other)
 
-    def __sub__(self: TSelf, other: int) -> TSelf:
+    def __sub__(self: TSelf, other: Union[int, TSelf]) -> TSelf:
         if isinstance(other, _BaseLineQid):
             if self.dimension != other.dimension:
                 raise TypeError(
