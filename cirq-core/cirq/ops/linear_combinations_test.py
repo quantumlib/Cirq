@@ -1172,6 +1172,7 @@ def test_pauli_sum_pow():
     assert psum7**5 == psum7 * psum7 * psum7 * psum7 * psum7
     assert psum7copy == psum7
 
+
 # Using the entries of table 1 of https://arxiv.org/abs/1804.09130 as golden values.
 @pytest.mark.parametrize(
     'boolean_expr,expected_pauli_sum',
