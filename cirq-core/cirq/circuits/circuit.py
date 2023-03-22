@@ -2758,7 +2758,7 @@ def get_earliest_accommodating_moment_index(
             last_conflict = length - 1
         else:
             last_conflict = max(
-                *qubit_indices.values(), *mkey_indices.values(), *ckey_indices.values()
+                *qubit_indices.values(), *mkey_indices.values(), *ckey_indices.values(), -1
             )
 
     else:
