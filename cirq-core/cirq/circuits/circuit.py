@@ -2753,7 +2753,7 @@ def get_earliest_accommodating_moment_index(
     mop_ckeys = protocols.control_keys(moment_or_operation)
 
     if isinstance(moment_or_operation, Moment):
-        # We always append moment to the end, to be consistent with `Circuit.append`
+        # For consistency with `Circuit.append`, moments always get placed at the end of the circuit.
         if length is not None:
             last_conflict = length - 1
         else:
