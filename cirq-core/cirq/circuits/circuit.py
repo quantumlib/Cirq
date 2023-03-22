@@ -2746,7 +2746,7 @@ def get_earliest_accommodating_moment_index(
             `mkey_indices`, and `ckey_indices`.
 
     Returns:
-        The integer index of the earliest moment that can accomodate the given operation.
+        The integer index of the earliest moment that can accomodate the given moment or operation.
     """
     mop_qubits = moment_or_operation.qubits
     mop_mkeys = protocols.measurement_key_objs(moment_or_operation)
