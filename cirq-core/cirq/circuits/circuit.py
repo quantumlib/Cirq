@@ -2737,7 +2737,7 @@ def get_earliest_accommodating_moment_index(
     measurement key, and control key.
 
     Args:
-        operation: The operation in question.
+        moment_or_operation: The moment operation in question.
         qubit_indices: A dictionary mapping qubits to the latest moments that address them.
         mkey_indices: A dictionary mapping measureent keys to the latest moments that address them.
         ckey_indices: A dictionary mapping control keys to the latest moments that address them.
