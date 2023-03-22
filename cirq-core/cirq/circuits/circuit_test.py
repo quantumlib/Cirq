@@ -840,7 +840,7 @@ def test_circuit_length_inference():
     qubit_indices = {cirq.q(0): 0}
     mkey_indices = {}
     ckey_indices = {}
-    assert circuit.circuits.get_earliest_accommodating_moment_index(
+    assert circuits.circuit.get_earliest_accommodating_moment_index(
         cirq.Moment(), qubit_indices, mkey_indices, ckey_indices
     ) == len(circuit)
 
