@@ -104,6 +104,8 @@ PACKAGES = [
     # https://github.com/networkx/networkx/issues/4718 pinned networkx 2.5.1 to 4.4.2
     # however, jupyter brings in 5.0.6
     'decorator<5',
+    # TODO(#5967): allow numpy-1.24 when it is supported in Cirq and numba
+    'numpy>=1.16,<1.24',
 ]
 
 
@@ -177,7 +179,7 @@ def test_notebooks_against_released_cirq(partition, notebook_path, cloned_env):
 
     notebook_file = os.path.basename(notebook_path)
 
-    rewritten_notebook_descriptor, rewritten_notebook_path = rewrite_notebook(notebook_path)
+    rewritten_notebook_path = rewrite_notebook(notebook_path)
 
     cmd = f"""
 mkdir -p out/{notebook_rel_dir}
@@ -208,9 +210,7 @@ papermill {rewritten_notebook_path} {os.getcwd()}/{out_path}"""
             f"instead of `pip install cirq` to this notebook, and exclude it from "
             f"dev_tools/notebooks/isolated_notebook_test.py."
         )
-
-    if rewritten_notebook_descriptor:
-        os.close(rewritten_notebook_descriptor)
+    os.remove(rewritten_notebook_path)
 
 
 @pytest.mark.parametrize("notebook_path", NOTEBOOKS_DEPENDING_ON_UNRELEASED_FEATURES)
