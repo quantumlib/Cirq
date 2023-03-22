@@ -1791,31 +1791,17 @@ class Circuit(AbstractCircuit):
 
         # "mop" means current moment-or-operation
         for mop in ops.flatten_to_ops_or_moments(contents):
-            mop_qubits = mop.qubits
-            mop_mkeys = protocols.measurement_key_objs(mop)
-            mop_ckeys = protocols.control_keys(mop)
 
-            # Both branches define `i`, the moment index at which to place the mop.
+            # Identify the index of the moment to place this `mop` into.
+            placement_index = get_earliest_accommodating_moment_index(
+                mop, qubit_indices, mkey_indices, ckey_indices, length
+            )
+            length = max(length, placement_index + 1)  # update the length of the circuit thus far
+
             if isinstance(mop, Moment):
-                # We always append moment to the end, to be consistent with `self.append`
-                i = length
-                moments_by_index[i] = mop
+                moments_by_index[placement_index] = mop
             else:
-                i = get_earliest_accommodating_moment_index(
-                    mop, qubit_indices, mkey_indices, ckey_indices
-                )
-                op_lists_by_index[i].append(mop)
-
-            # Update our dicts with data from the latest mop placement. Note `i` will always be
-            # greater than the existing value for all of these, by construction, so there is no
-            # need to do a `max(i, existing)`.
-            for q in mop_qubits:
-                qubit_indices[q] = i
-            for k in mop_mkeys:
-                mkey_indices[k] = i
-            for k in mop_ckeys:
-                ckey_indices[k] = i
-            length = max(length, i + 1)
+                op_lists_by_index[placement_index].append(mop)
 
         # Finally, once everything is placed, we can construct and append the actual moments for
         # each index.
@@ -2739,44 +2725,74 @@ def _group_until_different(items: Iterable[_TIn], key: Callable[[_TIn], _TKey], 
 
 
 def get_earliest_accommodating_moment_index(
-    operation: 'cirq.Operation',
+    moment_or_operation: Union['cirq.Moment', 'cirq.Operation'],
     qubit_indices: Dict['cirq.Qid', int],
     mkey_indices: Dict['cirq.MeasurementKey', int],
     ckey_indices: Dict['cirq.MeasurementKey', int],
+    length: Optional[int] = None,
 ) -> int:
-    """Get the index of the earliest moment that can accomodate the given operation.
+    """Get the index of the earliest moment that can accomodate the given moment or operation.
+
+    Updates the dictionaries keeping track of the last moment index addressing a given qubit,
+    measurement key, and control key.
 
     Args:
         operation: The operation in question.
         qubit_indices: A dictionary mapping qubits to the latest moments that address them.
         mkey_indices: A dictionary mapping measureent keys to the latest moments that address them.
         ckey_indices: A dictionary mapping control keys to the latest moments that address them.
+        length: The length of the circuit that we are trying to insert a moment or operation into.
+            Should probably be equal to the maximum of the values in `qubit_indices`,
+            `mkey_indices`, and `ckey_indices`.
 
     Returns:
         The integer index of the earliest moment that can accomodate the given operation.
     """
-    op_qubits = operation.qubits
-    op_mkeys = protocols.measurement_key_objs(operation)
-    op_ckeys = protocols.control_keys(operation)
+    mop_qubits = moment_or_operation.qubits
+    mop_mkeys = protocols.measurement_key_objs(moment_or_operation)
+    mop_ckeys = protocols.control_keys(moment_or_operation)
 
-    # We start by searching for the `latest_conflict` moment index, which we will increment by
-    # `1` to identify the earliest moment that *does not* conflict with the given operation.
-    # The `latest_conflict` is initialized to `-1` before searching for later conflicting moments.
-    latest_conflict = -1
+    if isinstance(moment_or_operation, Moment):
+        # We always append moment to the end, to be consistent with `Circuit.append`
+        if length is not None:
+            last_conflict = length - 1
+        else:
+            last_conflict = max(
+                *qubit_indices.values(), *mkey_indices.values(), *ckey_indices.values()
+            )
 
-    # Look for the maximum conflict; i.e. a moment that has a qubit the same as one of
-    # this op's qubits, that has a measurement or control key the same as one of this
-    # op's measurement keys, or that has a measurement key the same as one of this op's
-    # control keys. (Control keys alone can commute past each other). The `ifs` are
-    # logically unnecessary but seem to make this slightly faster.
-    if op_qubits:
-        latest_conflict = max(
-            latest_conflict, *[qubit_indices.get(qubit, -1) for qubit in op_qubits]
-        )
-    if op_mkeys:
-        latest_conflict = max(latest_conflict, *[mkey_indices.get(key, -1) for key in op_mkeys])
-        latest_conflict = max(latest_conflict, *[ckey_indices.get(key, -1) for key in op_mkeys])
-    if op_ckeys:
-        latest_conflict = max(latest_conflict, *[mkey_indices.get(key, -1) for key in op_ckeys])
+    else:
+        # We start by searching for the `latest_conflict` moment index, which we will increment by
+        # `1` to identify the earliest moment that *does not* conflict with the given operation.
+        # The `latest_conflict` is initialized to `-1` before searching for later conflicting
+        # moments.
+        last_conflict = -1
 
-    return latest_conflict + 1
+        # Look for the maximum conflict; i.e. a moment that has a qubit the same as one of this op's
+        # qubits, that has a measurement or control key the same as one of this op's measurement
+        # keys, or that has a measurement key the same as one of this op's control keys. (Control
+        # keys alone can commute past each other). The `ifs` are logically unnecessary but seem to
+        # make this slightly faster.
+        if mop_qubits:
+            last_conflict = max(
+                last_conflict, *[qubit_indices.get(qubit, -1) for qubit in mop_qubits]
+            )
+        if mop_mkeys:
+            last_conflict = max(last_conflict, *[mkey_indices.get(key, -1) for key in mop_mkeys])
+            last_conflict = max(last_conflict, *[ckey_indices.get(key, -1) for key in mop_mkeys])
+        if mop_ckeys:
+            last_conflict = max(last_conflict, *[mkey_indices.get(key, -1) for key in mop_ckeys])
+
+    # The index of the moment to place this moment or operaton ("mop") into.
+    mop_index = last_conflict + 1
+
+    # Update our dicts with data from this `mop` placement. Note `mop_index` will always be greater
+    # than the existing value for all of these, by construction.
+    for qubit in mop_qubits:
+        qubit_indices[qubit] = mop_index
+    for key in mop_mkeys:
+        mkey_indices[key] = mop_index
+    for key in mop_ckeys:
+        ckey_indices[key] = mop_index
+
+    return mop_index
