@@ -31,9 +31,8 @@ def pytest_configure(config):
 
 
 def pytest_collection_modifyitems(config, items):
-    keywordexpr = config.option.keyword
     markexpr = config.option.markexpr
-    if keywordexpr or markexpr:
+    if markexpr:
         return  # let pytest handle this
 
     skip_slow_marker = pytest.mark.skip(reason='slow marker not selected')
