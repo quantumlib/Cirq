@@ -56,7 +56,7 @@ SKIP_NOTEBOOKS = [
 def require_packages_not_changed():
     """Verify notebook test does not change packages in the Python test environment.
 
-    Raise AssertionError if any of the pre-existing packages get removed or modified.
+    Raise AssertionError if the pre-existing set of Python packages changes in any way.
     """
     # TODO: remove this after deprecation of Python 3.7
     if sys.version_info < (3, 8, 0):
@@ -66,8 +66,7 @@ def require_packages_not_changed():
     packages_before = set((d.name, d.version) for d in importlib.metadata.distributions())
     yield
     packages_after = set((d.name, d.version) for d in importlib.metadata.distributions())
-    packages_changed = packages_before.difference(packages_after)
-    assert not packages_changed
+    assert packages_after == packages_before
 
 
 @pytest.fixture(scope='module')
