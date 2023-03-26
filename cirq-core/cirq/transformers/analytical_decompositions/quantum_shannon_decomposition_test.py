@@ -24,7 +24,7 @@ from scipy.stats import unitary_group
 import cirq
 
 
-@pytest.mark.parametrize('qsd_n_qubits', [_ for _ in range(1, 8)])
+@pytest.mark.parametrize('n_qubits', [_ for _ in range(1, 8)])
 def test_random_qsd_n_qubit(n_qubits):
     U = unitary_group.rvs(2**n_qubits)
     qubits = [cirq.NamedQubit(f'q{i}') for i in range(n_qubits)]
