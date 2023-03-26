@@ -26,7 +26,7 @@ import cirq
 def quantum_shannon_decomposition(qubits: list, U: np.ndarray, ops=None):
     """
     Returns a list of operations for an arbitrary n-qubit decomposition, preserving phase
-    
+
     The algorithm is described in Shende et al.:
     Synthesis of Quantum Logic Circuits. Tech. rep. 2006,
     https://arxiv.org/abs/quant-ph/0406176
