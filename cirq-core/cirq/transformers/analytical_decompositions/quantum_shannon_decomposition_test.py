@@ -13,36 +13,57 @@
 # limitations under the License.
 
 from cirq.transformers.analytical_decompositions.quantum_shannon_decomposition import (_multiplexed_cossin,
-                     _nth_gray,
-                     _msb_demuxer,
-                     _single_qubit_decomposition,
-                     quantum_shannon_decomposition)
+    _nth_gray,
+    _msb_demuxer,
+    _single_qubit_decomposition,
+    quantum_shannon_decomposition)
 
 import pytest
 import numpy as np
 from scipy.stats import unitary_group
 import cirq
 
-@pytest.mark.parametrize('qsd_n_qubits', [_ for _ in range(1,8)])
+
+@pytest.mark.parametrize('qsd_n_qubits', [_ for _ in range(1, 8)])
 def test_random_qsd_n_qubit(n_qubits):
     U = unitary_group.rvs(2**n_qubits)
     qubits = [cirq.NamedQubit(f'q{i}') for i in range(n_qubits)]
     circuit = cirq.Circuit()
-    operations = quantum_shannon_decomposition(qubits,U)
+    operations = quantum_shannon_decomposition(qubits, U)
     circuit.append(operations)
     assert cirq.approx_eq(U, circuit.unitary(), atol=1e-9)
     print(n_qubits)
-    
+
+
 def test_random_single_qubit_decomposition():
     U = unitary_group.rvs(2)
     qubit = cirq.NamedQubit(f'q0')
     circuit = cirq.Circuit()
-    operations = _single_qubit_decomposition(qubit, U,None)
+    operations = _single_qubit_decomposition(qubit, U, None)
     circuit.append(operations)
     assert cirq.approx_eq(U, circuit.unitary(), atol=1e-9)
 
-@pytest.mark.parametrize('gray code',
-        [(0,0),(1,1),(2,3),(3,2),(4,6),(5,7),(6,5),(7,4),(8,12),
-         (9,13),(10,15),(11,14),(12,10),(13,11),(14,9),(15,8)])
-def test_nth_gray(n,gray):
+
+@pytest.mark.parametrize(
+    'gray code',
+    [
+        (0, 0),
+        (1, 1),
+        (2, 3),
+        (3, 2),
+        (4, 6),
+        (5, 7),
+        (6, 5),
+        (7, 4),
+        (8, 12),
+        (9, 13),
+        (10, 15),
+        (11, 14),
+        (12, 10),
+        (13, 11),
+        (14, 9),
+        (15, 8),
+    ],
+)
+def test_nth_gray(n, gray):
     assert _nth_gray(n) == gray
