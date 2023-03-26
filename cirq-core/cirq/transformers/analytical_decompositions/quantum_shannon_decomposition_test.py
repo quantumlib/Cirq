@@ -45,7 +45,7 @@ def test_random_single_qubit_decomposition():
 
 
 @pytest.mark.parametrize(
-    'gray code',
+    'n, gray',
     [
         (0, 0),
         (1, 1),
