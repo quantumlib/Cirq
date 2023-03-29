@@ -1,0 +1,5 @@
+{
+  "cirq_type": "PostSelectionGate",
+  "qid_shape": [2],
+  "controls": [[0]]
+}
