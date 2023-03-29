@@ -29,6 +29,13 @@ def test_basic(controls, expected):
     assert np.allclose(sv, expected)
 
 
+def test_error():
+    q = cirq.LineQubit(0)
+    c = cirq.Circuit(cirq.PostSelectionGate(qid_shape=(2,), controls=[(1,)]).on(q))
+    with pytest.raises(ValueError, match='Waveform does not contain any post-selected values'):
+        _ = cirq.final_state_vector(c)
+
+
 @pytest.mark.parametrize(
     'controls, expected',
     [

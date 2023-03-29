@@ -27,16 +27,18 @@ if TYPE_CHECKING:
 class PostSelectionGate(raw_types.Gate):
     r"""An n-qudit gate simulating post-selection on a given control state or set of states.
 
-    This gate is only for simulation, and cannot be run on a real device.
+    This gate is only for simulation, and cannot be run on a real device as it violates the laws of
+    quantum mechanics.
     """
 
     def __init__(self, qid_shape: Sequence[int], controls: Iterable[Sequence[int]]):
-        r"""An n-qudit gate simulating post-selection.
+        r"""Creates an n-qudit gate simulating post-selection.
 
         Args:
             qid_shape: The shape of qubits this gate applies to.
             controls: The post-selection criteria. Only the dimensions of the waveform that match
-                this criteria will be allowed through.
+                this criteria will be allowed through. The waveform will be renormalized after
+                selection.
         """
         self._controls = tuple(tuple(c) for c in controls)
         self._qid_shape = tuple(qid_shape)
@@ -53,7 +55,10 @@ class PostSelectionGate(raw_types.Gate):
             bits = value.big_endian_digits_to_int(product, base=self._qid_shape)
             subspace_index = args.subspace_index(big_endian_bits_int=bits)
             args.available_buffer[subspace_index] += args.target_tensor[subspace_index]
-        args.available_buffer /= np.linalg.norm(args.available_buffer)
+        norm = np.linalg.norm(args.available_buffer)
+        if norm == 0:
+            raise ValueError('Waveform does not contain any post-selected values.')
+        args.available_buffer /= norm
         return args.available_buffer
 
     def _value_equality_values_(self) -> Any:
