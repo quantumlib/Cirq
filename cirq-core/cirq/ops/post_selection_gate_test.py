@@ -87,4 +87,4 @@ def test_qudits(dimension, controls, expected):
         cirq.PostSelectionGate(qid_shape=(dimension,), controls=controls).on(q),
     )
     sv = cirq.final_state_vector(c)
-    assert np.allclose(np.abs(sv), np.array(expected))
+    assert np.allclose(np.abs(sv), expected)
