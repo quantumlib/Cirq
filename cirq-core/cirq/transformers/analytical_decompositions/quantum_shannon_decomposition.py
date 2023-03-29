@@ -241,4 +241,3 @@ def _multiplexed_cossin(cossin_qubits: list, angles: list, ops=None, rot_func=ci
         ops.append(cirq.CNOT(control_qubits[select_qubit], main_qubit))
 
     return ops
-
