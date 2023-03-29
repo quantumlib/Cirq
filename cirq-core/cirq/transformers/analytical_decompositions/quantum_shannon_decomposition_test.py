@@ -12,11 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from cirq.transformers.analytical_decompositions.quantum_shannon_decomposition import (_multiplexed_cossin,
+from cirq.transformers.analytical_decompositions.quantum_shannon_decomposition import (
+    _multiplexed_cossin,
     _nth_gray,
     _msb_demuxer,
     _single_qubit_decomposition,
-    quantum_shannon_decomposition)
+    quantum_shannon_decomposition,
+)
 
 import pytest
 import numpy as np
