@@ -36,6 +36,11 @@ def test_error():
         _ = cirq.final_state_vector(c)
 
 
+def test_repr():
+    g = cirq.PostSelectionGate(qid_shape=(2,), controls=[(0,)])
+    assert repr(g) == 'cirq.PostSelectionGate(qid_shape=(2,), controls=((0,),))'
+
+
 @pytest.mark.parametrize(
     'controls, expected',
     [
