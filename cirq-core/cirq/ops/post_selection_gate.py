@@ -12,12 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Creates the gate instance for any number qubits diagonal gate.
-
-The gate is used to create a (2^n)x(2^n) matrix with the diagonal elements
-passed as a list.
-"""
-
 from typing import Any, Dict, Iterable, Sequence, Tuple, TYPE_CHECKING
 
 import numpy as np
