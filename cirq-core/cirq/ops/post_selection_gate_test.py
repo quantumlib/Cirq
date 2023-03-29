@@ -32,13 +32,28 @@ def test_basic(controls, expected):
 @pytest.mark.parametrize(
     'controls, expected',
     [
+        ([(0,)], [[1, 0], [0, 0]]),
+        ([(1,)], [[0, 0], [0, 1]]),
+        ([(0,), (1,)], [[0.5, 0.5], [0.5, 0.5]]),
+    ],
+)
+def test_density_matrix(controls, expected):
+    q = cirq.LineQubit(0)
+    c = cirq.Circuit(cirq.H(q), cirq.PostSelectionGate(qid_shape=(2,), controls=controls).on(q))
+    sv = cirq.final_density_matrix(c)
+    assert np.allclose(sv, expected)
+
+
+@pytest.mark.parametrize(
+    'controls, expected',
+    [
         ([(0, 0)], [[1, 0], [0, 0]]),
         ([(1, 1)], [[0, 0], [0, 1]]),
         ([(0, 0), (1, 0), (0, 1)], [[1, 0], [0, 0]]),
         ([(0, 0), (1, 0), (0, 1), (1, 1)], [[np.sqrt(0.5), 0], [0, np.sqrt(0.5)]]),
     ],
 )
-def test_multiple(controls, expected):
+def test_multiple_qubits(controls, expected):
     q0, q1 = cirq.LineQubit.range(2)
     c = cirq.Circuit(
         cirq.H(q0),
