@@ -34,7 +34,6 @@ def test_random_qsd_n_qubit(n_qubits):
     operations = quantum_shannon_decomposition(qubits, U)
     circuit.append(operations)
     assert cirq.approx_eq(U, circuit.unitary(), atol=1e-9)
-    print(n_qubits)
 
 
 def test_qsd_n_qubit_errors():
