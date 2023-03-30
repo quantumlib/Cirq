@@ -37,13 +37,51 @@ def test_random_qsd_n_qubit(n_qubits):
     print(n_qubits)
 
 
+def test_qsd_n_qubit_errors():
+    qubits = [cirq.NamedQubit(f'q{i}') for i in range(3)]
+    with pytest.raises(ValueError, match="shaped numpy array"):
+        quantum_shannon_decomposition(qubits, np.eye(9))
+    with pytest.raises(ValueError, match="is_unitary"):
+        quantum_shannon_decomposition(qubits, np.ones((8, 8)))
+
+
 def test_random_single_qubit_decomposition():
     U = unitary_group.rvs(2)
-    qubit = cirq.NamedQubit(f'q0')
+    qubit = cirq.NamedQubit('q0')
     circuit = cirq.Circuit()
     operations = _single_qubit_decomposition(qubit, U, None)
     circuit.append(operations)
     assert cirq.approx_eq(U, circuit.unitary(), atol=1e-9)
+
+
+def test_msb_demuxer():
+    U1 = unitary_group.rvs(4)
+    U2 = unitary_group.rvs(4)
+    U_full =  np.kron([[1, 0], [0, 0]], U1) + np.kron([[0, 0], [0, 1]], U2)
+    qubits = [cirq.NamedQubit(f'q{i}') for i in range(3)]
+    circuit = cirq.Circuit()
+    operations = _msb_demuxer(qubits, U1, U2)
+    circuit.append(operations)
+    assert cirq.approx_eq(U_full, circuit.unitary(), atol=1e-9)
+
+
+def test_multiplexed_cossin():
+    angle_1 = np.random.random_sample() * 2 * np.pi
+    angle_2 = np.random.random_sample() * 2 * np.pi
+    c1, s1 = np.cos(angle_1/2), np.sin(angle_1/2)
+    c2, s2 = np.cos(angle_2/2), np.sin(angle_2/2)
+    multiplexed_ry = [
+        [c1, 0, -s1, 0],
+        [0, c2, 0, -s2],
+        [s1, 0, c1, 0],
+        [0, s2, 0, c2],
+    ]
+    multiplexed_ry = np.array(multiplexed_ry)
+    qubits = [cirq.NamedQubit(f'q{i}') for i in range(2)]
+    circuit = cirq.Circuit()
+    operations = _multiplexed_cossin(qubits, [angle_1, angle_2])
+    circuit.append(operations)
+    assert cirq.approx_eq(multiplexed_ry, circuit.unitary(), atol=1e-9)
 
 
 @pytest.mark.parametrize(
