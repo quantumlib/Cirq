@@ -16,7 +16,6 @@
 """Utility methods for decomposing arbitrary n-qubit (2^n x 2^n) unitary."""
 
 from scipy.linalg import cossin
-from scipy.stats import unitary_group
 
 import numpy as np
 
@@ -67,7 +66,7 @@ def quantum_shannon_decomposition(qubits: list, U: np.ndarray, ops=None):
 
     if not cirq.is_unitary(U):  # Check that U is unitary
         raise ValueError(
-            f"Expected input matrix U to be unitary, \
+            "Expected input matrix U to be unitary, \
                 but it fails cirq.is_unitary check"
         )
 
