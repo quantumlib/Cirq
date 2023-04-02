@@ -52,10 +52,8 @@ class PostSelectionGate(raw_types.Gate):
 
     def _apply_unitary_(self, args: 'cirq.ApplyUnitaryArgs') -> np.ndarray:
         args.available_buffer[...] = 0
-        for product in self._subspaces:
-            bits = value.big_endian_digits_to_int(product, base=self._qid_shape)
-            subspace_index = args.subspace_index(big_endian_bits_int=bits)
-            args.available_buffer[subspace_index] += args.target_tensor[subspace_index]
+        for subspace in self._subspaces:
+            args.available_buffer[subspace] += args.target_tensor[subspace]
         norm = np.linalg.norm(args.available_buffer)
         if np.isclose(norm, 0):
             raise ValueError('Waveform does not contain any post-selected values.')
