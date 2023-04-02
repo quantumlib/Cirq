@@ -51,7 +51,7 @@ class PostSelectionGate(raw_types.Gate):
         return True
 
     def _apply_unitary_(self, args: 'cirq.ApplyUnitaryArgs') -> np.ndarray:
-        args.available_buffer[...] = 0
+        args.available_buffer.fill(0)
         for subspace in self._subspaces:
             args.available_buffer[subspace] += args.target_tensor[subspace]
         norm = np.linalg.norm(args.available_buffer)
