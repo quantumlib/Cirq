@@ -1,1 +1,1 @@
-cirq.PostSelectionGate(qid_shape=(2,), controls=((0,),))
+cirq.PostSelectionGate(qid_shape=(2,), subspaces=((0,),))

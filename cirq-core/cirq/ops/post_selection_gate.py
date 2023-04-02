@@ -25,22 +25,23 @@ if TYPE_CHECKING:
 
 @value.value_equality()
 class PostSelectionGate(raw_types.Gate):
-    r"""An n-qudit gate simulating post-selection on a given control state or set of states.
+    r"""A gate simulating post-selection from a given subspace or set of subspaces.
 
     This gate is only for simulation, and cannot be run on a real device as it violates the laws of
     quantum mechanics.
     """
 
-    def __init__(self, qid_shape: Sequence[int], controls: Iterable[Sequence[int]]):
-        r"""Creates an n-qudit gate simulating post-selection.
+    def __init__(self, qid_shape: Sequence[int], subspaces: Iterable[Sequence[int]]):
+        r"""Creates a gate simulating post-selection.
 
         Args:
             qid_shape: The shape of qubits this gate applies to.
-            controls: The post-selection criteria. Only the dimensions of the waveform that match
-                this criteria will be allowed through. The waveform will be renormalized after
-                selection.
+            subspaces: The post-selection subspace, provided as a set of index tuples. For example,
+                |01><01| + |22><22| on a set of 3D qudits would be passed in as [(0, 1), (2, 2)].
+                The waveform will be projected onto the subspace and renormalized. If the
+                projection onto the subspace is zero, a ValueError will be raised.
         """
-        self._controls = tuple(tuple(c) for c in controls)
+        self._subspaces = tuple(sorted(set(tuple(s) for s in subspaces)))
         self._qid_shape = tuple(qid_shape)
 
     def _qid_shape_(self) -> Tuple[int, ...]:
@@ -51,27 +52,26 @@ class PostSelectionGate(raw_types.Gate):
 
     def _apply_unitary_(self, args: 'cirq.ApplyUnitaryArgs') -> np.ndarray:
         args.available_buffer[...] = 0
-        for product in self._controls:
+        for product in self._subspaces:
             bits = value.big_endian_digits_to_int(product, base=self._qid_shape)
             subspace_index = args.subspace_index(big_endian_bits_int=bits)
             args.available_buffer[subspace_index] += args.target_tensor[subspace_index]
         norm = np.linalg.norm(args.available_buffer)
-        if norm == 0:
+        if np.isclose(norm, 0):
             raise ValueError('Waveform does not contain any post-selected values.')
         args.available_buffer /= norm
         return args.available_buffer
 
     def _value_equality_values_(self) -> Any:
-        return self._controls, self._qid_shape
+        return self._subspaces, self._qid_shape
 
     def _json_dict_(self) -> Dict[str, Any]:
-        return {'qid_shape': self._qid_shape, 'controls': self._controls}
+        return {'qid_shape': self._qid_shape, 'subspaces': self._subspaces}
 
     @classmethod
-    def _from_json_dict_(cls, qid_shape, controls, **kwargs):
-        return cls(controls=controls, qid_shape=qid_shape)
+    def _from_json_dict_(cls, qid_shape, subspaces, **kwargs):
+        return cls(subspaces=subspaces, qid_shape=qid_shape)
 
     def __repr__(self) -> str:
-        return (
-            f'cirq.PostSelectionGate(qid_shape={self._qid_shape}, controls={repr(self._controls)})'
-        )
+        subspaces = repr(self._subspaces)
+        return f'cirq.PostSelectionGate(qid_shape={self._qid_shape}, subspaces={subspaces})'
