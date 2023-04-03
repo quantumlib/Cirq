@@ -50,6 +50,10 @@ def quantum_shannon_decomposition(qubits: list, U: np.ndarray, ops=None):
     Returns:
         List of 2-qubit and 1-qubit operations from the set
            { CNOT, rz, ry, ZPowGate }
+
+    Raises:
+        ValueError: If the U matrix is not of shape (2^n,2^n)
+        ValueError: If the U matrix is non-unitary
     """
     if ops is None:
         ops = []  # Declare an empty list if no previous operations
