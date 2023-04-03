@@ -67,8 +67,8 @@ def test_msb_demuxer():
 def test_multiplexed_cossin():
     angle_1 = np.random.random_sample() * 2 * np.pi
     angle_2 = np.random.random_sample() * 2 * np.pi
-    c1, s1 = np.cos(angle_1/2), np.sin(angle_1/2)
-    c2, s2 = np.cos(angle_2/2), np.sin(angle_2/2)
+    c1, s1 = np.cos(angle_1), np.sin(angle_1)
+    c2, s2 = np.cos(angle_2), np.sin(angle_2)
     multiplexed_ry = [
         [c1, 0, -s1, 0],
         [0, c2, 0, -s2],
