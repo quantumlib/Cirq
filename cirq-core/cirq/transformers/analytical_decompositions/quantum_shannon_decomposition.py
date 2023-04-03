@@ -23,8 +23,7 @@ import cirq
 
 
 def quantum_shannon_decomposition(qubits: list, U: np.ndarray, ops=None):
-    """
-    Returns a list of operations for an arbitrary n-qubit decomposition, preserving phase
+    """Returns a list of operations for an arbitrary n-qubit decomposition, preserving phase
 
     The algorithm is described in Shende et al.:
     Synthesis of Quantum Logic Circuits. Tech. rep. 2006,
@@ -51,9 +50,7 @@ def quantum_shannon_decomposition(qubits: list, U: np.ndarray, ops=None):
     Returns:
         List of 2-qubit and 1-qubit operations from the set
            { CNOT, rz, ry, ZPowGate }
-
     """
-
     if ops is None:
         ops = []  # Declare an empty list if no previous operations
 
@@ -95,8 +92,7 @@ def quantum_shannon_decomposition(qubits: list, U: np.ndarray, ops=None):
 
 
 def _single_qubit_decomposition(qubit, U, ops=None):
-    """
-    Decomposes single-qubit gate, and returns list of operations, keeping phase invariant.
+    """Decomposes single-qubit gate, and returns list of operations, keeping phase invariant.
     Intended to also append these operations to existing operation list
 
     Args:
@@ -108,9 +104,7 @@ def _single_qubit_decomposition(qubit, U, ops=None):
 
     Returns:
         Initial operations list with new 3 operations (rz,ry,ZPowGate) added
-
     """
-
     if ops is None:
         ops = []  # Declare an empty list if no previous operations
 
@@ -130,8 +124,7 @@ def _single_qubit_decomposition(qubit, U, ops=None):
 
 
 def _msb_demuxer(demux_qubits: list, u1: np.ndarray, u2: np.ndarray, ops=None):
-    """
-    Demultiplexes a unitary matrix that is multiplexed in in its most-significant-qubit
+    """Demultiplexes a unitary matrix that is multiplexed in in its most-significant-qubit
     Decomposition structure:
       [ u1 , 0  ]  =  [ V , 0 ][ D , 0  ][ W , 0 ]
       [ 0  , u2 ]     [ 0 , V ][ 0 , D* ][ 0 , W ]
@@ -154,9 +147,7 @@ def _msb_demuxer(demux_qubits: list, u1: np.ndarray, u2: np.ndarray, ops=None):
         3. quantum_shannon_decomposition
 
     Returns: List of 2-qubit and 1-qubit operations
-
     """
-
     # Perform a diagonalization to find values
     U = u1 @ u2.T.conjugate()
     dsquared, V = np.linalg.eig(U)
@@ -189,8 +180,7 @@ def _nth_gray(n):
 
 
 def _multiplexed_cossin(cossin_qubits: list, angles: list, ops=None, rot_func=cirq.ry):
-    """
-    Performs a multiplexed rotation over all qubits in this unitary matrix
+    """Performs a multiplexed rotation over all qubits in this unitary matrix
     Uses ry and rz multiplexing for quantum shannon decomposition
 
     Args:
@@ -206,7 +196,6 @@ def _multiplexed_cossin(cossin_qubits: list, angles: list, ops=None, rot_func=ci
         No major calls
 
     Returns: List of 2-qubit and 1-qubit operations
-
     """
     # Most significant qubit is main qubit with rotation function applied
     main_qubit = cossin_qubits[0]
