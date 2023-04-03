@@ -775,9 +775,9 @@ def test_sparse_simulator_repr():
     # No equality so cannot use cirq.testing.assert_equivalent_repr
     assert (
         repr(step) == "cirq.SparseSimulatorStep(sim_state=cirq.StateVectorSimulationState("
-        "initial_state=np.array([[0j, (1+0j)], [0j, 0j]], dtype=np.complex64), "
+        "initial_state=np.array([[0j, (1+0j)], [0j, 0j]], dtype=np.dtype('complex64')), "
         "qubits=(cirq.LineQubit(0), cirq.LineQubit(1)), "
-        "classical_data=cirq.ClassicalDataDictionaryStore()), dtype=np.complex64)"
+        "classical_data=cirq.ClassicalDataDictionaryStore()), dtype=np.dtype('complex64'))"
     )
 
 
