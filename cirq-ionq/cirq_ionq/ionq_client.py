@@ -96,7 +96,8 @@ class _IonQClient:
         assert max_retry_seconds >= 0, 'Negative retry not possible without time machine.'
 
         self.url = f'{url.scheme}://{url.netloc}/{api_version}'
-        self.headers = {'Authorization': f'apiKey {api_key}', 'Content-Type': 'application/json'}
+        self.headers = {'Authorization': f'apiKey {api_key}',
+                        'Content-Type': 'application/json'}
         self.default_target = default_target
         self.max_retry_seconds = max_retry_seconds
         self.verbose = verbose
@@ -107,6 +108,7 @@ class _IonQClient:
         repetitions: Optional[int] = None,
         target: Optional[str] = None,
         name: Optional[str] = None,
+        aggregation: Optional[str] = None,
     ) -> dict:
         """Create a job.
 
@@ -119,6 +121,7 @@ class _IonQClient:
             target: If supplied the target to run on. Supports one of `qpu` or `simulator`. If not
                 set, uses `default_target`.
             name: An optional name of the job. Different than the `job_id` of the job.
+            aggregation: If True, enable error mitigation on the job. (symmetrization)
 
         Returns:
             The json body of the response as a dict. This does not contain populated information
@@ -143,6 +146,10 @@ class _IonQClient:
         json['shots'] = str(repetitions)
         # API does not return number of shots so pass this through as metadata.
         json['metadata']['shots'] = str(repetitions)
+
+        # Add aggregation settings
+        if aggregation:
+            json['metadata']['aggregation'] = aggregation
 
         def request():
             return requests.post(f'{self.url}/jobs', json=json, headers=self.headers)
@@ -332,7 +339,8 @@ class _IonQClient:
                 # Retry these.
                 message = f'RequestException of type {type(e)}.'
             if delay_seconds > self.max_retry_seconds:
-                raise TimeoutError(f'Reached maximum number of retries. Last error: {message}')
+                raise TimeoutError(
+                    f'Reached maximum number of retries. Last error: {message}')
             if self.verbose:
                 print(message, file=sys.stderr)
                 print(f'Waiting {delay_seconds} seconds before retrying.')
