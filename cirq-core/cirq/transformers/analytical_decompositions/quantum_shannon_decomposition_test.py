@@ -56,7 +56,7 @@ def test_random_single_qubit_decomposition():
 def test_msb_demuxer():
     U1 = unitary_group.rvs(4)
     U2 = unitary_group.rvs(4)
-    U_full =  np.kron([[1, 0], [0, 0]], U1) + np.kron([[0, 0], [0, 1]], U2)
+    U_full = np.kron([[1, 0], [0, 0]], U1) + np.kron([[0, 0], [0, 1]], U2)
     qubits = [cirq.NamedQubit(f'q{i}') for i in range(3)]
     circuit = cirq.Circuit()
     operations = _msb_demuxer(qubits, U1, U2)
@@ -69,12 +69,7 @@ def test_multiplexed_cossin():
     angle_2 = np.random.random_sample() * 2 * np.pi
     c1, s1 = np.cos(angle_1), np.sin(angle_1)
     c2, s2 = np.cos(angle_2), np.sin(angle_2)
-    multiplexed_ry = [
-        [c1, 0, -s1, 0],
-        [0, c2, 0, -s2],
-        [s1, 0, c1, 0],
-        [0, s2, 0, c2],
-    ]
+    multiplexed_ry = [[c1, 0, -s1, 0], [0, c2, 0, -s2], [s1, 0, c1, 0], [0, s2, 0, c2]]
     multiplexed_ry = np.array(multiplexed_ry)
     qubits = [cirq.NamedQubit(f'q{i}') for i in range(2)]
     circuit = cirq.Circuit()
