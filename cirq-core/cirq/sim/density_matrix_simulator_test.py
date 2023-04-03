@@ -950,10 +950,13 @@ def test_density_matrix_step_result_repr():
                 )
             )
         )
-        == "cirq.DensityMatrixStepResult(sim_state=cirq.DensityMatrixSimulationState("
-        "initial_state=np.array([[(0.5+0j), (0.5+0j)], [(0.5+0j), (0.5+0j)]], dtype=np.complex64), "
+        == "cirq.DensityMatrixStepResult("
+        "sim_state=cirq.DensityMatrixSimulationState("
+        "initial_state=np.array([[(0.5+0j), (0.5+0j)], [(0.5+0j), (0.5+0j)]], "
+        "dtype=np.dtype('complex64')), "
         "qubits=(cirq.LineQubit(0),), "
-        "classical_data=cirq.ClassicalDataDictionaryStore()), dtype=np.complex64)"
+        "classical_data=cirq.ClassicalDataDictionaryStore()), "
+        "dtype=np.dtype('complex64'))"
     )
 
 
@@ -1034,9 +1037,10 @@ def test_density_matrix_trial_result_repr():
     expected_repr = (
         "cirq.DensityMatrixTrialResult("
         "params=cirq.ParamResolver({'s': 1}), "
-        "measurements={'m': np.array([[1]], dtype=np.int32)}, "
+        "measurements={'m': np.array([[1]], dtype=np.dtype('int32'))}, "
         "final_simulator_state=cirq.DensityMatrixSimulationState("
-        "initial_state=np.array([[(0.5+0j), (0.5+0j)], [(0.5+0j), (0.5+0j)]], dtype=np.complex64), "
+        "initial_state=np.array([[(0.5+0j), (0.5+0j)], [(0.5+0j), (0.5+0j)]], "
+        "dtype=np.dtype('complex64')), "
         "qubits=(cirq.LineQubit(0),), "
         "classical_data=cirq.ClassicalDataDictionaryStore()))"
     )
