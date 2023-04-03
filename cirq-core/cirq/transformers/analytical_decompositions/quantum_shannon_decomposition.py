@@ -33,7 +33,7 @@ def quantum_shannon_decomposition(qubits: list, U: np.ndarray, ops=None):
     Args:
         qubits: List of qubits in order of significance
         U: Numpy array for unitary matrix representing gate to be decomposed
-        ops: List of new existing operations on which to append new operations, whenever 
+        ops: List of new existing operations on which to append new operations, whenever
                 a recusive call is made
              If 'None' is given, a new list is instantiated
 
@@ -102,7 +102,7 @@ def _single_qubit_decomposition(qubit, U, ops=None):
     Args:
         qubit: Qubit on which to apply operations
         U: (2 x 2) Numpy array for unitary representing 1-qubit gate to be decomposed
-        ops: List of new existing operations on which to append new operations, whenever 
+        ops: List of new existing operations on which to append new operations, whenever
                 a recusive call is made
              If 'None' is given, a new list is instantiated
 
@@ -144,7 +144,7 @@ def _msb_demuxer(demux_qubits: list, u1: np.ndarray, u2: np.ndarray, ops=None):
         demux_qubits: Subset of total qubits involved in this unitary gate
         u1: Upper-left quadrant of total unitary to be decomposed (see diagram)
         u2: Lower-right quadrant of total unitary to be decomposed (see diagram)
-        ops: List of new existing operations on which to append new operations, whenever 
+        ops: List of new existing operations on which to append new operations, whenever
                 a recusive call is made
              If 'None' is given, a new list is instantiated
 
@@ -196,10 +196,10 @@ def _multiplexed_cossin(cossin_qubits: list, angles: list, ops=None, rot_func=ci
     Args:
         cossin_qubits: Subset of total qubits involved in this unitary gate
         angles: List of angles to be multiplexed over for the given type of rotation
-        ops: List of new existing operations on which to append new operations, whenever 
+        ops: List of new existing operations on which to append new operations, whenever
                 a recusive call is made
              If 'None' is given, a new list is instantiated
-        rot_func: Rotation function used for this multiplexing implementation 
+        rot_func: Rotation function used for this multiplexing implementation
                     (cirq.ry or cirq.rz)
 
     Calls:
@@ -218,11 +218,11 @@ def _multiplexed_cossin(cossin_qubits: list, angles: list, ops=None, rot_func=ci
         ops = []  # Declare an empty list if no previous operations
 
     for j in range(len(angles)):
-        # The rotation includes a factor of (-1) for each bit in the Gray Code 
+        # The rotation includes a factor of (-1) for each bit in the Gray Code
         #   if the position of that bit is also 1
-        # The number of factors of -1 is counted using the 1s in the 
-        #   binary representation of the (i & j)
-        # Here, i gives the index for the angle, and 
+        # The number of factors of -1 is counted using the 1s in the
+        #   binary representation of the (gray(j) & i)
+        # Here, i gives the index for the angle, and
         #   j is the iteration of the decomposition
         rotation = sum(
             -angle if bin(_nth_gray(j) & i).count('1') % 2 else angle
@@ -233,7 +233,7 @@ def _multiplexed_cossin(cossin_qubits: list, angles: list, ops=None, rot_func=ci
         # This is due to the halving in the decomposition applied recursively
         rotation = rotation * 2 / len(angles)
 
-        # The XOR of the this gray code with the next will give the 1 for the bit 
+        # The XOR of the this gray code with the next will give the 1 for the bit
         #   corresponding to the CNOT select, else 0
         select_string = _nth_gray(j) ^ _nth_gray(j + 1)
 
@@ -241,7 +241,7 @@ def _multiplexed_cossin(cossin_qubits: list, angles: list, ops=None, rot_func=ci
         select_qubit = next(i for i in range(len(angles)) if (select_string >> i & 1))
 
         # Negate the value, since we must index starting at most significant qubit
-        # Also the final value will overflow, and it should be the MSB, 
+        # Also the final value will overflow, and it should be the MSB,
         #   so introduce max function
         select_qubit = max(-select_qubit - 1, -len(control_qubits))
 
