@@ -120,7 +120,10 @@ def test_dataclass_repr_numpy():
             return dataclass_repr(self, namespace='cirq.testing')
 
     tc = TestClass2(np.ones(3))
-    assert repr(tc) == "cirq.testing.TestClass2(x=np.array([1.0, 1.0, 1.0], dtype=np.float64))"
+    assert (
+        repr(tc)
+        == "cirq.testing.TestClass2(x=np.array([1.0, 1.0, 1.0], dtype=np.dtype('float64')))"
+    )
 
 
 def test_proper_eq():
