@@ -65,6 +65,32 @@ def test_same_key_instances_order():
   results = run(circuit = circuit, param_resolver=None, repetitions = 1 )
   assert results == expected_results
 
+def test_repetitions():
+  q0, q1 = cirq.LineQubit.range(2)
+  circuit  = cirq.Circuit()
+  circuit =  cirq.Circuit(cirq.measure(cirq.LineQubit(q0), key='key'))
+  expected_results = {'key': np.array[[[0]], [[0]], [[0]], [[0]], [[0]], [[0]], [[0]], [[0]], [[0]], [[0]]]}
+  results = run(circuit = circuit, param_resolver=None, repetitions = 1 )
+  assert results == expected_results
+
+def test_multiple_gates():
+  q0, q1 = cirq.LineQubit.range(2)
+  circuit  = cirq.Circuit()
+  circuit =  cirq.Circuit(cirq.X(q0), cirq.CNOT(q0, q1), cirq.CNOT(q0, q1), cirq.CNOT(q0, q1) cirq.measure(cirq.LineQubit(q0, q1), key='key'))
+  expected_results = {'key': np.array[[[1,0]]]}
+  results = run(circuit = circuit, param_resolver=None, repetitions = 1 )
+  assert results == expected_results
+
+def test_multiple_gates_order():
+  q0, q1 = cirq.LineQubit.range(2)
+  circuit  = cirq.Circuit()
+  circuit =  cirq.Circuit(cirq.X(q0), cirq.CNOT(q0, q1), cirq.CNOT(q0, q1) cirq.measure(cirq.LineQubit(q0, q1), key='key'))
+  expected_results = {'key': np.array[[[1,1]]]}
+  results = run(circuit = circuit, param_resolver=None, repetitions = 1 )
+  assert results == expected_results
+
+
+
 
         
     
