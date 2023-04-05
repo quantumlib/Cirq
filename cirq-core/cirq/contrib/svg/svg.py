@@ -23,6 +23,10 @@ def fixup_text(text: str):
     if '[cirq.VirtualTag()]' in text:
         # https://github.com/quantumlib/Cirq/issues/2905
         return text.replace('[cirq.VirtualTag()]', '')
+    if '<' in text:
+        return text.replace('<', '&lt;')
+    if '>' in text:
+        return text.replace('>', '&gt;')
     return text
 
 
