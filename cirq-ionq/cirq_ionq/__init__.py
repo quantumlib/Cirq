@@ -50,6 +50,7 @@ minimum_cirq_version = "0.13.1"
 if version.parse(cirq.__version__) <= version.parse(minimum_cirq_version):
     import warnings
     warnings.warn(
-        f"Your Cirq version is outdated. It is recommended to update Cirq to a version greater than {minimum_cirq_version}.",
-        UserWarning
+        f"""Your Cirq version is outdated.
+        It is recommended to update Cirq to a version greater than {minimum_cirq_version}.""",
+        UserWarning,
     )
