@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from packaging import version
+import cirq
 from cirq_ionq._version import __version__
 
 from cirq_ionq.calibration import Calibration
@@ -42,3 +44,12 @@ from cirq.protocols.json_serialization import _register_resolver
 from cirq_ionq.json_resolver_cache import _class_resolver_dictionary
 
 _register_resolver(_class_resolver_dictionary)
+
+minimum_cirq_version = "0.13.1"
+
+if version.parse(cirq.__version__) <= version.parse(minimum_cirq_version):
+    import warnings
+    warnings.warn(
+        f"Your Cirq version is outdated. It is recommended to update Cirq to a version greater than {minimum_cirq_version}.",
+        UserWarning
+    )
