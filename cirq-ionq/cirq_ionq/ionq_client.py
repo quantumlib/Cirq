@@ -108,7 +108,7 @@ class _IonQClient:
         repetitions: Optional[int] = None,
         target: Optional[str] = None,
         name: Optional[str] = None,
-        aggregation: Optional[str] = None,
+        error_mitigation: Optional[str] = None,
     ) -> dict:
         """Create a job.
 
@@ -147,9 +147,9 @@ class _IonQClient:
         # API does not return number of shots so pass this through as metadata.
         json['metadata']['shots'] = str(repetitions)
 
-        # Add aggregation settings
-        if aggregation:
-            json['metadata']['aggregation'] = aggregation
+        # Add error mitigation settings
+        if error_mitigation:
+            json['error_mitigation'] = {error_mitigation: True}
 
         def request():
             return requests.post(f'{self.url}/jobs', json=json, headers=self.headers)
