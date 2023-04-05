@@ -69,7 +69,7 @@ def test_gate_with_less_greater_str():
 
     circuit = cirq.Circuit(CustomGate().on(*cirq.LineQubit.range(4)))
     svg = circuit_to_svg(circuit)
-    import IPython.display
+    import IPython.display  # type: ignore
 
     _ = IPython.display.SVG(svg)
     assert '&lt;a' in svg
