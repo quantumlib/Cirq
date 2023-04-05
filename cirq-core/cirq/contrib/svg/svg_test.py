@@ -57,3 +57,22 @@ def test_empty_moments():
     svg_2 = circuit_to_svg(cirq.Circuit(cirq.Moment()))
     assert '<svg' in svg_2
     assert '</svg>' in svg_2
+
+
+def test_gate_with_less_greater_str():
+    class CustomGate(cirq.Gate):
+        def _num_qubits_(self) -> int:
+            return 4
+
+        def _circuit_diagram_info_(self, _) -> cirq.CircuitDiagramInfo:
+            return cirq.CircuitDiagramInfo(wire_symbols=['<a', '<=b', '>c', '>=d'])
+
+    circuit = cirq.Circuit(CustomGate().on(*cirq.LineQubit.range(4)))
+    svg = circuit_to_svg(circuit)
+    import IPython.display
+
+    _ = IPython.display.SVG(svg)
+    assert '&lt;a' in svg
+    assert '&lt;=b' in svg
+    assert '&gt;c' in svg
+    assert '&gt;=d' in svg
