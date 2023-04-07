@@ -21,6 +21,7 @@ def test_svg():
             cirq.MatrixGate(np.eye(2)).on(a),
         )
     )
+    assert '?' in svg_text
     assert '<svg' in svg_text
     assert '</svg>' in svg_text
 
