@@ -63,7 +63,14 @@ def test_empty_moments():
 
 @pytest.mark.parametrize(
     'symbol,svg_symbol',
-    [('<a', '&lt;a'), ('<=b', '&lt;=b'), ('>c', '&gt;c'), ('>=d', '&gt;=d'), ('>e<', '&gt;e&lt;')],
+    [
+        ('<a', '&lt;a'),
+        ('<=b', '&lt;=b'),
+        ('>c', '&gt;c'),
+        ('>=d', '&gt;=d'),
+        ('>e<', '&gt;e&lt;'),
+        ('A[<virtual>]B[cirq.VirtualTag()]C>D<E', 'ABC&gt;D&lt;E'),
+    ],
 )
 def test_gate_with_less_greater_str(symbol, svg_symbol):
     class CustomGate(cirq.Gate):
