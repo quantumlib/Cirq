@@ -16,13 +16,9 @@ def fixup_text(text: str):
         # https://github.com/quantumlib/Cirq/issues/4499
         # TODO: Visualize Custom MatrixGate
         return '?'
-    if '[<virtual>]' in text:
-        # https://github.com/quantumlib/Cirq/issues/2905
-        # TODO: escape angle brackets when you actually want to display tags
-        return text.replace('[<virtual>]', '')  # coverage: ignore
-    if '[cirq.VirtualTag()]' in text:
-        # https://github.com/quantumlib/Cirq/issues/2905
-        return text.replace('[cirq.VirtualTag()]', '')
+    # https://github.com/quantumlib/Cirq/issues/2905
+    text = text.replace('[<virtual>]', '')
+    text = text.replace('[cirq.VirtualTag()]', '')
     text = text.replace('<', '&lt;').replace('>', '&gt;')
     return text
 
