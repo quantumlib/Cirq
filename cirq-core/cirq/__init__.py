@@ -435,6 +435,7 @@ from cirq.qis import (
 
 from cirq.sim import (
     CIRCUIT_LIKE,
+    ClassicalSimulator,
     CliffordSimulator,
     CliffordState,
     CliffordSimulatorStepResult,
@@ -675,3 +676,5 @@ _register_resolver(_class_resolver_dictionary)
 from cirq import contrib
 
 # pylint: enable=wrong-import-position
+
+from cirq.sim import ClassicalSimulator
