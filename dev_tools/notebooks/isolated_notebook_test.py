@@ -155,7 +155,7 @@ def _partitioned_test_cases(notebooks):
     return [(f"partition-{i%n_partitions}", notebook) for i, notebook in enumerate(notebooks)]
 
 
-def _substitute_and_run_notebook(notebook_path, cloned_env):
+def _rewrite_and_run_notebook(notebook_path, cloned_env):
     notebook_file = os.path.basename(notebook_path)
     notebook_rel_dir = os.path.dirname(os.path.relpath(notebook_path, "."))
     out_path = f"out/{notebook_rel_dir}/{notebook_file[:-6]}.out.ipynb"
@@ -214,7 +214,7 @@ def test_changed_notebooks_against_released_cirq(partition, notebook_path, clone
     regular expression, it is considered best practice to not use complicated regular expressions.
     Lines in this file that do not have `->` are ignored.
     """
-    _substitute_and_run_notebook(notebook_path, cloned_env)
+    _rewrite_and_run_notebook(notebook_path, cloned_env)
 
 
 @pytest.mark.weekly
@@ -223,8 +223,12 @@ def test_changed_notebooks_against_released_cirq(partition, notebook_path, clone
     _partitioned_test_cases(filter_notebooks(list_all_notebooks(), SKIP_NOTEBOOKS)),
 )
 def test_all_notebooks_against_released_cirq(partition, notebook_path, cloned_env):
-    """Tests all notebooks in isolated virtual environments."""
-    _substitute_and_run_notebook(notebook_path, cloned_env)
+    """Tests all notebooks in isolated virtual environments.
+
+    See `test_changed_notebooks_against_released_cirq` for more details on
+    notebooks execution.
+    """
+    _rewrite_and_run_notebook(notebook_path, cloned_env)
 
 
 @pytest.mark.parametrize("notebook_path", NOTEBOOKS_DEPENDING_ON_UNRELEASED_FEATURES)

@@ -3,7 +3,9 @@ name: Continuous Integration - Weekly
 on:
   schedule:
     # Checks out master by default.
-    - cron: '0 0 * * 0'
+    # TODO (#6037) - replace with weekly cadence after verification
+    - cron: '0 0 * * *'
+    # - cron: '0 0 * * 0'
 
 concurrency:
   group: ${{ github.workflow }}
