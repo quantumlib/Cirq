@@ -14,10 +14,10 @@
 
 # ========================== ISOLATED NOTEBOOK TESTS ============================================
 #
-# In these tests are only changed notebooks are tested. It is assumed that notebooks install cirq
-# conditionally if they can't import cirq. This installation path is the main focus and it is
-# exercised in an isolated virtual environment for each notebook. This is also the path that is
-# tested in the devsite workflows, these tests meant to provide earlier feedback.
+# It is assumed that notebooks install cirq conditionally if they can't import cirq. This
+# installation path is the main focus and it is exercised in an isolated virtual environment for
+# each notebook. This is also the path that is tested in the devsite workflows, these tests meant
+# to provide earlier feedback.
 #
 # In case the dev environment changes or this particular file changes, all notebooks are executed!
 # This can take a long time and even lead to timeout on Github Actions, hence partitioning of the
@@ -155,23 +155,7 @@ def _partitioned_test_cases(notebooks):
     return [(f"partition-{i%n_partitions}", notebook) for i, notebook in enumerate(notebooks)]
 
 
-@pytest.mark.slow
-@pytest.mark.parametrize(
-    "partition, notebook_path",
-    _partitioned_test_cases(filter_notebooks(_list_changed_notebooks(), SKIP_NOTEBOOKS)),
-)
-def test_notebooks_against_released_cirq(partition, notebook_path, cloned_env):
-    """Tests the notebooks in isolated virtual environments.
-
-    In order to speed up the execution of these tests an auxiliary file may be supplied which
-    performs substitutions on the notebook to make it faster.
-
-    Specifically for a notebook file notebook.ipynb, one can supply a file notebook.tst which
-    contains the substitutes.  The substitutions are provide in the form `pattern->replacement`
-    where the pattern is what is matched and replaced. While the pattern is compiled as a
-    regular expression, it is considered best practice to not use complicated regular expressions.
-    Lines in this file that do not have `->` are ignored.
-    """
+def _rewrite_and_run_notebook(notebook_path, cloned_env):
     notebook_file = os.path.basename(notebook_path)
     notebook_rel_dir = os.path.dirname(os.path.relpath(notebook_path, "."))
     out_path = f"out/{notebook_rel_dir}/{notebook_file[:-6]}.out.ipynb"
@@ -211,6 +195,40 @@ papermill {rewritten_notebook_path} {os.getcwd()}/{out_path}"""
             f"dev_tools/notebooks/isolated_notebook_test.py."
         )
     os.remove(rewritten_notebook_path)
+
+
+@pytest.mark.slow
+@pytest.mark.parametrize(
+    "partition, notebook_path",
+    _partitioned_test_cases(filter_notebooks(_list_changed_notebooks(), SKIP_NOTEBOOKS)),
+)
+def test_changed_notebooks_against_released_cirq(partition, notebook_path, cloned_env):
+    """Tests changed notebooks in isolated virtual environments.
+
+    In order to speed up the execution of these tests an auxiliary file may be supplied which
+    performs substitutions on the notebook to make it faster.
+
+    Specifically for a notebook file notebook.ipynb, one can supply a file notebook.tst which
+    contains the substitutes.  The substitutions are provide in the form `pattern->replacement`
+    where the pattern is what is matched and replaced. While the pattern is compiled as a
+    regular expression, it is considered best practice to not use complicated regular expressions.
+    Lines in this file that do not have `->` are ignored.
+    """
+    _rewrite_and_run_notebook(notebook_path, cloned_env)
+
+
+@pytest.mark.weekly
+@pytest.mark.parametrize(
+    "partition, notebook_path",
+    _partitioned_test_cases(filter_notebooks(list_all_notebooks(), SKIP_NOTEBOOKS)),
+)
+def test_all_notebooks_against_released_cirq(partition, notebook_path, cloned_env):
+    """Tests all notebooks in isolated virtual environments.
+
+    See `test_changed_notebooks_against_released_cirq` for more details on
+    notebooks execution.
+    """
+    _rewrite_and_run_notebook(notebook_path, cloned_env)
 
 
 @pytest.mark.parametrize("notebook_path", NOTEBOOKS_DEPENDING_ON_UNRELEASED_FEATURES)

@@ -28,6 +28,7 @@ from dev_tools.env_tools import create_virtual_env
 
 def pytest_configure(config):
     config.addinivalue_line("markers", "slow: mark tests as slow")
+    config.addinivalue_line("markers", "weekly: mark tests as run only by weekly automation")
 
 
 def pytest_collection_modifyitems(config, items):
@@ -39,6 +40,11 @@ def pytest_collection_modifyitems(config, items):
     for item in items:
         if 'slow' in item.keywords:
             item.add_marker(skip_slow_marker)
+
+    skip_weekly_marker = pytest.mark.skip(reason='only run by weekly automation')
+    for item in items:
+        if 'weekly' in item.keywords:
+            item.add_marker(skip_weekly_marker)
 
 
 @pytest.fixture(scope="session")
