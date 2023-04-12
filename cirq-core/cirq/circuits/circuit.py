@@ -47,6 +47,7 @@ from typing import (
     TypeVar,
     Union,
 )
+from typing_extensions import Self
 
 import networkx
 import numpy as np
@@ -236,15 +237,15 @@ class AbstractCircuit(abc.ABC):
         pass
 
     @overload
-    def __getitem__(self: CIRCUIT_TYPE, key: slice) -> CIRCUIT_TYPE:
+    def __getitem__(self, key: slice) -> Self:
         pass
 
     @overload
-    def __getitem__(self: CIRCUIT_TYPE, key: Tuple[slice, 'cirq.Qid']) -> CIRCUIT_TYPE:
+    def __getitem__(self, key: Tuple[slice, 'cirq.Qid']) -> Self:
         pass
 
     @overload
-    def __getitem__(self: CIRCUIT_TYPE, key: Tuple[slice, Iterable['cirq.Qid']]) -> CIRCUIT_TYPE:
+    def __getitem__(self, key: Tuple[slice, Iterable['cirq.Qid']]) -> Self:
         pass
 
     def __getitem__(self, key):
@@ -913,9 +914,7 @@ class AbstractCircuit(abc.ABC):
         """
         return (op for moment in self for op in moment.operations)
 
-    def map_operations(
-        self: CIRCUIT_TYPE, func: Callable[['cirq.Operation'], 'cirq.OP_TREE']
-    ) -> CIRCUIT_TYPE:
+    def map_operations(self, func: Callable[['cirq.Operation'], 'cirq.OP_TREE']) -> Self:
         """Applies the given function to all operations in this circuit.
 
         Args:
@@ -1287,9 +1286,7 @@ class AbstractCircuit(abc.ABC):
     def _parameter_names_(self) -> AbstractSet[str]:
         return {name for op in self.all_operations() for name in protocols.parameter_names(op)}
 
-    def _resolve_parameters_(
-        self: CIRCUIT_TYPE, resolver: 'cirq.ParamResolver', recursive: bool
-    ) -> CIRCUIT_TYPE:
+    def _resolve_parameters_(self, resolver: 'cirq.ParamResolver', recursive: bool) -> Self:
         changed = False
         resolved_moments: List['cirq.Moment'] = []
         for moment in self:
@@ -1540,7 +1537,7 @@ class AbstractCircuit(abc.ABC):
                 uf.union(*op.qubits)
         return sorted([qs for qs in uf.to_sets()], key=min)
 
-    def factorize(self: CIRCUIT_TYPE) -> Iterable[CIRCUIT_TYPE]:
+    def factorize(self) -> Iterable[Self]:
         """Factorize circuit into a sequence of independent circuits (factors).
 
         Factorization is possible when the circuit's qubits can be divided

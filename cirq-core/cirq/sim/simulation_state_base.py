@@ -27,6 +27,7 @@ from typing import (
     TypeVar,
     Union,
 )
+from typing_extensions import Self
 
 import numpy as np
 
@@ -37,7 +38,6 @@ if TYPE_CHECKING:
     import cirq
 
 
-TSelfTarget = TypeVar('TSelfTarget', bound='SimulationStateBase')
 TSimulationState = TypeVar('TSimulationState', bound='cirq.SimulationState')
 
 
@@ -98,7 +98,7 @@ class SimulationStateBase(Generic[TSimulationState], metaclass=abc.ABCMeta):
         protocols.act_on(op, self)
 
     @abc.abstractmethod
-    def copy(self: TSelfTarget, deep_copy_buffers: bool = True) -> TSelfTarget:
+    def copy(self, deep_copy_buffers: bool = True) -> Self:
         """Creates a copy of the object.
 
         Args:
