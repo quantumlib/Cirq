@@ -18,19 +18,19 @@ from typing import (
     Any,
     Callable,
     Dict,
+    Generic,
     ItemsView,
     Iterable,
     Iterator,
     KeysView,
     Mapping,
     MutableMapping,
+    Optional,
     overload,
     Tuple,
     TypeVar,
     Union,
     ValuesView,
-    Generic,
-    Optional,
 )
 
 Scalar = Union[complex, float, numbers.Complex]
@@ -94,7 +94,7 @@ class LinearDict(Generic[TVector], MutableMapping[TVector, Scalar]):
     def __init__(
         self,
         terms: Optional[Mapping[TVector, Scalar]] = None,
-        validator: Callable[[TVector], bool] = None,
+        validator: Optional[Callable[[TVector], bool]] = None,
     ) -> None:
         """Initializes linear combination from a collection of terms.
 

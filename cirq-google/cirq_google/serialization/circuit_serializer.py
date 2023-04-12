@@ -591,8 +591,8 @@ class CircuitSerializer(serializer.Serializer):
         operation_proto: v2.program_pb2.CircuitOperation,
         *,
         arg_function_language: str = '',
-        constants: Optional[List[v2.program_pb2.Constant]] = None,
-        deserialized_constants: Optional[List[Any]] = None,
+        constants: List[v2.program_pb2.Constant],
+        deserialized_constants: List[Any],
     ) -> cirq.CircuitOperation:
         """Deserialize a CircuitOperation from a
             cirq.google.api.v2.CircuitOperation.

@@ -292,7 +292,7 @@ class TextDiagramDrawer:
         self,
         horizontal_spacing: int = 1,
         vertical_spacing: int = 1,
-        crossing_char: str = None,
+        crossing_char: Optional[str] = None,
         use_unicode_characters: bool = True,
     ) -> str:
         """Outputs text containing the diagram."""

@@ -124,7 +124,7 @@ class EngineProgram(abstract_program.AbstractProgram):
     async def run_batch_async(
         self,
         job_id: Optional[str] = None,
-        params_list: List[cirq.Sweepable] = None,
+        params_list: Optional[List[cirq.Sweepable]] = None,
         repetitions: int = 1,
         processor_ids: Sequence[str] = (),
         description: Optional[str] = None,
