@@ -388,7 +388,7 @@ class EigenGate(raw_types.Gate):
             return False
 
         period = self_without_phase._period()
-        canonical_diff = (exponents[0] - exponents[1]) % period
+        canonical_diff = abs((exponents[0] - exponents[1])) % period
         return np.isclose(canonical_diff, 0, atol=atol)
 
     def _json_dict_(self) -> Dict[str, Any]:
