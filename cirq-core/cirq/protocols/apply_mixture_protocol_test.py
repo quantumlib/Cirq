@@ -33,7 +33,7 @@ def assert_apply_mixture_returns(
     left_axes: Iterable[int],
     right_axes: Optional[Iterable[int]],
     assert_result_is_out_buf: bool = False,
-    expected_result: np.ndarray = None,
+    expected_result: Optional[np.ndarray] = None,
 ):
     out_buf, buf0, buf1 = make_buffers(rho.shape, rho.dtype)
     result = cirq.apply_mixture(

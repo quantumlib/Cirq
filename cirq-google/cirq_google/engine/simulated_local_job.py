@@ -35,7 +35,7 @@ def _to_engine_results(
     batch_results: Sequence[Sequence['cirq.Result']],
     *,
     job_id: str,
-    job_finished_time: datetime.datetime = None,
+    job_finished_time: Optional[datetime.datetime] = None,
 ) -> List[List[EngineResult]]:
     """Convert cirq.Result from simulators into (simulated) EngineResults."""
 
@@ -73,7 +73,7 @@ class SimulatedLocalJob(AbstractLocalJob):
     def __init__(
         self,
         *args,
-        sampler: cirq.Sampler = None,
+        sampler: Optional[cirq.Sampler] = None,
         simulation_type: LocalSimulationType = LocalSimulationType.SYNCHRONOUS,
         **kwargs,
     ):

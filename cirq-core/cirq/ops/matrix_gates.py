@@ -53,7 +53,7 @@ class MatrixGate(raw_types.Gate):
         self,
         matrix: np.ndarray,
         *,
-        name: str = None,
+        name: Optional[str] = None,
         qid_shape: Optional[Iterable[int]] = None,
         unitary_check: bool = True,
         unitary_check_rtol: float = 1e-5,

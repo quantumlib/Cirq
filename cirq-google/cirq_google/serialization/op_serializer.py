@@ -61,8 +61,8 @@ class OpSerializer(abc.ABC):
         msg=None,
         *,
         arg_function_language: Optional[str] = '',
-        constants: List[v2.program_pb2.Constant] = None,
-        raw_constants: Dict[Any, int] = None,
+        constants: List[v2.program_pb2.Constant],
+        raw_constants: Dict[Any, int],
     ) -> Optional[v2.program_pb2.CircuitOperation]:
         """Converts op to proto using this serializer.
 
@@ -117,20 +117,14 @@ class CircuitOpSerializer(OpSerializer):
         msg: Optional[v2.program_pb2.CircuitOperation] = None,
         *,
         arg_function_language: Optional[str] = '',
-        constants: List[v2.program_pb2.Constant] = None,
-        raw_constants: Dict[Any, int] = None,
+        constants: List[v2.program_pb2.Constant],
+        raw_constants: Dict[Any, int],
     ) -> v2.program_pb2.CircuitOperation:
         """Returns the cirq.google.api.v2.CircuitOperation message as a proto dict.
 
         Note that this function requires constants and raw_constants to be
         pre-populated with the circuit in op.
         """
-        if constants is None or raw_constants is None:
-            raise ValueError(
-                'CircuitOp serialization requires a constants list and a corresponding list of '
-                'pre-serialization values (raw_constants).'
-            )
-
         if not isinstance(op, cirq.CircuitOperation):
             raise ValueError(f'Serializer expected CircuitOperation but got {type(op)}.')
 

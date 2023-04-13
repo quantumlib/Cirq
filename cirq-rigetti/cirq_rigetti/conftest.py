@@ -63,7 +63,7 @@ class MockQAM(QAM, Generic[T]):
         self._run_count = 0
         self._mock_results: Dict[str, np.ndarray] = {}
 
-    def execute(self, executable: QuantumExecutable) -> T:
+    def execute(self, executable: QuantumExecutable) -> T:  # type: ignore[empty-body]
         pass
 
     def run(self, program: QuantumExecutable) -> QAMExecutionResult:

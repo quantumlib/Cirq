@@ -34,7 +34,7 @@ class Service:
         self,
         remote_host: Optional[str] = None,
         api_key: Optional[str] = None,
-        default_target: str = None,
+        default_target: Optional[str] = None,
         api_version='v0.1',
         max_retry_seconds: int = 3600,
         verbose=False,
@@ -212,8 +212,8 @@ class Service:
 
     def list_calibrations(
         self,
-        start: datetime.datetime = None,
-        end: datetime.datetime = None,
+        start: Optional[datetime.datetime] = None,
+        end: Optional[datetime.datetime] = None,
         limit: int = 100,
         batch_size: int = 1000,
     ) -> Sequence[calibration.Calibration]:

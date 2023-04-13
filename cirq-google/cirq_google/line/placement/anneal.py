@@ -42,7 +42,10 @@ class AnnealSequenceSearch:
         self._rand = np.random.RandomState(seed)
 
     def search(
-        self, trace_func: Callable[[List[LineSequence], float, float, float, bool], None] = None
+        self,
+        trace_func: Optional[
+            Callable[[List[LineSequence], float, float, float, bool], None]
+        ] = None,
     ) -> List[LineSequence]:
         """Issues new linear sequence search.
 
@@ -329,8 +332,10 @@ class AnnealSequenceSearchStrategy(place_strategy.LinePlacementStrategy):
 
     def __init__(
         self,
-        trace_func: Callable[[List[LineSequence], float, float, float, bool], None] = None,
-        seed: int = None,
+        trace_func: Optional[
+            Callable[[List[LineSequence], float, float, float, bool], None]
+        ] = None,
+        seed: Optional[int] = None,
     ) -> None:
         """Linearized sequence search using simulated annealing method.
 

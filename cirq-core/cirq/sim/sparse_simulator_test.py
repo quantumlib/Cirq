@@ -255,7 +255,7 @@ def test_run_mixture(dtype: Type[np.complexfloating], split: bool):
     simulator = cirq.Simulator(dtype=dtype, split_untangled_states=split)
     circuit = cirq.Circuit(cirq.bit_flip(0.5)(q0), cirq.measure(q0))
     result = simulator.run(circuit, repetitions=100)
-    assert 20 < sum(result.measurements['q(0)'])[0] < 80  # type: ignore
+    assert 20 < sum(result.measurements['q(0)'])[0] < 80
 
 
 @pytest.mark.parametrize('dtype', [np.complex64, np.complex128])
@@ -265,8 +265,8 @@ def test_run_mixture_with_gates(dtype: Type[np.complexfloating], split: bool):
     simulator = cirq.Simulator(dtype=dtype, split_untangled_states=split, seed=23)
     circuit = cirq.Circuit(cirq.H(q0), cirq.phase_flip(0.5)(q0), cirq.H(q0), cirq.measure(q0))
     result = simulator.run(circuit, repetitions=100)
-    assert sum(result.measurements['q(0)'])[0] < 80  # type: ignore
-    assert sum(result.measurements['q(0)'])[0] > 20  # type: ignore
+    assert sum(result.measurements['q(0)'])[0] < 80
+    assert sum(result.measurements['q(0)'])[0] > 20
 
 
 @pytest.mark.parametrize('dtype', [np.complex64, np.complex128])

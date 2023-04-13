@@ -141,7 +141,7 @@ class QasmParser:
         parsedQasm = QasmParser().parse(qasm)
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.parser = yacc.yacc(module=self, debug=False, write_tables=False)
         self.circuit = Circuit()
         self.qregs: Dict[str, int] = {}

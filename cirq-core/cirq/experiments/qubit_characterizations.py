@@ -542,8 +542,8 @@ def _matrix_bar_plot(
     mat: np.ndarray,
     z_label: str,
     ax: plt.Axes,
-    kets: Sequence[str] = None,
-    title: str = None,
+    kets: Optional[Sequence[str]] = None,
+    title: Optional[str] = None,
     ylim: Tuple[int, int] = (-1, 1),
     **bar3d_kwargs: Any,
 ) -> None:

@@ -22,7 +22,7 @@ from cirq import quirk_url_to_circuit
 
 def assert_url_to_circuit_returns(
     json_text: str,
-    circuit: 'cirq.Circuit' = None,
+    circuit: Optional['cirq.Circuit'] = None,
     *,
     unitary: Optional[np.ndarray] = None,
     diagram: Optional[str] = None,
