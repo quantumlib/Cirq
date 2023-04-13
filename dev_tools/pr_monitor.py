@@ -1171,7 +1171,7 @@ def indent(text: str) -> str:
     return '    ' + text.replace('\n', '\n    ')
 
 
-def main():
+def main() -> None:
     access_token = os.getenv(ACCESS_TOKEN_ENV_VARIABLE)
     if not access_token:
         project_id = 'cirq-infra'

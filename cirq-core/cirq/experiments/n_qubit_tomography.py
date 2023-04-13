@@ -134,7 +134,7 @@ def state_tomography(
     qubits: Sequence['cirq.Qid'],
     circuit: 'cirq.Circuit',
     repetitions: int = 1000,
-    prerotations: Sequence[Tuple[float, float]] = None,
+    prerotations: Optional[Sequence[Tuple[float, float]]] = None,
 ) -> TomographyResult:
     """This performs n qubit tomography on a cirq circuit
 

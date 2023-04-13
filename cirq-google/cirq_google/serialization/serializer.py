@@ -48,6 +48,7 @@ class Serializer(metaclass=abc.ABCMeta):
                 `Program.Language`.
         """
 
+    @abc.abstractmethod
     def deserialize(self, proto: v2.program_pb2.Program) -> cirq.Circuit:
         """Deserialize a Circuit from a cirq_google.api.v2.Program.
 

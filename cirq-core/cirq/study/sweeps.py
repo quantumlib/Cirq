@@ -127,7 +127,7 @@ class Sweep(metaclass=abc.ABCMeta):
     def __getitem__(self, val: slice) -> 'Sweep':
         pass
 
-    def __getitem__(self, val):
+    def __getitem__(self, val: Union[int, slice]) -> Union[resolver.ParamResolver, 'Sweep']:
         n = len(self)
         if isinstance(val, int):
             if val < -n or val >= n:

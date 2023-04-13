@@ -249,7 +249,7 @@ def targeted_conjugate_about(
     tensor: np.ndarray,
     target: np.ndarray,
     indices: Sequence[int],
-    conj_indices: Sequence[int] = None,
+    conj_indices: Optional[Sequence[int]] = None,
     buffer: Optional[np.ndarray] = None,
     out: Optional[np.ndarray] = None,
 ) -> np.ndarray:

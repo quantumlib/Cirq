@@ -51,7 +51,7 @@ def kraus_to_choi(kraus_operators: Sequence[np.ndarray]) -> np.ndarray:
     """
     d = np.prod(kraus_operators[0].shape, dtype=np.int64)
     choi_rank = len(kraus_operators)
-    k = np.reshape(kraus_operators, (choi_rank, d))
+    k = np.reshape(np.asarray(kraus_operators), (choi_rank, d))
     return np.einsum('bi,bj->ij', k, k.conj())
 
 

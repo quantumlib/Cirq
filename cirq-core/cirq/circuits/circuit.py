@@ -305,7 +305,10 @@ class AbstractCircuit(abc.ABC):
         return None
 
     def next_moment_operating_on(
-        self, qubits: Iterable['cirq.Qid'], start_moment_index: int = 0, max_distance: int = None
+        self,
+        qubits: Iterable['cirq.Qid'],
+        start_moment_index: int = 0,
+        max_distance: Optional[int] = None,
     ) -> Optional[int]:
         """Finds the index of the next moment that touches the given qubits.
 
@@ -2128,7 +2131,7 @@ class Circuit(AbstractCircuit):
         self,
         early_frontier: Dict['cirq.Qid', int],
         late_frontier: Dict['cirq.Qid', int],
-        update_qubits: Iterable['cirq.Qid'] = None,
+        update_qubits: Optional[Iterable['cirq.Qid']] = None,
     ) -> Tuple[int, int]:
         """Inserts moments to separate two frontiers.
 
@@ -2198,7 +2201,10 @@ class Circuit(AbstractCircuit):
             )
 
     def insert_at_frontier(
-        self, operations: 'cirq.OP_TREE', start: int, frontier: Dict['cirq.Qid', int] = None
+        self,
+        operations: 'cirq.OP_TREE',
+        start: int,
+        frontier: Optional[Dict['cirq.Qid', int]] = None,
     ) -> Dict['cirq.Qid', int]:
         """Inserts operations inline at frontier.
 
@@ -2389,7 +2395,9 @@ class Circuit(AbstractCircuit):
 
 
 def _pick_inserted_ops_moment_indices(
-    operations: Sequence['cirq.Operation'], start: int = 0, frontier: Dict['cirq.Qid', int] = None
+    operations: Sequence['cirq.Operation'],
+    start: int = 0,
+    frontier: Optional[Dict['cirq.Qid', int]] = None,
 ) -> Tuple[Sequence[int], Dict['cirq.Qid', int]]:
     """Greedily assigns operations to moments.
 

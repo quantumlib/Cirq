@@ -111,7 +111,7 @@ def estimate_parallel_single_qubit_readout_errors(
     trials: int = 20,
     repetitions: int = 1000,
     trials_per_batch: Optional[int] = None,
-    bit_strings: np.ndarray = None,
+    bit_strings: Optional[np.ndarray] = None,
 ) -> SingleQubitReadoutCalibrationResult:
     """Estimate single qubit readout error using parallel operations.
 

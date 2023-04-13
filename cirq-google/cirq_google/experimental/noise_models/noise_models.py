@@ -13,7 +13,7 @@
 # limitations under the License.
 
 from math import exp
-from typing import Dict, Sequence, TYPE_CHECKING
+from typing import Dict, Optional, Sequence, TYPE_CHECKING
 
 import cirq
 from cirq.devices.noise_model import validate_all_measurements
@@ -35,9 +35,9 @@ class PerQubitDepolarizingWithDampedReadoutNoiseModel(cirq.NoiseModel):
 
     def __init__(
         self,
-        depol_probs: Dict[cirq.Qid, float] = None,
-        bitflip_probs: Dict[cirq.Qid, float] = None,
-        decay_probs: Dict[cirq.Qid, float] = None,
+        depol_probs: Optional[Dict[cirq.Qid, float]] = None,
+        bitflip_probs: Optional[Dict[cirq.Qid, float]] = None,
+        decay_probs: Optional[Dict[cirq.Qid, float]] = None,
     ):
         """A depolarizing noise model with damped readout error.
 

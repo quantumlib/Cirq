@@ -27,9 +27,7 @@ if TYPE_CHECKING:
 
 
 # TODO: missing per-device defaults
-# Type-ignored because mypy cannot handle abstract dataclasses:
-# https://github.com/python/mypy/issues/5374
-@dataclass  # type: ignore
+@dataclass
 class SuperconductingQubitsNoiseProperties(devices.NoiseProperties, abc.ABC):
     """Noise-defining properties for a superconducting-qubit-based device.
 
