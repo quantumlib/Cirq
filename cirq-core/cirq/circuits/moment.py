@@ -30,9 +30,9 @@ from typing import (
     Sequence,
     Tuple,
     TYPE_CHECKING,
-    TypeVar,
     Union,
 )
+from typing_extensions import Self
 
 import numpy as np
 
@@ -51,8 +51,6 @@ op_tree = LazyLoader("op_tree", globals(), "cirq.ops.op_tree")
 text_diagram_drawer = LazyLoader(
     "text_diagram_drawer", globals(), "cirq.circuits.text_diagram_drawer"
 )
-
-TSelf_Moment = TypeVar('TSelf_Moment', bound='Moment')
 
 
 def _default_breakdown(qid: 'cirq.Qid') -> Tuple[Any, Any]:
@@ -373,9 +371,8 @@ class Moment:
         return self._operations
 
     def transform_qubits(
-        self: TSelf_Moment,
-        qubit_map: Union[Dict['cirq.Qid', 'cirq.Qid'], Callable[['cirq.Qid'], 'cirq.Qid']],
-    ) -> TSelf_Moment:
+        self, qubit_map: Union[Dict['cirq.Qid', 'cirq.Qid'], Callable[['cirq.Qid'], 'cirq.Qid']]
+    ) -> Self:
         """Returns the same moment, but with different qubits.
 
         Args:

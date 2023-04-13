@@ -31,10 +31,10 @@ from typing import (
     Optional,
     Sequence,
     Tuple,
-    TypeVar,
     TYPE_CHECKING,
     Union,
 )
+from typing_extensions import Self
 
 import numpy as np
 import sympy
@@ -483,9 +483,6 @@ class Gate(metaclass=value.ABCMetaImplementAnyOneOf):
         return protocols.obj_to_dict_helper(self, attribute_names=[])
 
 
-TSelf = TypeVar('TSelf', bound='Operation')
-
-
 class Operation(metaclass=abc.ABCMeta):
     """An effect applied to a collection of qubits.
 
@@ -514,7 +511,7 @@ class Operation(metaclass=abc.ABCMeta):
         return protocols.qid_shape(self.qubits)
 
     @abc.abstractmethod
-    def with_qubits(self: TSelf, *new_qubits: 'cirq.Qid') -> TSelf:
+    def with_qubits(self, *new_qubits: 'cirq.Qid') -> Self:
         """Returns the same operation, but applied to different qubits.
 
         Args:
@@ -556,9 +553,8 @@ class Operation(metaclass=abc.ABCMeta):
         return TaggedOperation(self, *new_tags)
 
     def transform_qubits(
-        self: TSelf,
-        qubit_map: Union[Dict['cirq.Qid', 'cirq.Qid'], Callable[['cirq.Qid'], 'cirq.Qid']],
-    ) -> TSelf:
+        self, qubit_map: Union[Dict['cirq.Qid', 'cirq.Qid'], Callable[['cirq.Qid'], 'cirq.Qid']]
+    ) -> Self:
         """Returns the same operation, but with different qubits.
 
         Args:
