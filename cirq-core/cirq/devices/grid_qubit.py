@@ -12,10 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import functools
-from typing import Any, Dict, Iterable, List, Optional, Tuple, Set, TypeVar, TYPE_CHECKING, Union
-
 import abc
+import functools
+from typing import Any, Dict, Iterable, List, Optional, Tuple, Set, TYPE_CHECKING, Union
+from typing_extensions import Self
 
 import numpy as np
 
@@ -23,8 +23,6 @@ from cirq import _compat, ops, protocols
 
 if TYPE_CHECKING:
     import cirq
-
-TSelf = TypeVar('TSelf', bound='_BaseGridQid')
 
 
 @functools.total_ordering
@@ -69,13 +67,13 @@ class _BaseGridQid(ops.Qid):
         return neighbors
 
     @abc.abstractmethod
-    def _with_row_col(self: TSelf, row: int, col: int) -> TSelf:
+    def _with_row_col(self, row: int, col: int) -> Self:
         """Returns a qid with the same type but a different coordinate."""
 
     def __complex__(self) -> complex:
         return self.col + 1j * self.row
 
-    def __add__(self: TSelf, other: Union[Tuple[int, int], TSelf]) -> 'TSelf':
+    def __add__(self, other: Union[Tuple[int, int], Self]) -> Self:
         if isinstance(other, _BaseGridQid):
             if self.dimension != other.dimension:
                 raise TypeError(
@@ -94,7 +92,7 @@ class _BaseGridQid(ops.Qid):
             )
         return self._with_row_col(row=self.row + other[0], col=self.col + other[1])
 
-    def __sub__(self: TSelf, other: Union[Tuple[int, int], TSelf]) -> 'TSelf':
+    def __sub__(self, other: Union[Tuple[int, int], Self]) -> Self:
         if isinstance(other, _BaseGridQid):
             if self.dimension != other.dimension:
                 raise TypeError(
@@ -113,13 +111,13 @@ class _BaseGridQid(ops.Qid):
             )
         return self._with_row_col(row=self.row - other[0], col=self.col - other[1])
 
-    def __radd__(self: TSelf, other: Tuple[int, int]) -> 'TSelf':
+    def __radd__(self, other: Tuple[int, int]) -> Self:
         return self + other
 
-    def __rsub__(self: TSelf, other: Tuple[int, int]) -> 'TSelf':
+    def __rsub__(self, other: Tuple[int, int]) -> Self:
         return -self + other
 
-    def __neg__(self: TSelf) -> 'TSelf':
+    def __neg__(self) -> Self:
         return self._with_row_col(row=-self.row, col=-self.col)
 
 

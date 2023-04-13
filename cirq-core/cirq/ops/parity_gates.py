@@ -15,6 +15,7 @@
 """Quantum gates that phase with respect to product-of-pauli observables."""
 
 from typing import Any, Dict, List, Optional, Tuple, Union, TYPE_CHECKING
+from typing_extensions import Self
 
 import numpy as np
 
@@ -331,7 +332,7 @@ class MSGate(XXPowGate):
         XXPowGate.__init__(self, exponent=rads * 2 / np.pi, global_shift=-0.5)
         self.rads = rads
 
-    def _with_exponent(self: 'MSGate', exponent: value.TParamVal) -> 'MSGate':
+    def _with_exponent(self, exponent: value.TParamVal) -> Self:
         return type(self)(rads=exponent * np.pi / 2)
 
     def _circuit_diagram_info_(
