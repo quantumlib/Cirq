@@ -105,8 +105,8 @@ def test_kraus_channel_repr():
         repr(x_meas)
         == """\
 cirq.KrausChannel(kraus_ops=[\
-np.array([[(0.5+0j), (0.5+0j)], [(0.5+0j), (0.5+0j)]], dtype=np.complex64), \
-np.array([[(0.5+0j), (-0.5+0j)], [(-0.5+0j), (0.5+0j)]], dtype=np.complex64)], \
+np.array([[(0.5+0j), (0.5+0j)], [(0.5+0j), (0.5+0j)]], dtype=np.dtype('complex64')), \
+np.array([[(0.5+0j), (-0.5+0j)], [(-0.5+0j), (0.5+0j)]], dtype=np.dtype('complex64'))], \
 key='x_meas')"""
     )
 

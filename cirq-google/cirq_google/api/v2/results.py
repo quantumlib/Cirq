@@ -148,7 +148,7 @@ def results_to_proto(
 
 
 def results_from_proto(
-    msg: result_pb2.Result, measurements: List[MeasureInfo] = None
+    msg: result_pb2.Result, measurements: Optional[List[MeasureInfo]] = None
 ) -> Sequence[Sequence[cirq.Result]]:
     """Converts a v2 result proto into List of list of trial results.
 
@@ -170,7 +170,7 @@ def results_from_proto(
 
 
 def _trial_sweep_from_proto(
-    msg: result_pb2.SweepResult, measure_map: Dict[str, MeasureInfo] = None
+    msg: result_pb2.SweepResult, measure_map: Optional[Dict[str, MeasureInfo]] = None
 ) -> Sequence[cirq.Result]:
     """Converts a SweepResult proto into List of list of trial results.
 

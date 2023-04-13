@@ -114,9 +114,7 @@ def random_circuit(
         free_qubits = set(qubits)
         while len(free_qubits) >= max_arity:
             gate, arity = gate_arity_pairs[prng.randint(num_gates)]
-            op_qubits = prng.choice(
-                sorted(free_qubits), size=arity, replace=False  # type: ignore[arg-type]
-            )
+            op_qubits = prng.choice(sorted(free_qubits), size=arity, replace=False)
             free_qubits.difference_update(op_qubits)
             if prng.rand() <= op_density:
                 operations.append(gate(*op_qubits))
@@ -127,8 +125,8 @@ def random_circuit(
 
 def random_two_qubit_circuit_with_czs(
     num_czs: int = 3,
-    q0: Qid = None,
-    q1: Qid = None,
+    q0: Optional[Qid] = None,
+    q1: Optional[Qid] = None,
     random_state: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None,
 ) -> circuits.Circuit:
     """Creates a random two qubit circuit with the given number of CNOTs.

@@ -839,10 +839,10 @@ class PauliSum:
         if exponent == 0:
             return PauliSum(value.LinearDict({frozenset(): 1 + 0j}))
         if exponent > 0:
-            base = self.copy()
+            result = self.copy()
             for _ in range(exponent - 1):
-                base *= base
-            return base
+                result *= self
+            return result
         return NotImplemented
 
     def __truediv__(self, a: value.Scalar):

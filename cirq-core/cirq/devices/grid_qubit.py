@@ -13,7 +13,7 @@
 # limitations under the License.
 
 import functools
-from typing import Any, Dict, Iterable, List, Optional, Tuple, Set, TypeVar, TYPE_CHECKING
+from typing import Any, Dict, Iterable, List, Optional, Tuple, Set, TypeVar, TYPE_CHECKING, Union
 
 import abc
 
@@ -27,7 +27,7 @@ if TYPE_CHECKING:
 TSelf = TypeVar('TSelf', bound='_BaseGridQid')
 
 
-@functools.total_ordering  # type: ignore
+@functools.total_ordering
 class _BaseGridQid(ops.Qid):
     """The Base class for `GridQid` and `GridQubit`."""
 
@@ -75,7 +75,7 @@ class _BaseGridQid(ops.Qid):
     def __complex__(self) -> complex:
         return self.col + 1j * self.row
 
-    def __add__(self: TSelf, other: Tuple[int, int]) -> 'TSelf':
+    def __add__(self: TSelf, other: Union[Tuple[int, int], TSelf]) -> 'TSelf':
         if isinstance(other, _BaseGridQid):
             if self.dimension != other.dimension:
                 raise TypeError(
@@ -94,7 +94,7 @@ class _BaseGridQid(ops.Qid):
             )
         return self._with_row_col(row=self.row + other[0], col=self.col + other[1])
 
-    def __sub__(self: TSelf, other: Tuple[int, int]) -> 'TSelf':
+    def __sub__(self: TSelf, other: Union[Tuple[int, int], TSelf]) -> 'TSelf':
         if isinstance(other, _BaseGridQid):
             if self.dimension != other.dimension:
                 raise TypeError(

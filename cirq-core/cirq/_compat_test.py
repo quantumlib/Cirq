@@ -98,7 +98,7 @@ def test_proper_repr_data_frame():
     pd.testing.assert_frame_equal(df2, df)
 
 
-def test_dataclass_repr_simple():
+def test_dataclass_repr_simple() -> None:
     @dataclasses.dataclass
     class TestClass1:
         x: int
@@ -111,7 +111,7 @@ def test_dataclass_repr_simple():
     assert repr(TestClass1(5, 'hi')) == "cirq.TestClass1(x=5, y='hi')"
 
 
-def test_dataclass_repr_numpy():
+def test_dataclass_repr_numpy() -> None:
     @dataclasses.dataclass
     class TestClass2:
         x: np.ndarray
@@ -120,7 +120,10 @@ def test_dataclass_repr_numpy():
             return dataclass_repr(self, namespace='cirq.testing')
 
     tc = TestClass2(np.ones(3))
-    assert repr(tc) == "cirq.testing.TestClass2(x=np.array([1.0, 1.0, 1.0], dtype=np.float64))"
+    assert (
+        repr(tc)
+        == "cirq.testing.TestClass2(x=np.array([1.0, 1.0, 1.0], dtype=np.dtype('float64')))"
+    )
 
 
 def test_proper_eq():
@@ -1000,7 +1003,7 @@ def test_cached_property():
 
 
 class Bar:
-    def __init__(self):
+    def __init__(self) -> None:
         self.foo_calls: Dict[int, int] = collections.Counter()
         self.bar_calls: Dict[int, int] = collections.Counter()
 

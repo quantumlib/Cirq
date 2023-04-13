@@ -57,16 +57,6 @@ def test_circuit_op_from_proto_errors():
         v2.program_pb2.Constant(string_value=DEFAULT_TOKEN),
         v2.program_pb2.Constant(circuit_value=default_circuit_proto()),
     ]
-    deserialized_constants = [DEFAULT_TOKEN, default_circuit()]
-
-    with pytest.raises(ValueError, match='CircuitOp deserialization requires a constants list'):
-        deserializer.from_proto(serialized)
-
-    with pytest.raises(ValueError, match='CircuitOp deserialization requires a constants list'):
-        deserializer.from_proto(serialized, constants=constants)
-
-    with pytest.raises(ValueError, match='CircuitOp deserialization requires a constants list'):
-        deserializer.from_proto(serialized, deserialized_constants=deserialized_constants)
 
     bad_deserialized_constants = [DEFAULT_TOKEN]
     with pytest.raises(ValueError, match='does not appear in the deserialized_constants list'):

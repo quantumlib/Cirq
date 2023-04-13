@@ -190,7 +190,7 @@ class CCZPowGate(gate_features.InterchangeableQubitsGate, eigen_gate.EigenGate):
 
     def controlled(
         self,
-        num_controls: int = None,
+        num_controls: Optional[int] = None,
         control_values: Optional[
             Union[cv.AbstractControlValues, Sequence[Union[int, Collection[int]]]]
         ] = None,
@@ -502,7 +502,7 @@ class CCXPowGate(gate_features.InterchangeableQubitsGate, eigen_gate.EigenGate):
 
     def controlled(
         self,
-        num_controls: int = None,
+        num_controls: Optional[int] = None,
         control_values: Optional[
             Union[cv.AbstractControlValues, Sequence[Union[int, Collection[int]]]]
         ] = None,
@@ -672,7 +672,7 @@ class CSwapGate(gate_features.InterchangeableQubitsGate, raw_types.Gate):
 
     def controlled(
         self,
-        num_controls: int = None,
+        num_controls: Optional[int] = None,
         control_values: Optional[
             Union[cv.AbstractControlValues, Sequence[Union[int, Collection[int]]]]
         ] = None,

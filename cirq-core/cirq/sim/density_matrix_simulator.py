@@ -303,7 +303,7 @@ class DensityMatrixStepResult(simulator_base.StepResultBase['cirq.DensityMatrixS
         # Dtype doesn't have a good repr, so we work around by invoking __name__.
         return (
             f'cirq.DensityMatrixStepResult(sim_state={self._sim_state!r},'
-            f' dtype=np.{self._dtype.__name__})'
+            f' dtype=np.{np.dtype(self._dtype)!r})'
         )
 
 

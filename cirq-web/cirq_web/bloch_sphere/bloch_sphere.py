@@ -11,13 +11,18 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
+from typing import Optional
+
 import cirq
 
 from cirq_web import widget
 
 
 class BlochSphere(widget.Widget):
-    def __init__(self, sphere_radius: int = 5, state_vector: cirq.STATE_VECTOR_LIKE = None):
+    def __init__(
+        self, sphere_radius: int = 5, state_vector: Optional[cirq.STATE_VECTOR_LIKE] = None
+    ):
         """Initializes a BlochSphere.
 
         Also initializes it's parent class Widget with the bundle file provided.

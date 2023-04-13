@@ -124,11 +124,14 @@ class SimulationStateBase(Generic[TSimulationState], metaclass=abc.ABCMeta):
     ) -> np.ndarray:
         """Samples the state value."""
 
+    @abc.abstractmethod
     def __getitem__(self, item: Optional['cirq.Qid']) -> TSimulationState:
         """Gets the item associated with the qubit."""
 
+    @abc.abstractmethod
     def __len__(self) -> int:
         """Gets the number of items in the mapping."""
 
+    @abc.abstractmethod
     def __iter__(self) -> Iterator[Optional['cirq.Qid']]:
         """Iterates the keys of the mapping."""

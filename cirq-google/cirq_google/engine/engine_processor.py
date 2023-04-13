@@ -116,7 +116,7 @@ class EngineProcessor(abstract_processor.AbstractProcessor):
         programs: Sequence[cirq.AbstractCircuit],
         program_id: Optional[str] = None,
         job_id: Optional[str] = None,
-        params_list: Sequence[cirq.Sweepable] = None,
+        params_list: Optional[Sequence[cirq.Sweepable]] = None,
         repetitions: int = 1,
         program_description: Optional[str] = None,
         program_labels: Optional[Dict[str, str]] = None,
@@ -472,9 +472,9 @@ class EngineProcessor(abstract_processor.AbstractProcessor):
     def update_reservation(
         self,
         reservation_id: str,
-        start_time: datetime.datetime = None,
-        end_time: datetime.datetime = None,
-        whitelisted_users: List[str] = None,
+        start_time: Optional[datetime.datetime] = None,
+        end_time: Optional[datetime.datetime] = None,
+        whitelisted_users: Optional[List[str]] = None,
     ):
         """Updates a reservation with new information.
 

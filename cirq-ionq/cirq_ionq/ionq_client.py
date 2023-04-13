@@ -235,8 +235,8 @@ class _IonQClient:
 
     def list_calibrations(
         self,
-        start: datetime.datetime = None,
-        end: datetime.datetime = None,
+        start: Optional[datetime.datetime] = None,
+        end: Optional[datetime.datetime] = None,
         limit: int = 100,
         batch_size: int = 1000,
     ) -> List[dict]:
