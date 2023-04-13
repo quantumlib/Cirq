@@ -121,9 +121,7 @@ class CircuitDiagramInfo:
                 result[k] += '^' + exponent
         return result
 
-    def _formatted_exponent(
-        self: 'cirq.CircuitDiagramInfo', args: 'cirq.CircuitDiagramInfoArgs'
-    ) -> Optional[str]:
+    def _formatted_exponent(self, args: 'cirq.CircuitDiagramInfoArgs') -> Optional[str]:
 
         if protocols.is_parameterized(self.exponent):
             name = str(self.exponent)

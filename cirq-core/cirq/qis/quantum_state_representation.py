@@ -13,7 +13,9 @@
 # limitations under the License.
 
 import abc
-from typing import List, Sequence, Tuple, TYPE_CHECKING, TypeVar
+from typing import List, Sequence, Tuple, TYPE_CHECKING
+from typing_extensions import Self
+
 import numpy as np
 
 from cirq import value
@@ -21,12 +23,10 @@ from cirq import value
 if TYPE_CHECKING:
     import cirq
 
-TSelf = TypeVar('TSelf', bound='QuantumStateRepresentation')
-
 
 class QuantumStateRepresentation(metaclass=abc.ABCMeta):
     @abc.abstractmethod
-    def copy(self: TSelf, deep_copy_buffers: bool = True) -> TSelf:
+    def copy(self, deep_copy_buffers: bool = True) -> Self:
         """Creates a copy of the object.
         Args:
             deep_copy_buffers: If True, buffers will also be deep-copied.
@@ -71,17 +71,15 @@ class QuantumStateRepresentation(metaclass=abc.ABCMeta):
             measurements.append(state.measure(axes, prng))
         return np.array(measurements, dtype=np.uint8)
 
-    def kron(self: TSelf, other: TSelf) -> TSelf:
+    def kron(self, other: Self) -> Self:
         """Joins two state spaces together."""
         raise NotImplementedError()
 
-    def factor(
-        self: TSelf, axes: Sequence[int], *, validate=True, atol=1e-07
-    ) -> Tuple[TSelf, TSelf]:
+    def factor(self, axes: Sequence[int], *, validate=True, atol=1e-07) -> Tuple[Self, Self]:
         """Splits two state spaces after a measurement or reset."""
         raise NotImplementedError()
 
-    def reindex(self: TSelf, axes: Sequence[int]) -> TSelf:
+    def reindex(self, axes: Sequence[int]) -> Self:
         """Physically reindexes the state by the new basis.
         Args:
             axes: The desired axis order.

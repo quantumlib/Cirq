@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import functools
-from typing import Any, Dict, List, TYPE_CHECKING, TypeVar
+from typing import Any, Dict, List, TYPE_CHECKING
 
 from cirq import protocols
 from cirq.ops import raw_types
@@ -20,8 +20,6 @@ from cirq.ops import raw_types
 
 if TYPE_CHECKING:
     import cirq
-
-TSelf = TypeVar('TSelf', bound='_BaseNamedQid')
 
 
 @functools.total_ordering
