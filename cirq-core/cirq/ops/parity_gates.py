@@ -296,6 +296,9 @@ class ZZPowGate(gate_features.InterchangeableQubitsGate, eigen_gate.EigenGate):
 
         return args.target_tensor
 
+    def _phase_by_(self, phase_turns: float, qubit_index: int) -> "ZZPowGate":
+        return self
+
     def __str__(self) -> str:
         if self._exponent == 1:
             return 'ZZ'
