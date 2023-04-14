@@ -228,9 +228,6 @@ def test_all_notebooks_against_released_cirq(partition, notebook_path, cloned_en
     See `test_changed_notebooks_against_released_cirq` for more details on
     notebooks execution.
     """
-    # TODO(#6037,pavoljuhas) - remove after confirming we get error reports from the CI
-    if notebook_path.endswith('/circuits.ipynb'):
-        assert False, 'intentional failure to simulate CI-weekly run with failed test'
     _rewrite_and_run_notebook(notebook_path, cloned_env)
 
 
