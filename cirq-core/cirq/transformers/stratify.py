@@ -21,7 +21,6 @@ from typing import (
     Callable,
     Dict,
     Iterator,
-    Literal,
     Optional,
     Set,
     Union,
@@ -52,7 +51,7 @@ Category = Union[
 def stratified_circuit(
     circuit: 'cirq.AbstractCircuit',
     *,
-    method: Literal["dynamic", "static"] = "dynamic",
+    method: str = "dynamic",
     context: Optional['cirq.TransformerContext'] = None,
     categories: Iterable[Category] = (),
 ) -> 'cirq.Circuit':
@@ -65,6 +64,7 @@ def stratified_circuit(
 
     Args:
         circuit: The circuit whose operations should be re-arranged. Will not be modified.
+        method: A choice of stratifying method.  May be one of "static" or "dynamic".
         context: `cirq.TransformerContext` storing common configurable options for transformers.
         categories: A list of classifiers picking out certain operations. There are several ways
             to specify a classifier. You can pass in a gate instance (e.g. `cirq.X`),
@@ -75,6 +75,11 @@ def stratified_circuit(
     Returns:
         A copy of the original circuit, but with re-arranged operations.
     """
+    if method not in ["static", "dynamic"]:
+        raise ValueError(f"Invalid stratifying method: {method}.")
+
+    context = context or transformer_api.TransformerContext()
+
     # Normalize categories into classifier functions.
     classifiers = _get_classifiers(circuit, categories)
 
@@ -84,8 +89,7 @@ def stratified_circuit(
 
 
 StratifyMethod = Callable[
-    [circuits.AbstractCircuit, Sequence[Classifier], 'cirq.TransformerContext'],
-    circuits.AbstractCircuit,
+    [circuits.AbstractCircuit, Sequence[Classifier], 'cirq.TransformerContext'], circuits.Circuit,
 ]
 
 
@@ -113,7 +117,7 @@ def _optimize_statifying_direction(stratify_method: StratifyMethod) -> StratifyM
 def _dynamically_stratify_circuit(
     circuit: 'cirq.AbstractCircuit',
     *,
-    context: Optional['cirq.TransformerContext'] = None,
+    context: 'cirq.TransformerContext' = None,
     categories: Iterable[Category] = (),
 ) -> 'cirq.Circuit':
     """A "dynamic" stratifying method that:
@@ -167,9 +171,7 @@ def _statically_stratify_circuit(
     shortest_stratified_circuit = circuits.Circuit()
     for ordered_classifiers in itertools.permutations(classifiers):
         solution = _statically_stratify_fixed_circuit(
-            circuit,
-            classifiers=ordered_classifiers,
-            context=context or transformer_api.TransformerContext(),
+            circuit, classifiers=ordered_classifiers, context=context
         )
         if len(solution) < smallest_depth:
             shortest_stratified_circuit = solution
