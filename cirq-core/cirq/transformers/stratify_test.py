@@ -65,9 +65,9 @@ def test_stratified_circuit_classifier_types(method: str) -> None:
     )
 
     with pytest.raises(TypeError, match='Unrecognized'):
-        _ = cirq.stratified_circuit(
+        _ = cirq.stratified_circuit(  # type: ignore[list-item]
             circuit, method=method, categories=['unknown']
-        )  # type: ignore[list-item]
+        )
 
 
 @pytest.mark.parametrize("method", ["dynamic", "static"])
