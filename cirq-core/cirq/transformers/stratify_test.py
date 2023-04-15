@@ -433,3 +433,8 @@ def test_unclassified_ops():
     classifiers = []
     with pytest.raises(ValueError, match='not identified by any classifier'):
         cirq.transformers.stratify._get_op_class(op, classifiers)
+
+
+def test_unrecognized_method():
+    with pytest.raises(ValueError, match='Unrecognized stratifying method'):
+        cirq.stratified_circuit(cirq.Circuit(), method="unknown")

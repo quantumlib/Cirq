@@ -76,7 +76,7 @@ def stratified_circuit(
         A copy of the original circuit, but with re-arranged operations.
     """
     if method not in ["static", "dynamic"]:
-        raise ValueError(f"Invalid stratifying method: {method}.")
+        raise ValueError(f"Unrecognized stratifying method: {method}.")
 
     context = context or transformer_api.TransformerContext()
 
