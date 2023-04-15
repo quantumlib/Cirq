@@ -80,6 +80,9 @@ def stratified_circuit(
 
     Returns:
         A copy of the original circuit, but with re-arranged operations.
+
+    Raises:
+        ValueError: If 'method' is not equal to "static" or "dynamic".
     """
     if method not in ["static", "dynamic"]:
         raise ValueError(f"Unrecognized stratifying method: {method}.")
