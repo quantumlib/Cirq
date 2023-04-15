@@ -47,6 +47,12 @@ Category = Union[
 ]
 
 
+# Type signature of a stratifying method within this file.
+StratifyMethod = Callable[
+    [circuits.AbstractCircuit, Sequence[Classifier], 'cirq.TransformerContext'], circuits.Circuit,
+]
+
+
 @transformer_api.transformer(add_deep_support=True)
 def stratified_circuit(
     circuit: 'cirq.AbstractCircuit',
@@ -86,11 +92,6 @@ def stratified_circuit(
     if method == "static":
         return _statically_stratify_circuit(circuit, classifiers, context)
     return _dynamically_stratify_circuit(circuit, classifiers, context)
-
-
-StratifyMethod = Callable[
-    [circuits.AbstractCircuit, Sequence[Classifier], 'cirq.TransformerContext'], circuits.Circuit,
-]
 
 
 def _optimize_statifying_direction(stratify_method: StratifyMethod) -> StratifyMethod:
