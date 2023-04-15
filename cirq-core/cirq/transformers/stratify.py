@@ -21,6 +21,7 @@ from typing import (
     Callable,
     Dict,
     Iterator,
+    Literal,
     Optional,
     Set,
     Union,
@@ -51,6 +52,7 @@ Category = Union[
 def stratified_circuit(
     circuit: 'cirq.AbstractCircuit',
     *,
+    method: Literal["dynamic", "static"] = "dynamic",
     context: Optional['cirq.TransformerContext'] = None,
     categories: Iterable[Category] = (),
 ) -> 'cirq.Circuit':
@@ -76,12 +78,95 @@ def stratified_circuit(
     # Normalize categories into classifier functions.
     classifiers = _get_classifiers(circuit, categories)
 
-    # Try the algorithm with each permutation of the classifiers.
+    if method == "static":
+        return _statically_stratify_circuit(circuit, classifiers, context)
+    return _dynamically_stratify_circuit(circuit, classifiers, context)
+
+
+StratifyingMethod = Callable[
+    [circuits.AbstractCircuit, Sequence[Classifier], 'cirq.TransformerContext'],
+    circuits.AbstractCircuit,
+]
+
+
+def _optimize_statifying_direction(stratifying_func: StratifyingMethod) -> StratifyingMethod:
+    """Decorator to optimize over stratifying a circuit left-to-right vs. right-to-left."""
+
+    def optimized_stratifying_func(
+        circuit: circuits.AbstractCircuit,
+        classifiers: Sequence[Classifier],
+        context: 'cirq.TransformerContext',
+    ) -> 'cirq.Circuit':
+        forward_circuit = stratifying_func(circuit, classifiers, context)
+        backward_circuit = stratifying_func(circuit[::-1], classifiers, context)
+        if len(forward_circuit) <= len(backward_circuit):
+            return forward_circuit
+        return backward_circuit[::-1]
+
+    return optimized_stratifying_func
+
+
+# TODO:
+# - properly deal with tags_to_ignore
+# - properly deal with measurement/control keys
+@_optimize_statifying_direction
+def _dynamically_stratify_circuit(
+    circuit: 'cirq.AbstractCircuit',
+    *,
+    context: Optional['cirq.TransformerContext'] = None,
+    categories: Iterable[Category] = (),
+) -> 'cirq.Circuit':
+    """A "dynamic" stratifying method that:
+    - Iterates over all operations in topological order.
+    - Creates new moments on an as-needed basis.
+    - Advances moments up/forward if and when possible to absorb a new operation.
+
+    All of the complexity of this stratifying method is offloaded to the _Strata class.
+
+    Args:
+        circuit: The circuit to break out into homogeneous moments. Will not be edited.
+        classifiers: A list of rules to align the circuit. Must be exhaustive, i.e. all operations
+            will be caught by one of the processors.
+        context: `cirq.TransformerContext` storing common configurable options for transformers.
+
+    Returns:
+        The stratified circuit.
+    """
+    # Normalize categories into classifier functions.
+    classifiers = _get_classifiers(circuit, categories)
+
+    # Initialize a _Strata object, and add operations to it incrementally.
+    strata = _Strata(classifiers)
+    for op in circuit.all_operations():
+        strata.add(op)
+
+    return circuits.Circuit(stratum.as_moment() for stratum in strata)
+
+
+@_optimize_statifying_direction
+def _statically_stratify_circuit(
+    circuit: circuits.AbstractCircuit,
+    classifiers: Sequence[Classifier],
+    context: 'cirq.TransformerContext',
+) -> 'cirq.Circuit':
+    """A "static" stratifying method that:
+    - Enforces that a fixed stratification structure, e.g. moments of type [A, B, C, A, B, C, ...].
+    - Places each operation into the earliest moment that can accomodate it.
+    - Optimizes over the order of the classifiers, returning the shortest circuit found.
+
+    Args:
+        circuit: The circuit to break out into homogeneous moments. Will not be edited.
+        classifiers: A list of rules to align the circuit. Must be exhaustive, i.e. all operations
+            will be caught by one of the processors.
+        context: `cirq.TransformerContext` storing common configurable options for transformers.
+
+    Returns:
+        The stratified circuit.
+    """
     smallest_depth = protocols.num_qubits(circuit) * len(circuit) + 1
     shortest_stratified_circuit = circuits.Circuit()
-    reversed_circuit = circuit[::-1]
     for ordered_classifiers in itertools.permutations(classifiers):
-        solution = _stratify_circuit(
+        solution = _statically_stratify_fixed_circuit(
             circuit,
             classifiers=ordered_classifiers,
             context=context or transformer_api.TransformerContext(),
@@ -89,42 +174,17 @@ def stratified_circuit(
         if len(solution) < smallest_depth:
             shortest_stratified_circuit = solution
             smallest_depth = len(solution)
-
-        # Do the same thing, except this time in reverse. This helps for some
-        # circuits because it inserts operations at the end instead of at the
-        # beginning.
-        solution = _stratify_circuit(
-            reversed_circuit,
-            classifiers=ordered_classifiers,
-            context=context or transformer_api.TransformerContext(),
-        )[::-1]
-        if len(solution) < smallest_depth:
-            shortest_stratified_circuit = solution
-            smallest_depth = len(solution)
-
     return shortest_stratified_circuit
 
 
-def _stratify_circuit(
+def _statically_stratify_fixed_circuit(
     circuit: circuits.AbstractCircuit,
-    *,
-    context: 'cirq.TransformerContext',
     classifiers: Sequence[Classifier],
+    context: 'cirq.TransformerContext',
 ) -> 'cirq.Circuit':
-    """Performs the stratification by iterating through the operations in the
-    circuit and using the given classifiers to align them.
+    """Helper function for '_statically_stratify_circuit'.
 
-    Tagged Operations marked with any of `context.tags_to_ignore` are treated as separate
-    categories and left in their original moments without stratification.
-
-    Args:
-        circuit: The circuit to break out into homogeneous moments. Will not be edited.
-        context: `cirq.TransformerContext` storing common configurable options for transformers.
-        classifiers: A list of rules to align the circuit. Must be exhaustive, i.e. all operations
-                    will be caught by one of the processors.
-
-    Returns:
-        The stratified circuit.
+    Stratifies a circuit without optimizing over the order of classifiers.
     """
     num_classes = len(classifiers) + 1  # include one "extra" category for ignored operations
     new_moments: List[List['cirq.Operation']] = []
@@ -184,36 +244,6 @@ def _stratify_circuit(
                 control_time_index[key] = time_index
 
     return circuits.Circuit(circuits.Moment(moment) for moment in new_moments if moment)
-
-
-# TODO:
-# - properly deal with tags_to_ignore
-# - properly deal with measurement/control keys
-# - optimize over stratifying circuit vs. circuit[::-1]
-# - decide: replace the old stratify_circuit method, or add an option for which method to use?
-@transformer_api.transformer(add_deep_support=True)
-def dynamically_stratified_circuit(
-    circuit: 'cirq.AbstractCircuit',
-    *,
-    context: Optional['cirq.TransformerContext'] = None,
-    categories: Iterable[Category] = (),
-) -> 'cirq.Circuit':
-    """A "dynamic" stratifying method that:
-    - Iterates over all operations in topological order.
-    - Creates new moments on an as-needed basis.
-    - Advances moments up/forward if and when possible to absorb a new operation.
-
-    All of the complexity of this stratifying method is offloaded to the _Strata class.
-    """
-    # Normalize categories into classifier functions.
-    classifiers = _get_classifiers(circuit, categories)
-
-    # Initialize a _Strata object, and add operations to it incrementally.
-    strata = _Strata(classifiers)
-    for op in circuit.all_operations():
-        strata.add(op)
-
-    return circuits.Circuit(stratum.as_moment() for stratum in strata)
 
 
 def _get_classifiers(
