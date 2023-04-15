@@ -80,7 +80,7 @@ def stratified_circuit(
 
     context = context or transformer_api.TransformerContext()
 
-    # Normalize categories into classifier functions.
+    # Convert categories into classifier functions.
     classifiers = _get_classifiers(circuit, categories)
 
     if method == "static":
@@ -97,7 +97,7 @@ def _optimize_statifying_direction(stratify_method: StratifyMethod) -> StratifyM
     """Decorator to optimize over stratifying a circuit left-to-right vs. right-to-left."""
 
     def optimized_stratifying_method(
-        circuit: circuits.AbstractCircuit,
+        circuit: 'cirq.AbstractCircuit',
         classifiers: Sequence[Classifier],
         context: 'cirq.TransformerContext',
     ) -> 'cirq.Circuit':
@@ -116,9 +116,8 @@ def _optimize_statifying_direction(stratify_method: StratifyMethod) -> StratifyM
 @_optimize_statifying_direction
 def _dynamically_stratify_circuit(
     circuit: 'cirq.AbstractCircuit',
-    *,
-    context: 'cirq.TransformerContext' = None,
-    categories: Iterable[Category] = (),
+    classifiers: Sequence[Classifier],
+    context: 'cirq.TransformerContext',
 ) -> 'cirq.Circuit':
     """A "dynamic" stratifying method that:
     - Iterates over all operations in topological order.
@@ -136,20 +135,16 @@ def _dynamically_stratify_circuit(
     Returns:
         The stratified circuit.
     """
-    # Normalize categories into classifier functions.
-    classifiers = _get_classifiers(circuit, categories)
-
-    # Initialize a _Strata object, and add operations to it incrementally.
+    # Initialize a _Strata object and add operations to it incrementally.
     strata = _Strata(classifiers)
     for op in circuit.all_operations():
         strata.add(op)
-
     return circuits.Circuit(stratum.as_moment() for stratum in strata)
 
 
 @_optimize_statifying_direction
 def _statically_stratify_circuit(
-    circuit: circuits.AbstractCircuit,
+    circuit: 'cirq.AbstractCircuit',
     classifiers: Sequence[Classifier],
     context: 'cirq.TransformerContext',
 ) -> 'cirq.Circuit':
@@ -180,7 +175,7 @@ def _statically_stratify_circuit(
 
 
 def _statically_stratify_fixed_circuit(
-    circuit: circuits.AbstractCircuit,
+    circuit: 'cirq.AbstractCircuit',
     classifiers: Sequence[Classifier],
     context: 'cirq.TransformerContext',
 ) -> 'cirq.Circuit':
@@ -249,7 +244,7 @@ def _statically_stratify_fixed_circuit(
 
 
 def _get_classifiers(
-    circuit: circuits.AbstractCircuit, categories: Iterable[Category]
+    circuit: 'cirq.AbstractCircuit', categories: Iterable[Category]
 ) -> List[Classifier]:
     """Convert a collection of categories into a list of classifiers.
 
