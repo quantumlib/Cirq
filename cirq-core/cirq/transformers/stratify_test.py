@@ -65,7 +65,9 @@ def test_stratified_circuit_classifier_types(method: str) -> None:
     )
 
     with pytest.raises(TypeError, match='Unrecognized'):
-        _ = cirq.stratified_circuit(circuit, method=method, categories=['unknown'])
+        _ = cirq.stratified_circuit(
+            circuit, method=method, categories=['unknown']
+        )  # type: ignore[list-item]
 
 
 @pytest.mark.parametrize("method", ["dynamic", "static"])
@@ -207,7 +209,7 @@ def test_complex_circuit_deep(method: str) -> None:
         cirq.CircuitOperation(c_nested_stratified).repeat(6).with_tags("preserve_tag"),
         c_nested_stratified,
     )
-    context = cirq.TransformerContext(tags_to_ignore=["ignore"], deep=True)
+    context = cirq.TransformerContext(tags_to_ignore=("ignore",), deep=True)
     c_stratified = cirq.stratified_circuit(
         c_orig, method=method, context=context, categories=[cirq.X, cirq.Z]
     )
