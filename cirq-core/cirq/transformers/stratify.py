@@ -83,27 +83,27 @@ def stratified_circuit(
     return _dynamically_stratify_circuit(circuit, classifiers, context)
 
 
-StratifyingMethod = Callable[
+StratifyMethod = Callable[
     [circuits.AbstractCircuit, Sequence[Classifier], 'cirq.TransformerContext'],
     circuits.AbstractCircuit,
 ]
 
 
-def _optimize_statifying_direction(stratifying_func: StratifyingMethod) -> StratifyingMethod:
+def _optimize_statifying_direction(stratify_method: StratifyMethod) -> StratifyMethod:
     """Decorator to optimize over stratifying a circuit left-to-right vs. right-to-left."""
 
-    def optimized_stratifying_func(
+    def optimized_stratifying_method(
         circuit: circuits.AbstractCircuit,
         classifiers: Sequence[Classifier],
         context: 'cirq.TransformerContext',
     ) -> 'cirq.Circuit':
-        forward_circuit = stratifying_func(circuit, classifiers, context)
-        backward_circuit = stratifying_func(circuit[::-1], classifiers, context)
+        forward_circuit = stratify_method(circuit, classifiers, context)
+        backward_circuit = stratify_method(circuit[::-1], classifiers, context)
         if len(forward_circuit) <= len(backward_circuit):
             return forward_circuit
         return backward_circuit[::-1]
 
-    return optimized_stratifying_func
+    return optimized_stratifying_method
 
 
 # TODO:
