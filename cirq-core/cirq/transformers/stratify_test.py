@@ -16,12 +16,13 @@ import pytest
 import cirq
 
 
-def test_stratified_circuit_classifier_types():
+@pytest.mark.parametrize("method", ["dynamic", "static"])
+def test_stratified_circuit_classifier_types(method: str) -> None:
     a, b, c, d = cirq.LineQubit.range(4)
 
     circuit = cirq.Circuit(cirq.Moment([cirq.X(a), cirq.Y(b), cirq.X(c) ** 0.5, cirq.X(d)]))
 
-    gate_result = cirq.stratified_circuit(circuit, categories=[cirq.X])
+    gate_result = cirq.stratified_circuit(circuit, method=method, categories=[cirq.X])
     cirq.testing.assert_same_circuits(
         gate_result,
         cirq.Circuit(
@@ -29,7 +30,7 @@ def test_stratified_circuit_classifier_types():
         ),
     )
 
-    gate_type_result = cirq.stratified_circuit(circuit, categories=[cirq.XPowGate])
+    gate_type_result = cirq.stratified_circuit(circuit, method=method, categories=[cirq.XPowGate])
     cirq.testing.assert_same_circuits(
         gate_type_result,
         cirq.Circuit(
@@ -37,7 +38,7 @@ def test_stratified_circuit_classifier_types():
         ),
     )
 
-    operation_result = cirq.stratified_circuit(circuit, categories=[cirq.X(a)])
+    operation_result = cirq.stratified_circuit(circuit, method=method, categories=[cirq.X(a)])
     cirq.testing.assert_same_circuits(
         operation_result,
         cirq.Circuit(
@@ -45,13 +46,17 @@ def test_stratified_circuit_classifier_types():
         ),
     )
 
-    operation_type_result = cirq.stratified_circuit(circuit, categories=[cirq.GateOperation])
+    operation_type_result = cirq.stratified_circuit(
+        circuit, method=method, categories=[cirq.GateOperation]
+    )
     cirq.testing.assert_same_circuits(
         operation_type_result,
         cirq.Circuit(cirq.Moment([cirq.X(a), cirq.Y(b), cirq.X(c) ** 0.5, cirq.X(d)])),
     )
 
-    predicate_result = cirq.stratified_circuit(circuit, categories=[lambda op: op.qubits == (b,)])
+    predicate_result = cirq.stratified_circuit(
+        circuit, method=method, categories=[lambda op: op.qubits == (b,)]
+    )
     cirq.testing.assert_same_circuits(
         predicate_result,
         cirq.Circuit(
@@ -60,10 +65,11 @@ def test_stratified_circuit_classifier_types():
     )
 
     with pytest.raises(TypeError, match='Unrecognized'):
-        _ = cirq.stratified_circuit(circuit, categories=['unknown'])
+        _ = cirq.stratified_circuit(circuit, method=method, categories=['unknown'])
 
 
-def test_overlapping_categories():
+@pytest.mark.parametrize("method", ["dynamic", "static"])
+def test_overlapping_categories(method: str) -> None:
     a, b, c, d = cirq.LineQubit.range(4)
 
     result = cirq.stratified_circuit(
@@ -73,6 +79,7 @@ def test_overlapping_categories():
             cirq.Moment([cirq.CNOT(c, d)]),
             cirq.Moment([cirq.X(a), cirq.Y(b), cirq.Z(c)]),
         ),
+        method=method,
         categories=[
             lambda op: len(op.qubits) == 1 and not isinstance(op.gate, cirq.XPowGate),
             lambda op: len(op.qubits) == 1 and not isinstance(op.gate, cirq.ZPowGate),
@@ -91,16 +98,21 @@ def test_overlapping_categories():
     )
 
 
-def test_empty():
+@pytest.mark.parametrize("method", ["dynamic", "static"])
+def test_empty(method: str) -> None:
     a = cirq.LineQubit(0)
-    assert cirq.stratified_circuit(cirq.Circuit(), categories=[]) == cirq.Circuit()
-    assert cirq.stratified_circuit(cirq.Circuit(), categories=[cirq.X]) == cirq.Circuit()
-    assert cirq.stratified_circuit(cirq.Circuit(cirq.X(a)), categories=[]) == cirq.Circuit(
-        cirq.X(a)
+    assert cirq.stratified_circuit(cirq.Circuit(), method=method, categories=[]) == cirq.Circuit()
+    assert (
+        cirq.stratified_circuit(cirq.Circuit(), method=method, categories=[cirq.X])
+        == cirq.Circuit()
     )
+    assert cirq.stratified_circuit(
+        cirq.Circuit(cirq.X(a)), method=method, categories=[]
+    ) == cirq.Circuit(cirq.X(a))
 
 
-def test_greedy_merging():
+@pytest.mark.parametrize("method", ["dynamic", "static"])
+def test_greedy_merging(method: str) -> None:
     """Tests a tricky situation where the algorithm of "Merge single-qubit
     gates, greedily align single-qubit then 2-qubit operations" doesn't work.
     Our algorithm succeeds because we also run it in reverse order."""
@@ -117,11 +129,12 @@ def test_greedy_merging():
         cirq.Moment([cirq.SWAP(q1, q2), cirq.SWAP(q3, q4)]),
     )
     cirq.testing.assert_same_circuits(
-        cirq.stratified_circuit(input_circuit, categories=[cirq.X]), expected
+        cirq.stratified_circuit(input_circuit, method=method, categories=[cirq.X]), expected
     )
 
 
-def test_greedy_merging_reverse():
+@pytest.mark.parametrize("method", ["dynamic", "static"])
+def test_greedy_merging_reverse(method: str) -> None:
     """Same as the above test, except that the aligning is done in reverse."""
     q1, q2, q3, q4 = cirq.LineQubit.range(4)
     input_circuit = cirq.Circuit(
@@ -136,11 +149,12 @@ def test_greedy_merging_reverse():
         cirq.Moment([cirq.SWAP(q3, q4)]),
     )
     cirq.testing.assert_same_circuits(
-        cirq.stratified_circuit(input_circuit, categories=[cirq.X]), expected
+        cirq.stratified_circuit(input_circuit, method=method, categories=[cirq.X]), expected
     )
 
 
-def test_complex_circuit():
+@pytest.mark.parametrize("method", ["dynamic", "static"])
+def test_complex_circuit(method: str) -> None:
     """Tests that a complex circuit is correctly optimized."""
     q1, q2, q3, q4, q5 = cirq.LineQubit.range(5)
     input_circuit = cirq.Circuit(
@@ -156,11 +170,12 @@ def test_complex_circuit():
         cirq.Moment([cirq.ISWAP(q1, q2)]),
     )
     cirq.testing.assert_same_circuits(
-        cirq.stratified_circuit(input_circuit, categories=[cirq.X, cirq.Z]), expected
+        cirq.stratified_circuit(input_circuit, method=method, categories=[cirq.X, cirq.Z]), expected
     )
 
 
-def test_complex_circuit_deep():
+@pytest.mark.parametrize("method", ["dynamic", "static"])
+def test_complex_circuit_deep(method: str) -> None:
     q = cirq.LineQubit.range(5)
     c_nested = cirq.FrozenCircuit(
         cirq.Moment(
@@ -193,11 +208,14 @@ def test_complex_circuit_deep():
         c_nested_stratified,
     )
     context = cirq.TransformerContext(tags_to_ignore=["ignore"], deep=True)
-    c_stratified = cirq.stratified_circuit(c_orig, context=context, categories=[cirq.X, cirq.Z])
+    c_stratified = cirq.stratified_circuit(
+        c_orig, method=method, context=context, categories=[cirq.X, cirq.Z]
+    )
     cirq.testing.assert_same_circuits(c_stratified, c_expected)
 
 
-def test_no_categories_earliest_insert():
+@pytest.mark.parametrize("method", ["dynamic", "static"])
+def test_no_categories_earliest_insert(method: str) -> None:
     q1, q2, q3, q4, q5 = cirq.LineQubit.range(5)
     input_circuit = cirq.Circuit(
         cirq.Moment([cirq.ISWAP(q2, q3)]),
@@ -205,7 +223,8 @@ def test_no_categories_earliest_insert():
         cirq.Moment([cirq.ISWAP(q1, q2), cirq.X(q4)]),
     )
     cirq.testing.assert_same_circuits(
-        cirq.Circuit(input_circuit.all_operations()), cirq.stratified_circuit(input_circuit)
+        cirq.Circuit(input_circuit.all_operations()),
+        cirq.stratified_circuit(input_circuit, method=method),
     )
 
 
@@ -310,7 +329,8 @@ m: ════@═════^═══════
     )
 
 
-def test_heterogeneous_circuit():
+@pytest.mark.parametrize("method", ["dynamic", "static"])
+def test_heterogeneous_circuit(method: str) -> None:
     """Tests that a circuit that is very heterogeneous is correctly optimized"""
     q1, q2, q3, q4, q5, q6 = cirq.LineQubit.range(6)
     input_circuit = cirq.Circuit(
@@ -327,7 +347,7 @@ def test_heterogeneous_circuit():
     )
 
     cirq.testing.assert_same_circuits(
-        cirq.stratified_circuit(input_circuit, categories=[cirq.X, cirq.Z]), expected
+        cirq.stratified_circuit(input_circuit, method=method, categories=[cirq.X, cirq.Z]), expected
     )
 
 
