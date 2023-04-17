@@ -217,7 +217,6 @@ def _statically_stratify_fixed_circuit(
 
 
 # TODO:
-# - properly deal with tags_to_ignore
 # - properly deal with measurement/control keys
 @_optimize_statifying_direction
 def _dynamically_stratify_circuit(
@@ -246,13 +245,13 @@ def _dynamically_stratify_circuit(
     for moment in circuit:
         ignored_ops = []
         for op in moment:
-            if any(tag in op.tags for tag in context.tags_to_ignore):
-                ignored_ops.append(op)
-            else:
+            if not any(tag in op.tags for tag in context.tags_to_ignore):
                 strata.add(op)
+            else:
+                ignored_ops.append(op)
         if ignored_ops:
-            ...
-            # stratum = _Stratum()
+            op_class = hash(tuple(ignored_ops))  # assign a unique "class" to these ignored_ops
+            strata.append_stratum(op_class, *ignored_ops)
     return circuits.Circuit(stratum.as_moment() for stratum in strata)
 
 
@@ -414,7 +413,7 @@ class _Strata:
             op_stratum.add(op)
 
         else:
-            op_stratum = self._get_new_stratum(op_class, op)
+            op_stratum = self.append_stratum(op_class, op)
 
         self._qubit_floor.update({qubit: op_stratum for qubit in op.qubits})
 
@@ -522,10 +521,10 @@ class _Strata:
                 return stratum
         return None
 
-    def _get_new_stratum(self, op_class: int, op: ops.Operation) -> _Stratum:
-        """Add the given operation to a new stratum above all other strata.  Return that stratum."""
-        op_time_index = self._strata[-1].time_index + 1 if self._strata else 0
-        op_stratum = _Stratum(op_time_index, op_class, op)
+    def append_stratum(self, op_class: int, *ops: ops.Operation) -> _Stratum:
+        """Add the given ops to a new stratum above all other strata.  Return that stratum."""
+        time_index = self._strata[-1].time_index + 1 if self._strata else 0
+        op_stratum = _Stratum(time_index, op_class, *ops)
         self._strata.append(op_stratum)
         self._stratum_index[op_stratum] = len(self._strata) - 1
         return op_stratum
