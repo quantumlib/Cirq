@@ -536,4 +536,5 @@ class _Strata:
         self._update_qubit_floor(stratum.qubits, stratum)
 
     def _update_qubit_floor(self, qubits: Iterable['cirq.Qid'], stratum: _Stratum) -> None:
+        """Update the "floor" for each qubit, or the lowest stratum that addresses it."""
         self._qubit_floor.update({qubit: stratum for qubit in qubits})
