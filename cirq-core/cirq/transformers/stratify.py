@@ -322,18 +322,15 @@ def _get_op_class(op: 'cirq.Operation', classifiers: Sequence[Classifier]) -> in
 class _Stratum:
     """A custom cirq.Moment that additionally keeps track of:
     - the time_index that it should occupy in a circuit
-    - a set of qubits that are "blocked" by operations "ahead of" this _Stratum
     - an integer "class_index" that identifies the "type" of operations in this _Stratum
     """
 
-    def __init__(self, time_index: int, op: ops.Operation, class_index: int) -> None:
+    def __init__(self, time_index: int, class_index: int, op: ops.Operation) -> None:
         """Initialize an empty _Stratum with a fixed class_index."""
         self.time_index = time_index
-        self._ops = [op]
         self._class_index = class_index
-
+        self._ops = [op]
         self._qubits = set(op.qubits)
-        self._blocked_qubits: Set['cirq.Qid'] = set()
 
     @property
     def qubits(self) -> Set['cirq.Qid']:
@@ -521,7 +518,7 @@ class _Strata:
     def _get_new_stratum(self, op: ops.Operation, op_class: int) -> _Stratum:
         """Add the given operation to a new stratum above all other strata.  Return that stratum."""
         op_time_index = self._strata[-1].time_index + 1 if self._strata else 0
-        op_stratum = _Stratum(op_time_index, op, op_class)
+        op_stratum = _Stratum(op_time_index, op_class, op)
         self._strata.append(op_stratum)
         self._stratum_index[op_stratum] = len(self._strata) - 1
         return op_stratum
