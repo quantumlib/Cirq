@@ -27,6 +27,7 @@ from typing import (
     TYPE_CHECKING,
     Tuple,
 )
+from typing_extensions import Self
 
 import numpy as np
 
@@ -34,7 +35,6 @@ from cirq import protocols, value
 from cirq.protocols.decompose_protocol import _try_decompose_into_operations_and_qubits
 from cirq.sim.simulation_state_base import SimulationStateBase
 
-TSelf = TypeVar('TSelf', bound='SimulationState')
 TState = TypeVar('TState', bound='cirq.QuantumStateRepresentation')
 
 if TYPE_CHECKING:
@@ -146,7 +146,7 @@ class SimulationState(SimulationStateBase, Generic[TState], metaclass=abc.ABCMet
             return self._state.sample(self.get_axes(qubits), repetitions, seed)
         raise NotImplementedError()
 
-    def copy(self: TSelf, deep_copy_buffers: bool = True) -> TSelf:
+    def copy(self, deep_copy_buffers: bool = True) -> Self:
         """Creates a copy of the object.
 
         Args:
@@ -162,11 +162,11 @@ class SimulationState(SimulationStateBase, Generic[TState], metaclass=abc.ABCMet
         args._state = self._state.copy(deep_copy_buffers=deep_copy_buffers)
         return args
 
-    def create_merged_state(self: TSelf) -> TSelf:
+    def create_merged_state(self) -> Self:
         """Creates a final merged state."""
         return self
 
-    def kronecker_product(self: TSelf, other: TSelf, *, inplace=False) -> TSelf:
+    def kronecker_product(self, other: Self, *, inplace=False) -> Self:
         """Joins two state spaces together."""
         args = self if inplace else copy.copy(self)
         args._state = self._state.kron(other._state)
@@ -174,8 +174,8 @@ class SimulationState(SimulationStateBase, Generic[TState], metaclass=abc.ABCMet
         return args
 
     def factor(
-        self: TSelf, qubits: Sequence['cirq.Qid'], *, validate=True, atol=1e-07, inplace=False
-    ) -> Tuple[TSelf, TSelf]:
+        self, qubits: Sequence['cirq.Qid'], *, validate=True, atol=1e-07, inplace=False
+    ) -> Tuple[Self, Self]:
         """Splits two state spaces after a measurement or reset."""
         extracted = copy.copy(self)
         remainder = self if inplace else copy.copy(self)
@@ -191,9 +191,7 @@ class SimulationState(SimulationStateBase, Generic[TState], metaclass=abc.ABCMet
         """Subclasses that allow factorization should override this."""
         return self._state.supports_factor if self._state is not None else False
 
-    def transpose_to_qubit_order(
-        self: TSelf, qubits: Sequence['cirq.Qid'], *, inplace=False
-    ) -> TSelf:
+    def transpose_to_qubit_order(self, qubits: Sequence['cirq.Qid'], *, inplace=False) -> Self:
         """Physically reindexes the state by the new basis.
 
         Args:
@@ -276,7 +274,7 @@ class SimulationState(SimulationStateBase, Generic[TState], metaclass=abc.ABCMet
         args._set_qubits(qubits)
         return args
 
-    def __getitem__(self: TSelf, item: Optional['cirq.Qid']) -> TSelf:
+    def __getitem__(self, item: Optional['cirq.Qid']) -> Self:
         if item not in self.qubit_map:
             raise IndexError(f'{item} not in {self.qubits}')
         return self
