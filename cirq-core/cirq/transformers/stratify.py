@@ -227,8 +227,8 @@ def _dynamically_stratify_circuit(
     - Creates new moments on an as-needed basis.
     - Advances moments up/forward if and when possible to absorb a new operation.
 
-    Most of the complexity of adding operations to moments is offloaded to_Strata class, while this
-    method mostly deals with handling ignored operations (based on `context.tags_to_ignore`).
+    Most of the complexity of adding operations to moments is offloaded to the _Strata class, while
+    this method mostly deals with handling ignored operations (based on `context.tags_to_ignore`).
 
     Args:
         circuit: The circuit to break out into homogeneous moments. Will not be edited.
