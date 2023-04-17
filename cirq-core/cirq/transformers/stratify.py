@@ -136,7 +136,7 @@ def _statically_stratify_circuit(
     smallest_depth = protocols.num_qubits(circuit) * len(circuit) + 1
     shortest_stratified_circuit = circuits.Circuit()
     for ordered_classifiers in itertools.permutations(classifiers):
-        solution = _statically_stratify_fixed_circuit(
+        solution = _statically_stratify_circuit_without_optimization(
             circuit, classifiers=ordered_classifiers, context=context
         )
         if len(solution) < smallest_depth:
@@ -145,7 +145,7 @@ def _statically_stratify_circuit(
     return shortest_stratified_circuit
 
 
-def _statically_stratify_fixed_circuit(
+def _statically_stratify_circuit_without_optimization(
     circuit: 'cirq.AbstractCircuit',
     classifiers: Sequence[Classifier],
     context: 'cirq.TransformerContext',
