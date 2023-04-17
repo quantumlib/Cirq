@@ -17,19 +17,20 @@
 import itertools
 from typing import (
     TYPE_CHECKING,
-    Type,
     Callable,
     Dict,
-    Iterator,
-    Optional,
-    Set,
-    Union,
     Iterable,
-    Sequence,
+    Iterator,
     List,
+    Optional,
+    Sequence,
+    Set,
+    Tuple,
+    Type,
+    Union,
 )
 
-from cirq import ops, circuits, protocols, _import
+from cirq import _import, circuits, ops, protocols
 from cirq.transformers import transformer_api
 
 drop_empty_moments = _import.LazyLoader('drop_empty_moments', globals(), 'cirq.transformers')
@@ -242,8 +243,16 @@ def _dynamically_stratify_circuit(
     """
     # Initialize a _Strata object and add operations to it incrementally.
     strata = _Strata(classifiers)
-    for op in circuit.all_operations():
-        strata.add(op)
+    for moment in circuit:
+        ignored_ops = []
+        for op in moment:
+            if any(tag in op.tags for tag in context.tags_to_ignore):
+                ignored_ops.append(op)
+            else:
+                strata.add(op)
+        if ignored_ops:
+            ...
+            # stratum = _Stratum()
     return circuits.Circuit(stratum.as_moment() for stratum in strata)
 
 
@@ -325,12 +334,12 @@ class _Stratum:
     - an integer "class_index" that identifies the "type" of operations in this _Stratum
     """
 
-    def __init__(self, time_index: int, class_index: int, op: ops.Operation) -> None:
-        """Initialize an empty _Stratum with a fixed class_index."""
+    def __init__(self, time_index: int, class_index: int, *ops: ops.Operation) -> None:
+        """Initialize a _Stratum with a tentative time_index and a permanent class_index."""
         self.time_index = time_index
         self._class_index = class_index
-        self._ops = [op]
-        self._qubits = set(op.qubits)
+        self._ops = list(ops)
+        self._qubits = set(qubit for op in ops for qubit in op.qubits)
 
     @property
     def qubits(self) -> Set['cirq.Qid']:
@@ -396,16 +405,16 @@ class _Strata:
         op_class = _get_op_class(op, self._classifiers)
         op_floor = self._get_op_floor(op)
 
-        if (op_stratum := self._get_below_stratum(op, op_class, op_floor)) is not None:
+        if (op_stratum := self._get_below_stratum(op_class, op_floor, op.qubits)) is not None:
             if op_floor is not None:
-                self._move_stratum_above_floor(op, op_class, op_floor, op_stratum)
+                self._move_stratum_above_floor(op_stratum, op_floor)
             op_stratum.add(op)
 
-        elif (op_stratum := self._get_above_stratum(op, op_class, op_floor)) is not None:
+        elif (op_stratum := self._get_above_stratum(op_class, op_floor, op.qubits)) is not None:
             op_stratum.add(op)
 
         else:
-            op_stratum = self._get_new_stratum(op, op_class)
+            op_stratum = self._get_new_stratum(op_class, op)
 
         self._qubit_floor.update({qubit: op_stratum for qubit in op.qubits})
 
@@ -415,11 +424,11 @@ class _Strata:
         return max(candidates, key=lambda stratum: stratum.time_index) if candidates else None
 
     def _get_below_stratum(
-        self, op: ops.Operation, op_class: int, op_floor: Optional[_Stratum]
+        self, op_class: int, op_floor: Optional[_Stratum], op_qubits: Tuple['cirq.Qid', ...]
     ) -> Optional[_Stratum]:
         """Get the lowest stratum that:
             (a) is below the op_floor,
-            (b) can accomodate the op, and
+            (b) can accomodate an op on the given qubits, and
             (c) can be moved up above the op_floor (without violating causality).
         If no such stratum exists, return None.
         """
@@ -429,7 +438,7 @@ class _Strata:
 
         # Keep track of qubits in the past light cone of the op, which block a candidate
         # below_stratum from being able to move up above the op_floor.
-        past_light_cone_qubits = set(op.qubits)
+        past_light_cone_qubits = set(op_qubits)
         op_floor_index = self._stratum_index[op_floor]
 
         # Starting from the op_floor, look down/backwards for a candidate below_stratum.
@@ -460,9 +469,7 @@ class _Strata:
 
         return below_stratum
 
-    def _move_stratum_above_floor(
-        self, op: ops.Operation, op_class: int, op_floor: _Stratum, below_stratum: _Stratum
-    ) -> None:
+    def _move_stratum_above_floor(self, below_stratum: _Stratum, op_floor: _Stratum) -> None:
         """Move a below_stratum up above the op_floor."""
         op_floor_index = self._stratum_index[op_floor]
         above_floor_index = op_floor_index + 1  # hack around flake8 false positive (E203)
@@ -506,16 +513,16 @@ class _Strata:
         self._strata[below_stratum_index:] = spectator_strata + strata_to_shift
 
     def _get_above_stratum(
-        self, op: ops.Operation, op_class: int, op_floor: Optional[_Stratum]
+        self, op_class: int, op_floor: Optional[_Stratum], op_qubits: Tuple['cirq.Qid', ...]
     ) -> Optional[_Stratum]:
         """Get the lowest accomodating stratum above the op_floor, if there is any."""
         start = self._stratum_index[op_floor] + 1 if op_floor is not None else 0
         for stratum in self._strata[start:]:
-            if stratum.class_index == op_class and stratum.qubits.isdisjoint(op.qubits):
+            if stratum.class_index == op_class and stratum.qubits.isdisjoint(op_qubits):
                 return stratum
         return None
 
-    def _get_new_stratum(self, op: ops.Operation, op_class: int) -> _Stratum:
+    def _get_new_stratum(self, op_class: int, op: ops.Operation) -> _Stratum:
         """Add the given operation to a new stratum above all other strata.  Return that stratum."""
         op_time_index = self._strata[-1].time_index + 1 if self._strata else 0
         op_stratum = _Stratum(op_time_index, op_class, op)
