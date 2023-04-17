@@ -57,7 +57,7 @@ StratifyMethod = Callable[
 def stratified_circuit(
     circuit: 'cirq.AbstractCircuit',
     *,
-    method: str = "dynamic",
+    method: str = "static",
     context: Optional['cirq.TransformerContext'] = None,
     categories: Iterable[Category] = (),
 ) -> 'cirq.Circuit':
@@ -112,38 +112,6 @@ def _optimize_statifying_direction(stratify_method: StratifyMethod) -> StratifyM
         return backward_circuit[::-1]
 
     return optimized_stratifying_method
-
-
-# TODO:
-# - properly deal with tags_to_ignore
-# - properly deal with measurement/control keys
-@_optimize_statifying_direction
-def _dynamically_stratify_circuit(
-    circuit: 'cirq.AbstractCircuit',
-    classifiers: Sequence[Classifier],
-    context: 'cirq.TransformerContext',
-) -> 'cirq.Circuit':
-    """A "dynamic" stratifying method that:
-    - Iterates over all operations in topological order.
-    - Creates new moments on an as-needed basis.
-    - Advances moments up/forward if and when possible to absorb a new operation.
-
-    All of the complexity of this stratifying method is offloaded to the _Strata class.
-
-    Args:
-        circuit: The circuit to break out into homogeneous moments. Will not be edited.
-        classifiers: A list of rules to align the circuit. Must be exhaustive, i.e. all operations
-            will be caught by one of the processors.
-        context: `cirq.TransformerContext` storing common configurable options for transformers.
-
-    Returns:
-        The stratified circuit.
-    """
-    # Initialize a _Strata object and add operations to it incrementally.
-    strata = _Strata(classifiers)
-    for op in circuit.all_operations():
-        strata.add(op)
-    return circuits.Circuit(stratum.as_moment() for stratum in strata)
 
 
 @_optimize_statifying_direction
@@ -245,6 +213,38 @@ def _statically_stratify_fixed_circuit(
                 control_time_index[key] = time_index
 
     return circuits.Circuit(circuits.Moment(moment) for moment in new_moments if moment)
+
+
+# TODO:
+# - properly deal with tags_to_ignore
+# - properly deal with measurement/control keys
+@_optimize_statifying_direction
+def _dynamically_stratify_circuit(
+    circuit: 'cirq.AbstractCircuit',
+    classifiers: Sequence[Classifier],
+    context: 'cirq.TransformerContext',
+) -> 'cirq.Circuit':
+    """A "dynamic" stratifying method that:
+    - Iterates over all operations in topological order.
+    - Creates new moments on an as-needed basis.
+    - Advances moments up/forward if and when possible to absorb a new operation.
+
+    All of the complexity of this stratifying method is offloaded to the _Strata class.
+
+    Args:
+        circuit: The circuit to break out into homogeneous moments. Will not be edited.
+        classifiers: A list of rules to align the circuit. Must be exhaustive, i.e. all operations
+            will be caught by one of the processors.
+        context: `cirq.TransformerContext` storing common configurable options for transformers.
+
+    Returns:
+        The stratified circuit.
+    """
+    # Initialize a _Strata object and add operations to it incrementally.
+    strata = _Strata(classifiers)
+    for op in circuit.all_operations():
+        strata.add(op)
+    return circuits.Circuit(stratum.as_moment() for stratum in strata)
 
 
 def _get_classifiers(
