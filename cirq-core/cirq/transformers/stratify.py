@@ -425,7 +425,9 @@ class _Strata:
         Reurn False otherwise.
         """
         if op_floor is None:
-            return None
+            # There is no floor, so there are no strata below the floor.
+            return False
+
         below_stratum = None  # initialize the null hypothesis that no below_stratum exists
 
         # Keep track of qubits in the past light cone of the op, which block a candidate
