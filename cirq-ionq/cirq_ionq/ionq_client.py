@@ -18,7 +18,6 @@ import sys
 import time
 import urllib
 import platform
-from importlib_metadata import version
 from typing import Any, Callable, cast, Dict, List, Optional
 import json.decoder as jd
 
@@ -290,14 +289,9 @@ class _IonQClient:
         Returns:
             str: A string of generated user agent.
         """
-        provider_version_string = f"cirq-ionq/{version('cirq_ionq')}"
         cirq_version_string = f'cirq/{cirq_version}'
         python_version_string = f'python/{platform.python_version()}'
-        return (
-            f'User-Agent: {provider_version_string} '
-            f'({cirq_version_string}) '
-            f'({python_version_string})'
-        )
+        return f'User-Agent: {cirq_version_string} ({python_version_string})'
 
     def _target(self, target: Optional[str]) -> str:
         """Returns the target if not None or the default target.
