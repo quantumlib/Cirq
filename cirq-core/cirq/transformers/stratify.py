@@ -462,7 +462,7 @@ class _Strata:
                     break
 
         if below_stratum is None:
-            # No candidate below_straum was found :(
+            # No candidate below_stratum was found :(
             return False
 
         # Move the below_stratum above the op_floor and add the op to it
