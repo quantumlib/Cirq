@@ -290,13 +290,12 @@ class _IonQClient:
         Returns:
             str: A string of generated user agent.
         """
-        os_string = f'os/{platform.system()}'
         provider_version_string = f"cirq-ionq/{version('cirq_ionq')}"
         cirq_version_string = f'cirq/{cirq_version}'
         python_version_string = f'python/{platform.python_version()}'
         return (
             f'User-Agent: {provider_version_string} '
-            f'({cirq_version_string}) {os_string} '
+            f'({cirq_version_string}) '
             f'({python_version_string})'
         )
 
