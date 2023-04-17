@@ -328,8 +328,8 @@ def _get_op_class(op: 'cirq.Operation', classifiers: Sequence[Classifier]) -> in
 
 class _Stratum:
     """A custom cirq.Moment that additionally keeps track of:
-    - the time_index that it should occupy in a circuit
-    - an integer "class_index" that identifies the "type" of operations in this _Stratum
+    - The time_index that it should occupy in a circuit.
+    - An integer "class_index" that identifies the "type" of operations in this _Stratum.
     """
 
     def __init__(self, time_index: int, class_index: int, *ops: ops.Operation) -> None:
@@ -520,7 +520,9 @@ class _Strata:
         self, op_class: int, op_floor: Optional[_Stratum], op: ops.Operation
     ) -> bool:
         """Try to merge the given operation into an existing stratum above the op_floor.
-        Return True if a suitable stratum is found and the op is merged."""
+
+        Return True iff a suitable stratum is found and the op is merged.
+        """
         start = self._stratum_index[op_floor] + 1 if op_floor is not None else 0
         for stratum in self._strata[start:]:
             if stratum.class_index == op_class and stratum.qubits.isdisjoint(op.qubits):
