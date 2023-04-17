@@ -524,7 +524,8 @@ class _Strata:
     def append_stratum(self, op_class: int, *ops: ops.Operation) -> _Stratum:
         """Add the given ops to a new stratum above all other strata.  Return that stratum."""
         time_index = self._strata[-1].time_index + 1 if self._strata else 0
-        op_stratum = _Stratum(time_index, op_class, *ops)
-        self._strata.append(op_stratum)
-        self._stratum_index[op_stratum] = len(self._strata) - 1
-        return op_stratum
+        stratum = _Stratum(time_index, op_class, *ops)
+        self._strata.append(stratum)
+        self._stratum_index[stratum] = len(self._strata) - 1
+        self._qubit_floor.update({qubit: stratum for qubit in stratum.qubits})
+        return stratum
