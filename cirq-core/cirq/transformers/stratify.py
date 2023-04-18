@@ -451,9 +451,9 @@ class _Strata:
         # Keep track of qubits in the past light cone of the op, which block a candidate
         # below_stratum from being able to move up above the op_floor.
         past_light_cone_qubits = set(op.qubits)
-        op_floor_index = self._stratum_index[op_floor]
 
         # Starting from the op_floor, look down/backwards for a candidate below_stratum.
+        op_floor_index = self._stratum_index[op_floor]
         for stratum in self._strata[op_floor_index::-1]:
             if stratum.class_index != op_class:
                 # This stratum cannot accomodate the op, but it might be in op's past light cone.
@@ -494,6 +494,7 @@ class _Strata:
     # TODO: properly deal with measurement/control keys
     def _move_stratum_above_floor(self, below_stratum: _Stratum, op_floor: _Stratum) -> None:
         """Move a below_stratum up above the op_floor."""
+        # Identify the indices of a few relevant strata.
         op_floor_index = self._stratum_index[op_floor]
         above_floor_index = op_floor_index + 1  # hack around flake8 false positive (E203)
         below_stratum_index = self._stratum_index[below_stratum]
