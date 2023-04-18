@@ -415,6 +415,7 @@ class _Strata:
         op_mkeys = protocols.measurement_key_objs(op)
         op_ckeys = protocols.control_keys(op)
 
+        # Identify strata that collide with this op.
         colliding_strata = []
         if op_qubits:
             colliding_strata.extend([self._qubit_floor.get(qubit) for qubit in op_qubits])
@@ -423,6 +424,7 @@ class _Strata:
             if op_mkeys:
                 colliding_strata.extend([self._ckey_floor.get(key) for key in op_ckeys])
 
+        # Return the highest stratum, if any.
         return max(
             (stratum for stratum in colliding_strata if stratum is not None),
             key=lambda stratum: stratum.time_index,
