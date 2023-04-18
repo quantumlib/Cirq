@@ -214,8 +214,6 @@ def _statically_stratify_circuit_without_optimization(
     return circuits.Circuit(circuits.Moment(moment) for moment in new_moments if moment)
 
 
-# TODO:
-# - properly deal with measurement/control keys
 @_optimize_statifying_direction
 def _dynamically_stratify_circuit(
     circuit: 'cirq.AbstractCircuit',
@@ -377,8 +375,10 @@ class _Strata:
         self._classifiers = classifiers
         self._strata: List[_Stratum] = []
 
-        # map from qubit --> the last stratum that adresses that qubit
+        # maps from a qubit, measurement key, or control key to the highest stratum that adresses it
         self._qubit_floor: Dict['cirq.Qid', _Stratum] = {}
+        self._mkey_floor: Dict['cirq.MeasurementKey', _Stratum] = {}
+        self._ckey_floor: Dict['cirq.MeasurementKey', _Stratum] = {}
 
         # map from a stratum to its index in self._strata
         self._stratum_index: Dict[_Stratum, int] = {}
@@ -411,9 +411,23 @@ class _Strata:
 
     def _get_op_floor(self, op: ops.Operation) -> Optional[_Stratum]:
         """Get the highest stratum that collides with this op, if there is any."""
-        candidates = [stratum for qubit in op.qubits if (stratum := self._qubit_floor.get(qubit))]
-        return max(candidates, key=lambda stratum: stratum.time_index) if candidates else None
+        op_qubits = op.qubits
+        op_mkeys = protocols.measurement_key_objs(op)
+        op_ckeys = protocols.control_keys(op)
+        colliding_strata = []
+        if op_qubits:
+            colliding_strata.extend([self._qubit_floor.get(qubit, None) for qubit in op_qubits])
+        if op_mkeys or op_ckeys:
+            colliding_strata.extend([self._mkey_floor.get(key, None) for key in op_mkeys])
+            if op_mkeys:
+                colliding_strata.extend([self._ckey_floor.get(key, None) for key in op_ckeys])
+        return max(
+            (stratum for stratum in colliding_strata if stratum),
+            key=lambda stratum: stratum.time_index,
+            default=None,
+        )
 
+    # TODO: properly deal with measurement/control keys
     def _merge_into_below_stratum(
         self, op_class: int, op_floor: Optional[_Stratum], op: ops.Operation
     ) -> bool:
@@ -470,9 +484,10 @@ class _Strata:
             self._move_stratum_above_floor(below_stratum, op_floor)
         below_stratum.add(op)
 
-        self._update_qubit_floor(op.qubits, below_stratum)
+        self._update_floors(op, below_stratum)
         return True
 
+    # TODO: properly deal with measurement/control keys
     def _move_stratum_above_floor(self, below_stratum: _Stratum, op_floor: _Stratum) -> None:
         """Move a below_stratum up above the op_floor."""
         op_floor_index = self._stratum_index[op_floor]
@@ -520,14 +535,13 @@ class _Strata:
         self, op_class: int, op_floor: Optional[_Stratum], op: ops.Operation
     ) -> bool:
         """Try to merge the given operation into an existing stratum above the op_floor.
-
         Return True iff a suitable stratum is found and the op is merged.
         """
         start = self._stratum_index[op_floor] + 1 if op_floor is not None else 0
         for stratum in self._strata[start:]:
             if stratum.class_index == op_class and stratum.qubits.isdisjoint(op.qubits):
                 stratum.add(op)
-                self._update_qubit_floor(op.qubits, stratum)
+                self._update_floors(op, stratum)
                 return True
         return False
 
@@ -537,8 +551,13 @@ class _Strata:
         stratum = _Stratum(time_index, op_class, *ops)
         self._strata.append(stratum)
         self._stratum_index[stratum] = len(self._strata) - 1
-        self._update_qubit_floor(stratum.qubits, stratum)
+        for op in ops:
+            self._update_floors(op, stratum)
 
-    def _update_qubit_floor(self, qubits: Iterable['cirq.Qid'], stratum: _Stratum) -> None:
-        """Update the "floor" for each qubit, or the lowest stratum that addresses it."""
-        self._qubit_floor.update({qubit: stratum for qubit in qubits})
+    def _update_floors(self, op: ops.Operation, stratum: _Stratum) -> None:
+        """Update the "floors" for the qubits, measurment keys, and control keys of an operation.
+        The "floor" of, say, a qubit is the highest stratum that addresses it.
+        """
+        self._qubit_floor.update({qubit: stratum for qubit in op.qubits})
+        self._mkey_floor.update({key: stratum for key in protocols.measurement_key_objs(op)})
+        self._ckey_floor.update({key: stratum for key in protocols.control_keys(op)})
