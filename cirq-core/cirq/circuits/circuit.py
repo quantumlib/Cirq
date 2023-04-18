@@ -1796,13 +1796,12 @@ class Circuit(AbstractCircuit):
             placement_index = get_earliest_accommodating_moment_index(
                 mop, qubit_indices, mkey_indices, ckey_indices, length
             )
+            length = max(length, placement_index + 1)  # update the length of the circuit thus far
+
             if isinstance(mop, Moment):
                 moments_by_index[placement_index] = mop
             else:
                 op_lists_by_index[placement_index].append(mop)
-
-            # Update the length of the circuit thus far.
-            length = max(length, placement_index + 1)
 
         # Finally, once everything is placed, we can construct and append the actual moments for
         # each index.
@@ -2783,12 +2782,11 @@ def get_earliest_accommodating_moment_index(
             last_conflict = max(
                 last_conflict, *[qubit_indices.get(qubit, -1) for qubit in mop_qubits]
             )
-        if mop_mkeys or mop_ckeys:
+        if mop_mkeys:
             last_conflict = max(last_conflict, *[mkey_indices.get(key, -1) for key in mop_mkeys])
-            if mop_mkeys:
-                last_conflict = max(
-                    last_conflict, *[ckey_indices.get(key, -1) for key in mop_mkeys]
-                )
+            last_conflict = max(last_conflict, *[ckey_indices.get(key, -1) for key in mop_mkeys])
+        if mop_ckeys:
+            last_conflict = max(last_conflict, *[mkey_indices.get(key, -1) for key in mop_ckeys])
 
     # The index of the moment to place this moment or operaton ("mop") into.
     mop_index = last_conflict + 1

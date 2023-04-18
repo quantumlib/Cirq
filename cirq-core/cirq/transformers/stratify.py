@@ -419,10 +419,11 @@ class _Strata:
         colliding_strata = []
         if op_qubits:
             colliding_strata.extend([self._qubit_floor.get(qubit) for qubit in op_qubits])
-        if op_mkeys or op_ckeys:
+        if op_mkeys:
             colliding_strata.extend([self._mkey_floor.get(key) for key in op_mkeys])
-            if op_mkeys:
-                colliding_strata.extend([self._ckey_floor.get(key) for key in op_ckeys])
+            colliding_strata.extend([self._ckey_floor.get(key) for key in op_mkeys])
+        if op_ckeys:
+            colliding_strata.extend([self._mkey_floor.get(key) for key in op_ckeys])
 
         # Return the highest stratum, if any.
         return max(
