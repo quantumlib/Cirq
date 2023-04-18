@@ -414,15 +414,17 @@ class _Strata:
         op_qubits = op.qubits
         op_mkeys = protocols.measurement_key_objs(op)
         op_ckeys = protocols.control_keys(op)
+
         colliding_strata = []
         if op_qubits:
-            colliding_strata.extend([self._qubit_floor.get(qubit, None) for qubit in op_qubits])
+            colliding_strata.extend([self._qubit_floor.get(qubit) for qubit in op_qubits])
         if op_mkeys or op_ckeys:
-            colliding_strata.extend([self._mkey_floor.get(key, None) for key in op_mkeys])
+            colliding_strata.extend([self._mkey_floor.get(key) for key in op_mkeys])
             if op_mkeys:
-                colliding_strata.extend([self._ckey_floor.get(key, None) for key in op_ckeys])
+                colliding_strata.extend([self._ckey_floor.get(key) for key in op_ckeys])
+
         return max(
-            (stratum for stratum in colliding_strata if stratum),
+            (stratum for stratum in colliding_strata if stratum is not None),
             key=lambda stratum: stratum.time_index,
             default=None,
         )
