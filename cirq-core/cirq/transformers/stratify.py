@@ -427,7 +427,7 @@ class _Strata:
 
         # Return the highest stratum, if any.
         return max(
-            (stratum for stratum in colliding_strata if isinstance(stratum, _Stratum)),
+            (stratum for stratum in colliding_strata if stratum),
             key=lambda stratum: stratum.time_index,
             default=None,
         )
