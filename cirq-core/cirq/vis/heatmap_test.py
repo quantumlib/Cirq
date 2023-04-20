@@ -97,7 +97,7 @@ def test_cell_colors(ax, colormap_name):
     )
     _, mesh = random_heatmap.plot(ax)
 
-    colormap = mpl.cm.get_cmap(colormap_name)
+    colormap = mpl.colormaps.get_cmap(colormap_name)
     for path, facecolor in zip(mesh.get_paths(), mesh.get_facecolors()):
         vertices = path.vertices[0:4]
         row = int(round(np.mean([v[1] for v in vertices])))
@@ -218,7 +218,7 @@ def test_non_float_values(ax, format_string):
 
     _, mesh = random_heatmap.plot(ax)
 
-    colormap = mpl.cm.get_cmap(colormap_name)
+    colormap = mpl.colormaps.get_cmap(colormap_name)
     for path, facecolor in zip(mesh.get_paths(), mesh.get_facecolors()):
         vertices = path.vertices[0:4]
         row = int(round(np.mean([v[1] for v in vertices])))
