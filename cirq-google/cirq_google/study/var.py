@@ -13,8 +13,8 @@
 # limitations under the License.
 
 from typing import Any, Dict, Iterable, Optional, Sequence, Union
-from typing_extensions import Protocol
 import dataclasses
+from typing_extensions import Protocol
 
 import sympy
 from sympy.core.assumptions import assumptions
