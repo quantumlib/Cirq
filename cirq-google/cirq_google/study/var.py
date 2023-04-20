@@ -12,7 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Any, Dict, List, Iterable, Optional, Protocol, Union
+from typing import Any, Dict, Iterable, Optional, Sequence, Union
+from typing_extensions import Protocol
 import dataclasses
 
 import sympy
@@ -32,7 +33,7 @@ class SupportsParameter(Protocol):
        idx: If this key is an array, which index to modify.
     """
 
-    path: List[str]
+    path: Sequence[str]
     idx: Optional[int] = None
 
 
@@ -40,7 +41,7 @@ class SupportsParameter(Protocol):
 class Parameter:
     """Reference implementation of a generic parameter."""
 
-    path: List[str]
+    path: Sequence[str]
     idx: Optional[int] = None
 
 
