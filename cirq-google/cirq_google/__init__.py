@@ -107,6 +107,8 @@ from cirq_google.serialization import (
     Serializer,
 )
 
+from cirq_google.study import Var
+
 from cirq_google.workflow import (
     ExecutableSpec,
     KeyValueExecutableSpec,
