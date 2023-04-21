@@ -63,6 +63,7 @@ TestSpec = ModuleJsonTestSpec(
             'EngineResult',
             'GridDevice',
             'GoogleCZTargetGateset',
+            'ZipLongest',
         ]
     },
     resolver_cache=_class_resolver_dictionary(),
