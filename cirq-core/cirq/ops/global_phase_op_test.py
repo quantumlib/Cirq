@@ -288,10 +288,11 @@ def test_global_phase_gate_controlled(coeff, exp):
     g = cirq.GlobalPhaseGate(coeff)
     op = cirq.global_phase_operation(coeff)
     q = cirq.LineQubit.range(3)
-    assert g.controlled() == cirq.Z**exp
-    assert g.controlled(2) == cirq.CZ**exp
-    assert g.controlled(3) == cirq.CCZ**exp
-    assert op.controlled_by(*q[:1]) == cirq.Z(*q[:1]) ** exp
-    assert op.controlled_by(*q[:2]) == cirq.CZ(*q[:2]) ** exp
-    assert op.controlled_by(*q[:3]) == cirq.CCZ(*q[:3]) ** exp
+    for num_controls, target_gate in zip(range(1, 4), [cirq.Z, cirq.CZ, cirq.CCZ]):
+        assert g.controlled(num_controls) == target_gate**exp
+        np.testing.assert_allclose(
+            cirq.unitary(cirq.ControlledGate(g, num_controls)),
+            cirq.unitary(g.controlled(num_controls)),
+        )
+        assert op.controlled_by(*q[:num_controls]) == target_gate(*q[:num_controls]) ** exp
     assert g.controlled(control_values=[0]) == cirq.ControlledGate(g, control_values=[0])
