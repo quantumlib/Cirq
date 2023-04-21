@@ -279,3 +279,19 @@ def test_resolve_error(resolve_fn):
     gpt = cirq.GlobalPhaseGate(coefficient=t)
     with pytest.raises(ValueError, match='Coefficient is not unitary'):
         resolve_fn(gpt, {'t': -2})
+
+
+@pytest.mark.parametrize(
+    'coeff, exp', [(-1, 1), (1j, 0.5), (-1j, -0.5), (1 / np.sqrt(2) * (1 + 1j), 0.25)]
+)
+def test_global_phase_gate_controlled(coeff, exp):
+    g = cirq.GlobalPhaseGate(coeff)
+    op = cirq.global_phase_operation(coeff)
+    q = cirq.LineQubit.range(3)
+    assert g.controlled() == cirq.Z**exp
+    assert g.controlled(2) == cirq.CZ**exp
+    assert g.controlled(3) == cirq.CCZ**exp
+    assert op.controlled_by(*q[:1]) == cirq.Z(*q[:1]) ** exp
+    assert op.controlled_by(*q[:2]) == cirq.CZ(*q[:2]) ** exp
+    assert op.controlled_by(*q[:3]) == cirq.CCZ(*q[:3]) ** exp
+    assert g.controlled(control_values=[0]) == cirq.ControlledGate(g, control_values=[0])

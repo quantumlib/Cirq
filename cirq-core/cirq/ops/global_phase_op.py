@@ -13,14 +13,14 @@
 # limitations under the License.
 """A no-qubit global phase operation."""
 
-from typing import AbstractSet, Any, cast, Dict, Sequence, Tuple, Union
+from typing import AbstractSet, Any, cast, Dict, Sequence, Tuple, Union, Optional, Collection
 
 import numpy as np
 import sympy
 
 import cirq
 from cirq import value, protocols
-from cirq.ops import raw_types
+from cirq.ops import raw_types, controlled_gate, control_values as cv
 from cirq.type_workarounds import NotImplementedType
 
 
@@ -90,6 +90,27 @@ class GlobalPhaseGate(raw_types.Gate):
     ) -> 'cirq.GlobalPhaseGate':
         coefficient = protocols.resolve_parameters(self.coefficient, resolver, recursive)
         return GlobalPhaseGate(coefficient=coefficient)
+
+    def controlled(
+        self,
+        num_controls: int = None,
+        control_values: Optional[
+            Union[cv.AbstractControlValues, Sequence[Union[int, Collection[int]]]]
+        ] = None,
+        control_qid_shape: Optional[Tuple[int, ...]] = None,
+    ) -> raw_types.Gate:
+        result = super().controlled(num_controls, control_values, control_qid_shape)
+        if (
+            isinstance(result, controlled_gate.ControlledGate)
+            and isinstance(result.control_values, cv.ProductOfSums)
+            and result.control_values[-1] == (1,)
+            and result.control_qid_shape[-1] == 2
+        ):
+
+            return cirq.ZPowGate(exponent=np.angle(self.coefficient) / np.pi).controlled(
+                result.num_controls() - 1, result.control_values[:-1], result.control_qid_shape[:-1]
+            )
+        return result
 
 
 def global_phase_operation(
