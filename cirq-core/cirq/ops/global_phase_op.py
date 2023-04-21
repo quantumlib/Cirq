@@ -93,7 +93,7 @@ class GlobalPhaseGate(raw_types.Gate):
 
     def controlled(
         self,
-        num_controls: int = None,
+        num_controls: Optional[int] = None,
         control_values: Optional[
             Union[cv.AbstractControlValues, Sequence[Union[int, Collection[int]]]]
         ] = None,
@@ -101,13 +101,14 @@ class GlobalPhaseGate(raw_types.Gate):
     ) -> raw_types.Gate:
         result = super().controlled(num_controls, control_values, control_qid_shape)
         if (
-            isinstance(result, controlled_gate.ControlledGate)
+            not self._is_parameterized_()
+            and isinstance(result, controlled_gate.ControlledGate)
             and isinstance(result.control_values, cv.ProductOfSums)
             and result.control_values[-1] == (1,)
             and result.control_qid_shape[-1] == 2
         ):
 
-            return cirq.ZPowGate(exponent=np.angle(self.coefficient) / np.pi).controlled(
+            return cirq.ZPowGate(exponent=np.angle(complex(self.coefficient) / np.pi)).controlled(
                 result.num_controls() - 1, result.control_values[:-1], result.control_qid_shape[:-1]
             )
         return result
