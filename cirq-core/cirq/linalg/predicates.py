@@ -73,7 +73,9 @@ def is_orthogonal(matrix: np.ndarray, *, rtol: float = 1e-5, atol: float = 1e-8)
     return (
         matrix.shape[0] == matrix.shape[1]
         and np.all(np.imag(matrix) == 0).item()
-        and np.allclose(matrix.dot(matrix.T), np.eye(matrix.shape[0]), rtol=rtol, atol=atol)
+        and np.allclose(
+            np.dot(matrix, np.transpose(matrix)), np.eye(matrix.shape[0]), rtol=rtol, atol=atol
+        )
     )
 
 
@@ -110,7 +112,7 @@ def is_unitary(matrix: np.ndarray, *, rtol: float = 1e-5, atol: float = 1e-8) ->
         Whether the matrix is unitary within the given tolerance.
     """
     return matrix.shape[0] == matrix.shape[1] and np.allclose(
-        matrix.dot(np.conj(matrix.T)), np.eye(matrix.shape[0]), rtol=rtol, atol=atol
+        np.dot(matrix, np.conj(np.transpose(matrix))), np.eye(matrix.shape[0]), rtol=rtol, atol=atol
     )
 
 
@@ -188,7 +190,7 @@ def matrix_commutes(
     return (
         m1.shape[0] == m1.shape[1]
         and m1.shape == m2.shape
-        and np.allclose(m1.dot(m2), m2.dot(m1), rtol=rtol, atol=atol)
+        and np.allclose(np.dot(m1, m2), np.dot(m2, m1), rtol=rtol, atol=atol)
     )
 
 
