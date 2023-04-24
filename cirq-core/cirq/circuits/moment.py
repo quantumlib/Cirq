@@ -30,13 +30,13 @@ from typing import (
     Sequence,
     Tuple,
     TYPE_CHECKING,
-    TypeVar,
     Union,
 )
+from typing_extensions import Self
 
 import numpy as np
 
-from cirq import protocols, ops, qis
+from cirq import protocols, ops, qis, _compat
 from cirq._import import LazyLoader
 from cirq.ops import raw_types, op_tree
 from cirq.protocols import circuit_diagram_info_protocol
@@ -51,8 +51,6 @@ op_tree = LazyLoader("op_tree", globals(), "cirq.ops.op_tree")
 text_diagram_drawer = LazyLoader(
     "text_diagram_drawer", globals(), "cirq.circuits.text_diagram_drawer"
 )
-
-TSelf_Moment = TypeVar('TSelf_Moment', bound='Moment')
 
 
 def _default_breakdown(qid: 'cirq.Qid') -> Tuple[Any, Any]:
@@ -237,9 +235,11 @@ class Moment:
             if qubits.isdisjoint(frozenset(operation.qubits))
         )
 
+    @_compat.cached_method()
     def _is_parameterized_(self) -> bool:
         return any(protocols.is_parameterized(op) for op in self)
 
+    @_compat.cached_method()
     def _parameter_names_(self) -> AbstractSet[str]:
         return {name for op in self for name in protocols.parameter_names(op)}
 
@@ -265,6 +265,7 @@ class Moment:
             for op in self.operations
         )
 
+    @_compat.cached_method()
     def _measurement_key_names_(self) -> FrozenSet[str]:
         return frozenset(str(key) for key in self._measurement_key_objs_())
 
@@ -332,6 +333,7 @@ class Moment:
     def __ne__(self, other) -> bool:
         return not self == other
 
+    @_compat.cached_method()
     def __hash__(self):
         return hash((Moment, self._sorted_operations_()))
 
@@ -369,9 +371,8 @@ class Moment:
         return self._operations
 
     def transform_qubits(
-        self: TSelf_Moment,
-        qubit_map: Union[Dict['cirq.Qid', 'cirq.Qid'], Callable[['cirq.Qid'], 'cirq.Qid']],
-    ) -> TSelf_Moment:
+        self, qubit_map: Union[Dict['cirq.Qid', 'cirq.Qid'], Callable[['cirq.Qid'], 'cirq.Qid']]
+    ) -> Self:
         """Returns the same moment, but with different qubits.
 
         Args:
@@ -405,6 +406,7 @@ class Moment:
             operations.append(ops.I(q))
         return Moment(*operations)
 
+    @_compat.cached_method()
     def _has_kraus_(self) -> bool:
         """Returns True if self has a Kraus representation and self uses <= 10 qubits."""
         return all(protocols.has_kraus(op) for op in self.operations) and len(self.qubits) <= 10

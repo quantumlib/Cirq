@@ -34,7 +34,7 @@ class WaitGate(raw_types.Gate):
         self,
         duration: 'cirq.DURATION_LIKE',
         num_qubits: Optional[int] = None,
-        qid_shape: Tuple[int, ...] = None,
+        qid_shape: Optional[Tuple[int, ...]] = None,
     ) -> None:
         """Initialize a wait gate with the given duration.
 

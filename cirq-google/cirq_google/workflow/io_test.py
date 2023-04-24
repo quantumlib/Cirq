@@ -73,7 +73,7 @@ def test_egr_filesystem_record_from_json(tmpdir):
         )
 
 
-def test_filesystem_saver(tmpdir):
+def test_filesystem_saver(tmpdir) -> None:
     run_id = 'asdf'
     fs_saver = _FilesystemSaver(base_data_dir=tmpdir, run_id=run_id)
 

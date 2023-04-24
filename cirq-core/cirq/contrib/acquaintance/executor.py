@@ -174,7 +174,10 @@ class GreedyExecutionStrategy(ExecutionStrategy):
     """
 
     def __init__(
-        self, gates: LogicalGates, initial_mapping: LogicalMapping, device: 'cirq.Device' = None
+        self,
+        gates: LogicalGates,
+        initial_mapping: LogicalMapping,
+        device: Optional['cirq.Device'] = None,
     ) -> None:
         """Inits GreedyExecutionStrategy.
 

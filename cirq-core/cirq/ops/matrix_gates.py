@@ -53,7 +53,7 @@ class MatrixGate(raw_types.Gate):
         self,
         matrix: np.ndarray,
         *,
-        name: str = None,
+        name: Optional[str] = None,
         qid_shape: Optional[Iterable[int]] = None,
         unitary_check: bool = True,
         unitary_check_rtol: float = 1e-5,
@@ -114,11 +114,15 @@ class MatrixGate(raw_types.Gate):
         return MatrixGate(self._matrix, name=name, qid_shape=self._qid_shape, unitary_check=False)
 
     def _json_dict_(self) -> Dict[str, Any]:
-        return {'matrix': self._matrix.tolist(), 'qid_shape': self._qid_shape}
+        return {
+            'matrix': self._matrix.tolist(),
+            'qid_shape': self._qid_shape,
+            **({'name': self._name} if self._name is not None else {}),
+        }
 
     @classmethod
-    def _from_json_dict_(cls, matrix, qid_shape, **kwargs):
-        return cls(matrix=np.array(matrix), qid_shape=qid_shape)
+    def _from_json_dict_(cls, matrix, qid_shape, name=None, **kwargs):
+        return cls(matrix=np.array(matrix), qid_shape=qid_shape, name=name)
 
     def _qid_shape_(self) -> Tuple[int, ...]:
         return self._qid_shape

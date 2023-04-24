@@ -102,7 +102,7 @@ class StateVectorMixin:
             and non-zero floats of the specified accuracy."""
         return qis.dirac_notation(self.state_vector(), decimals, qid_shape=self._qid_shape)
 
-    def density_matrix_of(self, qubits: List['cirq.Qid'] = None) -> np.ndarray:
+    def density_matrix_of(self, qubits: Optional[List['cirq.Qid']] = None) -> np.ndarray:
         r"""Returns the density matrix of the state.
 
         Calculate the density matrix for the system on the qubits provided.

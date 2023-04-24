@@ -316,7 +316,9 @@ def with_key_path_prefix(val: Any, prefix: Tuple[str, ...]):
 
 
 def with_rescoped_keys(
-    val: Any, path: Tuple[str, ...], bindable_keys: FrozenSet['cirq.MeasurementKey'] = None
+    val: Any,
+    path: Tuple[str, ...],
+    bindable_keys: Optional[FrozenSet['cirq.MeasurementKey']] = None,
 ):
     """Rescopes any measurement and control keys to the provided path, given the existing keys.
 

@@ -229,7 +229,7 @@ class SimulatorResult:
 
     def to_cirq_result(
         self,
-        params: cirq.ParamResolver = None,
+        params: Optional[cirq.ParamResolver] = None,
         seed: cirq.RANDOM_STATE_OR_SEED_LIKE = None,
         override_repetitions=None,
     ) -> cirq.Result:

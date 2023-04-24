@@ -14,7 +14,8 @@
 
 import abc
 import enum
-from typing import Dict, List, Mapping, Sequence, Tuple, TYPE_CHECKING, TypeVar
+from typing import Dict, List, Mapping, Optional, Sequence, Tuple, TYPE_CHECKING
+from typing_extensions import Self
 
 from cirq.value import digits, value_equality_attr
 
@@ -39,9 +40,6 @@ class MeasurementType(enum.IntEnum):
 
     def __repr__(self):
         return f'cirq.{str(self)}'
-
-
-TSelf = TypeVar('TSelf', bound='ClassicalDataStoreReader')
 
 
 class ClassicalDataStoreReader(abc.ABC):
@@ -101,7 +99,7 @@ class ClassicalDataStoreReader(abc.ABC):
         """
 
     @abc.abstractmethod
-    def copy(self: TSelf) -> TSelf:
+    def copy(self) -> Self:
         """Creates a copy of the object."""
 
 
@@ -142,10 +140,12 @@ class ClassicalDataDictionaryStore(ClassicalDataStore):
     def __init__(
         self,
         *,
-        _records: Dict['cirq.MeasurementKey', List[Tuple[int, ...]]] = None,
-        _measured_qubits: Dict['cirq.MeasurementKey', List[Tuple['cirq.Qid', ...]]] = None,
-        _channel_records: Dict['cirq.MeasurementKey', List[int]] = None,
-        _measurement_types: Dict['cirq.MeasurementKey', 'cirq.MeasurementType'] = None,
+        _records: Optional[Dict['cirq.MeasurementKey', List[Tuple[int, ...]]]] = None,
+        _measured_qubits: Optional[
+            Dict['cirq.MeasurementKey', List[Tuple['cirq.Qid', ...]]]
+        ] = None,
+        _channel_records: Optional[Dict['cirq.MeasurementKey', List[int]]] = None,
+        _measurement_types: Optional[Dict['cirq.MeasurementKey', 'cirq.MeasurementType']] = None,
     ):
         """Initializes a `ClassicalDataDictionaryStore` object."""
         if not _measurement_types:

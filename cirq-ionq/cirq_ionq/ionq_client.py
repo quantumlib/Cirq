@@ -17,6 +17,7 @@ import datetime
 import sys
 import time
 import urllib
+import platform
 from typing import Any, Callable, cast, Dict, List, Optional
 import json.decoder as jd
 
@@ -24,18 +25,26 @@ import requests
 
 import cirq_ionq
 from cirq_ionq import ionq_exceptions
+from cirq import __version__ as cirq_version
 
+# https://support.cloudflare.com/hc/en-us/articles/115003014512-4xx-Client-Error
+# "Cloudflare will generate and serve a 409 response for a Error 1001: DNS Resolution Error."
+# We may want to condition on the body as well, to allow for some GET requests to return 409 in
+# the future.
+RETRIABLE_FOR_GETS = {requests.codes.conflict}
+# Retriable regardless of the source
+# Handle 52x responses from cloudflare.
+# See https://support.cloudflare.com/hc/en-us/articles/115003011431/
 RETRIABLE_STATUS_CODES = {
     requests.codes.internal_server_error,
     requests.codes.bad_gateway,
     requests.codes.service_unavailable,
+    *list(range(520, 530)),
 }
 
 
-def _is_retriable(code):
-    # Handle 52x responses from cloudflare.
-    # See https://support.cloudflare.com/hc/en-us/articles/115003011431/
-    return code in RETRIABLE_STATUS_CODES or (code >= 520 and code <= 530)
+def _is_retriable(code, method):
+    return code in RETRIABLE_STATUS_CODES or (method == "GET" and code in RETRIABLE_FOR_GETS)
 
 
 class _IonQClient:
@@ -89,7 +98,7 @@ class _IonQClient:
         assert max_retry_seconds >= 0, 'Negative retry not possible without time machine.'
 
         self.url = f'{url.scheme}://{url.netloc}/{api_version}'
-        self.headers = {'Authorization': f'apiKey {api_key}', 'Content-Type': 'application/json'}
+        self.headers = self.api_headers(api_key)
         self.default_target = default_target
         self.max_retry_seconds = max_retry_seconds
         self.verbose = verbose
@@ -258,8 +267,8 @@ class _IonQClient:
 
     def list_calibrations(
         self,
-        start: datetime.datetime = None,
-        end: datetime.datetime = None,
+        start: Optional[datetime.datetime] = None,
+        end: Optional[datetime.datetime] = None,
         limit: int = 100,
         batch_size: int = 1000,
     ) -> List[dict]:
@@ -285,6 +294,34 @@ class _IonQClient:
         if end:
             params['end'] = int((end - epoch).total_seconds() * 1000)
         return self._list('calibrations', params, 'calibrations', limit, batch_size)
+
+    def api_headers(self, api_key: str):
+        """API Headers needed to make calls to the REST API.
+
+        Args:
+            api_key: The key used for authenticating against the IonQ API.
+
+        Returns:
+            dict[str, str]: A dict of :class:`requests.Request` headers.
+        """
+        return {
+            'Authorization': f'apiKey {api_key}',
+            'Content-Type': 'application/json',
+            'User-Agent': self._user_agent(),
+        }
+
+    def _user_agent(self):
+        """Generates the user agent string which is helpful in identifying
+        different tools in the internet. Valid user-agent ionq_client header that
+        indicates the request is from cirq_ionq along with the system, os,
+        python,libraries details.
+
+        Returns:
+            str: A string of generated user agent.
+        """
+        cirq_version_string = f'cirq/{cirq_version}'
+        python_version_string = f'python/{platform.python_version()}'
+        return f'User-Agent: {cirq_version_string} ({python_version_string})'
 
     def _target(self, target: Optional[str]) -> str:
         """Returns the target if not None or the default target.
@@ -334,7 +371,7 @@ class _IonQClient:
                     raise ionq_exceptions.IonQNotFoundException(
                         'IonQ could not find requested resource.'
                     )
-                if not _is_retriable(response.status_code):
+                if not _is_retriable(response.status_code, response.request.method):
                     error = {}
                     try:
                         error = response.json()
