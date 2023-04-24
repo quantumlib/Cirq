@@ -17,7 +17,6 @@ import dataclasses
 from typing_extensions import Protocol
 
 import sympy
-from sympy.core.assumptions import assumptions
 
 import cirq
 
@@ -35,6 +34,7 @@ class SupportsParameter(Protocol):
 
     path: Sequence[str]
     idx: Optional[int] = None
+    value: Optional[Any] = None
 
 
 @dataclasses.dataclass
@@ -43,6 +43,18 @@ class Parameter:
 
     path: Sequence[str]
     idx: Optional[int] = None
+    value: Optional[Any] = None
+
+    @classmethod
+    def _json_namespace_(cls) -> str:
+        return 'cirq.google'
+
+    @classmethod
+    def _from_json_dict_(cls, path, idx, value):
+        return Parameter(path=path, idx=idx, value=value)
+
+    def _json_dict_(self) -> Dict[str, Any]:
+        return cirq.obj_to_dict_helper(self, ["path", "points", "unit", "label"])
 
 
 class Var(cirq.Points):
@@ -54,6 +66,20 @@ class Var(cirq.Points):
     gates in the circuit.  This class is meant to encapsulate
     sweeps of these non-circuit parameters.
 
+    As far as Cirq is concerned, this is a cirq.Points sweep.
+    The underlying symbol will be the `descriptor` parameter
+    if it is a symbol, or a symbol with name of the `label`
+    parameter if not.
+
+    Args:
+        descriptor:  object representing what we are sweeping.
+            This can be a `sympy.Symbol` or something that looks
+            like a Parameter that has a path.
+        iterable:  The values of the descriptor that we are sweeping.
+            These points should be unitless.
+        unit: The units for the points we are sweeping.  This is
+            string. such as 'ns' or 'MHz'
+        label: The label and the name of the symbol we are iterating.
     """
 
     def __init__(
@@ -63,121 +89,34 @@ class Var(cirq.Points):
         unit: Optional[Union[str, Any]] = None,
         label: Optional[str] = None,
     ):
+        self.descriptor = descriptor
         self.label = label
+        self.unit = unit
         if isinstance(descriptor, str):
             self.symbol = sympy.Symbol(descriptor)
         elif isinstance(descriptor, sympy.Symbol):
             self.symbol = descriptor
-        elif hasattr(descriptor, 'path'):
-            self.symbol = self.symbol_from_parameter(descriptor, str(unit) if unit else None)
+        elif label is not None:
+            self.symbol = sympy.Symbol(label)
         else:
-            raise ValueError(f'Unknown descriptor: {descriptor}')
+            raise ValueError(f'Label must be provided with a non-symbol descriptor')
         super().__init__(self.symbol, list(iterable))
 
-    @classmethod
-    def symbol_from_parameter(
-        cls, parameter: SupportsParameter, unit: Optional[str]
-    ) -> sympy.Symbol:
-        """Creates a symbol given a non-symbol parameter.
-
-        This function takes a parameter and embeds it into a symbol.
-        It is assumed that the parameter will have a path and possibly
-        an index.  The path is turned into a symbol with a '/' seperator
-        between folder name.  It also adds a suffix of an optional index
-        and unit type.
-
-        This function will use sympy 'assumptions' to store meta-data
-        about the symbol to denote that it is a non-symbol parameter.
-
-        The characters '/', '$', and '#' are special characters and
-        cannot be used in paths or in unit types.
-
-        Args:
-            parameter: non-symbol parameter to convert.
-            unit: string unit type, such as 'MHz' or 'ns'
-               that sweeps of this parameter will be in.
-        """
-        key = '/'.join(parameter.path)
-        with_idx = parameter.idx is not None
-        with_unit = False
-        if getattr(parameter, 'idx'):
-            key += f'#{parameter.idx}'
-        if unit:
-            key += f'${unit}'
-            with_unit = True
-        return sympy.Symbol(key, registry=True, with_idx=with_idx, with_unit=with_unit)
-
-    def to_parameter(self) -> Parameter:
-        """This cunpacks a symbol back into a Parameter.
-
-        The embedded symbol is assumed to have been created
-        with the `symbol_from_parameter` function above.
-        """
-
-        bool_dict = assumptions(self.symbol)
-        if not bool_dict.get('registry', False):
-            raise ValueError('Plain symbol, not a Parameter')
-        with_unit = bool_dict.get('with_unit', False)
-        with_idx = bool_dict.get('with_idx', False)
-        fields = str(self.symbol).split('/')
-        idx = None
-        if with_unit:
-            last_field = fields[-1].split('$')
-            # unit, currently ignored, is in the last field
-            fields[-1] = last_field[0]
-        if with_idx:
-            last_field = fields[-1].split('#')
-            idx = int(last_field[-1])
-            fields[-1] = last_field[0]
-        path = tuple(fields)
-        return Parameter(path=path, idx=idx)
-
-    @property
-    def unit(self) -> str:
-        """Gets the unit of an embedded Parameter.
-
-        Returns empty string if the parameter has no unit.
-        """
-        bool_dict = assumptions(self.symbol)
-        if not bool_dict.get('with_unit', False):
-            return ''
-
-        last_field = str(self.symbol).split('$')
-        return last_field[-1]
-
-    def _symbol_repr(self) -> str:
-        repr_str = f"sympy.Symbol('{str(self.symbol)}'"
-        bool_dict = assumptions(self.symbol)
-        if bool_dict.get('registry', False):
-            repr_str += ', registry=True'
-        if bool_dict.get('with_idx', False):
-            repr_str += ', with_idx=True'
-        if bool_dict.get('with_unit', False):
-            repr_str += ', with_unit=True'
-        return repr_str + ')'
+    def _parameter_repr(self) -> str:
+        if isinstance(self.descriptor, sympy.Symbol):
+            return repr(str(self.descriptor))
+        return repr(self.descriptor)
 
     def __repr__(self) -> str:
-        label_str = '' if self.label is None else f', label={self.label}'
+        unit_str = '' if self.unit is None else f', unit={repr(self.unit)}'
+        label_str = '' if self.label is None else f', label={repr(self.label)}'
         return (
-            f'cirq_google.Var({self._symbol_repr()}, {self.points!r},'
-            f'unit=\'{self.unit}\'{label_str})'
+            f'cirq_google.Var({self._parameter_repr()}, {self.points!r}' f'{unit_str}{label_str})'
         )
 
     @classmethod
     def _json_namespace_(cls) -> str:
         return 'cirq.google'
 
-    @classmethod
-    def _from_json_dict_(cls, key, points, **kwargs):
-        return Var(descriptor=sympy.Symbol(key), iterable=points)
-
     def _json_dict_(self) -> Dict[str, Any]:
-        json_dict = cirq.obj_to_dict_helper(self, ["key", "points", "label"])
-        bool_dict = assumptions(self.symbol)
-        if bool_dict.get('registry', False):
-            json_dict['registry'] = True
-        if bool_dict.get('with_unit', False):
-            json_dict['with_unit'] = True
-        if bool_dict.get('with_idx', False):
-            json_dict['with_idx'] = True
-        return json_dict
+        return cirq.obj_to_dict_helper(self, ["descriptor", "points", "unit", "label"])

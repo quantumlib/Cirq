@@ -14,69 +14,50 @@
 import pytest
 
 import sympy
-from sympy.core.assumptions import assumptions
 
-import cirq
 import cirq_google.study.var as var
 
 
-def test_parameter_to_symbol():
+def test_parameters():
     param = var.Parameter(path=('test', 'subdir'))
     s = var.Var(param, range(10), label='repetitions')
-    assert assumptions(s.symbol).get('registry') is True
-    assert str(s.symbol) == 'test/subdir'
-    assert s.to_parameter() == param
-    assert s.unit == ''
-    assert s.keys == ['test/subdir']
+    assert str(s.symbol) == 'repetitions'
+    assert s.descriptor == param
+    assert s.unit is None
+    assert s.keys == ['repetitions']
 
     param = var.Parameter(path=('test', 'subdir'), idx=4)
     s = var.Var(param, range(10), label='repetitions')
-    assert assumptions(s.symbol).get('registry') is True
-    assert str(s.symbol) == 'test/subdir#4'
-    assert s.to_parameter() == param
-    assert s.unit == ''
-    assert s.keys == ['test/subdir#4']
+    assert str(s.symbol) == 'repetitions'
+    assert s.descriptor == param
+    assert s.unit is None
 
     param = var.Parameter(path=('test', 'subdir'))
     s = var.Var(param, range(10), label='repetitions', unit='MHz')
-    assert assumptions(s.symbol).get('registry') is True
-    assert str(s.symbol) == 'test/subdir$MHz'
-    assert s.to_parameter() == param
+    assert str(s.symbol) == 'repetitions'
+    assert s.descriptor == param
     assert s.unit == 'MHz'
-    assert s.keys == ['test/subdir$MHz']
-
-    param = var.Parameter(path=('test', 'subdir'), idx=2)
-    s = var.Var(param, range(10), label='repetitions', unit='ns')
-    assert assumptions(s.symbol).get('registry') is True
-    assert str(s.symbol) == 'test/subdir#2$ns'
-    assert s.to_parameter() == param
-    assert s.unit == 'ns'
-    assert s.keys == ['test/subdir#2$ns']
+    assert s.keys == ['repetitions']
 
 
 def test_symbol():
     s = var.Var(sympy.Symbol('r'), range(10), label='repetitions')
-    assert assumptions(s.symbol).get('registry') is None
     assert s.symbol == sympy.Symbol('r')
     assert s.keys == ['r']
-    assert s.unit == ''
-    with pytest.raises(ValueError, match='not a Parameter'):
-        _ = s.to_parameter()
+    assert s.unit is None
 
 
 def test_str():
     s = var.Var('r', range(10), label='repetitions')
-    assert assumptions(s.symbol).get('registry') is None
     assert s.symbol == sympy.Symbol('r')
     assert s.keys == ['r']
-    assert s.unit == ''
-    with pytest.raises(ValueError, match='not a Parameter'):
-        _ = s.to_parameter()
+    assert s.unit is None
 
 
 def test_invalid():
-    with pytest.raises(ValueError, match='Unknown descriptor'):
-        _ = var.Var(cirq.LineQubit(4), range(10), label='repetitions')
+    param = var.Parameter(path=('test', 'subdir'), idx=4)
+    with pytest.raises(ValueError, match='Label must be provided'):
+        _ = var.Var(param, range(10), unit='ns')
 
 
 def test_repr():
@@ -84,14 +65,13 @@ def test_repr():
     s = var.Var(param, range(4), label='repetitions', unit='ns')
     assert repr(s) == (
         "cirq_google.Var("
-        "sympy.Symbol(\'test/subdir#2$ns\', "
-        "registry=True, with_idx=True, with_unit=True)"
-        ", [0, 1, 2, 3],unit=\'ns\', label=repetitions)"
+        "Parameter(path=('test', 'subdir'), idx=2, value=None), "
+        "[0, 1, 2, 3], unit=\'ns\', label=\'repetitions\')"
     )
 
 
 def test_values():
     param = var.Parameter(path=('test', 'subdir'), idx=2)
-    s = var.Var(param, range(4), label='repetitions', unit='ns')
-    name = 'test/subdir#2$ns'
+    name = 'repetitions'
+    s = var.Var(param, range(4), label=name, unit='ns')
     assert tuple(s.param_tuples()) == (((name, 0),), ((name, 1),), ((name, 2),), ((name, 3),))
