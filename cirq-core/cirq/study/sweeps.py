@@ -292,7 +292,7 @@ class Zip(Sweep):
         self.sweeps = sweeps
 
     def __eq__(self, other):
-        if not isinstance(other, Zip):
+        if type(other) is not Zip:
             return NotImplemented
         return self.sweeps == other.sweeps
 
@@ -362,7 +362,7 @@ class ZipLongest(Zip):
         return max(len(sweep) for sweep in self.sweeps)
 
     def __hash__(self) -> int:
-        return hash(tuple(self.sweeps))
+        return hash((self.__class__.__name__, tuple(self.sweeps)))
 
     def __repr__(self) -> str:
         sweeps_repr = ', '.join(repr(s) for s in self.sweeps)

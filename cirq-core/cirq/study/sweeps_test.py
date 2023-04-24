@@ -116,17 +116,23 @@ def test_empty_zip():
 
 
 def test_zip_eq():
-    sweep1 = cirq.ZipLongest(cirq.Points('a', [1, 2, 3]), cirq.Points('b', [4, 5, 6, 7]))
-    sweep2 = cirq.ZipLongest(cirq.Points('a', [1, 2, 3]), cirq.Points('b', [4, 5, 6, 7]))
-    sweep3 = cirq.ZipLongest(cirq.Points('a', [1, 2]), cirq.Points('b', [4, 5, 6, 7]))
-    sweep4 = cirq.Zip(cirq.Points('a', [1, 2]), cirq.Points('b', [4, 5, 6, 7]))
+    et = cirq.testing.EqualsTester()
+    point_sweep1 = cirq.Points('a', [1, 2, 3])
+    point_sweep2 = cirq.Points('b', [4, 5, 6, 7])
+    point_sweep3 = cirq.Points('c', [1, 2])
 
-    assert sweep1 == sweep2
-    assert hash(sweep1) == hash(sweep2)
-    assert sweep2 != sweep3
-    assert hash(sweep2) != hash(sweep3)
-    assert sweep1 != sweep4
-    assert hash(sweep1) != hash(sweep4)
+    et.add_equality_group(cirq.ZipLongest(), cirq.ZipLongest())
+
+    et.add_equality_group(
+        cirq.ZipLongest(point_sweep1, point_sweep2), cirq.ZipLongest(point_sweep1, point_sweep2)
+    )
+
+    et.add_equality_group(cirq.ZipLongest(point_sweep3, point_sweep2))
+    et.add_equality_group(cirq.ZipLongest(point_sweep2, point_sweep1))
+    et.add_equality_group(cirq.ZipLongest(point_sweep1, point_sweep2, point_sweep3))
+
+    et.add_equality_group(cirq.Zip(point_sweep1, point_sweep2, point_sweep3))
+    et.add_equality_group(cirq.Zip(point_sweep1, point_sweep2))
 
 
 def test_product():
