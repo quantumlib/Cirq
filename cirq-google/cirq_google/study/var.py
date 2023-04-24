@@ -99,7 +99,7 @@ class Var(cirq.Points):
         elif label is not None:
             self.symbol = sympy.Symbol(label)
         else:
-            raise ValueError(f'Label must be provided with a non-symbol descriptor')
+            raise ValueError('Label must be provided with a non-symbol descriptor')
         super().__init__(self.symbol, list(iterable))
 
     def _parameter_repr(self) -> str:
