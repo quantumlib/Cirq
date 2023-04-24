@@ -276,7 +276,7 @@ def test_ionq_client_get_job_retry_409(mock_get):
         'Content-Type': 'application/json',
         'User-Agent': client._user_agent(),
     }
-    mock_get.assert_called_with('http://example.com/v0.1/jobs/job_id', headers=expected_headers)
+    mock_get.assert_called_with('http://example.com/v0.3/jobs/job_id', headers=expected_headers)
 
 
 @mock.patch('requests.get')

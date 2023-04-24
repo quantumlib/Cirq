@@ -228,7 +228,6 @@ def test_job_aggregated_results():
     assert results == ionq.SimulatorResult({0: 60, 1: 40}, 1, {}, 100)
 
 
-
 def test_job_cancel():
     ready_job = {'id': 'my_id', 'status': 'ready'}
     canceled_job = {'id': 'my_id', 'status': 'canceled'}
