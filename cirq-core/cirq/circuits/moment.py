@@ -19,6 +19,7 @@ from typing import (
     AbstractSet,
     Any,
     Callable,
+    cast,
     Dict,
     FrozenSet,
     Iterable,
@@ -80,17 +81,26 @@ class Moment:
             are no such operations, returns an empty Moment.
     """
 
-    def __init__(self, *contents: 'cirq.OP_TREE') -> None:
+    def __init__(self, *contents: 'cirq.OP_TREE', _flatten_contents: bool = True) -> None:
         """Constructs a moment with the given operations.
 
         Args:
             contents: The operations applied within the moment.
                 Will be flattened and frozen into a tuple before storing.
+            _flatten_contents: If True, use flatten_to_ops to convert
+                the OP_TREE of contents into a tuple of Operation. If False,
+                we skip flattening and assume that contents already consists
+                of individual operations. This is used internally by helper
+                methods to avoid unnecessary validation.
 
         Raises:
             ValueError: A qubit appears more than once.
         """
-        self._operations = tuple(op_tree.flatten_to_ops(contents))
+        self._operations = (
+            tuple(op_tree.flatten_to_ops(contents))
+            if _flatten_contents
+            else cast(Tuple['cirq.Operation'], contents)
+        )
         self._sorted_operations: Optional[Tuple['cirq.Operation', ...]] = None
 
         # An internal dictionary to support efficient operation access by qubit.
@@ -105,6 +115,10 @@ class Moment:
         self._qubits = frozenset(self._qubit_to_op.keys())
         self._measurement_key_objs: Optional[FrozenSet['cirq.MeasurementKey']] = None
         self._control_keys: Optional[FrozenSet['cirq.MeasurementKey']] = None
+
+    @classmethod
+    def from_ops(cls, *ops: 'cirq.Operation') -> 'cirq.Moment':
+        return cls(*ops, _flatten_contents=False)
 
     @property
     def operations(self) -> Tuple['cirq.Operation', ...]:
