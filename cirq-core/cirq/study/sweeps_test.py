@@ -77,6 +77,58 @@ def test_zip():
     assert _values(sweep, 'b') == [4, 5, 6]
 
 
+def test_zip_longest():
+    sweep = cirq.ZipLongest(cirq.Points('a', [1, 2, 3]), cirq.Points('b', [4, 5, 6, 7]))
+    assert tuple(sweep.param_tuples()) == (
+        (('a', 1), ('b', 4)),
+        (('a', 2), ('b', 5)),
+        (('a', 3), ('b', 6)),
+        (('a', 3), ('b', 7)),
+    )
+    assert sweep.keys == ['a', 'b']
+    assert (
+        str(sweep) == 'ZipLongest(cirq.Points(\'a\', [1, 2, 3]), cirq.Points(\'b\', [4, 5, 6, 7]))'
+    )
+    assert (
+        repr(sweep)
+        == 'cirq_google.ZipLongest(cirq.Points(\'a\', [1, 2, 3]), cirq.Points(\'b\', [4, 5, 6, 7]))'
+    )
+
+
+def test_zip_longest_compatibility():
+    sweep = cirq.Zip(cirq.Points('a', [1, 2, 3]), cirq.Points('b', [4, 5, 6]))
+    sweep_longest = cirq.ZipLongest(cirq.Points('a', [1, 2, 3]), cirq.Points('b', [4, 5, 6]))
+    assert tuple(sweep.param_tuples()) == tuple(sweep_longest.param_tuples())
+
+    sweep = cirq.Zip(
+        (cirq.Points('a', [1, 3]) * cirq.Points('b', [2, 4])), cirq.Points('c', [4, 5, 6, 7])
+    )
+    sweep_longest = cirq.ZipLongest(
+        (cirq.Points('a', [1, 3]) * cirq.Points('b', [2, 4])), cirq.Points('c', [4, 5, 6, 7])
+    )
+    assert tuple(sweep.param_tuples()) == tuple(sweep_longest.param_tuples())
+
+
+def test_empty_zip():
+    assert len(cirq.ZipLongest()) == 0
+    with pytest.raises(ValueError, match='non-empty'):
+        _ = cirq.ZipLongest(cirq.Points('e', []), cirq.Points('a', [1, 2, 3]))
+
+
+def test_zip_eq():
+    sweep1 = cirq.ZipLongest(cirq.Points('a', [1, 2, 3]), cirq.Points('b', [4, 5, 6, 7]))
+    sweep2 = cirq.ZipLongest(cirq.Points('a', [1, 2, 3]), cirq.Points('b', [4, 5, 6, 7]))
+    sweep3 = cirq.ZipLongest(cirq.Points('a', [1, 2]), cirq.Points('b', [4, 5, 6, 7]))
+    sweep4 = cirq.Zip(cirq.Points('a', [1, 2]), cirq.Points('b', [4, 5, 6, 7]))
+
+    assert sweep1 == sweep2
+    assert hash(sweep1) == hash(sweep2)
+    assert sweep2 != sweep3
+    assert hash(sweep2) != hash(sweep3)
+    assert sweep1 != sweep4
+    assert hash(sweep1) != hash(sweep4)
+
+
 def test_product():
     sweep = cirq.Points('a', [1, 2, 3]) * cirq.Points('b', [4, 5, 6, 7])
     assert len(sweep) == 12

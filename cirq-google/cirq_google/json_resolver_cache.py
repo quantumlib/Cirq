@@ -84,5 +84,4 @@ def _class_resolver_dictionary() -> Dict[str, ObjectFactory]:
         'cirq.google.EngineResult': cirq_google.EngineResult,
         'cirq.google.GridDevice': cirq_google.GridDevice,
         'cirq.google.GoogleCZTargetGateset': cirq_google.GoogleCZTargetGateset,
-        'cirq.google.ZipLongest': cirq_google.ZipLongest,
     }

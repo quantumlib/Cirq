@@ -1,0 +1,1 @@
+cirq.ZipLongest(cirq.Linspace('a', start=0, stop=1, length=2), cirq.Linspace('b', start=0, stop=2, length=4))

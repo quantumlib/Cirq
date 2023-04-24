@@ -107,8 +107,6 @@ from cirq_google.serialization import (
     Serializer,
 )
 
-from cirq_google.study import ZipLongest
-
 from cirq_google.workflow import (
     ExecutableSpec,
     KeyValueExecutableSpec,

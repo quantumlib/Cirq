@@ -1,5 +1,5 @@
 {
-  "cirq_type": "cirq.google.ZipLongest",
+  "cirq_type": "ZipLongest",
   "sweeps": [
     {
       "cirq_type": "Linspace",
