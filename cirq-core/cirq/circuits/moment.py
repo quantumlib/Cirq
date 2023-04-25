@@ -118,6 +118,16 @@ class Moment:
 
     @classmethod
     def from_ops(cls, *ops: 'cirq.Operation') -> 'cirq.Moment':
+        """Construct a Moment from the given operations.
+
+        This avoids calling `flatten_to_ops` in the moment constructor, which
+        results in better performance in cases where the contents of the moment
+        are already in the form of a sequence of operations rather than an
+        arbitrary OP_TREE.
+        
+        Args:
+            *ops: Operations to include in the Moment.
+        """
         return cls(*ops, _flatten_contents=False)
 
     @property
@@ -178,7 +188,7 @@ class Moment:
             raise ValueError(f'Overlapping operations: {operation}')
 
         # Use private variables to facilitate a quick copy.
-        m = Moment()
+        m = Moment(_flatten_contents=False)
         m._operations = self._operations + (operation,)
         m._sorted_operations = None
         m._qubits = self._qubits.union(operation.qubits)
@@ -208,7 +218,7 @@ class Moment:
         if not flattened_contents:
             return self
 
-        m = Moment()
+        m = Moment(_flatten_contents=False)
         # Use private variables to facilitate a quick copy.
         m._qubit_to_op = self._qubit_to_op.copy()
         qubits = set(self._qubits)
@@ -497,7 +507,7 @@ class Moment:
 
     @classmethod
     def _from_json_dict_(cls, operations, **kwargs):
-        return Moment(operations)
+        return cls.from_ops(*operations)
 
     def __add__(self, other: 'cirq.OP_TREE') -> 'cirq.Moment':
 
