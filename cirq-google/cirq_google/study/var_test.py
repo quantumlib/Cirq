@@ -41,10 +41,11 @@ def test_parameters():
 
 
 def test_symbol():
-    s = var.Var(sympy.Symbol('r'), range(10), label='repetitions')
+    s = var.Var(sympy.Symbol('r'), range(5), label='repetitions')
     assert s.symbol == sympy.Symbol('r')
     assert s.keys == ['r']
     assert s.unit is None
+    assert repr(s) == ("cirq_google.Var('r', [0, 1, 2, 3, 4], label=\'repetitions\')")
 
 
 def test_str():

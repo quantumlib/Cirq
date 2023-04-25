@@ -119,7 +119,7 @@ class Var(cirq.Points):
         return 'cirq.google'
 
     @classmethod
-    def _from_json_dict_(cls, descriptor, points, unit, label, **kwargs) -> Dict[str, Any]:
+    def _from_json_dict_(cls, descriptor, points, unit, label, **kwargs) -> 'Var':
         return cls(descriptor, iterable=points, unit=unit, label=label)
 
     def _json_dict_(self) -> Dict[str, Any]:
