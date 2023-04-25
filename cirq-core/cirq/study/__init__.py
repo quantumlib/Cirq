@@ -38,6 +38,7 @@ from cirq.study.sweeps import (
     Sweep,
     UnitSweep,
     Zip,
+    ZipLongest,
     dict_to_product_sweep,
     dict_to_zip_sweep,
 )
