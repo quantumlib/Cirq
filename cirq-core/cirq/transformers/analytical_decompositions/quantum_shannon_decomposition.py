@@ -24,7 +24,8 @@ from cirq import is_unitary, deconstruct_single_qubit_matrix_into_angles
 
 
 def quantum_shannon_decomposition(qubits: list, u: np.ndarray, ops=None):
-    """Returns a list of operations for an arbitrary n-qubit decomposition, preserving phase
+    """Decomposes an arbitrary n-qubit unitary into CX/YPow/ZPow/CNOT gates,
+    preserving global phase.
 
     The algorithm is described in Shende et al.:
     Synthesis of Quantum Logic Circuits. Tech. rep. 2006,
