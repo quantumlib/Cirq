@@ -13,7 +13,12 @@
 # limitations under the License.
 
 
-"""Utility methods for decomposing arbitrary n-qubit (2^n x 2^n) unitary."""
+"""Utility methods for decomposing arbitrary n-qubit (2^n x 2^n) unitary.
+
+Based on:
+Synthesis of Quantum Logic Circuits. Tech. rep. 2006,
+https://arxiv.org/abs/quant-ph/0406176
+"""
 
 from scipy.linalg import cossin
 
@@ -98,6 +103,7 @@ def quantum_shannon_decomposition(qubits: list, u: np.ndarray, ops=None):
 
 def _single_qubit_decomposition(qubit, u, ops=None):
     """Decomposes single-qubit gate, and returns list of operations, keeping phase invariant.
+    
     Intended to also append these operations to existing operation list
 
     Args:
@@ -129,7 +135,8 @@ def _single_qubit_decomposition(qubit, u, ops=None):
 
 
 def _msb_demuxer(demux_qubits: list, u1: np.ndarray, u2: np.ndarray, ops=None):
-    """Demultiplexes a unitary matrix that is multiplexed in its most-significant-qubit
+    """Demultiplexes a unitary matrix that is multiplexed in its most-significant-qubit.
+    
     Decomposition structure:
       [ u1 , 0  ]  =  [ V , 0 ][ D , 0  ][ W , 0 ]
       [ 0  , u2 ]     [ 0 , V ][ 0 , D* ][ 0 , W ]
@@ -185,7 +192,8 @@ def _nth_gray(n):
 
 
 def _multiplexed_cossin(cossin_qubits: list, angles: list, ops=None, rot_func=ry):
-    """Performs a multiplexed rotation over all qubits in this unitary matrix
+    """Performs a multiplexed rotation over all qubits in this unitary matrix,
+    
     Uses ry and rz multiplexing for quantum shannon decomposition
 
     Args:
