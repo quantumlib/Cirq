@@ -58,17 +58,16 @@ def quantum_shannon_decomposition(qubits: list, U: np.ndarray, ops=None):
     if ops is None:
         ops = []  # Declare an empty list if no previous operations
 
-    n, m = U.shape[0], U.shape[1]
-    if not (n and not (n & (n - 1)) and n == m):
-        raise ValueError(
-            f"Expected input matrix U to a (2^n x 2^n) shaped numpy array, \
-                but instead got shape {(n,m)}"
-        )
-
     if not cirq.is_unitary(U):  # Check that U is unitary
         raise ValueError(
             "Expected input matrix U to be unitary, \
                 but it fails cirq.is_unitary check"
+        )
+    n = U.shape[0]
+    if n & (n - 1):
+        raise ValueError(
+            f"Expected input matrix U to be a (2^n x 2^n) shaped numpy array, \
+                but instead got shape {U.shape}"
         )
 
     if n == 2:
