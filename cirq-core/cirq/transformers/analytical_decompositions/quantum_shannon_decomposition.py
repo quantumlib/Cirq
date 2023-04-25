@@ -22,7 +22,7 @@ import numpy as np
 import cirq
 
 
-def quantum_shannon_decomposition(qubits: list, U: np.ndarray, ops=None):
+def quantum_shannon_decomposition(qubits: list, u: np.ndarray, ops=None):
     """Returns a list of operations for an arbitrary n-qubit decomposition, preserving phase
 
     The algorithm is described in Shende et al.:
@@ -31,7 +31,7 @@ def quantum_shannon_decomposition(qubits: list, U: np.ndarray, ops=None):
 
     Args:
         qubits: List of qubits in order of significance
-        U: Numpy array for unitary matrix representing gate to be decomposed
+        u: Numpy array for unitary matrix representing gate to be decomposed
         ops: List of new existing operations on which to append new operations, whenever
                 a recusive call is made
              If 'None' is given, a new list is instantiated
@@ -52,32 +52,32 @@ def quantum_shannon_decomposition(qubits: list, U: np.ndarray, ops=None):
            { CNOT, rz, ry, ZPowGate }
 
     Raises:
-        ValueError: If the U matrix is not of shape (2^n,2^n)
-        ValueError: If the U matrix is non-unitary
+        ValueError: If the u matrix is not of shape (2^n,2^n)
+        ValueError: If the u matrix is non-unitary
     """
     if ops is None:
         ops = []  # Declare an empty list if no previous operations
 
-    if not cirq.is_unitary(U):  # Check that U is unitary
+    if not cirq.is_unitary(u):  # Check that u is unitary
         raise ValueError(
-            "Expected input matrix U to be unitary, \
+            "Expected input matrix u to be unitary, \
                 but it fails cirq.is_unitary check"
         )
-    n = U.shape[0]
+    n = u.shape[0]
     if n & (n - 1):
         raise ValueError(
-            f"Expected input matrix U to be a (2^n x 2^n) shaped numpy array, \
-                but instead got shape {U.shape}"
+            f"Expected input matrix u to be a (2^n x 2^n) shaped numpy array, \
+                but instead got shape {u.shape}"
         )
 
     if n == 2:
-        # Return a single-qubit decomp if U is 2x2 matrix
-        return _single_qubit_decomposition(qubits[0], U, ops)
+        # Return a single-qubit decomp if u is 2x2 matrix
+        return _single_qubit_decomposition(qubits[0], u, ops)
 
-    # Perform a cosine-sine (linalg) decomposition on U
+    # Perform a cosine-sine (linalg) decomposition on u
     #   X   =   [ u1 , 0  ] [ cos(theta) , -sin(theta) ] [ v1 , 0  ]
     #           [ 0  , u2 ] [ sin(theta) ,  cos(theta) ] [ 0  , v2 ]
-    (u1, u2), theta, (v1, v2) = cossin(U, n / 2, n / 2, separate=True)
+    (u1, u2), theta, (v1, v2) = cossin(u, n / 2, n / 2, separate=True)
 
     # Add ops from decomposition of multiplexed v1/v2 part
     _msb_demuxer(qubits, v1, v2, ops)
@@ -94,13 +94,13 @@ def quantum_shannon_decomposition(qubits: list, U: np.ndarray, ops=None):
     return ops
 
 
-def _single_qubit_decomposition(qubit, U, ops=None):
+def _single_qubit_decomposition(qubit, u, ops=None):
     """Decomposes single-qubit gate, and returns list of operations, keeping phase invariant.
     Intended to also append these operations to existing operation list
 
     Args:
         qubit: Qubit on which to apply operations
-        U: (2 x 2) Numpy array for unitary representing 1-qubit gate to be decomposed
+        u: (2 x 2) Numpy array for unitary representing 1-qubit gate to be decomposed
         ops: List of new existing operations on which to append new operations, whenever
                 a recusive call is made
              If 'None' is given, a new list is instantiated
@@ -112,10 +112,10 @@ def _single_qubit_decomposition(qubit, U, ops=None):
         ops = []  # Declare an empty list if no previous operations
 
     # Perform native ZYZ decomposition
-    phi_0, phi_1, phi_2 = cirq.deconstruct_single_qubit_matrix_into_angles(U)
+    phi_0, phi_1, phi_2 = cirq.deconstruct_single_qubit_matrix_into_angles(u)
 
     # Determine global phase picked up
-    phase = np.angle(U[0, 0] / (np.exp(-1j * (phi_0) / 2) * np.cos(phi_1 / 2)))
+    phase = np.angle(u[0, 0] / (np.exp(-1j * (phi_0) / 2) * np.cos(phi_1 / 2)))
 
     # Append first two operations operations
     ops.append(cirq.rz(phi_0).on(qubit))
@@ -152,8 +152,8 @@ def _msb_demuxer(demux_qubits: list, u1: np.ndarray, u2: np.ndarray, ops=None):
     Returns: List of 2-qubit and 1-qubit operations
     """
     # Perform a diagonalization to find values
-    U = u1 @ u2.T.conjugate()
-    dsquared, V = np.linalg.eig(U)
+    u = u1 @ u2.T.conjugate()
+    dsquared, V = np.linalg.eig(u)
     d = np.sqrt(dsquared)
     D = np.diag(d)
     W = D @ V.T.conjugate() @ u2
