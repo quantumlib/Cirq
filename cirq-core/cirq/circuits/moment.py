@@ -124,7 +124,7 @@ class Moment:
         results in better performance in cases where the contents of the moment
         are already in the form of a sequence of operations rather than an
         arbitrary OP_TREE.
-        
+
         Args:
             *ops: Operations to include in the Moment.
         """
