@@ -502,6 +502,7 @@ from cirq.study import (
     Result,
     UnitSweep,
     Zip,
+    ZipLongest,
 )
 
 from cirq.value import (
