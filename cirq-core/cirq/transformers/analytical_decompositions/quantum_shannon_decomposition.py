@@ -128,7 +128,7 @@ def _single_qubit_decomposition(qubit, U, ops=None):
 
 
 def _msb_demuxer(demux_qubits: list, u1: np.ndarray, u2: np.ndarray, ops=None):
-    """Demultiplexes a unitary matrix that is multiplexed in in its most-significant-qubit
+    """Demultiplexes a unitary matrix that is multiplexed in its most-significant-qubit
     Decomposition structure:
       [ u1 , 0  ]  =  [ V , 0 ][ D , 0  ][ W , 0 ]
       [ 0  , u2 ]     [ 0 , V ][ 0 , D* ][ 0 , W ]
