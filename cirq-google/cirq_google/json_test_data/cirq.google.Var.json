@@ -1,12 +1,19 @@
 {
   "cirq_type": "cirq.google.Var",
-  "key": "dir/subdir/key#1$ns",
+  "descriptor": {
+    "cirq_type": "cirq.google.Parameter",
+    "path": [
+      "test",
+      "subdir",
+      "key"
+    ],
+    "idx": 4,
+    "value": 7.5
+  },
   "points": [
     2,
     4
   ],
-  "label": "reps",
-  "registry": true,
-  "with_unit": true,
-  "with_idx": true
+  "unit": "ns",
+  "label": "pulse_time"
 }

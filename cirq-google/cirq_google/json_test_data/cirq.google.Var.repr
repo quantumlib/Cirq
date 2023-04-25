@@ -1,1 +1,1 @@
-cirq_google.Var(sympy.Symbol('dir/subdir/key#1$ns', registry=True, with_idx=True, with_unit=True), [2, 4], label='reps')
+cirq_google.Var(cirq_google.study.var.Parameter(path=['test', 'subdir', 'key'], idx=4, value=7.5), [2, 4], unit='ns', label='pulse_time')

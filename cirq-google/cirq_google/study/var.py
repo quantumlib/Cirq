@@ -50,11 +50,11 @@ class Parameter:
         return 'cirq.google'
 
     @classmethod
-    def _from_json_dict_(cls, path, idx, value):
+    def _from_json_dict_(cls, path, idx, value, **kwargs):
         return Parameter(path=path, idx=idx, value=value)
 
     def _json_dict_(self) -> Dict[str, Any]:
-        return cirq.obj_to_dict_helper(self, ["path", "points", "unit", "label"])
+        return cirq.obj_to_dict_helper(self, ["path", "idx", "value"])
 
 
 class Var(cirq.Points):
@@ -117,6 +117,10 @@ class Var(cirq.Points):
     @classmethod
     def _json_namespace_(cls) -> str:
         return 'cirq.google'
+
+    @classmethod
+    def _from_json_dict_(cls, descriptor, points, unit, label, **kwargs) -> Dict[str, Any]:
+        return cls(descriptor, iterable=points, unit=unit, label=label)
 
     def _json_dict_(self) -> Dict[str, Any]:
         return cirq.obj_to_dict_helper(self, ["descriptor", "points", "unit", "label"])
