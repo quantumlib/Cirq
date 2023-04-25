@@ -19,7 +19,8 @@ from scipy.linalg import cossin
 
 import numpy as np
 
-import cirq
+from cirq import ry, rz, CNOT, ZPowGate
+from cirq import is_unitary, deconstruct_single_qubit_matrix_into_angles
 
 
 def quantum_shannon_decomposition(qubits: list, u: np.ndarray, ops=None):
@@ -58,7 +59,7 @@ def quantum_shannon_decomposition(qubits: list, u: np.ndarray, ops=None):
     if ops is None:
         ops = []  # Declare an empty list if no previous operations
 
-    if not cirq.is_unitary(u):  # Check that u is unitary
+    if not is_unitary(u):  # Check that u is unitary
         raise ValueError(
             "Expected input matrix u to be unitary, \
                 but it fails cirq.is_unitary check"
@@ -85,7 +86,7 @@ def quantum_shannon_decomposition(qubits: list, u: np.ndarray, ops=None):
     # Observe that middle part looks like Σ_i( Ry(theta_i)⊗|i><i| )
     # Then most significant qubit is Ry multiplexed over all other qubits
     # Add ops from multiplexed Ry part
-    _multiplexed_cossin(qubits, theta, ops, cirq.ry)
+    _multiplexed_cossin(qubits, theta, ops, ry)
 
     # Add ops from decomposition of multiplexed u1/u2 part
     _msb_demuxer(qubits, u1, u2, ops)
@@ -112,17 +113,17 @@ def _single_qubit_decomposition(qubit, u, ops=None):
         ops = []  # Declare an empty list if no previous operations
 
     # Perform native ZYZ decomposition
-    phi_0, phi_1, phi_2 = cirq.deconstruct_single_qubit_matrix_into_angles(u)
+    phi_0, phi_1, phi_2 = deconstruct_single_qubit_matrix_into_angles(u)
 
     # Determine global phase picked up
     phase = np.angle(u[0, 0] / (np.exp(-1j * (phi_0) / 2) * np.cos(phi_1 / 2)))
 
     # Append first two operations operations
-    ops.append(cirq.rz(phi_0).on(qubit))
-    ops.append(cirq.ry(phi_1).on(qubit))
+    ops.append(rz(phi_0).on(qubit))
+    ops.append(ry(phi_1).on(qubit))
 
     # Append third operation with global phase added
-    ops.append(cirq.ZPowGate(exponent=phi_2 / np.pi, global_shift=phase / phi_2).on(qubit))
+    ops.append(ZPowGate(exponent=phi_2 / np.pi, global_shift=phase / phi_2).on(qubit))
     return ops
 
 
@@ -168,7 +169,7 @@ def _msb_demuxer(demux_qubits: list, u1: np.ndarray, u2: np.ndarray, ops=None):
     # Use complex phase of d_i to give theta_i (so d_i* gives -theta_i)
     # Observe that middle part looks like Σ_i( Rz(theta_i)⊗|i><i| )
     # Add ops from multiplexed Rz part
-    _multiplexed_cossin(demux_qubits, -np.angle(d), ops, cirq.rz)
+    _multiplexed_cossin(demux_qubits, -np.angle(d), ops, rz)
 
     # Add operations for QSD on V
     quantum_shannon_decomposition(demux_qubits[1:], V, ops)
@@ -182,7 +183,7 @@ def _nth_gray(n):
     return n ^ (n >> 1)
 
 
-def _multiplexed_cossin(cossin_qubits: list, angles: list, ops=None, rot_func=cirq.ry):
+def _multiplexed_cossin(cossin_qubits: list, angles: list, ops=None, rot_func=ry):
     """Performs a multiplexed rotation over all qubits in this unitary matrix
     Uses ry and rz multiplexing for quantum shannon decomposition
 
@@ -241,6 +242,6 @@ def _multiplexed_cossin(cossin_qubits: list, angles: list, ops=None, rot_func=ci
         ops.append(rot_func(rotation).on(main_qubit))
 
         # Add a CNOT from the select qubit to the main qubit
-        ops.append(cirq.CNOT(control_qubits[select_qubit], main_qubit))
+        ops.append(CNOT(control_qubits[select_qubit], main_qubit))
 
     return ops
