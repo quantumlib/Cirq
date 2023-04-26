@@ -19,16 +19,18 @@ Based on:
 Synthesis of Quantum Logic Circuits. Tech. rep. 2006,
 https://arxiv.org/abs/quant-ph/0406176
 """
+from typing import List, Iterator
 
 from scipy.linalg import cossin
 
 import numpy as np
 
 from cirq import ry, rz, CNOT, ZPowGate
-from cirq import is_unitary, deconstruct_single_qubit_matrix_into_angles
+from cirq import is_unitary, deconstruct_single_qubit_matrix_into_angles, Operation
+from cirq.ops import Qid
 
 
-def quantum_shannon_decomposition(qubits: list, u: np.ndarray):
+def quantum_shannon_decomposition(qubits: List[Qid], u: np.ndarray) -> List[Operation]:
     """Decomposes an arbitrary n-qubit unitary into CX/YPow/ZPow/CNOT gates,
     preserving global phase.
 
@@ -36,7 +38,7 @@ def quantum_shannon_decomposition(qubits: list, u: np.ndarray):
     Synthesis of Quantum Logic Circuits. Tech. rep. 2006,
     https://arxiv.org/abs/quant-ph/0406176
 
-    This function wraps _qsd_generator to return OP_TREE
+    This function wraps _qsd_generator to return list of OP_TREE
 
     Args:
         qubits: List of qubits in order of significance
@@ -50,7 +52,7 @@ def quantum_shannon_decomposition(qubits: list, u: np.ndarray):
     return op_tree
 
 
-def _qsd_generator(qubits: list, u: np.ndarray):
+def _qsd_generator(qubits: List[Qid], u: np.ndarray) -> Iterator[Operation]:
     """Generator That yields successive operations for Quantum Shannon Decomposition
 
     Args:
@@ -112,7 +114,7 @@ def _qsd_generator(qubits: list, u: np.ndarray):
     yield from _msb_demuxer(qubits, u1, u2)
 
 
-def _single_qubit_decomposition(qubit, u):
+def _single_qubit_decomposition(qubit: Qid, u: np.ndarray) -> Iterator[Operation]:
     """Decomposes single-qubit gate, and returns list of operations, keeping phase invariant.
     
     Intended to also append these operations to existing operation list
@@ -122,7 +124,7 @@ def _single_qubit_decomposition(qubit, u):
         u: (2 x 2) Numpy array for unitary representing 1-qubit gate to be decomposed
 
     Yields:
-        A single operation from OP TREE of 3 operations (rz,ry,ZPowGate)
+        A single operation from OP_TREE of 3 operations (rz,ry,ZPowGate)
     """
     # Perform native ZYZ decomposition
     phi_0, phi_1, phi_2 = deconstruct_single_qubit_matrix_into_angles(u)
@@ -139,7 +141,7 @@ def _single_qubit_decomposition(qubit, u):
     yield ZPowGate(exponent=phi_2 / np.pi, global_shift=phase / phi_2).on(qubit)
 
 
-def _msb_demuxer(demux_qubits: list, u1: np.ndarray, u2: np.ndarray):
+def _msb_demuxer(demux_qubits: List[Qid], u1: np.ndarray, u2: np.ndarray):
     """Demultiplexes a unitary matrix that is multiplexed in its most-significant-qubit.
     
     Decomposition structure:
@@ -160,7 +162,7 @@ def _msb_demuxer(demux_qubits: list, u1: np.ndarray, u2: np.ndarray):
         2. _multiplexed_cossin
         3. quantum_shannon_decomposition
 
-    Yields: Single operation from OP TREE of 2-qubit and 1-qubit operations
+    Yields: Single operation from OP_TREE of 2-qubit and 1-qubit operations
     """
     # Perform a diagonalization to find values
     u = u1 @ u2.T.conjugate()
@@ -183,12 +185,13 @@ def _msb_demuxer(demux_qubits: list, u1: np.ndarray, u2: np.ndarray):
     yield from quantum_shannon_decomposition(demux_qubits[1:], V)
 
 
-def _nth_gray(n):
+def _nth_gray(n: int) -> int:
     # Return the nth Gray Code number
     return n ^ (n >> 1)
 
 
-def _multiplexed_cossin(cossin_qubits: list, angles: list, rot_func=ry):
+def _multiplexed_cossin(cossin_qubits: List[Qid],
+                        angles: List[float], rot_func=ry) -> Iterator[Operation]:
     """Performs a multiplexed rotation over all qubits in this unitary matrix,
     
     Uses ry and rz multiplexing for quantum shannon decomposition
@@ -202,7 +205,7 @@ def _multiplexed_cossin(cossin_qubits: list, angles: list, rot_func=ry):
     Calls:
         No major calls
 
-    Yields: Single operation from OP TREE of 2-qubit and 1-qubit operations
+    Yields: Single operation from OP_TREE of 2-qubit and 1-qubit operations
     """
     # Most significant qubit is main qubit with rotation function applied
     main_qubit = cossin_qubits[0]
