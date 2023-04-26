@@ -142,7 +142,7 @@ class SupportsApplyChannel(Protocol):
                 `args.target_tensor` and the given buffers.
 
         Returns:
-            If the receiving object is not able to apply a chanel, None
+            If the receiving object is not able to apply a channel, None
             or NotImplemented should be returned.
 
             If the receiving object is able to work inline, it should directly

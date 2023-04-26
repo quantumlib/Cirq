@@ -316,7 +316,7 @@ class TwoQubitInteractionHeatmap(Heatmap):
 
         Args:
             value_map: A map from a qubit tuple location to a value.
-            **kwargs: Optinal kwargs including
+            **kwargs: Optional kwargs including
                 coupler_margin: float, default = 0.03
                 coupler_width: float, default = 0.6
         """

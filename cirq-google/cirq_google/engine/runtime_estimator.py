@@ -17,7 +17,7 @@ Users can call estimate_run_time, estimate_run_sweep_time, or
 estimate_run_batch_time to retrieve approximations of runtime on QCS
 of various sizes and shapes of circuits.
 
-Times were extrapolated from actual runs on Sycamore processors duing
+Times were extrapolated from actual runs on Sycamore processors during
 November 2021.  These times should only be used as a rough guide.
 Your experience may vary based on many factors not captured here.
 

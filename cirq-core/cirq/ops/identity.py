@@ -42,7 +42,7 @@ class IdentityGate(raw_types.Gate):
         """Inits IdentityGate.
 
         Args:
-            num_qubits: The number of qubits for the idenity gate.
+            num_qubits: The number of qubits for the identity gate.
             qid_shape: Specifies the dimension of each qid the measurement
                 applies to.  The default is 2 for every qubit.
 
