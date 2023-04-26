@@ -38,7 +38,7 @@ def quantum_shannon_decomposition(qubits: List[Qid], u: np.ndarray) -> List[Oper
     Synthesis of Quantum Logic Circuits. Tech. rep. 2006,
     https://arxiv.org/abs/quant-ph/0406176
 
-    This function wraps _qsd_generator to return list of OP_TREE
+    This function wraps _qsd_generator to return OP_TREE
 
     Args:
         qubits: List of qubits in order of significance
@@ -48,11 +48,11 @@ def quantum_shannon_decomposition(qubits: List[Qid], u: np.ndarray) -> List[Oper
         List of 2-qubit and 1-qubit operations from the set
            { CNOT, rz, ry, ZPowGate }
     """
-    op_tree = list(_qsd_generator(qubits, u))
+    op_tree = list(qsd_generator(qubits, u))
     return op_tree
 
 
-def _qsd_generator(qubits: List[Qid], u: np.ndarray) -> Iterator[Operation]:
+def qsd_generator(qubits: List[Qid], u: np.ndarray) -> Iterator[Operation]:
     """Generator That yields successive operations for Quantum Shannon Decomposition
 
     Args:
@@ -124,7 +124,7 @@ def _single_qubit_decomposition(qubit: Qid, u: np.ndarray) -> Iterator[Operation
         u: (2 x 2) Numpy array for unitary representing 1-qubit gate to be decomposed
 
     Yields:
-        A single operation from OP_TREE of 3 operations (rz,ry,ZPowGate)
+        A single operation from OP TREE of 3 operations (rz,ry,ZPowGate)
     """
     # Perform native ZYZ decomposition
     phi_0, phi_1, phi_2 = deconstruct_single_qubit_matrix_into_angles(u)
@@ -158,11 +158,11 @@ def _msb_demuxer(demux_qubits: List[Qid], u1: np.ndarray, u2: np.ndarray):
         u2: Lower-right quadrant of total unitary to be decomposed (see diagram)
 
     Calls:
-        1. quantum_shannon_decomposition
+        1. qsd_generator
         2. _multiplexed_cossin
-        3. quantum_shannon_decomposition
+        3. qsd_generator
 
-    Yields: Single operation from OP_TREE of 2-qubit and 1-qubit operations
+    Yields: Single operation from OP TREE of 2-qubit and 1-qubit operations
     """
     # Perform a diagonalization to find values
     u = u1 @ u2.T.conjugate()
@@ -174,7 +174,7 @@ def _msb_demuxer(demux_qubits: List[Qid], u1: np.ndarray, u2: np.ndarray):
     # Last term is given by ( I ⊗ W ), demultiplexed
     # Remove most-significant (demuxed) control-qubit
     # Yield operations for QSD on W
-    yield from quantum_shannon_decomposition(demux_qubits[1:], W)
+    yield from qsd_generator(demux_qubits[1:], W)
 
     # Use complex phase of d_i to give theta_i (so d_i* gives -theta_i)
     # Observe that middle part looks like Σ_i( Rz(theta_i)⊗|i><i| )
@@ -182,7 +182,7 @@ def _msb_demuxer(demux_qubits: List[Qid], u1: np.ndarray, u2: np.ndarray):
     yield from _multiplexed_cossin(demux_qubits, -np.angle(d), rz)
 
     # Yield operations for QSD on V
-    yield from quantum_shannon_decomposition(demux_qubits[1:], V)
+    yield from qsd_generator(demux_qubits[1:], V)
 
 
 def _nth_gray(n: int) -> int:
@@ -205,7 +205,7 @@ def _multiplexed_cossin(cossin_qubits: List[Qid],
     Calls:
         No major calls
 
-    Yields: Single operation from OP_TREE of 2-qubit and 1-qubit operations
+    Yields: Single operation from OP TREE of 2-qubit and 1-qubit operations
     """
     # Most significant qubit is main qubit with rotation function applied
     main_qubit = cossin_qubits[0]
