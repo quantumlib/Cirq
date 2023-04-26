@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from cirq import NamedQubit, Circuit, approx_eq
 from cirq.transformers.analytical_decompositions.quantum_shannon_decomposition import (
     _multiplexed_cossin,
     _nth_gray,
@@ -23,21 +24,20 @@ from cirq.transformers.analytical_decompositions.quantum_shannon_decomposition i
 import pytest
 import numpy as np
 from scipy.stats import unitary_group
-import cirq
 
 
 @pytest.mark.parametrize('n_qubits', [_ for _ in range(1, 8)])
 def test_random_qsd_n_qubit(n_qubits):
     U = unitary_group.rvs(2**n_qubits)
-    qubits = [cirq.NamedQubit(f'q{i}') for i in range(n_qubits)]
-    circuit = cirq.Circuit()
+    qubits = [NamedQubit(f'q{i}') for i in range(n_qubits)]
+    circuit = Circuit()
     operations = quantum_shannon_decomposition(qubits, U)
     circuit.append(operations)
-    assert cirq.approx_eq(U, circuit.unitary(), atol=1e-9)
+    assert approx_eq(U, circuit.unitary(), atol=1e-9)
 
 
 def test_qsd_n_qubit_errors():
-    qubits = [cirq.NamedQubit(f'q{i}') for i in range(3)]
+    qubits = [NamedQubit(f'q{i}') for i in range(3)]
     with pytest.raises(ValueError, match="shaped numpy array"):
         quantum_shannon_decomposition(qubits, np.eye(9))
     with pytest.raises(ValueError, match="is_unitary"):
@@ -46,22 +46,22 @@ def test_qsd_n_qubit_errors():
 
 def test_random_single_qubit_decomposition():
     U = unitary_group.rvs(2)
-    qubit = cirq.NamedQubit('q0')
-    circuit = cirq.Circuit()
-    operations = _single_qubit_decomposition(qubit, U, None)
+    qubit = NamedQubit('q0')
+    circuit = Circuit()
+    operations = _single_qubit_decomposition(qubit, U)
     circuit.append(operations)
-    assert cirq.approx_eq(U, circuit.unitary(), atol=1e-9)
+    assert approx_eq(U, circuit.unitary(), atol=1e-9)
 
 
 def test_msb_demuxer():
     U1 = unitary_group.rvs(4)
     U2 = unitary_group.rvs(4)
     U_full = np.kron([[1, 0], [0, 0]], U1) + np.kron([[0, 0], [0, 1]], U2)
-    qubits = [cirq.NamedQubit(f'q{i}') for i in range(3)]
-    circuit = cirq.Circuit()
+    qubits = [NamedQubit(f'q{i}') for i in range(3)]
+    circuit = Circuit()
     operations = _msb_demuxer(qubits, U1, U2)
     circuit.append(operations)
-    assert cirq.approx_eq(U_full, circuit.unitary(), atol=1e-9)
+    assert approx_eq(U_full, circuit.unitary(), atol=1e-9)
 
 
 def test_multiplexed_cossin():
@@ -71,11 +71,11 @@ def test_multiplexed_cossin():
     c2, s2 = np.cos(angle_2), np.sin(angle_2)
     multiplexed_ry = [[c1, 0, -s1, 0], [0, c2, 0, -s2], [s1, 0, c1, 0], [0, s2, 0, c2]]
     multiplexed_ry = np.array(multiplexed_ry)
-    qubits = [cirq.NamedQubit(f'q{i}') for i in range(2)]
-    circuit = cirq.Circuit()
+    qubits = [NamedQubit(f'q{i}') for i in range(2)]
+    circuit = Circuit()
     operations = _multiplexed_cossin(qubits, [angle_1, angle_2])
     circuit.append(operations)
-    assert cirq.approx_eq(multiplexed_ry, circuit.unitary(), atol=1e-9)
+    assert approx_eq(multiplexed_ry, circuit.unitary(), atol=1e-9)
 
 
 @pytest.mark.parametrize(
