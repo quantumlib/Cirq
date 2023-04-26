@@ -41,10 +41,6 @@ from cirq.transformers.analytical_decompositions.three_qubit_decomposition impor
     three_qubit_matrix_to_operations,
 )
 
-from cirq.transformers.analytical_decompositions.quantum_shannon_decomposition import (
-    quantum_shannon_decomposition,
-)
-
 from cirq.transformers.analytical_decompositions.two_qubit_to_cz import (
     two_qubit_matrix_to_cz_operations,
     two_qubit_matrix_to_diagonal_and_cz_operations,
@@ -70,4 +66,8 @@ from cirq.transformers.analytical_decompositions.two_qubit_state_preparation imp
 
 from cirq.transformers.analytical_decompositions.single_to_two_qubit_isometry import (
     two_qubit_matrix_to_cz_isometry,
+)
+
+from cirq.transformers.analytical_decompositions.quantum_shannon_decomposition import (
+    quantum_shannon_decomposition,
 )
