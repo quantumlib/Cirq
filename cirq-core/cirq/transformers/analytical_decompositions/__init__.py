@@ -30,6 +30,7 @@ from cirq.transformers.analytical_decompositions.cphase_to_fsim import (
 
 from cirq.transformers.analytical_decompositions.quantum_shannon_decomposition import (
     quantum_shannon_decomposition,
+    qsd_generator,
 )
 
 from cirq.transformers.analytical_decompositions.single_qubit_decompositions import (
