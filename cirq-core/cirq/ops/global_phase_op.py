@@ -107,8 +107,9 @@ class GlobalPhaseGate(raw_types.Gate):
             and result.control_values[-1] == (1,)
             and result.control_qid_shape[-1] == 2
         ):
-
-            return cirq.ZPowGate(exponent=np.angle(complex(self.coefficient) / np.pi)).controlled(
+            coefficient = complex(self.coefficient)
+            exponent = float(np.angle(coefficient) / np.pi)
+            return cirq.ZPowGate(exponent=exponent).controlled(
                 result.num_controls() - 1, result.control_values[:-1], result.control_qid_shape[:-1]
             )
         return result
