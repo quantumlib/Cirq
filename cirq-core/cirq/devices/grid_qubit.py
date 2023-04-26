@@ -45,13 +45,13 @@ class _BaseGridQid(ops.Qid):
         return self._col
 
     def with_dimension(self, dimension: int) -> 'GridQid':
-        return GridQid(self.row, self.col, dimension=dimension)
+        return GridQid(self._row, self._col, dimension=dimension)
 
     def is_adjacent(self, other: 'cirq.Qid') -> bool:
         """Determines if two qubits are adjacent qubits."""
         return (
             isinstance(other, GridQubit)
-            and abs(self.row - other.row) + abs(self.col - other.col) == 1
+            and abs(self._row - other._row) + abs(self._col - other._col) == 1
         )
 
     def neighbors(self, qids: Optional[Iterable[ops.Qid]] = None) -> Set['_BaseGridQid']:
@@ -71,7 +71,7 @@ class _BaseGridQid(ops.Qid):
         """Returns a qid with the same type but a different coordinate."""
 
     def __complex__(self) -> complex:
-        return self.col + 1j * self.row
+        return self._col + 1j * self._row
 
     def __add__(self, other: Union[Tuple[int, int], Self]) -> Self:
         if isinstance(other, _BaseGridQid):
@@ -80,7 +80,7 @@ class _BaseGridQid(ops.Qid):
                     "Can only add GridQids with identical dimension. "
                     f"Got {self.dimension} and {other.dimension}"
                 )
-            return self._with_row_col(row=self.row + other.row, col=self.col + other.col)
+            return self._with_row_col(row=self._row + other._row, col=self._col + other._col)
         if not (
             isinstance(other, (tuple, np.ndarray))
             and len(other) == 2
@@ -90,7 +90,7 @@ class _BaseGridQid(ops.Qid):
                 'Can only add integer tuples of length 2 to '
                 f'{type(self).__name__}. Instead was {other}'
             )
-        return self._with_row_col(row=self.row + other[0], col=self.col + other[1])
+        return self._with_row_col(row=self._row + other[0], col=self._col + other[1])
 
     def __sub__(self, other: Union[Tuple[int, int], Self]) -> Self:
         if isinstance(other, _BaseGridQid):
@@ -99,7 +99,7 @@ class _BaseGridQid(ops.Qid):
                     "Can only subtract GridQids with identical dimension. "
                     f"Got {self.dimension} and {other.dimension}"
                 )
-            return self._with_row_col(row=self.row - other.row, col=self.col - other.col)
+            return self._with_row_col(row=self._row - other._row, col=self._col - other._col)
         if not (
             isinstance(other, (tuple, np.ndarray))
             and len(other) == 2
@@ -109,7 +109,7 @@ class _BaseGridQid(ops.Qid):
                 "Can only subtract integer tuples of length 2 to "
                 f"{type(self).__name__}. Instead was {other}"
             )
-        return self._with_row_col(row=self.row - other[0], col=self.col - other[1])
+        return self._with_row_col(row=self._row - other[0], col=self._col - other[1])
 
     def __radd__(self, other: Tuple[int, int]) -> Self:
         return self + other
@@ -118,7 +118,7 @@ class _BaseGridQid(ops.Qid):
         return -self + other
 
     def __neg__(self) -> Self:
-        return self._with_row_col(row=-self.row, col=-self.col)
+        return self._with_row_col(row=-self._row, col=-self._col)
 
 
 class GridQid(_BaseGridQid):
@@ -255,16 +255,16 @@ class GridQid(_BaseGridQid):
         return [GridQid(*c, dimension=dimension) for c in coords]
 
     def __repr__(self) -> str:
-        return f"cirq.GridQid({self.row}, {self.col}, dimension={self.dimension})"
+        return f"cirq.GridQid({self._row}, {self._col}, dimension={self.dimension})"
 
     def __str__(self) -> str:
-        return f"q({self.row}, {self.col}) (d={self.dimension})"
+        return f"q({self._row}, {self._col}) (d={self.dimension})"
 
     def _circuit_diagram_info_(
         self, args: 'cirq.CircuitDiagramInfoArgs'
     ) -> 'cirq.CircuitDiagramInfo':
         return protocols.CircuitDiagramInfo(
-            wire_symbols=(f"({self.row}, {self.col}) (d={self.dimension})",)
+            wire_symbols=(f"({self._row}, {self._col}) (d={self.dimension})",)
         )
 
     def _json_dict_(self) -> Dict[str, Any]:
@@ -305,13 +305,13 @@ class GridQubit(_BaseGridQid):
     def __eq__(self, other):
         # Explicitly implemented for performance (vs delegating to Qid).
         if isinstance(other, GridQubit):
-            return self.row == other.row and self.col == other.col
+            return self._row == other._row and self._col == other._col
         return NotImplemented
 
     def __ne__(self, other):
         # Explicitly implemented for performance (vs delegating to Qid).
         if isinstance(other, GridQubit):
-            return self.row != other.row or self.col != other.col
+            return self._row != other._row or self._col != other._col
         return NotImplemented
 
     @property
@@ -412,15 +412,15 @@ class GridQubit(_BaseGridQid):
         return [GridQubit(*c) for c in coords]
 
     def __repr__(self) -> str:
-        return f"cirq.GridQubit({self.row}, {self.col})"
+        return f"cirq.GridQubit({self._row}, {self._col})"
 
     def __str__(self) -> str:
-        return f"q({self.row}, {self.col})"
+        return f"q({self._row}, {self._col})"
 
     def _circuit_diagram_info_(
         self, args: 'cirq.CircuitDiagramInfoArgs'
     ) -> 'cirq.CircuitDiagramInfo':
-        return protocols.CircuitDiagramInfo(wire_symbols=(f"({self.row}, {self.col})",))
+        return protocols.CircuitDiagramInfo(wire_symbols=(f"({self._row}, {self._col})",))
 
     def _json_dict_(self) -> Dict[str, Any]:
         return protocols.obj_to_dict_helper(self, ['row', 'col'])
