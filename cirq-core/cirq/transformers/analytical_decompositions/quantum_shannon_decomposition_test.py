@@ -13,6 +13,7 @@
 # limitations under the License.
 
 from cirq import NamedQubit, Circuit, approx_eq
+from cirq.ops.common_gates import Rz, Ry, ZPowGate, CXPowGate
 from cirq.transformers.analytical_decompositions.quantum_shannon_decomposition import (
     _multiplexed_cossin,
     _nth_gray,
@@ -33,7 +34,11 @@ def test_random_qsd_n_qubit(n_qubits):
     circuit = Circuit()
     operations = quantum_shannon_decomposition(qubits, U)
     circuit.append(operations)
+    # Test return is equal to inital unitary
     assert approx_eq(U, circuit.unitary(), atol=1e-9)
+    # Test all operations in gate set
+    gates = [Rz, Ry, ZPowGate, CXPowGate]
+    assert all(any(isinstance(op.gate,gate) for gate in gates) for op in operations)
 
 
 def test_qsd_n_qubit_errors():
@@ -50,7 +55,11 @@ def test_random_single_qubit_decomposition():
     circuit = Circuit()
     operations = _single_qubit_decomposition(qubit, U)
     circuit.append(operations)
+    # Test return is equal to inital unitary
     assert approx_eq(U, circuit.unitary(), atol=1e-9)
+    # Test all operations in gate set
+    gates = [Rz, Ry, ZPowGate, CXPowGate]
+    assert all(any(isinstance(op.gate,gate) for gate in gates) for op in operations)
 
 
 def test_msb_demuxer():
@@ -61,7 +70,11 @@ def test_msb_demuxer():
     circuit = Circuit()
     operations = _msb_demuxer(qubits, U1, U2)
     circuit.append(operations)
+    # Test return is equal to inital unitary
     assert approx_eq(U_full, circuit.unitary(), atol=1e-9)
+    # Test all operations in gate set
+    gates = [Rz, Ry, ZPowGate, CXPowGate]
+    assert all(any(isinstance(op.gate,gate) for gate in gates) for op in operations)
 
 
 def test_multiplexed_cossin():
@@ -75,7 +88,11 @@ def test_multiplexed_cossin():
     circuit = Circuit()
     operations = _multiplexed_cossin(qubits, [angle_1, angle_2])
     circuit.append(operations)
+    # Test return is equal to inital unitary
     assert approx_eq(multiplexed_ry, circuit.unitary(), atol=1e-9)
+    # Test all operations in gate set
+    gates = [Rz, Ry, ZPowGate, CXPowGate]
+    assert all(any(isinstance(op.gate,gate) for gate in gates) for op in operations)
 
 
 @pytest.mark.parametrize(
