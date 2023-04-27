@@ -237,7 +237,7 @@ def assert_circuits_have_same_unitary_given_final_permutation(
         ValueError: if 'qubit_map' does not have the same set of keys and values.
     """
     if set(qubit_map.keys()) != set(qubit_map.values()):
-        raise ValueError("'qubit_map' must have the same set of of keys and values.")
+        raise ValueError("'qubit_map' must have the same set of keys and values.")
 
     if not set(qubit_map.keys()).issubset(actual.all_qubits()):
         raise ValueError(

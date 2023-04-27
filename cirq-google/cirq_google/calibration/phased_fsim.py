@@ -271,7 +271,7 @@ class PhasedFSimCalibrationResult:
                 which are not None will be used to replace current parameters for every pair stored.
 
         Returns:
-            New instance of PhasedFSimCalibrationResult with certain parameters overriden.
+            New instance of PhasedFSimCalibrationResult with certain parameters overridden.
         """
         return PhasedFSimCalibrationResult(
             parameters={
