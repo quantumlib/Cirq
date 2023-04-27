@@ -109,7 +109,7 @@ class TransformerLogger:
     The `LogLevel`s can be used to control the input processing and output resolution of the logs.
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Initializes TransformerLogger."""
         self._curr_id: int = 0
         self._logs: List[_LoggerNode] = []

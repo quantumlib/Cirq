@@ -40,7 +40,7 @@ def flatten(val: Any) -> Tuple[Any, 'ExpressionMap']:
         the name to avoid collision: `sympy.Symbol('<x + 1>_1')`.
 
     This function also creates a dictionary mapping from expressions and symbols
-    in `val` to the new symbols in the flattened copy of `val`.  E.g
+    in `val` to the new symbols in the flattened copy of `val`.  E.g.
     `cirq.ExpressionMap({sympy.Symbol('x')+1: sympy.Symbol('<x + 1>')})`.  This
     `ExpressionMap` can be used to transform a sweep over the symbols in `val`
     to a sweep over the flattened symbols e.g. a sweep over `sympy.Symbol('x')`
@@ -200,7 +200,7 @@ class _ParamFlattener(resolver.ParamResolver):
         self,
         param_dict: Optional[resolver.ParamResolverOrSimilarType] = None,
         *,  # Force keyword args
-        get_param_name: Callable[[sympy.Expr], str,] = None,
+        get_param_name: Optional[Callable[[sympy.Expr], str]] = None,
     ):
         """Initializes a new _ParamFlattener.
 

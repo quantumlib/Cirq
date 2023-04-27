@@ -32,7 +32,7 @@
     "nyc": "^15.1.0",
     "pixelmatch": "^5.2.1",
     "pngjs": "^6.0.0",
-    "puppeteer": "^10.0.0",
+    "puppeteer": "^19.6.3",
     "temp": "^0.9.4",
     "three": "^0.137.0",
     "ts-loader": "^9.1.2",
@@ -40,7 +40,7 @@
     "ts-mock-imports": "^1.3.7",
     "ts-node": "^10.0.0",
     "typescript": "^4.0.3",
-    "webpack": "^5.40.0",
+    "webpack": "^5.76.0",
     "webpack-cli": "^4.7.0",
     "webpack-dev-server": "^4.11.1"
   },

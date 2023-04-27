@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Any, Sequence, TYPE_CHECKING, Union
+from typing import Any, Optional, Sequence, TYPE_CHECKING, Union
 
 from typing_extensions import Protocol
 
@@ -89,7 +89,7 @@ class SupportsActOnQubits(Protocol):
 def act_on(
     action: Any,
     sim_state: 'cirq.SimulationStateBase',
-    qubits: Sequence['cirq.Qid'] = None,
+    qubits: Optional[Sequence['cirq.Qid']] = None,
     *,
     allow_decompose: bool = True,
 ):

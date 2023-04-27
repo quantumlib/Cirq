@@ -129,7 +129,7 @@ class RouteCQC:
             context: transformer context storing common configurable options for transformers.
 
         Returns:
-            The routed circuit, which is equivalent to original circuit upto a final qubit
+            The routed circuit, which is equivalent to original circuit up to a final qubit
                 permutation and where each 2-qubit operation is between adjacent qubits in the
                 `device_graph`.
 
@@ -183,7 +183,7 @@ class RouteCQC:
             context: transformer context storing common configurable options for transformers.
 
         Returns:
-            The routed circuit, which is equivalent to original circuit upto a final qubit
+            The routed circuit, which is equivalent to original circuit up to a final qubit
                 permutation and where each 2-qubit operation is between adjacent qubits in the
                 `device_graph`.
             The initial mapping from logical to physical qubits used as part of the routing

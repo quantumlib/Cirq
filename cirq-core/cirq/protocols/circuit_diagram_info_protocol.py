@@ -73,7 +73,7 @@ class CircuitDiagramInfo:
                 could be mistaken for an identity wire). Defaults to True.
 
         Raises:
-            ValueError: If `wire_symbols` is a string, and not an interable
+            ValueError: If `wire_symbols` is a string, and not an iterable
                 of strings.
         """
         if isinstance(wire_symbols, str):
@@ -121,9 +121,7 @@ class CircuitDiagramInfo:
                 result[k] += '^' + exponent
         return result
 
-    def _formatted_exponent(
-        self: 'cirq.CircuitDiagramInfo', args: 'cirq.CircuitDiagramInfoArgs'
-    ) -> Optional[str]:
+    def _formatted_exponent(self, args: 'cirq.CircuitDiagramInfoArgs') -> Optional[str]:
 
         if protocols.is_parameterized(self.exponent):
             name = str(self.exponent)

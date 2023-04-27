@@ -14,7 +14,7 @@
 
 import math
 
-from typing import Callable, Tuple, TypeVar
+from typing import Callable, Optional, Tuple, TypeVar
 
 T = TypeVar('T')
 
@@ -51,7 +51,7 @@ def anneal_minimize(
     temp_final: float = 1e-6,
     cooling_factor: float = 0.99,
     repeat: int = 100,
-    trace_func: Callable[[T, float, float, float, bool], None] = None,
+    trace_func: Optional[Callable[[T, float, float, float, bool], None]] = None,
 ) -> T:
     """Minimize solution using Simulated Annealing meta-heuristic.
 

@@ -569,7 +569,7 @@ class MPSState(SimulationState[_MPSHandler]):
         simulation_options: MPSOptions = MPSOptions(),
         grouping: Optional[Dict['cirq.Qid', int]] = None,
         initial_state: int = 0,
-        classical_data: 'cirq.ClassicalDataStore' = None,
+        classical_data: Optional['cirq.ClassicalDataStore'] = None,
     ):
         """Creates and MPSState
 

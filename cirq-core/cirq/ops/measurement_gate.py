@@ -50,7 +50,7 @@ class MeasurementGate(raw_types.Gate):
         num_qubits: Optional[int] = None,
         key: Union[str, 'cirq.MeasurementKey'] = '',
         invert_mask: Tuple[bool, ...] = (),
-        qid_shape: Tuple[int, ...] = None,
+        qid_shape: Optional[Tuple[int, ...]] = None,
         confusion_map: Optional[Dict[Tuple[int, ...], np.ndarray]] = None,
     ) -> None:
         """Inits MeasurementGate.

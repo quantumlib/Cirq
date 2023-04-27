@@ -71,15 +71,6 @@ def test_circuit_op_to_proto_errors():
     ]
     raw_constants = {DEFAULT_TOKEN: 0, default_circuit(): 1}
 
-    with pytest.raises(ValueError, match='CircuitOp serialization requires a constants list'):
-        serializer.to_proto(to_serialize)
-
-    with pytest.raises(ValueError, match='CircuitOp serialization requires a constants list'):
-        serializer.to_proto(to_serialize, constants=constants)
-
-    with pytest.raises(ValueError, match='CircuitOp serialization requires a constants list'):
-        serializer.to_proto(to_serialize, raw_constants=raw_constants)
-
     with pytest.raises(ValueError, match='Serializer expected CircuitOperation'):
         serializer.to_proto(
             v2.program_pb2.Operation(), constants=constants, raw_constants=raw_constants

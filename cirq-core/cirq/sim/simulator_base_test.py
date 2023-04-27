@@ -34,7 +34,7 @@ class CountingState(cirq.qis.QuantumStateRepresentation):
         self.measurement_count += 1
         return [self.gate_count]
 
-    def kron(self: 'CountingState', other: 'CountingState') -> 'CountingState':
+    def kron(self, other: 'CountingState') -> 'CountingState':
         return CountingState(
             self.data,
             self.gate_count + other.gate_count,
@@ -43,13 +43,13 @@ class CountingState(cirq.qis.QuantumStateRepresentation):
         )
 
     def factor(
-        self: 'CountingState', axes: Sequence[int], *, validate=True, atol=1e-07
+        self, axes: Sequence[int], *, validate=True, atol=1e-07
     ) -> Tuple['CountingState', 'CountingState']:
         return CountingState(
             self.data, self.gate_count, self.measurement_count, self.copy_count
         ), CountingState(self.data)
 
-    def reindex(self: 'CountingState', axes: Sequence[int]) -> 'CountingState':
+    def reindex(self, axes: Sequence[int]) -> 'CountingState':
         return CountingState(self.data, self.gate_count, self.measurement_count, self.copy_count)
 
     def copy(self, deep_copy_buffers: bool = True) -> 'CountingState':

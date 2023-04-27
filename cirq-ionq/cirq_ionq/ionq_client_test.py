@@ -82,6 +82,7 @@ def test_ionq_client_attributes():
     assert client.headers == {
         'Authorization': 'apiKey to_my_heart',
         'Content-Type': 'application/json',
+        'User-Agent': client._user_agent(),
     }
     assert client.default_target == 'qpu'
     assert client.max_retry_seconds == 10
@@ -108,7 +109,11 @@ def test_ionq_client_create_job(mock_post):
         'shots': '200',
         'metadata': {'shots': '200', 'a': '0,1'},
     }
-    expected_headers = {'Authorization': 'apiKey to_my_heart', 'Content-Type': 'application/json'}
+    expected_headers = {
+        'Authorization': 'apiKey to_my_heart',
+        'Content-Type': 'application/json',
+        'User-Agent': client._user_agent(),
+    }
     mock_post.assert_called_with(
         'http://example.com/v0.1/jobs', json=expected_json, headers=expected_headers
     )
@@ -181,12 +186,12 @@ def test_ionq_client_create_job_not_found(mock_post):
 @mock.patch('requests.post')
 def test_ionq_client_create_job_not_retriable(mock_post):
     mock_post.return_value.ok = False
-    mock_post.return_value.status_code = requests.codes.not_implemented
+    mock_post.return_value.status_code = requests.codes.conflict
 
     client = ionq.ionq_client._IonQClient(
         remote_host='http://example.com', api_key='to_my_heart', default_target='simulator'
     )
-    with pytest.raises(ionq.IonQException, match='Status: 501'):
+    with pytest.raises(ionq.IonQException, match='Status: 409'):
         _ = client.create_job(
             serialized_program=ionq.SerializedProgram(body={'job': 'mine'}, metadata={})
         )
@@ -247,6 +252,29 @@ def test_ionq_client_create_job_timeout(mock_post):
 
 
 @mock.patch('requests.get')
+def test_ionq_client_get_job_retry_409(mock_get):
+    response1 = mock.MagicMock()
+    response2 = mock.MagicMock()
+    mock_get.side_effect = [response1, response2]
+    response1.ok = False
+    response1.status_code = requests.codes.conflict
+    response1.request.method = "GET"
+    response2.ok = True
+    response2.json.return_value = {'foo': 'bar'}
+
+    client = ionq.ionq_client._IonQClient(remote_host='http://example.com', api_key='to_my_heart')
+    response = client.get_job(job_id='job_id')
+    assert response == {'foo': 'bar'}
+
+    expected_headers = {
+        'Authorization': 'apiKey to_my_heart',
+        'Content-Type': 'application/json',
+        'User-Agent': client._user_agent(),
+    }
+    mock_get.assert_called_with('http://example.com/v0.1/jobs/job_id', headers=expected_headers)
+
+
+@mock.patch('requests.get')
 def test_ionq_client_get_job(mock_get):
     mock_get.return_value.ok = True
     mock_get.return_value.json.return_value = {'foo': 'bar'}
@@ -254,7 +282,11 @@ def test_ionq_client_get_job(mock_get):
     response = client.get_job(job_id='job_id')
     assert response == {'foo': 'bar'}
 
-    expected_headers = {'Authorization': 'apiKey to_my_heart', 'Content-Type': 'application/json'}
+    expected_headers = {
+        'Authorization': 'apiKey to_my_heart',
+        'Content-Type': 'application/json',
+        'User-Agent': client._user_agent(),
+    }
     mock_get.assert_called_with('http://example.com/v0.1/jobs/job_id', headers=expected_headers)
 
 
@@ -317,7 +349,11 @@ def test_ionq_client_list_jobs(mock_get):
     response = client.list_jobs()
     assert response == [{'id': '1'}, {'id': '2'}]
 
-    expected_headers = {'Authorization': 'apiKey to_my_heart', 'Content-Type': 'application/json'}
+    expected_headers = {
+        'Authorization': 'apiKey to_my_heart',
+        'Content-Type': 'application/json',
+        'User-Agent': client._user_agent(),
+    }
     mock_get.assert_called_with(
         'http://example.com/v0.1/jobs', headers=expected_headers, json={'limit': 1000}, params={}
     )
@@ -331,7 +367,11 @@ def test_ionq_client_list_jobs_status(mock_get):
     response = client.list_jobs(status='canceled')
     assert response == [{'id': '1'}, {'id': '2'}]
 
-    expected_headers = {'Authorization': 'apiKey to_my_heart', 'Content-Type': 'application/json'}
+    expected_headers = {
+        'Authorization': 'apiKey to_my_heart',
+        'Content-Type': 'application/json',
+        'User-Agent': client._user_agent(),
+    }
     mock_get.assert_called_with(
         'http://example.com/v0.1/jobs',
         headers=expected_headers,
@@ -348,7 +388,11 @@ def test_ionq_client_list_jobs_limit(mock_get):
     response = client.list_jobs(limit=2)
     assert response == [{'id': '1'}, {'id': '2'}]
 
-    expected_headers = {'Authorization': 'apiKey to_my_heart', 'Content-Type': 'application/json'}
+    expected_headers = {
+        'Authorization': 'apiKey to_my_heart',
+        'Content-Type': 'application/json',
+        'User-Agent': client._user_agent(),
+    }
     mock_get.assert_called_with(
         'http://example.com/v0.1/jobs', headers=expected_headers, json={'limit': 1000}, params={}
     )
@@ -366,7 +410,11 @@ def test_ionq_client_list_jobs_batches(mock_get):
     response = client.list_jobs(batch_size=1)
     assert response == [{'id': '1'}, {'id': '2'}, {'id': '3'}]
 
-    expected_headers = {'Authorization': 'apiKey to_my_heart', 'Content-Type': 'application/json'}
+    expected_headers = {
+        'Authorization': 'apiKey to_my_heart',
+        'Content-Type': 'application/json',
+        'User-Agent': client._user_agent(),
+    }
     url = 'http://example.com/v0.1/jobs'
     mock_get.assert_has_calls(
         [
@@ -391,7 +439,11 @@ def test_ionq_client_list_jobs_batches_does_not_divide_total(mock_get):
     response = client.list_jobs(batch_size=2)
     assert response == [{'id': '1'}, {'id': '2'}, {'id': '3'}]
 
-    expected_headers = {'Authorization': 'apiKey to_my_heart', 'Content-Type': 'application/json'}
+    expected_headers = {
+        'Authorization': 'apiKey to_my_heart',
+        'Content-Type': 'application/json',
+        'User-Agent': client._user_agent(),
+    }
     url = 'http://example.com/v0.1/jobs'
     mock_get.assert_has_calls(
         [
@@ -444,7 +496,11 @@ def test_ionq_client_cancel_job(mock_put):
     response = client.cancel_job(job_id='job_id')
     assert response == {'foo': 'bar'}
 
-    expected_headers = {'Authorization': 'apiKey to_my_heart', 'Content-Type': 'application/json'}
+    expected_headers = {
+        'Authorization': 'apiKey to_my_heart',
+        'Content-Type': 'application/json',
+        'User-Agent': client._user_agent(),
+    }
     mock_put.assert_called_with(
         'http://example.com/v0.1/jobs/job_id/status/cancel', headers=expected_headers
     )
@@ -509,7 +565,11 @@ def test_ionq_client_delete_job(mock_delete):
     response = client.delete_job(job_id='job_id')
     assert response == {'foo': 'bar'}
 
-    expected_headers = {'Authorization': 'apiKey to_my_heart', 'Content-Type': 'application/json'}
+    expected_headers = {
+        'Authorization': 'apiKey to_my_heart',
+        'Content-Type': 'application/json',
+        'User-Agent': client._user_agent(),
+    }
     mock_delete.assert_called_with('http://example.com/v0.1/jobs/job_id', headers=expected_headers)
 
 
@@ -572,7 +632,11 @@ def test_ionq_client_get_current_calibrations(mock_get):
     response = client.get_current_calibration()
     assert response == {'foo': 'bar'}
 
-    expected_headers = {'Authorization': 'apiKey to_my_heart', 'Content-Type': 'application/json'}
+    expected_headers = {
+        'Authorization': 'apiKey to_my_heart',
+        'Content-Type': 'application/json',
+        'User-Agent': client._user_agent(),
+    }
     mock_get.assert_called_with(
         'http://example.com/v0.1/calibrations/current', headers=expected_headers
     )
@@ -629,7 +693,11 @@ def test_ionq_client_list_calibrations(mock_get):
     response = client.list_calibrations()
     assert response == [{'id': '1'}, {'id': '2'}]
 
-    expected_headers = {'Authorization': 'apiKey to_my_heart', 'Content-Type': 'application/json'}
+    expected_headers = {
+        'Authorization': 'apiKey to_my_heart',
+        'Content-Type': 'application/json',
+        'User-Agent': client._user_agent(),
+    }
     mock_get.assert_called_with(
         'http://example.com/v0.1/calibrations',
         headers=expected_headers,
@@ -649,7 +717,11 @@ def test_ionq_client_list_calibrations_dates(mock_get):
     )
     assert response == [{'id': '1'}, {'id': '2'}]
 
-    expected_headers = {'Authorization': 'apiKey to_my_heart', 'Content-Type': 'application/json'}
+    expected_headers = {
+        'Authorization': 'apiKey to_my_heart',
+        'Content-Type': 'application/json',
+        'User-Agent': client._user_agent(),
+    }
     mock_get.assert_called_with(
         'http://example.com/v0.1/calibrations',
         headers=expected_headers,
@@ -668,7 +740,11 @@ def test_ionq_client_list_calibrations_limit(mock_get):
     response = client.list_calibrations(limit=2)
     assert response == [{'id': '1'}, {'id': '2'}]
 
-    expected_headers = {'Authorization': 'apiKey to_my_heart', 'Content-Type': 'application/json'}
+    expected_headers = {
+        'Authorization': 'apiKey to_my_heart',
+        'Content-Type': 'application/json',
+        'User-Agent': client._user_agent(),
+    }
     mock_get.assert_called_with(
         'http://example.com/v0.1/calibrations',
         headers=expected_headers,
@@ -689,7 +765,11 @@ def test_ionq_client_list_calibrations_batches(mock_get):
     response = client.list_calibrations(batch_size=1)
     assert response == [{'id': '1'}, {'id': '2'}, {'id': '3'}]
 
-    expected_headers = {'Authorization': 'apiKey to_my_heart', 'Content-Type': 'application/json'}
+    expected_headers = {
+        'Authorization': 'apiKey to_my_heart',
+        'Content-Type': 'application/json',
+        'User-Agent': client._user_agent(),
+    }
     url = 'http://example.com/v0.1/calibrations'
     mock_get.assert_has_calls(
         [
@@ -714,7 +794,11 @@ def test_ionq_client_list_calibrations_batches_does_not_divide_total(mock_get):
     response = client.list_calibrations(batch_size=2)
     assert response == [{'id': '1'}, {'id': '2'}, {'id': '3'}]
 
-    expected_headers = {'Authorization': 'apiKey to_my_heart', 'Content-Type': 'application/json'}
+    expected_headers = {
+        'Authorization': 'apiKey to_my_heart',
+        'Content-Type': 'application/json',
+        'User-Agent': client._user_agent(),
+    }
     url = 'http://example.com/v0.1/calibrations'
     mock_get.assert_has_calls(
         [

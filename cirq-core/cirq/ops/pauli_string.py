@@ -242,12 +242,14 @@ class PauliString(raw_types.Operation, Generic[TKey]):
     def get(self, key: Any, default: TDefault) -> Union[pauli_gates.Pauli, TDefault]:
         pass
 
-    def get(self, key: Any, default: TDefault = None) -> Union[pauli_gates.Pauli, TDefault, None]:
+    def get(
+        self, key: Any, default: Optional[TDefault] = None
+    ) -> Union[pauli_gates.Pauli, TDefault, None]:
         """Returns the `cirq.Pauli` operation acting on qubit `key` or `default` if none exists."""
         return self._qubit_pauli_map.get(key, default)
 
     @overload
-    def __mul__(  # type: ignore
+    def __mul__(
         self, other: 'cirq.PauliString[TKeyOther]'
     ) -> 'cirq.PauliString[Union[TKey, TKeyOther]]':
         pass
