@@ -73,7 +73,7 @@ class CircuitDiagramInfo:
                 could be mistaken for an identity wire). Defaults to True.
 
         Raises:
-            ValueError: If `wire_symbols` is a string, and not an interable
+            ValueError: If `wire_symbols` is a string, and not an iterable
                 of strings.
         """
         if isinstance(wire_symbols, str):

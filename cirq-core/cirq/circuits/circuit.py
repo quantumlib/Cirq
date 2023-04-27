@@ -1458,7 +1458,7 @@ class AbstractCircuit(abc.ABC):
         are placed one after the other and then moved inward until just before
         their operations would collide. If any of the circuits do not share
         qubits and so would not collide, the starts or ends of the circuits will
-        be aligned, acording to the given align parameter.
+        be aligned, according to the given align parameter.
 
         Beware that this method is *not* associative. For example:
 
@@ -2736,7 +2736,7 @@ def get_earliest_accommodating_moment_index(
     ckey_indices: Dict['cirq.MeasurementKey', int],
     length: Optional[int] = None,
 ) -> int:
-    """Get the index of the earliest moment that can accomodate the given moment or operation.
+    """Get the index of the earliest moment that can accommodate the given moment or operation.
 
     Updates the dictionaries keeping track of the last moment index addressing a given qubit,
     measurement key, and control key.
@@ -2751,7 +2751,7 @@ def get_earliest_accommodating_moment_index(
             `mkey_indices`, and `ckey_indices`.
 
     Returns:
-        The integer index of the earliest moment that can accomodate the given moment or operation.
+        The integer index of the earliest moment that can accommodate the given moment or operation.
     """
     mop_qubits = moment_or_operation.qubits
     mop_mkeys = protocols.measurement_key_objs(moment_or_operation)

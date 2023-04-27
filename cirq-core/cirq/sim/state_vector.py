@@ -35,7 +35,7 @@ class StateVectorMixin:
         """Inits StateVectorMixin.
 
         Args:
-            qubit_map: A map from the Qubits in the Circuit to the the index
+            qubit_map: A map from the Qubits in the Circuit to the index
                 of this qubit for a canonical ordering. This canonical ordering
                 is used to define the state (see the state_vector() method).
             *args: Passed on to the class that this is mixed in with.

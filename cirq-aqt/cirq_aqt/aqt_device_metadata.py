@@ -91,7 +91,7 @@ class AQTDeviceMetadata(cirq.DeviceMetadata):
         return self._twoq_gates_duration
 
     def duration_of(self, operation: 'cirq.Operation') -> 'cirq.DURATION_LIKE':
-        """Return the maximum duration of the specifed gate operation.
+        """Return the maximum duration of the specified gate operation.
 
         Args:
             operation: The `cirq.Operation` for which to determine its duration.
