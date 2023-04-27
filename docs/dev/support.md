@@ -17,7 +17,7 @@ improve open-source quantum software!
 # Questions
 
 If you're not sure whether a certain behavior is buggy, or if you have other questions,
-please ask us in the [Cirq Gitter channel](https://gitter.im/cirqdev). 
+please ask us in the [Cirq Gitter channel](https://gitter.im/cirqdev/community).
 
 # Weekly developer meetings
 
