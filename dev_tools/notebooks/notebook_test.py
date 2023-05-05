@@ -29,6 +29,9 @@ from dev_tools import shell_tools
 from dev_tools.notebooks import filter_notebooks, list_all_notebooks, rewrite_notebook
 
 SKIP_NOTEBOOKS = [
+    # TODO(#6088) - enable notebooks below
+    'cirq-core/cirq/contrib/quimb/Contract-a-Grid-Circuit.ipynb',
+    # End of TODO(#6088)
     # skipping vendor notebooks as we don't have auth sorted out
     '**/aqt/*.ipynb',
     '**/azure-quantum/*.ipynb',
