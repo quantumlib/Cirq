@@ -84,7 +84,7 @@ def env_with_temporary_pip_target():
 
 @pytest.mark.slow
 @pytest.mark.parametrize("notebook_path", filter_notebooks(list_all_notebooks(), SKIP_NOTEBOOKS))
-def test_notebooks_against_released_cirq(
+def test_notebooks_against_cirq_head(
     notebook_path, require_packages_not_changed, env_with_temporary_pip_target
 ):
     """Test that jupyter notebooks execute.
