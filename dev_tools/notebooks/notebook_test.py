@@ -73,9 +73,10 @@ def require_packages_not_changed():
 def env_with_temporary_pip_target():
     """Setup system environment that tells pip to install packages to a temporary directory."""
     with tempfile.TemporaryDirectory(suffix='-notebook-site-packages') as tmpdirname:
-        # Note: We need to append the PYTHONPATH here so that development Cirq,
-        # if configured by dev_tools/pypath, would remain the active Cirq even
-        # if some notebook executes `!pip install cirq`
+        # Note: We need to append tmpdirname to the PYTHONPATH, because PYTHONPATH may
+        # already point to the development sources of Cirq (as happens with check/pytest).
+        # Should some notebook pip-install a stable version of Cirq to tmpdirname,
+        # it would appear in PYTHONPATH after the development Cirq.
         pythonpath = (
             f'{os.environ["PYTHONPATH"]}{os.pathsep}{tmpdirname}'
             if 'PYTHONPATH' in os.environ
