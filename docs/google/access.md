@@ -57,7 +57,7 @@ sponsor so that they can be added.
 ## Next Steps
 
 At this point, you should now have access to the Quantum Computing Service.
-You can try out our [Getting Started Guide](/cirq/tutorials/google/start.ipynb).
+You can try out our [Getting Started Guide](../tutorials/google/start.ipynb).
 
 You can also learn more about how to use the [Engine class](engine.md) to
 access Google hardware or about [Google devices](devices.md) in the
