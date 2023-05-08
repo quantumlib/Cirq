@@ -73,8 +73,12 @@ def require_packages_not_changed():
 def env_with_temporary_pip_target():
     """Setup system environment that tells pip to install packages to a temporary directory."""
     with tempfile.TemporaryDirectory(suffix='-notebook-site-packages') as tmpdirname:
+        # Note: We need to append tmpdirname to the PYTHONPATH, because PYTHONPATH may
+        # already point to the development sources of Cirq (as happens with check/pytest).
+        # Should some notebook pip-install a stable version of Cirq to tmpdirname,
+        # it would appear in PYTHONPATH after the development Cirq.
         pythonpath = (
-            f'{tmpdirname}{os.pathsep}{os.environ["PYTHONPATH"]}'
+            f'{os.environ["PYTHONPATH"]}{os.pathsep}{tmpdirname}'
             if 'PYTHONPATH' in os.environ
             else tmpdirname
         )
@@ -84,7 +88,7 @@ def env_with_temporary_pip_target():
 
 @pytest.mark.slow
 @pytest.mark.parametrize("notebook_path", filter_notebooks(list_all_notebooks(), SKIP_NOTEBOOKS))
-def test_notebooks_against_released_cirq(
+def test_notebooks_against_cirq_head(
     notebook_path, require_packages_not_changed, env_with_temporary_pip_target
 ):
     """Test that jupyter notebooks execute.
