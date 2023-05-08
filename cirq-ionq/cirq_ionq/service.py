@@ -101,7 +101,10 @@ class Service:
             seed: If the target is `simulation` the seed for generating results. If None, this
                 will be `np.random`, if an int, will be `np.random.RandomState(int)`, otherwise
                 must be a modulate similar to `np.random`.
-            error_mitigation: error mitigation settings
+            error_mitigation: A dictionary of error mitigation settings. Valid keys include:
+                - 'debias': A boolean indicating whether to use the debiasing technique for
+                  aggregating results. This technique is used to reduce the bias in the results
+                  caused by measurement error and can improve the accuracy of the output.
 
         Returns:
             A `cirq.Result` for running the circuit.
@@ -146,7 +149,10 @@ class Service:
             repetitions: The number of times to repeat the circuit. Defaults to 100.
             name: An optional name for the created job. Different from the `job_id`.
             target: Where to run the job. Can be 'qpu' or 'simulator'.
-            error_mitigation: Error mitigation settings
+            error_mitigation: A dictionary of error mitigation settings. Valid keys include:
+                - 'debias': A boolean indicating whether to use the debiasing technique for
+                  aggregating results. This technique is used to reduce the bias in the results
+                  caused by measurement error and can improve the accuracy of the output.
 
         Returns:
             A `cirq_ionq.IonQJob` which can be queried for status or results.

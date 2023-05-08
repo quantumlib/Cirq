@@ -178,7 +178,7 @@ class _IonQClient:
 
         Args:
             job_id: The UUID of the job (returned when the job was created).
-            aggregation: The aggregation method for symmetrized jobs
+            aggregation: The aggregation method for debiased jobs
 
         Returns:
             The json body of the response as a dict.

@@ -183,7 +183,8 @@ class Job:
         Args:
             timeout_seconds: The total number of seconds to poll for.
             polling_seconds: The interval with which to poll.
-            aggregation: The aggregation method for results when job is symmetrized
+            aggregation: The method of mitigating noise from results when job is
+            debiased. Accepts average and plurality methods 
 
         Returns:
             Either a `cirq_ionq.QPUResults` or `cirq_ionq.SimulatorResults` depending on whether
