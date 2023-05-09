@@ -31,9 +31,7 @@ from scipy.stats import unitary_group
 def test_random_qsd_n_qubit(n_qubits):
     U = unitary_group.rvs(2**n_qubits)
     qubits = [NamedQubit(f'q{i}') for i in range(n_qubits)]
-    circuit = Circuit()
-    operations = quantum_shannon_decomposition(qubits, U)
-    circuit.append(operations)
+    circuit = cirq.Circuit(quantum_shannon_decomposition(qubits, U))
     # Test return is equal to inital unitary
     assert approx_eq(U, circuit.unitary(), atol=1e-9)
     # Test all operations in gate set
