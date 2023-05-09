@@ -48,37 +48,6 @@ def quantum_shannon_decomposition(qubits: List[Qid], u: np.ndarray) -> List[Oper
         List of 2-qubit and 1-qubit operations from the set
            { CNOT, rz, ry, ZPowGate }
     """
-    op_tree = list(qsd_generator(qubits, u))
-    return op_tree
-
-
-def qsd_generator(qubits: List[Qid], u: np.ndarray) -> Iterator[Operation]:
-    """Generator That yields successive operations for Quantum Shannon Decomposition
-
-    Args:
-        qubits: List of qubits in order of significance
-        u: Numpy array for unitary matrix representing gate to be decomposed
-
-    Calls:
-        (Base Case)
-        1._single_qubit_decomposition
-
-            OR
-
-        (Recursive Case)
-        1. _msb_demuxer
-        2. _multiplexed_cossin
-        3. _msb_demuxer
-
-    Yields:
-        A single 2-qubit or 1-qubit operations from OP TREE
-        composed from the set
-           { CNOT, rz, ry, ZPowGate }
-
-    Raises:
-        ValueError: If the u matrix is not of shape (2^n,2^n)
-        ValueError: If the u matrix is non-unitary
-    """
     if not is_unitary(u):  # Check that u is unitary
         raise ValueError(
             "Expected input matrix u to be unitary, \
