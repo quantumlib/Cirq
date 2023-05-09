@@ -178,7 +178,7 @@ class _IonQClient:
 
         Args:
             job_id: The UUID of the job (returned when the job was created).
-            sharpen: Determines which error aggregation to use for debiased jobs
+            sharpen: Determines which error aggregation to use for debiased jobs.
 
         Returns:
             The json body of the response as a dict.

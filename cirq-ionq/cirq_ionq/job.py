@@ -178,8 +178,7 @@ class Job:
         Args:
             timeout_seconds: The total number of seconds to poll for.
             polling_seconds: The interval with which to poll.
-            sharpen: Whether to mitigate noise from results when job is
-            debiased.
+            sharpen: Determines which error aggregation to use for debiased jobs.
 
         Returns:
             Either a `cirq_ionq.QPUResults` or `cirq_ionq.SimulatorResults` depending on whether

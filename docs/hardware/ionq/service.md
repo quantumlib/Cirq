@@ -83,6 +83,38 @@ variable is not set, then this uses `https://api.ionq.co/{api_version}`.
 * `api_version`: Version of the api. Defaults to 'v0.1'.
 * `max_retry_seconds`: The API will pull with exponential backoff for completed jobs.  By specifying this you can change the number of seconds before this retry gives up.  It is common to set this to a very small number when, for example, wanting to fail fast, or to be set very long for long running jobs.
 
+## Run options
+
+When running a job, there are several options that can be provided:
+
+* `circuit`: The `cirq.Circuit` to run.
+* `repetitions`: The number of times to run the circuit.
+* `name`: An optional name for the created job. Different from the `job_id`.
+* `target`: Where to run the job. Can be 'qpu' or 'simulator'.
+* `param_resolver`: A `cirq.ParamResolver` to resolve parameters in `circuit`.
+* `seed`: If the target is `simulation` the seed for generating results. If None, this will be `np.random`, if an int, will be `np.random.RandomState(int)`, otherwise must be a modulate similar to `np.random`.
+* `error_mitigation`: A dictionary of error mitigation settings. Valid keys include:
+    - 'debias': A boolean indicating whether to use the debiasing technique for aggregating results. This technique is used to reduce the bias in the results caused by measurement error and can improve the accuracy of the output.
+* `sharpen`: A boolean that determines how to aggregate error mitigated results. If True, apply majority vote mitigation; if False, apply average mitigation.
+
+Here is an example of using error mitigation and sharpening options:
+
+```python
+# Define an error mitigation dictionary
+error_mitigation = {'debias': True}
+
+# Run a program against the service with error mitigation and sharpening
+result = service.run(
+    circuit=circuit,
+    repetitions=100,
+    target='qpu',
+    error_mitigation=error_mitigation,
+    sharpen=True
+)
+```
+
+The run method will return a `cirq.Result` object from which you can get a histogram of results or the data as a pandas frame. Refer to the previous example for how to process the results.
+
 ## Next steps
 
 [Learn how to build circuits for the API](circuits.md)
