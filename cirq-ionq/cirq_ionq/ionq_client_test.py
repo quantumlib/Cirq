@@ -349,7 +349,7 @@ def test_ionq_client_get_results(mock_get):
     mock_get.return_value.ok = True
     mock_get.return_value.json.return_value = {'foo': 'bar'}
     client = ionq.ionq_client._IonQClient(remote_host='http://example.com', api_key='to_my_heart')
-    response = client.get_results(job_id='job_id', aggregation='average')
+    response = client.get_results(job_id='job_id', sharpen=False)
     assert response == {'foo': 'bar'}
 
     expected_headers = {
@@ -360,7 +360,7 @@ def test_ionq_client_get_results(mock_get):
     mock_get.assert_called_with(
         'http://example.com/v0.3/jobs/job_id/results',
         headers=expected_headers,
-        params={'aggregation': 'average'},
+        params={'sharpen': False},
     )
 
 

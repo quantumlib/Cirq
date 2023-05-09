@@ -89,6 +89,7 @@ class Service:
         param_resolver: cirq.ParamResolverOrSimilarType = cirq.ParamResolver({}),
         seed: cirq.RANDOM_STATE_OR_SEED_LIKE = None,
         error_mitigation: Optional[dict] = None,
+        sharpen: Optional[bool] = None,
     ) -> cirq.Result:
         """Run the given circuit on the IonQ API.
 
@@ -105,6 +106,8 @@ class Service:
                 - 'debias': A boolean indicating whether to use the debiasing technique for
                   aggregating results. This technique is used to reduce the bias in the results
                   caused by measurement error and can improve the accuracy of the output.
+            sharpen: A boolean that determines how to aggregate error mitigated.
+                If True, apply majority vote mitigation; if False, apply average mitigation.
 
         Returns:
             A `cirq.Result` for running the circuit.
@@ -112,7 +115,7 @@ class Service:
         resolved_circuit = cirq.resolve_parameters(circuit, param_resolver)
         result = self.create_job(
             resolved_circuit, repetitions, name, target, error_mitigation
-        ).results()
+        ).results(sharpen=sharpen)
         if isinstance(result, results.QPUResult):
             return result.to_cirq_result(params=cirq.ParamResolver(param_resolver))
         # pylint: disable=unexpected-keyword-arg

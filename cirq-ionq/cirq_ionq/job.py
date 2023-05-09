@@ -65,8 +65,6 @@ class Job:
         'data associated with it beyond an id and a status.',
     )
 
-    SUPPORTED_AGGREGATIONS = {'average', 'plurality'}
-
     def __init__(self, client: 'cirq_ionq.ionq_client._IonQClient', job_dict: dict):
         """Construct an IonQJob.
 
@@ -173,18 +171,15 @@ class Job:
         return measurement_dict
 
     def results(
-        self,
-        timeout_seconds: int = 7200,
-        polling_seconds: int = 1,
-        aggregation: Optional[str] = None,
+        self, timeout_seconds: int = 7200, polling_seconds: int = 1, sharpen: Optional[bool] = None
     ) -> Union[results.QPUResult, results.SimulatorResult]:
         """Polls the IonQ api for results.
 
         Args:
             timeout_seconds: The total number of seconds to poll for.
             polling_seconds: The interval with which to poll.
-            aggregation: The method of mitigating noise from results when job is
-            debiased. Accepts average and plurality methods 
+            sharpen: Whether to mitigate noise from results when job is
+            debiased.
 
         Returns:
             Either a `cirq_ionq.QPUResults` or `cirq_ionq.SimulatorResults` depending on whether
@@ -197,10 +192,6 @@ class Job:
                 the job had an unknown status.
             TimeoutError: If the job timed out at the server.
         """
-        assert (
-            aggregation is None or aggregation in self.SUPPORTED_AGGREGATIONS
-        ), f'Aggregation can only be one of {self.SUPPORTED_AGGREGATIONS}.'
-
         time_waited_seconds = 0
         while time_waited_seconds < timeout_seconds:
             # Status does a refresh.
@@ -222,7 +213,7 @@ class Job:
                 f'Job was not completed successfully. Instead had status: {self.status()}'
             )
 
-        histogram = self._client.get_results(self.job_id(), aggregation)
+        histogram = self._client.get_results(self.job_id(), sharpen)
         # IonQ returns results in little endian, Cirq prefers to use big endian, so we convert.
         if self.target().startswith('qpu'):
             repetitions = self.repetitions()

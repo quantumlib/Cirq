@@ -213,7 +213,7 @@ def test_job_results_simulator_endianness():
     assert results == ionq.SimulatorResult({0: 0.6, 2: 0.4}, 2, {}, 100)
 
 
-def test_job_aggregated_results():
+def test_job_sharpen_results():
     mock_client = mock.MagicMock()
     mock_client.get_results.return_value = {'0': '60', '1': '40'}
     job_dict = {
@@ -224,7 +224,7 @@ def test_job_aggregated_results():
         'metadata': {'shots': '100'},
     }
     job = ionq.Job(mock_client, job_dict)
-    results = job.results(aggregation="average")
+    results = job.results(sharpen=False)
     assert results == ionq.SimulatorResult({0: 60, 1: 40}, 1, {}, 100)
 
 
