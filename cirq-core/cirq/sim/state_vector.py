@@ -20,6 +20,7 @@ import numpy as np
 
 from cirq import linalg, qis, value
 from cirq.sim import simulator
+from cirq import linalg
 
 if TYPE_CHECKING:
     import cirq
@@ -325,30 +326,24 @@ def measure_state_vector(
 
 def _probs(state: np.ndarray, indices: Sequence[int], qid_shape: Tuple[int, ...]) -> np.ndarray:
     """Returns the probabilities for a measurement on the given indices."""
-    tensor = np.reshape(state, qid_shape)
-    # Calculate the probabilities for measuring the particular results.
-    if len(indices) == len(qid_shape):
-        # We're measuring every qudit, so no need for fancy indexing
-        probs = np.abs(tensor) ** 2
-        probs = np.transpose(probs, indices)
-        probs = probs.reshape(-1)
+    state = state.reshape((-1,))
+    probs = np.abs(state) ** 2
+    not_measured = [i for i in range(len(qid_shape)) if i not in indices]
+    if linalg.can_numpy_support_shape(qid_shape):
+        # Use numpy transpose if we can since it's more efficient.
+        probs = probs.reshape(qid_shape)
+        probs = np.transpose(probs, list(indices) + not_measured)
+        probs = probs.reshape((-1,))
     else:
-        # Fancy indexing required
-        meas_shape = tuple(qid_shape[i] for i in indices)
-        probs = (
-            np.abs(
-                [
-                    tensor[
-                        linalg.slice_for_qubits_equal_to(
-                            indices, big_endian_qureg_value=b, qid_shape=qid_shape
-                        )
-                    ]
-                    for b in range(np.prod(meas_shape, dtype=np.int64))
-                ]
-            )
-            ** 2
-        )
-        probs = np.sum(probs, axis=tuple(range(1, len(probs.shape))))
+        # If we can't use numpy due to numpy/numpy#5744, use a slower method.
+        probs = linalg.transpose_flattened_array(probs, qid_shape, list(indices) + not_measured)
+
+    if len(not_measured):
+        # Not all qudits are measured.
+        volume = np.prod([qid_shape[i] for i in indices])
+        # Reshape into a 2D array in which each of the measured states correspond to a row.
+        probs = probs.reshape((volume, -1))
+        probs = np.sum(probs, axis=-1)
 
     # To deal with rounding issues, ensure that the probabilities sum to 1.
     return probs / np.sum(probs)
