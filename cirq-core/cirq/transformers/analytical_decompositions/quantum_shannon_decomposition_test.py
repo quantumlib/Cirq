@@ -35,8 +35,8 @@ def test_random_qsd_n_qubit(n_qubits):
     # Test return is equal to inital unitary
     assert approx_eq(U, circuit.unitary(), atol=1e-9)
     # Test all operations in gate set
-    gates = [Rz, Ry, ZPowGate, CXPowGate]
-    assert all(any(isinstance(op.gate,gate) for gate in gates) for op in operations)
+    gates = (Rz, Ry, ZPowGate, CXPowGate)
+    assert all(isinstance(op.gate, gates) for op in operations)
 
 
 def test_qsd_n_qubit_errors():
