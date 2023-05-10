@@ -173,12 +173,15 @@ class _IonQClient:
 
         return self._make_request(request, {}).json()
 
-    def get_results(self, job_id: str, sharpen: Optional[bool] = None):
+    def get_results(
+        self, job_id: str, sharpen: Optional[bool] = None, extra_request_payload: Optional[dict] = None
+    ):
         """Get job results from IonQ API.
 
         Args:
             job_id: The UUID of the job (returned when the job was created).
             sharpen: Determines which error aggregation to use for debiased jobs.
+            extra_request_payload: Specify any parameters to include in the request.
 
         Returns:
             The json body of the response as a dict.
@@ -192,6 +195,9 @@ class _IonQClient:
 
         if sharpen is not None:
             params["sharpen"] = sharpen
+
+        if extra_request_payload is not None:
+            params.update(extra_request_payload)
 
         def request():
             return requests.get(
