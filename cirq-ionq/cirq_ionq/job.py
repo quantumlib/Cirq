@@ -217,7 +217,9 @@ class Job:
                 f'Job was not completed successfully. Instead had status: {self.status()}'
             )
 
-        histogram = self._client.get_results(job_id=self.job_id(), sharpen=sharpen, extra_request_payload=extra_request_payload)
+        histogram = self._client.get_results(
+            job_id=self.job_id(), sharpen=sharpen, extra_request_payload=extra_request_payload
+        )
         # IonQ returns results in little endian, Cirq prefers to use big endian, so we convert.
         if self.target().startswith('qpu'):
             repetitions = self.repetitions()

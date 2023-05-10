@@ -109,6 +109,7 @@ class _IonQClient:
         repetitions: Optional[int] = None,
         target: Optional[str] = None,
         name: Optional[str] = None,
+        extra_request_payload: Optional[dict] = None,
     ) -> dict:
         """Create a job.
 
@@ -121,6 +122,7 @@ class _IonQClient:
             target: If supplied the target to run on. Supports one of `qpu` or `simulator`. If not
                 set, uses `default_target`.
             name: An optional name of the job. Different than the `job_id` of the job.
+            extra_request_payload: Specify any parameters to include in the request.
 
         Returns:
             The json body of the response as a dict. This does not contain populated information
@@ -149,6 +151,9 @@ class _IonQClient:
         if serialized_program.error_mitigation:
             json['error_mitigation'] = serialized_program.error_mitigation
 
+        if extra_request_payload is not None:
+            json.update(extra_request_payload)
+
         def request():
             return requests.post(f'{self.url}/jobs', json=json, headers=self.headers)
 
@@ -174,7 +179,10 @@ class _IonQClient:
         return self._make_request(request, {}).json()
 
     def get_results(
-        self, job_id: str, sharpen: Optional[bool] = None, extra_request_payload: Optional[dict] = None
+        self,
+        job_id: str,
+        sharpen: Optional[bool] = None,
+        extra_request_payload: Optional[dict] = None,
     ):
         """Get job results from IonQ API.
 
