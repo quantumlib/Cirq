@@ -175,7 +175,7 @@ class Job:
         timeout_seconds: int = 7200,
         polling_seconds: int = 1,
         sharpen: Optional[bool] = None,
-        extra_request_payload: Optional[bool] = None,
+        extra_request_payload: Optional[dict] = None,
     ) -> Union[results.QPUResult, results.SimulatorResult]:
         """Polls the IonQ api for results.
 
