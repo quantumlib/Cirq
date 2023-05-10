@@ -107,6 +107,9 @@ class GlobalPhaseGate(raw_types.Gate):
             and result.control_values[-1] == (1,)
             and result.control_qid_shape[-1] == 2
         ):
+            # A `GlobalPhaseGate` controlled on a qubit in state `|1>` is equivalent
+            # to applying a `ZPowGate`. This override ensures that `global_phase_gate.controlled()`
+            # returns a `ZPowGate` instead of a `ControlledGate(sub_gate=global_phase_gate)`.
             coefficient = complex(self.coefficient)
             exponent = float(np.angle(coefficient) / np.pi)
             return cirq.ZPowGate(exponent=exponent).controlled(

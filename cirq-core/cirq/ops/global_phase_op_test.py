@@ -296,3 +296,7 @@ def test_global_phase_gate_controlled(coeff, exp):
         )
         assert op.controlled_by(*q[:num_controls]) == target_gate(*q[:num_controls]) ** exp
     assert g.controlled(control_values=[0]) == cirq.ControlledGate(g, control_values=[0])
+    xor_control_values = cirq.SumOfProducts(((0, 0), (1, 1)))
+    assert g.controlled(control_values=xor_control_values) == cirq.ControlledGate(
+        g, control_values=xor_control_values
+    )
