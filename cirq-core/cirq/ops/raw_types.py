@@ -360,7 +360,7 @@ class Gate(metaclass=value.ABCMetaImplementAnyOneOf):
         return self.on(*qubits)
 
     def with_probability(self, probability: 'cirq.TParamVal') -> 'cirq.Gate':
-        """Creates a probabalistic channel with this gate.
+        """Creates a probabilistic channel with this gate.
 
         Args:
             probability: floating point value between 0 and 1, giving the
@@ -601,7 +601,7 @@ class Operation(metaclass=abc.ABCMeta):
         return ops.controlled_operation.ControlledOperation(control_qubits, self, control_values)
 
     def with_probability(self, probability: 'cirq.TParamVal') -> 'cirq.Operation':
-        """Creates a probabalistic channel with this operation.
+        """Creates a probabilistic channel with this operation.
 
         Args:
             probability: floating point value between 0 and 1, giving the

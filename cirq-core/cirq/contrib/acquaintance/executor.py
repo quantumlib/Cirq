@@ -34,7 +34,7 @@ if TYPE_CHECKING:
 
 
 class ExecutionStrategy(metaclass=abc.ABCMeta):
-    """Tells `StrategyExecutorTransormer` how to execute an acquaintance strategy.
+    """Tells `StrategyExecutorTransformer` how to execute an acquaintance strategy.
 
     An execution strategy tells `StrategyExecutorTransformer` how to execute
     an acquaintance strategy, i.e. what gates to implement at the available

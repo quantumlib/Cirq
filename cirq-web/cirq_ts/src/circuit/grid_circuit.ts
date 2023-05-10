@@ -21,7 +21,7 @@ import {Symbol3D, SymbolInformation} from './components/types';
  * displayed using three.js
  */
 export class GridCircuit extends Group {
-  // A nested map where the the outer map correlates
+  // A nested map where the outer map correlates
   // rows to <column, GridQubit> pairs.
   private qubit_map: Map<number, Map<number, GridQubit>>;
   private padding_factor: number;
