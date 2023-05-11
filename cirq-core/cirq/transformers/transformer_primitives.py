@@ -296,7 +296,7 @@ def merge_operations(
 
     The method iterates on the input circuit moment-by-moment from left to right and attempts
     to repeatedly merge each operation in the latest moment with all the corresponding merge-able
-    operations to it's left.
+    operations to its left.
 
     If op1 and op2 are merged, both op1 and op2 are deleted from the circuit and
     the resulting `merged_op` is inserted at the index corresponding to the larger

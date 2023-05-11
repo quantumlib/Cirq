@@ -68,7 +68,7 @@ def assert_all_implemented_act_on_effects_match_unitary(
     Checks that act_on with CliffordTableau or StabilizerStateCHForm behaves
     consistently with act_on through final state vector. Does not work with
     Operations or Gates expecting non-qubit Qids. If either of the
-    assert_*_implmented args is true, fails if the corresponding method is not
+    assert_*_implemented args is true, fails if the corresponding method is not
     implemented for the test circuit.
 
     Args:

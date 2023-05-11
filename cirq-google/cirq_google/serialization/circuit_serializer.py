@@ -312,7 +312,7 @@ class CircuitSerializer(serializer.Serializer):
             The deserialized Circuit
 
         Raises:
-            ValueError: If the given proto has no language or the langauge gate set mismatches
+            ValueError: If the given proto has no language or the language gate set mismatches
                 that specified in as the name of this serialized gate set. Also if deserializing
                 a schedule is attempted.
             NotImplementedError: If the program proto does not contain a circuit or schedule.
