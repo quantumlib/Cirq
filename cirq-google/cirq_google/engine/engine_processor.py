@@ -208,7 +208,7 @@ class EngineProcessor(abstract_processor.AbstractProcessor):
             program_description: An optional description to set on the program.
             program_labels: Optional set of labels to set on the program.
             job_description: An optional description to set on the job.
-            job_labels: Optional set of labels to set on the job.  By defauly,
+            job_labels: Optional set of labels to set on the job.  By default,
                 this will add a 'calibration' label to the job.
         Returns:
             An AbstractJob whose results can be retrieved by calling

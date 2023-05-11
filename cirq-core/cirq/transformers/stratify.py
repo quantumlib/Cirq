@@ -157,7 +157,7 @@ def _statically_stratify_circuit_without_optimization(
     num_classes = len(classifiers) + 1  # include one "extra" category for ignored operations
     new_moments: List[List['cirq.Operation']] = []
 
-    # Keep track of the the latest time index for each qubit, measurement key, and control key.
+    # Keep track of the latest time index for each qubit, measurement key, and control key.
     qubit_time_index: Dict['cirq.Qid', int] = {}
     measurement_time_index: Dict['cirq.MeasurementKey', int] = {}
     control_time_index: Dict['cirq.MeasurementKey', int] = {}
