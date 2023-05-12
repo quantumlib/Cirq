@@ -8,9 +8,9 @@ import numpy as np
 class ClassicalSimulator(cirq.SimulatesSamples):
 
 
-
-##very basic simulator that only accepts Xgates and CNot gates and return a 3d Numpy array
     """
+    very basic simulator that only accepts Xgates and CNot gates and return a 3d Numpy array
+
     Run a simulation, mimicking quantum hardware.
 
         Args:
@@ -27,8 +27,8 @@ class ClassicalSimulator(cirq.SimulatesSamples):
             third to the actual boolean measurement results (ordered by the
             qubits being measured.)
 
-        Raises: A value error if a gate that is not a classical CNOT or XGate is 
-                passed 
+       Raises:
+        ValuesError: gate is not a cirq.XGate or cirq.Cnot
  """
     def _run( circuit: 'cirq.AbstactCircuit', param_resolver: 'cirq.ParamResolver',
         repetitions: int) -> Dict[str, np.ndarray]:
@@ -63,9 +63,9 @@ class ClassicalSimulator(cirq.SimulatesSamples):
                     ##create the array for the results dictionary
                      shape = (repetitions, 1, len(qubits_in_order))
                      new_array = np.zeros(shape, dtype=np.uint8)
-                     for reps in range(0, repetitions):
+                     for reps in range(repetitions):
                         for instances in range(0, 1):
-                            for bits in range(0, len(qubits_in_order)):
+                            for bits in range(len(qubits_in_order)):
                                 new_array[reps][instances][bits] = values_dict[qubits_in_order[bits]]
                      results_dict[gate.key] = new_array  
            

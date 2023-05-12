@@ -677,4 +677,4 @@ from cirq import contrib
 
 # pylint: enable=wrong-import-position
 
-from cirq.sim import ClassicalSimulator
+
