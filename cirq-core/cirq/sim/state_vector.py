@@ -215,7 +215,8 @@ def sample_state_vector(
     prng = value.parse_random_state(seed)
 
     # Calculate the measurement probabilities.
-    probs = simulation_util.state_probabilities(state_vector, indices, shape)
+    probs = (state_vector * state_vector.conj()).real
+    probs = simulation_util.state_probabilities(probs, indices, shape)
 
     # We now have the probability vector, correctly ordered, so sample over
     # it. Note that we us ints here, since numpy's choice does not allow for
@@ -288,7 +289,8 @@ def measure_state_vector(
     initial_shape = state_vector.shape
 
     # Calculate the measurement probabilities and then make the measurement.
-    probs = simulation_util.state_probabilities(state_vector, indices, shape)
+    probs = (state_vector * state_vector.conj()).real
+    probs = simulation_util.state_probabilities(probs, indices, shape)
     result = prng.choice(len(probs), p=probs)
     ###measurement_bits = [(1 & (result >> i)) for i in range(len(indices))]
     # Convert to individual qudit measurements.

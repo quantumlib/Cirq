@@ -190,7 +190,7 @@ def _probs(
     # Only diagonal elements matter.
     all_probs = np.diagonal(np.reshape(density_matrix, (np.prod(qid_shape, dtype=np.int64),) * 2))
 
-    return simulation_util.state_probabilities(all_probs, indices, qid_shape)
+    return simulation_util.state_probabilities(all_probs.real, indices, qid_shape)
 
 
 def _validate_density_matrix_qid_shape(

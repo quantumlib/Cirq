@@ -19,26 +19,25 @@ from cirq import linalg
 
 
 def state_probabilities(
-    state_vector: np.ndarray, indices: Sequence[int], qid_shape: Tuple[int, ...]
+    state_probability: np.ndarray, indices: Sequence[int], qid_shape: Tuple[int, ...]
 ) -> np.ndarray:
     """Returns the probabilities for a state/measurement on the given indices.
 
     Args:
-        state_vector: The multi-qubit state vector to be sampled. This is an
-            array of 2 to the power of the number of qubit complex numbers, and
-            so state must be of size ``2**integer``.  The `state_vector` can be
+        state_probability: The multi-qubit state probability vector. This is an
+            array of 2 to the power of the number of real numbers, and
+            so state must be of size ``2**integer``.  The `state_probability` can be
             a vector of size ``2**integer`` or a tensor of shape
             ``(2, 2, ..., 2)``.
-        indices: Which qubits are measured. The `state_vector` is assumed to be
+        indices: Which qubits are measured. The `state_probability` is assumed to be
             supplied in big endian order. That is the xth index of v, when
             expressed as a bitstring, has its largest values in the 0th index.
-        qid_shape: The qid shape of the `state_vector`.
+        qid_shape: The qid shape of the `state_probability`.
 
     Returns:
         State probabilities.
     """
-    state = state_vector.reshape((-1,))
-    probs = (state * state.conj()).real
+    probs = state_probability.reshape((-1,))
     not_measured = [i for i in range(len(qid_shape)) if i not in indices]
     if linalg.can_numpy_support_shape(qid_shape):
         # Use numpy transpose if we can since it's more efficient.
