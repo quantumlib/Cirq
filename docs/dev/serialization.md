@@ -92,6 +92,10 @@ and pass `cirq-core/cirq/protocols/json_serialization_test.py`:
 containing keys for each of the value's attributes. If these keys do not match the names of
 the class' initializer arguments, a `_from_json_dict_` class method must also be defined.
 
+    a. Public classes not in the `cirq` module (e.g. `cirq_google.EngineResult`) are also expected
+    to define a `_json_namespace_` method which returns a prefix to attach to the serialized name.
+    This is important for preventing name collisions between third-party classes.
+
 2. In `class_resolver_dictionary` within the packages's `json_resolver_cache.py` file,
 for each serializable class, the `cirq_type` of the class should be mapped to the imported class
 within the package. The key may also be mapped to a helper method that

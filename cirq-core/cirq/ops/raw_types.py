@@ -31,10 +31,10 @@ from typing import (
     Optional,
     Sequence,
     Tuple,
-    TypeVar,
     TYPE_CHECKING,
     Union,
 )
+from typing_extensions import Self
 
 import numpy as np
 import sympy
@@ -360,7 +360,7 @@ class Gate(metaclass=value.ABCMetaImplementAnyOneOf):
         return self.on(*qubits)
 
     def with_probability(self, probability: 'cirq.TParamVal') -> 'cirq.Gate':
-        """Creates a probabalistic channel with this gate.
+        """Creates a probabilistic channel with this gate.
 
         Args:
             probability: floating point value between 0 and 1, giving the
@@ -376,7 +376,7 @@ class Gate(metaclass=value.ABCMetaImplementAnyOneOf):
 
     def controlled(
         self,
-        num_controls: int = None,
+        num_controls: Optional[int] = None,
         control_values: Optional[
             Union[cv.AbstractControlValues, Sequence[Union[int, Collection[int]]]]
         ] = None,
@@ -424,6 +424,7 @@ class Gate(metaclass=value.ABCMetaImplementAnyOneOf):
     @value.alternative(requires='_num_qubits_', implementation=_backwards_compatibility_num_qubits)
     def num_qubits(self) -> int:
         """The number of qubits this gate acts on."""
+        raise NotImplementedError
 
     def _num_qubits_from_shape(self) -> int:
         shape = self._qid_shape_()
@@ -438,6 +439,7 @@ class Gate(metaclass=value.ABCMetaImplementAnyOneOf):
     @value.alternative(requires='_qid_shape_', implementation=_num_qubits_from_shape)
     def _num_qubits_(self) -> int:
         """The number of qubits this gate acts on."""
+        raise NotImplementedError
 
     def _default_shape_from_num_qubits(self) -> Tuple[int, ...]:
         num_qubits = self._num_qubits_()
@@ -451,6 +453,7 @@ class Gate(metaclass=value.ABCMetaImplementAnyOneOf):
         the gate acts on.  E.g. (2, 2, 2) for the three-qubit CCZ gate and
         (3, 3) for a 2-qutrit ternary gate.
         """
+        raise NotImplementedError
 
     def _commutes_on_qids_(
         self, qids: 'Sequence[cirq.Qid]', other: Any, *, atol: float = 1e-8
@@ -478,9 +481,6 @@ class Gate(metaclass=value.ABCMetaImplementAnyOneOf):
 
     def _json_dict_(self) -> Dict[str, Any]:
         return protocols.obj_to_dict_helper(self, attribute_names=[])
-
-
-TSelf = TypeVar('TSelf', bound='Operation')
 
 
 class Operation(metaclass=abc.ABCMeta):
@@ -511,7 +511,7 @@ class Operation(metaclass=abc.ABCMeta):
         return protocols.qid_shape(self.qubits)
 
     @abc.abstractmethod
-    def with_qubits(self: TSelf, *new_qubits: 'cirq.Qid') -> TSelf:
+    def with_qubits(self, *new_qubits: 'cirq.Qid') -> Self:
         """Returns the same operation, but applied to different qubits.
 
         Args:
@@ -553,9 +553,8 @@ class Operation(metaclass=abc.ABCMeta):
         return TaggedOperation(self, *new_tags)
 
     def transform_qubits(
-        self: TSelf,
-        qubit_map: Union[Dict['cirq.Qid', 'cirq.Qid'], Callable[['cirq.Qid'], 'cirq.Qid']],
-    ) -> TSelf:
+        self, qubit_map: Union[Dict['cirq.Qid', 'cirq.Qid'], Callable[['cirq.Qid'], 'cirq.Qid']]
+    ) -> Self:
         """Returns the same operation, but with different qubits.
 
         Args:
@@ -602,7 +601,7 @@ class Operation(metaclass=abc.ABCMeta):
         return ops.controlled_operation.ControlledOperation(control_qubits, self, control_values)
 
     def with_probability(self, probability: 'cirq.TParamVal') -> 'cirq.Operation':
-        """Creates a probabalistic channel with this operation.
+        """Creates a probabilistic channel with this operation.
 
         Args:
             probability: floating point value between 0 and 1, giving the

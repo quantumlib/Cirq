@@ -51,7 +51,7 @@ class ControlledGate(raw_types.Gate):
     def __init__(
         self,
         sub_gate: 'cirq.Gate',
-        num_controls: int = None,
+        num_controls: Optional[int] = None,
         control_values: Optional[
             Union[cv.AbstractControlValues, Sequence[Union[int, Collection[int]]]]
         ] = None,
@@ -143,7 +143,9 @@ class ControlledGate(raw_types.Gate):
     def _qid_shape_(self) -> Tuple[int, ...]:
         return self.control_qid_shape + protocols.qid_shape(self.sub_gate)
 
-    def _decompose_(self, qubits):
+    def _decompose_(
+        self, qubits: Tuple['cirq.Qid', ...]
+    ) -> Union[None, NotImplementedType, 'cirq.OP_TREE']:
         if (
             protocols.has_unitary(self.sub_gate)
             and protocols.num_qubits(self.sub_gate) == 1
@@ -166,15 +168,22 @@ class ControlledGate(raw_types.Gate):
             z_sub_gate = common_gates.ZPowGate(
                 exponent=self.sub_gate.exponent, global_shift=self.sub_gate.global_shift
             )
-            kwargs = {
-                'num_controls': self.num_controls() + 1,
-                'control_values': self.control_values & cv.ProductOfSums(((1,),)),
-                'control_qid_shape': self.control_qid_shape + (2,),
-            }
+            num_controls = self.num_controls() + 1
+            control_values = self.control_values & cv.ProductOfSums(((1,),))
+            control_qid_shape = self.control_qid_shape + (2,)
             controlled_z = (
-                z_sub_gate.controlled(**kwargs)
+                z_sub_gate.controlled(
+                    num_controls=num_controls,
+                    control_values=control_values,
+                    control_qid_shape=control_qid_shape,
+                )
                 if protocols.is_parameterized(self)
-                else ControlledGate(z_sub_gate, **kwargs)
+                else ControlledGate(
+                    z_sub_gate,
+                    num_controls=num_controls,
+                    control_values=control_values,
+                    control_qid_shape=control_qid_shape,
+                )
             )
             if self != controlled_z:
                 return protocols.decompose_once_with_qubits(controlled_z, qubits, NotImplemented)

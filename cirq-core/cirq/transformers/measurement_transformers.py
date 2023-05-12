@@ -14,7 +14,7 @@
 
 import itertools
 from collections import defaultdict
-from typing import Any, Dict, Iterable, List, Optional, Sequence, Tuple, TYPE_CHECKING, Union
+from typing import Any, cast, Dict, Iterable, List, Optional, Sequence, Tuple, TYPE_CHECKING, Union
 
 import numpy as np
 
@@ -420,13 +420,13 @@ class _ConfusionChannel(ops.Gate):
         return self._kraus
 
     def _apply_channel_(self, args: 'cirq.ApplyChannelArgs'):
-        configs = []
+        configs: List[transformations._BuildFromSlicesArgs] = []
         for i in range(np.prod(self._shape) ** 2):
-            scale = self._confusion_map.flat[i]
+            scale = cast(complex, self._confusion_map.flat[i])
             if scale == 0:
                 continue
             index: Any = np.unravel_index(i, self._shape * 2)
-            slices = []
+            slices: List[transformations._SliceConfig] = []
             axis_count = len(args.left_axes)
             for j in range(axis_count):
                 s1 = transformations._SliceConfig(

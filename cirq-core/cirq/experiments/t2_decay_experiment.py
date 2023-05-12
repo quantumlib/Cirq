@@ -45,7 +45,7 @@ def t2_decay(
     min_delay: 'cirq.DURATION_LIKE' = None,
     repetitions: int = 1000,
     delay_sweep: Optional[study.Sweep] = None,
-    num_pulses: List[int] = None,
+    num_pulses: Optional[List[int]] = None,
 ) -> Union['cirq.experiments.T2DecayResult', List['cirq.experiments.T2DecayResult']]:
     """Runs a t2 transverse relaxation experiment.
 

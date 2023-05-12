@@ -241,6 +241,7 @@ def _class_resolver_dictionary() -> Dict[str, ObjectFactory]:
         'YYPowGate': cirq.YYPowGate,
         '_ZEigenState': cirq.value.product_state._ZEigenState,
         'Zip': cirq.Zip,
+        'ZipLongest': cirq.ZipLongest,
         'ZPowGate': cirq.ZPowGate,
         'ZZPowGate': cirq.ZZPowGate,
         # Old types, only supported for backwards-compatibility

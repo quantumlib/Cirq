@@ -33,7 +33,7 @@ class SerializedProgram:
     """A container for the serialized portions of a `cirq.Circuit`.
 
     Attributes:
-        body: A dictionary which containts the number of qubits and the serialized circuit
+        body: A dictionary which contains the number of qubits and the serialized circuit
             minus the measurements.
         metadata: A dictionary whose keys store information about the measurements in the circuit.
     """
@@ -242,7 +242,7 @@ class Serializer:
 
         Each key and targets are serialized into a string of the form `key` + the ASCII unit
         separator (chr(31)) + targets as a comma separated value.  These are then combined
-        into a string with a seperator character of the ASCII record separator (chr(30)).
+        into a string with a separator character of the ASCII record separator (chr(30)).
         Finally this full string is serialized as the values in the metadata dict with keys
         given by `measurementX` for X = 0,1, .. 9 and X large enough to contain the entire
         string.

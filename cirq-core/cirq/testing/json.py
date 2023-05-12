@@ -95,11 +95,11 @@ class ModuleJsonTestSpec:
 
         return result
 
-    def get_resolver_cache_types(self):
+    def get_resolver_cache_types(self) -> Set[Tuple[str, Type]]:
         result: Set[Tuple[str, Type]] = set()
         for k, v in self.resolver_cache.items():
-            t = v if isinstance(v, type) else None
-            result.add((k, t))
+            if isinstance(v, type):
+                result.add((k, v))
         return result
 
     def get_all_names(self) -> Iterator[str]:

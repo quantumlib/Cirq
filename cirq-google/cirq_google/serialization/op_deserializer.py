@@ -45,8 +45,8 @@ class OpDeserializer(abc.ABC):
         proto,
         *,
         arg_function_language: str = '',
-        constants: List[v2.program_pb2.Constant] = None,
-        deserialized_constants: List[Any] = None,
+        constants: List[v2.program_pb2.Constant],
+        deserialized_constants: List[Any],
     ) -> cirq.Operation:
         """Converts a proto-formatted operation into a Cirq operation.
 
@@ -75,8 +75,8 @@ class CircuitOpDeserializer(OpDeserializer):
         proto: v2.program_pb2.CircuitOperation,
         *,
         arg_function_language: str = '',
-        constants: List[v2.program_pb2.Constant] = None,
-        deserialized_constants: List[Any] = None,
+        constants: List[v2.program_pb2.Constant],
+        deserialized_constants: List[Any],
     ) -> cirq.CircuitOperation:
         """Turns a cirq.google.api.v2.CircuitOperation proto into a CircuitOperation.
 
@@ -95,11 +95,6 @@ class CircuitOpDeserializer(OpDeserializer):
         Raises:
             ValueError: If the circuit operatio proto cannot be deserialied because it is malformed.
         """
-        if constants is None or deserialized_constants is None:
-            raise ValueError(
-                'CircuitOp deserialization requires a constants list and a corresponding list of '
-                'post-deserialization values (deserialized_constants).'
-            )
         if len(deserialized_constants) <= proto.circuit_constant_index:
             raise ValueError(
                 f'Constant index {proto.circuit_constant_index} in CircuitOperation '
