@@ -18,6 +18,7 @@ from typing import List, Optional, TYPE_CHECKING, Tuple, Sequence
 import numpy as np
 
 from cirq import linalg, value
+from cirq.sim import simulation_util
 
 if TYPE_CHECKING:
     import cirq
@@ -188,33 +189,8 @@ def _probs(
     """Returns the probabilities for a measurement on the given indices."""
     # Only diagonal elements matter.
     all_probs = np.diagonal(np.reshape(density_matrix, (np.prod(qid_shape, dtype=np.int64),) * 2))
-    # Shape into a tensor
-    tensor = np.reshape(all_probs, qid_shape)
 
-    # Calculate the probabilities for measuring the particular results.
-    if len(indices) == len(qid_shape):
-        # We're measuring every qudit, so no need for fancy indexing
-        probs = np.abs(tensor)
-        probs = np.transpose(probs, indices)
-        probs = probs.reshape(-1)
-    else:
-        # Fancy indexing required
-        meas_shape = tuple(qid_shape[i] for i in indices)
-        probs = np.abs(
-            [
-                tensor[
-                    linalg.slice_for_qubits_equal_to(
-                        indices, big_endian_qureg_value=b, qid_shape=qid_shape
-                    )
-                ]
-                for b in range(np.prod(meas_shape, dtype=np.int64))
-            ]
-        )
-        probs = np.sum(probs, axis=tuple(range(1, len(probs.shape))))
-
-    # To deal with rounding issues, ensure that the probabilities sum to 1.
-    probs /= np.sum(probs)
-    return probs
+    return simulation_util.state_probabilities(all_probs, indices, qid_shape)
 
 
 def _validate_density_matrix_qid_shape(

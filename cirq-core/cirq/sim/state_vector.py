@@ -19,8 +19,7 @@ from typing import List, Mapping, Optional, Tuple, TYPE_CHECKING, Sequence
 import numpy as np
 
 from cirq import linalg, qis, value
-from cirq.sim import simulator
-from cirq import linalg
+from cirq.sim import simulator, simulation_util
 
 if TYPE_CHECKING:
     import cirq
@@ -216,7 +215,7 @@ def sample_state_vector(
     prng = value.parse_random_state(seed)
 
     # Calculate the measurement probabilities.
-    probs = _probs(state_vector, indices, shape)
+    probs = simulation_util.state_probabilities(state_vector, indices, shape)
 
     # We now have the probability vector, correctly ordered, so sample over
     # it. Note that we us ints here, since numpy's choice does not allow for
@@ -289,7 +288,7 @@ def measure_state_vector(
     initial_shape = state_vector.shape
 
     # Calculate the measurement probabilities and then make the measurement.
-    probs = _probs(state_vector, indices, shape)
+    probs = simulation_util.state_probabilities(state_vector, indices, shape)
     result = prng.choice(len(probs), p=probs)
     ###measurement_bits = [(1 & (result >> i)) for i in range(len(indices))]
     # Convert to individual qudit measurements.
@@ -322,28 +321,3 @@ def measure_state_vector(
     assert out is not None
     # We mutate and return out, so mypy cannot identify that the out cannot be None.
     return measurement_bits, out
-
-
-def _probs(state: np.ndarray, indices: Sequence[int], qid_shape: Tuple[int, ...]) -> np.ndarray:
-    """Returns the probabilities for a measurement on the given indices."""
-    state = state.reshape((-1,))
-    probs = np.abs(state) ** 2
-    not_measured = [i for i in range(len(qid_shape)) if i not in indices]
-    if linalg.can_numpy_support_shape(qid_shape):
-        # Use numpy transpose if we can since it's more efficient.
-        probs = probs.reshape(qid_shape)
-        probs = np.transpose(probs, list(indices) + not_measured)
-        probs = probs.reshape((-1,))
-    else:
-        # If we can't use numpy due to numpy/numpy#5744, use a slower method.
-        probs = linalg.transpose_flattened_array(probs, qid_shape, list(indices) + not_measured)
-
-    if len(not_measured):
-        # Not all qudits are measured.
-        volume = np.prod([qid_shape[i] for i in indices])
-        # Reshape into a 2D array in which each of the measured states correspond to a row.
-        probs = probs.reshape((volume, -1))
-        probs = np.sum(probs, axis=-1)
-
-    # To deal with rounding issues, ensure that the probabilities sum to 1.
-    return probs / np.sum(probs)
