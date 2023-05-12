@@ -75,12 +75,6 @@ def _to_clifford_tableau(
     return clifford_tableau
 
 
-def _pretend_initialized() -> 'SingleQubitCliffordGate':
-    # HACK: This is a workaround to fool mypy and pylint into correctly handling
-    # class fields that can't be initialized until after the class is defined.
-    pass
-
-
 def _validate_map_input(
     required_transform_count: int,
     pauli_map_to: Optional[Dict[Pauli, Tuple[Pauli, bool]]],

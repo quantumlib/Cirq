@@ -384,7 +384,7 @@ def create_noiseless_virtual_engine_from_latest_templates() -> SimulatedLocalEng
 
 
 def create_default_noisy_quantum_virtual_machine(
-    processor_id: str, simulator_class: Type[SimulatesSamples] = None, **kwargs
+    processor_id: str, simulator_class: Optional[Type[SimulatesSamples]] = None, **kwargs
 ) -> SimulatedLocalEngine:
     """Creates a virtual engine with a noisy simulator based on a processor id.
 

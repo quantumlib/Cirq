@@ -187,7 +187,7 @@ class XPowGate(eigen_gate.EigenGate):
 
     def controlled(
         self,
-        num_controls: int = None,
+        num_controls: Optional[int] = None,
         control_values: Optional[
             Union[cv.AbstractControlValues, Sequence[Union[int, Collection[int]]]]
         ] = None,
@@ -357,7 +357,7 @@ class Rx(XPowGate):
         self._rads = rads
         super().__init__(exponent=rads / _pi(rads), global_shift=-0.5)
 
-    def _with_exponent(self: 'Rx', exponent: value.TParamVal) -> 'Rx':
+    def _with_exponent(self, exponent: value.TParamVal) -> 'Rx':
         return Rx(rads=exponent * _pi(exponent))
 
     def _circuit_diagram_info_(
@@ -541,7 +541,7 @@ class Ry(YPowGate):
         self._rads = rads
         super().__init__(exponent=rads / _pi(rads), global_shift=-0.5)
 
-    def _with_exponent(self: 'Ry', exponent: value.TParamVal) -> 'Ry':
+    def _with_exponent(self, exponent: value.TParamVal) -> 'Ry':
         return Ry(rads=exponent * _pi(exponent))
 
     def _circuit_diagram_info_(
@@ -667,7 +667,7 @@ class ZPowGate(eigen_gate.EigenGate):
 
     def controlled(
         self,
-        num_controls: int = None,
+        num_controls: Optional[int] = None,
         control_values: Optional[
             Union[cv.AbstractControlValues, Sequence[Union[int, Collection[int]]]]
         ] = None,
@@ -891,7 +891,7 @@ class Rz(ZPowGate):
         self._rads = rads
         super().__init__(exponent=rads / _pi(rads), global_shift=-0.5)
 
-    def _with_exponent(self: 'Rz', exponent: value.TParamVal) -> 'Rz':
+    def _with_exponent(self, exponent: value.TParamVal) -> 'Rz':
         return Rz(rads=exponent * _pi(exponent))
 
     def _circuit_diagram_info_(
@@ -1122,7 +1122,7 @@ class CZPowGate(gate_features.InterchangeableQubitsGate, eigen_gate.EigenGate):
 
     def controlled(
         self,
-        num_controls: int = None,
+        num_controls: Optional[int] = None,
         control_values: Optional[
             Union[cv.AbstractControlValues, Sequence[Union[int, Collection[int]]]]
         ] = None,
@@ -1328,7 +1328,7 @@ class CXPowGate(eigen_gate.EigenGate):
 
     def controlled(
         self,
-        num_controls: int = None,
+        num_controls: Optional[int] = None,
         control_values: Optional[
             Union[cv.AbstractControlValues, Sequence[Union[int, Collection[int]]]]
         ] = None,

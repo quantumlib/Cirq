@@ -211,6 +211,7 @@ class Sampler(metaclass=value.ABCMetaImplementAnyOneOf):
         Returns:
             Result list for this run; one for each possible parameter resolver.
         """
+        raise NotImplementedError
 
     @value.alternative(requires='run_sweep', implementation=_run_sweep_async_impl)
     async def run_sweep_async(
@@ -230,6 +231,7 @@ class Sampler(metaclass=value.ABCMetaImplementAnyOneOf):
         Returns:
             Result list for this run; one for each possible parameter resolver.
         """
+        raise NotImplementedError
 
     def run_batch(
         self,

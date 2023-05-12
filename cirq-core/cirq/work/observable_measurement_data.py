@@ -14,7 +14,7 @@
 
 import dataclasses
 import datetime
-from typing import Any, Dict, Iterable, List, Mapping, Tuple, TYPE_CHECKING, Union
+from typing import Any, Dict, Iterable, List, Mapping, Optional, Tuple, TYPE_CHECKING, Union
 
 import numpy as np
 import sympy
@@ -212,10 +212,10 @@ class BitstringAccumulator:
         meas_spec: _MeasurementSpec,
         simul_settings: List[InitObsSetting],
         qubit_to_index: Dict['cirq.Qid', int],
-        bitstrings: np.ndarray = None,
-        chunksizes: np.ndarray = None,
-        timestamps: np.ndarray = None,
-        readout_calibration: 'BitstringAccumulator' = None,
+        bitstrings: Optional[np.ndarray] = None,
+        chunksizes: Optional[np.ndarray] = None,
+        timestamps: Optional[np.ndarray] = None,
+        readout_calibration: Optional['BitstringAccumulator'] = None,
     ):
         self._meas_spec = meas_spec
         self._simul_settings = simul_settings

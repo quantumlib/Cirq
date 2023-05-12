@@ -48,7 +48,7 @@ def assert_logs(
             module for valid levels. By default this captures at the
             `logging.WARNING` level and above, so this does not capture `logging.INFO`
             or `logging.DEBUG` logs by default.
-        max_level: The maxium level at which to capture the logs. See the python logging
+        max_level: The maximum level at which to capture the logs. See the python logging
             module for valid levels. By default this captures to the `logging.CRITICAL` level
             thus, all the errors and critical messages will be captured as well.
         capture_warnings: Whether warnings from the python's `warnings` module

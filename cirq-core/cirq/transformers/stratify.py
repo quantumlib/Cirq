@@ -117,7 +117,7 @@ def _stratify_circuit(
     num_classes = len(classifiers) + 1  # include one "extra" category for ignored operations
     new_moments: List[List['cirq.Operation']] = []
 
-    # Keep track of the the latest time index for each qubit, measurement key, and control key.
+    # Keep track of the latest time index for each qubit, measurement key, and control key.
     qubit_time_index: Dict['cirq.Qid', int] = {}
     measurement_time_index: Dict['cirq.MeasurementKey', int] = {}
     control_time_index: Dict['cirq.MeasurementKey', int] = {}
@@ -224,6 +224,7 @@ def _category_to_classifier(category) -> Classifier:
 
 def _dummy_classifier(op: 'cirq.Operation') -> bool:
     """Dummy classifier, used to "complete" a collection of classifiers and make it exhaustive."""
+    return False  # coverage: ignore
 
 
 def _get_op_class(op: 'cirq.Operation', classifiers: Sequence[Classifier]) -> int:

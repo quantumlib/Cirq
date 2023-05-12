@@ -28,7 +28,7 @@ def decompose_two_qubit_interaction_into_four_fsim_gates(
     interaction: Union['cirq.SupportsUnitary', np.ndarray],
     *,
     fsim_gate: Union['cirq.FSimGate', 'cirq.ISwapPowGate'],
-    qubits: Sequence['cirq.Qid'] = None,
+    qubits: Optional[Sequence['cirq.Qid']] = None,
 ) -> 'cirq.Circuit':
     """Decomposes operations into an FSimGate near theta=pi/2, phi=0.
 

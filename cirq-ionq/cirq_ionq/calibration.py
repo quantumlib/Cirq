@@ -53,7 +53,7 @@ class Calibration:
         return self._calibration_dict['fidelity']
 
     def timings(self) -> dict:
-        """Returns the gate, measurement, and reseting timings."""
+        """Returns the gate, measurement, and resetting timings."""
         return self._calibration_dict['timing']
 
     def connectivity(self) -> Set[Tuple[cirq.LineQubit, cirq.LineQubit]]:

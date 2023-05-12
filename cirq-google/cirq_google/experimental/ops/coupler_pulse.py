@@ -115,7 +115,7 @@ class CouplerPulse(cirq.ops.Gate):
             or cirq.is_parameterized(self.q1_detune_mhz)
         )
 
-    def _parameter_names_(self: Any) -> AbstractSet[str]:
+    def _parameter_names_(self) -> AbstractSet[str]:
         return (
             cirq.parameter_names(self.hold_time)
             | cirq.parameter_names(self.coupling_mhz)
