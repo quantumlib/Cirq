@@ -134,7 +134,7 @@ _GATES: List[_GateRepresentations] = [
 
 
 def _in_or_equals(g: GateOrFamily, gate_family: cirq.GateFamily):
-    return g == gate_family or g in gate_family
+    return (isinstance(g, cirq.GateFamily) and g == gate_family) or g in gate_family
 
 
 def _validate_device_specification(proto: v2.device_pb2.DeviceSpecification) -> None:
@@ -210,7 +210,8 @@ def _serialize_gateset_and_gate_durations(
             gate_duration_picos = int(gate_durations[gf].total_picos())
             if is_duration_set and gate_duration_picos != gate_spec.gate_duration_picos:
                 raise ValueError(
-                    f'Multiple gate families in the following list exist in the gate duration dict, and they are expected to have the same duration value: {gate_rep.all_forms}'
+                    'Multiple gate families in the following list exist in the gate duration dict,'
+                    f' and they are expected to have the same duration value: {gate_rep.all_forms}'
                 )
             is_duration_set = True
             gate_spec.gate_duration_picos = gate_duration_picos
@@ -468,16 +469,18 @@ class GridDevice(cirq.Device):
             DeviceSpecification.
         """
         qubits = self._metadata.qubit_set
-        pairs = [tuple(sorted(pair)) for pair in self._metadata.qubit_pairs]
+        pairs: List[Tuple[cirq.GridQubit, cirq.GridQubit]] = [
+            tuple(sorted(pair)) for pair in self._metadata.qubit_pairs
+        ]
         gateset = self._metadata.gateset
         gate_durations = self._metadata.gate_durations
 
         if out is None:
             out = v2.device_pb2.DeviceSpecification()
 
-        # If fields are already filled (i.e. as part of the old DeviceSpecification format), leave them
-        # as is. Fields populated in the new format do not conflict with how they were populated in the
-        # old format.
+        # If fields are already filled (i.e. as part of the old DeviceSpecification format), leave
+        # them as is. Fields populated in the new format do not conflict with how they were
+        # populated in the old format.
         # TODO(#5050) remove empty checks below once deprecated fields in DeviceSpecification are
         # removed.
 
