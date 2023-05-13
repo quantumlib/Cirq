@@ -134,7 +134,12 @@ _GATES: List[_GateRepresentations] = [
 
 
 def _in_or_equals(g: GateOrFamily, gate_family: cirq.GateFamily):
-    return (isinstance(g, cirq.GateFamily) and g == gate_family) or g in gate_family
+    if isinstance(g, cirq.GateFamily):
+        return g == gate_family
+    elif isinstance(g, cirq.Gate):
+        return g in gate_family
+    else:  # Gate type
+        return cirq.GateFamily(g) == gate_family
 
 
 def _validate_device_specification(proto: v2.device_pb2.DeviceSpecification) -> None:
@@ -469,8 +474,10 @@ class GridDevice(cirq.Device):
             DeviceSpecification.
         """
         qubits = self._metadata.qubit_set
-        pairs: List[Tuple[cirq.GridQubit, cirq.GridQubit]] = [
-            tuple(sorted(pair)) for pair in self._metadata.qubit_pairs
+        unordered_pairs = [tuple(pair_set) for pair_set in self._metadata.qubit_pairs]
+        pairs = [
+            (pair[0], pair[1]) if pair[0] <= pair[1] else (pair[1], pair[0])
+            for pair in unordered_pairs
         ]
         gateset = self._metadata.gateset
         gate_durations = self._metadata.gate_durations
