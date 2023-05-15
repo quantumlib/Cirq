@@ -322,4 +322,4 @@ document(
 )
 
 PAULI_STATES = [KET_PLUS, KET_MINUS, KET_IMAG, KET_MINUS_IMAG, KET_ZERO, KET_ONE]
-document(PAULI_STATES, """All one-qubit states stabalized by the pauli operators.""")
+document(PAULI_STATES, """All one-qubit states stabilized by the pauli operators.""")

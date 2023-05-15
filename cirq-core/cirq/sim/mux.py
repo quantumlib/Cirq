@@ -139,7 +139,7 @@ def final_state_vector(
     Returns:
         The state vector resulting from applying the given unitary operations to
         the desired initial state. Specifically, a numpy array containing the
-        the amplitudes in np.kron order, where the order of arguments to kron
+        amplitudes in np.kron order, where the order of arguments to kron
         is determined by the qubit order argument (which defaults to just
         sorting the qubits that are present into an ascending order).
 

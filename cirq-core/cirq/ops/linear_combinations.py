@@ -440,7 +440,7 @@ class PauliSum:
     def wrap(val: PauliSumLike) -> 'PauliSum':
         """Convert a `cirq.PauliSumLike` object to a PauliSum
 
-        Attemps to convert an existing int, float, complex, `cirq.PauliString`,
+        Attempts to convert an existing int, float, complex, `cirq.PauliString`,
         `cirq.PauliSum` or `cirq.SingleQubitPauliStringGateOperation` into
         a `cirq.PauliSum` object. For example:
 
