@@ -117,7 +117,7 @@ class CCZPowGate(gate_features.InterchangeableQubitsGate, eigen_gate.EigenGate):
         """
         a, b, c = qubits
 
-        if (not all_to_all_connect):
+        if not all_to_all_connect:
             # Hacky magic: avoid the non-adjacent edge.
             if hasattr(b, 'is_adjacent'):
                 if not b.is_adjacent(a):
@@ -130,7 +130,7 @@ class CCZPowGate(gate_features.InterchangeableQubitsGate, eigen_gate.EigenGate):
         global_phase = 1j ** (2 * self.global_shift * self._exponent)
         global_phase = (
             complex(global_phase)
-            if protocols.is_parameterized(global_phase) and global_phase.is_complex
+            if protocols.is_parameterized(global_phase)
             else global_phase
         )
         global_phase_operation = (
@@ -139,7 +139,7 @@ class CCZPowGate(gate_features.InterchangeableQubitsGate, eigen_gate.EigenGate):
             else []
         )
 
-        if (all_to_all_connect):
+        if all_to_all_connect:
             return global_phase_operation + [
                 common_gates.CNOT(b, c),
                 p(c) ** -1,

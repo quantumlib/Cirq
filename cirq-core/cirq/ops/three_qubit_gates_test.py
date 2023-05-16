@@ -229,15 +229,17 @@ def test_decomposition_respects_locality(gate):
 
 
 def test_decomposition_all_to_all_connectivity():
-    decompose_result = cirq.CCZ._decompose_(
-        cirq.LineQubit.range(3), all_to_all_connect=True)
-    cirq.testing.assert_has_diagram(cirq.Circuit(decompose_result), """
+    decompose_result = cirq.CCZ._decompose_(cirq.LineQubit.range(3), all_to_all_connect=True)
+    cirq.testing.assert_has_diagram(
+        cirq.Circuit(decompose_result),
+        """
 0: ──────────────@──────────────────@───@───T──────@───
                  │                  │   │          │
 1: ───@──────────┼───────@───T──────┼───X───T^-1───X───
       │          │       │          │
 2: ───X───T^-1───X───T───X───T^-1───X───T──────────────
-""")
+""",
+    )
 
 
 def test_diagram():
