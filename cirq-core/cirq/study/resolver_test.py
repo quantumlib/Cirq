@@ -13,7 +13,9 @@
 # limitations under the License.
 
 """Tests for parameter resolvers."""
+
 import fractions
+import sys
 
 import numpy as np
 import pytest
@@ -241,6 +243,10 @@ def test_custom_resolved_value():
     assert r.value_of(b) == 'Baz'
 
 
+# sympy 1.12 does not support Python 3.7
+@pytest.mark.xfail(
+    condition=sys.version_info < (3, 8, 0), reason='this test requires sympy 1.12', strict=True
+)
 def test_custom_value_not_implemented():
     class Bar:
         def _resolved_value_(self):
