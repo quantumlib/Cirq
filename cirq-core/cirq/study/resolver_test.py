@@ -241,7 +241,6 @@ def test_custom_resolved_value():
     assert r.value_of(b) == 'Baz'
 
 
-@pytest.mark.xfail(reason='this test requires sympy 1.12', strict=True)
 def test_custom_value_not_implemented():
     class Bar:
         def _resolved_value_(self):
