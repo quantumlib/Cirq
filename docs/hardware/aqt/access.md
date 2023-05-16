@@ -41,4 +41,4 @@ with the token on the
 
 At this point, you should now have access to the AQT service.
 You can now try out our
-[Getting Started Guide](/cirq/hardware/aqt/getting_started.ipynb).
+[Getting Started Guide](./getting_started.ipynb).

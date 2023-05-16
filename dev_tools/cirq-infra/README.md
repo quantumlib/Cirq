@@ -3,7 +3,7 @@
 This doc describes cirq-infra, the GCP project supporting our open source project.
 The following things are planned to be running on GCP: 
 
-- [X] Cirq bot / Automerge - see [../auto_merge](../auto_merge/README.md)
+- [X] Cirq bot / PR monitor - see [../pr_monitor](../pr_monitor/README.md)
 - [X] Triage party for triaging 
 - [ ] Performance tests and reports  
 

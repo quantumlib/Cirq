@@ -45,7 +45,7 @@ The following document provides an ecosystem overview of how the various tools c
 |[Rigetti](https://quantumai.google/cirq/hardware/rigetti/getting_started)|Superconducting qubits|
 
 For more information for vendors about integrating with cirq,
-see our [RFC page](/cirq/dev/rfc_process#new_hardware_integrations).
+see our [RFC page](../dev/rfc_process.md#new_hardware_integrations).
 
 
 ## High performance quantum circuit simulators
