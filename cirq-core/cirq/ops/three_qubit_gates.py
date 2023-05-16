@@ -130,7 +130,7 @@ class CCZPowGate(gate_features.InterchangeableQubitsGate, eigen_gate.EigenGate):
         global_phase = 1j ** (2 * self.global_shift * self._exponent)
         global_phase = (
             complex(global_phase)
-            if protocols.is_parameterized(global_phase)
+            if protocols.is_parameterized(global_phase) and global_phase.is_complex
             else global_phase
         )
         global_phase_operation = (
