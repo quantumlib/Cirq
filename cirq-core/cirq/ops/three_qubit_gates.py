@@ -97,8 +97,15 @@ class CCZPowGate(gate_features.InterchangeableQubitsGate, eigen_gate.EigenGate):
             }
         )
 
-    def _decompose_(self, qubits):
-        """An adjacency-respecting decomposition.
+    def _decompose_(self, qubits, all_to_all_connect: Optional[bool] = None):
+        """If qubits are all-to-all connected, e.g. qubits in the same ion trap,
+        the decomposition will be:
+        0: ──────────────@──────────────────@───@───p──────@───
+                         │                  │   │          │
+        1: ───@──────────┼───────@───p──────┼───X───p^-1───X───
+              │          │       │          │
+        2: ───X───p^-1───X───p───X───p^-1───X───p──────────────
+        Otherwise the adjacency-respecting decomposition will be returned:
 
         0: ───p───@──────────────@───────@──────────@──────────
                   │              │       │          │
@@ -110,12 +117,13 @@ class CCZPowGate(gate_features.InterchangeableQubitsGate, eigen_gate.EigenGate):
         """
         a, b, c = qubits
 
-        # Hacky magic: avoid the non-adjacent edge.
-        if hasattr(b, 'is_adjacent'):
-            if not b.is_adjacent(a):
-                b, c = c, b
-            elif not b.is_adjacent(c):
-                a, b = b, a
+        if (not all_to_all_connect):
+            # Hacky magic: avoid the non-adjacent edge.
+            if hasattr(b, 'is_adjacent'):
+                if not b.is_adjacent(a):
+                    b, c = c, b
+                elif not b.is_adjacent(c):
+                    a, b = b, a
 
         p = common_gates.T**self._exponent
         sweep_abc = [common_gates.CNOT(a, b), common_gates.CNOT(b, c)]
@@ -130,6 +138,23 @@ class CCZPowGate(gate_features.InterchangeableQubitsGate, eigen_gate.EigenGate):
             if protocols.is_parameterized(global_phase) or abs(global_phase - 1.0) > 0
             else []
         )
+
+        if (all_to_all_connect):
+            return global_phase_operation + [
+                common_gates.CNOT(b, c),
+                p(c) ** -1,
+                common_gates.CNOT(a, c),
+                p(c),
+                common_gates.CNOT(b, c),
+                p(c) ** -1,
+                common_gates.CNOT(a, c),
+                p(b),
+                p(c),
+                common_gates.CNOT(a, b),
+                p(a),
+                p(b) ** -1,
+                common_gates.CNOT(a, b),
+            ]
         return global_phase_operation + [
             p(a),
             p(b),
