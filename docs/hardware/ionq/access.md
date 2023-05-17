@@ -1,9 +1,10 @@
 # Access and Authentication
 
-IonQ's API gives access to IonQ's trapped ion quantum computers as well as a cloud simulator.
-IonQ direct access is currently restricted to those with access to an IonQ API key.
-As of January 2021, this access is currently restricted to partners. More information
-about partnerships can be found at [ionq.com/get-started](https://ionq.com/get-started).
+Access to IonQ's API requires an API key. This can be obtained on from the IonQ
+Console at [cloud.ionq.com/settings/keys](https://cloud.ionq.com/settings/keys)
+
+For those accounts _without_ console access, contact 
+[support@ionq.com](mailto:support@ionq.com) to obtain a key.
 
 ## Authentication
 

@@ -1,8 +1,9 @@
 # IonQ API Service
 
-IonQ's API provides a way to execute quantum circuits on IonQ's trapped ion quantum computers
-or on cloud based simulators. As of April 2021, this access is restricted to partners.
-See [Access and Authentication](access.md) for details of access.
+IonQ's API provides a way to execute quantum circuits on [IonQ's](https://ionq.com)
+trapped ion quantum computers and cloud based simulators. An IonQ account is
+required to use this service. To learn more, or sign up, see
+[ionq.com/get-started](https://ionq.com/get-started).
 
 ## Service class
 
@@ -95,7 +96,7 @@ When running a job, there are several parameters that can be provided:
 * `param_resolver`: A `cirq.ParamResolver` to resolve parameters in `circuit`.
 * `seed`: For `simulation` jobs, specify the seed for simulating results. If None, this will be `np.random`, if an int, will be `np.random.RandomState(int)`, otherwise must be a modulate similar to `np.random`.
 * `error_mitigation`: A dictionary of error mitigation settings. Valid keys include:
-  - 'debias': A boolean indicating whether to use the debiasing technique for aggregating results. This technique is used to reduce the bias in the results caused by measurement error and can improve the accuracy of the output.
+  - 'debias': Set to `true` to turn on debiasing, which reduces error effects of physical qubits by compiling the circuit in multiple variants. Debiasing is on by default for Aria-class systems.
 * `sharpen`: A boolean that determines how to aggregate error mitigated results. If set to True, applies majority vote mitigation; if False, applies average mitigation. _(Note: This parameter requires `debias:True`)_ 
 * `extra_query_params`: A dictionary that specifies additional parameters to be provided in the request. (Currently unused)
 
