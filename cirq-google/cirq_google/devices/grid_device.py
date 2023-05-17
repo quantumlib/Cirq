@@ -30,7 +30,7 @@ from typing import (
 )
 import re
 import warnings
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 
 import cirq
 from cirq_google import ops
@@ -77,62 +77,74 @@ class _GateRepresentations:
 
     Attributes:
         gate_spec_name: The name of gate type in `GateSpecification`.
-        primary forms: Gate representations to be included in generated gatesets and gate durations.
-        additional_forms: GateFamilies which match all other valid gate representations.
-        all_forms: `primary_forms` (as GateFamilies) + `additional_forms`
+        deserialized_forms: Gate representations to be included when the corresponding
+            `GateSpecification` gate type is deserialized into gatesets and gate durations.
+        serializable_forms: GateFamilies used to check whether a given gate can be serialized to the
+            gate type in this _GateRepresentation.
     """
 
     gate_spec_name: str
-    primary_forms: List[GateOrFamily]
-    additional_forms: List[cirq.GateFamily] = field(default_factory=list)
-    all_forms: List[cirq.GateFamily] = field(init=False)
-
-    def __post_init__(self):
-        self.all_forms = [
-            gof if isinstance(gof, cirq.GateFamily) else cirq.GateFamily(gof)
-            for gof in self.primary_forms
-        ] + self.additional_forms
+    deserialized_forms: List[GateOrFamily]
+    serializable_forms: List[cirq.GateFamily]
 
 
 """Valid gates for a GridDevice."""
 _GATES: List[_GateRepresentations] = [
     _GateRepresentations(
         gate_spec_name='syc',
-        primary_forms=[_SYC_FSIM_GATE_FAMILY],
-        additional_forms=[cirq.GateFamily(ops.SYC)],
+        deserialized_forms=[_SYC_FSIM_GATE_FAMILY],
+        serializable_forms=[_SYC_FSIM_GATE_FAMILY, cirq.GateFamily(ops.SYC)],
     ),
     _GateRepresentations(
         gate_spec_name='sqrt_iswap',
-        primary_forms=[_SQRT_ISWAP_FSIM_GATE_FAMILY],
-        additional_forms=[cirq.GateFamily(cirq.SQRT_ISWAP)],
+        deserialized_forms=[_SQRT_ISWAP_FSIM_GATE_FAMILY],
+        serializable_forms=[_SQRT_ISWAP_FSIM_GATE_FAMILY, cirq.GateFamily(cirq.SQRT_ISWAP)],
     ),
     _GateRepresentations(
         gate_spec_name='sqrt_iswap_inv',
-        primary_forms=[_SQRT_ISWAP_INV_FSIM_GATE_FAMILY],
-        additional_forms=[cirq.GateFamily(cirq.SQRT_ISWAP_INV)],
+        deserialized_forms=[_SQRT_ISWAP_INV_FSIM_GATE_FAMILY],
+        serializable_forms=[_SQRT_ISWAP_INV_FSIM_GATE_FAMILY, cirq.GateFamily(cirq.SQRT_ISWAP_INV)],
     ),
     _GateRepresentations(
         gate_spec_name='cz',
-        primary_forms=[_CZ_FSIM_GATE_FAMILY],
-        additional_forms=[cirq.GateFamily(cirq.CZ)],
+        deserialized_forms=[_CZ_FSIM_GATE_FAMILY],
+        serializable_forms=[_CZ_FSIM_GATE_FAMILY, cirq.GateFamily(cirq.CZ)],
     ),
     _GateRepresentations(
         gate_spec_name='phased_xz',
-        primary_forms=[cirq.PhasedXZGate, cirq.XPowGate, cirq.YPowGate, cirq.PhasedXPowGate],
+        deserialized_forms=[cirq.PhasedXZGate, cirq.XPowGate, cirq.YPowGate, cirq.PhasedXPowGate],
+        serializable_forms=[
+            cirq.GateFamily(cirq.PhasedXZGate),
+            cirq.GateFamily(cirq.XPowGate),
+            cirq.GateFamily(cirq.YPowGate),
+            cirq.GateFamily(cirq.PhasedXPowGate),
+        ],
     ),
     _GateRepresentations(
         gate_spec_name='virtual_zpow',
-        primary_forms=[cirq.GateFamily(cirq.ZPowGate, tags_to_ignore=[ops.PhysicalZTag()])],
+        deserialized_forms=[cirq.GateFamily(cirq.ZPowGate, tags_to_ignore=[ops.PhysicalZTag()])],
+        serializable_forms=[cirq.GateFamily(cirq.ZPowGate, tags_to_ignore=[ops.PhysicalZTag()])],
     ),
     _GateRepresentations(
         gate_spec_name='physical_zpow',
-        primary_forms=[cirq.GateFamily(cirq.ZPowGate, tags_to_accept=[ops.PhysicalZTag()])],
+        deserialized_forms=[cirq.GateFamily(cirq.ZPowGate, tags_to_accept=[ops.PhysicalZTag()])],
+        serializable_forms=[cirq.GateFamily(cirq.ZPowGate, tags_to_accept=[ops.PhysicalZTag()])],
     ),
     _GateRepresentations(
-        gate_spec_name='coupler_pulse', primary_forms=[experimental_ops.CouplerPulse]
+        gate_spec_name='coupler_pulse',
+        deserialized_forms=[experimental_ops.CouplerPulse],
+        serializable_forms=[cirq.GateFamily(experimental_ops.CouplerPulse)],
     ),
-    _GateRepresentations(gate_spec_name='meas', primary_forms=[cirq.MeasurementGate]),
-    _GateRepresentations(gate_spec_name='wait', primary_forms=[cirq.WaitGate]),
+    _GateRepresentations(
+        gate_spec_name='meas',
+        deserialized_forms=[cirq.MeasurementGate],
+        serializable_forms=[cirq.GateFamily(cirq.MeasurementGate)],
+    ),
+    _GateRepresentations(
+        gate_spec_name='wait',
+        deserialized_forms=[cirq.WaitGate],
+        serializable_forms=[cirq.GateFamily(cirq.WaitGate)],
+    ),
 ]
 
 
@@ -201,7 +213,8 @@ def _serialize_gateset_and_gate_durations(
     for gate_family in gateset.gates:
         gate_spec = v2.device_pb2.GateSpecification()
         gate_rep = next(
-            (gr for gr in _GATES for gf in gr.all_forms if _in_or_equals(gate_family, gf)), None
+            (gr for gr in _GATES for gf in gr.serializable_forms if _in_or_equals(gate_family, gf)),
+            None,
         )
         if gate_rep is None:
             raise ValueError(f'Unrecognized gate: {gate_family}.')
@@ -213,13 +226,13 @@ def _serialize_gateset_and_gate_durations(
         # Set gate duration
         gate_durations_picos = {
             int(gate_durations[gf].total_picos())
-            for gf in gate_rep.all_forms
+            for gf in gate_rep.serializable_forms
             if gf in gate_durations
         }
         if len(gate_durations_picos) > 1:
             raise ValueError(
                 'Multiple gate families in the following list exist in the gate duration dict,'
-                f' and they are expected to have the same duration value: {gate_rep.all_forms}'
+                f' and they are expected to have the same duration value: {gate_rep.serializable_forms}'
             )
         elif len(gate_durations_picos) == 1:
             gate_spec.gate_duration_picos = gate_durations_picos.pop()
@@ -255,8 +268,8 @@ def _deserialize_gateset_and_gate_durations(
             )
             continue
 
-        gates_list.extend(gate_rep.primary_forms)
-        for g in gate_rep.primary_forms:
+        gates_list.extend(gate_rep.deserialized_forms)
+        for g in gate_rep.deserialized_forms:
             if not isinstance(g, cirq.GateFamily):
                 g = cirq.GateFamily(g)
             gate_durations[g] = cirq.Duration(picos=gate_spec.gate_duration_picos)
