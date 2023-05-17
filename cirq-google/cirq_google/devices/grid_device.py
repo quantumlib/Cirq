@@ -73,15 +73,18 @@ GateOrFamily = Union[Type[cirq.Gate], cirq.Gate, cirq.GateFamily]
 
 @dataclass
 class _GateRepresentations:
-    """Contains equivalent representations of a gate in both DeviceSpecification and GridDevice."""
+    """Contains equivalent representations of a gate in both DeviceSpecification and GridDevice.
 
-    """The name of gate type in `GateSpecification`."""
+    Attributes:
+        gate_spec_name: The name of gate type in `GateSpecification`.
+        primary forms: Gate representations to be included in generated gatesets and gate durations.
+        additional_forms: GateFamilies which match all other valid gate representations.
+        all_forms: `primary_forms` (as GateFamilies) + `additional_forms`
+    """
+
     gate_spec_name: str
-    """Gate representations to be included in generated gatesets and gate durations."""
     primary_forms: List[GateOrFamily]
-    """GateFamilies which match all other valid gate representations."""
     additional_forms: List[cirq.GateFamily] = field(default_factory=list)
-    """`primary_forms` (as GateFamilies) + `additional_forms`"""
     all_forms: List[cirq.GateFamily] = field(init=False)
 
     def __post_init__(self):
@@ -190,11 +193,11 @@ def _validate_device_specification(proto: v2.device_pb2.DeviceSpecification) -> 
 def _serialize_gateset_and_gate_durations(
     out: v2.device_pb2.DeviceSpecification,
     gateset: cirq.Gateset,
-    gate_durations: Mapping['cirq.GateFamily', 'cirq.Duration'],
+    gate_durations: Mapping[cirq.GateFamily, cirq.Duration],
 ) -> v2.device_pb2.DeviceSpecification:
     """Serializes the given gateset and gate durations to DeviceSpecification."""
 
-    gate_specs = {}
+    gate_specs: Dict[str, v2.device_pb2.GateSpecification] = {}
     for gate_family in gateset.gates:
         gate_spec = v2.device_pb2.GateSpecification()
         gate_rep = next(
@@ -202,32 +205,31 @@ def _serialize_gateset_and_gate_durations(
         )
         if gate_rep is None:
             raise ValueError(f'Unrecognized gate: {gate_family}.')
+        gate_name = gate_rep.gate_spec_name
 
         # Set gate
-        getattr(gate_spec, gate_rep.gate_spec_name).SetInParent()
+        getattr(gate_spec, gate_name).SetInParent()
 
         # Set gate duration
-        is_duration_set = False
-        for gf in gate_rep.all_forms:
-            if gf not in gate_durations:
-                continue
-
-            gate_duration_picos = int(gate_durations[gf].total_picos())
-            if is_duration_set and gate_duration_picos != gate_spec.gate_duration_picos:
-                raise ValueError(
-                    'Multiple gate families in the following list exist in the gate duration dict,'
-                    f' and they are expected to have the same duration value: {gate_rep.all_forms}'
-                )
-            is_duration_set = True
-            gate_spec.gate_duration_picos = gate_duration_picos
+        gate_durations_picos = {
+            int(gate_durations[gf].total_picos())
+            for gf in gate_rep.all_forms
+            if gf in gate_durations
+        }
+        if len(gate_durations_picos) > 1:
+            raise ValueError(
+                'Multiple gate families in the following list exist in the gate duration dict,'
+                f' and they are expected to have the same duration value: {gate_rep.all_forms}'
+            )
+        elif len(gate_durations_picos) == 1:
+            gate_spec.gate_duration_picos = gate_durations_picos.pop()
 
         # GateSpecification dedup. Multiple gates or GateFamilies in the gateset could map to the
         # same GateSpecification.
-        gate_name = gate_spec.WhichOneof('gate')
         gate_specs[gate_name] = gate_spec
 
     # Sort by gate name to keep valid_gates stable.
-    out.valid_gates.extend([v for _, v in sorted(gate_specs.items(), key=lambda item: item[0])])
+    out.valid_gates.extend(v for _, v in sorted(gate_specs.items()))
 
     return out
 
@@ -475,10 +477,7 @@ class GridDevice(cirq.Device):
         """
         qubits = self._metadata.qubit_set
         unordered_pairs = [tuple(pair_set) for pair_set in self._metadata.qubit_pairs]
-        pairs = [
-            (pair[0], pair[1]) if pair[0] <= pair[1] else (pair[1], pair[0])
-            for pair in unordered_pairs
-        ]
+        pairs = sorted((q0, q1) if q0 <= q1 else (q1, q0) for q0, q1 in unordered_pairs)
         gateset = self._metadata.gateset
         gate_durations = self._metadata.gate_durations
 
@@ -491,9 +490,9 @@ class GridDevice(cirq.Device):
         # TODO(#5050) remove empty checks below once deprecated fields in DeviceSpecification are
         # removed.
 
-        if len(out.valid_qubits) == 0:
+        if not out.valid_qubits:
             known_devices.populate_qubits_in_device_proto(qubits, out)
-        if len(out.valid_targets) == 0:
+        if not out.valid_targets:
             known_devices.populate_qubit_pairs_in_device_proto(pairs, out)
         _serialize_gateset_and_gate_durations(
             out, gateset, {} if gate_durations is None else gate_durations
@@ -556,6 +555,11 @@ class GridDevice(cirq.Device):
             qubit_pairs=qubit_pairs, gateset=gateset, gate_durations=gate_durations
         )
         incomplete_device = GridDevice(metadata)
+        # incomplete_device may have incomplete gateset and gate durations information, as described
+        # in the docstring.
+        # To generate the full gateset and gate durations, we rely on the device deserialization
+        # logic by first serializing then deserializing the fake device, to ensure that the
+        # resulting device is consistent with one that is deserialized from DeviceSpecification.
         return GridDevice.from_proto(incomplete_device.to_proto())
 
     @property
