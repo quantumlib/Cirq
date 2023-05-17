@@ -502,7 +502,7 @@ class GridDevice(cirq.Device):
         return out
 
     @classmethod
-    def from_device_information(
+    def _from_device_information(
         cls,
         *,
         qubit_pairs: Collection[Tuple[cirq.GridQubit, cirq.GridQubit]],
@@ -510,6 +510,8 @@ class GridDevice(cirq.Device):
         gate_durations: Optional[Mapping['cirq.GateFamily', 'cirq.Duration']] = None,
     ) -> 'GridDevice':
         """Constructs a GridDevice using the device information provided.
+
+        EXPERIMENTAL: this method may have changes which are not backward compatible in the future.
 
         This is a convenience method for constructing a GridDevice given partial gateset and
         gate_duration information: for every distinct gate, only one representation needs to be in

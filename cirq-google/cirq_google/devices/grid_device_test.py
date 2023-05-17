@@ -442,8 +442,25 @@ def test_grid_device_repr_pretty(cycle, func):
 def test_device_from_device_information_equals_device_from_proto():
     device_info, spec = _create_device_spec_with_horizontal_couplings()
 
-    # The set of gates in gate_durations are consistent with what's generated in
+    # The set of gates in gateset and gate durations are consistent with what's generated in
     # _create_device_spec_with_horizontal_couplings()
+    gateset = cirq.Gateset(
+        cirq_google.SYC,
+        cirq.SQRT_ISWAP,
+        cirq.SQRT_ISWAP_INV,
+        cirq.CZ,
+        cirq.ops.phased_x_z_gate.PhasedXZGate,
+        cirq.GateFamily(
+            cirq.ops.common_gates.ZPowGate, tags_to_ignore=[cirq_google.PhysicalZTag()]
+        ),
+        cirq.GateFamily(
+            cirq.ops.common_gates.ZPowGate, tags_to_accept=[cirq_google.PhysicalZTag()]
+        ),
+        cirq_google.experimental.ops.coupler_pulse.CouplerPulse,
+        cirq.ops.measurement_gate.MeasurementGate,
+        cirq.ops.wait_gate.WaitGate,
+    )
+
     base_duration = cirq.Duration(picos=1_000)
     gate_durations = {
         cirq.GateFamily(cirq_google.SYC): base_duration * 0,
@@ -465,9 +482,7 @@ def test_device_from_device_information_equals_device_from_proto():
     }
 
     device_from_information = cirq_google.GridDevice.from_device_information(
-        qubit_pairs=device_info.qubit_pairs,
-        gateset=cirq.Gateset(*gate_durations.keys()),
-        gate_durations=gate_durations,
+        qubit_pairs=device_info.qubit_pairs, gateset=gateset, gate_durations=gate_durations
     )
 
     assert device_from_information == cirq_google.GridDevice.from_proto(spec)
