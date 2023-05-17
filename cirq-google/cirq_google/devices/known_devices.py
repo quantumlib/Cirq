@@ -79,7 +79,7 @@ def _create_grid_device_from_diagram(
             if neighbor > qubit and neighbor in qubit_set:
                 pairs.append((qubit, cast(cirq.GridQubit, neighbor)))
 
-    return grid_device.GridDevice.from_device_information(
+    return grid_device.GridDevice._from_device_information(
         qubit_pairs=pairs, gateset=gateset, gate_durations=gate_durations
     )
 

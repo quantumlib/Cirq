@@ -481,7 +481,7 @@ def test_device_from_device_information_equals_device_from_proto():
         cirq.GateFamily(cirq.ops.wait_gate.WaitGate): base_duration * 9,
     }
 
-    device_from_information = cirq_google.GridDevice.from_device_information(
+    device_from_information = cirq_google.GridDevice._from_device_information(
         qubit_pairs=device_info.qubit_pairs, gateset=gateset, gate_durations=gate_durations
     )
 
@@ -522,7 +522,7 @@ def test_device_from_device_information_equals_device_from_proto():
 )
 def test_from_device_information_invalid_input(error_match, qubit_pairs, gateset, gate_durations):
     with pytest.raises(ValueError, match=error_match):
-        grid_device.GridDevice.from_device_information(
+        grid_device.GridDevice._from_device_information(
             qubit_pairs=qubit_pairs, gateset=gateset, gate_durations=gate_durations
         )
 
@@ -537,7 +537,7 @@ def test_from_device_information_fsim_gate_family():
         cirq_google.FSimGateFamily(gates_to_accept=[cirq.CZ]),
     )
 
-    device = grid_device.GridDevice.from_device_information(
+    device = grid_device.GridDevice._from_device_information(
         qubit_pairs=[(cirq.GridQubit(0, 0), cirq.GridQubit(0, 1))], gateset=gateset
     )
 
@@ -545,7 +545,7 @@ def test_from_device_information_fsim_gate_family():
 
 
 def test_from_device_information_empty():
-    device = grid_device.GridDevice.from_device_information(
+    device = grid_device.GridDevice._from_device_information(
         qubit_pairs=[], gateset=cirq.Gateset(), gate_durations=None
     )
 
@@ -580,7 +580,7 @@ def test_to_proto():
         cirq.GateFamily(cirq.ops.wait_gate.WaitGate): base_duration * 9,
     }
 
-    spec = cirq_google.GridDevice.from_device_information(
+    spec = cirq_google.GridDevice._from_device_information(
         qubit_pairs=device_info.qubit_pairs,
         gateset=cirq.Gateset(*gate_durations.keys()),
         gate_durations=gate_durations,

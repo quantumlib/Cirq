@@ -426,7 +426,7 @@ class GridDevice(cirq.Device):
         """Creates a GridDevice object.
 
         This constructor should not be used directly outside the class implementation. Use
-        `from_proto()` or `from_device_information()` instead.
+        `from_proto()` instead.
         """
         self._metadata = metadata
 
