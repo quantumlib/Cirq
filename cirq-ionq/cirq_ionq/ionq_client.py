@@ -109,7 +109,7 @@ class _IonQClient:
         repetitions: Optional[int] = None,
         target: Optional[str] = None,
         name: Optional[str] = None,
-        extra_request_payload: Optional[dict] = None,
+        extra_query_params: Optional[dict] = None,
     ) -> dict:
         """Create a job.
 
@@ -122,7 +122,7 @@ class _IonQClient:
             target: If supplied the target to run on. Supports one of `qpu` or `simulator`. If not
                 set, uses `default_target`.
             name: An optional name of the job. Different than the `job_id` of the job.
-            extra_request_payload: Specify any parameters to include in the request.
+            extra_query_params: Specify any parameters to include in the request.
 
         Returns:
             The json body of the response as a dict. This does not contain populated information
@@ -151,8 +151,8 @@ class _IonQClient:
         if serialized_program.error_mitigation:
             json['error_mitigation'] = serialized_program.error_mitigation
 
-        if extra_request_payload is not None:
-            json.update(extra_request_payload)
+        if extra_query_params is not None:
+            json.update(extra_query_params)
 
         def request():
             return requests.post(f'{self.url}/jobs', json=json, headers=self.headers)
@@ -179,20 +179,17 @@ class _IonQClient:
         return self._make_request(request, {}).json()
 
     def get_results(
-        self,
-        job_id: str,
-        sharpen: Optional[bool] = None,
-        extra_request_payload: Optional[dict] = None,
+        self, job_id: str, sharpen: Optional[bool] = None, extra_query_params: Optional[dict] = None
     ):
         """Get job results from IonQ API.
 
         Args:
             job_id: The UUID of the job (returned when the job was created).
             sharpen: Determines which error aggregation to use for debiased jobs.
-            extra_request_payload: Specify any parameters to include in the request.
+            extra_query_params: Specify any parameters to include in the request.
 
         Returns:
-            The json body of the response as a dict.
+            extra_query_paramsresponse as a dict.
 
         Raises:
             IonQNotFoundException: If job or results don't exist.
@@ -204,8 +201,8 @@ class _IonQClient:
         if sharpen is not None:
             params["sharpen"] = sharpen
 
-        if extra_request_payload is not None:
-            params.update(extra_request_payload)
+        if extra_query_params is not None:
+            params.update(extra_query_params)
 
         def request():
             return requests.get(

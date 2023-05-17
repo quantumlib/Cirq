@@ -90,7 +90,7 @@ class Service:
         seed: cirq.RANDOM_STATE_OR_SEED_LIKE = None,
         error_mitigation: Optional[dict] = None,
         sharpen: Optional[bool] = None,
-        extra_request_payload: Optional[dict] = None,
+        extra_query_params: Optional[dict] = None,
     ) -> cirq.Result:
         """Run the given circuit on the IonQ API.
 
@@ -109,7 +109,7 @@ class Service:
                   caused by measurement error and can improve the accuracy of the output.
             sharpen: A boolean that determines how to aggregate error mitigated.
                 If True, apply majority vote mitigation; if False, apply average mitigation.
-            extra_request_payload: Specify any parameters to include in the request.
+            extra_query_params: Specify any parameters to include in the request.
 
         Returns:
             A `cirq.Result` for running the circuit.
@@ -121,7 +121,7 @@ class Service:
             name=name,
             target=target,
             error_mitigation=error_mitigation,
-            extra_request_payload=extra_request_payload,
+            extra_query_params=extra_query_params,
         ).results(sharpen=sharpen)
         if isinstance(result, results.QPUResult):
             return result.to_cirq_result(params=cirq.ParamResolver(param_resolver))
@@ -151,7 +151,7 @@ class Service:
         name: Optional[str] = None,
         target: Optional[str] = None,
         error_mitigation: Optional[dict] = None,
-        extra_request_payload: Optional[dict] = None,
+        extra_query_params: Optional[dict] = None,
     ) -> job.Job:
         """Create a new job to run the given circuit.
 
@@ -164,7 +164,7 @@ class Service:
                 - 'debias': A boolean indicating whether to use the debiasing technique for
                   aggregating results. This technique is used to reduce the bias in the results
                   caused by measurement error and can improve the accuracy of the output.
-            extra_request_payload: Specify any parameters to include in the request.
+            extra_query_params: Specify any parameters to include in the request.
 
         Returns:
             A `cirq_ionq.IonQJob` which can be queried for status or results.
@@ -178,7 +178,7 @@ class Service:
             repetitions=repetitions,
             target=target,
             name=name,
-            extra_request_payload=extra_request_payload,
+            extra_query_params=extra_query_params,
         )
         # The returned job does not have fully populated fields, so make
         # a second call and return the results of the fully filled out job.

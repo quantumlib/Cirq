@@ -175,7 +175,7 @@ class Job:
         timeout_seconds: int = 7200,
         polling_seconds: int = 1,
         sharpen: Optional[bool] = None,
-        extra_request_payload: Optional[dict] = None,
+        extra_query_params: Optional[dict] = None,
     ) -> Union[results.QPUResult, results.SimulatorResult]:
         """Polls the IonQ api for results.
 
@@ -183,7 +183,7 @@ class Job:
             timeout_seconds: The total number of seconds to poll for.
             polling_seconds: The interval with which to poll.
             sharpen: Determines which error aggregation to use for debiased jobs.
-            extra_request_payload: Specify any parameters to include in the request.
+            extra_query_params: Specify any parameters to include in the request.
 
         Returns:
             Either a `cirq_ionq.QPUResults` or `cirq_ionq.SimulatorResults` depending on whether
@@ -218,7 +218,7 @@ class Job:
             )
 
         histogram = self._client.get_results(
-            job_id=self.job_id(), sharpen=sharpen, extra_request_payload=extra_request_payload
+            job_id=self.job_id(), sharpen=sharpen, extra_query_params=extra_query_params
         )
         # IonQ returns results in little endian, Cirq prefers to use big endian, so we convert.
         if self.target().startswith('qpu'):

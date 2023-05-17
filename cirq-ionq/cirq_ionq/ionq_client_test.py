@@ -123,7 +123,7 @@ def test_ionq_client_create_job(mock_post):
 
 
 @mock.patch('requests.post')
-def test_ionq_client_create_job_extra_payload(mock_post):
+def test_ionq_client_create_job_extra_params(mock_post):
     mock_post.return_value.status_code.return_value = requests.codes.ok
     mock_post.return_value.json.return_value = {'foo': 'bar'}
 
@@ -134,7 +134,7 @@ def test_ionq_client_create_job_extra_payload(mock_post):
         repetitions=200,
         target='qpu',
         name='bacon',
-        extra_request_payload={'error_mitigation': {'debias': True}},
+        extra_query_params={'error_mitigation': {'debias': True}},
     )
     assert response == {'foo': 'bar'}
 
@@ -400,11 +400,11 @@ def test_ionq_client_get_results(mock_get):
 
 
 @mock.patch('requests.get')
-def test_ionq_client_get_results_extra_payload(mock_get):
+def test_ionq_client_get_results_extra_params(mock_get):
     mock_get.return_value.ok = True
     mock_get.return_value.json.return_value = {'foo': 'bar'}
     client = ionq.ionq_client._IonQClient(remote_host='http://example.com', api_key='to_my_heart')
-    response = client.get_results(job_id='job_id', extra_request_payload={'sharpen': False})
+    response = client.get_results(job_id='job_id', extra_query_params={'sharpen': False})
     assert response == {'foo': 'bar'}
 
     expected_headers = {
