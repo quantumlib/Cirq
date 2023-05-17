@@ -231,8 +231,8 @@ def _serialize_gateset_and_gate_durations(
         }
         if len(gate_durations_picos) > 1:
             raise ValueError(
-                'Multiple gate families in the following list exist in the gate duration dict,'
-                f' and they are expected to have the same duration value: {gate_rep.serializable_forms}'
+                'Multiple gate families in the following list exist in the gate duration dict, and '
+                f'they are expected to have the same duration value: {gate_rep.serializable_forms}'
             )
         elif len(gate_durations_picos) == 1:
             gate_spec.gate_duration_picos = gate_durations_picos.pop()
