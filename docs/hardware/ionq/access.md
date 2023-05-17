@@ -7,27 +7,35 @@ about partnerships can be found at [ionq.com/get-started](https://ionq.com/get-s
 
 ## Authentication
 
-To use Cirq with the IonQ API, one needs an API key.  This is a random looking string.
+An API key is required to access IonQ via Cirq. You will pass this key to an 
+instance of a `cirq_ionq.Service`, which can then be used to interact
+with IonQ computers.
 
-Given that you have the API key, there are two ways to use these to
-get an object in python to access the API. The object that you construct to access
-the API are instances of the `cirq_ionq.Service` class. You can directly use the API key in constructing this instances of this class. Here is an example of this pattern:
+Here is an example of this pattern:
+
 ```python
 import cirq_ionq as ionq
 
 service = ionq.Service(api_key='tomyheart')
 ```
 
-Alternatively, you can use environment variables to set this value. These environment variable for the api key is `IONQ_API_KEY`.  Details of how to set environment variables vary by operating system.  For example in bash, you would do
+Alternatively, you can use environment variables to set this value. This 
+environment variable for the API key is `IONQ_API_KEY`. Details of how to set 
+environment variables vary by operating system. For example, in `bash`:
+
 ```bash
 export IONQ_API_KEY=tomyheart
 ```
-In the case that you have set these environment variables, you can just perform
+
+Once this variable is set, the `ionq.Service()` will look for it automatically
+in the environment:
+
 ```python
 import cirq_ionq as ionq
 
 service = ionq.Service()
 ```
+
 The advantage of doing things this way is that you do not have to store the API key in
 source code, which might accidentally get uploaded to a version control system, and hence
 leak the API key.
