@@ -148,15 +148,6 @@ _GATES: List[_GateRepresentations] = [
 ]
 
 
-def _in_or_equals(g: GateOrFamily, gate_family: cirq.GateFamily):
-    if isinstance(g, cirq.GateFamily):
-        return g == gate_family
-    elif isinstance(g, cirq.Gate):
-        return g in gate_family
-    else:  # Gate type
-        return cirq.GateFamily(g) == gate_family
-
-
 def _validate_device_specification(proto: v2.device_pb2.DeviceSpecification) -> None:
     """Raises a ValueError if the `DeviceSpecification` proto is invalid."""
 
@@ -213,8 +204,7 @@ def _serialize_gateset_and_gate_durations(
     for gate_family in gateset.gates:
         gate_spec = v2.device_pb2.GateSpecification()
         gate_rep = next(
-            (gr for gr in _GATES for gf in gr.serializable_forms if _in_or_equals(gate_family, gf)),
-            None,
+            (gr for gr in _GATES for gf in gr.serializable_forms if gf == gate_family), None
         )
         if gate_rep is None:
             raise ValueError(f'Unrecognized gate: {gate_family}.')
