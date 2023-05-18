@@ -74,7 +74,7 @@ the user's "permission".
     run variants of circuits.  When not possible, try using `run_batch`.  Using
     these methods gives the hardware service the most opportunity to optimize
     the execution of circuits and can result in much faster execution.
-    Read more details on the [Parameter Sweeps](/cirq/simulate/params) page.
+    Read more details on the [Parameter Sweeps](../simulate/params.ipynb) page.
 *   Consider defining and allocating qubits at the beginning of your code or
     function, then applying gates and circuits to those qubits.  While not
     required, this style can produce cleaner code.

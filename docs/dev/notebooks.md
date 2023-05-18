@@ -47,8 +47,8 @@ In order to speed up the execution of these tests an auxiliary file may be suppl
 to reduce the number of repetitions in sampling from a simulator).
 
 To do this, for a notebook file notebook.ipynb, one can supply a file notebook.tst which contains the substitutes.
-The substitutions are provide in the form `pattern->replacement` where the pattern is what is matched and will be replaced.
-While the pattern is compiled, it is considered best practice to not sure complicated regular expressions.
+The substitutions are provided in the form `pattern->replacement` where the pattern is what is matched and will be replaced.
+While the pattern is compiled, it is considered best practice to not use complicated regular expressions.
 Lines in this file that do not have `->` are ignored.  Note that because the pattern is
 compiled, it may be necessary to escape the pattern, however it is best to try to avoid
 such complicated expressions.
