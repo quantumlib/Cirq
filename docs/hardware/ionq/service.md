@@ -96,8 +96,8 @@ When running a job, there are several parameters that can be provided:
 * `param_resolver`: A `cirq.ParamResolver` to resolve parameters in `circuit`.
 * `seed`: For `simulation` jobs, specify the seed for simulating results. If None, this will be `np.random`, if an int, will be `np.random.RandomState(int)`, otherwise must be a modulate similar to `np.random`.
 * `error_mitigation`: A dictionary of error mitigation settings. Valid keys include:
-  - 'debias': Set to `true` to turn on debiasing, which reduces error effects of physical qubits by compiling the circuit in multiple variants. Debiasing is on by default for Aria-class systems.
-* `sharpen`: A boolean that determines how to aggregate error mitigated results. If set to True, applies majority vote mitigation; if False, applies average mitigation. _(Note: This parameter requires `debias:True`)_ 
+  - 'debias': Set to true to turn on [debiasing](https://ionq.com/resources/debiasing-and-sharpening), which can improve circuit performance by removing qubit-specific noise. _Debiasing is on by default for Aria-class systems._
+* `sharpen`: Get sharpened results from debiasing. Off by default. Will generally return more accurate results if your expected output distribution has peaks.
 * `extra_query_params`: A dictionary that specifies additional parameters to be provided in the request. (Currently unused)
 
 Here is an example of using error mitigation and sharpening options:
