@@ -436,7 +436,7 @@ class Points(SingleSweep):
                 annotate the sweep or its variable.
 
         """
-        super(Points, self).__init__(key)
+        super().__init__(key)
         self.points = points
         self.metadata = metadata
 
