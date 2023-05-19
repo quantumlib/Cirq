@@ -18,14 +18,15 @@ import numpy as np
 import numpy.typing as npt
 
 from cirq.ops import DensePauliString
-from cirq import linalg
 from cirq import protocols
 
+
 def _argmax(V: npt.NDArray) -> Tuple[int, float]:
-    V = (V*V.conj()).real    
+    V = (V * V.conj()).real
     idx_max = np.argmax(V)
     V[idx_max] = 0
     return cast(int, idx_max), np.max(V)
+
 
 def _validate_decomposition(decomposition: DensePauliString, U: npt.NDArray, eps: float) -> bool:
     got = protocols.unitary(decomposition)
@@ -44,6 +45,7 @@ def _fast_walsh_hadamard_transform(V: npt.NDArray) -> None:
                 V[j] = x + y
                 V[j + h] = x - y
 
+
 def _conjugate_with_hadamard(U: npt.NDArray) -> npt.NDArray:
     """Applies H†UH in O(n4^n) instead of O(8^n)."""
 
@@ -55,16 +57,19 @@ def _conjugate_with_hadamard(U: npt.NDArray) -> npt.NDArray:
         _fast_walsh_hadamard_transform(U[:, i])
     return U
 
+
 def unitary_to_pauli_string(U: npt.NDArray, eps: float = 1e-15) -> Optional[DensePauliString]:
-    """Attempts to find a pauli string (with possible phase) equivalent to U up to eps. 
+    """Attempts to find a pauli string (with possible phase) equivalent to U up to eps.
+
+        Based on this answer https://shorturl.at/aA079.
 
     Args:
         U: A square array whose dimension is a power of 2.
         eps: numbers smaller than `eps` are considered zero.
-    
+
     Returns:
         A DensePauliString of None.
-    
+
     Raises:
         ValueError: if U is not square with a power of 2 dimension.
     """
@@ -82,24 +87,25 @@ def unitary_to_pauli_string(U: npt.NDArray, eps: float = 1e-15) -> Optional[Dens
     z_msk, second_largest = _argmax(U_z[:, 0])
     if second_largest > eps:
         return None
+
     def select(i):
         has_x = (x_msk >> i) & 1
         has_z = (z_msk >> i) & 1
-        gate_table = [
-            'IX',
-            'ZY',
-        ] 
+        gate_table = ['IX', 'ZY']
         return gate_table[has_z][has_x]
+
     decomposition = DensePauliString(''.join(select(i) for i in reversed(range(n))))
 
     guess = protocols.unitary(decomposition)
     if np.abs(guess[x_msk, 0]) < eps:
-        return None 
+        return None
     phase = U[x_msk, 0] / guess[x_msk, 0]
 
-    decomposition = DensePauliString(''.join(select(i) for i in reversed(range(n))), coefficient=phase)
+    decomposition = DensePauliString(
+        ''.join(select(i) for i in reversed(range(n))), coefficient=phase
+    )
 
     if not _validate_decomposition(decomposition, U, eps):
         return None
-    
+
     return decomposition
