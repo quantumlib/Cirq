@@ -511,7 +511,7 @@ class Linspace(SingleSweep):
         )
 
     def _json_dict_(self) -> Dict[str, Any]:
-        if self.metadata:
+        if self.metadata is not None:
             return protocols.obj_to_dict_helper(
                 self, ["key", "start", "stop", "length", "metadata"]
             )
