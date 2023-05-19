@@ -18,6 +18,7 @@ from typing import (
     Iterable,
     Iterator,
     List,
+    Optional,
     overload,
     Sequence,
     TYPE_CHECKING,
@@ -421,9 +422,23 @@ class SingleSweep(Sweep):
 class Points(SingleSweep):
     """A simple sweep with explicitly supplied values."""
 
-    def __init__(self, key: 'cirq.TParamKey', points: Sequence[float]) -> None:
+    def __init__(
+        self, key: 'cirq.TParamKey', points: Sequence[float], metadata: Optional[Any] = None
+    ) -> None:
+        """Creates a sweep on a variable with supplied values.
+
+        Args:
+            key: sympy.Symbol or equivalent to sweep across.
+            points: sequence of floating point values that represent
+                the values to sweep across.  The length of the sweep
+                will be equivalent to the length of this sequence.
+            metadata: Optional metadata to attach to the sweep to
+                annotate the sweep or its variable.
+
+        """
         super(Points, self).__init__(key)
         self.points = points
+        self.metadata = metadata
 
     def _tuple(self) -> Tuple[Union[str, sympy.Expr], Sequence[float]]:
         return self.key, tuple(self.points)
@@ -435,25 +450,44 @@ class Points(SingleSweep):
         return iter(self.points)
 
     def __repr__(self) -> str:
-        return f'cirq.Points({self.key!r}, {self.points!r})'
+        metadata_repr = f', metadata={self.metadata!r}' if self.metadata else ""
+        return f'cirq.Points({self.key!r}, {self.points!r}{metadata_repr})'
 
     def _json_dict_(self) -> Dict[str, Any]:
+        if self.metadata:
+            return protocols.obj_to_dict_helper(self, ["key", "points", "metadata"])
         return protocols.obj_to_dict_helper(self, ["key", "points"])
 
 
 class Linspace(SingleSweep):
     """A simple sweep over linearly-spaced values."""
 
-    def __init__(self, key: 'cirq.TParamKey', start: float, stop: float, length: int) -> None:
+    def __init__(
+        self,
+        key: 'cirq.TParamKey',
+        start: float,
+        stop: float,
+        length: int,
+        metadata: Optional[Any] = None,
+    ) -> None:
         """Creates a linear-spaced sweep for a given key.
 
         For the given args, assigns to the list of values
             start, start + (stop - start) / (length - 1), ..., stop
+
+        Args:
+            key: sympy.Symbol or equivalent to sweep across.
+            start: minimum value of linear sweep.
+            stop: maximum value of linear sweep.
+            length: number of points in the sweep.
+            metadata: Optional metadata to attach to the sweep to
+                annotate the sweep or its variable.
         """
         super(Linspace, self).__init__(key)
         self.start = start
         self.stop = stop
         self.length = length
+        self.metadata = metadata
 
     def _tuple(self) -> Tuple[Union[str, sympy.Expr], float, float, int]:
         return (self.key, self.start, self.stop, self.length)
@@ -470,12 +504,17 @@ class Linspace(SingleSweep):
                 yield self.start * (1 - p) + self.stop * p
 
     def __repr__(self) -> str:
+        metadata_repr = f', metadata={self.metadata!r}' if self.metadata else ""
         return (
             f'cirq.Linspace({self.key!r}, start={self.start!r}, '
-            f'stop={self.stop!r}, length={self.length!r})'
+            f'stop={self.stop!r}, length={self.length!r}{metadata_repr})'
         )
 
     def _json_dict_(self) -> Dict[str, Any]:
+        if self.metadata:
+            return protocols.obj_to_dict_helper(
+                self, ["key", "start", "stop", "length", "metadata"]
+            )
         return protocols.obj_to_dict_helper(self, ["key", "start", "stop", "length"])
 
 
