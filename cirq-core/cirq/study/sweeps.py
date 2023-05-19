@@ -483,7 +483,7 @@ class Linspace(SingleSweep):
             metadata: Optional metadata to attach to the sweep to
                 annotate the sweep or its variable.
         """
-        super(Linspace, self).__init__(key)
+        super().__init__(key)
         self.start = start
         self.stop = stop
         self.length = length
