@@ -100,6 +100,7 @@ def unitary_to_pauli_string(U: npt.NDArray, eps: float = 1e-15) -> Optional[Dens
     if np.abs(guess[x_msk, 0]) < eps:
         return None
     phase = U[x_msk, 0] / guess[x_msk, 0]
+    phase /= np.abs(phase)  # Make sure |phase| = 1 to avoid rounding issues.
 
     decomposition = DensePauliString(
         ''.join(select(i) for i in reversed(range(n))), coefficient=phase
