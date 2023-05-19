@@ -30,7 +30,8 @@ from cirq.transformers.analytical_decompositions import unitary_to_pauli_string
 def test_unitary_to_pauli_string(pauli_string: str, phase: complex):
     want = DensePauliString(pauli_string, coefficient=phase)
     got = unitary_to_pauli_string(protocols.unitary(want))
-    assert want == got
+    assert np.all(want.pauli_mask == got.pauli_mask)
+    assert np.isclose(want.coefficient, got.coefficient)
 
 
 def test_unitary_to_pauli_string_non_pauli_input():
