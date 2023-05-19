@@ -504,7 +504,7 @@ class Linspace(SingleSweep):
                 yield self.start * (1 - p) + self.stop * p
 
     def __repr__(self) -> str:
-        metadata_repr = f', metadata={self.metadata!r}' if self.metadata else ""
+        metadata_repr = f', metadata={self.metadata!r}' if self.metadata is not None else ""
         return (
             f'cirq.Linspace({self.key!r}, start={self.start!r}, '
             f'stop={self.stop!r}, length={self.length!r}{metadata_repr})'
