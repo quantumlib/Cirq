@@ -454,7 +454,7 @@ class Points(SingleSweep):
         return f'cirq.Points({self.key!r}, {self.points!r}{metadata_repr})'
 
     def _json_dict_(self) -> Dict[str, Any]:
-        if self.metadata:
+        if self.metadata is not None:
             return protocols.obj_to_dict_helper(self, ["key", "points", "metadata"])
         return protocols.obj_to_dict_helper(self, ["key", "points"])
 
