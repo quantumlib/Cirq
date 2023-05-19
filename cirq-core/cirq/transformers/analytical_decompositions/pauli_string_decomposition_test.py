@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from typing import cast
 import itertools
 import cmath
 import pytest
@@ -30,8 +31,9 @@ from cirq.transformers.analytical_decompositions import unitary_to_pauli_string
 def test_unitary_to_pauli_string(pauli_string: str, phase: complex):
     want = DensePauliString(pauli_string, coefficient=phase)
     got = unitary_to_pauli_string(protocols.unitary(want))
+    assert got is not None
     assert np.all(want.pauli_mask == got.pauli_mask)
-    assert np.isclose(want.coefficient, got.coefficient)
+    assert np.isclose(cast(np.complex128, want.coefficient), cast(np.complex128, got.coefficient))
 
 
 def test_unitary_to_pauli_string_non_pauli_input():
