@@ -450,7 +450,7 @@ class Points(SingleSweep):
         return iter(self.points)
 
     def __repr__(self) -> str:
-        metadata_repr = f', metadata={self.metadata!r}' if self.metadata else ""
+        metadata_repr = f', metadata={self.metadata!r}' if self.metadata is not None else ""
         return f'cirq.Points({self.key!r}, {self.points!r}{metadata_repr})'
 
     def _json_dict_(self) -> Dict[str, Any]:
