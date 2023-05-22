@@ -13,8 +13,8 @@
 # limitations under the License.
 
 from typing import Any, Dict, Optional, Sequence
-from typing_extensions import Protocol
 import dataclasses
+from typing_extensions import Protocol
 import cirq
 
 
