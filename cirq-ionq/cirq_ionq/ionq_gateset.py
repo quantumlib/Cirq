@@ -78,12 +78,20 @@ class IonQTargetGateset(cirq.TwoQubitCompilationTargetGateset):
             temp, k=1, rewriter=lambda op: self._decompose_single_qubit_operation(op, -1)
         ).all_operations()
 
+    def _decompose_multi_qubit_operation(self, op: cirq.Operation, _) -> cirq.OP_TREE:
+        if isinstance(op.gate, cirq.CCZPowGate):
+            return cirq.ops.decompose_all_to_all_connect_ccz_gate(op.gate, op.qubits)
+        return NotImplemented
+
     @property
     def preprocess_transformers(self) -> List['cirq.TRANSFORMER']:
-        """List of transformers which should be run before decomposing individual operations."""
+        """List of transformers which should be run before decomposing individual operations.
+        Decompose to three qubit gates because three qubit gates have different decomposition
+        for all-to-all connectivity between qubits.
+        """
         return [
             cirq.create_transformer_with_kwargs(
-                cirq.expand_composite, no_decomp=lambda op: cirq.num_qubits(op) <= self.num_qubits
+                cirq.expand_composite, no_decomp=lambda op: cirq.num_qubits(op) <= 3
             )
         ]
 
