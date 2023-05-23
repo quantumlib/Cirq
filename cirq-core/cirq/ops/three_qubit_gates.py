@@ -217,7 +217,7 @@ class CCZPowGate(gate_features.InterchangeableQubitsGate, eigen_gate.EigenGate):
 
 
 def decompose_all_to_all_connect_ccz_gate(
-    ccz_gate: 'CCZPowGate', qubits: Tuple['cirq.Qid', 'cirq.Qid', 'cirq.Qid']
+    ccz_gate: 'CCZPowGate', qubits: Tuple['cirq.Qid', ...]
 ) -> 'cirq.OP_TREE':
     """If qubits are all-to-all connected, e.g. qubits in the same ion trap,
     the decomposition will be:
@@ -230,6 +230,9 @@ def decompose_all_to_all_connect_ccz_gate(
 
     where p = T**ccz_gate._exponent
     """
+    if len(qubits) != 3:
+        raise ValueError(f'Expect 3 qubits for CCZ gate, got {len(qubits)} qubits.')
+
     a, b, c = qubits
 
     p = common_gates.T**ccz_gate._exponent
