@@ -45,3 +45,14 @@ def test_unitary_to_pauli_string_non_pauli_input():
 
     got = unitary_to_pauli_string(np.array([[1, 1], [0, 2]]))
     assert got is None
+
+    got = unitary_to_pauli_string(np.array([[0, 0.5], [1, -1]]), eps=1.1)
+    assert got is None
+
+
+def test_invalid_input():
+    with pytest.raises(ValueError):
+        _ = unitary_to_pauli_string(np.zeros((2, 3)))
+
+    with pytest.raises(ValueError):
+        _ = unitary_to_pauli_string(np.zeros((3, 3)))
