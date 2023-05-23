@@ -6,7 +6,7 @@ to access or manage the jobs, programs, reservations and calibrations. As of Cir
 the only supported client for this API, using the `cirq_google.Engine` class.
 For other use cases (e.g. from a different language), contact
 [cirq-maintainers@googlegroups.com](mailto:cirq-maintainers@googlegroups.com)
-with a short proposal or submit an [RFC](/cirq/dev/rfc_process.md).
+with a short proposal or submit an [RFC](../dev/rfc_process.md).
 
 Note: the Quantum Engine API is not yet open for public access.
 

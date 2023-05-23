@@ -118,7 +118,7 @@ review process is to ensure all integrations end up with a well-maintained, user
 friendly interface with a high reliability.
 
 Examples of other integrations can be found on the
-[Hardware page](/cirq/hardware).
+[Hardware page](../hardware).
 
 There are a range of possibilities for integrating with cirq, including:
 

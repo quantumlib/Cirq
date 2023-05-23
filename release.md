@@ -62,7 +62,7 @@ Master will always use the next unreleased minor version with the suffix
 of ".dev".  When a release is performed, the ".dev" will be removed and tagged
 in a release branch with a version tag (vX.X.X).  Then, master will be updated
 to the next minor version.  This can always be found in the
-[version file](cirq/_version.py).
+[version file](./cirq-core/cirq/_version.py).
 
 ### Release Schedule
 Releases are made on an as-needed basis determined by Cirq maintainers. All Cirq

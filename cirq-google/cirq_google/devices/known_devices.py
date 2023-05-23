@@ -57,7 +57,6 @@ def _create_grid_device_from_diagram(
     ascii_grid: str,
     gateset: cirq.Gateset,
     gate_durations: Optional[Dict['cirq.GateFamily', 'cirq.Duration']] = None,
-    out: Optional[device_pb2.DeviceSpecification] = None,
 ) -> grid_device.GridDevice:
     """Parse ASCIIart device layout into a GridDevice instance.
 
@@ -80,10 +79,9 @@ def _create_grid_device_from_diagram(
             if neighbor > qubit and neighbor in qubit_set:
                 pairs.append((qubit, cast(cirq.GridQubit, neighbor)))
 
-    device_specification = grid_device._create_device_specification_proto(
-        qubits=qubits, pairs=pairs, gateset=gateset, gate_durations=gate_durations, out=out
+    return grid_device.GridDevice._from_device_information(
+        qubit_pairs=pairs, gateset=gateset, gate_durations=gate_durations
     )
-    return grid_device.GridDevice.from_proto(device_specification)
 
 
 def populate_qubits_in_device_proto(
