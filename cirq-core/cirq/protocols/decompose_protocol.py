@@ -27,7 +27,6 @@ from typing import (
     Union,
 )
 from collections import defaultdict
-import enum
 
 from typing_extensions import Protocol
 
@@ -47,7 +46,6 @@ RaiseTypeErrorIfNotProvided: Any = ([],)
 
 DecomposeResult = Union[None, NotImplementedType, 'cirq.OP_TREE']
 OpDecomposer = Callable[['cirq.Operation'], DecomposeResult]
-DecomposeConstraints = Callable[['cirq.Operation'], bool]
 
 DECOMPOSE_TARGET_GATESET = ops.Gateset(
     ops.XPowGate,
@@ -57,14 +55,6 @@ DECOMPOSE_TARGET_GATESET = ops.Gateset(
     ops.MeasurementGate,
     ops.GlobalPhaseGate,
 )
-
-
-@enum.unique
-class DecomposeObjective(enum.Enum):
-    MINIMUM_T_COUNT = 0
-    MINIMUM_TOFFOLI_COUNT = 1
-    MINIMUM_CIRCUIT_WIDTH = 2
-    MINIMUM_CIRCUIT_DEPTH = 3
 
 
 def _value_error_describing_bad_operation(op: 'cirq.Operation') -> ValueError:
@@ -149,8 +139,6 @@ def decompose(
     ] = _value_error_describing_bad_operation,
     preserve_structure: bool = False,
     qubit_manager: Optional['cirq.QubitManager'] = None,
-    constraint: DecomposeConstraints = lambda _: True,
-    objective: DecomposeObjective = DecomposeObjective.MINIMUM_T_COUNT,
 ) -> List['cirq.Operation']:
     """Recursively decomposes a value into `cirq.Operation`s meeting a criteria.
 
@@ -183,13 +171,6 @@ def decompose(
             from being decomposed, but decomposes their contents. If this is
             True, `intercepting_decomposer` cannot be specified.
         qubit_manager: A qubit manager to use for allocating ancillas.
-        constraint: A callable that indicates whether an operation is a acceptable.
-            For example using Gateset.validate will filter out operations whose gate
-            doesn't belong to the given gateset.
-            Note: enforcing the constraint is up to the _decompose_with_qubit_manager_
-                function.
-        objective: objective of decomposition, this will be used to pick the best
-            decomposition out of the those that satisfy the constraints.
 
     Returns:
         A list of operations that the given value was decomposed into. If
@@ -229,8 +210,6 @@ def decompose(
             keep=keep,
             on_stuck_raise=on_stuck_raise,
             qubit_manager=qubit_manager,
-            constraint=constraint,
-            objective=objective,
         )
 
     def try_op_decomposer(val: Any, decomposer: Optional[OpDecomposer]) -> DecomposeResult:
@@ -249,13 +228,7 @@ def decompose(
         decomposed = try_op_decomposer(item, intercepting_decomposer)
 
         if decomposed is NotImplemented or decomposed is None:
-            decomposed = decompose_once(
-                item,
-                default=None,
-                qubit_manager=qubit_manager,
-                constraint=constraint,
-                objective=objective,
-            )
+            decomposed = decompose_once(item, default=None, qubit_manager=qubit_manager)
 
         if decomposed is NotImplemented or decomposed is None:
             decomposed = try_op_decomposer(item, fallback_decomposer)
@@ -301,8 +274,6 @@ def decompose_once(
     default=RaiseTypeErrorIfNotProvided,
     *args,
     qubit_manager: Optional['cirq.QubitManager'] = None,
-    constraint: DecomposeConstraints = lambda _: True,
-    objective: DecomposeObjective = DecomposeObjective.MINIMUM_T_COUNT,
     **kwargs,
 ):
     """Decomposes a value into operations, if possible.
@@ -321,13 +292,6 @@ def decompose_once(
             `val`.  For example, this is used to tell gates what qubits they are
             being applied to.
         qubit_manager: A qubit manager to use for allocating ancillas.
-        constraint: A callable that indicates whether an operation is a acceptable.
-            For example using Gateset.validate will filter out operations whose gate
-            doesn't belong to the given gateset.
-            Note: enforcing the constraint is up to the _decompose_with_qubit_manager_
-                function.
-        objective: objective of decomposition, this will be used to pick the best
-            decomposition out of the those that satisfy the constraints.
         **kwargs: Keyword arguments to forward into the `_decompose_` method of
             `val`.
 
@@ -343,11 +307,7 @@ def decompose_once(
     """
     method = getattr(val, '_decompose_with_qubit_manager_', None)
     decomposed = (
-        NotImplemented
-        if method is None
-        else method(
-            *args, **kwargs, qubit_manager=qubit_manager, constraint=constraint, objective=objective
-        )
+        NotImplemented if method is None else method(*args, **kwargs, qubit_manager=qubit_manager)
     )
     if decomposed is not NotImplemented and decomposed is not None:
         return list(ops.flatten_op_tree(decomposed))
@@ -385,8 +345,6 @@ def decompose_once_with_qubits(
     qubits: Iterable['cirq.Qid'],
     default=RaiseTypeErrorIfNotProvided,
     qubit_manager: Optional['cirq.QubitManager'] = None,
-    constraint: DecomposeConstraints = lambda _: True,
-    objective: DecomposeObjective = DecomposeObjective.MINIMUM_T_COUNT,
 ):
     """Decomposes a value into operations on the given qubits.
 
@@ -404,13 +362,6 @@ def decompose_once_with_qubits(
             `None`. If not specified, non-decomposable values cause a
             `TypeError`.
         qubit_manager: A qubit manager to use for allocating ancillas.
-        constraint: A callable that indicates whether an operation is a acceptable.
-            For example using Gateset.validate will filter out operations whose gate
-            doesn't belong to the given gateset.
-            Note: enforcing the constraint is up to the _decompose_with_qubit_manager_
-                function.
-        objective: objective of decomposition, this will be used to pick the best
-            decomposition out of the those that satisfy the constraints.
 
     Returns:
         The result of `val._decompose_(qubits)`, if `val` has a
@@ -422,14 +373,7 @@ def decompose_once_with_qubits(
         `val` didn't have a `_decompose_` method (or that method returned
         `NotImplemented` or `None`) and `default` wasn't set.
     """
-    return decompose_once(
-        val,
-        default,
-        tuple(qubits),
-        qubit_manager=qubit_manager,
-        constraint=constraint,
-        objective=objective,
-    )
+    return decompose_once(val, default, tuple(qubits), qubit_manager=qubit_manager)
 
 
 # pylint: enable=function-redefined
@@ -474,8 +418,6 @@ def _decompose_preserving_structure(
         None, Exception, Callable[['cirq.Operation'], Optional[Exception]]
     ] = _value_error_describing_bad_operation,
     qubit_manager: Optional['cirq.QubitManager'] = None,
-    constraint: DecomposeConstraints = lambda _: True,
-    objective: DecomposeObjective = DecomposeObjective.MINIMUM_T_COUNT,
 ) -> List['cirq.Operation']:
     """Preserves structure (e.g. subcircuits) while decomposing ops.
 
@@ -525,6 +467,4 @@ def _decompose_preserving_structure(
         keep=keep_structure,
         on_stuck_raise=on_stuck_raise,
         qubit_manager=qubit_manager,
-        constraint=constraint,
-        objective=objective,
     )
