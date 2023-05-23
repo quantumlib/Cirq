@@ -122,7 +122,7 @@ class CCZPowGate(gate_features.InterchangeableQubitsGate, eigen_gate.EigenGate):
         global_phase = 1j ** (2 * self.global_shift * self._exponent)
         global_phase = (
             complex(global_phase)
-            if protocols.is_parameterized(global_phase) and global_phase.is_complex  # type: ignore
+            if protocols.is_parameterized(global_phase) and global_phase.is_complex
             else global_phase
         )
         global_phase_operation = (
@@ -217,8 +217,7 @@ class CCZPowGate(gate_features.InterchangeableQubitsGate, eigen_gate.EigenGate):
 
 
 def decompose_all_to_all_connect_ccz_gate(
-        ccz_gate: 'CCZPowGate',
-        qubits: Tuple['cirq.Qid', 'cirq.Qid', 'cirq.Qid']
+    ccz_gate: 'CCZPowGate', qubits: Tuple['cirq.Qid', 'cirq.Qid', 'cirq.Qid']
 ) -> 'cirq.OP_TREE':
     """If qubits are all-to-all connected, e.g. qubits in the same ion trap,
     the decomposition will be:
@@ -237,8 +236,7 @@ def decompose_all_to_all_connect_ccz_gate(
     global_phase = 1j ** (2 * ccz_gate.global_shift * ccz_gate._exponent)
     global_phase = (
         complex(global_phase)
-        # type: ignore
-        if protocols.is_parameterized(global_phase) and global_phase.is_complex
+        if protocols.is_parameterized(global_phase) and global_phase.is_complex  # type: ignore
         else global_phase
     )
     global_phase_operation = (

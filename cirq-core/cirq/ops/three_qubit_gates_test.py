@@ -230,7 +230,8 @@ def test_decomposition_respects_locality(gate):
 
 def test_decomposition_all_to_all_connectivity():
     decompose_result = cirq.ops.decompose_all_to_all_connect_ccz_gate(
-        cirq.CCZ, cirq.LineQubit.range(3))
+        cirq.CCZ, cirq.LineQubit.range(3)
+    )
     cirq.testing.assert_has_diagram(
         cirq.Circuit(decompose_result),
         """

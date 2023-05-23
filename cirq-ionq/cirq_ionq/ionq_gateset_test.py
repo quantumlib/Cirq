@@ -142,12 +142,13 @@ def test_decompose_toffoli_gate():
         circuit, decomposed_circuit, atol=1e-8
     )
     assert ionq_target_gateset.validate(decomposed_circuit)
-    cirq.testing.assert_has_diagram(decomposed_circuit,
-                                    """
+    cirq.testing.assert_has_diagram(
+        decomposed_circuit,
+        """
 0: ──────────────────@──────────────────@───@───T──────@───
                      │                  │   │          │
 1: ───────@──────────┼───────@───T──────┼───X───T^-1───X───
           │          │       │          │
 2: ───H───X───T^-1───X───T───X───T^-1───X───T───H──────────
 """,
-                                    )
+    )
