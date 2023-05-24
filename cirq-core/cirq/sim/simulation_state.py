@@ -166,6 +166,14 @@ class SimulationState(SimulationStateBase, Generic[TState], metaclass=abc.ABCMet
         """Creates a final merged state."""
         return self
 
+    def add_qubits(self: Self, qubits: Sequence['cirq.Qid']) -> Self:
+        new_space =  copy.copy(self) # type(self)(qubits=qubits, state=self._state)
+        new_space._set_qubits(qubits)
+        return self.kronecker_product(new_space, inplace=True)
+
+    def remove_qubits(self: Self, qubits: Sequence['cirq.Qid']) -> Self:
+        return self.factor(qubits, inplace=True)[1]
+
     def kronecker_product(self, other: Self, *, inplace=False) -> Self:
         """Joins two state spaces together."""
         args = self if inplace else copy.copy(self)
@@ -298,9 +306,15 @@ def strat_act_on_from_apply_decompose(
     qubit_map = {q: qubits[i] for i, q in enumerate(qubits1)}
     if operations is None:
         return NotImplemented
+    
+    ancillas = list(set(q for op in operations for q in op.qubits if q not in qubits1))
+    for q in ancillas:
+        qubit_map[q] = q
+    args.add_qubits(ancillas)
     for operation in operations:
         operation = operation.with_qubits(*[qubit_map[q] for q in operation.qubits])
         protocols.act_on(operation, args)
+    args.remove_qubits(ancillas)
     return True
 
 

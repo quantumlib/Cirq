@@ -30,6 +30,12 @@ class DummyQuantumState(cirq.QuantumStateRepresentation):
 
     def reindex(self, axes):
         return self
+    
+    def kron(self, other):
+        return self
+    
+    def factor(self, axes, validate=True, atol=1e-07):
+        return (self, self)
 
 
 class DummySimulationState(cirq.SimulationState):
@@ -101,3 +107,31 @@ def test_field_getters():
     args = DummySimulationState()
     assert args.prng is np.random
     assert args.qubit_map == {q: i for i, q in enumerate(cirq.LineQubit.range(2))}
+
+
+@pytest.mark.parametrize('exp', [-3, -2, -1, 0, 1, 2, 3])
+def test_ancilla(exp):
+    class AncillaX(cirq.Gate):
+        def __init__(self, exponent=1):
+            self._exponent = exponent
+
+        def num_qubits(self) -> int:
+            return 1
+
+        def _decompose_(self, qubits):
+            ancilla = cirq.NamedQubit('Ancilla')
+            yield cirq.X(ancilla) ** self._exponent
+            yield cirq.CX(ancilla, qubits[0])
+            yield cirq.X(ancilla) ** -self._exponent
+
+    q = cirq.LineQubit(0)
+    test_circuit = cirq.Circuit(AncillaX(exp).on(q))
+    control_circuit = cirq.Circuit(cirq.XPowGate(exponent=exp).on(q))
+
+    test_sv = cirq.final_state_vector(test_circuit)
+    control_sv = cirq.final_state_vector(control_circuit)
+    assert np.allclose(test_sv, control_sv)
+
+    test_dm = cirq.final_density_matrix(test_circuit)
+    control_dm = cirq.final_density_matrix(control_circuit)
+    assert np.allclose(test_dm, control_dm)
