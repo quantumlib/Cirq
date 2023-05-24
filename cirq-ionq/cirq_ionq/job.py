@@ -182,7 +182,8 @@ class Job:
         Args:
             timeout_seconds: The total number of seconds to poll for.
             polling_seconds: The interval with which to poll.
-            sharpen: Determines which error aggregation to use for debiased jobs.
+            sharpen: A boolean that determines how to aggregate error mitigated.
+                If True, apply majority vote mitigation; if False, apply average mitigation.
             extra_query_params: Specify any parameters to include in the request.
 
         Returns:

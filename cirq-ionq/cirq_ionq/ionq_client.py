@@ -185,7 +185,8 @@ class _IonQClient:
 
         Args:
             job_id: The UUID of the job (returned when the job was created).
-            sharpen: Determines which error aggregation to use for debiased jobs.
+            sharpen: A boolean that determines how to aggregate error mitigated.
+                If True, apply majority vote mitigation; if False, apply average mitigation.
             extra_query_params: Specify any parameters to include in the request.
 
         Returns:
