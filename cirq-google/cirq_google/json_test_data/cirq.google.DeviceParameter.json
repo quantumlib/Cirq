@@ -1,5 +1,5 @@
 {
-  "cirq_type": "cirq.google.Parameter",
+  "cirq_type": "cirq.google.DeviceParameter",
   "path": [
     "test",
     "subdir",

@@ -16,5 +16,5 @@ import cirq_google
 
 
 def test_parameters():
-    param = cirq_google.study.Parameter(path=('test', 'subdir'), idx=2, value='tmp')
+    param = cirq_google.study.DeviceParameter(path=('test', 'subdir'), idx=2, value='tmp')
     cirq.testing.assert_equivalent_repr(param, global_vals={'cirq_google': cirq_google})

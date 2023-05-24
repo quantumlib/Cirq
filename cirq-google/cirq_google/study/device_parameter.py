@@ -34,10 +34,10 @@ class SupportsParameter(Protocol):
 
 
 @dataclasses.dataclass
-class Parameter(SupportsParameter):
+class DeviceParameter(SupportsParameter):
     """Class for specifying device parameters.
 
-    For instance, verying the length of pulses, timing, etc.
+    For instance, varying the length of pulses, timing, etc.
     This class is intended to be attached to a cirq.Points
     or cirq.Linspace sweep object as a metadata attribute.
 
@@ -54,7 +54,7 @@ class Parameter(SupportsParameter):
 
     def __repr__(self) -> str:
         return (
-            'cirq_google.study.Parameter('
+            'cirq_google.study.DeviceParameter('
             f'path={self.path!r}, idx={self.idx}, value={self.value!r})'
         )
 
@@ -64,7 +64,7 @@ class Parameter(SupportsParameter):
 
     @classmethod
     def _from_json_dict_(cls, path, idx, value, **kwargs):
-        return Parameter(path=path, idx=idx, value=value)
+        return DeviceParameter(path=path, idx=idx, value=value)
 
     def _json_dict_(self) -> Dict[str, Any]:
         return cirq.obj_to_dict_helper(self, ["path", "idx", "value"])
