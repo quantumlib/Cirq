@@ -18,7 +18,7 @@ import numpy as np
 from cirq import linalg
 
 
-def state_probabilities(
+def state_probabilities_by_indices(
     state_probability: np.ndarray, indices: Sequence[int], qid_shape: Tuple[int, ...]
 ) -> np.ndarray:
     """Returns the probabilities for a state/measurement on the given indices.
