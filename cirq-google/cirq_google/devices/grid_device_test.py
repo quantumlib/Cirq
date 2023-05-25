@@ -204,6 +204,24 @@ def _create_device_spec_with_all_couplings():
     return spec
 
 
+def _create_device_spec_with_isolated_qubits():
+    # Qubit layout:
+    #   x -- x
+    #   x -- x
+    #   x -- x
+    #   x -- x
+    #   x -- x
+    #   x    x
+    device_info, spec = _create_device_spec_with_horizontal_couplings()
+
+    isolated_qubits = [cirq.GridQubit(GRID_HEIGHT, j) for j in range(2)]
+    spec.valid_qubits.extend([v2.qubit_to_proto_id(q) for q in isolated_qubits])
+
+    device_info.grid_qubits.extend(isolated_qubits)
+
+    return device_info, spec
+
+
 def _create_device_spec_duplicate_qubit() -> v2.device_pb2.DeviceSpecification:
     """Creates a DeviceSpecification with a qubit name that does not conform to '<int>_<int>'."""
     q_proto_id = v2.qubit_to_proto_id(cirq.GridQubit(0, 0))
@@ -440,7 +458,7 @@ def test_grid_device_repr_pretty(cycle, func):
 
 
 def test_device_from_device_information_equals_device_from_proto():
-    device_info, spec = _create_device_spec_with_horizontal_couplings()
+    device_info, spec = _create_device_spec_with_isolated_qubits()
 
     # The set of gates in gateset and gate durations are consistent with what's generated in
     # _create_device_spec_with_horizontal_couplings()
@@ -482,7 +500,10 @@ def test_device_from_device_information_equals_device_from_proto():
     }
 
     device_from_information = cirq_google.GridDevice._from_device_information(
-        qubit_pairs=device_info.qubit_pairs, gateset=gateset, gate_durations=gate_durations
+        qubit_pairs=device_info.qubit_pairs,
+        gateset=gateset,
+        gate_durations=gate_durations,
+        all_qubits=device_info.grid_qubits,
     )
 
     assert device_from_information == cirq_google.GridDevice.from_proto(spec)
