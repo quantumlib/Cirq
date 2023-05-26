@@ -42,6 +42,8 @@ TDefault = TypeVar('TDefault')
 
 TError = TypeVar('TError', bound=Exception)
 
+TQubitManager = TypeVar('TQubitManager')
+
 RaiseTypeErrorIfNotProvided: Any = ([],)
 
 DecomposeResult = Union[None, NotImplementedType, 'cirq.OP_TREE']
@@ -138,7 +140,7 @@ def decompose(
         None, Exception, Callable[['cirq.Operation'], Optional[Exception]]
     ] = _value_error_describing_bad_operation,
     preserve_structure: bool = False,
-    qubit_manager: Optional['cirq.QubitManager'] = None,
+    qubit_manager: Optional[TQubitManager] = None,
 ) -> List['cirq.Operation']:
     """Recursively decomposes a value into `cirq.Operation`s meeting a criteria.
 
@@ -273,7 +275,7 @@ def decompose_once(
     val: Any,
     default=RaiseTypeErrorIfNotProvided,
     *args,
-    qubit_manager: Optional['cirq.QubitManager'] = None,
+    qubit_manager: Optional[TQubitManager] = None,
     **kwargs,
 ):
     """Decomposes a value into operations, if possible.
@@ -344,7 +346,7 @@ def decompose_once_with_qubits(
     val: Any,
     qubits: Iterable['cirq.Qid'],
     default=RaiseTypeErrorIfNotProvided,
-    qubit_manager: Optional['cirq.QubitManager'] = None,
+    qubit_manager: Optional[TQubitManager] = None,
 ):
     """Decomposes a value into operations on the given qubits.
 
@@ -417,7 +419,7 @@ def _decompose_preserving_structure(
     on_stuck_raise: Union[
         None, Exception, Callable[['cirq.Operation'], Optional[Exception]]
     ] = _value_error_describing_bad_operation,
-    qubit_manager: Optional['cirq.QubitManager'] = None,
+    qubit_manager: Optional[TQubitManager] = None,
 ) -> List['cirq.Operation']:
     """Preserves structure (e.g. subcircuits) while decomposing ops.
 

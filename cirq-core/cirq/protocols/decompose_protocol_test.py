@@ -308,3 +308,23 @@ def test_decompose_tagged_operation():
         'tag',
     )
     assert cirq.decompose_once(op) == cirq.decompose_once(op.untagged)
+
+
+class GateThatSupportsQubitManager(cirq.Gate):
+    def _num_qubits_(self):
+        ...
+
+    def _qid_shape_(self):
+        return (2,)
+
+    def num_qubit(self):
+        ...
+
+    def _decompose_with_qubit_manager_(self, qubits, qubit_manager):
+        return [cirq.X(qubits[0])]
+
+
+def test_decompose_with_qubit_manager():
+    q = cirq.NamedQubit('used_with_qm')
+    op = GateThatSupportsQubitManager().on(q)
+    assert cirq.decompose(op) == [cirq.X(q)]
