@@ -191,16 +191,16 @@ def test_borrowable_qubit(exp):
 def test_delegating_gate_qubit(exp):     
     q = cirq.LineQubit(0)
     test_circuit = cirq.Circuit()
+    test_circuit.append(cirq.H(q))
 
     test_circuit.append(DelegatingAncillaZ(exp).on(q))
 
     control_circuit = cirq.Circuit(cirq.Circuit(cirq.H(q)))
 
-    # test_sv = cirq.final_state_vector(test_circuit)
-    # control_sv = cirq.final_state_vector(control_circuit)
-    # assert np.allclose(test_sv, control_sv)
+    test_sv = cirq.final_state_vector(test_circuit)
+    control_sv = cirq.final_state_vector(control_circuit)
+    assert np.allclose(test_sv, control_sv)
 
     test_dm = cirq.final_density_matrix(test_circuit)
     control_dm = cirq.final_density_matrix(control_circuit)
     assert np.allclose(test_dm, control_dm)
-
