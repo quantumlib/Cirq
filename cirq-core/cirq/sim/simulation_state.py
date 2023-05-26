@@ -307,7 +307,6 @@ def strat_act_on_from_apply_decompose(
     qubit_map = {q: qubits[i] for i, q in enumerate(qubits1)}
     if operations is None:
         return NotImplemented
-    
     ancillas = list(set(q for op in operations for q in op.qubits if q not in qubits1))
     for q in ancillas:
         qubit_map[q] = q
