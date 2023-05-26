@@ -167,11 +167,13 @@ class SimulationState(SimulationStateBase, Generic[TState], metaclass=abc.ABCMet
         return self
 
     def add_qubits(self: Self, qubits: Sequence['cirq.Qid']) -> Self:
-        new_space =  copy.copy(self) # type(self)(qubits=qubits, state=self._state)
+        """Add qubits to a new state space and take the kron product."""
+        new_space = copy.copy(self)
         new_space._set_qubits(qubits)
         return self.kronecker_product(new_space, inplace=True)
 
     def remove_qubits(self: Self, qubits: Sequence['cirq.Qid']) -> Self:
+        """Remove qubits from the state space."""
         return self.factor(qubits, inplace=True)[1]
 
     def kronecker_product(self, other: Self, *, inplace=False) -> Self:

@@ -48,6 +48,35 @@ class DummySimulationState(cirq.SimulationState):
         return True
 
 
+class AncillaZ(cirq.Gate):
+    def __init__(self, exponent=1):
+        self._exponent = exponent
+
+    def num_qubits(self) -> int:
+        return 1
+
+    def _decompose_(self, qubits):
+        ancilla = cirq.NamedQubit('Ancilla')
+        # yield cirq.YPowGate(exponent=self._exponent).on(qubits[0])
+        yield cirq.CX(qubits[0], ancilla)
+        yield cirq.Z(ancilla) ** self._exponent
+        yield cirq.CX(qubits[0], ancilla)
+
+
+class DelegatingAncillaX(cirq.Gate):
+    def __init__(self, exponent=1):
+        self._exponent = exponent
+
+    def num_qubits(self) -> int:
+        return 1
+
+    def _decompose_(self, qubits):
+        ancillaZ = cirq.NamedQubit('AncillaZ')
+        yield cirq.Z(ancillaZ) ** self._exponent
+        yield AncillaZ(self._exponent).on(*qubits)
+        yield cirq.Z(ancillaZ) ** -self._exponent
+
+
 def test_measurements():
     args = DummySimulationState()
     args.measure([cirq.LineQubit(0)], "test", [False], {})
@@ -111,22 +140,9 @@ def test_field_getters():
 
 @pytest.mark.parametrize('exp', [-3, -2, -1, 0, 1, 2, 3])
 def test_ancilla(exp):
-    class AncillaX(cirq.Gate):
-        def __init__(self, exponent=1):
-            self._exponent = exponent
-
-        def num_qubits(self) -> int:
-            return 1
-
-        def _decompose_(self, qubits):
-            ancilla = cirq.NamedQubit('Ancilla')
-            yield cirq.X(ancilla) ** self._exponent
-            yield cirq.CX(ancilla, qubits[0])
-            yield cirq.X(ancilla) ** -self._exponent
-
     q = cirq.LineQubit(0)
-    test_circuit = cirq.Circuit(AncillaX(exp).on(q))
-    control_circuit = cirq.Circuit(cirq.XPowGate(exponent=exp).on(q))
+    test_circuit = cirq.Circuit(AncillaZ(exp).on(q))
+    control_circuit = cirq.Circuit(cirq.ZPowGate(exponent=exp).on(q))
 
     test_sv = cirq.final_state_vector(test_circuit)
     control_sv = cirq.final_state_vector(control_circuit)
@@ -135,3 +151,44 @@ def test_ancilla(exp):
     test_dm = cirq.final_density_matrix(test_circuit)
     control_dm = cirq.final_density_matrix(control_circuit)
     assert np.allclose(test_dm, control_dm)
+
+
+@pytest.mark.parametrize('exp', [-3, -2, -1, 0, 1, 2, 3])
+def test_borrowable_qubit(exp):
+    q = cirq.LineQubit(0)
+    test_circuit = cirq.Circuit()
+    test_circuit.append(cirq.Y(q))
+    test_circuit.append(AncillaZ(exp).on(q))
+
+    control_circuit = cirq.Circuit(cirq.Y(q))
+    control_circuit.append(cirq.Z(q))
+
+    test_sv = cirq.final_state_vector(test_circuit)
+    control_sv = cirq.final_state_vector(control_circuit)
+    assert np.allclose(test_sv, control_sv)
+
+    test_dm = cirq.final_density_matrix(test_circuit)
+    control_dm = cirq.final_density_matrix(control_circuit)
+    assert np.allclose(test_dm, control_dm)
+
+
+'''
+@pytest.mark.parametrize('exp', [-3, -2, -1, 0, 1, 2, 3])
+def test_delegating_gate_qubit(exp):     
+    q = cirq.LineQubit(0)
+    test_circuit = cirq.Circuit()
+    test_circuit.append(cirq.Y(q))
+
+    test_circuit.append(DelegatingAncillaZ(exp).on(q))
+
+    control_circuit = cirq.Circuit(cirq.ZPowGate(exponent=exp).on(q))
+    control_circuit.append(cirq.YPowGate(exponent=exp).on(q))
+
+    test_sv = cirq.final_state_vector(test_circuit)
+    control_sv = cirq.final_state_vector(control_circuit)
+    assert np.allclose(test_sv, control_sv)
+
+    test_dm = cirq.final_density_matrix(test_circuit)
+    control_dm = cirq.final_density_matrix(control_circuit)
+    assert np.allclose(test_dm, control_dm)
+'''
