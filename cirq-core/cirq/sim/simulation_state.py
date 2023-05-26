@@ -188,7 +188,7 @@ class SimulationState(SimulationStateBase, Generic[TState], metaclass=abc.ABCMet
         """Splits two state spaces after a measurement or reset."""
         extracted = copy.copy(self)
         remainder = self if inplace else copy.copy(self)
-        e, r = self._state.factor(self.get_axes(qubits), validate=True, atol=atol)
+        e, r = self._state.factor(self.get_axes(qubits), validate=validate, atol=atol)
         extracted._state = e
         remainder._state = r
         extracted._set_qubits(qubits)
