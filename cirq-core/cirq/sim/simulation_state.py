@@ -168,8 +168,7 @@ class SimulationState(SimulationStateBase, Generic[TState], metaclass=abc.ABCMet
 
     def add_qubits(self: Self, qubits: Sequence['cirq.Qid']) -> Self:
         """Add qubits to a new state space and take the kron product."""
-        new_space = copy.copy(self)
-        new_space._set_qubits(qubits)
+        new_space = type(self)(qubits=qubits)
         return self.kronecker_product(new_space, inplace=True)
 
     def remove_qubits(self: Self, qubits: Sequence['cirq.Qid']) -> Self:
@@ -189,7 +188,7 @@ class SimulationState(SimulationStateBase, Generic[TState], metaclass=abc.ABCMet
         """Splits two state spaces after a measurement or reset."""
         extracted = copy.copy(self)
         remainder = self if inplace else copy.copy(self)
-        e, r = self._state.factor(self.get_axes(qubits), validate=validate, atol=atol)
+        e, r = self._state.factor(self.get_axes(qubits), validate=True, atol=atol)
         extracted._state = e
         remainder._state = r
         extracted._set_qubits(qubits)

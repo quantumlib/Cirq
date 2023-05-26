@@ -39,8 +39,8 @@ class DummyQuantumState(cirq.QuantumStateRepresentation):
 
 
 class DummySimulationState(cirq.SimulationState):
-    def __init__(self):
-        super().__init__(state=DummyQuantumState(), qubits=cirq.LineQubit.range(2))
+    def __init__(self, qubits=cirq.LineQubit.range(2)):
+        super().__init__(state=DummyQuantumState(), qubits=qubits)
 
     def _act_on_fallback_(
         self, action: Any, qubits: Sequence['cirq.Qid'], allow_decompose: bool = True
@@ -70,9 +70,9 @@ class AncillaH(cirq.Gate):
 
     def _decompose_(self, qubits):
         ancilla = cirq.NamedQubit('Ancilla')
-        yield cirq.H(ancilla)
+        yield cirq.H(ancilla) ** self._exponent
         yield cirq.CX(ancilla, qubits[0])
-        yield cirq.H(ancilla)
+        yield cirq.H(ancilla) ** self._exponent
 
 
 class DelegatingAncillaZ(cirq.Gate):
@@ -84,12 +84,9 @@ class DelegatingAncillaZ(cirq.Gate):
 
     def _decompose_(self, qubits):
         a = cirq.NamedQubit('a')
-        yield cirq.H(a) # ** self._exponent
-        yield AncillaZ(self._exponent).on(a)
-        yield cirq.H(a) # ** self._exponent
-        yield cirq.Y(a)
         yield cirq.CX(qubits[0], a)
-        yield cirq.H(a)
+        yield AncillaZ(self._exponent).on(a)
+        yield cirq.CX(qubits[0], a)
 
 
 def test_measurements():
@@ -187,15 +184,16 @@ def test_borrowable_qubit(exp):
     assert np.allclose(test_dm, control_dm)
 
 
-@pytest.mark.parametrize('exp',  [1])# [-3, -2, -1, 0, 1, 2, 3])
-def test_delegating_gate_qubit(exp):     
+@pytest.mark.parametrize('exp', [-3, -2, -1, 0, 1, 2, 3])
+def test_delegating_gate_qubit(exp):    
     q = cirq.LineQubit(0)
+
     test_circuit = cirq.Circuit()
     test_circuit.append(cirq.H(q))
-
     test_circuit.append(DelegatingAncillaZ(exp).on(q))
 
-    control_circuit = cirq.Circuit(cirq.Circuit(cirq.H(q)))
+    control_circuit = cirq.Circuit(cirq.H(q))
+    control_circuit.append(cirq.ZPowGate(exponent=exp).on(q))
 
     test_sv = cirq.final_state_vector(test_circuit)
     control_sv = cirq.final_state_vector(control_circuit)
