@@ -30,7 +30,7 @@ from cirq import is_unitary, deconstruct_single_qubit_matrix_into_angles, Operat
 from cirq.ops import Qid
 
 
-def quantum_shannon_decomposition(qubits: List[Qid], u: np.ndarray) -> List[Operation]:
+def quantum_shannon_decomposition(qubits: List[Qid], u: np.ndarray) -> cirq.OP_TREE:
     """Decomposes an arbitrary n-qubit unitary into CX/YPow/ZPow/CNOT gates,
     preserving global phase.
 
