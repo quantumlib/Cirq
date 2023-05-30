@@ -42,9 +42,23 @@ def quantum_shannon_decomposition(qubits: 'List[cirq.Qid]', u: np.ndarray) -> 'c
         qubits: List of qubits in order of significance
         u: Numpy array for unitary matrix representing gate to be decomposed
 
-    Returns:
-        List of 2-qubit and 1-qubit operations from the set
+    Calls:
+        (Base Case)
+        1._single_qubit_decomposition
+            OR
+        (Recursive Case)
+        1. _msb_demuxer
+        2. _multiplexed_cossin
+        3. _msb_demuxer
+        
+    Yields:
+        A single 2-qubit or 1-qubit operations from OP TREE
+        composed from the set
            { CNOT, rz, ry, ZPowGate }
+           
+    Raises:
+        ValueError: If the u matrix is not of shape (2^n,2^n)
+        ValueError: If the u matrix is non-unitary
     """
     if not predicates.is_unitary(u):  # Check that u is unitary
         raise ValueError(
