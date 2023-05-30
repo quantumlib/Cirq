@@ -42,9 +42,9 @@ def test_random_qsd_n_qubit(n_qubits):
 def test_qsd_n_qubit_errors():
     qubits = [cirq.NamedQubit(f'q{i}') for i in range(3)]
     with pytest.raises(ValueError, match="shaped numpy array"):
-        circuit = cirq.Circuit(quantum_shannon_decomposition(qubits, np.eye(9)))
+        circuit_1 = cirq.Circuit(quantum_shannon_decomposition(qubits, np.eye(9)))
     with pytest.raises(ValueError, match="is_unitary"):
-        circuit = cirq.Circuit(quantum_shannon_decomposition(qubits, np.ones((8, 8))))
+        circuit_2 = cirq.Circuit(quantum_shannon_decomposition(qubits, np.ones((8, 8))))
 
 
 def test_random_single_qubit_decomposition():
