@@ -26,8 +26,7 @@ from scipy.linalg import cossin
 import numpy as np
 
 from cirq import ops
-from cirq.linalg.decompositions import deconstruct_single_qubit_matrix_into_angles
-from cirq.linalg.predicates import is_unitary
+from cirq.linalg import decompositions, predicates
 
 if TYPE_CHECKING:
     import cirq
@@ -47,7 +46,7 @@ def quantum_shannon_decomposition(qubits: 'List[cirq.Qid]', u: np.ndarray) -> 'c
         List of 2-qubit and 1-qubit operations from the set
            { CNOT, rz, ry, ZPowGate }
     """
-    if not is_unitary(u):  # Check that u is unitary
+    if not predicates.is_unitary(u):  # Check that u is unitary
         raise ValueError(
             "Expected input matrix u to be unitary, \
                 but it fails cirq.is_unitary check"
@@ -93,7 +92,7 @@ def _single_qubit_decomposition(qubit: 'cirq.Qid', u: np.ndarray) -> 'cirq.OP_TR
         A single operation from OP TREE of 3 operations (rz,ry,ZPowGate)
     """
     # Perform native ZYZ decomposition
-    phi_0, phi_1, phi_2 = deconstruct_single_qubit_matrix_into_angles(u)
+    phi_0, phi_1, phi_2 = decompositions.deconstruct_single_qubit_matrix_into_angles(u)
 
     # Determine global phase picked up
     phase = np.angle(u[0, 0] / (np.exp(-1j * (phi_0) / 2) * np.cos(phi_1 / 2)))
