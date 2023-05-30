@@ -31,6 +31,7 @@ from cirq.linalg import decompositions, predicates
 if TYPE_CHECKING:
     import cirq
 
+
 def quantum_shannon_decomposition(qubits: 'List[cirq.Qid]', u: np.ndarray) -> 'cirq.OP_TREE':
     """Decomposes n-qubit unitary into CX/YPow/ZPow/CNOT gates, preserving global phase.
 
@@ -55,7 +56,7 @@ def quantum_shannon_decomposition(qubits: 'List[cirq.Qid]', u: np.ndarray) -> 'c
         A single 2-qubit or 1-qubit operations from OP TREE
         composed from the set
            { CNOT, rz, ry, ZPowGate }
- 
+
     Raises:
         ValueError: If the u matrix is non-unitary
         ValueError: If the u matrix is not of shape (2^n,2^n)
@@ -119,10 +120,9 @@ def _single_qubit_decomposition(qubit: 'cirq.Qid', u: np.ndarray) -> 'cirq.OP_TR
     yield ops.ZPowGate(exponent=phi_2 / np.pi, global_shift=phase / phi_2).on(qubit)
 
 
-def _msb_demuxer(demux_qubits: 'List[cirq.Qid]', u1: np.ndarray,
-                 u2: np.ndarray) -> 'cirq.OP_TREE':
+def _msb_demuxer(demux_qubits: 'List[cirq.Qid]', u1: np.ndarray, u2: np.ndarray) -> 'cirq.OP_TREE':
     """Demultiplexes a unitary matrix that is multiplexed in its most-significant-qubit.
-    
+
     Decomposition structure:
       [ u1 , 0  ]  =  [ V , 0 ][ D , 0  ][ W , 0 ]
       [ 0  , u2 ]     [ 0 , V ][ 0 , D* ][ 0 , W ]
@@ -168,10 +168,11 @@ def _nth_gray(n: int) -> int:
     return n ^ (n >> 1)
 
 
-def _multiplexed_cossin(cossin_qubits: 'List[cirq.Qid]', angles: List[float],
-                        rot_func: Callable = ops.ry) -> 'cirq.OP_TREE':
+def _multiplexed_cossin(
+    cossin_qubits: 'List[cirq.Qid]', angles: List[float], rot_func: Callable = ops.ry
+) -> 'cirq.OP_TREE':
     """Performs a multiplexed rotation over all qubits in this unitary matrix,
-    
+
     Uses ry and rz multiplexing for quantum shannon decomposition
 
     Args:
