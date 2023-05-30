@@ -44,21 +44,21 @@ def quantum_shannon_decomposition(qubits: 'List[cirq.Qid]', u: np.ndarray) -> 'c
 
     Calls:
         (Base Case)
-        1._single_qubit_decomposition
+        1. _single_qubit_decomposition
             OR
         (Recursive Case)
         1. _msb_demuxer
         2. _multiplexed_cossin
         3. _msb_demuxer
-        
+
     Yields:
         A single 2-qubit or 1-qubit operations from OP TREE
         composed from the set
            { CNOT, rz, ry, ZPowGate }
-           
+ 
     Raises:
-        ValueError: If the u matrix is not of shape (2^n,2^n)
         ValueError: If the u matrix is non-unitary
+        ValueError: If the u matrix is not of shape (2^n,2^n)
     """
     if not predicates.is_unitary(u):  # Check that u is unitary
         raise ValueError(
@@ -127,9 +127,8 @@ def _msb_demuxer(demux_qubits: 'List[cirq.Qid]', u1: np.ndarray,
       [ u1 , 0  ]  =  [ V , 0 ][ D , 0  ][ W , 0 ]
       [ 0  , u2 ]     [ 0 , V ][ 0 , D* ][ 0 , W ]
 
-     Gives: ( u1 )( u2* ) = ( V )( D^2 )( V* )
-       and:  W = ( D )( V* )( u2 )
-
+      Gives: ( u1 )( u2* ) = ( V )( D^2 )( V* )
+         and:  W = ( D )( V* )( u2 )
 
     Args:
         demux_qubits: Subset of total qubits involved in this unitary gate
@@ -184,7 +183,7 @@ def _multiplexed_cossin(cossin_qubits: 'List[cirq.Qid]', angles: List[float],
     Calls:
         No major calls
 
-    Yields: Single operation from OP TREE of 2-qubit and 1-qubit operations
+    Yields: Single operation from OP TREE from set 1- and 2-qubit gates: {ry,rz,CNOT}
     """
     # Most significant qubit is main qubit with rotation function applied
     main_qubit = cossin_qubits[0]
