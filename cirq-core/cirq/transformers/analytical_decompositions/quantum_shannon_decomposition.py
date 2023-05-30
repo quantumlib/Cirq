@@ -19,26 +19,25 @@ Based on:
 Synthesis of Quantum Logic Circuits. Tech. rep. 2006,
 https://arxiv.org/abs/quant-ph/0406176
 """
-from typing import List, Iterator
+from typing import List, Callable
 
 from scipy.linalg import cossin
 
 import numpy as np
 
-from cirq import ry, rz, CNOT, ZPowGate
-from cirq import is_unitary, deconstruct_single_qubit_matrix_into_angles, Operation
-from cirq.ops import Qid
+from cirq import ops
+from cirq.linalg.decompositions import deconstruct_single_qubit_matrix_into_angles
+from cirq.linalg.predicates import is_unitary
 
+if TYPE_CHECKING:
+    import cirq
 
-def quantum_shannon_decomposition(qubits: List[Qid], u: np.ndarray) -> cirq.OP_TREE:
-    """Decomposes an arbitrary n-qubit unitary into CX/YPow/ZPow/CNOT gates,
-    preserving global phase.
+def quantum_shannon_decomposition(qubits: 'List[cirq.Qid]', u: np.ndarray) -> 'cirq.OP_TREE':
+    """Decomposes n-qubit unitary into CX/YPow/ZPow/CNOT gates, preserving global phase.
 
     The algorithm is described in Shende et al.:
     Synthesis of Quantum Logic Circuits. Tech. rep. 2006,
     https://arxiv.org/abs/quant-ph/0406176
-
-    This function wraps _qsd_generator to return OP_TREE
 
     Args:
         qubits: List of qubits in order of significance
@@ -77,16 +76,14 @@ def quantum_shannon_decomposition(qubits: List[Qid], u: np.ndarray) -> cirq.OP_T
     # Observe that middle part looks like Σ_i( Ry(theta_i)⊗|i><i| )
     # Then most significant qubit is Ry multiplexed over all other qubits
     # Yield ops from multiplexed Ry part
-    yield from _multiplexed_cossin(qubits, theta, ry)
+    yield from _multiplexed_cossin(qubits, theta, ops.ry)
 
     # Yield ops from decomposition of multiplexed u1/u2 part
     yield from _msb_demuxer(qubits, u1, u2)
 
 
-def _single_qubit_decomposition(qubit: Qid, u: np.ndarray) -> Iterator[Operation]:
+def _single_qubit_decomposition(qubit: 'cirq.Qid', u: np.ndarray) -> 'cirq.OP_TREE':
     """Decomposes single-qubit gate, and returns list of operations, keeping phase invariant.
-    
-    Intended to also append these operations to existing operation list
 
     Args:
         qubit: Qubit on which to apply operations
@@ -102,15 +99,16 @@ def _single_qubit_decomposition(qubit: Qid, u: np.ndarray) -> Iterator[Operation
     phase = np.angle(u[0, 0] / (np.exp(-1j * (phi_0) / 2) * np.cos(phi_1 / 2)))
 
     # Append first two operations operations
-    yield rz(phi_0).on(qubit)
-    yield ry(phi_1).on(qubit)
+    yield ops.rz(phi_0).on(qubit)
+    yield ops.ry(phi_1).on(qubit)
 
 
     # Append third operation with global phase added
-    yield ZPowGate(exponent=phi_2 / np.pi, global_shift=phase / phi_2).on(qubit)
+    yield ops.ZPowGate(exponent=phi_2 / np.pi, global_shift=phase / phi_2).on(qubit)
 
 
-def _msb_demuxer(demux_qubits: List[Qid], u1: np.ndarray, u2: np.ndarray):
+def _msb_demuxer(demux_qubits: 'List[cirq.Qid]', u1: np.ndarray,
+                 u2: np.ndarray) -> 'cirq.OP_TREE':
     """Demultiplexes a unitary matrix that is multiplexed in its most-significant-qubit.
     
     Decomposition structure:
@@ -127,9 +125,9 @@ def _msb_demuxer(demux_qubits: List[Qid], u1: np.ndarray, u2: np.ndarray):
         u2: Lower-right quadrant of total unitary to be decomposed (see diagram)
 
     Calls:
-        1. qsd_generator
+        1. quantum_shannon_decomposition
         2. _multiplexed_cossin
-        3. qsd_generator
+        3. quantum_shannon_decomposition
 
     Yields: Single operation from OP TREE of 2-qubit and 1-qubit operations
     """
@@ -143,15 +141,15 @@ def _msb_demuxer(demux_qubits: List[Qid], u1: np.ndarray, u2: np.ndarray):
     # Last term is given by ( I ⊗ W ), demultiplexed
     # Remove most-significant (demuxed) control-qubit
     # Yield operations for QSD on W
-    yield from qsd_generator(demux_qubits[1:], W)
+    yield from quantum_shannon_decomposition(demux_qubits[1:], W)
 
     # Use complex phase of d_i to give theta_i (so d_i* gives -theta_i)
     # Observe that middle part looks like Σ_i( Rz(theta_i)⊗|i><i| )
     # Yield ops from multiplexed Rz part
-    yield from _multiplexed_cossin(demux_qubits, -np.angle(d), rz)
+    yield from _multiplexed_cossin(demux_qubits, -np.angle(d), ops.rz)
 
     # Yield operations for QSD on V
-    yield from qsd_generator(demux_qubits[1:], V)
+    yield from quantum_shannon_decomposition(demux_qubits[1:], V)
 
 
 def _nth_gray(n: int) -> int:
@@ -159,8 +157,8 @@ def _nth_gray(n: int) -> int:
     return n ^ (n >> 1)
 
 
-def _multiplexed_cossin(cossin_qubits: List[Qid],
-                        angles: List[float], rot_func=ry) -> Iterator[Operation]:
+def _multiplexed_cossin(cossin_qubits: 'List[cirq.Qid]', angles: List[float],
+                        rot_func: Callable = ops.ry) -> 'cirq.OP_TREE':
     """Performs a multiplexed rotation over all qubits in this unitary matrix,
     
     Uses ry and rz multiplexing for quantum shannon decomposition
@@ -214,4 +212,4 @@ def _multiplexed_cossin(cossin_qubits: List[Qid],
         yield rot_func(rotation).on(main_qubit)
 
         # Add a CNOT from the select qubit to the main qubit
-        yield CNOT(control_qubits[select_qubit], main_qubit)
+        yield ops.CNOT(control_qubits[select_qubit], main_qubit)
