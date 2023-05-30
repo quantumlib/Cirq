@@ -12,8 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from cirq import NamedQubit, Circuit, approx_eq
-from cirq.ops.common_gates import Rz, Ry, ZPowGate, CXPowGate
+import cirq
+from cirq.ops import common_gates
 from cirq.transformers.analytical_decompositions.quantum_shannon_decomposition import (
     _multiplexed_cossin,
     _nth_gray,
@@ -27,52 +27,48 @@ import numpy as np
 from scipy.stats import unitary_group
 
 
-@pytest.mark.parametrize('n_qubits', [_ for _ in range(1, 8)])
+@pytest.mark.parametrize('n_qubits', list(range(1, 8)))
 def test_random_qsd_n_qubit(n_qubits):
     U = unitary_group.rvs(2**n_qubits)
-    qubits = [NamedQubit(f'q{i}') for i in range(n_qubits)]
+    qubits = [cirq.NamedQubit(f'q{i}') for i in range(n_qubits)]
     circuit = cirq.Circuit(quantum_shannon_decomposition(qubits, U))
     # Test return is equal to inital unitary
-    assert approx_eq(U, circuit.unitary(), atol=1e-9)
+    assert cirq.approx_eq(U, circuit.unitary(), atol=1e-9)
     # Test all operations in gate set
-    gates = (Rz, Ry, ZPowGate, CXPowGate)
-    assert all(isinstance(op.gate, gates) for op in operations)
+    gates = (common_gates.Rz, common_gates.Ry, common_gates.ZPowGate, common_gates.CXPowGate)
+    assert all(isinstance(op.gate, gates) for op in circuit.all_operations())
 
 
 def test_qsd_n_qubit_errors():
-    qubits = [NamedQubit(f'q{i}') for i in range(3)]
+    qubits = [cirq.NamedQubit(f'q{i}') for i in range(3)]
     with pytest.raises(ValueError, match="shaped numpy array"):
-        quantum_shannon_decomposition(qubits, np.eye(9))
+        circuit = cirq.Circuit(quantum_shannon_decomposition(qubits, np.eye(9)))
     with pytest.raises(ValueError, match="is_unitary"):
-        quantum_shannon_decomposition(qubits, np.ones((8, 8)))
+        circuit = cirq.Circuit(quantum_shannon_decomposition(qubits, np.ones((8, 8))))
 
 
 def test_random_single_qubit_decomposition():
     U = unitary_group.rvs(2)
-    qubit = NamedQubit('q0')
-    circuit = Circuit()
-    operations = _single_qubit_decomposition(qubit, U)
-    circuit.append(operations)
+    qubit = cirq.NamedQubit('q0')
+    circuit = cirq.Circuit(_single_qubit_decomposition(qubit, U))
     # Test return is equal to inital unitary
-    assert approx_eq(U, circuit.unitary(), atol=1e-9)
+    assert cirq.approx_eq(U, circuit.unitary(), atol=1e-9)
     # Test all operations in gate set
-    gates = [Rz, Ry, ZPowGate, CXPowGate]
-    assert all(any(isinstance(op.gate,gate) for gate in gates) for op in operations)
+    gates = (common_gates.Rz, common_gates.Ry, common_gates.ZPowGate, common_gates.CXPowGate)
+    assert all(isinstance(op.gate, gates) for op in circuit.all_operations())
 
 
 def test_msb_demuxer():
     U1 = unitary_group.rvs(4)
     U2 = unitary_group.rvs(4)
     U_full = np.kron([[1, 0], [0, 0]], U1) + np.kron([[0, 0], [0, 1]], U2)
-    qubits = [NamedQubit(f'q{i}') for i in range(3)]
-    circuit = Circuit()
-    operations = _msb_demuxer(qubits, U1, U2)
-    circuit.append(operations)
+    qubits = [cirq.NamedQubit(f'q{i}') for i in range(3)]
+    circuit = cirq.Circuit(_msb_demuxer(qubits, U1, U2))
     # Test return is equal to inital unitary
-    assert approx_eq(U_full, circuit.unitary(), atol=1e-9)
+    assert cirq.approx_eq(U_full, circuit.unitary(), atol=1e-9)
     # Test all operations in gate set
-    gates = [Rz, Ry, ZPowGate, CXPowGate]
-    assert all(any(isinstance(op.gate,gate) for gate in gates) for op in operations)
+    gates = (common_gates.Rz, common_gates.Ry, common_gates.ZPowGate, common_gates.CXPowGate)
+    assert all(isinstance(op.gate, gates) for op in circuit.all_operations())
 
 
 def test_multiplexed_cossin():
@@ -82,15 +78,13 @@ def test_multiplexed_cossin():
     c2, s2 = np.cos(angle_2), np.sin(angle_2)
     multiplexed_ry = [[c1, 0, -s1, 0], [0, c2, 0, -s2], [s1, 0, c1, 0], [0, s2, 0, c2]]
     multiplexed_ry = np.array(multiplexed_ry)
-    qubits = [NamedQubit(f'q{i}') for i in range(2)]
-    circuit = Circuit()
-    operations = _multiplexed_cossin(qubits, [angle_1, angle_2])
-    circuit.append(operations)
+    qubits = [cirq.NamedQubit(f'q{i}') for i in range(2)]
+    circuit = cirq.Circuit(_multiplexed_cossin(qubits, [angle_1, angle_2]))
     # Test return is equal to inital unitary
-    assert approx_eq(multiplexed_ry, circuit.unitary(), atol=1e-9)
+    assert cirq.approx_eq(multiplexed_ry, circuit.unitary(), atol=1e-9)
     # Test all operations in gate set
-    gates = [Rz, Ry, ZPowGate, CXPowGate]
-    assert all(any(isinstance(op.gate,gate) for gate in gates) for op in operations)
+    gates = (common_gates.Rz, common_gates.Ry, common_gates.ZPowGate, common_gates.CXPowGate)
+    assert all(isinstance(op.gate, gates) for op in circuit.all_operations())
 
 
 @pytest.mark.parametrize(
