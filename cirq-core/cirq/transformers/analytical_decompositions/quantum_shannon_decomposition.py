@@ -19,7 +19,7 @@ Based on:
 Synthesis of Quantum Logic Circuits. Tech. rep. 2006,
 https://arxiv.org/abs/quant-ph/0406176
 """
-from typing import List, Callable
+from typing import List, Callable, TYPE_CHECKING
 
 from scipy.linalg import cossin
 
