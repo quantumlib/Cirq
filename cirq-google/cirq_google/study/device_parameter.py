@@ -18,7 +18,7 @@ from typing_extensions import Protocol
 import cirq
 
 
-class SupportsParameter(Protocol):
+class SupportsDeviceParameter(Protocol):
     """Protocol for using device parameter keys.
 
     Args:
@@ -34,7 +34,7 @@ class SupportsParameter(Protocol):
 
 
 @dataclasses.dataclass
-class DeviceParameter(SupportsParameter):
+class DeviceParameter(SupportsDeviceParameter):
     """Class for specifying device parameters.
 
     For instance, varying the length of pulses, timing, etc.
