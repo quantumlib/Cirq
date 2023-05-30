@@ -101,7 +101,6 @@ def _single_qubit_decomposition(qubit: 'cirq.Qid', u: np.ndarray) -> 'cirq.OP_TR
     yield ops.rz(phi_0).on(qubit)
     yield ops.ry(phi_1).on(qubit)
 
-
     # Append third operation with global phase added
     yield ops.ZPowGate(exponent=phi_2 / np.pi, global_shift=phase / phi_2).on(qubit)
 
