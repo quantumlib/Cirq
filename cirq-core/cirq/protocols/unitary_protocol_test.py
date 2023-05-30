@@ -93,6 +93,40 @@ class DecomposableGate(cirq.Gate):
         yield FullyImplemented(self.unitary_value).on(qubits[0])
 
 
+class GateThatAllocatesAQubit(cirq.Gate):
+    _target_unitary = np.array([[1, 0], [0, -1]])
+
+    def _num_qubits_(self):
+        return 1
+
+    def _decompose_(self, q):
+        anc = cirq.NamedQubit("anc")
+        yield cirq.CX(*q, anc)
+        yield (cirq.Z)(anc)
+        yield cirq.CX(*q, anc)
+
+
+class GateThatAllocatesTwoQubits(cirq.Gate):
+    # Unitary = (-j I_2) \otimes Z
+    _target_unitary = np.array([[-1j, 0, 0, 0], [0, 1j, 0, 0], [0, 0, 1j, 0], [0, 0, 0, -1j]])
+
+    def _num_qubits_(self):
+        return 2
+
+    def _decompose_(self, qs):
+        q0, q1 = qs
+        anc = cirq.NamedQubit.range(2, prefix='two_ancillas_')
+
+        yield cirq.X(anc[0])
+        yield cirq.CX(q0, anc[0])
+        yield (cirq.Y)(anc[0])
+        yield cirq.CX(q0, anc[0])
+
+        yield cirq.CX(q1, anc[1])
+        yield (cirq.Z)(anc[1])
+        yield cirq.CX(q1, anc[1])
+
+
 class DecomposableOperation(cirq.Operation):
     qubits = ()
     with_qubits = NotImplemented
@@ -200,6 +234,23 @@ def test_decompose_and_get_unitary():
     np.testing.assert_allclose(_strat_unitary_from_decompose(DummyOperation((a, b))), np.eye(4))
     np.testing.assert_allclose(_strat_unitary_from_decompose(DummyComposite()), np.eye(1))
     np.testing.assert_allclose(_strat_unitary_from_decompose(OtherComposite()), m2)
+
+    np.testing.assert_allclose(
+        _strat_unitary_from_decompose(GateThatAllocatesAQubit()),
+        GateThatAllocatesAQubit._target_unitary,
+    )
+    np.testing.assert_allclose(
+        _strat_unitary_from_decompose(GateThatAllocatesAQubit().on(a)),
+        GateThatAllocatesAQubit._target_unitary,
+    )
+    np.testing.assert_allclose(
+        _strat_unitary_from_decompose(GateThatAllocatesTwoQubits()),
+        GateThatAllocatesTwoQubits._target_unitary,
+    )
+    np.testing.assert_allclose(
+        _strat_unitary_from_decompose(GateThatAllocatesTwoQubits().on(a, b)),
+        GateThatAllocatesTwoQubits._target_unitary,
+    )
 
 
 def test_decomposed_has_unitary():
