@@ -13,3 +13,4 @@ scipy
 sympy
 typing_extensions>=4.2
 tqdm
+orjson

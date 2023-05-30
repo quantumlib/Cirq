@@ -37,6 +37,7 @@ from typing import (
 import numpy as np
 import pandas as pd
 import sympy
+import orjson
 from typing_extensions import Protocol
 
 from cirq._doc import doc_private
@@ -635,15 +636,24 @@ def to_json(
 
         cls = ContextualEncoder
 
+    return to_json_bytes(obj, file_or_fn, cls=cls).decode()
+
+
+def to_json_bytes(
+    obj: Any,
+    file_or_fn: Union[None, IO, pathlib.Path, str] = None,
+    *,
+    cls: Type[json.JSONEncoder] = CirqEncoder,
+) -> Optional[bytes]:
     if file_or_fn is None:
-        return json.dumps(obj, indent=indent, separators=separators, cls=cls)
+        return orjson.dumps(obj, default=cls().default)
 
     if isinstance(file_or_fn, (str, pathlib.Path)):
-        with open(file_or_fn, 'w') as actually_a_file:
-            json.dump(obj, actually_a_file, indent=indent, cls=cls)
+        with open(file_or_fn, 'wb') as actually_a_file:
+            actually_a_file.write(orjson.dumps(obj, default=cls().default))
             return None
 
-    json.dump(obj, file_or_fn, indent=indent, separators=separators, cls=cls)
+    file_or_fn.write(orjson.dumps(obj, default=cls().default))
     return None
 
 
