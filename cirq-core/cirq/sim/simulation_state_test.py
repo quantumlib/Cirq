@@ -30,10 +30,10 @@ class DummyQuantumState(cirq.QuantumStateRepresentation):
 
     def reindex(self, axes):
         return self
-    
+
     def kron(self, other):
         return self
-    
+
     def factor(self, axes, validate=True, atol=1e-07):
         return (self, self)
 
@@ -61,6 +61,7 @@ class AncillaZ(cirq.Gate):
         yield cirq.Z(ancilla) ** self._exponent
         yield cirq.CX(qubits[0], ancilla)
 
+
 class AncillaH(cirq.Gate):
     def __init__(self, exponent=1):
         self._exponent = exponent
@@ -73,6 +74,7 @@ class AncillaH(cirq.Gate):
         yield cirq.H(ancilla) ** self._exponent
         yield cirq.CX(ancilla, qubits[0])
         yield cirq.H(ancilla) ** self._exponent
+
 
 class AncillaY(cirq.Gate):
     def __init__(self, exponent=1):
@@ -164,22 +166,17 @@ def test_field_getters():
 
 
 @pytest.mark.parametrize('exp', [-3, -2, -1, 0, 1, 2, 3])
-def test_ancillaZ(exp):
+def test_ancilla_z(exp):
     q = cirq.LineQubit(0)
     test_circuit = cirq.Circuit(AncillaZ(exp).on(q))
 
     control_circuit = cirq.Circuit(cirq.ZPowGate(exponent=exp).on(q))
 
-    test_sv = cirq.final_state_vector(test_circuit)
-    control_sv = cirq.final_state_vector(control_circuit)
-    assert np.allclose(test_sv, control_sv)
+    assert_test_circuit_for_sv_dm_simulators(test_circuit, control_circuit)
 
-    test_dm = cirq.final_density_matrix(test_circuit)
-    control_dm = cirq.final_density_matrix(control_circuit)
-    assert np.allclose(test_dm, control_dm)
 
 @pytest.mark.parametrize('exp', [-3, -2, -1, 0, 1, 2, 3])
-def test_ancillaY(exp):
+def test_ancilla_y(exp):
     q = cirq.LineQubit(0)
     test_circuit = cirq.Circuit(AncillaY(exp).on(q))
 
@@ -187,13 +184,7 @@ def test_ancillaY(exp):
     control_circuit.append(cirq.Y(q))
     control_circuit.append(cirq.XPowGate(exponent=exp).on(q))
 
-    test_sv = cirq.final_state_vector(test_circuit)
-    control_sv = cirq.final_state_vector(control_circuit)
-    assert np.allclose(test_sv, control_sv)
-
-    test_dm = cirq.final_density_matrix(test_circuit)
-    control_dm = cirq.final_density_matrix(control_circuit)
-    assert np.allclose(test_dm, control_dm)
+    assert_test_circuit_for_sv_dm_simulators(test_circuit, control_circuit)
 
 
 @pytest.mark.parametrize('exp', [-3, -2, -1, 0, 1, 2, 3])
@@ -206,17 +197,11 @@ def test_borrowable_qubit(exp):
 
     control_circuit = cirq.Circuit(cirq.H(q))
 
-    test_sv = cirq.final_state_vector(test_circuit)
-    control_sv = cirq.final_state_vector(control_circuit)
-    assert np.allclose(test_sv, control_sv)
-
-    test_dm = cirq.final_density_matrix(test_circuit)
-    control_dm = cirq.final_density_matrix(control_circuit)
-    assert np.allclose(test_dm, control_dm)
+    assert_test_circuit_for_sv_dm_simulators(test_circuit, control_circuit)
 
 
 @pytest.mark.parametrize('exp', [-3, -2, -1, 0, 1, 2, 3])
-def test_delegating_gate_qubit(exp):    
+def test_delegating_gate_qubit(exp):
     q = cirq.LineQubit(0)
 
     test_circuit = cirq.Circuit()
@@ -226,10 +211,11 @@ def test_delegating_gate_qubit(exp):
     control_circuit = cirq.Circuit(cirq.H(q))
     control_circuit.append(cirq.ZPowGate(exponent=exp).on(q))
 
-    test_sv = cirq.final_state_vector(test_circuit)
-    control_sv = cirq.final_state_vector(control_circuit)
-    assert np.allclose(test_sv, control_sv)
+    assert_test_circuit_for_sv_dm_simulators(test_circuit, control_circuit)
 
-    test_dm = cirq.final_density_matrix(test_circuit)
-    control_dm = cirq.final_density_matrix(control_circuit)
-    assert np.allclose(test_dm, control_dm)
+
+def assert_test_circuit_for_sv_dm_simulators(test_circuit, control_circuit) -> None:
+    for test_simulator in ['cirq.final_state_vector', 'cirq.final_density_matrix']:
+        test_sim = eval(test_simulator)(test_circuit)
+        control_sim = eval(test_simulator)(control_circuit)
+        assert np.allclose(test_sim, control_sim)

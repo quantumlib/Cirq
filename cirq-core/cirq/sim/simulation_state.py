@@ -167,7 +167,20 @@ class SimulationState(SimulationStateBase, Generic[TState], metaclass=abc.ABCMet
         return self
 
     def add_qubits(self: Self, qubits: Sequence['cirq.Qid']) -> Self:
-        """Add qubits to a new state space and take the kron product."""
+        """Add qubits to a new state space and take the kron product.
+        Note that only subclasses that support `kronecker_product`
+        will support this this function. E.g Density Matrix and
+        State Vector simulators.
+
+        Args:
+            qubits: Sequence of qubits to be added.
+
+        Returns:
+            A new Simulation State with the new qubits added. Or
+            exits early if there are no qubits to add.
+        """
+        if qubits is None or not qubits:
+            return
         new_space = type(self)(qubits=qubits)
         return self.kronecker_product(new_space, inplace=True)
 
@@ -303,10 +316,10 @@ def strat_act_on_from_apply_decompose(
     val: Any, args: 'cirq.SimulationState', qubits: Sequence['cirq.Qid']
 ) -> bool:
     operations, qubits1, _ = _try_decompose_into_operations_and_qubits(val)
-    assert len(qubits1) == len(qubits)
-    qubit_map = {q: qubits[i] for i, q in enumerate(qubits1)}
     if operations is None:
         return NotImplemented
+    assert len(qubits1) == len(qubits)
+    qubit_map = {q: qubits[i] for i, q in enumerate(qubits1)}
     ancillas = list(set(q for op in operations for q in op.qubits if q not in qubits1))
     for q in ancillas:
         qubit_map[q] = q
