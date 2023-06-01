@@ -145,7 +145,9 @@ def spec_for(module_name: str) -> ModuleJsonTestSpec:
     return getattr(test_module, "TestSpec")
 
 
-def assert_json_roundtrip_works(obj, text_should_be=None, resolvers=None):
+def assert_json_roundtrip_works(
+    obj, text_should_be=None, resolvers=None, enable_contextual_serialization=False
+):
     """Tests that the given object can serialized and de-serialized
 
     Args:
@@ -159,7 +161,9 @@ def assert_json_roundtrip_works(obj, text_should_be=None, resolvers=None):
             the given arguments.
     """
     buffer = io.StringIO()
-    cirq.protocols.to_json(obj, buffer)
+    cirq.protocols.to_json(
+        obj, buffer, indent=2, enable_contextual_serialization=enable_contextual_serialization
+    )
 
     if text_should_be is not None:
         buffer.seek(0)
