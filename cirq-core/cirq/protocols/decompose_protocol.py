@@ -18,6 +18,7 @@ from typing import (
     Callable,
     Dict,
     Iterable,
+    Iterator,
     List,
     Optional,
     overload,
@@ -134,7 +135,7 @@ def _try_op_decomposer(val: Any, decomposer: Optional[OpDecomposer]) -> Decompos
     return decomposer(val)
 
 
-def _decompose_dfs(item: Any, **kwargs) -> 'cirq.OP_TREE':
+def _decompose_dfs(item: Any, **kwargs) -> Iterator['cirq.Operation']:
     from cirq.circuits import CircuitOperation, FrozenCircuit
 
     preserve_structure = kwargs.get('preserve_structure', False)
