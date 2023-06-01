@@ -181,12 +181,10 @@ def _strat_unitary_from_decompose(val: Any) -> Optional[np.ndarray]:
 
     all_qubits = frozenset(q for op in operations for q in op.qubits)
     work_qubits = frozenset(qubits)
-    ancillas = tuple(sorted(q for q in all_qubits if q not in work_qubits))
+    ancillas = tuple(sorted(all_qubits.difference(work_qubits)))
 
     ordered_qubits = ancillas + tuple(qubits)
-    val_qid_shape = (2,) * len(
-        ancillas
-    ) + val_qid_shape  # For now ancillas have only one qid_shape = (2,).
+    val_qid_shape = qid_shape_protocol.qid_shape(ancillas) + val_qid_shape
 
     # Apply sub-operations' unitary effects to an identity matrix.
     state = qis.eye_tensor(val_qid_shape, dtype=np.complex128)
@@ -200,9 +198,9 @@ def _strat_unitary_from_decompose(val: Any) -> Optional[np.ndarray]:
         return None
 
     state_len = np.prod(val_qid_shape, dtype=np.int64)
-    work_state_len = np.prod(val_qid_shape[len(ancillas) :], dtype=np.int64)
     result = result.reshape((state_len, state_len))
     # Assuming borrowable qubits are restored to their original state and
     # clean qubits restord to the zero state then the desired unitary is
     # the upper left square.
+    work_state_len = np.prod(val_qid_shape[len(ancillas) :], dtype=np.int64)
     return result[:work_state_len, :work_state_len]

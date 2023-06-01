@@ -11,7 +11,8 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from typing import Optional
+from typing import Optional, cast
+import functools
 
 import numpy as np
 import pytest
@@ -94,7 +95,9 @@ class DecomposableGate(cirq.Gate):
 
 
 class GateThatAllocatesAQubit(cirq.Gate):
-    _target_unitary = np.array([[1, 0], [0, -1]])
+    def __init__(self, theta: float) -> None:
+        super().__init__()
+        self._theta = theta
 
     def _num_qubits_(self):
         return 1
@@ -102,14 +105,14 @@ class GateThatAllocatesAQubit(cirq.Gate):
     def _decompose_(self, q):
         anc = cirq.NamedQubit("anc")
         yield cirq.CX(*q, anc)
-        yield (cirq.Z)(anc)
+        yield (cirq.Z**self._theta)(anc)
         yield cirq.CX(*q, anc)
+
+    def target_unitary(self) -> np.ndarray:
+        return np.array([[1, 0], [0, (-1 + 0j) ** self._theta]])
 
 
 class GateThatAllocatesTwoQubits(cirq.Gate):
-    # Unitary = (-j I_2) \otimes Z
-    _target_unitary = np.array([[-1j, 0, 0, 0], [0, 1j, 0, 0], [0, 0, 1j, 0], [0, 0, 0, -1j]])
-
     def _num_qubits_(self):
         return 2
 
@@ -125,6 +128,33 @@ class GateThatAllocatesTwoQubits(cirq.Gate):
         yield cirq.CX(q1, anc[1])
         yield (cirq.Z)(anc[1])
         yield cirq.CX(q1, anc[1])
+
+    @classmethod
+    def target_unitary(cls) -> np.ndarray:
+        # Unitary = (-j I_2) \otimes Z
+        return np.array([[-1j, 0, 0, 0], [0, 1j, 0, 0], [0, 0, 1j, 0], [0, 0, 0, -1j]])
+
+
+class GateThatDecomposesIntoNGates(cirq.Gate):
+    def __init__(self, n: int, sub_gate: cirq.Gate, theta: float) -> None:
+        super().__init__()
+        self._n = n
+        self._subgate = sub_gate
+        self._name = str(sub_gate)
+        self._theta = theta
+
+    def _num_qubits_(self) -> int:
+        return self._n
+
+    def _decompose_(self, qs):
+        ancilla = cirq.NamedQubit.range(self._n, prefix=self._name)
+        yield self._subgate.on_each(ancilla)
+        yield (cirq.Z**self._theta).on_each(qs)
+        yield self._subgate.on_each(ancilla)
+
+    def target_unitary(self) -> np.ndarray:
+        U = np.array([[1, 0], [0, (-1 + 0j) ** self._theta]])
+        return functools.reduce(np.kron, [U] * self._n)
 
 
 class DecomposableOperation(cirq.Operation):
@@ -222,6 +252,31 @@ def test_has_unitary():
     assert not cirq.has_unitary(FullyImplemented(False))
 
 
+@pytest.mark.parametrize('theta', np.linspace(0, 2 * np.pi, 10))
+def test_decompose_gate_that_allocates_qubits(theta: float):
+    from cirq.protocols.unitary_protocol import _strat_unitary_from_decompose
+
+    gate = GateThatAllocatesAQubit(theta)
+    np.testing.assert_allclose(
+        cast(np.ndarray, _strat_unitary_from_decompose(gate)), gate.target_unitary()
+    )
+    np.testing.assert_allclose(
+        cast(np.ndarray, _strat_unitary_from_decompose(gate(a))), gate.target_unitary()
+    )
+
+
+@pytest.mark.parametrize('theta', np.linspace(0, 2 * np.pi, 10))
+@pytest.mark.parametrize('n', [*range(1, 6)])
+def test_recusive_decomposition(n: int, theta: float):
+    from cirq.protocols.unitary_protocol import _strat_unitary_from_decompose
+
+    g1 = GateThatDecomposesIntoNGates(n, cirq.H, theta)
+    g2 = GateThatDecomposesIntoNGates(n, g1, theta)
+    np.testing.assert_allclose(
+        cast(np.ndarray, _strat_unitary_from_decompose(g2)), g2.target_unitary()
+    )
+
+
 def test_decompose_and_get_unitary():
     from cirq.protocols.unitary_protocol import _strat_unitary_from_decompose
 
@@ -236,20 +291,12 @@ def test_decompose_and_get_unitary():
     np.testing.assert_allclose(_strat_unitary_from_decompose(OtherComposite()), m2)
 
     np.testing.assert_allclose(
-        _strat_unitary_from_decompose(GateThatAllocatesAQubit()),
-        GateThatAllocatesAQubit._target_unitary,
-    )
-    np.testing.assert_allclose(
-        _strat_unitary_from_decompose(GateThatAllocatesAQubit().on(a)),
-        GateThatAllocatesAQubit._target_unitary,
-    )
-    np.testing.assert_allclose(
         _strat_unitary_from_decompose(GateThatAllocatesTwoQubits()),
-        GateThatAllocatesTwoQubits._target_unitary,
+        GateThatAllocatesTwoQubits.target_unitary(),
     )
     np.testing.assert_allclose(
         _strat_unitary_from_decompose(GateThatAllocatesTwoQubits().on(a, b)),
-        GateThatAllocatesTwoQubits._target_unitary,
+        GateThatAllocatesTwoQubits.target_unitary(),
     )
 
 
