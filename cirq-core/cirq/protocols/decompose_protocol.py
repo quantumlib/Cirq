@@ -11,7 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
+import dataclasses
 from typing import (
     TYPE_CHECKING,
     Any,
@@ -135,46 +135,52 @@ def _try_op_decomposer(val: Any, decomposer: Optional[OpDecomposer]) -> Decompos
     return decomposer(val)
 
 
-def _decompose_dfs(item: Any, **kwargs) -> Iterator['cirq.Operation']:
+@dataclasses.dataclass(frozen=True)
+class _DecomposeArgs:
+    intercepting_decomposer: Optional[OpDecomposer]
+    fallback_decomposer: Optional[OpDecomposer]
+    keep: Optional[Callable[['cirq.Operation'], bool]]
+    on_stuck_raise: Union[None, Exception, Callable[['cirq.Operation'], Optional[Exception]]]
+    preserve_structure: bool
+
+
+def _decompose_dfs(item: Any, args: _DecomposeArgs) -> Iterator['cirq.Operation']:
     from cirq.circuits import CircuitOperation, FrozenCircuit
 
-    preserve_structure = kwargs.get('preserve_structure', False)
-    keep = kwargs.get('keep', None)
     if isinstance(item, ops.Operation):
         item_untagged = item.untagged
-        if isinstance(item_untagged, CircuitOperation) and preserve_structure:
-            new_fc = FrozenCircuit(_decompose_dfs(item_untagged.circuit, **kwargs))
+        if args.preserve_structure and isinstance(item_untagged, CircuitOperation):
+            new_fc = FrozenCircuit(_decompose_dfs(item_untagged.circuit, args))
             yield item_untagged.replace(circuit=new_fc).with_tags(*item.tags)
             return
-        if keep is not None and keep(item):
+        if args.keep is not None and args.keep(item):
             yield item
             return
 
-    decomposed = _try_op_decomposer(item, kwargs.get('intercepting_decomposer', None))
+    decomposed = _try_op_decomposer(item, args.intercepting_decomposer)
 
     if decomposed is NotImplemented or decomposed is None:
         decomposed = decompose_once(item, default=None)
 
     if decomposed is NotImplemented or decomposed is None:
-        decomposed = _try_op_decomposer(item, kwargs.get('fallback_decomposer', None))
+        decomposed = _try_op_decomposer(item, args.fallback_decomposer)
 
     if decomposed is NotImplemented or decomposed is None:
         if not isinstance(item, ops.Operation) and isinstance(item, Iterable):
             decomposed = item
 
     if decomposed is NotImplemented or decomposed is None:
-        on_stuck_raise = kwargs.get('on_stuck_raise', None)
-        if keep is not None and on_stuck_raise is not None:
-            if isinstance(on_stuck_raise, Exception):
-                raise on_stuck_raise
-            elif callable(on_stuck_raise):
-                error = on_stuck_raise(item)
+        if args.keep is not None and args.on_stuck_raise is not None:
+            if isinstance(args.on_stuck_raise, Exception):
+                raise args.on_stuck_raise
+            elif callable(args.on_stuck_raise):
+                error = args.on_stuck_raise(item)
                 if error is not None:
                     raise error
         yield item
     else:
         for val in ops.flatten_to_ops(decomposed):
-            yield from _decompose_dfs(val, **kwargs)
+            yield from _decompose_dfs(val, args)
 
 
 def decompose(
@@ -249,14 +255,14 @@ def decompose(
             "acceptable to keep."
         )
 
-    kwargs = {
-        'intercepting_decomposer': intercepting_decomposer,
-        'fallback_decomposer': fallback_decomposer,
-        'keep': keep,
-        'on_stuck_raise': on_stuck_raise,
-        'preserve_structure': preserve_structure,
-    }
-    return [*_decompose_dfs(val, **kwargs)]
+    args = _DecomposeArgs(
+        intercepting_decomposer=intercepting_decomposer,
+        fallback_decomposer=fallback_decomposer,
+        keep=keep,
+        on_stuck_raise=on_stuck_raise,
+        preserve_structure=preserve_structure,
+    )
+    return [*_decompose_dfs(val, args)]
 
 
 # pylint: disable=function-redefined
