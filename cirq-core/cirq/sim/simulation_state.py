@@ -169,7 +169,7 @@ class SimulationState(SimulationStateBase, Generic[TState], metaclass=abc.ABCMet
     def add_qubits(self: Self, qubits: Sequence['cirq.Qid']) -> Self:
         """Add qubits to a new state space and take the kron product.
         Note that only subclasses that support `kronecker_product`
-        will support this this function. E.g Density Matrix and
+        will support this function. E.g Density Matrix and
         State Vector simulators.
 
         Args:
@@ -177,15 +177,24 @@ class SimulationState(SimulationStateBase, Generic[TState], metaclass=abc.ABCMet
 
         Returns:
             A new Simulation State with the new qubits added. Or
-            exits early if there are no qubits to add.
+            `self` if there are no qubits to add.
         """
         if qubits is None or not qubits:
-            return
+            return self
         new_space = type(self)(qubits=qubits)
         return self.kronecker_product(new_space, inplace=True)
 
     def remove_qubits(self: Self, qubits: Sequence['cirq.Qid']) -> Self:
-        """Remove qubits from the state space."""
+        """Remove qubits from the state space.
+
+        Args:
+            qubits: Sequence of qubits to be added.
+
+        Returns:
+            A new Simulation State with qubits removed. Or
+            `self` if there are no qubits to remove."""
+        if qubits is None or not qubits:
+            return self
         return self.factor(qubits, inplace=True)[1]
 
     def kronecker_product(self, other: Self, *, inplace=False) -> Self:
