@@ -13,7 +13,18 @@
 # limitations under the License.
 """A protocol for implementing high performance unitary left-multiplies."""
 import warnings
-from typing import Any, cast, Iterable, Optional, Sequence, Tuple, TYPE_CHECKING, TypeVar, Union
+from typing import (
+    Any,
+    cast,
+    Iterable,
+    Optional,
+    Sequence,
+    Tuple,
+    TYPE_CHECKING,
+    TypeVar,
+    Union,
+    Callable,
+)
 
 import numpy as np
 from typing_extensions import Protocol
@@ -363,6 +374,7 @@ def apply_unitary(
     with warnings.catch_warnings():
         warnings.filterwarnings(action="error", category=np.ComplexWarning)
         for strat in strats:
+            strat = cast(Callable[[Any, ApplyUnitaryArgs], Optional[np.ndarray]], strat)
             result = strat(unitary_value, args)
             if result is None:
                 break
