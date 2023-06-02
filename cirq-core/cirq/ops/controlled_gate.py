@@ -28,7 +28,13 @@ from typing import (
 import numpy as np
 
 from cirq import protocols, value, _import
-from cirq.ops import raw_types, controlled_operation as cop, matrix_gates, control_values as cv
+from cirq.ops import (
+    raw_types,
+    controlled_operation as cop,
+    op_tree,
+    matrix_gates,
+    control_values as cv,
+)
 from cirq.type_workarounds import NotImplementedType
 
 if TYPE_CHECKING:
@@ -194,17 +200,17 @@ class ControlledGate(raw_types.Gate):
             return NotImplemented
 
         result = protocols.decompose_once_with_qubits(
-            self.sub_gate, qubits[self.num_controls() :], NotImplemented
+            self.sub_gate, qubits[self.num_controls() :], NotImplemented, flatten=False
         )
         if result is NotImplemented:
             return NotImplemented
 
-        decomposed: List['cirq.Operation'] = []
-        for op in result:
-            decomposed.append(
-                op.controlled_by(*qubits[: self.num_controls()], control_values=self.control_values)
-            )
-        return decomposed
+        return op_tree.transform_op_tree(
+            result,
+            lambda op: op.controlled_by(
+                *qubits[: self.num_controls()], control_values=self.control_values
+            ),
+        )
 
     def on(self, *qubits: 'cirq.Qid') -> cop.ControlledOperation:
         if len(qubits) == 0:

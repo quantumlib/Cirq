@@ -510,7 +510,8 @@ class GridDevice(cirq.Device):
         *,
         qubit_pairs: Collection[Tuple[cirq.GridQubit, cirq.GridQubit]],
         gateset: cirq.Gateset,
-        gate_durations: Optional[Mapping['cirq.GateFamily', 'cirq.Duration']] = None,
+        gate_durations: Optional[Mapping[cirq.GateFamily, cirq.Duration]] = None,
+        all_qubits: Optional[Collection[cirq.GridQubit]] = None,
     ) -> 'GridDevice':
         """Constructs a GridDevice using the device information provided.
 
@@ -555,9 +556,14 @@ class GridDevice(cirq.Device):
             ValueError: If `gate_durations` contains keys which are not in `gateset`.
             ValueError: If multiple gate families in gate_durations can
                 represent a particular gate, but they have different durations.
+            ValueError: If all_qubits is provided and is not a superset
+                of all the qubits found in qubit_pairs.
         """
         metadata = cirq.GridDeviceMetadata(
-            qubit_pairs=qubit_pairs, gateset=gateset, gate_durations=gate_durations
+            qubit_pairs=qubit_pairs,
+            gateset=gateset,
+            gate_durations=gate_durations,
+            all_qubits=all_qubits,
         )
         incomplete_device = GridDevice(metadata)
         # incomplete_device may have incomplete gateset and gate durations information, as described
