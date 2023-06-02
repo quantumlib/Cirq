@@ -337,7 +337,7 @@ def test_decompose_recursive_dfs():
         mock.call.qfree(False),
         mock.call.qfree(True),
     ]
-    mock_qm = mock.Mock()
+    mock_qm = mock.Mock(spec=["qalloc", "qfree"])
     q = cirq.LineQubit.range(3)
     gate = RecursiveDecompose(mock_qm=mock_qm)
     gate_op = gate.on(*q[:2])
@@ -346,4 +346,4 @@ def test_decompose_recursive_dfs():
     for op in [gate_op, controlled_op, classically_controlled_op]:
         mock_qm.reset_mock()
         _ = cirq.decompose(op)
-        mock_qm.assert_has_calls(expected_calls, any_order=False)
+        assert mock_qm.method_calls == expected_calls
