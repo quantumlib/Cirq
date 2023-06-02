@@ -13,18 +13,7 @@
 # limitations under the License.
 """A protocol for implementing high performance unitary left-multiplies."""
 import warnings
-from typing import (
-    Any,
-    cast,
-    Iterable,
-    Optional,
-    Sequence,
-    Tuple,
-    TYPE_CHECKING,
-    TypeVar,
-    Union,
-    Callable,
-)
+from typing import Any, cast, Iterable, Optional, Sequence, Tuple, TYPE_CHECKING, TypeVar, Union
 
 import numpy as np
 from typing_extensions import Protocol
@@ -235,6 +224,12 @@ class ApplyUnitaryArgs:
             qid_shape=self.target_tensor.shape,
         )
 
+    @classmethod
+    def for_unitary(cls, qid_shapes: Tuple[int, ...]) -> 'ApplyUnitaryArgs':
+        state = qis.eye_tensor(qid_shapes, dtype=np.complex128)
+        buffer = np.empty_like(state)
+        return ApplyUnitaryArgs(state, buffer, range(len(qid_shapes)))
+
 
 class SupportsConsistentApplyUnitary(Protocol):
     """An object that can be efficiently left-multiplied into tensors."""
@@ -283,6 +278,10 @@ class SupportsConsistentApplyUnitary(Protocol):
             The receiving object is also permitted to allocate a new
             numpy.ndarray and return that as its result.
         """
+
+
+def _strat_apply_unitary_from_unitary_(val: Any, args: ApplyUnitaryArgs) -> Optional[np.ndarray]:
+    return _strat_apply_unitary_from_unitary(val, args, matrix=None)
 
 
 def apply_unitary(
@@ -357,14 +356,14 @@ def apply_unitary(
     if len(args.axes) <= 4:
         strats = [
             _strat_apply_unitary_from_apply_unitary,
-            _strat_apply_unitary_from_unitary,
+            _strat_apply_unitary_from_unitary_,
             _strat_apply_unitary_from_decompose,
         ]
     else:
         strats = [
             _strat_apply_unitary_from_apply_unitary,
             _strat_apply_unitary_from_decompose,
-            _strat_apply_unitary_from_unitary,
+            _strat_apply_unitary_from_unitary_,
         ]
     if not allow_decompose:
         strats.remove(_strat_apply_unitary_from_decompose)
@@ -374,7 +373,6 @@ def apply_unitary(
     with warnings.catch_warnings():
         warnings.filterwarnings(action="error", category=np.ComplexWarning)
         for strat in strats:
-            strat = cast(Callable[[Any, ApplyUnitaryArgs], Optional[np.ndarray]], strat)
             result = strat(unitary_value, args)
             if result is None:
                 break
@@ -473,12 +471,10 @@ def _strat_apply_unitary_from_decompose(val: Any, args: ApplyUnitaryArgs) -> Opt
         return apply_unitaries(operations, qubits, args, None)
     ordered_qubits = ancilla + tuple(qubits)
     all_qid_shapes = qid_shape_protocol.qid_shape(ordered_qubits)
-    state = qis.eye_tensor(all_qid_shapes, dtype=np.complex128)
-    buffer = np.empty_like(state)
     result = apply_unitaries(
         operations,
         ordered_qubits,
-        ApplyUnitaryArgs(state, buffer, range(len(ordered_qubits))),
+        ApplyUnitaryArgs.for_unitary(qid_shape_protocol.qid_shape(ordered_qubits)),
         None,
     )
     if result is None or result is NotImplemented:
