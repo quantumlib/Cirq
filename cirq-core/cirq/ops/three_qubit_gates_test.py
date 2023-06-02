@@ -229,6 +229,12 @@ def test_decomposition_respects_locality(gate):
 
 
 def test_decomposition_all_to_all_connectivity():
+    """This function only accepts 3 qubits as input"""
+    with pytest.raises(ValueError):
+        decompose_result = cirq.ops.decompose_all_to_all_connect_ccz_gate(
+            cirq.CCZ, cirq.LineQubit.range(4)
+        )
+
     decompose_result = cirq.ops.decompose_all_to_all_connect_ccz_gate(
         cirq.CCZ, cirq.LineQubit.range(3)
     )
