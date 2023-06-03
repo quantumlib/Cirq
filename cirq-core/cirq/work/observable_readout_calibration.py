@@ -17,7 +17,9 @@ def calibrate_readout_error(
 ):
     # We know there won't be any fancy sweeps or observables so we can
     # get away with more repetitions per job
-    stopping_criteria = dataclasses.replace(stopping_criteria, repetitions_per_chunk=100_000)
+    stopping_criteria = dataclasses.replace(
+        stopping_criteria, repetitions_per_chunk=100_000  # type: ignore[type-var]
+    )
 
     # Simultaneous readout characterization:
     # We can measure all qubits simultaneously (i.e. _max_setting is ZZZ..ZZ

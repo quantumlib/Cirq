@@ -345,7 +345,7 @@ def draw_placements(
     small_graph: nx.Graph,
     small_to_big_mappings: Sequence[Dict],
     max_plots: int = 20,
-    axes: Sequence[plt.Axes] = None,
+    axes: Optional[Sequence[plt.Axes]] = None,
     tilted: bool = True,
     bad_placement_callback: Optional[Callable[[plt.Axes, int], None]] = None,
 ):

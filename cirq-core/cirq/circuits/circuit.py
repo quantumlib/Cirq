@@ -47,6 +47,7 @@ from typing import (
     TypeVar,
     Union,
 )
+from typing_extensions import Self
 
 import networkx
 import numpy as np
@@ -236,15 +237,15 @@ class AbstractCircuit(abc.ABC):
         pass
 
     @overload
-    def __getitem__(self: CIRCUIT_TYPE, key: slice) -> CIRCUIT_TYPE:
+    def __getitem__(self, key: slice) -> Self:
         pass
 
     @overload
-    def __getitem__(self: CIRCUIT_TYPE, key: Tuple[slice, 'cirq.Qid']) -> CIRCUIT_TYPE:
+    def __getitem__(self, key: Tuple[slice, 'cirq.Qid']) -> Self:
         pass
 
     @overload
-    def __getitem__(self: CIRCUIT_TYPE, key: Tuple[slice, Iterable['cirq.Qid']]) -> CIRCUIT_TYPE:
+    def __getitem__(self, key: Tuple[slice, Iterable['cirq.Qid']]) -> Self:
         pass
 
     def __getitem__(self, key):
@@ -305,7 +306,10 @@ class AbstractCircuit(abc.ABC):
         return None
 
     def next_moment_operating_on(
-        self, qubits: Iterable['cirq.Qid'], start_moment_index: int = 0, max_distance: int = None
+        self,
+        qubits: Iterable['cirq.Qid'],
+        start_moment_index: int = 0,
+        max_distance: Optional[int] = None,
     ) -> Optional[int]:
         """Finds the index of the next moment that touches the given qubits.
 
@@ -910,9 +914,7 @@ class AbstractCircuit(abc.ABC):
         """
         return (op for moment in self for op in moment.operations)
 
-    def map_operations(
-        self: CIRCUIT_TYPE, func: Callable[['cirq.Operation'], 'cirq.OP_TREE']
-    ) -> CIRCUIT_TYPE:
+    def map_operations(self, func: Callable[['cirq.Operation'], 'cirq.OP_TREE']) -> Self:
         """Applies the given function to all operations in this circuit.
 
         Args:
@@ -1284,9 +1286,7 @@ class AbstractCircuit(abc.ABC):
     def _parameter_names_(self) -> AbstractSet[str]:
         return {name for op in self.all_operations() for name in protocols.parameter_names(op)}
 
-    def _resolve_parameters_(
-        self: CIRCUIT_TYPE, resolver: 'cirq.ParamResolver', recursive: bool
-    ) -> CIRCUIT_TYPE:
+    def _resolve_parameters_(self, resolver: 'cirq.ParamResolver', recursive: bool) -> Self:
         changed = False
         resolved_moments: List['cirq.Moment'] = []
         for moment in self:
@@ -1458,7 +1458,7 @@ class AbstractCircuit(abc.ABC):
         are placed one after the other and then moved inward until just before
         their operations would collide. If any of the circuits do not share
         qubits and so would not collide, the starts or ends of the circuits will
-        be aligned, acording to the given align parameter.
+        be aligned, according to the given align parameter.
 
         Beware that this method is *not* associative. For example:
 
@@ -1537,7 +1537,7 @@ class AbstractCircuit(abc.ABC):
                 uf.union(*op.qubits)
         return sorted([qs for qs in uf.to_sets()], key=min)
 
-    def factorize(self: CIRCUIT_TYPE) -> Iterable[CIRCUIT_TYPE]:
+    def factorize(self) -> Iterable[Self]:
         """Factorize circuit into a sequence of independent circuits (factors).
 
         Factorization is possible when the circuit's qubits can be divided
@@ -2128,7 +2128,7 @@ class Circuit(AbstractCircuit):
         self,
         early_frontier: Dict['cirq.Qid', int],
         late_frontier: Dict['cirq.Qid', int],
-        update_qubits: Iterable['cirq.Qid'] = None,
+        update_qubits: Optional[Iterable['cirq.Qid']] = None,
     ) -> Tuple[int, int]:
         """Inserts moments to separate two frontiers.
 
@@ -2198,7 +2198,10 @@ class Circuit(AbstractCircuit):
             )
 
     def insert_at_frontier(
-        self, operations: 'cirq.OP_TREE', start: int, frontier: Dict['cirq.Qid', int] = None
+        self,
+        operations: 'cirq.OP_TREE',
+        start: int,
+        frontier: Optional[Dict['cirq.Qid', int]] = None,
     ) -> Dict['cirq.Qid', int]:
         """Inserts operations inline at frontier.
 
@@ -2389,7 +2392,9 @@ class Circuit(AbstractCircuit):
 
 
 def _pick_inserted_ops_moment_indices(
-    operations: Sequence['cirq.Operation'], start: int = 0, frontier: Dict['cirq.Qid', int] = None
+    operations: Sequence['cirq.Operation'],
+    start: int = 0,
+    frontier: Optional[Dict['cirq.Qid', int]] = None,
 ) -> Tuple[Sequence[int], Dict['cirq.Qid', int]]:
     """Greedily assigns operations to moments.
 
@@ -2731,7 +2736,7 @@ def get_earliest_accommodating_moment_index(
     ckey_indices: Dict['cirq.MeasurementKey', int],
     length: Optional[int] = None,
 ) -> int:
-    """Get the index of the earliest moment that can accomodate the given moment or operation.
+    """Get the index of the earliest moment that can accommodate the given moment or operation.
 
     Updates the dictionaries keeping track of the last moment index addressing a given qubit,
     measurement key, and control key.
@@ -2746,7 +2751,7 @@ def get_earliest_accommodating_moment_index(
             `mkey_indices`, and `ckey_indices`.
 
     Returns:
-        The integer index of the earliest moment that can accomodate the given moment or operation.
+        The integer index of the earliest moment that can accommodate the given moment or operation.
     """
     mop_qubits = moment_or_operation.qubits
     mop_mkeys = protocols.measurement_key_objs(moment_or_operation)

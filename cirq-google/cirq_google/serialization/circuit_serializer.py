@@ -312,7 +312,7 @@ class CircuitSerializer(serializer.Serializer):
             The deserialized Circuit
 
         Raises:
-            ValueError: If the given proto has no language or the langauge gate set mismatches
+            ValueError: If the given proto has no language or the language gate set mismatches
                 that specified in as the name of this serialized gate set. Also if deserializing
                 a schedule is attempted.
             NotImplementedError: If the program proto does not contain a circuit or schedule.
@@ -591,8 +591,8 @@ class CircuitSerializer(serializer.Serializer):
         operation_proto: v2.program_pb2.CircuitOperation,
         *,
         arg_function_language: str = '',
-        constants: Optional[List[v2.program_pb2.Constant]] = None,
-        deserialized_constants: Optional[List[Any]] = None,
+        constants: List[v2.program_pb2.Constant],
+        deserialized_constants: List[Any],
     ) -> cirq.CircuitOperation:
         """Deserialize a CircuitOperation from a
             cirq.google.api.v2.CircuitOperation.

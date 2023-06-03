@@ -13,7 +13,7 @@
 # limitations under the License.
 """Defines `@cirq.value_equality`, for easy __eq__/__hash__ methods."""
 
-from typing import Union, Callable, overload, Any
+from typing import Any, Callable, Optional, overload, Union
 
 from typing_extensions import Protocol
 
@@ -132,7 +132,7 @@ def value_equality(
 
 
 def value_equality(
-    cls: type = None,
+    cls: Optional[type] = None,
     *,
     unhashable: bool = False,
     distinct_child_types: bool = False,

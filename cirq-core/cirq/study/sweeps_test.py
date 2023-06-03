@@ -77,6 +77,64 @@ def test_zip():
     assert _values(sweep, 'b') == [4, 5, 6]
 
 
+def test_zip_longest():
+    sweep = cirq.ZipLongest(cirq.Points('a', [1, 2, 3]), cirq.Points('b', [4, 5, 6, 7]))
+    assert tuple(sweep.param_tuples()) == (
+        (('a', 1), ('b', 4)),
+        (('a', 2), ('b', 5)),
+        (('a', 3), ('b', 6)),
+        (('a', 3), ('b', 7)),
+    )
+    assert sweep.keys == ['a', 'b']
+    assert (
+        str(sweep) == 'ZipLongest(cirq.Points(\'a\', [1, 2, 3]), cirq.Points(\'b\', [4, 5, 6, 7]))'
+    )
+    assert (
+        repr(sweep)
+        == 'cirq_google.ZipLongest(cirq.Points(\'a\', [1, 2, 3]), cirq.Points(\'b\', [4, 5, 6, 7]))'
+    )
+
+
+def test_zip_longest_compatibility():
+    sweep = cirq.Zip(cirq.Points('a', [1, 2, 3]), cirq.Points('b', [4, 5, 6]))
+    sweep_longest = cirq.ZipLongest(cirq.Points('a', [1, 2, 3]), cirq.Points('b', [4, 5, 6]))
+    assert tuple(sweep.param_tuples()) == tuple(sweep_longest.param_tuples())
+
+    sweep = cirq.Zip(
+        (cirq.Points('a', [1, 3]) * cirq.Points('b', [2, 4])), cirq.Points('c', [4, 5, 6, 7])
+    )
+    sweep_longest = cirq.ZipLongest(
+        (cirq.Points('a', [1, 3]) * cirq.Points('b', [2, 4])), cirq.Points('c', [4, 5, 6, 7])
+    )
+    assert tuple(sweep.param_tuples()) == tuple(sweep_longest.param_tuples())
+
+
+def test_empty_zip():
+    assert len(cirq.ZipLongest()) == 0
+    with pytest.raises(ValueError, match='non-empty'):
+        _ = cirq.ZipLongest(cirq.Points('e', []), cirq.Points('a', [1, 2, 3]))
+
+
+def test_zip_eq():
+    et = cirq.testing.EqualsTester()
+    point_sweep1 = cirq.Points('a', [1, 2, 3])
+    point_sweep2 = cirq.Points('b', [4, 5, 6, 7])
+    point_sweep3 = cirq.Points('c', [1, 2])
+
+    et.add_equality_group(cirq.ZipLongest(), cirq.ZipLongest())
+
+    et.add_equality_group(
+        cirq.ZipLongest(point_sweep1, point_sweep2), cirq.ZipLongest(point_sweep1, point_sweep2)
+    )
+
+    et.add_equality_group(cirq.ZipLongest(point_sweep3, point_sweep2))
+    et.add_equality_group(cirq.ZipLongest(point_sweep2, point_sweep1))
+    et.add_equality_group(cirq.ZipLongest(point_sweep1, point_sweep2, point_sweep3))
+
+    et.add_equality_group(cirq.Zip(point_sweep1, point_sweep2, point_sweep3))
+    et.add_equality_group(cirq.Zip(point_sweep1, point_sweep2))
+
+
 def test_product():
     sweep = cirq.Points('a', [1, 2, 3]) * cirq.Points('b', [4, 5, 6, 7])
     assert len(sweep) == 12
@@ -215,6 +273,12 @@ def test_repr():
     )
     cirq.testing.assert_equivalent_repr(cirq.Points('zero&pi', [0, 3.14159]))
     cirq.testing.assert_equivalent_repr(cirq.Linspace('I/10', 0, 1, 10))
+    cirq.testing.assert_equivalent_repr(
+        cirq.Points('zero&pi', [0, 3.14159], metadata='example str')
+    )
+    cirq.testing.assert_equivalent_repr(
+        cirq.Linspace('for_q0', 0, 1, 10, metadata=cirq.LineQubit(0))
+    )
 
 
 def test_zip_product_str():

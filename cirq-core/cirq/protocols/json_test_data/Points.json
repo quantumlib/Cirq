@@ -1,8 +1,19 @@
-{
-  "cirq_type": "Points",
-  "key": "a",
-  "points": [
-    0,
-    0.4
-  ]
-}
+[
+    {
+      "cirq_type": "Points",
+      "key": "a",
+      "points": [
+        0,
+        0.4
+      ]
+    },
+    {
+      "cirq_type": "Points",
+      "key": "amp",
+      "points": [
+        0,
+        1
+      ],
+      "metadata": "used to turn amp on or off"
+    }
+]

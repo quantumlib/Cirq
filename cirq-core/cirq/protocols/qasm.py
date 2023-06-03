@@ -36,8 +36,8 @@ class QasmArgs(string.Formatter):
         self,
         precision: int = 10,
         version: str = '2.0',
-        qubit_id_map: Dict['cirq.Qid', str] = None,
-        meas_key_id_map: Dict[str, str] = None,
+        qubit_id_map: Optional[Dict['cirq.Qid', str]] = None,
+        meas_key_id_map: Optional[Dict[str, str]] = None,
     ) -> None:
         """Inits QasmArgs.
 

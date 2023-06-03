@@ -444,7 +444,7 @@ class EngineClient:
             Tuple of created job id and job.
 
         Raises:
-            ValueError: If the priority is not betwen 0 and 1000.
+            ValueError: If the priority is not between 0 and 1000.
         """
         # Check program to run and program parameters.
         if priority and not 0 <= priority < 1000:

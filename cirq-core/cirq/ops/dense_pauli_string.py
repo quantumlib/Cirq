@@ -27,11 +27,10 @@ from typing import (
     overload,
     Sequence,
     Tuple,
-    Type,
     TYPE_CHECKING,
-    TypeVar,
     Union,
 )
+from typing_extensions import Self
 
 import numpy as np
 import sympy
@@ -52,8 +51,6 @@ PAULI_GATES: List[Union['cirq.Pauli', 'cirq.IdentityGate']] = [
     pauli_gates.Y,
     pauli_gates.Z,
 ]
-
-TCls = TypeVar('TCls', bound='BaseDensePauliString')
 
 
 @value.value_equality(approximate=True, distinct_child_types=True)
@@ -132,7 +129,7 @@ class BaseDensePauliString(raw_types.Gate, metaclass=abc.ABCMeta):
         return self.coefficient, tuple(PAULI_CHARS[p] for p in self.pauli_mask)
 
     @classmethod
-    def one_hot(cls: Type[TCls], *, index: int, length: int, pauli: 'cirq.PAULI_GATE_LIKE') -> TCls:
+    def one_hot(cls, *, index: int, length: int, pauli: 'cirq.PAULI_GATE_LIKE') -> Self:
         """Creates a dense pauli string with only one non-identity Pauli.
 
         Args:
@@ -149,7 +146,7 @@ class BaseDensePauliString(raw_types.Gate, metaclass=abc.ABCMeta):
         return concrete_cls(pauli_mask=mask)
 
     @classmethod
-    def eye(cls: Type[TCls], length: int) -> TCls:
+    def eye(cls, length: int) -> Self:
         """Creates a dense pauli string containing only identity gates.
 
         Args:
@@ -198,7 +195,7 @@ class BaseDensePauliString(raw_types.Gate, metaclass=abc.ABCMeta):
     def _parameter_names_(self) -> AbstractSet[str]:
         return protocols.parameter_names(self.coefficient)
 
-    def _resolve_parameters_(self: TCls, resolver: 'cirq.ParamResolver', recursive: bool) -> TCls:
+    def _resolve_parameters_(self, resolver: 'cirq.ParamResolver', recursive: bool) -> Self:
         return self.copy(
             coefficient=protocols.resolve_parameters(self.coefficient, resolver, recursive)
         )
@@ -206,7 +203,7 @@ class BaseDensePauliString(raw_types.Gate, metaclass=abc.ABCMeta):
     def __pos__(self):
         return self
 
-    def __pow__(self: TCls, power: Union[int, float]) -> Union[NotImplementedType, TCls]:
+    def __pow__(self, power: Union[int, float]) -> Union[NotImplementedType, Self]:
         concrete_class = type(self)
         if isinstance(power, int):
             i_group = [1, +1j, -1, -1j]
@@ -221,11 +218,11 @@ class BaseDensePauliString(raw_types.Gate, metaclass=abc.ABCMeta):
         return NotImplemented
 
     @overload
-    def __getitem__(self: TCls, item: int) -> Union['cirq.Pauli', 'cirq.IdentityGate']:
+    def __getitem__(self, item: int) -> Union['cirq.Pauli', 'cirq.IdentityGate']:
         pass
 
     @overload
-    def __getitem__(self: TCls, item: slice) -> TCls:
+    def __getitem__(self, item: slice) -> Self:
         pass
 
     def __getitem__(self, item):
@@ -304,7 +301,7 @@ class BaseDensePauliString(raw_types.Gate, metaclass=abc.ABCMeta):
 
         return NotImplemented
 
-    def tensor_product(self: TCls, other: 'BaseDensePauliString') -> TCls:
+    def tensor_product(self, other: 'BaseDensePauliString') -> Self:
         """Concatenates dense pauli strings and multiplies their coefficients.
 
         Args:
@@ -319,7 +316,7 @@ class BaseDensePauliString(raw_types.Gate, metaclass=abc.ABCMeta):
             pauli_mask=np.concatenate([self.pauli_mask, other.pauli_mask]),
         )
 
-    def __abs__(self: TCls) -> TCls:
+    def __abs__(self) -> Self:
         coef = self.coefficient
         return type(self)(
             coefficient=sympy.Abs(coef) if isinstance(coef, sympy.Expr) else abs(coef),
@@ -405,10 +402,10 @@ class BaseDensePauliString(raw_types.Gate, metaclass=abc.ABCMeta):
 
     @abc.abstractmethod
     def copy(
-        self: TCls,
+        self,
         coefficient: Optional[Union[sympy.Expr, int, float, complex]] = None,
         pauli_mask: Union[None, str, Iterable[int], np.ndarray] = None,
-    ) -> TCls:
+    ) -> Self:
         """Returns a copy with possibly modified contents.
 
         Args:
@@ -492,17 +489,15 @@ class MutableDensePauliString(BaseDensePauliString):
     """
 
     @overload
-    def __setitem__(
-        self: 'MutableDensePauliString', key: int, value: 'cirq.PAULI_GATE_LIKE'
-    ) -> 'MutableDensePauliString':
+    def __setitem__(self, key: int, value: 'cirq.PAULI_GATE_LIKE') -> Self:
         pass
 
     @overload
     def __setitem__(
-        self: 'MutableDensePauliString',
+        self,
         key: slice,
         value: Union[Iterable['cirq.PAULI_GATE_LIKE'], np.ndarray, BaseDensePauliString],
-    ) -> 'MutableDensePauliString':
+    ) -> Self:
         pass
 
     def __setitem__(self, key, value):

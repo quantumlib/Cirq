@@ -19,7 +19,7 @@ import sys
 import tempfile
 from io import StringIO
 from pathlib import Path
-from typing import Generator
+from typing import Iterator, Optional
 from unittest import mock
 
 import pytest
@@ -81,7 +81,7 @@ def test_cli():
 
 
 @contextlib.contextmanager
-def chdir(*, target_dir: str = None, clone_dir: str = None) -> Generator[None, None, None]:
+def chdir(*, target_dir: Optional[str] = None, clone_dir: Optional[str] = None) -> Iterator[None]:
     """Changes for the duration of the test the working directory.
 
     Args:
