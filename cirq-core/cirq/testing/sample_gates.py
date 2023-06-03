@@ -17,6 +17,8 @@ from cirq import ops
 
 
 class GateThatAllocatesAQubit(ops.Gate):
+    r"""A gate that applies $Z^\theta$ indirectly through a clean ancilla."""
+
     def __init__(self, theta: float) -> None:
         super().__init__()
         self._theta = theta
@@ -35,6 +37,8 @@ class GateThatAllocatesAQubit(ops.Gate):
 
 
 class GateThatAllocatesTwoQubits(ops.Gate):
+    r"""A gate that applies $-j Z \otimes Z$ indirectly through two ancillas."""
+
     def _num_qubits_(self):
         return 2
 
@@ -53,16 +57,18 @@ class GateThatAllocatesTwoQubits(ops.Gate):
 
     @classmethod
     def target_unitary(cls) -> np.ndarray:
-        # Unitary = (-j I_2) \otimes Z
+        # Unitary = -j Z \otimes Z
         return np.array([[-1j, 0, 0, 0], [0, 1j, 0, 0], [0, 0, 1j, 0], [0, 0, 0, -1j]])
 
 
 class GateThatDecomposesIntoNGates(ops.Gate):
-    def __init__(self, n: int, sub_gate: ops.Gate, theta: float) -> None:
+    r"""Applies $(Z^\theta)^{\otimes_n}$ on work qubits and `subgate` on $n$ borrowable ancillas."""
+
+    def __init__(self, n: int, subgate: ops.Gate, theta: float) -> None:
         super().__init__()
         self._n = n
-        self._subgate = sub_gate
-        self._name = str(sub_gate)
+        self._subgate = subgate
+        self._name = str(subgate)
         self._theta = theta
 
     def _num_qubits_(self) -> int:
