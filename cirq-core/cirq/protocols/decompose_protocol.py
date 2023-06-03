@@ -160,7 +160,7 @@ def _decompose_dfs(item: Any, args: _DecomposeArgs) -> Iterator['cirq.Operation'
     decomposed = _try_op_decomposer(item, args.intercepting_decomposer)
 
     if decomposed is NotImplemented or decomposed is None:
-        decomposed = decompose_once(item, default=None)
+        decomposed = decompose_once(item, default=None, flatten=False)
 
     if decomposed is NotImplemented or decomposed is None:
         decomposed = _try_op_decomposer(item, args.fallback_decomposer)
@@ -275,12 +275,14 @@ def decompose_once(val: Any, **kwargs) -> List['cirq.Operation']:
 
 @overload
 def decompose_once(
-    val: Any, default: TDefault, *args, **kwargs
+    val: Any, default: TDefault, *args, flatten: bool = True, **kwargs
 ) -> Union[TDefault, List['cirq.Operation']]:
     pass
 
 
-def decompose_once(val: Any, default=RaiseTypeErrorIfNotProvided, *args, **kwargs):
+def decompose_once(
+    val: Any, default=RaiseTypeErrorIfNotProvided, *args, flatten: bool = True, **kwargs
+):
     """Decomposes a value into operations, if possible.
 
     This method decomposes the value exactly once, instead of decomposing it
@@ -296,6 +298,7 @@ def decompose_once(val: Any, default=RaiseTypeErrorIfNotProvided, *args, **kwarg
         *args: Positional arguments to forward into the `_decompose_` method of
             `val`.  For example, this is used to tell gates what qubits they are
             being applied to.
+        flatten: If True, the returned OP-TREE will be flattened to a list of operations.
         **kwargs: Keyword arguments to forward into the `_decompose_` method of
             `val`.
 
@@ -311,9 +314,8 @@ def decompose_once(val: Any, default=RaiseTypeErrorIfNotProvided, *args, **kwarg
     """
     method = getattr(val, '_decompose_', None)
     decomposed = NotImplemented if method is None else method(*args, **kwargs)
-
     if decomposed is not NotImplemented and decomposed is not None:
-        return list(ops.flatten_op_tree(decomposed))
+        return list(ops.flatten_to_ops(decomposed)) if flatten else decomposed
 
     if default is not RaiseTypeErrorIfNotProvided:
         return default
@@ -332,13 +334,16 @@ def decompose_once_with_qubits(val: Any, qubits: Iterable['cirq.Qid']) -> List['
 
 @overload
 def decompose_once_with_qubits(
-    val: Any, qubits: Iterable['cirq.Qid'], default: Optional[TDefault]
+    val: Any, qubits: Iterable['cirq.Qid'], default: Optional[TDefault], flatten: bool = True
 ) -> Union[TDefault, List['cirq.Operation']]:
     pass
 
 
 def decompose_once_with_qubits(
-    val: Any, qubits: Iterable['cirq.Qid'], default=RaiseTypeErrorIfNotProvided
+    val: Any,
+    qubits: Iterable['cirq.Qid'],
+    default=RaiseTypeErrorIfNotProvided,
+    flatten: bool = True,
 ):
     """Decomposes a value into operations on the given qubits.
 
@@ -355,6 +360,7 @@ def decompose_once_with_qubits(
             `_decompose_` method or that method returns `NotImplemented` or
             `None`. If not specified, non-decomposable values cause a
             `TypeError`.
+        flatten: If True, the returned OP-TREE will be flattened to a list of operations.
 
     Returns:
         The result of `val._decompose_(qubits)`, if `val` has a
@@ -366,7 +372,7 @@ def decompose_once_with_qubits(
         `val` didn't have a `_decompose_` method (or that method returned
         `NotImplemented` or `None`) and `default` wasn't set.
     """
-    return decompose_once(val, default, tuple(qubits))
+    return decompose_once(val, default, tuple(qubits), flatten=flatten)
 
 
 # pylint: enable=function-redefined

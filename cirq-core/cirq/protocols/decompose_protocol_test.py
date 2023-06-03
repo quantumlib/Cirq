@@ -11,6 +11,8 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+from typing import Optional
+from unittest import mock
 import pytest
 
 import cirq
@@ -308,3 +310,40 @@ def test_decompose_tagged_operation():
         'tag',
     )
     assert cirq.decompose_once(op) == cirq.decompose_once(op.untagged)
+
+
+def test_decompose_recursive_dfs():
+    class RecursiveDecompose(cirq.Gate):
+        def __init__(self, recurse: bool = True, mock_qm: Optional[mock.Mock] = None):
+            self.recurse = recurse
+            self.mock_qm = mock.Mock() if mock_qm is None else mock_qm
+
+        def _num_qubits_(self) -> int:
+            return 2
+
+        def _decompose_(self, qubits):
+            self.mock_qm.qalloc(self.recurse)
+            yield RecursiveDecompose(recurse=False, mock_qm=self.mock_qm).on(
+                *qubits
+            ) if self.recurse else cirq.Z.on_each(*qubits)
+            self.mock_qm.qfree(self.recurse)
+
+        def _has_unitary_(self):
+            return True
+
+    expected_calls = [
+        mock.call.qalloc(True),
+        mock.call.qalloc(False),
+        mock.call.qfree(False),
+        mock.call.qfree(True),
+    ]
+    mock_qm = mock.Mock(spec=["qalloc", "qfree"])
+    q = cirq.LineQubit.range(3)
+    gate = RecursiveDecompose(mock_qm=mock_qm)
+    gate_op = gate.on(*q[:2])
+    controlled_op = gate_op.controlled_by(q[2])
+    classically_controlled_op = gate_op.with_classical_controls('key')
+    for op in [gate_op, controlled_op, classically_controlled_op]:
+        mock_qm.reset_mock()
+        _ = cirq.decompose(op)
+        assert mock_qm.method_calls == expected_calls
