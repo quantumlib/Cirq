@@ -570,13 +570,20 @@ def to_json(
     indent=2,
     separators=None,
     cls=CirqEncoder,
+    enable_contextual_serialization: bool = True,
 ) -> None:
     pass
 
 
 @overload
 def to_json(
-    obj: Any, file_or_fn: None = None, *, indent=2, separators=None, cls=CirqEncoder
+    obj: Any,
+    file_or_fn: None = None,
+    *,
+    indent=2,
+    separators=None,
+    cls=CirqEncoder,
+    enable_contextual_serialization=True,
 ) -> str:
     pass
 
