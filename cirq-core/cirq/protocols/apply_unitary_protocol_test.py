@@ -17,7 +17,6 @@ import pytest
 
 import cirq
 from cirq.protocols.apply_unitary_protocol import _incorporate_result_into_target
-from cirq import testing
 
 
 def test_apply_unitary_presence_absence():
@@ -720,6 +719,26 @@ def test_cast_to_complex():
         cirq.apply_unitary(y0, args)
 
 
+class NotDecomposableGate(cirq.Gate):
+    def num_qubits(self):
+        return 1
+
+
+class DecomposableGate(cirq.Gate):
+    def __init__(self, sub_gate: cirq.Gate, allocate_ancilla: bool) -> None:
+        super().__init__()
+        self._sub_gate = sub_gate
+        self._allocate_ancilla = allocate_ancilla
+
+    def num_qubits(self):
+        return 1
+
+    def _decompose_(self, qubits):
+        if self._allocate_ancilla:
+            yield cirq.Z(cirq.NamedQubit('DecomposableGateQubit'))
+        yield self._sub_gate(qubits[0])
+
+
 def test_strat_apply_unitary_from_decompose():
     state = np.eye(2, dtype=np.complex128)
     args = cirq.ApplyUnitaryArgs(
@@ -727,14 +746,14 @@ def test_strat_apply_unitary_from_decompose():
     )
     np.testing.assert_allclose(
         cirq.apply_unitaries(
-            [testing.DecomposableGate(cirq.X, False)(cirq.LineQubit(0))], [cirq.LineQubit(0)], args
+            [DecomposableGate(cirq.X, False)(cirq.LineQubit(0))], [cirq.LineQubit(0)], args
         ),
         [[0, 1], [1, 0]],
     )
 
     with pytest.raises(TypeError):
         _ = cirq.apply_unitaries(
-            [testing.DecomposableGate(testing.NotDecomposableGate(), True)(cirq.LineQubit(0))],
+            [DecomposableGate(NotDecomposableGate(), True)(cirq.LineQubit(0))],
             [cirq.LineQubit(0)],
             args,
         )

@@ -133,6 +133,12 @@ class ApplyUnitaryArgs:
         state = qis.one_hot(index=(0,) * num_qubits, shape=qid_shape, dtype=np.complex128)
         return ApplyUnitaryArgs(state, np.empty_like(state), range(num_qubits))
 
+    @classmethod
+    def for_unitary(cls, qid_shapes: Tuple[int, ...]) -> 'ApplyUnitaryArgs':
+        state = qis.eye_tensor(qid_shapes, dtype=np.complex128)
+        buffer = np.empty_like(state)
+        return ApplyUnitaryArgs(state, buffer, range(len(qid_shapes)))
+
     def with_axes_transposed_to_start(self) -> 'ApplyUnitaryArgs':
         """Returns a transposed view of the same arguments.
 
@@ -224,12 +230,6 @@ class ApplyUnitaryArgs:
             qid_shape=self.target_tensor.shape,
         )
 
-    @classmethod
-    def for_unitary(cls, qid_shapes: Tuple[int, ...]) -> 'ApplyUnitaryArgs':
-        state = qis.eye_tensor(qid_shapes, dtype=np.complex128)
-        buffer = np.empty_like(state)
-        return ApplyUnitaryArgs(state, buffer, range(len(qid_shapes)))
-
 
 class SupportsConsistentApplyUnitary(Protocol):
     """An object that can be efficiently left-multiplied into tensors."""
@@ -278,10 +278,6 @@ class SupportsConsistentApplyUnitary(Protocol):
             The receiving object is also permitted to allocate a new
             numpy.ndarray and return that as its result.
         """
-
-
-def _strat_apply_unitary_from_unitary_(val: Any, args: ApplyUnitaryArgs) -> Optional[np.ndarray]:
-    return _strat_apply_unitary_from_unitary(val, args, matrix=None)
 
 
 def apply_unitary(
@@ -356,14 +352,14 @@ def apply_unitary(
     if len(args.axes) <= 4:
         strats = [
             _strat_apply_unitary_from_apply_unitary,
-            _strat_apply_unitary_from_unitary_,
+            _strat_apply_unitary_from_unitary,
             _strat_apply_unitary_from_decompose,
         ]
     else:
         strats = [
             _strat_apply_unitary_from_apply_unitary,
             _strat_apply_unitary_from_decompose,
-            _strat_apply_unitary_from_unitary_,
+            _strat_apply_unitary_from_unitary,
         ]
     if not allow_decompose:
         strats.remove(_strat_apply_unitary_from_decompose)
@@ -419,20 +415,7 @@ def _strat_apply_unitary_from_apply_unitary(
     return _incorporate_result_into_target(args, sub_args, sub_result)
 
 
-def _strat_apply_unitary_from_unitary(
-    unitary_value: Any, args: ApplyUnitaryArgs, matrix: Optional[np.ndarray] = None
-) -> Optional[np.ndarray]:
-    if matrix is None:
-        # Check for magic method.
-        method = getattr(unitary_value, '_unitary_', None)
-        if method is None:
-            return NotImplemented
-
-        # Attempt to get the unitary matrix.
-        matrix = method()
-        if matrix is NotImplemented or matrix is None:
-            return matrix
-
+def _apply_unitary_from_matrix(matrix: np.ndarray, unitary_value: Any, args: ApplyUnitaryArgs):
     if args.slices is None:
         val_qid_shape = qid_shape_protocol.qid_shape(unitary_value, default=(2,) * len(args.axes))
         slices = tuple(slice(0, size) for size in val_qid_shape)
@@ -461,6 +444,22 @@ def _strat_apply_unitary_from_unitary(
     return _incorporate_result_into_target(args, sub_args, sub_result)
 
 
+def _strat_apply_unitary_from_unitary(
+    unitary_value: Any, args: ApplyUnitaryArgs
+) -> Optional[np.ndarray]:
+    # Check for magic method.
+    method = getattr(unitary_value, '_unitary_', None)
+    if method is None:
+        return NotImplemented
+
+    # Attempt to get the unitary matrix.
+    matrix = method()
+    if matrix is NotImplemented or matrix is None:
+        return matrix
+
+    return _apply_unitary_from_matrix(matrix, unitary_value, args)
+
+
 def _strat_apply_unitary_from_decompose(val: Any, args: ApplyUnitaryArgs) -> Optional[np.ndarray]:
     operations, qubits, _ = _try_decompose_into_operations_and_qubits(val)
     if operations is None:
@@ -472,10 +471,7 @@ def _strat_apply_unitary_from_decompose(val: Any, args: ApplyUnitaryArgs) -> Opt
     ordered_qubits = ancilla + tuple(qubits)
     all_qid_shapes = qid_shape_protocol.qid_shape(ordered_qubits)
     result = apply_unitaries(
-        operations,
-        ordered_qubits,
-        ApplyUnitaryArgs.for_unitary(qid_shape_protocol.qid_shape(ordered_qubits)),
-        None,
+        operations, ordered_qubits, ApplyUnitaryArgs.for_unitary(all_qid_shapes), None
     )
     if result is None or result is NotImplemented:
         return result
@@ -483,7 +479,7 @@ def _strat_apply_unitary_from_decompose(val: Any, args: ApplyUnitaryArgs) -> Opt
     val_qid_shape = qid_shape_protocol.qid_shape(qubits)
     state_vec_length = np.prod(val_qid_shape, dtype=np.int64)
     result = result[:state_vec_length, :state_vec_length]
-    return _strat_apply_unitary_from_unitary(val, args, matrix=result)
+    return _apply_unitary_from_matrix(result, val, args)
 
 
 def apply_unitaries(

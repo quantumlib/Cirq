@@ -16,26 +16,6 @@ import numpy as np
 from cirq import ops
 
 
-class NotDecomposableGate(ops.Gate):
-    def num_qubits(self):
-        return 1
-
-
-class DecomposableGate(ops.Gate):
-    def __init__(self, sub_gate: ops.Gate, allocate_ancilla: bool) -> None:
-        super().__init__()
-        self._sub_gate = sub_gate
-        self._allocate_ancilla = allocate_ancilla
-
-    def num_qubits(self):
-        return 1
-
-    def _decompose_(self, qubits):
-        if self._allocate_ancilla:
-            yield ops.Z(ops.NamedQubit('DecomposableGateQubit'))
-        yield self._sub_gate(qubits[0])
-
-
 class GateThatAllocatesAQubit(ops.Gate):
     def __init__(self, theta: float) -> None:
         super().__init__()
