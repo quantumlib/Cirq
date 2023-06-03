@@ -398,26 +398,18 @@ def test_context_serialization():
     test_resolvers = [custom_resolver] + cirq.DEFAULT_RESOLVERS
 
     sbki_empty = SBKImpl('sbki_empty')
-    assert_json_roundtrip_works(
-        sbki_empty, resolvers=test_resolvers, enable_contextual_serialization=True
-    )
+    assert_json_roundtrip_works(sbki_empty, resolvers=test_resolvers)
 
     sbki_list = SBKImpl('sbki_list', data_list=[sbki_empty, sbki_empty])
-    assert_json_roundtrip_works(
-        sbki_list, resolvers=test_resolvers, enable_contextual_serialization=True
-    )
+    assert_json_roundtrip_works(sbki_list, resolvers=test_resolvers)
 
     sbki_tuple = SBKImpl('sbki_tuple', data_tuple=(sbki_list, sbki_list))
-    assert_json_roundtrip_works(
-        sbki_tuple, resolvers=test_resolvers, enable_contextual_serialization=True
-    )
+    assert_json_roundtrip_works(sbki_tuple, resolvers=test_resolvers)
 
     sbki_dict = SBKImpl('sbki_dict', data_dict={'a': sbki_tuple, 'b': sbki_tuple})
-    assert_json_roundtrip_works(
-        sbki_dict, resolvers=test_resolvers, enable_contextual_serialization=True
-    )
+    assert_json_roundtrip_works(sbki_dict, resolvers=test_resolvers)
 
-    sbki_json = str(cirq.to_json(sbki_dict, indent=2, enable_contextual_serialization=True))
+    sbki_json = str(cirq.to_json(sbki_dict))
     # There should be exactly one context item for each previous SBKImpl.
     assert sbki_json.count('"cirq_type": "_SerializedContext"') == 4
     # There should be exactly two key items for each of sbki_(empty|list|tuple),
@@ -597,7 +589,7 @@ def test_type_serialization(mod_spec: ModuleJsonTestSpec, cirq_obj_name: str, cl
     expected_json = (
         f'{{\n  "cirq_type": "SerializableTypeObject",\n' f'  "test_type": "{typename}"\n}}'
     )
-    assert cirq.to_json(sto, indent=2) == expected_json
+    assert cirq.to_json(sto) == expected_json
     assert cirq.read_json(json_text=expected_json, resolvers=test_resolvers) == sto
     assert_json_roundtrip_works(sto, resolvers=test_resolvers)
 
@@ -623,7 +615,7 @@ def test_to_from_strings():
   "exponent": 1.0,
   "global_shift": 0.0
 }"""
-    assert cirq.to_json(cirq.X, indent=2) == x_json_text
+    assert cirq.to_json(cirq.X) == x_json_text
     assert cirq.read_json(json_text=x_json_text) == cirq.X
 
     with pytest.raises(ValueError, match='specify ONE'):
@@ -728,7 +720,7 @@ def assert_repr_and_json_test_data_agree(
     )
 
     if not inward_only:
-        json_from_cirq = cirq.to_json(repr_obj, indent=2, enable_contextual_serialization=True)
+        json_from_cirq = cirq.to_json(repr_obj, indent=2)
         json_from_cirq_obj = json.loads(json_from_cirq)
         json_from_file_obj = json.loads(json_from_file)
 
@@ -799,7 +791,7 @@ def test_dataclass_json_dict() -> None:
 
 def test_numpy_values():
     assert (
-        cirq.to_json({'value': np.array(1)}, indent=2)
+        cirq.to_json({'value': np.array(1)})
         == """{
   "value": 1
 }"""

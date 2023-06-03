@@ -585,15 +585,19 @@ def to_json(
     obj: Any,
     file_or_fn: Union[None, IO, pathlib.Path, str] = None,
     *,
-    indent: Optional[int] = None,
+    indent: Optional[int] = 2,
     separators: Optional[Tuple[str, str]] = None,
     cls: Type[json.JSONEncoder] = CirqEncoder,
-    enable_contextual_serialization: bool = False,
+    enable_contextual_serialization: bool = True,
 ) -> Optional[str]:
     """Write a JSON file containing a representation of obj.
 
     The object may be a cirq object or have data members that are cirq
     objects which implement the SupportsJSON protocol.
+
+    For maximum performance, set `indent` to `None` and `enable_contextual_serialization`
+    to `False`. Alternatively, use the `to_json_bytes` function directly for optimized
+    serialization.
 
     Args:
         obj: An object which can be serialized to a JSON representation.
@@ -602,8 +606,8 @@ def to_json(
             indicate that the method should return the JSON text as its result.
             Defaults to `None`.
         indent: Pretty-print the resulting file with this indent level.
-                If set to any not `None` value then indent of 2 will be used. Defaults to `None`.
-                Degrades performance. Passed to orjson.
+            If set to any not `None` value then indent of 2 will be used. Defaults to `2`.
+            Degrades serialization performance. Passed to orjson.
         separators: Deprecated. This parameter has no effect.
         cls: Passed to json.dump; the default value of CirqEncoder
             enables the serialization of Cirq objects which implement
@@ -613,7 +617,11 @@ def to_json(
         enable_contextual_serialization: If `True`, enables concise serialization of
             objects by using a context map. Objects that have already been serialized
             will not be serialized again, but will instead be represented by a unique
-            key in the context map. Degrades performance. Defaults to `False`.
+            key in the context map. Setting to true decreases serialization performance.
+            Defaults to `False`.
+    Returns:
+        The serialized object as a JSON formatted string if `file_or_fn` is `None`.
+        Otherwise, returns `None` after writing the JSON data to the specified file or IO object.
     """
     if enable_contextual_serialization and has_serializable_by_keys(obj):
         obj = _ContextualSerialization(obj)
