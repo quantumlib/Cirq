@@ -11,6 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+from typing import Optional
 
 import cirq
 
@@ -25,11 +26,18 @@ def _human_size(num_bytes: int, mod: int = 0, units=(' bytes', 'KB', 'MB', 'GB',
 
 
 class SerializeLargeExpandedCircuits:
-    param_names = ["num_qubits", "num_moments"]
-    params = ([100, 500, 1000], [100, 1000, 4000])
+    param_names = ["num_qubits", "num_moments", "indent", "contextual_serialization"]
+    params = ([100, 500, 1000], [100, 1000, 4000], [None, 2], [True, False])
+
     timeout = 600  # Change timeout to 2 minutes instead of default 60 seconds.
 
-    def setup(self, num_qubits: int, num_moments: int):
+    def setup(
+        self,
+        num_qubits: int,
+        num_moments: int,
+        indent: Optional[int],
+        contextual_serialization_enabled: bool,
+    ):
         qubits = cirq.LineQubit.range(num_qubits)
         one_q_x_moment = cirq.Moment(cirq.X(q) for q in qubits[::2])
         one_q_y_moment = cirq.Moment(cirq.Y(q) for q in qubits[1::2])
@@ -42,9 +50,15 @@ class SerializeLargeExpandedCircuits:
             [one_q_x_moment, two_q_cx_moment, one_q_y_moment, two_q_cz_moment, measurement_moment]
             * (num_moments // 5)
         )
+        self.indent = indent
+        self.contextual_serialization_enabled = contextual_serialization_enabled
 
     def time_json_serialization(self, *_):
-        _ = cirq.to_json(self.circuit)
+        _ = cirq.to_json(
+            self.circuit,
+            indent=self.indent,
+            enable_contextual_serialization=self.contextual_serialization_enabled,
+        )
 
     def time_json_serialization_gzip(self, *_):
         _ = cirq.to_json_gzip(self.circuit)

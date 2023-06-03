@@ -614,7 +614,7 @@ def to_json(
             Defaults to `None`.
         indent: Pretty-print the resulting file with this indent level.
             If set to any not `None` value then indent of 2 will be used. Defaults to `2`.
-            Degrades serialization performance. Passed to orjson.
+            Degrades serialization performance.
         separators: Deprecated. This parameter has no effect.
         cls: Passed to json.dump; the default value of CirqEncoder
             enables the serialization of Cirq objects which implement
@@ -625,7 +625,7 @@ def to_json(
             objects by using a context map. Objects that have already been serialized
             will not be serialized again, but will instead be represented by a unique
             key in the context map. Setting to true decreases serialization performance.
-            Defaults to `False`.
+            Defaults to `True`.
     Returns:
         The serialized object as a JSON formatted string if `file_or_fn` is `None`.
         Otherwise, returns `None` after writing the JSON data to the specified file or IO object.
@@ -739,7 +739,8 @@ def to_json_gzip(
     obj: Any,
     file_or_fn: Union[None, IO, pathlib.Path, str] = None,
     *,
-    indent: int = 2,
+    indent: Optional[int] = 2,
+    enable_contextual_serialization: bool = True,
     cls: Type[json.JSONEncoder] = CirqEncoder,
 ) -> Optional[bytes]:
     """Write a gzipped JSON file containing a representation of obj.
@@ -754,14 +755,22 @@ def to_json_gzip(
             indicate that the method should return the JSON text as its result.
             Defaults to `None`.
         indent: Pretty-print the resulting file with this indent level.
-            Passed to json.dump.
+            If set to any not `None` value then indent of 2 will be used. Defaults to `2`.
+            Degrades serialization performance.
         cls: Passed to json.dump; the default value of CirqEncoder
             enables the serialization of Cirq objects which implement
             the SupportsJSON protocol. To support serialization of 3rd
             party classes, prefer adding the _json_dict_ magic method
             to your classes rather than overriding this default.
+        enable_contextual_serialization: If `True`, enables concise serialization of
+            objects by using a context map. Objects that have already been serialized
+            will not be serialized again, but will instead be represented by a unique
+            key in the context map. Setting to true decreases serialization performance.
+            Defaults to `True`.
     """
-    json_str = to_json(obj, indent=indent, cls=cls)
+    json_str = to_json(
+        obj, indent=indent, cls=cls, enable_contextual_serialization=enable_contextual_serialization
+    )
     if isinstance(file_or_fn, (str, pathlib.Path)):
         with gzip.open(file_or_fn, 'wt', encoding='utf-8') as actually_a_file:
             actually_a_file.write(json_str)
