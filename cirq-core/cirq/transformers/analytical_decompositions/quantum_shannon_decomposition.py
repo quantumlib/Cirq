@@ -121,7 +121,9 @@ def _single_qubit_decomposition(qubit: 'cirq.Qid', u: np.ndarray) -> 'op_tree.Op
     yield ops.ZPowGate(exponent=phi_2 / np.pi, global_shift=phase / phi_2).on(qubit)
 
 
-def _msb_demuxer(demux_qubits: 'List[cirq.Qid]', u1: np.ndarray, u2: np.ndarray) -> 'op_tree.OpTree':
+def _msb_demuxer(
+    demux_qubits: 'List[cirq.Qid]', u1: np.ndarray, u2: np.ndarray
+) -> 'op_tree.OpTree':
     """Demultiplexes a unitary matrix that is multiplexed in its most-significant-qubit.
 
     Decomposition structure:
