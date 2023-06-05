@@ -23,12 +23,12 @@ from typing import (
     List,
     Optional,
     overload,
-    runtime_checkable,
     Sequence,
     Tuple,
     TypeVar,
     Union,
 )
+from typing_extensions import runtime_checkable
 from collections import defaultdict
 
 from typing_extensions import Protocol

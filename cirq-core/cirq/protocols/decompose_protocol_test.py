@@ -58,17 +58,6 @@ class DecomposeQuditGate:
         yield cirq.identity_each(*qids)
 
 
-class DecomposeWithContext:
-    def __init__(self, val):
-        self.val = val
-
-    def _decompose_(self):
-        assert False
-
-    def _decompose_with_context_(self, context):
-        yield self.val
-
-
 def test_decompose_once():
     # No default value results in descriptive error.
     with pytest.raises(TypeError, match='no _decompose_with_context_ or _decompose_ method'):
@@ -373,16 +362,19 @@ def test_decompose_recursive_dfs(with_context: bool):
     gate = RecursiveDecompose(mock_qm=mock_qm, with_context=with_context)
     q = cirq.LineQubit.range(3)
     gate_op = gate.on(*q[:2])
+    tagged_op = gate_op.with_tags("custom tag")
     controlled_op = gate_op.controlled_by(q[2])
     classically_controlled_op = gate_op.with_classical_controls('key')
-    for op in [gate_op, controlled_op, classically_controlled_op]:
+    moment = cirq.Moment(gate_op)
+    circuit = cirq.Circuit(moment)
+    for val in [gate_op, tagged_op, controlled_op, classically_controlled_op, moment, circuit]:
         mock_qm.reset_mock()
-        _ = cirq.decompose(op)
+        _ = cirq.decompose(val)
         assert mock_qm.method_calls == expected_calls
 
         mock_qm.reset_mock()
         context_qm.reset_mock()
-        _ = cirq.decompose(op, context=cirq.DecompositionContext(context_qm))
+        _ = cirq.decompose(val, context=cirq.DecompositionContext(context_qm))
         assert (
             context_qm.method_calls == expected_calls
             if with_context
