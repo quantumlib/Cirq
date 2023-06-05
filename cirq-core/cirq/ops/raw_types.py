@@ -830,7 +830,14 @@ class TaggedOperation(Operation):
         return protocols.obj_to_dict_helper(self, ['sub_operation', 'tags'])
 
     def _decompose_(self) -> 'cirq.OP_TREE':
-        return protocols.decompose_once(self.sub_operation, default=None)
+        return self._decompose_with_context_()
+
+    def _decompose_with_context_(
+        self, context: Optional['cirq.DecompositionContext'] = None
+    ) -> 'cirq.OP_TREE':
+        return protocols.decompose_once(
+            self.sub_operation, default=None, flatten=False, context=context
+        )
 
     def _pauli_expansion_(self) -> value.LinearDict[str]:
         return protocols.pauli_expansion(self.sub_operation)
@@ -979,7 +986,14 @@ class _InverseCompositeGate(Gate):
         return NotImplemented
 
     def _decompose_(self, qubits):
-        return protocols.inverse(protocols.decompose_once_with_qubits(self._original, qubits))
+        return self._decompose_with_context_(qubits)
+
+    def _decompose_with_context_(
+        self, qubits: Sequence['cirq.Qid'], context: Optional['cirq.DecompositionContext'] = None
+    ) -> 'cirq.OP_TREE':
+        return protocols.inverse(
+            protocols.decompose_once_with_qubits(self._original, qubits, context=context)
+        )
 
     def _has_unitary_(self):
         from cirq import protocols, devices

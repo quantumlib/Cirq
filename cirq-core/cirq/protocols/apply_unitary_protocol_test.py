@@ -717,3 +717,53 @@ def test_cast_to_complex():
         np.ComplexWarning, match='Casting complex values to real discards the imaginary part'
     ):
         cirq.apply_unitary(y0, args)
+
+
+class NotDecomposableGate(cirq.Gate):
+    def num_qubits(self):
+        return 1
+
+
+class DecomposableGate(cirq.Gate):
+    def __init__(self, sub_gate: cirq.Gate, allocate_ancilla: bool) -> None:
+        super().__init__()
+        self._sub_gate = sub_gate
+        self._allocate_ancilla = allocate_ancilla
+
+    def num_qubits(self):
+        return 1
+
+    def _decompose_(self, qubits):
+        if self._allocate_ancilla:
+            yield cirq.Z(cirq.NamedQubit('DecomposableGateQubit'))
+        yield self._sub_gate(qubits[0])
+
+
+def test_strat_apply_unitary_from_decompose():
+    state = np.eye(2, dtype=np.complex128)
+    args = cirq.ApplyUnitaryArgs(
+        target_tensor=state, available_buffer=np.zeros_like(state), axes=(0,)
+    )
+    np.testing.assert_allclose(
+        cirq.apply_unitaries(
+            [DecomposableGate(cirq.X, False)(cirq.LineQubit(0))], [cirq.LineQubit(0)], args
+        ),
+        [[0, 1], [1, 0]],
+    )
+
+    with pytest.raises(TypeError):
+        _ = cirq.apply_unitaries(
+            [DecomposableGate(NotDecomposableGate(), True)(cirq.LineQubit(0))],
+            [cirq.LineQubit(0)],
+            args,
+        )
+
+
+def test_unitary_construction():
+    with pytest.raises(TypeError):
+        _ = cirq.ApplyUnitaryArgs.for_unitary()
+
+    np.testing.assert_allclose(
+        cirq.ApplyUnitaryArgs.for_unitary(num_qubits=3).target_tensor,
+        cirq.eye_tensor((2,) * 3, dtype=np.complex128),
+    )
