@@ -105,7 +105,12 @@ class ClassicallyControlledOperation(raw_types.Operation):
         )
 
     def _decompose_(self):
-        result = protocols.decompose_once(self._sub_operation, NotImplemented, flatten=False)
+        return self._decompose_with_context_()
+
+    def _decompose_with_context_(self, context: Optional['cirq.DecompositionContext'] = None):
+        result = protocols.decompose_once(
+            self._sub_operation, NotImplemented, flatten=False, context=context
+        )
         if result is NotImplemented:
             return NotImplemented
 

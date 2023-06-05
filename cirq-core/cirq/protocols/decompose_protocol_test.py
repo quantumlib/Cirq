@@ -11,7 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from typing import Optional
 from unittest import mock
 import pytest
 
@@ -59,9 +58,20 @@ class DecomposeQuditGate:
         yield cirq.identity_each(*qids)
 
 
+class DecomposeWithContext:
+    def __init__(self, val):
+        self.val = val
+
+    def _decompose_(self):
+        assert False
+
+    def _decompose_with_context_(self, context):
+        yield self.val
+
+
 def test_decompose_once():
     # No default value results in descriptive error.
-    with pytest.raises(TypeError, match='no _decompose_ method'):
+    with pytest.raises(TypeError, match='no _decompose_with_context_ or _decompose_ method'):
         _ = cirq.decompose_once(NoMethod())
     with pytest.raises(TypeError, match='returned NotImplemented or None'):
         _ = cirq.decompose_once(DecomposeNotImplemented())
@@ -90,7 +100,7 @@ def test_decompose_once_with_qubits():
     qs = cirq.LineQubit.range(3)
 
     # No default value results in descriptive error.
-    with pytest.raises(TypeError, match='no _decompose_ method'):
+    with pytest.raises(TypeError, match='no _decompose_with_context_ or _decompose_ method'):
         _ = cirq.decompose_once_with_qubits(NoMethod(), qs)
     with pytest.raises(TypeError, match='returned NotImplemented or None'):
         _ = cirq.decompose_once_with_qubits(DecomposeNotImplemented(), qs)
@@ -312,34 +322,56 @@ def test_decompose_tagged_operation():
     assert cirq.decompose_once(op) == cirq.decompose_once(op.untagged)
 
 
-def test_decompose_recursive_dfs():
-    class RecursiveDecompose(cirq.Gate):
-        def __init__(self, recurse: bool = True, mock_qm: Optional[mock.Mock] = None):
-            self.recurse = recurse
-            self.mock_qm = mock.Mock() if mock_qm is None else mock_qm
+class RecursiveDecompose(cirq.Gate):
+    def __init__(
+        self,
+        recurse: bool = True,
+        mock_qm=mock.Mock(spec=cirq.QubitManager),
+        with_context: bool = False,
+    ):
+        self.recurse = recurse
+        self.mock_qm = mock_qm
+        self.with_context = with_context
 
-        def _num_qubits_(self) -> int:
-            return 2
+    def _num_qubits_(self) -> int:
+        return 2
 
-        def _decompose_(self, qubits):
-            self.mock_qm.qalloc(self.recurse)
-            yield RecursiveDecompose(recurse=False, mock_qm=self.mock_qm).on(
-                *qubits
-            ) if self.recurse else cirq.Z.on_each(*qubits)
-            self.mock_qm.qfree(self.recurse)
+    def _decompose_impl(self, qubits, mock_qm: mock.Mock):
+        mock_qm.qalloc(self.recurse)
+        yield RecursiveDecompose(
+            recurse=False, mock_qm=self.mock_qm, with_context=self.with_context
+        ).on(*qubits) if self.recurse else cirq.Z.on_each(*qubits)
+        mock_qm.qfree(self.recurse)
 
-        def _has_unitary_(self):
-            return True
+    def _decompose_(self, qubits):
+        if self.with_context:
+            assert False
+        else:
+            return self._decompose_impl(qubits, self.mock_qm)
 
+    def _decompose_with_context_(self, qubits, context):
+        if self.with_context:
+            qm = self.mock_qm if context is None else context.qubit_manager
+            return self._decompose_impl(qubits, qm)
+        else:
+            return NotImplemented
+
+    def _has_unitary_(self):
+        return True
+
+
+@pytest.mark.parametrize('with_context', [True, False])
+def test_decompose_recursive_dfs(with_context: bool):
     expected_calls = [
         mock.call.qalloc(True),
         mock.call.qalloc(False),
         mock.call.qfree(False),
         mock.call.qfree(True),
     ]
-    mock_qm = mock.Mock(spec=["qalloc", "qfree"])
+    mock_qm = mock.Mock(spec=cirq.QubitManager)
+    context_qm = mock.Mock(spec=cirq.QubitManager)
+    gate = RecursiveDecompose(mock_qm=mock_qm, with_context=with_context)
     q = cirq.LineQubit.range(3)
-    gate = RecursiveDecompose(mock_qm=mock_qm)
     gate_op = gate.on(*q[:2])
     controlled_op = gate_op.controlled_by(q[2])
     classically_controlled_op = gate_op.with_classical_controls('key')
@@ -347,3 +379,12 @@ def test_decompose_recursive_dfs():
         mock_qm.reset_mock()
         _ = cirq.decompose(op)
         assert mock_qm.method_calls == expected_calls
+
+        mock_qm.reset_mock()
+        context_qm.reset_mock()
+        _ = cirq.decompose(op, context=cirq.DecompositionContext(context_qm))
+        assert (
+            context_qm.method_calls == expected_calls
+            if with_context
+            else mock_qm.method_calls == expected_calls
+        )
