@@ -11,6 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+from typing import Optional
 from unittest import mock
 import pytest
 
@@ -224,7 +225,9 @@ def test_decompose_intercept():
     assert actual == [cirq.CNOT(a, b), cirq.CNOT(b, a), cirq.CNOT(a, b)]
 
     # Accepts a context, when provided.
-    def _intercept_with_context(op: cirq.Operation, context: cirq.DecompositionContext = None):
+    def _intercept_with_context(
+        op: cirq.Operation, context: Optional[cirq.DecompositionContext] = None
+    ):
         assert context is not None
         if op.gate == cirq.SWAP:
             q = context.qubit_manager.qalloc(1)
