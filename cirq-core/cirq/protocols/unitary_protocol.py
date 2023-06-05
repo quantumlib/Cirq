@@ -161,7 +161,7 @@ def _strat_unitary_from_apply_unitary(val: Any) -> Optional[np.ndarray]:
         return NotImplemented
 
     # Apply unitary effect to an identity matrix.
-    result = method(ApplyUnitaryArgs.for_unitary(val_qid_shape))
+    result = method(ApplyUnitaryArgs.for_unitary(qid_shape=val_qid_shape))
 
     if result is NotImplemented or result is None:
         return result
@@ -185,7 +185,7 @@ def _strat_unitary_from_decompose(val: Any) -> Optional[np.ndarray]:
 
     # Apply sub-operations' unitary effects to an identity matrix.
     result = apply_unitaries(
-        operations, ordered_qubits, ApplyUnitaryArgs.for_unitary(val_qid_shape), None
+        operations, ordered_qubits, ApplyUnitaryArgs.for_unitary(qid_shape=val_qid_shape), None
     )
 
     # Package result.

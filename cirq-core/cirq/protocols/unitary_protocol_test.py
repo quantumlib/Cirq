@@ -189,29 +189,40 @@ def test_has_unitary():
     assert not cirq.has_unitary(FullyImplemented(False))
 
 
-@pytest.mark.parametrize('theta', np.linspace(0, 2 * np.pi, 10))
-def test_decompose_gate_that_allocates_qubits(theta: float):
+def _test_gate_that_allocates_qubits(gate):
     from cirq.protocols.unitary_protocol import _strat_unitary_from_decompose
 
-    gate = testing.GateThatAllocatesAQubit(theta)
-    np.testing.assert_allclose(
-        cast(np.ndarray, _strat_unitary_from_decompose(gate)), gate.target_unitary()
-    )
-    np.testing.assert_allclose(
-        cast(np.ndarray, _strat_unitary_from_decompose(gate(a))), gate.target_unitary()
-    )
+    op = gate.on(*cirq.LineQubit.range(cirq.num_qubits(gate)))
+    moment = cirq.Moment(op)
+    circuit = cirq.FrozenCircuit(op)
+    circuit_op = cirq.CircuitOperation(circuit)
+    for val in [gate, op, moment, circuit, circuit_op]:
+        unitary_from_strat = _strat_unitary_from_decompose(val)
+        assert unitary_from_strat is not None
+        np.testing.assert_allclose(unitary_from_strat, gate.narrow_unitary())
 
 
 @pytest.mark.parametrize('theta', np.linspace(0, 2 * np.pi, 10))
-@pytest.mark.parametrize('n', [*range(1, 6)])
-def test_recusive_decomposition(n: int, theta: float):
-    from cirq.protocols.unitary_protocol import _strat_unitary_from_decompose
+@pytest.mark.parametrize('phase_state', [0, 1])
+@pytest.mark.parametrize('target_bitsize', [1, 2, 3])
+@pytest.mark.parametrize('ancilla_bitsize', [1, 4])
+def test_decompose_gate_that_allocates_clean_qubits(
+    theta: float, phase_state: int, target_bitsize: int, ancilla_bitsize: int
+):
 
-    g1 = testing.GateThatDecomposesIntoNGates(n, cirq.H, theta)
-    g2 = testing.GateThatDecomposesIntoNGates(n, g1, theta)
-    np.testing.assert_allclose(
-        cast(np.ndarray, _strat_unitary_from_decompose(g2)), g2.target_unitary()
-    )
+    gate = testing.PhaseUsingCleanAncilla(theta, phase_state, target_bitsize, ancilla_bitsize)
+    _test_gate_that_allocates_qubits(gate)
+
+
+@pytest.mark.parametrize('phase_state', [0, 1])
+@pytest.mark.parametrize('target_bitsize', [1, 2, 3])
+@pytest.mark.parametrize('ancilla_bitsize', [1, 4])
+def test_decompose_gate_that_allocates_dirty_qubits(
+    phase_state: int, target_bitsize: int, ancilla_bitsize: int
+):
+
+    gate = testing.PhaseUsingDirtyAncilla(phase_state, target_bitsize, ancilla_bitsize)
+    _test_gate_that_allocates_qubits(gate)
 
 
 def test_decompose_and_get_unitary():
@@ -226,15 +237,6 @@ def test_decompose_and_get_unitary():
     np.testing.assert_allclose(_strat_unitary_from_decompose(DummyOperation((a, b))), np.eye(4))
     np.testing.assert_allclose(_strat_unitary_from_decompose(DummyComposite()), np.eye(1))
     np.testing.assert_allclose(_strat_unitary_from_decompose(OtherComposite()), m2)
-
-    np.testing.assert_allclose(
-        _strat_unitary_from_decompose(testing.GateThatAllocatesTwoQubits()),
-        testing.GateThatAllocatesTwoQubits.target_unitary(),
-    )
-    np.testing.assert_allclose(
-        _strat_unitary_from_decompose(testing.GateThatAllocatesTwoQubits().on(a, b)),
-        testing.GateThatAllocatesTwoQubits.target_unitary(),
-    )
 
 
 def test_decomposed_has_unitary():

@@ -134,10 +134,31 @@ class ApplyUnitaryArgs:
         return ApplyUnitaryArgs(state, np.empty_like(state), range(num_qubits))
 
     @classmethod
-    def for_unitary(cls, qid_shapes: Tuple[int, ...]) -> 'ApplyUnitaryArgs':
-        state = qis.eye_tensor(qid_shapes, dtype=np.complex128)
-        buffer = np.empty_like(state)
-        return ApplyUnitaryArgs(state, buffer, range(len(qid_shapes)))
+    def for_unitary(
+        cls, num_qubits: Optional[int] = None, *, qid_shape: Optional[Tuple[int, ...]] = None
+    ) -> 'ApplyUnitaryArgs':
+        """A default instance corresponding to an identity matrix.
+
+        Specify exactly one argument.
+
+        Args:
+            num_qubits: The number of qubits to make space for in the state.
+            qid_shape: A tuple representing the number of quantum levels of each
+                qubit the identity matrix applies to. `qid_shape` is (2, 2, 2) for
+                a three-qubit identity operation tensor.
+
+        Raises:
+            TypeError: If exactly neither `num_qubits` or `qid_shape` is provided or
+                both are provided.
+        """
+        if (num_qubits is None) == (qid_shape is None):
+            raise TypeError('Specify exactly one of num_qubits or qid_shape.')
+        if num_qubits is not None:
+            qid_shape = (2,) * num_qubits
+        qid_shape = cast(Tuple[int, ...], qid_shape)  # Satisfy mypy
+        num_qubits = len(qid_shape)
+        state = qis.eye_tensor(qid_shape, dtype=np.complex128)
+        return ApplyUnitaryArgs(state, np.empty_like(state), range(num_qubits))
 
     def with_axes_transposed_to_start(self) -> 'ApplyUnitaryArgs':
         """Returns a transposed view of the same arguments.
@@ -471,7 +492,7 @@ def _strat_apply_unitary_from_decompose(val: Any, args: ApplyUnitaryArgs) -> Opt
     ordered_qubits = ancilla + tuple(qubits)
     all_qid_shapes = qid_shape_protocol.qid_shape(ordered_qubits)
     result = apply_unitaries(
-        operations, ordered_qubits, ApplyUnitaryArgs.for_unitary(all_qid_shapes), None
+        operations, ordered_qubits, ApplyUnitaryArgs.for_unitary(qid_shape=all_qid_shapes), None
     )
     if result is None or result is NotImplemented:
         return result

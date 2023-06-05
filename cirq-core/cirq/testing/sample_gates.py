@@ -11,75 +11,69 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-import functools
+import dataclasses
+
+import cirq
 import numpy as np
-from cirq import ops
+from cirq import ops, qis
 
 
-class GateThatAllocatesAQubit(ops.Gate):
-    r"""A gate that applies $Z^\theta$ indirectly through a clean ancilla."""
-
-    def __init__(self, theta: float) -> None:
-        super().__init__()
-        self._theta = theta
-
-    def _num_qubits_(self):
-        return 1
-
-    def _decompose_(self, q):
-        anc = ops.NamedQubit("anc")
-        yield ops.CX(*q, anc)
-        yield (ops.Z**self._theta)(anc)
-        yield ops.CX(*q, anc)
-
-    def target_unitary(self) -> np.ndarray:
-        return np.array([[1, 0], [0, (-1 + 0j) ** self._theta]])
+def _matrix_for_phasing_state(num_qubits, phase_state, phase):
+    matrix = qis.eye_tensor((2,) * num_qubits, dtype=np.complex128)
+    matrix = matrix.reshape((2**num_qubits, 2**num_qubits))
+    matrix[phase_state, phase_state] = phase
+    print(num_qubits, phase_state, phase)
+    print(matrix)
+    return matrix
 
 
-class GateThatAllocatesTwoQubits(ops.Gate):
-    r"""A gate that applies $-j Z \otimes Z$ indirectly through two ancillas."""
+@dataclasses.dataclass(frozen=True)
+class PhaseUsingCleanAncilla(ops.Gate):
+    r"""Phases the state $|phase_state>$ by $\exp(1j * \pi * \theta)$ using one clean ancilla."""
+
+    theta: float
+    phase_state: int = 1
+    target_bitsize: int = 1
+    ancilla_bitsize: int = 1
 
     def _num_qubits_(self):
-        return 2
+        return self.target_bitsize
 
-    def _decompose_(self, qs):
-        q0, q1 = qs
-        anc = ops.NamedQubit.range(2, prefix='two_ancillas_')
+    def _decompose_(self, qubits):
+        anc = ops.NamedQubit.range(self.ancilla_bitsize, prefix="anc")
+        cv = [int(x) for x in f'{self.phase_state:0{self.target_bitsize}b}']
+        cnot_ladder = [cirq.CNOT(anc[i - 1], anc[i]) for i in range(1, self.ancilla_bitsize)]
 
-        yield ops.X(anc[0])
-        yield ops.CX(q0, anc[0])
-        yield (ops.Y)(anc[0])
-        yield ops.CX(q0, anc[0])
+        yield ops.X(anc[0]).controlled_by(*qubits, control_values=cv)
+        yield [cnot_ladder, ops.Z(anc[-1]) ** self.theta, reversed(cnot_ladder)]
+        yield ops.X(anc[0]).controlled_by(*qubits, control_values=cv)
 
-        yield ops.CX(q1, anc[1])
-        yield (ops.Z)(anc[1])
-        yield ops.CX(q1, anc[1])
-
-    @classmethod
-    def target_unitary(cls) -> np.ndarray:
-        # Unitary = -j Z \otimes Z
-        return np.array([[-1j, 0, 0, 0], [0, 1j, 0, 0], [0, 0, 1j, 0], [0, 0, 0, -1j]])
+    def narrow_unitary(self) -> np.ndarray:
+        """Narrowed unitary corresponding to the unitary effect applied on target qubits."""
+        phase = np.exp(1j * np.pi * self.theta)
+        return _matrix_for_phasing_state(self.target_bitsize, self.phase_state, phase)
 
 
-class GateThatDecomposesIntoNGates(ops.Gate):
-    r"""Applies $(Z^\theta)^{\otimes_n}$ on work qubits and `subgate` on $n$ borrowable ancillas."""
+@dataclasses.dataclass(frozen=True)
+class PhaseUsingDirtyAncilla(ops.Gate):
+    r"""Phases the state $|phase_state>$ by -1 using one dirty ancilla."""
 
-    def __init__(self, n: int, subgate: ops.Gate, theta: float) -> None:
-        super().__init__()
-        self._n = n
-        self._subgate = subgate
-        self._name = str(subgate)
-        self._theta = theta
+    phase_state: int = 1
+    target_bitsize: int = 1
+    ancilla_bitsize: int = 1
 
-    def _num_qubits_(self) -> int:
-        return self._n
+    def _num_qubits_(self):
+        return self.target_bitsize
 
-    def _decompose_(self, qs):
-        ancilla = ops.NamedQubit.range(self._n, prefix=self._name)
-        yield self._subgate.on_each(ancilla)
-        yield (ops.Z**self._theta).on_each(qs)
-        yield self._subgate.on_each(ancilla)
+    def _decompose_(self, qubits):
+        anc = ops.NamedQubit.range(self.ancilla_bitsize, prefix="anc")
+        cv = [int(x) for x in f'{self.phase_state:0{self.target_bitsize}b}']
+        cnot_ladder = [cirq.CNOT(anc[i - 1], anc[i]) for i in range(1, self.ancilla_bitsize)]
+        yield ops.X(anc[0]).controlled_by(*qubits, control_values=cv)
+        yield [cnot_ladder, ops.Z(anc[-1]), reversed(cnot_ladder)]
+        yield ops.X(anc[0]).controlled_by(*qubits, control_values=cv)
+        yield [cnot_ladder, ops.Z(anc[-1]), reversed(cnot_ladder)]
 
-    def target_unitary(self) -> np.ndarray:
-        U = np.array([[1, 0], [0, (-1 + 0j) ** self._theta]])
-        return functools.reduce(np.kron, [U] * self._n)
+    def narrow_unitary(self) -> np.ndarray:
+        """Narrowed unitary corresponding to the unitary effect applied on target qubits."""
+        return _matrix_for_phasing_state(self.target_bitsize, self.phase_state, -1)

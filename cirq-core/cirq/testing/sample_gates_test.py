@@ -11,48 +11,49 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-import functools
 import pytest
 
 import numpy as np
 from cirq.testing import sample_gates
-from cirq import protocols, ops
+import cirq
 
 
 @pytest.mark.parametrize('theta', np.linspace(0, 2 * np.pi, 20))
-def test_GateThatAllocatesAQubit(theta: float):
-    g = sample_gates.GateThatAllocatesAQubit(theta)
+def test_phase_using_clean_ancilla(theta: float):
+    g = sample_gates.PhaseUsingCleanAncilla(theta)
+    q = cirq.LineQubit(0)
+    qubit_order = cirq.QubitOrder.explicit([q], fallback=cirq.QubitOrder.DEFAULT)
+    decomposed_unitary = cirq.Circuit(cirq.decompose_once(g.on(q))).unitary(qubit_order=qubit_order)
+    phase = np.exp(1j * np.pi * theta)
+    np.testing.assert_allclose(g.narrow_unitary(), np.array([[1, 0], [0, phase]]))
+    np.testing.assert_allclose(
+        decomposed_unitary,
+        # fmt: off
+        np.array(
+            [
+                [1 , 0    , 0    , 0],
+                [0 , phase, 0    , 0],
+                [0 , 0    , phase, 0],
+                [0 , 0    , 0    , 1],
+            ]
+        ),
+        # fmt: on
+    )
 
-    want = np.array([[1, 0], [0, (-1 + 0j) ** theta]], dtype=np.complex128)
-    # test unitary
-    np.testing.assert_allclose(g.target_unitary(), want)
 
-    # test decomposition
-    np.testing.assert_allclose(protocols.unitary(g), g.target_unitary())
-
-
-def test_GateThatAllocatesTwoQubits():
-    g = sample_gates.GateThatAllocatesTwoQubits()
-
-    Z = np.array([[1, 0], [0, -1]])
-    want = -1j * np.kron(Z, Z)
-    # test unitary
-    np.testing.assert_allclose(g.target_unitary(), want)
-
-    # test decomposition
-    np.testing.assert_allclose(protocols.unitary(g), g.target_unitary())
-
-
-@pytest.mark.parametrize('n', [*range(1, 6)])
-@pytest.mark.parametrize('subgate', [ops.Z, ops.X, ops.Y, ops.T])
-@pytest.mark.parametrize('theta', np.linspace(0, 2 * np.pi, 5))
-def test_GateThatDecomposesIntoNGates(n: int, subgate: ops.Gate, theta: float):
-    g = sample_gates.GateThatDecomposesIntoNGates(n, subgate, theta)
-
-    U = np.array([[1, 0], [0, (-1 + 0j) ** theta]], dtype=np.complex128)
-    want = functools.reduce(np.kron, [U] * n)
-    # test unitary
-    np.testing.assert_allclose(g.target_unitary(), want)
-
-    # test decomposition
-    np.testing.assert_allclose(protocols.unitary(g), g.target_unitary())
+@pytest.mark.parametrize(
+    'target_bitsize, phase_state', [(1, 0), (1, 1), (2, 0), (2, 1), (2, 2), (2, 3)]
+)
+@pytest.mark.parametrize('ancilla_bitsize', [1, 4])
+def test_phase_using_dirty_ancilla(target_bitsize, phase_state, ancilla_bitsize):
+    g = sample_gates.PhaseUsingDirtyAncilla(phase_state, target_bitsize, ancilla_bitsize)
+    q = cirq.LineQubit.range(target_bitsize)
+    qubit_order = cirq.QubitOrder.explicit(q, fallback=cirq.QubitOrder.DEFAULT)
+    decomposed_circuit = cirq.Circuit(cirq.decompose_once(g.on(*q)))
+    decomposed_unitary = decomposed_circuit.unitary(qubit_order=qubit_order)
+    phase_matrix = np.eye(2**target_bitsize)
+    phase_matrix[phase_state, phase_state] = -1
+    np.testing.assert_allclose(g.narrow_unitary(), phase_matrix)
+    np.testing.assert_allclose(
+        decomposed_unitary, np.kron(phase_matrix, np.eye(2**ancilla_bitsize)), atol=1e-5
+    )
