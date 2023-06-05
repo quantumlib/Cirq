@@ -483,7 +483,7 @@ class EngineClient:
 
     create_job = duet.sync(create_job_async)
 
-    def create_job_and_get_result(
+    def create_job_over_stream(
         self,
         project_id: str,
         program_id: str,

@@ -222,8 +222,8 @@ def test_run_in_batch_mode():
 @uses_async_mock
 # @mock.patch('cirq_google.engine.engine_client.EngineClient.get_job_results_async')
 @mock.patch('cirq_google.engine.engine_client.EngineClient.get_job_async')
-@mock.patch('cirq_google.engine.engine_client.EngineClient.create_job_and_get_result')
-def test_run_delegation(create_job_and_get_result, get_job_async):
+@mock.patch('cirq_google.engine.engine_client.EngineClient.create_job_over_stream')
+def test_run_delegation(create_job_over_stream, get_job_async):
     dt = datetime.datetime.now(tz=datetime.timezone.utc)
     # create_job_async.return_value = (
     #     'steve',
@@ -269,7 +269,7 @@ def test_run_delegation(create_job_and_get_result, get_job_async):
     )
     result_future = duet.AwaitableFuture()
     result_future.try_set_result(result)
-    create_job_and_get_result.return_value = result_future
+    create_job_over_stream.return_value = result_future
 
     program = cg.EngineProgram('a', 'b', EngineContext())
     param_resolver = cirq.ParamResolver({})
