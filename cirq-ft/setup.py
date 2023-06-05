@@ -12,20 +12,21 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import io
+import pathlib
 import os
+
 from setuptools import find_packages, setup
 
 # This reads the __version__ variable from cirq/_version.py
 __version__ = ''
-exec(open('cirq_ft/_version.py').read())
+exec(pathlib.Path('cirq_ft/_version.py').read_text(encoding='utf-8'))
 
 name = 'cirq-ft'
 
 description = 'A Cirq package to fault-tolerant algorithms'
 
 # README file as long_description.
-long_description = io.open('README.rst', encoding='utf-8').read()
+long_description = pathlib.Path('README.rst').read_text(encoding='utf-8')
 
 # If CIRQ_PRE_RELEASE_VERSION is set then we update the version to this value.
 # It is assumed that it ends with one of `.devN`, `.aN`, `.bN`, `.rcN` and hence
@@ -41,7 +42,7 @@ if 'CIRQ_PRE_RELEASE_VERSION' in os.environ:
     )
 
 # Read in requirements
-requirements = open('requirements.txt').readlines()
+requirements = pathlib.Path('requirements.txt').read_text(encoding='utf-8').split('\n')
 requirements = [r.strip() for r in requirements]
 
 # Sanity check
@@ -49,9 +50,7 @@ assert __version__, 'Version string cannot be empty'
 
 requirements += [f'cirq-core=={__version__}']
 
-cirq_packages = ['cirq_ft'] + [
-    'cirq_ft.' + package for package in find_packages(where='cirq_ft')
-]
+cirq_packages = ['cirq_ft'] + [f'cirq_ft.{package}' for package in find_packages(where='cirq_ft')]
 
 
 setup(
