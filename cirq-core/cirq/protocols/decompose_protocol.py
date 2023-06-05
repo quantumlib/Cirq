@@ -13,6 +13,7 @@
 # limitations under the License.
 import dataclasses
 import inspect
+from collections import defaultdict
 from typing import (
     TYPE_CHECKING,
     Any,
@@ -29,7 +30,6 @@ from typing import (
     Union,
 )
 from typing_extensions import runtime_checkable
-from collections import defaultdict
 
 from typing_extensions import Protocol
 

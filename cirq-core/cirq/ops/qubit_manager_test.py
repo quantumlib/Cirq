@@ -30,6 +30,8 @@ def test_clean_qubits():
     assert str(q) == '_c(2) (d=3)'
     assert repr(q) == 'cirq.ops.CleanQubit(2, dim=3)'
 
+    assert cqi.CleanQubit(1) < cqi.CleanQubit(2)
+
 
 def test_borrow_qubits():
     q = cqi.BorrowableQubit(10)
@@ -43,6 +45,8 @@ def test_borrow_qubits():
     assert q.dimension == 4
     assert str(q) == '_b(20) (d=4)'
     assert repr(q) == 'cirq.ops.BorrowableQubit(20, dim=4)'
+
+    assert cqi.BorrowableQubit(1) < cqi.BorrowableQubit(2)
 
 
 @pytest.mark.parametrize('_', range(2))

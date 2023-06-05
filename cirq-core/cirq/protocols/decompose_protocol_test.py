@@ -223,6 +223,21 @@ def test_decompose_intercept():
     )
     assert actual == [cirq.CNOT(a, b), cirq.CNOT(b, a), cirq.CNOT(a, b)]
 
+    # Accepts a context, when provided.
+    def _intercept_with_context(op: cirq.Operation, context: cirq.DecompositionContext = None):
+        assert context is not None
+        if op.gate == cirq.SWAP:
+            q = context.qubit_manager.qalloc(1)
+            a, b = op.qubits
+            return [cirq.X(a), cirq.X(*q), cirq.X(b)]
+        return NotImplemented
+
+    context = cirq.DecompositionContext(cirq.ops.SimpleQubitManager())
+    actual = cirq.decompose(
+        cirq.SWAP(a, b), intercepting_decomposer=_intercept_with_context, context=context
+    )
+    assert actual == [cirq.X(a), cirq.X(cirq.ops.CleanQubit(0)), cirq.X(b)]
+
 
 def test_decompose_preserving_structure():
     a, b = cirq.LineQubit.range(2)
