@@ -174,10 +174,10 @@ class GateFamily:
     def _default_description(self) -> str:
         check_type = r'g == {}' if isinstance(self.gate, raw_types.Gate) else r'isinstance(g, {})'
         tags_to_accept_str = (
-            f'\nAccepted tags: {list(self._tags_to_accept)}' if self._tags_to_accept else ''
+            f'\nAccepted tags: {sorted(list(self._tags_to_accept))}' if self._tags_to_accept else ''
         )
         tags_to_ignore_str = (
-            f'\nIgnored tags: {list(self._tags_to_ignore)}' if self._tags_to_ignore else ''
+            f'\nIgnored tags: {sorted(list(self._tags_to_ignore))}' if self._tags_to_ignore else ''
         )
         return (
             f'Accepts `cirq.Gate` instances `g` s.t. `{check_type.format(self._gate_str())}`'
