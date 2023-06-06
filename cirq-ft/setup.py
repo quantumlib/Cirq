@@ -23,7 +23,7 @@ exec(pathlib.Path('cirq_ft/_version.py').read_text(encoding='utf-8'))
 
 name = 'cirq-ft'
 
-description = 'A Cirq package to fault-tolerant algorithms'
+description = 'A Cirq package for fault-tolerant algorithms'
 
 # README file as long_description.
 long_description = pathlib.Path('README.rst').read_text(encoding='utf-8')
