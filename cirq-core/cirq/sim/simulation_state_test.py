@@ -119,9 +119,10 @@ def test_decompose():
             yield cirq.X(*qubits)
 
     args = DummySimulationState()
-    assert simulation_state.strat_act_on_from_apply_decompose(
-        Composite(), args, [cirq.LineQubit(0)]
-    ) is NotImplemented
+    assert (
+        simulation_state.strat_act_on_from_apply_decompose(Composite(), args, [cirq.LineQubit(0)])
+        is NotImplemented
+    )
 
 
 def test_mapping():

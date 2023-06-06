@@ -182,7 +182,6 @@ class SimulationState(SimulationStateBase, Generic[TState], metaclass=abc.ABCMet
         if any(q in self.qubits for q in qubits):
             raise ValueError(f"Qubit to add {qubits} should not already be tracked.")
         return NotImplemented
-        
 
     def remove_qubits(self: Self, qubits: Sequence['cirq.Qid']) -> Self:
         """Remove qubits from the state space.
