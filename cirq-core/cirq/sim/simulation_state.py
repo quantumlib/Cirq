@@ -166,23 +166,23 @@ class SimulationState(SimulationStateBase, Generic[TState], metaclass=abc.ABCMet
         """Creates a final merged state."""
         return self
 
-    def add_qubits(self: Self, qubits: Sequence['cirq.Qid']) -> Self:
+    def add_qubits(self: Self, qubits: Sequence['cirq.Qid']) -> None:
         """Add qubits to a new state space and take the kron product.
-        Note that only subclasses that support `kronecker_product`
-        will support this function. E.g Density Matrix and
-        State Vector simulators.
+
+        Note that only Density Matrix and State Vector simulators
+        override this function.
 
         Args:
             qubits: Sequence of qubits to be added.
 
         Returns:
-            A new Simulation State with the new qubits added. Or
-            `self` if there are no qubits to add.
+            NotImplemented if the subclass does not override
+            this method.
         """
-        if qubits is None or not qubits:
-            return self
-        new_space = type(self)(qubits=qubits)
-        return self.kronecker_product(new_space, inplace=True)
+        if any(q in self.qubits for q in qubits):
+            raise ValueError(f"Qubit to add {qubits} should not already be tracked.")
+        return NotImplemented
+        
 
     def remove_qubits(self: Self, qubits: Sequence['cirq.Qid']) -> Self:
         """Remove qubits from the state space.
@@ -328,15 +328,17 @@ def strat_act_on_from_apply_decompose(
     if operations is None:
         return NotImplemented
     assert len(qubits1) == len(qubits)
-    qubit_map = {q: qubits[i] for i, q in enumerate(qubits1)}
-    ancillas = list(set(q for op in operations for q in op.qubits if q not in qubits1))
-    for q in ancillas:
-        qubit_map[q] = q
-    args.add_qubits(ancillas)
+    all_qubits = frozenset([q for op in operations for q in op.qubits])
+    qubit_map = dict(zip(all_qubits, all_qubits))
+    qubit_map |= dict(zip(qubits1, qubits))
+    new_ancilla = tuple(q for q in sorted(all_qubits.difference(qubits)) if q not in args.qubits)
+    args = args.add_qubits(new_ancilla)
+    if args is NotImplemented:
+        return NotImplemented
     for operation in operations:
         operation = operation.with_qubits(*[qubit_map[q] for q in operation.qubits])
         protocols.act_on(operation, args)
-    args.remove_qubits(ancillas)
+    args.remove_qubits(new_ancilla)
     return True
 
 
