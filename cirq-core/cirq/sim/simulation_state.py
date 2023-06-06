@@ -176,8 +176,10 @@ class SimulationState(SimulationStateBase, Generic[TState], metaclass=abc.ABCMet
             qubits: Sequence of qubits to be added.
 
         Returns:
-            NotImplemented if the subclass does not override
-            this method.
+            NotImplemented: If the subclass does not implement this method.
+
+        Raises:
+             ValueError: If a qubit being added is already tracked.
         """
         if any(q in self.qubits for q in qubits):
             raise ValueError(f"Qubit to add {qubits} should not already be tracked.")
@@ -329,7 +331,7 @@ def strat_act_on_from_apply_decompose(
     assert len(qubits1) == len(qubits)
     all_qubits = frozenset([q for op in operations for q in op.qubits])
     qubit_map = dict(zip(all_qubits, all_qubits))
-    qubit_map |= dict(zip(qubits1, qubits))
+    qubit_map.update(dict(zip(qubits1, qubits)))
     new_ancilla = tuple(q for q in sorted(all_qubits.difference(qubits)) if q not in args.qubits)
     args = args.add_qubits(new_ancilla)
     if args is NotImplemented:

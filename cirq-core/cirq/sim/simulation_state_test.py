@@ -19,6 +19,7 @@ import pytest
 
 import cirq
 from cirq.sim import simulation_state
+from cirq.testing import PhaseUsingCleanAncilla, PhaseUsingDirtyAncilla
 
 
 class DummyQuantumState(cirq.QuantumStateRepresentation):
@@ -211,6 +212,32 @@ def test_delegating_gate_qubit(exp):
 
     control_circuit = cirq.Circuit(cirq.H(q))
     control_circuit.append(cirq.ZPowGate(exponent=exp).on(q))
+
+    assert_test_circuit_for_sv_dm_simulators(test_circuit, control_circuit)
+
+
+@pytest.mark.parametrize('num_ancilla', [1, 2, 3])
+def test_phase_using_dirty_ancilla(num_ancilla: int):
+    q = cirq.LineQubit(0)
+    anc = cirq.NamedQubit.range(num_ancilla, prefix='anc')
+
+    u = cirq.MatrixGate(cirq.testing.random_unitary(2 ** (num_ancilla + 1)))
+    test_circuit = cirq.Circuit(
+        u.on(q, *anc), PhaseUsingDirtyAncilla(ancilla_bitsize=num_ancilla).on(q)
+    )
+    control_circuit = cirq.Circuit(u.on(q, *anc), cirq.Z(q))
+    assert_test_circuit_for_sv_dm_simulators(test_circuit, control_circuit)
+
+
+@pytest.mark.parametrize('num_ancilla', [1, 2, 3])
+@pytest.mark.parametrize('theta', np.linspace(0, 2 * np.pi, 10))
+def test_phase_using_clean_ancilla(num_ancilla: int, theta: float):
+    q = cirq.LineQubit(0)
+    u = cirq.MatrixGate(cirq.testing.random_unitary(2))
+    test_circuit = cirq.Circuit(
+        u.on(q), PhaseUsingCleanAncilla(theta=theta, ancilla_bitsize=num_ancilla).on(q)
+    )
+    control_circuit = cirq.Circuit(u.on(q), cirq.ZPowGate(exponent=theta).on(q))
 
     assert_test_circuit_for_sv_dm_simulators(test_circuit, control_circuit)
 
