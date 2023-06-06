@@ -28,6 +28,10 @@ from cirq.transformers.analytical_decompositions.cphase_to_fsim import (
     decompose_cphase_into_two_fsim,
 )
 
+from cirq.transformers.analytical_decompositions.quantum_shannon_decomposition import (
+    quantum_shannon_decomposition,
+)
+
 from cirq.transformers.analytical_decompositions.single_qubit_decompositions import (
     is_negligible_turn,
     single_qubit_matrix_to_gates,

@@ -146,8 +146,11 @@ class ControlledOperation(raw_types.Operation):
         )
 
     def _decompose_(self):
+        return self._decompose_with_context_()
+
+    def _decompose_with_context_(self, context: Optional['cirq.DecompositionContext'] = None):
         result = protocols.decompose_once_with_qubits(
-            self.gate, self.qubits, NotImplemented, flatten=False
+            self.gate, self.qubits, NotImplemented, flatten=False, context=context
         )
         if result is not NotImplemented:
             return result
@@ -157,7 +160,9 @@ class ControlledOperation(raw_types.Operation):
             # local phase in the controlled variant and hence cannot be ignored.
             return NotImplemented
 
-        result = protocols.decompose_once(self.sub_operation, NotImplemented, flatten=False)
+        result = protocols.decompose_once(
+            self.sub_operation, NotImplemented, flatten=False, context=context
+        )
         if result is NotImplemented:
             return NotImplemented
 

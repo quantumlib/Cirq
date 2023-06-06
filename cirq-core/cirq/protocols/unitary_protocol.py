@@ -17,7 +17,6 @@ from typing import Any, TypeVar, Union, Optional
 import numpy as np
 from typing_extensions import Protocol
 
-from cirq import qis
 from cirq._doc import doc_private
 from cirq.protocols import qid_shape_protocol
 from cirq.protocols.apply_unitary_protocol import ApplyUnitaryArgs, apply_unitaries
@@ -162,9 +161,7 @@ def _strat_unitary_from_apply_unitary(val: Any) -> Optional[np.ndarray]:
         return NotImplemented
 
     # Apply unitary effect to an identity matrix.
-    state = qis.eye_tensor(val_qid_shape, dtype=np.complex128)
-    buffer = np.empty_like(state)
-    result = method(ApplyUnitaryArgs(state, buffer, range(len(val_qid_shape))))
+    result = method(ApplyUnitaryArgs.for_unitary(qid_shape=val_qid_shape))
 
     if result is NotImplemented or result is None:
         return result
@@ -179,15 +176,26 @@ def _strat_unitary_from_decompose(val: Any) -> Optional[np.ndarray]:
     if operations is None:
         return NotImplemented
 
+    all_qubits = frozenset(q for op in operations for q in op.qubits)
+    work_qubits = frozenset(qubits)
+    ancillas = tuple(sorted(all_qubits.difference(work_qubits)))
+
+    ordered_qubits = ancillas + tuple(qubits)
+    val_qid_shape = qid_shape_protocol.qid_shape(ancillas) + val_qid_shape
+
     # Apply sub-operations' unitary effects to an identity matrix.
-    state = qis.eye_tensor(val_qid_shape, dtype=np.complex128)
-    buffer = np.empty_like(state)
     result = apply_unitaries(
-        operations, qubits, ApplyUnitaryArgs(state, buffer, range(len(val_qid_shape))), None
+        operations, ordered_qubits, ApplyUnitaryArgs.for_unitary(qid_shape=val_qid_shape), None
     )
 
     # Package result.
     if result is None:
         return None
+
     state_len = np.prod(val_qid_shape, dtype=np.int64)
-    return result.reshape((state_len, state_len))
+    result = result.reshape((state_len, state_len))
+    # Assuming borrowable qubits are restored to their original state and
+    # clean qubits restord to the zero state then the desired unitary is
+    # the upper left square.
+    work_state_len = np.prod(val_qid_shape[len(ancillas) :], dtype=np.int64)
+    return result[:work_state_len, :work_state_len]
