@@ -121,7 +121,7 @@ def test_decompose():
     args = DummySimulationState()
     assert simulation_state.strat_act_on_from_apply_decompose(
         Composite(), args, [cirq.LineQubit(0)]
-    )
+    ) is NotImplemented
 
 
 def test_mapping():
