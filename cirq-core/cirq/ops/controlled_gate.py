@@ -152,6 +152,11 @@ class ControlledGate(raw_types.Gate):
     def _decompose_(
         self, qubits: Tuple['cirq.Qid', ...]
     ) -> Union[None, NotImplementedType, 'cirq.OP_TREE']:
+        return self._decompose_with_context_(qubits)
+
+    def _decompose_with_context_(
+        self, qubits: Tuple['cirq.Qid', ...], context: Optional['cirq.DecompositionContext'] = None
+    ) -> Union[None, NotImplementedType, 'cirq.OP_TREE']:
         if (
             protocols.has_unitary(self.sub_gate)
             and protocols.num_qubits(self.sub_gate) == 1
@@ -192,7 +197,9 @@ class ControlledGate(raw_types.Gate):
                 )
             )
             if self != controlled_z:
-                return protocols.decompose_once_with_qubits(controlled_z, qubits, NotImplemented)
+                return protocols.decompose_once_with_qubits(
+                    controlled_z, qubits, NotImplemented, context=context
+                )
 
         if isinstance(self.sub_gate, matrix_gates.MatrixGate):
             # Default decompositions of 2/3 qubit `cirq.MatrixGate` ignores global phase, which is
@@ -200,7 +207,11 @@ class ControlledGate(raw_types.Gate):
             return NotImplemented
 
         result = protocols.decompose_once_with_qubits(
-            self.sub_gate, qubits[self.num_controls() :], NotImplemented, flatten=False
+            self.sub_gate,
+            qubits[self.num_controls() :],
+            NotImplemented,
+            flatten=False,
+            context=context,
         )
         if result is NotImplemented:
             return NotImplemented

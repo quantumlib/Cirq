@@ -81,6 +81,7 @@ TestSpec = ModuleJsonTestSpec(
         'MEASUREMENT_KEY_SEPARATOR',
         'PointOptimizer',
         # Transformers
+        'DecompositionContext',
         'TransformerLogger',
         'TransformerContext',
         # Routing utilities
