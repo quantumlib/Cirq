@@ -84,9 +84,9 @@ def test_gate_family_default_name_and_description(gate, tags_to_accept, tags_to_
 @pytest.mark.parametrize(
     'tags_to_accept_fam1, tags_to_ignore_fam1, tags_to_accept_fam2, tags_to_ignore_fam2',
     [
-        (frozenset("abcd"), frozenset("efgh"), frozenset("dcba"), frozenset("hgfe")),
-        (frozenset("pabdcqwd"), [], frozenset("pcdwdbqa"), []),
-        ([], frozenset("qwerty"), [], frozenset("ytrewq")),
+        (tuple("ab"), tuple("cd"), tuple("ba"), tuple("dc")),
+        (tuple("ab"), [], tuple("ba"), []),
+        ([], tuple("ab"), [], tuple("ba")),
     ],
 )
 def test_gate_family_equality_with_tags(tags_to_accept_fam1, tags_to_ignore_fam1,
