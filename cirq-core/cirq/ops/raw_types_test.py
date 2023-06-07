@@ -201,6 +201,8 @@ def test_default_validation_and_inverse():
     assert i**-1 == t
     assert t**-1 == i
     assert cirq.decompose(i) == [cirq.X(a), cirq.S(b) ** -1, cirq.Z(a)]
+    assert [*i._decompose_()] == [cirq.X(a), cirq.S(b) ** -1, cirq.Z(a)]
+    assert [*i.gate._decompose_([a, b])] == [cirq.X(a), cirq.S(b) ** -1, cirq.Z(a)]
     cirq.testing.assert_allclose_up_to_global_phase(
         cirq.unitary(i), cirq.unitary(t).conj().T, atol=1e-8
     )
@@ -618,6 +620,7 @@ def test_tagged_operation_forwards_protocols():
     np.testing.assert_equal(cirq.unitary(tagged_h), cirq.unitary(h))
     assert cirq.has_unitary(tagged_h)
     assert cirq.decompose(tagged_h) == cirq.decompose(h)
+    assert [*tagged_h._decompose_()] == cirq.decompose(h)
     assert cirq.pauli_expansion(tagged_h) == cirq.pauli_expansion(h)
     assert cirq.equal_up_to_global_phase(h, tagged_h)
     assert np.isclose(cirq.kraus(h), cirq.kraus(tagged_h)).all()

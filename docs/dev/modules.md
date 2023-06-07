@@ -89,7 +89,7 @@ To setup a new module follow these steps:
 
 You can run `check/pytest-changed-files` and that should execute the json_serialization_test.py as well.
 
-That's it! Now, you can follow the [Serialization guide](/cirq/dev/serialization.md) for adding and removing serializable objects.
+That's it! Now, you can follow the [Serialization guide](./serialization.md) for adding and removing serializable objects.
 
 # Utilities
 

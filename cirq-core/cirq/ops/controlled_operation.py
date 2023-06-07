@@ -34,6 +34,7 @@ from cirq.ops import (
     eigen_gate,
     gate_operation,
     matrix_gates,
+    op_tree,
     raw_types,
     control_values as cv,
 )
@@ -145,7 +146,12 @@ class ControlledOperation(raw_types.Operation):
         )
 
     def _decompose_(self):
-        result = protocols.decompose_once_with_qubits(self.gate, self.qubits, NotImplemented)
+        return self._decompose_with_context_()
+
+    def _decompose_with_context_(self, context: Optional['cirq.DecompositionContext'] = None):
+        result = protocols.decompose_once_with_qubits(
+            self.gate, self.qubits, NotImplemented, flatten=False, context=context
+        )
         if result is not NotImplemented:
             return result
 
@@ -154,13 +160,15 @@ class ControlledOperation(raw_types.Operation):
             # local phase in the controlled variant and hence cannot be ignored.
             return NotImplemented
 
-        result = protocols.decompose_once(self.sub_operation, NotImplemented)
+        result = protocols.decompose_once(
+            self.sub_operation, NotImplemented, flatten=False, context=context
+        )
         if result is NotImplemented:
             return NotImplemented
 
-        return [
-            op.controlled_by(*self.controls, control_values=self.control_values) for op in result
-        ]
+        return op_tree.transform_op_tree(
+            result, lambda op: op.controlled_by(*self.controls, control_values=self.control_values)
+        )
 
     def _value_equality_values_(self):
         sorted_controls, expanded_cvals = tuple(

@@ -63,6 +63,7 @@ TestSpec = ModuleJsonTestSpec(
             'EngineResult',
             'GridDevice',
             'GoogleCZTargetGateset',
+            'DeviceParameter',
         ]
     },
     resolver_cache=_class_resolver_dictionary(),

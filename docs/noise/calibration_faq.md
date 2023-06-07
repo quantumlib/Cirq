@@ -14,8 +14,8 @@ closely resemble the actual effect, some errors can be compensated for by using 
 each gate. This will improve the accuracy of the overall moment without adding additional duration to the circuit (the newly
 added Z gates will be merged with the already existing Z gates after sending circuits to the QCS.)
 
-The [two supported techniques](/cirq/noise/calibration_api.ipynb) are [Floquet calibration](/cirq/noise/floquet_calibration_example.ipynb)
-and [XEB calibration](/cirq/noise/qcvv/xeb_calibration_example.ipynb), both of which are advanced alpha features.
+The [two supported techniques](./calibration_api.ipynb) are [Floquet calibration](./floquet_calibration_example.ipynb)
+and [XEB calibration](./qcvv/xeb_calibration_example.ipynb), both of which are advanced alpha features.
 
 ## What is the Floquet calibration protocol?
 
@@ -49,8 +49,8 @@ Floquet calibration does not yet support microwave gates, this functionality is 
 
 ## How do I calibrate a circuit using Floquet or XEB calibrations?
 
-Refer to the [Calibration API](/cirq/noise/calibration_api.ipynb) tutorial for an overview, and see the
-[Floquet calibration example](/cirq/noise/floquet_calibration_example.ipynb) and [XEB calibration example](/cirq/noise/qcvv/xeb_calibration_example.ipynb)
+Refer to the [Calibration API](./calibration_api.ipynb) tutorial for an overview, and see the
+[Floquet calibration example](./floquet_calibration_example.ipynb) and [XEB calibration example](./qcvv/xeb_calibration_example.ipynb)
 for detailed steps on example circuits with benchmarks.
 
 This is in principle a three-step process which consists of the following three steps:
@@ -100,7 +100,7 @@ holistically for the entire chip and is mostly focused on a good performance of 
 benchmarks performance on isolated gates or fully-layered simultaneous gates that may or may not resemble the circuits
 specific in your execution.
 
-The user-triggered calibrations issued through the [Calibration API](/cirq/noise/calibration_api.ipynb) are designed for circuit-specific
+The user-triggered calibrations issued through the [Calibration API](./calibration_api.ipynb) are designed for circuit-specific
 execution to capture both drift and cross-talk errors. They can be triggered just before the user circuit execution, in order to
 reduce the effect of drift. They can also be triggered on very specific qubits that match the user’s executed circuits in order to
 reduce cross-talk errors. The user-triggered calibrations do not change the qubit frequency or pulse shapes at this moment; they
@@ -161,7 +161,7 @@ This choice leads to a smaller number of necessary layers, but some of the issue
 For the highest accuracy, it might be desired to characterize each unique moment separately with the merge_subsets option
 set to false.
 
-![Illustration of `merge_subsets` option.](/cirq/google/merge_subsets.png)
+![Illustration of `merge_subsets` option.](../google/merge_subsets.png)
 
 Note that in this image the qubit lines run from top to bottom instead of left to right (the usual in Cirq).
 
@@ -243,15 +243,15 @@ Alternatively, one can run a Loschmidt echo with random circuits using Floquet c
 probability is higher than before. Even though the Loschmidt Echo random circuit may look very different from the actual circuit
 you are running, the gate compensations should result in a decent improvement in the return probabilities.
 
-See [this tutorial for an example of using Loschmidt echo](/cirq/tutorials/google/echoes.ipynb). Here is an example of applying Floquet and XEB
+See [this tutorial for an example of using Loschmidt echo](../tutorials/google/echoes.ipynb). Here is an example of applying Floquet and XEB
 corrections to a 16-site Loschmidt echo circuit (higher is better):
 
-![Calibration benchmark with Loscmidt echoes](/cirq/google/loschmidt_echo_with_calibration_example_results.png)
+![Calibration benchmark with Loschmidt echoes](../google/loschmidt_echo_with_calibration_example_results.png)
 
 Here is another example of applying calibrations to a linear chain circuit that contains only Z gates and `cirq.SQRT_ISWAP` gates
 (lower is better):
 
-![Calibration benchmark with linear chain circuit](/cirq/google/linear_chain_with_calibration_example_results.png)
+![Calibration benchmark with linear chain circuit](../google/linear_chain_with_calibration_example_results.png)
 
 ## How should I test Floquet / XEB Calibration on my circuit?
 
@@ -266,7 +266,7 @@ Here is another example of applying calibrations to a linear chain circuit that 
 
 * Run the circuit against both a perfect simulator and a coherent noise simulator to get valid baselines for performance.
 
-* Using [this tutorial for Floquet calibration](/cirq/noise/floquet_calibration_example.ipynb) as a guide, introduce Floquet characterization
+* Using [this tutorial for Floquet calibration](./floquet_calibration_example.ipynb) as a guide, introduce Floquet characterization
   and resulting compensating Z phase gates into your circuit, and compare the results with Floquet calibration turned on and turned off.
 
 In order to ensure an apt comparison, it is important to keep the following points in mind:
@@ -275,14 +275,14 @@ In order to ensure an apt comparison, it is important to keep the following poin
   - Use parallel readout heatmap to avoid any obviously broken qubits.
   - Use two-qubit error heatmaps to choose various patches of qubits with good two-qubit gate performance.
   - Use a mini-benchmark circuit to sanity check both qubit choice and basic circuit design.
-  - If in doubt, [use parallel XEB to check for issues like drift / TLS](/cirq/tutorials/google/identifying_hardware_changes.ipynb).
+  - If in doubt, [use parallel XEB to check for issues like drift / TLS](../tutorials/google/identifying_hardware_changes.ipynb).
 
 * Start small with a low number of qubits (e.g. 2 qubits, with 5-10 layers of 2 qubit gates), and increase the number of qubits
   and gate depth.
 * Do not increase the gate depth past the T1 time of the qubits.
 * Use out of the box re-compilation first. If that doesn’t work, then try custom recompilation.
 
-For a complete set of best practices, check the following [guide](/cirq/google/best_practices.ipynb).
+For a complete set of best practices, check the following [guide](../google/best_practices.ipynb).
 
 ## How to compensate for the parasitic c-phase φ angle?
 

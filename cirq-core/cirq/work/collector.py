@@ -19,7 +19,7 @@ from typing_extensions import Protocol
 import duet
 import numpy as np
 
-from cirq import circuits, study, value
+from cirq import study, value
 
 if TYPE_CHECKING:
     import cirq
@@ -29,7 +29,7 @@ if TYPE_CHECKING:
 class CircuitSampleJob:
     """Describes a sampling task."""
 
-    def __init__(self, circuit: circuits.Circuit, *, repetitions: int, tag: Any = None):
+    def __init__(self, circuit: 'cirq.AbstractCircuit', *, repetitions: int, tag: Any = None):
         """Inits CircuitSampleJob.
 
         Args:

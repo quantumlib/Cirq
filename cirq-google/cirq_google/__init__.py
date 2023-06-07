@@ -131,6 +131,8 @@ from cirq_google.workflow import (
     SimulatedProcessorWithLocalDeviceRecord,
 )
 
+from cirq_google import study
+
 from cirq_google import experimental
 
 

@@ -123,3 +123,15 @@ def test_initial_state_bad_shape():
         cirq.DensityMatrixSimulationState(
             qubits=qubits, initial_state=np.full((2, 2, 2, 2), 1 / 4), dtype=np.complex64
         )
+
+
+def test_remove_qubits():
+    """Test the remove_qubits method."""
+    q1 = cirq.LineQubit(0)
+    q2 = cirq.LineQubit(1)
+    state = cirq.DensityMatrixSimulationState(qubits=[q1, q2])
+
+    new_state = state.remove_qubits([q1])
+
+    assert len(new_state.qubits) == 1
+    assert q1 not in new_state.qubits
