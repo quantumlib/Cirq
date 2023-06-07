@@ -43,21 +43,6 @@ class DummySimulationState(cirq.SimulationState):
         return True
 
 
-"""
-class CanAddButNotRemoveQubitsSimulationState(cirq.SimulationState):
-    def __init__(self, qubits=cirq.LineQubit.range(2)):
-        super().__init__(state=DummyQuantumState(), qubits=qubits)
-
-    def _act_on_fallback_(
-        self, action: Any, qubits: Sequence['cirq.Qid'], allow_decompose: bool = True
-    ) -> bool:
-        return True
-    
-    def add_qubits(self, qubits: Sequence['cirq.Qid']):
-        super().add_qubits(qubits)
-"""
-
-
 class AncillaZ(cirq.Gate):
     def __init__(self, exponent=1):
         self._exponent = exponent
