@@ -50,6 +50,7 @@ from cirq.protocols.decompose_protocol import (
     decompose,
     decompose_once,
     decompose_once_with_qubits,
+    DecompositionContext,
     SupportsDecompose,
     SupportsDecomposeWithQubits,
 )

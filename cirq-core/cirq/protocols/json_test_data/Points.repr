@@ -1,1 +1,4 @@
-cirq.Points('a', [0, 0.4])
+[
+    cirq.Points('a', [0, 0.4]),
+    cirq.Points('amp', [0, 1], metadata='used to turn amp on or off'),
+]

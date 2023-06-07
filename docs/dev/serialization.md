@@ -80,7 +80,7 @@ If the returned object has a `_from_json_dict_` attribute, it is called instead.
 ## Adding a new serializable value
 
 All of Cirq's public classes should be serializable. Public classes are the ones that can be found in the Cirq module top level
-namespaces, i.e. `cirq.*`, `cirq_google.*`, `cirq_aqt.*`, etc, (see [Cirq modules](/cirq/dev/modules.md) for setting up JSON serialization for a module).
+namespaces, i.e. `cirq.*`, `cirq_google.*`, `cirq_aqt.*`, etc, (see [Cirq modules](./modules.md) for setting up JSON serialization for a module).
 This is enforced by the `test_json_test_data_coverage` test in
 `cirq-core/cirq/protocols/json_serialization_test.py`, which iterates over cirq's API
 looking for types with no associated json test data.

@@ -166,6 +166,38 @@ class SimulationState(SimulationStateBase, Generic[TState], metaclass=abc.ABCMet
         """Creates a final merged state."""
         return self
 
+    def add_qubits(self: Self, qubits: Sequence['cirq.Qid']):
+        """Add qubits to a new state space and take the kron product.
+
+        Note that only Density Matrix and State Vector simulators
+        override this function.
+
+        Args:
+            qubits: Sequence of qubits to be added.
+
+        Returns:
+            NotImplemented: If the subclass does not implement this method.
+
+        Raises:
+             ValueError: If a qubit being added is already tracked.
+        """
+        if any(q in self.qubits for q in qubits):
+            raise ValueError(f"Qubit to add {qubits} should not already be tracked.")
+        return NotImplemented
+
+    def remove_qubits(self: Self, qubits: Sequence['cirq.Qid']) -> Self:
+        """Remove qubits from the state space.
+
+        Args:
+            qubits: Sequence of qubits to be added.
+
+        Returns:
+            A new Simulation State with qubits removed. Or
+            `self` if there are no qubits to remove."""
+        if qubits is None or not qubits:
+            return self
+        return NotImplemented
+
     def kronecker_product(self, other: Self, *, inplace=False) -> Self:
         """Joins two state spaces together."""
         args = self if inplace else copy.copy(self)
@@ -294,13 +326,24 @@ def strat_act_on_from_apply_decompose(
     val: Any, args: 'cirq.SimulationState', qubits: Sequence['cirq.Qid']
 ) -> bool:
     operations, qubits1, _ = _try_decompose_into_operations_and_qubits(val)
-    assert len(qubits1) == len(qubits)
-    qubit_map = {q: qubits[i] for i, q in enumerate(qubits1)}
     if operations is None:
+        return NotImplemented
+    assert len(qubits1) == len(qubits)
+    all_qubits = frozenset([q for op in operations for q in op.qubits])
+    qubit_map = dict(zip(all_qubits, all_qubits))
+    qubit_map.update(dict(zip(qubits1, qubits)))
+    new_ancilla = tuple(q for q in sorted(all_qubits.difference(qubits)) if q not in args.qubits)
+    args = args.add_qubits(new_ancilla)
+    if args is NotImplemented:
         return NotImplemented
     for operation in operations:
         operation = operation.with_qubits(*[qubit_map[q] for q in operation.qubits])
         protocols.act_on(operation, args)
+    args = args.remove_qubits(new_ancilla)
+    if args is NotImplemented:  # coverage: ignore
+        raise TypeError(  # coverage: ignore
+            f"{type(args)} implements `add_qubits` but not `remove_qubits`."  # coverage: ignore
+        )  # coverage: ignore
     return True
 
 

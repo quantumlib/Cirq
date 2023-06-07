@@ -273,6 +273,12 @@ def test_repr():
     )
     cirq.testing.assert_equivalent_repr(cirq.Points('zero&pi', [0, 3.14159]))
     cirq.testing.assert_equivalent_repr(cirq.Linspace('I/10', 0, 1, 10))
+    cirq.testing.assert_equivalent_repr(
+        cirq.Points('zero&pi', [0, 3.14159], metadata='example str')
+    )
+    cirq.testing.assert_equivalent_repr(
+        cirq.Linspace('for_q0', 0, 1, 10, metadata=cirq.LineQubit(0))
+    )
 
 
 def test_zip_product_str():

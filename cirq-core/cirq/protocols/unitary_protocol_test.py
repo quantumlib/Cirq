@@ -17,6 +17,7 @@ import numpy as np
 import pytest
 
 import cirq
+from cirq import testing
 
 m0: np.ndarray = np.array([])
 # yapf: disable
@@ -186,6 +187,42 @@ def test_has_unitary():
     # Explicit function should override
     assert cirq.has_unitary(FullyImplemented(True))
     assert not cirq.has_unitary(FullyImplemented(False))
+
+
+def _test_gate_that_allocates_qubits(gate):
+    from cirq.protocols.unitary_protocol import _strat_unitary_from_decompose
+
+    op = gate.on(*cirq.LineQubit.range(cirq.num_qubits(gate)))
+    moment = cirq.Moment(op)
+    circuit = cirq.FrozenCircuit(op)
+    circuit_op = cirq.CircuitOperation(circuit)
+    for val in [gate, op, moment, circuit, circuit_op]:
+        unitary_from_strat = _strat_unitary_from_decompose(val)
+        assert unitary_from_strat is not None
+        np.testing.assert_allclose(unitary_from_strat, gate.narrow_unitary())
+
+
+@pytest.mark.parametrize('theta', np.linspace(0, 2 * np.pi, 10))
+@pytest.mark.parametrize('phase_state', [0, 1])
+@pytest.mark.parametrize('target_bitsize', [1, 2, 3])
+@pytest.mark.parametrize('ancilla_bitsize', [1, 4])
+def test_decompose_gate_that_allocates_clean_qubits(
+    theta: float, phase_state: int, target_bitsize: int, ancilla_bitsize: int
+):
+
+    gate = testing.PhaseUsingCleanAncilla(theta, phase_state, target_bitsize, ancilla_bitsize)
+    _test_gate_that_allocates_qubits(gate)
+
+
+@pytest.mark.parametrize('phase_state', [0, 1])
+@pytest.mark.parametrize('target_bitsize', [1, 2, 3])
+@pytest.mark.parametrize('ancilla_bitsize', [1, 4])
+def test_decompose_gate_that_allocates_dirty_qubits(
+    phase_state: int, target_bitsize: int, ancilla_bitsize: int
+):
+
+    gate = testing.PhaseUsingDirtyAncilla(phase_state, target_bitsize, ancilla_bitsize)
+    _test_gate_that_allocates_qubits(gate)
 
 
 def test_decompose_and_get_unitary():
