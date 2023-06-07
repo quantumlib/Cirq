@@ -166,7 +166,7 @@ class SimulationState(SimulationStateBase, Generic[TState], metaclass=abc.ABCMet
         """Creates a final merged state."""
         return self
 
-    def add_qubits(self: Self, qubits: Sequence['cirq.Qid']) -> None:
+    def add_qubits(self: Self, qubits: Sequence['cirq.Qid']):
         """Add qubits to a new state space and take the kron product.
 
         Note that only Density Matrix and State Vector simulators

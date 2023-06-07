@@ -32,12 +32,6 @@ class DummyQuantumState(cirq.QuantumStateRepresentation):
     def reindex(self, axes):
         return self
 
-    def kron(self, other):
-        return self
-
-    def factor(self, axes, validate=True, atol=1e-07):
-        return (self, self)
-
 
 class DummySimulationState(cirq.SimulationState):
     def __init__(self, qubits=cirq.LineQubit.range(2)):
@@ -242,8 +236,16 @@ def test_phase_using_clean_ancilla(num_ancilla: int, theta: float):
     assert_test_circuit_for_sv_dm_simulators(test_circuit, control_circuit)
 
 
+def test_add_qubits_raise_value_error(num_ancilla=1):
+    q = cirq.LineQubit(0)
+    args = cirq.StateVectorSimulationState(qubits=[q])
+
+    with pytest.raises(ValueError, match='should not already be tracked.'):
+        args.add_qubits([q])
+
+
 def assert_test_circuit_for_sv_dm_simulators(test_circuit, control_circuit) -> None:
     for test_simulator in ['cirq.final_state_vector', 'cirq.final_density_matrix']:
         test_sim = eval(test_simulator)(test_circuit)
         control_sim = eval(test_simulator)(control_circuit)
-        cirq.testing.assert_allclose_up_to_global_phase(test_sim, control_sim, atol=1e-6)
+        np.allclose(test_sim, control_sim)
