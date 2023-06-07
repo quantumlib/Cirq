@@ -341,8 +341,8 @@ def strat_act_on_from_apply_decompose(
         protocols.act_on(operation, args)
     args = args.remove_qubits(new_ancilla)
     if args is NotImplemented:  # coverage: ignore
-        raise TypeError(
-            f"{type(args)} implements `add_qubits` but not `remove_qubits`."
+        raise TypeError(  # coverage: ignore
+            f"{type(args)} implements `add_qubits` but not `remove_qubits`."  # coverage: ignore
         )  # coverage: ignore
     return True
 
