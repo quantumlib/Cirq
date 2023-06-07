@@ -245,10 +245,9 @@ def test_add_qubits_raise_value_error(num_ancilla=1):
 
 
 def test_remove_qubits_not_implemented(num_ancilla=1):
-    q = cirq.LineQubit(0)
     args = DummySimulationState()
 
-    assert args.remove_qubits([q]) is NotImplemented
+    assert args.remove_qubits([cirq.LineQubit(0)]) is NotImplemented
 
 
 def assert_test_circuit_for_sv_dm_simulators(test_circuit, control_circuit) -> None:
