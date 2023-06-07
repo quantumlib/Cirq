@@ -107,3 +107,5 @@ from cirq.testing.routing_devices import (
 )
 
 from cirq.testing.sample_circuits import nonoptimal_toffoli_circuit
+
+from cirq.testing.sample_gates import PhaseUsingCleanAncilla, PhaseUsingDirtyAncilla
