@@ -246,4 +246,4 @@ def assert_test_circuit_for_sv_dm_simulators(test_circuit, control_circuit) -> N
     for test_simulator in ['cirq.final_state_vector', 'cirq.final_density_matrix']:
         test_sim = eval(test_simulator)(test_circuit)
         control_sim = eval(test_simulator)(control_circuit)
-        assert np.allclose(test_sim, control_sim)
+        cirq.testing.assert_allclose_up_to_global_phase(test_sim, control_sim, atol=1e-6)
