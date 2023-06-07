@@ -80,6 +80,7 @@ def test_gate_family_default_name_and_description(gate, tags_to_accept, tags_to_
     ignored_match = re.compile('.*Ignored tags.*', re.DOTALL).match(g.description)
     assert (ignored_match is None) == (tags_to_ignore == [])
 
+
 @pytest.mark.parametrize(
     'tags_to_accept_fam1, tags_to_ignore_fam1, tags_to_accept_fam2, tags_to_ignore_fam2',
     [
@@ -88,9 +89,12 @@ def test_gate_family_default_name_and_description(gate, tags_to_accept, tags_to_
         ([], frozenset("qwerty"), [], frozenset("ytrewq")),
     ],
 )
-def test_gate_family_equality_with_tags(tags_to_accept_fam1, tags_to_ignore_fam1, tags_to_accept_fam2, tags_to_ignore_fam2):
-    gate_fam1 = cirq.GateFamily(cirq.X, tags_to_accept=tags_to_accept_fam1, tags_to_ignore=tags_to_ignore_fam1)
-    gate_fam2 = cirq.GateFamily(cirq.X, tags_to_accept=tags_to_accept_fam2, tags_to_ignore=tags_to_ignore_fam2)
+def test_gate_family_equality_with_tags(tags_to_accept_fam1, tags_to_ignore_fam1,
+                                        tags_to_accept_fam2, tags_to_ignore_fam2):
+    gate_fam1 = cirq.GateFamily(cirq.X, tags_to_accept=tags_to_accept_fam1,
+                                tags_to_ignore=tags_to_ignore_fam1)
+    gate_fam2 = cirq.GateFamily(cirq.X, tags_to_accept=tags_to_accept_fam2,
+                                tags_to_ignore=tags_to_ignore_fam2)
 
     assert gate_fam1 == gate_fam2
 
