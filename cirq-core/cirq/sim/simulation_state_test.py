@@ -43,6 +43,21 @@ class DummySimulationState(cirq.SimulationState):
         return True
 
 
+"""
+class CanAddButNotRemoveQubitsSimulationState(cirq.SimulationState):
+    def __init__(self, qubits=cirq.LineQubit.range(2)):
+        super().__init__(state=DummyQuantumState(), qubits=qubits)
+
+    def _act_on_fallback_(
+        self, action: Any, qubits: Sequence['cirq.Qid'], allow_decompose: bool = True
+    ) -> bool:
+        return True
+    
+    def add_qubits(self, qubits: Sequence['cirq.Qid']):
+        super().add_qubits(qubits)
+"""
+
+
 class AncillaZ(cirq.Gate):
     def __init__(self, exponent=1):
         self._exponent = exponent
@@ -99,6 +114,14 @@ class DelegatingAncillaZ(cirq.Gate):
         yield cirq.CX(qubits[0], a)
 
 
+class Composite(cirq.Gate):
+    def num_qubits(self) -> int:
+        return 1
+
+    def _decompose_(self, qubits):
+        yield cirq.X(*qubits)
+
+
 def test_measurements():
     args = DummySimulationState()
     args.measure([cirq.LineQubit(0)], "test", [False], {})
@@ -106,13 +129,6 @@ def test_measurements():
 
 
 def test_decompose():
-    class Composite(cirq.Gate):
-        def num_qubits(self) -> int:
-            return 1
-
-        def _decompose_(self, qubits):
-            yield cirq.X(*qubits)
-
     args = DummySimulationState()
     assert (
         simulation_state.strat_act_on_from_apply_decompose(Composite(), args, [cirq.LineQubit(0)])
@@ -232,7 +248,6 @@ def test_phase_using_clean_ancilla(num_ancilla: int, theta: float):
         u.on(q), PhaseUsingCleanAncilla(theta=theta, ancilla_bitsize=num_ancilla).on(q)
     )
     control_circuit = cirq.Circuit(u.on(q), cirq.ZPowGate(exponent=theta).on(q))
-
     assert_test_circuit_for_sv_dm_simulators(test_circuit, control_circuit)
 
 
@@ -244,8 +259,15 @@ def test_add_qubits_raise_value_error(num_ancilla=1):
         args.add_qubits([q])
 
 
+def test_remove_qubits_not_implemented(num_ancilla=1):
+    q = cirq.LineQubit(0)
+    args = DummySimulationState()
+
+    assert args.remove_qubits([q]) is NotImplemented
+
+
 def assert_test_circuit_for_sv_dm_simulators(test_circuit, control_circuit) -> None:
     for test_simulator in ['cirq.final_state_vector', 'cirq.final_density_matrix']:
         test_sim = eval(test_simulator)(test_circuit)
         control_sim = eval(test_simulator)(control_circuit)
-        np.allclose(test_sim, control_sim)
+        assert np.allclose(test_sim, control_sim)

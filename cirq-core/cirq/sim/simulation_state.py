@@ -196,7 +196,7 @@ class SimulationState(SimulationStateBase, Generic[TState], metaclass=abc.ABCMet
             `self` if there are no qubits to remove."""
         if qubits is None or not qubits:
             return self
-        return self.factor(qubits, inplace=True)[1]
+        return NotImplemented
 
     def kronecker_product(self, other: Self, *, inplace=False) -> Self:
         """Joins two state spaces together."""
@@ -339,7 +339,11 @@ def strat_act_on_from_apply_decompose(
     for operation in operations:
         operation = operation.with_qubits(*[qubit_map[q] for q in operation.qubits])
         protocols.act_on(operation, args)
-    args.remove_qubits(new_ancilla)
+    args = args.remove_qubits(new_ancilla)
+    if args is NotImplemented:  # coverage: ignore
+        raise TypeError(
+            f"{type(args)} implements `add_qubits` but not `remove_qubits`."
+        )  # coverage: ignore
     return True
 
 
