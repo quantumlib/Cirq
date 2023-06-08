@@ -168,33 +168,33 @@ class SimulationState(SimulationStateBase, Generic[TState], metaclass=abc.ABCMet
         return self
 
     def add_qubits(self: Self, qubits: Sequence['cirq.Qid']) -> Self:
-        """Add qubits to a new state space and take the kron product.
-
-        Note that only Density Matrix and State Vector simulators
-        override this function.
+        """Add `qubits` in the `|0>` state to a new state space and take the kron product.
 
         Args:
             qubits: Sequence of qubits to be added.
 
         Returns:
             NotImplemented: If the subclass does not implement this method.
-
-        Raises:
-             ValueError: If a qubit being added is already tracked.
+            Self: A `cirq.SimulationState` with qubits added or `self` if there are no qubits to
+                add.
         """
         if not qubits:
             return self
         return NotImplemented
 
     def remove_qubits(self: Self, qubits: Sequence['cirq.Qid']) -> Self:
-        """Remove qubits from the state space.
+        """Remove `qubits` from the state space.
+
+        The qubits to be removed should be untangled from rest of the system and in the |0> state.
 
         Args:
-            qubits: Sequence of qubits to be added.
+            qubits: Sequence of qubits to be removed.
 
         Returns:
-            A new Simulation State with qubits removed. Or
-            `self` if there are no qubits to remove."""
+            NotImplemented: If the subclass does not implement this method.
+            Self: A `cirq.SimulationState` with qubits removed or `self` if there are no qubits to
+                remove.
+        """
         if not qubits:
             return self
         return NotImplemented
