@@ -340,7 +340,7 @@ def strat_act_on_from_apply_decompose(
             return NotImplemented
         all_ancilla.update(curr_ancilla)
         protocols.act_on(operation, args)
-    args = args.remove_qubits(all_ancilla)
+    args = args.remove_qubits(tuple(all_ancilla))
     if args is NotImplemented:
         raise TypeError(f"{type(args)} implements add_qubits but not remove_qubits.")
     return True
