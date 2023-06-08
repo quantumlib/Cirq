@@ -23,6 +23,7 @@ from typing import (
     List,
     Optional,
     Sequence,
+    Set,
     TypeVar,
     TYPE_CHECKING,
     Tuple,
@@ -323,20 +324,15 @@ class SimulationState(SimulationStateBase, Generic[TState], metaclass=abc.ABCMet
 
 
 def strat_act_on_from_apply_decompose(
-    val: Any,
-    args: 'cirq.SimulationState',
-    qubits: Sequence['cirq.Qid'],
-    context: Optional['cirq.DecompositionContext'] = None,
+    val: Any, args: 'cirq.SimulationState', qubits: Sequence['cirq.Qid']
 ) -> bool:
     if isinstance(val, ops.Gate):
-        decomposed = protocols.decompose_once_with_qubits(
-            val, qubits, context=context, flatten=False, default=None
-        )
+        decomposed = protocols.decompose_once_with_qubits(val, qubits, flatten=False, default=None)
     else:
-        decomposed = protocols.decompose_once(val, context=context, flatten=False, default=None)
+        decomposed = protocols.decompose_once(val, flatten=False, default=None)
     if decomposed is None:
         return NotImplemented
-    all_ancilla = set()
+    all_ancilla: Set['cirq.Qid'] = set()
     for operation in ops.flatten_to_ops(decomposed):
         curr_ancilla = tuple(q for q in operation.qubits if q not in args.qubits)
         args = args.add_qubits(curr_ancilla)
