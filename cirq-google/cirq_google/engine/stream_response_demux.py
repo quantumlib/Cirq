@@ -1,5 +1,4 @@
 from collections.abc import Callable
-from concurrent.futures import Future
 
 import duet
 
@@ -52,7 +51,7 @@ class _StreamResponseDemux:
         if request.message_id in subscribers_by_message:
             raise ValueError(f'There is another subscriber for the message ID {request.message_id}')
 
-        def cancel(future: Future):
+        def cancel(future: duet.AwaitableFuture[quantum.QuantumRunStreamResponse]):
             if future.cancelled():
                 self._cancel_callback(request)
 
