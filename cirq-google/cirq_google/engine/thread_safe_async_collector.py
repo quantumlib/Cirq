@@ -45,15 +45,25 @@ class _ThreadSafeAsyncCollector(duet.AsyncCollector, Generic[T]):
             super().error(error)
 
     async def __anext__(self) -> T:
-        with self._lock:
-            if not self._done and not self._buffer:
-                self._waiter = duet.AwaitableFuture()
-                self._lock.release()
-                await self._waiter
-                self._lock.acquire()
-                self._waiter = None
-            if self._buffer:
-                return self._buffer.popleft()
-            if self._error:
-                raise self._error
-            raise StopAsyncIteration()
+        self._lock.acquire()
+
+        if not self._done and not self._buffer:
+            self._waiter = duet.AwaitableFuture()
+            self._lock.release()
+
+            await self._waiter
+
+            self._lock.acquire()
+            self._waiter = None
+
+        if self._buffer:
+            data = self._buffer.popleft()
+            self._lock.release()
+            return data
+
+        if error := self._error:
+            self._lock.release()
+            raise error
+
+        self._lock.release()
+        raise StopAsyncIteration()
