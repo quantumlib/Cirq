@@ -1,6 +1,6 @@
 from collections.abc import Callable
+from concurrent.futures import Future
 
-import asyncio
 import duet
 
 from cirq_google.cloud import quantum
@@ -52,7 +52,7 @@ class _StreamResponseDemux:
         if request.message_id in subscribers_by_message:
             raise ValueError(f'There is another subscriber for the message ID {request.message_id}')
 
-        def cancel(future: asyncio.Future):
+        def cancel(future: Future):
             if future.cancelled():
                 self._cancel_callback(request)
 
