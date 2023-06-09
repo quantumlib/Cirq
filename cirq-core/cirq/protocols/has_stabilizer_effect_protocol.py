@@ -63,7 +63,8 @@ def _strat_has_stabilizer_effect_from_unitary(val: Any) -> Optional[bool]:
     """
     # Do not try this strategy if there is no unitary or if the number of
     # qubits is not 1 since that would be expensive.
-    if not protocols.has_unitary(val) or protocols.num_qubits(val) != 1:
+    qid_shape = protocols.qid_shape(val, default=None)
+    if qid_shape is None or len(qid_shape) != 1 or not protocols.has_unitary(val):
         return None
     unitary = protocols.unitary(val)
     return SingleQubitCliffordGate.from_unitary(unitary) is not None
