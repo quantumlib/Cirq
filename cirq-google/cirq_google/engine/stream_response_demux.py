@@ -1,19 +1,27 @@
+from typing import Callable
+
+import asyncio
 import duet
 
 from cirq_google.cloud import quantum
 
 JobPath = str
 MessageId = str
+CancelCallback = Callable[[quantum.QuantumRunStreamRequest], None]
 
 
 class _StreamResponseDemux:
     """A event demultiplexer for QuantumRunStreamResponses, as part of the async reactor pattern.
 
+    Args:
+        cancel_callback: Function to be called when the future matching its request argument is
+        canceled.
     TODO(#5996) expand
     """
 
-    def __init__(self):
+    def __init__(self, cancel_callback: CancelCallback):
         self._subscribers: dict[JobPath, dict[MessageId, duet.AwaitableFuture]] = {}
+        self._cancel_callback = cancel_callback
 
     def subscribe(
         self, request: quantum.QuantumRunStreamRequest
@@ -44,7 +52,12 @@ class _StreamResponseDemux:
         if request.message_id in subscribers_by_message:
             raise ValueError(f'There is another subscriber for the message ID {request.message_id}')
 
+        def cancel(future: asyncio.Future):
+            if future.cancelled():
+                self._cancel_callback(request)
+
         response_future = duet.AwaitableFuture[quantum.QuantumRunStreamResponse]()
+        response_future.add_done_callback(cancel)
         self._subscribers[job_path][request.message_id] = response_future
         return response_future
 
