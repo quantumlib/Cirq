@@ -37,6 +37,7 @@ from google.protobuf.timestamp_pb2 import Timestamp
 
 from cirq._compat import cached_property
 from cirq_google.cloud import quantum
+from cirq_google.engine.asyncio_executor import AsyncioExecutor
 
 _M = TypeVar('_M', bound=proto.Message)
 _R = TypeVar('_R')
