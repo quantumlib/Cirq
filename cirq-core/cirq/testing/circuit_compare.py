@@ -329,7 +329,7 @@ def assert_has_consistent_apply_unitary(val: Any, *, atol: float = 1e-8) -> None
     # If you applied a unitary, it should match the one you say you have.
     if actual is not None:
         assert expected is not None
-        n = np.product([2, *qid_shape])
+        n = np.prod([2, *qid_shape])
         np.testing.assert_allclose(actual.reshape(n, n), expected, atol=atol)
 
 
@@ -373,7 +373,7 @@ def assert_has_consistent_apply_channel(val: Any, *, atol: float = 1e-8) -> None
     # If you applied a channel, it should match the superoperator you say you have.
     if actual is not None:
         assert expected is not None
-        n = np.product(qid_shape) ** 2
+        n = np.prod(qid_shape) ** 2
         np.testing.assert_allclose(actual.reshape((n, n)), expected, atol=atol)
 
 
