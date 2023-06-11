@@ -110,6 +110,11 @@ def test_unitary():
         ),
         atol=1e-8,
     )
+    np.testing.assert_allclose(
+        cirq.unitary(cirq.FREDKIN**-1),
+        cirq.linalg.map_eigenvalues(cirq.unitary(cirq.FREDKIN), lambda b: b**-1),
+        atol=1e-6
+    )
 
     diagonal_angles = [2, 3, 5, 7, 11, 13, 17, 19]
     assert cirq.has_unitary(cirq.ThreeQubitDiagonalGate(diagonal_angles))
@@ -156,7 +161,7 @@ def test_eq():
     eq.add_equality_group(cirq.TOFFOLI(a, b, c), cirq.CCX(a, b, c))
     eq.add_equality_group(cirq.TOFFOLI(a, c, b), cirq.TOFFOLI(c, a, b))
     eq.add_equality_group(cirq.TOFFOLI(a, b, d))
-    eq.add_equality_group(cirq.CSWAP(a, b, c), cirq.FREDKIN(a, b, c))
+    eq.add_equality_group(cirq.CSWAP(a, b, c), cirq.FREDKIN(a, b, c), cirq.FREDKIN(a, b, c) ** -1)
     eq.add_equality_group(cirq.CSWAP(b, a, c), cirq.CSWAP(b, c, a))
 
 
