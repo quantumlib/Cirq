@@ -113,7 +113,7 @@ def test_unitary():
     np.testing.assert_allclose(
         cirq.unitary(cirq.FREDKIN**-1),
         cirq.linalg.map_eigenvalues(cirq.unitary(cirq.FREDKIN), lambda b: b**-1),
-        atol=1e-6
+        atol=1e-6,
     )
 
     diagonal_angles = [2, 3, 5, 7, 11, 13, 17, 19]
