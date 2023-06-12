@@ -22,6 +22,7 @@ from cirq import protocols
 
 
 def _argmax(V: npt.NDArray) -> Tuple[int, float]:
+    """Returns a tuple (index of max number, max number)."""
     V = (V * V.conj()).real
     idx_max = np.argmax(V)
     V[idx_max] = 0
@@ -29,6 +30,7 @@ def _argmax(V: npt.NDArray) -> Tuple[int, float]:
 
 
 def _validate_decomposition(decomposition: DensePauliString, U: npt.NDArray, eps: float) -> bool:
+    """Returns whether the max absolute value of the elementwise difference is less than eps."""
     got = protocols.unitary(decomposition)
     return np.abs(got - U).max() < eps
 
@@ -47,7 +49,7 @@ def _fast_walsh_hadamard_transform(V: npt.NDArray) -> None:
 
 
 def _conjugate_with_hadamard(U: npt.NDArray) -> npt.NDArray:
-    """Applies H†UH in O(n4^n) instead of O(8^n)."""
+    """Applies HcUH in O(n4^n) instead of O(8^n)."""
 
     U = np.copy(U.T)
     for i in range(U.shape[1]):
@@ -62,6 +64,16 @@ def unitary_to_pauli_string(U: npt.NDArray, eps: float = 1e-15) -> Optional[Dens
     """Attempts to find a pauli string (with possible phase) equivalent to U up to eps.
 
         Based on this answer https://shorturl.at/aA079.
+        Let x_mask be the index of the maximum number of the first column of U
+        and z_mask be the index of the maximum number of the first column of H†UH
+        each of these indicies is n-bits long where U is 2^n x 2^n.
+
+        These two indicies/masks encode in binary the indicies of the qubits that
+        have I, X, Y, Z acting on them as follows:
+        x_mask[i] == 1 and z_mask[i] == 0: X acts on the ith qubit
+        x_mask[i] == 0 and z_mask[i] == 1: Z acts on the ith qubit
+        x_mask[i] == 1 and z_mask[i] == 1: Y acts on the ith qubit
+        x_mask[i] == 0 and z_mask[i] == 0: I acts on the ith qubit
 
     Args:
         U: A square array whose dimension is a power of 2.
@@ -89,8 +101,14 @@ def unitary_to_pauli_string(U: npt.NDArray, eps: float = 1e-15) -> Optional[Dens
         return None
 
     def select(i):
+        """Returns the gate that acts on the ith qubit."""
         has_x = (x_msk >> i) & 1
         has_z = (z_msk >> i) & 1
+        # The mapping is:
+        #   - has_x and not has_z => X
+        #   - not has_x and has_z => Z
+        #   - has_x and has_z => Y
+        #   - not has_x and not has_z => I
         gate_table = ['IX', 'ZY']
         return gate_table[has_z][has_x]
 
