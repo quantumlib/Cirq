@@ -1,5 +1,6 @@
 # captures all the modules
 -r ../../../cirq-aqt/requirements.txt
 -r ../../../cirq-core/requirements.txt
+-r ../../../cirq-ft/requirements.txt
 -r ../../../cirq-google/requirements.txt
 -r ../../../cirq-rigetti/requirements.txt

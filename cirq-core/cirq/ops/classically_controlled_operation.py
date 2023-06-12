@@ -28,7 +28,7 @@ from typing import (
 import sympy
 
 from cirq import protocols, value
-from cirq.ops import raw_types
+from cirq.ops import op_tree, raw_types
 
 if TYPE_CHECKING:
     import cirq
@@ -105,11 +105,18 @@ class ClassicallyControlledOperation(raw_types.Operation):
         )
 
     def _decompose_(self):
-        result = protocols.decompose_once(self._sub_operation, NotImplemented)
+        return self._decompose_with_context_()
+
+    def _decompose_with_context_(self, context: Optional['cirq.DecompositionContext'] = None):
+        result = protocols.decompose_once(
+            self._sub_operation, NotImplemented, flatten=False, context=context
+        )
         if result is NotImplemented:
             return NotImplemented
 
-        return [ClassicallyControlledOperation(op, self._conditions) for op in result]
+        return op_tree.transform_op_tree(
+            result, lambda op: ClassicallyControlledOperation(op, self._conditions)
+        )
 
     def _value_equality_values_(self):
         return (frozenset(self._conditions), self._sub_operation)
