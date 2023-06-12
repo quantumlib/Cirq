@@ -157,7 +157,7 @@ class MeanEstimationOperator(infra.GateWithRegisters):
                 arctan_bitsize=self.arctan_bitsize,
             )
         raise NotImplementedError(
-            f'Cannot create a controlled MeanEstimationOperator for {control_values=}'
+            f'Cannot create a controlled version of {self} with control_values={control_values}.'
         )
 
     def with_power(self, new_power: int) -> 'MeanEstimationOperator':
