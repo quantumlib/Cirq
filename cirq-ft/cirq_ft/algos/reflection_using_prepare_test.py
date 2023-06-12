@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import itertools
+
 import cirq
 import cirq_ft
 import numpy as np
@@ -53,7 +55,7 @@ def construct_gate_helper_and_qubit_order(gate):
     circuit = cirq.Circuit(
         cirq.decompose(g.operation, keep=keep, on_stuck_raise=None, context=context)
     )
-    ordered_input = sum(g.quregs.values(), start=[])
+    ordered_input = list(itertools.chain(*g.quregs.values()))
     qubit_order = cirq.QubitOrder.explicit(ordered_input, fallback=cirq.QubitOrder.DEFAULT)
     return g, qubit_order, circuit
 

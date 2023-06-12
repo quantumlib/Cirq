@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import itertools
+
 import cirq
 import cirq_ft
 import numpy as np
@@ -44,7 +46,7 @@ def construct_gate_helper_and_qubit_order(data, eps):
     # We are fine decomposing the `cq.And` gates once the qubit re-mapping is complete. Ideally,
     # we shouldn't require this two step process.
     decomposed_circuit = cirq.Circuit(cirq.decompose(decomposed_circuit))
-    ordered_input = sum(g.quregs.values(), start=[])
+    ordered_input = list(itertools.chain(*g.quregs.values()))
     qubit_order = cirq.QubitOrder.explicit(ordered_input, fallback=cirq.QubitOrder.DEFAULT)
     return g, qubit_order, decomposed_circuit
 
