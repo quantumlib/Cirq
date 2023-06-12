@@ -207,7 +207,9 @@ class ContiguousRegisterGate(cirq.ArithmeticGate):
 
     def with_registers(self, *new_registers) -> 'ContiguousRegisterGate':
         x_bitsize, y_bitsize, target_bitsize = [len(reg) for reg in new_registers]
-        assert x_bitsize == y_bitsize, f'{x_bitsize=} should be same as {y_bitsize=}'
+        assert (
+            x_bitsize == y_bitsize
+        ), f'x_bitsize={x_bitsize} should be same as y_bitsize={y_bitsize}'
         return ContiguousRegisterGate(x_bitsize, target_bitsize)
 
     def apply(self, *register_vals: int) -> Union[int, Iterable[int]]:

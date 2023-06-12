@@ -220,7 +220,7 @@ class SelectHubbard(select_and_prepare.SelectOracle):
         ):
             return SelectHubbard(self.x_dim, self.y_dim, control_val=control_values[0])
         raise NotImplementedError(
-            f'Cannot create a controlled version of {self} with {control_values=}.'
+            f'Cannot create a controlled version of {self} with control_values={control_values}.'
         )
 
     def _circuit_diagram_info_(self, args: cirq.CircuitDiagramInfoArgs) -> cirq.CircuitDiagramInfo:

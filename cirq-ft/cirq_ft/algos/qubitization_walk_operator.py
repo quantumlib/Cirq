@@ -125,7 +125,7 @@ class QubitizationWalkOperator(infra.GateWithRegisters):
                 c_select, self.prepare, control_val=control_values[0], power=self.power
             )
         raise NotImplementedError(
-            f'Cannot create a controlled version of {self} with {control_values=}.'
+            f'Cannot create a controlled version of {self} with control_values={control_values}.'
         )
 
     def with_power(self, new_power: int) -> 'QubitizationWalkOperator':

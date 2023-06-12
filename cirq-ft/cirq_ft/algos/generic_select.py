@@ -57,12 +57,14 @@ class GenericSelect(select_and_prepare.SelectOracle, unary_iteration_gate.UnaryI
     def __attrs_post_init__(self):
         if any(len(dps) != self.target_bitsize for dps in self.select_unitaries):
             raise ValueError(
-                f"Each dense pauli string in {self.select_unitaries=} should contain "
+                f"Each dense pauli string in {self.select_unitaries} should contain "
                 f"{self.target_bitsize} terms."
             )
-        min_select_bitsize = (len(self.select_unitaries) - 1).bit_length()
-        if self.selection_bitsize < min_select_bitsize:
-            raise ValueError(f"{self.selection_bitsize=} should be at-least {min_select_bitsize}")
+        min_bitsize = (len(self.select_unitaries) - 1).bit_length()
+        if self.selection_bitsize < min_bitsize:
+            raise ValueError(
+                f"selection_bitsize={self.selection_bitsize} should be at-least {min_bitsize}"
+            )
 
     @cached_property
     def control_registers(self) -> infra.Registers:
@@ -130,7 +132,7 @@ class GenericSelect(select_and_prepare.SelectOracle, unary_iteration_gate.UnaryI
                 control_val=control_values[0],
             )
         raise NotImplementedError(
-            f'Cannot create a controlled version of {self} with {control_values=}.'
+            f'Cannot create a controlled version of {self} with control_values={control_values}.'
         )
 
     def __repr__(self) -> str:

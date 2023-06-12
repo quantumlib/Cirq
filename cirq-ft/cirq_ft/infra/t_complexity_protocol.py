@@ -114,19 +114,21 @@ def _from_decomposition(stc: Any, fail_quietly: bool) -> Optional[TComplexity]:
     return _is_iterable(decomposition, fail_quietly=fail_quietly)
 
 
-def _get_hash(val: Any, fail_quietly: bool = False) -> Optional[int]:
-    """Returns a hash of cirq.Operation and cirq.Gate.
+def _get_hash(val: Any, fail_quietly: bool = False):
+    """Returns hash keys for caching a cirq.Operation and cirq.Gate.
 
-        The hash of a cirq.Operation changes depending on its qubits, tags,
-        classical controls, and other properties it has, none of these properties
-        affect the TComplexity.
-        For gates and gate backed operations we compute the hash of the gate which
-        is a property of the Gate.
+    The hash of a cirq.Operation changes depending on its qubits, tags,
+    classical controls, and other properties it has, none of these properties
+    affect the TComplexity.
+    For gates and gate backed operations we intend to compute the hash of the
+    gate which is a property of the Gate.
+
     Args:
-        val: object to comptue its hash.
+        val: object to compute its hash.
 
     Returns:
-        hash value for gates and gate backed operations or None otherwise.
+        - `val.gate` if `val` is a `cirq.Operation` which has an underlying `val.gate`.
+        - `val` otherwise
     """
     if isinstance(val, cirq.Operation) and val.gate is not None:
         val = val.gate

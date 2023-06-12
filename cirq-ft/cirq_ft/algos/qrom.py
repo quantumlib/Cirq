@@ -68,9 +68,10 @@ class QROM(unary_iteration_gate.UnaryIterationGate):
         assert all([isinstance(s, int) for s in self.selection_bitsizes])
         assert all([isinstance(t, int) for t in self.target_bitsizes])
         assert len(set(shapes)) == 1, f"Data must all have the same size: {shapes}"
-        assert len(self.target_bitsizes) == len(
-            self.data
-        ), f"{len(self.target_bitsizes)=} should be same as {len(self.data)=}"
+        assert len(self.target_bitsizes) == len(self.data), (
+            f"len(self.target_bitsizes)={len(self.target_bitsizes)} should be same as "
+            f"len(self.data)={len(self.data)}"
+        )
         assert all(
             t >= int(np.max(d)).bit_length() for t, d in zip(self.target_bitsizes, self.data)
         )

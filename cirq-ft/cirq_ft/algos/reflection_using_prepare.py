@@ -123,5 +123,5 @@ class ReflectionUsingPrepare(infra.GateWithRegisters):
         ):
             return ReflectionUsingPrepare(self.prepare_gate, control_val=control_values[0])
         raise NotImplementedError(
-            f'Cannot create a controlled version of {self} with {control_values=}.'
+            f'Cannot create a controlled version of {self} with control_values={control_values}.'
         )
