@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Sequence, Type
+from typing import Sequence
 
 import cirq
 import cirq_ft
@@ -35,23 +35,18 @@ class CustomProgrammableRotationGateArray(cirq_ft.ProgrammableRotationGateArrayB
         return cirq_ft.Registers.build(unrelated_target=1)
 
 
-def construct_programmable_rotation_gate(
-    gate_type: Type[cirq_ft.ProgrammableRotationGateArrayBase],
-    angles: Sequence[Sequence[int]],
-    kappa: int,
-    rotation_gate: cirq.Gate,
-) -> cirq_ft.ProgrammableRotationGateArrayBase:
-    if gate_type == cirq_ft.ProgrammableRotationGateArray:
-        return cirq_ft.ProgrammableRotationGateArray(
-            *angles,
-            kappa=kappa,
-            rotation_gate=rotation_gate,
-            interleaved_unitaries=[cirq.Z] * (len(angles) - 1),
-        )
-    elif gate_type == CustomProgrammableRotationGateArray:
-        return gate_type(*angles, kappa=kappa, rotation_gate=rotation_gate)
-    else:
-        assert False
+def construct_custom_prga(*args, **kwargs) -> cirq_ft.ProgrammableRotationGateArrayBase:
+    return CustomProgrammableRotationGateArray(*args, **kwargs)
+
+
+def construct_prga_with_phase(*args, **kwargs) -> cirq_ft.ProgrammableRotationGateArrayBase:
+    return cirq_ft.ProgrammableRotationGateArray(
+        *args, **kwargs, interleaved_unitaries=[cirq.Z] * (len(args) - 1)
+    )
+
+
+def construct_prga_with_identity(*args, **kwargs) -> cirq_ft.ProgrammableRotationGateArrayBase:
+    return cirq_ft.ProgrammableRotationGateArray(*args, **kwargs)
 
 
 @pytest.mark.parametrize(
@@ -59,13 +54,11 @@ def construct_programmable_rotation_gate(
 )
 @pytest.mark.parametrize("kappa", [*range(1, 12)])
 @pytest.mark.parametrize(
-    "gate_type", [CustomProgrammableRotationGateArray, cirq_ft.ProgrammableRotationGateArray]
+    "constructor", [construct_custom_prga, construct_prga_with_phase, construct_prga_with_identity]
 )
-def test_programmable_rotation_gate_array(angles, kappa, gate_type):
+def test_programmable_rotation_gate_array(angles, kappa, constructor):
     rotation_gate = cirq.X
-    programmable_rotation_gate = construct_programmable_rotation_gate(
-        gate_type, angles, kappa, rotation_gate
-    )
+    programmable_rotation_gate = constructor(*angles, kappa=kappa, rotation_gate=rotation_gate)
     greedy_mm = cirq_ft.GreedyQubitManager(prefix="_a")
     g = cirq_ft.testing.GateHelper(
         programmable_rotation_gate, context=cirq.DecompositionContext(greedy_mm)
@@ -139,3 +132,8 @@ def test_programmable_rotation_gate_array(angles, kappa, gate_type):
         cirq.testing.assert_allclose_up_to_global_phase(
             ancilla_state_vector, expected_ancilla_state_vector, atol=1e-8
         )
+
+
+def test_programmable_rotation_gate_array_consistent():
+    with pytest.raises(ValueError, match='must be of same length'):
+        _ = CustomProgrammableRotationGateArray([1, 2], [1], kappa=1, rotation_gate=cirq.X)

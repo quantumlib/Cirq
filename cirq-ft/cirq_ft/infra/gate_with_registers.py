@@ -28,6 +28,9 @@ class Register:
     name: str
     bitsize: int
 
+    def __repr__(self):
+        return f'cirq_ft.Register("{self.name}", {self.bitsize})'
+
 
 class Registers:
     def __init__(self, registers: Iterable[Register]):
@@ -37,7 +40,7 @@ class Registers:
             raise ValueError("Please provide unique register names.")
 
     def __repr__(self):
-        return f'Registers({repr(self._registers)})'
+        return f'cirq_ft.Registers({self._registers})'
 
     @property
     def bitsize(self) -> int:
@@ -86,23 +89,6 @@ class Registers:
             base += reg.bitsize
         return qubit_regs
 
-    def split_integer(self, n: int) -> Dict[str, int]:
-        """Extracts integer values of individual qubit registers, given a bit-packed integer.
-
-        Considers the given integer as a binary bit-packed representation of `self.bitsize` bits,
-        with `n_bin[0 : self[0].bitsize]` representing the integer for first register,
-        `n_bin[self[0].bitsize : self[1].bitsize]` representing the integer for second
-        register and so on. Here `n_bin` is the `self.bitsize` length binary representation of
-        input integer `n`.
-        """
-        qubit_vals = {}
-        base = 0
-        n_bin = f"{n:0{self.bitsize}b}"
-        for reg in self:
-            qubit_vals[reg.name] = int(n_bin[base : base + reg.bitsize], 2)
-            base += reg.bitsize
-        return qubit_vals
-
     def merge_qubits(self, **qubit_regs: Union[cirq.Qid, Sequence[cirq.Qid]]) -> List[cirq.Qid]:
         ret: List[cirq.Qid] = []
         for reg in self:
@@ -140,6 +126,9 @@ class SelectionRegister(Register):
     def validate_iteration_length(self, attribute, value):
         if not (0 <= value <= 2**self.bitsize):
             raise ValueError(f'iteration length must be in range [0, 2^{self.bitsize}]')
+
+    def __repr__(self) -> str:
+        return f'cirq_ft.SelectionRegister("{self.name}", {self.bitsize}, {self.iteration_length})'
 
 
 class SelectionRegisters(Registers):
@@ -230,6 +219,9 @@ class SelectionRegisters(Registers):
             return self._register_dict[key]
         else:
             raise IndexError(f"key {key} must be of the type str/int/slice.")
+
+    def __repr__(self) -> str:
+        return f'cirq_ft.SelectionRegisters({self._registers})'
 
 
 class GateWithRegisters(cirq.Gate, metaclass=abc.ABCMeta):

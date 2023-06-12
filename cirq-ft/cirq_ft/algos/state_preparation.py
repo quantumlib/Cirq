@@ -145,6 +145,17 @@ class StatePreparationAliasSampling(select_and_prepare.PrepareOracle):
             self.mu,
         )
 
+    def __repr__(self) -> str:
+        alt_repr = cirq._compat.proper_repr(self.alt)
+        keep_repr = cirq._compat.proper_repr(self.keep)
+        return (
+            f'cirq_ft.StatePreparationAliasSampling('
+            f'{self.selection_registers}, '
+            f'{alt_repr}, '
+            f'{keep_repr}, '
+            f'{self.mu})'
+        )
+
     def decompose_from_registers(
         self, *, context: cirq.DecompositionContext, **quregs: Sequence[cirq.Qid]
     ) -> cirq.OP_TREE:

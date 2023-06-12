@@ -98,6 +98,6 @@ def test_qroam_diagram():
     )
 
 
-# def test_qroam_raises():
-#     with pytest.raises(ValueError, match="must be of equal length"):
-#         _ = cirq_ft.SelectSwapQROM([1, 2], [1, 2, 3])
+def test_qroam_raises():
+    with pytest.raises(ValueError, match="must be of equal length"):
+        _ = cirq_ft.SelectSwapQROM([1, 2], [1, 2, 3])

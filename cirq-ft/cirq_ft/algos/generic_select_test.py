@@ -72,7 +72,7 @@ def test_ising_zero_bitflip_select(control_val):
     num_select_unitaries = 2 * num_sites
     # PBC Ising in 1-D has num_sites ZZ operations and num_sites X operations.
     # Thus 2 * num_sites Pauli ops
-    selection_bitsize = int(np.ceil(np.log(num_select_unitaries)))
+    selection_bitsize = int(np.ceil(np.log2(num_select_unitaries)))
     all_qubits = cirq.LineQubit.range(2 * selection_bitsize + target_bitsize + 1)
     control, selection, target = (
         all_qubits[0],
@@ -121,7 +121,7 @@ def test_ising_one_bitflip_select():
     num_select_unitaries = 2 * num_sites
     # PBC Ising in 1-D has num_sites ZZ operations and num_sites X operations.
     # Thus 2 * num_sites Pauli ops
-    selection_bitsize = int(np.ceil(np.log(num_select_unitaries)))
+    selection_bitsize = int(np.ceil(np.log2(num_select_unitaries)))
     all_qubits = cirq.LineQubit.range(2 * selection_bitsize + target_bitsize + 1)
     control, selection, target = (
         all_qubits[0],
@@ -188,12 +188,12 @@ def test_select_application_to_eigenstates():
     #
     # The target register starts in an eigenstate so <L|select|L> = eig / lambda
     sim = cirq.Simulator(dtype=np.complex128)
-    num_sites = 4
+    num_sites = 3
     target_bitsize = num_sites
     num_select_unitaries = 2 * num_sites
     # PBC Ising in 1-D has num_sites ZZ operations and num_sites X operations.
     # Thus 2 * num_sites Pauli ops
-    selection_bitsize = int(np.ceil(np.log(num_select_unitaries)))
+    selection_bitsize = int(np.ceil(np.log2(num_select_unitaries)))
     all_qubits = cirq.LineQubit.range(2 * selection_bitsize + target_bitsize + 1)
     control, selection, target = (
         all_qubits[0],
@@ -245,7 +245,7 @@ def test_generic_select_raises():
         _ = cirq_ft.GenericSelect(1, 2, [cirq.DensePauliString('XX')] * 5)
 
 
-def test_generic_select_consistent_protocols():
+def test_generic_select_consistent_protocols_and_controlled():
     select_bitsize, num_select, num_sites = 3, 6, 3
     # Get Ising Hamiltonian
     target = cirq.LineQubit.range(num_sites)

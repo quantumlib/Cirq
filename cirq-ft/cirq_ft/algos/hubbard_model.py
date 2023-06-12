@@ -230,6 +230,9 @@ class SelectHubbard(select_and_prepare.SelectOracle):
         ctrl = ('@' if self.control_val else '@(0)',)
         return info.with_wire_symbols(ctrl + info.wire_symbols[0:1] + info.wire_symbols[2:])
 
+    def __repr__(self) -> str:
+        return f'cirq_ft.SelectHubbard({self.x_dim}, {self.y_dim}, {self.control_val})'
+
 
 @attr.frozen
 class PrepareHubbard(select_and_prepare.PrepareOracle):
@@ -330,6 +333,9 @@ class PrepareHubbard(select_and_prepare.PrepareOracle):
             control=[*U, *V, temp[-1]], ancilla=and_anc, target=and_target
         )
         context.qubit_manager.qfree([*and_anc, *and_target])
+
+    def __repr__(self) -> str:
+        return f'cirq_ft.PrepareHubbard({self.x_dim}, {self.y_dim}, {self.t}, {self.mu})'
 
 
 def get_walk_operator_for_hubbard_model(

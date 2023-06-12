@@ -143,7 +143,7 @@ def unary_iteration(
     ...     j_ops = []
     ...     for j_optree, j_ctrl, j in unary_iteration(0, M, j_ops, [i_ctrl], selection[1], qm):
     ...         circuit.append(j_optree)
-    ...         # Conditionally perform operations on target register using `j_ctr`, `i` & `j`.
+    ...         # Conditionally perform operations on target register using `j_ctrl`, `i` & `j`.
     ...         circuit.append(cirq.CNOT(j_ctrl, target[i][j]))
     ...     circuit.append(j_ops)
     >>> circuit.append(i_ops)

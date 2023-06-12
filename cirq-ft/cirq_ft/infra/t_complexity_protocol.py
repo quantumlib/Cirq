@@ -13,13 +13,12 @@
 # limitations under the License.
 
 from typing import Any, Callable, Hashable, Iterable, Optional, Union, overload
-from typing_extensions import Literal
 
 import attr
 import cachetools
 import cirq
 from cirq_ft.infra.decompose_protocol import _decompose_once_considering_known_decomposition
-from typing_extensions import Protocol
+from typing_extensions import Literal, Protocol
 
 _T_GATESET = cirq.Gateset(cirq.T, cirq.T**-1, unroll_circuit_op=False)
 

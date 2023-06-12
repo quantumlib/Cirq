@@ -56,7 +56,7 @@ class ApplyXToLthQubit(cirq_ft.UnaryIterationGate):
 @pytest.mark.parametrize(
     "selection_bitsize, target_bitsize, control_bitsize", [(3, 5, 1), (2, 4, 2), (1, 2, 3)]
 )
-def test_unary_iteration(selection_bitsize, target_bitsize, control_bitsize):
+def test_unary_iteration_gate(selection_bitsize, target_bitsize, control_bitsize):
     greedy_mm = cirq_ft.GreedyQubitManager(prefix="_a", maximize_reuse=True)
     gate = ApplyXToLthQubit(selection_bitsize, target_bitsize, control_bitsize)
     g = cirq_ft.testing.GateHelper(gate, context=cirq.DecompositionContext(greedy_mm))
@@ -116,7 +116,7 @@ class ApplyXToIJKthQubit(cirq_ft.UnaryIterationGate):
 
 
 @pytest.mark.parametrize("target_shape", [(2, 3, 2), (2, 2, 2)])
-def test_multi_dimensional_unary_iteration(target_shape: Tuple[int, int, int]):
+def test_multi_dimensional_unary_iteration_gate(target_shape: Tuple[int, int, int]):
     greedy_mm = cirq_ft.GreedyQubitManager(prefix="_a", maximize_reuse=True)
     gate = ApplyXToIJKthQubit(target_shape)
     g = cirq_ft.testing.GateHelper(gate, context=cirq.DecompositionContext(greedy_mm))
@@ -139,6 +139,52 @@ def test_multi_dimensional_unary_iteration(target_shape: Tuple[int, int, int]):
         cirq_ft.testing.assert_circuit_inp_out_cirqsim(
             g.circuit, g.operation.qubits, initial_state, final_state
         )
+
+
+def test_unary_iteration_loop():
+    n_range, m_range = (3, 5), (6, 8)
+    selection_registers = cirq_ft.SelectionRegisters.build(n=(3, 5), m=(3, 8))
+    selection = selection_registers.get_named_qubits()
+    target = {(n, m): cirq.q(f't({n}, {m})') for n in range(*n_range) for m in range(*m_range)}
+    qm = cirq_ft.GreedyQubitManager("ancilla", maximize_reuse=True)
+    circuit = cirq.Circuit()
+    i_ops = []
+    # Build the unary iteration circuit
+    for i_optree, i_ctrl, i in cirq_ft.unary_iteration(
+        n_range[0], n_range[1], i_ops, [], selection['n'], qm
+    ):
+        circuit.append(i_optree)
+        j_ops = []
+        for j_optree, j_ctrl, j in cirq_ft.unary_iteration(
+            m_range[0], m_range[1], j_ops, [i_ctrl], selection['m'], qm
+        ):
+            circuit.append(j_optree)
+            # Conditionally perform operations on target register using `j_ctrl`, `i` & `j`.
+            circuit.append(cirq.CNOT(j_ctrl, target[(i, j)]))
+        circuit.append(j_ops)
+    circuit.append(i_ops)
+    all_qubits = sorted(circuit.all_qubits())
+
+    i_len, j_len = 3, 3
+    for i, j in itertools.product(range(*n_range), range(*m_range)):
+        qubit_vals = {x: 0 for x in all_qubits}
+        # Initialize selection bits appropriately:
+        qubit_vals.update(zip(selection['n'], iter_bits(i, i_len)))
+        qubit_vals.update(zip(selection['m'], iter_bits(j, j_len)))
+        # Construct initial state
+        initial_state = [qubit_vals[x] for x in all_qubits]
+        # Build correct statevector with selection_integer bit flipped in the target register:
+        qubit_vals[target[(i, j)]] = 1
+        final_state = [qubit_vals[x] for x in all_qubits]
+        cirq_ft.testing.assert_circuit_inp_out_cirqsim(
+            circuit, all_qubits, initial_state, final_state
+        )
+
+
+def test_unary_iteration_loop_empty_range():
+    qm = cirq.ops.SimpleQubitManager()
+    assert list(cirq_ft.unary_iteration(4, 4, [], [], [cirq.q('s')], qm)) == []
+    assert list(cirq_ft.unary_iteration(4, 3, [], [], [cirq.q('s')], qm)) == []
 
 
 def test_notebook():

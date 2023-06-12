@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import cirq
 import cirq_ft
 import pytest
 from cirq_ft.infra.jupyter_tools import execute_notebook
@@ -36,6 +37,38 @@ def test_prepare_t_complexity(dim):
     # TODO(#233): The rotation count should reduce to a constant once cost for Controlled-H
     # gates is recognized as $2$ T-gates instead of $2$ rotations.
     assert cost.rotations <= 2 * logN + 9
+
+
+def test_hubbard_model_consistent_protocols():
+    select_gate = cirq_ft.SelectHubbard(x_dim=2, y_dim=2)
+    prepare_gate = cirq_ft.PrepareHubbard(x_dim=2, y_dim=2, t=1, mu=2)
+
+    # Test equivalent repr
+    cirq.testing.assert_equivalent_repr(select_gate, setup_code='import cirq_ft')
+    cirq.testing.assert_equivalent_repr(prepare_gate, setup_code='import cirq_ft')
+
+    # Build controlled SELECT gate
+    select_op = select_gate.on_registers(**select_gate.registers.get_named_qubits())
+    equals_tester = cirq.testing.EqualsTester()
+    equals_tester.add_equality_group(
+        select_gate.controlled(),
+        select_gate.controlled(num_controls=1),
+        select_gate.controlled(control_values=(1,)),
+        select_op.controlled_by(cirq.q("control")).gate,
+    )
+    equals_tester.add_equality_group(
+        select_gate.controlled(control_values=(0,)),
+        select_gate.controlled(num_controls=1, control_values=(0,)),
+        select_op.controlled_by(cirq.q("control"), control_values=(0,)).gate,
+    )
+    with pytest.raises(NotImplementedError, match="Cannot create a controlled version"):
+        _ = select_gate.controlled(num_controls=2)
+
+    # Test diagrams
+    expected_symbols = ['U', 'V', 'p_x', 'p_y', 'alpha', 'q_x', 'q_y', 'beta']
+    expected_symbols += ['target'] * 8
+    expected_symbols[0] = 'SelectHubbard'
+    assert cirq.circuit_diagram_info(select_gate).wire_symbols == tuple(expected_symbols)
 
 
 def test_notebook():

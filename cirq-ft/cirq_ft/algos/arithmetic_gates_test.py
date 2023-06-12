@@ -124,6 +124,8 @@ def test_less_than_equal_consistent_protocols(x_bitsize: int, y_bitsize: int):
     # Test diagrams
     expected_wire_symbols = ("In(x)",) * x_bitsize + ("In(y)",) * y_bitsize + ("+(x <= y)",)
     assert cirq.circuit_diagram_info(g).wire_symbols == expected_wire_symbols
+    # Test with_registers
+    assert g.with_registers([2] * 4, [2] * 5, [2]) == cirq_ft.LessThanEqualGate(4, 5)
 
 
 def test_contiguous_register_gate():
@@ -179,6 +181,8 @@ def test_add(a: int, b: int, num_bits: int):
     # Test diagrams
     expected_wire_symbols = ("In(x)",) * num_bits + ("In(y)/Out(x+y)",) * num_bits
     assert cirq.circuit_diagram_info(gate).wire_symbols == expected_wire_symbols
+    # Test with_registers
+    assert gate.with_registers([2] * 6, [2] * 6) == cirq_ft.AdditionGate(6)
 
 
 @pytest.mark.parametrize('bitsize', [3])
@@ -229,10 +233,9 @@ def test_add_truncated():
     num_anc = num_bits - 1
     gate = cirq_ft.AdditionGate(num_bits)
     qubits = cirq.LineQubit.range(2 * num_bits)
-    greedy_mm = cirq_ft.GreedyQubitManager(prefix="_a", maximize_reuse=True)
-    context = cirq.DecompositionContext(greedy_mm)
-    circuit = cirq.Circuit(cirq.decompose_once(gate.on(*qubits), context=context))
-    ancillas = sorted(circuit.all_qubits())[-num_anc:]
+    circuit = cirq.Circuit(cirq.decompose_once(gate.on(*qubits)))
+    ancillas = sorted(circuit.all_qubits() - frozenset(qubits))
+    assert len(ancillas) == num_anc
     all_qubits = qubits + ancillas
     # Corresponds to 2^2 + 2^2 (4 + 4 = 8 = 2^3 (needs num_bits = 4 to work properly))
     initial_state = [0, 0, 1, 0, 0, 1, 0, 0]
@@ -248,11 +251,13 @@ def test_add_truncated():
     greedy_mm = cirq_ft.GreedyQubitManager(prefix="_a", maximize_reuse=True)
     context = cirq.DecompositionContext(greedy_mm)
     circuit = cirq.Circuit(cirq.decompose_once(gate.on(*qubits), context=context))
-    ancillas = sorted(circuit.all_qubits())[-num_anc:]
+    ancillas = sorted(circuit.all_qubits() - frozenset(qubits))
+    assert len(ancillas) == num_anc
     all_qubits = qubits + ancillas
     initial_state = [0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0]
     final_state = [0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0]
     cirq_ft.testing.assert_circuit_inp_out_cirqsim(circuit, all_qubits, initial_state, final_state)
+
     num_bits = 3
     num_anc = num_bits - 1
     gate = cirq_ft.AdditionGate(num_bits)
@@ -260,7 +265,8 @@ def test_add_truncated():
     greedy_mm = cirq_ft.GreedyQubitManager(prefix="_a", maximize_reuse=True)
     context = cirq.DecompositionContext(greedy_mm)
     circuit = cirq.Circuit(cirq.decompose_once(gate.on(*qubits), context=context))
-    ancillas = sorted(circuit.all_qubits())[-num_anc:]
+    ancillas = sorted(circuit.all_qubits() - frozenset(qubits))
+    assert len(ancillas) == num_anc
     all_qubits = qubits + ancillas
     # Corresponds to 2^2 + (2^2 + 2^1 + 2^0) (4 + 7 = 11 = 1011 (need num_bits=4 to work properly))
     initial_state = [0, 0, 1, 1, 1, 1, 0, 0]

@@ -212,6 +212,30 @@ target3: ──────GenericSelect─────────────�
     # pylint: enable=line-too-long
 
 
+def test_qubitization_walk_operator_consistent_protocols_and_controlled():
+    gate = get_walk_operator_for_1d_ising_model(4, 1e-1)
+    op = gate.on_registers(**gate.registers.get_named_qubits())
+    # Test consistent repr
+    cirq.testing.assert_equivalent_repr(
+        gate, setup_code='import cirq\nimport cirq_ft\nimport numpy as np'
+    )
+    # Build controlled gate
+    equals_tester = cirq.testing.EqualsTester()
+    equals_tester.add_equality_group(
+        gate.controlled(),
+        gate.controlled(num_controls=1),
+        gate.controlled(control_values=(1,)),
+        op.controlled_by(cirq.q("control")).gate,
+    )
+    equals_tester.add_equality_group(
+        gate.controlled(control_values=(0,)),
+        gate.controlled(num_controls=1, control_values=(0,)),
+        op.controlled_by(cirq.q("control"), control_values=(0,)).gate,
+    )
+    with pytest.raises(NotImplementedError, match="Cannot create a controlled version"):
+        _ = gate.controlled(num_controls=2)
+
+
 def test_notebook():
     execute_notebook('qubitization_walk_operator')
     execute_notebook('phase_estimation_of_quantum_walk')

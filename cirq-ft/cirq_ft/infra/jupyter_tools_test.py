@@ -17,6 +17,7 @@ import cirq_ft
 import cirq_ft.infra.testing as cq_testing
 import IPython.display
 import ipywidgets
+import pytest
 from cirq_ft.infra.jupyter_tools import display_gate_and_compilation, svg_circuit
 
 
@@ -27,6 +28,12 @@ def test_svg_circuit():
 
     # check that the order is respected in the svg data.
     assert svg_str.find('control') < svg_str.find('ancilla') < svg_str.find('target')
+
+    # Check svg_circuit raises.
+    with pytest.raises(ValueError):
+        svg_circuit(cirq.Circuit())
+    with pytest.raises(ValueError):
+        svg_circuit(cirq.Circuit(cirq.Moment()))
 
 
 def test_display_gate_and_compilation(monkeypatch):

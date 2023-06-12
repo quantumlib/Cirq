@@ -81,6 +81,3 @@ class GreedyQubitManager(cirq.QubitManager):
 
     def qborrow(self, n: int, dim: int = 2) -> List[cirq.Qid]:
         return self.qalloc(n, dim)
-
-    def is_used(self, qubit: cirq.Qid) -> bool:
-        return qubit in self._used_qubits

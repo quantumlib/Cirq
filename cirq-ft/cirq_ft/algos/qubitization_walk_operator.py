@@ -133,6 +133,15 @@ class QubitizationWalkOperator(infra.GateWithRegisters):
             self.select, self.prepare, control_val=self.control_val, power=new_power
         )
 
+    def __repr__(self) -> str:
+        return (
+            f'cirq_ft.QubitizationWalkOperator('
+            f'{self.select}, '
+            f'{self.prepare}, '
+            f'{self.control_val}, '
+            f'{self.power})'
+        )
+
     def __pow__(self, power: int):
         return self.with_power(self.power * power)
 

@@ -16,6 +16,7 @@ from cirq_ft.infra.gate_with_registers import (
     GateWithRegisters,
     Register,
     Registers,
+    SelectionRegister,
     SelectionRegisters,
 )
 from cirq_ft.infra.qubit_management_transformers import map_clean_and_borrowable_qubits

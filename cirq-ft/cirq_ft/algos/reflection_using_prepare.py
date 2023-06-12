@@ -103,6 +103,9 @@ class ReflectionUsingPrepare(infra.GateWithRegisters):
         wire_symbols += ['R_L'] * self.selection_registers.bitsize
         return cirq.CircuitDiagramInfo(wire_symbols=wire_symbols)
 
+    def __repr__(self):
+        return f'cirq_ft.ReflectionUsingPrepare({self.prepare_gate}, {self.control_val})'
+
     def controlled(
         self,
         num_controls: Optional[int] = None,

@@ -138,7 +138,10 @@ def map_clean_and_borrowable_qubits(
             if q in allocated_map or st < idx:
                 # The qubit already has a mapping iff we have seen it before.
                 assert st < idx and q in allocated_map
-                continue
+                # This line is actually covered by
+                # `test_map_clean_and_borrowable_qubits_deallocates_only_once` but pytest-cov seems
+                # to not recognize it and hence the coverage: ignore.
+                continue  # coverage: ignore
 
             # This is the first time we are seeing this temporary qubit and need to find a mapping.
             if isinstance(q, cirq.ops.CleanQubit):
@@ -164,7 +167,7 @@ def map_clean_and_borrowable_qubits(
                     # one from the original system qubits.
                     allocated_map[q] = qm.qborrow(1)[0]
             else:
-                raise ValueError(f"Unknown temporary qubit type {q}")
+                assert False, f"Unknown temporary qubit type {q}"
 
         # Return the transformed operation / decomposed op-tree.
         return op.transform_qubits({**allocated_map, **trivial_map})

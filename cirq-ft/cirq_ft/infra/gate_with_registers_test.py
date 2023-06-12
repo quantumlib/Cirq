@@ -29,6 +29,10 @@ def test_registers():
     r3 = cirq_ft.Register("r3", 1)
     regs = cirq_ft.Registers([r1, r2, r3])
     assert len(regs) == 3
+    cirq.testing.assert_equivalent_repr(regs, setup_code='import cirq_ft')
+
+    with pytest.raises(ValueError, match="unique"):
+        _ = cirq_ft.Registers([r1, r1])
 
     assert regs[0] == r1
     assert regs[1] == r2
@@ -81,10 +85,25 @@ def test_selection_registers_indexing(n, N, m, M):
     assert reg.total_iteration_size == N * M
 
 
+def test_selection_registers_consistent():
+    with pytest.raises(ValueError, match="iteration length must be in "):
+        _ = cirq_ft.SelectionRegister('a', 3, 10)
+
+    selection_reg = cirq_ft.SelectionRegisters.build(n=(3, 5), m=(4, 12))
+    assert selection_reg[0] == cirq_ft.SelectionRegister('n', 3, 5)
+    assert selection_reg['n'] == cirq_ft.SelectionRegister('n', 3, 5)
+    assert selection_reg[1] == cirq_ft.SelectionRegister('m', 4, 12)
+    assert selection_reg[:1] == cirq_ft.SelectionRegisters([cirq_ft.SelectionRegister('n', 3, 5)])
+
+
 def test_registers_getitem_raises():
     g = cirq_ft.Registers.build(a=4, b=3, c=2)
     with pytest.raises(IndexError, match="must be of the type"):
         _ = g[2.5]
+
+    selection_reg = cirq_ft.SelectionRegisters.build(n=(3, 5))
+    with pytest.raises(IndexError, match='must be of the type'):
+        _ = selection_reg[2.5]
 
 
 def test_registers_build():

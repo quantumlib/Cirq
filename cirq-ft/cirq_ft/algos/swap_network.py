@@ -138,7 +138,7 @@ class SwapWithZeroGate(infra.GateWithRegisters):
     target_bitsize: int
     n_target_registers: int
 
-    def _attrs_post_init_(self):
+    def __attrs_post_init__(self):
         assert self.n_target_registers <= 2**self.selection_bitsize
 
     @cached_property

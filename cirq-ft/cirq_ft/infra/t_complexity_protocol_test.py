@@ -18,15 +18,13 @@ import pytest
 from cirq_ft.infra.jupyter_tools import execute_notebook
 
 
-class SupportTComplexity(cirq.Operation):
-    def qubits(self):
-        return []
-
-    def with_qubits(self, _):
-        pass
-
+class SupportTComplexity:
     def _t_complexity_(self) -> cirq_ft.TComplexity:
         return cirq_ft.TComplexity(t=1)
+
+
+class DoesNotSupportTComplexity:
+    ...
 
 
 class SupportsTComplexityGateWithRegisters(cirq_ft.GateWithRegisters):
@@ -46,21 +44,21 @@ class SupportTComplexityGate(cirq.Gate):
         return cirq_ft.TComplexity(t=1)
 
 
-class DoesNotSupportTComplexity(cirq.Gate):
+class DoesNotSupportTComplexityGate(cirq.Gate):
     def _num_qubits_(self):
         return 1
-
-    def _qid_shape_(self):
-        return (1,)
-
-    def num_qubits(self):
-        return self._num_qubits_()
 
 
 def test_t_complexity():
     with pytest.raises(TypeError):
         _ = cirq_ft.t_complexity(DoesNotSupportTComplexity())
+
+    with pytest.raises(TypeError):
+        _ = cirq_ft.t_complexity(DoesNotSupportTComplexityGate())
+
     assert cirq_ft.t_complexity(DoesNotSupportTComplexity(), fail_quietly=True) is None
+    assert cirq_ft.t_complexity([DoesNotSupportTComplexity()], fail_quietly=True) is None
+    assert cirq_ft.t_complexity(DoesNotSupportTComplexityGate(), fail_quietly=True) is None
 
     assert cirq_ft.t_complexity(SupportTComplexity()) == cirq_ft.TComplexity(t=1)
     assert cirq_ft.t_complexity(SupportTComplexityGate().on(cirq.q('t'))) == cirq_ft.TComplexity(
@@ -68,6 +66,7 @@ def test_t_complexity():
     )
 
     g = cirq_ft.testing.GateHelper(SupportsTComplexityGateWithRegisters())
+    assert g.gate._decompose_with_context_(g.operation.qubits) is NotImplemented
     assert cirq_ft.t_complexity(g.gate) == cirq_ft.TComplexity(t=1, clifford=2)
     assert cirq_ft.t_complexity(g.operation) == cirq_ft.TComplexity(t=1, clifford=2)
 
@@ -98,8 +97,8 @@ def test_gates():
     assert cirq_ft.t_complexity(cirq.Rz(rads=2)) == cirq_ft.TComplexity(rotations=1)
 
     # clifford+T
-    # assert cirq_ft.t_complexity(And()) == cirq_ft.TComplexity(t=4, clifford=9)
-    # assert cirq_ft.t_complexity(And() ** -1) == cirq_ft.TComplexity(clifford=4)
+    assert cirq_ft.t_complexity(cirq_ft.And()) == cirq_ft.TComplexity(t=4, clifford=9)
+    assert cirq_ft.t_complexity(cirq_ft.And() ** -1) == cirq_ft.TComplexity(clifford=4)
 
     assert cirq_ft.t_complexity(cirq.FREDKIN) == cirq_ft.TComplexity(t=7, clifford=10)
 
@@ -108,13 +107,13 @@ def test_operations():
     q = cirq.NamedQubit('q')
     assert cirq_ft.t_complexity(cirq.T(q)) == cirq_ft.TComplexity(t=1)
 
-    # gate = And()
-    # op = gate.on_registers(**gate.registers.get_named_qubits())
-    # assert cirq_ft.t_complexity(op) == cirq_ft.TComplexity(t=4, clifford=9)
-    #
-    # gate = And() ** -1
-    # op = gate.on_registers(**gate.registers.get_named_qubits())
-    # assert cirq_ft.t_complexity(op) == cirq_ft.TComplexity(clifford=4)
+    gate = cirq_ft.And()
+    op = gate.on_registers(**gate.registers.get_named_qubits())
+    assert cirq_ft.t_complexity(op) == cirq_ft.TComplexity(t=4, clifford=9)
+
+    gate = cirq_ft.And() ** -1
+    op = gate.on_registers(**gate.registers.get_named_qubits())
+    assert cirq_ft.t_complexity(op) == cirq_ft.TComplexity(clifford=4)
 
 
 def test_circuits():
@@ -187,10 +186,10 @@ def test_cache_clear():
 
         @property
         def qubits(self):
-            return tuple(cirq.LineQubit(3).range(3))
+            return [cirq.LineQubit(3)]  # coverage: ignore
 
         def with_qubits(self, _):
-            pass
+            ...
 
         @property
         def gate(self):

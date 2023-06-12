@@ -95,6 +95,7 @@ def test_swap_with_zero_gate_diagram():
 10: ───swap_3───
 """,
     )
+    cirq.testing.assert_equivalent_repr(gate, setup_code='import cirq_ft')
 
 
 def test_multi_target_cswap():

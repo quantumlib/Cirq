@@ -48,6 +48,7 @@ from cirq_ft.infra import (
     GreedyQubitManager,
     Register,
     Registers,
+    SelectionRegister,
     SelectionRegisters,
     TComplexity,
     map_clean_and_borrowable_qubits,
