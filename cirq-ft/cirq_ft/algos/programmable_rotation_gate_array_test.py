@@ -12,13 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from functools import cached_property
 from typing import Sequence, Type
 
 import cirq
 import cirq_ft
 import numpy as np
 import pytest
+from cirq._compat import cached_property
 from cirq_ft.infra.bit_tools import iter_bits
 
 

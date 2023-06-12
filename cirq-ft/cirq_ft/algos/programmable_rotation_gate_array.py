@@ -13,12 +13,11 @@
 # limitations under the License.
 
 import abc
-from functools import cached_property
 from typing import Sequence, Tuple
 
 import cirq
 import numpy as np
-from cirq._compat import cached_method
+from cirq._compat import cached_method, cached_property
 from cirq_ft import infra
 from cirq_ft.algos import qrom
 from cirq_ft.infra.bit_tools import iter_bits

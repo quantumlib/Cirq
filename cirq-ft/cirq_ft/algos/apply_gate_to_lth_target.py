@@ -13,11 +13,11 @@
 # limitations under the License.
 
 import itertools
-from functools import cached_property
 from typing import Callable, Sequence
 
 import attr
 import cirq
+from cirq._compat import cached_property
 from cirq_ft import infra
 from cirq_ft.algos import unary_iteration_gate
 

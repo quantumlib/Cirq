@@ -14,12 +14,12 @@
 
 """Gates for applying generic selected unitaries."""
 
-from functools import cached_property
 from typing import Collection, Optional, Sequence, Tuple, Union
 
 import attr
 import cirq
 import numpy as np
+from cirq._compat import cached_property
 from cirq_ft import infra
 from cirq_ft.algos import select_and_prepare, unary_iteration_gate
 

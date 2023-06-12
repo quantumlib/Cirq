@@ -4,7 +4,7 @@
   :width: 500px
 
 Cirq-FT: Cirq for Fault-Tolerant algorithms 
-------------
+-------------------------------------------
 
 Cirq-FT is a Python library for rapid prototyping and resource estimation of fault tolerant 
 algorithms that extends the quantum computing SDK **Cirq**.

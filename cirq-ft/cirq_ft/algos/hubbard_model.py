@@ -46,12 +46,12 @@ considered in both the PREPARE and SELECT operations corresponding to the terms 
 
 See the documentation for `PrepareHubbard` and `SelectHubbard` for details.
 """
-from functools import cached_property
 from typing import Collection, Optional, Sequence, Tuple, Union
 
 import attr
 import cirq
 import numpy as np
+from cirq._compat import cached_property
 from cirq_ft import infra
 from cirq_ft.algos import and_gate, apply_gate_to_lth_target, arithmetic_gates
 from cirq_ft.algos import prepare_uniform_superposition as prep_u

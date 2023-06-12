@@ -13,12 +13,12 @@
 # limitations under the License.
 
 import itertools
-from functools import cached_property
 from typing import Sequence, Tuple
 
 import cirq
 import cirq_ft
 import pytest
+from cirq._compat import cached_property
 from cirq_ft.infra.bit_tools import iter_bits
 from cirq_ft.infra.jupyter_tools import execute_notebook
 

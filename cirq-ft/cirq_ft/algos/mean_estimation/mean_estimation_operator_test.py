@@ -12,7 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from functools import cached_property
 from typing import Sequence, Tuple
 
 import cirq
@@ -20,6 +19,7 @@ import cirq_ft
 import numpy as np
 import pytest
 from attr import frozen
+from cirq._compat import cached_property
 from cirq_ft.algos.mean_estimation import CodeForRandomVariable, MeanEstimationOperator
 from cirq_ft.infra import bit_tools
 
