@@ -36,7 +36,7 @@ SKIP_NOTEBOOKS = [
     '**/pasqal/*.ipynb',
     '**/rigetti/*.ipynb',
     # skipp cirq-ft notebooks since they are included in individual tests
-    'cirq_ft/**',
+    'cirq-ft/**',
     # skipping fidelity estimation due to
     # https://github.com/quantumlib/Cirq/issues/3502
     'examples/*fidelity*',

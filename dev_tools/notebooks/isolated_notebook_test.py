@@ -72,7 +72,7 @@ SKIP_NOTEBOOKS = [
     "**/ionq/*.ipynb",
     "**/pasqal/*.ipynb",
     # skipp cirq-ft notebooks since they are included in individual tests
-    'cirq_ft/**',
+    'cirq-ft/**',
     # Rigetti uses local simulation with docker, so should work
     # if you run into issues locally, run
     # `docker compose -f cirq-rigetti/docker-compose.test.yaml up`
