@@ -27,6 +27,7 @@ from typing import (
     TypeVar,
     Union,
 )
+from typing_extensions import Self
 
 import numpy as np
 
@@ -37,7 +38,6 @@ if TYPE_CHECKING:
     import cirq
 
 
-TSelfTarget = TypeVar('TSelfTarget', bound='SimulationStateBase')
 TSimulationState = TypeVar('TSimulationState', bound='cirq.SimulationState')
 
 
@@ -98,7 +98,7 @@ class SimulationStateBase(Generic[TSimulationState], metaclass=abc.ABCMeta):
         protocols.act_on(op, self)
 
     @abc.abstractmethod
-    def copy(self: TSelfTarget, deep_copy_buffers: bool = True) -> TSelfTarget:
+    def copy(self, deep_copy_buffers: bool = True) -> Self:
         """Creates a copy of the object.
 
         Args:
@@ -124,11 +124,14 @@ class SimulationStateBase(Generic[TSimulationState], metaclass=abc.ABCMeta):
     ) -> np.ndarray:
         """Samples the state value."""
 
+    @abc.abstractmethod
     def __getitem__(self, item: Optional['cirq.Qid']) -> TSimulationState:
         """Gets the item associated with the qubit."""
 
+    @abc.abstractmethod
     def __len__(self) -> int:
         """Gets the number of items in the mapping."""
 
+    @abc.abstractmethod
     def __iter__(self) -> Iterator[Optional['cirq.Qid']]:
         """Iterates the keys of the mapping."""

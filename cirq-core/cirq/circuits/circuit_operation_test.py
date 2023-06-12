@@ -274,7 +274,7 @@ def test_recursive_params():
 
 @pytest.mark.parametrize('add_measurements', [True, False])
 @pytest.mark.parametrize('use_default_ids_for_initial_rep', [True, False])
-def test_repeat(add_measurements, use_default_ids_for_initial_rep):
+def test_repeat(add_measurements: bool, use_default_ids_for_initial_rep: bool) -> None:
     a, b = cirq.LineQubit.range(2)
     circuit = cirq.Circuit(cirq.H(a), cirq.CX(a, b))
     if add_measurements:
@@ -327,9 +327,9 @@ def test_repeat(add_measurements, use_default_ids_for_initial_rep):
         _ = op_base.repeat()
 
     with pytest.raises(TypeError, match='Only integer or sympy repetitions are allowed'):
-        _ = op_base.repeat(1.3)
-    assert op_base.repeat(3.00000000001).repetitions == 3
-    assert op_base.repeat(2.99999999999).repetitions == 3
+        _ = op_base.repeat(1.3)  # type: ignore[arg-type]
+    assert op_base.repeat(3.00000000001).repetitions == 3  # type: ignore[arg-type]
+    assert op_base.repeat(2.99999999999).repetitions == 3  # type: ignore[arg-type]
 
 
 @pytest.mark.parametrize('add_measurements', [True, False])

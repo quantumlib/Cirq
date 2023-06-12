@@ -190,7 +190,7 @@ class CCZPowGate(gate_features.InterchangeableQubitsGate, eigen_gate.EigenGate):
 
     def controlled(
         self,
-        num_controls: int = None,
+        num_controls: Optional[int] = None,
         control_values: Optional[
             Union[cv.AbstractControlValues, Sequence[Union[int, Collection[int]]]]
         ] = None,
@@ -502,7 +502,7 @@ class CCXPowGate(gate_features.InterchangeableQubitsGate, eigen_gate.EigenGate):
 
     def controlled(
         self,
-        num_controls: int = None,
+        num_controls: Optional[int] = None,
         control_values: Optional[
             Union[cv.AbstractControlValues, Sequence[Union[int, Collection[int]]]]
         ] = None,
@@ -661,6 +661,11 @@ class CSwapGate(gate_features.InterchangeableQubitsGate, raw_types.Gate):
     def _value_equality_values_(self):
         return ()
 
+    def __pow__(self, power):
+        if power == 1 or power == -1:
+            return self
+        return NotImplemented
+
     def __str__(self) -> str:
         return 'FREDKIN'
 
@@ -672,7 +677,7 @@ class CSwapGate(gate_features.InterchangeableQubitsGate, raw_types.Gate):
 
     def controlled(
         self,
-        num_controls: int = None,
+        num_controls: Optional[int] = None,
         control_values: Optional[
             Union[cv.AbstractControlValues, Sequence[Union[int, Collection[int]]]]
         ] = None,

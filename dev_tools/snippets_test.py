@@ -55,7 +55,7 @@ In addition to checking that the code executes:
 """
 import inspect
 import sys
-from typing import Any, Dict, List, Pattern, Tuple, Iterator
+from typing import Any, Dict, List, Optional, Pattern, Tuple, Iterator
 
 import os
 import pathlib
@@ -462,7 +462,9 @@ def test_canonicalize_printed_line():
     assert canonicalize_printed_line(a) == canonicalize_printed_line(b)
 
 
-def assert_code_snippet_executes_correctly(snippet: str, state: Dict, line_number: int = None):
+def assert_code_snippet_executes_correctly(
+    snippet: str, state: Dict, line_number: Optional[int] = None
+):
     """Executes a snippet and compares output / errors to annotations."""
 
     raises_annotation = re.search(r"# raises\s*(\S*)", snippet)
@@ -484,7 +486,7 @@ def assert_code_snippet_executes_correctly(snippet: str, state: Dict, line_numbe
 
 
 def assert_code_snippet_runs_and_prints_expected(
-    snippet: str, state: Dict, line_number: int = None
+    snippet: str, state: Dict, line_number: Optional[int] = None
 ):
     """Executes a snippet and compares captured output to annotated output."""
     output_lines: List[str] = []

@@ -8,4 +8,4 @@ The Rigetti QCS API provides access to and descriptions of Rigetti quantum proce
 
 Note that you do not need Rigetti QCS credentials to execute on the Quil QVM, but you _will_ need them for execution on live Rigetti quantum processors.
 
-With your environment setup, you will be able use the `cirq-rigetti` package as described in our [Getting Started Guide](/cirq/hardware/rigetti/getting_started.ipynb).
+With your environment setup, you will be able use the `cirq-rigetti` package as described in our [Getting Started Guide](./getting_started.ipynb).

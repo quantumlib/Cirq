@@ -21,7 +21,7 @@ We also expect a standard header to be included in all of our notebooks:
 
 Example header:
 
-![notebook header](/cirq/images/notebook_header.png)
+![notebook header](../images/notebook_header.png)
 
 You can use [our template notebook](https://storage.googleapis.com/tensorflow_docs/Cirq/docs/_template.ipynb) to get started - please remember to change the `$$$REPLACE_WITH_TITLE$$$`, `$$$REPLACE_WITH_SITE_URL$$$` and `$$$REPLACE_WITH_NOTEBOOK_PATH$$$` placeholders.
 
@@ -46,9 +46,9 @@ See the [`dev_tools/notebooks`](https://github.com/quantumlib/Cirq/tree/master/d
 In order to speed up the execution of these tests an auxiliary file may be supplied which performs substitutions on the notebook to make it faster (for example it is often useful
 to reduce the number of repetitions in sampling from a simulator).
 
-Tod do this, for a notebook file notebook.ipynb, one can supply a file notebook.tst which contains the substitutes.
-The substitutions are provide in the form `pattern->replacement` where the pattern is what is matched and will be replaced.
-While the pattern is compiled, it is considered best practice to not sure complicated regular expressions.
+To do this, for a notebook file notebook.ipynb, one can supply a file notebook.tst which contains the substitutes.
+The substitutions are provided in the form `pattern->replacement` where the pattern is what is matched and will be replaced.
+While the pattern is compiled, it is considered best practice to not use complicated regular expressions.
 Lines in this file that do not have `->` are ignored.  Note that because the pattern is
 compiled, it may be necessary to escape the pattern, however it is best to try to avoid
 such complicated expressions.

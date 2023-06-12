@@ -12,20 +12,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import functools
-from typing import Any, Dict, Iterable, List, Optional, Sequence, Set, TypeVar, TYPE_CHECKING
-
 import abc
+import functools
+from typing import Any, Dict, Iterable, List, Optional, Sequence, Set, TYPE_CHECKING, Union
+from typing_extensions import Self
 
 from cirq import ops, protocols
 
 if TYPE_CHECKING:
     import cirq
 
-TSelf = TypeVar('TSelf', bound='_BaseLineQid')
 
-
-@functools.total_ordering  # type: ignore
+@functools.total_ordering
 class _BaseLineQid(ops.Qid):
     """The base class for `LineQid` and `LineQubit`."""
 
@@ -66,10 +64,10 @@ class _BaseLineQid(ops.Qid):
         return neighbors
 
     @abc.abstractmethod
-    def _with_x(self: TSelf, x: int) -> TSelf:
+    def _with_x(self, x: int) -> Self:
         """Returns a qubit with the same type but a different value of `x`."""
 
-    def __add__(self: TSelf, other: int) -> TSelf:
+    def __add__(self, other: Union[int, Self]) -> Self:
         if isinstance(other, _BaseLineQid):
             if self.dimension != other.dimension:
                 raise TypeError(
@@ -81,7 +79,7 @@ class _BaseLineQid(ops.Qid):
             raise TypeError(f"Can only add ints and {type(self).__name__}. Instead was {other}")
         return self._with_x(self.x + other)
 
-    def __sub__(self: TSelf, other: int) -> TSelf:
+    def __sub__(self, other: Union[int, Self]) -> Self:
         if isinstance(other, _BaseLineQid):
             if self.dimension != other.dimension:
                 raise TypeError(
@@ -95,13 +93,13 @@ class _BaseLineQid(ops.Qid):
             )
         return self._with_x(self.x - other)
 
-    def __radd__(self: TSelf, other: int) -> TSelf:
+    def __radd__(self, other: int) -> Self:
         return self + other
 
-    def __rsub__(self: TSelf, other: int) -> TSelf:
+    def __rsub__(self, other: int) -> Self:
         return -self + other
 
-    def __neg__(self: TSelf) -> TSelf:
+    def __neg__(self) -> Self:
         return self._with_x(-self.x)
 
     def __complex__(self) -> complex:

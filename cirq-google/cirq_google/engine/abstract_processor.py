@@ -58,7 +58,7 @@ class AbstractProcessor(abc.ABC):
         program: cirq.Circuit,
         program_id: Optional[str] = None,
         job_id: Optional[str] = None,
-        param_resolver: cirq.ParamResolver = None,
+        param_resolver: Optional[cirq.ParamResolver] = None,
         repetitions: int = 1,
         program_description: Optional[str] = None,
         program_labels: Optional[Dict[str, str]] = None,
@@ -151,7 +151,7 @@ class AbstractProcessor(abc.ABC):
         programs: Sequence[cirq.AbstractCircuit],
         program_id: Optional[str] = None,
         job_id: Optional[str] = None,
-        params_list: Sequence[cirq.Sweepable] = None,
+        params_list: Optional[Sequence[cirq.Sweepable]] = None,
         repetitions: int = 1,
         program_description: Optional[str] = None,
         program_labels: Optional[Dict[str, str]] = None,
@@ -234,7 +234,7 @@ class AbstractProcessor(abc.ABC):
             program_description: An optional description to set on the program.
             program_labels: Optional set of labels to set on the program.
             job_description: An optional description to set on the job.
-            job_labels: Optional set of labels to set on the job.  By defauly,
+            job_labels: Optional set of labels to set on the job.  By default,
                 this will add a 'calibration' label to the job.
         Returns:
             An AbstractJob whose results can be retrieved by calling
@@ -363,9 +363,9 @@ class AbstractProcessor(abc.ABC):
     def update_reservation(
         self,
         reservation_id: str,
-        start_time: datetime.datetime = None,
-        end_time: datetime.datetime = None,
-        whitelisted_users: List[str] = None,
+        start_time: Optional[datetime.datetime] = None,
+        end_time: Optional[datetime.datetime] = None,
+        whitelisted_users: Optional[List[str]] = None,
     ):
         """Updates a reservation with new information.
 

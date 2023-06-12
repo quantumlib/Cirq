@@ -195,6 +195,12 @@ def test_zz_pow():
     assert (cirq.ZZ**-1) ** 0.5 == cirq.ZZ**-0.5
 
 
+def test_zz_phase_by():
+    assert cirq.phase_by(cirq.ZZ, 0.25, 0) == cirq.phase_by(cirq.ZZ, 0.25, 1) == cirq.ZZ
+    assert cirq.phase_by(cirq.ZZ**0.5, 0.25, 0) == cirq.ZZ**0.5
+    assert cirq.phase_by(cirq.ZZ**-0.5, 0.25, 1) == cirq.ZZ**-0.5
+
+
 def test_zz_str():
     assert str(cirq.ZZ) == 'ZZ'
     assert str(cirq.ZZ**0.5) == 'ZZ**0.5'

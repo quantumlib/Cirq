@@ -1,6 +1,6 @@
 The following document provides an ecosystem overview of how the various tools compatible with Cirq can work together to enable quantum computing research.
 
-![image alt text](/cirq/images/ecosystem.png )
+![image alt text](../images/ecosystem.png)
 
 * **Research Libraries and Tools:** Libraries and tools used for researching new quantum algorithms and designing and preparing experiments on quantum devices.
 
@@ -45,7 +45,7 @@ The following document provides an ecosystem overview of how the various tools c
 |[Rigetti](https://quantumai.google/cirq/hardware/rigetti/getting_started)|Superconducting qubits|
 
 For more information for vendors about integrating with cirq,
-see our [RFC page](/cirq/dev/rfc_process#new_hardware_integrations).
+see our [RFC page](../dev/rfc_process.md#new_hardware_integrations).
 
 
 ## High performance quantum circuit simulators

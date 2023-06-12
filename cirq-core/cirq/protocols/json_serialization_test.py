@@ -767,7 +767,7 @@ def test_pathlib_paths(tmpdir):
     assert cirq.read_json_gzip(gzip_path) == cirq.X
 
 
-def test_dataclass_json_dict():
+def test_dataclass_json_dict() -> None:
     @dataclasses.dataclass(frozen=True)
     class MyDC:
         q: cirq.LineQubit

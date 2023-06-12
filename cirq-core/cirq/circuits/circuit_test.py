@@ -834,6 +834,17 @@ def test_insert_moment():
         assert c.operation_at(qubit, actual_index) == operation[0]
 
 
+def test_circuit_length_inference():
+    # tests that `get_earliest_accommodating_moment_index` properly computes circuit length
+    circuit = cirq.Circuit(cirq.X(cirq.q(0)))
+    qubit_indices = {cirq.q(0): 0}
+    mkey_indices = {}
+    ckey_indices = {}
+    assert circuits.circuit.get_earliest_accommodating_moment_index(
+        cirq.Moment(), qubit_indices, mkey_indices, ckey_indices
+    ) == len(circuit)
+
+
 def test_insert_inline_near_start():
     a = cirq.NamedQubit('a')
     b = cirq.NamedQubit('b')

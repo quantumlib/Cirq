@@ -35,7 +35,7 @@ class StateVectorMixin:
         """Inits StateVectorMixin.
 
         Args:
-            qubit_map: A map from the Qubits in the Circuit to the the index
+            qubit_map: A map from the Qubits in the Circuit to the index
                 of this qubit for a canonical ordering. This canonical ordering
                 is used to define the state (see the state_vector() method).
             *args: Passed on to the class that this is mixed in with.
@@ -102,7 +102,7 @@ class StateVectorMixin:
             and non-zero floats of the specified accuracy."""
         return qis.dirac_notation(self.state_vector(), decimals, qid_shape=self._qid_shape)
 
-    def density_matrix_of(self, qubits: List['cirq.Qid'] = None) -> np.ndarray:
+    def density_matrix_of(self, qubits: Optional[List['cirq.Qid']] = None) -> np.ndarray:
         r"""Returns the density matrix of the state.
 
         Calculate the density matrix for the system on the qubits provided.

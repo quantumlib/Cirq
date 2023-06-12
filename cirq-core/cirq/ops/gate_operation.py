@@ -31,6 +31,7 @@ from typing import (
     Union,
     List,
 )
+from typing_extensions import Self
 
 import numpy as np
 
@@ -40,9 +41,6 @@ from cirq.type_workarounds import NotImplementedType
 
 if TYPE_CHECKING:
     import cirq
-
-
-TSelf = TypeVar('TSelf', bound='GateOperation')
 
 
 @value.value_equality(approximate=True)
@@ -73,8 +71,8 @@ class GateOperation(raw_types.Operation):
         """The qubits targeted by the operation."""
         return self._qubits
 
-    def with_qubits(self: TSelf, *new_qubits: 'cirq.Qid') -> TSelf:
-        return cast(TSelf, self.gate.on(*new_qubits))
+    def with_qubits(self, *new_qubits: 'cirq.Qid') -> Self:
+        return cast(Self, self.gate.on(*new_qubits))
 
     def with_gate(self, new_gate: 'cirq.Gate') -> 'cirq.Operation':
         if self.gate is new_gate:
@@ -162,7 +160,14 @@ class GateOperation(raw_types.Operation):
         return len(self._qubits)
 
     def _decompose_(self) -> 'cirq.OP_TREE':
-        return protocols.decompose_once_with_qubits(self.gate, self.qubits, NotImplemented)
+        return self._decompose_with_context_()
+
+    def _decompose_with_context_(
+        self, context: Optional['cirq.DecompositionContext'] = None
+    ) -> 'cirq.OP_TREE':
+        return protocols.decompose_once_with_qubits(
+            self.gate, self.qubits, NotImplemented, flatten=False, context=context
+        )
 
     def _pauli_expansion_(self) -> value.LinearDict[str]:
         getter = getattr(self.gate, '_pauli_expansion_', None)

@@ -15,7 +15,8 @@
 
 import abc
 import itertools
-from typing import Union, Iterable, List, Sequence, cast, Tuple, TypeVar, TYPE_CHECKING
+from typing import Union, Iterable, List, Sequence, cast, Tuple, TYPE_CHECKING
+from typing_extensions import Self
 
 import numpy as np
 
@@ -23,9 +24,6 @@ from cirq.ops.raw_types import Gate
 
 if TYPE_CHECKING:
     import cirq
-
-
-TSelfGate = TypeVar('TSelfGate', bound='ArithmeticGate')
 
 
 class ArithmeticGate(Gate, metaclass=abc.ABCMeta):
@@ -55,7 +53,7 @@ class ArithmeticGate(Gate, metaclass=abc.ABCMeta):
     ...
     ...     def with_registers(
     ...         self, *new_registers: 'Union[int, Sequence[int]]'
-    ...     ) -> 'TSelfGate':
+    ...     ) -> 'Add':
     ...         return Add(*new_registers)
     ...
     ...     def apply(self, *register_values: int) -> 'Union[int, Iterable[int]]':
@@ -105,7 +103,7 @@ class ArithmeticGate(Gate, metaclass=abc.ABCMeta):
         raise NotImplementedError()
 
     @abc.abstractmethod
-    def with_registers(self: TSelfGate, *new_registers: Union[int, Sequence[int]]) -> TSelfGate:
+    def with_registers(self, *new_registers: Union[int, Sequence[int]]) -> Self:
         """Returns the same fate targeting different registers.
 
         Args:
