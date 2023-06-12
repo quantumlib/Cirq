@@ -333,14 +333,3 @@ It can be accessing by using `cirq_google.Bristlecone`. Circuits can be compiled
 `cirq_google.optimized_for_xmon` or by using `cirq_google.optimized_for_sycamore` with
 optimizer_type `xmon`.
 
-### Foxtail
-
-The Foxtail device is a 2 by 11 XMON device arranged in a bilinear array,
-addressable by using grid qubits `({0,1}, {0-11})`. It was one of the first
-super-conducting quantum devices announced by Google. Due to the small number of qubits
-and limited connectivity, it is still interesting for exploring the space of constrained
-algorithms on NISQ devices.
-
-It can be accessing by using `cirq_google.Foxtail`. Circuits can be compiled to it by using
-`cirq_google.optimized_for_xmon` or by using `cirq_google.optimized_for_sycamore` with
-optimizer_type `xmon`.
