@@ -12,7 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Any, Callable, Hashable, Iterable, Literal, Optional, Union, overload
+from typing import Any, Callable, Hashable, Iterable, Optional, Union, overload
+from typing_extensions import Literal
 
 import attr
 import cachetools
