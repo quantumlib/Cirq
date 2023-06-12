@@ -46,19 +46,19 @@ class DeviceParameter(SupportsDeviceParameter):
            entry in a list.
        idx: If this key is an array, which index to modify.
        value: value of the parameter to be set, if any.
-       unit: string value of the unit type of the value, if any.
+       units: string value of the unit type of the value, if any.
           For instance, "GHz", "MHz", "ns", etc.
     """
 
     path: Sequence[str]
     idx: Optional[int] = None
     value: Optional[Any] = None
-    unit: Optional[str] = None
+    units: Optional[str] = None
 
     def __repr__(self) -> str:
         return (
             'cirq_google.study.DeviceParameter('
-            f'path={self.path!r}, idx={self.idx}, value={self.value!r}, unit={self.unit!r})'
+            f'path={self.path!r}, idx={self.idx}, value={self.value!r}, units={self.units!r})'
         )
 
     @classmethod
@@ -67,7 +67,9 @@ class DeviceParameter(SupportsDeviceParameter):
 
     @classmethod
     def _from_json_dict_(cls, path, idx, value, **kwargs):
-        return DeviceParameter(path=path, idx=idx, value=value, unit=kwargs['unit'] if 'unit' in kwargs else None)
+        return DeviceParameter(
+            path=path, idx=idx, value=value, units=kwargs['units'] if 'units' in kwargs else None
+        )
 
     def _json_dict_(self) -> Dict[str, Any]:
-        return cirq.obj_to_dict_helper(self, ["path", "idx", "value", "unit"])
+        return cirq.obj_to_dict_helper(self, ["path", "idx", "value", "units"])
