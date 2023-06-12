@@ -169,15 +169,23 @@ class SelectionRegisters(Registers):
         For example:
 
         1) We can flatten a 2D for-loop as follows
+        >>> N, M = 10, 20
+        >>> flat_indices = set()
         >>> for x in range(N):
-        >>>     for y in range(M):
-        >>>         flat_idx = x * M + y
+        ...     for y in range(M):
+        ...         flat_idx = x * M + y
+        ...         flat_indices.add(flat_idx)
+        >>> assert len(flat_indices) == N * M
 
         2) Similarly, we can flatten a 3D for-loop as follows
+        >>> N, M, L = 10, 20, 30
+        >>> flat_indices = set()
         >>> for x in range(N):
-        >>>     for y in range(M):
-        >>>         for z in range(L):
-        >>>             flat_idx = x * M * L + y * L + z
+        ...     for y in range(M):
+        ...         for z in range(L):
+        ...             flat_idx = x * M * L + y * L + z
+        ...             flat_indices.add(flat_idx)
+        >>> assert len(flat_indices) == N * M * L
 
         This is a general version of the mapping function described in Eq.45 of
         https://arxiv.org/abs/1805.03662

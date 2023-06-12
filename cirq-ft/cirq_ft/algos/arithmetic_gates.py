@@ -173,16 +173,22 @@ class ContiguousRegisterGate(cirq.ArithmeticGate):
     This is useful in the case when $|x>$ and $|y>$ represent two selection registers such that
      $y < x$. For example, imagine a classical for-loop over two variables $x$ and $y$:
 
-     >>> for x in range(N);
-     >>>     for y in range(x):
-     >>>         yield data[x][y] # Iterates over a total of (N * (N - 1)) / 2 elements.
+    >>> N = 10
+    >>> data = [[1000 * x +  10 * y for y in range(x)] for x in range(N)]
+    >>> for x in range(N):
+    ...     for y in range(x):
+    ...         # Iterates over a total of (N * (N - 1)) / 2 elements.
+    ...         assert data[x][y] == 1000 * x + 10 * y
 
-     We can rewrite the above using a single for-loop that uses a "contiguous" variable `i` s.t.
+    We can rewrite the above using a single for-loop that uses a "contiguous" variable `i` s.t.
 
-     >>> for i in range((N * (N - 1)) / 2):
-     >>>    x = np.floor((1 + np.sqrt(1 + 8 * i)) / 2)
-     >>>    y = i - (x * (x - 1)) / 2
-     >>>    yield data[x][y]
+    >>> import numpy as np
+    >>> N = 10
+    >>> data = [[1000 * x + 10 * y for y in range(x)] for x in range(N)]
+    >>> for i in range((N * (N - 1)) // 2):
+    ...     x = int(np.floor((1 + np.sqrt(1 + 8 * i)) / 2))
+    ...     y = i - (x * (x - 1)) // 2
+    ...     assert data[x][y] == 1000 * x + 10 * y
 
      Note that both the for-loops iterate over the same ranges and in the same order. The only
      difference is that the second loop is a "flattened" version of the first one.

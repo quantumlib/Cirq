@@ -130,19 +130,22 @@ def unary_iteration(
 
     Users can write multi-dimensional coherent for loops as follows:
 
+    >>> import cirq
+    >>> from cirq_ft import unary_iteration, GreedyQubitManager
     >>> N, M = 5, 7
     >>> target = [[cirq.q(f't({i}, {j})') for j in range(M)] for i in range(N)]
     >>> selection = [[cirq.q(f's({i}, {j})') for j in range(3)] for i in range(3)]
     >>> circuit = cirq.Circuit()
     >>> i_ops = []
-    >>> for i_optree, i_control, i in unary_iteration(0, N, i_ops, [], selection[0]):
-    >>>     circuit.append(i_optree)
-    >>>     j_ops = []
-    >>>     for j_optree, j_control, j in unary_iteration(0, M, j_ops, [i_control], selection[1]):
-    >>>         circuit.append(j_optree)
-    >>>         # Conditionally perform operations on target register using `j_control`, `i` & `j`.
-    >>>         circuit.append(cirq.CNOT(j_control, target[i][j]))
-    >>>     circuit.append(j_ops)
+    >>> qm = GreedyQubitManager("ancilla", maximize_reuse=True)
+    >>> for i_optree, i_ctrl, i in unary_iteration(0, N, i_ops, [], selection[0], qm):
+    ...     circuit.append(i_optree)
+    ...     j_ops = []
+    ...     for j_optree, j_ctrl, j in unary_iteration(0, M, j_ops, [i_ctrl], selection[1], qm):
+    ...         circuit.append(j_optree)
+    ...         # Conditionally perform operations on target register using `j_ctr`, `i` & `j`.
+    ...         circuit.append(cirq.CNOT(j_ctrl, target[i][j]))
+    ...     circuit.append(j_ops)
     >>> circuit.append(i_ops)
 
     Args:
