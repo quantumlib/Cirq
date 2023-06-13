@@ -1,11 +1,11 @@
 {
   "ExpandedNodes": [
     "",
+    "\\check",
     "\\cirq-core",
     "\\cirq-core\\cirq",
-    "\\cirq-core\\cirq\\ops",
     "\\cirq-core\\cirq\\sim",
-    "\\cirq-core\\cirq\\sim\\clifford"
+    "\\dev_tools"
   ],
   "PreviewInSolutionExplorer": false
 }
