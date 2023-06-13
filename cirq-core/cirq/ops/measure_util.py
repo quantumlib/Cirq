@@ -59,7 +59,7 @@ def measure_single_paulistring(
 
     if key is None:
         key = _default_measurement_key(pauli_observable)
-    return PauliMeasurementGate(pauli_observable.dense(pauli_observable.keys()), key).on(
+    return PauliMeasurementGate(pauli_observable.dense(list(pauli_observable.keys())), key).on(
         *pauli_observable.keys()
     )
 
