@@ -53,11 +53,15 @@ def measure_single_paulistring(
             f'Pauli observable {pauli_observable} should be an instance of cirq.PauliString.'
         )
     if abs(pauli_observable.coefficient) != 1:
-        raise ValueError(f"Pauli observable {pauli_observable} must have a coefficient of +1 or -1.")
+        raise ValueError(
+            f"Pauli observable {pauli_observable} must have a coefficient of +1 or -1."
+        )
 
     if key is None:
         key = _default_measurement_key(pauli_observable)
-    return PauliMeasurementGate(pauli_observable.dense(pauli_observable.keys()), key).on(*pauli_observable.keys())
+    return PauliMeasurementGate(pauli_observable.dense(pauli_observable.keys()), key).on(
+        *pauli_observable.keys()
+    )
 
 
 def measure_paulistring_terms(

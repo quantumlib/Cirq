@@ -105,7 +105,7 @@ def test_measure_single_paulistring():
 
     # Coefficient != +1 or -1
     with pytest.raises(ValueError, match='must have a coefficient'):
-        _ = cirq.measure_single_paulistring(-2*ps)
+        _ = cirq.measure_single_paulistring(-2 * ps)
 
 
 def test_measure_paulistring_terms():
