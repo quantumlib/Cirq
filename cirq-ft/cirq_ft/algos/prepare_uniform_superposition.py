@@ -37,7 +37,7 @@ class PrepareUniformSuperposition(infra.GateWithRegisters):
 
     Args:
         n: The gate prepares a uniform superposition over first $n$ basis states.
-        cvs: Control values for each control qubit. If specified, a controlled version
+        cv: Control values for each control qubit. If specified, a controlled version
             of the gate is constructed.
 
     References:

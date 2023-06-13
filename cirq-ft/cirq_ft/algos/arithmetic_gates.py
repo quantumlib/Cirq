@@ -249,7 +249,7 @@ class AdditionGate(cirq.ArithmeticGate):
     Args:
         bitsize: The number of bits used to represent each integer p and q.
             Note that this adder does not detect overflow if bitsize is not
-            large enough to hold p + q.
+            large enough to hold p + q and simply drops the most significant bits.
 
     References:
         [Halving the cost of quantum addition](https://arxiv.org/abs/1709.06648)

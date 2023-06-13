@@ -32,6 +32,34 @@ def _unary_iteration_segtree(
     r_iter: int,
     qm: cirq.QubitManager,
 ) -> Iterator[Tuple[cirq.OP_TREE, cirq.Qid, int]]:
+    """Constructs a unary iteration circuit by iterating over nodes of an implicit Segment Tree.
+
+    Args:
+        ops: Operations accumulated so far while traversing the implicit segment tree. The
+            accumulated ops are yielded and cleared when we reach a leaf node.
+        control: The control qubit that controls the execution of the entire unary iteration
+            circuit represented by the current node of the segment tree.
+        selection: Sequence of selection qubits. The i'th qubit in the list corresponds to the i'th
+            level in the segment tree.Thus, a total of O(logN) selection qubits are required for a
+            tree on range `N = (r_iter - l_iter)`.
+        sl: Current depth of the tree. `selection[sl]` gives the selection qubit corresponding to
+            the current depth.
+        l: Left index of the range represented by current node of the segment tree.
+        r: Right index of the range represented by current node of the segment tree.
+        l_iter: Left index of iteration range over which the segment tree should be constructed.
+        r_iter: Right index of iteration range over which the segment tree should be constructed.
+
+    Yields:
+        One `Tuple[cirq.OP_TREE, cirq.Qid, int]` for each leaf node in the segment tree. The i'th
+        yielded element corresponds to the i'th leaf node which represents the `l_iter + i`'th
+        integer. The tuple corresponds to:
+            - cirq.OP_TREE: Operations to be inserted in the circuit in between the last leaf node
+                (or beginning of iteration) to the current leaf node.
+            - cirq.Qid: The control qubit which can be controlled upon to execute the $U_{l}$ on a
+                target register when the selection register stores integer $l$.
+            - int: Integer $l$ which would be stored in the selection register if the control qubit
+                 is set.
+    """
     if l >= r_iter or l_iter >= r:
         # Range corresponding to this node is completely outside of iteration range.
         return
@@ -187,6 +215,23 @@ def unary_iteration(
 
 
 class UnaryIterationGate(infra.GateWithRegisters):
+    """Base class for defining multiplexed gates that can execute a coherent for-loop.
+
+    Unary iteration is a coherent for loop that can be used to conditionally perform a different
+    operation on a target register for every integer in the `range(l_iter, r_iter)` stored in the
+    selection register.
+
+    `cirq_ft.UnaryIterationGate` leverages the utility method `cirq_ft.unary_iteration` to provide
+    a convenient API for users to define a multi-dimensional multiplexed gate that can execute
+    indexed operations on a target register depending on the index value stored in a selection
+    register.
+
+    References:
+            [Encoding Electronic Spectra in Quantum Circuits with Linear T Complexity]
+        (https://arxiv.org/abs/1805.03662).
+        Babbush et. al. (2018). Section III.A.
+    """
+
     @cached_property
     @abc.abstractmethod
     def control_registers(self) -> infra.Registers:

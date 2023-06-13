@@ -24,7 +24,7 @@ H = -t \sum_{\langle p,q \rangle, \sigma} a_{p,\sigma}^\dagger a_{q,\sigma}
     + \frac{u}{2} \sum_{p,\alpha\ne\beta} n_{p, \alpha} n_{p, \beta}
 $$
 
-Under the Jordan-Wigner transformation this is
+Under the Jordan-Wigner transformation, this is
 
 $$
 \def\Zvec{\overrightarrow{Z}}

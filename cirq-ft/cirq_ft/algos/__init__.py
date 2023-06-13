@@ -33,7 +33,7 @@ from cirq_ft.algos.qrom import QROM
 from cirq_ft.algos.qubitization_walk_operator import QubitizationWalkOperator
 from cirq_ft.algos.reflection_using_prepare import ReflectionUsingPrepare
 from cirq_ft.algos.select_and_prepare import PrepareOracle, SelectOracle
-from cirq_ft.algos.select_swap_qroam import SelectSwapQROM
+from cirq_ft.algos.select_swap_qrom import SelectSwapQROM
 from cirq_ft.algos.selected_majorana_fermion import SelectedMajoranaFermionGate
 from cirq_ft.algos.state_preparation import StatePreparationAliasSampling
 from cirq_ft.algos.swap_network import MultiTargetCSwap, MultiTargetCSwapApprox, SwapWithZeroGate

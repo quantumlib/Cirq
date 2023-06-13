@@ -18,7 +18,7 @@ import cirq
 import cirq_ft
 import numpy as np
 import pytest
-from cirq_ft.algos.generic_select_test import get_1d_ising_lcu_coeffs
+from cirq_ft.algos.generic_select_test import get_1d_Ising_lcu_coeffs
 from cirq_ft.infra.jupyter_tools import execute_notebook
 
 
@@ -53,7 +53,7 @@ def construct_gate_helper_and_qubit_order(data, eps):
 
 @pytest.mark.parametrize("num_sites, epsilon", [[2, 3e-3], [3, 3.0e-3], [4, 5.0e-3], [7, 8.0e-3]])
 def test_state_preparation_via_coherent_alias_sampling(num_sites, epsilon):
-    lcu_coefficients = get_1d_ising_lcu_coeffs(num_sites)
+    lcu_coefficients = get_1d_Ising_lcu_coeffs(num_sites)
     g, qubit_order, decomposed_circuit = construct_gate_helper_and_qubit_order(
         lcu_coefficients, epsilon
     )

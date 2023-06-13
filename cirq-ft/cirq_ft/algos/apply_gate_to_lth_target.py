@@ -40,6 +40,11 @@ class ApplyGateToLthQubit(unary_iteration_gate.UnaryIterationGate):
             information about the iteration length of each selection register.
         nth_gate: A function mapping the composite selection index to a single-qubit gate.
         control_regs: Control registers for constructing a controlled version of the gate.
+
+    References:
+            [Encoding Electronic Spectra in Quantum Circuits with Linear T Complexity]
+        (https://arxiv.org/abs/1805.03662).
+        Babbush et. al. (2018). Section III.A. and Figure 7.
     """
     selection_regs: infra.SelectionRegisters
     nth_gate: Callable[..., cirq.Gate]

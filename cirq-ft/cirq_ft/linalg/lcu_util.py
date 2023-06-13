@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Utility methods for LCU circuits as implemented in OpenFermion."""
+"""Utility methods for LCU circuits as implemented in https://github.com/quantumlib/OpenFermion"""
 
 import math
 

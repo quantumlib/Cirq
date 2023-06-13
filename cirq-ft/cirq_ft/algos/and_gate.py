@@ -22,13 +22,17 @@ from cirq_ft import infra
 
 @attr.frozen
 class And(infra.GateWithRegisters):
-    """And gate optimized for T-count.
+    r"""And gate optimized for T-count.
 
     Assumptions:
         * And(cv).on(c1, c2, target) assumes that target is initially in the |0> state.
         * And(cv, adjoint=True).on(c1, c2, target) will always leave the target in |0> state.
 
     Multi-controlled AND version decomposes into an AND ladder with `#controls - 2` ancillas.
+
+    Args:
+        cv: A tuple of integers representing 1 control bit per control qubit.
+        adjoint: If True, the $And^\dagger$ is implemented using measurement based un-computation.
 
     References:
         [Encoding Electronic Spectra in Quantum Circuits with Linear T Complexity]
@@ -37,6 +41,9 @@ class And(infra.GateWithRegisters):
 
         [Verifying Measurement Based Uncomputation](https://algassert.com/post/1903).
             Gidney, C. 2019.
+
+    Raises:
+        ValueError: If number of control values (i.e. `len(self.cv)`) is less than 2.
     """
 
     cv: Tuple[int, ...] = attr.field(default=(1, 1), converter=infra.to_tuple)

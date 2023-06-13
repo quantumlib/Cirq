@@ -25,7 +25,9 @@ from cirq_ft.algos import unary_iteration_gate
 class SelectedMajoranaFermionGate(unary_iteration_gate.UnaryIterationGate):
     """Implements U s.t. U|l>|Psi> -> |l> T_{l} . Z_{l - 1} ... Z_{0} |Psi>
 
-    where T = single qubit target gate. Defaults to pauli Y.
+    where T is a single qubit target gate that defaults to pauli Y. The gate is
+    implemented using an accumulator bit in the unary iteration circuit as explained
+    in the reference below.
 
 
     Args:

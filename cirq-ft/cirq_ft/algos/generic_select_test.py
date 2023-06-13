@@ -21,7 +21,7 @@ from cirq_ft.infra.bit_tools import iter_bits
 from cirq_ft.infra.jupyter_tools import execute_notebook
 
 
-def get_1d_ising_hamiltonian(
+def get_1d_Ising_hamiltonian(
     qubits: Sequence[cirq.Qid], j_zz_strength: float = 1.0, gamma_x_strength: float = -1
 ) -> cirq.PauliSum:
     r"""A one dimensional ising model with periodic boundaries.
@@ -50,16 +50,16 @@ def get_1d_ising_hamiltonian(
     return cirq.PauliSum.from_pauli_strings(terms)
 
 
-def get_1d_ising_lcu_coeffs(
+def get_1d_Ising_lcu_coeffs(
     n_spins: int, j_zz_strength: float = np.pi / 3, gamma_x_strength: float = np.pi / 7
 ) -> np.ndarray:
     """Get LCU coefficients for a 1d ising Hamiltonian.
 
-    The order of the terms is according to `get_1d_ising_hamiltonian`, namely: ZZ's and X's
+    The order of the terms is according to `get_1d_Ising_hamiltonian`, namely: ZZ's and X's
     interleaved.
     """
     spins = cirq.LineQubit.range(n_spins)
-    ham = get_1d_ising_hamiltonian(spins, j_zz_strength, gamma_x_strength)
+    ham = get_1d_Ising_hamiltonian(spins, j_zz_strength, gamma_x_strength)
     coeffs = np.array([term.coefficient.real for term in ham])
     lcu_coeffs = coeffs / np.sum(coeffs)
     return lcu_coeffs
@@ -82,7 +82,7 @@ def test_ising_zero_bitflip_select(control_val):
 
     # Get dense PauliString Hamiltonian terms
     # right now we only handle positive interaction term values
-    ham = get_1d_ising_hamiltonian(target, 1, 1)
+    ham = get_1d_Ising_hamiltonian(target, 1, 1)
     dense_pauli_string_hamiltonian = [tt.dense(target) for tt in ham]
     # built select with unary iteration gate
     op = cirq_ft.GenericSelect(
@@ -131,7 +131,7 @@ def test_ising_one_bitflip_select():
 
     # Get dense PauliString Hamiltonian terms
     # right now we only handle positive interaction term values
-    ham = get_1d_ising_hamiltonian(target, 1, 1)
+    ham = get_1d_Ising_hamiltonian(target, 1, 1)
     dense_pauli_string_hamiltonian = [tt.dense(target) for tt in ham]
     # built select with unary iteration gate
     op = cirq_ft.GenericSelect(
@@ -203,7 +203,7 @@ def test_select_application_to_eigenstates():
 
     # Get dense PauliString Hamiltonian terms
     # right now we only handle positive interaction term values
-    ham = get_1d_ising_hamiltonian(target, 1, 1)
+    ham = get_1d_Ising_hamiltonian(target, 1, 1)
     dense_pauli_string_hamiltonian = [tt.dense(target) for tt in ham]
     # built select with unary iteration gate
     op = cirq_ft.GenericSelect(
@@ -215,7 +215,7 @@ def test_select_application_to_eigenstates():
     select_circuit = cirq.Circuit(cirq.decompose(op))
     all_qubits = select_circuit.all_qubits()
 
-    coeffs = get_1d_ising_lcu_coeffs(num_sites, 1, 1)
+    coeffs = get_1d_Ising_lcu_coeffs(num_sites, 1, 1)
     prep_circuit = _fake_prepare(np.sqrt(coeffs), selection)
     turn_on_control = cirq.Circuit(cirq.X.on(control))
 
@@ -249,7 +249,7 @@ def test_generic_select_consistent_protocols_and_controlled():
     select_bitsize, num_select, num_sites = 3, 6, 3
     # Get Ising Hamiltonian
     target = cirq.LineQubit.range(num_sites)
-    ham = get_1d_ising_hamiltonian(target, 1, 1)
+    ham = get_1d_Ising_hamiltonian(target, 1, 1)
     dps_hamiltonian = [tt.dense(target) for tt in ham]
     assert len(dps_hamiltonian) == num_select
 

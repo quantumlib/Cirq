@@ -22,6 +22,7 @@ from cirq_ft.infra import bit_tools
 
 
 def identity_map(n: int):
+    """Returns a dict of size `2**n` mapping each integer in range [0, 2**n) to itself."""
     return {i: i for i in range(2**n)}
 
 
@@ -30,7 +31,7 @@ def test_less_than_gate():
     gate = cirq_ft.LessThanGate(3, 5)
     op = gate.on(*qubits)
     circuit = cirq.Circuit(op)
-    maps = {
+    basis_map = {
         0b_000_0: 0b_000_1,
         0b_000_1: 0b_000_0,
         0b_001_0: 0b_001_1,
@@ -48,7 +49,7 @@ def test_less_than_gate():
         0b_111_0: 0b_111_0,
         0b_111_1: 0b_111_1,
     }
-    cirq.testing.assert_equivalent_computational_basis_map(maps, circuit)
+    cirq.testing.assert_equivalent_computational_basis_map(basis_map, circuit)
     circuit += op**-1
     cirq.testing.assert_equivalent_computational_basis_map(identity_map(len(qubits)), circuit)
     gate2 = cirq_ft.LessThanGate(4, 10)
@@ -93,7 +94,7 @@ def test_multi_in_less_equal_than_gate():
     qubits = cirq.LineQubit.range(7)
     op = cirq_ft.LessThanEqualGate(3, 3).on(*qubits)
     circuit = cirq.Circuit(op)
-    maps = {}
+    basis_map = {}
     for in1, in2 in itertools.product(range(2**3), repeat=2):
         for target_reg_val in range(2):
             target_bin = bin(target_reg_val)[2:]
@@ -104,9 +105,9 @@ def test_multi_in_less_equal_than_gate():
             input_int = int(in1_bin + in2_bin + target_bin, 2)
             output_int = int(in1_bin + in2_bin + out_bin, 2)
             assert true_out_int == int(out_bin, 2)
-            maps[input_int] = output_int
+            basis_map[input_int] = output_int
 
-    cirq.testing.assert_equivalent_computational_basis_map(maps, circuit)
+    cirq.testing.assert_equivalent_computational_basis_map(basis_map, circuit)
     circuit += op**-1
     cirq.testing.assert_equivalent_computational_basis_map(identity_map(len(qubits)), circuit)
 
@@ -131,14 +132,14 @@ def test_less_than_equal_consistent_protocols(x_bitsize: int, y_bitsize: int):
 def test_contiguous_register_gate():
     gate = cirq_ft.ContiguousRegisterGate(3, 6)
     circuit = cirq.Circuit(gate.on(*cirq.LineQubit.range(12)))
-    maps = {}
+    basis_map = {}
     for p in range(2**3):
         for q in range(p):
             inp = f'0b_{p:03b}_{q:03b}_{0:06b}'
             out = f'0b_{p:03b}_{q:03b}_{(p * (p - 1))//2 + q:06b}'
-            maps[int(inp, 2)] = int(out, 2)
+            basis_map[int(inp, 2)] = int(out, 2)
 
-    cirq.testing.assert_equivalent_computational_basis_map(maps, circuit)
+    cirq.testing.assert_equivalent_computational_basis_map(basis_map, circuit)
     cirq.testing.assert_equivalent_repr(gate, setup_code='import cirq_ft')
     # Test the unitary is self-inverse
     gate = cirq_ft.ContiguousRegisterGate(2, 4)
@@ -191,25 +192,25 @@ def test_add(a: int, b: int, num_bits: int):
 @pytest.mark.parametrize('cv', [[], [0, 1], [1, 0], [1, 1]])
 def test_add_mod_n(bitsize, mod, add_val, cv):
     gate = cirq_ft.AddMod(bitsize, mod, add_val=add_val, cv=cv)
-    maps = {}
+    basis_map = {}
     num_cvs = len(cv)
     for x in range(2**bitsize):
         y = (x + add_val) % mod if x < mod else x
         if not num_cvs:
-            maps[x] = y
+            basis_map[x] = y
             continue
         for cb in range(2**num_cvs):
             inp = f'0b_{cb:0{num_cvs}b}_{x:0{bitsize}b}'
             if tuple(int(x) for x in f'{cb:0{num_cvs}b}') == tuple(cv):
                 out = f'0b_{cb:0{num_cvs}b}_{y:0{bitsize}b}'
-                maps[int(inp, 2)] = int(out, 2)
+                basis_map[int(inp, 2)] = int(out, 2)
             else:
-                maps[int(inp, 2)] = int(inp, 2)
+                basis_map[int(inp, 2)] = int(inp, 2)
 
     num_qubits = gate.num_qubits()
     op = gate.on(*cirq.LineQubit.range(num_qubits))
     circuit = cirq.Circuit(op)
-    cirq.testing.assert_equivalent_computational_basis_map(maps, circuit)
+    cirq.testing.assert_equivalent_computational_basis_map(basis_map, circuit)
     circuit += op**-1
     cirq.testing.assert_equivalent_computational_basis_map(identity_map(num_qubits), circuit)
     cirq.testing.assert_equivalent_repr(gate, setup_code='import cirq_ft')
@@ -311,7 +312,7 @@ def test_add_no_decompose(a, b):
     qubits = cirq.LineQubit.range(2 * num_bits)
     op = cirq_ft.AdditionGate(num_bits).on(*qubits)
     circuit = cirq.Circuit(op)
-    maps = {}
+    basis_map = {}
     a_bin = format(a, f'0{num_bits}b')
     b_bin = format(b, f'0{num_bits}b')
     out_bin = format(a + b, f'0{num_bits}b')
@@ -319,5 +320,5 @@ def test_add_no_decompose(a, b):
     input_int = int(a_bin + b_bin, 2)
     output_int = int(a_bin + out_bin, 2)
     assert true_out_int == int(out_bin, 2)
-    maps[input_int] = output_int
-    cirq.testing.assert_equivalent_computational_basis_map(maps, circuit)
+    basis_map[input_int] = output_int
+    cirq.testing.assert_equivalent_computational_basis_map(basis_map, circuit)

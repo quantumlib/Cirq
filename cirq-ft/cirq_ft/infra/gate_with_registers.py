@@ -25,6 +25,13 @@ assert sys.version_info > (3, 6), "https://docs.python.org/3/whatsnew/3.6.html#w
 
 @attr.frozen
 class Register:
+    """A quantum register used to define the input/output API of a `cirq_ft.GateWithRegister`
+
+    Args:
+        name: The string name of the register
+        bitsize: The number of (qu)bits in the register.
+    """
+
     name: str
     bitsize: int
 
@@ -33,6 +40,12 @@ class Register:
 
 
 class Registers:
+    """An ordered collection of `cirq_ft.Register`.
+
+    Args:
+        registers: an iterable of the contained `cirq_ft.Register`.
+    """
+
     def __init__(self, registers: Iterable[Register]):
         self._registers = tuple(registers)
         self._register_dict = {r.name: r for r in self._registers}
@@ -120,6 +133,12 @@ class Registers:
 
 @attr.frozen
 class SelectionRegister(Register):
+    """Register used to represent SELECT register for various LCU methods.
+
+    `SelectionRegister` extends the `Register` class to store the iteration length
+    corresponding to that register along with its size.
+    """
+
     iteration_length: int = attr.field()
 
     @iteration_length.validator
@@ -225,6 +244,53 @@ class SelectionRegisters(Registers):
 
 
 class GateWithRegisters(cirq.Gate, metaclass=abc.ABCMeta):
+    """`cirq.Gate`s extension with support for composite gates acting on multiple qubit registers.
+
+    Though Cirq was nominally designed for circuit construction for near-term devices the core
+    concept of the `cirq.Gate`, a programmatic representation of an operation on a state without
+    a complete qubit address specification, can be leveraged to describe more abstract algorithmic
+    primitives. To define composite gates, users derive from `cirq.Gate` and implement the
+    `_decompose_` method that yields the sub-operations provided a flat list of qubits.
+
+    This API quickly becomes inconvenient when defining operations that act on multiple qubit
+    registers of variable sizes. Cirq-FT extends the `cirq.Gate` idea by introducing a new abstract
+    base class `cirq_ft.GateWithRegisters` containing abstract methods `registers` and optional
+    method `decompose_from_registers` that provides an overlay to the Cirq flat address API.
+
+    As an example, in the following code snippet we use the `cirq_ft.GateWithRegisters` to
+    construct a multi-target controlled swap operation:
+
+    >>> import attr
+    >>> import cirq
+    >>> import cirq_ft
+    >>>
+    >>> @attr.frozen
+    ... class MultiTargetCSwap(cirq_ft.GateWithRegisters):
+    ...     bitsize: int
+    ...
+    ...     @property
+    ...     def registers(self) -> cirq_ft.Registers:
+    ...         return cirq_ft.Registers.build(ctrl=1, x=self.bitsize, y=self.bitsize)
+    ...
+    ...     def decompose_from_registers(self, context, ctrl, x, y) -> cirq.OP_TREE:
+    ...         yield [cirq.CSWAP(*ctrl, qx, qy) for qx, qy in zip(x, y)]
+    ...
+    >>> op = MultiTargetCSwap(2).on_registers(
+    ...     ctrl=[cirq.q('ctrl')],
+    ...     x=cirq.NamedQubit.range(2, prefix='x'),
+    ...     y=cirq.NamedQubit.range(2, prefix='y'),
+    ... )
+    >>> print(cirq.Circuit(op))
+    ctrl: ───MultiTargetCSwap───
+             │
+    x0: ─────x──────────────────
+             │
+    x1: ─────x──────────────────
+             │
+    y0: ─────y──────────────────
+             │
+    y1: ─────y──────────────────"""
+
     @property
     @abc.abstractmethod
     def registers(self) -> Registers:

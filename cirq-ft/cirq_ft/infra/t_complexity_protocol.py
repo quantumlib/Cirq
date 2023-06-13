@@ -25,6 +25,8 @@ _T_GATESET = cirq.Gateset(cirq.T, cirq.T**-1, unroll_circuit_op=False)
 
 @attr.frozen
 class TComplexity:
+    """Dataclass storing counts of logical T-gates, Clifford gates and single qubit rotations."""
+
     t: int = 0
     clifford: int = 0
     rotations: int = 0
