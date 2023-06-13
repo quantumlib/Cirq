@@ -8,8 +8,10 @@ import numpy as np
 class ClassicalSimulator(cirq.SimulatesSamples):
 
 
-    """
-    very basic simulator that only accepts Xgates and CNot gates and return a 3d Numpy array
+    '''
+    `basic classical simulator that only accepts cirq.X and cirq.CNOT gates and return a 3d Numpy array`
+
+    classical simulator 
 
       Run a simulation, mimicking quantum hardware.
 
@@ -29,9 +31,13 @@ class ClassicalSimulator(cirq.SimulatesSamples):
 
        Raises:
         ValuesError: gate is not a cirq.XGate or cirq.Cnot
- """
+ '''
+
+    ''' 
+      change made at 9:40 
+    '''
     def _run(
-        circuit: 'cirq.AbstactCircuit', param_resolver: 'cirq.ParamResolver', repetitions: int
+        circuit: 'cirq.AbstractCircuit', param_resolver: 'cirq.ParamResolver', repetitions: int
     ) -> Dict[str, np.ndarray]:
     
         results_dict = {}
