@@ -23,6 +23,7 @@ from typing import (
     List,
     Optional,
     Sequence,
+    Set,
     TypeVar,
     TYPE_CHECKING,
     Tuple,
@@ -31,8 +32,8 @@ from typing_extensions import Self
 
 import numpy as np
 
-from cirq import protocols, value
-from cirq.protocols.decompose_protocol import _try_decompose_into_operations_and_qubits
+from cirq import ops, protocols, value
+
 from cirq.sim.simulation_state_base import SimulationStateBase
 
 TState = TypeVar('TState', bound='cirq.QuantumStateRepresentation')
@@ -166,35 +167,35 @@ class SimulationState(SimulationStateBase, Generic[TState], metaclass=abc.ABCMet
         """Creates a final merged state."""
         return self
 
-    def add_qubits(self: Self, qubits: Sequence['cirq.Qid']):
-        """Add qubits to a new state space and take the kron product.
-
-        Note that only Density Matrix and State Vector simulators
-        override this function.
+    def add_qubits(self: Self, qubits: Sequence['cirq.Qid']) -> Self:
+        """Add `qubits` in the `|0>` state to a new state space and take the kron product.
 
         Args:
             qubits: Sequence of qubits to be added.
 
         Returns:
             NotImplemented: If the subclass does not implement this method.
-
-        Raises:
-             ValueError: If a qubit being added is already tracked.
+            Self: A `cirq.SimulationState` with qubits added or `self` if there are no qubits to
+                add.
         """
-        if any(q in self.qubits for q in qubits):
-            raise ValueError(f"Qubit to add {qubits} should not already be tracked.")
+        if not qubits:
+            return self
         return NotImplemented
 
     def remove_qubits(self: Self, qubits: Sequence['cirq.Qid']) -> Self:
-        """Remove qubits from the state space.
+        """Remove `qubits` from the state space.
+
+        The qubits to be removed should be untangled from rest of the system and in the |0> state.
 
         Args:
-            qubits: Sequence of qubits to be added.
+            qubits: Sequence of qubits to be removed.
 
         Returns:
-            A new Simulation State with qubits removed. Or
-            `self` if there are no qubits to remove."""
-        if qubits is None or not qubits:
+            NotImplemented: If the subclass does not implement this method.
+            Self: A `cirq.SimulationState` with qubits removed or `self` if there are no qubits to
+                remove.
+        """
+        if not qubits:
             return self
         return NotImplemented
 
@@ -325,25 +326,23 @@ class SimulationState(SimulationStateBase, Generic[TState], metaclass=abc.ABCMet
 def strat_act_on_from_apply_decompose(
     val: Any, args: 'cirq.SimulationState', qubits: Sequence['cirq.Qid']
 ) -> bool:
-    operations, qubits1, _ = _try_decompose_into_operations_and_qubits(val)
-    if operations is None:
+    if isinstance(val, ops.Gate):
+        decomposed = protocols.decompose_once_with_qubits(val, qubits, flatten=False, default=None)
+    else:
+        decomposed = protocols.decompose_once(val, flatten=False, default=None)
+    if decomposed is None:
         return NotImplemented
-    assert len(qubits1) == len(qubits)
-    all_qubits = frozenset([q for op in operations for q in op.qubits])
-    qubit_map = dict(zip(all_qubits, all_qubits))
-    qubit_map.update(dict(zip(qubits1, qubits)))
-    new_ancilla = tuple(q for q in sorted(all_qubits.difference(qubits)) if q not in args.qubits)
-    args = args.add_qubits(new_ancilla)
-    if args is NotImplemented:
-        return NotImplemented
-    for operation in operations:
-        operation = operation.with_qubits(*[qubit_map[q] for q in operation.qubits])
+    all_ancilla: Set['cirq.Qid'] = set()
+    for operation in ops.flatten_to_ops(decomposed):
+        curr_ancilla = tuple(q for q in operation.qubits if q not in args.qubits)
+        args = args.add_qubits(curr_ancilla)
+        if args is NotImplemented:
+            return NotImplemented
+        all_ancilla.update(curr_ancilla)
         protocols.act_on(operation, args)
-    args = args.remove_qubits(new_ancilla)
-    if args is NotImplemented:  # coverage: ignore
-        raise TypeError(  # coverage: ignore
-            f"{type(args)} implements `add_qubits` but not `remove_qubits`."  # coverage: ignore
-        )  # coverage: ignore
+    args = args.remove_qubits(tuple(all_ancilla))
+    if args is NotImplemented:
+        raise TypeError(f"{type(args)} implements add_qubits but not remove_qubits.")
     return True
 
 
