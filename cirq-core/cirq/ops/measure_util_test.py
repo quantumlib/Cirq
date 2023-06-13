@@ -95,6 +95,12 @@ def test_measure_single_paulistring():
         ps.values(), key='a'
     ).on(*ps.keys())
 
+    # Test with negative coefficient
+    ps_neg = -cirq.Y(cirq.LineQubit(0)) * cirq.Y(cirq.LineQubit(1))
+    assert cirq.measure_single_paulistring(ps_neg, key='1') == cirq.PauliMeasurementGate(
+        ps_neg.dense(ps_neg.keys()), key='1'
+    ).on(*ps_neg.keys())
+
     # Empty application
     with pytest.raises(ValueError, match='should be an instance of cirq.PauliString'):
         _ = cirq.measure_single_paulistring(cirq.I(q[0]) * cirq.I(q[1]))
