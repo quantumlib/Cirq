@@ -12,8 +12,4 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# TODO: delete this file after adding some actual tests to cirq-ft
-
-
-def test_to_satisfy_ci():
-    assert True
+from cirq_ft.linalg.lcu_util import preprocess_lcu_coefficients_for_reversible_sampling
