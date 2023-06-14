@@ -338,7 +338,6 @@ def _three_identical_table(num_qubits):
 
 
 def test_tableau_then():
-
     t1, t2, expected_t = _three_identical_table(1)
     assert expected_t == t1.then(t2)
 

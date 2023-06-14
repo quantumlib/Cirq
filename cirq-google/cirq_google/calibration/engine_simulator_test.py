@@ -52,7 +52,6 @@ def test_test_calibration_request():
 
 
 def test_floquet_get_calibrations():
-
     parameters_ab = cirq_google.PhasedFSimCharacterization(
         theta=0.6, zeta=0.5, chi=0.4, gamma=0.3, phi=0.2
     )
@@ -86,7 +85,6 @@ def test_floquet_get_calibrations():
 
 
 def test_floquet_get_calibrations_when_invalid_request_fails():
-
     parameters_ab = cirq_google.PhasedFSimCharacterization(
         theta=0.6, zeta=0.5, chi=0.4, gamma=0.3, phi=0.2
     )

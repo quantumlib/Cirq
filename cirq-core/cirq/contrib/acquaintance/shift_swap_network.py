@@ -53,7 +53,6 @@ class ShiftSwapNetworkGate(PermutationGate):
         right_part_lens: Iterable[int],
         swap_gate: 'cirq.Gate' = ops.SWAP,
     ) -> None:
-
         self.part_lens = {'left': tuple(left_part_lens), 'right': tuple(right_part_lens)}
 
         for part_lens in self.part_lens.values():

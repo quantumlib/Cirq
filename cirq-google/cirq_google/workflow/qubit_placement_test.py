@@ -167,7 +167,6 @@ def _all_offset_placements(device_graph, offset=(4, 2), min_sidelength=2, max_si
 
 
 def test_hardcoded_qubit_placer():
-
     rainbow_record = cg.SimulatedProcessorWithLocalDeviceRecord('rainbow')
     rainbow_device = rainbow_record.get_device()
     rainbow_graph = rainbow_device.metadata.nx_graph

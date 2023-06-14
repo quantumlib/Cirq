@@ -680,5 +680,3 @@ _register_resolver(_class_resolver_dictionary)
 from cirq import contrib
 
 # pylint: enable=wrong-import-position
-
-

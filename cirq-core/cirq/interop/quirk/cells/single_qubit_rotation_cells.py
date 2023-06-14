@@ -24,7 +24,6 @@ if TYPE_CHECKING:
 
 
 def generate_all_single_qubit_rotation_cell_makers() -> Iterator[CellMaker]:
-
     # Fixed single qubit rotations.
     yield _gate("H", ops.H)
     yield _gate("X", ops.X)

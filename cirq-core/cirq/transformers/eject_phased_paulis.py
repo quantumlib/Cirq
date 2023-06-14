@@ -341,7 +341,6 @@ def _try_get_known_z_half_turns(
         and np.isclose(float(g.x_exponent), 0)
         and np.isclose(float(g.axis_phase_exponent), 0)
     ):
-
         h = g.z_exponent
     elif isinstance(g, ops.ZPowGate):
         h = g.exponent

@@ -436,13 +436,12 @@ def deprecate_attributes(module_name: str, deprecated_attributes: Dict[str, Tupl
         will cause a warning for these deprecated attributes.
     """
 
-    for (deadline, _) in deprecated_attributes.values():
+    for deadline, _ in deprecated_attributes.values():
         _validate_deadline(deadline)
 
     module = sys.modules[module_name]
 
     class Wrapped(ModuleType):
-
         __dict__ = module.__dict__
 
         # Workaround for: https://github.com/python/mypy/issues/8083

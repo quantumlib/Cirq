@@ -37,7 +37,6 @@ class MockGet:
 
 
 def _make_sampler(device) -> cirq_pasqal.PasqalSampler:
-
     sampler = cirq_pasqal.PasqalSampler(
         remote_host='http://00.00.00/', access_token='N/A', device=device
     )

@@ -30,7 +30,6 @@ def random_part_lens(max_n_parts, max_part_size):
     [tuple(random_part_lens(7, 2) for _ in ('left', 'right')) for _ in range(5)],
 )
 def test_shift_swap_network_gate_acquaintance_opps(left_part_lens, right_part_lens):
-
     gate = cca.ShiftSwapNetworkGate(left_part_lens, right_part_lens)
     n_qubits = gate.qubit_count()
     qubits = cirq.LineQubit.range(n_qubits)
@@ -204,7 +203,6 @@ circuit_diagrams = {
 
 @pytest.mark.parametrize('left_part_lens,right_part_lens', set(key[1:] for key in circuit_diagrams))
 def test_shift_swap_network_gate_diagrams(left_part_lens, right_part_lens):
-
     gate = cca.ShiftSwapNetworkGate(left_part_lens, right_part_lens)
     n_qubits = gate.qubit_count()
     qubits = cirq.LineQubit.range(n_qubits)

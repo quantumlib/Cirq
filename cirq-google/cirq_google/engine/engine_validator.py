@@ -24,7 +24,7 @@ MAX_MOMENTS = 10000
 MAX_TOTAL_REPETITIONS = 5_000_000
 
 PROGRAM_VALIDATOR_TYPE = Callable[
-    [Sequence[cirq.AbstractCircuit], Sequence[cirq.Sweepable], int, 'Serializer'], None,
+    [Sequence[cirq.AbstractCircuit], Sequence[cirq.Sweepable], int, 'Serializer'], None
 ]
 
 

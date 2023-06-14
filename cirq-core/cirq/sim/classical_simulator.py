@@ -2,16 +2,15 @@ from typing import Dict
 from collections import defaultdict
 
 import cirq
-import numpy as np 
+import numpy as np
 
 
 class ClassicalSimulator(cirq.SimulatesSamples):
 
-
     '''
     `basic classical simulator that only accepts cirq.X and cirq.CNOT gates and return a 3d Numpy array`
 
-    classical simulator 
+    classical simulator
 
       Run a simulation, mimicking quantum hardware.
 
@@ -31,15 +30,12 @@ class ClassicalSimulator(cirq.SimulatesSamples):
 
        Raises:
         ValuesError: gate is not a cirq.XGate or cirq.Cnot
- '''
-
-    ''' 
-      change made at 9:40 
     '''
+
+
     def _run(
         circuit: 'cirq.AbstractCircuit', param_resolver: 'cirq.ParamResolver', repetitions: int
     ) -> Dict[str, np.ndarray]:
-    
         results_dict = {}
         values_dict = defaultdict(int)
         param_resolver = param_resolver or cirq.ParamResolver({})
@@ -50,11 +46,11 @@ class ClassicalSimulator(cirq.SimulatesSamples):
                 gate = op.gate
                 if isinstance(gate, cirq.XPowGate) and gate.exponent == 1:
                     values_dict[op.qubits[0]] = 1 - values_dict[op.qubits[0]]
- 
+
                 elif isinstance(gate, cirq.CNotPowGate) and gate.exponent == 1:
                     if values_dict[op.qubits[0]] == 1:
                         values_dict[op.qubits[1]] = 1 - values_dict[op.qubits[1]]
- 
+
                 elif isinstance(gate, cirq.MeasurementGate):
                     qubits_in_order = op.qubits
                     ##add the new instance of a key to the numpy array in results dictionary
@@ -83,12 +79,6 @@ class ClassicalSimulator(cirq.SimulatesSamples):
                     (isinstance(gate, cirq.XPowGate) and gate.exponent == 0)
                     or (isinstance(gate, cirq.CNotPowGate) and gate.exponent == 0)
                 ):
-                   raise ValueError("Can not simulate gates other than cirq.XGate or cirq.CNOT")
-
+                    raise ValueError("Can not simulate gates other than cirq.XGate or cirq.CNOT")
 
         return results_dict
-         
-        
-         
-
-

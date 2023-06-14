@@ -54,7 +54,7 @@ class StabilizerStateChForm(qis.StabilizerState):
         self.omega: complex = 1
 
         # Apply X for every non-zero element of initial_state
-        for (i, val) in enumerate(
+        for i, val in enumerate(
             big_endian_int_to_digits(initial_state, digit_count=num_qubits, base=2)
         ):
             if val:

@@ -109,7 +109,6 @@ class CliffordSimulator(
         measurements: Dict[str, np.ndarray],
         final_simulator_state: 'cirq.SimulationStateBase[cirq.StabilizerChFormSimulationState]',
     ):
-
         return CliffordTrialResult(
             params=params, measurements=measurements, final_simulator_state=final_simulator_state
         )

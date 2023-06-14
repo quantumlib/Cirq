@@ -510,13 +510,11 @@ class Moment:
         return cls.from_ops(*operations)
 
     def __add__(self, other: 'cirq.OP_TREE') -> 'cirq.Moment':
-
         if isinstance(other, circuits.AbstractCircuit):
             return NotImplemented  # Delegate to Circuit.__radd__.
         return self.with_operations(other)
 
     def __sub__(self, other: 'cirq.OP_TREE') -> 'cirq.Moment':
-
         must_remove = set(op_tree.flatten_to_ops(other))
         new_ops = []
         for op in self.operations:

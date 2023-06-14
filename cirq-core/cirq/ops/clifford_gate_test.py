@@ -47,7 +47,7 @@ def _assert_no_collision(gate) -> None:
 
 
 def _all_rotations():
-    for (pauli, flip) in itertools.product(_paulis, _bools):
+    for pauli, flip in itertools.product(_paulis, _bools):
         yield (pauli, flip)
 
 
@@ -490,7 +490,6 @@ def test_commutes_pauli(gate, pauli, half_turns):
 
 
 def test_to_clifford_tableau_util_function():
-
     tableau = cirq.ops.clifford_gate._to_clifford_tableau(
         x_to=(cirq.X, False), z_to=(cirq.Z, False)
     )

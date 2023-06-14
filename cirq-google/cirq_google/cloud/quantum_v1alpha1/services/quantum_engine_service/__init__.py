@@ -16,7 +16,4 @@
 from .client import QuantumEngineServiceClient
 from .async_client import QuantumEngineServiceAsyncClient
 
-__all__ = (
-    'QuantumEngineServiceClient',
-    'QuantumEngineServiceAsyncClient',
-)
+__all__ = ('QuantumEngineServiceClient', 'QuantumEngineServiceAsyncClient')

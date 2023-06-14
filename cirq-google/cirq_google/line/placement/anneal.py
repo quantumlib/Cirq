@@ -170,7 +170,6 @@ class AnnealSequenceSearch:
         # separately from the case where they belong to a single linear
         # sequence.
         if i0 != i1:
-
             # Split s0 and s1 in two parts: s0 in parts before n0, and after n0
             # (without n0); s1 in parts before n1, and after n1 (without n1).
             part = [s0[:j0], s0[j0 + 1 :]], [s1[:j1], s1[j1 + 1 :]]

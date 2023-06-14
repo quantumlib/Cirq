@@ -9,9 +9,7 @@ from google.protobuf.internal.containers import (
     RepeatedScalarFieldContainer as google___protobuf___internal___containers___RepeatedScalarFieldContainer,
 )
 
-from google.protobuf.message import (
-    Message as google___protobuf___message___Message,
-)
+from google.protobuf.message import Message as google___protobuf___message___Message
 
 from typing import (
     Iterable as typing___Iterable,
@@ -25,68 +23,122 @@ from typing import (
     overload as typing___overload,
 )
 
-from typing_extensions import (
-    Literal as typing_extensions___Literal,
-)
-
+from typing_extensions import Literal as typing_extensions___Literal
 
 class Program(google___protobuf___message___Message):
-
     @property
     def language(self) -> Language: ...
-
     @property
     def circuit(self) -> Circuit: ...
-
     @property
     def schedule(self) -> Schedule: ...
-
     @property
-    def constants(self) -> google___protobuf___internal___containers___RepeatedCompositeFieldContainer[Constant]: ...
-
-    def __init__(self,
-        language : typing___Optional[Language] = None,
-        circuit : typing___Optional[Circuit] = None,
-        schedule : typing___Optional[Schedule] = None,
-        constants : typing___Optional[typing___Iterable[Constant]] = None,
-        ) -> None: ...
+    def constants(
+        self,
+    ) -> google___protobuf___internal___containers___RepeatedCompositeFieldContainer[Constant]: ...
+    def __init__(
+        self,
+        language: typing___Optional[Language] = None,
+        circuit: typing___Optional[Circuit] = None,
+        schedule: typing___Optional[Schedule] = None,
+        constants: typing___Optional[typing___Iterable[Constant]] = None,
+    ) -> None: ...
     @classmethod
     def FromString(cls, s: bytes) -> Program: ...
     def MergeFrom(self, other_msg: google___protobuf___message___Message) -> None: ...
     def CopyFrom(self, other_msg: google___protobuf___message___Message) -> None: ...
     if sys.version_info >= (3,):
-        def HasField(self, field_name: typing_extensions___Literal[u"circuit",u"language",u"program",u"schedule"]) -> bool: ...
-        def ClearField(self, field_name: typing_extensions___Literal[u"circuit",u"constants",u"language",u"program",u"schedule"]) -> None: ...
+        def HasField(
+            self,
+            field_name: typing_extensions___Literal[
+                u"circuit", u"language", u"program", u"schedule"
+            ],
+        ) -> bool: ...
+        def ClearField(
+            self,
+            field_name: typing_extensions___Literal[
+                u"circuit", u"constants", u"language", u"program", u"schedule"
+            ],
+        ) -> None: ...
     else:
-        def HasField(self, field_name: typing_extensions___Literal[u"circuit",b"circuit",u"language",b"language",u"program",b"program",u"schedule",b"schedule"]) -> bool: ...
-        def ClearField(self, field_name: typing_extensions___Literal[b"circuit",b"constants",b"language",b"program",b"schedule"]) -> None: ...
-    def WhichOneof(self, oneof_group: typing_extensions___Literal[u"program",b"program"]) -> typing_extensions___Literal["circuit","schedule"]: ...
+        def HasField(
+            self,
+            field_name: typing_extensions___Literal[
+                u"circuit",
+                b"circuit",
+                u"language",
+                b"language",
+                u"program",
+                b"program",
+                u"schedule",
+                b"schedule",
+            ],
+        ) -> bool: ...
+        def ClearField(
+            self,
+            field_name: typing_extensions___Literal[
+                b"circuit", b"constants", b"language", b"program", b"schedule"
+            ],
+        ) -> None: ...
+
+    def WhichOneof(
+        self, oneof_group: typing_extensions___Literal[u"program", b"program"]
+    ) -> typing_extensions___Literal["circuit", "schedule"]: ...
 
 class Constant(google___protobuf___message___Message):
-    string_value = ... # type: typing___Text
+    string_value = ...  # type: typing___Text
 
     @property
     def circuit_value(self) -> Circuit: ...
-
     @property
     def qubit(self) -> Qubit: ...
-
-    def __init__(self,
-        string_value : typing___Optional[typing___Text] = None,
-        circuit_value : typing___Optional[Circuit] = None,
-        qubit : typing___Optional[Qubit] = None,
-        ) -> None: ...
+    def __init__(
+        self,
+        string_value: typing___Optional[typing___Text] = None,
+        circuit_value: typing___Optional[Circuit] = None,
+        qubit: typing___Optional[Qubit] = None,
+    ) -> None: ...
     @classmethod
     def FromString(cls, s: bytes) -> Constant: ...
     def MergeFrom(self, other_msg: google___protobuf___message___Message) -> None: ...
     def CopyFrom(self, other_msg: google___protobuf___message___Message) -> None: ...
     if sys.version_info >= (3,):
-        def HasField(self, field_name: typing_extensions___Literal[u"circuit_value",u"const_value",u"qubit",u"string_value"]) -> bool: ...
-        def ClearField(self, field_name: typing_extensions___Literal[u"circuit_value",u"const_value",u"qubit",u"string_value"]) -> None: ...
+        def HasField(
+            self,
+            field_name: typing_extensions___Literal[
+                u"circuit_value", u"const_value", u"qubit", u"string_value"
+            ],
+        ) -> bool: ...
+        def ClearField(
+            self,
+            field_name: typing_extensions___Literal[
+                u"circuit_value", u"const_value", u"qubit", u"string_value"
+            ],
+        ) -> None: ...
     else:
-        def HasField(self, field_name: typing_extensions___Literal[u"circuit_value",b"circuit_value",u"const_value",b"const_value",u"qubit",b"qubit",u"string_value",b"string_value"]) -> bool: ...
-        def ClearField(self, field_name: typing_extensions___Literal[b"circuit_value",b"const_value",b"qubit",b"string_value"]) -> None: ...
-    def WhichOneof(self, oneof_group: typing_extensions___Literal[u"const_value",b"const_value"]) -> typing_extensions___Literal["string_value","circuit_value","qubit"]: ...
+        def HasField(
+            self,
+            field_name: typing_extensions___Literal[
+                u"circuit_value",
+                b"circuit_value",
+                u"const_value",
+                b"const_value",
+                u"qubit",
+                b"qubit",
+                u"string_value",
+                b"string_value",
+            ],
+        ) -> bool: ...
+        def ClearField(
+            self,
+            field_name: typing_extensions___Literal[
+                b"circuit_value", b"const_value", b"qubit", b"string_value"
+            ],
+        ) -> None: ...
+
+    def WhichOneof(
+        self, oneof_group: typing_extensions___Literal[u"const_value", b"const_value"]
+    ) -> typing_extensions___Literal["string_value", "circuit_value", "qubit"]: ...
 
 class Circuit(google___protobuf___message___Message):
     class SchedulingStrategy(int):
@@ -104,132 +156,183 @@ class Circuit(google___protobuf___message___Message):
     SCHEDULING_STRATEGY_UNSPECIFIED = typing___cast(SchedulingStrategy, 0)
     MOMENT_BY_MOMENT = typing___cast(SchedulingStrategy, 1)
 
-    scheduling_strategy = ... # type: Circuit.SchedulingStrategy
+    scheduling_strategy = ...  # type: Circuit.SchedulingStrategy
 
     @property
-    def moments(self) -> google___protobuf___internal___containers___RepeatedCompositeFieldContainer[Moment]: ...
-
-    def __init__(self,
-        scheduling_strategy : typing___Optional[Circuit.SchedulingStrategy] = None,
-        moments : typing___Optional[typing___Iterable[Moment]] = None,
-        ) -> None: ...
+    def moments(
+        self,
+    ) -> google___protobuf___internal___containers___RepeatedCompositeFieldContainer[Moment]: ...
+    def __init__(
+        self,
+        scheduling_strategy: typing___Optional[Circuit.SchedulingStrategy] = None,
+        moments: typing___Optional[typing___Iterable[Moment]] = None,
+    ) -> None: ...
     @classmethod
     def FromString(cls, s: bytes) -> Circuit: ...
     def MergeFrom(self, other_msg: google___protobuf___message___Message) -> None: ...
     def CopyFrom(self, other_msg: google___protobuf___message___Message) -> None: ...
     if sys.version_info >= (3,):
-        def ClearField(self, field_name: typing_extensions___Literal[u"moments",u"scheduling_strategy"]) -> None: ...
+        def ClearField(
+            self, field_name: typing_extensions___Literal[u"moments", u"scheduling_strategy"]
+        ) -> None: ...
     else:
-        def ClearField(self, field_name: typing_extensions___Literal[b"moments",b"scheduling_strategy"]) -> None: ...
+        def ClearField(
+            self, field_name: typing_extensions___Literal[b"moments", b"scheduling_strategy"]
+        ) -> None: ...
 
 class Moment(google___protobuf___message___Message):
-
     @property
-    def operations(self) -> google___protobuf___internal___containers___RepeatedCompositeFieldContainer[Operation]: ...
-
+    def operations(
+        self,
+    ) -> google___protobuf___internal___containers___RepeatedCompositeFieldContainer[Operation]: ...
     @property
-    def circuit_operations(self) -> google___protobuf___internal___containers___RepeatedCompositeFieldContainer[CircuitOperation]: ...
-
-    def __init__(self,
-        operations : typing___Optional[typing___Iterable[Operation]] = None,
-        circuit_operations : typing___Optional[typing___Iterable[CircuitOperation]] = None,
-        ) -> None: ...
+    def circuit_operations(
+        self,
+    ) -> google___protobuf___internal___containers___RepeatedCompositeFieldContainer[
+        CircuitOperation
+    ]: ...
+    def __init__(
+        self,
+        operations: typing___Optional[typing___Iterable[Operation]] = None,
+        circuit_operations: typing___Optional[typing___Iterable[CircuitOperation]] = None,
+    ) -> None: ...
     @classmethod
     def FromString(cls, s: bytes) -> Moment: ...
     def MergeFrom(self, other_msg: google___protobuf___message___Message) -> None: ...
     def CopyFrom(self, other_msg: google___protobuf___message___Message) -> None: ...
     if sys.version_info >= (3,):
-        def ClearField(self, field_name: typing_extensions___Literal[u"circuit_operations",u"operations"]) -> None: ...
+        def ClearField(
+            self, field_name: typing_extensions___Literal[u"circuit_operations", u"operations"]
+        ) -> None: ...
     else:
-        def ClearField(self, field_name: typing_extensions___Literal[b"circuit_operations",b"operations"]) -> None: ...
+        def ClearField(
+            self, field_name: typing_extensions___Literal[b"circuit_operations", b"operations"]
+        ) -> None: ...
 
 class Schedule(google___protobuf___message___Message):
-
     @property
-    def scheduled_operations(self) -> google___protobuf___internal___containers___RepeatedCompositeFieldContainer[ScheduledOperation]: ...
-
-    def __init__(self,
-        scheduled_operations : typing___Optional[typing___Iterable[ScheduledOperation]] = None,
-        ) -> None: ...
+    def scheduled_operations(
+        self,
+    ) -> google___protobuf___internal___containers___RepeatedCompositeFieldContainer[
+        ScheduledOperation
+    ]: ...
+    def __init__(
+        self, scheduled_operations: typing___Optional[typing___Iterable[ScheduledOperation]] = None
+    ) -> None: ...
     @classmethod
     def FromString(cls, s: bytes) -> Schedule: ...
     def MergeFrom(self, other_msg: google___protobuf___message___Message) -> None: ...
     def CopyFrom(self, other_msg: google___protobuf___message___Message) -> None: ...
     if sys.version_info >= (3,):
-        def ClearField(self, field_name: typing_extensions___Literal[u"scheduled_operations"]) -> None: ...
+        def ClearField(
+            self, field_name: typing_extensions___Literal[u"scheduled_operations"]
+        ) -> None: ...
     else:
-        def ClearField(self, field_name: typing_extensions___Literal[b"scheduled_operations"]) -> None: ...
+        def ClearField(
+            self, field_name: typing_extensions___Literal[b"scheduled_operations"]
+        ) -> None: ...
 
 class ScheduledOperation(google___protobuf___message___Message):
-    start_time_picos = ... # type: int
+    start_time_picos = ...  # type: int
 
     @property
     def operation(self) -> Operation: ...
-
-    def __init__(self,
-        operation : typing___Optional[Operation] = None,
-        start_time_picos : typing___Optional[int] = None,
-        ) -> None: ...
+    def __init__(
+        self,
+        operation: typing___Optional[Operation] = None,
+        start_time_picos: typing___Optional[int] = None,
+    ) -> None: ...
     @classmethod
     def FromString(cls, s: bytes) -> ScheduledOperation: ...
     def MergeFrom(self, other_msg: google___protobuf___message___Message) -> None: ...
     def CopyFrom(self, other_msg: google___protobuf___message___Message) -> None: ...
     if sys.version_info >= (3,):
         def HasField(self, field_name: typing_extensions___Literal[u"operation"]) -> bool: ...
-        def ClearField(self, field_name: typing_extensions___Literal[u"operation",u"start_time_picos"]) -> None: ...
+        def ClearField(
+            self, field_name: typing_extensions___Literal[u"operation", u"start_time_picos"]
+        ) -> None: ...
     else:
-        def HasField(self, field_name: typing_extensions___Literal[u"operation",b"operation"]) -> bool: ...
-        def ClearField(self, field_name: typing_extensions___Literal[b"operation",b"start_time_picos"]) -> None: ...
+        def HasField(
+            self, field_name: typing_extensions___Literal[u"operation", b"operation"]
+        ) -> bool: ...
+        def ClearField(
+            self, field_name: typing_extensions___Literal[b"operation", b"start_time_picos"]
+        ) -> None: ...
 
 class Language(google___protobuf___message___Message):
-    gate_set = ... # type: typing___Text
-    arg_function_language = ... # type: typing___Text
+    gate_set = ...  # type: typing___Text
+    arg_function_language = ...  # type: typing___Text
 
-    def __init__(self,
-        gate_set : typing___Optional[typing___Text] = None,
-        arg_function_language : typing___Optional[typing___Text] = None,
-        ) -> None: ...
+    def __init__(
+        self,
+        gate_set: typing___Optional[typing___Text] = None,
+        arg_function_language: typing___Optional[typing___Text] = None,
+    ) -> None: ...
     @classmethod
     def FromString(cls, s: bytes) -> Language: ...
     def MergeFrom(self, other_msg: google___protobuf___message___Message) -> None: ...
     def CopyFrom(self, other_msg: google___protobuf___message___Message) -> None: ...
     if sys.version_info >= (3,):
-        def ClearField(self, field_name: typing_extensions___Literal[u"arg_function_language",u"gate_set"]) -> None: ...
+        def ClearField(
+            self, field_name: typing_extensions___Literal[u"arg_function_language", u"gate_set"]
+        ) -> None: ...
     else:
-        def ClearField(self, field_name: typing_extensions___Literal[b"arg_function_language",b"gate_set"]) -> None: ...
+        def ClearField(
+            self, field_name: typing_extensions___Literal[b"arg_function_language", b"gate_set"]
+        ) -> None: ...
 
 class FloatArg(google___protobuf___message___Message):
-    float_value = ... # type: float
-    symbol = ... # type: typing___Text
+    float_value = ...  # type: float
+    symbol = ...  # type: typing___Text
 
     @property
     def func(self) -> ArgFunction: ...
-
-    def __init__(self,
-        float_value : typing___Optional[float] = None,
-        symbol : typing___Optional[typing___Text] = None,
-        func : typing___Optional[ArgFunction] = None,
-        ) -> None: ...
+    def __init__(
+        self,
+        float_value: typing___Optional[float] = None,
+        symbol: typing___Optional[typing___Text] = None,
+        func: typing___Optional[ArgFunction] = None,
+    ) -> None: ...
     @classmethod
     def FromString(cls, s: bytes) -> FloatArg: ...
     def MergeFrom(self, other_msg: google___protobuf___message___Message) -> None: ...
     def CopyFrom(self, other_msg: google___protobuf___message___Message) -> None: ...
     if sys.version_info >= (3,):
-        def HasField(self, field_name: typing_extensions___Literal[u"arg",u"float_value",u"func",u"symbol"]) -> bool: ...
-        def ClearField(self, field_name: typing_extensions___Literal[u"arg",u"float_value",u"func",u"symbol"]) -> None: ...
+        def HasField(
+            self,
+            field_name: typing_extensions___Literal[u"arg", u"float_value", u"func", u"symbol"],
+        ) -> bool: ...
+        def ClearField(
+            self,
+            field_name: typing_extensions___Literal[u"arg", u"float_value", u"func", u"symbol"],
+        ) -> None: ...
     else:
-        def HasField(self, field_name: typing_extensions___Literal[u"arg",b"arg",u"float_value",b"float_value",u"func",b"func",u"symbol",b"symbol"]) -> bool: ...
-        def ClearField(self, field_name: typing_extensions___Literal[b"arg",b"float_value",b"func",b"symbol"]) -> None: ...
-    def WhichOneof(self, oneof_group: typing_extensions___Literal[u"arg",b"arg"]) -> typing_extensions___Literal["float_value","symbol","func"]: ...
+        def HasField(
+            self,
+            field_name: typing_extensions___Literal[
+                u"arg",
+                b"arg",
+                u"float_value",
+                b"float_value",
+                u"func",
+                b"func",
+                u"symbol",
+                b"symbol",
+            ],
+        ) -> bool: ...
+        def ClearField(
+            self,
+            field_name: typing_extensions___Literal[b"arg", b"float_value", b"func", b"symbol"],
+        ) -> None: ...
+
+    def WhichOneof(
+        self, oneof_group: typing_extensions___Literal[u"arg", b"arg"]
+    ) -> typing_extensions___Literal["float_value", "symbol", "func"]: ...
 
 class XPowGate(google___protobuf___message___Message):
-
     @property
     def exponent(self) -> FloatArg: ...
-
-    def __init__(self,
-        exponent : typing___Optional[FloatArg] = None,
-        ) -> None: ...
+    def __init__(self, exponent: typing___Optional[FloatArg] = None) -> None: ...
     @classmethod
     def FromString(cls, s: bytes) -> XPowGate: ...
     def MergeFrom(self, other_msg: google___protobuf___message___Message) -> None: ...
@@ -238,17 +341,15 @@ class XPowGate(google___protobuf___message___Message):
         def HasField(self, field_name: typing_extensions___Literal[u"exponent"]) -> bool: ...
         def ClearField(self, field_name: typing_extensions___Literal[u"exponent"]) -> None: ...
     else:
-        def HasField(self, field_name: typing_extensions___Literal[u"exponent",b"exponent"]) -> bool: ...
+        def HasField(
+            self, field_name: typing_extensions___Literal[u"exponent", b"exponent"]
+        ) -> bool: ...
         def ClearField(self, field_name: typing_extensions___Literal[b"exponent"]) -> None: ...
 
 class YPowGate(google___protobuf___message___Message):
-
     @property
     def exponent(self) -> FloatArg: ...
-
-    def __init__(self,
-        exponent : typing___Optional[FloatArg] = None,
-        ) -> None: ...
+    def __init__(self, exponent: typing___Optional[FloatArg] = None) -> None: ...
     @classmethod
     def FromString(cls, s: bytes) -> YPowGate: ...
     def MergeFrom(self, other_msg: google___protobuf___message___Message) -> None: ...
@@ -257,88 +358,123 @@ class YPowGate(google___protobuf___message___Message):
         def HasField(self, field_name: typing_extensions___Literal[u"exponent"]) -> bool: ...
         def ClearField(self, field_name: typing_extensions___Literal[u"exponent"]) -> None: ...
     else:
-        def HasField(self, field_name: typing_extensions___Literal[u"exponent",b"exponent"]) -> bool: ...
+        def HasField(
+            self, field_name: typing_extensions___Literal[u"exponent", b"exponent"]
+        ) -> bool: ...
         def ClearField(self, field_name: typing_extensions___Literal[b"exponent"]) -> None: ...
 
 class ZPowGate(google___protobuf___message___Message):
-    is_physical_z = ... # type: bool
+    is_physical_z = ...  # type: bool
 
     @property
     def exponent(self) -> FloatArg: ...
-
-    def __init__(self,
-        exponent : typing___Optional[FloatArg] = None,
-        is_physical_z : typing___Optional[bool] = None,
-        ) -> None: ...
+    def __init__(
+        self,
+        exponent: typing___Optional[FloatArg] = None,
+        is_physical_z: typing___Optional[bool] = None,
+    ) -> None: ...
     @classmethod
     def FromString(cls, s: bytes) -> ZPowGate: ...
     def MergeFrom(self, other_msg: google___protobuf___message___Message) -> None: ...
     def CopyFrom(self, other_msg: google___protobuf___message___Message) -> None: ...
     if sys.version_info >= (3,):
         def HasField(self, field_name: typing_extensions___Literal[u"exponent"]) -> bool: ...
-        def ClearField(self, field_name: typing_extensions___Literal[u"exponent",u"is_physical_z"]) -> None: ...
+        def ClearField(
+            self, field_name: typing_extensions___Literal[u"exponent", u"is_physical_z"]
+        ) -> None: ...
     else:
-        def HasField(self, field_name: typing_extensions___Literal[u"exponent",b"exponent"]) -> bool: ...
-        def ClearField(self, field_name: typing_extensions___Literal[b"exponent",b"is_physical_z"]) -> None: ...
+        def HasField(
+            self, field_name: typing_extensions___Literal[u"exponent", b"exponent"]
+        ) -> bool: ...
+        def ClearField(
+            self, field_name: typing_extensions___Literal[b"exponent", b"is_physical_z"]
+        ) -> None: ...
 
 class PhasedXPowGate(google___protobuf___message___Message):
-
     @property
     def phase_exponent(self) -> FloatArg: ...
-
     @property
     def exponent(self) -> FloatArg: ...
-
-    def __init__(self,
-        phase_exponent : typing___Optional[FloatArg] = None,
-        exponent : typing___Optional[FloatArg] = None,
-        ) -> None: ...
+    def __init__(
+        self,
+        phase_exponent: typing___Optional[FloatArg] = None,
+        exponent: typing___Optional[FloatArg] = None,
+    ) -> None: ...
     @classmethod
     def FromString(cls, s: bytes) -> PhasedXPowGate: ...
     def MergeFrom(self, other_msg: google___protobuf___message___Message) -> None: ...
     def CopyFrom(self, other_msg: google___protobuf___message___Message) -> None: ...
     if sys.version_info >= (3,):
-        def HasField(self, field_name: typing_extensions___Literal[u"exponent",u"phase_exponent"]) -> bool: ...
-        def ClearField(self, field_name: typing_extensions___Literal[u"exponent",u"phase_exponent"]) -> None: ...
+        def HasField(
+            self, field_name: typing_extensions___Literal[u"exponent", u"phase_exponent"]
+        ) -> bool: ...
+        def ClearField(
+            self, field_name: typing_extensions___Literal[u"exponent", u"phase_exponent"]
+        ) -> None: ...
     else:
-        def HasField(self, field_name: typing_extensions___Literal[u"exponent",b"exponent",u"phase_exponent",b"phase_exponent"]) -> bool: ...
-        def ClearField(self, field_name: typing_extensions___Literal[b"exponent",b"phase_exponent"]) -> None: ...
+        def HasField(
+            self,
+            field_name: typing_extensions___Literal[
+                u"exponent", b"exponent", u"phase_exponent", b"phase_exponent"
+            ],
+        ) -> bool: ...
+        def ClearField(
+            self, field_name: typing_extensions___Literal[b"exponent", b"phase_exponent"]
+        ) -> None: ...
 
 class PhasedXZGate(google___protobuf___message___Message):
-
     @property
     def x_exponent(self) -> FloatArg: ...
-
     @property
     def z_exponent(self) -> FloatArg: ...
-
     @property
     def axis_phase_exponent(self) -> FloatArg: ...
-
-    def __init__(self,
-        x_exponent : typing___Optional[FloatArg] = None,
-        z_exponent : typing___Optional[FloatArg] = None,
-        axis_phase_exponent : typing___Optional[FloatArg] = None,
-        ) -> None: ...
+    def __init__(
+        self,
+        x_exponent: typing___Optional[FloatArg] = None,
+        z_exponent: typing___Optional[FloatArg] = None,
+        axis_phase_exponent: typing___Optional[FloatArg] = None,
+    ) -> None: ...
     @classmethod
     def FromString(cls, s: bytes) -> PhasedXZGate: ...
     def MergeFrom(self, other_msg: google___protobuf___message___Message) -> None: ...
     def CopyFrom(self, other_msg: google___protobuf___message___Message) -> None: ...
     if sys.version_info >= (3,):
-        def HasField(self, field_name: typing_extensions___Literal[u"axis_phase_exponent",u"x_exponent",u"z_exponent"]) -> bool: ...
-        def ClearField(self, field_name: typing_extensions___Literal[u"axis_phase_exponent",u"x_exponent",u"z_exponent"]) -> None: ...
+        def HasField(
+            self,
+            field_name: typing_extensions___Literal[
+                u"axis_phase_exponent", u"x_exponent", u"z_exponent"
+            ],
+        ) -> bool: ...
+        def ClearField(
+            self,
+            field_name: typing_extensions___Literal[
+                u"axis_phase_exponent", u"x_exponent", u"z_exponent"
+            ],
+        ) -> None: ...
     else:
-        def HasField(self, field_name: typing_extensions___Literal[u"axis_phase_exponent",b"axis_phase_exponent",u"x_exponent",b"x_exponent",u"z_exponent",b"z_exponent"]) -> bool: ...
-        def ClearField(self, field_name: typing_extensions___Literal[b"axis_phase_exponent",b"x_exponent",b"z_exponent"]) -> None: ...
+        def HasField(
+            self,
+            field_name: typing_extensions___Literal[
+                u"axis_phase_exponent",
+                b"axis_phase_exponent",
+                u"x_exponent",
+                b"x_exponent",
+                u"z_exponent",
+                b"z_exponent",
+            ],
+        ) -> bool: ...
+        def ClearField(
+            self,
+            field_name: typing_extensions___Literal[
+                b"axis_phase_exponent", b"x_exponent", b"z_exponent"
+            ],
+        ) -> None: ...
 
 class CZPowGate(google___protobuf___message___Message):
-
     @property
     def exponent(self) -> FloatArg: ...
-
-    def __init__(self,
-        exponent : typing___Optional[FloatArg] = None,
-        ) -> None: ...
+    def __init__(self, exponent: typing___Optional[FloatArg] = None) -> None: ...
     @classmethod
     def FromString(cls, s: bytes) -> CZPowGate: ...
     def MergeFrom(self, other_msg: google___protobuf___message___Message) -> None: ...
@@ -347,40 +483,36 @@ class CZPowGate(google___protobuf___message___Message):
         def HasField(self, field_name: typing_extensions___Literal[u"exponent"]) -> bool: ...
         def ClearField(self, field_name: typing_extensions___Literal[u"exponent"]) -> None: ...
     else:
-        def HasField(self, field_name: typing_extensions___Literal[u"exponent",b"exponent"]) -> bool: ...
+        def HasField(
+            self, field_name: typing_extensions___Literal[u"exponent", b"exponent"]
+        ) -> bool: ...
         def ClearField(self, field_name: typing_extensions___Literal[b"exponent"]) -> None: ...
 
 class FSimGate(google___protobuf___message___Message):
-
     @property
     def theta(self) -> FloatArg: ...
-
     @property
     def phi(self) -> FloatArg: ...
-
-    def __init__(self,
-        theta : typing___Optional[FloatArg] = None,
-        phi : typing___Optional[FloatArg] = None,
-        ) -> None: ...
+    def __init__(
+        self, theta: typing___Optional[FloatArg] = None, phi: typing___Optional[FloatArg] = None
+    ) -> None: ...
     @classmethod
     def FromString(cls, s: bytes) -> FSimGate: ...
     def MergeFrom(self, other_msg: google___protobuf___message___Message) -> None: ...
     def CopyFrom(self, other_msg: google___protobuf___message___Message) -> None: ...
     if sys.version_info >= (3,):
-        def HasField(self, field_name: typing_extensions___Literal[u"phi",u"theta"]) -> bool: ...
-        def ClearField(self, field_name: typing_extensions___Literal[u"phi",u"theta"]) -> None: ...
+        def HasField(self, field_name: typing_extensions___Literal[u"phi", u"theta"]) -> bool: ...
+        def ClearField(self, field_name: typing_extensions___Literal[u"phi", u"theta"]) -> None: ...
     else:
-        def HasField(self, field_name: typing_extensions___Literal[u"phi",b"phi",u"theta",b"theta"]) -> bool: ...
-        def ClearField(self, field_name: typing_extensions___Literal[b"phi",b"theta"]) -> None: ...
+        def HasField(
+            self, field_name: typing_extensions___Literal[u"phi", b"phi", u"theta", b"theta"]
+        ) -> bool: ...
+        def ClearField(self, field_name: typing_extensions___Literal[b"phi", b"theta"]) -> None: ...
 
 class ISwapPowGate(google___protobuf___message___Message):
-
     @property
     def exponent(self) -> FloatArg: ...
-
-    def __init__(self,
-        exponent : typing___Optional[FloatArg] = None,
-        ) -> None: ...
+    def __init__(self, exponent: typing___Optional[FloatArg] = None) -> None: ...
     @classmethod
     def FromString(cls, s: bytes) -> ISwapPowGate: ...
     def MergeFrom(self, other_msg: google___protobuf___message___Message) -> None: ...
@@ -389,155 +521,271 @@ class ISwapPowGate(google___protobuf___message___Message):
         def HasField(self, field_name: typing_extensions___Literal[u"exponent"]) -> bool: ...
         def ClearField(self, field_name: typing_extensions___Literal[u"exponent"]) -> None: ...
     else:
-        def HasField(self, field_name: typing_extensions___Literal[u"exponent",b"exponent"]) -> bool: ...
+        def HasField(
+            self, field_name: typing_extensions___Literal[u"exponent", b"exponent"]
+        ) -> bool: ...
         def ClearField(self, field_name: typing_extensions___Literal[b"exponent"]) -> None: ...
 
 class MeasurementGate(google___protobuf___message___Message):
-
     @property
     def key(self) -> Arg: ...
-
     @property
     def invert_mask(self) -> Arg: ...
-
-    def __init__(self,
-        key : typing___Optional[Arg] = None,
-        invert_mask : typing___Optional[Arg] = None,
-        ) -> None: ...
+    def __init__(
+        self, key: typing___Optional[Arg] = None, invert_mask: typing___Optional[Arg] = None
+    ) -> None: ...
     @classmethod
     def FromString(cls, s: bytes) -> MeasurementGate: ...
     def MergeFrom(self, other_msg: google___protobuf___message___Message) -> None: ...
     def CopyFrom(self, other_msg: google___protobuf___message___Message) -> None: ...
     if sys.version_info >= (3,):
-        def HasField(self, field_name: typing_extensions___Literal[u"invert_mask",u"key"]) -> bool: ...
-        def ClearField(self, field_name: typing_extensions___Literal[u"invert_mask",u"key"]) -> None: ...
+        def HasField(
+            self, field_name: typing_extensions___Literal[u"invert_mask", u"key"]
+        ) -> bool: ...
+        def ClearField(
+            self, field_name: typing_extensions___Literal[u"invert_mask", u"key"]
+        ) -> None: ...
     else:
-        def HasField(self, field_name: typing_extensions___Literal[u"invert_mask",b"invert_mask",u"key",b"key"]) -> bool: ...
-        def ClearField(self, field_name: typing_extensions___Literal[b"invert_mask",b"key"]) -> None: ...
+        def HasField(
+            self,
+            field_name: typing_extensions___Literal[u"invert_mask", b"invert_mask", u"key", b"key"],
+        ) -> bool: ...
+        def ClearField(
+            self, field_name: typing_extensions___Literal[b"invert_mask", b"key"]
+        ) -> None: ...
 
 class WaitGate(google___protobuf___message___Message):
-
     @property
     def duration_nanos(self) -> FloatArg: ...
-
-    def __init__(self,
-        duration_nanos : typing___Optional[FloatArg] = None,
-        ) -> None: ...
+    def __init__(self, duration_nanos: typing___Optional[FloatArg] = None) -> None: ...
     @classmethod
     def FromString(cls, s: bytes) -> WaitGate: ...
     def MergeFrom(self, other_msg: google___protobuf___message___Message) -> None: ...
     def CopyFrom(self, other_msg: google___protobuf___message___Message) -> None: ...
     if sys.version_info >= (3,):
         def HasField(self, field_name: typing_extensions___Literal[u"duration_nanos"]) -> bool: ...
-        def ClearField(self, field_name: typing_extensions___Literal[u"duration_nanos"]) -> None: ...
+        def ClearField(
+            self, field_name: typing_extensions___Literal[u"duration_nanos"]
+        ) -> None: ...
     else:
-        def HasField(self, field_name: typing_extensions___Literal[u"duration_nanos",b"duration_nanos"]) -> bool: ...
-        def ClearField(self, field_name: typing_extensions___Literal[b"duration_nanos"]) -> None: ...
+        def HasField(
+            self, field_name: typing_extensions___Literal[u"duration_nanos", b"duration_nanos"]
+        ) -> bool: ...
+        def ClearField(
+            self, field_name: typing_extensions___Literal[b"duration_nanos"]
+        ) -> None: ...
 
 class Operation(google___protobuf___message___Message):
     class ArgsEntry(google___protobuf___message___Message):
-        key = ... # type: typing___Text
+        key = ...  # type: typing___Text
 
         @property
         def value(self) -> Arg: ...
-
-        def __init__(self,
-            key : typing___Optional[typing___Text] = None,
-            value : typing___Optional[Arg] = None,
-            ) -> None: ...
+        def __init__(
+            self, key: typing___Optional[typing___Text] = None, value: typing___Optional[Arg] = None
+        ) -> None: ...
         @classmethod
         def FromString(cls, s: bytes) -> Operation.ArgsEntry: ...
         def MergeFrom(self, other_msg: google___protobuf___message___Message) -> None: ...
         def CopyFrom(self, other_msg: google___protobuf___message___Message) -> None: ...
         if sys.version_info >= (3,):
             def HasField(self, field_name: typing_extensions___Literal[u"value"]) -> bool: ...
-            def ClearField(self, field_name: typing_extensions___Literal[u"key",u"value"]) -> None: ...
+            def ClearField(
+                self, field_name: typing_extensions___Literal[u"key", u"value"]
+            ) -> None: ...
         else:
-            def HasField(self, field_name: typing_extensions___Literal[u"value",b"value"]) -> bool: ...
-            def ClearField(self, field_name: typing_extensions___Literal[b"key",b"value"]) -> None: ...
+            def HasField(
+                self, field_name: typing_extensions___Literal[u"value", b"value"]
+            ) -> bool: ...
+            def ClearField(
+                self, field_name: typing_extensions___Literal[b"key", b"value"]
+            ) -> None: ...
 
-    qubit_constant_index = ... # type: google___protobuf___internal___containers___RepeatedScalarFieldContainer[int]
-    token_value = ... # type: typing___Text
-    token_constant_index = ... # type: int
+    qubit_constant_index = (
+        ...
+    )  # type: google___protobuf___internal___containers___RepeatedScalarFieldContainer[int]
+    token_value = ...  # type: typing___Text
+    token_constant_index = ...  # type: int
 
     @property
     def gate(self) -> Gate: ...
-
     @property
     def xpowgate(self) -> XPowGate: ...
-
     @property
     def ypowgate(self) -> YPowGate: ...
-
     @property
     def zpowgate(self) -> ZPowGate: ...
-
     @property
     def phasedxpowgate(self) -> PhasedXPowGate: ...
-
     @property
     def phasedxzgate(self) -> PhasedXZGate: ...
-
     @property
     def czpowgate(self) -> CZPowGate: ...
-
     @property
     def fsimgate(self) -> FSimGate: ...
-
     @property
     def iswappowgate(self) -> ISwapPowGate: ...
-
     @property
     def measurementgate(self) -> MeasurementGate: ...
-
     @property
     def waitgate(self) -> WaitGate: ...
-
     @property
     def args(self) -> typing___MutableMapping[typing___Text, Arg]: ...
-
     @property
-    def qubits(self) -> google___protobuf___internal___containers___RepeatedCompositeFieldContainer[Qubit]: ...
-
-    def __init__(self,
-        gate : typing___Optional[Gate] = None,
-        xpowgate : typing___Optional[XPowGate] = None,
-        ypowgate : typing___Optional[YPowGate] = None,
-        zpowgate : typing___Optional[ZPowGate] = None,
-        phasedxpowgate : typing___Optional[PhasedXPowGate] = None,
-        phasedxzgate : typing___Optional[PhasedXZGate] = None,
-        czpowgate : typing___Optional[CZPowGate] = None,
-        fsimgate : typing___Optional[FSimGate] = None,
-        iswappowgate : typing___Optional[ISwapPowGate] = None,
-        measurementgate : typing___Optional[MeasurementGate] = None,
-        waitgate : typing___Optional[WaitGate] = None,
-        args : typing___Optional[typing___Mapping[typing___Text, Arg]] = None,
-        qubits : typing___Optional[typing___Iterable[Qubit]] = None,
-        qubit_constant_index : typing___Optional[typing___Iterable[int]] = None,
-        token_value : typing___Optional[typing___Text] = None,
-        token_constant_index : typing___Optional[int] = None,
-        ) -> None: ...
+    def qubits(
+        self,
+    ) -> google___protobuf___internal___containers___RepeatedCompositeFieldContainer[Qubit]: ...
+    def __init__(
+        self,
+        gate: typing___Optional[Gate] = None,
+        xpowgate: typing___Optional[XPowGate] = None,
+        ypowgate: typing___Optional[YPowGate] = None,
+        zpowgate: typing___Optional[ZPowGate] = None,
+        phasedxpowgate: typing___Optional[PhasedXPowGate] = None,
+        phasedxzgate: typing___Optional[PhasedXZGate] = None,
+        czpowgate: typing___Optional[CZPowGate] = None,
+        fsimgate: typing___Optional[FSimGate] = None,
+        iswappowgate: typing___Optional[ISwapPowGate] = None,
+        measurementgate: typing___Optional[MeasurementGate] = None,
+        waitgate: typing___Optional[WaitGate] = None,
+        args: typing___Optional[typing___Mapping[typing___Text, Arg]] = None,
+        qubits: typing___Optional[typing___Iterable[Qubit]] = None,
+        qubit_constant_index: typing___Optional[typing___Iterable[int]] = None,
+        token_value: typing___Optional[typing___Text] = None,
+        token_constant_index: typing___Optional[int] = None,
+    ) -> None: ...
     @classmethod
     def FromString(cls, s: bytes) -> Operation: ...
     def MergeFrom(self, other_msg: google___protobuf___message___Message) -> None: ...
     def CopyFrom(self, other_msg: google___protobuf___message___Message) -> None: ...
     if sys.version_info >= (3,):
-        def HasField(self, field_name: typing_extensions___Literal[u"czpowgate",u"fsimgate",u"gate",u"gate_value",u"iswappowgate",u"measurementgate",u"phasedxpowgate",u"phasedxzgate",u"token",u"token_constant_index",u"token_value",u"waitgate",u"xpowgate",u"ypowgate",u"zpowgate"]) -> bool: ...
-        def ClearField(self, field_name: typing_extensions___Literal[u"args",u"czpowgate",u"fsimgate",u"gate",u"gate_value",u"iswappowgate",u"measurementgate",u"phasedxpowgate",u"phasedxzgate",u"qubit_constant_index",u"qubits",u"token",u"token_constant_index",u"token_value",u"waitgate",u"xpowgate",u"ypowgate",u"zpowgate"]) -> None: ...
+        def HasField(
+            self,
+            field_name: typing_extensions___Literal[
+                u"czpowgate",
+                u"fsimgate",
+                u"gate",
+                u"gate_value",
+                u"iswappowgate",
+                u"measurementgate",
+                u"phasedxpowgate",
+                u"phasedxzgate",
+                u"token",
+                u"token_constant_index",
+                u"token_value",
+                u"waitgate",
+                u"xpowgate",
+                u"ypowgate",
+                u"zpowgate",
+            ],
+        ) -> bool: ...
+        def ClearField(
+            self,
+            field_name: typing_extensions___Literal[
+                u"args",
+                u"czpowgate",
+                u"fsimgate",
+                u"gate",
+                u"gate_value",
+                u"iswappowgate",
+                u"measurementgate",
+                u"phasedxpowgate",
+                u"phasedxzgate",
+                u"qubit_constant_index",
+                u"qubits",
+                u"token",
+                u"token_constant_index",
+                u"token_value",
+                u"waitgate",
+                u"xpowgate",
+                u"ypowgate",
+                u"zpowgate",
+            ],
+        ) -> None: ...
     else:
-        def HasField(self, field_name: typing_extensions___Literal[u"czpowgate",b"czpowgate",u"fsimgate",b"fsimgate",u"gate",b"gate",u"gate_value",b"gate_value",u"iswappowgate",b"iswappowgate",u"measurementgate",b"measurementgate",u"phasedxpowgate",b"phasedxpowgate",u"phasedxzgate",b"phasedxzgate",u"token",b"token",u"token_constant_index",b"token_constant_index",u"token_value",b"token_value",u"waitgate",b"waitgate",u"xpowgate",b"xpowgate",u"ypowgate",b"ypowgate",u"zpowgate",b"zpowgate"]) -> bool: ...
-        def ClearField(self, field_name: typing_extensions___Literal[b"args",b"czpowgate",b"fsimgate",b"gate",b"gate_value",b"iswappowgate",b"measurementgate",b"phasedxpowgate",b"phasedxzgate",b"qubit_constant_index",b"qubits",b"token",b"token_constant_index",b"token_value",b"waitgate",b"xpowgate",b"ypowgate",b"zpowgate"]) -> None: ...
+        def HasField(
+            self,
+            field_name: typing_extensions___Literal[
+                u"czpowgate",
+                b"czpowgate",
+                u"fsimgate",
+                b"fsimgate",
+                u"gate",
+                b"gate",
+                u"gate_value",
+                b"gate_value",
+                u"iswappowgate",
+                b"iswappowgate",
+                u"measurementgate",
+                b"measurementgate",
+                u"phasedxpowgate",
+                b"phasedxpowgate",
+                u"phasedxzgate",
+                b"phasedxzgate",
+                u"token",
+                b"token",
+                u"token_constant_index",
+                b"token_constant_index",
+                u"token_value",
+                b"token_value",
+                u"waitgate",
+                b"waitgate",
+                u"xpowgate",
+                b"xpowgate",
+                u"ypowgate",
+                b"ypowgate",
+                u"zpowgate",
+                b"zpowgate",
+            ],
+        ) -> bool: ...
+        def ClearField(
+            self,
+            field_name: typing_extensions___Literal[
+                b"args",
+                b"czpowgate",
+                b"fsimgate",
+                b"gate",
+                b"gate_value",
+                b"iswappowgate",
+                b"measurementgate",
+                b"phasedxpowgate",
+                b"phasedxzgate",
+                b"qubit_constant_index",
+                b"qubits",
+                b"token",
+                b"token_constant_index",
+                b"token_value",
+                b"waitgate",
+                b"xpowgate",
+                b"ypowgate",
+                b"zpowgate",
+            ],
+        ) -> None: ...
+
     @typing___overload
-    def WhichOneof(self, oneof_group: typing_extensions___Literal[u"gate_value",b"gate_value"]) -> typing_extensions___Literal["xpowgate","ypowgate","zpowgate","phasedxpowgate","phasedxzgate","czpowgate","fsimgate","iswappowgate","measurementgate","waitgate"]: ...
+    def WhichOneof(
+        self, oneof_group: typing_extensions___Literal[u"gate_value", b"gate_value"]
+    ) -> typing_extensions___Literal[
+        "xpowgate",
+        "ypowgate",
+        "zpowgate",
+        "phasedxpowgate",
+        "phasedxzgate",
+        "czpowgate",
+        "fsimgate",
+        "iswappowgate",
+        "measurementgate",
+        "waitgate",
+    ]: ...
     @typing___overload
-    def WhichOneof(self, oneof_group: typing_extensions___Literal[u"token",b"token"]) -> typing_extensions___Literal["token_value","token_constant_index"]: ...
+    def WhichOneof(
+        self, oneof_group: typing_extensions___Literal[u"token", b"token"]
+    ) -> typing_extensions___Literal["token_value", "token_constant_index"]: ...
 
 class Gate(google___protobuf___message___Message):
-    id = ... # type: typing___Text
+    id = ...  # type: typing___Text
 
-    def __init__(self,
-        id : typing___Optional[typing___Text] = None,
-        ) -> None: ...
+    def __init__(self, id: typing___Optional[typing___Text] = None) -> None: ...
     @classmethod
     def FromString(cls, s: bytes) -> Gate: ...
     def MergeFrom(self, other_msg: google___protobuf___message___Message) -> None: ...
@@ -548,11 +796,9 @@ class Gate(google___protobuf___message___Message):
         def ClearField(self, field_name: typing_extensions___Literal[b"id"]) -> None: ...
 
 class Qubit(google___protobuf___message___Message):
-    id = ... # type: typing___Text
+    id = ...  # type: typing___Text
 
-    def __init__(self,
-        id : typing___Optional[typing___Text] = None,
-        ) -> None: ...
+    def __init__(self, id: typing___Optional[typing___Text] = None) -> None: ...
     @classmethod
     def FromString(cls, s: bytes) -> Qubit: ...
     def MergeFrom(self, other_msg: google___protobuf___message___Message) -> None: ...
@@ -563,65 +809,130 @@ class Qubit(google___protobuf___message___Message):
         def ClearField(self, field_name: typing_extensions___Literal[b"id"]) -> None: ...
 
 class Arg(google___protobuf___message___Message):
-    symbol = ... # type: typing___Text
-    constant_index = ... # type: int
+    symbol = ...  # type: typing___Text
+    constant_index = ...  # type: int
 
     @property
     def arg_value(self) -> ArgValue: ...
-
     @property
     def func(self) -> ArgFunction: ...
-
-    def __init__(self,
-        arg_value : typing___Optional[ArgValue] = None,
-        symbol : typing___Optional[typing___Text] = None,
-        func : typing___Optional[ArgFunction] = None,
-        constant_index : typing___Optional[int] = None,
-        ) -> None: ...
+    def __init__(
+        self,
+        arg_value: typing___Optional[ArgValue] = None,
+        symbol: typing___Optional[typing___Text] = None,
+        func: typing___Optional[ArgFunction] = None,
+        constant_index: typing___Optional[int] = None,
+    ) -> None: ...
     @classmethod
     def FromString(cls, s: bytes) -> Arg: ...
     def MergeFrom(self, other_msg: google___protobuf___message___Message) -> None: ...
     def CopyFrom(self, other_msg: google___protobuf___message___Message) -> None: ...
     if sys.version_info >= (3,):
-        def HasField(self, field_name: typing_extensions___Literal[u"arg",u"arg_value",u"constant_index",u"func",u"symbol"]) -> bool: ...
-        def ClearField(self, field_name: typing_extensions___Literal[u"arg",u"arg_value",u"constant_index",u"func",u"symbol"]) -> None: ...
+        def HasField(
+            self,
+            field_name: typing_extensions___Literal[
+                u"arg", u"arg_value", u"constant_index", u"func", u"symbol"
+            ],
+        ) -> bool: ...
+        def ClearField(
+            self,
+            field_name: typing_extensions___Literal[
+                u"arg", u"arg_value", u"constant_index", u"func", u"symbol"
+            ],
+        ) -> None: ...
     else:
-        def HasField(self, field_name: typing_extensions___Literal[u"arg",b"arg",u"arg_value",b"arg_value",u"constant_index",b"constant_index",u"func",b"func",u"symbol",b"symbol"]) -> bool: ...
-        def ClearField(self, field_name: typing_extensions___Literal[b"arg",b"arg_value",b"constant_index",b"func",b"symbol"]) -> None: ...
-    def WhichOneof(self, oneof_group: typing_extensions___Literal[u"arg",b"arg"]) -> typing_extensions___Literal["arg_value","symbol","func","constant_index"]: ...
+        def HasField(
+            self,
+            field_name: typing_extensions___Literal[
+                u"arg",
+                b"arg",
+                u"arg_value",
+                b"arg_value",
+                u"constant_index",
+                b"constant_index",
+                u"func",
+                b"func",
+                u"symbol",
+                b"symbol",
+            ],
+        ) -> bool: ...
+        def ClearField(
+            self,
+            field_name: typing_extensions___Literal[
+                b"arg", b"arg_value", b"constant_index", b"func", b"symbol"
+            ],
+        ) -> None: ...
+
+    def WhichOneof(
+        self, oneof_group: typing_extensions___Literal[u"arg", b"arg"]
+    ) -> typing_extensions___Literal["arg_value", "symbol", "func", "constant_index"]: ...
 
 class ArgValue(google___protobuf___message___Message):
-    float_value = ... # type: float
-    string_value = ... # type: typing___Text
-    double_value = ... # type: float
+    float_value = ...  # type: float
+    string_value = ...  # type: typing___Text
+    double_value = ...  # type: float
 
     @property
     def bool_values(self) -> RepeatedBoolean: ...
-
-    def __init__(self,
-        float_value : typing___Optional[float] = None,
-        bool_values : typing___Optional[RepeatedBoolean] = None,
-        string_value : typing___Optional[typing___Text] = None,
-        double_value : typing___Optional[float] = None,
-        ) -> None: ...
+    def __init__(
+        self,
+        float_value: typing___Optional[float] = None,
+        bool_values: typing___Optional[RepeatedBoolean] = None,
+        string_value: typing___Optional[typing___Text] = None,
+        double_value: typing___Optional[float] = None,
+    ) -> None: ...
     @classmethod
     def FromString(cls, s: bytes) -> ArgValue: ...
     def MergeFrom(self, other_msg: google___protobuf___message___Message) -> None: ...
     def CopyFrom(self, other_msg: google___protobuf___message___Message) -> None: ...
     if sys.version_info >= (3,):
-        def HasField(self, field_name: typing_extensions___Literal[u"arg_value",u"bool_values",u"double_value",u"float_value",u"string_value"]) -> bool: ...
-        def ClearField(self, field_name: typing_extensions___Literal[u"arg_value",u"bool_values",u"double_value",u"float_value",u"string_value"]) -> None: ...
+        def HasField(
+            self,
+            field_name: typing_extensions___Literal[
+                u"arg_value", u"bool_values", u"double_value", u"float_value", u"string_value"
+            ],
+        ) -> bool: ...
+        def ClearField(
+            self,
+            field_name: typing_extensions___Literal[
+                u"arg_value", u"bool_values", u"double_value", u"float_value", u"string_value"
+            ],
+        ) -> None: ...
     else:
-        def HasField(self, field_name: typing_extensions___Literal[u"arg_value",b"arg_value",u"bool_values",b"bool_values",u"double_value",b"double_value",u"float_value",b"float_value",u"string_value",b"string_value"]) -> bool: ...
-        def ClearField(self, field_name: typing_extensions___Literal[b"arg_value",b"bool_values",b"double_value",b"float_value",b"string_value"]) -> None: ...
-    def WhichOneof(self, oneof_group: typing_extensions___Literal[u"arg_value",b"arg_value"]) -> typing_extensions___Literal["float_value","bool_values","string_value","double_value"]: ...
+        def HasField(
+            self,
+            field_name: typing_extensions___Literal[
+                u"arg_value",
+                b"arg_value",
+                u"bool_values",
+                b"bool_values",
+                u"double_value",
+                b"double_value",
+                u"float_value",
+                b"float_value",
+                u"string_value",
+                b"string_value",
+            ],
+        ) -> bool: ...
+        def ClearField(
+            self,
+            field_name: typing_extensions___Literal[
+                b"arg_value", b"bool_values", b"double_value", b"float_value", b"string_value"
+            ],
+        ) -> None: ...
+
+    def WhichOneof(
+        self, oneof_group: typing_extensions___Literal[u"arg_value", b"arg_value"]
+    ) -> typing_extensions___Literal[
+        "float_value", "bool_values", "string_value", "double_value"
+    ]: ...
 
 class RepeatedBoolean(google___protobuf___message___Message):
-    values = ... # type: google___protobuf___internal___containers___RepeatedScalarFieldContainer[bool]
+    values = (
+        ...
+    )  # type: google___protobuf___internal___containers___RepeatedScalarFieldContainer[bool]
 
-    def __init__(self,
-        values : typing___Optional[typing___Iterable[bool]] = None,
-        ) -> None: ...
+    def __init__(self, values: typing___Optional[typing___Iterable[bool]] = None) -> None: ...
     @classmethod
     def FromString(cls, s: bytes) -> RepeatedBoolean: ...
     def MergeFrom(self, other_msg: google___protobuf___message___Message) -> None: ...
@@ -632,64 +943,100 @@ class RepeatedBoolean(google___protobuf___message___Message):
         def ClearField(self, field_name: typing_extensions___Literal[b"values"]) -> None: ...
 
 class ArgFunction(google___protobuf___message___Message):
-    type = ... # type: typing___Text
+    type = ...  # type: typing___Text
 
     @property
-    def args(self) -> google___protobuf___internal___containers___RepeatedCompositeFieldContainer[Arg]: ...
-
-    def __init__(self,
-        type : typing___Optional[typing___Text] = None,
-        args : typing___Optional[typing___Iterable[Arg]] = None,
-        ) -> None: ...
+    def args(
+        self,
+    ) -> google___protobuf___internal___containers___RepeatedCompositeFieldContainer[Arg]: ...
+    def __init__(
+        self,
+        type: typing___Optional[typing___Text] = None,
+        args: typing___Optional[typing___Iterable[Arg]] = None,
+    ) -> None: ...
     @classmethod
     def FromString(cls, s: bytes) -> ArgFunction: ...
     def MergeFrom(self, other_msg: google___protobuf___message___Message) -> None: ...
     def CopyFrom(self, other_msg: google___protobuf___message___Message) -> None: ...
     if sys.version_info >= (3,):
-        def ClearField(self, field_name: typing_extensions___Literal[u"args",u"type"]) -> None: ...
+        def ClearField(self, field_name: typing_extensions___Literal[u"args", u"type"]) -> None: ...
     else:
-        def ClearField(self, field_name: typing_extensions___Literal[b"args",b"type"]) -> None: ...
+        def ClearField(self, field_name: typing_extensions___Literal[b"args", b"type"]) -> None: ...
 
 class CircuitOperation(google___protobuf___message___Message):
-    circuit_constant_index = ... # type: int
+    circuit_constant_index = ...  # type: int
 
     @property
     def repetition_specification(self) -> RepetitionSpecification: ...
-
     @property
     def qubit_map(self) -> QubitMapping: ...
-
     @property
     def measurement_key_map(self) -> MeasurementKeyMapping: ...
-
     @property
     def arg_map(self) -> ArgMapping: ...
-
-    def __init__(self,
-        circuit_constant_index : typing___Optional[int] = None,
-        repetition_specification : typing___Optional[RepetitionSpecification] = None,
-        qubit_map : typing___Optional[QubitMapping] = None,
-        measurement_key_map : typing___Optional[MeasurementKeyMapping] = None,
-        arg_map : typing___Optional[ArgMapping] = None,
-        ) -> None: ...
+    def __init__(
+        self,
+        circuit_constant_index: typing___Optional[int] = None,
+        repetition_specification: typing___Optional[RepetitionSpecification] = None,
+        qubit_map: typing___Optional[QubitMapping] = None,
+        measurement_key_map: typing___Optional[MeasurementKeyMapping] = None,
+        arg_map: typing___Optional[ArgMapping] = None,
+    ) -> None: ...
     @classmethod
     def FromString(cls, s: bytes) -> CircuitOperation: ...
     def MergeFrom(self, other_msg: google___protobuf___message___Message) -> None: ...
     def CopyFrom(self, other_msg: google___protobuf___message___Message) -> None: ...
     if sys.version_info >= (3,):
-        def HasField(self, field_name: typing_extensions___Literal[u"arg_map",u"measurement_key_map",u"qubit_map",u"repetition_specification"]) -> bool: ...
-        def ClearField(self, field_name: typing_extensions___Literal[u"arg_map",u"circuit_constant_index",u"measurement_key_map",u"qubit_map",u"repetition_specification"]) -> None: ...
+        def HasField(
+            self,
+            field_name: typing_extensions___Literal[
+                u"arg_map", u"measurement_key_map", u"qubit_map", u"repetition_specification"
+            ],
+        ) -> bool: ...
+        def ClearField(
+            self,
+            field_name: typing_extensions___Literal[
+                u"arg_map",
+                u"circuit_constant_index",
+                u"measurement_key_map",
+                u"qubit_map",
+                u"repetition_specification",
+            ],
+        ) -> None: ...
     else:
-        def HasField(self, field_name: typing_extensions___Literal[u"arg_map",b"arg_map",u"measurement_key_map",b"measurement_key_map",u"qubit_map",b"qubit_map",u"repetition_specification",b"repetition_specification"]) -> bool: ...
-        def ClearField(self, field_name: typing_extensions___Literal[b"arg_map",b"circuit_constant_index",b"measurement_key_map",b"qubit_map",b"repetition_specification"]) -> None: ...
+        def HasField(
+            self,
+            field_name: typing_extensions___Literal[
+                u"arg_map",
+                b"arg_map",
+                u"measurement_key_map",
+                b"measurement_key_map",
+                u"qubit_map",
+                b"qubit_map",
+                u"repetition_specification",
+                b"repetition_specification",
+            ],
+        ) -> bool: ...
+        def ClearField(
+            self,
+            field_name: typing_extensions___Literal[
+                b"arg_map",
+                b"circuit_constant_index",
+                b"measurement_key_map",
+                b"qubit_map",
+                b"repetition_specification",
+            ],
+        ) -> None: ...
 
 class RepetitionSpecification(google___protobuf___message___Message):
     class RepetitionIds(google___protobuf___message___Message):
-        ids = ... # type: google___protobuf___internal___containers___RepeatedScalarFieldContainer[typing___Text]
+        ids = (
+            ...
+        )  # type: google___protobuf___internal___containers___RepeatedScalarFieldContainer[typing___Text]
 
-        def __init__(self,
-            ids : typing___Optional[typing___Iterable[typing___Text]] = None,
-            ) -> None: ...
+        def __init__(
+            self, ids: typing___Optional[typing___Iterable[typing___Text]] = None
+        ) -> None: ...
         @classmethod
         def FromString(cls, s: bytes) -> RepetitionSpecification.RepetitionIds: ...
         def MergeFrom(self, other_msg: google___protobuf___message___Message) -> None: ...
@@ -699,58 +1046,92 @@ class RepetitionSpecification(google___protobuf___message___Message):
         else:
             def ClearField(self, field_name: typing_extensions___Literal[b"ids"]) -> None: ...
 
-    repetition_count = ... # type: int
+    repetition_count = ...  # type: int
 
     @property
     def repetition_ids(self) -> RepetitionSpecification.RepetitionIds: ...
-
-    def __init__(self,
-        repetition_ids : typing___Optional[RepetitionSpecification.RepetitionIds] = None,
-        repetition_count : typing___Optional[int] = None,
-        ) -> None: ...
+    def __init__(
+        self,
+        repetition_ids: typing___Optional[RepetitionSpecification.RepetitionIds] = None,
+        repetition_count: typing___Optional[int] = None,
+    ) -> None: ...
     @classmethod
     def FromString(cls, s: bytes) -> RepetitionSpecification: ...
     def MergeFrom(self, other_msg: google___protobuf___message___Message) -> None: ...
     def CopyFrom(self, other_msg: google___protobuf___message___Message) -> None: ...
     if sys.version_info >= (3,):
-        def HasField(self, field_name: typing_extensions___Literal[u"repetition_count",u"repetition_ids",u"repetition_value"]) -> bool: ...
-        def ClearField(self, field_name: typing_extensions___Literal[u"repetition_count",u"repetition_ids",u"repetition_value"]) -> None: ...
+        def HasField(
+            self,
+            field_name: typing_extensions___Literal[
+                u"repetition_count", u"repetition_ids", u"repetition_value"
+            ],
+        ) -> bool: ...
+        def ClearField(
+            self,
+            field_name: typing_extensions___Literal[
+                u"repetition_count", u"repetition_ids", u"repetition_value"
+            ],
+        ) -> None: ...
     else:
-        def HasField(self, field_name: typing_extensions___Literal[u"repetition_count",b"repetition_count",u"repetition_ids",b"repetition_ids",u"repetition_value",b"repetition_value"]) -> bool: ...
-        def ClearField(self, field_name: typing_extensions___Literal[b"repetition_count",b"repetition_ids",b"repetition_value"]) -> None: ...
-    def WhichOneof(self, oneof_group: typing_extensions___Literal[u"repetition_value",b"repetition_value"]) -> typing_extensions___Literal["repetition_ids","repetition_count"]: ...
+        def HasField(
+            self,
+            field_name: typing_extensions___Literal[
+                u"repetition_count",
+                b"repetition_count",
+                u"repetition_ids",
+                b"repetition_ids",
+                u"repetition_value",
+                b"repetition_value",
+            ],
+        ) -> bool: ...
+        def ClearField(
+            self,
+            field_name: typing_extensions___Literal[
+                b"repetition_count", b"repetition_ids", b"repetition_value"
+            ],
+        ) -> None: ...
+
+    def WhichOneof(
+        self, oneof_group: typing_extensions___Literal[u"repetition_value", b"repetition_value"]
+    ) -> typing_extensions___Literal["repetition_ids", "repetition_count"]: ...
 
 class QubitMapping(google___protobuf___message___Message):
     class QubitEntry(google___protobuf___message___Message):
-
         @property
         def key(self) -> Qubit: ...
-
         @property
         def value(self) -> Qubit: ...
-
-        def __init__(self,
-            key : typing___Optional[Qubit] = None,
-            value : typing___Optional[Qubit] = None,
-            ) -> None: ...
+        def __init__(
+            self, key: typing___Optional[Qubit] = None, value: typing___Optional[Qubit] = None
+        ) -> None: ...
         @classmethod
         def FromString(cls, s: bytes) -> QubitMapping.QubitEntry: ...
         def MergeFrom(self, other_msg: google___protobuf___message___Message) -> None: ...
         def CopyFrom(self, other_msg: google___protobuf___message___Message) -> None: ...
         if sys.version_info >= (3,):
-            def HasField(self, field_name: typing_extensions___Literal[u"key",u"value"]) -> bool: ...
-            def ClearField(self, field_name: typing_extensions___Literal[u"key",u"value"]) -> None: ...
+            def HasField(
+                self, field_name: typing_extensions___Literal[u"key", u"value"]
+            ) -> bool: ...
+            def ClearField(
+                self, field_name: typing_extensions___Literal[u"key", u"value"]
+            ) -> None: ...
         else:
-            def HasField(self, field_name: typing_extensions___Literal[u"key",b"key",u"value",b"value"]) -> bool: ...
-            def ClearField(self, field_name: typing_extensions___Literal[b"key",b"value"]) -> None: ...
-
+            def HasField(
+                self, field_name: typing_extensions___Literal[u"key", b"key", u"value", b"value"]
+            ) -> bool: ...
+            def ClearField(
+                self, field_name: typing_extensions___Literal[b"key", b"value"]
+            ) -> None: ...
 
     @property
-    def entries(self) -> google___protobuf___internal___containers___RepeatedCompositeFieldContainer[QubitMapping.QubitEntry]: ...
-
-    def __init__(self,
-        entries : typing___Optional[typing___Iterable[QubitMapping.QubitEntry]] = None,
-        ) -> None: ...
+    def entries(
+        self,
+    ) -> google___protobuf___internal___containers___RepeatedCompositeFieldContainer[
+        QubitMapping.QubitEntry
+    ]: ...
+    def __init__(
+        self, entries: typing___Optional[typing___Iterable[QubitMapping.QubitEntry]] = None
+    ) -> None: ...
     @classmethod
     def FromString(cls, s: bytes) -> QubitMapping: ...
     def MergeFrom(self, other_msg: google___protobuf___message___Message) -> None: ...
@@ -761,11 +1142,9 @@ class QubitMapping(google___protobuf___message___Message):
         def ClearField(self, field_name: typing_extensions___Literal[b"entries"]) -> None: ...
 
 class MeasurementKey(google___protobuf___message___Message):
-    string_key = ... # type: typing___Text
+    string_key = ...  # type: typing___Text
 
-    def __init__(self,
-        string_key : typing___Optional[typing___Text] = None,
-        ) -> None: ...
+    def __init__(self, string_key: typing___Optional[typing___Text] = None) -> None: ...
     @classmethod
     def FromString(cls, s: bytes) -> MeasurementKey: ...
     def MergeFrom(self, other_msg: google___protobuf___message___Message) -> None: ...
@@ -777,35 +1156,46 @@ class MeasurementKey(google___protobuf___message___Message):
 
 class MeasurementKeyMapping(google___protobuf___message___Message):
     class MeasurementKeyEntry(google___protobuf___message___Message):
-
         @property
         def key(self) -> MeasurementKey: ...
-
         @property
         def value(self) -> MeasurementKey: ...
-
-        def __init__(self,
-            key : typing___Optional[MeasurementKey] = None,
-            value : typing___Optional[MeasurementKey] = None,
-            ) -> None: ...
+        def __init__(
+            self,
+            key: typing___Optional[MeasurementKey] = None,
+            value: typing___Optional[MeasurementKey] = None,
+        ) -> None: ...
         @classmethod
         def FromString(cls, s: bytes) -> MeasurementKeyMapping.MeasurementKeyEntry: ...
         def MergeFrom(self, other_msg: google___protobuf___message___Message) -> None: ...
         def CopyFrom(self, other_msg: google___protobuf___message___Message) -> None: ...
         if sys.version_info >= (3,):
-            def HasField(self, field_name: typing_extensions___Literal[u"key",u"value"]) -> bool: ...
-            def ClearField(self, field_name: typing_extensions___Literal[u"key",u"value"]) -> None: ...
+            def HasField(
+                self, field_name: typing_extensions___Literal[u"key", u"value"]
+            ) -> bool: ...
+            def ClearField(
+                self, field_name: typing_extensions___Literal[u"key", u"value"]
+            ) -> None: ...
         else:
-            def HasField(self, field_name: typing_extensions___Literal[u"key",b"key",u"value",b"value"]) -> bool: ...
-            def ClearField(self, field_name: typing_extensions___Literal[b"key",b"value"]) -> None: ...
-
+            def HasField(
+                self, field_name: typing_extensions___Literal[u"key", b"key", u"value", b"value"]
+            ) -> bool: ...
+            def ClearField(
+                self, field_name: typing_extensions___Literal[b"key", b"value"]
+            ) -> None: ...
 
     @property
-    def entries(self) -> google___protobuf___internal___containers___RepeatedCompositeFieldContainer[MeasurementKeyMapping.MeasurementKeyEntry]: ...
-
-    def __init__(self,
-        entries : typing___Optional[typing___Iterable[MeasurementKeyMapping.MeasurementKeyEntry]] = None,
-        ) -> None: ...
+    def entries(
+        self,
+    ) -> google___protobuf___internal___containers___RepeatedCompositeFieldContainer[
+        MeasurementKeyMapping.MeasurementKeyEntry
+    ]: ...
+    def __init__(
+        self,
+        entries: typing___Optional[
+            typing___Iterable[MeasurementKeyMapping.MeasurementKeyEntry]
+        ] = None,
+    ) -> None: ...
     @classmethod
     def FromString(cls, s: bytes) -> MeasurementKeyMapping: ...
     def MergeFrom(self, other_msg: google___protobuf___message___Message) -> None: ...
@@ -817,35 +1207,41 @@ class MeasurementKeyMapping(google___protobuf___message___Message):
 
 class ArgMapping(google___protobuf___message___Message):
     class ArgEntry(google___protobuf___message___Message):
-
         @property
         def key(self) -> Arg: ...
-
         @property
         def value(self) -> Arg: ...
-
-        def __init__(self,
-            key : typing___Optional[Arg] = None,
-            value : typing___Optional[Arg] = None,
-            ) -> None: ...
+        def __init__(
+            self, key: typing___Optional[Arg] = None, value: typing___Optional[Arg] = None
+        ) -> None: ...
         @classmethod
         def FromString(cls, s: bytes) -> ArgMapping.ArgEntry: ...
         def MergeFrom(self, other_msg: google___protobuf___message___Message) -> None: ...
         def CopyFrom(self, other_msg: google___protobuf___message___Message) -> None: ...
         if sys.version_info >= (3,):
-            def HasField(self, field_name: typing_extensions___Literal[u"key",u"value"]) -> bool: ...
-            def ClearField(self, field_name: typing_extensions___Literal[u"key",u"value"]) -> None: ...
+            def HasField(
+                self, field_name: typing_extensions___Literal[u"key", u"value"]
+            ) -> bool: ...
+            def ClearField(
+                self, field_name: typing_extensions___Literal[u"key", u"value"]
+            ) -> None: ...
         else:
-            def HasField(self, field_name: typing_extensions___Literal[u"key",b"key",u"value",b"value"]) -> bool: ...
-            def ClearField(self, field_name: typing_extensions___Literal[b"key",b"value"]) -> None: ...
-
+            def HasField(
+                self, field_name: typing_extensions___Literal[u"key", b"key", u"value", b"value"]
+            ) -> bool: ...
+            def ClearField(
+                self, field_name: typing_extensions___Literal[b"key", b"value"]
+            ) -> None: ...
 
     @property
-    def entries(self) -> google___protobuf___internal___containers___RepeatedCompositeFieldContainer[ArgMapping.ArgEntry]: ...
-
-    def __init__(self,
-        entries : typing___Optional[typing___Iterable[ArgMapping.ArgEntry]] = None,
-        ) -> None: ...
+    def entries(
+        self,
+    ) -> google___protobuf___internal___containers___RepeatedCompositeFieldContainer[
+        ArgMapping.ArgEntry
+    ]: ...
+    def __init__(
+        self, entries: typing___Optional[typing___Iterable[ArgMapping.ArgEntry]] = None
+    ) -> None: ...
     @classmethod
     def FromString(cls, s: bytes) -> ArgMapping: ...
     def MergeFrom(self, other_msg: google___protobuf___message___Message) -> None: ...

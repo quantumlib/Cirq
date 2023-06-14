@@ -482,7 +482,6 @@ def _convert_to_circuit_with_drift(
     simulator: PhasedFSimEngineSimulator, circuit: cirq.AbstractCircuit
 ) -> cirq.Circuit:
     def map_func(op: cirq.Operation, _) -> cirq.Operation:
-
         if op.gate is None:
             raise IncompatibleMomentError(f'Operation {op} has a missing gate')
 

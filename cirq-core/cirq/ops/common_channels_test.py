@@ -87,7 +87,6 @@ def test_asymmetric_depolarizing_channel_str():
 
 
 def test_asymmetric_depolarizing_channel_eq():
-
     a = cirq.asymmetric_depolarize(0.0099999, 0.01)
     b = cirq.asymmetric_depolarize(0.01, 0.0099999)
     c = cirq.asymmetric_depolarize(0.0, 0.0, 0.0)
@@ -697,7 +696,6 @@ def test_bit_flip_channel_str():
 
 
 def test_bit_flip_channel_eq():
-
     a = cirq.bit_flip(0.0099999)
     b = cirq.bit_flip(0.01)
     c = cirq.bit_flip(0.0)

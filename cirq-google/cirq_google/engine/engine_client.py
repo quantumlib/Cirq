@@ -277,7 +277,7 @@ class EngineClient:
             val = _date_or_time_to_filter_expr('created_before', created_before)
             filters.append(f"create_time <= {val}")
         if has_labels is not None:
-            for (k, v) in has_labels.items():
+            for k, v in has_labels.items():
                 filters.append(f"labels.{k}:{v}")
         request = quantum.ListQuantumProgramsRequest(
             parent=_project_name(project_id), filter=" AND ".join(filters)
@@ -528,7 +528,7 @@ class EngineClient:
             val = _date_or_time_to_filter_expr('created_before', created_before)
             filters.append(f"create_time <= {val}")
         if has_labels is not None:
-            for (k, v) in has_labels.items():
+            for k, v in has_labels.items():
                 filters.append(f"labels.{k}:{v}")
         if execution_states is not None:
             state_filter = []

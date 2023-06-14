@@ -423,7 +423,6 @@ def test_sub_state_vector_non_kron():
 
 
 def test_sub_state_vector_invalid_inputs():
-
     # State cannot be expressed as a separable pure state.
     with pytest.raises(ValueError, match='7'):
         cirq.sub_state_vector(np.arange(7), [1, 2], atol=1e-8)
@@ -450,7 +449,6 @@ def test_sub_state_vector_invalid_inputs():
 
 
 def test_partial_trace_of_state_vector_as_mixture_invalid_input():
-
     with pytest.raises(ValueError, match='7'):
         cirq.partial_trace_of_state_vector_as_mixture(np.arange(7), [1, 2], atol=1e-8)
 
@@ -583,7 +581,7 @@ def test_partial_trace_of_state_vector_as_mixture_mixed_result():
         (0.5, np.array([1, 0, 0, 0]).reshape((2, 2))),
         (0.5, np.array([0, 0, 0, 1]).reshape((2, 2))),
     )
-    for (q1, q2) in [(0, 1), (0, 2), (1, 2)]:
+    for q1, q2 in [(0, 1), (0, 2), (1, 2)]:
         mixture = cirq.partial_trace_of_state_vector_as_mixture(state, [q1, q2], atol=1e-8)
         assert mixtures_equal(mixture, truth)
 
