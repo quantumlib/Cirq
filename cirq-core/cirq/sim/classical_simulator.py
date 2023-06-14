@@ -10,8 +10,6 @@ class ClassicalSimulator(cirq.SimulatesSamples):
     '''
     `basic classical simulator that only accepts cirq.X and cirq.CNOT gates and return a 3d Numpy array`
 
-    classical simulator
-
       Run a simulation, mimicking quantum hardware.
 
         Args:
