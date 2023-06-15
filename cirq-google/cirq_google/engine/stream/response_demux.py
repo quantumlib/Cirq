@@ -9,13 +9,12 @@ MessageId = str
 CancelCallback = Callable[[quantum.QuantumRunStreamRequest], None]
 
 
-class _StreamResponseDemux:
+class ResponseDemux:
     """A event demultiplexer for QuantumRunStreamResponses, as part of the async reactor pattern.
 
     Args:
         cancel_callback: Function to be called when the future matching its request argument is
         canceled.
-    TODO(#5996) expand
     """
 
     def __init__(self, cancel_callback: CancelCallback):
@@ -31,17 +30,16 @@ class _StreamResponseDemux:
         identifier.
 
         Returns:
-            A future for the response to be fulfilled when publish is called.
+            A future for the response, to be fulfilled when publish is called.
         Raises:
             ValueError: If there is already a subscriber for the given request.
         """
 
-        request_type = request.WhichOneOf('request')
-        if request_type == 'create_quantum_program_and_job':
+        if 'create_quantum_program_and_job' in request:
             job_path = request.create_quantum_program_and_job.quantum_job.name
-        elif request_type == 'create_quantum_job':
+        elif 'create_quantum_job' in request:
             job_path = request.create_quantum_job.quantum_job.name
-        else:  # request_type == 'get_quantum_result'
+        else:  # 'get_quantum_result' in request
             job_path = request.get_quantum_result.parent
 
         if job_path not in self._subscribers:
@@ -71,8 +69,7 @@ class _StreamResponseDemux:
         does nothing.
         """
 
-        response_type = response.WhichOneOf('response')
-        if response_type == 'error':
+        if 'error' in response:
             for subscribers_by_message in self._subscribers.values():
                 if response.message_id in subscribers_by_message:
                     subscribers_by_message[response.message_id].try_set_result(response)
@@ -80,9 +77,9 @@ class _StreamResponseDemux:
                     break
             return
 
-        if response_type == 'job':
+        if 'job' in response:
             job_path = response.job.name
-        else:  # response_type == 'result':
+        else:  # 'result' in response
             job_path = response.result.parent
 
         if job_path not in self._subscribers:
