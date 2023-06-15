@@ -16,7 +16,7 @@ from enum import Enum
 
 import pytest
 
-from cirq_google.engine.stream.stream_response_demux import ResponseDemux
+from cirq_google.engine.stream.response_demux import ResponseDemux
 from cirq_google.cloud import quantum
 
 

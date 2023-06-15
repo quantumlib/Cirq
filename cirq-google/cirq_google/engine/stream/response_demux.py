@@ -12,7 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from collections.abc import Callable
+from typing import Callable, Dict
+from concurrent.futures import Future
 
 import duet
 
@@ -32,7 +33,7 @@ class ResponseDemux:
     """
 
     def __init__(self, cancel_callback: CancelCallback):
-        self._subscribers: dict[JobPath, dict[MessageId, duet.AwaitableFuture]] = {}
+        self._subscribers: Dict[JobPath, Dict[MessageId, duet.AwaitableFuture]] = {}
         self._cancel_callback = cancel_callback
 
     def subscribe(
@@ -63,7 +64,7 @@ class ResponseDemux:
         if request.message_id in subscribers_by_message:
             raise ValueError(f'There is another subscriber for the message ID {request.message_id}')
 
-        def cancel(future: duet.AwaitableFuture[quantum.QuantumRunStreamResponse]):
+        def cancel(future: Future[quantum.QuantumRunStreamResponse]):
             if future.cancelled():
                 self._cancel_callback(request)
 
