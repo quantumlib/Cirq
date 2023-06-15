@@ -8,8 +8,9 @@
 ################################################################################
 
 # Get the working directory to the repo root.
-cd "$( dirname "${BASH_SOURCE[0]}" )"
-cd "$(git rev-parse --show-toplevel)"
+thisdir="$(dirname "${BASH_SOURCE[0]}")" || exit $?
+topdir="$(git -C "${thisdir}" rev-parse --show-toplevel)" || exit $?
+cd "${topdir}" || exit $?
 
 # Check for non-contrib references to contrib.
 results=$(grep -Rl "\bcirq\.contrib\b" cirq-core | grep -v "cirq/contrib" | grep -v "__")

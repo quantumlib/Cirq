@@ -12,17 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import os
-import random
-
 import pytest
-
-# allow CI execution of isolated_packages_test.py without numpy
-try:
-    import numpy
-except ImportError:
-    # coverage: ignore
-    numpy = None
 
 
 def pytest_configure(config):
@@ -47,18 +37,3 @@ def pytest_addoption(parser):
         default=False,
         help="run Rigetti integration tests",
     )
-
-
-@pytest.fixture
-def closefigures():
-    import matplotlib.pyplot as plt
-
-    yield
-    plt.close('all')
-
-
-# skip seeding for unset or empty CIRQ_TESTING_RANDOM_SEED
-if numpy is not None and os.environ.get('CIRQ_TESTING_RANDOM_SEED'):
-    rngseed = int(os.environ['CIRQ_TESTING_RANDOM_SEED'])
-    random.seed(rngseed)
-    numpy.random.seed(rngseed)

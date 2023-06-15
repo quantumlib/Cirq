@@ -16,25 +16,28 @@
 
 import itertools
 from typing import (
+    AbstractSet,
     Any,
     Callable,
+    cast,
     Dict,
     FrozenSet,
     Iterable,
     Iterator,
+    List,
     Mapping,
     overload,
     Optional,
     Sequence,
     Tuple,
     TYPE_CHECKING,
-    TypeVar,
     Union,
 )
+from typing_extensions import Self
 
 import numpy as np
 
-from cirq import protocols, ops, qis
+from cirq import protocols, ops, qis, _compat
 from cirq._import import LazyLoader
 from cirq.ops import raw_types, op_tree
 from cirq.protocols import circuit_diagram_info_protocol
@@ -49,8 +52,6 @@ op_tree = LazyLoader("op_tree", globals(), "cirq.ops.op_tree")
 text_diagram_drawer = LazyLoader(
     "text_diagram_drawer", globals(), "cirq.circuits.text_diagram_drawer"
 )
-
-TSelf_Moment = TypeVar('TSelf_Moment', bound='Moment')
 
 
 def _default_breakdown(qid: 'cirq.Qid') -> Tuple[Any, Any]:
@@ -80,17 +81,26 @@ class Moment:
             are no such operations, returns an empty Moment.
     """
 
-    def __init__(self, *contents: 'cirq.OP_TREE') -> None:
+    def __init__(self, *contents: 'cirq.OP_TREE', _flatten_contents: bool = True) -> None:
         """Constructs a moment with the given operations.
 
         Args:
             contents: The operations applied within the moment.
                 Will be flattened and frozen into a tuple before storing.
+            _flatten_contents: If True, use flatten_to_ops to convert
+                the OP_TREE of contents into a tuple of Operation. If False,
+                we skip flattening and assume that contents already consists
+                of individual operations. This is used internally by helper
+                methods to avoid unnecessary validation.
 
         Raises:
             ValueError: A qubit appears more than once.
         """
-        self._operations = tuple(op_tree.flatten_to_ops(contents))
+        self._operations = (
+            tuple(op_tree.flatten_to_ops(contents))
+            if _flatten_contents
+            else cast(Tuple['cirq.Operation'], contents)
+        )
         self._sorted_operations: Optional[Tuple['cirq.Operation', ...]] = None
 
         # An internal dictionary to support efficient operation access by qubit.
@@ -105,6 +115,20 @@ class Moment:
         self._qubits = frozenset(self._qubit_to_op.keys())
         self._measurement_key_objs: Optional[FrozenSet['cirq.MeasurementKey']] = None
         self._control_keys: Optional[FrozenSet['cirq.MeasurementKey']] = None
+
+    @classmethod
+    def from_ops(cls, *ops: 'cirq.Operation') -> 'cirq.Moment':
+        """Construct a Moment from the given operations.
+
+        This avoids calling `flatten_to_ops` in the moment constructor, which
+        results in better performance in cases where the contents of the moment
+        are already in the form of a sequence of operations rather than an
+        arbitrary OP_TREE.
+
+        Args:
+            *ops: Operations to include in the Moment.
+        """
+        return cls(*ops, _flatten_contents=False)
 
     @property
     def operations(self) -> Tuple['cirq.Operation', ...]:
@@ -146,8 +170,7 @@ class Moment:
         """
         if self.operates_on([qubit]):
             return self.__getitem__(qubit)
-        else:
-            return None
+        return None
 
     def with_operation(self, operation: 'cirq.Operation') -> 'cirq.Moment':
         """Returns an equal moment, but with the given op added.
@@ -165,7 +188,7 @@ class Moment:
             raise ValueError(f'Overlapping operations: {operation}')
 
         # Use private variables to facilitate a quick copy.
-        m = Moment()
+        m = Moment(_flatten_contents=False)
         m._operations = self._operations + (operation,)
         m._sorted_operations = None
         m._qubits = self._qubits.union(operation.qubits)
@@ -192,7 +215,10 @@ class Moment:
         """
         flattened_contents = tuple(op_tree.flatten_to_ops(contents))
 
-        m = Moment()
+        if not flattened_contents:
+            return self
+
+        m = Moment(_flatten_contents=False)
         # Use private variables to facilitate a quick copy.
         m._qubit_to_op = self._qubit_to_op.copy()
         qubits = set(self._qubits)
@@ -233,6 +259,28 @@ class Moment:
             if qubits.isdisjoint(frozenset(operation.qubits))
         )
 
+    @_compat.cached_method()
+    def _is_parameterized_(self) -> bool:
+        return any(protocols.is_parameterized(op) for op in self)
+
+    @_compat.cached_method()
+    def _parameter_names_(self) -> AbstractSet[str]:
+        return {name for op in self for name in protocols.parameter_names(op)}
+
+    def _resolve_parameters_(
+        self, resolver: 'cirq.ParamResolver', recursive: bool
+    ) -> 'cirq.Moment':
+        changed = False
+        resolved_ops: List['cirq.Operation'] = []
+        for op in self:
+            resolved_op = protocols.resolve_parameters(op, resolver, recursive)
+            if resolved_op != op:
+                changed = True
+            resolved_ops.append(resolved_op)
+        if not changed:
+            return self
+        return Moment(resolved_ops)
+
     def _with_measurement_key_mapping_(self, key_map: Mapping[str, str]):
         return Moment(
             protocols.with_measurement_key_mapping(op, key_map)
@@ -241,6 +289,7 @@ class Moment:
             for op in self.operations
         )
 
+    @_compat.cached_method()
     def _measurement_key_names_(self) -> FrozenSet[str]:
         return frozenset(str(key) for key in self._measurement_key_objs_())
 
@@ -308,6 +357,7 @@ class Moment:
     def __ne__(self, other) -> bool:
         return not self == other
 
+    @_compat.cached_method()
     def __hash__(self):
         return hash((Moment, self._sorted_operations_()))
 
@@ -345,9 +395,8 @@ class Moment:
         return self._operations
 
     def transform_qubits(
-        self: TSelf_Moment,
-        qubit_map: Union[Dict['cirq.Qid', 'cirq.Qid'], Callable[['cirq.Qid'], 'cirq.Qid']],
-    ) -> TSelf_Moment:
+        self, qubit_map: Union[Dict['cirq.Qid', 'cirq.Qid'], Callable[['cirq.Qid'], 'cirq.Qid']]
+    ) -> Self:
         """Returns the same moment, but with different qubits.
 
         Args:
@@ -381,6 +430,7 @@ class Moment:
             operations.append(ops.I(q))
         return Moment(*operations)
 
+    @_compat.cached_method()
     def _has_kraus_(self) -> bool:
         """Returns True if self has a Kraus representation and self uses <= 10 qubits."""
         return all(protocols.has_kraus(op) for op in self.operations) and len(self.qubits) <= 10
@@ -457,7 +507,7 @@ class Moment:
 
     @classmethod
     def _from_json_dict_(cls, operations, **kwargs):
-        return Moment(operations)
+        return cls.from_ops(*operations)
 
     def __add__(self, other: 'cirq.OP_TREE') -> 'cirq.Moment':
 

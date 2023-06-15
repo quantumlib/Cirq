@@ -11,7 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from typing import cast, Dict, Hashable, Iterable, Iterator, List, Optional, Sequence, Set
+from typing import cast, Dict, Hashable, Iterable, List, Optional, Sequence
 from collections import OrderedDict
 import dataclasses
 import numpy as np
@@ -28,18 +28,15 @@ class MeasureInfo:
     Attributes:
         key: String identifying this measurement.
         qubits: List of measured qubits, in order.
-        slot: The location of this measurement within the program. For circuits,
-            this is just the moment index; for schedules it is the start time
-            of the measurement. This is used internally when scheduling on
-            hardware so that we can combine measurements that occupy the same
-            slot.
+        instances: The number of times a given key occurs in a circuit.
         invert_mask: a list of booleans describing whether the results should
             be flipped for each of the qubits in the qubits field.
+        tags: Tags applied to this measurement gate.
     """
 
     key: str
     qubits: List[cirq.GridQubit]
-    slot: int
+    instances: int
     invert_mask: List[bool]
     tags: List[Hashable]
 
@@ -54,34 +51,32 @@ def find_measurements(program: cirq.AbstractCircuit) -> List[MeasureInfo]:
         NotImplementedError: If the program is of a type that is not recognized.
         ValueError: If there is a duplicate measurement key.
     """
-    measurements: List[MeasureInfo] = []
-    keys: Set[str] = set()
-
-    if isinstance(program, cirq.AbstractCircuit):
-        measure_iter = _circuit_measurements(program)
-    else:
+    if not isinstance(program, cirq.AbstractCircuit):
         raise NotImplementedError(f'Unrecognized program type: {type(program)}')
 
-    for m in measure_iter:
-        if m.key in keys:
-            raise ValueError(f'Duplicate measurement key: {m.key}')
-        keys.add(m.key)
-        measurements.append(m)
-
-    return measurements
-
-
-def _circuit_measurements(circuit: cirq.AbstractCircuit) -> Iterator[MeasureInfo]:
-    for i, moment in enumerate(circuit):
+    measurements: Dict[str, MeasureInfo] = {}
+    for moment in program:
         for op in moment:
             if isinstance(op.gate, cirq.MeasurementGate):
-                yield MeasureInfo(
+                m = MeasureInfo(
                     key=op.gate.key,
                     qubits=_grid_qubits(op),
-                    slot=i,
+                    instances=1,
                     invert_mask=list(op.gate.full_invert_mask()),
                     tags=list(op.tags),
                 )
+                prev_m = measurements.get(m.key)
+                if prev_m is None:
+                    measurements[m.key] = m
+                else:
+                    if (
+                        m.qubits != prev_m.qubits
+                        or m.invert_mask != prev_m.invert_mask
+                        or m.tags != prev_m.tags
+                    ):
+                        raise ValueError(f"Incompatible repeated keys: {m}, {prev_m}")
+                    prev_m.instances += 1
+    return list(measurements.values())
 
 
 def _grid_qubits(op: cirq.Operation) -> List[cirq.GridQubit]:
@@ -137,21 +132,23 @@ def results_to_proto(
                 sweep_result.repetitions = trial_result.repetitions
             elif trial_result.repetitions != sweep_result.repetitions:
                 raise ValueError('Different numbers of repetitions in one sweep.')
+            reps = sweep_result.repetitions
             pr = sweep_result.parameterized_results.add()
             pr.params.assignments.update(trial_result.params.param_dict)
             for m in measurements:
                 mr = pr.measurement_results.add()
                 mr.key = m.key
-                m_data = trial_result.measurements[m.key]
+                mr.instances = m.instances
+                m_data = trial_result.records[m.key]
                 for i, qubit in enumerate(m.qubits):
                     qmr = mr.qubit_measurement_results.add()
                     qmr.qubit.id = v2.qubit_to_proto_id(qubit)
-                    qmr.results = pack_bits(m_data[:, i])
+                    qmr.results = pack_bits(m_data[:, :, i].reshape(reps * m.instances))
     return out
 
 
 def results_from_proto(
-    msg: result_pb2.Result, measurements: List[MeasureInfo] = None
+    msg: result_pb2.Result, measurements: Optional[List[MeasureInfo]] = None
 ) -> Sequence[Sequence[cirq.Result]]:
     """Converts a v2 result proto into List of list of trial results.
 
@@ -173,7 +170,7 @@ def results_from_proto(
 
 
 def _trial_sweep_from_proto(
-    msg: result_pb2.SweepResult, measure_map: Dict[str, MeasureInfo] = None
+    msg: result_pb2.SweepResult, measure_map: Optional[Dict[str, MeasureInfo]] = None
 ) -> Sequence[cirq.Result]:
     """Converts a SweepResult proto into List of list of trial results.
 
@@ -193,22 +190,22 @@ def _trial_sweep_from_proto(
 
     trial_sweep: List[cirq.Result] = []
     for pr in msg.parameterized_results:
-        m_data: Dict[str, np.ndarray] = {}
+        records: Dict[str, np.ndarray] = {}
         for mr in pr.measurement_results:
+            instances = max(mr.instances, 1)
             qubit_results: OrderedDict[cirq.GridQubit, np.ndarray] = OrderedDict()
             for qmr in mr.qubit_measurement_results:
                 qubit = v2.grid_qubit_from_proto_id(qmr.qubit.id)
                 if qubit in qubit_results:
                     raise ValueError(f'Qubit already exists: {qubit}.')
-                qubit_results[qubit] = unpack_bits(qmr.results, msg.repetitions)
+                qubit_results[qubit] = unpack_bits(qmr.results, msg.repetitions * instances)
             if measure_map:
                 ordered_results = [qubit_results[qubit] for qubit in measure_map[mr.key].qubits]
             else:
                 ordered_results = list(qubit_results.values())
-            m_data[mr.key] = np.array(ordered_results).transpose()
+            shape = (msg.repetitions, instances, len(qubit_results))
+            records[mr.key] = np.array(ordered_results).transpose().reshape(shape)
         trial_sweep.append(
-            cirq.ResultDict(
-                params=cirq.ParamResolver(dict(pr.params.assignments)), measurements=m_data
-            )
+            cirq.ResultDict(params=cirq.ParamResolver(dict(pr.params.assignments)), records=records)
         )
     return trial_sweep

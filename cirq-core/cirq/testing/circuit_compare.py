@@ -220,6 +220,40 @@ def _first_differing_moment_index(
     return None  # coverage: ignore
 
 
+def assert_circuits_have_same_unitary_given_final_permutation(
+    actual: circuits.AbstractCircuit,
+    expected: circuits.AbstractCircuit,
+    qubit_map: Dict[ops.Qid, ops.Qid],
+) -> None:
+    """Asserts two circuits have the same unitary up to a final permuation of qubits.
+
+    Args:
+        actual: A circuit computed by some code under test.
+        expected: The circuit that should have been computed.
+        qubit_map: the permutation of qubits from the beginning to the end of the circuit.
+
+    Raises:
+        ValueError: if 'qubit_map' is not a mapping from the qubits in 'actual' to themselves.
+        ValueError: if 'qubit_map' does not have the same set of keys and values.
+    """
+    if set(qubit_map.keys()) != set(qubit_map.values()):
+        raise ValueError("'qubit_map' must have the same set of keys and values.")
+
+    if not set(qubit_map.keys()).issubset(actual.all_qubits()):
+        raise ValueError(
+            "'qubit_map' must be a mapping of the qubits in the circuit 'actual' to themselves."
+        )
+
+    actual_cp = actual.unfreeze()
+    initial_qubits, sorted_qubits = zip(*sorted(qubit_map.items(), key=lambda x: x[1]))
+    inverse_permutation = [sorted_qubits.index(q) for q in initial_qubits]
+    actual_cp.append(ops.QubitPermutationGate(list(inverse_permutation)).on(*sorted_qubits))
+
+    lin_alg_utils.assert_allclose_up_to_global_phase(
+        expected.unitary(), actual_cp.unitary(), atol=1e-8
+    )
+
+
 def assert_has_diagram(
     actual: Union[circuits.AbstractCircuit, circuits.Moment], desired: str, **kwargs
 ) -> None:
@@ -295,8 +329,52 @@ def assert_has_consistent_apply_unitary(val: Any, *, atol: float = 1e-8) -> None
     # If you applied a unitary, it should match the one you say you have.
     if actual is not None:
         assert expected is not None
-        n = np.product([2, *qid_shape])
+        n = np.prod([2, *qid_shape])
         np.testing.assert_allclose(actual.reshape(n, n), expected, atol=atol)
+
+
+def assert_has_consistent_apply_channel(val: Any, *, atol: float = 1e-8) -> None:
+    """Tests whether a value's _apply_channel_ is correct.
+
+    Contrasts the effects of the value's `_apply_channel_` with the superoperator calculated from
+    the Kraus components returned by the value's `_kraus_` method.
+
+    Args:
+        val: The value under test. Should have a `__pow__` method.
+        atol: Absolute error tolerance.
+    """
+    # pylint: disable=unused-variable
+    __tracebackhide__ = True
+    # pylint: enable=unused-variable
+
+    kraus = protocols.kraus(val, default=None)
+    expected = qis.kraus_to_superoperator(kraus) if kraus is not None else None
+
+    qid_shape = protocols.qid_shape(val)
+
+    eye = qis.eye_tensor(qid_shape * 2, dtype=np.complex128)
+    actual = protocols.apply_channel(
+        val=val,
+        args=protocols.ApplyChannelArgs(
+            target_tensor=eye,
+            out_buffer=np.ones_like(eye) * float('nan'),
+            auxiliary_buffer0=np.ones_like(eye) * float('nan'),
+            auxiliary_buffer1=np.ones_like(eye) * float('nan'),
+            left_axes=list(range(len(qid_shape))),
+            right_axes=list(range(len(qid_shape), len(qid_shape) * 2)),
+        ),
+        default=None,
+    )
+
+    # If you don't have a Kraus, you shouldn't be able to apply a channel.
+    if expected is None:
+        assert actual is None
+
+    # If you applied a channel, it should match the superoperator you say you have.
+    if actual is not None:
+        assert expected is not None
+        n = np.prod(qid_shape) ** 2
+        np.testing.assert_allclose(actual.reshape((n, n)), expected, atol=atol)
 
 
 def _assert_apply_unitary_works_when_axes_transposed(val: Any, *, atol: float = 1e-8) -> None:

@@ -479,7 +479,7 @@ def test_get_batch_size(get_program_async):
         _ = program.batch_size()
 
 
-@pytest.fixture(scope='session', autouse=True)
+@pytest.fixture(scope='module', autouse=True)
 def mock_grpc_client():
     with mock.patch(
         'cirq_google.engine.engine_client.quantum.QuantumEngineServiceClient'

@@ -174,9 +174,9 @@ class CliffordTableau(StabilizerState):
                 new_rs = np.append(rs, np.zeros(1, dtype=bool))
             else:
                 raise ValueError(
-                    f"The value you passed for rs is not the correct shape and/or type. "
-                    f"Please confirm that it's a single row with 2*num_qubits columns "
-                    f"and of type bool."
+                    "The value you passed for rs is not the correct shape and/or type. "
+                    "Please confirm that it's a single row with 2*num_qubits columns "
+                    "and of type bool."
                 )
         return new_rs
 
@@ -196,9 +196,9 @@ class CliffordTableau(StabilizerState):
                 new_xs = np.append(xs, np.zeros((1, self.n), dtype=bool), axis=0)
             else:
                 raise ValueError(
-                    f"The value you passed for xs is not the correct shape and/or type. "
-                    f"Please confirm that it's 2*num_qubits rows, num_qubits columns, "
-                    f"and of type bool."
+                    "The value you passed for xs is not the correct shape and/or type. "
+                    "Please confirm that it's 2*num_qubits rows, num_qubits columns, "
+                    "and of type bool."
                 )
         return new_xs
 
@@ -219,9 +219,9 @@ class CliffordTableau(StabilizerState):
                 new_zs = np.append(zs, np.zeros((1, self.n), dtype=bool), axis=0)
             else:
                 raise ValueError(
-                    f"The value you passed for zs is not the correct shape and/or type. "
-                    f"Please confirm that it's 2*num_qubits rows, num_qubits columns, "
-                    f"and of type bool."
+                    "The value you passed for zs is not the correct shape and/or type. "
+                    "Please confirm that it's 2*num_qubits rows, num_qubits columns, "
+                    "and of type bool."
                 )
         return new_zs
 

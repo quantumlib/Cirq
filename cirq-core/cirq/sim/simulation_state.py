@@ -23,18 +23,19 @@ from typing import (
     List,
     Optional,
     Sequence,
+    Set,
     TypeVar,
     TYPE_CHECKING,
     Tuple,
 )
+from typing_extensions import Self
 
 import numpy as np
 
-from cirq import protocols, value
-from cirq.protocols.decompose_protocol import _try_decompose_into_operations_and_qubits
+from cirq import ops, protocols, value
+
 from cirq.sim.simulation_state_base import SimulationStateBase
 
-TSelf = TypeVar('TSelf', bound='SimulationState')
 TState = TypeVar('TState', bound='cirq.QuantumStateRepresentation')
 
 if TYPE_CHECKING:
@@ -146,7 +147,7 @@ class SimulationState(SimulationStateBase, Generic[TState], metaclass=abc.ABCMet
             return self._state.sample(self.get_axes(qubits), repetitions, seed)
         raise NotImplementedError()
 
-    def copy(self: TSelf, deep_copy_buffers: bool = True) -> TSelf:
+    def copy(self, deep_copy_buffers: bool = True) -> Self:
         """Creates a copy of the object.
 
         Args:
@@ -162,11 +163,43 @@ class SimulationState(SimulationStateBase, Generic[TState], metaclass=abc.ABCMet
         args._state = self._state.copy(deep_copy_buffers=deep_copy_buffers)
         return args
 
-    def create_merged_state(self: TSelf) -> TSelf:
+    def create_merged_state(self) -> Self:
         """Creates a final merged state."""
         return self
 
-    def kronecker_product(self: TSelf, other: TSelf, *, inplace=False) -> TSelf:
+    def add_qubits(self: Self, qubits: Sequence['cirq.Qid']) -> Self:
+        """Add `qubits` in the `|0>` state to a new state space and take the kron product.
+
+        Args:
+            qubits: Sequence of qubits to be added.
+
+        Returns:
+            NotImplemented: If the subclass does not implement this method.
+            Self: A `cirq.SimulationState` with qubits added or `self` if there are no qubits to
+                add.
+        """
+        if not qubits:
+            return self
+        return NotImplemented
+
+    def remove_qubits(self: Self, qubits: Sequence['cirq.Qid']) -> Self:
+        """Remove `qubits` from the state space.
+
+        The qubits to be removed should be untangled from rest of the system and in the |0> state.
+
+        Args:
+            qubits: Sequence of qubits to be removed.
+
+        Returns:
+            NotImplemented: If the subclass does not implement this method.
+            Self: A `cirq.SimulationState` with qubits removed or `self` if there are no qubits to
+                remove.
+        """
+        if not qubits:
+            return self
+        return NotImplemented
+
+    def kronecker_product(self, other: Self, *, inplace=False) -> Self:
         """Joins two state spaces together."""
         args = self if inplace else copy.copy(self)
         args._state = self._state.kron(other._state)
@@ -174,8 +207,8 @@ class SimulationState(SimulationStateBase, Generic[TState], metaclass=abc.ABCMet
         return args
 
     def factor(
-        self: TSelf, qubits: Sequence['cirq.Qid'], *, validate=True, atol=1e-07, inplace=False
-    ) -> Tuple[TSelf, TSelf]:
+        self, qubits: Sequence['cirq.Qid'], *, validate=True, atol=1e-07, inplace=False
+    ) -> Tuple[Self, Self]:
         """Splits two state spaces after a measurement or reset."""
         extracted = copy.copy(self)
         remainder = self if inplace else copy.copy(self)
@@ -191,9 +224,7 @@ class SimulationState(SimulationStateBase, Generic[TState], metaclass=abc.ABCMet
         """Subclasses that allow factorization should override this."""
         return self._state.supports_factor if self._state is not None else False
 
-    def transpose_to_qubit_order(
-        self: TSelf, qubits: Sequence['cirq.Qid'], *, inplace=False
-    ) -> TSelf:
+    def transpose_to_qubit_order(self, qubits: Sequence['cirq.Qid'], *, inplace=False) -> Self:
         """Physically reindexes the state by the new basis.
 
         Args:
@@ -276,7 +307,7 @@ class SimulationState(SimulationStateBase, Generic[TState], metaclass=abc.ABCMet
         args._set_qubits(qubits)
         return args
 
-    def __getitem__(self: TSelf, item: Optional['cirq.Qid']) -> TSelf:
+    def __getitem__(self, item: Optional['cirq.Qid']) -> Self:
         if item not in self.qubit_map:
             raise IndexError(f'{item} not in {self.qubits}')
         return self
@@ -295,14 +326,23 @@ class SimulationState(SimulationStateBase, Generic[TState], metaclass=abc.ABCMet
 def strat_act_on_from_apply_decompose(
     val: Any, args: 'cirq.SimulationState', qubits: Sequence['cirq.Qid']
 ) -> bool:
-    operations, qubits1, _ = _try_decompose_into_operations_and_qubits(val)
-    assert len(qubits1) == len(qubits)
-    qubit_map = {q: qubits[i] for i, q in enumerate(qubits1)}
-    if operations is None:
+    if isinstance(val, ops.Gate):
+        decomposed = protocols.decompose_once_with_qubits(val, qubits, flatten=False, default=None)
+    else:
+        decomposed = protocols.decompose_once(val, flatten=False, default=None)
+    if decomposed is None:
         return NotImplemented
-    for operation in operations:
-        operation = operation.with_qubits(*[qubit_map[q] for q in operation.qubits])
+    all_ancilla: Set['cirq.Qid'] = set()
+    for operation in ops.flatten_to_ops(decomposed):
+        curr_ancilla = tuple(q for q in operation.qubits if q not in args.qubits)
+        args = args.add_qubits(curr_ancilla)
+        if args is NotImplemented:
+            return NotImplemented
+        all_ancilla.update(curr_ancilla)
         protocols.act_on(operation, args)
+    args = args.remove_qubits(tuple(all_ancilla))
+    if args is NotImplemented:
+        raise TypeError(f"{type(args)} implements add_qubits but not remove_qubits.")
     return True
 
 

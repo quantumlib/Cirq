@@ -363,6 +363,12 @@ class WeightedZPowGate(cirq.EigenGate, cirq.testing.SingleQubitGate):
         (cirq.X, cirq.Y, False),
         (cirq.rz(np.pi), cirq.Z, True),
         (cirq.X**0.3, cirq.Z**0.3, False),
+        (cirq.Z, cirq.Z ** (1 - 1e-10), True),
+        (cirq.Z, cirq.Z ** (1 + 1e-10), True),
+        (cirq.Z, cirq.Z ** (3 - 1e-10), True),
+        (cirq.Z, cirq.Z ** (3 + 1e-10), True),
+        (cirq.Z**2, cirq.Z ** (4 - 1e-10), True),
+        (cirq.Z**2, cirq.Z ** (4 + 1e-10), True),
     ],
 )
 def test_equal_up_to_global_phase(gate1, gate2, eq_up_to_global_phase):

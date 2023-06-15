@@ -90,35 +90,40 @@ def get_qcs_objects_for_notebook(
     # set or `gcloud auth application-default login` was executed
     # already. For more information on using Application Default Credentials
     # see https://cloud.google.com/docs/authentication/production
-    try:
-        from google.colab import auth
-    except ImportError:
-        print("Not running in a colab kernel. Will use Application Default Credentials.")
-    else:
-        print("Getting OAuth2 credentials.")
-        print("Press enter after entering the verification code.")
-        try:
-            auth.authenticate_user(clear_output=False)
-            print("Authentication complete.")
-        except Exception as exc:
-            print(f"Authentication failed: {exc}")
-
     # Attempt to connect to the Quantum Engine API, and use a simulator if unable to connect.
-    if virtual:
-        engine: AbstractEngine = create_noiseless_virtual_engine_from_latest_templates()
-        signed_in = False
-        is_simulator = True
-    else:
+    if not virtual:
+        # Set up auth
         try:
-            engine = get_engine(project_id)
+            from google.colab import auth
+        except ImportError:
+            print("Not running in a colab kernel. Will use Application Default Credentials.")
+        else:
+            print("Getting OAuth2 credentials.")
+            print("Press enter after entering the verification code.")
+            try:
+                a = auth.authenticate_user(clear_output=False)
+                print(a)
+                print("Authentication complete.")
+            except Exception as exc:
+                print(f"Authentication failed: {exc}")
+                print("Using virtual engine instead.")
+                virtual = True
+
+    if not virtual:
+        # Set up production engine
+        try:
+            engine: AbstractEngine = get_engine(project_id)
             signed_in = True
             is_simulator = False
         except Exception as exc:
             print(f"Unable to connect to quantum engine: {exc}")
             print("Using a noisy simulator.")
-            engine = create_noiseless_virtual_engine_from_latest_templates()
-            signed_in = False
-            is_simulator = True
+            virtual = True
+    if virtual:
+        engine = create_noiseless_virtual_engine_from_latest_templates()
+        signed_in = False
+        is_simulator = True
+
     if processor_id:
         processor = engine.get_processor(processor_id)
     else:

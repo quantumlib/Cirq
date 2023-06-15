@@ -266,7 +266,6 @@ def _simplify_cnots_triplets(
             )
             # Since we removed the pivot, the length should be one fewer.
             cnots = [cnots[idx] for idx in new_idx]
-            # TODO(#4532): Speed up code by not returning early.
             return True, cnots
 
     return False, cnots

@@ -82,7 +82,7 @@ class FSimGateFamily(cirq.GateFamily):
     >>> assert gf.convert(cirq.FSimGate(-np.pi/2, sympy.Symbol("t")), cirq.ISwapPowGate) is None
 
     2. To convert to/from any of the parameterized `POSSIBLE_FSIM_GATES` types (assuming correct
-        value of the parameter would be filled in during paramter resolution):
+        value of the parameter would be filled in during parameter resolution):
     >>> gf = cirq_google.FSimGateFamily(allow_symbols = True)
     >>> theta, phi = sympy.Symbol("theta"), sympy.Symbol("phi")
     >>> assert gf.convert(cirq.FSimGate(-np.pi/4, phi), cirq.ISwapPowGate) == cirq.SQRT_ISWAP
@@ -311,7 +311,7 @@ class FSimGateFamily(cirq.GateFamily):
 
         The method can also be used for converting parameterized gate instances, by setting
         `allow_symbols=True` in the gate family constructor. Note that, conversion of
-        paramaterized gate instances tries to be lenient and assumes that the correct
+        parameterized gate instances tries to be lenient and assumes that the correct
         parameters would eventually be filled during parameter resolution. This can also result
         in dropping extra parameters during type conversion, assuming the dropped parameters
         would be supplied the correct values. For example:
@@ -326,7 +326,7 @@ class FSimGateFamily(cirq.GateFamily):
             target_gate_type: One of `POSSIBLE_FSIM_GATES` types to which the given gate should be
                               converted to.
         Returns:
-            The converted gate instances if the converion is possible, else None.
+            The converted gate instances if the conversion is possible, else None.
         Raises:
             ValueError: If `target_gate_type` is not one of `POSSIBLE_FSIM_GATES`.
         """

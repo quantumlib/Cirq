@@ -12,12 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 from typing import Any, Sequence, Tuple
+from typing_extensions import Self
 
 import numpy as np
 import pytest
 
 import cirq
-from cirq.ops.raw_types import TSelf
 
 
 class DummyQuantumState(cirq.QuantumStateRepresentation):
@@ -62,10 +62,10 @@ def test_act_on_fallback_errors():
 def test_act_on_errors():
     class Op(cirq.Operation):
         @property
-        def qubits(self) -> Tuple['cirq.Qid', ...]:
+        def qubits(self) -> Tuple['cirq.Qid', ...]:  # type: ignore[empty-body]
             pass
 
-        def with_qubits(self: TSelf, *new_qubits: 'cirq.Qid') -> TSelf:
+        def with_qubits(self, *new_qubits: 'cirq.Qid') -> Self:  # type: ignore[empty-body]
             pass
 
         def _act_on_(self, sim_state):
@@ -79,10 +79,10 @@ def test_act_on_errors():
 def test_qubits_not_allowed_for_operations():
     class Op(cirq.Operation):
         @property
-        def qubits(self) -> Tuple['cirq.Qid', ...]:
+        def qubits(self) -> Tuple['cirq.Qid', ...]:  # type: ignore[empty-body]
             pass
 
-        def with_qubits(self: TSelf, *new_qubits: 'cirq.Qid') -> TSelf:
+        def with_qubits(self, *new_qubits: 'cirq.Qid') -> Self:  # type: ignore[empty-body]
             pass
 
     state = DummySimulationState()

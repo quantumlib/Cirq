@@ -70,6 +70,15 @@ class GPIGate(cirq.Gate):
     ) -> Union[str, 'protocols.CircuitDiagramInfo']:
         return protocols.CircuitDiagramInfo(wire_symbols=(f'GPI({self.phase!r})',))
 
+    def __pow__(self, power):
+        if power == 1:
+            return self
+
+        if power == -1:
+            return self
+
+        return NotImplemented
+
 
 GPI = GPIGate(phi=0)
 document(
@@ -137,6 +146,15 @@ class GPI2Gate(cirq.Gate):
     def _value_equality_values_(self) -> Any:
         return self.phi
 
+    def __pow__(self, power):
+        if power == 1:
+            return self
+
+        if power == -1:
+            return GPI2Gate(phi=self.phi + 0.5)
+
+        return NotImplemented
+
 
 GPI2 = GPI2Gate(phi=0)
 document(
@@ -161,35 +179,38 @@ document(
 class MSGate(cirq.Gate):
     r"""The Mølmer–Sørensen (MS) gate is a two qubit gate native to trapped ions.
 
-    The unitary matrix of this gate for parameters $\phi_0$ and $\phi_1$ is
+    The unitary matrix of this gate for parameters $\phi_0$, $\phi_1$ and $\theta is
 
     $$
-    \frac{1}{\sqrt{2}}
     \begin{bmatrix}
-        1 & 0 &  0 & -ie^{-i2\pi(\phi_0+\phi_1)} \\
-        0 & 1 & -ie^{-i2\pi(\phi_0-\phi_1)} & 0 \\
-        0 & -ie^{i2\pi(\phi_0-\phi_1)} & 1 & 0 \\
-        -ie^{i2\pi(\phi_0+\phi_1)} & 0 & 0 & 1 \\
+        cos{\theta/2} & 0 & 0 & -i*e^{-i*2*\pi(\phi_0+\phi_1)}*sin{\theta/2} \\
+        0 & cos{\theta/2} & -i*e^{-i*2*\pi(\phi_0-\phi_1)}*sin{\theta/2} & 0 \\
+        0 & -i*e^{i*2*\pi(\phi_0-\phi_1)}*sin(\theta/2) & cos{\theta/2} & 0 \\
+        -i*e^{i*2*\pi(\phi_0+\phi_1)}*sin{\theta/2} & 0 & 0 & cos{\theta/2}
     \end{bmatrix}
     $$
 
     See [IonQ best practices](https://ionq.com/docs/getting-started-with-native-gates){:external}.
     """
 
-    def __init__(self, *, phi0, phi1):
+    def __init__(self, *, phi0, phi1, theta=0.25):
         self.phi0 = phi0
         self.phi1 = phi1
+        self.theta = theta
 
     def _unitary_(self) -> np.ndarray:
-        diag = 1 / math.sqrt(2)
+        theta = self.theta
         phi0 = self.phi0
         phi1 = self.phi1
+        diag = np.cos(math.pi * theta)
+        sin = np.sin(math.pi * theta)
+
         return np.array(
             [
-                [diag, 0, 0, diag * -1j * cmath.exp(-1j * 2 * math.pi * (phi0 + phi1))],
-                [0, diag, diag * -1j * cmath.exp(-1j * 2 * math.pi * (phi0 - phi1)), 0],
-                [0, diag * -1j * cmath.exp(1j * 2 * math.pi * (phi0 - phi1)), diag, 0],
-                [diag * -1j * cmath.exp(1j * 2 * math.pi * (phi0 + phi1)), 0, 0, diag],
+                [diag, 0, 0, sin * -1j * cmath.exp(-1j * 2 * math.pi * (phi0 + phi1))],
+                [0, diag, sin * -1j * cmath.exp(-1j * 2 * math.pi * (phi0 - phi1)), 0],
+                [0, sin * -1j * cmath.exp(1j * 2 * math.pi * (phi0 - phi1)), diag, 0],
+                [sin * -1j * cmath.exp(1j * 2 * math.pi * (phi0 + phi1)), 0, 0, diag],
             ]
         )
 
@@ -214,10 +235,19 @@ class MSGate(cirq.Gate):
         return f'cirq_ionq.MSGate(phi0={self.phi0!r}, phi1={self.phi1!r})'
 
     def _json_dict_(self) -> Dict[str, Any]:
-        return cirq.obj_to_dict_helper(self, ['phi0', 'phi1'])
+        return cirq.obj_to_dict_helper(self, ['phi0', 'phi1', 'theta'])
 
     def _value_equality_values_(self) -> Any:
         return (self.phi0, self.phi1)
+
+    def __pow__(self, power):
+        if power == 1:
+            return self
+
+        if power == -1:
+            return MSGate(phi0=self.phi0 + 0.5, phi1=self.phi1)
+
+        return NotImplemented
 
 
 MS = MSGate(phi0=0, phi1=0)

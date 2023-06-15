@@ -140,26 +140,19 @@ class PauliString(raw_types.Operation, Generic[TKey]):
     PauliStrings can be constructed via various different ways, some examples are
     given as follows:
 
-        >>> a, b, c = cirq.LineQubit.range(3)
-
-        >>> print(cirq.PauliString([cirq.X(a), cirq.X(a)]))
-        I
-
-        >>> print(cirq.PauliString(-1, cirq.X(a), cirq.Y(b), cirq.Z(c)))
-        -X(q(0))*Y(q(1))*Z(q(2))
-
-        >>> print(-1 * cirq.X(a) * cirq.Y(b) * cirq.Z(c))
-        -X(q(0))*Y(q(1))*Z(q(2))
-
-        >>> print(cirq.PauliString({a: cirq.X}, [-2, 3, cirq.Y(a)]))
-        -6j*Z(q(0))
-
-        >>> print(cirq.PauliString({a: cirq.I, b: cirq.X}))
-        X(q(1))
-
-        >>> print(cirq.PauliString({a: cirq.Y},
-        ...                        qubit_pauli_map={a: cirq.X}))
-        1j*Z(q(0))
+    >>> a, b, c = cirq.LineQubit.range(3)
+    >>> print(cirq.PauliString([cirq.X(a), cirq.X(a)]))
+    I
+    >>> print(cirq.PauliString(-1, cirq.X(a), cirq.Y(b), cirq.Z(c)))
+    -X(q(0))*Y(q(1))*Z(q(2))
+    >>> print(-1 * cirq.X(a) * cirq.Y(b) * cirq.Z(c))
+    -X(q(0))*Y(q(1))*Z(q(2))
+    >>> print(cirq.PauliString({a: cirq.X}, [-2, 3, cirq.Y(a)]))
+    -6j*Z(q(0))
+    >>> print(cirq.PauliString({a: cirq.I, b: cirq.X}))
+    X(q(1))
+    >>> print(cirq.PauliString({a: cirq.Y}, qubit_pauli_map={a: cirq.X}))
+    1j*Z(q(0))
 
     Note that `cirq.PauliString`s are immutable objects. If you need a mutable version
     of pauli strings, see `cirq.MutablePauliString`.
@@ -249,12 +242,14 @@ class PauliString(raw_types.Operation, Generic[TKey]):
     def get(self, key: Any, default: TDefault) -> Union[pauli_gates.Pauli, TDefault]:
         pass
 
-    def get(self, key: Any, default: TDefault = None) -> Union[pauli_gates.Pauli, TDefault, None]:
+    def get(
+        self, key: Any, default: Optional[TDefault] = None
+    ) -> Union[pauli_gates.Pauli, TDefault, None]:
         """Returns the `cirq.Pauli` operation acting on qubit `key` or `default` if none exists."""
         return self._qubit_pauli_map.get(key, default)
 
     @overload
-    def __mul__(  # type: ignore
+    def __mul__(
         self, other: 'cirq.PauliString[TKeyOther]'
     ) -> 'cirq.PauliString[Union[TKey, TKeyOther]]':
         pass
@@ -513,7 +508,7 @@ class PauliString(raw_types.Operation, Generic[TKey]):
     def _has_unitary_(self) -> bool:
         if self._is_parameterized_():
             return False
-        return abs(1 - abs(self.coefficient)) < 1e-6
+        return abs(1 - abs(cast(complex, self.coefficient))) < 1e-6
 
     def _unitary_(self) -> Optional[np.ndarray]:
         if not self._has_unitary_():

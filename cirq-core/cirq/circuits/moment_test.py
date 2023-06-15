@@ -14,6 +14,7 @@
 
 import numpy as np
 import pytest
+import sympy
 
 import cirq
 import cirq.testing
@@ -169,6 +170,13 @@ def test_operation_at():
     assert cirq.Moment([cirq.CZ(a, b), cirq.X(c)]).operation_at(a) == cirq.CZ(a, b)
 
 
+def test_from_ops():
+    a = cirq.NamedQubit('a')
+    b = cirq.NamedQubit('b')
+
+    assert cirq.Moment.from_ops(cirq.X(a), cirq.Y(b)) == cirq.Moment(cirq.X(a), cirq.Y(b))
+
+
 def test_with_operation():
     a = cirq.NamedQubit('a')
     b = cirq.NamedQubit('b')
@@ -272,6 +280,38 @@ def test_without_operations_touching():
     assert (
         cirq.Moment([cirq.CZ(a, b), cirq.X(c)]).without_operations_touching([a, c]) == cirq.Moment()
     )
+
+
+def test_is_parameterized():
+    a, b = cirq.LineQubit.range(2)
+    moment = cirq.Moment(cirq.X(a) ** sympy.Symbol('v'), cirq.Y(b) ** sympy.Symbol('w'))
+    assert cirq.is_parameterized(moment)
+    assert not cirq.is_parameterized(cirq.Moment(cirq.X(a), cirq.Y(b)))
+
+
+def test_resolve_parameters():
+    a, b = cirq.LineQubit.range(2)
+    moment = cirq.Moment(cirq.X(a) ** sympy.Symbol('v'), cirq.Y(b) ** sympy.Symbol('w'))
+    resolved_moment = cirq.resolve_parameters(moment, cirq.ParamResolver({'v': 0.1, 'w': 0.2}))
+    assert resolved_moment == cirq.Moment(cirq.X(a) ** 0.1, cirq.Y(b) ** 0.2)
+
+
+def test_resolve_parameters_no_change():
+    a, b = cirq.LineQubit.range(2)
+    moment = cirq.Moment(cirq.X(a), cirq.Y(b))
+    resolved_moment = cirq.resolve_parameters(moment, cirq.ParamResolver({'v': 0.1, 'w': 0.2}))
+    assert resolved_moment is moment
+
+    moment = cirq.Moment(cirq.X(a) ** sympy.Symbol('v'), cirq.Y(b) ** sympy.Symbol('w'))
+    resolved_moment = cirq.resolve_parameters(moment, cirq.ParamResolver({}))
+    assert resolved_moment is moment
+
+
+def test_parameter_names():
+    a, b = cirq.LineQubit.range(2)
+    moment = cirq.Moment(cirq.X(a) ** sympy.Symbol('v'), cirq.Y(b) ** sympy.Symbol('w'))
+    assert cirq.parameter_names(moment) == {'v', 'w'}
+    assert cirq.parameter_names(cirq.Moment(cirq.X(a), cirq.Y(b))) == set()
 
 
 def test_with_measurement_keys():
@@ -467,6 +507,7 @@ def test_add():
 
     assert m1 + [[[[cirq.Y(b)]]]] == cirq.Moment(cirq.X(a), cirq.Y(b))
     assert m1 + [] == m1
+    assert m1 + [] is m1
 
 
 def test_sub():
@@ -703,7 +744,6 @@ def test_kraus():
     m = cirq.Moment(cirq.CNOT(a, b))
     assert cirq.has_kraus(m)
     k = cirq.kraus(m)
-    print(k[0])
     assert len(k) == 1
     assert np.allclose(k[0], np.array([[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 0, 1], [0, 0, 1, 0]]))
 

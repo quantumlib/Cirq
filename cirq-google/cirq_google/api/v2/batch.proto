@@ -16,7 +16,7 @@ option java_multiple_files = true;
 // Note: Batching is done on a best-effort basis.
 // Circuits will be be bundled together, but the size
 // of the total batch and different hardware constraints may
-// cause the programs to be executed seperately on the hardware.
+// cause the programs to be executed separately on the hardware.
 message BatchProgram {
 
   // The circuits that should be bundled together as one program

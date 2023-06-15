@@ -28,7 +28,7 @@ def decompose_two_qubit_interaction_into_four_fsim_gates(
     interaction: Union['cirq.SupportsUnitary', np.ndarray],
     *,
     fsim_gate: Union['cirq.FSimGate', 'cirq.ISwapPowGate'],
-    qubits: Sequence['cirq.Qid'] = None,
+    qubits: Optional[Sequence['cirq.Qid']] = None,
 ) -> 'cirq.Circuit':
     """Decomposes operations into an FSimGate near theta=pi/2, phi=0.
 
@@ -67,9 +67,11 @@ def decompose_two_qubit_interaction_into_four_fsim_gates(
         mapped_gate = ops.FSimGate(-fsim_gate.exponent * np.pi / 2, 0)
     else:
         mapped_gate = fsim_gate
-    if not 3 / 8 * np.pi <= abs(mapped_gate.theta) <= 5 / 8 * np.pi:
+    theta, phi = mapped_gate.theta, mapped_gate.phi
+    assert isinstance(theta, float) and isinstance(phi, float)
+    if not 3 / 8 * np.pi <= abs(theta) <= 5 / 8 * np.pi:
         raise ValueError('Must have 3π/8 ≤ |fsim_gate.theta| ≤ 5π/8')
-    if abs(mapped_gate.phi) > np.pi / 4:
+    if abs(phi) > np.pi / 4:
         raise ValueError('Must have abs(fsim_gate.phi) ≤ π/4')
     if qubits is None:
         if isinstance(interaction, ops.Operation):

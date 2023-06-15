@@ -12,7 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import multiprocessing
-import time
 from typing import Dict, Any, Optional
 from typing import Sequence
 
@@ -60,7 +59,7 @@ def test_simulate_circuit_length_validation():
         )
         for _ in range(2)
     ]
-    cycle_depths = np.arange(3, 50, 9)
+    cycle_depths = np.arange(3, 50, 9, dtype=np.int64)
     with pytest.raises(ValueError, match='.*not long enough.*'):
         _ = simulate_2q_xeb_circuits(circuits=circuits, cycle_depths=cycle_depths)
 
@@ -128,23 +127,18 @@ def test_incremental_simulate(multiprocess):
         )
         for _ in range(20)
     ]
-    cycle_depths = np.arange(3, 100, 9)
+    cycle_depths = np.arange(3, 100, 9, dtype=np.int64)
 
     if multiprocess:
         pool = multiprocessing.Pool()
     else:
         pool = None
 
-    start = time.perf_counter()
     df_ref = _ref_simulate_2q_xeb_circuits(circuits=circuits, cycle_depths=cycle_depths, pool=pool)
-    end1 = time.perf_counter()
 
     df = simulate_2q_xeb_circuits(circuits=circuits, cycle_depths=cycle_depths, pool=pool)
-    end2 = time.perf_counter()
     if pool is not None:
         pool.terminate()
-    print("\nnew:", end2 - end1, "old:", end1 - start)
-
     pd.testing.assert_frame_equal(df_ref, df)
 
     # Use below for approximate equality, if e.g. you're using qsim:

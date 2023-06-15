@@ -53,8 +53,9 @@ class MatrixGate(raw_types.Gate):
         self,
         matrix: np.ndarray,
         *,
-        name: str = None,
+        name: Optional[str] = None,
         qid_shape: Optional[Iterable[int]] = None,
+        unitary_check: bool = True,
         unitary_check_rtol: float = 1e-5,
         unitary_check_atol: float = 1e-8,
     ) -> None:
@@ -66,6 +67,10 @@ class MatrixGate(raw_types.Gate):
             qid_shape: The shape of state tensor that the matrix applies to.
                 If not specified, this value is inferred by assuming that the
                 matrix is supposed to apply to qubits.
+            unitary_check: If True, check that the supplied matrix is unitary up to the
+                given tolerances. This should only be disabled if the matrix has already been
+                checked for unitarity, in which case we get a slight performance improvement by
+                not checking again.
             unitary_check_rtol: The relative tolerance for checking whether the supplied matrix
                 is unitary. See `cirq.is_unitary`.
             unitary_check_atol: The absolute tolerance for checking whether the supplied matrix
@@ -99,15 +104,25 @@ class MatrixGate(raw_types.Gate):
                 f'qid_shape: {self._qid_shape}\n'
             )
 
-        if not linalg.is_unitary(matrix, rtol=unitary_check_rtol, atol=unitary_check_atol):
-            raise ValueError(f'Not a unitary matrix: {self._matrix}')
+        if unitary_check and not linalg.is_unitary(
+            matrix, rtol=unitary_check_rtol, atol=unitary_check_atol
+        ):
+            raise ValueError(f'Not a unitary matrix: {matrix}')
+
+    def with_name(self, name: str) -> 'MatrixGate':
+        """Creates a new MatrixGate with the same matrix and a new name."""
+        return MatrixGate(self._matrix, name=name, qid_shape=self._qid_shape, unitary_check=False)
 
     def _json_dict_(self) -> Dict[str, Any]:
-        return {'matrix': self._matrix.tolist(), 'qid_shape': self._qid_shape}
+        return {
+            'matrix': self._matrix.tolist(),
+            'qid_shape': self._qid_shape,
+            **({'name': self._name} if self._name is not None else {}),
+        }
 
     @classmethod
-    def _from_json_dict_(cls, matrix, qid_shape, **kwargs):
-        return cls(matrix=np.array(matrix), qid_shape=qid_shape)
+    def _from_json_dict_(cls, matrix, qid_shape, name=None, **kwargs):
+        return cls(matrix=np.array(matrix), qid_shape=qid_shape, name=name)
 
     def _qid_shape_(self) -> Tuple[int, ...]:
         return self._qid_shape

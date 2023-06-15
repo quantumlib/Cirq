@@ -13,7 +13,15 @@
 # limitations under the License.
 
 import os
+import matplotlib.pyplot as plt
+import pytest
 
 
 def pytest_configure(config):
     os.environ['CIRQ_TESTING'] = "true"
+
+
+@pytest.fixture
+def closefigures():
+    yield
+    plt.close('all')

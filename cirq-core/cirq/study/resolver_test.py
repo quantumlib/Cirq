@@ -13,7 +13,9 @@
 # limitations under the License.
 
 """Tests for parameter resolvers."""
+
 import fractions
+import sys
 
 import numpy as np
 import pytest
@@ -227,25 +229,34 @@ def test_custom_resolved_value():
         def _resolved_value_(self):
             return self
 
-    class Bar:
-        def _resolved_value_(self):
-            return NotImplemented
-
     class Baz:
         def _resolved_value_(self):
             return 'Baz'
 
     foo = Foo()
-    bar = Bar()
     baz = Baz()
 
     a = sympy.Symbol('a')
-    b = sympy.Symbol('b')
-    c = sympy.Symbol('c')
-    r = cirq.ParamResolver({a: foo, b: bar, c: baz})
+    b = sympy.Symbol('c')
+    r = cirq.ParamResolver({a: foo, b: baz})
     assert r.value_of(a) is foo
-    assert r.value_of(b) is b
-    assert r.value_of(c) == 'Baz'
+    assert r.value_of(b) == 'Baz'
+
+
+# sympy 1.12 does not support Python 3.7
+@pytest.mark.xfail(
+    condition=sys.version_info < (3, 8, 0), reason='this test requires sympy 1.12', strict=True
+)
+def test_custom_value_not_implemented():
+    class Bar:
+        def _resolved_value_(self):
+            return NotImplemented
+
+    b = sympy.Symbol('b')
+    bar = Bar()
+    r = cirq.ParamResolver({b: bar})
+    with pytest.raises(sympy.SympifyError):
+        _ = r.value_of(b)
 
 
 def test_compose():

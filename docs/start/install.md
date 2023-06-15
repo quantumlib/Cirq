@@ -6,11 +6,11 @@ Choose your operating system:
 - [Installing on Mac OS X](#installing-on-mac-os-x)
 - [Installing on Windows](#installing-on-windows)
 
-If you want to create a development environment, see the [development page](/cirq/dev/development).
+If you want to create a development environment, see the [development page](../dev/development.md).
 
 ---
 
-## Python version supprt
+## Python version support
 
 Cirq currently supports python 3.7 and later.
 We follow numpy's schedule for python version support defined in [NEP 29](https://numpy.org/neps/nep-0029-deprecation_policy.html),

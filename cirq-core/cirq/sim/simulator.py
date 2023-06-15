@@ -452,6 +452,7 @@ class SimulatesExpectationValues(metaclass=value.ABCMetaImplementAnyOneOf):
             ValueError if 'program' has terminal measurement(s) and
             'permit_terminal_measurements' is False.
         """
+        raise NotImplementedError
 
 
 class SimulatesFinalState(

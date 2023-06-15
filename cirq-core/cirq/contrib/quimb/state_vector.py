@@ -177,6 +177,8 @@ def tensor_expectation_value(
     if ram_gb > max_ram_gb:
         raise MemoryError(f"We estimate that this contraction will take too much RAM! {ram_gb} GB")
     e_val = tn.contract(inplace=True)
+    if isinstance(e_val, qtn.TensorNetwork):
+        e_val = e_val.item()
     assert e_val.imag < tol
     assert cast(complex, pauli_string.coefficient).imag < tol
     return e_val.real * pauli_string.coefficient

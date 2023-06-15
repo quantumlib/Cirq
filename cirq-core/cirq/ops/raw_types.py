@@ -17,6 +17,7 @@
 import abc
 import functools
 from typing import (
+    cast,
     AbstractSet,
     Any,
     Callable,
@@ -30,16 +31,17 @@ from typing import (
     Optional,
     Sequence,
     Tuple,
-    TypeVar,
     TYPE_CHECKING,
     Union,
 )
+from typing_extensions import Self
 
 import numpy as np
 import sympy
 
 from cirq import protocols, value
 from cirq._import import LazyLoader
+from cirq._compat import __cirq_debug__, cached_method
 from cirq.type_workarounds import NotImplementedType
 from cirq.ops import control_values as cv
 
@@ -109,7 +111,8 @@ class Qid(metaclass=abc.ABCMeta):
     def _cmp_tuple(self):
         return (type(self).__name__, repr(type(self)), self._comparison_key(), self.dimension)
 
-    def __hash__(self):
+    @cached_method
+    def __hash__(self) -> int:
         return hash((Qid, self._comparison_key()))
 
     def __eq__(self, other):
@@ -215,7 +218,8 @@ class Gate(metaclass=value.ABCMetaImplementAnyOneOf):
         Raises:
             ValueError: The gate can't be applied to the qubits.
         """
-        _validate_qid_shape(self, qubits)
+        if __cirq_debug__.get():
+            _validate_qid_shape(self, qubits)
 
     def on(self, *qubits: Qid) -> 'Operation':
         """Returns an application of this gate to the given qubits.
@@ -254,18 +258,32 @@ class Gate(metaclass=value.ABCMetaImplementAnyOneOf):
                     raise TypeError(f'{targets[0]} object is not iterable.')
                 t0 = list(targets[0])
                 iterator = [t0] if t0 and isinstance(t0[0], Qid) else t0
-            for target in iterator:
-                if not isinstance(target, Sequence):
-                    raise ValueError(
-                        f'Inputs to multi-qubit gates must be Sequence[Qid].'
-                        f' Type: {type(target)}'
-                    )
-                if not all(isinstance(x, Qid) for x in target):
-                    raise ValueError(f'All values in sequence should be Qids, but got {target}')
-                if len(target) != self._num_qubits_():
-                    raise ValueError(f'Expected {self._num_qubits_()} qubits, got {target}')
-                operations.append(self.on(*target))
+            if __cirq_debug__.get():
+                for target in iterator:
+                    if not isinstance(target, Sequence):
+                        raise ValueError(
+                            f'Inputs to multi-qubit gates must be Sequence[Qid].'
+                            f' Type: {type(target)}'
+                        )
+                    if not all(isinstance(x, Qid) for x in target):
+                        raise ValueError(f'All values in sequence should be Qids, but got {target}')
+                    if len(target) != self._num_qubits_():
+                        raise ValueError(f'Expected {self._num_qubits_()} qubits, got {target}')
+                    operations.append(self.on(*target))
+            else:
+                operations = [self.on(*target) for target in iterator]
             return operations
+
+        if not __cirq_debug__.get():
+            return [
+                op
+                for q in targets
+                for op in (
+                    self.on_each(*q)
+                    if isinstance(q, Iterable) and not isinstance(q, str)
+                    else [self.on(cast('cirq.Qid', q))]
+                )
+            ]
 
         for target in targets:
             if isinstance(target, Qid):
@@ -342,7 +360,7 @@ class Gate(metaclass=value.ABCMetaImplementAnyOneOf):
         return self.on(*qubits)
 
     def with_probability(self, probability: 'cirq.TParamVal') -> 'cirq.Gate':
-        """Creates a probabalistic channel with this gate.
+        """Creates a probabilistic channel with this gate.
 
         Args:
             probability: floating point value between 0 and 1, giving the
@@ -358,7 +376,7 @@ class Gate(metaclass=value.ABCMetaImplementAnyOneOf):
 
     def controlled(
         self,
-        num_controls: int = None,
+        num_controls: Optional[int] = None,
         control_values: Optional[
             Union[cv.AbstractControlValues, Sequence[Union[int, Collection[int]]]]
         ] = None,
@@ -406,6 +424,7 @@ class Gate(metaclass=value.ABCMetaImplementAnyOneOf):
     @value.alternative(requires='_num_qubits_', implementation=_backwards_compatibility_num_qubits)
     def num_qubits(self) -> int:
         """The number of qubits this gate acts on."""
+        raise NotImplementedError
 
     def _num_qubits_from_shape(self) -> int:
         shape = self._qid_shape_()
@@ -420,6 +439,7 @@ class Gate(metaclass=value.ABCMetaImplementAnyOneOf):
     @value.alternative(requires='_qid_shape_', implementation=_num_qubits_from_shape)
     def _num_qubits_(self) -> int:
         """The number of qubits this gate acts on."""
+        raise NotImplementedError
 
     def _default_shape_from_num_qubits(self) -> Tuple[int, ...]:
         num_qubits = self._num_qubits_()
@@ -433,6 +453,7 @@ class Gate(metaclass=value.ABCMetaImplementAnyOneOf):
         the gate acts on.  E.g. (2, 2, 2) for the three-qubit CCZ gate and
         (3, 3) for a 2-qutrit ternary gate.
         """
+        raise NotImplementedError
 
     def _commutes_on_qids_(
         self, qids: 'Sequence[cirq.Qid]', other: Any, *, atol: float = 1e-8
@@ -462,9 +483,6 @@ class Gate(metaclass=value.ABCMetaImplementAnyOneOf):
         return protocols.obj_to_dict_helper(self, attribute_names=[])
 
 
-TSelf = TypeVar('TSelf', bound='Operation')
-
-
 class Operation(metaclass=abc.ABCMeta):
     """An effect applied to a collection of qubits.
 
@@ -488,11 +506,12 @@ class Operation(metaclass=abc.ABCMeta):
         """
         return len(self.qubits)
 
+    @cached_method
     def _qid_shape_(self) -> Tuple[int, ...]:
         return protocols.qid_shape(self.qubits)
 
     @abc.abstractmethod
-    def with_qubits(self: TSelf, *new_qubits: 'cirq.Qid') -> TSelf:
+    def with_qubits(self, *new_qubits: 'cirq.Qid') -> Self:
         """Returns the same operation, but applied to different qubits.
 
         Args:
@@ -534,9 +553,8 @@ class Operation(metaclass=abc.ABCMeta):
         return TaggedOperation(self, *new_tags)
 
     def transform_qubits(
-        self: TSelf,
-        qubit_map: Union[Dict['cirq.Qid', 'cirq.Qid'], Callable[['cirq.Qid'], 'cirq.Qid']],
-    ) -> TSelf:
+        self, qubit_map: Union[Dict['cirq.Qid', 'cirq.Qid'], Callable[['cirq.Qid'], 'cirq.Qid']]
+    ) -> Self:
         """Returns the same operation, but with different qubits.
 
         Args:
@@ -583,7 +601,7 @@ class Operation(metaclass=abc.ABCMeta):
         return ops.controlled_operation.ControlledOperation(control_qubits, self, control_values)
 
     def with_probability(self, probability: 'cirq.TParamVal') -> 'cirq.Operation':
-        """Creates a probabalistic channel with this operation.
+        """Creates a probabilistic channel with this operation.
 
         Args:
             probability: floating point value between 0 and 1, giving the
@@ -617,7 +635,8 @@ class Operation(metaclass=abc.ABCMeta):
         Raises:
             ValueError: The operation had qids that don't match it's qid shape.
         """
-        _validate_qid_shape(self, qubits)
+        if __cirq_debug__.get():
+            _validate_qid_shape(self, qubits)
 
     def _commutes_(
         self, other: Any, *, atol: float = 1e-8
@@ -811,7 +830,14 @@ class TaggedOperation(Operation):
         return protocols.obj_to_dict_helper(self, ['sub_operation', 'tags'])
 
     def _decompose_(self) -> 'cirq.OP_TREE':
-        return protocols.decompose_once(self.sub_operation, default=None)
+        return self._decompose_with_context_()
+
+    def _decompose_with_context_(
+        self, context: Optional['cirq.DecompositionContext'] = None
+    ) -> 'cirq.OP_TREE':
+        return protocols.decompose_once(
+            self.sub_operation, default=None, flatten=False, context=context
+        )
 
     def _pauli_expansion_(self) -> value.LinearDict[str]:
         return protocols.pauli_expansion(self.sub_operation)
@@ -821,6 +847,7 @@ class TaggedOperation(Operation):
     ) -> Union[np.ndarray, None, NotImplementedType]:
         return protocols.apply_unitary(self.sub_operation, args, default=None)
 
+    @cached_method
     def _has_unitary_(self) -> bool:
         return protocols.has_unitary(self.sub_operation)
 
@@ -832,30 +859,36 @@ class TaggedOperation(Operation):
     ) -> Union[bool, NotImplementedType, None]:
         return protocols.commutes(self.sub_operation, other, atol=atol)
 
+    @cached_method
     def _has_mixture_(self) -> bool:
         return protocols.has_mixture(self.sub_operation)
 
     def _mixture_(self) -> Sequence[Tuple[float, Any]]:
         return protocols.mixture(self.sub_operation, NotImplemented)
 
+    @cached_method
     def _has_kraus_(self) -> bool:
         return protocols.has_kraus(self.sub_operation)
 
     def _kraus_(self) -> Union[Tuple[np.ndarray], NotImplementedType]:
         return protocols.kraus(self.sub_operation, NotImplemented)
 
+    @cached_method
     def _measurement_key_names_(self) -> FrozenSet[str]:
         return protocols.measurement_key_names(self.sub_operation)
 
+    @cached_method
     def _measurement_key_objs_(self) -> FrozenSet['cirq.MeasurementKey']:
         return protocols.measurement_key_objs(self.sub_operation)
 
+    @cached_method
     def _is_measurement_(self) -> bool:
         sub = getattr(self.sub_operation, "_is_measurement_", None)
         if sub is not None:
             return sub()
         return NotImplemented
 
+    @cached_method
     def _is_parameterized_(self) -> bool:
         return protocols.is_parameterized(self.sub_operation) or any(
             protocols.is_parameterized(tag) for tag in self.tags
@@ -867,6 +900,7 @@ class TaggedOperation(Operation):
             return sub(sim_state)
         return NotImplemented
 
+    @cached_method
     def _parameter_names_(self) -> AbstractSet[str]:
         tag_params = {name for tag in self.tags for name in protocols.parameter_names(tag)}
         return protocols.parameter_names(self.sub_operation) | tag_params
@@ -891,6 +925,7 @@ class TaggedOperation(Operation):
             ) + sub_op_info.wire_symbols[1:]
         return sub_op_info
 
+    @cached_method
     def _trace_distance_bound_(self) -> float:
         return protocols.trace_distance_bound(self.sub_operation)
 
@@ -951,7 +986,14 @@ class _InverseCompositeGate(Gate):
         return NotImplemented
 
     def _decompose_(self, qubits):
-        return protocols.inverse(protocols.decompose_once_with_qubits(self._original, qubits))
+        return self._decompose_with_context_(qubits)
+
+    def _decompose_with_context_(
+        self, qubits: Sequence['cirq.Qid'], context: Optional['cirq.DecompositionContext'] = None
+    ) -> 'cirq.OP_TREE':
+        return protocols.inverse(
+            protocols.decompose_once_with_qubits(self._original, qubits, context=context)
+        )
 
     def _has_unitary_(self):
         from cirq import protocols, devices
@@ -962,9 +1004,11 @@ class _InverseCompositeGate(Gate):
             for op in protocols.decompose_once_with_qubits(self._original, qubits)
         )
 
+    @cached_method
     def _is_parameterized_(self) -> bool:
         return protocols.is_parameterized(self._original)
 
+    @cached_method
     def _parameter_names_(self) -> AbstractSet[str]:
         return protocols.parameter_names(self._original)
 

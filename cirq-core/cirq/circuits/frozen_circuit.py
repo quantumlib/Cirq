@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """An immutable version of the Circuit data structure."""
-from typing import FrozenSet, Iterable, Iterator, Sequence, Tuple, TYPE_CHECKING, Union
+from typing import AbstractSet, FrozenSet, Iterable, Iterator, Sequence, Tuple, TYPE_CHECKING, Union
 
 import numpy as np
 
@@ -84,6 +84,10 @@ class FrozenCircuit(AbstractCircuit, protocols.SerializableByKey):
         return super()._qid_shape_()
 
     @_compat.cached_method
+    def _has_unitary_(self) -> bool:
+        return super()._has_unitary_()
+
+    @_compat.cached_method
     def _unitary_(self) -> Union[np.ndarray, NotImplementedType]:
         return super()._unitary_()
 
@@ -124,6 +128,14 @@ class FrozenCircuit(AbstractCircuit, protocols.SerializableByKey):
     def all_measurement_key_names(self) -> FrozenSet[str]:
         return frozenset(str(key) for key in self.all_measurement_key_objs())
 
+    @_compat.cached_method
+    def _is_parameterized_(self) -> bool:
+        return super()._is_parameterized_()
+
+    @_compat.cached_method
+    def _parameter_names_(self) -> AbstractSet[str]:
+        return super()._parameter_names_()
+
     def _measurement_key_names_(self) -> FrozenSet[str]:
         return self.all_measurement_key_names()
 
@@ -148,11 +160,6 @@ class FrozenCircuit(AbstractCircuit, protocols.SerializableByKey):
             return (self.unfreeze() ** other).freeze()
         except:
             return NotImplemented
-
-    def _resolve_parameters_(
-        self, resolver: 'cirq.ParamResolver', recursive: bool
-    ) -> 'cirq.FrozenCircuit':
-        return self.unfreeze()._resolve_parameters_(resolver, recursive).freeze()
 
     def concat_ragged(
         *circuits: 'cirq.AbstractCircuit', align: Union['cirq.Alignment', str] = Alignment.LEFT

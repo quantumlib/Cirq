@@ -331,7 +331,7 @@ class Engine(abstract_engine.AbstractEngine):
         programs: Sequence[cirq.AbstractCircuit],
         program_id: Optional[str] = None,
         job_id: Optional[str] = None,
-        params_list: List[cirq.Sweepable] = None,
+        params_list: Optional[List[cirq.Sweepable]] = None,
         repetitions: int = 1,
         processor_ids: Sequence[str] = (),
         program_description: Optional[str] = None,
@@ -411,7 +411,7 @@ class Engine(abstract_engine.AbstractEngine):
         layers: List['cirq_google.CalibrationLayer'],
         program_id: Optional[str] = None,
         job_id: Optional[str] = None,
-        processor_id: str = None,
+        processor_id: Optional[str] = None,
         processor_ids: Sequence[str] = (),
         program_description: Optional[str] = None,
         program_labels: Optional[Dict[str, str]] = None,
@@ -451,7 +451,7 @@ class Engine(abstract_engine.AbstractEngine):
             program_description: An optional description to set on the program.
             program_labels: Optional set of labels to set on the program.
             job_description: An optional description to set on the job.
-            job_labels: Optional set of labels to set on the job.  By defauly,
+            job_labels: Optional set of labels to set on the job.  By default,
                 this will add a 'calibration' label to the job.
 
         Returns:

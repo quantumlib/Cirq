@@ -834,6 +834,17 @@ def test_insert_moment():
         assert c.operation_at(qubit, actual_index) == operation[0]
 
 
+def test_circuit_length_inference():
+    # tests that `get_earliest_accommodating_moment_index` properly computes circuit length
+    circuit = cirq.Circuit(cirq.X(cirq.q(0)))
+    qubit_indices = {cirq.q(0): 0}
+    mkey_indices = {}
+    ckey_indices = {}
+    assert circuits.circuit.get_earliest_accommodating_moment_index(
+        cirq.Moment(), qubit_indices, mkey_indices, ckey_indices
+    ) == len(circuit)
+
+
 def test_insert_inline_near_start():
     a = cirq.NamedQubit('a')
     b = cirq.NamedQubit('b')
@@ -3041,6 +3052,23 @@ def test_resolve_parameters(circuit_cls, resolve_fn):
 
 @pytest.mark.parametrize('circuit_cls', [cirq.Circuit, cirq.FrozenCircuit])
 @pytest.mark.parametrize('resolve_fn', [cirq.resolve_parameters, cirq.resolve_parameters_once])
+def test_resolve_parameters_no_change(circuit_cls, resolve_fn):
+    a, b = cirq.LineQubit.range(2)
+    circuit = circuit_cls(cirq.CZ(a, b), cirq.X(a), cirq.Y(b))
+    resolved_circuit = resolve_fn(circuit, cirq.ParamResolver({'u': 0.1, 'v': 0.3, 'w': 0.2}))
+    assert resolved_circuit is circuit
+
+    circuit = circuit_cls(
+        cirq.CZ(a, b) ** sympy.Symbol('u'),
+        cirq.X(a) ** sympy.Symbol('v'),
+        cirq.Y(b) ** sympy.Symbol('w'),
+    )
+    resolved_circuit = resolve_fn(circuit, cirq.ParamResolver({}))
+    assert resolved_circuit is circuit
+
+
+@pytest.mark.parametrize('circuit_cls', [cirq.Circuit, cirq.FrozenCircuit])
+@pytest.mark.parametrize('resolve_fn', [cirq.resolve_parameters, cirq.resolve_parameters_once])
 def test_parameter_names(circuit_cls, resolve_fn):
     a, b = cirq.LineQubit.range(2)
     circuit = circuit_cls(
@@ -4484,6 +4512,13 @@ def test_concat_ragged_alignment():
         cirq.Moment(cirq.X(a), cirq.Y(b)),
         cirq.Moment(cirq.Z(a)),
     )
+
+
+def test_freeze_not_relocate_moments():
+    q = cirq.q(0)
+    c = cirq.Circuit(cirq.X(q), cirq.measure(q))
+    f = c.freeze()
+    assert [mc is fc for mc, fc in zip(c, f)] == [True, True]
 
 
 def test_factorize_one_factor():

@@ -34,12 +34,13 @@ def find_terminal_measurements(
         circuit: The circuit to find terminal measurements in.
 
     Returns:
-        List of terminal measurements, each specified as (moment_index, measurement_operation).
+        List of terminal measurements (unordered), each specified as
+        (moment_index, measurement_operation).
     """
 
     open_qubits: Set['cirq.Qid'] = set(circuit.all_qubits())
     seen_control_keys: Set['cirq.MeasurementKey'] = set()
-    terminal_measurements: List[Tuple[int, 'cirq.Operation']] = []
+    terminal_measurements: Set[Tuple[int, 'cirq.Operation']] = set()
     for i in range(len(circuit) - 1, -1, -1):
         moment = circuit[i]
         for q in open_qubits:
@@ -50,12 +51,12 @@ def find_terminal_measurements(
                 and protocols.is_measurement(op)
                 and not (seen_control_keys & protocols.measurement_key_objs(op))
             ):
-                terminal_measurements.append((i, op))
+                terminal_measurements.add((i, op))
         open_qubits -= moment.qubits
         seen_control_keys |= protocols.control_keys(moment)
         if not open_qubits:
             break
-    return terminal_measurements
+    return list(terminal_measurements)
 
 
 @transformer_api.transformer(add_deep_support=True)

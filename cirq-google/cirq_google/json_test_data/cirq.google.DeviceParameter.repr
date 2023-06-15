@@ -1,0 +1,1 @@
+cirq_google.study.device_parameter.DeviceParameter(path=['test', 'subdir', 'key'], idx=4, value=7.5, units='GHz')

@@ -335,8 +335,6 @@ def test_clifford_circuit(split):
     (q0, q1) = (cirq.LineQubit(0), cirq.LineQubit(1))
     circuit = cirq.Circuit()
 
-    np.random.seed(0)
-
     for _ in range(100):
         x = np.random.randint(7)
 

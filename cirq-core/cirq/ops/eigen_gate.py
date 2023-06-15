@@ -11,7 +11,10 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import abc
 import fractions
+import math
+import numbers
 from typing import (
     AbstractSet,
     Any,
@@ -23,24 +26,19 @@ from typing import (
     Optional,
     Tuple,
     TYPE_CHECKING,
-    TypeVar,
     Union,
 )
-import abc
-import math
-import numbers
 
 import numpy as np
 import sympy
 
 from cirq import value, protocols
+from cirq.linalg import tolerance
 from cirq.ops import raw_types
 from cirq.type_workarounds import NotImplementedType
 
 if TYPE_CHECKING:
     import cirq
-
-TSelf = TypeVar('TSelf', bound='EigenGate')
 
 
 EigenComponent = NamedTuple(
@@ -135,7 +133,7 @@ class EigenGate(raw_types.Gate):
         return self._global_shift
 
     # virtual method
-    def _with_exponent(self: TSelf, exponent: value.TParamVal) -> 'EigenGate':
+    def _with_exponent(self, exponent: value.TParamVal) -> 'EigenGate':
         """Return the same kind of gate, but with a different exponent.
 
         Child classes should override this method if they have an __init__
@@ -301,7 +299,7 @@ class EigenGate(raw_types.Gate):
         real_periods = [abs(2 / e) for e in exponents if e != 0]
         return _approximate_common_period(real_periods)
 
-    def __pow__(self: TSelf, exponent: Union[float, sympy.Symbol]) -> 'EigenGate':
+    def __pow__(self, exponent: Union[float, sympy.Symbol]) -> 'EigenGate':
         new_exponent = protocols.mul(self._exponent, exponent, NotImplemented)
         if new_exponent is NotImplemented:
             return NotImplemented
@@ -388,8 +386,8 @@ class EigenGate(raw_types.Gate):
             return False
 
         period = self_without_phase._period()
-        canonical_diff = (exponents[0] - exponents[1]) % period
-        return np.isclose(canonical_diff, 0, atol=atol)
+        exponents_diff = exponents[0] - exponents[1]
+        return tolerance.near_zero_mod(exponents_diff, period, atol=atol)
 
     def _json_dict_(self) -> Dict[str, Any]:
         return protocols.obj_to_dict_helper(self, ['exponent', 'global_shift'])

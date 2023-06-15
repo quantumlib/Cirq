@@ -147,7 +147,7 @@ def sample_heavy_set(
 
     results = results.agg(lambda meas: cirq.value.big_endian_bits_to_int(meas), axis=1)
     # Compute the number of outputs that are in the heavy set.
-    num_in_heavy_set = np.sum(np.in1d(results, heavy_set))
+    num_in_heavy_set = np.sum(np.in1d(results, heavy_set)).item()
 
     # Return the number of Heavy outputs over the number of valid runs.
     return num_in_heavy_set / len(results)
@@ -200,7 +200,7 @@ def compile_circuit(
     *,
     device_graph: nx.Graph,
     routing_attempts: int,
-    compiler: Callable[[cirq.Circuit], cirq.Circuit] = None,
+    compiler: Optional[Callable[[cirq.Circuit], cirq.Circuit]] = None,
     routing_algo_name: Optional[str] = None,
     router: Optional[Callable[..., ccr.SwapNetwork]] = None,
     add_readout_error_correction=False,
@@ -357,7 +357,7 @@ def execute_circuits(
     samplers: List[cirq.Sampler],
     circuits: List[Tuple[cirq.Circuit, List[int]]],
     routing_attempts: int,
-    compiler: Callable[[cirq.Circuit], cirq.Circuit] = None,
+    compiler: Optional[Callable[[cirq.Circuit], cirq.Circuit]] = None,
     repetitions: int = 10_000,
     add_readout_error_correction=False,
 ) -> List[QuantumVolumeResult]:
@@ -429,7 +429,7 @@ def calculate_quantum_volume(
     device_graph: nx.Graph,
     samplers: List[cirq.Sampler],
     random_state: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None,
-    compiler: Callable[[cirq.Circuit], cirq.Circuit] = None,
+    compiler: Optional[Callable[[cirq.Circuit], cirq.Circuit]] = None,
     repetitions=10_000,
     routing_attempts=30,
     add_readout_error_correction=False,

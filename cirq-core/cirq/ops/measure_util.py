@@ -46,18 +46,22 @@ def measure_single_paulistring(
 
     Raises:
         ValueError: if the observable is not an instance of PauliString or if the coefficient
-            is not +1.
+            is not +1 or -1.
     """
     if not isinstance(pauli_observable, pauli_string.PauliString):
         raise ValueError(
             f'Pauli observable {pauli_observable} should be an instance of cirq.PauliString.'
         )
-    if pauli_observable.coefficient != 1:
-        raise ValueError(f"Pauli observable {pauli_observable} must have a coefficient of +1.")
+    if abs(pauli_observable.coefficient) != 1:
+        raise ValueError(
+            f"Pauli observable {pauli_observable} must have a coefficient of +1 or -1."
+        )
 
     if key is None:
         key = _default_measurement_key(pauli_observable)
-    return PauliMeasurementGate(pauli_observable.values(), key).on(*pauli_observable.keys())
+    return PauliMeasurementGate(pauli_observable.dense(list(pauli_observable.keys())), key).on(
+        *pauli_observable.keys()
+    )
 
 
 def measure_paulistring_terms(
@@ -115,7 +119,8 @@ def measure(
 ) -> raw_types.Operation:
     """Returns a single MeasurementGate applied to all the given qubits.
 
-    The qubits are measured in the computational basis.
+    The qubits are measured in the computational basis. This can also be
+    used with the alias `cirq.M`.
 
     Args:
         *target: The qubits that the measurement gate should measure.
@@ -157,6 +162,9 @@ def measure(
         key = _default_measurement_key(targets)
     qid_shape = protocols.qid_shape(targets)
     return MeasurementGate(len(targets), key, invert_mask, qid_shape, confusion_map).on(*targets)
+
+
+M = measure
 
 
 @overload

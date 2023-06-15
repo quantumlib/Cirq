@@ -37,7 +37,7 @@ class AbstractLocalEngine(AbstractEngine):
         self._processors = {proc.processor_id: proc for proc in processors}
 
     def get_program(self, program_id: str) -> AbstractProgram:
-        """Returns an exsiting AbstractProgram given an identifier.
+        """Returns an existing AbstractProgram given an identifier.
 
         Iteratively checks each processor for the given id.
 

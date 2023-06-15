@@ -176,7 +176,7 @@ def _load_result_by_hand(tmpdir: str, run_id: str) -> cg.ExecutableGroupResult:
     )
 
 
-def test_execute(tmpdir, rt_config):
+def test_execute(tmpdir, rt_config) -> None:
     executable_group = cg.QuantumExecutableGroup(_get_quantum_executables())
     returned_exegroup_result = cg.execute(
         rt_config=rt_config, executable_group=executable_group, base_data_dir=tmpdir
@@ -189,6 +189,8 @@ def test_execute(tmpdir, rt_config):
 
     start_dt = returned_exegroup_result.shared_runtime_info.run_start_time
     end_dt = returned_exegroup_result.shared_runtime_info.run_end_time
+    assert start_dt is not None
+    assert end_dt is not None
     assert end_dt > start_dt
     assert end_dt <= datetime.datetime.now(tz=datetime.timezone.utc)
 

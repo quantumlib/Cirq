@@ -255,7 +255,7 @@ def test_run_mixture(dtype: Type[np.complexfloating], split: bool):
     simulator = cirq.Simulator(dtype=dtype, split_untangled_states=split)
     circuit = cirq.Circuit(cirq.bit_flip(0.5)(q0), cirq.measure(q0))
     result = simulator.run(circuit, repetitions=100)
-    assert 20 < sum(result.measurements['q(0)'])[0] < 80  # type: ignore
+    assert 20 < sum(result.measurements['q(0)'])[0] < 80
 
 
 @pytest.mark.parametrize('dtype', [np.complex64, np.complex128])
@@ -265,8 +265,8 @@ def test_run_mixture_with_gates(dtype: Type[np.complexfloating], split: bool):
     simulator = cirq.Simulator(dtype=dtype, split_untangled_states=split, seed=23)
     circuit = cirq.Circuit(cirq.H(q0), cirq.phase_flip(0.5)(q0), cirq.H(q0), cirq.measure(q0))
     result = simulator.run(circuit, repetitions=100)
-    assert sum(result.measurements['q(0)'])[0] < 80  # type: ignore
-    assert sum(result.measurements['q(0)'])[0] > 20  # type: ignore
+    assert sum(result.measurements['q(0)'])[0] < 80
+    assert sum(result.measurements['q(0)'])[0] > 20
 
 
 @pytest.mark.parametrize('dtype', [np.complex64, np.complex128])
@@ -775,9 +775,9 @@ def test_sparse_simulator_repr():
     # No equality so cannot use cirq.testing.assert_equivalent_repr
     assert (
         repr(step) == "cirq.SparseSimulatorStep(sim_state=cirq.StateVectorSimulationState("
-        "initial_state=np.array([[0j, (1+0j)], [0j, 0j]], dtype=np.complex64), "
+        "initial_state=np.array([[0j, (1+0j)], [0j, 0j]], dtype=np.dtype('complex64')), "
         "qubits=(cirq.LineQubit(0), cirq.LineQubit(1)), "
-        "classical_data=cirq.ClassicalDataDictionaryStore()), dtype=np.complex64)"
+        "classical_data=cirq.ClassicalDataDictionaryStore()), dtype=np.dtype('complex64'))"
     )
 
 
@@ -1434,3 +1434,19 @@ def test_unseparated_states_str():
 qubits: (cirq.LineQubit(0), cirq.LineQubit(1))
 output vector: 0.707j|00⟩ + 0.707j|10⟩"""
     )
+
+
+@pytest.mark.parametrize('split', [True, False])
+def test_measurement_preserves_phase(split: bool):
+    c1, c2, t = cirq.LineQubit.range(3)
+    circuit = cirq.Circuit(
+        cirq.H(t),
+        cirq.measure(t, key='t'),
+        cirq.CZ(c1, c2).with_classical_controls('t'),
+        cirq.reset(t),
+    )
+    simulator = cirq.Simulator(split_untangled_states=split)
+    # Run enough times that both options of |110> - |111> are likely measured.
+    for _ in range(20):
+        result = simulator.simulate(circuit, initial_state=(1, 1, 1), qubit_order=(c1, c2, t))
+        assert result.dirac_notation() == '|110⟩'

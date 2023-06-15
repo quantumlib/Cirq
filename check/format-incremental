@@ -32,8 +32,9 @@
 ################################################################################
 
 # Get the working directory to the repo root.
-cd "$(dirname "${BASH_SOURCE[0]}")"
-cd "$(git rev-parse --show-toplevel)"
+thisdir="$(dirname "${BASH_SOURCE[0]}")" || exit $?
+topdir="$(git -C "${thisdir}" rev-parse --show-toplevel)" || exit $?
+cd "${topdir}" || exit $?
 
 
 # Parse arguments.
@@ -46,7 +47,7 @@ for arg in "$@"; do
     elif [[ "${arg}" == "--all" ]]; then
         only_changed=0
     elif [ -z "${rev}" ]; then
-        if [ "$(git cat-file -t ${arg} 2> /dev/null)" != "commit" ]; then
+        if [ "$(git cat-file -t "${arg}" 2> /dev/null)" != "commit" ]; then
             echo -e "\033[31mNo revision '${arg}'.\033[0m" >&2
             exit 1
         fi
@@ -82,7 +83,7 @@ if (( only_changed == 1 )); then
 
     # Get the modified, added and moved python files.
     IFS=$'\n' read -r -d '' -a format_files < \
-        <(git diff --name-only --diff-filter=MAR ${rev} -- '*.py' ':(exclude)cirq-google/cirq_google/cloud/*' ':(exclude)*_pb2.py')
+        <(git diff --name-only --diff-filter=MAR "${rev}" -- '*.py' ':(exclude)cirq-google/cirq_google/cloud/*' ':(exclude)*_pb2.py')
 else
     echo -e "Formatting all python files." >&2
     IFS=$'\n' read -r -d '' -a format_files < \
@@ -111,16 +112,8 @@ if (( only_print == 1 )); then
     args+=("--check" "--diff")
 fi
 
-# Warn users about bug in black: https://github.com/psf/black/issues/1629
-# Once that is fixed upstream, we can just do:
-# black "${args[@]}" "${format_files[@]}"
-# exit $?
-LOGS="$(black "${args[@]}" "${format_files[@]}" 2>&1)"
+black "${args[@]}" "${format_files[@]}"
 BLACKSTATUS=$?
-echo "${LOGS}"
-if [[ "$BLACKSTATUS" == "123" && "$LOGS" =~ ^.*"INTERNAL ERROR: Black produced different code on the second pass of the formatter.".*$ ]]; then
-  echo -e "\033[31mWarning, it seems we ran into https://github.com/psf/black/issues/1629. Typically, this can be fixed by adding a trailing comma. If you get stuck, please file a cirq issue on github.\033[0m"
-fi
 
 if [[ "$FLYNTSTATUS" != "0" || "$BLACKSTATUS" != "0"  ]]; then
   exit 1

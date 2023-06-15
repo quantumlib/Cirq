@@ -13,17 +13,14 @@
 # limitations under the License.
 
 import abc
-from typing import Any, Dict, Sequence, Tuple, TypeVar, TYPE_CHECKING
+from typing import Any, Dict, Sequence, Tuple, TYPE_CHECKING
+from typing_extensions import Self
 
 from cirq import protocols
 from cirq.ops import pauli_string as ps, raw_types
 
 if TYPE_CHECKING:
     import cirq
-
-TSelf_PauliStringGateOperation = TypeVar(
-    'TSelf_PauliStringGateOperation', bound='PauliStringGateOperation'
-)
 
 
 class PauliStringGateOperation(raw_types.Operation, metaclass=abc.ABCMeta):
@@ -38,16 +35,12 @@ class PauliStringGateOperation(raw_types.Operation, metaclass=abc.ABCMeta):
         if len(qubits) != len(self.pauli_string):
             raise ValueError('Incorrect number of qubits for gate')
 
-    def with_qubits(
-        self: TSelf_PauliStringGateOperation, *new_qubits: 'cirq.Qid'
-    ) -> TSelf_PauliStringGateOperation:
+    def with_qubits(self, *new_qubits: 'cirq.Qid') -> Self:
         self.validate_args(new_qubits)
         return self.map_qubits(dict(zip(self.pauli_string.qubits, new_qubits)))
 
     @abc.abstractmethod
-    def map_qubits(
-        self: TSelf_PauliStringGateOperation, qubit_map: Dict[raw_types.Qid, raw_types.Qid]
-    ) -> TSelf_PauliStringGateOperation:
+    def map_qubits(self, qubit_map: Dict[raw_types.Qid, raw_types.Qid]) -> Self:
         """Return an equivalent operation on new qubits with its Pauli string
         mapped to new qubits.
 

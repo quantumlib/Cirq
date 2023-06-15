@@ -25,12 +25,13 @@
 ################################################################################
 
 # Get the working directory to the repo root.
-cd "$(dirname "${BASH_SOURCE[0]}")"
-cd "$(git rev-parse --show-toplevel)"
+thisdir="$(dirname "${BASH_SOURCE[0]}")" || exit $?
+topdir="$(git -C "${thisdir}" rev-parse --show-toplevel)" || exit $?
+cd "${topdir}" || exit $?
 
 # Figure out which revision to compare against.
-if [ ! -z "$1" ] && [[ $1 != -* ]]; then
-    if [ "$(git cat-file -t $1 2> /dev/null)" != "commit" ]; then
+if [ -n "$1" ] && [[ $1 != -* ]]; then
+    if [ "$(git cat-file -t "$1" 2> /dev/null)" != "commit" ]; then
         echo -e "\033[31mNo revision '$1'.\033[0m" >&2
         exit 1
     fi
@@ -55,7 +56,7 @@ fi
 
 typeset -a changed
 IFS=$'\n' read -r -d '' -a changed < \
-    <(git diff --name-only ${rev} -- '*.py' ':(exclude)cirq-google/cirq_google/cloud/*' ':(exclude)*_pb2.py' \
+    <(git diff --name-only "${rev}" -- '*.py' ':(exclude)cirq-google/cirq_google/cloud/*' ':(exclude)*_pb2.py' \
     | grep -E "^(cirq|dev_tools|examples).*.py$"
 )
 

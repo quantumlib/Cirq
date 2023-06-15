@@ -46,6 +46,9 @@ message MeasurementResult {
   // The measurement key for the measurement.
   string key = 1;
 
+  // Number of instances of this key in each circuit repetition.
+  int32 instances = 3;
+
   // For each qubit that is measured, these are the measurement results.
   repeated QubitMeasurementResult qubit_measurement_results = 2;
 }
@@ -55,14 +58,15 @@ message QubitMeasurementResult {
   // Which qubit was measured.
   Qubit qubit = 1;
 
-  // These are the results of a measurement on a qubit. Measurement results are
-  // repetitions number of bits, where the repetitions are define in the
-  // sweep result message.
+  // These are the results of a measurement on a qubit. The number of bits
+  // measured is equal to repetitions * instances, where repetitions is defined
+  // in the SweepResult message, and instances is defined in the MeasurementResult
+  // message.
   //
   // The bytes in this field are constructed as follows:
   //
   // 1. The results of the measurements produce a list of bits ordered by
-  //    the round of repetition.
+  //    the round of repetition and instance within a round.
   //
   // 2. This list is broken up into blocks of 8 bits, with the final block
   //    potentially not being a full 8 bits.
