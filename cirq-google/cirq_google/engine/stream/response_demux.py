@@ -64,7 +64,7 @@ class ResponseDemux:
         if request.message_id in subscribers_by_message:
             raise ValueError(f'There is another subscriber for the message ID {request.message_id}')
 
-        def cancel(future: Future[quantum.QuantumRunStreamResponse]):
+        def cancel(future: Future):
             if future.cancelled():
                 self._cancel_callback(request)
 
