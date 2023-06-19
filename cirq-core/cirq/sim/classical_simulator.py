@@ -1,6 +1,5 @@
 from typing import Dict
 from collections import defaultdict
-## add form cirq from sim imprty simulate samples and 
 from cirq.sim.simulator import SimulatesSamples 
 import numpy as np
 
