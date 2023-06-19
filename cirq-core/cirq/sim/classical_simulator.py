@@ -29,7 +29,6 @@ class ClassicalSimulator(SimulatesSamples):
         ValuesError: gate is not a cirq.XGate or cirq.Cnot
     '''
 
-
     def _run(
         circuit: 'cirq.AbstractCircuit', param_resolver: 'cirq.ParamResolver', repetitions: int
     ) -> Dict[str, np.ndarray]:
