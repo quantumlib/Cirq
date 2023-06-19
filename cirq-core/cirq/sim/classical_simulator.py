@@ -1,11 +1,11 @@
 from typing import Dict
 from collections import defaultdict
 ## add form cirq from sim imprty simulate samples and 
-import cirq
+from cirq.sim.simulator import SimulatesSamples 
 import numpy as np
 
 
-class ClassicalSimulator(cirq.SimulatesSamples):
+class ClassicalSimulator(SimulatesSamples):
 
     '''
     `basic classical simulator that only accepts cirq.X and cirq.CNOT gates and return a 3d Numpy array`
