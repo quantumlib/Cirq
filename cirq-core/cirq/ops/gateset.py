@@ -257,11 +257,12 @@ class GateFamily:
 
     def _value_equality_values_(self) -> Any:
         # `isinstance` is used to ensure the a gate type and gate instance is not compared.
+        description = self.description if self.description != self._default_description() else None
         return (
             isinstance(self.gate, raw_types.Gate),
             self.gate,
             self.name,
-            self.description,
+            description,
             self._ignore_global_phase,
             self._tags_to_accept,
             self._tags_to_ignore,

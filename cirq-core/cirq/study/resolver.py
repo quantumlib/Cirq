@@ -150,6 +150,8 @@ class ParamResolver:
         # The following resolves common sympy expressions
         # If sympy did its job and wasn't slower than molasses,
         # we wouldn't need the following block.
+        if isinstance(value, sympy.Float):
+            return float(value)
         if isinstance(value, sympy.Add):
             summation = self.value_of(value.args[0], recursive)
             for addend in value.args[1:]:
