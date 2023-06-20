@@ -43,9 +43,18 @@ class UnknownSweep(sweeps.SingleSweep):
         cirq.UnitSweep,
         cirq.Linspace('a', 0, 10, 100),
         cirq.Linspace(
-            'a', 0, 10, 100, metadata=DeviceParameter(path=['path', 'to', 'parameter'], idx=2)
+            'a',
+            0,
+            10,
+            100,
+            metadata=DeviceParameter(path=['path', 'to', 'parameter'], idx=2, units='ns'),
         ),
         cirq.Points('b', [1, 1.5, 2, 2.5, 3]),
+        cirq.Points(
+            'b',
+            [1, 1.5, 2, 2.5, 3],
+            metadata=DeviceParameter(path=['path', 'to', 'parameter'], idx=2, units='GHz'),
+        ),
         cirq.Linspace('a', 0, 1, 5) * cirq.Linspace('b', 0, 1, 5),
         cirq.Points('a', [1, 2, 3]) + cirq.Linspace('b', 0, 1, 3),
         (

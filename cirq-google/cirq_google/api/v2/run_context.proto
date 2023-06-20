@@ -92,6 +92,10 @@ message DeviceParameter {
     // If the value is an array, the index of the array to change.
     int64 idx = 2;
 
+    // String representation of the units, if any.
+    // Examples: "GHz", "ns", etc.
+    string units = 3;
+
     // Note that the device parameter values will be populated
     // by the sweep values themselves.
 }
