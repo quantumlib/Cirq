@@ -17,6 +17,7 @@ from cirq_ft.algos.apply_gate_to_lth_target import ApplyGateToLthQubit
 from cirq_ft.algos.arithmetic_gates import (
     AdditionGate,
     AddMod,
+    AddModRegisters,
     ContiguousRegisterGate,
     LessThanEqualGate,
     LessThanGate,

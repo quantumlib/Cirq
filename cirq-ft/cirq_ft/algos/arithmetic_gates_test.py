@@ -14,11 +14,12 @@
 
 import itertools
 
-import cirq
 import cirq_ft
 import numpy as np
 import pytest
 from cirq_ft.infra import bit_tools
+
+import cirq
 
 
 def identity_map(n: int):
@@ -317,6 +318,25 @@ def test_add_no_decompose(a, b):
     b_bin = format(b, f'0{num_bits}b')
     out_bin = format(a + b, f'0{num_bits}b')
     true_out_int = a + b
+    input_int = int(a_bin + b_bin, 2)
+    output_int = int(a_bin + out_bin, 2)
+    assert true_out_int == int(out_bin, 2)
+    basis_map[input_int] = output_int
+    cirq.testing.assert_equivalent_computational_basis_map(basis_map, circuit)
+
+
+@pytest.mark.parametrize('a,b', itertools.product(range(2**3), repeat=2))
+def test_add_mod_registers(a, b):
+    num_bits = 5
+    mod = 4
+    qubits = cirq.LineQubit.range(2 * num_bits)
+    op = cirq_ft.AddModRegisters(num_bits, mod).on(*qubits)
+    circuit = cirq.Circuit(op)
+    basis_map = {}
+    a_bin = format(a, f'0{num_bits}b')
+    b_bin = format(b, f'0{num_bits}b')
+    out_bin = format((a + b) % mod if b < mod else b, f'0{num_bits}b')
+    true_out_int = (a + b) % mod if b < mod else b
     input_int = int(a_bin + b_bin, 2)
     output_int = int(a_bin + out_bin, 2)
     assert true_out_int == int(out_bin, 2)

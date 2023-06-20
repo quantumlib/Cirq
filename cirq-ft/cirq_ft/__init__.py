@@ -17,6 +17,7 @@ from cirq_ft.algos import (
     QROM,
     AdditionGate,
     AddMod,
+    AddModRegisters,
     And,
     ApplyGateToLthQubit,
     ContiguousRegisterGate,

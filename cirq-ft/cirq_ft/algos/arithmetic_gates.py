@@ -15,9 +15,10 @@
 from typing import Iterable, Optional, Sequence, Tuple, Union
 
 import attr
-import cirq
 from cirq_ft import infra
 from cirq_ft.algos import and_gate
+
+import cirq
 
 
 @attr.frozen
@@ -384,3 +385,60 @@ class AddMod(cirq.ArithmeticGate):
     def _t_complexity_(self) -> infra.TComplexity:
         # Rough cost as given in https://arxiv.org/abs/1905.09749
         return 5 * infra.t_complexity(AdditionGate(self.bitsize))
+
+
+@attr.frozen(auto_attribs=True)
+class AddModRegisters(cirq.ArithmeticGate):
+    """Applies U_{M}|x>|y>|z> = |x>|y>|(x+y) % M> if x < M else |x>.
+
+    Applies modular addition to input register `|x>` given parameters `mod` and `add_val` s.t.
+        1) If integer `x` < `mod`: output is `|(x + y) % M>`
+        2) If integer `x` >= `mod`: output is `|x>`.
+
+    This condition is needed to ensure that the mapping of all input basis states (i.e. input
+    states |0>, |1>, ..., |2 ** bitsize - 1) to corresponding output states is bijective and thus
+    the gate is reversible.
+    """
+
+    bitsize: int
+    mod: int = attr.field()
+
+    @mod.validator
+    def _validate_mod(self, attribute, value):
+        if not 1 <= value <= 2**self.bitsize:
+            raise ValueError(f"mod: {value} must be between [1, {2 ** self.bitsize}].")
+
+    def registers(self) -> Sequence[Union[int, Sequence[int]]]:
+        x_reg = (2,) * self.bitsize
+        y_reg = (2,) * self.bitsize
+        return x_reg, y_reg
+
+    def with_registers(self, *new_registers: Union[int, Sequence[int]]) -> "AddModRegisters":
+        raise NotImplementedError()
+
+    def apply(self, *register_vals: int) -> Union[int, Iterable[int]]:
+        x, y = register_vals
+        if y < self.mod:
+            y = (x + y) % self.mod
+        else:
+            y = y
+        return x, y
+
+    def _circuit_diagram_info_(self, _) -> cirq.CircuitDiagramInfo:
+        wire_symbols = [f"AddModRegisters_{self.mod}"] * 2 * self.bitsize
+        return cirq.CircuitDiagramInfo(wire_symbols=wire_symbols)
+
+    def __pow__(self, power: int) -> 'AddModRegisters':
+        return AddModRegisters(self.bitsize, self.mod)
+
+    def __repr__(self) -> str:
+        return f'cirq_ft.AddModRegisters({self.bitsize}, {self.mod})'
+
+    def _t_complexity_(self) -> infra.TComplexity:
+        # Rough cost here, we need an addition between x and y registers
+        # a comparitor to check if the result is negative and a classical
+        # addition of `mod' if it is
+        # See: https://arxiv.org/pdf/2302.05531.pdf page 37, paragraph 2
+        cost = 2 * infra.t_complexity(AdditionGate(self.bitsize))
+        cost += infra.t_complexity(LessThanEqualGate(self.bitsize, self.bitsize))
+        return cost
