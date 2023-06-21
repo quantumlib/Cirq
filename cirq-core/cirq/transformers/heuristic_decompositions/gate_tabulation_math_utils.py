@@ -164,8 +164,8 @@ def kak_vector_infidelity(
 
     if ignore_equivalent_vectors:
         k_diff = k_vec_a - k_vec_b
-        out = 1 - np.product(np.cos(k_diff), axis=-1) ** 2
-        out -= np.product(np.sin(k_diff), axis=-1) ** 2
+        out = 1 - np.prod(np.cos(k_diff), axis=-1) ** 2
+        out -= np.prod(np.sin(k_diff), axis=-1) ** 2
         return out
 
     # We must take the minimum infidelity over all possible locally equivalent
@@ -181,8 +181,8 @@ def kak_vector_infidelity(
 
     k_diff = k_vec_a - k_vec_b
 
-    out = 1 - np.product(np.cos(k_diff), axis=-1) ** 2
-    out -= np.product(np.sin(k_diff), axis=-1) ** 2  # (...,192)
+    out = 1 - np.prod(np.cos(k_diff), axis=-1) ** 2
+    out -= np.prod(np.sin(k_diff), axis=-1) ** 2  # (...,192)
 
     return out.min(axis=-1)
 

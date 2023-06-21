@@ -661,6 +661,11 @@ class CSwapGate(gate_features.InterchangeableQubitsGate, raw_types.Gate):
     def _value_equality_values_(self):
         return ()
 
+    def __pow__(self, power):
+        if power == 1 or power == -1:
+            return self
+        return NotImplemented
+
     def __str__(self) -> str:
         return 'FREDKIN'
 
