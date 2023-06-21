@@ -13,6 +13,8 @@
 # limitations under the License.
 
 import pytest
+# FIXME
+import bz2
 
 
 def pytest_configure(config):
