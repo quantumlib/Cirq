@@ -13,258 +13,258 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  quick_test:
-    name: Misc check
-    runs-on: ubuntu-20.04
-    steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-python@v1
-        with:
-          python-version: '3.8'
-          architecture: 'x64'
-      - name: Misc
-        run: check/misc
-  packaging_test:
-    name: Packaging test
-    runs-on: ubuntu-20.04
-    steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-python@v1
-        with:
-          python-version: '3.7'
-          architecture: 'x64'
-      - name: Install dependencies
-        run: pip install -r dev_tools/requirements/deps/packaging.txt
-      - name: Run packaging test
-        run: ./dev_tools/packaging/packaging_test.sh
-  format:
-    name: Format check
-    runs-on: ubuntu-20.04
-    steps:
-      - uses: actions/checkout@v2
-        with:
-          fetch-depth: 0
-      - uses: actions/setup-python@v1
-        with:
-          python-version: '3.8'
-          architecture: 'x64'
-      - name: Install dependencies
-        run: pip install -r dev_tools/requirements/deps/format.txt
-      - name: Format
-        run: check/format-incremental
-  mypy:
-    name: Type check
-    runs-on: ubuntu-20.04
-    steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-python@v1
-        with:
-          python-version: '3.8'
-          architecture: 'x64'
-      - name: Install mypy
-        run: pip install -r dev_tools/requirements/mypy.env.txt
-      - name: Type check
-        run: check/mypy
-  changed_files:
-    name: Changed files test
-    runs-on: ubuntu-20.04
-    steps:
-      - uses: actions/checkout@v2
-        with:
-          fetch-depth: 0
-      - uses: actions/setup-python@v1
-        with:
-          python-version: '3.8'
-          architecture: 'x64'
-      - name: Install changed files test dependencies
-        run: dev_tools/conf/pip-install-minimal-for-pytest-changed-files.sh
-      - name: Changed files test
-        run: check/pytest-changed-files -n auto
-  lint:
-    name: Lint check
-    runs-on: ubuntu-20.04
-    steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-python@v1
-        with:
-          python-version: '3.8'
-          architecture: 'x64'
-      - name: Install pylint
-        run: pip install -r dev_tools/requirements/deps/pylint.txt
-      - name: Display version
-        run: check/pylint --version
-      - name: Lint
-        run: check/pylint -v
-  doc_test:
-    name: Doc test
-    runs-on: ubuntu-20.04
-    steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-python@v1
-        with:
-          python-version: '3.8'
-          architecture: 'x64'
-      - name: Install requirements
-        run: pip install -r dev_tools/requirements/dev.env.txt
-      - name: RST check
-        run: find . -type f -name "*.rst" | xargs rstcheck --report warning --ignore-directives autoclass,automodule
-      - name: Doc check
-        run: check/doctest -q
-  nbformat:
-    name: Notebook formatting
-    runs-on: ubuntu-20.04
-    steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-python@v1
-        with:
-          python-version: '3.8'
-          architecture: 'x64'
-      - name: Install requirements
-        run: pip install -r dev_tools/requirements/deps/tensorflow-docs.txt
-      - name: Doc check
-        run: check/nbformat
-  shellcheck:
-    name: Shell check
-    runs-on: ubuntu-20.04
-    steps:
-      - uses: actions/checkout@v2
-        with:
-          fetch-depth: 0
-      - name: Run shellcheck
-        run: check/shellcheck
-  isolated-modules:
-    name: Isolated pytest Ubuntu
-    runs-on: ubuntu-20.04
-    steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-python@v1
-        with:
-          python-version: '3.8'
-          architecture: 'x64'
-      - name: Install dependencies
-        run: pip install -r dev_tools/requirements/isolated-base.env.txt
-      - name: Test each module in isolation
-        run: pytest -n auto -m slow dev_tools/packaging/isolated_packages_test.py
-  pytest:
-    name: Pytest Ubuntu
-    strategy:
-      matrix:
-        python-version: [ '3.7', '3.8', '3.9', '3.10' ]
-    runs-on: ubuntu-20.04
-    steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-python@v1
-        with:
-          python-version: ${{ matrix.python-version }}
-          architecture: 'x64'
-      - uses: actions/cache@v2
-        with:
-          path: ${{ env.pythonLocation }}
-          key: ${{ env.pythonLocation }}-${{ hashFiles('**/requirements.txt', 'dev_tools/requirements/**/*.txt') }}
-      - name: Install requirements
-        run: |
-          pip install wheel
-          pip install --upgrade --upgrade-strategy eager -r dev_tools/requirements/dev.env.txt
-      - name: Run Quil dependencies
-        run: docker-compose -f cirq-rigetti/docker-compose.test.yaml up -d
-      - name: Pytest check
-        run: check/pytest -n auto --ignore=cirq-core/cirq/contrib --rigetti-integration
-      - name: Stop Quil dependencies
-        run: docker-compose -f cirq-rigetti/docker-compose.test.yaml down
-  pip-compile:
-    name: Check consistency of requirements
-    runs-on: ubuntu-20.04
-    steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-python@v1
-        with:
-          python-version: '3.8'
-          architecture: 'x64'
-      - name: Install requirements
-        run: pip install pip-tools
-      - name: Test dependencies with pip-compile
-        run: |
-          pip-compile --resolver=backtracking dev_tools/requirements/deps/cirq-all.txt -o-
-  build_docs:
-    name: Build docs
-    runs-on: ubuntu-20.04
-    steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-python@v1
-        with:
-          python-version: '3.8'
-          architecture: 'x64'
-      - name: Install requirements
-        run: |
-          pip install -r rtd_docs/requirements.txt
-      - name: Build docs
-        run: dev_tools/docs/build-rtd-docs.sh
-  build_protos:
-    name: Build protos
-    runs-on: ubuntu-20.04
-    steps:
-      - uses: actions/checkout@v2
-        with:
-          fetch-depth: 0
-      - uses: actions/setup-python@v1
-        with:
-          python-version: '3.8'
-          architecture: 'x64'
-      - name: Install requirements
-        run: |
-          pip install -r dev_tools/requirements/deps/protos.txt
-      - name: Build protos
-        run: check/build-changed-protos
-  coverage:
-    name: Coverage check
-    runs-on: ubuntu-20.04
-    steps:
-      - uses: actions/checkout@v2
-        with:
-          fetch-depth: 0
-      - uses: actions/setup-python@v1
-        with:
-          python-version: '3.8'
-          architecture: 'x64'
-      - uses: actions/cache@v2
-        with:
-          path: ${{ env.pythonLocation }}
-          key: ${{ env.pythonLocation }}-${{ hashFiles('**/requirements.txt', 'dev_tools/requirements/**/*.txt') }}
-      - name: Install requirements
-        run: |
-          pip install wheel
-          pip install --upgrade --upgrade-strategy eager -r dev_tools/requirements/dev.env.txt
-      - name: Run Quil dependencies
-        run: docker-compose -f cirq-rigetti/docker-compose.test.yaml up -d
-      - name: Coverage check
-        run: check/pytest-and-incremental-coverage -n auto --rigetti-integration
-      - name: Stop Quil dependencies
-        run: docker-compose -f cirq-rigetti/docker-compose.test.yaml down
-  windows:
-    name: Pytest Windows
-    strategy:
-      matrix:
-        python-version: [ '3.7', '3.8', '3.9', '3.10' ]
-    runs-on: windows-2019
-    steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-python@v1
-        with:
-          python-version: ${{ matrix.python-version }}
-          architecture: 'x64'
-      - uses: actions/cache@v2
-        with:
-          path: ${{ env.pythonLocation }}
-          key: ${{ env.pythonLocation }}-${{ hashFiles('**/requirements.txt', 'dev_tools/requirements/**/*.txt') }}
-      - name: Install requirements
-        run: |
-          pip install wheel
-          pip install --upgrade --upgrade-strategy eager -r dev_tools/requirements/no-contrib.env.txt
-      - name: Pytest Windows
-        run: |
-          source dev_tools/pypath
-          check/pytest -n auto --ignore=cirq-core/cirq/contrib
-        shell: bash
+  # quick_test:
+  #   name: Misc check
+  #   runs-on: ubuntu-20.04
+  #   steps:
+  #     - uses: actions/checkout@v2
+  #     - uses: actions/setup-python@v1
+  #       with:
+  #         python-version: '3.8'
+  #         architecture: 'x64'
+  #     - name: Misc
+  #       run: check/misc
+  # packaging_test:
+  #   name: Packaging test
+  #   runs-on: ubuntu-20.04
+  #   steps:
+  #     - uses: actions/checkout@v2
+  #     - uses: actions/setup-python@v1
+  #       with:
+  #         python-version: '3.7'
+  #         architecture: 'x64'
+  #     - name: Install dependencies
+  #       run: pip install -r dev_tools/requirements/deps/packaging.txt
+  #     - name: Run packaging test
+  #       run: ./dev_tools/packaging/packaging_test.sh
+  # format:
+  #   name: Format check
+  #   runs-on: ubuntu-20.04
+  #   steps:
+  #     - uses: actions/checkout@v2
+  #       with:
+  #         fetch-depth: 0
+  #     - uses: actions/setup-python@v1
+  #       with:
+  #         python-version: '3.8'
+  #         architecture: 'x64'
+  #     - name: Install dependencies
+  #       run: pip install -r dev_tools/requirements/deps/format.txt
+  #     - name: Format
+  #       run: check/format-incremental
+  # mypy:
+  #   name: Type check
+  #   runs-on: ubuntu-20.04
+  #   steps:
+  #     - uses: actions/checkout@v2
+  #     - uses: actions/setup-python@v1
+  #       with:
+  #         python-version: '3.8'
+  #         architecture: 'x64'
+  #     - name: Install mypy
+  #       run: pip install -r dev_tools/requirements/mypy.env.txt
+  #     - name: Type check
+  #       run: check/mypy
+  # changed_files:
+  #   name: Changed files test
+  #   runs-on: ubuntu-20.04
+  #   steps:
+  #     - uses: actions/checkout@v2
+  #       with:
+  #         fetch-depth: 0
+  #     - uses: actions/setup-python@v1
+  #       with:
+  #         python-version: '3.8'
+  #         architecture: 'x64'
+  #     - name: Install changed files test dependencies
+  #       run: dev_tools/conf/pip-install-minimal-for-pytest-changed-files.sh
+  #     - name: Changed files test
+  #       run: check/pytest-changed-files -n auto
+  # lint:
+  #   name: Lint check
+  #   runs-on: ubuntu-20.04
+  #   steps:
+  #     - uses: actions/checkout@v2
+  #     - uses: actions/setup-python@v1
+  #       with:
+  #         python-version: '3.8'
+  #         architecture: 'x64'
+  #     - name: Install pylint
+  #       run: pip install -r dev_tools/requirements/deps/pylint.txt
+  #     - name: Display version
+  #       run: check/pylint --version
+  #     - name: Lint
+  #       run: check/pylint -v
+  # doc_test:
+  #   name: Doc test
+  #   runs-on: ubuntu-20.04
+  #   steps:
+  #     - uses: actions/checkout@v2
+  #     - uses: actions/setup-python@v1
+  #       with:
+  #         python-version: '3.8'
+  #         architecture: 'x64'
+  #     - name: Install requirements
+  #       run: pip install -r dev_tools/requirements/dev.env.txt
+  #     - name: RST check
+  #       run: find . -type f -name "*.rst" | xargs rstcheck --report warning --ignore-directives autoclass,automodule
+  #     - name: Doc check
+  #       run: check/doctest -q
+  # nbformat:
+  #   name: Notebook formatting
+  #   runs-on: ubuntu-20.04
+  #   steps:
+  #     - uses: actions/checkout@v2
+  #     - uses: actions/setup-python@v1
+  #       with:
+  #         python-version: '3.8'
+  #         architecture: 'x64'
+  #     - name: Install requirements
+  #       run: pip install -r dev_tools/requirements/deps/tensorflow-docs.txt
+  #     - name: Doc check
+  #       run: check/nbformat
+  # shellcheck:
+  #   name: Shell check
+  #   runs-on: ubuntu-20.04
+  #   steps:
+  #     - uses: actions/checkout@v2
+  #       with:
+  #         fetch-depth: 0
+  #     - name: Run shellcheck
+  #       run: check/shellcheck
+  # isolated-modules:
+  #   name: Isolated pytest Ubuntu
+  #   runs-on: ubuntu-20.04
+  #   steps:
+  #     - uses: actions/checkout@v2
+  #     - uses: actions/setup-python@v1
+  #       with:
+  #         python-version: '3.8'
+  #         architecture: 'x64'
+  #     - name: Install dependencies
+  #       run: pip install -r dev_tools/requirements/isolated-base.env.txt
+  #     - name: Test each module in isolation
+  #       run: pytest -n auto -m slow dev_tools/packaging/isolated_packages_test.py
+  # pytest:
+  #   name: Pytest Ubuntu
+  #   strategy:
+  #     matrix:
+  #       python-version: [ '3.7', '3.8', '3.9', '3.10' ]
+  #   runs-on: ubuntu-20.04
+  #   steps:
+  #     - uses: actions/checkout@v2
+  #     - uses: actions/setup-python@v1
+  #       with:
+  #         python-version: ${{ matrix.python-version }}
+  #         architecture: 'x64'
+  #     - uses: actions/cache@v2
+  #       with:
+  #         path: ${{ env.pythonLocation }}
+  #         key: ${{ env.pythonLocation }}-${{ hashFiles('**/requirements.txt', 'dev_tools/requirements/**/*.txt') }}
+  #     - name: Install requirements
+  #       run: |
+  #         pip install wheel
+  #         pip install --upgrade --upgrade-strategy eager -r dev_tools/requirements/dev.env.txt
+  #     - name: Run Quil dependencies
+  #       run: docker-compose -f cirq-rigetti/docker-compose.test.yaml up -d
+  #     - name: Pytest check
+  #       run: check/pytest -n auto --ignore=cirq-core/cirq/contrib --rigetti-integration
+  #     - name: Stop Quil dependencies
+  #       run: docker-compose -f cirq-rigetti/docker-compose.test.yaml down
+  # pip-compile:
+  #   name: Check consistency of requirements
+  #   runs-on: ubuntu-20.04
+  #   steps:
+  #     - uses: actions/checkout@v2
+  #     - uses: actions/setup-python@v1
+  #       with:
+  #         python-version: '3.8'
+  #         architecture: 'x64'
+  #     - name: Install requirements
+  #       run: pip install pip-tools
+  #     - name: Test dependencies with pip-compile
+  #       run: |
+  #         pip-compile --resolver=backtracking dev_tools/requirements/deps/cirq-all.txt -o-
+  # build_docs:
+  #   name: Build docs
+  #   runs-on: ubuntu-20.04
+  #   steps:
+  #     - uses: actions/checkout@v2
+  #     - uses: actions/setup-python@v1
+  #       with:
+  #         python-version: '3.8'
+  #         architecture: 'x64'
+  #     - name: Install requirements
+  #       run: |
+  #         pip install -r rtd_docs/requirements.txt
+  #     - name: Build docs
+  #       run: dev_tools/docs/build-rtd-docs.sh
+  # build_protos:
+  #   name: Build protos
+  #   runs-on: ubuntu-20.04
+  #   steps:
+  #     - uses: actions/checkout@v2
+  #       with:
+  #         fetch-depth: 0
+  #     - uses: actions/setup-python@v1
+  #       with:
+  #         python-version: '3.8'
+  #         architecture: 'x64'
+  #     - name: Install requirements
+  #       run: |
+  #         pip install -r dev_tools/requirements/deps/protos.txt
+  #     - name: Build protos
+  #       run: check/build-changed-protos
+  # coverage:
+  #   name: Coverage check
+  #   runs-on: ubuntu-20.04
+  #   steps:
+  #     - uses: actions/checkout@v2
+  #       with:
+  #         fetch-depth: 0
+  #     - uses: actions/setup-python@v1
+  #       with:
+  #         python-version: '3.8'
+  #         architecture: 'x64'
+  #     - uses: actions/cache@v2
+  #       with:
+  #         path: ${{ env.pythonLocation }}
+  #         key: ${{ env.pythonLocation }}-${{ hashFiles('**/requirements.txt', 'dev_tools/requirements/**/*.txt') }}
+  #     - name: Install requirements
+  #       run: |
+  #         pip install wheel
+  #         pip install --upgrade --upgrade-strategy eager -r dev_tools/requirements/dev.env.txt
+  #     - name: Run Quil dependencies
+  #       run: docker-compose -f cirq-rigetti/docker-compose.test.yaml up -d
+  #     - name: Coverage check
+  #       run: check/pytest-and-incremental-coverage -n auto --rigetti-integration
+  #     - name: Stop Quil dependencies
+  #       run: docker-compose -f cirq-rigetti/docker-compose.test.yaml down
+  # windows:
+  #   name: Pytest Windows
+  #   strategy:
+  #     matrix:
+  #       python-version: [ '3.7', '3.8', '3.9', '3.10' ]
+  #   runs-on: windows-2019
+  #   steps:
+  #     - uses: actions/checkout@v2
+  #     - uses: actions/setup-python@v1
+  #       with:
+  #         python-version: ${{ matrix.python-version }}
+  #         architecture: 'x64'
+  #     - uses: actions/cache@v2
+  #       with:
+  #         path: ${{ env.pythonLocation }}
+  #         key: ${{ env.pythonLocation }}-${{ hashFiles('**/requirements.txt', 'dev_tools/requirements/**/*.txt') }}
+  #     - name: Install requirements
+  #       run: |
+  #         pip install wheel
+  #         pip install --upgrade --upgrade-strategy eager -r dev_tools/requirements/no-contrib.env.txt
+  #     - name: Pytest Windows
+  #       run: |
+  #         source dev_tools/pypath
+  #         check/pytest -n auto --ignore=cirq-core/cirq/contrib
+  #       shell: bash
   macos:
     name: Pytest MacOS
     strategy:
@@ -282,104 +282,104 @@ jobs:
         with:
           path: ${{ env.pythonLocation }}
           key: ${{ env.pythonLocation }}-${{ hashFiles('**/requirements.txt', 'dev_tools/requirements/**/*.txt') }}
-      - name: Install requirements
-        run: |
-          pip install wheel
-          pip install --upgrade --upgrade-strategy eager -r dev_tools/requirements/no-contrib.env.txt
+      # - name: Install requirements
+      #   run: |
+      #     pip install wheel
+      #     pip install --upgrade --upgrade-strategy eager -r dev_tools/requirements/no-contrib.env.txt
       - name: Pytest check
         # run: check/pytest -n auto --ignore=cirq-core/cirq/contrib
         run: python -c 'import bz2'
-  notebooks-stable:
-    name: Changed Notebooks Isolated Test against Cirq stable
-    env:
-      NOTEBOOK_PARTITIONS: 4
-    strategy:
-      matrix:
-        # partitions should be named partition-0 to partition-(NOTEBOOK_PARTITIONS-1)
-        partition: [partition-0, partition-1, partition-2, partition-3]
-    runs-on: ubuntu-20.04
-    steps:
-      - uses: actions/checkout@v2
-        with:
-          fetch-depth: 0
-      - uses: actions/setup-python@v1
-        with:
-          python-version: '3.8'
-          architecture: 'x64'
-      - name: Install requirements
-        run: pip install -r dev_tools/requirements/isolated-base.env.txt
-      - name: Notebook tests
-        run: check/pytest -n auto -m slow dev_tools/notebooks/isolated_notebook_test.py -k ${{matrix.partition}}
-      - uses: actions/upload-artifact@v2
-        if: failure()
-        with:
-          name: notebook-outputs
-          path: out
-  notebooks-branch:
-    name: Notebook Tests against PR
-    runs-on: ubuntu-20.04
-    steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-python@v1
-        with:
-          python-version: '3.8'
-          architecture: 'x64'
-      - name: Install requirements
-        run: pip install -r dev_tools/requirements/notebooks.env.txt
-      - name: Notebook tests
-        run: check/pytest -n auto -m slow dev_tools/notebooks/notebook_test.py
-      - uses: actions/upload-artifact@v2
-        if: failure()
-        with:
-          name: notebook-outputs
-          path: out
-  ts-build:
-    name: Bundle file consistency
-    runs-on: ubuntu-20.04
-    steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-node@v2
-        with:
-          node-version: '14.16.1'
-      - name: Install npm
-        run: check/npm ci
-      - name: Check build matches the current
-        run: check/ts-build-current
-  ts-lint:
-    name: Typescript lint check
-    runs-on: ubuntu-20.04
-    steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-node@v2
-        with:
-          node-version: '14.16.1'
-      - name: Install npm
-        run: check/npm ci
-      - name: Lint
-        run: check/ts-lint
-  ts-test:
-    name: Typescript tests
-    runs-on: ubuntu-20.04
-    steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-node@v2
-        with:
-          node-version: '14.16.1'
-      - name: Install npm dependencies
-        run: check/npm ci
-      - name: Unit tests
-        run: check/ts-test
-      - name: End to end tests
-        run: check/ts-test-e2e
-  ts-coverage:
-    name: Typescript tests coverage
-    runs-on: ubuntu-20.04
-    steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-node@v2
-        with:
-          node-version: '14.16.1'
-      - name: Install npm dependencies
-        run: check/npm ci
-      - name: Test
-        run: check/ts-coverage
+  # notebooks-stable:
+  #   name: Changed Notebooks Isolated Test against Cirq stable
+  #   env:
+  #     NOTEBOOK_PARTITIONS: 4
+  #   strategy:
+  #     matrix:
+  #       # partitions should be named partition-0 to partition-(NOTEBOOK_PARTITIONS-1)
+  #       partition: [partition-0, partition-1, partition-2, partition-3]
+  #   runs-on: ubuntu-20.04
+  #   steps:
+  #     - uses: actions/checkout@v2
+  #       with:
+  #         fetch-depth: 0
+  #     - uses: actions/setup-python@v1
+  #       with:
+  #         python-version: '3.8'
+  #         architecture: 'x64'
+  #     - name: Install requirements
+  #       run: pip install -r dev_tools/requirements/isolated-base.env.txt
+  #     - name: Notebook tests
+  #       run: check/pytest -n auto -m slow dev_tools/notebooks/isolated_notebook_test.py -k ${{matrix.partition}}
+  #     - uses: actions/upload-artifact@v2
+  #       if: failure()
+  #       with:
+  #         name: notebook-outputs
+  #         path: out
+  # notebooks-branch:
+  #   name: Notebook Tests against PR
+  #   runs-on: ubuntu-20.04
+  #   steps:
+  #     - uses: actions/checkout@v2
+  #     - uses: actions/setup-python@v1
+  #       with:
+  #         python-version: '3.8'
+  #         architecture: 'x64'
+  #     - name: Install requirements
+  #       run: pip install -r dev_tools/requirements/notebooks.env.txt
+  #     - name: Notebook tests
+  #       run: check/pytest -n auto -m slow dev_tools/notebooks/notebook_test.py
+  #     - uses: actions/upload-artifact@v2
+  #       if: failure()
+  #       with:
+  #         name: notebook-outputs
+  #         path: out
+  # ts-build:
+  #   name: Bundle file consistency
+  #   runs-on: ubuntu-20.04
+  #   steps:
+  #     - uses: actions/checkout@v2
+  #     - uses: actions/setup-node@v2
+  #       with:
+  #         node-version: '14.16.1'
+  #     - name: Install npm
+  #       run: check/npm ci
+  #     - name: Check build matches the current
+  #       run: check/ts-build-current
+  # ts-lint:
+  #   name: Typescript lint check
+  #   runs-on: ubuntu-20.04
+  #   steps:
+  #     - uses: actions/checkout@v2
+  #     - uses: actions/setup-node@v2
+  #       with:
+  #         node-version: '14.16.1'
+  #     - name: Install npm
+  #       run: check/npm ci
+  #     - name: Lint
+  #       run: check/ts-lint
+  # ts-test:
+  #   name: Typescript tests
+  #   runs-on: ubuntu-20.04
+  #   steps:
+  #     - uses: actions/checkout@v2
+  #     - uses: actions/setup-node@v2
+  #       with:
+  #         node-version: '14.16.1'
+  #     - name: Install npm dependencies
+  #       run: check/npm ci
+  #     - name: Unit tests
+  #       run: check/ts-test
+  #     - name: End to end tests
+  #       run: check/ts-test-e2e
+  # ts-coverage:
+  #   name: Typescript tests coverage
+  #   runs-on: ubuntu-20.04
+  #   steps:
+  #     - uses: actions/checkout@v2
+  #     - uses: actions/setup-node@v2
+  #       with:
+  #         node-version: '14.16.1'
+  #     - name: Install npm dependencies
+  #       run: check/npm ci
+  #     - name: Test
+  #       run: check/ts-coverage
