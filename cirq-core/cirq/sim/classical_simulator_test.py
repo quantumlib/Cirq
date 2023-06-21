@@ -5,7 +5,7 @@ import sympy
 
 
 class TestSimulator:
-    def test_x_gate():
+    def test_x_gate(self):
         q0 = cirq.LineQubit.range(1)
         circuit = cirq.Circuit()
         circuit = cirq.Circuit(cirq.X(q0), cirq.measure(cirq.LineQubit(q0), key='key'))
@@ -14,7 +14,7 @@ class TestSimulator:
         results = sim._run(circuit=circuit, param_resolver=None, repetitions=1)
         assert results == expected_results
 
-    def test_CNOT():
+    def test_CNOT(self):
         q0, q1 = cirq.LineQubit.range(2)
         circuit = cirq.Circuit()
         circuit.append(cirq.X(q0))
@@ -45,7 +45,7 @@ class TestSimulator:
         results = sim._run(circuit=circuit, param_resolver=None, repetitions=1)
         np.testing.assert_equal(results, expected_results)
 
-    def test_same_key_instances():
+    def test_same_key_instances(self):
         q0, q1 = cirq.LineQubit.range(2)
         circuit = cirq.Circuit()
         circuit.append(cirq.measure((q0, q1), key='key'))
@@ -56,7 +56,7 @@ class TestSimulator:
         results = sim._run(circuit=circuit, param_resolver=None, repetitions=1)
         np.testing.assert_equal(results, expected_results)
 
-    def test_same_key_instances_order():
+    def test_same_key_instances_order(self):
         q0, q1 = cirq.LineQubit.range(2)
         circuit = cirq.Circuit()
         circuit.append(cirq.X(q0))
@@ -68,7 +68,7 @@ class TestSimulator:
         results = sim._run(circuit=circuit, param_resolver=None, repetitions=1)
         np.testing.assert_equal(results, expected_results)
 
-    def test_repetitions():
+    def test_repetitions(self):
         q0 = cirq.LineQubit.range(0)
         circuit = cirq.Circuit()
         circuit.append(cirq.measure(q0, key='key'))
@@ -82,7 +82,7 @@ class TestSimulator:
         results = sim._run(circuit=circuit, param_resolver=None, repetitions=10)
         np.testing.assert_equal(results, expected_results)
 
-    def test_multiple_gates():
+    def test_multiple_gates(self):
         q0, q1 = cirq.LineQubit.range(2)
         circuit = cirq.Circuit()
         circuit.append(cirq.X(q0))
@@ -96,7 +96,7 @@ class TestSimulator:
         results = sim._run(circuit=circuit, param_resolver=None, repetitions=1)
         np.testing.assert_equal(results, expected_results)
 
-    def test_multiple_gates_order():
+    def test_multiple_gates_order(self):
         q0, q1 = cirq.LineQubit.range(2)
         circuit = cirq.Circuit()
         circuit.append(cirq.X(q0))
@@ -108,7 +108,7 @@ class TestSimulator:
         results = sim._run(circuit=circuit, param_resolver=None, repetitions=1)
         np.testing.assert_equal(results, expected_results)
 
-    def test_param_resolver():
+    def test_param_resolver(self):
         gate = cirq.CNOT ** sympy.Symbol('t')
         q0, q1 = cirq.LineQubit.range(2)
         circuit = cirq.Circuit()
@@ -131,7 +131,7 @@ class TestSimulator:
             results_with_paramter_one, {'key': np.array([[[1]]], dtype=np.uint8)}
         )
 
-    def test_unknown_gates():
+    def test_unknown_gates(self):
         gate = cirq.CNOT ** sympy.Symbol('t')
         q0, q1 = cirq.LineQubit.range(2)
         circuit = cirq.Circuit()
