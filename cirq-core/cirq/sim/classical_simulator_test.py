@@ -25,7 +25,7 @@ class TestSimulator:
         results = sim._run(circuit=circuit, param_resolver=None, repetitions=1)
         np.testing.assert_equal(results, expected_results)
 
-    def test_measurement_gate():
+    def test_measurement_gate(self):
         q0, q1 = cirq.LineQubit.range(2)
         circuit = cirq.Circuit()
         circuit.append(cirq.measure((q0, q1), key='key'))
@@ -34,7 +34,7 @@ class TestSimulator:
         results = sim._run(circuit=circuit, param_resolver=None, repetitions=1)
         np.testing.assert_equal(results, expected_results)
 
-    def test_qubit_order():
+    def test_qubit_order(self):
         q0, q1 = cirq.LineQubit.range(2)
         circuit = cirq.Circuit()
         circuit.append(cirq.CNOT(q0, q1))
