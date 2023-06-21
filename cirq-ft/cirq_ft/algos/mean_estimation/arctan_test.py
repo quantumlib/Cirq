@@ -20,7 +20,7 @@ from cirq_ft.algos.mean_estimation.arctan import ArcTan
 from cirq_ft.infra.bit_tools import iter_bits_fixed_point
 
 
-@pytest.mark.parametrize('selection_bitsize', [3, 4])
+@pytest.mark.parametrize('selection_bitsize', [16, 16])
 @pytest.mark.parametrize('target_bitsize', [3, 5, 6])
 def test_arctan(selection_bitsize, target_bitsize):
     gate = ArcTan(selection_bitsize, target_bitsize)

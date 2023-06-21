@@ -47,9 +47,10 @@ class ArcTan(cirq.ArithmeticGate):
         input_val_float = bitstring.BitArray(uint=input_val, length=self.selection_bitsize).float
         output_val = -2 * np.arctan(input_val_float, dtype=np.double) / np.pi
         assert -1 <= output_val <= 1
-        # Convert the output float to a binary representation
-        output_bin = bitstring.BitArray(float=output_val, length=self.target_bitsize).uint
-        return input_val, target_sign, target_val ^ output_bin
+        output_sign, output_bin = infra.bit_tools.float_as_fixed_width_int(
+            output_val, 1 + self.target_bitsize
+        )
+        return input_val, target_sign ^ output_sign, target_val ^ output_bin
 
     def _t_complexity_(self) -> infra.TComplexity:
         # Approximate T-complexity of O(target_bitsize)
