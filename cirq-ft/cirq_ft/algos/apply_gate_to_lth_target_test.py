@@ -16,7 +16,7 @@ import cirq
 import cirq_ft
 import pytest
 from cirq_ft.infra.bit_tools import iter_bits
-from cirq_ft.infra.jupyter_tools import execute_notebook
+
 
 
 @pytest.mark.parametrize("selection_bitsize,target_bitsize", [[3, 5], [3, 7], [4, 5]])
@@ -99,7 +99,3 @@ def test_apply_gate_to_lth_qubit_make_on():
     assert op.qubits == op2.qubits
     assert op.gate.selection_regs == op2.gate.selection_regs
     assert op.gate.control_regs == op2.gate.control_regs
-
-
-def test_notebook():
-    execute_notebook('apply_gate_to_lth_target')

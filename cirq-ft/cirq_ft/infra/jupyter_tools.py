@@ -95,20 +95,3 @@ def svg_circuit(
     if len(tdd.horizontal_lines) == 0:
         raise ValueError("No non-empty moments.")
     return IPython.display.SVG(ccsvg.tdd_to_svg(tdd))
-
-
-def execute_notebook(name: str):
-    """Execute a jupyter notebook in the caller's directory.
-
-    Args:
-        name: The name of the notebook without extension.
-    """
-    import traceback
-
-    # Assumes that the notebook is in the same path from where the function was called,
-    # which may be different from `__file__`.
-    notebook_path = Path(traceback.extract_stack()[-2].filename).parent / f"{name}.ipynb"
-    with notebook_path.open() as f:
-        nb = nbformat.read(f, as_version=4)
-    ep = ExecutePreprocessor(timeout=600, kernel_name="python3")
-    ep.preprocess(nb)

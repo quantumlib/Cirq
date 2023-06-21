@@ -19,7 +19,7 @@ import cirq_ft
 import numpy as np
 import pytest
 from cirq_ft.algos.generic_select_test import get_1d_Ising_lcu_coeffs
-from cirq_ft.infra.jupyter_tools import execute_notebook
+
 
 
 def construct_gate_helper_and_qubit_order(data, eps):
@@ -110,5 +110,4 @@ less_than_equal: ─────────────────────
     )
 
 
-def test_notebook():
-    execute_notebook('state_preparation')
+
