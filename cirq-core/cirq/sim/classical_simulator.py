@@ -32,7 +32,10 @@ class ClassicalSimulator(SimulatesSamples):
     '''
 
     def _run(
-        self, circuit: 'cirq.AbstractCircuit', param_resolver: 'cirq.ParamResolver', repetitions: int
+        self,
+        circuit: 'cirq.AbstractCircuit',
+        param_resolver: 'cirq.ParamResolver',
+        repetitions: int,
     ) -> Dict[str, np.ndarray]:
         results_dict = {}
         values_dict = defaultdict(int)
