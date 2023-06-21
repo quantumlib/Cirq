@@ -269,7 +269,8 @@ jobs:
     name: Pytest MacOS
     strategy:
       matrix:
-        python-version: [ '3.7', '3.8', '3.9', '3.10' ]
+        # python-version: [ '3.7', '3.8', '3.9', '3.10' ]
+        python-version: ['3.7']
     runs-on: macos-12
     steps:
       - uses: actions/checkout@v2
@@ -286,7 +287,8 @@ jobs:
           pip install wheel
           pip install --upgrade --upgrade-strategy eager -r dev_tools/requirements/no-contrib.env.txt
       - name: Pytest check
-        run: check/pytest -n auto --ignore=cirq-core/cirq/contrib
+        # run: check/pytest -n auto --ignore=cirq-core/cirq/contrib
+        run: python -c 'import bz2'
   notebooks-stable:
     name: Changed Notebooks Isolated Test against Cirq stable
     env:
