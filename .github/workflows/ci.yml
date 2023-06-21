@@ -269,7 +269,8 @@ jobs:
     name: Pytest MacOS
     strategy:
       matrix:
-        python-version: [ '3.7', '3.8', '3.9', '3.10' ]
+        # TODO(#6147) - restore 3.7 after upstream fix in actions/runner-images
+        python-version: [ '3.8', '3.9', '3.10' ]
     runs-on: macos-12
     steps:
       - uses: actions/checkout@v2
