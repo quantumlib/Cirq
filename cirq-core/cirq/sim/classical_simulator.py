@@ -1,6 +1,5 @@
 from typing import Dict
-from collections import defaultdict
-
+from collections import defaultdict 
 from cirq.sim.simulator import SimulatesSamples 
 from cirq import ops, circuits 
 import numpy as np
