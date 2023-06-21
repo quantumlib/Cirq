@@ -16,6 +16,7 @@ from typing import Optional, Sequence, Tuple
 
 import cirq
 import cirq_ft
+import bitstring
 import numpy as np
 import pytest
 from attr import frozen
@@ -48,7 +49,7 @@ class BernoulliEncoder(cirq_ft.SelectOracle):
     r"""Encodes Bernoulli random variable y0/y1 as $Enc|ii..i>|0> = |ii..i>|y_{i}>$ where i=0/1."""
 
     p: float
-    y: Tuple[int, int]
+    y: Tuple[float, float]
     selection_bitsize: int
     target_bitsize: int
     control_val: Optional[int] = None
@@ -69,15 +70,15 @@ class BernoulliEncoder(cirq_ft.SelectOracle):
     def decompose_from_registers(  # type:ignore[override]
         self, context, q: Sequence[cirq.Qid], t: Sequence[cirq.Qid]
     ) -> cirq.OP_TREE:
-        y0_bin = bit_tools.iter_bits(self.y[0], self.target_bitsize)
-        y1_bin = bit_tools.iter_bits(self.y[1], self.target_bitsize)
+        y0_bin = bitstring.BitArray(float=self.y[0], length=self.target_bitsize).bin
+        y1_bin = bitstring.BitArray(float=self.y[1], length=self.target_bitsize).bin
 
         for y0, y1, tq in zip(y0_bin, y1_bin, t):
-            if y0:
+            if y0 == '1':
                 yield cirq.X(tq).controlled_by(  # coverage: ignore
                     *q, control_values=[0] * self.selection_bitsize  # coverage: ignore
                 )  # coverage: ignore
-            if y1:
+            if y1 == '1':
                 yield cirq.X(tq).controlled_by(*q, control_values=[1] * self.selection_bitsize)
 
     def controlled(self, *args, **kwargs):
@@ -139,10 +140,10 @@ def satisfies_theorem_321(
 @pytest.mark.parametrize(
     'p, y_1, target_bitsize, c',
     [
-        (1 / 100 * 1 / 100, 3, 2, 100 / 7),
-        (1 / 50 * 1 / 50, 2, 2, 50 / 4),
-        (1 / 50 * 1 / 50, 1, 1, 50 / 10),
-        (1 / 4 * 1 / 4, 1, 1, 1.5),
+        (1 / 100 * 1 / 100, 3.0, 16, 100 / 7),
+        (1 / 50 * 1 / 50, 2.0, 16, 50 / 4),
+        (1 / 50 * 1 / 50, 1.0, 16, 50 / 10),
+        (1 / 4 * 1 / 4, 1.0, 16, 1.5),
     ],
 )
 def test_mean_estimation_bernoulli(

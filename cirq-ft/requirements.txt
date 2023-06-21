@@ -3,3 +3,4 @@ cachetools
 ipywidgets
 nbconvert
 nbformat
+bitstring
