@@ -2,6 +2,7 @@ from typing import Dict
 from collections import defaultdict
 from cirq.sim.simulator import SimulatesSamples
 from cirq import ops, circuits
+from cirq.circuits.circuit import AbstractCircuit
 import numpy as np
 
 
@@ -31,7 +32,7 @@ class ClassicalSimulator(SimulatesSamples):
     '''
 
     def _run(
-        circuit: 'cirq.AbstractCircuit', param_resolver: 'cirq.ParamResolver', repetitions: int
+        self, circuit: 'cirq.AbstractCircuit', param_resolver: 'cirq.ParamResolver', repetitions: int
     ) -> Dict[str, np.ndarray]:
         results_dict = {}
         values_dict = defaultdict(int)
