@@ -1,7 +1,6 @@
 import numpy as np
 import pytest
 import cirq
-import classical_simulator
 import sympy
 
 
