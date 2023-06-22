@@ -389,15 +389,13 @@ class AddMod(cirq.ArithmeticGate):
 
 @attr.frozen(auto_attribs=True)
 class AddModRegisters(cirq.ArithmeticGate):
-    """Applies U_{M}|x>|y>|z> = |x>|y>|(x+y) % M> if x < M else |x>.
+    """Applies U_{M}|x>|y> = |x>|(x + y) % M> if y < M else |y>.
 
-    Applies modular addition to input register `|x>` given parameters `mod` and `add_val` s.t.
-        1) If integer `x` < `mod`: output is `|(x + y) % M>`
-        2) If integer `x` >= `mod`: output is `|x>`.
+    Modification of AddMod for the case of performing addition on registers.
 
-    This condition is needed to ensure that the mapping of all input basis states (i.e. input
-    states |0>, |1>, ..., |2 ** bitsize - 1) to corresponding output states is bijective and thus
-    the gate is reversible.
+    Args:
+        bitsize: bitsize of the x and y registers.
+        mod: The modulus. 
     """
 
     bitsize: int
