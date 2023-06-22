@@ -112,8 +112,8 @@ def test_multi_in_less_equal_than_gate():
     cirq.testing.assert_equivalent_computational_basis_map(identity_map(len(qubits)), circuit)
 
 
-@pytest.mark.parametrize("x_bitsize", [2, 3])
-@pytest.mark.parametrize("y_bitsize", [2, 3])
+@pytest.mark.parametrize("x_bitsize", [*range(1, 5)])
+@pytest.mark.parametrize("y_bitsize", [*range(1, 5)])
 def test_less_than_equal_consistent_protocols(x_bitsize: int, y_bitsize: int):
     g = cirq_ft.LessThanEqualGate(x_bitsize, y_bitsize)
     cirq_ft.testing.assert_decompose_is_consistent_with_t_complexity(g)
@@ -322,3 +322,18 @@ def test_add_no_decompose(a, b):
     assert true_out_int == int(out_bin, 2)
     basis_map[input_int] = output_int
     cirq.testing.assert_equivalent_computational_basis_map(basis_map, circuit)
+
+
+@pytest.mark.parametrize("P,n", [(v, n) for n in range(1, 3) for v in range(1 << n)])
+@pytest.mark.parametrize("Q,m", [(v, n) for n in range(1, 3) for v in range(1 << n)])
+def test_decompose_less_than_equal_gate(P: int, n: int, Q: int, m: int):
+    qubit_states = list(bit_tools.iter_bits(P, n)) + list(bit_tools.iter_bits(Q, m))
+    circuit = cirq.Circuit(
+        cirq.decompose_once(cirq_ft.LessThanEqualGate(n, m).on(*cirq.LineQubit.range(n + m + 1)))
+    )
+    num_ancillas = len(circuit.all_qubits()) - n - m - 1
+    initial_state = [0] * num_ancillas + qubit_states + [0]
+    output_state = [0] * num_ancillas + qubit_states + [int(P <= Q)]
+    cirq_ft.testing.assert_circuit_inp_out_cirqsim(
+        circuit, sorted(circuit.all_qubits()), initial_state, output_state
+    )
