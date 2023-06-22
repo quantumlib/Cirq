@@ -267,9 +267,6 @@ class SubPreparePWDual(select_and_prepare.PrepareOracle):
         p: (vector) Spatial orbital index, p = (px, py, pz)
 
     References:
-        Section V. and Fig. 14 of https://arxiv.org/abs/1805.03662.
-
-    References:
         [Encoding Electronic Spectra in Quantum Circuits with Linear T Complexity](https://arxiv.org/abs/1805.03662).
         Babbush et. al. (2018). Section III.D. and Figure 15. Note there is an
         error in the circuit diagram in the paper (there should be no data:
@@ -449,12 +446,15 @@ class PreparePWDual(select_and_prepare.PrepareOracle):
     This circuit acts on a state like:
 
     $$
-        \mathrm{PREPARE}|0\rangle^{\otimes{3 + 2log N}} \rightarrow
-        \sum_{p\sigma} \left(
-        \tilde{U}(p)|\theta_p|1\rangle_U|0\rangle_V|p\alpha q\beta\rangle
-        +\tilde{T}(p-q)|\theta_{p-q}^{(0)}\rangle|0\rangle_U|0\rangle_V |p\alpha q\beta\rangle
-        +\tilde{V}(p-q)|\theta_{p-q}^{(1)}\rangle|0\rangle_U|1\rangle_V |p\alpha q\beta\rangle
-        \right)
+        \mathrm{PREPARE}|0\rangle^{\otimes{3 + 2\log N}} \rightarrow
+        \sum_{p\sigma}
+        \tilde{U}(p)|\theta_p|1\rangle_U|0\rangle_V|p\sigma q\sigma \rangle
+        +
+        \sum_{p\ne q\sigma}
+        \tilde{T}(p-q)|\theta_{p-q}^{(0)}\rangle|0\rangle_U|0\rangle_V |p\sigma q\sigma\rangle
+        +
+        \sum_{(p\alpha)\ne (q\beta)}
+        \tilde{V}(p-q)|\theta_{p-q}^{(1)}\rangle|0\rangle_U|1\rangle_V |p\alpha q\beta\rangle
     $$
 
     See SubPrepareChem docstring for definitions of terms.
@@ -477,13 +477,7 @@ class PreparePWDual(select_and_prepare.PrepareOracle):
         beta: Spin index for orbital q.
 
     References:
-        Section V. and Fig. 14 of https://arxiv.org/abs/1805.03662.
-
-    References:
-        [Encoding Electronic Spectra in Quantum Circuits with Linear T Complexity](https://arxiv.org/abs/1805.03662).
-        Babbush et. al. (2018). Section III.D. and Figure 15. Note there is an
-        error in the circuit diagram in the paper (there should be no data:
-        $\theta_{alt_l}$ gate in the QROM load.)
+        Section V. and Fig. 16 of https://arxiv.org/abs/1805.03662.
     """
 
     M: int
