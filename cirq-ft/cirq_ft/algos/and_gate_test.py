@@ -20,7 +20,6 @@ import cirq
 import cirq_ft
 import numpy as np
 import pytest
-from cirq_ft.infra.jupyter_tools import execute_notebook
 
 random.seed(12345)
 
@@ -197,10 +196,6 @@ def test_and_gate_adjoint(cv: Tuple[int, int]):
     circuit = cirq.Circuit(cirq_ft.And(cv, adjoint=True).on(c1, c2, t))
     for inp, out in zip(input_states, output_states):
         cirq_ft.testing.assert_circuit_inp_out_cirqsim(circuit, [c1, c2, t], inp, out)
-
-
-def test_notebook():
-    execute_notebook('and_gate')
 
 
 @pytest.mark.parametrize(

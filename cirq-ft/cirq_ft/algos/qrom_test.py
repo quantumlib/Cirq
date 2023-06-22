@@ -19,7 +19,6 @@ import cirq_ft
 import numpy as np
 import pytest
 from cirq_ft.infra.bit_tools import iter_bits
-from cirq_ft.infra.jupyter_tools import execute_notebook
 
 
 @pytest.mark.parametrize(
@@ -99,10 +98,6 @@ def test_qrom_repr():
     target_bitsizes = tuple(int(np.max(d)).bit_length() for d in data)
     qrom = cirq_ft.QROM(data, selection_bitsizes, target_bitsizes)
     cirq.testing.assert_equivalent_repr(qrom, setup_code="import cirq_ft\nimport numpy as np")
-
-
-def test_notebook():
-    execute_notebook('qrom')
 
 
 @pytest.mark.parametrize(

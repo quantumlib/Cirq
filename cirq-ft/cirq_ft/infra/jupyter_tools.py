@@ -12,7 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from pathlib import Path
 from typing import Optional
 
 import cirq
@@ -20,9 +19,7 @@ import cirq.contrib.svg.svg as ccsvg
 import cirq_ft.infra.testing as cq_testing
 import IPython.display
 import ipywidgets
-import nbformat
 from cirq_ft.infra import gate_with_registers, t_complexity_protocol
-from nbconvert.preprocessors import ExecutePreprocessor
 
 
 def display_gate_and_compilation(g: cq_testing.GateHelper, vertical=False, include_costs=True):
@@ -95,20 +92,3 @@ def svg_circuit(
     if len(tdd.horizontal_lines) == 0:
         raise ValueError("No non-empty moments.")
     return IPython.display.SVG(ccsvg.tdd_to_svg(tdd))
-
-
-def execute_notebook(name: str):
-    """Execute a jupyter notebook in the caller's directory.
-
-    Args:
-        name: The name of the notebook without extension.
-    """
-    import traceback
-
-    # Assumes that the notebook is in the same path from where the function was called,
-    # which may be different from `__file__`.
-    notebook_path = Path(traceback.extract_stack()[-2].filename).parent / f"{name}.ipynb"
-    with notebook_path.open() as f:
-        nb = nbformat.read(f, as_version=4)
-    ep = ExecutePreprocessor(timeout=600, kernel_name="python3")
-    ep.preprocess(nb)

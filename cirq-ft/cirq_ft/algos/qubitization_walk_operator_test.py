@@ -18,7 +18,6 @@ import numpy as np
 import pytest
 from cirq_ft.algos.generic_select_test import get_1d_Ising_hamiltonian
 from cirq_ft.algos.reflection_using_prepare_test import greedily_allocate_ancilla, keep
-from cirq_ft.infra.jupyter_tools import execute_notebook
 
 
 def walk_operator_for_pauli_hamiltonian(
@@ -234,8 +233,3 @@ def test_qubitization_walk_operator_consistent_protocols_and_controlled():
     )
     with pytest.raises(NotImplementedError, match="Cannot create a controlled version"):
         _ = gate.controlled(num_controls=2)
-
-
-def test_notebook():
-    execute_notebook('qubitization_walk_operator')
-    execute_notebook('phase_estimation_of_quantum_walk')

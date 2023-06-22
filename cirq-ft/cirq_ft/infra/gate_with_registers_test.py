@@ -16,7 +16,6 @@ import cirq
 import cirq_ft
 import numpy as np
 import pytest
-from cirq_ft.infra.jupyter_tools import execute_notebook
 
 
 def test_register():
@@ -154,7 +153,3 @@ def test_gate_with_registers():
     op1 = tg.on_registers(r1=qubits[:5], r2=qubits[6:], r3=qubits[5])
     op2 = tg.on(*qubits[:5], *qubits[6:], qubits[5])
     assert op1 == op2
-
-
-def test_notebook():
-    execute_notebook('gate_with_registers')

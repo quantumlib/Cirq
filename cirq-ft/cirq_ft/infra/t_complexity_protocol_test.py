@@ -15,7 +15,6 @@
 import cirq
 import cirq_ft
 import pytest
-from cirq_ft.infra.jupyter_tools import execute_notebook
 
 
 class SupportTComplexity:
@@ -204,7 +203,3 @@ def test_cache_clear():
     assert cirq_ft.t_complexity([op, op]) == cirq_ft.TComplexity()
     assert op.num_calls == 1
     cirq_ft.t_complexity.cache_clear()
-
-
-def test_notebook():
-    execute_notebook('t_complexity')

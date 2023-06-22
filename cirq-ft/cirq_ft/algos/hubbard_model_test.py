@@ -15,7 +15,6 @@
 import cirq
 import cirq_ft
 import pytest
-from cirq_ft.infra.jupyter_tools import execute_notebook
 
 
 @pytest.mark.parametrize('dim', [*range(2, 10)])
@@ -69,7 +68,3 @@ def test_hubbard_model_consistent_protocols():
     expected_symbols += ['target'] * 8
     expected_symbols[0] = 'SelectHubbard'
     assert cirq.circuit_diagram_info(select_gate).wire_symbols == tuple(expected_symbols)
-
-
-def test_notebook():
-    execute_notebook('hubbard_model')

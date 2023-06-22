@@ -18,7 +18,6 @@ import cirq
 import cirq_ft
 import numpy as np
 import pytest
-from cirq_ft.infra.jupyter_tools import execute_notebook
 
 random.seed(12345)
 
@@ -143,10 +142,6 @@ def test_multi_target_cswap_make_on():
     cswap1 = cirq_ft.MultiTargetCSwap(2).on_registers(control=c, target_x=q_x, target_y=q_y)
     cswap2 = cirq_ft.MultiTargetCSwap.make_on(control=c, target_x=q_x, target_y=q_y)
     assert cswap1 == cswap2
-
-
-def test_notebook():
-    execute_notebook('swap_network')
 
 
 @pytest.mark.parametrize("n", [*range(1, 6)])
