@@ -58,13 +58,18 @@ from typing import Collection, List, Optional, Sequence, Tuple, Union
 
 import attr
 import numpy as np
-from cirq_ft.algos import (QROM, AddModRegisters, ApplyGateToLthQubit,
-                           LessThanEqualGate, MultiTargetCSwap,
-                           PrepareUniformSuperposition,
-                           SelectedMajoranaFermionGate, select_and_prepare)
+from cirq_ft.algos import (
+    QROM,
+    AddModRegisters,
+    ApplyGateToLthQubit,
+    LessThanEqualGate,
+    MultiTargetCSwap,
+    PrepareUniformSuperposition,
+    SelectedMajoranaFermionGate,
+    select_and_prepare,
+)
 from cirq_ft.infra import Register, Registers, SelectionRegisters
-from cirq_ft.linalg.lcu_util import \
-    preprocess_lcu_coefficients_for_reversible_sampling
+from cirq_ft.linalg.lcu_util import preprocess_lcu_coefficients_for_reversible_sampling
 from numpy.typing import NDArray
 
 import cirq

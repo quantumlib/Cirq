@@ -395,7 +395,7 @@ class AddModRegisters(cirq.ArithmeticGate):
 
     Args:
         bitsize: bitsize of the x and y registers.
-        mod: The modulus. 
+        mod: The modulus.
     """
 
     bitsize: int
