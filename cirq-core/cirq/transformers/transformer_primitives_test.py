@@ -417,7 +417,6 @@ def test_map_operations_can_add_qubits_if_flag_false():
 def test_map_operations_maps_different_ops_from_same_moment_to_shared_qubits():
     q = cirq.LineQubit.range(3)
     c = cirq.Circuit(cirq.H.on_each(q[:2]))
-    # Also test that the new op-tree can span multiple moments.
     c_mapped = cirq.map_operations(
         c, lambda op, _: op.controlled_by(q[2]), raise_if_add_qubits=False
     )
