@@ -31,6 +31,7 @@ from typing import (
     Union,
 )
 import warnings
+from concurrent.futures import Future
 
 import duet
 import proto
@@ -99,11 +100,7 @@ class AsyncioExecutor:
 
 
 class ResponseDemux:
-    """A event demultiplexer for QuantumRunStreamResponses, as part of the async reactor pattern.
-    Args:
-        cancel_callback: Function to be called when the future matching its request argument is
-        canceled.
-    """
+    """A event demultiplexer for QuantumRunStreamResponses, as part of the async reactor pattern."""
 
     def __init__(self):
         self._subscribers: Dict[JobPath, Tuple[MessageId, duet.AwaitableFuture]] = {}
@@ -113,19 +110,17 @@ class ResponseDemux:
         self, request: quantum.QuantumRunStreamRequest
     ) -> duet.AwaitableFuture[quantum.QuantumRunStreamResponse]:
         """Assumes the message ID has not been set."""
-
-        if 'create_quantum_program_and_job' in request:
-            job_path = request.create_quantum_program_and_job.quantum_job.name
-        elif 'create_quantum_job' in request:
-            job_path = request.create_quantum_job.quantum_job.name
-        else:  # 'get_quantum_result' in request
-            job_path = request.get_quantum_result.parent
-
+        job_path = _get_job_path_from_stream_request(request)
         request.message_id = self._next_available_message_id
         response_future = duet.AwaitableFuture[quantum.QuantumRunStreamResponse]()
         self._subscribers[job_path] = (self._next_available_message_id, response_future)
         self._next_available_message_id += 1
         return response_future
+
+    def unsubscribe(self, request: quantum.QuantumRunStreamRequest) -> None:
+        job_path = _get_job_path_from_stream_request(request)
+        if job_path in self._subscribers:
+            del self._subscribers[job_path]
 
     def publish(self, response: quantum.QuantumRunStreamResponse) -> None:
         if 'error' in response:
@@ -160,7 +155,7 @@ class StreamManager:
         self._grpc_client = grpc_client
         self._request_queue = asyncio.Queue()
         self._response_demux = ResponseDemux()
-        self._manage_stream_loop_running = False
+        self._manage_stream_loop_future: Optional[duet.AwaitableFuture] = None
 
     def _executor(self) -> AsyncioExecutor:
         # We must re-use a single Executor due to multi-threading issues in gRPC
@@ -169,26 +164,29 @@ class StreamManager:
 
     def _request_iterator(self) -> AsyncIterator[quantum.QuantumRunStreamRequest]:
         async def iterator():
-            yield await self._request_queue.get()
+            while not self._request_queue.empty():
+                yield await self._request_queue.get()
 
-        # TODO how to make an iterator properly?
         return iterator
 
     async def _manage_stream(self):
         """Keeps the stream alive and routes responses to the appropriate request handler"""
         while True:
             try:
+                # TODO specify stream timeout below with exponential backoff
                 response_iterable = self._grpc_client.quantum_run_stream(self._request_iterator)
                 async for response in response_iterable:
                     self._response_demux.publish(response)
-            except GoogleAPICallError as e:  # TODO what's the right error to check here?
-                self._response_demux.publish_exception(e)
+            except BaseException as e:
+                # TODO send halfclose to the stream upon CancelledError? How does that work?
+                self._response_demux.publish_exception(e)  # Raise to all request tasks
+                self._request_iterator = asyncio.Queue()  # Clear requests
 
-    async def _run_program(
+    async def _make_request(
         self, project_name: str, program: quantum.QuantumProgram, job: quantum.QuantumJob
     ) -> quantum.QuantumResult:
         """This method is executed in a separate asyncio Task for each request."""
-        create_program_and_job_request = quantum.QuantumRunStreamRequest(
+        current_request = quantum.QuantumRunStreamRequest(
             parent=project_name,
             create_quantum_program_and_job=quantum.CreateQuantumProgramAndJobRequest(
                 parent=project_name, quantum_program=program, quantum_job=job
@@ -197,21 +195,31 @@ class StreamManager:
         get_result_request = quantum.QuantumRunStreamRequest(
             parent=project_name, get_quantum_result=quantum.GetQuantumResultRequest(parent=job.name)
         )
+        response_future = None
 
-        response_future = self._response_demux.subscribe(create_program_and_job_request)
-        await self._request_queue.put(create_program_and_job_request)
+        try:
+            response_future = self._response_demux.subscribe(current_request)
+            await self._request_queue.put(current_request)
 
-        response: Optional[quantum.QuantumRunStreamResponse] = None
-        while response is None:
-            try:
-                response = await response_future
-            except GoogleAPICallError:
-                response_future = self._response_demux.subscribe(get_result_request)
-                await self._request_queue.put(get_result_request)
+            response: Optional[quantum.QuantumRunStreamResponse] = None
+            while response is None:
+                try:
+                    response = await response_future
+                except GoogleAPICallError:
+                    # TODO how to distinguish between program not found vs job not found?
+                    # TODO Send a CreateProgramAndJobRequest or CreateJobRequest if either program or
+                    # job doesn't exist.
+                    # TODO add exponential backoff
+                    current_request = get_result_request
 
-            if response.result is not None:
-                return response.result
-            # TODO handle QuantumJob response and retryable StreamError.
+                if response.result is not None:
+                    return response.result
+                # TODO handle QuantumJob response and retryable StreamError.
+
+        except asyncio.CancelledError:
+            if response_future is not None:
+                response_future.cancel()
+                self._response_demux.unsubscribe(current_request)
 
     async def _cancel(self, job_name: str) -> None:
         await self._grpc_client.cancel_quantum_job(quantum.CancelQuantumJobRequest(name=job_name))
@@ -220,12 +228,22 @@ class StreamManager:
         self, project_name: str, program: quantum.QuantumProgram, job: quantum.QuantumJob
     ) -> duet.AwaitableFuture[quantum.QuantumResult]:
         """Sends a request over the stream and returns a future for the result."""
-        if not self._manage_stream_loop_running:
-            self._executor.submit(self._manage_stream)
-        result_future = self._executor.submit(self._run_program, project_name, program, job)
-        result_future.add_done_callback(lambda _: self._executor.submit(self._cancel, job.name))
-        # TODO will asyncio run_program task terminate when future is cancelled?
+        if self._manage_stream_loop_future is None:
+            self._manage_stream_loop_future = self._executor.submit(self._manage_stream)
+        result_future = self._executor.submit(self._make_request, project_name, program, job)
+
+        def cancel(future: Future):
+            if future.cancelled():
+                self._executor.submit(self._cancel, job.name)
+
+        result_future.add_done_callback(cancel)
         return result_future
+
+    def stop(self) -> None:
+        """Stops and resets the stream manager."""
+        if self._manage_stream_loop_future is not None:
+            self._manage_stream_loop_future.cancel()
+            self._manage_stream_loop_future = None
 
 
 class EngineClient:
@@ -1323,3 +1341,12 @@ def _date_or_time_to_filter_expr(param_name: str, param: Union[datetime.datetime
         f"type {type(param)}. Supported types: datetime.datetime and"
         f"datetime.date"
     )
+
+
+def _get_job_path_from_stream_request(request: quantum.QuantumRunStreamRequest) -> str:
+    if 'create_quantum_program_and_job' in request:
+        return request.create_quantum_program_and_job.quantum_job.name
+    elif 'create_quantum_job' in request:
+        return request.create_quantum_job.quantum_job.name
+    # 'get_quantum_result' in request
+    return request.get_quantum_result.parent
