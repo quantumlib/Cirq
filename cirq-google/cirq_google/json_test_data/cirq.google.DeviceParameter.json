@@ -1,0 +1,11 @@
+{
+  "cirq_type": "cirq.google.DeviceParameter",
+  "path": [
+    "test",
+    "subdir",
+    "key"
+  ],
+  "idx": 4,
+  "value": 7.5,
+  "units": "GHz"
+}
