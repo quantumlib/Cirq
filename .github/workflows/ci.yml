@@ -17,8 +17,8 @@ jobs:
     name: Misc check
     runs-on: ubuntu-20.04
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-python@v1
+      - uses: actions/checkout@v3
+      - uses: actions/setup-python@v4
         with:
           python-version: '3.8'
           architecture: 'x64'
@@ -28,8 +28,8 @@ jobs:
     name: Packaging test
     runs-on: ubuntu-20.04
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-python@v1
+      - uses: actions/checkout@v3
+      - uses: actions/setup-python@v4
         with:
           python-version: '3.7'
           architecture: 'x64'
@@ -41,10 +41,10 @@ jobs:
     name: Format check
     runs-on: ubuntu-20.04
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         with:
           fetch-depth: 0
-      - uses: actions/setup-python@v1
+      - uses: actions/setup-python@v4
         with:
           python-version: '3.8'
           architecture: 'x64'
@@ -56,8 +56,8 @@ jobs:
     name: Type check
     runs-on: ubuntu-20.04
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-python@v1
+      - uses: actions/checkout@v3
+      - uses: actions/setup-python@v4
         with:
           python-version: '3.8'
           architecture: 'x64'
@@ -69,10 +69,10 @@ jobs:
     name: Changed files test
     runs-on: ubuntu-20.04
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         with:
           fetch-depth: 0
-      - uses: actions/setup-python@v1
+      - uses: actions/setup-python@v4
         with:
           python-version: '3.8'
           architecture: 'x64'
@@ -84,8 +84,8 @@ jobs:
     name: Lint check
     runs-on: ubuntu-20.04
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-python@v1
+      - uses: actions/checkout@v3
+      - uses: actions/setup-python@v4
         with:
           python-version: '3.8'
           architecture: 'x64'
@@ -99,8 +99,8 @@ jobs:
     name: Doc test
     runs-on: ubuntu-20.04
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-python@v1
+      - uses: actions/checkout@v3
+      - uses: actions/setup-python@v4
         with:
           python-version: '3.8'
           architecture: 'x64'
@@ -114,8 +114,8 @@ jobs:
     name: Notebook formatting
     runs-on: ubuntu-20.04
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-python@v1
+      - uses: actions/checkout@v3
+      - uses: actions/setup-python@v4
         with:
           python-version: '3.8'
           architecture: 'x64'
@@ -127,7 +127,7 @@ jobs:
     name: Shell check
     runs-on: ubuntu-20.04
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         with:
           fetch-depth: 0
       - name: Run shellcheck
@@ -136,8 +136,8 @@ jobs:
     name: Isolated pytest Ubuntu
     runs-on: ubuntu-20.04
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-python@v1
+      - uses: actions/checkout@v3
+      - uses: actions/setup-python@v4
         with:
           python-version: '3.8'
           architecture: 'x64'
@@ -152,8 +152,8 @@ jobs:
         python-version: [ '3.7', '3.8', '3.9', '3.10' ]
     runs-on: ubuntu-20.04
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-python@v1
+      - uses: actions/checkout@v3
+      - uses: actions/setup-python@v4
         with:
           python-version: ${{ matrix.python-version }}
           architecture: 'x64'
@@ -175,8 +175,8 @@ jobs:
     name: Check consistency of requirements
     runs-on: ubuntu-20.04
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-python@v1
+      - uses: actions/checkout@v3
+      - uses: actions/setup-python@v4
         with:
           python-version: '3.8'
           architecture: 'x64'
@@ -189,8 +189,8 @@ jobs:
     name: Build docs
     runs-on: ubuntu-20.04
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-python@v1
+      - uses: actions/checkout@v3
+      - uses: actions/setup-python@v4
         with:
           python-version: '3.8'
           architecture: 'x64'
@@ -203,10 +203,10 @@ jobs:
     name: Build protos
     runs-on: ubuntu-20.04
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         with:
           fetch-depth: 0
-      - uses: actions/setup-python@v1
+      - uses: actions/setup-python@v4
         with:
           python-version: '3.8'
           architecture: 'x64'
@@ -219,10 +219,10 @@ jobs:
     name: Coverage check
     runs-on: ubuntu-20.04
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         with:
           fetch-depth: 0
-      - uses: actions/setup-python@v1
+      - uses: actions/setup-python@v4
         with:
           python-version: '3.8'
           architecture: 'x64'
@@ -247,8 +247,8 @@ jobs:
         python-version: [ '3.7', '3.8', '3.9', '3.10' ]
     runs-on: windows-2019
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-python@v1
+      - uses: actions/checkout@v3
+      - uses: actions/setup-python@v4
         with:
           python-version: ${{ matrix.python-version }}
           architecture: 'x64'
@@ -269,11 +269,11 @@ jobs:
     name: Pytest MacOS
     strategy:
       matrix:
-        python-version: [ '3.7', '3.8', '3.9', '3.10' ]
-    runs-on: macos-12
+        python-version: [ '3.7.16', '3.8', '3.9', '3.10' ]
+    runs-on: macos-latest
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-python@v1
+      - uses: actions/checkout@v3
+      - uses: actions/setup-python@v4
         with:
           python-version: ${{ matrix.python-version }}
           architecture: 'x64'
@@ -297,10 +297,10 @@ jobs:
         partition: [partition-0, partition-1, partition-2, partition-3]
     runs-on: ubuntu-20.04
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         with:
           fetch-depth: 0
-      - uses: actions/setup-python@v1
+      - uses: actions/setup-python@v4
         with:
           python-version: '3.8'
           architecture: 'x64'
@@ -317,8 +317,8 @@ jobs:
     name: Notebook Tests against PR
     runs-on: ubuntu-20.04
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-python@v1
+      - uses: actions/checkout@v3
+      - uses: actions/setup-python@v4
         with:
           python-version: '3.8'
           architecture: 'x64'
@@ -335,7 +335,7 @@ jobs:
     name: Bundle file consistency
     runs-on: ubuntu-20.04
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - uses: actions/setup-node@v2
         with:
           node-version: '14.16.1'
@@ -347,7 +347,7 @@ jobs:
     name: Typescript lint check
     runs-on: ubuntu-20.04
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - uses: actions/setup-node@v2
         with:
           node-version: '14.16.1'
@@ -359,7 +359,7 @@ jobs:
     name: Typescript tests
     runs-on: ubuntu-20.04
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - uses: actions/setup-node@v2
         with:
           node-version: '14.16.1'
@@ -373,7 +373,7 @@ jobs:
     name: Typescript tests coverage
     runs-on: ubuntu-20.04
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - uses: actions/setup-node@v2
         with:
           node-version: '14.16.1'
