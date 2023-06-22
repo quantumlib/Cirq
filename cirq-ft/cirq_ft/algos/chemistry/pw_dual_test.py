@@ -45,7 +45,6 @@ def test_subprepare_diagram():
     prep = SubPreparePWDual.build_from_coefficients(Ts, Us, Vs, Vxs, probability_epsilon=0.025)
     g, qubit_order, _ = construct_gate_helper_and_qubit_order(prep)
     circuit = cirq.Circuit(cirq.decompose_once(g.operation))
-    actual_diagram = circuit.to_text_diagram(qubit_order=qubit_order).lstrip("\n").rstrip()
     cirq.testing.assert_has_diagram(
         circuit,
         '''

@@ -58,23 +58,19 @@ from typing import Collection, List, Optional, Sequence, Tuple, Union
 
 import attr
 import numpy as np
-from cirq_ft.algos import (
-    QROM,
-    AddModRegisters,
-    ApplyGateToLthQubit,
-    LessThanEqualGate,
-    MultiTargetCSwap,
-    PrepareUniformSuperposition,
-    SelectedMajoranaFermionGate,
-    select_and_prepare,
-)
+from cirq_ft.algos import (QROM, AddModRegisters, ApplyGateToLthQubit,
+                           LessThanEqualGate, MultiTargetCSwap,
+                           PrepareUniformSuperposition,
+                           SelectedMajoranaFermionGate, select_and_prepare)
 from cirq_ft.infra import Register, Registers, SelectionRegisters
-from cirq_ft.linalg.lcu_util import preprocess_lcu_coefficients_for_reversible_sampling
+from cirq_ft.linalg.lcu_util import \
+    preprocess_lcu_coefficients_for_reversible_sampling
 from numpy.typing import NDArray
 
 import cirq
 
 
+@cirq.value_equality()
 @attr.frozen
 class SelectPWDual(select_and_prepare.SelectOracle):
     r"""The SELECT operation optimized for the plane wave dual basis Hamiltonian
@@ -136,7 +132,7 @@ class SelectPWDual(select_and_prepare.SelectOracle):
         self, *, context: cirq.DecompositionContext, **quregs
     ) -> cirq.OP_TREE:
         px, py, pz = quregs['px'], quregs['py'], quregs['pz']
-        qx, qy, qz = quregs['px'], quregs['qy'], quregs['qz']
+        qx, qy, qz = quregs['qx'], quregs['qy'], quregs['qz']
         UV = quregs['UV']
         alpha, beta, theta = quregs['alpha'], quregs['beta'], quregs['theta']
         control, target = quregs['control'], quregs['target']
@@ -223,9 +219,11 @@ class SelectPWDual(select_and_prepare.SelectOracle):
             return SelectPWDual(self.M, control_val=control_values[0])
         raise NotImplementedError(f'Cannot create a controlled version of {self}')
 
+    def _value_equality_values_(self):
+        return self.registers
 
-# @cirq.value_equality()
-# @frozen
+
+@cirq.value_equality()
 @attr.frozen
 class SubPreparePWDual(select_and_prepare.PrepareOracle):
     r"""Sub-prepare circuit for the plane wave dual Hamiltonian.
@@ -272,7 +270,8 @@ class SubPreparePWDual(select_and_prepare.PrepareOracle):
         p: (vector) Spatial orbital index, p = (px, py, pz)
 
     References:
-        [Encoding Electronic Spectra in Quantum Circuits with Linear T Complexity](https://arxiv.org/abs/1805.03662).
+        [Encoding Electronic Spectra in Quantum Circuits with
+        Linear T Complexity](https://arxiv.org/abs/1805.03662).
         Babbush et. al. (2018). Section III.D. and Figure 15. Note there is an
         error in the circuit diagram in the paper (there should be no data:
         $\theta_{alt_l}$ gate in the QROM load.)
@@ -439,11 +438,10 @@ class SubPreparePWDual(select_and_prepare.PrepareOracle):
         yield LessThanEqualGate(self.mu, self.mu).on(*keep, *sigma_mu, *less_than_equal)
 
     def _value_equality_values_(self):
-        return self.M
+        return self.registers
 
 
-# @cirq.value_equality()
-# @frozen
+@cirq.value_equality()
 @attr.frozen
 class PreparePWDual(select_and_prepare.PrepareOracle):
     r"""Prepare circuit for the plane wave dual Hamiltonian.
@@ -516,7 +514,7 @@ class PreparePWDual(select_and_prepare.PrepareOracle):
         self, context: cirq.DecompositionContext, **quregs: Sequence[cirq.Qid]
     ) -> cirq.OP_TREE:
         px, py, pz = quregs['px'], quregs['py'], quregs['pz']
-        qx, qy, qz = quregs['px'], quregs['qy'], quregs['qz']
+        qx, qy, qz = quregs['qx'], quregs['qy'], quregs['qz']
         alpha, beta = quregs['alpha'], quregs['beta']
         selU, selV = quregs["UV"]
         spc = SubPreparePWDual.build_from_coefficients(
@@ -549,4 +547,4 @@ class PreparePWDual(select_and_prepare.PrepareOracle):
             context.qubit_manager.qfree(v)
 
     def _value_equality_values_(self):
-        return (self.M, self.ndim)
+        return self.registers
