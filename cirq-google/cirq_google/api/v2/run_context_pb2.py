@@ -19,7 +19,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   syntax='proto3',
   serialized_options=b'\n\035com.google.cirq.google.api.v2B\017RunContextProtoP\001',
   create_key=_descriptor._internal_create_key,
-  serialized_pb=b'\n$cirq_google/api/v2/run_context.proto\x12\x12\x63irq.google.api.v2\"J\n\nRunContext\x12<\n\x10parameter_sweeps\x18\x01 \x03(\x0b\x32\".cirq.google.api.v2.ParameterSweep\"O\n\x0eParameterSweep\x12\x13\n\x0brepetitions\x18\x01 \x01(\x05\x12(\n\x05sweep\x18\x02 \x01(\x0b\x32\x19.cirq.google.api.v2.Sweep\"\x86\x01\n\x05Sweep\x12;\n\x0esweep_function\x18\x01 \x01(\x0b\x32!.cirq.google.api.v2.SweepFunctionH\x00\x12\x37\n\x0csingle_sweep\x18\x02 \x01(\x0b\x32\x1f.cirq.google.api.v2.SingleSweepH\x00\x42\x07\n\x05sweep\"\xc6\x01\n\rSweepFunction\x12\x45\n\rfunction_type\x18\x01 \x01(\x0e\x32..cirq.google.api.v2.SweepFunction.FunctionType\x12)\n\x06sweeps\x18\x02 \x03(\x0b\x32\x19.cirq.google.api.v2.Sweep\"C\n\x0c\x46unctionType\x12\x1d\n\x19\x46UNCTION_TYPE_UNSPECIFIED\x10\x00\x12\x0b\n\x07PRODUCT\x10\x01\x12\x07\n\x03ZIP\x10\x02\"\x8d\x01\n\x0bSingleSweep\x12\x15\n\rparameter_key\x18\x01 \x01(\t\x12,\n\x06points\x18\x02 \x01(\x0b\x32\x1a.cirq.google.api.v2.PointsH\x00\x12\x30\n\x08linspace\x18\x03 \x01(\x0b\x32\x1c.cirq.google.api.v2.LinspaceH\x00\x42\x07\n\x05sweep\"\x18\n\x06Points\x12\x0e\n\x06points\x18\x01 \x03(\x02\"G\n\x08Linspace\x12\x13\n\x0b\x66irst_point\x18\x01 \x01(\x02\x12\x12\n\nlast_point\x18\x02 \x01(\x02\x12\x12\n\nnum_points\x18\x03 \x01(\x03\x42\x32\n\x1d\x63om.google.cirq.google.api.v2B\x0fRunContextProtoP\x01\x62\x06proto3'
+  serialized_pb=b'\n$cirq_google/api/v2/run_context.proto\x12\x12\x63irq.google.api.v2\"J\n\nRunContext\x12<\n\x10parameter_sweeps\x18\x01 \x03(\x0b\x32\".cirq.google.api.v2.ParameterSweep\"O\n\x0eParameterSweep\x12\x13\n\x0brepetitions\x18\x01 \x01(\x05\x12(\n\x05sweep\x18\x02 \x01(\x0b\x32\x19.cirq.google.api.v2.Sweep\"\x86\x01\n\x05Sweep\x12;\n\x0esweep_function\x18\x01 \x01(\x0b\x32!.cirq.google.api.v2.SweepFunctionH\x00\x12\x37\n\x0csingle_sweep\x18\x02 \x01(\x0b\x32\x1f.cirq.google.api.v2.SingleSweepH\x00\x42\x07\n\x05sweep\"\xc6\x01\n\rSweepFunction\x12\x45\n\rfunction_type\x18\x01 \x01(\x0e\x32..cirq.google.api.v2.SweepFunction.FunctionType\x12)\n\x06sweeps\x18\x02 \x03(\x0b\x32\x19.cirq.google.api.v2.Sweep\"C\n\x0c\x46unctionType\x12\x1d\n\x19\x46UNCTION_TYPE_UNSPECIFIED\x10\x00\x12\x0b\n\x07PRODUCT\x10\x01\x12\x07\n\x03ZIP\x10\x02\";\n\x0f\x44\x65viceParameter\x12\x0c\n\x04path\x18\x01 \x03(\t\x12\x0b\n\x03idx\x18\x02 \x01(\x03\x12\r\n\x05units\x18\x03 \x01(\t\"\xc5\x01\n\x0bSingleSweep\x12\x15\n\rparameter_key\x18\x01 \x01(\t\x12,\n\x06points\x18\x02 \x01(\x0b\x32\x1a.cirq.google.api.v2.PointsH\x00\x12\x30\n\x08linspace\x18\x03 \x01(\x0b\x32\x1c.cirq.google.api.v2.LinspaceH\x00\x12\x36\n\tparameter\x18\x04 \x01(\x0b\x32#.cirq.google.api.v2.DeviceParameterB\x07\n\x05sweep\"\x18\n\x06Points\x12\x0e\n\x06points\x18\x01 \x03(\x02\"G\n\x08Linspace\x12\x13\n\x0b\x66irst_point\x18\x01 \x01(\x02\x12\x12\n\nlast_point\x18\x02 \x01(\x02\x12\x12\n\nnum_points\x18\x03 \x01(\x03\x42\x32\n\x1d\x63om.google.cirq.google.api.v2B\x0fRunContextProtoP\x01\x62\x06proto3'
 )
 
 
@@ -210,6 +210,52 @@ _SWEEPFUNCTION = _descriptor.Descriptor(
 )
 
 
+_DEVICEPARAMETER = _descriptor.Descriptor(
+  name='DeviceParameter',
+  full_name='cirq.google.api.v2.DeviceParameter',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  create_key=_descriptor._internal_create_key,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='path', full_name='cirq.google.api.v2.DeviceParameter.path', index=0,
+      number=1, type=9, cpp_type=9, label=3,
+      has_default_value=False, default_value=[],
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='idx', full_name='cirq.google.api.v2.DeviceParameter.idx', index=1,
+      number=2, type=3, cpp_type=2, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='units', full_name='cirq.google.api.v2.DeviceParameter.units', index=2,
+      number=3, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=b"".decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  serialized_options=None,
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=555,
+  serialized_end=614,
+)
+
+
 _SINGLESWEEP = _descriptor.Descriptor(
   name='SingleSweep',
   full_name='cirq.google.api.v2.SingleSweep',
@@ -239,6 +285,13 @@ _SINGLESWEEP = _descriptor.Descriptor(
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='parameter', full_name='cirq.google.api.v2.SingleSweep.parameter', index=3,
+      number=4, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
   ],
   extensions=[
   ],
@@ -256,8 +309,8 @@ _SINGLESWEEP = _descriptor.Descriptor(
       create_key=_descriptor._internal_create_key,
     fields=[]),
   ],
-  serialized_start=556,
-  serialized_end=697,
+  serialized_start=617,
+  serialized_end=814,
 )
 
 
@@ -288,8 +341,8 @@ _POINTS = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=699,
-  serialized_end=723,
+  serialized_start=816,
+  serialized_end=840,
 )
 
 
@@ -334,8 +387,8 @@ _LINSPACE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=725,
-  serialized_end=796,
+  serialized_start=842,
+  serialized_end=913,
 )
 
 _RUNCONTEXT.fields_by_name['parameter_sweeps'].message_type = _PARAMETERSWEEP
@@ -353,6 +406,7 @@ _SWEEPFUNCTION.fields_by_name['sweeps'].message_type = _SWEEP
 _SWEEPFUNCTION_FUNCTIONTYPE.containing_type = _SWEEPFUNCTION
 _SINGLESWEEP.fields_by_name['points'].message_type = _POINTS
 _SINGLESWEEP.fields_by_name['linspace'].message_type = _LINSPACE
+_SINGLESWEEP.fields_by_name['parameter'].message_type = _DEVICEPARAMETER
 _SINGLESWEEP.oneofs_by_name['sweep'].fields.append(
   _SINGLESWEEP.fields_by_name['points'])
 _SINGLESWEEP.fields_by_name['points'].containing_oneof = _SINGLESWEEP.oneofs_by_name['sweep']
@@ -363,6 +417,7 @@ DESCRIPTOR.message_types_by_name['RunContext'] = _RUNCONTEXT
 DESCRIPTOR.message_types_by_name['ParameterSweep'] = _PARAMETERSWEEP
 DESCRIPTOR.message_types_by_name['Sweep'] = _SWEEP
 DESCRIPTOR.message_types_by_name['SweepFunction'] = _SWEEPFUNCTION
+DESCRIPTOR.message_types_by_name['DeviceParameter'] = _DEVICEPARAMETER
 DESCRIPTOR.message_types_by_name['SingleSweep'] = _SINGLESWEEP
 DESCRIPTOR.message_types_by_name['Points'] = _POINTS
 DESCRIPTOR.message_types_by_name['Linspace'] = _LINSPACE
@@ -395,6 +450,13 @@ SweepFunction = _reflection.GeneratedProtocolMessageType('SweepFunction', (_mess
   # @@protoc_insertion_point(class_scope:cirq.google.api.v2.SweepFunction)
   })
 _sym_db.RegisterMessage(SweepFunction)
+
+DeviceParameter = _reflection.GeneratedProtocolMessageType('DeviceParameter', (_message.Message,), {
+  'DESCRIPTOR' : _DEVICEPARAMETER,
+  '__module__' : 'cirq_google.api.v2.run_context_pb2'
+  # @@protoc_insertion_point(class_scope:cirq.google.api.v2.DeviceParameter)
+  })
+_sym_db.RegisterMessage(DeviceParameter)
 
 SingleSweep = _reflection.GeneratedProtocolMessageType('SingleSweep', (_message.Message,), {
   'DESCRIPTOR' : _SINGLESWEEP,
