@@ -104,7 +104,13 @@ class BernoulliEncoder(random_variable_encoder.RandomVariableEncoder):
 
     def controlled(self, *args, **kwargs):
         cv = kwargs['control_values'][0]
-        return BernoulliEncoder(self.p, self.y, self.selection_bitsize, self.selection_bitsize_before_decimal + self.selection_bitsize_after_decimal, cv)
+        return BernoulliEncoder(
+            self.p,
+            self.y,
+            self.selection_bitsize,
+            self.selection_bitsize_before_decimal + self.selection_bitsize_after_decimal,
+            cv,
+        )
 
     @cached_property
     def mu(self) -> float:
@@ -168,10 +174,18 @@ def satisfies_theorem_321(
     ],
 )
 def test_mean_estimation_bernoulli(
-    p: int, y_1: int, selection_bitsize: int, target_bitsize_before_decimal: int, target_bitsize_after_decimal: int,  c: float, arctan_bitsize: int = 5
+    p: int,
+    y_1: int,
+    selection_bitsize: int,
+    target_bitsize_before_decimal: int,
+    target_bitsize_after_decimal: int,
+    c: float,
+    arctan_bitsize: int = 5,
 ):
     synthesizer = BernoulliSynthesizer(p, selection_bitsize)
-    encoder = BernoulliEncoder(p, (0, y_1), selection_bitsize, target_bitsize_before_decimal, target_bitsize_after_decimal)
+    encoder = BernoulliEncoder(
+        p, (0, y_1), selection_bitsize, target_bitsize_before_decimal, target_bitsize_after_decimal
+    )
     s = np.sqrt(encoder.s_square)
     # For hav_theta interval to be reasonably wide, 1/(1-cs) term should be <=2; thus cs <= 0.5.
     # The theorem assumes that C >= 1 and s <= 1 / c.

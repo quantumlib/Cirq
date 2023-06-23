@@ -1,6 +1,7 @@
 import abc
 from cirq_ft.algos import select_and_prepare
 
+
 class RandomVariableEncoder(select_and_prepare.SelectOracle):
     r"""Abstract base class that defines the API for a Random Variable Encoder.
 

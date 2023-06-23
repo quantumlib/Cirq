@@ -58,9 +58,11 @@ class ComplexPhaseOracle(infra.GateWithRegisters):
         encoder_op = self.encoder.on_registers(**quregs, **target_reg)
 
         arctan_sign, arctan_target = qm.qalloc(1), qm.qalloc(self.arctan_bitsize)
-        arctan_op = arctan.ArcTan(self.encoder.target_bitsize_before_decimal, self.encoder.target_bitsize_after_decimal, self.arctan_bitsize).on(
-            *target_qubits, *arctan_sign, *arctan_target
-        )
+        arctan_op = arctan.ArcTan(
+            self.encoder.target_bitsize_before_decimal,
+            self.encoder.target_bitsize_after_decimal,
+            self.arctan_bitsize,
+        ).on(*target_qubits, *arctan_sign, *arctan_target)
 
         yield encoder_op
         yield arctan_op
