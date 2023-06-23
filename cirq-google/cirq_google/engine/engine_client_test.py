@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """Tests for EngineClient."""
+from typing import AsyncIterable, AsyncIterator, Awaitable
+
 import asyncio
 import datetime
 from unittest import mock
@@ -26,12 +28,40 @@ from google.protobuf.timestamp_pb2 import Timestamp
 from cirq_google.engine.engine_client import EngineClient, EngineException
 from cirq_google.engine.test_utils import uses_async_mock
 from cirq_google.cloud import quantum
+from cirq_google.cloud.quantum_v1alpha1.types import engine
 
 
 def setup_mock_(client_constructor):
     grpc_client = mock.AsyncMock()
     client_constructor.return_value = grpc_client
     return grpc_client
+
+
+def setup_fake_quantum_run_stream_client(client_constructor):
+    grpc_client = _FakeQuantumRunStream()
+    client_constructor.return_value = grpc_client
+    return grpc_client
+
+
+class _FakeQuantumRunStream:
+    def __init__(self):
+        self.request_count = 0
+
+    def set_response_list(self, response_list):
+        self._response_list = response_list
+
+    async def quantum_run_stream(
+        self, requests: AsyncIterator[engine.QuantumRunStreamRequest] = None, **kwargs
+    ) -> AsyncIterable[engine.QuantumRunStreamResponse]:
+        async def run_async_iterator():
+            logger.warning('Server: Waiting for requests...')
+            async for _ in requests:
+                logger.warning('Server: Got a request, yielding response next')
+                self.request_count += 1
+                yield self._response_list.pop(0)
+
+        await asyncio.sleep(0.0001)
+        return run_async_iterator()
 
 
 @uses_async_mock
@@ -1229,3 +1259,26 @@ def test_list_time_slots(client_constructor):
 
     client = EngineClient()
     assert client.list_time_slots('proj', 'processor0') == results
+
+
+@mock.patch.object(quantum, 'QuantumEngineServiceAsyncClient', autospec=True)
+def test_run_job_over_stream(client_constructor):
+    fake_client = setup_fake_quantum_run_stream_client(client_constructor)
+
+    code = any_pb2.Any()
+    run_context = any_pb2.Any()
+    labels = {'hello': 'world'}
+    client = EngineClient()
+    expected_result = quantum.QuantumResult(parent='projects/proj/programs/prog/jobs/job0')
+    mock_responses = [quantum.QuantumRunStreamResponse(message_id='0', result=expected_result)]
+    fake_client.set_response_list(mock_responses)
+
+    actual_result = client.run_job_over_stream(
+        'proj', 'prog', code, 'job0', ['processor0'], run_context, 10, 'A job', labels
+    ).result(timeout=5)
+    client.stop_stream()
+
+    # TODO(verult) test that response listener message IDs are being deleted
+
+    assert actual_result == expected_result
+    assert fake_client.request_count == 1

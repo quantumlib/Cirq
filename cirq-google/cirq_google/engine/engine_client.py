@@ -295,7 +295,7 @@ class EngineClient:
         return self._executor.submit(make_client).result()
 
     @cached_property
-    def stream_manager(self) -> StreamManager:
+    def _stream_manager(self) -> StreamManager:
         return StreamManager(self.grpc_client)
 
     async def _send_request_async(self, func: Callable[[_M], Awaitable[_R]], request: _M) -> _R:
@@ -939,7 +939,10 @@ class EngineClient:
         if labels:
             job.labels.update(labels)
 
-        return self.stream_manager.send(project_name, program, job)
+        return self._stream_manager.send(project_name, program, job)
+
+    def stop_stream(self):
+        self._stream_manager.stop()
 
     async def list_processors_async(self, project_id: str) -> List[quantum.QuantumProcessor]:
         """Returns a list of Processors that the user has visibility to in the
