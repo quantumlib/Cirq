@@ -71,6 +71,14 @@ class BernoulliEncoder(random_variable_encoder.RandomVariableEncoder):
             t=self.target_bitsize_before_decimal + self.target_bitsize_after_decimal
         )
 
+    @cached_property
+    def target_bitsize_before_decimal(self) -> int:
+        return self.target_bitsize_before_decimal
+
+    @cached_property
+    def target_bitsize_after_decimal(self) -> int:
+        return self.target_bitsize_after_decimal
+
     def decompose_from_registers(  # type:ignore[override]
         self, context, q: Sequence[cirq.Qid], t: Sequence[cirq.Qid]
     ) -> cirq.OP_TREE:
@@ -237,6 +245,14 @@ class GroverEncoder(cirq_ft.SelectOracle):
     @cached_property
     def selection_registers(self) -> cirq_ft.SelectionRegisters:
         return cirq_ft.SelectionRegisters.build(selection=(self.n, 2**self.n))
+
+    @cached_property
+    def target_bitsize_before_decimal(self) -> int:
+        return 1
+
+    @cached_property
+    def target_bitsize_after_decimal(self) -> int:
+        return 0
 
     @cached_property
     def target_registers(self) -> cirq_ft.Registers:
