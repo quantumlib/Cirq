@@ -414,6 +414,17 @@ def test_map_operations_can_add_qubits_if_flag_false():
     cirq.testing.assert_same_circuits(c_mapped, cirq.Circuit(cirq.CNOT(q[0], q[1])))
 
 
+def test_map_operations_maps_different_ops_from_same_moment_to_shared_qubits():
+    q = cirq.LineQubit.range(3)
+    c = cirq.Circuit(cirq.H.on_each(q[:2]))
+    c_mapped = cirq.map_operations(
+        c, lambda op, _: op.controlled_by(q[2]), raise_if_add_qubits=False
+    )
+    cirq.testing.assert_same_circuits(
+        c_mapped, cirq.Circuit(cirq.H(q[0]).controlled_by(q[2]), cirq.H(q[1]).controlled_by(q[2]))
+    )
+
+
 def test_map_operations_can_drop_operations():
     q = cirq.LineQubit.range(2)
     c = cirq.Circuit(cirq.X(q[0]), cirq.Y(q[1]), cirq.X(q[1]), cirq.Y(q[0]))
