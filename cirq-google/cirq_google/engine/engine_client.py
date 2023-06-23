@@ -216,10 +216,12 @@ class StreamManager:
                     return response.result
                 # TODO handle QuantumJob response and retryable StreamError.
 
+        # Either when this request is canceled or the _manage_stream() loop is canceled.
         except asyncio.CancelledError:
             if response_future is not None:
                 response_future.cancel()
                 self._response_demux.unsubscribe(current_request)
+                await self._cancel(job.name)
 
     async def _cancel(self, job_name: str) -> None:
         await self._grpc_client.cancel_quantum_job(quantum.CancelQuantumJobRequest(name=job_name))
@@ -230,14 +232,7 @@ class StreamManager:
         """Sends a request over the stream and returns a future for the result."""
         if self._manage_stream_loop_future is None:
             self._manage_stream_loop_future = self._executor.submit(self._manage_stream)
-        result_future = self._executor.submit(self._make_request, project_name, program, job)
-
-        def cancel(future: Future):
-            if future.cancelled():
-                self._executor.submit(self._cancel, job.name)
-
-        result_future.add_done_callback(cancel)
-        return result_future
+        return self._executor.submit(self._make_request, project_name, program, job)
 
     def stop(self) -> None:
         """Stops and resets the stream manager."""
