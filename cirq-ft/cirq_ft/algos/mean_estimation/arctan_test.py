@@ -57,5 +57,5 @@ def test_arctan(selection_bitsize_before_decimal, selection_bitsize_after_decima
 
 
 def test_arctan_t_complexity():
-    gate = ArcTan(4, 5)
+    gate = ArcTan(3, 4, 5)
     assert cirq_ft.t_complexity(gate) == cirq_ft.TComplexity(t=5)

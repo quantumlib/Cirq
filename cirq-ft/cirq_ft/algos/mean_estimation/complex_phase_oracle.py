@@ -18,7 +18,6 @@ import attr
 import cirq
 from cirq._compat import cached_property
 from cirq_ft import infra
-from cirq_ft.algos import select_and_prepare
 from cirq_ft.algos import random_variable_encoder
 from cirq_ft.algos.mean_estimation import arctan
 

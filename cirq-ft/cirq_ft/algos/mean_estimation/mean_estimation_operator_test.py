@@ -303,8 +303,8 @@ def test_mean_estimation_operator_consistent_protocols():
         p,
         (0, y_1),
         selection_bitsize,
-        target_bitsize_before_decimal=1,
-        target_bitsize_after_decimal=0,
+        target_bitsize_before_decimal=target_bitsize_before_decimal,
+        target_bitsize_after_decimal=target_bitsize_after_decimal,
         control_val=None,
     )
     code = CodeForRandomVariable(synthesizer=synthesizer, encoder=encoder)
