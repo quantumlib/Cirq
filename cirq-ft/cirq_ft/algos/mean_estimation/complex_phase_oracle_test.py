@@ -21,15 +21,21 @@ import numpy as np
 import pytest
 from attr import frozen
 from cirq._compat import cached_property
+from cirq_ft.algos import random_variable_encoder
 from cirq_ft.algos.mean_estimation.complex_phase_oracle import ComplexPhaseOracle
 from cirq_ft.infra import bit_tools
 from cirq_ft.infra import testing as cq_testing
 
 
 @frozen
-class DummySelect(cirq_ft.SelectOracle):
-    bitsize: int
+class DummySelect(random_variable_encoder.RandomVariableEncoder):
+    target_bitsize_after_decimal: int
+    target_bitsize_before_decimal: int
     control_val: Optional[int] = None
+
+    @cached_property
+    def bitsize(self):
+        return self.target_bitsize_before_decimal + self.target_bitsize_after_decimal
 
     @cached_property
     def control_registers(self) -> cirq_ft.Registers:
@@ -78,7 +84,7 @@ def test_phase_oracle(bitsize: int, arctan_bitsize: int):
 
 
 def test_phase_oracle_consistent_protocols():
-    bitsize, arctan_bitsize = 3, 5
-    gate = ComplexPhaseOracle(DummySelect(bitsize, 1), arctan_bitsize)
-    expected_symbols = ('@',) + ('ROTy',) * bitsize
+    bitsize_before_decimal, bitsize_after_decimal, arctan_bitsize = 3, 0, 5
+    gate = ComplexPhaseOracle(DummySelect(bitsize_before_decimal, bitsize_after_decimal, 1), arctan_bitsize)
+    expected_symbols = ('@',) + ('ROTy',) * (bitsize_before_decimal + bitsize_after_decimal)
     assert cirq.circuit_diagram_info(gate).wire_symbols == expected_symbols

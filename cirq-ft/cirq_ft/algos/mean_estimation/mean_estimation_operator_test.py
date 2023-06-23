@@ -71,14 +71,6 @@ class BernoulliEncoder(random_variable_encoder.RandomVariableEncoder):
             t=self.target_bitsize_before_decimal + self.target_bitsize_after_decimal
         )
 
-    @cached_property
-    def target_bitsize_before_decimal(self) -> int:
-        return self.target_bitsize_before_decimal
-
-    @cached_property
-    def target_bitsize_after_decimal(self) -> int:
-        return self.target_bitsize_after_decimal
-
     def decompose_from_registers(  # type:ignore[override]
         self, context, q: Sequence[cirq.Qid], t: Sequence[cirq.Qid]
     ) -> cirq.OP_TREE:
