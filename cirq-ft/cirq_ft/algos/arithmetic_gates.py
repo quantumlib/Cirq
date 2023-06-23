@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Iterable, Optional, Sequence, Tuple, Union, Iterator, cast
+from typing import Iterable, Optional, Sequence, Tuple, Union, List
 
 import attr
 import cirq
@@ -131,14 +131,16 @@ class LessThanGate(cirq.ArithmeticGate):
 
 
 def mix_double_qubit_registers(
-    context: cirq.DecompositionContext, x: Tuple[cirq.Qid, cirq.Qid], y: Tuple[cirq.Qid, cirq.Qid]
+    context: cirq.DecompositionContext,
+    msb: Tuple[cirq.Qid, cirq.Qid],
+    lsb: Tuple[cirq.Qid, cirq.Qid],
 ) -> cirq.OP_TREE:
     """Generates the COMPARE2 circuit from https://www.nature.com/articles/s41534-018-0071-5#Sec8"""
     [ancilla] = context.qubit_manager.qalloc(1)
-    x_1, x_0 = x
-    y_1, y_0 = y
+    x_1, y_1 = msb
+    x_0, y_0 = lsb
 
-    def _cswap(c: cirq.Qid, a: cirq.Qid, b: cirq.Qid) -> Iterator[cirq.Operation]:
+    def _cswap(c: cirq.Qid, a: cirq.Qid, b: cirq.Qid) -> cirq.OP_TREE:
         [q] = context.qubit_manager.qalloc(1)
         yield cirq.CNOT(a, b)
         yield and_gate.And().on(c, b, q)
@@ -148,8 +150,8 @@ def mix_double_qubit_registers(
     yield cirq.X(ancilla)
     yield cirq.CNOT(y_1, x_1)
     yield cirq.CNOT(y_0, x_0)
-    yield from _cswap(x_1, x_0, ancilla)
-    yield from _cswap(x_1, y_1, y_0)
+    yield _cswap(x_1, x_0, ancilla)
+    yield _cswap(x_1, y_1, y_0)
     yield cirq.CNOT(y_0, x_0)
 
 
@@ -175,6 +177,18 @@ def compare_qubits(
     yield cirq.CNOT(x, y)
     yield cirq.CNOT(x, greater_than)
     yield cirq.X(y)
+
+
+def _equality_with_zero(
+    context: cirq.DecompositionContext, X: Tuple[cirq.Qid, ...], z: cirq.Qid
+) -> cirq.OP_TREE:
+    if len(X) == 1:
+        yield cirq.X(X[0])
+        yield cirq.CNOT(X[0], z)
+        return
+
+    ancilla = context.qubit_manager.qalloc(len(X) - 2)
+    yield and_gate.And(cv=[0] * len(X)).on(*X, *ancilla, z)
 
 
 @attr.frozen
@@ -210,25 +224,19 @@ class LessThanEqualGate(cirq.ArithmeticGate):
 
     def _decompose_via_tree(
         self, context: cirq.DecompositionContext, X: Tuple[cirq.Qid, ...], Y: Tuple[cirq.Qid, ...]
-    ) -> Tuple[Tuple[cirq.Operation, ...], Tuple[cirq.Qid, cirq.Qid]]:
+    ) -> cirq.OP_TREE:
         """Returns comparison oracle from https://www.nature.com/articles/s41534-018-0071-5#Sec8"""
         assert len(X) == len(Y), f'{len(X)=} != {len(Y)=}'
         if len(X) == 1:
-            return (), (X[0], Y[0])
+            return
         if len(X) == 2:
-            X = cast(Tuple[cirq.Qid, cirq.Qid], X)
-            Y = cast(Tuple[cirq.Qid, cirq.Qid], Y)
-            return tuple(cirq.flatten_to_ops(mix_double_qubit_registers(context, X, Y))), (
-                X[1],
-                Y[1],
-            )
+            yield mix_double_qubit_registers(context, (X[0], Y[0]), (X[1], Y[1]))
+            return
 
         m = len(X) // 2
-        op_left, ql = self._decompose_via_tree(context, X[:m], Y[:m])
-        op_right, qr = self._decompose_via_tree(context, X[m:], Y[m:])
-        return op_left + op_right + tuple(
-            cirq.flatten_to_ops(mix_double_qubit_registers(context, ql, qr))
-        ), (ql[1], qr[1])
+        yield self._decompose_via_tree(context, X[:m], Y[:m])
+        yield self._decompose_via_tree(context, X[m:], Y[m:])
+        yield mix_double_qubit_registers(context, (X[m - 1], Y[m - 1]), (X[-1], Y[-1]))
 
     def _decompose_with_context_(
         self, qubits: Sequence[cirq.Qid], context: Optional[cirq.DecompositionContext] = None
@@ -240,65 +248,57 @@ class LessThanEqualGate(cirq.ArithmeticGate):
 
         n = min(len(P), len(Q))
 
-        equal_so_far = None
-        adjoint = []
+        prefix_equality = None
+        adjoint: List[cirq.Operation] = []
 
-        # if one of the registers is longer than the other compute store equality value
-        # into `equal_so_far` using d = |len(P) - len(Q)| And operations => 4d T.
-        if abs(len(P) - len(Q)) == 1:
-            [equal_so_far] = context.qubit_manager.qalloc(1)
-            yield cirq.X(equal_so_far)
-            adjoint.append(cirq.X(equal_so_far))
-
+        # if one of the registers is longer than the other store equality with |0--0>
+        # into `prefix_equality` using d = |len(P) - len(Q)| And operations => 4d T.
+        if len(P) != len(Q):
+            [prefix_equality] = context.qubit_manager.qalloc(1)
             if len(P) > len(Q):
-                yield cirq.CNOT(P[0], equal_so_far)
-                adjoint.append(cirq.CNOT(P[0], equal_so_far))
+                decomposition = tuple(
+                    cirq.flatten_to_ops(
+                        _equality_with_zero(context, tuple(P[:-n]), prefix_equality)
+                    )
+                )
+                yield from decomposition
+                adjoint.extend(cirq.inverse(op) for op in decomposition)
             else:
-                yield cirq.CNOT(Q[0], equal_so_far)
-                adjoint.append(cirq.CNOT(Q[0], equal_so_far))
+                decomposition = tuple(
+                    cirq.flatten_to_ops(
+                        _equality_with_zero(context, tuple(Q[:-n]), prefix_equality)
+                    )
+                )
+                yield from decomposition
+                adjoint.extend(cirq.inverse(op) for op in decomposition)
 
-                yield cirq.CNOT(Q[0], target)
-        elif len(P) > len(Q):
-            [equal_so_far] = context.qubit_manager.qalloc(1)
-
-            m = len(P) - n
-            ancilla = context.qubit_manager.qalloc(m - 2)
-            yield and_gate.And(cv=[0] * m).on(*P[:m], *ancilla, equal_so_far)
-            adjoint.append(
-                and_gate.And(cv=[0] * m, adjoint=True).on(*P[:m], *ancilla, equal_so_far)
-            )
-
-        elif len(P) < len(Q):
-            [equal_so_far] = context.qubit_manager.qalloc(1)
-
-            m = len(Q) - n
-            ancilla = context.qubit_manager.qalloc(m - 2)
-            yield and_gate.And(cv=[0] * m)(*Q[:m], *ancilla, equal_so_far)
-            adjoint.append(and_gate.And(cv=[0] * m, adjoint=True)(*Q[:m], *ancilla, equal_so_far))
-
-            yield cirq.X(target), cirq.CNOT(equal_so_far, target)
+                yield cirq.X(target), cirq.CNOT(prefix_equality, target)
 
         # compare the remaing suffix of P and Q
         P = P[-n:]
         Q = Q[-n:]
-        decomposition, (x, y) = self._decompose_via_tree(context, tuple(P), tuple(Q))
-        yield from decomposition
+        decomposition = tuple(
+            cirq.flatten_to_ops(self._decompose_via_tree(context, tuple(P), tuple(Q)))
+        )
         adjoint.extend(cirq.inverse(op) for op in decomposition)
+        yield from decomposition
 
         less_than, greater_than = context.qubit_manager.qalloc(2)
-        decomposition = tuple(cirq.flatten_to_ops(compare_qubits(x, y, less_than, greater_than)))
-        yield from decomposition
+        decomposition = tuple(
+            cirq.flatten_to_ops(compare_qubits(P[-1], Q[-1], less_than, greater_than))
+        )
         adjoint.extend(cirq.inverse(op) for op in decomposition)
+        yield from decomposition
 
-        if equal_so_far is None:
-            yield cirq.CNOT(greater_than, target)
+        if prefix_equality is None:
             yield cirq.X(target)
+            yield cirq.CNOT(greater_than, target)
         else:
             [less_than_or_equal] = context.qubit_manager.qalloc(1)
-            yield and_gate.And([1, 0]).on(equal_so_far, greater_than, less_than_or_equal)
+            yield and_gate.And([1, 0]).on(prefix_equality, greater_than, less_than_or_equal)
             adjoint.append(
                 and_gate.And([1, 0], adjoint=True).on(
-                    equal_so_far, greater_than, less_than_or_equal
+                    prefix_equality, greater_than, less_than_or_equal
                 )
             )
 
@@ -313,7 +313,7 @@ class LessThanEqualGate(cirq.ArithmeticGate):
         if d == 0:
             return infra.TComplexity(t=8 * n - 4, clifford=46 * n - 17)
         elif d == 1:
-            return infra.TComplexity(t=8 * n, clifford=46 * n + 3 + is_second_longer)
+            return infra.TComplexity(t=8 * n, clifford=46 * n + 3 + 2 * is_second_longer)
         else:
             return infra.TComplexity(
                 t=8 * n + 4 * d - 4, clifford=46 * n + 17 * d - 14 + 2 * is_second_longer
