@@ -51,7 +51,7 @@ class ArcTan(cirq.ArithmeticGate):
         # Convert the binary representation to a float
         input_val_float = float(
             FixedPoint(
-                f"0b{bitstring.BitArray(uint=input_val, length=self.selection_bitsize()).bin}",
+                f"0b_{bitstring.BitArray(uint=input_val, length=self.selection_bitsize()).bin}",
                 signed=False,
                 m=self.selection_bitsize_before_decimal,
                 n=self.selection_bitsize_after_decimal,

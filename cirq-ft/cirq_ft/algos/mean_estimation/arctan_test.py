@@ -16,18 +16,31 @@ import cirq
 import cirq_ft
 import numpy as np
 import pytest
+from fixedpoint import FixedPoint
+import bitstring
 from cirq_ft.algos.mean_estimation.arctan import ArcTan
 from cirq_ft.infra.bit_tools import iter_bits_fixed_point
 
 
-@pytest.mark.parametrize('selection_bitsize', [16, 16])
+@pytest.mark.parametrize('selection_bitsize_before_decimal', [3, 4])
+@pytest.mark.parametrize('selection_bitsize_after_decimal', [1, 0])
 @pytest.mark.parametrize('target_bitsize', [3, 5, 6])
-def test_arctan(selection_bitsize, target_bitsize):
-    gate = ArcTan(selection_bitsize, target_bitsize)
+def test_arctan(selection_bitsize_before_decimal, selection_bitsize_after_decimal, target_bitsize):
+    selection_bitsize = selection_bitsize_before_decimal + selection_bitsize_after_decimal
+    gate = ArcTan(selection_bitsize_before_decimal, selection_bitsize_after_decimal, target_bitsize)
     maps = {}
     for x in range(2**selection_bitsize):
+        x_float = float(
+            FixedPoint(
+                f"0b_{bitstring.BitArray(uint=x, length=selection_bitsize).bin}",
+                signed=False,
+                m=selection_bitsize_before_decimal,
+                n=selection_bitsize_after_decimal,
+                str_base=2,
+            )
+        )
         inp = f'0b_{x:0{selection_bitsize}b}_0_{0:0{target_bitsize}b}'
-        y = -2 * np.arctan(x) / np.pi
+        y = -2 * np.arctan(x_float) / np.pi
         bits = [*iter_bits_fixed_point(y, target_bitsize + 1, signed=True)]
         sign, y_bin = bits[0], bits[1:]
         y_bin_str = ''.join(str(b) for b in y_bin)
