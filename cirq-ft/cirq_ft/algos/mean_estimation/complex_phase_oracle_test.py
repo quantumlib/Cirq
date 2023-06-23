@@ -15,6 +15,9 @@
 import math
 from typing import Optional
 
+import bitstring
+from fixedpoint import FixedPoint
+
 import cirq
 import cirq_ft
 import numpy as np
@@ -29,8 +32,8 @@ from cirq_ft.infra import testing as cq_testing
 
 @frozen
 class DummySelect(random_variable_encoder.RandomVariableEncoder):
-    target_bitsize_after_decimal: int
     target_bitsize_before_decimal: int
+    target_bitsize_after_decimal: int
     control_val: Optional[int] = None
 
     @cached_property
@@ -54,10 +57,12 @@ class DummySelect(random_variable_encoder.RandomVariableEncoder):
         yield [cirq.CNOT(s, t) for s, t in zip(selection, target)]
 
 
-@pytest.mark.parametrize('bitsize', [2, 3, 4, 5])
-@pytest.mark.parametrize('arctan_bitsize', [5, 6, 7])
-def test_phase_oracle(bitsize: int, arctan_bitsize: int):
-    phase_oracle = ComplexPhaseOracle(DummySelect(bitsize), arctan_bitsize)
+@pytest.mark.parametrize('bitsize_before_decimal', [3, 2, 3, 2])
+@pytest.mark.parametrize('bitsize_after_decimal', [1, 2, 0, 1])
+@pytest.mark.parametrize('arctan_bitsize', [8])
+def test_phase_oracle(bitsize_before_decimal: int, bitsize_after_decimal, arctan_bitsize: int):
+    bitsize = bitsize_before_decimal + bitsize_after_decimal
+    phase_oracle = ComplexPhaseOracle(DummySelect(bitsize_before_decimal, bitsize_after_decimal), arctan_bitsize)
     g = cq_testing.GateHelper(phase_oracle)
 
     # Prepare uniform superposition state on selection register and apply phase oracle.
@@ -71,7 +76,16 @@ def test_phase_oracle(bitsize: int, arctan_bitsize: int):
     state_vector = state_vector.reshape(2**bitsize, len(state_vector) // 2**bitsize)
     prepared_state = state_vector.sum(axis=1)
     for x in range(2**bitsize):
-        output_val = -2 * np.arctan(x, dtype=np.double) / np.pi
+        x_float = float(
+            FixedPoint(
+                f"0b_{bitstring.BitArray(uint=x, length=bitsize).bin}",
+                signed=False,
+                m=bitsize_before_decimal,
+                n=bitsize_after_decimal,
+                str_base=2,
+            )
+        )
+        output_val = -2 * np.arctan(x_float, dtype=np.double) / np.pi
         output_bits = [*bit_tools.iter_bits_fixed_point(np.abs(output_val), arctan_bitsize)]
         approx_val = np.sign(output_val) * math.fsum(
             [b * (1 / 2 ** (1 + i)) for i, b in enumerate(output_bits)]

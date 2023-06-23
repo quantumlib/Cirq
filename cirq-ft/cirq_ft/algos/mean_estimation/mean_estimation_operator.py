@@ -20,6 +20,7 @@ from cirq._compat import cached_property
 from cirq_ft import infra
 from cirq_ft.algos import reflection_using_prepare as rup
 from cirq_ft.algos import select_and_prepare as sp
+from cirq_ft.algos import random_variable_encoder as rve
 from cirq_ft.algos.mean_estimation import complex_phase_oracle
 
 
@@ -53,7 +54,7 @@ class CodeForRandomVariable:
     """
 
     synthesizer: sp.PrepareOracle
-    encoder: sp.SelectOracle
+    encoder: rve.RandomVariableEncoder
 
     def __attrs_post_init__(self):
         assert self.synthesizer.selection_registers == self.encoder.selection_registers
@@ -149,7 +150,7 @@ class MeanEstimationOperator(infra.GateWithRegisters):
             and not self.cv
         ):
             c_select = self.code.encoder.controlled(control_values=control_values)
-            assert isinstance(c_select, sp.SelectOracle)
+            assert isinstance(c_select, rve.RandomVariableEncoder)
             return MeanEstimationOperator(
                 CodeForRandomVariable(encoder=c_select, synthesizer=self.code.synthesizer),
                 cv=self.cv + (control_values[0],),

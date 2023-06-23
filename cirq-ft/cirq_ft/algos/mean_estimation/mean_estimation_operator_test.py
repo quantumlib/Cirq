@@ -22,7 +22,7 @@ import pytest
 from attr import frozen
 from cirq._compat import cached_property
 from cirq_ft.algos.mean_estimation import CodeForRandomVariable, MeanEstimationOperator
-from cirq_ft.algos import random_variable_encoder
+from cirq_ft.algos import random_variable_encoder as rve
 from cirq_ft.infra import bit_tools
 
 
@@ -46,7 +46,7 @@ class BernoulliSynthesizer(cirq_ft.PrepareOracle):
 
 
 @frozen
-class BernoulliEncoder(random_variable_encoder.RandomVariableEncoder):
+class BernoulliEncoder(rve.RandomVariableEncoder):
     r"""Encodes Bernoulli random variable y0/y1 as $Enc|ii..i>|0> = |ii..i>|y_{i}>$ where i=0/1."""
 
     p: float
@@ -108,7 +108,7 @@ class BernoulliEncoder(random_variable_encoder.RandomVariableEncoder):
             self.p,
             self.y,
             self.selection_bitsize,
-            self.selection_bitsize_before_decimal + self.selection_bitsize_after_decimal,
+            self.target_bitsize_before_decimal + self.target_bitsize_after_decimal,
             cv,
         )
 
@@ -127,7 +127,7 @@ def overlap(v1: np.ndarray, v2: np.ndarray) -> float:
 
 def satisfies_theorem_321(
     synthesizer: cirq_ft.PrepareOracle,
-    encoder: cirq_ft.SelectOracle,
+    encoder: rve.RandomVariableEncoder,
     c: float,
     s: float,
     mu: float,
@@ -223,7 +223,7 @@ class GroverSynthesizer(cirq_ft.PrepareOracle):
 
 
 @frozen
-class GroverEncoder(cirq_ft.SelectOracle):
+class GroverEncoder(rve.RandomVariableEncoder):
     """Enc|marked_item>|0> --> |marked_item>|marked_val>"""
 
     n: int
@@ -289,9 +289,9 @@ def test_mean_estimation_grover(
 
 
 def test_mean_estimation_operator_consistent_protocols():
-    p, selection_bitsize, y_1, target_bitsize, arctan_bitsize = 0.1, 2, 1, 1, 4
+    p, selection_bitsize, y_1, target_bitsize_before_decimal, target_bitsize_after_decimal, arctan_bitsize = 0.1, 2, 1, 1, 0, 4
     synthesizer = BernoulliSynthesizer(p, selection_bitsize)
-    encoder = BernoulliEncoder(p, (0, y_1), selection_bitsize, target_bitsize)
+    encoder = BernoulliEncoder(p, (0, y_1), selection_bitsize, target_bitsize_before_decimal=1, target_bitsize_after_decimal=0)
     code = CodeForRandomVariable(synthesizer=synthesizer, encoder=encoder)
     mean_gate = MeanEstimationOperator(code, arctan_bitsize=arctan_bitsize)
     op = mean_gate.on_registers(**mean_gate.registers.get_named_qubits())
