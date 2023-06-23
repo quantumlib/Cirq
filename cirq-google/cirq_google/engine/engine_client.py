@@ -195,33 +195,33 @@ class StreamManager:
         get_result_request = quantum.QuantumRunStreamRequest(
             parent=project_name, get_quantum_result=quantum.GetQuantumResultRequest(parent=job.name)
         )
-        response_future = None
 
-        try:
-            response_future = self._response_demux.subscribe(current_request)
-            await self._request_queue.put(current_request)
+        response_future: Optional[duet.AwaitableFuture[quantum.QuantumRunStreamResponse]] = None
+        response: Optional[quantum.QuantumRunStreamResponse] = None
+        while response is None:
+            try:
+                response_future = self._response_demux.subscribe(current_request)
+                await self._request_queue.put(current_request)
+                response = await response_future
 
-            response: Optional[quantum.QuantumRunStreamResponse] = None
-            while response is None:
-                try:
-                    response = await response_future
-                except GoogleAPICallError:
-                    # TODO how to distinguish between program not found vs job not found?
-                    # TODO Send a CreateProgramAndJobRequest or CreateJobRequest if either program or
-                    # job doesn't exist.
-                    # TODO add exponential backoff
-                    current_request = get_result_request
+            except GoogleAPICallError:
+                # TODO how to distinguish between program not found vs job not found?
+                # TODO Send a CreateProgramAndJobRequest or CreateJobRequest if either program or
+                # job doesn't exist.
+                # TODO add exponential backoff
+                current_request = get_result_request
 
-                if response.result is not None:
-                    return response.result
-                # TODO handle QuantumJob response and retryable StreamError.
+            # Either when this request is canceled or the _manage_stream() loop is canceled.
+            except asyncio.CancelledError:
+                if response_future is not None:
+                    response_future.cancel()
+                    self._response_demux.unsubscribe(current_request)
+                    await self._cancel(job.name)
+                    return
 
-        # Either when this request is canceled or the _manage_stream() loop is canceled.
-        except asyncio.CancelledError:
-            if response_future is not None:
-                response_future.cancel()
-                self._response_demux.unsubscribe(current_request)
-                await self._cancel(job.name)
+            if response.result is not None:
+                return response.result
+            # TODO handle QuantumJob response and retryable StreamError.
 
     async def _cancel(self, job_name: str) -> None:
         await self._grpc_client.cancel_quantum_job(quantum.CancelQuantumJobRequest(name=job_name))
