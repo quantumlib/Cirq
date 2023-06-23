@@ -62,7 +62,9 @@ class DummySelect(random_variable_encoder.RandomVariableEncoder):
 @pytest.mark.parametrize('arctan_bitsize', [8])
 def test_phase_oracle(bitsize_before_decimal: int, bitsize_after_decimal, arctan_bitsize: int):
     bitsize = bitsize_before_decimal + bitsize_after_decimal
-    phase_oracle = ComplexPhaseOracle(DummySelect(bitsize_before_decimal, bitsize_after_decimal), arctan_bitsize)
+    phase_oracle = ComplexPhaseOracle(
+        DummySelect(bitsize_before_decimal, bitsize_after_decimal), arctan_bitsize
+    )
     g = cq_testing.GateHelper(phase_oracle)
 
     # Prepare uniform superposition state on selection register and apply phase oracle.

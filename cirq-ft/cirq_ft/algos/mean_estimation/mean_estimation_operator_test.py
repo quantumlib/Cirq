@@ -290,9 +290,23 @@ def test_mean_estimation_grover(
 
 
 def test_mean_estimation_operator_consistent_protocols():
-    p, selection_bitsize, y_1, target_bitsize_before_decimal, target_bitsize_after_decimal, arctan_bitsize = 0.1, 2, 1, 1, 0, 4
+    (
+        p,
+        selection_bitsize,
+        y_1,
+        target_bitsize_before_decimal,
+        target_bitsize_after_decimal,
+        arctan_bitsize,
+    ) = (0.1, 2, 1, 1, 0, 4)
     synthesizer = BernoulliSynthesizer(p, selection_bitsize)
-    encoder = BernoulliEncoder(p, (0, y_1), selection_bitsize, target_bitsize_before_decimal=1, target_bitsize_after_decimal=0, control_val=None)
+    encoder = BernoulliEncoder(
+        p,
+        (0, y_1),
+        selection_bitsize,
+        target_bitsize_before_decimal=1,
+        target_bitsize_after_decimal=0,
+        control_val=None,
+    )
     code = CodeForRandomVariable(synthesizer=synthesizer, encoder=encoder)
     mean_gate = MeanEstimationOperator(code, arctan_bitsize=arctan_bitsize)
     op = mean_gate.on_registers(**mean_gate.registers.get_named_qubits())
