@@ -898,6 +898,7 @@ class EngineClient:
         self,
         project_id: str,
         program_id: str,
+        code: any_pb2.Any,
         job_id: Optional[str],
         processor_ids: Sequence[str],
         run_context: any_pb2.Any,
@@ -909,7 +910,15 @@ class EngineClient:
         if priority and not 0 <= priority < 1000:
             raise ValueError('priority must be between 0 and 1000')
 
-        # Create job.
+        project_name = _project_name(project_id)
+
+        program_name = _program_name_from_ids(project_id, program_id) if program_id else ''
+        program = quantum.QuantumProgram(name=program_name, code=code)
+        if description:
+            program.description = description
+        if labels:
+            program.labels.update(labels)
+
         job_name = _job_name_from_ids(project_id, program_id, job_id) if job_id else ''
         job = quantum.QuantumJob(
             name=job_name,
@@ -929,19 +938,8 @@ class EngineClient:
             job.description = description
         if labels:
             job.labels.update(labels)
-        job_request = quantum.CreateQuantumJobRequest(
-            parent=_program_name_from_ids(project_id, program_id),
-            quantum_job=job,
-            overwrite_existing_run_context=False,
-        )
-        stream_request = quantum.QuantumRunStreamRequest(
-            message_id=self._msg_id_generator.generate(),
-            parent=_project_name(project_id),
-            create_quantum_job=job_request,
-        )
-        return self.stream_manager.send(stream_request)
 
-        # TODO NEXT UP: change to sending over QuantumProgram instead...
+        return self.stream_manager.send(project_name, program, job)
 
     async def list_processors_async(self, project_id: str) -> List[quantum.QuantumProcessor]:
         """Returns a list of Processors that the user has visibility to in the
