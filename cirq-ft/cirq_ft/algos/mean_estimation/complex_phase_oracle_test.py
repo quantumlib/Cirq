@@ -85,6 +85,8 @@ def test_phase_oracle(bitsize: int, arctan_bitsize: int):
 
 def test_phase_oracle_consistent_protocols():
     bitsize_before_decimal, bitsize_after_decimal, arctan_bitsize = 3, 0, 5
-    gate = ComplexPhaseOracle(DummySelect(bitsize_before_decimal, bitsize_after_decimal, 1), arctan_bitsize)
+    gate = ComplexPhaseOracle(
+        DummySelect(bitsize_before_decimal, bitsize_after_decimal, 1), arctan_bitsize
+    )
     expected_symbols = ('@',) + ('ROTy',) * (bitsize_before_decimal + bitsize_after_decimal)
     assert cirq.circuit_diagram_info(gate).wire_symbols == expected_symbols
