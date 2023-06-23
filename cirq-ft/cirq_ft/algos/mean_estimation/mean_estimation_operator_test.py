@@ -16,12 +16,13 @@ from typing import Optional, Sequence, Tuple
 
 import cirq
 import cirq_ft
-import bitstring
+from fixedpoint import FixedPoint
 import numpy as np
 import pytest
 from attr import frozen
 from cirq._compat import cached_property
 from cirq_ft.algos.mean_estimation import CodeForRandomVariable, MeanEstimationOperator
+from cirq_ft.algos import random_variable_encoder
 from cirq_ft.infra import bit_tools
 
 
@@ -45,13 +46,14 @@ class BernoulliSynthesizer(cirq_ft.PrepareOracle):
 
 
 @frozen
-class BernoulliEncoder(cirq_ft.SelectOracle):
+class BernoulliEncoder(random_variable_encoder.RandomVariableEncoder):
     r"""Encodes Bernoulli random variable y0/y1 as $Enc|ii..i>|0> = |ii..i>|y_{i}>$ where i=0/1."""
 
     p: float
     y: Tuple[float, float]
     selection_bitsize: int
-    target_bitsize: int
+    target_bitsize_before_decimal: int
+    target_bitsize_after_decimal: int
     control_val: Optional[int] = None
 
     @cached_property
@@ -65,13 +67,32 @@ class BernoulliEncoder(cirq_ft.SelectOracle):
 
     @cached_property
     def target_registers(self) -> cirq_ft.Registers:
-        return cirq_ft.Registers.build(t=self.target_bitsize)
+        return cirq_ft.Registers.build(
+            t=self.target_bitsize_before_decimal + self.target_bitsize_after_decimal
+        )
 
     def decompose_from_registers(  # type:ignore[override]
         self, context, q: Sequence[cirq.Qid], t: Sequence[cirq.Qid]
     ) -> cirq.OP_TREE:
-        y0_bin = bitstring.BitArray(float=self.y[0], length=self.target_bitsize).bin
-        y1_bin = bitstring.BitArray(float=self.y[1], length=self.target_bitsize).bin
+
+        y0_bin = str(
+            FixedPoint(
+                self.y[0],
+                m=self.target_bitsize_before_decimal,
+                n=self.target_bitsize_after_decimal,
+                signed=False,
+                str_base=2,
+            )
+        )
+        y1_bin = str(
+            FixedPoint(
+                self.y[1],
+                m=self.target_bitsize_before_decimal,
+                n=self.target_bitsize_after_decimal,
+                signed=False,
+                str_base=2,
+            )
+        )
 
         for y0, y1, tq in zip(y0_bin, y1_bin, t):
             if y0 == '1':
@@ -83,7 +104,7 @@ class BernoulliEncoder(cirq_ft.SelectOracle):
 
     def controlled(self, *args, **kwargs):
         cv = kwargs['control_values'][0]
-        return BernoulliEncoder(self.p, self.y, self.selection_bitsize, self.target_bitsize, cv)
+        return BernoulliEncoder(self.p, self.y, self.selection_bitsize, self.selection_bitsize_before_decimal + self.selection_bitsize_after_decimal, cv)
 
     @cached_property
     def mu(self) -> float:
@@ -138,19 +159,19 @@ def satisfies_theorem_321(
 
 @pytest.mark.parametrize('selection_bitsize', [1, 2])
 @pytest.mark.parametrize(
-    'p, y_1, target_bitsize, c',
+    'p, y_1, target_bitsize_before_decimal, target_bitsize_after_decimal,  c',
     [
-        (1 / 100 * 1 / 100, 3.0, 16, 100 / 7),
-        (1 / 50 * 1 / 50, 2.0, 16, 50 / 4),
-        (1 / 50 * 1 / 50, 1.0, 16, 50 / 10),
-        (1 / 4 * 1 / 4, 1.0, 16, 1.5),
+        (1 / 100 * 1 / 100, 3.1, 3, 1, 100 / 7),
+        (1 / 50 * 1 / 50, 1.7, 2, 2, 50 / 4),
+        (1 / 50 * 1 / 50, 1.0, 4, 0, 50 / 10),
+        (1 / 10 * 1 / 10, 3.0, 4, 0, 1.5),
     ],
 )
 def test_mean_estimation_bernoulli(
-    p: int, y_1: int, selection_bitsize: int, target_bitsize: int, c: float, arctan_bitsize: int = 5
+    p: int, y_1: int, selection_bitsize: int, target_bitsize_before_decimal: int, target_bitsize_after_decimal: int,  c: float, arctan_bitsize: int = 5
 ):
     synthesizer = BernoulliSynthesizer(p, selection_bitsize)
-    encoder = BernoulliEncoder(p, (0, y_1), selection_bitsize, target_bitsize)
+    encoder = BernoulliEncoder(p, (0, y_1), selection_bitsize, target_bitsize_before_decimal, target_bitsize_after_decimal)
     s = np.sqrt(encoder.s_square)
     # For hav_theta interval to be reasonably wide, 1/(1-cs) term should be <=2; thus cs <= 0.5.
     # The theorem assumes that C >= 1 and s <= 1 / c.

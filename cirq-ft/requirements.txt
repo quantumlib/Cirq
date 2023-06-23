@@ -4,3 +4,4 @@ ipywidgets
 nbconvert
 nbformat
 bitstring
+fixedpoint

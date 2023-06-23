@@ -15,6 +15,7 @@
 from typing import Iterable, Sequence, Union
 
 import attr
+from fixedpoint import FixedPoint
 import cirq
 import bitstring
 import numpy as np
@@ -32,11 +33,14 @@ class ArcTan(cirq.ArithmeticGate):
             in the output register of size `target_bitsize`.
     """
 
-    selection_bitsize: int
+    selection_bitsize_before_decimal: int
+    selection_bitsize_after_decimal: int
     target_bitsize: int
 
+    def selection_bitsize(self):
+        return self.selection_bitsize_before_decimal + self.selection_bitsize_after_decimal
     def registers(self) -> Sequence[Union[int, Sequence[int]]]:
-        return (2,) * self.selection_bitsize, (2,), (2,) * self.target_bitsize
+        return (2,) * self.selection_bitsize(), (2,), (2,) * self.target_bitsize
 
     def with_registers(self, *new_registers: Union[int, Sequence[int]]) -> "ArcTan":
         raise NotImplementedError()
@@ -44,7 +48,15 @@ class ArcTan(cirq.ArithmeticGate):
     def apply(self, *register_values: int) -> Union[int, Iterable[int]]:
         input_val, target_sign, target_val = register_values
         # Convert the binary representation to a float
-        input_val_float = bitstring.BitArray(uint=input_val, length=self.selection_bitsize).float
+        input_val_float = float(
+                FixedPoint(
+                    f"0b{bitstring.BitArray(uint=input_val, length=self.selection_bitsize()).bin}",
+                    signed=False,
+                    m=self.selection_bitsize_before_decimal,
+                    n=self.selection_bitsize_after_decimal,
+                    str_base=2,
+                )
+            )
         output_val = -2 * np.arctan(input_val_float, dtype=np.double) / np.pi
         assert -1 <= output_val <= 1
         output_sign, output_bin = infra.bit_tools.float_as_fixed_width_int(

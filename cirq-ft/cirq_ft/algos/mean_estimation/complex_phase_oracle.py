@@ -19,6 +19,7 @@ import cirq
 from cirq._compat import cached_property
 from cirq_ft import infra
 from cirq_ft.algos import select_and_prepare
+from cirq_ft.algos import random_variable_encoder
 from cirq_ft.algos.mean_estimation import arctan
 
 
@@ -33,7 +34,7 @@ class ComplexPhaseOracle(infra.GateWithRegisters):
     $y_{l}$.
     """
 
-    encoder: select_and_prepare.SelectOracle
+    encoder: random_variable_encoder.RandomVariableEncoder
     arctan_bitsize: int = 32
 
     @cached_property
@@ -57,7 +58,7 @@ class ComplexPhaseOracle(infra.GateWithRegisters):
         encoder_op = self.encoder.on_registers(**quregs, **target_reg)
 
         arctan_sign, arctan_target = qm.qalloc(1), qm.qalloc(self.arctan_bitsize)
-        arctan_op = arctan.ArcTan(len(target_qubits), self.arctan_bitsize).on(
+        arctan_op = arctan.ArcTan(self.encoder.target_bitsize_before_decimal, self.encoder.target_bitsize_after_decimal, self.arctan_bitsize).on(
             *target_qubits, *arctan_sign, *arctan_target
         )
 

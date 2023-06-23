@@ -37,6 +37,7 @@ from cirq_ft.algos import (
     SelectedMajoranaFermionGate,
     SelectHubbard,
     SelectOracle,
+    RandomVariableEncoder,
     SelectSwapQROM,
     StatePreparationAliasSampling,
     SwapWithZeroGate,
