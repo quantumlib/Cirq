@@ -56,7 +56,6 @@ def test_create_program(client_constructor):
                 description='A program',
                 labels=labels,
             ),
-            overwrite_existing_source_code=False,
         )
     )
 
@@ -67,7 +66,6 @@ def test_create_program(client_constructor):
             quantum_program=quantum.QuantumProgram(
                 name='projects/proj/programs/prog', code=code, description='A program'
             ),
-            overwrite_existing_source_code=False,
         )
     )
 
@@ -78,7 +76,6 @@ def test_create_program(client_constructor):
             quantum_program=quantum.QuantumProgram(
                 name='projects/proj/programs/prog', code=code, labels=labels
             ),
-            overwrite_existing_source_code=False,
         )
     )
 
@@ -87,16 +84,13 @@ def test_create_program(client_constructor):
         quantum.CreateQuantumProgramRequest(
             parent='projects/proj',
             quantum_program=quantum.QuantumProgram(name='projects/proj/programs/prog', code=code),
-            overwrite_existing_source_code=False,
         )
     )
 
     assert client.create_program('proj', program_id=None, code=code) == ('prog', result)
     grpc_client.create_quantum_program.assert_called_with(
         quantum.CreateQuantumProgramRequest(
-            parent='projects/proj',
-            quantum_program=quantum.QuantumProgram(code=code),
-            overwrite_existing_source_code=False,
+            parent='projects/proj', quantum_program=quantum.QuantumProgram(code=code)
         )
     )
 
@@ -387,7 +381,6 @@ def test_create_job(client_constructor):
                 description='A job',
                 labels=labels,
             ),
-            overwrite_existing_run_context=False,
         )
     )
 
@@ -409,7 +402,6 @@ def test_create_job(client_constructor):
                 ),
                 description='A job',
             ),
-            overwrite_existing_run_context=False,
         )
     )
 
@@ -430,7 +422,6 @@ def test_create_job(client_constructor):
                 ),
                 labels=labels,
             ),
-            overwrite_existing_run_context=False,
         )
     )
 
@@ -451,7 +442,6 @@ def test_create_job(client_constructor):
                     ),
                 ),
             ),
-            overwrite_existing_run_context=False,
         )
     )
 
@@ -475,7 +465,6 @@ def test_create_job(client_constructor):
                     ),
                 ),
             ),
-            overwrite_existing_run_context=False,
         )
     )
 
