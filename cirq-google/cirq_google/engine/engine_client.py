@@ -221,7 +221,7 @@ class EngineClient:
             program.labels.update(labels)
 
         request = quantum.CreateQuantumProgramRequest(
-            parent=parent_name, quantum_program=program, overwrite_existing_source_code=False
+            parent=parent_name, quantum_program=program
         )
         program = await self._send_request_async(self.grpc_client.create_quantum_program, request)
         return _ids_from_program_name(program.name)[1], program
@@ -473,7 +473,6 @@ class EngineClient:
         request = quantum.CreateQuantumJobRequest(
             parent=_program_name_from_ids(project_id, program_id),
             quantum_job=job,
-            overwrite_existing_run_context=False,
         )
         job = await self._send_request_async(self.grpc_client.create_quantum_job, request)
         return _ids_from_job_name(job.name)[2], job
