@@ -103,16 +103,14 @@ class ResponseDemux:
     """A event demultiplexer for QuantumRunStreamResponses, as part of the async reactor pattern."""
 
     def __init__(self):
-        self._subscribers: Dict[JobPath, Tuple[MessageId, duet.AwaitableFuture]] = {}
+        self._subscribers: Dict[JobPath, Tuple[MessageId, asyncio.Future]] = {}
         self._next_available_message_id = 0
 
-    def subscribe(
-        self, request: quantum.QuantumRunStreamRequest
-    ) -> duet.AwaitableFuture[quantum.QuantumRunStreamResponse]:
+    def subscribe(self, request: quantum.QuantumRunStreamRequest) -> asyncio.Future:
         """Assumes the message ID has not been set."""
         job_path = _get_job_path_from_stream_request(request)
         request.message_id = self._next_available_message_id
-        response_future = duet.AwaitableFuture[quantum.QuantumRunStreamResponse]()
+        response_future = asyncio.Future()
         self._subscribers[job_path] = (self._next_available_message_id, response_future)
         self._next_available_message_id += 1
         return response_future
@@ -140,13 +138,16 @@ class ResponseDemux:
         if job_path not in self._subscribers:
             return
 
-        self._subscribers[job_path].try_set_result(response)
+        _, future = self._subscribers[job_path]
+        if not future.done():
+            future.set_result(response)
         del self._subscribers[job_path]
 
     def publish_exception(self, exception: GoogleAPICallError) -> None:
         """Publishes an exception to all outstanding futures."""
         for _, future in self._subscribers.values():
-            future.try_set_exception(exception)
+            if not future.done():
+                future.set_exception(exception)
         self._subscribers = {}
 
 
@@ -196,7 +197,7 @@ class StreamManager:
             parent=project_name, get_quantum_result=quantum.GetQuantumResultRequest(parent=job.name)
         )
 
-        response_future: Optional[duet.AwaitableFuture[quantum.QuantumRunStreamResponse]] = None
+        response_future: Optional[asyncio.Future] = None
         response: Optional[quantum.QuantumRunStreamResponse] = None
         while response is None:
             try:
