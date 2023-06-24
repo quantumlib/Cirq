@@ -736,7 +736,7 @@ def _test_metadata_search_path_inner():
         # importlib_metadata for python <3.8
         m = pytest.importorskip("importlib_metadata")
 
-    assert m.metadata('flynt')
+    assert m.metadata('numpy')
 
 
 def test_metadata_distributions_after_deprecated_submodule():
