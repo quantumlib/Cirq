@@ -45,7 +45,8 @@ def setup_fake_quantum_run_stream_client(client_constructor):
 
 class _FakeQuantumRunStream:
     def __init__(self):
-        self.request_count = 0
+        self.stream_request_count = 0
+        self.cancel_requests = []
 
     def set_response_list(self, response_list):
         self._response_list = response_list
@@ -55,11 +56,17 @@ class _FakeQuantumRunStream:
     ) -> AsyncIterable[engine.QuantumRunStreamResponse]:
         async def run_async_iterator():
             async for _ in requests:
-                self.request_count += 1
+                self.stream_request_count += 1
+                while not self._response_list:
+                    await asyncio.sleep(1)
                 yield self._response_list.pop(0)
 
         await asyncio.sleep(0.0001)
         return run_async_iterator()
+
+    async def cancel_quantum_job(self, request: engine.CancelQuantumJobRequest) -> None:
+        self.cancel_requests.append(request)
+        await asyncio.sleep(0.0001)
 
 
 @uses_async_mock
@@ -1277,4 +1284,27 @@ def test_run_job_over_stream(client_constructor):
     client.stop_stream()
 
     assert actual_result == expected_result
-    assert fake_client.request_count == 1
+    assert fake_client.stream_request_count == 1
+
+
+@mock.patch.object(quantum, 'QuantumEngineServiceAsyncClient', autospec=True)
+def test_run_job_over_stream_cancellation(client_constructor):
+    fake_client = setup_fake_quantum_run_stream_client(client_constructor)
+
+    code = any_pb2.Any()
+    run_context = any_pb2.Any()
+    labels = {'hello': 'world'}
+    client = EngineClient()
+    expected_result = quantum.QuantumResult(parent='projects/proj/programs/prog/jobs/job0')
+    mock_responses = [quantum.QuantumRunStreamResponse(message_id='0', result=expected_result)]
+    fake_client.set_response_list(mock_responses)
+
+    result_future = client.run_job_over_stream(
+        'proj', 'prog', code, 'job0', ['processor0'], run_context, 10, 'A job', labels
+    )
+    result_future.cancel()
+    client.stop_stream()
+
+    assert fake_client.cancel_requests[0] == quantum.CancelQuantumJobRequest(
+        name='projects/proj/programs/prog/jobs/job0'
+    )
