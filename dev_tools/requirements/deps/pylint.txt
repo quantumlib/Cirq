@@ -1,3 +1,2 @@
 # for linting
-
 pylint~=2.13.0
