@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """Tests for EngineClient."""
-from typing import AsyncIterable, AsyncIterator, Awaitable
+from typing import AsyncIterable, AsyncIterator
 
 import asyncio
 import datetime
@@ -54,9 +54,7 @@ class _FakeQuantumRunStream:
         self, requests: AsyncIterator[engine.QuantumRunStreamRequest] = None, **kwargs
     ) -> AsyncIterable[engine.QuantumRunStreamResponse]:
         async def run_async_iterator():
-            logger.warning('Server: Waiting for requests...')
             async for _ in requests:
-                logger.warning('Server: Got a request, yielding response next')
                 self.request_count += 1
                 yield self._response_list.pop(0)
 
@@ -1277,8 +1275,6 @@ def test_run_job_over_stream(client_constructor):
         'proj', 'prog', code, 'job0', ['processor0'], run_context, 10, 'A job', labels
     ).result(timeout=5)
     client.stop_stream()
-
-    # TODO(verult) test that response listener message IDs are being deleted
 
     assert actual_result == expected_result
     assert fake_client.request_count == 1
