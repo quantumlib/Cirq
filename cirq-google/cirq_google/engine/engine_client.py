@@ -31,7 +31,6 @@ from typing import (
     Union,
 )
 import warnings
-from concurrent.futures import Future
 
 import duet
 import proto
@@ -109,9 +108,9 @@ class ResponseDemux:
     def subscribe(self, request: quantum.QuantumRunStreamRequest) -> asyncio.Future:
         """Assumes the message ID has not been set."""
         job_path = _get_job_path_from_stream_request(request)
-        request.message_id = self._next_available_message_id
+        request.message_id = str(self._next_available_message_id)
         response_future = asyncio.Future()
-        self._subscribers[job_path] = (self._next_available_message_id, response_future)
+        self._subscribers[job_path] = (request.message_id, response_future)
         self._next_available_message_id += 1
         return response_future
 
@@ -158,30 +157,31 @@ class StreamManager:
         self._response_demux = ResponseDemux()
         self._manage_stream_loop_future: Optional[duet.AwaitableFuture] = None
 
+    @property
     def _executor(self) -> AsyncioExecutor:
         # We must re-use a single Executor due to multi-threading issues in gRPC
         # clients: https://github.com/grpc/grpc/issues/25364.
         return AsyncioExecutor.instance()
 
-    def _request_iterator(self) -> AsyncIterator[quantum.QuantumRunStreamRequest]:
-        async def iterator():
-            while not self._request_queue.empty():
-                yield await self._request_queue.get()
-
-        return iterator
+    @property
+    async def _request_iterator(self) -> AsyncIterator[quantum.QuantumRunStreamRequest]:
+        while not self._request_queue.empty():
+            yield await self._request_queue.get()
 
     async def _manage_stream(self):
         """Keeps the stream alive and routes responses to the appropriate request handler"""
         while True:
             try:
                 # TODO specify stream timeout below with exponential backoff
-                response_iterable = self._grpc_client.quantum_run_stream(self._request_iterator)
+                response_iterable = await self._grpc_client.quantum_run_stream(
+                    self._request_iterator
+                )
                 async for response in response_iterable:
                     self._response_demux.publish(response)
             except BaseException as e:
                 # TODO send halfclose to the stream upon CancelledError? How does that work?
                 self._response_demux.publish_exception(e)  # Raise to all request tasks
-                self._request_iterator = asyncio.Queue()  # Clear requests
+                self._request_queue = asyncio.Queue()  # Clear requests
 
     async def _make_request(
         self, project_name: str, program: quantum.QuantumProgram, job: quantum.QuantumJob
