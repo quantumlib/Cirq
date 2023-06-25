@@ -204,9 +204,12 @@ class StreamManager:
                 response_future = self._response_demux.subscribe(current_request)
                 await self._request_queue.put(current_request)
                 response = await response_future
+                if response.result is not None:
+                    return response.result
 
             except GoogleAPICallError:
                 # TODO how to distinguish between program not found vs job not found?
+                # TODO handle QuantumJob response and retryable StreamError.
                 # TODO Send a CreateProgramAndJobRequest or CreateJobRequest if either program or
                 # job doesn't exist.
                 # TODO add exponential backoff
@@ -219,10 +222,6 @@ class StreamManager:
                     self._response_demux.unsubscribe(current_request)
                     await self._cancel(job.name)
                     return
-
-            if response.result is not None:
-                return response.result
-            # TODO handle QuantumJob response and retryable StreamError.
 
     async def _cancel(self, job_name: str) -> None:
         await self._grpc_client.cancel_quantum_job(quantum.CancelQuantumJobRequest(name=job_name))
