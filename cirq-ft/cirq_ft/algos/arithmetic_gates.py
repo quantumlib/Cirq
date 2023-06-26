@@ -226,7 +226,6 @@ class LessThanEqualGate(cirq.ArithmeticGate):
         self, context: cirq.DecompositionContext, X: Tuple[cirq.Qid, ...], Y: Tuple[cirq.Qid, ...]
     ) -> cirq.OP_TREE:
         """Returns comparison oracle from https://www.nature.com/articles/s41534-018-0071-5#Sec8"""
-        assert len(X) == len(Y), '{} != {}'.format(len(X), len(Y))
         if len(X) == 1:
             return
         if len(X) == 2:
