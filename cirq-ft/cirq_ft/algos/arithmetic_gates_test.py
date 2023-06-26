@@ -334,8 +334,6 @@ def test_decompose_less_than_equal_gate(P: int, n: int, Q: int, m: int):
     num_ancillas = len(circuit.all_qubits()) - n - m - 1
     initial_state = [0] * num_ancillas + qubit_states + [0]
     output_state = [0] * num_ancillas + qubit_states + [int(P <= Q)]
-    print(*sorted(circuit.all_qubits()))
-    print(output_state)
     cirq_ft.testing.assert_circuit_inp_out_cirqsim(
         circuit, sorted(circuit.all_qubits()), initial_state, output_state
     )
