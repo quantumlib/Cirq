@@ -50,7 +50,7 @@ class ClassicalSimulator(SimulatesSamples):
                     if values_dict[op.qubits[0]] == 1:
                         values_dict[op.qubits[1]] = 1 - values_dict[op.qubits[1]]
 
-                elif isinstance(gate, ops.ISwapPowGate) and gate.exponent == 1:
+                elif isinstance(gate, ops.SwapPowGate) and gate.exponent == 1:
                     hold_qubit = values_dict[op.qubits[1]]
                     values_dict[op.qubits[1]] = values_dict[op.qubits[0]]
                     values_dict[op.qubits[0]] = hold_qubit

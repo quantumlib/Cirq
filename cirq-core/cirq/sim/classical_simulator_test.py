@@ -29,7 +29,7 @@ class TestSimulator:
         q0, q1 = cirq.LineQubit.range(2)
         circuit = cirq.Circuit()
         circuit.append(cirq.X(q0))
-        circuit.append(cirq.ISwap(q0, q1))
+        circuit.append(cirq.Swap(q0, q1))
         circuit.append(cirq.measure(q1, key='key'))
         expected_results = {'key': np.array([[[1]]], dtype=np.uint8)}
         sim = cirq.ClassicalSimulator()
