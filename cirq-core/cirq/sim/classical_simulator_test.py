@@ -25,6 +25,17 @@ class TestSimulator:
         results = sim._run(circuit=circuit, param_resolver=None, repetitions=1)
         np.testing.assert_equal(results, expected_results)
 
+    def test_Swap(self):
+        q0, q1 = cirq.LineQubit.range(2)
+        circuit = cirq.Circuit()
+        circuit.append(cirq.X(q0))
+        circuit.append(cirq.ISwap(q0, q1))
+        circuit.append(cirq.measure(q1, key='key'))
+        expected_results = {'key': np.array([[[1]]], dtype=np.uint8)}
+        sim = cirq.ClassicalSimulator()
+        results = sim._run(circuit=circuit, param_resolver=None, repetitions=1)
+        np.testing.assert_equal(results, expected_results)
+
     def test_measurement_gate(self):
         q0, q1 = cirq.LineQubit.range(2)
         circuit = cirq.Circuit()

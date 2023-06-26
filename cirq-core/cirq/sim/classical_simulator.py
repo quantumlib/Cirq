@@ -1,7 +1,8 @@
 from typing import Dict
 from collections import defaultdict
 from cirq.sim.simulator import SimulatesSamples
-from cirq import ops, circuits
+from cirq import ops, protocols
+from cirq.study.resolver import ParamResolver
 from cirq.circuits.circuit import AbstractCircuit
 import numpy as np
 
@@ -9,7 +10,7 @@ import numpy as np
 class ClassicalSimulator(SimulatesSamples):
 
     '''
-    `basic classical simulator that only accepts cirq.X and cirq.CNOT gates and return a 3d Numpy array`
+    `basic simulator that only accepts cirq.X, cirq.ISwap, and cirq.CNOT gates and return a 3d Numpy array`
 
       Run a simulation, mimicking quantum hardware.
 
@@ -32,27 +33,29 @@ class ClassicalSimulator(SimulatesSamples):
     '''
 
     def _run(
-        self,
-        circuit: 'cirq.AbstractCircuit',
-        param_resolver: 'cirq.ParamResolver',
-        repetitions: int,
+        self, circuit: 'AbstractCircuit', param_resolver: 'ParamResolver', repetitions: int
     ) -> Dict[str, np.ndarray]:
         results_dict = {}
         values_dict = defaultdict(int)
-        param_resolver = param_resolver or cirq.ParamResolver({})
-        resolved_circuit = cirq.resolve_parameters(circuit, param_resolver)
+        param_resolver = param_resolver or ParamResolver({})
+        resolved_circuit = protocols.resolve_parameters(circuit, param_resolver)
 
         for moment in resolved_circuit:
             for op in moment:
                 gate = op.gate
-                if isinstance(gate, cirq.XPowGate) and gate.exponent == 1:
+                if isinstance(gate, ops.XPowGate) and gate.exponent == 1:
                     values_dict[op.qubits[0]] = 1 - values_dict[op.qubits[0]]
 
-                elif isinstance(gate, cirq.CNotPowGate) and gate.exponent == 1:
+                elif isinstance(gate, ops.CNotPowGate) and gate.exponent == 1:
                     if values_dict[op.qubits[0]] == 1:
                         values_dict[op.qubits[1]] = 1 - values_dict[op.qubits[1]]
 
-                elif isinstance(gate, cirq.MeasurementGate):
+                elif isinstance(gate, ops.ISwapPowGate) and gate.exponent == 1:
+                    hold_qubit = values_dict[op.qubits[1]]
+                    values_dict[op.qubits[1]] = values_dict[op.qubits[0]]
+                    values_dict[op.qubits[0]] = hold_qubit
+
+                elif isinstance(gate, ops.MeasurementGate):
                     qubits_in_order = op.qubits
                     ##add the new instance of a key to the numpy array in results dictionary
                     if (gate.key) in results_dict.keys():
@@ -77,9 +80,12 @@ class ClassicalSimulator(SimulatesSamples):
                         results_dict[gate.key] = new_array
 
                 elif not (
-                    (isinstance(gate, cirq.XPowGate) and gate.exponent == 0)
-                    or (isinstance(gate, cirq.CNotPowGate) and gate.exponent == 0)
+                    (isinstance(gate, ops.XPowGate) and gate.exponent == 0)
+                    or (isinstance(gate, ops.CNotPowGate) and gate.exponent == 0)
+                    or (isinstance(gate, ops.ISwapPowGate) and gate.exponent == 0)
                 ):
-                    raise ValueError("Can not simulate gates other than cirq.XGate or cirq.CNOT")
+                    raise ValueError(
+                        "Can not simulate gates other than cirq.XGate or cirq.CNOT or cirq.ISwap"
+                    )
 
         return results_dict
