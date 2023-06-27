@@ -106,8 +106,8 @@ class GPI2Gate(cirq.Gate):
     $$
     \frac{1}{\sqrt{2}}
     \begin{bmatrix}
-        1 & -i e^{-i \phi} \\
-        -i e^{i \phi} & 1
+        1 & -i e^{-i 2\pi \phi} \\
+        -i e^{i 2\pi \phi} & 1
     \end{bmatrix}
     $$
 
@@ -183,10 +183,10 @@ class MSGate(cirq.Gate):
 
     $$
     \begin{bmatrix}
-        \cos\frac{\theta}{2} & 0 & 0 & -ie^{-i2\pi(\phi_0+\phi_1)}\sin\frac{\theta}{2} \\
-        0 & \cos\frac{\theta}{2} & -ie^{-i2\pi(\phi_0-\phi_1)}\sin\frac{\theta}{2} & 0 \\
-        0 & -ie^{i2\pi(\phi_0-\phi_1)}\sin\frac{\theta}{2} & \cos\frac{\theta}{2} & 0 \\
-        -ie^{i2\pi(\phi_0+\phi_1)}\sin\frac{\theta}{2} & 0 & 0 & \cos\frac{\theta}{2}
+        \cos\frac{\theta}{2} & 0 & 0 & -ie^{-i2\pi(\phi_0+\phi_1)}\sin(\pi \theta) \\
+        0 & \cos\frac{\theta}{2} & -ie^{-i2\pi(\phi_0-\phi_1)}\sin(\pi \theta) & 0 \\
+        0 & -ie^{i2\pi(\phi_0-\phi_1)}\sin\sin(\pi \theta) & \cos\frac{\theta}{2} & 0 \\
+        -ie^{i2\pi(\phi_0+\phi_1)}\sin(\pi \theta) & 0 & 0 & \cos\frac{\theta}{2}
     \end{bmatrix}
     $$
 
