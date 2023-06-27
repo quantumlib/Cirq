@@ -57,7 +57,7 @@ TESTED_MODULES: Dict[str, Optional[_ModuleDeprecation]] = {
 
 
 # pyQuil 3.0, necessary for cirq_rigetti module requires
-# python >= 3.7
+# python >= 3.8
 if sys.version_info < (3, 7):  # pragma: no cover
     del TESTED_MODULES['cirq_rigetti']
 
