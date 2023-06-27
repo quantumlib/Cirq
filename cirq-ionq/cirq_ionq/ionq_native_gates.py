@@ -186,7 +186,7 @@ class MSGate(cirq.Gate):
         \cos\frac{\theta}{2} & 0 & 0 & -ie^{-i2\pi(\phi_0+\phi_1)}\sin\frac{\theta}{2} \\
         0 & \cos\frac{\theta}{2} & -ie^{-i2\pi(\phi_0-\phi_1)}\sin\frac{\theta}{2} & 0 \\
         0 & -ie^{i2\pi(\phi_0-\phi_1)}\sin\frac{\theta}{2} & \cos\frac{\theta}{2} & 0 \\
-        -ie^{i2\pi(\phi_0+\phi_1)}\sin{\theta/2} & 0 & 0 & \cos\frac{\theta}{2}
+        -ie^{i2\pi(\phi_0+\phi_1)}\sin\frac{\theta}{2} & 0 & 0 & \cos\frac{\theta}{2}
     \end{bmatrix}
     $$
 
