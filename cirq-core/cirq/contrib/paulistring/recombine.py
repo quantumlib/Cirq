@@ -12,6 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+# TODO(#6171): enable the check and fix pylint errors
+# pylint: disable=consider-using-f-string
+
 from typing import Any, Callable, Iterable, Sequence, Tuple, Union, cast, List
 
 from cirq import circuits, ops, protocols
