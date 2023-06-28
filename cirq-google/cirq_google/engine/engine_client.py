@@ -180,7 +180,7 @@ class StreamManager:
                 async for response in response_iterable:
                     self._response_demux.publish(response)
             except BaseException as e:
-                # TODO send halfclose to the stream upon CancelledError? How does that work?
+                # TODO Close the request iterator to close the existing stream.
                 self._response_demux.publish_exception(e)  # Raise to all request tasks
                 self._request_queue = asyncio.Queue()  # Clear requests
 
@@ -902,7 +902,7 @@ class EngineClient:
         project_id: str,
         program_id: str,
         code: any_pb2.Any,
-        job_id: Optional[str],
+        job_id: Optional[str],  # TODO make this non-optional.
         processor_ids: Sequence[str],
         run_context: any_pb2.Any,
         priority: Optional[int] = None,
@@ -1347,5 +1347,7 @@ def _get_job_path_from_stream_request(request: quantum.QuantumRunStreamRequest) 
         return request.create_quantum_program_and_job.quantum_job.name
     elif 'create_quantum_job' in request:
         return request.create_quantum_job.quantum_job.name
-    # 'get_quantum_result' in request
-    return request.get_quantum_result.parent
+    elif 'get_quantum_result' in request:
+        return request.get_quantum_result.parent
+    else:
+        raise ValueError(f'Unrecognized request type in request: {request}')
