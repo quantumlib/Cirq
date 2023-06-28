@@ -18,7 +18,7 @@ import cirq
 import cirq_ft
 import numpy as np
 import pytest
-from cirq_ft.infra import bit_tools
+from cirq_ft.infra import bit_tools, GreedyQubitManager
 
 
 def identity_map(n: int):
@@ -329,11 +329,71 @@ def test_add_no_decompose(a, b):
 def test_decompose_less_than_equal_gate(P: int, n: int, Q: int, m: int):
     qubit_states = list(bit_tools.iter_bits(P, n)) + list(bit_tools.iter_bits(Q, m))
     circuit = cirq.Circuit(
-        cirq.decompose_once(cirq_ft.LessThanEqualGate(n, m).on(*cirq.LineQubit.range(n + m + 1)))
+        cirq.decompose_once(
+            cirq_ft.LessThanEqualGate(n, m).on(*cirq.LineQubit.range(n + m + 1)),
+            context=cirq.DecompositionContext(GreedyQubitManager(prefix='_c')),
+        )
     )
+    qubit_order = tuple(sorted(circuit.all_qubits()))
     num_ancillas = len(circuit.all_qubits()) - n - m - 1
-    initial_state = [0] * num_ancillas + qubit_states + [0]
-    output_state = [0] * num_ancillas + qubit_states + [int(P <= Q)]
+    initial_state = qubit_states + [0] + [0] * num_ancillas
+    output_state = qubit_states + [int(P <= Q)] + [0] * num_ancillas
     cirq_ft.testing.assert_circuit_inp_out_cirqsim(
-        circuit, sorted(circuit.all_qubits()), initial_state, output_state
+        circuit, qubit_order, initial_state, output_state
+    )
+
+
+@pytest.mark.parametrize("adjoint", [False, True])
+def test_single_qubit_compare_protocols(adjoint: bool):
+    g = cirq_ft.algos.SingleQubitCompare(adjoint=adjoint)
+    cirq_ft.testing.assert_decompose_is_consistent_with_t_complexity(g)
+    cirq.testing.assert_equivalent_repr(g, setup_code='import cirq_ft')
+
+
+@pytest.mark.parametrize("v1,v2", [(v1, v2) for v1 in range(2) for v2 in range(2)])
+def test_single_qubit_compare(v1: int, v2: int):
+    g = cirq_ft.algos.SingleQubitCompare()
+    qubits = cirq.LineQid.range(4, dimension=2)
+    c = cirq.Circuit(g.on(*qubits))
+    initial_state = [v1, v2, 0, 0]
+    output_state = [v1, int(v1 == v2), int(v1 < v2), int(v1 > v2)]
+    cirq_ft.testing.assert_circuit_inp_out_cirqsim(
+        c, sorted(c.all_qubits()), initial_state, output_state
+    )
+
+    # Check that g**-1 restores the qubits to their original state
+    c = cirq.Circuit(g.on(*qubits), (g**-1).on(*qubits))
+    cirq_ft.testing.assert_circuit_inp_out_cirqsim(
+        c, sorted(c.all_qubits()), initial_state, initial_state
+    )
+
+
+@pytest.mark.parametrize("adjoint", [False, True])
+def test_bi_qubits_mixer_protocols(adjoint: bool):
+    g = cirq_ft.algos.BiQubitsMixer(adjoint=adjoint)
+    cirq_ft.testing.assert_decompose_is_consistent_with_t_complexity(g)
+    cirq.testing.assert_equivalent_repr(g, setup_code='import cirq_ft')
+
+
+@pytest.mark.parametrize("x", [*range(4)])
+@pytest.mark.parametrize("y", [*range(4)])
+def test_bi_qubits_mixer(x: int, y: int):
+    g = cirq_ft.algos.BiQubitsMixer()
+    qubits = cirq.LineQid.range(7, dimension=2)
+    c = cirq.Circuit(g.on(*qubits))
+    x_1, x_0 = (x >> 1) & 1, x & 1
+    y_1, y_0 = (y >> 1) & 1, y & 1
+    initial_state = [x_1, x_0, y_1, y_0, 0, 0, 0]
+    result = (
+        cirq.Simulator()
+        .simulate(c, initial_state=initial_state, qubit_order=qubits)
+        .dirac_notation()[1:-1]
+    )
+    x_0, y_0 = int(result[1]), int(result[3])
+    assert np.sign(x - y) == np.sign(x_0 - y_0)
+
+    # Check that g**-1 restores the qubits to their original state
+    c = cirq.Circuit(g.on(*qubits), (g**-1).on(*qubits))
+    cirq_ft.testing.assert_circuit_inp_out_cirqsim(
+        c, sorted(c.all_qubits()), initial_state, initial_state
     )

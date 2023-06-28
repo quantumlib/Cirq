@@ -12,8 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Iterable, Optional, Sequence, Tuple, Union, List
+from typing import Iterable, Optional, Sequence, Tuple, Union, List, Iterator
 
+from cirq._compat import cached_property
 import attr
 import cirq
 from cirq_ft import infra
@@ -78,7 +79,7 @@ class LessThanGate(cirq.ArithmeticGate):
             return
         adjoint = []
 
-        [are_equal] = context.qubit_manager.qalloc(1)
+        (are_equal,) = context.qubit_manager.qalloc(1)
 
         # Initially our belief is that the numbers are equal.
         yield cirq.X(are_equal)
@@ -130,65 +131,133 @@ class LessThanGate(cirq.ArithmeticGate):
         )
 
 
-def mix_double_qubit_registers(
-    context: cirq.DecompositionContext,
-    msb: Tuple[cirq.Qid, cirq.Qid],
-    lsb: Tuple[cirq.Qid, cirq.Qid],
-) -> cirq.OP_TREE:
-    """Generates the COMPARE2 circuit from https://www.nature.com/articles/s41534-018-0071-5#Sec8"""
-    [ancilla] = context.qubit_manager.qalloc(1)
-    x_1, y_1 = msb
-    x_0, y_0 = lsb
+@attr.frozen
+class BiQubitsMixer(infra.GateWithRegisters):
+    """Implements the COMPARE2 (Fig. 1) https://www.nature.com/articles/s41534-018-0071-5#Sec8
 
-    def _cswap(c: cirq.Qid, a: cirq.Qid, b: cirq.Qid) -> cirq.OP_TREE:
-        [q] = context.qubit_manager.qalloc(1)
-        yield cirq.CNOT(a, b)
-        yield and_gate.And().on(c, b, q)
-        yield cirq.CNOT(q, a)
-        yield cirq.CNOT(a, b)
-
-    yield cirq.X(ancilla)
-    yield cirq.CNOT(y_1, x_1)
-    yield cirq.CNOT(y_0, x_0)
-    yield _cswap(x_1, x_0, ancilla)
-    yield _cswap(x_1, y_1, y_0)
-    yield cirq.CNOT(y_0, x_0)
-
-
-def compare_qubits(
-    x: cirq.Qid, y: cirq.Qid, less_than: cirq.Qid, greater_than: cirq.Qid
-) -> cirq.OP_TREE:
-    """Generates the comparison circuit from https://www.nature.com/articles/s41534-018-0071-5#Sec8
-
-    Args:
-        x: first qubit of the comparison and stays the same after circuit execution.
-        y: second qubit of the comparison.
-            This qubit will store equality value `x==y` after circuit execution.
-        less_than: Assumed to be in zero state. Will store `x < y`.
-        greater_than: Assumed to be in zero state. Will store `x > y`.
-
-    Returns:
-        The circuit in (Fig. 3) in https://www.nature.com/articles/s41534-018-0071-5#Sec8
+    This gates mixes the values in away that preserves the result of comparison.
+    The registers being compared are 2-qubit registers where
+        x = 2*x_msb + x_lsb
+        y = 2*y_msb + y_lsb
+    The Gate mixes the 4 qubits so that sign(x - y) = sign(x_lsb' - y_lsb') where x_lsb' and y_lsb'
+    are the final values of x_lsb' and y_lsb'.
     """
 
-    yield and_gate.And([0, 1]).on(x, y, less_than)
-    yield cirq.CNOT(less_than, greater_than)
-    yield cirq.CNOT(y, greater_than)
-    yield cirq.CNOT(x, y)
-    yield cirq.CNOT(x, greater_than)
-    yield cirq.X(y)
+    adjoint: bool = False
+
+    @cached_property
+    def registers(self) -> infra.Registers:
+        return infra.Registers.build(x=2, y=2, ancilla=3)
+
+    def _has_unitary_(self):
+        return not self.adjoint
+
+    def decompose_from_registers(
+        self, *, context: cirq.DecompositionContext, **quregs: Sequence[cirq.Qid]
+    ) -> cirq.OP_TREE:
+
+        x, y, ancilla = quregs['x'], quregs['y'], quregs['ancilla']
+        x_msb, x_lsb = x
+        y_msb, y_lsb = y
+
+        def _cswap(c: cirq.Qid, a: cirq.Qid, b: cirq.Qid, q: cirq.Qid) -> cirq.OP_TREE:
+            yield cirq.CNOT(a, b)
+            yield and_gate.And(adjoint=self.adjoint).on(c, b, q)
+            yield cirq.CNOT(q, a)
+            yield cirq.CNOT(a, b)
+
+        def _decomposition():
+            yield cirq.X(ancilla[0])
+            yield cirq.CNOT(y_msb, x_msb)
+            yield cirq.CNOT(y_lsb, x_lsb)
+            yield from _cswap(x_msb, x_lsb, ancilla[0], ancilla[1])
+            yield from _cswap(x_msb, y_msb, y_lsb, ancilla[2])
+            yield cirq.CNOT(y_lsb, x_lsb)
+
+        if self.adjoint:
+            yield from reversed(tuple(cirq.flatten_to_ops(_decomposition())))
+        else:
+            yield from _decomposition()
+
+    def __repr__(self) -> str:
+        return f'cirq_ft.algos.BiQubitsMixer({self.adjoint})'
+
+    def __pow__(self, power: int) -> cirq.Gate:
+        if power == 1:
+            return self
+        if power == -1:
+            return BiQubitsMixer(adjoint=True)
+        return NotImplemented  # coverage: ignore
+
+    def _t_complexity_(self) -> infra.TComplexity:
+        if self.adjoint:
+            return infra.TComplexity(clifford=18)
+        return infra.TComplexity(t=8, clifford=28)
+
+
+@attr.frozen
+class SingleQubitCompare(infra.GateWithRegisters):
+    """Applies U|a>|b>|0>|0> = |a> |a=b> |(a<b)> |(a>b)>
+
+    Source: (FIG. 3) in https://www.nature.com/articles/s41534-018-0071-5#Sec8
+    """
+
+    adjoint: bool = False
+
+    @cached_property
+    def registers(self) -> infra.Registers:
+        return infra.Registers.build(a=1, b=1, less_than=1, greater_than=1)
+
+    def __repr__(self) -> str:
+        return f'cirq_ft.algos.SingleQubitCompare({self.adjoint})'
+
+    def decompose_from_registers(
+        self, *, context: cirq.DecompositionContext, **quregs: Sequence[cirq.Qid]
+    ) -> cirq.OP_TREE:
+        def _decomposition() -> Iterator[cirq.Operation]:
+            (a,), (b,), (less_than,), (greater_than,) = (
+                quregs['a'],
+                quregs['b'],
+                quregs['less_than'],
+                quregs['greater_than'],
+            )
+            yield and_gate.And([0, 1], adjoint=self.adjoint).on(a, b, less_than)
+            yield cirq.CNOT(less_than, greater_than)
+            yield cirq.CNOT(b, greater_than)
+            yield cirq.CNOT(a, b)
+            yield cirq.CNOT(a, greater_than)
+            yield cirq.X(b)
+
+        if self.adjoint:
+            yield from reversed(tuple(_decomposition()))
+        else:
+            yield from _decomposition()
+
+    def __pow__(self, power: int) -> cirq.Gate:
+        if power % 2 == 0:
+            return cirq.IdentityGate(4)
+        adjoint = power < 0
+        if adjoint:
+            return SingleQubitCompare(adjoint=True)
+        return self
+
+    def _t_complexity_(self) -> infra.TComplexity:
+        if self.adjoint:
+            return infra.TComplexity(clifford=11)
+        return infra.TComplexity(t=4, clifford=16)
 
 
 def _equality_with_zero(
-    context: cirq.DecompositionContext, X: Tuple[cirq.Qid, ...], z: cirq.Qid
+    context: cirq.DecompositionContext, qubits: Sequence[cirq.Qid], z: cirq.Qid
 ) -> cirq.OP_TREE:
-    if len(X) == 1:
-        yield cirq.X(X[0])
-        yield cirq.CNOT(X[0], z)
+    if len(qubits) == 1:
+        (q,) = qubits
+        yield cirq.X(q)
+        yield cirq.CNOT(q, z)
         return
 
-    ancilla = context.qubit_manager.qalloc(len(X) - 2)
-    yield and_gate.And(cv=[0] * len(X)).on(*X, *ancilla, z)
+    ancilla = context.qubit_manager.qalloc(len(qubits) - 2)
+    yield and_gate.And(cv=[0] * len(qubits)).on(*qubits, *ancilla, z)
 
 
 @attr.frozen
@@ -223,19 +292,24 @@ class LessThanEqualGate(cirq.ArithmeticGate):
         return f'cirq_ft.LessThanEqualGate({self.x_bitsize}, {self.y_bitsize})'
 
     def _decompose_via_tree(
-        self, context: cirq.DecompositionContext, X: Tuple[cirq.Qid, ...], Y: Tuple[cirq.Qid, ...]
+        self, context: cirq.DecompositionContext, X: Sequence[cirq.Qid], Y: Sequence[cirq.Qid]
     ) -> cirq.OP_TREE:
-        """Returns comparison oracle from https://www.nature.com/articles/s41534-018-0071-5#Sec8"""
+        """Returns comparison oracle from https://www.nature.com/articles/s41534-018-0071-5#Sec8
+
+        This decomposition follows the tree structure of (FIG. 2)
+        """
         if len(X) == 1:
             return
         if len(X) == 2:
-            yield mix_double_qubit_registers(context, (X[0], Y[0]), (X[1], Y[1]))
+            yield BiQubitsMixer().on_registers(x=X, y=Y, ancilla=context.qubit_manager.qalloc(3))
             return
 
         m = len(X) // 2
         yield self._decompose_via_tree(context, X[:m], Y[:m])
         yield self._decompose_via_tree(context, X[m:], Y[m:])
-        yield mix_double_qubit_registers(context, (X[m - 1], Y[m - 1]), (X[-1], Y[-1]))
+        yield BiQubitsMixer().on_registers(
+            x=(X[m - 1], X[-1]), y=(Y[m - 1], Y[-1]), ancilla=context.qubit_manager.qalloc(3)
+        )
 
     def _decompose_with_context_(
         self, qubits: Sequence[cirq.Qid], context: Optional[cirq.DecompositionContext] = None
@@ -243,57 +317,54 @@ class LessThanEqualGate(cirq.ArithmeticGate):
         if context is None:
             context = cirq.DecompositionContext(cirq.ops.SimpleQubitManager())
 
-        P, Q, target = (qubits[: self.x_bitsize], qubits[self.x_bitsize : -1], qubits[-1])
+        lhs, rhs, target = qubits[: self.x_bitsize], qubits[self.x_bitsize : -1], qubits[-1]
 
-        n = min(len(P), len(Q))
+        n = min(len(lhs), len(rhs))
 
         prefix_equality = None
         adjoint: List[cirq.Operation] = []
 
         # if one of the registers is longer than the other store equality with |0--0>
         # into `prefix_equality` using d = |len(P) - len(Q)| And operations => 4d T.
-        if len(P) != len(Q):
-            [prefix_equality] = context.qubit_manager.qalloc(1)
-            if len(P) > len(Q):
-                decomposition = tuple(
-                    cirq.flatten_to_ops(
-                        _equality_with_zero(context, tuple(P[:-n]), prefix_equality)
-                    )
-                )
-                yield from decomposition
-                adjoint.extend(cirq.inverse(op) for op in decomposition)
+        if len(lhs) != len(rhs):
+            (prefix_equality,) = context.qubit_manager.qalloc(1)
+            if len(lhs) > len(rhs):
+                for op in cirq.flatten_to_ops(
+                    _equality_with_zero(context, lhs[:-n], prefix_equality)
+                ):
+                    yield op
+                    adjoint.append(cirq.inverse(op))
             else:
-                decomposition = tuple(
-                    cirq.flatten_to_ops(
-                        _equality_with_zero(context, tuple(Q[:-n]), prefix_equality)
-                    )
-                )
-                yield from decomposition
-                adjoint.extend(cirq.inverse(op) for op in decomposition)
+                for op in cirq.flatten_to_ops(
+                    _equality_with_zero(context, rhs[:-n], prefix_equality)
+                ):
+                    yield op
+                    adjoint.append(cirq.inverse(op))
 
                 yield cirq.X(target), cirq.CNOT(prefix_equality, target)
 
         # compare the remaing suffix of P and Q
-        P = P[-n:]
-        Q = Q[-n:]
-        decomposition = tuple(
-            cirq.flatten_to_ops(self._decompose_via_tree(context, tuple(P), tuple(Q)))
-        )
-        adjoint.extend(cirq.inverse(op) for op in decomposition)
-        yield from decomposition
+        lhs = lhs[-n:]
+        rhs = rhs[-n:]
+        for op in cirq.flatten_to_ops(self._decompose_via_tree(context, lhs, rhs)):
+            yield op
+            adjoint.append(cirq.inverse(op))
 
         less_than, greater_than = context.qubit_manager.qalloc(2)
-        decomposition = tuple(
-            cirq.flatten_to_ops(compare_qubits(P[-1], Q[-1], less_than, greater_than))
+        yield SingleQubitCompare().on_registers(
+            a=lhs[-1], b=rhs[-1], less_than=less_than, greater_than=greater_than
         )
-        adjoint.extend(cirq.inverse(op) for op in decomposition)
-        yield from decomposition
+        adjoint.append(
+            SingleQubitCompare(adjoint=True).on_registers(
+                a=lhs[-1], b=rhs[-1], less_than=less_than, greater_than=greater_than
+            )
+        )
 
         if prefix_equality is None:
             yield cirq.X(target)
             yield cirq.CNOT(greater_than, target)
         else:
-            [less_than_or_equal] = context.qubit_manager.qalloc(1)
+            (less_than_or_equal,) = context.qubit_manager.qalloc(1)
             yield and_gate.And([1, 0]).on(prefix_equality, greater_than, less_than_or_equal)
             adjoint.append(
                 and_gate.And([1, 0], adjoint=True).on(
