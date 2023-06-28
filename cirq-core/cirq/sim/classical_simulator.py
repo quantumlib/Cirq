@@ -55,6 +55,10 @@ class ClassicalSimulator(SimulatesSamples):
                     values_dict[op.qubits[1]] = values_dict[op.qubits[0]]
                     values_dict[op.qubits[0]] = hold_qubit
 
+                elif isinstance(gate, ops.CCXPowGate) and gate.exponent == 1:
+                  if (values_dict[op.qubits[0]] == 1) and (values_dict[op.qubits[1]] == 1):
+                    values_dict[op.qubits[2]] = 1 - values_dict[op.qubits[2]]
+
                 elif isinstance(gate, ops.MeasurementGate):
                     qubits_in_order = op.qubits
                     ##add the new instance of a key to the numpy array in results dictionary
@@ -81,11 +85,12 @@ class ClassicalSimulator(SimulatesSamples):
 
                 elif not (
                     (isinstance(gate, ops.XPowGate) and gate.exponent == 0)
+                    or (isinstance(gate, ops.CCXPowGate) and gate.exponent == 0)
+                    or (isinstance(gate, ops.SwapPowGate) and gate.exponent == 0)
                     or (isinstance(gate, ops.CNotPowGate) and gate.exponent == 0)
-                    or (isinstance(gate, ops.ISwapPowGate) and gate.exponent == 0)
                 ):
                     raise ValueError(
-                        "Can not simulate gates other than cirq.XGate or cirq.CNOT or cirq.ISwap"
+                        "Can not simulate gates other than cirq.XGate, cirq.CNOT, cirq.Swap, and cirq.CCNOT"
                     )
 
         return results_dict
