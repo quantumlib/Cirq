@@ -387,7 +387,7 @@ def test_decompose_recursive_dfs(with_context: bool):
     circuit = cirq.Circuit(moment)
     for val in [gate_op, tagged_op, controlled_op, classically_controlled_op, moment, circuit]:
         mock_qm.reset_mock()
-        _ = cirq.decompose(val)
+        _ = cirq.decompose(val, context=cirq.DecompositionContext(qubit_manager=mock_qm))
         assert mock_qm.method_calls == expected_calls
 
         mock_qm.reset_mock()
@@ -398,3 +398,42 @@ def test_decompose_recursive_dfs(with_context: bool):
             if with_context
             else mock_qm.method_calls == expected_calls
         )
+
+
+class G1(cirq.Gate):
+    def _num_qubits_(self) -> int:
+        return 1
+
+    def _decompose_with_context_(self, qubits, context):
+        yield cirq.CNOT(qubits[0], context.qubit_manager.qalloc(1)[0])
+
+
+class G2(cirq.Gate):
+    def _num_qubits_(self) -> int:
+        return 1
+
+    def _decompose_with_context_(self, qubits, context):
+        yield G1()(*context.qubit_manager.qalloc(1))
+
+
+@mock.patch('time.time_ns', side_effect=(0, 1))
+def test_successive_decompose_once_succeed(mock_time_ns):
+    op = G2()(cirq.NamedQubit('q'))
+    d1 = cirq.decompose_once(op)
+    d2 = cirq.decompose_once(d1[0])
+    assert d2 == [
+        cirq.CNOT(
+            cirq.ops.CleanQubit(0, prefix='_decompose_protocol_0'),
+            cirq.ops.CleanQubit(0, prefix='_decompose_protocol_1'),
+        )
+    ]
+
+
+def test_decompose_without_context_succeed():
+    op = G2()(cirq.NamedQubit('q'))
+    assert cirq.decompose(op, keep=lambda op: op.gate is cirq.CNOT) == [
+        cirq.CNOT(
+            cirq.ops.CleanQubit(0, prefix='_decompose_protocol'),
+            cirq.ops.CleanQubit(1, prefix='_decompose_protocol'),
+        )
+    ]
