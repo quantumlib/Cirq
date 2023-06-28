@@ -70,4 +70,6 @@ for m in $CIRQ_MODULES; do
   cd ..
 done
 
+echo "finished cirq modules!!!"
+
 ls "${out_dir}"
