@@ -117,6 +117,13 @@ def test_multi_in_less_equal_than_gate():
 def test_less_than_equal_consistent_protocols(x_bitsize: int, y_bitsize: int):
     g = cirq_ft.LessThanEqualGate(x_bitsize, y_bitsize)
     cirq_ft.testing.assert_decompose_is_consistent_with_t_complexity(g)
+
+    # Decomposition works even when context is None.
+    qubits = cirq.LineQid.range(x_bitsize + y_bitsize + 1, dimension=2)
+    assert cirq.Circuit(g._decompose_with_context_(qubits=qubits)) == cirq.Circuit(
+        cirq.decompose_once(g.on(*qubits))
+    )
+
     cirq.testing.assert_equivalent_repr(g, setup_code='import cirq_ft')
     # Test the unitary is self-inverse
     assert g**-1 is g
@@ -349,6 +356,10 @@ def test_single_qubit_compare_protocols(adjoint: bool):
     cirq_ft.testing.assert_decompose_is_consistent_with_t_complexity(g)
     cirq.testing.assert_equivalent_repr(g, setup_code='import cirq_ft')
 
+    assert g**2 == cirq.IdentityGate(4)
+    assert g**1 is g
+    assert g**-1 == cirq_ft.algos.SingleQubitCompare(adjoint=adjoint ^ True)
+
 
 @pytest.mark.parametrize("v1,v2", [(v1, v2) for v1 in range(2) for v2 in range(2)])
 def test_single_qubit_compare(v1: int, v2: int):
@@ -373,6 +384,9 @@ def test_bi_qubits_mixer_protocols(adjoint: bool):
     g = cirq_ft.algos.BiQubitsMixer(adjoint=adjoint)
     cirq_ft.testing.assert_decompose_is_consistent_with_t_complexity(g)
     cirq.testing.assert_equivalent_repr(g, setup_code='import cirq_ft')
+
+    assert g**1 is g
+    assert g**-1 == cirq_ft.algos.BiQubitsMixer(adjoint=adjoint ^ True)
 
 
 @pytest.mark.parametrize("x", [*range(4)])

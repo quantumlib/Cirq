@@ -186,7 +186,7 @@ class BiQubitsMixer(infra.GateWithRegisters):
         if power == 1:
             return self
         if power == -1:
-            return BiQubitsMixer(adjoint=True)
+            return BiQubitsMixer(adjoint=self.adjoint ^ True)
         return NotImplemented  # coverage: ignore
 
     def _t_complexity_(self) -> infra.TComplexity:
@@ -238,7 +238,7 @@ class SingleQubitCompare(infra.GateWithRegisters):
             return cirq.IdentityGate(4)
         adjoint = power < 0
         if adjoint:
-            return SingleQubitCompare(adjoint=True)
+            return SingleQubitCompare(adjoint=self.adjoint ^ True)
         return self
 
     def _t_complexity_(self) -> infra.TComplexity:
