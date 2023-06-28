@@ -80,6 +80,8 @@ SKIP_NOTEBOOKS = [
     # skipping fidelity estimation due to
     # https://github.com/quantumlib/Cirq/issues/3502
     "examples/*fidelity*",
+    # skipping quantum utility simulation (too large)
+    'examples/advanced/*quantum_utility*',
     # Also skipping stabilizer code testing.
     "examples/*stabilizer_code*",
     # An intentionally empty/template code notebook.
