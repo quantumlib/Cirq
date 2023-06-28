@@ -56,8 +56,8 @@ class ClassicalSimulator(SimulatesSamples):
                     values_dict[op.qubits[0]] = hold_qubit
 
                 elif isinstance(gate, ops.CCXPowGate) and gate.exponent == 1:
-                  if (values_dict[op.qubits[0]] == 1) and (values_dict[op.qubits[1]] == 1):
-                    values_dict[op.qubits[2]] = 1 - values_dict[op.qubits[2]]
+                    if (values_dict[op.qubits[0]] == 1) and (values_dict[op.qubits[1]] == 1):
+                        values_dict[op.qubits[2]] = 1 - values_dict[op.qubits[2]]
 
                 elif isinstance(gate, ops.MeasurementGate):
                     qubits_in_order = op.qubits

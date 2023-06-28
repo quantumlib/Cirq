@@ -30,7 +30,7 @@ class TestSimulator:
         circuit = cirq.Circuit()
         circuit.append(cirq.X(q0))
         circuit.append(cirq.Swap(q0, q1))
-        circuit.append(cirq.measure((q0, q1,), key='key'))
+        circuit.append(cirq.measure((q0, q1), key='key'))
         expected_results = {'key': np.array([[[0, 1]]], dtype=np.uint8)}
         sim = cirq.ClassicalSimulator()
         results = sim._run(circuit=circuit, param_resolver=None, repetitions=1)
