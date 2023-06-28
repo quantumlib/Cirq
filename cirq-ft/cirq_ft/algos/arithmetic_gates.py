@@ -314,6 +314,22 @@ class LessThanEqualGate(cirq.ArithmeticGate):
     def _decompose_with_context_(
         self, qubits: Sequence[cirq.Qid], context: Optional[cirq.DecompositionContext] = None
     ) -> cirq.OP_TREE:
+        """Decomposes the gate in a T-complexity optimal way.
+
+        The construction can be broken in 4 parts:
+            1. In case of differing bitsizes then a multicontrol And Gate
+                (Section III.A. https://arxiv.org/abs/1805.03662) is used to check whether
+                the extra prefix is equal to zero:
+                    result stored in: `prefix_equality` qubit.
+            2. The tree structure (FIG. 2) https://www.nature.com/articles/s41534-018-0071-5#Sec8
+                followed by a SingleQubitCompare to compute the result of comparison of
+                the suffixes of equal length:
+                    result stored in: `less_than`, `greater_than` qubits with equality in qubits[-2]
+            3. The results from the previous two steps are combined to update the target qubit.
+            4. The adjoint of the previous operations is added to restore the input qubits
+                to their original state and clean the ancilla qubits.
+        """
+
         if context is None:
             context = cirq.DecompositionContext(cirq.ops.SimpleQubitManager())
 
