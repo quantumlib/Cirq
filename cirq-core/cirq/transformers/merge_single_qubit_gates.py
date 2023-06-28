@@ -131,16 +131,19 @@ def merge_single_qubit_moments_to_phxz(
             if op1 and op2:
                 mat = protocols.unitary(op2) @ protocols.unitary(op1)
                 gate = single_qubit_decompositions.single_qubit_matrix_to_phxz(mat, atol)
-                ret_ops.append(gate(q))
+                if gate:
+                    ret_ops.append(gate(q))
             else:
                 op = op1 or op2
+                assert op is not None
                 if isinstance(op.gate, ops.PhasedXZGate):
                     ret_ops.append(op)
                 else:
                     gate = single_qubit_decompositions.single_qubit_matrix_to_phxz(
                         protocols.unitary(op), atol
                     )
-                    ret_ops.append(gate(q))
+                    if gate:
+                        ret_ops.append(gate(q))
         return circuits.Moment(ret_ops)
 
     return transformer_primitives.merge_moments(
