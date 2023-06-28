@@ -26,6 +26,7 @@ from cirq_google.engine import util
 from cirq_google.cloud import quantum
 from cirq_google.engine.engine import EngineContext
 
+
 @pytest.fixture(scope='module', autouse=True)
 def mock_grpc_client():
     with mock.patch(

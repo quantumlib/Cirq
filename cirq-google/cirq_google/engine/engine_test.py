@@ -350,7 +350,6 @@ def setup_run_circuit_with_result_(client, result):
     client().get_job_results_async.return_value = quantum.QuantumResult(result=result)
 
 
-
 @mock.patch('cirq_google.engine.engine_client.EngineClient', autospec=True)
 def test_run_circuit(client):
     setup_run_circuit_with_result_(client, _A_RESULT)
@@ -393,7 +392,6 @@ def test_unsupported_program_type():
         engine.run(program="this isn't even the right type of thing!")
 
 
-
 @mock.patch('cirq_google.engine.engine_client.EngineClient', autospec=True)
 def test_run_circuit_failed(client):
     client().create_program_async.return_value = (
@@ -422,7 +420,6 @@ def test_run_circuit_failed(client):
         ' myqc failed. SYSTEM_ERROR: Not good',
     ):
         engine.run(program=_CIRCUIT)
-
 
 
 @mock.patch('cirq_google.engine.engine_client.EngineClient', autospec=True)
@@ -454,7 +451,6 @@ def test_run_circuit_failed_missing_processor_name(client):
         engine.run(program=_CIRCUIT)
 
 
-
 @mock.patch('cirq_google.engine.engine_client.EngineClient', autospec=True)
 def test_run_circuit_cancelled(client):
     client().create_program_async.return_value = (
@@ -478,7 +474,6 @@ def test_run_circuit_cancelled(client):
         engine.run(program=_CIRCUIT)
 
 
-
 @mock.patch('cirq_google.engine.engine_client.EngineClient', autospec=True)
 def test_run_circuit_timeout(client):
     client().create_program_async.return_value = (
@@ -498,7 +493,6 @@ def test_run_circuit_timeout(client):
     engine = cg.Engine(project_id='project-id', timeout=1)
     with pytest.raises(TimeoutError):
         engine.run(program=_CIRCUIT)
-
 
 
 @mock.patch('cirq_google.engine.engine_client.EngineClient', autospec=True)
@@ -528,7 +522,6 @@ def test_run_sweep_params(client):
         assert sweeps[i].sweep.sweep_function.sweeps[0].single_sweep.points.points == [v]
     client().get_job_async.assert_called_once()
     client().get_job_results_async.assert_called_once()
-
 
 
 @mock.patch('cirq_google.engine.engine_client.EngineClient', autospec=True)
@@ -562,7 +555,6 @@ def test_run_multiple_times(client):
     assert client().get_job_results_async.call_count == 2
 
 
-
 @mock.patch('cirq_google.engine.engine_client.EngineClient', autospec=True)
 def test_run_sweep_v2(client):
     setup_run_circuit_with_result_(client, _RESULTS_V2)
@@ -585,7 +577,6 @@ def test_run_sweep_v2(client):
     assert sweeps[0].sweep.single_sweep.points.points == [1, 2]
     client().get_job_async.assert_called_once()
     client().get_job_results_async.assert_called_once()
-
 
 
 @mock.patch('cirq_google.engine.engine_client.EngineClient', autospec=True)
@@ -620,7 +611,6 @@ def test_run_batch(client):
             assert sweeps[0].sweep.single_sweep.points.points == [3.0, 4.0]
     client().get_job_async.assert_called_once()
     client().get_job_results_async.assert_called_once()
-
 
 
 @mock.patch('cirq_google.engine.engine_client.EngineClient', autospec=True)
@@ -670,7 +660,6 @@ def test_bad_sweep_proto():
     program = cg.EngineProgram('proj', 'prog', engine.context)
     with pytest.raises(ValueError, match='invalid run context proto version'):
         program.run_sweep()
-
 
 
 @mock.patch('cirq_google.engine.engine_client.EngineClient', autospec=True)
@@ -726,7 +715,6 @@ def test_run_calibration_validation_fails():
         )
 
 
-
 @mock.patch('cirq_google.engine.engine_client.EngineClient', autospec=True)
 def test_bad_result_proto(client):
     result = any_pb2.Any()
@@ -754,7 +742,6 @@ def test_get_program():
     assert cg.Engine(project_id='proj').get_program('prog').program_id == 'prog'
 
 
-
 @mock.patch('cirq_google.engine.engine_client.EngineClient.list_programs_async')
 def test_list_programs(list_programs_async):
     prog1 = quantum.QuantumProgram(name='projects/proj/programs/prog-YBGR48THF3JHERZW200804')
@@ -771,14 +758,12 @@ def test_list_programs(list_programs_async):
     ]
 
 
-
 @mock.patch('cirq_google.engine.engine_client.EngineClient', autospec=True)
 def test_create_program(client):
     client().create_program_async.return_value = ('prog', quantum.QuantumProgram())
     result = cg.Engine(project_id='proj').create_program(_CIRCUIT, 'prog')
     client().create_program_async.assert_called_once()
     assert result.program_id == 'prog'
-
 
 
 @mock.patch('cirq_google.engine.engine_client.EngineClient.list_jobs_async')
@@ -803,7 +788,6 @@ def test_list_jobs(list_jobs_async):
     ]
 
 
-
 @mock.patch('cirq_google.engine.engine_client.EngineClient.list_processors_async')
 def test_list_processors(list_processors_async):
     processor1 = quantum.QuantumProcessor(name='projects/proj/processors/xmonsim')
@@ -817,7 +801,6 @@ def test_list_processors(list_processors_async):
 
 def test_get_processor():
     assert cg.Engine(project_id='proj').get_processor('xmonsim').processor_id == 'xmonsim'
-
 
 
 @mock.patch('cirq_google.engine.engine_client.EngineClient', autospec=True)

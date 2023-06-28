@@ -21,7 +21,6 @@ import cirq_google as cg
 from cirq_google.engine.abstract_processor import AbstractProcessor
 
 
-
 @pytest.mark.parametrize('circuit', [cirq.Circuit(), cirq.FrozenCircuit()])
 def test_run_circuit(circuit):
     processor = mock.create_autospec(AbstractProcessor)
@@ -29,7 +28,6 @@ def test_run_circuit(circuit):
     params = [cirq.ParamResolver({'a': 1})]
     sampler.run_sweep(circuit, params, 5)
     processor.run_sweep_async.assert_called_with(params=params, program=circuit, repetitions=5)
-
 
 
 def test_run_batch():
@@ -46,7 +44,6 @@ def test_run_batch():
     processor.run_batch_async.assert_called_with(
         params_list=params_list, programs=circuits, repetitions=5
     )
-
 
 
 def test_run_batch_identical_repetitions():
@@ -77,7 +74,6 @@ def test_run_batch_bad_number_of_repetitions():
     params_list = [params1, params2]
     with pytest.raises(ValueError, match='2 and 3'):
         sampler.run_batch(circuits, params_list, [5, 5, 5])
-
 
 
 def test_run_batch_differing_repetitions():

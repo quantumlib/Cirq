@@ -130,7 +130,6 @@ constants {
 )
 
 
-
 @mock.patch('cirq_google.engine.engine_client.EngineClient.create_job_async')
 def test_run_sweeps_delegation(create_job_async):
     create_job_async.return_value = ('steve', quantum.QuantumJob())
@@ -142,7 +141,6 @@ def test_run_sweeps_delegation(create_job_async):
     assert job._job == quantum.QuantumJob()
 
 
-
 @mock.patch('cirq_google.engine.engine_client.EngineClient.create_job_async')
 def test_run_batch_delegation(create_job_async):
     create_job_async.return_value = ('kittens', quantum.QuantumJob())
@@ -152,7 +150,6 @@ def test_run_batch_delegation(create_job_async):
         job_id='steve', repetitions=10, params_list=resolver_list, processor_ids=['lazykitty']
     )
     assert job._job == quantum.QuantumJob()
-
 
 
 @mock.patch('cirq_google.engine.engine_client.EngineClient.create_job_async')
@@ -169,7 +166,6 @@ def test_run_calibration_no_processors(create_job_async):
     program = cg.EngineProgram('woof', 'woof', EngineContext(), result_type=ResultType.Calibration)
     with pytest.raises(ValueError, match='No processors specified'):
         _ = program.run_calibration(job_id='spot')
-
 
 
 @mock.patch('cirq_google.engine.engine_client.EngineClient.create_job_async')
@@ -211,7 +207,6 @@ def test_run_in_batch_mode():
         _ = program.run_sweep(
             repetitions=1, processor_ids=['lazykitty'], params=cirq.Points('cats', [1.0, 2.0, 3.0])
         )
-
 
 
 @mock.patch('cirq_google.engine.engine_client.EngineClient.get_job_results_async')
@@ -269,7 +264,6 @@ def test_run_delegation(create_job_async, get_results_async):
     )
 
 
-
 @mock.patch('cirq_google.engine.engine_client.EngineClient.list_jobs_async')
 def test_list_jobs(list_jobs_async):
     job1 = quantum.QuantumJob(name='projects/proj/programs/prog1/jobs/job1')
@@ -314,7 +308,6 @@ def test_create_time():
     )
 
 
-
 @mock.patch('cirq_google.engine.engine_client.EngineClient.get_program_async')
 def test_update_time(get_program_async):
     program = cg.EngineProgram('a', 'b', EngineContext())
@@ -327,7 +320,6 @@ def test_update_time(get_program_async):
     get_program_async.assert_called_once_with('a', 'b', False)
 
 
-
 @mock.patch('cirq_google.engine.engine_client.EngineClient.get_program_async')
 def test_description(get_program_async):
     program = cg.EngineProgram(
@@ -338,7 +330,6 @@ def test_description(get_program_async):
     get_program_async.return_value = quantum.QuantumProgram(description='hello')
     assert cg.EngineProgram('a', 'b', EngineContext()).description() == 'hello'
     get_program_async.assert_called_once_with('a', 'b', False)
-
 
 
 @mock.patch('cirq_google.engine.engine_client.EngineClient.set_program_description_async')
@@ -360,7 +351,6 @@ def test_labels():
     assert program.labels() == {'t': '1'}
 
 
-
 @mock.patch('cirq_google.engine.engine_client.EngineClient.set_program_labels_async')
 def test_set_labels(set_program_labels_async):
     program = cg.EngineProgram('a', 'b', EngineContext())
@@ -371,7 +361,6 @@ def test_set_labels(set_program_labels_async):
     set_program_labels_async.return_value = quantum.QuantumProgram()
     assert program.set_labels({}).labels() == {}
     set_program_labels_async.assert_called_with('a', 'b', {})
-
 
 
 @mock.patch('cirq_google.engine.engine_client.EngineClient.add_program_labels_async')
@@ -390,7 +379,6 @@ def test_add_labels(add_program_labels_async):
     add_program_labels_async.assert_called_with('a', 'b', {'a': '2', 'b': '1'})
 
 
-
 @mock.patch('cirq_google.engine.engine_client.EngineClient.remove_program_labels_async')
 def test_remove_labels(remove_program_labels_async):
     program = cg.EngineProgram(
@@ -407,7 +395,6 @@ def test_remove_labels(remove_program_labels_async):
     remove_program_labels_async.assert_called_with('a', 'b', ['a', 'b', 'c'])
 
 
-
 @mock.patch('cirq_google.engine.engine_client.EngineClient.get_program_async')
 def test_get_circuit_v1(get_program_async):
     program = cg.EngineProgram('a', 'b', EngineContext())
@@ -417,7 +404,6 @@ def test_get_circuit_v1(get_program_async):
 
     with pytest.raises(ValueError, match='v1 Program is not supported'):
         program.get_circuit()
-
 
 
 @mock.patch('cirq_google.engine.engine_client.EngineClient.get_program_async')
@@ -430,7 +416,6 @@ def test_get_circuit_v2(get_program_async):
     get_program_async.return_value = quantum.QuantumProgram(code=_PROGRAM_V2)
     assert program.get_circuit() == circuit
     get_program_async.assert_called_once_with('a', 'b', True)
-
 
 
 @mock.patch('cirq_google.engine.engine_client.EngineClient.get_program_async')
@@ -447,7 +432,6 @@ def test_get_circuit_batch(get_program_async):
         program.get_circuit(1)
     assert program.get_circuit(0) == circuit
     get_program_async.assert_called_once_with('a', 'b', True)
-
 
 
 @mock.patch('cirq_google.engine.engine_client.EngineClient.get_program_async')
@@ -485,7 +469,6 @@ def mock_grpc_client():
         yield _fixture
 
 
-
 @mock.patch('cirq_google.engine.engine_client.EngineClient.get_program_async')
 def test_get_circuit_v2_unknown_gateset(get_program_async):
     program = cg.EngineProgram('a', 'b', EngineContext())
@@ -499,7 +482,6 @@ def test_get_circuit_v2_unknown_gateset(get_program_async):
         program.get_circuit()
 
 
-
 @mock.patch('cirq_google.engine.engine_client.EngineClient.get_program_async')
 def test_get_circuit_unsupported_program_type(get_program_async):
     program = cg.EngineProgram('a', 'b', EngineContext())
@@ -511,7 +493,6 @@ def test_get_circuit_unsupported_program_type(get_program_async):
         program.get_circuit()
 
 
-
 @mock.patch('cirq_google.engine.engine_client.EngineClient.delete_program_async')
 def test_delete(delete_program_async):
     program = cg.EngineProgram('a', 'b', EngineContext())
@@ -520,7 +501,6 @@ def test_delete(delete_program_async):
 
     program.delete(delete_jobs=True)
     delete_program_async.assert_called_with('a', 'b', delete_jobs=True)
-
 
 
 @mock.patch('cirq_google.engine.engine_client.EngineClient.delete_job_async')
