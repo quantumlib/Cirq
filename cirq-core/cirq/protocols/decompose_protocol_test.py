@@ -416,8 +416,10 @@ class G2(cirq.Gate):
         yield G1()(*context.qubit_manager.qalloc(1))
 
 
-@mock.patch('time.time_ns', side_effect=(0, 1))
-def test_successive_decompose_once_succeed(mock_time_ns):
+def test_successive_decompose_once_succeed():
+    from cirq.protocols.decompose_protocol import _reset_context_counter
+
+    _reset_context_counter()
     op = G2()(cirq.NamedQubit('q'))
     d1 = cirq.decompose_once(op)
     d2 = cirq.decompose_once(d1[0])

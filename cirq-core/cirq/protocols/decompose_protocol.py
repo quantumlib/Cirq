@@ -11,7 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-import time
+import itertools
 import dataclasses
 import inspect
 from collections import defaultdict
@@ -49,6 +49,8 @@ TError = TypeVar('TError', bound=Exception)
 RaiseTypeErrorIfNotProvided: Any = ([],)
 
 DecomposeResult = Union[None, NotImplementedType, 'cirq.OP_TREE']
+
+_CONTEXT_COUNTER = itertools.count()  # Use _reset_context_counter() to reset the counter.
 
 
 @runtime_checkable
@@ -369,7 +371,7 @@ def decompose_once(
     """
     if context is None:
         context = DecompositionContext(
-            ops.SimpleQubitManager(prefix=f'_decompose_protocol_{time.time_ns()}')
+            ops.SimpleQubitManager(prefix=f'_decompose_protocol_{next(_CONTEXT_COUNTER)}')
         )
 
     method = getattr(val, '_decompose_with_context_', None)
@@ -485,3 +487,8 @@ def _try_decompose_into_operations_and_qubits(
         qubits = sorted(qubit_set)
         return result, qubits, tuple(qid_shape_dict[q] for q in qubits)
     return None, (), ()
+
+
+def _reset_context_counter():
+    global _CONTEXT_COUNTER
+    _CONTEXT_COUNTER = itertools.count()
