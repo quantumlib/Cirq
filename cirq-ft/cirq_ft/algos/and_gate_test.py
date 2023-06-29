@@ -55,7 +55,7 @@ def test_multi_controlled_and_gate(cv: List[int]):
 
     for input_control in input_controls:
         initial_state = input_control + [0] * (r['ancilla'].bitsize + 1)
-        result = cirq.Simulator().simulate(
+        result = cirq.Simulator(dtype=np.complex128).simulate(
             circuit, initial_state=initial_state, qubit_order=qubit_order
         )
         expected_output = np.asarray([0, 1] if input_control == cv else [1, 0])
