@@ -19,8 +19,8 @@
 # main focus and it is executed in a shared virtual environment for the notebooks. Thus, these
 # tests ensure that notebooks are still working with the latest version of cirq.
 
+import importlib.metadata
 import os
-import sys
 import tempfile
 
 import pytest
@@ -62,11 +62,6 @@ def require_packages_not_changed():
 
     Raise AssertionError if the pre-existing set of Python packages changes in any way.
     """
-    # TODO: remove this after deprecation of Python 3.7
-    if sys.version_info < (3, 8, 0):
-        return
-    import importlib.metadata
-
     packages_before = set((d.name, d.version) for d in importlib.metadata.distributions())
     yield
     packages_after = set((d.name, d.version) for d in importlib.metadata.distributions())
