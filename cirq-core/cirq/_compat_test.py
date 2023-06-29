@@ -13,7 +13,7 @@
 # limitations under the License.
 import collections
 import dataclasses
-import importlib
+import importlib.metadata
 import logging
 import multiprocessing
 import os
@@ -721,14 +721,7 @@ def _test_metadata_search_path_inner():  # pragma: no cover
     # pylint: disable=unused-import
     import cirq.testing._compat_test_data.module_a
 
-    try:
-        # importlib.metadata for python 3.8+
-        import importlib.metadata as m
-    except:
-        # importlib_metadata for python <3.8
-        m = pytest.importorskip("importlib_metadata")
-
-    assert m.metadata('numpy')
+    assert importlib.metadata.metadata('numpy')
 
 
 def test_metadata_distributions_after_deprecated_submodule():

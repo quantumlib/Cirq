@@ -19,7 +19,7 @@ from typing import List, Mapping, Optional, Tuple, TYPE_CHECKING, Sequence
 import numpy as np
 
 from cirq import linalg, qis, value
-from cirq.sim import simulator
+from cirq.sim import simulator, simulation_utils
 
 if TYPE_CHECKING:
     import cirq
@@ -215,7 +215,8 @@ def sample_state_vector(
     prng = value.parse_random_state(seed)
 
     # Calculate the measurement probabilities.
-    probs = _probs(state_vector, indices, shape)
+    probs = (state_vector * state_vector.conj()).real
+    probs = simulation_utils.state_probabilities_by_indices(probs, indices, shape)
 
     # We now have the probability vector, correctly ordered, so sample over
     # it. Note that we us ints here, since numpy's choice does not allow for
@@ -288,7 +289,8 @@ def measure_state_vector(
     initial_shape = state_vector.shape
 
     # Calculate the measurement probabilities and then make the measurement.
-    probs = _probs(state_vector, indices, shape)
+    probs = (state_vector * state_vector.conj()).real
+    probs = simulation_utils.state_probabilities_by_indices(probs, indices, shape)
     result = prng.choice(len(probs), p=probs)
     ###measurement_bits = [(1 & (result >> i)) for i in range(len(indices))]
     # Convert to individual qudit measurements.
@@ -321,34 +323,3 @@ def measure_state_vector(
     assert out is not None
     # We mutate and return out, so mypy cannot identify that the out cannot be None.
     return measurement_bits, out
-
-
-def _probs(state: np.ndarray, indices: Sequence[int], qid_shape: Tuple[int, ...]) -> np.ndarray:
-    """Returns the probabilities for a measurement on the given indices."""
-    tensor = np.reshape(state, qid_shape)
-    # Calculate the probabilities for measuring the particular results.
-    if len(indices) == len(qid_shape):
-        # We're measuring every qudit, so no need for fancy indexing
-        probs = np.abs(tensor) ** 2
-        probs = np.transpose(probs, indices)
-        probs = probs.reshape(-1)
-    else:
-        # Fancy indexing required
-        meas_shape = tuple(qid_shape[i] for i in indices)
-        probs = (
-            np.abs(
-                [
-                    tensor[
-                        linalg.slice_for_qubits_equal_to(
-                            indices, big_endian_qureg_value=b, qid_shape=qid_shape
-                        )
-                    ]
-                    for b in range(np.prod(meas_shape, dtype=np.int64))
-                ]
-            )
-            ** 2
-        )
-        probs = np.sum(probs, axis=tuple(range(1, len(probs.shape))))
-
-    # To deal with rounding issues, ensure that the probabilities sum to 1.
-    return probs / np.sum(probs)
