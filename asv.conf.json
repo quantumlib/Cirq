@@ -14,5 +14,5 @@
     "env_dir": ".asv/env",
     "results_dir": ".asv/results",
     "html_dir": ".asv/html",
-    "hash_length": 8,
+    "hash_length": 8
 }
