@@ -722,7 +722,7 @@ def test_metadata_search_path():
     subprocess_context(_test_metadata_search_path_inner)()
 
 
-def _test_metadata_search_path_inner():
+def _test_metadata_search_path_inner():  # pragma: no cover
     # initialize the DeprecatedModuleFinders
     # pylint: disable=unused-import
     import cirq.testing._compat_test_data.module_a
