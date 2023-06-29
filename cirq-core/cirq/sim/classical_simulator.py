@@ -69,7 +69,7 @@ class ClassicalSimulator(SimulatesSamples):
                         for bits in range(0, len(qubits_in_order)):
                             new_instance[bits] = values_dict[qubits_in_order[bits]]
                             results_dict[gate.key] = np.insert(
-                                current_array, 1, new_instance, axis=1
+                                current_array, len(current_array[0]), new_instance, axis=1
                             )
                     else:
                         ##create the array for the results dictionary
