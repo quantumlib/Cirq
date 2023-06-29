@@ -13,7 +13,7 @@
 # limitations under the License.
 import collections
 import dataclasses
-import importlib
+import importlib.metadata
 import logging
 import multiprocessing
 import os
@@ -727,16 +727,7 @@ def _test_metadata_search_path_inner():
     # pylint: disable=unused-import
     import cirq.testing._compat_test_data.module_a
 
-    try:
-        # importlib.metadata for python 3.8+
-        # coverage: ignore
-        import importlib.metadata as m
-    except:  # coverage: ignore
-        # coverage: ignore
-        # importlib_metadata for python <3.8
-        m = pytest.importorskip("importlib_metadata")
-
-    assert m.metadata('flynt')
+    assert importlib.metadata.metadata('flynt')
 
 
 def test_metadata_distributions_after_deprecated_submodule():
