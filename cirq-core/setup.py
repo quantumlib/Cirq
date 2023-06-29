@@ -63,7 +63,7 @@ setup(
     url='http://github.com/quantumlib/cirq',
     author='The Cirq Developers',
     author_email='cirq-dev@googlegroups.com',
-    python_requires=('>=3.7.0'),
+    python_requires=('>=3.9.0'),
     install_requires=requirements,
     extras_require={'contrib': contrib_requirements},
     license='Apache 2',
