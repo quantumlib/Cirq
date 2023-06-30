@@ -8,11 +8,11 @@
     "dvcs": "git",
     "environment_type": "virtualenv",
     "show_commit_url": "https://github.com/quantumlib/Cirq/commit/",
-    "pythons": ["3.8"],
+    "pythons": ["3.9"],
     "matrix": {"env_nobuild": {"PYTHONOPTIMIZE": ["-O", ""]}},
     "benchmark_dir": "benchmarks",
     "env_dir": ".asv/env",
     "results_dir": ".asv/results",
     "html_dir": ".asv/html",
-    "hash_length": 8,
+    "hash_length": 8
 }
