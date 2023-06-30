@@ -1,4 +1,4 @@
-FROM python:3.8-slim AS cirq_base
+FROM python:3.9-slim AS cirq_base
 
 # Install dependencies.
 # rm -rf /var/lib/apt/lists/* cleans up apt cache. See https://docs.docker.com/develop/develop-images/dockerfile_best-practices/

@@ -13,7 +13,7 @@ To run all benchmarks, navigate to the root Cirq directory at the command line a
 
 You can also pass arguments to the script, which would be forwarded to the `asv run` command. For eg:
 ```bash
-./check/asv_run --quick --bench bench_examples --python 3.8
+./check/asv_run --quick --bench bench_examples --python 3.9
 ```
 
 Please refer [Running Benchmarks guide by ASV](https://asv.readthedocs.io/en/stable/using.html#running-benchmarks) for more information. 

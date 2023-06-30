@@ -23,10 +23,10 @@
 # This can take a long time and even lead to timeout on Github Actions, hence partitioning of the
 # tests is possible, via setting the NOTEBOOK_PARTITIONS env var to e.g. 5, and then passing to
 # pytest the `-k partition-0` or `-k partition-1`, etc. argument to limit to the given partition.
+
 import os
 import re
 import subprocess
-import sys
 import warnings
 from typing import Set, List
 
@@ -88,10 +88,6 @@ SKIP_NOTEBOOKS = [
     "docs/simulate/qvm_builder_code.ipynb",
     *NOTEBOOKS_DEPENDING_ON_UNRELEASED_FEATURES,
 ]
-
-# The Rigetti integration requires Python >= 3.7.
-if sys.version_info < (3, 7):
-    SKIP_NOTEBOOKS.append("**/rigetti/*.ipynb")
 
 # As these notebooks run in an isolated env, we want to minimize dependencies that are
 # installed. We assume colab packages (feel free to add dependencies here that appear in colab, as
