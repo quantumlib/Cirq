@@ -155,7 +155,7 @@ def satisfies_theorem_321(
 
     overlap_sum = 0.0
     eigvals, eigvects = cirq.linalg.unitary_eig(u)
-    for (eig_val, eig_vect) in zip(eigvals, eigvects.T):
+    for eig_val, eig_vect in zip(eigvals, eigvects.T):
         theta = np.abs(np.angle(eig_val))
         hav_theta = np.sin(theta / 2)
         overlap_prob = overlap(prep_state, eig_vect)
