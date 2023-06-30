@@ -11,6 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import itertools
 import dataclasses
 import inspect
 from collections import defaultdict
@@ -48,6 +49,8 @@ TError = TypeVar('TError', bound=Exception)
 RaiseTypeErrorIfNotProvided: Any = ([],)
 
 DecomposeResult = Union[None, NotImplementedType, 'cirq.OP_TREE']
+
+_CONTEXT_COUNTER = itertools.count()  # Use _reset_context_counter() to reset the counter.
 
 
 @runtime_checkable
@@ -299,6 +302,8 @@ def decompose(
             "acceptable to keep."
         )
 
+    if context is None:
+        context = DecompositionContext(ops.SimpleQubitManager(prefix='_decompose_protocol'))
     args = _DecomposeArgs(
         context=context,
         intercepting_decomposer=intercepting_decomposer,
@@ -364,6 +369,11 @@ def decompose_once(
         TypeError: `val` didn't have a `_decompose_` method (or that method returned
             `NotImplemented` or `None`) and `default` wasn't set.
     """
+    if context is None:
+        context = DecompositionContext(
+            ops.SimpleQubitManager(prefix=f'_decompose_protocol_{next(_CONTEXT_COUNTER)}')
+        )
+
     method = getattr(val, '_decompose_with_context_', None)
     decomposed = NotImplemented if method is None else method(*args, **kwargs, context=context)
     if decomposed is NotImplemented or None:
