@@ -487,8 +487,3 @@ def _try_decompose_into_operations_and_qubits(
         qubits = sorted(qubit_set)
         return result, qubits, tuple(qid_shape_dict[q] for q in qubits)
     return None, (), ()
-
-
-def _reset_context_counter():
-    global _CONTEXT_COUNTER
-    _CONTEXT_COUNTER = itertools.count()

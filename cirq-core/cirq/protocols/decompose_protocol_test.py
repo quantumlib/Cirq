@@ -11,6 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import itertools
 from typing import Optional
 from unittest import mock
 import pytest
@@ -416,10 +417,8 @@ class G2(cirq.Gate):
         yield G1()(*context.qubit_manager.qalloc(1))
 
 
+@mock.patch('cirq.protocols.decompose_protocol._CONTEXT_COUNTER', itertools.count())
 def test_successive_decompose_once_succeed():
-    from cirq.protocols.decompose_protocol import _reset_context_counter
-
-    _reset_context_counter()
     op = G2()(cirq.NamedQubit('q'))
     d1 = cirq.decompose_once(op)
     d2 = cirq.decompose_once(d1[0])
