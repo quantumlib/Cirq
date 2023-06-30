@@ -74,7 +74,6 @@ class BernoulliEncoder(rve.RandomVariableEncoder):
     def decompose_from_registers(  # type:ignore[override]
         self, context, q: Sequence[cirq.Qid], t: Sequence[cirq.Qid]
     ) -> cirq.OP_TREE:
-
         y0_bin = str(
             FixedPoint(
                 self.y[0],
