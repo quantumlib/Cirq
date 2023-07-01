@@ -597,7 +597,7 @@ def random_rotations_between_grid_interaction_layers_circuit(
     coupled_qubit_pairs = _coupled_qubit_pairs(qubits)
 
     moments: List['cirq.Moment'] = []
-    previous_single_qubit_layer = cirq.Moment()
+    previous_single_qubit_layer = circuits.Moment()
     single_qubit_layer_factory = _single_qubit_gates_arg_to_factory(
         single_qubit_gates=single_qubit_gates, qubits=qubits, prng=prng
     )
