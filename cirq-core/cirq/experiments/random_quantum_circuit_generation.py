@@ -596,26 +596,26 @@ def random_rotations_between_grid_interaction_layers_circuit(
     qubits = list(qubits)
     coupled_qubit_pairs = _coupled_qubit_pairs(qubits)
 
-    circuit = circuits.Circuit()
-    previous_single_qubit_layer = circuits.Moment()
+    moments: List['cirq.Moment'] = []
+    previous_single_qubit_layer = cirq.Moment()
     single_qubit_layer_factory = _single_qubit_gates_arg_to_factory(
         single_qubit_gates=single_qubit_gates, qubits=qubits, prng=prng
     )
 
     for i in range(depth):
         single_qubit_layer = single_qubit_layer_factory.new_layer(previous_single_qubit_layer)
-        circuit += single_qubit_layer
+        moments.append(single_qubit_layer)
 
         two_qubit_layer = _two_qubit_layer(
             coupled_qubit_pairs, two_qubit_op_factory, pattern[i % len(pattern)], prng
         )
-        circuit += two_qubit_layer
+        moments.append(two_qubit_layer)
         previous_single_qubit_layer = single_qubit_layer
 
     if add_final_single_qubit_layer:
-        circuit += single_qubit_layer_factory.new_layer(previous_single_qubit_layer)
+        moments.append(single_qubit_layer_factory.new_layer(previous_single_qubit_layer))
 
-    return circuit
+    return cirq.Circuit.from_moments(*moments)
 
 
 def _coupled_qubit_pairs(qubits: List['cirq.GridQubit']) -> List[GridQubitPairT]:
