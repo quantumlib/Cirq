@@ -37,6 +37,7 @@ from cirq.transformers.analytical_decompositions import (
     two_qubit_matrix_to_diagonal_and_cz_operations,
     two_qubit_matrix_to_ion_operations,
     two_qubit_matrix_to_sqrt_iswap_operations,
+    unitary_to_pauli_string,
 )
 
 from cirq.transformers.heuristic_decompositions import (
