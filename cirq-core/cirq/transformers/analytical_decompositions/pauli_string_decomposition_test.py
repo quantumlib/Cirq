@@ -51,7 +51,7 @@ def test_unitary_to_pauli_string_non_pauli_input():
 
 
 def test_invalid_input():
-    with pytest.raises(ValueError, match='Input has a none square shape.*'):
+    with pytest.raises(ValueError, match='Input has a non-square shape.*'):
         _ = unitary_to_pauli_string(np.zeros((2, 3)))
 
     with pytest.raises(ValueError, match='Input dimension [0-9]* isn\'t a power of 2'):
