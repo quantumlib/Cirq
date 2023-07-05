@@ -39,6 +39,7 @@ class QubitManager(metaclass=abc.ABCMeta):
 class _BaseAncillaQid(raw_types.Qid):
     id: int
     dim: int = 2
+    prefix: str = ''
 
     def _comparison_key(self) -> int:
         return self.id
@@ -49,7 +50,8 @@ class _BaseAncillaQid(raw_types.Qid):
 
     def __repr__(self) -> str:
         dim_str = f', dim={self.dim}' if self.dim != 2 else ''
-        return f"cirq.ops.{type(self).__name__}({self.id}{dim_str})"
+        prefix_str = f', prefix={self.prefix}' if self.prefix != '' else ''
+        return f"cirq.ops.{type(self).__name__}({self.id}{dim_str}{prefix_str})"
 
 
 class CleanQubit(_BaseAncillaQid):
@@ -57,7 +59,7 @@ class CleanQubit(_BaseAncillaQid):
 
     def __str__(self) -> str:
         dim_str = f' (d={self.dimension})' if self.dim != 2 else ''
-        return f"_c({self.id}){dim_str}"
+        return f"{self.prefix}_c({self.id}){dim_str}"
 
 
 class BorrowableQubit(_BaseAncillaQid):
@@ -65,23 +67,27 @@ class BorrowableQubit(_BaseAncillaQid):
 
     def __str__(self) -> str:
         dim_str = f' (d={self.dimension})' if self.dim != 2 else ''
-        return f"_b({self.id}){dim_str}"
+        return f"{self.prefix}_b({self.id}){dim_str}"
 
 
 class SimpleQubitManager(QubitManager):
     """Allocates a new `CleanQubit`/`BorrowableQubit` for every `qalloc`/`qborrow` request."""
 
-    def __init__(self):
+    def __init__(self, prefix: str = ''):
         self._clean_id = 0
         self._borrow_id = 0
+        self._prefix = prefix
 
     def qalloc(self, n: int, dim: int = 2) -> List['cirq.Qid']:
         self._clean_id += n
-        return [CleanQubit(i, dim) for i in range(self._clean_id - n, self._clean_id)]
+        return [CleanQubit(i, dim, self._prefix) for i in range(self._clean_id - n, self._clean_id)]
 
     def qborrow(self, n: int, dim: int = 2) -> List['cirq.Qid']:
         self._borrow_id = self._borrow_id + n
-        return [BorrowableQubit(i, dim) for i in range(self._borrow_id - n, self._borrow_id)]
+        return [
+            BorrowableQubit(i, dim, self._prefix)
+            for i in range(self._borrow_id - n, self._borrow_id)
+        ]
 
     def qfree(self, qubits: Iterable['cirq.Qid']) -> None:
         for q in qubits:
