@@ -716,8 +716,8 @@ def dirac_notation(
         and non-zero floats of the specified accuracy.
 
     Raises:
-        Value Error: If there is a shape mismatch between state_vector and qid_shape. 
-            Otherwise, when qid_shape is not mentioned and length of state_vector 
+        ValueError: If there is a shape mismatch between state_vector and qid_shape.
+            Otherwise, when qid_shape is not mentioned and length of state_vector
             is not a power of 2.
     """
     if qid_shape is None:
