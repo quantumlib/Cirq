@@ -833,7 +833,6 @@ def to_valid_state_vector(
 def _qudit_values_to_state_tensor(
     *, state_vector: np.ndarray, qid_shape: Tuple[int, ...], dtype: Optional['DTypeLike']
 ) -> np.ndarray:
-
     for i in range(len(qid_shape)):
         s = state_vector[i]
         q = qid_shape[i]
