@@ -5,7 +5,9 @@ from google.protobuf.internal.containers import (
     RepeatedScalarFieldContainer as google___protobuf___internal___containers___RepeatedScalarFieldContainer,
 )
 
-from google.protobuf.message import Message as google___protobuf___message___Message
+from google.protobuf.message import (
+    Message as google___protobuf___message___Message,
+)
 
 from typing import (
     Iterable as typing___Iterable,
@@ -15,39 +17,40 @@ from typing import (
     Text as typing___Text,
 )
 
-from typing_extensions import Literal as typing_extensions___Literal
+from typing_extensions import (
+    Literal as typing_extensions___Literal,
+)
+
 
 class ParameterSweep(google___protobuf___message___Message):
-    repetitions = ...  # type: int
+    repetitions = ... # type: int
 
     @property
     def sweep(self) -> ProductSweep: ...
-    def __init__(
-        self,
-        repetitions: typing___Optional[int] = None,
-        sweep: typing___Optional[ProductSweep] = None,
-    ) -> None: ...
+
+    def __init__(self,
+        repetitions : typing___Optional[int] = None,
+        sweep : typing___Optional[ProductSweep] = None,
+        ) -> None: ...
     @classmethod
     def FromString(cls, s: bytes) -> ParameterSweep: ...
     def MergeFrom(self, other_msg: google___protobuf___message___Message) -> None: ...
     def CopyFrom(self, other_msg: google___protobuf___message___Message) -> None: ...
     if sys.version_info >= (3,):
         def HasField(self, field_name: typing_extensions___Literal[u"sweep"]) -> bool: ...
-        def ClearField(
-            self, field_name: typing_extensions___Literal[u"repetitions", u"sweep"]
-        ) -> None: ...
+        def ClearField(self, field_name: typing_extensions___Literal[u"repetitions",u"sweep"]) -> None: ...
     else:
-        def HasField(self, field_name: typing_extensions___Literal[u"sweep", b"sweep"]) -> bool: ...
-        def ClearField(
-            self, field_name: typing_extensions___Literal[b"repetitions", b"sweep"]
-        ) -> None: ...
+        def HasField(self, field_name: typing_extensions___Literal[u"sweep",b"sweep"]) -> bool: ...
+        def ClearField(self, field_name: typing_extensions___Literal[b"repetitions",b"sweep"]) -> None: ...
 
 class ProductSweep(google___protobuf___message___Message):
+
     @property
-    def factors(
-        self,
-    ) -> google___protobuf___internal___containers___RepeatedCompositeFieldContainer[ZipSweep]: ...
-    def __init__(self, factors: typing___Optional[typing___Iterable[ZipSweep]] = None) -> None: ...
+    def factors(self) -> google___protobuf___internal___containers___RepeatedCompositeFieldContainer[ZipSweep]: ...
+
+    def __init__(self,
+        factors : typing___Optional[typing___Iterable[ZipSweep]] = None,
+        ) -> None: ...
     @classmethod
     def FromString(cls, s: bytes) -> ProductSweep: ...
     def MergeFrom(self, other_msg: google___protobuf___message___Message) -> None: ...
@@ -58,15 +61,13 @@ class ProductSweep(google___protobuf___message___Message):
         def ClearField(self, field_name: typing_extensions___Literal[b"factors"]) -> None: ...
 
 class ZipSweep(google___protobuf___message___Message):
+
     @property
-    def sweeps(
-        self,
-    ) -> google___protobuf___internal___containers___RepeatedCompositeFieldContainer[
-        SingleSweep
-    ]: ...
-    def __init__(
-        self, sweeps: typing___Optional[typing___Iterable[SingleSweep]] = None
-    ) -> None: ...
+    def sweeps(self) -> google___protobuf___internal___containers___RepeatedCompositeFieldContainer[SingleSweep]: ...
+
+    def __init__(self,
+        sweeps : typing___Optional[typing___Iterable[SingleSweep]] = None,
+        ) -> None: ...
     @classmethod
     def FromString(cls, s: bytes) -> ZipSweep: ...
     def MergeFrom(self, other_msg: google___protobuf___message___Message) -> None: ...
@@ -77,56 +78,37 @@ class ZipSweep(google___protobuf___message___Message):
         def ClearField(self, field_name: typing_extensions___Literal[b"sweeps"]) -> None: ...
 
 class SingleSweep(google___protobuf___message___Message):
-    parameter_key = ...  # type: typing___Text
+    parameter_key = ... # type: typing___Text
 
     @property
     def points(self) -> Points: ...
+
     @property
     def linspace(self) -> Linspace: ...
-    def __init__(
-        self,
-        parameter_key: typing___Optional[typing___Text] = None,
-        points: typing___Optional[Points] = None,
-        linspace: typing___Optional[Linspace] = None,
-    ) -> None: ...
+
+    def __init__(self,
+        parameter_key : typing___Optional[typing___Text] = None,
+        points : typing___Optional[Points] = None,
+        linspace : typing___Optional[Linspace] = None,
+        ) -> None: ...
     @classmethod
     def FromString(cls, s: bytes) -> SingleSweep: ...
     def MergeFrom(self, other_msg: google___protobuf___message___Message) -> None: ...
     def CopyFrom(self, other_msg: google___protobuf___message___Message) -> None: ...
     if sys.version_info >= (3,):
-        def HasField(
-            self, field_name: typing_extensions___Literal[u"linspace", u"points", u"sweep"]
-        ) -> bool: ...
-        def ClearField(
-            self,
-            field_name: typing_extensions___Literal[
-                u"linspace", u"parameter_key", u"points", u"sweep"
-            ],
-        ) -> None: ...
+        def HasField(self, field_name: typing_extensions___Literal[u"linspace",u"points",u"sweep"]) -> bool: ...
+        def ClearField(self, field_name: typing_extensions___Literal[u"linspace",u"parameter_key",u"points",u"sweep"]) -> None: ...
     else:
-        def HasField(
-            self,
-            field_name: typing_extensions___Literal[
-                u"linspace", b"linspace", u"points", b"points", u"sweep", b"sweep"
-            ],
-        ) -> bool: ...
-        def ClearField(
-            self,
-            field_name: typing_extensions___Literal[
-                b"linspace", b"parameter_key", b"points", b"sweep"
-            ],
-        ) -> None: ...
-
-    def WhichOneof(
-        self, oneof_group: typing_extensions___Literal[u"sweep", b"sweep"]
-    ) -> typing_extensions___Literal["points", "linspace"]: ...
+        def HasField(self, field_name: typing_extensions___Literal[u"linspace",b"linspace",u"points",b"points",u"sweep",b"sweep"]) -> bool: ...
+        def ClearField(self, field_name: typing_extensions___Literal[b"linspace",b"parameter_key",b"points",b"sweep"]) -> None: ...
+    def WhichOneof(self, oneof_group: typing_extensions___Literal[u"sweep",b"sweep"]) -> typing_extensions___Literal["points","linspace"]: ...
 
 class Points(google___protobuf___message___Message):
-    points = (
-        ...
-    )  # type: google___protobuf___internal___containers___RepeatedScalarFieldContainer[float]
+    points = ... # type: google___protobuf___internal___containers___RepeatedScalarFieldContainer[float]
 
-    def __init__(self, points: typing___Optional[typing___Iterable[float]] = None) -> None: ...
+    def __init__(self,
+        points : typing___Optional[typing___Iterable[float]] = None,
+        ) -> None: ...
     @classmethod
     def FromString(cls, s: bytes) -> Points: ...
     def MergeFrom(self, other_msg: google___protobuf___message___Message) -> None: ...
@@ -137,59 +119,49 @@ class Points(google___protobuf___message___Message):
         def ClearField(self, field_name: typing_extensions___Literal[b"points"]) -> None: ...
 
 class Linspace(google___protobuf___message___Message):
-    first_point = ...  # type: float
-    last_point = ...  # type: float
-    num_points = ...  # type: int
+    first_point = ... # type: float
+    last_point = ... # type: float
+    num_points = ... # type: int
 
-    def __init__(
-        self,
-        first_point: typing___Optional[float] = None,
-        last_point: typing___Optional[float] = None,
-        num_points: typing___Optional[int] = None,
-    ) -> None: ...
+    def __init__(self,
+        first_point : typing___Optional[float] = None,
+        last_point : typing___Optional[float] = None,
+        num_points : typing___Optional[int] = None,
+        ) -> None: ...
     @classmethod
     def FromString(cls, s: bytes) -> Linspace: ...
     def MergeFrom(self, other_msg: google___protobuf___message___Message) -> None: ...
     def CopyFrom(self, other_msg: google___protobuf___message___Message) -> None: ...
     if sys.version_info >= (3,):
-        def ClearField(
-            self,
-            field_name: typing_extensions___Literal[u"first_point", u"last_point", u"num_points"],
-        ) -> None: ...
+        def ClearField(self, field_name: typing_extensions___Literal[u"first_point",u"last_point",u"num_points"]) -> None: ...
     else:
-        def ClearField(
-            self,
-            field_name: typing_extensions___Literal[b"first_point", b"last_point", b"num_points"],
-        ) -> None: ...
+        def ClearField(self, field_name: typing_extensions___Literal[b"first_point",b"last_point",b"num_points"]) -> None: ...
 
 class ParameterDict(google___protobuf___message___Message):
     class AssignmentsEntry(google___protobuf___message___Message):
-        key = ...  # type: typing___Text
-        value = ...  # type: float
+        key = ... # type: typing___Text
+        value = ... # type: float
 
-        def __init__(
-            self,
-            key: typing___Optional[typing___Text] = None,
-            value: typing___Optional[float] = None,
-        ) -> None: ...
+        def __init__(self,
+            key : typing___Optional[typing___Text] = None,
+            value : typing___Optional[float] = None,
+            ) -> None: ...
         @classmethod
         def FromString(cls, s: bytes) -> ParameterDict.AssignmentsEntry: ...
         def MergeFrom(self, other_msg: google___protobuf___message___Message) -> None: ...
         def CopyFrom(self, other_msg: google___protobuf___message___Message) -> None: ...
         if sys.version_info >= (3,):
-            def ClearField(
-                self, field_name: typing_extensions___Literal[u"key", u"value"]
-            ) -> None: ...
+            def ClearField(self, field_name: typing_extensions___Literal[u"key",u"value"]) -> None: ...
         else:
-            def ClearField(
-                self, field_name: typing_extensions___Literal[b"key", b"value"]
-            ) -> None: ...
+            def ClearField(self, field_name: typing_extensions___Literal[b"key",b"value"]) -> None: ...
+
 
     @property
     def assignments(self) -> typing___MutableMapping[typing___Text, float]: ...
-    def __init__(
-        self, assignments: typing___Optional[typing___Mapping[typing___Text, float]] = None
-    ) -> None: ...
+
+    def __init__(self,
+        assignments : typing___Optional[typing___Mapping[typing___Text, float]] = None,
+        ) -> None: ...
     @classmethod
     def FromString(cls, s: bytes) -> ParameterDict: ...
     def MergeFrom(self, other_msg: google___protobuf___message___Message) -> None: ...
