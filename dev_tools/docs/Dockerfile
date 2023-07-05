@@ -26,8 +26,9 @@
 # PR.
 ########################################################################################
 
-FROM nikolaik/python-nodejs:python3.7-nodejs14
+FROM nikolaik/python-nodejs:python3.9-nodejs16
 
+#RUN apk update && apk add git
 RUN pip install -U git+https://github.com/tensorflow/docs && npm i -g markserv
 
 RUN mkdir /cirq

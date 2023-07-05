@@ -1,6 +1,10 @@
 # captures all the modules
 -r ../../../cirq-aqt/requirements.txt
 -r ../../../cirq-core/requirements.txt
--r ../../../cirq-ft/requirements.txt
+
+# TODO: Fix this error 
+# ERROR: Could not open requirements file: [Errno 2] No such file or directory: 'dev_tools/requirements/deps/../../../cirq-ft/requirements.txt'
+# -r ../../../cirq-ft/requirements.txt 
+
 -r ../../../cirq-google/requirements.txt
 -r ../../../cirq-rigetti/requirements.txt
