@@ -68,7 +68,7 @@ def unitary_to_pauli_string(U: npt.NDArray, eps: float = 1e-15) -> Optional[Dens
         and z_mask be the index of the maximum number of the first column of H†UH
         each of these indicies is n-bits long where U is 2^n x 2^n.
 
-        These two indicies/masks encode in binary the indicies of the qubits that
+        These two indices/masks encode in binary the indices of the qubits that
         have I, X, Y, Z acting on them as follows:
         x_mask[i] == 1 and z_mask[i] == 0: X acts on the ith qubit
         x_mask[i] == 0 and z_mask[i] == 1: Z acts on the ith qubit
@@ -87,7 +87,7 @@ def unitary_to_pauli_string(U: npt.NDArray, eps: float = 1e-15) -> Optional[Dens
     """
 
     if len(U.shape) != 2 or U.shape[0] != U.shape[1]:
-        raise ValueError(f'Input has a none square shape {U}')
+        raise ValueError(f'Input has a non-square shape {U}')
     n = U.shape[0].bit_length() - 1
     if U.shape[0] != 2**n:
         raise ValueError(f'Input dimension {U.shape[0]} isn\'t a power of 2')
