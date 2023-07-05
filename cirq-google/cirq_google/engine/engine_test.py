@@ -29,8 +29,6 @@ from cirq_google.api import v1, v2
 from cirq_google.engine import util
 from cirq_google.cloud import quantum
 from cirq_google.engine.engine import EngineContext
-from cirq_google.engine.test_utils import uses_async_mock
-
 
 _CIRCUIT = cirq.Circuit(
     cirq.X(cirq.GridQubit(5, 2)) ** 0.5, cirq.measure(cirq.GridQubit(5, 2), key='result')
@@ -352,7 +350,6 @@ def setup_run_circuit_with_result_(client, result):
     client().get_job_results_async.return_value = quantum.QuantumResult(result=result)
 
 
-@uses_async_mock
 @mock.patch('cirq_google.engine.engine_client.EngineClient', autospec=True)
 def test_run_circuit(client):
     setup_run_circuit_with_result_(client, _A_RESULT)
@@ -395,7 +392,6 @@ def test_unsupported_program_type():
         engine.run(program="this isn't even the right type of thing!")
 
 
-@uses_async_mock
 @mock.patch('cirq_google.engine.engine_client.EngineClient', autospec=True)
 def test_run_circuit_failed(client):
     client().create_program_async.return_value = (
@@ -426,7 +422,6 @@ def test_run_circuit_failed(client):
         engine.run(program=_CIRCUIT)
 
 
-@uses_async_mock
 @mock.patch('cirq_google.engine.engine_client.EngineClient', autospec=True)
 def test_run_circuit_failed_missing_processor_name(client):
     client().create_program_async.return_value = (
@@ -456,7 +451,6 @@ def test_run_circuit_failed_missing_processor_name(client):
         engine.run(program=_CIRCUIT)
 
 
-@uses_async_mock
 @mock.patch('cirq_google.engine.engine_client.EngineClient', autospec=True)
 def test_run_circuit_cancelled(client):
     client().create_program_async.return_value = (
@@ -480,7 +474,6 @@ def test_run_circuit_cancelled(client):
         engine.run(program=_CIRCUIT)
 
 
-@uses_async_mock
 @mock.patch('cirq_google.engine.engine_client.EngineClient', autospec=True)
 def test_run_circuit_timeout(client):
     client().create_program_async.return_value = (
@@ -502,7 +495,6 @@ def test_run_circuit_timeout(client):
         engine.run(program=_CIRCUIT)
 
 
-@uses_async_mock
 @mock.patch('cirq_google.engine.engine_client.EngineClient', autospec=True)
 def test_run_sweep_params(client):
     setup_run_circuit_with_result_(client, _RESULTS)
@@ -532,7 +524,6 @@ def test_run_sweep_params(client):
     client().get_job_results_async.assert_called_once()
 
 
-@uses_async_mock
 @mock.patch('cirq_google.engine.engine_client.EngineClient', autospec=True)
 def test_run_multiple_times(client):
     setup_run_circuit_with_result_(client, _RESULTS)
@@ -564,7 +555,6 @@ def test_run_multiple_times(client):
     assert client().get_job_results_async.call_count == 2
 
 
-@uses_async_mock
 @mock.patch('cirq_google.engine.engine_client.EngineClient', autospec=True)
 def test_run_sweep_v2(client):
     setup_run_circuit_with_result_(client, _RESULTS_V2)
@@ -589,7 +579,6 @@ def test_run_sweep_v2(client):
     client().get_job_results_async.assert_called_once()
 
 
-@uses_async_mock
 @mock.patch('cirq_google.engine.engine_client.EngineClient', autospec=True)
 def test_run_batch(client):
     setup_run_circuit_with_result_(client, _BATCH_RESULTS_V2)
@@ -624,7 +613,6 @@ def test_run_batch(client):
     client().get_job_results_async.assert_called_once()
 
 
-@uses_async_mock
 @mock.patch('cirq_google.engine.engine_client.EngineClient', autospec=True)
 def test_run_batch_no_params(client):
     # OK to run with no params, it should use empty sweeps for each
@@ -674,7 +662,6 @@ def test_bad_sweep_proto():
         program.run_sweep()
 
 
-@uses_async_mock
 @mock.patch('cirq_google.engine.engine_client.EngineClient', autospec=True)
 def test_run_calibration(client):
     setup_run_circuit_with_result_(client, _CALIBRATION_RESULTS_V2)
@@ -728,7 +715,6 @@ def test_run_calibration_validation_fails():
         )
 
 
-@uses_async_mock
 @mock.patch('cirq_google.engine.engine_client.EngineClient', autospec=True)
 def test_bad_result_proto(client):
     result = any_pb2.Any()
@@ -756,7 +742,6 @@ def test_get_program():
     assert cg.Engine(project_id='proj').get_program('prog').program_id == 'prog'
 
 
-@uses_async_mock
 @mock.patch('cirq_google.engine.engine_client.EngineClient.list_programs_async')
 def test_list_programs(list_programs_async):
     prog1 = quantum.QuantumProgram(name='projects/proj/programs/prog-YBGR48THF3JHERZW200804')
@@ -773,7 +758,6 @@ def test_list_programs(list_programs_async):
     ]
 
 
-@uses_async_mock
 @mock.patch('cirq_google.engine.engine_client.EngineClient', autospec=True)
 def test_create_program(client):
     client().create_program_async.return_value = ('prog', quantum.QuantumProgram())
@@ -782,7 +766,6 @@ def test_create_program(client):
     assert result.program_id == 'prog'
 
 
-@uses_async_mock
 @mock.patch('cirq_google.engine.engine_client.EngineClient.list_jobs_async')
 def test_list_jobs(list_jobs_async):
     job1 = quantum.QuantumJob(name='projects/proj/programs/prog1/jobs/job1')
@@ -805,7 +788,6 @@ def test_list_jobs(list_jobs_async):
     ]
 
 
-@uses_async_mock
 @mock.patch('cirq_google.engine.engine_client.EngineClient.list_processors_async')
 def test_list_processors(list_processors_async):
     processor1 = quantum.QuantumProcessor(name='projects/proj/processors/xmonsim')
@@ -821,7 +803,6 @@ def test_get_processor():
     assert cg.Engine(project_id='proj').get_processor('xmonsim').processor_id == 'xmonsim'
 
 
-@uses_async_mock
 @mock.patch('cirq_google.engine.engine_client.EngineClient', autospec=True)
 def test_sampler(client):
     setup_run_circuit_with_result_(client, _RESULTS)

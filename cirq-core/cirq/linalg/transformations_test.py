@@ -17,6 +17,7 @@ import pytest
 
 import cirq
 import cirq.testing
+from cirq import linalg
 
 
 def test_reflection_matrix_pow_consistent_results():
@@ -632,3 +633,18 @@ def test_factor_state_vector(state_1: int, state_2: int):
         # All phase goes into a1, and b1 is just the dephased state vector
         assert np.allclose(a1, a * phase)
         assert np.allclose(b1, b)
+
+
+@pytest.mark.parametrize('num_dimensions', [*range(1, 7)])
+def test_transpose_flattened_array(num_dimensions):
+    np.random.seed(0)
+    for _ in range(10):
+        shape = np.random.randint(1, 5, (num_dimensions,)).tolist()
+        axes = np.random.permutation(num_dimensions).tolist()
+        volume = np.prod(shape)
+        A = np.random.permutation(volume)
+        want = np.transpose(A.reshape(shape), axes)
+        got = linalg.transpose_flattened_array(A, shape, axes).reshape(want.shape)
+        assert np.array_equal(want, got)
+        got = linalg.transpose_flattened_array(A.reshape(shape), shape, axes).reshape(want.shape)
+        assert np.array_equal(want, got)

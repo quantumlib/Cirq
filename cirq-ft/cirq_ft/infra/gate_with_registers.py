@@ -13,14 +13,11 @@
 # limitations under the License.
 
 import abc
-import sys
 from typing import Dict, Iterable, List, Optional, Sequence, Tuple, Union, overload
 
 import attr
 import cirq
 import numpy as np
-
-assert sys.version_info > (3, 6), "https://docs.python.org/3/whatsnew/3.6.html#whatsnew36-pep468"
 
 
 @attr.frozen
