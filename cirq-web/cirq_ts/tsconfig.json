@@ -11,9 +11,9 @@
     "downlevelIteration": true,
     "declaration": false,
     "sourceMap": false,
-    "outDir": "build",
+    "outDir": "build"
   },
   "include": [
-    "src/**/*.ts",
-  ],
+    "src/**/*.ts"
+  ]
 }
