@@ -27,7 +27,7 @@ def pytest_configure(config):
         "FileDescriptor",
         "OneofDescriptor",
     ):
-        config.addinivalue_line("filterwarnings", f"ignore:Call to deprecated create function {f}")
+        config.addinivalue_line("filterwarnings", f"error:Call to deprecated create function {f}")
 
 
 def pytest_addoption(parser):
