@@ -187,9 +187,10 @@ class TestSimulator:
         circuit.append(gate(q0, q1))
         circuit.append(cirq.measure((q0), key='key'))
         resolver = cirq.ParamResolver({'t': 0.5})
-        sim = cirq.ClassicaStateSimulator()
+        sim = cirq.ClassicalStateSimulator()
         with pytest.raises(
             ValueError,
-            match="Can not simulate gates other than cirq.XGate, cirq.CNOT, cirq.SWAP, and cirq.CCNOT",
+            match=
+            "Can not simulate gates other than cirq.XGate, cirq.CNOT, cirq.SWAP, and cirq.CCNOT",
         ):
             sim._run(circuit=circuit, param_resolver=resolver, repetitions=1)

@@ -23,7 +23,6 @@ import numpy as np
 
 
 class ClassicalStateSimulator(SimulatesSamples):
-
     '''
     `basic simulator that only accepts cirq.X, cirq.ISwap, and cirq.CNOT gates and return a 3d Numpy array`
 
