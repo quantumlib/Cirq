@@ -115,11 +115,21 @@ def test_invalid_gate_family():
 
 def test_gate_family_immutable():
     g = cirq.GateFamily(CustomX)
-    with pytest.raises(AttributeError, match="can't set attribute"):
+    # Match one of two strings. The second one is message returned since python 3.11.
+    with pytest.raises(
+        AttributeError,
+        match="(can't set attribute)|(property 'gate' of 'GateFamily' object has no setter)",
+    ):
         g.gate = CustomXPowGate
-    with pytest.raises(AttributeError, match="can't set attribute"):
+    with pytest.raises(
+        AttributeError,
+        match="(can't set attribute)|(property 'name' of 'GateFamily' object has no setter)",
+    ):
         g.name = 'new name'
-    with pytest.raises(AttributeError, match="can't set attribute"):
+    with pytest.raises(
+        AttributeError,
+        match="(can't set attribute)|(property 'description' of 'GateFamily' object has no setter)",
+    ):
         g.description = 'new description'
 
 

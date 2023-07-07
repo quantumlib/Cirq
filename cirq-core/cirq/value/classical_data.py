@@ -39,7 +39,7 @@ class MeasurementType(enum.IntEnum):
     CHANNEL = 2
 
     def __repr__(self):
-        return f'cirq.{str(self)}'
+        return f'cirq.MeasurementType.{self.name}'
 
 
 class ClassicalDataStoreReader(abc.ABC):

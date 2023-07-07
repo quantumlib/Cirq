@@ -41,10 +41,19 @@ def test_immutable():
     a, b = cirq.LineQubit.range(2)
     op = cirq.X(a)
 
-    with pytest.raises(AttributeError, match="can't set attribute"):
+    # Match one of two strings. The second one is message returned since python 3.11.
+    with pytest.raises(
+        AttributeError,
+        match="(can't set attribute)|"
+        "(property 'gate' of 'SingleQubitPauliStringGateOperation' object has no setter)",
+    ):
         op.gate = cirq.Y
 
-    with pytest.raises(AttributeError, match="can't set attribute"):
+    with pytest.raises(
+        AttributeError,
+        match="(can't set attribute)|"
+        "(property 'qubits' of 'SingleQubitPauliStringGateOperation' object has no setter)",
+    ):
         op.qubits = [b]
 
 
