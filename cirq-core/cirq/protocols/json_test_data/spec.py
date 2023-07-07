@@ -58,7 +58,7 @@ TestSpec = ModuleJsonTestSpec(
         'ZerosSampler',
     ],
     should_not_be_serialized=[
-        'ClassicalStateSimulator'
+        'ClassicalStateSimulator',
         # Heatmaps
         'Heatmap',
         'TwoQubitInteractionHeatmap',

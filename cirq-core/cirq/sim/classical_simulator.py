@@ -51,7 +51,7 @@ class ClassicalStateSimulator(SimulatesSamples):
         self, circuit: 'circuit.AbstractCircuit', param_resolver: 'ParamResolver', repetitions: int
     ) -> Dict[str, np.ndarray]:
         results_dict: Dict[str, Dict[str, np.ndarray]] = {}
-        values_dict: Dict[Qid,  int] = defaultdict(int)
+        values_dict: Dict[Qid, int] = defaultdict(int)
         param_resolver = param_resolver or ParamResolver({})
         resolved_circuit = protocols.resolve_parameters(circuit, param_resolver)
 

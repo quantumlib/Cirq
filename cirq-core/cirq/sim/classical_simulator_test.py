@@ -65,7 +65,7 @@ class TestSimulator:
         circuit.append(cirq.CCNOT(q0, q1, q2))
         circuit.append(cirq.measure((q0, q1, q2), key='key'))
         expected_results = {
-            'key': np.array([[[0, 0, 0], [1, 0, 0], [0, 1, 0],[1, 1, 1]]], dtype=np.uint8)
+            'key': np.array([[[0, 0, 0], [1, 0, 0], [0, 1, 0], [1, 1, 1]]], dtype=np.uint8)
         }
         sim = cirq.ClassicalStateSimulator()
         results = sim._run(circuit=circuit, param_resolver=None, repetitions=1)
@@ -186,6 +186,7 @@ class TestSimulator:
         resolver = cirq.ParamResolver({'t': 0.5})
         sim = cirq.ClassicaStatelSimulator()
         with pytest.raises(
-            ValueError, match="Can not simulate gates other than cirq.XGate, cirq.CNOT, cirq.SWAP, and cirq.CCNOT"
+            ValueError,
+            match="Can not simulate gates other than cirq.XGate, cirq.CNOT, cirq.SWAP, and cirq.CCNOT",
         ):
             sim._run(circuit=circuit, param_resolver=resolver, repetitions=1)
