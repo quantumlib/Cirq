@@ -51,9 +51,9 @@ class SelectSwapQROM(infra.GateWithRegisters):
 
     The `SelectSwapQROM` is a hybrid of the following two existing primitives:
 
-        * Unary Iteration based `cirq_qubitization.QROM` requires O(N) T-gates to load `N` data
+        * Unary Iteration based `cirq_ft.QROM` requires O(N) T-gates to load `N` data
         elements into a b-bit target register. Note that the T-complexity is independent of `b`.
-        * `cirq_qubitization.SwapWithZeroGate` can swap a `b` bit register indexed `x` with a `b`
+        * `cirq_ft.SwapWithZeroGate` can swap a `b` bit register indexed `x` with a `b`
         bit register at index `0` using O(b) T-gates, if the selection register stores integer `x`.
         Note that the swap complexity is independent of the iteration length `N`.
 

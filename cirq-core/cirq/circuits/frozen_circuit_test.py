@@ -68,5 +68,9 @@ def test_immutable():
     q = cirq.LineQubit(0)
     c = cirq.FrozenCircuit(cirq.X(q), cirq.H(q))
 
-    with pytest.raises(AttributeError, match="can't set attribute"):
+    # Match one of two strings. The second one is message returned since python 3.11.
+    with pytest.raises(
+        AttributeError,
+        match="(can't set attribute)|(property 'moments' of 'FrozenCircuit' object has no setter)",
+    ):
         c.moments = (cirq.Moment(cirq.H(q)), cirq.Moment(cirq.X(q)))
