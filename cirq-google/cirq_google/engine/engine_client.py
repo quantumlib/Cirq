@@ -138,8 +138,10 @@ class StreamManager:
     def __init__(self, grpc_client: quantum.QuantumEngineServiceAsyncClient):
         self._grpc_client = grpc_client
         self._request_queue: asyncio.Queue = asyncio.Queue()
-        self._response_demux = ResponseDemux()
         self._manage_stream_loop_future: Optional[duet.AwaitableFuture] = None
+        # TODO consider making the scope of response futures local to the relevant tasks rather than
+        # all of StreamManager.
+        self._response_demux = ResponseDemux()
 
     @property
     def _executor(self) -> AsyncioExecutor:
