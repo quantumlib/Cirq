@@ -23,10 +23,10 @@
 # This can take a long time and even lead to timeout on Github Actions, hence partitioning of the
 # tests is possible, via setting the NOTEBOOK_PARTITIONS env var to e.g. 5, and then passing to
 # pytest the `-k partition-0` or `-k partition-1`, etc. argument to limit to the given partition.
+
 import os
 import re
 import subprocess
-import sys
 import warnings
 from typing import Set, List
 
@@ -80,16 +80,14 @@ SKIP_NOTEBOOKS = [
     # skipping fidelity estimation due to
     # https://github.com/quantumlib/Cirq/issues/3502
     "examples/*fidelity*",
+    # skipping quantum utility simulation (too large)
+    'examples/advanced/*quantum_utility*',
     # Also skipping stabilizer code testing.
     "examples/*stabilizer_code*",
     # An intentionally empty/template code notebook.
     "docs/simulate/qvm_builder_code.ipynb",
     *NOTEBOOKS_DEPENDING_ON_UNRELEASED_FEATURES,
 ]
-
-# The Rigetti integration requires Python >= 3.7.
-if sys.version_info < (3, 7):
-    SKIP_NOTEBOOKS.append("**/rigetti/*.ipynb")
 
 # As these notebooks run in an isolated env, we want to minimize dependencies that are
 # installed. We assume colab packages (feel free to add dependencies here that appear in colab, as
@@ -109,8 +107,6 @@ PACKAGES = [
     # https://github.com/networkx/networkx/issues/4718 pinned networkx 2.5.1 to 4.4.2
     # however, jupyter brings in 5.0.6
     'decorator<5',
-    # TODO(#5967): allow numpy-1.24 when it is supported in Cirq and numba
-    'numpy>=1.16,<1.24',
 ]
 
 
