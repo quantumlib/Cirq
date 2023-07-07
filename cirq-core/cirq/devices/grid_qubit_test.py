@@ -335,23 +335,39 @@ def test_to_json():
 
 
 def test_immutable():
-    with pytest.raises(AttributeError, match="can't set attribute"):
+    # Match one of two strings. The second one is message returned since python 3.11.
+    with pytest.raises(
+        AttributeError,
+        match="(can't set attribute)|(property 'col' of 'GridQubit' object has no setter)",
+    ):
         q = cirq.GridQubit(1, 2)
         q.col = 3
 
-    with pytest.raises(AttributeError, match="can't set attribute"):
+    with pytest.raises(
+        AttributeError,
+        match="(can't set attribute)|(property 'row' of 'GridQubit' object has no setter)",
+    ):
         q = cirq.GridQubit(1, 2)
         q.row = 3
 
-    with pytest.raises(AttributeError, match="can't set attribute"):
+    with pytest.raises(
+        AttributeError,
+        match="(can't set attribute)|(property 'col' of 'GridQid' object has no setter)",
+    ):
         q = cirq.GridQid(1, 2, dimension=3)
         q.col = 3
 
-    with pytest.raises(AttributeError, match="can't set attribute"):
+    with pytest.raises(
+        AttributeError,
+        match="(can't set attribute)|(property 'row' of 'GridQid' object has no setter)",
+    ):
         q = cirq.GridQid(1, 2, dimension=3)
         q.row = 3
 
-    with pytest.raises(AttributeError, match="can't set attribute"):
+    with pytest.raises(
+        AttributeError,
+        match="(can't set attribute)|(property 'dimension' of 'GridQid' object has no setter)",
+    ):
         q = cirq.GridQid(1, 2, dimension=3)
         q.dimension = 3
 
