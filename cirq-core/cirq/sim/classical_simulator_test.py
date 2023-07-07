@@ -186,7 +186,7 @@ class TestSimulator:
         resolver = cirq.ParamResolver({'t': 0.5})
         sim = cirq.ClassicaStateSimulator()
         with pytest.raises(
-            ValueError, 
-            match="Can not simulate gates other than cirq.XGate, cirq.CNOT, cirq.SWAP, and cirq.CCNOT"
+            ValueError,
+            match="Can not simulate gates other than cirq.XGate, cirq.CNOT, cirq.SWAP, and cirq.CCNOT",
         ):
             sim._run(circuit=circuit, param_resolver=resolver, repetitions=1)
