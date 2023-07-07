@@ -164,7 +164,7 @@ class CliffordTableau(StabilizerState):
     def _reconstruct_rs(self, rs: Optional[np.ndarray]) -> np.ndarray:
         if rs is None:
             new_rs = np.zeros(2 * self.n + 1, dtype=bool)
-            for i, val in enumerate(
+            for (i, val) in enumerate(
                 big_endian_int_to_digits(self.initial_state, digit_count=self.n, base=2)
             ):
                 new_rs[self.n + i] = bool(val)
@@ -203,6 +203,7 @@ class CliffordTableau(StabilizerState):
         return new_xs
 
     def _reconstruct_zs(self, zs: Optional[np.ndarray]) -> np.ndarray:
+
         if zs is None:
             new_zs = np.zeros((2 * self.n + 1, self.n), dtype=bool)
             for i in range(self.n):

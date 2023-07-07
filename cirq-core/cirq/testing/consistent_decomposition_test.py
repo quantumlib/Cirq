@@ -83,6 +83,7 @@ class ParameterizedGate(cirq.Gate):
 
 
 def test_assert_decompose_ends_at_default_gateset():
+
     cirq.testing.assert_decompose_ends_at_default_gateset(GateDecomposesToDefaultGateset())
     cirq.testing.assert_decompose_ends_at_default_gateset(
         GateDecomposesToDefaultGateset().on(*cirq.LineQubit.range(2))

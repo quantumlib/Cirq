@@ -122,6 +122,7 @@ def test_device_zphase_bad_processor():
 
 
 def test_create_from_proto():
+
     # Create a minimal gate specification that can handle the test.
     device_spec = text_format.Merge(
         """

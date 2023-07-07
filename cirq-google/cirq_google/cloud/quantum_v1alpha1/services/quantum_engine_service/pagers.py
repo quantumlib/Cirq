@@ -36,15 +36,12 @@ class ListQuantumProgramsPager:
     attributes are available on the pager. If multiple requests are made, only
     the most recent response is retained, and thus used for attribute lookup.
     """
-
-    def __init__(
-        self,
-        method: Callable[..., engine.ListQuantumProgramsResponse],
-        request: engine.ListQuantumProgramsRequest,
-        response: engine.ListQuantumProgramsResponse,
-        *,
-        metadata: Sequence[Tuple[str, str]] = (),
-    ):
+    def __init__(self,
+            method: Callable[..., engine.ListQuantumProgramsResponse],
+            request: engine.ListQuantumProgramsRequest,
+            response: engine.ListQuantumProgramsResponse,
+            *,
+            metadata: Sequence[Tuple[str, str]] = ()):
         """Instantiate the pager.
 
         Args:
@@ -98,15 +95,12 @@ class ListQuantumProgramsAsyncPager:
     attributes are available on the pager. If multiple requests are made, only
     the most recent response is retained, and thus used for attribute lookup.
     """
-
-    def __init__(
-        self,
-        method: Callable[..., Awaitable[engine.ListQuantumProgramsResponse]],
-        request: engine.ListQuantumProgramsRequest,
-        response: engine.ListQuantumProgramsResponse,
-        *,
-        metadata: Sequence[Tuple[str, str]] = (),
-    ):
+    def __init__(self,
+            method: Callable[..., Awaitable[engine.ListQuantumProgramsResponse]],
+            request: engine.ListQuantumProgramsRequest,
+            response: engine.ListQuantumProgramsResponse,
+            *,
+            metadata: Sequence[Tuple[str, str]] = ()):
         """Instantiates the pager.
 
         Args:
@@ -134,7 +128,6 @@ class ListQuantumProgramsAsyncPager:
             self._request.page_token = self._response.next_page_token
             self._response = await self._method(self._request, metadata=self._metadata)
             yield self._response
-
     def __aiter__(self) -> AsyncIterator[quantum.QuantumProgram]:
         async def async_generator():
             async for page in self.pages:
@@ -164,15 +157,12 @@ class ListQuantumJobsPager:
     attributes are available on the pager. If multiple requests are made, only
     the most recent response is retained, and thus used for attribute lookup.
     """
-
-    def __init__(
-        self,
-        method: Callable[..., engine.ListQuantumJobsResponse],
-        request: engine.ListQuantumJobsRequest,
-        response: engine.ListQuantumJobsResponse,
-        *,
-        metadata: Sequence[Tuple[str, str]] = (),
-    ):
+    def __init__(self,
+            method: Callable[..., engine.ListQuantumJobsResponse],
+            request: engine.ListQuantumJobsRequest,
+            response: engine.ListQuantumJobsResponse,
+            *,
+            metadata: Sequence[Tuple[str, str]] = ()):
         """Instantiate the pager.
 
         Args:
@@ -226,15 +216,12 @@ class ListQuantumJobsAsyncPager:
     attributes are available on the pager. If multiple requests are made, only
     the most recent response is retained, and thus used for attribute lookup.
     """
-
-    def __init__(
-        self,
-        method: Callable[..., Awaitable[engine.ListQuantumJobsResponse]],
-        request: engine.ListQuantumJobsRequest,
-        response: engine.ListQuantumJobsResponse,
-        *,
-        metadata: Sequence[Tuple[str, str]] = (),
-    ):
+    def __init__(self,
+            method: Callable[..., Awaitable[engine.ListQuantumJobsResponse]],
+            request: engine.ListQuantumJobsRequest,
+            response: engine.ListQuantumJobsResponse,
+            *,
+            metadata: Sequence[Tuple[str, str]] = ()):
         """Instantiates the pager.
 
         Args:
@@ -262,7 +249,6 @@ class ListQuantumJobsAsyncPager:
             self._request.page_token = self._response.next_page_token
             self._response = await self._method(self._request, metadata=self._metadata)
             yield self._response
-
     def __aiter__(self) -> AsyncIterator[quantum.QuantumJob]:
         async def async_generator():
             async for page in self.pages:
@@ -292,15 +278,12 @@ class ListQuantumJobEventsPager:
     attributes are available on the pager. If multiple requests are made, only
     the most recent response is retained, and thus used for attribute lookup.
     """
-
-    def __init__(
-        self,
-        method: Callable[..., engine.ListQuantumJobEventsResponse],
-        request: engine.ListQuantumJobEventsRequest,
-        response: engine.ListQuantumJobEventsResponse,
-        *,
-        metadata: Sequence[Tuple[str, str]] = (),
-    ):
+    def __init__(self,
+            method: Callable[..., engine.ListQuantumJobEventsResponse],
+            request: engine.ListQuantumJobEventsRequest,
+            response: engine.ListQuantumJobEventsResponse,
+            *,
+            metadata: Sequence[Tuple[str, str]] = ()):
         """Instantiate the pager.
 
         Args:
@@ -354,15 +337,12 @@ class ListQuantumJobEventsAsyncPager:
     attributes are available on the pager. If multiple requests are made, only
     the most recent response is retained, and thus used for attribute lookup.
     """
-
-    def __init__(
-        self,
-        method: Callable[..., Awaitable[engine.ListQuantumJobEventsResponse]],
-        request: engine.ListQuantumJobEventsRequest,
-        response: engine.ListQuantumJobEventsResponse,
-        *,
-        metadata: Sequence[Tuple[str, str]] = (),
-    ):
+    def __init__(self,
+            method: Callable[..., Awaitable[engine.ListQuantumJobEventsResponse]],
+            request: engine.ListQuantumJobEventsRequest,
+            response: engine.ListQuantumJobEventsResponse,
+            *,
+            metadata: Sequence[Tuple[str, str]] = ()):
         """Instantiates the pager.
 
         Args:
@@ -390,7 +370,6 @@ class ListQuantumJobEventsAsyncPager:
             self._request.page_token = self._response.next_page_token
             self._response = await self._method(self._request, metadata=self._metadata)
             yield self._response
-
     def __aiter__(self) -> AsyncIterator[quantum.QuantumJobEvent]:
         async def async_generator():
             async for page in self.pages:
@@ -420,15 +399,12 @@ class ListQuantumProcessorsPager:
     attributes are available on the pager. If multiple requests are made, only
     the most recent response is retained, and thus used for attribute lookup.
     """
-
-    def __init__(
-        self,
-        method: Callable[..., engine.ListQuantumProcessorsResponse],
-        request: engine.ListQuantumProcessorsRequest,
-        response: engine.ListQuantumProcessorsResponse,
-        *,
-        metadata: Sequence[Tuple[str, str]] = (),
-    ):
+    def __init__(self,
+            method: Callable[..., engine.ListQuantumProcessorsResponse],
+            request: engine.ListQuantumProcessorsRequest,
+            response: engine.ListQuantumProcessorsResponse,
+            *,
+            metadata: Sequence[Tuple[str, str]] = ()):
         """Instantiate the pager.
 
         Args:
@@ -482,15 +458,12 @@ class ListQuantumProcessorsAsyncPager:
     attributes are available on the pager. If multiple requests are made, only
     the most recent response is retained, and thus used for attribute lookup.
     """
-
-    def __init__(
-        self,
-        method: Callable[..., Awaitable[engine.ListQuantumProcessorsResponse]],
-        request: engine.ListQuantumProcessorsRequest,
-        response: engine.ListQuantumProcessorsResponse,
-        *,
-        metadata: Sequence[Tuple[str, str]] = (),
-    ):
+    def __init__(self,
+            method: Callable[..., Awaitable[engine.ListQuantumProcessorsResponse]],
+            request: engine.ListQuantumProcessorsRequest,
+            response: engine.ListQuantumProcessorsResponse,
+            *,
+            metadata: Sequence[Tuple[str, str]] = ()):
         """Instantiates the pager.
 
         Args:
@@ -518,7 +491,6 @@ class ListQuantumProcessorsAsyncPager:
             self._request.page_token = self._response.next_page_token
             self._response = await self._method(self._request, metadata=self._metadata)
             yield self._response
-
     def __aiter__(self) -> AsyncIterator[quantum.QuantumProcessor]:
         async def async_generator():
             async for page in self.pages:
@@ -548,15 +520,12 @@ class ListQuantumCalibrationsPager:
     attributes are available on the pager. If multiple requests are made, only
     the most recent response is retained, and thus used for attribute lookup.
     """
-
-    def __init__(
-        self,
-        method: Callable[..., engine.ListQuantumCalibrationsResponse],
-        request: engine.ListQuantumCalibrationsRequest,
-        response: engine.ListQuantumCalibrationsResponse,
-        *,
-        metadata: Sequence[Tuple[str, str]] = (),
-    ):
+    def __init__(self,
+            method: Callable[..., engine.ListQuantumCalibrationsResponse],
+            request: engine.ListQuantumCalibrationsRequest,
+            response: engine.ListQuantumCalibrationsResponse,
+            *,
+            metadata: Sequence[Tuple[str, str]] = ()):
         """Instantiate the pager.
 
         Args:
@@ -610,15 +579,12 @@ class ListQuantumCalibrationsAsyncPager:
     attributes are available on the pager. If multiple requests are made, only
     the most recent response is retained, and thus used for attribute lookup.
     """
-
-    def __init__(
-        self,
-        method: Callable[..., Awaitable[engine.ListQuantumCalibrationsResponse]],
-        request: engine.ListQuantumCalibrationsRequest,
-        response: engine.ListQuantumCalibrationsResponse,
-        *,
-        metadata: Sequence[Tuple[str, str]] = (),
-    ):
+    def __init__(self,
+            method: Callable[..., Awaitable[engine.ListQuantumCalibrationsResponse]],
+            request: engine.ListQuantumCalibrationsRequest,
+            response: engine.ListQuantumCalibrationsResponse,
+            *,
+            metadata: Sequence[Tuple[str, str]] = ()):
         """Instantiates the pager.
 
         Args:
@@ -646,7 +612,6 @@ class ListQuantumCalibrationsAsyncPager:
             self._request.page_token = self._response.next_page_token
             self._response = await self._method(self._request, metadata=self._metadata)
             yield self._response
-
     def __aiter__(self) -> AsyncIterator[quantum.QuantumCalibration]:
         async def async_generator():
             async for page in self.pages:
@@ -676,15 +641,12 @@ class ListQuantumReservationsPager:
     attributes are available on the pager. If multiple requests are made, only
     the most recent response is retained, and thus used for attribute lookup.
     """
-
-    def __init__(
-        self,
-        method: Callable[..., engine.ListQuantumReservationsResponse],
-        request: engine.ListQuantumReservationsRequest,
-        response: engine.ListQuantumReservationsResponse,
-        *,
-        metadata: Sequence[Tuple[str, str]] = (),
-    ):
+    def __init__(self,
+            method: Callable[..., engine.ListQuantumReservationsResponse],
+            request: engine.ListQuantumReservationsRequest,
+            response: engine.ListQuantumReservationsResponse,
+            *,
+            metadata: Sequence[Tuple[str, str]] = ()):
         """Instantiate the pager.
 
         Args:
@@ -738,15 +700,12 @@ class ListQuantumReservationsAsyncPager:
     attributes are available on the pager. If multiple requests are made, only
     the most recent response is retained, and thus used for attribute lookup.
     """
-
-    def __init__(
-        self,
-        method: Callable[..., Awaitable[engine.ListQuantumReservationsResponse]],
-        request: engine.ListQuantumReservationsRequest,
-        response: engine.ListQuantumReservationsResponse,
-        *,
-        metadata: Sequence[Tuple[str, str]] = (),
-    ):
+    def __init__(self,
+            method: Callable[..., Awaitable[engine.ListQuantumReservationsResponse]],
+            request: engine.ListQuantumReservationsRequest,
+            response: engine.ListQuantumReservationsResponse,
+            *,
+            metadata: Sequence[Tuple[str, str]] = ()):
         """Instantiates the pager.
 
         Args:
@@ -774,7 +733,6 @@ class ListQuantumReservationsAsyncPager:
             self._request.page_token = self._response.next_page_token
             self._response = await self._method(self._request, metadata=self._metadata)
             yield self._response
-
     def __aiter__(self) -> AsyncIterator[quantum.QuantumReservation]:
         async def async_generator():
             async for page in self.pages:
@@ -804,15 +762,12 @@ class ListQuantumReservationGrantsPager:
     attributes are available on the pager. If multiple requests are made, only
     the most recent response is retained, and thus used for attribute lookup.
     """
-
-    def __init__(
-        self,
-        method: Callable[..., engine.ListQuantumReservationGrantsResponse],
-        request: engine.ListQuantumReservationGrantsRequest,
-        response: engine.ListQuantumReservationGrantsResponse,
-        *,
-        metadata: Sequence[Tuple[str, str]] = (),
-    ):
+    def __init__(self,
+            method: Callable[..., engine.ListQuantumReservationGrantsResponse],
+            request: engine.ListQuantumReservationGrantsRequest,
+            response: engine.ListQuantumReservationGrantsResponse,
+            *,
+            metadata: Sequence[Tuple[str, str]] = ()):
         """Instantiate the pager.
 
         Args:
@@ -866,15 +821,12 @@ class ListQuantumReservationGrantsAsyncPager:
     attributes are available on the pager. If multiple requests are made, only
     the most recent response is retained, and thus used for attribute lookup.
     """
-
-    def __init__(
-        self,
-        method: Callable[..., Awaitable[engine.ListQuantumReservationGrantsResponse]],
-        request: engine.ListQuantumReservationGrantsRequest,
-        response: engine.ListQuantumReservationGrantsResponse,
-        *,
-        metadata: Sequence[Tuple[str, str]] = (),
-    ):
+    def __init__(self,
+            method: Callable[..., Awaitable[engine.ListQuantumReservationGrantsResponse]],
+            request: engine.ListQuantumReservationGrantsRequest,
+            response: engine.ListQuantumReservationGrantsResponse,
+            *,
+            metadata: Sequence[Tuple[str, str]] = ()):
         """Instantiates the pager.
 
         Args:
@@ -902,7 +854,6 @@ class ListQuantumReservationGrantsAsyncPager:
             self._request.page_token = self._response.next_page_token
             self._response = await self._method(self._request, metadata=self._metadata)
             yield self._response
-
     def __aiter__(self) -> AsyncIterator[quantum.QuantumReservationGrant]:
         async def async_generator():
             async for page in self.pages:
@@ -932,15 +883,12 @@ class ListQuantumReservationBudgetsPager:
     attributes are available on the pager. If multiple requests are made, only
     the most recent response is retained, and thus used for attribute lookup.
     """
-
-    def __init__(
-        self,
-        method: Callable[..., engine.ListQuantumReservationBudgetsResponse],
-        request: engine.ListQuantumReservationBudgetsRequest,
-        response: engine.ListQuantumReservationBudgetsResponse,
-        *,
-        metadata: Sequence[Tuple[str, str]] = (),
-    ):
+    def __init__(self,
+            method: Callable[..., engine.ListQuantumReservationBudgetsResponse],
+            request: engine.ListQuantumReservationBudgetsRequest,
+            response: engine.ListQuantumReservationBudgetsResponse,
+            *,
+            metadata: Sequence[Tuple[str, str]] = ()):
         """Instantiate the pager.
 
         Args:
@@ -994,15 +942,12 @@ class ListQuantumReservationBudgetsAsyncPager:
     attributes are available on the pager. If multiple requests are made, only
     the most recent response is retained, and thus used for attribute lookup.
     """
-
-    def __init__(
-        self,
-        method: Callable[..., Awaitable[engine.ListQuantumReservationBudgetsResponse]],
-        request: engine.ListQuantumReservationBudgetsRequest,
-        response: engine.ListQuantumReservationBudgetsResponse,
-        *,
-        metadata: Sequence[Tuple[str, str]] = (),
-    ):
+    def __init__(self,
+            method: Callable[..., Awaitable[engine.ListQuantumReservationBudgetsResponse]],
+            request: engine.ListQuantumReservationBudgetsRequest,
+            response: engine.ListQuantumReservationBudgetsResponse,
+            *,
+            metadata: Sequence[Tuple[str, str]] = ()):
         """Instantiates the pager.
 
         Args:
@@ -1030,7 +975,6 @@ class ListQuantumReservationBudgetsAsyncPager:
             self._request.page_token = self._response.next_page_token
             self._response = await self._method(self._request, metadata=self._metadata)
             yield self._response
-
     def __aiter__(self) -> AsyncIterator[quantum.QuantumReservationBudget]:
         async def async_generator():
             async for page in self.pages:
@@ -1060,15 +1004,12 @@ class ListQuantumTimeSlotsPager:
     attributes are available on the pager. If multiple requests are made, only
     the most recent response is retained, and thus used for attribute lookup.
     """
-
-    def __init__(
-        self,
-        method: Callable[..., engine.ListQuantumTimeSlotsResponse],
-        request: engine.ListQuantumTimeSlotsRequest,
-        response: engine.ListQuantumTimeSlotsResponse,
-        *,
-        metadata: Sequence[Tuple[str, str]] = (),
-    ):
+    def __init__(self,
+            method: Callable[..., engine.ListQuantumTimeSlotsResponse],
+            request: engine.ListQuantumTimeSlotsRequest,
+            response: engine.ListQuantumTimeSlotsResponse,
+            *,
+            metadata: Sequence[Tuple[str, str]] = ()):
         """Instantiate the pager.
 
         Args:
@@ -1122,15 +1063,12 @@ class ListQuantumTimeSlotsAsyncPager:
     attributes are available on the pager. If multiple requests are made, only
     the most recent response is retained, and thus used for attribute lookup.
     """
-
-    def __init__(
-        self,
-        method: Callable[..., Awaitable[engine.ListQuantumTimeSlotsResponse]],
-        request: engine.ListQuantumTimeSlotsRequest,
-        response: engine.ListQuantumTimeSlotsResponse,
-        *,
-        metadata: Sequence[Tuple[str, str]] = (),
-    ):
+    def __init__(self,
+            method: Callable[..., Awaitable[engine.ListQuantumTimeSlotsResponse]],
+            request: engine.ListQuantumTimeSlotsRequest,
+            response: engine.ListQuantumTimeSlotsResponse,
+            *,
+            metadata: Sequence[Tuple[str, str]] = ()):
         """Instantiates the pager.
 
         Args:
@@ -1158,7 +1096,6 @@ class ListQuantumTimeSlotsAsyncPager:
             self._request.page_token = self._response.next_page_token
             self._response = await self._method(self._request, metadata=self._metadata)
             yield self._response
-
     def __aiter__(self) -> AsyncIterator[quantum.QuantumTimeSlot]:
         async def async_generator():
             async for page in self.pages:

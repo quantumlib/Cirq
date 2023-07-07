@@ -111,6 +111,7 @@ class _GreedyRouter:
         & set(op2.qubits),
         random_state: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None,
     ):
+
         self.prng = value.parse_random_state(random_state)
 
         self.device_graph = device_graph

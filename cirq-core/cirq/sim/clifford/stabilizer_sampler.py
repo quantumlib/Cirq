@@ -46,6 +46,7 @@ class StabilizerSampler(sampler.Sampler):
         return results
 
     def _run(self, circuit: 'cirq.AbstractCircuit', repetitions: int) -> Dict[str, np.ndarray]:
+
         measurements: Dict[str, List[np.ndarray]] = {
             key: [] for key in protocols.measurement_key_names(circuit)
         }

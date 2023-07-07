@@ -180,6 +180,7 @@ def main(num_qubits=8):
 
 
 def make_bb84_circ(num_qubits, alice_basis, bob_basis, alice_state):
+
     qubits = cirq.LineQubit.range(num_qubits)
 
     circuit = cirq.Circuit()

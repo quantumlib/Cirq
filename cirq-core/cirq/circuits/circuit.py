@@ -1791,6 +1791,7 @@ class Circuit(AbstractCircuit):
 
         # "mop" means current moment-or-operation
         for mop in ops.flatten_to_ops_or_moments(contents):
+
             # Identify the index of the moment to place this `mop` into.
             placement_index = get_earliest_accommodating_moment_index(
                 mop, qubit_indices, mkey_indices, ckey_indices, length
@@ -2449,6 +2450,7 @@ def _draw_moment_annotations(
     first_annotation_row: int,
     transpose: bool,
 ):
+
     for k, annotation in enumerate(_get_moment_annotations(moment)):
         args = protocols.CircuitDiagramInfoArgs(
             known_qubits=(),

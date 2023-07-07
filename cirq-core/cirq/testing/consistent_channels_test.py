@@ -79,6 +79,7 @@ def test_assert_consistent_mixture_not_normalized():
 
 
 def test_assert_consistent_mixture_tolerances():
+
     # This gate is 1e-5 off being properly normalized.
     mixture = _MixtureGate(0.1, 0.9 - 1e-5)
     # Defaults of rtol=1e-5, atol=1e-8 are fine.

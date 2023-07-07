@@ -55,6 +55,7 @@ class BasicCb(BasicC):
 
 
 def test_value_equality_basic():
+
     # Lookup works across equivalent types.
     v = {BasicC(1): 4, BasicCa(2): 5}
     assert v[BasicCa(1)] == v[BasicC(1)] == 4

@@ -76,6 +76,7 @@ def _function_languages_from_operation(value: v2.program_pb2.Operation) -> Itera
 
 
 def _function_languages_from_arg(arg_proto: v2.program_pb2.Arg) -> Iterator[str]:
+
     which = arg_proto.WhichOneof('arg')
     if which == 'func':
         if arg_proto.func.type in ['add', 'mul']:

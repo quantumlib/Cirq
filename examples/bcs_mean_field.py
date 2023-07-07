@@ -139,6 +139,7 @@ import cirq
 
 
 def main():
+
     # Number of sites in the Fermi-Hubbard model (2*n_site spin orbitals)
     n_site = 4
     # Number of fermions

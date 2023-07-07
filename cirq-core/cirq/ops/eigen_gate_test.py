@@ -227,6 +227,7 @@ def test_extrapolate():
 
 
 def test_matrix():
+
     for n in [1, 2, 3, 4, 0.0001, 3.9999]:
         assert cirq.has_unitary(CExpZinGate(n))
 
