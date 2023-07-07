@@ -19,13 +19,16 @@ import sympy
 
 class TestSimulator:
     def test_x_gate(self):
-        q0 = cirq.LineQubit.range(1)
+        q0, q1 = cirq.LineQubit.range(2)
         circuit = cirq.Circuit()
-        circuit = cirq.Circuit(cirq.X(q0), cirq.measure(cirq.LineQubit(q0), key='key'))
-        expected_results = {'key': np.array([[[0]]], dtype=np.uint8)}
+        circuit.append(cirq.X(q0))
+        circuit.append(cirq.X(q1))
+        circuit.append(cirq.X(q1))
+        circuit.append(cirq.measure((q0, q1), key='key'))
+        expected_results = {'key': np.array([[[1, 0]]], dtype=np.uint8)}
         sim = cirq.ClassicalStateSimulator()
         results = sim._run(circuit=circuit, param_resolver=None, repetitions=1)
-        assert results == expected_results
+        np.testing.assert_equal(results, expected_results)
 
     def test_CNOT(self):
         q0, q1 = cirq.LineQubit.range(2)
@@ -75,7 +78,7 @@ class TestSimulator:
         q0, q1 = cirq.LineQubit.range(2)
         circuit = cirq.Circuit()
         circuit.append(cirq.measure((q0, q1), key='key'))
-        expected_results = {'key': np.array[[[0, 0]]]}
+        expected_results = {'key': np.array([[[0, 0]]], dtype=np.uint8)}
         sim = cirq.ClassicalStateSimulator()
         results = sim._run(circuit=circuit, param_resolver=None, repetitions=1)
         np.testing.assert_equal(results, expected_results)
