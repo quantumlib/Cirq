@@ -12,9 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """Tests for EngineClient."""
-from typing import AsyncIterable, AsyncIterator, List
+from typing import AsyncIterable, AsyncIterator, Awaitable, List
 
 import asyncio
+from asyncio.log import logger
 import datetime
 from unittest import mock
 
@@ -58,15 +59,17 @@ class _FakeQuantumRunStream:
 
     async def quantum_run_stream(
         self, requests: AsyncIterator[engine.QuantumRunStreamRequest] = None, **kwargs
-    ) -> AsyncIterable[engine.QuantumRunStreamResponse]:
+    ) -> Awaitable[AsyncIterable[engine.QuantumRunStreamResponse]]:
         async def run_async_iterator():
-            async for _ in requests:
+            async for request in requests:
                 self.stream_request_count += 1
                 while not self.responses_and_exceptions:
                     await asyncio.sleep(0)
+                logger.warning('Responding')
                 response_or_exception = self.responses_and_exceptions.pop(0)
                 if isinstance(response_or_exception, BaseException):
                     raise response_or_exception
+                response_or_exception.message_id = request.message_id
                 yield response_or_exception
 
         await asyncio.sleep(0)
@@ -74,7 +77,7 @@ class _FakeQuantumRunStream:
 
     async def cancel_quantum_job(self, request: engine.CancelQuantumJobRequest) -> None:
         self.cancel_requests.append(request)
-        await asyncio.sleep(0.0001)
+        await asyncio.sleep(0)
 
 
 @uses_async_mock
@@ -1277,7 +1280,7 @@ def test_list_time_slots(client_constructor):
 @mock.patch.object(quantum, 'QuantumEngineServiceAsyncClient', autospec=True)
 def test_run_job_over_stream_send_job_expects_result_response(client_constructor):
     expected_result = quantum.QuantumResult(parent='projects/proj/programs/prog/jobs/job0')
-    mock_responses = [quantum.QuantumRunStreamResponse(message_id='0', result=expected_result)]
+    mock_responses = [quantum.QuantumRunStreamResponse(result=expected_result)]
     fake_client = setup_fake_quantum_run_stream_client(
         client_constructor, responses_and_exceptions=mock_responses
     )
@@ -1290,7 +1293,7 @@ def test_run_job_over_stream_send_job_expects_result_response(client_constructor
     actual_result = client.run_job_over_stream(
         'proj', 'prog', code, 'job0', ['processor0'], run_context, 10, 'A job', labels
     ).result(timeout=5)
-    client.stop_stream()
+    client.stop_stream().result
 
     assert actual_result == expected_result
     assert fake_client.stream_request_count == 1
@@ -1298,23 +1301,20 @@ def test_run_job_over_stream_send_job_expects_result_response(client_constructor
 
 @mock.patch.object(quantum, 'QuantumEngineServiceAsyncClient', autospec=True)
 def test_run_job_over_stream_cancel_expects_engine_cancellation_rpc_call(client_constructor):
-    expected_result = quantum.QuantumResult(parent='projects/proj/programs/prog/jobs/job0')
-    mock_responses = [quantum.QuantumRunStreamResponse(message_id='0', result=expected_result)]
     fake_client = setup_fake_quantum_run_stream_client(
-        client_constructor, responses_and_exceptions=mock_responses
+        client_constructor, responses_and_exceptions=[]
     )
 
     code = any_pb2.Any()
     run_context = any_pb2.Any()
     labels = {'hello': 'world'}
     client = EngineClient()
-    fake_client.add_responses_and_exceptions(mock_responses)
 
     result_future = client.run_job_over_stream(
         'proj', 'prog', code, 'job0', ['processor0'], run_context, 10, 'A job', labels
     )
     result_future.cancel()
-    client.stop_stream()
+    client.stop_stream().result
 
     assert fake_client.cancel_requests[0] == quantum.CancelQuantumJobRequest(
         name='projects/proj/programs/prog/jobs/job0'
@@ -1328,7 +1328,7 @@ def test_run_job_over_stream_stream_broken_expects_retry_with_get_quantum_result
     expected_result = quantum.QuantumResult(parent='projects/proj/programs/prog/jobs/job0')
     mock_responses_and_exceptions = [
         exceptions.Aborted('aborted'),
-        quantum.QuantumRunStreamResponse(message_id='0', result=expected_result),
+        quantum.QuantumRunStreamResponse(result=expected_result),
     ]
     fake_client = setup_fake_quantum_run_stream_client(
         client_constructor, responses_and_exceptions=mock_responses_and_exceptions
@@ -1338,12 +1338,11 @@ def test_run_job_over_stream_stream_broken_expects_retry_with_get_quantum_result
     run_context = any_pb2.Any()
     labels = {'hello': 'world'}
     client = EngineClient()
-    fake_client.add_responses_and_exceptions(mock_responses_and_exceptions)
 
     actual_result = client.run_job_over_stream(
         'proj', 'prog', code, 'job0', ['processor0'], run_context, 10, 'A job', labels
-    ).result(timeout=5)
-    client.stop_stream()
+    ).result(timeout=1)
+    client.stop_stream().result
 
     assert actual_result == expected_result
     assert fake_client.stream_request_count == 2

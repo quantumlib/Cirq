@@ -13,6 +13,7 @@
 # limitations under the License.
 
 import asyncio
+from asyncio.log import logger
 import datetime
 import sys
 import threading
@@ -102,49 +103,32 @@ class ResponseDemux:
     """A event demultiplexer for QuantumRunStreamResponses, as part of the async reactor pattern."""
 
     def __init__(self):
-        self._subscribers: Dict[JobPath, Tuple[MessageId, asyncio.Future]] = {}
+        self._subscribers: Dict[MessageId, asyncio.Future] = {}
         self._next_available_message_id = 0
 
     def subscribe(self, request: quantum.QuantumRunStreamRequest) -> asyncio.Future:
         """Assumes the message ID has not been set."""
-        job_path = _get_job_path_from_stream_request(request)
         request.message_id = str(self._next_available_message_id)
-        response_future: asyncio.Future = asyncio.Future()
-        self._subscribers[job_path] = (request.message_id, response_future)
+        response_future: asyncio.Future = asyncio.get_running_loop().create_future()
+        self._subscribers[request.message_id] = response_future
         self._next_available_message_id += 1
         return response_future
 
     def unsubscribe(self, request: quantum.QuantumRunStreamRequest) -> None:
-        job_path = _get_job_path_from_stream_request(request)
-        if job_path in self._subscribers:
-            del self._subscribers[job_path]
+        if request.message_id in self._subscribers:
+            del self._subscribers[request.message_id]
 
     def publish(self, response: quantum.QuantumRunStreamResponse) -> None:
-        if 'error' in response:
-            job_path = next(
-                (
-                    p
-                    for p, (message_id, _) in self._subscribers.items()
-                    if message_id == response.message_id
-                ),
-                default='',
-            )
-        elif 'job' in response:
-            job_path = response.job.name
-        else:  # 'result' in response
-            job_path = response.result.parent
-
-        if job_path not in self._subscribers:
+        if response.message_id not in self._subscribers:
             return
 
-        _, future = self._subscribers[job_path]
+        future = self._subscribers.pop(response.message_id)
         if not future.done():
             future.set_result(response)
-        del self._subscribers[job_path]
 
     def publish_exception(self, exception: GoogleAPICallError) -> None:
         """Publishes an exception to all outstanding futures."""
-        for _, future in self._subscribers.values():
+        for future in self._subscribers.values():
             if not future.done():
                 future.set_exception(exception)
         self._subscribers = {}
@@ -163,10 +147,11 @@ class StreamManager:
         # clients: https://github.com/grpc/grpc/issues/25364.
         return AsyncioExecutor.instance()
 
-    @property
     async def _request_iterator(self) -> AsyncIterator[quantum.QuantumRunStreamRequest]:
-        # TODO might need to keep this long-running in order to not close the stream.
-        while not self._request_queue.empty():
+        """The request iterator for quantum_run_stream().
+
+        Every call of this method generates a new iterator."""
+        while True:
             yield await self._request_queue.get()
 
     async def _manage_stream(self):
@@ -175,14 +160,16 @@ class StreamManager:
             try:
                 # TODO specify stream timeout below with exponential backoff
                 response_iterable = await self._grpc_client.quantum_run_stream(
-                    self._request_iterator
+                    self._request_iterator()
                 )
                 async for response in response_iterable:
+                    logger.warning('publishing response to demux')
                     self._response_demux.publish(response)
             except BaseException as e:
                 # TODO Close the request iterator to close the existing stream.
                 self._response_demux.publish_exception(e)  # Raise to all request tasks
-                self._request_queue = asyncio.Queue()  # Clear requests
+                if isinstance(e, asyncio.CancelledError):
+                    break
 
     async def _make_request(
         self, project_name: str, program: quantum.QuantumProgram, job: quantum.QuantumJob
@@ -202,15 +189,19 @@ class StreamManager:
         response: Optional[quantum.QuantumRunStreamResponse] = None
         while response is None:
             try:
+                logger.warn('Making request')
                 response_future = self._response_demux.subscribe(current_request)
                 await self._request_queue.put(current_request)
                 response = await response_future
+                logger.warning('Got response')
 
             except GoogleAPICallError:
                 # TODO how to distinguish between program not found vs job not found?
                 # TODO Send a CreateProgramAndJobRequest or CreateJobRequest if either program or
                 # job doesn't exist.
                 # TODO add exponential backoff
+                logger.warn('Got GoogleAPICallError')
+                self._response_demux.unsubscribe(current_request)
                 current_request = get_result_request
                 continue
 
@@ -223,6 +214,7 @@ class StreamManager:
                     return quantum.QuantumResult()
 
             if response.result is not None:
+                logger.warning('Got result')
                 return response.result
                 # TODO handle QuantumJob response and retryable StreamError.
 
@@ -237,11 +229,12 @@ class StreamManager:
             self._manage_stream_loop_future = self._executor.submit(self._manage_stream)
         return self._executor.submit(self._make_request, project_name, program, job)
 
-    def stop(self) -> None:
+    def stop(self) -> duet.AwaitableFuture[None]:
         """Stops and resets the stream manager."""
-        if self._manage_stream_loop_future is not None:
-            self._manage_stream_loop_future.cancel()
-            self._manage_stream_loop_future = None
+        if self._manage_stream_loop_future is None:
+            return duet.completed_future(None)
+        self._manage_stream_loop_future.cancel()
+        return self._manage_stream_loop_future
 
 
 class EngineClient:
@@ -944,8 +937,8 @@ class EngineClient:
 
         return self._stream_manager.send(project_name, program, job)
 
-    def stop_stream(self):
-        self._stream_manager.stop()
+    def stop_stream(self) -> duet.AwaitableFuture[None]:
+        return self._stream_manager.stop()
 
     async def list_processors_async(self, project_id: str) -> List[quantum.QuantumProcessor]:
         """Returns a list of Processors that the user has visibility to in the
