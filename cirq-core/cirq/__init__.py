@@ -437,7 +437,7 @@ from cirq.qis import (
 
 from cirq.sim import (
     CIRCUIT_LIKE,
-    ClassicalSimulator,
+    ClassicalStateSimulator,
     CliffordSimulator,
     CliffordState,
     CliffordSimulatorStepResult,

@@ -1,13 +1,28 @@
+# Copyright 2023 The Cirq Developers
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     https://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 from typing import Dict
 from collections import defaultdict
 from cirq.sim.simulator import SimulatesSamples
 from cirq import ops, protocols
 from cirq.study.resolver import ParamResolver
-from cirq.circuits.circuit import AbstractCircuit
+from cirq.circuits import circuit
+from cirq.ops.raw_types import Qid
 import numpy as np
 
 
-class ClassicalSimulator(SimulatesSamples):
+class ClassicalStateSimulator(SimulatesSamples):
 
     '''
     `basic simulator that only accepts cirq.X, cirq.ISwap, and cirq.CNOT gates and return a 3d Numpy array`
@@ -33,10 +48,10 @@ class ClassicalSimulator(SimulatesSamples):
     '''
 
     def _run(
-        self, circuit: 'AbstractCircuit', param_resolver: 'ParamResolver', repetitions: int
+        self, circuit: 'circuit.AbstractCircuit', param_resolver: 'ParamResolver', repetitions: int
     ) -> Dict[str, np.ndarray]:
-        results_dict = {}
-        values_dict = defaultdict(int)
+        results_dict: Dict[str, Dict[str, np.ndarray]] = {}
+        values_dict: Dict[Qid,  int] = defaultdict(int)
         param_resolver = param_resolver or ParamResolver({})
         resolved_circuit = protocols.resolve_parameters(circuit, param_resolver)
 
@@ -73,8 +88,8 @@ class ClassicalSimulator(SimulatesSamples):
                             )
                     else:
                         ##create the array for the results dictionary
-                        shape = (repetitions, 1, len(qubits_in_order))
-                        new_array = np.zeros(shape, dtype=np.uint8)
+                        new_array_shape = (repetitions, 1, len(qubits_in_order))
+                        new_array = np.zeros(new_array_shape, dtype=np.uint8)
                         for reps in range(0, repetitions):
                             for instances in range(0, 1):
                                 for bits in range(0, len(qubits_in_order)):
@@ -90,7 +105,7 @@ class ClassicalSimulator(SimulatesSamples):
                     or (isinstance(gate, ops.CNotPowGate) and gate.exponent == 0)
                 ):
                     raise ValueError(
-                        "Can not simulate gates other than cirq.XGate, cirq.CNOT, cirq.Swap, and cirq.CCNOT"
+                        "Can not simulate gates other than cirq.XGate, cirq.CNOT, cirq.SWAP, and cirq.CCNOT"
                     )
 
         return results_dict
