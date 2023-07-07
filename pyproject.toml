@@ -7,15 +7,4 @@ skip-magic-trailing-comma = true
 [tool.pytest.ini_options]
 filterwarnings = [
     "ignore:Matplotlib is currently using agg:UserWarning",
-    # TODO(#5967) - remove after upgrade to NumPy 1.24
-    # Enforce NumPy 1.20 deprecations.
-    # Ref: https://numpy.org/devdocs/release/1.20.0-notes.html#deprecations
-    "error:`np.bool` is a deprecated alias:DeprecationWarning:(cirq|<string>)",
-    "error:`np.int` is a deprecated alias:DeprecationWarning:(cirq|<string>)",
-    "error:`np.float` is a deprecated alias:DeprecationWarning:(cirq|<string>)",
-    "error:`np.complex` is a deprecated alias:DeprecationWarning:(cirq|<string>)",
-    "error:`np.object` is a deprecated alias:DeprecationWarning:(cirq|<string>)",
-    "error:`np.str` is a deprecated alias:DeprecationWarning:(cirq|<string>)",
-    "error:`np.long` is a deprecated alias:DeprecationWarning:(cirq|<string>)",
-    "error:`np.unicode` is a deprecated alias:DeprecationWarning:(cirq|<string>)",
 ]
