@@ -46,11 +46,8 @@ class ResponseDemux:
 
         The subscriber is unsubscribed afterwards.
         """
-        if response.message_id not in self._subscribers:
-            return
-
-        future = self._subscribers.pop(response.message_id)
-        if not future.done():
+        future = self._subscribers.pop(response.message_id, None)
+        if future and not future.done():
             future.set_result(response)
 
     def publish_exception(self, exception: GoogleAPICallError) -> None:
@@ -58,7 +55,7 @@ class ResponseDemux:
         for future in self._subscribers.values():
             if not future.done():
                 future.set_exception(exception)
-        self._subscribers = {}
+        self._subscribers.clear()
 
 
 class StreamManager:
