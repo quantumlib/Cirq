@@ -17,13 +17,13 @@ from collections import defaultdict
 from cirq.sim.simulator import SimulatesSamples
 from cirq import ops, protocols
 from cirq.study.resolver import ParamResolver
-from cirq.circuits import circuit
 from cirq.ops.raw_types import Qid
 import numpy as np
 
 
 class ClassicalStateSimulator(SimulatesSamples):
     '''
+
     `basic simulator that only accepts cirq.X, cirq.ISwap, and cirq.CNOT gates and return a 3d Numpy array`
 
       Run a simulation, mimicking quantum hardware.
@@ -49,7 +49,7 @@ class ClassicalStateSimulator(SimulatesSamples):
     def _run(
         self, circuit: 'circuit.AbstractCircuit', param_resolver: 'ParamResolver', repetitions: int
     ) -> Dict[str, np.ndarray]:
-        results_dict: Dict[str, Dict[str, np.ndarray]] = {}
+        results_dict: Dict[str, np.ndarray] = {}
         values_dict: Dict[Qid, int] = defaultdict(int)
         param_resolver = param_resolver or ParamResolver({})
         resolved_circuit = protocols.resolve_parameters(circuit, param_resolver)
