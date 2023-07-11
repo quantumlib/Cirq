@@ -23,9 +23,7 @@ import numpy as np
 
 
 class ClassicalStateSimulator(SimulatesSamples):
-    '''
-
-    `basic simulator that only accepts cirq.X, cirq.ISwap, and cirq.CNOT gates and return a 3d Numpy array`
+    """basic simulator that only accepts cirq.X, cirq.ISwap, and cirq.CNOT gates 
 
       Run a simulation, mimicking quantum hardware.
 
@@ -45,7 +43,7 @@ class ClassicalStateSimulator(SimulatesSamples):
 
        Raises:
         ValuesError: gate is not a cirq.XGate or cirq.Cnot
-    '''
+    """
 
     def _run(
         self, circuit: 'AbstractCircuit', param_resolver: 'ParamResolver', repetitions: int
@@ -105,7 +103,7 @@ class ClassicalStateSimulator(SimulatesSamples):
                     or (isinstance(gate, ops.CNotPowGate) and gate.exponent == 0)
                 ):
                     raise ValueError(
-                        "Can not simulate gates other than cirq.XGate,"
+                        "Can not simulate gates other than cirq.XGate, "
                         + "cirq.CNOT, cirq.SWAP, and cirq.CCNOT"
                     )
 

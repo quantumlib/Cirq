@@ -190,7 +190,7 @@ class TestSimulator:
         sim = cirq.ClassicalStateSimulator()
         with pytest.raises(
             ValueError,
-            match="Can not simulate gates other than"
+            match="Can not simulate gates other than "
             + "cirq.XGate, cirq.CNOT, cirq.SWAP, and cirq.CCNOT",
         ):
             sim._run(circuit=circuit, param_resolver=resolver, repetitions=1)
