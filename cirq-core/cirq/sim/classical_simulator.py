@@ -17,6 +17,7 @@ from collections import defaultdict
 from cirq.sim.simulator import SimulatesSamples
 from cirq import ops, protocols
 from cirq.study.resolver import ParamResolver
+from cirq.circuits.circuit import AbstractCircuit
 from cirq.ops.raw_types import Qid
 import numpy as np
 
@@ -47,7 +48,7 @@ class ClassicalStateSimulator(SimulatesSamples):
     '''
 
     def _run(
-        self, circuit: 'circuit.AbstractCircuit', param_resolver: 'ParamResolver', repetitions: int
+        self, circuit: 'AbstractCircuit', param_resolver: 'ParamResolver', repetitions: int
     ) -> Dict[str, np.ndarray]:
         results_dict: Dict[str, np.ndarray] = {}
         values_dict: Dict[Qid, int] = defaultdict(int)
@@ -104,7 +105,8 @@ class ClassicalStateSimulator(SimulatesSamples):
                     or (isinstance(gate, ops.CNotPowGate) and gate.exponent == 0)
                 ):
                     raise ValueError(
-                        "Can not simulate gates other than cirq.XGate, cirq.CNOT, cirq.SWAP, and cirq.CCNOT"
+                        "Can not simulate gates other than cirq.XGate," + 
+                        "cirq.CNOT, cirq.SWAP, and cirq.CCNOT"
                     )
 
         return results_dict
