@@ -105,8 +105,8 @@ class ClassicalStateSimulator(SimulatesSamples):
                     or (isinstance(gate, ops.CNotPowGate) and gate.exponent == 0)
                 ):
                     raise ValueError(
-                        "Can not simulate gates other than cirq.XGate," + 
-                        "cirq.CNOT, cirq.SWAP, and cirq.CCNOT"
+                        "Can not simulate gates other than cirq.XGate,"
+                        + "cirq.CNOT, cirq.SWAP, and cirq.CCNOT"
                     )
 
         return results_dict
