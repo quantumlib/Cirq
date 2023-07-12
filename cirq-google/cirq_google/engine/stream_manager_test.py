@@ -36,7 +36,7 @@ class TestResponseDemux:
         return ResponseDemux()
 
     @pytest.mark.asyncio
-    async def test_one_subscribe_one_publish(self, demux):
+    async def test_one_subscribe_one_publish_subscriber_receives_response(self, demux):
         future = demux.subscribe(message_id='0')
         demux.publish(RESPONSE0)
         actual_response = await asyncio.wait_for(future, timeout=1)
@@ -44,7 +44,13 @@ class TestResponseDemux:
         assert actual_response == RESPONSE0
 
     @pytest.mark.asyncio
-    async def test_out_of_order_response_publishes_to_subscribers_with_matching_message_id(
+    async def test_subscribe_twice_to_same_message_id_raises_error(self, demux):
+        with pytest.raises(ValueError):
+            demux.subscribe(message_id='0')
+            demux.subscribe(message_id='0')
+
+    @pytest.mark.asyncio
+    async def test_out_of_order_response_publishes_to_subscribers_subscribers_receive_responses(
         self, demux
     ):
         future0 = demux.subscribe(message_id='0')
@@ -58,11 +64,12 @@ class TestResponseDemux:
         assert actual_response1 == RESPONSE1
 
     @pytest.mark.asyncio
-    async def test_message_id_does_not_exist(self, demux):
+    async def test_message_id_does_not_exist_subscriber_never_receives_response(self, demux):
         future = demux.subscribe(message_id='0')
         demux.publish(RESPONSE1)
 
-        assert not future.done()
+        with pytest.raises(asyncio.TimeoutError):
+            await asyncio.wait_for(future, timeout=1)
 
     @pytest.mark.asyncio
     async def test_no_subscribers_does_not_throw(self, demux):
@@ -86,8 +93,10 @@ class TestResponseDemux:
         future1 = demux.subscribe(message_id='1')
         demux.publish_exception(exception)
 
-        assert future0.exception() == exception
-        assert future1.exception() == exception
+        with pytest.raises(google_exceptions.Aborted):
+            await future0
+        with pytest.raises(google_exceptions.Aborted):
+            await future1
 
     @pytest.mark.asyncio
     async def test_publish_response_after_publishing_exception_does_not_change_futures(self, demux):
@@ -98,8 +107,10 @@ class TestResponseDemux:
         demux.publish(RESPONSE0)
         demux.publish(RESPONSE1)
 
-        assert future0.exception() == exception
-        assert future1.exception() == exception
+        with pytest.raises(google_exceptions.Aborted):
+            await future0
+        with pytest.raises(google_exceptions.Aborted):
+            await future1
 
     @pytest.mark.asyncio
     async def test_publish_exception_after_publishing_response_does_not_change_futures(self, demux):
@@ -117,8 +128,9 @@ class TestResponseDemux:
 
     @pytest.mark.asyncio
     async def test_unsubscribe_publish_does_not_complete_unsubscribed_future(self, demux):
-        future0 = demux.subscribe(message_id='0')
+        future = demux.subscribe(message_id='0')
         demux.unsubscribe(message_id='0')
         demux.publish(RESPONSE0)
 
-        assert not future0.done()
+        with pytest.raises(asyncio.TimeoutError):
+            await asyncio.wait_for(future, timeout=1)
