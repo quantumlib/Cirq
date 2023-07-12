@@ -12,14 +12,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Awaitable, Callable, TypeVar
+from typing import Awaitable, Callable, ParamSpec, TypeVar
 import threading
 
 import asyncio
 import duet
 
 
-_R = TypeVar('_R')
+R = TypeVar('R')
+P = ParamSpec("P")
 
 
 class AsyncioExecutor:
@@ -42,7 +43,9 @@ class AsyncioExecutor:
         while True:
             await asyncio.sleep(1)
 
-    def submit(self, func: Callable[..., Awaitable[_R]], *args, **kw) -> duet.AwaitableFuture[_R]:
+    def submit(
+        self, func: Callable[P, Awaitable[R]], *args: P.args, **kwargs: P.kwargs
+    ) -> duet.AwaitableFuture[R]:
         """Dispatch the given function to be run in an asyncio coroutine.
 
         Args:
@@ -50,15 +53,16 @@ class AsyncioExecutor:
                 Will be called with *args and **kw and should return an asyncio
                 awaitable.
             *args: Positional args to pass to func.
-            **kw: Keyword args to pass to func.
+            **kwargs: Keyword args to pass to func.
         """
-        future = asyncio.run_coroutine_threadsafe(func(*args, **kw), self.loop)
+        future = asyncio.run_coroutine_threadsafe(func(*args, **kwargs), self.loop)
         return duet.AwaitableFuture.wrap(future)
 
-    _instance = None
+    _instance: 'AsyncioExecutor' = None
 
     @classmethod
-    def instance(cls):
+    def instance(cls) -> 'AsyncioExecutor':
+        """Returns a singleton AsyncioExecutor shared globally."""
         if cls._instance is None:
             cls._instance = cls()
         return cls._instance
