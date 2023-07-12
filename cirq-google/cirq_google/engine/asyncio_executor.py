@@ -12,7 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Awaitable, Callable, ParamSpec, TypeVar
+from typing import Awaitable, Callable, TypeVar
+from typing_extensions import ParamSpec
 import threading
 
 import asyncio
