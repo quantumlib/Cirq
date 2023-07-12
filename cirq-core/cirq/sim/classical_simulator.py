@@ -23,26 +23,26 @@ import numpy as np
 
 
 class ClassicalStateSimulator(SimulatesSamples):
-    """basic simulator that only accepts cirq.X, cirq.ISwap, and cirq.CNOT gates 
+    """basic simulator that only accepts cirq.X, cirq.ISwap, and cirq.CNOT gates
 
-      Run a simulation, mimicking quantum hardware.
+    Run a simulation, mimicking quantum hardware.
 
-        Args:
-            circuit: The circuit to simulate.
-            param_resolver: Parameters to run with the program.
-            repetitions: Number of times to repeat the run. It is expected that
-                this is validated greater than zero before calling this method.
+      Args:
+          circuit: The circuit to simulate.
+          param_resolver: Parameters to run with the program.
+          repetitions: Number of times to repeat the run. It is expected that
+              this is validated greater than zero before calling this method.
 
-        Returns:
-            A dictionary from measurement gate key to measurement
-            results. Measurement results are stored in a 3-dimensional
-            numpy array, the first dimension corresponding to the repetition.
-            the second to the instance of that key in the circuit, and the
-            third to the actual boolean measurement results (ordered by the
-            qubits being measured.)
+      Returns:
+          A dictionary from measurement gate key to measurement
+          results. Measurement results are stored in a 3-dimensional
+          numpy array, the first dimension corresponding to the repetition.
+          the second to the instance of that key in the circuit, and the
+          third to the actual boolean measurement results (ordered by the
+          qubits being measured.)
 
-       Raises:
-        ValuesError: gate is not a cirq.XGate or cirq.Cnot
+     Raises:
+      ValuesError: gate is not a cirq.XGate or cirq.Cnot
     """
 
     def _run(
