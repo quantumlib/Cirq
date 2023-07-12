@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Awaitable, Callable, TypeVar
+from typing import Awaitable, Callable, Optional, TypeVar
 from typing_extensions import ParamSpec
 import threading
 
@@ -59,7 +59,7 @@ class AsyncioExecutor:
         future = asyncio.run_coroutine_threadsafe(func(*args, **kwargs), self.loop)
         return duet.AwaitableFuture.wrap(future)
 
-    _instance: 'AsyncioExecutor' = None
+    _instance: Optional['AsyncioExecutor'] = None
 
     @classmethod
     def instance(cls) -> 'AsyncioExecutor':
