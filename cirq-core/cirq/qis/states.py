@@ -718,9 +718,21 @@ def dirac_notation(
     Returns:
         A pretty string consisting of a sum of computational basis kets
         and non-zero floats of the specified accuracy.
+
+    Raises:
+        ValueError: If there is a shape mismatch between state_vector and qid_shape.
+            Otherwise, when qid_shape is not mentioned and length of state_vector
+            is not a power of 2.
     """
     if qid_shape is None:
         qid_shape = (2,) * (len(state_vector).bit_length() - 1)
+
+    if len(state_vector) != np.prod(qid_shape, dtype=np.int64):
+        raise ValueError(
+            'state_vector has incorrect size. Expected {} but was {}.'.format(
+                np.prod(qid_shape, dtype=np.int64), len(state_vector)
+            )
+        )
 
     digit_separator = '' if max(qid_shape, default=0) < 10 else ','
     perm_list = [
