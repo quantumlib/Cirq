@@ -46,7 +46,7 @@ class ClassicalStateSimulator(SimulatesSamples):
     """
 
     def _run(
-        self, circuit: 'AbstractCircuit', param_resolver: 'ParamResolver', repetitions: int
+        self, circuit: AbstractCircuit, param_resolver: ParamResolver, repetitions: int
     ) -> Dict[str, np.ndarray]:
         results_dict: Dict[str, np.ndarray] = {}
         values_dict: Dict[Qid, int] = defaultdict(int)
