@@ -13,10 +13,11 @@
 # limitations under the License.
 
 from typing import Awaitable, Callable, Optional, TypeVar
-from typing_extensions import ParamSpec
+import asyncio
 import threading
 
-import asyncio
+from typing_extensions import ParamSpec
+
 import duet
 
 
