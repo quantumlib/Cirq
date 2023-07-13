@@ -72,7 +72,7 @@ class Lamda(infra.GateWithRegisters):
 
 
 @frozen
-class BasicPhaseEstimation(pe.PhaseEstimation):
+class KitaevPhaseEstimation(pe.PhaseEstimation):
     control_bitsize: int
     eigenvector_bitsize: int
     theta: int
@@ -103,7 +103,7 @@ def test_phase_estimation(theta):
     n_bits = 9
     error_bound = 0.1
     control_register = cirq.NamedQubit.range(n_bits, prefix='c')
-    op = BasicPhaseEstimation(n_bits, 1, theta).on_registers(
+    op = KitaevPhaseEstimation(n_bits, 1, theta).on_registers(
         control_register=control_register, eigenvector_register=[cirq.q('ev')]
     )
     cirquit = cirq.Circuit(op)
