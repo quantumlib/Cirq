@@ -1,4 +1,8 @@
 # pylint: disable=wrong-or-nonexistent-copyright-notice
+
+# TODO(#6171): enable the check and fix pylint errors
+# pylint: disable=consider-using-f-string
+
 """Demonstrates swap networks.
 
 Swap networks are used to get around limited connectivity in a hardware device.

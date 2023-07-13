@@ -75,7 +75,7 @@ class ListQuantumProgramsPager:
             yield from page.programs
 
     def __repr__(self) -> str:
-        return '{0}<{1!r}>'.format(self.__class__.__name__, self._response)
+        return f'{self.__class__.__name__}<{self._response!r}>'
 
 
 class ListQuantumProgramsAsyncPager:
@@ -137,7 +137,7 @@ class ListQuantumProgramsAsyncPager:
         return async_generator()
 
     def __repr__(self) -> str:
-        return '{0}<{1!r}>'.format(self.__class__.__name__, self._response)
+        return f'{self.__class__.__name__}<{self._response!r}>'
 
 
 class ListQuantumJobsPager:
@@ -196,7 +196,7 @@ class ListQuantumJobsPager:
             yield from page.jobs
 
     def __repr__(self) -> str:
-        return '{0}<{1!r}>'.format(self.__class__.__name__, self._response)
+        return f'{self.__class__.__name__}<{self._response!r}>'
 
 
 class ListQuantumJobsAsyncPager:
@@ -258,7 +258,7 @@ class ListQuantumJobsAsyncPager:
         return async_generator()
 
     def __repr__(self) -> str:
-        return '{0}<{1!r}>'.format(self.__class__.__name__, self._response)
+        return f'{self.__class__.__name__}<{self._response!r}>'
 
 
 class ListQuantumJobEventsPager:
@@ -317,7 +317,7 @@ class ListQuantumJobEventsPager:
             yield from page.events
 
     def __repr__(self) -> str:
-        return '{0}<{1!r}>'.format(self.__class__.__name__, self._response)
+        return f'{self.__class__.__name__}<{self._response!r}>'
 
 
 class ListQuantumJobEventsAsyncPager:
@@ -379,7 +379,7 @@ class ListQuantumJobEventsAsyncPager:
         return async_generator()
 
     def __repr__(self) -> str:
-        return '{0}<{1!r}>'.format(self.__class__.__name__, self._response)
+        return f'{self.__class__.__name__}<{self._response!r}>'
 
 
 class ListQuantumProcessorsPager:
@@ -438,7 +438,7 @@ class ListQuantumProcessorsPager:
             yield from page.processors
 
     def __repr__(self) -> str:
-        return '{0}<{1!r}>'.format(self.__class__.__name__, self._response)
+        return f'{self.__class__.__name__}<{self._response!r}>'
 
 
 class ListQuantumProcessorsAsyncPager:
@@ -500,7 +500,7 @@ class ListQuantumProcessorsAsyncPager:
         return async_generator()
 
     def __repr__(self) -> str:
-        return '{0}<{1!r}>'.format(self.__class__.__name__, self._response)
+        return f'{self.__class__.__name__}<{self._response!r}>'
 
 
 class ListQuantumCalibrationsPager:
@@ -559,7 +559,7 @@ class ListQuantumCalibrationsPager:
             yield from page.calibrations
 
     def __repr__(self) -> str:
-        return '{0}<{1!r}>'.format(self.__class__.__name__, self._response)
+        return f'{self.__class__.__name__}<{self._response!r}>'
 
 
 class ListQuantumCalibrationsAsyncPager:
@@ -621,7 +621,7 @@ class ListQuantumCalibrationsAsyncPager:
         return async_generator()
 
     def __repr__(self) -> str:
-        return '{0}<{1!r}>'.format(self.__class__.__name__, self._response)
+        return f'{self.__class__.__name__}<{self._response!r}>'
 
 
 class ListQuantumReservationsPager:
@@ -680,7 +680,7 @@ class ListQuantumReservationsPager:
             yield from page.reservations
 
     def __repr__(self) -> str:
-        return '{0}<{1!r}>'.format(self.__class__.__name__, self._response)
+        return f'{self.__class__.__name__}<{self._response!r}>'
 
 
 class ListQuantumReservationsAsyncPager:
@@ -742,7 +742,7 @@ class ListQuantumReservationsAsyncPager:
         return async_generator()
 
     def __repr__(self) -> str:
-        return '{0}<{1!r}>'.format(self.__class__.__name__, self._response)
+        return f'{self.__class__.__name__}<{self._response!r}>'
 
 
 class ListQuantumReservationGrantsPager:
@@ -801,7 +801,7 @@ class ListQuantumReservationGrantsPager:
             yield from page.reservation_grants
 
     def __repr__(self) -> str:
-        return '{0}<{1!r}>'.format(self.__class__.__name__, self._response)
+        return f'{self.__class__.__name__}<{self._response!r}>'
 
 
 class ListQuantumReservationGrantsAsyncPager:
@@ -863,7 +863,7 @@ class ListQuantumReservationGrantsAsyncPager:
         return async_generator()
 
     def __repr__(self) -> str:
-        return '{0}<{1!r}>'.format(self.__class__.__name__, self._response)
+        return f'{self.__class__.__name__}<{self._response!r}>'
 
 
 class ListQuantumReservationBudgetsPager:
@@ -922,7 +922,7 @@ class ListQuantumReservationBudgetsPager:
             yield from page.reservation_budgets
 
     def __repr__(self) -> str:
-        return '{0}<{1!r}>'.format(self.__class__.__name__, self._response)
+        return f'{self.__class__.__name__}<{self._response!r}>'
 
 
 class ListQuantumReservationBudgetsAsyncPager:
@@ -984,7 +984,7 @@ class ListQuantumReservationBudgetsAsyncPager:
         return async_generator()
 
     def __repr__(self) -> str:
-        return '{0}<{1!r}>'.format(self.__class__.__name__, self._response)
+        return f'{self.__class__.__name__}<{self._response!r}>'
 
 
 class ListQuantumTimeSlotsPager:
@@ -1043,7 +1043,7 @@ class ListQuantumTimeSlotsPager:
             yield from page.time_slots
 
     def __repr__(self) -> str:
-        return '{0}<{1!r}>'.format(self.__class__.__name__, self._response)
+        return f'{self.__class__.__name__}<{self._response!r}>'
 
 
 class ListQuantumTimeSlotsAsyncPager:
@@ -1105,4 +1105,4 @@ class ListQuantumTimeSlotsAsyncPager:
         return async_generator()
 
     def __repr__(self) -> str:
-        return '{0}<{1!r}>'.format(self.__class__.__name__, self._response)
+        return f'{self.__class__.__name__}<{self._response!r}>'

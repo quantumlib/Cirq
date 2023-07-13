@@ -12,6 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+# TODO(#6171): enable the check and fix pylint errors
+# pylint: disable=consider-using-f-string
+
 from typing import Any, Callable, Iterable, Sequence, Tuple, Union, cast, List
 
 from cirq import circuits, ops, protocols
@@ -27,7 +30,6 @@ def _sorted_best_string_placements(
     output_ops: Sequence[ops.Operation],
     key: Callable[[Any], ops.PauliStringPhasor] = lambda node: node.val,
 ) -> List[Tuple[ops.PauliStringPhasor, int, circuitdag.Unique[ops.PauliStringPhasor]]]:
-
     sort_key = lambda placement: (-len(placement[0].pauli_string), placement[1])
 
     node_maxes = []
@@ -84,7 +86,6 @@ def move_pauli_strings_into_circuit(
         # Pick the Pauli string that can be moved furthest through
         # the Clifford circuit
         for best_string_op, best_index, best_node in placements:
-
             assert (
                 best_index <= last_index
             ), "Unexpected insertion index order, {} >= {}, len: {}".format(
