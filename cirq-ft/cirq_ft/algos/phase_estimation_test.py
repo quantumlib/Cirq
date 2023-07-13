@@ -13,9 +13,6 @@
 # limitations under the License.
 from attr import frozen
 import numpy as np
-
-import cirq_ft
-
 from cirq_ft import infra
 from cirq._compat import cached_property
 
