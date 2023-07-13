@@ -36,7 +36,6 @@ class BasicPrep(infra.GateWithRegisters):
     def decompose_from_registers(
         self, context: cirq.DecompositionContext, **quregs
     ) -> cirq.OP_TREE:
-
         yield cirq.H.on_each(quregs[self.control_register.name])
 
 
