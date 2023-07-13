@@ -11,6 +11,10 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
+# TODO(#6171): enable the check and fix pylint errors
+# pylint: disable=consider-using-f-string
+
 """Objects and methods for acting efficiently on a density matrix."""
 
 from typing import Any, Callable, List, Optional, Sequence, Tuple, Type, TYPE_CHECKING, Union

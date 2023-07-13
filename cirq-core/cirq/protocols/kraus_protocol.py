@@ -12,6 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+# TODO(#6171): enable the check and fix pylint errors
+# pylint: disable=consider-using-f-string
+
 """Protocol and methods for obtaining Kraus representation of quantum channels."""
 
 from typing import Any, Sequence, Tuple, TypeVar, Union
