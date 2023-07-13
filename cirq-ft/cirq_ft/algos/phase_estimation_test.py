@@ -27,16 +27,17 @@ from cirq_ft.algos import phase_estimation as pe
 
 @frozen
 class BasicPrep(infra.GateWithRegisters):
-    control_registers: infra.Register
+    control_register: infra.Register
 
     @cached_property
     def registers(self) -> infra.Registers:
-        return infra.Registers([self.control_registers])
+        return infra.Registers([self.control_register])
 
     def decompose_from_registers(
-        self, context: cirq.DecompositionContext, control_register
+        self, context: cirq.DecompositionContext, **quregs
     ) -> cirq.OP_TREE:
-        yield cirq.H.on_each(*control_register)
+
+        yield cirq.H.on_each(quregs[self.control_register.name])
 
 
 @frozen
