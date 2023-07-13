@@ -45,7 +45,7 @@ class ResponseDemux:
             A future for the response, to be fulfilled when publish is called.
 
         Raises:
-            ValueError when trying to subscribe to a message_id which already has a subscriber.
+            ValueError: when trying to subscribe to a message_id which already has a subscriber.
         """
 
         if message_id in self._subscribers:
