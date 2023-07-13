@@ -38,7 +38,7 @@ class PhaseEstimation(infra.GateWithRegisters):
 
     @property
     @abc.abstractmethod
-    def eigen_vector_register_prep(self) -> infra.GateWithRegisters:
+    def eigen_vector_register_prep(self) -> cirq.Gate:
         ...
 
     @cached_property
