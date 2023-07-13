@@ -92,10 +92,10 @@ from cirq_google.line import (
 from cirq_google.ops import (
     CalibrationTag,
     FSimGateFamily,
-    PhysicalZTag,
-    SycamoreGate,
-    SYC,
     InternalGate,
+    PhysicalZTag,
+    SYC,
+    SycamoreGate,
 )
 
 from cirq_google.transformers import (
