@@ -358,6 +358,9 @@ def test_single_qubit_compare_protocols(adjoint: bool):
     cirq_ft.testing.assert_decompose_is_consistent_with_t_complexity(g)
     cirq.testing.assert_equivalent_repr(g, setup_code='import cirq_ft')
 
+    with pytest.raises(ValueError):
+        _ = g**0.5
+
     assert g**2 == cirq.IdentityGate(4)
     assert g**1 is g
     assert g**-1 == cirq_ft.algos.SingleQubitCompare(adjoint=adjoint ^ True)

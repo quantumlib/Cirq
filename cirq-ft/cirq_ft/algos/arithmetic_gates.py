@@ -245,10 +245,11 @@ class SingleQubitCompare(infra.GateWithRegisters):
             yield from _decomposition()
 
     def __pow__(self, power: int) -> cirq.Gate:
+        if not isinstance(power, int):
+            raise ValueError('SingleQubitCompare is only defined for integer powers.')
         if power % 2 == 0:
             return cirq.IdentityGate(4)
-        adjoint = power < 0
-        if adjoint:
+        if power < 0:
             return SingleQubitCompare(adjoint=not self.adjoint)
         return self
 
