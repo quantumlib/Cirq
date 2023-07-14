@@ -60,7 +60,7 @@ class PhaseEstimation(infra.GateWithRegisters):
 
     def qft_inverse(self, qubits):
         """Generator for the inverse QFT on a list of qubits."""
-        qreg = list(qubits)[::-1]
+        qreg = list(qubits)
         while len(qreg) > 0:
             q_head = qreg.pop(0)
             yield cirq.H(q_head)
@@ -78,4 +78,4 @@ class PhaseEstimation(infra.GateWithRegisters):
             control_register=[*control_register_qubits],
             eigenvector_register=[*eigenvector_register_qubits],
         )
-        yield self.qft_inverse([*control_register_qubits][::-1])
+        yield self.qft_inverse([*control_register_qubits])
