@@ -12,6 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+# TODO(#6171): enable the check and fix pylint errors
+# pylint: disable=consider-using-f-string
+
 """Creates the gate instance for any number qubits diagonal gate.
 
 The gate is used to create a (2^n)x(2^n) matrix with the diagonal elements

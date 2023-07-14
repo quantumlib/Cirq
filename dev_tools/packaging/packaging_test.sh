@@ -28,7 +28,7 @@ trap '{ rm -rf "${tmp_dir}"; }' EXIT
 
 # New virtual environment
 echo "Working in a fresh virtualenv at ${tmp_dir}/env"
-virtualenv --quiet "--python=/usr/bin/python3" "${tmp_dir}/env"
+python3.9 -m venv "${tmp_dir}/env"
 
 export CIRQ_PRE_RELEASE_VERSION
 CIRQ_PRE_RELEASE_VERSION=$(dev_tools/packaging/generate-dev-version-id.sh)

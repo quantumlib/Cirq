@@ -1,4 +1,8 @@
 # pylint: disable=wrong-or-nonexistent-copyright-notice
+
+# TODO(#6171): enable the check and fix pylint errors
+# pylint: disable=consider-using-f-string
+
 """Demonstrates the Bernstein-Vazirani algorithm.
 
 The (non-recursive) Bernstein-Vazirani algorithm takes a black-box oracle

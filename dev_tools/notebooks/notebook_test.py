@@ -19,8 +19,8 @@
 # main focus and it is executed in a shared virtual environment for the notebooks. Thus, these
 # tests ensure that notebooks are still working with the latest version of cirq.
 
+import importlib.metadata
 import os
-import sys
 import tempfile
 
 import pytest
@@ -40,6 +40,8 @@ SKIP_NOTEBOOKS = [
     # skipping fidelity estimation due to
     # https://github.com/quantumlib/Cirq/issues/3502
     'examples/*fidelity*',
+    # skipping quantum utility simulation (too large)
+    'examples/advanced/*quantum_utility*',
     # tutorials that use QCS and arent skipped due to one or more cleared output cells
     'docs/tutorials/google/identifying_hardware_changes.ipynb',
     'docs/tutorials/google/echoes.ipynb',
@@ -60,11 +62,6 @@ def require_packages_not_changed():
 
     Raise AssertionError if the pre-existing set of Python packages changes in any way.
     """
-    # TODO: remove this after deprecation of Python 3.7
-    if sys.version_info < (3, 8, 0):
-        return
-    import importlib.metadata
-
     packages_before = set((d.name, d.version) for d in importlib.metadata.distributions())
     yield
     packages_after = set((d.name, d.version) for d in importlib.metadata.distributions())

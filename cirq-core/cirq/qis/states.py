@@ -11,6 +11,10 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
+# TODO(#6171): enable the check and fix pylint errors
+# pylint: disable=consider-using-f-string
+
 """Classes and methods for quantum states."""
 
 from typing import Any, cast, Iterable, List, Optional, Sequence, Set, TYPE_CHECKING, Tuple, Union
@@ -714,9 +718,21 @@ def dirac_notation(
     Returns:
         A pretty string consisting of a sum of computational basis kets
         and non-zero floats of the specified accuracy.
+
+    Raises:
+        ValueError: If there is a shape mismatch between state_vector and qid_shape.
+            Otherwise, when qid_shape is not mentioned and length of state_vector
+            is not a power of 2.
     """
     if qid_shape is None:
         qid_shape = (2,) * (len(state_vector).bit_length() - 1)
+
+    if len(state_vector) != np.prod(qid_shape, dtype=np.int64):
+        raise ValueError(
+            'state_vector has incorrect size. Expected {} but was {}.'.format(
+                np.prod(qid_shape, dtype=np.int64), len(state_vector)
+            )
+        )
 
     digit_separator = '' if max(qid_shape, default=0) < 10 else ','
     perm_list = [
@@ -821,7 +837,6 @@ def to_valid_state_vector(
 def _qudit_values_to_state_tensor(
     *, state_vector: np.ndarray, qid_shape: Tuple[int, ...], dtype: Optional['DTypeLike']
 ) -> np.ndarray:
-
     for i in range(len(qid_shape)):
         s = state_vector[i]
         q = qid_shape[i]

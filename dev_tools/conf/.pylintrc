@@ -15,6 +15,7 @@ enable=
     bad-reversed-sequence,
     bad-super-call,
     consider-merging-isinstance,
+    consider-using-f-string,
     continue-in-finally,
     dangerous-default-value,
     docstyle,
