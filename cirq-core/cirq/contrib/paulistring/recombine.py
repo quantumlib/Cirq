@@ -12,9 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# TODO(#6171): enable the check and fix pylint errors
-# pylint: disable=consider-using-f-string
-
 from typing import Any, Callable, Iterable, Sequence, Tuple, Union, cast, List
 
 from cirq import circuits, ops, protocols
@@ -86,10 +83,22 @@ def move_pauli_strings_into_circuit(
         # Pick the Pauli string that can be moved furthest through
         # the Clifford circuit
         for best_string_op, best_index, best_node in placements:
-            assert (
-                best_index <= last_index
-            ), "Unexpected insertion index order, {} >= {}, len: {}".format(
+            # TODO(#6171): BEGIN
+            # pylint: disable=consider-using-f-string
+            string_before = "Unexpected insertion index order, {} >= {}, len: {}".format(
                 best_index, last_index, len(output_ops)
+            )
+            string_after = (
+                "Unexpected insertion index order, "
+                f"{best_index} >= {last_index}, len: {len(output_ops)}"
+            )
+            assert string_before == string_after
+            # pylint: enable=consider-using-f-string
+            # TODO(#6171): END
+
+            assert best_index <= last_index, (
+                "Unexpected insertion index order, "
+                f"{best_index} >= {last_index}, len: {len(output_ops)}"
             )
 
             last_index = best_index

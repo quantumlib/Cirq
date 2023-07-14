@@ -12,9 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# TODO(#6171): enable the check and fix pylint errors
-# pylint: disable=consider-using-f-string
-
 from unittest import mock
 import pytest
 
@@ -45,7 +42,10 @@ def assert_has_rendering(actual: TextDiagramDrawer, desired: str, **kwargs) -> N
     """
     actual_diagram = actual.render(**kwargs)
     desired_diagram = desired
-    assert actual_diagram == desired_diagram, (
+
+    # TODO(#6171): BEGIN
+    # pylint: disable=consider-using-f-string
+    string_before = (
         "Diagram's rendering differs from the desired rendering.\n"
         '\n'
         'Actual rendering:\n'
@@ -60,6 +60,34 @@ def assert_has_rendering(actual: TextDiagramDrawer, desired: str, **kwargs) -> N
             desired_diagram,
             ct.highlight_text_differences(actual_diagram, desired_diagram),
         )
+    )
+    string_after = (
+        "Diagram's rendering differs from the desired rendering.\n"
+        '\n'
+        'Actual rendering:\n'
+        f'{actual_diagram}\n'
+        '\n'
+        'Desired rendering:\n'
+        f'{desired_diagram}\n'
+        '\n'
+        'Highlighted differences:\n'
+        f'{ct.highlight_text_differences(actual_diagram, desired_diagram)}\n'
+    )
+    assert string_before == string_after
+    # pylint: enable=consider-using-f-string
+    # TODO(#6171): END
+
+    assert actual_diagram == desired_diagram, (
+        "Diagram's rendering differs from the desired rendering.\n"
+        '\n'
+        'Actual rendering:\n'
+        f'{actual_diagram}\n'
+        '\n'
+        'Desired rendering:\n'
+        f'{desired_diagram}\n'
+        '\n'
+        'Highlighted differences:\n'
+        f'{ct.highlight_text_differences(actual_diagram, desired_diagram)}\n'
     )
 
 

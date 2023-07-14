@@ -12,9 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# TODO(#6171): enable the check and fix pylint errors
-# pylint: disable=consider-using-f-string
-
 import cirq
 import cirq.contrib.qcircuit as ccq
 import cirq.testing as ct
@@ -32,7 +29,10 @@ def assert_has_qcircuit_diagram(actual: cirq.Circuit, desired: str, **kwargs) ->
     """
     actual_diagram = ccq.circuit_to_latex_using_qcircuit(actual, **kwargs).lstrip('\n').rstrip()
     desired_diagram = desired.lstrip("\n").rstrip()
-    assert actual_diagram == desired_diagram, (
+
+    # TODO(#6171): BEGIN
+    # pylint: disable=consider-using-f-string
+    string_before = (
         "Circuit's qcircuit diagram differs from the desired diagram.\n"
         '\n'
         'Diagram of actual circuit:\n'
@@ -47,6 +47,34 @@ def assert_has_qcircuit_diagram(actual: cirq.Circuit, desired: str, **kwargs) ->
             desired_diagram,
             ct.highlight_text_differences(actual_diagram, desired_diagram),
         )
+    )
+    string_after = (
+        "Circuit's qcircuit diagram differs from the desired diagram.\n"
+        '\n'
+        'Diagram of actual circuit:\n'
+        f'{actual_diagram}\n'
+        '\n'
+        'Desired qcircuit diagram:\n'
+        f'{desired_diagram}\n'
+        '\n'
+        'Highlighted differences:\n'
+        f'{ct.highlight_text_differences(actual_diagram, desired_diagram)}\n'
+    )
+    assert string_before == string_after
+    # pylint: enable=consider-using-f-string
+    # TODO(#6171): END
+
+    assert actual_diagram == desired_diagram, (
+        "Circuit's qcircuit diagram differs from the desired diagram.\n"
+        '\n'
+        'Diagram of actual circuit:\n'
+        f'{actual_diagram}\n'
+        '\n'
+        'Desired qcircuit diagram:\n'
+        f'{desired_diagram}\n'
+        '\n'
+        'Highlighted differences:\n'
+        f'{ct.highlight_text_differences(actual_diagram, desired_diagram)}\n'
     )
 
 

@@ -12,9 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# TODO(#6171): enable the check and fix pylint errors
-# pylint: disable=consider-using-f-string
-
 from typing import cast, Sequence, TYPE_CHECKING
 
 from cirq import devices, ops, protocols
@@ -31,7 +28,10 @@ def assert_permutation_decomposition_equivalence(gate: PermutationGate, n_qubits
     mapping = {cast(ops.Qid, q): i for i, q in enumerate(qubits)}
     update_mapping(mapping, operations)
     expected_mapping = {qubits[j]: i for i, j in gate.permutation().items()}
-    assert mapping == expected_mapping, (
+
+    # TODO(#6171): BEGIN
+    # pylint: disable=consider-using-f-string
+    string_before = (
         "{!r}.permutation({}) doesn't match decomposition.\n"
         '\n'
         'Actual mapping:\n'
@@ -41,4 +41,26 @@ def assert_permutation_decomposition_equivalence(gate: PermutationGate, n_qubits
         '{}\n'.format(
             gate, n_qubits, [mapping[q] for q in qubits], [expected_mapping[q] for q in qubits]
         )
+    )
+    string_after = (
+        f"{gate!r}.permutation({n_qubits}) doesn't match decomposition.\n"
+        '\n'
+        'Actual mapping:\n'
+        f'{[mapping[q] for q in qubits]}\n'
+        '\n'
+        'Expected mapping:\n'
+        f'{[expected_mapping[q] for q in qubits]}\n'
+    )
+    assert string_before == string_after
+    # pylint: enable=consider-using-f-string
+    # TODO(#6171): END
+
+    assert mapping == expected_mapping, (
+        f"{gate!r}.permutation({n_qubits}) doesn't match decomposition.\n"
+        '\n'
+        'Actual mapping:\n'
+        f'{[mapping[q] for q in qubits]}\n'
+        '\n'
+        'Expected mapping:\n'
+        f'{[expected_mapping[q] for q in qubits]}\n'
     )

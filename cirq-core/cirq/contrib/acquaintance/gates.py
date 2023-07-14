@@ -12,9 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# TODO(#6171): enable the check and fix pylint errors
-# pylint: disable=consider-using-f-string
-
 import functools
 import itertools
 import math
@@ -350,8 +347,22 @@ class SwapNetworkGate(PermutationGate):
         return {i: j for i, j in enumerate(reversed(range(sum(self.part_lens))))}
 
     def __repr__(self) -> str:
-        return 'cirq.contrib.acquaintance.SwapNetworkGate({!r}, {!r})'.format(
+        # TODO(#6171): BEGIN
+        # pylint: disable=consider-using-f-string
+        string_before = 'cirq.contrib.acquaintance.SwapNetworkGate({!r}, {!r})'.format(
             self.part_lens, self.acquaintance_size
+        )
+        string_after = (
+            'cirq.contrib.acquaintance.SwapNetworkGate('
+            f'{self.part_lens!r}, {self.acquaintance_size!r})'
+        )
+        assert string_before == string_after
+        # pylint: enable=consider-using-f-string
+        # TODO(#6171): END
+
+        return (
+            'cirq.contrib.acquaintance.SwapNetworkGate('
+            f'{self.part_lens!r}, {self.acquaintance_size!r})'
         )
 
     def _value_equality_values_(self):
