@@ -121,7 +121,9 @@ def test_less_than_equal_consistent_protocols(x_bitsize: int, y_bitsize: int):
     # Decomposition works even when context is None.
     qubits = cirq.LineQid.range(x_bitsize + y_bitsize + 1, dimension=2)
     assert cirq.Circuit(g._decompose_with_context_(qubits=qubits)) == cirq.Circuit(
-        cirq.decompose_once(g.on(*qubits))
+        cirq.decompose_once(
+            g.on(*qubits), context=cirq.DecompositionContext(cirq.ops.SimpleQubitManager())
+        )
     )
 
     cirq.testing.assert_equivalent_repr(g, setup_code='import cirq_ft')

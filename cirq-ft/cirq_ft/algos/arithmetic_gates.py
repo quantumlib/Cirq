@@ -135,7 +135,7 @@ class LessThanGate(cirq.ArithmeticGate):
 class BiQubitsMixer(infra.GateWithRegisters):
     """Implements the COMPARE2 (Fig. 1) https://www.nature.com/articles/s41534-018-0071-5#Sec8
 
-    This gates mixes the values in away that preserves the result of comparison.
+    This gates mixes the values in a way that preserves the result of comparison.
     The registers being compared are 2-qubit registers where
         x = 2*x_msb + x_lsb
         y = 2*y_msb + y_lsb
@@ -155,18 +155,30 @@ class BiQubitsMixer(infra.GateWithRegisters):
     def decompose_from_registers(
         self, *, context: cirq.DecompositionContext, **quregs: Sequence[cirq.Qid]
     ) -> cirq.OP_TREE:
-
         x, y, ancilla = quregs['x'], quregs['y'], quregs['ancilla']
         x_msb, x_lsb = x
         y_msb, y_lsb = y
 
-        def _cswap(c: cirq.Qid, a: cirq.Qid, b: cirq.Qid, q: cirq.Qid) -> cirq.OP_TREE:
+        def _cswap(control: cirq.Qid, a: cirq.Qid, b: cirq.Qid, aux: cirq.Qid) -> cirq.OP_TREE:
+            """A CSWAP with 4T complexity and whose adjoint has 0T complexity.
+
+                A controlled SWAP that swaps `a` and `b` based on `control`.
+            It uses an extra qubit `aux` so that its adjoint would have
+            a T complexity of zero.
+            """
             yield cirq.CNOT(a, b)
-            yield and_gate.And(adjoint=self.adjoint).on(c, b, q)
-            yield cirq.CNOT(q, a)
+            yield and_gate.And(adjoint=self.adjoint).on(control, b, aux)
+            yield cirq.CNOT(aux, a)
             yield cirq.CNOT(a, b)
 
         def _decomposition():
+            # computes the difference of x - y where
+            #   x = 2*x_msb + x_lsb
+            #   y = 2*y_msb + y_lsb
+            # And stores the result in x_lsb and y_lsb such that
+            #   sign(x - y) = sign(x_lsb - y_lsb)
+            # This decomposition uses 3 ancilla qubits in order to have a
+            # T complexity of 8.
             yield cirq.X(ancilla[0])
             yield cirq.CNOT(y_msb, x_msb)
             yield cirq.CNOT(y_lsb, x_lsb)
@@ -186,7 +198,7 @@ class BiQubitsMixer(infra.GateWithRegisters):
         if power == 1:
             return self
         if power == -1:
-            return BiQubitsMixer(adjoint=self.adjoint ^ True)
+            return BiQubitsMixer(adjoint=not self.adjoint)
         return NotImplemented  # coverage: ignore
 
     def _t_complexity_(self) -> infra.TComplexity:
@@ -214,19 +226,18 @@ class SingleQubitCompare(infra.GateWithRegisters):
     def decompose_from_registers(
         self, *, context: cirq.DecompositionContext, **quregs: Sequence[cirq.Qid]
     ) -> cirq.OP_TREE:
+        a = quregs['a']
+        b = quregs['b']
+        less_than = quregs['less_than']
+        greater_than = quregs['greater_than']
+
         def _decomposition() -> Iterator[cirq.Operation]:
-            (a,), (b,), (less_than,), (greater_than,) = (
-                quregs['a'],
-                quregs['b'],
-                quregs['less_than'],
-                quregs['greater_than'],
-            )
-            yield and_gate.And([0, 1], adjoint=self.adjoint).on(a, b, less_than)
-            yield cirq.CNOT(less_than, greater_than)
-            yield cirq.CNOT(b, greater_than)
-            yield cirq.CNOT(a, b)
-            yield cirq.CNOT(a, greater_than)
-            yield cirq.X(b)
+            yield and_gate.And([0, 1], adjoint=self.adjoint).on(*a, *b, *less_than)
+            yield cirq.CNOT(*less_than, *greater_than)
+            yield cirq.CNOT(*b, *greater_than)
+            yield cirq.CNOT(*a, *b)
+            yield cirq.CNOT(*a, *greater_than)
+            yield cirq.X(*b)
 
         if self.adjoint:
             yield from reversed(tuple(_decomposition()))
@@ -238,7 +249,7 @@ class SingleQubitCompare(infra.GateWithRegisters):
             return cirq.IdentityGate(4)
         adjoint = power < 0
         if adjoint:
-            return SingleQubitCompare(adjoint=self.adjoint ^ True)
+            return SingleQubitCompare(adjoint=not self.adjoint)
         return self
 
     def _t_complexity_(self) -> infra.TComplexity:
@@ -318,13 +329,13 @@ class LessThanEqualGate(cirq.ArithmeticGate):
 
         The construction can be broken in 4 parts:
             1. In case of differing bitsizes then a multicontrol And Gate
-                (Section III.A. https://arxiv.org/abs/1805.03662) is used to check whether
+                - Section III.A. https://arxiv.org/abs/1805.03662) is used to check whether
                 the extra prefix is equal to zero:
-                    result stored in: `prefix_equality` qubit.
+                    - result stored in: `prefix_equality` qubit.
             2. The tree structure (FIG. 2) https://www.nature.com/articles/s41534-018-0071-5#Sec8
                 followed by a SingleQubitCompare to compute the result of comparison of
                 the suffixes of equal length:
-                    result stored in: `less_than`, `greater_than` qubits with equality in qubits[-2]
+                    - result stored in: `less_than` and `greater_than` with equality in qubits[-2]
             3. The results from the previous two steps are combined to update the target qubit.
             4. The adjoint of the previous operations is added to restore the input qubits
                 to their original state and clean the ancilla qubits.
@@ -397,13 +408,21 @@ class LessThanEqualGate(cirq.ArithmeticGate):
         d = max(self.x_bitsize, self.y_bitsize) - n
         is_second_longer = self.y_bitsize > self.x_bitsize
         if d == 0:
+            # When both registers are of the same size the T complexity is
+            # 8n - 4 same as in https://www.nature.com/articles/s41534-018-0071-5#Sec8.
             return infra.TComplexity(t=8 * n - 4, clifford=46 * n - 17)
-        elif d == 1:
-            return infra.TComplexity(t=8 * n, clifford=46 * n + 3 + 2 * is_second_longer)
         else:
-            return infra.TComplexity(
-                t=8 * n + 4 * d - 4, clifford=46 * n + 17 * d - 14 + 2 * is_second_longer
-            )
+            # When the registers differ in size and `n` is the size of the smaller one and
+            # `d` is the difference in size. The T complexity is the sum of the tree
+            # decomposition as before giving 8n + O(1) and the T complexity of an `And` gate
+            # over `d` registers giving 4d + O(1) totaling 8n + 4d + O(1).
+            # From the decomposition we get that the constant is -4 as well as the clifford counts.
+            if d == 1:
+                return infra.TComplexity(t=8 * n, clifford=46 * n + 3 + 2 * is_second_longer)
+            else:
+                return infra.TComplexity(
+                    t=8 * n + 4 * d - 4, clifford=46 * n + 17 * d - 14 + 2 * is_second_longer
+                )
 
     def _has_unitary_(self):
         return True
