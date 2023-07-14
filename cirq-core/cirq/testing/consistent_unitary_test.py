@@ -47,6 +47,26 @@ class FailsOnDecompostion(cirq.Gate):
         yield cirq.measure(qubits[0])
 
 
+class CleanCorrectButBorrowableIncorrectGate(cirq.Gate):
+    """Ancilla type determines if the decomposition is correct or not."""
+
+    def __init__(self, use_clean_ancilla: bool) -> None:
+        self.ancillas_are_clean = use_clean_ancilla
+
+    def _num_qubits_(self):
+        return 2
+
+    def _decompose_with_context_(self, qubits, *, context):
+        if self.ancillas_are_clean:
+            anc = context.qubit_manager.qalloc(1)
+        else:
+            anc = context.qubit_manager.qborrow(1)
+        yield cirq.CCNOT(*qubits, *anc)
+        yield cirq.Z(*anc)
+        yield cirq.CCNOT(*qubits, *anc)
+        context.qubit_manager.qfree(anc)
+
+
 @pytest.mark.parametrize('ignore_phase', [False, True])
 @pytest.mark.parametrize(
     'g,is_consistent',
@@ -54,6 +74,8 @@ class FailsOnDecompostion(cirq.Gate):
         (cirq.testing.PhaseUsingCleanAncilla(theta=0.1, ancilla_bitsize=3), True),
         (cirq.testing.PhaseUsingDirtyAncilla(phase_state=1, ancilla_bitsize=4), True),
         (InconsistentGate(), False),
+        (CleanCorrectButBorrowableIncorrectGate(use_clean_ancilla=True), True),
+        (CleanCorrectButBorrowableIncorrectGate(use_clean_ancilla=False), False),
     ],
 )
 def test_assert_unitary_is_consistent(g, ignore_phase, is_consistent):
@@ -70,3 +92,5 @@ def test_assert_unitary_is_consistent(g, ignore_phase, is_consistent):
 def test_failed_decomposition():
     with pytest.raises(ValueError):
         cirq.testing.assert_unitary_is_consistent(FailsOnDecompostion())
+
+    _ = cirq.testing.assert_unitary_is_consistent(cirq.Circuit())
