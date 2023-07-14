@@ -33,7 +33,7 @@ class PhaseEstimation(infra.GateWithRegisters):
 
     @property
     @abc.abstractmethod
-    def control_register_prep(self) -> infra.GateWithRegisters:
+    def control_register_prep(self) -> cirq.Gate:
         ...
 
     @property

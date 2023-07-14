@@ -83,7 +83,7 @@ class KitaevPhaseEstimation(pe.PhaseEstimation):
         return infra.Register("eigenvector_register", self.eigenvector_bitsize)
 
     @cached_property
-    def control_register_prep(self) -> infra.GateWithRegisters:
+    def control_register_prep(self) -> cirq.Gate:
         return BasicPrep(self.control_register)
 
     @cached_property
