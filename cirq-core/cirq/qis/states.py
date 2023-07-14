@@ -12,9 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# TODO(#6171): enable the check and fix pylint errors
-# pylint: disable=consider-using-f-string
-
 """Classes and methods for quantum states."""
 
 from typing import Any, cast, Iterable, List, Optional, Sequence, Set, TYPE_CHECKING, Tuple, Union
@@ -728,10 +725,22 @@ def dirac_notation(
         qid_shape = (2,) * (len(state_vector).bit_length() - 1)
 
     if len(state_vector) != np.prod(qid_shape, dtype=np.int64):
+        # TODO(#6171): BEGIN
+        # pylint: disable=consider-using-f-string
+        string_before = 'state_vector has incorrect size. Expected {} but was {}.'.format(
+            np.prod(qid_shape, dtype=np.int64), len(state_vector)
+        )
+        string_after = (
+            'state_vector has incorrect size. '
+            f'Expected {np.prod(qid_shape, dtype=np.int64)} but was {len(state_vector)}.'
+        )
+        assert string_before == string_after
+        # pylint: enable=consider-using-f-string
+        # TODO(#6171): END
+
         raise ValueError(
-            'state_vector has incorrect size. Expected {} but was {}.'.format(
-                np.prod(qid_shape, dtype=np.int64), len(state_vector)
-            )
+            'state_vector has incorrect size. '
+            f'Expected {np.prod(qid_shape, dtype=np.int64)} but was {len(state_vector)}.'
         )
 
     digit_separator = '' if max(qid_shape, default=0) < 10 else ','
@@ -823,9 +832,23 @@ def to_valid_state_vector(
     if num_qubits is None:
         num_qubits = len(qid_shape)
     if num_qubits != len(qid_shape):
-        raise ValueError(
+        # TODO(#6171): BEGIN
+        # pylint: disable=consider-using-f-string
+        string_before = (
             'num_qubits != len(qid_shape). num_qubits is <{!r}>. '
             'qid_shape is <{!r}>.'.format(num_qubits, qid_shape)
+        )
+        string_after = (
+            f'num_qubits != len(qid_shape). num_qubits is <{num_qubits!r}>. '
+            f'qid_shape is <{qid_shape!r}>.'
+        )
+        assert string_before == string_after
+        # pylint: enable=consider-using-f-string
+        # TODO(#6171): END
+
+        raise ValueError(
+            f'num_qubits != len(qid_shape). num_qubits is <{num_qubits!r}>. '
+            f'qid_shape is <{qid_shape!r}>.'
         )
 
     if isinstance(state_rep, np.ndarray):
@@ -885,16 +908,38 @@ def validate_normalized_state_vector(
         ValueError: State is not normalized.
     """
     if dtype and state_vector.dtype != dtype:
+        # TODO(#6171): BEGIN
+        # pylint: disable=consider-using-f-string
+        string_before = 'state_vector has invalid dtype. Expected {} but was {}'.format(
+            dtype, state_vector.dtype
+        )
+        string_after = (
+            f'state_vector has invalid dtype. Expected {dtype} but was {state_vector.dtype}'
+        )
+        assert string_before == string_after
+        # pylint: enable=consider-using-f-string
+        # TODO(#6171): END
+
         raise ValueError(
-            'state_vector has invalid dtype. Expected {} but was {}'.format(
-                dtype, state_vector.dtype
-            )
+            f'state_vector has invalid dtype. Expected {dtype} but was {state_vector.dtype}'
         )
     if state_vector.size != np.prod(qid_shape, dtype=np.int64):
+        # TODO(#6171): BEGIN
+        # pylint: disable=consider-using-f-string
+        string_before = 'state_vector has incorrect size. Expected {} but was {}.'.format(
+            np.prod(qid_shape, dtype=np.int64), state_vector.size
+        )
+        string_after = (
+            'state_vector has incorrect size. '
+            f'Expected {np.prod(qid_shape, dtype=np.int64)} but was {state_vector.size}.'
+        )
+        assert string_before == string_after
+        # pylint: enable=consider-using-f-string
+        # TODO(#6171): END
+
         raise ValueError(
-            'state_vector has incorrect size. Expected {} but was {}.'.format(
-                np.prod(qid_shape, dtype=np.int64), state_vector.size
-            )
+            'state_vector has incorrect size. '
+            f'Expected {np.prod(qid_shape, dtype=np.int64)} but was {state_vector.size}.'
         )
     norm = np.sum(np.abs(state_vector) ** 2)
     if not np.isclose(norm, 1, atol=atol):
@@ -918,9 +963,23 @@ def validate_qid_shape(
     if qid_shape is None:
         qid_shape = (2,) * (size.bit_length() - 1)
     if size != np.prod(qid_shape, dtype=np.int64):
-        raise ValueError(
+        # TODO(#6171): BEGIN
+        # pylint: disable=consider-using-f-string
+        string_before = (
             'state_vector.size ({}) is not a power of two or is not a product '
             'of the qid shape {!r}.'.format(size, qid_shape)
+        )
+        string_after = (
+            f'state_vector.size ({size}) is not a power of two or is not a product '
+            f'of the qid shape {qid_shape!r}.'
+        )
+        assert string_before == string_after
+        # pylint: enable=consider-using-f-string
+        # TODO(#6171): END
+
+        raise ValueError(
+            f'state_vector.size ({size}) is not a power of two or is not a product '
+            f'of the qid shape {qid_shape!r}.'
         )
     return qid_shape
 
@@ -1045,9 +1104,23 @@ def _qid_shape_from_args(
     if qid_shape is None:
         return (2,) * num_qubits
     if len(qid_shape) != num_qubits:
-        raise ValueError(
+        # TODO(#6171): BEGIN
+        # pylint: disable=consider-using-f-string
+        string_before = (
             'num_qubits != len(qid_shape). num_qubits was {!r}. '
             'qid_shape was {!r}.'.format(num_qubits, qid_shape)
+        )
+        string_after = (
+            f'num_qubits != len(qid_shape). num_qubits was {num_qubits!r}. '
+            f'qid_shape was {qid_shape!r}.'
+        )
+        assert string_before == string_after
+        # pylint: enable=consider-using-f-string
+        # TODO(#6171): END
+
+        raise ValueError(
+            f'num_qubits != len(qid_shape). num_qubits was {num_qubits!r}. '
+            f'qid_shape was {qid_shape!r}.'
         )
     return qid_shape
 

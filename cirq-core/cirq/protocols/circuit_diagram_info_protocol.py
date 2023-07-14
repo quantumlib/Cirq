@@ -12,9 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# TODO(#6171): enable the check and fix pylint errors
-# pylint: disable=consider-using-f-string
-
 import re
 from fractions import Fraction
 from typing import (
@@ -122,7 +119,7 @@ class CircuitDiagramInfo:
             else:
                 ks = (0,)
             for k in ks:
-                result[k] += '^' + exponent
+                result[k] += f"^{exponent}"
         return result
 
     def _formatted_exponent(self, args: 'cirq.CircuitDiagramInfoArgs') -> Optional[str]:
@@ -274,7 +271,7 @@ class CircuitDiagramInfoArgs:
         if radians == 0:
             return '0'
         if radians == -np.pi:
-            return '-' + unit
+            return f"-{unit}"
         if self.precision is not None and not isinstance(radians, sympy.Basic):
             quantity = self.format_real(radians / np.pi)
             return quantity + unit
@@ -433,9 +430,24 @@ def circuit_diagram_info(
         return default
     if getter is None:
         raise TypeError(f"object of type '{type(val)}' has no _circuit_diagram_info_ method.")
-    raise TypeError(
+
+    # TODO(#6171): BEGIN
+    # pylint: disable=consider-using-f-string
+    string_before = (
         "object of type '{}' does have a _circuit_diagram_info_ "
         "method, but it returned NotImplemented.".format(type(val))
+    )
+    string_after = (
+        f"object of type '{type(val)}' does have a _circuit_diagram_info_ "
+        "method, but it returned NotImplemented."
+    )
+    assert string_before == string_after
+    # pylint: enable=consider-using-f-string
+    # TODO(#6171): END
+
+    raise TypeError(
+        f"object of type '{type(val)}' does have a _circuit_diagram_info_ "
+        "method, but it returned NotImplemented."
     )
 
 

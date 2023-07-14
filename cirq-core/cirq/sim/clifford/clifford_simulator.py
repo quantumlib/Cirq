@@ -12,9 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# TODO(#6171): enable the check and fix pylint errors
-# pylint: disable=consider-using-f-string
-
 """An efficient simulator for Clifford circuits.
 
 Allowed operations include:
@@ -261,9 +258,23 @@ class CliffordState:
         collapse_state_vector=True,
     ):
         if not isinstance(op.gate, cirq.MeasurementGate):
-            raise TypeError(
+            # TODO(#6171): BEGIN
+            # pylint: disable=consider-using-f-string
+            string_before = (
                 'apply_measurement only supports cirq.MeasurementGate operations. Found %s instead.'
                 % str(op.gate)
+            )
+            string_after = (
+                f'apply_measurement only supports cirq.MeasurementGate operations. '
+                f'Found {op.gate} instead.'
+            )
+            assert string_before == string_after
+            # pylint: enable=consider-using-f-string
+            # TODO(#6171): END
+
+            raise TypeError(
+                f'apply_measurement only supports cirq.MeasurementGate operations. '
+                f'Found {op.gate} instead.'
             )
 
         if collapse_state_vector:

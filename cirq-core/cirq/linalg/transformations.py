@@ -12,9 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# TODO(#6171): enable the check and fix pylint errors
-# pylint: disable=consider-using-f-string
-
 """Utility methods for transforming matrices or vectors."""
 
 import dataclasses
@@ -403,14 +400,42 @@ def partial_trace(tensor: np.ndarray, keep_indices: Sequence[int]) -> np.ndarray
     """
     ndim = tensor.ndim // 2
     if not all(tensor.shape[i] == tensor.shape[i + ndim] for i in range(ndim)):
-        raise ValueError(
+        # TODO(#6171): BEGIN
+        # pylint: disable=consider-using-f-string
+        string_before = (
             'Tensors must have shape (d_0,...,d_{{k-1}},d_0,...,'
             'd_{{k-1}}) but had shape ({}).'.format(tensor.shape)
         )
-    if not all(i < ndim for i in keep_indices):
+        string_after = (
+            f'Tensors must have shape (d_0,...,d_{{k-1}},d_0,...,'
+            f'd_{{k-1}}) but had shape ({tensor.shape}).'
+        )
+        assert string_before == string_after
+        # pylint: enable=consider-using-f-string
+        # TODO(#6171): END
+
         raise ValueError(
+            f'Tensors must have shape (d_0,...,d_{{k-1}},d_0,...,'
+            f'd_{{k-1}}) but had shape ({tensor.shape}).'
+        )
+    if not all(i < ndim for i in keep_indices):
+        # TODO(#6171): BEGIN
+        # pylint: disable=consider-using-f-string
+        string_before = (
             'keep_indices were {} but must be in first half, '
             'i.e. have index less that {}.'.format(keep_indices, ndim)
+        )
+        string_after = (
+            f'keep_indices were {keep_indices} but must be in first half, '
+            f'i.e. have index less that {ndim}.'
+        )
+        assert string_before == string_after
+        # pylint: enable=consider-using-f-string
+        # TODO(#6171): END
+
+        raise ValueError(
+            f'keep_indices were {keep_indices} but must be in first half, '
+            f'i.e. have index less that {ndim}.'
         )
     keep_set = set(keep_indices)
     keep_map = dict(zip(keep_indices, sorted(keep_indices)))
@@ -534,9 +559,23 @@ def sub_state_vector(
     """
 
     if not np.log2(state_vector.size).is_integer():
-        raise ValueError(
+        # TODO(#6171): BEGIN
+        # pylint: disable=consider-using-f-string
+        string_before = (
             "Input state_vector of size {} does not represent a "
             "state over qubits.".format(state_vector.size)
+        )
+        string_after = (
+            f"Input state_vector of size {state_vector.size} does not represent a "
+            "state over qubits."
+        )
+        assert string_before == string_after
+        # pylint: enable=consider-using-f-string
+        # TODO(#6171): END
+
+        raise ValueError(
+            f"Input state_vector of size {state_vector.size} does not represent a "
+            "state over qubits."
         )
 
     n_qubits = int(np.log2(state_vector.size))
@@ -576,9 +615,21 @@ def sub_state_vector(
     if default is not RaiseValueErrorIfNotProvided:
         return default
 
-    raise EntangledStateError(
+    # TODO(#6171): BEGIN
+    # pylint: disable=consider-using-f-string
+    string_before = (
         "Input state vector could not be factored into pure state over "
         "indices {}".format(keep_indices)
+    )
+    string_after = (
+        f"Input state vector could not be factored into pure state over indices {keep_indices}"
+    )
+    assert string_before == string_after
+    # pylint: enable=consider-using-f-string
+    # TODO(#6171): END
+
+    raise EntangledStateError(
+        f"Input state vector could not be factored into pure state over indices {keep_indices}"
     )
 
 

@@ -12,9 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# TODO(#6171): enable the check and fix pylint errors
-# pylint: disable=consider-using-f-string
-
 import enum
 import itertools
 from typing import Dict, Sequence, Tuple, Union, TYPE_CHECKING
@@ -136,7 +133,16 @@ class BipartiteSwapNetworkGate(PermutationGate):
         if self.subgraph == BipartiteGraphType.MATCHING:
             name = 'Matching'
         elif self.subgraph == BipartiteGraphType.COMPLETE:
-            name = 'K_{{{0}, {0}}}'.format(self.part_size)
+            name = f'K_{{{self.part_size}, {self.part_size}}}'
+
+            # TODO(#6171): BEGIN
+            # pylint: disable=consider-using-f-string
+            string_before = 'K_{{{0}, {0}}}'.format(self.part_size)
+            string_after = name
+            assert string_before == string_after
+            # pylint: enable=consider-using-f-string
+            # TODO(#6171): END
+
         # NB: self.subgraph not in BipartiteGraphType caught by self.permutation
         arrow = '↦' if args.use_unicode_characters else '->'
 

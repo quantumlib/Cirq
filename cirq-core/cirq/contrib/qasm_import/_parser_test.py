@@ -12,9 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# TODO(#6171): enable the check and fix pylint errors
-# pylint: disable=consider-using-f-string
-
 from typing import Callable
 
 import numpy as np
@@ -493,7 +490,16 @@ single_qubit_gates = [
 
 @pytest.mark.parametrize('qasm_gate,cirq_gate', rotation_gates)
 def test_rotation_gates(qasm_gate: str, cirq_gate: Callable[[float], cirq.Gate]):
-    qasm = """OPENQASM 2.0;
+    qasm = f"""OPENQASM 2.0;
+     include "qelib1.inc";
+     qreg q[2];
+     {qasm_gate}(pi/2) q[0];
+     {qasm_gate}(pi) q;
+    """
+
+    # TODO(#6171): BEGIN
+    # pylint: disable=consider-using-f-string
+    string_before = """OPENQASM 2.0;
      include "qelib1.inc";
      qreg q[2];
      {0}(pi/2) q[0];
@@ -501,6 +507,10 @@ def test_rotation_gates(qasm_gate: str, cirq_gate: Callable[[float], cirq.Gate])
     """.format(
         qasm_gate
     )
+    string_after = qasm
+    assert string_before == string_after
+    # pylint: enable=consider-using-f-string
+    # TODO(#6171): END
 
     parser = QasmParser()
 
@@ -531,7 +541,15 @@ def test_rotation_gates_wrong_number_of_args(qasm_gate: str):
 
     parser = QasmParser()
 
-    with pytest.raises(QasmException, match=r".*{}.* takes 1.*got.*2.*line 5".format(qasm_gate)):
+    # TODO(#6171): BEGIN
+    # pylint: disable=consider-using-f-string
+    string_before = r".*{}.* takes 1.*got.*2.*line 5".format(qasm_gate)
+    string_after = f".*{qasm_gate}.* takes 1.*got.*2.*line 5"
+    assert string_before == string_after
+    # pylint: enable=consider-using-f-string
+    # TODO(#6171): END
+
+    with pytest.raises(QasmException, match=f".*{qasm_gate}.* takes 1.*got.*2.*line 5"):
         parser.parse(qasm)
 
 
@@ -545,7 +563,15 @@ def test_rotation_gates_zero_params_error(qasm_gate: str):
 
     parser = QasmParser()
 
-    with pytest.raises(QasmException, match=r".*{}.* takes 1.*got.*0.*line 4".format(qasm_gate)):
+    # TODO(#6171): BEGIN
+    # pylint: disable=consider-using-f-string
+    string_before = r".*{}.* takes 1.*got.*0.*line 4".format(qasm_gate)
+    string_after = f".*{qasm_gate}.* takes 1.*got.*0.*line 4"
+    assert string_before == string_after
+    # pylint: enable=consider-using-f-string
+    # TODO(#6171): END
+
+    with pytest.raises(QasmException, match=f".*{qasm_gate}.* takes 1.*got.*0.*line 4"):
         parser.parse(qasm)
 
 
@@ -871,9 +897,15 @@ def test_standard_gates_wrong_params_error(qasm_gate: str, num_params: int):
 
     parser = QasmParser()
 
-    with pytest.raises(
-        QasmException, match=r".*{}.* takes {}.*got.*5.*line 4".format(qasm_gate, num_params)
-    ):
+    # TODO(#6171): BEGIN
+    # pylint: disable=consider-using-f-string
+    string_before = r".*{}.* takes {}.*got.*5.*line 4".format(qasm_gate, num_params)
+    string_after = f".*{qasm_gate}.* takes {num_params}.*got.*5.*line 4"
+    assert string_before == string_after
+    # pylint: enable=consider-using-f-string
+    # TODO(#6171): END
+
+    with pytest.raises(QasmException, match=f".*{qasm_gate}.* takes {num_params}.*got.*5.*line 4"):
         parser.parse(qasm)
 
     if num_params == 0:
@@ -887,9 +919,15 @@ def test_standard_gates_wrong_params_error(qasm_gate: str, num_params: int):
 
     parser = QasmParser()
 
-    with pytest.raises(
-        QasmException, match=r".*{}.* takes {}.*got.*0.*line 4".format(qasm_gate, num_params)
-    ):
+    # TODO(#6171): BEGIN
+    # pylint: disable=consider-using-f-string
+    string_before = r".*{}.* takes {}.*got.*0.*line 4".format(qasm_gate, num_params)
+    string_after = f".*{qasm_gate}.* takes {num_params}.*got.*0.*line 4"
+    assert string_before == string_after
+    # pylint: enable=consider-using-f-string
+    # TODO(#6171): END
+
+    with pytest.raises(QasmException, match=f".*{qasm_gate}.* takes {num_params}.*got.*0.*line 4"):
         parser.parse(qasm)
 
 
@@ -905,17 +943,34 @@ two_qubit_gates = [
 
 @pytest.mark.parametrize('qasm_gate,cirq_gate', two_qubit_gates)
 def test_two_qubit_gates(qasm_gate: str, cirq_gate: cirq.testing.TwoQubitGate):
-    qasm = """
-     OPENQASM 2.0;   
-     include "qelib1.inc";       
+    qasm = f"""
+     OPENQASM 2.0;
+     include "qelib1.inc";
+     qreg q1[2];
+     qreg q2[2];
+     {qasm_gate} q1[0], q1[1];
+     {qasm_gate} q1, q2[0];
+     {qasm_gate} q2, q1;
+"""
+
+    # TODO(#6171): BEGIN
+    # pylint: disable=consider-using-f-string
+    string_before = """
+     OPENQASM 2.0;
+     include "qelib1.inc";
      qreg q1[2];
      qreg q2[2];
      {0} q1[0], q1[1];
      {0} q1, q2[0];
-     {0} q2, q1;      
+     {0} q2, q1;
 """.format(
         qasm_gate
     )
+    string_after = qasm
+    assert string_before == string_after
+    # pylint: enable=consider-using-f-string
+    # TODO(#6171): END
+
     parser = QasmParser()
 
     q1_0 = cirq.NamedQubit('q1_0')
@@ -953,9 +1008,15 @@ def test_two_qubit_gates_not_enough_args(qasm_gate: str):
 
     parser = QasmParser()
 
-    with pytest.raises(
-        QasmException, match=r".*{}.* takes 2 arg\(s\).*got.*1.*line 5".format(qasm_gate)
-    ):
+    # TODO(#6171): BEGIN
+    # pylint: disable=consider-using-f-string
+    string_before = r".*{}.* takes 2 arg\(s\).*got.*1.*line 5".format(qasm_gate)
+    string_after = rf".*{qasm_gate}.* takes 2 arg\(s\).*got.*1.*line 5"
+    assert string_before == string_after
+    # pylint: enable=consider-using-f-string
+    # TODO(#6171): END
+
+    with pytest.raises(QasmException, match=rf".*{qasm_gate}.* takes 2 arg\(s\).*got.*1.*line 5"):
         parser.parse(qasm)
 
 
@@ -970,8 +1031,16 @@ def test_two_qubit_gates_with_too_much_parameters(qasm_gate: str):
 
     parser = QasmParser()
 
+    # TODO(#6171): BEGIN
+    # pylint: disable=consider-using-f-string
+    string_before = r".*{}.* takes 0 parameter\(s\).*got.*1.*line 5".format(qasm_gate)
+    string_after = rf".*{qasm_gate}.* takes 0 parameter\(s\).*got.*1.*line 5"
+    assert string_before == string_after
+    # pylint: enable=consider-using-f-string
+    # TODO(#6171): END
+
     with pytest.raises(
-        QasmException, match=r".*{}.* takes 0 parameter\(s\).*got.*1.*line 5".format(qasm_gate)
+        QasmException, match=rf".*{qasm_gate}.* takes 0 parameter\(s\).*got.*1.*line 5"
     ):
         parser.parse(qasm)
 
@@ -981,18 +1050,36 @@ three_qubit_gates = [('ccx', cirq.TOFFOLI), ('cswap', cirq.CSWAP)]
 
 @pytest.mark.parametrize('qasm_gate,cirq_gate', three_qubit_gates)
 def test_three_qubit_gates(qasm_gate: str, cirq_gate: cirq.testing.TwoQubitGate):
-    qasm = """
+    qasm = f"""
      OPENQASM 2.0;
-     include "qelib1.inc";       
+     include "qelib1.inc";
+     qreg q1[2];
+     qreg q2[2];
+     qreg q3[2];
+     {qasm_gate} q1[0], q1[1], q2[0];
+     {qasm_gate} q1, q2[0], q3[0];
+     {qasm_gate} q1, q2, q3;
+"""
+
+    # TODO(#6171): BEGIN
+    # pylint: disable=consider-using-f-string
+    string_before = """
+     OPENQASM 2.0;
+     include "qelib1.inc";
      qreg q1[2];
      qreg q2[2];
      qreg q3[2];
      {0} q1[0], q1[1], q2[0];
      {0} q1, q2[0], q3[0];
-     {0} q1, q2, q3;      
+     {0} q1, q2, q3;
 """.format(
         qasm_gate
     )
+    string_after = qasm
+    assert string_before == string_after
+    # pylint: enable=consider-using-f-string
+    # TODO(#6171): END
+
     parser = QasmParser()
 
     q1_0 = cirq.NamedQubit('q1_0')
@@ -1031,9 +1118,15 @@ def test_three_qubit_gates_not_enough_args(qasm_gate: str):
 
     parser = QasmParser()
 
-    with pytest.raises(
-        QasmException, match=r""".*{}.* takes 3 arg\(s\).*got.*1.*line 4""".format(qasm_gate)
-    ):
+    # TODO(#6171): BEGIN
+    # pylint: disable=consider-using-f-string
+    string_before = r""".*{}.* takes 3 arg\(s\).*got.*1.*line 4""".format(qasm_gate)
+    string_after = rf".*{qasm_gate}.* takes 3 arg\(s\).*got.*1.*line 4"
+    assert string_before == string_after
+    # pylint: enable=consider-using-f-string
+    # TODO(#6171): END
+
+    with pytest.raises(QasmException, match=rf".*{qasm_gate}.* takes 3 arg\(s\).*got.*1.*line 4"):
         parser.parse(qasm)
 
 
@@ -1047,13 +1140,30 @@ def test_three_qubit_gates_with_too_much_parameters(qasm_gate: str):
 
     parser = QasmParser()
 
-    with pytest.raises(QasmException, match=r""".*{}.*parameter.*line 4.*""".format(qasm_gate)):
+    # TODO(#6171): BEGIN
+    # pylint: disable=consider-using-f-string
+    string_before = r""".*{}.*parameter.*line 4.*""".format(qasm_gate)
+    string_after = f".*{qasm_gate}.*parameter.*line 4.*"
+    assert string_before == string_after
+    # pylint: enable=consider-using-f-string
+    # TODO(#6171): END
+
+    with pytest.raises(QasmException, match=f".*{qasm_gate}.*parameter.*line 4.*"):
         parser.parse(qasm)
 
 
 @pytest.mark.parametrize('qasm_gate,cirq_gate', single_qubit_gates)
 def test_single_qubit_gates(qasm_gate: str, cirq_gate: cirq.Gate):
-    qasm = """OPENQASM 2.0;
+    qasm = f"""OPENQASM 2.0;
+     include "qelib1.inc";
+     qreg q[2];
+     {qasm_gate} q[0];
+     {qasm_gate} q;
+    """
+
+    # TODO(#6171): BEGIN
+    # pylint: disable=consider-using-f-string
+    string_before = """OPENQASM 2.0;
      include "qelib1.inc";
      qreg q[2];
      {0} q[0];
@@ -1061,6 +1171,10 @@ def test_single_qubit_gates(qasm_gate: str, cirq_gate: cirq.Gate):
     """.format(
         qasm_gate
     )
+    string_after = qasm
+    assert string_before == string_after
+    # pylint: enable=consider-using-f-string
+    # TODO(#6171): END
 
     parser = QasmParser()
 

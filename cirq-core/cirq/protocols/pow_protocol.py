@@ -12,9 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# TODO(#6171): enable the check and fix pylint errors
-# pylint: disable=consider-using-f-string
-
 from typing import Any, Callable, Optional, overload, TypeVar, TYPE_CHECKING, Union
 
 if TYPE_CHECKING:
@@ -96,9 +93,22 @@ def pow(val: Any, exponent: Any, default: Any = RaiseTypeErrorIfNotProvided) -> 
         return default
     if raiser is None:
         raise TypeError(f"object of type '{type(val)}' has no __pow__ method.")
-    raise TypeError(
+
+    # TODO(#6171): BEGIN
+    # pylint: disable=consider-using-f-string
+    string_before = (
         "object of type '{}' does have a __pow__ method, "
         "but it returned NotImplemented.".format(type(val))
+    )
+    string_after = (
+        f"object of type '{type(val)}' does have a __pow__ method, but it returned NotImplemented."
+    )
+    assert string_before == string_after
+    # pylint: enable=consider-using-f-string
+    # TODO(#6171): END
+
+    raise TypeError(
+        f"object of type '{type(val)}' does have a __pow__ method, but it returned NotImplemented."
     )
 
 

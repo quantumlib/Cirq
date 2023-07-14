@@ -12,9 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# TODO(#6171): enable the check and fix pylint errors
-# pylint: disable=consider-using-f-string
-
 import functools
 import operator
 from typing import Any, Callable, cast, Dict, Iterable, List, Optional, Union, TYPE_CHECKING
@@ -85,17 +82,43 @@ class QasmGateStatement:
 
     def _validate_args(self, args: List[List[ops.Qid]], lineno: int):
         if len(args) != self.num_args:
-            raise QasmException(
+            # TODO(#6171): BEGIN
+            # pylint: disable=consider-using-f-string
+            string_before = (
                 "{} only takes {} arg(s) (qubits and/or registers), "
                 "got: {}, at line {}".format(self.qasm_gate, self.num_args, len(args), lineno)
+            )
+            string_after = (
+                f"{self.qasm_gate} only takes {self.num_args} arg(s) (qubits and/or registers), "
+                f"got: {len(args)}, at line {lineno}"
+            )
+            assert string_before == string_after
+            # pylint: enable=consider-using-f-string
+            # TODO(#6171): END
+
+            raise QasmException(
+                f"{self.qasm_gate} only takes {self.num_args} arg(s) (qubits and/or registers), "
+                f"got: {len(args)}, at line {lineno}"
             )
 
     def _validate_params(self, params: List[float], lineno: int):
         if len(params) != self.num_params:
+            # TODO(#6171): BEGIN
+            # pylint: disable=consider-using-f-string
+            string_before = "{} takes {} parameter(s), got: {}, at line {}".format(
+                self.qasm_gate, self.num_params, len(params), lineno
+            )
+            string_after = (
+                f"{self.qasm_gate} takes {self.num_params} parameter(s), "
+                f"got: {len(params)}, at line {lineno}"
+            )
+            assert string_before == string_after
+            # pylint: enable=consider-using-f-string
+            # TODO(#6171): END
+
             raise QasmException(
-                "{} takes {} parameter(s), got: {}, at line {}".format(
-                    self.qasm_gate, self.num_params, len(params), lineno
-                )
+                f"{self.qasm_gate} takes {self.num_params} parameter(s), "
+                f"got: {len(params)}, at line {lineno}"
             )
 
     def on(
@@ -290,9 +313,21 @@ class QasmParser:
     def p_format(self, p):
         """format : FORMAT_SPEC"""
         if p[1] != "2.0":
-            raise QasmException(
+            # TODO(#6171): BEGIN
+            # pylint: disable=consider-using-f-string
+            string_before = (
                 "Unsupported OpenQASM version: {}, "
                 "only 2.0 is supported currently by Cirq".format(p[1])
+            )
+            string_after = (
+                f"Unsupported OpenQASM version: {p[1]}, only 2.0 is supported currently by Cirq"
+            )
+            assert string_before == string_after
+            # pylint: enable=consider-using-f-string
+            # TODO(#6171): END
+
+            raise QasmException(
+                f"Unsupported OpenQASM version: {p[1]}, only 2.0 is supported currently by Cirq"
             )
 
     # circuit : new_reg circuit
@@ -349,11 +384,21 @@ class QasmParser:
     ):
         gate_set = self.basic_gates if not self.qelibinc else self.all_gates
         if gate not in gate_set.keys():
-            msg = 'Unknown gate "{}" at line {}{}'.format(
+            tip = ", did you forget to include qelib1.inc?" if not self.qelibinc else ""
+            msg = f'Unknown gate "{gate}" at line {p.lineno(1)}{tip}'
+
+            # TODO(#6171): BEGIN
+            # pylint: disable=consider-using-f-string
+            string_before = 'Unknown gate "{}" at line {}{}'.format(
                 gate,
                 p.lineno(1),
                 ", did you forget to include qelib1.inc?" if not self.qelibinc else "",
             )
+            string_after = msg
+            assert string_before == string_after
+            # pylint: enable=consider-using-f-string
+            # TODO(#6171): END
+
             raise QasmException(msg)
         p[0] = gate_set[gate].on(args=args, params=params, lineno=p.lineno(1))
 
@@ -463,10 +508,26 @@ class QasmParser:
             raise QasmException(f'Undefined quantum register "{reg}" at line {p.lineno(1)}')
         size = self.qregs[reg]
         if idx >= size:
-            raise QasmException(
+            # TODO(#6171): BEGIN
+            # pylint: disable=consider-using-f-string
+            string_before = (
                 'Out of bounds qubit index {} '
                 'on register {} of size {} '
                 'at line {}'.format(idx, reg, size, p.lineno(1))
+            )
+            string_after = (
+                f'Out of bounds qubit index {idx} '
+                f'on register {reg} of size {size} '
+                f'at line {p.lineno(1)}'
+            )
+            assert string_before == string_after
+            # pylint: enable=consider-using-f-string
+            # TODO(#6171): END
+
+            raise QasmException(
+                f'Out of bounds qubit index {idx} '
+                f'on register {reg} of size {size} '
+                f'at line {p.lineno(1)}'
             )
         if arg_name not in self.qubits.keys():
             self.qubits[arg_name] = NamedQubit(arg_name)
@@ -482,10 +543,26 @@ class QasmParser:
 
         size = self.cregs[reg]
         if idx >= size:
-            raise QasmException(
+            # TODO(#6171): BEGIN
+            # pylint: disable=consider-using-f-string
+            string_before = (
                 'Out of bounds bit index {} '
                 'on classical register {} of size {} '
                 'at line {}'.format(idx, reg, size, p.lineno(1))
+            )
+            string_after = (
+                f'Out of bounds bit index {idx} '
+                f'on classical register {reg} of size {size} '
+                f'at line {p.lineno(1)}'
+            )
+            assert string_before == string_after
+            # pylint: enable=consider-using-f-string
+            # TODO(#6171): END
+
+            raise QasmException(
+                f'Out of bounds bit index {idx} '
+                f'on classical register {reg} of size {size} '
+                f'at line {p.lineno(1)}'
             )
         p[0] = [arg_name]
 
@@ -498,9 +575,23 @@ class QasmParser:
         creg = p[4]
 
         if len(qreg) != len(creg):
-            raise QasmException(
+            # TODO(#6171): BEGIN
+            # pylint: disable=consider-using-f-string
+            string_before = (
                 'mismatched register sizes {} -> {} for measurement '
                 'at line {}'.format(len(qreg), len(creg), p.lineno(1))
+            )
+            string_after = (
+                f'mismatched register sizes {len(qreg)} -> {len(creg)} for measurement '
+                f'at line {p.lineno(1)}'
+            )
+            assert string_before == string_after
+            # pylint: enable=consider-using-f-string
+            # TODO(#6171): END
+
+            raise QasmException(
+                f'mismatched register sizes {len(qreg)} -> {len(creg)} for measurement '
+                f'at line {p.lineno(1)}'
             )
 
         p[0] = [
