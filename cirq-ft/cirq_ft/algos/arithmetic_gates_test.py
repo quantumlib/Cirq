@@ -359,7 +359,7 @@ def test_single_qubit_compare_protocols(adjoint: bool):
     cirq.testing.assert_equivalent_repr(g, setup_code='import cirq_ft')
 
     with pytest.raises(ValueError):
-        _ = g**0.5
+        _ = g**0.5  # type: ignore
 
     assert g**2 == cirq.IdentityGate(4)
     assert g**1 is g
