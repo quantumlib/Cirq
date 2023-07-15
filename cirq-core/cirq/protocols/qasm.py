@@ -183,6 +183,7 @@ def qasm(
         "but it returned NotImplemented or None."
     )
     assert string_before == string_after
+    print("\nUFS:cirq-core/cirq/protocols/qasm.py:185:assert string_before == string_after")
     # pylint: enable=consider-using-f-string
     # TODO(#6171): END
 

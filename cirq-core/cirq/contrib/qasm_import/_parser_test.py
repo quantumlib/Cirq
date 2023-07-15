@@ -509,6 +509,7 @@ def test_rotation_gates(qasm_gate: str, cirq_gate: Callable[[float], cirq.Gate])
     )
     string_after = qasm
     assert string_before == string_after
+    print("\nUFS:cirq-core/cirq/contrib/qasm_import/_parser_test.py:511:assert string_before == string_after")
     # pylint: enable=consider-using-f-string
     # TODO(#6171): END
 
@@ -546,6 +547,7 @@ def test_rotation_gates_wrong_number_of_args(qasm_gate: str):
     string_before = r".*{}.* takes 1.*got.*2.*line 5".format(qasm_gate)
     string_after = f".*{qasm_gate}.* takes 1.*got.*2.*line 5"
     assert string_before == string_after
+    print("\nUFS:cirq-core/cirq/contrib/qasm_import/_parser_test.py:549:assert string_before == string_after")
     # pylint: enable=consider-using-f-string
     # TODO(#6171): END
 
@@ -568,6 +570,7 @@ def test_rotation_gates_zero_params_error(qasm_gate: str):
     string_before = r".*{}.* takes 1.*got.*0.*line 4".format(qasm_gate)
     string_after = f".*{qasm_gate}.* takes 1.*got.*0.*line 4"
     assert string_before == string_after
+    print("\nUFS:cirq-core/cirq/contrib/qasm_import/_parser_test.py:572:assert string_before == string_after")
     # pylint: enable=consider-using-f-string
     # TODO(#6171): END
 
@@ -902,6 +905,7 @@ def test_standard_gates_wrong_params_error(qasm_gate: str, num_params: int):
     string_before = r".*{}.* takes {}.*got.*5.*line 4".format(qasm_gate, num_params)
     string_after = f".*{qasm_gate}.* takes {num_params}.*got.*5.*line 4"
     assert string_before == string_after
+    print("\nUFS:cirq-core/cirq/contrib/qasm_import/_parser_test.py:907:assert string_before == string_after")
     # pylint: enable=consider-using-f-string
     # TODO(#6171): END
 
@@ -924,6 +928,7 @@ def test_standard_gates_wrong_params_error(qasm_gate: str, num_params: int):
     string_before = r".*{}.* takes {}.*got.*0.*line 4".format(qasm_gate, num_params)
     string_after = f".*{qasm_gate}.* takes {num_params}.*got.*0.*line 4"
     assert string_before == string_after
+    print("\nUFS:cirq-core/cirq/contrib/qasm_import/_parser_test.py:930:assert string_before == string_after")
     # pylint: enable=consider-using-f-string
     # TODO(#6171): END
 
@@ -968,6 +973,7 @@ def test_two_qubit_gates(qasm_gate: str, cirq_gate: cirq.testing.TwoQubitGate):
     )
     string_after = qasm
     assert string_before == string_after
+    print("\nUFS:cirq-core/cirq/contrib/qasm_import/_parser_test.py:975:assert string_before == string_after")
     # pylint: enable=consider-using-f-string
     # TODO(#6171): END
 
@@ -1013,6 +1019,7 @@ def test_two_qubit_gates_not_enough_args(qasm_gate: str):
     string_before = r".*{}.* takes 2 arg\(s\).*got.*1.*line 5".format(qasm_gate)
     string_after = rf".*{qasm_gate}.* takes 2 arg\(s\).*got.*1.*line 5"
     assert string_before == string_after
+    print("\nUFS:cirq-core/cirq/contrib/qasm_import/_parser_test.py:1021:assert string_before == string_after")
     # pylint: enable=consider-using-f-string
     # TODO(#6171): END
 
@@ -1036,6 +1043,7 @@ def test_two_qubit_gates_with_too_much_parameters(qasm_gate: str):
     string_before = r".*{}.* takes 0 parameter\(s\).*got.*1.*line 5".format(qasm_gate)
     string_after = rf".*{qasm_gate}.* takes 0 parameter\(s\).*got.*1.*line 5"
     assert string_before == string_after
+    print("\nUFS:cirq-core/cirq/contrib/qasm_import/_parser_test.py:1045:assert string_before == string_after")
     # pylint: enable=consider-using-f-string
     # TODO(#6171): END
 
@@ -1077,6 +1085,7 @@ def test_three_qubit_gates(qasm_gate: str, cirq_gate: cirq.testing.TwoQubitGate)
     )
     string_after = qasm
     assert string_before == string_after
+    print("\nUFS:cirq-core/cirq/contrib/qasm_import/_parser_test.py:1087:assert string_before == string_after")
     # pylint: enable=consider-using-f-string
     # TODO(#6171): END
 
@@ -1123,6 +1132,7 @@ def test_three_qubit_gates_not_enough_args(qasm_gate: str):
     string_before = r""".*{}.* takes 3 arg\(s\).*got.*1.*line 4""".format(qasm_gate)
     string_after = rf".*{qasm_gate}.* takes 3 arg\(s\).*got.*1.*line 4"
     assert string_before == string_after
+    print("\nUFS:cirq-core/cirq/contrib/qasm_import/_parser_test.py:1134:assert string_before == string_after")
     # pylint: enable=consider-using-f-string
     # TODO(#6171): END
 
@@ -1145,6 +1155,7 @@ def test_three_qubit_gates_with_too_much_parameters(qasm_gate: str):
     string_before = r""".*{}.*parameter.*line 4.*""".format(qasm_gate)
     string_after = f".*{qasm_gate}.*parameter.*line 4.*"
     assert string_before == string_after
+    print("\nUFS:cirq-core/cirq/contrib/qasm_import/_parser_test.py:1157:assert string_before == string_after")
     # pylint: enable=consider-using-f-string
     # TODO(#6171): END
 
@@ -1173,6 +1184,7 @@ def test_single_qubit_gates(qasm_gate: str, cirq_gate: cirq.Gate):
     )
     string_after = qasm
     assert string_before == string_after
+    print("\nUFS:cirq-core/cirq/contrib/qasm_import/_parser_test.py:1186:assert string_before == string_after")
     # pylint: enable=consider-using-f-string
     # TODO(#6171): END
 

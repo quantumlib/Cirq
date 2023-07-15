@@ -133,6 +133,7 @@ def qid_shape(
             "but it returned NotImplemented."
         )
         assert string_before == string_after
+        print("\nUFS:cirq-core/cirq/protocols/qid_shape_protocol.py:135:assert string_before == string_after")
         # pylint: enable=consider-using-f-string
         # TODO(#6171): END
 
@@ -152,6 +153,7 @@ def qid_shape(
             "but it returned NotImplemented."
         )
         assert string_before == string_after
+        print("\nUFS:cirq-core/cirq/protocols/qid_shape_protocol.py:155:assert string_before == string_after")
         # pylint: enable=consider-using-f-string
         # TODO(#6171): END
 
@@ -216,6 +218,7 @@ def num_qubits(
             "but it returned NotImplemented."
         )
         assert string_before == string_after
+        print("\nUFS:cirq-core/cirq/protocols/qid_shape_protocol.py:220:assert string_before == string_after")
         # pylint: enable=consider-using-f-string
         # TODO(#6171): END
 
@@ -235,6 +238,7 @@ def num_qubits(
             "but it returned NotImplemented."
         )
         assert string_before == string_after
+        print("\nUFS:cirq-core/cirq/protocols/qid_shape_protocol.py:240:assert string_before == string_after")
         # pylint: enable=consider-using-f-string
         # TODO(#6171): END
 

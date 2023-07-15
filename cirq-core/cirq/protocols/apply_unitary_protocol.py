@@ -437,6 +437,7 @@ def apply_unitary(
         ""
     )
     assert string_before == string_after
+    print("\nUFS:cirq-core/cirq/protocols/apply_unitary_protocol.py:439:assert string_before == string_after")
     # pylint: enable=consider-using-f-string
     # TODO(#6171): END
 
@@ -629,6 +630,7 @@ def apply_unitaries(
                     f"non-unitary value: {op!r}"
                 )
                 assert string_before == string_after
+                print("\nUFS:cirq-core/cirq/protocols/apply_unitary_protocol.py:632:assert string_before == string_after")
                 # pylint: enable=consider-using-f-string
                 # TODO(#6171): END
 

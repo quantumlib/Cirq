@@ -52,6 +52,7 @@ def assert_permutation_decomposition_equivalence(gate: PermutationGate, n_qubits
         f'{[expected_mapping[q] for q in qubits]}\n'
     )
     assert string_before == string_after
+    print("\nUFS:cirq-core/cirq/contrib/acquaintance/testing.py:54:assert string_before == string_after")
     # pylint: enable=consider-using-f-string
     # TODO(#6171): END
 

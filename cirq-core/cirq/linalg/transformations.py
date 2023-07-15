@@ -411,6 +411,7 @@ def partial_trace(tensor: np.ndarray, keep_indices: Sequence[int]) -> np.ndarray
             f'd_{{k-1}}) but had shape ({tensor.shape}).'
         )
         assert string_before == string_after
+        print("\nUFS:cirq-core/cirq/linalg/transformations.py:413:assert string_before == string_after")
         # pylint: enable=consider-using-f-string
         # TODO(#6171): END
 
@@ -430,6 +431,7 @@ def partial_trace(tensor: np.ndarray, keep_indices: Sequence[int]) -> np.ndarray
             f'i.e. have index less that {ndim}.'
         )
         assert string_before == string_after
+        print("\nUFS:cirq-core/cirq/linalg/transformations.py:433:assert string_before == string_after")
         # pylint: enable=consider-using-f-string
         # TODO(#6171): END
 
@@ -570,6 +572,7 @@ def sub_state_vector(
             "state over qubits."
         )
         assert string_before == string_after
+        print("\nUFS:cirq-core/cirq/linalg/transformations.py:574:assert string_before == string_after")
         # pylint: enable=consider-using-f-string
         # TODO(#6171): END
 
@@ -625,6 +628,7 @@ def sub_state_vector(
         f"Input state vector could not be factored into pure state over indices {keep_indices}"
     )
     assert string_before == string_after
+    print("\nUFS:cirq-core/cirq/linalg/transformations.py:630:assert string_before == string_after")
     # pylint: enable=consider-using-f-string
     # TODO(#6171): END
 

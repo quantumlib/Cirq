@@ -222,6 +222,7 @@ def test_middle_multiplexor(angles, num_cnots):
         f"expected {num_cnots} CNOTs got \n {circuit_u1u2_mid} \n {circuit_u1u2_mid.unitary()}"
     )
     assert string_before == string_after
+    print("\nUFS:cirq-core/cirq/transformers/analytical_decompositions/three_qubit_decomposition_test.py:224:assert string_before == string_after")
     # pylint: enable=consider-using-f-string
     # TODO(#6171): END
 

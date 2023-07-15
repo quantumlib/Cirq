@@ -93,6 +93,7 @@ class QasmGateStatement:
                 f"got: {len(args)}, at line {lineno}"
             )
             assert string_before == string_after
+            print("\nUFS:cirq-core/cirq/contrib/qasm_import/_parser.py:95:assert string_before == string_after")
             # pylint: enable=consider-using-f-string
             # TODO(#6171): END
 
@@ -113,6 +114,7 @@ class QasmGateStatement:
                 f"got: {len(params)}, at line {lineno}"
             )
             assert string_before == string_after
+            print("\nUFS:cirq-core/cirq/contrib/qasm_import/_parser.py:116:assert string_before == string_after")
             # pylint: enable=consider-using-f-string
             # TODO(#6171): END
 
@@ -323,6 +325,7 @@ class QasmParser:
                 f"Unsupported OpenQASM version: {p[1]}, only 2.0 is supported currently by Cirq"
             )
             assert string_before == string_after
+            print("\nUFS:cirq-core/cirq/contrib/qasm_import/_parser.py:327:assert string_before == string_after")
             # pylint: enable=consider-using-f-string
             # TODO(#6171): END
 
@@ -396,6 +399,7 @@ class QasmParser:
             )
             string_after = msg
             assert string_before == string_after
+            print("\nUFS:cirq-core/cirq/contrib/qasm_import/_parser.py:401:assert string_before == string_after")
             # pylint: enable=consider-using-f-string
             # TODO(#6171): END
 
@@ -521,6 +525,7 @@ class QasmParser:
                 f'at line {p.lineno(1)}'
             )
             assert string_before == string_after
+            print("\nUFS:cirq-core/cirq/contrib/qasm_import/_parser.py:527:assert string_before == string_after")
             # pylint: enable=consider-using-f-string
             # TODO(#6171): END
 
@@ -556,6 +561,7 @@ class QasmParser:
                 f'at line {p.lineno(1)}'
             )
             assert string_before == string_after
+            print("\nUFS:cirq-core/cirq/contrib/qasm_import/_parser.py:563:assert string_before == string_after")
             # pylint: enable=consider-using-f-string
             # TODO(#6171): END
 
@@ -586,6 +592,7 @@ class QasmParser:
                 f'at line {p.lineno(1)}'
             )
             assert string_before == string_after
+            print("\nUFS:cirq-core/cirq/contrib/qasm_import/_parser.py:594:assert string_before == string_after")
             # pylint: enable=consider-using-f-string
             # TODO(#6171): END
 

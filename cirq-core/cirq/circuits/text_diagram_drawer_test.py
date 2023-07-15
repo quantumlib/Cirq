@@ -74,6 +74,7 @@ def assert_has_rendering(actual: TextDiagramDrawer, desired: str, **kwargs) -> N
         f'{ct.highlight_text_differences(actual_diagram, desired_diagram)}\n'
     )
     assert string_before == string_after
+    print("\nUFS:cirq-core/cirq/circuits/text_diagram_drawer_test.py:76:assert string_before == string_after")
     # pylint: enable=consider-using-f-string
     # TODO(#6171): END
 

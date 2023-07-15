@@ -187,6 +187,7 @@ class CCZPowGate(gate_features.InterchangeableQubitsGate, eigen_gate.EigenGate):
             f'global_shift={self._global_shift!r})'
         )
         assert string_before == string_after
+        print("\nUFS:cirq-core/cirq/ops/three_qubit_gates.py:189:assert string_before == string_after")
         # pylint: enable=consider-using-f-string
         # TODO(#6171): END
 
@@ -407,6 +408,7 @@ class ThreeQubitDiagonalGate(raw_types.Gate):
         )
         string_after = f'cirq.ThreeQubitDiagonalGate([{angles}])'
         assert string_before == string_after
+        print("\nUFS:cirq-core/cirq/ops/three_qubit_gates.py:410:assert string_before == string_after")
         # pylint: enable=consider-using-f-string
         # TODO(#6171): END
 
@@ -524,6 +526,7 @@ class CCXPowGate(gate_features.InterchangeableQubitsGate, eigen_gate.EigenGate):
             f'global_shift={self._global_shift!r})'
         )
         assert string_before == string_after
+        print("\nUFS:cirq-core/cirq/ops/three_qubit_gates.py:528:assert string_before == string_after")
         # pylint: enable=consider-using-f-string
         # TODO(#6171): END
 

@@ -51,6 +51,7 @@ class CustomXPowGate(cirq.EigenGate):
             f'global_shift={self._global_shift!r})'
         )
         assert string_before == string_after
+        print("\nUFS:cirq-core/cirq/ops/gateset_test.py:53:assert string_before == string_after")
         # pylint: enable=consider-using-f-string
         # TODO(#6171): END
 

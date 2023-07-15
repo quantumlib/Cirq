@@ -193,6 +193,7 @@ def big_endian_int_to_digits(
             f'left behind {val!r} instead of 0.'
         )
         assert string_before == string_after
+        print("\nUFS:cirq-core/cirq/value/digits.py:195:assert string_before == string_after")
         # pylint: enable=consider-using-f-string
         # TODO(#6171): END
 

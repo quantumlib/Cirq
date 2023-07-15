@@ -39,6 +39,7 @@ def assert_specifies_has_unitary_if_unitary(val: Any) -> None:
         f"val: {val!r}"
     )
     assert string_before == string_after
+    print("\nUFS:cirq-core/cirq/testing/consistent_specified_has_unitary.py:41:assert string_before == string_after")
     # pylint: enable=consider-using-f-string
     # TODO(#6171): END
 

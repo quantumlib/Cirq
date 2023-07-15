@@ -357,6 +357,7 @@ class SwapNetworkGate(PermutationGate):
             f'{self.part_lens!r}, {self.acquaintance_size!r})'
         )
         assert string_before == string_after
+        print("\nUFS:cirq-core/cirq/contrib/acquaintance/gates.py:359:assert string_before == string_after")
         # pylint: enable=consider-using-f-string
         # TODO(#6171): END
 

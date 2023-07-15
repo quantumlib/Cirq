@@ -104,6 +104,7 @@ class ABCMetaImplementAnyOneOf(abc.ABCMeta):
                     f'definition of {cls!r}.'
                 )
                 assert string_before == string_after
+                print("\nUFS:cirq-core/cirq/value/abc_alt.py:106:assert string_before == string_after")
                 # pylint: enable=consider-using-f-string
                 # TODO(#6171): END
 

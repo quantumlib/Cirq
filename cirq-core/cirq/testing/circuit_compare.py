@@ -194,6 +194,7 @@ def assert_circuits_with_terminal_measurements_are_equivalent(
             f'{reference}\n'
         )
         assert string_before == string_after
+        print("\nUFS:cirq-core/cirq/testing/circuit_compare.py:196:assert string_before == string_after")
         # pylint: enable=consider-using-f-string
         # TODO(#6171): END
 
@@ -257,6 +258,7 @@ def assert_same_circuits(
         f"{expected!r}\n"
     )
     assert string_before == string_after
+    print("\nUFS:cirq-core/cirq/testing/circuit_compare.py:260:assert string_before == string_after")
     # pylint: enable=consider-using-f-string
     # TODO(#6171): END
 
@@ -371,6 +373,7 @@ def assert_has_diagram(
         f'{highlight_text_differences(actual_diagram, desired_diagram)}\n'
     )
     assert string_before == string_after
+    print("\nUFS:cirq-core/cirq/testing/circuit_compare.py:375:assert string_before == string_after")
     # pylint: enable=consider-using-f-string
     # TODO(#6171): END
 

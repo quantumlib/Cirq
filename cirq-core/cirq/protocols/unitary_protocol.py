@@ -157,6 +157,7 @@ def unitary(
         "besides None or NotImplemented."
     )
     assert string_before == string_after
+    print("\nUFS:cirq-core/cirq/protocols/unitary_protocol.py:159:assert string_before == string_after")
     # pylint: enable=consider-using-f-string
     # TODO(#6171): END
 

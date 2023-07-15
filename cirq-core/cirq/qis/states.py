@@ -735,6 +735,7 @@ def dirac_notation(
             f'Expected {np.prod(qid_shape, dtype=np.int64)} but was {len(state_vector)}.'
         )
         assert string_before == string_after
+        print("\nUFS:cirq-core/cirq/qis/states.py:737:assert string_before == string_after")
         # pylint: enable=consider-using-f-string
         # TODO(#6171): END
 
@@ -843,6 +844,7 @@ def to_valid_state_vector(
             f'qid_shape is <{qid_shape!r}>.'
         )
         assert string_before == string_after
+        print("\nUFS:cirq-core/cirq/qis/states.py:846:assert string_before == string_after")
         # pylint: enable=consider-using-f-string
         # TODO(#6171): END
 
@@ -917,6 +919,7 @@ def validate_normalized_state_vector(
             f'state_vector has invalid dtype. Expected {dtype} but was {state_vector.dtype}'
         )
         assert string_before == string_after
+        print("\nUFS:cirq-core/cirq/qis/states.py:921:assert string_before == string_after")
         # pylint: enable=consider-using-f-string
         # TODO(#6171): END
 
@@ -934,6 +937,7 @@ def validate_normalized_state_vector(
             f'Expected {np.prod(qid_shape, dtype=np.int64)} but was {state_vector.size}.'
         )
         assert string_before == string_after
+        print("\nUFS:cirq-core/cirq/qis/states.py:939:assert string_before == string_after")
         # pylint: enable=consider-using-f-string
         # TODO(#6171): END
 
@@ -974,6 +978,7 @@ def validate_qid_shape(
             f'of the qid shape {qid_shape!r}.'
         )
         assert string_before == string_after
+        print("\nUFS:cirq-core/cirq/qis/states.py:980:assert string_before == string_after")
         # pylint: enable=consider-using-f-string
         # TODO(#6171): END
 
@@ -1115,6 +1120,7 @@ def _qid_shape_from_args(
             f'qid_shape was {qid_shape!r}.'
         )
         assert string_before == string_after
+        print("\nUFS:cirq-core/cirq/qis/states.py:1122:assert string_before == string_after")
         # pylint: enable=consider-using-f-string
         # TODO(#6171): END
 

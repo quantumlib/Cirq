@@ -61,6 +61,7 @@ def assert_has_qcircuit_diagram(actual: cirq.Circuit, desired: str, **kwargs) ->
         f'{ct.highlight_text_differences(actual_diagram, desired_diagram)}\n'
     )
     assert string_before == string_after
+    print("\nUFS:cirq-core/cirq/contrib/qcircuit/qcircuit_test.py:63:assert string_before == string_after")
     # pylint: enable=consider-using-f-string
     # TODO(#6171): END
 

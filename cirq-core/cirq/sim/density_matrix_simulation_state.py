@@ -317,6 +317,7 @@ class DensityMatrixSimulationState(SimulationState[_BufferedDensityMatrix]):
             f"SupportsMixture or SupportsKraus or is a measurement: {action!r}"
         )
         assert string_before == string_after
+        print("\nUFS:cirq-core/cirq/sim/density_matrix_simulation_state.py:319:assert string_before == string_after")
         # pylint: enable=consider-using-f-string
         # TODO(#6171): END
 

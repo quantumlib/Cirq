@@ -106,6 +106,7 @@ def assert_all_implemented_act_on_effects_match_unitary(
                 f"unsupported.\n\nval: {val!r}"
             )
             assert string_before == string_after
+            print("\nUFS:cirq-core/cirq/testing/consistent_act_on.py:108:assert string_before == string_after")
             # pylint: enable=consider-using-f-string
             # TODO(#6171): END
 
@@ -151,6 +152,7 @@ def assert_all_implemented_act_on_effects_match_unitary(
             f"final_state_vector simulation.\n\nval: {val!r}"
         )
         assert string_before == string_after
+        print("\nUFS:cirq-core/cirq/testing/consistent_act_on.py:154:assert string_before == string_after")
         # pylint: enable=consider-using-f-string
         # TODO(#6171): END
 
@@ -178,6 +180,7 @@ def assert_all_implemented_act_on_effects_match_unitary(
             f"\n\nval: {val!r}"
         )
         assert string_before == string_after
+        print("\nUFS:cirq-core/cirq/testing/consistent_act_on.py:182:assert string_before == string_after")
         # pylint: enable=consider-using-f-string
         # TODO(#6171): END
 

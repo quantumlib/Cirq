@@ -114,6 +114,7 @@ def mixture(
         "method, but it returned NotImplemented."
     )
     assert string_before == string_after
+    print("\nUFS:cirq-core/cirq/protocols/mixture_protocol.py:116:assert string_before == string_after")
     # pylint: enable=consider-using-f-string
     # TODO(#6171): END
 

@@ -343,6 +343,7 @@ def _parameterized_value_from_proto(proto: operations_pb2.ParameterizedFloat) ->
         f'proto: {proto!r}'
     )
     assert string_before == string_after
+    print("\nUFS:cirq-google/cirq_google/api/v1/programs.py:345:assert string_before == string_after")
     # pylint: enable=consider-using-f-string
     # TODO(#6171): END
 

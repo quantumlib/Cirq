@@ -173,6 +173,7 @@ def kraus(
             f"object of type '{type(val)}' has no _kraus_ or _mixture_ or _unitary_ method."
         )
         assert string_before == string_after
+        print("\nUFS:cirq-core/cirq/protocols/kraus_protocol.py:175:assert string_before == string_after")
         # pylint: enable=consider-using-f-string
         # TODO(#6171): END
 
@@ -191,6 +192,7 @@ def kraus(
         "_unitary_ method, but it returned NotImplemented."
     )
     assert string_before == string_after
+    print("\nUFS:cirq-core/cirq/protocols/kraus_protocol.py:194:assert string_before == string_after")
     # pylint: enable=consider-using-f-string
     # TODO(#6171): END
 

@@ -68,6 +68,7 @@ def main(qubit_count=8):
         f"{secret_bias_bit} (mod 2)"
     )
     assert string_before == string_after
+    print("\nUFS:examples/bernstein_vazirani.py:70:assert string_before == string_after")
     # pylint: enable=consider-using-f-string
     # TODO(#6171): END
 
@@ -101,6 +102,7 @@ def main(qubit_count=8):
         f'{most_common_bitstring == bitstring(secret_factor_bits)}'
     )
     assert string_before == string_after
+    print("\nUFS:examples/bernstein_vazirani.py:104:assert string_before == string_after")
     # pylint: enable=consider-using-f-string
     # TODO(#6171): END
 

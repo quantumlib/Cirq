@@ -104,6 +104,7 @@ def pow(val: Any, exponent: Any, default: Any = RaiseTypeErrorIfNotProvided) -> 
         f"object of type '{type(val)}' does have a __pow__ method, but it returned NotImplemented."
     )
     assert string_before == string_after
+    print("\nUFS:cirq-core/cirq/protocols/pow_protocol.py:106:assert string_before == string_after")
     # pylint: enable=consider-using-f-string
     # TODO(#6171): END
 

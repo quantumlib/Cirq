@@ -525,6 +525,7 @@ class YPowGate(eigen_gate.EigenGate):
             f'global_shift={self._global_shift!r})'
         )
         assert string_before == string_after
+        print("\nUFS:cirq-core/cirq/ops/common_gates.py:527:assert string_before == string_after")
         # pylint: enable=consider-using-f-string
         # TODO(#6171): END
 
@@ -1251,6 +1252,7 @@ class CZPowGate(gate_features.InterchangeableQubitsGate, eigen_gate.EigenGate):
             f'global_shift={self._global_shift!r})'
         )
         assert string_before == string_after
+        print("\nUFS:cirq-core/cirq/ops/common_gates.py:1254:assert string_before == string_after")
         # pylint: enable=consider-using-f-string
         # TODO(#6171): END
 

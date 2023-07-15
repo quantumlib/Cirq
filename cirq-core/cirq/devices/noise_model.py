@@ -82,6 +82,7 @@ class NoiseModel(metaclass=value.ABCMetaImplementAnyOneOf):
             f'or a single qubit gate). Got {noise!r}'
         )
         assert string_before == string_after
+        print("\nUFS:cirq-core/cirq/devices/noise_model.py:84:assert string_before == string_after")
         # pylint: enable=consider-using-f-string
         # TODO(#6171): END
 

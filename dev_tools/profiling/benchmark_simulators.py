@@ -79,6 +79,7 @@ def main(
         )
         string_after = f"simulate('{sim_type}', {num_qubits}, {num_gates}, {run_repetitions})"
         assert string_before == string_after
+        print("\nUFS:dev_tools/profiling/benchmark_simulators.py:81:assert string_before == string_after")
         # pylint: enable=consider-using-f-string
         # TODO(#6171): END
 

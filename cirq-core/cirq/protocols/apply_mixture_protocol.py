@@ -258,6 +258,7 @@ def apply_mixture(
                     "that appears in apply_mixture's documentation."
                 )
                 assert string_before == string_after
+                print("\nUFS:cirq-core/cirq/protocols/apply_mixture_protocol.py:260:assert string_before == string_after")
                 # pylint: enable=consider-using-f-string
                 # TODO(#6171): END
 
@@ -298,6 +299,7 @@ def apply_mixture(
         "_unitary_, or _mixture_ methods (or they returned None or NotImplemented)."
     )
     assert string_before == string_after
+    print("\nUFS:cirq-core/cirq/protocols/apply_mixture_protocol.py:301:assert string_before == string_after")
     # pylint: enable=consider-using-f-string
     # TODO(#6171): END
 
@@ -329,6 +331,7 @@ def _validate_input(val: Any, args: 'ApplyMixtureArgs') -> Tuple[Any, 'ApplyMixt
             f'Got {val_qid_shape!r} but expected {left_shape!r}.'
         )
         assert string_before == string_after
+        print("\nUFS:cirq-core/cirq/protocols/apply_mixture_protocol.py:333:assert string_before == string_after")
         # pylint: enable=consider-using-f-string
         # TODO(#6171): END
 
@@ -356,6 +359,7 @@ def _validate_input(val: Any, args: 'ApplyMixtureArgs') -> Tuple[Any, 'ApplyMixt
                 f'target_tensor are not equal. Got {left_shape!r} and {right_shape!r}.'
             )
             assert string_before == string_after
+            print("\nUFS:cirq-core/cirq/protocols/apply_mixture_protocol.py:361:assert string_before == string_after")
             # pylint: enable=consider-using-f-string
             # TODO(#6171): END
 

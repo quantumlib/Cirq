@@ -67,6 +67,7 @@ def _assert_same_diagram(actual: str, expected: str):
         f'{cirq.testing.highlight_text_differences(actual, expected)}\n'
     )
     assert string_before == string_after
+    print("\nUFS:cirq-core/cirq/circuits/_block_diagram_drawer_test.py:69:assert string_before == string_after")
     # pylint: enable=consider-using-f-string
     # TODO(#6171): END
 

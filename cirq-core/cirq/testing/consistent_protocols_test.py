@@ -197,6 +197,7 @@ class GoodEigenGate(cirq.EigenGate, cirq.testing.SingleQubitGate):
             f'global_shift={self._global_shift!r})'
         )
         assert string_before == string_after
+        print("\nUFS:cirq-core/cirq/testing/consistent_protocols_test.py:199:assert string_before == string_after")
         # pylint: enable=consider-using-f-string
         # TODO(#6171): END
 
@@ -223,6 +224,7 @@ class BadEigenGate(GoodEigenGate):
             f'global_shift={self._global_shift!r})'
         )
         assert string_before == string_after
+        print("\nUFS:cirq-core/cirq/testing/consistent_protocols_test.py:226:assert string_before == string_after")
         # pylint: enable=consider-using-f-string
         # TODO(#6171): END
 

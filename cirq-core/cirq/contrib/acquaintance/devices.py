@@ -46,6 +46,7 @@ class AcquaintanceDevice(devices.Device, metaclass=abc.ABCMeta):
                 f'ininstance({operation!r}.gate, {self.gate_types!r})'
             )
             assert string_before == string_after
+            print("\nUFS:cirq-core/cirq/contrib/acquaintance/devices.py:48:assert string_before == string_after")
             # pylint: enable=consider-using-f-string
             # TODO(#6171): END
 

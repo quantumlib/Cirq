@@ -143,6 +143,7 @@ class TwoQubitDiagonalGate(raw_types.Gate):
         )
         string_after = f'cirq.TwoQubitDiagonalGate([{angles}])'
         assert string_before == string_after
+        print("\nUFS:cirq-core/cirq/ops/two_qubit_diagonal_gate.py:145:assert string_before == string_after")
         # pylint: enable=consider-using-f-string
         # TODO(#6171): END
 

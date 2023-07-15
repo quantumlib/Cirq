@@ -114,6 +114,7 @@ class PreparedEnv:
         )
         string_after = url
         assert string_before == string_after
+        print("\nUFS:dev_tools/prepared_env.py:116:assert string_before == string_after")
         # pylint: enable=consider-using-f-string
         # TODO(#6171): END
 
@@ -129,6 +130,7 @@ class PreparedEnv:
                 f'Request failed. Code: {response.status_code}. Content: {response.content!r}.'
             )
             assert string_before == string_after
+            print("\nUFS:dev_tools/prepared_env.py:132:assert string_before == string_after")
             # pylint: enable=consider-using-f-string
             # TODO(#6171): END
 

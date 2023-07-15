@@ -87,6 +87,7 @@ class ProductState:
                 f"but both contain factors for these qubits: {sorted(dupe_qubits)}"
             )
             assert string_before == string_after
+            print("\nUFS:cirq-core/cirq/value/product_state.py:89:assert string_before == string_after")
             # pylint: enable=consider-using-f-string
             # TODO(#6171): END
 
@@ -112,6 +113,7 @@ class ProductState:
         string_before = 'cirq.ProductState({%s})' % states_dict_repr
         string_after = f'cirq.ProductState({{{states_dict_repr}}})'
         assert string_before == string_after
+        print("\nUFS:cirq-core/cirq/value/product_state.py:115:assert string_before == string_after")
         # pylint: enable=consider-using-f-string
         # TODO(#6171): END
 

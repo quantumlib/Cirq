@@ -65,6 +65,7 @@ class InitObsSetting:
                 f"observable qubits: {obs_qs}. init_state qubits: {init_qs}"
             )
             assert string_before == string_after
+            print("\nUFS:cirq-core/cirq/work/observable_settings.py:67:assert string_before == string_after")
             # pylint: enable=consider-using-f-string
             # TODO(#6171): END
 

@@ -121,6 +121,7 @@ qreg q[{num_qubits}];
             f'Underlying error:\n{_indent(str(ex))}'
         )
         assert string_before == string_after
+        print("\nUFS:cirq-core/cirq/testing/consistent_qasm.py:123:assert string_before == string_after")
         # pylint: enable=consider-using-f-string
         # TODO(#6171): END
 

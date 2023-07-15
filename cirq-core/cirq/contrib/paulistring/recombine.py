@@ -93,6 +93,7 @@ def move_pauli_strings_into_circuit(
                 f"{best_index} >= {last_index}, len: {len(output_ops)}"
             )
             assert string_before == string_after
+            print("\nUFS:cirq-core/cirq/contrib/paulistring/recombine.py:95:assert string_before == string_after")
             # pylint: enable=consider-using-f-string
             # TODO(#6171): END
 

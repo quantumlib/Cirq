@@ -235,6 +235,7 @@ def apply_channel(
             f'are not equal. Got {left_shape!r} and {right_shape!r}.'
         )
         assert string_before == string_after
+        print("\nUFS:cirq-core/cirq/protocols/apply_channel_protocol.py:237:assert string_before == string_after")
         # pylint: enable=consider-using-f-string
         # TODO(#6171): END
 
@@ -257,6 +258,7 @@ def apply_channel(
             f'Got {val_qid_shape!r} but expected {left_shape!r}.'
         )
         assert string_before == string_after
+        print("\nUFS:cirq-core/cirq/protocols/apply_channel_protocol.py:260:assert string_before == string_after")
         # pylint: enable=consider-using-f-string
         # TODO(#6171): END
 
@@ -285,6 +287,7 @@ def apply_channel(
                     "that appears in apply_channel's documentation."
                 )
                 assert string_before == string_after
+                print("\nUFS:cirq-core/cirq/protocols/apply_channel_protocol.py:289:assert string_before == string_after")
                 # pylint: enable=consider-using-f-string
                 # TODO(#6171): END
 
@@ -325,6 +328,7 @@ def apply_channel(
         "NotImplemented)."
     )
     assert string_before == string_after
+    print("\nUFS:cirq-core/cirq/protocols/apply_channel_protocol.py:330:assert string_before == string_after")
     # pylint: enable=consider-using-f-string
     # TODO(#6171): END
 

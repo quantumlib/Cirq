@@ -140,6 +140,7 @@ class BipartiteSwapNetworkGate(PermutationGate):
             string_before = 'K_{{{0}, {0}}}'.format(self.part_size)
             string_after = name
             assert string_before == string_after
+            print("\nUFS:cirq-core/cirq/contrib/acquaintance/bipartite.py:142:assert string_before == string_after")
             # pylint: enable=consider-using-f-string
             # TODO(#6171): END
 

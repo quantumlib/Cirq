@@ -70,6 +70,7 @@ def _get_assert_diagonalized_by_str(m, p, d):
         f'np.abs(p.T @ m @ p).round(2): {np.abs(d).round(2)}'
     )
     assert string_before == string_after
+    print("\nUFS:cirq-core/cirq/linalg/diagonalize_test.py:72:assert string_before == string_after")
     # pylint: enable=consider-using-f-string
     # TODO(#6171): END
 
@@ -101,6 +102,7 @@ def _get_assert_bidiagonalized_by_str(m, p, q, d):
         f'q.round(3): {np.round(q, 3)}, np.abs(p.T @ m @ p).round(2): {np.abs(d).round(2)}'
     )
     assert string_before == string_after
+    print("\nUFS:cirq-core/cirq/linalg/diagonalize_test.py:104:assert string_before == string_after")
     # pylint: enable=consider-using-f-string
     # TODO(#6171): END
 

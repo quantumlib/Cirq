@@ -68,6 +68,7 @@ def assert_equivalent_repr(
             f'error={ex!r}'
         )
         assert string_before == string_after
+        print("\nUFS:cirq-core/cirq/testing/equivalent_repr_eval.py:70:assert string_before == string_after")
         # pylint: enable=consider-using-f-string
         # TODO(#6171): END
 
@@ -121,6 +122,7 @@ def assert_equivalent_repr(
             "but it raised an error instead."
         )
         assert string_before == string_after
+        print("\nUFS:cirq-core/cirq/testing/equivalent_repr_eval.py:124:assert string_before == string_after")
         # pylint: enable=consider-using-f-string
         # TODO(#6171): END
 
@@ -145,6 +147,7 @@ def assert_equivalent_repr(
         "but it wasn't."
     )
     assert string_before == string_after
+    print("\nUFS:cirq-core/cirq/testing/equivalent_repr_eval.py:149:assert string_before == string_after")
     # pylint: enable=consider-using-f-string
     # TODO(#6171): END
 

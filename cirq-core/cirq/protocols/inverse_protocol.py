@@ -128,6 +128,7 @@ def inverse(val: Any, default: Any = RaiseTypeErrorIfNotProvided) -> Any:
         "and it isn't an iterable of invertible objects."
     )
     assert string_before == string_after
+    print("\nUFS:cirq-core/cirq/protocols/inverse_protocol.py:130:assert string_before == string_after")
     # pylint: enable=consider-using-f-string
     # TODO(#6171): END
 

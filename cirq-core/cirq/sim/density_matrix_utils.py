@@ -216,6 +216,7 @@ def _validate_density_matrix_qid_shape(
                 f'shape {shape!r}. Expected {np.prod(qid_shape, dtype=np.int64)!r}.'
             )
             assert string_before == string_after
+            print("\nUFS:cirq-core/cirq/sim/density_matrix_utils.py:218:assert string_before == string_after")
             # pylint: enable=consider-using-f-string
             # TODO(#6171): END
 
@@ -257,6 +258,7 @@ def _validate_num_qubits(density_matrix: np.ndarray) -> int:
             f'that are a power of two. Shape was {shape}'
         )
         assert string_before == string_after
+        print("\nUFS:cirq-core/cirq/sim/density_matrix_utils.py:260:assert string_before == string_after")
         # pylint: enable=consider-using-f-string
         # TODO(#6171): END
 
@@ -276,6 +278,7 @@ def _validate_num_qubits(density_matrix: np.ndarray) -> int:
             f'that are not powers of two. Shape was {shape}'
         )
         assert string_before == string_after
+        print("\nUFS:cirq-core/cirq/sim/density_matrix_utils.py:280:assert string_before == string_after")
         # pylint: enable=consider-using-f-string
         # TODO(#6171): END
 

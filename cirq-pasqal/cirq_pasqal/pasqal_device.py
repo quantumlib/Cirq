@@ -288,6 +288,7 @@ class PasqalVirtualDevice(PasqalDevice):
             f'qubits={sorted(self.qubits)!r})'
         )
         assert string_before == string_after
+        print("\nUFS:cirq-pasqal/cirq_pasqal/pasqal_device.py:290:assert string_before == string_after")
         # pylint: enable=consider-using-f-string
         # TODO(#6171): END
 

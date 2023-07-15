@@ -469,6 +469,7 @@ class CircuitOperation(ops.Operation):
         )
         string_after = circuit_msg
         assert string_before == string_after
+        print("\nUFS:cirq-core/cirq/circuits/circuit_operation.py:471:assert string_before == string_after")
         # pylint: enable=consider-using-f-string
         # TODO(#6171): END
 

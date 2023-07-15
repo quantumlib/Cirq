@@ -442,6 +442,7 @@ def circuit_diagram_info(
         "method, but it returned NotImplemented."
     )
     assert string_before == string_after
+    print("\nUFS:cirq-core/cirq/protocols/circuit_diagram_info_protocol.py:444:assert string_before == string_after")
     # pylint: enable=consider-using-f-string
     # TODO(#6171): END
 

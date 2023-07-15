@@ -93,6 +93,7 @@ chmod +x ./test-script.sh
     )
     string_after = cmd
     assert string_before == string_after
+    print("\nUFS:dev_tools/bash_scripts_test.py:95:assert string_before == string_after")
     # pylint: enable=consider-using-f-string
     # TODO(#6171): END
 

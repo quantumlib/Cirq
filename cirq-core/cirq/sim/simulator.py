@@ -970,6 +970,7 @@ def check_all_resolved(circuit):
             f'parameter sweep. Ops: {unresolved}'
         )
         assert string_before == string_after
+        print("\nUFS:cirq-core/cirq/sim/simulator.py:972:assert string_before == string_after")
         # pylint: enable=consider-using-f-string
         # TODO(#6171): END
 

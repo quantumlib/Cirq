@@ -1052,6 +1052,7 @@ def _validate_qid_shape(val: Any, qubits: Sequence['cirq.Qid']) -> None:
             f'Expected {len(qid_shape)} qubits but got <{qubits!r}>.'
         )
         assert string_before == string_after
+        print("\nUFS:cirq-core/cirq/ops/raw_types.py:1054:assert string_before == string_after")
         # pylint: enable=consider-using-f-string
         # TODO(#6171): END
 
@@ -1070,6 +1071,7 @@ def _validate_qid_shape(val: Any, qubits: Sequence['cirq.Qid']) -> None:
             f'Expected {qid_shape} but got {tuple(qid.dimension for qid in qubits)} <{qubits!r}>.'
         )
         assert string_before == string_after
+        print("\nUFS:cirq-core/cirq/ops/raw_types.py:1073:assert string_before == string_after")
         # pylint: enable=consider-using-f-string
         # TODO(#6171): END
 

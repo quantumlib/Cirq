@@ -95,6 +95,7 @@ class Calibration(abc.Mapping):
                     f'Found multiple for key {name}'
                 )
                 assert string_before == string_after
+                print("\nUFS:cirq-google/cirq_google/engine/calibration.py:97:assert string_before == string_after")
                 # pylint: enable=consider-using-f-string
                 # TODO(#6171): END
 

@@ -330,6 +330,7 @@ class CircuitSerializer(serializer.Serializer):
                 f'Gate set in proto was {proto.language.gate_set} but expected {self.name}'
             )
             assert string_before == string_after
+            print("\nUFS:cirq-google/cirq_google/serialization/circuit_serializer.py:332:assert string_before == string_after")
             # pylint: enable=consider-using-f-string
             # TODO(#6171): END
 

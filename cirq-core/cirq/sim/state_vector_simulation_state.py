@@ -405,6 +405,7 @@ class StateVectorSimulationState(SimulationState[_BufferedStateVector]):
             f"SupportsMixture or is a measurement: {action!r}"
         )
         assert string_before == string_after
+        print("\nUFS:cirq-core/cirq/sim/state_vector_simulation_state.py:407:assert string_before == string_after")
         # pylint: enable=consider-using-f-string
         # TODO(#6171): END
 

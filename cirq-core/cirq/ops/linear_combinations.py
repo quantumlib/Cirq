@@ -661,6 +661,7 @@ class PauliSum:
                 f"PauliString <{self}>. Coefficient must be real."
             )
             assert string_before == string_after
+            print("\nUFS:cirq-core/cirq/ops/linear_combinations.py:663:assert string_before == string_after")
             # pylint: enable=consider-using-f-string
             # TODO(#6171): END
 
@@ -737,6 +738,7 @@ class PauliSum:
                 f"PauliString <{self}>. Coefficient must be real."
             )
             assert string_before == string_after
+            print("\nUFS:cirq-core/cirq/ops/linear_combinations.py:740:assert string_before == string_after")
             # pylint: enable=consider-using-f-string
             # TODO(#6171): END
 

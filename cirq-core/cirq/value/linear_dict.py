@@ -50,9 +50,11 @@ def _format_coefficient(format_spec: str, coefficient: Scalar) -> str:
     string_before = '{:{fmt}}'.format(coefficient.real, fmt=format_spec)
     string_after = f'{coefficient.real:{format_spec}}'
     assert string_before == string_after
+    print("\nUFS:cirq-core/cirq/value/linear_dict.py:52:assert string_before == string_after")
     string_before = '{:{fmt}}'.format(coefficient.imag, fmt=format_spec)
     string_after = f'{coefficient.imag:{format_spec}}'
     assert string_before == string_after
+    print("\nUFS:cirq-core/cirq/value/linear_dict.py:56:assert string_before == string_after")
     # pylint: enable=consider-using-f-string
     # TODO(#6171): END
 
@@ -88,6 +90,7 @@ def _format_terms(terms: Iterable[Tuple[TVector, Scalar]], format_spec: str):
         string_before = '{:{fmt}}'.format(0, fmt=format_spec)
         string_after = f'{0:{format_spec}}'
         assert string_before == string_after
+        print("\nUFS:cirq-core/cirq/value/linear_dict.py:92:assert string_before == string_after")
         # pylint: enable=consider-using-f-string
         # TODO(#6171): END
 

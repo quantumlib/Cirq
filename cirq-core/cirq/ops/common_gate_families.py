@@ -47,6 +47,7 @@ class AnyUnitaryGateFamily(gateset.GateFamily):
         )
         string_after = description
         assert string_before == string_after
+        print("\nUFS:cirq-core/cirq/ops/common_gate_families.py:49:assert string_before == string_after")
         # pylint: enable=consider-using-f-string
         # TODO(#6171): END
 

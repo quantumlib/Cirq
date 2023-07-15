@@ -172,6 +172,7 @@ def final_state_vector(
             f"Program: {circuit_like!r}"
         )
         assert string_before == string_after
+        print("\nUFS:cirq-core/cirq/sim/mux.py:174:assert string_before == string_after")
         # pylint: enable=consider-using-f-string
         # TODO(#6171): END
 

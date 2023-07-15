@@ -99,6 +99,7 @@ def phase_by(
         "but it returned NotImplemented."
     )
     assert string_before == string_after
+    print("\nUFS:cirq-core/cirq/protocols/phase_protocol.py:101:assert string_before == string_after")
     # pylint: enable=consider-using-f-string
     # TODO(#6171): END
 

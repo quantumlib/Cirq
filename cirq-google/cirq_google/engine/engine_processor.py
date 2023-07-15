@@ -373,6 +373,7 @@ class EngineProcessor(abstract_processor.AbstractProcessor):
             )
             string_after = filter_str
             assert string_before == string_after
+            print("\nUFS:cirq-google/cirq_google/engine/engine_processor.py:375:assert string_before == string_after")
             # pylint: enable=consider-using-f-string
             # TODO(#6171): END
 
@@ -382,6 +383,7 @@ class EngineProcessor(abstract_processor.AbstractProcessor):
             string_before = 'timestamp >= %d' % earliest_timestamp_seconds
             string_after = f'timestamp >= {earliest_timestamp_seconds:d}'
             assert string_before == string_after
+            print("\nUFS:cirq-google/cirq_google/engine/engine_processor.py:385:assert string_before == string_after")
             # pylint: enable=consider-using-f-string
             # TODO(#6171): END
 
@@ -392,6 +394,7 @@ class EngineProcessor(abstract_processor.AbstractProcessor):
             string_before = 'timestamp <= %d' % latest_timestamp_seconds
             string_after = f'timestamp <= {latest_timestamp_seconds:d}'
             assert string_before == string_after
+            print("\nUFS:cirq-google/cirq_google/engine/engine_processor.py:396:assert string_before == string_after")
             # pylint: enable=consider-using-f-string
             # TODO(#6171): END
 

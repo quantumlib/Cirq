@@ -161,6 +161,7 @@ def main():
             'as logical indices):'
         )
         assert string_before == string_after
+        print("\nUFS:examples/swap_networks.py:163:assert string_before == string_after")
         # pylint: enable=consider-using-f-string
         # TODO(#6171): END
 

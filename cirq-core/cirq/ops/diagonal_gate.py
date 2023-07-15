@@ -152,6 +152,7 @@ class DiagonalGate(raw_types.Gate):
         string_before = ['#' + str(i) for i in range(2, self._num_qubits_() + 1)]
         string_after = [f"#{i}" for i in range(2, self._num_qubits_() + 1)]
         assert string_before == string_after
+        print("\nUFS:cirq-core/cirq/ops/diagonal_gate.py:154:assert string_before == string_after")
         # pylint: enable=consider-using-f-string
         # TODO(#6171): END
 
@@ -231,6 +232,7 @@ class DiagonalGate(raw_types.Gate):
         )
         string_after = f'cirq.DiagonalGate([{angles}])'
         assert string_before == string_after
+        print("\nUFS:cirq-core/cirq/ops/diagonal_gate.py:234:assert string_before == string_after")
         # pylint: enable=consider-using-f-string
         # TODO(#6171): END
 

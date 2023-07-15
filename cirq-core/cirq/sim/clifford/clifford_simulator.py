@@ -269,6 +269,7 @@ class CliffordState:
                 f'Found {op.gate} instead.'
             )
             assert string_before == string_after
+            print("\nUFS:cirq-core/cirq/sim/clifford/clifford_simulator.py:271:assert string_before == string_after")
             # pylint: enable=consider-using-f-string
             # TODO(#6171): END
 

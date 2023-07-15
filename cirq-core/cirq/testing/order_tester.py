@@ -64,6 +64,7 @@ class OrderTester:
                 f"but X {cmp_name} Y returned {actual}"
             )
             assert string_before == string_after
+            print("\nUFS:cirq-core/cirq/testing/order_tester.py:66:assert string_before == string_after")
             # pylint: enable=consider-using-f-string
             # TODO(#6171): END
 
@@ -105,6 +106,7 @@ class OrderTester:
                 f"That rule is being violated by this value: {item!r}"
             )
             assert string_before == string_after
+            print("\nUFS:cirq-core/cirq/testing/order_tester.py:108:assert string_before == string_after")
             # pylint: enable=consider-using-f-string
             # TODO(#6171): END
 
