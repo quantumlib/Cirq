@@ -17,6 +17,7 @@ else:
 
 DESCRIPTOR: google.protobuf.descriptor.FileDescriptor
 
+@typing_extensions.final
 class Result(google.protobuf.message.Message):
     """The overall results of running a Program."""
 
@@ -38,6 +39,7 @@ class Result(google.protobuf.message.Message):
 
 global___Result = Result
 
+@typing_extensions.final
 class SweepResult(google.protobuf.message.Message):
     """The measurement results for a particular ParameterSweep."""
 
@@ -66,6 +68,7 @@ class SweepResult(google.protobuf.message.Message):
 
 global___SweepResult = SweepResult
 
+@typing_extensions.final
 class ParameterizedResult(google.protobuf.message.Message):
     """The parameters used to generate result along with the results for this
     set of parameters.
@@ -95,6 +98,7 @@ class ParameterizedResult(google.protobuf.message.Message):
 
 global___ParameterizedResult = ParameterizedResult
 
+@typing_extensions.final
 class MeasurementResult(google.protobuf.message.Message):
     """The results of a measurement for a specific measurement key."""
 
@@ -121,6 +125,7 @@ class MeasurementResult(google.protobuf.message.Message):
 
 global___MeasurementResult = MeasurementResult
 
+@typing_extensions.final
 class QubitMeasurementResult(google.protobuf.message.Message):
     """The result of a measurement on a single qubit."""
 
@@ -164,11 +169,13 @@ class QubitMeasurementResult(google.protobuf.message.Message):
 
 global___QubitMeasurementResult = QubitMeasurementResult
 
+@typing_extensions.final
 class ParameterDict(google.protobuf.message.Message):
     """A point sampled during a parameter sweep."""
 
     DESCRIPTOR: google.protobuf.descriptor.Descriptor
 
+    @typing_extensions.final
     class AssignmentsEntry(google.protobuf.message.Message):
         DESCRIPTOR: google.protobuf.descriptor.Descriptor
 

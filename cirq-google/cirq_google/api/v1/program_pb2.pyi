@@ -18,6 +18,7 @@ else:
 
 DESCRIPTOR: google.protobuf.descriptor.FileDescriptor
 
+@typing_extensions.final
 class Program(google.protobuf.message.Message):
     """A quantum program. This includes a quantum circuit and also a set of circuit
     parameters over which the circuit should be run.
@@ -45,6 +46,7 @@ class Program(google.protobuf.message.Message):
 
 global___Program = Program
 
+@typing_extensions.final
 class RunContext(google.protobuf.message.Message):
     """The context for running a quantum program."""
 
@@ -63,6 +65,7 @@ class RunContext(google.protobuf.message.Message):
 
 global___RunContext = RunContext
 
+@typing_extensions.final
 class ParameterizedResult(google.protobuf.message.Message):
     """The parameters used to generate result along with the results for this
     set of parameters.
@@ -128,6 +131,7 @@ class ParameterizedResult(google.protobuf.message.Message):
 
 global___ParameterizedResult = ParameterizedResult
 
+@typing_extensions.final
 class MeasurementKey(google.protobuf.message.Message):
     """A message which represents a measurement key, along with the qubits
     upon which the measurement acts. This measurement is in the computational
@@ -153,6 +157,7 @@ class MeasurementKey(google.protobuf.message.Message):
 
 global___MeasurementKey = MeasurementKey
 
+@typing_extensions.final
 class SweepResult(google.protobuf.message.Message):
     """The measurement results for a particular ParameterSweep."""
 
@@ -190,6 +195,7 @@ class SweepResult(google.protobuf.message.Message):
 
 global___SweepResult = SweepResult
 
+@typing_extensions.final
 class Result(google.protobuf.message.Message):
     """The overall results of running a Program."""
 

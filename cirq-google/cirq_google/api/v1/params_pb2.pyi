@@ -16,6 +16,7 @@ else:
 
 DESCRIPTOR: google.protobuf.descriptor.FileDescriptor
 
+@typing_extensions.final
 class ParameterSweep(google.protobuf.message.Message):
     """Specifies how to repeatedly sample a circuit, with or without sweeping over
     varying parameter-dicts.
@@ -49,6 +50,7 @@ class ParameterSweep(google.protobuf.message.Message):
 
 global___ParameterSweep = ParameterSweep
 
+@typing_extensions.final
 class ProductSweep(google.protobuf.message.Message):
     """A cartesian product of parameter sweeps."""
 
@@ -80,6 +82,7 @@ class ProductSweep(google.protobuf.message.Message):
 
 global___ProductSweep = ProductSweep
 
+@typing_extensions.final
 class ZipSweep(google.protobuf.message.Message):
     """A pairwise-joining of parameter sweeps."""
 
@@ -109,6 +112,7 @@ class ZipSweep(google.protobuf.message.Message):
 
 global___ZipSweep = ZipSweep
 
+@typing_extensions.final
 class SingleSweep(google.protobuf.message.Message):
     """A set of values to try for a particular parameter."""
 
@@ -138,6 +142,7 @@ class SingleSweep(google.protobuf.message.Message):
 
 global___SingleSweep = SingleSweep
 
+@typing_extensions.final
 class Points(google.protobuf.message.Message):
     """A list of explicit values."""
 
@@ -156,6 +161,7 @@ class Points(google.protobuf.message.Message):
 
 global___Points = Points
 
+@typing_extensions.final
 class Linspace(google.protobuf.message.Message):
     """A range of evenly-spaced values.
 
@@ -189,11 +195,13 @@ class Linspace(google.protobuf.message.Message):
 
 global___Linspace = Linspace
 
+@typing_extensions.final
 class ParameterDict(google.protobuf.message.Message):
     """A point sampled during a parameter sweep."""
 
     DESCRIPTOR: google.protobuf.descriptor.Descriptor
 
+    @typing_extensions.final
     class AssignmentsEntry(google.protobuf.message.Message):
         DESCRIPTOR: google.protobuf.descriptor.Descriptor
 
