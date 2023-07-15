@@ -16,7 +16,6 @@ else:
 
 DESCRIPTOR: google.protobuf.descriptor.FileDescriptor
 
-@typing_extensions.final
 class Qubit(google.protobuf.message.Message):
     """Identifies a qubit."""
 
@@ -38,7 +37,6 @@ class Qubit(google.protobuf.message.Message):
 
 global___Qubit = Qubit
 
-@typing_extensions.final
 class ParameterizedFloat(google.protobuf.message.Message):
     """A number specified as a constant plus an optional parameter lookup."""
 
@@ -64,7 +62,6 @@ class ParameterizedFloat(google.protobuf.message.Message):
 
 global___ParameterizedFloat = ParameterizedFloat
 
-@typing_extensions.final
 class ExpW(google.protobuf.message.Message):
     """A single-qubit rotation around an axis on the XY equator of the Bloch sphere.
 
@@ -111,7 +108,6 @@ class ExpW(google.protobuf.message.Message):
 
 global___ExpW = ExpW
 
-@typing_extensions.final
 class ExpZ(google.protobuf.message.Message):
     """A single-qubit rotation around the Z axis of the Bloch sphere.
 
@@ -143,7 +139,6 @@ class ExpZ(google.protobuf.message.Message):
 
 global___ExpZ = ExpZ
 
-@typing_extensions.final
 class Exp11(google.protobuf.message.Message):
     """A two qubit rotation which acts to phase only the |11> state.
 
@@ -180,7 +175,6 @@ class Exp11(google.protobuf.message.Message):
 
 global___Exp11 = Exp11
 
-@typing_extensions.final
 class Measurement(google.protobuf.message.Message):
     """A multi-qubit measurement in the computational basis (|0>, |1>)."""
 
@@ -214,7 +208,6 @@ class Measurement(google.protobuf.message.Message):
 
 global___Measurement = Measurement
 
-@typing_extensions.final
 class Operation(google.protobuf.message.Message):
     """An operation to apply: either a gate or a measurement."""
 

@@ -18,7 +18,6 @@ else:
 
 DESCRIPTOR: google.protobuf.descriptor.FileDescriptor
 
-@typing_extensions.final
 class Program(google.protobuf.message.Message):
     """A quantum program."""
 
@@ -61,7 +60,6 @@ class Program(google.protobuf.message.Message):
 
 global___Program = Program
 
-@typing_extensions.final
 class Constant(google.protobuf.message.Message):
     """Constants, such as long strings, that are used throughout the circuit.
     These constants can be stored here to save space.
@@ -93,7 +91,6 @@ class Constant(google.protobuf.message.Message):
 
 global___Constant = Constant
 
-@typing_extensions.final
 class Circuit(google.protobuf.message.Message):
     """The quantum circuit, specified as a series of moments (abstract
     slices of times with gates acting on disjoint sets of qubits).
@@ -144,7 +141,6 @@ class Circuit(google.protobuf.message.Message):
 
 global___Circuit = Circuit
 
-@typing_extensions.final
 class Moment(google.protobuf.message.Message):
     """A moment is a collection of operations and circuit operations that operate
     on a disjoint set of qubits. Conceptually, a moment represents operations
@@ -175,7 +171,6 @@ class Moment(google.protobuf.message.Message):
 
 global___Moment = Moment
 
-@typing_extensions.final
 class Schedule(google.protobuf.message.Message):
     """The quantum circuit, specified as a series of operations at specific
     start times.
@@ -196,7 +191,6 @@ class Schedule(google.protobuf.message.Message):
 
 global___Schedule = Schedule
 
-@typing_extensions.final
 class ScheduledOperation(google.protobuf.message.Message):
     """An operation occurring at a specific start time."""
 
@@ -224,7 +218,6 @@ class ScheduledOperation(google.protobuf.message.Message):
 
 global___ScheduledOperation = ScheduledOperation
 
-@typing_extensions.final
 class Language(google.protobuf.message.Message):
     """The language in which the program is expressed."""
 
@@ -260,7 +253,6 @@ class Language(google.protobuf.message.Message):
 
 global___Language = Language
 
-@typing_extensions.final
 class FloatArg(google.protobuf.message.Message):
     """Argument that is constrained to a float or symbolic expression"""
 
@@ -286,7 +278,6 @@ class FloatArg(google.protobuf.message.Message):
 
 global___FloatArg = FloatArg
 
-@typing_extensions.final
 class XPowGate(google.protobuf.message.Message):
     """Representation of cirq.XPowGate"""
 
@@ -305,7 +296,6 @@ class XPowGate(google.protobuf.message.Message):
 
 global___XPowGate = XPowGate
 
-@typing_extensions.final
 class YPowGate(google.protobuf.message.Message):
     """Representation of cirq.YPowGate"""
 
@@ -324,7 +314,6 @@ class YPowGate(google.protobuf.message.Message):
 
 global___YPowGate = YPowGate
 
-@typing_extensions.final
 class ZPowGate(google.protobuf.message.Message):
     """Representation of cirq.ZPowGate"""
 
@@ -349,7 +338,6 @@ class ZPowGate(google.protobuf.message.Message):
 
 global___ZPowGate = ZPowGate
 
-@typing_extensions.final
 class PhasedXPowGate(google.protobuf.message.Message):
     """Representation of cirq.PhasedXPowGate"""
 
@@ -372,7 +360,6 @@ class PhasedXPowGate(google.protobuf.message.Message):
 
 global___PhasedXPowGate = PhasedXPowGate
 
-@typing_extensions.final
 class PhasedXZGate(google.protobuf.message.Message):
     """Representation of cirq.PhasedXZGate"""
 
@@ -399,7 +386,6 @@ class PhasedXZGate(google.protobuf.message.Message):
 
 global___PhasedXZGate = PhasedXZGate
 
-@typing_extensions.final
 class CZPowGate(google.protobuf.message.Message):
     """Representation of cirq.CZPowGate"""
 
@@ -418,7 +404,6 @@ class CZPowGate(google.protobuf.message.Message):
 
 global___CZPowGate = CZPowGate
 
-@typing_extensions.final
 class FSimGate(google.protobuf.message.Message):
     """Representation of cirq.FSimGate"""
 
@@ -441,7 +426,6 @@ class FSimGate(google.protobuf.message.Message):
 
 global___FSimGate = FSimGate
 
-@typing_extensions.final
 class ISwapPowGate(google.protobuf.message.Message):
     """Representation of cirq.ISwapPowGate"""
 
@@ -460,7 +444,6 @@ class ISwapPowGate(google.protobuf.message.Message):
 
 global___ISwapPowGate = ISwapPowGate
 
-@typing_extensions.final
 class MeasurementGate(google.protobuf.message.Message):
     """Representation of cirq.MeasurementGate
     i.e. cirq.measure
@@ -485,7 +468,6 @@ class MeasurementGate(google.protobuf.message.Message):
 
 global___MeasurementGate = MeasurementGate
 
-@typing_extensions.final
 class WaitGate(google.protobuf.message.Message):
     """Representation of cirq.WAitGate"""
 
@@ -507,13 +489,11 @@ class WaitGate(google.protobuf.message.Message):
 
 global___WaitGate = WaitGate
 
-@typing_extensions.final
 class Operation(google.protobuf.message.Message):
     """An operation acts on a set of qubits."""
 
     DESCRIPTOR: google.protobuf.descriptor.Descriptor
 
-    @typing_extensions.final
     class ArgsEntry(google.protobuf.message.Message):
         DESCRIPTOR: google.protobuf.descriptor.Descriptor
 
@@ -619,7 +599,6 @@ class Operation(google.protobuf.message.Message):
 
 global___Operation = Operation
 
-@typing_extensions.final
 class Gate(google.protobuf.message.Message):
     """The instruction identifying the action taken on the quantum computer."""
 
@@ -641,7 +620,6 @@ class Gate(google.protobuf.message.Message):
 
 global___Gate = Gate
 
-@typing_extensions.final
 class Qubit(google.protobuf.message.Message):
     """An identifier for a qubit."""
 
@@ -664,7 +642,6 @@ class Qubit(google.protobuf.message.Message):
 
 global___Qubit = Qubit
 
-@typing_extensions.final
 class Arg(google.protobuf.message.Message):
     """Arguments needed to specify a gate."""
 
@@ -694,7 +671,6 @@ class Arg(google.protobuf.message.Message):
 
 global___Arg = Arg
 
-@typing_extensions.final
 class ArgValue(google.protobuf.message.Message):
     """Value that can be passed as an argument to a gate."""
 
@@ -723,7 +699,6 @@ class ArgValue(google.protobuf.message.Message):
 
 global___ArgValue = ArgValue
 
-@typing_extensions.final
 class RepeatedBoolean(google.protobuf.message.Message):
     """A repeated boolean value."""
 
@@ -741,7 +716,6 @@ class RepeatedBoolean(google.protobuf.message.Message):
 
 global___RepeatedBoolean = RepeatedBoolean
 
-@typing_extensions.final
 class ArgFunction(google.protobuf.message.Message):
     """A function of arguments. This is an s-expression tree representing
     mathematically the function being evaluated.
@@ -775,7 +749,6 @@ class ArgFunction(google.protobuf.message.Message):
 
 global___ArgFunction = ArgFunction
 
-@typing_extensions.final
 class CircuitOperation(google.protobuf.message.Message):
     """An operation that applies a modified version of a reference circuit. The
     circuit is stored in the top-level Constants table; the mappings in this
@@ -830,7 +803,6 @@ class CircuitOperation(google.protobuf.message.Message):
 
 global___CircuitOperation = CircuitOperation
 
-@typing_extensions.final
 class RepetitionSpecification(google.protobuf.message.Message):
     """A description of the repetitions of a subcircuit. IDs are used as suffixes
     for measurements in the repeated subcircuit; if repetition_count is given
@@ -839,7 +811,6 @@ class RepetitionSpecification(google.protobuf.message.Message):
 
     DESCRIPTOR: google.protobuf.descriptor.Descriptor
 
-    @typing_extensions.final
     class RepetitionIds(google.protobuf.message.Message):
         """An ordered list of IDs for a sequence of repetitions."""
 
@@ -874,7 +845,6 @@ class RepetitionSpecification(google.protobuf.message.Message):
 
 global___RepetitionSpecification = RepetitionSpecification
 
-@typing_extensions.final
 class QubitMapping(google.protobuf.message.Message):
     """A mapping of qubits from one value to another. All mappings are applied
     simultaneously and independently; for example, [(a, b), (b, a)] will swap
@@ -883,7 +853,6 @@ class QubitMapping(google.protobuf.message.Message):
 
     DESCRIPTOR: google.protobuf.descriptor.Descriptor
 
-    @typing_extensions.final
     class QubitEntry(google.protobuf.message.Message):
         """Indicates that qubit "key" should be replaced with "value"."""
 
@@ -917,7 +886,6 @@ class QubitMapping(google.protobuf.message.Message):
 
 global___QubitMapping = QubitMapping
 
-@typing_extensions.final
 class MeasurementKey(google.protobuf.message.Message):
     """A key for matching a measurement event to its results."""
 
@@ -934,7 +902,6 @@ class MeasurementKey(google.protobuf.message.Message):
 
 global___MeasurementKey = MeasurementKey
 
-@typing_extensions.final
 class MeasurementKeyMapping(google.protobuf.message.Message):
     """A mapping of measurement keys from one value to another. All mappings are
     applied simultaneously and independently; for example, [(a, b), (b, a)] will
@@ -943,7 +910,6 @@ class MeasurementKeyMapping(google.protobuf.message.Message):
 
     DESCRIPTOR: google.protobuf.descriptor.Descriptor
 
-    @typing_extensions.final
     class MeasurementKeyEntry(google.protobuf.message.Message):
         """Indicates that measurement key "key" should be replaced with "value"."""
 
@@ -977,7 +943,6 @@ class MeasurementKeyMapping(google.protobuf.message.Message):
 
 global___MeasurementKeyMapping = MeasurementKeyMapping
 
-@typing_extensions.final
 class ArgMapping(google.protobuf.message.Message):
     """A mapping of args from one value to another. All mappings are applied
     simultaneously and independently; for example, [(a, b), (b, a)] will swap
@@ -986,7 +951,6 @@ class ArgMapping(google.protobuf.message.Message):
 
     DESCRIPTOR: google.protobuf.descriptor.Descriptor
 
-    @typing_extensions.final
     class ArgEntry(google.protobuf.message.Message):
         """Indicates that arg "key" should be replaced with "value"."""
 

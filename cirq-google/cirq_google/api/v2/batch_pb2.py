@@ -11,9 +11,9 @@ from google.protobuf.internal import builder as _builder
 _sym_db = _symbol_database.Default()
 
 
-from cirq_google.api.v2 import program_pb2 as cirq__google_dot_api_dot_v2_dot_program__pb2
-from cirq_google.api.v2 import result_pb2 as cirq__google_dot_api_dot_v2_dot_result__pb2
-from cirq_google.api.v2 import run_context_pb2 as cirq__google_dot_api_dot_v2_dot_run__context__pb2
+from . import program_pb2 as cirq__google_dot_api_dot_v2_dot_program__pb2
+from . import result_pb2 as cirq__google_dot_api_dot_v2_dot_result__pb2
+from . import run_context_pb2 as cirq__google_dot_api_dot_v2_dot_run__context__pb2
 
 
 DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x1e\x63irq_google/api/v2/batch.proto\x12\x12\x63irq.google.api.v2\x1a cirq_google/api/v2/program.proto\x1a\x1f\x63irq_google/api/v2/result.proto\x1a$cirq_google/api/v2/run_context.proto\"=\n\x0c\x42\x61tchProgram\x12-\n\x08programs\x18\x01 \x03(\x0b\x32\x1b.cirq.google.api.v2.Program\"G\n\x0f\x42\x61tchRunContext\x12\x34\n\x0crun_contexts\x18\x01 \x03(\x0b\x32\x1e.cirq.google.api.v2.RunContext\":\n\x0b\x42\x61tchResult\x12+\n\x07results\x18\x01 \x03(\x0b\x32\x1a.cirq.google.api.v2.ResultB-\n\x1d\x63om.google.cirq.google.api.v2B\nBatchProtoP\x01\x62\x06proto3')
