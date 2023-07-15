@@ -12,6 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+# TODO(#6171): enable the check and fix pylint errors
+# pylint: disable=consider-using-f-string
+
 import abc
 from typing import Any, Dict, List, Optional, Sequence, TYPE_CHECKING
 import numpy as np
@@ -164,7 +167,7 @@ class CliffordTableau(StabilizerState):
     def _reconstruct_rs(self, rs: Optional[np.ndarray]) -> np.ndarray:
         if rs is None:
             new_rs = np.zeros(2 * self.n + 1, dtype=bool)
-            for (i, val) in enumerate(
+            for i, val in enumerate(
                 big_endian_int_to_digits(self.initial_state, digit_count=self.n, base=2)
             ):
                 new_rs[self.n + i] = bool(val)
@@ -203,7 +206,6 @@ class CliffordTableau(StabilizerState):
         return new_xs
 
     def _reconstruct_zs(self, zs: Optional[np.ndarray]) -> np.ndarray:
-
         if zs is None:
             new_zs = np.zeros((2 * self.n + 1, self.n), dtype=bool)
             for i in range(self.n):
