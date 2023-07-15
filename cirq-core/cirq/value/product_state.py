@@ -12,9 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# TODO(#6171): enable the check and fix pylint errors
-# pylint: disable=consider-using-f-string
-
 import abc
 from dataclasses import dataclass
 from typing import Dict, Iterator, Optional, Sequence, Tuple, TYPE_CHECKING
@@ -79,9 +76,23 @@ class ProductState:
 
         dupe_qubits = set(other.states.keys()) & set(self.states.keys())
         if len(dupe_qubits) != 0:
-            raise ValueError(
+            # TODO(#6171): BEGIN
+            # pylint: disable=consider-using-f-string
+            string_before = (
                 "You tried to tensor two states, "
                 "but both contain factors for these qubits: {}".format(sorted(dupe_qubits))
+            )
+            string_after = (
+                "You tried to tensor two states, "
+                f"but both contain factors for these qubits: {sorted(dupe_qubits)}"
+            )
+            assert string_before == string_after
+            # pylint: enable=consider-using-f-string
+            # TODO(#6171): END
+
+            raise ValueError(
+                "You tried to tensor two states, "
+                f"but both contain factors for these qubits: {sorted(dupe_qubits)}"
             )
 
         new_states = self.states.copy()
@@ -95,7 +106,16 @@ class ProductState:
         states_dict_repr = ', '.join(
             f'{repr(key)}: {repr(val)}' for key, val in self.states.items()
         )
-        return 'cirq.ProductState({%s})' % states_dict_repr
+
+        # TODO(#6171): BEGIN
+        # pylint: disable=consider-using-f-string
+        string_before = 'cirq.ProductState({%s})' % states_dict_repr
+        string_after = f'cirq.ProductState({{{states_dict_repr}}})'
+        assert string_before == string_after
+        # pylint: enable=consider-using-f-string
+        # TODO(#6171): END
+
+        return f'cirq.ProductState({{{states_dict_repr}}})'
 
     def __getitem__(self, qubit: 'cirq.Qid') -> _NamedOneQubitState:
         """Return the _NamedOneQubitState at the given qubit."""

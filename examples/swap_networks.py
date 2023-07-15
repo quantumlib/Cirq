@@ -1,8 +1,5 @@
 # pylint: disable=wrong-or-nonexistent-copyright-notice
 
-# TODO(#6171): enable the check and fix pylint errors
-# pylint: disable=consider-using-f-string
-
 """Demonstrates swap networks.
 
 Swap networks are used to get around limited connectivity in a hardware device.
@@ -152,10 +149,25 @@ def main():
         circuit = get_max_cut_qaoa_circuit(
             vertices, edges, beta, gamma, use_logical_qubits, verbose
         )
+
+        # TODO(#6171): BEGIN
+        # pylint: disable=consider-using-f-string
+        string_before = '1-round QAOA circuit (using {}s as logical indices):'.format(
+            'qubit' if use_logical_qubits else 'integer'
+        )
+        string_after = (
+            '1-round QAOA circuit (using '
+            f"{'qubits' if use_logical_qubits else 'integers'} "
+            'as logical indices):'
+        )
+        assert string_before == string_after
+        # pylint: enable=consider-using-f-string
+        # TODO(#6171): END
+
         print(
-            '1-round QAOA circuit (using {}s as logical indices):'.format(
-                'qubit' if use_logical_qubits else 'integer'
-            )
+            '1-round QAOA circuit (using '
+            f"{'qubits' if use_logical_qubits else 'integers'} "
+            'as logical indices):'
         )
         print(circuit)
 

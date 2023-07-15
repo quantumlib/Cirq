@@ -12,9 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# TODO(#6171): enable the check and fix pylint errors
-# pylint: disable=consider-using-f-string
-
 import json
 from typing import Any, cast, Dict, Optional, Sequence, Tuple, TYPE_CHECKING, Iterator
 import numpy as np
@@ -332,10 +329,27 @@ def _parameterized_value_from_proto(proto: operations_pb2.ParameterizedFloat) ->
         return sympy.Symbol(proto.parameter_key)
     if proto.HasField('raw'):
         return proto.raw
-    raise ValueError(
+
+    # TODO(#6171): BEGIN
+    # pylint: disable=consider-using-f-string
+    string_before = (
         'No value specified for parameterized float. '
         'Expected "raw" or "parameter_key" to be set. '
         'proto: {!r}'.format(proto)
+    )
+    string_after = (
+        'No value specified for parameterized float. '
+        'Expected "raw" or "parameter_key" to be set. '
+        f'proto: {proto!r}'
+    )
+    assert string_before == string_after
+    # pylint: enable=consider-using-f-string
+    # TODO(#6171): END
+
+    raise ValueError(
+        'No value specified for parameterized float. '
+        'Expected "raw" or "parameter_key" to be set. '
+        f'proto: {proto!r}'
     )
 
 

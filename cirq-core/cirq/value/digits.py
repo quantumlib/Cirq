@@ -12,9 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# TODO(#6171): enable the check and fix pylint errors
-# pylint: disable=consider-using-f-string
-
 from typing import List, Iterable, Any, Union, Optional, overload
 
 
@@ -183,10 +180,26 @@ def big_endian_int_to_digits(
         val //= b
 
     if val:
-        raise ValueError(
+        # TODO(#6171): BEGIN
+        # pylint: disable=consider-using-f-string
+        string_before = (
             'Out of range. '
             'Extracted digits {!r} but the long division process '
             'left behind {!r} instead of 0.'.format(result, val)
+        )
+        string_after = (
+            'Out of range. '
+            f'Extracted digits {result!r} but the long division process '
+            f'left behind {val!r} instead of 0.'
+        )
+        assert string_before == string_after
+        # pylint: enable=consider-using-f-string
+        # TODO(#6171): END
+
+        raise ValueError(
+            'Out of range. '
+            f'Extracted digits {result!r} but the long division process '
+            f'left behind {val!r} instead of 0.'
         )
 
     return result[::-1]

@@ -12,9 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# TODO(#6171): enable the check and fix pylint errors
-# pylint: disable=consider-using-f-string
-
 """Abstract base classes for different types of simulators.
 
 Simulator types include:
@@ -961,9 +958,24 @@ def check_all_resolved(circuit):
     """Raises if the circuit contains unresolved symbols."""
     if protocols.is_parameterized(circuit):
         unresolved = [op for moment in circuit for op in moment if protocols.is_parameterized(op)]
-        raise ValueError(
+
+        # TODO(#6171): BEGIN
+        # pylint: disable=consider-using-f-string
+        string_before = (
             'Circuit contains ops whose symbols were not specified in '
             'parameter sweep. Ops: {}'.format(unresolved)
+        )
+        string_after = (
+            'Circuit contains ops whose symbols were not specified in '
+            f'parameter sweep. Ops: {unresolved}'
+        )
+        assert string_before == string_after
+        # pylint: enable=consider-using-f-string
+        # TODO(#6171): END
+
+        raise ValueError(
+            'Circuit contains ops whose symbols were not specified in '
+            f'parameter sweep. Ops: {unresolved}'
         )
 
 

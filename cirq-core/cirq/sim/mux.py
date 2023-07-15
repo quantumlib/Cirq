@@ -12,9 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# TODO(#6171): enable the check and fix pylint errors
-# pylint: disable=consider-using-f-string
-
 """Sampling/simulation methods that delegate to appropriate simulators.
 
 Filename is a reference to multiplexing.
@@ -158,12 +155,32 @@ def final_state_vector(
         circuit_like = measurement_transformers.drop_terminal_measurements(circuit_like)
 
     if not protocols.has_unitary(protocols.resolve_parameters(circuit_like, param_resolver)):
-        raise ValueError(
+        # TODO(#6171): BEGIN
+        # pylint: disable=consider-using-f-string
+        string_before = (
             "Program doesn't have a single well defined final state vector "
             "because it is not unitary. "
             "Maybe you wanted `cirq.final_density_matrix`?\n"
             "\n"
             "Program: {!r}".format(circuit_like)
+        )
+        string_after = (
+            "Program doesn't have a single well defined final state vector "
+            "because it is not unitary. "
+            "Maybe you wanted `cirq.final_density_matrix`?\n"
+            "\n"
+            f"Program: {circuit_like!r}"
+        )
+        assert string_before == string_after
+        # pylint: enable=consider-using-f-string
+        # TODO(#6171): END
+
+        raise ValueError(
+            "Program doesn't have a single well defined final state vector "
+            "because it is not unitary. "
+            "Maybe you wanted `cirq.final_density_matrix`?\n"
+            "\n"
+            f"Program: {circuit_like!r}"
         )
 
     result = sparse_simulator.Simulator(dtype=dtype, seed=seed).simulate(

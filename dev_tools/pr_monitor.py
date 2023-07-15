@@ -1,6 +1,4 @@
 # pylint: disable=wrong-or-nonexistent-copyright-notice
-
-# TODO(#6171): enable the check and fix pylint errors
 # pylint: disable=consider-using-f-string
 
 """Code to interact with GitHub API to label and auto-merge pull requests."""

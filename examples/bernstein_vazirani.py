@@ -1,8 +1,5 @@
 # pylint: disable=wrong-or-nonexistent-copyright-notice
 
-# TODO(#6171): enable the check and fix pylint errors
-# pylint: disable=consider-using-f-string
-
 """Demonstrates the Bernstein-Vazirani algorithm.
 
 The (non-recursive) Bernstein-Vazirani algorithm takes a black-box oracle
@@ -59,10 +56,25 @@ def main(qubit_count=8):
     secret_bias_bit = random.randint(0, 1)
     secret_factor_bits = [random.randint(0, 1) for _ in range(qubit_count)]
     oracle = make_oracle(input_qubits, output_qubit, secret_factor_bits, secret_bias_bit)
+
+    # TODO(#6171): BEGIN
+    # pylint: disable=consider-using-f-string
+    string_before = 'Secret function:\nf(a) = a·<{}> + {} (mod 2)'.format(
+        ', '.join(str(e) for e in secret_factor_bits), secret_bias_bit
+    )
+    string_after = (
+        'Secret function:\nf(a) = '
+        f"a·<{', '.join(str(e) for e in secret_factor_bits)}> + "
+        f"{secret_bias_bit} (mod 2)"
+    )
+    assert string_before == string_after
+    # pylint: enable=consider-using-f-string
+    # TODO(#6171): END
+
     print(
-        'Secret function:\nf(a) = a·<{}> + {} (mod 2)'.format(
-            ', '.join(str(e) for e in secret_factor_bits), secret_bias_bit
-        )
+        'Secret function:\nf(a) = '
+        f"a·<{', '.join(str(e) for e in secret_factor_bits)}> + "
+        f"{secret_bias_bit} (mod 2)"
     )
 
     # Embed the oracle into a special quantum circuit querying it exactly once.
@@ -78,10 +90,23 @@ def main(qubit_count=8):
 
     # Check if we actually found the secret value.
     most_common_bitstring = frequencies.most_common(1)[0][0]
+
+    # TODO(#6171): BEGIN
+    # pylint: disable=consider-using-f-string
+    string_before = 'Most common matches secret factors:\n{}'.format(
+        most_common_bitstring == bitstring(secret_factor_bits)
+    )
+    string_after = (
+        'Most common matches secret factors:\n'
+        f'{most_common_bitstring == bitstring(secret_factor_bits)}'
+    )
+    assert string_before == string_after
+    # pylint: enable=consider-using-f-string
+    # TODO(#6171): END
+
     print(
-        'Most common matches secret factors:\n{}'.format(
-            most_common_bitstring == bitstring(secret_factor_bits)
-        )
+        'Most common matches secret factors:\n'
+        f'{most_common_bitstring == bitstring(secret_factor_bits)}'
     )
 
 

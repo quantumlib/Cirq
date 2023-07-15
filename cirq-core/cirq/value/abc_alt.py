@@ -12,9 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# TODO(#6171): enable the check and fix pylint errors
-# pylint: disable=consider-using-f-string
-
 """A more flexible abstract base class metaclass ABCMetaImplementAnyOneOf."""
 
 import abc
@@ -94,10 +91,26 @@ class ABCMetaImplementAnyOneOf(abc.ABCMeta):
             try:
                 value = getattr(cls, name)
             except AttributeError:
-                raise TypeError(
+                # TODO(#6171): BEGIN
+                # pylint: disable=consider-using-f-string
+                string_before = (
                     'A method named \'{}\' was listed as a possible '
                     'implementation alternative but it does not exist in the '
                     'definition of {!r}.'.format(name, cls)
+                )
+                string_after = (
+                    f"A method named '{name}' was listed as a possible "
+                    'implementation alternative but it does not exist in the '
+                    f'definition of {cls!r}.'
+                )
+                assert string_before == string_after
+                # pylint: enable=consider-using-f-string
+                # TODO(#6171): END
+
+                raise TypeError(
+                    f"A method named '{name}' was listed as a possible "
+                    'implementation alternative but it does not exist in the '
+                    f'definition of {cls!r}.'
                 )
             if getattr(value, '__isabstractmethod__', False):
                 return False

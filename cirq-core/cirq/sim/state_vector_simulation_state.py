@@ -12,9 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# TODO(#6171): enable the check and fix pylint errors
-# pylint: disable=consider-using-f-string
-
 """Objects and methods for acting efficiently on a state vector."""
 from typing import Any, Callable, List, Optional, Sequence, Tuple, Type, TYPE_CHECKING, Union
 
@@ -394,10 +391,27 @@ class StateVectorSimulationState(SimulationState[_BufferedStateVector]):
             if result is True:
                 return True
             assert result is NotImplemented, str(result)
-        raise TypeError(
+
+        # TODO(#6171): BEGIN
+        # pylint: disable=consider-using-f-string
+        string_before = (
             "Can't simulate operations that don't implement "
             "SupportsUnitary, SupportsConsistentApplyUnitary, "
             "SupportsMixture or is a measurement: {!r}".format(action)
+        )
+        string_after = (
+            "Can't simulate operations that don't implement "
+            "SupportsUnitary, SupportsConsistentApplyUnitary, "
+            f"SupportsMixture or is a measurement: {action!r}"
+        )
+        assert string_before == string_after
+        # pylint: enable=consider-using-f-string
+        # TODO(#6171): END
+
+        raise TypeError(
+            "Can't simulate operations that don't implement "
+            "SupportsUnitary, SupportsConsistentApplyUnitary, "
+            f"SupportsMixture or is a measurement: {action!r}"
         )
 
     def __repr__(self) -> str:

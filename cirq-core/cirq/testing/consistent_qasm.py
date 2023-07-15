@@ -12,9 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# TODO(#6171): enable the check and fix pylint errors
-# pylint: disable=consider-using-f-string
-
 import warnings
 from typing import Any, List, Sequence, Optional
 
@@ -92,7 +89,10 @@ qreg q[{num_qubits}];
         else:
             p_unitary = None
             p_qasm_unitary = None
-        raise AssertionError(
+
+        # TODO(#6171): BEGIN
+        # pylint: disable=consider-using-f-string
+        string_before = (
             'QASM not consistent with cirq.unitary(op) up to global phase.\n\n'
             'op:\n{}\n\n'
             'cirq.unitary(op):\n{}\n\n'
@@ -109,6 +109,30 @@ qreg q[{num_qubits}];
                 _indent(repr(p_qasm_unitary)),
                 _indent(str(ex)),
             )
+        )
+        string_after = (
+            'QASM not consistent with cirq.unitary(op) up to global phase.\n\n'
+            f'op:\n{_indent(repr(op))}\n\n'
+            f'cirq.unitary(op):\n{_indent(repr(unitary))}\n\n'
+            f'Generated QASM:\n\n{_indent(qasm)}\n\n'
+            f'Unitary of generated QASM:\n{_indent(repr(qasm_unitary))}\n\n'
+            f'Phased matched cirq.unitary(op):\n{_indent(repr(p_unitary))}\n\n'
+            f'Phased matched unitary of generated QASM:\n{_indent(repr(p_qasm_unitary))}\n\n'
+            f'Underlying error:\n{_indent(str(ex))}'
+        )
+        assert string_before == string_after
+        # pylint: enable=consider-using-f-string
+        # TODO(#6171): END
+
+        raise AssertionError(
+            'QASM not consistent with cirq.unitary(op) up to global phase.\n\n'
+            f'op:\n{_indent(repr(op))}\n\n'
+            f'cirq.unitary(op):\n{_indent(repr(unitary))}\n\n'
+            f'Generated QASM:\n\n{_indent(qasm)}\n\n'
+            f'Unitary of generated QASM:\n{_indent(repr(qasm_unitary))}\n\n'
+            f'Phased matched cirq.unitary(op):\n{_indent(repr(p_unitary))}\n\n'
+            f'Phased matched unitary of generated QASM:\n{_indent(repr(p_qasm_unitary))}\n\n'
+            f'Underlying error:\n{_indent(str(ex))}'
         )
 
 

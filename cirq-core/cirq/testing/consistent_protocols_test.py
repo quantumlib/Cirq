@@ -12,9 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# TODO(#6171): enable the check and fix pylint errors
-# pylint: disable=consider-using-f-string
-
 from typing import AbstractSet, Sequence, Union, List, Tuple
 
 import pytest
@@ -189,8 +186,24 @@ class GoodEigenGate(cirq.EigenGate, cirq.testing.SingleQubitGate):
         return [(0, np.diag([1, 0])), (1, np.diag([0, 1]))]
 
     def __repr__(self):
-        return 'GoodEigenGate(exponent={}, global_shift={!r})'.format(
+        # TODO(#6171): BEGIN
+        # pylint: disable=consider-using-f-string
+        string_before = 'GoodEigenGate(exponent={}, global_shift={!r})'.format(
             proper_repr(self._exponent), self._global_shift
+        )
+        string_after = (
+            'GoodEigenGate('
+            f'exponent={proper_repr(self._exponent)}, '
+            f'global_shift={self._global_shift!r})'
+        )
+        assert string_before == string_after
+        # pylint: enable=consider-using-f-string
+        # TODO(#6171): END
+
+        return (
+            'GoodEigenGate('
+            f'exponent={proper_repr(self._exponent)}, '
+            f'global_shift={self._global_shift!r})'
         )
 
 
@@ -199,8 +212,24 @@ class BadEigenGate(GoodEigenGate):
         return [0, 0]
 
     def __repr__(self):
-        return 'BadEigenGate(exponent={}, global_shift={!r})'.format(
+        # TODO(#6171): BEGIN
+        # pylint: disable=consider-using-f-string
+        string_before = 'BadEigenGate(exponent={}, global_shift={!r})'.format(
             proper_repr(self._exponent), self._global_shift
+        )
+        string_after = (
+            'BadEigenGate('
+            f'exponent={proper_repr(self._exponent)}, '
+            f'global_shift={self._global_shift!r})'
+        )
+        assert string_before == string_after
+        # pylint: enable=consider-using-f-string
+        # TODO(#6171): END
+
+        return (
+            'BadEigenGate('
+            f'exponent={proper_repr(self._exponent)}, '
+            f'global_shift={self._global_shift!r})'
         )
 
 

@@ -12,9 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# TODO(#6171): enable the check and fix pylint errors
-# pylint: disable=consider-using-f-string
-
 import dataclasses
 import numbers
 from typing import (
@@ -55,10 +52,26 @@ class InitObsSetting:
         init_qs = self.init_state.qubits
         obs_qs = self.observable.qubits
         if set(obs_qs) > set(init_qs):
-            raise ValueError(
+            # TODO(#6171): BEGIN
+            # pylint: disable=consider-using-f-string
+            string_before = (
                 "`observable`'s qubits should be a subset of those "
                 "found in `init_state`. "
                 "observable qubits: {}. init_state qubits: {}".format(obs_qs, init_qs)
+            )
+            string_after = (
+                "`observable`'s qubits should be a subset of those "
+                "found in `init_state`. "
+                f"observable qubits: {obs_qs}. init_state qubits: {init_qs}"
+            )
+            assert string_before == string_after
+            # pylint: enable=consider-using-f-string
+            # TODO(#6171): END
+
+            raise ValueError(
+                "`observable`'s qubits should be a subset of those "
+                "found in `init_state`. "
+                f"observable qubits: {obs_qs}. init_state qubits: {init_qs}"
             )
 
     def __str__(self):

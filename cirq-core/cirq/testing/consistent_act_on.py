@@ -12,9 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# TODO(#6171): enable the check and fix pylint errors
-# pylint: disable=consider-using-f-string
-
 from typing import Any, cast, Optional, Type
 
 import numpy as np
@@ -94,11 +91,29 @@ def assert_all_implemented_act_on_effects_match_unitary(
         or protocols.qid_shape(val) != (2,) * num_qubits_val
     ):
         if assert_tableau_implemented or assert_ch_form_implemented:
-            assert False, (
+            # TODO(#6171): BEGIN
+            # pylint: disable=consider-using-f-string
+            string_before = (
                 "Could not assert if any act_on methods were "
                 "implemented. Operating on qudits or with a "
                 "non-unitary or parameterized operation is "
                 "unsupported.\n\nval: {!r}".format(val)
+            )
+            string_after = (
+                "Could not assert if any act_on methods were "
+                "implemented. Operating on qudits or with a "
+                "non-unitary or parameterized operation is "
+                f"unsupported.\n\nval: {val!r}"
+            )
+            assert string_before == string_after
+            # pylint: enable=consider-using-f-string
+            # TODO(#6171): END
+
+            assert False, (
+                "Could not assert if any act_on methods were "
+                "implemented. Operating on qudits or with a "
+                "non-unitary or parameterized operation is "
+                f"unsupported.\n\nval: {val!r}"
             )
         return None
 
@@ -123,20 +138,52 @@ def assert_all_implemented_act_on_effects_match_unitary(
             not assert_tableau_implemented
         ), f"Failed to generate final tableau for the test circuit.\n\nval: {val!r}"
     else:
+        # TODO(#6171): BEGIN
+        # pylint: disable=consider-using-f-string
+        string_before = (
+            "act_on clifford tableau is not consistent with "
+            "final_state_vector simulation.\n\nval: {!r}".format(val)
+        )
+        string_after = (
+            "act_on clifford tableau is not consistent with "
+            f"final_state_vector simulation.\n\nval: {val!r}"
+        )
+        assert string_before == string_after
+        # pylint: enable=consider-using-f-string
+        # TODO(#6171): END
+
         assert all(
             state_vector_has_stabilizer(state_vector, stab) for stab in tableau.stabilizers()
         ), (
             "act_on clifford tableau is not consistent with "
-            "final_state_vector simulation.\n\nval: {!r}".format(val)
+            f"final_state_vector simulation.\n\nval: {val!r}"
         )
 
     stabilizer_ch_form = _final_stabilizer_state_ch_form(circuit, qubit_map)
     if stabilizer_ch_form is None:
-        assert not assert_ch_form_implemented, (
+        # TODO(#6171): BEGIN
+        # pylint: disable=consider-using-f-string
+        string_before = (
             "Failed to generate final "
             "stabilizer state CH form "
             "for the test circuit."
             "\n\nval: {!r}".format(val)
+        )
+        string_after = (
+            "Failed to generate final "
+            "stabilizer state CH form "
+            "for the test circuit."
+            f"\n\nval: {val!r}"
+        )
+        assert string_before == string_after
+        # pylint: enable=consider-using-f-string
+        # TODO(#6171): END
+
+        assert not assert_ch_form_implemented, (
+            "Failed to generate final "
+            "stabilizer state CH form "
+            "for the test circuit."
+            f"\n\nval: {val!r}"
         )
     else:
         np.testing.assert_allclose(
