@@ -73,6 +73,8 @@ class Calibration(abc.Mapping):
 
     def _compute_metric_dict(self, metrics: v2.metrics_pb2.MetricsSnapshot) -> ALL_METRICS:
         results: ALL_METRICS = defaultdict(dict)
+        # TODO(#6171): drop the pylint directive below
+        # pylint: disable=consider-using-f-string
         for metric in metrics:
             name = metric.name
             # Flatten the values to a list, removing keys containing type names
