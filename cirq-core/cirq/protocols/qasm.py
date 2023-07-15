@@ -12,9 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# TODO(#6171): enable the check and fix pylint errors
-# pylint: disable=consider-using-f-string
-
 import string
 from typing import TYPE_CHECKING, Union, Any, Tuple, TypeVar, Optional, Dict, Iterable
 
@@ -174,9 +171,24 @@ def qasm(
         return default
     if method is None:
         raise TypeError(f"object of type '{type(val)}' has no _qasm_ method.")
-    raise TypeError(
+
+    # TODO(#6171): BEGIN
+    # pylint: disable=consider-using-f-string
+    string_before = (
         "object of type '{}' does have a _qasm_ method, "
         "but it returned NotImplemented or None.".format(type(val))
+    )
+    string_after = (
+        f"object of type '{type(val)}' does have a _qasm_ method, "
+        "but it returned NotImplemented or None."
+    )
+    assert string_before == string_after
+    # pylint: enable=consider-using-f-string
+    # TODO(#6171): END
+
+    raise TypeError(
+        f"object of type '{type(val)}' does have a _qasm_ method, "
+        "but it returned NotImplemented or None."
     )
 
 

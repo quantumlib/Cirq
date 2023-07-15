@@ -12,9 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# TODO(#6171): enable the check and fix pylint errors
-# pylint: disable=consider-using-f-string
-
 """Common quantum gates that target three qubits."""
 
 from typing import (
@@ -179,8 +176,23 @@ class CCZPowGate(gate_features.InterchangeableQubitsGate, eigen_gate.EigenGate):
             if self._exponent == 1:
                 return 'cirq.CCZ'
             return f'(cirq.CCZ**{proper_repr(self._exponent)})'
-        return 'cirq.CCZPowGate(exponent={}, global_shift={!r})'.format(
+
+        # TODO(#6171): BEGIN
+        # pylint: disable=consider-using-f-string
+        string_before = 'cirq.CCZPowGate(exponent={}, global_shift={!r})'.format(
             proper_repr(self._exponent), self._global_shift
+        )
+        string_after = (
+            f'cirq.CCZPowGate(exponent={proper_repr(self._exponent)}, '
+            f'global_shift={self._global_shift!r})'
+        )
+        assert string_before == string_after
+        # pylint: enable=consider-using-f-string
+        # TODO(#6171): END
+
+        return (
+            f'cirq.CCZPowGate(exponent={proper_repr(self._exponent)}, '
+            f'global_shift={self._global_shift!r})'
         )
 
     def __str__(self) -> str:
@@ -386,9 +398,19 @@ class ThreeQubitDiagonalGate(raw_types.Gate):
         return protocols.obj_to_dict_helper(self, attribute_names=["diag_angles_radians"])
 
     def __repr__(self) -> str:
-        return 'cirq.ThreeQubitDiagonalGate([{}])'.format(
+        angles = ','.join(proper_repr(angle) for angle in self._diag_angles_radians)
+
+        # TODO(#6171): BEGIN
+        # pylint: disable=consider-using-f-string
+        string_before = 'cirq.ThreeQubitDiagonalGate([{}])'.format(
             ','.join(proper_repr(angle) for angle in self._diag_angles_radians)
         )
+        string_after = f'cirq.ThreeQubitDiagonalGate([{angles}])'
+        assert string_before == string_after
+        # pylint: enable=consider-using-f-string
+        # TODO(#6171): END
+
+        return f'cirq.ThreeQubitDiagonalGate([{angles}])'
 
     def _num_qubits_(self) -> int:
         return 3
@@ -491,8 +513,23 @@ class CCXPowGate(gate_features.InterchangeableQubitsGate, eigen_gate.EigenGate):
             if self._exponent == 1:
                 return 'cirq.TOFFOLI'
             return f'(cirq.TOFFOLI**{proper_repr(self._exponent)})'
-        return 'cirq.CCXPowGate(exponent={}, global_shift={!r})'.format(
+
+        # TODO(#6171): BEGIN
+        # pylint: disable=consider-using-f-string
+        string_before = 'cirq.CCXPowGate(exponent={}, global_shift={!r})'.format(
             proper_repr(self._exponent), self._global_shift
+        )
+        string_after = (
+            f'cirq.CCXPowGate(exponent={proper_repr(self._exponent)}, '
+            f'global_shift={self._global_shift!r})'
+        )
+        assert string_before == string_after
+        # pylint: enable=consider-using-f-string
+        # TODO(#6171): END
+
+        return (
+            f'cirq.CCXPowGate(exponent={proper_repr(self._exponent)}, '
+            f'global_shift={self._global_shift!r})'
         )
 
     def __str__(self) -> str:

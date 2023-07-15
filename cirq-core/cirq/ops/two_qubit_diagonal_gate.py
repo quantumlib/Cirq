@@ -12,9 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# TODO(#6171): enable the check and fix pylint errors
-# pylint: disable=consider-using-f-string
-
 """Creates the gate instance for a two qubit diagonal gate.
 
 The gate is used to create a 4x4 matrix with the diagonal elements
@@ -138,9 +135,18 @@ class TwoQubitDiagonalGate(raw_types.Gate):
         return tuple(self._diag_angles_radians)
 
     def __repr__(self) -> str:
-        return 'cirq.TwoQubitDiagonalGate([{}])'.format(
+        angles = ','.join(proper_repr(angle) for angle in self._diag_angles_radians)
+        # TODO(#6171): BEGIN
+        # pylint: disable=consider-using-f-string
+        string_before = 'cirq.TwoQubitDiagonalGate([{}])'.format(
             ','.join(proper_repr(angle) for angle in self._diag_angles_radians)
         )
+        string_after = f'cirq.TwoQubitDiagonalGate([{angles}])'
+        assert string_before == string_after
+        # pylint: enable=consider-using-f-string
+        # TODO(#6171): END
+
+        return f'cirq.TwoQubitDiagonalGate([{angles}])'
 
     def _json_dict_(self) -> Dict[str, Any]:
         return protocols.obj_to_dict_helper(self, attribute_names=["diag_angles_radians"])

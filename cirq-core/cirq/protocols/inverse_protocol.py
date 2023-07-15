@@ -12,9 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# TODO(#6171): enable the check and fix pylint errors
-# pylint: disable=consider-using-f-string
-
 from typing import Any, List, overload, Tuple, TYPE_CHECKING, TypeVar, Union, Iterable
 
 from cirq import ops
@@ -117,10 +114,27 @@ def inverse(val: Any, default: Any = RaiseTypeErrorIfNotProvided) -> Any:
     # Can't invert.
     if default is not RaiseTypeErrorIfNotProvided:
         return default
-    raise TypeError(
+
+    # TODO(#6171): BEGIN
+    # pylint: disable=consider-using-f-string
+    string_before = (
         "object of type '{}' isn't invertible. "
         "It has no __pow__ method (or the method returned NotImplemented) "
         "and it isn't an iterable of invertible objects.".format(type(val))
+    )
+    string_after = (
+        f"object of type '{type(val)}' isn't invertible. "
+        "It has no __pow__ method (or the method returned NotImplemented) "
+        "and it isn't an iterable of invertible objects."
+    )
+    assert string_before == string_after
+    # pylint: enable=consider-using-f-string
+    # TODO(#6171): END
+
+    raise TypeError(
+        f"object of type '{type(val)}' isn't invertible. "
+        "It has no __pow__ method (or the method returned NotImplemented) "
+        "and it isn't an iterable of invertible objects."
     )
 
 

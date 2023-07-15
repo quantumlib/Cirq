@@ -12,9 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# TODO(#6171): enable the check and fix pylint errors
-# pylint: disable=consider-using-f-string
-
 from typing import Any, Sequence, Tuple, TypeVar, Union
 
 from typing_extensions import Protocol
@@ -125,14 +122,42 @@ def qid_shape(
         return default
 
     if getter is not None:
-        raise TypeError(
+        # TODO(#6171): BEGIN
+        # pylint: disable=consider-using-f-string
+        string_before = (
             "object of type '{}' does have a _qid_shape_ method, "
             "but it returned NotImplemented.".format(type(val))
         )
-    if num_getter is not None:
+        string_after = (
+            f"object of type '{type(val)}' does have a _qid_shape_ method, "
+            "but it returned NotImplemented."
+        )
+        assert string_before == string_after
+        # pylint: enable=consider-using-f-string
+        # TODO(#6171): END
+
         raise TypeError(
+            f"object of type '{type(val)}' does have a _qid_shape_ method, "
+            "but it returned NotImplemented."
+        )
+    if num_getter is not None:
+        # TODO(#6171): BEGIN
+        # pylint: disable=consider-using-f-string
+        string_before = (
             "object of type '{}' does have a _num_qubits_ method, "
             "but it returned NotImplemented.".format(type(val))
+        )
+        string_after = (
+            f"object of type '{type(val)}' does have a _num_qubits_ method, "
+            "but it returned NotImplemented."
+        )
+        assert string_before == string_after
+        # pylint: enable=consider-using-f-string
+        # TODO(#6171): END
+
+        raise TypeError(
+            f"object of type '{type(val)}' does have a _num_qubits_ method, "
+            "but it returned NotImplemented."
         )
     raise TypeError(f"object of type '{type(val)}' has no _num_qubits_ or _qid_shape_ methods.")
 
@@ -180,13 +205,41 @@ def num_qubits(
         return default
 
     if num_getter is not None:
-        raise TypeError(
+        # TODO(#6171): BEGIN
+        # pylint: disable=consider-using-f-string
+        string_before = (
             "object of type '{}' does have a _num_qubits_ method, "
             "but it returned NotImplemented.".format(type(val))
         )
-    if getter is not None:
+        string_after = (
+            f"object of type '{type(val)}' does have a _num_qubits_ method, "
+            "but it returned NotImplemented."
+        )
+        assert string_before == string_after
+        # pylint: enable=consider-using-f-string
+        # TODO(#6171): END
+
         raise TypeError(
+            f"object of type '{type(val)}' does have a _num_qubits_ method, "
+            "but it returned NotImplemented."
+        )
+    if getter is not None:
+        # TODO(#6171): BEGIN
+        # pylint: disable=consider-using-f-string
+        string_before = (
             "object of type '{}' does have a _qid_shape_ method, "
             "but it returned NotImplemented.".format(type(val))
+        )
+        string_after = (
+            f"object of type '{type(val)}' does have a _qid_shape_ method, "
+            "but it returned NotImplemented."
+        )
+        assert string_before == string_after
+        # pylint: enable=consider-using-f-string
+        # TODO(#6171): END
+
+        raise TypeError(
+            f"object of type '{type(val)}' does have a _qid_shape_ method, "
+            "but it returned NotImplemented."
         )
     raise TypeError(f"object of type '{type(val)}' has no _num_qubits_ or _qid_shape_ methods.")

@@ -12,9 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# TODO(#6171): enable the check and fix pylint errors
-# pylint: disable=consider-using-f-string
-
 from collections import defaultdict
 from typing import (
     AbstractSet,
@@ -653,9 +650,23 @@ class PauliSum:
             ValueError: If the input vector is not the correct size or shape.
         """
         if any(abs(p.coefficient.imag) > 0.0001 for p in self):
-            raise NotImplementedError(
+            # TODO(#6171): BEGIN
+            # pylint: disable=consider-using-f-string
+            string_before = (
                 "Cannot compute expectation value of a non-Hermitian "
                 "PauliString <{}>. Coefficient must be real.".format(self)
+            )
+            string_after = (
+                "Cannot compute expectation value of a non-Hermitian "
+                f"PauliString <{self}>. Coefficient must be real."
+            )
+            assert string_before == string_after
+            # pylint: enable=consider-using-f-string
+            # TODO(#6171): END
+
+            raise NotImplementedError(
+                "Cannot compute expectation value of a non-Hermitian "
+                f"PauliString <{self}>. Coefficient must be real."
             )
 
         # TODO: Avoid enforce specific complex type. This is necessary to
@@ -715,9 +726,23 @@ class PauliSum:
             ValueError: If the input vector is not the correct size or shape.
         """
         if any(abs(p.coefficient.imag) > 0.0001 for p in self):
-            raise NotImplementedError(
+            # TODO(#6171): BEGIN
+            # pylint: disable=consider-using-f-string
+            string_before = (
                 "Cannot compute expectation value of a non-Hermitian "
                 "PauliString <{}>. Coefficient must be real.".format(self)
+            )
+            string_after = (
+                "Cannot compute expectation value of a non-Hermitian "
+                f"PauliString <{self}>. Coefficient must be real."
+            )
+            assert string_before == string_after
+            # pylint: enable=consider-using-f-string
+            # TODO(#6171): END
+
+            raise NotImplementedError(
+                "Cannot compute expectation value of a non-Hermitian "
+                f"PauliString <{self}>. Coefficient must be real."
             )
 
         # FIXME: Avoid enforce specific complex type. This is necessary to

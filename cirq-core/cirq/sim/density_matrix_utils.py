@@ -12,9 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# TODO(#6171): enable the check and fix pylint errors
-# pylint: disable=consider-using-f-string
-
 """Code to handle density matrices."""
 
 from typing import List, Optional, TYPE_CHECKING, Tuple, Sequence
@@ -206,11 +203,25 @@ def _validate_density_matrix_qid_shape(
     shape = density_matrix.shape
     if len(shape) == 2:
         if np.prod(qid_shape, dtype=np.int64) ** 2 != np.prod(shape, dtype=np.int64):
-            raise ValueError(
+            # TODO(#6171): BEGIN
+            # pylint: disable=consider-using-f-string
+            string_before = (
                 'Matrix size does not match qid shape {!r}. Got matrix with '
                 'shape {!r}. Expected {!r}.'.format(
                     qid_shape, shape, np.prod(qid_shape, dtype=np.int64)
                 )
+            )
+            string_after = (
+                f'Matrix size does not match qid shape {qid_shape!r}. Got matrix with '
+                f'shape {shape!r}. Expected {np.prod(qid_shape, dtype=np.int64)!r}.'
+            )
+            assert string_before == string_after
+            # pylint: enable=consider-using-f-string
+            # TODO(#6171): END
+
+            raise ValueError(
+                f'Matrix size does not match qid shape {qid_shape!r}. Got matrix with '
+                f'shape {shape!r}. Expected {np.prod(qid_shape, dtype=np.int64)!r}.'
             )
         return qid_shape
     if len(shape) % 2 != 0:
@@ -235,14 +246,42 @@ def _validate_num_qubits(density_matrix: np.ndarray) -> int:
     if row_size != col_size:
         raise ValueError(f'Matrix was not square. Shape was {shape}')
     if row_size & (row_size - 1):
-        raise ValueError(
+        # TODO(#6171): BEGIN
+        # pylint: disable=consider-using-f-string
+        string_before = (
             'Matrix could not be shaped into a square matrix with dimensions '
             'that are a power of two. Shape was {}'.format(shape)
         )
-    if len(shape) > 2 and not np.allclose(shape, 2):
+        string_after = (
+            'Matrix could not be shaped into a square matrix with dimensions '
+            f'that are a power of two. Shape was {shape}'
+        )
+        assert string_before == string_after
+        # pylint: enable=consider-using-f-string
+        # TODO(#6171): END
+
         raise ValueError(
+            'Matrix could not be shaped into a square matrix with dimensions '
+            f'that are a power of two. Shape was {shape}'
+        )
+    if len(shape) > 2 and not np.allclose(shape, 2):
+        # TODO(#6171): BEGIN
+        # pylint: disable=consider-using-f-string
+        string_before = (
             'Matrix is a tensor of rank greater than 2, but had dimensions '
             'that are not powers of two. Shape was {}'.format(shape)
+        )
+        string_after = (
+            'Matrix is a tensor of rank greater than 2, but had dimensions '
+            f'that are not powers of two. Shape was {shape}'
+        )
+        assert string_before == string_after
+        # pylint: enable=consider-using-f-string
+        # TODO(#6171): END
+
+        raise ValueError(
+            'Matrix is a tensor of rank greater than 2, but had dimensions '
+            f'that are not powers of two. Shape was {shape}'
         )
     return int(row_size).bit_length() - 1
 

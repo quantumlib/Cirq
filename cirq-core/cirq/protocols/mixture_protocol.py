@@ -12,9 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# TODO(#6171): enable the check and fix pylint errors
-# pylint: disable=consider-using-f-string
-
 """Protocol for objects that are mixtures (probabilistic combinations)."""
 from typing import Any, Sequence, Tuple, Union
 
@@ -106,9 +103,23 @@ def mixture(
     if mixture_getter is None and unitary_getter is None:
         raise TypeError(f"object of type '{type(val)}' has no _mixture_ or _unitary_ method.")
 
-    raise TypeError(
+    # TODO(#6171): BEGIN
+    # pylint: disable=consider-using-f-string
+    string_before = (
         "object of type '{}' does have a _mixture_ or _unitary_ "
         "method, but it returned NotImplemented.".format(type(val))
+    )
+    string_after = (
+        f"object of type '{type(val)}' does have a _mixture_ or _unitary_ "
+        "method, but it returned NotImplemented."
+    )
+    assert string_before == string_after
+    # pylint: enable=consider-using-f-string
+    # TODO(#6171): END
+
+    raise TypeError(
+        f"object of type '{type(val)}' does have a _mixture_ or _unitary_ "
+        "method, but it returned NotImplemented."
     )
 
 
