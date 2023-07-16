@@ -42,42 +42,6 @@ def assert_has_rendering(actual: TextDiagramDrawer, desired: str, **kwargs) -> N
     """
     actual_diagram = actual.render(**kwargs)
     desired_diagram = desired
-
-    # TODO(#6171): BEGIN
-    # pylint: disable=consider-using-f-string
-    string_before = (
-        "Diagram's rendering differs from the desired rendering.\n"
-        '\n'
-        'Actual rendering:\n'
-        '{}\n'
-        '\n'
-        'Desired rendering:\n'
-        '{}\n'
-        '\n'
-        'Highlighted differences:\n'
-        '{}\n'.format(
-            actual_diagram,
-            desired_diagram,
-            ct.highlight_text_differences(actual_diagram, desired_diagram),
-        )
-    )
-    string_after = (
-        "Diagram's rendering differs from the desired rendering.\n"
-        '\n'
-        'Actual rendering:\n'
-        f'{actual_diagram}\n'
-        '\n'
-        'Desired rendering:\n'
-        f'{desired_diagram}\n'
-        '\n'
-        'Highlighted differences:\n'
-        f'{ct.highlight_text_differences(actual_diagram, desired_diagram)}\n'
-    )
-    assert string_before == string_after
-    print("\nUFS:cirq-core/cirq/circuits/text_diagram_drawer_test.py:76:assert string_before == string_after")
-    # pylint: enable=consider-using-f-string
-    # TODO(#6171): END
-
     assert actual_diagram == desired_diagram, (
         "Diagram's rendering differs from the desired rendering.\n"
         '\n'

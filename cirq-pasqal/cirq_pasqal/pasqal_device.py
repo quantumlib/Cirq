@@ -277,21 +277,6 @@ class PasqalVirtualDevice(PasqalDevice):
         return np.sqrt((p.x - q.x) ** 2 + (p.y - q.y) ** 2 + (p.z - q.z) ** 2)
 
     def __repr__(self):
-        # TODO(#6171): BEGIN
-        # pylint: disable=consider-using-f-string
-        string_before = ('pasqal.PasqalVirtualDevice(control_radius={!r}, qubits={!r})').format(
-            self.control_radius, sorted(self.qubits)
-        )
-        string_after = (
-            'pasqal.PasqalVirtualDevice('
-            f'control_radius={self.control_radius!r}, '
-            f'qubits={sorted(self.qubits)!r})'
-        )
-        assert string_before == string_after
-        print("\nUFS:cirq-pasqal/cirq_pasqal/pasqal_device.py:290:assert string_before == string_after")
-        # pylint: enable=consider-using-f-string
-        # TODO(#6171): END
-
         return (
             'pasqal.PasqalVirtualDevice('
             f'control_radius={self.control_radius!r}, '

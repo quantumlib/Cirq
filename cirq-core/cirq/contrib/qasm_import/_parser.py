@@ -82,21 +82,6 @@ class QasmGateStatement:
 
     def _validate_args(self, args: List[List[ops.Qid]], lineno: int):
         if len(args) != self.num_args:
-            # TODO(#6171): BEGIN
-            # pylint: disable=consider-using-f-string
-            string_before = (
-                "{} only takes {} arg(s) (qubits and/or registers), "
-                "got: {}, at line {}".format(self.qasm_gate, self.num_args, len(args), lineno)
-            )
-            string_after = (
-                f"{self.qasm_gate} only takes {self.num_args} arg(s) (qubits and/or registers), "
-                f"got: {len(args)}, at line {lineno}"
-            )
-            assert string_before == string_after
-            print("\nUFS:cirq-core/cirq/contrib/qasm_import/_parser.py:95:assert string_before == string_after")
-            # pylint: enable=consider-using-f-string
-            # TODO(#6171): END
-
             raise QasmException(
                 f"{self.qasm_gate} only takes {self.num_args} arg(s) (qubits and/or registers), "
                 f"got: {len(args)}, at line {lineno}"
@@ -104,20 +89,6 @@ class QasmGateStatement:
 
     def _validate_params(self, params: List[float], lineno: int):
         if len(params) != self.num_params:
-            # TODO(#6171): BEGIN
-            # pylint: disable=consider-using-f-string
-            string_before = "{} takes {} parameter(s), got: {}, at line {}".format(
-                self.qasm_gate, self.num_params, len(params), lineno
-            )
-            string_after = (
-                f"{self.qasm_gate} takes {self.num_params} parameter(s), "
-                f"got: {len(params)}, at line {lineno}"
-            )
-            assert string_before == string_after
-            print("\nUFS:cirq-core/cirq/contrib/qasm_import/_parser.py:116:assert string_before == string_after")
-            # pylint: enable=consider-using-f-string
-            # TODO(#6171): END
-
             raise QasmException(
                 f"{self.qasm_gate} takes {self.num_params} parameter(s), "
                 f"got: {len(params)}, at line {lineno}"
@@ -315,20 +286,6 @@ class QasmParser:
     def p_format(self, p):
         """format : FORMAT_SPEC"""
         if p[1] != "2.0":
-            # TODO(#6171): BEGIN
-            # pylint: disable=consider-using-f-string
-            string_before = (
-                "Unsupported OpenQASM version: {}, "
-                "only 2.0 is supported currently by Cirq".format(p[1])
-            )
-            string_after = (
-                f"Unsupported OpenQASM version: {p[1]}, only 2.0 is supported currently by Cirq"
-            )
-            assert string_before == string_after
-            print("\nUFS:cirq-core/cirq/contrib/qasm_import/_parser.py:327:assert string_before == string_after")
-            # pylint: enable=consider-using-f-string
-            # TODO(#6171): END
-
             raise QasmException(
                 f"Unsupported OpenQASM version: {p[1]}, only 2.0 is supported currently by Cirq"
             )
@@ -389,20 +346,6 @@ class QasmParser:
         if gate not in gate_set.keys():
             tip = ", did you forget to include qelib1.inc?" if not self.qelibinc else ""
             msg = f'Unknown gate "{gate}" at line {p.lineno(1)}{tip}'
-
-            # TODO(#6171): BEGIN
-            # pylint: disable=consider-using-f-string
-            string_before = 'Unknown gate "{}" at line {}{}'.format(
-                gate,
-                p.lineno(1),
-                ", did you forget to include qelib1.inc?" if not self.qelibinc else "",
-            )
-            string_after = msg
-            assert string_before == string_after
-            print("\nUFS:cirq-core/cirq/contrib/qasm_import/_parser.py:401:assert string_before == string_after")
-            # pylint: enable=consider-using-f-string
-            # TODO(#6171): END
-
             raise QasmException(msg)
         p[0] = gate_set[gate].on(args=args, params=params, lineno=p.lineno(1))
 
@@ -512,23 +455,6 @@ class QasmParser:
             raise QasmException(f'Undefined quantum register "{reg}" at line {p.lineno(1)}')
         size = self.qregs[reg]
         if idx >= size:
-            # TODO(#6171): BEGIN
-            # pylint: disable=consider-using-f-string
-            string_before = (
-                'Out of bounds qubit index {} '
-                'on register {} of size {} '
-                'at line {}'.format(idx, reg, size, p.lineno(1))
-            )
-            string_after = (
-                f'Out of bounds qubit index {idx} '
-                f'on register {reg} of size {size} '
-                f'at line {p.lineno(1)}'
-            )
-            assert string_before == string_after
-            print("\nUFS:cirq-core/cirq/contrib/qasm_import/_parser.py:527:assert string_before == string_after")
-            # pylint: enable=consider-using-f-string
-            # TODO(#6171): END
-
             raise QasmException(
                 f'Out of bounds qubit index {idx} '
                 f'on register {reg} of size {size} '
@@ -548,23 +474,6 @@ class QasmParser:
 
         size = self.cregs[reg]
         if idx >= size:
-            # TODO(#6171): BEGIN
-            # pylint: disable=consider-using-f-string
-            string_before = (
-                'Out of bounds bit index {} '
-                'on classical register {} of size {} '
-                'at line {}'.format(idx, reg, size, p.lineno(1))
-            )
-            string_after = (
-                f'Out of bounds bit index {idx} '
-                f'on classical register {reg} of size {size} '
-                f'at line {p.lineno(1)}'
-            )
-            assert string_before == string_after
-            print("\nUFS:cirq-core/cirq/contrib/qasm_import/_parser.py:563:assert string_before == string_after")
-            # pylint: enable=consider-using-f-string
-            # TODO(#6171): END
-
             raise QasmException(
                 f'Out of bounds bit index {idx} '
                 f'on classical register {reg} of size {size} '
@@ -581,21 +490,6 @@ class QasmParser:
         creg = p[4]
 
         if len(qreg) != len(creg):
-            # TODO(#6171): BEGIN
-            # pylint: disable=consider-using-f-string
-            string_before = (
-                'mismatched register sizes {} -> {} for measurement '
-                'at line {}'.format(len(qreg), len(creg), p.lineno(1))
-            )
-            string_after = (
-                f'mismatched register sizes {len(qreg)} -> {len(creg)} for measurement '
-                f'at line {p.lineno(1)}'
-            )
-            assert string_before == string_after
-            print("\nUFS:cirq-core/cirq/contrib/qasm_import/_parser.py:594:assert string_before == string_after")
-            # pylint: enable=consider-using-f-string
-            # TODO(#6171): END
-
             raise QasmException(
                 f'mismatched register sizes {len(qreg)} -> {len(creg)} for measurement '
                 f'at line {p.lineno(1)}'

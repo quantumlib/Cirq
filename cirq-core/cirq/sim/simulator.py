@@ -958,22 +958,6 @@ def check_all_resolved(circuit):
     """Raises if the circuit contains unresolved symbols."""
     if protocols.is_parameterized(circuit):
         unresolved = [op for moment in circuit for op in moment if protocols.is_parameterized(op)]
-
-        # TODO(#6171): BEGIN
-        # pylint: disable=consider-using-f-string
-        string_before = (
-            'Circuit contains ops whose symbols were not specified in '
-            'parameter sweep. Ops: {}'.format(unresolved)
-        )
-        string_after = (
-            'Circuit contains ops whose symbols were not specified in '
-            f'parameter sweep. Ops: {unresolved}'
-        )
-        assert string_before == string_after
-        print("\nUFS:cirq-core/cirq/sim/simulator.py:972:assert string_before == string_after")
-        # pylint: enable=consider-using-f-string
-        # TODO(#6171): END
-
         raise ValueError(
             'Circuit contains ops whose symbols were not specified in '
             f'parameter sweep. Ops: {unresolved}'

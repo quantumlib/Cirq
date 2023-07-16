@@ -24,25 +24,6 @@ def assert_specifies_has_unitary_if_unitary(val: Any) -> None:
     __tracebackhide__ = True
     # pylint: enable=unused-variable
 
-    # TODO(#6171): BEGIN
-    # pylint: disable=consider-using-f-string
-    string_before = (
-        "Value is unitary but doesn't specify a _has_unitary_ method that "
-        "can be used to cheaply verify this fact.\n"
-        "\n"
-        "val: {!r}".format(val)
-    )
-    string_after = (
-        "Value is unitary but doesn't specify a _has_unitary_ method that "
-        "can be used to cheaply verify this fact.\n"
-        "\n"
-        f"val: {val!r}"
-    )
-    assert string_before == string_after
-    print("\nUFS:cirq-core/cirq/testing/consistent_specified_has_unitary.py:41:assert string_before == string_after")
-    # pylint: enable=consider-using-f-string
-    # TODO(#6171): END
-
     assert not protocols.has_unitary(val) or hasattr(val, '_has_unitary_'), (
         "Value is unitary but doesn't specify a _has_unitary_ method that "
         "can be used to cheaply verify this fact.\n"

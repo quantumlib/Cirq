@@ -134,16 +134,6 @@ class BipartiteSwapNetworkGate(PermutationGate):
             name = 'Matching'
         elif self.subgraph == BipartiteGraphType.COMPLETE:
             name = f'K_{{{self.part_size}, {self.part_size}}}'
-
-            # TODO(#6171): BEGIN
-            # pylint: disable=consider-using-f-string
-            string_before = 'K_{{{0}, {0}}}'.format(self.part_size)
-            string_after = name
-            assert string_before == string_after
-            print("\nUFS:cirq-core/cirq/contrib/acquaintance/bipartite.py:142:assert string_before == string_after")
-            # pylint: enable=consider-using-f-string
-            # TODO(#6171): END
-
         # NB: self.subgraph not in BipartiteGraphType caught by self.permutation
         arrow = '↦' if args.use_unicode_characters else '->'
 

@@ -222,46 +222,12 @@ def apply_channel(
     left_shape = tuple(args.target_tensor.shape[i] for i in args.left_axes)
     right_shape = tuple(args.target_tensor.shape[i] for i in args.right_axes)
     if left_shape != right_shape:
-        # TODO(#6171): BEGIN
-        # pylint: disable=consider-using-f-string
-        string_before = (
-            'Invalid target_tensor shape or selected axes. '
-            'The selected left and right shape of target_tensor '
-            'are not equal. Got {!r} and {!r}.'.format(left_shape, right_shape)
-        )
-        string_after = (
-            'Invalid target_tensor shape or selected axes. '
-            'The selected left and right shape of target_tensor '
-            f'are not equal. Got {left_shape!r} and {right_shape!r}.'
-        )
-        assert string_before == string_after
-        print("\nUFS:cirq-core/cirq/protocols/apply_channel_protocol.py:237:assert string_before == string_after")
-        # pylint: enable=consider-using-f-string
-        # TODO(#6171): END
-
         raise ValueError(
             'Invalid target_tensor shape or selected axes. '
             'The selected left and right shape of target_tensor '
             f'are not equal. Got {left_shape!r} and {right_shape!r}.'
         )
     if val_qid_shape != left_shape:
-        # TODO(#6171): BEGIN
-        # pylint: disable=consider-using-f-string
-        string_before = (
-            'Invalid channel qid shape is not equal to the '
-            'selected left and right shape of target_tensor. '
-            'Got {!r} but expected {!r}.'.format(val_qid_shape, left_shape)
-        )
-        string_after = (
-            'Invalid channel qid shape is not equal to the '
-            'selected left and right shape of target_tensor. '
-            f'Got {val_qid_shape!r} but expected {left_shape!r}.'
-        )
-        assert string_before == string_after
-        print("\nUFS:cirq-core/cirq/protocols/apply_channel_protocol.py:260:assert string_before == string_after")
-        # pylint: enable=consider-using-f-string
-        # TODO(#6171): END
-
         raise ValueError(
             'Invalid channel qid shape is not equal to the '
             'selected left and right shape of target_tensor. '
@@ -274,23 +240,6 @@ def apply_channel(
         if result is not NotImplemented and result is not None:
 
             def err_str(buf_num_str):
-                # TODO(#6171): BEGIN
-                # pylint: disable=consider-using-f-string
-                string_before = (
-                    "Object of type '{}' returned a result object equal to "
-                    "auxiliary_buffer{}. This type violates the contract "
-                    "that appears in apply_channel's documentation.".format(type(val), buf_num_str)
-                )
-                string_after = (
-                    f"Object of type '{type(val)}' returned a result object equal to "
-                    f"auxiliary_buffer{buf_num_str}. This type violates the contract "
-                    "that appears in apply_channel's documentation."
-                )
-                assert string_before == string_after
-                print("\nUFS:cirq-core/cirq/protocols/apply_channel_protocol.py:289:assert string_before == string_after")
-                # pylint: enable=consider-using-f-string
-                # TODO(#6171): END
-
                 return (
                     f"Object of type '{type(val)}' returned a result object equal to "
                     f"auxiliary_buffer{buf_num_str}. This type violates the contract "
@@ -314,24 +263,6 @@ def apply_channel(
     # Don't know how to apply channel. Fallback to specified default behavior.
     if default is not RaiseTypeErrorIfNotProvided:
         return default
-
-    # TODO(#6171): BEGIN
-    # pylint: disable=consider-using-f-string
-    string_before = (
-        "object of type '{}' has no _apply_channel_, _apply_unitary_, "
-        "_unitary_, or _kraus_ methods (or they returned None or "
-        "NotImplemented).".format(type(val))
-    )
-    string_after = (
-        f"object of type '{type(val)}' has no _apply_channel_, _apply_unitary_, "
-        "_unitary_, or _kraus_ methods (or they returned None or "
-        "NotImplemented)."
-    )
-    assert string_before == string_after
-    print("\nUFS:cirq-core/cirq/protocols/apply_channel_protocol.py:330:assert string_before == string_after")
-    # pylint: enable=consider-using-f-string
-    # TODO(#6171): END
-
     raise TypeError(
         f"object of type '{type(val)}' has no _apply_channel_, _apply_unitary_, "
         "_unitary_, or _kraus_ methods (or they returned None or "

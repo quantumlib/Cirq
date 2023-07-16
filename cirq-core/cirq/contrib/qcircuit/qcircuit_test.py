@@ -29,42 +29,6 @@ def assert_has_qcircuit_diagram(actual: cirq.Circuit, desired: str, **kwargs) ->
     """
     actual_diagram = ccq.circuit_to_latex_using_qcircuit(actual, **kwargs).lstrip('\n').rstrip()
     desired_diagram = desired.lstrip("\n").rstrip()
-
-    # TODO(#6171): BEGIN
-    # pylint: disable=consider-using-f-string
-    string_before = (
-        "Circuit's qcircuit diagram differs from the desired diagram.\n"
-        '\n'
-        'Diagram of actual circuit:\n'
-        '{}\n'
-        '\n'
-        'Desired qcircuit diagram:\n'
-        '{}\n'
-        '\n'
-        'Highlighted differences:\n'
-        '{}\n'.format(
-            actual_diagram,
-            desired_diagram,
-            ct.highlight_text_differences(actual_diagram, desired_diagram),
-        )
-    )
-    string_after = (
-        "Circuit's qcircuit diagram differs from the desired diagram.\n"
-        '\n'
-        'Diagram of actual circuit:\n'
-        f'{actual_diagram}\n'
-        '\n'
-        'Desired qcircuit diagram:\n'
-        f'{desired_diagram}\n'
-        '\n'
-        'Highlighted differences:\n'
-        f'{ct.highlight_text_differences(actual_diagram, desired_diagram)}\n'
-    )
-    assert string_before == string_after
-    print("\nUFS:cirq-core/cirq/contrib/qcircuit/qcircuit_test.py:63:assert string_before == string_after")
-    # pylint: enable=consider-using-f-string
-    # TODO(#6171): END
-
     assert actual_diagram == desired_diagram, (
         "Circuit's qcircuit diagram differs from the desired diagram.\n"
         '\n'

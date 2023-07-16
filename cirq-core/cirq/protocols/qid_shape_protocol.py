@@ -122,41 +122,11 @@ def qid_shape(
         return default
 
     if getter is not None:
-        # TODO(#6171): BEGIN
-        # pylint: disable=consider-using-f-string
-        string_before = (
-            "object of type '{}' does have a _qid_shape_ method, "
-            "but it returned NotImplemented.".format(type(val))
-        )
-        string_after = (
-            f"object of type '{type(val)}' does have a _qid_shape_ method, "
-            "but it returned NotImplemented."
-        )
-        assert string_before == string_after
-        print("\nUFS:cirq-core/cirq/protocols/qid_shape_protocol.py:135:assert string_before == string_after")
-        # pylint: enable=consider-using-f-string
-        # TODO(#6171): END
-
         raise TypeError(
             f"object of type '{type(val)}' does have a _qid_shape_ method, "
             "but it returned NotImplemented."
         )
     if num_getter is not None:
-        # TODO(#6171): BEGIN
-        # pylint: disable=consider-using-f-string
-        string_before = (
-            "object of type '{}' does have a _num_qubits_ method, "
-            "but it returned NotImplemented.".format(type(val))
-        )
-        string_after = (
-            f"object of type '{type(val)}' does have a _num_qubits_ method, "
-            "but it returned NotImplemented."
-        )
-        assert string_before == string_after
-        print("\nUFS:cirq-core/cirq/protocols/qid_shape_protocol.py:155:assert string_before == string_after")
-        # pylint: enable=consider-using-f-string
-        # TODO(#6171): END
-
         raise TypeError(
             f"object of type '{type(val)}' does have a _num_qubits_ method, "
             "but it returned NotImplemented."
@@ -207,41 +177,11 @@ def num_qubits(
         return default
 
     if num_getter is not None:
-        # TODO(#6171): BEGIN
-        # pylint: disable=consider-using-f-string
-        string_before = (
-            "object of type '{}' does have a _num_qubits_ method, "
-            "but it returned NotImplemented.".format(type(val))
-        )
-        string_after = (
-            f"object of type '{type(val)}' does have a _num_qubits_ method, "
-            "but it returned NotImplemented."
-        )
-        assert string_before == string_after
-        print("\nUFS:cirq-core/cirq/protocols/qid_shape_protocol.py:220:assert string_before == string_after")
-        # pylint: enable=consider-using-f-string
-        # TODO(#6171): END
-
         raise TypeError(
             f"object of type '{type(val)}' does have a _num_qubits_ method, "
             "but it returned NotImplemented."
         )
     if getter is not None:
-        # TODO(#6171): BEGIN
-        # pylint: disable=consider-using-f-string
-        string_before = (
-            "object of type '{}' does have a _qid_shape_ method, "
-            "but it returned NotImplemented.".format(type(val))
-        )
-        string_after = (
-            f"object of type '{type(val)}' does have a _qid_shape_ method, "
-            "but it returned NotImplemented."
-        )
-        assert string_before == string_after
-        print("\nUFS:cirq-core/cirq/protocols/qid_shape_protocol.py:240:assert string_before == string_after")
-        # pylint: enable=consider-using-f-string
-        # TODO(#6171): END
-
         raise TypeError(
             f"object of type '{type(val)}' does have a _qid_shape_ method, "
             "but it returned NotImplemented."

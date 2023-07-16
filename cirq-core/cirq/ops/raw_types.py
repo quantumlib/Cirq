@@ -1041,40 +1041,11 @@ def _validate_qid_shape(val: Any, qubits: Sequence['cirq.Qid']) -> None:
     """
     qid_shape = protocols.qid_shape(val)
     if len(qubits) != len(qid_shape):
-        # TODO(#6171): BEGIN
-        # pylint: disable=consider-using-f-string
-        string_before = (
-            'Wrong number of qubits for <{!r}>. '
-            'Expected {} qubits but got <{!r}>.'.format(val, len(qid_shape), qubits)
-        )
-        string_after = (
-            f'Wrong number of qubits for <{val!r}>. '
-            f'Expected {len(qid_shape)} qubits but got <{qubits!r}>.'
-        )
-        assert string_before == string_after
-        print("\nUFS:cirq-core/cirq/ops/raw_types.py:1054:assert string_before == string_after")
-        # pylint: enable=consider-using-f-string
-        # TODO(#6171): END
-
         raise ValueError(
             f'Wrong number of qubits for <{val!r}>. '
             f'Expected {len(qid_shape)} qubits but got <{qubits!r}>.'
         )
     if any(qid.dimension != dimension for qid, dimension in zip(qubits, qid_shape)):
-        # TODO(#6171): BEGIN
-        # pylint: disable=consider-using-f-string
-        string_before = 'Wrong shape of qids for <{!r}>. ' 'Expected {} but got {} <{!r}>.'.format(
-            val, qid_shape, tuple(qid.dimension for qid in qubits), qubits
-        )
-        string_after = (
-            f'Wrong shape of qids for <{val!r}>. '
-            f'Expected {qid_shape} but got {tuple(qid.dimension for qid in qubits)} <{qubits!r}>.'
-        )
-        assert string_before == string_after
-        print("\nUFS:cirq-core/cirq/ops/raw_types.py:1073:assert string_before == string_after")
-        # pylint: enable=consider-using-f-string
-        # TODO(#6171): END
-
         raise ValueError(
             f'Wrong shape of qids for <{val!r}>. '
             f'Expected {qid_shape} but got {tuple(qid.dimension for qid in qubits)} <{qubits!r}>.'

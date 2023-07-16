@@ -39,18 +39,6 @@ class AnyUnitaryGateFamily(gateset.GateFamily):
         name = f'{str(num_qubits) if num_qubits else "Any"}-Qubit UnitaryGateFamily'
         kind = f'{num_qubits}-qubit ' if num_qubits else ''
         description = f'Accepts any {kind}unitary gate'
-
-        # TODO(#6171): BEGIN
-        # pylint: disable=consider-using-f-string
-        string_before = 'Accepts any {}unitary gate'.format(
-            f'{num_qubits}-qubit ' if num_qubits else ''
-        )
-        string_after = description
-        assert string_before == string_after
-        print("\nUFS:cirq-core/cirq/ops/common_gate_families.py:49:assert string_before == string_after")
-        # pylint: enable=consider-using-f-string
-        # TODO(#6171): END
-
         super().__init__(raw_types.Gate, name=name, description=description)
 
     def _predicate(self, g: raw_types.Gate) -> bool:

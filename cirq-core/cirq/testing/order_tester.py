@@ -49,25 +49,6 @@ class OrderTester:
         for cmp_name, cmp_func in _NAMED_COMPARISON_OPERATORS:
             expected = cmp_func(0, sign)
             actual = cmp_func(a, b)
-
-            # TODO(#6171): BEGIN
-            # pylint: disable=consider-using-f-string
-            string_before = (
-                "Ordering constraint violated. Expected X={} to {} Y={}, "
-                "but X {} Y returned {}".format(
-                    a, ['be more than', 'equal', 'be less than'][sign + 1], b, cmp_name, actual
-                )
-            )
-            string_after = (
-                f"Ordering constraint violated. Expected X={a} "
-                f"to {['be more than', 'equal', 'be less than'][sign + 1]} Y={b}, "
-                f"but X {cmp_name} Y returned {actual}"
-            )
-            assert string_before == string_after
-            print("\nUFS:cirq-core/cirq/testing/order_tester.py:66:assert string_before == string_after")
-            # pylint: enable=consider-using-f-string
-            # TODO(#6171): END
-
             assert expected == actual, (
                 f"Ordering constraint violated. Expected X={a} "
                 f"to {['be more than', 'equal', 'be less than'][sign + 1]} Y={b}, "
@@ -85,31 +66,6 @@ class OrderTester:
             self._verify_ordering(_EqualToEverything(), item, 0)
             self._verify_ordering(_LargerThanEverythingElse(), item, -1)
         except AssertionError as ex:
-            # TODO(#6171): BEGIN
-            # pylint: disable=consider-using-f-string
-            string_before = (
-                "Objects should return NotImplemented when compared to an "
-                "unknown value, i.e. comparison methods should start with\n"
-                "\n"
-                "    if not isinstance(other, type(self)):\n"
-                "        return NotImplemented\n"
-                "\n"
-                "That rule is being violated by this value: {!r}".format(item)
-            )
-            string_after = (
-                "Objects should return NotImplemented when compared to an "
-                "unknown value, i.e. comparison methods should start with\n"
-                "\n"
-                "    if not isinstance(other, type(self)):\n"
-                "        return NotImplemented\n"
-                "\n"
-                f"That rule is being violated by this value: {item!r}"
-            )
-            assert string_before == string_after
-            print("\nUFS:cirq-core/cirq/testing/order_tester.py:108:assert string_before == string_after")
-            # pylint: enable=consider-using-f-string
-            # TODO(#6171): END
-
             raise AssertionError(
                 "Objects should return NotImplemented when compared to an "
                 "unknown value, i.e. comparison methods should start with\n"

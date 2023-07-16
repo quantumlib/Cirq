@@ -149,22 +149,6 @@ def main():
         circuit = get_max_cut_qaoa_circuit(
             vertices, edges, beta, gamma, use_logical_qubits, verbose
         )
-
-        # TODO(#6171): BEGIN
-        # pylint: disable=consider-using-f-string
-        string_before = '1-round QAOA circuit (using {}s as logical indices):'.format(
-            'qubit' if use_logical_qubits else 'integer'
-        )
-        string_after = (
-            '1-round QAOA circuit (using '
-            f"{'qubits' if use_logical_qubits else 'integers'} "
-            'as logical indices):'
-        )
-        assert string_before == string_after
-        print("\nUFS:examples/swap_networks.py:163:assert string_before == string_after")
-        # pylint: enable=consider-using-f-string
-        # TODO(#6171): END
-
         print(
             '1-round QAOA circuit (using '
             f"{'qubits' if use_logical_qubits else 'integers'} "

@@ -52,23 +52,6 @@ class InitObsSetting:
         init_qs = self.init_state.qubits
         obs_qs = self.observable.qubits
         if set(obs_qs) > set(init_qs):
-            # TODO(#6171): BEGIN
-            # pylint: disable=consider-using-f-string
-            string_before = (
-                "`observable`'s qubits should be a subset of those "
-                "found in `init_state`. "
-                "observable qubits: {}. init_state qubits: {}".format(obs_qs, init_qs)
-            )
-            string_after = (
-                "`observable`'s qubits should be a subset of those "
-                "found in `init_state`. "
-                f"observable qubits: {obs_qs}. init_state qubits: {init_qs}"
-            )
-            assert string_before == string_after
-            print("\nUFS:cirq-core/cirq/work/observable_settings.py:67:assert string_before == string_after")
-            # pylint: enable=consider-using-f-string
-            # TODO(#6171): END
-
             raise ValueError(
                 "`observable`'s qubits should be a subset of those "
                 "found in `init_state`. "

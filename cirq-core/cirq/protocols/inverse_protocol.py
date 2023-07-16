@@ -114,24 +114,6 @@ def inverse(val: Any, default: Any = RaiseTypeErrorIfNotProvided) -> Any:
     # Can't invert.
     if default is not RaiseTypeErrorIfNotProvided:
         return default
-
-    # TODO(#6171): BEGIN
-    # pylint: disable=consider-using-f-string
-    string_before = (
-        "object of type '{}' isn't invertible. "
-        "It has no __pow__ method (or the method returned NotImplemented) "
-        "and it isn't an iterable of invertible objects.".format(type(val))
-    )
-    string_after = (
-        f"object of type '{type(val)}' isn't invertible. "
-        "It has no __pow__ method (or the method returned NotImplemented) "
-        "and it isn't an iterable of invertible objects."
-    )
-    assert string_before == string_after
-    print("\nUFS:cirq-core/cirq/protocols/inverse_protocol.py:130:assert string_before == string_after")
-    # pylint: enable=consider-using-f-string
-    # TODO(#6171): END
-
     raise TypeError(
         f"object of type '{type(val)}' isn't invertible. "
         "It has no __pow__ method (or the method returned NotImplemented) "

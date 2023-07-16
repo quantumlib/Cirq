@@ -136,17 +136,6 @@ class TwoQubitDiagonalGate(raw_types.Gate):
 
     def __repr__(self) -> str:
         angles = ','.join(proper_repr(angle) for angle in self._diag_angles_radians)
-        # TODO(#6171): BEGIN
-        # pylint: disable=consider-using-f-string
-        string_before = 'cirq.TwoQubitDiagonalGate([{}])'.format(
-            ','.join(proper_repr(angle) for angle in self._diag_angles_radians)
-        )
-        string_after = f'cirq.TwoQubitDiagonalGate([{angles}])'
-        assert string_before == string_after
-        print("\nUFS:cirq-core/cirq/ops/two_qubit_diagonal_gate.py:145:assert string_before == string_after")
-        # pylint: enable=consider-using-f-string
-        # TODO(#6171): END
-
         return f'cirq.TwoQubitDiagonalGate([{angles}])'
 
     def _json_dict_(self) -> Dict[str, Any]:

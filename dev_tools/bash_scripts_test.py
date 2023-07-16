@@ -71,32 +71,6 @@ touch dev_tools/pypath
 chmod +x ./test-script.sh
 ./test-script.sh {arg}
 """
-
-    # TODO(#6171): BEGIN
-    # pylint: disable=consider-using-f-string
-    string_before = r"""
-export GIT_CONFIG_GLOBAL=/dev/null
-export GIT_CONFIG_SYSTEM=/dev/null
-dir=$(git rev-parse --show-toplevel)
-cd {}
-git init --quiet --initial-branch master
-git config --local user.name 'Me'
-git config --local user.email '<>'
-git commit -m init --allow-empty --quiet --no-gpg-sign
-{}
-mkdir -p dev_tools
-touch dev_tools/pypath
-chmod +x ./test-script.sh
-./test-script.sh {}
-""".format(
-        dir_path, setup, arg
-    )
-    string_after = cmd
-    assert string_before == string_after
-    print("\nUFS:dev_tools/bash_scripts_test.py:95:assert string_before == string_after")
-    # pylint: enable=consider-using-f-string
-    # TODO(#6171): END
-
     return shell_tools.run(
         cmd, log_run_to_stderr=False, shell=True, check=False, capture_output=True
     )

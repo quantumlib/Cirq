@@ -83,20 +83,6 @@ def move_pauli_strings_into_circuit(
         # Pick the Pauli string that can be moved furthest through
         # the Clifford circuit
         for best_string_op, best_index, best_node in placements:
-            # TODO(#6171): BEGIN
-            # pylint: disable=consider-using-f-string
-            string_before = "Unexpected insertion index order, {} >= {}, len: {}".format(
-                best_index, last_index, len(output_ops)
-            )
-            string_after = (
-                "Unexpected insertion index order, "
-                f"{best_index} >= {last_index}, len: {len(output_ops)}"
-            )
-            assert string_before == string_after
-            print("\nUFS:cirq-core/cirq/contrib/paulistring/recombine.py:95:assert string_before == string_after")
-            # pylint: enable=consider-using-f-string
-            # TODO(#6171): END
-
             assert best_index <= last_index, (
                 "Unexpected insertion index order, "
                 f"{best_index} >= {last_index}, len: {len(output_ops)}"

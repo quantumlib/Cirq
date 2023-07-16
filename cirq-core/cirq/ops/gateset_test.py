@@ -37,24 +37,6 @@ class CustomXPowGate(cirq.EigenGate):
             if self._exponent == 1:
                 return 'cirq.ops.gateset_test.CustomX'
             return f'(cirq.ops.gateset_test.CustomX**{proper_repr(self._exponent)})'
-
-        # TODO(#6171): BEGIN
-        # pylint: disable=consider-using-f-string
-        string_before = (
-            'cirq.ops.gateset_test.CustomXPowGate(exponent={}, global_shift={!r})'.format(
-                proper_repr(self._exponent), self._global_shift
-            )
-        )
-        string_after = (
-            'cirq.ops.gateset_test.CustomXPowGate('
-            f'exponent={proper_repr(self._exponent)}, '
-            f'global_shift={self._global_shift!r})'
-        )
-        assert string_before == string_after
-        print("\nUFS:cirq-core/cirq/ops/gateset_test.py:53:assert string_before == string_after")
-        # pylint: enable=consider-using-f-string
-        # TODO(#6171): END
-
         return (
             'cirq.ops.gateset_test.CustomXPowGate('
             f'exponent={proper_repr(self._exponent)}, '

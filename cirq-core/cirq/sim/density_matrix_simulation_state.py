@@ -303,24 +303,6 @@ class DensityMatrixSimulationState(SimulationState[_BufferedDensityMatrix]):
             if result is True:
                 return True
             assert result is NotImplemented, str(result)
-
-        # TODO(#6171): BEGIN
-        # pylint: disable=consider-using-f-string
-        string_before = (
-            "Can't simulate operations that don't implement "
-            "SupportsUnitary, SupportsConsistentApplyUnitary, "
-            "SupportsMixture or SupportsKraus or is a measurement: {!r}".format(action)
-        )
-        string_after = (
-            "Can't simulate operations that don't implement "
-            "SupportsUnitary, SupportsConsistentApplyUnitary, "
-            f"SupportsMixture or SupportsKraus or is a measurement: {action!r}"
-        )
-        assert string_before == string_after
-        print("\nUFS:cirq-core/cirq/sim/density_matrix_simulation_state.py:319:assert string_before == string_after")
-        # pylint: enable=consider-using-f-string
-        # TODO(#6171): END
-
         raise TypeError(
             "Can't simulate operations that don't implement "
             "SupportsUnitary, SupportsConsistentApplyUnitary, "

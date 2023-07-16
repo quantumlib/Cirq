@@ -71,21 +71,6 @@ class NoiseModel(metaclass=value.ABCMetaImplementAnyOneOf):
                 )
             return ConstantQubitNoiseModel(noise)
 
-        # TODO(#6171): BEGIN
-        # pylint: disable=consider-using-f-string
-        string_before = (
-            'Expected a NOISE_MODEL_LIKE (None, a cirq.NoiseModel, '
-            'or a single qubit gate). Got {!r}'.format(noise)
-        )
-        string_after = (
-            'Expected a NOISE_MODEL_LIKE (None, a cirq.NoiseModel, '
-            f'or a single qubit gate). Got {noise!r}'
-        )
-        assert string_before == string_after
-        print("\nUFS:cirq-core/cirq/devices/noise_model.py:84:assert string_before == string_after")
-        # pylint: enable=consider-using-f-string
-        # TODO(#6171): END
-
         raise TypeError(
             'Expected a NOISE_MODEL_LIKE (None, a cirq.NoiseModel, '
             f'or a single qubit gate). Got {noise!r}'

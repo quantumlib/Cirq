@@ -40,36 +40,6 @@ def _assert_same_diagram(actual: str, expected: str):
         'Highlighted differences:\n'
         f'{cirq.testing.highlight_text_differences(actual, expected)}\n'
     )
-    # TODO(#6171): BEGIN
-    # pylint: disable=consider-using-f-string
-    string_before = (
-        "Diagram differs from the desired diagram.\n"
-        '\n'
-        'Actual diagram:\n'
-        '{}\n'
-        '\n'
-        'Desired diagram:\n'
-        '{}\n'
-        '\n'
-        'Highlighted differences:\n'
-        '{}\n'.format(actual, expected, cirq.testing.highlight_text_differences(actual, expected))
-    )
-    string_after = (
-        "Diagram differs from the desired diagram.\n"
-        '\n'
-        'Actual diagram:\n'
-        f'{actual}\n'
-        '\n'
-        'Desired diagram:\n'
-        f'{expected}\n'
-        '\n'
-        'Highlighted differences:\n'
-        f'{cirq.testing.highlight_text_differences(actual, expected)}\n'
-    )
-    assert string_before == string_after
-    print("\nUFS:cirq-core/cirq/circuits/_block_diagram_drawer_test.py:69:assert string_before == string_after")
-    # pylint: enable=consider-using-f-string
-    # TODO(#6171): END
 
 
 def _curve_pieces_diagram(chars: BoxDrawCharacterSet) -> BlockDiagramDrawer:

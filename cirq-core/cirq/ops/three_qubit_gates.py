@@ -176,21 +176,6 @@ class CCZPowGate(gate_features.InterchangeableQubitsGate, eigen_gate.EigenGate):
             if self._exponent == 1:
                 return 'cirq.CCZ'
             return f'(cirq.CCZ**{proper_repr(self._exponent)})'
-
-        # TODO(#6171): BEGIN
-        # pylint: disable=consider-using-f-string
-        string_before = 'cirq.CCZPowGate(exponent={}, global_shift={!r})'.format(
-            proper_repr(self._exponent), self._global_shift
-        )
-        string_after = (
-            f'cirq.CCZPowGate(exponent={proper_repr(self._exponent)}, '
-            f'global_shift={self._global_shift!r})'
-        )
-        assert string_before == string_after
-        print("\nUFS:cirq-core/cirq/ops/three_qubit_gates.py:189:assert string_before == string_after")
-        # pylint: enable=consider-using-f-string
-        # TODO(#6171): END
-
         return (
             f'cirq.CCZPowGate(exponent={proper_repr(self._exponent)}, '
             f'global_shift={self._global_shift!r})'
@@ -400,18 +385,6 @@ class ThreeQubitDiagonalGate(raw_types.Gate):
 
     def __repr__(self) -> str:
         angles = ','.join(proper_repr(angle) for angle in self._diag_angles_radians)
-
-        # TODO(#6171): BEGIN
-        # pylint: disable=consider-using-f-string
-        string_before = 'cirq.ThreeQubitDiagonalGate([{}])'.format(
-            ','.join(proper_repr(angle) for angle in self._diag_angles_radians)
-        )
-        string_after = f'cirq.ThreeQubitDiagonalGate([{angles}])'
-        assert string_before == string_after
-        print("\nUFS:cirq-core/cirq/ops/three_qubit_gates.py:410:assert string_before == string_after")
-        # pylint: enable=consider-using-f-string
-        # TODO(#6171): END
-
         return f'cirq.ThreeQubitDiagonalGate([{angles}])'
 
     def _num_qubits_(self) -> int:
@@ -515,21 +488,6 @@ class CCXPowGate(gate_features.InterchangeableQubitsGate, eigen_gate.EigenGate):
             if self._exponent == 1:
                 return 'cirq.TOFFOLI'
             return f'(cirq.TOFFOLI**{proper_repr(self._exponent)})'
-
-        # TODO(#6171): BEGIN
-        # pylint: disable=consider-using-f-string
-        string_before = 'cirq.CCXPowGate(exponent={}, global_shift={!r})'.format(
-            proper_repr(self._exponent), self._global_shift
-        )
-        string_after = (
-            f'cirq.CCXPowGate(exponent={proper_repr(self._exponent)}, '
-            f'global_shift={self._global_shift!r})'
-        )
-        assert string_before == string_after
-        print("\nUFS:cirq-core/cirq/ops/three_qubit_gates.py:528:assert string_before == string_after")
-        # pylint: enable=consider-using-f-string
-        # TODO(#6171): END
-
         return (
             f'cirq.CCXPowGate(exponent={proper_repr(self._exponent)}, '
             f'global_shift={self._global_shift!r})'

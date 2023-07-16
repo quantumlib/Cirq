@@ -103,21 +103,6 @@ def mixture(
     if mixture_getter is None and unitary_getter is None:
         raise TypeError(f"object of type '{type(val)}' has no _mixture_ or _unitary_ method.")
 
-    # TODO(#6171): BEGIN
-    # pylint: disable=consider-using-f-string
-    string_before = (
-        "object of type '{}' does have a _mixture_ or _unitary_ "
-        "method, but it returned NotImplemented.".format(type(val))
-    )
-    string_after = (
-        f"object of type '{type(val)}' does have a _mixture_ or _unitary_ "
-        "method, but it returned NotImplemented."
-    )
-    assert string_before == string_after
-    print("\nUFS:cirq-core/cirq/protocols/mixture_protocol.py:116:assert string_before == string_after")
-    # pylint: enable=consider-using-f-string
-    # TODO(#6171): END
-
     raise TypeError(
         f"object of type '{type(val)}' does have a _mixture_ or _unitary_ "
         "method, but it returned NotImplemented."

@@ -650,21 +650,6 @@ class PauliSum:
             ValueError: If the input vector is not the correct size or shape.
         """
         if any(abs(p.coefficient.imag) > 0.0001 for p in self):
-            # TODO(#6171): BEGIN
-            # pylint: disable=consider-using-f-string
-            string_before = (
-                "Cannot compute expectation value of a non-Hermitian "
-                "PauliString <{}>. Coefficient must be real.".format(self)
-            )
-            string_after = (
-                "Cannot compute expectation value of a non-Hermitian "
-                f"PauliString <{self}>. Coefficient must be real."
-            )
-            assert string_before == string_after
-            print("\nUFS:cirq-core/cirq/ops/linear_combinations.py:663:assert string_before == string_after")
-            # pylint: enable=consider-using-f-string
-            # TODO(#6171): END
-
             raise NotImplementedError(
                 "Cannot compute expectation value of a non-Hermitian "
                 f"PauliString <{self}>. Coefficient must be real."
@@ -727,21 +712,6 @@ class PauliSum:
             ValueError: If the input vector is not the correct size or shape.
         """
         if any(abs(p.coefficient.imag) > 0.0001 for p in self):
-            # TODO(#6171): BEGIN
-            # pylint: disable=consider-using-f-string
-            string_before = (
-                "Cannot compute expectation value of a non-Hermitian "
-                "PauliString <{}>. Coefficient must be real.".format(self)
-            )
-            string_after = (
-                "Cannot compute expectation value of a non-Hermitian "
-                f"PauliString <{self}>. Coefficient must be real."
-            )
-            assert string_before == string_after
-            print("\nUFS:cirq-core/cirq/ops/linear_combinations.py:740:assert string_before == string_after")
-            # pylint: enable=consider-using-f-string
-            # TODO(#6171): END
-
             raise NotImplementedError(
                 "Cannot compute expectation value of a non-Hermitian "
                 f"PauliString <{self}>. Coefficient must be real."

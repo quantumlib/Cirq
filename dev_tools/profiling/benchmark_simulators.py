@@ -72,17 +72,6 @@ def main(
 ):
     print('num_qubits,seconds per gate')
     for num_qubits in range(min_num_qubits, max_num_qubits + 1):
-        # TODO(#6171): BEGIN
-        # pylint: disable=consider-using-f-string
-        string_before = 'simulate(\'{}\', {}, {}, {})'.format(
-            sim_type, num_qubits, num_gates, run_repetitions
-        )
-        string_after = f"simulate('{sim_type}', {num_qubits}, {num_gates}, {run_repetitions})"
-        assert string_before == string_after
-        print("\nUFS:dev_tools/profiling/benchmark_simulators.py:81:assert string_before == string_after")
-        # pylint: enable=consider-using-f-string
-        # TODO(#6171): END
-
         command = f"simulate('{sim_type}', {num_qubits}, {num_gates}, {run_repetitions})"
         time = timeit.timeit(command, setup, number=num_repetitions)
         print(f'{num_qubits},{time / (num_repetitions * num_gates)}')

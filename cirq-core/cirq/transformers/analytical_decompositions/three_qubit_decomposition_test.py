@@ -213,19 +213,6 @@ def test_middle_multiplexor(angles, num_cnots):
         == num_cnots
     ), f"expected {num_cnots} CNOTs got \n {circuit_u1u2_mid} \n {circuit_u1u2_mid.unitary()}"
 
-    # TODO(#6171): BEGIN
-    # pylint: disable=consider-using-f-string
-    string_before = "expected {} CNOTs got \n {} \n {}".format(
-        num_cnots, circuit_u1u2_mid, circuit_u1u2_mid.unitary()
-    )
-    string_after = (
-        f"expected {num_cnots} CNOTs got \n {circuit_u1u2_mid} \n {circuit_u1u2_mid.unitary()}"
-    )
-    assert string_before == string_after
-    print("\nUFS:cirq-core/cirq/transformers/analytical_decompositions/three_qubit_decomposition_test.py:224:assert string_before == string_after")
-    # pylint: enable=consider-using-f-string
-    # TODO(#6171): END
-
 
 @pytest.mark.parametrize("shift_left", [True, False])
 def test_two_qubit_multiplexor_to_circuit(shift_left):

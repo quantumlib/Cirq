@@ -73,8 +73,6 @@ class Calibration(abc.Mapping):
 
     def _compute_metric_dict(self, metrics: v2.metrics_pb2.MetricsSnapshot) -> ALL_METRICS:
         results: ALL_METRICS = defaultdict(dict)
-        # TODO(#6171): drop the pylint directive below
-        # pylint: disable=consider-using-f-string
         for metric in metrics:
             name = metric.name
             # Flatten the values to a list, removing keys containing type names
@@ -84,21 +82,6 @@ class Calibration(abc.Mapping):
                 qubits = tuple(self.str_to_key(t) for t in metric.targets)
                 results[name][qubits] = flat_values
             else:
-                # TODO(#6171): BEGIN
-                # pylint: disable=consider-using-f-string
-                string_before = (
-                    'Only one metric of a given name can have no targets. '
-                    'Found multiple for key {}'.format(name)
-                )
-                string_after = (
-                    'Only one metric of a given name can have no targets. '
-                    f'Found multiple for key {name}'
-                )
-                assert string_before == string_after
-                print("\nUFS:cirq-google/cirq_google/engine/calibration.py:97:assert string_before == string_after")
-                # pylint: enable=consider-using-f-string
-                # TODO(#6171): END
-
                 assert len(results[name]) == 0, (
                     'Only one metric of a given name can have no targets. '
                     f'Found multiple for key {name}'

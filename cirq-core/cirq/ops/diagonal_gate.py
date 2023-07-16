@@ -146,16 +146,6 @@ class DiagonalGate(raw_types.Gate):
             diag_str += ', ..., '
             diag_str += ', '.join(proper_repr(angle) for angle in rounded_angles[-2:])
             diag_str = f'diag({diag_str})'
-
-        # TODO(#6171): BEGIN
-        # pylint: disable=consider-using-f-string
-        string_before = ['#' + str(i) for i in range(2, self._num_qubits_() + 1)]
-        string_after = [f"#{i}" for i in range(2, self._num_qubits_() + 1)]
-        assert string_before == string_after
-        print("\nUFS:cirq-core/cirq/ops/diagonal_gate.py:154:assert string_before == string_after")
-        # pylint: enable=consider-using-f-string
-        # TODO(#6171): END
-
         return protocols.CircuitDiagramInfo(
             [diag_str] + [f"#{i}" for i in range(2, self._num_qubits_() + 1)]
         )
@@ -224,16 +214,4 @@ class DiagonalGate(raw_types.Gate):
 
     def __repr__(self) -> str:
         angles = ','.join(proper_repr(angle) for angle in self._diag_angles_radians)
-
-        # TODO(#6171): BEGIN
-        # pylint: disable=consider-using-f-string
-        string_before = 'cirq.DiagonalGate([{}])'.format(
-            ','.join(proper_repr(angle) for angle in self._diag_angles_radians)
-        )
-        string_after = f'cirq.DiagonalGate([{angles}])'
-        assert string_before == string_after
-        print("\nUFS:cirq-core/cirq/ops/diagonal_gate.py:234:assert string_before == string_after")
-        # pylint: enable=consider-using-f-string
-        # TODO(#6171): END
-
         return f'cirq.DiagonalGate([{angles}])'

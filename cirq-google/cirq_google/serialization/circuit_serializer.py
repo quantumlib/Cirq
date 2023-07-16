@@ -321,19 +321,6 @@ class CircuitSerializer(serializer.Serializer):
         if not proto.HasField('language') or not proto.language.gate_set:
             raise ValueError('Missing gate set specification.')
         if proto.language.gate_set != self.name:
-            # TODO(#6171): BEGIN
-            # pylint: disable=consider-using-f-string
-            string_before = 'Gate set in proto was {} but expected {}'.format(
-                proto.language.gate_set, self.name
-            )
-            string_after = (
-                f'Gate set in proto was {proto.language.gate_set} but expected {self.name}'
-            )
-            assert string_before == string_after
-            print("\nUFS:cirq-google/cirq_google/serialization/circuit_serializer.py:332:assert string_before == string_after")
-            # pylint: enable=consider-using-f-string
-            # TODO(#6171): END
-
             raise ValueError(
                 f'Gate set in proto was {proto.language.gate_set} but expected {self.name}'
             )

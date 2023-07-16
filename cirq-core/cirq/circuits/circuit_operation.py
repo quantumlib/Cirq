@@ -461,18 +461,6 @@ class CircuitOperation(ops.Operation):
         msg_lines = str(self.circuit).split('\n')
         msg_width = max([len(line) for line in msg_lines])
         circuit_msg = '\n'.join(f'[ {line:<{msg_width}} ]' for line in msg_lines)
-
-        # TODO(#6171): BEGIN
-        # pylint: disable=consider-using-f-string
-        string_before = '\n'.join(
-            '[ {line:<{width}} ]'.format(line=line, width=msg_width) for line in msg_lines
-        )
-        string_after = circuit_msg
-        assert string_before == string_after
-        print("\nUFS:cirq-core/cirq/circuits/circuit_operation.py:471:assert string_before == string_after")
-        # pylint: enable=consider-using-f-string
-        # TODO(#6171): END
-
         args = []
 
         def dict_str(d: Mapping) -> str:

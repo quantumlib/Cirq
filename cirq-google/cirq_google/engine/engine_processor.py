@@ -364,40 +364,9 @@ class EngineProcessor(abstract_processor.AbstractProcessor):
                 f'timestamp >= {earliest_timestamp_seconds:d} AND '
                 f'timestamp <= {latest_timestamp_seconds:d}'
             )
-
-            # TODO(#6171): BEGIN
-            # pylint: disable=consider-using-f-string
-            string_before = 'timestamp >= %d AND timestamp <= %d' % (
-                earliest_timestamp_seconds,
-                latest_timestamp_seconds,
-            )
-            string_after = filter_str
-            assert string_before == string_after
-            print("\nUFS:cirq-google/cirq_google/engine/engine_processor.py:375:assert string_before == string_after")
-            # pylint: enable=consider-using-f-string
-            # TODO(#6171): END
-
         elif earliest_timestamp_seconds:
-            # TODO(#6171): BEGIN
-            # pylint: disable=consider-using-f-string
-            string_before = 'timestamp >= %d' % earliest_timestamp_seconds
-            string_after = f'timestamp >= {earliest_timestamp_seconds:d}'
-            assert string_before == string_after
-            print("\nUFS:cirq-google/cirq_google/engine/engine_processor.py:385:assert string_before == string_after")
-            # pylint: enable=consider-using-f-string
-            # TODO(#6171): END
-
             filter_str = f'timestamp >= {earliest_timestamp_seconds:d}'
         elif latest_timestamp_seconds:
-            # TODO(#6171): BEGIN
-            # pylint: disable=consider-using-f-string
-            string_before = 'timestamp <= %d' % latest_timestamp_seconds
-            string_after = f'timestamp <= {latest_timestamp_seconds:d}'
-            assert string_before == string_after
-            print("\nUFS:cirq-google/cirq_google/engine/engine_processor.py:396:assert string_before == string_after")
-            # pylint: enable=consider-using-f-string
-            # TODO(#6171): END
-
             filter_str = f'timestamp <= {latest_timestamp_seconds:d}'
         else:
             filter_str = ''

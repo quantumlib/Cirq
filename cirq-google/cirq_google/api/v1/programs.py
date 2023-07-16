@@ -329,24 +329,6 @@ def _parameterized_value_from_proto(proto: operations_pb2.ParameterizedFloat) ->
         return sympy.Symbol(proto.parameter_key)
     if proto.HasField('raw'):
         return proto.raw
-
-    # TODO(#6171): BEGIN
-    # pylint: disable=consider-using-f-string
-    string_before = (
-        'No value specified for parameterized float. '
-        'Expected "raw" or "parameter_key" to be set. '
-        'proto: {!r}'.format(proto)
-    )
-    string_after = (
-        'No value specified for parameterized float. '
-        'Expected "raw" or "parameter_key" to be set. '
-        f'proto: {proto!r}'
-    )
-    assert string_before == string_after
-    print("\nUFS:cirq-google/cirq_google/api/v1/programs.py:345:assert string_before == string_after")
-    # pylint: enable=consider-using-f-string
-    # TODO(#6171): END
-
     raise ValueError(
         'No value specified for parameterized float. '
         'Expected "raw" or "parameter_key" to be set. '

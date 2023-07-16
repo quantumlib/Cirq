@@ -172,32 +172,6 @@ def assert_circuits_with_terminal_measurements_are_equivalent(
     for subspace in subspaces:
         block_actual = matrix_actual[subspace, :]
         block_reference = matrix_reference[subspace, :]
-
-        # TODO(#6171): BEGIN
-        # pylint: disable=consider-using-f-string
-        string_before = (
-            "Circuit's effect differs from the reference circuit.\n"
-            '\n'
-            'Diagram of actual circuit:\n'
-            '{}\n'
-            '\n'
-            'Diagram of reference circuit with desired function:\n'
-            '{}\n'.format(actual, reference)
-        )
-        string_after = (
-            "Circuit's effect differs from the reference circuit.\n"
-            '\n'
-            'Diagram of actual circuit:\n'
-            f'{actual}\n'
-            '\n'
-            'Diagram of reference circuit with desired function:\n'
-            f'{reference}\n'
-        )
-        assert string_before == string_after
-        print("\nUFS:cirq-core/cirq/testing/circuit_compare.py:196:assert string_before == string_after")
-        # pylint: enable=consider-using-f-string
-        # TODO(#6171): END
-
         assert linalg.allclose_up_to_global_phase(block_actual, block_reference, atol=atol), (
             "Circuit's effect differs from the reference circuit.\n"
             '\n'
@@ -218,50 +192,6 @@ def assert_same_circuits(
         actual: A circuit computed by some code under test.
         expected: The circuit that should have been computed.
     """
-
-    # TODO(#6171): BEGIN
-    # pylint: disable=consider-using-f-string
-    string_before = (
-        "Actual circuit differs from expected circuit.\n"
-        "\n"
-        "Diagram of actual circuit:\n"
-        "{}\n"
-        "\n"
-        "Diagram of expected circuit:\n"
-        "{}\n"
-        "\n"
-        "Index of first differing moment:\n"
-        "{}\n"
-        "\n"
-        "Full repr of actual circuit:\n"
-        "{!r}\n"
-        "\n"
-        "Full repr of expected circuit:\n"
-        "{!r}\n"
-    ).format(actual, expected, _first_differing_moment_index(actual, expected), actual, expected)
-    string_after = (
-        "Actual circuit differs from expected circuit.\n"
-        "\n"
-        "Diagram of actual circuit:\n"
-        f"{actual}\n"
-        "\n"
-        "Diagram of expected circuit:\n"
-        f"{expected}\n"
-        "\n"
-        "Index of first differing moment:\n"
-        f"{_first_differing_moment_index(actual, expected)}\n"
-        "\n"
-        "Full repr of actual circuit:\n"
-        f"{actual!r}\n"
-        "\n"
-        "Full repr of expected circuit:\n"
-        f"{expected!r}\n"
-    )
-    assert string_before == string_after
-    print("\nUFS:cirq-core/cirq/testing/circuit_compare.py:260:assert string_before == string_after")
-    # pylint: enable=consider-using-f-string
-    # TODO(#6171): END
-
     assert actual == expected, (
         "Actual circuit differs from expected circuit.\n"
         "\n"
@@ -341,41 +271,6 @@ def assert_has_diagram(
     # pylint: enable=unused-variable
     actual_diagram = actual.to_text_diagram(**kwargs).lstrip("\n").rstrip()
     desired_diagram = desired.lstrip("\n").rstrip()
-
-    # TODO(#6171): BEGIN
-    # pylint: disable=consider-using-f-string
-    string_before = (
-        "Circuit's text diagram differs from the desired diagram.\n"
-        '\n'
-        'Diagram of actual circuit:\n'
-        '{}\n'
-        '\n'
-        'Desired text diagram:\n'
-        '{}\n'
-        '\n'
-        'Highlighted differences:\n'
-        '{}\n'.format(
-            actual_diagram,
-            desired_diagram,
-            highlight_text_differences(actual_diagram, desired_diagram),
-        )
-    )
-    string_after = (
-        "Circuit's text diagram differs from the desired diagram.\n"
-        '\n'
-        'Diagram of actual circuit:\n'
-        f'{actual_diagram}\n'
-        '\n'
-        'Desired text diagram:\n'
-        f'{desired_diagram}\n'
-        '\n'
-        'Highlighted differences:\n'
-        f'{highlight_text_differences(actual_diagram, desired_diagram)}\n'
-    )
-    assert string_before == string_after
-    print("\nUFS:cirq-core/cirq/testing/circuit_compare.py:375:assert string_before == string_after")
-    # pylint: enable=consider-using-f-string
-    # TODO(#6171): END
 
     assert actual_diagram == desired_diagram, (
         "Circuit's text diagram differs from the desired diagram.\n"

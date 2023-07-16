@@ -258,21 +258,6 @@ class CliffordState:
         collapse_state_vector=True,
     ):
         if not isinstance(op.gate, cirq.MeasurementGate):
-            # TODO(#6171): BEGIN
-            # pylint: disable=consider-using-f-string
-            string_before = (
-                'apply_measurement only supports cirq.MeasurementGate operations. Found %s instead.'
-                % str(op.gate)
-            )
-            string_after = (
-                f'apply_measurement only supports cirq.MeasurementGate operations. '
-                f'Found {op.gate} instead.'
-            )
-            assert string_before == string_after
-            print("\nUFS:cirq-core/cirq/sim/clifford/clifford_simulator.py:271:assert string_before == string_after")
-            # pylint: enable=consider-using-f-string
-            # TODO(#6171): END
-
             raise TypeError(
                 f'apply_measurement only supports cirq.MeasurementGate operations. '
                 f'Found {op.gate} instead.'

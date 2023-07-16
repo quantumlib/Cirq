@@ -725,20 +725,6 @@ def dirac_notation(
         qid_shape = (2,) * (len(state_vector).bit_length() - 1)
 
     if len(state_vector) != np.prod(qid_shape, dtype=np.int64):
-        # TODO(#6171): BEGIN
-        # pylint: disable=consider-using-f-string
-        string_before = 'state_vector has incorrect size. Expected {} but was {}.'.format(
-            np.prod(qid_shape, dtype=np.int64), len(state_vector)
-        )
-        string_after = (
-            'state_vector has incorrect size. '
-            f'Expected {np.prod(qid_shape, dtype=np.int64)} but was {len(state_vector)}.'
-        )
-        assert string_before == string_after
-        print("\nUFS:cirq-core/cirq/qis/states.py:737:assert string_before == string_after")
-        # pylint: enable=consider-using-f-string
-        # TODO(#6171): END
-
         raise ValueError(
             'state_vector has incorrect size. '
             f'Expected {np.prod(qid_shape, dtype=np.int64)} but was {len(state_vector)}.'
@@ -833,21 +819,6 @@ def to_valid_state_vector(
     if num_qubits is None:
         num_qubits = len(qid_shape)
     if num_qubits != len(qid_shape):
-        # TODO(#6171): BEGIN
-        # pylint: disable=consider-using-f-string
-        string_before = (
-            'num_qubits != len(qid_shape). num_qubits is <{!r}>. '
-            'qid_shape is <{!r}>.'.format(num_qubits, qid_shape)
-        )
-        string_after = (
-            f'num_qubits != len(qid_shape). num_qubits is <{num_qubits!r}>. '
-            f'qid_shape is <{qid_shape!r}>.'
-        )
-        assert string_before == string_after
-        print("\nUFS:cirq-core/cirq/qis/states.py:846:assert string_before == string_after")
-        # pylint: enable=consider-using-f-string
-        # TODO(#6171): END
-
         raise ValueError(
             f'num_qubits != len(qid_shape). num_qubits is <{num_qubits!r}>. '
             f'qid_shape is <{qid_shape!r}>.'
@@ -910,37 +881,10 @@ def validate_normalized_state_vector(
         ValueError: State is not normalized.
     """
     if dtype and state_vector.dtype != dtype:
-        # TODO(#6171): BEGIN
-        # pylint: disable=consider-using-f-string
-        string_before = 'state_vector has invalid dtype. Expected {} but was {}'.format(
-            dtype, state_vector.dtype
-        )
-        string_after = (
-            f'state_vector has invalid dtype. Expected {dtype} but was {state_vector.dtype}'
-        )
-        assert string_before == string_after
-        print("\nUFS:cirq-core/cirq/qis/states.py:921:assert string_before == string_after")
-        # pylint: enable=consider-using-f-string
-        # TODO(#6171): END
-
         raise ValueError(
             f'state_vector has invalid dtype. Expected {dtype} but was {state_vector.dtype}'
         )
     if state_vector.size != np.prod(qid_shape, dtype=np.int64):
-        # TODO(#6171): BEGIN
-        # pylint: disable=consider-using-f-string
-        string_before = 'state_vector has incorrect size. Expected {} but was {}.'.format(
-            np.prod(qid_shape, dtype=np.int64), state_vector.size
-        )
-        string_after = (
-            'state_vector has incorrect size. '
-            f'Expected {np.prod(qid_shape, dtype=np.int64)} but was {state_vector.size}.'
-        )
-        assert string_before == string_after
-        print("\nUFS:cirq-core/cirq/qis/states.py:939:assert string_before == string_after")
-        # pylint: enable=consider-using-f-string
-        # TODO(#6171): END
-
         raise ValueError(
             'state_vector has incorrect size. '
             f'Expected {np.prod(qid_shape, dtype=np.int64)} but was {state_vector.size}.'
@@ -967,21 +911,6 @@ def validate_qid_shape(
     if qid_shape is None:
         qid_shape = (2,) * (size.bit_length() - 1)
     if size != np.prod(qid_shape, dtype=np.int64):
-        # TODO(#6171): BEGIN
-        # pylint: disable=consider-using-f-string
-        string_before = (
-            'state_vector.size ({}) is not a power of two or is not a product '
-            'of the qid shape {!r}.'.format(size, qid_shape)
-        )
-        string_after = (
-            f'state_vector.size ({size}) is not a power of two or is not a product '
-            f'of the qid shape {qid_shape!r}.'
-        )
-        assert string_before == string_after
-        print("\nUFS:cirq-core/cirq/qis/states.py:980:assert string_before == string_after")
-        # pylint: enable=consider-using-f-string
-        # TODO(#6171): END
-
         raise ValueError(
             f'state_vector.size ({size}) is not a power of two or is not a product '
             f'of the qid shape {qid_shape!r}.'
@@ -1109,21 +1038,6 @@ def _qid_shape_from_args(
     if qid_shape is None:
         return (2,) * num_qubits
     if len(qid_shape) != num_qubits:
-        # TODO(#6171): BEGIN
-        # pylint: disable=consider-using-f-string
-        string_before = (
-            'num_qubits != len(qid_shape). num_qubits was {!r}. '
-            'qid_shape was {!r}.'.format(num_qubits, qid_shape)
-        )
-        string_after = (
-            f'num_qubits != len(qid_shape). num_qubits was {num_qubits!r}. '
-            f'qid_shape was {qid_shape!r}.'
-        )
-        assert string_before == string_after
-        print("\nUFS:cirq-core/cirq/qis/states.py:1122:assert string_before == string_after")
-        # pylint: enable=consider-using-f-string
-        # TODO(#6171): END
-
         raise ValueError(
             f'num_qubits != len(qid_shape). num_qubits was {num_qubits!r}. '
             f'qid_shape was {qid_shape!r}.'

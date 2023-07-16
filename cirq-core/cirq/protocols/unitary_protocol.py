@@ -123,44 +123,6 @@ def unitary(
 
     if default is not RaiseTypeErrorIfNotProvided:
         return default
-
-    # TODO(#6171): BEGIN
-    # pylint: disable=consider-using-f-string
-    string_before = (
-        "cirq.unitary failed. "
-        "Value doesn't have a (non-parameterized) unitary effect.\n"
-        "\n"
-        "type: {}\n"
-        "value: {!r}\n"
-        "\n"
-        "The value failed to satisfy any of the following criteria:\n"
-        "- A `_unitary_(self)` method that returned a value "
-        "besides None or NotImplemented.\n"
-        "- A `_decompose_(self)` method that returned a "
-        "list of unitary operations.\n"
-        "- An `_apply_unitary_(self, args) method that returned a value "
-        "besides None or NotImplemented.".format(type(val), val)
-    )
-    string_after = (
-        "cirq.unitary failed. "
-        "Value doesn't have a (non-parameterized) unitary effect.\n"
-        "\n"
-        f"type: {type(val)}\n"
-        f"value: {val!r}\n"
-        "\n"
-        "The value failed to satisfy any of the following criteria:\n"
-        "- A `_unitary_(self)` method that returned a value "
-        "besides None or NotImplemented.\n"
-        "- A `_decompose_(self)` method that returned a "
-        "list of unitary operations.\n"
-        "- An `_apply_unitary_(self, args) method that returned a value "
-        "besides None or NotImplemented."
-    )
-    assert string_before == string_after
-    print("\nUFS:cirq-core/cirq/protocols/unitary_protocol.py:159:assert string_before == string_after")
-    # pylint: enable=consider-using-f-string
-    # TODO(#6171): END
-
     raise TypeError(
         "cirq.unitary failed. "
         "Value doesn't have a (non-parameterized) unitary effect.\n"

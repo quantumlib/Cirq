@@ -91,23 +91,6 @@ class ABCMetaImplementAnyOneOf(abc.ABCMeta):
             try:
                 value = getattr(cls, name)
             except AttributeError:
-                # TODO(#6171): BEGIN
-                # pylint: disable=consider-using-f-string
-                string_before = (
-                    'A method named \'{}\' was listed as a possible '
-                    'implementation alternative but it does not exist in the '
-                    'definition of {!r}.'.format(name, cls)
-                )
-                string_after = (
-                    f"A method named '{name}' was listed as a possible "
-                    'implementation alternative but it does not exist in the '
-                    f'definition of {cls!r}.'
-                )
-                assert string_before == string_after
-                print("\nUFS:cirq-core/cirq/value/abc_alt.py:106:assert string_before == string_after")
-                # pylint: enable=consider-using-f-string
-                # TODO(#6171): END
-
                 raise TypeError(
                     f"A method named '{name}' was listed as a possible "
                     'implementation alternative but it does not exist in the '

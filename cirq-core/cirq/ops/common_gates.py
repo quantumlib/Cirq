@@ -513,22 +513,6 @@ class YPowGate(eigen_gate.EigenGate):
             if self._exponent == 1:
                 return 'cirq.Y'
             return f'(cirq.Y**{proper_repr(self._exponent)})'
-
-        # TODO(#6171): BEGIN
-        # pylint: disable=consider-using-f-string
-        string_before = 'cirq.YPowGate(exponent={}, global_shift={!r})'.format(
-            proper_repr(self._exponent), self._global_shift
-        )
-        string_after = (
-            'cirq.YPowGate('
-            f'exponent={proper_repr(self._exponent)}, '
-            f'global_shift={self._global_shift!r})'
-        )
-        assert string_before == string_after
-        print("\nUFS:cirq-core/cirq/ops/common_gates.py:527:assert string_before == string_after")
-        # pylint: enable=consider-using-f-string
-        # TODO(#6171): END
-
         return (
             'cirq.YPowGate('
             f'exponent={proper_repr(self._exponent)}, '
@@ -1240,22 +1224,6 @@ class CZPowGate(gate_features.InterchangeableQubitsGate, eigen_gate.EigenGate):
             if self._exponent == 1:
                 return 'cirq.CZ'
             return f'(cirq.CZ**{proper_repr(self._exponent)})'
-
-        # TODO(#6171): BEGIN
-        # pylint: disable=consider-using-f-string
-        string_before = 'cirq.CZPowGate(exponent={}, global_shift={!r})'.format(
-            proper_repr(self._exponent), self._global_shift
-        )
-        string_after = (
-            'cirq.CZPowGate('
-            f'exponent={proper_repr(self._exponent)}, '
-            f'global_shift={self._global_shift!r})'
-        )
-        assert string_before == string_after
-        print("\nUFS:cirq-core/cirq/ops/common_gates.py:1254:assert string_before == string_after")
-        # pylint: enable=consider-using-f-string
-        # TODO(#6171): END
-
         return (
             'cirq.CZPowGate('
             f'exponent={proper_repr(self._exponent)}, '

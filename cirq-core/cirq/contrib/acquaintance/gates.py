@@ -347,20 +347,6 @@ class SwapNetworkGate(PermutationGate):
         return {i: j for i, j in enumerate(reversed(range(sum(self.part_lens))))}
 
     def __repr__(self) -> str:
-        # TODO(#6171): BEGIN
-        # pylint: disable=consider-using-f-string
-        string_before = 'cirq.contrib.acquaintance.SwapNetworkGate({!r}, {!r})'.format(
-            self.part_lens, self.acquaintance_size
-        )
-        string_after = (
-            'cirq.contrib.acquaintance.SwapNetworkGate('
-            f'{self.part_lens!r}, {self.acquaintance_size!r})'
-        )
-        assert string_before == string_after
-        print("\nUFS:cirq-core/cirq/contrib/acquaintance/gates.py:359:assert string_before == string_after")
-        # pylint: enable=consider-using-f-string
-        # TODO(#6171): END
-
         return (
             'cirq.contrib.acquaintance.SwapNetworkGate('
             f'{self.part_lens!r}, {self.acquaintance_size!r})'

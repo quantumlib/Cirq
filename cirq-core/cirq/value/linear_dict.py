@@ -44,20 +44,6 @@ def _format_coefficient(format_spec: str, coefficient: Scalar) -> str:
     coefficient = complex(coefficient)
     real_str = f'{coefficient.real:{format_spec}}'
     imag_str = f'{coefficient.imag:{format_spec}}'
-
-    # TODO(#6171): BEGIN
-    # pylint: disable=consider-using-f-string
-    string_before = '{:{fmt}}'.format(coefficient.real, fmt=format_spec)
-    string_after = f'{coefficient.real:{format_spec}}'
-    assert string_before == string_after
-    print("\nUFS:cirq-core/cirq/value/linear_dict.py:52:assert string_before == string_after")
-    string_before = '{:{fmt}}'.format(coefficient.imag, fmt=format_spec)
-    string_after = f'{coefficient.imag:{format_spec}}'
-    assert string_before == string_after
-    print("\nUFS:cirq-core/cirq/value/linear_dict.py:56:assert string_before == string_after")
-    # pylint: enable=consider-using-f-string
-    # TODO(#6171): END
-
     if float(real_str) == 0 and float(imag_str) == 0:
         return ''
     if float(imag_str) == 0:
@@ -85,15 +71,6 @@ def _format_terms(terms: Iterable[Tuple[TVector, Scalar]], format_spec: str):
     formatted_terms = [_format_term(format_spec, vector, coeff) for vector, coeff in terms]
     s = ''.join(formatted_terms)
     if not s:
-        # TODO(#6171): BEGIN
-        # pylint: disable=consider-using-f-string
-        string_before = '{:{fmt}}'.format(0, fmt=format_spec)
-        string_after = f'{0:{format_spec}}'
-        assert string_before == string_after
-        print("\nUFS:cirq-core/cirq/value/linear_dict.py:92:assert string_before == string_after")
-        # pylint: enable=consider-using-f-string
-        # TODO(#6171): END
-
         return f'{0:{format_spec}}'
     if s[0] == '+':
         return s[1:]

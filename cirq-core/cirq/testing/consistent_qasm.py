@@ -89,42 +89,6 @@ qreg q[{num_qubits}];
         else:
             p_unitary = None
             p_qasm_unitary = None
-
-        # TODO(#6171): BEGIN
-        # pylint: disable=consider-using-f-string
-        string_before = (
-            'QASM not consistent with cirq.unitary(op) up to global phase.\n\n'
-            'op:\n{}\n\n'
-            'cirq.unitary(op):\n{}\n\n'
-            'Generated QASM:\n\n{}\n\n'
-            'Unitary of generated QASM:\n{}\n\n'
-            'Phased matched cirq.unitary(op):\n{}\n\n'
-            'Phased matched unitary of generated QASM:\n{}\n\n'
-            'Underlying error:\n{}'.format(
-                _indent(repr(op)),
-                _indent(repr(unitary)),
-                _indent(qasm),
-                _indent(repr(qasm_unitary)),
-                _indent(repr(p_unitary)),
-                _indent(repr(p_qasm_unitary)),
-                _indent(str(ex)),
-            )
-        )
-        string_after = (
-            'QASM not consistent with cirq.unitary(op) up to global phase.\n\n'
-            f'op:\n{_indent(repr(op))}\n\n'
-            f'cirq.unitary(op):\n{_indent(repr(unitary))}\n\n'
-            f'Generated QASM:\n\n{_indent(qasm)}\n\n'
-            f'Unitary of generated QASM:\n{_indent(repr(qasm_unitary))}\n\n'
-            f'Phased matched cirq.unitary(op):\n{_indent(repr(p_unitary))}\n\n'
-            f'Phased matched unitary of generated QASM:\n{_indent(repr(p_qasm_unitary))}\n\n'
-            f'Underlying error:\n{_indent(str(ex))}'
-        )
-        assert string_before == string_after
-        print("\nUFS:cirq-core/cirq/testing/consistent_qasm.py:123:assert string_before == string_after")
-        # pylint: enable=consider-using-f-string
-        # TODO(#6171): END
-
         raise AssertionError(
             'QASM not consistent with cirq.unitary(op) up to global phase.\n\n'
             f'op:\n{_indent(repr(op))}\n\n'
