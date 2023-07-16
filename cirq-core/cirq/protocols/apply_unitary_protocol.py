@@ -415,7 +415,6 @@ def apply_unitary(
         "besides None or NotImplemented.\n"
         "- A `_decompose_(self)` method that returned a "
         "list of unitary operations.\n"
-        ""
     )
 
 

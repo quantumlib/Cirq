@@ -175,7 +175,7 @@ def check_collaborator_has_write(
     Raises:
         RuntimeError: If the request does not return status 200 (success).
     """
-    url = "https://api.github.com/repos/{}/{}/collaborators/{}/permission" "".format(
+    url = "https://api.github.com/repos/{}/{}/collaborators/{}/permission".format(
         repo.organization, repo.name, username
     )
 
