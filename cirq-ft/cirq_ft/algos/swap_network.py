@@ -13,6 +13,7 @@
 # limitations under the License.
 
 from typing import Sequence
+from numpy.typing import NDArray
 
 import attr
 import cirq
@@ -149,19 +150,17 @@ class SwapWithZeroGate(infra.GateWithRegisters):
 
     @cached_property
     def target_registers(self) -> infra.Registers:
-        return infra.Registers.build(
-            **{f'target{i}': self.target_bitsize for i in range(self.n_target_registers)}
-        )
+        return infra.Registers.build(target=(self.n_target_registers, self.target_bitsize))
 
     @cached_property
     def registers(self) -> infra.Registers:
         return infra.Registers([*self.selection_registers, *self.target_registers])
 
     def decompose_from_registers(
-        self, *, context: cirq.DecompositionContext, **quregs: Sequence[cirq.Qid]
+        self, *, context: cirq.DecompositionContext, **quregs: NDArray[cirq.Qid]
     ) -> cirq.OP_TREE:
-        selection, target_regs = quregs.pop('selection'), quregs
-        assert len(target_regs) == self.n_target_registers
+        selection, target = quregs['selection'], quregs['target']
+        assert target.shape == (self.n_target_registers, self.target_bitsize)
         cswap_n = MultiTargetCSwapApprox(self.target_bitsize)
         # Imagine a complete binary tree of depth `logN` with `N` leaves, each denoting a target
         # register. If the selection register stores index `r`, we want to bring the value stored
@@ -179,8 +178,8 @@ class SwapWithZeroGate(infra.GateWithRegisters):
                 # The inner loop is executed at-most `N - 1` times, where `N:= len(target_regs)`.
                 yield cswap_n.on_registers(
                     control=selection[len(selection) - j - 1],
-                    target_x=target_regs[f'target{i}'],
-                    target_y=target_regs[f'target{i + 2**j}'],
+                    target_x=target[i],
+                    target_y=target[i + 2**j],
                 )
 
     def __repr__(self) -> str:

@@ -159,7 +159,7 @@ class QROM(unary_iteration_gate.UnaryIterationGate):
         wire_symbols = ["@"] * self.num_controls
         wire_symbols += ["In"] * self.selection_registers.bitsize
         for i, target in enumerate(self.target_registers):
-            wire_symbols += [f"QROM_{i}"] * target.bitsize
+            wire_symbols += [f"QROM_{i}"] * target.total_bits()
         return cirq.CircuitDiagramInfo(wire_symbols=wire_symbols)
 
     def __pow__(self, power: int):

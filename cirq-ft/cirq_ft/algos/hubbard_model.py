@@ -154,8 +154,8 @@ class SelectHubbard(select_and_prepare.SelectOracle):
         yield selected_majorana_fermion.SelectedMajoranaFermionGate(
             selection_regs=infra.SelectionRegisters.build(
                 alpha=(1, 2),
-                p_y=(self.registers['p_y'].bitsize, self.y_dim),
-                p_x=(self.registers['p_x'].bitsize, self.x_dim),
+                p_y=(self.registers['p_y'].total_bits(), self.y_dim),
+                p_x=(self.registers['p_x'].total_bits(), self.x_dim),
             ),
             control_regs=self.control_registers,
             target_gate=cirq.Y,
@@ -167,8 +167,8 @@ class SelectHubbard(select_and_prepare.SelectOracle):
 
         q_selection_regs = infra.SelectionRegisters.build(
             beta=(1, 2),
-            q_y=(self.registers['q_y'].bitsize, self.y_dim),
-            q_x=(self.registers['q_x'].bitsize, self.x_dim),
+            q_y=(self.registers['q_y'].total_bits(), self.y_dim),
+            q_x=(self.registers['q_x'].total_bits(), self.x_dim),
         )
         yield selected_majorana_fermion.SelectedMajoranaFermionGate(
             selection_regs=q_selection_regs, control_regs=self.control_registers, target_gate=cirq.X
@@ -191,8 +191,8 @@ class SelectHubbard(select_and_prepare.SelectOracle):
 
         yield apply_gate_to_lth_target.ApplyGateToLthQubit(
             selection_regs=infra.SelectionRegisters.build(
-                q_y=(self.registers['q_y'].bitsize, self.y_dim),
-                q_x=(self.registers['q_x'].bitsize, self.x_dim),
+                q_y=(self.registers['q_y'].total_bits(), self.y_dim),
+                q_x=(self.registers['q_x'].total_bits(), self.x_dim),
             ),
             nth_gate=lambda *_: cirq.Z,
             control_regs=infra.Registers.build(control=1 + self.control_registers.bitsize),

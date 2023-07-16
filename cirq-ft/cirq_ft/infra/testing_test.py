@@ -14,6 +14,7 @@
 
 import cirq
 import cirq_ft
+import numpy as np
 import pytest
 
 
@@ -34,11 +35,13 @@ def test_gate_helper():
     g = cirq_ft.testing.GateHelper(cirq_ft.And(cv=(1, 0, 1, 0)))
     assert g.gate == cirq_ft.And(cv=(1, 0, 1, 0))
     assert g.r == cirq_ft.Registers.build(control=4, ancilla=2, target=1)
-    assert g.quregs == {
+    expected_quregs = {
         'control': cirq.NamedQubit.range(4, prefix='control'),
         'ancilla': cirq.NamedQubit.range(2, prefix='ancilla'),
         'target': [cirq.NamedQubit('target')],
     }
+    for key in expected_quregs:
+        assert np.array_equal(g.quregs[key], expected_quregs[key])
     assert g.operation.qubits == tuple(g.all_qubits)
     assert len(g.circuit) == 1
 

@@ -91,7 +91,7 @@ def test_programmable_rotation_gate_array(angles, kappa, constructor):
         # Set bits in initial_state s.t. selection register stores `selection_integer`.
         qubit_vals = {x: 0 for x in g.all_qubits}
         qubit_vals.update(
-            zip(g.quregs['selection'], iter_bits(selection_integer, g.r['selection'].bitsize))
+            zip(g.quregs['selection'], iter_bits(selection_integer, g.r['selection'].total_bits()))
         )
         initial_state = [qubit_vals[x] for x in g.all_qubits]
         # Actual circuit simulation.

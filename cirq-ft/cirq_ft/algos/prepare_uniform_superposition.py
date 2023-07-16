@@ -56,7 +56,7 @@ class PrepareUniformSuperposition(infra.GateWithRegisters):
 
     def _circuit_diagram_info_(self, args: cirq.CircuitDiagramInfoArgs) -> cirq.CircuitDiagramInfo:
         control_symbols = ["@" if cv else "@(0)" for cv in self.cv]
-        target_symbols = ['target'] * self.registers['target'].bitsize
+        target_symbols = ['target'] * self.registers['target'].total_bits()
         target_symbols[0] = f"UNIFORM({self.n})"
         return cirq.CircuitDiagramInfo(wire_symbols=control_symbols + target_symbols)
 
@@ -69,13 +69,13 @@ class PrepareUniformSuperposition(infra.GateWithRegisters):
         while n > 1 and n % 2 == 0:
             k += 1
             n = n // 2
-        l, logL = int(n), self.registers['target'].bitsize - k
+        l, logL = int(n), self.registers['target'].total_bits() - k
         logL_qubits = target[:logL]
 
         yield [
             op.controlled_by(*controls, control_values=self.cv) for op in cirq.H.on_each(*target)
         ]
-        if not logL_qubits:
+        if not len(logL_qubits):
             return
 
         ancilla = context.qubit_manager.qalloc(1)

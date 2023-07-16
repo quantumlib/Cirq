@@ -231,7 +231,7 @@ class SelectSwapQROM(infra.GateWithRegisters):
         wire_symbols = ["In_q"] * self.selection_q
         wire_symbols += ["In_r"] * self.selection_r
         for i, target in enumerate(self.target_registers):
-            wire_symbols += [f"QROAM_{i}"] * target.bitsize
+            wire_symbols += [f"QROAM_{i}"] * target.total_bits()
         return cirq.CircuitDiagramInfo(wire_symbols=wire_symbols)
 
     def _value_equality_values_(self):

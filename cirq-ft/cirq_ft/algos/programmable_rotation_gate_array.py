@@ -138,7 +138,7 @@ class ProgrammableRotationGateArrayBase(infra.GateWithRegisters):
         # 1. Find a convenient way to process batches of size kappa.
         num_bits = sum(max(thetas).bit_length() for thetas in self.angles)
         iteration_length = self.selection_registers[0].iteration_length
-        selection_bitsizes = [s.bitsize for s in self.selection_registers]
+        selection_bitsizes = [s.total_bits() for s in self.selection_registers]
         angles_bits = np.zeros(shape=(iteration_length, num_bits), dtype=int)
         angles_bit_pow = np.zeros(shape=(num_bits,), dtype=int)
         angles_idx = np.zeros(shape=(num_bits,), dtype=int)

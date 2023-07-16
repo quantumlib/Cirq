@@ -75,7 +75,7 @@ class ReflectionUsingPrepare(infra.GateWithRegisters):
         # 0. Allocate new ancillas, if needed.
         phase_target = qm.qalloc(1)[0] if self.control_val is None else qubit_regs.pop('control')[0]
         state_prep_ancilla = {
-            reg.name: qm.qalloc(reg.bitsize) for reg in self.prepare_gate.junk_registers
+            reg.name: qm.qalloc(reg.total_bits()) for reg in self.prepare_gate.junk_registers
         }
         state_prep_selection_regs = qubit_regs
         prepare_op = self.prepare_gate.on_registers(

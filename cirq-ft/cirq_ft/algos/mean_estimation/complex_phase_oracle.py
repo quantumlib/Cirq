@@ -52,7 +52,9 @@ class ComplexPhaseOracle(infra.GateWithRegisters):
         self, *, context: cirq.DecompositionContext, **quregs: Sequence[cirq.Qid]
     ) -> cirq.OP_TREE:
         qm = context.qubit_manager
-        target_reg = {reg.name: qm.qalloc(reg.bitsize) for reg in self.encoder.target_registers}
+        target_reg = {
+            reg.name: qm.qalloc(reg.total_bits()) for reg in self.encoder.target_registers
+        }
         target_qubits = self.encoder.target_registers.merge_qubits(**target_reg)
         encoder_op = self.encoder.on_registers(**quregs, **target_reg)
 

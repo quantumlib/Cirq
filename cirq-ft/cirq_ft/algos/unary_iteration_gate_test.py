@@ -63,7 +63,6 @@ def test_unary_iteration_gate(selection_bitsize, target_bitsize, control_bitsize
     assert len(g.all_qubits) <= 2 * (selection_bitsize + control_bitsize) + target_bitsize - 1
 
     for n in range(target_bitsize):
-
         # Initial qubit values
         qubit_vals = {q: 0 for q in g.operation.qubits}
         # All controls 'on' to activate circuit
@@ -123,7 +122,7 @@ def test_multi_dimensional_unary_iteration_gate(target_shape: Tuple[int, int, in
     assert len(g.all_qubits) <= gate.registers.bitsize + gate.selection_registers.bitsize - 1
 
     max_i, max_j, max_k = target_shape
-    i_len, j_len, k_len = tuple(reg.bitsize for reg in gate.selection_registers)
+    i_len, j_len, k_len = tuple(reg.total_bits() for reg in gate.selection_registers)
     for i, j, k in itertools.product(range(max_i), range(max_j), range(max_k)):
         qubit_vals = {x: 0 for x in g.operation.qubits}
         # Initialize selection bits appropriately:

@@ -105,11 +105,13 @@ def test_selected_majorana_fermion_gate_decomposed_diagram():
     context = cirq.DecompositionContext(greedy_mm)
     circuit = cirq.Circuit(cirq.decompose_once(g.operation, context=context))
     ancillas = sorted(set(circuit.all_qubits()) - set(g.operation.qubits))
-    qubits = (
-        g.quregs['control']
-        + [q for qs in zip(g.quregs['selection'], ancillas[1:]) for q in qs]
-        + ancillas[0:1]
-        + g.quregs['target']
+    qubits = np.concatenate(
+        [
+            g.quregs['control'],
+            [q for qs in zip(g.quregs['selection'], ancillas[1:]) for q in qs],
+            ancillas[0:1],
+            g.quregs['target'],
+        ]
     )
     cirq.testing.assert_has_diagram(
         circuit,

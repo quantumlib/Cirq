@@ -13,6 +13,7 @@
 # limitations under the License.
 
 from typing import Sequence, Tuple
+from numpy.typing import NDArray
 
 import attr
 import cirq
@@ -134,7 +135,10 @@ class And(infra.GateWithRegisters):
             )
 
     def decompose_from_registers(
-        self, *, context: cirq.DecompositionContext, **quregs: Sequence[cirq.Qid]
+        self,
+        *,
+        context: cirq.DecompositionContext,
+        **quregs: NDArray[cirq.Qid],  # type:ignore[type-var]
     ) -> cirq.OP_TREE:
         control, ancilla, target = quregs['control'], quregs['ancilla'], quregs['target']
         if len(self.cv) == 2:
@@ -142,7 +146,7 @@ class And(infra.GateWithRegisters):
                 self.cv[0], self.cv[1], control[0], control[1], *target
             )
         else:
-            yield self._decompose_via_tree(control, self.cv, ancilla, *target)
+            yield self._decompose_via_tree(control.tolist(), self.cv, ancilla.tolist(), *target)
 
     def _t_complexity_(self) -> infra.TComplexity:
         pre_post_cliffords = len(self.cv) - sum(self.cv)  # number of zeros in self.cv
