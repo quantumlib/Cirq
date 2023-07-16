@@ -104,36 +104,9 @@ class PreparedEnv:
             f"access_token={self.repository.access_token}"
         )
 
-        # TODO(#6171): BEGIN
-        # pylint: disable=consider-using-f-string
-        string_before = "https://api.github.com/repos/{}/{}/statuses/{}?access_token={}".format(
-            self.repository.organization,
-            self.repository.name,
-            self.actual_commit_id,
-            self.repository.access_token,
-        )
-        string_after = url
-        assert string_before == string_after
-        print("\nUFS:dev_tools/prepared_env.py:116:assert string_before == string_after")
-        # pylint: enable=consider-using-f-string
-        # TODO(#6171): END
-
         response = requests.post(url, json=payload)
 
         if response.status_code != 201:
-            # TODO(#6171): BEGIN
-            # pylint: disable=consider-using-f-string
-            string_before = 'Request failed. Code: {}. Content: {!r}.'.format(
-                response.status_code, response.content
-            )
-            string_after = (
-                f'Request failed. Code: {response.status_code}. Content: {response.content!r}.'
-            )
-            assert string_before == string_after
-            print("\nUFS:dev_tools/prepared_env.py:132:assert string_before == string_after")
-            # pylint: enable=consider-using-f-string
-            # TODO(#6171): END
-
             raise IOError(
                 f'Request failed. Code: {response.status_code}. Content: {response.content!r}.'
             )

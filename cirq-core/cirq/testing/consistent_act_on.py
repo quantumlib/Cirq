@@ -115,8 +115,6 @@ def assert_all_implemented_act_on_effects_match_unitary(
     )
 
     tableau = _final_clifford_tableau(circuit, qubit_map)
-    # TODO(#6171): drop the pylint directive below
-    # pylint: disable=consider-using-f-string
     if tableau is None:
         assert (
             not assert_tableau_implemented
