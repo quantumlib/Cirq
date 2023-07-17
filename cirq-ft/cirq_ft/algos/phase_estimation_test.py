@@ -17,23 +17,37 @@ import numpy as np
 import cirq
 from cirq_ft.algos import KitaevPhaseEstimation
 
+precision = 8
+error_bound = 0.1
 
-@pytest.mark.parametrize('theta', [0.234, 0.78, 0.54])
-def test_kitaev_phase_estimation(theta):
-    U = cirq.Z ** (2 * theta)
-    bits_of_precision = 8
-    error_bound = 0.1
-    precision_registers = cirq.NamedQubit.range(bits_of_precision, prefix='c')
-    kitaevPhaseEstimationOp = KitaevPhaseEstimation(bits_of_precision, 1, U, cirq.X).on_registers(
+
+def test_kitaev_phase_estimation_trivial():
+    theta = 0
+    U = cirq.I
+    precision_registers = cirq.NamedQubit.range(precision, prefix='c')
+    op = KitaevPhaseEstimation(precision, 1, U, cirq.X).on_registers(
         bits_of_precision_register=precision_registers, eigenvector_register=[cirq.q('ev')]
     )
-    cirquit = cirq.Circuit(kitaevPhaseEstimationOp)
-    cirquit.append(cirq.measure(*precision_registers, key='m'))
+    assert abs(simulate_theta_estimate(op, precision_registers) - theta) < error_bound
+
+
+@pytest.mark.parametrize('theta', [0.234, 0.78, 0.54])
+def test_kitaev_phase_estimation_theta(theta):
+    U = cirq.Z ** (2 * theta)
+    precision_register = cirq.NamedQubit.range(precision, prefix='c')
+    op = KitaevPhaseEstimation(precision, 1, U, cirq.X).on_registers(
+        bits_of_precision_register=precision_register, eigenvector_register=[cirq.q('ev')]
+    )
+    assert abs(simulate_theta_estimate(op, precision_register) - theta) < error_bound
+
+
+def simulate_theta_estimate(op, measurement_register) -> float:
+    cirquit = cirq.Circuit(op)
+    cirquit.append(cirq.measure(*measurement_register, key='m'))
     sim = cirq.Simulator()
     result = sim.run(cirquit, repetitions=10)
     theta_estimates = (
-        np.sum(2 ** np.arange(bits_of_precision) * result.measurements['m'], axis=1)
-        / 2**bits_of_precision
+            np.sum(2 ** np.arange(precision) * result.measurements['m'], axis=1)
+            / 2 ** precision
     )
-    assert abs(np.average(theta_estimates) - theta) < error_bound
-    print(theta_estimates)
+    return np.average(theta_estimates)
