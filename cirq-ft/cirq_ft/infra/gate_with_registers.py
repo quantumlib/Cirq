@@ -48,7 +48,7 @@ class Register:
         return int(np.product(self.shape))
 
     def __repr__(self):
-        return f'cirq_ft.Register("name={self.name}", shape={self.shape})'
+        return f'cirq_ft.Register(name="{self.name}", shape={self.shape})'
 
 
 class Registers:
@@ -180,7 +180,12 @@ class SelectionRegister(Register):
             raise ValueError(f'iteration length must be in range [0, 2^{self.shape[0]}]')
 
     def __repr__(self) -> str:
-        return f'cirq_ft.SelectionRegister("{self.name}", {self.shape}, {self.iteration_length})'
+        return (
+            f'cirq_ft.SelectionRegister('
+            f'name="{self.name}", '
+            f'shape={self.shape}, '
+            f'iteration_length={self.iteration_length})'
+        )
 
 
 class SelectionRegisters(Registers):
