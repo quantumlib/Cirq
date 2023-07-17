@@ -24,7 +24,7 @@ class KitaevPhaseEstimation(infra.GateWithRegisters):
     r"""Class representing the Kitaev Phase Estimation algorithm, originally introduced by
     Kitaev in https://arxiv.org/abs/quant-ph/9511026."""
 
-    m: int
+    precision: int
     eigenvector_bitsize: int
     U: infra.GateWithRegisters
     eigenvector_prep: Optional[infra.GateWithRegisters] = None
@@ -32,7 +32,7 @@ class KitaevPhaseEstimation(infra.GateWithRegisters):
     @cached_property
     def registers(self) -> infra.Registers:
         return infra.Registers.build(
-            bits_of_precision_register=self.m, eigenvector_register=self.eigenvector_bitsize
+            bits_of_precision_register=self.precision, eigenvector_register=self.eigenvector_bitsize
         )
 
     def qft_inverse(self, qubits):
@@ -49,7 +49,7 @@ class KitaevPhaseEstimation(infra.GateWithRegisters):
 
     def U_to_the_k_power(self, control_bits, eigen_vector_bit) -> List[cirq.Operation]:
         return [
-            cirq.ControlledGate(self.U).on(bit, eigen_vector_bit) ** (2 ** (self.m - i - 1))
+            cirq.ControlledGate(self.U).on(bit, eigen_vector_bit) ** (2 ** (self.precision - i - 1))
             for i, bit in enumerate(control_bits)
         ]
 
