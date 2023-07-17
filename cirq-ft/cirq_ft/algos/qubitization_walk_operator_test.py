@@ -31,7 +31,7 @@ def walk_operator_for_pauli_hamiltonian(
         ham_coeff, probability_epsilon=eps
     )
     select = cirq_ft.GenericSelect(
-        prepare.selection_registers.bitsize, select_unitaries=ham_dps, target_bitsize=len(q)
+        prepare.selection_registers.total_bits(), select_unitaries=ham_dps, target_bitsize=len(q)
     )
     return cirq_ft.QubitizationWalkOperator(select=select, prepare=prepare)
 

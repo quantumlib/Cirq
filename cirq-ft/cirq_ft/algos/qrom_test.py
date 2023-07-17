@@ -33,14 +33,19 @@ def test_qrom_1d(data, num_controls):
     decomposed_circuit = cirq.Circuit(cirq.decompose(g.operation, context=g.context))
     inverse = cirq.Circuit(cirq.decompose(g.operation**-1, context=g.context))
 
-    assert len(inverse.all_qubits()) <= g.r.bitsize + g.r['selection'].bitsize + num_controls
+    assert (
+        len(inverse.all_qubits()) <= g.r.total_bits() + g.r['selection'].total_bits() + num_controls
+    )
     assert inverse.all_qubits() == decomposed_circuit.all_qubits()
 
     for selection_integer in range(len(data[0])):
         for cval in range(2):
             qubit_vals = {x: 0 for x in g.all_qubits}
             qubit_vals.update(
-                zip(g.quregs['selection'], iter_bits(selection_integer, g.r['selection'].bitsize))
+                zip(
+                    g.quregs['selection'],
+                    iter_bits(selection_integer, g.r['selection'].total_bits()),
+                )
             )
             if num_controls:
                 qubit_vals.update(zip(g.quregs['control'], [cval] * num_controls))
@@ -131,11 +136,12 @@ def test_qrom_multi_dim(data, num_controls):
     inverse = cirq.Circuit(cirq.decompose(g.operation**-1, context=g.context))
 
     assert (
-        len(inverse.all_qubits()) <= g.r.bitsize + qrom.selection_registers.bitsize + num_controls
+        len(inverse.all_qubits())
+        <= g.r.total_bits() + qrom.selection_registers.total_bits() + num_controls
     )
     assert inverse.all_qubits() == decomposed_circuit.all_qubits()
 
-    lens = tuple(reg.bitsize for reg in qrom.selection_registers)
+    lens = tuple(reg.total_bits() for reg in qrom.selection_registers)
     for idxs in itertools.product(*[range(dim) for dim in data[0].shape]):
         qubit_vals = {x: 0 for x in g.all_qubits}
         for cval in range(2):
