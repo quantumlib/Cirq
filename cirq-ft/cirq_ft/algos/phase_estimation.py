@@ -57,10 +57,10 @@ class KitaevPhaseEstimation(infra.GateWithRegisters):
         self, context: cirq.DecompositionContext, **quregs
     ) -> cirq.OP_TREE:
         bits_of_precision = quregs["bits_of_precision_register"]
-        eigenvector_register = quregs["eigenvector_register"]
+        eigenvector_bits = quregs["eigenvector_register"]
 
         yield self.bits_of_precision_prep().on_each(*bits_of_precision)
         if self.eigenvector_prep is not None:
-            yield self.eigenvector_prep.on(*eigenvector_register)
-        yield [op for op in self.U_to_the_k_power(bits_of_precision, *eigenvector_register)]
+            yield self.eigenvector_prep.on(*eigenvector_bits)
+        yield [op for op in self.U_to_the_k_power(bits_of_precision, *eigenvector_bits)]
         yield self.qft_inverse([*bits_of_precision])
