@@ -32,7 +32,9 @@ class Register:
     """
 
     name: str
-    shape: Tuple[int, ...] = attr.field(converter=lambda v: (v,) if isinstance(v, int) else v)
+    shape: Tuple[int, ...] = attr.field(
+        converter=lambda v: (v,) if isinstance(v, int) else tuple(v)
+    )
 
     def all_idxs(self) -> Iterable[Tuple[int, ...]]:
         """Iterate over all possible indices of a multidimensional register."""
@@ -46,7 +48,7 @@ class Register:
         return int(np.product(self.shape))
 
     def __repr__(self):
-        return f'cirq_ft.Register("{self.name}", {self.shape})'
+        return f'cirq_ft.Register("name={self.name}", shape={self.shape})'
 
 
 class Registers:
@@ -70,10 +72,7 @@ class Registers:
 
     @classmethod
     def build(cls, **registers: Union[int, Tuple[int, ...]]) -> 'Registers':
-        return cls(
-            Register(name=k, shape=v if isinstance(v, tuple) else (v,))
-            for k, v in registers.items()
-        )
+        return cls(Register(name=k, shape=v) for k, v in registers.items())
 
     @overload
     def __getitem__(self, key: int) -> Register:
@@ -169,6 +168,10 @@ class SelectionRegister(Register):
 
     iteration_length: int = attr.field()
 
+    @iteration_length.default
+    def _default_iteration_length(self):
+        return 2 ** self.shape[0]
+
     @iteration_length.validator
     def validate_iteration_length(self, attribute, value):
         if len(self.shape) != 1:
@@ -236,18 +239,8 @@ class SelectionRegisters(Registers):
         return int(np.product(self.iteration_lengths))
 
     @classmethod
-    def build(
-        cls, **registers: Union[int, Tuple[int, int]]  # type: ignore[override]
-    ) -> 'SelectionRegisters':
-        reg_dict: Dict[str, Tuple[int, int]] = {
-            k: v if isinstance(v, tuple) else (v, 2**v) for k, v in registers.items()
-        }
-        return SelectionRegisters(
-            [
-                SelectionRegister(name=k, shape=(v[0],), iteration_length=v[1])
-                for k, v in reg_dict.items()
-            ]
-        )
+    def build(cls, **registers: Union[int, Tuple[int, ...]]) -> 'SelectionRegisters':
+        return cls(SelectionRegister(name=k, shape=v) for k, v in registers.items())
 
     @overload
     def __getitem__(self, key: int) -> SelectionRegister:

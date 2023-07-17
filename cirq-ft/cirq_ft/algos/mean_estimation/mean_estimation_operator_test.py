@@ -33,7 +33,7 @@ class BernoulliSynthesizer(cirq_ft.PrepareOracle):
 
     @cached_property
     def selection_registers(self) -> cirq_ft.SelectionRegisters:
-        return cirq_ft.SelectionRegisters.build(q=(self.nqubits, 2))
+        return cirq_ft.SelectionRegisters([cirq_ft.SelectionRegister('q', self.nqubits, 2)])
 
     def decompose_from_registers(  # type:ignore[override]
         self, context, q: Sequence[cirq.Qid]
@@ -60,7 +60,9 @@ class BernoulliEncoder(cirq_ft.SelectOracle):
 
     @cached_property
     def selection_registers(self) -> cirq_ft.SelectionRegisters:
-        return cirq_ft.SelectionRegisters.build(q=(self.selection_bitsize, 2))
+        return cirq_ft.SelectionRegisters(
+            [cirq_ft.SelectionRegister('q', self.selection_bitsize, 2)]
+        )
 
     @cached_property
     def target_registers(self) -> cirq_ft.Registers:
@@ -173,7 +175,7 @@ class GroverSynthesizer(cirq_ft.PrepareOracle):
 
     @cached_property
     def selection_registers(self) -> cirq_ft.SelectionRegisters:
-        return cirq_ft.SelectionRegisters.build(selection=(self.n, 2**self.n))
+        return cirq_ft.SelectionRegisters.build(selection=self.n)
 
     def decompose_from_registers(  # type:ignore[override]
         self, *, context, selection: Sequence[cirq.Qid]
@@ -200,7 +202,7 @@ class GroverEncoder(cirq_ft.SelectOracle):
 
     @cached_property
     def selection_registers(self) -> cirq_ft.SelectionRegisters:
-        return cirq_ft.SelectionRegisters.build(selection=(self.n, 2**self.n))
+        return cirq_ft.SelectionRegisters.build(selection=self.n)
 
     @cached_property
     def target_registers(self) -> cirq_ft.Registers:

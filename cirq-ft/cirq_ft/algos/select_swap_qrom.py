@@ -139,8 +139,12 @@ class SelectSwapQROM(infra.GateWithRegisters):
 
     @cached_property
     def selection_registers(self) -> infra.SelectionRegisters:
-        return infra.SelectionRegisters.build(
-            selection=(self.selection_q + self.selection_r, self._iteration_length)
+        return infra.SelectionRegisters(
+            [
+                infra.SelectionRegister(
+                    'selection', self.selection_q + self.selection_r, self._iteration_length
+                )
+            ]
         )
 
     @cached_property

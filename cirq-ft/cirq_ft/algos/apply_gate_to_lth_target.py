@@ -56,8 +56,12 @@ class ApplyGateToLthQubit(unary_iteration_gate.UnaryIterationGate):
     ) -> cirq.Operation:
         """Helper constructor to automatically deduce bitsize attributes."""
         return cls(
-            infra.SelectionRegisters.build(
-                selection=(len(quregs['selection']), len(quregs['target']))
+            infra.SelectionRegisters(
+                [
+                    infra.SelectionRegister(
+                        'selection', len(quregs['selection']), len(quregs['target'])
+                    )
+                ]
             ),
             nth_gate=nth_gate,
             control_regs=infra.Registers.build(control=len(quregs['control'])),

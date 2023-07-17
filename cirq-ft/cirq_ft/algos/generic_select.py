@@ -74,8 +74,12 @@ class GenericSelect(select_and_prepare.SelectOracle, unary_iteration_gate.UnaryI
 
     @cached_property
     def selection_registers(self) -> infra.SelectionRegisters:
-        return infra.SelectionRegisters.build(
-            selection=(self.selection_bitsize, len(self.select_unitaries))
+        return infra.SelectionRegisters(
+            [
+                infra.SelectionRegister(
+                    'selection', self.selection_bitsize, len(self.select_unitaries)
+                )
+            ]
         )
 
     @cached_property

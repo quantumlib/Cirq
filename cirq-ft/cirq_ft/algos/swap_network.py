@@ -146,8 +146,8 @@ class SwapWithZeroGate(infra.GateWithRegisters):
 
     @cached_property
     def selection_registers(self) -> infra.SelectionRegisters:
-        return infra.SelectionRegisters.build(
-            selection=(self.selection_bitsize, self.n_target_registers)
+        return infra.SelectionRegisters(
+            [infra.SelectionRegister('selection', self.selection_bitsize, self.n_target_registers)]
         )
 
     @cached_property

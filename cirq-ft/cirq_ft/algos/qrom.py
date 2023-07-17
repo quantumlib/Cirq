@@ -89,15 +89,19 @@ class QROM(unary_iteration_gate.UnaryIterationGate):
     @cached_property
     def selection_registers(self) -> infra.SelectionRegisters:
         if len(self.data[0].shape) == 1:
-            return infra.SelectionRegisters.build(
-                selection=(self.selection_bitsizes[0], self.data[0].shape[0])
+            return infra.SelectionRegisters(
+                [
+                    infra.SelectionRegister(
+                        'selection', self.selection_bitsizes[0], self.data[0].shape[0]
+                    )
+                ]
             )
         else:
-            return infra.SelectionRegisters.build(
-                **{
-                    f'selection{i}': (sb, len)
+            return infra.SelectionRegisters(
+                [
+                    infra.SelectionRegister(f'selection{i}', sb, len)
                     for i, (len, sb) in enumerate(zip(self.data[0].shape, self.selection_bitsizes))
-                }
+                ]
             )
 
     @cached_property

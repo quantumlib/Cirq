@@ -103,8 +103,8 @@ class ProgrammableRotationGateArrayBase(infra.GateWithRegisters):
 
     @cached_property
     def selection_registers(self) -> infra.SelectionRegisters:
-        return infra.SelectionRegisters.build(
-            selection=(self._selection_bitsize, len(self.angles[0]))
+        return infra.SelectionRegisters(
+            [infra.SelectionRegister('selection', self._selection_bitsize, len(self.angles[0]))]
         )
 
     @cached_property

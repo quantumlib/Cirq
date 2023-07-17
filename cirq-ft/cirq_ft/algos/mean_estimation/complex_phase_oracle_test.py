@@ -38,7 +38,7 @@ class DummySelect(cirq_ft.SelectOracle):
 
     @cached_property
     def selection_registers(self) -> cirq_ft.SelectionRegisters:
-        return cirq_ft.SelectionRegisters.build(selection=(self.bitsize, 2**self.bitsize))
+        return cirq_ft.SelectionRegisters.build(selection=self.bitsize)
 
     @cached_property
     def target_registers(self) -> cirq_ft.Registers:

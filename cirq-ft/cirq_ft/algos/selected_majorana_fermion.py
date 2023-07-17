@@ -56,8 +56,12 @@ class SelectedMajoranaFermionGate(unary_iteration_gate.UnaryIterationGate):
     ) -> cirq.Operation:
         """Helper constructor to automatically deduce selection_regs attribute."""
         return cls(
-            selection_regs=infra.SelectionRegisters.build(
-                selection=(len(quregs['selection']), len(quregs['target']))
+            selection_regs=infra.SelectionRegisters(
+                [
+                    infra.SelectionRegister(
+                        'selection', len(quregs['selection']), len(quregs['target'])
+                    )
+                ]
             ),
             target_gate=target_gate,
         ).on_registers(**quregs)

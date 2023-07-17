@@ -13,6 +13,8 @@
 # limitations under the License.
 
 from typing import Sequence, Tuple
+
+import numpy as np
 from numpy.typing import NDArray
 
 import attr
@@ -111,16 +113,16 @@ class And(infra.GateWithRegisters):
 
     def _decompose_via_tree(
         self,
-        controls: Sequence[cirq.Qid],
+        controls: NDArray[cirq.Qid],  # type:ignore[type-var]
         control_values: Sequence[int],
-        ancillas: Sequence[cirq.Qid],
+        ancillas: NDArray[cirq.Qid],
         target: cirq.Qid,
     ) -> cirq.ops.op_tree.OpTree:
         """Decomposes multi-controlled `And` in-terms of an `And` ladder of size #controls- 2."""
         if len(controls) == 2:
             yield And(control_values, adjoint=self.adjoint).on(*controls, target)
             return
-        new_controls = (ancillas[0], *controls[2:])
+        new_controls = np.concatenate([ancillas[0:1], controls[2:]])
         new_control_values = (1, *control_values[2:])
         and_op = And(control_values[:2], adjoint=self.adjoint).on(*controls[:2], ancillas[0])
         if self.adjoint:
@@ -135,10 +137,7 @@ class And(infra.GateWithRegisters):
             )
 
     def decompose_from_registers(
-        self,
-        *,
-        context: cirq.DecompositionContext,
-        **quregs: NDArray[cirq.Qid],  # type:ignore[type-var]
+        self, *, context: cirq.DecompositionContext, **quregs: NDArray[cirq.Qid]
     ) -> cirq.OP_TREE:
         control, ancilla, target = quregs['control'], quregs['ancilla'], quregs['target']
         if len(self.cv) == 2:
@@ -146,7 +145,7 @@ class And(infra.GateWithRegisters):
                 self.cv[0], self.cv[1], control[0], control[1], *target
             )
         else:
-            yield self._decompose_via_tree(control.tolist(), self.cv, ancilla.tolist(), *target)
+            yield self._decompose_via_tree(control, self.cv, ancilla, *target)
 
     def _t_complexity_(self) -> infra.TComplexity:
         pre_post_cliffords = len(self.cv) - sum(self.cv)  # number of zeros in self.cv

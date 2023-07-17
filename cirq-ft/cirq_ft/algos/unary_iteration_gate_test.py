@@ -35,8 +35,8 @@ class ApplyXToLthQubit(cirq_ft.UnaryIterationGate):
 
     @cached_property
     def selection_registers(self) -> cirq_ft.SelectionRegisters:
-        return cirq_ft.SelectionRegisters.build(
-            selection=(self._selection_bitsize, self._target_bitsize)
+        return cirq_ft.SelectionRegisters(
+            [cirq_ft.SelectionRegister('selection', self._selection_bitsize, self._target_bitsize)]
         )
 
     @cached_property
@@ -88,10 +88,13 @@ class ApplyXToIJKthQubit(cirq_ft.UnaryIterationGate):
 
     @cached_property
     def selection_registers(self) -> cirq_ft.SelectionRegisters:
-        return cirq_ft.SelectionRegisters.build(
-            i=((self._target_shape[0] - 1).bit_length(), self._target_shape[0]),
-            j=((self._target_shape[1] - 1).bit_length(), self._target_shape[1]),
-            k=((self._target_shape[2] - 1).bit_length(), self._target_shape[2]),
+        return cirq_ft.SelectionRegisters(
+            [
+                cirq_ft.SelectionRegister(
+                    'ijk'[i], (self._target_shape[i] - 1).bit_length(), self._target_shape[i]
+                )
+                for i in range(3)
+            ]
         )
 
     @cached_property
@@ -144,7 +147,9 @@ def test_multi_dimensional_unary_iteration_gate(target_shape: Tuple[int, int, in
 
 def test_unary_iteration_loop():
     n_range, m_range = (3, 5), (6, 8)
-    selection_registers = cirq_ft.SelectionRegisters.build(n=(3, 5), m=(3, 8))
+    selection_registers = cirq_ft.SelectionRegisters(
+        [cirq_ft.SelectionRegister('n', 3, 5), cirq_ft.SelectionRegister('m', 3, 8)]
+    )
     selection = selection_registers.get_named_qubits()
     target = {(n, m): cirq.q(f't({n}, {m})') for n in range(*n_range) for m in range(*m_range)}
     qm = cirq_ft.GreedyQubitManager("ancilla", maximize_reuse=True)

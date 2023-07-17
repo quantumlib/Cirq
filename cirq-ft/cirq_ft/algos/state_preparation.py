@@ -106,7 +106,9 @@ class StatePreparationAliasSampling(select_and_prepare.PrepareOracle):
         )
         N = len(lcu_probabilities)
         return StatePreparationAliasSampling(
-            selection_registers=infra.SelectionRegisters.build(selection=((N - 1).bit_length(), N)),
+            selection_registers=infra.SelectionRegisters(
+                [infra.SelectionRegister('selection', (N - 1).bit_length(), N)]
+            ),
             alt=np.array(alt),
             keep=np.array(keep),
             mu=mu,

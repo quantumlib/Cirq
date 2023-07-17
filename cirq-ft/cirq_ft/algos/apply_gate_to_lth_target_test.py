@@ -23,7 +23,9 @@ from cirq_ft.infra.jupyter_tools import execute_notebook
 def test_apply_gate_to_lth_qubit(selection_bitsize, target_bitsize):
     greedy_mm = cirq_ft.GreedyQubitManager(prefix="_a", maximize_reuse=True)
     gate = cirq_ft.ApplyGateToLthQubit(
-        cirq_ft.SelectionRegisters.build(selection=(selection_bitsize, target_bitsize)),
+        cirq_ft.SelectionRegisters(
+            [cirq_ft.SelectionRegister('selection', selection_bitsize, target_bitsize)]
+        ),
         lambda _: cirq.X,
     )
     g = cirq_ft.testing.GateHelper(gate, context=cirq.DecompositionContext(greedy_mm))
@@ -52,7 +54,7 @@ def test_apply_gate_to_lth_qubit(selection_bitsize, target_bitsize):
 def test_apply_gate_to_lth_qubit_diagram():
     # Apply Z gate to all odd targets and Identity to even targets.
     gate = cirq_ft.ApplyGateToLthQubit(
-        cirq_ft.SelectionRegisters.build(selection=(3, 5)),
+        cirq_ft.SelectionRegisters([cirq_ft.SelectionRegister('selection', 3, 5)]),
         lambda n: cirq.Z if n & 1 else cirq.I,
         control_regs=cirq_ft.Registers.build(control=2),
     )
@@ -87,7 +89,7 @@ target4: ──────I────
 
 def test_apply_gate_to_lth_qubit_make_on():
     gate = cirq_ft.ApplyGateToLthQubit(
-        cirq_ft.SelectionRegisters.build(selection=(3, 5)),
+        cirq_ft.SelectionRegisters([cirq_ft.SelectionRegister('selection', 3, 5)]),
         lambda n: cirq.Z if n & 1 else cirq.I,
         control_regs=cirq_ft.Registers.build(control=2),
     )

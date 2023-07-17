@@ -24,7 +24,9 @@ from cirq_ft.infra.bit_tools import iter_bits
 def test_selected_majorana_fermion_gate(selection_bitsize, target_bitsize, target_gate):
     greedy_mm = cirq_ft.GreedyQubitManager(prefix="_a", maximize_reuse=True)
     gate = cirq_ft.SelectedMajoranaFermionGate(
-        cirq_ft.SelectionRegisters.build(selection=(selection_bitsize, target_bitsize)),
+        cirq_ft.SelectionRegisters(
+            [cirq_ft.SelectionRegister('selection', selection_bitsize, target_bitsize)]
+        ),
         target_gate=target_gate,
     )
     g = cirq_ft.testing.GateHelper(gate, context=cirq.DecompositionContext(greedy_mm))
@@ -64,7 +66,9 @@ def test_selected_majorana_fermion_gate(selection_bitsize, target_bitsize, targe
 def test_selected_majorana_fermion_gate_diagram():
     selection_bitsize, target_bitsize = 3, 5
     gate = cirq_ft.SelectedMajoranaFermionGate(
-        cirq_ft.SelectionRegisters.build(selection=(selection_bitsize, target_bitsize)),
+        cirq_ft.SelectionRegisters(
+            [cirq_ft.SelectionRegister('selection', selection_bitsize, target_bitsize)]
+        ),
         target_gate=cirq.X,
     )
     circuit = cirq.Circuit(gate.on_registers(**gate.registers.get_named_qubits()))
@@ -97,7 +101,9 @@ target4: ──────ZX───
 def test_selected_majorana_fermion_gate_decomposed_diagram():
     selection_bitsize, target_bitsize = 2, 3
     gate = cirq_ft.SelectedMajoranaFermionGate(
-        cirq_ft.SelectionRegisters.build(selection=(selection_bitsize, target_bitsize)),
+        cirq_ft.SelectionRegisters(
+            [cirq_ft.SelectionRegister('selection', selection_bitsize, target_bitsize)]
+        ),
         target_gate=cirq.X,
     )
     greedy_mm = cirq_ft.GreedyQubitManager(prefix="_a", maximize_reuse=True)
@@ -140,7 +146,9 @@ target2: ───────────────────────�
 def test_selected_majorana_fermion_gate_make_on():
     selection_bitsize, target_bitsize = 3, 5
     gate = cirq_ft.SelectedMajoranaFermionGate(
-        cirq_ft.SelectionRegisters.build(selection=(selection_bitsize, target_bitsize)),
+        cirq_ft.SelectionRegisters(
+            [cirq_ft.SelectionRegister('selection', selection_bitsize, target_bitsize)]
+        ),
         target_gate=cirq.X,
     )
     op = gate.on_registers(**gate.registers.get_named_qubits())
