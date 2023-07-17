@@ -14,6 +14,7 @@
 
 import abc
 from typing import Sequence, Tuple
+from numpy.typing import NDArray
 
 import cirq
 import numpy as np
@@ -95,13 +96,15 @@ class ProgrammableRotationGateArrayBase(infra.GateWithRegisters):
         return cirq.pow(self._rotation_gate, power)
 
     @abc.abstractmethod
-    def interleaved_unitary(self, index: int, **qubit_regs: Sequence[cirq.Qid]) -> cirq.Operation:
+    def interleaved_unitary(
+        self, index: int, **qubit_regs: NDArray[cirq.Qid]  # type:ignore[type-var]
+    ) -> cirq.Operation:
         pass
 
     @cached_property
     def selection_registers(self) -> infra.SelectionRegisters:
-        return infra.SelectionRegisters.build(
-            selection=(self._selection_bitsize, len(self.angles[0]))
+        return infra.SelectionRegisters(
+            [infra.SelectionRegister('selection', self._selection_bitsize, len(self.angles[0]))]
         )
 
     @cached_property
@@ -129,7 +132,7 @@ class ProgrammableRotationGateArrayBase(infra.GateWithRegisters):
         )
 
     def decompose_from_registers(
-        self, *, context: cirq.DecompositionContext, **quregs: Sequence[cirq.Qid]
+        self, *, context: cirq.DecompositionContext, **quregs: NDArray[cirq.Qid]
     ) -> cirq.OP_TREE:
         selection, kappa_load_target = quregs.pop('selection'), quregs.pop('kappa_load_target')
         rotations_target = quregs.pop('rotations_target')
@@ -138,7 +141,7 @@ class ProgrammableRotationGateArrayBase(infra.GateWithRegisters):
         # 1. Find a convenient way to process batches of size kappa.
         num_bits = sum(max(thetas).bit_length() for thetas in self.angles)
         iteration_length = self.selection_registers[0].iteration_length
-        selection_bitsizes = [s.bitsize for s in self.selection_registers]
+        selection_bitsizes = [s.total_bits() for s in self.selection_registers]
         angles_bits = np.zeros(shape=(iteration_length, num_bits), dtype=int)
         angles_bit_pow = np.zeros(shape=(num_bits,), dtype=int)
         angles_idx = np.zeros(shape=(num_bits,), dtype=int)
@@ -192,13 +195,13 @@ class ProgrammableRotationGateArray(ProgrammableRotationGateArrayBase):
     ):
         super().__init__(*angles, kappa=kappa, rotation_gate=rotation_gate)
         if not interleaved_unitaries:
-            identity_gate = cirq.IdentityGate(self.rotations_target.bitsize)
+            identity_gate = cirq.IdentityGate(self.rotations_target.total_bits())
             interleaved_unitaries = (identity_gate,) * (len(angles) - 1)
         assert len(interleaved_unitaries) == len(angles) - 1
         assert all(cirq.num_qubits(u) == self._target_bitsize for u in interleaved_unitaries)
         self._interleaved_unitaries = tuple(interleaved_unitaries)
 
-    def interleaved_unitary(self, index: int, **qubit_regs: Sequence[cirq.Qid]) -> cirq.Operation:
+    def interleaved_unitary(self, index: int, **qubit_regs: NDArray[cirq.Qid]) -> cirq.Operation:
         return self._interleaved_unitaries[index].on(*qubit_regs['rotations_target'])
 
     @cached_property

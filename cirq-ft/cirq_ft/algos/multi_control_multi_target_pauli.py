@@ -12,7 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Sequence, Tuple
+from typing import Tuple
+from numpy.typing import NDArray
 
 import attr
 import cirq
@@ -38,11 +39,14 @@ class MultiTargetCNOT(infra.GateWithRegisters):
         return infra.Registers.build(control=1, targets=self._num_targets)
 
     def decompose_from_registers(
-        self, *, context: cirq.DecompositionContext, **quregs: Sequence[cirq.Qid]
+        self,
+        *,
+        context: cirq.DecompositionContext,
+        **quregs: NDArray[cirq.Qid],  # type:ignore[type-var]
     ):
         control, targets = quregs['control'], quregs['targets']
 
-        def cnots_for_depth_i(i: int, q: Sequence[cirq.Qid]) -> cirq.OP_TREE:
+        def cnots_for_depth_i(i: int, q: NDArray[cirq.Qid]) -> cirq.OP_TREE:
             for c, t in zip(q[: 2**i], q[2**i : min(len(q), 2 ** (i + 1))]):
                 yield cirq.CNOT(c, t)
 
@@ -77,7 +81,7 @@ class MultiControlPauli(infra.GateWithRegisters):
         return infra.Registers.build(controls=len(self.cvs), target=1)
 
     def decompose_from_registers(
-        self, *, context: cirq.DecompositionContext, **quregs: Sequence['cirq.Qid']
+        self, *, context: cirq.DecompositionContext, **quregs: NDArray['cirq.Qid']
     ) -> cirq.OP_TREE:
         controls, target = quregs['controls'], quregs['target']
         qm = context.qubit_manager

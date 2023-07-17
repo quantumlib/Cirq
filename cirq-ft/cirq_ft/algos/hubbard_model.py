@@ -47,6 +47,7 @@ considered in both the PREPARE and SELECT operations corresponding to the terms 
 See the documentation for `PrepareHubbard` and `SelectHubbard` for details.
 """
 from typing import Collection, Optional, Sequence, Tuple, Union
+from numpy.typing import NDArray
 
 import attr
 import cirq
@@ -123,15 +124,17 @@ class SelectHubbard(select_and_prepare.SelectOracle):
 
     @cached_property
     def selection_registers(self) -> infra.SelectionRegisters:
-        return infra.SelectionRegisters.build(
-            U=(1, 2),
-            V=(1, 2),
-            p_x=((self.x_dim - 1).bit_length(), self.x_dim),
-            p_y=((self.y_dim - 1).bit_length(), self.y_dim),
-            alpha=(1, 2),
-            q_x=((self.x_dim - 1).bit_length(), self.x_dim),
-            q_y=((self.y_dim - 1).bit_length(), self.y_dim),
-            beta=(1, 2),
+        return infra.SelectionRegisters(
+            [
+                infra.SelectionRegister('U', 1, 2),
+                infra.SelectionRegister('V', 1, 2),
+                infra.SelectionRegister('p_x', (self.x_dim - 1).bit_length(), self.x_dim),
+                infra.SelectionRegister('p_y', (self.y_dim - 1).bit_length(), self.y_dim),
+                infra.SelectionRegister('alpha', 1, 2),
+                infra.SelectionRegister('q_x', (self.x_dim - 1).bit_length(), self.x_dim),
+                infra.SelectionRegister('q_y', (self.y_dim - 1).bit_length(), self.y_dim),
+                infra.SelectionRegister('beta', 1, 2),
+            ]
         )
 
     @cached_property
@@ -145,17 +148,22 @@ class SelectHubbard(select_and_prepare.SelectOracle):
         )
 
     def decompose_from_registers(
-        self, *, context: cirq.DecompositionContext, **quregs: Sequence[cirq.Qid]
+        self,
+        *,
+        context: cirq.DecompositionContext,
+        **quregs: NDArray[cirq.Qid],  # type:ignore[type-var]
     ) -> cirq.OP_TREE:
         p_x, p_y, q_x, q_y = quregs['p_x'], quregs['p_y'], quregs['q_x'], quregs['q_y']
         U, V, alpha, beta = quregs['U'], quregs['V'], quregs['alpha'], quregs['beta']
         control, target = quregs.get('control', ()), quregs['target']
 
         yield selected_majorana_fermion.SelectedMajoranaFermionGate(
-            selection_regs=infra.SelectionRegisters.build(
-                alpha=(1, 2),
-                p_y=(self.registers['p_y'].bitsize, self.y_dim),
-                p_x=(self.registers['p_x'].bitsize, self.x_dim),
+            selection_regs=infra.SelectionRegisters(
+                [
+                    infra.SelectionRegister('alpha', 1, 2),
+                    infra.SelectionRegister('p_y', self.registers['p_y'].total_bits(), self.y_dim),
+                    infra.SelectionRegister('p_x', self.registers['p_x'].total_bits(), self.x_dim),
+                ]
             ),
             control_regs=self.control_registers,
             target_gate=cirq.Y,
@@ -165,10 +173,12 @@ class SelectHubbard(select_and_prepare.SelectOracle):
         yield swap_network.MultiTargetCSwap.make_on(control=V, target_x=p_y, target_y=q_y)
         yield swap_network.MultiTargetCSwap.make_on(control=V, target_x=alpha, target_y=beta)
 
-        q_selection_regs = infra.SelectionRegisters.build(
-            beta=(1, 2),
-            q_y=(self.registers['q_y'].bitsize, self.y_dim),
-            q_x=(self.registers['q_x'].bitsize, self.x_dim),
+        q_selection_regs = infra.SelectionRegisters(
+            [
+                infra.SelectionRegister('beta', 1, 2),
+                infra.SelectionRegister('q_y', self.registers['q_y'].total_bits(), self.y_dim),
+                infra.SelectionRegister('q_x', self.registers['q_x'].total_bits(), self.x_dim),
+            ]
         )
         yield selected_majorana_fermion.SelectedMajoranaFermionGate(
             selection_regs=q_selection_regs, control_regs=self.control_registers, target_gate=cirq.X
@@ -190,12 +200,14 @@ class SelectHubbard(select_and_prepare.SelectOracle):
         ]
 
         yield apply_gate_to_lth_target.ApplyGateToLthQubit(
-            selection_regs=infra.SelectionRegisters.build(
-                q_y=(self.registers['q_y'].bitsize, self.y_dim),
-                q_x=(self.registers['q_x'].bitsize, self.x_dim),
+            selection_regs=infra.SelectionRegisters(
+                [
+                    infra.SelectionRegister('q_y', self.registers['q_y'].total_bits(), self.y_dim),
+                    infra.SelectionRegister('q_x', self.registers['q_x'].total_bits(), self.x_dim),
+                ]
             ),
             nth_gate=lambda *_: cirq.Z,
-            control_regs=infra.Registers.build(control=1 + self.control_registers.bitsize),
+            control_regs=infra.Registers.build(control=1 + self.control_registers.total_bits()),
         ).on_registers(
             q_x=q_x, q_y=q_y, control=[*V, *control], target=target_qubits_for_apply_to_lth_gate
         )
@@ -280,15 +292,17 @@ class PrepareHubbard(select_and_prepare.PrepareOracle):
 
     @cached_property
     def selection_registers(self) -> infra.SelectionRegisters:
-        return infra.SelectionRegisters.build(
-            U=(1, 2),
-            V=(1, 2),
-            p_x=((self.x_dim - 1).bit_length(), self.x_dim),
-            p_y=((self.y_dim - 1).bit_length(), self.y_dim),
-            alpha=(1, 2),
-            q_x=((self.x_dim - 1).bit_length(), self.x_dim),
-            q_y=((self.y_dim - 1).bit_length(), self.y_dim),
-            beta=(1, 2),
+        return infra.SelectionRegisters(
+            [
+                infra.SelectionRegister('U', 1, 2),
+                infra.SelectionRegister('V', 1, 2),
+                infra.SelectionRegister('p_x', (self.x_dim - 1).bit_length(), self.x_dim),
+                infra.SelectionRegister('p_y', (self.y_dim - 1).bit_length(), self.y_dim),
+                infra.SelectionRegister('alpha', 1, 2),
+                infra.SelectionRegister('q_x', (self.x_dim - 1).bit_length(), self.x_dim),
+                infra.SelectionRegister('q_y', (self.y_dim - 1).bit_length(), self.y_dim),
+                infra.SelectionRegister('beta', 1, 2),
+            ]
         )
 
     @cached_property
@@ -300,7 +314,7 @@ class PrepareHubbard(select_and_prepare.PrepareOracle):
         return infra.Registers([*self.selection_registers, *self.junk_registers])
 
     def decompose_from_registers(
-        self, *, context: cirq.DecompositionContext, **quregs: Sequence[cirq.Qid]
+        self, *, context: cirq.DecompositionContext, **quregs: NDArray[cirq.Qid]
     ) -> cirq.OP_TREE:
         p_x, p_y, q_x, q_y = quregs['p_x'], quregs['p_y'], quregs['q_x'], quregs['q_y']
         U, V, alpha, beta = quregs['U'], quregs['V'], quregs['alpha'], quregs['beta']

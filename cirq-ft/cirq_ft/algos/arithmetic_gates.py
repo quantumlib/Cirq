@@ -13,6 +13,7 @@
 # limitations under the License.
 
 from typing import Iterable, Optional, Sequence, Tuple, Union, List, Iterator
+from numpy.typing import NDArray
 
 from cirq._compat import cached_property
 import attr
@@ -153,7 +154,10 @@ class BiQubitsMixer(infra.GateWithRegisters):
         return f'cirq_ft.algos.BiQubitsMixer({self.adjoint})'
 
     def decompose_from_registers(
-        self, *, context: cirq.DecompositionContext, **quregs: Sequence[cirq.Qid]
+        self,
+        *,
+        context: cirq.DecompositionContext,
+        **quregs: NDArray[cirq.Qid],  # type:ignore[type-var]
     ) -> cirq.OP_TREE:
         x, y, ancilla = quregs['x'], quregs['y'], quregs['ancilla']
         x_msb, x_lsb = x
@@ -224,7 +228,7 @@ class SingleQubitCompare(infra.GateWithRegisters):
         return f'cirq_ft.algos.SingleQubitCompare({self.adjoint})'
 
     def decompose_from_registers(
-        self, *, context: cirq.DecompositionContext, **quregs: Sequence[cirq.Qid]
+        self, *, context: cirq.DecompositionContext, **quregs: NDArray[cirq.Qid]
     ) -> cirq.OP_TREE:
         a = quregs['a']
         b = quregs['b']
