@@ -76,7 +76,9 @@ class SelectedMajoranaFermionGate(unary_iteration_gate.UnaryIterationGate):
         qubit_regs['accumulator'] = context.qubit_manager.qalloc(1)
         control = qubit_regs[self.control_regs[0].name] if self.control_registers.bitsize else []
         yield cirq.X(*qubit_regs['accumulator']).controlled_by(*control)
-        yield super().decompose_from_registers(context=context, **qubit_regs)
+        yield super(SelectedMajoranaFermionGate, self).decompose_from_registers(
+            context=context, **qubit_regs
+        )
         context.qubit_manager.qfree(qubit_regs['accumulator'])
 
     def _circuit_diagram_info_(self, args: cirq.CircuitDiagramInfoArgs) -> cirq.CircuitDiagramInfo:

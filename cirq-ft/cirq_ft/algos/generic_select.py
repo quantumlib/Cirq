@@ -84,7 +84,7 @@ class GenericSelect(select_and_prepare.SelectOracle, unary_iteration_gate.UnaryI
     def decompose_from_registers(self, context, **qubit_regs: Sequence[cirq.Qid]) -> cirq.OP_TREE:
         if self.control_val == 0:
             yield cirq.X(*qubit_regs['control'])
-        yield super().decompose_from_registers(context=context, **qubit_regs)
+        yield super(GenericSelect, self).decompose_from_registers(context=context, **qubit_regs)
         if self.control_val == 0:
             yield cirq.X(*qubit_regs['control'])
 
