@@ -12,9 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# TODO(#6171): enable the check and fix pylint errors
-# pylint: disable=consider-using-f-string
-
 """Linear combination represented as mapping of things to coefficients."""
 import numbers
 from typing import (
@@ -45,8 +42,8 @@ TDefault = TypeVar('TDefault')
 
 def _format_coefficient(format_spec: str, coefficient: Scalar) -> str:
     coefficient = complex(coefficient)
-    real_str = '{:{fmt}}'.format(coefficient.real, fmt=format_spec)
-    imag_str = '{:{fmt}}'.format(coefficient.imag, fmt=format_spec)
+    real_str = f'{coefficient.real:{format_spec}}'
+    imag_str = f'{coefficient.imag:{format_spec}}'
     if float(real_str) == 0 and float(imag_str) == 0:
         return ''
     if float(imag_str) == 0:
@@ -74,7 +71,7 @@ def _format_terms(terms: Iterable[Tuple[TVector, Scalar]], format_spec: str):
     formatted_terms = [_format_term(format_spec, vector, coeff) for vector, coeff in terms]
     s = ''.join(formatted_terms)
     if not s:
-        return '{:{fmt}}'.format(0, fmt=format_spec)
+        return f'{0:{format_spec}}'
     if s[0] == '+':
         return s[1:]
     return s

@@ -12,9 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# TODO(#6171): enable the check and fix pylint errors
-# pylint: disable=consider-using-f-string
-
 import abc
 from typing import Any, Dict, List, Optional, Sequence, TYPE_CHECKING
 import numpy as np
@@ -340,11 +337,11 @@ class CliffordTableau(StabilizerState):
 
                 for k in range(self.n):
                     if self.xs[i, k] & (not self.zs[i, k]):
-                        string += 'X%d' % k
+                        string += f'X{k}'
                     elif (not self.xs[i, k]) & self.zs[i, k]:
-                        string += 'Z%d' % k
+                        string += f'Z{k}'
                     elif self.xs[i, k] & self.zs[i, k]:
-                        string += 'Y%d' % k
+                        string += f'Y{k}'
                     else:
                         string += '  '
 
