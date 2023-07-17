@@ -574,7 +574,7 @@ class TestStreamManager:
                 )
                 # Wait for the manager to submit a request. If request submission runs after stop(),
                 # it will start the manager again and the test will block waiting for a response.
-                asyncio.sleep(1)
+                await duet.sleep(1)
                 manager.stop()
 
                 with pytest.raises(concurrent.futures.CancelledError):
