@@ -21,3 +21,5 @@ from cirq_google.ops.fsim_gate_family import FSimGateFamily
 from cirq_google.ops.physical_z_tag import PhysicalZTag
 
 from cirq_google.ops.sycamore_gate import SycamoreGate, SYC
+
+from cirq_google.ops.internal_gate import InternalGate
