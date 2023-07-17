@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Sequence
+from numpy.typing import NDArray
 
 import cirq
 import cirq_ft
@@ -23,7 +23,9 @@ from cirq_ft.infra.bit_tools import iter_bits
 
 
 class CustomProgrammableRotationGateArray(cirq_ft.ProgrammableRotationGateArrayBase):
-    def interleaved_unitary(self, index: int, **qubit_regs: Sequence[cirq.Qid]) -> cirq.Operation:
+    def interleaved_unitary(
+        self, index: int, **qubit_regs: NDArray[cirq.Qid]  # type:ignore[type-var]
+    ) -> cirq.Operation:
         two_qubit_ops_factory = [
             cirq.X(*qubit_regs['unrelated_target']).controlled_by(*qubit_regs['rotations_target']),
             cirq.Z(*qubit_regs['unrelated_target']).controlled_by(*qubit_regs['rotations_target']),

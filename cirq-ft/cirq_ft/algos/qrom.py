@@ -119,7 +119,7 @@ class QROM(unary_iteration_gate.UnaryIterationGate):
         self,
         selection_idx: Tuple[int, ...],
         gate: Callable[[cirq.Qid], cirq.Operation],
-        **target_regs: Sequence[cirq.Qid],
+        **target_regs: NDArray[cirq.Qid],  # type: ignore[type-var]
     ) -> cirq.OP_TREE:
         for i, d in enumerate(self.data):
             target = target_regs[f'target{i}']
@@ -128,7 +128,7 @@ class QROM(unary_iteration_gate.UnaryIterationGate):
                     yield gate(q)
 
     def decompose_zero_selection(
-        self, context: cirq.DecompositionContext, **quregs: Sequence[cirq.Qid]
+        self, context: cirq.DecompositionContext, **quregs: NDArray[cirq.Qid]
     ) -> cirq.OP_TREE:
         controls = self.control_registers.merge_qubits(**quregs)
         target_regs = {k: v for k, v in quregs.items() if k in self.target_registers}

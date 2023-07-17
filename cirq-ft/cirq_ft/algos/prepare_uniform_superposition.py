@@ -12,7 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Sequence, Tuple
+from typing import Tuple
+from numpy.typing import NDArray
 
 import attr
 import cirq
@@ -61,7 +62,10 @@ class PrepareUniformSuperposition(infra.GateWithRegisters):
         return cirq.CircuitDiagramInfo(wire_symbols=control_symbols + target_symbols)
 
     def decompose_from_registers(
-        self, *, context: cirq.DecompositionContext, **quregs: Sequence[cirq.Qid]
+        self,
+        *,
+        context: cirq.DecompositionContext,
+        **quregs: NDArray[cirq.Qid],  # type:ignore[type-var]
     ) -> cirq.OP_TREE:
         controls, target = quregs['controls'], quregs['target']
         # Find K and L as per https://arxiv.org/abs/1805.03662 Fig 12.

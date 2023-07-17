@@ -47,6 +47,7 @@ considered in both the PREPARE and SELECT operations corresponding to the terms 
 See the documentation for `PrepareHubbard` and `SelectHubbard` for details.
 """
 from typing import Collection, Optional, Sequence, Tuple, Union
+from numpy.typing import NDArray
 
 import attr
 import cirq
@@ -145,7 +146,10 @@ class SelectHubbard(select_and_prepare.SelectOracle):
         )
 
     def decompose_from_registers(
-        self, *, context: cirq.DecompositionContext, **quregs: Sequence[cirq.Qid]
+        self,
+        *,
+        context: cirq.DecompositionContext,
+        **quregs: NDArray[cirq.Qid],  # type:ignore[type-var]
     ) -> cirq.OP_TREE:
         p_x, p_y, q_x, q_y = quregs['p_x'], quregs['p_y'], quregs['q_x'], quregs['q_y']
         U, V, alpha, beta = quregs['U'], quregs['V'], quregs['alpha'], quregs['beta']
@@ -300,7 +304,7 @@ class PrepareHubbard(select_and_prepare.PrepareOracle):
         return infra.Registers([*self.selection_registers, *self.junk_registers])
 
     def decompose_from_registers(
-        self, *, context: cirq.DecompositionContext, **quregs: Sequence[cirq.Qid]
+        self, *, context: cirq.DecompositionContext, **quregs: NDArray[cirq.Qid]
     ) -> cirq.OP_TREE:
         p_x, p_y, q_x, q_y = quregs['p_x'], quregs['p_y'], quregs['q_x'], quregs['q_y']
         U, V, alpha, beta = quregs['U'], quregs['V'], quregs['alpha'], quregs['beta']

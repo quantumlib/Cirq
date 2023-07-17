@@ -13,6 +13,7 @@
 # limitations under the License.
 
 from typing import Collection, Optional, Sequence, Tuple, Union
+from numpy.typing import NDArray
 
 import attr
 import cirq
@@ -110,7 +111,10 @@ class MeanEstimationOperator(infra.GateWithRegisters):
         return infra.Registers([*self.control_registers, *self.selection_registers])
 
     def decompose_from_registers(
-        self, *, context: cirq.DecompositionContext, **quregs: Sequence[cirq.Qid]
+        self,
+        *,
+        context: cirq.DecompositionContext,
+        **quregs: NDArray[cirq.Qid],  # type:ignore[type-var]
     ) -> cirq.OP_TREE:
         select_reg = {reg.name: quregs[reg.name] for reg in self.select.registers}
         reflect_reg = {reg.name: quregs[reg.name] for reg in self.reflect.registers}

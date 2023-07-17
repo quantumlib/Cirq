@@ -12,10 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Sequence
+from typing import Sequence, Union
+from numpy.typing import NDArray
 
 import attr
 import cirq
+import numpy as np
+
 from cirq._compat import cached_property
 from cirq_ft import infra
 from cirq_ft.algos import unary_iteration_gate
@@ -45,7 +48,12 @@ class SelectedMajoranaFermionGate(unary_iteration_gate.UnaryIterationGate):
     target_gate: cirq.Gate = cirq.Y
 
     @classmethod
-    def make_on(cls, *, target_gate=cirq.Y, **quregs: Sequence[cirq.Qid]) -> cirq.Operation:
+    def make_on(
+        cls,
+        *,
+        target_gate=cirq.Y,
+        **quregs: Union[Sequence[cirq.Qid], NDArray[cirq.Qid]],  # type: ignore[type-var]
+    ) -> cirq.Operation:
         """Helper constructor to automatically deduce selection_regs attribute."""
         return cls(
             selection_regs=infra.SelectionRegisters.build(
@@ -71,13 +79,13 @@ class SelectedMajoranaFermionGate(unary_iteration_gate.UnaryIterationGate):
         return infra.Registers.build(accumulator=1)
 
     def decompose_from_registers(
-        self, context: cirq.DecompositionContext, **qubit_regs: Sequence[cirq.Qid]
+        self, context: cirq.DecompositionContext, **quregs: NDArray[cirq.Qid]
     ) -> cirq.OP_TREE:
-        qubit_regs['accumulator'] = context.qubit_manager.qalloc(1)
-        control = qubit_regs[self.control_regs[0].name] if self.control_registers.bitsize else []
-        yield cirq.X(*qubit_regs['accumulator']).controlled_by(*control)
-        yield super().decompose_from_registers(context=context, **qubit_regs)
-        context.qubit_manager.qfree(qubit_regs['accumulator'])
+        quregs['accumulator'] = np.array(context.qubit_manager.qalloc(1))
+        control = quregs[self.control_regs[0].name] if self.control_registers.bitsize else []
+        yield cirq.X(*quregs['accumulator']).controlled_by(*control)
+        yield super().decompose_from_registers(context=context, **quregs)
+        context.qubit_manager.qfree(quregs['accumulator'])
 
     def _circuit_diagram_info_(self, args: cirq.CircuitDiagramInfoArgs) -> cirq.CircuitDiagramInfo:
         wire_symbols = ["@"] * self.control_registers.bitsize

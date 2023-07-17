@@ -13,6 +13,7 @@
 # limitations under the License.
 
 from typing import Collection, Optional, Sequence, Tuple, Union
+from numpy.typing import NDArray
 
 import attr
 import cirq
@@ -69,15 +70,17 @@ class ReflectionUsingPrepare(infra.GateWithRegisters):
         return infra.Registers([*self.control_registers, *self.selection_registers])
 
     def decompose_from_registers(
-        self, context: cirq.DecompositionContext, **qubit_regs: Sequence[cirq.Qid]
+        self,
+        context: cirq.DecompositionContext,
+        **quregs: NDArray[cirq.Qid],  # type:ignore[type-var]
     ) -> cirq.OP_TREE:
         qm = context.qubit_manager
         # 0. Allocate new ancillas, if needed.
-        phase_target = qm.qalloc(1)[0] if self.control_val is None else qubit_regs.pop('control')[0]
+        phase_target = qm.qalloc(1)[0] if self.control_val is None else quregs.pop('control')[0]
         state_prep_ancilla = {
             reg.name: qm.qalloc(reg.total_bits()) for reg in self.prepare_gate.junk_registers
         }
-        state_prep_selection_regs = qubit_regs
+        state_prep_selection_regs = quregs
         prepare_op = self.prepare_gate.on_registers(
             **state_prep_selection_regs, **state_prep_ancilla
         )

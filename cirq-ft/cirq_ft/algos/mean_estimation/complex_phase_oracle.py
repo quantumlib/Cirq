@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Sequence
+from numpy.typing import NDArray
 
 import attr
 import cirq
@@ -49,7 +49,10 @@ class ComplexPhaseOracle(infra.GateWithRegisters):
         return infra.Registers([*self.control_registers, *self.selection_registers])
 
     def decompose_from_registers(
-        self, *, context: cirq.DecompositionContext, **quregs: Sequence[cirq.Qid]
+        self,
+        *,
+        context: cirq.DecompositionContext,
+        **quregs: NDArray[cirq.Qid],  # type:ignore[type-var]
     ) -> cirq.OP_TREE:
         qm = context.qubit_manager
         target_reg = {

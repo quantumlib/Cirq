@@ -13,13 +13,13 @@
 # limitations under the License.
 
 from typing import List, Optional, Sequence, Tuple
+from numpy.typing import NDArray
 
 import cirq
 import numpy as np
 from cirq._compat import cached_property
 from cirq_ft import infra
 from cirq_ft.algos import qrom, swap_network
-from numpy.typing import NDArray
 
 
 def find_optimal_log_block_size(iteration_length: int, target_bitsize: int) -> int:
@@ -177,7 +177,10 @@ class SelectSwapQROM(infra.GateWithRegisters):
         )
 
     def decompose_from_registers(
-        self, *, context: cirq.DecompositionContext, **quregs: Sequence[cirq.Qid]
+        self,
+        *,
+        context: cirq.DecompositionContext,
+        **quregs: NDArray[cirq.Qid],  # type:ignore[type-var]
     ) -> cirq.OP_TREE:
         # Divide each data sequence and corresponding target registers into
         # `self.num_blocks` batches of size `self.block_size`.

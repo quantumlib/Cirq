@@ -107,7 +107,9 @@ class Registers:
     def __len__(self) -> int:
         return len(self._registers)
 
-    def split_qubits(self, qubits: Sequence[cirq.Qid]) -> Dict[str, NDArray[cirq.Qid]]:  # type: ignore[type-var]
+    def split_qubits(
+        self, qubits: Sequence[cirq.Qid]
+    ) -> Dict[str, NDArray[cirq.Qid]]:  # type: ignore[type-var]
         qubit_regs = {}
         base = 0
         for reg in self:
@@ -117,7 +119,9 @@ class Registers:
             base += reg.total_bits()
         return qubit_regs
 
-    def merge_qubits(self, **qubit_regs: Union[cirq.Qid, NDArray[cirq.Qid]]) -> List[cirq.Qid]:
+    def merge_qubits(
+        self, **qubit_regs: Union[cirq.Qid, Sequence[cirq.Qid], NDArray[cirq.Qid]]
+    ) -> List[cirq.Qid]:
         ret: List[cirq.Qid] = []
         for reg in self:
             assert reg.name in qubit_regs, "All qubit registers must pe present"
@@ -233,7 +237,9 @@ class SelectionRegisters(Registers):
         return int(np.product(self.iteration_lengths))
 
     @classmethod
-    def build(cls, **registers: Union[int, Tuple[int, int]]) -> 'SelectionRegisters':  # type: ignore[override]
+    def build(
+        cls, **registers: Union[int, Tuple[int, int]]  # type: ignore[override]
+    ) -> 'SelectionRegisters':
         reg_dict: Dict[str, Tuple[int, int]] = {
             k: v if isinstance(v, tuple) else (v, 2**v) for k, v in registers.items()
         }
@@ -342,7 +348,9 @@ class GateWithRegisters(cirq.Gate, metaclass=abc.ABCMeta):
     def _decompose_(self, qubits: Sequence[cirq.Qid]) -> cirq.OP_TREE:
         return self._decompose_with_context_(qubits)
 
-    def on_registers(self, **qubit_regs: Union[cirq.Qid, NDArray[cirq.Qid]]) -> cirq.Operation:
+    def on_registers(
+        self, **qubit_regs: Union[cirq.Qid, Sequence[cirq.Qid], NDArray[cirq.Qid]]
+    ) -> cirq.Operation:
         return self.on(*self.registers.merge_qubits(**qubit_regs))
 
     def _circuit_diagram_info_(self, args: cirq.CircuitDiagramInfoArgs) -> cirq.CircuitDiagramInfo:

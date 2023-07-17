@@ -14,6 +14,7 @@
 
 import abc
 from typing import Sequence, Tuple
+from numpy.typing import NDArray
 
 import cirq
 import numpy as np
@@ -95,7 +96,9 @@ class ProgrammableRotationGateArrayBase(infra.GateWithRegisters):
         return cirq.pow(self._rotation_gate, power)
 
     @abc.abstractmethod
-    def interleaved_unitary(self, index: int, **qubit_regs: Sequence[cirq.Qid]) -> cirq.Operation:
+    def interleaved_unitary(
+        self, index: int, **qubit_regs: NDArray[cirq.Qid]  # type:ignore[type-var]
+    ) -> cirq.Operation:
         pass
 
     @cached_property
@@ -129,7 +132,7 @@ class ProgrammableRotationGateArrayBase(infra.GateWithRegisters):
         )
 
     def decompose_from_registers(
-        self, *, context: cirq.DecompositionContext, **quregs: Sequence[cirq.Qid]
+        self, *, context: cirq.DecompositionContext, **quregs: NDArray[cirq.Qid]
     ) -> cirq.OP_TREE:
         selection, kappa_load_target = quregs.pop('selection'), quregs.pop('kappa_load_target')
         rotations_target = quregs.pop('rotations_target')
@@ -198,7 +201,7 @@ class ProgrammableRotationGateArray(ProgrammableRotationGateArrayBase):
         assert all(cirq.num_qubits(u) == self._target_bitsize for u in interleaved_unitaries)
         self._interleaved_unitaries = tuple(interleaved_unitaries)
 
-    def interleaved_unitary(self, index: int, **qubit_regs: Sequence[cirq.Qid]) -> cirq.Operation:
+    def interleaved_unitary(self, index: int, **qubit_regs: NDArray[cirq.Qid]) -> cirq.Operation:
         return self._interleaved_unitaries[index].on(*qubit_regs['rotations_target'])
 
     @cached_property

@@ -13,6 +13,7 @@
 # limitations under the License.
 
 from typing import Collection, Optional, Sequence, Tuple, Union
+from numpy.typing import NDArray
 
 import attr
 import cirq
@@ -84,12 +85,14 @@ class QubitizationWalkOperator(infra.GateWithRegisters):
         )
 
     def decompose_from_registers(
-        self, context: cirq.DecompositionContext, **qubit_regs: Sequence[cirq.Qid]
+        self,
+        context: cirq.DecompositionContext,
+        **quregs: NDArray[cirq.Qid],  # type:ignore[type-var]
     ) -> cirq.OP_TREE:
-        select_reg = {reg.name: qubit_regs[reg.name] for reg in self.select.registers}
+        select_reg = {reg.name: quregs[reg.name] for reg in self.select.registers}
         select_op = self.select.on_registers(**select_reg)
 
-        reflect_reg = {reg.name: qubit_regs[reg.name] for reg in self.reflect.registers}
+        reflect_reg = {reg.name: quregs[reg.name] for reg in self.reflect.registers}
         reflect_op = self.reflect.on_registers(**reflect_reg)
         for _ in range(self.power):
             yield select_op

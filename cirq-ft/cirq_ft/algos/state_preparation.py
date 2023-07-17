@@ -20,7 +20,8 @@ database) with a number of T gates scaling as 4L + O(log(1/eps)) where eps is th
 largest absolute error that one can tolerate in the prepared amplitudes.
 """
 
-from typing import List, Sequence
+from typing import List
+from numpy.typing import NDArray
 
 import attr
 import cirq
@@ -34,7 +35,6 @@ from cirq_ft.algos import (
     select_and_prepare,
     swap_network,
 )
-from numpy.typing import NDArray
 
 
 @cirq.value_equality()
@@ -157,7 +157,10 @@ class StatePreparationAliasSampling(select_and_prepare.PrepareOracle):
         )
 
     def decompose_from_registers(
-        self, *, context: cirq.DecompositionContext, **quregs: Sequence[cirq.Qid]
+        self,
+        *,
+        context: cirq.DecompositionContext,
+        **quregs: NDArray[cirq.Qid],  # type:ignore[type-var]
     ) -> cirq.OP_TREE:
         selection, less_than_equal = quregs['selection'], quregs['less_than_equal']
         sigma_mu, alt, keep = quregs['sigma_mu'], quregs['alt'], quregs['keep']

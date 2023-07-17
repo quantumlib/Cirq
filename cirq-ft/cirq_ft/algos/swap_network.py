@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Sequence
+from typing import Sequence, Union
 from numpy.typing import NDArray
 
 import attr
@@ -37,7 +37,9 @@ class MultiTargetCSwap(infra.GateWithRegisters):
     bitsize: int
 
     @classmethod
-    def make_on(cls, **quregs: Sequence[cirq.Qid]) -> cirq.Operation:
+    def make_on(
+        cls, **quregs: Union[Sequence[cirq.Qid], NDArray[cirq.Qid]]  # type: ignore[type-var]
+    ) -> cirq.Operation:
         """Helper constructor to automatically deduce bitsize attributes."""
         return cls(bitsize=len(quregs['target_x'])).on_registers(**quregs)
 
@@ -46,7 +48,7 @@ class MultiTargetCSwap(infra.GateWithRegisters):
         return infra.Registers.build(control=1, target_x=self.bitsize, target_y=self.bitsize)
 
     def decompose_from_registers(
-        self, *, context: cirq.DecompositionContext, **quregs: Sequence[cirq.Qid]
+        self, *, context: cirq.DecompositionContext, **quregs: NDArray[cirq.Qid]
     ) -> cirq.OP_TREE:
         control, target_x, target_y = quregs['control'], quregs['target_x'], quregs['target_y']
         yield [cirq.CSWAP(*control, t_x, t_y) for t_x, t_y in zip(target_x, target_y)]
@@ -82,7 +84,7 @@ class MultiTargetCSwapApprox(MultiTargetCSwap):
     """
 
     def decompose_from_registers(
-        self, *, context: cirq.DecompositionContext, **quregs: Sequence[cirq.Qid]
+        self, *, context: cirq.DecompositionContext, **quregs: NDArray[cirq.Qid]
     ) -> cirq.OP_TREE:
         control, target_x, target_y = quregs['control'], quregs['target_x'], quregs['target_y']
 

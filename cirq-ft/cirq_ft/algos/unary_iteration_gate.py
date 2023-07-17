@@ -14,8 +14,11 @@
 
 import abc
 from typing import Dict, Iterator, List, Sequence, Tuple
+from numpy.typing import NDArray
 
 import cirq
+import numpy as np
+
 from cirq._compat import cached_property
 from cirq_ft import infra
 from cirq_ft.algos import and_gate
@@ -134,7 +137,7 @@ def _unary_iteration_multi_controls(
     and_ancilla = qm.qalloc(num_controls - 2)
     and_target = qm.qalloc(1)[0]
     multi_controlled_and = and_gate.And((1,) * len(controls)).on_registers(
-        control=controls, ancilla=and_ancilla, target=and_target
+        control=np.array(controls), ancilla=np.array(and_ancilla), target=and_target
     )
     ops.append(multi_controlled_and)
     yield from _unary_iteration_single_control(ops, and_target, selection, l_iter, r_iter, qm)
@@ -282,7 +285,9 @@ class UnaryIterationGate(infra.GateWithRegisters):
         """
 
     def decompose_zero_selection(
-        self, context: cirq.DecompositionContext, **quregs: Sequence[cirq.Qid]
+        self,
+        context: cirq.DecompositionContext,
+        **quregs: NDArray[cirq.Qid],  # type: ignore[type-var]
     ) -> cirq.OP_TREE:
         """Specify decomposition of the gate when selection register is empty
 
@@ -302,7 +307,7 @@ class UnaryIterationGate(infra.GateWithRegisters):
         raise NotImplementedError("Selection register must not be empty.")
 
     def decompose_from_registers(
-        self, *, context: cirq.DecompositionContext, **quregs: Sequence[cirq.Qid]
+        self, *, context: cirq.DecompositionContext, **quregs: NDArray[cirq.Qid]
     ) -> cirq.OP_TREE:
         if self.selection_registers.bitsize == 0:
             return self.decompose_zero_selection(context=context, **quregs)
@@ -352,7 +357,7 @@ class UnaryIterationGate(infra.GateWithRegisters):
                 r_iter=self.selection_registers[nested_depth].iteration_length,
                 flanking_ops=ops,
                 controls=controls,
-                selection=quregs[self.selection_registers[nested_depth].name],
+                selection=[*quregs[self.selection_registers[nested_depth].name]],
                 qubit_manager=context.qubit_manager,
             )
             for op_tree, control_qid, n in ith_for_loop:

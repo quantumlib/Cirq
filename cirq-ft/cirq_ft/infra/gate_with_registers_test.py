@@ -94,6 +94,9 @@ def test_selection_registers_consistent():
     with pytest.raises(ValueError, match="iteration length must be in "):
         _ = cirq_ft.SelectionRegister('a', 3, 10)
 
+    with pytest.raises(ValueError, match="should be flat"):
+        _ = cirq_ft.SelectionRegister('a', (3, 5), 5)
+
     selection_reg = cirq_ft.SelectionRegisters.build(n=(3, 5), m=(4, 12))
     assert selection_reg[0] == cirq_ft.SelectionRegister('n', 3, 5)
     assert selection_reg['n'] == cirq_ft.SelectionRegister('n', 3, 5)
