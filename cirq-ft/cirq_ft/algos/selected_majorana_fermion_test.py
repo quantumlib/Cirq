@@ -28,7 +28,7 @@ def test_selected_majorana_fermion_gate(selection_bitsize, target_bitsize, targe
         target_gate=target_gate,
     )
     g = cirq_ft.testing.GateHelper(gate, context=cirq.DecompositionContext(greedy_mm))
-    assert len(g.all_qubits) <= gate.registers.bitsize + selection_bitsize + 1
+    assert len(g.all_qubits) <= gate.registers.total_bits() + selection_bitsize + 1
 
     sim = cirq.Simulator(dtype=np.complex128)
     for n in range(target_bitsize):

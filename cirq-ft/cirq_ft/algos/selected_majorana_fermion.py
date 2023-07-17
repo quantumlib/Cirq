@@ -82,15 +82,15 @@ class SelectedMajoranaFermionGate(unary_iteration_gate.UnaryIterationGate):
         self, context: cirq.DecompositionContext, **quregs: NDArray[cirq.Qid]
     ) -> cirq.OP_TREE:
         quregs['accumulator'] = np.array(context.qubit_manager.qalloc(1))
-        control = quregs[self.control_regs[0].name] if self.control_registers.bitsize else []
+        control = quregs[self.control_regs[0].name] if self.control_registers.total_bits() else []
         yield cirq.X(*quregs['accumulator']).controlled_by(*control)
         yield super().decompose_from_registers(context=context, **quregs)
         context.qubit_manager.qfree(quregs['accumulator'])
 
     def _circuit_diagram_info_(self, args: cirq.CircuitDiagramInfoArgs) -> cirq.CircuitDiagramInfo:
-        wire_symbols = ["@"] * self.control_registers.bitsize
-        wire_symbols += ["In"] * self.selection_registers.bitsize
-        wire_symbols += [f"Z{self.target_gate}"] * self.target_registers.bitsize
+        wire_symbols = ["@"] * self.control_registers.total_bits()
+        wire_symbols += ["In"] * self.selection_registers.total_bits()
+        wire_symbols += [f"Z{self.target_gate}"] * self.target_registers.total_bits()
         return cirq.CircuitDiagramInfo(wire_symbols=wire_symbols)
 
     def nth_operation(  # type: ignore[override]

@@ -102,8 +102,8 @@ class ReflectionUsingPrepare(infra.GateWithRegisters):
             qm.qfree([phase_target])
 
     def _circuit_diagram_info_(self, args: cirq.CircuitDiagramInfoArgs) -> cirq.CircuitDiagramInfo:
-        wire_symbols = ['@' if self.control_val else '@(0)'] * self.control_registers.bitsize
-        wire_symbols += ['R_L'] * self.selection_registers.bitsize
+        wire_symbols = ['@' if self.control_val else '@(0)'] * self.control_registers.total_bits()
+        wire_symbols += ['R_L'] * self.selection_registers.total_bits()
         return cirq.CircuitDiagramInfo(wire_symbols=wire_symbols)
 
     def __repr__(self):

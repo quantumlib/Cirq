@@ -99,8 +99,8 @@ class QubitizationWalkOperator(infra.GateWithRegisters):
             yield reflect_op
 
     def _circuit_diagram_info_(self, args: cirq.CircuitDiagramInfoArgs) -> cirq.CircuitDiagramInfo:
-        wire_symbols = ['@' if self.control_val else '@(0)'] * self.control_registers.bitsize
-        wire_symbols += ['W'] * (self.registers.bitsize - self.control_registers.bitsize)
+        wire_symbols = ['@' if self.control_val else '@(0)'] * self.control_registers.total_bits()
+        wire_symbols += ['W'] * (self.registers.total_bits() - self.control_registers.total_bits())
         wire_symbols[-1] = f'W^{self.power}' if self.power != 1 else 'W'
         return cirq.CircuitDiagramInfo(wire_symbols=wire_symbols)
 

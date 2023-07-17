@@ -33,7 +33,9 @@ def test_qrom_1d(data, num_controls):
     decomposed_circuit = cirq.Circuit(cirq.decompose(g.operation, context=g.context))
     inverse = cirq.Circuit(cirq.decompose(g.operation**-1, context=g.context))
 
-    assert len(inverse.all_qubits()) <= g.r.bitsize + g.r['selection'].total_bits() + num_controls
+    assert (
+        len(inverse.all_qubits()) <= g.r.total_bits() + g.r['selection'].total_bits() + num_controls
+    )
     assert inverse.all_qubits() == decomposed_circuit.all_qubits()
 
     for selection_integer in range(len(data[0])):
@@ -134,7 +136,8 @@ def test_qrom_multi_dim(data, num_controls):
     inverse = cirq.Circuit(cirq.decompose(g.operation**-1, context=g.context))
 
     assert (
-        len(inverse.all_qubits()) <= g.r.bitsize + qrom.selection_registers.bitsize + num_controls
+        len(inverse.all_qubits())
+        <= g.r.total_bits() + qrom.selection_registers.total_bits() + num_controls
     )
     assert inverse.all_qubits() == decomposed_circuit.all_qubits()
 

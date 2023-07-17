@@ -294,7 +294,7 @@ class UnaryIterationGate(infra.GateWithRegisters):
         By default, if the selection register is empty, the decomposition will raise a
         `NotImplementedError`. The derived classes can override this method and specify
         a custom decomposition that should be used if the selection register is empty,
-        i.e. `self.selection_registers.bitsize == 0`.
+        i.e. `self.selection_registers.total_bits() == 0`.
 
         The derived classes should specify the following arguments as `**kwargs`:
             1) Register names in `self.control_registers`: Each argument corresponds to a
@@ -309,7 +309,7 @@ class UnaryIterationGate(infra.GateWithRegisters):
     def decompose_from_registers(
         self, *, context: cirq.DecompositionContext, **quregs: NDArray[cirq.Qid]
     ) -> cirq.OP_TREE:
-        if self.selection_registers.bitsize == 0:
+        if self.selection_registers.total_bits() == 0:
             return self.decompose_zero_selection(context=context, **quregs)
 
         num_loops = len(self.selection_registers)
@@ -376,7 +376,7 @@ class UnaryIterationGate(infra.GateWithRegisters):
         Descendants are encouraged to override this with more descriptive
         circuit diagram information.
         """
-        wire_symbols = ["@"] * self.control_registers.bitsize
-        wire_symbols += ["In"] * self.selection_registers.bitsize
-        wire_symbols += [self.__class__.__name__] * self.target_registers.bitsize
+        wire_symbols = ["@"] * self.control_registers.total_bits()
+        wire_symbols += ["In"] * self.selection_registers.total_bits()
+        wire_symbols += [self.__class__.__name__] * self.target_registers.total_bits()
         return cirq.CircuitDiagramInfo(wire_symbols=wire_symbols)

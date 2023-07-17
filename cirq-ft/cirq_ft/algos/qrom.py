@@ -157,7 +157,7 @@ class QROM(unary_iteration_gate.UnaryIterationGate):
 
     def _circuit_diagram_info_(self, _) -> cirq.CircuitDiagramInfo:
         wire_symbols = ["@"] * self.num_controls
-        wire_symbols += ["In"] * self.selection_registers.bitsize
+        wire_symbols += ["In"] * self.selection_registers.total_bits()
         for i, target in enumerate(self.target_registers):
             wire_symbols += [f"QROM_{i}"] * target.total_bits()
         return cirq.CircuitDiagramInfo(wire_symbols=wire_symbols)

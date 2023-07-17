@@ -65,8 +65,7 @@ class Registers:
     def __repr__(self):
         return f'cirq_ft.Registers({self._registers})'
 
-    @property
-    def bitsize(self) -> int:
+    def total_bits(self) -> int:
         return sum(reg.total_bits() for reg in self)
 
     @classmethod
@@ -330,7 +329,7 @@ class GateWithRegisters(cirq.Gate, metaclass=abc.ABCMeta):
         ...
 
     def _num_qubits_(self) -> int:
-        return self.registers.bitsize
+        return self.registers.total_bits()
 
     def decompose_from_registers(
         self, *, context: cirq.DecompositionContext, **quregs: NDArray[cirq.Qid]

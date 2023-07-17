@@ -211,7 +211,7 @@ class SelectSwapQROM(infra.GateWithRegisters):
             selection=q, **qrom_gate.target_registers.split_qubits(ordered_target_qubits)
         )
         swap_with_zero_gate = swap_network.SwapWithZeroGate(
-            k, self.target_registers.bitsize, self.block_size
+            k, self.target_registers.total_bits(), self.block_size
         )
         swap_with_zero_op = swap_with_zero_gate.on_registers(
             selection=r, **swap_with_zero_gate.target_registers.split_qubits(ordered_target_qubits)

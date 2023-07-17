@@ -199,7 +199,7 @@ class SelectHubbard(select_and_prepare.SelectOracle):
                 q_x=(self.registers['q_x'].total_bits(), self.x_dim),
             ),
             nth_gate=lambda *_: cirq.Z,
-            control_regs=infra.Registers.build(control=1 + self.control_registers.bitsize),
+            control_regs=infra.Registers.build(control=1 + self.control_registers.total_bits()),
         ).on_registers(
             q_x=q_x, q_y=q_y, control=[*V, *control], target=target_qubits_for_apply_to_lth_gate
         )

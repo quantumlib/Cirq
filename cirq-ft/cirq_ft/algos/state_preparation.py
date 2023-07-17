@@ -118,7 +118,7 @@ class StatePreparationAliasSampling(select_and_prepare.PrepareOracle):
 
     @cached_property
     def alternates_bitsize(self) -> int:
-        return self.selection_registers.bitsize
+        return self.selection_registers.total_bits()
 
     @cached_property
     def keep_bitsize(self) -> int:
@@ -126,7 +126,7 @@ class StatePreparationAliasSampling(select_and_prepare.PrepareOracle):
 
     @cached_property
     def selection_bitsize(self) -> int:
-        return self.selection_registers.bitsize
+        return self.selection_registers.total_bits()
 
     @cached_property
     def junk_registers(self) -> infra.Registers:

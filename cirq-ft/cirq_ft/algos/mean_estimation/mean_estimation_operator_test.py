@@ -126,7 +126,7 @@ def satisfies_theorem_321(
 
     overlap_sum = 0.0
     eigvals, eigvects = cirq.linalg.unitary_eig(u)
-    for (eig_val, eig_vect) in zip(eigvals, eigvects.T):
+    for eig_val, eig_vect in zip(eigvals, eigvects.T):
         theta = np.abs(np.angle(eig_val))
         hav_theta = np.sin(theta / 2)
         overlap_prob = overlap(prep_state, eig_vect)
@@ -209,8 +209,10 @@ class GroverEncoder(cirq_ft.SelectOracle):
     def decompose_from_registers(  # type:ignore[override]
         self, context, *, selection: Sequence[cirq.Qid], target: Sequence[cirq.Qid]
     ) -> cirq.OP_TREE:
-        selection_cv = [*bit_tools.iter_bits(self.marked_item, self.selection_registers.bitsize)]
-        yval_bin = [*bit_tools.iter_bits(self.marked_val, self.target_registers.bitsize)]
+        selection_cv = [
+            *bit_tools.iter_bits(self.marked_item, self.selection_registers.total_bits())
+        ]
+        yval_bin = [*bit_tools.iter_bits(self.marked_val, self.target_registers.total_bits())]
 
         for b, q in zip(yval_bin, target):
             if b:

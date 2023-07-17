@@ -30,7 +30,7 @@ def test_apply_gate_to_lth_qubit(selection_bitsize, target_bitsize):
     # Upper bounded because not all ancillas may be used as part of unary iteration.
     assert (
         len(g.all_qubits)
-        <= target_bitsize + 2 * (selection_bitsize + gate.control_registers.bitsize) - 1
+        <= target_bitsize + 2 * (selection_bitsize + gate.control_registers.total_bits()) - 1
     )
 
     for n in range(target_bitsize):

@@ -119,7 +119,9 @@ def test_multi_dimensional_unary_iteration_gate(target_shape: Tuple[int, int, in
     greedy_mm = cirq_ft.GreedyQubitManager(prefix="_a", maximize_reuse=True)
     gate = ApplyXToIJKthQubit(target_shape)
     g = cirq_ft.testing.GateHelper(gate, context=cirq.DecompositionContext(greedy_mm))
-    assert len(g.all_qubits) <= gate.registers.bitsize + gate.selection_registers.bitsize - 1
+    assert (
+        len(g.all_qubits) <= gate.registers.total_bits() + gate.selection_registers.total_bits() - 1
+    )
 
     max_i, max_j, max_k = target_shape
     i_len, j_len, k_len = tuple(reg.total_bits() for reg in gate.selection_registers)

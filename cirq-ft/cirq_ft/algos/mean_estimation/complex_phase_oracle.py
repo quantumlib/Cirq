@@ -78,6 +78,6 @@ class ComplexPhaseOracle(infra.GateWithRegisters):
         qm.qfree([*arctan_sign, *arctan_target, *target_qubits])
 
     def _circuit_diagram_info_(self, args: cirq.CircuitDiagramInfoArgs) -> cirq.CircuitDiagramInfo:
-        wire_symbols = ['@'] * self.control_registers.bitsize
-        wire_symbols += ['ROTy'] * self.selection_registers.bitsize
+        wire_symbols = ['@'] * self.control_registers.total_bits()
+        wire_symbols += ['ROTy'] * self.selection_registers.total_bits()
         return cirq.CircuitDiagramInfo(wire_symbols=wire_symbols)

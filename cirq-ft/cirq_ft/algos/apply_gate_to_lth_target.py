@@ -76,8 +76,8 @@ class ApplyGateToLthQubit(unary_iteration_gate.UnaryIterationGate):
         return infra.Registers.build(target=self.selection_registers.total_iteration_size)
 
     def _circuit_diagram_info_(self, args: cirq.CircuitDiagramInfoArgs) -> cirq.CircuitDiagramInfo:
-        wire_symbols = ["@"] * self.control_registers.bitsize
-        wire_symbols += ["In"] * self.selection_registers.bitsize
+        wire_symbols = ["@"] * self.control_registers.total_bits()
+        wire_symbols += ["In"] * self.selection_registers.total_bits()
         for it in itertools.product(*[range(x) for x in self.selection_regs.iteration_lengths]):
             wire_symbols += [str(self.nth_gate(*it))]
         return cirq.CircuitDiagramInfo(wire_symbols=wire_symbols)

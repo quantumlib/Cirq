@@ -195,7 +195,7 @@ class ProgrammableRotationGateArray(ProgrammableRotationGateArrayBase):
     ):
         super().__init__(*angles, kappa=kappa, rotation_gate=rotation_gate)
         if not interleaved_unitaries:
-            identity_gate = cirq.IdentityGate(self.rotations_target.bitsize)
+            identity_gate = cirq.IdentityGate(self.rotations_target.total_bits())
             interleaved_unitaries = (identity_gate,) * (len(angles) - 1)
         assert len(interleaved_unitaries) == len(angles) - 1
         assert all(cirq.num_qubits(u) == self._target_bitsize for u in interleaved_unitaries)

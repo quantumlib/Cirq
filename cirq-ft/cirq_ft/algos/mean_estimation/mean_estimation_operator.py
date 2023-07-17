@@ -129,7 +129,9 @@ class MeanEstimationOperator(infra.GateWithRegisters):
 
     def _circuit_diagram_info_(self, args: cirq.CircuitDiagramInfoArgs) -> cirq.CircuitDiagramInfo:
         wire_symbols = [] if self.cv == () else [["@(0)", "@"][self.cv[0]]]
-        wire_symbols += ['U_ko'] * (self.registers.bitsize - self.control_registers.bitsize)
+        wire_symbols += ['U_ko'] * (
+            self.registers.total_bits() - self.control_registers.total_bits()
+        )
         if self.power != 1:
             wire_symbols[-1] = f'U_ko^{self.power}'
         return cirq.CircuitDiagramInfo(wire_symbols=wire_symbols)
