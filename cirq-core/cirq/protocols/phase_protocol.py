@@ -12,9 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# TODO(#6171): enable the check and fix pylint errors
-# pylint: disable=consider-using-f-string
-
 from typing import Any, TypeVar
 
 from typing_extensions import Protocol
@@ -91,6 +88,6 @@ def phase_by(
     if getter is None:
         raise TypeError(f"object of type '{type(val)}' has no _phase_by_ method.")
     raise TypeError(
-        "object of type '{}' does have a _phase_by_ method, "
-        "but it returned NotImplemented.".format(type(val))
+        f"object of type '{type(val)}' does have a _phase_by_ method, "
+        "but it returned NotImplemented."
     )

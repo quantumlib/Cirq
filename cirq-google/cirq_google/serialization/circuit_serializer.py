@@ -12,9 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# TODO(#6171): enable the check and fix pylint errors
-# pylint: disable=consider-using-f-string
-
 """Support for serializing and deserializing cirq_google.api.v2 protos."""
 
 from typing import Any, Dict, List, Optional
@@ -325,9 +322,7 @@ class CircuitSerializer(serializer.Serializer):
             raise ValueError('Missing gate set specification.')
         if proto.language.gate_set != self.name:
             raise ValueError(
-                'Gate set in proto was {} but expected {}'.format(
-                    proto.language.gate_set, self.name
-                )
+                f'Gate set in proto was {proto.language.gate_set} but expected {self.name}'
             )
         which = proto.WhichOneof('program')
         arg_func_language = (

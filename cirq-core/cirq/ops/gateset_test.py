@@ -12,9 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# TODO(#6171): enable the check and fix pylint errors
-# pylint: disable=consider-using-f-string
-
 from typing import Tuple, List, cast
 import re
 import pytest
@@ -40,8 +37,10 @@ class CustomXPowGate(cirq.EigenGate):
             if self._exponent == 1:
                 return 'cirq.ops.gateset_test.CustomX'
             return f'(cirq.ops.gateset_test.CustomX**{proper_repr(self._exponent)})'
-        return 'cirq.ops.gateset_test.CustomXPowGate(exponent={}, global_shift={!r})'.format(
-            proper_repr(self._exponent), self._global_shift
+        return (
+            'cirq.ops.gateset_test.CustomXPowGate('
+            f'exponent={proper_repr(self._exponent)}, '
+            f'global_shift={self._global_shift!r})'
         )
 
     def _num_qubits_(self) -> int:

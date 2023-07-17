@@ -12,9 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# TODO(#6171): enable the check and fix pylint errors
-# pylint: disable=consider-using-f-string
-
 """Creates the gate instance for any number qubits diagonal gate.
 
 The gate is used to create a (2^n)x(2^n) matrix with the diagonal elements
@@ -150,7 +147,7 @@ class DiagonalGate(raw_types.Gate):
             diag_str += ', '.join(proper_repr(angle) for angle in rounded_angles[-2:])
             diag_str = f'diag({diag_str})'
         return protocols.CircuitDiagramInfo(
-            [diag_str] + ['#' + str(i) for i in range(2, self._num_qubits_() + 1)]
+            [diag_str] + [f"#{i}" for i in range(2, self._num_qubits_() + 1)]
         )
 
     def __pow__(self, exponent: Any) -> 'DiagonalGate':
@@ -216,6 +213,5 @@ class DiagonalGate(raw_types.Gate):
         return protocols.obj_to_dict_helper(self, attribute_names=["diag_angles_radians"])
 
     def __repr__(self) -> str:
-        return 'cirq.DiagonalGate([{}])'.format(
-            ','.join(proper_repr(angle) for angle in self._diag_angles_radians)
-        )
+        angles = ','.join(proper_repr(angle) for angle in self._diag_angles_radians)
+        return f'cirq.DiagonalGate([{angles}])'

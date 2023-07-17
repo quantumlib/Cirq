@@ -12,9 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# TODO(#6171): enable the check and fix pylint errors
-# pylint: disable=consider-using-f-string
-
 from typing import Dict, Tuple, List, cast, Set, Optional
 
 import os.path
@@ -310,6 +307,7 @@ def check_for_uncovered_lines(env: env_tools.PreparedEnv) -> int:
                 )
             )
         for index, line, reason in uncovered_lines:
+            # pylint: disable=consider-using-f-string
             print(
                 'Line {} {} but not covered: {}'.format(
                     shell_tools.highlight(str(index).rjust(4), color_code=shell_tools.BOLD),
