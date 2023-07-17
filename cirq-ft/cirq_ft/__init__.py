@@ -42,7 +42,7 @@ from cirq_ft.algos import (
     SwapWithZeroGate,
     UnaryIterationGate,
     unary_iteration,
-    PhaseEstimation,
+    KitaevPhaseEstimation,
 )
 from cirq_ft.infra import (
     GateWithRegisters,

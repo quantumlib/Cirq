@@ -11,52 +11,29 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-import abc
+from typing import Optional, List
+from attr import frozen
 from cirq._compat import cached_property
 import cirq
 
 from cirq_ft import infra
 
 
-class PhaseEstimation(infra.GateWithRegisters):
-    r"""Abstract base class that defines the API for a Phase Estimation procedure"""
+@frozen
+class KitaevPhaseEstimation(infra.GateWithRegisters):
+    r"""Class representing the Kitaev Phase Estimation algorithm, originially introduced my
+    Kitaev in https://arxiv.org/abs/quant-ph/9511026."""
 
-    @property
-    @abc.abstractmethod
-    def control_register(self) -> infra.Register:
-        ...
-
-    @property
-    @abc.abstractmethod
-    def eigenvector_register(self) -> infra.Register:
-        ...
-
-    @property
-    @abc.abstractmethod
-    def control_register_prep(self) -> cirq.Gate:
-        ...
-
-    @property
-    @abc.abstractmethod
-    def eigen_vector_register_prep(self) -> cirq.Gate:
-        ...
-
-    @cached_property
-    def control_register_name(self):
-        return self.control_register.name
-
-    @cached_property
-    def eigenvector_register_name(self):
-        return self.eigenvector_register.name
-
-    @property
-    @abc.abstractmethod
-    def lamda(self) -> infra.GateWithRegisters:
-        ...
+    m: int
+    eigenvector_bitsize: int
+    U: infra.GateWithRegisters
+    eigenvector_prep: Optional[infra.GateWithRegisters] = None
 
     @cached_property
     def registers(self) -> infra.Registers:
-        return infra.Registers([self.control_register, self.eigenvector_register])
+        return infra.Registers.build(
+            bits_of_precision_register=self.m, eigenvector_register=self.eigenvector_bitsize
+        )
 
     def qft_inverse(self, qubits):
         """Generator for the inverse QFT on a list of qubits."""
@@ -67,15 +44,23 @@ class PhaseEstimation(infra.GateWithRegisters):
             for i, qubit in enumerate(qreg):
                 yield (cirq.CZ ** (-1 / 2 ** (i + 1)))(qubit, q_head)
 
+    def bits_of_precision_prep(self) -> cirq.Gate:
+        return cirq.H
+
+    def U_to_the_k_power(self, control_bits, eigen_vector_bit) -> List[cirq.Operation]:
+        return [
+            cirq.ControlledGate(self.U).on(bit, eigen_vector_bit) ** (2 ** (self.m - i - 1))
+            for i, bit in enumerate(control_bits)
+        ]
+
     def decompose_from_registers(
         self, context: cirq.DecompositionContext, **quregs
     ) -> cirq.OP_TREE:
-        control_register_qubits = quregs[self.control_register_name]
-        eigenvector_register_qubits = quregs[self.eigenvector_register_name]
-        yield self.eigen_vector_register_prep.on(*eigenvector_register_qubits)
-        yield self.control_register_prep.on(*control_register_qubits)
-        yield self.lamda.on_registers(
-            control_register=[*control_register_qubits],
-            eigenvector_register=[*eigenvector_register_qubits],
-        )
-        yield self.qft_inverse([*control_register_qubits])
+        bits_of_precision = quregs["bits_of_precision_register"]
+        eigenvector_register = quregs["eigenvector_register"]
+
+        yield self.bits_of_precision_prep().on_each(*bits_of_precision)
+        if self.eigenvector_prep is not None:
+            yield self.eigenvector_prep.on(*eigenvector_register)
+        yield [op for op in self.U_to_the_k_power(bits_of_precision, *eigenvector_register)]
+        yield self.qft_inverse([*bits_of_precision])
