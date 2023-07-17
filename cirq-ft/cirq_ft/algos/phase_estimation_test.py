@@ -47,7 +47,6 @@ def simulate_theta_estimate(op, measurement_register) -> float:
     sim = cirq.Simulator()
     result = sim.run(cirquit, repetitions=10)
     theta_estimates = (
-            np.sum(2 ** np.arange(precision) * result.measurements['m'], axis=1)
-            / 2 ** precision
+        np.sum(2 ** np.arange(precision) * result.measurements['m'], axis=1) / 2**precision
     )
     return np.average(theta_estimates)
