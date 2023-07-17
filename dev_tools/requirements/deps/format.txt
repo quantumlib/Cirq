@@ -1,2 +1,1 @@
--r flynt.txt
 black==23.3.0
