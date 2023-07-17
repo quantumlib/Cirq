@@ -236,7 +236,7 @@ class SelectHubbard(select_and_prepare.SelectOracle):
         )
 
     def _circuit_diagram_info_(self, args: cirq.CircuitDiagramInfoArgs) -> cirq.CircuitDiagramInfo:
-        info = super()._circuit_diagram_info_(args)
+        info = super(SelectHubbard, self)._circuit_diagram_info_(args)
         if self.control_val is None:
             return info
         ctrl = ('@' if self.control_val else '@(0)',)

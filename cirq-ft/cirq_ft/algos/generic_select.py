@@ -91,7 +91,7 @@ class GenericSelect(select_and_prepare.SelectOracle, unary_iteration_gate.UnaryI
     ) -> cirq.OP_TREE:
         if self.control_val == 0:
             yield cirq.X(*quregs['control'])
-        yield super().decompose_from_registers(context=context, **quregs)
+        yield super(GenericSelect, self).decompose_from_registers(context=context, **quregs)
         if self.control_val == 0:
             yield cirq.X(*quregs['control'])
 
