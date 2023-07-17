@@ -28,16 +28,10 @@ def test_state_preparation_via_coherent_alias_sampling(num_sites, epsilon):
     )
     g = cirq_ft.testing.GateHelper(gate)
     qubit_order = g.operation.qubits
-    # TODO(#6197): This is currently necessary because `SimulationProductState` is used only
-    # at the top-level and ends up being more efficient than directly using
-    # `StateVectorSimulationState`. Ideally, we should be able to use `g.circuit` directly.
-    decomposed_circuit = cirq.Circuit(cirq.decompose_once(g.operation))
 
     # Assertion to ensure that simulating the `decomposed_circuit` doesn't run out of memory.
-    assert len(decomposed_circuit.all_qubits()) == len(qubit_order) < 20
-    result = cirq.Simulator(dtype=np.complex128).simulate(
-        decomposed_circuit, qubit_order=qubit_order
-    )
+    assert len(g.circuit.all_qubits()) < 20
+    result = cirq.Simulator(dtype=np.complex128).simulate(g.circuit, qubit_order=qubit_order)
     state_vector = result.final_state_vector
     # State vector is of the form |l>|temp_{l}>. We trace out the |temp_{l}> part to
     # get the coefficients corresponding to |l>.
