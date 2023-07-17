@@ -12,9 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# TODO(#6171): enable the check and fix pylint errors
-# pylint: disable=consider-using-f-string
-
 import itertools
 
 import pytest
@@ -35,13 +32,13 @@ def _assert_same_diagram(actual: str, expected: str):
         "Diagram differs from the desired diagram.\n"
         '\n'
         'Actual diagram:\n'
-        '{}\n'
+        f'{actual}\n'
         '\n'
         'Desired diagram:\n'
-        '{}\n'
+        f'{expected}\n'
         '\n'
         'Highlighted differences:\n'
-        '{}\n'.format(actual, expected, cirq.testing.highlight_text_differences(actual, expected))
+        f'{cirq.testing.highlight_text_differences(actual, expected)}\n'
     )
 
 

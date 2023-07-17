@@ -12,9 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# TODO(#6171): enable the check and fix pylint errors
-# pylint: disable=consider-using-f-string
-
 from typing import Any, Callable, cast, Dict, Optional, Union
 
 import numpy as np
@@ -114,6 +111,7 @@ def single_qubit_matrix_gate(matrix: Optional[np.ndarray]) -> Optional[QuirkOp]:
     if matrix is None or matrix.shape[0] != 2:
         return None
 
+    # pylint: disable=consider-using-f-string
     matrix = matrix.round(6)
     matrix_repr = '{{%s+%si,%s+%si},{%s+%si,%s+%si}}' % (
         np.real(matrix[0, 0]),
