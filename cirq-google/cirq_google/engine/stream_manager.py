@@ -108,7 +108,7 @@ class StreamManager:
 
     def __init__(self, grpc_client: quantum.QuantumEngineServiceAsyncClient):
         self._grpc_client = grpc_client
-        self._request_queue: asyncio.Queue = asyncio.Queue()
+        self._request_queue: Optional[asyncio.Queue] = None
         self._manage_stream_loop_future: Optional[duet.AwaitableFuture] = None
         # TODO(#5996) consider making the scope of response futures local to the relevant tasks
         # rather than all of StreamManager.
@@ -150,10 +150,8 @@ class StreamManager:
 
     def _reset(self):
         """Resets the manager state."""
-        self._request_queue: asyncio.Queue = asyncio.Queue()
-        self._manage_stream_loop_future: Optional[duet.AwaitableFuture] = None
-        # TODO(#5996) consider making the scope of response futures local to the relevant tasks
-        # rather than all of StreamManager.
+        self._request_queue = None
+        self._manage_stream_loop_future = None
         self._response_demux = ResponseDemux()
         self._next_available_message_id = 0
 
@@ -182,6 +180,7 @@ class StreamManager:
 
         There is at most a single instance of this coroutine running.
         """
+        self._request_queue = asyncio.Queue()
         while True:
             try:
                 # The default gRPC client timeout is used.
@@ -228,6 +227,10 @@ class StreamManager:
             parent=project_name, get_quantum_result=quantum.GetQuantumResultRequest(parent=job.name)
         )
 
+        if self._request_queue is None:
+            # Wait for the stream coroutine to start.
+            await asyncio.sleep(1)
+
         current_request = create_program_and_job_request
         while True:
             try:
@@ -248,6 +251,8 @@ class StreamManager:
 
             # Either when this request is canceled or the _manage_stream() loop is canceled.
             except asyncio.CancelledError:
+                # TODO(#5996) Consider moving this logic into a future done callback, so that the
+                # the cancellation caller can wait for it to complete.
                 if response_future is not None:
                     response_future.cancel()
                     await self._cancel(job.name)

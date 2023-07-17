@@ -148,11 +148,13 @@ class TestResponseDemux:
         with pytest.raises(asyncio.TimeoutError):
             await asyncio.wait_for(future, timeout=1)
 
+    @pytest.mark.asyncio
     async def test_no_subscribers_does_not_throw(self, demux):
         demux.publish(RESPONSE0)
 
         # expect no exceptions
 
+    @pytest.mark.asyncio
     async def test_publishes_twice_for_same_message_id_future_unchanged(self, demux):
         future = demux.subscribe(message_id='1')
         demux.publish(RESPONSE1)
@@ -161,6 +163,7 @@ class TestResponseDemux:
 
         assert actual_response == RESPONSE1
 
+    @pytest.mark.asyncio
     async def test_publish_exception_publishes_to_all_subscribers(self, demux):
         exception = google_exceptions.Aborted('aborted')
         future0 = demux.subscribe(message_id='0')
@@ -172,6 +175,7 @@ class TestResponseDemux:
         with pytest.raises(google_exceptions.Aborted):
             await future1
 
+    @pytest.mark.asyncio
     async def test_publish_response_after_publishing_exception_does_not_change_futures(self, demux):
         exception = google_exceptions.Aborted('aborted')
         future0 = demux.subscribe(message_id='0')
@@ -185,6 +189,7 @@ class TestResponseDemux:
         with pytest.raises(google_exceptions.Aborted):
             await future1
 
+    @pytest.mark.asyncio
     async def test_publish_exception_after_publishing_response_does_not_change_futures(self, demux):
         exception = google_exceptions.Aborted('aborted')
         future0 = demux.subscribe(message_id='0')
@@ -239,7 +244,7 @@ class TestStreamManager:
 
                 result_future = manager.submit(REQUEST_PROJECT_NAME, REQUEST_PROGRAM, REQUEST_JOB)
                 result_future.cancel()
-                await duet.sleep(0.1)  # Let cancellation complete asynchronously
+                await duet.sleep(1)  # Let cancellation complete asynchronously
                 manager.stop()
 
                 assert len(fake_client.cancel_requests) == 1
@@ -567,6 +572,9 @@ class TestStreamManager:
                 actual_result_future = manager.submit(
                     REQUEST_PROJECT_NAME, REQUEST_PROGRAM, REQUEST_JOB
                 )
+                # Wait for the manager to submit a request. If request submission runs after stop(),
+                # it will start the manager again and the test will block waiting for a response.
+                asyncio.sleep(1)
                 manager.stop()
 
                 with pytest.raises(concurrent.futures.CancelledError):
