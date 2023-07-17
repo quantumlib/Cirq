@@ -21,7 +21,7 @@ from cirq_ft import infra
 
 @frozen
 class KitaevPhaseEstimation(infra.GateWithRegisters):
-    r"""Class representing the Kitaev Phase Estimation algorithm, originially introduced my
+    r"""Class representing the Kitaev Phase Estimation algorithm, originally introduced by
     Kitaev in https://arxiv.org/abs/quant-ph/9511026."""
 
     m: int
