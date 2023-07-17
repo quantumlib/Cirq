@@ -127,7 +127,6 @@ class SelectHubbard(select_and_prepare.SelectOracle):
         return infra.SelectionRegisters(
             [
                 infra.SelectionRegister('U', 1, 2),
-                infra.SelectionRegister('U', 1, 2),
                 infra.SelectionRegister('V', 1, 2),
                 infra.SelectionRegister('p_x', (self.x_dim - 1).bit_length(), self.x_dim),
                 infra.SelectionRegister('p_y', (self.y_dim - 1).bit_length(), self.y_dim),
