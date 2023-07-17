@@ -11,6 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import pytest
 from attr import frozen
 import numpy as np
 
@@ -18,8 +19,8 @@ import cirq
 from cirq_ft.algos import KitaevPhaseEstimation
 
 
-def test_kitaev_phase_estimation():
-    theta = 0.234
+@pytest.mark.parametrize('theta', [0.234, 0.78, 0.54])
+def test_kitaev_phase_estimation(theta):
     U = cirq.Z ** (2 * theta)
     bits_of_precision = 8
     error_bound = 0.1
