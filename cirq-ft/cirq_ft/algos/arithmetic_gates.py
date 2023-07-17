@@ -133,7 +133,7 @@ class LessThanGate(cirq.ArithmeticGate):
 
 @attr.frozen
 class BiQubitsMixer(infra.GateWithRegisters):
-    """Implements the COMPARE2 (Fig. 1) https://www.nature.com/articles/s41534-018-0071-5#Sec8
+    """Implements the COMPARE2 (Fig. 1) https://static-content.springer.com/esm/art%3A10.1038%2Fs41534-018-0071-5/MediaObjects/41534_2018_71_MOESM1_ESM.pdf
 
     This gates mixes the values in a way that preserves the result of comparison.
     The registers being compared are 2-qubit registers where
@@ -141,7 +141,7 @@ class BiQubitsMixer(infra.GateWithRegisters):
         y = 2*y_msb + y_lsb
     The Gate mixes the 4 qubits so that sign(x - y) = sign(x_lsb' - y_lsb') where x_lsb' and y_lsb'
     are the final values of x_lsb' and y_lsb'.
-    """
+    """  # pylint: disable=line-too-long
 
     adjoint: bool = False
 
@@ -149,8 +149,8 @@ class BiQubitsMixer(infra.GateWithRegisters):
     def registers(self) -> infra.Registers:
         return infra.Registers.build(x=2, y=2, ancilla=3)
 
-    def _has_unitary_(self):
-        return not self.adjoint
+    def __repr__(self) -> str:
+        return f'cirq_ft.algos.BiQubitsMixer({self.adjoint})'
 
     def decompose_from_registers(
         self, *, context: cirq.DecompositionContext, **quregs: Sequence[cirq.Qid]
@@ -191,9 +191,6 @@ class BiQubitsMixer(infra.GateWithRegisters):
         else:
             yield from _decomposition()
 
-    def __repr__(self) -> str:
-        return f'cirq_ft.algos.BiQubitsMixer({self.adjoint})'
-
     def __pow__(self, power: int) -> cirq.Gate:
         if power == 1:
             return self
@@ -206,13 +203,16 @@ class BiQubitsMixer(infra.GateWithRegisters):
             return infra.TComplexity(clifford=18)
         return infra.TComplexity(t=8, clifford=28)
 
+    def _has_unitary_(self):
+        return not self.adjoint
+
 
 @attr.frozen
 class SingleQubitCompare(infra.GateWithRegisters):
     """Applies U|a>|b>|0>|0> = |a> |a=b> |(a<b)> |(a>b)>
 
-    Source: (FIG. 3) in https://www.nature.com/articles/s41534-018-0071-5#Sec8
-    """
+    Source: (FIG. 3) in https://static-content.springer.com/esm/art%3A10.1038%2Fs41534-018-0071-5/MediaObjects/41534_2018_71_MOESM1_ESM.pdf
+    """  # pylint: disable=line-too-long
 
     adjoint: bool = False
 
@@ -232,7 +232,7 @@ class SingleQubitCompare(infra.GateWithRegisters):
         greater_than = quregs['greater_than']
 
         def _decomposition() -> Iterator[cirq.Operation]:
-            yield and_gate.And([0, 1], adjoint=self.adjoint).on(*a, *b, *less_than)
+            yield and_gate.And((0, 1), adjoint=self.adjoint).on(*a, *b, *less_than)
             yield cirq.CNOT(*less_than, *greater_than)
             yield cirq.CNOT(*b, *greater_than)
             yield cirq.CNOT(*a, *b)
@@ -306,10 +306,10 @@ class LessThanEqualGate(cirq.ArithmeticGate):
     def _decompose_via_tree(
         self, context: cirq.DecompositionContext, X: Sequence[cirq.Qid], Y: Sequence[cirq.Qid]
     ) -> cirq.OP_TREE:
-        """Returns comparison oracle from https://www.nature.com/articles/s41534-018-0071-5#Sec8
+        """Returns comparison oracle from https://static-content.springer.com/esm/art%3A10.1038%2Fs41534-018-0071-5/MediaObjects/41534_2018_71_MOESM1_ESM.pdf
 
         This decomposition follows the tree structure of (FIG. 2)
-        """
+        """  # pylint: disable=line-too-long
         if len(X) == 1:
             return
         if len(X) == 2:
@@ -333,14 +333,14 @@ class LessThanEqualGate(cirq.ArithmeticGate):
                 - Section III.A. https://arxiv.org/abs/1805.03662) is used to check whether
                 the extra prefix is equal to zero:
                     - result stored in: `prefix_equality` qubit.
-            2. The tree structure (FIG. 2) https://www.nature.com/articles/s41534-018-0071-5#Sec8
+            2. The tree structure (FIG. 2) https://static-content.springer.com/esm/art%3A10.1038%2Fs41534-018-0071-5/MediaObjects/41534_2018_71_MOESM1_ESM.pdf
                 followed by a SingleQubitCompare to compute the result of comparison of
                 the suffixes of equal length:
                     - result stored in: `less_than` and `greater_than` with equality in qubits[-2]
             3. The results from the previous two steps are combined to update the target qubit.
             4. The adjoint of the previous operations is added to restore the input qubits
                 to their original state and clean the ancilla qubits.
-        """
+        """  # pylint: disable=line-too-long
 
         if context is None:
             context = cirq.DecompositionContext(cirq.ops.SimpleQubitManager())
@@ -410,7 +410,7 @@ class LessThanEqualGate(cirq.ArithmeticGate):
         is_second_longer = self.y_bitsize > self.x_bitsize
         if d == 0:
             # When both registers are of the same size the T complexity is
-            # 8n - 4 same as in https://www.nature.com/articles/s41534-018-0071-5#Sec8.
+            # 8n - 4 same as in https://static-content.springer.com/esm/art%3A10.1038%2Fs41534-018-0071-5/MediaObjects/41534_2018_71_MOESM1_ESM.pdf.  pylint: disable=line-too-long
             return infra.TComplexity(t=8 * n - 4, clifford=46 * n - 17)
         else:
             # When the registers differ in size and `n` is the size of the smaller one and
