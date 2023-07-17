@@ -45,7 +45,8 @@ def _unary_iteration_segtree(
         selection: Sequence of selection qubits. The i'th qubit in the list corresponds to the i'th
             level in the segment tree.Thus, a total of O(logN) selection qubits are required for a
             tree on range `N = (r_iter - l_iter)`.
-        ancilla: Pre-allocated ancilla qubits to be used for constructing the unary iteration circuit.
+        ancilla: Pre-allocated ancilla qubits to be used for constructing the unary iteration
+            circuit.
         sl: Current depth of the tree. `selection[sl]` gives the selection qubit corresponding to
             the current depth.
         l: Left index of the range represented by current node of the segment tree.
