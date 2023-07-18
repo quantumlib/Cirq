@@ -244,7 +244,6 @@ class StreamManager:
             except google_exceptions.GoogleAPICallError as e:
                 if _is_retryable_error(e):
                     # Retry
-                    self._response_demux.unsubscribe(current_request.message_id)
                     current_request = get_result_request
                     continue
                     # TODO(#5996) add exponential backoff
