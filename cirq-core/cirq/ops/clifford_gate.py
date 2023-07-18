@@ -12,9 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# TODO(#6171): enable the check and fix pylint errors
-# pylint: disable=consider-using-f-string
-
 from typing import Any, Dict, List, Optional, Sequence, Tuple, TYPE_CHECKING, Union
 
 
@@ -94,6 +91,7 @@ def _validate_map_input(
             ' of x_to, y_to, and z_to but both were given'
         )
     if len(pauli_map_to) != required_transform_count:
+        # pylint: disable=consider-using-f-string
         raise ValueError(
             'Method takes {} transform{} but {} {} given'.format(
                 required_transform_count,

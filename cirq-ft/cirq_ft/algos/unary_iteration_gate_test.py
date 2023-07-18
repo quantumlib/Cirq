@@ -35,8 +35,8 @@ class ApplyXToLthQubit(cirq_ft.UnaryIterationGate):
 
     @cached_property
     def selection_registers(self) -> cirq_ft.SelectionRegisters:
-        return cirq_ft.SelectionRegisters.build(
-            selection=(self._selection_bitsize, self._target_bitsize)
+        return cirq_ft.SelectionRegisters(
+            [cirq_ft.SelectionRegister('selection', self._selection_bitsize, self._target_bitsize)]
         )
 
     @cached_property
@@ -63,7 +63,6 @@ def test_unary_iteration_gate(selection_bitsize, target_bitsize, control_bitsize
     assert len(g.all_qubits) <= 2 * (selection_bitsize + control_bitsize) + target_bitsize - 1
 
     for n in range(target_bitsize):
-
         # Initial qubit values
         qubit_vals = {q: 0 for q in g.operation.qubits}
         # All controls 'on' to activate circuit
@@ -89,10 +88,13 @@ class ApplyXToIJKthQubit(cirq_ft.UnaryIterationGate):
 
     @cached_property
     def selection_registers(self) -> cirq_ft.SelectionRegisters:
-        return cirq_ft.SelectionRegisters.build(
-            i=((self._target_shape[0] - 1).bit_length(), self._target_shape[0]),
-            j=((self._target_shape[1] - 1).bit_length(), self._target_shape[1]),
-            k=((self._target_shape[2] - 1).bit_length(), self._target_shape[2]),
+        return cirq_ft.SelectionRegisters(
+            [
+                cirq_ft.SelectionRegister(
+                    'ijk'[i], (self._target_shape[i] - 1).bit_length(), self._target_shape[i]
+                )
+                for i in range(3)
+            ]
         )
 
     @cached_property
@@ -120,10 +122,12 @@ def test_multi_dimensional_unary_iteration_gate(target_shape: Tuple[int, int, in
     greedy_mm = cirq_ft.GreedyQubitManager(prefix="_a", maximize_reuse=True)
     gate = ApplyXToIJKthQubit(target_shape)
     g = cirq_ft.testing.GateHelper(gate, context=cirq.DecompositionContext(greedy_mm))
-    assert len(g.all_qubits) <= gate.registers.bitsize + gate.selection_registers.bitsize - 1
+    assert (
+        len(g.all_qubits) <= gate.registers.total_bits() + gate.selection_registers.total_bits() - 1
+    )
 
     max_i, max_j, max_k = target_shape
-    i_len, j_len, k_len = tuple(reg.bitsize for reg in gate.selection_registers)
+    i_len, j_len, k_len = tuple(reg.total_bits() for reg in gate.selection_registers)
     for i, j, k in itertools.product(range(max_i), range(max_j), range(max_k)):
         qubit_vals = {x: 0 for x in g.operation.qubits}
         # Initialize selection bits appropriately:
@@ -143,7 +147,9 @@ def test_multi_dimensional_unary_iteration_gate(target_shape: Tuple[int, int, in
 
 def test_unary_iteration_loop():
     n_range, m_range = (3, 5), (6, 8)
-    selection_registers = cirq_ft.SelectionRegisters.build(n=(3, 5), m=(3, 8))
+    selection_registers = cirq_ft.SelectionRegisters(
+        [cirq_ft.SelectionRegister('n', 3, 5), cirq_ft.SelectionRegister('m', 3, 8)]
+    )
     selection = selection_registers.get_named_qubits()
     target = {(n, m): cirq.q(f't({n}, {m})') for n in range(*n_range) for m in range(*m_range)}
     qm = cirq_ft.GreedyQubitManager("ancilla", maximize_reuse=True)

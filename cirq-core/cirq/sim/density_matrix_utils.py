@@ -12,9 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# TODO(#6171): enable the check and fix pylint errors
-# pylint: disable=consider-using-f-string
-
 """Code to handle density matrices."""
 
 from typing import List, Optional, TYPE_CHECKING, Tuple, Sequence
@@ -207,10 +204,8 @@ def _validate_density_matrix_qid_shape(
     if len(shape) == 2:
         if np.prod(qid_shape, dtype=np.int64) ** 2 != np.prod(shape, dtype=np.int64):
             raise ValueError(
-                'Matrix size does not match qid shape {!r}. Got matrix with '
-                'shape {!r}. Expected {!r}.'.format(
-                    qid_shape, shape, np.prod(qid_shape, dtype=np.int64)
-                )
+                f'Matrix size does not match qid shape {qid_shape!r}. Got matrix with '
+                f'shape {shape!r}. Expected {np.prod(qid_shape, dtype=np.int64)!r}.'
             )
         return qid_shape
     if len(shape) % 2 != 0:
@@ -237,12 +232,12 @@ def _validate_num_qubits(density_matrix: np.ndarray) -> int:
     if row_size & (row_size - 1):
         raise ValueError(
             'Matrix could not be shaped into a square matrix with dimensions '
-            'that are a power of two. Shape was {}'.format(shape)
+            f'that are a power of two. Shape was {shape}'
         )
     if len(shape) > 2 and not np.allclose(shape, 2):
         raise ValueError(
             'Matrix is a tensor of rank greater than 2, but had dimensions '
-            'that are not powers of two. Shape was {}'.format(shape)
+            f'that are not powers of two. Shape was {shape}'
         )
     return int(row_size).bit_length() - 1
 

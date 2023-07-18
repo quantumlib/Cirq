@@ -13,6 +13,7 @@
 # limitations under the License.
 
 from typing import Collection, Optional, Sequence, Tuple, Union
+from numpy.typing import NDArray
 
 import attr
 import cirq
@@ -84,20 +85,22 @@ class QubitizationWalkOperator(infra.GateWithRegisters):
         )
 
     def decompose_from_registers(
-        self, context: cirq.DecompositionContext, **qubit_regs: Sequence[cirq.Qid]
+        self,
+        context: cirq.DecompositionContext,
+        **quregs: NDArray[cirq.Qid],  # type:ignore[type-var]
     ) -> cirq.OP_TREE:
-        select_reg = {reg.name: qubit_regs[reg.name] for reg in self.select.registers}
+        select_reg = {reg.name: quregs[reg.name] for reg in self.select.registers}
         select_op = self.select.on_registers(**select_reg)
 
-        reflect_reg = {reg.name: qubit_regs[reg.name] for reg in self.reflect.registers}
+        reflect_reg = {reg.name: quregs[reg.name] for reg in self.reflect.registers}
         reflect_op = self.reflect.on_registers(**reflect_reg)
         for _ in range(self.power):
             yield select_op
             yield reflect_op
 
     def _circuit_diagram_info_(self, args: cirq.CircuitDiagramInfoArgs) -> cirq.CircuitDiagramInfo:
-        wire_symbols = ['@' if self.control_val else '@(0)'] * self.control_registers.bitsize
-        wire_symbols += ['W'] * (self.registers.bitsize - self.control_registers.bitsize)
+        wire_symbols = ['@' if self.control_val else '@(0)'] * self.control_registers.total_bits()
+        wire_symbols += ['W'] * (self.registers.total_bits() - self.control_registers.total_bits())
         wire_symbols[-1] = f'W^{self.power}' if self.power != 1 else 'W'
         return cirq.CircuitDiagramInfo(wire_symbols=wire_symbols)
 

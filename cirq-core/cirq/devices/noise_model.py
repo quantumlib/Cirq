@@ -12,9 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# TODO(#6171): enable the check and fix pylint errors
-# pylint: disable=consider-using-f-string
-
 from typing import Any, Dict, Iterable, Sequence, TYPE_CHECKING, Union, Callable
 
 from cirq import ops, protocols, value
@@ -76,7 +73,7 @@ class NoiseModel(metaclass=value.ABCMetaImplementAnyOneOf):
 
         raise TypeError(
             'Expected a NOISE_MODEL_LIKE (None, a cirq.NoiseModel, '
-            'or a single qubit gate). Got {!r}'.format(noise)
+            f'or a single qubit gate). Got {noise!r}'
         )
 
     def is_virtual_moment(self, moment: 'cirq.Moment') -> bool:

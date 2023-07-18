@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Sequence
+from numpy.typing import NDArray
 
 import cirq
 import cirq_ft
@@ -23,7 +23,9 @@ from cirq_ft.infra.bit_tools import iter_bits
 
 
 class CustomProgrammableRotationGateArray(cirq_ft.ProgrammableRotationGateArrayBase):
-    def interleaved_unitary(self, index: int, **qubit_regs: Sequence[cirq.Qid]) -> cirq.Operation:
+    def interleaved_unitary(
+        self, index: int, **qubit_regs: NDArray[cirq.Qid]  # type:ignore[type-var]
+    ) -> cirq.Operation:
         two_qubit_ops_factory = [
             cirq.X(*qubit_regs['unrelated_target']).controlled_by(*qubit_regs['rotations_target']),
             cirq.Z(*qubit_regs['unrelated_target']).controlled_by(*qubit_regs['rotations_target']),
@@ -91,7 +93,7 @@ def test_programmable_rotation_gate_array(angles, kappa, constructor):
         # Set bits in initial_state s.t. selection register stores `selection_integer`.
         qubit_vals = {x: 0 for x in g.all_qubits}
         qubit_vals.update(
-            zip(g.quregs['selection'], iter_bits(selection_integer, g.r['selection'].bitsize))
+            zip(g.quregs['selection'], iter_bits(selection_integer, g.r['selection'].total_bits()))
         )
         initial_state = [qubit_vals[x] for x in g.all_qubits]
         # Actual circuit simulation.

@@ -12,9 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# TODO(#6171): enable the check and fix pylint errors
-# pylint: disable=consider-using-f-string
-
 """Sampling/simulation methods that delegate to appropriate simulators.
 
 Filename is a reference to multiplexing.
@@ -163,7 +160,7 @@ def final_state_vector(
             "because it is not unitary. "
             "Maybe you wanted `cirq.final_density_matrix`?\n"
             "\n"
-            "Program: {!r}".format(circuit_like)
+            f"Program: {circuit_like!r}"
         )
 
     result = sparse_simulator.Simulator(dtype=dtype, seed=seed).simulate(

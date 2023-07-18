@@ -14,13 +14,14 @@
 
 import cirq
 import cirq_ft
+import numpy as np
 import pytest
 from cirq_ft.infra.jupyter_tools import execute_notebook
 
 
 def test_register():
     r = cirq_ft.Register("my_reg", 5)
-    assert r.bitsize == 5
+    assert r.shape == (5,)
 
 
 def test_registers():
@@ -50,9 +51,9 @@ def test_registers():
 
     qubits = cirq.LineQubit.range(8)
     qregs = regs.split_qubits(qubits)
-    assert qregs["r1"] == cirq.LineQubit.range(5)
-    assert qregs["r2"] == cirq.LineQubit.range(5, 5 + 2)
-    assert qregs["r3"] == [cirq.LineQubit(7)]
+    assert qregs["r1"].tolist() == cirq.LineQubit.range(5)
+    assert qregs["r2"].tolist() == cirq.LineQubit.range(5, 5 + 2)
+    assert qregs["r3"].tolist() == [cirq.LineQubit(7)]
 
     qubits = qubits[::-1]
     merged_qregs = regs.merge_qubits(r1=qubits[:5], r2=qubits[5:7], r3=qubits[-1])
@@ -63,7 +64,11 @@ def test_registers():
         "r2": cirq.NamedQubit.range(2, prefix="r2"),
         "r3": [cirq.NamedQubit("r3")],
     }
-    assert regs.get_named_qubits() == expected_named_qubits
+
+    named_qregs = regs.get_named_qubits()
+    for reg_name in expected_named_qubits:
+        assert np.array_equal(named_qregs[reg_name], expected_named_qubits[reg_name])
+
     # Python dictionaries preserve insertion order, which should be same as insertion order of
     # initial registers.
     for reg_order in [[r1, r2, r3], [r2, r3, r1]]:
@@ -76,7 +81,9 @@ def test_registers():
 
 @pytest.mark.parametrize('n, N, m, M', [(4, 10, 5, 19), (4, 16, 5, 32)])
 def test_selection_registers_indexing(n, N, m, M):
-    reg = cirq_ft.SelectionRegisters.build(x=(n, N), y=(m, M))
+    reg = cirq_ft.SelectionRegisters(
+        [cirq_ft.SelectionRegister('x', n, N), cirq_ft.SelectionRegister('y', m, M)]
+    )
     assert reg.iteration_lengths == (N, M)
     for x in range(N):
         for y in range(M):
@@ -89,7 +96,15 @@ def test_selection_registers_consistent():
     with pytest.raises(ValueError, match="iteration length must be in "):
         _ = cirq_ft.SelectionRegister('a', 3, 10)
 
-    selection_reg = cirq_ft.SelectionRegisters.build(n=(3, 5), m=(4, 12))
+    with pytest.raises(ValueError, match="should be flat"):
+        _ = cirq_ft.SelectionRegister('a', (3, 5), 5)
+
+    selection_reg = cirq_ft.SelectionRegisters(
+        [
+            cirq_ft.SelectionRegister('n', shape=3, iteration_length=5),
+            cirq_ft.SelectionRegister('m', shape=4, iteration_length=12),
+        ]
+    )
     assert selection_reg[0] == cirq_ft.SelectionRegister('n', 3, 5)
     assert selection_reg['n'] == cirq_ft.SelectionRegister('n', 3, 5)
     assert selection_reg[1] == cirq_ft.SelectionRegister('m', 4, 12)
@@ -101,7 +116,9 @@ def test_registers_getitem_raises():
     with pytest.raises(IndexError, match="must be of the type"):
         _ = g[2.5]
 
-    selection_reg = cirq_ft.SelectionRegisters.build(n=(3, 5))
+    selection_reg = cirq_ft.SelectionRegisters(
+        [cirq_ft.SelectionRegister('n', shape=3, iteration_length=5)]
+    )
     with pytest.raises(IndexError, match='must be of the type'):
         _ = selection_reg[2.5]
 

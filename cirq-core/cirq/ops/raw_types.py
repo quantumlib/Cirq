@@ -12,9 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# TODO(#6171): enable the check and fix pylint errors
-# pylint: disable=consider-using-f-string
-
 """Basic types defining qubits, gates, and operations."""
 
 import abc
@@ -1045,15 +1042,13 @@ def _validate_qid_shape(val: Any, qubits: Sequence['cirq.Qid']) -> None:
     qid_shape = protocols.qid_shape(val)
     if len(qubits) != len(qid_shape):
         raise ValueError(
-            'Wrong number of qubits for <{!r}>. '
-            'Expected {} qubits but got <{!r}>.'.format(val, len(qid_shape), qubits)
+            f'Wrong number of qubits for <{val!r}>. '
+            f'Expected {len(qid_shape)} qubits but got <{qubits!r}>.'
         )
     if any(qid.dimension != dimension for qid, dimension in zip(qubits, qid_shape)):
         raise ValueError(
-            'Wrong shape of qids for <{!r}>. '
-            'Expected {} but got {} <{!r}>.'.format(
-                val, qid_shape, tuple(qid.dimension for qid in qubits), qubits
-            )
+            f'Wrong shape of qids for <{val!r}>. '
+            f'Expected {qid_shape} but got {tuple(qid.dimension for qid in qubits)} <{qubits!r}>.'
         )
     if len(set(qubits)) != len(qubits):
         raise ValueError(
