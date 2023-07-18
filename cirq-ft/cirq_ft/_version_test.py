@@ -12,8 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import cirq_web
+import cirq_ft
 
 
 def test_version():
-    assert cirq_web.__version__ == "1.3.0.dev"
+    assert cirq_ft.__version__ == "1.3.0.dev"
