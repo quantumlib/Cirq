@@ -125,12 +125,3 @@ class TestResponseDemux:
 
         assert actual_response0 == RESPONSE0
         assert actual_response1 == RESPONSE1
-
-    @pytest.mark.asyncio
-    async def test_unsubscribe_publish_does_not_complete_unsubscribed_future(self, demux):
-        future = demux.subscribe(message_id='0')
-        demux.unsubscribe(message_id='0')
-        demux.publish(RESPONSE0)
-
-        with pytest.raises(asyncio.TimeoutError):
-            await asyncio.wait_for(future, timeout=1)

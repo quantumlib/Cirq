@@ -55,13 +55,6 @@ class ResponseDemux:
         self._subscribers[message_id] = response_future
         return response_future
 
-    def unsubscribe(self, message_id: str) -> None:
-        """Indicates that the caller is no longer waiting for the response matching message_id.
-
-        This helps ResponseDemux free up resources.
-        """
-        self._subscribers.pop(message_id, None)
-
     def publish(self, response: quantum.QuantumRunStreamResponse) -> None:
         """Makes the response available to the subscriber with the matching message ID.
 
