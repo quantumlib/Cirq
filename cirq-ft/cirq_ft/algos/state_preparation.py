@@ -20,7 +20,8 @@ database) with a number of T gates scaling as 4L + O(log(1/eps)) where eps is th
 largest absolute error that one can tolerate in the prepared amplitudes.
 """
 
-from typing import List, Sequence
+from typing import List
+from numpy.typing import NDArray
 
 import attr
 import cirq
@@ -34,7 +35,6 @@ from cirq_ft.algos import (
     select_and_prepare,
     swap_network,
 )
-from numpy.typing import NDArray
 
 
 @cirq.value_equality()
@@ -106,7 +106,9 @@ class StatePreparationAliasSampling(select_and_prepare.PrepareOracle):
         )
         N = len(lcu_probabilities)
         return StatePreparationAliasSampling(
-            selection_registers=infra.SelectionRegisters.build(selection=((N - 1).bit_length(), N)),
+            selection_registers=infra.SelectionRegisters(
+                [infra.SelectionRegister('selection', (N - 1).bit_length(), N)]
+            ),
             alt=np.array(alt),
             keep=np.array(keep),
             mu=mu,
@@ -118,7 +120,7 @@ class StatePreparationAliasSampling(select_and_prepare.PrepareOracle):
 
     @cached_property
     def alternates_bitsize(self) -> int:
-        return self.selection_registers.bitsize
+        return self.selection_registers.total_bits()
 
     @cached_property
     def keep_bitsize(self) -> int:
@@ -126,7 +128,7 @@ class StatePreparationAliasSampling(select_and_prepare.PrepareOracle):
 
     @cached_property
     def selection_bitsize(self) -> int:
-        return self.selection_registers.bitsize
+        return self.selection_registers.total_bits()
 
     @cached_property
     def junk_registers(self) -> infra.Registers:
@@ -157,7 +159,10 @@ class StatePreparationAliasSampling(select_and_prepare.PrepareOracle):
         )
 
     def decompose_from_registers(
-        self, *, context: cirq.DecompositionContext, **quregs: Sequence[cirq.Qid]
+        self,
+        *,
+        context: cirq.DecompositionContext,
+        **quregs: NDArray[cirq.Qid],  # type:ignore[type-var]
     ) -> cirq.OP_TREE:
         selection, less_than_equal = quregs['selection'], quregs['less_than_equal']
         sigma_mu, alt, keep = quregs['sigma_mu'], quregs['alt'], quregs['keep']

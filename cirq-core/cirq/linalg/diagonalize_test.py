@@ -12,9 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# TODO(#6171): enable the check and fix pylint errors
-# pylint: disable=consider-using-f-string
-
 import random
 from typing import Tuple, Optional
 
@@ -63,8 +60,9 @@ def random_bi_diagonalizable_pair(
 
 
 def _get_assert_diagonalized_by_str(m, p, d):
-    return 'm.round(3) : {}, p.round(3) : {}, np.abs(p.T @ m @ p).round(2): {}'.format(
-        np.round(m, 3), np.round(p, 3), np.abs(d).round(2)
+    return (
+        f'm.round(3) : {np.round(m, 3)}, p.round(3) : {np.round(p, 3)}, '
+        f'np.abs(p.T @ m @ p).round(2): {np.abs(d).round(2)}'
     )
 
 
@@ -78,10 +76,8 @@ def assert_diagonalized_by(m, p, atol: float = 1e-8):
 
 def _get_assert_bidiagonalized_by_str(m, p, q, d):
     return (
-        'm.round(3) : {}, p.round(3) : {}, q.round(3): {}, '
-        'np.abs(p.T @ m @ p).round(2): {}'.format(
-            np.round(m, 3), np.round(p, 3), np.round(q, 3), np.abs(d).round(2)
-        )
+        f'm.round(3) : {np.round(m, 3)}, p.round(3) : {np.round(p, 3)}, '
+        f'q.round(3): {np.round(q, 3)}, np.abs(p.T @ m @ p).round(2): {np.abs(d).round(2)}'
     )
 
 

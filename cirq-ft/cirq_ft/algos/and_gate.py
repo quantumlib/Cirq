@@ -14,6 +14,9 @@
 
 from typing import Sequence, Tuple
 
+import numpy as np
+from numpy.typing import NDArray
+
 import attr
 import cirq
 from cirq._compat import cached_property
@@ -110,16 +113,16 @@ class And(infra.GateWithRegisters):
 
     def _decompose_via_tree(
         self,
-        controls: Sequence[cirq.Qid],
+        controls: NDArray[cirq.Qid],  # type:ignore[type-var]
         control_values: Sequence[int],
-        ancillas: Sequence[cirq.Qid],
+        ancillas: NDArray[cirq.Qid],
         target: cirq.Qid,
     ) -> cirq.ops.op_tree.OpTree:
         """Decomposes multi-controlled `And` in-terms of an `And` ladder of size #controls- 2."""
         if len(controls) == 2:
             yield And(control_values, adjoint=self.adjoint).on(*controls, target)
             return
-        new_controls = (ancillas[0], *controls[2:])
+        new_controls = np.concatenate([ancillas[0:1], controls[2:]])
         new_control_values = (1, *control_values[2:])
         and_op = And(control_values[:2], adjoint=self.adjoint).on(*controls[:2], ancillas[0])
         if self.adjoint:
@@ -134,7 +137,7 @@ class And(infra.GateWithRegisters):
             )
 
     def decompose_from_registers(
-        self, *, context: cirq.DecompositionContext, **quregs: Sequence[cirq.Qid]
+        self, *, context: cirq.DecompositionContext, **quregs: NDArray[cirq.Qid]
     ) -> cirq.OP_TREE:
         control, ancilla, target = quregs['control'], quregs['ancilla'], quregs['target']
         if len(self.cv) == 2:

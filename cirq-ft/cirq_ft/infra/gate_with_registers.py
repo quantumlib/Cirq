@@ -13,7 +13,9 @@
 # limitations under the License.
 
 import abc
+import itertools
 from typing import Dict, Iterable, List, Optional, Sequence, Tuple, Union, overload
+from numpy.typing import NDArray
 
 import attr
 import cirq
@@ -26,14 +28,27 @@ class Register:
 
     Args:
         name: The string name of the register
-        bitsize: The number of (qu)bits in the register.
+        shape: Shape of the multi-dimensional qubit register.
     """
 
     name: str
-    bitsize: int
+    shape: Tuple[int, ...] = attr.field(
+        converter=lambda v: (v,) if isinstance(v, int) else tuple(v)
+    )
+
+    def all_idxs(self) -> Iterable[Tuple[int, ...]]:
+        """Iterate over all possible indices of a multidimensional register."""
+        yield from itertools.product(*[range(sh) for sh in self.shape])
+
+    def total_bits(self) -> int:
+        """The total number of bits in this register.
+
+        This is the product of bitsize and each of the dimensions in `shape`.
+        """
+        return int(np.product(self.shape))
 
     def __repr__(self):
-        return f'cirq_ft.Register("{self.name}", {self.bitsize})'
+        return f'cirq_ft.Register(name="{self.name}", shape={self.shape})'
 
 
 class Registers:
@@ -52,13 +67,12 @@ class Registers:
     def __repr__(self):
         return f'cirq_ft.Registers({self._registers})'
 
-    @property
-    def bitsize(self) -> int:
-        return sum(reg.bitsize for reg in self)
+    def total_bits(self) -> int:
+        return sum(reg.total_bits() for reg in self)
 
     @classmethod
-    def build(cls, **registers: int) -> 'Registers':
-        return cls(Register(name=k, bitsize=v) for k, v in registers.items())
+    def build(cls, **registers: Union[int, Tuple[int, ...]]) -> 'Registers':
+        return cls(Register(name=k, shape=v) for k, v in registers.items())
 
     @overload
     def __getitem__(self, key: int) -> Register:
@@ -91,35 +105,51 @@ class Registers:
     def __len__(self) -> int:
         return len(self._registers)
 
-    def split_qubits(self, qubits: Sequence[cirq.Qid]) -> Dict[str, Sequence[cirq.Qid]]:
+    def split_qubits(
+        self, qubits: Sequence[cirq.Qid]
+    ) -> Dict[str, NDArray[cirq.Qid]]:  # type: ignore[type-var]
         qubit_regs = {}
         base = 0
         for reg in self:
-            qubit_regs[reg.name] = qubits[base : base + reg.bitsize]
-            base += reg.bitsize
+            qubit_regs[reg.name] = np.array(qubits[base : base + reg.total_bits()]).reshape(
+                reg.shape
+            )
+            base += reg.total_bits()
         return qubit_regs
 
-    def merge_qubits(self, **qubit_regs: Union[cirq.Qid, Sequence[cirq.Qid]]) -> List[cirq.Qid]:
+    def merge_qubits(
+        self, **qubit_regs: Union[cirq.Qid, Sequence[cirq.Qid], NDArray[cirq.Qid]]
+    ) -> List[cirq.Qid]:
         ret: List[cirq.Qid] = []
         for reg in self:
             assert reg.name in qubit_regs, "All qubit registers must pe present"
             qubits = qubit_regs[reg.name]
-            qubits = [qubits] if isinstance(qubits, cirq.Qid) else qubits
+            qubits = np.array([qubits] if isinstance(qubits, cirq.Qid) else qubits)
             assert (
-                len(qubits) == reg.bitsize
-            ), f"{reg.name} register must of length {reg.bitsize} but is of length {len(qubits)}"
-            ret += qubits
+                qubits.shape == reg.shape
+            ), f'{reg.name} register must of shape {reg.shape} but is of shape {qubits.shape}'
+            ret += qubits.flatten().tolist()
         return ret
 
-    def get_named_qubits(self) -> Dict[str, List[cirq.Qid]]:
-        def qubits_for_reg(name: str, bitsize: int):
-            return (
-                [cirq.NamedQubit(f"{name}")]
-                if bitsize == 1
-                else cirq.NamedQubit.range(bitsize, prefix=name)
+    def get_named_qubits(self) -> Dict[str, NDArray[cirq.Qid]]:
+        def _qubit_array(reg: Register):
+            qubits = np.empty(reg.shape, dtype=object)
+            for ii in reg.all_idxs():
+                qubits[ii] = cirq.NamedQubit(f'{reg.name}[{", ".join(str(i) for i in ii)}]')
+            return qubits
+
+        def _qubits_for_reg(reg: Register):
+            if len(reg.shape) > 1:
+                return _qubit_array(reg)
+
+            return np.array(
+                [cirq.NamedQubit(f"{reg.name}")]
+                if reg.total_bits() == 1
+                else cirq.NamedQubit.range(reg.total_bits(), prefix=reg.name),
+                dtype=object,
             )
 
-        return {reg.name: qubits_for_reg(reg.name, reg.bitsize) for reg in self}
+        return {reg.name: _qubits_for_reg(reg) for reg in self._registers}
 
     def __eq__(self, other) -> bool:
         return self._registers == other._registers
@@ -138,13 +168,24 @@ class SelectionRegister(Register):
 
     iteration_length: int = attr.field()
 
+    @iteration_length.default
+    def _default_iteration_length(self):
+        return 2 ** self.shape[0]
+
     @iteration_length.validator
     def validate_iteration_length(self, attribute, value):
-        if not (0 <= value <= 2**self.bitsize):
-            raise ValueError(f'iteration length must be in range [0, 2^{self.bitsize}]')
+        if len(self.shape) != 1:
+            raise ValueError(f'Selection register {self.name} should be flat. Found {self.shape=}')
+        if not (0 <= value <= 2 ** self.shape[0]):
+            raise ValueError(f'iteration length must be in range [0, 2^{self.shape[0]}]')
 
     def __repr__(self) -> str:
-        return f'cirq_ft.SelectionRegister("{self.name}", {self.bitsize}, {self.iteration_length})'
+        return (
+            f'cirq_ft.SelectionRegister('
+            f'name="{self.name}", '
+            f'shape={self.shape}, '
+            f'iteration_length={self.iteration_length})'
+        )
 
 
 class SelectionRegisters(Registers):
@@ -203,16 +244,8 @@ class SelectionRegisters(Registers):
         return int(np.product(self.iteration_lengths))
 
     @classmethod
-    def build(cls, **registers: Union[int, Tuple[int, int]]) -> 'SelectionRegisters':
-        reg_dict: Dict[str, Tuple[int, int]] = {
-            k: v if isinstance(v, tuple) else (v, 2**v) for k, v in registers.items()
-        }
-        return SelectionRegisters(
-            [
-                SelectionRegister(name=k, bitsize=v[0], iteration_length=v[1])
-                for k, v in reg_dict.items()
-            ]
-        )
+    def build(cls, **registers: Union[int, Tuple[int, ...]]) -> 'SelectionRegisters':
+        return cls(SelectionRegister(name=k, shape=v) for k, v in registers.items())
 
     @overload
     def __getitem__(self, key: int) -> SelectionRegister:
@@ -294,10 +327,10 @@ class GateWithRegisters(cirq.Gate, metaclass=abc.ABCMeta):
         ...
 
     def _num_qubits_(self) -> int:
-        return self.registers.bitsize
+        return self.registers.total_bits()
 
     def decompose_from_registers(
-        self, *, context: cirq.DecompositionContext, **quregs: Sequence[cirq.Qid]
+        self, *, context: cirq.DecompositionContext, **quregs: NDArray[cirq.Qid]
     ) -> cirq.OP_TREE:
         return NotImplemented
 
@@ -312,7 +345,9 @@ class GateWithRegisters(cirq.Gate, metaclass=abc.ABCMeta):
     def _decompose_(self, qubits: Sequence[cirq.Qid]) -> cirq.OP_TREE:
         return self._decompose_with_context_(qubits)
 
-    def on_registers(self, **qubit_regs: Union[cirq.Qid, Sequence[cirq.Qid]]) -> cirq.Operation:
+    def on_registers(
+        self, **qubit_regs: Union[cirq.Qid, Sequence[cirq.Qid], NDArray[cirq.Qid]]
+    ) -> cirq.Operation:
         return self.on(*self.registers.merge_qubits(**qubit_regs))
 
     def _circuit_diagram_info_(self, args: cirq.CircuitDiagramInfoArgs) -> cirq.CircuitDiagramInfo:
@@ -322,7 +357,7 @@ class GateWithRegisters(cirq.Gate, metaclass=abc.ABCMeta):
         """
         wire_symbols = []
         for reg in self.registers:
-            wire_symbols += [reg.name] * reg.bitsize
+            wire_symbols += [reg.name] * reg.total_bits()
 
         wire_symbols[0] = self.__class__.__name__
         return cirq.CircuitDiagramInfo(wire_symbols=wire_symbols)

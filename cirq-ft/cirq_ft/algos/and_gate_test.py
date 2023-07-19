@@ -45,7 +45,7 @@ def random_cv(n: int) -> List[int]:
 def test_multi_controlled_and_gate(cv: List[int]):
     gate = cirq_ft.And(cv)
     r = gate.registers
-    assert r['ancilla'].bitsize == r['control'].bitsize - 2
+    assert r['ancilla'].total_bits() == r['control'].total_bits() - 2
     quregs = r.get_named_qubits()
     and_op = gate.on_registers(**quregs)
     circuit = cirq.Circuit(and_op)
@@ -54,7 +54,7 @@ def test_multi_controlled_and_gate(cv: List[int]):
     qubit_order = gate.registers.merge_qubits(**quregs)
 
     for input_control in input_controls:
-        initial_state = input_control + [0] * (r['ancilla'].bitsize + 1)
+        initial_state = input_control + [0] * (r['ancilla'].total_bits() + 1)
         result = cirq.Simulator(dtype=np.complex128).simulate(
             circuit, initial_state=initial_state, qubit_order=qubit_order
         )
@@ -80,8 +80,10 @@ def test_and_gate_diagram():
     qubit_regs = gate.registers.get_named_qubits()
     op = gate.on_registers(**qubit_regs)
     # Qubit order should be alternating (control, ancilla) pairs.
-    c_and_a = sum(zip(qubit_regs["control"][1:], qubit_regs["ancilla"] + [0]), ())[:-1]
-    qubit_order = qubit_regs["control"][0:1] + list(c_and_a) + qubit_regs["target"]
+    c_and_a = sum(zip(qubit_regs["control"][1:], qubit_regs["ancilla"]), ()) + (
+        qubit_regs["control"][-1],
+    )
+    qubit_order = np.concatenate([qubit_regs["control"][0:1], c_and_a, qubit_regs["target"]])
     # Test diagrams.
     cirq.testing.assert_has_diagram(
         cirq.Circuit(op),

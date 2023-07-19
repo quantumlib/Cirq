@@ -13,6 +13,7 @@
 # limitations under the License.
 
 from typing import Collection, Optional, Sequence, Tuple, Union
+from numpy.typing import NDArray
 
 import attr
 import cirq
@@ -69,15 +70,17 @@ class ReflectionUsingPrepare(infra.GateWithRegisters):
         return infra.Registers([*self.control_registers, *self.selection_registers])
 
     def decompose_from_registers(
-        self, context: cirq.DecompositionContext, **qubit_regs: Sequence[cirq.Qid]
+        self,
+        context: cirq.DecompositionContext,
+        **quregs: NDArray[cirq.Qid],  # type:ignore[type-var]
     ) -> cirq.OP_TREE:
         qm = context.qubit_manager
         # 0. Allocate new ancillas, if needed.
-        phase_target = qm.qalloc(1)[0] if self.control_val is None else qubit_regs.pop('control')[0]
+        phase_target = qm.qalloc(1)[0] if self.control_val is None else quregs.pop('control')[0]
         state_prep_ancilla = {
-            reg.name: qm.qalloc(reg.bitsize) for reg in self.prepare_gate.junk_registers
+            reg.name: qm.qalloc(reg.total_bits()) for reg in self.prepare_gate.junk_registers
         }
-        state_prep_selection_regs = qubit_regs
+        state_prep_selection_regs = quregs
         prepare_op = self.prepare_gate.on_registers(
             **state_prep_selection_regs, **state_prep_ancilla
         )
@@ -99,8 +102,8 @@ class ReflectionUsingPrepare(infra.GateWithRegisters):
             qm.qfree([phase_target])
 
     def _circuit_diagram_info_(self, args: cirq.CircuitDiagramInfoArgs) -> cirq.CircuitDiagramInfo:
-        wire_symbols = ['@' if self.control_val else '@(0)'] * self.control_registers.bitsize
-        wire_symbols += ['R_L'] * self.selection_registers.bitsize
+        wire_symbols = ['@' if self.control_val else '@(0)'] * self.control_registers.total_bits()
+        wire_symbols += ['R_L'] * self.selection_registers.total_bits()
         return cirq.CircuitDiagramInfo(wire_symbols=wire_symbols)
 
     def __repr__(self):

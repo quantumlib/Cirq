@@ -12,9 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# TODO(#6171): enable the check and fix pylint errors
-# pylint: disable=consider-using-f-string
-
 from typing import Any, TypeVar, Union, Optional
 
 import numpy as np
@@ -130,8 +127,8 @@ def unitary(
         "cirq.unitary failed. "
         "Value doesn't have a (non-parameterized) unitary effect.\n"
         "\n"
-        "type: {}\n"
-        "value: {!r}\n"
+        f"type: {type(val)}\n"
+        f"value: {val!r}\n"
         "\n"
         "The value failed to satisfy any of the following criteria:\n"
         "- A `_unitary_(self)` method that returned a value "
@@ -139,7 +136,7 @@ def unitary(
         "- A `_decompose_(self)` method that returned a "
         "list of unitary operations.\n"
         "- An `_apply_unitary_(self, args) method that returned a value "
-        "besides None or NotImplemented.".format(type(val), val)
+        "besides None or NotImplemented."
     )
 
 
