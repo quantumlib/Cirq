@@ -87,6 +87,7 @@ class IonQTargetGateset(cirq.TwoQubitCompilationTargetGateset):
     @property
     def preprocess_transformers(self) -> List['cirq.TRANSFORMER']:
         """List of transformers which should be run before decomposing individual operations.
+       
         Decompose to three qubit gates because three qubit gates have different decomposition
         for all-to-all connectivity between qubits.
         """
