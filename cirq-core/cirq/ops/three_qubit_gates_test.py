@@ -230,28 +230,6 @@ def test_decomposition_respects_locality(gate):
         dev.validate_circuit(circuit)
 
 
-def test_decomposition_all_to_all_connectivity():
-    """This function only accepts 3 qubits as input"""
-    with pytest.raises(ValueError):
-        decompose_result = cirq.ops.decompose_all_to_all_connect_ccz_gate(
-            cirq.CCZ, cirq.LineQubit.range(4)
-        )
-
-    decompose_result = cirq.ops.decompose_all_to_all_connect_ccz_gate(
-        cirq.CCZ, cirq.LineQubit.range(3)
-    )
-    cirq.testing.assert_has_diagram(
-        cirq.Circuit(decompose_result),
-        """
-0: ──────────────@──────────────────@───@───T──────@───
-                 │                  │   │          │
-1: ───@──────────┼───────@───T──────┼───X───T^-1───X───
-      │          │       │          │
-2: ───X───T^-1───X───T───X───T^-1───X───T──────────────
-""",
-    )
-
-
 def test_diagram():
     a, b, c, d = cirq.LineQubit.range(4)
     circuit = cirq.Circuit(

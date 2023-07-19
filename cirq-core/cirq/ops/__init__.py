@@ -201,7 +201,6 @@ from cirq.ops.three_qubit_gates import (
     CCXPowGate,
     CCZ,
     CCZPowGate,
-    decompose_all_to_all_connect_ccz_gate,
     CSWAP,
     CSwapGate,
     FREDKIN,

@@ -217,55 +217,6 @@ class CCZPowGate(gate_features.InterchangeableQubitsGate, eigen_gate.EigenGate):
         )
 
 
-def decompose_all_to_all_connect_ccz_gate(
-    ccz_gate: 'CCZPowGate', qubits: Tuple['cirq.Qid', ...]
-) -> 'cirq.OP_TREE':
-    """If qubits are all-to-all connected, e.g. qubits in the same ion trap,
-    the decomposition will be:
-
-    0: ──────────────@──────────────────@───@───p──────@───
-                     │                  │   │          │
-    1: ───@──────────┼───────@───p──────┼───X───p^-1───X───
-          │          │       │          │
-    2: ───X───p^-1───X───p───X───p^-1───X───p──────────────
-
-    where p = T**ccz_gate._exponent
-    """
-    if len(qubits) != 3:
-        raise ValueError(f'Expect 3 qubits for CCZ gate, got {len(qubits)} qubits.')
-
-    a, b, c = qubits
-
-    p = common_gates.T**ccz_gate._exponent
-    global_phase = 1j ** (2 * ccz_gate.global_shift * ccz_gate._exponent)
-    global_phase = (
-        complex(global_phase)
-        if protocols.is_parameterized(global_phase) and global_phase.is_complex  # type: ignore
-        else global_phase
-    )
-    global_phase_operation = (
-        [global_phase_op.global_phase_operation(global_phase)]
-        if protocols.is_parameterized(global_phase) or abs(global_phase - 1.0) > 0
-        else []
-    )
-
-    return global_phase_operation + [
-        common_gates.CNOT(b, c),
-        p(c) ** -1,
-        common_gates.CNOT(a, c),
-        p(c),
-        common_gates.CNOT(b, c),
-        p(c) ** -1,
-        common_gates.CNOT(a, c),
-        p(b),
-        p(c),
-        common_gates.CNOT(a, b),
-        p(a),
-        p(b) ** -1,
-        common_gates.CNOT(a, b),
-    ]
-
-
 @value.value_equality()
 class ThreeQubitDiagonalGate(raw_types.Gate):
     r"""A three qubit gate whose unitary is given by a diagonal $8 \times 8$ matrix.
