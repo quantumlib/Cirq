@@ -18,6 +18,7 @@ from typing import cast, Dict, FrozenSet, Iterable, Iterator, List, Optional, Se
 import numpy as np
 import sympy
 from cirq_google.api import v2
+from cirq_google.ops import InternalGate
 
 SUPPORTED_FUNCTIONS_FOR_LANGUAGE: Dict[Optional[str], FrozenSet[str]] = {
     '': frozenset(),
@@ -76,7 +77,6 @@ def _function_languages_from_operation(value: v2.program_pb2.Operation) -> Itera
 
 
 def _function_languages_from_arg(arg_proto: v2.program_pb2.Arg) -> Iterator[str]:
-
     which = arg_proto.WhichOneof('arg')
     if which == 'func':
         if arg_proto.func.type in ['add', 'mul']:
@@ -152,6 +152,14 @@ def arg_to_proto(
     ):
         # Some protobuf / numpy combinations do not support np.bool_, so cast.
         msg.arg_value.bool_values.values.extend([bool(x) for x in value])
+    elif isinstance(value, (list, tuple, np.ndarray)) and all(
+        isinstance(x, (int, np.integer)) for x in value
+    ):
+        msg.arg_value.int64_values.values.extend([int(x) for x in value])
+    elif isinstance(value, (list, tuple, np.ndarray)) and all(
+        isinstance(x, (float, np.floating)) for x in value
+    ):
+        msg.arg_value.double_values.values.extend([float(x) for x in value])
     else:
         _arg_func_to_proto(value, arg_function_language, msg)
 
@@ -293,6 +301,10 @@ def arg_from_proto(
             return list(arg_value.bool_values.values)
         if which_val == 'string_value':
             return str(arg_value.string_value)
+        if which_val == 'int64_values':
+            return [int(v) for v in arg_value.int64_values.values]
+        if which_val == 'double_values':
+            return [float(v) for v in arg_value.double_values.values]
         raise ValueError(f'Unrecognized value type: {which_val!r}')
 
     if which == 'symbol':
@@ -368,3 +380,26 @@ def _arg_func_from_proto(
             ]
         )
     return None
+
+
+def internal_gate_arg_to_proto(
+    g: InternalGate, *, out: Optional[v2.program_pb2.InternalGate] = None
+):
+    msg = v2.program_pb2.InternalGate() if out is None else out
+    msg.name = g.gate_name
+    msg.module = g.gate_module
+    msg.num_qubits = g.num_qubits()
+    for k, v in g.gate_args:
+        arg_to_proto(value=v, out=msg.gate_args[k])
+
+
+def internal_gate_from_proto(msg: v2.program_pb2.InternalGate) -> InternalGate:
+    gate_args = {}
+    for k, v in msg.gate_args:
+        gate_args[k] = arg_from_proto(v)
+    return InternalGate(
+        gate_name=str(msg.name),
+        gate_module=str(msg.module),
+        num_qubits=int(msg.num_qubits),
+        **gate_args,
+    )

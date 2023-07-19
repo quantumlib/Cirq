@@ -19,7 +19,7 @@ import sympy
 
 import cirq
 from cirq_google.api import v2
-from cirq_google.ops import PhysicalZTag
+from cirq_google.ops import PhysicalZTag, InternalGate
 from cirq_google.ops.calibration_tag import CalibrationTag
 from cirq_google.serialization import serializer, op_deserializer, op_serializer, arg_func_langs
 
@@ -141,6 +141,9 @@ class CircuitSerializer(serializer.Serializer):
             ValueError: If the operation cannot be serialized.
         """
         gate = op.gate
+
+        if isinstance(gate, InternalGate):
+            arg_func_langs.internal_gate_arg_to_proto(gate, out=msg.internalgate)
 
         if isinstance(gate, cirq.XPowGate):
             arg_func_langs.float_arg_to_proto(
@@ -582,6 +585,8 @@ class CircuitSerializer(serializer.Serializer):
             )
         elif which == 'token_value':
             op = op.with_tags(CalibrationTag(operation_proto.token_value))
+        elif which == 'internalgate':
+            op = arg_func_langs.internal_gate_from_proto(operation_proto.internal_gate)(*qubits)
 
         return op
 
