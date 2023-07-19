@@ -25,6 +25,7 @@ from cirq.transformers.analytical_decompositions import (
     parameterized_2q_op_to_sqrt_iswap_operations,
     prepare_two_qubit_state_using_cz,
     prepare_two_qubit_state_using_sqrt_iswap,
+    quantum_shannon_decomposition,
     single_qubit_matrix_to_gates,
     single_qubit_matrix_to_pauli_rotations,
     single_qubit_matrix_to_phased_x_z,
@@ -36,6 +37,7 @@ from cirq.transformers.analytical_decompositions import (
     two_qubit_matrix_to_diagonal_and_cz_operations,
     two_qubit_matrix_to_ion_operations,
     two_qubit_matrix_to_sqrt_iswap_operations,
+    unitary_to_pauli_string,
 )
 
 from cirq.transformers.heuristic_decompositions import (

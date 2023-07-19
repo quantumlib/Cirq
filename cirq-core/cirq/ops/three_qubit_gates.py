@@ -176,8 +176,9 @@ class CCZPowGate(gate_features.InterchangeableQubitsGate, eigen_gate.EigenGate):
             if self._exponent == 1:
                 return 'cirq.CCZ'
             return f'(cirq.CCZ**{proper_repr(self._exponent)})'
-        return 'cirq.CCZPowGate(exponent={}, global_shift={!r})'.format(
-            proper_repr(self._exponent), self._global_shift
+        return (
+            f'cirq.CCZPowGate(exponent={proper_repr(self._exponent)}, '
+            f'global_shift={self._global_shift!r})'
         )
 
     def __str__(self) -> str:
@@ -432,9 +433,8 @@ class ThreeQubitDiagonalGate(raw_types.Gate):
         return protocols.obj_to_dict_helper(self, attribute_names=["diag_angles_radians"])
 
     def __repr__(self) -> str:
-        return 'cirq.ThreeQubitDiagonalGate([{}])'.format(
-            ','.join(proper_repr(angle) for angle in self._diag_angles_radians)
-        )
+        angles = ','.join(proper_repr(angle) for angle in self._diag_angles_radians)
+        return f'cirq.ThreeQubitDiagonalGate([{angles}])'
 
     def _num_qubits_(self) -> int:
         return 3
@@ -537,8 +537,9 @@ class CCXPowGate(gate_features.InterchangeableQubitsGate, eigen_gate.EigenGate):
             if self._exponent == 1:
                 return 'cirq.TOFFOLI'
             return f'(cirq.TOFFOLI**{proper_repr(self._exponent)})'
-        return 'cirq.CCXPowGate(exponent={}, global_shift={!r})'.format(
-            proper_repr(self._exponent), self._global_shift
+        return (
+            f'cirq.CCXPowGate(exponent={proper_repr(self._exponent)}, '
+            f'global_shift={self._global_shift!r})'
         )
 
     def __str__(self) -> str:
@@ -709,6 +710,11 @@ class CSwapGate(gate_features.InterchangeableQubitsGate, raw_types.Gate):
 
     def _value_equality_values_(self):
         return ()
+
+    def __pow__(self, power):
+        if power == 1 or power == -1:
+            return self
+        return NotImplemented
 
     def __str__(self) -> str:
         return 'FREDKIN'

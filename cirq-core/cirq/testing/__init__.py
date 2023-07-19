@@ -107,3 +107,7 @@ from cirq.testing.routing_devices import (
 )
 
 from cirq.testing.sample_circuits import nonoptimal_toffoli_circuit
+
+from cirq.testing.sample_gates import PhaseUsingCleanAncilla, PhaseUsingDirtyAncilla
+
+from cirq.testing.consistent_unitary import assert_unitary_is_consistent

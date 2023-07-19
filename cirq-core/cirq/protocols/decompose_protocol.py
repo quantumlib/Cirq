@@ -11,7 +11,10 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import itertools
 import dataclasses
+import inspect
+from collections import defaultdict
 from typing import (
     TYPE_CHECKING,
     Any,
@@ -27,7 +30,7 @@ from typing import (
     TypeVar,
     Union,
 )
-from collections import defaultdict
+from typing_extensions import runtime_checkable
 
 from typing_extensions import Protocol
 
@@ -46,7 +49,19 @@ TError = TypeVar('TError', bound=Exception)
 RaiseTypeErrorIfNotProvided: Any = ([],)
 
 DecomposeResult = Union[None, NotImplementedType, 'cirq.OP_TREE']
-OpDecomposer = Callable[['cirq.Operation'], DecomposeResult]
+
+_CONTEXT_COUNTER = itertools.count()  # Use _reset_context_counter() to reset the counter.
+
+
+@runtime_checkable
+class OpDecomposerWithContext(Protocol):
+    def __call__(
+        self, __op: 'cirq.Operation', *, context: Optional['cirq.DecompositionContext'] = None
+    ) -> DecomposeResult:
+        ...
+
+
+OpDecomposer = Union[Callable[['cirq.Operation'], DecomposeResult], OpDecomposerWithContext]
 
 DECOMPOSE_TARGET_GATESET = ops.Gateset(
     ops.XPowGate,
@@ -60,6 +75,18 @@ DECOMPOSE_TARGET_GATESET = ops.Gateset(
 
 def _value_error_describing_bad_operation(op: 'cirq.Operation') -> ValueError:
     return ValueError(f"Operation doesn't satisfy the given `keep` but can't be decomposed: {op!r}")
+
+
+@dataclasses.dataclass(frozen=True)
+class DecompositionContext:
+    """Stores common configurable options for decomposing composite gates into simpler operations.
+
+    Args:
+        qubit_manager: A `cirq.QubitManager` instance to allocate clean / dirty ancilla qubits as
+            part of the decompose protocol.
+    """
+
+    qubit_manager: 'cirq.QubitManager'
 
 
 class SupportsDecompose(Protocol):
@@ -105,6 +132,11 @@ class SupportsDecompose(Protocol):
     def _decompose_(self) -> DecomposeResult:
         pass
 
+    def _decompose_with_context_(
+        self, *, context: Optional[DecompositionContext] = None
+    ) -> DecomposeResult:
+        pass
+
 
 class SupportsDecomposeWithQubits(Protocol):
     """An object that can be decomposed into operations on given qubits.
@@ -128,15 +160,27 @@ class SupportsDecomposeWithQubits(Protocol):
     def _decompose_(self, qubits: Tuple['cirq.Qid', ...]) -> DecomposeResult:
         pass
 
+    def _decompose_with_context_(
+        self, qubits: Tuple['cirq.Qid', ...], *, context: Optional[DecompositionContext] = None
+    ) -> DecomposeResult:
+        pass
 
-def _try_op_decomposer(val: Any, decomposer: Optional[OpDecomposer]) -> DecomposeResult:
+
+def _try_op_decomposer(
+    val: Any, decomposer: Optional[OpDecomposer], *, context: Optional[DecompositionContext] = None
+) -> DecomposeResult:
     if decomposer is None or not isinstance(val, ops.Operation):
         return None
-    return decomposer(val)
+    if 'context' in inspect.signature(decomposer).parameters:
+        assert isinstance(decomposer, OpDecomposerWithContext)
+        return decomposer(val, context=context)
+    else:
+        return decomposer(val)
 
 
 @dataclasses.dataclass(frozen=True)
 class _DecomposeArgs:
+    context: Optional[DecompositionContext]
     intercepting_decomposer: Optional[OpDecomposer]
     fallback_decomposer: Optional[OpDecomposer]
     keep: Optional[Callable[['cirq.Operation'], bool]]
@@ -157,13 +201,13 @@ def _decompose_dfs(item: Any, args: _DecomposeArgs) -> Iterator['cirq.Operation'
             yield item
             return
 
-    decomposed = _try_op_decomposer(item, args.intercepting_decomposer)
+    decomposed = _try_op_decomposer(item, args.intercepting_decomposer, context=args.context)
 
     if decomposed is NotImplemented or decomposed is None:
-        decomposed = decompose_once(item, default=None)
+        decomposed = decompose_once(item, default=None, flatten=False, context=args.context)
 
     if decomposed is NotImplemented or decomposed is None:
-        decomposed = _try_op_decomposer(item, args.fallback_decomposer)
+        decomposed = _try_op_decomposer(item, args.fallback_decomposer, context=args.context)
 
     if decomposed is NotImplemented or decomposed is None:
         if not isinstance(item, ops.Operation) and isinstance(item, Iterable):
@@ -193,6 +237,7 @@ def decompose(
         None, Exception, Callable[['cirq.Operation'], Optional[Exception]]
     ] = _value_error_describing_bad_operation,
     preserve_structure: bool = False,
+    context: Optional[DecompositionContext] = None,
 ) -> List['cirq.Operation']:
     """Recursively decomposes a value into `cirq.Operation`s meeting a criteria.
 
@@ -224,6 +269,8 @@ def decompose(
         preserve_structure: Prevents subcircuits (i.e. `CircuitOperation`s)
             from being decomposed, but decomposes their contents. If this is
             True, `intercepting_decomposer` cannot be specified.
+        context: Decomposition context specifying common configurable options for
+            controlling the behavior of decompose.
 
     Returns:
         A list of operations that the given value was decomposed into. If
@@ -255,7 +302,10 @@ def decompose(
             "acceptable to keep."
         )
 
+    if context is None:
+        context = DecompositionContext(ops.SimpleQubitManager(prefix='_decompose_protocol'))
     args = _DecomposeArgs(
+        context=context,
         intercepting_decomposer=intercepting_decomposer,
         fallback_decomposer=fallback_decomposer,
         keep=keep,
@@ -275,12 +325,19 @@ def decompose_once(val: Any, **kwargs) -> List['cirq.Operation']:
 
 @overload
 def decompose_once(
-    val: Any, default: TDefault, *args, **kwargs
+    val: Any, default: TDefault, *args, flatten: bool = True, **kwargs
 ) -> Union[TDefault, List['cirq.Operation']]:
     pass
 
 
-def decompose_once(val: Any, default=RaiseTypeErrorIfNotProvided, *args, **kwargs):
+def decompose_once(
+    val: Any,
+    default=RaiseTypeErrorIfNotProvided,
+    *args,
+    flatten: bool = True,
+    context: Optional[DecompositionContext] = None,
+    **kwargs,
+):
     """Decomposes a value into operations, if possible.
 
     This method decomposes the value exactly once, instead of decomposing it
@@ -296,6 +353,9 @@ def decompose_once(val: Any, default=RaiseTypeErrorIfNotProvided, *args, **kwarg
         *args: Positional arguments to forward into the `_decompose_` method of
             `val`.  For example, this is used to tell gates what qubits they are
             being applied to.
+        flatten: If True, the returned OP-TREE will be flattened to a list of operations.
+        context: Decomposition context specifying common configurable options for
+            controlling the behavior of decompose.
         **kwargs: Keyword arguments to forward into the `_decompose_` method of
             `val`.
 
@@ -309,36 +369,62 @@ def decompose_once(val: Any, default=RaiseTypeErrorIfNotProvided, *args, **kwarg
         TypeError: `val` didn't have a `_decompose_` method (or that method returned
             `NotImplemented` or `None`) and `default` wasn't set.
     """
-    method = getattr(val, '_decompose_', None)
-    decomposed = NotImplemented if method is None else method(*args, **kwargs)
+    if context is None:
+        context = DecompositionContext(
+            ops.SimpleQubitManager(prefix=f'_decompose_protocol_{next(_CONTEXT_COUNTER)}')
+        )
+
+    method = getattr(val, '_decompose_with_context_', None)
+    decomposed = NotImplemented if method is None else method(*args, **kwargs, context=context)
+    if decomposed is NotImplemented or None:
+        method = getattr(val, '_decompose_', None)
+        decomposed = NotImplemented if method is None else method(*args, **kwargs)
 
     if decomposed is not NotImplemented and decomposed is not None:
-        return list(ops.flatten_op_tree(decomposed))
+        return list(ops.flatten_to_ops(decomposed)) if flatten else decomposed
 
     if default is not RaiseTypeErrorIfNotProvided:
         return default
     if method is None:
-        raise TypeError(f"object of type '{type(val)}' has no _decompose_ method.")
+        raise TypeError(
+            f"object of type '{type(val)}' has no _decompose_with_context_ or "
+            f"_decompose_ method."
+        )
     raise TypeError(
-        "object of type '{}' does have a _decompose_ method, "
-        "but it returned NotImplemented or None.".format(type(val))
+        f"object of type {type(val)} does have a _decompose_ method, "
+        "but it returned NotImplemented or None."
     )
 
 
 @overload
-def decompose_once_with_qubits(val: Any, qubits: Iterable['cirq.Qid']) -> List['cirq.Operation']:
+def decompose_once_with_qubits(
+    val: Any,
+    qubits: Iterable['cirq.Qid'],
+    *,
+    flatten: bool = True,
+    context: Optional['DecompositionContext'] = None,
+) -> List['cirq.Operation']:
     pass
 
 
 @overload
 def decompose_once_with_qubits(
-    val: Any, qubits: Iterable['cirq.Qid'], default: Optional[TDefault]
+    val: Any,
+    qubits: Iterable['cirq.Qid'],
+    default: Optional[TDefault],
+    *,
+    flatten: bool = True,
+    context: Optional['DecompositionContext'] = None,
 ) -> Union[TDefault, List['cirq.Operation']]:
     pass
 
 
 def decompose_once_with_qubits(
-    val: Any, qubits: Iterable['cirq.Qid'], default=RaiseTypeErrorIfNotProvided
+    val: Any,
+    qubits: Iterable['cirq.Qid'],
+    default=RaiseTypeErrorIfNotProvided,
+    flatten: bool = True,
+    context: Optional['DecompositionContext'] = None,
 ):
     """Decomposes a value into operations on the given qubits.
 
@@ -355,6 +441,9 @@ def decompose_once_with_qubits(
             `_decompose_` method or that method returns `NotImplemented` or
             `None`. If not specified, non-decomposable values cause a
             `TypeError`.
+        flatten: If True, the returned OP-TREE will be flattened to a list of operations.
+        context: Decomposition context specifying common configurable options for
+            controlling the behavior of decompose.
 
     Returns:
         The result of `val._decompose_(qubits)`, if `val` has a
@@ -366,7 +455,7 @@ def decompose_once_with_qubits(
         `val` didn't have a `_decompose_` method (or that method returned
         `NotImplemented` or `None`) and `default` wasn't set.
     """
-    return decompose_once(val, default, tuple(qubits))
+    return decompose_once(val, default, tuple(qubits), flatten=flatten, context=context)
 
 
 # pylint: enable=function-redefined

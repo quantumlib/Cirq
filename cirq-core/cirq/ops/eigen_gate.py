@@ -33,6 +33,7 @@ import numpy as np
 import sympy
 
 from cirq import value, protocols
+from cirq.linalg import tolerance
 from cirq.ops import raw_types
 from cirq.type_workarounds import NotImplementedType
 
@@ -385,8 +386,8 @@ class EigenGate(raw_types.Gate):
             return False
 
         period = self_without_phase._period()
-        canonical_diff = (exponents[0] - exponents[1]) % period
-        return np.isclose(canonical_diff, 0, atol=atol)
+        exponents_diff = exponents[0] - exponents[1]
+        return tolerance.near_zero_mod(exponents_diff, period, atol=atol)
 
     def _json_dict_(self) -> Dict[str, Any]:
         return protocols.obj_to_dict_helper(self, ['exponent', 'global_shift'])

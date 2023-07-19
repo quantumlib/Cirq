@@ -220,9 +220,7 @@ class EngineClient:
         if labels:
             program.labels.update(labels)
 
-        request = quantum.CreateQuantumProgramRequest(
-            parent=parent_name, quantum_program=program, overwrite_existing_source_code=False
-        )
+        request = quantum.CreateQuantumProgramRequest(parent=parent_name, quantum_program=program)
         program = await self._send_request_async(self.grpc_client.create_quantum_program, request)
         return _ids_from_program_name(program.name)[1], program
 
@@ -277,7 +275,7 @@ class EngineClient:
             val = _date_or_time_to_filter_expr('created_before', created_before)
             filters.append(f"create_time <= {val}")
         if has_labels is not None:
-            for (k, v) in has_labels.items():
+            for k, v in has_labels.items():
                 filters.append(f"labels.{k}:{v}")
         request = quantum.ListQuantumProgramsRequest(
             parent=_project_name(project_id), filter=" AND ".join(filters)
@@ -471,9 +469,7 @@ class EngineClient:
         if labels:
             job.labels.update(labels)
         request = quantum.CreateQuantumJobRequest(
-            parent=_program_name_from_ids(project_id, program_id),
-            quantum_job=job,
-            overwrite_existing_run_context=False,
+            parent=_program_name_from_ids(project_id, program_id), quantum_job=job
         )
         job = await self._send_request_async(self.grpc_client.create_quantum_job, request)
         return _ids_from_job_name(job.name)[2], job
@@ -528,7 +524,7 @@ class EngineClient:
             val = _date_or_time_to_filter_expr('created_before', created_before)
             filters.append(f"create_time <= {val}")
         if has_labels is not None:
-            for (k, v) in has_labels.items():
+            for k, v in has_labels.items():
                 filters.append(f"labels.{k}:{v}")
         if execution_states is not None:
             state_filter = []

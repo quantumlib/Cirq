@@ -52,10 +52,10 @@ def assert_equivalent_repr(
         raise AssertionError(
             'eval(repr(value)) raised an exception.\n'
             '\n'
-            'setup_code={}\n'
-            'type(value): {}\n'
-            'value={!r}\n'
-            'error={!r}'.format(setup_code, type(value), value, ex)
+            f'setup_code={setup_code}\n'
+            f'type(value): {type(value)}\n'
+            f'value={value!r}\n'
+            f'error={ex!r}'
         )
 
     assert eval_repr_value == value, (
@@ -87,14 +87,14 @@ def assert_equivalent_repr(
         a = eval(f'{value!r}.__class__', global_vals, local_vals)
     except Exception:
         raise AssertionError(
-            "The repr of a value of type {} wasn't 'dottable'.\n"
-            "{!r}.XXX must be equivalent to ({!r}).XXX, "
-            "but it raised an error instead.".format(type(value), value, value)
+            f"The repr of a value of type {type(value)} wasn't 'dottable'.\n"
+            f"{value!r}.XXX must be equivalent to ({value!r}).XXX, "
+            "but it raised an error instead."
         )
 
     b = eval(f'({value!r}).__class__', global_vals, local_vals)
     assert a == b, (
-        "The repr of a value of type {} wasn't 'dottable'.\n"
-        "{!r}.XXX must be equivalent to ({!r}).XXX, "
-        "but it wasn't.".format(type(value), value, value)
+        f"The repr of a value of type {type(value)} wasn't 'dottable'.\n"
+        f"{value!r}.XXX must be equivalent to ({value!r}).XXX, "
+        "but it wasn't."
     )

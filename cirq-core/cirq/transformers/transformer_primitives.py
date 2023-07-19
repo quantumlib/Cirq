@@ -158,7 +158,8 @@ def map_operations(
 
     return map_moments(
         circuit,
-        lambda m, i: [circuits.Moment(apply_map(op, i) for op in m.operations)],
+        lambda m, i: circuits.Circuit(apply_map(op, i) for op in m.operations).moments
+        or [circuits.Moment()],
         deep=deep,
         tags_to_ignore=tags_to_ignore,
     )

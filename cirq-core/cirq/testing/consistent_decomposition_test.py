@@ -43,6 +43,14 @@ def test_assert_decompose_is_consistent_with_unitary():
         GoodGateDecompose().on(cirq.NamedQubit('q'))
     )
 
+    cirq.testing.assert_decompose_is_consistent_with_unitary(
+        cirq.testing.PhaseUsingCleanAncilla(theta=0.1, ancilla_bitsize=3)
+    )
+
+    cirq.testing.assert_decompose_is_consistent_with_unitary(
+        cirq.testing.PhaseUsingDirtyAncilla(phase_state=1, ancilla_bitsize=4)
+    )
+
     with pytest.raises(AssertionError):
         cirq.testing.assert_decompose_is_consistent_with_unitary(BadGateDecompose())
 
@@ -83,7 +91,6 @@ class ParameterizedGate(cirq.Gate):
 
 
 def test_assert_decompose_ends_at_default_gateset():
-
     cirq.testing.assert_decompose_ends_at_default_gateset(GateDecomposesToDefaultGateset())
     cirq.testing.assert_decompose_ends_at_default_gateset(
         GateDecomposesToDefaultGateset().on(*cirq.LineQubit.range(2))

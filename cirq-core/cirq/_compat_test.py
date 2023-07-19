@@ -13,7 +13,7 @@
 # limitations under the License.
 import collections
 import dataclasses
-import importlib
+import importlib.metadata
 import logging
 import multiprocessing
 import os
@@ -200,9 +200,8 @@ def test_deprecated():
 
     with pytest.raises(AssertionError, match='deadline should match vX.Y'):
         # pylint: disable=unused-variable
-        # coverage: ignore
         @deprecated(deadline='invalid', fix='Roll some dice.')
-        def badly_deprecated_func(*args, **kwargs):
+        def badly_deprecated_func(*args, **kwargs):  # pragma: no cover
             return new_func(*args, **kwargs)
 
         # pylint: enable=unused-variable
@@ -258,8 +257,7 @@ def test_deprecated_parameter():
             rewrite=lambda args, kwargs: (args, {'new_count': kwargs['double_count'] * 2}),
         )
         # pylint: disable=unused-variable
-        # coverage: ignore
-        def f_with_badly_deprecated_param(new_count):
+        def f_with_badly_deprecated_param(new_count):  # pragma: no cover
             return new_count
 
         # pylint: enable=unused-variable
@@ -371,9 +369,8 @@ def test_deprecated_class():
 
     with pytest.raises(AssertionError, match='deadline should match vX.Y'):
         # pylint: disable=unused-variable
-        # coverage: ignore
         @deprecated_class(deadline='invalid', fix='theFix', name='foo')
-        class BadlyDeprecatedClass(NewClass):
+        class BadlyDeprecatedClass(NewClass):  # pragma: no cover
             ...
 
         # pylint: enable=unused-variable
@@ -619,8 +616,6 @@ def subprocess_context(test_func):
         "it to this method?"
     )
 
-    import os
-
     ctx = multiprocessing.get_context('spawn' if os.name == 'nt' else 'fork')
 
     exception = ctx.Queue()
@@ -632,8 +627,7 @@ def subprocess_context(test_func):
         p.start()
         p.join()
         result = exception.get()
-        if result:
-            # coverage: ignore
+        if result:  # pragma: no cover
             ex_type, msg, ex_trace = result
             if ex_type == "Skipped":
                 warnings.warn(f"Skipping: {ex_type}: {msg}\n{ex_trace}")
@@ -722,21 +716,12 @@ def test_metadata_search_path():
     subprocess_context(_test_metadata_search_path_inner)()
 
 
-def _test_metadata_search_path_inner():
+def _test_metadata_search_path_inner():  # pragma: no cover
     # initialize the DeprecatedModuleFinders
     # pylint: disable=unused-import
     import cirq.testing._compat_test_data.module_a
 
-    try:
-        # importlib.metadata for python 3.8+
-        # coverage: ignore
-        import importlib.metadata as m
-    except:  # coverage: ignore
-        # coverage: ignore
-        # importlib_metadata for python <3.8
-        m = pytest.importorskip("importlib_metadata")
-
-    assert m.metadata('flynt')
+    assert importlib.metadata.metadata('numpy')
 
 
 def test_metadata_distributions_after_deprecated_submodule():

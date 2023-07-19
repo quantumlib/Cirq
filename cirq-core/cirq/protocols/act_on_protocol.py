@@ -149,7 +149,7 @@ def act_on(
 
     arg_fallback = getattr(sim_state, '_act_on_fallback_', None)
     if arg_fallback is not None:
-        qubits = action.qubits if isinstance(action, ops.Operation) else qubits
+        qubits = action.qubits if is_op else qubits
         result = arg_fallback(action, qubits=qubits, allow_decompose=allow_decompose)
         if result is True:
             return

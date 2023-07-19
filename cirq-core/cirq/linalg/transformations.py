@@ -29,6 +29,8 @@ from cirq.linalg import predicates
 # user provides a different np.array([]) value.
 RaiseValueErrorIfNotProvided: np.ndarray = np.array([])
 
+_NPY_MAXDIMS = 32  # Should be changed once numpy/numpy#5744 is resolved.
+
 
 def reflection_matrix_pow(reflection_matrix: np.ndarray, exponent: float):
     """Raises a matrix with two opposing eigenvalues to a power.
@@ -399,13 +401,13 @@ def partial_trace(tensor: np.ndarray, keep_indices: Sequence[int]) -> np.ndarray
     ndim = tensor.ndim // 2
     if not all(tensor.shape[i] == tensor.shape[i + ndim] for i in range(ndim)):
         raise ValueError(
-            'Tensors must have shape (d_0,...,d_{{k-1}},d_0,...,'
-            'd_{{k-1}}) but had shape ({}).'.format(tensor.shape)
+            f'Tensors must have shape (d_0,...,d_{{k-1}},d_0,...,'
+            f'd_{{k-1}}) but had shape ({tensor.shape}).'
         )
     if not all(i < ndim for i in keep_indices):
         raise ValueError(
-            'keep_indices were {} but must be in first half, '
-            'i.e. have index less that {}.'.format(keep_indices, ndim)
+            f'keep_indices were {keep_indices} but must be in first half, '
+            f'i.e. have index less that {ndim}.'
         )
     keep_set = set(keep_indices)
     keep_map = dict(zip(keep_indices, sorted(keep_indices)))
@@ -530,8 +532,8 @@ def sub_state_vector(
 
     if not np.log2(state_vector.size).is_integer():
         raise ValueError(
-            "Input state_vector of size {} does not represent a "
-            "state over qubits.".format(state_vector.size)
+            f"Input state_vector of size {state_vector.size} does not represent a "
+            "state over qubits."
         )
 
     n_qubits = int(np.log2(state_vector.size))
@@ -572,8 +574,7 @@ def sub_state_vector(
         return default
 
     raise EntangledStateError(
-        "Input state vector could not be factored into pure state over "
-        "indices {}".format(keep_indices)
+        f"Input state vector could not be factored into pure state over indices {keep_indices}"
     )
 
 
@@ -746,3 +747,65 @@ def transpose_density_matrix_to_axis_order(t: np.ndarray, axes: Sequence[int]):
     """
     axes = list(axes) + [i + len(axes) for i in axes]
     return transpose_state_vector_to_axis_order(t, axes)
+
+
+def _volumes(shape: Sequence[int]) -> List[int]:
+    r"""Returns a list of the volume spanned by each dimension.
+
+    Given a shape=[d_0, d_1, .., d_n] the volume spanned by each dimension is
+        volume[i] = `\prod_{j=i+1}^n d_j`
+
+    Args:
+        shape: Sequence of the size of each dimension.
+
+    Returns:
+        Sequence of the volume spanned of each dimension.
+    """
+    volume = [0] * len(shape)
+    v = 1
+    for i in reversed(range(len(shape))):
+        volume[i] = v
+        v *= shape[i]
+    return volume
+
+
+def _coordinates_from_index(idx: int, volume: Sequence[int]) -> Sequence[int]:
+    ret = []
+    for v in volume:
+        ret.append(idx // v)
+        idx %= v
+    return tuple(ret)
+
+
+def _index_from_coordinates(s: Sequence[int], volume: Sequence[int]) -> int:
+    return np.dot(s, volume)
+
+
+def transpose_flattened_array(t: np.ndarray, shape: Sequence[int], axes: Sequence[int]):
+    """Transposes a flattened array.
+
+    Equivalent to np.transpose(t.reshape(shape), axes).reshape((-1,)).
+
+    Args:
+        t: flat array.
+        shape: the shape of `t` before flattening.
+        axes: permutation of range(len(shape)).
+
+    Returns:
+        Flattened transpose of `t`.
+    """
+    if len(t.shape) != 1:
+        t = t.reshape((-1,))
+    cur_volume = _volumes(shape)
+    new_volume = _volumes([shape[i] for i in axes])
+    ret = np.zeros_like(t)
+    for idx in range(t.shape[0]):
+        cell = _coordinates_from_index(idx, cur_volume)
+        new_cell = [cell[i] for i in axes]
+        ret[_index_from_coordinates(new_cell, new_volume)] = t[idx]
+    return ret
+
+
+def can_numpy_support_shape(shape: Sequence[int]) -> bool:
+    """Returns whether numpy supports the given shape or not numpy/numpy#5744."""
+    return len(shape) <= _NPY_MAXDIMS

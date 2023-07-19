@@ -1,4 +1,6 @@
 # pylint: disable=wrong-or-nonexistent-copyright-notice
+# pylint: disable=consider-using-f-string
+
 """Code to interact with GitHub API to label and auto-merge pull requests."""
 
 import datetime
@@ -173,7 +175,7 @@ def check_collaborator_has_write(
     Raises:
         RuntimeError: If the request does not return status 200 (success).
     """
-    url = "https://api.github.com/repos/{}/{}/collaborators/{}/permission" "".format(
+    url = "https://api.github.com/repos/{}/{}/collaborators/{}/permission".format(
         repo.organization, repo.name, username
     )
 
