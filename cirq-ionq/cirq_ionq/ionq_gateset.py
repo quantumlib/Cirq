@@ -87,7 +87,7 @@ class IonQTargetGateset(cirq.TwoQubitCompilationTargetGateset):
     @property
     def preprocess_transformers(self) -> List['cirq.TRANSFORMER']:
         """List of transformers which should be run before decomposing individual operations.
-       
+
         Decompose to three qubit gates because three qubit gates have different decomposition
         for all-to-all connectivity between qubits.
         """
@@ -117,7 +117,7 @@ class IonQTargetGateset(cirq.TwoQubitCompilationTargetGateset):
 
 
 def decompose_all_to_all_connect_ccz_gate(
-    ccz_gate: 'cirq.CZPowGate', qubits: Tuple['cirq.Qid', ...]
+    ccz_gate: 'cirq.CCZPowGate', qubits: Tuple['cirq.Qid', ...]
 ) -> 'cirq.OP_TREE':
     """Decomposition of all-to-all connected qubits are different from line qubits or grid qubits.
 
@@ -132,8 +132,7 @@ def decompose_all_to_all_connect_ccz_gate(
     where p = T**ccz_gate._exponent
     """
     if len(qubits) != 3:
-        raise ValueError(
-            f'Expect 3 qubits for CCZ gate, got {len(qubits)} qubits.')
+        raise ValueError(f'Expect 3 qubits for CCZ gate, got {len(qubits)} qubits.')
 
     a, b, c = qubits
 

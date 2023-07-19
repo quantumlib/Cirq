@@ -140,9 +140,8 @@ def test_decomposition_all_to_all_connectivity():
             cirq.CCZ, cirq.LineQubit.range(4)
         )
 
-    decompose_result = ionq.decompose_all_to_all_connect_ccz_gate(
-        cirq.CCZ, cirq.LineQubit.range(3)
-    )
+    decompose_result = ionq.decompose_all_to_all_connect_ccz_gate(cirq.CCZ, cirq.LineQubit.range(3))
+
     cirq.testing.assert_has_diagram(
         cirq.Circuit(decompose_result),
         """
