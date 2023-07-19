@@ -166,7 +166,7 @@ class QuantumEngineServiceClient(metaclass=QuantumEngineServiceClientMeta):
     @staticmethod
     def quantum_job_path(project: str,program: str,job: str,) -> str:
         """Returns a fully-qualified quantum_job string."""
-        return "projects/{project}/programs/{program}/jobs/{job}".format(project=project, program=program, job=job, )
+        return f"projects/{project}/programs/{program}/jobs/{job}"
 
     @staticmethod
     def parse_quantum_job_path(path: str) -> Dict[str,str]:
@@ -177,7 +177,7 @@ class QuantumEngineServiceClient(metaclass=QuantumEngineServiceClientMeta):
     @staticmethod
     def quantum_processor_path(project_id: str,processor_id: str,) -> str:
         """Returns a fully-qualified quantum_processor string."""
-        return "projects/{project_id}/processors/{processor_id}".format(project_id=project_id, processor_id=processor_id, )
+        return f"projects/{project_id}/processors/{processor_id}"
 
     @staticmethod
     def parse_quantum_processor_path(path: str) -> Dict[str,str]:
@@ -188,7 +188,7 @@ class QuantumEngineServiceClient(metaclass=QuantumEngineServiceClientMeta):
     @staticmethod
     def quantum_program_path(project: str,program: str,) -> str:
         """Returns a fully-qualified quantum_program string."""
-        return "projects/{project}/programs/{program}".format(project=project, program=program, )
+        return f"projects/{project}/programs/{program}"
 
     @staticmethod
     def parse_quantum_program_path(path: str) -> Dict[str,str]:
@@ -199,7 +199,7 @@ class QuantumEngineServiceClient(metaclass=QuantumEngineServiceClientMeta):
     @staticmethod
     def quantum_reservation_path(project_id: str,processor_id: str,reservation_id: str,) -> str:
         """Returns a fully-qualified quantum_reservation string."""
-        return "projects/{project_id}/processors/{processor_id}/reservations/{reservation_id}".format(project_id=project_id, processor_id=processor_id, reservation_id=reservation_id, )
+        return f"projects/{project_id}/processors/{processor_id}/reservations/{reservation_id}"
 
     @staticmethod
     def parse_quantum_reservation_path(path: str) -> Dict[str,str]:
@@ -210,7 +210,7 @@ class QuantumEngineServiceClient(metaclass=QuantumEngineServiceClientMeta):
     @staticmethod
     def common_billing_account_path(billing_account: str, ) -> str:
         """Returns a fully-qualified billing_account string."""
-        return "billingAccounts/{billing_account}".format(billing_account=billing_account, )
+        return f"billingAccounts/{billing_account}"
 
     @staticmethod
     def parse_common_billing_account_path(path: str) -> Dict[str,str]:
@@ -221,7 +221,7 @@ class QuantumEngineServiceClient(metaclass=QuantumEngineServiceClientMeta):
     @staticmethod
     def common_folder_path(folder: str, ) -> str:
         """Returns a fully-qualified folder string."""
-        return "folders/{folder}".format(folder=folder, )
+        return f"folders/{folder}"
 
     @staticmethod
     def parse_common_folder_path(path: str) -> Dict[str,str]:
@@ -232,7 +232,7 @@ class QuantumEngineServiceClient(metaclass=QuantumEngineServiceClientMeta):
     @staticmethod
     def common_organization_path(organization: str, ) -> str:
         """Returns a fully-qualified organization string."""
-        return "organizations/{organization}".format(organization=organization, )
+        return f"organizations/{organization}"
 
     @staticmethod
     def parse_common_organization_path(path: str) -> Dict[str,str]:
@@ -243,7 +243,7 @@ class QuantumEngineServiceClient(metaclass=QuantumEngineServiceClientMeta):
     @staticmethod
     def common_project_path(project: str, ) -> str:
         """Returns a fully-qualified project string."""
-        return "projects/{project}".format(project=project, )
+        return f"projects/{project}"
 
     @staticmethod
     def parse_common_project_path(path: str) -> Dict[str,str]:
@@ -254,7 +254,7 @@ class QuantumEngineServiceClient(metaclass=QuantumEngineServiceClientMeta):
     @staticmethod
     def common_location_path(project: str, location: str, ) -> str:
         """Returns a fully-qualified location string."""
-        return "projects/{project}/locations/{location}".format(project=project, location=location, )
+        return f"projects/{project}/locations/{location}"
 
     @staticmethod
     def parse_common_location_path(path: str) -> Dict[str,str]:

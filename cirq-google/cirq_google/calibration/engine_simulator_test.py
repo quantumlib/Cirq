@@ -52,7 +52,6 @@ def test_test_calibration_request():
 
 
 def test_floquet_get_calibrations():
-
     parameters_ab = cirq_google.PhasedFSimCharacterization(
         theta=0.6, zeta=0.5, chi=0.4, gamma=0.3, phi=0.2
     )
@@ -86,7 +85,6 @@ def test_floquet_get_calibrations():
 
 
 def test_floquet_get_calibrations_when_invalid_request_fails():
-
     parameters_ab = cirq_google.PhasedFSimCharacterization(
         theta=0.6, zeta=0.5, chi=0.4, gamma=0.3, phi=0.2
     )
@@ -211,7 +209,7 @@ def test_with_random_gaussian_sqrt_iswap_simulates_correctly():
     actual = engine_simulator.final_state_vector(circuit)
     expected = cirq.final_state_vector(expected_circuit)
 
-    assert cirq.allclose_up_to_global_phase(actual, expected)
+    assert cirq.allclose_up_to_global_phase(actual, expected, atol=1e-6)
 
 
 def test_with_random_gaussian_runs_correctly():

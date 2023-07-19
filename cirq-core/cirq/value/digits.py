@@ -182,8 +182,8 @@ def big_endian_int_to_digits(
     if val:
         raise ValueError(
             'Out of range. '
-            'Extracted digits {!r} but the long division process '
-            'left behind {!r} instead of 0.'.format(result, val)
+            f'Extracted digits {result!r} but the long division process '
+            f'left behind {val!r} instead of 0.'
         )
 
     return result[::-1]

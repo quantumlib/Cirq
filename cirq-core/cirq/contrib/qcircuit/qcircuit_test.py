@@ -33,17 +33,13 @@ def assert_has_qcircuit_diagram(actual: cirq.Circuit, desired: str, **kwargs) ->
         "Circuit's qcircuit diagram differs from the desired diagram.\n"
         '\n'
         'Diagram of actual circuit:\n'
-        '{}\n'
+        f'{actual_diagram}\n'
         '\n'
         'Desired qcircuit diagram:\n'
-        '{}\n'
+        f'{desired_diagram}\n'
         '\n'
         'Highlighted differences:\n'
-        '{}\n'.format(
-            actual_diagram,
-            desired_diagram,
-            ct.highlight_text_differences(actual_diagram, desired_diagram),
-        )
+        f'{ct.highlight_text_differences(actual_diagram, desired_diagram)}\n'
     )
 
 

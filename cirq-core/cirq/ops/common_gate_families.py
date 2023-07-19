@@ -37,9 +37,8 @@ class AnyUnitaryGateFamily(gateset.GateFamily):
 
         self._num_qubits = num_qubits
         name = f'{str(num_qubits) if num_qubits else "Any"}-Qubit UnitaryGateFamily'
-        description = 'Accepts any {}unitary gate'.format(
-            f'{num_qubits}-qubit ' if num_qubits else ''
-        )
+        kind = f'{num_qubits}-qubit ' if num_qubits else ''
+        description = f'Accepts any {kind}unitary gate'
         super().__init__(raw_types.Gate, name=name, description=description)
 
     def _predicate(self, g: raw_types.Gate) -> bool:

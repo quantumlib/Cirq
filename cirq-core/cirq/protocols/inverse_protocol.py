@@ -115,9 +115,9 @@ def inverse(val: Any, default: Any = RaiseTypeErrorIfNotProvided) -> Any:
     if default is not RaiseTypeErrorIfNotProvided:
         return default
     raise TypeError(
-        "object of type '{}' isn't invertible. "
+        f"object of type '{type(val)}' isn't invertible. "
         "It has no __pow__ method (or the method returned NotImplemented) "
-        "and it isn't an iterable of invertible objects.".format(type(val))
+        "and it isn't an iterable of invertible objects."
     )
 
 

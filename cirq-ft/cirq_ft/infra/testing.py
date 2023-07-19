@@ -14,7 +14,7 @@
 
 from dataclasses import dataclass
 from typing import Any, Dict, List, Sequence, Tuple
-
+from numpy.typing import NDArray
 import cirq
 import numpy as np
 from cirq._compat import cached_property
@@ -42,7 +42,7 @@ class GateHelper:
         return self.gate.registers
 
     @cached_property
-    def quregs(self) -> Dict[str, List[cirq.Qid]]:
+    def quregs(self) -> Dict[str, NDArray[cirq.Qid]]:  # type: ignore[type-var]
         """A dictionary of named qubits appropriate for the registers for the gate."""
         return self.r.get_named_qubits()
 
