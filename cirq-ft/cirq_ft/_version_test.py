@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Define version number here, read it from setup.py automatically"""
+import cirq_ft
 
-__version__ = "1.3.0.dev"
+
+def test_version():
+    assert cirq_ft.__version__ == "1.3.0.dev"
