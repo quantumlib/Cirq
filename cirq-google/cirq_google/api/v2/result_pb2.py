@@ -11,7 +11,7 @@ from google.protobuf.internal import builder as _builder
 _sym_db = _symbol_database.Default()
 
 
-from . import program_pb2 as cirq__google_dot_api_dot_v2_dot_program__pb2
+from cirq_google.api.v2 import program_pb2 as cirq__google_dot_api_dot_v2_dot_program__pb2
 
 
 DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x1f\x63irq_google/api/v2/result.proto\x12\x12\x63irq.google.api.v2\x1a cirq_google/api/v2/program.proto\"@\n\x06Result\x12\x36\n\rsweep_results\x18\x01 \x03(\x0b\x32\x1f.cirq.google.api.v2.SweepResult\"j\n\x0bSweepResult\x12\x13\n\x0brepetitions\x18\x01 \x01(\x05\x12\x46\n\x15parameterized_results\x18\x02 \x03(\x0b\x32\'.cirq.google.api.v2.ParameterizedResult\"\x8c\x01\n\x13ParameterizedResult\x12\x31\n\x06params\x18\x01 \x01(\x0b\x32!.cirq.google.api.v2.ParameterDict\x12\x42\n\x13measurement_results\x18\x02 \x03(\x0b\x32%.cirq.google.api.v2.MeasurementResult\"\x82\x01\n\x11MeasurementResult\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\x11\n\tinstances\x18\x03 \x01(\x05\x12M\n\x19qubit_measurement_results\x18\x02 \x03(\x0b\x32*.cirq.google.api.v2.QubitMeasurementResult\"S\n\x16QubitMeasurementResult\x12(\n\x05qubit\x18\x01 \x01(\x0b\x32\x19.cirq.google.api.v2.Qubit\x12\x0f\n\x07results\x18\x02 \x01(\x0c\"\x8c\x01\n\rParameterDict\x12G\n\x0b\x61ssignments\x18\x01 \x03(\x0b\x32\x32.cirq.google.api.v2.ParameterDict.AssignmentsEntry\x1a\x32\n\x10\x41ssignmentsEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\x02:\x02\x38\x01\x42.\n\x1d\x63om.google.cirq.google.api.v2B\x0bResultProtoP\x01\x62\x06proto3')
