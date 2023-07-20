@@ -25,7 +25,7 @@ def test_kitaev_phase_estimation_trivial():
     theta = 0
     U = cirq.I
     precision_registers = cirq.NamedQubit.range(precision, prefix='c')
-    op = KitaevPhaseEstimation(precision, 1, U, cirq.X).on_registers(
+    op = KitaevPhaseEstimation(precision, U, cirq.X).on_registers(
         bits_of_precision_register=precision_registers, eigenvector_register=[cirq.q('ev')]
     )
     assert abs(simulate_theta_estimate(op, precision_registers) - theta) < error_bound
@@ -35,7 +35,7 @@ def test_kitaev_phase_estimation_trivial():
 def test_kitaev_phase_estimation_theta(theta):
     U = cirq.Z ** (2 * theta)
     precision_register = cirq.NamedQubit.range(precision, prefix='c')
-    op = KitaevPhaseEstimation(precision, 1, U, cirq.X).on_registers(
+    op = KitaevPhaseEstimation(precision, U, cirq.X).on_registers(
         bits_of_precision_register=precision_register, eigenvector_register=[cirq.q('ev')]
     )
     assert abs(simulate_theta_estimate(op, precision_register) - theta) < error_bound

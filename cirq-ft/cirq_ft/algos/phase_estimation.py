@@ -25,8 +25,7 @@ class KitaevPhaseEstimation(infra.GateWithRegisters):
     Kitaev in https://arxiv.org/abs/quant-ph/9511026."""
 
     precision: int
-    eigenvector_bitsize: int
-    U: infra.GateWithRegisters
+    U: cirq.Gate
     eigenvector_prep: Optional[infra.GateWithRegisters] = None
 
     @cached_property
@@ -34,6 +33,10 @@ class KitaevPhaseEstimation(infra.GateWithRegisters):
         return infra.Registers.build(
             bits_of_precision_register=self.precision, eigenvector_register=self.eigenvector_bitsize
         )
+
+    @cached_property
+    def eigenvector_bitsize(self):
+        return self.U.num_qubits()
 
     def qft_inverse(self, qubits):
         """Generator for the inverse QFT on a list of qubits."""
