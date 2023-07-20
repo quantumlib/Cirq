@@ -286,6 +286,7 @@ message ArgValue {
     double double_value = 4;
     RepeatedInt64 int64_values = 5;
     RepeatedDouble double_values = 6;
+    RepeatedString string_values = 7;
   }
 }
 
@@ -297,7 +298,10 @@ message RepeatedInt64 {
 message RepeatedDouble {
   repeated double values = 1;
 }
-
+// A repeated string value.
+message RepeatedString {
+  repeated string values = 1;
+}
 // A repeated boolean value.
 message RepeatedBoolean {
   repeated bool values = 1;

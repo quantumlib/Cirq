@@ -686,6 +686,7 @@ class ArgValue(google.protobuf.message.Message):
     DOUBLE_VALUE_FIELD_NUMBER: builtins.int
     INT64_VALUES_FIELD_NUMBER: builtins.int
     DOUBLE_VALUES_FIELD_NUMBER: builtins.int
+    STRING_VALUES_FIELD_NUMBER: builtins.int
     float_value: builtins.float
     @property
     def bool_values(self) -> global___RepeatedBoolean: ...
@@ -695,6 +696,8 @@ class ArgValue(google.protobuf.message.Message):
     def int64_values(self) -> global___RepeatedInt64: ...
     @property
     def double_values(self) -> global___RepeatedDouble: ...
+    @property
+    def string_values(self) -> global___RepeatedString: ...
     def __init__(
         self,
         *,
@@ -704,10 +707,11 @@ class ArgValue(google.protobuf.message.Message):
         double_value: builtins.float = ...,
         int64_values: global___RepeatedInt64 | None = ...,
         double_values: global___RepeatedDouble | None = ...,
+        string_values: global___RepeatedString | None = ...,
     ) -> None: ...
-    def HasField(self, field_name: typing_extensions.Literal["arg_value", b"arg_value", "bool_values", b"bool_values", "double_value", b"double_value", "double_values", b"double_values", "float_value", b"float_value", "int64_values", b"int64_values", "string_value", b"string_value"]) -> builtins.bool: ...
-    def ClearField(self, field_name: typing_extensions.Literal["arg_value", b"arg_value", "bool_values", b"bool_values", "double_value", b"double_value", "double_values", b"double_values", "float_value", b"float_value", "int64_values", b"int64_values", "string_value", b"string_value"]) -> None: ...
-    def WhichOneof(self, oneof_group: typing_extensions.Literal["arg_value", b"arg_value"]) -> typing_extensions.Literal["float_value", "bool_values", "string_value", "double_value", "int64_values", "double_values"] | None: ...
+    def HasField(self, field_name: typing_extensions.Literal["arg_value", b"arg_value", "bool_values", b"bool_values", "double_value", b"double_value", "double_values", b"double_values", "float_value", b"float_value", "int64_values", b"int64_values", "string_value", b"string_value", "string_values", b"string_values"]) -> builtins.bool: ...
+    def ClearField(self, field_name: typing_extensions.Literal["arg_value", b"arg_value", "bool_values", b"bool_values", "double_value", b"double_value", "double_values", b"double_values", "float_value", b"float_value", "int64_values", b"int64_values", "string_value", b"string_value", "string_values", b"string_values"]) -> None: ...
+    def WhichOneof(self, oneof_group: typing_extensions.Literal["arg_value", b"arg_value"]) -> typing_extensions.Literal["float_value", "bool_values", "string_value", "double_value", "int64_values", "double_values", "string_values"] | None: ...
 
 global___ArgValue = ArgValue
 
@@ -744,6 +748,23 @@ class RepeatedDouble(google.protobuf.message.Message):
     def ClearField(self, field_name: typing_extensions.Literal["values", b"values"]) -> None: ...
 
 global___RepeatedDouble = RepeatedDouble
+
+class RepeatedString(google.protobuf.message.Message):
+    """A repeated string value."""
+
+    DESCRIPTOR: google.protobuf.descriptor.Descriptor
+
+    VALUES_FIELD_NUMBER: builtins.int
+    @property
+    def values(self) -> google.protobuf.internal.containers.RepeatedScalarFieldContainer[builtins.str]: ...
+    def __init__(
+        self,
+        *,
+        values: collections.abc.Iterable[builtins.str] | None = ...,
+    ) -> None: ...
+    def ClearField(self, field_name: typing_extensions.Literal["values", b"values"]) -> None: ...
+
+global___RepeatedString = RepeatedString
 
 class RepeatedBoolean(google.protobuf.message.Message):
     """A repeated boolean value."""

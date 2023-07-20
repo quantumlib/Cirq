@@ -33,7 +33,7 @@ SUPPORTED_SYMPY_OPS = (sympy.Symbol, sympy.Add, sympy.Mul, sympy.Pow)
 
 # Argument types for gates.
 ARG_LIKE = Union[int, float, numbers.Real, Sequence[bool], str, sympy.Expr]
-ARG_RETURN_LIKE = Union[float, int, str, List[bool], sympy.Expr]
+ARG_RETURN_LIKE = Union[float, int, str, List[bool], List[int], List[float], List[str], sympy.Expr]
 FLOAT_ARG_LIKE = Union[float, sympy.Expr]
 
 # Types for comparing floats
@@ -160,6 +160,8 @@ def arg_to_proto(
         isinstance(x, (float, np.floating)) for x in value
     ):
         msg.arg_value.double_values.values.extend([float(x) for x in value])
+    elif isinstance(value, (list, tuple, np.ndarray)) and all(isinstance(x, str) for x in value):
+        msg.arg_value.string_values.values.extend(value)
     else:
         _arg_func_to_proto(value, arg_function_language, msg)
 
@@ -305,6 +307,8 @@ def arg_from_proto(
             return [int(v) for v in arg_value.int64_values.values]
         if which_val == 'double_values':
             return [float(v) for v in arg_value.double_values.values]
+        if which_val == 'string_values':
+            return [str(v) for v in arg_value.string_values.values]
         raise ValueError(f'Unrecognized value type: {which_val!r}')
 
     if which == 'symbol':
@@ -383,20 +387,49 @@ def _arg_func_from_proto(
 
 
 def internal_gate_arg_to_proto(
-    g: InternalGate, *, out: Optional[v2.program_pb2.InternalGate] = None
+    value: InternalGate, *, out: Optional[v2.program_pb2.InternalGate] = None
 ):
+    """Writes an InternalGate object into an InternalGate proto.
+
+    Args:
+        value: The gate to encode.
+        arg_function_language: The language to use when encoding functions. If
+            this is set to None, it will be set to the minimal language
+            necessary to support the features that were actually used.
+        out: The proto to write the result into. Defaults to a new instance.
+
+    Returns:
+        The proto that was written into.
+    """
     msg = v2.program_pb2.InternalGate() if out is None else out
-    msg.name = g.gate_name
-    msg.module = g.gate_module
-    msg.num_qubits = g.num_qubits()
-    for k, v in g.gate_args:
+    msg.name = value.gate_name
+    msg.module = value.gate_module
+    msg.num_qubits = value.num_qubits()
+    for k, v in value.gate_args.items():
         arg_to_proto(value=v, out=msg.gate_args[k])
 
+    return msg
 
-def internal_gate_from_proto(msg: v2.program_pb2.InternalGate) -> InternalGate:
+
+def internal_gate_from_proto(
+    msg: v2.program_pb2.InternalGate, arg_function_language: str
+) -> InternalGate:
+    """Extracts an InternalGate object from an InternalGate proto.
+
+    Args:
+        msg: The proto containing a serialized value.
+        arg_function_language: The `arg_function_language` field from
+            `Program.Language`.
+
+    Returns:
+        The deserialized InternalGate object.
+
+    Raises:
+        ValueError: On failure to parse any of the gate arguments.
+    """
     gate_args = {}
-    for k, v in msg.gate_args:
-        gate_args[k] = arg_from_proto(v)
+    for k, v in msg.gate_args.items():
+        gate_args[k] = arg_from_proto(v, arg_function_language=arg_function_language)
     return InternalGate(
         gate_name=str(msg.name),
         gate_module=str(msg.module),
