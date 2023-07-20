@@ -24,7 +24,7 @@ class _CalibrationLayerCode:
     ValueType = typing.NewType("ValueType", builtins.int)
     V: typing_extensions.TypeAlias = ValueType
 
-class _CalibrationLayerCodeEnumTypeWrapper(google.protobuf.internal.enum_type_wrapper._EnumTypeWrapper[_CalibrationLayerCode.ValueType], builtins.type):
+class _CalibrationLayerCodeEnumTypeWrapper(google.protobuf.internal.enum_type_wrapper._EnumTypeWrapper[_CalibrationLayerCode.ValueType], builtins.type):  # noqa: F821
     DESCRIPTOR: google.protobuf.descriptor.EnumDescriptor
     CALIBRATION_RESULT_UNSPECIFIED: _CalibrationLayerCode.ValueType  # 0
     """Zero is a default value and means the value was unknown or unset."""
@@ -68,7 +68,6 @@ needed by the calibration did not exist.
 """
 global___CalibrationLayerCode = CalibrationLayerCode
 
-@typing_extensions.final
 class FocusedCalibration(google.protobuf.message.Message):
     """ This message represents a request to execute a custom calibration routine."""
 
@@ -96,7 +95,6 @@ class FocusedCalibration(google.protobuf.message.Message):
 
 global___FocusedCalibration = FocusedCalibration
 
-@typing_extensions.final
 class CalibrationLayer(google.protobuf.message.Message):
     """Each CalibrationLayer represents one invocation
     of a calibration procedure.
@@ -104,7 +102,6 @@ class CalibrationLayer(google.protobuf.message.Message):
 
     DESCRIPTOR: google.protobuf.descriptor.Descriptor
 
-    @typing_extensions.final
     class ArgsEntry(google.protobuf.message.Message):
         DESCRIPTOR: google.protobuf.descriptor.Descriptor
 
@@ -155,7 +152,6 @@ class CalibrationLayer(google.protobuf.message.Message):
 
 global___CalibrationLayer = CalibrationLayer
 
-@typing_extensions.final
 class FocusedCalibrationResult(google.protobuf.message.Message):
     """The results returned by a FocusedCalibration request."""
 
@@ -178,7 +174,6 @@ class FocusedCalibrationResult(google.protobuf.message.Message):
 
 global___FocusedCalibrationResult = FocusedCalibrationResult
 
-@typing_extensions.final
 class CalibrationLayerResult(google.protobuf.message.Message):
     DESCRIPTOR: google.protobuf.descriptor.Descriptor
 

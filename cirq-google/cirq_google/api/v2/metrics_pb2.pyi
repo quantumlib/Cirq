@@ -16,7 +16,6 @@ else:
 
 DESCRIPTOR: google.protobuf.descriptor.FileDescriptor
 
-@typing_extensions.final
 class MetricsSnapshot(google.protobuf.message.Message):
     """A snapshot of the performance metrics for a quantum processor at a
     particular time.
@@ -44,7 +43,6 @@ class MetricsSnapshot(google.protobuf.message.Message):
 
 global___MetricsSnapshot = MetricsSnapshot
 
-@typing_extensions.final
 class Metric(google.protobuf.message.Message):
     """The actual metrics."""
 
@@ -79,7 +77,6 @@ class Metric(google.protobuf.message.Message):
 
 global___Metric = Metric
 
-@typing_extensions.final
 class Value(google.protobuf.message.Message):
     """A generic metric value."""
 
