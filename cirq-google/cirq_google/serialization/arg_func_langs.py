@@ -142,7 +142,7 @@ def arg_to_proto(
         that was used.
 
     Raises:
-        ValueError if the object holds unsupported values.
+        ValueError: if the object holds unsupported values.
     """
     msg = v2.program_pb2.Arg() if out is None else out
 
