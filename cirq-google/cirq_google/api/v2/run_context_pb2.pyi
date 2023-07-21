@@ -18,6 +18,7 @@ else:
 
 DESCRIPTOR: google.protobuf.descriptor.FileDescriptor
 
+@typing_extensions.final
 class RunContext(google.protobuf.message.Message):
     """The context for running a quantum program."""
 
@@ -36,6 +37,7 @@ class RunContext(google.protobuf.message.Message):
 
 global___RunContext = RunContext
 
+@typing_extensions.final
 class ParameterSweep(google.protobuf.message.Message):
     """Specifies how to repeatedly sample a circuit, with or without sweeping over
     varying parameter-dicts.
@@ -69,6 +71,7 @@ class ParameterSweep(google.protobuf.message.Message):
 
 global___ParameterSweep = ParameterSweep
 
+@typing_extensions.final
 class Sweep(google.protobuf.message.Message):
     """A sweep over all of the parameters in a program."""
 
@@ -92,6 +95,7 @@ class Sweep(google.protobuf.message.Message):
 
 global___Sweep = Sweep
 
+@typing_extensions.final
 class SweepFunction(google.protobuf.message.Message):
     """A function that takes multiple sweeps and produces more sweeps."""
 
@@ -190,6 +194,7 @@ class SweepFunction(google.protobuf.message.Message):
 
 global___SweepFunction = SweepFunction
 
+@typing_extensions.final
 class DeviceParameter(google.protobuf.message.Message):
     DESCRIPTOR: google.protobuf.descriptor.Descriptor
 
@@ -216,6 +221,7 @@ class DeviceParameter(google.protobuf.message.Message):
 
 global___DeviceParameter = DeviceParameter
 
+@typing_extensions.final
 class SingleSweep(google.protobuf.message.Message):
     """A set of values to loop over for a particular parameter."""
 
@@ -254,6 +260,7 @@ class SingleSweep(google.protobuf.message.Message):
 
 global___SingleSweep = SingleSweep
 
+@typing_extensions.final
 class Points(google.protobuf.message.Message):
     """A list of explicit values."""
 
@@ -272,6 +279,7 @@ class Points(google.protobuf.message.Message):
 
 global___Points = Points
 
+@typing_extensions.final
 class Linspace(google.protobuf.message.Message):
     """A range of evenly-spaced values.
 

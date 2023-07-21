@@ -18,6 +18,7 @@ else:
 
 DESCRIPTOR: google.protobuf.descriptor.FileDescriptor
 
+@typing_extensions.final
 class DeviceSpecification(google.protobuf.message.Message):
     """This contains information about a device that includes the
     qubits on the device, supported gates, connections, and timing.
@@ -72,6 +73,7 @@ class DeviceSpecification(google.protobuf.message.Message):
 
 global___DeviceSpecification = DeviceSpecification
 
+@typing_extensions.final
 class GateSpecification(google.protobuf.message.Message):
     """This contains information about a single device gate.
     Replaces `GateDefinition`.
@@ -79,6 +81,7 @@ class GateSpecification(google.protobuf.message.Message):
 
     DESCRIPTOR: google.protobuf.descriptor.Descriptor
 
+    @typing_extensions.final
     class Sycamore(google.protobuf.message.Message):
         """Gate types available to Google devices.
         Future gates may have parameter constraints that are frequently updated.
@@ -92,6 +95,7 @@ class GateSpecification(google.protobuf.message.Message):
             self,
         ) -> None: ...
 
+    @typing_extensions.final
     class SqrtISwap(google.protobuf.message.Message):
         DESCRIPTOR: google.protobuf.descriptor.Descriptor
 
@@ -99,6 +103,7 @@ class GateSpecification(google.protobuf.message.Message):
             self,
         ) -> None: ...
 
+    @typing_extensions.final
     class SqrtISwapInv(google.protobuf.message.Message):
         DESCRIPTOR: google.protobuf.descriptor.Descriptor
 
@@ -106,6 +111,7 @@ class GateSpecification(google.protobuf.message.Message):
             self,
         ) -> None: ...
 
+    @typing_extensions.final
     class CZ(google.protobuf.message.Message):
         DESCRIPTOR: google.protobuf.descriptor.Descriptor
 
@@ -113,6 +119,7 @@ class GateSpecification(google.protobuf.message.Message):
             self,
         ) -> None: ...
 
+    @typing_extensions.final
     class PhasedXZ(google.protobuf.message.Message):
         DESCRIPTOR: google.protobuf.descriptor.Descriptor
 
@@ -120,6 +127,7 @@ class GateSpecification(google.protobuf.message.Message):
             self,
         ) -> None: ...
 
+    @typing_extensions.final
     class VirtualZPow(google.protobuf.message.Message):
         DESCRIPTOR: google.protobuf.descriptor.Descriptor
 
@@ -127,6 +135,7 @@ class GateSpecification(google.protobuf.message.Message):
             self,
         ) -> None: ...
 
+    @typing_extensions.final
     class PhysicalZPow(google.protobuf.message.Message):
         DESCRIPTOR: google.protobuf.descriptor.Descriptor
 
@@ -134,6 +143,7 @@ class GateSpecification(google.protobuf.message.Message):
             self,
         ) -> None: ...
 
+    @typing_extensions.final
     class CouplerPulse(google.protobuf.message.Message):
         DESCRIPTOR: google.protobuf.descriptor.Descriptor
 
@@ -141,6 +151,7 @@ class GateSpecification(google.protobuf.message.Message):
             self,
         ) -> None: ...
 
+    @typing_extensions.final
     class Measurement(google.protobuf.message.Message):
         DESCRIPTOR: google.protobuf.descriptor.Descriptor
 
@@ -148,6 +159,7 @@ class GateSpecification(google.protobuf.message.Message):
             self,
         ) -> None: ...
 
+    @typing_extensions.final
     class Wait(google.protobuf.message.Message):
         DESCRIPTOR: google.protobuf.descriptor.Descriptor
 
@@ -211,6 +223,7 @@ class GateSpecification(google.protobuf.message.Message):
 
 global___GateSpecification = GateSpecification
 
+@typing_extensions.final
 class GateSet(google.protobuf.message.Message):
     DESCRIPTOR: google.protobuf.descriptor.Descriptor
 
@@ -231,6 +244,7 @@ class GateSet(google.protobuf.message.Message):
 
 global___GateSet = GateSet
 
+@typing_extensions.final
 class GateDefinition(google.protobuf.message.Message):
     DESCRIPTOR: google.protobuf.descriptor.Descriptor
 
@@ -271,6 +285,7 @@ class GateDefinition(google.protobuf.message.Message):
 
 global___GateDefinition = GateDefinition
 
+@typing_extensions.final
 class ArgDefinition(google.protobuf.message.Message):
     """A description of an argument to an operation."""
 
@@ -324,6 +339,7 @@ class ArgDefinition(google.protobuf.message.Message):
 
 global___ArgDefinition = ArgDefinition
 
+@typing_extensions.final
 class ArgumentRange(google.protobuf.message.Message):
     """Minimum value is inclusive and maximum value is exclusive.
     If minimum and maximum values are the same, only a single value is allowed.
@@ -345,6 +361,7 @@ class ArgumentRange(google.protobuf.message.Message):
 
 global___ArgumentRange = ArgumentRange
 
+@typing_extensions.final
 class TargetSet(google.protobuf.message.Message):
     """A list of targets that are valid for a set of gates.
     For instance, all qubit pairs that can be acted on by a 2-qubit gate
@@ -425,6 +442,7 @@ class TargetSet(google.protobuf.message.Message):
 
 global___TargetSet = TargetSet
 
+@typing_extensions.final
 class Target(google.protobuf.message.Message):
     """A description of a valid target of a multi-qubit gate operation
     For most Google devices, this will be a pair of qubit ids.

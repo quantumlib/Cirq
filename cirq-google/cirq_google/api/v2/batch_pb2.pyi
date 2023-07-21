@@ -19,6 +19,7 @@ else:
 
 DESCRIPTOR: google.protobuf.descriptor.FileDescriptor
 
+@typing_extensions.final
 class BatchProgram(google.protobuf.message.Message):
     """A Batch of multiple circuits that should be run together
     as one QuantumProgram within Quantum Engine.
@@ -44,6 +45,7 @@ class BatchProgram(google.protobuf.message.Message):
 
 global___BatchProgram = BatchProgram
 
+@typing_extensions.final
 class BatchRunContext(google.protobuf.message.Message):
     """A batch of contexts for running a bundled batch of programs
     To be used in conjunction with BatchProgram
@@ -71,6 +73,7 @@ class BatchRunContext(google.protobuf.message.Message):
 
 global___BatchRunContext = BatchRunContext
 
+@typing_extensions.final
 class BatchResult(google.protobuf.message.Message):
     """The result returned from running a BatchProgram/BatchRunContext"""
 
