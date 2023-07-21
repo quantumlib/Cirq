@@ -140,6 +140,9 @@ def arg_to_proto(
     Returns:
         The proto that was written into as well as the `arg_function_language`
         that was used.
+
+    Raises:
+        ValueError if the object holds unsupported values.
     """
     msg = v2.program_pb2.Arg() if out is None else out
 
@@ -147,21 +150,39 @@ def arg_to_proto(
         msg.arg_value.float_value = float(value)
     elif isinstance(value, str):
         msg.arg_value.string_value = value
-    elif isinstance(value, (list, tuple, np.ndarray)) and all(
-        isinstance(x, (bool, np.bool_)) for x in value
-    ):
-        # Some protobuf / numpy combinations do not support np.bool_, so cast.
-        msg.arg_value.bool_values.values.extend([bool(x) for x in value])
-    elif isinstance(value, (list, tuple, np.ndarray)) and all(
-        isinstance(x, (int, np.integer)) for x in value
-    ):
-        msg.arg_value.int64_values.values.extend([int(x) for x in value])
-    elif isinstance(value, (list, tuple, np.ndarray)) and all(
-        isinstance(x, (float, np.floating)) for x in value
-    ):
-        msg.arg_value.double_values.values.extend([float(x) for x in value])
-    elif isinstance(value, (list, tuple, np.ndarray)) and all(isinstance(x, str) for x in value):
-        msg.arg_value.string_values.values.extend(value)
+    elif isinstance(value, (list, tuple, np.ndarray)):
+        if len(value):
+            if isinstance(value[0], str):
+                if not all(isinstance(x, str) for x in value):
+                    raise ValueError('Sequences of mixed object types are not supported')
+                msg.arg_value.string_values.values.extend(str(x) for x in value)
+            else:
+                # This is a numerical field.
+                numerical_fields = [
+                    [msg.arg_value.bool_values.values, (bool, np.bool_)],
+                    [msg.arg_value.int64_values.values, (int, np.integer, bool)],
+                    [
+                        msg.arg_value.double_values.values,
+                        (float, np.floating, int, np.integer, bool),
+                    ],
+                ]
+                cur_index = 0
+                non_numerical = None
+                for v in value:
+                    while cur_index < len(numerical_fields) and not isinstance(
+                        v, numerical_fields[cur_index][1]
+                    ):
+                        cur_index += 1
+                    if cur_index == len(numerical_fields):
+                        non_numerical = v
+                        break
+
+                if non_numerical is not None:
+                    raise ValueError(
+                        f'Sequences of objects of type {type(non_numerical)} are not supported'
+                    )
+                field, types_tuple = numerical_fields[cur_index]
+                field.extend(types_tuple[0](x) for x in value)
     else:
         _arg_func_to_proto(value, arg_function_language, msg)
 

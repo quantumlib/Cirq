@@ -224,7 +224,7 @@ def test_invalid_float_arg():
         )
 
 
-@pytest.mark.parametrize('rotation_angles_arg', [{}, {'rotation_angles': [1, 3]}])
+@pytest.mark.parametrize('rotation_angles_arg', [{}, {'rotation_angles': [0.1, 0.3]}])
 @pytest.mark.parametrize('qid_shape_arg', [{}, {'qid_shape': [2, 2]}])
 @pytest.mark.parametrize('tags_arg', [{}, {'tags': ['test1', 'test2']}])
 @pytest.mark.parametrize('lang', LANGUAGE_ORDER)
@@ -241,3 +241,11 @@ def test_internal_gate_serialization(rotation_angles_arg, qid_shape_arg, tags_ar
     internal_gate_arg_to_proto(g, out=proto)
     v = internal_gate_from_proto(proto, lang)
     assert g == v
+
+
+def test_invalid_list():
+    with pytest.raises(ValueError):
+        _ = arg_to_proto(['', 1])
+
+    with pytest.raises(ValueError):
+        _ = arg_to_proto([1.0, ''])
