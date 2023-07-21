@@ -161,10 +161,7 @@ def arg_to_proto(
                 numerical_fields = [
                     [msg.arg_value.bool_values.values, (bool, np.bool_)],
                     [msg.arg_value.int64_values.values, (int, np.integer, bool)],
-                    [
-                        msg.arg_value.double_values.values,
-                        (float, np.floating, int, np.integer, bool),
-                    ],
+                    [msg.arg_value.double_values.values, (float, np.floating, int, bool)],
                 ]
                 cur_index = 0
                 non_numerical = None
