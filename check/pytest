@@ -22,7 +22,7 @@ PYTEST_ARGS=( "-n=auto" "$@" )
 
 source dev_tools/pypath
 
-pytest "${PYTEST_ARGS[@]}"
+pytest --randomly-seed=2803633978 "${PYTEST_ARGS[@]}"
 RESULT=$?
 
 if [ "$RESULT" = 5 ]; then

@@ -78,4 +78,4 @@ fi
 
 source dev_tools/pypath
 
-pytest "${rest[@]}" "${changed[@]}"
+pytest --randomly-seed=2803633978 "${rest[@]}" "${changed[@]}"
