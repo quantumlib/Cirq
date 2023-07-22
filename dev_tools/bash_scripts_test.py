@@ -76,6 +76,8 @@ chmod +x ./test-script.sh
     )
 
 
+# TODO(#6215) - remove this skip
+@pytest.mark.skip(reason="skip while using fixed randomly-seed")
 @only_on_posix
 def test_pytest_changed_files_file_selection(tmpdir_factory):
     result = run(
