@@ -8,7 +8,7 @@ pytest-randomly
 coverage<=6.2
 
 # for parallel testing notebooks
-pytest-xdist~=2.2.0
+pytest-xdist~=3.3.0
 filelock~=3.0.12
 
 # For testing time specific logic

@@ -28,7 +28,7 @@ jobs:
       - name: Install requirements
         run: pip install -r dev_tools/requirements/isolated-base.env.txt
       - name: Notebook tests
-        run: check/pytest -n "$(nproc)" -m weekly dev_tools/notebooks/isolated_notebook_test.py -k ${{matrix.partition}}
+        run: check/pytest -n logical -m weekly dev_tools/notebooks/isolated_notebook_test.py -k ${{matrix.partition}}
       - uses: actions/upload-artifact@v2
         if: failure()
         with:

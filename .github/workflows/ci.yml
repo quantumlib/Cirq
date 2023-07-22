@@ -79,7 +79,7 @@ jobs:
       - name: Install changed files test dependencies
         run: dev_tools/conf/pip-install-minimal-for-pytest-changed-files.sh
       - name: Changed files test
-        run: check/pytest-changed-files -n "$(nproc)"
+        run: check/pytest-changed-files -n logical
   lint:
     name: Lint check
     runs-on: ubuntu-20.04
@@ -168,7 +168,7 @@ jobs:
       - name: Run Quil dependencies
         run: docker-compose -f cirq-rigetti/docker-compose.test.yaml up -d
       - name: Pytest check
-        run: check/pytest -n "$(nproc)" --ignore=cirq-core/cirq/contrib --rigetti-integration
+        run: check/pytest -n logical --ignore=cirq-core/cirq/contrib --rigetti-integration
       - name: Stop Quil dependencies
         run: docker-compose -f cirq-rigetti/docker-compose.test.yaml down
   pip-compile:
@@ -237,7 +237,7 @@ jobs:
       - name: Run Quil dependencies
         run: docker-compose -f cirq-rigetti/docker-compose.test.yaml up -d
       - name: Coverage check
-        run: check/pytest-and-incremental-coverage -n "$(nproc)" --rigetti-integration
+        run: check/pytest-and-incremental-coverage -n logical --rigetti-integration
       - name: Stop Quil dependencies
         run: docker-compose -f cirq-rigetti/docker-compose.test.yaml down
   windows:
@@ -263,7 +263,7 @@ jobs:
       - name: Pytest Windows
         run: |
           source dev_tools/pypath
-          check/pytest -n "$(nproc)" --ignore=cirq-core/cirq/contrib
+          check/pytest -n logical --ignore=cirq-core/cirq/contrib
         shell: bash
   macos:
     name: Pytest MacOS
@@ -286,7 +286,7 @@ jobs:
           pip install wheel
           pip install --upgrade --upgrade-strategy eager -r dev_tools/requirements/no-contrib.env.txt
       - name: Pytest check
-        run: check/pytest -n "$(sysctl -n hw.logicalcpu)" --ignore=cirq-core/cirq/contrib
+        run: check/pytest -n logical --ignore=cirq-core/cirq/contrib
   notebooks-stable:
     name: Changed Notebooks Isolated Test against Cirq stable
     env:
@@ -307,7 +307,7 @@ jobs:
       - name: Install requirements
         run: pip install -r dev_tools/requirements/isolated-base.env.txt
       - name: Notebook tests
-        run: check/pytest -n "$(nproc)" -m slow dev_tools/notebooks/isolated_notebook_test.py -k ${{matrix.partition}}
+        run: check/pytest -n logical -m slow dev_tools/notebooks/isolated_notebook_test.py -k ${{matrix.partition}}
       - uses: actions/upload-artifact@v2
         if: failure()
         with:
@@ -325,7 +325,7 @@ jobs:
       - name: Install requirements
         run: pip install -r dev_tools/requirements/notebooks.env.txt
       - name: Notebook tests
-        run: check/pytest -n "$(nproc)" -m slow dev_tools/notebooks/notebook_test.py
+        run: check/pytest -n logical -m slow dev_tools/notebooks/notebook_test.py
       - uses: actions/upload-artifact@v2
         if: failure()
         with:
