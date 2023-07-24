@@ -53,6 +53,8 @@ SKIP_NOTEBOOKS = [
     'docs/tutorials/google/visualizing_calibration_metrics.ipynb',
     # shouldn't have outputs generated for style reasons
     'docs/simulate/qvm_builder_code.ipynb',
+    # Temporarily skip until numba supports higher numpy versions #6213.
+    'cirq-core/cirq/contrib/quimb/Cirq-to-Tensor-Networks.ipynb',
 ]
 
 
