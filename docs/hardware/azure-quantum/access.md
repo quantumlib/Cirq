@@ -17,7 +17,7 @@ Create an Azure Quantum Workspace and enable the hardware providers you would li
 To connect to your Workspace from Python and submit jobs with Cirq, install the `azure-quantum` client package with the optional `cirq` dependencies as follows:
 
 ```bash
-pip install azure-quantum[cirq]
+pip install 'azure-quantum[cirq]'
 ```
 
 ## 4. Next Steps
