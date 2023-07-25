@@ -112,7 +112,7 @@ def test_observable_measured_result():
     }
 
 
-@pytest.fixture()
+@pytest.fixture
 def example_bsa() -> 'cw.BitstringAccumulator':
     """Test fixture to create an (empty) example BitstringAccumulator"""
     q0, q1 = cirq.LineQubit.range(2)
