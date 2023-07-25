@@ -176,7 +176,8 @@ def arg_to_proto(
 
                 if non_numerical is not None:
                     raise ValueError(
-                        f'Mixed Sequences with objects of type {type(non_numerical)} are not supported'
+                        'Mixed Sequences with objects of type '
+                        f'{type(non_numerical)} are not supported'
                     )
                 field, types_tuple = numerical_fields[cur_index]
                 field.extend(types_tuple[0](x) for x in value)
