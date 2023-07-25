@@ -37,6 +37,6 @@ from cirq_ft.algos.reflection_using_prepare import ReflectionUsingPrepare
 from cirq_ft.algos.select_and_prepare import PrepareOracle, SelectOracle
 from cirq_ft.algos.select_swap_qrom import SelectSwapQROM
 from cirq_ft.algos.selected_majorana_fermion import SelectedMajoranaFermionGate
-from cirq_ft.algos.state_preparation import StatePreparationAliasSampling
+from cirq_ft.algos.state_preparation import StatePreparationAliasSampling, IndexedPrepare
 from cirq_ft.algos.swap_network import MultiTargetCSwap, MultiTargetCSwapApprox, SwapWithZeroGate
 from cirq_ft.algos.unary_iteration_gate import UnaryIterationGate, unary_iteration

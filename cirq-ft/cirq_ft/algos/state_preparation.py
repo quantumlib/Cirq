@@ -20,7 +20,7 @@ database) with a number of T gates scaling as 4L + O(log(1/eps)) where eps is th
 largest absolute error that one can tolerate in the prepared amplitudes.
 """
 
-from typing import List
+from typing import List, Sequence, Tuple
 from numpy.typing import NDArray
 
 import attr
@@ -180,4 +180,145 @@ class StatePreparationAliasSampling(select_and_prepare.PrepareOracle):
         )
         yield swap_network.MultiTargetCSwap.make_on(
             control=less_than_equal, target_x=alt, target_y=selection
+        )
+
+
+@cirq.value_equality()
+@attr.frozen
+class IndexedPrepare(select_and_prepare.PrepareOracle):
+    r"""Initialize a state with $L\times M$ unique coefficients using coherent alias sampling.
+
+    In particular, implement:
+
+    $$
+    (\mathrm{In}_l-\mathrm{prep}_l) |l\rangle|0\rangle = \sum_m \sqrt{q_m^{l}}
+        |\ell\rangle|m\rangle |\mathrm{temp}_m\rangle
+    $$
+
+    where the probabilities $q^\ell_m$ are $\mu$-bit binary approximations to
+    the true values similar to the `StatePreparationAliasSampling` gate above.
+
+    Registers:
+        sel_l: The input/output register $|\ell\rangle$ of size lg(L) where the desired
+            coefficient state is prepared.
+        sel_m: The input/output register $|m\rangle$ of size lg(M) where the desired
+            coefficient state is prepared.
+        temp: Work space comprised of sub registers:
+            - sigma: A mu-sized register containing uniform probabilities for comparison against
+                `keep`.
+            - alt: A lg(M)-sized register of alternate indices
+            - keep: a mu-sized register of probabilities of keeping the initially sampled index.
+            - one bit for the result of the comparison.
+
+    References:
+            [Even more efficient quantum computations of chemistry through
+            tensor hypercontraction](https://arxiv.org/pdf/2011.03494.pdf).
+        Lee et. al. (2018). Appendix B. Sec 1. Fig. 15. This is the In_l-prep_l
+        gate. Here we used QROM rather than QRO(A)M.
+    """
+    selection_registers: infra.SelectionRegisters
+    alt: Sequence[NDArray[np.int_]]
+    keep: Sequence[NDArray[np.int_]]
+    mu: int
+
+    @classmethod
+    def from_lcu_probs(
+        cls, lcu_probabilities: NDArray[np.float_], *, probability_epsilon: float = 1.0e-5
+    ) -> 'IndexedPrepare':
+        """Factory to construct the state preparation gate for a given set of LCU coefficients.
+
+        Args:
+            lcu_probabilities: The LCU coefficients.
+            probability_epsilon: The desired accuracy to represent each probability
+                (which sets mu size and keep/alt integers).
+                See `cirq_ft.linalg.lcu_util.preprocess_lcu_coefficients_for_reversible_sampling`
+                for more information.
+        """
+        assert len(lcu_probabilities.shape) == 2
+        alt_l, keep_l, mu_l = [], [], []
+        for q_l in lcu_probabilities:
+            alt, keep, mu = linalg.preprocess_lcu_coefficients_for_reversible_sampling(
+                lcu_coefficients=q_l, epsilon=probability_epsilon
+            )
+            alt_l.append(alt)
+            keep_l.append(keep)
+            mu_l.append(mu)
+        l, m = lcu_probabilities.shape
+        assert all([x == mu for x in mu_l])
+        return IndexedPrepare(
+            selection_registers=infra.SelectionRegisters(
+                [infra.SelectionRegister('sel_l', (l - 1).bit_length(), l),
+                infra.SelectionRegister('sel_m', (m - 1).bit_length(), m)]
+            ),
+            alt=np.array(alt_l),
+            keep=np.array(keep_l),
+            mu=mu_l[0],
+        )
+
+    @cached_property
+    def sigma_mu_bitsize(self) -> int:
+        return self.mu
+
+    @cached_property
+    def alternates_bitsize(self) -> int:
+        return self.selection_registers[1].total_bits()
+
+    @cached_property
+    def keep_bitsize(self) -> int:
+        return self.mu
+
+    @cached_property
+    def selection_bitsizes(self) -> Tuple[int, ...]:
+        return tuple(s.total_bits() for s in self.selection_registers)
+
+    @cached_property
+    def junk_registers(self) -> infra.Registers:
+        return infra.Registers.build(
+            sigma_mu=self.sigma_mu_bitsize,
+            alt=self.alternates_bitsize,
+            keep=self.keep_bitsize,
+            less_than_equal=1,
+        )
+
+    def _value_equality_values_(self):
+        return (
+            self.selection_registers,
+            tuple(self.alt.ravel()),
+            tuple(self.keep.ravel()),
+            self.mu,
+        )
+
+    def __repr__(self) -> str:
+        alt_repr = cirq._compat.proper_repr(self.alt)
+        keep_repr = cirq._compat.proper_repr(self.keep)
+        return (
+            f'cirq_ft.IndexedPrepare('
+            f'{self.selection_registers}, '
+            f'{alt_repr}, '
+            f'{keep_repr}, '
+            f'{self.mu})'
+        )
+
+    def decompose_from_registers(
+        self,
+        *,
+        context: cirq.DecompositionContext,
+        **quregs: NDArray[cirq.Qid],  # type:ignore[type-var]
+    ) -> cirq.OP_TREE:
+        sel_l, sel_m, less_than_equal = quregs['sel_l'], quregs['sel_m'], quregs['less_than_equal']
+        sigma_mu, alt, keep = quregs['sigma_mu'], quregs['alt'], quregs['keep']
+        inner_size = self.selection_registers[1].iteration_length
+        yield prepare_uniform_superposition.PrepareUniformSuperposition(inner_size).on(*sel_m)
+        yield cirq.H.on_each(*sigma_mu)
+        qrom_gate = qrom.QROM(
+            [self.alt, self.keep],
+            self.selection_bitsizes,
+            (self.alternates_bitsize, self.keep_bitsize),
+        )
+        yield qrom_gate.on_registers(selection0=sel_l, selection1=sel_m, target0=alt, target1=keep)
+        yield arithmetic_gates.LessThanEqualGate(self.mu, self.mu).on(
+            *keep, *sigma_mu, *less_than_equal
+        )
+        yield swap_network.MultiTargetCSwap.make_on(
+            control=less_than_equal, target_x=alt, target_y=sel_m
         )

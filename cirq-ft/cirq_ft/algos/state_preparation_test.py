@@ -18,6 +18,7 @@ import numpy as np
 import pytest
 from cirq_ft.algos.generic_select_test import get_1d_Ising_lcu_coeffs
 from cirq_ft.infra.jupyter_tools import execute_notebook
+from cirq_ft.infra.bit_tools import iter_bits
 
 
 @pytest.mark.parametrize("num_sites, epsilon", [[2, 3e-3], [3, 3.0e-3], [4, 5.0e-3], [7, 8.0e-3]])
@@ -45,6 +46,41 @@ def test_state_preparation_via_coherent_alias_sampling(num_sites, epsilon):
     # Assert that the absolute square of prepared state (probabilities instead of amplitudes) is
     # same as `lcu_coefficients` upto `epsilon`.
     np.testing.assert_allclose(lcu_coefficients, abs(prepared_state) ** 2, atol=epsilon)
+
+
+def test_indexed_prepare():
+    coeffs = np.array([[0.424, 0.1], [0.555, 0.232], [0.314, 0.9], [0.222, 0.4]])
+    norms = np.einsum('lp->l', coeffs)
+    coeffs = coeffs / norms[:, None]
+    mu = 4
+    gate = cirq_ft.IndexedPrepare.from_lcu_probs(
+        lcu_probabilities=coeffs, probability_epsilon=2**(-mu) / (coeffs.size)
+    )
+    g = cirq_ft.testing.GateHelper(gate)
+    qubit_order = g.operation.qubits
+    for l in range(4):
+        qubit_vals = {q: 0 for q in g.operation.qubits}
+        qubit_vals.update(zip(g.quregs['sel_l'], iter_bits(l, 2)))
+        initial_state = [qubit_vals[x] for x in g.operation.qubits]
+        print(initial_state)
+        result = cirq.Simulator(dtype=np.complex128).simulate(g.circuit,
+                            qubit_order=qubit_order, initial_state=initial_state)
+        state_vector = result.final_state_vector
+        # State vector is of the form |lm>|temp_{l}>. We trace out the |temp_{l}> part to
+        # get the coefficients corresponding to |lm>.
+        LM, logLM = coeffs.size, sum(gate.selection_bitsizes)
+        # print(cirq.dirac_notation(state_vector))
+        state_vector = state_vector.reshape(2**logLM, len(state_vector) // 2**logLM)
+        num_non_zero = (abs(state_vector) > 1e-6).sum(axis=1)
+        prepared_state = state_vector.sum(axis=1)
+        qubit_slice = slice(l * coeffs[l].size, (l+1)*coeffs[l].size)
+        assert all(num_non_zero[qubit_slice] > 0) and all(num_non_zero[LM:] == 0)
+        assert all(np.abs(prepared_state[qubit_slice]) > 1e-6)
+        assert all(np.abs(prepared_state[LM:]) <= 1e-6)
+        prepared_state = prepared_state[qubit_slice] / np.sqrt(num_non_zero[qubit_slice])
+        # Assert that the absolute square of prepared state (probabilities instead of amplitudes) is
+        # same as `lcu_coefficients` upto `epsilon`.
+        np.testing.assert_allclose(coeffs[l], abs(prepared_state) ** 2, atol=2**(-mu) / coeffs.size)
 
 
 def test_state_preparation_via_coherent_alias_sampling_diagram():

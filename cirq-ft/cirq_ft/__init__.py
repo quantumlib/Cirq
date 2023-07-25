@@ -39,6 +39,7 @@ from cirq_ft.algos import (
     SelectOracle,
     SelectSwapQROM,
     StatePreparationAliasSampling,
+    IndexedPrepare,
     SwapWithZeroGate,
     UnaryIterationGate,
     unary_iteration,
