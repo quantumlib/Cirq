@@ -550,7 +550,7 @@ def _deserialize_program(code: any_pb2.Any, program_num: Optional[int] = None) -
         batch = v2.batch_pb2.BatchProgram.FromString(code.value)
         if abs(program_num) >= len(batch.programs):
             raise ValueError(
-                f'Only {len(batch.programs)} in the batch but ' f'index {program_num} was specified'
+                f'Only {len(batch.programs)} in the batch but index {program_num} was specified'
             )
 
         program = batch.programs[program_num]

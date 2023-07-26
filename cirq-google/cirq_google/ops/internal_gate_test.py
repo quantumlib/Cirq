@@ -27,9 +27,19 @@ def test_internal_gate():
     )
     assert str(g) == 'pyle.cirqtools.pyle_gates.CouplerDelayZ(delay=1, zpa=0.0, zpl=None)'
     want_repr = (
-        'cirq_google.InternalGate(gate_name="CouplerDelayZ", '
-        'gate_module="pyle.cirqtools.pyle_gates", num_qubits=2, '
-        'delay=1, zpa=0.0, zpl=None)'
+        "cirq_google.InternalGate(gate_name='CouplerDelayZ', "
+        "gate_module='pyle.cirqtools.pyle_gates', num_qubits=2, "
+        "delay=1, zpa=0.0, zpl=None)"
     )
     assert repr(g) == want_repr
     assert cirq.qid_shape(g) == (2, 2)
+
+
+def test_internal_gate_with_no_args():
+    g = cirq_google.InternalGate(gate_name="GateWithNoArgs", gate_module='test', num_qubits=3)
+    assert str(g) == 'test.GateWithNoArgs()'
+    want_repr = (
+        "cirq_google.InternalGate(gate_name='GateWithNoArgs', " "gate_module='test', num_qubits=3)"
+    )
+    assert repr(g) == want_repr
+    assert cirq.qid_shape(g) == (2, 2, 2)
