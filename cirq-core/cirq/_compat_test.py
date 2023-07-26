@@ -781,8 +781,7 @@ def test_deprecated_module_deadline_validation():
 
 def _test_broken_module_1_inner():
     with pytest.raises(
-        DeprecatedModuleImportError,
-        match="missing_module cannot be imported. " "The typical reasons",
+        DeprecatedModuleImportError, match="missing_module cannot be imported. The typical reasons"
     ):
         # pylint: disable=unused-import
         import cirq.testing._compat_test_data.broken_ref as br  # type: ignore
