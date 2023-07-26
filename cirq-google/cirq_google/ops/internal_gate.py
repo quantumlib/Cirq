@@ -53,11 +53,14 @@ class InternalGate(ops.Gate):
         return f'{self.gate_module}.{self.gate_name}({gate_args})'
 
     def __repr__(self) -> str:
-        gate_args = ', '.join(f'{k}={v}' for k, v in self.gate_args.items())
+        gate_args = ', '.join(f'{k}={repr(v)}' for k, v in self.gate_args.items())
+        if gate_args != '':
+            gate_args = ', ' + gate_args
         return (
-            f'cirq_google.InternalGate(gate_name="{self.gate_name}", '
-            f'gate_module="{self.gate_module}", '
-            f'num_qubits={self._num_qubits}, {gate_args})'
+            f"cirq_google.InternalGate(gate_name='{self.gate_name}', "
+            f"gate_module='{self.gate_module}', "
+            f"num_qubits={self._num_qubits}"
+            f"{gate_args})"
         )
 
     def _json_dict_(self) -> Dict[str, Any]:
