@@ -22,7 +22,7 @@ import pytest
 import google.api_core.exceptions as google_exceptions
 
 from cirq_google.engine.stream_manager import (
-    _decide_retry_request_or_raise,
+    _get_retry_request_or_raise,
     ProgramAlreadyExistsError,
     ResponseDemux,
     StreamError,
@@ -206,7 +206,7 @@ class TestResponseDemux:
 
 class TestStreamManager:
     @mock.patch.object(quantum, 'QuantumEngineServiceAsyncClient', autospec=True)
-    def test_send_expects_result_response(self, client_constructor):
+    def test_submit_expects_result_response(self, client_constructor):
         async def test():
             async with duet.timeout_scope(5):
                 # Arrange
@@ -234,7 +234,29 @@ class TestStreamManager:
         duet.run(test)
 
     @mock.patch.object(quantum, 'QuantumEngineServiceAsyncClient', autospec=True)
-    def test_send_cancel_future_expects_engine_cancellation_rpc_call(self, client_constructor):
+    def test_submit_program_without_name_raises(self, client_constructor):
+        async def test():
+            async with duet.timeout_scope(5):
+                # Arrange
+                expected_result = quantum.QuantumResult(
+                    parent='projects/proj/programs/prog/jobs/job0'
+                )
+                mock_responses = [quantum.QuantumRunStreamResponse(result=expected_result)]
+                fake_client = setup_fake_quantum_run_stream_client(
+                    client_constructor, responses_and_exceptions=mock_responses
+                )
+                manager = StreamManager(fake_client)
+
+                with pytest.raises(ValueError, match='Program name must be set'):
+                    await manager.submit(
+                        REQUEST_PROJECT_NAME, quantum.QuantumProgram(), REQUEST_JOB
+                    )
+                manager.stop()
+
+        duet.run(test)
+
+    @mock.patch.object(quantum, 'QuantumEngineServiceAsyncClient', autospec=True)
+    def test_submit_cancel_future_expects_engine_cancellation_rpc_call(self, client_constructor):
         async def test():
             async with duet.timeout_scope(5):
                 fake_client = setup_fake_quantum_run_stream_client(
@@ -255,7 +277,7 @@ class TestStreamManager:
         duet.run(test)
 
     @mock.patch.object(quantum, 'QuantumEngineServiceAsyncClient', autospec=True)
-    def test_send_stream_broken_twice_expects_retry_with_get_quantum_result_twice(
+    def test_submit_stream_broken_twice_expects_retry_with_get_quantum_result_twice(
         self, client_constructor
     ):
         async def test():
@@ -294,7 +316,7 @@ class TestStreamManager:
         ],
     )
     @mock.patch.object(quantum, 'QuantumEngineServiceAsyncClient', autospec=True)
-    def test_send_with_retryable_stream_breakage_expects_get_result_request(
+    def test_submit_with_retryable_stream_breakage_expects_get_result_request(
         self, client_constructor, error
     ):
         async def test():
@@ -335,7 +357,9 @@ class TestStreamManager:
         ],
     )
     @mock.patch.object(quantum, 'QuantumEngineServiceAsyncClient', autospec=True)
-    def test_send_with_non_retryable_stream_breakage_raises_error(self, client_constructor, error):
+    def test_submit_with_non_retryable_stream_breakage_raises_error(
+        self, client_constructor, error
+    ):
         async def test():
             async with duet.timeout_scope(5):
                 mock_responses = [
@@ -359,7 +383,7 @@ class TestStreamManager:
         duet.run(test)
 
     @mock.patch.object(quantum, 'QuantumEngineServiceAsyncClient', autospec=True)
-    def test_send_expects_job_response(self, client_constructor):
+    def test_submit_expects_job_response(self, client_constructor):
         async def test():
             async with duet.timeout_scope(5):
                 expected_job = quantum.QuantumJob(name='projects/proj/programs/prog/jobs/job0')
@@ -382,7 +406,7 @@ class TestStreamManager:
         duet.run(test)
 
     @mock.patch.object(quantum, 'QuantumEngineServiceAsyncClient', autospec=True)
-    def test_send_job_does_not_exist_expects_create_quantum_job_request(self, client_constructor):
+    def test_submit_job_does_not_exist_expects_create_quantum_job_request(self, client_constructor):
         async def test():
             async with duet.timeout_scope(5):
                 expected_result = quantum.QuantumResult(
@@ -414,7 +438,7 @@ class TestStreamManager:
         duet.run(test)
 
     @mock.patch.object(quantum, 'QuantumEngineServiceAsyncClient', autospec=True)
-    def test_send_program_does_not_exist_expects_create_quantum_program_and_job_request(
+    def test_submit_program_does_not_exist_expects_create_quantum_program_and_job_request(
         self, client_constructor
     ):
         async def test():
@@ -454,7 +478,7 @@ class TestStreamManager:
         duet.run(test)
 
     @mock.patch.object(quantum, 'QuantumEngineServiceAsyncClient', autospec=True)
-    def test_send_program_already_exists_expects_program_already_exists_error(
+    def test_submit_program_already_exists_expects_program_already_exists_error(
         self, client_constructor
     ):
         async def test():
@@ -478,7 +502,7 @@ class TestStreamManager:
         duet.run(test)
 
     @mock.patch.object(quantum, 'QuantumEngineServiceAsyncClient', autospec=True)
-    def test_send_twice_in_parallel_expect_result_responses(self, client_constructor):
+    def test_submit_twice_in_parallel_expect_result_responses(self, client_constructor):
         async def test():
             async with duet.timeout_scope(5):
                 request_job1 = quantum.QuantumJob(name='projects/proj/programs/prog/jobs/job1')
@@ -517,7 +541,7 @@ class TestStreamManager:
 
     # TODO(#5996) Update fake client implementation to support this test case.
     # @mock.patch.object(quantum, 'QuantumEngineServiceAsyncClient', autospec=True)
-    # def test_send_twice_and_break_stream_expect_result_responses(self, client_constructor):
+    # def test_submit_twice_and_break_stream_expect_result_responses(self, client_constructor):
     #     async def test():
     #         async with duet.timeout_scope(5):
     #             request_job1 = quantum.QuantumJob(name='projects/proj/programs/prog/jobs/job1')
@@ -621,7 +645,7 @@ class TestStreamManager:
             (Code.JOB_DOES_NOT_EXIST, 'create_quantum_job'),
         ],
     )
-    def test_decide_retry_request_or_raise_expects_stream_error(
+    def test_get_retry_request_or_raise_expects_stream_error(
         self, error_code, current_request_type
     ):
         # This tests a private function, but it's much easier to exhaustively test this function
@@ -644,7 +668,7 @@ class TestStreamManager:
             current_request = get_quantum_result_request
 
         with pytest.raises(StreamError):
-            _decide_retry_request_or_raise(
+            _get_retry_request_or_raise(
                 quantum.StreamError(code=error_code),
                 current_request,
                 create_quantum_program_and_job_request,

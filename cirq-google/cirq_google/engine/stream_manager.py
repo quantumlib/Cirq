@@ -42,7 +42,7 @@ class StreamError(Exception):
 
 
 class ResponseDemux:
-    """A event demultiplexer for QuantumRunStreamResponses, as part of the async reactor pattern.
+    """An event demultiplexer for QuantumRunStreamResponses, as part of the async reactor pattern.
 
     A caller can subscribe to the response matching a provided message ID. Only a single caller may
     subscribe to each ID.
@@ -100,15 +100,19 @@ class StreamManager:
 
     The main manager method is `submit()`, which sends the provided job to Quantum Engine through
     the stream and returns a future to be completed when either the result is ready or the job has
-    failed.
+    failed. The submitted job can also be cancelled by calling `cancel()` on the future returned by
+    `submit()`.
 
     A new stream is opened during the first `submit()` call, and it stays open. If the stream is
-    unused, users could close the stream and free management resources by calling `stop()`.
+    unused, users can close the stream and free management resources by calling `stop()`.
+
     """
 
     def __init__(self, grpc_client: quantum.QuantumEngineServiceAsyncClient):
         self._grpc_client = grpc_client
         self._request_queue: Optional[asyncio.Queue] = None
+        # Used to determine whether the stream coroutine is actively running, and provides a way to
+        # cancel it.
         self._manage_stream_loop_future: Optional[duet.AwaitableFuture[None]] = None
         # TODO(#5996) consider making the scope of response futures local to the relevant tasks
         # rather than all of StreamManager.
@@ -123,9 +127,12 @@ class StreamManager:
         If submit() is called for the first time since StreamManager instantiation or since the last
         time stop() was called, it will create a new long-running stream.
 
+        The job can be cancelled by calling `cancel()` on the returned future.
+
         Args:
             project_name: The full project ID resource path associated with the job.
-            program: The Quantum Engine program representing the circuit to be executed.
+            program: The Quantum Engine program representing the circuit to be executed. The program
+                name must be set.
             job: The Quantum Engine job to be executed.
 
         Returns:
@@ -134,10 +141,14 @@ class StreamManager:
         Raises:
             ProgramAlreadyExistsError if the program already exists.
             StreamError if there is a non-retryable error while executing the job.
+            ValueError if program name is not set.
             concurrent.futures.CancelledError if the stream is stopped while a job is in flight.
             google.api_core.exceptions.GoogleAPICallError if the stream breaks with a non-retryable
                 error.
         """
+        if 'name' not in program:
+            raise ValueError('Program name must be set.')
+
         if self._manage_stream_loop_future is None:
             self._manage_stream_loop_future = self._executor.submit(self._manage_stream)
             self._manage_stream_loop_future.add_done_callback(self._manage_stream_cancel())
@@ -145,16 +156,20 @@ class StreamManager:
 
     def stop(self) -> None:
         """Closes the open stream and resets all management resources."""
-        if self._manage_stream_loop_future is not None:
-            self._manage_stream_loop_future.cancel()
-        self._reset()
+        try:
+            if (
+                self._manage_stream_loop_future is not None
+                and not self._manage_stream_loop_future.done()
+            ):
+                self._manage_stream_loop_future.cancel()
+        finally:
+            self._reset()
 
     def _reset(self):
         """Resets the manager state."""
         self._request_queue = None
         self._manage_stream_loop_future = None
         self._response_demux = ResponseDemux()
-        self._next_available_message_id = 0
 
     @property
     def _executor(self) -> AsyncioExecutor:
@@ -218,15 +233,6 @@ class StreamManager:
                 parent=project_name, quantum_program=program, quantum_job=job
             ),
         )
-        create_job_request = quantum.QuantumRunStreamRequest(
-            parent=project_name,
-            create_quantum_job=quantum.CreateQuantumJobRequest(
-                parent=program.name, quantum_job=job
-            ),
-        )
-        get_result_request = quantum.QuantumRunStreamRequest(
-            parent=project_name, get_quantum_result=quantum.GetQuantumResultRequest(parent=job.name)
-        )
 
         while self._request_queue is None:
             # Wait for the stream coroutine to start.
@@ -244,15 +250,17 @@ class StreamManager:
             except google_exceptions.GoogleAPICallError as e:
                 if _is_retryable_error(e):
                     # Retry
-                    current_request = get_result_request
+                    current_request = _to_get_result_request(create_program_and_job_request)
                     continue
                     # TODO(#5996) add exponential backoff
                 raise e
 
             # Either when this request is canceled or the _manage_stream() loop is canceled.
             except asyncio.CancelledError:
-                # TODO(#5996) Consider moving this logic into a future done callback, so that the
-                # the cancellation caller can wait for it to complete.
+                # TODO(#5996) Consider moving the request future cancellation logic into a future
+                # done callback, so that the the cancellation caller can wait for it to complete.
+                # TODO(#5996) Check the condition that response_future is not done before
+                # cancelling, once request cancellation is moved to a callback.
                 if response_future is not None:
                     response_future.cancel()
                     await self._cancel(job.name)
@@ -264,11 +272,11 @@ class StreamManager:
             elif 'job' in response:
                 return response.job
             elif 'error' in response:
-                current_request = _decide_retry_request_or_raise(
+                current_request = _get_retry_request_or_raise(
                     response.error,
                     current_request,
                     create_program_and_job_request,
-                    create_job_request,
+                    _to_create_job_request(create_program_and_job_request),
                 )
                 continue
             else:
@@ -286,7 +294,7 @@ class StreamManager:
         return message_id
 
 
-def _decide_retry_request_or_raise(
+def _get_retry_request_or_raise(
     error: quantum.StreamError,
     current_request,
     create_program_and_job_request,
@@ -332,3 +340,30 @@ async def _request_iterator(
     """
     while True:
         yield await request_queue.get()
+
+
+def _to_create_job_request(
+    create_program_and_job_request: quantum.QuantumRunStreamRequest,
+) -> quantum.QuantumRunStreamRequest:
+    """Converted the QuantumRunStreamRequest from a CreateQuantumProgramAndJobRequest to a
+    CreateQuantumJobRequest.
+    """
+    program = create_program_and_job_request.create_quantum_program_and_job.quantum_program
+    job = create_program_and_job_request.create_quantum_program_and_job.quantum_job
+    return quantum.QuantumRunStreamRequest(
+        parent=create_program_and_job_request.parent,
+        create_quantum_job=quantum.CreateQuantumJobRequest(parent=program.name, quantum_job=job),
+    )
+
+
+def _to_get_result_request(
+    create_program_and_job_request: quantum.QuantumRunStreamRequest,
+) -> quantum.QuantumRunStreamRequest:
+    """Converted the QuantumRunStreamRequest from a CreateQuantumProgramAndJobRequest to a
+    GetQuantumResultRequest.
+    """
+    job = create_program_and_job_request.create_quantum_program_and_job.quantum_job
+    return quantum.QuantumRunStreamRequest(
+        parent=create_program_and_job_request.parent,
+        get_quantum_result=quantum.GetQuantumResultRequest(parent=job.name),
+    )
