@@ -176,6 +176,38 @@ def test_service_no_param_or_env_variable():
             _ = ionq.Service(remote_host='http://example.com')
 
 
+def test_service_api_key_passed_directly():
+    with mock.patch.dict('os.environ', {'IONQ_API_KEY': 'not_this_key'}):
+        service = ionq.Service(remote_host='http://example.com', api_key='tomyheart')
+        assert service.api_key == 'tomyheart'
+
+
+def test_service_api_key_from_env_var_cirq_ionq():
+    with mock.patch.dict('os.environ', {'CIRQ_IONQ_API_KEY': 'tomyheart'}):
+        service = ionq.Service(remote_host='http://example.com')
+        assert service.api_key == 'tomyheart'
+
+
+def test_service_api_key_from_env_var_ionq():
+    with mock.patch.dict('os.environ', {'IONQ_API_KEY': 'tomyheart'}):
+        service = ionq.Service(remote_host='http://example.com')
+        assert service.api_key == 'tomyheart'
+
+
+def test_service_api_key_not_found_raises_error():
+    with mock.patch.dict('os.environ', {}, clear=True):
+        with pytest.raises(EnvironmentError):
+            _ = ionq.Service(remote_host='http://example.com')
+
+
+def test_service_api_key_from_env_var_cirq_ionq_precedence():
+    with mock.patch.dict(
+        'os.environ', {'CIRQ_IONQ_API_KEY': 'tomyheart', 'IONQ_API_KEY': 'not_this_key'}
+    ):
+        service = ionq.Service(remote_host='http://example.com')
+        assert service.api_key == 'tomyheart'
+
+
 def test_service_no_url_default():
     service = ionq.Service(api_key='tomyheart')
     assert service.remote_host == 'https://api.ionq.co/v0.1'
