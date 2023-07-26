@@ -24,6 +24,8 @@ from cirq_google.serialization.arg_func_langs import (
     arg_to_proto,
     float_arg_from_proto,
     float_arg_to_proto,
+    internal_gate_arg_to_proto,
+    internal_gate_from_proto,
     ARG_LIKE,
     LANGUAGE_ORDER,
 )
@@ -37,6 +39,9 @@ from cirq_google.api import v2
         ('', 1, {'arg_value': {'float_value': 1.0}}),
         ('', 'abc', {'arg_value': {'string_value': 'abc'}}),
         ('', [True, False], {'arg_value': {'bool_values': {'values': [True, False]}}}),
+        ('', [42.9, 3.14], {'arg_value': {'double_values': {'values': [42.9, 3.14]}}}),
+        ('', [3, 8], {'arg_value': {'int64_values': {'values': ['3', '8']}}}),
+        ('', ['t1', 't2'], {'arg_value': {'string_values': {'values': ['t1', 't2']}}}),
         ('', sympy.Symbol('x'), {'symbol': 'x'}),
         (
             'linear',
@@ -217,3 +222,30 @@ def test_invalid_float_arg():
             arg_function_language='test',
             required_arg_name='blah',
         )
+
+
+@pytest.mark.parametrize('rotation_angles_arg', [{}, {'rotation_angles': [0.1, 0.3]}])
+@pytest.mark.parametrize('qid_shape_arg', [{}, {'qid_shape': [2, 2]}])
+@pytest.mark.parametrize('tags_arg', [{}, {'tags': ['test1', 'test2']}])
+@pytest.mark.parametrize('lang', LANGUAGE_ORDER)
+def test_internal_gate_serialization(rotation_angles_arg, qid_shape_arg, tags_arg, lang):
+    g = cirq_google.InternalGate(
+        gate_name='g',
+        gate_module='test',
+        num_qubits=5,
+        **rotation_angles_arg,
+        **qid_shape_arg,
+        **tags_arg,
+    )
+    proto = v2.program_pb2.InternalGate()
+    internal_gate_arg_to_proto(g, out=proto)
+    v = internal_gate_from_proto(proto, lang)
+    assert g == v
+
+
+def test_invalid_list():
+    with pytest.raises(ValueError):
+        _ = arg_to_proto(['', 1])
+
+    with pytest.raises(ValueError):
+        _ = arg_to_proto([1.0, ''])

@@ -123,13 +123,13 @@ def qid_shape(
 
     if getter is not None:
         raise TypeError(
-            "object of type '{}' does have a _qid_shape_ method, "
-            "but it returned NotImplemented.".format(type(val))
+            f"object of type '{type(val)}' does have a _qid_shape_ method, "
+            "but it returned NotImplemented."
         )
     if num_getter is not None:
         raise TypeError(
-            "object of type '{}' does have a _num_qubits_ method, "
-            "but it returned NotImplemented.".format(type(val))
+            f"object of type '{type(val)}' does have a _num_qubits_ method, "
+            "but it returned NotImplemented."
         )
     raise TypeError(f"object of type '{type(val)}' has no _num_qubits_ or _qid_shape_ methods.")
 
@@ -178,12 +178,12 @@ def num_qubits(
 
     if num_getter is not None:
         raise TypeError(
-            "object of type '{}' does have a _num_qubits_ method, "
-            "but it returned NotImplemented.".format(type(val))
+            f"object of type '{type(val)}' does have a _num_qubits_ method, "
+            "but it returned NotImplemented."
         )
     if getter is not None:
         raise TypeError(
-            "object of type '{}' does have a _qid_shape_ method, "
-            "but it returned NotImplemented.".format(type(val))
+            f"object of type '{type(val)}' does have a _qid_shape_ method, "
+            "but it returned NotImplemented."
         )
     raise TypeError(f"object of type '{type(val)}' has no _num_qubits_ or _qid_shape_ methods.")

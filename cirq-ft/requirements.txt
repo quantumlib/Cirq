@@ -1,0 +1,5 @@
+attrs
+cachetools>=5.3
+ipywidgets
+nbconvert
+nbformat

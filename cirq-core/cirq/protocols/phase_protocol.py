@@ -88,6 +88,6 @@ def phase_by(
     if getter is None:
         raise TypeError(f"object of type '{type(val)}' has no _phase_by_ method.")
     raise TypeError(
-        "object of type '{}' does have a _phase_by_ method, "
-        "but it returned NotImplemented.".format(type(val))
+        f"object of type '{type(val)}' does have a _phase_by_ method, "
+        "but it returned NotImplemented."
     )

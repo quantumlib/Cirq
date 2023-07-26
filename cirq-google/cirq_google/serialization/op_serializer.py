@@ -134,7 +134,7 @@ class CircuitOpSerializer(OpSerializer):
         except KeyError as err:
             # Circuits must be serialized prior to any CircuitOperations that use them.
             raise ValueError(
-                'Encountered a circuit not in the constants table. ' f'Full error message:\n{err}'
+                f'Encountered a circuit not in the constants table. Full error message:\n{err}'
             )
 
         if (

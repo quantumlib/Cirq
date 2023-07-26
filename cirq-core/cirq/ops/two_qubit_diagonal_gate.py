@@ -11,6 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
 """Creates the gate instance for a two qubit diagonal gate.
 
 The gate is used to create a 4x4 matrix with the diagonal elements
@@ -134,9 +135,8 @@ class TwoQubitDiagonalGate(raw_types.Gate):
         return tuple(self._diag_angles_radians)
 
     def __repr__(self) -> str:
-        return 'cirq.TwoQubitDiagonalGate([{}])'.format(
-            ','.join(proper_repr(angle) for angle in self._diag_angles_radians)
-        )
+        angles = ','.join(proper_repr(angle) for angle in self._diag_angles_radians)
+        return f'cirq.TwoQubitDiagonalGate([{angles}])'
 
     def _json_dict_(self) -> Dict[str, Any]:
         return protocols.obj_to_dict_helper(self, attribute_names=["diag_angles_radians"])

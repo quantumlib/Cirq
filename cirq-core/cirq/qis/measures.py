@@ -211,7 +211,7 @@ def _numpy_arrays_to_state_vectors_or_density_matrices(
             state2.shape[0] if state2.ndim == 2 else np.prod(state2.shape, dtype=np.int64).item()
         )
         if dim1 != dim2:
-            raise ValueError('Mismatched dimensions in given states: ' f'{dim1} and {dim2}.')
+            raise ValueError(f'Mismatched dimensions in given states: {dim1} and {dim2}.')
         if qid_shape is None:
             qid_shape = (dim1,)
         else:

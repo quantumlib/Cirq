@@ -29,12 +29,12 @@ def test_single_qubit_init():
     m = np.array([[1, 1j], [1j, 1]]) * np.sqrt(0.5)
     x2 = cirq.MatrixGate(m)
     assert cirq.has_unitary(x2)
-    assert np.alltrue(cirq.unitary(x2) == m)
+    assert np.all(cirq.unitary(x2) == m)
     assert cirq.qid_shape(x2) == (2,)
 
     x2 = cirq.MatrixGate(PLUS_ONE, qid_shape=(3,))
     assert cirq.has_unitary(x2)
-    assert np.alltrue(cirq.unitary(x2) == PLUS_ONE)
+    assert np.all(cirq.unitary(x2) == PLUS_ONE)
     assert cirq.qid_shape(x2) == (3,)
 
     with pytest.raises(ValueError, match='Not a .*unitary matrix'):
@@ -97,7 +97,7 @@ def test_single_qubit_extrapolate():
 def test_two_qubit_init():
     x2 = cirq.MatrixGate(QFT2)
     assert cirq.has_unitary(x2)
-    assert np.alltrue(cirq.unitary(x2) == QFT2)
+    assert np.all(cirq.unitary(x2) == QFT2)
 
 
 def test_two_qubit_eq():

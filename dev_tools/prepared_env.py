@@ -98,20 +98,17 @@ class PreparedEnv:
         if target_url is not None:
             payload['target_url'] = target_url
 
-        url = "https://api.github.com/repos/{}/{}/statuses/{}?access_token={}".format(
-            self.repository.organization,
-            self.repository.name,
-            self.actual_commit_id,
-            self.repository.access_token,
+        url = (
+            f"https://api.github.com/repos/{self.repository.organization}/"
+            f"{self.repository.name}/statuses/{self.actual_commit_id}?"
+            f"access_token={self.repository.access_token}"
         )
 
         response = requests.post(url, json=payload)
 
         if response.status_code != 201:
             raise IOError(
-                'Request failed. Code: {}. Content: {!r}.'.format(
-                    response.status_code, response.content
-                )
+                f'Request failed. Code: {response.status_code}. Content: {response.content!r}.'
             )
 
     def get_changed_files(self) -> List[str]:
