@@ -139,17 +139,17 @@ class StreamManager:
             A future for the job result, or the job if the job has failed.
 
         Raises:
-            ProgramAlreadyExistsError if the program already exists.
-            StreamError if there is a non-retryable error while executing the job.
-            ValueError if program name is not set.
-            concurrent.futures.CancelledError if the stream is stopped while a job is in flight.
-            google.api_core.exceptions.GoogleAPICallError if the stream breaks with a non-retryable
+            ProgramAlreadyExistsError: if the program already exists.
+            StreamError: if there is a non-retryable error while executing the job.
+            ValueError: if program name is not set.
+            concurrent.futures.CancelledError: if the stream is stopped while a job is in flight.
+            google.api_core.exceptions.GoogleAPICallError: if the stream breaks with a non-retryable
                 error.
         """
         if 'name' not in program:
             raise ValueError('Program name must be set.')
 
-        if self._manage_stream_loop_future is None:
+        if self._manage_stream_loop_future is None or self._manage_stream_loop_future.done():
             self._manage_stream_loop_future = self._executor.submit(self._manage_stream)
             self._manage_stream_loop_future.add_done_callback(self._manage_stream_cancel())
         return self._executor.submit(self._manage_execution, project_name, program, job)
@@ -236,7 +236,8 @@ class StreamManager:
 
         while self._request_queue is None:
             # Wait for the stream coroutine to start.
-            await asyncio.sleep(1)
+            # Ignoring coverage since this is rarely triggered.
+            await asyncio.sleep(1)  # coverage: ignore
 
         current_request = create_program_and_job_request
         while True:
@@ -280,6 +281,7 @@ class StreamManager:
                 )
                 continue
             else:
+                # coverage: ignore
                 raise ValueError(
                     'The Quantum Engine response type is not recognized by this client. '
                     'This may be due to an outdated version of cirq-google'
