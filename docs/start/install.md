@@ -38,7 +38,7 @@ or internal Google systems.
     Install dependencies of features in `cirq.contrib`.
 
     ```bash
-    python -m pip install cirq-core[contrib]
+    python -m pip install 'cirq-core[contrib]'
     ```
 
     Install system dependencies that pip can't handle.
@@ -103,7 +103,7 @@ or internal Google systems.
 3. (Optional) install dependencies of features in `cirq.contrib`.
 
     ```bash
-    python -m pip install cirq-core[contrib]
+    python -m pip install 'cirq-core[contrib]'
     ```
 
     Install system dependencies that pip can't handle.
@@ -168,7 +168,7 @@ or internal Google systems.
 3. (Optional) install dependencies of features in `cirq.contrib`.
 
     ```bash
-    python -m pip install cirq-core[contrib]
+    python -m pip install 'cirq-core[contrib]'
     ```
 
 4. Check that it works!

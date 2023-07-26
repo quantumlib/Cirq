@@ -1,0 +1,1 @@
+cirq_google.InternalGate(gate_name="CouplerDelayZ", gate_module="pyle.cirqtools.pyle_gates", num_qubits=2, delay=1, zpa=0.0, zpl=None)

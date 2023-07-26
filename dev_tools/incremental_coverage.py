@@ -307,6 +307,7 @@ def check_for_uncovered_lines(env: env_tools.PreparedEnv) -> int:
                 )
             )
         for index, line, reason in uncovered_lines:
+            # pylint: disable=consider-using-f-string
             print(
                 'Line {} {} but not covered: {}'.format(
                     shell_tools.highlight(str(index).rjust(4), color_code=shell_tools.BOLD),

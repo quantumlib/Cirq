@@ -71,3 +71,7 @@ from cirq.transformers.analytical_decompositions.two_qubit_state_preparation imp
 from cirq.transformers.analytical_decompositions.single_to_two_qubit_isometry import (
     two_qubit_matrix_to_cz_isometry,
 )
+
+from cirq.transformers.analytical_decompositions.pauli_string_decomposition import (
+    unitary_to_pauli_string,
+)

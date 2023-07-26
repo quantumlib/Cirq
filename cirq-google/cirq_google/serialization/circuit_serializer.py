@@ -11,14 +11,15 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
 """Support for serializing and deserializing cirq_google.api.v2 protos."""
 
-from typing import Any, Dict, List, Optional
+from typing import cast, Any, Dict, List, Optional
 import sympy
 
 import cirq
 from cirq_google.api import v2
-from cirq_google.ops import PhysicalZTag
+from cirq_google.ops import PhysicalZTag, InternalGate
 from cirq_google.ops.calibration_tag import CalibrationTag
 from cirq_google.serialization import serializer, op_deserializer, op_serializer, arg_func_langs
 
@@ -141,7 +142,9 @@ class CircuitSerializer(serializer.Serializer):
         """
         gate = op.gate
 
-        if isinstance(gate, cirq.XPowGate):
+        if isinstance(gate, InternalGate):
+            arg_func_langs.internal_gate_arg_to_proto(gate, out=msg.internalgate)
+        elif isinstance(gate, cirq.XPowGate):
             arg_func_langs.float_arg_to_proto(
                 gate.exponent,
                 out=msg.xpowgate.exponent,
@@ -321,9 +324,7 @@ class CircuitSerializer(serializer.Serializer):
             raise ValueError('Missing gate set specification.')
         if proto.language.gate_set != self.name:
             raise ValueError(
-                'Gate set in proto was {} but expected {}'.format(
-                    proto.language.gate_set, self.name
-                )
+                f'Gate set in proto was {proto.language.gate_set} but expected {self.name}'
             )
         which = proto.WhichOneof('program')
         arg_func_language = (
@@ -545,10 +546,13 @@ class CircuitSerializer(serializer.Serializer):
                 arg_function_language=arg_function_language,
                 required_arg_name=None,
             )
-            invert_mask = arg_func_langs.arg_from_proto(
-                operation_proto.measurementgate.invert_mask,
-                arg_function_language=arg_function_language,
-                required_arg_name=None,
+            invert_mask = cast(
+                List[bool],
+                arg_func_langs.arg_from_proto(
+                    operation_proto.measurementgate.invert_mask,
+                    arg_function_language=arg_function_language,
+                    required_arg_name=None,
+                ),
             )
             if isinstance(invert_mask, list) and isinstance(key, str):
                 op = cirq.MeasurementGate(
@@ -564,6 +568,10 @@ class CircuitSerializer(serializer.Serializer):
                 required_arg_name=None,
             )
             op = cirq.WaitGate(duration=cirq.Duration(nanos=total_nanos or 0.0))(*qubits)
+        elif which_gate_type == 'internalgate':
+            op = arg_func_langs.internal_gate_from_proto(
+                operation_proto.internalgate, arg_function_language=arg_function_language
+            )(*qubits)
         else:
             raise ValueError(
                 f'Unsupported serialized gate with type "{which_gate_type}".'

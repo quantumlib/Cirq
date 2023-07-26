@@ -15,6 +15,7 @@
 """Gates for applying generic selected unitaries."""
 
 from typing import Collection, Optional, Sequence, Tuple, Union
+from numpy.typing import NDArray
 
 import attr
 import cirq
@@ -73,20 +74,26 @@ class GenericSelect(select_and_prepare.SelectOracle, unary_iteration_gate.UnaryI
 
     @cached_property
     def selection_registers(self) -> infra.SelectionRegisters:
-        return infra.SelectionRegisters.build(
-            selection=(self.selection_bitsize, len(self.select_unitaries))
+        return infra.SelectionRegisters(
+            [
+                infra.SelectionRegister(
+                    'selection', self.selection_bitsize, len(self.select_unitaries)
+                )
+            ]
         )
 
     @cached_property
     def target_registers(self) -> infra.Registers:
         return infra.Registers.build(target=self.target_bitsize)
 
-    def decompose_from_registers(self, context, **qubit_regs: Sequence[cirq.Qid]) -> cirq.OP_TREE:
+    def decompose_from_registers(
+        self, context, **quregs: NDArray[cirq.Qid]  # type:ignore[type-var]
+    ) -> cirq.OP_TREE:
         if self.control_val == 0:
-            yield cirq.X(*qubit_regs['control'])
-        yield super().decompose_from_registers(context=context, **qubit_regs)
+            yield cirq.X(*quregs['control'])
+        yield super(GenericSelect, self).decompose_from_registers(context=context, **quregs)
         if self.control_val == 0:
-            yield cirq.X(*qubit_regs['control'])
+            yield cirq.X(*quregs['control'])
 
     def nth_operation(  # type: ignore[override]
         self,

@@ -13,6 +13,7 @@
 # limitations under the License.
 
 from typing import Collection, Optional, Sequence, Tuple, Union
+from numpy.typing import NDArray
 
 import attr
 import cirq
@@ -110,7 +111,10 @@ class MeanEstimationOperator(infra.GateWithRegisters):
         return infra.Registers([*self.control_registers, *self.selection_registers])
 
     def decompose_from_registers(
-        self, *, context: cirq.DecompositionContext, **quregs: Sequence[cirq.Qid]
+        self,
+        *,
+        context: cirq.DecompositionContext,
+        **quregs: NDArray[cirq.Qid],  # type:ignore[type-var]
     ) -> cirq.OP_TREE:
         select_reg = {reg.name: quregs[reg.name] for reg in self.select.registers}
         reflect_reg = {reg.name: quregs[reg.name] for reg in self.reflect.registers}
@@ -125,7 +129,9 @@ class MeanEstimationOperator(infra.GateWithRegisters):
 
     def _circuit_diagram_info_(self, args: cirq.CircuitDiagramInfoArgs) -> cirq.CircuitDiagramInfo:
         wire_symbols = [] if self.cv == () else [["@(0)", "@"][self.cv[0]]]
-        wire_symbols += ['U_ko'] * (self.registers.bitsize - self.control_registers.bitsize)
+        wire_symbols += ['U_ko'] * (
+            self.registers.total_bits() - self.control_registers.total_bits()
+        )
         if self.power != 1:
             wire_symbols[-1] = f'U_ko^{self.power}'
         return cirq.CircuitDiagramInfo(wire_symbols=wire_symbols)

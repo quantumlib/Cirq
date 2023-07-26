@@ -46,17 +46,13 @@ def assert_has_rendering(actual: TextDiagramDrawer, desired: str, **kwargs) -> N
         "Diagram's rendering differs from the desired rendering.\n"
         '\n'
         'Actual rendering:\n'
-        '{}\n'
+        f'{actual_diagram}\n'
         '\n'
         'Desired rendering:\n'
-        '{}\n'
+        f'{desired_diagram}\n'
         '\n'
         'Highlighted differences:\n'
-        '{}\n'.format(
-            actual_diagram,
-            desired_diagram,
-            ct.highlight_text_differences(actual_diagram, desired_diagram),
-        )
+        f'{ct.highlight_text_differences(actual_diagram, desired_diagram)}\n'
     )
 
 

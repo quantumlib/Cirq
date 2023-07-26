@@ -11,6 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
 import datetime
 
 from typing import Dict, List, Optional, Sequence, TYPE_CHECKING, Union
@@ -359,14 +360,14 @@ class EngineProcessor(abstract_processor.AbstractProcessor):
         latest_timestamp_seconds = _date_to_timestamp(latest_timestamp)
 
         if earliest_timestamp_seconds and latest_timestamp_seconds:
-            filter_str = 'timestamp >= %d AND timestamp <= %d' % (
-                earliest_timestamp_seconds,
-                latest_timestamp_seconds,
+            filter_str = (
+                f'timestamp >= {earliest_timestamp_seconds:d} AND '
+                f'timestamp <= {latest_timestamp_seconds:d}'
             )
         elif earliest_timestamp_seconds:
-            filter_str = 'timestamp >= %d' % earliest_timestamp_seconds
+            filter_str = f'timestamp >= {earliest_timestamp_seconds:d}'
         elif latest_timestamp_seconds:
-            filter_str = 'timestamp <= %d' % latest_timestamp_seconds
+            filter_str = f'timestamp <= {latest_timestamp_seconds:d}'
         else:
             filter_str = ''
         response = self.context.client.list_calibrations(

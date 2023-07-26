@@ -58,6 +58,15 @@ X_PROTO = op_proto({'xpowgate': {'exponent': {'float_value': 1.0}}, 'qubit_const
 OPERATIONS = [
     (cirq.X(Q0), X_PROTO),
     (
+        cg.InternalGate(gate_name='g', gate_module='test', num_qubits=1)(Q0),
+        op_proto(
+            {
+                'internalgate': {'name': 'g', 'module': 'test', 'num_qubits': 1},
+                'qubit_constant_index': [0],
+            }
+        ),
+    ),
+    (
         cirq.Y(Q0),
         op_proto({'ypowgate': {'exponent': {'float_value': 1.0}}, 'qubit_constant_index': [0]}),
     ),
