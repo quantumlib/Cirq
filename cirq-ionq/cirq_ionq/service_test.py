@@ -159,22 +159,21 @@ def test_service_list_calibrations():
 
 
 def test_service_api_key_via_env():
-    os.environ['IONQ_API_KEY'] = 'tomyheart'
-    service = ionq.Service(remote_host='http://example.com')
-    assert service.api_key == 'tomyheart'
-    del os.environ['IONQ_API_KEY']
+    with mock.patch.dict('os.environ', {'IONQ_API_KEY': 'tomyheart'}):
+        service = ionq.Service(remote_host='http://example.com')
+        assert service.api_key == 'tomyheart'
 
 
 def test_service_remote_host_via_env():
-    os.environ['IONQ_REMOTE_HOST'] = 'http://example.com'
-    service = ionq.Service(api_key='tomyheart')
-    assert service.remote_host == 'http://example.com'
-    del os.environ['IONQ_REMOTE_HOST']
+    with mock.patch.dict('os.environ', {'IONQ_REMOTE_HOST': 'http://example.com'}):
+        service = ionq.Service(api_key='tomyheart')
+        assert service.remote_host == 'http://example.com'
 
 
 def test_service_no_param_or_env_variable():
-    with pytest.raises(EnvironmentError):
-        _ = ionq.Service(remote_host='http://example.com')
+    with mock.patch.dict('os.environ', {}, clear=True):
+        with pytest.raises(EnvironmentError):
+            _ = ionq.Service(remote_host='http://example.com')
 
 
 def test_service_no_url_default():
