@@ -542,6 +542,7 @@ class Operation(google.protobuf.message.Message):
     ISWAPPOWGATE_FIELD_NUMBER: builtins.int
     MEASUREMENTGATE_FIELD_NUMBER: builtins.int
     WAITGATE_FIELD_NUMBER: builtins.int
+    INTERNALGATE_FIELD_NUMBER: builtins.int
     ARGS_FIELD_NUMBER: builtins.int
     QUBITS_FIELD_NUMBER: builtins.int
     QUBIT_CONSTANT_INDEX_FIELD_NUMBER: builtins.int
@@ -572,6 +573,8 @@ class Operation(google.protobuf.message.Message):
     def measurementgate(self) -> global___MeasurementGate: ...
     @property
     def waitgate(self) -> global___WaitGate: ...
+    @property
+    def internalgate(self) -> global___InternalGate: ...
     @property
     def args(self) -> google.protobuf.internal.containers.MessageMap[builtins.str, global___Arg]:
         """Map from the argument name to the Argument needed to fully specify
@@ -604,16 +607,17 @@ class Operation(google.protobuf.message.Message):
         iswappowgate: global___ISwapPowGate | None = ...,
         measurementgate: global___MeasurementGate | None = ...,
         waitgate: global___WaitGate | None = ...,
+        internalgate: global___InternalGate | None = ...,
         args: collections.abc.Mapping[builtins.str, global___Arg] | None = ...,
         qubits: collections.abc.Iterable[global___Qubit] | None = ...,
         qubit_constant_index: collections.abc.Iterable[builtins.int] | None = ...,
         token_value: builtins.str = ...,
         token_constant_index: builtins.int = ...,
     ) -> None: ...
-    def HasField(self, field_name: typing_extensions.Literal["czpowgate", b"czpowgate", "fsimgate", b"fsimgate", "gate", b"gate", "gate_value", b"gate_value", "iswappowgate", b"iswappowgate", "measurementgate", b"measurementgate", "phasedxpowgate", b"phasedxpowgate", "phasedxzgate", b"phasedxzgate", "token", b"token", "token_constant_index", b"token_constant_index", "token_value", b"token_value", "waitgate", b"waitgate", "xpowgate", b"xpowgate", "ypowgate", b"ypowgate", "zpowgate", b"zpowgate"]) -> builtins.bool: ...
-    def ClearField(self, field_name: typing_extensions.Literal["args", b"args", "czpowgate", b"czpowgate", "fsimgate", b"fsimgate", "gate", b"gate", "gate_value", b"gate_value", "iswappowgate", b"iswappowgate", "measurementgate", b"measurementgate", "phasedxpowgate", b"phasedxpowgate", "phasedxzgate", b"phasedxzgate", "qubit_constant_index", b"qubit_constant_index", "qubits", b"qubits", "token", b"token", "token_constant_index", b"token_constant_index", "token_value", b"token_value", "waitgate", b"waitgate", "xpowgate", b"xpowgate", "ypowgate", b"ypowgate", "zpowgate", b"zpowgate"]) -> None: ...
+    def HasField(self, field_name: typing_extensions.Literal["czpowgate", b"czpowgate", "fsimgate", b"fsimgate", "gate", b"gate", "gate_value", b"gate_value", "internalgate", b"internalgate", "iswappowgate", b"iswappowgate", "measurementgate", b"measurementgate", "phasedxpowgate", b"phasedxpowgate", "phasedxzgate", b"phasedxzgate", "token", b"token", "token_constant_index", b"token_constant_index", "token_value", b"token_value", "waitgate", b"waitgate", "xpowgate", b"xpowgate", "ypowgate", b"ypowgate", "zpowgate", b"zpowgate"]) -> builtins.bool: ...
+    def ClearField(self, field_name: typing_extensions.Literal["args", b"args", "czpowgate", b"czpowgate", "fsimgate", b"fsimgate", "gate", b"gate", "gate_value", b"gate_value", "internalgate", b"internalgate", "iswappowgate", b"iswappowgate", "measurementgate", b"measurementgate", "phasedxpowgate", b"phasedxpowgate", "phasedxzgate", b"phasedxzgate", "qubit_constant_index", b"qubit_constant_index", "qubits", b"qubits", "token", b"token", "token_constant_index", b"token_constant_index", "token_value", b"token_value", "waitgate", b"waitgate", "xpowgate", b"xpowgate", "ypowgate", b"ypowgate", "zpowgate", b"zpowgate"]) -> None: ...
     @typing.overload
-    def WhichOneof(self, oneof_group: typing_extensions.Literal["gate_value", b"gate_value"]) -> typing_extensions.Literal["xpowgate", "ypowgate", "zpowgate", "phasedxpowgate", "phasedxzgate", "czpowgate", "fsimgate", "iswappowgate", "measurementgate", "waitgate"] | None: ...
+    def WhichOneof(self, oneof_group: typing_extensions.Literal["gate_value", b"gate_value"]) -> typing_extensions.Literal["xpowgate", "ypowgate", "zpowgate", "phasedxpowgate", "phasedxzgate", "czpowgate", "fsimgate", "iswappowgate", "measurementgate", "waitgate", "internalgate"] | None: ...
     @typing.overload
     def WhichOneof(self, oneof_group: typing_extensions.Literal["token", b"token"]) -> typing_extensions.Literal["token_value", "token_constant_index"] | None: ...
 
@@ -704,11 +708,20 @@ class ArgValue(google.protobuf.message.Message):
     BOOL_VALUES_FIELD_NUMBER: builtins.int
     STRING_VALUE_FIELD_NUMBER: builtins.int
     DOUBLE_VALUE_FIELD_NUMBER: builtins.int
+    INT64_VALUES_FIELD_NUMBER: builtins.int
+    DOUBLE_VALUES_FIELD_NUMBER: builtins.int
+    STRING_VALUES_FIELD_NUMBER: builtins.int
     float_value: builtins.float
     @property
     def bool_values(self) -> global___RepeatedBoolean: ...
     string_value: builtins.str
     double_value: builtins.float
+    @property
+    def int64_values(self) -> global___RepeatedInt64: ...
+    @property
+    def double_values(self) -> global___RepeatedDouble: ...
+    @property
+    def string_values(self) -> global___RepeatedString: ...
     def __init__(
         self,
         *,
@@ -716,12 +729,69 @@ class ArgValue(google.protobuf.message.Message):
         bool_values: global___RepeatedBoolean | None = ...,
         string_value: builtins.str = ...,
         double_value: builtins.float = ...,
+        int64_values: global___RepeatedInt64 | None = ...,
+        double_values: global___RepeatedDouble | None = ...,
+        string_values: global___RepeatedString | None = ...,
     ) -> None: ...
-    def HasField(self, field_name: typing_extensions.Literal["arg_value", b"arg_value", "bool_values", b"bool_values", "double_value", b"double_value", "float_value", b"float_value", "string_value", b"string_value"]) -> builtins.bool: ...
-    def ClearField(self, field_name: typing_extensions.Literal["arg_value", b"arg_value", "bool_values", b"bool_values", "double_value", b"double_value", "float_value", b"float_value", "string_value", b"string_value"]) -> None: ...
-    def WhichOneof(self, oneof_group: typing_extensions.Literal["arg_value", b"arg_value"]) -> typing_extensions.Literal["float_value", "bool_values", "string_value", "double_value"] | None: ...
+    def HasField(self, field_name: typing_extensions.Literal["arg_value", b"arg_value", "bool_values", b"bool_values", "double_value", b"double_value", "double_values", b"double_values", "float_value", b"float_value", "int64_values", b"int64_values", "string_value", b"string_value", "string_values", b"string_values"]) -> builtins.bool: ...
+    def ClearField(self, field_name: typing_extensions.Literal["arg_value", b"arg_value", "bool_values", b"bool_values", "double_value", b"double_value", "double_values", b"double_values", "float_value", b"float_value", "int64_values", b"int64_values", "string_value", b"string_value", "string_values", b"string_values"]) -> None: ...
+    def WhichOneof(self, oneof_group: typing_extensions.Literal["arg_value", b"arg_value"]) -> typing_extensions.Literal["float_value", "bool_values", "string_value", "double_value", "int64_values", "double_values", "string_values"] | None: ...
 
 global___ArgValue = ArgValue
+
+@typing_extensions.final
+class RepeatedInt64(google.protobuf.message.Message):
+    """A repeated int value."""
+
+    DESCRIPTOR: google.protobuf.descriptor.Descriptor
+
+    VALUES_FIELD_NUMBER: builtins.int
+    @property
+    def values(self) -> google.protobuf.internal.containers.RepeatedScalarFieldContainer[builtins.int]: ...
+    def __init__(
+        self,
+        *,
+        values: collections.abc.Iterable[builtins.int] | None = ...,
+    ) -> None: ...
+    def ClearField(self, field_name: typing_extensions.Literal["values", b"values"]) -> None: ...
+
+global___RepeatedInt64 = RepeatedInt64
+
+@typing_extensions.final
+class RepeatedDouble(google.protobuf.message.Message):
+    """A repeated double value."""
+
+    DESCRIPTOR: google.protobuf.descriptor.Descriptor
+
+    VALUES_FIELD_NUMBER: builtins.int
+    @property
+    def values(self) -> google.protobuf.internal.containers.RepeatedScalarFieldContainer[builtins.float]: ...
+    def __init__(
+        self,
+        *,
+        values: collections.abc.Iterable[builtins.float] | None = ...,
+    ) -> None: ...
+    def ClearField(self, field_name: typing_extensions.Literal["values", b"values"]) -> None: ...
+
+global___RepeatedDouble = RepeatedDouble
+
+@typing_extensions.final
+class RepeatedString(google.protobuf.message.Message):
+    """A repeated string value."""
+
+    DESCRIPTOR: google.protobuf.descriptor.Descriptor
+
+    VALUES_FIELD_NUMBER: builtins.int
+    @property
+    def values(self) -> google.protobuf.internal.containers.RepeatedScalarFieldContainer[builtins.str]: ...
+    def __init__(
+        self,
+        *,
+        values: collections.abc.Iterable[builtins.str] | None = ...,
+    ) -> None: ...
+    def ClearField(self, field_name: typing_extensions.Literal["values", b"values"]) -> None: ...
+
+global___RepeatedString = RepeatedString
 
 @typing_extensions.final
 class RepeatedBoolean(google.protobuf.message.Message):
@@ -1019,3 +1089,50 @@ class ArgMapping(google.protobuf.message.Message):
     def ClearField(self, field_name: typing_extensions.Literal["entries", b"entries"]) -> None: ...
 
 global___ArgMapping = ArgMapping
+
+@typing_extensions.final
+class InternalGate(google.protobuf.message.Message):
+    DESCRIPTOR: google.protobuf.descriptor.Descriptor
+
+    @typing_extensions.final
+    class GateArgsEntry(google.protobuf.message.Message):
+        DESCRIPTOR: google.protobuf.descriptor.Descriptor
+
+        KEY_FIELD_NUMBER: builtins.int
+        VALUE_FIELD_NUMBER: builtins.int
+        key: builtins.str
+        @property
+        def value(self) -> global___Arg: ...
+        def __init__(
+            self,
+            *,
+            key: builtins.str = ...,
+            value: global___Arg | None = ...,
+        ) -> None: ...
+        def HasField(self, field_name: typing_extensions.Literal["value", b"value"]) -> builtins.bool: ...
+        def ClearField(self, field_name: typing_extensions.Literal["key", b"key", "value", b"value"]) -> None: ...
+
+    NAME_FIELD_NUMBER: builtins.int
+    MODULE_FIELD_NUMBER: builtins.int
+    NUM_QUBITS_FIELD_NUMBER: builtins.int
+    GATE_ARGS_FIELD_NUMBER: builtins.int
+    name: builtins.str
+    """Gate name."""
+    module: builtins.str
+    """Gate module."""
+    num_qubits: builtins.int
+    """Number of qubits. Required during deserialization."""
+    @property
+    def gate_args(self) -> google.protobuf.internal.containers.MessageMap[builtins.str, global___Arg]:
+        """Gate args."""
+    def __init__(
+        self,
+        *,
+        name: builtins.str = ...,
+        module: builtins.str = ...,
+        num_qubits: builtins.int = ...,
+        gate_args: collections.abc.Mapping[builtins.str, global___Arg] | None = ...,
+    ) -> None: ...
+    def ClearField(self, field_name: typing_extensions.Literal["gate_args", b"gate_args", "module", b"module", "name", b"name", "num_qubits", b"num_qubits"]) -> None: ...
+
+global___InternalGate = InternalGate

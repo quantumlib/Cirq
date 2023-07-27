@@ -314,7 +314,7 @@ def density_matrix(
         ValueError: Invalid density matrix.
     """
     if state.ndim != 2 or state.shape[0] != state.shape[1]:
-        raise ValueError('A density matrix must be a square matrix. ' f'Got shape {state.shape}.')
+        raise ValueError(f'A density matrix must be a square matrix. Got shape {state.shape}.')
     dim, _ = state.shape
     if qid_shape is None:
         qid_shape = _infer_qid_shape_from_dimension(dim)

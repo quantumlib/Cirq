@@ -12,10 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import asyncio
 import datetime
 import sys
-import threading
 from typing import (
     AsyncIterable,
     Awaitable,
@@ -39,6 +37,7 @@ from google.protobuf.timestamp_pb2 import Timestamp
 
 from cirq._compat import cached_property
 from cirq_google.cloud import quantum
+from cirq_google.engine.asyncio_executor import AsyncioExecutor
 
 _M = TypeVar('_M', bound=proto.Message)
 _R = TypeVar('_R')
@@ -51,48 +50,6 @@ class EngineException(Exception):
 
 
 RETRYABLE_ERROR_CODES = [500, 503]
-
-
-class AsyncioExecutor:
-    """Runs asyncio coroutines in a thread, exposes the results as duet futures.
-
-    This lets us bridge between an asyncio event loop (which is what async grpc
-    code uses) and duet (which is what cirq uses for asynchrony).
-    """
-
-    def __init__(self) -> None:
-        loop_future: duet.AwaitableFuture[asyncio.AbstractEventLoop] = duet.AwaitableFuture()
-        thread = threading.Thread(target=asyncio.run, args=(self._main(loop_future),), daemon=True)
-        thread.start()
-        self.loop = loop_future.result()
-
-    @staticmethod
-    async def _main(loop_future: duet.AwaitableFuture) -> None:
-        loop = asyncio.get_running_loop()
-        loop_future.set_result(loop)
-        while True:
-            await asyncio.sleep(1)
-
-    def submit(self, func: Callable[..., Awaitable[_R]], *args, **kw) -> duet.AwaitableFuture[_R]:
-        """Dispatch the given function to be run in an asyncio coroutine.
-
-        Args:
-            func: asyncio function which will be run in a separate thread.
-                Will be called with *args and **kw and should return an asyncio
-                awaitable.
-            *args: Positional args to pass to func.
-            **kw: Keyword args to pass to func.
-        """
-        future = asyncio.run_coroutine_threadsafe(func(*args, **kw), self.loop)
-        return duet.AwaitableFuture.wrap(future)
-
-    _instance = None
-
-    @classmethod
-    def instance(cls):
-        if cls._instance is None:
-            cls._instance = cls()
-        return cls._instance
 
 
 class EngineClient:
