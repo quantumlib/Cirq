@@ -122,7 +122,9 @@ class Registers:
     ) -> List[cirq.Qid]:
         ret: List[cirq.Qid] = []
         for reg in self:
-            assert reg.name in qubit_regs, "All qubit registers must pe present"
+            assert (
+                reg.name in qubit_regs
+            ), f"All qubit registers must be present. {reg.name} not in qubit_regs"
             qubits = qubit_regs[reg.name]
             qubits = np.array([qubits] if isinstance(qubits, cirq.Qid) else qubits)
             assert (
