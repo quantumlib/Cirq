@@ -14,7 +14,7 @@
 
 """Support for serializing and deserializing cirq_google.api.v2 protos."""
 
-from typing import cast, Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Tuple
 import sympy
 
 import cirq
@@ -546,18 +546,18 @@ class CircuitSerializer(serializer.Serializer):
                 arg_function_language=arg_function_language,
                 required_arg_name=None,
             )
-            invert_mask = cast(
-                List[bool],
-                arg_func_langs.arg_from_proto(
-                    operation_proto.measurementgate.invert_mask,
-                    arg_function_language=arg_function_language,
-                    required_arg_name=None,
-                ),
+            invert_mask_ = arg_func_langs.arg_from_proto(
+                operation_proto.measurementgate.invert_mask,
+                arg_function_language=arg_function_language,
+                required_arg_name=None,
             )
-            if isinstance(invert_mask, list) and isinstance(key, str):
-                op = cirq.MeasurementGate(
-                    num_qubits=len(qubits), key=key, invert_mask=tuple(invert_mask)
-                )(*qubits)
+            invert_mask: Tuple[bool, ...] = ()
+            if isinstance(invert_mask_, list):
+                invert_mask = tuple(bool(x) for x in invert_mask_)
+            if isinstance(invert_mask, tuple) and isinstance(key, str):
+                op = cirq.MeasurementGate(num_qubits=len(qubits), key=key, invert_mask=invert_mask)(
+                    *qubits
+                )
             else:
                 raise ValueError(f'Incorrect types for measurement gate {invert_mask} {key}')
 

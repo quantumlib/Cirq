@@ -181,9 +181,6 @@ def arg_to_proto(
                     )
                 field, types_tuple = numerical_fields[cur_index]
                 field.extend(types_tuple[0](x) for x in value)
-        else:
-            # Preserve legacy behaviour.
-            msg.arg_value.bool_values.values.extend(())
     else:
         _arg_func_to_proto(value, arg_function_language, msg)
 
