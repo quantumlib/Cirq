@@ -662,7 +662,7 @@ def test_no_constants_table():
         serializer._deserialize_gate_op(op)
 
 
-def test_deserialize() -> None:
+def test_measurement_gate_deserialize() -> None:
     q = cirq.NamedQubit('q')
     circuit = cirq.Circuit(cirq.X(q) ** 0.5, cirq.measure(q))
     msg = cg.CIRCUIT_SERIALIZER.serialize(circuit)

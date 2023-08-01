@@ -14,7 +14,7 @@
 
 """Support for serializing and deserializing cirq_google.api.v2 protos."""
 
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional
 import sympy
 
 import cirq
@@ -546,20 +546,22 @@ class CircuitSerializer(serializer.Serializer):
                 arg_function_language=arg_function_language,
                 required_arg_name=None,
             )
-            invert_mask_ = arg_func_langs.arg_from_proto(
+            parsed_invert_mask = arg_func_langs.arg_from_proto(
                 operation_proto.measurementgate.invert_mask,
                 arg_function_language=arg_function_language,
                 required_arg_name=None,
             )
-            invert_mask: Tuple[bool, ...] = ()
-            if isinstance(invert_mask_, list):
-                invert_mask = tuple(bool(x) for x in invert_mask_)
-            if isinstance(invert_mask, tuple) and isinstance(key, str):
+            if (isinstance(parsed_invert_mask, list) or parsed_invert_mask is None) and isinstance(
+                key, str
+            ):
+                invert_mask: tuple[bool, ...] = ()
+                if parsed_invert_mask is not None:
+                    invert_mask = tuple(bool(x) for x in parsed_invert_mask)
                 op = cirq.MeasurementGate(num_qubits=len(qubits), key=key, invert_mask=invert_mask)(
                     *qubits
                 )
             else:
-                raise ValueError(f'Incorrect types for measurement gate {invert_mask} {key}')
+                raise ValueError(f'Incorrect types for measurement gate {parsed_invert_mask} {key}')
 
         elif which_gate_type == 'waitgate':
             total_nanos = arg_func_langs.float_arg_from_proto(
