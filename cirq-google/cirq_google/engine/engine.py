@@ -340,7 +340,6 @@ class Engine(abstract_engine.AbstractEngine):
 
     run_sweep = duet.sync(run_sweep_async)
 
-    # TODO update
     async def run_batch_async(
         self,
         programs: Sequence[cirq.AbstractCircuit],
@@ -586,6 +585,7 @@ class Engine(abstract_engine.AbstractEngine):
 
     create_batch_program = duet.sync(create_batch_program_async)
 
+    # TODO(#5996) Migrate to stream client
     async def create_calibration_program_async(
         self,
         layers: List['cirq_google.CalibrationLayer'],

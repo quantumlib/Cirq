@@ -286,7 +286,8 @@ class EngineJob(abstract_job.AbstractJob):
         import cirq_google.engine.engine as engine_base
 
         if self._results is None:
-            result = await self._await_result_async()
+            result_response = await self._await_result_async()
+            result = result_response.result
             result_type = result.type_url[len(engine_base.TYPE_PREFIX) :]
             if (
                 result_type == 'cirq.google.api.v1.Result'
@@ -330,7 +331,7 @@ class EngineJob(abstract_job.AbstractJob):
         response = await self.context.client.get_job_results_async(
             self.project_id, self.program_id, self.job_id
         )
-        return response.result
+        return response
 
     async def calibration_results_async(self) -> Sequence[CalibrationResult]:
         """Returns the results of a run_calibration() call.
@@ -341,7 +342,8 @@ class EngineJob(abstract_job.AbstractJob):
         import cirq_google.engine.engine as engine_base
 
         if self._calibration_results is None:
-            result = await self._await_result_async()
+            result_response = await self._await_result_async()
+            result = result_response.result
             result_type = result.type_url[len(engine_base.TYPE_PREFIX) :]
             if result_type != 'cirq.google.api.v2.FocusedCalibrationResult':
                 raise ValueError(f'Did not find calibration results, instead found: {result_type}')

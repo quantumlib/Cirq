@@ -38,7 +38,7 @@ from google.protobuf.timestamp_pb2 import Timestamp
 from cirq._compat import cached_property
 from cirq_google.cloud import quantum
 from cirq_google.engine.asyncio_executor import AsyncioExecutor
-from cirq_google.engine.stream_manager import StreamManager
+from cirq_google.engine import stream_manager
 
 _M = TypeVar('_M', bound=proto.Message)
 _R = TypeVar('_R')
@@ -107,8 +107,8 @@ class EngineClient:
         return self._executor.submit(make_client).result()
 
     @cached_property
-    def _stream_manager(self) -> StreamManager:
-        return StreamManager(self.grpc_client)
+    def _stream_manager(self) -> stream_manager.StreamManager:
+        return stream_manager.StreamManager(self.grpc_client)
 
     async def _send_request_async(self, func: Callable[[_M], Awaitable[_R]], request: _M) -> _R:
         """Sends a request by invoking an asyncio callable."""
@@ -721,6 +721,19 @@ class EngineClient:
         Sends the request over the Quantum Engine QuantumRunStream bidirectional stream, and returns
         a future for the stream response. The future will be completed with a `QuantumResult` if
         the job is successful; otherwise, it will be completed with a QuantumJob.
+
+        Args:
+            project_id: A project_id of the parent Google Cloud Project.
+            program_id: Unique ID of the program within the parent project.
+            code: Properly serialized program code.
+            job_id: Unique ID of the job within the parent program.
+            run_context: Properly serialized run context.
+            processor_ids: List of processor id for running the program.
+            program_description: An optional description to set on the program.
+            program_labels: Optional set of labels to set on the program.
+            priority: Optional priority to run at, 0-1000.
+            job_description: Optional description to set on the job.
+            job_labels: Optional set of labels to set on the job.
         """
         # Check program to run and program parameters.
         if priority and not 0 <= priority < 1000:
