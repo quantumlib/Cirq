@@ -4,7 +4,7 @@
 notebook>=6.4.1,<=6.4.7
 
 # https://github.com/nteract/papermill/issues/519
-ipykernel==6.25.0
+ipykernel==5.3.4
 
 # for executing notebooks in tests
 papermill~=2.3.2
