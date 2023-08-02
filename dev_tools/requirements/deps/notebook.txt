@@ -11,3 +11,6 @@ papermill~=2.3.2
 
 # assumed to be part of colab
 seaborn~=0.11.1
+
+# for cirq-ft notebooks
+ipykernel==6.25.0
